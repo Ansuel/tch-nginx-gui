@@ -1,0 +1,16 @@
+local mapper = mapper
+local config_versioncusto = "versioncusto"
+
+-- uci.env
+mapper("uci_1to1").registerConfigMap(config_versioncusto)
+
+local versioncusto_envvars = {
+    config = config_versioncusto,
+    section = "override",
+    type = "override",
+    options = {
+        "fwversion_prefix", "fwversion_suffix", "fwversion_override",
+    }
+}
+
+mapper("uci_1to1").registerSimpleMap(versioncusto_envvars)

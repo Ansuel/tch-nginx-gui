@@ -1,0 +1,20 @@
+local config_samba = "samba"
+
+-- uci.samba
+mapper("uci_1to1").registerConfigMap(config_samba)
+
+-- uci.samba.samba
+local samba_samba = {
+  config =  config_samba,
+  section = "samba",
+  options = { "name", "workgroup", "description", "configsdir", "homes", "enabled", "filesharing", "charset" }
+}
+mapper("uci_1to1").registerSimpleMap(samba_samba)
+
+--uci.samba.sambashare
+local samba_sambashare = {
+  config = config_samba,
+  type = "sambashare",
+  options = { "device", "filesystem", "configpath", "path", "guest_ok", "create_mask", "dir_mask", "read_only", "enabled", "available" }
+}
+mapper("uci_1to1").registerNamedMultiMap(samba_sambashare)

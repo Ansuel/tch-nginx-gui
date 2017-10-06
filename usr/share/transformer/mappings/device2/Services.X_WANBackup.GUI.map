@@ -1,0 +1,110 @@
+-- Manually generated
+local register = register
+
+local Device_Services_X_BELGACOM_WANBackup_GUI_ = {
+  objectType = {
+    name = "Device.Services.X_BELGACOM_WANBackup.GUI.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+    }
+  }
+}
+
+register(Device_Services_X_BELGACOM_WANBackup_GUI_)
+
+local Device_Services_X_BELGACOM_WANBackup_GUI_multi_ = {
+  objectType = {
+    name = "Device.Services.X_BELGACOM_WANBackup.GUI.#USER.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      ShowWANBackupPage = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      ShowWANBackupButton = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "Hide",
+          "Visible",
+          "Grayed_out",
+        },
+        default = "Hide",
+      },
+    }
+  }
+}
+
+local mapper = mapper
+local uciHelper = mapper("ucihelper")
+local webBinding = { config = "web" }
+local configChanged = false
+
+local sectionMap = {
+  ["User"] = "usr_User",
+  ["Admin"] = "usr_Admin",
+  ["Expert"] = "usr_Expert",
+}
+
+local paramMap = {
+  ["ShowWANBackupPage"]   = "lte_backup_show_page",
+  ["ShowWANBackupButton"] = "lte_backup_show_button"
+}
+
+local defaultValue = {
+  ["ShowWANBackupPage"]   = "0",
+  ["ShowWANBackupButton"] = "Hide",
+}
+
+local function getUciValue(mapping, param)
+  webBinding.sectionname = mapping.sectionname
+  webBinding.option = paramMap[param]
+  webBinding.default = defaultValue[param]
+  return uciHelper.get_from_uci(webBinding)
+end
+
+local function setUciValue(mapping, param, value)
+  webBinding.sectionname = mapping.sectionname
+  webBinding.option = paramMap[param]
+  uciHelper.set_on_uci(webBinding, value, commitapply)
+  configChanged = true
+end
+
+Device_Services_X_BELGACOM_WANBackup_GUI_multi_.get = getUciValue
+
+Device_Services_X_BELGACOM_WANBackup_GUI_multi_.set = setUciValue
+
+Device_Services_X_BELGACOM_WANBackup_GUI_multi_.getall = function(mapping)
+  webBinding.sectionname = mapping.sectionname
+  local userValues = uciHelper.getall_from_uci(webBinding)
+  return {
+    ShowWANBackupPage = userValues["lte_backup_show_page"] or "0",
+    ShowWANBackupButton = userValues["lte_backup_show_button"] or "Hide",
+  }
+end
+
+Device_Services_X_BELGACOM_WANBackup_GUI_multi_.commit = function()
+  if configChanged then
+    uciHelper.commit(webBinding)
+    configChanged = false
+  end
+end
+
+Device_Services_X_BELGACOM_WANBackup_GUI_multi_.revert = function()
+  if configChanged then
+    uciHelper.revert(webBinding)
+    configChanged = false
+  end
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Device_Services_X_BELGACOM_WANBackup_GUI_multi_, "#USER", {"User", "Expert", "Admin"})
+for _, dupli in ipairs(duplicates) do
+  dupli.sectionname = sectionMap[(dupli.objectType.name:match("^.*%.(.*)%.$"))]
+  register(dupli)
+end

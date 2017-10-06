@@ -1,0 +1,8 @@
+local command = {
+  name = "logread",
+  full_path = "/usr/bin/clash-logread-wrapper",
+  options_without_argument = {"-f", "-i"},
+  options_with_argument = {"--filter"},
+}
+
+mapper("command").registerCommand(command)

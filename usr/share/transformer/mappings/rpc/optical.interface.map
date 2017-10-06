@@ -1,0 +1,161 @@
+--NG-96253 GPON-Diagnostics/Network needs to be lifted to TI specific functionalities
+--NG-102545 GUI broadband is showing SFP Broadband GUI page when Ethernet 4 is connected
+local open, popen, string, register = io.open, io.popen, string, register
+--local log = require("transformer.logger")
+local sfp = require("transformer.shared.sfp")
+
+local isConfigChanged = false
+local uciHelper = mapper("ucihelper")
+local commitapply = commitapply
+local opticalBinding = {config="optical", sectionname="optical", option="enable"}
+local flag = sfp.readSFPFlag()
+if flag == 0 then
+  return
+end
+
+local Multi_Optical_Interface_i_ = {
+  objectType = {
+    name = "rpc.optical.Interface.{i}.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = math.huge,
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+      },
+      OpticalSignalLevel = {
+        access = "readOnly",
+        type = "int",
+      },
+      TransmitOpticalLevel = {
+        access = "readOnly",
+        type = "int",
+      },
+		VendorName = {
+        access = "readOnly",
+        type = "string",
+      },		 
+    },
+  }
+}
+
+-- Currently by default single entry is formed
+Multi_Optical_Interface_i_.entries = function(mapping)
+  return { "1" }
+end
+
+Multi_Optical_Interface_i_.get = {
+  Enable = function()
+    return sfp.getEnable()
+  end,
+  Status = function()
+    return sfp.getStatus()
+  end,
+  OpticalSignalLevel = function()
+    return sfp.getLevel("OpticalSignalLevel")
+  end,
+  TransmitOpticalLevel = function()
+    return sfp.getLevel("TransmitOpticalLevel")
+  end,
+	VendorName = function()
+	return sfp.getSFPVendorName()
+	end,					 
+}
+
+Multi_Optical_Interface_i_.getall = function()
+  return sfp.getOpticals()
+end
+
+Multi_Optical_Interface_i_.set = {
+  Enable = function(mapping, param, value, key)
+    uciHelper.set_on_uci(opticalBinding, value, commitapply)
+    isConfigChanged = true
+  end,
+}
+
+Multi_Optical_Interface_i_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(opticalBinding)
+    isConfigChanged = false
+  end
+end
+
+Multi_Optical_Interface_i_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(opticalBinding)
+    isConfigChanged = false
+  end
+end
+
+register(Multi_Optical_Interface_i_)
+
+local Multi_Optical_Interface_i_Stats_ = {
+  objectType = {
+    name = "rpc.optical.Interface.{i}.Stats.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      BytesSent = {
+        access = "readOnly",
+        type = "unsignedLong",
+      },
+      BytesReceived = {
+        access = "readOnly",
+        type = "unsignedLong",
+      },
+      PacketsSent = {
+        access = "readOnly",
+        type = "unsignedLong",
+      },
+      PacketsReceived = {
+        access = "readOnly",
+        type = "unsignedLong",
+      },
+      ErrorsSent = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      ErrorsReceived = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      DiscardPacketsSent = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      DiscardPacketsReceived = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+	  reset = {
+        access = "readWrite",
+        type = "boolean",
+      },
+    },
+  }
+}
+
+Multi_Optical_Interface_i_Stats_.get = function(mapping, param)
+	if param == "reset" then
+		return "0"
+	end
+  return sfp.getStats(param)
+end
+
+--[[Multi_Optical_Interface_i_Stats_.getall = function()
+  return sfp.getAllStats()
+end]]
+
+Multi_Optical_Interface_i_Stats_.set = function(mapping, paramName, paramValue, key)
+  if paramName == "reset" and paramValue == "1" then
+    return sfp.resetStatsGponSFP()
+  end
+end
+
+register(Multi_Optical_Interface_i_Stats_)

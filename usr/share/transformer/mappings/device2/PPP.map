@@ -1,0 +1,34 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_PPP_ = {
+  objectType = {
+    name = "Device.PPP.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      -- InterfaceNumberOfEntries
+      -- automatically created when Device.PPP.Interface.{i}. is loaded
+      SupportedNCPs = {
+        access = "readOnly",
+        list = true,
+        type = "string",
+        enumeration = {
+          "ATCP",
+          "IPCP",
+          "IPXCP",
+          "NBFCP",
+          "IPv6CP",
+        },
+      },
+    }
+  }
+}
+
+Device_PPP_.get = {
+  SupportedNCPs = "IPCP,IPv6CP"
+}
+
+-- A getall implementation is not done as it will not bring any improvement
+
+register(Device_PPP_)

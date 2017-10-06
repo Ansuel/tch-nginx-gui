@@ -1,0 +1,205 @@
+-- Automatically generated from InternetGatewayDevice:1.4
+-- using generator version 2.1
+local InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_DHCPStaticAddress_i_ = {
+  objectType = {
+    name = "InternetGatewayDevice.LANDevice.{i}.LANHostConfigManagement.DHCPStaticAddress.{i}.",
+    access = "readWrite",
+    numEntriesParameter = "DHCPStaticAddressNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      Chaddr = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      Yiaddr = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+    }
+  }
+}
+
+local string = string
+local commitapply = commitapply
+local uci_helper = mapper("ucihelper")
+local get_from_uci = uci_helper.get_from_uci
+local getall_from_uci = uci_helper.getall_from_uci
+local set_on_uci = uci_helper.set_on_uci
+local foreach_on_uci = uci_helper.foreach_on_uci
+local generate_key_on_uci = uci_helper.generate_key_on_uci
+local key2sectionname = {}
+local pairs, tonumber = pairs, tonumber
+local dhcp_binding = { config = "dhcp", sectionname = "", option = "", default = "" }
+local configChanged = false
+
+-- here mac may be '11:22:33:44:55:66 aa:bb:cc:dd:ee:ff'
+local function isMACs(value)
+    if not value then
+        return false
+    end
+    local mac_pattern = "^(%x%x):(%x%x):(%x%x):(%x%x):(%x%x):(%x%x)$"
+    local i = 0
+    for mac in string.gmatch(value, "%S+") do
+        local chunks = { mac:match(mac_pattern) }
+        if #chunks == 6 then
+            i = i + 1
+        else
+            return false
+        end
+    end
+    return (i > 0) and true or false
+end
+
+local function isIP(value)
+    if not value then
+        return false
+    end
+    local chunks = { value:match("^(%d+)%.(%d+)%.(%d+)%.(%d+)$") }
+    if #chunks == 4 then
+        for _,v in pairs(chunks) do
+            local octet = tonumber(v)
+            if octet < 0 or octet > 255 then
+                return false
+            end
+        end
+        return true
+    end
+    return false
+end
+
+InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_DHCPStaticAddress_i_.entries = function(mapping, parentkey)
+    local StaticAddrs = {}
+    key2sectionname = {}
+    local key_generated = false
+
+    dhcp_binding.sectionname = "host"
+    local result = foreach_on_uci(dhcp_binding, function(s)
+        local _key = s._key
+        if not _key then
+            dhcp_binding.sectionname = s[".name"]
+            _key = generate_key_on_uci(dhcp_binding)
+            key_generated = true
+        end
+        _key = parentkey .. "|" .. _key
+        StaticAddrs[#StaticAddrs + 1] = _key
+        key2sectionname[_key] = s[".name"]
+    end)
+    if key_generated then
+        if result then
+            uci_helper.commit_keys(dhcp_binding)
+        else
+            uci_helper.revert_keys(dhcp_binding)
+        end
+    end
+    return StaticAddrs
+end
+
+local function get_from_rule(key, option, default)
+  dhcp_binding.sectionname = key2sectionname[key]
+  dhcp_binding.option = option
+  dhcp_binding.default = default
+  if option then
+    return get_from_uci(dhcp_binding)
+  end
+  return getall_from_uci(dhcp_binding)
+end
+
+local function set_on_rule(key, param, value)
+  dhcp_binding.sectionname = key2sectionname[key]
+  dhcp_binding.option = param
+  set_on_uci(dhcp_binding, value, commitapply)
+  configChanged = true
+end
+
+InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_DHCPStaticAddress_i_.get = {
+  Enable = function(mapping, param, key, parentkey)
+    return get_from_rule(key, "enable", "1")
+  end,
+  Chaddr = function(mapping, param, key, parentkey)
+    return get_from_rule(key, "mac", "")
+  end,
+  Yiaddr = function(mapping, param, key, parentkey)
+    return get_from_rule(key, "ip", "")
+  end,
+}
+
+InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_DHCPStaticAddress_i_.set = {
+    Enable = function(mapping, param, paramvalue, key, parentkey)
+        if paramvalue == "1" then
+            local mac = get_from_rule(key, "mac", "")
+            if not isMACs(mac) then
+                return nil, "Invalid MAC address; cannot Enable"
+            end
+            local ip = get_from_rule(key, "ip", "")
+            if not isIP(ip) then
+                return nil, "Invalid IP address; cannot Enable"
+            end
+        end
+        set_on_rule(key, "enable", paramvalue)
+    end,
+    Chaddr = function(mapping, param, paramvalue, key, parentkey)
+        local result = isMACs(paramvalue)
+        if result then
+            set_on_rule(key, "mac", paramvalue)
+        else
+            return nil, "Invalid MAC address, it must be of the form 00:11:22:33:44:55"
+        end
+    end,
+    Yiaddr = function(mapping, param, paramvalue, key, parentkey)
+        local result = isIP(paramvalue)
+        if result then
+            set_on_rule(key, "ip", paramvalue)
+        else
+            return nil, "Invalid IP address, it must be of the form 1.2.3.4"
+        end
+    end,
+}
+
+InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_DHCPStaticAddress_i_.add = function(mapping, parentkey)
+  dhcp_binding.sectionname = "host"
+  dhcp_binding.option = nil
+  local sectionName = uci_helper.add_on_uci(dhcp_binding, commitapply)
+  if sectionName then
+    dhcp_binding.sectionname = sectionName
+    local _key = uci_helper.generate_key()
+    dhcp_binding.option = "_key"
+    set_on_uci(dhcp_binding, _key, commitapply)
+    _key = parentkey .. "|" .. _key
+    key2sectionname[_key] = sectionName
+    return _key
+  end
+end
+
+InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_DHCPStaticAddress_i_.delete = function(mapping, key)
+  dhcp_binding.sectionname = key2sectionname[key]
+  dhcp_binding.option = nil
+  uci_helper.delete_on_uci(dhcp_binding, commitapply)
+  dhcp_binding.sectionname = nil
+  configChanged = true
+  return true
+end
+
+InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_DHCPStaticAddress_i_.commit = function()
+  if configChanged then
+    uci_helper.commit(dhcp_binding)
+    configChanged = false
+  end
+end
+
+InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_DHCPStaticAddress_i_.revert = function()
+  if configChanged then
+    uci_helper.revert(dhcp_binding)
+    configChanged = false
+  end
+end
+
+register(InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_DHCPStaticAddress_i_)

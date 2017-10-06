@@ -1,0 +1,302 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_IP_Interface_i_IPv4Address_i_ = {
+  objectType = {
+    name = "Device.IP.Interface.{i}.IPv4Address.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "IPv4AddressNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Disabled",
+          "Enabled",
+          "Error_Misconfigured",
+          "Error",
+        },
+        default = "Disabled",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        max = "64",
+      },
+      IPAddress = {
+        access = "readWrite",
+        type = "string",
+      },
+      SubnetMask = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      AddressingType = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "DHCP",
+          "IKEv2",
+          "AutoIP",
+          "IPCP",
+          "Static",
+        },
+        default = "Static",
+      },
+    }
+  }
+}
+
+local format = string.format
+local uciHelper = mapper("ucihelper")
+local commitApply = commitapply
+local nwCommon = mapper("nwcommon")
+local protoToAddrType = {static = "Static", dhcp = "DHCP", pppoe = "IPCP", pppoa = "IPCP"}
+local networkBinding = {config="network"}
+local isConfigChanged = false
+
+local inet = require("tch.inet")
+local ipaddr = require 'transformer.shared.models.device2.ipaddr'
+local dmordering = require 'transformer.shared.models.dmordering'
+
+local error_not_static = "AddressingMode is not static"
+local error_mobile = "mobile interface"
+
+local function getUciParam(section, option)
+  networkBinding.sectionname = section
+  networkBinding.option = option
+  return uciHelper.get_from_uci(networkBinding)
+end
+
+local function preprocessIP(ifname, ip)
+  local enabled = getUciParam(ip.ifname, "disabled_info") == ""
+  ip.primary = ip.ifname == ifname
+  ip.enabled = enabled
+  if not ip.enabled then
+    ip.ipaddr = ""
+    ip.netmask = ""
+    local info = ip.disabled_info
+    if info then
+      -- retrieve the real device2 info
+      ip.proto = info:match("proto=([^,]*)") or ip.proto
+      ip.ipaddr = info:match("ip=([^,]*)") or ""
+      ip.netmask = info:match("mask=([^,]*)") or ""
+    end
+  else
+    ip.ipaddr = ip.ipaddr or ""
+    ip.netmask = ip.netmask or ""
+  end
+  if ip.mobile then
+    ip.writable = false
+    ip.write_error = error_mobile
+  elseif ip.proto~='static' then
+    ip.writable = false
+    ip.write_error = error_not_static
+  else
+    ip.writable = true
+  end
+  return ip
+end
+
+local ipcache
+
+Device_IP_Interface_i_IPv4Address_i_.entries = function(_, ifname)
+  local entries = {}
+  local ifs = dmordering.linksTo("network.interface", ifname)
+  local iplist = ipaddr.getAddrList(ifs)
+  ipcache = {}
+  for i, addr in ipairs(iplist) do
+    local key = (i==1) and ifname or (ifname..'|'..i)
+    ipcache[key] = preprocessIP(ifname, addr)
+    entries[#entries+1] = key
+  end
+  return entries
+end
+
+local function getEnable(ip)
+  return ip.enabled and "1" or "0"
+end
+
+local function getStatus(ip)
+  if ip.enabled then
+    if ip.ipaddr == "" or ip.netmask == "" then
+      return "Error_Misconfigured"
+    else
+      return "Enabled"
+    end
+  end
+  return "Disabled"
+end
+
+local function getIPAddress(ip)
+  return ip.ipaddr ~= "0.0.0.0" and ip.ipaddr or ""
+end
+
+local function getSubnet(ip)
+  return ip.netmask
+end
+
+local function getAddressType(ip)
+  return protoToAddrType[ip.proto] or ""
+end
+
+Device_IP_Interface_i_IPv4Address_i_.get = {
+  Enable = function(_, _, key)
+    return getEnable(ipcache[key])
+  end,
+  Status = function(_, _, key)
+    return getStatus(ipcache[key])
+  end,
+  IPAddress = function(_, _, key)
+    return getIPAddress(ipcache[key])
+  end,
+  SubnetMask = function(_, _, key)
+    return getSubnet(ipcache[key])
+  end,
+  AddressingType = function(_, _, key)
+    return getAddressType(ipcache[key])
+  end
+}
+
+Device_IP_Interface_i_IPv4Address_i_.getall = function(_, key)
+  local ip = ipcache[key]
+  return {
+    Enable = getEnable(ip),
+    Status = getStatus(ip),
+    IPAddress = getIPAddress(ip),
+    SubnetMask = getSubnet(ip),
+    AddressingType = getAddressType(ip)
+  }
+end
+
+local function setUciParam(paramName, value, key)
+  networkBinding.sectionname=key
+  networkBinding.option=paramName
+  uciHelper.set_on_uci(networkBinding, value, commitApply)
+  isConfigChanged = true
+end
+
+local function saveIP(ip)
+  local ifname = ip.ifname
+  if ip.enabled then
+    setUciParam("proto", ip.proto, ifname)
+    if ip.proto == "static" then
+      setUciParam("ipaddr", ip.ipaddr, ifname)
+      setUciParam("netmask", ip.netmask, ifname)
+    else
+      setUciParam("ipaddr", "", ifname)
+      setUciParam("netmask", "", ifname)
+    end
+    setUciParam("disabled_info", "", ifname)
+  else
+    setUciParam("proto", "static", ifname)
+    setUciParam("ipaddr", ip.primary and "0.0.0.0" or "", ifname)
+    setUciParam("netmask", "", ifname)
+    local info="proto="..ip.proto
+    if ip.proto=='static' then
+      info=info..",ip="..ip.ipaddr..",mask="..ip.netmask
+    end
+    setUciParam("disabled_info", info, ifname)
+  end
+end
+
+local function isValidIPNetmaskCombo(ip, addr, netmask)
+  if ip.enabled then
+    addr = addr or getIPAddress(ip)
+    netmask = netmask or ip.netmask
+    if addr ~= "" and netmask ~= "" then
+      return nwCommon.isValidIPv4AddressForDevice(addr, netmask)
+    end
+  end
+  return true
+end
+
+Device_IP_Interface_i_IPv4Address_i_.set = {
+  Enable = function(mapping, param, value, key)
+    local enable = value=='1'
+    local ip = ipcache[key]
+    if ip.enabled ~= enable then
+      if ip.mobile then
+        return nil, "action not supported for mobile connections"
+      end
+      ip.enabled = enable
+      saveIP(ip)
+    end
+  end,
+  IPAddress = function(mapping, param, value, key)
+    local ip = ipcache[key]
+    if ip.writable then
+      local rc, err = inet.isValidIPv4(value)
+      if not rc then
+        return nil, err
+      end
+      rc, err = isValidIPNetmaskCombo(ip, value)
+      if not rc then
+        return nil, err
+      end
+      ip.ipaddr = value
+      saveIP(ip)
+    else
+      return nil, "setting IP address is not allowed: "..ip.write_error
+    end
+  end,
+
+  SubnetMask = function(mapping, param, value, key)
+    local ip = ipcache[key]
+    if ip.writable then
+      if inet.isValidIPv4(value) then
+        if not nwCommon.isValidIPv4SubnetMask(value) then
+          return nil, format("%s is not a valid subnet mask", value)
+        end
+        local rc, err = isValidIPNetmaskCombo(ip, nil, value)
+        if not rc then
+          return nil, err
+        end
+        ip.netmask = value
+        saveIP(ip)
+      else
+        return nil, format("%s is not a valid IPv4 subnet mask", value)
+      end
+    else
+      return nil, "setting Subnet mask is not allowed: "..ip.write_error
+    end
+  end
+}
+
+Device_IP_Interface_i_IPv4Address_i_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(networkBinding)
+    isConfigChanged = false
+  end
+end
+
+Device_IP_Interface_i_IPv4Address_i_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(networkBinding)
+    isConfigChanged = false
+  end
+end
+
+local function setUbusEvent(mapping, action, data)
+  if data["ipv4-address"] then
+    return { { key = data["interface"], paramname = "IPAddress" } }
+  end
+end
+
+Device_IP_Interface_i_IPv4Address_i_.add_watchers = function(mapping)
+  local ubusEventSource = eventsource("ubus")
+  ubusEventSource.watch_event(mapping, setUbusEvent, "network.interface")
+end
+
+register(Device_IP_Interface_i_IPv4Address_i_)
+

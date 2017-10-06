@@ -1,0 +1,90 @@
+
+local uci_wanatmf5loopback = {
+  objectType = {
+    name = "uci.wanatmf5loopback.@.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = math.huge,
+    parameters = {
+      DiagnosticsState = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        enumeration = {
+          "None",
+          "Requested",
+          "Complete",
+          "Error_Internal",
+          "Error_Other",
+        },
+        default = "None",
+      },
+      NumberOfRepetitions = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+        default = "1",
+      },
+      Timeout = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+      SuccessCount = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+        default = "0",
+      },
+      FailureCount = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+        default = "0",
+      },
+      AverageResponseTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+        default = "0",
+      },
+      MinimumResponseTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+        default = "0",
+      },
+      MaximumResponseTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+        default = "0",
+      },
+    }
+  }
+}
+
+local helper = require("transformer.shared.atmpinghelper")
+
+helper.startup()
+
+uci_wanatmf5loopback.get = function(mapping, pname, key)
+  return helper.get(key, pname)
+end
+
+uci_wanatmf5loopback.set = function(mapping, pname, pvalue, key)
+  helper.set(key, pname, pvalue, commitapply, "network_rpc")
+end
+uci_wanatmf5loopback.entries = helper.entries
+uci_wanatmf5loopback.commit = helper.commit
+uci_wanatmf5loopback.revert = helper.revert
+
+register(uci_wanatmf5loopback)

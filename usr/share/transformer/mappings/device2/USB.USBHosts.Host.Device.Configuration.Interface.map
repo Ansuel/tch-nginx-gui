@@ -1,0 +1,78 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_USB_USBHosts_Host_i_Device_i_Configuration_i_Interface_i_ = {
+  objectType = {
+    name = "Device.USB.USBHosts.Host.{i}.Device.{i}.Configuration.{i}.Interface.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "InterfaceNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      InterfaceNumber = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            max = "255",
+          },
+        },
+      },
+      InterfaceClass = {
+        access = "readOnly",
+        type = "hexBinary",
+        max = "1",
+      },
+      InterfaceSubClass = {
+        access = "readOnly",
+        type = "hexBinary",
+        max = "1",
+      },
+      InterfaceProtocol = {
+        access = "readOnly",
+        type = "hexBinary",
+        max = "1",
+      },
+    }
+  }
+}
+
+local usbDevicesPath = "/sys/bus/usb/devices/"
+
+local paramMap = {
+  ["InterfaceNumber"]   = "bInterfaceNumber",
+  ["InterfaceClass"]    = "bInterfaceClass",
+  ["InterfaceSubClass"] = "bInterfaceSubClass",
+  ["InterfaceProtocol"] = "bInterfaceProtocol",
+}
+
+-- The entries function is formed based on the format "bus-port.port.port .. :config.interface" or "bus-port:config.interface"
+
+Device_USB_USBHosts_Host_i_Device_i_Configuration_i_Interface_i_.entries = function(mapping, parentKey)
+  local usbDeviceInterfaceEntries = {}
+  for file in lfs.dir(usbDevicesPath .. parentKey .. "/") do
+    if file:match(":(%d+)%.(%d+)$") then -- Adds Interfaces that corresponds to specific USB device(ParentKey)
+      usbDeviceInterfaceEntries[#usbDeviceInterfaceEntries + 1] = file
+    end
+  end
+  return usbDeviceInterfaceEntries
+end
+
+local function getInterfaceInfo(mapping, param, key)
+  local value = ""
+  if paramMap[param] then
+    local fileName = usbDevicesPath .. key .. "/" .. paramMap[param]
+    local fd = io.open(fileName)
+    if fd then
+      value = fd:read()
+      fd:close()
+    end
+  end
+  if param == "InterfaceNumber" then
+    return mapper('nwcommon').hex2Decimal(value)
+  end
+  return value
+end
+
+Device_USB_USBHosts_Host_i_Device_i_Configuration_i_Interface_i_.get = getInterfaceInfo
+
+register(Device_USB_USBHosts_Host_i_Device_i_Configuration_i_Interface_i_)

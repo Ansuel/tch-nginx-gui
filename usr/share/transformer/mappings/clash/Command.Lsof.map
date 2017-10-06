@@ -1,0 +1,7 @@
+local command = {
+  name = "lsof",
+  full_path = "/usr/bin/lsof",
+  options_with_argument = {"-p"},
+}
+
+mapper("command").registerCommand(command)

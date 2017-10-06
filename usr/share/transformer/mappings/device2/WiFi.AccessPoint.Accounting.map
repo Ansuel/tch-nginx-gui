@@ -1,0 +1,198 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_WiFi_AccessPoint_i_Accounting_ = {
+  objectType = {
+    name = "Device.WiFi.AccessPoint.{i}.Accounting.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      ServerIPAddr = {
+        access = "readWrite",
+        type = "string",
+      },
+      SecondaryServerIPAddr = {
+        access = "readWrite",
+        type = "string",
+      },
+      ServerPort = {
+        access = "readWrite",
+        type = "unsignedInt",
+        default = "1813",
+      },
+      SecondaryServerPort = {
+        access = "readWrite",
+        type = "unsignedInt",
+        default = "1813",
+      },
+      Secret = {
+        access = "readWrite",
+        hidden = "true",
+        type = "string",
+      },
+      SecondarySecret = {
+        access = "readWrite",
+        hidden = "true",
+        type = "string",
+      },
+      InterimInterval = {
+        access = "readOnly", -- Currently readWrite is not supported
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "0",
+          },
+          {
+            min = "60",
+          },
+        },
+        default = "0",
+      },
+    }
+  }
+}
+
+local mapper = mapper
+local uciHelper = mapper("ucihelper")
+local getFromUci = uciHelper.get_from_uci
+local getAllFromUci = uciHelper.getall_from_uci
+local setOnUci = uciHelper.set_on_uci
+local wirelessBinding = {config = "wireless"}
+local commitApply = commitapply
+local isConfigChanged = false
+
+local getUciMap = {
+  ["Enable"] = "state",
+  ["ServerIPAddr"] = "ipaddr",
+  ["SecondaryServerIPAddr"] = "ipaddr",
+  ["ServerPort"] = "port",
+  ["SecondaryServerPort"] = "port",
+  ["Secret"] = "secret",
+  ["SecondarySecret"] = "secret",
+}
+
+-- Map table to set server(Y = 0/1)
+--   0 primary
+--   1 secondary
+local serverMap = {
+  ["Enable"] = "0",
+  ["ServerIPAddr"] = "0",
+  ["SecondaryServerIPAddr"] = "1",
+  ["ServerPort"] = "0",
+  ["SecondaryServerPort"] = "1",
+  ["Secret"] = "0",
+  ["SecondarySecret"] = "1",
+}
+
+local function getUciValue(sectionName, paramName)
+  wirelessBinding.sectionname = sectionName
+  if paramName then
+    wirelessBinding.option = paramName
+    return getFromUci(wirelessBinding)
+  end
+  return getAllFromUci(wirelessBinding)
+end
+
+local function setUciParam(sectionName,paramName,value)
+  wirelessBinding.sectionname = sectionName
+  wirelessBinding.option = paramName
+  setOnUci(wirelessBinding,value,commitApply)
+  isConfigChanged = true
+end
+
+local function isEnterpriseMode(key)
+  local mode = getUciValue(key,"security_mode")
+  if mode == "wpa2" or mode == "wpa-wpa2" then
+    return true
+  end
+  return false
+end
+
+local function getSecPort(key, param)
+  local sectionName = key .. "_" .. "acct".."1"
+  local port =  getUciValue(sectionName, getUciMap[param])
+  -- if Secondary port is not defined then primary port should be used
+  if port == "" then
+    sectionName = key .. "_" .. "acct".."0"
+    port = getUciValue(sectionName, getUciMap[param]) or "1813"
+  end
+  return port
+end
+
+Device_WiFi_AccessPoint_i_Accounting_.get = function(mapping, param, key)
+  local sectionName, result
+  if isEnterpriseMode(key) then
+    if serverMap[param] then
+      sectionName = key .. "_" .. "acct"..serverMap[param]
+      if param == "ServerPort" then
+        result = getUciValue(sectionName, getUciMap[param]) or "1813"
+      elseif param == "SecondaryServerPort" then
+        result = getSecPort(key, param)
+      elseif param == "Secret" or param == "SecondarySecret" then
+        result = ""
+      else
+        result = getUciValue(sectionName, getUciMap[param]) or ""
+      end
+      return result
+    end
+  end
+  if param == "ServerPort" or param == "SecondaryServerPort" then
+    return "1813"
+  elseif param == "InterimInterval" then
+    return "300"
+  end
+  return ""
+end
+
+Device_WiFi_AccessPoint_i_Accounting_.set = function(mapping, param, value, key)
+  if serverMap[param] then
+    local sectionName = key .. "_" .. "acct"..serverMap[param]
+    local sectionPresent = getUciValue(sectionName)
+    if not next(sectionPresent) then
+      return nil, "Section not present"
+    end
+    setUciParam(sectionName, getUciMap[param], value)
+  end
+end
+
+Device_WiFi_AccessPoint_i_Accounting_.getall = function(mapping, key)
+  local primValues = {}
+  local secValues = {}
+  if isEnterpriseMode(key) then
+    local sectionName = key .. "_" .. "acct".."0"
+    primValues = getUciValue(sectionName)
+    sectionName = key .. "_" .. "acct".."1"
+    secValues = getUciValue(sectionName)
+  end
+  return {
+    Enable = primValues["state"] or "0",
+    ServerIPAddr = primValues["ipaddr"] or "",
+    SecondaryServerIPAddr = secValues["ipaddr"] or "",
+    ServerPort = primValues["port"] or "1813",
+    SecondaryServerPort = secValues["port"] or primValues["port"] or "1813",
+    Secret = "",
+    SecondarySecret = "",
+    InterimInterval = "300",
+  }
+end
+
+Device_WiFi_AccessPoint_i_Accounting_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(wirelessBinding)
+    isConfigChanged = false
+  end
+end
+
+Device_WiFi_AccessPoint_i_Accounting_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(wirelessBinding)
+    isConfigChanged = false
+  end
+end
+
+register(Device_WiFi_AccessPoint_i_Accounting_)

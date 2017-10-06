@@ -1,0 +1,110 @@
+-- Manually generated
+local Device_Services_X_BELGACOM_WANBackup_ = {
+  objectType = {
+    name = "Device.Services.X_BELGACOM_WANBackup.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Disabled",
+          "BackupLinkInUse",
+          "BackupLinkAvailable",
+          "Error_LteLinkToNetworkDown",
+          "Error_NoConnectionToLteModem",
+        },
+        default = "Disabled",
+      },
+    }
+  }
+}
+
+local mapper = mapper
+local uciHelper = mapper("ucihelper")
+local networkBinding = { config = "network", sectionname = "lte_backup" }
+local getFromUci = uciHelper.get_from_uci
+local configChanged = false
+local nwCommon = mapper("nwcommon")
+
+local function getEnable()
+  networkBinding.option = "auto"
+  networkBinding.default = "1"
+  return getFromUci(networkBinding)
+end
+
+local function getStatus()
+  if getEnable() == "1" then
+    local device = nwCommon.getIntfName("lte_backup")
+    if device ~= "" then
+      local deviceStatus = device and nwCommon.get_ubus_device_status(device)
+      local lteBackupStatus = deviceStatus and deviceStatus["carrier"]
+      if not lteBackupStatus then
+        return "Error_NoConnectionToLteModem"
+      else
+        local lteIntfStatus = nwCommon.get_ubus_interface_status("lte_backup")
+        local lteIPAddr
+        if lteIntfStatus and lteIntfStatus["ipv4-address"] and lteIntfStatus["ipv4-address"][1] then
+          lteIPAddr = lteIntfStatus["ipv4-address"][1]["address"]
+        end
+        if not lteIPAddr or lteIPAddr:match("^169%.254") then
+          return "Error_LteLinkToNetworkDown"
+        end
+        local wanIntfStatus = nwCommon.get_ubus_interface_status("wan")
+        wanIntfStatus = wanIntfStatus and wanIntfStatus["up"]
+        if not wanIntfStatus then
+          return "BackupLinkInUse"
+        else
+          return "BackupLinkAvailable"
+        end
+      end
+    else
+      return "Error_NoConnectionToLteModem"
+    end
+  end
+  return "Disabled"
+end
+
+Device_Services_X_BELGACOM_WANBackup_.get = {
+  Enable = getEnable,
+  Status = getStatus,
+}
+
+Device_Services_X_BELGACOM_WANBackup_.getall = function()
+  local uciValues = uciHelper.getall_from_uci(networkBinding)
+  return {
+    Enable = uciValues["auto"] or "1",
+    Status = getStatus(),
+  }
+end
+
+Device_Services_X_BELGACOM_WANBackup_.set = {
+  Enable = function(mapping, param, value)
+    networkBinding.option = "auto"
+    uciHelper.set_on_uci(networkBinding, value, commitapply)
+    configChanged = true
+  end
+}
+
+Device_Services_X_BELGACOM_WANBackup_.commit = function()
+  if configChanged then
+    uciHelper.commit(networkBinding)
+    configChanged = false
+  end
+end
+
+Device_Services_X_BELGACOM_WANBackup_.revert = function()
+  if configChanged then
+    uciHelper.revert(networkBinding)
+    configChanged = false
+  end
+end
+
+register(Device_Services_X_BELGACOM_WANBackup_)

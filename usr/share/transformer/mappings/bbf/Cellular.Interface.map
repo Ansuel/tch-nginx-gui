@@ -1,0 +1,580 @@
+local mapper, tonumber, string, table, commitapply = mapper, tonumber, string, table, commitapply
+local helper = require("mobiled.scripthelpers")
+local uci = require("uci")
+
+local obj = {
+	objectType = {
+		name = "#ROOT.{i}.",
+		access = "readOnly",
+		numEntriesParameter = "InterfaceNumberOfEntries",
+		minEntries = 0,
+		maxEntries = math.huge,
+		aliasParameter = "Alias",
+		parameters = {
+			Enable = {
+				access = "readWrite",
+				type = "boolean",
+				default = "true"
+			},
+			Status = {
+				access = "readOnly",
+				type = "string",
+				enumeration = {
+					"Up",
+					"Down",
+					"Unknown",
+					"Dormant",
+					"NotPresent",
+					"LowerLayerDown",
+					"Error"
+				}
+			},
+			Alias = {
+				access = "readWrite",
+				activeNotify = "canDeny",
+				type = "string",
+				max = "64",
+			},
+			Name = {
+				access = "readOnly",
+				type = "string",
+				max = "64"
+			},
+			Upstream = {
+				access = "readOnly",
+				type = "boolean",
+				default = "true"
+			},
+			IMEI = {
+				access = "readOnly",
+				type = "string",
+				min = "15",
+				max = "15"
+			},
+			SupportedAccessTechnologies = {
+				access = "readOnly",
+				type = "string",
+				enumeration = {
+					"GPRS",
+					"EDGE",
+					"UMTS",
+					"UMTSHSPA",
+					"CDMA2000OneX",
+					"CDMA2000HRPD",
+					"LTE"
+				}
+			},
+			PreferredAccessTechnology = {
+				access = "readWrite",
+				type = "string"
+			},
+			CurrentAccessTechnology = {
+				access = "readOnly",
+				type = "string"
+			},
+			AvailableNetworks = {
+				access = "readOnly",
+				type = "string"
+			},
+			NetworkRequested = {
+				access = "readWrite",
+				type = "string",
+				max = "64"
+			},
+			NetworkInUse = {
+				access = "readOnly",
+				type = "string",
+				max = "64"
+			},
+			RSSI = {
+				access = "readOnly",
+				type = "int",
+			},
+			UpstreamMaxBitRate = {
+				access = "readOnly",
+				type = "unsignedInt",
+			},
+			DownstreamMaxBitRate = {
+				access = "readOnly",
+				type = "unsignedInt",
+			},
+			X_000E50_SoftwareVersion = {
+				access = "readOnly",
+				type = "string",
+				max = "64",
+			},
+			X_000E50_HardwareVersion = {
+				access = "readOnly",
+				type = "string",
+				max = "64",
+			},
+			CardModel = {
+                                access = "readOnly",
+                                type = "string",
+                                description = "This parameter specifies the model of the connected device.",
+                        },
+                        ModemStatus = {
+                                access = "readOnly",
+                                type = "string",
+                                description = "This parameter specifies if the modem status is up or down.",
+                        },
+		        Manufacturer = {
+                                access = "readOnly",
+                                type = "string",
+                                description = "States the device's manufacturer",
+                        },
+                        SoftVersion = {
+                                access = "readOnly",
+                                type = "string",
+                                description = "This parameter specifies the software version of the connected device.",
+                        },
+                        IMSI = {
+                                access = "readOnly",
+                                type = "string",
+                                description = "This prarameter specifies the IMSI of the SIM card used in the device.",
+                        },
+			SIMStatus = {
+                                access = "readOnly",
+                                type = "string",
+                                description = "This parameter specifies the status of the SIM card used in the device.",
+                        },
+                        RegisteredNetwork = {
+                                access = "readOnly",
+                                type = "string",
+                                description = "This parameter specifies the registered network of the HPSA connection.",
+                        },
+                        ConnectionStatus = {
+                                access = "readOnly",
+                                type = "string",
+                                description = "This parameter shows the current HSPA connection status.",
+                        },
+                        PinCodeStatus = {
+                                access = "readOnly",
+                                type = "string",
+                                description = "This parameter specifies the pin code status.",
+                        },
+                        HardVersion = {
+                                access = "readOnly",
+                                type = "string",
+                                description = "This parameter specifies the hardware version of the device connected.",
+                        },
+                        SerialNumber = {
+                                access = "readOnly",
+                                type = "string",
+                                description = "This parameter specifies the serial number of the connected device.",
+                        },
+                        DialNumber = {
+                                access = "readOnly",
+                                type = "string",
+                                description = "This parameter specifies the dial number for the connected device.",
+                        },
+                        AuthenticationProtocol = {
+                                access = "readWrite",
+                                type = "string",
+                                description = "This parameter specifies the Authentication protocol for the setup data connection.",
+                        },
+                        APN = {
+                                access = "readWrite",
+                                type = "string",
+                                description = "This parameter specifies the APN for the connected device.",
+                        },
+                        SignalStrength = {
+                                access = "readOnly",
+                                type = "string",
+                                description = "It specifies the current signal's strength.",
+                        },
+                        IfInstantMode = {
+                                access = "readOnly",
+                                type = "string",
+                                description = "This parameter specifies backup mode for UMTS connection, Auto or Manual.",
+                        },
+                        IfSwitchConfirm = {
+				access = "readOnly",
+				type = "string",
+				description = "This parameter specifies the backup connection service type, enumerationof Voice, Data, Data_Voice, None.",
+			},
+                        DSL2HSPADelayCS = {
+                                access = "readWrite",
+                                type = "unsignedInt",
+                                description = "This parameter specifies delay for VoCS change from primary WAN to HPSA connection.",
+                        },
+                        DSL2HSPADelayPS = {
+                                access = "readWrite",
+                                type = "unsignedInt",
+                                description = "This parameter specifies delay for VoPS change from primary WAN to HPSA connection.",
+                        },
+                        HSPA2DSLDelayCS = {
+                                access = "readWrite",
+                                type = "unsignedInt",
+                                description = "This parameter specifies delay for VoCS change from HPSA to primary WAN connection.",
+                        },
+                        HSPA2DSLDelayPS = {
+                                access = "readWrite",
+                                type = "unsignedInt",
+                                description = "This parameter specifies delay for VoPS change from HPSA to primary WAN connection.",
+                        },
+                        ProbeICMPCycle = {
+                                access = "readWrite",
+                                type = "unsignedInt",
+                                description = "This parameter specifies the interval for gateway backup mode.",
+                        },
+                        ProbeDNSCycle = {
+                                access = "readWrite",
+                                type = "unsignedInt",
+                                description = "This parameter specifies the interval for DNS backup mode.",
+                        },
+                        USBPortUsed = {
+                                access = "readOnly",
+                                type = "string",
+                                description = "This parameter specifies the USB port used by the connected dongle.",
+                        },
+                        VoiceWorking = {
+                                access = "readOnly",
+                                type = "string",
+                                description = "This parameter shows if the VoCS or VoPS is working or not, 0 or 1",
+                        },
+			ConnectionType = {
+                                access = "readOnly",
+                                type = "string",
+                                description = "It shows the HPSA connection type, such as WCDMA, LTE.",
+                        },
+                        RegisteredBand = {
+                                access = "readOnly",
+                                type = "string",
+                                description = "It shows the current registered network band, such as WCDMA800, WCDMA1900.",
+                        },
+		}
+	},
+	aliasDefault = "IMEI"
+}
+
+local uci_helper = mapper("ucihelper")
+local getUbusData = helper.getUbusData
+local mobiledBinding = { config = "mobiled"}
+local envBinding = { config = "env", sectionname = "var"}
+local transactions = {}
+local conn = mapper("ubus").connect()
+if not conn then
+	return
+end
+
+local cellularInterfaceParams = {
+  X_000E50_HardwareVersion = true,
+  X_000E50_SoftwareVersion = true,
+  DownstreamMaxBitRate = true,
+  UpstreamMaxBitRate = true,
+  RSSI = true,
+  NetworkInUse = true,
+  NetworkRequested = true,
+  AvailableNetworks = true,
+  CurrentAccessTechnology = true,
+  PreferredAccessTechnology = true,
+  SupportedAccessTechnologies = true,
+  Upstream = true,
+  Name = true,
+  Enable = true,
+  Status = true,
+  Alias = true,
+  IMEI = true,
+}
+
+local vfConfig = {
+  APN = true,
+  AuthenticationProtocol = true,
+  DialNumber = true,
+}
+
+local vfDevInfo = {
+  IMEI = true,
+  IMSI = true ,
+  CardModel = true,
+  HardVersion = true,
+  Manufacturer = true,
+  SerialNumber = true,
+  SoftVersion = true,
+}
+
+local vfStats = {
+  SIMStatus = true,
+  ModemStatus = true,
+  PinCodeStatus = true,
+  RegisteredNetwork = true,
+  SignalStrength = true,
+  ConnectionStatus = true,
+  ConnectionType = true,
+  RegisteredBand = true,
+  VoiceWorking = true,
+  USBPortUsed = true,
+}
+
+local vfSwitch = {
+  IfInstantMode = true,
+  IfSwitchConfirm = true,
+  DSL2HSPADelayCS = true,
+  DSL2HSPADelayPS = true,
+  HSPA2DSLDelayCS = true,
+  HSPA2DSLDelayPS = true,
+  ProbeICMPCycle = true,
+  ProbeDNSCycle = true,
+}
+
+local function getFromMobiledDevice(key, param)
+	local data = {}
+	uci_helper.foreach_on_uci( mobiledBinding, function(s)
+		if s.imei == key then
+                  data = s
+                  return false
+                end
+	end)
+	return data[param] or ""
+end
+
+local function getFromEnv(param)
+	envBinding.option = param
+	return uci_helper.get_from_uci(envBinding)
+end
+
+local function setOnMobiledDevice(key, param, val)
+        local data = {}
+	uci_helper.foreach_on_uci( mobiledBinding, function(s)
+		if s.imei == key then
+			local binding={sectionname=s[".name"],config="mobiled",option=param,default=""}
+			uci_helper.set_on_uci(binding, val, commitapply)
+			transactions[mobiledBinding.config] = true
+		end
+	end)
+end
+
+local function setOnEnv(key, param, val)
+	envBinding.option = param
+	uci_helper.set_on_uci(envBinding, val, commitapply)
+	transactions[envBinding.config] = true
+end
+
+obj.entries = function(mapping)
+	local info = getUbusData(conn, "mobiled", "status", {})
+	local numDevices = tonumber(info.devices)
+	if not numDevices then return {} end
+	local interfaces = {}
+	for i=1,numDevices do
+		info = getUbusData(conn, "mobiled.device", "get", { dev_idx = i })
+		if info.imei then
+			table.insert(interfaces, info.imei)
+		end
+	end
+	return interfaces
+end
+
+local tech_map_mobiled = {
+	["lte"] = "LTE",
+	["gsm"] = "EDGE",
+	["umts"] = "UMTS"
+}
+
+local tech_map_device2 = {
+	["LTE"] = "lte",
+	["EDGE"] = "gsm",
+	["GPRS"] = "gsm",
+	["UMTS"] = "umts",
+	["UMTSHSPA"] = "umts",
+	["CDMA2000OneX"] = "cdma",
+	["CDMA2000HRPD"] = "cdma"
+}
+
+local function getall(mapping, key)
+	local data = {}
+	data.DialNumber = "ATD*99***1#"
+	local info = getUbusData(conn, "mobiled.device", "get", { imei = key })
+	local dev_idx = tonumber(info.dev_idx) or 1
+
+	data.Upstream = "1"
+	data.AvailableNetworks = ""
+	data.UpstreamMaxBitRate = ""
+	data.DownstreamMaxBitRate = ""
+	data.Enable = getFromMobiledDevice(key, "enabled")
+
+	info = getUbusData(conn, "mobiled.device", "get", { dev_idx = dev_idx })
+	data.Name = info.dev_desc
+	data.IMEI = info.imei
+        data.SoftVersion = info.software_version or ""
+        data.ModemStatus = info.initialized or ""
+        data.Manufacturer = info.manufacturer or ""
+        data.CardModel = info.model or ""
+        data.HardVersion = info.hardware_version or ""
+        data.SerialNumber = info.serial or ""
+	data.X_000E50_SoftwareVersion = info.software_version
+	data.X_000E50_HardwareVersion = info.hardware_version
+
+	info = getUbusData(conn, "mobiled.sim", "get", { dev_idx = dev_idx })
+        data.IMSI = info.imsi or ""
+        data.SIMStatus = info.sim_state or ""
+
+	info = getUbusData(conn, "mobiled.sim.pin", "get", { dev_idx = dev_idx })
+        data.PinCodeStatus = info.pin_state or ""
+
+	info = getUbusData(conn, "mobiled.radio", "signal_quality", { dev_idx = dev_idx })
+	data.RSSI = info.rssi
+	data.SignalStrength = info.rssi or ""
+	data.CurrentAccessTechnology = tech_map_mobiled[info.radio_interface] or ""
+	data.PreferredAccessTechnology = tech_map_mobiled[getFromMobiledDevice(key, "radio_pref")] or "Auto"
+	data.ConnectionType = info.radio_interface or ""
+	data.RegisteredBand = info.lte_band or ""
+
+	info = getUbusData(conn, "mobiled.device", "profiles", { dev_idx = dev_idx })
+	-- APN and AuthenticationProtocol are to be retrieved from uci and ubus call is used as a fall back.
+	data.AuthenticationProtocol = getFromMobiledDevice(key, "authentication")
+	if data.AuthenticationProtocol == "" then
+		data.AuthenticationProtocol = info.authentication or ""
+        end
+	data.APN = getFromMobiledDevice(key, "apn")
+	if data.APN == "" then
+		data.APN = info.apn or ""
+	end
+	info = getUbusData(conn, "mobiled.device", "capabilities", { dev_idx = dev_idx })
+	local modes = {}
+	for mode in string.gmatch(info.supported_modes, "%w+") do
+		table.insert(modes, tech_map_mobiled[mode])
+	end
+	data.SupportedAccessTechnologies = table.concat(modes, ",")
+
+	data.Status = "Down"
+	data.NetworkInUse = ""
+	data.RegisteredNetwork = ""
+
+	if data.Enable == "1" then
+		info = getUbusData(conn, "mobiled.network", "serving_system", { dev_idx = dev_idx })
+		local networkState = info.nas_state
+		data.ConnectionStatus = info.nas_state or ""
+		if type(info.plmn_info) == "table" then
+			data.NetworkInUse = info.plmn_info.mcc .. info.plmn_info.mnc
+			data.RegisteredNetwork = info.plmn_info.mcc .. info.plmn_info.mnc
+		end
+		info = getUbusData(conn, "mobiled.network", "sessions", { session_id = 0, dev_idx = dev_idx })
+		local sessionState = info.session_state
+
+		if networkState == "registered" then
+			if sessionState == "" then
+				data.Status = "Dormant"
+			else
+				if sessionState == "connected" then
+					data.Status = "Up"
+				end
+			end
+		end
+	end
+
+	info = getUbusData(conn, "mobiled.network", "scan", { dev_idx = dev_idx })
+	local networks = {}
+	if info and type(info.network_scan_list) == "table" then
+		for _, scan_result in pairs(info.network_scan_list) do
+			if type(scan_result) == "table" then
+				if type(scan_result.plmn_info) == "table" then
+					table.insert(networks, scan_result.plmn_info.mcc .. scan_result.plmn_info.mnc)
+				end
+			end
+		end
+	end
+
+	data.AvailableNetworks = table.concat(networks, ",")
+
+	data.NetworkRequested = getFromMobiledDevice(key, 'mcc') .. getFromMobiledDevice(key, 'mnc')
+
+        data.IfInstantMode = getFromEnv('x_hspa_switch_IfInstantMode')
+	data.IfSwitchConfirm = getFromEnv('x_hspa_switch_IfSwitchConfirm')
+	data.DSL2HSPADelayCS = getFromEnv('x_hspa_switch_DSL2HSPADelayCS')
+	data.DSL2HSPADelayPS = getFromEnv('x_hspa_switch_DSL2HSPADelayPS')
+	data.HSPA2DSLDelayCS = getFromEnv('x_hspa_switch_HSPA2DSLDelayCS')
+	data.HSPA2DSLDelayPS = getFromEnv('x_hspa_switch_HSPA2DSLDelayPS')
+	data.ProbeICMPCycle = getFromEnv('x_hspa_switch_ProbeICMPCycle')
+	data.ProbeDNSCycle = getFromEnv('x_hspa_switch_ProbeDNSCycle')
+	data.USBPortUsed = getFromEnv('x_hspa_switch_USBPortUsed')
+	data.VoiceWorking = getFromEnv('x_hspa_switch_VoiceWorking')
+
+	return data
+end
+
+local function get(mapping, paramName, key)
+	return getall(mapping, key)[paramName]
+end
+
+obj.set = {
+	PreferredAccessTechnology = function(mapping, paramname, paramvalue, key)
+		local val = tech_map_device2[paramvalue] or "auto"
+		setOnMobiledDevice(key, 'radio_pref', val)
+	end,
+	NetworkRequested = function(mapping, paramname, paramvalue, key)
+		if #paramvalue == 5 or #paramvalue == 6 then
+			setOnMobiledDevice(key, 'mcc', string.sub(paramvalue, 1, 3))
+			setOnMobiledDevice(key, 'mnc', string.sub(paramvalue, 1, 4))
+		end
+	end,
+	Enable = function(mapping, paramname, paramvalue, key)
+		setOnMobiledDevice(key, 'enabled', paramvalue)
+	end,
+        APN = function(mapping, paramname, paramvalue, key)
+                 setOnMobiledDevice(key, 'apn', paramvalue)
+        end,
+        AuthenticationProtocol = function(mapping, paramname, paramvalue, key)
+                setOnMobiledDevice(key, 'authentication', paramvalue)
+        end,
+        DSL2HSPADelayCS = function(mapping, paramname, paramvalue, key)
+                setOnEnv(key, 'x_hspa_switch_DSL2HSPADelayCS', paramvalue)
+        end,
+        DSL2HSPADelayPS = function(mapping, paramname, paramvalue, key)
+                setOnEnv(key, 'x_hspa_switch_DSL2HSPADelayPS', paramvalue)
+        end,
+        HSPA2DSLDelayCS = function(mapping, paramname, paramvalue, key)
+                setOnEnv(key, 'x_hspa_switch_HSPA2DSLDelayCS', paramvalue)
+        end,
+        HSPA2DSLDelayPS = function(mapping, paramname, paramvalue, key)
+                setOnEnv(key, 'x_hspa_switch_HSPA2DSLDelayPS', paramvalue)
+        end,
+        ProbeICMPCycle = function(mapping, paramname, paramvalue, key)
+                setOnEnv(key, 'x_hspa_switch_ProbeICMPCycle', paramvalue)
+        end,
+        ProbeDNSCycle = function(mapping, paramname, paramvalue, key)
+                setOnEnv(key, 'x_hspa_switch_ProbeDNSCycle', paramvalue)
+        end,
+}
+
+obj.commit = function()
+  for config in pairs(transactions) do
+    uci_helper.commit({config = config})
+  end
+  transactions =  {}
+end
+
+obj.revert = function()
+  for config in pairs(transactions) do
+    uci_helper.revert({config = config})
+  end
+  transactions = {}
+end
+
+obj.getall = getall
+obj.get = get
+
+local log = require("transformer.logger").new("sowj",2)
+
+local objTable = {
+  ["InternetGatewayDevice.X_000E50_Cellular.Interface.{i}."] = cellularInterfaceParams,
+  ["Device.Cellular.Interface.{i}."] = cellularInterfaceParams,
+  ["InternetGatewayDevice.X_HPSAInfo.DeviceInfo.{i}."] = vfDevInfo,
+  ["InternetGatewayDevice.X_HPSAInfo.Config.{i}."] = vfConfig,
+  ["InternetGatewayDevice.X_HPSAInfo.Stats.{i}."] = vfStats,
+  ["InternetGatewayDevice.X_HPSAInfo.Switch.{i}."] = vfSwitch,
+}
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(obj, "#ROOT", {"InternetGatewayDevice.X_000E50_Cellular.Interface", "Device.Cellular.Interface", "InternetGatewayDevice.X_HPSAInfo.DeviceInfo", "InternetGatewayDevice.X_HPSAInfo.Stats", "InternetGatewayDevice.X_HPSAInfo.Config", "InternetGatewayDevice.X_HPSAInfo.Switch"})
+
+for _, dupli in ipairs(duplicates) do
+  if objTable[dupli.objectType.name] then
+    for param in pairs(dupli.objectType.parameters) do
+      if not objTable[dupli.objectType.name][param] then
+        dupli.objectType.parameters[param] = nil
+      end
+    end
+  end
+register(dupli)
+end

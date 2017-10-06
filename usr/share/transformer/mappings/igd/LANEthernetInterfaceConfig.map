@@ -1,0 +1,255 @@
+-- Automatically generated from InternetGatewayDevice:1.14
+-- using generator version 2.3
+local LANEthernetInterface = {
+  objectType = {
+    name = "#ROOT.LANEthernetInterfaceConfig.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "LANEthernetInterfaceNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Up",
+          "NoLink",
+          "Error",
+          "Disabled",
+        },
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      Name = {
+        access = "readOnly",
+        type = "string",
+        max = "16",
+      },
+      MACAddress = {
+        access = "readOnly",
+        type = "string",
+      },
+      MACAddressControlEnabled = {
+        access = "readOnly",  -- readWrite not supported
+        type = "boolean",
+      },
+      MaxBitRate = {
+        access = "readOnly",  -- readWrite not supported
+        type = "string",
+        enumeration = {
+          "10",
+          "100",
+          "1000",
+          "Auto",
+        },
+      },
+      DuplexMode = {
+        access = "readOnly",  -- readWrite not supported
+        type = "string",
+        enumeration = {
+          "Half",
+          "Full",
+          "Auto",
+        },
+      },
+    }
+  }
+}
+
+local mapper, ipairs, commitapply =  mapper, ipairs, commitapply
+local common = mapper('nwcommon')
+local match, open, pairs = string.match, io.open, pairs
+local ucihelper = mapper('ucihelper')
+local isAlias = common.is_alias
+local netPath = "/sys/class/net/"
+
+local get_uci_network
+local foreach_interface
+do
+  local nw = {config="network"}
+  get_uci_network = function(section, option, default)
+    nw.sectionname = section
+    nw.option = option
+    nw.default = default
+    return ucihelper.get_from_uci(nw)
+  end
+
+  foreach_interface = function(f)
+    nw.sectionname = "interface"
+    return ucihelper.foreach_on_uci(nw, f)
+  end
+end
+
+local function firstline(filename)
+  local result = ""
+
+  local fd = open(filename)
+  if fd then
+    result = fd:read("*l")
+    fd:close()
+  end
+
+  return result
+end
+
+-- get a map of wan interfaces
+local function getWanInterfaces()
+  local intfs = {}
+  local wan = common.findLanWanInterfaces(true)
+  for _, ifname in ipairs(wan) do
+    intfs[ifname] = true
+  end
+  return intfs
+end
+
+local function getLanInterfaces()
+  local intfs = {}
+  local wan = getWanInterfaces()
+  foreach_interface(function(s)
+    local ifname = s['.name']
+    -- exclude loopback and alias interfaces
+    if ifname == 'loopback' or isAlias(ifname) then
+      return
+    end
+    -- exclude the wan interfaces
+    if wan[ifname] then
+      return
+    end
+    intfs[#intfs+1] = ifname
+  end)
+  return intfs
+end
+
+local function get_pppoerelay_for_interface(ifname)
+  local relays = {}
+  local pppoerelay = get_uci_network(ifname, 'pppoerelay', {})
+  if type(pppoerelay)=='string' then
+    pppoerelay = {pppoerelay}
+  end
+  for _, n in ipairs(pppoerelay) do
+    relays[n] = true
+  end
+  return relays
+end
+
+-- entries for IGD.LANInterfaces.LANEthernetInterfaceConfig
+local function LANInterfacesEntries()
+  -- TR-098: `This object contains LAN-side layer 1/2 interfaces that are not currently connected to
+  -- the Gateway's IP router and which therefore do not currently reside within a LANDevice instance.`
+  --    => In our case, the LAN interfaces are always considered `connected`,
+  --       so no entries are instantiated under LANInterfaces
+  return {}
+end
+
+local dmordering = require "transformer.shared.models.dmordering"
+local objectPath = "InternetGatewayDevice.LANEthernetInterfaceConfig.{i}."
+
+-- entries for IGD.LANDevice.LANEthernetInterfaceconfig
+local function LANDeviceEntries(mapping, parentkey)
+  local relays = get_pppoerelay_for_interface(parentkey)
+
+  local interfaces = {}
+  local entries = {}
+  for _, interface in pairs(common.get_lower_layers(parentkey) or {}) do
+    -- Instances are interfaces starting with `eth` that are not relayed.
+    if match(interface, "eth[^%s]+") and not relays[interface] then
+      if not interfaces[interface] then
+        interfaces[interface] = true
+        entries[#entries+1] = interface
+      end
+    end
+  end
+  return dmordering.sort(entries, objectPath)
+end
+
+LANEthernetInterface.get = {
+  Name = function(mapping, param, key)
+    return key
+  end,
+  Enable = function(mapping, param, key)
+    -- assumes that carrier is not accessible if the interface is down. Behaves this way on broadcom.
+    -- if this is not reliable, then we can rely on operstate
+    local carrier = firstline(netPath .. key .. "/carrier")
+    if carrier == nil then
+      return "0"
+    else
+      return ucihelper.get_from_uci({config="ethernet", sectionname=key, option="enable", default="1"})
+    end
+  end,
+  Status = function(mapping, param, key)
+    -- assumes that carrier is not accessible if the interface is down. Behaves this way on broadcom.
+    -- if this is not reliable, then we can rely on operstate
+    local status = "Error"
+    local enable = ucihelper.get_from_uci({config="ethernet", sectionname=key, option="enable", default="1"})
+    if enable == "0" then
+      status = "Disabled"
+    elseif enable == "1" then
+      local carrier = firstline(netPath .. key .. "/carrier")
+      if carrier == nil then
+        status = "Disabled"
+      elseif carrier == "1" then
+        status = "Up"
+      elseif carrier == "0" then
+        status = "NoLink"
+      end
+    end
+
+    return status
+  end,
+  MACAddress = function(mapping, param, key)
+    return firstline(netPath .. key .. "/address") or ""
+  end,
+  MACAddressControlEnabled = "0",
+  MaxBitRate = "Auto",
+  DuplexMode = "Auto",
+}
+
+LANEthernetInterface.set = {
+  Enable = function(mapping, param, value, key)
+    -- User can config eth ports in two ways:
+    -- 1)  uci set ethernet.<ethx>.enable=1/0  -- GUI
+    -- 2)  ifconfig <ethx> up/down             -- CLASH
+    --
+    -- IGD/Device will choose way 1) for persistency
+    -- but in case ethernet already bring down by CLASH, always bring it up firstly
+    local carrier = firstline(netPath .. key .. "/carrier")
+    if carrier == nil then
+      local file_handler = open("/tmp/.lan_intf","w")
+      if file_handler then
+        file_handler:write("ifconfig "..key.." up")
+        file_handler:close()
+      else
+        return nil, "unexpected write error"
+      end
+    end
+    local binding = {config="ethernet", sectionname=key, option="enable"}
+    ucihelper.set_on_uci(binding, value, NULL)
+    ucihelper.commit(binding)
+    commitapply:newset("LANEthernetInterfaceConfig.Enable")
+    return true
+  end,
+}
+
+do
+  local duplicator = mapper("multiroot").duplicate
+  local duplicates = duplicator(LANEthernetInterface, "#ROOT", {
+                       "InternetGatewayDevice.LANDevice.{i}",
+                       "InternetGatewayDevice.LANInterfaces"
+                     })
+  for _, mapping in ipairs(duplicates) do
+    if mapping.objectType.name:match("InternetGatewayDevice.LANInterfaces") then
+      mapping.entries = LANInterfacesEntries
+    else
+      mapping.entries = LANDeviceEntries
+    end
+    register(mapping)
+  end
+end

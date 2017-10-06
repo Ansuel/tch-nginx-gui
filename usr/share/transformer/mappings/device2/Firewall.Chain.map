@@ -1,0 +1,95 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_Firewall_Chain_i_ = {
+  objectType = {
+    name = "Device.Firewall.Chain.{i}.",
+    access = "readOnly", -- ReadWrite currently not supported
+    numEntriesParameter = "ChainNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      Name = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+--[[ TODO
+      Enable = {
+        access = "readOnly",
+        type = "boolean",
+        default = "false",
+      },
+      Creator = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Defaults",
+          "PortMapping",
+          "WANIPv6FirewallControl",
+          "ACS",
+          "UserInterface",
+          "Other",
+        },
+        default = "ACS",
+      },
+--]]
+      -- RuleNumberOfEntries
+      -- automatically created when Device.Firewall.Chain.{i}.Rule.{i}. is loaded
+    }
+  }
+}
+
+local uciHelper = mapper("ucihelper")
+local firewallBinding = { config = "firewall" }
+local isConfigChanged = false
+
+Device_Firewall_Chain_i_.entries = function(mapping)
+  local firewallChainEntries = {}
+  firewallBinding.sectionname = "rulesgroup"
+  uciHelper.foreach_on_uci(firewallBinding,function(s)
+    firewallChainEntries[#firewallChainEntries+1] = s['.name']
+  end)
+  return firewallChainEntries
+end
+
+Device_Firewall_Chain_i_.get = {
+  Name = function(mapping, param, key)
+    firewallBinding.sectionname = key
+    firewallBinding.option = 'name'
+    return uciHelper.get_from_uci(firewallBinding)
+  end,
+}
+
+--[[
+Device_Firewall_Chain_i_.set = {
+  Name = function(mapping, param, value, key)
+    firewallBinding.sectionname = key
+    firewallBinding.option = 'name'
+    uciHelper.set_on_uci(firewallBinding, value, commitapply)
+    isConfigChanged = true
+  end
+}
+--]]
+
+Device_Firewall_Chain_i_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(firewallBinding)
+    isConfigChanged = false
+  end
+end
+
+Device_Firewall_Chain_i_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(firewallBinding)
+    isConfigChanged = false
+  end
+end
+
+register(Device_Firewall_Chain_i_)

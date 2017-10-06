@@ -1,0 +1,175 @@
+local mapper, tonumber, pairs, ipairs, tostring = mapper, tonumber, pairs, ipairs, tostring
+local helper = require("mobiled.scripthelpers")
+
+local error_codes = {
+  ["01"] = "01 - Operation failed due to unknown error",
+  ["02"] = "02 - Previous command is not complete",
+  ["03"] = "03 - Error command parameters",
+  ["04"] = "04 - Operation not supported",
+  ["05"] = "05 - Operation failed due to system error",
+  ["11"] = "11 - The network has not been opened yet",
+  ["12"] = "12 - The network has been opened already",
+  ["13"] = "13 - Fail to open network",
+  ["14"] = "14 - The link has not been established yet",
+  ["15"] = "15 - The link has been established already",
+  ["16"] = "16 - Fail to establish link",
+  ["17"] = "17 - Fail to bind the specified port",
+  ["18"] = "18 - Fail to connect to the specified address",
+  ["19"] = "19 - Invalid domain name",
+  ["20"] = "20 - Fail to resolve DNS",
+  ["21"] = "21 - Http server error",
+  ["22"] = "22 - File type is not correct",
+  ["23"] = "23 - File source is not correct",
+  ["51"] = "51 - Fail to get file list",
+  ["52"] = "52 - MD5 check failed",
+  ["54"] = "54 - FOTA is in collision state",
+  ["101"] = "101 - Fail to send data because TE cancel",
+  ["102"] = "102 - Fail to send data because retry times are bigger than 10",
+  ["103"] = "103 - Fail to send data because input file size is error",
+  ["104"] = "104 - Fail to send data because packet number is error",
+  ["105"] = "105 - Fail to send data because the protocol is not 1K-Xmodem",
+  ["106"] = "106 - Fail to send data because invalid port",
+  ["107"] = "107 - Fail to send data because file CRC or subfile CRC is error",
+  ["108"] = "108 - Fail to send data because update type is error",
+  ["109"] = "109 - Fail to send data because model product is error",
+  ["110"] = "110 - Fail to send data because source version is error",
+  ["111"] = "111 - Fail to send data because some tag length is error",
+  ["112"] = "112 - Fail to send data because file num error",
+  ["113"] = "113 - Fail to send data because open subfile failed",
+  ["114"] = "114 - Fail to send data because write subfile to flash error",
+  ["151"] = "151 - Fail to write flag",
+  ["152"] = "152 - Fail to read flag",
+  ["153"] = "153 - Fail to erase region",
+  ["154"] = "154 - Fail to copy osbl",
+  ["155"] = "155 - Fail to replace image",
+  ["156"] = "156 - Fail to copy xnv",
+  ["157"] = "157 - Fail to write xnv",
+  ["158"] = "158 - Fail to backup nv",
+  ["159"] = "159 - Fail to restore nv",
+  ["1001"] = "1001 (user-defined) - Non-responsive LTE module",
+  ["1002"] = "1002 (user-defined) - No SIM card installed",
+  ["1003"] = "1003 (user-defined) - No service due to poor signal",
+  ["1004"] = "1004 (user-defined) - There is a voice calling over mobile, please try FOTA upgrade later",
+  ["1005"] = "1005 (user-defined) - SIM card locked",
+}
+
+local obj = {
+  objectType = {
+    name = "#ROOT.{i}.X_000E50_Upgrade.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      Path = {
+        access = "readWrite",
+        type = "string",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+      },
+      ErrorCode = {
+        access = "readOnly",
+        type = "string",
+      }
+    }
+  }
+}
+
+local upgrade = {}
+local statusCache = {}
+
+local conn = mapper("ubus").connect()
+if not conn then
+  return
+end
+
+local function getall(mapping, key)
+  local result = {}
+  result.Path = ""
+  local info = helper.getUbusData(conn, "mobiled.device", "get", { imei = key })
+  local dev_idx = tonumber(info.dev_idx)
+  if dev_idx then
+    info = helper.getUbusData(conn, "mobiled.device", "firmware_upgrade", { dev_idx = dev_idx })
+    result.Status = info.status
+    result.ErrorCode = info.error_code
+    if (result.Status == "" or result.Status == "not_running" or result.Status == "done" or result.Status == "failed" or result.Status == "timeout") and statusCache[dev_idx] and statusCache[dev_idx].status then
+      result.Status = statusCache[dev_idx].status
+      result.ErrorCode = statusCache[dev_idx].error_code
+    end
+    result.ErrorCode = error_codes[result.ErrorCode] or result.ErrorCode
+  else
+    result.Status = ""
+    result.ErrorCode = ""
+  end
+  return result
+end
+
+local function get(mapping, paramName, key)
+  return getall(mapping, key)[paramName]
+end
+
+obj.getall = getall
+obj.get = get
+
+obj.set = {
+  Path = function(mapping, paramname, paramvalue, key)
+    local info = helper.getUbusData(conn, "mobiled.device", "get", { imei = key })
+    local dev_idx = tonumber(info.dev_idx)
+    if dev_idx then
+      upgrade[dev_idx] = paramvalue
+    end
+    commitapply:newset("mobiled_upgrade")
+  end,
+}
+
+obj.commit = function()
+  if #upgrade > 0 then
+    local f = assert(io.open("/tmp/.mobiled.upgrade",'w'))
+    if f then
+      for dev_idx, path in pairs(upgrade) do
+        f:write(dev_idx .. " " .. path .. "\n")
+      end
+      f:close()
+    end
+  end
+  upgrade = {}
+end
+
+obj.revert = function()
+  upgrade = {}
+end
+
+local function mobiled_event(mapping, event, msg)
+  local events = {}
+  local status = msg["status"]
+  local dev_idx = msg["dev_idx"]
+  local error_code = msg["error_code"]
+  if status and dev_idx then
+    local info = helper.getUbusData(conn, "mobiled.device", "get", { dev_idx = dev_idx })
+    if status == "done" or status == "failed" or status == "timeout" then
+      statusCache[dev_idx].status = status
+      statusCache[dev_idx].error_code = error_code and tostring(error_code) or ""
+    end
+    events[#events + 1] = { key = info.imei, paramname = "Status" }
+    if error_code then
+      events[#events + 1] = { key = info.imei, paramname = "ErrorCode" }
+    end
+    return events
+  end
+  if msg["event"] and msg["event"] == "device_removed" and dev_idx then
+    statusCache[dev_idx] = {}
+  end
+end
+
+obj.add_watchers = function(mapping)
+  local ubus_evsrc = eventsource("ubus")
+  ubus_evsrc.watch_event(mapping, mobiled_event, "mobiled.firmware_upgrade")
+  ubus_evsrc.watch_event(mapping, mobiled_event, "mobiled")
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(obj, "#ROOT", {"InternetGatewayDevice.X_000E50_Cellular.Interface", "Device.Cellular.Interface"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end

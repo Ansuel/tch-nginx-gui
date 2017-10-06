@@ -1,0 +1,78 @@
+#!/bin/sh /etc/rc.common
+
+START=70
+USE_PROCD=1
+
+start_service() {
+    logger -t wol "Starting WOL"
+    local enabled
+    local dest_ip
+    local dest_intf
+    local dev
+
+    . /lib/functions/network.sh
+    config_load wol
+    config_get_bool enabled config enabled 0
+    [ $enabled -eq 0 ] && return 0
+    config_get dest_ip config dest_ip
+    config_get dest_intf config dest_intf "lan"
+    network_get_device dev $dest_intf
+
+    if [ -n "$dest_ip" -a -n "$dev" ]; then
+        # Add route entry
+        ip route add ${dest_ip}/32 dev $dev
+        # Add a static ARP spoofing entry
+        local count="0"
+        while [ $count -lt 20 ]
+        do
+            if [ -z $(ip neigh show to $dest_ip dev $dev | grep 'FAILED') ] ; then
+              break
+            fi
+            sleep 1
+            count=$(( $count + 1 ))
+        done
+        ip neigh add $dest_ip lladdr ff:ff:ff:ff:ff:ff nud permanent dev $dev
+    fi
+
+    fw3 -q reload
+}
+
+stop_service() {
+    logger -t wol "Stopping WOL"
+    local dest_ip
+    local dest_intf
+    local dev
+
+    . /lib/functions/network.sh
+    config_load wol
+    config_get dest_ip config dest_ip
+    config_get dest_intf config dest_intf "lan"
+    network_get_device dev $dest_intf
+
+    if [ -n "$dest_ip" -a -n "$dev" ]; then
+        # Delete route entry
+        ip route del ${dest_ip}/32 dev $dev
+        # Delete a static ARP spoofing entry
+        ip neigh del $dest_ip lladdr ff:ff:ff:ff:ff:ff nud permanent dev $dev
+    fi
+
+    fw3 -q reload
+}
+
+validate_section_wol()
+{
+    uci_validate_section wol wol "${1}" \
+        'enabled:bool:1' \
+        'src_intf:string' \
+        'src_dport:or(port, portrange)' \
+        'dest_intf:string' \
+        'dest_ip:cidr'
+}
+
+service_triggers()
+{
+    procd_add_reload_trigger wol
+    procd_open_validate
+    validate_section_wol
+    procd_close_validate
+}

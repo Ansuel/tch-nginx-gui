@@ -1,0 +1,16 @@
+-- Manually generated
+local Multi_X_000E50_TimeOfDay_ = {
+  objectType = {
+    name = "#ROOT.X_000E50_TimeOfDay.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = { },
+  }
+}
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_X_000E50_TimeOfDay_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end

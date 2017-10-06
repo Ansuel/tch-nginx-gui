@@ -1,0 +1,223 @@
+-- Automatically generated from Device:2.9
+-- using generator version 2.2
+local Device_UserInterface_RemoteAccess_ = {
+  objectType = {
+    name = "Device.UserInterface.RemoteAccess.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      Port = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            max = "65535",
+          },
+        },
+      },
+      SupportedProtocols = {
+        access = "readOnly",
+        list = true,
+        type = "string",
+        enumeration = {
+          "HTTP",
+          "HTTPS",
+        },
+      },
+      Protocol = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "HTTP",
+          "HTTPS",
+        },
+      },
+    }
+  }
+}
+
+local ucihelper = mapper 'ucihelper'
+local open = io.open
+
+
+-- Access routines for the Remote Assistance case
+-- (the real web-framework-tch remote assistance)
+local RemoteAssistance = {}
+
+function RemoteAssistance:loadState()
+  local state = {
+    wanip="",
+    wanport="",
+    lanport="",
+    enabled="0",
+    password="_dummy_",
+    mode="0",
+  }
+  local f = open("/var/run/assistance/remote",'r')
+  if f then
+    for ln in f:lines() do
+      local key, value = ln:match('^%s*([^=%s]*)%s*=%s*([^%s]*)')
+      if key then
+        state[key] = value
+      end
+    end
+    f:close()
+  end
+  return state
+end
+
+function RemoteAssistance:setEnable(value)
+  local f = open("/tmp/.remoteassistance",'w')
+  if f then
+    f:write(value)
+    f:close()
+  end
+  commitapply:newset("Device.UserInterface.RemoteAccess.Enable")
+end
+
+function RemoteAssistance:setPort(value)
+  return nil, "Changing the port is not allowed for Remote Assistance"
+end
+
+
+-- Access routines for the Remote Access case
+-- (enable disable of simple firewall rule)
+local RemoteAccess = {}
+
+RemoteAccess.fw_rule = {config='firewall', sectionname='rule'}
+function RemoteAccess:get_rule()
+  local ra_rule
+  local ruleName = self.ra_info.fwrule
+  ucihelper.foreach_on_uci(self.fw_rule, function(rule)
+    if rule.name == ruleName then
+      ra_rule = rule
+      return false
+    end
+  end)
+  return ra_rule
+end
+
+function RemoteAccess:loadState()
+  local rule = self:get_rule()
+  return {
+    enabled = rule and rule.enabled or "0",
+    wanport = rule and rule.dest_port or "",
+  }
+end
+
+RemoteAccess.fw_rule_set = {config='firewall'}
+function RemoteAccess:set_on_rule(option, value, rule)
+  rule = rule or self:get_rule()
+  if not rule then
+    return nil, "Invalid config. no firewall rule"
+  end
+  local fw_rule_set = self.fw_rule_set
+  fw_rule_set.sectionname = rule['.name']
+  fw_rule_set.option = option
+  ucihelper.set_on_uci(fw_rule_set, value, commitapply)
+end
+
+function RemoteAccess:setEnable(value)
+  return self:set_on_rule("enabled", value)
+end
+
+function RemoteAccess:setPort(value)
+  if self.ra_info.valid_ports[value] then
+    return self:set_on_rule("dest_port", value)
+  else
+    return nil, "Unsupported port value"
+  end
+end
+
+
+local ra
+do
+  local cfg = ucihelper.getall_from_uci{config='web', sectionname='remote_access'}
+  if cfg.fwrule then
+    -- the section is present, with a firewall rule name
+    -- this means Remote Access instead of Remote Assistance
+    local ports = {}
+    for _, port in ipairs(cfg.ports or {}) do
+      ports[port] = true
+    end
+    cfg.valid_ports = ports
+    RemoteAccess.ra_info = cfg
+    ra = RemoteAccess
+    RemoteAssistance = nil
+  else
+    ra = RemoteAssistance
+    RemoteAccess = nil
+  end
+  -- next line to suppress warning for unused values
+  local _, _ = RemoteAccess, RemoteAssistance
+end
+
+local function getEnable(state)
+  state = state or ra:loadState()
+  return state.enabled=="1" and "1" or "0"
+end
+
+local function getPort(state)
+  state = state or ra:loadState()
+  return  state.wanport or ""
+end
+
+Device_UserInterface_RemoteAccess_.get = {
+  Enable = function(mapping, param, key)
+    return getEnable()
+  end,
+
+  Port = function(mapping, param, key)
+    return getPort()
+  end,
+
+  SupportedProtocols = "HTTPS",
+
+  Protocol = "HTTPS",
+}
+
+Device_UserInterface_RemoteAccess_.getall = function(mapping, key)
+  local state = ra:loadState()
+  return {
+    Enable = getEnable(state),
+    Port = getPort(state),
+    SupportedProtocols = "HTTPS",
+    Protocol = "HTTPS",
+  }
+end
+
+local function setPort(value)
+  local state = ra:loadState()
+  if value == state.wanport then
+    -- setting the same value as the current one is a NOP
+    -- (but always valid)
+    return
+  end
+  return ra:setPort(value)
+end
+
+local function setProtocol(value)
+  if value~="HTTPS" then
+    return nil, "value is not a supported protocol"
+  end
+  -- no more left to do as the protocol is always HTTPS
+end
+
+Device_UserInterface_RemoteAccess_.set = {
+  Enable = function(mapping, param, value)
+    return ra:setEnable(value)
+  end,
+  Port = function(mapping, param, value)
+    return setPort(value)
+  end,
+  Protocol = function(mapping, param, value)
+    return setProtocol(value)
+  end,
+}
+
+register(Device_UserInterface_RemoteAccess_)

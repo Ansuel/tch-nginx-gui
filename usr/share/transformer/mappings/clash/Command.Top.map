@@ -1,0 +1,8 @@
+local command = {
+  name = "top",
+  full_path = "/usr/bin/top",
+  options_with_argument = {"-n"},
+  options_without_argument = {"-b"},
+}
+
+mapper("command").registerCommand(command)

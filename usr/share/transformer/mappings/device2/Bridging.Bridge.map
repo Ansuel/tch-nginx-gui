@@ -1,0 +1,78 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_Bridging_Bridge_i_ = {
+  objectType = {
+    name = "Device.Bridging.Bridge.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "BridgeNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readOnly", --Disabling the bridge will affect the operation of all the bridge members write is not allowed.
+        type = "boolean",
+        default = "false",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        max = "64",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Disabled",
+          "Enabled",
+          "Error",
+        },
+        default = "Disabled",
+      },
+--[[ TODO: Not implemented since the lower layer support is not available
+      Standard = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "802.1D-2004",
+          "802.1Q-2005",
+          "802.1Q-2011",
+        },
+      },
+--]]
+      -- PortNumberOfEntries
+      -- automatically created when Device.Bridging.Bridge.{i}.Port.{i}. is loaded
+      -- VLANNumberOfEntries
+      -- automatically created when Device.Bridging.Bridge.{i}.VLAN.{i}. is loaded
+      -- VLANPortNumberOfEntries
+      -- automatically created when Device.Bridging.Bridge.{i}.VLANPort.{i}. is loaded
+    }
+  },
+}
+
+local nwmodel = require "transformer.shared.models.device2.network"
+
+local uciHelper = mapper("ucihelper")
+local bridgeBinding = { config = "network", option = "enabled", default = "1"}
+local getFromUci = uciHelper.get_from_uci
+
+local model
+Device_Bridging_Bridge_i_.entries = function(mapping)
+  model = nwmodel.load()
+  return model:getKeys("Bridge")
+end
+
+Device_Bridging_Bridge_i_.get = {
+  Enable = function(mapping, param, key)
+    bridgeBinding.sectionname = model:getUciKey(key)
+    return getFromUci(bridgeBinding)
+  end,
+  Status = function(mapping, param, key)
+    bridgeBinding.sectionname = model:getUciKey(key)
+    return getFromUci(bridgeBinding) == "1" and "Enabled" or "Disabled"
+  end,
+}
+
+register(Device_Bridging_Bridge_i_)

@@ -1,0 +1,23 @@
+local mapper = mapper
+local config_parental = "parental"
+
+-- uci.parental
+mapper("uci_1to1").registerConfigMap(config_parental)
+
+-- uci.parental.general
+local parental_general = {
+  config = config_parental,
+  section = "general",
+  options = { "enable", "exclude" }
+}
+
+local uci_parental_general = mapper("uci_1to1").createSimpleMap(parental_general)
+register(uci_parental_general)
+
+-- uci.parental.URLfilter
+local parental_URLfilter = {
+  config = config_parental,
+  type = "URLfilter",
+  options = { "site", "device", "mac", "action", "blocked_page_redirect", "captive_portal_redirect", "one_time_redirect" }
+}
+mapper("uci_1to1").registerMultiMap(parental_URLfilter)

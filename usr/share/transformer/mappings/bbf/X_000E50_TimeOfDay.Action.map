@@ -1,0 +1,142 @@
+-- Manually generated
+local Multi_X_000E50_TimeOfDay_Action_i_ = {
+  objectType = {
+    name = "#ROOT.X_000E50_TimeOfDay.Action.{i}.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      Name = {
+        access = "readOnly",
+        type = "string",
+      },
+      Enabled = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      Schedule = {
+        access = "readWrite",
+        type = "string",
+        pathRef = true,
+        default = "",
+      },
+      Script = {
+        access = "readOnly",
+        type = "string",
+      },
+    }
+  },
+}
+
+local mapper, pcall, resolve, tokey, commitapply, ipairs = mapper, pcall, resolve, tokey, commitapply, ipairs
+local duplicator = mapper("multiroot").duplicate
+local uciHelper = mapper("ucihelper")
+local getFromUci = uciHelper.get_from_uci
+local setOnUci = uciHelper.set_on_uci
+local todBinding = { config = "tod" }
+local configChanged
+
+local uciOption = {
+  Name		= "name",
+  Enabled       = "enabled",
+  Schedule      = "timers",
+  Script        = "script",
+}
+
+-- Looping through all the tod config with sectiontype as action and storing the sectionname as the keys.
+Multi_X_000E50_TimeOfDay_Action_i_.entries = function()
+  local actionEntries = {}
+  todBinding.sectionname = "action"
+  uciHelper.foreach_on_uci(todBinding, function(s)
+    actionEntries[#actionEntries + 1] = s[".name"]
+  end)
+  return actionEntries
+end
+
+-- This function is to get the data from uci for the given param and key.
+local function getUciValue(mapping, param, key)
+  todBinding.sectionname = key
+  todBinding.option = uciOption[param]
+  if param == "Enabled" then
+    todBinding.default = "0"
+  else
+    todBinding.default = ""
+  end
+  return getFromUci(todBinding)
+end
+
+Multi_X_000E50_TimeOfDay_Action_i_.get = {
+  Name = function(mapping, param, key)
+    return key
+  end,
+  Enabled = getUciValue,
+  -- Schedule is a path reference and can be a list, The value of the corresponding path will be stored in the tod config list timers.
+  -- Each value in timers is converted using resolve and their path is displayed as a comma separated list.
+  Schedule = function(mapping, param, key)
+    local schedule = getUciValue(mapping, param, key)
+    local scheduleName
+    local result = {}
+    if schedule ~= "" then
+      for _, timer in ipairs(schedule) do
+        scheduleName = resolve(mapping.schedulePath, timer)
+        if scheduleName then
+          result[#result + 1] = scheduleName
+        end
+      end
+    end
+    return table.concat(result, ",")
+  end,
+  Script = getUciValue,
+}
+
+local function setUciValue(mapping, param, value, key)
+  todBinding.sectionname = key
+  todBinding.option = uciOption[param]
+  setOnUci(todBinding, value, commitapply)
+  configChanged = true
+end
+
+Multi_X_000E50_TimeOfDay_Action_i_.set = {
+  Enabled = setUciValue,
+  -- Schedule is a path reference parameter and can be a comma separated list.
+  -- Values given by the user should be a path i.e. InternetGatewayDevice.X_000E50_TimeOfDay.Schedule.{i} or Device.X_000E50_TimeOfDay.Schedule.{i}
+  -- The WifiToD timer name of the corresponding instance given by the user would be saved in the tod config timers list.
+  Schedule = function(mapping, param, value, key)
+    local result = {}
+    for timer in value:gmatch("([^,]+)") do
+      local rc, val
+      rc, val = pcall(tokey, timer, mapping.schedulePath)
+      if not rc or not val then
+        return nil, "Invalid value"
+      end
+      result[#result+1] = val
+    end
+    setUciValue(mapping, param, result, key)
+  end,
+}
+
+Multi_X_000E50_TimeOfDay_Action_i_.commit = function()
+  if configChanged then
+    uciHelper.commit(todBinding)
+  end
+  configChanged = false
+end
+
+Multi_X_000E50_TimeOfDay_Action_i_.revert = function()
+  if configChanged then
+    uciHelper.revert(todBinding)
+  end
+  configChanged = false
+end
+
+local duplicates = duplicator(Multi_X_000E50_TimeOfDay_Action_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  if dupli.objectType.name:match("^InternetGatewayDevice.") then
+    dupli.objectType.parameters.Schedule.targetParent = "InternetGatewayDevice.X_000E50_TimeOfDay.Schedule.{i}."
+    dupli.schedulePath = "InternetGatewayDevice.X_000E50_TimeOfDay.Schedule.{i}."
+  else
+    dupli.objectType.parameters.Schedule.targetParent = "Device.X_000E50_TimeOfDay.Schedule.{i}."
+    dupli.schedulePath = "Device.X_000E50_TimeOfDay.Schedule.{i}."
+  end
+  register(dupli)
+end

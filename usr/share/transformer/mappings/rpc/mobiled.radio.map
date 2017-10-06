@@ -1,0 +1,12 @@
+local mobiled_radio_ = {
+  objectType = {
+    name = "rpc.mobiled.device.@.radio.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {}
+  }
+}
+
+register(mobiled_radio_)
+

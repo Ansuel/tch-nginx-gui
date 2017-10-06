@@ -1,0 +1,70 @@
+-- NG-60620
+local config_wireless = "wireless"
+
+-- uci.wireless
+mapper("uci_1to1").registerConfigMap(config_wireless)
+
+-- uci.wireless.wifi-device
+local wireless_wifidevice = {
+  config = config_wireless,
+  type = "wifi-device",
+  options = { "type", "country", "state", "channel", "channelwidth", "standard", "rateset",
+              "ht_security_restriction", "sgi", "interference_mode", "interference_channel_list",
+              "acs_config_file", "acs_state", "acs_chanim_tracing", "acs_traffic_tracing",
+              "acs_trace_level", "acs_rescan_period", "acs_allowed_channels", "frame_bursting",
+              "stbc", "cdd", "tx_power_adjust", "tx_power_overrule_reg", "wifi_button_enable", "encryptiontype"
+ }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(wireless_wifidevice)
+
+-- uci.wireless.wifi-interface
+local wireless_wifiiface = {
+  config = config_wireless,
+  type = "wifi-iface",
+  options = { "device", "ssid", "network", "state", "mode", "uapsd", "ap_display_name", "stb", "upload_rate", "download_rate", "rate_control_enabled" }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(wireless_wifiiface)
+
+-- uci.wireless.wifi-bandsteer
+local wireless_wifibandsteer = {
+  config = config_wireless,
+  type = "wifi-bandsteer",
+  options = { "policy_mode", "rssi_threshold", "rssi_5g_threshold", "sta_comeback_to", "monitor_window", },
+}
+
+mapper("uci_1to1").registerNamedMultiMap(wireless_wifibandsteer)
+
+-- uci.wireless.wifi-ap
+local wireless_wifiap = {
+  config = config_wireless,
+  type = "wifi-ap",
+  options = { "iface", "state", "public", "ap_isolation", "station_history", "security_mode",
+              "wps_state", "wsc_state", "wps_ap_setup_locked",
+              "acl_mode", "acl_registration_time", "trace_modules", "trace_level", "wps_w7pbc", "bandsteer_id",
+              "pmksa_cache", "max_assoc", "eap_reauth_period", "reauth_period_pmksa_lifetime_linked", "nas_wan_intf", "display_connected_devices" },
+  passwords = { "wep_key", "wpa_psk_key", "wps_ap_pin" },
+  lists = { "acl_accept_list", "acl_deny_list", }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(wireless_wifiap)
+
+-- uci.wireless.wifi-radius-server
+local wireless_wifiradiusserver = {
+  config = config_wireless,
+  type = "wifi-radius-server",
+  options = { "state", "ip", "port", "fqdn", "dhcp_acct", "priority" },
+  passwords = { "secret" }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(wireless_wifiradiusserver)
+
+-- uci.wireless.wifi
+local wireless_wifiglobal = {
+  config = config_wireless,
+  type = "wifi",
+  options = { "wifi_analyzer_disable" }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(wireless_wifiglobal)

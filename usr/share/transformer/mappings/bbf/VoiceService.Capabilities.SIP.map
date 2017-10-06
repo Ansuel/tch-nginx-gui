@@ -1,0 +1,130 @@
+local lfs = require("lfs")
+
+if lfs.attributes("/etc/config/mmpbx", "mode") ~= "file" then
+  return
+end
+
+local Multi_Services_VoiceService_i_Capabilities_SIP_ = {
+  objectType = {
+    name = "#ROOT.Services.VoiceService.{i}.Capabilities.SIP.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      Role = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+        enumeration = {
+          "UserAgent",
+          "BackToBackUserAgents",
+          "OutboundProxy",
+        },
+      },
+      Extensions = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        list = true,
+        max = "256",
+        type = "string",
+      },
+      Transports = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        list = true,
+        max = "256",
+        type = "string",
+        enumeration = {
+          "UDP",
+          "TCP",
+          "TLS",
+          "SCTP",
+        },
+      },
+      URISchemes = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        list = true,
+        max = "256",
+        type = "string",
+      },
+      EventSubscription = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "boolean",
+      },
+      ResponseMap = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "boolean",
+      },
+      TLSAuthenticationProtocols = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        list = true,
+        max = "256",
+        type = "string",
+        enumeration = {
+          "Null",
+          "MD5",
+          "SHA-1",
+        },
+      },
+--      TLSAuthenticationKeySizes = {
+--        access = "readOnly",
+--        activeNotify = "canDeny",
+--        list = true,
+--        max = "256",
+--        type = "unsignedInt",
+--      },
+--      TLSEncryptionProtocols = {
+--        access = "readOnly",
+--        activeNotify = "canDeny",
+--        list = true,
+--        max = "256",
+--        type = "string",
+--        enumeration = {
+--          "Null",
+--          "RC4",
+--          "RC2",
+--          "DES",
+--          "3DES",
+--        },
+--      },
+--      TLSEncryptionKeySizes = {
+--        access = "readOnly",
+--        activeNotify = "canDeny",
+--        list = true,
+--        max = "256",
+--        type = "unsignedInt",
+--      },
+--      TLSKeyExchangeProtocols = {
+--        access = "readOnly",
+--        activeNotify = "canDeny",
+--        list = true,
+--        max = "256",
+--        type = "string",
+--        enumeration = {
+--          "RSA",
+--          "DSS",
+--        },
+--      },
+    }
+  }
+}
+
+Multi_Services_VoiceService_i_Capabilities_SIP_.get = {
+    Role = "UserAgent",
+    Extensions = "INVITE, ACK, BYE, CANCEL, REFER, SUSBCRIBE, NOTIFY, INFO, PRACK, UPDATE; OPTIONS",
+    Transports = "UDP",
+    URISchemes = "",
+    EventSubscription = "0",
+    ResponseMap = "0",
+    TLSAuthenticationProtocols = "",
+}
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_Services_VoiceService_i_Capabilities_SIP_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end

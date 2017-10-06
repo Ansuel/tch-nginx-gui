@@ -1,0 +1,140 @@
+-- Automatically generated from Device:2.11
+-- using generator version 2.3
+local Multi_ServerSelectionDiagnostics_ = {
+  objectType = {
+    name = "#ROOT.ServerSelectionDiagnostics.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      DiagnosticsState = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        enumeration = {
+          "None",
+          "Requested",
+          "Completed",
+          "Error_CannotResolveHostName",
+          "Error_Internal",
+          "Error_Other",
+        },
+      },
+      Interface = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        pathRef = true,
+      },
+      ProtocolVersion = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "Any",
+          "IPv4",
+          "IPv6",
+        },
+        default = "Any",
+      },
+      Protocol = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "ICMP",
+          "UDP Echo",
+        },
+      },
+      HostList = {
+        access = "readWrite",
+        list = true,
+        maxItems = "10",
+        type = "string",
+        max = "256",
+      },
+      NumberOfRepetitions = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+      Timeout = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+      FastestHost = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      MinimumResponseTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      AverageResponseTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      MaximumResponseTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      IPAddressUsed = {
+        access = "readOnly",
+        type = "string",
+      },
+    }
+  }
+}
+
+--register(Device_IP_Diagnostics_ServerSelectionDiagnostics_)
+local uci_helper = mapper("ucihelper")
+local getFromUci = uci_helper.get_from_uci
+local tr143binding = { config = "tr143" }
+
+local function getSectionName(mapping)
+  if mapping.objectType.name:match("^InternetGatewayDevice") then
+    return "igd"
+  else
+    return "device2"
+  end
+end
+
+local helper = require("transformer.shared.tr143helper")
+
+Multi_ServerSelectionDiagnostics_.get = function(mapping, pname)
+  local config = "ServerSelectionDiagnostics"
+  local user = getSectionName(mapping)
+  return helper.tr143_get(config, user, pname)
+end
+
+Multi_ServerSelectionDiagnostics_.set = function(mapping, pname, pvalue)
+  local config = "ServerSelectionDiagnostics"
+  local user = getSectionName(mapping)
+  return helper.tr143_set(config, user, pname, pvalue, commitapply)
+end
+
+Multi_ServerSelectionDiagnostics_.commit = helper.tr143_commit
+
+Multi_ServerSelectionDiagnostics_.revert = helper.tr143_revert
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_ServerSelectionDiagnostics_, "#ROOT", {"InternetGatewayDevice", "Device.IP.Diagnostics"})
+for _, dupli in ipairs(duplicates) do
+--if dupli.objectType.name:match('^Device%.') then
+  --IGD not have this node.
+--else
+  helper.startup(resolve, tokey)
+  register(dupli)
+--end
+end

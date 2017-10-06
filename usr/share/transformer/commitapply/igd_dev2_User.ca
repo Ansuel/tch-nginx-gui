@@ -1,0 +1,1 @@
+webuser_add /etc/init.d/nginx restart

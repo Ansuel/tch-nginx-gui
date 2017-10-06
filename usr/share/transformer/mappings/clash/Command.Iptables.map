@@ -1,0 +1,8 @@
+local command = {
+  name = "iptables",
+  full_path = "/usr/bin/clash-iptables-wrapper",
+  options_without_argument = {"-n","-v"},
+  options_with_argument = {"-L", "-t"},
+}
+
+mapper("command").registerCommand(command)

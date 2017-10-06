@@ -1,0 +1,112 @@
+-- Automatically generated from Device:2.2
+-- using generator version 2.1
+local Device_PPP_Interface_i_IPCP_ = {
+  objectType = {
+    name = "Device.PPP.Interface.{i}.IPCP.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      LocalIPAddress = {
+        access = "readOnly",
+        type = "string",
+        default = "",
+      },
+      RemoteIPAddress = {
+        access = "readOnly",
+        type = "string",
+        default = "",
+      },
+      DNSServers = {
+        access = "readOnly",
+        list = true,
+        maxItems = "2",
+        type = "string",
+        default = "",
+      },
+      PassthroughEnable = {
+        access = "readOnly", --readWrite currently not supported
+        type = "boolean",
+        default = "false",
+      },
+      PassthroughDHCPPool = {
+        access = "readOnly", --readWrite currently not supported
+        type = "string",
+        max = "256",
+        pathRef = true,
+        targetParent = "Device.DHCPv4.Server.Pool.{i}.",
+        default = "",
+      },
+    }
+  }
+}
+
+local nwmodel = require "transformer.shared.models.device2.network"
+local ubus = mapper("ubus").connect()
+
+local function get_ubusStatus(key)
+  local model = nwmodel.load()
+  local intf = model:getInterface(key)
+  return ubus:call("network.interface." .. intf, "status", {})
+end
+
+local function getLocalIPAddress(mapping, param, key, ubusStatus)
+  ubusStatus = ubusStatus or get_ubusStatus(key)
+  if ubusStatus and ubusStatus["ipv4-address"] and ubusStatus["ipv4-address"][1] then
+    return ubusStatus["ipv4-address"][1]["address"] or ""
+  end
+  return ""
+end
+
+local function getRemoteIPAddress(mapping, param, key, ubusStatus)
+  ubusStatus = ubusStatus or get_ubusStatus(key)
+  if ubusStatus and ubusStatus["route"] and ubusStatus["route"][1] then
+    return ubusStatus["route"][1]["nexthop"] or ""
+  end
+  return ""
+end
+
+local function ifExists(table,value)
+  for _,v in pairs(table) do
+    if value == v then
+      return true
+    end
+  end
+  return false
+end
+
+local function getDNSServers(mapping, param, key, ubusStatus)
+  ubusStatus = ubusStatus or get_ubusStatus(key)
+  if ubusStatus and ubusStatus["dns-server"] then
+    local dnsServers = {}
+    table.foreach(ubusStatus["dns-server"], function(s)
+      if not ifExists(dnsServers, ubusStatus["dns-server"][s]) then
+        dnsServers[#dnsServers+1] = ubusStatus["dns-server"][s]
+      end
+    end)
+    return table.concat(dnsServers,",")
+  end
+  return ""
+end
+
+Device_PPP_Interface_i_IPCP_.get = {
+  LocalIPAddress = getLocalIPAddress,
+  RemoteIPAddress = getRemoteIPAddress,
+  DNSServers = getDNSServers,
+  PassthroughEnable = "0",
+  PassthroughDHCPPool = ""
+}
+
+Device_PPP_Interface_i_IPCP_.getall = function(mapping, key)
+  local ubusStatus = get_ubusStatus(key)
+  local allValues = {
+    LocalIPAddress = getLocalIPAddress(mapping, nil , key,  ubusStatus),
+    RemoteIPAddress = getRemoteIPAddress(mapping, nil , key, ubusStatus),
+    DNSServers = getDNSServers(mapping, nil , key, ubusStatus),
+    PassthroughEnable = "0",
+    PassthroughDHCPPool = ""
+  }
+  return allValues
+end
+
+register(Device_PPP_Interface_i_IPCP_)

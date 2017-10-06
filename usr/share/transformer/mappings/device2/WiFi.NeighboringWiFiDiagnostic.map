@@ -1,0 +1,83 @@
+-- Automatically generated from Device:2.11
+-- using generator version 2.3
+local Device_WiFi_NeighboringWiFiDiagnostic_ = {
+  objectType = {
+    name = "Device.WiFi.NeighboringWiFiDiagnostic.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      DiagnosticsState = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "None",
+          "Requested",
+          "Complete",
+          "Error",
+        },
+      },
+      -- ResultNumberOfEntries
+      -- automatically created when Device.WiFi.NeighboringWiFiDiagnostic.Result.{i}. is loaded
+    }
+  }
+}
+
+local mapper, pairs, register = mapper, pairs, register
+local conn = mapper("ubus").connect()
+local diagnosticState
+local diagResult
+local rescanStatus = {}
+local deviceScanned = 0
+
+local function getRadioNames()
+  local radios = {}
+  for radio in pairs(conn:call("wireless.radio", "get", {}) or {}) do
+    radios[#radios + 1] = radio
+  end
+  return radios
+end
+
+Device_WiFi_NeighboringWiFiDiagnostic_.get = {
+  DiagnosticsState = function(mapping, param, key)
+    return diagnosticState and diagnosticState or "None"
+  end
+}
+
+Device_WiFi_NeighboringWiFiDiagnostic_.set = {
+  DiagnosticsState = function (mapping, param, value, key)
+    if value == "Requested" then
+      conn:call("wireless.radio.acs", "rescan", {})
+      diagResult = true
+    else
+      return nil, "The only allowed value is Requested"
+    end
+  end,
+}
+
+local function ubus_radio_event(mapping, event, data)
+  if diagnosticState ~= "Complete" then
+    local wirelessDevice = getRadioNames()
+    if data then
+      for _, radio in ipairs(wirelessDevice) do
+        if data.radio_name == radio and data.channel_rescan_finished == 1 then
+          rescanStatus[radio] = true
+          deviceScanned = deviceScanned + 1
+        end
+      end
+    end
+    local deviceCount = #wirelessDevice
+    if deviceScanned == deviceCount then
+      diagnosticState = "Complete"
+    elseif deviceScanned < deviceCount and diagResult then
+      diagnosticState = "Requested"
+    end
+  end
+end
+
+Device_WiFi_NeighboringWiFiDiagnostic_.add_watchers = function(mapping)
+  local ubusEventSource = eventsource("ubus")
+  ubusEventSource.watch_event(mapping, ubus_radio_event, "wireless.radio")
+end
+
+register(Device_WiFi_NeighboringWiFiDiagnostic_)

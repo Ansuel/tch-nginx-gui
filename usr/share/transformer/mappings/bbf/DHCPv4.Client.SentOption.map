@@ -1,0 +1,123 @@
+local register = register
+
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Multi_ = {
+  objectType = {
+    name = "#ROOT",
+    access = "readOnly",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "boolean",
+        default = "false",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        max  = "64",
+      },
+      Tag = {
+        access = "readOnly", --Implementing as ReadOnly, since only one Tag(60) is currently implemented.
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+            max = "254",
+          },
+        },
+      },
+      Value = {
+        access = "readWrite",
+        type = "string", --Type changed from HexBinary to String, as HexBinary is not supported by Transformer
+        min = "0",
+        max = "255",
+        default = "",
+      },
+    }
+  }
+}
+-- function aliases
+local mapper = mapper
+local uciHelper = mapper("ucihelper")
+local networkBinding = { config = "network", option = "vendorid"}
+local isConfigChanged = false
+local string = string
+local splitKey = mapper("nwcommon").split_key
+
+local function getUciParam(sectionName)
+  networkBinding.sectionname = sectionName
+  return uciHelper.get_from_uci(networkBinding)
+end
+
+-- For Device.DHCPv4.Client.{i}.SentOption.{i}. object, the parentkey is interface name (eg. wan)
+-- For InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANIPConnection.{i}.DHCPClient.SentDHCPOption.{i}. the parentkey interface name and xtmdevice name (eg. wan|ptm0)
+-- Here entries are formed with the parentKey,so we are splitting the key in the setter and getter functions.
+-- We are using the key as sectionname to get and set the values from the network config
+
+Multi_.entries = function(mapping, parentKey)
+  return { parentKey }
+end
+
+local function stringToHex(str)
+  return (str:gsub('.', function (c)
+    return string.format('%02x', string.byte(c))
+  end))
+end
+
+Multi_.get = {
+  Enable = '1',
+  Tag = '60', --only Tag 60 is currently implemented.
+  Value = function(mapping, param, key)
+    key = splitKey(key) or key
+    return stringToHex(getUciParam(key))
+  end
+}
+
+Multi_.getall = function(mapping, key)
+  key = splitKey(key) or key
+  local allValues= {
+    Enable = '1',
+    Tag = '60', --only Tag 60 is currently implemented.
+    Value = stringToHex(getUciParam(key))
+  }
+  return allValues
+end
+
+Multi_.set = {
+  Value = function(mapping, param, value, key)
+    key = splitKey(key) or key
+    networkBinding.sectionname = key
+    return uciHelper.set_on_uci(networkBinding, value, commitapply)
+  end,
+}
+
+Multi_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(networkBinding)
+    isConfigChanged = false
+  end
+end
+
+Multi_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(networkBinding)
+    isConfigChanged = false
+  end
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_, "#ROOT", {"InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANIPConnection.{i}.DHCPClient.SentDHCPOption.{i}.", "Device.DHCPv4.Client.{i}.SentOption.{i}."})
+for _, dupli in ipairs(duplicates) do
+  if dupli.objectType.name:match("^InternetGatewayDevice%.") then
+    dupli.objectType.numEntriesParameter = "SentDHCPOptionNumberOfEntries"
+  else
+    dupli.objectType.numEntriesParameter = "SentOptionNumberOfEntries"
+  end
+  register(dupli)
+end

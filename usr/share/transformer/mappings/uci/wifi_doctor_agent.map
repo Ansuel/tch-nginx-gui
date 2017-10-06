@@ -1,0 +1,33 @@
+local config_wifi_doctor_agent = "wifi_doctor_agent"
+
+--uci.wifi_doctor_agent
+mapper("uci_1to1").registerConfigMap(config_wifi_doctor_agent)
+
+--uci.wifi_doctor_agent.config
+local wifi_doctor_agent_config = {
+  config = config_wifi_doctor_agent,
+  section = "config",
+  type = "config",
+  options = {"enabled", "cs_url", "cs_buf_sz", "cs_buf_period", "active_radio"}
+}
+mapper("uci_1to1").registerSimpleMap(wifi_doctor_agent_config)
+
+--uci.wifi_doctor_agent.as_config
+local wifi_doctor_agent_as_config = {
+  config = config_wifi_doctor_agent,
+  section = "as_config",
+  type = "as_config",
+  options = {"url", "client_id", "client_secret"},
+  passwords = { "passwd" }
+}
+
+mapper("uci_1to1").registerSimpleMap(wifi_doctor_agent_as_config)
+
+--uci.wifi_doctor_agent.acs
+local wifi_doctor_agent_acs = {
+  config = config_wifi_doctor_agent,
+  section = "acs",
+  type = "acs",
+  options = {"authority", "auth_timestamp" }
+}
+mapper("uci_1to1").registerSimpleMap(wifi_doctor_agent_acs)

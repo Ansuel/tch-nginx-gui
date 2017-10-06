@@ -1,0 +1,132 @@
+local mapper = mapper
+local config_mmpbx = "mmpbx"
+
+-- uci.mmpbx
+mapper("uci_1to1").registerConfigMap(config_mmpbx)
+
+-- uci.mmpbx.mmpbx
+local mmpbx_mmpbx = {
+  config = config_mmpbx,
+  type = "mmpbx",
+  options = { "cw_reject_scope", "country", "trace_level", "enabled", "dial_timeout" }
+}
+mapper("uci_1to1").registerNamedMultiMap(mmpbx_mmpbx)
+
+-- uci.mmpbx.network
+local mmpbx_network = {
+  config = config_mmpbx,
+  type = "network",
+  options = { "name", "user_friendly_name", "cac", "transparent_soc_transmission", "config", }
+}
+mapper("uci_1to1").registerNamedMultiMap(mmpbx_network)
+
+-- uci.mmpbx.profile
+mmpbx_network = {
+  config = config_mmpbx,
+  type = "profile",
+  options = { "config", }
+}
+mapper("uci_1to1").registerNamedMultiMap(mmpbx_network)
+
+--uci.mmpbx.internal_map
+local mmpbx_internalmap = {
+  config = config_mmpbx,
+  type = "internal_map",
+  options = { "profile", "device" },
+}
+mapper("uci_1to1").registerMultiMap(mmpbx_internalmap)
+
+--uci.mmpbx.incoming_map
+local mmpbx_inmap = {
+  config = config_mmpbx,
+  type = "incoming_map",
+  options = { "profile"},
+  lists = {"device"}
+}
+mapper("uci_1to1").registerMultiMap(mmpbx_inmap)
+
+
+--uci.mmpbx.outmap
+local mmpbx_outmap = {
+  config = config_mmpbx,
+  type = "outgoing_map",
+  options = { "device"},
+   lists = {"profile","priority"}
+}
+mapper("uci_1to1").registerMultiMap(mmpbx_outmap)
+
+-- uci.mmpbx.service
+local mmpbx_service = {
+  config = config_mmpbx,
+  type = "service",
+  options = {"type", "provisioned", "activated", "timeout", "cw_reject_persistency", "destination", "internal_transfer", "external_transfer"},
+  lists = {"profile", "device"},
+}
+mapper("uci_1to1").registerMultiMap(mmpbx_service)
+
+--uci.mmpbx.scc
+local mmpbx_scc = {
+  config = config_mmpbx,
+  type = "scc",
+  options = {"eon", "seperator", "inter_digit_timer", "mode" },
+}
+mapper("uci_1to1").registerMultiMap(mmpbx_scc)
+
+--uci.mmpbx.scc_entry
+local mmpbx_scc_entry = {
+  config = config_mmpbx,
+  type = "scc_entry",
+  options = {"scc", "service_base", "pattern", "service_type", "action", "enabled"},
+}
+mapper("uci_1to1").registerMultiMap(mmpbx_scc_entry)
+
+--uci.mmpbx.media_filter
+local mmpbx_media_filter = {
+  config = config_mmpbx,
+  type = "media_filter",
+  options ={"type", "allow", "allow_unknown_codecs", "symmetric_codecs_remote_codec_priority", "force_symmetric_codecs", "symmetric_dynamic_rtp_payload", "restrict_ptime", "max_ptime", "remove_ptime"},
+  lists ={"network"}
+}
+mapper("uci_1to1").registerNamedMultiMap(mmpbx_media_filter)
+
+--uci.mmpbx.codec
+local mmpbx_codec = {
+  config = config_mmpbx,
+  type = "codec_filter",
+  options = {"name", "media_filter", "allow", "priority", "remove_silence_suppression", "packetization_time"},
+}
+mapper("uci_1to1").registerMultiMap(mmpbx_codec)
+
+--uci.mmpbx.dial_plan.
+local mmpbx_dial_plan = {
+  config = config_mmpbx,
+  type = "dial_plan",
+  options = {"open_inter_digit_timer", "closed_inter_digit_timer", "eon", "no_match_action", "selection_mode", "syntax", "no_match_include_eon"},
+  lists = {"network"}
+}
+mapper("uci_1to1").registerMultiMap(mmpbx_dial_plan)
+
+--uci.mmpbx.audio_notification
+local mmpbx_audio_notification = {
+   config = config_mmpbx,
+   type = "audionotification",
+   options = {"delay", "repeat_after"},
+   lists = {"play", "duration", "loop_from", "loop_to", "loop_iterations"}
+}
+mapper("uci_1to1").registerNamedMultiMap(mmpbx_audio_notification)
+
+--uci.mmpbx.tone
+local mmpbx_tone = {
+   config = config_mmpbx,
+   type = "tone",
+   lists = {"frequency", "power"}
+}
+mapper("uci_1to1").registerNamedMultiMap(mmpbx_tone)
+
+--uci.mmpbx.dial_plan_entry
+local mmpbx_dial_plan_entry = {
+    config = config_mmpbx,
+   type = "dial_plan_entry",
+   options = {"enabled", "pattern", "allow", "min_length", "max_length", "include_eon", "open_inter_digit_timer", "remove_number_of_characters", "position_of_modify"}
+}
+mapper("uci_1to1").registerNamedMultiMap(mmpbx_dial_plan_entry)

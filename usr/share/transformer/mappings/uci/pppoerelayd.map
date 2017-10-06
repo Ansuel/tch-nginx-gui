@@ -1,0 +1,15 @@
+local mapper = mapper
+local config_pppoerelayd = "pppoerelayd"
+
+-- uci.pppoerelayd
+mapper("uci_1to1").registerConfigMap(config_pppoerelayd)
+
+-- uci.pppoerelayd.config
+local pppoerelayd_config = {
+    config = config_pppoerelayd,
+    section = "config",
+    type = "pppoerelayd",
+    options = { "enable", "server_intf", "client_intf", "nsessions", "timeout" }
+}
+
+mapper("uci_1to1").registerSimpleMap(pppoerelayd_config)

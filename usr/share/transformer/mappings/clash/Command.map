@@ -1,0 +1,12 @@
+local command_ = {
+  objectType = {
+    name = "Command.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+    }
+  }
+}
+
+register(command_)

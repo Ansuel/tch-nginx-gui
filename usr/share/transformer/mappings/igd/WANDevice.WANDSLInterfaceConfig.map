@@ -1,0 +1,1067 @@
+-- Automatically generated from InternetGatewayDevice:1.8
+-- using generator version 2.3
+local InternetGatewayDevice_WANDevice_i_WANDSLInterfaceConfig_ = {
+  objectType = {
+    name = "InternetGatewayDevice.WANDevice.{i}.WANDSLInterfaceConfig.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = 1,
+    parameters = {
+      Enable = {
+        access = "readOnly",  -- readWrite currently not supported
+        type = "boolean",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Up",
+          "Initializing",
+          "EstablishingLink",
+          "NoSignal",
+          "Error",
+          "Disabled",
+        },
+      },
+      LinkEncapsulationSupported = {
+        access = "readOnly",
+        list = true,
+        type = "string",
+        enumeration = {
+          "G.992.3_Annex_K_ATM",
+          "G.992.3_Annex_K_PTM",
+          "G.993.2_Annex_K_ATM",
+          "G.993.2_Annex_K_PTM",
+          "G.994.1 (Auto)",
+        },
+      },
+      LinkEncapsulationRequested = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "G.992.3_Annex_K_ATM",
+          "G.992.3_Annex_K_PTM",
+          "G.993.2_Annex_K_ATM",
+          "G.993.2_Annex_K_PTM",
+          "G.994.1 (Auto)",
+        },
+      },
+      LinkEncapsulationUsed = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "G.992.3_Annex_K_ATM",
+          "G.992.3_Annex_K_PTM",
+          "G.993.2_Annex_K_ATM",
+          "G.993.2_Annex_K_PTM",
+        },
+      },
+      ModulationType = {
+        access = "readOnly",
+        status = "deprecated",
+        type = "string",
+        enumeration = {
+          "ADSL_G.dmt",
+          "ADSL_G.lite",
+          "ADSL_G.dmt.bis",
+          "ADSL_re-adsl",
+          "ADSL_2plus",
+          "ADLS_four",
+          "ADSL_ANSI_T1.413",
+          "G.shdsl",
+          "IDSL",
+          "HDSL",
+          "SDSL",
+          "VDSL",
+        },
+      },
+      PowerManagementState = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "L0",
+          "L1",
+          "L3",
+          "L4",
+        },
+      },
+      StandardsSupported = {
+        access = "readOnly",
+        list = true,
+        type = "string",
+        enumeration = {
+          "G.992.1_Annex_A",
+          "G.992.1_Annex_B",
+          "G.992.1_Annex_C",
+          "T1.413",
+          "T1.413i2",
+          "ETSI_101_388",
+          "G.992.2",
+          "G.992.3_Annex_A",
+          "G.992.3_Annex_B",
+          "G.992.3_Annex_C",
+          "G.992.3_Annex_I",
+          "G.992.3_Annex_J",
+          "G.992.3_Annex_L",
+          "G.992.3_Annex_M",
+          "G.992.4",
+          "G.992.5_Annex_A",
+          "G.992.5_Annex_B",
+          "G.992.5_Annex_C",
+          "G.992.5_Annex_I",
+          "G.992.5_Annex_J",
+          "G.992.5_Annex_M",
+          "G.993.1",
+          "G.993.1_Annex_A",
+          "G.993.2_Annex_A",
+          "G.993.2_Annex_B",
+          "G.993.2_Annex_C",
+        },
+      },
+      StandardUsed = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "G.992.1_Annex_A",
+          "G.992.1_Annex_B",
+          "G.992.1_Annex_C",
+          "T1.413",
+          "T1.413i2",
+          "ETSI_101_388",
+          "G.992.2",
+          "G.992.3_Annex_A",
+          "G.992.3_Annex_B",
+          "G.992.3_Annex_C",
+          "G.992.3_Annex_I",
+          "G.992.3_Annex_J",
+          "G.992.3_Annex_L",
+          "G.992.3_Annex_M",
+          "G.992.4",
+          "G.992.5_Annex_A",
+          "G.992.5_Annex_B",
+          "G.992.5_Annex_C",
+          "G.992.5_Annex_I",
+          "G.992.5_Annex_J",
+          "G.992.5_Annex_M",
+          "G.993.1",
+          "G.993.1_Annex_A",
+          "G.993.2_Annex_A",
+          "G.993.2_Annex_B",
+          "G.993.2_Annex_C",
+        },
+      },
+      LineEncoding = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "DMT",
+          "CAP",
+          "2B1Q",
+          "43BT",
+          "PAM",
+          "QAM",
+        },
+      },
+      DataPath = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Interleaved",
+          "Fast",
+          "None",
+        },
+      },
+      AllowedProfiles = {
+        access = "readOnly",
+        list = true,
+        type = "string",
+        enumeration = {
+          "8a",
+          "8b",
+          "8c",
+          "8d",
+          "12a",
+          "12b",
+          "17a",
+          "17b",
+          "30a",
+          "",
+        },
+      },
+      CurrentProfile = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "8a",
+          "8b",
+          "8c",
+          "8d",
+          "12a",
+          "12b",
+          "17a",
+          "17b",
+          "30a",
+          "",
+        },
+      },
+--[[
+      SuccessFailureCause = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "5",
+          },
+        },
+      },
+      LastStateTransmittedDownstream = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      LastStateTransmittedUpstream = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+]]
+      UPBOKLE = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "1280",
+          },
+        },
+      },
+--[[
+      MREFPSDds = {
+        access = "readOnly",
+        type = "base64",
+        min = "0",
+        max = "145",
+      },
+      MREFPSDus = {
+        access = "readOnly",
+        type = "base64",
+        min = "0",
+        max = "145",
+      },
+      LIMITMASK = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      US0MASK = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      LPATH = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      INTLVDEPTH = {
+        access = "readOnly",
+        type = "int",
+      },
+      INTLVBLOCK = {
+        access = "readOnly",
+        type = "int",
+      },
+]]
+      ActualInterleavingDelay = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      ACTINP = {
+        access = "readOnly",
+        type = "int",
+      },
+--[[
+      INPREPORT = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      NFEC = {
+        access = "readOnly",
+        type = "int",
+      },
+      RFEC = {
+        access = "readOnly",
+        type = "int",
+      },
+      LSYMB = {
+        access = "readOnly",
+        type = "int",
+      },
+]]
+      TRELLISds = {
+        access = "readOnly",
+        type = "int",
+      },
+      TRELLISus = {
+        access = "readOnly",
+        type = "int",
+      },
+--[[
+      ACTSNRMODEds = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      ACTSNRMODEus = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      VirtualNoisePSDds = {
+        access = "readOnly",
+        type = "base64",
+        min = "0",
+        max = "97",
+      },
+      VirtualNoisePSDus = {
+        access = "readOnly",
+        type = "base64",
+        min = "0",
+        max = "49",
+      },
+      ACTUALCE = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+]]
+      LineNumber = {
+        access = "readOnly",
+        type = "int",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+      UpstreamAttenuation = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      DownstreamAttenuation = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      UpstreamCurrRate = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamCurrRate = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      InterleaveDepth = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      SNRMpbus = {
+        access = "readOnly",
+        list = true,
+        max = "24",
+        type = "string",
+      },
+      SNRMpbds = {
+        access = "readOnly",
+        list = true,
+        max = "24",
+        type = "string",
+      },
+--[[
+      INMIATOds = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "3",
+            max = "511",
+          },
+        },
+      },
+      INMIATSds = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "7",
+          },
+        },
+      },
+      INMCCds = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "64",
+          },
+        },
+      },
+      INMINPEQMODEds = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "3",
+          },
+        },
+      },
+]]
+      X_000E50_UpstreamInterleaveDepth = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      X_000E50_DownstreamInterleaveDepth = {
+         access = "readOnly",
+        type = "unsignedInt",
+      },
+      UpstreamMaxRate = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamMaxRate = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamPower = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      DownstreamPower = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      UpstreamNoiseMargin = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      DownstreamNoiseMargin = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      ATURVendor = {
+        access = "readOnly",
+        type = "string",
+        max = "8",
+      },
+      ATURCountry = {
+        access = "readOnly",
+        type = "string",
+        max = "4",
+      },
+      ATURANSIStd = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      ATURANSIRev = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      ATUCVendor = {
+        access = "readOnly",
+        type = "string",
+        max = "8",
+      },
+      ATUCCountry = {
+        access = "readOnly",
+        type = "string",
+        max = "4",
+      },
+      ATUCANSIStd = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      ATUCANSIRev = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      TotalStart = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ShowtimeStart = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      LastShowtimeStart = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentDayStart = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      QuarterHourStart = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      X_0876FF_ProfileSelected = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "8a",
+          "8b",
+          "8c",
+          "8d",
+          "12a",
+          "12b",
+          "17a",
+          "17b",
+          "30a",
+          "",
+        },
+      },
+      X_0876FF_StandardSelected = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "a",
+          "d",
+          "l",
+          "t",
+          "2",
+          "p",
+          "e",
+          "m",
+          "M3",
+          "M5",
+          "v",
+        },
+      },
+      X_NumberOfCuts = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+        description = "Number of times the DSL connection was lost and reestablished since boot",
+      },
+    }
+  }
+}
+
+local setmetatable = setmetatable
+local tostring = tostring
+local tonumber = tonumber
+local match = string.match
+
+local mapper = mapper
+
+local lfs = require("lfs")
+local xdslctl = require("transformer.shared.xdslctl")
+local conn = mapper("ubus").connect()
+local wandevice = require 'transformer.shared.models.igd.wandevice'
+
+local getDevtypeAndName = wandevice.getDevtypeAndName
+
+local empty_mt = { __index = function() return "" end }
+
+-- translate Channel to DataPath
+local channelmapping = setmetatable({
+  ["INTR"] = "Interleaved",
+  ["FAST"] = "Fast",
+  ["NONE"] = "None"
+}, empty_mt)
+
+-- translate mode to ModulationType
+local modemapping = setmetatable({
+  ["G.DMT"] = "ADSL_G.dmt",
+  ["T1.413"] = "ADSL_ANSI_T1.413",
+  ["G.lite"] = "ADSL_G.lite",
+  ["AnnexI"] = "ADSL_G.dmt.bis",
+  ["ADSL2"] = "ADSL_G.dmt.bis",
+  ["ADSL2+"] = "ADSL_2plus",
+  ["RE-ADSL2"] = "ADSL_re-adsl",
+  ["VDSL2"] = "VDSL",
+}, empty_mt)
+
+-- Translate line pair to LineNumber
+local phonelinepairmapping = setmetatable({
+  ["Inner"] = "1",
+  ["Outer"] = "2"
+}, empty_mt)
+
+
+-- function to convert the mode coming from xdslctl to ModulationType
+local function convertMode(input)
+  if input ~= nil then
+    local mainmode = match(input, "^(%S+)")
+    return modemapping[mainmode]
+  end
+  return ""
+end
+
+
+-- function to get mode from xdslctl + convert to ModulationType
+local function getMode()
+  return convertMode(xdslctl.infoValue("mode"))
+end
+
+-- keys to retrieve for getall (xdslctl info --show)
+local xdslinfogetallkeys = {
+  "status",
+  "maxrate",
+  "currentrate",
+  "mode",
+  "snr",
+  "attn",
+  "pwr",
+  "framing_d",
+  "linkpowerstate",
+  "StandardUsed",
+  "LinkEncapsulationUsed",
+  "LinkEncapsulationRequested",
+  "LinkEncapsulationSupported",
+  "StandardUsed",
+  "ActualInterleavingDelay",
+  "TRELLISds",
+  "AllowedProfiles",
+  "StandardsSupported",
+  "SNRMpbus",
+  "ACTINP",
+  "UPBOKLE",
+  "SNRMpbds",
+  "TRELLISus",
+}
+-- keys to retrieve for getall (xdslctl info --stats)
+local xdslstatsgetallkeys = {
+  "total",
+  "currentquarter",
+  "currentday",
+  "sincesync"
+}
+
+-- maps xdsl status to IGD Status
+local statusmap = {
+  [-1] = "NoSignal",
+  [0]  = "NoSignal",
+  [1]  = "Initializing",
+  [2]  = "Initializing",
+  [3]  = "Initializing",
+  [4]  = "EstablishingLink",
+  [5]  = "Up",
+  [6]  = "Initializing",
+  [7]  = "Initializing",
+  [8]  = "EstablishingLink"
+}
+
+local function getStatus()
+  local status = conn:call("xdsl", "status", {})
+  if not status then
+    return nil, "cannot retrieve xdsl status"
+  end
+  status = statusmap[status.statuscode]
+  if status then
+    return status
+  end
+  return nil, "unknown xdsl status code"
+end
+
+local function times10(val)
+  local v = tonumber(val)
+  if v == nil then
+    return "0"
+  end
+  return tostring(10*v)
+end
+
+InternetGatewayDevice_WANDevice_i_WANDSLInterfaceConfig_.entries = function(mapping, parentKey)
+  local devtype = getDevtypeAndName(parentKey)
+  if devtype ~= "DSL" then
+    return {}
+  end
+  return { "1" }
+end
+
+InternetGatewayDevice_WANDevice_i_WANDSLInterfaceConfig_.get = {
+  Enable = function(mapping, param, key)
+    return "1" -- currenty cannot be stopped -> always on
+  end,
+  Status = function(mapping, param, key)
+    return getStatus()
+  end,
+  ModulationType = function(mapping, param, key)
+    return getMode()
+  end,
+  X_0876FF_StandardSelected = function(mapping, param, key)
+    return getMode()
+  end,
+  PowerManagementState = function(mapping, param, key)
+    return xdslctl.infoValue("linkpowerstate")
+  end,
+  StandardUsed = function(mapping, param, key)
+    local standards = xdslctl.infoValue("StandardUsed")
+    return standards:gsub("T1_413", "T1.413")
+  end,
+  LinkEncapsulationSupported = function(mapping, param, key)
+    return xdslctl.infoValue("LinkEncapsulationSupported")
+  end,
+  LinkEncapsulationRequested = function(mapping, param, key)
+    return xdslctl.infoValue("LinkEncapsulationRequested")
+  end,
+  LinkEncapsulationUsed = function(mapping, param, key)
+    return xdslctl.infoValue("LinkEncapsulationUsed")
+  end,
+  StandardsSupported = function(mapping, param, key)
+    local standards = xdslctl.infoValue("StandardsSupported")
+    return standards:gsub("T1_413", "T1.413")
+  end,
+  AllowedProfiles = function(mapping, param, key)
+    return xdslctl.infoValue("AllowedProfiles")
+  end,
+  CurrentProfile = function(mapping, param, key)
+    local profile = xdslctl.infoValue("vdsl2profile")
+    return profile ~= "N.A." and profile or " "
+  end,
+  UPBOKLE = function(mapping, param, key)
+    return xdslctl.infoValue("UPBOKLE")
+  end,
+  ActualInterleavingDelay = function(mapping, param, key)
+    return xdslctl.infoValue("ActualInterleavingDelay")
+  end,
+  ACTINP = function(mapping, param, key)
+    return xdslctl.infoValue("ACTINP")
+  end,
+  TRELLISds = function(mapping, param, key)
+    return xdslctl.infoValue("trellis","ds")
+  end,
+  TRELLISus = function(mapping, param, key)
+    return xdslctl.infoValue("trellis","us")
+  end,
+  SNRMpbus = function(mapping, param, key)
+    return xdslctl.infoValue("SNRMpb","us")
+  end,
+  SNRMpbds = function(mapping, param, key)
+    return xdslctl.infoValue("SNRMpb","ds")
+  end,
+  LineEncoding = function(mapping, param, key)
+    return "DMT" -- Also hardcoded in legacy
+  end,
+  DataPath = function(mapping, param, key)
+    local mode = getMode()
+    if mode == "ADSL_G.dmt" or mode == "ADSL_ANSI_T1.413" or mode == "ADSL_G.lite" then
+      local channel = xdslctl.infoValue("currentrate", "channel")
+      if channel and channelmapping[channel] ~= "" then
+        return channelmapping[channel]
+      end
+    end
+    return "None"
+  end,
+  InterleaveDepth = function(mapping, param, key)
+    local mode = getMode()
+    if mode == "ADSL_G.dmt" or mode == "ADSL_ANSI_T1.413" or mode == "ADSL_G.lite" then
+      local channel = xdslctl.infoValue("currentrate", "channel")
+      if channel == "INTR" then
+        local depth = xdslctl.infoValue("framing_d", "ds")
+        if depth ~= nil then
+          return depth
+        end
+      end
+    end
+    return "0"
+  end,
+  X_000E50_UpstreamInterleaveDepth = function(mapping, param, key)
+    local mode = getMode()
+    if mode == "ADSL_G.dmt" or mode == "ADSL_ANSI_T1.413" or mode == "ADSL_G.lite" then
+      local channel = xdslctl.infoValue("currentrate", "channel")
+      if channel == "INTR" then
+        local depth = xdslctl.infoValue("framing_d", "us")
+        if depth ~= nil then
+          return depth
+        end
+      end
+    end
+    return "0"
+  end,
+  X_000E50_DownstreamInterleaveDepth = function(mapping, param, key)
+    local mode = getMode()
+    if mode == "ADSL_G.dmt" or mode == "ADSL_ANSI_T1.413" or mode == "ADSL_G.lite" then
+      local channel = xdslctl.infoValue("currentrate", "channel")
+      if channel == "INTR" then
+        local depth = xdslctl.infoValue("framing_d", "ds")
+        if depth ~= nil then
+          return depth
+        end
+      end
+    end
+    return "0"
+  end,
+  LineNumber = function(mapping, param, key)
+    return phonelinepairmapping[xdslctl.profileValue("phonelinepair")]
+  end,
+  X_0876FF_ProfileSelected = function(mapping, param, key)
+    local profile = xdslctl.infoValue("vdsl2profile")
+    return profile ~= "N.A." and profile or " "
+  end,
+  UpstreamAttenuation = function(mapping, param, key)
+    return times10(xdslctl.infoValue("attn", "us", "0"))
+  end,
+  DownstreamAttenuation = function(mapping, param, key)
+    return times10(xdslctl.infoValue("attn", "ds", "0"))
+  end,
+  UpstreamCurrRate = function(mapping, param, key)
+    return xdslctl.infoValue("currentrate", "us", "0")
+  end,
+  DownstreamCurrRate = function(mapping, param, key)
+    return xdslctl.infoValue("currentrate", "ds", "0")
+  end,
+  UpstreamMaxRate = function(mapping, param, key)
+    return xdslctl.infoValue("maxrate", "us", "0")
+  end,
+  DownstreamMaxRate = function(mapping, param, key)
+    return xdslctl.infoValue("maxrate", "ds", "0")
+  end,
+  UpstreamNoiseMargin = function(mapping, param, key)
+    return times10(xdslctl.infoValue("snr", "us", "0"))
+  end,
+  DownstreamNoiseMargin = function(mapping, param, key)
+    return times10(xdslctl.infoValue("snr", "ds", "0"))
+  end,
+  UpstreamPower = function(mapping, param, key)
+    return times10(xdslctl.infoValue("pwr", "us", "0"))
+  end,
+  DownstreamPower = function(mapping, param, key)
+    return times10(xdslctl.infoValue("pwr", "ds", "0"))
+  end,
+  ATURCountry = function(mapping, param, key)
+    return "3480" -- hardcoded as in Legacy
+  end,
+  ATURVendor = function(mapping, param, key)
+    return "TMMB" -- hardcoded as in Legacy
+  end,
+  ATURANSIStd = function(mapping, param, key)
+    local mode = getMode()
+    if mode == "ADSL_ANSI_T1.413" then
+      -- return version, assume version 2 ("Issue 2")
+      return "2"
+    end
+    return "0"
+  end,
+  ATURANSIRev = function(mapping, param, key)
+    local mode = getMode()
+    if mode == "ADSL_ANSI_T1.413" then
+      -- return revision, assume 1998 ("T1.413-1998")
+      return "1998"
+    end
+    return "0"
+  end,
+  ATUCVendor = function(mapping, param, key)
+    return "0000" -- remote end, not known
+  end,
+  ATUCCountry = function(mapping, param, key)
+    return "0"
+  end,
+  ATUCANSIStd = function(mapping, param, key)
+    return "0"
+  end,
+  ATUCANSIRev = function(mapping, param, key)
+    return "0"
+  end,
+  TotalStart = function(mapping, param, key)
+    return xdslctl.stats("total", "time")
+  end,
+  ShowtimeStart = function(mapping, param, key)
+    return xdslctl.stats("sincesync", "time")
+  end,
+  LastShowtimeStart = function(mapping, param, key)
+    return xdslctl.stats("sincesync", "time")
+  end,
+  CurrentDayStart = function(mapping, param, key)
+    return xdslctl.stats("currentday", "time")
+  end,
+  QuarterHourStart = function(mapping, param, key)
+    return xdslctl.stats("currentquarter", "time")
+  end,
+  X_NumberOfCuts = function(mapping, param, key)
+    return xdslctl.stats("total", "retr")
+  end,
+}
+
+
+local empty = {}
+
+local function ubus_event_cb(mapping, event, data)
+  if data.status then
+    local pattern = "^" .. "DSL"
+    local keys = query_keys(mapping)
+    local events = {}
+
+    for _, keyset in ipairs(keys) do
+      local key = keyset[1]
+      if match(key, pattern) then
+        events[#events + 1] = { key = key, paramname = "Status" }
+        if data.statuscode == 0 or data.statuscode == 5 then
+          events[#events + 1] = { key = key, paramname = "ModulationType" }
+        end
+      end
+    end
+    return events
+  end
+end
+
+InternetGatewayDevice_WANDevice_i_WANDSLInterfaceConfig_.add_watchers = function(mapping)
+  local ubus_evsrc = eventsource("ubus")
+  ubus_evsrc.watch_event(mapping, ubus_event_cb, "xdsl")
+end
+
+InternetGatewayDevice_WANDevice_i_WANDSLInterfaceConfig_.getall = function(mapping, key)
+  local allvalues = {}
+  -- get all required values from xdslctl info --show, xdslctl info --stats
+  local xdslinfovalues = xdslctl.infoValueList(xdslinfogetallkeys)
+  local xdslstatsvalues = xdslctl.statsIntervalValueList(xdslstatsgetallkeys, 0)
+  local mode = convertMode(xdslinfovalues["mode"])
+  local standards = xdslinfovalues["StandardUsed"]
+  local standard = xdslinfovalues["StandardsSupported"]
+  local channel
+  if xdslinfovalues["currentrate"] ~= nil then
+    channel = xdslinfovalues["currentrate"]["channel"]
+  else
+    xdslinfovalues.currentrate = empty
+    xdslinfovalues.maxrate = empty
+    xdslinfovalues.snr = empty
+    xdslinfovalues.attn = empty
+    xdslinfovalues.pwr = empty
+  end
+  allvalues.Enable = "1"
+  allvalues.Status = getStatus() or ""
+  allvalues.ModulationType = mode or ""
+  allvalues.X_0876FF_StandardSelected = mode or ""
+  allvalues.PowerManagementState = xdslinfovalues["linkpowerstate"] or ""
+  allvalues.StandardUsed = standards:gsub("T1_413", "T1.413") or ""
+  allvalues.StandardsSupported = standard:gsub("T1_413", "T1.413") or ""
+  allvalues.LineEncoding = "DMT"
+  allvalues.DataPath = "None"
+  allvalues.InterleaveDepth="0"
+  -- ADSL1 only
+  if (mode == "ADSL_G.dmt" or mode == "ADSL_ANSI_T1.413" or mode == "ADSL_G.lite") and channel ~= nil then
+    local datapath=channelmapping[channel]
+    if datapath ~= nil then
+      allvalues.DataPath = datapath
+    end
+    if channel == "INTR" then
+      local depth = xdslinfovalues["framing_d"]["ds"]
+      if depth ~= nil then
+        allvalues.InterleaveDepth = depth
+      end
+    end
+  end
+  allvalues.X_000E50_DownstreamInterleaveDepth="0"
+  if (mode == "ADSL_G.dmt" or mode == "ADSL_ANSI_T1.413" or mode == "ADSL_G.lite") and channel ~= nil then
+    local datapath=channelmapping[channel]
+    if datapath ~= nil then
+      allvalues.DataPath = datapath
+    end
+    if channel == "INTR" then
+      local depth = xdslinfovalues["framing_d"]["ds"]
+      if depth ~= nil then
+        allvalues.InterleaveDepth = depth
+      end
+    end
+  end
+  allvalues.X_000E50_UpstreamInterleaveDepth="0"
+  if (mode == "ADSL_G.dmt" or mode == "ADSL_ANSI_T1.413" or mode == "ADSL_G.lite") and channel ~= nil then
+    local datapath=channelmapping[channel]
+    if datapath ~= nil then
+      allvalues.DataPath = datapath
+    end
+    if channel == "INTR" then
+      local depth = xdslinfovalues["framing_d"]["us"]
+      if depth ~= nil then
+        allvalues.InterleaveDepth = depth
+      end
+    end
+  end
+  allvalues.LineNumber = phonelinepairmapping[xdslctl.profileValue("phonelinepair")] or "0"
+  allvalues.UpstreamCurrRate = xdslinfovalues["currentrate"]["us"] or "0"
+  allvalues.DownstreamCurrRate = xdslinfovalues["currentrate"]["ds"] or "0"
+  allvalues.UpstreamMaxRate = xdslinfovalues["maxrate"]["us"] or "0"
+  allvalues.DownstreamMaxRate = xdslinfovalues["maxrate"]["ds"] or "0"
+  allvalues.UpstreamNoiseMargin = times10(xdslinfovalues["snr"]["us"] or "0")
+  allvalues.DownstreamNoiseMargin = times10(xdslinfovalues["snr"]["ds"] or "0")
+  allvalues.UpstreamAttenuation = times10(xdslinfovalues["attn"]["us"] or "0")
+  allvalues.DownstreamAttenuation = times10(xdslinfovalues["attn"]["ds"] or "0")
+  allvalues.UpstreamPower = times10(xdslinfovalues["pwr"]["us"] or "0")
+  allvalues.DownstreamPower = times10(xdslinfovalues["pwr"]["ds"] or "0")
+  allvalues.ATURVendor = "TMMB"
+  allvalues.ATURCountry = "3480"
+  allvalues.ATURANSIStd = "0"
+  allvalues.ATURANSIRev = "0"
+  if mode == "ADSL_ANSI_T1.413" then
+    -- return version, assume version 2 ("Issue 2")
+    allvalues.ATURANSIStd = "2"
+    -- return revision, assume 1998 ("TR1.413-1998")
+    allvalues.ATURANSIRev = "1998"
+  end
+  allvalues.ATUCVendor = "0000"
+  allvalues.ATUCCountry = "0"
+  allvalues.ATUCANSIStd = "0"
+  allvalues.ATUCANSIRev = "0"
+  allvalues.TotalStart = xdslstatsvalues["total"]["start"] or "0"
+  allvalues.ShowtimeStart = xdslstatsvalues["sincesync"]["start"] or "0"
+  allvalues.LastShowtimeStart = xdslstatsvalues["sincesync"]["start"] or "0"
+  allvalues.CurrentDayStart = xdslstatsvalues["currentday"]["start"] or "0"
+  allvalues.QuarterHourStart = xdslstatsvalues["currentquarter"]["start"] or "0"
+  allvalues.X_NumberOfCuts = xdslstatsvalues["total"]["retr"] or "0"
+  return allvalues
+end
+
+local function fileWrite(fileName, value)
+  if value then
+    local f = io.open(fileName, "w")
+    if f then
+      f:write(value)
+      f:close()
+    else
+      return nil, "unexpected write error"
+    end
+  end
+  return true
+end
+
+InternetGatewayDevice_WANDevice_i_WANDSLInterfaceConfig_.set = {
+
+X_0876FF_ProfileSelected = function(mapping, param, value)
+  local rc, err  = fileWrite("/tmp/.DSL_intf", value)
+  if rc then
+    return nil, err
+  else
+    commitapply:newset("InternetGatewayDevice.WANDevice.{i}.WANDSLInterfaceConfig.X_0876FF_ProfileSelected")
+  end
+end,
+
+X_0876FF_StandardSelected = function(mapping, param, value)
+  local rc, err =  fileWrite("/tmp/.DSLStandard_intf", value)
+  if not rc then
+    return nil, err
+  else
+    commitapply:newset("InternetGatewayDevice.WANDevice.{i}.WANDSLInterfaceConfig.X_0876FF_StandardSelected")
+  end
+end,
+}
+
+local function file_exists(path)
+  return lfs.attributes(path, "mode") == "file"
+end
+
+
+-- register on XDSL platforms
+if file_exists("/etc/config/xdsl") == true then
+  register(InternetGatewayDevice_WANDevice_i_WANDSLInterfaceConfig_)
+end

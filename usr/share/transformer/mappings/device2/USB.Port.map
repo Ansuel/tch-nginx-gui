@@ -1,0 +1,165 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_USB_Port_i_ = {
+  objectType = {
+    name = "Device.USB.Port.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "PortNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Name = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      Standard = {
+        access = "readOnly",
+        type = "string",
+        max = "4",
+      },
+      Rate = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Low",
+          "Full",
+          "High",
+          "Super",
+        },
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+--[[ TODO:
+      Type = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Host",
+          "Hub",
+          "Device",
+        },
+      },
+      Receptacle = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Standard-A",
+          "Standard-B",
+          "Powered-B",
+          "Micro-AB",
+          "Micro-B",
+        },
+      },
+      Power = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Self",
+          "Bus",
+          "Unknown",
+        },
+      },
+]]
+    }
+  }
+}
+
+local usbDevicesPath = "/sys/bus/usb/devices/"
+
+-- USB specification version supported by the Port is calculated based on the version value of the USB controllers
+-- The maximum value of the version entry among all the USB controllers is taken as the Standard supported by the Port
+
+local function getVersion()
+  local versionSupported =  ""
+  for file in lfs.dir(usbDevicesPath) do
+    if file:match("^usb%d") then
+      local fileName = usbDevicesPath .. file .. "/version"
+      local fd = io.open(fileName)
+      if fd then
+        if versionSupported == "" then
+          versionSupported = fd:read()
+        else
+          local version = fd:read()
+          if tonumber(version) > tonumber(versionSupported) then
+            versionSupported = version
+          end
+        end
+        fd:close()
+      end
+    end
+  end
+  return versionSupported:gsub("^%s*", "")
+end
+
+local usbVersion = getVersion()
+
+local rateMap = {
+  ["1.5"]  = "Low",
+  ["12"]   = "Full",
+  ["480"]  = "High",
+  ["5000"] = "Super",
+  [""]     = "Low", -- if no USB device is connected, we cannot determine the rate. Since Rate has the enumeration values, "Low" will be returned by default
+}
+
+-- The entries function is formed based on the maxchild value of the USB controllers
+-- The maximum value of the maxchild entry among all the USB controllers is taken to form the port entries
+
+Device_USB_Port_i_.entries = function(mapping)
+  local usbEntries = {}
+  local maxChild = "0"
+  for file in lfs.dir(usbDevicesPath) do
+    if file:match("^usb%d") then
+      local fileName = usbDevicesPath .. file .. "/maxchild"
+      local fd = io.open(fileName)
+      if fd then
+        local port = fd:read()
+        if maxChild < port then
+          maxChild = port
+        end
+        fd:close()
+      end
+    end
+  end
+  for i = 1, maxChild do
+    usbEntries[#usbEntries +1] = tostring(i)
+  end
+  return usbEntries
+end
+
+-- Rate is calculated based on the devices directly connected to the gateway which is of the form bus-port
+-- Refer : What are the sysfs structures for Linux USB? in http://www.linux-usb.org/FAQ.html for more information
+
+local function getRate(mapping, param, key)
+  local speed = ""
+  for file in lfs.dir(usbDevicesPath) do
+    -- Extracting the port from the USB devices which is of the form bus-port and comparing with the key
+    if file:match("%d+%-(%d+)$") == key then
+      local fileName = usbDevicesPath .. file .. "/speed"
+      local fd = io.open(fileName)
+      if fd then
+        speed = fd:read()
+        fd:close()
+      end
+    end
+  end
+  return rateMap[speed]
+end
+
+Device_USB_Port_i_.get = {
+  Name = function(mapping, param, key)
+    return "USB Port " .. key
+  end,
+
+  Standard = usbVersion,
+
+  Rate = getRate,
+}
+
+-- A getall implementation is not done as it will not bring any improvement
+
+register(Device_USB_Port_i_)

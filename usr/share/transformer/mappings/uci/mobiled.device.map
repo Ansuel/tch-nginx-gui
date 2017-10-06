@@ -1,0 +1,216 @@
+local commitapply = commitapply
+
+-- uci.mobiled.device
+local mobiled_device_ = {
+	objectType = {
+		name = "uci.mobiled.device.@.",
+		numEntriesParameter = "numDevices",
+		access = "readWrite",
+		minEntries = 0,
+		maxEntries = math.huge,
+		parameters = {
+			enabled = {
+				access = "readWrite",
+				type = "boolean"
+			},
+			radio_pref = {
+				access = "readWrite",
+				type = "string",
+				enumeration = {
+					"lte",
+					"umts",
+					"gsm",
+					"cdma",
+					"auto"
+				}
+			},
+			lte_bands = {
+				access = "readWrite",
+				type = "string"
+			},
+			earfcn = {
+				access = "readWrite",
+				type = "string"
+			},
+			network_selection = {
+				access = "readWrite",
+				type = "string",
+				enumeration = {
+					"auto",
+					"manual"
+				}
+			},
+			mcc = {
+				access = "readWrite",
+				type = "string"
+			},
+			mnc = {
+				access = "readWrite",
+				type = "string"
+			},
+			plmn = {
+				access = "readWrite",
+				type = "string"
+			},
+			roaming = {
+				access = "readWrite",
+				type = "boolean"
+			},
+			imei = {
+				access = "readWrite",
+				type = "string"
+			},
+			model = {
+				access = "readWrite",
+				type = "string"
+			},
+			username = {
+				access = "readWrite",
+				type = "string"
+			},
+			password = {
+				access = "readWrite",
+				type = "string"
+			},
+			reuse_profiles = {
+				access = "readWrite",
+				type = "boolean"
+			}
+		}
+	}
+}
+
+local register, tostring = register, tostring
+
+local uci_helper = mapper("ucihelper")
+local forEachOnUci = uci_helper.foreach_on_uci
+
+local devicesBinding = {
+	config="mobiled",
+	sectionname="device",
+}
+local bindingInfo = {
+        config="mobiled",
+        sectionname="device_defaults",
+        option="roaming",
+}
+local mobiledBinding = {config = "mobiled"}
+
+local function entriesMobiledDevices(mapping)
+	local device = {}
+
+	local function cb(t)
+		local l = #device
+		device[l+1] = tostring(l)
+	end
+        forEachOnUci(devicesBinding, cb)
+	return device
+end
+
+local function getBindingForIndex(key)
+	return {
+		config="mobiled",
+		sectionname="@device[" .. key .. "]",
+		extended = true
+	}
+end
+
+local function addDefaults(key)
+	local default_cfg = {
+		enabled = "1",
+		radio_pref = "lte",
+		network_selection = "auto"
+	}
+
+	local binding = getBindingForIndex(key)
+	for param, value in pairs(default_cfg) do
+		binding.option = param
+		uci_helper.set_on_uci(binding, value, commitapply)
+	end
+end
+
+local function addMobiledDevices(mapping)
+	local result = uci_helper.add_on_uci(devicesBinding, commitapply)
+	if not result then
+		return nil, "No object could be added for this multi instance object"
+	end
+	uci_helper.commit(devicesBinding)
+	local items = entriesMobiledDevices(mapping)
+	local device = tostring(#items-1)
+	addDefaults(device)
+	return device
+end
+
+local function deleteMobiledDevices(mapping, key)
+	local binding = getBindingForIndex(key)
+	uci_helper.delete_on_uci(binding, commitapply)
+	uci_helper.commit(binding)
+	return true
+end
+
+local function getallFromUCI(key)
+	local binding = getBindingForIndex(key)
+	local result = uci_helper.getall_from_uci(binding)
+	return result
+end
+
+local function getFromUCI(key, param)
+	local binding = getBindingForIndex(key)
+	binding.option = param
+	local result = uci_helper.get_from_uci(binding)
+	return result
+end
+
+local function setOnUCI(key, param, value)
+	local binding = getBindingForIndex(key)
+	binding.option = param
+	uci_helper.set_on_uci(binding, value, commitapply)
+	uci_helper.commit(binding)
+end
+
+local function setRoaming(param, value)
+        forEachOnUci(devicesBinding, function(s)
+                mobiledBinding.sectionname = s[".name"]
+                mobiledBinding.option = param
+                uci_helper.set_on_uci(mobiledBinding, value, commitapply)
+                uci_helper.commit(mobiledBinding)
+        end)
+        uci_helper.set_on_uci(bindingInfo, value, commitapply)
+        uci_helper.commit(bindingInfo)
+end
+
+local function getallMobiledDevices(mapping, key)
+	local result = getallFromUCI(key)
+	result['index'] = key
+	return result
+end
+
+local function get(mapping, paramName, key)
+	if paramName == "plmn" then
+		local mcc = getFromUCI(key, "mcc")
+		local mnc = getFromUCI(key, "mnc")
+		return mcc .. mnc
+	end
+	return getFromUCI(key, paramName)
+end
+
+local function set(mapping, paramName, paramValue, key)
+	if paramName == "plmn" and (#paramValue == 5 or #paramValue == 6) then
+		local mcc = string.sub(paramValue, 1, 3)
+		local mnc = string.sub(paramValue, 4)
+		setOnUCI(key, "mcc", mcc)
+		return setOnUCI(key, "mnc", mnc)
+	end
+        if paramName == "roaming" then
+                return setRoaming(paramName, paramValue)
+        end
+	return setOnUCI(key, paramName, paramValue)
+end
+
+mobiled_device_.getall = getallMobiledDevices
+mobiled_device_.get = get
+mobiled_device_.set = set
+mobiled_device_.add = addMobiledDevices
+mobiled_device_.delete = deleteMobiledDevices
+mobiled_device_.entries = entriesMobiledDevices
+register(mobiled_device_)

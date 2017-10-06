@@ -1,0 +1,199 @@
+local register, tostring = register, tostring
+local open = io.open
+
+local sys_class_net_stats_ = {
+  objectType = {
+    name = "sys.class.net.@.statistics.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      collisions = {
+        access = "readOnly",
+        type = "string",
+      },
+      multicast = {
+        access = "readOnly",
+        type = "string",
+      },
+      rx_bytes = {
+        access = "readOnly",
+        type = "string",
+      },
+      rx_compressed = {
+        access = "readOnly",
+        type = "string",
+      },
+      rx_crc_errors = {
+        access = "readOnly",
+        type = "string",
+      },
+      rx_dropped = {
+        access = "readOnly",
+        type = "string",
+      },
+      rx_errors = {
+        access = "readOnly",
+        type = "string",
+      },
+      rx_fifo_errors = {
+        access = "readOnly",
+        type = "string",
+      },
+      rx_frame_errors = {
+        access = "readOnly",
+        type = "string",
+      },
+      rx_length_errors = {
+        access = "readOnly",
+        type = "string",
+      },
+      rx_missed_errors = {
+        access = "readOnly",
+        type = "string",
+      },
+      rx_over_errors = {
+        access = "readOnly",
+        type = "string",
+      },
+      rx_packets = {
+        access = "readOnly",
+        type = "string",
+      },
+      tx_aborted_errors = {
+        access = "readOnly",
+        type = "string",
+      },
+      tx_bytes = {
+        access = "readOnly",
+        type = "string",
+      },
+      tx_carrier_errors = {
+        access = "readOnly",
+        type = "string",
+      },
+      tx_compressed = {
+        access = "readOnly",
+        type = "string",
+      },
+      tx_dropped = {
+        access = "readOnly",
+        type = "string",
+      },
+      tx_errors = {
+        access = "readOnly",
+        type = "string",
+      },
+      tx_fifo_errors = {
+        access = "readOnly",
+        type = "string",
+      },
+      tx_heartbeat_errors = {
+        access = "readOnly",
+        type = "string",
+      },
+      tx_packets = {
+        access = "readOnly",
+        type = "string",
+      },
+      tx_window_errors = {
+        access = "readOnly",
+        type = "string",
+      },
+      tx_broadcast = {
+        access = "readOnly",
+        type = "unsignedLong",
+      },
+      rx_broadcast = {
+        access = "readOnly",
+        type = "unsignedLong",
+      },
+      tx_unicast = {
+        access = "readOnly",
+        type = "unsignedLong",
+      },
+      rx_unicast = {
+        access = "readOnly",
+        type = "unsignedLong",
+      },
+      txpckt = {
+        access = "readOnly",
+        type = "unsignedLong",
+      },
+      multicast = {
+        access = "readOnly",
+        type = "unsignedLong",
+      },
+      rxerr = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      reset = {
+        access = "readWrite",
+        type = "boolean",
+      },
+    },
+  }
+}
+
+local nwCommon = mapper("nwcommon")
+local getIntfStats = nwCommon.getIntfStats
+
+local extStatsMap = {
+  tx_broadcast = true,
+  rx_broadcast = true,
+  tx_unicast = true,
+  rx_unicast = true,
+  txpckt = true,
+  multicast = true,
+  rxerr = true,
+}
+
+local function firstline(filename)
+  local fd, msg = open(filename)
+  if not fd then
+    -- you could return nil and error message but that will abort
+    -- iterating over all parameters.
+    -- So here I opt to just return "0" (default value).
+    return "0"
+  end
+  local result = fd:read("*l")
+  if not result then
+    result = "0"
+  end
+  fd:close()
+  return result
+end
+
+local stat_cache = {}
+
+local function get(mapping, paramName, key, nocache)
+  if paramName == "reset" then
+    return "0"
+  end
+  local real_stat
+  if extStatsMap[paramName] then
+    real_stat = getIntfStats(key, paramName, "0")
+  else
+    real_stat = firstline("/sys/class/net/" .. key .. "/statistics/" .. paramName)
+  end
+  if nocache then
+    return real_stat
+  end
+  local substract = stat_cache[key] and tonumber(stat_cache[key][paramName]) or 0
+  return tostring(tonumber(real_stat) - substract)
+end
+
+local function set(mapping, paramName, paramValue, key)
+  if paramName == "reset" and paramValue == "1" then
+    stat_cache[key] = {}
+    for mapping_paramname in pairs(mapping.objectType.parameters) do
+      stat_cache[key][mapping_paramname] = get(mapping, mapping_paramname, key, true)
+    end
+  end
+end
+
+sys_class_net_stats_.get = get
+sys_class_net_stats_.set = set
+
+register(sys_class_net_stats_)

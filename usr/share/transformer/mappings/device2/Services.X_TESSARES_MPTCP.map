@@ -1,0 +1,127 @@
+-- Manually generated
+local Device_Services_X_TESSARES_MPTCP_ = {
+  objectType = {
+    name = "Device.Services.X_TESSARES_MPTCP.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Enabled",
+          "Disabled",
+        },
+        default = "Disabled",
+      },
+      Profile = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        default = "DSL_LTE",
+      },
+      AdvMSS = {
+        access = "readWrite",
+        type = "int",
+        default = "1448",
+      },
+    }
+  }
+}
+
+local uciHelper = mapper("ucihelper")
+local mproxyBinding = { config = "mproxy", sectionname = "globals" }
+local isConfigChanged = false
+local lfs = require("lfs")
+local commitApply, string = commitapply, string
+
+local paramMap = {
+  ["Enable"]  = "enable",
+  ["Profile"] = "profile",
+  ["AdvMSS"]  = "advmss",
+}
+
+local function getUciValue(param, default)
+  mproxyBinding.option = paramMap[param]
+  mproxyBinding.default = default
+  return uciHelper.get_from_uci(mproxyBinding)
+end
+
+Device_Services_X_TESSARES_MPTCP_.get = {
+  Enable = function(mapping, param)
+    return getUciValue(param, "0")
+  end,
+
+  Status = function(mapping, param)
+    return lfs.attributes("/var/run/mproxy.pid", "mode") == "file" and "Enabled" or "Disabled"
+  end,
+
+  Profile = function(mapping, param)
+    return string.upper(getUciValue(param, "dsl_lte"))
+  end,
+
+  AdvMSS = function(mapping, param)
+    return getUciValue(param, "1448")
+  end,
+}
+
+local function setUciValue(option, value)
+  mproxyBinding.option = option
+  uciHelper.set_on_uci(mproxyBinding, value, commitApply)
+  isConfigChanged = true
+end
+
+local function setProfile(param, value)
+  value = string.lower(value)
+  setUciValue("profile", value)
+end
+
+Device_Services_X_TESSARES_MPTCP_.set = {
+  Enable = function(mapping, param, value)
+    setUciValue("enable", value)
+    local profileValue = getUciValue("Profile", "dsl_lte")
+    setProfile(param, profileValue)
+  end,
+  Profile = function(mapping, param, value)
+    setProfile(param, value)
+  end,
+  AdvMSS = function(mapping, param, value)
+    setUciValue(paramMap[param], value)
+  end,
+}
+
+Device_Services_X_TESSARES_MPTCP_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(mproxyBinding)
+    isConfigChanged = false
+  end
+end
+
+Device_Services_X_TESSARES_MPTCP_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(mproxyBinding)
+    isConfigChanged = false
+  end
+end
+
+local function setUciEventEnable(mapping, action, config, sectionType, sectionName, option)
+  return { { key = sectionName, paramname = "Enable" } }
+end
+
+local function setUciEventProfile(mapping, action, config, sectionType, sectionName, option)
+  return { { key = sectionName, paramname = "Profile" } }
+end
+
+Device_Services_X_TESSARES_MPTCP_.add_watchers = function(mapping, param, key)
+  local uciEventSource = eventsource("uci")
+  uciEventSource.watch(mapping, { set = setUciEventEnable }, "mproxy", "globals", nil, "enable")
+  uciEventSource.watch(mapping, { set = setUciEventProfile }, "mproxy", "globals", nil, "profile")
+end
+
+register(Device_Services_X_TESSARES_MPTCP_)

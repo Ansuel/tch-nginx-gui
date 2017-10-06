@@ -1,0 +1,457 @@
+-- Automatically generated from InternetGatewayDevice:1.3
+-- using generator version 2.1
+local register, mapper, resolve, eventsource = register, mapper, resolve, eventsource
+local InternetGatewayDevice_LANDevice_i_Hosts_ = {
+  objectType = {
+    name = "InternetGatewayDevice.LANDevice.{i}.Hosts.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      -- HostNumberOfEntries
+      -- automatically created when InternetGatewayDevice.LANDevice.{i}.Hosts.Host.{i}. is loaded
+    }
+  }
+}
+
+register(InternetGatewayDevice_LANDevice_i_Hosts_)
+
+
+local InternetGatewayDevice_LANDevice_i_Hosts_Host_i_ = {
+  objectType = {
+    name = "InternetGatewayDevice.LANDevice.{i}.Hosts.Host.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "HostNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      IPAddress = {
+        access = "readOnly",
+        type = "string",
+      },
+      AddressSource = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "DHCP",
+          "Static",
+          "AutoIP",
+        },
+      },
+      LeaseTimeRemaining = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+          },
+        },
+      },
+      MACAddress = {
+        access = "readOnly",
+        type = "string",
+      },
+      HostName = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      InterfaceType = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Ethernet",
+          "USB",
+          "802.11",
+          "HomePNA",
+          "HomePlug",
+          "Other",
+        },
+      },
+      Active = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      VendorClassID = {
+        access = "readOnly",
+        type = "string",
+        max = "256",
+      },
+      X_000E50_IPv6Address = {
+        access = "readOnly",
+        type = "string",
+      },
+      Layer2Interface = {
+        access = "readOnly",
+        type = "string",
+      },
+    }
+  }
+}
+
+local common = mapper('nwcommon')
+local ubus = mapper("ubus").connect()
+local ucihelper = mapper("ucihelper")
+local concat = table.concat
+local floor = math.floor
+local sort = table.sort
+
+local io = require 'io' --easier for testing
+local open = io.open
+local os = require 'os' --easier for testing
+local time = os.time
+
+local format = string.format
+local match = string.match
+local pairs = pairs
+local ipairs = ipairs
+local tostring = tostring
+local tonumber = tonumber
+
+local function ip2vendor(dev, ip)
+  if not ip then
+    return ""
+  end
+
+  if dev and dev.ipv4 then
+    for _,v in pairs(dev.ipv4) do
+        if v.address == ip then
+          if v.dhcp and v.dhcp["vendor-class"] then
+            return v.dhcp["vendor-class"]
+          end
+        end
+    end
+  end
+  return ""
+end
+
+-- Return number representing the dotted IP address
+local function ipv4_as_number(ipstr)
+  local ipblocks = { match(ipstr, "(%d+)%.(%d+)%.(%d+)%.(%d+)") }
+  if #ipblocks == 4 then
+    local result = 0
+    for _,v in ipairs(ipblocks) do
+      result = result*256 + v
+    end
+    return result
+  end
+end
+local autoip_net = ipv4_as_number("169.254.0.0")
+
+local function key2intf(key)
+  return key:match("^([^|]*)|([^|]*)")
+end
+
+local L2intfMap = {}
+
+local function key2dev(key)
+  local LANintf, mac = key2intf(key)
+  local L2map = L2intfMap[LANintf]
+  local device
+  local devs = ubus:call("hostmanager.device", "get",{["mac-address"]=mac})
+  -- you can get multiple entries in case when a device moved from one
+  -- interface to another (eg from lan to fon)
+  -- We want only the entry fot the given LAN interface.
+  for _, dev in pairs(devs) do
+    if L2map[dev.l2interface] then
+      device = dev
+      break
+    end
+  end
+  return device or {}, LANintf, mac
+end
+
+local TechnologyMap={
+  ["ethernet"]="Ethernet",
+  ["wireless"]="802.11",
+  ["usb"]="USB",
+  ["homepna"]="HomePNA",
+  ["homeplug"]="HomePlug"
+}
+
+local intfType = {config='network', option='type', default=''}
+local function getL2interfaces(intf)
+  local L2map = {}
+  intfType.sectionname = intf
+  local intfType = ucihelper.get_from_uci(intfType)
+  local info = ubus:call('network.interface.'..intf, 'status', {})
+  if not info and not info.device then
+    return L2map
+  end
+  if intfType=='bridge' then
+    local bridge = ubus:call('network.device', 'status', {name=info.device})
+    local members = bridge and bridge['bridge-members'] or {}
+    for _, mbr in ipairs(members) do
+      L2map[mbr] = true
+    end
+  else
+    L2map[info.device] = true
+  end
+  return L2map
+end
+
+local function dhcp_lease(mac)
+  local lease
+  local fd, msg = open("/tmp/dhcp.leases", "r")
+  if fd then
+    for line in fd:lines() do
+      local leasetime, macaddr, ip, hostname = line:match("(%d+)%s+(%x%x:%x%x:%x%x:%x%x:%x%x:%x%x)%s+(%S+)%s+(%S+)%s+")
+      if mac == macaddr then
+        lease = {
+          leasetime = leasetime,
+          hostname = hostname,
+          ip = ip
+        }
+        break
+      end
+    end
+    fd:close()
+  end
+  return lease or {}
+end
+
+-- @function wlanRemotePort to get the wlan port
+-- @return wlan port if it is present
+local function wlanRemotePort()
+  local ethernetBinding = { config = "ethernet", sectionname = "mapping" }
+  local port = ""
+  ucihelper.foreach_on_uci( ethernetBinding, function(s)
+    if s.wlan_remote == "1" then
+      port = s.port
+      return false
+    end
+  end)
+  return port
+end
+
+local wlanPort = wlanRemotePort()
+
+local integratedQtnMAC = string.lower(ucihelper.get_from_uci({config = "env", sectionname = "var", option = "qtn_eth_mac"}))
+
+InternetGatewayDevice_LANDevice_i_Hosts_Host_i_.entries = function(mapping, LANintf)
+  local hosts = {}
+  local macs = {}
+
+  local devices = ubus:call("hostmanager.device", "get", {})
+  if not devices then
+    -- no hosts, no further work needed.
+    return hosts
+  end
+
+  local L2map = getL2interfaces(LANintf)
+  L2intfMap[LANintf] = L2map
+
+  for _, dev in pairs(devices) do
+    -- Only include entries that belong to the same logical interface
+    -- of the parent LANDevice_i index
+    if L2map[dev.l2interface] then
+      -- note: the extra | on the end of the key is to keep the keys compatible
+      -- with the previous versions, otherwise all index numbers will suddenly
+      -- change.
+
+      if dev['mac-address'] ~= integratedQtnMAC then
+        local key = format('%s|%s|', LANintf, dev['mac-address'])
+        hosts[#hosts+1] = key
+      end
+    end
+  end
+  return hosts
+end
+
+local maclist = {}
+local function ubus_event_cb(mapping, event, data)
+  if data["mac-address"] and data["l2interface"] then
+      if not maclist[data["mac-address"]] then
+          local intf = common.dev2interface(data["l2interface"])
+          maclist[data["mac-address"]] = true
+          return { { key = intf, paramname = "HostNumberOfEntries" } }
+      end
+  end
+end
+
+InternetGatewayDevice_LANDevice_i_Hosts_.add_watchers = function(mapping)
+  local ubus_evsrc = eventsource("ubus")
+  ubus_evsrc.watch_event(mapping, ubus_event_cb, "hostmanager.devicechanged")
+end
+
+local function sort_keys(tbl)
+  local keys = {}
+  for key in pairs(tbl) do
+    keys[#keys+1] = key
+  end
+  if #keys>1 then
+    sort(keys)
+  end
+  return keys
+end
+
+local function get_ip_from_lease(key, lease)
+  if not lease then
+    local _, mac = key2intf(key)
+    lease = dhcp_lease(mac)
+  end
+  return lease.ip
+end
+
+local function get_ip_list(dev, ipmode)
+  local ips
+  if ipmode == "ipv6" then
+    ips = dev.ipv6 or {}
+  else
+    ips = dev.ipv4 or {}
+  end
+  local ip_list = sort_keys(ips) -- need a predictable order, same as for IPAddress
+  for i, key in ipairs(ip_list) do
+    ip_list[i] = ips[key]
+  end
+  return ip_list
+end
+
+local function get_address_source(ip)
+  if ip.configuration == "dynamic" then
+    return "DHCP"
+  elseif ip.configuration == 'static' then
+    return 'Static'
+  else
+    -- examine IP address for auto ip
+    -- if invalid use 0
+    local ip_num = ipv4_as_number(ip.address) or 0
+    local net16 = floor(ip_num / 0x00010000) * 0x00010000
+    if net16 == autoip_net then
+      return "AutoIP"
+    end
+  end
+  return 'Static'
+end
+
+local function guess_ip_info(key, dev, lease, ips)
+  local addr, src = get_ip_from_lease(key, lease), "DHCP"
+  if not addr then
+    local lastIP = ips[#ips]
+    if lastIP then
+      addr = lastIP.address
+      src = get_address_source(lastIP)
+    else
+      src = ""
+    end
+  end
+  return addr, src
+end
+
+local host_getter = {
+  IPAddress = function(key, dev, lease)
+    dev = dev or key2dev(key)
+    local addresses={}
+    local ips = get_ip_list(dev,"ipv4")
+    for _, ip in ipairs(ips) do
+      if ip.state=="connected" then
+        addresses[#addresses+1]=ip.address
+      end
+    end
+    if #addresses==0 then
+      local addr = guess_ip_info(key, dev, lease, ips)
+      addresses[1] = addr
+    end
+    return concat(addresses, ' ')
+  end,
+  AddressSource = function(key, dev, lease)
+    dev = dev or key2dev(key)
+    local sources = {}
+    local ips = get_ip_list(dev,"ipv4")
+    for _, ip in ipairs(ips) do
+      if ip.state=="connected" then
+        sources[#sources+1] = get_address_source(ip)
+      end
+    end
+    if #sources==0 then
+      local _, src = guess_ip_info(key, dev, lease, ips)
+      sources[1] = src
+    end
+    return concat(sources, ' ')
+  end,
+  LeaseTimeRemaining  = function(key, dev, lease)
+    if not lease then
+      local _, mac = key2intf(key)
+      lease = dhcp_lease(mac)
+    end
+    dev = dev or key2dev(key)
+    -- Leasetimeleft has been calculated as, LeaseTimeRemaining = ((Connectedtime + LeaseTime) - CurrentTime)
+    local leaseLeft = "0"
+    if next(lease) then
+      leaseLeft = (tonumber(dev.connected_time) + tonumber(lease.leasetime)) - time()
+      -- The while loop was added inorder to adjust the renewal offset.
+      while leaseLeft < 0 do
+        leaseLeft = leaseLeft + tonumber(lease.leasetime)
+      end
+    end
+    return tostring(leaseLeft)
+  end,
+  MACAddress = function(key, dev)
+    local _, mac = key2intf(key)
+    return mac
+  end,
+  HostName = function(key, dev, lease)
+    if not lease then
+      local _, mac = key2intf(key)
+      lease = dhcp_lease(mac)
+    end
+    return lease.hostname or ""
+  end,
+  InterfaceType = function(key, dev)
+    dev = dev or key2dev(key)
+    local interfaceType = dev.l2interface and dev.l2interface == wlanPort and "wireless" or dev.technology
+    return TechnologyMap[ interfaceType or ""] or 'Other'
+  end,
+  Active = function(key, dev)
+    dev = dev or key2dev(key)
+    return (dev and dev.state or "") == "connected" and '1' or '0'
+  end,
+  VendorClassID = function(key, dev, lease)
+    if not dev then
+      local _, _, mac = key2dev(key)
+      lease = dhcp_lease(mac)
+    end
+    return lease and ip2vendor(dev, lease.ip) or ""
+  end,
+  X_000E50_IPv6Address = function(key, dev, lease)
+    dev = dev or key2dev(key)
+    local addresses={}
+    local ips = get_ip_list(dev, "ipv6")
+    for _, ip in ipairs(ips) do
+      if ip.state=="connected" then
+        addresses[#addresses+1]=ip.address
+      end
+    end
+    return concat(addresses, ' ')
+  end,
+  Layer2Interface = function(key, dev, lease)
+    local deviceName = nil
+    dev = dev or key2dev(key)
+    if dev.l2interface then
+      if dev.l2interface:match("^eth") then
+        deviceName = resolve('InternetGatewayDevice.LANDevice.{i}.LANEthernetInterfaceConfig.{i}.', dev.l2interface)
+      elseif dev.l2interface:match("^wl") then
+        deviceName = resolve('InternetGatewayDevice.LANDevice.{i}.WLANConfiguration.{i}.', dev.l2interface)
+      end
+    end
+    return deviceName or ""
+  end,
+}
+
+InternetGatewayDevice_LANDevice_i_Hosts_Host_i_.get = function(mapping, param, key)
+  return host_getter[param](key)
+end
+
+InternetGatewayDevice_LANDevice_i_Hosts_Host_i_.getall = function(mapping, key)
+  local dev, LANintf, mac = key2dev(key)
+  local lease = dhcp_lease(mac)
+
+  local values = {}
+  for param, getter in pairs(host_getter) do
+    values[param] = getter(key, dev, lease)
+  end
+  return values
+end
+
+register(InternetGatewayDevice_LANDevice_i_Hosts_Host_i_)

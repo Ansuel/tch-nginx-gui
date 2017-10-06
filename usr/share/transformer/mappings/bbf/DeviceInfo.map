@@ -1,0 +1,537 @@
+--NG-48510
+--Automatically generated from InternetGatewayDevice:1.3 and Device:2.10
+-- using generator version 2.3
+local Multi_DeviceInfo_ = {
+  objectType = {
+    name = "#ROOT.DeviceInfo.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      DeviceCategory = {
+        access = "readOnly",
+        list = true,
+        type = "string",
+      },
+      Manufacturer = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      ManufacturerOUI = {
+        access = "readOnly",
+        type = "string",
+        min = "6",
+        max = "6",
+      },
+      ModelName = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+        max = "64",
+      },
+      ModelNumber = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      Description = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+        max = "256",
+      },
+      ProductClass = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      SerialNumber = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      HardwareVersion = {
+        access = "readOnly",
+        forcedInform = "true",
+        type = "string",
+        max = "64",
+      },
+      SoftwareVersion = {
+        access = "readOnly",
+        activeNotify = "forceEnabled",
+        forcedInform = "true",
+        type = "string",
+        max = "64",
+      },
+      AdditionalHardwareVersion = {
+        access = "readOnly",
+        list = true,
+        max = "64",
+        type = "string",
+      },
+      AdditionalSoftwareVersion = {
+        access = "readOnly",
+        list = true,
+        max = "64",
+        type = "string",
+      },
+      ProvisioningCode = {
+        access = "readWrite",
+        activeNotify = "forceEnabled",
+        forcedInform = "true",
+        type = "string",
+        max = "64",
+      },
+      UpTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      FirstUseDate = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "dateTime",
+      },
+      X_000E50_NewSoftwareBank = {
+        access = "readWrite",
+        type = "string",
+        pathRef = true,
+      },
+      X_BELGACOM_CLID = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      X_BELGACOM_Telco = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "BGC",
+          "OLO",
+        },
+        default = "BGC",
+      },
+      NewSoftwareBank = {
+        access = "readWrite",
+        type = "string",
+        pathRef = true,
+      },
+      ModemFirmwareVersion = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      EnabledOptions = {
+        access = "readOnly",
+        list = true,
+        max = "1024",
+        type = "string",
+      },
+      DeviceLog = {
+        access = "readOnly",
+        type = "string",
+        max = "32768",
+      },
+      SpecVersion = {
+        access = "readOnly",
+        status = "deprecated",
+        forcedInform = "true",
+        type = "string",
+        max = "16",
+        default = "1.0",
+      },
+      X_000E50_SoftwareVersionPassiveBank = {
+        access = "readOnly",
+        activeNotify = "forceEnabled",
+        forcedInform = "true",
+        type = "string",
+        max = "64",
+      },
+      X_000E50_SwitchtoPassiveBank = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      X_000E50_ReturnToFactoryDefaultsSoft = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      X_000E50_BootloaderVersion = {
+        access = "readOnly",
+        type = "string",
+      },
+      X_000E50_RebootCause = {
+        access = "readOnly",
+        type = "string",
+      },
+      X_0876FF_IPv6Capable = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      -- VendorConfigFileNumberOfEntries
+      -- automatically created when Device.DeviceInfo.VendorConfigFile.{i}. is loaded
+      -- SupportedDataModelNumberOfEntries
+      -- automatically created when Device.DeviceInfo.SupportedDataModel.{i}. is loaded
+      -- ProcessorNumberOfEntries
+      -- automatically created when Device.DeviceInfo.Processor.{i}. is loaded
+      -- VendorLogFileNumberOfEntries
+      -- automatically created when Device.DeviceInfo.VendorLogFile.{i}. is loaded
+      -- LocationNumberOfEntries
+      -- automatically created when Device.DeviceInfo.Location.{i}. is loaded
+      -- VendorConfigFileNumberOfEntries
+      -- automatically created when InternetGatewayDevice.DeviceInfo.VendorConfigFile.{i}. is loaded
+    }
+  }
+}
+
+local mapper = mapper
+local io = io
+local string = string
+local floor = math.floor
+local open = io.open
+local tostring = tostring
+local pcall,tokey = pcall,tokey
+local uciHelper = mapper("ucihelper")
+local nwCommon = mapper("nwcommon")
+local ubusConnection = mapper("ubus").connect()
+local getFromUci = uciHelper.get_from_uci
+local forEachOnUci = uciHelper.foreach_on_uci
+local setOnUci = uciHelper.set_on_uci
+local banktable = require "transformer.shared.banktable"
+local commitApply = commitapply
+local isConfigChanged = false
+local networkBinding = { config = "network", option = "reqopts"}
+local envBinding = {config = "env", sectionname = "var"}
+local versionBinding = { config = "versioncusto", sectionname = "override", option = "fwversion_prefix" }
+local rtfdsBinding = { config = "env", sectionname = "var", option = "rtfds", default = "0" }
+local cwmpBinding = {config = "cwmpd", sectionname = "cwmpd_config", option = "firstusedate"}
+local sysBinding = {config = "system" , sectionname = "warmboot", option = "reboot" }
+
+--Reference - https://confluence.technicolor.com/display/Linux/Syslog+implementation+and+configuration
+
+local valueMap = {
+  ["0"] = "PWR",
+  ["1"] = "CRASH",
+  ["2"] = "BOOTP",
+  ["3"] = "CLI",
+  ["4"] = "GUI",
+  ["5"] = "CWMP",
+  ["6"] = "STS",
+  ["7"] = "UERR",
+  ["8"] = "UPGRADE",
+  ["9"] = "ROLLBACK",
+  ["10"] = "SWOVER",
+}
+
+
+local function firstline(filename, nb)
+  local fd = open(filename)
+  if not fd then
+    -- you could return nil and and error message but that will abort
+    -- iterating over all parameters.
+    -- so here I opt to just return an empty string.
+    return ""
+  end
+  local result = fd:read(nb or "*l")
+  fd:close()
+  return result
+end
+
+local function friendlyName(mapping)
+  envBinding.option = "prod_description"
+  local value = getFromUci(envBinding)
+  if value == "" then
+    value = firstline("/proc/rip/0040")
+  end
+  mapping.get.Description = value
+  return value
+end
+
+local function PassiveBankVersion()
+  local value = banktable.getOtherVersion() or "Unknown"
+  value = value:match("([^%-]+)%-")
+  if not value then
+    return "Unknown"
+  end
+  return value
+end
+
+local function switchOverToNewSoftwareBank(mapping,param,value)
+  local path = param:match("X_000E50_") and "Device.DeviceInfo.X_000E50_SoftwareBank.{i}." or "Device.DeviceInfo.SoftwareBank.{i}."
+  local error, key = pcall(tokey, value, path)
+  if not error then
+    return nil, "invalid value"
+  elseif key ~= "notbooted" then
+    return nil, "Cannot Switch Over"
+  end
+  commitApply:newset("switchOver")
+end
+
+Multi_DeviceInfo_.get = {
+  DeviceCategory = "",
+  Manufacturer = function(mapping)
+    envBinding.option = "company"
+    local value = getFromUci(envBinding)
+    if value == "" then
+      value = "Technicolor"
+    end
+    mapping.get.Manufacturer = value
+    return value
+  end,
+  ManufacturerOUI = function(mapping)
+    envBinding.option = "oui_override_igd"
+    local value = getFromUci(envBinding)
+    if value == "" then
+        envBinding.option = "oui"
+        value = getFromUci(envBinding)
+    end
+    mapping.get.ManufacturerOUI = value
+    return value
+  end,
+  ModelName = function()
+    envBinding.option = "variant_friendly_name"
+    return getFromUci(envBinding)
+  end,
+  ModelNumber = function(mapping)
+    envBinding.option = "prod_number"
+    local value = getFromUci(envBinding)
+    mapping.get.ModelNumber = value
+    return value
+  end,
+  Description = function(mapping)
+    return friendlyName(mapping)
+  end,
+  ProductClass = function(mapping)
+    envBinding.option = "prod_friendly_name"
+    local value = getFromUci(envBinding)
+    mapping.get.ProductClass = value
+    return value
+  end,
+  SerialNumber = function(mapping)
+    envBinding.option = "serial"
+    local value = getFromUci(envBinding)
+    mapping.get.SerialNumber = value
+    return value
+  end,
+  HardwareVersion = function(mapping)
+    envBinding.option = "hardware_version"
+    local value = getFromUci(envBinding)
+    mapping.get.HardwareVersion = value
+    return value
+  end,
+  SoftwareVersion = function(mapping)
+    envBinding.option = "friendly_sw_version_activebank"
+    local value = getFromUci(envBinding)
+    local newvalue = value:match("^([^-]+%-[^-]+)")
+    if newvalue then
+      value = newvalue
+    end
+    versionBinding.option = "fwversion_prefix"
+    local fwp = getFromUci(versionBinding)
+    versionBinding.option = "fwversion_suffix"
+    local fws = getFromUci(versionBinding)
+    versionBinding.option = "fwversion_override"
+    local fwover = getFromUci(versionBinding)
+    if fwover ~= "" and fwover ~= "override1" then
+      value = fwover
+    end
+    value = fwp .. value .. fws
+    versionBinding.option = "fwversion_seperator"
+    local seperator = getFromUci(versionBinding)
+    if seperator ~= "" then
+        value = value:gsub("%.", seperator)
+    end
+    mapping.get.SoftwareVersion = value
+    return value
+  end,
+  AdditionalSoftwareVersion = function(mapping)
+    envBinding.option = "friendly_sw_version_activebank"
+    local value = getFromUci(envBinding)
+    local newvalue = value:match("([%x]+)$")
+    if newvalue then
+       value = newvalue
+    end
+    mapping.get.AdditionalSoftwareVersion = value
+    return value
+  end,
+  AdditionalHardwareVersion = "",
+  ProvisioningCode = function()
+    envBinding.option = "provisioning_code"
+    return getFromUci(envBinding)
+  end,
+  UpTime = function()
+    local fd, msg = open("/proc/uptime")
+    if not fd then
+      return fd, msg
+    end
+    local uptime = fd:read("*n")
+    fd:close()
+    return tostring(floor(uptime))
+  end,
+  FirstUseDate = function()
+    local value = getFromUci(cwmpBinding)
+    return value ~= "" and value or "0001-01-01T00:00:00Z"
+  end,
+  NewSoftwareBank = "",
+  X_000E50_NewSoftwareBank = "",
+  X_BELGACOM_CLID = function()
+    networkBinding.sectionname = "interface"
+    local interface
+    forEachOnUci(networkBinding, function(s)
+      if s["reqopts"] and s["reqopts"]:match("129") then
+        interface = s[".name"]
+        return false
+      end
+    end)
+    if interface then
+      local ubusStatus = ubusConnection:call("network.interface." .. interface, "status", {})
+      if ubusStatus and ubusStatus["data"] and ubusStatus["data"]["passthru"] then
+        local ubusReqOpt = nwCommon.get_dhcp_tag_value(ubusStatus["data"]["passthru"])
+        return ubusReqOpt and ubusReqOpt["129"] and nwCommon.hex2String(ubusReqOpt["129"]) or ""
+      end
+    end
+    return ""
+  end,
+  X_BELGACOM_Telco = function()
+    envBinding.option = "BGC_VARIANT"
+    local value = getFromUci(envBinding)
+    return value ~= "" and value or "BGC"
+  end,
+  -- Applicable only when the modem firmware is separable from the overall CPE software
+  ModemFirmwareVersion = function(mapping)
+    local dsl_supported, dsl = pcall(require,"transformer.shared.xdslctl")
+    local version = ""
+    if dsl_supported then
+        version = dsl.infoValue('firmware_version')
+    end
+    mapping.get.ModemFirmwareVersion = version
+    return version
+  end,
+  EnabledOptions = "",
+  DeviceLog = function()
+    local log = io.popen("/sbin/logread")
+    if not log then
+      return ""
+    end
+    local logString = log:read("*a")
+    log:close()
+    if not logString then
+      return ""
+    end
+    return string.sub(logString, -32768)
+  end,
+  -- Obsolute, must be set to 1.0 by TR-098-Amdt2
+  SpecVersion = "1.0",
+  X_000E50_SoftwareVersionPassiveBank = function()
+      local value = PassiveBankVersion()
+      if value ~= "Unknown" then
+          versionBinding.option = "fwversion_prefix"
+          local fwp = getFromUci(versionBinding)
+          versionBinding.option = "fwversion_suffix"
+          local fws = getFromUci(versionBinding)
+          value = fwp .. value .. fws
+          versionBinding.option = "fwversion_seperator"
+          local seperator = getFromUci(versionBinding)
+          if seperator ~= "" then
+            value = value:gsub("%.", seperator)
+          end
+      end
+      return value
+  end,
+  X_000E50_SwitchtoPassiveBank = "0",
+  X_000E50_ReturnToFactoryDefaultsSoft = function()
+    local value = getFromUci(rtfdsBinding)
+    return value
+  end,
+  X_000E50_BootloaderVersion = function()
+    envBinding.option = "bootloader_version"
+    return getFromUci(envBinding)
+  end,
+  X_000E50_RebootCause = function()
+    return valueMap[getFromUci(sysBinding)] or ""
+  end,
+  X_0876FF_IPv6Capable = "1",
+}
+
+Multi_DeviceInfo_.set = {
+  ProvisioningCode = function(mapping,param,value)
+    envBinding.option = "provisioning_code"
+    setOnUci(envBinding, value, commitApply)
+    isConfigChanged = true
+  end,
+  X_000E50_SwitchtoPassiveBank = function(mapping,param,value)
+    if banktable.isOtherBankValid() then
+      commitApply:newset("switchOver")
+    else
+      return nil, "No software in passive bank"
+    end
+  end,
+  X_000E50_ReturnToFactoryDefaultsSoft = function(mapping,param,value)
+    setOnUci(rtfdsBinding, value, commitApply)
+    isConfigChanged = true
+  end,
+  X_BELGACOM_Telco = function(mapping, param, value)
+    envBinding.option = "BGC_VARIANT"
+    setOnUci(envBinding, value, commitApply)
+    isConfigChanged = true
+  end,
+  X_000E50_NewSoftwareBank = switchOverToNewSoftwareBank,
+  NewSoftwareBank = switchOverToNewSoftwareBank,
+}
+
+Multi_DeviceInfo_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(envBinding)
+    isConfigChanged = false
+  end
+end
+
+Multi_DeviceInfo_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(envBinding)
+    isConfigChanged = false
+  end
+end
+
+local function setUciEventClid(mapping, action, config, sectionType, sectionName, option)
+  networkBinding.sectionname = sectionName
+  local reqOption = getFromUci(networkBinding)
+  if reqOption and reqOption:match("129") then
+    local ubusStatus = ubusConnection:call("network.interface." .. sectionName, "status", {})
+    if ubusStatus and ubusStatus["data"] and ubusStatus["data"]["passthru"] then
+      return { { key = "", paramname = "X_BELGACOM_CLID" } }
+    end
+  end
+end
+
+local function setUciEventProvisioningCode(mapping, action, config, sectionType, sectionName, option)
+  return { { key = "", paramname = "ProvisioningCode" } }
+end
+
+Multi_DeviceInfo_.add_watchers = function(mapping)
+  local uciEventSource = eventsource("uci")
+  if mapping.objectType.parameters["X_BELGACOM_CLID"] then
+    uciEventSource.watch(mapping, { set = setUciEventClid }, "network", "interface", nil, "reqopts")
+  end
+  uciEventSource.watch(mapping, { set = setUciEventProvisioningCode }, "env", "envvars", nil, "provisioning_code")
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_DeviceInfo_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  if dupli.objectType.name:match("^InternetGatewayDevice.") then
+    dupli.objectType.parameters["X_000E50_NewSoftwareBank"] = nil
+    dupli.objectType.parameters["NewSoftwareBank"] = nil
+  else
+    -- Remove igd-specific parameters from device2
+    dupli.objectType.parameters["ModemFirmwareVersion"] = nil
+    dupli.objectType.parameters["EnabledOptions"] = nil
+    dupli.objectType.parameters["DeviceLog"] = nil
+    dupli.objectType.parameters["X_000E50_ReturnToFactoryDefaultsSoft"] = nil
+    dupli.objectType.parameters["X_000E50_SoftwareVersionPassiveBank"] = nil
+    dupli.objectType.parameters["SpecVersion"] = nil
+    dupli.objectType.parameters["X_000E50_SwitchtoPassiveBank"] = nil
+  end
+  register(dupli)
+end
+

@@ -1,0 +1,118 @@
+
+local sys_upnp_ = {
+  objectType = {
+    name = "sys.upnp.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {},
+  }
+}
+
+register(sys_upnp_)
+
+local sys_upnp_redirect_i_ = {
+  objectType = {
+    name = "sys.upnp.redirect.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "RedirectNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      proto = {
+        access = "readOnly",
+        type = "string",
+      },
+      interface = {
+        access = "readOnly",
+        type = "string",
+      },
+      dest_port = {
+        access = "readOnly",
+        type = "int",
+      },
+      dest_ip = {
+        access = "readOnly",
+        type = "string",
+      },
+      src_dport = {
+        access = "readOnly",
+        type = "int",
+      },
+      stop_time = {
+        access = "readOnly",
+        type = "int",
+      },
+      description = {
+        access = "readOnly",
+        type = "string",
+      },
+      ip_interface = {
+        access = "readOnly",
+        type = "string",
+      },
+    }
+  }
+}
+
+local leasePath="/var/upnp.leases"
+local lease_cache = {}
+local gmatch, resolve = string.gmatch, resolve
+local uciHelper = mapper("ucihelper")
+local foreach_on_uci = uciHelper.foreach_on_uci
+local get_from_uci = uciHelper.get_from_uci
+
+local network_binding = { config = "network", sectionname = "interface" }
+local upnp_binding = { config = "upnpd", sectionname="config", option="external_iface" }
+local upnp_interfaces = {}
+for value in gmatch(get_from_uci(upnp_binding), "%S+") do
+  upnp_interfaces[value] = value
+end
+
+local function get_ipinterface(l3_interface)
+  local iface
+  foreach_on_uci(network_binding, function(s)
+    if s.ifname == l3_interface and upnp_interfaces[ s[".name"] ] then
+      iface = s[".name"]
+      return false
+    end
+  end)
+  return iface or ""
+end
+
+sys_upnp_redirect_i_.entries = function(mapping)
+  local fd = io.open(leasePath)
+  if not fd then
+    return {}
+  end
+  lease_cache = {}
+  local upnpkeys = {}
+  for line in fd:lines() do
+    local proto, interface, src_dport, dest_ip, dest_port, stop_time, descr = string.match(line, '([UDTCP]+):(%S+):(%d+):([%d%s%.]+):(%d+):(%d+):([^\r^\n]*)')
+    local key = proto .. interface .. dest_port .. src_dport
+    upnpkeys[#upnpkeys+1] = key
+    lease_cache[key] = {
+      proto = proto,
+      interface = interface,
+      dest_port = dest_port,
+      dest_ip = dest_ip,
+      src_dport = src_dport,
+      stop_time = stop_time,
+      description = (descr ~= "(null)") and descr or "",
+      ip_interface = get_ipinterface(interface),
+    }
+  end
+  fd:close()
+  return upnpkeys
+end
+
+sys_upnp_redirect_i_.get = function(mapping, param, key)
+  return lease_cache[key][param]
+end
+
+sys_upnp_redirect_i_.getall = function(mapping, key)
+  return lease_cache[key]
+end
+
+register(sys_upnp_redirect_i_)
+

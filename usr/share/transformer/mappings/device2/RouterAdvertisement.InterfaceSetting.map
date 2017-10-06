@@ -1,0 +1,359 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_RouterAdvertisement_InterfaceSetting_i_ = {
+  objectType = {
+    name = "Device.RouterAdvertisement.InterfaceSetting.{i}.",
+    access = "readOnly", -- curently readWrite not supported
+    numEntriesParameter = "InterfaceSettingNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Disabled",
+          "Enabled",
+          "Error_Misconfigured",
+          "Error",
+        },
+        default = "Disabled",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      Interface = {
+        access = "readWrite",
+        type = "string",
+        pathRef = true,
+        targetParent = "Device.IP.Interface.{i}.",
+        default = "",
+      },
+--[[ TODO
+      ManualPrefixes = {
+        access = "readOnly", --currently readWrite not supported.
+        list = true,
+        maxItems = "8",
+        type = "string",
+        pathRef = true,
+        targetParent = "Device.IP.Interface.{i}.IPv6Prefix.{i}.",
+        default = "",
+      },
+      Prefixes = {
+        access = "readOnly",
+        list = true,
+        maxItems = "8",
+        type = "string",
+        pathRef = true,
+        targetParent = "Device.IP.Interface.{i}.IPv6Prefix.{i}.",
+      },
+--]]
+      MaxRtrAdvInterval = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "4",
+            max = "1800",
+          },
+        },
+        default = "600",
+      },
+      MinRtrAdvInterval = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "3",
+            max = "1350",
+          },
+        },
+        default = "200",
+      },
+      AdvDefaultLifetime = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            max = "65535",
+          },
+        },
+        default = "1800",
+      },
+      AdvManagedFlag = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      AdvOtherConfigFlag = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+--[[ TODO
+      AdvMobileAgentFlag = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+--]]
+      AdvPreferredRouterFlag = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "High",
+          "Medium",
+          "Low",
+        },
+        default = "Medium",
+      },
+      AdvNDProxyFlag = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      AdvLinkMTU = {
+        access = "readWrite",
+        type = "unsignedInt",
+        default = "0",
+      },
+      AdvReachableTime = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            max = "3600000",
+          },
+        },
+        default = "0",
+      },
+      AdvRetransTimer = {
+        access = "readWrite",
+        type = "unsignedInt",
+        default = "0",
+      },
+      AdvCurHopLimit = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            max = "255",
+          },
+        },
+        default = "0",
+      },
+      -- OptionNumberOfEntries
+      -- automatically created when Device.RouterAdvertisement.InterfaceSetting.{i}.Option.{i}. is loaded
+    }
+  }
+}
+
+local mapper, resolve, commitApply = mapper, resolve, commitapply
+local uciHelper = mapper("ucihelper")
+local forEachOnUci = uciHelper.foreach_on_uci
+local getFromUci = uciHelper.get_from_uci
+local setOnUci = uciHelper.set_on_uci
+local nwCommon = mapper("nwcommon")
+local dhcpBinding = {config = "dhcp"}
+local isConfigChanged = false
+
+local function getUciParam(sectionName,option,default)
+  dhcpBinding.sectionname = sectionName
+  dhcpBinding.default = default
+  if option then
+    dhcpBinding.option = option
+    return getFromUci(dhcpBinding)
+  end
+  return uciHelper.getall_from_uci(dhcpBinding)
+end
+
+local function setUciParam(sectionName,option,value)
+  dhcpBinding.sectionname = sectionName
+  dhcpBinding.option = option
+  setOnUci(dhcpBinding, value, commitApply)
+  isConfigChanged = true
+end
+
+Device_RouterAdvertisement_InterfaceSetting_i_.entries = function()
+  local interfaces = {}
+  local lanInterfaces = {}
+  for _,y in pairs(nwCommon.findLanWanInterfaces(false)) do
+    lanInterfaces[y] = true
+  end
+  dhcpBinding.sectionname = "dhcp"
+  forEachOnUci(dhcpBinding, function(s)
+    if lanInterfaces[s['interface']] and s["dhcpv6"] then
+      interfaces[#interfaces + 1] = s['.name']
+    end
+  end)
+  return interfaces
+end
+
+local enableMap = {
+  ["server"] = "1",
+  ["disabled"] = "0",
+}
+
+local statusMap = {
+  ["server"] = "Enabled",
+  ["disabled"] = "Disabled",
+  [""] = "Error_Misconfigured",
+}
+
+local preferenceMap = {
+  ["high"] = "High",
+  ["medium"] = "Medium",
+  ["low"] = "Low",
+}
+
+local paramMap = {
+  ["Enable"] = "ra",
+  ["Status"] = "ra",
+  ["Interface"] = "interface",
+  ["MaxRtrAdvInterval"] = "ra_maxinterval",
+  ["MinRtrAdvInterval"] = "ra_mininterval",
+  ["AdvDefaultLifetime"] = "ra_lifetime",
+  ["AdvManagedFlag"] = "ra_management",
+  ["AdvOtherConfigFlag"] = "ra_management",
+  ["AdvPreferredRouterFlag"] = "ra_preference",
+  ["AdvLinkMTU"] = "ra_max_mtu",
+  ["AdvReachableTime"] = "ra_reachable",
+  ["AdvRetransTimer"] = "ra_retransmit",
+  ["AdvCurHopLimit"] = "ra_hoplimit",
+  ["AdvNDProxyFlag"] = "ndproxy_static",
+}
+
+local defaultMap = {
+  ["Enable"] = "0",
+  ["Status"] = "Disabled",
+  ["Interface"] = "",
+  ["MaxRtrAdvInterval"] = "1800",
+  ["MinRtrAdvInterval"] = "1350",
+  ["AdvDefaultLifetime"] = "1800",
+  ["AdvManagedFlag"] = "1",
+  ["AdvOtherConfigFlag"] = "1",
+  ["AdvPreferredRouterFlag"] = "Medium",
+  ["AdvLinkMTU"] = "0",
+  ["AdvReachableTime"] = "0",
+  ["AdvRetransTimer"] = "0",
+  ["AdvCurHopLimit"] = "0",
+  ["AdvNDProxyFlag"] = "0",
+}
+
+Device_RouterAdvertisement_InterfaceSetting_i_.get = function (mapping, param, key)
+  local val = getUciParam(key, paramMap[param], defaultMap[param])
+
+  if param == "Enable" then
+    return enableMap[val] or val
+  end
+  if param == "Status" then
+    return statusMap[val] or val
+  end
+  if param == "Interface" then
+    return resolve('Device.IP.Interface.{i}.', val) or val
+  end
+  if param == "AdvManagedFlag" then
+    if val ~= '0' then
+      return "1"
+    end
+    return "0"
+  end
+  if param == "AdvOtherConfigFlag" then
+    if val == "2" then
+      return "0"
+    end
+    return "1"
+  end
+  if param == "AdvPreferredRouterFlag" then
+    return preferenceMap[val] or val
+  end
+  return val
+end
+
+Device_RouterAdvertisement_InterfaceSetting_i_.getall = function(mapping, key)
+  local dhcpValues = getUciParam(key)
+  local allValues = {}
+
+  for dataModelParam, uciParam in pairs(paramMap) do
+    local uciValue = dhcpValues[uciParam]
+    local default = defaultMap[dataModelParam]
+
+    if dataModelParam == "Enable" then
+      allValues[dataModelParam] = enableMap[uciValue] or default
+    elseif dataModelParam == "Status" then
+      allValues[dataModelParam] = statusMap[uciValue] or default
+    elseif dataModelParam == "Interface" then
+      allValues[dataModelParam] =  resolve('Device.IP.Interface.{i}.', uciValue) or default
+    elseif dataModelParam == "AdvManagedFlag" then
+      allValues[dataModelParam] =  uciValue == "0" and "0" or default
+    elseif dataModelParam == "AdvOtherConfigFlag" then
+      allValues[dataModelParam] = uciValue == "2" and "0" or default
+    elseif dataModelParam == "AdvPreferredRouterFlag" then
+      allValues[dataModelParam] = preferenceMap[uciValue] or default
+    else
+      allValues[dataModelParam] = uciValue or default
+    end
+  end
+  return allValues
+end
+
+Device_RouterAdvertisement_InterfaceSetting_i_.set =  function(mapping, param, value, key)
+
+  if param == "Enable" then
+    value = (value == "1") and "server" or "disabled"
+    setUciParam(key, "dhcpv6", value)
+  end
+  if param == "Interface" then
+    -- Interface is displayed in Device2 as path, but stored as UCI/UBUS interface in UCI, so convert it first
+    if value ~= "" then
+      local rc
+      rc, value = pcall(tokey, value, "Device.IP.Interface.{i}.")
+      if not rc then
+        return nil, "invalid value"
+      end
+    end
+  end
+  if param == "AdvManagedFlag" then
+    local mgmnt = getUciParam(key, paramMap[param])
+    if value == "1" then
+      value = (mgmnt == "2") and "2" or "1"
+    end
+  end
+  if param == "AdvOtherConfigFlag" then
+    local mgmnt = getUciParam(key, paramMap[param])
+    if value == "0" then
+      value = "2"
+    else
+      value = (mgmgnt == "0") and "0" or "1"
+    end
+  end
+  if param == "AdvPreferredRouterFlag" then
+    value = string.lower(value)
+  end
+  setUciParam(key, paramMap[param], value)
+end
+
+Device_RouterAdvertisement_InterfaceSetting_i_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(dhcpBinding)
+    isConfigChanged = false
+  end
+end
+
+Device_RouterAdvertisement_InterfaceSetting_i_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(dhcpBinding)
+    isConfigChanged = false
+  end
+end
+
+register(Device_RouterAdvertisement_InterfaceSetting_i_)

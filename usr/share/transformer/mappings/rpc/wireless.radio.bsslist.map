@@ -1,0 +1,78 @@
+local register = register;
+--Manually Generated
+local wireless_radio_bsslist_ = {
+  objectType = {
+    name = "rpc.wireless.radio.@.bsslist.@.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      ssid = {
+          access = "readOnly",
+          type = "string",
+      },
+      channel = {
+          access = "readOnly",
+          type = "string",
+      },
+      rssi = {
+          access = "readOnly",
+          type = "string",
+      },
+      sec = {
+          access = "readOnly",
+          type = "string",
+      },
+      cap = {
+          access = "readOnly",
+          type = "string",
+      },
+    },
+  }
+}
+
+local conn = mapper("ubus").connect()
+local bsslist
+
+--This function fetch data from ubus call and store it in cache table
+local function getDataForBsslist(ap)
+  local result = conn:call("wireless.radio.bsslist", "get", { name = ap })
+    if not result or result[ap] == nil then
+      return {}
+    end
+
+  local sanitizedData = {}
+    for k,v in pairs(result[ap]) do
+      sanitizedData[k.."_"..ap] = v
+    end
+    return sanitizedData
+end
+local function entries(mapping, parentkey)
+  local result = {}
+  bsslist = getDataForBsslist(parentkey)
+  for k in pairs(bsslist) do
+    result[#result+1] = k
+  end
+  return result
+end
+
+--This function retrieves all the parameters values
+local function getall(mapping, key)
+  local data = bsslist[key] or {}
+  local sanitizedData = {}
+  for k,v in pairs(data) do
+    sanitizedData[k] = tostring(v)
+  end
+  return sanitizedData
+end
+
+local function get(mapping, paramName, key)
+  local data = bsslist[key] or {}
+  return tostring(data[paramName]);
+end
+
+
+wireless_radio_bsslist_.entries = entries
+wireless_radio_bsslist_.getall = getall
+wireless_radio_bsslist_.get = get
+register(wireless_radio_bsslist_)

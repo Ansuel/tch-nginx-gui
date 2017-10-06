@@ -1,0 +1,197 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_USB_USBHosts_Host_i_Device_i_ = {
+  objectType = {
+    name = "Device.USB.USBHosts.Host.{i}.Device.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "DeviceNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      DeviceNumber = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      USBVersion = {
+        access = "readOnly",
+        type = "string",
+        max = "4",
+      },
+      DeviceClass = {
+        access = "readOnly",
+        type = "hexBinary",
+        max = "1",
+      },
+      DeviceSubClass = {
+        access = "readOnly",
+        type = "hexBinary",
+        max = "1",
+      },
+      DeviceProtocol = {
+        access = "readOnly",
+        type = "hexBinary",
+        max = "1",
+      },
+      ProductID = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            max = "65535",
+          },
+        },
+      },
+      VendorID = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            max = "65535",
+          },
+        },
+      },
+      Manufacturer = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      SerialNumber = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      Port = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            max = "255",
+          },
+        },
+      },
+      Rate = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Low",
+          "Full",
+          "High",
+          "Super",
+        },
+      },
+      Parent = {
+        access = "readOnly",
+        type = "string",
+        pathRef = true,
+        targetParent = "Device.USB.USBHosts.Host.{i}.Device.{i}.",
+      },
+--[[ TODO:
+      DeviceVersion = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            max = "65535",
+          },
+        },
+      },
+      ProductClass = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      USBPort = {
+        access = "readOnly",
+        type = "string",
+        pathRef = true,
+        targetParent = "Device.USB.Port.{i}.",
+      },
+      MaxChildren = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      IsSuspended = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      IsSelfPowered = {
+        access = "readOnly",
+        type = "boolean",
+      },
+]]
+      -- ConfigurationNumberOfEntries
+      -- automatically created when Device.USB.USBHosts.Host.{i}.Device.{i}.Configuration.{i}. is loaded
+    }
+  }
+}
+
+local usbDevicesPath = "/sys/bus/usb/devices/"
+local nwCommon = mapper('nwcommon')
+local usbEntry = {}
+
+local paramMap = {
+  ["DeviceNumber"]   = "devnum",
+  ["USBVersion"]     = "version",
+  ["DeviceClass"]    = "bDeviceClass",
+  ["DeviceSubClass"] = "bDeviceSubClass",
+  ["DeviceProtocol"] = "bDeviceProtocol",
+  ["ProductID"]      = "idProduct",
+  ["VendorID"]       = "idVendor",
+  ["Manufacturer"]   = "manufacturer",
+  ["SerialNumber"]   = "serial",
+  ["Rate"]           = "speed",
+}
+
+local rateMap = {
+  ["1.5"]  = "Low",
+  ["12"]   = "Full",
+  ["480"]  = "High",
+  ["5000"] = "Super",
+  [""]     = "Low",
+}
+
+--The entries function is formed based on the format "bus-port.port.port ... " or "bus-port"
+
+Device_USB_USBHosts_Host_i_Device_i_.entries = function(mapping, parentKey)
+  local usbHostsDevicesEntries = {}
+  for file in lfs.dir(usbDevicesPath) do
+    -- extracting the last digit from the USB hosts(usb1, usb2, ...)
+    -- comparing the host number with the starting of the folder name to find the devices connected under the particular host
+    local parent = parentKey:match("usb(%d+)")
+    if file:match("^(%d+)-[%d%.]+$") == parent then
+      usbHostsDevicesEntries[#usbHostsDevicesEntries+1] = file
+      local device, port = file:match("(.*)%.(.*)$")
+      if not device then
+        port = file:match("^%d+%-(%d+)$")
+      end
+      usbEntry[file] = {device = device, port = port}
+    end
+  end
+  return usbHostsDevicesEntries
+end
+
+local function getUSBHostDevicesInfo(mapping, param, key)
+  local value = ""
+  if paramMap[param] then
+    local fileName = usbDevicesPath .. key .. "/" .. paramMap[param]
+    local fd = io.open(fileName)
+    if fd then
+      value = fd:read()
+      fd:close()
+    end
+  end
+  if param == "ProductID" or param == "VendorID" then
+    return nwCommon.hex2Decimal(value)
+  elseif param == "Rate" then
+    return rateMap[value] or "Low" -- if fd fails and value is empty, then "Low" will be returned by default
+  elseif param == "Port" then
+    return usbEntry[key].port or "0"
+  elseif param == "Parent" then
+    return resolve("Device.USB.USBHosts.Host.{i}.Device.{i}.", usbEntry[key].device) or ""
+  end
+  return value
+end
+
+Device_USB_USBHosts_Host_i_Device_i_.get = getUSBHostDevicesInfo
+
+register(Device_USB_USBHosts_Host_i_Device_i_)

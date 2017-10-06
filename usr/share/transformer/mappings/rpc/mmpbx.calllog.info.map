@@ -1,0 +1,180 @@
+local conn = mapper("ubus").connect()
+
+local mmpbx_calllog = {
+    objectType = {
+        name = "rpc.mmpbx.calllog.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            clear = {
+                access = "readWrite",
+                type = "boolean",
+                default = "0",
+            },
+        }
+    }
+}
+
+mmpbx_calllog.get = {
+    clear = "0",
+}
+
+mmpbx_calllog.set = {
+    clear = function(mapping, param, value)
+        if value == "1" then
+            conn:call("mmdbd.calllog", "deleteCallLog", {})
+        end
+    end,
+}
+register(mmpbx_calllog)
+
+local mmpbx_calllog_info = {
+    objectType = {
+        name = "rpc.mmpbx.calllog.info.@.",
+        access = "readWrite",
+        minEntries = 0,
+        maxEntries = math.huge,
+        parameters = {
+            CalllogID = {
+                access = "readOnly",
+                type = "string",
+            },
+            Localparty = {
+                access = "readOnly",
+                type = "string",
+            },
+            Remoteparty = {
+                access = "readOnly",
+                type = "string",
+            },
+            startTime = {
+                access = "readOnly",
+                type = "string",
+            },
+            connectedTime = {
+                access = "readOnly",
+                type = "string",
+            },
+            endTime = {
+                access = "readOnly",
+                type = "string",
+            },
+            deviceName = {
+                access = "readOnly",
+                type = "string",
+            },
+            ReadStatus = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            terminationReason = {
+                access = "readOnly",
+                type = "string",
+            },
+            LineId = {
+                access = "readOnly",
+                type = "string",
+            },
+            LineIdSub = {
+                access = "readOnly",
+                type = "string",
+            },
+            Direction = {
+                access = "readOnly",
+                type = "string",
+            },
+            callState = {
+                access = "readOnly",
+                type = "string",
+            },
+        },
+    },
+}
+
+local list, details = "CALLLOG LIST", "ENTRY DETAILS"
+local reason_pattern, state_pattern = "REASON_(.+)", "CALLSTATE_(.+)"
+
+local function entriesCallLogInfo ()
+    local entries = {}
+    local calllogs = conn:call("mmdbd.calllog", "list", {} )
+    if calllogs and calllogs[list] then
+        for _,v in pairs (calllogs[list]) do
+            entries[#entries+1] = v.CalllogID
+        end
+    end
+    return entries
+end
+
+local function getall(mapping,key)
+   local content = conn:call("mmdbd.calllog", "readItem", { id = key } )
+   if content and content[details] and content[details][1] then
+       local data = content[details][1]
+       if data["terminationReason"] then
+            data["terminationReason"] = data["terminationReason"]:match(reason_pattern) or "UNKNOWN"
+            data["callState"] = "DISCONNECTED"
+       else
+            data["terminationReason"] = "NONE"
+            local content_call = conn:call("mmpbx.call", "get", {} )
+            local index = "call[" .. data.callkey .. "]"
+            if content_call and content_call[index] and content_call[index]["callState"] then
+                data["callState"] = content_call[index]["callState"]:match(state_pattern) or ""
+            else
+                data["callState"] = ""
+            end
+       end
+       data.ReadStatus = tostring(data.ReadStatus)
+       return data
+   end
+end
+
+local function get(mapping, param, key)
+    local content = conn:call("mmdbd.calllog", "readItem", { id = key } )
+    if content and content[details] and content[details][1] then
+        local data = content[details][1]
+        if param == "terminationReason" then
+            if data[param] then
+                return string.match(data[param], reason_pattern) or "UNKNOWN"
+            else
+                return "NONE"
+            end
+        elseif param == "callState" then
+            if data["terminationReason"] then
+                return "DISCONNECTED"
+            else
+                local content_call = conn:call("mmpbx.call", "get", {} )
+                local index = "call[" .. data.callkey .. "]"
+                if content_call and content_call[index] and content_call[index][param] then
+                    return content_call[index][param]:match(state_pattern) or ""
+                else
+                    return ""
+                end
+            end
+        elseif param == "ReadStatus" then
+            return tostring(data[param])
+        else
+            return tostring(data[param] or "")
+        end
+    end
+    return ""
+end
+
+mmpbx_calllog_info.entries = entriesCallLogInfo
+mmpbx_calllog_info.getall = getall
+mmpbx_calllog_info.get = get
+mmpbx_calllog_info.set = {
+    ReadStatus = function(mapping, param, value, key)
+        conn:call("mmdbd.calllog", "update", { id = key, status = value } )
+    end
+}
+
+mmpbx_calllog_info.add = function(mapping, name)
+    return nil, "call log can't be added"
+end
+
+mmpbx_calllog_info.delete = function(mapping, key)
+    conn:call("mmdbd.calllog", "delete", { id = key } )
+    return true
+end
+
+register(mmpbx_calllog_info)

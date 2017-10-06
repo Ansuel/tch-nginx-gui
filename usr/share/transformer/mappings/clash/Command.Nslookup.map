@@ -1,0 +1,7 @@
+local command = {
+  name = "nslookup",
+  full_path = "/usr/bin/nslookup",
+  operands = {"host", "server"},
+}
+
+mapper("command").registerCommand(command)

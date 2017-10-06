@@ -1,0 +1,169 @@
+-- Manually generated
+local Device_Services_X_TESSARES_MPTCP_Policy_ = {
+  objectType = {
+    name = "Device.Services.X_TESSARES_MPTCP.Policy.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      ServerAddress = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      ServerPort = {
+        access = "readWrite",
+        type = "unsignedInt",
+      },
+      Username = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      Password = {
+        access = "readWrite",
+        hidden = true,
+        type = "string",
+        max = "256",
+      },
+      Blacklist = {
+        access = "readWrite",
+        type = "string",
+        max = "12000",
+      },
+    }
+  }
+}
+
+local inet = require("tch.inet")
+local mapper, ipairs = mapper, ipairs
+local mproxyBinding = { config = "mproxy" }
+local uciHelper = mapper("ucihelper")
+local configChanged = false
+local tonumber = tonumber
+
+local paramMap = {
+  ["ServerAddress"]  = "server_address",
+  ["ServerPort"] = "server_port",
+  ["Username"]  = "username",
+  ["Password"]  = "password",
+  ["Blacklist"] = "blacklist",
+}
+
+local function getUciValue(mapping, param, default)
+  mproxyBinding.sectionname = "tr069"
+  mproxyBinding.option = paramMap[param]
+  mproxyBinding.default = default
+  return uciHelper.get_from_uci(mproxyBinding)
+end
+
+local function getBlacklist(mapping, param)
+  local valuefinal = {}
+  mproxyBinding.sectionname = "policy"
+  uciHelper.foreach_on_uci(mproxyBinding, function(s)
+    if s.blacklist then
+      for _, dest in ipairs(s.blacklist) do
+        valuefinal[#valuefinal + 1] = dest
+      end
+    end
+  end)
+  return table.concat(valuefinal, ",")
+end
+
+local function setUciValue(mapping, param, value)
+  mproxyBinding.sectionname = "tr069"
+  mproxyBinding.option = paramMap[param]
+  uciHelper.set_on_uci(mproxyBinding, value, commitapply)
+  configChanged = true
+end
+
+-- Returns true if the port is in the format [start_port-end_port] or [port]
+local function portValid(port)
+  local start, endPort
+  if port:match("%-") then
+    start, endPort = port:match("^%[(%d+)%-(%d+)%]$")
+    if start and endPort and tonumber(endPort) <= 65535 and tonumber(start) <= tonumber(endPort) then
+      return true
+    end
+  else
+    start = port:match("^%[(.*)%]$")
+    if start and start == "*" or (tonumber(start) <= 65535) then
+      return true
+    end
+  end
+end
+
+local function ipAndMaskValid(ipAddress)
+  if ipAddress and ipAddress == "" then
+    return true
+  end
+  --Extract the ip, mask and port from the input in the format: ip/mask[port]
+  local ip, mask, port = ipAddress:match("^([^/%[]*)%/?([^%[]*)(%[?[^%]]*%]?)")
+  if ip and mask and port and inet.isValidIPv4(ip) and (tonumber(mask) <= 32) and portValid(port) then
+    return true
+  elseif ip and mask and port and inet.isValidIPv6(ip) and (tonumber(mask) <= 128) and portValid(port) then
+    return true
+  end
+end
+
+-- the supported blacklist format is
+-- "< src_ipv4|6_prefix>/<mask>[<ports>]:<dst_ipv4|6_prefix>/<mask>[<ports>]"
+local function fourTupleValidation(val)
+  local src, dest = val:match("^(.*/%d+%[.*%]):(.*/%d+%[.*%])$")
+  if src and dest and ipAndMaskValid(src) and ipAndMaskValid(dest) then
+    return true
+  end
+end
+
+local function setBlacklist(mapping, param, value)
+  local valueList = {}
+  for val in value:gmatch('([^,]+)') do
+    if fourTupleValidation(val) then
+      valueList[#valueList +1] = val
+    else
+      return nil, "Not a Valid format"
+    end
+  end
+  setUciValue(mapping, param, valueList)
+end
+
+Device_Services_X_TESSARES_MPTCP_Policy_.get = function(mapping, param)
+  if param == "Blacklist" then
+    return getBlacklist(mapping, param)
+  end
+  return getUciValue(mapping, param)
+end
+
+Device_Services_X_TESSARES_MPTCP_Policy_.getall = function()
+  local allValues = uciHelper.getall_from_uci(mproxyBinding)
+  return {
+    ServerAddress = allValues["server_address"] or "",
+    ServerPort = allValues["server_port"] or "",
+    Username = allValues["username"] or "",
+    Password = allValues["password"] or "",
+    Blacklist = getBlacklist(nil, "Blacklist") or ""
+  }
+end
+
+Device_Services_X_TESSARES_MPTCP_Policy_.set = function(mapping, param, value)
+  if param == "Blacklist" then
+    return setBlacklist(mapping, param, value)
+  end
+  return setUciValue(mapping, param, value)
+end
+
+Device_Services_X_TESSARES_MPTCP_Policy_.commit = function()
+  if configChanged then
+    uciHelper.commit(mproxyBinding)
+    configChanged = false
+  end
+end
+
+Device_Services_X_TESSARES_MPTCP_Policy_.revert = function()
+  if configChanged then
+    uciHelper.revert(mproxyBinding)
+    configChanged = false
+  end
+end
+
+register(Device_Services_X_TESSARES_MPTCP_Policy_)

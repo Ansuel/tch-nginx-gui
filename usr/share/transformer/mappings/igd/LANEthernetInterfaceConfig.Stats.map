@@ -1,0 +1,154 @@
+-- Automatically generated from InternetGatewayDevice:1.14
+-- using generator version 2.3
+local Multi_Stats_ = {
+  objectType = {
+    name = "#ROOT.Stats.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      BytesSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      BytesReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      PacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      PacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      X_TCH_PacketsDropped = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      X_TCH_PacketsErrored = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ErrorsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ErrorsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UnicastPacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UnicastPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DiscardPacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DiscardPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      MulticastPacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      MulticastPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      BroadcastPacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      BroadcastPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UnknownProtoPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+    }
+  }
+}
+
+local mapper = mapper
+local common = mapper("nwcommon")
+-- function aliases
+local getIntfInfo = common.getIntfInfo
+local getIntfStats = common.getIntfStats
+local tonumber, tostring = tonumber, tostring
+
+
+local ethernetStatsMap = {
+  BytesSent = "tx_bytes",
+  BytesReceived = "rx_bytes",
+  PacketsSent = "tx_packets",
+  PacketsReceived = "rx_packets",
+  ErrorsSent = "tx_errors",
+  ErrorsReceived = "rx_errors",
+  DiscardPacketsSent = "tx_dropped",
+  DiscardPacketsReceived = "rx_dropped",
+  MulticastPacketsReceived = "multicast",
+  UnicastPacketsSent = "tx_packets",
+}
+
+local ethernetExtStatsMap = {
+  MulticastPacketsSent = "txpckt",
+  BroadcastPacketsSent = "tx_broadcast",
+  BroadcastPacketsReceived = "rx_broadcast",
+  UnknownProtoPacketsReceived = "rxerr",
+}
+
+Multi_Stats_.get = function(mapping, param, key)
+  if param == "X_TCH_PacketsDropped" then
+    local rx = tonumber(getIntfInfo(key, "rx_dropped")) or 0
+    local tx = tonumber(getIntfInfo(key, "tx_dropped")) or 0
+    return tostring(rx + tx)
+  elseif param == "X_TCH_PacketsErrored" then
+    local rx = tonumber(getIntfInfo(key, "rx_errors")) or 0
+    local tx = tonumber(getIntfInfo(key, "tx_errors")) or 0
+    return tostring(rx + tx)
+  elseif param == "UnicastPacketsReceived" then
+    local packageReceived = getIntfInfo(key, "rx_packets")
+    local multicast = getIntfInfo(key, "multicast")
+    if tonumber(multicast) and tonumber(packageReceived) then
+      return tostring(tonumber(packageReceived) - tonumber(multicast))
+    end
+    return ""
+  elseif ethernetStatsMap[param] then
+    return getIntfInfo(key, ethernetStatsMap[param], "0")
+  elseif ethernetExtStatsMap[param] then
+    return getIntfStats(key, ethernetExtStatsMap[param], "0")
+  end
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_Stats_, "#ROOT", {"InternetGatewayDevice.LANDevice.{i}.LANEthernetInterfaceConfig.{i}", "InternetGatewayDevice.LANInterfaces.LANEthernetInterfaceConfig.{i}"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end

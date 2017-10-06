@@ -1,0 +1,337 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_DHCPv6_Client_i_ = {
+  objectType = {
+    name = "Device.DHCPv6.Client.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "ClientNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 1,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        max  = "64",
+      },
+      Interface = {
+        access = "readOnly",
+        type = "string",
+        max = "256",
+        pathRef = true,
+        targetParent = "Device.IP.Interface.{i}.",
+        default = "",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Disabled",
+          "Enabled",
+          "Error_Misconfigured",
+          "Error",
+        },
+        default = "Disabled",
+      },
+--[[TODO
+      DUID = {
+        access = "readOnly",
+        type = "hexBinary",
+        max = "130",
+      },
+--]]
+      RequestAddresses = {
+        access = "readWrite",
+        type = "boolean",
+        default = "true",
+      },
+      RequestPrefixes = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      RapidCommit = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      Renew = {
+        access = "readWrite",
+        command = "true",
+        type = "boolean",
+        default = "false",
+      },
+--[[ TODO
+      SuggestedT1 = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+          },
+        },
+      },
+      SuggestedT2 = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+          },
+        },
+      },
+      SupportedOptions = {
+        access = "readOnly",
+        list = true,
+        type = "unsignedInt",
+      },
+--]]
+      RequestedOptions = {
+        access = "readWrite",
+        list = true,
+        type = "unsignedInt",
+      },
+      -- ServerNumberOfEntries
+      -- automatically created when Device.DHCPv6.Client.{i}.Server.{i}. is loaded
+      -- SentOptionNumberOfEntries
+      -- automatically created when Device.DHCPv6.Client.{i}.SentOption.{i}. is loaded
+      -- ReceivedOptionNumberOfEntries
+      -- automatically created when Device.DHCPv6.Client.{i}.ReceivedOption.{i}. is loaded
+    }
+  }
+}
+
+-- function aliases
+local nwCommon = mapper("nwcommon")
+local uciHelper = mapper("ucihelper")
+local nwBinding = { config = "network"}
+local getUbusInterfaceStatus=nwCommon.get_ubus_interface_status
+local isConfigChanged = false
+local match, gsub = string.match, string.gsub
+local commitApply = commitapply
+local nwmodel = require "transformer.shared.models.device2.network"
+local model
+
+local dhcpv6StatusMap = {
+  ["up"] = "Enabled",
+  ["down"] = "Disabled",
+  ["misconfigured"] = "Error_Misconfigured",
+  ["error"] = "Error"
+}
+
+local dhcpOptionsMap = {
+  ['OPTION_SERVERID'] = '2',
+  ['OPTION_IA_NA'] = '3',
+  ['OPTION_RAPID_COMMIT'] = '14',
+  ['OPTION_IA_PD'] = '25',
+}
+
+local function getUciParam(sectionName, paramName)
+  nwBinding.sectionname = sectionName
+  nwBinding.option = paramName
+  return uciHelper.get_from_uci(nwBinding)
+end
+
+local function setUciParam(sectionName, paramName, value)
+  nwBinding.sectionname = sectionName
+  nwBinding.option = paramName
+  uciHelper.set_on_uci(nwBinding, value, commitApply)
+  isConfigChanged = true
+end
+
+local function enclose(str) --Add leading and trailing white spaces
+    return str and " "..str.." " or ""
+end
+
+local function trim(str) --Remove leading and trailing white spaces
+  return str and match(str, "^%s*(.-)%s*$") or ""
+end
+
+Device_DHCPv6_Client_i_.entries = function()
+  local dhcpv6Interfaces ={}
+  model = nwmodel.load()
+  nwBinding.sectionname="interface"
+  uciHelper.foreach_on_uci(nwBinding, function(s)
+    if s["proto"] == "dhcpv6" then
+      dhcpv6Interfaces[#dhcpv6Interfaces + 1] = s[".name"]
+    end
+  end)
+  return dhcpv6Interfaces
+end
+
+local function getEnable(_, _, key)
+  local status = getUciParam(key, "auto")
+  return status == '0' and '0' or '1'
+end
+
+local function getInterface(mapping, param, key)
+  local interface = resolve('Device.IP.Interface.{i}.', key)
+  interface = interface or resolve('Device.IP.Interface.{i}.', model:getBaseKey(key))
+  return interface or ""
+end
+
+local function getStatus(mapping, param, key, value)
+  if getInterface(mapping, param, key) == nil then
+    return dhcpv6StatusMap["misconfigured"]
+  end
+  local status = value or getUbusInterfaceStatus(key)
+  status = status and status["up"]
+  return status and dhcpv6StatusMap["up"] or dhcpv6StatusMap["down"]
+end
+
+local function getRequestAddresses(mapping, param, key, value)
+  local reqOpts = value or getUciParam(key,"reqopts")
+  local x= match( enclose(reqOpts), "%s+"..dhcpOptionsMap['OPTION_IA_NA'].."%s+" )
+  return x and '1' or '0'
+end
+
+local function getRequestPrefixes(mapping, param, key, value)
+  local reqOpts = value or getUciParam(key,"reqopts")
+  local x= match( enclose(reqOpts), "%s+"..dhcpOptionsMap['OPTION_IA_PD'].."%s+" )
+  return x and '1' or '0'
+end
+
+local function getRapidCommit(mapping, param, key, value)
+  local reqOpts = value or getUciParam(key,"reqopts")
+  local x= match( enclose(reqOpts), "%s+"..dhcpOptionsMap['OPTION_RAPID_COMMIT'].."%s+" )
+  return x and '1' or '0'
+end
+
+local function filterRequestedOptions(optionList, maskList) -- As per TR-181 specs, we remove the inappropriate options that are modelled elsewhere.
+  for _,v in pairs(maskList) do
+    optionList = gsub(optionList, "%s+"..v.."%s+", " ")
+  end
+  return optionList
+end
+
+local function sortOptionList(str)
+  local tbl = {}
+  for value in string.gmatch(str,"%d+") do
+    tbl [#tbl+1] = tonumber(value)
+  end
+  table.sort(tbl)
+  local out = ""
+  for _,v in pairs(tbl) do
+    out = out..v.." "
+  end
+  return out
+end
+
+local function getRequestedOptions(mapping, param, key, value)
+  local reqOpt = value or getUciParam(key,"reqopts")
+  reqOpt = filterRequestedOptions( enclose(reqOpt), dhcpOptionsMap)
+  return gsub(trim(reqOpt), "%s+",",") or ""
+end
+
+Device_DHCPv6_Client_i_.get = {
+  Enable = getEnable,
+  Interface = getInterface,
+  Status = getStatus,
+  RequestAddresses = getRequestAddresses,
+  RequestPrefixes = getRequestPrefixes,
+  RapidCommit = getRapidCommit,
+  Renew = '0',
+  RequestedOptions = getRequestedOptions
+}
+
+Device_DHCPv6_Client_i_.getall = function(mapping, key)
+  nwBinding.sectionname = key
+  local uciValues = uciHelper.getall_from_uci(nwBinding)
+  local ubusValues = getUbusInterfaceStatus(key)
+  local allvalues = {
+    Enable = getEnable(mapping, nil, key),
+    Interface = getInterface(mapping, nil, key),
+    Status = getStatus(mapping, nil, key, ubusValues),
+    RequestAddresses = getRequestAddresses(mapping, nil, key, uciValues["reqopts"]),
+    RequestPrefixes = getRequestPrefixes(mapping, nil, key, uciValues["reqopts"]),
+    RapidCommit = getRapidCommit(mapping, nil, key, uciValues["reqopts"]),
+    Renew = '0',
+    RequestedOptions = getRequestedOptions(mapping, nil, key, uciValues["reqopts"]),
+  }
+  return allvalues
+end
+
+local function setRequestOption(optionNumber, value, sectionName)
+  local reqOpts = getUciParam(sectionName,"reqopts")
+  if value == '1' then
+    local isOptionFound=false
+    if not match( enclose(reqOpts), "%s+"..optionNumber.."%s+" ) then
+      local out=gsub(enclose(reqOpts), "%s+%d+", function(s)
+        if not isOptionFound then
+          if tonumber(s) > tonumber(optionNumber) then
+            isOptionFound = true
+            return " "..optionNumber..s
+          end
+        end
+      end)
+      if not isOptionFound then --reached end of string
+        out = out..optionNumber
+      end
+      setUciParam(sectionName, "reqopts", trim(out))
+    end
+  else
+    local out=gsub( enclose(reqOpts), "%s+"..optionNumber.."%s+", " " )
+    setUciParam(sectionName, "reqopts", trim(out))
+  end
+end
+
+Device_DHCPv6_Client_i_.set = {
+  Enable = function(mapping, param, value, key)
+    setUciParam(key, "auto", value)
+  end,
+
+  RequestAddresses = function(mapping, param, value, key)
+    setRequestOption(dhcpOptionsMap['OPTION_IA_NA'], value, key)
+  end,
+
+  RequestPrefixes = function(mapping, param, value, key)
+    setRequestOption(dhcpOptionsMap['OPTION_IA_PD'], value, key)
+  end,
+
+  RapidCommit = function(mapping, param, value, key)
+    setRequestOption(dhcpOptionsMap['OPTION_RAPID_COMMIT'], value, key)
+  end,
+
+  Renew = function(mapping, param, value, key)
+    if value == "1" then
+      local ifname = getUciParam(key,"ifname")
+      local outFile = io.open("/tmp/.dhcpv6_clients","a")
+      if outFile then
+        outFile:write(ifname,"\n")
+        outFile:close()
+        commitApply:newset("Device.DHCPv6.Client.{i}.Renew")
+      end
+    end
+  end,
+
+  RequestedOptions = function(mapping, param, value, key)
+    value = sortOptionList(value)
+    value = gsub(value, "%D+"," ")
+    setUciParam(key, "reqopts", trim(value))
+  end
+}
+
+Device_DHCPv6_Client_i_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(nwBinding)
+    isConfigChanged = false
+  end
+end
+
+
+Device_DHCPv6_Client_i_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(nwBinding)
+    isConfigChanged = false
+  end
+  os.remove("/tmp/.dhcpv6_clients")
+end
+
+register(Device_DHCPv6_Client_i_)

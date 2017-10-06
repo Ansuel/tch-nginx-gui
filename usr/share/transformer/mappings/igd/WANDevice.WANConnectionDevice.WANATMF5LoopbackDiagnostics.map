@@ -1,0 +1,114 @@
+-- Automatically generated from InternetGatewayDevice:1.3
+-- using generator version 2.1
+
+local WANATMF5LoopbackDiagnostics_ = {
+  objectType = {
+    name = "InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANATMF5LoopbackDiagnostics.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      DiagnosticsState = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        enumeration = {
+          "None",
+          "Requested",
+          "Complete",
+          "Error_Internal",
+          "Error_Other",
+        },
+        default = "None",
+      },
+      NumberOfRepetitions = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+        default = "1",
+      },
+      Timeout = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+      SuccessCount = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+        default = "0",
+      },
+      FailureCount = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+        default = "0",
+      },
+      AverageResponseTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+        default = "0",
+      },
+      MinimumResponseTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+        default = "0",
+      },
+      MaximumResponseTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+        default = "0",
+      },
+    }
+  }
+}
+
+local helper = require("transformer.shared.atmpinghelper")
+local split_key = mapper("nwcommon").split_key
+local xtmconnection = require("transformer.shared.models.igd.xtmconnection")
+-- resolve static key(if any) to actual device key
+local resolve_key = xtmconnection.resolve_key
+
+helper.startup(commitapply)
+
+local WANATMF5LoopbackDiagnostics_defaultvalues = {
+  DiagnosticsState = "None",
+  NumberOfRepetitions = "1",
+  Timeout = "1",
+  SuccessCount = "0",
+  FailureCount = "0",
+  AverageResponseTime = "0",
+  MinimumResponseTime = "0",
+  MaximumResponseTime = "0",
+}
+
+WANATMF5LoopbackDiagnostics_.get = function(mapping, pname, key)
+  local devtype, devname = split_key(resolve_key(key))
+  if devtype == "ATM" then
+    return helper.get(devname, pname)
+  end
+  return WANATMF5LoopbackDiagnostics_defaultvalues[pname]
+end
+
+WANATMF5LoopbackDiagnostics_.set = function(mapping, pname, pvalue, key)
+  local devtype, devname = split_key(resolve_key(key))
+  if devtype == "ATM" then
+    return helper.set(devname, pname, pvalue, commitapply)
+  end
+end
+
+WANATMF5LoopbackDiagnostics_.commit = helper.commit
+WANATMF5LoopbackDiagnostics_.revert = helper.revert
+
+register(WANATMF5LoopbackDiagnostics_)

@@ -1,0 +1,8 @@
+local command = {
+  name = "ubuscall",
+  full_path = "/bin/ubus",
+  options_without_argument = {"-S", "-v"},
+  operands = {"command", "object", "method", "message"},
+}
+
+mapper("command").registerCommand(command)

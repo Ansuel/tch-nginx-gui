@@ -1,0 +1,79 @@
+-- Automatically generated from InternetGatewayDevice:1.3 and Device:2.10
+-- using generator version 2.3
+local Multi_LANConfigSecurity_ = {
+  objectType = {
+    name = "#ROOT.LANConfigSecurity.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      ConfigPassword = {
+        access = "readWrite",
+        hidden = "true",
+        type = "string",
+        max = "64",
+      },
+    }
+  }
+}
+
+local srp = require 'srp'
+local uciHelper = mapper("ucihelper")
+local getFromUci = uciHelper.get_from_uci
+local setOnUci = uciHelper.set_on_uci
+local commitApply = commitapply
+local webBinding = { config = "web"}
+local minitr064d = { config = "minitr064d", sectionname = "password", option = "dslfconfig"}
+local configBinding = {}
+local transactions = {}
+local crypto = require("tch.crypto")
+
+Multi_LANConfigSecurity_.get = {
+  ConfigPassword = "",
+}
+
+--[[ we do not support the parameter IGD/Device.UserInterface.PasswordUserSelectable ,extra functionality has to be added in the future if IGD/Device.UserInterface.PasswordUserSelectable is implemented.--]]
+Multi_LANConfigSecurity_.set = {
+  ConfigPassword = function(mapping,param,value)
+    webBinding.sectionname = "user"
+    uciHelper.foreach_on_uci( webBinding,function(s)
+      webBinding.sectionname = s['.name']
+      webBinding.option = "role"
+      if getFromUci(webBinding) == "admin" then
+        local srp_salt, srp_verifier = srp.new_user(s['name'], value)
+        webBinding.option = "srp_salt"
+        setOnUci(webBinding, srp_salt, commitApply)
+        webBinding.option = "srp_verifier"
+        setOnUci(webBinding, srp_verifier, commitApply)
+        transactions[webBinding.config] = true
+      end
+    end)
+   local password = crypto.md5("dslf-config:minitr064d:"..value)
+   setOnUci(minitr064d, password, commitApply)
+   transactions[minitr064d.config] = true
+  end,
+}
+
+Multi_LANConfigSecurity_.commit = function ()
+  for config in pairs(transactions) do
+    configBinding.config = config
+    uciHelper.commit(configBinding)
+  end
+  transactions = {}
+end
+
+Multi_LANConfigSecurity_.revert = function ()
+  for config in pairs(transactions) do
+    configBinding.config = config
+    uciHelper.revert(configBinding)
+  end
+  transactions = {}
+end
+
+-- A getall implementation is not done as it will not bring any improvement
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_LANConfigSecurity_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+

@@ -1,0 +1,9 @@
+local command = {
+  name = "tcpdump",
+  full_path = "/usr/bin/clash-tcpdump-wrapper",
+  options_without_argument = {"-v", "-n", "-S"},
+  options_with_argument = {"-i", "-w", "-s"},
+  operands = {"expression"},
+}
+
+mapper("command").registerCommand(command)

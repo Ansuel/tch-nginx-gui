@@ -1,0 +1,500 @@
+local register, require = register, require
+local lfs = require("lfs")
+local uci = require('uci')
+local match, tostring, open = string.match, tostring, io.open
+local popen = io.popen
+local posix = require("tch.posix")
+local sys_usb_ = {
+    objectType = {
+        name = "sys.usb.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {},
+    }
+}
+
+register(sys_usb_)
+
+local sys_usb_device_i_ = {
+    objectType = {
+        name = "sys.usb.device.{i}.",
+        access = "readOnly",
+        numEntriesParameter = "DeviceNumberOfEntries",
+        minEntries = 0,
+        maxEntries = math.huge,
+        parameters = {
+            path = {
+                access = "readOnly",
+                type = "string",
+            },
+            manufacturer = {
+                access = "readOnly",
+                type = "string",
+            },
+            product = {
+                access = "readOnly",
+                type = "string",
+            },
+            idVendor = {
+                access = "readOnly",
+                type = "string",
+            },
+            idProduct = {
+                access = "readOnly",
+                type = "string",
+            },
+            serial = {
+                access = "readOnly",
+                type = "string",
+            },
+            version = {
+                access = "readOnly",
+                type = "string",
+            },
+            speed = {
+                access = "readOnly",
+                type = "string",
+            },
+            bDeviceClassText = {
+                access = "readOnly",
+                type = "string",
+            },
+            bDeviceClass = {
+                access = "readOnly",
+                type = "string",
+            },
+            bDeviceSubClass = {
+                access = "readOnly",
+                type = "string",
+            },
+            bDeviceProtocol = {
+                access = "readOnly",
+                type = "string",
+            },
+            bMaxPower = {
+                access = "readOnly",
+                type = "string",
+            },
+            unmount = {
+                access = "readWrite",
+                type = "boolean",
+                default = "0",
+            },
+        }
+    }
+}
+
+local syspath = "/sys/bus/usb/devices/"
+
+local function isDir(path)
+    local mode = lfs.attributes(path, "mode")
+    if mode and mode == "directory" then
+        return true
+    end
+    return false
+end
+
+local function firstline(filename)
+    local fd, msg = open(filename)
+    if not fd then
+        -- you could return nil and and error message but that will abort
+        -- iterating over all parameters.
+        -- so here I opt to just return an empty string.
+        return ""
+    end
+    local result = fd:read("*l")
+    if result == nil then
+        result = ""
+    end
+    fd:close()
+    return result
+end
+
+
+local devicePattern = "^(%d+)-([%d%.]+)$" -- a USB device directory is of the form bus-port.port ...
+
+local function entriesSysBusUsbDevices()
+    local entries = {}
+    for file in lfs.dir(syspath) do
+        if string.match(file, devicePattern) then
+           entries[#entries+1] = file
+        end
+    end
+    return entries
+end
+
+local deviceClassMap = {
+    ["00"] = "See interfaces class",
+    ["01"] = "Audio",
+    ["02"] = "Communication and CDC control",
+    ["03"] = "Human interface device (HID)",
+    ["05"] = "Physical interface device (PID)",
+    ["06"] = "Image",
+    ["07"] = "Printer",
+    ["08"] = "Mass storage (MSC or UMS)",
+    ["09"] = "USB hub",
+    ["0A"] = "CDC-Data",
+    ["0B"] = "Smartcard",
+    ["0D"] = "Content security",
+    ["0E"] = "Video",
+    ["0F"] = "Personal Healthcare",
+    ["10"] = "Audio/Video (AV)",
+    ["DC"] = "Diagnostic device",
+    ["E0"] = "Wireless controller",
+    ["EF"] = "Miscellaneous",
+    ["FE"] = "Application specific",
+    ["FF"] = "Vendor-specific",
+}
+
+local function getClassText(path)
+    local class = string.upper(firstline(path))
+    if deviceClassMap[class] then
+        return deviceClassMap[class]
+    end
+    return ""
+end
+
+local function get(mapping, paramName, key)
+    if not isDir(syspath .. key) then
+        return ""
+    end
+
+    if paramName == "bDeviceClassText" then
+        return getClassText(syspath .. key .. "/bDeviceClass")
+    elseif paramName == "unmount" then
+        return "0"
+    elseif paramName == "path" then
+        return key
+    else
+        local result = firstline(syspath .. key .. "/" .. paramName)
+        return result
+    end
+end
+
+local entriesSysBusUsbDevicespartitions -- forward declaration
+local umountDeviceTable = {}
+local function unmountUsb(mapping, paramName, paramValue, key)
+    umountDeviceTable = entriesSysBusUsbDevicespartitions(mapping,key)
+    commitapply:newset("rpc.usb.umount")
+end
+
+
+sys_usb_device_i_.entries = entriesSysBusUsbDevices
+sys_usb_device_i_.get = get
+sys_usb_device_i_.set = unmountUsb
+sys_usb_device_i_.commit = function()
+    if #umountDeviceTable ~= 0 then
+            local cursor = uci.cursor(nil, "/var/state")
+            cursor:create_config_file("usb")
+            cursor:set("usb","unmount","unmount")
+            cursor:commit("usb")
+            local result, msg = cursor:set("usb","unmount", "device", umountDeviceTable)
+            if result == false then
+                return result, msg
+            end
+            result, msg = cursor:save("usb")
+            if result == false then
+                return result, msg
+            end
+            cursor:close()
+    end
+    umountDeviceTable = {}
+end
+
+sys_usb_device_i_.revert = function()
+    umountDeviceTable = {}
+end
+
+register(sys_usb_device_i_)
+
+local sys_usb_device_i_interface_i_ = {
+    objectType = {
+        name = "sys.usb.device.{i}.interface.{i}.",
+        access = "readOnly",
+        numEntriesParameter = "InterfacesNumberOfEntries",
+        minEntries = 0,
+        maxEntries = math.huge,
+        parameters = {
+            path = {
+                access = "readOnly",
+                type = "string",
+            },
+            bInterfaceClassText = {
+                access = "readOnly",
+                type = "string",
+            },
+            bInterfaceClass = {
+                access = "readOnly",
+                type = "string",
+            },
+            bInterfaceSubClass = {
+                access = "readOnly",
+                type = "string",
+            },
+            bInterfaceProtocol = {
+                access = "readOnly",
+                type = "string",
+            },
+        }
+    }
+}
+
+
+local function entriesSysBusUsbDevicesInterfaces(mapping, parentkey)
+    if not isDir(syspath .. parentkey) then
+        return {}
+    end
+
+    local interfacePattern = ":(%d+)%.(%d+)$" -- replace potential . and - by escaped sequence
+    local entries = {}
+    for file in lfs.dir(syspath .. parentkey .. "/") do
+        if string.match(file, interfacePattern) then
+            entries[#entries+1] = file
+        end
+    end
+    return entries
+end
+
+local function getInterfaces(mapping, paramName, key, parentkey)
+    if not isDir(syspath .. parentkey .. "/" .. key) then
+        return ""
+    end
+
+    if paramName == "bInterfaceClassText" then
+        return getClassText(syspath .. parentkey .. "/" .. key .. "/bInterfaceClass")
+    elseif paramName == "bInterfaceSubClassText" then
+        return ""
+    elseif paramName == "path" then
+        return key
+    else
+        local result = firstline(syspath .. parentkey .. "/" .. key .. "/" .. paramName)
+        return result
+    end
+end
+
+sys_usb_device_i_interface_i_.entries = entriesSysBusUsbDevicesInterfaces
+sys_usb_device_i_interface_i_.get = getInterfaces
+register(sys_usb_device_i_interface_i_)
+
+-- With the transition to mountd, partitions are mounted on request (they do
+-- not stay mounted) and the mountpoint has become a mountd configuration.
+local sys_usb_device_i_partition_i_ = {
+    objectType = {
+        name = "sys.usb.device.{i}.partition.{i}.",
+        access = "readOnly",
+        numEntriesParameter = "partitionOfEntries",
+        minEntries = 0,
+        maxEntries = math.huge,
+        parameters = {
+            path = {
+                access = "readOnly",
+                type = "string",
+            },
+            FileSystem = {
+                access = "readOnly",
+                type = "string",
+            },
+            TotalSpace = {
+                access = "readOnly",
+                type = "string",
+            },
+            UsedSpace = {
+                access = "readOnly",
+                type = "string",
+            },
+            AvailableSpace = {
+                access = "readOnly",
+                type = "string",
+            },
+            Volume = {
+                access = "readOnly",
+                type = "string",
+            },
+            Share = {
+                access = "readOnly",
+                type = "string",
+            },
+            ProfileStatus = {
+                access = "readOnly",
+                type = "string",
+            },
+        }
+    }
+}
+
+function entriesSysBusUsbDevicespartitions(mapping, parentkey)
+    local cursor = uci.cursor(nil, "/var/state")
+    local entries = {}
+
+    if not isDir(syspath .. parentkey) then
+        return {}
+    end
+
+    local part_list = {}
+    local function uci_cb(s)
+        if s.device and string.match(s.device, "sd[a-z][0-9]*") then
+            part_list[s.device] = true
+        end
+    end
+    cursor:foreach("mounts", "mount", uci_cb)
+
+    local path = syspath .. parentkey .. "/"
+    -- Entries for usb device partitions are formed only if the connected device is not an usb hub
+    -- Checking whether the connected device is hub or storage device based on the maxchild value
+    local child = firstline(path .. "maxchild")
+    if child == "0" then
+        local str = "/usr/bin/find " .. path .. " -name sd*"
+        local fp = io.popen(str)
+        if fp == nil then
+            return {}
+        end
+        local line = fp:read("*l")
+        if not line or line == "" then
+            fp:close()
+            return {}
+        end
+
+        local dev_list = {}
+        while true do
+            local dev
+            for w in string.gmatch(line, "[^/]+") do
+                dev = w
+            end
+            if dev then
+                dev_list[#dev_list+1] =  dev
+            end
+
+            line = fp:read("*l")
+            if not line or line == "" then break end
+        end
+
+        for _, v in pairs(dev_list) do
+            local dev = string.match(v, "sd[a-z][0-9]*")
+            if dev and part_list[dev] then
+                entries[#entries+1] =  dev
+            end
+        end
+        fp:close()
+    end
+
+    return entries
+end
+
+local function getMountsMount(key)
+    local cursor = uci.cursor(nil, "/var/state")
+    local mount = {}
+
+    local function uci_cb(s)
+      if s.device == key then
+        mount = s
+      end
+    end
+
+    cursor:foreach("mounts", "mount", uci_cb)
+    return mount
+end
+
+local function getSambaSambaShare(key)
+    local cursor = uci.cursor(nil, "/var/state")
+    local share = {}
+
+    local function uci_cb(s)
+      if s.device == key then
+        share = s
+      end
+    end
+
+    cursor:foreach("samba", "sambashare", uci_cb)
+    return share
+end
+
+local function getMountPoint(key)
+    local mount = getMountsMount(key)
+    if mount.status ~= "mounted" then
+        return ""
+    end
+
+    local mountpoint = mount.mountpoint or ""
+    return mountpoint
+end
+
+local function getFileSystem(key)
+    local mount = getMountsMount(key)
+    if mount.status ~= "mounted" then
+        return ""
+    end
+
+    local filesystem = mount.filesystem or ""
+    return filesystem
+end
+
+local function getSambaShareName(key)
+    local share = getSambaSambaShare(key)
+    local sharename = share[".name"] or ""
+    return sharename
+end
+
+local function getDlnadProfileStatus(key)
+    local status
+    local pattern = "dlnad." .. key .. ".profile_status='(%S+)'"
+    local fd = io.open("/var/profile_status")
+    if fd then
+        for line in fd:lines() do
+            status = line:match(pattern)
+            if status then
+              break
+            end
+        end
+        fd:close()
+    end
+    return status or "Idle"
+end
+
+local function getpartitions(mapping, paramName, key, parentkey)
+    if paramName == "path" then
+        return key
+    elseif paramName == "FileSystem" then
+        return getFileSystem(key)
+    elseif paramName == "Share" then
+        return getSambaShareName(key)
+    elseif paramName == "ProfileStatus" then
+        return getDlnadProfileStatus(key)
+    else
+        local mount = getMountPoint(key)
+        if mount == "" then
+          return mount
+        end
+
+        -- Possible failure if mount has to be remounted by mountd on statvfs.
+        -- Most of the times this results in no failures, catch the cases where
+        -- is does fail and handle properly.
+        local result, statvfs_info = pcall(posix.statvfs, mount)
+        if not result then
+            return ""
+        end
+
+        if paramName == "Volume" then
+            local volume = string.match(mount,".*/([^/]*)")
+            return volume or ""
+        elseif paramName == "TotalSpace" then
+            local size = statvfs_info.f_bsize * statvfs_info.f_blocks/(1024*1024*1024)
+            size = string.format("%0.2f",size) .. "GB"
+            return size
+        elseif paramName == "UsedSpace" then
+            local size = statvfs_info.f_bsize * (statvfs_info.f_blocks-statvfs_info.f_bfree)/(1024*1024*1024)
+            size = string.format("%0.2f",size) .. "GB"
+            return size
+        elseif paramName == "AvailableSpace" then
+            local size = statvfs_info.f_bsize * statvfs_info.f_bfree/(1024*1024*1024)
+            size = string.format("%0.2f",size) .. "GB"
+            return size
+        end
+    end
+    return ""
+end
+
+sys_usb_device_i_partition_i_.entries = entriesSysBusUsbDevicespartitions
+sys_usb_device_i_partition_i_.get = getpartitions
+
+register(sys_usb_device_i_partition_i_)

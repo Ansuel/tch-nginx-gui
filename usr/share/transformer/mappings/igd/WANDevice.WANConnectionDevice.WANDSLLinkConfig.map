@@ -1,0 +1,562 @@
+-- Automatically generated from InternetGatewayDevice:1.14
+-- using generator version 2.3
+local WANDSLLinkConfig = {
+  objectType = {
+    name = "InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANDSLLinkConfig.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = 1,
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      DestinationAddress = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      ModulationType = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "ADSL_G.dmt",
+          "ADSL_G.lite",
+          "ADSL_G.dmt.bis",
+          "ADSL_re-adsl",
+          "ADSL_2plus",
+--This is not a typo but comes from the BBF datamodel XML.
+          "ADLS_four",
+          "ADSL_ANSI_T1.413",
+          "G.shdsl",
+          "IDSL",
+          "HDSL",
+          "SDSL",
+          "VDSL",
+        },
+      },
+      LinkStatus = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Up",
+          "Down",
+          "Initializing",
+          "Unavailable",
+	},
+      },
+
+      LinkType = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "EoA",
+          "IPoA",
+          "PPPoA",
+          --"CIP", currently not supported
+          "Unconfigured",
+        },
+        default = "Unconfigured",
+      },
+      ATMEncapsulation = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      ATMQoS = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      ATMPeakCellRate = {
+        access = "readWrite",
+        type = "unsignedInt",
+      },
+      ATMMaximumBurstSize = {
+        access = "readWrite",
+        type = "unsignedInt",
+      },
+      ATMSustainableCellRate = {
+        access = "readWrite",
+        type = "unsignedInt",
+      },
+      AutoConfig = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      ATMTransmittedBlocks = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ATMReceivedBlocks = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ATMCRCErrors = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ATMHECErrors = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+    }
+  }
+}
+
+----------------------------------------------------------
+-- Local definitions
+----------------------------------------------------------
+local pairs, mapper, eventsource, commitApply = pairs, mapper, eventsource, commitapply
+local match = string.match
+local uciHelper = mapper("ucihelper")
+local common = mapper('nwcommon')
+local xtmctl = require("transformer.shared.xtmctl")
+local get_ubus_interface_status = common.get_ubus_interface_status
+local getIntfStats = common.getIntfStats
+local split_key = common.split_key
+local xdslctl = require("transformer.shared.xdslctl")
+local conn = mapper("ubus").connect()
+local empty_mt = { __index = function() return "" end }
+local transactions = {}
+local getFromUci = uciHelper.get_from_uci
+local xtmconnection = require("transformer.shared.models.igd.xtmconnection")
+local resolve_key = xtmconnection.resolve_key
+
+-- translate mode to ModulationType
+local modemapping = setmetatable({
+  ["G.DMT"] = "ADSL_G.dmt",
+  ["T1.413"] = "ADSL_ANSI_T1.413",
+  ["G.lite"] = "ADSL_G.lite",
+  ["AnnexI"] = "ADSL_G.dmt.bis",
+  ["ADSL2"] = "ADSL_G.dmt.bis",
+  ["ADSL2+"] = "ADSL_2plus",
+  ["RE-ADSL2"] = "ADSL_re-adsl",
+  ["VDSL2"] = "VDSL",
+}, empty_mt)
+
+local qosMapping = {
+  ["ubr"] = "UBR",
+  ["cbr"]  =  "CBR",
+  ["nrtvbr"] = "VBR-nrt",
+  ["rtvbr"] = "VBR-rt",
+  ["ubr_pcr"] = "UBR+",
+  [""]  = "",
+}
+
+local strMapping = {
+  ["llc"]  =  "LLC",
+  ["vcmux"] = "VCMUX",
+  [""]  = "",
+}
+
+local qosMapping2 = {
+  ["UBR"] = "ubr",
+  ["CBR"]  =  "cbr",
+  ["VBR-nrt"] = "nrtvbr",
+  ["VBR-rt"] = "rtvbr",
+  ["UBR+"] = "ubr_pcr",
+}
+
+local encMapping = {
+  ["LLC"] = "llc",
+  ["VCMUX"]  =  "vcmux",
+}
+
+-- function to convert the mode coming from xdslctl to ModulationType
+local function convertMode(input)
+  if input ~= nil then
+    local mainmode = match(input, "^(%S+)")
+    return modemapping[mainmode]
+  end
+  return ""
+end
+
+local ulpToLinkType = {
+  ["eth"] = "EoA",
+  ["ip"]  = "IPoA",
+  ["ppp"] = "PPPoA",
+  [""]  = "Unconfigured",
+}
+local linkTypeToUlp = {
+  ["EoA"]   = "eth",
+  ["IPoA"]  = "ip",
+  ["PPPoA"] = "ppp",
+  ["Unconfigured"] = "",
+}
+-- binding for uciHelper
+local binding = { config = "xtm", sectionname = "", option = "" }
+
+-- get VPI/VCI/ENC for xtm interface
+local function get(intf, option)
+  binding.sectionname = intf
+  binding.option = option
+  return uciHelper.get_from_uci(binding)
+end
+
+-- get traffic item for xtm interface
+local function getTdItem(intf, titem)
+  local td = get(intf, "td")
+  if td ~= "" then
+      return get(td, titem)
+  end
+  return ""
+end
+
+local wansensing_binding = { config = "wansensing", sectionname = "global", option = "enable" }
+local function getAutoConfig()
+  local wansensing_enable = getFromUci(wansensing_binding)
+  if wansensing_enable ~= "" then
+    return wansensing_enable=="1"
+  end
+end
+
+WANDSLLinkConfig.entries = function (mapping, parentKey, grandparentKey)
+  local devtype = split_key(grandparentKey)
+  if devtype == "DSL" then
+    return {resolve_key(parentKey)}
+  end
+  return {}
+end
+WANDSLLinkConfig.get = {
+  Enable = function(mapping, param, key)
+    local devtype, devname = split_key(resolve_key(key))
+    if devtype == "ATM" then
+      local vpi = get(devname, "vpi")
+      local vci = get(devname, "vci")
+      if vpi == "" or vci == "" then
+        return "0"
+      end
+      local atm_addr = "1." .. vpi .. "." .. vci
+      local status =  xtmctl.getXtmDeviceStatus(atm_addr)
+      if status == "enabled" then
+        return "1"
+      end
+      if status == "disabled" then
+        return "0"
+      end
+    end
+    return "0"
+  end,
+  DestinationAddress = function (mapping,param,key)
+    local devtype, devname = split_key(resolve_key(key))
+    if devtype == "ATM" then
+      local vpi = get(devname, "vpi")
+      local vci = get(devname, "vci")
+      if vpi == "" or vci == "" then
+        return ""
+      end
+      return "PVC:" .. vpi .. "/" .. vci
+    end
+    return ""
+  end,
+  ModulationType = function(mapping, param, parentkey, grandparentkey)
+    local gdevtype = split_key(grandparentkey)
+    if gdevtype == "DSL" then
+      return convertMode(xdslctl.infoValue("mode"))
+    end
+    return ""
+  end,
+  LinkStatus = function(mapping, param, key)
+    local devtype, devname = split_key(resolve_key(key))
+    if devtype == "ATM" then
+      -- TODO: devname is not used so what happens when
+      --       multiple DSL interfaces are present?
+      local xdsl_status = conn:call("xdsl", "status", {})
+      if not xdsl_status or xdsl_status.statuscode < 5 then
+        return "Unavailable"
+      end
+      local dsl_status = conn:call("network.device", "status", {["name"] = devname })
+      if not dsl_status then
+        return "Unavailable"
+      end
+      if dsl_status.present then
+        if dsl_status.up and dsl_status.carrier then
+          return "Up"
+        else
+          return "Down"
+        end
+      end
+    end
+    return "Unavailable"
+  end,
+  LinkType = function(mapping, param, key)
+    local devtype, devname = split_key(resolve_key(key))
+    if devtype == "ATM" then
+      local ulp = get(devname, "ulp")
+      if ulpToLinkType[ulp] then
+        return ulpToLinkType[ulp] or "Unconfigured"
+      end
+    end
+    return "Unconfigured"
+  end,
+  ATMEncapsulation = function (mapping,param,key)
+    local devtype, devname = split_key(resolve_key(key))
+    if devtype == "ATM" then
+      return strMapping[get(devname, "enc")]
+    end
+    return ""
+  end,
+  ATMQoS = function (mapping,param,key)
+    local devtype, devname = split_key(resolve_key(key))
+    if devtype == "ATM" then
+      return qosMapping[getTdItem(devname, "servicecat")]
+    end
+    return ""
+  end,
+  ATMPeakCellRate = function (mapping,param,key)
+    local devtype, devname = split_key(resolve_key(key))
+    if devtype == "ATM" then
+      local val = getTdItem(devname, "pcr")
+      if val and val ~= "" then
+        return val
+      end
+    end
+    return "0"
+  end,
+  ATMMaximumBurstSize = function (mapping,param,key)
+    local devtype, devname = split_key(resolve_key(key))
+    if devtype == "ATM" then
+      local val = getTdItem(devname, "mbs")
+      if val and val ~= "" then
+        return val
+      end
+    end
+    return "0"
+  end,
+  ATMSustainableCellRate = function (mapping,param,key)
+    local devtype, devname = split_key(resolve_key(key))
+    if devtype == "ATM" then
+    local val = getTdItem(devname, "scr")
+      if val and val ~= "" then
+        return val
+      end
+    end
+    return "0"
+  end,
+  AutoConfig = function (mapping, param, key, grandparentkey)
+    return getAutoConfig() and "1" or "0"
+  end,
+  ATMTransmittedBlocks = function (mapping,param,key)
+    local _, devname = split_key(resolve_key(key))
+    local val = getIntfStats(devname, "tx_pckts", "0")
+      return val
+  end,
+  ATMReceivedBlocks = function (mapping,param,key)
+    local _, devname = split_key(resolve_key(key))
+    local val = getIntfStats(devname, "rx_pckts", "0")
+      return val
+  end,
+  ATMCRCErrors = function (mapping,param,key)
+    local _, devname = split_key(resolve_key(key))
+    local val = getIntfStats(devname, "rx_crc_errors", "0")
+      return val
+  end,
+  ATMHECErrors ="0",
+}
+
+-- TODO: getall()
+
+local function set(intf, option, value)
+  binding.sectionname = intf
+  binding.option = option
+  uciHelper.set_on_uci(binding, value, commitApply)
+  transactions["xtm"] = true
+end
+
+local function setUciParameterOfTd(intf, option, value)
+  local td = get(intf, "td")
+
+  if td == "" or td == nil then
+    td = intf .. "_td"
+    set(intf, "td", td)
+  end
+
+  local binding2 = { config = "xtm", option = nil, extended = true, sectionname = td }
+  local tdtype = uciHelper.get_from_uci(binding2)
+  if tdtype == "" or tdtype == nil then
+    uciHelper.set_on_uci(binding2, "trafficdesc", commitApply)
+    uciHelper.commit(binding2)
+  end
+
+  set(td, option, value)
+end
+
+local setEnable
+local atm_addr
+WANDSLLinkConfig.set = {
+  Enable = function(mapping, param, value, key)
+    local devtype, devname = split_key(resolve_key(key))
+    local vpi = get(devname, "vpi")
+    local vci = get(devname, "vci")
+    if vpi == "" or vci == "" then
+      return nil, "invalid XTM instance"
+    end
+    atm_addr = "1." .. vpi .. "." .. vci
+
+    if devtype == "ATM" then
+      if value == "1" then  --enable DSLlink
+        setEnable = true
+      else
+        setEnable = false
+        local wanInterfaces = common.findLanWanInterfaces(true)
+
+        for _, interface in pairs(wanInterfaces) do
+          local data = get_ubus_interface_status(interface)
+          local device = data and data["device"] or ""
+          if device == devname then
+            local status = data and data["up"] or false
+            -- when Disable, check if there is interface already up for deviceName
+            if status then
+              return nil, "Can not disable XTMLink instance, there is already connection on top of ATM"
+            end
+          end
+        end
+      end     --endof enable/disable dsllink
+    else
+      return nil, "invalid set operation for ethernet or vdsl service"
+    end    --endof deviceType
+  end,
+  DestinationAddress = function(mapping, param, value, key)
+    local devtype, devname = split_key(resolve_key(key))
+    -- check the type of device is dsl or not
+    if devtype ~= "ATM" then
+      return nil, "not XTM device"
+    end
+    -- the value of vpi and vci should not be nil and the type should be digit
+    local vpi, vci = match(value, "^PVC:%s*(%d+)/(%d+)$")
+    if not vpi then
+      return nil, "invalid value"
+    end
+    set(devname, "vpi", vpi)
+    set(devname, "vci", vci)
+
+    -- if VPI/VCI are defined in network config then set vpi/vci in network config as well
+    local isNetworkConfigChanged = xtmctl.setNetworkConfig(devname, vpi, vci)
+    if isNetworkConfigChanged then
+      transactions["network"] = true
+    end
+  end,
+  LinkType = function(mapping, param, value, key)
+    local devtype, devname = split_key(resolve_key(key))
+    if devtype == "ATM" and linkTypeToUlp[value] then
+      local wanInterfaces = common.findLanWanInterfaces(true)
+      if wanInterfaces then
+        for _, interface in pairs(wanInterfaces) do
+          local data = get_ubus_interface_status(interface)
+          local device = data and data["device"] or ""
+          if device == devname then
+            local status = data and data["up"] or false
+            -- when setting link type, check if there is interface already up for deviceName
+            if status then
+              return nil, "Cannot set link type, there is connection on top of the ATM."
+            end
+          end
+        end -- for
+      end -- if wanInterfaces
+
+      set(devname, "ulp", linkTypeToUlp[value])
+    else
+      return nil, "Invalid value"
+    end
+  end,
+  ATMEncapsulation = function(mapping, param, value, key)
+    local devtype, devname = split_key(resolve_key(key))
+    if devtype ~= "ATM" or (value ~= "LLC" and value ~= "VCMUX") then
+      return nil, "Unsupported value"
+    end
+    set(devname, "enc", encMapping[value])
+  end,
+  ATMQoS = function(mapping, param, value, key)
+    local devtype, devname = split_key(resolve_key(key))
+    if devtype ~= "ATM" or
+       (value ~= "UBR" and value ~= "CBR" and value ~= "VBR-nrt" and value ~= "VBR-rt" and value ~= "UBR+") then
+      return nil, "Unsupported value"
+    end
+    setUciParameterOfTd(devname, "servicecat", qosMapping2[value])
+  end,
+  ATMPeakCellRate = function(mapping, param, value, key)
+    local devtype, devname = split_key(resolve_key(key))
+    if devtype ~= "ATM" or value == ""  then
+      return nil, "Unsupported value"
+    end
+    setUciParameterOfTd(devname, "pcr", value)
+  end,
+  ATMMaximumBurstSize = function(mapping, param, value, key)
+    local devtype, devname = split_key(resolve_key(key))
+    if devtype ~= "ATM" or value == ""  then
+      return nil, "Unsupported value"
+    end
+    setUciParameterOfTd(devname, "mbs", value)
+  end,
+  ATMSustainableCellRate = function(mapping, param, value, key)
+    local devtype, devname = split_key(resolve_key(key))
+    if devtype ~= "ATM" or value == ""  then
+      return nil, "Unsupported value"
+    end
+    setUciParameterOfTd(devname, "scr", value)
+  end,
+}
+
+local function uci_event_cb (mapping, action, config, sectiontype, sectionname, option)
+  if(option == "ulp") then
+    return { { key = "ATM|" .. sectionname, paramname = "LinkType" } }
+  elseif (option == "vpi" or option == "vci") then
+    return  { { key = "ATM|" .. sectionname, paramname = "DestinationAddress"} }
+  end
+end
+
+local function ubus_xdsl_event_cb(mapping, event, data)
+  local events = {}
+  if data.statuscode then
+     local keys = query_keys(mapping)
+     for _, keyset in ipairs(keys) do
+       events[#events + 1] = { key = keyset[1], paramname = "LinkStatus" }
+     end
+  end
+  return events
+end
+
+WANDSLLinkConfig.add_watchers = function(mapping)
+  local uci_evsrc = eventsource("uci")
+  uci_evsrc.watch(mapping, { set = uci_event_cb }, "xtm", "atmdevice")
+  local ubus_evsrc = eventsource("ubus")
+  ubus_evsrc.watch_event(mapping, ubus_xdsl_event_cb, "xdsl")
+end
+
+local function commit()
+  for config in pairs(transactions) do
+    uciHelper.commit({config = config})
+  end
+  transactions = {}
+
+  if setEnable ~= nil and atm_addr then
+    if not xtmctl.enableXtmDevice(atm_addr, setEnable) then
+      return nil, "enable/disable XTM instance failed"
+    end
+    setEnable = nil
+    atm_addr = nil
+  end
+end
+
+local function revert()
+  for config in pairs(transactions) do
+    uciHelper.revert({config = config})
+  end
+  transactions = {}
+
+  if setEnable ~= nil then
+    setEnable = nil
+    atm_addr = nil
+  end
+end
+
+WANDSLLinkConfig.commit = commit
+WANDSLLinkConfig.revert = revert
+
+register(WANDSLLinkConfig)

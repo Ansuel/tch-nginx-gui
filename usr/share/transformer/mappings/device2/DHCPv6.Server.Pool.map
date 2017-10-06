@@ -1,0 +1,273 @@
+-- Automatically generated from Device:2.9
+-- using generator version 2.2
+local Device_DHCPv6_Server_Pool_i_ = {
+  objectType = {
+    name = "Device.DHCPv6.Server.Pool.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "PoolNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Disabled",
+          "Enabled",
+          "Error_Misconfigured",
+          "Error",
+        },
+        default = "Disabled",
+      },
+--[[ TODO
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      Order = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+--]]
+    Interface = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        pathRef = true,
+        targetParent = "Device.IP.Interface.{i}.",
+        default = "",
+    },
+--[[ TODO
+    DUID = {
+        access = "readWrite",
+        type = "hexBinary",
+        max = "130",
+        default = "",
+      },
+      DUIDExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      VendorClassID = {
+        access = "readWrite",
+        type = "hexBinary",
+        max = "65535",
+        default = "",
+      },
+      VendorClassIDExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      UserClassID = {
+        access = "readWrite",
+        type = "hexBinary",
+        max = "65535",
+        default = "",
+      },
+      UserClassIDExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      SourceAddress = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      SourceAddressMask = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      SourceAddressExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      IANAEnable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      IANAManualPrefixes = {
+        access = "readWrite",
+        list = true,
+        maxItems = "8",
+        type = "string",
+        pathRef = true,
+        targetParent = "Device.IP.Interface.{i}.IPv6Prefix.{i}.",
+        default = "",
+      },
+      IANAPrefixes = {
+        access = "readOnly",
+        list = true,
+        maxItems = "8",
+        type = "string",
+        pathRef = true,
+        targetParent = "Device.IP.Interface.{i}.IPv6Prefix.{i}.",
+      },
+      IAPDEnable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      IAPDManualPrefixes = {
+        access = "readWrite",
+        list = true,
+        maxItems = "8",
+        type = "string",
+        pathRef = true,
+        targetParent = "Device.IP.Interface.{i}.IPv6Prefix.{i}.",
+        default = "",
+      },
+      IAPDPrefixes = {
+        access = "readOnly",
+        list = true,
+        maxItems = "8",
+        type = "string",
+        pathRef = true,
+        targetParent = "Device.IP.Interface.{i}.IPv6Prefix.{i}.",
+      },
+      IAPDAddLength = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            max = "64",
+          },
+        },
+      },
+--]]
+      -- ClientNumberOfEntries
+      -- automatically created when Device.DHCPv6.Server.Pool.{i}.Client.{i}. is loaded
+      -- OptionNumberOfEntries
+      -- automatically created when Device.DHCPv6.Server.Pool.{i}.Option.{i}. is loaded
+    }
+  }
+}
+
+local uciHelper = mapper("ucihelper")
+local isConfigChanged = false
+local dhcpBinding = { config = "dhcp" }
+
+Device_DHCPv6_Server_Pool_i_.entries = function(mapping, parentkey)
+  local dhcpPool = {}
+  dhcpBinding.sectionname = "dhcp"
+  uciHelper.foreach_on_uci(dhcpBinding, function(s)
+    if s["dhcpv6"] then
+      dhcpPool[#dhcpPool+1] = s['.name']
+    end
+  end)
+  return dhcpPool
+end
+
+local function setUciParam(sectionName, paramName, value)
+  dhcpBinding.sectionname = sectionName
+  dhcpBinding.option = paramName
+  uciHelper.set_on_uci(dhcpBinding, value, commitapply)
+  isConfigChanged = true
+end
+
+local function getUciParam(key)
+  dhcpBinding.sectionname = key
+  return uciHelper.getall_from_uci(dhcpBinding)
+end
+
+local function getPoolEnable(dhcpConfig)
+  if dhcpConfig and dhcpConfig["dhcpv6"] ~= "disabled" and dhcpConfig["ra"] ~= "disabled" then
+    return "1"
+  end
+  return "0"
+end
+
+local function getPoolStatus(dhcpConfig)
+  local dhcpStatus = { server = "server", disabled = "disabled" }
+  if dhcpConfig and not dhcpStatus[dhcpConfig["dhcpv6"]] or not dhcpStatus[dhcpConfig["ra"]]then
+    return "Error_Misconfigured"
+  elseif dhcpConfig and dhcpConfig["dhcpv6"] == "server" and dhcpConfig["ra"] == "server" then
+    return "Enabled"
+  end
+  return "Disabled"
+end
+
+local function getPoolInterface(dhcpConfig)
+  if dhcpConfig and dhcpConfig["interface"] then
+    return resolve("Device.IP.Interface.{i}.", dhcpConfig["interface"]) or ""
+  end
+  return ""
+end
+
+Device_DHCPv6_Server_Pool_i_.get = {
+  Enable =  function(mapping, param, key)
+    local dhcpConfig = getUciParam(key)
+    return getPoolEnable(dhcpConfig)
+  end,
+  Status =  function(mapping, param, key)
+    local dhcpConfig = getUciParam(key)
+    return getPoolStatus(dhcpConfig)
+  end,
+  Interface =  function(mapping, param, key)
+    local dhcpConfig = getUciParam(key)
+    return getPoolInterface(dhcpConfig)
+  end,
+}
+
+Device_DHCPv6_Server_Pool_i_.getall = function(mapping,key)
+  local dhcpConfig = getUciParam(key)
+  local allValues = {
+    Enable =  getPoolEnable(dhcpConfig),
+    Status = getPoolStatus(dhcpConfig),
+    Interface = getPoolInterface(dhcpConfig)
+  }
+  return allValues
+end
+
+Device_DHCPv6_Server_Pool_i_.set = {
+  Enable =  function (mapping, param, pvalue, key)
+    local value = "disabled"
+    if pvalue == "1" then
+      value = "server"
+    end
+    setUciParam(key, "ra", value)
+    setUciParam(key, "dhcpv6", value)
+  end,
+  Interface =  function (mapping, param, pvalue, key)
+    -- Interface is displayed in Device2 as path, but stored as UCI/UBUS interface in UCI, so convert it first
+    if pvalue ~= "" then
+      local rc
+      rc, pvalue = pcall(tokey, pvalue, "Device.IP.Interface.{i}.")
+      if not rc then
+        return nil, "invalid value"
+      end
+    end
+    setUciParam(key, "interface", pvalue)
+  end,
+}
+
+Device_DHCPv6_Server_Pool_i_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(dhcpBinding)
+    isConfigChanged = false
+  end
+end
+
+Device_DHCPv6_Server_Pool_i_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(dhcpBinding)
+    isConfigChanged = false
+  end
+end
+
+register(Device_DHCPv6_Server_Pool_i_)

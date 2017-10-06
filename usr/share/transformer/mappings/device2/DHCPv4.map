@@ -1,0 +1,16 @@
+-- Automatically generated from Device:2.9
+-- using generator version 2.2
+local Device_DHCPv4_ = {
+  objectType = {
+    name = "Device.DHCPv4.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      -- ClientNumberOfEntries
+      -- automatically created when Device.DHCPv4.Client.{i}. is loaded
+    }
+  }
+}
+
+register(Device_DHCPv4_)

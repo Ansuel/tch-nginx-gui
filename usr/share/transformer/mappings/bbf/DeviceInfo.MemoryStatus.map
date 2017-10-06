@@ -1,0 +1,94 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Multi_DeviceInfo_MemoryStatus_ = {
+  objectType = {
+    name = "#ROOT.DeviceInfo.MemoryStatus.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      Total = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      Free = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      X_000E50_MemoryUtilization = {
+        access = "readOnly",
+        type = "string",
+      },
+    }
+  }
+}
+
+local open = io.open
+
+local function getMemoryStatus(param)
+  local value = "0"
+  local fd = open("/proc/meminfo")
+  if fd then
+    for line in fd:lines() do
+      if line:find(param) then
+        value = line:match("%d+") or "0"
+        break
+      end
+    end
+    fd:close()
+  end
+  return value
+end
+
+local function getMemoryStatusAll()
+  local memTotal, memFree, memUtil
+  local fd = open("/proc/meminfo")
+    if fd then
+      for line in fd:lines() do
+        if line:find("MemTotal") then
+          memTotal = line:match("%d+") or "0"
+        elseif line:find("MemFree") then
+          memFree = line:match("%d+") or "0"
+        end
+        if memTotal and memFree then
+          break
+        end
+      end
+      fd:close()
+    end
+    local total = tonumber(memTotal)
+    local free = tonumber(memFree)
+    if total and free and total > 0 then
+        memUtil = (total - free)/total
+        memUtil = math.floor(memUtil*100).."%"
+    else
+        memUtil = "0%"
+    end
+    return memTotal, memFree, memUtil
+end
+
+Multi_DeviceInfo_MemoryStatus_.get = {
+  Total = getMemoryStatus("MemTotal"),
+  Free  = function()
+    return getMemoryStatus("MemFree")
+  end,
+  X_000E50_MemoryUtilization = function()
+    return select(3, getMemoryStatusAll())
+  end,
+}
+
+Multi_DeviceInfo_MemoryStatus_.getall = function()
+  local memTotal, memFree, memUtil = getMemoryStatusAll()
+  return {
+    Total = memTotal or "0",
+    Free  = memFree or "0",
+    X_000E50_MemoryUtilization = memUtil,
+  }
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_DeviceInfo_MemoryStatus_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+ register(dupli)
+end

@@ -1,0 +1,248 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_GRE_Tunnel_i_Interface_i_ = {
+  objectType = {
+    name = "Device.GRE.Tunnel.{i}.Interface.{i}.",
+    access = "readOnly", -- currently readWrite not supported
+    numEntriesParameter = "InterfaceNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Up",
+          "Down",
+          "Unknown",
+          "Dormant",
+          "NotPresent",
+          "LowerLayerDown",
+          "Error",
+        },
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      Name = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      LastChange = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      LowerLayers = {
+        access = "readOnly", -- readWrite currently not supported
+        list = true,
+        max = "1024",
+        type = "string",
+        pathRef = true,
+      },
+      ProtocolIdOverride = {
+        access = "readOnly",
+        type = "unsignedInt",
+        default = "0",
+      },
+      UseChecksum = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      KeyIdentifierGenerationPolicy = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "string",
+        enumeration = {
+          "Disabled",
+          "Provisioned",
+          "CPE_Generated",
+        },
+        default = "Disabled",
+      },
+      KeyIdentifier = {
+        access = "readWrite",
+        type = "unsignedInt",
+        default = "0",
+      },
+      UseSequenceNumber = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+    }
+  }
+}
+
+local nwmodel = require 'transformer.shared.models.device2.network'
+nwmodel.register("GRE", Device_GRE_Tunnel_i_Interface_i_.objectType.name)
+local model
+
+local getUciValue, setUciValue, getSection, commit, revert
+do
+  local uciHelper = mapper("ucihelper")
+  local network = { config = "network" }
+  local configChanged = false
+  
+  function getUciValue(name, option, default, section_data)
+    if section_data then
+      return section_data[option] or default
+    else
+      network.sectionname = name
+      network.option = option
+      network.default = default
+      return uciHelper.get_from_uci(network)
+    end
+  end
+
+  function setUciValue(name, option, value)
+    network.sectionname = name
+    network.option = option
+    uciHelper.set_on_uci(network, value, commitapply)
+    configChanged = true
+  end
+  
+  function getSection(name)
+    network.sectionname = name
+    return uciHelper.getall_from_uci(network) or {}
+  end
+  
+  function commit()
+    if configChanged then
+      uciHelper.commit(network)
+    end
+    configChanged = false
+  end
+  
+  function revert()
+    if configChanged then
+      uciHelper.revert(network)
+    end
+    configChanged = false
+  end
+end
+
+local mapper = mapper
+local ubus = mapper("ubus").connect()
+local nwCommon = mapper("nwcommon")
+local getIntfInfo = nwCommon.getIntfInfo
+local posix = require("tch.posix")
+local getClockTime = posix.clock_gettime
+local lastStateChangeTime = {}
+
+
+-- Map for /sys/class/net/<iface>/operstate
+local statusMap = {
+  ["unknown"] = "Unknown",
+  ["notpresent"] = "NotPresent",
+  ["down"] = "Down",
+  ["dormant"] = "Dormant",
+  ["lowerlayerdown"] = "LowerLayerDown",
+  ["up"] = "Up"
+}
+
+Device_GRE_Tunnel_i_Interface_i_.entries = function(mapping, parentKey)
+  -- Single entry, formed based on the ParentKey
+  model = nwmodel.load()
+  return {parentKey}
+end
+
+
+local getter = {
+  Enable = function(key, uci_section)
+    return getUciValue(model:getUciKey(key), "auto", "1", uci_section)
+  end,
+  Status = function(key, uci_section)
+    local proto = getUciValue(model:getUciKey(key), "proto", "gre", uci_section)
+    if proto:match('^grev6(.*)') then
+      key = "grev6-" .. model:getInterface(key)
+    end
+    local status = getIntfInfo(key, "operstate")
+    return statusMap[status] or "Down"
+  end,
+  Name = function(key)
+    return key
+  end,
+  LowerLayers = function(key)
+    return model:getLowerLayersResolved(key, resolve)
+  end,
+  LastChange = function(key)
+    local name = key:match('^gre-(.*)') or key
+    local ubusStatus = ubus:call("network.interface." .. name, "status", {})
+    local value
+    if ubusStatus and ubusStatus.uptime then
+      value = ubusStatus.uptime
+    else
+      value = getClockTime(posix.CLOCK_MONOTONIC) - (lastStateChangeTime[key] or 0)
+    end
+    return tostring(value)
+  end,
+  ProtocolIdOverride = function()
+    return "0"
+  end,
+  UseChecksum = function(key, uci_section)
+    return getUciValue(model:getUciKey(key), "ocsum", "0", uci_section)
+  end,
+  KeyIdentifierGenerationPolicy = function(key, uci_section)
+    local iKey = getUciValue(model:getUciKey(key), "ikey", "0", uci_section)
+    return iKey ~= "0" and "Provisioned" or "Disabled"
+  end,
+  KeyIdentifier = function(key, uci_section)
+    return getUciValue(model:getUciKey(key), "ikey", "0", uci_section)
+  end,
+  UseSequenceNumber = function(key, uci_section)
+    return getUciValue(model:getUciKey(key), "oseqno", "0", uci_section)
+  end,
+}
+
+Device_GRE_Tunnel_i_Interface_i_.get = function(mapping, param, key)
+  return getter[param](key)
+end
+
+Device_GRE_Tunnel_i_Interface_i_.getall = function(mapping, key)
+  local uciValues = getSection(model:getUciKey(key))
+  local all = {}
+  for param, fn in pairs(getter) do
+    all[param] = fn(key, uciValues)
+  end
+  return all
+end
+
+Device_GRE_Tunnel_i_Interface_i_.set = {
+  Enable = function(mapping, param, value, key)
+    setUciValue(model:getUciKey(key), "auto", value)
+  end,
+  UseChecksum = function(mapping, param, value, key)
+    setUciValue(model:getUciKey(key), "ocsum", value)
+  end,
+  UseSequenceNumber = function(mapping, param, value, key)
+    setUciValue(model:getUciKey(key), "oseqno", value)
+  end,
+  KeyIdentifier = function(mapping, param, value, key)
+    setUciValue(model:getUciKey(key), "ikey", value)
+  end,
+}
+
+Device_GRE_Tunnel_i_Interface_i_.commit = commit
+Device_GRE_Tunnel_i_Interface_i_.revert = revert
+
+local function ubusEventTriggered(mapping, action, data)
+  if data["action"] == "ifup" or data["action"] == "ifdown" then
+    lastStateChangeTime[data.interface] = getClockTime(posix.CLOCK_MONOTONIC)
+  end
+end
+
+Device_GRE_Tunnel_i_Interface_i_.add_watchers = function(mapping)
+  local ubusEventSource = eventsource("ubus")
+  ubusEventSource.watch_event(mapping, ubusEventTriggered, "network.interface")
+end
+
+register(Device_GRE_Tunnel_i_Interface_i_)

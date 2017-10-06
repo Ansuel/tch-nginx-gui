@@ -1,0 +1,69 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_IP_Diagnostics_ = {
+  objectType = {
+    name = "Device.IP.Diagnostics.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      IPv4PingSupported = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      IPv6PingSupported = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      IPv4TraceRouteSupported = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      IPv6TraceRouteSupported = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      IPv4DownloadDiagnosticsSupported = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      IPv6DownloadDiagnosticsSupported = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      IPv4UploadDiagnosticsSupported = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      IPv6UploadDiagnosticsSupported = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      IPv4UDPEchoDiagnosticsSupported = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      IPv6UDPEchoDiagnosticsSupported = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      IPv4ServerSelectionDiagnosticsSupported = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      IPv6ServerSelectionDiagnosticsSupported = {
+        access = "readOnly",
+        type = "boolean",
+      },
+    }
+  }
+}
+
+Device_IP_Diagnostics_.get = function()
+  return "1"  --Since all parameters are hardcoded to value "1", returning the value.
+end
+
+-- A getall implementation is not done as it will not bring any improvement
+
+register(Device_IP_Diagnostics_)
+

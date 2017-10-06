@@ -1,0 +1,39 @@
+local mmpbx_codecfilter_ = {
+    objectType = {
+    name = "rpc.mmpbx.codecfilter.@.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+        encodingName = {
+            access = "readOnly",
+            type = "string",
+        },
+        supportedBitRate = {
+             access = "readOnly",
+             type = "unsignedInt",
+        },
+    }
+  }
+}
+
+local conn = mapper("ubus").connect()
+
+mmpbx_codecfilter_.entries = function()
+  local entries = {}
+  local result = conn:call("mmbrcm.codecdata", "get", {}) or {}
+  for k in pairs(result) do
+    entries[#entries + 1] = k
+  end
+  return entries
+end
+
+mmpbx_codecfilter_.get = function(mapping, param, key)
+  local data = conn:call("mmbrcm.codecdata", "get", {})
+  if data and data[key] then
+    return data[key][param] or ""
+  end
+  return ""
+end
+
+register(mmpbx_codecfilter_)

@@ -1,0 +1,133 @@
+-- Automatically generated from Device:2.9
+-- using generator version 2.1
+local Device_PPP_Interface_i_PPPoE_ = {
+  objectType = {
+    name = "Device.PPP.Interface.{i}.PPPoE.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = 1,
+    parameters = {
+      SessionID = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+      ACName = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      ServiceName = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+    }
+  }
+}
+
+local nwmodel = require "transformer.shared.models.device2.network"
+local model
+
+local uciHelper = mapper("ucihelper")
+local commitApply = commitapply
+local open, match = io.open, string.match
+local networkBinding = { config = "network" }
+local isConfigChanged = false
+
+Device_PPP_Interface_i_PPPoE_.entries = function(mapping, parentKey)
+  model = nwmodel.load()
+  local ppp = model:get("PPPInterface", parentKey)
+  if ppp and (ppp.proto == "pppoe") then
+    return {parentKey}
+  end
+  return {}
+end
+
+local function getUciParam(key, paramName, default)
+  networkBinding.sectionname = model:getUciKey(key)
+  networkBinding.option = paramName
+  networkBinding.default = default
+  if paramName then
+    return uciHelper.get_from_uci(networkBinding)
+  end
+  return uciHelper.getall_from_uci(networkBinding)
+end
+
+local pppoeParamMap = {
+  ACName = "ac",
+  ServiceName = "service",
+}
+
+local function getPPPoESessionID(key)
+  local device = model:getDevice(key)
+  local id
+  local fileDescriptor = open("/proc/net/pppoe","r")
+  if fileDescriptor then
+    for line in fileDescriptor:lines() do
+      local sid, devName = match(line,"(%x+)%s+%S+%s+(%S+)")
+      if sid and (devName == device) then
+        id = sid
+        break
+      end
+    end
+    fileDescriptor:close()
+  end
+  if id then
+    return tostring(tonumber(id, 16))
+  end
+  return "1"
+end
+
+Device_PPP_Interface_i_PPPoE_.get = function(mapping,param,key)
+  local value
+  if param == "SessionID" then
+    value = getPPPoESessionID(key)
+  elseif pppoeParamMap[param] then
+    value = getUciParam(key,pppoeParamMap[param],"")
+  end
+  return value
+end
+
+Device_PPP_Interface_i_PPPoE_.getall = function(mapping, key)
+  local pppoeUciValues = getUciParam(key)
+  local allValues = {
+    SessionID = getPPPoESessionID(key),
+    ACName = pppoeUciValues.ac or "",
+    ServiceName = pppoeUciValues.service or "",
+  }
+  return allValues
+end
+
+local function setUciParam(key, option, value)
+  networkBinding.sectionname = model:getUciKey(key)
+  networkBinding.option = option
+  uciHelper.set_on_uci(networkBinding, value, commitApply)
+  isConfigChanged = true
+end
+
+Device_PPP_Interface_i_PPPoE_.set = function(mapping, param, value, key)
+  if pppoeParamMap[param] then
+    setUciParam(key, pppoeParamMap[param], value)
+  end
+end
+
+Device_PPP_Interface_i_PPPoE_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(networkBinding)
+    isConfigChanged = false
+  end
+end
+
+Device_PPP_Interface_i_PPPoE_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(networkBinding)
+    isConfigChanged = false
+  end
+end
+
+register(Device_PPP_Interface_i_PPPoE_)

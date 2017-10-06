@@ -1,0 +1,13 @@
+local config_wol = "wol"
+
+-- uci.wol
+mapper("uci_1to1").registerConfigMap(config_wol)
+
+--uci.wol.config
+local wol_config = {
+  config = config_wol,
+  section = "config",
+  type = "wol",
+  options = { "enabled", "src_intf", "src_dport", "dest_intf", "dest_ip" },
+}
+mapper("uci_1to1").registerSimpleMap(wol_config)

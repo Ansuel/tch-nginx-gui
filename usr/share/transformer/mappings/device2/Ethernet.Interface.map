@@ -1,0 +1,267 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_Ethernet_Interface_i_ = {
+  objectType = {
+    name = "Device.Ethernet.Interface.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "InterfaceNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Up",
+          "Down",
+          "Unknown",
+          "Dormant",
+          "NotPresent",
+          "LowerLayerDown",
+          "Error",
+        },
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        max  = "64",
+      },
+      Name = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      LowerLayers = {
+        access = "readOnly",
+        list = true,
+        max = "1024",
+        type = "string",
+        pathRef = true,
+      },
+      Upstream = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      MACAddress = {
+        access = "readOnly",
+        type = "string",
+      },
+      MaxBitRate = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+          },
+        },
+      },
+      DuplexMode = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "Half",
+          "Full",
+          "Auto",
+        },
+      },
+      LastChange = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+--[[ TODO:
+      CurrentBitRate = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+--]]
+      EEEEnable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      EEECapability = {
+        access = "readOnly",
+        type = "boolean",
+      },
+    }
+  },
+  aliasDefault = "Name",
+}
+
+local nwCommon = mapper("nwcommon")
+local getIntfInfo = nwCommon.getIntfInfo
+local uciHelper = mapper("ucihelper")
+local getFromUci = uciHelper.get_from_uci
+local setOnUci = uciHelper.set_on_uci
+local ethernetBinding = {config = "ethernet", sectionname = "", option = "", default = ""}
+local commitApply = commitapply
+local lfs = require("lfs")
+local nwmodel = require "transformer.shared.models.device2.network"
+local EthInterface = nwmodel.register("EthInterface", Device_Ethernet_Interface_i_.objectType.name)
+
+local fileCheck = lfs.attributes("/etc/config/power", "mode") == "file"
+local model
+local transactions = {}
+
+local powerBinding = {config = "power", sectionname = "ethernet", option = "eee", default = "1"}
+local posix = require("tch.posix")
+local getClockTime = posix.clock_gettime
+local lastStateChangeTime = {}
+
+Device_Ethernet_Interface_i_.entries = function(mapping)
+  model = nwmodel.load()
+  return model:getKeys(EthInterface)
+end
+
+Device_Ethernet_Interface_i_.get = {
+  Enable = function(mapping, param, key)
+    ethernetBinding.sectionname = model:getUciKey(key)
+    ethernetBinding.option = "enable"
+    ethernetBinding.default = "1"
+    return getFromUci(ethernetBinding)
+  end,
+  Status = function(mapping, param, key)
+    local value = getIntfInfo(model:getUciKey(key), "carrier", "")
+    if value == "1" then
+      return "Up"
+    elseif value == "0" then
+      return "Down"
+    elseif value == "" then
+      return "NotPresent"
+    end
+    return "Unknown"
+  end,
+  Name = function(mapping, param, key)
+    return model:get(key).name
+  end,
+  Upstream = function(mapping, param, key)
+    ethernetBinding.sectionname = model:getUciKey(key)
+    ethernetBinding.option = "wan"
+    ethernetBinding.default = "0"
+    local value = getFromUci(ethernetBinding)
+    if value == "1" then
+      return "1"
+    end
+    return "0"
+  end,
+  LowerLayers = "",
+  MACAddress = function(mapping, param, key)
+    return getIntfInfo(model:getUciKey(key), "address", "")
+  end,
+  MaxBitRate = function(mapping, param, key)
+    ethernetBinding.sectionname = model:getUciKey(key)
+    ethernetBinding.option = "speed"
+    ethernetBinding.default = "auto"
+    local value = getFromUci(ethernetBinding)
+    if value == "auto" then
+      value = "-1"
+    end
+    return value
+  end,
+  DuplexMode = function(mapping, param, key)
+    ethernetBinding.sectionname = model:getUciKey(key)
+    ethernetBinding.option = "duplex"
+    ethernetBinding.default = "full"
+    local duplexValue = getFromUci(ethernetBinding)
+    ethernetBinding.option = "speed"
+    ethernetBinding.default = "auto"
+    local speedValue = getFromUci(ethernetBinding)
+    if speedValue == "auto" then
+      return "Auto"
+    elseif speedValue == "10" or speedValue == "100" then
+      if duplexValue == "half" then
+        return "Half"
+      elseif duplexValue == "full" then
+        return "Full"
+      end
+    end
+    return "Auto"
+  end,
+  LastChange = function(mapping, param, key)
+    return tostring(getClockTime(posix.CLOCK_MONOTONIC) - (lastStateChangeTime[model:getUciKey(key)] or 0))
+  end,
+  EEECapability = function(mapping, param, key)
+    return fileCheck and "1" or "0"
+  end,
+  EEEEnable = function(mapping, param, key)
+    return getFromUci(powerBinding)
+  end,
+}
+
+Device_Ethernet_Interface_i_.set = {
+  Enable = function(mapping, param, value, key)
+    ethernetBinding.sectionname = model:getUciKey(key)
+    ethernetBinding.option = "enable"
+    setOnUci(ethernetBinding,value,commitApply)
+    transactions[ethernetBinding.config] = true
+  end,
+  MaxBitRate = function(mapping, param, value, key)
+    ethernetBinding.sectionname = model:getUciKey(key)
+    ethernetBinding.option = "speed"
+    local maxBitRate = "auto"
+    if value == "10" or value == "100" then
+      maxBitRate = value
+    elseif value ~= "-1" then
+      return nil,"Invalid value"
+    end
+    setOnUci(ethernetBinding,maxBitRate,commitApply)
+    transactions[ethernetBinding.config] = true
+  end,
+  DuplexMode = function(mapping, param, value, key)
+    ethernetBinding.sectionname = model:getUciKey(key)
+    ethernetBinding.option = "speed"
+    local speedValue = getFromUci(ethernetBinding)
+    if speedValue ~= "auto" then
+      if value == "Half" then
+        value = "half"
+      elseif value == "Full" then
+        value = "full"
+      elseif value == "Auto" then
+        return nil,"Cannot set DuplexMode to Auto when MaxBitRate is not '-1'"
+      end
+    elseif value == "Auto" then -- Allow to set Auto if the value of speed is "auto" in uci.
+      return true -- Do nothing
+    else
+      return nil,"Cannot set DuplexMode when MaxBitRate is '-1'"
+    end
+    ethernetBinding.option = "duplex"
+    setOnUci(ethernetBinding,value,commitApply)
+    transactions[ethernetBinding.config] = true
+  end,
+  EEEEnable = function(mapping, param, value, key)
+    setOnUci(powerBinding, value, commitApply)
+    transactions[powerBinding.config] = true
+  end,
+}
+
+Device_Ethernet_Interface_i_.commit = function()
+  for config,_ in pairs(transactions) do
+    uciHelper.commit({config = config})
+  end
+  transactions = {}
+end
+
+Device_Ethernet_Interface_i_.revert = function()
+  for config,_ in pairs(transactions) do
+    uciHelper.revert({config = config})
+  end
+  transactions = {}
+end
+
+local function uciEventTriggered(mapping, action, config, sectionType, sectionName, option)
+  lastStateChangeTime[sectionName] = getClockTime(posix.CLOCK_MONOTONIC)
+end
+
+Device_Ethernet_Interface_i_.add_watchers = function(mapping, param, key)
+  local uciEventSource = eventsource("uci")
+  uciEventSource.watch(mapping, { set = uciEventTriggered }, "ethernet", "port", key, "enable")
+end
+
+register(Device_Ethernet_Interface_i_)

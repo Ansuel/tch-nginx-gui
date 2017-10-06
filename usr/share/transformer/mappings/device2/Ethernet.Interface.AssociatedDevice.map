@@ -1,0 +1,61 @@
+-- Manually generated.
+local Device_Ethernet_Interface_i_AssociatedDevice_i_ = {
+  objectType = {
+    name = "Device.Ethernet.Interface.{i}.AssociatedDevice.{i}.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = math.huge,
+    numEntriesParameter = "AssociatedDeviceNumberOfEntries",
+    parameters = {
+      MACAddress = {
+        access = "readOnly",
+        type = "string",
+      },
+      Active = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      AgingTime = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+    }
+  }
+}
+
+local uciHelper = mapper("ucihelper")
+local envBinding = { config = "env", sectionname = "var", option = "bgc_tv_mode_current" }
+local ubusConnection = mapper("ubus").connect()
+local hostDeviceData = { { macAddress = "", state = "", connectedTime = "" } }
+
+Device_Ethernet_Interface_i_AssociatedDevice_i_.entries = function(mapping, parentKey)
+  local associatedDeviceEntries = {}
+  if uciHelper.get_from_uci(envBinding) == "Bridged" then
+    local hostsData = ubusConnection:call("hostmanager.device", "get",  {}) or {}
+    for devName, devInfo in pairs(hostsData) do
+      if devInfo["l2interface"] == parentKey then
+        associatedDeviceEntries[#associatedDeviceEntries + 1] = devName
+        hostDeviceData[devName] = {
+          macAddress = devInfo["mac-address"],
+          state = devInfo["state"],
+          connectedTime = devInfo["connected_time"]
+        }
+      end
+    end
+  end
+  return associatedDeviceEntries
+end
+
+Device_Ethernet_Interface_i_AssociatedDevice_i_.get = {
+  MACAddress = function(mapping, param, key)
+    return hostDeviceData[key].macAddress or ""
+  end,
+  Active = function(mapping, param, key)
+    return (hostDeviceData[key].state == "connected") and "1" or "0"
+  end,
+  AgingTime = function(mapping, param, key)
+    return tostring(hostDeviceData[key].connectedTime or 0)
+  end,
+}
+
+register(Device_Ethernet_Interface_i_AssociatedDevice_i_)

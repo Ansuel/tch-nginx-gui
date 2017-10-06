@@ -1,0 +1,166 @@
+-- DESCRIPTION:
+--   provide rpc.network.firewall.portforward table from the uci data model
+--   firewall.userredirect
+--   This adds some fields to provide more control in the WebUI.
+--   It also zero's out the IP address so that it can be dynamically generated
+--   from the MAC address.
+--
+
+-- global functions used
+local mapper, register = mapper, register
+local string, table, pairs, tostring, error = string, table, pairs, tostring, error
+
+-- library helpers
+local fw_helper = require("transformer.shared.firewall_helper")
+local ubus_connect = mapper("ubus").connect()
+
+-- uci.firewall.userredirect.@
+local mapinfo_userredirect_uci = {
+    config = "firewall",
+    type = "userredirect",
+    options = { "enabled", "name", "family", "src", "dest", "src_dport", "dest_mac",
+                "dest_ip", "dest_port", "target", "tch_interface" },
+    lists = { "proto" }
+}
+
+local mapping_portforward_uci = mapper("uci_1to1").createNamedMultiMap(mapinfo_userredirect_uci)
+
+local mapping_portforward_rpc = {
+    uciMap = mapping_portforward_uci, -- so the underlying uci is available in callbacks
+    objectType = {
+        name = "rpc.network.firewall.portforward.{i}.",
+        access = mapping_portforward_uci.objectType.access,
+        minEntries = mapping_portforward_uci.objectType.minEntries,
+        maxEntries = mapping_portforward_uci.objectType.maxEntries,
+        parameters = mapping_portforward_uci.objectType.parameters,
+    }
+}
+
+mapping_portforward_rpc.get = function(mapping, param, key)
+    local result, errmsg = mapping.uciMap.get(mapping.uciMap, param, key)
+    if param == "dest_ip" and (result == "0.0.0.0" or result == "::") then
+        result = "unknown"
+    end
+    return result, errmsg
+end
+
+mapping_portforward_rpc.getall = function(mapping, key)
+    local result, errmsg = mapping.uciMap.getall(mapping.uciMap, key)
+    if type(result) == "table" and (result.dest_ip == "0.0.0.0" or result.dest_ip == "::") then
+        result.dest_ip = "unknown"
+    end
+    return result, errmsg
+end
+
+mapping_portforward_rpc.entries = function(mapping)
+    return mapping.uciMap.entries(mapping.uciMap)
+end
+
+mapping_portforward_rpc.add = function(mapping, name)
+    local err     -- possible error message
+
+    if (name == nil) then
+        local binding = {config = mapping.uciMap.binding["config"], sectionname = mapping.uciMap.binding["type"]}
+        name, err = fw_helper.generate_unused_section(binding)
+    end
+
+    return mapping.uciMap.add(mapping.uciMap, name)
+end
+
+mapping_portforward_rpc.set = function(mapping, param, value, key)
+    if value ~= "" then
+        if param == "dest_ip" then
+            local family -- family deduced from the IP value
+            local macAddr -- mac address of dest_ip value
+
+            if string.find(value, ":") then
+                family = "ipv6"
+            else
+                family = "ipv4"
+            end
+            mapping.uciMap.set(mapping.uciMap, "family", family, key)
+
+            macAddr = fw_helper.ip2mac(ubus_connect, family, value) or ""
+            mapping.uciMap.set(mapping.uciMap, "dest_mac", macAddr, key)
+
+            if macAddr ~= "" then
+                -- Don't write the IP address to /etc/config/firewall because
+                -- it changes. The address will be written to /var/state/firewall
+                -- which won't persist across a reboot.
+                -- (See redirecthelper for process that does this)
+                if (family == "ipv6") then
+                    value = "::"
+                else
+                    value = "0.0.0.0"
+                end
+            end
+        elseif param == "dest_mac" then
+            local family = string.lower(mapping.uciMap.get(mapping.uciMap, "family", key))
+            local ipAddr = mapping.uciMap.get(mapping.uciMap, "dest_ip", key)
+
+            if family == "ipv6" then
+                ipAddr = "::"
+            elseif family == "ipv4" then
+                ipAddr = "0.0.0.0"
+            elseif ipAddr ~= "" then
+                if string.find(ipAddr, ":") then
+                    family = "ipv6"
+                    ipAddr = "::"
+                else
+                    family = "ipv4"
+                    ipAddr = "0.0.0.0"
+                end
+            end
+
+            mapping.uciMap.set(mapping.uciMap, "family", family, key)
+            mapping.uciMap.set(mapping.uciMap, "dest_ip", ipAddr, key)
+        elseif param == "family" then
+            value = string.lower(value)
+            local macAddr = mapping.uciMap.get(mapping.uciMap, "dest_mac", key)
+            if macAddr ~= "" then
+                if value == "ipv6" then
+                    mapping.uciMap.set(mapping.uciMap, "dest_ip", "::", key)
+                elseif value == "ipv4" then
+                    mapping.uciMap.set(mapping.uciMap, "dest_ip", "0.0.0.0", key)
+                end
+            end
+        end
+    end
+    return mapping.uciMap.set(mapping.uciMap, param, value, key)
+end
+
+mapping_portforward_rpc.delete = function(mapping, key)
+
+    -- update /var/state/firewall
+    -- Notify redirecthelper that we deleted something.
+    ubus_connect:call("redirecthelper", "delete", { section=key })
+
+    return mapping.uciMap.delete(mapping.uciMap, key)
+end
+
+mapping_portforward_rpc.commit = function(mapping)
+    local result, errmsg -- standard return
+
+    result, errmsg = mapping.uciMap.commit(mapping.uciMap)
+
+    -- update /var/state/firewall
+    -- Notify redirecthelper that we modified something.
+    -- dynamic dest_ip might need changed
+    ubus_connect:call("redirecthelper", "update", {})
+
+    return result, errmsg
+end
+
+mapping_portforward_rpc.revert = function(mapping)
+    return mapping.uciMap.revert(mapping.uciMap)
+end
+
+register(mapping_portforward_rpc)
+
+if mapping_portforward_rpc.uciMap.submappings then
+    for _, submap in ipairs(mapping_portforward_rpc.uciMap.submappings) do
+        submap.objectType.name = mapping_portforward_rpc.objectType.name .. submap.binding.option .. ".@."
+        register(submap)
+    end
+end
+

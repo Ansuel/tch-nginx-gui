@@ -1,0 +1,72 @@
+local network_ = {
+  objectType = {
+    name = "rpc.network.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      -- to enable/disable ipv6 globally for all interfaces
+      ipv6_enable = {
+        access = "readWrite",
+        type = "boolean",
+      }
+    },
+  }
+}
+
+local networkBinding = { config = "network", state = false }
+local uciHelper = mapper("ucihelper")
+local configChanged
+
+local function getFromUci(intf, option, default)
+  networkBinding.sectionname = intf
+  networkBinding.option = option
+  networkBinding.default = default
+  return uciHelper.get_from_uci(networkBinding)
+end
+
+local function setOnUci(intf, option, value)
+  networkBinding.sectionname = intf
+  networkBinding.option = option
+  uciHelper.set_on_uci(networkBinding, value, commitapply)
+end
+
+-- Returns ipv6_enable as "1" only if network.wan.ipv6='1', network.lan.ipv6='1' & network.wan6.auto='1'
+local function getIPv6Value()
+  local value = "0"
+  local wanIPv6, lanIPv6, wan6Auto
+  wanIPv6 = getFromUci("wan", "ipv6", "1")
+  lanIPv6 = getFromUci("lan", "ipv6", "1")
+  wan6Auto = getFromUci("wan6", "auto", "1")
+  if wanIPv6 ~= "0" and lanIPv6 ~= "0" and wan6Auto ~= "0" then
+    value = "1"
+  end
+  return value
+end
+
+network_.get = getIPv6Value
+
+network_.set = {
+  ipv6_enable = function(mapping, param, value)
+    setOnUci("wan", "ipv6", value)
+    setOnUci("lan", "ipv6", value)
+    setOnUci("wan6", "auto", value)
+    configChanged = true
+  end
+}
+
+network_.commit = function()
+  if configChanged then
+    uciHelper.commit(networkBinding)
+  end
+  configChanged = false
+end
+
+network_.revert = function()
+  if configChanged then
+    uciHelper.revert(networkBinding)
+  end
+  configChanged = false
+end
+
+register(network_)

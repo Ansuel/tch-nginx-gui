@@ -1,0 +1,1 @@
+^InternetGatewayDevice%.WANDevice%.[^%.]+%.WANConnectionDevice%.[^%.]+%.WANPPPConnection%.[^%.]+%.Reset read line < /tmp/.ppp_intf ; ifup $line ; rm /tmp/.ppp_intf

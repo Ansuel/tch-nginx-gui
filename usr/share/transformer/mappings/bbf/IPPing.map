@@ -1,0 +1,327 @@
+-- Automatically generated from InternetGatewayDevice:1.14 and Device:2.10
+-- using generator version 2.3
+local Multi_IP_Diagnostics_IPPing_ = {
+  objectType = {
+    name = "#ROOT.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      DiagnosticsState = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        -- enumeration values are set before registering the mapping, see below
+        enumeration = {},
+      },
+      Interface = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        pathRef = true,
+      },
+      ProtocolVersion = {
+        access = "readOnly", -- readWrite not Supported
+        type = "string",
+        enumeration = {
+          "Any",
+          "IPv4",
+          "IPv6",
+        },
+      },
+      Host = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      NumberOfRepetitions = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+      Timeout = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+      DataBlockSize = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+            max = "65535",
+          },
+        },
+      },
+      DSCP = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "63",
+          },
+        },
+      },
+      IPAddressUsed = {
+        access = "readOnly",
+        type = "string",
+      },
+      SuccessCount = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      FailureCount = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      AverageResponseTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      MinimumResponseTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      MaximumResponseTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      AverageResponseTimeDetailed = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      MinimumResponseTimeDetailed = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      MaximumResponseTimeDetailed = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+    }
+  }
+}
+local mapper, pairs, ipairs = mapper, pairs, ipairs
+local resolve, tokey = resolve, tokey
+local uciHelper = mapper("ucihelper")
+local nwCommon = mapper('nwcommon')
+local splitKey = nwCommon.split_key
+local findLanWanInterfaces = nwCommon.findLanWanInterfaces
+local ipPingHelper = require('transformer.shared.ippinghelper')
+local wanConn = require("transformer.shared.wanconnection")
+local activedevice = require 'transformer.shared.models.igd.activedevice'
+
+-- Parameters that are applicable only for TR181: Device2
+local dev2OnlyParams = {
+  "ProtocolVersion",
+  "IPAddressUsed",
+  "AverageResponseTimeDetailed",
+  "MinimumResponseTimeDetailed",
+  "MaximumResponseTimeDetailed",
+}
+
+-- Mapping table that maps IPPing Parameters to UCI options
+local uciBindingParamMap = {
+  DiagnosticsState = "state",
+  Interface = "interface",
+  Host = "host",
+  NumberOfRepetitions = "count",
+  Timeout = "timeout",
+  DataBlockSize = "size",
+  DSCP = "dscp",
+}
+
+local function getSectionName(mapping)
+  if mapping.objectType.name:match("^InternetGatewayDevice.") then
+    return "igd"
+  else
+    return "device2"
+  end
+end
+
+local function getDetailedResponseTime(mapping, param)
+  local respTime = ipPingHelper.read_ping_results(mapping._section, param:gsub("Detailed",""))
+  return respTime and tostring(respTime * 1000) or "0"
+end
+
+local function getFromIPPingHelper(mapping, param)
+  return ipPingHelper.uci_ipping_get(mapping._section, param)
+end
+
+local function getIPAddrUsedFromIPPingHelper(mapping, param)
+    local ipaddr_used = ipPingHelper.uci_ipping_get(mapping._section, param)
+    local state = ipPingHelper.uci_ipping_get(mapping._section, "DiagnosticsState")
+    return state == "Complete" and ipaddr_used or ""
+end
+
+local function SetOnIPPingHelper(mapping, param, value)
+  -- As per specs, only writable value for DiagnosticsState parameter is "Requested"
+  if param == "DiagnosticsState" and value ~= "Requested" then
+    return nil, "Invalid value"
+  end
+  ipPingHelper.uci_ipping_set(mapping._section, param, value, commitapply)
+end
+
+-- the key is generally interface|devicename for non active interfaces
+-- in case of an active interface key is ACTIVE|interface
+-- this function is used to retrieve the key and protocol for the given wan interface connection
+local ucinw = {config="network"}
+local function get_connection_key(intf)
+  if not activedevice.isActiveInterface(intf) then
+    return wanConn.get_connection_key(intf)
+  else
+    local key = "ACTIVE|"..intf
+    ucinw.sectionname = intf
+    ucinw.option = "proto"
+    local proto = uciHelper.get_from_uci(ucinw)
+    return key, {proto=proto}
+  end
+end
+
+local function getIgdInterface(mapping, param)
+  local value = uciHelper.get_from_uci(mapping._uciBinding[param])
+  local path = ""
+  local lanInterfaces = findLanWanInterfaces(false)
+  local isLan = false
+  for _,j in pairs(lanInterfaces) do
+    if (value == j) then
+      isLan = true
+      break
+    end
+  end
+  if (isLan) then
+    path = resolve('InternetGatewayDevice.LANDevice.{i}.LANHostConfigManagement.IPInterface.{i}.', value)
+  else
+    local key, status = get_connection_key(value)
+    if key and status then
+      if status.proto == "pppoe" or status.proto == "pppoa" then
+        path = resolve("InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANPPPConnection.{i}.", key)
+      else
+        path = resolve("InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANIPConnection.{i}.", key)
+      end
+    end
+  end
+  value = path or ""
+  return value
+end
+
+local function getDev2Interface(mapping, param)
+  local value = getFromIPPingHelper(mapping, param)
+  return resolve("Device.IP.Interface.{i}.", value) or ""
+end
+
+local function setIgdInterface(mapping, param, value)
+  -- Interface is displayed in IGD/Device2 as path, but stored as UCI/UBUS interface in UCI, so convert it first
+  -- allow empty value
+  -- Convert path to key; this is always the UCI/UBUS interface name, like wan, lan, ...
+  local intf = ""
+  if value ~= "" then
+    value = tokey(value,
+      "InternetGatewayDevice.LANDevice.{i}.LANHostConfigManagement.IPInterface.{i}.",
+      "InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANIPConnection.{i}.",
+      "InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANPPPConnection.{i}.")
+    if value and value:match("|") then
+      -- Interface name is the first part of the WANDevice.WANConnectionDevice.WANIP/WANPPP key
+      value, intf = splitKey(value)
+    end
+    if not value then
+      return nil, "Invalid value"
+    end
+  end
+  if value == "ACTIVE" then
+    SetOnIPPingHelper(mapping, param, intf)
+  else
+    SetOnIPPingHelper(mapping, param, value)
+  end
+end
+
+local function setDev2Interface(mapping, param, value)
+  if value ~= "" then
+    value = tokey(value, "Device.IP.Interface.{i}.")
+    if not value then
+      return nil, "Invalid value"
+    end
+  end
+  SetOnIPPingHelper(mapping, param, value)
+end
+
+Multi_IP_Diagnostics_IPPing_.get = {
+  DiagnosticsState = getFromIPPingHelper,
+  Interface = function(mapping, param)
+    return mapping._getInterface(mapping,param)
+  end,
+  ProtocolVersion = "IPv4",
+  Host = getFromIPPingHelper,
+  NumberOfRepetitions =getFromIPPingHelper,
+  Timeout = getFromIPPingHelper,
+  DataBlockSize = getFromIPPingHelper,
+  DSCP = getFromIPPingHelper,
+  IPAddressUsed = getIPAddrUsedFromIPPingHelper,
+  SuccessCount = getFromIPPingHelper,
+  FailureCount = getFromIPPingHelper,
+  AverageResponseTime = getFromIPPingHelper,
+  MinimumResponseTime = getFromIPPingHelper,
+  MaximumResponseTime = getFromIPPingHelper,
+  AverageResponseTimeDetailed = getDetailedResponseTime,
+  MinimumResponseTimeDetailed = getDetailedResponseTime,
+  MaximumResponseTimeDetailed = getDetailedResponseTime,
+}
+
+Multi_IP_Diagnostics_IPPing_.set = {
+  DiagnosticsState = SetOnIPPingHelper,
+  Interface = function(mapping, param, value)
+    return mapping._setInterface(mapping, param, value)
+  end,
+  Host = SetOnIPPingHelper,
+  NumberOfRepetitions = SetOnIPPingHelper,
+  Timeout = SetOnIPPingHelper,
+  DataBlockSize = SetOnIPPingHelper,
+  DSCP = SetOnIPPingHelper,
+}
+
+Multi_IP_Diagnostics_IPPing_.commit = ipPingHelper.uci_ipping_commit
+Multi_IP_Diagnostics_IPPing_.revert = ipPingHelper.uci_ipping_revert
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_IP_Diagnostics_IPPing_, "#ROOT", {"Device.IP.Diagnostics.IPPing", "InternetGatewayDevice.IPPingDiagnostics"})
+for _, dupli in ipairs(duplicates) do
+  dupli._section = getSectionName(dupli)
+  dupli._uciBinding = {}
+  for param, opt in pairs(uciBindingParamMap) do
+    dupli._uciBinding[param] = { config = "ipping", sectionname = dupli._section, option = opt }
+  end
+  if dupli._section == 'igd' then
+    dupli.objectType.parameters.DiagnosticsState.enumeration = { "None", "Requested", "Complete", "Error_CannotResolveHostName", "Error_Internal", "Error_Other"}
+    for _,param in ipairs(dev2OnlyParams) do
+      dupli.objectType.parameters[param] = nil
+    end
+    dupli._getInterface = getIgdInterface
+    dupli._setInterface = setIgdInterface
+  else
+    dupli.objectType.parameters.DiagnosticsState.enumeration = { "None", "Requested", "Complete", "Error_CannotResolveHostName", "Error_NoRouteToHost", "Error_Internal", "Error_Other"}
+    dupli.objectType.parameters.Interface.targetParent = "Device.IP.Interface.{i}."
+    dupli._getInterface = getDev2Interface
+    dupli._setInterface = setDev2Interface
+  end
+  ipPingHelper.startup(dupli._section, dupli._uciBinding)
+  ipPingHelper.clear_ping_results(dupli._section)
+  register (dupli)
+end

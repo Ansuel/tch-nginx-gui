@@ -1,0 +1,55 @@
+-- Manually generated
+local Device_Services_X_TESSARES_MPTCP_PM_ = {
+  objectType = {
+    name = "Device.Services.X_TESSARES_MPTCP.PM.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      Mode = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "overflow",
+          "fullmesh",
+        },
+        default = "overflow",
+      },
+    }
+  }
+}
+
+local mproxyBinding = { config = "mproxy", sectionname = "pathmanager", option = "mode" }
+local uciHelper = mapper("ucihelper")
+local commitApply = commitapply
+local isConfigChanged = false
+
+Device_Services_X_TESSARES_MPTCP_PM_.get = {
+  Mode = function()
+    local mode = uciHelper.get_from_uci(mproxyBinding)
+    return mode ~= "" and mode or "overflow"
+  end,
+}
+
+Device_Services_X_TESSARES_MPTCP_PM_.set = {
+  Mode = function(mapping, param, value)
+    uciHelper.set_on_uci(mproxyBinding, value, commitApply)
+    isConfigChanged = true
+  end,
+}
+
+Device_Services_X_TESSARES_MPTCP_PM_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(mproxyBinding)
+    isConfigChanged = false
+  end
+end
+
+Device_Services_X_TESSARES_MPTCP_PM_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(mproxyBinding)
+    isConfigChanged = false
+  end
+end
+
+register(Device_Services_X_TESSARES_MPTCP_PM_)

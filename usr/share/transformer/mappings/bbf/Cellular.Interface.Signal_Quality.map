@@ -1,0 +1,81 @@
+local setmetatable = setmetatable
+local helper = require("mobiled.scripthelpers")
+
+local obj = {
+	objectType = {
+		name = '#ROOT',
+		access = 'readOnly',
+		minEntries = 1,
+		maxEntries = 1,
+		parameters = {
+			RSRQ = {
+				access = "readOnly",
+				type = "string"
+			},
+			RSSI = {
+				access = "readOnly",
+				type = "string"
+			},
+			RSRP = {
+				 access = "readOnly",
+				 type = "string"
+			},
+			ECIO = {
+				 access = "readOnly",
+				 type = "string"
+			},
+			SNR = {
+				 access = "readOnly",
+				 type = "string"
+			},
+			RSCP = {
+				 access = "readOnly",
+				 type = "string"
+			},
+			LTE_Bandwidth = {
+				access = "readOnly",
+				type = "string"
+			},
+			LTE_Band = {
+				access = "readOnly",
+				type = "string"
+			}
+		}
+	}
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+	return
+end
+
+local function getall(mapping, key)
+	local info = helper.getUbusData(conn, "mobiled.device", "get", { imei = key })
+	local dev_idx = tonumber(info.dev_idx) or 1
+
+	local result = {}
+	setmetatable(result, { __index = function() return "" end })
+	local data = helper.getUbusData(conn, "mobiled.radio", "signal_quality", { dev_idx = dev_idx })
+	result.RSRQ = data.rsrq
+	result.RSSI = data.rssi
+	result.RSRP = data.rsrp
+	result.ECIO = data.ecio
+	result.SNR = data.snr
+	result.RSCP = data.rscp
+	result.LTE_Bandwidth = data.lte_dl_bandwidth
+	result.LTE_Band = data.lte_band
+	return result
+end
+
+local function get(mapping, paramName, key)
+	return getall(mapping, key)[paramName]
+end
+
+obj.getall = getall
+obj.get = get
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(obj, "#ROOT", {"InternetGatewayDevice.X_000E50_Cellular.Interface.{i}.Signal_Quality.", "Device.Cellular.Interface.{i}.X_000E50_Signal_Quality."})
+for _, dupli in ipairs(duplicates) do
+	register(dupli)
+end

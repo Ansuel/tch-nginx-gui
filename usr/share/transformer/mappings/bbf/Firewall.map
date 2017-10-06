@@ -1,0 +1,304 @@
+local fwConfigMap = {
+  High          = {
+    ["level"]  = "high",
+    ["rules"]  = "highrules",
+    ["policies"] = {
+      ["forward"] = "DROP",
+      ["waninput"] = "DROP",
+      ["defaultoutgoing"] = "DROP",
+    },
+  },
+  Low           = {
+    ["level"] = "normal",
+    ["rules"]  = "normalrules",
+    ["policies"] = {
+      ["forward"] = "DROP",
+      ["waninput"] = "DROP",
+      ["defaultoutgoing"] = "ACCEPT",
+    },
+  },
+  X_000E50_User = {
+    ["level"] = "user",
+    ["rules"]  = "userrules",
+    ["policies"] = {
+      ["forward"] = "DROP",
+      ["waninput"] = "DROP",
+      ["defaultoutgoing"] = "ACCEPT",
+    },
+  },
+  Off = {
+    ["level"] = "lax",
+    ["rules"]  = "laxrules",
+    ["policies"] = {
+      ["forward"] = "ACCEPT",
+      ["waninput"] = "ACCEPT",
+      ["defaultoutgoing"] = "ACCEPT",
+    },
+  },
+  X_000E50_Lax = {
+    ["level"] = "lax",
+    ["rules"]  = "laxrules",
+    ["policies"] = {
+      ["forward"] = "ACCEPT",
+      ["waninput"] = "ACCEPT",
+      ["defaultoutgoing"] = "ACCEPT",
+    },
+  },
+}
+
+local configForDisabled = "Off"
+
+-- Automatically generated from InternetGatewayDevice:1.14 and Device:2.10
+-- using generator version 2.3
+local Multi_Firewall_ = {
+  objectType = {
+    name = "#ROOT.Firewall.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      Enable = {
+        access = "readOnly", -- Currently readWrite not supported
+        type = "boolean",
+      },
+      X_000E50_EnableIPv6 = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      Config = {
+        access = "readWrite",
+        type = "string",
+        -- enumeration values are set before registering the mapping, see below
+        enumeration = {},
+      },
+      Version = {
+        access = "readOnly",
+        type = "string",
+        max = "16",
+      },
+--[[ TODO
+      AdvancedLevel = {
+        access = "readWrite",
+        type = "string",
+        pathRef = true,
+        targetParent = "Device.Firewall.Level.{i}.",
+      },
+      Type = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Stateless",
+          "Stateful",
+        },
+      },
+      LastChange = {
+        access = "readOnly",
+        type = "dateTime",
+      },
+--]]
+      -- LevelNumberOfEntries
+      -- automatically created when Device.Firewall.Level.{i}. is loaded
+      -- ChainNumberOfEntries
+      -- automatically created when Device.Firewall.Chain.{i}. is loaded
+    }
+  }
+}
+
+local uciHelper = mapper("ucihelper")
+local fwZone = {config = "firewall", sectionname = "zone"}
+local getFromUci = uciHelper.get_from_uci
+local setOnUci = uciHelper.set_on_uci
+local commitApply = commitapply
+local isConfigChanged = false
+
+-- Frequently used bindings go here; do NOT manipulate them in the code
+local fwBinding = {config = "firewall"}
+local fwBinding_actual_level = {config = "firewall", sectionname = "fwconfig", option = "level"}
+local fwBinding_default_outgoing = {config = "firewall", sectionname = "defaultoutgoing", option = "target"}
+local fwBinding_admin_config = {config = "firewall", sectionname = "fwconfig", option = "acs_admin_config"}
+local fwBinding_default_ipv6_incoming = {config = "firewall", sectionname = "defaultipv6incoming", option = "enabled", default = "1"}
+local fwBinding_default_ipv6_outgoing = {config = "firewall", sectionname = "defaultipv6outgoing", option = "enabled", default = "1"}
+
+--- Set firewall.defaultoutgoing.target according to config
+local function setOutGoingPolicyTo(config)
+  if fwConfigMap[config] then
+    setOnUci(fwBinding_default_outgoing, fwConfigMap[config].policies.defaultoutgoing, commitApply)
+  end
+end
+
+--- Sets firewall.fwconfig.level according to specified config
+local function setFwConfigLevel(config)
+  if fwConfigMap[config] then
+    setOnUci(fwBinding_actual_level, fwConfigMap[config].level, commitApply)
+  end
+end
+
+--- Sets the forward and input policy for zone 'wan'
+local function setIncomingPolicyTo(config)
+  if fwConfigMap[config] then
+  -- set FORWARD and INPUT on wan zone to the policy
+    local fwBinding = {config = "firewall"}
+    uciHelper.foreach_on_uci(fwZone, function(s)
+      if s["name"] == "wan" then
+        fwBinding.sectionname = s[".name"]
+
+        fwBinding.option = "forward"
+        setOnUci(fwBinding, fwConfigMap[config].policies.forward , commitApply)
+
+        fwBinding.option = "input"
+        setOnUci(fwBinding, fwConfigMap[config].policies.waninput, commitApply)
+
+        return true
+      end
+    end)
+  end
+end
+
+--- Return whether firewall is `enabled` or not
+-- The firewall is reported as enabled if flag acs_admin_config is not set
+local function getIsEnabled()
+  return (getFromUci(fwBinding_admin_config) == "")
+end
+
+--- Activates the ruleset according to config,
+--  and deactivates all others
+local function activateRuleSet(config)
+  for k, v in pairs(fwConfigMap) do
+    local enable = 0
+    -- Only enable the specified config; all the rest will be explicitely disabled.
+    if k == config then
+      enable = 1
+    end
+    if v.rules then
+      setOnUci({config = "firewall", sectionname = v.rules, option = "enabled"}, enable, commitApply)
+    end
+  end
+end
+
+--- Returns the config that is currently active, according to the firewall level.
+--   Returns nil, errmsg when the level cannot be translated to one of the fwConfigMap values.
+local function getActiveConfig(mapping)
+  local level = getFromUci(fwBinding_actual_level)
+  if level ~= "" then
+    for k, v in pairs(fwConfigMap) do
+      if level == v.level then
+        if level == "lax" then
+          return mapping.objectType.name:match("^InternetGatewayDevice%.") and k or "X_000E50_Lax"
+        end
+        return k
+      end
+    end
+  end
+  return nil, "Invalid actual firewall level in UCI (" .. level .. ")"
+end
+
+--- The entry function to change firewall's UCI config
+--  If firewall is `Enabled`:
+--   * activates the rule set belonging to specified config
+--   * sets the outgoing policy
+--   * sets the incoming policy
+--   * sets fwconfig level
+--  Else updates the administrative config
+--   Returns nil, errmsg if specified config is not valid
+local function setConfig(config)
+  if fwConfigMap[config] then
+    if getIsEnabled() then
+      activateRuleSet(config)
+      setOutGoingPolicyTo(config)
+      setIncomingPolicyTo(config)
+      setFwConfigLevel(config)
+    else
+      setOnUci(fwBinding_admin_config, config, commitApply)
+    end
+    isConfigChanged = true
+    return true
+  end
+  return nil, "Invalid config"
+end
+
+Multi_Firewall_.get = {
+  Enable = "1",
+  X_000E50_EnableIPv6 = function()
+    local defIPv6Outgoing = getFromUci(fwBinding_default_ipv6_outgoing)
+    local defIPv6Incoming = getFromUci(fwBinding_default_ipv6_incoming)
+    if defIPv6Outgoing == "1" and defIPv6Incoming == "1" then
+      return "0"
+    end
+    return "1"
+  end,
+  Config = function(mapping)
+    if getIsEnabled() then
+      return getActiveConfig(mapping)
+    end
+    -- If `Disabled`, report the administrative configuration
+    return getFromUci(fwBinding_admin_config)
+  end,
+  Version = "",
+}
+
+Multi_Firewall_.set = {
+  X_000E50_EnableIPv6 = function (mapping, paramName, paramValue)
+    paramValue = paramValue == "1" and "0" or "1"
+    setOnUci(fwBinding_default_ipv6_outgoing, paramValue, commitApply)
+    setOnUci(fwBinding_default_ipv6_incoming, paramValue, commitApply)
+    isConfigChanged = true
+  end,
+  Config = function (mapping, paramName, paramValue)
+    return setConfig(paramValue)
+  end,
+}
+
+Multi_Firewall_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(fwBinding)
+    isConfigChanged = false
+  end
+end
+
+Multi_Firewall_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(fwBinding)
+    isConfigChanged = false
+  end
+end
+
+local function uciEventCb (mapping, action, config, sectiontype, sectionname, option)
+  return  { { key = "", paramName = "Config"} }
+end
+
+Multi_Firewall_.add_watchers = function(mapping)
+  local uciEvsrc = eventsource("uci")
+  uciEvsrc.watch(mapping, { set = uciEventCb }, "firewall", "rulesgroup", "highrules","enabled")
+  uciEvsrc.watch(mapping, { set = uciEventCb }, "firewall", "rulesgroup", "userrules","enabled")
+  uciEvsrc.watch(mapping, { set = uciEventCb }, "firewall", "rulesgroup", "normalrules","enabled")
+  uciEvsrc.watch(mapping, { set = uciEventCb }, "firewall", "rulesgroup", "laxrules","enabled")
+end
+
+--- From fwConfigMap, derive the enumeration values for .Config,
+-- according to the datamodel that is loaded
+local function enumerateConfigs(datamodel)
+  local cfgs = {}
+  if datamodel then
+    for name, cfg in pairs(fwConfigMap) do
+      if (datamodel:match("^Device%.") and name == "Off") or (datamodel:match("^InternetGatewayDevice%.") and name == "X_000E50_Lax") then
+        -- Device2 datamodel has no enumeration value Off for Config
+        -- InternetGatewayDevice datamodel has no enumeration value X_000E50_Lax for Config
+      elseif (cfg.level and cfg.rules and
+              cfg.policies and cfg.policies.forward and cfg.policies.waninput and cfg.policies.defaultoutgoing) then
+        cfgs[#cfgs + 1] = name
+      end
+    end
+  end
+  return cfgs
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_Firewall_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  if dupli.objectType.name:match("^InternetGatewayDevice%.") then
+    -- IGD datamodel has no Enable parameter
+    dupli.objectType.parameters.Enable = nil
+  end
+  dupli.objectType.parameters.Config.enumeration = enumerateConfigs(dupli.objectType.name)
+  register(dupli)
+end

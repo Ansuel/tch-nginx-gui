@@ -1,0 +1,269 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_WiFi_SSID_i_ = {
+  objectType = {
+    name = "Device.WiFi.SSID.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "SSIDNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Up",
+          "Down",
+          "Unknown",
+          "Dormant",
+          "NotPresent",
+          "LowerLayerDown",
+          "Error",
+        },
+        default = "Down",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        max  = "64",
+      },
+      Name = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      LastChange = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      LowerLayers = {
+        access = "readOnly", -- no write support implemented
+        list = true,
+        max = "1024",
+        type = "string",
+        pathRef = true,
+        default = "",
+      },
+      BSSID = {
+        access = "readOnly",
+        type = "string",
+      },
+      MACAddress = {
+        access = "readOnly",
+        type = "string",
+      },
+      SSID = {
+        access = "readWrite",
+        type = "string",
+        max = "32",
+      },
+    }
+  }
+}
+
+local nwmodel = require "transformer.shared.models.device2.network"
+local WiFiSSID = nwmodel.register("WiFiSSID", Device_WiFi_SSID_i_.objectType.name)
+local model
+
+local commitapply, mapper = commitapply, mapper
+local uci_helper = mapper("ucihelper")
+local conn = mapper("ubus").connect()
+local bandSteerHelper = require("transformer.shared.bandsteerhelper")
+local isBaseIface = bandSteerHelper.isBaseIface
+local isBandSteerEnabled = bandSteerHelper.isBandSteerEnabledByAp
+local getBandSteerPeerIface = bandSteerHelper.getBandSteerPeerIface
+local setBandSteerPeerIfaceSSIDValue = bandSteerHelper.setBandSteerPeerIfaceSSIDValue
+
+local uciParamMap = {
+  SSID = "ssid",
+  Enable = "state",
+}
+
+local function entriesRadioSSID(mapping)
+  model = nwmodel.load()
+  return model:getKeys(WiFiSSID)
+end
+
+local function getDataForRadioSSID(ssidkey)
+  local data = conn:call("wireless.ssid", "get",  { name = ssidkey })
+  return data and data[ssidkey] or {}
+end
+
+local apbinding = {config='wireless', sectionname='wifi-ap'}
+local function getAPForIface(key)
+  local ap
+  local iface = model:getUciKey(key)
+  uci_helper.foreach_on_uci(apbinding, function(s)
+    if s.iface == iface then
+      ap = s['.name']
+      return false
+    end
+  end)
+  return ap
+end
+
+local get_wireless
+local set_wireless
+do
+  -- hide this binding from the rest of the code to make sure
+  -- it is not misused. We do not want unwanted default values
+  -- that cause unpredictable behaviour.
+  local binding = { config="wireless" }
+  get_wireless = function(sectionname, option, default)
+    binding.sectionname = sectionname
+    binding.option = option
+    binding.default = default
+    return uci_helper.get_from_uci(binding)
+  end
+
+  set_wireless = function(sectionname, option, value)
+    binding.sectionname = sectionname
+    binding.option = option
+    return uci_helper.set_on_uci(binding, value, commitapply)
+  end
+end
+
+local posix = require("tch.posix")
+local getClockTime = posix.clock_gettime
+local lastStateChangeTime = {}
+
+local configUpdated
+
+local setRadioSSID = function(mapping, param, value, key)
+  local ap = getAPForIface(key)
+  if not uciParamMap[param] then
+    return
+  end
+  if "SSID" == param then
+    if ap then
+      if isBandSteerEnabled(ap) then
+        if isBaseIface(key) then --if the band steer enabled, reset 2.4G should reset 5G also
+          local peerIface, errmsg = getBandSteerPeerIface(key)
+          if not peerIface then
+            return nil, errmsg
+          else
+            setBandSteerPeerIfaceSSIDValue(peerIface, value)
+          end
+        else
+          return nil, "Can not modify the value when band steer enabled."
+        end
+      end
+    end
+  end
+  -- Few customers use AccessPoint to Enable/Disable SSID via GUI, but the same will not be reflected
+  -- correctly in mapping because SSID and AccessPoint has different UCI config on Homeware Platform.
+  -- Inorder to keep GUI & Datamodel inline, Accesspoint and SSID had been toggled to Enable/Disable WiFi SSID
+  if param == "Enable" then
+    set_wireless(model:getUciKey(ap), uciParamMap[param], value)
+  end
+  set_wireless(model:getUciKey(key), uciParamMap[param], value)
+  configUpdated = true
+end
+
+local function getFromUci(key, param, default)
+  return get_wireless(model:getUciKey(key), uciParamMap[param], default)
+end
+
+local getRadioSSID = {
+  Enable = function(mapping, param, key)
+    local ap = getAPForIface(key)
+    if getFromUci(ap, param, "0") == "1" then
+      return getFromUci(key, param, "0")
+    end
+    return "0"
+  end,
+
+  Name = function(mapping, param, key)
+    return model:getName(key)
+  end,
+
+  LastChange = function(mapping, param, key)
+    local ssid = model:getUciKey(key)
+    return tostring(getClockTime(posix.CLOCK_MONOTONIC) - (lastStateChangeTime[ssid] or 0))
+  end,
+
+  LowerLayers = function(mapping, param, key)
+    return model:getLowerLayersResolved(key, resolve)
+  end,
+
+  SSID = function(mapping, param, key)
+    local ssid = getFromUci(key, param)
+    if ssid=="" then
+      -- for remotely managed devices, the ssid is not in uci
+      -- (unless between set and apply)
+      ssid = getDataForRadioSSID(key).ssid or ""
+    end
+    return ssid
+  end,
+
+  MACAddress = function(mapping, param, key)
+    return getDataForRadioSSID(key).mac_address or ""
+  end,
+
+  BSSID = function(mapping, param, key)
+    return getDataForRadioSSID(key).bssid or ""
+  end,
+
+  Status = function(mapping, param, key)
+    local ssid_values = getDataForRadioSSID(key)
+    if ssid_values.oper_state == 1 then
+      return "Up"
+    elseif ssid_values.oper_state == 0 then
+      return "Down"
+    else
+      return "NotPresent"
+    end
+  end,
+}
+
+Device_WiFi_SSID_i_.entries = entriesRadioSSID
+Device_WiFi_SSID_i_.get = getRadioSSID
+Device_WiFi_SSID_i_.set = setRadioSSID
+
+local endTransaction
+do
+  local binding = {config="wireless"}
+  endTransaction = function(mode)
+    if configUpdated then
+      mode(binding)
+      configUpdated = false
+    end
+  end
+end
+
+Device_WiFi_SSID_i_.commit = function()
+  endTransaction(uci_helper.commit)
+end
+Device_WiFi_SSID_i_.revert = function()
+  endTransaction(uci_helper.revert)
+end
+
+local eventParam = {
+  state = "Enable",
+  ssid = "SSID"
+}
+local function setUciEvent(mapping, action, config, sectionType, sectionName, option)
+  local param = eventParam[option]
+  if option == "state" then
+    lastStateChangeTime[sectionName] = getClockTime(posix.CLOCK_MONOTONIC)
+  end
+  if param then
+    return { {key=sectionName, paramname=param} }
+  end
+end
+
+Device_WiFi_SSID_i_.add_watchers = function(mapping, param, key)
+  local uciEventSource = eventsource("uci")
+  uciEventSource.watch(mapping, { set = setUciEvent }, "wireless", "wifi-iface")
+end
+
+register(Device_WiFi_SSID_i_)

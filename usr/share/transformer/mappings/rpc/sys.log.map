@@ -1,0 +1,33 @@
+local popen = io.popen
+local string = string
+local register = register
+
+local sys_log_ = {
+    objectType = {
+        name = "sys.log.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            devicelog = {
+                access = "readOnly",
+                type = "string"
+            },
+        },
+    }
+}
+
+local DeviceLog = function()
+    local log = popen("/sbin/logread")
+    if log == nil then
+        return ""
+    end
+    local logString = log:read("*a")
+    if logString == nil then
+        return ""
+    end
+    return string.sub(logString, -32768)
+end
+
+sys_log_.get = DeviceLog
+register(sys_log_)

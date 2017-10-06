@@ -1,0 +1,68 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_Routing_ = {
+  objectType = {
+    name = "Device.Routing.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      -- RouterNumberOfEntries
+      -- automatically created when Device.Routing.Router.{i}. is loaded
+    }
+  }
+}
+
+register(Device_Routing_)
+
+local Device_Routing_Router_i_ = {
+  objectType = {
+    name = "Device.Routing.Router.{i}.",
+    access = "readOnly", -- add/delete operation not supported
+    numEntriesParameter = "RouterNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readOnly", -- Routing should be always enabled So write operation is not supported
+        type = "boolean",
+        default = "false",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Disabled",
+          "Enabled",
+          "Error",
+        },
+        default = "Disabled",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      -- IPv4ForwardingNumberOfEntries
+      -- automatically created when Device.Routing.Router.{i}.IPv4Forwarding.{i}. is loaded
+      -- IPv6ForwardingNumberOfEntries
+      -- automatically created when Device.Routing.Router.{i}.IPv6Forwarding.{i}. is loaded
+    }
+  }
+}
+
+local routingHelper = require('transformer.shared.secrouting_helper')
+
+Device_Routing_Router_i_.entries = function()
+  local RouterEntries = routingHelper.getRoutingTables()
+  return RouterEntries
+end
+
+Device_Routing_Router_i_.get = {
+  Enable = "1",
+  Status = "Enabled",
+}
+
+register(Device_Routing_Router_i_)

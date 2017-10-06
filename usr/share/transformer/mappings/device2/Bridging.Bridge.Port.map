@@ -1,0 +1,321 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_Bridging_Bridge_i_Port_i_ = {
+  objectType = {
+    name = "Device.Bridging.Bridge.{i}.Port.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "PortNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readOnly", --Since these bridge members are retrieved from the ubus daemon, cannot handle the set operation at the lower layer.
+        type = "boolean",
+        default = "false",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Up",
+          "Down",
+          "Unknown",
+          "Dormant",
+          "NotPresent",
+          "LowerLayerDown",
+          "Error",
+        },
+        default = "Down",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        max = "64",
+      },
+      Name = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+--[[ TODO
+      LastChange = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+--]]
+      LowerLayers = {
+        access = "readOnly",
+        list = true,
+        max = "1024",
+        type = "string",
+        pathRef = true,
+        default = "",
+      },
+      ManagementPort = {
+        access = "readOnly",
+        type = "boolean",
+        default = "false",
+      },
+--[[ TODO
+      Type = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "ProviderNetworkPort",
+          "CustomerNetworkPort",
+          "CustomerEdgePort",
+          "CustomerVLANPort",
+          "VLANUnawarePort",
+        },
+      },
+      DefaultUserPriority = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "7",
+          },
+        },
+      },
+      PriorityRegeneration = {
+        access = "readWrite",
+        list = true,
+        maxItems = "8",
+        minItems = "8",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "7",
+          },
+        },
+        default = "0,1,2,3,4,5,6,7",
+      },
+--]]
+      PortState = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Disabled",
+          "Blocking",
+          "Listening",
+          "Learning",
+          "Forwarding",
+          "Broken",
+        },
+        default = "Disabled",
+      },
+      PVID = {
+        access = "readOnly", --Since changing of vlan on one port is affecting the traffic from the other ports in bridge, cannot implement set.
+        type = "int",
+        range = {
+          {
+            min = "1",
+            max = "4094",
+          },
+        },
+        default = "1",
+      },
+--[[ TODO
+      TPID = {
+        access = "readWrite",
+        type = "unsignedInt",
+        default = "33024",
+      },
+--]]
+      AcceptableFrameTypes = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "AdmitAll",
+          "AdmitOnlyVLANTagged",
+          "AdmitOnlyPrioUntagged",
+        },
+        default = "AdmitAll",
+      },
+--[[ TODO
+      IngressFiltering = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      ServiceAccessPrioritySelection = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      ServiceAccessPriorityTranslation = {
+        access = "readWrite",
+        list = true,
+        maxItems = "8",
+        minItems = "8",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "7",
+          },
+        },
+        default = "0,1,2,3,4,5,6,7",
+      },
+      PriorityTagging = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+--]]
+    }
+  },
+  aliasDefault = "Name",
+}
+
+local nwmodel = require "transformer.shared.models.device2.network"
+local BridgePort = nwmodel.register("BridgePort", Device_Bridging_Bridge_i_Port_i_.objectType.name)
+local model
+
+local nwCommon = mapper("nwcommon")
+local getIntfInfo = nwCommon.getIntfInfo
+
+-- map for /sys/class/net/<iface>/operstate
+local statusMap = {
+  ["unknown"] = "Unknown",
+  ["notpresent"] = "NotPresent",
+  ["down"] = "Down",
+  ["dormant"] = "Dormant",
+  ["lowerlayerdown"] = "LowerLayerDown",
+  ["up"] = "Up"
+}
+
+-- map for /sys/class/net/<iface>/brport/state
+local portStateMap = {
+  ["0"] = "Disabled",
+  ["1"] = "Listening",
+  ["2"] = "Learning",
+  ["3"] = "Forwarding",
+  ["4"] = "Blocking",
+}
+
+Device_Bridging_Bridge_i_Port_i_.entries = function(mapping, parentkey)
+  model = nwmodel.load()
+  return model:getKeys(BridgePort, parentkey)
+end
+
+local function getPortEnable(mapping, param, key)
+  local port = model:get(key).device
+  if port then
+    local carrier = getIntfInfo(port,"carrier", "")
+    local state = getIntfInfo(port,"operstate", "")
+    if carrier == '1' and state == "up" then
+      return '1'
+    end
+  end
+  return '0'
+end
+
+local function getPortStatus(mapping, param, key)
+  local status
+  local port = model:get(key).device
+  if port then
+    status = statusMap[getIntfInfo(port,"operstate")]
+  else
+    status = "NotPresent"
+  end
+  return status or "Unknown"
+end
+
+local function getPortName(mapping, param, key)
+  return model:get(key).device or model:getName(key)
+end
+
+local function getManagementPort(mapping, param, key)
+  return model:get(key).management and "1" or "0"
+end
+
+local function getLowerLayers(mapping, param, key)
+  return model:getLowerLayersResolved(key, resolve)
+end
+
+local function getPortVid(mapping, param, key)
+  local PVID = "1"
+--[[ this is nonsense
+  local interface,port = splitKey(key)
+  if interface == port then -- checking whether it is management(bridge-lan) port or not (i.e br-lan == br-lan)
+    return PVID
+  else
+    vlanDeviceBinding.sectionname = "device"
+    forEachOnUci(vlanDeviceBinding, function(s)
+      if s.ifname == port then
+        PVID = s.vid
+        return false
+      end
+    end)
+  end
+]]
+  return PVID
+end
+
+local function getAcceptableFrameTypes(mapping, param, key)
+--[[
+  local vid = getPortVid(mapping, param, key)
+  if vid ~= '1' then
+    return "AdmitOnlyVLANTagged"
+  end
+]]
+  return "AdmitAll"
+end
+
+local function getPortState(mapping, param, key)
+  local port = model:get(key)
+
+  if port.device then
+    if port.management then -- checking whether it is management (bridge-lan) port or not (i.e br-lan == br-lan )
+      if getIntfInfo(port.device,"operstate", "") == "up" then
+        return "Forwarding"
+      end
+    else
+      local path = "/sys/class/net/"..port.device.."/brport/state"
+      local fileHandle = io.open(path)
+      if not fileHandle then
+        return "Disabled"
+      end
+      local state = fileHandle:read("*l")
+      fileHandle:close()
+      return portStateMap[state]
+    end
+  end
+  return "Disabled"
+end
+
+Device_Bridging_Bridge_i_Port_i_.get = {
+  Enable = getPortEnable,
+  Status = getPortStatus,
+  Name = getPortName,
+  ManagementPort = getManagementPort,
+  LowerLayers = getLowerLayers,
+  PVID = getPortVid,
+  AcceptableFrameTypes = getAcceptableFrameTypes,
+  PortState = getPortState
+}
+
+Device_Bridging_Bridge_i_Port_i_.__getall = function(mapping, key)
+  local port = model:get(key)
+  local allValues = {
+    Enable = getPortEnable(mapping, nil, key),
+    Status = getPortStatus(mapping, nil, key),
+    Name = port.device or model:getName(key),
+    ManagementPort = port.management and "1" or "0",
+    LowerLayers = getLowerLayers(mapping, nil, key),
+    PVID = getPortVid(mapping, nil, key),
+    AcceptableFrameTypes = getAcceptableFrameTypes(mapping, nil, key),
+    PortState = getPortState(mapping, nil, key),
+  }
+  return allValues
+end
+
+register(Device_Bridging_Bridge_i_Port_i_)
+

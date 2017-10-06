@@ -1,0 +1,82 @@
+local tinsert, format = table.insert, string.format
+local logger = require("transformer.logger")
+local log = logger.new("mmpbx.device", 2)
+local conn = mapper("ubus").connect()
+
+local function nilToEmptyString(st)
+    if st == nil then
+        return ""
+    else
+        return tostring(st)
+    end
+end
+
+local mmpbx_device = {
+    objectType = {
+    name = "rpc.mmpbx.device.@.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = math.huge,
+    parameters = {
+        hookstate = {
+            access = "readOnly",
+            type = "string",
+        },
+        deviceUsable = {
+            access = "readOnly",
+            type = "string",
+        },
+        profileUsable = {
+            access = "readOnly",
+            type = "string",
+        },
+    }
+  }
+}
+
+local function entriesProfile ()
+    local devices, entries = {}, {}
+    devices = conn:call("mmpbx.device", "get", {} )
+    if devices then
+        for name, _ in pairs (devices) do
+            entries[#entries+1] = name
+        end
+    end
+    return entries
+end
+
+local function get (mapping, paramname, key)
+    local content = {}
+    if (paramname  == "hookstate") then
+        content = conn:call("mmpbxbrcmfxs.state", "get", { device = key } )
+    else
+        content = conn:call("mmpbx.device", "get", { device = key } )
+    end
+    if content and content[key] then
+      return paramname  == "hookstate" and nilToEmptyString(content[key]["hookState"]) or nilToEmptyString(content[key][paramname])
+    end
+    return ""
+end
+
+local function getAllProfiles (mapping, key)
+    local data = {}
+    local instance = conn:call("mmpbx.device", "get", { device = key } )
+    local hookstate_data = conn:call("mmpbxbrcmfxs.state", "get", { device = key } )
+    data["hookstate"] = hookstate_data and hookstate_data[key] and hookstate_data[key]["hookState"] or ""
+    if instance then
+        for _, v in pairs (instance) do
+            if (type(v) == "table") then
+                for param, value in pairs (v) do
+                    data[param] = nilToEmptyString(value)
+                end
+            end
+        end
+    end
+    return data
+end
+
+mmpbx_device.entries = entriesProfile
+mmpbx_device.getall = getAllProfiles
+mmpbx_device.get = get
+
+register(mmpbx_device)

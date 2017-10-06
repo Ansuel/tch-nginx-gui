@@ -1,0 +1,136 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_NeighborDiscovery_InterfaceSetting_i_ = {
+  objectType = {
+    name = "Device.NeighborDiscovery.InterfaceSetting.{i}.",
+    access = "readOnly", -- readWrite not Supported
+    numEntriesParameter = "InterfaceSettingNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Disabled",
+          "Enabled",
+          "Error_Misconfigured",
+          "Error",
+        },
+        default = "Disabled",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      Interface = {
+        access = "readOnly", -- readWrite not Supported
+        type = "string",
+        pathRef = true,
+        targetParent = "Device.IP.Interface.{i}.",
+        default = "",
+      },
+--[[ TODO:
+      RetransTimer = {
+        access = "readWrite",
+        type = "unsignedInt",
+        default = "1000",
+      },
+      RtrSolicitationInterval = {
+        access = "readWrite",
+        type = "unsignedInt",
+        default = "4",
+      },
+      MaxRtrSolicitations = {
+        access = "readWrite",
+        type = "unsignedInt",
+        default = "3",
+      },
+      NUDEnable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      RSEnable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+--]]
+    }
+  }
+}
+
+local mapper = mapper
+local uciHelper = mapper("ucihelper")
+local nwCommon = mapper("nwcommon")
+local setOnUci = uciHelper.set_on_uci
+local commitApply = commitapply
+local resolve = resolve
+local isConfigChanged = false
+local dhcpBinding = {config = "dhcp"}
+
+Device_NeighborDiscovery_InterfaceSetting_i_.entries = function(mapping)
+  local interfaces = {}
+  local lan = nwCommon.findLanWanInterfaces(false)
+  dhcpBinding.sectionname = "dhcp"
+  uciHelper.foreach_on_uci(dhcpBinding, function(s)
+    for _,v in pairs(lan) do
+      if s.interface == v then
+        interfaces[#interfaces + 1] = s['.name']
+        break
+      end
+    end
+  end)
+  return interfaces
+end
+
+Device_NeighborDiscovery_InterfaceSetting_i_.get = function(mapping, param, key)
+  dhcpBinding.sectionname = key
+  dhcpBinding.option = "ndp"
+  local value = uciHelper.get_from_uci(dhcpBinding)
+  if param == "Enable" then
+    return value ~= "" and value ~= "disabled" and "1" or "0"
+  elseif param == "Status" then
+    return value ~= "" and value ~= "disabled" and "Enabled" or "Disabled"
+  elseif param == "Interface" then
+    return resolve("Device.IP.Interface.{i}.", key) or ""
+  end
+end
+
+-- A getall implementation is not done as it will not bring any improvement
+
+Device_NeighborDiscovery_InterfaceSetting_i_.set = {
+  Enable = function(mapping, param, value, key)
+    dhcpBinding.sectionname = key
+    dhcpBinding.option = "ndp"
+    if value == "0" then
+      setOnUci(dhcpBinding, "disabled", commitApply)
+    else
+      setOnUci(dhcpBinding, "relay", commitApply)
+    end
+    isConfigChanged = true
+  end
+}
+
+Device_NeighborDiscovery_InterfaceSetting_i_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(dhcpBinding)
+    isConfigChanged = false
+  end
+end
+
+Device_NeighborDiscovery_InterfaceSetting_i_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(dhcpBinding)
+    isConfigChanged = false
+  end
+end
+
+register(Device_NeighborDiscovery_InterfaceSetting_i_)

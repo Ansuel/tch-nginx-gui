@@ -1,0 +1,35 @@
+local mobiled_ = {
+    objectType = {
+        name = 'rpc.mobiled.',
+        access = 'readOnly',
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            enabled = {
+                access = "readWrite",
+                type = "boolean"
+            },
+        }
+    },
+}
+
+local uciHelper = mapper("ucihelper")
+local mobiledBinding = { config="mobiled", sectionname="globals", option="enabled" }
+mobiled_.get = function()
+  local enabled =  uciHelper.get_from_uci(mobiledBinding)
+  return enabled ~= "" and enabled or "1"
+end
+
+mobiled_.set = function( mapping, param, value )
+  uciHelper.set_on_uci(mobiledBinding, value, commitapply)
+  commitapply:newset("rpc.mobiled.enabled") -- to restart the mobiled daemon
+end
+
+mobiled_.commit = function()
+    uciHelper.commit({config = "mobiled"})
+end
+mobiled_.revert = function()
+    uciHelper.revert({config = "mobiled"})
+end
+
+register(mobiled_)

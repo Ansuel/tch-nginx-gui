@@ -1,0 +1,304 @@
+local InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_X_000E50_RadiusServer_i_ = {
+  objectType = {
+    name = "InternetGatewayDevice.LANDevice.{i}.WLANConfiguration.{i}.X_000E50_RadiusServer.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "X_000E50_RadiusServerNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      AuthenticationState = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      AccountingState = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      AuthenticationIP = {
+        access = "readWrite",
+        type = "string",
+        max = "64",
+      },
+      AccountingIP = {
+        access = "readWrite",
+        type = "string",
+        max = "64",
+      },
+      AuthenticationPort = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "65535",
+          },
+        },
+      },
+      AccountingPort = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "65535",
+          },
+        },
+      },
+      AuthenticationKey = {
+        access = "readWrite",
+        type = "string",
+        max = "64",
+      },
+      AccountingKey = {
+        access = "readWrite",
+        type = "string",
+        max = "64",
+      },
+      AuthenticationFQDN = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      AccountingFQDN = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      AccountingDHCP = {
+        access = "readWrite",
+        type = "boolean",
+      },
+    }
+  }
+}
+
+--local logger = require("transformer.logger")
+--local log = logger.new("wifi-radius-debug",6)
+
+local uci_helper = mapper("ucihelper")
+local table, tostring, tonumber, error, open, execute, popen = table, tostring, tonumber, error, io.open, os.execute, io.popen
+local ipairs, pairs = ipairs, pairs
+local print = print
+
+local binding = {config = "wireless"}
+
+local function getAPForIface(parentkey)
+    local iface = string.gsub(parentkey, "_remote", "")
+    local ap
+    -- iterate over the access points and take the first one that has the corresponding interface as its iface.
+    -- assumes there is only one of those
+    local binding = {config="wireless",sectionname="wifi-ap"}
+    uci_helper.foreach_on_uci(binding, function(s)
+    if(s["iface"] == iface) then
+            ap = s[".name"]
+            return false
+        end
+    end)
+    if ap == nil then
+        error("Cannot retrieve AP for iface " .. iface)
+        return
+    end
+    return ap
+end
+
+local function getAcctkey(Authkey)
+  if Authkey then
+      local ap, type, num = string.match(Authkey, "(ap%d+)(.*)(%d+)")
+      local acctkey = ap.."_acct"..num
+      return acctkey
+  else
+      return
+  end
+end
+
+local function isValidIPAddress(value)
+  if string.match(value, "^[0-2]?%d%d?%.[0-2]?%d%d?%.[0-2]?%d%d?%.[0-2]?%d%d?$") ~= nil then
+      local dummy1, dummy2, v1, v2, v3, v4 = string.find(value, "^([0-2]?%d%d?)%.([0-2]?%d%d?)%.([0-2]?%d%d?)%.([0-2]?%d%d?)$")
+          if tonumber(v1) < 256 and tonumber(v2) < 256 and tonumber(v3) < 256 and tonumber(v4) < 256 then
+                return true
+          end
+  end
+  return false
+end
+
+local InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_X_000E50_RadiusServer_i_entries = function(mapping, parentkey)
+    --log:debug("in entryparentkey:"..parentkey)
+    local entries = {}
+    local ap = getAPForIface(parentkey)
+    local binding = {config="wireless",sectionname="wifi-radius-server"}
+    uci_helper.foreach_on_uci(binding, function(s)
+        if string.find(s[".name"], ap.."_auth") then
+          entries[#entries+1]=s[".name"]
+        end
+    end)
+    return entries
+end
+
+
+
+local function InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_X_000E50_RadiusServer_i_getall(mapping, key)
+
+    local Auth_cfg = uci_helper.getall_from_uci({
+        config = "wireless", sectionname = key
+    })
+    local Acct_cfg = uci_helper.getall_from_uci({
+        config = "wireless", sectionname = getAcctkey(key)
+    })
+
+    return {
+        AuthenticationState = Auth_cfg["state"] or "0",
+        AuthenticationIP = Auth_cfg["ip"] or "",
+        AuthenticationPort = Auth_cfg["port"] or "",
+        AuthenticationKey = Auth_cfg["secret"] or "",
+        AuthenticationFQDN = Auth_cfg["fdqn"] or "",
+        AccountingState = Acct_cfg["state"] or "0",
+        AccountingIP = Acct_cfg["ip"] or "",
+        AccountingPort = Acct_cfg["port"] or "",
+        AccountingKey = Acct_cfg["secret"] or "",
+        AccountingFQDN = Acct_cfg["fdqn"] or "",
+        AccountingDHCP = Acct_cfg["dhcp_acct"] or "",
+    }
+
+end
+
+
+local InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_X_000E50_RadiusServer_i_get = {
+    AuthenticationState  = function(mapping, param, childkey)
+        binding.sectionname = childkey
+        binding.option = "state"
+        return uci_helper.get_from_uci(binding)
+    end,
+    AccountingState  = function(mapping, param, childkey)
+        binding.sectionname = getAcctkey(childkey)
+        binding.option = "state"
+        return uci_helper.get_from_uci(binding)
+    end,
+    AuthenticationIP  = function(mapping, param, childkey)
+        binding.sectionname = childkey
+        binding.option = "ip"
+        return uci_helper.get_from_uci(binding)
+    end,
+    AccountingIP  = function(mapping, param, childkey)
+        binding.sectionname = getAcctkey(childkey)
+        binding.option = "ip"
+        return uci_helper.get_from_uci(binding)
+    end,
+    AuthenticationPort  = function(mapping, param, childkey)
+        binding.sectionname = childkey
+        binding.option = "port"
+        return uci_helper.get_from_uci(binding)
+    end,
+    AccountingPort  = function(mapping, param, childkey)
+        binding.sectionname = getAcctkey(childkey)
+        binding.option = "port"
+        return uci_helper.get_from_uci(binding)
+    end,
+    AuthenticationKey  = function(mapping, param, childkey)
+        binding.sectionname = childkey
+        binding.option = "secret"
+        return uci_helper.get_from_uci(binding)
+    end,
+    AccountingKey  = function(mapping, param, childkey)
+        binding.sectionname = getAcctkey(childkey)
+        binding.option = "secret"
+        return uci_helper.get_from_uci(binding)
+    end,
+    AuthenticationFQDN  = function(mapping, param, childkey)
+        binding.sectionname = childkey
+        binding.option = "fqdn"
+        return uci_helper.get_from_uci(binding)
+    end,
+    AccountingFQDN  = function(mapping, param, childkey)
+        binding.sectionname = getAcctkey(childkey)
+        binding.option = "fqdn"
+        return uci_helper.get_from_uci(binding)
+    end,
+    AccountingDHCP  = function(mapping, param, childkey)
+        binding.sectionname = getAcctkey(childkey)
+        binding.option = "dhcp_acct"
+        return uci_helper.get_from_uci(binding)
+    end,
+}
+
+local InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_X_000E50_RadiusServer_i_set = {
+    AuthenticationState  = function(mapping, param, paramvalue, childkey)
+        binding.sectionname = childkey
+        binding.option = "state"
+    uci_helper.set_on_uci(binding, paramvalue, commitapply)
+    end,
+    AccountingState  = function(mapping, param, paramvalue, childkey)
+        binding.sectionname = getAcctkey(childkey)
+        binding.option = "state"
+    uci_helper.set_on_uci(binding, paramvalue, commitapply)
+    end,
+    AuthenticationIP  = function(mapping, param, paramvalue, childkey)
+        if paramvalue ~= nil and isValidIPAddress(paramvalue) then
+          binding.sectionname = childkey
+          binding.option = "ip"
+          uci_helper.set_on_uci(binding, paramvalue, commitapply)
+        else
+          return nil, "invalid Authentication ip address"
+        end
+    end,
+    AccountingIP  = function(mapping, param, paramvalue, childkey)
+        if paramvalue ~= nil and isValidIPAddress(paramvalue) then
+          binding.sectionname = getAcctkey(childkey)
+          binding.option = "ip"
+          uci_helper.set_on_uci(binding, paramvalue, commitapply)
+        else
+          return nil, "invalid Authentication ip address"
+        end
+    end,
+    AuthenticationPort  = function(mapping, param, paramvalue, childkey)
+        binding.sectionname = childkey
+        binding.option = "port"
+        uci_helper.set_on_uci(binding, paramvalue, commitapply)
+    end,
+    AccountingPort  = function(mapping, param, paramvalue, childkey)
+        binding.sectionname = getAcctkey(childkey)
+        binding.option = "port"
+        uci_helper.set_on_uci(binding, paramvalue, commitapply)
+    end,
+    AuthenticationKey  = function(mapping, param, paramvalue, childkey)
+        binding.sectionname = childkey
+        binding.option = "secret"
+        uci_helper.set_on_uci(binding, paramvalue, commitapply)
+    end,
+    AccountingKey  = function(mapping, param, paramvalue, childkey)
+        binding.sectionname = getAcctkey(childkey)
+        binding.option = "secret"
+        uci_helper.set_on_uci(binding, paramvalue, commitapply)
+    end,
+    AuthenticationFQDN  = function(mapping, param, paramvalue, childkey)
+        binding.sectionname = childkey
+        binding.option = "fqdn"
+        uci_helper.set_on_uci(binding, paramvalue, commitapply)
+    end,
+    AccountingFQDN  = function(mapping, param, paramvalue, childkey)
+        binding.sectionname = getAcctkey(childkey)
+        binding.option = "fqdn"
+        uci_helper.set_on_uci(binding, paramvalue, commitapply)
+    end,
+    AccountingDHCP  = function(mapping, param, paramvalue, childkey)
+        binding.sectionname = getAcctkey(childkey)
+        binding.option = "dhcp_acct"
+        uci_helper.set_on_uci(binding, paramvalue, commitapply)
+    end,
+}
+
+local function InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_X_000E50_RadiusServer_i_commit(mapping, key)
+   uci_helper.commit(binding)
+end
+
+local function InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_X_000E50_RadiusServer_i_revert(mapping, key)
+   uci_helper.revert(binding)
+end
+
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_X_000E50_RadiusServer_i_.entries = InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_X_000E50_RadiusServer_i_entries
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_X_000E50_RadiusServer_i_.get = InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_X_000E50_RadiusServer_i_get
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_X_000E50_RadiusServer_i_.getall = InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_X_000E50_RadiusServer_i_getall
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_X_000E50_RadiusServer_i_.set = InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_X_000E50_RadiusServer_i_set
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_X_000E50_RadiusServer_i_.commit = InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_X_000E50_RadiusServer_i_commit
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_X_000E50_RadiusServer_i_.revert = InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_X_000E50_RadiusServer_i_revert
+register(InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_X_000E50_RadiusServer_i_)
+

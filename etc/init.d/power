@@ -1,0 +1,51 @@
+#!/bin/sh /etc/rc.common
+#set -x
+START=20
+
+uci2onoff() {
+    case "$1" in
+        0) echo "off";;
+        1) echo "on";;
+        *) echo "Invalid UCI enable option: $1" 1>&2; echo "on";;
+    esac
+}
+
+setup_eee() {
+    config_get eee ethernet eee 1
+    pwrctl config --eee `uci2onoff $eee`
+}
+
+setup_autogreeen() {
+    config_get autogreeen ethernet autogreeen 1
+    pwrctl config --autogreeen `uci2onoff $autogreeen`
+}
+
+setup_ethapd() {
+    config_get ethapd ethernet ethapd 1
+    pwrctl config --ethapd `uci2onoff $ethapd`
+}
+
+setup_wait() {
+    config_get wait cpu wait 1
+    pwrctl config --wait `uci2onoff $wait`
+}
+
+setup_cpuspeed() {
+    config_get cpuspeed cpu cpuspeed
+    pwrctl config --cpuspeed $cpuspeed
+}
+
+setup() {
+    config_load power
+    setup_autogreeen
+    setup_eee
+    setup_ethapd
+    setup_wait
+    setup_cpuspeed
+}
+
+start() {
+    setup
+}
+
+

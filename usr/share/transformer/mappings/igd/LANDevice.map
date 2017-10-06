@@ -1,0 +1,53 @@
+-- Automatically generated from InternetGatewayDevice:1.3
+-- using generator version 2.1
+local InternetGatewayDevice_LANDevice_i_ = {
+  objectType = {
+    name = "InternetGatewayDevice.LANDevice.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "LANDeviceNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      -- LANEthernetInterfaceNumberOfEntries
+      -- automatically created when InternetGatewayDevice.LANDevice.{i}.LANEthernetInterfaceConfig.{i}. is loaded
+      -- LANUSBInterfaceNumberOfEntries
+      -- automatically created when InternetGatewayDevice.LANDevice.{i}.LANUSBInterfaceConfig.{i}. is loaded
+      -- LANWLANConfigurationNumberOfEntries
+      -- automatically created when InternetGatewayDevice.LANDevice.{i}.WLANConfiguration.{i}. is loaded
+    }
+  }
+}
+
+local uci_helper = mapper("ucihelper")
+local common = mapper("nwcommon")
+local is_alias=common.is_alias
+
+local function entriesLANDevice(mapping)
+    local LANDevices = {}
+    local binding = {config="network",sectionname="interface"}
+    local wan = common.findLanWanInterfaces(true)
+    uci_helper.foreach_on_uci(binding, function(s)
+    -- iterate over the network interface and take those that have proto set to static
+    -- this should identify the LAN interfaces with an IP layer and the odds
+    -- we exclude the interface named loopback as it should not be included and will be present in every product
+    -- we also exclude all alias interfaces
+        if s['.name'] == 'loopback' or is_alias(s['.name']) then
+            return
+        end
+        for _,v in pairs(wan) do
+           if s['.name'] == v then
+               return
+           end
+        end
+
+        if s['proto'] == "static" then
+            LANDevices[#LANDevices+1] = s['.name']
+        end
+    end)
+    return LANDevices
+end
+
+InternetGatewayDevice_LANDevice_i_.entries = entriesLANDevice
+
+register(InternetGatewayDevice_LANDevice_i_)
+

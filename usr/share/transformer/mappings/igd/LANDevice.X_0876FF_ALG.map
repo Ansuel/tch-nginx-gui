@@ -1,0 +1,104 @@
+-- Manually generated
+local InternetGatewayDevice_LANDevice_i_X_0876FF_ALG_i_ = {
+  objectType = {
+    name = "InternetGatewayDevice.LANDevice.{i}.X_0876FF_ALG.{i}.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      Protocol = {
+        access = "readOnly",
+        type = "string",
+      },
+    }
+  }
+}
+
+local uciHelper = mapper("ucihelper")
+local firewallBinding = { config = "firewall"}
+local keyToSectionName = {}
+local keyGenerated, configChanged
+
+local uciOption = {
+  Enable = "enable",
+  -- Protocol is mapped to helper which would correspond to the supported list of protocols like ftp, tftp, snmp, sip, rtsp, etc..
+  Protocol = "helper",
+}
+
+local default = {
+  Enable = "1",
+  Protocol = "",
+}
+
+InternetGatewayDevice_LANDevice_i_X_0876FF_ALG_i_.entries = function(mapping, parentkey)
+  local algEntries = {}
+  keyToSectionName = {}
+  firewallBinding.sectionname = "helper"
+  local result = uciHelper.foreach_on_uci(firewallBinding, function(s)
+    local key = s._key
+    if not key then
+      firewallBinding.sectionname = s[".name"]
+      key = uciHelper.generate_key_on_uci(firewallBinding)
+      keyGenerated = true
+    end
+    key = parentkey .. "|" .. key
+    keyToSectionName[key] = s[".name"]
+    algEntries[#algEntries + 1] = key
+  end)
+  if keyGenerated == true then
+    if result then
+      uciHelper.commit_keys(firewallBinding)
+    else
+      uciHelper.revert_keys(firewallBinding)
+    end
+    keyGenerated = false
+  end
+  return algEntries
+end
+
+local function getALGData(mapping, param, key)
+  firewallBinding.sectionname = keyToSectionName[key]
+  firewallBinding.option = uciOption[param]
+  firewallBinding.default = default[param]
+  return uciHelper.get_from_uci(firewallBinding)
+end
+
+InternetGatewayDevice_LANDevice_i_X_0876FF_ALG_i_.get = getALGData
+
+InternetGatewayDevice_LANDevice_i_X_0876FF_ALG_i_.getall = function(mapping, key)
+  firewallBinding.sectionname = keyToSectionName[key]
+  local uciValues = uciHelper.getall_from_uci(firewallBinding)
+  return {
+    Enable = uciValues.enable or "1",
+    Protocol = uciValues.helper or "",
+  }
+end
+
+InternetGatewayDevice_LANDevice_i_X_0876FF_ALG_i_.set = {
+  Enable = function(mapping, param, value, key)
+    firewallBinding.sectionname = keyToSectionName[key]
+    firewallBinding.option = "enable"
+    uciHelper.set_on_uci(firewallBinding, value, commitapply)
+    configChanged = true
+  end
+}
+
+InternetGatewayDevice_LANDevice_i_X_0876FF_ALG_i_.commit = function()
+  if configChanged == true then
+    uciHelper.commit(firewallBinding)
+  end
+  configChanged = false
+end
+
+InternetGatewayDevice_LANDevice_i_X_0876FF_ALG_i_.revert = function()
+  if configChanged == true then
+    uciHelper.revert(firewallBinding)
+  end
+  configChanged = false
+end
+
+register(InternetGatewayDevice_LANDevice_i_X_0876FF_ALG_i_)

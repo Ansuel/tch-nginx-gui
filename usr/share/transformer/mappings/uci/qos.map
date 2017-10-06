@@ -1,0 +1,68 @@
+local mapper = mapper
+local config_qos = "qos"
+
+-- uci.qos
+mapper("uci_1to1").registerConfigMap(config_qos)
+
+--uci.qos.label
+local qos_label = {
+  config = config_qos,
+  type = "label",
+  options = { "trafficid", "tos", "dscp", "pcp" },
+}
+mapper("uci_1to1").registerNamedMultiMap(qos_label)
+
+--uci.qos.class
+local qos_class = {
+  config = config_qos,
+  type = "class",
+  options = { "priority", "weight", "mbr", "pbr", "mbs" },
+  lists = { "trafficid" },
+}
+mapper("uci_1to1").registerNamedMultiMap(qos_class)
+
+-- uci.qos.classify
+local qos_classify = {
+  config = config_qos,
+  type = "classify",
+  options = { "target", "family", "proto", "srchost", "dsthost", "ports", "srcports",
+              "dstports", "mark", "helper", "layer7" },
+  lists = { "srcif", "dstif", "proto_option", "tos", "dscp" }
+}
+
+mapper("uci_1to1").registerMultiMap(qos_classify)
+
+-- uci.qos.reclassify
+local qos_reclassify = {
+  config = config_qos,
+  type = "reclassify",
+  options = { "target", "family", "proto", "srchost", "dsthost", "ports", "srcports",
+              "dstports", "mark", "helper", "layer7" },
+  lists = { "srcif", "dstif", "proto_option", "tos", "dscp" }
+}
+
+mapper("uci_1to1").registerMultiMap(qos_reclassify)
+
+--uci.qos.interface
+local qos_interface = {
+  config = config_qos,
+  type = "interface",
+  options = { "classgroup", "enable", "pcp" }
+}
+mapper("uci_1to1").registerNamedMultiMap(qos_interface)
+
+--uci.qos.classgroup
+local qos_classgroup = {
+  config = config_qos,
+  type = "classgroup",
+  options = { "classes", "policy", "default" }
+}
+mapper("uci_1to1").registerNamedMultiMap(qos_classgroup)
+
+--uci.qos.device
+local qos_device = {
+  config = config_qos,
+  type = "device",
+  options = { "enable", "classgroup", "switchclassification" }
+}
+mapper("uci_1to1").registerNamedMultiMap(qos_device)

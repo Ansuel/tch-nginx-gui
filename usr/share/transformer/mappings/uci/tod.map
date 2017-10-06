@@ -1,0 +1,107 @@
+local mapper, register = mapper, register
+local config_tod = "tod"
+
+-- uci.tod.global
+local tod = {
+  config = config_tod,
+  section = "global",
+  options = { "enabled", "tod_enabled", "time_change_monfreq"},
+}
+
+mapper("uci_1to1").registerSimpleMap(tod)
+
+-- uci.tod.voicednd
+local uci_helper = mapper("ucihelper")
+local tod_binding = { config = "tod" , sectionname = "voicednd"}
+local tod_voice_ = {
+  objectType = {
+    name = "uci.tod.voicednd.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      enabled = {
+        access = "readWrite",
+        type = "boolean"
+      },
+      ringing = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "on",
+          "off"
+        }
+      },
+      timerandactionmodified = {
+        access = "readWrite",
+        type = "boolean"
+      },
+    }
+  }
+}
+
+tod_voice_.get = function(mapping, paramname, key)
+  tod_binding.option = paramname
+  return uci_helper.get_from_uci(tod_binding)
+end
+
+tod_voice_.set = function(mapping, paramname, paramvalue, key)
+    tod_binding.option = paramname
+    uci_helper.set_on_uci(tod_binding,paramvalue)
+    uci_helper.commit(tod_binding)
+    if (paramname == "ringing") then
+        commitapply:newset("uci.tod.voicednd.ringing")
+    elseif (paramname == "enabled") then
+        commitapply:newset("uci.tod.voicednd.enabled")
+    end
+end
+
+register(tod_voice_)
+
+-- uci.hosts
+mapper("uci_1to1").registerConfigMap(config_tod)
+
+-- uci.tod.host.{i}
+local tod_host = {
+    config = config_tod,
+    type = "host",
+    options = { "enabled", "type", "id", "mode", "start_time", "stop_time", "rule_name" },
+    lists = { "weekdays" },
+}
+mapper("uci_1to1").registerMultiMap(tod_host)
+
+-- belows for wifitod feature
+-- uci.tod.ap.{i}
+local tod_ap = {
+  config = config_tod,
+  type = "ap",
+  options = { "state", "ap" },
+}
+mapper("uci_1to1").registerNamedMultiMap(tod_ap)
+
+-- uci.tod.wifitod.{i}
+local tod_wifitod = {
+    config = config_tod,
+    type = "wifitod",
+    lists = { "ap" },
+}
+local mapping_wifitod = mapper("uci_1to1").createNamedMultiMap(tod_wifitod)
+register(mapping_wifitod)
+mapper("uci_1to1").registerSubmaps(mapping_wifitod.submappings)
+
+-- uci.tod.action.{i}
+local tod_action = {
+    config = config_tod,
+    type = "action",
+    options = { "enabled", "object", "path"},
+    lists = { "timers" },
+}
+mapper("uci_1to1").registerNamedMultiMap(tod_action)
+
+-- uci.tod.timer.{i}
+local tod_timer = {
+    config = config_tod,
+    type = "timer",
+    options = {"start_time", "stop_time"},
+}
+mapper("uci_1to1").registerNamedMultiMap(tod_timer)

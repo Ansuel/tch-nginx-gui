@@ -1,0 +1,6 @@
+local command = {
+  name = "nstat",
+  full_path = "/usr/sbin/nstat",
+}
+
+mapper("command").registerCommand(command)

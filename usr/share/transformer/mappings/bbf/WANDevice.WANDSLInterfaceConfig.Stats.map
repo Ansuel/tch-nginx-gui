@@ -1,0 +1,346 @@
+-- Automatically generated from InternetGatewayDevice:1.4
+-- using generator version 2.1
+
+-- "InternetGatewayDevice.WANDevice.{i}.WANDSLInterfaceConfig.Stats."
+-- "InternetGatewayDevice.WANDevice.{i}.WANDSLInterfaceConfig.Stats.Total."
+-- "InternetGatewayDevice.WANDevice.{i}.WANDSLInterfaceConfig.Stats.Showtime."
+-- "InternetGatewayDevice.WANDevice.{i}.WANDSLInterfaceConfig.Stats.QuarterHour."
+-- "InternetGatewayDevice.WANDevice.{i}.WANDSLInterfaceConfig.Stats.CurrentDay."
+-- "Device.DSL.Line.{i}.Stats.Total."
+-- "Device.DSL.Line.{i}.Stats.Showtime."
+-- "Device.DSL.Line.{i}.Stats.QuarterHour."
+-- "Device.DSL.Line.{i}.Stats.CurrentDay."
+-- "Device.DSL.Channel.{i}.Stats.Total."
+-- "Device.DSL.channel.{i}.Stats.Showtime."
+-- "Device.DSL.Channel.{i}.Stats.QuarterHour."
+-- "Device.DSL.Channel.{i}.Stats.CurrentDay."
+
+local InternetGatewayDevice_WANDevice_i_WANDSLInterfaceConfig_Stats_ = {
+  objectType = {
+    name = "InternetGatewayDevice.WANDevice.{i}.WANDSLInterfaceConfig.Stats.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = 1,
+    parameters = {
+    }
+  }
+}
+
+local Multi_Stats_parameters_ = {
+  CRCErrors = {
+    access = "readOnly",
+    activeNotify = "canDeny",
+    type = "unsignedInt",
+  },
+  ErroredSecs = {
+    access = "readOnly",
+    activeNotify = "canDeny",
+    type = "unsignedInt",
+  },
+  SeverelyErroredSecs = {
+    access = "readOnly",
+    activeNotify = "canDeny",
+    type = "unsignedInt",
+  },
+  FECErrors = {
+    access = "readOnly",
+    activeNotify = "canDeny",
+    type = "unsignedInt",
+  },
+  ATUCFECErrors = {
+    access = "readOnly",
+    activeNotify = "canDeny",
+    type = "unsignedInt",
+  },
+  ATUCCRCErrors = {
+    access = "readOnly",
+    activeNotify = "canDeny",
+    type = "unsignedInt",
+  },
+  LinkRetrain = {
+    access = "readOnly",
+    activeNotify = "canDeny",
+    type = "unsignedInt",
+  },
+  HECErrors = {
+    access = "readOnly",
+    activeNotify = "canDeny",
+    type = "unsignedInt",
+  },
+  ATUCHECErrors = {
+    access = "readOnly",
+    activeNotify = "canDeny",
+    type = "unsignedInt",
+  },
+  InitTimeouts = {
+    access = "readOnly",
+    activeNotify = "canDeny",
+    type = "unsignedInt",
+  },
+  LossOfFraming = {
+    access = "readOnly",
+    activeNotify = "canDeny",
+    type = "unsignedInt",
+  },
+  LastInitializationProcedureStatus = {
+    access = "readOnly",
+    activeNotify = "canDeny",
+    type = "unsignedInt",
+  },
+  ATUCErroredSecs = {
+    access = "readOnly",
+    activeNotify = "canDeny",
+    type = "unsignedInt",
+  },
+  ATUCSeverelyErroredSecs = {
+    access = "readOnly",
+    activeNotify = "canDeny",
+    type = "unsignedInt",
+  },
+
+}
+
+local ipairs = ipairs
+local register = register
+
+local Multi_Stats_Total_ = {
+  objectType = {
+    name = "#ROOT.Stats.Total.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = Multi_Stats_parameters_ ,
+  }
+}
+
+local Multi_Stats_Showtime_ = {
+  objectType = {
+    name = "#ROOT.Stats.Showtime.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = Multi_Stats_parameters_ ,
+  }
+}
+
+local Multi_Stats_QuarterHour_ = {
+  objectType = {
+    name = "#ROOT.Stats.QuarterHour.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = Multi_Stats_parameters_ ,
+  }
+}
+
+local Multi_Stats_CurrentDay_ = {
+  objectType = {
+    name = "#ROOT.Stats.CurrentDay.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = Multi_Stats_parameters_ ,
+  }
+}
+
+local Multi_Stats_LastShowtime_ = {
+  objectType = {
+    name = "#ROOT.Stats.LastShowtime.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = Multi_Stats_parameters_ ,
+  }
+}
+----------------------------------------------------------
+-- Local definitions
+----------------------------------------------------------
+
+local xdslctl = require("transformer.shared.xdslctl")
+local wandevice = require 'transformer.shared.models.igd.wandevice'
+local getDevtypeAndName = wandevice.getDevtypeAndName
+
+InternetGatewayDevice_WANDevice_i_WANDSLInterfaceConfig_Stats_.entries = function(mapping, parentKey)
+  if mapping.objectType.name:match("^InternetGatewayDevice%.") then
+    -- in IGD this object is only present it the parent WANDevice is DSL
+    local devtype = getDevtypeAndName(parentKey)
+    if devtype == "DSL" then
+      return {parentKey}
+    end
+  elseif mapping.objectType.name:match("^Device%.") then
+    -- this object is not optional in Device2, but in order to multiroot it
+    -- it pretends it is. It is unconditionnally present.
+    return {parentKey}
+  end
+  return {}
+end
+
+--parameters needed for Device.DSL.Channel. file
+local dev2DSLChannelParams = {
+  "CRCErrors",
+  "FECErrors",
+  "ATUCFECErrors",
+  "ATUCCRCErrors",
+  "LinkRetrain",
+  "HECErrors",
+  "ATUCHECErrors",
+  "InitTimeouts"
+}
+
+--parameters needed for Device.DSL.Line. file
+local dev2DSLLineParams = {
+  "ErroredSecs",
+  "SeverelyErroredSecs",
+  "InitTimeouts"
+}
+
+
+local function xdslctl_stats(key, section, skey, dir,mapping)
+  return xdslctl.stats(section, skey, dir)
+end
+
+local function get_instance(instance, mapping, param, key)
+  if param == "CRCErrors" then
+      return xdslctl_stats(key, instance, "crc", "ds",mapping)
+  elseif param == "ErroredSecs" then
+      return xdslctl_stats(key, instance, "es", "ds",mapping)
+  elseif param == "SeverelyErroredSecs" then
+      return xdslctl_stats(key, instance, "ses", "ds",mapping)
+  elseif param == "FECErrors" then
+      return xdslctl_stats(key, instance, "fec", "ds",mapping)
+  elseif param == "ATUCFECErrors" then
+      return xdslctl_stats(key, instance, "fec", "us",mapping)
+  elseif param == "ATUCCRCErrors" then
+      return xdslctl_stats(key, instance, "crc", "us",mapping)
+  elseif param == "LinkRetrain" then
+      local lrCheck = xdslctl_stats(key, instance, "retr", "",mapping)
+      return lrCheck ~= "nil"  and lrCheck or "0"
+  elseif param == "HECErrors" then
+      return xdslctl_stats(key, instance, "hec", "ds",mapping)
+  elseif param == "ATUCHECErrors" then
+      return xdslctl_stats(key, instance, "hec", "us",mapping)
+  elseif param == "InitTimeouts" then
+      local itCheck = xdslctl_stats(key, instance, "retr", "",mapping)
+      return itCheck ~= "nil" and itCheck or "0"
+  elseif param == "LossOfFraming" then
+      local lofCheck = xdslctl_stats(key, instance, "lof", "ds",mapping)
+      return lofCheck ~= "nil" and lofCheck or "0"
+  elseif param == "LastInitializationProcedureStatus" then
+      return xdslctl.infoValue("linit", nil, nil, key,mapping)
+  elseif param == "ATUCErroredSecs" then
+      return xdslctl_stats(key, instance, "es", "us",mapping)
+  elseif param == "ATUCSeverelyErroredSecs" then
+      return xdslctl_stats(key, instance, "ses", "us",mapping)
+  end
+  return ""
+end
+
+Multi_Stats_Total_.get = function(mapping, param, key)
+  return get_instance("total", mapping, param, key)
+end
+
+Multi_Stats_Showtime_.get = function(mapping, param, key)
+  return get_instance("sincesync", mapping, param, key)
+end
+
+Multi_Stats_QuarterHour_.get = function(mapping, param, key)
+  return get_instance("currentquarter", mapping, param, key)
+end
+
+Multi_Stats_CurrentDay_.get = function(mapping, param, key)
+  return get_instance("currentday", mapping, param, key)
+end
+
+Multi_Stats_LastShowtime_.get = function(mapping, param, key)
+  return get_instance("lastshowtime", mapping, param, key)
+end
+
+
+local function getall_instance(instance, mapping, key)
+  local allValues = {
+    CRCErrors = "4294967295",
+    ErroredSecs = "4294967295",
+    SeverelyErroredSecs = "4294967295",
+    FECErrors = "4294967295",
+    HECErrors = "4294967295",
+    ATUCFECErrors = "4294967295",
+    ATUCHECErrors = "4294967295",
+    ATUCCRCErrors = "4294967295",
+    LinkRetrain = "4294967295",
+    InitTimeouts = "4294967295",
+    LossOfFraming = "4294967295",
+    LastInitializationProcedureStatus ="4294967295",
+    ATUCErroredSecs = "4294967295",
+    ATUCSeverelyErroredSecs = "4294967295",
+  }
+  local allstats = xdslctl.allstats()
+  allValues.CRCErrors = allstats[instance].crc.ds
+  allValues.ErroredSecs = allstats[instance].es.ds
+  allValues.SeverelyErroredSecs = allstats[instance].ses.ds
+  allValues.FECErrors = allstats[instance].fec.ds
+  allValues.HECErrors = allstats[instance].hec.ds
+  allValues.ATUCFECErrors = allstats[instance].fec.us
+  allValues.ATUCHECErrors = allstats[instance].hec.us
+  allValues.ATUCCRCErrors = allstats[instance].crc.us
+  allValues.LinkRetrain = allstats[instance].retr ~= "nil" and allstats[instance].retr or "0"
+  allValues.InitTimeouts = allstats[instance].retr ~= "nil" and allstats[instance].retr or "0"
+  allValues.LossOfFraming = allstats[instance].lof.ds ~= "nil" and allstats[instance].lof.ds or "0"
+  allValues.LastInitializationProcedureStatus = xdslctl.infoValue("linit", nil, nil, key)
+  allValues.ATUCErroredSecs = allstats[instance].es.us
+  allValues.ATUCSeverelyErroredSecs = allstats[instance].ses.us
+  return allValues
+end
+
+Multi_Stats_Total_.getall = function(mapping, key)
+   return getall_instance("total", mapping, key)
+end
+
+Multi_Stats_Showtime_.getall = function(mapping, key)
+  return getall_instance("sincesync", mapping, key)
+end
+
+Multi_Stats_QuarterHour_.getall = function(mapping, key)
+  return getall_instance("currentquarter", mapping, key)
+end
+
+Multi_Stats_CurrentDay_.getall = function(mapping, key)
+  return getall_instance("currentday", mapping, key)
+end
+
+Multi_Stats_LastShowtime_.getall = function(mapping, key)
+  return getall_instance("lastshowtime", mapping, key)
+end
+
+local function file_exists(path)
+  local file = io.open(path, "rb")
+  if file ~= nil then
+    file.close(file)
+    return true
+  end
+  return false
+end
+
+-- register on XDSL platforms
+
+if file_exists("/etc/config/xdsl") then
+  local duplicator = mapper("multiroot").duplicate
+  local dslStats = {Multi_Stats_Total_, Multi_Stats_Showtime_, Multi_Stats_LastShowtime_, Multi_Stats_QuarterHour_, Multi_Stats_CurrentDay_}
+  for _, objectName in ipairs(dslStats) do
+    local duplicates = duplicator(objectName, "#ROOT", {"InternetGatewayDevice.WANDevice.{i}.WANDSLInterfaceConfig", "Device.DSL.Line.{i}", "Device.DSL.Channel.{i}"})
+    for _, dupli in ipairs(duplicates) do
+      if dupli.objectType.name:match("^InternetGatewayDevice%.") then
+        dupli.objectType.InitTimeouts = nil
+      elseif dupli.objectType.name:match("^Device%.DSL%.Line%.") then
+        for _, param in ipairs(dev2DSLChannelParams) do
+          dupli.objectType.parameters[param] = nil
+        end
+      elseif dupli.objectType.name:match("^Device%.DSL%.Channel%.") then
+        for _, param in ipairs(dev2DSLLineParams) do
+          dupli.objectType.parameters[param] = nil
+        end
+      end
+      register(dupli)
+    end
+  end
+  register(InternetGatewayDevice_WANDevice_i_WANDSLInterfaceConfig_Stats_)
+end

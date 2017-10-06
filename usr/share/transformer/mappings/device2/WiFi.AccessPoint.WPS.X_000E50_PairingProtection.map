@@ -1,0 +1,112 @@
+-- Manually generated
+
+local Device_WiFi_AccessPoint_i_WPS_X_000E50_PairingProtection_ = {
+  objectType = {
+    name = "Device.WiFi.AccessPoint.{i}.WPS.X_000E50_PairingProtection.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = 1,
+    parameters = {
+      Mode = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "lock",
+          "unlock",
+          "disabled",
+        },
+      },
+      AcceptList = {
+        access = "readWrite",
+        list = true,
+        type = "string",
+      },
+      DenyList = {
+        access = "readWrite",
+        list = true,
+        type = "string",
+      },
+    }
+  }
+}
+
+local uciHelper = mapper("ucihelper")
+local wirelessBinding = { config = "wireless" }
+local configChanged
+
+local paramList = {
+  Mode = "wps_pairing_protection_mode",
+  AcceptList = "wps_pairing_protection_accept_list",
+  DenyList = "wps_pairing_protection_deny_list",
+}
+
+local function getUciValue(key, param)
+  wirelessBinding.sectionname = key
+  wirelessBinding.option = paramList[param]
+  return uciHelper.get_from_uci(wirelessBinding)
+end
+
+local function setUciParam(param, value, key)
+  wirelessBinding.sectionname =  key
+  wirelessBinding.option = paramList[param]
+  uciHelper.set_on_uci(wirelessBinding, value, commitapply)
+  configChanged = true
+end
+
+Device_WiFi_AccessPoint_i_WPS_X_000E50_PairingProtection_.entries = function(mapping, parentKey)
+  wirelessBinding.sectionname = parentKey
+  wirelessBinding.option = "iface"
+  local interface = uciHelper.get_from_uci(wirelessBinding)
+  if interface ~= "" then
+    wirelessBinding.sectionname = interface
+    wirelessBinding.option = "device"
+    local device = uciHelper.get_from_uci(wirelessBinding)
+    if device == "radio_5G" then
+      return {"1"}
+    end
+  end
+  return {}
+end
+
+Device_WiFi_AccessPoint_i_WPS_X_000E50_PairingProtection_.get = function(mapping, param, key)
+  return getUciValue(key, param)
+end
+
+Device_WiFi_AccessPoint_i_WPS_X_000E50_PairingProtection_.getall = function(mapping, key)
+  wirelessBinding.sectionname =  key
+  local uciValues = uciHelper.getall_from_uci(wirelessBinding)
+  return {
+    Mode = uciValues.wps_pairing_protection_mode or "unlock",
+    AcceptList = uciValues.wps_pairing_protection_accept_list or "",
+    DenyList = uciValues.wps_pairing_protection_deny_list or "",
+  }
+end
+
+Device_WiFi_AccessPoint_i_WPS_X_000E50_PairingProtection_.set = function(mapping, param, value, key)
+  if param == "Mode" then
+    if value == "lock" then
+      -- Emptying the denylist
+      setUciParam("DenyList", "", key)
+    elseif value == "unlock" then
+      -- Emptying the acceptlist
+      setUciParam("AcceptList", "", key)
+    end
+  end
+  return setUciParam(param, value, key)
+end
+
+Device_WiFi_AccessPoint_i_WPS_X_000E50_PairingProtection_.commit = function()
+  if configChanged then
+    uciHelper.commit(wirelessBinding)
+  end
+  configChanged = false
+end
+
+Device_WiFi_AccessPoint_i_WPS_X_000E50_PairingProtection_.revert = function()
+  if configChanged then
+    uciHelper.revert(wirelessBinding)
+  end
+  configChanged = false
+end
+
+register(Device_WiFi_AccessPoint_i_WPS_X_000E50_PairingProtection_)

@@ -1,0 +1,13 @@
+--NG-58110
+local web_ = {
+  objectType = {
+    name = "rpc.web.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+    },
+  }
+}
+
+register(web_)

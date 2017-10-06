@@ -1,0 +1,286 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_WiFi_AccessPoint_i_AssociatedDevice_i_ = {
+  objectType = {
+    name = "Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "AssociatedDeviceNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      MACAddress = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+
+      OperatingStandard = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "a",
+          "b",
+          "g",
+          "n",
+          "ac",
+        },
+      },
+
+      AuthenticationState = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "boolean",
+      },
+      LastDataDownlinkRate = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1000",
+            max = "600000",
+          },
+        },
+      },
+      LastDataUplinkRate = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1000",
+            max = "600000",
+          },
+        },
+      },
+      SignalStrength = {
+        access = "readOnly",
+        type = "int",
+        range = {
+          {
+            min = "-200",
+            max = "0",
+          },
+        },
+      },
+      Retransmissions = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "100",
+          },
+        },
+      },
+      Active = {
+        access = "readOnly",
+        type = "boolean",
+      },
+    }
+  }
+}
+
+local conn = mapper("ubus").connect()
+local pairs, register, tostring = pairs, register, tostring
+local common = mapper("nwcommon")
+local splitKey = common.split_key
+
+local function entriesWifiStation(mapping, parentkey)
+  local result = conn:call("wireless.accesspoint.station", "get", { name = parentkey })
+  if result == nil or result[parentkey] == nil then
+    return {}
+  end
+
+  local stations = {}
+  for mac,sta in pairs(result[parentkey]) do
+    if sta["state"]:match("Associated") then
+      stations[#stations+1] = parentkey .. "|" .. mac
+    end
+  end
+  return stations
+end
+
+local function getDataForWiFiStation(accesskey)
+  local parentKey, mac = splitKey(accesskey)
+  local data = conn:call("wireless.accesspoint.station", "get",  { })
+  if data == nil then
+    return {}
+  end
+  return data[parentKey][mac] and data[parentKey][mac] or {}
+end
+
+local getWifiStation = {
+  MACAddress = function(mapping, param, key, parentkey)
+    local _, mac = splitKey(key)
+    return mac
+  end,
+
+  OperatingStandard = function(mapping, param, key)
+    local accessValues = getDataForWiFiStation(key)
+    return accessValues.capabilities and accessValues.capabilities:match("802.11(%a+)") or ""
+  end,
+
+  LastDataDownlinkRate = function(mapping, param, key)
+    local accessValues = getDataForWiFiStation(key)
+    return accessValues.rx_phy_rate and tostring(accessValues.rx_phy_rate) or ""
+  end,
+
+  LastDataUplinkRate = function(mapping,param, key)
+    local accessValues = getDataForWiFiStation(key)
+    return accessValues.tx_phy_rate and tostring(accessValues.tx_phy_rate) or ""
+  end,
+
+  AuthenticationState = function(mapping, param, key)
+    local accessValues = getDataForWiFiStation(key)
+    if accessValues.state and accessValues.state:match("Authenticated") then
+      return '1'
+    else
+      return '0'
+    end
+  end,
+
+  SignalStrength = function(mapping, param, key)
+    local accessValues = getDataForWiFiStation(key)
+    return accessValues.rssi and tostring(accessValues.rssi) or ""
+  end,
+
+  Retransmissions = function(mapping, param, key)
+    local accessValues = getDataForWiFiStation(key)
+    return accessValues.av_txbw_used and tostring(accessValues.av_txbw_used) or "0"
+  end,
+
+  Active = function(mapping, param, key)
+    local accessValues = getDataForWiFiStation(key)
+    if accessValues.state and accessValues.state:match("Authorized") or accessValues.state:match("Associated") then
+      return '1'
+    else
+      return '0'
+    end
+  end,
+}
+
+Device_WiFi_AccessPoint_i_AssociatedDevice_i_.entries = entriesWifiStation
+Device_WiFi_AccessPoint_i_AssociatedDevice_i_.get = getWifiStation
+
+Device_WiFi_AccessPoint_i_AssociatedDevice_i_.getall = function(mapping, key)
+  local accessValues = getDataForWiFiStation(key)
+  local _, mac = splitKey(key)
+  return {
+    MACAddress =  mac or "",
+    OperatingStandard = accessValues.capabilities and accessValues.capabilities:match("802.11(%a+)") or "",
+    LastDataDownlinkRate = accessValues.rx_phy_rate and tostring(accessValues.rx_phy_rate) or "",
+    LastDataUplinkRate = accessValues.tx_phy_rate and tostring(accessValues.tx_phy_rate) or "",
+    AuthenticationState = accessValues.state and accessValues.state:match("Authenticated") and "1" or "0",
+    SignalStrength = accessValues.rssi and tostring(accessValues.rssi) or "",
+    Retransmissions = accessValues.av_txbw_used and tostring(accessValues.av_txbw_used) or "0",
+    Active = accessValues.state and (accessValues.state:match("Authorized") or accessValues.state:match("Associated")) and "1" or "0",
+  }
+end
+
+register(Device_WiFi_AccessPoint_i_AssociatedDevice_i_)
+
+local Device_WiFi_AccessPoint_i_AssociatedDevice_i_Stats_ = {
+  objectType = {
+    name = "Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}.Stats.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      BytesSent = {
+        access = "readOnly",
+        type = "unsignedLong",
+      },
+      BytesReceived = {
+        access = "readOnly",
+        type = "unsignedLong",
+      },
+      PacketsSent = {
+        access = "readOnly",
+        type = "unsignedLong",
+      },
+      PacketsReceived = {
+        access = "readOnly",
+        type = "unsignedLong",
+      },
+      ErrorsSent = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      RetransCount = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      FailedRetransCount = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      RetryCount = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      MultipleRetryCount = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+    }
+  }
+}
+
+Device_WiFi_AccessPoint_i_AssociatedDevice_i_Stats_.get = {
+  BytesSent = function(mapping, param, key)
+    local accessValues = getDataForWiFiStation(key)
+    return accessValues.tx_bytes and tostring(accessValues.tx_bytes) or "0"
+  end,
+
+  BytesReceived = function(mapping, param, key)
+    local accessValues = getDataForWiFiStation(key)
+    return accessValues.rx_bytes and tostring(accessValues.rx_bytes) or "0"
+  end,
+
+  PacketsSent = function(mapping, param, key)
+    local accessValues = getDataForWiFiStation(key)
+    return accessValues.tx_packets and tostring(accessValues.tx_packets) or "0"
+  end,
+
+  PacketsReceived = function(mapping, param, key)
+    local accessValues = getDataForWiFiStation(key)
+    return accessValues.rx_packets and tostring(accessValues.rx_packets) or "0"
+  end,
+
+  ErrorsSent = function(mapping, param, key)
+    local accessValues = getDataForWiFiStation(key)
+    return accessValues.tx_noack_failures and tostring(accessValues.tx_noack_failures) or "0"
+  end,
+
+  RetransCount = function(mapping, param, key)
+    local accessValues = getDataForWiFiStation(key)
+    return accessValues.tx_noack_failures and tostring(accessValues.tx_noack_failures) or "0"
+  end,
+
+  FailedRetransCount = function(mapping, param, key)
+    local accessValues = getDataForWiFiStation(key)
+    return accessValues.rx_sec_failures and tostring(accessValues.rx_sec_failures) or "0"
+  end,
+
+  RetryCount = "0",
+
+  MultipleRetryCount = "0",
+}
+
+Device_WiFi_AccessPoint_i_AssociatedDevice_i_Stats_.getall = function(mapping, key)
+  local accessValues = getDataForWiFiStation(key)
+  return {
+    BytesSent          = accessValues.tx_bytes and tostring(accessValues.tx_bytes) or "0",
+    BytesReceived      = accessValues.rx_bytes and tostring(accessValues.rx_bytes) or "0",
+    PacketsSent        = accessValues.tx_packets and tostring(accessValues.tx_packets) or "0",
+    PacketsReceived    = accessValues.rx_packets and tostring(accessValues.rx_packets) or "0",
+    ErrorsSent         = accessValues.tx_noack_failures and tostring(accessValues.tx_noack_failures) or "0",
+    RetransCount       = accessValues.tx_noack_failures and tostring(accessValues.tx_noack_failures) or "0",
+    FailedRetransCount = accessValues.rx_sec_failures and tostring(accessValues.rx_sec_failures) or "0",
+    RetryCount         = "0",
+    MultipleRetryCount = "0",
+  }
+end
+
+register(Device_WiFi_AccessPoint_i_AssociatedDevice_i_Stats_)

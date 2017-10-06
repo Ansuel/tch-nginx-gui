@@ -1,0 +1,8 @@
+local command = {
+  name = "ip",
+  full_path = "/usr/sbin/ip",
+  options_without_argument = { "link", "addr", "addrlabel", "route", "rule", "neigh", "ntable", "tunnel", "tuntap", "maddr", "mroute", "mrule", "monitor", "netns", "tcp_metrics" },
+  options_with_argument = { "add", "del", "dev", "lladdr" },
+}
+
+mapper("command").registerCommand(command)

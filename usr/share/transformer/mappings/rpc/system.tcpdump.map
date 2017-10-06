@@ -1,0 +1,353 @@
+local SYSTEM_TCPDUMP_ = {
+  objectType = {
+    name = 'rpc.system.tcpdump.',
+    access = 'readOnly',
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      state = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "None",
+          "Requested",
+          "Complete",
+          "Error",
+        },
+      },
+      interface = {
+        access = "readWrite",
+        type = "string",
+      },
+      type = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "pcap",
+          "log",
+        },
+      },
+      --[[
+      accelerate = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      --]]
+      refcount = {
+        access = "readOnly",
+        type = "string",
+      },
+      count = {
+        access = "readWrite",
+        type = "string",
+      },
+      intflist = {
+        access = "readOnly",
+        type = "string",
+      },
+      file = {
+        access = "readOnly",
+        type = "string",
+      },
+    }
+  }
+}
+
+---------------------------------------------------------------------
+-- Local Variables
+---------------------------------------------------------------------
+local logger = require("transformer.logger")
+local log = logger.new("tcpdump", 2)
+local posix = require("tch.posix")
+local match, gmatch = string.match, string.gmatch
+local execute, exit, remove = os.execute, os.exit, os.remove
+local open, popen = io.open, io.popen
+
+local MAX_COUNT = "16000"
+local TCPDUMP_PCAP = "/tmp/tcpdumpGUI.pcap"
+local TCPDUMP_LOG = "/tmp/tcpdumpGUI.log"
+local TCPDUMP_COMPL = "/tmp/.tcpdumpGUI.compl"
+local TCPDUMP_SH = "/tmp/.tcpdumpGUI.sh"
+local FC_ENABLED = "fcctl enable; fcctl config --mcast 3;"
+local FC_DISABLED = "fcctl disable;fcctl config --mcast 0;"
+local tcpdump_info = { state = "None", interface = "br-lan", acc = "1", refcount=MAX_COUNT, count = 0, type = "pcap" , file = TCPDUMP_PCAP, intflist = "", intftable = {}, pid = 0  }
+
+---------------------------------------------------------------------
+-- Local Functions
+---------------------------------------------------------------------
+-- to execute shell cmd and return the 1st line as result
+local function cmdlog(cmd)
+local fp = popen(cmd)
+  if fp == nil then
+    return ""
+  end
+  local line = fp:read("*l")
+  if not line then
+    line = ""
+  end
+  fp:close()
+  return line
+end
+
+local function readfile(path)
+  local file = open(path, "rb")
+  if not file then
+    return ""
+  end
+  local content = file:read "*a"
+  file:close()
+  return content
+end
+
+-- to get all valid tcpdump interfaces
+local function getlist()
+  tcpdump_info.intflist = cmdlog("tcpdump -D |grep -v lo$ | grep -v Loopback | grep -v bcmsw | grep -v any | cut -d . -f 2 | cut -d ' ' -f 1 | sort | xargs echo")
+  return tcpdump_info.intflist
+end
+
+-- 1/2 of free memory (exclude min_free_kbytes)
+local function getrefcount()
+  tcpdump_info.refcount = MAX_COUNT
+  -- oom
+  local oom = tonumber(readfile("/proc/sys/vm/min_free_kbytes"))
+  -- free
+  local f = open("/proc/meminfo","r")
+  local free = ""
+  for l in f:lines() do
+    local key, n, units = l:match("^([^:%s]+):%s+(%d+)%s?(%a?%a?)$")
+    if key and key == "MemFree" and units == "kB" then
+      free = tonumber(n)
+      break
+    end
+  end
+  f:close();
+  --refcount calc : 16MB is around 16000 number of packets
+  if type(oom) == "number" and type(free) == "number" then
+    tcpdump_info.refcount = tostring(math.modf((free-oom)/2000)*1000)
+  end
+  return tcpdump_info.refcount
+end
+
+local function pathexists(path)
+  local file = open(path, "rb")
+  if file then
+    file:close()
+    return true
+  end
+  return false
+end
+
+tcpdump_info.count = tostring(MAX_COUNT/2)
+remove(TCPDUMP_SH)
+remove(TCPDUMP_COMPL)
+
+local function fc_enabled()
+  if pathexists("/proc/fcache") then
+    execute(FC_ENABLED)
+  end
+end
+
+local function fc_disabled()
+  if pathexists("/proc/fcache") then
+    execute(FC_DISABLED)
+  end
+end
+
+local function createscript()
+  if pathexists(TCPDUMP_SH) then
+    return
+  end
+--[[
+  #/bin/sh
+  type=$1
+  interface=$2
+  count=$3
+  file=$4
+
+  if [ $type = pcap ]; then
+    /usr/sbin/tcpdump -i $interface -w $file -c $count
+  else
+    /usr/sbin/tcpdump -i $interface -l -c $count | tee $file
+  fi
+  touch "/tmp/.tcpdumpGUI.compl"
+  fcctl enable;fcctl config --mcast 3
+--]]
+
+  -- create script file /tmp/.tcpdump_gui.sh
+  -- fcctl enable
+  -- fcctl config --mcast 3
+  execute("echo 'type=\$1\
+interface=\$2\
+count=\$3\
+file=\$4\
+if [ \$type = pcap ]; then\
+  /usr/sbin/tcpdump -i \$interface -w \$file -c \$count;\
+else\
+  /usr/sbin/tcpdump -i \$interface -l -c \$count | tee \$file\
+fi\
+touch " .. TCPDUMP_COMPL .. "' > " .. TCPDUMP_SH)
+  if pathexists("/proc/fcache") then
+    execute("echo '" .. FC_ENABLED .. "' >> " .. TCPDUMP_SH)
+  end
+end
+
+local function killtcpdump()
+  if tcpdump_info.pid > 0 then
+    execute("pgrep -P " .. tcpdump_info.pid .. " | xargs kill -9")
+    tcpdump_info.pid = 0
+    fc_enabled()
+  end
+end
+
+-- commit function
+local function statecommit()
+  if tcpdump_info.state == "Requested" then
+    remove(TCPDUMP_PCAP)
+    remove(TCPDUMP_LOG)
+    local pid = posix.fork()
+    if not pid then
+      tcpdump_info.state = "Error"
+      log:info("execute tcpdump failed!")
+    elseif pid == 0 then -- pid 0 is the child process
+      createscript()
+
+      --disable accelerate during tcpdump
+      fc_disabled()
+
+      local args = { TCPDUMP_SH, tcpdump_info.type, tcpdump_info.interface, tcpdump_info.count, tcpdump_info.file }
+      local _, err = posix.execv("/bin/sh", args)
+      -- execv failed; exit the child process.
+      log:info("child exit err: " .. err)
+      fc_enabled()
+      exit(0)
+    elseif pid > 0 then -- parent process
+      tcpdump_info.pid = tonumber(pid) -- get child pid in parent
+    end
+    -- Succeeded.
+  elseif tcpdump_info.state == "Complete" then
+    killtcpdump()
+    remove(TCPDUMP_COMPL)
+  elseif tcpdump_info.state == "None" then
+    killtcpdump()
+    remove(TCPDUMP_PCAP)
+    remove(TCPDUMP_LOG)
+  end
+end
+
+---------------------------------------------------------------------
+-- get/set/commit
+---------------------------------------------------------------------
+SYSTEM_TCPDUMP_.get = {
+  state = function(mapping, param)
+    if tcpdump_info.state == "Requested" then
+      -- incase tcpdump quit after <count>, touch "/tmp/.tcpdumpGUI.compl"
+      if pathexists(TCPDUMP_COMPL) then
+        killtcpdump()
+        remove(TCPDUMP_COMPL)
+        tcpdump_info.state = "Complete"
+      elseif pathexists(TCPDUMP_COMPL) ~= true and tcpdump_info.pid ~= 0 and pathexists("/proc/" .. tcpdump_info.pid) then
+        log:info("state = Requested")
+      else
+        killtcpdump()
+        tcpdump_info.state = "Error"
+      end
+    end
+    return tcpdump_info.state
+  end,
+  interface = function(mapping, param, value)
+    return tcpdump_info.interface
+  end,
+  --[[
+  accelerate = function(mapping, param, value)
+    local acc = cmdlog("fcctl status |grep IP-Flow")
+    tcpdump_info.acc = "0"
+    if match(acc, "Enabled") ~= nil then
+      tcpdump_info.acc = "1"
+    end
+    return tcpdump_info.acc
+  end,
+  --]]
+  refcount = getrefcount,
+  count = function(mapping, param, value)
+    return tcpdump_info.count
+  end,
+  type = function(mapping, param, value)
+    return tcpdump_info.type
+  end,
+  intflist = getlist,
+  file = function(mapping, param, value)
+    return tcpdump_info.file
+  end,
+}
+
+--[[
+"None"
+   -- Requested
+"Requested"
+   -- Complete
+"Complete"
+   -- Requested
+"Error"
+   -- Requested
+--]]
+SYSTEM_TCPDUMP_.set = {
+  state = function(mapping, param, value)
+    if (tcpdump_info.state == "None" and value == "Requested")
+      or (tcpdump_info.state == "Requested" and value == "Complete")
+      or ((tcpdump_info.state == "Complete" or tcpdump_info.state == "Error") and (value == "None" or value == "Requested")) then
+        tcpdump_info.state = value
+    else
+      return nil, "set state failed"
+    end
+  end,
+  interface = function(mapping, param, value)
+    getlist()
+    for w in gmatch(tcpdump_info.intflist, "%S+") do
+      if value == w then
+        tcpdump_info.interface = value
+        tcpdump_info.state = "None"
+        return true
+      end
+    end
+    return nil, "invalid interface "..value
+  end,
+  type = function(mapping, param, value)
+    tcpdump_info.type = value
+    tcpdump_info.state = "None"
+    if value == "pcap" then
+      tcpdump_info.file = TCPDUMP_PCAP
+    else
+      tcpdump_info.file = TCPDUMP_LOG
+    end
+  end,
+  count = function(mapping, param, value)
+    local count = tonumber(value)
+    if count == nil or count <= 0 or count > tonumber(MAX_COUNT) then
+      return nil, "invalid value " .. value .. " : [1, " .. MAX_COUNT .. "]"
+    else
+      tcpdump_info.count = value
+      tcpdump_info.state = "None"
+    end
+  end,
+  --[[
+  accelerate = function(mapping, param, value)
+    if value == "1" then
+      execute("fcctl enable;fcctl config --mcast 3")
+    else
+      execute("fcctl disable;fcctl config --mcast 0")
+    end
+    tcpdump_info.state = "None"
+  end,
+  --]]
+}
+
+SYSTEM_TCPDUMP_.commit = function()
+  statecommit()
+end
+
+---------------------------------------------------------------------
+-- register
+---------------------------------------------------------------------
+if pathexists("/usr/sbin/tcpdump") then
+  register(SYSTEM_TCPDUMP_)
+end

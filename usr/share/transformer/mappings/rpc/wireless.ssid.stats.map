@@ -1,0 +1,138 @@
+--Version1.1: NG-56166
+--NG-70800
+local logger = require("transformer.logger")
+local log = logger.new("wireless.ssid.stats", 2)
+local register = register;
+
+local wireless_ssid_stats_ = {
+  objectType = {
+    name = "rpc.wireless.ssid.@.stats.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      tx_packets = {
+          access = "readOnly",
+          type = "string",
+      },
+      tx_unicast_packets = {
+          access = "readOnly",
+          type = "string",
+      },
+      tx_broadcast_packets = {
+          access = "readOnly",
+          type = "string",
+      },
+      tx_multicast_packets = {
+          access = "readOnly",
+          type = "string",
+      },
+      tx_errors = {
+          access = "readOnly",
+          type = "string",
+      },
+      tx_discards = {
+          access = "readOnly",
+          type = "string",
+      },
+      tx_bytes = {
+          access = "readOnly",
+          type = "string",
+      },
+      rx_packets = {
+          access = "readOnly",
+          type = "string",
+      },
+      rx_unicast_packets = {
+          access = "readOnly",
+          type = "string",
+      },
+      rx_broadcast_packets = {
+          access = "readOnly",
+          type = "string",
+      },
+      rx_multicast_packets = {
+          access = "readOnly",
+          type = "string",
+      },
+      rx_errors = {
+          access = "readOnly",
+          type = "string",
+      },
+      rx_discards = {
+          access = "readOnly",
+          type = "string",
+      },
+      rx_bytes = {
+          access = "readOnly",
+          type = "string",
+      },
+      reset = {
+        access = "readWrite",
+        type = "boolean",
+      },
+    },
+  }
+}
+
+local uci_helper = mapper("ucihelper")
+local conn = mapper("ubus").connect()
+
+local function nilToEmptyString(st)
+  if st == nil then
+    return ""
+  else
+    return tostring(st)
+  end
+end
+
+local function getDataForIface(iface)
+  local result = conn:call("wireless.ssid.stats", "get", { name = iface })
+  if result == nil then
+    log:error("Cannot retrieve ssid stats info for iface " .. iface)
+      return {}
+    end
+  return result[iface]
+end
+
+local function getall(mapping, key)
+  local ifaceData = getDataForIface(key)
+  local sanitizedData = {}
+  for k,v in pairs(ifaceData) do
+    sanitizedData[k] = nilToEmptyString(v)
+  end
+  return sanitizedData
+end
+
+local stat_cache = {}
+
+local function get(mapping, paramName, key, nocache)
+  if paramName == "reset" then
+    return "0"
+  end
+  local ifaceData = getDataForIface(key)
+  if nocache then
+    return nilToEmptyString(ifaceData[paramName])
+  end
+  if uci_helper.get_from_uci({ config = "wireless", sectionname = key, option = "state"}) == "0" and stat_cache[key] then
+    return "0"
+  end
+  local substract = stat_cache[key] and tonumber(stat_cache[key][paramName]) or 0
+  local result = tonumber(nilToEmptyString(ifaceData[paramName]))
+  return tostring(result and result - substract or "0")
+end
+
+local function set(mapping, paramName, paramValue, key)
+  if paramName == "reset" and paramValue == "1" then
+    stat_cache[key] = {}
+    for mapping_paramname in pairs(mapping.objectType.parameters) do
+      stat_cache[key][mapping_paramname] = get(mapping, mapping_paramname, key, true)
+    end
+  end
+end
+
+
+wireless_ssid_stats_.getall = getall
+wireless_ssid_stats_.set = set
+wireless_ssid_stats_.get = get
+register(wireless_ssid_stats_)

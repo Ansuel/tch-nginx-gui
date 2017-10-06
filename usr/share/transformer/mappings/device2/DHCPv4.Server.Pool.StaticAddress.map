@@ -1,0 +1,197 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_DHCPv4_Server_Pool_i_StaticAddress_i_ = {
+  objectType = {
+    name = "Device.DHCPv4.Server.Pool.{i}.StaticAddress.{i}.",
+    access = "readWrite",
+    numEntriesParameter = "StaticAddressNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        max = "64",
+      },
+      Chaddr = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      Yiaddr = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+    }
+  }
+}
+
+local inet = require "tch.inet"
+local uciHelper = mapper("ucihelper")
+local nwCommon = mapper("nwcommon")
+local splitKey = nwCommon.split_key
+local dhcp = require("transformer.shared.dhcp")
+local setOnUci = uciHelper.set_on_uci
+local generateKeyOnUci = uciHelper.generate_key_on_uci
+local commitKeys = uciHelper.commit_keys
+local revertKeys = uciHelper.revert_keys
+local keyToSectionName = {}
+local dhcpBinding = { config = "dhcp"}
+local isConfigChanged = false
+local match, gmatch = string.match, string.gmatch
+
+local paramMap = {
+  ["Enable"] = "enable",
+  ["Chaddr"] = "mac",
+  ["Yiaddr"] = "ip"
+}
+local paramDefaults = {
+  ["Enable"] = "1",
+  ["Chaddr"] = "",
+  ["Yiaddr"] = ""
+}
+
+Device_DHCPv4_Server_Pool_i_StaticAddress_i_.entries = function(mapping, parentkey)
+  local staticAddrs = {}
+  keyToSectionName = {}
+  local data = dhcp.parseDHCPData(parentkey)
+  local keyGenerated = false
+  dhcpBinding.sectionname = "host"
+  local result = uciHelper.foreach_on_uci(dhcpBinding, function(s)
+    local _key = s._key
+    if not _key then
+      dhcpBinding.sectionname = s[".name"]
+      _key = generateKeyOnUci(dhcpBinding)
+      keyGenerated = true
+    end
+    local staticIP = s["ip"]
+    local ipValue = staticIP and nwCommon.ipv4ToNum(staticIP) or 0
+    if ipValue >= data.ipStart and ipValue <= data.ipEnd then
+      if parentkey ~= splitKey(_key) then
+        _key = parentkey .. "|" .. _key
+      end
+      staticAddrs[#staticAddrs + 1] = _key
+      keyToSectionName[_key] = s[".name"]
+    else
+      if parentkey == splitKey(_key) then
+        staticAddrs[#staticAddrs + 1] = _key
+        keyToSectionName[_key] = s[".name"]
+      end
+    end
+  end)
+  if keyGenerated then
+    if result then
+      commitKeys(dhcpBinding)
+    else
+      revertKeys(dhcpBinding)
+    end
+  end
+  return staticAddrs
+end
+
+local function getUciParam(mapping,param,key)
+  dhcpBinding.sectionname = keyToSectionName[key]
+  dhcpBinding.option = paramMap[param]
+  dhcpBinding.default = paramDefaults[param]
+  return uciHelper.get_from_uci(dhcpBinding)
+end
+
+local function setUciParam(key, param, value)
+  dhcpBinding.sectionname = keyToSectionName[key]
+  dhcpBinding.option = param
+  setOnUci(dhcpBinding, value, commitapply)
+  isConfigChanged = true
+end
+
+Device_DHCPv4_Server_Pool_i_StaticAddress_i_.get = {
+  Enable = getUciParam,
+  Chaddr = getUciParam,
+  Yiaddr = getUciParam,
+}
+
+Device_DHCPv4_Server_Pool_i_StaticAddress_i_.getall = function(mapping, key)
+  dhcpBinding.sectionname = keyToSectionName[key]
+  local uciValues = uciHelper.getall_from_uci(dhcpBinding)
+  local allValues = {
+    Enable = uciValues[paramMap["Enable"]] or "1",
+    Chaddr = uciValues[paramMap["Chaddr"]] or "",
+    Yiaddr = uciValues[paramMap["Yiaddr"]] or ""
+  }
+  return allValues
+end
+
+Device_DHCPv4_Server_Pool_i_StaticAddress_i_.set = {
+  Enable = function(mapping, param, value, key)
+    setUciParam(key, "enable", value)
+  end,
+  Chaddr = function(mapping, param, value, key)
+    local result = nwCommon.isMAC(value)
+    if result then
+      setUciParam(key, "mac", value)
+    else
+      return nil, "Invalid MAC address, it must be of the form 00:11:22:33:44:55"
+    end
+  end,
+  Yiaddr = function(mapping, param, value, key)
+    if inet.isValidIPv4(value) then
+      setUciParam(key, "ip", value)
+    else
+      return nil, "Invalid IP address, it must be of the form 1.2.3.4"
+    end
+  end,
+}
+
+Device_DHCPv4_Server_Pool_i_StaticAddress_i_.add = function(mapping,parentkey)
+  dhcpBinding.sectionname = "host"
+  dhcpBinding.option = nil
+  local sectionName = uciHelper.add_on_uci(dhcpBinding, commitapply)
+  if sectionName then
+    uciHelper.commit(dhcpBinding)
+    isConfigChanged = true
+    dhcpBinding.sectionname = sectionName
+    local _key = generateKeyOnUci(dhcpBinding)
+    if _key then
+      _key = parentkey .. "|" .. _key
+      keyToSectionName[_key] = sectionName
+      commitKeys(dhcpBinding)
+      setUciParam(_key, "_key", _key)
+      return _key
+    else
+      revertKeys(dhcpBinding)
+    end
+  end
+end
+
+Device_DHCPv4_Server_Pool_i_StaticAddress_i_.delete = function(mapping,key)
+  dhcpBinding.sectionname = keyToSectionName[key]
+  dhcpBinding.option = nil
+  uciHelper.delete_on_uci(dhcpBinding, commitapply)
+  dhcpBinding.sectionname = nil
+  isConfigChanged = true
+  return true
+end
+
+Device_DHCPv4_Server_Pool_i_StaticAddress_i_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(dhcpBinding)
+    isConfigChanged = false
+  end
+end
+
+Device_DHCPv4_Server_Pool_i_StaticAddress_i_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(dhcpBinding)
+    isConfigChanged = false
+  end
+end
+
+register(Device_DHCPv4_Server_Pool_i_StaticAddress_i_)

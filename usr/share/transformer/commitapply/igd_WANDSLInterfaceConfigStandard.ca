@@ -1,0 +1,1 @@
+^InternetGatewayDevice%.WANDevice%.[^%.]+%.WANDSLInterfaceConfig%.X_0876FF_StandardSelected  read standard < /tmp/.DSLStandard_intf ;  xdslctl start configure --mod $standard ; rm /tmp/.DSLStandard_intf ;

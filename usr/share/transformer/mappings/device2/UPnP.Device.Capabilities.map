@@ -1,0 +1,92 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_UPnP_Device_Capabilities_ = {
+  objectType = {
+    name = "Device.UPnP.Device.Capabilities.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      UPnPArchitecture = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      UPnPArchitectureMinorVer = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      UPnPMediaServer = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      UPnPIGD = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+--[[ TODO:
+      UPnPMediaRenderer = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      UPnPWLANAccessPoint = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      UPnPBasicDevice = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      UPnPQoSDevice = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      UPnPQoSPolicyHolder = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },      
+      UPnPDMBasicMgmt = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      UPnPDMConfigurationMgmt = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      UPnPDMSoftwareMgmt = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+]]
+    }
+  }
+}
+
+local uciHelper = mapper("ucihelper")
+local getFromUci = uciHelper.get_from_uci
+local upnpBinding = { config = "upnpd", sectionname = "config", option = "datamodel_version"}
+local dlnad_binding = { config = "dlnad", sectionname = "config", option = "enabled"}
+
+Device_UPnP_Device_Capabilities_.get = {
+  UPnPArchitecture = "1",
+  UPnPArchitectureMinorVer = "0",
+  UPnPMediaServer = function(mapping, param, key)
+    local dlnad_enabled = getFromUci(dlnad_binding)
+    if dlnad_enabled == "0" or dlnad_enabled == "" then
+       return "0"
+    else
+       return "1"
+    end
+  end,
+  UPnPIGD = function(mapping, param, key)
+    local version = getFromUci(upnpBinding)
+    if version == "igdv1" then
+        return "1"
+    else
+        return "2"
+    end
+  end,
+}
+
+-- A getall implementation is not done as it will not bring any improvement
+
+register(Device_UPnP_Device_Capabilities_)

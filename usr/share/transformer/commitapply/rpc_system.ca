@@ -1,0 +1,8 @@
+^rpc%.system%.reset rtfd $(test "$(uci get env.var.rtfds)" = "1" && echo '--soft')
+^rpc%.system%.reboot /usr/share/transformer/scripts/reboot_with_reason.sh
+^rpc%.system%.switchover cat /proc/banktable/notbooted > /proc/banktable/active; reboot
+^rpc%.system%.resetgui /usr/share/transformer/scripts/resetgui.sh
+^rpc%.system%.removeroot /usr/share/transformer/scripts/hardreset.sh
+^rpc%.system%.upgradegui /usr/share/transformer/scripts/upgradegui.sh
+^rpc%.system%.transfer_bank1 /usr/share/transformer/scripts/transfer_bank1.sh
+^sys%.bootp%.enable /usr/bin/bootp

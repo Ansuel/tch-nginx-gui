@@ -1,0 +1,197 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_Ethernet_VLANTermination_i_ = {
+  objectType = {
+    name = "Device.Ethernet.VLANTermination.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "VLANTerminationNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Up",
+          "Down",
+          "Unknown",
+          "Dormant",
+          "NotPresent",
+          "LowerLayerDown",
+          "Error",
+        },
+        default = "Down",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        max  = "64",
+      },
+      Name = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      LowerLayers = {
+        access = "readOnly", -- VLAN cannot be separated from the Eth.Link
+        list = true,
+        max = "1024",
+        type = "string",
+        pathRef = true,
+        default = "",
+      },
+      VLANID = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+            max = "4094",
+          },
+        },
+      },
+--[[ TODO:
+      TPID = {
+        access = "readWrite",
+        type = "string",
+        max = "64",
+      },
+      LastChange = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+--]]
+    }
+  },
+  aliasDefault = "Name",
+}
+
+local nwmodel = require "transformer.shared.models.device2.network"
+local VLAN = nwmodel.register("VLAN", Device_Ethernet_VLANTermination_i_.objectType.name)
+local model
+
+local nwCommon = mapper("nwcommon")
+local getIntfInfo = nwCommon.getIntfInfo
+local uciHelper = mapper("ucihelper")
+local getFromUci = uciHelper.get_from_uci
+local commitApply = commitapply
+local isConfigChanged = false
+local vlanDeviceBinding = { config = "network"}
+
+local vlanStatus = {
+  ["up"] = "Up",
+  ["down"] = "Down",
+  ["unknown"] = "Unknown",
+  ["dormant"] = "Dormant",
+  ["notpresent"] = "NotPresent",
+  ["lowerlayerdown"] = "LowerLayerDown",
+}
+
+Device_Ethernet_VLANTermination_i_.entries = function(mapping)
+  model = nwmodel.load()
+  return model:getKeys(VLAN)
+end
+
+local function getUciParam(key, paramName, default)
+  local ucikey = model:getUciKey(key)
+  vlanDeviceBinding.sectionname = ucikey
+  vlanDeviceBinding.option = paramName
+  vlanDeviceBinding.default = default
+  return getFromUci(vlanDeviceBinding)
+end
+
+local function getEthVlanStatus(key)
+  local status = getIntfInfo(model:getDevice(key),"operstate")
+  if status and status ~= "" then
+    return vlanStatus[status]
+  end
+  return "Down"
+end
+
+local function getEthVlanLowerLayer(key)
+  return model:getLowerLayersResolved(key, resolve)
+end
+
+Device_Ethernet_VLANTermination_i_.get = {
+  Enable = function(mapping, param, key)
+    local vid = model:get(key).vid
+    if vid then
+      return "1"
+    else
+      return getUciParam(key,"enabled","1")
+    end
+  end,
+
+  Status = function(mapping, param, key)
+    return getEthVlanStatus(key)
+  end,
+
+  Name = function(mapping, param, key)
+    return model:getName(key)
+  end,
+
+  LowerLayers = function(mapping, param, key)
+    return getEthVlanLowerLayer(key)
+  end,
+
+  VLANID = function(mapping, param, key)
+    local vid = model:get(key).vid
+    if vid then
+      return vid
+    else
+      return getUciParam(key,"vid","1")
+    end
+  end,
+}
+
+local function setUciParam(key, option, value)
+  vlanDeviceBinding.sectionname = model:getUciKey(key)
+  vlanDeviceBinding.option = option
+  uciHelper.set_on_uci(vlanDeviceBinding, value, commitApply)
+  isConfigChanged = true
+end
+
+Device_Ethernet_VLANTermination_i_.set = {
+  Enable = function(mapping, param, value, key)
+    local vid = model:get(key).vid
+    if not vid then
+      setUciParam(key, "enabled", value)
+    elseif value~='1' then
+      return nil, "this vlan can not be disabled"
+    end
+  end,
+
+  VLANID = function(mapping, param, value, key)
+    local vid = model:get(key).vid
+    if not vid then
+      setUciParam(key, "vid", value)
+    elseif value~=vid then
+      return nil, "this vlan can not change its vlan id"
+    end
+  end,
+}
+
+Device_Ethernet_VLANTermination_i_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(vlanDeviceBinding)
+    isConfigChanged = false
+  end
+end
+
+Device_Ethernet_VLANTermination_i_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(vlanDeviceBinding)
+    isConfigChanged = false
+  end
+end
+
+register(Device_Ethernet_VLANTermination_i_)

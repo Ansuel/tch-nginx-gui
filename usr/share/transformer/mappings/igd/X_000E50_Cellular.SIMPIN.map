@@ -1,0 +1,116 @@
+local helper = require("mobiled.scripthelpers")
+local transactions = {}
+
+local obj = {
+	objectType = {
+		name = 'InternetGatewayDevice.X_000E50_Cellular.SIMPIN.',
+		access = 'readOnly',
+		minEntries = 1,
+		maxEntries = 1,
+		parameters = {
+			pin_state = {
+				access = "readOnly",
+				type = "string"
+			},
+			unblock_retries_left= {
+				access = "readOnly",
+				type = "string"
+			},
+			unlock_retries_left= {
+				access = "readOnly",
+				type = "string"
+			},
+			pin={
+			 access = "readWrite",
+				type = "string"
+			},
+			puk={
+				access = "readWrite",
+				type = "string"
+			},
+			newpin={
+				access = "readWrite",
+				type = "string"
+			},
+			action={
+				access = "readWrite",
+				activeNotify = "canDeny",
+				type = "string",
+				default = "none",
+				enumeration = {
+					"none",
+					"enable",
+					"disable",
+					"unblock",
+					"unlock",
+					"change"
+				}
+			}
+		}
+	}
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+	return
+end
+
+local function validPin(pin)
+  if pin and #pin >= 4 and #pin <= 8 then
+    return pin 
+  end
+end
+          
+local function getall(mapping,key)
+	return helper.getUbusData(conn, "mobiled.sim.pin", "get", {})
+end
+
+local function get(mapping, paramName, key)
+	return getall(mapping, key)[paramName]
+end
+
+local function set(mapping, paramName, paramValue)
+	if paramName == "action" then
+		if paramValue == "unblock" and transactions["puk"] and transactions["newpin"] then
+			conn:call("mobiled.sim.pin", "unblock", { puk = transactions["puk"], newpin = transactions["newpin"] })
+			transactions["puk"] = nil
+			transactions["newpin"] = nil
+		elseif paramValue == "unlock" and transactions["pin"] then
+			conn:call("mobiled.sim.pin", "unlock", { pin = transactions["pin"] })
+			transactions["pin"] = nil
+		elseif paramValue == "change" and transactions["pin"] and transactions["newpin"] then
+			conn:call("mobiled.sim.pin", "change", { pin = transactions["pin"], newpin = transactions["newpin"] })
+			transactions["pin"] = nil
+			transactions["newpin"] = nil
+		elseif paramValue == "enable" and transactions["pin"] then
+			conn:call("mobiled.sim.pin", "enable", { pin = transactions["pin"] })
+			transactions["pin"] = nil
+		elseif paramValue == "disable" then
+			conn:call("mobiled.sim.pin", "disable", { pin = transactions["pin"] })
+			transactions["pin"] = nil
+		end
+	 end
+	 if paramName == "pin" then
+		 if #paramValue >= 4 and #paramValue <= 8 then
+			transactions["pin"] = paramValue
+		 end
+	end
+	if paramName == "puk" then
+		if #paramValue >= 8 and #paramValue <= 16 then
+			transactions["puk"] = paramValue
+		end
+	end
+	if paramName == "newpin" then
+		local oldPin, newPin = paramValue:match("([^,]+),([^,]+)")
+		if validPin(oldPin) and validPin(newPin) then
+			transactions["pin"] = oldPin
+			transactions["newpin"] = newPin
+		end
+	end
+end
+
+obj.getall = getall
+obj.get = get
+obj.set = set
+
+register(obj)

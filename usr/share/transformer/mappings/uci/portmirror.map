@@ -1,0 +1,14 @@
+local mapper = mapper
+local config_portmirror = "portmirror"
+-- uci.portmirror
+mapper("uci_1to1").registerConfigMap(config_portmirror)
+
+-- uci.portmirror.portmirror.
+local portmirror_dev = {
+  config  = config_portmirror,
+  type    = "portmirror",
+  options = { "srcintf", "dstintf", "direction", "start" }
+}
+mapper("uci_1to1").registerNamedMultiMap(portmirror_dev)
+
+

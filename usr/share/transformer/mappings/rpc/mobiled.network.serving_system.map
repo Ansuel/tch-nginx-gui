@@ -1,0 +1,91 @@
+local tonumber, string = tonumber, string
+
+local mobiled_network_serving_system_ = {
+    objectType = {
+        name = 'rpc.mobiled.device.@.network.serving_system.',
+        access = 'readOnly',
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            nas_state = {
+                access = "readOnly",
+                type = "string"
+            },
+            cell_id = {
+                access = "readOnly",
+                type = "string"
+            },
+            cell_id_hex = {
+                access = "readOnly",
+                type = "string"
+            },
+            tracking_area_code = {
+               access = "readOnly",
+               type = "string"
+            },
+            location_area_code = {
+               access = "readOnly",
+               type = "string"
+            },
+            mnc = {
+                access = "readOnly",
+                type = "string"
+            },
+            mcc = {
+                access = "readOnly",
+                type = "string"
+            },
+            network_desc = {
+                access = "readOnly",
+                type = "string"
+            },
+            cs_state = {
+                 access = "readOnly",
+                 type = "string"
+            },
+            ps_state = {
+                 access = "readOnly",
+                 type = "string"
+            },
+            roaming_state = {
+                 access = "readOnly",
+                 type = "string"
+            },
+            service_state = {
+                access = "readOnly",
+                 type = "string"
+            }
+        }
+    }
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+    return
+end
+
+local helper = require("mobiled.scripthelpers")
+
+local function getall(mapping, key)
+    local data = helper.getUbusData(conn, "mobiled.network", "serving_system", { dev_idx = tonumber(string.match(key, '%d')) })
+    local result = data
+    if data.plmn_info and data.plmn_info ~= "" then
+        result['network_desc'] = data.plmn_info.description
+        result['mcc'] = data.plmn_info.mcc
+        result['mnc'] = data.plmn_info.mnc
+        result.plmn_info = nil
+    end
+    if data.cell_id and data.cell_id ~= "" then
+        result['cell_id_hex'] = string.format("%X", tonumber(data.cell_id))
+    end
+    return result
+end
+
+local function get(mapping, paramName, key)
+    return getall(mapping, key)[paramName]
+end
+
+mobiled_network_serving_system_.getall = getall
+mobiled_network_serving_system_.get = get
+
+register(mobiled_network_serving_system_)

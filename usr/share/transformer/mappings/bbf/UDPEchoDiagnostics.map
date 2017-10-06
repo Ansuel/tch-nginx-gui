@@ -1,0 +1,262 @@
+-- Automatically generated from Device:2.11
+-- using generator version 2.3
+local Multi_UDPEchoDiagnostics_ = {
+  objectType = {
+    name = "#ROOT.UDPEchoDiagnostics.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      DiagnosticsState = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        enumeration = {
+          "None",
+          "Requested",
+          "Completed",
+          "Error_CannotResolveHostName",
+          "Error_Internal",
+          "Error_Other",
+        },
+      },
+      Interface = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        pathRef = true,
+      },
+      Host = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        max = "256",
+      },
+      Port = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+            max = "65535",
+          },
+        },
+      },
+      NumberOfRepetitions = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+      Timeout = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+      DataBlockSize = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+            max = "65535",
+          },
+        },
+      },
+      DSCP = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "63",
+          },
+        },
+      },
+      InterTransmissionTime = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+            max = "65535",
+          },
+        },
+      },
+      ProtocolVersion = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "Any",
+          "IPv4",
+          "IPv6",
+        },
+      },
+      IPAddressUsed = {
+        access = "readOnly",
+        type = "string",
+      },
+      SuccessCount = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      FailureCount = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      AverageResponseTime = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      MinimumResponseTime = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      MaximumResponseTime = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      EnableIndividualPacketResults = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "boolean",
+      },
+      -- IndividualPacketResultNumberOfEntries
+      -- automatically created when Device.IP.Diagnostics.UDPEchoDiagnostics.IndividualPacketResult.{i}. is loaded
+      UDPEchoDiagnosticsMaxResults = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+    }
+  }
+}
+
+local uci_helper = mapper("ucihelper")
+local getFromUci = uci_helper.get_from_uci
+local tr143binding = { config = "tr143" }
+
+local function getSectionName(mapping)
+  if mapping.objectType.name:match("^InternetGatewayDevice") then
+    return "igd"
+  else
+    return "device2"
+  end
+end
+
+local helper = require("transformer.shared.tr143helper")
+
+Multi_UDPEchoDiagnostics_.get = function(mapping, pname)
+  local config = "UDPEchoDiagnostics"
+  local user = getSectionName(mapping)
+  return helper.tr143_get(config, user, pname)
+end
+
+Multi_UDPEchoDiagnostics_.set = function(mapping, pname, pvalue)
+  local config = "UDPEchoDiagnostics"
+  local user = getSectionName(mapping)
+  return helper.tr143_set(config, user, pname, pvalue, commitapply)
+end
+
+Multi_UDPEchoDiagnostics_.commit = helper.tr143_commit
+
+Multi_UDPEchoDiagnostics_.revert = helper.tr143_revert
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_UDPEchoDiagnostics_, "#ROOT", {"InternetGatewayDevice", "Device.IP.Diagnostics"})
+for _, dupli in ipairs(duplicates) do
+  helper.startup(resolve, tokey)
+  register(dupli)
+end
+
+local Multi_UDPEchoDiagnostics_IndividualPacketResult_i_ = {
+  objectType = {
+    name = "#ROOT.UDPEchoDiagnostics.IndividualPacketResult.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "IndividualPacketResultNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      PacketSuccess = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      PacketSendTime = {
+        access = "readOnly",
+        type = "dateTime",
+      },
+      PacketReceiveTime = {
+        access = "readOnly",
+        type = "dateTime",
+      },
+      TestGenSN = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      TestRespSN = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      TestRespRcvTimeStamp = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      TestRespReplyTimeStamp = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      TestRespReplyFailureCount = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+    }
+  }
+}
+
+local IPRKeyToSectionName = {}
+
+Multi_UDPEchoDiagnostics_IndividualPacketResult_i_.get = function(mapping, pname, key)
+  local value
+  local keyid = key:match("|(.*)")
+  tr143binding.sectionname = IPRKeyToSectionName[keyid]
+  tr143binding.option = pname
+  value = getFromUci(tr143binding)
+  return value or ""
+end
+
+Multi_UDPEchoDiagnostics_IndividualPacketResult_i_.entries = function(mapping)
+  local entries = {}
+  tr143binding.sectionname = "IndividualPacketResult"
+  uci_helper.foreach_on_uci(tr143binding, function(s)
+    if not s._key then
+      s._key = uci_helper.generate_key_on_uci({ config = "tr143", sectionname = s[".name"] })
+      uci_helper.commit_keys(tr143binding)
+    end
+    entries [#entries + 1] = string.format("IPR|%s", s._key)
+    IPRKeyToSectionName[s._key] = s[".name"]
+  end)
+  return entries
+end
+
+local duplicates = duplicator(Multi_UDPEchoDiagnostics_IndividualPacketResult_i_, "#ROOT", {"InternetGatewayDevice", "Device.IP.Diagnostics"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end

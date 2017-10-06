@@ -1,0 +1,1203 @@
+-- Automatically generated from InternetGatewayDevice:1.3
+-- using generator version 2.1
+local InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_ = {
+  objectType = {
+    name = "InternetGatewayDevice.LANDevice.{i}.LANHostConfigManagement.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      MACAddress = {
+        access = "readOnly",
+        type = "string",
+        max = "17",
+      },
+      DHCPServerConfigurable = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      DHCPServerEnable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      DHCPRelay = {
+        access = "readOnly",
+        status = "deprecated",
+        type = "boolean",
+      },
+      MinAddress = {
+        access = "readWrite",
+        type = "string",
+      },
+      MaxAddress = {
+        access = "readWrite",
+        type = "string",
+      },
+      ReservedAddresses = {
+        access = "readOnly",
+        list = true,
+        max = "256",
+        type = "string",
+      },
+      SubnetMask = {
+        access = "readWrite",
+        type = "string",
+      },
+      DNSServers = {
+        access = "readWrite",
+        list = true,
+        maxItems = "3",
+        max = "64",
+        type = "string",
+      },
+      DomainName = {
+        access = "readWrite",
+        type = "string",
+        max = "64",
+      },
+      IPRouters = {
+        access = "readWrite",
+        list = true,
+        max = "64",
+        type = "string",
+      },
+      DHCPLeaseTime = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+          },
+        },
+      },
+      UseAllocatedWAN = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Normal",
+          "UseAllocatedSubnet",
+          "Passthrough",
+        },
+      },
+      AssociatedConnection = {
+        access = "readOnly",
+        type = "string",
+        max = "256",
+      },
+      PassthroughLease = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      PassthroughMACAddress = {
+        access = "readOnly",
+        type = "string",
+      },
+      AllowedMACAddresses = {
+        access = "readWrite",
+        list = true,
+        max = "512",
+        type = "string",
+      },
+      X_000E50_IPv6Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      -- IPInterfaceNumberOfEntries
+      -- automatically created when InternetGatewayDevice.LANDevice.{i}.LANHostConfigManagement.IPInterface.{i}. is loaded
+    }
+  }
+}
+
+local ipairs, mapper, commitapply = ipairs, mapper, commitapply
+local math, register, string, open = math, register, string, io.open
+local format, tonumber = string.format, tonumber
+local uci_helper = mapper("ucihelper")
+local bit = require("bit")
+local min = require("math").min
+local nwCommon = mapper("nwcommon")
+local dhcp = require("transformer.shared.dhcp")
+local wifi_binding = {config = "wireless", sectionname = "wifi-iface"}
+local inet = require "tch.inet"
+local syspath = "/sys/class/net/"
+local dhcp_transaction = {}
+
+-- Return number representing the IP address / netmask (first byte is first part ...)
+local ipmatch = "(%d+)%.(%d+)%.(%d+)%.(%d+)"
+local function ipv42num(ipstr)
+    local result = 0
+    local ipblocks = { string.match(ipstr, ipmatch) }
+    if #ipblocks < 4 then
+        return nil
+    end
+
+    for _,v in ipairs(ipblocks) do
+        result = bit.lshift(result, 8) + v
+    end
+    return result
+end
+
+local function num2ipv4(ip)
+    local ret = bit.band(ip, 255)
+    local ip = bit.rshift(ip,8)
+    for i=1,3 do
+        ret = bit.band(ip,255) .. "." .. ret
+        ip = bit.rshift(ip,8)
+    end
+    return ret
+end
+
+local function firstline(filename)
+   local fd = open(filename)
+   if not fd then
+     return nil
+   end
+   local result = fd:read("*l")
+   fd:close()
+   return result
+end
+
+local conditionalsection = {
+   ["mac"] = true,
+   ["vendorclass"] = true,
+   ["userclass"] = true,
+   ["host_client_id"] = true,
+}
+local cpoolpattern = "^tag:conditional"
+
+local function getDNSMASQConfig(param)
+    local result
+    result = uci_helper.get_from_uci({
+        extended = 1, config = "dhcp", sectionname = "@dnsmasq[0]", option = param
+    })
+    return result
+end
+
+--- get first non conditional pool on intf key
+local function getDHCPConfigSectionForIntf(key)
+    local result
+    local binding = {config="dhcp",sectionname="dhcp"}
+    uci_helper.foreach_on_uci(binding, function(s)
+    -- iterate over the dhcp pools and take the first one that has the interface name (key) as the interface
+    -- TODO once we add configuration of specific dhcp pools for given options, return the "generic" pool
+    -- TODO (the one with no selection)
+        if s['interface'] == key then
+            local networkid = s['networkid']
+            if networkid == nil or string.match(networkid,cpoolpattern) == nil then
+                result = s['.name']
+                return false
+            end
+        end
+    end)
+    return result
+end
+
+local function getDHCPConfigForSection(section, param, default)
+    local result = uci_helper.get_from_uci({
+        config = "dhcp", sectionname = section, option = param, default = default,
+    })
+    return result
+end
+
+-- For a given network name (lan for instance), return the wifi-iface sections associated with it in UCI
+local function getIfacesForNetwork(network)
+    local binding={config = "wireless", sectionname = "wifi-iface"}
+    local ifaces = {}
+    uci_helper.foreach_on_uci(binding, function(s)
+    if s["network"] == network then
+        ifaces[#ifaces + 1] = s[".name"]
+    end
+    end)
+    return ifaces
+end
+
+-- For a given wifi iface name (wl0 for instance), return the active ap sections associated with it in UCI
+local function getAPForIface(iface)
+    local binding={config = "wireless", sectionname = "wifi-ap"}
+    local ap = ""
+    uci_helper.foreach_on_uci(binding, function(s)
+    if s["iface"] == iface then
+        ap = s[".name"]
+        return false
+    end
+    end)
+    return ap
+end
+
+local function getDHCPConfig(key, param, default)
+    local section = getDHCPConfigSectionForIntf(key)
+    if section == nil then
+        return nil, "DHCP section not found"
+    end
+    return getDHCPConfigForSection(section, param, default)
+end
+
+local function setDHCPConfigForSection(section, param, value)
+    uci_helper.set_on_uci({
+        config = "dhcp", sectionname = section, option = param
+    }, value, commitapply)
+end
+
+local function setDHCPConfig(key, param, value)
+    local section = getDHCPConfigSectionForIntf(key)
+    if section == nil then
+        return nil, "DHCP section not found"
+    end
+    setDHCPConfigForSection(section, param, value)
+end
+
+local function getDHCPnetworkForIntf(key)
+    local network_cfg = uci_helper.getall_from_uci({
+        config = "network", sectionname = key
+    })
+    local network = ''
+    local baseip = ipv42num(network_cfg[ "ipaddr"] or '')
+    local netmask = ipv42num(network_cfg["netmask"] or '')
+    if baseip and netmask then
+        network = bit.band(baseip, netmask)
+    end
+    return network
+end
+
+local function getMACAddress(key)
+    local macAddr
+    local ifnames = uci_helper.get_from_uci({
+            config = "network", sectionname = key, option = "ifname"
+            })
+    for ifname in string.gmatch(ifnames, "%S+") do -- split space separated
+    --ifnames maybe in the format eth0 eth1 eh2 eth3
+    --or in the format ptm0
+    --or in the format vlan100 vlan200
+        local file = syspath .. ifname .. "/address"
+        macAddr = firstline(file)
+        if not macAddr then
+            -- consider that getting the ifname from the vlan
+            local ifnameFromVlan = uci_helper.get_from_uci({
+            config = "network", sectionname = ifname, option = "ifname"
+            })
+            if ifnameFromVlan ~="" then
+                file  = syspath .. ifnameFromVlan .. "/address"
+                macAddr = firstline(file)
+            end
+        end
+        if macAddr then
+            break
+        end
+    end
+    return macAddr or "00:00:00:00:00:00"
+end
+
+local function getDHCPdata(key)
+    local network_cfg = uci_helper.getall_from_uci({
+        config = "network", sectionname = key
+    })
+    local baseip = ipv42num(network_cfg[ "ipaddr"] or '') or 0
+    local netmask = ipv42num(network_cfg["netmask"] or '') or 0
+    local section = getDHCPConfigSectionForIntf(key)
+    local dhcp_cfg
+    if section then
+        dhcp_cfg = uci_helper.getall_from_uci({
+            config = "dhcp", sectionname = section
+        })
+    else
+        dhcp_cfg = {}
+    end
+    local start = tonumber(dhcp_cfg[ "start"] or "100")
+    local numips = tonumber(dhcp_cfg["limit"] or "150")
+    local network = bit.band(baseip, netmask)
+    local ipmin = network + 1
+    local ipmax = bit.bor(network, bit.bnot(netmask)) - 1
+    local ipstart = bit.bor(network, bit.band(start, bit.bnot(netmask)))
+    local ipend = min(ipstart + numips - 1, network + 254)
+    return {
+        name = dhcp_cfg[".name"] or "",
+        gw = baseip,
+        network = network,
+        ipmin = ipmin,
+        ipmax = ipmax,
+        ipstart = ipstart,
+        ipend = ipend,
+        start = start,
+        numips = numips,
+        leasetime = dhcp_cfg["leasetime"] or '-1',
+        intf = dhcp_cfg["interface"],
+        dhcpv4 = dhcp_cfg["dhcpv4"],
+    }
+end
+
+local function setDHCPMinMax_address(key, param, value)
+    local newvalue = ipv42num(value)
+    if newvalue == nil then
+       return nil, "Please input correct ip address"
+    end
+    local data = getDHCPdata(key)
+    -- Validation of parameters delayed to commit
+    if param == "MinAddress" then
+       setDHCPConfig(key, "start", newvalue - data.network)
+       setDHCPConfig(key, "limit", data.ipend - newvalue + 1)
+    else
+       setDHCPConfig(key, "limit", newvalue - data.ipstart + 1)
+    end
+    dhcp_transaction[key] = true
+end
+
+local function getDHCPServerEnable(key)
+    local intf = getDHCPConfig(key, "interface")
+    local dhcpv4 = getDHCPConfig(key, "dhcpv4", "server")
+    -- consider that the DHCP server is disabled if there is no IP pool defined for the interface or if the
+    -- dhcpv4 parameter is set to disabled
+    if intf == "" or dhcpv4 == "disabled" then
+        return "0"
+    else
+        return "1"
+    end
+end
+
+local InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_get = {
+    DHCPServerConfigurable = "1",
+    DHCPServerEnable = function(mapping, param, key)
+        return getDHCPServerEnable(key)
+    end,
+    DHCPRelay = "0", -- We don't want to be a DHCP relay
+    MACAddress = function(mapping, param, key)
+        return getMACAddress(key)
+    end,
+
+    MinAddress = function(mapping, param, key)
+        local data = getDHCPdata(key)
+        return num2ipv4(data.ipstart)
+    end,
+    MaxAddress = function(mapping, param, key)
+        local data = getDHCPdata(key)
+        return num2ipv4(data.ipend)
+    end,
+    ReservedAddresses = function(mapping, param, key)
+        return ""
+    end,
+    SubnetMask = function(mapping, param, key)
+        -- get that for the given interface from state in UCI
+        local result = uci_helper.get_from_uci({
+            config = "network", sectionname = key, option = "netmask"
+        })
+        return result or ""
+    end,
+    DNSServers = function(mapping, param, key)
+        -- get gw address on given interface from network in UCI
+        local ip_result = uci_helper.get_from_uci({
+            config = "network", sectionname = key, option = "ipaddr"
+        })
+        local section = getDHCPConfigSectionForIntf(key) or key
+        local result = uci_helper.get_from_uci({
+            config = "dhcp", sectionname = section, option = "dhcp_option"
+        })
+        local dnsServer = ""
+        if result == "" then
+          return ip_result or ""
+        end
+        for i,v in ipairs(result) do
+          if v:find("^6,") == 1 then
+            if dnsServer == "" then
+              dnsServer = v:sub(3)
+            else
+              dnsServer = dnsServer .. "," .. v:sub(3)
+            end
+          end
+        end
+        if dnsServer == "" then
+          return ip_result
+        else
+          return dnsServer
+        end
+    end,
+    DomainName = function(mapping, param, key)
+        return getDNSMASQConfig("domain") or ""
+    end,
+    IPRouters = function(mapping, param, key)
+        -- get route address from specified interface in dhcp config,
+        -- if route address is not present in dhcp config then get from specified interface in network config
+        local section = getDHCPConfigSectionForIntf(key) or key
+        local dhcpList = uci_helper.get_from_uci({ config = "dhcp", sectionname = section, option = "dhcp_option" })
+        local routeIP = dhcpList ~= "" and dhcp.getRouteIPAddress(dhcpList)
+        if routeIP then
+            return routeIP
+        end
+        local networkBinding = { config = "network", sectionname = key, option = "defaultroute" }
+        local defaultRoute = uci_helper.get_from_uci(networkBinding)
+        if defaultRoute == "1" or defaultRoute == "" then
+            networkBinding.option = "ipaddr"
+            return uci_helper.get_from_uci(networkBinding)
+        end
+        return ""
+    end,
+    DHCPLeaseTime = function(mapping, param, key)
+        return dhcp.convertTimeStringToSeconds(getDHCPConfig(key, "leasetime"))
+    end,
+    UseAllocatedWAN = "Normal",
+    AssociatedConnection = function(mapping, param, key)
+        return "" -- TODO need to discuss with Dirk since this raises the exact problem he mentioned
+    end,
+    PassthroughLease = "600",
+    PassthroughMACAddress = "",
+    --only support getting from WLAN interface
+    AllowedMACAddresses = function(mapping, param, key)
+        local macList = {}
+        local result = ""
+        local ifaces = getIfacesForNetwork(key)
+        for _,iface in ipairs(ifaces) do
+            wifi_binding.sectionname = getAPForIface(iface)
+            wifi_binding.option = "acl_accept_list"
+            result = uci_helper.get_from_uci(wifi_binding)
+            if result ~= "" then
+                for _,v in ipairs(result) do
+                    local isMACExist = "0"
+                    for i =1,#macList do
+                        if macList[i] == v then
+                            isMACExist = "1"
+                            break
+                        end
+                    end
+                    if isMACExist == "0" then
+                        macList[#macList+1] = v
+                    end
+                 end
+            end
+        end
+        return  table.concat(macList, ',') or ""
+    end,
+    X_000E50_IPv6Enable = function(mapping, param, key)
+        -- get that for the given interface from state in UCI
+        local result = uci_helper.get_from_uci({
+            config = "network", sectionname = key, option = "ipv6"
+        })
+        if result == "" then
+           result = "1"
+        end
+        return result or ""
+    end,
+}
+
+
+local function InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_getall(mapping, key)
+    local network_cfg = uci_helper.getall_from_uci({
+        config = "network", sectionname = key
+    })
+    local dhcp_data = getDHCPdata(key)
+    -- consider that the DHCP server is disabled if there is no IP pool defined for the interface or if the
+    -- dhcpv4 parameter is set to disabled
+    local DHCPServerEnable
+    if not dhcp_data['intf'] or dhcp_data['dhcpv4'] == "disabled" then
+       DHCPServerEnable = '0'
+    else
+       DHCPServerEnable = '1'
+    end
+    local section = getDHCPConfigSectionForIntf(key) or key
+    local dhcpList = uci_helper.get_from_uci({
+         config = "dhcp", sectionname = section, option = "dhcp_option"
+    })
+    local dnsServer = ""
+    local routeIP
+    if dhcpList ~= "" then
+      for _,v in ipairs(dhcpList) do
+        if v:find("^6,") == 1 then
+          if dnsServer == "" then
+            dnsServer = v:sub(3)
+          else
+            dnsServer = dnsServer .. "," .. v:sub(3)
+          end
+        end
+      end
+      routeIP = dhcp.getRouteIPAddress(dhcpList)
+    end
+    if dnsServer == "" then
+      dnsServer = network_cfg["ipaddr"]
+    end
+    local macAddressList = ""
+    local macList = {}
+    local result = ""
+    local ifaces = getIfacesForNetwork(key)
+    for _,iface in ipairs(ifaces) do
+        wifi_binding.sectionname = getAPForIface(iface)
+        wifi_binding.option = "acl_accept_list"
+        result = uci_helper.get_from_uci(wifi_binding)
+        if result ~= "" then
+            for _,v in ipairs(result) do
+                local isMACExist = "0"
+                for i =1,#macList do
+                    if macList[i] == v then
+                        isMACExist = "1"
+                        break
+                    end
+                end
+                if isMACExist == "0" then
+                    macList[#macList+1] = v
+                end
+            end
+        end
+   end
+    macAddressList = table.concat(macList, ',') or ""
+
+    return {
+        DHCPServerConfigurable = "1",
+        DHCPRelay = "0", -- We don't want to be a DHCP relay
+        MinAddress = num2ipv4(dhcp_data.ipstart),
+        MaxAddress = num2ipv4(dhcp_data.ipend),
+        MACAddress = getMACAddress(key),
+        ReservedAddresses = "",
+        SubnetMask = network_cfg["netmask"] or '',
+        DNSServers = dnsServer or '',
+        IPRouters = routeIP or (network_cfg["defaultroute"] == "1" or not network_cfg["defaultroute"]) and network_cfg["ipaddr"] or "",
+        DHCPLeaseTime = dhcp.convertTimeStringToSeconds(getDHCPConfig(key, "leasetime")),
+        UseAllocatedWAN = "Normal",
+        AssociatedConnection = "",
+        PassthroughLease = "600",
+        PassthroughMACAddress = "",
+        AllowedMACAddresses = macAddressList or "",
+        DHCPServerEnable = DHCPServerEnable,
+
+    }
+end
+
+local function overlapCheck(network, poolname, ipstart, limit)
+    local binding = { config = "dhcp",}
+    local ipend = min(ipstart + limit - 1, network + 254)
+    local result = 0
+    uci_helper.foreach_on_uci(binding, function(s)
+        if s[".type"] == "dhcp" and s[".name"] ~= poolname and s["interface"] then
+            local inetwork = getDHCPnetworkForIntf(s["interface"])
+            if inetwork == network and s["start"] and s["limit"] then
+                if (ipstart >= tonumber(s["start"]) and ipstart < (tonumber(s["start"]) + tonumber(s["limit"]))) or
+                   (ipend >= tonumber(s["start"]) and ipend < (tonumber(s["limit"]) + tonumber(s["start"]))) then
+                    result = 1
+                end
+                if ipstart < tonumber(s["start"]) and ipend > (tonumber(s["limit"]) + tonumber(s["start"])) then
+                    result = 1
+                end
+            end
+        end
+    end)
+    if result == 1 then
+        return nil ,"The specified range overlaps an existing range."
+    else
+        return true
+    end
+end
+
+local logger = require("transformer.logger")
+local function validate_DHCPMinMax()
+    for key in pairs(dhcp_transaction) do
+        local no_overlap, err
+        local data = getDHCPdata(key)
+        if (data.start > 0) and (data.numips > 0) and (data.ipmin < data.ipmax) then
+           no_overlap, err = overlapCheck(data.network, key, data.start, data.numips)
+        end
+        no_overlap = no_overlap or setDHCPConfig(key, "dhcpv4", "disabled")
+        if err or not no_overlap then
+           logger:error(err or "DHCP Min Max address provisioned is not valid")
+        end
+    end
+    dhcp_transaction = {}
+end
+
+local InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_set = {
+    DHCPServerEnable = function(mapping, param, value, key)
+        if value == "1" then
+            value = "server"
+        else
+            value = "disabled"
+        end
+        setDHCPConfig(key, "dhcpv4", value)
+        dhcp_transaction[key] = true
+    end,
+    MinAddress = function(mapping, param, value, key)
+        setDHCPMinMax_address(key, param, value)
+    end,
+    MaxAddress = function(mapping, param, value, key)
+        setDHCPMinMax_address(key, param, value)
+    end,
+    SubnetMask = function(mapping, param, value, key)
+        uci_helper.set_on_uci({
+            config = "network", sectionname = key, option = "netmask"
+        }, value, commitapply)
+    end,
+    DNSServers = function(mapping, param, value, key)
+        for word in string.gmatch(value, '([^,]+)') do
+          if not inet.isValidIPv4(word) then
+            return nil, "Invalid IPV4 Address"
+          end
+        end
+        local section = getDHCPConfigSectionForIntf(key) or key
+        local binding = { config = "dhcp", sectionname = section, option = "dhcp_option"}
+        local result = uci_helper.get_from_uci(binding)
+        local dnsServers = {}
+        if result ~= "" then
+          for _,v in ipairs(result) do
+            if not (v:find("^6,") == 1) then
+              dnsServers[#dnsServers + 1] = v
+            end
+          end
+        end
+        dnsServers[#dnsServers + 1] = "6," .. value
+        uci_helper.set_on_uci(binding, dnsServers, commitapply)
+    end,
+    DomainName = function(mapping, param, value, key)
+        uci_helper.set_on_uci({
+            extended = 1, config = "dhcp", sectionname = "@dnsmasq[0]", option = "domain"
+        }, value, commitapply)
+    end,
+    DHCPLeaseTime = function(mapping, param, value, key)
+      if value == '-1' then
+        value = "infinite" -- set infinite lease time.
+      end
+      setDHCPConfig(key, "leasetime", value)
+    end,
+    X_000E50_IPv6Enable = function(mapping, param, value, key)
+        uci_helper.set_on_uci({
+            extended = 1, config = "network", sectionname = key, option = "ipv6"
+        }, value, commitapply)
+    end,
+    IPRouters = function(mapping, param, value, key)
+	local section = getDHCPConfigSectionForIntf(key) or key
+        if inet.isValidIPv4(value) then
+            dhcp.setDefaultRoute(value, section)
+        else
+            return nil, format("%s is not a valid IPv4 Address",value)
+        end
+    end,
+    --only support setting to WLAN interface
+    AllowedMACAddresses = function(mapping, param, value, key)
+        local macList = {}
+        local ifaces = getIfacesForNetwork(key)
+        for mac in string.gmatch(value, '([^,]+)') do
+            if nwCommon.isMAC(mac) then
+                table.insert(macList,mac)
+            else
+                 return nil, "Invalid MAC address; cannot set"
+            end
+        end
+        for _,iface in ipairs(ifaces) do
+            wifi_binding.sectionname = getAPForIface(iface)
+            wifi_binding.option = "acl_accept_list"
+            uci_helper.set_on_uci(wifi_binding, macList, commitapply)
+        end
+    end
+}
+
+local function commit()
+    uci_helper.commit({config = "wireless"})
+    uci_helper.commit({config = "network"})
+    validate_DHCPMinMax()
+    uci_helper.commit({config = "dhcp"})
+end
+
+local function revert()
+    uci_helper.commit({config = "wireless"})
+    uci_helper.revert({config = "network"})
+    uci_helper.revert({config = "dhcp"})
+end
+
+local function translate_cb(mapping, action, config, sectiontype, sectionname, option)
+    logger:debug("translate_cb called")
+    if option == "dhcpv4" then
+        return { { key = sectionname, paramname = "DHCPServerEnable" } }
+    elseif option == "leasetime" then
+        return { { key = sectionname, paramname = "DHCPLeaseTime" } }
+    end
+end
+
+InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_.add_watchers = function(mapping)
+  logger:debug("add_watchers called")
+  local uci_evsrc = eventsource("uci")
+  uci_evsrc.watch(mapping, { set = translate_cb }, "dhcp", "dhcp", nil, "dhcpv4")
+  uci_evsrc.watch(mapping, { set = translate_cb }, "dhcp", "dhcp", nil, "leasetime")
+end
+
+InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_.get = InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_get
+InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_.getall= InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_getall
+InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_.set = InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_set
+InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_.commit = commit
+InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_.revert = revert
+
+register(InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_)
+
+local InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_DHCPConditionalServingPool_i_ = {
+  objectType = {
+    name = "InternetGatewayDevice.LANDevice.{i}.LANHostConfigManagement.DHCPConditionalServingPool.{i}.",
+    access = "readWrite",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      PoolOrder = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+      SourceInterface = {
+        --access = "readWrite",
+        access = "readOnly",
+        type = "string",
+        max = "1024",
+        default = "",
+      },
+      VendorClassID = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        default = "",
+      },
+      ClientID = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        default = "",
+      },
+      UserClassID = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        default = "",
+      },
+      Chaddr = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      ChaddrMask = {
+        --access = "readWrite",
+        access = "readOnly",
+        type = "string",
+        default = "",
+      },
+      LocallyServed = {
+        --access = "readWrite",
+        access = "readOnly",
+        type = "boolean",
+        default = "true",
+      },
+      MinAddress = {
+        access = "readWrite",
+        type = "string",
+      },
+      MaxAddress = {
+        access = "readWrite",
+        type = "string",
+      },
+      ReservedAddresses = {
+        access = "readOnly",
+        list = true,
+        max = "512",
+        type = "string",
+      },
+      SubnetMask = {
+        access = "readWrite",
+        type = "string",
+      },
+      DNSServers = {
+        access = "readWrite",
+        list = true,
+        max = "64",
+        type = "string",
+      },
+      DomainName = {
+        access = "readWrite",
+        type = "string",
+        max = "64",
+      },
+      IPRouters = {
+        --access = "readWrite",
+        access = "readOnly",
+        list = true,
+        max = "64",
+        type = "string",
+      },
+      DHCPLeaseTime = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+          },
+        },
+      },
+      DHCPServerIPAddress = {
+        --access = "readWrite",
+        access = "readOnly",
+        type = "string",
+      },
+    }
+  }
+}
+
+local function getConditionalDHCPdata(parentkey, key)
+    local network_cfg = uci_helper.getall_from_uci({config = "network", sectionname = parentkey})
+    local baseip = ipv42num(network_cfg[ "ipaddr"] or '') or 0
+    local netmask = ipv42num(network_cfg["netmask"] or '') or 0
+    local dhcp_cfg
+    if key then
+        dhcp_cfg = uci_helper.getall_from_uci({config = "dhcp", sectionname = key})
+    else
+        dhcp_cfg = {}
+    end
+    local network = bit.band(baseip, netmask)
+    local ipmin = network + 1
+    local ipmax = bit.bor(network, bit.bnot(netmask)) - 1
+    local start = tonumber(dhcp_cfg[ "start"] or ipmin)
+    local numips = tonumber(dhcp_cfg["limit"] or 1)
+    local ipstart = bit.bor(network, bit.band(start, bit.bnot(netmask)))
+    local ipend = min(ipstart + numips - 1, network + 254)
+
+    return {
+        gw = baseip,
+        network = network,
+        ipmin = ipmin,
+        ipmax = ipmax,
+        ipstart = ipstart,
+        ipend = ipend,
+        start = start,
+        numips = numips,
+        leasetime = dhcp_cfg["leasetime"] or '-1',
+        intf = dhcp_cfg["interface"],
+        dhcpv4 = dhcp_cfg["dhcpv4"],
+    }
+end
+
+local networkids = {}
+InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_DHCPConditionalServingPool_i_.entries = function(mapping, parentkey)
+    local dhcpEntries = {}
+    local binding = {config = "dhcp", sectionname = "dhcp"}
+    uci_helper.foreach_on_uci(binding, function(s)
+        local networkid = s.networkid
+        if s.interface == parentkey and networkid then
+            local tag = networkid:match("^tag:(.+)")
+            if tag then
+                dhcpEntries[#dhcpEntries + 1] = s['.name']
+                networkids[s['.name']] = tag
+            end
+        end
+    end)
+    return dhcpEntries
+end
+
+local binding = {config = "dhcp", sectionname ="", option = ""}
+local getconditional = {
+    Enable = function(mapping, param, key)
+	return getDHCPServerEnable(key)
+    end,
+    PoolOrder = "0",
+    SourceInterface = "",
+    VendorClassID = function(mapping, param, key)
+        binding.sectionname = nil
+        local vendorclassid = ""
+        local cur_networkid = "set:" .. networkids[key]
+        uci_helper.foreach_on_uci(binding, function(s)
+            if s['networkid'] == cur_networkid and s['.type'] == "vendorclass" then
+                vendorclassid = s['vendorclass']
+                return false
+            end
+        end)
+        return vendorclassid
+    end,
+    ClientID = function(mapping, param, key)
+        binding.sectionname = nil
+        local cur_networkid = "set:" .. networkids[key]
+        local hostclassid = ""
+        uci_helper.foreach_on_uci(binding, function(s)
+            if s['networkid'] == cur_networkid and s['.type'] == "host_client_id" then
+                hostclassid = s['clientid']
+                return false
+            end
+        end)
+        return hostclassid
+    end,
+    UserClassID = function(mapping, param, key)
+        binding.sectionname = nil
+        local userclassid = ""
+        local cur_networkid = "set:" .. networkids[key]
+        uci_helper.foreach_on_uci(binding, function(s)
+            if s['networkid'] == cur_networkid and s['.type'] == "userclass" then
+                userclassid = s['userclass']
+                return false
+            end
+        end)
+        return userclassid
+    end,
+    Chaddr = function(mapping, param, key)
+        binding.sectionname = nil
+        local chaddr =""
+        local cur_networkid = "set:" .. networkids[key]
+        uci_helper.foreach_on_uci(binding, function(s)
+            if s['networkid'] == cur_networkid and s['.type'] == 'mac' then
+                chaddr = s['mac']
+                return false
+            end
+        end)
+        return chaddr
+    end,
+    ChaddrMask = "",
+    LocallyServed = "1",
+    MinAddress = function(mapping, param, key, parentkey)
+        local data = getConditionalDHCPdata(parentkey,key)
+        return num2ipv4(data.ipstart)
+    end,
+    MaxAddress = function(mapping, param, key, parentkey)
+        local data = getConditionalDHCPdata(parentkey,key)
+        return num2ipv4(data.ipend)
+    end,
+    ReservedAddresses = "",
+    SubnetMask = function(mapping, param, key,parentkey)
+         -- get that for the given interface from state in UCI
+        local result = uci_helper.get_from_uci({
+            config = "network", sectionname = parentkey, option = "netmask"
+        })
+        return result or ""
+    end,
+    DNSServers = function(mapping, param, key,parentkey)
+        -- get gw address on given interface from network in UCI
+        local ip_result = uci_helper.get_from_uci({
+            config = "network", sectionname = parentkey, option = "ipaddr"
+        })
+        local result = uci_helper.get_from_uci({
+            config = "dhcp", sectionname = parentkey, option = "dhcp_option"
+        })
+        local dnsServer = ""
+        if result == "" then
+          return ip_result or ""
+        end
+        for i,v in ipairs(result) do
+          if v:find("^6,") == 1 then
+            if dnsServer == "" then
+              dnsServer = v:sub(3)
+            else
+              dnsServer = dnsServer .. "," .. v:sub(3)
+            end
+          end
+        end
+        if dnsServer == "" then
+          return ip_result
+        else
+          return dnsServer
+        end
+    end,
+    DomainName = function(mapping, param, key)
+        return getDNSMASQConfig("domain") or ""
+    end,
+    IPRouters = function(mapping, param, key,parentkey)
+         -- get gw address on given interface from network in UCI
+         local result = uci_helper.get_from_uci({
+             config = "network", sectionname = parentkey, option = "ipaddr"
+         })
+         return result or ""
+    end,
+    DHCPLeaseTime = function(mapping, param, key)
+        binding.sectionname = key
+        binding.option = 'leasetime'
+        return dhcp.convertTimeStringToSeconds(uci_helper.get_from_uci(binding))
+    end,
+    DHCPServerIPAddress = "",
+}
+
+local setconditional = {
+    Enable = function(mapping, param, value, key)
+        if value == "1" then
+           value = "server"
+        else
+           value = "disabled"
+        end
+        setDHCPConfig(key, "dhcpv4", value)
+        dhcp_transaction[key] = true
+    end,
+    VendorClassID = function(mapping, param, value, key)
+        binding.sectionname = nil
+        local cur_networkid = "set:" .. networkids[key]
+        local found = 0
+        uci_helper.foreach_on_uci(binding, function(s)
+             if s['networkid'] == cur_networkid and s['.type'] == "vendorclass" then
+                 uci_helper.set_on_uci({config = "dhcp", sectionname = s['.name'], option = "vendorclass"}, value, commitapply)
+                 found = 1
+                 return false
+             end
+        end)
+        if found == 0 then
+            local name = uci_helper.add_on_uci({config = "dhcp",sectionname = "vendorclass", option = "",default = ""},commitapply)
+            if name then
+                uci_helper.set_on_uci({config = "dhcp", sectionname = name, option = "vendorclass"}, value, commitapply)
+                uci_helper.set_on_uci({config = "dhcp", sectionname = name, option = "networkid"}, cur_networkid, commitapply)
+            end
+        end
+    end,
+    ClientID = function(mapping, param, value, key)
+        binding.sectionname = nil
+        local cur_networkid = "set:" .. networkids[key]
+        local found = 0
+        uci_helper.foreach_on_uci(binding, function(s)
+          if s['networkid'] == cur_networkid and s['.type'] == "host_client_id" then
+              uci_helper.set_on_uci({config = "dhcp", sectionname = s['.name'], option = "clientid"}, value, commitapply)
+              found = 1
+              return false
+          end
+        end)
+        if found == 0 then
+            local name = uci_helper.add_on_uci({config = "dhcp",sectionname = "host_client_id", option = "",default = ""},commitapply)
+            if name then
+                uci_helper.set_on_uci({config = "dhcp", sectionname = name, option = "clientid"}, value, commitapply)
+                uci_helper.set_on_uci({config = "dhcp", sectionname = name, option = "networkid"}, cur_networkid, commitapply)
+            end
+        end
+    end,
+    UserClassID = function(mapping, param, value, key)
+        binding.sectionname = nil
+        local cur_networkid = "set:" .. networkids[key]
+        local found = 0
+        uci_helper.foreach_on_uci(binding, function(s)
+            if s['networkid'] == cur_networkid and s['.type'] == "userclass" then
+                uci_helper.set_on_uci({config = "dhcp", sectionname = s['.name'], option = "userclass"}, value, commitapply)
+                found = 1
+                return false
+            end
+        end)
+        if found == 0 then
+            local name = uci_helper.add_on_uci({config = "dhcp",sectionname = "userclass", option = "",default = ""},commitapply)
+            if name then
+                uci_helper.set_on_uci({config = "dhcp", sectionname = name, option = "userclass"}, value, commitapply)
+                uci_helper.set_on_uci({config = "dhcp", sectionname = name, option = "networkid"}, cur_networkid, commitapply)
+            end
+        end
+    end,
+    Chaddr = function(mapping, param, value, key)
+        binding.sectionname = nil
+        local cur_networkid = "set:" .. networkids[key]
+        local found = 0
+        uci_helper.foreach_on_uci(binding, function(s)
+            if s['networkid'] == cur_networkid and s['.type'] == 'mac' then
+                uci_helper.set_on_uci({config = "dhcp", sectionname = s['.name'], option = "mac"}, value, commitapply)
+                found = 1
+                return false
+            end
+        end)
+        if found == 0 then
+            local name = uci_helper.add_on_uci({config = "dhcp",sectionname = "mac", option = "",default = ""},commitapply)
+            if name then
+                uci_helper.set_on_uci({config = "dhcp", sectionname = name, option = "mac"}, value, commitapply)
+                uci_helper.set_on_uci({config = "dhcp", sectionname = name, option = "networkid"}, cur_networkid, commitapply)
+            end
+        end
+    end,
+    MinAddress = function(mapping, param, value, key, parentkey)
+        local newstart = ipv42num(value)
+        if newstart == nil then
+            return nil, "Please input correct ip address"
+        end
+        local data = getConditionalDHCPdata(parentkey, key)
+        uci_helper.set_on_uci({config = "dhcp", sectionname = key, option = "start"}, newstart - data.network, commitapply)
+        uci_helper.set_on_uci({config = "dhcp", sectionname = key, option = "limit"}, data.ipend - newstart + 1, commitapply)
+        dhcp_transaction[key] = true
+    end,
+    MaxAddress = function(mapping, param, value, key, parentkey)
+        local newend = ipv42num(value)
+        if newend == nil then
+            return nil, "Please input correct ip address"
+        end
+        local data = getConditionalDHCPdata(parentkey, key)
+        local newvalue = newend - data.ipstart + 1
+        uci_helper.set_on_uci({config = "dhcp", sectionname = key, option = "limit"}, newvalue, commitapply)
+        dhcp_transaction[key] = true
+    end,
+    SubnetMask = function(mapping, param, value, key, parentkey)
+        uci_helper.set_on_uci({config = "network", sectionname = parentkey, option = "netmask"}, value, commitapply)
+    end,
+    DNSServers = function(mapping, param, value, key, parentkey)
+        local binding = { config = "dhcp", sectionname = parentkey, option = "dhcp_option"}
+        local result = uci_helper.get_from_uci(binding)
+        local dnsIndex = 0
+        local lastIndex = 0
+        local dnsServers = {}
+        if result ~= "" then
+            for i,v in ipairs(result) do
+                dnsServers[#dnsServers + 1] = v
+                if v:find("^6,") == 1 then
+                    dnsIndex = dnsIndex + 1
+                    lastIndex = i
+                end
+            end
+        end
+        local dns = {}
+        for word in string.gmatch(value, '([^,]+)') do
+            dns[#dns + 1] = word
+        end
+        if #dns > 3 then
+            return nil,"maximum three comma seperated values allowed"
+        end
+        if dnsIndex == 0 then
+            dnsServers[#dnsServers + 1] = "6," .. value
+            uci_helper.set_on_uci(binding, dnsServers, commitapply)
+        else
+            dnsServers[lastIndex] = "6," .. value
+            uci_helper.set_on_uci(binding, dnsServers, commitapply)
+        end
+    end,
+    DomainName = function(mapping, param, value, key)
+        uci_helper.set_on_uci({extended = 1, config = "dhcp", sectionname = "@dnsmasq[0]", option = "domain"}, value, commitapply)
+    end,
+    DHCPLeaseTime = function(mapping, param, value, key)
+      if value == '-1' then
+        value = "infinite" -- set infinite lease time.
+      end
+      uci_helper.set_on_uci({config = "dhcp", sectionname = key, option = "leasetime"}, value, commitapply)
+    end,
+}
+
+-- get available network id for the new created conditional pool
+-- conditional pool network id should be in range of [1, ...]
+local function getavailablelid()
+    local binding = {config="dhcp",}
+    local cid = 0
+    uci_helper.foreach_on_uci(binding, function(s)
+        local networkid = s['networkid']
+        if s[".type"] == "dhcp" and networkid and string.match(networkid,cpoolpattern) ~= nil then
+            local id = string.match(networkid,"^tag:conditional_(%d)")
+            if id and cid < tonumber(id) then
+              cid = tonumber(id)
+            end
+        end
+    end)
+    return cid + 1
+end
+
+local function addconditionalpool(mapping, parentkey)
+    local sectionname = uci_helper.add_on_uci({config = "dhcp",sectionname = "dhcp", option = "",default = ""},commitapply)
+    uci_helper.set_on_uci({config = "dhcp", sectionname = sectionname, option = "interface"}, parentkey, commitapply)
+    local networkid = "tag:conditional_" .. getavailablelid()
+    uci_helper.set_on_uci({config = "dhcp", sectionname = sectionname, option = "networkid"}, networkid, commitapply)
+    return sectionname
+end
+
+InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_DHCPConditionalServingPool_i_.get = getconditional
+InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_DHCPConditionalServingPool_i_.set = setconditional
+InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_DHCPConditionalServingPool_i_.delete = function(mapping,key)
+    local binding = {config="dhcp",}
+    binding.sectionname = key
+    binding.option = nil
+    uci_helper.delete_on_uci(binding, commitapply)
+    binding.sectionname = nil
+    local cur_networkid = networkids[key]
+    uci_helper.foreach_on_uci(binding, function(s)
+        if s['networkid'] == ("set:" .. cur_networkid) and s['.type'] and conditionalsection[s['.type']] then
+            local delbinding = {config = "dhcp", sectionname = s[".name"]}
+            uci_helper.delete_on_uci(delbinding, commitapply)
+        end
+    end)
+    return true
+end
+
+InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_DHCPConditionalServingPool_i_.add = addconditionalpool
+InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_DHCPConditionalServingPool_i_.commit = commit
+InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_DHCPConditionalServingPool_i_.revert = revert
+register(InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_DHCPConditionalServingPool_i_)
+

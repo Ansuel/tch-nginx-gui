@@ -1,0 +1,1058 @@
+local register = register
+
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_NAT_ = {
+  objectType = {
+    name = "Device.NAT.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      -- InterfaceSettingNumberOfEntries
+      -- automatically created when Device.NAT.InterfaceSetting.{i}. is loaded
+      -- PortMappingNumberOfEntries
+      -- automatically created when Device.NAT.PortMapping.{i}. is loaded
+    }
+  }
+}
+
+register(Device_NAT_)
+
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Multi_PortMapping_i_ = {
+  objectType = {
+    name = "#ROOT.PortMapping.{i}.",
+    access = "readWrite",
+    numEntriesParameter = "PortMappingNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      PortMappingEnabled = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Disabled",
+          "Enabled",
+          "Error_Misconfigured",
+          "Error",
+        },
+        default = "Disabled",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        max  = "64",
+      },
+      Interface = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        pathRef = true,
+        targetParent = "Device.IP.Interface.{i}.",
+        default = "",
+      },
+--[[ TODO:
+      AllInterfaces = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+]]
+      LeaseDuration = {
+        access = "readOnly",  -- readWrite currently not supported
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      PortMappingLeaseDuration = {
+        access = "readOnly",  -- readWrite currently not supported
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      RemoteHost = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      ExternalPort = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "65535",
+          },
+        },
+      },
+      ExternalPortEndRange = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "65535",
+          },
+        },
+        default = "0",
+      },
+      InternalPort = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+        {
+--            min = "0",
+            max = "65535",
+          },
+        },
+      },
+      Protocol = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "TCP",
+          "UDP",
+        },
+      },
+      PortMappingProtocol = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "TCP",
+          "UDP",
+        },
+      },
+      InternalClient = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        default = "",
+      },
+      Description = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        default = "",
+      },
+      PortMappingDescription = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        default = "",
+      },
+      X_000E50_InternalClientMACAddress = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      }
+    }
+  }
+}
+
+local inet = require "tch.inet"
+local commitapply, mapper, pairs = commitapply, mapper, pairs
+local resolve, string, gmatch = resolve, string, string.gmatch
+local os = os
+local common = mapper("nwcommon")
+local isIPv4 = inet.isValidIPv4
+local splitKey = common.split_key
+local interface2zone = common.interface2zone
+local get_lan_zones = common.get_lan_zones
+local uciHelper = mapper("ucihelper")
+local get_from_uci = uciHelper.get_from_uci
+local set_on_uci = uciHelper.set_on_uci
+local getall_from_uci = uciHelper.getall_from_uci
+local foreach_on_uci = uciHelper.foreach_on_uci
+-- library helpers
+local fw_helper = require("transformer.shared.firewall_helper")
+local ubus_connect = mapper("ubus").connect()
+local lower, upper, match = string.lower, string.upper, string.match
+local ipairs, type, tonumber, next = ipairs, type, tonumber, next
+local commit_on_uci = uciHelper.commit
+local revert_on_uci = uciHelper.revert
+local delete_on_uci = uciHelper.delete_on_uci
+local upnpPortMappings = {}
+local configChanged = false
+local sysBinding = { config = "system", sectionname= "wan-service"}
+local fwBinding = { config = "firewall" }
+local mandatoryOptions = { "src", "src_dport", "dest_ip" }
+local reservedPorts = {}
+
+local upnp_binding = { config = "upnpd", sectionname="config", option="external_iface" }
+local upnp_interfaces = {}
+for value in gmatch(get_from_uci(upnp_binding), "%S+") do
+  upnp_interfaces[value] = value
+end
+
+-- Cache that maps the generated _key of a portmap to the corresponding
+-- generated section name.
+-- Note that this cache needs to be rebuild every entries() because the
+-- entries could have been added or deleted.
+local key2sectionname = {}
+
+local paramsOnlyForDev2 = {
+  "Enable",
+  "Status",
+  "Interface",
+  "LeaseDuration",
+  "Protocol",
+  "Description"
+}
+
+local paramsOnlyForIgd = {
+  "PortMappingEnabled",
+  "PortMappingLeaseDuration",
+  "PortMappingProtocol",
+  "PortMappingDescription",
+}
+
+local function getProtoValue(protocol)
+  if protocol and (type(protocol) == "table") then
+    return protocol[1]
+  end
+  return protocol
+end
+
+local function getInterfaceFromParentKey(parentKey)
+  local devname, devtype = splitKey(parentKey)
+  if devname == "ACTIVE" then
+    return devtype
+  end
+  return devname
+end
+
+local function getFromRule(key, option, default)
+  fwBinding.sectionname = key2sectionname[key]
+  fwBinding.option = option
+  fwBinding.default = default
+  if option then
+    if option == "proto" then
+      return getProtoValue(get_from_uci(fwBinding))
+    end
+    return get_from_uci(fwBinding)
+  end
+  local allValues =  getall_from_uci(fwBinding)
+  allValues.proto = getProtoValue(allValues.proto)
+  return allValues
+end
+
+--When upgrade from legacy to homeware in backup&restore scenario:
+--If external port and internal port is a shift range, internal port will be changed automatically to fixed one in homeware
+--Here "pfw_warning" is used to flag the automatically change happed and let GUI popup a warning.
+local function backupRestoreWarning()
+  fwBinding.sectionname = "userredirects"
+  fwBinding.option = "pfw_warning"
+  set_on_uci(fwBinding, "1", commitapply)
+  configChanged = true
+end
+
+local function setOnRule(key, param, value)
+  fwBinding.sectionname = key2sectionname[key]
+  fwBinding.option = param
+  if param == "proto" then
+    value = { value }
+  end
+  set_on_uci(fwBinding, value, commitapply)
+  configChanged = true
+end
+
+local function deleteOnRule(key, option)
+  fwBinding.sectionname = key2sectionname[key]
+  if fwBinding.sectionname then
+    fwBinding.option = option
+    delete_on_uci(fwBinding, commitapply)
+    configChanged = true
+    return true
+  end
+  return false
+end
+
+local function ip2mac_config(key, param, value)
+  fwBinding.sectionname = key2sectionname[key]
+  if param == "dest_ip" then
+    local uci_destmac = getFromRule(key, "dest_mac")
+    if uci_destmac ~= "" then
+      --when dest_mac exist, never overwrite pfw based MAC in /var/state, this is different from rpc, it will overwrite mac
+      --anyway if both ip and mac are set and ip is set after mac
+      --IGD:do nothing
+      return nil, "IP address cannot be set on MAC based port map"
+    else
+      if value ~= "" then
+        local family -- family deduced from the IP value
+        local macAddr -- mac address of dest_ip value
+
+        if string.find(value, ":") then
+          family = "ipv6"
+        else
+          family = "ipv4"
+        end
+        setOnRule(key, "family", family)
+
+        macAddr = fw_helper.ip2mac(ubus_connect, family, value) or ""
+        setOnRule(key, "dest_mac", macAddr)
+
+        if macAddr ~= "" then
+          -- Don't write the IP address to /etc/config/firewall because
+          -- it changes. The address will be written to /var/state/firewall
+          -- which won't persist across a reboot.
+          -- (See redirecthelper for process that does this)
+          if (family == "ipv6") then
+            value = "::"
+          else
+            value = "0.0.0.0"
+          end
+        end
+      end
+      setOnRule(key, param, value)
+    end
+  elseif param == "dest_mac" then
+    if value ~= "" then
+      local family = string.lower(getFromRule(key, "family"))
+      local ipAddr = getFromRule(key, "dest_ip")
+
+      if family == "ipv6" then
+        ipAddr = "::"
+      elseif family == "ipv4" then
+        ipAddr = "0.0.0.0"
+      elseif ipAddr ~= "" then
+        if string.find(ipAddr, ":") then
+          family = "ipv6"
+          ipAddr = "::"
+        else
+          family = "ipv4"
+          ipAddr = "0.0.0.0"
+        end
+      end
+
+      setOnRule(key, "family", family)
+      setOnRule(key, "dest_ip", ipAddr)
+    end
+    setOnRule(key, param, value)
+  end
+  return true
+end
+
+local function add(mapping, parentKey)
+  local iface_zone, lan_zone
+  if mapping.dataModel == "igd" then
+    local ifname = getInterfaceFromParentKey(parentKey)
+    iface_zone = interface2zone(ifname)
+
+    if not iface_zone then
+      return nil, "interface zone not found"
+    end
+
+    -- Discover the default "lan" zone
+    local lan_zones, nr_of_lan_zones = get_lan_zones()
+    if (nr_of_lan_zones == 0) then
+      return nil, "need one LAN zone"
+    end
+    lan_zone = lan_zones["lan"] and "lan" or next(lan_zones)
+  end
+
+  fwBinding.sectionname = "userredirect"
+  local sectionname = fw_helper.generate_unused_section(fwBinding)
+  fwBinding.sectionname = sectionname
+  fwBinding.option = nil
+  set_on_uci(fwBinding, "userredirect", commitapply)
+  local key = sectionname
+  fwBinding.option = "enabled"
+  set_on_uci(fwBinding, "0", commitapply)
+  fwBinding.option = "target"
+  set_on_uci(fwBinding, "DNAT", commitapply)
+  fwBinding.option = "family"
+  set_on_uci(fwBinding, "ipv4", commitapply)
+  fwBinding.option = "proto"
+  set_on_uci(fwBinding, { "tcp" }, commitapply)
+  if mapping.dataModel == "igd" then
+    fwBinding.option = "src"
+    set_on_uci(fwBinding, iface_zone.name, commitapply)
+    fwBinding.option = "dest"
+    set_on_uci(fwBinding, lan_zone, commitapply)
+    fwBinding.option = "dest_ip"
+    set_on_uci(fwBinding, "0.0.0.0", commitapply)
+    key = parentKey ..'|'.. key
+  end
+  fwBinding.option = "src"
+  set_on_uci(fwBinding, "wan", commitapply)
+  fwBinding.option = "dest"
+  set_on_uci(fwBinding, "lan", commitapply)
+  configChanged = true
+  key2sectionname[key] = sectionname
+  return key
+end
+
+--function to add section name to the anonymous section
+--input:section table, parentKey
+--output:section name
+local function add_redirect_sectionName(section, parentKey)
+  if next(section) ~= nil then
+    fwBinding.sectionname = section[".name"]
+    local tempPortmapping = getall_from_uci(fwBinding)
+    fwBinding.option = nil
+    delete_on_uci(fwBinding)
+    fwBinding.sectionname = section[".type"]
+    fwBinding.sectionname = fw_helper.generate_unused_section(fwBinding)
+    fwBinding.option = nil
+    set_on_uci(fwBinding, section[".type"], commitapply)
+    local protoVal =  getProtoValue(tempPortmapping.proto) or ""
+    fwBinding.option = "proto"
+    set_on_uci(fwBinding, { protoVal }, commitapply)
+    -- Copying the old section values to the new section except .anonymous, and _key options.
+    for option, oldValue in pairs(tempPortmapping) do
+      fwBinding.option = option
+      if option ~= ".anonymous" and option ~= "_key" and option ~= "proto" then
+        set_on_uci(fwBinding, oldValue, commitapply)
+      end
+    end
+    return fwBinding.sectionname
+  end
+end
+
+local function splitUciSection(mapping, s)
+  fwBinding.sectionname = s[".name"]
+  fwBinding.option = "proto"
+  set_on_uci(fwBinding, { "tcp" }, commitapply)
+  local newSectionKey = add(mapping)
+  commit_on_uci(fwBinding)
+  if mapping.dataModel == "igd" then
+    fwBinding.sectionname = match(newSectionKey, "%S+|%S+|(%S+)")
+  else
+    fwBinding.sectionname = newSectionKey
+  end
+  fwBinding.option = "proto"
+  set_on_uci(fwBinding, { "udp" }, commitapply)
+  fwBinding.option = nil
+  -- Copying the old section values to the new section except proto, .anonymous, and _key options.
+  for option, oldValue in pairs(s) do
+    if option ~= "proto" and option ~= ".anonymous" and option ~= "_key" and oldValue ~= "" and option ~= ".name" then
+      fwBinding.option = option
+      set_on_uci(fwBinding, oldValue, commitapply)
+      commit_on_uci(fwBinding)
+      configChanged = true
+    end
+  end
+  return true
+end
+
+-- Table containing the parameter names and their default values
+-- for the parameters that are not populated by UPnP Port mappings
+local upnpDefaults = {
+  Enable = "1",
+  PortMappingEnabled = "1",
+  Status = "Enabled",
+  ExternalPortEndRange = "0",
+  RemoteHost = "",
+  X_000E50_InternalClientMACAddress = ""
+}
+
+local function getLeaseTimeForUpnp(leaseTime)
+  local currentTime = os.time()
+  leaseTime = leaseTime and tonumber(leaseTime) or 0
+  return leaseTime ~= 0 and tostring(os.difftime(leaseTime, currentTime)) or "0"
+end
+
+-- Function to populate the UPnP portmap entries
+-- Every line is an entry and the individual parameter fields are separated by a colon.
+local function loadUpnpPortMaps(interfaceName, datamodel)
+  local upnpPortMaps = {}
+  local fd = io.open("/var/upnp.leases")
+  if fd then
+    for line in fd:lines() do
+      local iface
+      local proto, interface, extPort, intClient, intPort, leaseTime, desc = line:match("^([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):(.*)$")
+      if (not interfaceName) or (interfaceName and interfaceName == interface) then
+        uciHelper.foreach_on_uci( { config = "network", sectionname = "interface" }, function(s)
+          -- this depends on netifd setting ifname to the L3interface in /var/state !!
+          if s.ifname == interface and s.device and upnp_interfaces[ s[".name"] ] then
+            iface = s[".name"]
+            return
+          end
+        end)
+        local description = (desc ~= "(null)") and desc or ""
+        local upnpMap = {
+          Protocol            = proto,
+          PortMappingProtocol = proto,
+          ifname = string.format("%s/%s", iface or "-", interface),
+          L2Interface         = interface,
+          ExternalPort        = extPort,
+          InternalClient      = intClient,
+          InternalPort        = intPort,
+          LeaseDuration       = getLeaseTimeForUpnp(leaseTime),
+          PortMappingLeaseDuration = getLeaseTimeForUpnp(leaseTime),
+          Description              = description,
+          PortMappingDescription   = description,
+        }
+        if datamodel=="device2" then
+          upnpMap.Interface = resolve("Device.IP.Interface.{i}.", iface) or ""
+        end
+        -- Add the parameters that are not populated from the above file, assign default values.
+        for param, defValue in pairs(upnpDefaults) do
+          upnpMap[param] = defValue
+        end
+        upnpPortMaps[#upnpPortMaps+1] = upnpMap
+      end
+    end
+    fd:close()
+  end
+  return upnpPortMaps
+end
+
+
+local function upnpEntries(wanInterface, datamodel)
+  local upnpEntries = {}
+  for _, upnpMap in ipairs(loadUpnpPortMaps(wanInterface, datamodel)) do
+    local key = string.format("%s|%s|%s|%s|%s", upnpMap.Protocol, upnpMap.ifname, upnpMap.InternalPort, upnpMap.InternalClient, upnpMap.ExternalPort)
+    upnpPortMappings[key] = upnpMap
+    upnpEntries[#upnpEntries + 1] = key
+  end
+  return upnpEntries
+end
+
+local portMapProtocols = { tcpudp = true, tcp = true, udp = true }
+local function includePortMap(mapping, s, parentKey, iface_zone, lan_zones)
+  local proto = lower(s.proto)
+  if not portMapProtocols[proto] then
+    return
+  end
+  if mapping.dataModel == "device2" then
+    return s[".name"]
+  end
+  if s.src == iface_zone and lan_zones[s.dest] and (not s.target or s.target == "DNAT") then
+    return parentKey .. "|" .. s[".name"]
+  end
+end
+
+local function getReservedPorts()
+  local reservedports = {}
+  foreach_on_uci(sysBinding, function(s)
+    if s.ports then
+       reservedports[s.ports] = true
+    end
+  end)
+  return reservedports
+end
+
+local function tcpudpEntries(key, s)
+  local tcpudpEntries = {}
+  tcpudpEntries[#tcpudpEntries + 1] = key
+  key2sectionname[key] = s[".name"]
+  return tcpudpEntries
+end
+
+local function entries(mapping, parentKey)
+  local PortMappings = {}
+  key2sectionname = {}
+  local redirect_sections = {}
+  local key, iface_zone
+  local lan_zones, wanInterface
+  local sectionRenamed = 0
+  upnpPortMappings = {}
+  reservedPorts = getReservedPorts()
+
+  if mapping.dataModel == "igd" then
+    local ifname = getInterfaceFromParentKey(parentKey)
+    wanInterface = get_from_uci({ config = "network", sectionname = ifname, option = "ifname" })
+    iface_zone = interface2zone(ifname)
+    if not iface_zone then
+      return PortMappings
+    end
+    iface_zone = iface_zone.name
+    lan_zones = get_lan_zones()
+    redirect_sections[1] = "redirect"
+  end
+
+  fwBinding.sectionname = "redirectsgroup"
+  foreach_on_uci(fwBinding, function(s)
+    if not s.enabled or s.enabled == "1" then
+      redirect_sections[#redirect_sections + 1] = s.type
+    end
+  end)
+
+  for _,v in ipairs(redirect_sections) do
+    fwBinding.sectionname = v
+
+    foreach_on_uci(fwBinding, function(s)
+      if getProtoValue(s.proto) == "tcpudp" then
+        splitUciSection(mapping, s)
+      end
+    end)
+
+    fwBinding.sectionname = v
+    fwBinding.option = nil
+    foreach_on_uci(fwBinding, function(s)
+      key = s[".name"]
+      s.proto = getProtoValue(s.proto) or ""
+
+      if s[".anonymous"] then
+        s[".name"] = add_redirect_sectionName(s, parentKey)
+        sectionRenamed = 1
+        key = s[".name"]
+      end
+
+      key = includePortMap(mapping, s, parentKey, iface_zone, lan_zones)
+      if key then
+        for _, v in ipairs(tcpudpEntries(key, s)) do
+          PortMappings[#PortMappings + 1] = v
+        end
+      end
+    end)
+  end
+
+  -- we also include portmaps created via UPnP (sys.upnp.redirect.)
+  for _, v in pairs(upnpEntries(wanInterface, mapping.dataModel)) do
+    PortMappings[#PortMappings + 1] = v
+  end
+
+  if sectionRenamed == 1 then
+    commit_on_uci(fwBinding)
+    sectionRenamed = 0
+  end
+  return PortMappings
+end
+
+local function getPortData(key)
+  local data = getFromRule(key)
+  local src_dport = data.src_dport or '0'
+  -- the src_dport format is a number optionally followed by - or : optionally
+  -- followed by another number. Spaces may be inserted between the parts
+  -- although we never do so ourselves. The match must cover the whole string
+  local start, stop = src_dport:match("^%s*(%d+)%s*[%-:]?%s*(%d*)%s*$")
+  if not start then
+    -- it failed to match the format
+    start = "0"
+    stop = ""
+  end
+  local endrange = data.tch_map_endrange or ""
+  endrange = endrange:match("^%s*(%d+)%s*$") --make sure it is a number (as string)
+  if stop~='' then
+    if tonumber(stop) <= tonumber(start) then
+      -- invalid config
+      stop = "0"
+    end
+  else
+    if start=='0' then
+      stop = endrange or "0"
+    elseif start == endrange then
+      stop = endrange
+    else
+      stop = "0"
+    end
+  end
+  return start, stop, endrange
+end
+
+local function ruleHasMissingOptions(options)
+  local optionsMissing
+  if options['.type'] ~= "dmzredirect" then
+    for _, option in ipairs(mandatoryOptions) do
+      if not options[option] then
+        optionsMissing = true
+        break
+      end
+    end
+  end
+  return optionsMissing
+end
+
+local function getStatus(key, allOptions)
+  allOptions = allOptions or getFromRule(key)
+  if allOptions.enabled == "1" then
+    if ruleHasMissingOptions(allOptions) then
+      return "Error_Misconfigured"
+    else
+      return "Enabled"
+    end
+  end
+  return "Disabled"
+end
+
+local function getEnable(key)
+  return getFromRule(key, "enabled", "0")
+end
+
+local function getInterface(key)
+  local interface = getFromRule(key, "tch_interface") or getFromRule(key, "src")
+  return resolve("Device.IP.Interface.{i}.", interface) or ""
+end
+
+local function getRemoteHost(key)
+  return getFromRule(key, "src_ip")
+end
+
+local function getInternalPort(key, portmapValues)
+  -- dest_port could be a range according to the documentation;
+  -- take the first port
+  local v = portmapValues or getFromRule(key)
+  if v.dest_port then
+    return match(v.dest_port, "^%d+") or "0"
+  elseif v.tch_map_dest_port_backup then
+    return match(v.tch_map_dest_port_backup, "^%d+") or "0"
+  end
+  return "0"
+end
+
+local function getProtocol(key)
+  local proto = getFromRule(key, "proto")
+  if proto == "tcpudp" then
+    proto = splitKey(key)
+  end
+  return upper(proto)
+end
+
+local function getInternalClient(key)
+  return getFromRule(key, "dest_ip")
+end
+
+local function getDescription(key)
+  return getFromRule(key, "name")
+end
+
+local function getInternalClientMACAddress(key)
+  local destmac = getFromRule(key, "dest_mac")
+  if destmac == "" then
+    fwBinding.sectionname = key2sectionname[key]
+    local dest_ip = getFromRule(key, "dest_ip")
+    local family = getFromRule(key, "family")
+    destmac = fw_helper.ip2mac(ubus_connect, family, dest_ip) or ""
+  end
+  return destmac
+end
+
+local getterTable = {
+  Enable = getEnable,
+  PortMappingEnabled = getEnable,
+  Status = getStatus,
+  Interface = getInterface,
+  RemoteHost = getRemoteHost,
+  InternalPort = getInternalPort,
+  Protocol = getProtocol,
+  PortMappingProtocol = getProtocol,
+  InternalClient = getInternalClient,
+  Description = getDescription,
+  PortMappingDescription = getDescription,
+  X_000E50_InternalClientMACAddress = getInternalClientMACAddress
+}
+
+local function set_internal_port(value, key)
+  local v = getFromRule(key, "src_dport")
+  -- ignore in case src_port is wildcard
+  if v == "" then
+    setOnRule(key, "tch_map_dest_port_backup", value)
+    return
+  end
+
+  -- when external port is a range value, InternalPort is same with ExternalProt,set a ranged InternalPort to uci/iptalbs
+  -- when external port is a range value, InternalPort is not same with ExternalProt,keep InternalPort value and add backupRestorWarning as we lost InternalEndPort from Legathy.
+  local startRange,endRange = v:match("^(%d+)%:(%d+)$")
+  if endRange then
+    if value == startRange then
+       value = v
+    else
+       backupRestoreWarning()
+    end
+  end
+  if tonumber(value) == 0 then
+    -- forward to the default, dest_port becomes empty
+    value = ""
+  end
+  setOnRule(key, "dest_port", value)
+end
+
+local function set_port_data(key, new_start, new_stop)
+  if not( new_start or new_stop) then
+    return nil, "invalid usage of set_port_data"
+  end
+  local start, stop, old_endrange = getPortData(key)
+  local restoreInternal = (start == "0")
+  local endrange = old_endrange
+  if new_start == "0" then
+    --goto wildcard
+    start = "0"
+    stop = "0"
+  elseif new_start then
+    --new non "0" value
+    start = new_start
+    if tonumber(stop)<tonumber(start) then
+      -- old stop no longer valid
+      stop = "0"
+      endrange = "0"
+    end
+  end
+  if new_stop then
+    if (new_stop == "0") or (tonumber(start)<=tonumber(new_stop)) then
+      stop = new_stop
+      endrange = new_stop
+    else
+      return nil, "value out of range"
+    end
+  end
+  if start == "0" then
+    -- back-up the InternalPort value when ExternalPort is set to 0
+    if getFromRule(key, "dest_port") ~= "" then
+      setOnRule(key, "tch_map_dest_port_backup", getFromRule(key, "dest_port"))
+    end
+    deleteOnRule(key, "src_dport")
+    deleteOnRule(key, "dest_port")
+  else
+    -- restore the InternalPort value when the ExternalPort is set from 0 to a non-zero value
+    if restoreInternal then
+      if getFromRule(key, "tch_map_dest_port_backup") ~= "" then
+        setOnRule(key, "dest_port", getFromRule(key, "tch_map_dest_port_backup"))
+        deleteOnRule(key, "tch_map_dest_port_backup")
+      end
+    end
+    local value = start
+    local value_internal = getInternalPort(key)
+    if (stop ~= "0") and (stop~=start) then
+      value = string.format("%s:%s", start, stop)
+      if value_internal ~= "0" and value_internal == start then
+	value_internal  = value
+      elseif value_internal ~= "0" and value_internal ~= start then
+        backupRestoreWarning()
+      end
+    end
+    setOnRule(key, 'src_dport', value)
+    setOnRule(key, "dest_port", value_internal)
+  end
+  if old_endrange ~= endrange then
+    if endrange~="0" then
+      setOnRule(key, "tch_map_endrange", endrange)
+    else
+      deleteOnRule(key, "tch_map_endrange")
+    end
+  end
+end
+
+local setter = {
+  Enable = function(mapping, param, value, key)
+    setOnRule(key, "enabled", value)
+  end,
+  PortMappingEnabled = function(mapping, param, value, key, parentKey)
+    setOnRule(key, "enabled", value)
+  end,
+  Interface = function(mapping, param, value, key)
+    local rc
+    rc, value = pcall(tokey, value, "Device.IP.Interface.{i}.")
+    if not rc then
+      return nil, "invalid value"
+    end
+    local intf_zone = interface2zone(value)
+    if not intf_zone then
+      return nil, "interface zone not found"
+    end
+    local protocol = getFromRule(key, "proto")
+    if protocol == "tcpudp" then
+      splitUciSection(mapping, "src", intf_zone.name, key)
+      setOnRule(key, "tch_interface", value)
+    else
+      setOnRule(key, "src", intf_zone.name)
+      setOnRule(key, "tch_interface", value)
+    end
+  end,
+  RemoteHost = function(mapping, param, value, key, parentKey)
+    if value == '' or isIPv4(value) then
+      setOnRule(key, "src_ip", value)
+    else
+      return nil, "It's not a valid IP address"
+    end
+  end,
+  ExternalPort = function(mapping, param, value, key, parentKey)
+    if not reservedPorts[value] then
+      return set_port_data(key, value)
+    end
+    return nil,"ports already reserved"
+  end,
+  ExternalPortEndRange = function(mapping, param, value, key, parentKey)
+    if not reservedPorts[value] then
+      local protocol = getFromRule(key, "proto")
+      return set_port_data(key, nil, value)
+    end
+    return nil,"ports already reserved"
+  end,
+  InternalPort = function(mapping, param, value, key, parentKey)
+    return set_internal_port(value, key)
+  end,
+  Protocol = function(mapping, param, value, key)
+    setOnRule(key, "proto", lower(value))
+  end,
+  PortMappingProtocol = function(mapping, param, value, key, parentKey)
+    setOnRule(key, "proto", lower(value))
+  end,
+  InternalClient = function(mapping, param, value, key, parentKey)
+    if isIPv4(value) then
+      return ip2mac_config(key, "dest_ip", value)
+    else
+      return nil, "It's not a valid IP address"
+    end
+  end,
+  Description = function(mapping, param, value, key)
+    setOnRule(key, "name", value)
+  end,
+  PortMappingDescription = function(mapping, param, value, key, parentKey)
+    setOnRule(key, "name", value)
+  end,
+  X_000E50_InternalClientMACAddress = function(mapping, param, value, key, parentKey)
+    if value == "" or common.isMAC(value) then
+      local mac_address = getFromRule(key, "dest_mac")
+      if mac_address ~= value then
+        ip2mac_config(key, "dest_mac", value)
+      end
+    else
+      return nil, "invalid MAC address"
+    end
+  end,
+}
+
+local function deleteUPnPPortmap(key)
+  local upnpportmap = upnpPortMappings[key]
+  local lines = {}
+
+  local fd = io.open("/var/upnp.leases")
+  if fd then
+    for line in fd:lines() do
+      local proto, intf, extPort, intClient, intPort, leaseTime, desc = line:match("^([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):(.*)$")
+
+      if proto ~= upnpportmap["Protocol"] or intf ~= upnpportmap["L2Interface"]
+         or intPort ~= upnpportmap["InternalPort"] or extPort ~= upnpportmap["ExternalPort"] then
+         table.insert(lines, line)
+      end
+    end
+    fd:close()
+
+    fd = io.open("/var/upnp.leases", "w")
+    if fd then
+        fd:write(table.concat(lines, "\n"))
+        fd:close()
+    end
+  end
+end
+
+local function delete(mapping, key)
+  if upnpPortMappings[key] then
+    deleteUPnPPortmap(key)
+    commitapply:newdelete("upnpd")
+    return true
+  end
+
+  if deleteOnRule(key) then
+    -- update /var/state/firewall
+    -- Notify redirecthelper that we deleted something.
+    ubus_connect:call("redirecthelper", "delete", { section=key })
+    return true
+  end
+
+  return nil,"Delete instance failed"
+end
+
+local function commit()
+  if configChanged then
+    commit_on_uci(fwBinding)
+    configChanged = false
+    -- update /var/state/firewall
+    -- Notify redirecthelper that we modified something.
+    -- dynamic dest_ip might need changed
+    ubus_connect:call("redirecthelper", "update", {})
+  end
+end
+
+local function revert()
+  if configChanged then
+    revert_on_uci(fwBinding)
+    configChanged = false
+  end
+end
+
+
+local function get(mapping, param, key)
+  if upnpPortMappings[key] then
+    return upnpPortMappings[key][param] or ""
+  end
+  if param == "LeaseDuration" or param == "PortMappingLeaseDuration" then
+    return "0"
+  elseif param == "ExternalPort" then
+    return getPortData(key)
+  elseif param == "ExternalPortEndRange" then
+    local _,port = getPortData(key)
+    return port
+  else
+    return getterTable[param](key)
+  end
+end
+
+local function getall(mapping, key)
+  if upnpPortMappings[key] then
+    return upnpPortMappings[key]
+  end
+  local portmapValues = getFromRule(key)
+  local port, endRange = getPortData(key)
+  local proto = portmapValues["proto"] or ""
+  local protocol = (proto == "tcpudp") and splitKey(key) or proto
+  return {
+    Enable = portmapValues["enabled"] or "0",
+    PortMappingEnabled = portmapValues["enabled"] or "0",
+    Status = getStatus(key,portmapValues),
+    Interface = resolve("Device.IP.Interface.{i}.", (portmapValues["tch_interface"] or portmapValues["src"]) ) or "" ,
+    LeaseDuration = "0",
+    PortMappingLeaseDuration = "0",
+    RemoteHost = portmapValues["src_ip"] or "",
+    ExternalPort = port,
+    ExternalPortEndRange = endRange,
+    InternalPort = getInternalPort(key, portmapValues),
+    Protocol = protocol and upper(protocol) or "",
+    PortMappingProtocol = protocol and upper(protocol) or "",
+    InternalClient = portmapValues["dest_ip"] or "",
+    Description = portmapValues["name"] or "",
+    PortMappingDescription = portmapValues["name"] or "",
+    X_000E50_InternalClientMACAddress = getInternalClientMACAddress(key)
+  }
+end
+
+local function set(mapping, param, value, key, parentKey)
+  if upnpPortMappings[key] then -- The SET Functionality is currently not supported for entries populated by UPnP portmapping.
+    return nil, "Set not supported for UPnP PortMapped entries"
+  end
+  return setter[param](mapping, param, value, key, parentKey)
+end
+
+Multi_PortMapping_i_.entries = entries
+Multi_PortMapping_i_.get = get
+Multi_PortMapping_i_.getall = getall
+Multi_PortMapping_i_.set = set
+Multi_PortMapping_i_.add = add
+Multi_PortMapping_i_.delete = delete
+Multi_PortMapping_i_.commit = commit
+Multi_PortMapping_i_.revert = revert
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_PortMapping_i_, "#ROOT", { "Device.NAT", "InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANIPConnection.{i}", "InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANPPPConnection.{i}" })
+for _, dupli in ipairs(duplicates) do
+  if dupli.objectType.name:match("^InternetGatewayDevice.") then
+    dupli.dataModel = "igd"
+    dupli.objectType.enableParameter = "PortMappingEnabled"
+    dupli.objectType.parameters.InternalPort.range[1].min = "1"
+    for _, param in ipairs(paramsOnlyForDev2) do
+      dupli.objectType.parameters[param] = nil
+    end
+  else
+    dupli.dataModel = "device2"
+    dupli.objectType.enableParameter = "Enable"
+    dupli.objectType.parameters.InternalPort.range[1].min = "0"
+    for _, param in ipairs(paramsOnlyForIgd) do
+      dupli.objectType.parameters[param] = nil
+    end
+  end
+  register(dupli)
+end

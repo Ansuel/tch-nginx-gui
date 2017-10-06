@@ -1,0 +1,631 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+-- NG-72728/NG-71196
+local Device_PPP_Interface_i_ = {
+  objectType = {
+    name = "Device.PPP.Interface.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "InterfaceNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Up",
+          "Down",
+          "Unknown",
+          "Dormant",
+          "NotPresent",
+          "LowerLayerDown",
+          "Error",
+        },
+        default = "Down",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        max = "64",
+      },
+      Name = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      LastChange = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      LowerLayers = {
+        access = "readOnly",  -- readWrite not supported
+        list = true,
+        max = "1024",
+        type = "string",
+        pathRef = true,
+        default = "",
+      },
+      Reset = {
+        access = "readWrite",
+        hidden = "true",
+        command = "true",
+        type = "boolean",
+        default = "false",
+      },
+      ConnectionStatus = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Unconfigured",
+          "Connecting",
+          "Authenticating",
+          "Connected",
+          "PendingDisconnect", -- currently support is not available for this state
+          "Disconnecting",
+          "Disconnected",
+        },
+      },
+      LastConnectionError = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "ERROR_NONE",
+          "ERROR_ISP_TIME_OUT",
+          "ERROR_COMMAND_ABORTED",
+          "ERROR_NOT_ENABLED_FOR_INTERNET",
+          "ERROR_BAD_PHONE_NUMBER",
+          "ERROR_USER_DISCONNECT",
+          "ERROR_ISP_DISCONNECT",
+          "ERROR_IDLE_DISCONNECT",
+          "ERROR_FORCED_DISCONNECT",
+          "ERROR_SERVER_OUT_OF_RESOURCES",
+          "ERROR_RESTRICTED_LOGON_HOURS",
+          "ERROR_ACCOUNT_DISABLED",
+          "ERROR_ACCOUNT_EXPIRED",
+          "ERROR_PASSWORD_EXPIRED",
+          "ERROR_AUTHENTICATION_FAILURE",
+          "ERROR_NO_DIALTONE",
+          "ERROR_NO_CARRIER",
+          "ERROR_NO_ANSWER",
+          "ERROR_LINE_BUSY",
+          "ERROR_UNSUPPORTED_BITSPERSECOND",
+          "ERROR_TOO_MANY_LINE_ERRORS",
+          "ERROR_IP_CONFIGURATION",
+          "ERROR_UNKNOWN",
+        },
+      },
+      AutoDisconnectTime = {
+        access = "readOnly",  --readWrite not supported
+        type = "unsignedInt",
+      },
+      IdleDisconnectTime = {
+        access = "readOnly",  --readWrite not supported
+        type = "unsignedInt",
+      },
+      WarnDisconnectDelay = {
+        access = "readOnly",  --readWrite not supported
+        type = "unsignedInt",
+      },
+      Username = {
+        access = "readWrite",
+        type = "string",
+        max = "64",
+      },
+      Password = {
+        access = "readWrite",
+        hidden = "true",
+        type = "string",
+        max = "64",
+      },
+      EncryptionProtocol = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "None",
+          "MPPE",
+        },
+      },
+      CompressionProtocol = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "None",
+          "Van Jacobson",
+          "STAC LZS",
+        },
+      },
+      AuthenticationProtocol = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "PAP",
+          "CHAP",
+          "MS-CHAP",
+        },
+      },
+      MaxMRUSize = {
+        access = "readOnly", -- readWrite not supported
+        type = "unsignedInt",
+        range = {
+          {
+            min = "64",
+            max = "65535",
+          },
+        },
+        default = "1500",
+      },
+      CurrentMRUSize = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "64",
+            max = "65535",
+          },
+        },
+      },
+      ConnectionTrigger = {
+        access = "readOnly",  -- readWrite not supported
+        type = "string",
+        enumeration = {
+          "OnDemand",
+          "AlwaysOn",
+          "Manual",
+        },
+      },
+      LCPEcho = {
+        access = "readWrite",
+        type = "unsignedInt",
+      },
+      LCPEchoRetry = {
+        access = "readWrite",
+        type = "unsignedInt",
+      },
+      X_BELGACOM_LCPRetryInterval = {
+        access = "readWrite",
+        type = "unsignedInt",
+      },
+      X_BELGACOM_LCPRetryAttempts = {
+        access = "readWrite",
+        type = "unsignedInt",
+      },
+      X_BELGACOM_LCPRetryIntervalMax = {
+        access = "readWrite",
+        type = "unsignedInt",
+      },
+--[[ TODO
+      IPCPEnable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      IPv6CPEnable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+--]]
+    }
+  },
+  aliasDefault = "Name"
+}
+
+local nwmodel = require "transformer.shared.models.device2.network"
+local PPPInterface = nwmodel.register("PPPInterface", Device_PPP_Interface_i_.objectType.name)
+local model
+
+local mapper, pairs, eventsource, open, commitApply = mapper, pairs, eventsource, io.open, commitapply
+local nwCommon = mapper("nwcommon")
+local uciHelper = mapper("ucihelper")
+local setOnUci = uciHelper.set_on_uci
+local getFromUci = uciHelper.get_from_uci
+local getAllFromUci = uciHelper.getall_from_uci
+local commit = uciHelper.commit
+local revert = uciHelper.revert
+-- function aliases
+local getUbusInterfaceStatus = nwCommon.get_ubus_interface_status
+local getIntfInfo = nwCommon.getIntfInfo
+local posix = require("tch.posix")
+local getClockTime = posix.clock_gettime
+local lastStateChangeTime = {}
+
+-- binding for uciHelper
+local binding = {config = "network"}
+local configChanged
+
+-- convert pppstate to ConnectionStatus
+local pppStateMap = {
+  ["connected"]="Connected",
+  ["disconnected"]="Disconnected",
+  ["disconnecting"]="Disconnecting",
+  ["authenticating"]="Authenticating",
+  ["connecting"]="Connecting"
+}
+
+local lastConnectionErrorMap = {
+  ["OK"]="ERROR_NONE",
+  ["FATAL_ERROR"]="ERROR_COMMAND_ABORTED",
+  ["OPTION_ERROR"]="ERROR_COMMAND_ABORTED",
+  ["NOT_ROOT"]="ERROR_COMMAND_ABORTED",
+  ["NO_KERNEL_SUPPORT"]="ERROR_COMMAND_ABORTED",
+  ["USER_REQUEST"]="ERROR_USER_DISCONNECT",
+  ["LOCK_FAILED"]="ERROR_COMMAND_ABORTED",
+  ["OPEN_FAILED"]="ERROR_COMMAND_ABORTED",
+  ["CONNECT_FAILED"]="ERROR_COMMAND_ABORTED",
+  ["PTYCMD_FAILED"]="ERROR_COMMAND_ABORTED",
+  ["NEGOTIATION_FAILED"]="ERROR_FORCED_DISCONNECT",
+  ["PEER_AUTH_FAILED"]="ERROR_FORCED_DISCONNECT",
+  ["IDLE_TIMEOUT"]="ERROR_IDLE_DISCONNECT",
+  ["CONNECT_TIME"]="ERROR_ISP_DISCONNECT",
+  ["CALLBACK"]="ERROR_COMMAND_ABORTED",
+  ["PEER_DEAD"]="ERROR_FORCED_DISCONNECT",
+  ["HANGUP"]="ERROR_ISP_DISCONNECT",
+  ["LOOPBACK"]="ERROR_COMMAND_ABORTED",
+  ["INIT_FAILED"]="ERROR_COMMAND_ABORTED",
+  ["AUTH_TOPEER_FAILED"]="ERROR_AUTHENTICATION_FAILURE",
+  ["TRAFFIC_LIMIT"]="ERROR_ISP_DISCONNECT",
+  ["CNID_AUTH_FAILED"]="ERROR_USER_DISCONNECT",
+  ["UNKNOWN_ERROR"]="ERROR_UNKNOWN"
+}
+
+local paramMap = {
+  ["Enable"] = "auto",
+  ["Username"] = "username",
+  ["Password"] = "password",
+  ["IdleDisconnectTime"] = "demand",
+  ["ConnectionTrigger"] = "demand",
+  ["MaxMRUSize"] = "mtu",
+  ["LCPEcho"] = "keepalive",
+  ["LCPEchoRetry"] = "keepalive",
+  ["X_BELGACOM_LCPRetryInterval"] = "lcpretryinterval",
+  ["X_BELGACOM_LCPRetryAttempts"] = "lcpretryattempts",
+  ["X_BELGACOM_LCPRetryIntervalMax"] = "lcpretryintervalmax",
+}
+
+local paramDefaults = {
+  ["Enable"] = "1",
+  ["IdleDisconnectTime"] = "0",
+  ["MaxMRUSize"] = "1500",
+  ["CurrentMRUSize"] = "0",
+  ["ConnectionTrigger"] = "AlwaysOn",
+  ["X_BELGACOM_LCPRetryInterval"] = "30",
+  ["X_BELGACOM_LCPRetryAttempts"] = "360",
+  ["X_BELGACOM_LCPRetryIntervalMax"] = "7200",
+}
+
+Device_PPP_Interface_i_.entries = function(mapping, parentkey)
+  model = nwmodel.load()
+  return model:getKeys(PPPInterface)
+  -- note that the getters and setters need to use model:getInterface(key) to
+  -- retrieve the uci key value as the PPP interface does not have a uci section
+  -- of its own.
+  -- This becomes noticable when a placeholder is used.
+end
+
+local function getUciParam(mapping, param, key)
+  if key then
+    binding.sectionname = model:getInterface(key)
+    binding.option = paramMap[param]
+    binding.default = paramDefaults[param]
+    return getFromUci(binding)
+  else
+    return (param == "Enable") and "0" or paramDefaults[param] or ""
+  end
+end
+
+local function getPPPInfo(ifname, ubus_status)
+  if not ubus_status then
+    ubus_status = getUbusInterfaceStatus(model:getInterface(ifname))
+  end
+  local data = ubus_status and ubus_status.data
+  local info = data and data.pppinfo
+  return info and info.pppstate
+end
+
+local function isLowerLayerUp(key)
+  local lowerlayers = model:getLowerLayers(key)
+  for _, lower in ipairs(lowerlayers) do
+    local lowerDev = model:getDevice(lower[2])
+    if getIntfInfo(lowerDev, "operstate")~="up" then
+      return false
+    end
+  end
+  return true
+end
+
+local function getStatus(mapping, param, key, value)
+  if model:getPresent(key) then
+    local state = getPPPInfo(key)
+    if not state then
+      return "Down"
+    elseif state == "connected" then
+      return "Up"
+    else
+      if isLowerLayerUp(key) then
+        return "Down"
+      else
+        return "LowerLayerDown"
+      end
+    end
+  end
+  return "NotPresent"
+end
+
+local function getConnStatus(mapping,param,key,value)
+  if (getUciParam(mapping, "Username", key) == "") and (getUciParam(mapping, "Password", key) == "") then
+    return "Unconfigured"
+  end
+  local status = value or getUbusInterfaceStatus(model:getInterface(key))
+  if status and status.data and status.data.pppinfo then
+    return status.data.pppinfo.pppstate and pppStateMap[status.data.pppinfo.pppstate] or "Disconnected"
+  end
+  return "Disconnected"
+end
+
+local function getLastConnErr(mapping,param,key,value)
+  local status = value or getUbusInterfaceStatus(model:getInterface(key))
+  if status and status.errors then
+    for _,error in pairs(status.errors) do
+      if error.subsystem:match("^ppp") then
+        return lastConnectionErrorMap[error.code] or "ERROR_UNKNOWN"
+      end
+    end
+    return "ERROR_UNKNOWN"
+  end
+  return "ERROR_NONE"
+end
+
+local function getCurrentMRU(mapping,param,key,value)
+  local device = value and value[paramMap[param]] or model:getDevice(key)
+  return getIntfInfo(device, "mtu", "0")
+end
+
+local function getAuthProto(mapping,param,key,value)
+  local status = value or getUbusInterfaceStatus(model:getInterface(key))
+  if status and status.data and status.data.pppinfo then
+    return status.data.pppinfo.auth or ""
+  end
+  return ""
+end
+
+local function getKeepAlive(mapping, param, key)
+  local keepalive = getUciParam(mapping, param, key)
+  if keepalive == "" then
+    -- if no keepalive configured it is considered `5,1`; see `keepalive` UCI specification
+    keepalive = "5,1"
+  end
+  -- typical keepalive pattern: `5,10`
+  local retry, echo = keepalive:match("^(%d+),(%d+)")
+  if param == "LCPEchoRetry" then
+    return retry or ""
+  elseif param == "LCPEcho" then
+    return echo or ""
+  end
+end
+
+local function getLastChange(mapping, param, key)
+  local interface = model:getInterface(key)
+  local ubusStatus = getUbusInterfaceStatus(interface)
+  local value
+  -- Checking whether the ppp interface is up and has uptime information
+  if ubusStatus and ubusStatus.data and ubusStatus.data.pppinfo and ubusStatus.uptime then
+    value = ubusStatus["uptime"]
+  else
+    value = getClockTime(posix.CLOCK_MONOTONIC) - (lastStateChangeTime[interface] or 0)
+  end
+  return tostring(value)
+end
+
+local function getLowerLayer(mapping,param,key,value)
+  return model:getLowerLayersResolved(key, resolve)
+end
+
+local function getConnectionTrigger(mapping,param,key,value)
+  local connectionValue = value and value[paramMap[param]] or getUciParam(mapping,param,key)
+  if connectionValue == "0" then
+    return "AlwaysOn"
+  end
+  return "OnDemand"
+end
+
+Device_PPP_Interface_i_.get = {
+  Enable = getUciParam,
+  Status = getStatus,
+  ConnectionStatus = getConnStatus,
+  Name = function(mapping, param, key)
+    return model:getName(key)
+  end,
+  Username = getUciParam,
+  Password = getUciParam,
+  LastChange = getLastChange,
+  LowerLayers = getLowerLayer,
+  Reset = "0",
+  LastConnectionError = getLastConnErr,
+  AutoDisconnectTime = "0",
+  IdleDisconnectTime = getUciParam,
+  WarnDisconnectDelay = "0",
+  AuthenticationProtocol = getAuthProto,
+  EncryptionProtocol = "None",
+  CompressionProtocol = "None",
+  MaxMRUSize = getUciParam,
+  CurrentMRUSize = getCurrentMRU,
+  ConnectionTrigger = getConnectionTrigger,
+  LCPEcho = getKeepAlive,
+  LCPEchoRetry = getKeepAlive,
+  X_BELGACOM_LCPRetryInterval = getUciParam,
+  X_BELGACOM_LCPRetryAttempts = getUciParam,
+  X_BELGACOM_LCPRetryIntervalMax = getUciParam,
+}
+
+Device_PPP_Interface_i_.getall = function(mapping,key)
+  binding.sectionname = model:getInterface(key)
+  local status = getUbusInterfaceStatus(model:getInterface(key))
+  local uciValues = binding.sectionname and getAllFromUci(binding)
+  return {
+    Enable = uciValues and (uciValues[paramMap["Enable"]] or paramDefaults["Enable"]) or "0",
+    Status = getStatus(mapping,"Status",key,status),
+    ConnectionStatus = getConnStatus(mapping,"ConnectionStatus",key),
+    Name = model:getName(key),
+    Username = uciValues and uciValues[paramMap["Username"]] or "",
+    Password = uciValues and uciValues[paramMap["Password"]] or "",
+    LastChange = getLastChange(mapping, nil, key),
+    LowerLayers = getLowerLayer(mapping,"LowerLayers",key,uciValues),
+    Reset = "0",
+    LastConnectionError = getLastConnErr(mapping,"LastConnectionError",key,status),
+    AutoDisconnectTime = "0",
+    IdleDisconnectTime = uciValues and uciValues[paramMap["IdleDisconnectTime"]] or paramDefaults["IdleDisconnectTime"],
+    WarnDisconnectDelay = "0",
+    AuthenticationProtocol = getAuthProto(mapping,"AuthenticationProtocol",key,status),
+    EncryptionProtocol = "None",
+    CompressionProtocol = "None",
+    MaxMRUSize = uciValues and uciValues[paramMap["MaxMRUSize"]] or paramDefaults["MaxMRUSize"],
+    CurrentMRUSize = getCurrentMRU(mapping,"CurrentMRUSize",key,uciValues),
+    ConnectionTrigger = getConnectionTrigger(mapping,"ConnectionTrigger",key,uciValues),
+    LCPEcho = getKeepAlive(mapping,"LCPEcho",key,uciValues),
+    LCPEchoRetry = getKeepAlive(mapping,"LCPEchoRetry",key,uciValues),
+    X_BELGACOM_LCPRetryInterval = uciValues["lcpretryinterval"] or paramDefaults["X_BELGACOM_LCPRetryInterval"],
+    X_BELGACOM_LCPRetryAttempts = uciValues["lcpretryattempts"] or paramDefaults["X_BELGACOM_LCPRetryAttempts"],
+    X_BELGACOM_LCPRetryIntervalMax = uciValues["lcpretryintervalmax"] or paramDefaults["X_BELGACOM_LCPRetryIntervalMax"],
+  }
+end
+
+local firebinding = {config="firewall", sectionname="zone"}
+local function intfname()
+	local tabintf = {}
+	uciHelper.foreach_on_uci(firebinding, function(s)
+		if s['wan'] == "0" then
+			for i, v in pairs(s['network']) do
+			tabintf[#tabintf +1] = v
+			end
+		end
+	end
+)
+	return tabintf
+end
+
+local devbinding = {config="network", sectionname='device'}
+local function devname()
+	local tabdev = {}
+	uciHelper.foreach_on_uci(devbinding, function(s)
+		tabdev[#tabdev +1] = s['.name']
+	end
+)
+	return tabdev
+end
+
+local function setUciParam(mapping, param, value, key)
+  key = model:getInterface(key)
+  
+  if key then
+    binding.sectionname = key
+    binding.option = paramMap[param]
+    setOnUci(binding, value, commitApply)
+    configChanged = true
+	if param == "Username" then
+		local devices = devname()
+		local interfaces = intfname()
+		local check = string.sub(value, #value-1,#value)
+		if check == "v6" then
+			setOnUci({config = "network", sectionname = key, option = "ipv6"}, "1", commitapply)
+			setOnUci({config = "network", sectionname = "wan6", option = "auto"}, "1", commitapply)
+			for i, v in ipairs(interfaces) do
+				setOnUci({config = "network", sectionname = v, option = "ipv6"}, "1", commitapply)
+			end
+			for i,v in ipairs(devices) do
+				setOnUci({config = "network", sectionname = v, option = "ipv6"}, "1", commitapply)
+			end
+			setOnUci({config = "env", sectionname = "var", option = "ppp_realm_ipv6"}, value, commitapply)
+			setOnUci({config = "env", sectionname = "var", option = "ppp_realm_ipv4"}, string.sub(value, 0,#value-2), commitapply)
+		else
+			setOnUci({config = "network", sectionname = key, option = "ipv6"}, "0", commitapply)
+			setOnUci({config = "network", sectionname = "wan6", option = "auto"}, "0", commitapply)
+			for i, v in ipairs(interfaces) do
+				setOnUci({config = "network", sectionname = v, option = "ipv6"}, "0", commitapply)
+			end
+			for i,v in ipairs(devices) do
+				setOnUci({config = "network", sectionname = v, option = "ipv6"}, "0", commitapply)
+			end
+			setOnUci({config = "env", sectionname = "var", option = "ppp_realm_ipv6"}, string.format("%sv6",value), commitapply)
+			setOnUci({config = "env", sectionname = "var", option = "ppp_realm_ipv4"}, value, commitapply)
+		end
+	end
+  else
+    return nil, "Sectionname could not be found in the given Binding"
+  end
+end
+
+local function setLcp(mapping, param, value, key)
+  local retry = (param == "LCPEchoRetry") and value or getKeepAlive(mapping, "LCPEchoRetry", key)
+  local echo = (param == "LCPEcho") and value or getKeepAlive(mapping, "LCPEcho", key)
+  setUciParam(mapping, param, retry .. "," .. echo, key)
+end
+
+Device_PPP_Interface_i_.set = {
+  Enable = setUciParam,
+  Username = setUciParam,
+  Password = setUciParam,
+  Reset = function(mapping, param, value, key)
+    if value == "1" then
+      local resetable = model:getPresent(key) and getUciParam(mapping, "Enable", key)=="1"
+      if resetable then
+        local fileHandler = open("/tmp/.ppp_intf","w")
+        if fileHandler then
+          fileHandler:write(model:getInterface(key))
+          fileHandler:close()
+          commitApply:newset("Device.PPP.Interface.{i}.Reset")
+        else
+          return nil, "unexpected write error"
+        end
+      end
+    else
+      return true
+    end
+  end,
+  LCPEcho = setLcp,
+  LCPEchoRetry = setLcp,
+  X_BELGACOM_LCPRetryInterval = setUciParam,
+  X_BELGACOM_LCPRetryAttempts = setUciParam,
+  X_BELGACOM_LCPRetryIntervalMax = setUciParam,
+}
+
+Device_PPP_Interface_i_.commit = function()
+  if configChanged then
+    commit(binding)
+	commit({config = "env"})
+    configChanged = false
+  end
+end
+
+Device_PPP_Interface_i_.revert = function()
+  if configChanged then
+    revert(binding)
+    configChanged = false
+  end
+end
+
+local function setEvent(mapping, action, config, sectionType, sectionName, option)
+  return { { key = sectionName, paramname = "Username" } }
+end
+
+local function setUbusEvent(mapping, action, data)
+  if data and data.pppinfo and data.pppinfo.pppstate then
+    lastStateChangeTime[data.interface] = getClockTime(posix.CLOCK_MONOTONIC)
+  end
+end
+
+Device_PPP_Interface_i_.add_watchers = function(mapping, param, key)
+  local uci_evsrc = eventsource("uci")
+  uci_evsrc.watch(mapping, { set = setEvent }, "network", "interface", key, "username")
+  local ubusEventSource = eventsource("ubus")
+  ubusEventSource.watch_event(mapping, setUbusEvent, "network.interface")
+end
+
+register(Device_PPP_Interface_i_)

@@ -1,0 +1,7 @@
+local command = {
+  name = "wireless_autochannel",
+  full_path = "/usr/sbin/wireless_autochannel.sh",
+  options_without_argument = {"--bsslist", "--detail", "--scanhistory", "--scanreport"},
+}
+
+mapper("command").registerCommand(command)

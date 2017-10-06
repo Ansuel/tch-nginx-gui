@@ -1,0 +1,131 @@
+local register = register
+local popen = io.popen
+
+local sys_mem_ = {
+    objectType = {
+        name = "sys.mem.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            RAMTotal = {
+                access = "readOnly",
+                type = "string",
+            },
+            RAMUsed = {
+                access = "readOnly",
+                type = "string",
+            },
+            RAMFree = {
+                access = "readOnly",
+                type = "string",
+            },
+            flashTotal = {
+                access = "readOnly",
+                type = "string",
+            },
+            flashUsed = {
+                access = "readOnly",
+                type = "string",
+            },
+            flashFree = {
+                access = "readOnly",
+                type = "string",
+            },
+        }
+    }
+}
+
+--[[
+a) get free memory size (KB)
+root@OpenWrt:/# free
+             total         used         free       shared      buffers
+Mem:        247428       167436        79992            0        10576
+-/+ buffers:             156860        90568
+Swap:            0            0            0
+
+==> RAMTotal = 247428
+==> RAMUsed  = 156860
+==> RAMFree  = 90568
+
+b) get free flash size (KB)
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ on vant-4
+root@OpenWrt:/# cat /proc/mtd
+dev:    size   erasesize  name
+mtd0: 08000000 00020000 "brcmnand.0"
+mtd1: 02c60000 00020000 "rootfs"
+mtd2: 01f80000 00020000 "rootfs_data"
+mtd3: 02e60000 00020000 "bank_1"
+mtd4: 02e60000 00020000 "bank_2"
+mtd5: 00020000 00020000 "eripv2"
+mtd6: 00040000 00020000 "rawstorage"
+mtd7: 00000003 00020000 "blversion
+
+flashTotal = 08000000 ( /1000 will be in KB)
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ on vant-u
+root@OpenWrt:/rom/etc# cat /proc/mtd
+dev:    size   erasesize  name
+mtd0: 00ce0000 00010000 "rootfs"
+mtd1: 00300000 00010000 "rootfs_data"
+mtd2: 00e40000 00010000 "bank_1"
+mtd3: 00e40000 00010000 "bank_2"
+mtd4: 00020000 00010000 "eripv2"
+mtd5: 00040000 00010000 "rawstorage"
+mtd6: 00000003 00010000 "blversion"
+
+flashTotal =~ rootfs_data + bant_1 + bant_2    ( /1000 will be in KB)
+
+
+==> flashTotal ~= rootfs_data + bant_1 + bant_2 (for generic solution)
+
+root@OpenWrt:/# df -k
+Filesystem           1K-blocks      Used Available Use% Mounted on
+rootfs                   32256      1252     31004   4% /
+/dev/root                14592     14592         0 100% /rom
+/dev/mtdblock2           32256      1252     31004   4% /overlay
+overlayfs:/overlay/bank_1
+                         32256      1252     31004   4% /
+
+==> flashFree  = 31004  ( rootfs )
+==> flashUsed  = $flashTotal - $flashFree
+--]]
+
+local function get(mapping, paramName)
+    local function getMemInfo(cmd)
+        local fp = popen(cmd)
+        if fp == nil then
+            return ""
+        end
+        local line = fp:read("*l")
+        if not line then
+            return ""
+        else
+            fp:close()
+            return line
+        end
+    end
+
+    local cmd = ""
+    if paramName == "RAMTotal" then
+        cmd = "free | grep Mem | tr -s ' ' | cut -d' ' -f 2"
+    elseif paramName == "RAMUsed" then
+        cmd = "free | grep buffers: | tr -s ' ' | cut -d' ' -f 3"
+    elseif paramName == "RAMFree" then
+        cmd = "free | grep buffers: | tr -s ' ' | cut -d' ' -f 4"
+    elseif paramName == "flashTotal" then
+        cmd= "let userfs=0x$(grep rootfs_data /proc/mtd | cut -d ' ' -f 2)/1000;let bank1=0x$(grep bank_1 /proc/mtd | cut -d ' ' -f 2)/1000;grep bank_2 /proc/mtd >>/dev/null && let bank1=bank1*2;let total=userfs+bank1;echo $total"
+    elseif paramName == "flashUsed" then
+        cmd= "let userfs=0x$(grep rootfs_data /proc/mtd | cut -d ' ' -f 2)/1000;let bank1=0x$(grep bank_1 /proc/mtd | cut -d ' ' -f 2)/1000;grep bank_2 /proc/mtd >>/dev/null && let bank1=bank1*2;let total=userfs+bank1;free=$(df -k | grep rootfs | tr -s ' ' | cut -d ' ' -f 4); let used=total-free; echo $used"
+    elseif paramName == "flashFree" then
+        cmd = "df -k | grep rootfs | tr -s ' ' | cut -d' ' -f 4"
+    else
+        return ""
+    end
+
+    return getMemInfo(cmd)
+end
+
+sys_mem_.get = get
+register(sys_mem_)

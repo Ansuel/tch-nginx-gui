@@ -1,0 +1,41 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_USB_USBHosts_Host_i_Device_i_Configuration_i_ = {
+  objectType = {
+    name = "Device.USB.USBHosts.Host.{i}.Device.{i}.Configuration.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "ConfigurationNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      ConfigurationNumber = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      -- InterfaceNumberOfEntries
+      -- automatically created when Device.USB.USBHosts.Host.{i}.Device.{i}.Configuration.{i}.Interface.{i}. is loaded
+    }
+  }
+}
+
+-- Currently this object supports only one instance as more than one configuration is not testable. Tried with different USB devices (USB, Harddisk, Printer, Mobile, Dongle).
+-- Also It is very rare to see devices with Multiple configurations and Linux supports only one Configuration at a line
+
+Device_USB_USBHosts_Host_i_Device_i_Configuration_i_.entries = function(mapping, parentKey)
+  return { parentKey }
+end
+
+Device_USB_USBHosts_Host_i_Device_i_Configuration_i_.get = {
+  ConfigurationNumber = function(mapping, param, key)
+    local value = "1" -- default configuration number
+    local fileName = "/sys/bus/usb/devices/" .. key .. "/" .. "bConfigurationValue"
+    local fd = io.open(fileName)
+    if fd then
+      value = fd:read()
+      fd:close()
+    end
+    return value
+  end,
+}
+
+register(Device_USB_USBHosts_Host_i_Device_i_Configuration_i_)

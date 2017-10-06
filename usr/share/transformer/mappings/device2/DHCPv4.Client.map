@@ -1,0 +1,287 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_DHCPv4_Client_i_ = {
+  objectType = {
+    name = "Device.DHCPv4.Client.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "ClientNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 1,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        max  = "64",
+      },
+      Interface = {
+        access = "readOnly",
+        type = "string",
+        max = "256",
+        pathRef = true,
+        targetParent = "Device.IP.Interface.{i}.",
+        default = "",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Disabled",
+          "Enabled",
+          "Error_Misconfigured",
+          "Error",
+        },
+        default = "Disabled",
+      },
+--[[ TODO
+      DHCPStatus = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Init",
+          "Selecting",
+          "Requesting",
+          "Rebinding",
+          "Bound",
+          "Renewing",
+        },
+      },
+]]--
+      --hidden attribute is removed in Renew parameter as it leads to wrong behaviour
+      Renew = {
+        access = "readWrite",
+        command = "true",
+        type = "boolean",
+        default = "false",
+      },
+      IPAddress = {
+        access = "readOnly",
+        type = "string",
+        default = "",
+      },
+      SubnetMask = {
+        access = "readOnly",
+        type = "string",
+        default = "",
+      },
+      IPRouters = {
+        access = "readOnly",
+        list = true,
+        max = "256",
+        type = "string",
+        default = "",
+      },
+      DNSServers = {
+        access = "readOnly",
+        list = true,
+        max = "256",
+        type = "string",
+        default = "",
+      },
+--[[ TODO
+      LeaseTimeRemaining = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+          },
+        },
+        default = "0",
+      },
+      DHCPServer = {
+        access = "readOnly",
+        type = "string",
+        default = "",
+      },
+      PassthroughEnable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      PassthroughDHCPPool = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        pathRef = true,
+        targetParent = "Device.DHCPv4.Server.Pool.{i}.",
+        default = "",
+      },
+--]]
+      -- SentOptionNumberOfEntries
+      -- automatically created when Device.DHCPv4.Client.{i}.SentOption.{i}. is loaded
+      -- ReqOptionNumberOfEntries
+      -- automatically created when Device.DHCPv4.Client.{i}.ReqOption.{i}. is loaded
+
+    }
+  }
+}
+
+-- function aliases
+local mapper, commitApply, concat, pairs = mapper, commitapply, table.concat, pairs
+local nwCommon = mapper("nwcommon")
+local uciHelper = mapper("ucihelper")
+local open = io.open
+local binding = { config = "network"}
+local getUbusInterfaceStatus = nwCommon.get_ubus_interface_status
+local configChanged = false
+local nwmodel = require "transformer.shared.models.device2.network"
+local model
+
+local function getUciParam(key, paramName, default)
+  binding.sectionname = model:getUciKey(key)
+  binding.option = paramName
+  binding.default = default
+  if paramName then
+    return uciHelper.get_from_uci(binding)
+  end
+  return uciHelper.getall_from_uci(binding)
+end
+
+local function setUciParam(key, option, value)
+  binding.sectionname = model:getUciKey(key)
+  binding.option = option
+  uciHelper.set_on_uci(binding, value, commitApply)
+  configChanged = true
+end
+
+Device_DHCPv4_Client_i_.entries = function()
+  local DHCPv4Interfaces ={}
+  local data
+  model = nwmodel.load()
+  local intf = model:getKeys("IPInterface")
+  for _, iface in pairs (intf) do
+    data = getUciParam(iface)
+    if data and data.proto == "dhcp" then
+      DHCPv4Interfaces[#DHCPv4Interfaces + 1] = iface
+    end
+  end
+  return DHCPv4Interfaces
+end
+
+local function getEnableStatus(mapping, param, key, value)
+  local enable = value or getUciParam(model:getBaseKey(key), "auto", "1")
+  if param == "Enable" then
+    return enable == '1' and '1' or '0'
+  elseif param == "Status" then
+    return enable == '1' and 'Enabled' or 'Disabled'
+  end
+end
+
+local function getInterface(mapping, param, key)
+  return resolve('Device.IP.Interface.{i}.', key) or ""
+end
+
+local function getIPAddress(mapping, param, key, value)
+  local v = value or getUbusInterfaceStatus(model:getInterface(key))
+  v = v and v["ipv4-address"]
+  v = v and v[1]
+  return (v and v['address']) or ""
+end
+
+local function getIPRouters(mapping, param, key, value)
+  local IPRouters = {}
+  local v = value or getUbusInterfaceStatus(model:getInterface(key))
+  v = v and v["route"]
+  if v then
+    for _,y in pairs(v) do
+      if y["target"] then
+        IPRouters[#IPRouters + 1] = y["target"]
+      end
+    end
+    return concat(IPRouters, ",")
+  end
+  return ""
+end
+
+local function getSubnetMask(mapping, param, key, value)
+  local v = value or getUbusInterfaceStatus(model:getInterface(key))
+  v = v and v['ipv4-address']
+  v = v and v[1]
+  return nwCommon.netmask2mask(v and v['mask']) or ""
+end
+
+local function getDNSServers(mapping, param, key, value)
+  local status = value or getUbusInterfaceStatus(model:getInterface(key))
+  local DNSServers = ""
+  status = status and status["dns-server"]
+  if type(status) == 'table' and next(status) then
+    DNSServers = concat(status, ',')
+  end
+  return DNSServers
+end
+
+Device_DHCPv4_Client_i_.get = {
+  Enable = getEnableStatus,
+  Status = getEnableStatus,
+  Interface = getInterface,
+  Renew = '0',
+  IPAddress = getIPAddress,
+  SubnetMask = getSubnetMask,
+  IPRouters = getIPRouters,
+  DNSServers = getDNSServers,
+}
+
+Device_DHCPv4_Client_i_.getall = function(mapping, key)
+  local uciValues = getUciParam(key, "auto", "1")
+  local ubusValues = getUbusInterfaceStatus(model:getInterface(key))
+  return {
+    Enable = getEnableStatus(mapping, nil, key, uciValues),
+    Status = getEnableStatus(mapping, nil, key, uciValues),
+    Interface = getInterface(mapping, nil, key ),
+    Renew = '0',
+    IPAddress = getIPAddress(mapping, nil, key,ubusValues),
+    SubnetMask = getSubnetMask(mapping, nil, key, ubusValues),
+    IPRouters = getIPRouters(mapping, nil, key, ubusValues),
+    DNSServers = getDNSServers(mapping, nil, key, ubusValues)
+  }
+end
+
+Device_DHCPv4_Client_i_.set = {
+  Enable = function(mapping, param, value, key)
+    setUciParam(model:getBaseKey(key), "auto", value)
+  end,
+
+  Renew = function(mapping, param, value, key)
+    if value == "1" then
+      local ifname = getUciParam(key,"ifname")
+      local fileHandler = open("/var/run/odhcpc-"..ifname..".pid","r")
+      if fileHandler then
+        local renewProcessID = fileHandler:read()
+        fileHandler:close()
+        local outFile = open("/tmp/.dhcpv4_clients","a")
+        if outFile then
+          outFile:write(renewProcessID,"\n")
+          outFile:close()
+          commitApply:newset("Device.DHCPv4.Client.{i}.Renew")
+        end
+      end
+    end
+  end
+}
+
+Device_DHCPv4_Client_i_.commit = function()
+  if configChanged then
+    uciHelper.commit(binding)
+    configChanged = false
+  end
+end
+
+Device_DHCPv4_Client_i_.revert = function()
+  if configChanged then
+    uciHelper.revert(binding)
+    configChanged = false
+  end
+  os.remove("/tmp/.dhcpv4_clients")
+end
+
+register(Device_DHCPv4_Client_i_)
+

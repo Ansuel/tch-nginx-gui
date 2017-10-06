@@ -1,0 +1,278 @@
+local match = string.match
+local common = mapper("nwcommon")
+local split_key = common.split_key
+local get_ubus_interface_status = common.get_ubus_interface_status
+local inet = require "tch.inet"
+
+local Multi_UDPEchoConfig_ = {
+  objectType = {
+    name = "#ROOT.UDPEchoConfig.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      Interface = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      SourceIPAddress = {
+        access = "readWrite",
+        type = "string",
+      },
+      UDPPort = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "65535",
+          },
+        },
+      },
+      EchoPlusEnabled = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      EchoPlusSupported = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      PacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      PacketsResponded = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      BytesReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      BytesResponded = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TimeFirstPacketReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "dateTime",
+      },
+      TimeLastPacketReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "dateTime",
+      },
+    }
+  }
+}
+
+local filePath = "/tmp/tr143/udp_echo.out"
+local inputParaList = {
+    Enable = "0",
+    Interface = "",
+    SourceIPAddress = "0.0.0.0",
+    UDPPort = "0",
+    EchoPlusEnabled = "0",
+    EchoPlusSupported = "1",
+    PacketsReceived = "0",
+    PacketsResponded = "0",
+    BytesReceived = "0",
+    BytesResponded = "0",
+    TimeFirstPacketReceived = "",
+    TimeLastPacketReceived = ""
+}
+
+local function getUdpEchoResult (filePath, paramname)
+    local fd = io.open(filePath, "r")
+    if (fd ~= nil) then
+        local line = fd:read("*l")
+        while (line ~= nil) do
+            --line format: name = value such as SourceIPAddress = 10.11.58.95
+            local name, value = match (line, "^(%w+) = ([%w-:.]+)$")
+            if(paramname == name) then
+                --save test result in local var
+                inputParaList[paramname] = value
+                return value
+            end
+            line = fd:read("*l")
+        end
+        fd:close()
+    else
+        return inputParaList[paramname]
+    end
+end
+
+Multi_UDPEchoConfig_.get = {
+    Enable = function (mapping, paramname, key)
+            return inputParaList[paramname]
+    end,
+    Interface = function (mapping, paramname, key)
+        if match(mapping.objectType.name, "InternetGatewayDevice") then --igd
+            if not (match(inputParaList[paramname], "InternetGatewayDevice%.LANDevice%.%d+%.LANHostConfigManagement%.IPInterface%.%d+") or
+                match(inputParaList[paramname], "InternetGatewayDevice%.WANDevice%.%d+%.WANConnectionDevice%.%d+.WANPPPConnection%.%d+") or
+                match(inputParaList[paramname], "InternetGatewayDevice%.WANDevice%.%d+%.WANConnectionDevice%.%d+.WANIPConnection%.%d+")) then
+                return ""
+            end
+        else --dev2
+            if not match(inputParaList[paramname], "Device%.IP%.Interface%.%d+") then
+                return ""
+            end
+        end
+        return inputParaList[paramname]
+    end,
+    SourceIPAddress = function (mapping, paramname, key)
+            return inputParaList[paramname]
+    end,
+    UDPPort = function (mapping, paramname, key)
+        return inputParaList[paramname]
+    end,
+    EchoPlusEnabled = function (mapping, paramname, key)
+            return inputParaList[paramname]
+    end,
+    EchoPlusSupported = function (mapping, paramname, key)
+        return getUdpEchoResult (filePath, paramname)
+    end,
+    PacketsReceived = function (mapping, paramname, key)
+            return getUdpEchoResult (filePath, paramname)
+    end,
+    PacketsResponded = function (mapping, paramname, key)
+        return getUdpEchoResult (filePath, paramname)
+    end,
+    BytesReceived = function (mapping, paramname, key)
+            return getUdpEchoResult (filePath, paramname)
+    end,
+    BytesResponded = function (mapping, paramname, key)
+        return getUdpEchoResult (filePath, paramname)
+    end,
+    TimeFirstPacketReceived = function (mapping, paramname, key)
+            return getUdpEchoResult (filePath, paramname)
+    end,
+    TimeLastPacketReceived = function (mapping, paramname, key)
+        return getUdpEchoResult (filePath, paramname)
+    end
+}
+
+Multi_UDPEchoConfig_.set = {
+    Enable = function (mapping, paramname, paramvalue, key)
+            inputParaList["Enable"] = paramvalue
+        local fw_zone = "zone_wan_input"
+            if(inputParaList["Enable"] == "1") then
+                local interfaceIP = ""
+                if(inputParaList["Interface"] ~= "") then
+                    local intf = tokey(inputParaList["Interface"])
+                    if match(mapping.objectType.name, "InternetGatewayDevice") then --igd
+                            if (intf and not match(inputParaList["Interface"], "InternetGatewayDevice%.LANDevice%.%d+%.LANHostConfigManagement%.IPInterface%.%d+")) then
+                            intf = split_key(intf)
+                        end
+                    else --dev2
+                           if (intf and not match(inputParaList["Interface"], "Device%.IP%.Interface%.%d+")) then
+                            return nil, "Invalid IP Interface path value"
+                        end
+                    end
+                    if (not intf) then
+                        return nil, "Invalid interface path value after tokey"
+                    end
+                    fw_zone = "zone_" .. intf .. "_input"
+                    local v = get_ubus_interface_status(intf)
+                    v = v and v['ipv4-address']
+                    v = v and v[1]
+                    interfaceIP = (v and v['address']) or ""
+            else
+                interfaceIP = "0.0.0.0"
+            end
+            if (inputParaList["SourceIPAddress"] == "0.0.0.0" or inputParaList["UDPPort"] == "0") then
+                inputParaList["Enable"] = "0"
+                return nil, "please set SourceIPAddress or UDPPort before enable udp echo service"
+            elseif (interfaceIP == "") then
+                inputParaList["Enable"] = "0"
+                return nil, "There is no ip address on the Interface which you set, please check!"
+            else
+                local start_udp_echo_cmd = "/usr/bin/udp_echo "..interfaceIP.." "..inputParaList["SourceIPAddress"].." "
+                            ..inputParaList["UDPPort"].." "..inputParaList["EchoPlusEnabled"].." "..filePath.." &"
+                local iptables_insert_cmd = "iptables -I " .. fw_zone  .. " -j ACCEPT -p udp --dport "
+                                     ..inputParaList["UDPPort"].." -s "..inputParaList["SourceIPAddress"]
+                local iptables_delete_cmd = "iptables -D " .. fw_zone .. " -j ACCEPT -p udp --dport "
+                                     ..inputParaList["UDPPort"].." -s "..inputParaList["SourceIPAddress"].." > /dev/null"
+                os.execute("mkdir -p /tmp/tr143")
+                --delete last test result file and kill daemon if exist
+                os.execute("rm -f "..filePath)
+                os.execute("killall -9 udp_echo")
+                os.execute(iptables_delete_cmd) --in case of enable 1 more times
+                --set output parameter as default vaule
+                inputParaList["EchoPlusSupported"] = "1"
+                inputParaList["PacketsReceived"] = "0"
+                inputParaList["PacketsResponded"] = "0"
+                inputParaList["BytesReceived"] = "0"
+                inputParaList["BytesResponded"] = "0"
+                inputParaList["TimeFirstPacketReceived"] = ""
+                inputParaList["TimeLastPacketReceived"] = ""
+                os.execute(iptables_insert_cmd)
+                os.execute(start_udp_echo_cmd)
+            end
+        else
+            os.execute("killall -9 udp_echo")
+            --delete iptables rule
+            if (inputParaList["SourceIPAddress"] ~= "0.0.0.0" and inputParaList["UDPPort"] ~= "0") then
+                local del_cmd = "iptables -D " .. fw_zone .. " -j ACCEPT -p udp --dport "
+                           ..inputParaList["UDPPort"].." -s "..inputParaList["SourceIPAddress"].." > /dev/null"
+                os.execute(del_cmd)
+            end
+        end
+    end,
+    Interface = function (mapping, paramname, paramvalue, key)
+        -- Check if it is an allowed path but do not change paramvalue here.
+        -- Empty Interface is acceptable and will be handled in commit phase.
+        if paramvalue ~= "" then
+            local intf
+            if match(mapping.objectType.name, "InternetGatewayDevice") then --igd
+                if not (match(paramvalue, "InternetGatewayDevice%.LANDevice%.%d+%.LANHostConfigManagement%.IPInterface%.%d+") or
+                    match(paramvalue, "InternetGatewayDevice%.WANDevice%.%d+%.WANConnectionDevice%.%d+.WANPPPConnection%.%d+") or
+                    match(paramvalue, "InternetGatewayDevice%.WANDevice%.%d+%.WANConnectionDevice%.%d+.WANIPConnection%.%d+")) then
+                    return nil, "invalid value"
+                end
+                intf = tokey(paramvalue)
+                if (intf and not match(paramvalue, "InternetGatewayDevice%.LANDevice%.%d+%.LANHostConfigManagement%.IPInterface%.%d+")) then
+                    intf = split_key(intf)
+                end
+            else --dev2
+                if not match(paramvalue, "Device%.IP%.Interface%.%d+") then
+                    return nil, "invalid value"
+                end
+                intf = tokey(paramvalue)
+            end
+            if (not intf) then
+                return nil, "Invalid interface instance"
+            end
+        end
+        inputParaList["Interface"] = paramvalue
+    end,
+    SourceIPAddress = function (mapping, paramname, paramvalue, key)
+            local rc, err = inet.isValidIPv4(paramvalue)
+            if not rc then
+              return nil, err
+            end
+            inputParaList["SourceIPAddress"] = paramvalue
+    end,
+    UDPPort = function (mapping, paramname, paramvalue, key)
+            inputParaList["UDPPort"] = paramvalue
+    end,
+    EchoPlusEnabled = function (mapping, paramname, paramvalue, key)
+            inputParaList["EchoPlusEnabled"] = paramvalue
+    end
+}
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_UDPEchoConfig_, "#ROOT", {"InternetGatewayDevice", "Device.IP.Diagnostics"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end

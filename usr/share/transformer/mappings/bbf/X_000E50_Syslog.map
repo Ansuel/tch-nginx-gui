@@ -1,0 +1,173 @@
+local Multi_X_000E50_Syslog_ = {
+  objectType = {
+    name = "#ROOT.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      LogFilterIP = {
+        access = "readWrite",
+        type = "string",
+        max = 64,
+      },
+      LogFilter = {
+        access = "readWrite",
+        type = "string",
+        list = "true",
+        maxItems = "32",
+      },
+      LogPort = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+            max = "65535"
+          },
+        },
+      },
+      LogSize = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+      LogIP = {
+        access = "readWrite",
+        type = "string",
+        max = 64,
+      },
+      LogFile = {
+        access = "readOnly", --The access has been changed to read only for security purposes.
+        type = "string",
+        max = 64,
+      },
+      LogFilterFile = {
+        access = "readOnly", --The access has been changed to read only for security purposes.
+        type = "string",
+        max = 64,
+      },
+      LogPrefix = {
+        access = "readWrite",
+        type = "string",
+        max = 64,
+      },
+      LogType = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "circular",
+          "file",
+        },
+      },
+    }
+  }
+}
+
+local mapper, ipairs = mapper, ipairs
+local uci_helper = mapper("ucihelper")
+local binding={config="system", sectionname="@system[0]", option="", default="", extended=true}
+local inet = require "tch.inet"
+
+local options = {
+  LogFilterIP = {"log_filter_ip", ""},
+  LogFilter = {"log_filter", {}},
+  LogPort = {"log_port", "514"},
+  LogSize = {"log_size", "16"},
+  LogIP = {"log_ip", ""},
+  LogFile = {"log_file", "/var/log/messages"},
+  LogFilterFile = {"log_filter_file", "/var/log/filt_msg"},
+  LogPrefix = {"log_prefix", ""},
+  LogType = {"log_type", "circular"},
+}
+
+local function getBinding(pname)
+  local option = options[pname]
+  if option then
+    binding.option = option[1]
+    binding.default = option[2]
+  else
+    binding.option = ""
+    binding.default = ""
+  end
+  return binding
+end
+
+local function serializeIfNeeded(value)
+  if type(value) == 'table' then
+    return table.concat(value, ',')
+  end
+  return value
+end
+
+Multi_X_000E50_Syslog_.get = function(mapping, pname)
+  return serializeIfNeeded(uci_helper.get_from_uci(getBinding(pname)))
+end
+
+Multi_X_000E50_Syslog_.getall = function()
+  local uci_cfg = uci_helper.getall_from_uci(binding)
+  local values = {}
+  for param, info in pairs(options) do
+    values[param] = serializeIfNeeded(uci_cfg[info[1]] or info[2])
+  end
+  return values
+end
+
+local function validateLogIps(pname, value)
+  if value ~= "" then
+    -- (1) Value must be an IPv4 address
+    if not inet.isValidIPv4(value) then
+      return false, "Not a valid IPv4 address for " .. pname
+    else
+      -- (2) LogFilterIP and LogIP must used mutually exclusive, i.e. only one of both may be set.
+      -- This is a measure to avoid duplicate syslog messages if both would be set.
+      if pname == "LogFilterIP" and uci_helper.get_from_uci(getBinding("LogIP")) ~= "" then
+        return false, "Cannot set LogFilterIP while LogIP is set"
+      elseif pname == "LogIP" and uci_helper.get_from_uci(getBinding("LogFilterIP")) ~= "" then
+        return false, "Cannot set LogIP while LogFilterIP is set"
+      end
+    end
+  end
+  return true
+end
+
+local validators =
+{
+  LogIP = validateLogIps,
+  LogFilterIP = validateLogIps,
+}
+
+Multi_X_000E50_Syslog_.set = function(mapping, pname, value)
+  local validator = validators[pname]
+  if validator then
+    local valid, msg = validator(pname, value)
+    if not valid then
+      return valid, msg
+    end
+  end
+  if pname == "LogFilter" then
+    local logfilter = {}
+    for v in value:gmatch("([^,]+)") do
+      logfilter[#logfilter + 1] = v
+    end                                        
+    value = logfilter
+  end
+  return uci_helper.set_on_uci(getBinding(pname), value, commitapply)
+end
+
+Multi_X_000E50_Syslog_.commit = function()
+  uci_helper.commit(binding)
+end
+
+Multi_X_000E50_Syslog_.revert = function()
+  uci_helper.revert(binding)
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_X_000E50_Syslog_, "#ROOT", {"InternetGatewayDevice.X_000E50_Syslog", "Device.X_000E50_Syslog", "Device.X_BELGACOM_Syslog"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end

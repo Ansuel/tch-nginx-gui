@@ -1,0 +1,126 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_IP_ = {
+  objectType = {
+    name = "Device.IP.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      IPv4Capable = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      IPv4Enable = {
+        access = "readOnly", --readWrite currently not supported
+        type = "boolean",
+      },
+      IPv4Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Disabled",
+          "Enabled",
+          "Error",
+        },
+      },
+      IPv6Capable = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      IPv6Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      IPv6Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Disabled",
+          "Enabled",
+          "Error",
+        },
+      },
+--[[ TODO
+      ULAPrefix = {
+        access = "readWrite",
+        type = "string",
+      },
+--]]
+      -- InterfaceNumberOfEntries
+      -- automatically created when Device.IP.Interface.{i}. is loaded
+      -- ActivePortNumberOfEntries
+      -- automatically created when Device.IP.ActivePort.{i}. is loaded
+    }
+  }
+}
+
+local nwmodel = require "transformer.shared.models.device2.network"
+local uciHelper = mapper("ucihelper")
+local forEachOnUci = uciHelper.foreach_on_uci
+local setOnUci = uciHelper.set_on_uci
+local networkBinding = { config = "network" }
+local isConfigChanged
+local model = nwmodel.load()
+
+local function setUciParam(sectionName, paramName, value)
+  networkBinding.sectionname = sectionName
+  networkBinding.option = paramName
+  setOnUci(networkBinding, value, commitapply)
+  isConfigChanged = true
+end
+
+-- The function returns a value of "1" if any of the two conditions is fulfilled
+--  ipv6 option is present and its value is "1" in any one of the interfaces
+--  ipv6 option is not present in any interface(default ipv6 option is enabled) and the inteface should be base interface
+
+local function getIPv6Value(mapping)
+  local value
+  networkBinding.sectionname = "interface"
+  forEachOnUci(networkBinding, function(s)
+    if (not s.ipv6 and model:getBaseKey(s[".name"]) == s[".name"]) or (s.ipv6 and s.ipv6 == "1") then
+      value = "1"
+      return false
+    end
+  end)
+  return value and value or "0"
+end
+
+Device_IP_.get = {
+  IPv4Capable = "1", --Hardcoded to "1" ,since the device is ipv4 capable
+  IPv4Enable  = "1", --Hardcoded to "1",since no support to disable/enable ipv4
+  IPv4Status  = "Enabled",
+  IPv6Capable = "1", --Hardcoded to "1" since the device is ipv6 capable.
+  IPv6Enable  = getIPv6Value,
+  IPv6Status  = function(mapping)
+    local v = getIPv6Value(mapping)
+    return v ~= "0" and "Enabled" or "Disabled"
+  end
+}
+
+-- A getall implementation is not done as it will not bring any improvement
+
+Device_IP_.set = {
+  IPv6Enable = function(mapping, param, value)
+    networkBinding.sectionname = "interface"
+    forEachOnUci(networkBinding, function(s)
+      setUciParam(model:getBaseKey(s[".name"]), "ipv6", value)
+    end)
+  end
+}
+
+Device_IP_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(networkBinding)
+    isConfigChanged = false
+  end
+end
+
+Device_IP_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(networkBinding)
+    isConfigChanged = false
+  end
+end
+
+register(Device_IP_)

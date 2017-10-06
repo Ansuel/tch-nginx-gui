@@ -1,0 +1,259 @@
+local network_firewall_user_ = {
+  objectType = {
+    name = "rpc.network.firewall.userrule.@.",
+    access = "readWrite",
+    numEntriesParameter = "UserRuleNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      index = {
+        access = "readWrite",
+        type = "unsignedInt",
+      },
+      enabled = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      target = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+            "ACCEPT",
+            "DROP",
+            "REJECT",
+        },
+      },
+      name = {
+        access = "readWrite",
+        type = "string",
+      },
+      src = {
+        access = "readWrite",
+        type = "string",
+      },
+      dest = {
+        access = "readWrite",
+        type = "string",
+      },
+      proto = {
+        access = "readWrite",
+        type = "string",
+      },
+      src_ip = {
+        access = "readWrite",
+        type = "string",
+      },
+      src_mac = {
+        access = "readWrite",
+        type = "string",
+      },
+      src_port = {
+        access = "readWrite",
+        type = "string",
+      },
+      dest_ip = {
+        access = "readWrite",
+        type = "string",
+      },
+      dest_port = {
+        access = "readWrite",
+        type = "string",
+      },
+      family = {
+        access = "readWrite",
+        type = "string",
+      },
+      extra = {
+        access = "readWrite",
+        type = "string",
+      },
+    },
+  }
+}
+
+local require, register = require, register
+local tostring = tostring
+local logger = require("transformer.logger")
+local log = logger.new("network.firewall.userrule", 2)
+
+local uci_helper = mapper("ucihelper")
+
+local rulesBinding = {
+      config="firewall",
+      sectionname="userrule",
+}
+
+local function entriesFirewallUserRules(mapping)
+    local userrules = {}
+
+    local function cb(t)
+        -- assumption is that element are returned in order - true at the time this was written
+        local l = #userrules
+        userrules[l+1] = tostring(l)
+    end
+    uci_helper.foreach_on_uci(rulesBinding, cb)
+    return userrules
+end
+
+local function addFirewallUserRules(mapping)
+    local result = uci_helper.add_on_uci(rulesBinding, commitapply)
+    if not result then
+        return nil, "No object could be added for this multi instance object"
+    end
+    uci_helper.commit(rulesBinding)
+
+    local items = entriesFirewallUserRules(mapping)
+    return tostring(#items-1)
+end
+
+local function getBindingForIndex(key)
+    return {
+      config="firewall",
+      sectionname="@userrule[" .. key .. "]",
+      extended = true,
+    }
+end
+
+local function deleteFirewallUserRules(mapping, key)
+    local binding = getBindingForIndex(key)
+    local result = uci_helper.delete_on_uci(binding, commitapply)
+    uci_helper.commit(binding)
+    return true
+end
+
+local function getallFromUCI(key)
+    local binding = getBindingForIndex(key)
+    local result = uci_helper.getall_from_uci(binding)
+    return result
+end
+
+local function getFromUCI(key, param)
+    local binding = getBindingForIndex(key)
+    binding.option = param
+    local result = uci_helper.get_from_uci(binding)
+    return result
+end
+
+local function setOnUCI(key, param, value, nocommit)
+    local binding = getBindingForIndex(key)
+    binding.option = param
+    uci_helper.set_on_uci(binding, value, commitapply)
+    if not nocommit then
+        uci_helper.commit(binding)
+    end
+end
+
+local function reorderOnUCI(key, newIndex)
+    local binding = getBindingForIndex(key)
+    uci_helper.reorder_on_uci(binding, newIndex, commitapply)
+    uci_helper.commit(binding)
+end
+
+local function getallFirewallUserRules(mapping, key)
+    -- returns more than wanted but does not matter
+    local result = getallFromUCI(key)
+    result['index'] = key
+    return result
+end
+
+local getFirewallUserRules = {
+    index = function(mapping, paramname, key)
+        return key
+    end,
+    enabled =  function(mapping, paramname, key)
+        return getFromUCI(key, paramname)
+    end,
+    target =  function(mapping, paramname, key)
+        return getFromUCI(key, paramname)
+    end,
+    name =  function(mapping, paramname, key)
+        return getFromUCI(key, paramname)
+    end,
+    src =  function(mapping, paramname, key)
+        return getFromUCI(key, paramname)
+    end,
+    dest =  function(mapping, paramname, key)
+        return getFromUCI(key, paramname)
+    end,
+    proto =  function(mapping, paramname, key)
+        return getFromUCI(key, paramname)
+    end,
+    family =  function(mapping, paramname, key)
+        return getFromUCI(key, paramname)
+    end,
+    src_ip =  function(mapping, paramname, key)
+        return getFromUCI(key, paramname)
+    end,
+    src_mac =  function(mapping, paramname, key)
+        return getFromUCI(key, paramname)
+    end,
+    src_port =  function(mapping, paramname, key)
+        return getFromUCI(key, paramname)
+    end,
+    dest_ip =  function(mapping, paramname, key)
+        return getFromUCI(key, paramname)
+    end,
+    dest_port =  function(mapping, paramname, key)
+        return getFromUCI(key, paramname)
+    end,
+    extra =  function(mapping, paramname, key)
+        return getFromUCI(key, paramname)
+    end,
+}
+
+local setFirewallUserRules = {
+    index = function(mapping, paramname, paramvalue, key)
+        local newIndex = tonumber(paramvalue)
+        if newIndex then
+            reorderOnUCI(key, newIndex)
+        end
+    end,
+    enabled =  function(mapping, paramname, paramvalue, key)
+        setOnUCI(key, paramname, paramvalue)
+    end,
+    target =  function(mapping, paramname, paramvalue, key)
+        setOnUCI(key, paramname, paramvalue)
+    end,
+    name =  function(mapping, paramname, paramvalue, key)
+        setOnUCI(key, paramname, paramvalue)
+    end,
+    src =  function(mapping, paramname, paramvalue, key)
+        setOnUCI(key, paramname, paramvalue)
+    end,
+    dest =  function(mapping, paramname, paramvalue, key)
+        setOnUCI(key, paramname, paramvalue)
+    end,
+    proto =  function(mapping, paramname, paramvalue, key)
+        setOnUCI(key, paramname, paramvalue)
+    end,
+    family =  function(mapping, paramname, paramvalue, key)
+        setOnUCI(key, paramname, paramvalue)
+    end,
+    src_ip =  function(mapping, paramname, paramvalue, key)
+        setOnUCI(key, paramname, paramvalue)
+    end,
+    src_mac =  function(mapping, paramname, paramvalue, key)
+        setOnUCI(key, paramname, paramvalue)
+    end,
+    src_port =  function(mapping, paramname, paramvalue, key)
+        setOnUCI(key, paramname, paramvalue)
+    end,
+    dest_ip =  function(mapping, paramname, paramvalue, key)
+        setOnUCI(key, paramname, paramvalue)
+    end,
+    dest_port =  function(mapping, paramname, paramvalue, key)
+        setOnUCI(key, paramname, paramvalue)
+    end,
+    extra =  function(mapping, paramname, paramvalue, key)
+        setOnUCI(key, paramname, paramvalue)
+    end,
+}
+
+network_firewall_user_.getall = getallFirewallUserRules
+network_firewall_user_.get = getFirewallUserRules
+network_firewall_user_.set = setFirewallUserRules
+network_firewall_user_.add = addFirewallUserRules
+network_firewall_user_.delete = deleteFirewallUserRules
+network_firewall_user_.entries = entriesFirewallUserRules
+register(network_firewall_user_)
+

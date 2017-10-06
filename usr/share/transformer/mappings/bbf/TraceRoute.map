@@ -1,0 +1,344 @@
+-- Automatically generated from InternetGatewayDevice:1.4 and Device:2.10
+-- using generator version 2.1
+local Multi_TraceRouteDiagnostics_ = {
+  objectType = {
+    name = "#ROOT.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      DiagnosticsState = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        enumeration = {
+          "None",
+          "Requested",
+          "Complete",
+          "Error_CannotResolveHostName",
+          "Error_MaxHopCountExceeded",
+          "Canceled",
+          "Error",
+          "Error_NoRouteToHost",
+          "Error_Internal",
+          "Error_Other",
+        },
+      },
+      Interface = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        pathRef = true,
+      },
+      Host = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      NumberOfTries = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+            max = "3",
+          },
+        },
+      },
+      Timeout = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+      DataBlockSize = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            -- Packet size for "traceroute" command should be in between 38 to 32768. Adding this to line up dmdump range with the same.
+            min = "38",
+            max = "32768",
+          },
+        },
+      },
+      DSCP = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "63",
+          },
+        },
+      },
+      MaxHopCount = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+            max = "64",
+          },
+        },
+      },
+      IPAddressUsed = {
+        access = "readOnly",
+        type = "string",
+      },
+      ResponseTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+    -- RouteHopsNumberOfEntries
+    -- automatically created when InternetGatewayDevice.TraceRouteDiagnostics.RouteHops.{i}. is loaded
+    }
+  }
+}
+
+-- Automatically generated from InternetGatewayDevice:1.4 and Device:2.10
+-- using generator version 2.1
+local Multi_TraceRouteDiagnostics_RouteHops_i_ = {
+  objectType = {
+    name = "#ROOT.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "RouteHopsNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      HopHost = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+        max = "256",
+      },
+      HopHostAddress = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      HopErrorCode = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      HopRTTimes = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        list = true,
+        max = "16",
+        type = "unsignedInt",
+      },
+      --Device2 Specific parameters
+      Host = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+        max = "256",
+      },
+      HostAddress = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      ErrorCode = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      RTTimes = {
+        access = "readOnly",
+        list = true,
+        maxItems = "3",
+        minItems = "1",
+        max = "16",
+        type = "unsignedInt",
+      },
+    }
+  }
+}
+
+local ipairs, mapper, register, resolve = ipairs, mapper, register, resolve
+local pairs, tokey, tonumber, tostring = pairs, tokey, tonumber, tostring
+local config = "traceroute"
+
+local nwCommon = mapper('nwcommon')
+local splitKey = nwCommon.split_key
+local findLanWanInterfaces = nwCommon.findLanWanInterfaces
+local wanconn = require("transformer.shared.wanconnection")
+local traceRouteHelper = require("transformer.shared.traceroutehelper")
+local clearTraceRouteResults = traceRouteHelper.clear_traceroute_results
+local readTraceRouteResults = traceRouteHelper.read_traceroute_results
+
+-- map used to identify the location of each RouteHops parameter in
+-- the table returned by readTraceRouteResults() for DEV2/IGD.
+local userParamIndexMap =
+  {
+    device2 = { Host = 1, HostAddress = 2, RTTimes = 3, ErrorCode = 4 },
+    igd = { HopHost = 1, HopHostAddress = 2, HopRTTimes = 3, HopErrorCode = 4 }
+  }
+
+local function getSectionName(mapping)
+  if mapping.objectType.name:match("^InternetGatewayDevice.") then
+    return "igd"
+  else
+    return "device2"
+  end
+end
+
+Multi_TraceRouteDiagnostics_.get = function(mapping, pname)
+  local value
+  if mapping._uciBinding[pname] then
+    value = traceRouteHelper.uci_traceroute_get(mapping._section, pname)
+    if pname == "Interface" then
+      local path = ""
+      local lanInterfaces = findLanWanInterfaces(false)
+      local isLan = false
+      for _,j in pairs(lanInterfaces) do
+        if (value == j) then
+          isLan = true
+          break
+        end
+      end
+      if mapping._section == "device2" then
+        path = resolve("Device.IP.Interface.{i}.", value)
+      else
+        if (isLan) then
+          path = resolve('InternetGatewayDevice.LANDevice.{i}.LANHostConfigManagement.IPInterface.{i}.', value)
+        else
+          local key, status = wanconn.get_connection_key(value)
+          if key and status then
+            if status.proto == "pppoe" or status.proto == "pppoa" then
+              path = resolve("InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANPPPConnection.{i}.", key)
+            else
+              path = resolve("InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANIPConnection.{i}.", key)
+            end
+          end
+        end
+      end
+      value = path or ""
+    end
+    -- Internally, we need to distinguish between Requested and InProgress; IGD/DEV2 does not
+    if pname == "DiagnosticsState" and value == "InProgress" then
+      value = "Requested"
+    end
+  elseif (pname == "ResponseTime") then
+    local _, time = readTraceRouteResults(mapping._section)
+    value = (time and tostring(time)) or "0"
+  elseif pname == "IPAddressUsed" then
+    local _, _, ipaddr_used = readTraceRouteResults(mapping._section)
+    value = traceRouteHelper.uci_traceroute_get(mapping._section, "DiagnosticsState")
+    return value == "Complete" and ipaddr_used or ""
+  else
+    return nil, "invalid parameter"
+  end
+  return value
+end
+
+Multi_TraceRouteDiagnostics_.set = function(mapping, pname, pvalue)
+  -- Interface is displayed in IGD/DEV2 as path, but stored as UCI/UBUS interface in UCI, so convert it first
+  -- allow empty value
+  if pname == "Interface" and pvalue ~= "" then
+    -- Convert path to key; this is always the UCI/UBUS interface name, like wan, lan, ...
+    if mapping._section == "device2" then
+      pvalue = tokey(pvalue, "Device.IP.Interface.{i}.")
+    else
+      local value = tokey(pvalue,
+        "InternetGatewayDevice.LANDevice.{i}.LANHostConfigManagement.IPInterface.{i}.",
+        "InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANIPConnection.{i}.",
+        "InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANPPPConnection.{i}.")
+      -- Update the interface name from WANDevice.WANConnectionDevice.WANIP/WANPPP key
+      if value then
+        local ifname
+        pvalue, ifname = splitKey(value)
+        if pvalue then
+	  if pvalue == "ACTIVE" then
+	    pvalue = ifname
+          end
+        else
+          pvalue = value
+        end
+      else
+        return nil, "Invalid value"
+      end
+    end
+    if (not pvalue) then
+      return nil, "Invalid value"
+    end
+  end
+  return traceRouteHelper.uci_traceroute_set(mapping._section, pname, pvalue, commitapply)
+end
+
+Multi_TraceRouteDiagnostics_RouteHops_i_.get = function(mapping, pname, key)
+  local paramIndex = userParamIndexMap[mapping._section][pname] or 0
+  local traceResult = readTraceRouteResults(mapping._section)
+  traceResult = traceResult[tonumber(key)]
+  traceResult = traceResult and traceResult[paramIndex] or ""
+  return traceResult
+end
+
+Multi_TraceRouteDiagnostics_RouteHops_i_.getall = function(mapping, key)
+  local allValues = {}
+  local traceResult = readTraceRouteResults(mapping._section)
+  traceResult = traceResult[tonumber(key)]
+  for k,v in pairs(userParamIndexMap[mapping._section]) do
+    allValues[k] = traceResult[v]
+  end
+  return allValues
+end
+
+Multi_TraceRouteDiagnostics_RouteHops_i_.entries = function(mapping, parentkey)
+  local result = {}
+  local traceResult = readTraceRouteResults(mapping._section)
+  for i in ipairs(traceResult) do
+    result[i] = tostring(i)
+  end
+  return result
+end
+
+Multi_TraceRouteDiagnostics_.commit = traceRouteHelper.uci_traceroute_commit
+Multi_TraceRouteDiagnostics_.revert = traceRouteHelper.uci_traceroute_revert
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_TraceRouteDiagnostics_, "#ROOT", {"InternetGatewayDevice.TraceRouteDiagnostics", "Device.IP.Diagnostics.TraceRoute"})
+for _, dupli in ipairs(duplicates) do
+  dupli._section = getSectionName(dupli)
+  dupli._uciBinding = {
+    DiagnosticsState = { config = config, sectionname = dupli._section, option = "state" },
+    Interface = { config = config, sectionname = dupli._section, option = "interface" },
+    Host = { config = config, sectionname = dupli._section, option = "host" },
+    NumberOfTries = { config = config, sectionname = dupli._section, option = "tries" },
+    Timeout = { config = config, sectionname = dupli._section, option = "timeout" },
+    DataBlockSize = { config = config, sectionname = dupli._section, option = "size" },
+    DSCP = { config = config, sectionname = dupli._section, option = "dscp" },
+    MaxHopCount = { config = config, sectionname = dupli._section, option = "hopcount" },
+  }
+  if dupli._section == 'igd' then
+    dupli.objectType.parameters["IPAddressUsed"] = nil
+  end
+  traceRouteHelper.startup(dupli._section, dupli._uciBinding)
+  register (dupli)
+end
+
+duplicates = duplicator(Multi_TraceRouteDiagnostics_RouteHops_i_, "#ROOT", {"InternetGatewayDevice.TraceRouteDiagnostics.RouteHops", "Device.IP.Diagnostics.TraceRoute.RouteHops"})
+for _, dupli in ipairs(duplicates) do
+  dupli._section = getSectionName(dupli)
+  if dupli._section == 'igd' then
+    -- Remove device2-specific parameters from igd
+    dupli.objectType.parameters["Host"] = nil
+    dupli.objectType.parameters["HostAddress"] = nil
+    dupli.objectType.parameters["ErrorCode"] = nil
+    dupli.objectType.parameters["RTTimes"] = nil
+  else
+    dupli.objectType.parameters["HopHost"] = nil
+    dupli.objectType.parameters["HopHostAddress"] = nil
+    dupli.objectType.parameters["HopErrorCode"] = nil
+    dupli.objectType.parameters["HopRTTimes"] = nil
+  end
+  clearTraceRouteResults(dupli._section)
+  register (dupli)
+end

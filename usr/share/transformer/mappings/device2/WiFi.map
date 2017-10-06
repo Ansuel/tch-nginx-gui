@@ -1,0 +1,22 @@
+-- Automatically generated from Device:2.2
+-- using generator version 2.1
+local Device_WiFi_ = {
+  objectType = {
+    name = "Device.WiFi.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      -- RadioNumberOfEntries
+      -- automatically created when Device.WiFi.Radio.{i}. is loaded
+      -- SSIDNumberOfEntries
+      -- automatically created when Device.WiFi.SSID.{i}. is loaded
+      -- AccessPointNumberOfEntries
+      -- automatically created when Device.WiFi.AccessPoint.{i}. is loaded
+      -- EndPointNumberOfEntries
+      -- automatically created when Device.WiFi.EndPoint.{i}. is loaded
+    }
+  }
+}
+
+register(Device_WiFi_)

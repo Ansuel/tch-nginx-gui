@@ -1,0 +1,77 @@
+local obj = {
+	objectType = {
+		name = "#ROOT.",
+		access = "readOnly",
+		minEntries = 1,
+		maxEntries = 1,
+		parameters = {
+	--      BytesSent = {
+	--        access = "readOnly",
+	--        type = "unsignedLong",
+	--      },
+	--      BytesReceived = {
+	--        access = "readOnly",
+	--        type = "unsignedLong",
+	--      },
+	--      PacketsSent = {
+	--        access = "readOnly",
+	--        type = "unsignedLong",
+	--      },
+	--      PacketsReceived = {
+	--        access = "readOnly",
+	--        type = "unsignedLong",
+	--      },
+	--      ErrorsSent = {
+	--        access = "readOnly",
+	--        type = "unsignedLong",
+	--      },
+	--      ErrorsReceived = {
+	--        access = "readOnly",
+	--        type = "unsignedLong",
+	--      },
+	--      UnicastPacketsSent = {
+	--        access = "readOnly",
+	--        type = "unsignedLong",
+	--      },
+	--      UnicastPacketsReceived = {
+	--        access = "readOnly",
+	--        type = "unsignedLong",
+	--      },
+	--      DiscardPacketsSent = {
+	--        access = "readOnly",
+	--        type = "unsignedLong",
+	--      },
+	--      UnicastPacketsReceived = {
+	--        access = "readOnly",
+	--        type = "unsignedLong",
+	--      },
+	--      MulticastPacketsSent = {
+	--        access = "readOnly",
+	--        type = "unsignedLong",
+	--      },
+	--      MulticastPacketsReceived = {
+	--        access = "readOnly",
+	--        type = "unsignedLong",
+	--      },
+	--      BroadcastPacketsSent = {
+	--        access = "readOnly",
+	--        type = "unsignedLong",
+	--      },
+	--      BroadcastPacketsReceived = {
+	--        access = "readOnly",
+	--        type = "unsignedLong",
+	--      },
+	--      UnknownProtoPacketsReceived = {
+	--        access = "readOnly",
+	--        type = "unsignedLong",
+	--      },
+		}
+	}
+}
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(obj, "#ROOT", {"InternetGatewayDevice.X_000E50_Cellular.Interface.{i}.Stats", "Device.Cellular.Interface.{i}.Stats"})
+for _, dupli in ipairs(duplicates) do
+	register(dupli)
+end
+

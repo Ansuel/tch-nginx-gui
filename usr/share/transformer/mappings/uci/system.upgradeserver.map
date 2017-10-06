@@ -1,0 +1,8 @@
+-- uci system.upgradeserver.address
+local system_upgradeserver = {
+ config = "system",
+  section = "upgradeserver",
+  options = { "address" },
+}
+mapper("uci_1to1").registerSimpleMap(system_upgradeserver)
+

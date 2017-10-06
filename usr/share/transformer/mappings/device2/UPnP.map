@@ -1,0 +1,14 @@
+-- Automatically generated from Device:2.9
+-- using generator version 2.2
+local Device_UPnP_ = {
+  objectType = {
+    name = "Device.UPnP.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+    }
+  }
+}
+
+register(Device_UPnP_)

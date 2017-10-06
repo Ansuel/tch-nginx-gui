@@ -1,0 +1,3397 @@
+--lines 551 and 560 added and line 532 commented to address NG-71427
+-- NG-71427 hidden = "true", reverted in NG-79929 to support unhide_pattern
+local lfs = require("lfs")
+
+if lfs.attributes("/etc/config/mmpbx", "mode") ~= "file" then
+  return
+end
+local string = string
+local match, format, find, sub, commitapply, eventsource, mapper, math, os = string.match, string.format, string.find, string.sub, commitapply, eventsource, mapper, math, os
+local tostring, tonumber, ipairs, pairs, setmetatable, register, table, type = tostring, tonumber, ipairs, pairs, setmetatable, register, table, type
+local uci_helper = mapper("ucihelper")
+local get_from_uci = uci_helper.get_from_uci
+local set_on_uci = uci_helper.set_on_uci
+local profile_helper = require("transformer.shared.profile_helper")
+local conn = mapper("ubus").connect()
+local binding = {}
+local service_binding = { config = "mmpbx", sectionname = "service"}
+local incoming_binding = { config = "mmpbx", sectionname = "incoming_map"}
+local outgoing_binding = { config = "mmpbx", sectionname = "outgoing_map"}
+local mt = { __index = function() return "" end }
+local common_default = setmetatable({}, mt)
+local numOfFxs, numOfDect, numOfSipdev
+local isDectEnabled, isSipdevEnabled
+local rtp_session = {}
+local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.Line.{i}.",
+        access = "readWrite",
+        minEntries = 0,
+        maxEntries = math.huge,
+        numEntriesParameter = "NumberOfLines",
+        enableParameter = "Enable",
+        parameters = {
+            Enable = {
+                access = "readWrite",
+                type = "string",
+                enumeration = {
+                    "Disabled",
+                    "Quiescent",
+                    "Enabled",
+                },
+                default = "Disabled",
+            },
+            DirectoryNumber = {
+                access = "readWrite",
+                type = "string",
+                max = "32",
+                default = "",
+            },
+            Status = {
+                access = "readOnly",
+                type = "string",
+                enumeration = {
+                    "Up",
+                    "Initializing",
+                    "Registering",
+                    "Unregistering",
+                    "Error",
+                    "Testing",
+                    "Quiescent",
+                    "Disabled",
+                },
+                default = "Disabled",
+            },
+            CallState = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "string",
+                enumeration = {
+                    "Idle",
+                    "Calling",
+                    "Ringing",
+                    "Connecting",
+                    "InCall",
+                    "Hold",
+                    "Disconnecting",
+                },
+                default = "Idle",
+            },
+            PhyReferenceList = {
+                access = "readWrite",
+                list = true,
+                max = "32",
+                type = "string",
+            },
+            --      RingMuteStatus = {
+            --        access = "readOnly",
+            --        type = "boolean",
+            --      },
+            --      RingVolumeStatus = {
+            --        access = "readOnly",
+            --        type = "unsignedInt",
+            --        range = {
+            --          {
+            --            min = "0",
+            --            max = "100",
+            --          },
+            --        },
+            --      },
+            X_000E50_DisplayName = {
+                access = "readWrite",
+                type = "string",
+            },
+            X_000E50_UserFriendlyName = {
+                access = "readWrite",
+                type = "string",
+            },
+            X_000E50_ClientAddress = {
+                access = "readOnly",
+                type = "string",
+            },
+            Reset = {
+                access = "readWrite",
+                type = "boolean",
+                default = "0",
+            },
+        }
+    }
+}
+
+local CallStates = setmetatable({
+    MMPBX_CALLSTATE_DIALING = "Calling",
+    MMPBX_CALLSTATE_ALERTING = "Ringing",
+    MMPBX_CALLSTATE_CALL_DELIVERED = "Connecting",
+    MMPBX_CALLSTATE_CONNECTED = "InCall"
+}, { __index = function() return "Idle" end })
+
+local ProfileRegStatus = setmetatable({
+    Registering = "Registering",
+    Registered = "Up",
+    Unregistering = "Unregistering",
+    Unregistered = "Disabled",
+}, { __index = function() return "Disabled" end })
+
+local DevRegStatus = {
+    ['0'] = "Unregistering",
+    ['1'] = "Up",
+}
+
+local EnableStatus = {
+    ['0'] = "Disabled",
+    ['1'] = "Enabled",
+    ['Enabled'] = "1",
+    ['Disabled'] = "0",
+}
+
+local ConferenceCallingStatus = setmetatable({
+    Disabled = "Disabled",
+    Idle = "Idle",
+    SecondaryCalling = "SecondaryCalling",
+    SecondaryConnecting = "SecondaryConnecting",
+    SecondaryConnected = "SecondaryConnected",
+    InConferenceCall = "InConferenceCall"
+}, { __index = function() return "Idle" end })
+
+local CallWaitingStatus = setmetatable({
+    Disabled = "Disabled",
+    Idle = "Idle",
+    SecondaryRinging = "SecondaryRinging",
+    SecondaryConnecting = "SecondaryConnecting",
+    SecondaryConnected = "SecondaryConnected",
+}, { __index = function() return "Idle" end })
+
+local configfile_sip = "mmpbxrvsipnet"
+
+local transactions = {}
+
+local function line_commit()
+    local binding = {}
+    for config in pairs(transactions) do
+        binding.config = config
+        uci_helper.commit(binding)
+    end
+    transactions = {}
+end
+
+local function line_revert()
+    local binding = {}
+    for config in pairs(transactions) do
+        binding.config = config
+        uci_helper.revert(binding)
+    end
+    transactions = {}
+end
+
+local function getEnable(config, name)
+    binding = {
+        config = config,
+        sectionname = name,
+        option = "enabled",
+        default = "0"
+    }
+    return EnableStatus[uci_helper.get_from_uci(binding)]
+end
+
+local line_sip_net_map = {
+    value = {
+        Enable = getEnable,
+        Reset = function() return "0" end,
+        CallState = function(config, name)
+            local calls = conn:call("mmpbx.call", "get", {})
+            if calls and type(calls) == "table" then
+                for _,v in pairs(calls) do
+                    if v.callState ~= nil and v.profile == name then
+                        return CallStates[v.callState]
+                    end
+                end
+            end
+            return "Idle"
+        end,
+        Status = function(config, name)
+            local profiles = conn:call("mmpbx.profile", "get", {})
+            local regStatus = profiles and profiles[name] and profiles[name]["sipRegisterState"] or ""
+            if (ProfileRegStatus[regStatus] == "Disabled") and profiles and profiles[name] and (profiles[name]["enable"] == "true") then
+                return "Error"
+            else
+                return ProfileRegStatus[regStatus]
+            end
+        end,
+        DirectoryNumber = "directory_Number",
+        PhyReferenceList = function(config, name)
+            local tid, id = {}, ""
+            uci_helper.foreach_on_uci(incoming_binding, function(s)
+                if s.profile == name then
+                    if type(s.device) == 'table' then
+                        for _,v in ipairs(s.device) do
+                            id = match(v, "(%d+)$")
+                            if v:sub(1,1) == "d" then
+                                id = tostring(tonumber(id) + numOfFxs)
+                            end
+                            if v:sub(1,1) == "s" then
+                                id = tostring(tonumber(id) + numOfFxs + numOfDect)
+                            end
+                            tid[#tid + 1] = id + 1
+                        end
+                    end
+                end
+            end)
+            return table.concat(tid, ",")
+        end,
+        X_000E50_DisplayName = "display_name",
+    },
+    default = common_default,
+}
+
+local registrars = {}
+
+local gmac = ""
+local macaddr = ""
+
+local function getMacAddress(t, ip)
+    if type(t) == "table" then
+        for k,v in pairs(t) do
+            if type(v) == "table" then
+                getMacAddress(v, ip)
+            else
+                if k == "mac-address" then
+                    gmac = v
+                end
+                if k == "address" and v == ip then
+                    macaddr = gmac
+                end
+            end
+        end
+    end
+end
+
+local line_sip_server_map = {
+    value = {
+        Enable = getEnable,
+        Reset = function() return "0" end,
+        Status = function(config, name)
+            local registered = registrars and registrars[name]["registered"] or ""
+            return DevRegStatus[registered]
+        end,
+        DirectoryNumber = "directory_Number",
+        X_000E50_DisplayName = "display_name",
+        X_000E50_UserFriendlyName = "user_friendly_name",
+        X_000E50_ClientAddress = function(config, name)
+            local addr = registrars and registrars[name]["clientAddress"] or ""
+            if addr ~= "" then
+                local ipaddr = addr:match("(%d+%.%d+.%d+.%d+)")
+                if ipaddr then
+                    local hosts = conn:call("hostmanager.device", "get", {})
+                    getMacAddress(hosts, ip)
+                    return macaddr
+                end
+            end
+            return ""
+        end,
+    },
+    default = common_default,
+}
+
+local line_maps = {
+    sip_profile = line_sip_net_map,
+    sip_dev = line_sip_server_map,
+}
+
+local function getInfoFromKey(key, parentkey)
+    local config = parentkey:match("^(.*)|.*$")
+    local name, ltype = key:match("((%w+_%w+)_%d+)$")
+    return config, name, ltype
+end
+
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_.entries = function(mapping, parentkey)
+    local entries = {}
+    registrars = {}
+    numOfFxs = 0
+    numOfDect = 0
+    numOfSipdev = 0
+    isDectEnabled, isSipdevEnabled = 0, 0
+    binding.config = "mmpbxrvsipnet"
+    binding.sectionname = "profile"
+    uci_helper.foreach_on_uci(binding, function(s)
+        if parentkey:match("mmpbxrvsipnet") then
+            entries[#entries + 1] = s['.name']
+        end
+    end)
+
+    binding.config = "mmpbx"
+    binding.sectionname = "device"
+    uci_helper.foreach_on_uci(binding, function(s)
+    if parentkey:match(s.config) then
+        entries[#entries + 1] = s['.name']
+    end
+        numOfFxs = numOfFxs or 0
+        numOfDect = numOfDect or 0
+        if s['.name']:sub(1,1) == "f" then
+            numOfFxs = numOfFxs + 1
+        end
+        if s['.name']:sub(1,1) == "d" then
+            isDectEnabled = 1
+            numOfDect = numOfDect + 1
+        end
+        if s['.name']:sub(1,1) == "s" then
+            isSipdevEnabled = 1
+            numOfSipdev = numOfSipdev + 1
+        end
+    end)
+
+    registrars = conn:call("mmpbxrvsipdev.registrar", "list", {})
+    return entries
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_.getall = function(mapping, key, parentkey)
+    local config, name, ltype = getInfoFromKey(key, parentkey)
+    local map = line_maps[ltype]
+    binding.config = config
+    binding.sectionname = name
+    binding.option = nil
+    local object = uci_helper.getall_from_uci(binding)
+
+    local data = {}
+
+    for p,_ in pairs(Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_.objectType.parameters) do
+        if map.value[p] then
+            if type(map.value[p]) == "function" then
+                data[p] = map.value[p](config, name)
+            else
+                data[p] = object[map.value[p]]
+            end
+        end
+        data[p] = data[p] or map.default[p]
+    end
+    return data
+end
+
+local function getParam(maps)
+    return function(mapping, param, key, parentkey)
+        local config, name, ltype = getInfoFromKey(key, parentkey)
+        local map = maps[ltype]
+        if map.value[param] then
+            if type(map.value[param]) == "function" then
+                return map.value[param](config, name)
+            else
+                binding.config = config
+                binding.sectionname = name
+                binding.option = map.value[param]
+                return uci_helper.get_from_uci(binding)
+            end
+        else
+            return map.default[param]
+        end
+    end
+end
+
+local function setParam(maps, set_maps)
+    return function(mapping, param, value, key, parentkey)
+        local config, name, ltype = getInfoFromKey(key, parentkey)
+        binding.config = config
+        binding.sectionname = name
+        local map = maps[ltype]
+        local set_map = set_maps[ltype]
+
+        if set_map[param] then
+            if type(set_map[param]) == "function" then
+                binding.option = nil
+		if ((ltype == "sip_profile") and (param == "Enable")) then
+		    local err, msg = set_map[param](binding, value, ltype)
+		    transactions[binding.config] = true
+		    conn:call("mmpbx.profile", "update", {["profile"]=name, ["enable"]=tonumber(EnableStatus[value])})
+		elseif ((ltype == "sip_profile") and (param == "URI" or param == "AuthPassword")) then
+		    local err, msg = set_map[param](binding, value, ltype)
+                    transactions[binding.config] = true
+		    conn:call("mmpbx.profile", "update", {["profile"]=name, ["SIP"]={{[map.value[param]]=value}}})
+		else
+		    local err, msg = set_map[param](binding, value)
+		    transactions[binding.config] = true
+		end
+                if not err and msg then
+                    return err, msg
+                end
+                transactions[binding.config] = true
+		if ltype == "sip_profile" then
+                    if param == "Enable" then
+                        conn:call("mmpbx.profile", "update", {["profile"]=name, ["enable"]=tonumber(EnableStatus[value])})
+                    end
+                    if param == "URI" or param == "AuthPassword" then
+                        conn:call("mmpbx.profile", "update", {["profile"]=name, ["SIP"]={{[map.value[param]]=value}}})
+                    end
+                end
+                return true
+            elseif type(map.value[param]) == "string" then
+                binding.option = map.value[param]
+		if ((ltype == "sip_profile") and (param == "X_000E50_DisplayName" or param == "AuthUserName")) then
+		    uci_helper.set_on_uci(binding, value)
+		    transactions[binding.config] = true
+		    conn:call("mmpbx.profile", "update", {["profile"]=name, ["SIP"]={{[map.value[param]]=value}}})
+		else
+		    uci_helper.set_on_uci(binding, value, commitapply)
+		    transactions[binding.config] = true
+		end
+                transactions[binding.config] = true
+		if ltype == "sip_profile" then
+                    if param == "X_000E50_DisplayName" or param == "AuthUserName" then
+                        conn:call("mmpbx.profile", "update", {["profile"]=name, ["SIP"]={{[map.value[param]]=value}}})
+                    end
+                end
+                return true
+            end
+        end
+        return nil, "Not supported currently"
+    end
+end
+
+local function setEnable(binding, paramvalue, ltype)
+    local value = "0"
+    binding.option = "enabled"
+    if paramvalue == "Quiescent" then
+       paramvalue = "Disabled"
+    end
+    value = EnableStatus[paramvalue]
+    if ltype == "sip_profile" then
+	uci_helper.set_on_uci(binding, value)
+    else
+    	uci_helper.set_on_uci(binding, value, commitapply)
+    end
+
+end
+
+local function setReset(binding, paramvalue)
+    if paramvalue == "1" then
+       commitapply:newset("Services.VoiceService.{i}.VoiceProfile.{i}.Line.{i}.Reset")
+    else
+       return nil, "Cannot reset voice profile line when reset value is not 1"
+    end
+end
+
+local set_line_sip_net_map = {
+    Enable = setEnable,
+    Reset = setReset,
+    DirectoryNumber = true,
+    PhyReferenceList = function(binding, paramvalue)
+        local stype = uci_helper.get_from_uci(binding)
+        if stype ~= "profile" then
+            return nil, "Please firstly add the profile"
+        end
+
+	local err = 0
+        local profile = binding.sectionname
+        local port = 0
+        local devices = {}
+        for n in paramvalue:gmatch("[^,]+") do
+            port = tonumber(n) - 1
+            if port then
+                if (port < numOfFxs) and (port >= 0) then
+                    devices[#devices + 1] = format("fxs_dev_%d", port)
+                elseif (isDectEnabled == 1) and (port >= 0) and (port < (numOfFxs + numOfDect)) then
+                    devices[#devices + 1] = format("dect_dev_%d", port - numOfFxs)
+                elseif (isSipdevEnabled == 1) and (port >= 0) and (port < (numOfFxs + numOfDect + numOfSipdev)) then
+                    devices[#devices + 1] = format("sip_dev_%d", port - numOfFxs - numOfDect )
+                elseif (port < -1) or (port >= (numOfFxs + numOfDect + numOfSipdev)) then
+		    err = 1
+	        end
+            else
+                return nil, "The value is invalid"
+            end
+        end
+	if (err == 1 and #devices == 0) then
+	    return nil, "The value is invalid"
+	end
+	if (#devices > 0) or (paramvalue == "") or (paramvalue == "0") then
+            profile_helper.port_set(profile, devices, transactions, commitapply)
+	end
+            return true
+    end,
+    X_000E50_DisplayName = true,
+}
+
+local set_line_sip_server_map = {
+    Enable = setEnable,
+    Reset = setReset,
+    DirectoryNumber = true,
+    X_000E50_DisplayName = true,
+    X_000E50_UserFriendlyName = true,
+}
+
+local set_line_maps = {
+    sip_profile = set_line_sip_net_map,
+    sip_dev = set_line_sip_server_map,
+}
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_.get = getParam(line_maps)
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_.set = setParam(line_maps, set_line_maps)
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_.add = function(mapping, parentkey)
+    local pconfig = parentkey:match("(.*)|(.*)")
+    local config = "mmpbxrvsipnet"
+    if pconfig == config then
+        local add_sipnet_defauls = true
+        return profile_helper.profile_add(add_sipnet_defauls, transactions, commitapply)
+    else
+        return nil, "Not supported for add"
+    end
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_.delete = function(mapping, key, parentkey)
+    local _, _, ltype = getInfoFromKey(key, parentkey)
+    if (ltype == "sip_profile") then
+        profile_helper.profile_delete(key, transactions, commitapply)
+        return true
+    else
+        return nil, "Not supported for delete"
+    end
+end
+
+local function sip_watch_cb(mapping, action, config, sectiontype, sectionname, option)
+    if option == "enabled" then
+        return { {key = sectionname, paramname = "Enable"} }
+    end
+end
+
+local function mmpbx_profile_event(mapping, event, msg)
+    if msg.sip and msg.sip.oldest and msg.sip.newest and msg.sip.oldest.registered and msg.sip.newest.registered then
+        local oldest = msg.sip.oldest.registered
+        local newest = msg.sip.newest.registered
+        if (oldest == "Unregistered" and newest == "Registered") or
+            (oldest == "Registered" and newest == "Unregistered") then
+            return { { key = msg.name, paramname = "Status" } }
+        end
+    end
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_.add_watchers = function(mapping)
+    local uci_evsrc = eventsource("uci")
+    uci_evsrc.watch(mapping, { set = sip_watch_cb }, configfile_sip, "profile", nil, "enabled")
+    local ubus_evsrc = eventsource("ubus")
+    ubus_evsrc.watch_event(mapping, mmpbx_profile_event, "mmpbx.profile.status")
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_.commit = line_commit
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_.revert = line_revert
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_SIP_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.Line.{i}.SIP.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            AuthUserName = {
+                access = "readWrite",
+                type = "string",
+                max = "128",
+                default = "",
+            },
+            AuthPassword = {
+                access = "readWrite",
+--NG-71427 hidden = "true", reverted in NG-79929 to support unhide_pattern28.11. workaround reintroduced
+--				hidden = "true",
+                type = "string",
+                max = "128",
+                default = "",
+            },
+            URI = {
+                access = "readWrite",
+                type = "string",
+                max = "389",
+            },
+            -- SIPEventSubscribeNumberOfElements
+            -- automatically created when Multi.Services.VoiceService.{i}.VoiceProfile.{i}.Line.{i}.SIP.EventSubscribe.{i}. is loaded
+        }
+    }
+}
+
+
+local sip_sip_net_map = {
+    value = {
+        AuthUserName = "user_name",
+        AuthPassword = "password",
+        URI = "uri"
+    },
+    default = common_default,
+}
+
+local sip_sip_server_map = {
+    value = {
+        AuthUserName = "user_name",
+        AuthPassword = "password",
+        URI = "uri"
+    },
+    default = common_default,
+}
+
+local sip_maps = {
+    sip_profile = sip_sip_net_map,
+    sip_dev = sip_sip_server_map,
+}
+
+local set_sip_sip_net_map = {
+    AuthUserName = true,
+    AuthPassword = function(binding, value, ltype)
+        binding.option = "password"
+	if ltype == "sip_profile" then
+            uci_helper.set_on_uci(binding, value)
+	else
+	    uci_helper.set_on_uci(binding, value, commitapply)
+	end
+        return true
+    end,
+    URI = function(binding, value, ltype)
+        binding.option = "uri"
+        local uris = {}
+        local profile_binding = { config = "mmpbxrvsipnet", sectionname = "profile", option = "uri"}
+
+	uci_helper.foreach_on_uci(profile_binding, function(s)
+            if s.uri ~= nil then
+                uris[s.uri] = true
+            end
+        end)
+
+        if uci_helper.get_from_uci(binding) ~= value and uris[value] then
+            return nil, "this URI has already existed"
+        end
+	if ltype == "sip_profile" then
+            uci_helper.set_on_uci(binding, value)
+        else
+            uci_helper.set_on_uci(binding, value, commitapply)
+        end
+        return true
+    end,
+}
+local set_sip_sip_server_map = set_sip_sip_net_map
+
+local set_sip_maps = {
+    sip_profile = set_sip_sip_net_map,
+    sip_dev = set_sip_sip_server_map,
+}
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_SIP_.get = getParam(sip_maps)
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_SIP_.set = setParam(sip_maps, set_sip_maps)
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_SIP_.getall = function(mapping, key, parentkey)
+    local config, name, ltype = getInfoFromKey(key, parentkey)
+    local map = sip_maps[ltype]
+    binding.config = config
+    binding.sectionname = name
+    binding.option = nil
+    local v = uci_helper.getall_from_uci(binding)
+
+    local uri = ""
+    if type(map.value["URI"]) == "function" then
+        uri = map.value["URI"](config, name)
+    else
+        uri = v[map.value["URI"]]
+    end
+
+    return {
+        AuthUserName = v[map.value["AuthUserName"]] or map.default["AuthUserName"],
+        AuthPassword = v[map.value["AuthPassword"]] or map.default["AuthPassword"],
+        URI = uri or map.default["URI"],
+    }
+end
+
+local auth_maps = {
+    user_name = "AuthUserName",
+    password = "AuthPassword",
+    uri = "URI",
+}
+
+local function line_sip_watch_cb(mapping, action, config, sectiontype, sectionname, option)
+    if auth_maps[option] then
+        return { {key = sectionname, paramname = auth_maps[option]}}
+    end
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_SIP_.add_watchers = function(mapping)
+    local uci_evsrc = eventsource("uci")
+    for k,_ in pairs(auth_maps) do
+        uci_evsrc.watch(mapping, { set = line_sip_watch_cb }, configfile_sip, "profile", nil, k)
+    end
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_SIP_.commit = line_commit
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_SIP_.revert = line_revert
+duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_SIP_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_SIP_EventSubscribe_i_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.Line.{i}.SIP.EventSubscribe.{i}.",
+        access = "readOnly",
+        minEntries = 0,
+        maxEntries = math.huge,
+        numEntriesParameter = "SIPEventSubscribeNumberOfElements",
+        parameters = {
+            Event = {
+                access = "readOnly",
+                type = "string",
+                max = "32",
+            },
+            AuthUserName = {
+                access = "readWrite",
+                type = "string",
+                max = "128",
+                default = "",
+            },
+            AuthPassword = {
+                access = "readWrite",
+                type = "string",
+                hidden = "true",
+                max = "128",
+                default = "",
+            },
+        }
+    }
+}
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_SIP_EventSubscribe_i_.entries = function(mapping, parentkey, grandkey)
+    local entries = {}
+    local profile_binding = { config = "mmpbxrvsipnet", sectionname = "profile"}
+    uci_helper.foreach_on_uci(profile_binding, function(s)
+        if (s[".name"] == parentkey) then
+            local event_subscribe = s.subscription_event
+            if ((event_subscribe ~= nil) and (type(event_subscribe) == "table")) then
+                for index,name in ipairs(event_subscribe) do
+                    entries[#entries + 1] = parentkey .. "|" .. name .. "|" .. index
+                end
+            end
+        end
+    end)
+    return entries
+end
+
+local subscribe_map = {
+    Event = "subscription_event",
+    AuthUserName = "subscription_user_name",
+    AuthPassword = "subscription_password",
+}
+
+local function subscribe_getter(mapping, paramname, key, parentkey)
+    binding.config = "mmpbxrvsipnet"
+    binding.sectionname = parentkey
+    binding.option = subscribe_map[paramname]
+    local value_table = get_from_uci(binding)
+    local index = key:match(".*|.*|(.*)")
+    return value_table[tonumber(index)]
+end
+local function subscribe_setter(mapping, paramname, paramvalue, key, parentkey)
+    binding.config = "mmpbxrvsipnet"
+    binding.sectionname = parentkey
+    binding.option = subscribe_map[paramname]
+    local index = key:match(".*|.*|(.*)")
+    local value_table = get_from_uci(binding)
+    if (#value_table > 0 and value_table[tonumber(index)] ~= nil) then
+        value_table[tonumber(index)] = paramvalue
+    end
+    set_on_uci(binding, value_table, commitapply)
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_SIP_EventSubscribe_i_.get = subscribe_getter
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_SIP_EventSubscribe_i_.set = subscribe_setter
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_SIP_EventSubscribe_i_.commit = function()
+    uci_helper.commit({config = "mmpbxrvsipnet"})
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_SIP_EventSubscribe_i_.revert = function()
+    uci_helper.revert({config = "mmpbxrvsipnet"})
+end
+
+duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_SIP_EventSubscribe_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Session_i_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.Line.{i}.Session.{i}.",
+        access = "readOnly",
+        minEntries = 0,
+        maxEntries = math.huge,
+        parameters = {
+            SessionStartTime = {
+                access = "readOnly",
+                type = "dateTime",
+            },
+            SessionDuration = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            FarEndIPAddress = {
+                access = "readOnly",
+                type = "string",
+            },
+            FarEndUDPPort = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            LocalUDPPort = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+        }
+    }
+}
+
+local function session_get(mapping, param, key, parentkey)
+   local id = key:match("^(.*)|.*")
+   local value = 0
+   local session = rtp_session[tonumber(id)]
+
+   value = tostring(session[param]) or "0"
+   return value
+end
+
+local function session_getall(mapping, key, parentkey, grandkey)
+    local results = {
+        SessionStartTime = "0",
+        SessionDuration = "0",
+        FarEndIPAddress = "0",
+        FarEndUDPPort = "0",
+        LocalUDPPort = "0",
+    }
+
+    local id = key:match("^(.*)|.*")
+    local session = rtp_session[tonumber(id)]
+    results.SessionStartTime = session["SessionStartTime"] or "0"
+    results.SessionDuration = tostring(session["SessionDuration"]) or "0"
+    results.FarEndIPAddress = tostring(session["FarEndIPAddress"]) or "0"
+    results.FarEndUDPPort = tostring(session["FarEndUDPPort"]) or "0"
+    results.LocalUDPPort = tostring(session["LocalUDPPort"]) or "0"
+    return results
+end
+
+local function session_entries(mapping, parentkey, grandkey)
+   local entries = {}
+   local uri_get=getParam(sip_maps)
+   local uri = uri_get(mapping, "URI", parentkey, grandkey)
+   if uri == "" then
+      return {}
+   end
+
+   rtp_session = conn:call("mmpbx.rtp.session", "list", {})
+   if rtp_session then
+        for k,v in pairs (rtp_session) do
+	   if uri == v["LineName"] then
+	      entries[#entries+1] = tostring(k).."|"..parentkey
+	   end
+	end
+   end
+   return entries
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Session_i_.get = session_get
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Session_i_.getall = session_getall
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Session_i_.entries = session_entries
+duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Session_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Stats_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.Line.{i}.Stats.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            IncomingCallsReceived = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            IncomingCallsAnswered = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            IncomingCallsConnected = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            IncomingCallsFailed = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            OutgoingCallsAttempted = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            OutgoingCallsAnswered = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            OutgoingCallsConnected= {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            OutgoingCallsFailed = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            CallsDropped = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            TotalCallTime = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            PacketsSent = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            PacketsReceived  = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            BytesSent  = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            BytesReceived  = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            PacketsLost  = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            ReceivePacketLossRate  = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            FarEndPacketLossRate  = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            ReceiveInterarrivalJitter  = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            FarEndInterarrivalJitter  = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            RoundTripDelay  = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            AverageReceiveInterarrivalJitter  = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            AverageFarEndInterarrivalJitter  = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            AverageRoundTripDelay  = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            Overruns  = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            Underruns  = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            ResetStatistics = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            ServerDownTime = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallAvgRTCPRoundTripDelay = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallInboundAvgInterarrivalJitter = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallInboundMaxInterarrivalJitter = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallInboundRTPPacketLoss = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallInboundRTPPacketLossRate = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallInboundSumFractionLoss = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallInboundSumInterarrivalJitter = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallInboundSumSqrFractionLoss = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallInboundSumSqrInterarrivalJitter = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallInboundTotalRTCPPackets = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallMaxRTCPOneWayDelay = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallMaxRTCPRoundTripDelay = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallOutboundAvgInterarrivalJitter = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallOutboundMaxInterarrivalJitter = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallOutboundRTPPacketLoss = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallOutboundRTPPacketLossRate = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallOutboundSumFractionLoss= {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallOutboundSumInterarrivalJitter = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallOutboundSumSqrFractionLoss = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallOutboundSumSqrInterarrivalJitter = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallOutboundTotalRTCPPackets = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallSumRTCPOneWayDelay = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallSumRTCPRoundTripDelay = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallSumSqrRTCPOneWayDelay = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCalllSumSqrRTCPRoundTripDelay = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallConnectTimeStamp = {
+                access = "readOnly",
+                type = "dateTime",
+            },
+            X_000E50_CurrCallDuration = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallRemoteIP = {
+                access = "readOnly",
+                type = "string",
+            },
+            X_000E50_CurrCallNumber = {
+                access = "readOnly",
+                type = "string",
+            },
+            X_000E50_CurrCallCID = {
+                access = "readOnly",
+                type = "string",
+            },
+            X_000E50_CurrCallCodecInUse = {
+                access = "readOnly",
+                type = "string",
+            },
+            X_000E50_LastCallAvgRTCPRoundTripDelay = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallInboundAvgInterarrivalJitter = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallInboundMaxInterarrivalJitter = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallInboundRTPPacketLoss = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallInboundRTPPacketLossRate = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallInboundSumFractionLoss = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallInboundSumInterarrivalJitter = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallInboundSumSqrFractionLoss = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallInboundSumSqrInterarrivalJitter = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallInboundTotalRTCPPackets = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallMaxRTCPOneWayDelay = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallMaxRTCPRoundTripDelay = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallOutboundAvgInterarrivalJitter = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallOutboundMaxInterarrivalJitter = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallOutboundRTPPacketLoss = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallOutboundRTPPacketLossRate = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallOutboundSumFractionLoss= {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallOutboundSumInterarrivalJitter = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallOutboundSumSqrFractionLoss = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallOutboundSumSqrInterarrivalJitter = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallOutboundTotalRTCPPackets = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallSumRTCPOneWayDelay = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallSumRTCPRoundTripDelay = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallSumSqrRTCPOneWayDelay = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCalllSumSqrRTCPRoundTripDelay = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallConnectTimeStamp = {
+                access = "readOnly",
+                type = "dateTime",
+            },
+            X_000E50_LastCallDuration = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallRemoteIP = {
+                access = "readOnly",
+                type = "string",
+            },
+            X_000E50_LastCallNumber = {
+                access = "readOnly",
+                type = "string",
+            },
+            X_000E50_LastCallCID = {
+                access = "readOnly",
+                type = "string",
+            },
+            X_000E50_LastCallCodecInUse = {
+                access = "readOnly",
+                type = "string",
+            },
+            X_000E50_AccumAvgRTCPRoundTripDelay = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumInboundAvgInterarrivalJitter = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumInboundCallCount = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumInboundMaxInterarrivalJitter = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumInboundRTPPacketLoss = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumInboundRTPPacketLossRate = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumInboundSumFractionLoss = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumInboundSumInterarrivalJitter = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumInboundSumSqrFractionLoss = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumInboundSumSqrInterarrivalJitter = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumInboundTotalRTCPPackets = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumMaxRTCPOneWayDelay = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumMaxRTCPRoundTripDelay = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumOutboundAvgInterarrivalJitter = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumOutboundCallCount = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumOutboundMaxInterarrivalJitter = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumOutboundRTPPacketLoss = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumOutboundRTPPacketLossRate = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumOutboundSumFractionLoss= {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumOutboundSumInterarrivalJitter = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumOutboundSumSqrFractionLoss = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumOutboundSumSqrInterarrivalJitter = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumOutboundTotalRTCPPackets = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumSumRTCPOneWayDelay = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumSumRTCPRoundTripDelay = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumSumSqrRTCPOneWayDelay = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_AccumSumSqrRTCPRoundTripDelay = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+        }
+    }
+}
+
+local callnumber_statistic_map = {
+    PacketsSent = "PacketsSent",
+    PacketsReceived = "PacketsReceived",
+    BytesSent = "BytesSent",
+    BytesReceived = "BytesReceived",
+    PacketsLost = "PacketsLost",
+    Overruns = "Overruns",
+    Underruns = "Underruns",
+    IncomingCallsReceived = "IncomingCallsReceived",
+    IncomingCallsAnswered = "IncomingCallsAnswered",
+    IncomingCallsConnected = "IncomingCallsConnected",
+    IncomingCallsFailed = "IncomingCallsFailed",
+    OutgoingCallsAttempted = "OutgoingCallsAttempted",
+    OutgoingCallsAnswered = "OutgoingCallsAnswered",
+    OutgoingCallsConnected = "OutgoingCallsConnected",
+    OutgoingCallsFailed = "OutgoingCallsFailed",
+    CallsDropped = "CallsDropped",
+    TotalCallTime = "callTime",
+    X_000E50_AccumAvgRTCPRoundTripDelay = "AverageRoundTripDelay",
+    X_000E50_AccumInboundAvgInterarrivalJitter = "AverageReceiveInterarrivalJitter",
+    X_000E50_AccumInboundCallCount = "IncomingCallsReceived",
+    X_000E50_AccumInboundMaxInterarrivalJitter = "ReceiveMaxInterarrivalJitter",
+    X_000E50_AccumInboundRTPPacketLoss = "PacketsLost",
+    X_000E50_AccumInboundRTPPacketLossRate = "ReceivePacketLossRate",
+    X_000E50_AccumInboundSumFractionLoss = "InboundSumFractionLoss",
+    X_000E50_AccumInboundSumInterarrivalJitter = "InboundSumInterarrivalJitter",
+    X_000E50_AccumInboundSumSqrFractionLoss = "InboundSumSqrFractionLoss",
+    X_000E50_AccumInboundSumSqrInterarrivalJitter = "InboundSumSqrInterarrivalJitter",
+    X_000E50_AccumInboundTotalRTCPPackets = "InboundTotalRTCPPackets",
+    X_000E50_AccumMaxRTCPOneWayDelay = "MaxRTCPOneWayDelay",
+    X_000E50_AccumMaxRTCPRoundTripDelay = "WorstRoundTripDelay",
+    X_000E50_AccumOutboundAvgInterarrivalJitter = "AverageFarEndInterarrivalJitter",
+    X_000E50_AccumOutboundCallCount = "OutgoingCallsAttempted",
+    X_000E50_AccumOutboundMaxInterarrivalJitter = "FarEndReceiveMaxInterarrivalJitter",
+    X_000E50_AccumOutboundRTPPacketLoss = "FarEndPacketsLost",
+    X_000E50_AccumOutboundRTPPacketLossRate = "FarEndPacketLossRate",
+    X_000E50_AccumOutboundSumFractionLoss= "OutboundSumFractionLoss",
+    X_000E50_AccumOutboundSumInterarrivalJitter = "OutboundSumInterarrivalJitter",
+    X_000E50_AccumOutboundSumSqrFractionLoss = "OutboundSumSqrFractionLoss",
+    X_000E50_AccumOutboundSumSqrInterarrivalJitter = "OutboundSumSqrInterarrivalJitter",
+    X_000E50_AccumOutboundTotalRTCPPackets = "OutboundTotalRTCPPackets",
+    X_000E50_AccumSumRTCPOneWayDelay = "SumRTCPOneWayDelay",
+    X_000E50_AccumSumRTCPRoundTripDelay = "SumRTCPRoundTripDelay",
+    X_000E50_AccumSumSqrRTCPOneWayDelay = "SumSqrRTCPOneWayDelay",
+    X_000E50_AccumSumSqrRTCPRoundTripDelay = "SumSqrRTCPRoundTripDelay"
+}
+
+local current_ongoing_stats_map = {
+    ReceivePacketLossRate = "ReceivePacketLossRate",
+    FarEndPacketLossRate = "FarEndPacketLossRate",
+    ReceiveInterarrivalJitter = "ReceiveInterarrivalJitter",
+    FarEndInterarrivalJitter = "FarEndInterarrivalJitter",
+    RoundTripDelay = "RoundTripDelay",
+    AverageRoundTripDelay = "AverageRoundTripDelay",
+    AverageReceiveInterarrivalJitter = "AverageReceiveInterarrivalJitter",
+    AverageFarEndInterarrivalJitter = "AverageFarEndInterarrivalJitter",
+    X_000E50_CurrCallAvgRTCPRoundTripDelay = "AverageRoundTripDelay",
+    X_000E50_CurrCallInboundAvgInterarrivalJitter = "AverageReceiveInterarrivalJitter",
+    X_000E50_CurrCallInboundMaxInterarrivalJitter = "MaxReceiveInterarrivalJitter",
+    X_000E50_CurrCallInboundRTPPacketLoss = "PacketsLost",
+    X_000E50_CurrCallInboundRTPPacketLossRate = "ReceivePacketLossRate",
+    X_000E50_CurrCallInboundSumFractionLoss = "InboundSumFractionLoss",
+    X_000E50_CurrCallInboundSumInterarrivalJitter = "InboundSumInterarrivalJitter",
+    X_000E50_CurrCallInboundSumSqrFractionLoss = "InboundSumSqrFractionLoss",
+    X_000E50_CurrCallInboundSumSqrInterarrivalJitter = "InboundSumSqrInterarrivalJitter",
+    X_000E50_CurrCallInboundTotalRTCPPackets = "InboundTotalRTCPPackets",
+    X_000E50_CurrCallMaxRTCPOneWayDelay = "MaxRTCPOneWayDelay",
+    X_000E50_CurrCallMaxRTCPRoundTripDelay = "WorstRoundTripDelay",
+    X_000E50_CurrCallOutboundAvgInterarrivalJitter = "AverageFarEndInterarrivalJitter",
+    X_000E50_CurrCallOutboundMaxInterarrivalJitter = "MaxFarEndInterarrivalJitter",
+    X_000E50_CurrCallOutboundRTPPacketLoss = "FarEndPacketLost",
+    X_000E50_CurrCallOutboundRTPPacketLossRate = "FarEndPacketLossRate",
+    X_000E50_CurrCallOutboundSumFractionLoss= "OutboundSumFractionLoss",
+    X_000E50_CurrCallOutboundSumInterarrivalJitter = "OutboundSumInterarrivalJitter",
+    X_000E50_CurrCallOutboundSumSqrFractionLoss = "OutboundSumSqrFractionLoss",
+    X_000E50_CurrCallOutboundSumSqrInterarrivalJitter = "OutboundSumSqrInterarrivalJitter",
+    X_000E50_CurrCallOutboundTotalRTCPPackets = "OutboundTotalRTCPPackets",
+    X_000E50_CurrCallSumRTCPOneWayDelay = "SumRTCPOneWayDelay",
+    X_000E50_CurrCallSumRTCPRoundTripDelay = "SumRTCPRoundTripDelay",
+    X_000E50_CurrCallSumSqrRTCPOneWayDelay = "SumSqrRTCPOneWayDelay",
+    X_000E50_CurrCalllSumSqrRTCPRoundTripDelay = "SumSqrRTCPRoundTripDelay",
+    X_000E50_CurrCallConnectTimeStamp = "SessionStartTime",
+    X_000E50_CurrCallDuration = "SessionDuration",
+    X_000E50_CurrCallCodecInUse = "",
+    X_000E50_CurrCallRemoteIP = "FarEndIPAddress"
+
+}
+
+local current_ongoing_call_map = {
+    X_000E50_CurrCallNumber = "party",
+    X_000E50_CurrCallCID = "partyDisplayName",
+}
+
+local last_call_stats_map = {
+    X_000E50_LastCallAvgRTCPRoundTripDelay = "AverageRoundTripDelay",
+    X_000E50_LastCallInboundAvgInterarrivalJitter = "AverageReceiveInterarrivalJitter",
+    X_000E50_LastCallInboundMaxInterarrivalJitter = "ReceiveMaxInterarrivalJitter",
+    X_000E50_LastCallInboundRTPPacketLoss = "PacketsLost",
+    X_000E50_LastCallInboundRTPPacketLossRate = "ReceivePacketLossRate",
+    X_000E50_LastCallInboundSumFractionLoss = "InboundSumFractionLoss",
+    X_000E50_LastCallInboundSumInterarrivalJitter = "InboundSumInterarrivalJitter",
+    X_000E50_LastCallInboundSumSqrFractionLoss = "InboundSumSqrFractionLoss",
+    X_000E50_LastCallInboundSumSqrInterarrivalJitter = "InboundSumSqrInterarrivalJitter",
+    X_000E50_LastCallInboundTotalRTCPPackets = "InboundTotalRTCPPackets",
+    X_000E50_LastCallMaxRTCPOneWayDelay = "MaxRTCPOneWayDelay",
+    X_000E50_LastCallMaxRTCPRoundTripDelay = "WorstRoundTripDelay",
+    X_000E50_LastCallOutboundAvgInterarrivalJitter = "AverageFarEndInterarrivalJitter",
+    X_000E50_LastCallOutboundMaxInterarrivalJitter = "FarEndReceiveMaxInterarrivalJitter",
+    X_000E50_LastCallOutboundRTPPacketLoss = "FarEndPacketsLost",
+    X_000E50_LastCallOutboundRTPPacketLossRate = "FarEndPacketLossRate",
+    X_000E50_LastCallOutboundSumFractionLoss= "OutboundSumFractionLoss",
+    X_000E50_LastCallOutboundSumInterarrivalJitter = "OutboundSumInterarrivalJitter",
+    X_000E50_LastCallOutboundSumSqrFractionLoss = "OutboundSumSqrFractionLoss",
+    X_000E50_LastCallOutboundSumSqrInterarrivalJitter = "OutboundSumSqrInterarrivalJitter",
+    X_000E50_LastCallOutboundTotalRTCPPackets = "OutboundTotalRTCPPackets",
+    X_000E50_LastCallSumRTCPOneWayDelay = "SumRTCPOneWayDelay",
+    X_000E50_LastCallSumRTCPRoundTripDelay = "SumRTCPRoundTripDelay",
+    X_000E50_LastCallSumSqrRTCPOneWayDelay = "SumSqrRTCPOneWayDelay",
+    X_000E50_LastCalllSumSqrRTCPRoundTripDelay = "SumSqrRTCPRoundTripDelay",
+    X_000E50_LastCallConnectTimeStamp = "connectedTime",
+    X_000E50_LastCallDuration = "",
+    X_000E50_LastCallRemoteIP = "FarEndIPAddress",
+    X_000E50_LastCallNumber = "Remote",
+    X_000E50_LastCallCID = "RemoteName",
+    X_000E50_LastCallCodecInUse = "Codec",
+}
+
+local function convert2Sec(value)
+    local time_t={}
+    time_t.year, time_t.month, time_t.day, time_t.hour, time_t.min, time_t.sec = value:match("(%d+)-(%d+)-(%d+)%s+(%d+):(%d+):(%d+)")
+    if time_t.year then
+        return os.time(time_t)
+    end
+    return 0
+end
+
+local function stats_get(mapping, param, key, parentkey)
+    local uri_get=getParam(sip_maps)
+    local uri = uri_get(mapping, "URI", key, parentkey)
+    if uri == "" then
+        return "0"
+    end
+    local value = "0"
+    if param == "ResetStatistics" then
+        return  "0"
+    end
+    if param == "ServerDownTime" then
+        local _, name = getInfoFromKey(key, parentkey)
+        local profiles = conn:call("mmpbx.profile", "get", {})
+        if profiles and profiles[name] then
+            value = profiles[name]["serverDownTime"] or "0"
+        end
+        return tostring(value)
+    end
+    if callnumber_statistic_map[param] then
+        local callnumber_stats = conn:call("mmdbd.callnumber.statistics", "get", {["profile"]=uri})
+        if callnumber_stats and callnumber_stats[1] then
+            local ubus_name = callnumber_statistic_map[param]
+            value = tostring(callnumber_stats[1][ubus_name] or "0")
+        end
+        return value
+    end
+    if current_ongoing_stats_map[param] then
+        local rtp_session = conn:call("mmpbx.rtp.session", "list", {["rtcp"]="1", ["name"]=uri})
+        if rtp_session and rtp_session[1] then
+            if param ~= "X_000E50_CurrCallCodecInUse" then
+                local ubus_name = current_ongoing_stats_map[param]
+                value = tostring(rtp_session[1][ubus_name] or "0")
+            else
+                for _, v in pairs(rtp_session[1]) do
+                   if type(v) == "table" then
+                       for _, v2 in pairs(v) do
+                          if type(v2) == "table" then
+                              if v2.codec and v2.codec ~= "telephone-event" then
+                                  return v2.codec
+                              end
+                          end
+                       end
+                   end
+                end
+            end
+        end
+        return value
+    end
+
+    if current_ongoing_call_map[param] then
+        local call_info = conn:call("mmpbx.call", "get", {["profile"]=uri})
+        local ubus_name = current_ongoing_call_map[param]
+        if call_info and call_info[1] then
+            value = tostring(call_info[1][ubus_name] or "0")
+        end
+        return value
+    end
+    if last_call_stats_map[param] then
+        local call_stats = conn:call("mmdbd.call.statistics", "get", {["profile"]=uri})
+        local ubus_name = last_call_stats_map[param]
+        if call_stats then
+            for _, v in pairs(call_stats) do
+                for k, v2 in pairs(v) do
+                    if v2["TxPackets"] ~= 0 then
+                        if param == "X_000E50_LastCallDuration" then
+                            local connectedTime = tostring(v2["connectedTime"] or "0")
+                            local endTime = tostring(v2["endTime"] or "0")
+                            if endTime ~= "0" then
+                                return tostring(convert2Sec(endTime) - convert2Sec(connectedTime))
+                            else
+                                return tostring(os.time() - convert2Sec(connectedTime))
+                            end
+                        else
+                            return tostring(v2[ubus_name] or "0")
+                        end
+                    end
+                end
+            end
+        end
+        return value
+    end
+end
+
+local function stats_getall(mapping, key, parentkey)
+    local results = {
+        IncomingCallsReceived = "0",
+        IncomingCallsAnswered = "0",
+        IncomingCallsConnected = "0",
+        IncomingCallsFailed = "0",
+        OutgoingCallsAttempted = "0",
+        OutgoingCallsAnswered = "0",
+        OutgoingCallsConnected = "0",
+        OutgoingCallsFailed = "0",
+        TotalCallTime = "0",
+        CallsDropped = "0",
+        PacketsSent  = "0",
+        PacketsReceived  = "0",
+        BytesSent  = "0",
+        BytesReceived  = "0",
+        PacketsLost  = "0",
+        ReceivePacketLossRate  = "0",
+        FarEndPacketLossRate  = "0",
+        ReceiveInterarrivalJitter  = "0",
+        FarEndInterarrivalJitter  = "0",
+        RoundTripDelay  = "0",
+        AverageReceiveInterarrivalJitter  = "0",
+        AverageFarEndInterarrivalJitter  = "0",
+        AverageRoundTripDelay  = "0",
+        Overruns = "0",
+        Underruns = "0",
+        ResetStatistics = "0",
+        ServerDownTime = "0",
+        X_000E50_CurrCallAvgRTCPRoundTripDelay = "0",
+        X_000E50_CurrCallInboundAvgInterarrivalJitter = "0",
+        X_000E50_CurrCallInboundMaxInterarrivalJitter = "0",
+        X_000E50_CurrCallInboundRTPPacketLoss = "0",
+        X_000E50_CurrCallInboundRTPPacketLossRate = "0",
+        X_000E50_CurrCallInboundSumFractionLoss = "0",
+        X_000E50_CurrCallInboundSumInterarrivalJitter = "0",
+        X_000E50_CurrCallInboundSumSqrFractionLoss = "0",
+        X_000E50_CurrCallInboundSumSqrInterarrivalJitter = "0",
+        X_000E50_CurrCallInboundTotalRTCPPackets = "0",
+        X_000E50_CurrCallMaxRTCPOneWayDelay = "0",
+        X_000E50_CurrCallMaxRTCPRoundTripDelay = "0",
+        X_000E50_CurrCallOutboundAvgInterarrivalJitter = "0",
+        X_000E50_CurrCallOutboundMaxInterarrivalJitter = "0",
+        X_000E50_CurrCallOutboundRTPPacketLoss = "0",
+        X_000E50_CurrCallOutboundRTPPacketLossRate = "0",
+        X_000E50_CurrCallOutboundSumFractionLoss= "0",
+        X_000E50_CurrCallOutboundSumInterarrivalJitter = "0",
+        X_000E50_CurrCallOutboundSumSqrFractionLoss = "0",
+        X_000E50_CurrCallOutboundSumSqrInterarrivalJitter = "0",
+        X_000E50_CurrCallOutboundTotalRTCPPackets = "0",
+        X_000E50_CurrCallSumRTCPOneWayDelay = "0",
+        X_000E50_CurrCallSumRTCPRoundTripDelay = "0",
+        X_000E50_CurrCallSumSqrRTCPOneWayDelay = "0",
+        X_000E50_CurrCalllSumSqrRTCPRoundTripDelay = "0",
+        X_000E50_CurrCallConnectTimeStamp = "",
+        X_000E50_CurrCallDuration = "0",
+        X_000E50_CurrCallRemoteIP = "0",
+        X_000E50_CurrCallCID = "",
+        X_000E50_CurrCallNumber = "",
+        X_000E50_CurrCallCodecInUse = "",
+        X_000E50_LastCallAvgRTCPRoundTripDelay = "0",
+        X_000E50_LastCallInboundAvgInterarrivalJitter = "0",
+        X_000E50_LastCallInboundMaxInterarrivalJitter = "0",
+        X_000E50_LastCallInboundRTPPacketLoss = "0",
+        X_000E50_LastCallInboundRTPPacketLossRate = "0",
+        X_000E50_LastCallInboundSumFractionLoss = "0",
+        X_000E50_LastCallInboundSumInterarrivalJitter = "0",
+        X_000E50_LastCallInboundSumSqrFractionLoss = "0",
+        X_000E50_LastCallInboundSumSqrInterarrivalJitter = "0",
+        X_000E50_LastCallInboundTotalRTCPPackets = "0",
+        X_000E50_LastCallMaxRTCPOneWayDelay = "0",
+        X_000E50_LastCallMaxRTCPRoundTripDelay = "0",
+        X_000E50_LastCallOutboundAvgInterarrivalJitter = "0",
+        X_000E50_LastCallOutboundMaxInterarrivalJitter = "0",
+        X_000E50_LastCallOutboundRTPPacketLoss = "0",
+        X_000E50_LastCallOutboundRTPPacketLossRate = "0",
+        X_000E50_LastCallOutboundSumFractionLoss= "0",
+        X_000E50_LastCallOutboundSumInterarrivalJitter = "0",
+        X_000E50_LastCallOutboundSumSqrFractionLoss = "0",
+        X_000E50_LastCallOutboundSumSqrInterarrivalJitter = "0",
+        X_000E50_LastCallOutboundTotalRTCPPackets = "0",
+        X_000E50_LastCallSumRTCPOneWayDelay = "0",
+        X_000E50_LastCallSumRTCPRoundTripDelay = "0",
+        X_000E50_LastCallSumSqrRTCPOneWayDelay = "0",
+        X_000E50_LastCalllSumSqrRTCPRoundTripDelay = "0",
+        X_000E50_AccumAvgRTCPRoundTripDelay = "0",
+        X_000E50_AccumInboundAvgInterarrivalJitter = "0",
+        X_000E50_AccumInboundCallCount = "0",
+        X_000E50_AccumInboundMaxInterarrivalJitter = "0",
+        X_000E50_AccumInboundRTPPacketLoss = "0",
+        X_000E50_AccumInboundRTPPacketLossRate = "0",
+        X_000E50_AccumInboundSumFractionLoss = "0",
+        X_000E50_AccumInboundSumInterarrivalJitter = "0",
+        X_000E50_AccumInboundSumSqrFractionLoss = "0",
+        X_000E50_AccumInboundSumSqrInterarrivalJitter = "0",
+        X_000E50_AccumInboundTotalRTCPPackets = "0",
+        X_000E50_AccumMaxRTCPOneWayDelay = "0",
+        X_000E50_AccumMaxRTCPRoundTripDelay = "0",
+        X_000E50_AccumOutboundAvgInterarrivalJitter = "0",
+        X_000E50_AccumOutboundCallCount = "0",
+        X_000E50_AccumOutboundMaxInterarrivalJitter = "0",
+        X_000E50_AccumOutboundRTPPacketLoss = "0",
+        X_000E50_AccumOutboundRTPPacketLossRate = "0",
+        X_000E50_AccumOutboundSumFractionLoss= "0",
+        X_000E50_AccumOutboundSumInterarrivalJitter = "0",
+        X_000E50_AccumOutboundSumSqrFractionLoss = "0",
+        X_000E50_AccumOutboundSumSqrInterarrivalJitter = "0",
+        X_000E50_AccumOutboundTotalRTCPPackets = "0",
+        X_000E50_AccumSumRTCPOneWayDelay = "0",
+        X_000E50_AccumSumRTCPRoundTripDelay = "0",
+        X_000E50_AccumSumSqrRTCPOneWayDelay = "0",
+        X_000E50_LastCallConnectTimeStamp = "",
+        X_000E50_LastCallDuration = "0",
+        X_000E50_LastCallRemoteIP = "",
+        X_000E50_LastCallNumber = "",
+        X_000E50_LastCallCID = "",
+        X_000E50_LastCallCodecInUse = "",
+    }
+    local uri_get=getParam(sip_maps)
+    local uri = uri_get(mapping, "URI", key, parentkey)
+    local delimiter1 = find(uri,":")
+    local delimiter2 = find(uri,"@")
+    local modified_uri
+    if delimiter1 ~= nil and delimiter2 ~= nil then
+       modified_uri = sub(uri,(delimiter1+1),(delimiter2-1))
+    elseif delimiter1 == nil and delimiter2 ~= nil then
+       modified_uri = sub(uri,0,(delimiter2-1))
+    else
+       modified_uri = uri
+    end
+    if modified_uri == "" then
+        return results
+    end
+
+
+    local cur_codec = 0
+    local rtp_session = conn:call("mmpbx.rtp.session", "list", {["rtcp"]="1", ["name"]=modified_uri} )
+    if rtp_session and rtp_session[1] then
+        for k, v in pairs(current_ongoing_stats_map) do
+            if k ~= X_000E50_CurrCallCodecInUse then
+                results[k] = tostring(rtp_session[1][v] or "0")
+            else
+                for _, v in pairs(rtp_session[1]) do
+                    if type(v) == "table" then
+                        for _, v2 in paris(v) do
+                            if type(v2) == "table" then
+                                if v2.codec and v2.codec ~= "telephone-event" then
+                                    results[k] = v2.codec
+                                    cur_codec = 1
+                                    break
+                                end
+                            end
+                        end
+                    end
+                    if cur_codec == 1 then
+                        break
+                    end
+                end
+            end
+	end
+    end
+
+    local call_info = conn:call("mmpbx.call", "get", {["profile"]=modified_uri} )
+    if call_info and call_info[1] then
+        for k, v in pairs(current_ongoing_call_map) do
+            results[k] = tostring(call_info[1][v] or "0")
+        end
+    end
+
+    local callnumber = conn:call("mmdbd.callnumber.statistics", "get", {["profile"]=modified_uri} )
+    if callnumber and callnumber[1] then
+        for k, v in pairs(callnumber_statistic_map) do
+	   results[k] = tostring(callnumber[1][v] or "0")
+	end
+    end
+
+    local call_stats = conn:call("mmdbd.call.statistics", "get", {["profile"]=modified_uri})
+    if call_stats then
+        for _, v in pairs(call_stats) do
+            for _, v2 in pairs(v) do
+                if v2["TxPackets"] ~= 0 then
+                    for k, v3 in pairs(last_call_stats_map) do
+                        if k == "X_000E50_LastCallDuration" then
+                            local connectedTime = tostring(v2["connectedTime"] or "0")
+                            local endTime = tostring(v2["endTime"] or "0")
+                            if endTime ~= "0" then
+                                results[k] = tostring(convert2Sec(endTime) - convert2Sec(connectedTime))
+                            else
+                                results[k] = tostring(os.time() - convert2Sec(connectedTime))
+                            end
+                        else
+	                    results[k] = tostring(v2[v3] or "0")
+                        end
+                    end
+                    break
+                end
+	    end
+        end
+    end
+
+    local _, name = getInfoFromKey(key, parentkey)
+    local profiles = conn:call("mmpbx.profile", "get", {})
+    if profiles and profiles[name] then
+        results.ServerDownTime =  tostring(profiles[name]["serverDownTime"]) or "0"
+    end
+    return results
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Stats_.get = stats_get
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Stats_.getall = stats_getall
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Stats_.set = function(mapping, param, value, key, parentkey)
+    local uri_get=getParam(sip_maps)
+    local uri = uri_get(mapping, "URI", key, parentkey)
+    if uri == "" then
+        return nil, "Invalid parameter"
+    end
+    if param == "ResetStatistics" then
+        conn:call("mmdbd.call.statistics", "reset", {["profile"]=uri})
+        conn:call("mmdbd.callnumber.statistics", "reset", {["profile"]=uri})
+        conn:call("mmdbd.calllog", "delete", {["profile"]=uri})
+	return true
+    end
+end
+duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Stats_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local InternetGatewayDevice_Services_VoiceService_i_VoiceProfile_i_Line_i_Stats_X_List_i_ = {
+    objectType = {
+      name = "InternetGatewayDevice.Services.VoiceService.{i}.VoiceProfile.{i}.Line.{i}.Stats.X_List.{i}.",
+      access = "readOnly",
+      minEntries = 0,
+      maxEntries = math.huge,
+      description = "call statistics of particular profile",
+      parameters = {
+          CallingNumber = {
+              access = "readOnly",
+              type = "string",
+	      max = "64",
+	      description = "The Number from which the call was initiated",
+          },
+          CalledNumber = {
+              access = "readOnly",
+              type = "string",
+              max = "64",
+              description = "The Number to which the call was given",
+          },
+          Duration = {
+              access = "readOnly",
+              type = "string",
+              max = "64",
+	      description = "Duration of the call in seconds",
+          },
+          Status = {
+              access = "readOnly",
+              type = "string",
+              max = "64",
+              description = "Termination reason of the call",
+          },
+          Codec = {
+              access = "readOnly",
+              type = "string",
+              max = "64",
+              description = "Codec used for Call"
+          },
+          SourceIP = {
+              access = "readOnly",
+              type = "string",
+              description = "IP Address of Local user",
+          },
+          SourcePort = {
+              access = "readOnly",
+              type = "unsignedInt",
+              description = "Port used by local user",
+          },
+         DestinationIP = {
+              access = "readOnly",
+              type = "string",
+              description = "IP Address of remote user",
+          },
+          DestinationPort = {
+              access = "readOnly",
+              type = "unsignedInt",
+              description = "Port used by remote user",
+          },
+          Status = {
+              access = "readOnly",
+              type = "string",
+              description = "Displays the status of the call",
+              enumeration = {
+                  "Dialed",
+                  "Missed",
+                  "Received",
+              },
+          },
+      }
+    }
+}
+
+local stats = {}
+InternetGatewayDevice_Services_VoiceService_i_VoiceProfile_i_Line_i_Stats_X_List_i_.entries = function(mapping, parentKey, grandKey)
+  local entries = {}
+  stats = {}
+  local uri_get = getParam(sip_maps)
+  local uri = uri_get(mapping, "URI", parentKey, grandKey)
+  if uri == "" then
+    return {}
+  end
+  local callStats = conn:call("mmdbd.call.statistics", "get", {["profile"] = uri} )
+  if callStats then
+    for _, calllog in pairs(callStats) do
+      for _, params in ipairs(calllog) do
+        local key = tostring(params.CallKey)
+        entries[#entries + 1] =  key
+        stats[key] = params
+        stats[key]["uri"] = uri
+      end
+    end
+  end
+  return entries
+end
+
+local function getDuration(key)
+  local connectedTime = tostring(stats[key].connectedTime or "0")
+  local endTime = tostring(stats[key].endTime or "0")
+  if endTime ~= "0" and connectedTime ~= "0" then
+    return tostring(convert2Sec(endTime) - convert2Sec(connectedTime))
+  end
+  return "0"
+end
+
+-- Returns the status of the call [Dialled or Recieved or Missed]
+-- @param key generated in entries function
+local function getCallStatus(key)
+  local direction = stats[key].Direction and tostring(stats[key].Direction) or ""
+  local connectedTime = stats[key].connectedTime and tostring(stats[key].connectedTime)or ""
+  if direction == "2" then
+    return "Dialed"
+  elseif direction == "1" and connectedTime ~= "0" then
+    return "Received"
+  elseif direction == "1" and connectedTime == "0" then
+    return "Missed"
+  end
+end
+
+InternetGatewayDevice_Services_VoiceService_i_VoiceProfile_i_Line_i_Stats_X_List_i_.get = {
+  CallingNumber = function(mapping, param, key)
+    return stats[key].uri or ""
+  end,
+  CalledNumber = function(mapping, param, key)
+    return stats[key].Remote or ""
+  end,
+  Duration = function(mapping, param, key)
+    return getDuration(key)
+  end,
+  Codec = function(mapping, param, key)
+    return stats[key].Codec or ""
+  end,
+  SourceIP = function(mapping, param, key)
+    return stats[key].LocalIPAddress or ""
+  end,
+  SourcePort = function(mapping, param, key)
+    return stats[key].LocalUDPPort and tostring(stats[key].LocalUDPPort) or ""
+  end,
+  DestinationIP = function(mapping, param, key)
+    return stats[key].FarEndIPAddress or ""
+  end,
+  DestinationPort = function(mapping, param, key)
+    return stats[key].FarEndUDPPort and tostring(stats[key].FarEndUDPPort) or ""
+  end,
+  Status = function(mapping, param, key)
+    return getCallStatus(key) or ""
+  end,
+}
+
+register(InternetGatewayDevice_Services_VoiceService_i_VoiceProfile_i_Line_i_Stats_X_List_i_)
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_CallingFeatures_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.Line.{i}.CallingFeatures.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            CallerIDEnable = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            CallerIDNameEnable = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            CallerIDName = {
+                access = "readWrite",
+                type = "string",
+                max = "256",
+            },
+            CallWaitingEnable = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            CallWaitingStatus = {
+                access = "readOnly",
+                type = "string",
+                enumeration = {
+                  "Disabled",
+                  "Idle",
+                  "SecondaryRinging",
+                  "SecondaryConnecting",
+                  "SecondaryConnected",
+                },
+            },
+            MaxSessions = {
+                access = "readWrite",
+                type = "unsignedInt",
+            },
+            ConferenceCallingStatus = {
+                access = "readOnly",
+                type = "string",
+                enumeration = {
+                  "Disabled",
+                  "Idle",
+                  "SecondaryCalling",
+                  "SecondaryConnecting",
+                  "SecondaryConnected",
+                  "InConferenceCall",
+                },
+            },
+            --      ConferenceCallingSessionCount = {
+            --        access = "readOnly",
+            --        type = "unsignedInt",
+            --        range = {
+            --          {
+            --            min = "0",
+            --            max = "0",
+            --          },
+            --          {
+            --            min = "1",
+            --            max = "1",
+            --          },
+            --          {
+            --            min = "1",
+            --          },
+            --        },
+            --      },
+            CallForwardUnconditionalEnable = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            CallForwardUnconditionalNumber = {
+                access = "readWrite",
+                type = "string",
+                max = "32",
+            },
+            CallForwardOnBusyEnable = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            CallForwardOnBusyNumber = {
+                access = "readWrite",
+                type = "string",
+                max = "32",
+            },
+            CallForwardOnNoAnswerEnable = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            CallForwardOnNoAnswerNumber = {
+                access = "readWrite",
+                type = "string",
+                max = "32",
+            },
+            --      CallForwardOnNoAnswerRingCount = {
+            --        access = "readWrite",
+            --        type = "unsignedInt",
+            --      },
+            CallTransferEnable = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            MWIEnable = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            --      MessageWaiting = {
+            --        access = "readOnly",
+            --        type = "boolean",
+            --      },
+            AnonymousCallBlockEnable = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            AnonymousCalEnable = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            --      DoNotDisturbEnable = {
+            --        access = "readWrite",
+            --        type = "boolean",
+            --      },
+                    CallReturnEnable = {
+                      access = "readWrite",
+                      type = "boolean",
+                    },
+            --      RepeatDialEnable = {
+            --        access = "readWrite",
+            --        type = "boolean",
+            --      },
+            X_FASTWEB_SendRemoteCHTone = {
+                access = "readWrite",
+                type = "boolean",
+                default = "true"
+            },
+            X_FASTWEB_PlayLocalCHTone = {
+                access = "readWrite",
+                type = "boolean",
+                default = "true"
+            },
+            X_CallHoldProv = {
+                access = "readWrite",
+                type = "boolean",
+		description = "Enable/Disable the call Hold provision",
+            },
+            X_CallHoldEnable = {
+                access = "readWrite",
+                type = "boolean",
+		description = "Enable/Disable the call Hold activation",
+            },
+            X_CallWaitingProv = {
+                access = "readWrite",
+                type = "boolean",
+		description = "Enable/Disable the call waiting option",
+            },
+            X_ThreeWayProv = {
+                access = "readWrite",
+                type = "boolean",
+		description = "Enable/Disable the conference calling provision",
+            },
+            X_ThreeWayEnable = {
+                access = "readWrite",
+                type = "boolean",
+		description = "Enable/Disable the conference call option",
+            },
+            X_CallTransferProv = {
+                access = "readWrite",
+                type = "boolean",
+		description = "Enable/Disable the call transfer provision",
+            },
+            X_AutoCallProv = {
+                access = "readWrite",
+                type = "boolean",
+                description = "Enable/Disable the Provision of warmline service",
+            },
+            X_AutoCallEnable = {
+                access = "readWrite",
+                type = "boolean",
+		description = "Enable/Disable the activation  of warmline service",
+            },
+            X_AutoCallNumber = {
+                access = "readWrite",
+                type = "string",
+		max = "256",
+		description = "Automatic calling Number in warmline service",
+            },
+            X_AutoCallInterval = {
+                access = "readWrite",
+                type = "unsignedInt",
+		description = "specifies the timeout of warmline service",
+            },
+            X_CallTransferActivate = {
+                access = "readWrite",
+                type = "boolean",
+                description = "Enable/Disable call transfer service",
+            },
+        }
+    }
+}
+
+-- Get the SIP highest priority device
+local function getSipDevice(name, service)
+    local device = ""
+    local priority = 65535
+    if (service == "CALL_WAITING") then
+        uci_helper.foreach_on_uci(incoming_binding, function(s)
+            if s.profile and type(s.profile) == "string" and s.profile == name then
+                device = table.concat(s.device, " ")
+            end
+        end)
+    else
+        uci_helper.foreach_on_uci(outgoing_binding, function(s)
+            if s.profile and type(s.profile) == "table" then
+                for i,v in ipairs(s.profile) do
+                    if (v == name) then
+                        local level = tonumber(s.priority[i])
+                        if (priority > level or (priority == level and s.device == "fxs_dev_0")) then
+                            device = s.device
+                            priority = level
+                        end
+                        break
+                    end
+                end
+            end
+        end)
+    end
+    return device, priority
+end
+
+local cvtBoolean = setmetatable({
+    ['0'] = '1',
+    ['1'] = '0',
+}, mt)
+
+local function Convert(value)
+    return cvtBoolean[value]
+end
+
+local convert_sdp_info = {
+    sendonly = "true",
+    inactive = "false",
+    ['1'] = "sendonly",
+    ['0'] = "inactive"
+}
+
+local convert_sdp2_info = {
+    inactive = "true",
+    recvonly = "false",
+    ['1'] = "inactive",
+    ['0'] = "recvonly"
+}
+
+local function convertSdpInfo2(value)
+    return convert_sdp2_info[value]
+end
+
+local function convertSdpInfo(value)
+    return convert_sdp_info[value]
+end
+
+local function convertConferenceStatus(value)
+     return ConferenceCallingStatus[value] or "Idle"
+end
+
+local function convertCallWaitingStatus(value)
+     return CallWaitingStatus[value] or "Idle"
+end
+
+local call_common_default = setmetatable({
+    CallerIDEnable = "1",
+    CallerIDNameEnable = "1",
+    AnonymousCalEnable = "0",
+    CallForwardUnconditionalEnable = "0",
+    CallForwardOnBusyEnable = "0",
+    CallForwardOnNoAnswerEnable = "0",
+    AnonymousCallBlockEnable = "0",
+    CallWaitingEnable = "1",
+    CallTransferEnable = "1",
+    MaxSessions = "2",
+    MWIEnable = "0",
+    CallReturnEnable = "0",
+    X_FASTWEB_SendRemoteCHTone = "true",
+    X_FASTWEB_PlayLocalCHTone = "true",
+    CallWaitingStatus = "Idle",
+    ConferenceCallingStatus = "Idle",
+    X_CallTransferActivate = "1",
+}, mt)
+
+local call_sip_net_map = {
+    value = {
+        CallerIDEnable = {"CLIR", "provisioned", nil, Convert},
+        CallerIDNameEnable = {"CLIR", "provisioned", nil, Convert},
+        CallerIDName = "display_name",
+        CallWaitingEnable = {"CALL_WAITING", "provisioned", true, getSipDevice},
+        CallForwardUnconditionalEnable = {"CFU", "provisioned"},
+        CallForwardUnconditionalNumber = {"CFU", "destination"},
+        CallForwardOnBusyEnable = {"CFBS", "provisioned"},
+        CallForwardOnBusyNumber = {"CFBS", "destination"},
+        CallForwardOnNoAnswerEnable = {"CFNR", "provisioned"},
+        CallForwardOnNoAnswerNumber = {"CFNR", "destination"},
+        CallTransferEnable = {"TRANSFER", "activated", true, getSipDevice},
+        MWIEnable = {"MWI", "provisioned"},
+        AnonymousCallBlockEnable = {"ACR", "provisioned"},
+        AnonymousCalEnable = {"CLIR", "provisioned"},
+        CallReturnEnable = {"CALL_RETURN", "provisioned"},
+        CallWaitingStatus = {nil, "callWaitingStatus", nil, convertCallWaitingStatus},
+        ConferenceCallingStatus = {nil, "conferenceCallingStatus", nil, convertConferenceStatus},
+        X_FASTWEB_SendRemoteCHTone = {"sip_net","sdp_direction_call_hold", nil, convertSdpInfo},
+        X_FASTWEB_PlayLocalCHTone = {"sip_net","sdp_direction_call_hold_answer", nil, convertSdpInfo2},
+        X_CallHoldProv = {"HOLD", "provisioned"},
+        X_CallHoldEnable = {"HOLD", "activated"},
+        X_CallWaitingProv = {"CALL_WAITING", "provisioned", true, getSipDevice},
+        X_ThreeWayProv = {"CONFERENCE", "provisioned", true, getSipDevice},
+        X_ThreeWayEnable = {"CONFERENCE", "activated", true, getSipDevice},
+	X_CallTransferProv  = {"TRANSFER", "provisioned", true, getSipDevice},
+        X_AutoCallProv = {"WARMLINE", "provisioned", true, getSipDevice},
+        X_AutoCallEnable  = {"WARMLINE", "activated", true, getSipDevice},
+        X_AutoCallNumber = {"WARMLINE", "destination", true, getSipDevice},
+        X_AutoCallInterval = {"WARMLINE", "timeout", true, getSipDevice},
+        X_CallTransferActivate = {"TRANSFER", "activated", true, getSipDevice},
+    },
+    default = call_common_default,
+}
+
+local call_sip_server_map = {
+    value = {
+    },
+    default = call_common_default,
+}
+
+local call_maps = {
+    sip_profile = call_sip_net_map,
+    sip_dev = call_sip_server_map,
+}
+
+
+local set_call_sip_net_map = {
+    -- The value means has destination or not in the service section
+    CallerIDEnable = false,
+    CallerIDNameEnable = false,
+    CallerIDName = false,
+    CallWaitingEnable = false,
+    CallForwardUnconditionalEnable = true,
+    CallForwardUnconditionalNumber = false,
+    CallForwardOnBusyEnable = true,
+    CallForwardOnBusyNumber = false,
+    CallForwardOnNoAnswerEnable = true,
+    CallForwardOnNoAnswerNumber = false,
+    CallTransferEnable = false,
+    MWIEnable = false,
+    CallReturnEnable = false,
+    AnonymousCallBlockEnable = false,
+    AnonymousCalEnable = false,
+    X_FASTWEB_SendRemoteCHTone = false,
+    X_FASTWEB_PlayLocalCHTone = false,
+    X_CallHoldProv = false,
+    X_CallHoldEnable = false,
+    X_CallWaitingProv = false,
+    X_ThreeWayProv = false,
+    X_ThreeWayEnable = false,
+    X_CallTransferProv  = false,
+    X_AutoCallProv = false,
+    X_AutoCallEnable  = false,
+    X_AutoCallNumber = false,
+    X_AutoCallInterval = false,
+    X_CallTransferActivate = false
+}
+local set_call_sip_server_map = {}
+
+local set_call_maps = {
+    sip_profile = set_call_sip_net_map,
+    sip_dev = set_call_sip_server_map,
+}
+
+local function getCallValue(map, s, param, hasprofile, name)
+    local res = nil
+    if type(map.value[param]) == "table" then
+        local stype = map.value[param][1]
+        local option = map.value[param][2]
+        local isdevice = map.value[param][3]
+        local cb = map.value[param][4]
+        if stype == s["type"] then
+            if not isdevice then
+                if hasprofile then
+                    res = option and s[option]
+                end
+                if cb then
+                    res = cb(res)
+                end
+            else
+                local device = cb(name, stype)
+                if stype == "CALL_WAITING" then
+                    if s.device and type(s.device) == "table" then
+                        local noOfDevice = #s.device
+                        local deviceName = table.concat(s.device, " ")
+                        if noOfDevice == 1 then
+                            if device:match(deviceName) then
+                                res = s[option]
+                            end
+                        else
+                            if deviceName:match(device) then
+                                res = s[option]
+                            end
+                        end
+                    end
+                else
+                    if s.device and table.concat(s.device, " "):match(device) then
+                        res = s[option]
+                    end
+                end
+            end
+        end
+    end
+    return res
+end
+
+local function getCallWaitingAndConferenceStatus(map,param, key, data)
+   local call_status = conn:call("mmpbx.device", "get", {})
+   if call_status and type(call_status) == "table" then
+       local isMatchingProfile = false
+       for _,v in pairs(call_status) do
+             local serviceStatus = map.value[param][2]
+             local cb = map.value[param][4]
+             if (((v[serviceStatus] ~=nil) and (v.profileUsed == key) and not isMatchingProfile) or (v[serviceStatus] =="Disabled")) then
+                 if (type(data) == "table") then
+                    data[param] = cb and cb(v[serviceStatus])
+                    isMatchingProfile = true
+                 else
+                    data = cb and cb(v[serviceStatus])
+                    isMatchingProfile = true
+                 end
+             end
+       end
+       return data
+  end
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_CallingFeatures_.getall = function(mapping, key, parentkey)
+    local config, name, ltype = getInfoFromKey(key, parentkey)
+    local map = call_maps[ltype]
+    local data = {}
+    uci_helper.foreach_on_uci(service_binding, function(s)
+        local hasprofile = s.profile and table.concat(s.profile, " "):match(name)
+        for p,v in pairs(map.value) do
+            if type(v) == "table" then
+                data[p] = data[p] or getCallValue(map, s, p, hasprofile, name)
+            end
+        end
+    end)
+    for p,_ in pairs(Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_CallingFeatures_.objectType.parameters) do
+        if type(map.value[p]) == "table" then
+            if (p == "X_FASTWEB_SendRemoteCHTone" or p == "X_FASTWEB_PlayLocalCHTone") then
+                binding.config = configfile_sip
+                binding.sectionname = map.value[p][1]
+                binding.option = map.value[p][2]
+                local cb = map.value[p][4]
+                local res = get_from_uci(binding)
+                data[p] = cb and cb(res)
+            elseif (p == "ConferenceCallingStatus" or p == "CallWaitingStatus") then
+                getCallWaitingAndConferenceStatus(map,p, key,  data)
+            end
+
+        elseif type(map.value[p]) == "string" then
+            binding.config = config
+            binding.sectionname = name
+            binding.option = map.value[p]
+            data[p] = uci_helper.get_from_uci(binding)
+        end
+
+        data[p] = data[p] or map.default[p]
+    end
+    return data
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_CallingFeatures_.get = function(mapping, param, key, parentkey)
+    local config, name, ltype = getInfoFromKey(key, parentkey)
+    local map = call_maps[ltype]
+    local res = map.default[param]
+    if type(map.value[param]) == "table" then
+        if (param == "X_FASTWEB_SendRemoteCHTone" or param == "X_FASTWEB_PlayLocalCHTone") then
+            binding.config = configfile_sip
+            binding.sectionname = map.value[param][1]
+            binding.option = map.value[param][2]
+            local cb = map.value[param][4]
+            res = get_from_uci(binding)
+            res =  cb and cb(res) or "true"
+        elseif (param == "ConferenceCallingStatus" or param == "CallWaitingStatus") then
+           res =  getCallWaitingAndConferenceStatus(map,param, key, res)
+        else
+            local stype = map.value[param][1]
+            local option = map.value[param][2]
+            local isdevice = map.value[param][3]
+            local cb = map.value[param][4]
+            uci_helper.foreach_on_uci(service_binding, function(s)
+                if stype == s["type"] then
+                    if not isdevice then
+                        if s.profile and table.concat(s.profile, " "):match(name) then
+                            local tmp = option and s[option] or map.default[param]
+                            res = cb and cb(tmp) or tmp
+                            return true
+                        end
+                    else
+                        local device = cb(name, stype)
+                        if stype == "CALL_WAITING" then
+                            if s.device and type(s.device) == "table" then
+                                local noOfDevice = #s.device
+                                local deviceName = table.concat(s.device, " ")
+                                if noOfDevice == 1 then
+                                    if device:match(deviceName) then
+                                        res = s[option]
+                                    end
+                                else
+                                    if deviceName:match(device) then
+                                        res = s[option]
+                                    end
+                                end
+                            end
+                        else
+                            if s.device and table.concat(s.device, " "):match(device) then
+                                res = s[option] or ""
+                            end
+                        return true
+                        end
+                    end
+                end
+            end)
+        end
+    elseif type(map.value[param]) == "string" then
+         binding.config = config
+         binding.sectionname = name
+         binding.option = map.value[param]
+         res = uci_helper.get_from_uci(binding)
+    end
+    return res
+end
+
+local function checkDevice(cb, name, value, s)
+    local device = cb(name)
+    if s.device and table.concat(s.device, " "):match(device) then
+        if s.provisioned and s.provisioned == "1" then
+            uci_helper.set_on_uci(binding, value, commitapply)
+            transactions[binding.config] = true
+            return true
+        end
+    end
+    return false
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_CallingFeatures_.set = function(mapping, param, value, key, parentkey)
+    local config, name, ltype = getInfoFromKey(key, parentkey)
+    local map = call_maps[ltype]
+    local set_map = set_call_maps[ltype]
+
+    if set_map[param] ~= nil then
+        if type(map.value[param]) == "string" then
+            binding.config = config
+            binding.sectionname = name
+            binding.option = map.value[param]
+	    if (ltype == "sip_profile") and (param == "CallerIDName") then
+		uci_helper.set_on_uci(binding, value)
+		transactions[binding.config] = true
+		conn:call("mmpbx.profile", "update", {["profile"]=name, ["SIP"]={{["display_name"]=value}}})
+	    else
+		uci_helper.set_on_uci(binding, value, commitapply)
+		transactions[binding.config] = true
+            end
+            return true
+        elseif type(map.value[param]) == "table" then
+            local stype = map.value[param][1]
+            local option = map.value[param][2]
+            local isdevice = map.value[param][3]
+            local cb = map.value[param][4]
+            if (param == "X_FASTWEB_SendRemoteCHTone" or param == "X_FASTWEB_PlayLocalCHTone") then
+                binding.config = configfile_sip
+                binding.sectionname = stype
+                binding.option = option
+                value = cb and cb(value) or value
+                set_on_uci(binding, value, commitapply)
+                transactions[binding.config] = true
+                return true
+            else
+                binding.config = "mmpbx"
+                uci_helper.foreach_on_uci(service_binding, function(s)
+                    binding.sectionname = s['.name']
+                    if (s["type"] == stype) then
+                        binding.option = option
+                        if option == "provisioned" then
+                            if not isdevice then
+                                if s.profile and table.concat(s.profile, " "):match(name) then
+                                    if cb then
+                                        value = cb(value)
+                                    end
+                                uci_helper.set_on_uci(binding, value, commitapply)
+                                binding.option = "activated"
+                                uci_helper.set_on_uci(binding, value, commitapply)
+                                transactions[binding.config] = true
+                                return false
+                                end
+                            else
+                                if (stype == "CALL_WAITING") then
+                                    local device = cb(name, stype)
+                                    if s.device and type(s.device == "table") then
+                                        local noOfDevice = #s.device
+                                        local deviceName = table.concat(s.device, " ")
+                                        if noOfDevice == 1 then
+                                            if device:match(deviceName) then
+                                                uci_helper.set_on_uci(binding, value, commitapply)
+                                                binding.option = "activated"
+                                                uci_helper.set_on_uci(binding, value, commitapply)
+                                                transactions[binding.config] = true
+                                            end
+                                        else
+                                            if deviceName:match(device) then
+                                                uci_helper.set_on_uci(binding, value, commitapply)
+                                                binding.option = "activated"
+                                                uci_helper.set_on_uci(binding, value, commitapply)
+                                                transactions[binding.config] = true
+                                            end
+                                        end
+                                    end
+                                else
+                                    local device = cb(name)
+                                    if s.device and table.concat(s.device, " "):match(device) then
+                                        uci_helper.set_on_uci(binding, value, commitapply)
+                                        binding.option = "activated"
+                                        uci_helper.set_on_uci(binding, value, commitapply)
+                                        transactions[binding.config] = true
+                                        return false
+                                    end
+                                end
+                            end
+                        elseif option == "destination" then
+                            if s.profile and table.concat(s.profile, " "):match(name) then
+                                uci_helper.set_on_uci(binding, value, commitapply)
+                                transactions[binding.config] = true
+                                return false
+                            elseif checkDevice(cb, name, value, s) then
+                                return false
+                            end
+                        elseif option == "activated" or option == "timeout" then
+                            if not isdevice then
+                                if s.profile and table.concat(s.profile, " "):match(name) then
+                                    if cb then
+                                        value = cb(value)
+                                    end
+                                    if s.provisioned and s.provisioned == "1" then
+					uci_helper.set_on_uci(binding, value, commitapply)
+					transactions[binding.config] = true
+                                    end
+                                    return false
+                                end
+                            elseif checkDevice(cb, name, value, s) then
+                                return false
+                            end
+                        end
+                    end
+                end)
+            end
+        end
+        return true
+    end
+    return nil, "Not supported currently"
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_CallingFeatures_.commit = line_commit
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_CallingFeatures_.revert = line_revert
+
+duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_CallingFeatures_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_VoiceProcessing_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.Line.{i}.VoiceProcessing.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            TransmitGain = {
+              access = "readWrite",
+              type = "unsignedInt",
+            },
+            ReceiveGain = {
+              access = "readWrite",
+              type = "unsignedInt",
+            },
+            EchoCancellationEnable = {
+              access = "readWrite",
+              type = "boolean",
+            },
+            EchoCancellationInUse = {
+              access = "readOnly",
+              type = "boolean",
+            },
+            EchoCancellationTail = {
+              access = "readOnly",
+              type = "unsignedInt",
+            },
+        }
+    }
+}
+
+
+local function processing_get_EchoCancellation(mapping, param, key, parentkey)
+    local _, name  = getInfoFromKey(key, parentkey)
+    local device = getSipDevice(name)
+    binding.config = "mmpbxbrcmfxsdev"
+    binding.sectionname = device
+    binding.option = "echo_cancellation"
+    return uci_helper.get_from_uci(binding)
+end
+
+local function processing_set_EchoCancellation(mapping, param, value, key, parentkey)
+    local _, name = getInfoFromKey(key, parentkey)
+    local device = getSipDevice(name)
+    binding.config = "mmpbxbrcmfxsdev"
+    binding.sectionname = device
+    binding.option = "echo_cancellation"
+    return uci_helper.set_on_uci(binding, value, commitapply)
+end
+
+local function processing_get_Gain(mapping, param, key, parentkey)
+    binding.config = "mmpbxbrcmcountry"
+    binding.sectionname = "global_provision"
+    binding.option = (param == "TransmitGain") and "tx_gain_fxs" or "rx_gain_fxs"
+    transactions[binding.config] = true
+    return uci_helper.get_from_uci(binding)
+end
+
+local function processing_set_Gain(mapping, param, value, key)
+    binding.config = "mmpbxbrcmcountry"
+    binding.sectionname = "global_provision"
+    binding.option = (param == "TransmitGain") and "tx_gain_fxs" or "rx_gain_fxs"
+    transactions[binding.config] = true
+    return uci_helper.set_on_uci(binding, value, commitapply)
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_VoiceProcessing_.get = {
+    TransmitGain = processing_get_Gain,
+    ReceiveGain = processing_get_Gain,
+    EchoCancellationEnable = processing_get_EchoCancellation,
+    EchoCancellationInUse = processing_get_EchoCancellation,
+    EchoCancellationTail = function(mapping, param, key)
+        return "32ms"
+    end
+}
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_VoiceProcessing_.set = {
+    TransmitGain = processing_set_Gain,
+    ReceiveGain = processing_set_Gain,
+    EchoCancellationEnable = processing_set_EchoCancellation,
+}
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_VoiceProcessing_.commit = function()
+    binding.config = "mmpbxbrcmfxsdev"
+    uci_helper.commit(binding)
+    binding.config = "mmpbxbrcmcountry"
+    uci_helper.commit(binding)
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_VoiceProcessing_.revert = function()
+    binding.config = "mmpbxbrcmfxsdev"
+    uci_helper.revert(binding)
+    binding.config = "mmpbxbrcmcountry"
+    uci_helper.commit(binding)
+end
+
+duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_VoiceProcessing_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_X_000E50_RTCP_ = {
+    objectType = {
+	name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.Line.{i}.X_000E50_RTCP.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+        },
+    }
+}
+duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_X_000E50_RTCP_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local function rtcp_get(mapping, param, key, parentkey)
+    local uri_get = getParam(sip_maps)
+    local uri = uri_get(mapping, "URI", key, parentkey)
+    if uri == "" then
+        return ""
+    end
+    local path = ""
+    if mapping and mapping["objectType"] then
+        local obj_name = mapping["objectType"]["name"] or ""
+        path = string.match(obj_name, ".+%.([^%.].+)%.") or ""
+    end
+    local rtp_session = conn:call("mmpbx.rtp.session", "list", {["rtcp"]="1", ["name"]=uri})
+    if rtp_session and rtp_session[1] then
+        if param == "RxPacket" then
+            if path == "Current" then
+                return rtp_session[1]["FirstRxRtcpFrame"] or ""
+            end
+            if path == "Previous" then
+                return rtp_session[1]["SecondRxRtcpFrame"] or ""
+            end
+        end
+        if param == "TxPacket" then
+            if path == "Current" then
+                return rtp_session[1]["FirstTxRtcpFrame"] or ""
+            end
+            if path == "Previous" then
+                return rtp_session[1]["SecondTxRtcpFrame"] or ""
+            end
+        end
+    end
+    return ""
+end
+
+local function rtcp_getall(mapping, key, parentkey)
+    local results = {
+        RxPacket = "",
+        TxPacket = "",
+    }
+    local uri_get = getParam(sip_maps)
+    local uri = uri_get(mapping, "URI", key, parentkey)
+    if uri == "" then
+        return results
+    end
+    local path = ""
+    if mapping and mapping["objectType"] then
+        local obj_name = mapping["objectType"]["name"] or ""
+        path = string.match(obj_name, ".+%.([^%.].+)%.") or ""
+    end
+    local rtp_session = conn:call("mmpbx.rtp.session", "list", {["rtcp"]="1", ["name"]=uri} )
+    if rtp_session and rtp_session[1] then
+        if path == "Current" then
+            results.RxPacket = rtp_session[1]["FirstRxRtcpFrame"] or ""
+            results.TxPacket = rtp_session[1]["FirstTxRtcpFrame"] or ""
+        end
+        if path == "Previous" then
+            results.RxPacket = rtp_session[1]["SecondRxRtcpFrame"] or ""
+            results.TxPacket = rtp_session[1]["SecondTxRtcpFrame"] or ""
+        end
+    end
+    return results
+end
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_X_000E50_RTCP_Current_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.Line.{i}.X_000E50_RTCP.Current.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            RxPacket = {
+                access = "readOnly",
+                type = "base64",
+                min = "0",
+                max = "64",
+            },
+            TxPacket = {
+                access = "readOnly",
+                type = "base64",
+                min = "0",
+                max = "64",
+            },
+        }
+    }
+}
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_X_000E50_RTCP_Current_.getall = rtcp_getall
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_X_000E50_RTCP_Current_.get = rtcp_get
+duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_X_000E50_RTCP_Current_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_X_000E50_RTCP_Previous_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.Line.{i}.X_000E50_RTCP.Previous.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            RxPacket = {
+                access = "readOnly",
+                type = "base64",
+                min = "0",
+                max = "64",
+            },
+            TxPacket = {
+                access = "readOnly",
+                type = "base64",
+                min = "0",
+                max = "64",
+            },
+        }
+    }
+}
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_X_000E50_RTCP_Previous_.getall = rtcp_getall
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_X_000E50_RTCP_Previous_.get = rtcp_get
+duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_X_000E50_RTCP_Previous_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local autoreset_map = {
+    value = {
+        Enable = "auto_reset_enable",
+        Limit = "auto_reset_limits",
+        Interval = "auto_reset_interval_timer",
+        Count = "auto_reset_counts",
+        Timeout= "auto_reset_delay_timer",
+    },
+    default = setmetatable({
+        Enable = "0",
+        Limit = "0",
+        Interval = "86400",
+        Count = "0",
+        Timeout = "900",
+    }, mt),
+}
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_X_000E50_VoIPAutoReset_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.Line.{i}.X_000E50_VoIPAutoReset.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            Enable = {
+                access = "readWrite",
+                type = "boolean",
+                default = "false",
+            },
+            Limit = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+                default = "1",
+            },
+            Interval = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+                default = "86400",
+            },
+            Count = {
+                access = "readOnly",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+                default = "0",
+            },
+            Timeout = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+                default = "900",
+            },
+        }
+    }
+}
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_X_000E50_VoIPAutoReset_.get = function(mapping, param, key, parentkey)
+    local config, section = parentkey:match("(.*)|(.*)")
+    local auto_reset_binding = {
+        config = config,
+        sectionname = section,
+        option = autoreset_map.value[param],
+        default = autoreset_map.default[param],
+    }
+
+    return uci_helper.get_from_uci(auto_reset_binding)
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_X_000E50_VoIPAutoReset_.set = function(mapping, param, value, key, parentkey)
+    local config, section = parentkey:match("(.*)|(.*)")
+    local auto_reset_binding = {
+        config = config,
+        sectionname = section,
+        option = autoreset_map.value[param],
+    }
+    uci_helper.set_on_uci(auto_reset_binding, value, commitapply)
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_X_000E50_VoIPAutoReset_.commit = function()
+    binding.config = "mmpbxrvsipnet"
+    uci_helper.commit(binding)
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_X_000E50_VoIPAutoReset_.revert = function()
+    binding.config = "mmpbxrvsipnet"
+    uci_helper.revert(binding)
+    binding.config = "mmpbxrvsipnet"
+    uci_helper.commit(binding)
+end
+
+duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_X_000E50_VoIPAutoReset_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Codec_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.Line.{i}.Codec.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            TransmitCodec = {
+              access = "readOnly",
+              type = "string",
+              max = "64",
+              enumeration = {
+                "G.711MuLaw",
+                "G.711ALaw",
+                "G.726",
+                "G.729",
+                "G.729a",
+                "G.729e",
+                "G.728",
+                "G.723.1",
+                "G.722",
+                "G.722.1",
+                "G.722.2",
+                "GSM-FR",
+                "GSM-HR",
+                "GSM-EFR",
+                "iLBC",
+              },
+            },
+            ReceiveCodec = {
+              access = "readOnly",
+              type = "string",
+              enumeration = {
+                "G.711MuLaw",
+                "G.711ALaw",
+                "G.726",
+                "G.729",
+                "G.729a",
+                "G.729e",
+                "G.728",
+                "G.723.1",
+                "G.722",
+                "G.722.1",
+                "G.722.2",
+                "GSM-FR",
+                "GSM-HR",
+                "GSM-EFR",
+                "iLBC",
+              },
+              max = "64",
+            },
+            TransmitBitRate = {
+              access = "readOnly",
+              type = "unsignedInt",
+            },
+            ReceiveBitRate = {
+              access = "readOnly",
+              type = "unsignedInt",
+            },
+            TransmitSilenceSuppression = {
+              access = "readOnly",
+              type = "boolean",
+            },
+            ReceiveSilenceSuppression = {
+              access = "readOnly",
+              type = "boolean",
+            },
+            TransmitPacketizationPeriod = {
+              access = "readOnly",
+              type = "unsignedInt",
+            },
+        }
+    }
+}
+
+local function codec_get(mapping, param, key, parentkey)
+   local value = ""
+   local uri_get=getParam(sip_maps)
+   local uri = uri_get(mapping, "URI", key, parentkey)
+   if uri == "" then
+      return value
+   end
+
+   rtp_session = conn:call("mmpbx.rtp.session", "list", {})
+   if rtp_session then
+        for k,v in pairs (rtp_session) do
+            if uri == v["LineName"] then
+                if v[1][1] ~=nil then
+                    if param == "TransmitCodec" then
+                        value = v[1][1]["codec"]
+                    elseif param == "TransmitBitRate" then
+                        value = tostring(v[1][1]["bitRate"])
+                    elseif param == "TransmitSilenceSuppression" then
+                        value = tostring(v[1][1]["vad"])
+                    elseif param == "TransmitPacketizationPeriod" then
+                        value = tostring(v[1][1]["packetTime"])
+                    end
+                end
+                if param == "ReceiveCodec" then
+                    value = v[2][1]["codec"]
+                elseif param == "ReceiveBitRate" then
+                    value = tostring(v[2][1]["bitRate"])
+                elseif param == "ReceiveSilenceSuppression" then
+                    value = tostring(v[2][1]["vad"])
+                end
+	    end
+	end
+   end
+
+   return value
+end
+
+local function codec_getall(mapping, key, parentkey)
+    local results = {
+        TransmitCodec = "",
+        ReceiveCodec = "",
+        ReceiveBitRate= "",
+        TransmitBitRate = "",
+        TransmitSilenceSuppression = "",
+        ReceiveSilenceSuppression = "",
+        TransmitPacketizationPeriod = "",
+    }
+
+    local uri_get=getParam(sip_maps)
+    local uri = uri_get(mapping, "URI", key, parentkey)
+    if uri == "" then
+        return results
+    end
+
+    rtp_session = conn:call("mmpbx.rtp.session", "list", {})
+    if rtp_session then
+        for k,v in pairs (rtp_session) do
+            if uri == v["LineName"] then
+                if v[1]["direction"] == "Transmit" and v[1][1] ~=nil then
+                    results.Transmitresults = v[1][1]["codec"]
+                    results.TransmitBitRate = tostring(v[1][1]["bitRate"])
+                    results.TransmitSilenceSuppression = tostring(v[1][1]["vad"])
+                    results.TransmitPacketizationPeriod = tostring(v[1][1]["packetTime"])
+                end
+                if v[2]["direction"] == "Receive" then
+                    results.Receiveresults = v[2][1]["codec"]
+                    results.ReceiveBitRate = tostring(v[2][1]["bitRate"])
+                    results.ReceiveSilenceSuppression = tostring(v[2][1]["vad"])
+                end
+            end
+        end
+    end
+    return result
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Codec_.get = codec_get
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Codec_.getall = codec_getall
+
+duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Codec_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Codec_List_i_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.Line.{i}.Codec.List.{i}.",
+        access = "readOnly",
+        minEntries = 0,
+        maxEntries = math.huge,
+        parameters = {
+            EntryID = {
+                access = "readOnly",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+            },
+            Codec = {
+                access = "readOnly",
+                type = "string",
+                max = "64",
+            },
+            BitRate = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            PacketizationPeriod = {
+                access = "readOnly",
+                list = true,
+                type = "string",
+                max = "64",
+            },
+            SilenceSuppression = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            Enable = {
+                access = "readWrite",
+                type = "boolean",
+                default = "true",
+            },
+            Priority = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+                default = "1",
+            },
+        }
+    }
+}
+
+local codec_rates = setmetatable({
+    PCMU = "64000",
+    PCMA = "64000",
+    G722 = "64000",
+    ["G726-16"] = "16000",
+    ["G726-24"] = "24000",
+    ["G726-32"] = "32000",
+    ["G726-40"] = "40000",
+    G729 = "8000",
+    G723 = "6300",
+    AMR = "12200"
+}, mt)
+
+local codec_ptime = setmetatable({
+    PCMU = "20",
+    PCMA = "20",
+    G722 = "20",
+    ["G726-16"] = "20",
+    ["G726-24"] = "20",
+    ["G726-32"] = "20",
+    ["G726-40"] = "20",
+    G729 = "20",
+    G723 = "30",
+    ["telephone-event"] = "20",
+    AMR = "20"
+}, mt)
+
+local codec_binding = {config = "mmpbx", sectionname = "codec_filter"}
+local content_codec = {}
+
+local function getCodecSection(key)
+    key = match(key, "^([^_]+)_")
+    return content_codec[key] or {}
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Codec_List_i_.entries = function(mapping, parentkey, grandkey)
+    local entries = {}
+    if grandkey:match("mmpbxrvsipdev") then
+        return entries
+    end
+
+    local missing_ID = {}
+    local max_ID = 0
+    local blacklist
+    local codec_list = " "
+    local flag = 0
+    local codec_blacklist = ""
+    local device_binding = {config = "mmpbxbrcmfxsdev", sectionname = "device"}
+    uci_helper.foreach_on_uci(device_binding, function(s)
+        blacklist = s.codec_black_list
+        if blacklist ~= nil then
+            if type(blacklist) == "table" and flag == 0 then
+                blacklist = table.concat(blacklist, " ")
+                flag = 1
+            end
+            if codec_blacklist ~= "" then
+                if type(blacklist) == "string" then
+                    if string.match(codec_blacklist, blacklist) then
+                        codec_list = codec_list..blacklist
+                    end
+                elseif type(blacklist) == "table" then
+                    for i,j in ipairs(blacklist) do
+                        if string.match(codec_blacklist, j) then
+                            codec_list = codec_list..j
+                        end
+                    end
+                end
+            else
+                codec_blacklist = blacklist
+            end
+        end
+    end)
+    uci_helper.foreach_on_uci(codec_binding, function(s)
+        -- We need to be backwards compatible: key generation has been updated
+        -- to store entryID as _key but the new code has to be able to deal with
+        -- the old _key and _entryID fields.
+        -- First check if there's a _entryID field and if so assume the old
+        -- way of working.
+        if s.name ~= "telephone-event" and (not codec_list:match(s.name))then
+            local entryID = s._entryID
+            if not entryID then
+                missing_ID[#missing_ID + 1] = s
+            else
+                local ID = tonumber(entryID)
+                if ID > max_ID then
+                    max_ID = ID
+                end
+                entries[#entries + 1] = format("%s_%s", s._entryID, parentkey)
+                content_codec[s._entryID] = s
+            end
+        end
+    end)
+    if #missing_ID > 0 then
+        local binding = { config = "mmpbx" }
+        for _, s in ipairs(missing_ID) do
+            max_ID = max_ID + 1
+            local entryID = tostring(max_ID)
+            binding.sectionname = s[".name"]
+            uci_helper.generate_key_on_uci(binding, entryID)
+            entries[#entries + 1] = format("%s_%s", entryID, parentkey)
+            content_codec[entryID] = s
+        end
+        uci_helper.commit_keys(binding)
+    end
+    return entries
+end
+
+
+local codec_map = {
+    EntryID = function(s)
+        return s._entryID or s._key  -- backwards compatibility; see entries()
+    end,
+    Codec = "name",
+    BitRate = function(s)
+        return codec_rates[s.name]
+    end,
+    PacketizationPeriod = function(s)
+        return codec_ptime[s.name]
+    end,
+    SilenceSuppression = function(s)
+        return cvtBoolean[s.remove_silence_suppression]
+    end,
+    Enable = "allow",
+    Priority = "priority",
+}
+
+local set_codec_map = {
+    SilenceSuppression = function(binding, value)
+        binding.option = "remove_silence_suppression"
+        value = cvtBoolean[value]
+        uci_helper.set_on_uci(binding, value, commitapply)
+    end,
+    Enable = true,
+    Priority = true,
+}
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Codec_List_i_.getall = function(mapping, key)
+    local data = {}
+    local s = getCodecSection(key)
+
+    for p,_ in pairs(Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Codec_List_i_.objectType.parameters) do
+        if codec_map[p] then
+            if type(codec_map[p]) == "function" then
+                data[p] = codec_map[p](s) or ""
+            else
+                data[p] = s[codec_map[p]] or ""
+            end
+        end
+    end
+    return data
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Codec_List_i_.get = function(mapping, param, key)
+    local s = getCodecSection(key)
+
+    if codec_map[param] then
+        if type(codec_map[param]) == "function" then
+            return codec_map[param](s)
+        else
+            return s[codec_map[param]]
+        end
+    end
+    return ""
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Codec_List_i_.set = function(mapping, param, value, key)
+    local s = getCodecSection(key)
+    binding.config = "mmpbx"
+    binding.sectionname = s['.name']
+    if set_codec_map[param] then
+        if type(set_codec_map[param]) == "function" then
+            set_codec_map[param](binding, value)
+            transactions[binding.config] = true
+            return true
+        elseif type(codec_map[param]) == "string" then
+            binding.option = codec_map[param]
+            uci_helper.set_on_uci(binding, value, commitapply)
+            transactions[binding.config] = true
+            return true
+        end
+    else
+        return nil, "Invalid parameter"
+    end
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Codec_List_i_.commit = line_commit
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Codec_List_i_.revert = line_revert
+
+duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Codec_List_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end

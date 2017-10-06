@@ -1,0 +1,224 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_Routing_Router_i_IPv6Forwarding_i_ = {
+  objectType = {
+    name = "Device.Routing.Router.{i}.IPv6Forwarding.{i}.",
+    access = "readOnly", -- readWrite currently not supported
+    numEntriesParameter = "IPv6ForwardingNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "boolean",
+        default = "false",
+      },
+      Status = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "string",
+        enumeration = {
+          "Disabled",
+          "Enabled",
+          "Error_Misconfigured",
+          "Error",
+        },
+        default = "Disabled",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      DestIPPrefix = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "string",
+        default = "",
+      },
+      ForwardingPolicy = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "int",
+        range = {
+          {
+            min = "-1",
+          },
+        },
+        default = "-1",
+      },
+      NextHop = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "string",
+        default = "",
+      },
+      Interface = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "string",
+        max = "256",
+        pathRef = true,
+        targetParent = "Device.IP.Interface.{i}.",
+        default = "",
+      },
+--[[ TODO
+      Origin = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "DHCPv6",
+          "OSPF",
+          "RA",
+          "RIPng",
+          "Static",
+        },
+        default = "Static",
+      },--]]
+      ForwardingMetric = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "int",
+        range = {
+          {
+            min = "-1",
+          },
+        },
+        default = "-1",
+      },
+      ExpirationTime = {
+        access = "readOnly",
+        type = "dateTime",
+        default = "9999-12-31T23:59:59Z",
+      },
+    }
+  }
+}
+
+-- Returns the list of routes based on "ip -6 route show" and "ip -6 route show table local"
+
+-- sample Route format "ip -6 route show" is given below
+-- 2001:470:ec9c:2860::/64 dev br-lan  proto static  metric 1024
+-- unreachable 2001:470:ec9c:2860::/60 dev lo  proto static  metric 2147483647  error -128
+
+-- sample Route format "ip -6 route show table local" is given below
+-- local 2001:470:ec9c:20::c89e via :: dev lo  proto none  metric 0
+-- local 2001:470:ec9c:2340:: via :: dev lo  proto none  metric 0
+
+local mapper, string, ipairs = mapper, string, ipairs
+local ubus = mapper("ubus").connect()
+local deviceInterfaceMap = {}
+local format =string.format
+local routingHelper = require('transformer.shared.secrouting_helper')
+local popen = io.popen
+local match = string.match
+
+local function loadRoutes()
+  local ipv6Routes = {}
+  local keys = {}
+  local key
+  local routeCmds = { { cmd = 'ip -6 route show' , pattern1 = "(%S+)%s+%S+%s+%S+%s+%S+%s+%S+%s+%S+%s+(%S+)%s+%S+%s+%S+%s+%S+%s+(%S+)",
+                                                   pattern2 = "%S+%s+(%S+)%s+%S+%s+(%S+)%s+%S+%s+%S+%s+%S+%s+(%S+)",
+                                                   pattern3 = "(%S+)%s+%S+%s+(%S+)%s+%S+%s+%S+%s+%S+%s+(%S+)",
+                                                   pattern4 = "(%S+)%s+%S+%s+%S+%s+%S+%s+(%S+)%s+%S+%s+(%S+)"},
+                      { cmd = 'ip -6 route show table local', pattern1 = "%S+%s+(%S+)%s+%S+%s+%S+%s+%S+%s+(%S+)%s+%S+%s+%S+%s+%S+%s+(%S+)",
+                                                              pattern3 = "(%S+)%s+%S+%s+(%S+)%s+%S+%s+(%S+)"} }
+  for _, v in ipairs(routeCmds) do
+    local fd = popen(v.cmd)
+    if fd then
+      for line in fd:lines() do
+        local fields = {}
+        if match(line,"via") then
+          if line:match("^default") or line:match("^local") then
+            fields.destNetwork, fields.deviceName, fields.metric = match(line, v.pattern1)
+          else
+            fields.destNetwork, fields.deviceName, fields.metric = match(line, v.pattern4)
+          end
+          fields.metric = fields.metric or "0"
+        elseif match(line,"unreachable") then
+          fields.destNetwork, fields.deviceName, fields.metric = match(line, v.pattern2)
+          fields.metric = fields.metric or "0"
+        else
+          fields.destNetwork, fields.deviceName, fields.metric = match(line, v.pattern3)
+          if fields.destNetwork == nil then
+            fields.destNetwork, fields.deviceName = line:match("(%S+)%s+%S+%s+(%S+)")
+            fields.metric = line:match("%S+%s+%S+%s+%S+%s+%S+%s+(%S+)")
+          end
+        end
+        fields.destPrefixLen = match(fields.destNetwork or "",'/(%d+)') or "0"
+        if fields.destNetwork == "default" then
+          fields.destNetwork = "0.0.0.0"
+        end
+        fields.destNetwork = fields.destNetwork and fields.destNetwork:match("[^%/]*") or ""
+        key = fields.destNetwork .. (fields.deviceName or "")
+        if not keys[key] then
+          keys[key] = true
+          ipv6Routes[#ipv6Routes+1] = fields
+        end
+      end
+      fd:close()
+    end
+  end
+  return ipv6Routes
+end
+
+local function loadDeviceInterfaceMap()
+  local devIntfMap = {}
+  local interfaceDump = ubus:call("network.interface", "dump", {})
+  for _, intf in ipairs(interfaceDump.interface or {}) do
+    if intf.l3_device then
+      devIntfMap[intf.l3_device] = intf.interface or ""
+    end
+  end
+  return devIntfMap
+end
+
+local routes= {}
+Device_Routing_Router_i_IPv6Forwarding_i_.entries = function(mapping, parentKey)
+  local ipv6FwdEntries = {}
+  local key
+  deviceInterfaceMap = loadDeviceInterfaceMap()
+  local secIntfRtTableMap = routingHelper.getCachedSecRouteMap()
+  local intfRoutes = routingHelper.getRoutesforRtTable(parentKey, loadRoutes(), secIntfRtTableMap)
+  for _, route in ipairs(intfRoutes) do
+    key = format("%s|%s|%s|%s", route.deviceName or "", route.destNetwork or "", route.destPrefixLen or "", route.metric or "")
+    ipv6FwdEntries[#ipv6FwdEntries+1] = key
+    routes[key] = route
+  end
+  return ipv6FwdEntries
+end
+
+-- Function to convert the 32-bit continuous characters into IPv6 address format
+local function convertToIPv6Format(ip)
+  if not ip then
+    ip = tostring(0)
+  end
+  return string.sub( ip:gsub('..?.?.?','%1:'), 1, -2)
+end
+
+Device_Routing_Router_i_IPv6Forwarding_i_.get = {
+  Enable = "1",
+  Status = "Enabled",
+  DestIPPrefix = function(mapping, param, key)
+    local destPrefixLen = routes[key].destPrefixLen or 0
+    local destNetwork = routes[key].destNetwork
+    if destPrefixLen == 128 then
+      return convertToIPv6Format(destNetwork) .. '/' .. destPrefixLen
+    end
+    return destNetwork ..'/'.. destPrefixLen
+  end,
+  ForwardingPolicy = "-1", -- Returning -1 as there is no ForwardingPolicy.
+  NextHop = function(mapping, param, key)
+    return convertToIPv6Format(routes[key].nextHop) or ""
+  end,
+  Interface = function(mapping, param, key)
+    local deviceName = routes[key].deviceName
+    return resolve("Device.IP.Interface.{i}.", deviceInterfaceMap[deviceName]) or ''
+  end,
+  ForwardingMetric = function(mapping, param, key)
+    return routes[key].metric or ""
+  end,
+  ExpirationTime = "0001-01-01T00:00:00Z" -- Returning 0001-01-01T00:00Z as it is not known
+}
+
+-- A getall implementation is not done as it will not bring any improvement,
+-- as data retrieval is done in the entries call. The get will use the cached
+-- data, no work is duplicated.
+
+register(Device_Routing_Router_i_IPv6Forwarding_i_)

@@ -1,0 +1,237 @@
+-- Automatically generated from InternetGatewayDevice:1.14
+-- using generator version 2.3
+local InternetGatewayDevice_WANDevice_i_WANConnectionDevice_i_WANPTMLinkConfig_ = {
+  objectType = {
+    name = "InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANPTMLinkConfig.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = 1,
+    parameters = {
+      Enable = {
+        access = "readOnly", -- currently readWrite not supported.
+        type = "boolean",
+        default = "false",
+      },
+      LinkStatus = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Up",
+          "Down",
+          "Initializing",
+          "Unavailable",
+        },
+      },
+      MACAddress = {
+        access = "readOnly",
+        type = "string",
+      },
+    }
+  }
+}
+
+local mapper, format = mapper, string.format
+local common = mapper('nwcommon')
+local getIntfInfo = common.getIntfInfo
+local getIntfStats = common.getIntfStats
+local splitKey = common.split_key
+local uciHelper = mapper("ucihelper")
+local conn = mapper("ubus").connect()
+local xtmBinding = { config = "xtm"}
+local xtmctl = require("transformer.shared.xtmctl")
+local getXtmDeviceStatus = xtmctl.getXtmDeviceStatus
+local devtype, devname
+local xtmconnection = require("transformer.shared.models.igd.xtmconnection")
+local device_key = xtmconnection.resolve_key
+
+local function getUciParam(intf, option)
+  xtmBinding.sectionname = intf
+  xtmBinding.option = option
+  return uciHelper.get_from_uci(xtmBinding)
+end
+
+local function getPtmAddr(key)
+  local priority = getUciParam(key, "priority")
+  local ptmPriority
+  if priority == "low" then
+    ptmPriority = "1"
+  else
+    ptmPriority = "2"
+  end
+  return format("1.%s",ptmPriority)
+end
+
+-- WANPTMLinkConfig should be present only for PTM device
+InternetGatewayDevice_WANDevice_i_WANConnectionDevice_i_WANPTMLinkConfig_.entries = function (mapping, parentKey, grandParentKey)
+  devtype, devname = splitKey(device_key(parentKey))
+  local gdevtype, gdevname = splitKey(grandParentKey)
+
+  -- As per key method used in WANConnectionDevice a PTM device(eg. ptm0) will have parent devtype as ETH and grandParent devtype as DSL
+
+  if devtype == "ETH" and gdevtype == "DSL" then
+    return { parentKey }
+  end
+  return {}
+end
+
+InternetGatewayDevice_WANDevice_i_WANConnectionDevice_i_WANPTMLinkConfig_.get = {
+  Enable = function()
+    local ptmAddr = getPtmAddr(devname)
+    local status =  getXtmDeviceStatus(ptmAddr)
+    if status == "enabled" then
+      return "1"
+    end
+    return "0"
+  end,
+
+  LinkStatus = function()
+    local xdslStatus = conn:call("xdsl", "status", {})
+    if not xdslStatus or xdslStatus.statuscode < 5 then
+      return "Unavailable"
+    end
+    local dslStatus = conn:call("network.device", "status", {["name"] = devname })
+    if not dslStatus then
+      return "Unavailable"
+    end
+    if dslStatus.present then
+      if dslStatus.up and dslStatus.carrier then
+        return "Up"
+      else
+        return "Down"
+      end
+    end
+    return "Unavailable"
+  end,
+
+  MACAddress = function()
+    return getIntfInfo(devname, "address") or ""
+  end,
+}
+
+register(InternetGatewayDevice_WANDevice_i_WANConnectionDevice_i_WANPTMLinkConfig_)
+
+local InternetGatewayDevice_WANDevice_i_WANConnectionDevice_i_WANPTMLinkConfig_Stats_ = {
+  objectType = {
+    name = "InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANPTMLinkConfig.Stats.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      BytesSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      BytesReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      FramesSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      FramesReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+--[[ TODO
+      OOSNearEnd = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      OOSFarEnd = {
+        access = "readOnly",
+        type = "boolean",
+      },
+--]]
+      ErrorsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ErrorsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UnicastPacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UnicastPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DiscardPacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DiscardPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      MulticastPacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      MulticastPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      BroadcastPacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      BroadcastPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UnknownProtoPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+    }
+  }
+}
+
+local ptmStatMap = {
+  BytesSent = "tx_bytes",
+  BytesReceived = "rx_bytes",
+  FramesSent = "tx_packets",
+  FramesReceived = "rx_packets",
+  ErrorsSent = "tx_errors",
+  ErrorsReceived = "rx_errors",
+  DiscardPacketsSent = "tx_dropped",
+  DiscardPacketsReceived = "rx_dropped",
+  MulticastPacketsReceived = "multicast",
+}
+
+local ptmStatMapExt = {
+  UnicastPacketsSent = "tx_unicast",
+  UnicastPacketsReceived = "rx_unicast",
+  MulticastPacketsSent = "txpckt",
+  BroadcastPacketsSent = "tx_broadcast",
+  BroadcastPacketsReceived = "rx_broadcast",
+  UnknownProtoPacketsReceived = "rxerr",
+}
+
+InternetGatewayDevice_WANDevice_i_WANConnectionDevice_i_WANPTMLinkConfig_Stats_.get = function(mapping, param, key)
+  if ptmStatMap[param] then
+    return getIntfInfo(devname, ptmStatMap[param], "0")
+  end
+  return getIntfStats(devname, ptmStatMapExt[param], "0")
+end
+
+register(InternetGatewayDevice_WANDevice_i_WANConnectionDevice_i_WANPTMLinkConfig_Stats_)

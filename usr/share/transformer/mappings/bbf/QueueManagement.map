@@ -1,0 +1,213 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Multi_QoS_ = {
+  objectType = {
+    name = "#ROOT.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      MaxClassificationEntries = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+--[[ TODO
+      MaxAppEntries = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      -- AppNumberOfEntries
+      -- automatically created when Device.QoS.App.{i}. is loaded
+      MaxFlowEntries = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      -- FlowNumberOfEntries
+      -- automatically created when Device.QoS.Flow.{i}. is loaded
+      MaxPolicerEntries = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+--]]
+      -- PolicerNumberOfEntries
+      -- automatically created when Device.QoS.Policer.{i}. is loaded
+      MaxQueueEntries = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+--[[ TODO
+      -- QueueNumberOfEntries
+      -- automatically created when Device.QoS.Queue.{i}. is loaded
+      -- QueueStatsNumberOfEntries
+      -- automatically created when Device.QoS.QueueStats.{i}. is loaded
+      MaxShaperEntries = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      -- ShaperNumberOfEntries
+      -- automatically created when Device.QoS.Shaper.{i}. is loaded
+      DefaultForwardingPolicy = {
+        access = "readWrite",
+        type = "unsignedInt",
+      },
+--]]
+      DefaultTrafficClass = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "unsignedInt",
+      },
+--[[ TODO
+      DefaultPolicer = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        pathRef = true,
+        targetParent = "Device.QoS.Policer.{i}.",
+      },
+      DefaultQueue = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        pathRef = true,
+        targetParent = "Device.QoS.Queue.{i}.",
+      },
+--]]
+      DefaultDSCPMark = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "int",
+        range = {
+          {
+            min = "-2",
+          },
+        },
+      },
+      DefaultEthernetPriorityMark = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "int",
+        range = {
+          {
+            min = "-2",
+          },
+        },
+      },
+--[[ TODO
+      DefaultInnerEthernetPriorityMark = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-2",
+          },
+        },
+      },
+      AvailableAppList = {
+        access = "readOnly",
+        list = true,
+        max = "1024",
+        type = "string",
+      },
+--]]
+      -- ClassificationNumberOfEntries
+      -- automatically created when Device.QoS.Classification.{i}. is loaded
+
+---- Automatically generated from InternetGatewayDevice:1.14
+-- using generator version 2.3
+      Enable = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "boolean",
+      },
+      MaxQueues = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+    }
+  }
+}
+
+local uciHelper = mapper("ucihelper")
+local qosBinding = { config = "qos" }
+local forEachOnUci = uciHelper.foreach_on_uci
+
+-- List of qos classification rules sections in UCI
+local classificationRules = {
+  classify = true,
+  reclassify = true,
+  l2classify = true,
+}
+
+local function convertStringToTable(str)
+  local tbl={}
+  if type(str) == 'table' then
+    return str
+  end
+  for item in string.gmatch(str or "", "([^,]+),?") do
+    tbl[#tbl + 1] = item
+  end
+  return #tbl > 0 and tbl or {""}
+end
+Multi_QoS_.get = {
+  Enable = "1", -- Hardcoded to '1' since there is no lower layer support
+  MaxQueues = function()
+    local maxQueues = 0
+    qosBinding.sectionname = "classgroup"
+    forEachOnUci(qosBinding, function(s)
+      if s.classes then
+        for value in string.gmatch(s.classes, "%S+") do
+          maxQueues = maxQueues + 1
+        end
+      end
+    end)
+    return tostring(maxQueues)
+  end,
+  MaxQueueEntries = function()
+    qosBinding.sectionname = "class"
+    local maxQueueEntry = 0
+    forEachOnUci(qosBinding, function(s)
+      maxQueueEntry = maxQueueEntry + 1
+    end)
+    return tostring(maxQueueEntry)
+  end,
+  MaxClassificationEntries = function()
+    local MaxClassificationEntry = 0
+    local qosParams, srcInterfaces, dstInterfaces, srcPorts, dstPorts, dscpValue
+    qosBinding.sectionname = nil
+    qosBinding.option = nil
+    qosParams = uciHelper.getall_from_uci(qosBinding)
+    for _,s in pairs(qosParams) do
+      if classificationRules[s[".type"]] then
+        srcInterfaces = convertStringToTable(s.srcif)
+        dstInterfaces = convertStringToTable(s.dstif)
+        dscpValue = convertStringToTable(s.dscp)
+        srcPorts = convertStringToTable(s.srcports)
+        dstPorts = convertStringToTable(s.dstports)
+        MaxClassificationEntry = MaxClassificationEntry + (#srcInterfaces * #dstInterfaces * #dscpValue * #srcPorts * #dstPorts)
+      end
+    end
+    return tostring(MaxClassificationEntry)
+  end,
+  DefaultDSCPMark = "-1", -- Hardcoded to '-1' since there is no lower layer support
+  DefaultEthernetPriorityMark = "-1", -- Hardcoded to '-1',since EthernetPriorityMark is set to -1
+  DefaultTrafficClass = '0', -- As per QoS V2 implementation, the default traffic class is always 0
+}
+
+-- A getall implementation is not done as it will not bring any improvement
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_QoS_, "#ROOT", {"InternetGatewayDevice.QueueManagement", "Device.QoS"})
+for _, dupli in ipairs(duplicates) do
+  if dupli.objectType.name:match('^InternetGatewayDevice.') then
+    -- Remove device2-specific parameters from igd
+    dupli.objectType.parameters.DefaultInnerEthernetPriorityMark = nil
+  else
+    -- Remove igd-specific parameters from device2
+    dupli.objectType.parameters.Enable = nil
+    dupli.objectType.parameters.MaxQueues = nil
+  end
+  register(dupli)
+end

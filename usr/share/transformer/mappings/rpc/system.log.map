@@ -1,0 +1,168 @@
+local logger = require("transformer.logger")
+local log = logger.new("rpc.system.log.", 2)
+local lfs = require("lfs")
+local uci_cursor = require("uci").cursor(nil, "/var/state")
+local uci_helper = mapper("ucihelper")
+local get_from_uci = uci_helper.get_from_uci
+local stringfind = string.find
+
+local function setLogState(path, state)
+  os.execute("uci -P /var/state set " .. path .. "=" .. state)
+end
+
+--When there is no value at the init state, set the default value
+local function getLogRelatedValue(path, default)
+  local config = "system"
+  local ret = uci_cursor:load(config)
+  if not ret then
+    log:error("could not load " .. config)
+    return false
+  end
+  local value = uci_cursor:get(config, "config", path)
+  uci_cursor:unload(config)
+  if value == nil or value:len() == 0 then
+    setLogState("system.config." .. path, default)
+    return default
+  else
+    return value
+  end
+end
+
+local SYSTEM_LOG_ = {
+  objectType = {
+    name = 'rpc.system.log.',
+    access = 'readOnly',
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {}
+  }
+}
+
+register(SYSTEM_LOG_)
+
+local SYSTEM_LOG_CONNTRACK_ = {
+  objectType = {
+    name = 'rpc.system.log.conntrack.',
+    access = 'readOnly',
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      state = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "None",
+          "Requested",
+          "Complete",
+          "Error",
+        },
+      },
+      info = {
+        access = "readOnly",
+        type = "string",
+      },
+    }
+  }
+}
+
+SYSTEM_LOG_CONNTRACK_.get = {
+  state = function(mapping, param)
+    return getLogRelatedValue("conntrackLogState", "None")
+  end,
+  info = function(mapping, param)
+    return ""
+  end,
+}
+
+SYSTEM_LOG_CONNTRACK_.set = {
+  state = function(mapping, param, value)
+    if value == "Requested" then
+      os.execute("cp /proc/net/nf_conntrack /tmp/nf_conntrack;chmod 644 /tmp/nf_conntrack")
+      if lfs.attributes("/tmp/nf_conntrack", "mode") then
+        setLogState("system.config.conntrackLogState", "Complete")
+      else
+        setLogState("system.config.conntrackLogState", "Error")
+        return nil, "set state failed"
+      end
+    elseif value == "None" then
+        os.execute("rm /tmp/nf_conntrack")
+    else
+      return nil, "invalid value"
+    end
+  end,
+}
+
+register(SYSTEM_LOG_CONNTRACK_)
+
+
+local SYSTEM_LOG_DOWNLOAD_ = {
+  objectType = {
+    name = 'rpc.system.log.download.',
+    access = 'readOnly',
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      state = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "None",
+          "Requested",
+          "Complete",
+          "Error",
+        },
+      },
+      way = {
+        access = "readWrite",
+        type = "string",
+      },
+    }
+  }
+}
+
+SYSTEM_LOG_DOWNLOAD_.get = {
+  state = function(mapping, param)
+    return getLogRelatedValue("downloadLogState", "None")
+  end,
+  way = function(mapping, param)
+    return getLogRelatedValue("downloadLogWay", "Logread")
+  end,
+}
+
+SYSTEM_LOG_DOWNLOAD_.set = {
+  state = function(mapping, param, value)
+    if value == "Requested" then
+      --to get the log download way: by command or from other place
+      local logway = getLogRelatedValue("downloadLogWay", "Logread")
+      if stringfind(logway, "logread") then
+        os.execute("logread >> /tmp/log.msg")
+        local f = io.open("/tmp/log.msg", "r")
+        if f then
+          f:close()
+          setLogState("system.config.downloadLogState", "Complete")
+        else
+          setLogState("system.config.downloadLogState", "Error")
+          return nil, "set state failed"
+        end
+      else
+        --To download related place logfile, currently it does not support
+        return nil, "Related configuration can not be supported currently."
+      end
+    elseif value == "None" then
+      local f = io.open("/tmp/log.msg", "r")
+      if f then
+        f:close()
+        os.execute("rm /tmp/log.msg")
+      end
+    else
+      return nil, "invalid value"
+    end
+  end,
+  way = function(mapping, param, value)
+    if value then
+      setLogState("system.config.downloadLogWay", value)
+    end
+  end,
+}
+
+register(SYSTEM_LOG_DOWNLOAD_)

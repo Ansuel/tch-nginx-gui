@@ -1,0 +1,652 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_Firewall_Chain_i_Rule_i_ = {
+  objectType = {
+    name = "Device.Firewall.Chain.{i}.Rule.{i}.",
+    access = "readWrite", --currently add not supported
+    numEntriesParameter = "RuleNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+--[[ TODO
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Disabled",
+          "Enabled",
+          "Error_Misconfigured",
+          "Error",
+        },
+        default = "Disabled",
+      },
+      Order = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+--]]
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      Description = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      Target = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "Drop",
+          "Accept",
+          "Reject",
+          "Return",
+          "TargetChain",
+        },
+        default = "Drop",
+      },
+      TargetChain = {
+        access = "readOnly", -- currently readWrite not supported since unique keys get affected.
+        type = "string",
+        pathRef = true,
+        targetParent = "Device.Firewall.Chain.{i}.",
+        default = "",
+      },
+--[[ TODO
+      Log = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      CreationDate = {
+        access = "readOnly",
+        type = "dateTime",
+      },
+      ExpiryDate = {
+        access = "readWrite",
+        type = "dateTime",
+        default = "9999-12-31T23:59:59Z",
+      },
+--]]
+      SourceInterface = {
+        access = "readOnly", -- currently readWrite not supported
+        type = "string",
+        max = "256",
+        pathRef = true,
+        default = "",
+      },
+--[[ TODO
+      SourceInterfaceExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      SourceAllInterfaces = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+--]]
+      DestInterface = {
+        access = "readOnly", -- currently readWrite not supported
+        type = "string",
+        max = "256",
+        pathRef = true,
+        default = "",
+      },
+--[[ TODO
+      DestInterfaceExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      DestAllInterfaces = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+--]]
+      IPVersion = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+            max = "15",
+          },
+        },
+        default = "-1",
+      },
+      DestIP = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      DestMask = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+--[[ TODO
+      DestIPExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+--]]
+      SourceIP = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      SourceMask = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+--[[ TODO
+      SourceIPExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+--]]
+      Protocol = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+            max = "255",
+          },
+        },
+        default = "-1",
+      },
+--[[ TODO
+      ProtocolExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+--]]
+      DestPort = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+            max = "65535",
+          },
+        },
+        default = "-1",
+      },
+--[[ TODO
+      DestPortRangeMax = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+            max = "65535",
+          },
+        },
+        default = "-1",
+      },
+      DestPortExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+--]]
+      SourcePort = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+            max = "65535",
+          },
+        },
+        default = "-1",
+      },
+--[[ TODO
+      SourcePortRangeMax = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+            max = "65535",
+          },
+        },
+        default = "-1",
+      },
+      SourcePortExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+--]]
+      DSCP = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+            max = "63",
+          },
+        },
+        default = "-1",
+      },
+--[[ TODO
+      DSCPExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+--]]
+    }
+  },
+
+  config = "firewall", -- now callbacks can find the UCI config
+}
+
+local inet = require("tch.inet")
+--local tprint = require("tch.tableprint") -- for debug
+local uciHelper = mapper("ucihelper")
+local getFromUci = uciHelper.get_from_uci
+local firewallBinding = {config = "firewall"}
+local isConfigChanged = false
+local keyToSectionName = {}
+local resolve, ipairs = resolve, ipairs
+
+local paramMap = {
+  ["Enable"]          = "enabled",
+-- Alias
+  ["Description"]     = "name",
+  ["Target"]          = "target",
+-- TargetChain
+-- Log
+-- CreateionDate
+-- ExpiryDate
+  ["SourceInterface"] = "src",
+-- SourceInterfaceExclude
+-- SourceAllInterfaces
+  ["DestInterface"]   = "dest",
+-- DestInterfaceExclude
+-- DestAllInterfaces
+  ["IPVersion"]       = "family",
+  ["DestIP"]          = "dest_ip",
+  ["DestMask"]        = "dest_ip",
+-- DestIPExclude
+  ["SourceIP"]        = "src_ip",
+  ["SourceMask"]      = "src_ip",
+-- SourceIPExclude
+  ["Protocol"]        = "proto",
+-- ProtocolExclude
+  ["DestPort"]        = "dest_port",
+-- DestPortRangeMax
+-- DestPortExclude
+  ["SourcePort"]      = "src_port",
+-- SourcePortRangeMax
+-- SourcePortExclude
+  ["DSCP"]            = "extra",
+-- DSCPExclude
+}
+
+local targetMap = {
+  ["ACCEPT"] = "Accept",
+  ["REJECT"] = "Reject",
+  ["DROP"]   = "Drop",
+  ["Accept"] = "ACCEPT",
+  ["Reject"] = "REJECT",
+  ["Drop"]   = "DROP",
+}
+
+-- These strings might appear in UCI field - see values in /etc/protocols
+local protocolMap = {
+  ["tcp"]     = "6",
+  ["udp"]     = "17",
+  ["icmp"]    = "1",
+  ["esp"]     = "50",
+  ["ah"]      = "51",
+  ["sctp"]    = "132",
+  ["all"]     = "-1",
+}
+
+local function ifNotExists(tableName, tableValue)
+  for _, v in ipairs(tableName) do
+    if v == tableValue then
+      return false
+    end
+  end
+  return true
+end
+
+Device_Firewall_Chain_i_Rule_i_.entries = function(mapping, parentKey)
+  local chainRuleEntries = {}
+  keyToSectionName = {}
+  local isKeyGenerated = false
+  local ruleType = getFromUci({ config = "firewall", sectionname = parentKey, option = "type" })
+  firewallBinding.sectionname = ruleType
+
+  local result = uciHelper.foreach_on_uci(firewallBinding,function(s)
+    local srcInterfaces  -- network list from firewall.@zone[#] (lan ...
+    local destInterfaces -- ... or wan) generated anew for each rule
+    local key = s._key
+    if not key then
+      firewallBinding.sectionname = s[".name"]
+      key = uciHelper.generate_key_on_uci(firewallBinding)
+      isKeyGenerated = true
+    end
+    local srcZone = s["src"]
+    local destZone = s["dest"]
+    firewallBinding.sectionname = "zone"
+    uciHelper.foreach_on_uci(firewallBinding,function(ss)
+      if ss["name"] == srcZone then
+        srcInterfaces = getFromUci({ config = "firewall", sectionname = ss['.name'], option = "network" })
+      elseif ss["name"] == destZone then
+        destInterfaces = getFromUci({ config = "firewall", sectionname = ss['.name'], option = "network" })
+      end
+    end)
+
+    -- If there are no interfaces this will permit table entry creation
+    -- This is necessary when adding an entry via TR69
+    if (not srcInterfaces) then
+      srcInterfaces = { "emptySrc" }
+    end
+    if (not destInterfaces) then
+      destInterfaces = { "emptyDest" }
+    end
+
+    local entryValue
+    for _, srcIntf in ipairs(srcInterfaces) do
+      for _, destIntf in ipairs(destInterfaces) do
+        entryValue = parentKey .. "|" .. key .. "|" .. srcIntf .. "|" .. destIntf
+        if ifNotExists(chainRuleEntries, entryValue) then
+          chainRuleEntries[#chainRuleEntries+1] = entryValue
+        end
+      end
+    end
+    keyToSectionName[key] = s[".name"]
+  end)
+
+  if isKeyGenerated then
+    if result then
+      uciHelper.commit_keys(firewallBinding)
+    else
+      uciHelper.revert_keys(firewallBinding)
+    end
+  end
+  return chainRuleEntries
+end
+
+local function getParamValue(param, key, default)
+  firewallBinding.sectionname = keyToSectionName[key]
+  firewallBinding.option = paramMap[param]
+  firewallBinding.default = default
+
+  -- some UCI 'option' values are actually 'lists'
+  -- If this one is, just get the first element of the list and
+  -- pretend that it was really an option.
+  -- This is not optimal but it works for the UCI firewall rules
+  local value = getFromUci(firewallBinding)
+  if (type(value) == 'table') then
+    value = value[1]
+  end
+
+  return value
+end
+
+Device_Firewall_Chain_i_Rule_i_.get = function(mapping, param, entry)
+  local rulegroup, key, srcIntf, destIntf = entry:match("^(.*)|(.*)|(.*)|(.*)")
+
+  -- string match magic for ipAddr and ipMask "<IP>/<mask>". The trailing
+  -- "/<mask>" is optional ... and the leading "<IP>" is optional
+  local ip_mask_pattern = "([^/]*)/*(.*)"
+
+  if param == "Enable" then
+    return getParamValue(param, key, "1")
+  elseif param == "Description" then
+    return getParamValue(param, key, "")
+  elseif param == "Target" then
+    return targetMap[getParamValue(param, key, "DROP")]
+  elseif param == "TargetChain" then
+    return resolve("Device.Firewall.Chain.{i}.", rulegroup) or ""
+  elseif param == "SourceInterface" then
+    return resolve("Device.IP.Interface.{i}.", srcIntf) or ""
+  elseif param == "DestInterface" then
+    return resolve("Device.IP.Interface.{i}.", destIntf) or ""
+  elseif param == "IPVersion" then
+    return getParamValue(param, key, "-1"):match("ipv(%d)") or "-1"
+  elseif param == "DestIP" then
+    local destIp, destMask = getParamValue(param, key, ""):match(ip_mask_pattern)
+    return destIp or ""
+  elseif param == "DestMask" then
+    local destIp, destMask = getParamValue(param, key, ""):match(ip_mask_pattern)
+    return destMask or ""
+  elseif param == "SourceIP" then
+    local srcIp, srcMask = getParamValue(param, key, ""):match(ip_mask_pattern)
+    return srcIp or ""
+  elseif param == "SourceMask" then
+    local srcIp, srcMask = getParamValue(param, key, ""):match(ip_mask_pattern)
+    return srcMask or ""
+  elseif param == "Protocol" then
+    local tmp -- To help break into multiple steps
+    tmp = getParamValue(param, key, "-1")
+    return protocolMap[tmp] or tmp
+  elseif param == "DestPort" then
+    return getParamValue(param, key, "")
+  elseif param == "SourcePort" then
+    return getParamValue(param, key, "")
+  elseif param == "DSCP" then
+    -- TODO: This is not good enough. The "extra" option could have
+    -- other stuff in it
+    local tmp -- To help break into multiple steps
+    tmp = getParamValue(param, key, "")
+    tmp = tmp:match("%-m dscp %-%-dscp (0x%x*)") or "-1"
+    tmp = tonumber(tmp) or "-1"
+    return tostring(tmp)
+  else
+    return getParamValue(param, key)
+  end
+end
+
+Device_Firewall_Chain_i_Rule_i_.getall = function(mapping, entry)
+  local rulegroup, key, srcIntf, destIntf = entry:match("^(.*)|(.*)|(.*)|(.*)")
+  firewallBinding.sectionname = keyToSectionName[key]
+  local firewallValues = uciHelper.getall_from_uci(firewallBinding)
+  return {
+    Enable = firewallValues["enabled"] or "1",
+    Description = firewallValues["name"] or "",
+    Target = targetMap[firewallValues["target"]] or "Drop",
+    TargetChain = resolve("Device.Firewall.Chain.{i}.", rulegroup) or "",
+    SourceInterface = resolve("Device.IP.Interface.{i}.", srcIntf) or "",
+    DestInterface = resolve("Device.IP.Interface.{i}.", destIntf) or "",
+    IPVersion =  firewallValues["family"] and firewallValues["family"]:match("ipv(%d)") or "-1",
+  }
+end
+
+local function setParamValue(mapping, param, value, key)
+  if (not param or not value or not key) then
+    return nil, "Internal nil argument"
+  end
+  firewallBinding.sectionname = keyToSectionName[key]
+  firewallBinding.option = paramMap[param]
+  uciHelper.set_on_uci(firewallBinding, value, commitapply)
+  isConfigChanged = true
+  return true
+end
+
+-- PURPOSE: is input a valid IPv4 or IPv6 address?
+--          Make a reasonable guess about which one to check for
+-- PARAMS: ipCheck - String with IPv4 (or IPv6) address
+-- RETURNS: true, (or nil + err)
+local function isValidIP(ipCheck)
+    if (ipCheck) then
+        if (string.find(ipCheck, ":")) then
+            return inet.isValidIPv6(ipCheck)
+        end
+        return inet.isValidIPv4(ipCheck)
+    end
+
+    return nil, "Internal error, bad parameter"
+end
+
+Device_Firewall_Chain_i_Rule_i_.set = function(mapping, param, value, entry)
+  local key = entry:match("^.*|(.*)|.*|.*")
+  local paramIp    -- IP part of CIDR ipAddr/Mask
+  local paramMask  -- mask part of CIDR ipAddr/Mask
+  local _          -- ignore return value
+
+  -- string match magic for ipAddr and ipMask "<IP>/<mask>". The trailing
+  -- "/<mask>" is optional ... and the leading "<IP>" is optional
+  local ip_mask_pattern = "([^/]*)/*(.*)"
+
+  if param == "IPVersion" then
+    if value == "4" or value == "6" then
+      value = "ipv".. value
+    else
+      value = "any"
+    end
+
+  elseif param == "Target" then
+    value = targetMap[value] or "DROP"
+
+  elseif param == "DestIP" or param == "SourceIP" then
+    -- get the current mask and prepend the ip addr
+    if not isValidIP(value) then
+      return nil, string.format("%s is not a valid IPv4 or IPv6 Address",value)
+    end
+    _, paramMask = getParamValue(param, key, ""):match(ip_mask_pattern)
+    if ( paramMask and (#paramMask > 0) ) then
+      value = string.format("%s/%s", value, paramMask)
+    end
+
+  elseif param == "DestMask" or param == "SourceMask" then
+    -- get the current ip addr and append the mask
+    paramIp, _ = getParamValue(param, key, ""):match(ip_mask_pattern)
+    _, paramMask = value:match(ip_mask_pattern)
+    value = string.format("%s/%s", paramIp, paramMask)
+
+  elseif param == "DSCP" then
+    -- TODO: This is not good enough. The "extra" option could have
+    -- other stuff in it. This change would overwrite anything else.
+    if (value == "-1") then
+        -- overwrite existing value
+        value = ""
+    else
+        value = string.format("-m dscp --dscp 0x%x", value)
+    end
+
+  elseif param == "Protocol" then
+    if (value == "-1") then
+        -- overwrite existing value
+        value = ""
+    end
+  end
+
+  return setParamValue(mapping, param, value, key)
+end
+
+-- PURPOSE: Add a new row to table ... and create the underlying UCI
+--          entry but create it disabled
+-- PARAMS: mapping - the Device_Firewall_Chain_i_Rule_i_
+--         name - type of firewall rulesgroup entry to add
+-- RETURNS: unique 'key' of the newly adding instance (or nil + err)
+--   format of <rulegroup>|<key>|<srcIntf>|<destIntf>
+Device_Firewall_Chain_i_Rule_i_.add = function(mapping, name)
+    local binding  -- UCI location for adding row
+    local ruleType -- firewall type of rule
+    local key  -- newly created UCI value in ._key
+    local err      -- potential error string return value
+    local section  -- uci section added
+
+    ruleType = getFromUci({ config = mapping.config, sectionname = name, option = "type" })
+
+    binding = {config = mapping.config, sectionname = ruleType}
+    section, err = uciHelper.add_on_uci(binding)
+    if (section) then
+        local key -- UCI "._key" field
+
+        -- must be committed so that generate_key_on_uci() works
+        uciHelper.commit(binding)
+
+        -- let commit function know we modified UCI
+        isConfigChanged = true
+
+        binding.sectionname = section
+        key = uciHelper.generate_key_on_uci(binding)
+        if (key) then
+            local entryValue -- transformer mapping table entry key
+
+            keyToSectionName[key] = section
+
+            local rc = uciHelper.commit_keys(binding)
+
+            -- TODO: Using emtpySrc/emptyDest is not robust enough.
+            -- This "entryValue" becomes permanently associated with a given
+            -- index #. If in the future the Src and or Dest are filled in
+            -- the calculated entryValue {in entries()} will change ...
+            -- and the index number will change. At this writting Src/Dest
+            -- are readonly. But Device2 requires them to be writable.
+            -- When Src/Dest are filled in most likely the table will
+            -- report *extra* rules in Device2 ... those rules won't exist
+            -- in UCI ... that further compicates the problem
+            entryValue = name .. "|" .. key .. "|" .. "emptySrc" .. "|" .. "emptyDest"
+            return entryValue
+        else
+            uciHelper.revert_keys(binding)
+        end
+    end
+
+    return nil, "Adding entry not supported yet"
+end
+
+-- PURPOSE: Remove a row from the table
+-- PARAMS: mapping - the Device_Firewall_Chain_i_Rule_i_
+--         entry - entry to delete
+-- RETURNS: true (or nil + err)
+Device_Firewall_Chain_i_Rule_i_.delete = function(mapping, entry)
+  local binding -- UCI firewall rule to delete
+  local key     -- unique key for table entry
+
+  key = entry:match("^.*|(.*)|.*|.*")
+  binding = {config = mapping.config, sectionname = keyToSectionName[key]}
+  uciHelper.delete_on_uci(binding, commitapply)
+  -- assume delete_on_uci worked ...
+  -- keyToSectionName will be updated next time "entries" is called
+  -- ... probably
+  isConfigChanged = true
+  return true
+end
+
+Device_Firewall_Chain_i_Rule_i_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(firewallBinding)
+    isConfigChanged = false
+  end
+end
+
+Device_Firewall_Chain_i_Rule_i_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(firewallBinding)
+    isConfigChanged = false
+  end
+end
+
+register(Device_Firewall_Chain_i_Rule_i_)

@@ -1,0 +1,128 @@
+-- Automatically generated from InternetGatewayDevice:1.3
+-- using generator version 2.2
+local InternetGatewayDevice_UPnP_Device_ = {
+  objectType = {
+    name = "InternetGatewayDevice.UPnP.Device.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      UPnPMediaServer = {
+        access = "readWrite",
+        type = "boolean",
+      },
+--[[ TODO:
+      UPnPMediaRenderer = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      UPnPWLANAccessPoint = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      UPnPQoSDevice  = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      UPnPQoSPolicyHolder = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      UPnPIGD = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      UPnPDMBasicMgmt = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      UPnPDMConfigurationMgmt = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      UPnPDMSoftwareMgmt = {
+        access = "readWrite",
+        type = "boolean",
+      },
+--]]
+      X_000E50_NATPMPEnabled = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      X_000E50_SecureModeEnabled = {
+        access = "readWrite",
+        type = "boolean",
+      },
+    }
+  }
+}
+
+local uciHelper = mapper("ucihelper")
+local getFromUci = uciHelper.get_from_uci
+local setOnUci = uciHelper.set_on_uci
+local upnpBinding = { config = "upnpd", sectionname = "config"}
+local mediaServerBinding = { config = "dlnad", sectionname = "config", option = "enabled"}
+local transactions = {}
+local commit = uciHelper.commit
+local revert = uciHelper.revert
+local commitapply, pairs = commitapply, pairs
+
+InternetGatewayDevice_UPnP_Device_.get = {
+  Enable = function(mapping, param, key)
+    upnpBinding.option = "enable_upnp"
+    return getFromUci(upnpBinding)
+  end,
+  X_000E50_NATPMPEnabled = function(mapping, param, key)
+    upnpBinding.option = "enable_natpmp"
+    return getFromUci(upnpBinding)
+  end,
+  X_000E50_SecureModeEnabled = function(mapping, param, key)
+    upnpBinding.option = "secure_mode"
+    return getFromUci(upnpBinding)
+  end,
+  UPnPMediaServer =  function(mapping, param, key)
+    return getFromUci(mediaServerBinding)
+  end,
+}
+
+InternetGatewayDevice_UPnP_Device_.set = {
+  Enable = function(mapping, param, value, key)
+    upnpBinding.option = "enable_upnp"
+    setOnUci(upnpBinding,value,commitapply)
+    transactions[upnpBinding.config] = true
+  end,
+  X_000E50_NATPMPEnabled = function(mapping, param, value, key)
+    upnpBinding.option = "enable_natpmp"
+    setOnUci(upnpBinding,value,commitapply)
+    transactions[upnpBinding.config] = true
+  end,
+  X_000E50_SecureModeEnabled = function(mapping, param, value, key)
+    upnpBinding.option = "secure_mode"
+    setOnUci(upnpBinding,value,commitapply)
+    transactions[upnpBinding.config] = true
+  end,
+  UPnPMediaServer = function(mapping, param, value, key)
+    setOnUci(mediaServerBinding,value,commitapply)
+    transactions[mediaServerBinding.config] = true
+  end,
+}
+
+InternetGatewayDevice_UPnP_Device_.commit = function()
+  for config,_ in pairs(transactions) do
+    commit({config = config})
+  end
+  transactions = {}
+end
+
+InternetGatewayDevice_UPnP_Device_.revert = function()
+  for config,_ in pairs(transactions) do
+    revert({config = config})
+  end
+  transactions = {}
+end
+
+register(InternetGatewayDevice_UPnP_Device_)

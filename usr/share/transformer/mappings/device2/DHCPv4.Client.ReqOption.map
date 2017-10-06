@@ -1,0 +1,253 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_DHCPv4_Client_i_ReqOption_i_ = {
+  objectType = {
+    name = "Device.DHCPv4.Client.{i}.ReqOption.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "ReqOptionNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "boolean",
+        default = "false",
+      },
+      Order = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      Tag = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+            max = "254",
+          },
+        },
+      },
+      Value = {
+        access = "readOnly",
+        type = "hexBinary",
+        min = "0",
+        max = "255",
+        default = "",
+      },
+    }
+  }
+}
+
+-- function aliases
+local mapper, string = mapper, string
+local nwCommon = mapper("nwcommon")
+local uciHelper = mapper("ucihelper")
+local networkBinding = { config = "network"}
+local isConfigChanged = false
+local splitKey = nwCommon.split_key
+local match, gmatch, gsub, find = string.match, string.gmatch, string.gsub, string.find
+local getUbusInterfaceStatus=nwCommon.get_ubus_interface_status
+
+local keyToTagName = {}
+local tagValues = {}
+
+local function getUciParam(sectionName,option)
+  networkBinding.sectionname = sectionName
+  networkBinding.option = option
+  return uciHelper.get_from_uci(networkBinding)
+end
+
+local function setUciParam(sectionName, option, value)
+  networkBinding.sectionname = sectionName
+  networkBinding.option = option
+  uciHelper.set_on_uci(networkBinding, value, commitapply)
+  isConfigChanged = true
+end
+
+-- Converts String value to equivalent Hex Binary
+local function stringToHex(str)
+  return (str:gsub('.', function (c)
+    return string.format('%02x', string.byte(c))
+  end))
+end
+
+-- Conversion method to convert ipAddress to HexBinary
+-- If the Value contains list of IPaddresses, each address is split, converted to Hex and then finally concatenated
+-- In case of list of IPAddresses, each IPAddresses shall be delimited by "/"
+local function ipv4ToHexBin(hexString)
+  local result = {}
+  local i = 0
+  local strlen = string.len(hexString)
+  local str, ip
+  while(strlen > 0) do
+    ip = string.sub(hexString, (i*8) + 1, (i*8) + 8)
+    str = nwCommon.numToIPv4(tonumber(ip, 16))
+    result[#result + 1] = stringToHex(str)
+    i = i + 1
+    strlen = strlen - 8
+  end
+  return table.concat(result, "2c")          --> IPAddresses are delimited by ","
+end
+
+-- Converts Integer value to equivalent Hex Binary
+local function intToHexBin(intVal)
+  local str = tostring(intVal)
+  return stringToHex(str)
+end
+
+-- Converts Boolean value to equivalent Hex Binary
+local function boolToHexBin(boolVal)
+  local str = tostring(boolVal)
+  return stringToHex(str)
+end
+
+-- Maps Type to equivalent Conversion Methods.
+-- String datatype Value is already in Hex Binary, hence conversion not required.
+local typeMap = {
+  ipType = ipv4ToHexBin;
+  intType = intToHexBin;
+  boolType = boolToHexBin;
+}
+
+-- Maps DHCP Options to its types.
+-- String datatype Value is already in Hex Binary, hence not included for conversion
+local dhcpOptionTypeMap = {
+  ipType  = {"1","3","4","5","6","7","8","9","10","11","16","21","28","32","33","41","42","44","45","48","49","50","54","65","68","69","70","71","72","73","74","75","76","78","85","89","92","112","113","118","121","128","129","131","136","138","142","150","158","212"};
+  intType = {"2","13","22","23","24","25","26","35","37","38","46","51","52","53","55","57","58","59","63","91","93","117","123","132","133","134","146","152","153","154","155","156","211","221"};
+  boolType = {"19","20","27","29","30","31","34","36","39","116"};
+}
+
+local dhcpTypeMap = {}
+
+-- Forms a Map with DHCP Option/tag as key and its equivalent conversion method as Value
+local function loadDhcpTypeMap()
+  if next(dhcpTypeMap) == nil then                            -- Load the Map only once
+    for typ, options in pairs(dhcpOptionTypeMap) do
+      for _, option in pairs(options) do
+	dhcpTypeMap[option] = typeMap[typ]
+      end
+    end
+  end
+end
+
+--[[
+     We have tag and values both in uci and ubus,
+     Some additional dhcp options also will be available while reading passthru via ubus call,
+     those options are also added to entries.
+--]]
+Device_DHCPv4_Client_i_ReqOption_i_.entries = function(mapping, parentKey)
+  local uciReqOpt = getUciParam(parentKey,"reqopts")
+  local ubusReqOpt = getUbusInterfaceStatus(parentKey)
+  local entryList = {}
+  keyToTagName = {}
+  ubusReqOpt = ubusReqOpt and ubusReqOpt["data"]
+  ubusReqOpt = ubusReqOpt and ubusReqOpt["passthru"]
+  tagValues = nwCommon.get_dhcp_tag_value(ubusReqOpt)
+  if uciReqOpt then
+    local index
+    local _key
+    for opt in gmatch(uciReqOpt,"(%d+)") do        -- Entry formed for uci request options
+      index = #entryList+1
+      _key = parentKey.."|"..index --Create a Unique Key for each request option
+      entryList[index] = _key
+      keyToTagName[ _key ] = opt
+    end
+    for tag in pairs(tagValues) do               -- Entry formed for additional request options that will be populated in ubus
+      if not find(uciReqOpt,tag) then
+        index = #entryList+1
+        _key = parentKey.."|"..index
+        entryList[index] = _key
+        keyToTagName[ _key ] = tag
+      end
+    end
+  end
+  loadDhcpTypeMap()
+  return entryList
+end
+
+-- Get Tag and Value
+local function getTagAndValue(key)
+  local tag = keyToTagName[key] or ""
+  local tagValue = tagValues[tag] or ""
+  if tagValue ~= "" then
+    local toHex = dhcpTypeMap[tag]
+    if toHex then
+      local rc, value = pcall(toHex, tagValue) -- Convert the tagValue to Hex Binary
+      if rc then
+	tagValue = value  -- return the converted value only if there are no errors, else return the original value
+      end
+    end
+  end
+ return tag, tagValue
+end
+
+Device_DHCPv4_Client_i_ReqOption_i_.get = {
+  Enable = "1",
+  Order = function(mapping, param, key)
+    local _,order = splitKey(key)
+    return order or ""
+  end,
+  Tag = function(mapping, param, key)
+    return getTagAndValue(key)
+  end,
+  Value = function(mapping, param, key)
+    local _, value = getTagAndValue(key)
+    return value
+  end,
+}
+
+Device_DHCPv4_Client_i_ReqOption_i_.getall = function(mapping, key)
+  local _, order = splitKey(key)
+  local tag, value = getTagAndValue(key)
+  local allValues = {
+    Enable = "1",
+    Order = order,
+    Tag = tag,
+    Value = value,
+  }
+  return allValues
+end
+
+Device_DHCPv4_Client_i_ReqOption_i_.set = {
+  Tag = function(mapping, param, value, key)
+    local parentKey=splitKey(key)
+    local tag = keyToTagName[key] or ""
+    local reqOpt = getUciParam(parentKey,"reqopts")
+    if find(reqOpt,tag) then
+      reqOpt = gsub(" "..reqOpt.." ", "%s+"..tag.."%s+", " "..value.." ")
+      reqOpt = match(reqOpt, "^%s*(.-)%s*$")
+      setUciParam(parentKey, "reqopts", reqOpt)
+    else
+      return nil, "Cannot Modify UBUS values"
+    end
+  end,
+}
+
+Device_DHCPv4_Client_i_ReqOption_i_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(networkBinding)
+    isConfigChanged = false
+  end
+end
+
+Device_DHCPv4_Client_i_ReqOption_i_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(networkBinding)
+    isConfigChanged = false
+  end
+end
+
+register(Device_DHCPv4_Client_i_ReqOption_i_)
+

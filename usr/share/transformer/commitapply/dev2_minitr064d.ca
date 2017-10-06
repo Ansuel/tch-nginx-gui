@@ -1,0 +1,1 @@
+^minitr064d%.[^%.]+%.password /etc/init.d/minitr064d restart

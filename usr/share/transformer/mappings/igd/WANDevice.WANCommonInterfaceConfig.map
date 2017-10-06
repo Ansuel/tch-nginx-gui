@@ -1,0 +1,308 @@
+-- Automatically generated from InternetGatewayDevice:1.3
+-- using generator version 2.1
+local InternetGatewayDevice_WANDevice_i_WANCommonInterfaceConfig_ = {
+  objectType = {
+    name = "InternetGatewayDevice.WANDevice.{i}.WANCommonInterfaceConfig.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      EnabledForInternet = {
+        access = "readOnly",  -- readWrite not supported at this moment
+        type = "boolean",
+      },
+      WANAccessType = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "DSL",
+          "Ethernet",
+          "POTS",
+        },
+      },
+      Layer1UpstreamMaxBitRate = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      Layer1DownstreamMaxBitRate = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      PhysicalLinkStatus = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Up",
+          "Down",
+          "Initializing",
+          "Unavailable",
+        },
+      },
+      WANAccessProvider = {
+        access = "readOnly",
+        type = "string",
+        max = "256",
+      },
+      TotalBytesSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalBytesReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalPacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      MaximumActiveConnections = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      X_0876FF_TxErrors = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      X_0876FF_RxErrors = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      X_0876FF_TxDrops = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      X_0876FF_RxDrops = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      X_TCH_PacketsDropped = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      X_TCH_PacketsErrored = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      -- NumberOfActiveConnections
+      -- automatically created when InternetGatewayDevice.WANDevice.{i}.WANCommonInterfaceConfig.Connection.{i}. is loaded
+    }
+  }
+}
+
+local mapper, register = mapper, register
+local common = mapper("nwcommon")
+local ubus = mapper("ubus").connect()
+local uciHelper = mapper("ucihelper")
+local forEachOnUci = uciHelper.foreach_on_uci
+local wandevice = require 'transformer.shared.models.igd.wandevice'
+
+-- function aliases
+local getIntfInfo = common.getIntfInfo
+local getDevtypeAndName = wandevice.getDevtypeAndName
+
+local networkBinding = { config = "network"}
+local xtmBinding = { config = "xtm"}
+
+local function getXtmDevices()
+  local xtmDevices = {}
+  xtmBinding.sectionname = "atmdevice"
+  forEachOnUci(xtmBinding, function(s)
+    xtmDevices[s['.name']] = true
+  end)
+  xtmBinding.sectionname = "ptmdevice"
+  forEachOnUci(xtmBinding, function(s)
+    xtmDevices[s['.name']] = true
+  end)
+  return xtmDevices
+end
+
+local function getXtmDeviceinVlan(devName)
+  local vlanDevice
+  networkBinding.sectionname = "device"
+  forEachOnUci(networkBinding, function(s)
+    if s.type == "8021q" and s['.name'] == devName then
+      vlanDevice = s.ifname
+      return false
+    end
+  end)
+  return vlanDevice
+end
+
+local function getDslDevName()
+  local dslDevice = {}
+  local xtmDevices = getXtmDevices()
+  local xtmDeviceinVlan
+  networkBinding.sectionname = "interface"
+  forEachOnUci(networkBinding, function(s)
+    xtmDeviceinVlan = getXtmDeviceinVlan(s.device)
+    if xtmDeviceinVlan and xtmDevices[xtmDeviceinVlan] and not dslDevice[xtmDeviceinVlan] then
+      dslDevice[xtmDeviceinVlan] = true
+    elseif s.device and xtmDevices[s.device] and not dslDevice[s.device] then
+      dslDevice[s.device] = true
+    end
+  end)
+  return dslDevice
+end
+
+local function getInterfaceStat(devname, ...)
+  local stat = 0
+  for _, statName in ipairs{...} do
+    if devname:match("^dsl") then
+      local dslDevice = getDslDevName()
+      for k in pairs(dslDevice) do
+        local s = getIntfInfo(k, statName, "0")
+        stat = stat + (tonumber(s) or 0)
+      end
+    else
+      local s = getIntfInfo(devname, statName, "0")
+      stat = stat + (tonumber(s) or 0)
+    end
+  end
+  return tostring(stat)
+end
+
+local getters = {
+  EnabledForInternet = function()
+    return "1"
+  end,
+  Layer1UpstreamMaxBitRate = function()
+    return "0"
+  end,
+  Layer1DownstreamMaxBitRate = function()
+    return "0"
+  end,
+  MaximumActiveConnections = function()
+    return "0"
+  end,
+  WANAccessType = function(devtype, devname)
+    if devtype=="DSL" then
+      return "DSL"
+    end
+    return "Ethernet"
+  end,
+  WANAccessProvider = function()
+    return ""
+  end,
+  PhysicalLinkStatus = function(devtype, devname)
+    if devtype == "DSL" then
+      -- TODO: devname is not used so what happens when
+      --       multiple DSL interfaces are present?
+      local dsl_status = ubus:call("xdsl", "status", { })
+      if not dsl_status then
+        return "Unavailable"
+      end
+      dsl_status = dsl_status.status
+      if dsl_status == "Showtime" then
+        return "Up"
+      end
+      if dsl_status == "Idle" then
+        return "Down"
+      end
+      return "Initializing"
+    end
+    if devtype == "ETH" then
+      local operstate = getIntfInfo(devname, "operstate")
+      if operstate == "up" then
+        return "Up"
+      end
+      return "Down"
+    end
+    return "Unavailable"
+  end,
+  TotalBytesSent = function(devtype, devname)
+    return getInterfaceStat(devname, "tx_bytes")
+  end,
+  TotalBytesReceived = function(devtype, devname)
+    return getInterfaceStat(devname, "rx_bytes")
+  end,
+  TotalPacketsSent = function(devtype, devname)
+    return getInterfaceStat(devname, "tx_packets")
+  end,
+  TotalPacketsReceived = function(devtype, devname)
+    return getInterfaceStat(devname, "rx_packets")
+  end,
+  X_0876FF_TxDrops = function(devtype, devname)
+    return getInterfaceStat(devname, "tx_dropped")
+  end,
+  X_0876FF_RxDrops = function(devtype, devname)
+    return getInterfaceStat(devname, "rx_dropped")
+  end,
+  X_0876FF_TxErrors = function(devtype, devname)
+    return getInterfaceStat(devname, "tx_errors")
+  end,
+  X_0876FF_RxErrors = function(devtype, devname)
+    return getInterfaceStat(devname, "rx_errors")
+  end,
+  X_TCH_PacketsDropped = function(devtype, devname)
+    return getInterfaceStat(devname, "rx_dropped", "tx_dropped")
+  end,
+  X_TCH_PacketsErrored = function(devtype, devname)
+    return getInterfaceStat(devname, "rx_errors", "tx_errors")
+  end,
+}
+
+InternetGatewayDevice_WANDevice_i_WANCommonInterfaceConfig_.get = function(mapping, param, key)
+  local f = getters[param]
+  if f then
+    local devtype, devname = getDevtypeAndName(key)
+    return f(devtype, devname)
+  end
+  return ""
+end
+
+InternetGatewayDevice_WANDevice_i_WANCommonInterfaceConfig_.getall = function(mapping, key)
+  local all = {}
+  local devtype, devname = getDevtypeAndName(key)
+  for param, f in pairs(getters) do
+    all[param] = f(devtype, devname)
+  end
+  return all
+end
+
+register(InternetGatewayDevice_WANDevice_i_WANCommonInterfaceConfig_)
+
+-- Automatically generated from InternetGatewayDevice:1.3
+-- using generator version 2.1
+local InternetGatewayDevice_WANDevice_i_WANCommonInterfaceConfig_Connection_i_ = {
+  objectType = {
+    name = "InternetGatewayDevice.WANDevice.{i}.WANCommonInterfaceConfig.Connection.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "NumberOfActiveConnections",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      ActiveConnectionDeviceContainer = {
+        access = "readOnly",
+        type = "string",
+        max = "256",
+      },
+      ActiveConnectionServiceID = {
+        access = "readOnly",
+        type = "string",
+        max = "256",
+      },
+    }
+  }
+}
+
+InternetGatewayDevice_WANDevice_i_WANCommonInterfaceConfig_Connection_i_.get = {
+  ActiveConnectionDeviceContainer = "",
+  ActiveConnectionServiceID = "",
+}
+
+InternetGatewayDevice_WANDevice_i_WANCommonInterfaceConfig_Connection_i_.entries = function()
+  return {}
+end
+
+register(InternetGatewayDevice_WANDevice_i_WANCommonInterfaceConfig_Connection_i_)

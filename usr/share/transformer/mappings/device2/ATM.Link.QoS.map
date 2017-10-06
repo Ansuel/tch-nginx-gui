@@ -1,0 +1,176 @@
+local Device_ATM_Link_i_QoS_ = {
+  objectType = {
+    name = "Device.ATM.Link.{i}.QoS.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      QoSClass = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "UBR",
+          "CBR",
+          "GFR",
+          "VBR-nrt",
+          "VBR-rt",
+          "UBR+",
+          "ABR",
+        },
+      },
+      PeakCellRate = {
+        access = "readWrite",
+        type = "unsignedInt",
+      },
+      MaximumBurstSize = {
+        access = "readWrite",
+        type = "unsignedInt",
+      },
+      SustainableCellRate = {
+        access = "readWrite",
+        type = "unsignedInt",
+      },
+    }
+  }
+}
+
+local nwmodel = require "transformer.shared.models.device2.network"
+
+local uciHelper = mapper("ucihelper")
+local getFromUci = uciHelper.get_from_uci
+local setOnUci = uciHelper.set_on_uci
+
+local qosClassMap = {
+  ["ubr"] = "UBR",
+  ["cbr"]  =  "CBR",
+  ["nrtvbr"] = "VBR-nrt",
+  ["rtvbr"] = "VBR-rt",
+  ["ubr_pcr"] = "UBR+",
+  [""]  = "",
+  ["UBR"] = "ubr",
+  ["CBR"]  =  "cbr",
+  ["VBR-nrt"] = "nrtvbr",
+  ["VBR-rt"] = "rtvbr",
+  ["UBR+"] = "ubr_pcr",
+}
+
+local qosMap = {
+  QoSClass = "servicecat",
+  PeakCellRate = "pcr",
+  MaximumBurstSize = "mbs",
+  SustainableCellRate = "scr",
+}
+
+-- binding for uciHelper
+local xtmBinding1 = { config = "xtm", sectionname = "", option = "" }
+
+-- get values for traffic descriptor section(mbs/pcr/scr/servicecat)
+local function getTdValue(intf, option)
+  xtmBinding1.sectionname = intf
+  xtmBinding1.option = option
+  if option then
+    return getFromUci(xtmBinding1)
+  end
+  return uciHelper.getall_from_uci(xtmBinding1)
+end
+
+-- get traffic item for xtm interface
+local function getTdItem(intf, trafficItem)
+  local td = getTdValue(intf, "td")
+  if td ~= "" then
+    return getTdValue(td, trafficItem)
+  end
+  return ""
+end
+
+local function getAtmQoS(mapping,param,key)
+  local default = "0"
+  local model = nwmodel.load()
+  local val = getTdItem(model:getUciKey(key), qosMap[param])
+  if param == "QoSClass" then
+    val = qosClassMap[val]
+    default = ""
+  end
+  if val and val ~= "" then
+    return val
+  end
+  return default
+end
+
+local function setTdValue(intf, option, value)
+  xtmBinding1.sectionname = intf
+  xtmBinding1.option = option
+  setOnUci(xtmBinding1, value, commitapply)
+end
+
+local function setUciParameterOfTd(intf, option, value)
+  local td = getTdValue(intf, "td")
+  if td == "" or td == nil then
+    td = intf .. "_td"
+    setTdValue(intf, "td", td)
+  end
+
+  local xtmBinding2 = { config = "xtm", option = nil, extended = true, sectionname = td }
+
+  local tdType = getFromUci(xtmBinding2)
+  if tdType == "" or tdType == nil then
+    setOnUci(xtmBinding2, "trafficdesc", commitapply)
+    uciHelper.commit(xtmBinding2)
+  end
+
+  setTdValue(td, option, value)
+end
+
+local configChanged = false
+
+local function setAtmQoS(mapping, param, value, key)
+  if value == "" then
+    return nil, "Unsupported value"
+  end
+  if param == "QoSClass" then
+    value = qosClassMap[value]
+  end
+  local model = nwmodel.load()
+  setUciParameterOfTd(model:getUciKey(key), qosMap[param], value)
+  configChanged = true
+end
+
+Device_ATM_Link_i_QoS_.get = getAtmQoS
+
+--preallocate values
+local allvalues = {
+  QoSClass = "",
+  PeakCellRate = "0",
+  MaximumBurstSize = "0",
+  SustainableCellRate = "0",
+}
+
+Device_ATM_Link_i_QoS_.getall = function(mapping, key)
+  local atm_qos_values = getTdItem(key)
+  allvalues.QoSClass = qosClassMap[atm_qos_values["servicecat"]] or ""
+  allvalues.PeakCellRate = atm_qos_values["pcr"] or "0"
+  allvalues.MaximumBurstSize = atm_qos_values["mbs"] or "0"
+  allvalues.SustainableCellRate = atm_qos_values["scr"] or "0"
+  return allvalues
+end
+
+Device_ATM_Link_i_QoS_.set = setAtmQoS
+
+local function commit()
+  if configChanged then
+    uciHelper.commit(xtmBinding1)
+    configChanged = false
+  end
+end
+
+local function revert()
+  if configChanged then
+    uciHelper.revert(xtmBinding1)
+    configChanged = false
+  end
+end
+
+Device_ATM_Link_i_QoS_.commit = commit
+Device_ATM_Link_i_QoS_.revert = revert
+
+register(Device_ATM_Link_i_QoS_)

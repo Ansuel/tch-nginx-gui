@@ -1,0 +1,21 @@
+-- Automatically generated from InternetGatewayDevice:1.4
+-- using generator version 2.1
+local InternetGatewayDevice_LANInterfaces_ = {
+  objectType = {
+    name = "InternetGatewayDevice.LANInterfaces.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      -- LANEthernetInterfaceNumberOfEntries
+      -- automatically created when InternetGatewayDevice.LANInterfaces.LANEthernetInterfaceConfig.{i}. is loaded
+      -- LANUSBInterfaceNumberOfEntries
+      -- automatically created when InternetGatewayDevice.LANInterfaces.LANUSBInterfaceConfig.{i}. is loaded
+      -- LANWLANConfigurationNumberOfEntries
+      -- automatically created when InternetGatewayDevice.LANInterfaces.WLANConfiguration.{i}. is loaded
+    }
+  }
+}
+
+register(InternetGatewayDevice_LANInterfaces_)
+

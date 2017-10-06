@@ -1,0 +1,167 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_Ethernet_Link_i_ = {
+  objectType = {
+    name = "Device.Ethernet.Link.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "LinkNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readOnly", -- readwrite currently not supported since lowerlayer support is not available
+        type = "boolean",
+        default = "false",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Up",
+          "Down",
+          "Unknown",
+          "Dormant",
+          "NotPresent",
+          "LowerLayerDown",
+          "Error",
+        },
+        default = "Down",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        max  = "64",
+      },
+      Name = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      LowerLayers = {
+        access = "readOnly",  -- readwrite currently not supported since lowerlayer support is not available
+        list = true,
+        max = "1024",
+        type = "string",
+        pathRef = true,
+        default = "",
+      },
+      MACAddress = {
+        access = "readOnly",
+        type = "string",
+      },
+      LastChange = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+--[[ TODO:
+      PriorityTagging = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+--]]
+    }
+  },
+  aliasDefault = "Name"
+}
+
+local nwmodel = require "transformer.shared.models.device2.network"
+local EthLink = nwmodel.register("EthLink", Device_Ethernet_Link_i_.objectType.name)
+local posix = require("tch.posix")
+local getClockTime = posix.clock_gettime
+local model
+
+local nwCommon = mapper("nwcommon")
+local getIntfInfo = nwCommon.getIntfInfo
+local lastStateChangeTime = {}
+
+Device_Ethernet_Link_i_.entries = function(mapping)
+  model = nwmodel.load()
+  return model:getKeys(EthLink)
+end
+
+local function getEthEnable(key)
+  local ethStatus = getIntfInfo(model:getDevice(key), "carrier", "")
+  if ethStatus == "1" then
+    return "1"
+  end
+  return "0"
+end
+
+local function getEthStatus(key)
+  local ethStatus = getIntfInfo(model:getDevice(key), "carrier", "")
+  if ethStatus == "1" then
+    return "Up"
+  elseif ethStatus == "0" then
+    return "Down"
+  elseif ethStatus == "" then
+    return "NotPresent"
+  end
+  return "Unknown"
+end
+
+local function getEthLowerLayer(key)
+  return model:getLowerLayersResolved(key, resolve)
+end
+
+local function getLastChange(key, interface)
+  local intfName = interface or model:getName(key)
+  local lastChange = getClockTime(posix.CLOCK_MONOTONIC) - (lastStateChangeTime[intfName] or 0)
+  return tostring(lastChange)
+end
+
+Device_Ethernet_Link_i_.get = {
+  Enable = function(mapping, param, key)
+    return getEthEnable(key)
+  end,
+
+  Status = function(mapping, param, key)
+    return getEthStatus(key)
+  end,
+
+  Name = function(mapping, param, key)
+    return model:getName(key)
+  end,
+
+  MACAddress = function(mapping, param, key)
+    return getIntfInfo(model:getDevice(key), "address", "")
+  end,
+
+  LowerLayers = function(mapping, param, key)
+    return getEthLowerLayer(key)
+  end,
+
+  LastChange = function(mapping, param, key)
+    return getLastChange(key)
+  end,
+}
+
+Device_Ethernet_Link_i_.getall = function(mapping, key)
+  local interface = model:getName(key)
+  local allValues = {
+    Enable = getEthEnable(key),
+    Status = getEthStatus(key),
+    Name = interface,
+    MACAddress = getIntfInfo(model:getDevice(key), "address", ""),
+    LowerLayers = getEthLowerLayer(key),
+    LastChange = getLastChange(key, interface),
+  }
+  return allValues
+end
+
+local function ubusEventTriggered(mapping, action, data)
+  if data.action == "up" or data.action == "down" then
+    lastStateChangeTime[data.interface] = getClockTime(posix.CLOCK_MONOTONIC)
+  end
+end
+
+Device_Ethernet_Link_i_.add_watchers = function(mapping)
+  local ubusEventSource = eventsource("ubus")
+  ubusEventSource.watch_event(mapping, ubusEventTriggered, "network.link")
+end
+
+register(Device_Ethernet_Link_i_)

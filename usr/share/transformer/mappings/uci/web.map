@@ -1,0 +1,111 @@
+local uci = mapper("uci_1to1")
+
+-- uci.web
+uci.registerConfigMap("web")
+
+-- uci.web.assistance
+local assistance_map = {
+  config = "web",
+  type = "assistance",
+  options = {
+    "sessionmgr",
+    "user",
+    "interface",
+    "timeout",
+    "port",
+    "active",
+    "passwordchars",
+  }
+}
+uci.registerNamedMultiMap(assistance_map)
+
+local assist_state_map = {
+  config = 'web',
+  type = 'assist_state',
+  options = {
+    'enabled',
+    'port',
+    'salt',
+    'verifier'
+  }
+}
+uci.registerNamedMultiMap(assist_state_map)
+
+-- uci.web.sessionmgr
+local sessionmgr_map = {
+  config = "web",
+  type = "sessionmgr",
+  options = {
+    "cookiepath",
+    "authpath",
+    "passpath",
+    "loginpath",
+    "timeout",
+    "default_user",
+    "ruleset",
+    "public_port",
+    "secure_cookie",
+    "maxsessions",
+    "maxsessions_per_ip",
+    "bruteforce",
+    "relaxfirstattempt",
+    "maxwrongattempt",
+  },
+  lists = { "users" }
+}
+uci.registerNamedMultiMap(sessionmgr_map)
+
+-- uci.web.user
+local user_map = {
+  config = "web",
+  type = "user",
+  options = {
+    -- generic options
+    "name",
+    "role",
+    "srp_salt",
+    "srp_verifier",
+    "interface",
+    "password_reminder",
+    "language",
+  },
+  passwords = { "srp_salt", "srp_verifier", "legacy_salt" },
+  lists = { "allowed_ip" }
+}
+uci.registerNamedMultiMap(user_map)
+
+-- uci.web.ruleset
+local ruleset_map = {
+  config = "web",
+  type = "ruleset",
+  lists = { "rules" }
+}
+uci.registerNamedMultiMap(ruleset_map)
+
+-- uci.web.rule
+local rule_map = {
+  config = "web",
+  type = "rule",
+  options = { "target" },
+  lists = { "roles" },
+}
+uci.registerNamedMultiMap(rule_map)
+
+-- uci.web.uiconfig
+local uiconfig_map = {
+    config = "web",
+    type = "uiconfig",
+    options = {
+      --generic options
+      "defaultuser",
+      "nsplink",
+      "upgradefw",
+      "alwaysadvanced",
+      "open_sw_link",
+      -- options used by some custo's
+      "nsplogo",
+      "dnsserver_query",
+      "expert"
+    }
+}
+uci.registerNamedMultiMap(uiconfig_map)

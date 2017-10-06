@@ -1,0 +1,267 @@
+-- Automatically generated from InternetGatewayDevice:1.3
+-- using generator version 2.1
+local InternetGatewayDevice_WANDevice_i_WANDSLDiagnostics_ = {
+  objectType = {
+    name = "InternetGatewayDevice.WANDevice.{i}.WANDSLDiagnostics.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = 1,
+    parameters = {
+    LoopDiagnosticsState = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        enumeration = {
+          "None",
+          "Requested",
+          "Complete",
+          "Error_Internal",
+          "Error_Other",
+        },
+    },
+    ACTATPds = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+    },
+    ACTATPus = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+    },
+    ACTPSDds = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+    },
+    ACTPSDus = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+    },
+    BITSpsds = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+    },
+    HLINpsds = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+    },
+    QLNpsds = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+    },
+    SNRpsds = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+    },
+    HLINSCds = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+    },
+    GAINSpsds = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+    },
+    HLOGGds = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+    },
+    HLOGGus = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+    },
+    HLOGpsds = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+    },
+    HLOGpsus = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+    },
+    HLOGMTds = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+    },
+    HLOGMTus = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+    },
+    SATNds = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+    },
+    SATNus = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+    },
+    HLINpsus = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+    },
+    QLNpsus = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+    },
+    QLNMTds = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+    },
+    QLNMTus = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+    },
+    SNRGds = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+    },
+    SNRGus = {
+        access= "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+    },
+    SNRpsus = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+    },
+    SNRMTds = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+    },
+    SNRMTus = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+    },
+    BITSpsus = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+    },
+    LATNds = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+    },
+    LATNus = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+    },
+    HLINSCus = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+    },
+   }
+  }
+}
+
+local logger = require 'transformer.logger'
+local xdslctl = require("transformer.shared.xdslctl")
+local cmdhelper = require("transformer.shared.cmdhelper")
+local execute = os.execute
+local pcall = pcall
+local uciHelper = mapper("ucihelper")
+local diagresult = ""
+
+local wandevice = require 'transformer.shared.models.igd.wandevice'
+local getDevtypeAndName = wandevice.getDevtypeAndName
+
+local function getDiagStatus()
+    local none_mt = { __index = function() return "None" end }
+    local LoopDiagnosticsStateMapping = setmetatable({
+        ["progress"] = "Requested",
+        ["completed"] = "Complete",
+        ["internal"] = "Error_Internal",
+        ["other"] = "Error_Other",
+        }, none_mt)
+
+    local values = {}
+    local keyarray = {"status", "LoopDiagnostic"}
+    local xdslctlstate={ command = "xdslctl info --state",
+                         lookup  = {["status"] = { pat = "^Status:%s+(%S+)" },["LoopDiagnostic"] = { pat = "^Loop Diagnostic%s+.*%s+(%a+)" },}
+                        }
+
+    cmdhelper.parseCmd(xdslctlstate, keyarray, values)
+
+    return LoopDiagnosticsStateMapping[values["LoopDiagnostic"]]
+end
+
+local function xdslctl_loopinfo(mapping, paramname, key)
+  return diagresult ~= "" and diagresult or getDiagStatus()
+end
+
+local function xdslctl_info(mapping, paramname, key)
+  local status, result = pcall(xdslctl.infoValue, mapping, paramname, "", key)
+  return status and result or ""
+end
+
+local function getWANDSLDiagnostics(mapping, paramname, key)
+    if paramname == "LoopDiagnosticsState" then
+      return xdslctl_loopinfo(mapping, paramname, key)
+    else
+      local option, direction = paramname:match("^(%S*)(%S%S)$")
+      return xdslctl_info(option, direction, key)
+    end
+end
+
+InternetGatewayDevice_WANDevice_i_WANDSLDiagnostics_.entries = function(mapping, parentKey)
+  local devtype = getDevtypeAndName(parentKey)
+  if devtype=="DSL" then
+    return {parentKey}
+  end
+  return {}
+end
+
+InternetGatewayDevice_WANDevice_i_WANDSLDiagnostics_.get = getWANDSLDiagnostics
+
+InternetGatewayDevice_WANDevice_i_WANDSLDiagnostics_.set = {
+  LoopDiagnosticsState = function(mapping, paramname, paramvalue, key, parentkey)
+    if paramvalue == "Requested" then
+        commitapply:newset("InternetGatewayDevice.WANDevice.{i}.WANDSLDiagnostics.LoopDiagnosticsState")
+        return true
+    else
+        return nil, "The only allowed value is Requested"
+    end
+  end,
+}
+
+local function ubus_event_cb(mapping, event, data)
+    if data and data.LoopDiagnosticsState then
+       diagresult = data.LoopDiagnosticsState
+    end
+end
+
+InternetGatewayDevice_WANDevice_i_WANDSLDiagnostics_.add_watchers = function(mapping)
+    local ubus_evsrc = eventsource("ubus")
+    ubus_evsrc.watch_event(mapping, ubus_event_cb, "dsl.loopdiagnostics_igd")
+end
+
+InternetGatewayDevice_WANDevice_i_WANDSLDiagnostics_.revert = function(mapping)
+    logger:debug("====== Resume DSL ======")
+    execute("xdslctl connection --up")
+end
+
+register(InternetGatewayDevice_WANDevice_i_WANDSLDiagnostics_)

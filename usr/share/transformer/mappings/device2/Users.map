@@ -1,0 +1,16 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_Users_ = {
+  objectType = {
+    name = "Device.Users.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      -- UserNumberOfEntries
+      -- automatically created when Device.Users.User.{i}. is loaded
+    }
+  }
+}
+
+register(Device_Users_)

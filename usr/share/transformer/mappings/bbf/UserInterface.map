@@ -1,0 +1,165 @@
+-- Automatically generated from InternetGatewayDevice:1.14
+-- using generator version 2.3
+local Multi_UserInterface_ = {
+  objectType = {
+    name = "#ROOT.UserInterface.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      UserDatabaseSupported = { -- IGD specific param
+        access = "readOnly",
+        type = "boolean",
+      },
+      SharedPassword = {  -- IGD specific param
+        access = "readOnly", -- currently readWrite not supported
+        type = "boolean",
+      },
+      PasswordRequired = {
+        access = "readOnly", -- currently readWrite not supported
+        type = "boolean",
+      },
+      PasswordUserSelectable = {
+        access = "readOnly", -- currently readWrite not supported
+        type = "boolean",
+      },
+    --[[ TODO
+      UpgradeAvailable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      WarrantyDate = {
+        access = "readWrite",
+        type = "dateTime",
+      },
+      ISPName = {
+        access = "readWrite",
+        type = "string",
+        max = "64",
+      },
+      ISPHelpDesk = {
+        access = "readWrite",
+        type = "string",
+        max = "32",
+      },
+      ISPHomePage = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      ISPHelpPage = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      ISPLogo = {
+        access = "readWrite",
+        type = "base64",
+        min = "0",
+        max = "4095",
+      },
+      ISPLogoSize = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "4095",
+          },
+        },
+      },
+      ISPMailServer = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      ISPNewsServer = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      TextColor = {          -- parameter definition conflicts with device2, handle as per implementation.
+        access = "readWrite",
+        type = "string",
+        max = "6",
+      },
+      BackgroundColor = {    -- parameter definition conflicts with device2, handle as per implementation.
+        access = "readWrite",
+        type = "string",
+        max = "6",
+      },
+      ButtonColor = {        -- parameter definition conflicts with device2, handle as per implementation.
+        access = "readWrite",
+        type = "string",
+        max = "6",
+      },
+      ButtonTextColor = {    -- parameter definition conflicts with device2, handle as per implementation.
+        access = "readWrite",
+        type = "string",
+        max = "6",
+      },
+      AutoUpdateServer = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      UserUpdateServer = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      ExampleLogin = {       -- IGD specific param
+        access = "readWrite",
+        type = "string",
+        max = "40",
+      },
+      ExamplePassword = {    -- IGD specific param
+        access = "readWrite",
+        type = "string",
+        max = "30",
+      },
+      AvailableLanguages = {
+        access = "readOnly",
+        list = true,
+        max = "256",
+        type = "string",
+      },
+      CurrentLanguage = {
+        access = "readWrite",
+        type = "string",
+        max = "16",
+      },
+      -- Dev2 Specific param
+      -- Automatically generated from Device:2.11
+      -- using generator version 2.3
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "true",
+      },
+      PasswordReset = {
+        access = "readWrite",
+        hidden = "true",
+        command = "true",
+        type = "boolean",
+      },
+    --]]
+    }
+  }
+}
+Multi_UserInterface_.get = {
+	UserDatabaseSupported = "1",
+	SharedPassword = "0",
+	PasswordRequired = "1",
+	PasswordUserSelectable = "1",
+}
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_UserInterface_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  if dupli.objectType.name:match("^Device.") then
+    dupli.objectType.parameters["UserDatabaseSupported"] = nil
+    dupli.objectType.parameters["SharedPassword"] = nil
+  end
+  register(dupli)
+end
+

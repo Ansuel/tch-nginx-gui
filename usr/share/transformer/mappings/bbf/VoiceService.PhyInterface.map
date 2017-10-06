@@ -1,0 +1,727 @@
+-- NG-73564
+local lfs = require("lfs")
+local conn = mapper("ubus").connect()
+if lfs.attributes("/etc/config/mmpbx", "mode") ~= "file" then
+  return
+end
+
+local match, sort, format = string.match, table.sort, string.format
+local tostring, tonumber = tostring, tonumber
+local uci_helper = mapper("ucihelper")
+local selector = "PhoneConnectivityTest"
+local set_on_uci = uci_helper.set_on_uci
+
+local Multi_Services_VoiceService_i_PhyInterface_i_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.PhyInterface.{i}.",
+        access = "readOnly",
+        minEntries = 0,
+        numEntriesParameter = "X_BELGACOM_PhyInterfaceNumberOfEntries",
+        maxEntries = math.huge,
+        parameters = {
+            PhyPort = {
+                access = "readOnly",
+                type = "string",
+                max = "2",
+            },
+            InterfaceID = {
+                access = "readOnly",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+            },
+            Description = {
+                access = "readOnly",
+                type = "string",
+                max = "32",
+            },
+            X_000E50_LineReversal = {
+                access = "readWrite",
+                type = "boolean",
+            },
+	    X_000E50_ShutdownEnable = {
+	       access = "readWrite",
+	       type = "string",
+	    },
+            X_000E50_HookState = {
+                access = "readOnly",
+                type = "string",
+                enumeration = {
+                    "OnHook",
+                    "OffHook",
+                    "Error",
+                },
+            },
+            X_PortStatus = {
+               access = "readOnly",
+               type = "string",
+               description = "Displays the hook state of the connected device",
+               enumeration = {
+                   "OnHook",
+                   "OffHook",
+                   "Error",
+               },
+            },
+            X_BELGACOM_VoiceProfileID = {
+               access = "readWrite",
+               type = "unsignedInt",
+            },
+            X_BELGACOM_LineID = {
+               access = "readWrite",
+               type = "unsignedInt",
+               range = {
+                   {
+                       min = "1",
+                   },
+               },
+            },
+            X_000E50_POSConfig = {
+               access = "readWrite",
+               type = "boolean",
+            },
+        }
+    }
+}
+
+local binding = { config = "mmpbx" }
+local descriptionbinding = { option = "user_friendly_name" }
+local shutdownbinding = { option = "power_saving_mode" }
+local linereversalbinding = {option = "line_reversal"}
+local posconfigbinding = {option = "pos"}
+local numOfFxs, numOfDect = 0, 0
+local entriesInfo
+local outgoing = {}
+
+local transactions = {}
+
+local stateMapping = {
+  ["onHook"] = "OnHook",
+  ["offHook"] = "OffHook",
+  ["error"] = "Error",
+}
+
+local Line_profile_id = {
+    "sip_profile_0",
+    "sip_profile_1",
+    "sip_profile_2",
+    "sip_profile_3",
+    "sip_profile_4",
+    "sip_profile_5",
+    "sip_profile_6",
+    "sip_profile_7",
+    "sip_profile_8",
+    "sip_profile_9",
+    "fxo_profile",
+}
+
+local cvtInt2Boolean = {
+    ['0'] = false,
+    ['1'] = true,
+}
+
+
+local function Commit()
+    local binding = {}
+    for config in pairs(transactions) do
+         binding.config = config
+         uci_helper.commit(binding)
+    end
+    transactions = {}
+end
+
+local function Revert()
+    local binding = {}
+    for config in pairs(transactions) do
+         binding.config = config
+         uci_helper.revert(binding)
+    end
+    transactions = {}
+end
+
+Multi_Services_VoiceService_i_PhyInterface_i_.entries = function(mapping, parentkey)
+    if not entriesInfo then
+        entriesInfo = {SIPUA = {}, INTUA = {}}
+        binding.sectionname = "device"
+        uci_helper.foreach_on_uci(binding, function(s)
+            local entries = entriesInfo["SIPUA"]
+            entries[#entries + 1] = s['.name']
+            if s['.name']:sub(1,1) == "f" then
+                numOfFxs = numOfFxs + 1
+            end
+            if s['.name']:sub(1,1) == "d" then
+                numOfDect = numOfDect + 1
+            end
+        end)
+        sort(entriesInfo["SIPUA"], function(a,b)
+            local a1, b1 = a:sub(1,1), b:sub(1,1)
+            if (a1 == "f" and ((a1 == b1 and a < b) or a1 ~= b1)) or (a1 ~= "f" and b1 ~= "f" and a < b) then
+                return true
+            else
+                return false
+            end
+        end)
+        binding.sectionname = "outgoing_map"
+        uci_helper.foreach_on_uci(binding, function(s)
+            outgoing[s.device] = s
+        end)
+    end
+    return entriesInfo[parentkey]
+end
+
+local function getID(mapping, paramname, key)
+    local id = match(key, "(%d+)$")
+    if key:sub(1,1) == "d" then
+        id = tostring(tonumber(id) + numOfFxs)
+    end
+    if key:sub(1,1) == "s" then
+        id = tostring(tonumber(id) + numOfFxs + numOfDect)
+    end
+    return id
+end
+
+local function getInterfaceID(mapping, paramname, key)
+    local id = match(key, "(%d+)$")
+    if key:sub(1,1) == "d" then
+        id = tonumber(id) + numOfFxs
+    end
+    if key:sub(1,1) == "s" then
+        id = tonumber(id) + numOfFxs + numOfDect
+    end
+    return tostring(id + 1)
+end
+
+local function getHookState(mapping, paramname, key)
+  local fxsState = conn:call("mmpbxbrcmfxs.state", "get", {["device"] = key})
+  if fxsState and fxsState[key] then
+    return stateMapping[fxsState[key]["hookState"]] or "Error"
+  end
+  return stateMapping["error"]
+end
+
+Multi_Services_VoiceService_i_PhyInterface_i_.get = {
+    PhyPort = getID,
+    InterfaceID = getInterfaceID,
+    Description = function (mapping, paramname, key)
+        local res = ""
+        binding.sectionname = key
+        binding.option = "config"
+        local config = uci_helper.get_from_uci(binding)
+        if config ~= "" then
+            descriptionbinding.config = config
+            descriptionbinding.sectionname = key
+            res = uci_helper.get_from_uci(descriptionbinding)
+        end
+        return res
+    end,
+    X_000E50_LineReversal = function (mapping, paramname, key)
+        local res = ""
+        binding.sectionname = key
+        binding.option = "config"
+        local config = uci_helper.get_from_uci(binding)
+        if string.match(config, "fxsdev") == "fxsdev" then
+            linereversalbinding.config = config
+            linereversalbinding.sectionname = key
+            linereversalbinding.default = "0"
+            return uci_helper.get_from_uci(linereversalbinding)
+        end
+        return res
+    end,
+    X_000E50_ShutdownEnable = function (mapping, paramname, key)
+       local res = "disabled"
+       binding.sectionname = key
+       binding.option = "config"
+       local config = uci_helper.get_from_uci(binding)
+        if config ~= "" then
+            shutdownbinding.config = config
+            shutdownbinding.sectionname = key
+            local tmp = uci_helper.get_from_uci(shutdownbinding)
+	    if tmp ~= "" then
+	       res = tmp
+	    end
+        end
+       return res
+    end,
+    X_000E50_HookState = getHookState,
+    X_PortStatus = getHookState,
+    X_BELGACOM_VoiceProfileID = "1",
+    X_BELGACOM_LineID = function ( mapping, paramname, key, parentkey)
+        local object = outgoing[key]
+	if object and object.priority and object.profile then
+            local priority = object.priority
+            local profile = object.profile
+            local max = 10
+            local tmp_profile = ""
+            for i,j in pairs(priority) do
+                local level = tonumber(j)
+                if (level < max) then
+                    max = level
+                    tmp_profile = profile[i]
+                end
+            end
+            for i,j in pairs(Line_profile_id) do
+                if j == tmp_profile then
+                    return tostring(i)
+                end
+            end
+	else
+	    return "0"
+	end
+    end,
+    X_000E50_POSConfig = function (mapping, paramname, key)
+        local res = ""
+        binding.sectionname = key
+        binding.option = "config"
+        local config =uci_helper.get_from_uci(binding)
+        if config:match("fxsdev") then
+            posconfigbinding.config = config
+            posconfigbinding.sectionname = key
+            res =  tostring(cvtInt2Boolean[uci_helper.get_from_uci(posconfigbinding)])
+        end
+        return res
+    end
+}
+
+
+Multi_Services_VoiceService_i_PhyInterface_i_.set = {
+    X_000E50_ShutdownEnable = function (mapping, paramname, paramvalue, key)
+       binding.sectionname = key
+       binding.option = "config"
+       local config = uci_helper.get_from_uci(binding)
+       if config ~= "" then
+           shutdownbinding.config = config
+           shutdownbinding.sectionname = key
+           uci_helper.set_on_uci(shutdownbinding, paramvalue,  commitapply)
+           transactions[shutdownbinding.config] = true
+       end
+    end,
+    X_000E50_LineReversal = function (mapping, paramname, paramvalue, key)
+       binding.sectionname = key
+       binding.option = "config"
+       local config = uci_helper.get_from_uci(binding)
+       if string.match(config, "fxsdev") == "fxsdev" then
+           linereversalbinding.config = config
+           linereversalbinding.sectionname = key
+           uci_helper.set_on_uci(linereversalbinding, paramvalue,  commitapply)
+           transactions[linereversalbinding.config] = true
+       else
+           return nil, "Only FXS ports support line reversal"
+       end
+    end,
+    X_BELGACOM_LineID = function (mapping, paramname, paramvalue, key)
+       local object = outgoing[key]
+       if object and object.profile and object.priority then
+           local profile = object.profile
+           local priority = object.priority
+           local highest_prio = 10
+           local lowest_prio = 0
+           local value = tonumber(paramvalue)
+           local flag_prof = false
+           local Line_profile = ""
+           local temp_profile = {}
+           local tmp = {}
+           if value > #Line_profile_id then
+               return nil, "Invalid Line ID"
+           else
+               Line_profile = Line_profile_id[value]
+           end
+           for i=1, #profile do
+               if(profile[i] == Line_profile) then
+                   flag_prof = true
+               end
+           end
+           for i,j in pairs(priority) do
+               temp_profile[j] = profile[i]
+               if highest_prio > tonumber(j) then
+                   highest_prio = tonumber(j)
+               end
+               if lowest_prio < tonumber(j) then
+                   lowest_prio = tonumber(j)
+               end
+           end
+           tmp = temp_profile
+           if flag_prof then
+               for i,j in pairs(temp_profile) do
+                 if (Line_profile == j and tonumber(i) ~= highest_prio) then
+                     local hp = tostring(highest_prio)
+                     tmp[i] = tmp[hp]
+                     tmp[hp] = j
+                 end
+               end
+           else
+               local new_profile = Line_profile_id[value]
+               local lp = tostring(lowest_prio+1)
+               for i,j in pairs(temp_profile) do
+                   if tonumber(i) == highest_prio then
+                       local tmp_profile = tmp[i]
+                       tmp[i] = new_profile
+                       tmp[lp] = tmp_profile
+                   end
+                end
+           end
+           local index = 1
+           for i,j in pairs(tmp) do
+               priority[index] = i
+               profile[index] = j
+               index = index+1 
+           end
+           binding.sectionname = object['.name']
+           binding.option = "profile"
+           uci_helper.set_on_uci(binding, profile, commitapply)
+           binding.option = "priority"
+           uci_helper.set_on_uci(binding, priority, commitapply)
+           transactions[binding.config] = true
+	else
+           return nil, "No valid outgoing map found"
+	end
+    end,
+    X_000E50_POSConfig = function (mapping, paramname, paramvalue, key)
+        binding.sectionname = key
+        binding.option = "config"
+        local config = uci_helper.get_from_uci(binding)
+        if config:match("fxsdev") then
+           posconfigbinding.config = config
+           posconfigbinding.sectionname = key
+           uci_helper.set_on_uci(posconfigbinding, paramvalue,  commitapply)
+           transactions[posconfigbinding.config] = true
+        else
+           return nil, "Only FXS ports support POS"
+        end
+    end,
+    X_BELGACOM_VoiceProfileID = function (mapping, paramname, paramvalue, key)
+        return true
+    end
+}
+
+Multi_Services_VoiceService_i_PhyInterface_i_.commit = Commit
+
+Multi_Services_VoiceService_i_PhyInterface_i_.revert = Revert
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_Services_VoiceService_i_PhyInterface_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local Multi_Services_VoiceService_i_PhyInterface_i_Tests_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.PhyInterface.{i}.Tests.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            PhoneConnectivity = {
+                access = "readOnly",
+                type = "boolean",
+            },
+            TestState = {
+                access = "readWrite",
+                type = "string",
+                enumeration = {
+                    "None",
+                    "Requested",
+                    "Complete",
+                    "Error_TestNotSupported",
+                },
+            },
+            TestSelector = {
+                access = "readWrite",
+                type = "string",
+                enumeration = {
+                    "PhoneConnectivityTest",
+                    "X_ATT_RingNow"
+                },
+                max = "64",
+            },
+        }
+    }
+}
+
+local TestStateMap = {
+  ["None"] = "None",
+  ["Requested"] = "Requested",
+  ["Complete"] = "Complete",
+  ["Failure"] = "Error_TestNotSupported",
+}
+local PhoneConnectivityMap = {
+  ["true"] = "1",
+  ["false"] = "0",
+}
+
+local function getTests(mapping, param, key)
+    if param  == "TestSelector" then
+        return selector
+    end
+
+    if selector == "PhoneConnectivityTest" then
+        local test = conn:call("mmbrcmfxs.debug.slic.test", "get", {["device"]=key,["cmdparms"]="PhoneConnectivityTest"})
+        if test then
+            local val = test[param]
+            if param == "TestState" then
+                return TestStateMap[val] or ""
+            else
+                return PhoneConnectivityMap[val] or "0"
+            end
+        end
+    else
+            if param == "TestState" then
+                return "None"
+            end
+    end
+    return ""
+end
+
+Multi_Services_VoiceService_i_PhyInterface_i_Tests_.get = getTests
+Multi_Services_VoiceService_i_PhyInterface_i_Tests_.set = {
+    TestSelector = function (mapping, param, value, key)
+        selector = value
+    end,
+
+    TestState = function (mapping, param, value, key)
+        if (value == "Requested") then
+            if(selector == "PhoneConnectivityTest") then
+                conn:call("mmbrcmfxs.debug.slic.test", "set", {["device"]=key,["cmdparms"]="PhoneConnectivityTest"})
+            else
+                conn:call("mmbrcmfxs.debug.ringing", "set", {["device"]=key,["cmdparms"]="30"})
+            end
+        else
+            return nil, "not supported"
+        end
+    end,
+}
+
+duplicates = duplicator(Multi_Services_VoiceService_i_PhyInterface_i_Tests_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local Multi_Services_VoiceService_i_PhyInterface_i_X_000E50_Codec_ = {
+objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.PhyInterface.{i}.X_000E50_Codec.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = { }
+             }
+}
+
+duplicates = duplicator(Multi_Services_VoiceService_i_PhyInterface_i_X_000E50_Codec_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+   register(dupli)
+end
+
+local Multi_Services_VoiceService_i_PhyInterface_i_X_000E50_Codec_List_i_ = {
+objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.PhyInterface.{i}.X_000E50_Codec.List.{i}.",
+        access = "readOnly",
+        minEntries = 0,
+        numEntriesParameter = "ListNumberOfEntries",
+        maxEntries = math.huge,
+        parameters = {
+            EntryID = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+            },
+            Codec = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "string",
+                max = "64",
+            },
+            BitRate = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+            },
+            PacketizationPeriod = {
+                access = "readWrite",
+                activeNotify = "canDeny",
+                type = "string",
+                enumeration = {
+                    "10",
+                    "20",
+                    "30",
+                }
+            },
+            SilenceSuppression = {
+                access = "readWrite",
+                activeNotify = "canDeny",
+                type = "boolean",
+            },
+            Enable = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            Priority = {
+                access = "readWrite",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+            },
+        }
+    }
+}
+
+local content_codecs = { }
+Multi_Services_VoiceService_i_PhyInterface_i_X_000E50_Codec_List_i_.entries = function(mapping, parentkey, grandkey)
+    local entry = 0
+    local codecs = {}
+    local entries = {}
+    if grandkey:match("INTUA") then
+        return entries
+    end
+    local dev_binding = { config = "mmpbxbrcmfxsdev", sectionname = parentkey, option = "codec_black_list"}
+    local blackList =  uci_helper.get_from_uci(dev_binding)
+    if type(blackList) == "table" then
+        blackList = table.concat(blackList, " ")
+    end
+    local binding = { config = "mmpbx" , sectionname = "codec_filter"}
+    uci_helper.foreach_on_uci(binding, function(s)
+        if s.name ~= "telephone-event" and (not blackList:match(s.name)) then
+            entry = entry + 1
+            if not s._key then
+                binding.sectionname = s[".name"]
+                binding.option = "_key"
+                set_on_uci(binding, tostring(entry), commitapply)
+                uci_helper.commit(binding)
+            end
+            if ((s.media_filter == "media_filter_audio_sip") or (s.media_filter == "media_filter_audio_generic")) and not codecs[s.name] then
+                entries[#entries + 1] = format("%s|%s|%s", entry, s.name, parentkey )
+                content_codecs[tostring(entry)] = s
+                codecs[s.name] = true
+            end
+        end
+    end)
+    return entries
+end
+
+local cvtBoolean = setmetatable({
+    ['0'] = '1',
+    ['1'] = '0',
+}, mt)
+
+local mt = { __index = function() return "" end }
+
+local codec_rates = setmetatable({
+    PCMU = "64000",
+    PCMA = "64000",
+    G722 = "64000",
+    ["G726-16"] = "16000",
+    ["G726-24"] = "24000",
+    ["G726-32"] = "32000",
+    ["G726-40"] = "40000",
+    G729 = "8000",
+    G723 = "6300",
+    AMR = "12200",
+    ILBC = "8000",
+    ["AMR-WB"] = "16000"
+}, mt)
+
+local codec_map = {
+    EntryID = function(s)
+        return s._key
+    end,
+    Codec   = "name",
+    BitRate = function(s)
+        return codec_rates[s.name]
+    end,
+    PacketizationPeriod = "packetization_time",
+    SilenceSuppression = function(s)
+        return cvtBoolean[s.remove_silence_suppression]
+    end,
+    Enable = function(s, pos)
+        if pos =="1" then
+            if ((s.name == "PCMA") or (s.name == "PCMU")) then
+                return s.allow
+            else
+                return "0"
+            end
+        end
+        return s.allow
+    end,
+    Priority = "priority"
+}
+
+local set_codec_map = {
+      PacketizationPeriod = "packetization_time",
+      SilenceSuppression = function(codec_section, value)
+          value = cvtBoolean[value]
+          binding.option = "remove_silence_suppression"
+          set_on_uci(binding, value, commitapply)
+          transactions[binding.config] = true
+          return true
+      end,
+      Enable  = function(codec_section, value, pos)
+          if (pos == "0" or (pos == "1" and ((codec_section.name == "PCMA") or (codec_section.name == "PCMU")))) then
+              binding.option = "allow"
+              set_on_uci(binding, value, commitapply)
+              transactions[binding.config] = true
+              return true
+          else
+              return nil, "POS is Enabled, codecs cannot be enabled/disabled temporarily"
+          end
+      end,
+      Priority  = "priority"
+}
+
+Multi_Services_VoiceService_i_PhyInterface_i_X_000E50_Codec_List_i_.get = function(mapping, paramname, key)
+    local id, devName = match(key, "^(.*)|.*|(.*)")
+    local s = content_codecs[id]
+    local pos_binding = { config = "mmpbxbrcmfxsdev", sectionname = devName, option = "pos"}
+    local posEnabled = uci_helper.get_from_uci(pos_binding)
+    if codec_map[paramname] then
+        if type(codec_map[paramname]) == "function" then
+            return codec_map[paramname](s, posEnabled)
+        else
+            return s[codec_map[paramname]] or ""
+        end
+    end
+end
+
+Multi_Services_VoiceService_i_PhyInterface_i_X_000E50_Codec_List_i_.set = function(mapping, paramname, value, key)
+    local id, codecName, devName = match(key, "^(.*)|(.*)|(.*)")
+    local object = content_codecs[id]
+    local pos_binding = { config = "mmpbxbrcmfxsdev", sectionname = devName, option = "pos"}
+    local posEnabled = uci_helper.get_from_uci(pos_binding)
+    if set_codec_map[paramname] then
+        binding.sectionname = object['.name']
+        if type(set_codec_map[paramname]) == "function" then
+            local state, err = set_codec_map[paramname](object, value, posEnabled)
+            transactions[binding.config] = true
+            if err then
+                return state, err
+            else
+                return state
+            end
+        elseif type(set_codec_map[paramname]) == "string" then
+            binding.option = set_codec_map[paramname]
+            set_on_uci(binding, value, commitapply)
+            transactions[binding.config] = true
+            return true
+        end
+    end
+    return nil, "Not supported currently"
+end
+
+Multi_Services_VoiceService_i_PhyInterface_i_X_000E50_Codec_List_i_.commit = Commit
+
+Multi_Services_VoiceService_i_PhyInterface_i_X_000E50_Codec_List_i_.revert = Revert
+
+duplicates = duplicator(Multi_Services_VoiceService_i_PhyInterface_i_X_000E50_Codec_List_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
+
+for _, dupli in ipairs(duplicates) do
+    register(dupli)
+end
+

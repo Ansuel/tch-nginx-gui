@@ -1,0 +1,78 @@
+local mobiled_device_capabilities_ = {
+    objectType = {
+        name = 'rpc.mobiled.device.@.capabilities.',
+        access = 'readOnly',
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            supported_modes = {
+                access = "readOnly",
+                type = "string"
+            },
+            max_data_sessions = {
+                access = "readOnly",
+                type = "unsignedInt"
+            },
+            supported_bands_lte = {
+                access = "readOnly",
+                type = "string"
+            },
+            supported_bands_umts = {
+                access = "readOnly",
+                type = "string"
+            },
+            supported_bands_gsm = {
+                access = "readOnly",
+                type = "string"
+            },
+            supported_bands_cdma = {
+                access = "readOnly",
+                type = "string"
+            },
+            band_selection_support = {
+                access = "readOnly",
+                type = "string"
+            },
+            strongest_cell_selection = {
+                access = "readOnly",
+                type = "boolean"
+            },
+            manual_plmn_selection = {
+                access = "readOnly",
+                type = "boolean"
+            },
+            arfcn_selection_support = {
+                access = "readOnly",
+                type = "string"
+            },
+            sms_sending = {
+                access = "readOnly",
+                type = "boolean"
+            },
+            sms_reading = {
+                access = "readOnly",
+                type = "boolean"
+            },
+        }
+    }
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+    return
+end
+
+local helper = require("mobiled.scripthelpers")
+
+local function getall(mapping, key)
+    return helper.getUbusData(conn, "mobiled.device", "capabilities", { dev_idx = tonumber(string.match(key, '%d')) })
+end
+
+local function get(mapping, paramName, key)
+    return getall(mapping, key)[paramName]
+end
+
+mobiled_device_capabilities_.getall = getall
+mobiled_device_capabilities_.get = get
+
+register(mobiled_device_capabilities_)

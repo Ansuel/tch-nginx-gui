@@ -1,0 +1,213 @@
+--NG-????? ResetButton and friendlyName on LAN-Interface Page
+local mapper = mapper
+local config_network = "network"
+local type = type
+local concat = table.concat
+local uci_1to1 = mapper("uci_1to1")
+local uci_helper = mapper("ucihelper")
+
+-- uci.network
+uci_1to1.registerConfigMap(config_network)
+
+-- uci.network.config.
+local network_config = {
+    config = config_network,
+    section = "config",
+    type = "config",
+    options = { "wan_mode" }
+}
+
+-- now, we need to make sure the section exists. Create it if it does not
+local uh = mapper("ucihelper")
+uh.set_on_uci({ config = "network", sectionname = "config"}, "config")
+uh.commit({config = "network"})
+
+uci_1to1.registerSimpleMap(network_config)
+
+-- uci.network.interface.{i}
+local network_interface = {
+    config = config_network,
+    type = "interface",
+    options = { "proto", "ifname", "type", "stp", "macaddr", "mtu", "auto", "accept_ra", "send_rs", "ipaddr",
+        "netmask", "gateway", "broadcast", "ip6addr", "ip6gw", "ip6assign", "ip6hint", "ip6prefix", "metric",
+        "hostname", "clientid", "vendorclass", "peerdns", "reqaddress", "reqprefix", "noslaaconly",
+        "norelease", "device", "username", "connect", "disconnect", "keepalive", "demand", "defaultroute",
+        "ipv6", "pppd_options", "ac", "service", "vci", "vpi", "atmdev", "encaps", "apn", "pincode", "maxwait",
+        "peeraddr", "ttl", "wan_device", "tunnelid", "adv_interface", "adv_subnet", "adv_valid_lifetime",
+        "adv_preferred_lifetime", "ip4table", "ip6table", "dnsset", "domain", "iface6rd", "reqopts",
+        "peer6addr", "tunlink", "ip4prefixlen", "ip6prefixlen", "zone", "ikey", "okey", "icsum", "ocsum", "iseqno", "ipv6",
+        "oseqno", "weakif", "network", "server", "buffering", "df", "sourcerouting", "iface", "updatekey", "profile", "pdnid",
+        "session_id", "force_link", "srcintf", "connect_time", "lease", "lease_expires", "neighreachabletime", "neighgcstaletime",
+        "delegate", "igmpversion", "enabled", "graceful_restart", "unnumbered", "dadtransmits", "sendopts", "authfail", "vendorid","name",
+        "bridge_flag",
+    },
+    passwords = {
+        "password"
+    },
+    lists = {
+        "dns", "ip6class", "pppoerelay"
+    }
+}
+
+-- Funny story about the interface section in UCI and netifd: apparently
+-- in some scenarios the 'ifname' parameter MUST be an option, in some
+-- other scenarios it CAN be a list and in even some other scenarios
+-- it MUST be a list.
+-- The 1-to-1 helper doesn't support this schizophrenia so we have to
+-- resort to some trickery: we use the helper as much as possible but
+-- wrap the get(), getall() and set() functions in a version that
+-- handles 'ifname' in a custom way. Towards the Transformer clients
+-- we always show the parameter as a space separated option.
+local intf_mapping = uci_1to1.createNamedMultiMap(network_interface)
+
+local function get_from_config(key, paramname)
+  local binding = {
+      config = config_network,
+      sectionname = key,
+      option = paramname,
+      state = false,
+  }
+  local value = uci_helper.get_from_uci(binding)
+  if type(value) == "table" then
+    value = concat(value, " ")
+  end
+  return value
+end
+
+local orig_get = intf_mapping.get
+intf_mapping.get = function(mapping, paramname, key, ...)
+  local value = orig_get(mapping, paramname, key, ...)
+  if paramname == "ifname" then
+    return get_from_config(key, paramname)
+  end
+  return value
+end
+
+local orig_getall = intf_mapping.getall
+intf_mapping.getall = function(mapping, key, ...)
+  local values = orig_getall(mapping, key, ...)
+  values.ifname = get_from_config(key, "ifname")
+  return values
+end
+
+local orig_set = intf_mapping.set
+intf_mapping.set = function(mapping, paramname, paramvalue, ...)
+  if paramname == "ifname" then
+    local iftype = orig_get(mapping, "type", ...)
+    if iftype == "bridge" then
+      local values = {}
+      for value in paramvalue:gmatch("(%S+)%s*") do
+        values[#values + 1] = value
+      end
+      return orig_set(mapping, paramname, values, ...)
+    end
+  end
+  return orig_set(mapping, paramname, paramvalue, ...)
+end
+register(intf_mapping)
+uci_1to1.registerSubmaps(intf_mapping.submappings)
+
+
+-- uci.network.alias.{i}
+local network_alias = {
+    config = config_network,
+    type = "alias",
+    options = {
+        "interface", "proto", "ipaddr", "netmask", "gateway", "broadcast", "ip6addr", "ip6gw", "layer",
+    },
+    lists = {
+        "dns",
+    }
+}
+
+uci_1to1.registerMultiMap(network_alias )
+
+-- uci.network.route.{i}
+local network_route = {
+    config = config_network,
+    type = "route",
+    options = {
+        "interface", "target", "netmask", "gateway", "metric", "mtu", "table", "_key",
+    }
+}
+
+uci_1to1.registerMultiMap(network_route )
+
+-- uci.network.disabled_route.{i}
+local network_disabled_route = {
+    config = config_network,
+    type = "disabled_route",
+    options = {
+        "interface", "target", "netmask", "gateway", "metric", "mtu", "table", "_key",
+    }
+}
+
+uci_1to1.registerMultiMap(network_disabled_route )
+
+-- uci.network.route6.{i}
+local network_route6 = {
+    config = config_network,
+    type = "route6",
+    options = {
+        "interface", "target", "gateway", "metric", "mtu",
+    }
+}
+
+uci_1to1.registerMultiMap(network_route6)
+
+-- uci.network.device.{i}
+local network_device = {
+    config = config_network,
+    type = "device",
+    options = {
+        "type", "ifname", "name", "vid", "enabled", "macaddr", "ipv6", "mtu", "igmpversion",
+    }
+}
+
+uci_1to1.registerNamedMultiMap(network_device)
+
+-- uci.network.bcmvopi.{i}
+local network_bcmvopi = {
+    config = config_network,
+    type = "bcmvopi",
+    options = {
+        "if", "vid", "pbits", "defvid"
+    }
+}
+
+uci_1to1.registerNamedMultiMap(network_bcmvopi)
+
+-- uci.network.switch.{i}
+local network_switch = {
+    config = config_network,
+    type = "switch",
+    options = {
+        "enable_vlan", "reset", "type", "unit", "jumbo", "qosdscp2priomap", "qospcp2priomap",
+        "qosimppauseenable"
+    }
+}
+
+uci_1to1.registerNamedMultiMap(network_switch)
+
+-- uci.network.switch_vlan.{i}
+local network_switchvlan = {
+    config = config_network,
+    type = "switch_vlan",
+    options = {
+        "device", "vlan", "ports"
+    }
+}
+
+uci_1to1.registerNamedMultiMap(network_switchvlan)
+
+-- uci.network.pppoe_login
+-- these settings are used to acquire login credentials
+-- to PPPoE networks via transformer
+local network_pppoe_login = {
+    config = config_network,
+    section = "pppoe_login",
+    type = "saved_info",
+    options = { "username", "password" }
+}
+
+uci_1to1.registerSimpleMap(network_pppoe_login)

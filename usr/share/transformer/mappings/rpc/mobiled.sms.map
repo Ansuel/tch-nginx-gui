@@ -1,0 +1,78 @@
+local tonumber, pairs = tonumber, pairs
+
+local obj = {
+    objectType = {
+        name = "rpc.mobiled.device.@.sms.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            delete = {
+                access = "readWrite",
+                type = "unsignedInt",
+            },
+            markread = {
+                access = "readWrite",
+                type = "unsignedInt",
+            },
+            markunread = {
+                access = "readWrite",
+                type = "unsignedInt",
+            },
+            send = {
+                access = "readWrite",
+                type = "string",
+            }
+        }
+    }
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+    return
+end
+
+local function get(mapping, paramName, key)
+    return ""
+end
+
+local function set(mapping, paramName, paramValue, key)
+    local dev_idx = tonumber(string.match(key, '%d+')) or 1
+    if #paramValue > 0 then
+        if paramName == "markread" then
+            conn:call("mobiled.sms", "set_status", { dev_idx = dev_idx, id = tonumber(paramValue), status = "read" })
+            return true
+        elseif paramName == "markunread" then
+            conn:call("mobiled.sms", "set_status", { dev_idx = dev_idx, id = tonumber(paramValue), status = "unread" })
+            return true
+        elseif paramName == "delete" then
+            conn:call("mobiled.sms", "delete", { dev_idx = dev_idx, id = tonumber(paramValue) })
+            return true
+        elseif paramName == "send" then
+            local number, message = paramValue:match("([^;]+);([^;]+)")
+            if #number >= 4 and #number <= 22 and #message <= 240 then
+                local result = conn:call("mobiled.sms", "send", { dev_idx = dev_idx, number = number, message = message })
+                if result ~= nil then
+                    local error = nil
+                    for k,v in pairs(result) do
+                        if k == "error" then
+                            error = v
+                        end
+                    end
+                    if error ~= nil then
+                        return false
+                    end
+                end
+                return true
+            end
+            return false
+        end
+    end
+    return false
+end
+
+obj.get = get
+obj.set = set
+
+register(obj)
+

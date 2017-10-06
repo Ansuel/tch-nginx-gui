@@ -1,0 +1,92 @@
+local mapper = mapper
+
+local obj = {
+	objectType = {
+		name = "#ROOT.",
+		access = "readOnly",
+		minEntries = 1,
+		maxEntries = 1,
+		parameters = {
+			RoamingEnabled = {
+				access = "readWrite",
+				type = "boolean",
+				default = "false"
+			},
+			RoamingStatus = {
+				access = "readOnly",
+				type = "string",
+				enumeration = {
+					"Home",
+					"Roaming"
+				}
+			}
+		}
+	}
+}
+
+local helper = require("mobiled.scripthelpers")
+local uci_helper = mapper("ucihelper")
+local forEachOnUci = uci_helper.foreach_on_uci
+local deviceBinding = {config="mobiled", sectionname= "device_defaults", option = "roaming"}
+local binding = {config="mobiled", sectionname= "device"}
+local mobiledBinding = {config="mobiled"}
+
+local conn = mapper("ubus").connect()
+if not conn then
+	return
+end
+
+local function getFromMobiledDevice()
+        return uci_helper.get_from_uci(deviceBinding)
+end
+
+local function setOnMobiledDevice(param, val)
+        forEachOnUci(binding, function(s)
+              mobiledBinding.sectionname = s[".name"]
+              mobiledBinding.option = param
+              uci_helper.set_on_uci(mobiledBinding, val, commitapply)
+              uci_helper.commit(mobiledBinding)
+        end)
+        uci_helper.set_on_uci(deviceBinding, val, commitapply)
+        uci_helper.commit(deviceBinding)
+end
+
+local function getall(mapping)
+	local data = {}
+	setmetatable(data, { __index = function() return "" end })
+
+	local roaming = getFromMobiledDevice('roaming')
+	if not roaming or roaming == '' then
+		roaming = '1'
+	end
+
+	data.RoamingEnabled = roaming
+	local info = helper.getUbusData(conn, "mobiled.network", "serving_system", {})
+	if info.roaming_state == "roaming" then
+		data.RoamingStatus = "Roaming"
+	elseif info.roaming_state == "home" then
+		data.RoamingStatus = "Home"
+	end
+	return data
+end
+
+local function get(mapping, paramName)
+	return getall(mapping)[paramName]
+end
+
+local set = {
+	RoamingEnabled = function(mapping, paramname, paramvalue)
+		setOnMobiledDevice("roaming", paramvalue)
+	end
+}
+
+obj.getall = getall
+obj.get = get
+obj.set = set
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(obj, "#ROOT", {"InternetGatewayDevice.X_000E50_Cellular", "Device.Cellular"})
+for _, dupli in ipairs(duplicates) do
+	register(dupli)
+end
+

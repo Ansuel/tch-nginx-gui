@@ -1,0 +1,27 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_ = {
+  objectType = {
+    name = "Device.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      RootDataModelVersion = {
+        access = "readOnly",
+        forcedInform = "true",
+        type = "string",
+        max = "32",
+      },
+      -- InterfaceStackNumberOfEntries
+      -- automatically created when Device.InterfaceStack.{i}. is loaded
+    }
+  }
+}
+
+Device_.get = {
+  -- this value is hardcoded since the approach to get the version is not clear
+  RootDataModelVersion = "2.10"
+}
+
+register(Device_)

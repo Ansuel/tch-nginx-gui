@@ -1,0 +1,476 @@
+--NG-102389 TI VBNT-K : Devices connected in WiFi is Listed under Ethernet Interface
+local register = register
+local mapper = mapper
+local pairs, error = pairs, error
+local string = string
+local nwcommon = mapper("nwcommon")
+local conn = mapper("ubus").connect() -- Opens connection to UBUS to retrieve data.
+local lanInterfacesCache --These will cache the lan interfaces, based on the firewall config
+local hostsCache -- This cache will be used , instead of getting value from ubus call everytime.
+local match, gmatch = string.match, string.gmatch
+local uciHelper = mapper("ucihelper")
+local dhcpBinding = { config = "dhcp", sectionname = "host" }
+local staticLeases = {}
+
+--rpc.hosts
+local rpc_host_ = {
+  objectType = {
+    name = "rpc.hosts.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {},
+  }
+}
+
+local function isInterfaceInList(interfacesList, interface)
+  if not interfacesList then
+    error("Interfaces list is nil")
+  end
+  for _, intf in pairs(interfacesList) do
+    if interface == intf then
+      return true
+    end
+  end
+  return false
+end
+
+local function isLanInterface(interface)
+        return isInterfaceInList(lanInterfacesCache, interface)
+end
+
+-- wirelessRadio is used to retrieve radio name . if it's remotely managed and intergrated ap.
+-- ssid is used to  retrieved macaddr and intftype. if ssid name and wirelessradio matches.
+-- radioremote is used only when retrieved mac address equals brodcast mac means , seprate ubus call is made to retrieve macaddress and intftype of remotely managed device.
+-- intftype and macAddr is interface type and Mac address for remotely managed device.
+
+local intfType, macAddr, keyValue
+local envMac = string.lower(uciHelper.get_from_uci({ config = "env", sectionname = "var", option = "qtn_eth_mac" }))
+local is_Remotely_Mangd_And_Integrated_Ap_Call = false
+local function getExternalWifiIntfType()
+  local ssid
+  if intfType and macAddr then
+     return intfType, macAddr
+  end
+  if not keyValue and is_Remotely_Mangd_And_Integrated_Ap_Call == false then
+    local wirelessRadio = conn:call("wireless.radio", "get" , {})
+    for key, value in pairs(wirelessRadio) do
+      if value["remotely_managed"] == 1 and value["integrated_ap"] == 1 then
+        keyValue = key
+        is_Remotely_Mangd_And_Integrated_Ap_Call = true
+        break
+      end
+    end
+  end
+  if (keyValue) then
+    ssid = conn:call("wireless.ssid", "get", {})
+    if not ssid then
+      return intfType, macAddr
+    end
+    --get radio-remote information
+    local radioremoteMAC, radioremoteIntf
+    local radioremote, errmsg = conn:call("wireless.radio.remote", "get", { name = keyValue })
+    if radioremote then
+      local _, v = next(radioremote)
+      if v then
+        radioremoteMAC = v["macaddr"]
+        radioremoteIntf = v["ifname"]
+      end
+    end
+    for _,l in pairs(ssid) do
+      if l["radio"] == keyValue then
+        local result = ("0x" .. string.sub(l["mac_address"],(#l["mac_address"] -1)))
+        local obtMacAddr = string.format("%02x",((result -1)%256))
+	local mac_prefix = string.sub(l["mac_address"], 1, (#l["mac_address"] -2))
+	macAddr = string.format("%s%s", mac_prefix, obtMacAddr)
+        if envMac == macAddr then
+          break
+	end
+      end
+      -- In case the ssid is remotely managed, integrated and disabled, the received macaddress via wireless.ssid  is 0,
+      -- then we need to get the mac via wireless.radio.remote
+      if ((macAddr == "ff:ff:ff:ff:ff:ff" ) and keyValue ) then
+        if not intfType or not macAddr then
+          macAddr = radioremoteMAC
+          intfType = radioremoteIntf
+        end
+      end
+    end
+    if not intfType  then
+      for _,w in pairs(hostsCache) do
+        if w["mac-address"] == macAddr then
+          intfType= w["l2interface"]
+        end
+      end
+    end
+    --Bridged to Routed mode change will not have host for Quantenna, intfType will not be available.
+    if not intfType and macAddr == radioremoteMAC then
+      intfType = radioremoteIntf
+    end
+  else
+    macAddr = envMac
+  end
+  return intfType, macAddr
+end
+
+local function updateLanCache()
+  --Update the hosts cache from hostmanager
+  hostsCache = conn:call("hostmanager.device", "get", {})
+  if not hostsCache then
+    error("retrieving hosts failed")
+  end
+  --Update the lan interfaces cache
+  lanInterfacesCache = nwcommon.findLanWanInterfaces(false)
+end
+
+register(rpc_host_)
+
+-- sys.hosts.host.{i}
+local rpc_hosts_host_i_ = {
+  objectType = {
+    name = "rpc.hosts.host.{i}.",
+    access = "readWrite",
+    numEntriesParameter = "HostNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      IPAddress = {
+        access = "readOnly",
+        type = "string",
+      },
+      MACAddress = {
+        access = "readOnly",
+        type = "string",
+      },
+     L2Interface = {
+         access = "readOnly",
+         type = "string",
+      },
+      State = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      Delete = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      DeviceType = {
+        access = "readWrite",
+        type = "string",
+      },
+      Port = {
+        access = "readOnly",
+        type = "string",
+      },
+      FriendlyName = {
+        access = "readWrite",
+        type = "string",
+      },
+      DhcpTag = {
+        access = "readOnly",
+        type = "string",
+      },
+      DhcpVendorClass = {
+        access = "readOnly",
+        type = "string",
+      },
+      LeaseType = {
+        access = "readOnly",
+        type = "string",
+      },
+      ConnectedTime = {
+         access = "readOnly",
+         type = "string",
+      },
+      DhcpLeaseTime = {
+         access = "readOnly",
+         type = "string",
+      },
+      DhcpLeaseIP = {
+         access = "readOnly",
+         type = "string",
+      },
+	  	  SSID = {
+        access = "readOnly",
+        type = "string",
+      },
+    }
+  }
+}
+
+local function loadStaticLeases()
+  uciHelper.foreach_on_uci(dhcpBinding, function(s)
+    if s.mac then
+      staticLeases[s.mac] = s.ip
+    end
+  end)
+end
+
+-- Convert a device key to device information
+local function key2dev(key)
+  -- only one entry should be present
+  for _,v in pairs(hostsCache) do
+    if v and v["mac-address"] == key then
+      return v
+    end
+  end
+  return device
+end
+
+local dhcpInfo
+local function updateDhcpInfo()
+  dhcpInfo = {}
+  local fd = io.open("/tmp/dhcp.leases", "r")
+  if fd then
+    for line in fd:lines() do
+      local leasetime, macaddr, ip, hostname = line:match("(%d+)%s+(%x%x:%x%x:%x%x:%x%x:%x%x:%x%x)%s+(%S+)%s+(%S+)%s+")
+      dhcpInfo[macaddr] = {
+          DhcpLeaseTime = leasetime,
+          hostname = hostname,
+          DhcpLeaseIP = ip,
+        }
+    end
+    fd:close()
+  end
+  local key
+  for _, host in pairs(hostsCache) do
+    key = host["mac-address"]
+    dhcpInfo[key] = dhcpInfo[key] or {}
+    for _, ipdata in pairs(host["ipv4"]) do
+      if ipdata["dhcp"] then
+         dhcpInfo[key]["DhcpTag"] = ipdata["dhcp"]["tags"] or ""
+         dhcpInfo[key]["DhcpVendorClass"] = ipdata["dhcp"]["vendor-class"] or ""
+         break
+      end
+    end
+  end
+end
+
+-- Extract an IP address from the given value and add it to the list
+local function extractAddress(value, addresses)
+  if value["state"] == "connected" then
+    if addresses == "" then
+      addresses = value["address"]
+    else
+      addresses = addresses .. " " .. value["address"]
+    end
+  end
+  return addresses
+end
+
+rpc_hosts_host_i_.entries = function(mapping)
+  --Update the interfaces and hosts cache - every time someone starts iteration on the hosts
+  updateLanCache()
+  loadStaticLeases()
+  updateDhcpInfo()
+  local _, macAddr = getExternalWifiIntfType()
+  local Hosts = {}
+  for _, v in pairs(hostsCache) do
+    if (v["technology"] == "wireless" or v["technology"] == "ethernet") and (isLanInterface(v["interface"]) or v["technology"] == "wireless" ) and(v["mac-address"] ~= macAddr)  then
+        Hosts[#Hosts+1] = v["mac-address"]
+    end
+  end
+  return Hosts
+end
+
+-- Only connected IP address are retrieved with this parameter
+local function extractIPAddresses(dev)
+  if not dev then
+    return ""
+  end
+
+  local addresses = ""
+  -- Extract IPv4 addresses
+  if dev["ipv4"] then
+    for _,value in pairs(dev["ipv4"]) do
+      addresses = extractAddress(value, addresses)
+    end
+  end
+  -- Extract IPv6 addresses
+  if dev["ipv6"] then
+    for _,value in pairs(dev["ipv6"]) do
+      addresses = extractAddress(value, addresses)
+    end
+  end
+  return addresses
+end
+
+local function extractL2Interface(dev)
+  local intfType, macAddr = getExternalWifiIntfType()
+  if dev and dev["mac-address"] ~= macAddr and dev["l2interface"] == intfType then
+    return "wl1"
+  else
+    return dev["l2interface"]
+  end
+end
+
+-- Global device/host state
+local function extractState(dev)
+  if dev and dev["state"] == "connected" then
+    return "1"
+  end
+  return "0"
+end
+
+local function extractDeviceType(dev)
+  return dev and dev["device-type"] or ""
+end
+
+local function extractFriendlyName(dev)
+  if dev and dev["user-friendly-name"] and dev["user-friendly-name"] ~= "" then
+    return dev["user-friendly-name"]
+  elseif dev["hostname"] and dev["hostname"] ~= "" then
+    return dev["hostname"]
+  else
+    return "Unknown-" .. dev["mac-address"]
+  end
+end
+
+local function extractPort(dev)
+    -- [CL] Some platforms don't have l2interfaces that make sense (e.g. without switch driver)
+    -- [CL] If the device in the hostmanager ubus call knows what port a device is attached to, let's trust it
+    -- [CL] Hacking this into the generic sys.hosts.map file until someone can explain me how to properly customize this without
+    -- [CL] copying the entire file and hence losing all future functionality/bugfixes since noone looks at our platforms anyway.
+    local intfType, macAddr = getExternalWifiIntfType()
+    if dev["switchport"] then
+        return tostring(dev["switchport"])
+    else
+        if dev["technology"] == "ethernet" and isLanInterface(dev["interface"]) and (dev["l2interface"] == intfType or dev["l2interface"] == match(dev["l2interface"], "wl%d+_%d+")) and dev["mac-address"] ~= macAddr then
+           return ""
+       elseif dev["technology"] == "ethernet" and isLanInterface(dev["interface"]) and dev["l2interface"] ~= nil then
+           local portNumber = match(dev["l2interface"],"%a*(%d+)")
+           if portNumber then
+               portNumber = portNumber + 1
+               return tostring(portNumber)
+           end
+           return ""
+       end
+       return ""
+    end
+end
+
+
+local function getLeaseType(mac)
+  local ip = extractIPAddresses(key2dev(mac))
+  if staticLeases[mac] and staticLeases[mac] == ip then
+    return "Static"
+  else
+    if dhcpInfo[mac].DhcpLeaseTime then
+      return "DHCP"
+    end
+  end
+  return ""
+end
+
+local function extractConnectedTime(dev)
+    if dev ~= nil and dev["connected_time"] ~= nil then
+        return tostring(dev["connected_time"])
+    end
+    return ""
+end
+
+rpc_hosts_host_i_.getall = function(mapping, key)
+  local dev = key2dev(key)
+  return {
+       MACAddress = key,
+       IPAddress = extractIPAddresses(dev),
+       L2Interface = extractL2Interface(dev) or "",
+       State = extractState(dev),
+       Delete = "0",
+       DeviceType = extractDeviceType(dev),
+       Port = extractPort(dev),
+       FriendlyName = extractFriendlyName(dev),
+       DhcpTag = dhcpInfo[key]["DhcpTag"] or "",
+       DhcpVendorClass = dhcpInfo[key]["DhcpVendorClass"] or "",
+       LeaseType = getLeaseType(key),
+       ConnectedTime = extractConnectedTime(dev),
+       DhcpLeaseTime= dhcpInfo[key]["DhcpLeaseTime"] or "",
+       DhcpLeaseIP= dhcpInfo[key]["DhcpLeaseIP"] or "",
+  }
+end
+
+rpc_hosts_host_i_.get = {
+  IPAddress = function(mapping, param, key)
+    return extractIPAddresses(key2dev(key))
+  end,
+  MACAddress = function(mapping, param, key)
+    return key
+  end,
+   L2Interface = function(mapping, param, key)
+    return extractL2Interface(key2dev(key)) or ""
+  end,
+  State = function(mapping, param, key)
+    return extractState(key2dev(key))
+  end,
+  Delete = "0",
+  DeviceType = function(mapping, param, key)
+    return extractDeviceType(key2dev(key))
+  end,
+  Port = function(mapping, param, key)
+    local dev = key2dev(key)
+    return extractPort(dev)
+  end,
+  FriendlyName = function(mapping, param, key)
+    return extractFriendlyName(key2dev(key))
+  end,
+  DhcpTag = function(mapping, param, key)
+    return dhcpInfo[key][param] or ""
+  end,
+  DhcpVendorClass = function(mapping, param, key)
+    return dhcpInfo[key][param] or ""
+  end,
+  LeaseType =  function(mapping, param, key)
+    return getLeaseType(key)
+  end,
+  ConnectedTime = function(mapping, param, key)
+    local dev = key2dev(key)
+    return extractConnectedTime(dev)
+  end,
+  DhcpLeaseTime = function(mapping, param, key)
+    return dhcpInfo[key][param]
+  end,
+  DhcpLeaseIP = function(mapping, param, key)
+    return dhcpInfo[key][param]
+  end,
+  SSID = function(mapping, param, key)
+	local dev = key2dev(key)
+    local iface = extractL2Interface(dev)
+	local ssid = uciHelper.get_from_uci({ config = "wireless", sectionname = iface , option = "ssid"})
+	if ssid == nil then
+		return ""
+	end
+	return ssid
+  end,
+}
+
+rpc_hosts_host_i_.set = {
+  Delete = function(mapping, param, value, key)
+    local ubusData = conn:call("hostmanager.device", "get", { ["mac-address"] = key })
+    for _, v in pairs(ubusData) do
+      if v["state"] == "connected" then
+        return nil, "Cannot delete the connected devices"
+      end
+    end
+    if value == "1" then
+      conn:call("hostmanager.device", "delete", { ["mac-address"] = key })
+    end
+  end,
+  DeviceType = function(mapping, param, value, key)
+    conn:call("hostmanager.device", "set", { ["mac-address"] = key, ["device-type"] = value })
+  end,
+  FriendlyName = function(mapping, param, value, key)
+    conn:call("hostmanager.device", "set", { ["mac-address"] = key, ["user-friendly-name"] = value })
+  end
+}
+
+rpc_hosts_host_i_.add = function(mapping, key)
+    return nil, "hostmanager device can't be added"
+end
+
+rpc_hosts_host_i_.delete = function(mapping, key)
+    local dev = key2dev(key)
+    local mac = dev["mac-address"] or ""
+    return conn:call("hostmanager.device", "delete", { ["mac-address"] = mac } )
+end
+
+register(rpc_hosts_host_i_)

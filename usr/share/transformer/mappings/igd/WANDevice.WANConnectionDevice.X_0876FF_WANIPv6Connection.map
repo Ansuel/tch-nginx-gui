@@ -1,0 +1,389 @@
+-- Manually generated
+local WANIPv6Connection = {
+  objectType = {
+    name  = "InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.X_0876FF_WANIPv6Connection.{i}.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      Reset = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      AddressingType = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "DHCPv6",
+          "6RD",
+        },
+      },
+      ConnectionStatus = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Unconfigured",
+          "Connecting",
+          "Connected",
+          "PendingDisconnect",
+          "Disconnecting",
+          "Disconnected",
+        },
+      },
+      Uptime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ExternalIPv6Address = {
+        access = "readOnly",
+        type = "string",
+      },
+      Netmask = {
+        access = "readWrite",
+        type = "string",
+      },
+      DNSEnabled = {
+        access = "readWrite",
+        type = "boolean",
+        default = "true",
+      },
+      DNSServers = {
+        access = "readOnly",  -- readWrite currently not supported
+        list = true,
+        max = "64",
+        type = "string",
+      },
+      MACAddress = {
+        access = "readOnly",  -- readWrite currently not supported
+        type = "string",
+      },
+    }
+  }
+}
+
+local mapper, tostring, register, open = mapper, tostring, register, io.open
+local inet = require "tch.inet"
+local lfs = require("lfs")
+local isValidIPv4 = inet.isValidIPv4
+local uciHelper = mapper("ucihelper")
+local common = mapper("nwcommon")
+local getIntfInfo = common.getIntfInfo
+local getFromUci = uciHelper.get_from_uci
+local setOnUci = uciHelper.set_on_uci
+local wanconnection = require 'transformer.shared.wanconnection'
+local networkBinding = { config = "network" }
+local splitKey = common.split_key
+local commitapply = commitapply
+local concat, format, remove = table.concat, string.format, table.remove
+local configChanged = false
+local getUbusInterfaceStatus = common.get_ubus_interface_status
+local xtmconnection = require 'transformer.shared.models.igd.xtmconnection'
+local device_key = xtmconnection.resolve_key
+
+WANIPv6Connection.connection = wanconnection.Connection('ipv6', commitapply)
+
+local function createDir(dirName)
+  local ok, errmsg
+  if lfs.attributes(dirName, "mode") ~= "directory" then
+    ok, errmsg  = lfs.mkdir(dirName)
+    if not ok then
+      return false, errmsg
+    end
+  end
+  return true
+end
+
+local function getUciValue(sectionName, option, default, state)
+  networkBinding.sectionname = sectionName
+  networkBinding.option = option
+  networkBinding.default = default
+  networkBinding.state = state
+  return getFromUci(networkBinding)
+end
+
+local function setUciValue(sectionName, option, value)
+  networkBinding.sectionname = sectionName
+  networkBinding.option = option
+  setOnUci(networkBinding, value, commitapply)
+  configChanged = true
+end
+
+-- List of protocols in the uci section
+local protoMap = {
+  ["dhcpv6"] = "DHCPv6",
+}
+
+local dhcpOptionMap = {
+  DNSEnabled = "23",
+}
+
+WANIPv6Connection.entries = function(mapping, parentKey)
+  local conn, keys = mapping.connection:load(parentKey)
+  for _, intf in ipairs(keys) do
+    local key = conn:getInterfaceDhcp6(intf)
+    if key then
+      return {key}
+    end
+  end
+  return {}
+end
+
+local function getConnectionStatus(intf, status)
+  status = status and status or getUbusInterfaceStatus(intf)
+  if status then
+    if status.up then
+      return "Connected"
+    elseif status.pending then
+      return "Connecting"
+    end
+  end
+  return "Disconnected"
+end
+
+local function getFirstIPv6Address(intf, status)
+  status = status and status or getUbusInterfaceStatus(intf)
+  local values = status and status['ipv6-address'] and status['ipv6-address'][1]
+  return values
+end
+
+local function getExternalIPv6Address(intf, status)
+  local ipv6 = getFirstIPv6Address(intf, status)
+  return ipv6 and ipv6.address or ""
+end
+
+local function getNetMask(intf, status)
+  local ipv6 = getFirstIPv6Address(intf, status)
+  return ipv6 and tostring(ipv6.mask) or ""
+end
+
+local function getDNSServers(intf, status)
+  status = status and status or getUbusInterfaceStatus(intf)
+  local dnsServer = status and status['dns-server'] or {}
+  return concat(dnsServer, ",")
+end
+
+local function getUptime(intf, status)
+  status = status and status or getUbusInterfaceStatus(intf)
+  if status and status.uptime then
+    return tostring(status.uptime)
+  end
+  return "0"
+end
+
+local function getDNSEnabled(param, key)
+  local reqOptsString = getUciValue(key, "reqopts")
+  local reqOpts = {}
+  for option in reqOptsString:gmatch("(%d+)") do
+    reqOpts[option] = "1"
+  end
+  return reqOpts[dhcpOptionMap[param]] or "0"
+end
+
+local function getMACAddress(parentKey)
+  local _, devName = splitKey(parentKey)
+  return getIntfInfo(device_key(devName), "address", "")
+end
+
+local function getEnable(key)
+  return getUciValue(key, "auto", "1")
+end
+
+local function getAddressingType(key)
+  return protoMap[getUciValue(key, "proto", "dhcpv6")]
+end
+
+WANIPv6Connection.get = {
+  Enable = function(mapping, param, key)
+    return getEnable(key)
+  end,
+  Reset = "0", -- as per spec, this param always returns false
+  AddressingType = function(mapping, param, key)
+    return getAddressingType(key)
+  end,
+  ConnectionStatus = function(mapping, param, key)
+    return getConnectionStatus(key)
+  end,
+  Uptime = function(mapping, param, key)
+    return getUptime(key)
+  end,
+  ExternalIPv6Address = function(mapping, param, key)
+    return getExternalIPv6Address(key)
+  end,
+  Netmask = function(mapping, param, key)
+    return getNetMask(key)
+  end,
+  DNSEnabled = function(mapping, param, key)
+    return getDNSEnabled(param, key)
+  end,
+  DNSServers = function(mapping, param, key)
+    return getDNSServers(key)
+  end,
+  MACAddress = function(mapping, param, key, parentKey)
+    return getMACAddress(parentKey)
+  end
+}
+
+WANIPv6Connection.getall = function(mapping, key, parentKey)
+  networkBinding.sectionname = key
+  networkBinding.option = nil
+  local status = getUbusInterfaceStatus(key)
+  return {
+    Enable = getEnable(key),
+    AddressingType = getAddressingType(key),
+    ConnectionStatus = getConnectionStatus(key, status),
+    Uptime = getUptime(key, status),
+    ExternalIPv6Address = getExternalIPv6Address(key, status),
+    Netmask = getNetMask(key, status),
+    DNSEnabled = getDNSEnabled("DNSEnabled", key),
+    DNSServers = getDNSServers(key, status),
+    MACAddress = getMACAddress(parentKey)
+  }
+end
+
+WANIPv6Connection.set = {
+  Enable = function(mapping, param, value, key)
+    setUciValue(key, "auto", value)
+  end,
+  Reset = function(mapping, param, value, key)
+    local ifname = getUciValue(key, "ifname", nil, false)
+    if ifname and ifname:match("^@(.+)") then
+      ifname = ifname:gsub("@","")
+    end
+    local interfaceEnabled = getUciValue(ifname, "auto", "1") ~= "0"
+    if value == "1" and interfaceEnabled then
+      local dirName = "/tmp/ipv6_intf"
+      local success, error = createDir(dirName)
+      if success then
+        local path = dirName .. "/" .. ifname
+        local fileHandler, msg = open(path,"w")
+        if fileHandler then
+          fileHandler:close()
+          commitapply:newset("InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.X_0876FF_WANIPv6Connection.{i}.Reset")
+        else
+          return nil, msg
+        end
+      else
+        return nil, error
+      end
+    end
+  end,
+  Netmask = function(mapping, param, value, key)
+    local proto = getUciValue(key, "proto", "")
+    if proto == "static" then
+      local rc, err = isValidIPv4(value)
+      if not rc then
+        return nil, err
+      end
+      setUciValue(key, "netmask", value)
+    else
+      return nil, format("the interface proto is %s instead of static", proto)
+    end
+  end,
+  DNSEnabled = function(mapping, param, value, key)
+    local reqOptsString = getUciValue(key, "reqopts")
+    local res = {}
+    for option in reqOptsString:gmatch("(%d+)") do
+      res[#res +1] = option
+    end
+    local foundPos
+    for i, v in ipairs(res) do
+      if v == dhcpOptionMap[param] then
+        foundPos = i
+        break
+      end
+    end
+    if foundPos and value == "0" then
+      remove(res, foundPos)
+    elseif not foundPos and value == "1" then
+      res[#res +1] = dhcpOptionMap[param]
+    end
+    setUciValue(key, "reqopts" , concat(res, " "))
+  end
+}
+
+WANIPv6Connection.commit = function()
+  if configChanged then
+    uciHelper.commit(networkBinding)
+    configChanged = false
+  end
+end
+
+WANIPv6Connection.revert = function()
+  if configChanged then
+    uciHelper.revert(networkBinding)
+    configChanged = false
+  end
+end
+
+register(WANIPv6Connection)
+
+-- Manually generated
+local WANIPv6Connection_Stats = {
+  objectType = {
+    name = "InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.X_0876FF_WANIPv6Connection.{i}.Stats.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+    EthernetBytesSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      EthernetBytesReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      EthernetPacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      EthernetPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      EthernetErrorsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      EthernetErrorsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+    }
+  },
+  parent = WANIPv6Connection,
+}
+
+local statsMap = {
+  EthernetBytesSent = "tx_bytes",
+  EthernetBytesReceived = "rx_bytes",
+  EthernetPacketsSent = "tx_packets",
+  EthernetPacketsReceived = "rx_packets",
+  EthernetErrorsSent = "tx_errors",
+  EthernetErrorsReceived = "rx_errors"
+}
+
+WANIPv6Connection_Stats.get = function(mapping, param, key, parentKey)
+  local status = getUbusInterfaceStatus(key)
+  local devName = status and status.device
+  if status and status.up and devName then
+    return getIntfInfo(devName, statsMap[param], "0")
+  end
+  return "0"
+end
+-- A getall implementation is not done as it will not bring any improvement
+
+register(WANIPv6Connection_Stats)

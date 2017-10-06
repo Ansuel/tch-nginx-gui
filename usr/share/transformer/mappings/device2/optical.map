@@ -1,0 +1,20 @@
+local mapper, register = mapper, register
+local sfp = require("transformer.shared.sfp")
+
+local flag = sfp.readSFPFlag()
+if flag == 0 then
+  return
+end
+
+local Multi_Optical_ = {
+  objectType = {
+    name = "Device.Optical.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+    },
+  }
+}
+
+register(Multi_Optical_)

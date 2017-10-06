@@ -1,0 +1,3 @@
+^tod /etc/init.d/firewall reload; /etc/init.d/tod restart
+^uci.tod.voicednd.ringing /usr/bin/lua /usr/share/transformer/scripts/voice_tod.lua
+^uci.tod.voicednd.enabled /usr/bin/lua /usr/share/transformer/scripts/voicednd_toggle.lua

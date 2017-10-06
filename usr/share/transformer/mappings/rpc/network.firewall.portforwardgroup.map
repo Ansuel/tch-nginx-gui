@@ -1,0 +1,71 @@
+-- Object mapping and implementation of rpc.network.firewall.portforwardgroup.
+local mapper, register = mapper, register
+
+-- In OpenWrt, port forwarding is referred to as "redirects" or "user redirects"(user defined port forwarding). In the
+-- /etc/firewall/config file 'config redirect' section is used to represent a port forwarding rule. Further a 'config
+-- redirectgroup' section is defined to collect all the port forwarding/rules into a group. A redirectsgroup "userredirects"
+-- groups all the user defined port forwarding rules. This config section has an attribute 'enabled' that could be set to 1
+-- or 0 thereby enabling/disabling the entire port forwarding list without enabling/disabling an individual rule.
+
+-- uci map to select the redirectgroups available in the uci.firewall
+
+-- uci.firewall.redirectsgroup.@
+-- Layout of uci firewall redirectsgroup object type
+local mapinfo_redirectsgroup_uci = {
+    config = "firewall",
+    type = "redirectsgroup",
+    options = { "enabled", "name", "type" },
+}
+
+-- Map to access the underlying uci table
+local mapping_userredirects_uci = mapper("uci_1to1").createNamedMultiMap(mapinfo_redirectsgroup_uci)
+
+-- Object mapping for portforwardgroup
+local mapping_userredirects_rpc = {
+    uciMap = mapping_userredirects_uci, -- allows callbacks to access underlying uci
+    objectType = {
+        name = "rpc.network.firewall.portforwardgroup.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = mapping_userredirects_uci.objectType.parameters,
+    }
+}
+-- Of all the "redirectgroups" present under uci.firewall. choose the instance with key 'userredirects' that
+-- represents port forwarding rule group
+
+local redirect_key = "userredirects"
+
+---------------------------------------------------------
+-- rpc.network.firewall.portforwardgroup. CALLBACKS
+---------------------------------------------------------
+
+mapping_userredirects_rpc.get = function(mapping, param)
+    mapping.uciMap.entries(mapping.uciMap)
+    return mapping.uciMap.get(mapping.uciMap, param, redirect_key)
+end
+
+mapping_userredirects_rpc.getall = function(mapping)
+    mapping.uciMap.entries(mapping.uciMap)
+    return mapping.uciMap.getall(mapping.uciMap, redirect_key)
+end
+
+mapping_userredirects_rpc.set = function(mapping, paramname, value)
+    mapping.uciMap.entries(mapping.uciMap)
+    local result, errmsg = mapping.uciMap.set(mapping.uciMap, paramname, value, redirect_key)
+
+    return result, errmsg
+end
+
+mapping_userredirects_rpc.commit = function(mapping)
+    local result, errmsg = mapping.uciMap.commit(mapping.uciMap)
+
+    return result, errmsg
+end
+
+mapping_userredirects_rpc.revert = function(mapping)
+    return mapping.uciMap.revert(mapping.uciMap)
+end
+
+-- Register the object
+register(mapping_userredirects_rpc)

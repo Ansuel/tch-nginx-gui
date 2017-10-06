@@ -1,0 +1,3 @@
+^dlnad /etc/init.d/dlnad reload
+^dlnad%..+%.mvfs_logLevel /etc/init.d/mvfs restart && /etc/init.d/mud restart
+^dlnad%..+%.mud_logLevel /etc/init.d/mud restart

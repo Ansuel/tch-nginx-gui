@@ -1,0 +1,225 @@
+local string, tonumber, pairs, type = string, tonumber, pairs, type
+
+local mobiled_network_sessions = {
+	objectType = {
+		name = 'rpc.mobiled.device.@.network.sessions.@.',
+		access = 'readOnly',
+		numEntriesParameter = "SessionNumberOfEntries",
+		minEntries = 0,
+		maxEntries = math.huge,
+		parameters = {
+			proto = {
+				access = "readOnly",
+				type = "string"
+			},
+			ipv4_addr = {
+				access = "readOnly",
+				type = "string"
+			},
+			ipv4_gw = {
+				access = "readOnly",
+				type = "string"
+			},
+			ipv4_subnet = {
+				access = "readOnly",
+				type = "string"
+			},
+			ipv4_dns1 = {
+				access = "readOnly",
+				type = "string"
+			},
+			ipv4_dns2 = {
+				access = "readOnly",
+				type = "string"
+			},
+			mtu = {
+				access = "readOnly",
+				type = "string"
+			},
+			ipv6_addr = {
+				access = "readOnly",
+				type = "string"
+			},
+			ipv6_gw = {
+				access = "readOnly",
+				type = "string"
+			},
+			session_state = {
+				access = "readOnly",
+				type = "string"
+			},
+			tx_bytes = {
+				access = "readOnly",
+				type = "unsignedInt"
+			},
+			rx_bytes = {
+				access = "readOnly",
+				type = "unsignedInt"
+			},
+			tx_packets_error = {
+				 access = "readOnly",
+				 type = "unsignedInt"
+			},
+			rx_packets_error = {
+				 access = "readOnly",
+				 type = "unsignedInt"
+			},
+			tx_packets = {
+				 access = "readOnly",
+				 type = "unsignedInt"
+			},
+			rx_packets = {
+				 access = "readOnly",
+				 type = "unsignedInt"
+			},
+			duration = {
+				access = "readOnly",
+				type = "unsignedInt"
+			},
+			profile = {
+				access = "readOnly",
+				type = "unsignedInt"
+			},
+			session_id = {
+				access = "readOnly",
+				type = "unsignedInt"
+			},
+			ifname = {
+				access = "readOnly",
+				type = "string"
+			},
+			interface = {
+				access = "readOnly",
+				type = "string"
+			},
+			apn = {
+				access = "readOnly",
+				type = "string"
+			},
+			pdn_retry_timer_value = {
+				access = "readOnly",
+				type = "unsignedInt"
+			},
+			pdn_retry_timer_remaining = {
+				access = "readOnly",
+				type = "unsignedInt"
+			}
+		}
+	}
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+	return
+end
+
+local helper = require("mobiled.scripthelpers")
+
+local function getInterfaceData(result)
+	local data
+	if result.proto == "dhcp" then
+		local interface = "network.interface." .. result.interface .. "_4"
+		data = helper.getUbusData(conn, interface, "status", {})
+		if type(data) == "table" then
+			if not result.duration or result.duration == "" then
+				result.duration = data.uptime
+			end
+			if type(data["ipv4-address"]) == "table" and type(data["ipv4-address"][1]) == "table" then
+				result.ipv4_addr = data["ipv4-address"][1].address;
+			end
+			if type(data["dns-server"]) == "table" then
+				result.ipv4_dns1 = data["dns-server"][1]
+				result.ipv4_dns2 = data["dns-server"][2]
+			end
+		end
+		data = helper.getUbusData(conn, "network.interface." .. result.interface .. "_6", "status", {})
+		if type(data) == "table" then
+			if not result.duration or result.duration == "" then
+				result.duration = data.uptime
+			end
+			if type(data["ipv6-address"]) == "table" and type(data["ipv6-address"][1]) == "table" then
+				result.ipv6_addr = data["ipv6-address"][1].address;
+			end
+		end
+	elseif result.proto == "ppp" then
+		data = helper.getUbusData(conn, "network.interface." .. result.interface .. "_ppp", "status", {})
+		if type(data) == "table" then
+			result.duration = data.uptime
+			if type(data["ipv4-address"]) == "table" and type(data["ipv4-address"][1]) == "table" then
+				result.ipv4_addr = data["ipv4-address"][1].address;
+			end
+			if type(data["dns-server"]) == "table" then
+				result.ipv4_dns1 = data["dns-server"][1]
+				result.ipv4_dns2 = data["dns-server"][2]
+			end
+		end
+	elseif result.proto == "router" or result.proto == "static" then
+		data = helper.getUbusData(conn, "network.interface." .. result.interface, "status", {})
+		if type(data) == "table" then
+			if not result.duration or result.duration == "" then
+				result.duration = data.uptime
+			end
+		end
+	end
+end
+
+local function getSessionInfoData(key, parentkey)
+	local result = {}
+	setmetatable(result, { __index = function() return "" end })
+
+	local session_id = tonumber(string.match(key, 'session(%d)'))
+	if session_id and session_id >= 1 then
+		local data =  helper.getUbusData(conn, "mobiled.network", "sessions", { session_id = (session_id-1), dev_idx = tonumber(string.match(parentkey, '%d')) })
+		result.session_id = data.session_id
+		result.profile = data.profile
+		result.duration = data.duration
+		result.proto = data.proto
+		result.ifname = data.ifname
+		result.interface = data.interface
+		result.apn = data.apn
+		result.session_state = data.session_state
+		if not result.session_state or result.session_state == "" then
+			result.session_state = "disconnected"
+		end
+		if type(data[data.proto]) == "table" then
+			for k, v in pairs(data[data.proto]) do result[k] = v end
+		end
+		if type(data.packet_counters) == "table" then
+			for k, v in pairs(data.packet_counters) do result[k] = v end
+		end
+		if result.proto == "router" and type(data.router) == "table" then
+			result.ipv4_addr = data.router.ipv4_addr
+		end
+		result.pdn_retry_timer_value = data.pdn_retry_timer_value
+		result.pdn_retry_timer_remaining = data.pdn_retry_timer_remaining
+		getInterfaceData(result)
+	end
+	return result
+end
+
+local function getall(mapping, key, parentkey)
+	return getSessionInfoData(key, parentkey)
+end
+
+local function get(mapping, paramName, key, parentkey)
+	return getall(mapping, key, parentkey)[paramName]
+end
+
+local function entriesInterfaces(mapping, key)
+	local intfs = {}
+	local data = helper.getUbusData(conn, "mobiled.device", "capabilities", { dev_idx = tonumber(string.match(key, '%d')) })
+	if data and tonumber(data["max_data_sessions"]) then
+		local maxDataSessions = tonumber(data["max_data_sessions"])
+		for i=1,maxDataSessions do
+			table.insert(intfs, { tostring(i), key .. "_session" .. i})
+		end
+		return intfs
+	end
+	return {}
+end
+
+mobiled_network_sessions.getall = getall
+mobiled_network_sessions.get = get
+mobiled_network_sessions.entries = entriesInterfaces
+
+register(mobiled_network_sessions)

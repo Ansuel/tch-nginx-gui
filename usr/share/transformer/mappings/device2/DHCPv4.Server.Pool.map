@@ -1,0 +1,488 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_DHCPv4_Server_Pool_i_ = {
+  objectType = {
+    name = "Device.DHCPv4.Server.Pool.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "PoolNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Disabled",
+          "Enabled",
+          "Error_Misconfigured",
+          "Error",
+        },
+        default = "Disabled",
+      },
+      Interface = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        pathRef = true,
+        targetParent = "Device.IP.Interface.{i}.",
+        default = "",
+      },
+      MinAddress = {
+        access = "readWrite",
+        type = "string",
+      },
+      MaxAddress = {
+        access = "readWrite",
+        type = "string",
+      },
+      SubnetMask = {
+        access = "readWrite",
+        type = "string",
+      },
+      DomainName = {
+        access = "readWrite",
+        type = "string",
+        max = "64",
+      },
+      IPRouters = {
+        access = "readWrite",
+        list = true,
+        maxItems = "4",
+        type = "string",
+      },
+      LeaseTime = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+          },
+        },
+        default = "86400",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        max  = "64",
+      },
+--[[ TODO:
+      Order = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+      VendorClassID = {
+        access = "readWrite",
+        type = "string",
+        max = "255",
+        default = "",
+      },
+      VendorClassIDExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      VendorClassIDMode = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "Exact",
+          "Prefix",
+          "Suffix",
+          "Substring",
+        },
+        default = "Exact",
+      },
+      ClientID = {
+        access = "readWrite",
+        type = "hexBinary",
+        max = "255",
+        default = "",
+      },
+      ClientIDExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      UserClassID = {
+        access = "readWrite",
+        type = "hexBinary",
+        max = "255",
+        default = "",
+      },
+      UserClassIDExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      Chaddr = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      ChaddrMask = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      ChaddrExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      ReservedAddresses = {
+        access = "readWrite",
+        list = true,
+        maxItems = "32",
+        type = "string",
+        default = "",
+      },
+--]]
+      DNSServers = {
+        access = "readWrite",
+        list = true,
+        maxItems = "4",
+        type = "string",
+      },
+      -- StaticAddressNumberOfEntries
+      -- automatically created when Device.DHCPv4.Server.Pool.{i}.StaticAddress.{i}. is loaded
+      -- OptionNumberOfEntries
+      -- automatically created when Device.DHCPv4.Server.Pool.{i}.Option.{i}. is loaded
+      -- ClientNumberOfEntries
+      -- automatically created when Device.DHCPv4.Server.Pool.{i}.Client.{i}. is loaded
+    }
+  }
+}
+
+local dmordering = require "transformer.shared.models.dmordering"
+
+local mapper, pairs, resolve, string = mapper, pairs, resolve, string
+local uciHelper = mapper("ucihelper")
+local getFromUci = uciHelper.get_from_uci
+local getAllFromUci = uciHelper.getall_from_uci
+local setOnUci = uciHelper.set_on_uci
+local forEachOnUci = uciHelper.foreach_on_uci
+local nwCommon = mapper("nwcommon")
+local inet = require "tch.inet"
+local isValidIPAddress = inet.isValidIPv4
+local commit = uciHelper.commit
+local revert = uciHelper.revert
+local commitApply = commitapply
+local dhcp = require("transformer.shared.dhcp")
+local format, tonumber= string.format, tonumber
+local binding = {}
+local posix = require 'tch.posix'
+local inet_pton = posix.inet_pton
+local AF_INET = posix.AF_INET
+local ZEROADDR = inet_pton(AF_INET,"0.0.0.0")
+
+local transactions = {}
+local networkIntfTable = {}
+
+local objectPath = Device_DHCPv4_Server_Pool_i_.objectType.name
+
+Device_DHCPv4_Server_Pool_i_.entries = function()
+  local interfaces = {}
+  local lan = nwCommon.findLanWanInterfaces(false)
+  binding.config = "dhcp"
+  binding.sectionname = "dhcp"
+  forEachOnUci(binding, function(s)
+    for _,v in pairs(lan) do
+      if s['interface'] == v then
+        interfaces[#interfaces + 1] = s['.name']
+        networkIntfTable[s['.name']] = s['interface']
+      end
+    end
+  end)
+  return dmordering.sort(interfaces, objectPath)
+end
+
+local function getUciParam(config, sectionName, option, default)
+  binding.config = config
+  binding.sectionname = sectionName
+  binding.default = default
+  if option then
+    binding.option = option
+    return getFromUci(binding)
+  end
+  return getAllFromUci(binding)
+end
+
+local function setUciParam(config, sectionName, option, value)
+  binding.config = config
+  binding.sectionname = sectionName
+  binding.option = option
+  setOnUci(binding,value,commitApply)
+  transactions[config] = true
+end
+
+local function getEnable(mapping, param, key, value)
+  local check = value or getUciParam("dhcp", key, "dhcpv4", "server")
+  return check == "server" and "1" or "0"
+end
+
+local function getStatus(mapping, param, key)
+  local status = getEnable(mapping, param, key)
+  if status == "1" then
+    return "Enabled"
+  elseif status == "" then
+    return "Error_Misconfigured"
+  end
+  return "Disabled"
+end
+
+-- Returns the LAN IP Address
+local function getLanIP(key)
+  return getUciParam("network", networkIntfTable[key], "ipaddr")
+end
+
+local function getMinAddress(mapping, param, key)
+  local networkSection = networkIntfTable[key]
+  local net = getUciParam("network", networkSection, "netmask")
+  if getLanIP(key) == "" or net == "" then
+    return ""
+  end
+  local data = dhcp.parseDHCPData(key, networkSection)
+  return nwCommon.numToIPv4(data.ipStart) or ""
+end
+
+local function getMaxAddress(mapping, param, key)
+  local networkSection = networkIntfTable[key]
+  local net = getUciParam("network",networkSection,"netmask")
+  if getLanIP(key) == "" or net == "" then
+    return ""
+  end
+  local data = dhcp.parseDHCPData(key, networkSection)
+  return nwCommon.numToIPv4(data.ipEnd) or ""
+end
+
+-- Checks whether the received 'value' is a valid IP address
+-- If valid IP, checks 'value' is not in localhost, multicast range, broadcast IP, zero IP address and Class E address range
+
+local function validateDNSServerIP(value)
+  local ip = inet_pton(AF_INET, value)
+  if not ip then
+    return nil, "Invalid IP address"
+  end
+  local firstOctet = ip:byte(1)
+  --don't allow if ip is in localhost 127.0.0.0/8
+  if firstOctet == 127 then
+    return nil, "Cannot use an address in localhost 127.0.0.0/8"
+  end
+  --check if ip is not in the multicast range 224.0.0.0/4
+  if firstOctet >= 224 and firstOctet <= 239 then
+    return nil, "Cannot use a multicast address"
+  end
+  --check if ip is not in the class E address range or Broadcast ip address 255.255.255.255/32
+  if firstOctet >= 240 and firstOctet <= 255 then
+    return nil, "Cannot use class E address or Broadcast IP address"
+  end
+  --check if ip is not 0.0.0.0/32
+  if ip == ZEROADDR then
+    return nil, "Cannot use zero as IP address"
+  end
+  return true
+end
+
+Device_DHCPv4_Server_Pool_i_.get = {
+  Enable = getEnable,
+
+  Interface = function(mapping, param, key)
+    local intf = getUciParam("dhcp", key, "interface")
+    return resolve('Device.IP.Interface.{i}.',intf) or ""
+  end,
+
+  Status = getStatus,
+
+  MinAddress = getMinAddress,
+
+  MaxAddress = getMaxAddress,
+
+  SubnetMask = function(mapping, param, key)
+    local networkSection = networkIntfTable[key]
+    return getUciParam("network", networkSection, "netmask") or ""
+  end,
+
+  DomainName = function(mapping, param, key)
+    local result = getFromUci({
+      extended = 1, config = "dhcp", sectionname = "@dnsmasq[0]", option = "domain"
+    })
+    return result or ""
+  end,
+
+  IPRouters = function(mapping, param, key)
+    local dhcpList = getUciParam("dhcp", key, "dhcp_option")
+    local routeIP = dhcpList ~= "" and dhcp.getRouteIPAddress(dhcpList)
+    if routeIP then
+      return routeIP
+    end
+    local defaultRoute = getUciParam("network", networkIntfTable[key], "defaultroute")
+    if defaultRoute == "1" or defaultRoute == "" then
+      return getUciParam("network", networkIntfTable[key], "ipaddr")
+    end
+    return ""
+  end,
+
+  DNSServers = function(mapping, param, key)
+    local dhcpList = getUciParam("dhcp", key, "dhcp_option")
+    local dnsServers = dhcpList ~= "" and dhcp.parseDNSServersFromUCI(dhcpList) or ""
+    return dnsServers ~= "" and dnsServers or getUciParam("network", networkIntfTable[key], "ipaddr")
+  end,
+
+  LeaseTime = function(mapping, param, key)
+    local result = getUciParam("dhcp", key, "leasetime")
+    local ret = dhcp.convertTimeStringToSeconds(result)
+    return ret
+  end,
+}
+
+Device_DHCPv4_Server_Pool_i_.getall = function(mapping, key)
+  local networkSection = networkIntfTable[key]
+  local dhcpConfig = getUciParam("dhcp", key)
+  local networkConfig = getUciParam("network", networkSection)
+  local routeIP = dhcpConfig["dhcp_option"] and dhcp.getRouteIPAddress(dhcpConfig["dhcp_option"])
+  local dnsServers = dhcpConfig["dhcp_option"] and dhcp.parseDNSServersFromUCI(dhcpConfig["dhcp_option"]) or ""
+  return {
+    Enable = getEnable(mapping, nil, key, dhcpConfig["dhcpv4"]),
+    Status = getStatus(mapping, nil, key),
+    Interface = resolve('Device.IP.Interface.{i}.',dhcpConfig["interface"]) or "",
+    SubnetMask = networkConfig["netmask"] or "",
+    DomainName = getFromUci({extended = 1, config = "dhcp", sectionname = "@dnsmasq[0]", option = "domain"}) or "",
+    IPRouters = routeIP or (networkConfig["defaultroute"] == "1" or not networkConfig["defaultroute"]) and networkConfig["ipaddr"] or "",
+    DNSServers = dnsServers ~= "" and dnsServers or networkConfig["ipaddr"] or "",
+    MinAddress = getMinAddress(mapping, nil, key) or "",
+    MaxAddress = getMaxAddress(mapping, nil, key) or "",
+    LeaseTime = dhcp.convertTimeStringToSeconds(dhcpConfig["leasetime"]),
+  }
+end
+
+Device_DHCPv4_Server_Pool_i_.set = {
+  Enable = function(mapping, param, value, key)
+    value = (value == "1") and "server" or "disabled"
+    setUciParam("dhcp", key, "dhcpv4", value)
+  end,
+
+  Interface = function(mapping, param, value, key)
+    if value ~= "" then
+      local rc
+      rc,value = pcall(tokey, value, "Device.IP.Interface.{i}.")
+      if not rc then
+        return nil ,"invalid value"
+      end
+    end
+    setUciParam("dhcp", key, "interface", value)
+  end,
+
+  MinAddress = function(mapping, param, value, key)
+    if isValidIPAddress(value) then
+      if getLanIP(key) == value then
+        return nil, "Cannot set LAN IP Address"
+      end
+      local data = dhcp.parseDHCPData(key)
+      local start = nwCommon.ipv4ToNum(value)
+      local newStart = start - data.network
+      local newEnd  = data.ipEnd - start + 1
+      if start < data.ipMin or start >= data.ipEnd then
+        return nil, "Invalid start address"
+      end
+      setUciParam("dhcp", key, "start", newStart)
+      setUciParam("dhcp", key, "limit", newEnd)
+    else
+      return nil,format("%s is not a valid IP Address",value or "nil")
+    end
+  end,
+
+  MaxAddress = function(mapping, param, value, key)
+    if isValidIPAddress(value) then
+      if getLanIP(key) == value then
+        return nil, "Cannot set LAN IP Address"
+      end
+      local data = dhcp.parseDHCPData(key)
+      local newEnd = nwCommon.ipv4ToNum(value)
+      if newEnd < data.ipStart or newEnd > data.ipMax then
+        return nil, "Invalid end address"
+      end
+      local val = newEnd-data.ipStart+1
+      setUciParam("dhcp", key, "limit", val)
+    else
+      return nil,format("%s is not a valid IP Address",value or "nil")
+    end
+  end,
+
+  SubnetMask = function(mapping, param, value, key)
+    local networkSection = networkIntfTable[key]
+    if isValidIPAddress(value) then
+      setUciParam("network", networkSection, "netmask", value)
+    else
+      return nil,format("%s is not a valid Subnet mask",value or "nil")
+    end
+  end,
+
+  DomainName = function(mapping, param, value, key)
+    setOnUci({extended = 1, config = "dhcp", sectionname = "@dnsmasq[0]", option = "domain"}, value, commitApply)
+    binding.config = "dhcp"
+    transactions[binding.config]= true
+  end,
+
+  LeaseTime = function(mapping, param, value, key)
+    if value == '-1' then
+      value = "infinite" -- set infinite lease time.
+    elseif tonumber(value) < 120 then
+      return nil,"minimum lease time must be 120 seconds"
+    end
+    setUciParam("dhcp", key, "leasetime", value)
+  end,
+
+  IPRouters = function(mapping, param, value, key)
+    if isValidIPAddress(value) then
+      dhcp.setDefaultRoute(value, key)
+      binding.config = "dhcp"
+      transactions[binding.config]= true
+    else
+      return nil,format("%s is not a valid IPv4 Address",value)
+    end
+  end,
+
+  DNSServers = function(mapping, param, value, key)
+    local ret, err = validateDNSServerIP(value)
+    if not ret then
+      return nil, err
+    end
+    local dnsServers, msg = dhcp.parseDNSServersFromDatamodel(value, key)
+    if dnsServers then
+      setOnUci({ config = "dhcp", sectionname = key, option = "dhcp_option" }, dnsServers, commitApply)
+      binding.config = "dhcp"
+      transactions[binding.config]= true
+    else
+      return nil, msg
+    end
+  end
+}
+
+Device_DHCPv4_Server_Pool_i_.commit = function()
+  for config,_ in pairs(transactions) do
+    commit({config = config})
+  end
+  transactions = {}
+end
+
+Device_DHCPv4_Server_Pool_i_.revert = function()
+  for config,_ in pairs(transactions) do
+    revert({config =  config})
+  end
+  transactions = {}
+end
+
+register(Device_DHCPv4_Server_Pool_i_)

@@ -1,0 +1,894 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_DSL_Line_i_ = {
+  objectType = {
+    name = "Device.DSL.Line.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "LineNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+--[[ TODO
+      EnableDataGathering = {
+        access = "readWrite",
+        type = "boolean",
+      },
+--]]
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Up",
+          "Down",
+          "Unknown",
+          "Dormant",
+          "NotPresent",
+          "LowerLayerDown",
+          "Error",
+        },
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      Name = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      LastChange = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      LowerLayers = {
+        access = "readOnly", --  readWrite currently not supported
+        list = true,
+        max = "1024",
+        type = "string",
+        pathRef = true,
+      },
+      Upstream = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      FirmwareVersion = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      LinkStatus = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Up",
+          "Initializing",
+          "EstablishingLink",
+          "NoSignal",
+          "Disabled",
+          "Error",
+        },
+      },
+      StandardsSupported = {
+        access = "readOnly",
+        status = "deprecated",
+        list = true,
+        type = "string",
+        enumeration = {
+          "G.992.1_Annex_A",
+          "G.992.1_Annex_B",
+          "G.992.1_Annex_C",
+          "T1.413",
+          "T1.413i2",
+          "ETSI_101_388",
+          "G.992.2",
+          "G.992.3_Annex_A",
+          "G.992.3_Annex_B",
+          "G.992.3_Annex_C",
+          "G.992.3_Annex_I",
+          "G.992.3_Annex_J",
+          "G.992.3_Annex_L",
+          "G.992.3_Annex_M",
+          "G.992.4",
+          "G.992.5_Annex_A",
+          "G.992.5_Annex_B",
+          "G.992.5_Annex_C",
+          "G.992.5_Annex_I",
+          "G.992.5_Annex_J",
+          "G.992.5_Annex_M",
+          "G.993.1",
+          "G.993.1_Annex_A",
+          "G.993.2_Annex_A",
+          "G.993.2_Annex_B",
+          "G.993.2_Annex_C",
+        },
+      },
+--[[ TODO
+      XTSE = {
+        access = "readOnly",
+        type = "hexBinary",
+        min = "8",
+        max = "8",
+      },
+--]]
+      StandardUsed = {
+        access = "readOnly",
+        status = "deprecated",
+        type = "string",
+        enumeration = {
+          "G.992.1_Annex_A",
+          "G.992.1_Annex_B",
+          "G.992.1_Annex_C",
+          "T1.413",
+          "T1.413i2",
+          "ETSI_101_388",
+          "G.992.2",
+          "G.992.3_Annex_A",
+          "G.992.3_Annex_B",
+          "G.992.3_Annex_C",
+          "G.992.3_Annex_I",
+          "G.992.3_Annex_J",
+          "G.992.3_Annex_L",
+          "G.992.3_Annex_M",
+          "G.992.4",
+          "G.992.5_Annex_A",
+          "G.992.5_Annex_B",
+          "G.992.5_Annex_C",
+          "G.992.5_Annex_I",
+          "G.992.5_Annex_J",
+          "G.992.5_Annex_M",
+          "G.993.1",
+          "G.993.1_Annex_A",
+          "G.993.2_Annex_A",
+          "G.993.2_Annex_B",
+          "G.993.2_Annex_C",
+        },
+      },
+--[[ TODO
+      XTSUsed = {
+        access = "readOnly",
+        type = "hexBinary",
+        min = "8",
+        max = "8",
+      },
+--]]
+      LineEncoding = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "DMT",
+          "CAP",
+          "2B1Q",
+          "43BT",
+          "PAM",
+          "QAM",
+        },
+      },
+      AllowedProfiles = {
+        access = "readOnly",
+        list = true,
+        type = "string",
+        enumeration = {
+          "8a",
+          "8b",
+          "8c",
+          "8d",
+          "12a",
+          "12b",
+          "17a",
+          "17b",
+          "30a",
+          "35b",
+          "",
+        },
+      },
+      CurrentProfile = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "8a",
+          "8b",
+          "8c",
+          "8d",
+          "12a",
+          "12b",
+          "17a",
+          "17b",
+          "30a",
+          "35b",
+          "",
+        },
+      },
+      PowerManagementState = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "L0",
+          "L1",
+          "L2",
+          "L3",
+          "L4",
+        },
+      },
+--[[ TODO
+      SuccessFailureCause = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "6",
+          },
+        },
+      },
+      UPBOKLER = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "1280",
+          },
+        },
+      },
+      UPBOKLEPb = {
+        access = "readOnly",
+        list = true,
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "1280",
+          },
+          {
+            min = "2047",
+            max = "2047",
+          },
+        },
+      },
+      UPBOKLERPb = {
+        access = "readOnly",
+        list = true,
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "1280",
+          },
+          {
+            min = "2047",
+            max = "2047",
+          },
+        },
+      },
+      RXTHRSHds = {
+        access = "readOnly",
+        type = "int",
+        range = {
+          {
+            min = "-640",
+            max = "0",
+          },
+        },
+      },
+      ACTRAMODEds = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+            max = "4",
+          },
+        },
+      },
+      ACTRAMODEus = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+            max = "4",
+          },
+        },
+      },
+      ACTINPROCds = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      ACTINPROCus = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      SNRMROCds = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      SNRMROCus = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      LastStateTransmittedDownstream = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      LastStateTransmittedUpstream = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+--]]
+      UPBOKLE = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "1280",
+          },
+        },
+      },
+--[[
+      MREFPSDds = {
+        access = "readOnly",
+        type = "base64",
+        min = "0",
+        max = "145",
+      },
+      MREFPSDus = {
+        access = "readOnly",
+        type = "base64",
+        min = "0",
+        max = "145",
+      },
+      LIMITMASK = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+--]]
+      US0MASK = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      TRELLISds = {
+        access = "readOnly",
+        type = "int",
+      },
+      TRELLISus = {
+        access = "readOnly",
+        type = "int",
+      },
+--[[ TODO
+      ACTSNRMODEds = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      ACTSNRMODEus = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+--]]
+      VirtualNoisePSDds = {
+        access = "readOnly",
+        type = "base64",
+        min = "0",
+        max = "97",
+      },
+      VirtualNoisePSDus = {
+        access = "readOnly",
+        type = "base64",
+        min = "0",
+        max = "49",
+      },
+--[[ TODO
+      ACTUALCE = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+--]]
+      LineNumber = {
+        access = "readOnly",
+        type = "int",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+      UpstreamMaxBitRate = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamMaxBitRate = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamNoiseMargin = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      DownstreamNoiseMargin = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      SNRMpbus = {
+        access = "readOnly",
+        list = true,
+        max = "24",
+        type = "string",
+      },
+      SNRMpbds = {
+        access = "readOnly",
+        list = true,
+        max = "24",
+        type = "string",
+      },
+--[[ TODO
+      INMIATOds = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "3",
+            max = "511",
+          },
+        },
+      },
+      INMIATSds = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "7",
+          },
+        },
+      },
+      INMCCds = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "64",
+          },
+        },
+      },
+      INMINPEQMODEds = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "3",
+          },
+        },
+      },
+--]]
+      UpstreamAttenuation = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      DownstreamAttenuation = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      UpstreamPower = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      DownstreamPower = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      XTURVendor = {
+        access = "readOnly",
+        type = "hexBinary",
+        min = "4",
+        max = "4",
+      },
+      XTURCountry = {
+        access = "readOnly",
+        type = "hexBinary",
+        min = "2",
+        max = "2",
+      },
+      XTURANSIStd = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      XTURANSIRev = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      XTUCVendor = {
+        access = "readOnly",
+        type = "hexBinary",
+        min = "4",
+        max = "4",
+      },
+      XTUCCountry = {
+        access = "readOnly",
+        type = "hexBinary",
+        min = "2",
+        max = "2",
+      },
+      XTUCANSIStd = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      XTUCANSIRev = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+    }
+  }
+}
+
+local mapper = mapper
+local nwmodel = require "transformer.shared.models.device2.network"
+local DSLLine = nwmodel.register("DSLLine", Device_DSL_Line_i_.objectType.name)
+local posix = require("tch.posix")
+local lastStateChangeTime = 0
+local model
+local isConfigChanged = false
+
+local xdslctl = require("transformer.shared.xdslctl")
+local tostring, tonumber = tostring, tonumber
+local getClockTime = posix.clock_gettime
+
+local phonelinepairmapping = { Inner = "1" , Outer = "2" }
+
+local envBinding = {config="env", sectionname = "rip", option = "company_id"}
+local xdslBinding = {config = "xdsl"}
+
+local firmwareVersion = xdslctl.infoValue("firmware_version") or ""
+
+local function getDevice(key)
+	local dsl = model:get(key)
+	if dsl then
+		return dsl.device
+	end
+end
+
+-- keys to retrieve for getall (xdslctl info --show)
+local xdslInfoGetAllKeys = {
+  "status",
+  "maxrate",
+  "currentrate",
+  "mode",
+  "snr",
+  "attn",
+  "pwr",
+  "framing_d",
+  "trellis",
+  "linkpowerstate",
+  "vdsl2profile",
+  "AllowedProfiles",
+  "XTUCCountry",
+  "SNRMpb",
+  "UPBOKLE",
+  "US0MASK",
+  "VirtualNoisePSD",
+  "VirtualNoisePSD",
+  "XTUCVendor",
+  "XTUCANSIStd",
+  "XTUCANSIRev",
+}
+
+local conn = mapper("ubus").connect()
+local uciHelper = mapper("ucihelper")
+
+-- maps xdsl status to IGD Status
+local statusmap = {
+  [-1] = "NoSignal",
+  [0]  = "NoSignal",
+  [1]  = "Initializing",
+  [2]  = "Initializing",
+  [3]  = "Initializing",
+  [4]  = "EstablishingLink",
+  [5]  = "Up",
+  [6]  = "Initializing",
+  [7]  = "Initializing",
+  [8]  = "EstablishingLink"
+}
+
+local function lineIdMap()
+  local map = {}
+  uciHelper.foreach_on_uci(xdslBinding, function(s)
+    local name = s['.name']
+    -- Replace dsl with line in name
+    map["dsl:"..name] = string.gsub(name, "dsl", "line")
+  end)
+  return map
+end
+local xdslctlLineIdMap = lineIdMap()
+
+local function getLinkStatus(key)
+  local status = conn:call("xdsl", "status", {})
+  if not status then
+    return nil, "cannot retrieve xdsl status"
+  end
+  local lineId
+  local i, j = string.find(key, "dsl:dsl")
+  if j then
+    local id = tonumber(string.sub(key, j+1))
+    if id then
+      lineId = "line"..tostring(id+1)
+    end
+  end
+  if lineId and status[lineId] then
+    status = statusmap[status[lineId].statuscode]
+  else
+    status = statusmap[status.statuscode]
+  end
+  if status then
+    return status
+  end
+  return nil, "unknown xdsl status code"
+end
+
+local function getStatus(key)
+  local status = conn:call("xdsl", "status", {})
+  if not status then
+    return nil, "cannot retrieve xdsl status"
+  end
+  local lineId
+  local i, j = string.find(key, "dsl:dsl")
+  if j then
+    local id = tonumber(string.sub(key, j+1))
+    if id then
+      lineId = "line"..tostring(id+1)
+    end
+  end
+  if lineId and status[lineId] then
+    status = statusmap[status[lineId].statuscode]
+  else
+    status = statusmap[status.statuscode]
+  end
+  if status == "Up" then
+    return "Up"
+  end
+  return "Down"
+end
+
+local function getupstream(key)
+  if key then
+    return "1"
+  end
+  return "0"
+end
+
+local function times10(val)
+  local v = tonumber(val)
+  if v == nil then
+    return "0"
+  end
+  return tostring(10*v)
+end
+
+local function getXTURVendor()
+  local value = uciHelper.get_from_uci(envBinding)
+  return value ~= "" and (value:gsub('.', function(value) return string.format("%x", value:byte()) end)) or "00000000"
+end
+
+local function getStandards(param, key)
+  local standard = xdslctl.infoValue(param, nil, nil, xdslctlLineIdMap[key])
+  return standard and standard:gsub("T1_413","T1.413") or ""
+end
+
+local function getEnable(mapping, _, key)
+  local device = getDevice(key)
+  xdslBinding.sectionname = device
+  xdslBinding.option = "enabled"
+  xdslBinding.default = "1"
+  return uciHelper.get_from_uci(xdslBinding)
+end
+
+Device_DSL_Line_i_.get = {
+  Enable = getEnable,
+  Status = function(mapping, param, key)
+    return getStatus(key)
+  end,
+  Name = function(mapping, param, key)
+    return getDevice(key)
+  end,
+  LowerLayers = "",
+  Upstream = function(mapping, param, key)
+    return getupstream(key)
+  end,
+  FirmwareVersion = firmwareVersion,
+  LinkStatus = function(mapping, param, key)
+    return getLinkStatus(key)
+  end,
+  StandardsSupported = function(mapping, param, key)
+    return getStandards(param, key)
+  end,
+  StandardUsed = function(mapping, param, key)
+    return getStandards(param, key)
+  end,
+  LineEncoding = "DMT",
+  LineNumber = function(mapping, param, key)
+    return phonelinepairmapping[xdslctl.profileValue("phonelinepair", nil, nil, xdslctlLineIdMap[key])]
+  end,
+  AllowedProfiles = function(mapping, param, key)
+    return xdslctl.infoValue("AllowedProfiles", nil, nil, xdslctlLineIdMap[key])
+  end,
+  CurrentProfile = function(mapping, param, key)
+    return xdslctl.infoValue("vdsl2profile", nil, nil, xdslctlLineIdMap[key])
+  end,
+  PowerManagementState = function(mapping, param, key)
+    return xdslctl.infoValue("linkpowerstate", nil, nil, xdslctlLineIdMap[key])
+  end,
+  TRELLISds = function(mapping, param, key)
+    return xdslctl.infoValue("trellis", "ds", "0", xdslctlLineIdMap[key])
+  end,
+  TRELLISus = function(mapping, param, key)
+    return xdslctl.infoValue("trellis", "us", "0", xdslctlLineIdMap[key])
+  end,
+  UpstreamMaxBitRate = function(mapping, param, key)
+    return xdslctl.infoValue("maxrate", "us", "0", xdslctlLineIdMap[key])
+  end,
+  DownstreamMaxBitRate = function(mapping, param, key)
+    return xdslctl.infoValue("maxrate", "ds", "0", xdslctlLineIdMap[key])
+  end,
+  UpstreamNoiseMargin = function(mapping, param, key)
+    return times10(xdslctl.infoValue("snr", "us", "0", xdslctlLineIdMap[key]))
+  end,
+  DownstreamNoiseMargin = function(mapping, param, key)
+    return times10(xdslctl.infoValue("snr", "ds", "0", xdslctlLineIdMap[key]))
+  end,
+  UpstreamAttenuation = function(mapping, param, key)
+    return times10(xdslctl.infoValue("attn", "us", "0", xdslctlLineIdMap[key]))
+  end,
+  DownstreamAttenuation = function(mapping, param, key)
+    return times10(xdslctl.infoValue("attn", "ds", "0", xdslctlLineIdMap[key]))
+  end,
+  UpstreamPower = function(mapping, param, key)
+    return times10(xdslctl.infoValue("pwr", "us", "0", xdslctlLineIdMap[key]))
+  end,
+  DownstreamPower = function(mapping, param, key)
+    return times10(xdslctl.infoValue("pwr", "ds", "0", xdslctlLineIdMap[key]))
+  end,
+  XTURCountry = "3480", -- hardcoded as in Legacy
+  LastChange = function()
+    return tostring(getClockTime(posix.CLOCK_MONOTONIC) - lastStateChangeTime)
+  end,
+  XTURVendor = getXTURVendor(),
+  XTURANSIStd = "0",
+  XTURANSIRev = "0",
+  SNRMpbus = function (mapping, param, key)
+    return xdslctl.infoValue("SNRMpb", "us", "0", xdslctlLineIdMap[key])
+  end,
+  SNRMpbds = function (mapping, param, key)
+    return xdslctl.infoValue("SNRMpb", "ds", "0", xdslctlLineIdMap[key])
+  end,
+  XTUCCountry = function (mapping, param, key)
+    return xdslctl.infoValue("XTUCCountry", nil, nil, xdslctlLineIdMap[key])
+  end,
+
+  UPBOKLE = function (mapping, param, key)
+    return xdslctl.infoValue("UPBOKLE", nil, nil, xdslctlLineIdMap[key])
+  end,
+  US0MASK = function (mapping, param, key)
+    return xdslctl.infoValue("US0MASK", nil, nil, xdslctlLineIdMap[key])
+  end,
+  VirtualNoisePSDds = function (mapping, param, key)
+    local val =  xdslctl.infoValue("VirtualNoisePSD", "ds", "0", xdslctlLineIdMap[key])
+    -- xdslctl.infoValue may return N.A. for above param which is invalid as per BBF
+    return val:match("^%d+") or "0"
+  end,
+  VirtualNoisePSDus = function (mapping, param, key)
+    local val =  xdslctl.infoValue("VirtualNoisePSD", "us", "0", xdslctlLineIdMap[key])
+    -- xdslctl.infoValue may return N.A. for above param which is invalid as per BBF
+    return val:match("^%d+") or "0"
+  end,
+  XTUCVendor = function (mapping, param, key)
+    return xdslctl.infoValue("XTUCVendor", nil, nil, xdslctlLineIdMap[key])
+  end,
+  XTUCANSIStd = function (mapping, param, key)
+    return xdslctl.infoValue("XTUCANSIStd", nil, nil, xdslctlLineIdMap[key])
+  end,
+  XTUCANSIRev = function (mapping, param, key)
+    return xdslctl.infoValue("XTUCANSIRev", nil, nil, xdslctlLineIdMap[key])
+  end,
+}
+
+Device_DSL_Line_i_.getall = function(mapping, key)
+  -- get all required values from xdslctl info --show, xdslctl info --stats
+  local xdslInfoValues = xdslctl.infoValueList(xdslInfoGetAllKeys, xdslctlLineIdMap[key])
+  local standardsSupported = xdslInfoValues["StandardsSupported"]
+  local standardUsed = xdslInfoValues["StandardUsed"]
+  local VirtualNoisePSDds = xdslInfoValues["VirtualNoisePSD"]["ds"] or "0"
+  local VirtualNoisePSDus = xdslInfoValues["VirtualNoisePSD"]["us"] or "0"
+  return {
+    Enable = getEnable(mapping, nil, key),
+    Status = getStatus(key)  or "",
+    Name = getDevice(key),
+    Upstream = getupstream(key),
+    LinkStatus = getLinkStatus(key) or "",
+    FirmwareVersion = firmwareVersion,
+    StandardsSupported = standardsSupported and standardsSupported:gsub("T1_413","T1.413") or "",
+    StandardUsed = standardUsed and standardUsed:gsub("T1_413","T1.413") or "",
+    AllowedProfiles = xdslInfoValues["AllowedProfiles"] or "",
+    CurrentProfile = xdslInfoValues["vdsl2profile"] or "",
+    LineNumber = phonelinepairmapping[xdslctl.profileValue("phonelinepair", nil, nil, xdslctlLineIdMap[key])] or "",
+    UpstreamMaxBitRate = xdslInfoValues["maxrate"]["us"] or "0",
+    DownstreamMaxBitRate = xdslInfoValues["maxrate"]["ds"] or "0",
+    UpstreamNoiseMargin = times10(xdslInfoValues["snr"]["us"] or "0"),
+    DownstreamNoiseMargin = times10(xdslInfoValues["snr"]["ds"] or "0"),
+    UpstreamAttenuation = times10(xdslInfoValues["attn"]["us"] or "0"),
+    DownstreamAttenuation = times10(xdslInfoValues["attn"]["ds"] or "0"),
+    UpstreamPower = times10(xdslInfoValues["pwr"]["us"] or "0"),
+    DownstreamPower = times10(xdslInfoValues["pwr"]["ds"] or "0"),
+    XTURVendor = getXTURVendor(),
+    LastChange = tostring(getClockTime(posix.CLOCK_MONOTONIC) - lastStateChangeTime),
+    TRELLISds = xdslInfoValues["trellis"]["ds"] or "0",
+    TRELLISus = xdslInfoValues["trellis"]["us"] or "0",
+    PowerManagementState = xdslInfoValues["linkpowerstate"] or "",
+    XTUCCountry = xdslInfoValues["XTUCCountry"] or "",
+    SNRMpbus = xdslInfoValues["SNRMpb"]["us"] or "0",
+    SNRMpbds = xdslInfoValues["SNRMpb"]["ds"] or "0",
+    UPBOKLE = xdslInfoValues["UPBOKLE"] or "0",
+    US0MASK = xdslInfoValues["MASK"] or "0",
+    VirtualNoisePSDds = VirtualNoisePSDds:match("^%d+") or "0",
+    VirtualNoisePSDus = VirtualNoisePSDus:match("^%d+") or "0",
+    XTUCVendor = xdslInfoValues["XTUCVendor"] or "0",
+    XTUCANSIStd = xdslInfoValues["XTUCANSIStd"] or "0",
+    XTUCANSIRev = xdslInfoValues["XTUCANSIRev"] or "0",
+  }
+end
+
+function Device_DSL_Line_i_.entries()
+  model = nwmodel.load()
+  return model:getKeys(DSLLine)
+end
+
+local function setUbusEvent(mapping, action, data)
+  if data["status"] then
+    lastStateChangeTime = getClockTime(posix.CLOCK_MONOTONIC)
+  end
+end
+
+Device_DSL_Line_i_.add_watchers = function(mapping)
+  local ubusEventSource = eventsource("ubus")
+  ubusEventSource.watch_event(mapping, setUbusEvent, "xdsl")
+end
+
+Device_DSL_Line_i_.set = {
+  Enable = function(mapping, param, value, key)
+    local device = getDevice(key)
+    xdslBinding.sectionname = device
+    xdslBinding.option = "enabled"
+    uciHelper.set_on_uci(xdslBinding, value, commitapply)
+    isConfigChanged = true
+  end,
+}
+
+Device_DSL_Line_i_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(xdslBinding)
+    isConfigChanged = false
+  end
+end
+
+Device_DSL_Line_i_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(xdslBinding)
+    isConfigChanged = false
+  end
+end
+
+register(Device_DSL_Line_i_)

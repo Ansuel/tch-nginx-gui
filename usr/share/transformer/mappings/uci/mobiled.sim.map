@@ -1,0 +1,131 @@
+local commitapply = commitapply
+
+-- uci.mobiled.sim
+local mobiled_sim_ = {
+	objectType = {
+		name = "uci.mobiled.sim.@.",
+		numEntriesParameter = "numSims",
+		access = "readWrite",
+		minEntries = 0,
+		maxEntries = math.huge,
+		parameters = {
+			pin = {
+				access = "readWrite",
+				type = "string"
+			},
+			pin_type = {
+				access = "readWrite",
+				type = "string"
+			},
+			iccid = {
+				access = "readWrite",
+				type = "string"
+			}
+		}
+	}
+}
+
+local register, tostring = register, tostring
+
+local uci_helper = mapper("ucihelper")
+
+local simsBinding = {
+	  config="mobiled",
+	  sectionname="sim",
+}
+
+local function entriesMobiledSims(mapping)
+	local sim = {}
+
+	local function cb(t)
+		local l = #sim
+		sim[l+1] = tostring(l)
+	end
+	uci_helper.foreach_on_uci(simsBinding, cb)
+	return sim
+end
+
+local function getBindingForIndex(key)
+	return {
+		config="mobiled",
+		sectionname="@sim[" .. key .. "]",
+		extended = true
+	}
+end
+
+local function addDefaults(key)
+	local default_cfg = {
+		enabled = "1",
+		radio_pref = "lte",
+		network_selection = "auto"
+	}
+
+	local binding = getBindingForIndex(key)
+	for param, value in pairs(default_cfg) do
+		binding.option = param
+		uci_helper.set_on_uci(binding, value, commitapply)
+	end
+end
+
+local function addMobiledSims(mapping)
+	local result = uci_helper.add_on_uci(simsBinding, commitapply)
+	if not result then
+		return nil, "No object could be added for this multi instance object"
+	end
+	uci_helper.commit(simsBinding)
+	local items = entriesMobiledSims(mapping)
+	local sim = tostring(#items-1)
+	addDefaults(sim)
+	return sim
+end
+
+local function deleteMobiledSims(mapping, key)
+	local binding = getBindingForIndex(key)
+	uci_helper.delete_on_uci(binding, commitapply)
+	uci_helper.commit(binding)
+	return true
+end
+
+local function getallFromUCI(key)
+	local binding = getBindingForIndex(key)
+	local result = uci_helper.getall_from_uci(binding)
+	return result
+end
+
+local function getFromUCI(key, param)
+	local binding = getBindingForIndex(key)
+	binding.option = param
+	local result = uci_helper.get_from_uci(binding)
+	return result
+end
+
+local function setOnUCI(key, param, value, nocommit)
+	local binding = getBindingForIndex(key)
+	binding.option = param
+	uci_helper.set_on_uci(binding, value, commitapply)
+	if not nocommit then
+		uci_helper.commit(binding)
+	end
+end
+
+local function getallMobiledSims(mapping, key)
+	local result = getallFromUCI(key)
+	result['index'] = key
+	return result
+end
+
+local function get(mapping, paramName, key)
+	return getFromUCI(key, paramName)
+end
+
+local function set(mapping, paramName, paramValue, key)
+	return setOnUCI(key, paramName, paramValue)
+end
+
+mobiled_sim_.getall = getallMobiledSims
+mobiled_sim_.get = get
+mobiled_sim_.set = set
+mobiled_sim_.add = addMobiledSims
+mobiled_sim_.delete = deleteMobiledSims
+mobiled_sim_.entries = entriesMobiledSims
+register(mobiled_sim_)

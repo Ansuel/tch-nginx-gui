@@ -1,0 +1,343 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_DynamicDNS_Server_i_ = {
+  objectType = {
+    name = "Device.DynamicDNS.Server.{i}.",
+    access = "readOnly", -- readWrite not supported
+    numEntriesParameter = "ServerNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readOnly", -- readWrite not supported
+        type = "string",
+        max = "64",
+      },
+      Name = {
+        access = "readOnly",  -- readWrite not supported
+        type = "string",
+        max = "64",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      ServiceName = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      ServerAddress = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      ServerPort = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "65535",
+          },
+        },
+      },
+      SupportedProtocols = {
+        access = "readOnly",
+        list = true,
+        type = "string",
+        enumeration = {
+          "HTTP",
+          "HTTPS",
+        },
+      },
+      Protocol = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "HTTP",
+          "HTTPS",
+        },
+      },
+      CheckInterval = {
+        access = "readWrite",
+        type = "unsignedInt",
+      },
+      RetryInterval = {
+        access = "readWrite",
+        type = "unsignedInt",
+      },
+--[[ TODO: No lower layer support available
+      MaxRetries = {
+        access = "readWrite",
+        type = "unsignedInt",
+      },
+]]
+    }
+  }
+}
+
+local mapper, open = mapper, io.open
+local uciHelper = mapper("ucihelper")
+local ddnsBinding = { config = "ddns" }
+local serverInfo = {}
+local configChanged = false
+
+-- a map between param and the corresponding uci options
+local paramMap = {
+  Name        = "service_name",
+  ServiceName = "service_name",
+  ServerPort  = "service_name",
+  ServerAddress = "service_name",
+  URL         = "update_url",
+  Protocol    = "use_https",
+  CheckInterval = "check_interval",
+  CheckUnit     = "check_unit",
+  RetryInterval = "retry_interval",
+  RetryUnit     = "retry_unit",
+  UseIpv6       = "use_ipv6"
+}
+
+local function getUciValue(key, param, default)
+  ddnsBinding.sectionname = key
+  if param then
+    ddnsBinding.option = paramMap[param]
+    ddnsBinding.default = default
+    return uciHelper.get_from_uci(ddnsBinding)
+  end
+  return uciHelper.getall_from_uci(ddnsBinding)
+end
+
+-- This function returns CheckInterval or RetryInterval value based on the param
+-- If the CheckUnit/RetryUnit is other than seconds, then the return value should be converted to seconds
+local function getIntervalValue(key, param)
+  local intervalValue = getUciValue(key, param, "0")
+  local unitValue = ""
+  if param == "CheckInterval" then
+    unitValue = getUciValue(key, "CheckUnit")
+  elseif param == "RetryInterval" then
+    unitValue = getUciValue(key, "RetryUnit")
+  end
+  if unitValue == "minutes" then
+    intervalValue = intervalValue * 60
+  elseif unitValue == "hours" then
+    intervalValue = intervalValue * 3600
+  elseif unitValue == "days" then
+    intervalValue = intervalValue * 86400
+  end
+  return intervalValue
+end
+
+local function setUciValue(key, param, value)
+  ddnsBinding.sectionname = key
+  ddnsBinding.option = paramMap[param]
+  uciHelper.set_on_uci(ddnsBinding, value, commitapply)
+  configChanged = true
+end
+
+local function setIntervalValue(key, param, value)
+  setUciValue(key, param, value)
+  if param == "CheckInterval" then
+    setUciValue(key, "CheckUnit", "")
+  elseif param == "RetryInterval" then
+    setUciValue(key, "RetryUnit", "")
+  end
+end
+
+local function setServiceName(key, param, value)
+  local fileName = "/etc/ddns/services"
+  local useIpv6 = getUciValue(key, "UseIpv6")
+  if useIpv6 == "1" then
+    fileName = "/etc/ddns/services_ipv6"
+  end
+  local fd = open(fileName)
+  if fd then
+    for line in fd:lines() do
+      local serviceName = line:match("(%S+)") or ""
+      if (serviceName:sub(2, -2)) == value then
+        fd:close()
+        return setUciValue(key, param, value)
+      end
+    end
+  end
+  return nil, "Not a supported service"
+end
+
+local function setServerInfo(key, param, value)
+  local serviceName = getUciValue(key, "ServiceName")
+  local address = serverInfo[key]["ServerAddress"]
+  local port = serverInfo[key]["ServerPort"]
+  local fileName = "/etc/ddns/services"
+  if address == "" then
+    return nil, "ServerAddress not found"
+  end
+  if param == "ServerPort" then
+    if port ~= "" then
+      value = address:gsub(port,value)
+    else
+      value = address .. ":" .. value
+    end
+  elseif param == "ServerAddress" then
+    if port ~= "" then
+      value = address:gsub(address:match("[^:]*"), value)
+    end
+  end
+  if serviceName ~= "" then
+    local useIpv6 = getUciValue(key, "UseIpv6")
+    if useIpv6 == "1" then
+      fileName = "/etc/ddns/services_ipv6"
+    end
+    local str
+    local fd = open(fileName, "r")
+    if fd then
+      str = fd:read("*a")
+      fd:close()
+    end
+
+    fd = open(fileName, "w+")
+    if fd then
+      str = str:gsub(address, value)
+      fd:write(str)
+      fd:close()
+      return
+    end
+  end
+  local updateUrl = getUciValue(key, "URL")
+  updateUrl = updateUrl:gsub(address, value)
+  setUciValue(key, "URL", updateUrl)
+  configChanged = true
+end
+
+-- Entries are formed based on the ddns service config
+-- If service_name is available then the respective update url will be taken from the service file
+-- Otherwise update_url will be taken
+-- Sample url: "http://[USERNAME]:[PASSWORD]@update.spdns.de:5789/nic/update?hostname=[DOMAIN]&myip=[IP]"
+-- ServerAddress - update.spdns.de and ServerPort - 5789 will be saved in the serverInfo table
+-- serverInfo table is used in the get and set function
+Device_DynamicDNS_Server_i_.entries = function()
+  local ddnsServerEntries = {}
+  serverInfo = {}
+  local fileName = "/etc/ddns/services"
+  ddnsBinding.sectionname = "service"
+  uciHelper.foreach_on_uci(ddnsBinding, function(s)
+    local serviceSupported = false
+    if s.use_ipv6 == "1" then
+      fileName = "/etc/ddns/services_ipv6"
+    end
+    if s.service_name then
+      local fd = open(fileName)
+      if fd then
+        for line in fd:lines() do
+          local service, url = line:match("(%S+)%s+(%S+)")
+          if service and service:sub(2,-2) == s.service_name then
+            serviceSupported = true
+            ddnsServerEntries[#ddnsServerEntries + 1] = s[".name"]
+            local serverAddress = url and url:match("//(.-)/") or ""
+            serverAddress = serverAddress:match("@(.*)") or serverAddress
+            serverInfo[s[".name"]] = { ServerAddress = serverAddress, ServerPort = url and url:match(".*:(%d+).*") or ""}
+          end
+        end
+        fd:close()
+      end
+    end
+    if not serviceSupported and s.update_url then
+      ddnsServerEntries[#ddnsServerEntries + 1] = s[".name"]
+      local serverAddress = s.update_url:match("//(.-)/") or ""
+      serverAddress = serverAddress:match("@(.*)") or serverAddress
+      serverInfo[s[".name"]] = { ServerAddress = serverAddress, ServerPort = s.update_url:match(".*:(%d+).*") or "" }
+    end
+  end)
+  return ddnsServerEntries
+end
+
+Device_DynamicDNS_Server_i_.get = {
+  Enable = "1",
+
+  Name = function(mapping, param, key)
+    local name = getUciValue(key, param)
+    return name:match("^@*(.*)%..*") or ""
+  end,
+
+  ServiceName = function(mapping, param, key)
+    return getUciValue(key, param)
+  end,
+
+  ServerAddress = function(mapping, param, key)
+    local serverAddress = serverInfo[key][param]
+    return serverAddress:match("[^:]*") or ""
+  end,
+
+  ServerPort = function(mapping, param, key)
+    local port = serverInfo[key][param]
+    if port == "" then
+      local proto = getUciValue(key, "Protocol")
+      port = (proto == "1") and "443" or "80"
+    end
+    return port
+  end,
+
+  SupportedProtocols = "HTTP,HTTPS",
+
+  Protocol = function(mapping, param, key)
+    local value = getUciValue(key, param)
+    return (value == "1") and "HTTPS" or "HTTP"
+  end,
+
+  CheckInterval = function(mapping, param, key)
+    return getIntervalValue(key, param)
+  end,
+
+  RetryInterval = function(mapping, param, key)
+    return getIntervalValue(key, param)
+  end,
+}
+
+Device_DynamicDNS_Server_i_.set = {
+  ServiceName = function(mapping, param, value, key)
+    return setServiceName(key, param, value)
+  end,
+
+  ServerAddress = function(mapping, param, value, key)
+    return setServerInfo(key, param, value)
+  end,
+
+  ServerPort = function(mapping, param, value, key)
+    return setServerInfo(key, param, value)
+  end,
+
+  Protocol = function(mapping, param, value, key)
+    if value == "HTTP" then
+      value = "0"
+    elseif value == "HTTPS" then
+      value = "1"
+    end
+    setUciValue(key, param, value)
+  end,
+
+  CheckInterval = function(mapping, param, value, key)
+    return setIntervalValue(key, param, value)
+  end,
+
+  RetryInterval = function(mapping, param, value, key)
+    return setIntervalValue(key, param, value)
+  end,
+}
+
+Device_DynamicDNS_Server_i_.commit = function()
+  if configChanged then
+    uciHelper.commit(ddnsBinding)
+    configChanged = false
+  end
+end
+
+Device_DynamicDNS_Server_i_.revert = function()
+  if configChanged then
+    uciHelper.revert(ddnsBinding)
+    configChanged = false
+  end
+end
+
+register(Device_DynamicDNS_Server_i_)

@@ -1,0 +1,88 @@
+-- Automatically generated from Device:2.9
+-- using generator version 2.2
+local Multi_DeviceInfo_VendorLogFile_i_ = {
+  objectType = {
+    name = "#ROOT.DeviceInfo.VendorLogFile.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "VendorLogFileNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        max = "64",
+      },
+      Name = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      MaximumSize = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      Persistent = {
+        access = "readOnly",
+        type = "boolean",
+      },
+    }
+  }
+}
+
+local binding = { config = "system" }
+local uci_helper = mapper("ucihelper")
+local get_from_uci = uci_helper.get_from_uci
+
+Multi_DeviceInfo_VendorLogFile_i_.entries = function(mapping)
+  local logEntries = {}
+  binding.sectionname = "log"
+  uci_helper.foreach_on_uci(binding, function(s)
+    logEntries[#logEntries+1] = s['.name']
+  end)
+  return logEntries
+end
+
+local function getUciValue(option, key, default)
+  binding.sectionname = key
+  binding.option = option
+  binding.default = default
+  return get_from_uci(binding)
+end
+
+Multi_DeviceInfo_VendorLogFile_i_.get = {
+  Name = function(mapping, param, key)
+    return getUciValue("path", key)
+  end,
+
+  MaximumSize = function(mapping, param, key)
+    return getUciValue("size", key, "0")
+  end,
+
+  Persistent = "0"
+}
+
+Multi_DeviceInfo_VendorLogFile_i_.getall = function(mapping,key)
+  binding.sectionname = key
+  local values = uci_helper.getall_from_uci(binding)
+  return {
+    Name = values.path or "",
+    MaximumSize = values.size or "0",
+  }
+end
+
+Multi_DeviceInfo_VendorLogFile_i_.commit = function()
+  uci_helper.commit(binding)
+end
+
+Multi_DeviceInfo_VendorLogFile_i_.revert = function()
+  uci_helper.revert(binding)
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_DeviceInfo_VendorLogFile_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end

@@ -1,0 +1,123 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_DSL_Multi_i_Stats_ = {
+  objectType = {
+    name = "Device.DSL.#ROOT.{i}.Stats.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      BytesSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedLong",
+      },
+      BytesReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedLong",
+      },
+      PacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedLong",
+      },
+      PacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedLong",
+      },
+      ErrorsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ErrorsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DiscardPacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DiscardPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalStart = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ShowtimeStart = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      LastShowtimeStart = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentDayStart = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      QuarterHourStart = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+    }
+  }
+}
+
+local xdslctl = require("transformer.shared.xdslctl")
+
+local timeStats = {
+  TotalStart = "total",
+  ShowtimeStart = "sincesync",
+  LastShowtimeStart = "sincesync",
+  CurrentDayStart = "currentday",
+  QuarterHourStart = "currentquarter",
+}
+
+local dataStats = {
+  BytesSent = "counters_totalcells",
+  PacketsSent = "counters_datacells",
+  DiscardPacketsSent = "counters_dropcells",
+  ErrorsSent = "counters_biterr",
+  BytesReceived = "counters_totalcells",
+  PacketsReceived = "counters_datacells",
+  DiscardPacketsReceived = "counters_dropcells",
+  ErrorsReceived = "counters_biterr",
+}
+
+local function xdslctlLineIdMap(key)
+  if string.find(key, "dsl:dsl") then
+    return string.gsub(key, "dsl:dsl", "line")
+  elseif string.find(key, "dsl") then
+    return string.gsub(key, "dsl", "line")
+  else
+    return nil
+  end
+end
+
+Device_DSL_Multi_i_Stats_.get = function(mapping, param, key)
+  if timeStats[param] then
+    return xdslctl.stats(timeStats[param], "time", nil, xdslctlLineIdMap(key))
+  elseif dataStats[param] then
+    local type = param:find("Sent$") and "us" or "ds"
+    return xdslctl.infoValue(dataStats[param], type, "0", xdslctlLineIdMap(key))
+  end
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Device_DSL_Multi_i_Stats_, "#ROOT", { "Line", "Channel" })
+for _, dupli in ipairs(duplicates) do
+  register (dupli)
+end

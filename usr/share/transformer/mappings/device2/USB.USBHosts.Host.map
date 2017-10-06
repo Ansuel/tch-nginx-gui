@@ -1,0 +1,106 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_USB_USBHosts_Host_i_ = {
+  objectType = {
+    name = "Device.USB.USBHosts.Host.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "HostNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readOnly", -- readWrite not supported
+        type = "boolean",
+      },
+      Name = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      USBVersion = {
+        access = "readOnly",
+        type = "string",
+        max = "4",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+--[[ TODO:
+      Type = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "OHCI",
+          "EHCI",
+          "UHCI",
+          "xHCI",
+        },
+      },
+      Reset = {
+        access = "readWrite",
+        hidden = "true",
+        type = "boolean",
+      },
+      PowerManagementEnable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+]]
+      -- DeviceNumberOfEntries
+      -- automatically created when Device.USB.USBHosts.Host.{i}.Device.{i}. is loaded
+    }
+  }
+}
+
+local usbDevicesPath = "/sys/bus/usb/devices/"
+local files = { "product", "version" }
+local paramMap = {
+  ["product"] = "Name",
+  ["version"] = "USBVersion",
+}
+local hostControllersInfo = {}
+
+local function getHostControllerInfo()
+  for file in lfs.dir(usbDevicesPath) do
+    if file:match("^usb%d") then
+      hostControllersInfo[file] = {}
+      hostControllersInfo[file]["Enable"] = "1"
+      for _,v in pairs(files) do
+        local fileName = usbDevicesPath .. file .. "/" .. v
+        local fd = io.open(fileName)
+        if fd then
+          local value = fd:read() or ""
+          hostControllersInfo[file][paramMap[v]] = value:gsub("^%s*", "")
+          fd:close()
+        end
+      end
+    end
+  end
+end
+
+getHostControllerInfo()
+
+-- The entries function is formed based on the names that begin with "usb" since they refer to USB controllers
+
+Device_USB_USBHosts_Host_i_.entries = function(mapping)
+  local usbHostsEntries = {}
+  for file in lfs.dir(usbDevicesPath) do
+    if file:match("^usb%d") then
+      usbHostsEntries[#usbHostsEntries + 1 ] = file
+    end
+  end
+  return usbHostsEntries
+end
+
+Device_USB_USBHosts_Host_i_.get = function(mapping, param, key)
+  return hostControllersInfo[key][param]
+end
+
+Device_USB_USBHosts_Host_i_.getall = function(mapping, key)
+  return hostControllersInfo[key]
+end
+
+register(Device_USB_USBHosts_Host_i_)

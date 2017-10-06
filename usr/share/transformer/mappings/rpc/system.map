@@ -1,0 +1,148 @@
+local uci = require('uci')
+local commitapply = commitapply
+local floor = math.floor
+local open = io.open
+local remove = os.remove
+local tostring = tostring
+local match = string.match
+local upload_ca_filename = ""
+
+local rebootreasons = {}
+do
+    local path = "/lib/functions/reboot_reason.sh"
+    local file = open(path, "r")
+    if file then
+        for line in file:lines() do
+            -- Read until comment containing 'REASONS_END' is found
+            if match(line, "#.*REASONS_END") then break end
+            -- Known reboot reasons have format like 'PWR=0'
+            local reason = match(line, '(%w+)=%d+')
+            if reason then
+                -- Exclude future-use reserved reasons
+                if not match(reason, "RES") then
+                    rebootreasons[#rebootreasons + 1] = reason
+                end
+            end
+        end
+        file:close()
+    else
+        -- On platforms which are not reboot-reason enabled (LTE, Qualcomm):
+        -- Provide a default set of reasons which are called from the code,
+        -- since GUI and CWMP code is taken along on all platforms,
+        -- and hence set e.g. "rpc.system.reboot" to "GUI".
+        rebootreasons = {"GUI", "CWMP", "STS", "CLI"}
+    end
+end
+
+local system_ = {
+    objectType = {
+        name = 'rpc.system.',
+        access = 'readOnly',
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            reboot = {
+                access = "readWrite",
+                type = "string",
+                enumeration = rebootreasons,
+            },
+            reset = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            switchover = {
+                access = "readWrite",
+                type = "boolean",
+            },
+	    resetgui = {
+                access = "readWrite",
+                type = "boolean",
+            },
+	    upgradegui = {
+                access = "readWrite",
+                type = "boolean",
+	    },
+	    removeroot = {
+                access = "readWrite",
+                type = "boolean",
+            },
+	    transfer_bank1 = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            uptime = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            rebootreasons = {
+                access = "readOnly",
+                type = "string",
+            },
+            upload_ca_file = {
+               access = "readWrite",
+               type = "string",
+            },
+        }
+    },
+    get = {
+        reboot = "",
+        reset = "0",
+		resetgui = "0",
+		upgradegui = "0",
+		removeroot = "0",
+		transfer_bank1 = "0",
+        switchover = "0",
+        uptime = function()
+            local fd, msg = open("/proc/uptime")
+            if not fd then
+                return fd, msg
+            end
+            local uptime = fd:read("*n")
+            fd:close()
+            return tostring(floor(uptime))
+        end,
+        rebootreasons = table.concat(rebootreasons, ", "),
+        upload_ca_file = function()
+          return upload_ca_filename or ""
+        end,
+    },
+    set = function(mapping, paramname, paramvalue)
+        if paramname == "reboot" then
+            local cursor = uci.cursor(nil, "/var/state")
+            local result, msg = cursor:set("system", "warmboot", "rebootreason", paramvalue)
+            if result == nil then
+                return result, msg
+            end
+            result, msg = cursor:save("system")
+            if result == nil then
+                return result, msg
+            end
+            cursor:close()
+            paramvalue = "1"
+        elseif paramname == "upload_ca_file" then
+            -- upload the file name given in "paramvalue" from /tmp/ to /etc/ssl/certs/
+            upload_ca_filename = paramvalue
+            local fd_tmp, msg = open("/tmp/" .. paramvalue)
+            if not fd_tmp then
+                return fd_tmp, msg
+            end
+            if upload_ca_filename == "" then
+                return nil, "Invalid file Name"
+            end
+            local data = fd_tmp:read("*all")
+            fd_tmp:close()
+            local fd_cert, err = open("/etc/ssl/certs/".. upload_ca_filename , "w")
+            if not fd_cert then
+                return fd_cert, err
+            end
+            fd_cert:write(data)
+            fd_cert:close()
+            os.remove("/tmp/" .. paramvalue)
+        end
+        if paramvalue == "1" then
+            commitapply:newset("rpc.system." .. paramname)
+        end
+    end
+}
+
+register(system_)

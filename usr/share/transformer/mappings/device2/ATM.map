@@ -1,0 +1,16 @@
+-- Automatically generated from Device:2.2
+-- using generator version 2.1
+local Device_ATM_ = {
+  objectType = {
+    name = "Device.ATM.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      -- LinkNumberOfEntries
+      -- automatically created when Device.ATM.Link.{i}. is loaded
+    }
+  }
+}
+
+register(Device_ATM_)

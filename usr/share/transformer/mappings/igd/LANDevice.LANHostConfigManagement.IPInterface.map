@@ -1,0 +1,140 @@
+-- Automatically generated from InternetGatewayDevice:1.3
+-- using generator version 2.1
+local InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_IPInterface_i_ = {
+  objectType = {
+    name = "InternetGatewayDevice.LANDevice.{i}.LANHostConfigManagement.IPInterface.{i}.",
+    access = "readOnly",  -- readWrite currently not supported
+    numEntriesParameter = "IPInterfaceNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      IPInterfaceIPAddress = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      IPInterfaceSubnetMask = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      IPInterfaceAddressingType = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "DHCP",
+          "Static",
+          "AutoIP",
+        },
+        default = "DHCP",
+      },
+    }
+  }
+}
+
+local format = string.format
+local uci_helper = mapper("ucihelper")
+local get_from_uci = uci_helper.get_from_uci
+local inet = require "tch.inet"
+local isValidIP = inet.isValidIPv4
+
+-- Standard says that support for more than one interface is optional. No reason to go beyond.
+InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_IPInterface_i_.entries = function(mapping, parentkey)
+    return { parentkey }
+end
+
+local binding = { config = "network", sectionname = "", option = ""}
+InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_IPInterface_i_.get = {
+  Enable = function(mapping, param, key)
+    binding.sectionname = key
+    binding.option = "auto"
+    local auto = get_from_uci(binding) or ""
+    if auto == "" then
+      return "1"
+    else
+      return auto
+    end
+  end,
+  IPInterfaceIPAddress = function(mapping, param, key)
+    binding.sectionname = key
+    binding.option = "ipaddr"
+    return get_from_uci(binding)
+  end,
+  IPInterfaceSubnetMask = function(mapping, param, key)
+    binding.sectionname = key
+    binding.option = "netmask"
+    return get_from_uci(binding)
+  end,
+  IPInterfaceAddressingType = function(mapping, param, key)
+    binding.sectionname = key
+    binding.option = "proto"
+    local proto = get_from_uci(binding)
+    if proto == "static" then
+      return "Static"
+    elseif proto == "auto" then
+      return "AutoIP"
+    else
+      return "DHCP"
+    end
+  end,
+}
+
+InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_IPInterface_i_.set = function(mapping,param,paramvalue,key)
+  if param == "Enable" then
+    binding.sectionname = key
+    binding.option = "auto"
+    uci_helper.set_on_uci(binding, paramvalue, commitapply)
+    uci_helper.commit(binding)
+  end
+  if param == "IPInterfaceIPAddress" then
+    if isValidIP(paramvalue) then
+      binding.sectionname = key
+      binding.option = "ipaddr"
+      uci_helper.set_on_uci(binding, paramvalue, commitapply)
+      uci_helper.commit(binding)
+    else
+      return nil,format("%s is not a valid IP Address", paramvalue or "nil")
+    end
+  end
+  if param == "IPInterfaceSubnetMask" then
+    binding.sectionname = key
+    binding.option = "netmask"
+    uci_helper.set_on_uci(binding, paramvalue, commitapply)
+    uci_helper.commit(binding)
+  end
+  if param == "IPInterfaceAddressingType" then
+    binding.sectionname = key
+    binding.option = "proto"
+    if paramvalue == "Static" then
+      uci_helper.set_on_uci(binding, "static", commitapply)
+      uci_helper.commit(binding)
+    elseif paramvalue == "DHCP" then
+      uci_helper.set_on_uci(binding, "dhcp", commitapply)
+      uci_helper.commit(binding)
+    elseif paramvalue == "AutoIP" then
+      uci_helper.set_on_uci(binding, "auto", commitapply)
+      uci_helper.commit(binding)
+    end
+  end
+end
+
+local function ip_intf_event(mapping, event, msg)
+  -- only event if there is at least an IP address in the event
+  local addresses = msg["ipv4-address"]
+  if addresses and #addresses > 0 then
+    return { { key = msg.interface, paramname = "IPInterfaceIPAddress" } }
+  end
+end
+
+InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_IPInterface_i_.add_watchers = function(mapping)
+  local ubus_evsrc = eventsource("ubus")
+  ubus_evsrc.watch_event(mapping, ip_intf_event, "network.interface")
+end
+
+register(InternetGatewayDevice_LANDevice_i_LANHostConfigManagement_IPInterface_i_)

@@ -1,0 +1,370 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_ATM_Link_i_ = {
+  objectType = {
+    name = "Device.ATM.Link.{i}.",
+    access = "readOnly", -- currently readWrite not supported
+    numEntriesParameter = "LinkNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readOnly", -- Currently readWrite not supported
+        type = "boolean",
+        default = "false",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Up",
+          "Down",
+          "Unknown",
+          "Dormant",
+          "NotPresent",
+          "LowerLayerDown",
+          "Error",
+        },
+        default = "Down",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      Name = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+--[[ TODO
+      LastChange = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+--]]
+      LowerLayers = {
+        access = "readOnly", -- Currently readWrite not supported
+        list = true,
+        max = "1024",
+        type = "string",
+        pathRef = true,
+        default = "",
+      },
+      LinkType = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "EoA",
+          "IPoA",
+          "PPPoA",
+      --  "CIP", -- lowerlayer support is not available
+          "Unconfigured",
+        },
+      },
+      AutoConfig = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      DestinationAddress = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      Encapsulation = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "LLC",
+          "VCMUX",
+        },
+      },
+      FCSPreserved = {
+        access = "readOnly", -- Currently readWrite not supported
+        type = "boolean",
+      },
+      VCSearchList = {
+        access = "readOnly", -- Currently readWrite not supported
+        list = true,
+        max = "256",
+        type = "string",
+      },
+      AAL = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "AAL1",
+          "AAL2",
+          "AAL3",
+          "AAL4",
+          "AAL5",
+        },
+      },
+    }
+  },
+  aliasDefault = "Name"
+}
+
+local nwmodel = require "transformer.shared.models.device2.network"
+local ATMLink =  nwmodel.register("ATMLink", Device_ATM_Link_i_.objectType.name)
+local model
+
+local mapper, pairs, string = mapper, pairs, string
+local uciHelper = mapper("ucihelper")
+local conn = mapper("ubus").connect()
+local getFromUci = uciHelper.get_from_uci
+local getAllFromUci = uciHelper.getall_from_uci
+local forEachOnUci = uciHelper.foreach_on_uci
+local xtmBinding = { config = "xtm", sectionname = "", option = "" }
+local upper, lower, match = string.upper, string.lower, string.match
+local commitApply = commitapply
+local transactions = {}
+
+local xtmctl = require("transformer.shared.xtmctl")
+local getXtmDeviceStatus = xtmctl.getXtmDeviceStatus
+
+local linkTypeToUlp = {
+  ["EoA"]   = "eth",
+  ["IPoA"]  = "ip",
+  ["PPPoA"] = "ppp",
+  ["Unconfigured"] = "",
+}
+
+local ulpToLinkType = {
+  ["eth"] = "EoA",
+  ["ip"]  = "IPoA",
+  ["ppp"] = "PPPoA",
+  [""]  = "Unconfigured",
+}
+
+local function getUciParam(intf, option)
+  xtmBinding.sectionname = intf
+  xtmBinding.option = option
+  if option then
+    return getFromUci(xtmBinding)
+  end
+  return getAllFromUci(xtmBinding)
+end
+
+local function setOnUci(intf, option, value)
+  xtmBinding.sectionname = intf
+  xtmBinding.option = option
+  uciHelper.set_on_uci(xtmBinding, value, commitApply)
+  transactions["xtm"] = true
+end
+
+Device_ATM_Link_i_.entries = function()
+  model = nwmodel.load()
+  return model:getKeys(ATMLink)
+end
+
+local function getATMAddr(key, vpi, vci)
+  local ucikey = model:getUciKey(key)
+  vpi = vpi or getUciParam(ucikey, "vpi")
+  vci = vci or getUciParam(ucikey, "vci")
+  if vpi == "" or vci == "" then
+    return ""
+  end
+  return "1." .. vpi .. "." .. vci
+end
+
+local function getATMEnable(key, vpi, vci)
+  if not model:getPresent(key) then
+    return "0"
+  end
+  local atmAddr = getATMAddr(key, vpi, vci)
+  if atmAddr ~= "" and (getXtmDeviceStatus(atmAddr) == "enabled") then
+    return "1"
+  else
+    return "0"
+  end
+end
+
+local function getATMStatus(key, vpi, vci)
+  if not model:getPresent(key) then
+    return "LowerLayerDown"
+  end
+
+  local atmStatus = conn:call("network.device", "status", {["name"] = model:getDevice(key)})
+  if not atmStatus then
+    return "Unknown"
+  end
+
+  local atmAddr = getATMAddr(key, vpi, vci)
+  if atmAddr ~= "" and getXtmDeviceStatus(atmAddr) == "enabled" then
+    if atmStatus.carrier and atmStatus.up then
+      return "Up"
+    else
+      local xdslStatus = conn:call("xdsl", "status", {})
+      if not xdslStatus or xdslStatus.statuscode < 5 then
+        return "LowerLayerDown"
+      else
+        return "Dormant"
+      end
+    end
+  else
+    if atmStatus.present then
+      return "Down"
+    else
+      return "NotPresent"
+    end
+  end
+end
+
+local function getATMLowerLayers(key)
+  return model:getLowerLayersResolved(key, resolve)
+end
+
+local wansensing_binding = { config = "wansensing", sectionname = "global", option = "enable" }
+local function getAutoConfig()
+  local wansensing_enable = getFromUci(wansensing_binding)
+  if wansensing_enable ~= "" then
+    return wansensing_enable=="1"
+  end
+end
+
+local function getATMDestAddr_AAL(key, param, vpi, vci)
+  local ucikey = model:getUciKey(key)
+  vpi = vpi or getUciParam(ucikey, "vpi")
+  vci = vci or getUciParam(ucikey, "vci")
+  if vpi == "" or vci == "" then
+    return ""
+  end
+  if param == "DestinationAddress" then
+    return vpi .. "/" .. vci
+  elseif param == "AAL" then
+    local atm_addr = "1." .. vpi .. "." .. vci
+    local _,aal_type = getXtmDeviceStatus(atm_addr)
+    return upper(aal_type)
+  end
+  return ""
+end
+
+local function getVCSearchList()
+  local VCSearchList = {}
+  xtmBinding.sectionname = "atmdevice"
+  forEachOnUci(xtmBinding, function(s)
+    VCSearchList[#VCSearchList+1] = s["vpi"] .. "/" .. s["vci"]
+  end)
+  return table.concat(VCSearchList,",")
+end
+
+Device_ATM_Link_i_.get = {
+  Enable = function(mapping, param, key)
+    return getATMEnable(key)
+  end,
+
+  Status = function(mapping, param, key)
+    return getATMStatus(key)
+  end,
+
+  Name = function(mapping, param, key)
+    return model:getName(key)
+  end,
+
+  LowerLayers = function(mapping, param, key)
+    return getATMLowerLayers(key)
+  end,
+
+  LinkType = function(mapping, param, key)
+    return ulpToLinkType[getUciParam(model:getUciKey(key), "ulp")] or "Unconfigured"
+  end,
+
+  AutoConfig = function(mapping, param, key)
+    return getAutoConfig() and "1" or "0"
+  end,
+
+  DestinationAddress = function (mapping,param,key)
+    return getATMDestAddr_AAL(key,param)
+  end,
+
+  Encapsulation = function (mapping,param,key)
+    return upper(getUciParam(model:getUciKey(key), "enc"))
+  end,
+
+  AAL = function(mapping,param,key)
+    return getATMDestAddr_AAL(key,param)
+  end,
+
+  VCSearchList = getVCSearchList,
+
+  FCSPreserved = "0", -- hardcoded to 0 since no lower layer support
+}
+
+Device_ATM_Link_i_.getall = function(mapping, key)
+  local atm_values = getUciParam(model:getUciKey(key))
+  local vpi = atm_values["vpi"]
+  local vci = atm_values["vci"]
+  return {
+    Enable = getATMEnable(key, vpi, vci) or "0",
+    Status = getATMStatus(key, vpi, vci) or "Down",
+    Name = model:getName(key),
+    LowerLayers = getATMLowerLayers(key) or "",
+    LinkType = ulpToLinkType[atm_values["ulp"]] or "Unconfigured",
+    AutoConfig = getAutoConfig() and "1" or "0",
+    DestinationAddress = getATMDestAddr_AAL(key, "DestinationAddress", vpi, vci) or "",
+    Encapsulation = upper(atm_values["enc"]) or "",
+    AAL = getATMDestAddr_AAL(key, "AAL", vpi, vci) or "",
+    VCSearchList = getVCSearchList() or "",
+    FCSPreserved = "0", -- hardcoded to 0 since no lower layer support
+  }
+end
+
+Device_ATM_Link_i_.set =
+{
+  LinkType = function(mapping, param, value, key)
+    if getAutoConfig() then
+      return nil,"Not Configurable since AutoConfig is enabled"
+    else
+      setOnUci(model:getUciKey(key), "ulp", linkTypeToUlp[value])
+    end
+  end,
+
+  DestinationAddress = function(mapping, param, value, key)
+    -- the value of vpi and vci should not be nil and the type should be digit
+    if getAutoConfig() then
+      return nil,"Not Configurable since AutoConfig is enabled"
+    else
+      local vpi, vci = match(value, "(%d+)/(%d+)$")
+      if not vpi then
+        return nil, "invalid value"
+      end
+      local ucikey = model:getUciKey(key)
+      setOnUci(ucikey, "vpi", vpi)
+      setOnUci(ucikey, "vci", vci)
+
+      -- if VPI/VCI are defined in network config then set vpi/vci in network config as well
+      local isNetworkConfigChanged = xtmctl.setNetworkConfig(ucikey, vpi, vci)
+      if isNetworkConfigChanged then
+        transactions["network"] = true
+      end
+    end
+  end,
+
+  Encapsulation = function (mapping,param,value,key)
+    if getAutoConfig() then
+      return nil,"Not Configurable since AutoConfig is enabled"
+    else
+      setOnUci(model:getUciKey(key), "enc", lower(value))
+    end
+  end,
+}
+
+Device_ATM_Link_i_.commit = function()
+  for config in pairs(transactions) do
+    uciHelper.commit({config = config})
+  end
+  transactions = {}
+end
+
+Device_ATM_Link_i_.revert = function()
+  for config in pairs(transactions) do
+    uciHelper.revert({config = config})
+  end
+  transactions = {}
+end
+
+register(Device_ATM_Link_i_)

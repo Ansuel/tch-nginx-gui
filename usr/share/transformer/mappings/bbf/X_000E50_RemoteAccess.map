@@ -1,0 +1,425 @@
+local Multi_Services_X_000E50_RemoteAccess_i_= {
+  objectType = {
+    name = "#ROOT.Services.X_000E50_RemoteAccess.{i}.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      Name = {
+        access = "readOnly",
+        type = "string",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+      },
+      URL = {
+        access = "readOnly",
+        type = "string",
+      },
+      Secure = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      Port = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      Mode = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "Temporary",
+          "Permanent",
+        },
+      },
+      IPIntf = {
+        access = "readOnly",
+        type = "string",
+      },
+      RandomPassword = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      RandomPort = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      Password = {
+        access = "readWrite",
+        type = "string",
+      },
+      User = {
+        access = "readOnly",
+        type = "string",
+      },
+      Start = {
+        access = "readWrite",
+        type = "boolean",
+      },
+    }
+  }
+}
+
+----------------------------------------------------------
+-- Mapper implementation
+----------------------------------------------------------
+local mapper = mapper
+local common = mapper('nwcommon')
+local get_ubus_interface_status = common.get_ubus_interface_status
+local findLanWanInterfaces = common.findLanWanInterfaces
+local wanconn = require("transformer.shared.wanconnection")
+local srp = require("srp")
+local scp = require("transformer.shared.setClashPassword")
+local format, open, pairs, resolve = string.format, io.open, pairs, resolve
+local commitapply = commitapply
+
+local uci_helper = mapper("ucihelper")
+local isConfigChanged = false
+local webBinding = {config="web"}
+
+local function setOnUci(binding, value)
+  uci_helper.set_on_uci(binding, value, commitapply)
+  isConfigChanged = true
+end
+
+Multi_Services_X_000E50_RemoteAccess_i_.entries = function()
+  local entries = {}
+  webBinding.sectionname = "assistance"
+  uci_helper.foreach_on_uci(webBinding, function(s)
+    entries[#entries+1] = s['.name']
+  end)
+  return entries
+end
+
+local function loadState(name)
+  name = name or ""
+  local state = {
+    wanip = "",
+    wanport = "",
+    lanport = "",
+    enabled = "0",
+    password = "_dummy_",
+    mode = "0",
+  }
+  local file = "/var/run/assistance/%s"
+  local fd = open(file:format(name), 'r')
+  if fd then
+    for ln in fd:lines() do
+      local key, value = ln:match('^%s*([^=%s]*)%s*=%s*([^%s]*)')
+      if key then
+        state[key] = value
+      end
+    end
+    fd:close()
+  end
+  return state
+end
+
+local function getStatus(state)
+  return state.enabled == "1" and "Active" or "Inactive"
+end
+
+local function getURL(state)
+  if state.wanip and state.wanip ~= "" and state.enabled == "1" then
+    return ("https://" .. state.wanip .. ":" .. (state.wanport or ""))
+  end
+  return ""
+end
+
+local function getSecure()
+  return "1" --only https is supported
+end
+
+local function getPort(state)
+  local port = ""
+  if state.enabled == "1" then
+    port = state.wanport or ""
+  end
+  return port
+end
+
+local function getMode(state)
+  return state.mode == "1" and "Permanent" or "Temporary"
+end
+
+local function getRandomPassword(state)
+  return state.password == "" and "0" or "1"
+end
+
+local function getRandomPort()
+  return "1" -- only random port is supported in current remote assistance implementation
+end
+
+
+local function getPwdCfg()
+  webBinding.sectionname = "remote"
+  webBinding.option = "password_mode"
+  local passwordMode = uci_helper.get_from_uci(webBinding)
+  if passwordMode == "" then
+    return "fixed" -- default to `fixed` if no password_mode specified in uci
+  end
+  return passwordMode
+end
+
+local function getPassword(state)
+  local pw
+  if state.enabled == "1" then
+    if getPwdCfg() ~= "srpuci" then
+      pw = state.password
+    end
+  end
+  return pw or ""
+end
+
+-- TODO can this be improved and/or simplified?
+local function getIPinterface(mapping, key)
+  webBinding.sectionname=key
+  webBinding.option="interface"
+  local interface = uci_helper.get_from_uci(webBinding)
+  if interface == "" then
+    interface = "wan"
+  end
+  if mapping.objectType.name:match('^Device%.') then
+    return resolve('Device.IP.Interface.{i}.', interface) or ""
+  end
+  for _, thisintf in pairs(findLanWanInterfaces(false) or {}) do
+    if (interface == thisintf) then
+      return resolve('InternetGatewayDevice.LANDevice.{i}.LANHostConfigManagement.IPInterface.{i}.', interface) or ""
+    end
+  end
+  local key, status = wanconn.get_connection_key(interface)
+  if key and status then
+    if status.proto == "pppoe" or status.proto == "pppoa" then
+      return resolve("InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANPPPConnection.{i}.", key) or ""
+    else
+      return resolve("InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANIPConnection.{i}.", key) or ""
+    end
+  end
+  return ""
+end
+
+local function getUser(key)
+  webBinding.sectionname=key
+  webBinding.option="user"
+  local usr = uci_helper.get_from_uci(webBinding)
+  if usr ~= "" then
+    return usr
+  end
+  return ""
+end
+
+local function getStart(state)
+  return state.enabled or "0"
+end
+
+Multi_Services_X_000E50_RemoteAccess_i_.get = {
+  Name = function(mapping, param, key)
+    return key
+  end,
+  Status = function(mapping, param, key)
+    return getStatus(loadState(key))
+  end,
+  URL = function(mapping, param, key)
+    return getURL(loadState(key))
+  end,
+  Secure = getSecure(),
+  Port = function(mapping, param, key)
+    return getPort(loadState(key))
+  end,
+  Mode = function(mapping, param, key)
+    return getMode(loadState(key))
+  end,
+  IPIntf = function(mapping, param, key)
+    return getIPinterface(mapping, key)
+  end,
+  RandomPassword = function(mapping, param, key)
+    return getRandomPassword(loadState(key))
+  end,
+  RandomPort = getRandomPort(),
+  Password = function(mapping, param, key)
+    return getPassword(loadState(key))
+  end,
+  User = function(mapping, param, key)
+    return getUser(key)
+  end,
+  Start = function(mapping, param, key)
+    return getStart(loadState(key))
+  end,
+}
+
+Multi_Services_X_000E50_RemoteAccess_i_.getall = function(mapping, key)
+  local state = loadState(key)
+
+  return {
+    Name = key,
+    Status = getStatus(state),
+    URL = getURL(state),
+    Secure = getSecure(),
+    Port = getPort(state),
+    Mode = getMode(state),
+    IPIntf = getIPinterface(mapping, key),
+    RandomPassword = getRandomPassword(state),
+    RandomPort = getRandomPort(),
+    Password = getPassword(state),
+    User = getUser(key),
+    Start = getStart(state),
+  }
+end
+
+local function setGuiPw(user, username, value)
+  local srp_salt, srp_verifier = srp.new_user(username, value)
+  webBinding.sectionname = user
+
+  -- srp_salt
+  webBinding.option = "srp_salt"
+  setOnUci(webBinding, srp_salt)
+  -- srp_verifier
+  webBinding.option = "srp_verifier"
+  setOnUci(webBinding, srp_verifier)
+  -- clear legacy_salt  (  [NG-48489] handle the GUI username/password migration from legacy build  )
+  webBinding.option = "legacy_salt"
+  setOnUci(webBinding, "")
+end
+
+local transaction={}
+
+local function setPassword(user, password)
+  local state = loadState(user)
+
+  -- Only when password mode is SRP uci (srp_salt + srp_verifier), update salt/verifier to web config.
+  if getPwdCfg() == "srpuci" then
+     local user_section
+
+     local assistusername = getUser(user)
+     webBinding.sectionname = "user"
+     uci_helper.foreach_on_uci(webBinding, function(s)
+       if s.name == assistusername then
+         user_section = s['.name']
+         return false --exit loop
+       end
+     end)
+
+    if not user_section then
+      return nil, "The assistance user was not found in web config"
+    end
+
+    -- Verify that the `assist` user is a GUI-only user; they must not have Clash access.
+    -- This is needed to meet the requirement that for users that are both Clash and GUI users,
+    -- their password for GUI and Clash access must be kept in sync.
+    if scp.isClashUser(assistusername) then
+      return nil, "Configuration error: the assist user must not be a CLI user"
+    end
+
+    -- All preconditions met; now set GUI password
+    setGuiPw(user_section, assistusername, password)
+  else
+    return nil, "this password can not be updated"
+  end
+
+  -- Finally, prepare actions for commit()
+  transaction[user] = transaction[user] or {}
+  transaction[user]["password"] = password
+end
+
+Multi_Services_X_000E50_RemoteAccess_i_.set = {
+  Password = function (mapping, param, value, key)
+    return setPassword(key, value)
+  end,
+  Mode = function (mapping, param, value, key)
+    local state = loadState(key)
+    local start = state.enabled or "0"
+    if start == "1" then
+      return nil, "Mode cannot be set while remote assistance is enabled"
+    end
+    transaction[key]=transaction[key] or {}
+    if value == "Permanent" then
+       transaction[key]["mode"] = "1"
+    else
+       transaction[key]["mode"] = "0"
+    end
+  end,
+  Start = function (mapping, param, value, key)
+    webBinding.sectionname=key
+    webBinding.option="interface"
+    local intf = uci_helper.get_from_uci(webBinding)
+    if intf == "" then
+      intf = "wan"
+    end
+    local v = get_ubus_interface_status(intf)
+    v = v and (v['ipv4-address'] or v['ipv6-address'])
+    v = v and v[1]
+    local wan_ip = (v and v['address']) or ""
+    if wan_ip == "" and value == "1" then
+      return nil, "Internet service is not available"
+    else
+      transaction[key]=transaction[key] or {}
+      transaction[key]["start"] = value
+    end
+  end,
+}
+
+local function writeRemoteAccess(cmd)
+  if cmd and cmd ~= "" then
+    local fd = open("/tmp/.X_000E50_RemoteAccess", 'w')
+    if fd then
+      fd:write(cmd)
+      fd:close()
+    end
+    commitapply:newset("X_000E50_RemoteAccess")
+  end
+end
+
+local function buildCommand(name, enable, mode, passwordConfig, password)
+  local mode_s = (mode == "0") and "temporary" or "permanent"
+  local enable_s = (enable == "0") and "off" or "on"
+  -- wget cmd to enable/disable remote assistance
+  return format("/usr/bin/wget http://127.0.0.1:55555/ra?%s=%s_%s_%s_%s -O /dev/null", name, enable_s, mode_s, passwordConfig, password)
+end
+
+Multi_Services_X_000E50_RemoteAccess_i_.commit = function()
+  for key, transactionstate in pairs(transaction) do
+    local state = loadState(key)
+    local enable = transactionstate.start or state.enabled
+    local mode = transactionstate.mode or state.mode
+    if mode == "0" and state.mode == "1" and not transactionstate.start then
+       -- when mode changes from permanent to temporary and start is not set to true,
+       -- we need to disable remote assistant by default
+       enable = "0"
+    elseif enable == "0" and state.enabled =="1" then
+       -- when we shut down remote assistant, the mode should be changed to Temporary
+       mode = "0"
+    end
+    local pwdcfg=getPwdCfg()
+    local pwd=transactionstate.password
+    if not pwd then
+      pwdcfg="keep"
+      pwd=""
+    elseif pwd == "" then
+     pwdcfg="random"
+    end
+    local cmd = buildCommand(key, enable, mode, pwdcfg, pwd)
+    writeRemoteAccess( cmd )
+  end
+  transaction = {}
+
+  if isConfigChanged then
+    uci_helper.commit(webBinding)
+    isConfigChanged = false
+  end
+end
+
+Multi_Services_X_000E50_RemoteAccess_i_.revert = function()
+  transaction = {}
+
+  if isConfigChanged then
+    uci_helper.revert(webBinding)
+    isConfigChanged = false
+  end
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_Services_X_000E50_RemoteAccess_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end

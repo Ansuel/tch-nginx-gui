@@ -1,0 +1,10 @@
+
+config ethernet 'ethernet'
+	option ethapd '1'
+	option autogreeen '1'
+	option eee '1'
+
+config cpu 'cpu'
+	option wait '1'
+	option cpuspeed '256'
+

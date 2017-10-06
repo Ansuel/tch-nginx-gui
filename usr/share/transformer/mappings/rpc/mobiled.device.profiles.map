@@ -1,0 +1,99 @@
+local string, tonumber, type = string, tonumber, type
+
+local mobiled_device_profiles = {
+	objectType = {
+		name = 'rpc.mobiled.device.@.profile.@.',
+		access = 'readOnly',
+		numEntriesParameter = "ProfileNumberOfEntries",
+		minEntries = 0,
+		maxEntries = math.huge,
+		parameters = {
+			id = {
+				access = "readOnly",
+				type = "unsignedInt",
+			},
+			pdptype = {
+				access = "readOnly",
+				type = "string",
+				enumeration = {
+					"ipv4",
+					"ipv6",
+					"ipv4v6"
+				}
+			},
+			apn = {
+				access = "readOnly",
+				type = "string"
+			},
+			name = {
+				access = "readOnly",
+				type = "string"
+			},
+			editable = {
+				access = "readOnly",
+				type = "boolean"
+			},
+			visible = {
+				access = "readOnly",
+				type = "boolean"
+			},
+			username = {
+				access = "readOnly",
+				type = "string"
+			},
+			password = {
+				access = "readOnly",
+				type = "password"
+			}
+		}
+	}
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+	return
+end
+
+local helper = require("mobiled.scripthelpers")
+
+local function getProfileData(key, parentkey)
+	local profile_id = tonumber(string.match(key, '%d'))
+	if profile_id and profile_id >= 1 then
+		local data = helper.getUbusData(conn, "mobiled.device", "profiles", { dev_idx = tonumber(string.match(parentkey, '%d')) })
+		if type(data.profiles) == "table" then
+			local profile = data.profiles[profile_id]
+			profile.visible = "1"
+			profile.editable = "0"
+			if type(profile) == "table" then
+				setmetatable(profile, { __index = function() return "" end })
+				return profile
+			end
+		end
+	end
+	return {}
+end
+
+local function getall(mapping, key, parentkey)
+	return getProfileData(key, parentkey)
+end
+
+local function get(mapping, paramName, key, parentkey)
+	return getall(mapping, key, parentkey)[paramName]
+end
+
+local function profileEntries(mapping, key, parentkey)
+	local data = helper.getUbusData(conn, "mobiled.device", "profiles", { dev_idx = tonumber(parentkey) })
+	local profiles = {}
+	if type(data.profiles) == "table" then
+		for i=1, #data.profiles do
+			table.insert(profiles, { tostring(i), "profile" .. i })
+		end
+	end
+	return profiles
+end
+
+mobiled_device_profiles.getall = getall
+mobiled_device_profiles.get = get
+mobiled_device_profiles.entries = profileEntries
+
+register(mobiled_device_profiles)

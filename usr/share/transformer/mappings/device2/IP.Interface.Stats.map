@@ -1,0 +1,125 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_IP_Interface_i_Stats_ = {
+  objectType = {
+    name = "Device.IP.Interface.{i}.Stats.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      BytesSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedLong",
+      },
+      BytesReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedLong",
+      },
+      PacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedLong",
+      },
+      PacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedLong",
+      },
+      ErrorsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ErrorsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DiscardPacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DiscardPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UnicastPacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedLong",
+      },
+      UnicastPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedLong",
+      },
+      MulticastPacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedLong",
+      },
+      MulticastPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedLong",
+      },
+      BroadcastPacketsSent = {
+        access = "readOnly",
+        type = "unsignedLong",
+      },
+      BroadcastPacketsReceived = {
+        access = "readOnly",
+        type = "unsignedLong",
+      },
+      UnknownProtoPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+    }
+  }
+}
+
+local nwmodel = require "transformer.shared.models.device2.network"
+local nwCommon = mapper("nwcommon")
+local getIntfInfo = nwCommon.getIntfInfo
+local getIntfStats = nwCommon.getIntfStats
+local devicehelper = require("transformer.shared.devicehelper")
+
+local ipStatsMap = {
+  BytesSent = "tx_bytes",
+  BytesReceived = "rx_bytes",
+  PacketsSent = "tx_packets",
+  PacketsReceived = "rx_packets",
+  ErrorsSent = "tx_errors",
+  ErrorsReceived = "rx_errors",
+  DiscardPacketsSent = "tx_dropped",
+  DiscardPacketsReceived = "rx_dropped"
+}
+
+local ipExtStatsMap = {
+  UnicastPacketsSent = "tx_unicast",
+  UnicastPacketsReceived = "rx_unicast",
+  MulticastPacketsSent = "txpckt",
+  MulticastPacketsReceived = "multicast",
+  BroadcastPacketsSent = "tx_broadcast",
+  BroadcastPacketsReceived = "rx_broadcast",
+  UnknownProtoPacketsReceived = "rxerr"
+}
+
+-- get function to get the values of Device.IP.Interface.{i}.Stats. parameters
+Device_IP_Interface_i_Stats_.get = function(mapping, param, key)
+  local model = nwmodel.load()
+  local device = devicehelper.getIntfName(model:getBaseKey(key), model) or ""
+  if ipStatsMap[param] then
+    return getIntfInfo(device, ipStatsMap[param], "0")
+  elseif ipExtStatsMap[param] then
+    return getIntfStats(device, ipExtStatsMap[param], "0")
+  end
+end
+
+register(Device_IP_Interface_i_Stats_)

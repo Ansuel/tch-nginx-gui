@@ -1,0 +1,280 @@
+local logger = require("transformer.logger")
+local log = logger.new("rpc.system.fwupgrade.")
+local open = io.open
+
+local SYSTEM_FWUPGRADE_ = {
+  objectType = {
+    name = 'rpc.system.fwupgrade.',
+    access = 'readOnly',
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      state = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "None",
+          "Requested",
+          "Waitforswitch",
+          "Complete",
+          "Error",
+        },
+      },
+      filename = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      manualswitchover = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      location = {
+        access = "readOnly",
+        type = "string",
+      },
+      activebank = {
+        access = "readOnly",
+        type = "string",
+      },
+      passivebank = {
+        access = "readOnly",
+        type = "string",
+      },
+      activeversion = {
+        access = "readOnly",
+        type = "string",
+      },
+      passiveversion = {
+        access = "readOnly",
+        type = "string",
+      },
+      info = {
+        access = "readOnly",
+        type = "string",
+      },
+      errorcode = {
+        access = "readOnly",
+        type = "string",
+      },
+      banktype = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "SingleBank",
+          "DualBank",
+        },
+      },
+    }
+
+  }
+}
+
+local banktable = require "transformer.shared.banktable"
+
+local fwupgrade_mapdata = {}
+local fwupgrade_location = "/tmp/"
+local fwupgrade_pidfile = "/var/run/sysupgrade.pid"
+local fwupgrade_errfile = "/var/state/sysupgrade"
+local fwupgrade_errmsg = "/var/state/sysupgrade-msg"
+
+-- Get bank type from /proc/mtd
+local function fwupgrade_get_banktype()
+  local banktype = banktable.isDualBank() and "DualBank" or "SingleBank"
+
+  fwupgrade_mapdata.banktype = banktype
+
+  return banktype
+end
+
+-- Reset state and info
+local function fwupgrade_reset()
+  fwupgrade_mapdata.state = "None"
+  fwupgrade_mapdata.info = ""
+  fwupgrade_mapdata.errorcode = "0"
+  if fwupgrade_mapdata.banktype == "DualBank" then
+    fwupgrade_mapdata.manualswitchover= "0"
+  end
+end
+
+local function read_first_line(filename)
+  local firstline
+  local f = open(filename, 'r')
+  if f then
+    firstline = f:read("*l")
+    f:close()
+  end
+  return firstline
+end
+
+local function get_upgrade_error(defaultErrCode)
+  local errcode = tonumber(read_first_line(fwupgrade_errfile)) or defaultErrCode
+  local errmsg = read_first_line(fwupgrade_errmsg) or "upgrade failed"
+  return errcode, errmsg
+end
+
+-- Set the error state & log it
+local function fwupgrade_set_error(errcode, info)
+  fwupgrade_mapdata.state = "Error"
+  fwupgrade_mapdata.errorcode = tostring(errcode)
+  fwupgrade_mapdata.info = info or ""
+  log:error("Error: " .. info or "?")
+end
+
+-- Update the state (when trying to upgrade)
+local function fwupgrade_check_for_completion()
+  if fwupgrade_mapdata.state == "Requested" then
+    -- Check whether the process is still running
+    if os.execute("start-stop-daemon -t -K  -p " .. fwupgrade_pidfile ) ~= 0  then
+      -- sysupgrade is no longer running, but Transformer is still running.  This is only possible if sysupgrade failed
+      local errcode, errmsg = get_upgrade_error(255)
+      fwupgrade_set_error(errcode, errmsg)
+    end
+  end
+  
+  if fwupgrade_mapdata.state == "Waitforswitch" then
+    local errcode, errmsg = get_upgrade_error(0)
+    if(errcode ~= 0) then
+      fwupgrade_set_error(errcode, errmsg)
+    end
+  end  
+end
+
+-- Perform the actual upgrade
+local function fwupgrade_start()
+  -- remove any lingering status file
+  os.remove(fwupgrade_errfile)
+  -- Make sure we have a filename
+  if not fwupgrade_mapdata.filename or fwupgrade_mapdata.filename == "" then
+    fwupgrade_set_error(255, "invalid filename")
+    return
+  end
+
+  local filename = fwupgrade_location..fwupgrade_mapdata.filename
+
+  -- Start sysupgrade in the background; normally this will restart the box after several seconds
+  -- force GC to run to try to prevent lua from taking more memory during
+  -- the upgrade action by having it reclaim some unused objects. This won't
+  -- shrink the linux memory usage, but it might prevent it from becoming
+  -- even bigger.
+  collectgarbage()
+  collectgarbage()
+  local cmd="/usr/lib/cwmpd/transfers/rollback.sh record GUI; start-stop-daemon -m -p"
+  if (fwupgrade_mapdata.banktype == "DualBank") and (fwupgrade_mapdata.manualswitchover == "1") then
+    os.execute(cmd .. fwupgrade_pidfile .. " -b -x sysupgrade-safe -S  -- -o --gui "  .. filename)
+    fwupgrade_mapdata.state = "Waitforswitch"
+  else
+    os.execute(cmd .. fwupgrade_pidfile .. " -b -x sysupgrade-safe -S  --  --gui "  .. filename)
+  end
+end
+
+-- Getall implementation
+SYSTEM_FWUPGRADE_.getall = function(mapping, key)
+  fwupgrade_check_for_completion()
+
+  return {
+    state = fwupgrade_mapdata.state or "None",
+    filename = fwupgrade_mapdata.filename or "",
+    location = fwupgrade_location,
+    info = fwupgrade_mapdata.info or "",
+    errorcode = fwupgrade_mapdata.errorcode or "255",
+    banktype = fwupgrade_mapdata.banktype or ""
+  }
+end
+
+
+-- Get implementation
+SYSTEM_FWUPGRADE_.get = {
+  state = function(mapping, param)
+    fwupgrade_check_for_completion()
+    return fwupgrade_mapdata.state or "None"
+  end,
+  filename = function(mapping, param)
+    return fwupgrade_mapdata.filename or ""
+  end,
+  manualswitchover = function(mapping, param)
+    return fwupgrade_mapdata.manualswitchover or "0"
+  end,
+  location = fwupgrade_location,
+  info = function(mapping, param)
+    fwupgrade_check_for_completion()
+    return fwupgrade_mapdata.info or ""
+  end,
+  errorcode = function(mapping, param)
+    fwupgrade_check_for_completion()
+    return fwupgrade_mapdata.errorcode or "255"
+  end,
+  
+  activebank = function(mapping, param)
+    return banktable.getCurrentBank()
+  end,
+  passivebank = function(mapping, param)
+    return banktable.getOtherBank() or ""
+  end,
+  activeversion = function(mapping, param)
+    return banktable.getCurrentVersion()
+  end,
+  passiveversion = function(mapping, param)
+    return banktable.getOtherVersion()
+  end,
+  banktype = function(mapping, param)
+    return fwupgrade_mapdata.banktype or ""
+  end,
+}
+
+-- Set implementation
+SYSTEM_FWUPGRADE_.set = {
+  manualswitchover = function(mapping, param, value)
+  fwupgrade_mapdata.manualswitchover = value
+  end,
+  
+  state = function(mapping, param, value)
+    if value ~= "Requested" then
+      return nil, "invalid value"
+    end
+-- If the sysupgrade is already in progress, silently ignore new requests
+  if fwupgrade_mapdata.state ~= "Requested" then
+       local switch
+       if (fwupgrade_mapdata.banktype == "DualBank") then
+         switch = fwupgrade_mapdata.manualswitchover
+       end
+       fwupgrade_reset()
+       if (fwupgrade_mapdata.banktype == "DualBank") then
+         fwupgrade_mapdata.manualswitchover = switch
+       end
+       fwupgrade_mapdata.state = "Requested"
+       fwupgrade_start()
+    end
+  end,
+
+  filename = function(mapping, param, value)
+    -- filename is relative and without subdirectories
+    if string.find(value, "/") then
+      return nil, "invalid value"
+    end
+
+    -- If sysupgrade is already busy, we don't want any changes
+    if fwupgrade_mapdata.state == "Requested" then
+      return nil, "invalid state"
+    end
+    fwupgrade_reset()
+    fwupgrade_mapdata.filename = value
+  end,
+}
+
+-- Hide the five parameters for single bank boards
+if fwupgrade_get_banktype() == "SingleBank" then
+  SYSTEM_FWUPGRADE_.objectType.parameters.manualswitchover = nil
+  SYSTEM_FWUPGRADE_.objectType.parameters.activebank = nil
+  SYSTEM_FWUPGRADE_.objectType.parameters.passivebank = nil
+  SYSTEM_FWUPGRADE_.objectType.parameters.activeversion = nil
+  SYSTEM_FWUPGRADE_.objectType.parameters.passiveversion = nil
+  SYSTEM_FWUPGRADE_.get.manualswitchover = nil
+  SYSTEM_FWUPGRADE_.get.activebank = nil
+  SYSTEM_FWUPGRADE_.get.passivebank = nil
+  SYSTEM_FWUPGRADE_.get.activeversion = nil
+  SYSTEM_FWUPGRADE_.get.passiveversion = nil
+  SYSTEM_FWUPGRADE_.set.manualswitchover = nil
+end
+
+register(SYSTEM_FWUPGRADE_)

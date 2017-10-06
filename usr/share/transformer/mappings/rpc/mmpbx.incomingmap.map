@@ -1,0 +1,313 @@
+-----------------------------------
+--- rpc.mmpbx.sip_incomingmap.@. ------
+-----------------------------------
+local mmpbx_incoming_map = {
+    objectType = {
+      name = "rpc.mmpbx.sip_incomingmap.@.",
+      access = "readOnly",
+      minEntries = 0,
+      maxEntries = math.huge,
+      parameters = {
+          PhoneNumber = {
+              access = "readOnly",
+              type = "string",
+          },
+          fxs_dev_0 = {
+              access = "readWrite",
+              type = "boolean",
+          },
+          fxs_dev_1 = {
+              access = "readWrite",
+              type = "boolean",
+          },
+          dect_dev_0 = {
+              access = "readWrite",
+              type = "boolean",
+          },
+          dect_dev_1 = {
+              access = "readWrite",
+              type = "boolean",
+          },
+          dect_dev_2 = {
+              access = "readWrite",
+              type = "boolean",
+          },
+          dect_dev_3 = {
+              access = "readWrite",
+              type = "boolean",
+          },
+          dect_dev_4 = {
+              access = "readWrite",
+              type = "boolean",
+          },
+          dect_dev_5 = {
+              access = "readWrite",
+              type = "boolean",
+          },
+      }
+    }
+}
+
+local uci_helper = mapper("ucihelper")
+local sipnet_binding = { config="mmpbxrvsipnet" }
+local mmpbx_binding = { config="mmpbx" }
+local transactions = {}
+local foreach_on_uci = uci_helper.foreach_on_uci
+local get_from_uci = uci_helper.get_from_uci
+local set_on_uci = uci_helper.set_on_uci
+local delete_on_uci = uci_helper.delete_on_uci
+local add_on_uci = uci_helper.add_on_uci
+local table_remove = table.remove
+local find = string.find
+
+mmpbx_incoming_map.entries =  function()
+    local entries = {}
+    sipnet_binding.sectionname = "profile"
+    foreach_on_uci(sipnet_binding, function(s)
+       entries[#entries+1] = s['.name']
+    end)
+    return entries
+end
+
+mmpbx_incoming_map.get = function(mapping, param, key)
+    if param == "PhoneNumber" then
+        sipnet_binding.sectionname = key
+        sipnet_binding.option = "uri"
+        return get_from_uci(sipnet_binding)
+    else
+        local devices = {}
+        mmpbx_binding.sectionname = "incoming_map"
+        foreach_on_uci(mmpbx_binding, function(s)
+          if s~= nil and s.profile == key and type(s.device) == "table" then
+              devices = s.device
+              return false
+          end
+        end)
+
+        for _, dev in ipairs(devices) do
+          if dev == param then
+	    return "1"
+	  end
+	end
+	return "0"
+    end
+end
+
+local function get_profile_idx(profiles, profile)
+   local profile_idx = 0
+   for i, tmp_profile in ipairs(profiles) do
+         if  profile ==  tmp_profile then
+             profile_idx = i
+	     break
+         end
+   end
+   return  profile_idx
+end
+
+local function add_outgoingmap(profile, device)
+    mmpbx_binding.sectionname = "outgoing_map"
+    mmpbx_binding.option = nil
+    local binding = {config = "mmpbx"}
+    local uci_profiles ={}
+    local uci_priorities = {}
+    local update_map = false
+    foreach_on_uci(mmpbx_binding, function(s)
+        if s~= nil and s.device == device then
+            binding.sectionname = s[".name"]
+            uci_profiles = s["profile"]
+	    uci_priorities = s["priority"]
+            return false
+        end
+    end)
+
+    if not binding.sectionname then									-- Outgoing-map for the given device is not available
+        binding.sectionname = "outgoing_map_"..device
+        set_on_uci(binding,"outgoing_map",commitapply)
+        binding.option = "device"
+        set_on_uci(binding, device, commitapply)
+	uci_profiles[1] = profile
+	uci_priorities[1] = "1"
+	update_map = true											-- Need update
+    else
+        local profile_idx = get_profile_idx(uci_profiles , profile)
+	if profile_idx == 0 then										-- Profile not found
+	    --Add the profile at end with priority (min_priority + 1)
+	    uci_profiles[#uci_profiles + 1] = profile
+	    uci_priorities[#uci_priorities +1] = math.max(unpack(uci_priorities)) + 1
+	    update_map = true										-- Need update
+	end
+    end
+
+    if update_map then
+	binding.option = "profile"
+	set_on_uci(binding, uci_profiles, commitapply)
+	binding.option = "priority"
+	set_on_uci(binding, uci_priorities, commitapply)
+	transactions[binding.config] = true
+    end
+    return true
+end
+
+local function add_incomingmap(profile, device)
+    mmpbx_binding.sectionname = "incoming_map"
+    mmpbx_binding.option = nil
+    local binding = {config = "mmpbx"}
+    local uci_devices ={}
+    local add_dev = true
+    foreach_on_uci(mmpbx_binding, function(s)
+        if s~= nil and s.profile == profile then
+            binding.sectionname = s[".name"]
+            uci_devices = s["device"]
+            return false
+        end
+    end)
+
+    if not binding.sectionname then
+        binding.sectionname = "incoming_map_"..profile
+        set_on_uci(binding,"incoming_map",commitapply)
+        binding.option = "profile"
+        set_on_uci(binding, profile, commitapply)
+    else
+	for _, uci_dev in ipairs(uci_devices) do
+	    if uci_dev == device then
+		add_dev = false
+		break
+	    end
+	end
+    end
+
+    if add_dev then
+	uci_devices[#uci_devices + 1] = device
+	binding.option = "device"
+	set_on_uci(binding, uci_devices, commitapply)
+	transactions[binding.config] = true
+
+	--Symmetric mappings for DECT
+	if find(device,"dect_dev_") then
+	    local dect_binding = { config="mmpbxbrcmdectdev" ,
+                                   sectionname = "global",
+                                    option = "symmetric_mappings"
+                                 }
+
+	    local symmetric_mappings = get_from_uci(dect_binding)
+	    if(symmetric_mappings == "1") then
+		add_outgoingmap(profile, device)
+	    end
+	end
+    end
+
+    return true
+end
+
+local function delete_outgoingmap(profile, device)
+    mmpbx_binding.sectionname = "outgoing_map"
+    mmpbx_binding.option = nil
+    local binding = {config = "mmpbx"}
+    local uci_profiles ={}
+    local uci_priorities = {}
+
+    foreach_on_uci(mmpbx_binding, function(s)
+        if s~= nil and s.device == device then
+            binding.sectionname = s[".name"]
+            uci_profiles = s["profile"]
+	    uci_priorities = s["priority"]
+            return false
+        end
+    end)
+
+    if binding.sectionname then									-- Outgoing-map for the given device is available
+        local profile_idx = get_profile_idx(uci_profiles , profile)
+	if profile_idx > 0 then									-- Profile found
+	    --Delete the profile and priority
+	    table_remove(uci_profiles, profile_idx)
+	    table_remove(uci_priorities, profile_idx)
+
+	    if #uci_profiles == 0 then
+		binding.option = nil
+		delete_on_uci(binding, commitapply)
+	    else
+		binding.option = "profile"
+		set_on_uci(binding, uci_profiles, commitapply)
+		binding.option = "priority"
+		set_on_uci(binding, uci_priorities, commitapply)
+	    end
+	    transactions[binding.config] = true
+	end
+    end
+    return true
+end
+
+local function delete_incomingmap(profile, device)
+    mmpbx_binding.sectionname = "incoming_map"
+    mmpbx_binding.option = nil
+    local binding = {config = "mmpbx"}
+    local uci_devices ={}
+    local del_dev = false
+    foreach_on_uci(mmpbx_binding, function(s)
+        if s~= nil and s.profile == profile then
+            binding.sectionname = s[".name"]
+            uci_devices = s["device"]
+            return false
+        end
+    end)
+
+    if binding.sectionname then  --Maps for profile exist
+	for i, uci_dev in ipairs(uci_devices) do
+	    if uci_dev == device then -- Map for given device exist
+		del_dev = true
+		table_remove(uci_devices, i)
+		break
+	    end
+	end
+	if del_dev then
+	    if #uci_devices == 0 then
+		binding.option = nil
+		delete_on_uci(binding, commitapply)
+	    else
+		binding.option = "device"
+		set_on_uci(binding, uci_devices, commitapply)
+	    end
+	    transactions[binding.config] = true
+
+	    --Symmetric mappings for DECT
+	    if find(device,"dect_dev_") then
+		local dect_binding = { config="mmpbxbrcmdectdev" }
+		dect_binding.sectionname = "global"
+		dect_binding.option = "symmetric_mappings"
+
+		local symmetric_mappings = get_from_uci(dect_binding)
+		if(symmetric_mappings == "1") then
+		    delete_outgoingmap(profile, device)
+		end
+	    end
+	end
+    end
+
+    return true
+end
+
+mmpbx_incoming_map.set = function(mapping, param, value, key)
+    if(value == "1") then
+	add_incomingmap(key, param)
+    else
+	delete_incomingmap(key, param)
+    end
+end
+
+mmpbx_incoming_map.commit = function()
+    local binding = {}
+    for config in pairs(transactions) do
+        binding.config = config
+        uci_helper.commit(binding)
+    end
+end
+
+mmpbx_incoming_map.revert = function()
+    local binding = {}
+    for config in pairs(transactions) do
+        binding.config = config
+        uci_helper.revert(binding)
+    end
+end
+
+register(mmpbx_incoming_map)

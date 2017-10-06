@@ -1,0 +1,26 @@
+-- Automatically generated from Device:2.9
+-- using generator version 2.1
+local Device_PPP_Interface_i_PPPoA_ = {
+  objectType = {
+    name = "Device.PPP.Interface.{i}.PPPoA.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = 1,
+    parameters = {
+    }
+  }
+}
+
+local nwmodel = require "transformer.shared.models.device2.network"
+local model
+
+Device_PPP_Interface_i_PPPoA_.entries = function(mapping, parentKey)
+  model = nwmodel.load()
+  local ppp = model:get("PPPInterface", parentKey)
+  if ppp and (ppp.proto == "pppoa") then
+    return {parentKey}
+  end
+  return {}
+end
+
+register(Device_PPP_Interface_i_PPPoA_)

@@ -1,0 +1,108 @@
+local Device_X_000E50_ngwfdd_= {
+  objectType = {
+    name = "Device.Services.X_000E50_ngwfdd.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    description = "The data model of the native gateway field diagnostics daemon",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        description = "Enable or disable the daemon",
+      },
+      Tag = {
+        access = "readWrite",
+        type = "string",
+        max = "32",
+        description = "Specifies a tag to annotate the collected data with. This tag can then be used in search queries on the field diagnostics",
+      },
+      BaseURL = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        description = "The remote end-point to send the collected data to",
+      },
+      CoredumpURL = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        description = "URL where to send core dumps to. If not set then core dumps will not be uploaded",
+      },
+      FlushInterval = {
+        access = "readWrite",
+        type = "unsignedInt",
+        default = "900",
+        description = "Indicates how frequent the daemon sends data to the remote back-end",
+      },
+    }
+  }
+}
+
+----------------------------------------------------------
+-- Local definitions
+-- -------------------------------------------------------
+local uci_helper = mapper("ucihelper")
+local binding={config="ngwfdd", sectionname="config"}
+
+----------------------------------------------------------
+-- Mapper implementation
+----------------------------------------------------------
+
+local paramMap = {
+  ["Enable"] = "enable",
+  ["Tag"] = "tag",
+  ["BaseURL"] = "base_url",
+  ["CoredumpURL"] = "core_url",
+  ["FlushInterval"] = "flush_interval",
+}
+
+local uciDefaults = {
+  ["Enable"] = "0",
+  ["FlushInterval"] = "900",
+}
+
+local function getUciParam(mapping, param)
+  binding.option = paramMap[param]
+  binding.default = uciDefaults[param]
+  return uci_helper.get_from_uci(binding)
+end
+
+Device_X_000E50_ngwfdd_.get = getUciParam
+
+Device_X_000E50_ngwfdd_.getall = function(mapping)
+  local allValues = uci_helper.getall_from_uci(binding)
+  return {
+    Enable = allValues.enable or uciDefaults["Enable"],
+    Tag = allValues.tag or "",
+    BaseURL = allValues.base_url or "",
+    CoredumpURL = allValues.core_url or "",
+    FlushInterval = allValues.flush_interval or uciDefaults["FlushInterval"],
+  }
+end
+
+local setSomething
+
+local function setUciParam(mapping, param, value)
+  binding.option = paramMap[param]
+  uci_helper.set_on_uci(binding, value, commitapply)
+  setSomething = true
+end
+
+Device_X_000E50_ngwfdd_.set = setUciParam
+
+Device_X_000E50_ngwfdd_.commit = function()
+  if setSomething then
+    uci_helper.commit(binding)
+    setSomething = nil
+  end
+end
+
+Device_X_000E50_ngwfdd_.revert = function()
+  if setSomething then
+    uci_helper.revert(binding)
+    setSomething = nil
+  end
+end
+
+register(Device_X_000E50_ngwfdd_)

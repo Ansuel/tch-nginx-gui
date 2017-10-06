@@ -1,0 +1,224 @@
+local Multi_X_000E50_wifi_doctor_agent_ = {
+  objectType = {
+    name = "#ROOT.X_000E50_WiFiDoctorAgent.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      Enabled = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      URL = {
+        access = "readWrite",
+        type = "string",
+      },
+      BufferSize = {
+        access = "readWrite",
+        type = "unsignedInt",
+      },
+      ReportingPeriod = {
+        access = "readWrite",
+        type = "unsignedInt",
+      },
+      ActiveRadio = {
+        access = "readWrite",
+        type = "string",
+      },
+      AuthPasswd = {
+        access = "readWrite",
+        hidden = "true",
+        type = "string",
+      }
+    }
+  }
+}
+
+local Multi_X_000E50_wifi_doctor_agent_radio_ = {
+  objectType = {
+    name = "#ROOT.X_000E50_WiFiDoctorAgent.Radio.{i}.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      Name = {
+        access = "readOnly",
+        type = "string",
+      },
+      ACSAllowedChannels = {
+        access = "readWrite",
+        type = "string",
+      },
+    }
+  }
+}
+
+----------------------------------------------------------
+-- Local definitions
+-- -------------------------------------------------------
+local uci_helper = mapper("ucihelper")
+local binding={config="wifi_doctor_agent", sectionname="config"}
+local bindingWireless={config="wireless"}
+local bindingAuth={config="wifi_doctor_agent", sectionname="as_config"}
+local setSomething
+local setSomethingRadio
+
+local radios = {}
+uci_helper.foreach_on_uci(bindingWireless, function(s)
+  if s['.type'] == 'wifi-device' then
+    radios[#radios + 1] = s['.name']
+  end
+end)
+
+----------------------------------------------------------
+-- Mapper implementation
+----------------------------------------------------------
+
+-- wifi_doctor_agent_
+
+Multi_X_000E50_wifi_doctor_agent_.get = {
+  Enabled = function(mapping)
+    binding.option = "enabled"
+    binding.default = "0"
+    return uci_helper.get_from_uci(binding)
+  end,
+  URL = function(mapping)
+    binding.option = "cs_url"
+    binding.default = ""
+    return uci_helper.get_from_uci(binding)
+  end,
+  BufferSize = function(mapping)
+    binding.option = "cs_buf_sz"
+    binding.default = "0"
+    return uci_helper.get_from_uci(binding)
+  end,
+  ReportingPeriod = function(mapping)
+    binding.option = "cs_buf_period"
+    binding.default = "0"
+    return uci_helper.get_from_uci(binding)
+  end,
+  ActiveRadio = function(mapping)
+    binding.option = "active_radio"
+    binding.default = ""
+    return uci_helper.get_from_uci(binding)
+  end,
+  AuthPasswd = function(mapping)
+    return ""
+  end,
+}
+
+Multi_X_000E50_wifi_doctor_agent_.getall = function(mapping)
+  local allValues = uci_helper.getall_from_uci(binding)
+  return {
+    Enabled = allValues.enabled or "0",
+    URL = allValues.cs_url or "",
+    BufferSize = allValues.cs_buf_sz or "0",
+    ReportingPeriod = allValues.cs_buf_period or "0",
+    ActiveRadio = allValues.active_radio or "",
+    AuthPasswd = ""
+  }
+end
+
+Multi_X_000E50_wifi_doctor_agent_.set = {
+  Enabled = function(mapping, param, value)
+    binding.option = "enabled"
+    uci_helper.set_on_uci(binding, value, commitapply)
+    setSomething = true
+  end,
+  URL = function(mapping, param, value)
+    binding.option = "cs_url"
+    uci_helper.set_on_uci(binding, value, commitapply)
+    setSomething = true
+  end,
+  BufferSize = function(mapping, param, value)
+    binding.option = "cs_buf_sz"
+    uci_helper.set_on_uci(binding, value, commitapply)
+    setSomething = true
+  end,
+  ReportingPeriod = function(mapping, param, value)
+    binding.option = "cs_buf_period"
+    uci_helper.set_on_uci(binding, value, commitapply)
+    setSomething = true
+  end,
+  ActiveRadio = function(mapping, param, value)
+    binding.option = "active_radio"
+    uci_helper.set_on_uci(binding, value, commitapply)
+    setSomething = true
+  end,
+  AuthPasswd = function(mapping, param, value)
+    bindingAuth.option = "passwd"
+    uci_helper.set_on_uci(bindingAuth, value, commitapply)
+    setSomething = true
+  end,
+}
+
+Multi_X_000E50_wifi_doctor_agent_.commit = function()
+  if setSomething then
+    uci_helper.commit(binding)
+    setSomething = nil
+  end
+end
+
+Multi_X_000E50_wifi_doctor_agent_.revert = function()
+  if setSomething then
+    uci_helper.revert(binding)
+    setSomething = nil
+  end
+end
+
+-- wifi_doctor_agent_radio_
+
+Multi_X_000E50_wifi_doctor_agent_radio_.entries = function()
+  return radios
+end
+
+Multi_X_000E50_wifi_doctor_agent_radio_.get = {
+  ACSAllowedChannels = function(mapping, paramName, key)
+    bindingWireless.option = "acs_allowed_channels"
+    bindingWireless.default = ""
+    bindingWireless.sectionname = key
+    return uci_helper.get_from_uci(bindingWireless)
+  end,
+  Name = function(mappingiWireless, paramName, key)
+    return key
+  end,
+}
+
+Multi_X_000E50_wifi_doctor_agent_radio_.set = {
+  ACSAllowedChannels = function(mapping, param, value, key)
+    bindingWireless.option = "acs_allowed_channels"
+    bindingWireless.sectionname = key
+    uci_helper.set_on_uci(bindingWireless, value, commitapply)
+    setSomethingRadio = true
+  end,
+}
+
+Multi_X_000E50_wifi_doctor_agent_radio_.commit = function()
+  if setSomethingRadio then
+    uci_helper.commit(bindingWireless)
+    setSomethingRadio = nil
+  end
+end
+
+Multi_X_000E50_wifi_doctor_agent_radio_.revert = function()
+  if setSomethingRadio then
+    uci_helper.revert(bindingWireless)
+    setSomethingRadio = nil
+  end
+end
+
+-- register wifi_doctor_agent_
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_X_000E50_wifi_doctor_agent_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+    register(dupli)
+end
+
+-- register wifi_doctor_agent_radio_
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_X_000E50_wifi_doctor_agent_radio_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+    register(dupli)
+end

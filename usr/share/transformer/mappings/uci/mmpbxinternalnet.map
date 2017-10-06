@@ -1,0 +1,30 @@
+local mapper = mapper
+local config_mmpbxinternalnet = "mmpbxinternalnet"
+
+-- uci.mmpbxinternalnet 
+mapper("uci_1to1").registerConfigMap(config_mmpbxinternalnet)                                                    
+
+-- uci.mmpbxinternalnet.network
+local mmpbxinternalnet_network= {
+  config = config_mmpbxinternalnet,
+  type = "network",
+  options = { "user_friendly_name", "cac", "transparent_soc_transmission"}
+}
+mapper("uci_1to1").registerNamedMultiMap(mmpbxinternalnet_network)
+
+
+--uci.mmpbxinternalnet.profile
+local mmpbxinternalnet_profile = {
+  config = config_mmpbxinternalnet,
+  type = "profile",
+  options = { "network", "enabled", "number"}
+}
+mapper("uci_1to1").registerNamedMultiMap(mmpbxinternalnet_profile)
+
+-- uci.mmpbxinternalnet.mmpbxinternalnet
+local mmpbxinternalnet_mmpbxinternalnet= {
+  config = config_mmpbxinternalnet,
+  type = "mmpbxinternalnet",
+  options = { "trace_level" }
+}
+mapper("uci_1to1").registerNamedMultiMap(mmpbxinternalnet_mmpbxinternalnet)

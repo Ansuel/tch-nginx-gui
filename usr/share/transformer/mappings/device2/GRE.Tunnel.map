@@ -1,0 +1,238 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_GRE_Tunnel_i_ = {
+  objectType = {
+    name = "Device.GRE.Tunnel.{i}.",
+    access = "readOnly", -- currently readWrite not supported
+    numEntriesParameter = "TunnelNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Disabled",
+          "Enabled",
+          "Error",
+        },
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      RemoteEndpoints = {
+        access = "readWrite",
+        list = true,
+        maxItems = "4",
+        type = "string",
+        max = "256",
+      },
+      KeepAlivePolicy = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "string",
+        enumeration = {
+          "ICMP",
+          "None",
+        },
+        default = "None",
+      },
+      KeepAliveTimeout = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "unsignedInt",
+        default = "10",
+      },
+      KeepAliveThreshold = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "unsignedInt",
+        default = "3",
+      },
+      DeliveryHeaderProtocol = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "string",
+        enumeration = {
+          "IPv4",
+          "IPv6",
+        },
+      },
+      DefaultDSCPMark = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "unsignedInt",
+        default = "0",
+      },
+      ConnectedRemoteEndpoint = {
+        access = "readOnly",
+        type = "string",
+        max = "256",
+      },
+      -- InterfaceNumberOfEntries
+      -- automatically created when Device.GRE.Tunnel.{i}.Interface.{i}. is loaded
+    }
+  }
+}
+
+local nwmodel = require 'transformer.shared.models.device2.network'
+local model
+
+
+local mapper, ipairs, pairs = mapper, ipairs, pairs
+local ubus = mapper("ubus").connect()
+local uciHelper = mapper("ucihelper")
+local network = { config = "network" }
+local greBinding = { config = "gre_hotspotd" }
+
+local posix = require 'tch.posix'
+local AF_INET = posix.AF_INET
+local AF_INET6 = posix.AF_INET6
+
+local getUciValue, setUciValue, getSection, commit, revert
+do
+  local configChanged = false
+
+  function getUciValue(name, option, default, section_data)
+    if section_data then
+      return section_data[option] or default
+    else
+      network.sectionname = name
+      network.option = option
+      network.default = default
+      return uciHelper.get_from_uci(network)
+    end
+  end
+
+  function setUciValue(name, option, value)
+    network.sectionname = name
+    network.option = option
+    uciHelper.set_on_uci(network, value, commitapply)
+    configChanged = true
+  end
+
+  function getSection(name)
+    network.sectionname = name
+    return uciHelper.getall_from_uci(network) or {}
+  end
+
+  function commit()
+    if configChanged then
+      uciHelper.commit(network)
+    end
+    configChanged = false
+  end
+  
+  function revert()
+    if configChanged then
+      uciHelper.revert(network)
+    end
+    configChanged = false
+  end
+end
+
+Device_GRE_Tunnel_i_.entries = function()
+  model = nwmodel.load()
+  return model:getKeys("GRE")
+end
+
+local protocol_to_addressType = {
+  gre = AF_INET,
+  gretap = AF_INET,
+  grev6 = AF_INET6,
+  grev6tap = AF_INET6
+}
+
+local function getAddrType(key, uci_data)
+  local proto = getUciValue(model:getUciKey(key), "proto", "gre", uci_data)
+  return protocol_to_addressType[proto] or AF_INET
+end
+
+local function getPeerField(key, uci_values)
+  local addrType = getAddrType(key, uci_values)
+  return addrType == AF_INET6 and "peer6addr"or "peeraddr"
+end
+
+local getter = {
+  Enable = function(key, uci_values)
+    local enable = getUciValue(model:getUciKey(key), "auto", "1", uci_values)
+    return enable == "0" and "0" or "1"
+  end,
+  Status = function(key, _, intfData)
+    intfData = intfData or ubus:call("network.interface." .. model:getUciKey(key), "status", {}) or {}
+    return intfData.up and "Enabled" or "Disabled"
+  end,
+  RemoteEndpoints = function(key, uci_values)
+    greBinding.sectionname = model:getUciKey(key)
+    greBinding.option = "peers"
+    greBinding.default = {}
+    local endPoints = uciHelper.get_from_uci(greBinding)
+    return table.concat(endPoints, ",")
+  end,
+  KeepAlivePolicy = function()
+    return "None"
+  end,
+  KeepAliveTimeout = function()
+    return "10"
+  end,
+  KeepAliveThreshold = function()
+    return "3"
+  end,
+  DeliveryHeaderProtocol = function(key, uci_values)
+    local addressType = getAddrType(key, uci_values)
+    return addressType == AF_INET and "IPv4" or "IPv6"
+  end,
+  DefaultDSCPMark = function()
+    return "0"
+  end,
+  ConnectedRemoteEndpoint = function(key, uci_values)
+    local option = getPeerField(key, uci_values)
+    return getUciValue(model:getUciKey(key), option, "", uci_values)
+  end
+}
+
+Device_GRE_Tunnel_i_.get = function(mapping, param, key)
+  return getter[param](key)
+end
+
+Device_GRE_Tunnel_i_.getall = function(mapping, key)
+  local uciValues = getSection(model:getUciKey(key))
+  local intfData = ubus:call("network.interface." .. model:getUciKey(key), "status", {})
+  local all = {}
+  for param, fn in pairs(getter) do
+    all[param] = fn(key, uciValues, intfData)
+  end
+  return all
+end
+
+local function splitIPlist(value)
+  local address = {}
+  for ip in value:gmatch("([^,]+)") do
+    address[#address + 1] = ip
+  end
+  return address
+end
+
+Device_GRE_Tunnel_i_.set = {
+  Enable = function(mapping, param, value, key)
+    setUciValue(model:getUciKey(key), "auto", value)
+  end,
+  RemoteEndpoints = function(mapping, param, value, key)
+    local addrType = getAddrType(key)
+    local address = splitIPlist(value)
+    for _, ip in ipairs(address) do
+      local rc, err = posix.inet_pton(addrType, ip)
+      if not rc then
+        return nil, err
+      end
+    end
+    ubus:call("gre-hotspotd", "tunset", { ["name"] = model:getUciKey(key), ["peers"] = address })
+  end,
+}
+
+Device_GRE_Tunnel_i_.commit = commit
+Device_GRE_Tunnel_i_.revert = revert
+
+register(Device_GRE_Tunnel_i_)

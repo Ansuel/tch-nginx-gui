@@ -1,0 +1,98 @@
+-- Automatically generated from Device:2.2
+-- using generator version 2.1
+local Device_WiFi_Radio_i_Stats_ = {
+  objectType = {
+    name = "Device.WiFi.Radio.{i}.Stats.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      BytesSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedLong",
+      },
+      BytesReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedLong",
+      },
+      PacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedLong",
+      },
+      PacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedLong",
+      },
+      ErrorsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ErrorsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DiscardPacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DiscardPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+    }
+  }
+}
+
+local conn = mapper("ubus").connect()
+
+local dummy_values = setmetatable({}, {
+  __index = function()
+    return "0"
+  end
+})
+
+local function getRadioStats(key)
+  local data = conn:call("wireless.radio.stats", "get",  { name = key })
+    if data == nil then
+      return dummy_values
+    end
+  return data[key] or dummy_values
+end
+
+local statsEntries = {
+  BytesSent = "tx_bytes",
+  BytesReceived = "rx_bytes",
+  PacketsSent = "tx_packets",
+  PacketsReceived = "rx_packets",
+  ErrorsSent = "tx_errors",
+  ErrorsReceived = "rx_errors",
+  DiscardPacketsSent = "tx_discards",
+  DiscardPacketsReceived = "rx_discards",
+}
+
+Device_WiFi_Radio_i_Stats_.get = function(mapping, param, key)
+  local field = statsEntries[param]
+  if field then
+    return tostring(getRadioStats(key)[field]) or "0"
+  end
+  return "0"
+end 
+
+Device_WiFi_Radio_i_Stats_.getall = function(mapping, key)
+  local all = {}
+  local data = getRadioStats(key)
+  for param, field in pairs(statsEntries) do
+    all[param] = tostring(data[field]) or "0"
+  end
+  return all
+end
+
+register(Device_WiFi_Radio_i_Stats_)

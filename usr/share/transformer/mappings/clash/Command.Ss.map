@@ -1,0 +1,6 @@
+local command = {
+  name = "ss",
+  full_path = "/usr/sbin/ss",
+}
+
+mapper("command").registerCommand(command)

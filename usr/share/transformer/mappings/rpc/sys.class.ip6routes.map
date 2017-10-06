@@ -1,0 +1,105 @@
+local sys_class_ip6routes_ = {
+  objectType = {
+    name = "sys.class.ip6routes.{i}.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      Destination = {
+        access = "readOnly",
+        type = "string",
+      },
+      Gateway = {
+        access = "readOnly",
+        type = "string",
+      },
+      Metric = {
+        access = "readOnly",
+        type = "string",
+      },
+      Iface = {
+        access = "readOnly",
+        type = "string",
+      },
+    }
+  }
+}
+
+local uciHelper = mapper("ucihelper")
+
+-- The entry in "ip -6 route show" starting with the below words are not allowed
+local notAllowed = {
+  ["local"]       = true,
+  ["broadcast"]   = true,
+  ["unreachable"] = true,
+}
+
+local map = {
+  ["from"] = "From",
+  ["via"]  = "Gateway",
+  ["dev"]  = "Iface",
+  ["metric"] = "Metric",
+}
+
+local routeData = {}
+
+local networkBinding = { config = "network", sectionname = "interface" }
+local function getInterface(value)
+  local intf = ""
+  uciHelper.foreach_on_uci(networkBinding, function(s)
+    if value == s["ifname"] then
+      intf = s[".name"]
+      return false
+    end
+  end)
+  return intf
+end
+
+-- Entries are formed based on the "ip -6 route show"
+-- Sample Output of "ip -6 route show"
+-- default from 2001:470:ec9c:20::115 via fe80::2a0:a50f:fc78:ff8e dev pppoe-wan  proto static  metric 4096
+-- unreachable 2001:470:ec9c:2080::/60 dev lo  proto static  metric 2147483647  error -128
+-- fe80::/64 dev br-hotspot0  proto kernel  metric 256
+sys_class_ip6routes_.entries = function()
+  local entries = {}
+  local routes = io.popen("ip -6 route show")
+  for line in routes:lines() do
+    local start, routeInfo = line:match("^(%S+)%s+(.*)")
+    if not notAllowed[start] and not start:match("^fe80") and not start:match("^ff00") then
+      local route = {}
+      route.Destination = start
+      for paramName, value in routeInfo:gmatch("(%S+)%s+(%S+)") do
+        if map[paramName] then
+          local data = map[paramName]
+          route[data] = value
+        end
+      end
+      route.Iface = getInterface(route.Iface)
+      if not route.Gateway then
+        route.Gateway = "::"
+      end
+      if not route.From then
+        route.From = ""
+      end
+      if route.Destination == "default" then
+        route.Destination = "::/0"
+      end
+      local key = route.Destination .. "|" .. route.From .. "|" .. route.Iface .. "|" .. route.Metric
+      routeData[key] = route
+      entries[#entries + 1] = key
+    end
+  end
+  return entries
+end
+
+sys_class_ip6routes_.get = function(mapping, param, key)
+  if key and routeData[key] then
+    return routeData[key][param] or ""
+  end
+end
+
+sys_class_ip6routes_.getall = function(mapping, key)
+  return routeData[key]
+end
+
+register(sys_class_ip6routes_)

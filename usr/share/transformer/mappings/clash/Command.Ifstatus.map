@@ -1,0 +1,7 @@
+local command = {
+  name = "ifstatus",
+  full_path = "/sbin/ifstatus",
+  operands = {"interface"},
+}
+
+mapper("command").registerCommand(command)

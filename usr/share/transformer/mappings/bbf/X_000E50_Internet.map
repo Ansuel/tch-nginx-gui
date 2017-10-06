@@ -1,0 +1,227 @@
+local wanconn = require("transformer.shared.wanconnection")
+local nwcommon = require("transformer.mapper.nwcommon")
+local fw_helper = require("transformer.shared.firewall_helper")
+local ubus_connect = mapper("ubus").connect()
+
+local Multi_Services_X_000E50_Internet_ = {
+  objectType = {
+    name = "#ROOT.Services.X_000E50_Internet.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      WANConnection = {
+        access = "readOnly",
+        type = "string",
+      },
+      DMZEnable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      DMZHost = {
+        access = "readWrite",
+        type = "string",
+      },
+      DMZHostIP = {
+        access = "readWrite",
+        type = "string",
+      }
+    }
+  }
+}
+
+
+local inet = require "tch.inet"
+local ucihelper = mapper("ucihelper")
+local activedevice = require 'transformer.shared.models.igd.activedevice'
+local resolve = resolve
+
+
+local dmz_group_binding = { config = "firewall", sectionname = "dmzredirects" }
+local dmz_redirect_binding = { config = "firewall", sectionname = "dmzredirect" }
+local binding = { config = "cwmpd", sectionname = "cwmpd_config", option = "interface", default = "wan" }
+local transactions = {}
+local function get_cwmpd_interface()
+	return ucihelper.get_from_uci(binding)
+end
+
+local function set_on_option(binding, param, value)
+  binding.option = param
+  ucihelper.set_on_uci(binding, value, commitapply)
+end
+
+local function get_on_option(binding, param)
+  binding.option = param
+  return ucihelper.get_from_uci(binding)
+end
+
+local ucinw = {config="network"}
+local function get_connection_key(intf)
+  if not activedevice.isActiveInterface(intf) then
+    return wanconn.get_connection_key(intf)
+  else
+    local key = "ACTIVE|"..intf
+    ucinw.sectionname = intf
+    ucinw.option = "proto"
+    local proto = ucihelper.get_from_uci(ucinw)
+    return key, {proto=proto}
+  end
+end
+
+Multi_Services_X_000E50_Internet_.get = {
+    WANConnection = function(mapping, paramname, key)
+      local if_cwmp = get_cwmpd_interface()
+      if mapping.objectType.name:match('^Device%.') then
+        local result = resolve('Device.IP.Interface.{i}.', if_cwmp)
+        if not result then
+            local mobileiface = if_cwmp:match("(.*)_4$")
+            if mobileiface then
+                result = resolve('Device.IP.Interface.{i}.', mobileiface)
+            end
+        end
+        return result or ""
+      end
+      local connkey, status = get_connection_key(if_cwmp)
+      if connkey and status then
+        if status.proto == "pppoe" or status.proto == "pppoa" then
+            return resolve("InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANPPPConnection.{i}.", connkey) or ""
+        else
+            return resolve("InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANIPConnection.{i}.", connkey) or ""
+        end
+      end
+      return ""
+    end,
+
+    DMZEnable = function(mapping, paramname, key)
+      return ucihelper.get_from_uci({config= "firewall", sectionname="fwconfig", option="dmz", default="0"})
+    end,
+
+    DMZHost = function(mapping, paramname, key)
+      dmz_redirect_binding.option = "dest_mac"
+      local DMZMac = ucihelper.get_from_uci(dmz_redirect_binding)
+      if DMZMac == "" then
+        dmz_redirect_binding.option = "dest_ip"
+        local DMZIp = ucihelper.get_from_uci(dmz_redirect_binding)
+        DMZMac = fw_helper.ip2mac(ubus_connect, family, DMZIp) or ""
+      end
+      return DMZMac
+    end,
+
+    DMZHostIP = function(mapping, paramname, key)
+      dmz_redirect_binding.option = "dest_ip"
+      return ucihelper.get_from_uci(dmz_redirect_binding)
+    end
+}
+
+
+
+Multi_Services_X_000E50_Internet_.set = {
+    DMZEnable = function(mapping, paramname, paramvalue)
+      fw_helper.set_dmz_enable(paramvalue, commitapply)
+    end,
+
+    DMZHost = function(mapping, paramname, paramvalue)
+      if nwcommon.isMAC(paramvalue) or paramvalue=="" then
+         if paramvalue ~= "" then
+            local family = string.lower(get_on_option(dmz_redirect_binding, "family"))
+            local ipAddr = get_on_option(dmz_redirect_binding, "dest_ip")
+
+            if family == "ipv6" then
+                ipAddr = "::"
+            elseif family == "ipv4" then
+                ipAddr = "0.0.0.0"
+            elseif ipAddr ~= "" then
+                if string.find(ipAddr, ":") then
+                    family = "ipv6"
+                    ipAddr = "::"
+                else
+                    family = "ipv4"
+                    ipAddr = "0.0.0.0"
+                end
+            end
+
+            set_on_option(dmz_redirect_binding, "family", family)
+            set_on_option(dmz_redirect_binding, "dest_ip", ipAddr)
+          end
+          set_on_option(dmz_redirect_binding, "dest_mac", paramvalue)
+          transactions[dmz_redirect_binding.config] = true
+      else
+        return nil, "Invalid MAC address"
+      end
+    end,
+
+    DMZHostIP = function(mapping, paramname, paramvalue)
+      if paramvalue == "" or inet.isValidIPv4(paramvalue) then
+          dmz_redirect_binding.option = "dest_mac"
+          local uci_destmac = ucihelper.get_from_uci(dmz_redirect_binding)
+          if uci_destmac ~= "" then
+            --when dest_mac exist, never overwrite pfw based MAC in /var/state, this is different from rpc, it will overwrite mac
+            --anyway if both ip and mac are set and ip is set after mac
+            --IGD:do nothing
+          else
+            if paramvalue ~= "" then
+              local family -- family deduced from the IP value
+              local macAddr -- mac address of dest_ip value
+
+              if string.find(paramvalue, ":") then
+                family = "ipv6"
+              else
+                family = "ipv4"
+              end
+              set_on_option(dmz_redirect_binding, "family", family)
+
+              macAddr = fw_helper.ip2mac(ubus_connect, family, paramvalue) or ""
+              set_on_option(dmz_redirect_binding, "dest_mac", macAddr)
+              if macAddr ~= "" then
+                -- Don't write the IP address to /etc/config/firewall because
+                -- it changes. The address will be written to /var/state/firewall
+                -- which won't persist across a reboot.
+                -- (See redirecthelper for process that does this)
+                if (family == "ipv6") then
+                    paramvalue = "::"
+                else
+                    paramvalue = "0.0.0.0"
+                end
+              end
+            end
+            set_on_option(dmz_redirect_binding, "dest_ip", paramvalue)
+            transactions[dmz_redirect_binding.config] = true
+          end
+      else
+        return nil, "Invalid IP address"
+      end
+    end
+}
+
+local function translate_cb(mapping, action, config, sectiontype, sectionname, option)
+    return { { key = "", paramname = "WANConnection" } }
+end
+
+Multi_Services_X_000E50_Internet_.add_watchers = function(mapping)
+  local uci_evsrc = eventsource("uci")
+  uci_evsrc.watch(mapping, { set = translate_cb }, "cwmpd", nil, "cwmpd_config", "interface")
+end
+
+Multi_Services_X_000E50_Internet_.commit = function()
+    for config, _ in pairs(transactions) do
+      ucihelper.commit({config = config})
+    end
+    -- update /var/state/firewall
+    -- Notify redirecthelper that we modified something.
+    -- dynamic dest_ip might need changed
+    ubus_connect:call("redirecthelper", "update", {})
+    transactions = {}
+end
+
+Multi_Services_X_000E50_Internet_.revert = function()
+    for config, _ in pairs(transactions) do
+      ucihelper.revert({config = config})
+    end
+    transactions = {}
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_Services_X_000E50_Internet_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end

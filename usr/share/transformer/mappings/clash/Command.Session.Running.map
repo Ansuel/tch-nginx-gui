@@ -1,0 +1,66 @@
+local command_session_running_ = {
+  objectType = {
+    name = "Command.Session.@.Running.@.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      pid = {
+        access = "readOnly",
+        type = "string",
+      },
+      cmdline = {
+        access = "readOnly",
+        type = "string"
+      },
+      stop = {
+        access = "readWrite",
+        type = "boolean",
+      },
+    },
+  }
+}
+
+local cache = {}
+local posix = require("tch.posix")
+local sigkill = posix.SIGKILL
+
+command_session_running_.entries = function(mapping, parentkey)
+  local entries = {}
+  local fd, err = io.open("/cgroups/cpumemblk/clash/"..parentkey.."/tasks", "r")
+  if fd then
+    if not cache[parentkey] then
+      cache[parentkey] = {}
+    end
+    for pid in fd:lines() do
+      local cmdline_fd, err = io.open("/proc/"..pid.."/cmdline", "r")
+      if cmdline_fd then
+        cache[parentkey][pid] = {
+          pid = pid,
+          cmdline = cmdline_fd:read("*a"),
+          stop = "0",
+        }
+        cmdline_fd:close()
+        entries[#entries + 1] = pid
+      end
+    end
+    fd:close()
+  end
+  return entries
+end
+
+command_session_running_.get = function(mapping, paramname, key, parentkey)
+  if cache[parentkey] and cache[parentkey][key] then
+    return cache[parentkey][key][paramname]
+  end
+  return nil, "parameter not found"
+end
+
+local logger = require("transformer.logger")
+
+command_session_running_.set = function(mapping, paramname, paramvalue, key, parentkey)
+  posix.kill(key, sigkill)
+  logger:debug("killed %s", key)
+end
+
+register(command_session_running_)

@@ -1,0 +1,317 @@
+-- Automatically generated from Device:2.11
+-- using generator version 2.3
+local Multi_WiFi_NeighboringWiFiDiagnostic_Result_i_ = {
+  objectType = {
+    name = "#ROOT",
+    access = "readOnly",
+    numEntriesParameter = "ResultNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    description = "Results of other WiFi SSIDs that this device is able to receive",
+    parameters = {
+      Radio = {
+        access = "readOnly",
+        type = "string",
+        pathRef = true,
+        targetParent = "Device.WiFi.Radio.{i}.",
+      },
+      SSID = {
+        access = "readOnly",
+        type = "string",
+        max = "32",
+      },
+      BSSID = {
+        access = "readOnly",
+        type = "string",
+      },
+--[[  TODO:
+      Mode = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "AdHoc",
+          "Infrastructure",
+        },
+      },
+--]]
+      Channel = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+            max = "255",
+          },
+        },
+      },
+      SignalStrength = {
+        access = "readOnly",
+        type = "int",
+        range = {
+          {
+            min = "-200",
+            max = "0",
+          },
+        },
+      },
+      RSSI = {
+        access = "readOnly",
+        type = "int",
+        range = {
+          {
+            min = "-200",
+            max = "0",
+          },
+        },
+      },
+      SecurityModeEnabled = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "None",
+          "WEP",
+          "WPA",
+          "WPA2",
+          "WPA-WPA2",
+          "WPA-Enterprise",
+          "WPA2-Enterprise",
+          "WPA-WPA2-Enterprise",
+        },
+      },
+--[[  TODO:
+      EncryptionMode = {
+        access = "readOnly",
+        list = true,
+        type = "string",
+        enumeration = {
+          "TKIP",
+          "AES",
+        },
+      },
+--]]
+      OperatingFrequencyBand = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "2.4GHz",
+          "5GHz",
+        },
+      },
+      Frequency = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "2.4GHz",
+          "5GHz",
+        },
+      },
+--[[	TODO:
+      SupportedStandards = {
+        access = "readOnly",
+        list = true,
+        type = "string",
+        enumeration = {
+          "a",
+          "b",
+          "g",
+          "n",
+          "ac",
+        },
+      },
+      OperatingStandards = {
+        access = "readOnly",
+        list = true,
+        type = "string",
+        enumeration = {
+          "a",
+          "b",
+          "g",
+          "n",
+          "ac",
+        },
+      },
+      OperatingChannelBandwidth = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "20MHz",
+          "40MHz",
+          "80MHz",
+          "160MHz",
+          "Auto",
+        },
+      },
+--]]
+      BeaconPeriod = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+--[[  TODO:
+      Noise = {
+        access = "readOnly",
+        type = "int",
+        range = {
+          {
+            min = "-200",
+            max = "0",
+          },
+        },
+      },
+      BasicDataTransferRates = {
+        access = "readOnly",
+        list = true,
+        max = "256",
+        type = "string",
+      },
+      SupportedDataTransferRates = {
+        access = "readOnly",
+        list = true,
+        max = "256",
+        type = "string",
+      },
+--]]
+      DTIMPeriod = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+    }
+  }
+}
+
+local tostring, mapper, pairs, resolve = tostring, mapper, pairs, resolve
+local conn = mapper("ubus").connect()
+local bssList = {}
+local radioList
+
+local function getRadioValues()
+  if not radioList then
+    radioList = {}
+    local data = conn:call("wireless.radio", "get", {})
+    for type, radioValues in pairs(data) do
+      radioList[type] = radioValues
+    end
+  end
+  return radioList
+end
+
+Multi_WiFi_NeighboringWiFiDiagnostic_Result_i_.entries = function(mapping, parentKey)
+  local key
+  radioList = nil
+  bssList = {}
+  local  entries = {}
+  -- For IGD entries are formed only if the access point is not remotely managed
+  -- for remotely managed accesspoints parentkey would be "ap_remote eg: wl0_remote)
+  if parentKey and parentKey:match("remote$") then
+    return entries
+  end
+  local data = conn:call("wireless.radio.bsslist", "get", {})
+  if data then
+    for radio, bssinfo in pairs(data) do
+      for mac, params in pairs(bssinfo) do
+        key = radio .. "|" .. mac
+	key = parentKey and parentKey .. "|" .. key or key     --parentKey will be empty for Device, so append parentkey only for IGD.
+        entries[#entries + 1] = key
+        params["radio"] = radio
+        params["mac"] = mac
+        bssList[key] = params
+      end
+    end
+  end
+  return entries
+end
+
+local function getFrequency(radio)
+  if radio == "radio_2G" then
+    return "2.4GHz"
+  else
+    return "5GHz"
+  end
+end
+
+Multi_WiFi_NeighboringWiFiDiagnostic_Result_i_.get = {
+  Radio = function(mapping, param, key)
+    return resolve("Device.WiFi.Radio.{i}.", bssList[key].radio) or ""
+  end,
+  SSID = function(mapping, param, key)
+    return bssList[key].ssid or ""
+  end,
+  BSSID = function(mapping, param, key)
+    return bssList[key].mac
+  end,
+  RSSI = function(mapping, param, key)
+    return tostring(bssList[key].rssi) or ""
+  end,
+  Channel = function(mapping, param, key)
+    return tostring(bssList[key].channel) or ""
+  end,
+  SignalStrength = function(mappimg, param, key)
+    return tostring(bssList[key].rssi) or ""
+  end,
+  SecurityModeEnabled = function(mapping, param, key)
+    return tostring(bssList[key].sec) or ""
+  end,
+  OperatingFrequencyBand = function(mapping, param, key)
+    return getFrequency(bssList[key].radio)
+  end,
+  Frequency = function(mapping, param, key)
+    return getFrequency(bssList[key].radio)
+  end,
+  BeaconPeriod = function(mapping, param, key)
+    local radio = bssList[key].radio
+    local radios = getRadioValues()
+    return tostring(radios[radio].beacon_period) or ""
+  end,
+  DTIMPeriod = function(mapping, param, key)
+    local radio = bssList[key].radio
+    local radios = getRadioValues()
+    return tostring(radios[radio].dtim_interval) or ""
+  end
+}
+
+Multi_WiFi_NeighboringWiFiDiagnostic_Result_i_.getall = function(mapping, key)
+  local radio = bssList[key].radio
+  local radios = getRadioValues()
+  return {
+    Radio = resolve("Device.WiFi.Radio.{i}.", radio) or "",
+    SSID =  bssList[key].ssid or "",
+    BSSID = bssList[key].mac,
+    RSSI = tostring(bssList[key].rssi) or "",
+    Channel = tostring(bssList[key].channel) or "",
+    SignalStrength = tostring(bssList[key].rssi) or "",
+    SecurityModeEnabled = tostring(bssList[key].sec) or "",
+    OperatingFrequencyBand = getFrequency(radio),
+    Frequency = getFrequency(radio),
+    BeaconPeriod = tostring(radios[radio].beacon_period) or "",
+    DTIMPeriod =  tostring(radios[radio].dtim_interval) or "",
+  }
+end
+
+-- device specific params
+local dev2OnlyParams = {
+  "Radio",
+  "BSSID",
+  "SignalStrength",
+  "SecurityModeEnabled",
+  "OperatingFrequencyBand",
+  "BeaconPeriod",
+  "DTIMPeriod",
+}
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_WiFi_NeighboringWiFiDiagnostic_Result_i_, "#ROOT", {"InternetGatewayDevice.LANDevice.{i}.WLANConfiguration.{i}.X_Scan.{i}.", "Device.WiFi.NeighboringWiFiDiagnostic.Result.{i}."})
+for _, dupli in ipairs(duplicates) do
+  if dupli.objectType.name:match('^InternetGatewayDevice.') then
+    -- Remove device2-specific parameters from igd
+    dupli.objectType.parameters.SSID.description = "current service set identifier in use by the neighboring WiFi SSID"
+    dupli.objectType.parameters.Channel.description = "current radio channel used by the neighboring WiFi radio"
+    dupli.objectType.parameters.Frequency.description = "frequency band at which the radio this SSID instance is operating"
+    dupli.objectType.parameters.RSSI.description = "BSSID used for the neighboring WiFi SSID"
+    for _,param in ipairs(dev2OnlyParams) do
+      dupli.objectType.parameters[param] = nil
+    end
+  else
+    dupli.objectType.parameters.Frequency = nil
+    dupli.objectType.parameters.RSSI = nil
+  end
+  register(dupli)
+end

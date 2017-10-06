@@ -1,0 +1,125 @@
+-- Manually generated
+local Device_Services_X_TESSARES_MPTCP_PM_Overflow_Dynamic_ = {
+  objectType = {
+    name = "Device.Services.X_TESSARES_MPTCP.PM.Overflow.Dynamic.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      StabilityThreshold = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "100",
+          },
+        },
+        default = "80",
+      },
+      StabilityAlpha = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "1000",
+          },
+        },
+        default = "125",
+      },
+      GrowthFactor = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "1000",
+          },
+        },
+        default = "800",
+      },
+      StableFactor = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "1000",
+          },
+        },
+        default = "900",
+      },
+      TailDuration = {
+        access = "readWrite",
+        type = "unsignedInt",
+        default = "5",
+      },
+    }
+  }
+}
+
+local uciHelper = mapper("ucihelper")
+local overFlowSectionName = uciHelper.get_from_uci({ config = "mproxy", sectionname = "pathmanager", option = "mode" })
+local mproxyBinding = { config = "mproxy", sectionname = overFlowSectionName }
+local configChanged = false
+
+local paramMap = {
+  ["StabilityThreshold"] = "stability_threshold",
+  ["StabilityAlpha"] = "stability_alpha",
+  ["GrowthFactor"] = "growth_factor",
+  ["StableFactor"] = "stable_factor",
+  ["TailDuration"] = "tail_duration",
+}
+
+local defaultValuesMap = {}
+local parameterList = Device_Services_X_TESSARES_MPTCP_PM_Overflow_Dynamic_.objectType.parameters
+for parameter, value in pairs(parameterList) do
+  local default = value["default"]
+  if default then
+    defaultValuesMap[parameter] = default
+  end
+end
+
+local function getUciValue(mapping, param)
+  mproxyBinding.option = paramMap[param]
+  mproxyBinding.default = defaultValuesMap[param]
+  return uciHelper.get_from_uci(mproxyBinding)
+end
+
+local function setUciValue(mapping, param, value)
+  mproxyBinding.option = paramMap[param]
+  uciHelper.set_on_uci(mproxyBinding, value, commitapply)
+  configChanged = true
+end
+
+Device_Services_X_TESSARES_MPTCP_PM_Overflow_Dynamic_.get = getUciValue
+
+Device_Services_X_TESSARES_MPTCP_PM_Overflow_Dynamic_.getall = function()
+  local allValues = uciHelper.getall_from_uci(mproxyBinding)
+  return {
+    StabilityThreshold = allValues["stability_threshold"] or defaultValuesMap["StabilityThreshold"],
+    StabilityAlpha     = allValues["stability_alpha"] or defaultValuesMap["StabilityAlpha"],
+    GrowthFactor       = allValues["growth_factor"] or defaultValuesMap["GrowthFactor"],
+    StableFactor       = allValues["stable_factor"] or defaultValuesMap["StableFactor"],
+    TailDuration       = allValues["tail_duration"] or defaultValuesMap["TailDuration"]
+  }
+end
+
+Device_Services_X_TESSARES_MPTCP_PM_Overflow_Dynamic_.set = setUciValue
+
+Device_Services_X_TESSARES_MPTCP_PM_Overflow_Dynamic_.commit = function()
+  if configChanged then
+    uciHelper.commit(mproxyBinding)
+    configChanged = false
+  end
+end
+
+Device_Services_X_TESSARES_MPTCP_PM_Overflow_Dynamic_.revert = function()
+  if configChanged then
+    uciHelper.revert(mproxyBinding)
+    configChanged = false
+  end
+end
+
+register(Device_Services_X_TESSARES_MPTCP_PM_Overflow_Dynamic_)

@@ -1,0 +1,154 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_Firewall_Level_i_ = {
+  objectType = {
+    name = "Device.Firewall.Level.{i}.",
+    access = "readOnly", -- readWrite not supported
+    numEntriesParameter = "LevelNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      Name = {
+        access = "readOnly", -- readWrite not supported
+        type = "string",
+        max = "64",
+      },
+      Description = {
+        access = "readOnly", -- readWrite not supported
+        type = "string",
+        max = "256",
+      },
+--[[ TODO
+      Order = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+--]]
+      Chain = {
+        access = "readOnly",
+        type = "string",
+        pathRef = true,
+        targetParent = "Device.Firewall.Chain.{i}.",
+      },
+      DefaultPolicy = {
+        access = "readOnly", -- readWrite not supported
+        type = "string",
+        enumeration = {
+          "Drop",
+          "Accept",
+          "Reject",
+        },
+        default = "Drop",
+      },
+--[[ TODO
+      PortMappingEnabled = {
+        access = "readWrite",
+        type = "boolean",
+        default = "true",
+      },
+      DefaultLogPolicy = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+--]]
+    }
+  }
+}
+
+local uciHelper = mapper("ucihelper")
+local firewallBinding = { config = "firewall" }
+--local isConfigChanged = false
+local defaultPolicyMap = {
+  ["ACCEPT"] = "Accept",
+  ["DROP"]   = "Drop",
+  ["REJECT"] = "Reject",
+}
+
+Device_Firewall_Level_i_.entries = function()
+  return {
+   "laxrules",
+   "highrules",
+   "userrules",
+   "normalrules",
+}
+end
+
+local function getUciValue(section, option, default)
+  firewallBinding.sectionname = section
+  firewallBinding.option = option
+  firewallBinding.default = default
+  return uciHelper.get_from_uci(firewallBinding)
+end
+
+local function getDefaultPolicy()
+  local defaultRuleType = getUciValue("defaultrules", "type")
+  local defaultPolicy = "DROP"
+  if defaultRuleType ~= "" then
+    defaultPolicy = getUciValue("defaultoutgoing", "target", "DROP")
+  end
+  return defaultPolicyMap[defaultPolicy]
+end
+
+Device_Firewall_Level_i_.get = {
+  Name = function(mapping, param, key)
+    return key
+  end,
+  Description = function(mapping, param, key)
+    return getUciValue(key, "name")
+  end,
+  Chain = function(mapping, param, key)
+    return resolve('Device.Firewall.Chain.{i}.', key) or ""
+  end,
+  DefaultPolicy = getDefaultPolicy, -- mapping to defaultoutgoing since we dont have a straighforward way to map this parameter
+}
+
+--[[ Since we have defaultoutgoing and defaultincoming for each level
+     not sure of mapping the parameter DefaultPolicy , so commenting the set part for now.
+
+local function setUciParam(section, option, value)
+  firewallBinding.sectionname = section
+  firewallBinding.option = option
+  uciHelper.set_on_uci(firewallBinding, value, commitapply)
+  isConfigChanged = true
+end
+
+Device_Firewall_Level_i_.set = {
+  Description = function(mapping, param, value, key)
+    setUciParam(key, "name", value)
+  end,
+  DefaultPolicy = function(mapping, param, value)
+    setUciParam("defaultoutgoing", "target", string.upper(value))
+  end,
+}
+
+Device_Firewall_Level_i_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(firewallBinding)
+    isConfigChanged = false
+  end
+end
+
+Device_Firewall_Level_i_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(firewallBinding)
+    isConfigChanged = false
+  end
+end
+--]]
+
+-- A getall implementation is not done as it will not bring any improvement
+
+register(Device_Firewall_Level_i_)
+

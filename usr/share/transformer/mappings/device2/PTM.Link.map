@@ -1,0 +1,178 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_PTM_Link_i_ = {
+  objectType = {
+    name = "Device.PTM.Link.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "LinkNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readOnly", -- Currently readWrite not supported
+        type = "boolean",
+        default = "false",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Up",
+          "Down",
+          "Unknown",
+          "Dormant",
+          "NotPresent",
+          "LowerLayerDown",
+          "Error",
+        },
+        default = "Down",
+      },
+      Alias = {
+        access = "readWrite",
+        type = "string",
+        max = "64",
+      },
+--[[
+      LastChange = {
+        access = "readOnly", --TODO
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+--]]
+      Name = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      LowerLayers = {
+        access = "readOnly", -- "set" is not supported currently
+        list = true,
+        max = "1024",
+        type = "string",
+        pathRef = true,
+        default = "",
+      },
+      MACAddress = {
+        access = "readOnly",
+        type = "string",
+      },
+    }
+  },
+  aliasDefault = "Name"
+}
+
+local nwmodel = require "transformer.shared.models.device2.network"
+local PTMLink = nwmodel.register("PTMLink", Device_PTM_Link_i_.objectType.name)
+local model
+
+local xtmBinding = { config = "xtm", sectionname = "", option = "" }
+local uciHelper = mapper("ucihelper")
+local conn = mapper("ubus").connect()
+local getIntfInfo = mapper('nwcommon').getIntfInfo
+local xtmctl = require("transformer.shared.xtmctl")
+local enableXtmDevice = xtmctl.enableXtmDevice
+local getXtmDeviceStatus = xtmctl.getXtmDeviceStatus
+local format = string.format
+
+local function uci_get(intf, option)
+  xtmBinding.sectionname = intf
+  xtmBinding.option = option
+  return uciHelper.get_from_uci(xtmBinding)
+end
+
+Device_PTM_Link_i_.entries = function()
+  model = nwmodel.load()
+  return model:getKeys(PTMLink)
+--[[
+  local interfaces = {}
+  xtmBinding.sectionname = "ptmdevice"
+  foreach_on_uci(xtmBinding, function(s)
+    interfaces[#interfaces + 1] = s['.name']
+  end)
+  return interfaces
+]]
+end
+
+local function getPtmAddr(key)
+  local priority = uci_get(model:getUciKey(key),"priority")
+  local ptmPriority
+  if priority == "low" then
+    ptmPriority = "1"
+  else
+    ptmPriority = "2"
+  end
+  return format("1.%s",ptmPriority)
+end
+
+local function getPtmEnable(key)
+  if not model:getPresent(key) then
+    return "0"
+  end
+  if getXtmDeviceStatus(getPtmAddr(key)) == "enabled" then
+    return "1"
+  else
+    return "0"
+  end
+end
+
+local function getPtmStatus(key)
+  if not model:getPresent(key) then
+    return "NotPresent"
+  end
+  local ptmStatus = conn:call("network.device", "status", {["name"] = model:getDevice(key)})
+  if not ptmStatus then
+    return "Unknown"
+  end
+  if getPtmEnable(key) == "1" then
+    if ptmStatus.carrier and ptmStatus.up then
+      return "Up"
+    else
+      local xdslStatus = conn:call("xdsl", "status", {})
+      if not xdslStatus or xdslStatus.statuscode < 5 then
+        return "LowerLayerDown"
+      else
+        return "Dormant"
+      end
+    end
+  else
+    if ptmStatus.present then
+      return "Down"
+    else
+      return "NotPresent"
+    end
+  end
+end
+
+local function getPtmLowerLayers(key)
+  if model:getPresent(key) then
+    return model:getLowerLayersResolved(key, resolve)
+  else
+    return ""
+  end
+end
+
+Device_PTM_Link_i_.get = {
+  Enable = function(mapping,param,key)
+    return getPtmEnable(key)
+  end,
+
+  Status = function(mapping,param,key)
+    return getPtmStatus(key)
+  end,
+
+  Name = function(mapping,param,key)
+    return model:getName(key)
+  end,
+
+  LowerLayers = function(mapping,param,key)
+    return getPtmLowerLayers(key)
+  end,
+
+  MACAddress = function(mapping,param,key)
+    return getIntfInfo(model:getDevice(key),"address")
+  end,
+}
+
+register(Device_PTM_Link_i_)

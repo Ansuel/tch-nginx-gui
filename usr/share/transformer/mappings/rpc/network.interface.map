@@ -1,0 +1,960 @@
+--NG-????? ResetButton and friendlyName on LAN-Interface Page
+
+local network_interface_ = {
+  objectType = {
+    name = "rpc.network.interface.@.",
+    access = "readOnly",
+    numEntriesParameter = "InterfaceNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      ipaddr = {
+        access = "readOnly",
+        type = "string",
+      },
+      ipmask = {
+        access = "readOnly",
+        type = "string",
+      },
+      ip6addr = {
+       access = "readOnly",
+       type = "string",
+      },
+      ip6prefix = {
+       access = "readOnly",
+       type = "string",
+      },
+      ip6prefix_assignment = {
+       access = "readOnly",
+       type = "string",
+      },
+      dnsservers = {
+       access = "readOnly",
+       list = true,
+       max = "64",
+       type = "string",
+      },
+      NTPServers= {
+       access = "readOnly",
+       list = true,
+       max = "64",
+       type = "string",
+      },
+      dnsserver1_ping = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "None",
+          "Requested",
+          "Waiting",
+          "Success",
+          "Failed",
+        }
+      },
+      dnsserver2_ping = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "None",
+          "Requested",
+          "Waiting",
+          "Success",
+          "Failed",
+        }
+      },
+      dnsserver1_query = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "None",
+          "Requested",
+          "Waiting",
+          "Success",
+          "Failed",
+        }
+      },
+      dnsserver2_query = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "None",
+          "Requested",
+          "Waiting",
+          "Success",
+          "Failed",
+        }
+      },
+      nexthop = {
+       access = "readOnly",
+       type = "string",
+      },
+      nexthop_ping = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "None",
+          "Requested",
+          "Waiting",
+          "Success",
+          "Failed",
+        }
+      },
+      -- needed for fitting the transactions model
+      status_ping_test= {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "Done",
+          "Waiting"
+        }
+      },
+      up = {
+       access = "readOnly",
+       type = "boolean",
+      },
+      available = {
+       access = "readOnly",
+       type = "boolean",
+      },
+      uptime = {
+       access = "readOnly",
+       type = "unsignedInt",
+      },
+      tx_bytes = {
+       access = "readOnly",
+       type = "unsignedInt",
+      },
+      rx_bytes = {
+       access = "readOnly",
+       type = "unsignedInt",
+      },
+      type = {
+       access = "readOnly",
+       type = "string",
+      },
+      ifname = {
+       access = "readOnly",
+       type = "string",
+      },
+      proto = {
+       access = "readOnly",
+       type = "string",
+      },
+      static_dns_servers = {
+       access = "readWrite",
+       list = true,
+       max = "64",
+       type = "string",
+      },
+      ipv6linklocaladdr = {
+       access = "readOnly",
+       type = "string",
+      },
+      ipv6uniquelocaladdr = {
+       access = "readOnly",
+       type = "string",
+      },
+      ipv6dhcpaddresspool = {
+       access = "readOnly",
+       type = "string",
+      },
+      ipv6uniqueglobaladdr = {
+       access = "readOnly",
+       type = "string",
+      },
+      default_gateway_ping = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "None",
+          "Requested",
+          "Waiting",
+          "Success",
+          "Failed",
+        }
+      },
+	  name = {
+       access = "readOnly",
+       type = "string",
+      },
+    }
+  }
+}
+
+local ipairs, pairs, io = ipairs, pairs, io
+local commitapply, mapper = commitapply, mapper
+local tostring, type = tostring, type
+local logger = require("transformer.logger")
+local log = logger.new("network.interface", 2)
+local open = io.open
+local uci_helper = mapper("ucihelper")
+local get_from_uci = uci_helper.get_from_uci
+local common = mapper("nwcommon")
+local get_ubus_interface_status = common.get_ubus_interface_status
+local get_ubus_device_status = common.get_ubus_device_status
+local get_intf_stat=common.get_intf_stat
+local get_lower_layers = common.get_lower_layers
+local findLanWanInterfaces = common.findLanWanInterfaces
+local ping_helper = require("transformer.shared.ippinghelper")
+local mobileconnection = require("transformer.shared.mobileconnection")
+local section = "network_rpc"
+local STATE_STORE = "/var/state/rpc_network"
+local NUM_REP = "2"
+local state_table = {}
+local defaultGWPingIntf = ""
+local is_mobile_iface = {}
+local network_binding = { config = "network" }
+local transaction = {}
+local string, table = string, table
+
+local defaultGateway = ""
+local function getDefaultGateway()
+  local routes = io.popen("ip route show")
+  if routes then
+    for line in routes:lines() do
+      defaultGateway = line:match("^default%s+%S+%s+(%S+).*") or ""
+      if defaultGateway ~= "" then
+        break
+      end
+    end
+    routes:close()
+  end
+end
+local dns_state_table = {}
+local DNS_CHECK_FILE = "/tmp/dnscheck"
+local DNS_SERVER_FILE = "/tmp/dnsserver"
+
+local function entriesInterfaces(mapping)
+    local intfs = {}
+    local binding = {
+      config="network",
+      sectionname="interface",
+    }
+    local intf_6rd = {}
+    uci_helper.foreach_on_uci(binding, function(s)
+    -- iterate over the interfaces
+      if s.iface6rd and (s.iface6rd ~= "0") then
+        intf_6rd[s.iface6rd] = true
+      end
+
+      if s.proto == "6rd" then
+        intf_6rd[s[".name"]] = true
+      else
+        intfs[#intfs+1]= s['.name']
+        if s.proto == "mobiled" then
+          is_mobile_iface[s[".name"]] = mobileconnection.get_network_interface(s[".name"])
+        end
+      end
+    end)
+
+    for k,_ in pairs(intf_6rd) do
+      intfs[#intfs+1]=k
+    end
+    return intfs
+end
+
+local function get_dnsCheckState()
+    local resolve_state
+    local fd,msg = open(DNS_CHECK_FILE, "r")
+    if fd then
+        resolve_state = fd:read("*a")
+        fd:close()
+    end
+
+    return resolve_state
+end
+
+local function set_dnsCheckState(state)
+    local fd = open(DNS_CHECK_FILE,"w+")
+    if fd then
+        fd:write(state)
+        fd:close()
+    end
+ end
+
+local function start_dnscheck(host)
+    local fd = open(DNS_SERVER_FILE, "w+")
+    if fd then
+        fd:write(host)
+        fd:close()
+
+        commitapply:newset("rpc.network.interface.dnscheck")
+        set_dnsCheckState("Requested")
+    end
+end
+
+--Check if the DNS resolve request is available start the test or
+-- skipped set states if resolve_state has been set
+local function checkIfResolveAndStart(host, interface)
+  local resolve_state = get_dnsCheckState()
+  local skipped= false
+
+  if (resolve_state == nil) then
+      resolve_state = 'None'
+      set_dnsCheckState(resolve_state)
+  end
+
+  if (resolve_state == "Success" or
+       resolve_state == "Failed") then
+      for _,v in pairs(dns_state_table) do
+          if(v == "Requested") then
+              skipped = true
+              return
+          end
+      end
+      if skipped == false then
+          resolve_state = "None"
+          set_dnsCheckState(resolve_state)
+      end
+  end
+
+  if resolve_state == "None" then
+      start_dnscheck(host)
+      dns_state_table[host] = "Requested"
+  else
+      dns_state_table[host] = "Waiting"
+  end
+
+end
+
+--This is called on read of the DNS check state
+local function getDNSResolveState(host)
+  if dns_state_table == nil then
+    dns_state_table = {}
+    dns_state_table[host] = "None"
+  end
+  if dns_state_table[host] == nil then
+    dns_state_table[host] = "None"
+  end
+
+  if (dns_state_table[host] == "Success" or dns_state_table[host] == "Failed") then
+    return dns_state_table[host]
+  end
+  if dns_state_table[host] == "Requested" then
+    local resolve_state = get_dnsCheckState()
+    if resolve_state == "Requested" then
+      return "Requested"
+    end
+    if (resolve_state == "Success" or resolve_state == "Failed") then
+      dns_state_table[host] = resolve_state
+    else
+      dns_state_table[host] = "Failed"
+    end
+  end
+  return dns_state_table[host]
+end
+
+--Check if the ipping is available start the test or
+-- wait till till it becomes free
+local function checkIfAvailableAndStart(host, interface)
+  local pinger_state =  ping_helper.uci_ipping_get(section, "DiagnosticsState")
+  local wait = false
+
+  if (pinger_state == "Complete" or
+     pinger_state == "Error_CannotResolveHostName" or
+     pinger_state == "Error_Internal" or
+     pinger_state == "Error_NoRouteToHost" or
+     pinger_state == "Error_Other") then
+    for _,v in pairs(state_table) do
+      if(v == "Requested") then
+        wait = true
+      end
+    end
+    if wait == false then
+      pinger_state = "None"
+      ping_helper.uci_ipping_set(section, "DiagnosticsState", "None", commitapply)
+    end
+  end
+  if pinger_state == "None" then
+    ping_helper.uci_ipping_set(section, "Host", host, commitapply)
+    ping_helper.uci_ipping_set(section, "NumberOfRepetitions", NUM_REP, commitapply)
+    ping_helper.uci_ipping_set(section, "Interface", interface, commitapply)
+    ping_helper.uci_ipping_set(section, "DiagnosticsState", "Requested", commitapply)
+    state_table[host] = "Requested"
+
+  else
+    state_table[host] = "Waiting"
+
+  end
+end
+--This is called on read of the state
+local function getState(host)
+  local pinger_state
+
+  if state_table == nil then
+    state_table = {}
+    state_table[host] = "None"
+  end
+  if state_table[host] == nil then
+    state_table[host] = "None"
+  end
+
+  if (state_table[host] == "Success" or state_table[host] == "Failed") then
+    return state_table[host]
+  end
+  if state_table[host] == "Requested" then
+    pinger_state = ping_helper.uci_ipping_get(section, "DiagnosticsState")
+    if pinger_state == "Requested" then
+        return "Requested"
+    end
+    if pinger_state == "Complete" then
+      local numReq = ping_helper.uci_ipping_get(section, "NumberOfRepetitions")
+      local numRec = ping_helper.uci_ipping_get(section, "SuccessCount")
+      if numReq == numRec then
+        state_table[host] = "Success"
+      else
+        state_table[host] = "Failed"
+      end
+    else
+      state_table[host] = "Failed"
+    end
+
+  end
+
+  return state_table[host]
+end
+
+--This is called to pushes the statemachine to the next state
+-- (external commit apply is needed)
+-- introduced to fit transactions
+local function pushState()
+  local pinger_state
+  pinger_state = ping_helper.uci_ipping_get(section, "DiagnosticsState")
+  local pinger_host = ping_helper.uci_ipping_get(section, "Host")
+  if pinger_state == "Complete" or state_table[pinger_host] == "Failed" then
+    ping_helper.uci_ipping_set(section, "DiagnosticsState", "None", commitapply)
+  end
+  for host,state in pairs(state_table) do
+    if state == "Waiting" then
+      if pinger_state == "None" then
+        ping_helper.uci_ipping_set(section, "Host", host, commitapply)
+        ping_helper.uci_ipping_set(section, "NumberOfRepetitions", NUM_REP, commitapply)
+        ping_helper.uci_ipping_set(section, "DiagnosticsState", "Requested", commitapply)
+        state_table[host] = "Requested"
+      end
+      return
+    end
+  end
+
+  -- introduced for telmex dns query check install of dns server ping
+  local resolve_state = get_dnsCheckState()
+  if resolve_state == "Success" or resolve_state == "Failed" then
+    set_dnsCheckState("None")
+    resolve_state = "None"
+  end
+  for host,state in pairs(dns_state_table) do
+    if state == "Waiting" then
+      if resolve_state == "None" then
+        start_dnscheck(host)
+        dns_state_table[host] = "Requested"
+      end
+      return
+    end
+  end
+
+end
+
+local function busy()
+   for _,state in pairs(state_table) do
+    if state == "Waiting" then
+       return "Waiting"
+    end
+  end
+   for _,state in pairs(dns_state_table) do
+    if state == "Waiting" then
+       return "Waiting"
+    end
+  end
+
+  return "Done"
+end
+
+local function get_interface(key, v6)
+    if is_mobile_iface[key] then
+        local  data = is_mobile_iface[key]
+        if v6 then
+            return data.interface6 or key
+        end
+        return data.interface or key
+    end
+    return key
+end
+
+-- This function is used to fetch the global IPv6 address of the interface 'intf'
+-- return dynamic global IPv6 address if success
+-- else return empty
+local function getIPv6Addr(intf)
+  local result
+  if intf then
+    -- Extract the Global IPv6 address for `intf` interface
+    local cmd = "ip -6 addr show dynamic " .. intf .. " | grep inet6 | grep -v deprecated | awk '{print $2}' | cut -f 1 -d '/'"
+    local fd = io.popen(cmd)
+    if fd then
+      -- Return the Global IPv6 address
+      result = fd:read("*l")
+      fd:close()
+    end
+  end
+  return result or ""
+end
+
+local nextHopLcl = ""
+
+local function getNexthopInfo(key)
+  nextHopLcl = ""
+  local interface = get_interface(key)
+  local v = get_ubus_interface_status(interface)
+  v = v and v['route']
+  local route  = v and v[1]
+  local nexthop = (route and route['nexthop']) or ""
+  if (v) then
+    for i, route in ipairs(v) do
+      if route['mask'] == 0 then
+        nexthop = route['nexthop']
+        break
+      end
+    end
+  end
+  return nexthop
+end
+
+
+local dnsServer1 = ""
+local dnsServer2 = ""
+local servers = ""
+local function getDnsServers(key)
+  servers = ""
+  dnsServer1 = ""
+  dnsServer2 = ""
+  local v = {}
+  local interface = get_interface(key)
+  local staticDns = uci_helper.get_from_uci({ config = "network", sectionname = interface, option = "dns"})
+  local intfValue = get_ubus_interface_status(interface)
+  local active = intfValue and intfValue['dns-server']
+  local inactive = intfValue and intfValue['inactive'] and intfValue['inactive']['dns-server']
+  if type(active) == "table" and #active ~= 0 then
+    v = active
+  elseif type(inactive) == "table" and #inactive ~= 0 then
+    v = inactive
+  end
+  servers = staticDns ~= "" and table.concat(staticDns, ",") or ""
+  for i, server in ipairs(v) do
+    if string.find(servers,server) == nil then
+      if (i > 1) then
+        servers = servers .. ","
+        dnsServer2 = server
+      else
+        dnsServer1 = server
+      end
+      servers = servers .. server
+    end
+  end
+end
+
+local config = "ipping"
+
+local uci_binding = {
+  DiagnosticsState = { config = config, sectionname = section, option = "state" },
+  Interface = { config = config, sectionname = section, option = "interface" },
+  Host = { config = config, sectionname = section, option = "host" },
+  NumberOfRepetitions = { config = config, sectionname = section, option = "count" },
+  Timeout = { config = config, sectionname = section, option = "timeout" },
+  DataBlockSize = { config = config, sectionname = section, option = "size" },
+  DSCP = { config = config, sectionname = section, option = "dscp" },
+}
+
+local startup = ping_helper.startup
+local clear_ping_results = ping_helper.clear_ping_results
+local intfs_type = {
+  wan = true,
+  lan = false,
+}
+
+startup(section, uci_binding)
+
+local function getLinkLocalAddress(deviceName)
+  local linkAddress = ""
+  local fd = io.open("/proc/net/if_inet6", "r")
+  if fd then
+    for line in fd:lines() do
+      local ip, scope, interface = line:match("(%S+)%s+%S+%s+%S+%s+(%S+)%s+%S+%s+(%S+)")
+      if interface == deviceName and scope == "20" then
+        linkAddress = (ip:gsub("(....)", "%1:")):sub(1, -2)
+        linkAddress = (linkAddress:gsub("0000?", "")):gsub("::+", "::")
+        linkAddress = linkAddress:gsub('(%w+)', function(value) return value:gsub("^0*", "") end)
+      end
+    end
+  fd:close()
+  end
+  return linkAddress
+end
+
+local scopeMap = {
+  ipv6uniqueglobaladdr = "global",
+  ipv6uniquelocaladdr  = "link",
+  ipv6linklocaladdr    = "link"
+}
+
+local flagMap = {
+  ipv6uniqueglobaladdr = "dynamic",
+  ipv6uniquelocaladdr  = "permanent",
+  ipv6linklocaladdr    = ""
+}
+
+--- Retrieves the address from "ip -6 addr"
+-- @function getAddress
+-- @param param the parameter name
+-- @param interface the interface name
+-- @return addr the ipv6 address
+local function getAddress(param, interface)
+  local addr = ""
+  local command = "ip -6 addr show scope " .. scopeMap[param] .." ".. interface .. " " .. flagMap[param] .. " | grep inet6 | awk '{print $2}'"
+  local fd = io.popen(command)
+  if fd then
+    addr = fd:read("*l") or ""
+    fd:close()
+  end
+  return addr
+end
+
+network_interface_.get = {
+  ipaddr = function(mapping, param, key)
+      if is_mobile_iface[key] and is_mobile_iface[key].proto == "router" then
+        return is_mobile_iface[key].ipv4_addr or ""
+      end
+      local interface = get_interface(key)
+      local v = get_ubus_interface_status(interface)
+      v = v and v['ipv4-address']
+      v = v and v[1]
+      return (v and v['address']) or ""
+  end,
+  NTPServers = function(mapping, param, key)
+      local interface = get_interface(key)
+      local v = get_ubus_interface_status(interface)
+      local v = get_ubus_interface_status(key)
+      v = v and v['data']
+      return (v and v['ntpserver']) or ""
+  end,
+  ipmask = function(mapping, param, key)
+    local interface = get_interface(key)
+    local v = get_ubus_interface_status(interface)
+    v = v and v['ipv4-address']
+    v = v and v[1]
+    return (v and tostring(v['mask'])) or ""
+  end,
+  ip6addr = function(mapping, param, key)
+    if is_mobile_iface[key] and is_mobile_iface[key].proto == "router" then
+      return is_mobile_iface[key].ipv6_addr or ""
+    end
+    -- ubus should return table-of-tables for IP entries
+    -- need to first extract ipv6 address table
+    local interface = get_interface(key, true)
+    if interface and interface == "lan" then
+      local v = get_ubus_interface_status(interface)
+      local l3device = v and v['l3_device']
+      return getIPv6Addr(l3device)
+    else
+      local intfStatus = get_ubus_interface_status(interface)
+      local ipv6Addr = intfStatus and intfStatus['ipv6-address'] or {}
+      local addrs = {}
+      for _, ipv6 in ipairs(ipv6Addr) do
+          addrs[#addrs+1] = ipv6.address or ""
+      end
+      return (table.concat(addrs, " "))
+    end
+  end,
+  ip6prefix = function(mapping, param, key)
+    local interface = get_interface(key, true)
+    local v = get_ubus_interface_status(interface)
+    v = v and v['ipv6-prefix']
+    v = v and v[1]
+    return (v and v['address'].."/"..v['mask']) or ""
+  end,
+  ip6prefix_assignment = function(mapping, param, key)
+    local interface = get_interface(key, true)
+    local v = get_ubus_interface_status(interface)
+    v = v and v['ipv6-prefix-assignment']
+    v = v and v[1]
+    return (v and v['address'].."/"..v['mask']) or ""
+  end,
+  dnsservers = function(mapping, param, key)
+    local v4interface = get_interface(key)
+    getDnsServers(v4interface)
+    local servers4 = servers
+    servers = ""
+    if is_mobile_iface[key] then
+      local v6interface = get_interface(key, true)
+      if v6interface ~= v4interface then
+        getDnsServers(v6interface)
+      end
+    end
+    local servers6 = servers
+    if (servers4 == "") and (servers6 == "") then
+      return ""
+    elseif (servers4 == "") then
+      return servers6
+    elseif (servers6 == "") then
+      return servers4
+    end
+    return servers4 .. "," .. servers6
+  end,
+  nexthop = function(mapping, param, key)
+    local interface = get_interface(key)
+    nextHopLcl =  getNexthopInfo(interface)
+    return nextHopLcl
+  end,
+  dnsserver1_ping = function(mapping, param, key)
+    local interface = get_interface(key)
+    getDnsServers(interface)
+    if dnsServer1 ~= "" then
+      return getState(dnsServer1)
+    end
+    return "None"
+  end,
+  dnsserver2_ping = function(mapping, param, key)
+    local interface = get_interface(key)
+    getDnsServers(interface)
+    if dnsServer2 ~= "" then
+      return getState(dnsServer2)
+    end
+    return "None"
+  end,
+  dnsserver1_query = function(mapping, param, key)
+    local interface = get_interface(key)
+    getDnsServers(interface)
+    if dnsServer1 ~= "" then
+      return getDNSResolveState(dnsServer1)
+    end
+    return "None"
+  end,
+  dnsserver2_query = function(mapping, param, key)
+    local interface = get_interface(key)
+    getDnsServers(interface)
+    if dnsServer2 ~= "" then
+      return getDNSResolveState(dnsServer2)
+    end
+    return "None"
+  end,
+  nexthop_ping = function(mapping, param, key)
+    local interface = get_interface(key)
+    nextHopLcl =  getNexthopInfo(interface)
+    if nextHopLcl ~= "" then
+      return getState(nextHopLcl)
+    end
+    return "None"
+  end,
+  status_ping_test = busy,
+  up = function(mapping, param, key)
+    local v = get_ubus_interface_status(key)
+    v = v and v['up']
+    if v then
+      return "1"
+    else
+      return "0"
+    end
+  end,
+  available = function(mapping, param, key)
+    local interface = get_interface(key)
+    local v = get_ubus_interface_status(interface)
+    v = v and v['available']
+    if v then
+      return "1"
+    else
+      return "0"
+    end
+  end,
+  uptime = function(mapping, param, key)
+    local interface = get_interface(key)
+    local v = get_ubus_interface_status(interface)
+    if v and v.uptime then
+      return tostring(v.uptime)
+    end
+    return ""
+  end,
+  tx_bytes = function(mapping, param, key)
+    local interface = get_interface(key)
+    return get_intf_stat(interface, "tx_bytes")
+  end,
+  rx_bytes = function(mapping, param, key)
+    local interface = get_interface(key)
+    return get_intf_stat(interface, "rx_bytes")
+  end,
+  type = function(mapping, param, key)
+    for k,v in pairs(intfs_type) do
+        local intfs = findLanWanInterfaces(v)
+        for _, vv in pairs(intfs) do
+            if key == vv then
+              return k
+            end
+        end
+    end
+    return ""
+  end,
+  static_dns_servers = function(mapping, param, key)
+    --to get from uci for wan interface
+    local isWan
+    local intfs = findLanWanInterfaces(true)
+    for _, v in pairs(intfs) do
+        if key == v then
+            isWan = true
+            break
+        end
+    end
+
+    if isWan then
+        network_binding.sectionname = key
+        network_binding.option = "dns"
+        local dns = uci_helper.get_from_uci(network_binding)
+
+        --to change the value form table to string.
+        if type(dns) == "table" then
+            return table.concat(dns, ",")
+        else
+            return dns
+        end
+    end
+    return ""
+  end,
+  ifname = function(mapping, param, key)
+    return common.getIntfName(key)
+  end,
+  proto = function(mapping, param, key)
+    local interface = get_interface(key)
+    local v = get_ubus_interface_status(interface)
+    return (v and v['proto']) or ""
+  end,
+  ipv6linklocaladdr = function(mapping, param, key)
+    local interface = common.getIntfName(key)
+    return getLinkLocalAddress(interface)
+  end,
+  ipv6uniquelocaladdr = function(mapping, param, key)
+    local interface = common.getIntfName(key)
+    return getAddress(param, interface)
+  end,
+  ipv6uniqueglobaladdr = function(mapping, param, key)
+    local interface = common.getIntfName(key)
+    return getAddress(param, interface)
+  end,
+  ipv6dhcpaddresspool = function(mapping, param, key)
+    local raManagement = get_from_uci({ config = "dhcp", sectionname = key, option = "ra_management" })
+    local prefix
+    if raManagement == "2" then
+      local lanInfo = get_ubus_interface_status(key) or {}
+      local prefixInfo = lanInfo["ipv6-prefix-assignment"] or {}
+      for _, v in pairs(prefixInfo) do
+        if v.address and v.address:match("^2001:*") then
+          prefix = v.address
+          break
+        end
+      end
+      if prefix then
+        local start = get_from_uci({ config = "dhcp", sectionname = key, option = "start" })
+        local limit = get_from_uci({ config = "dhcp", sectionname = key, option = "limit" })
+        limit = string.format("%x", start + limit)
+        start = string.format("%x", start)
+        prefix = prefix .. start .. "-" .. prefix .. limit
+      end
+    end
+    return prefix or ""
+  end,
+  default_gateway_ping = function(mapping, param, key)
+    getDefaultGateway()
+    if defaultGateway ~= "" and defaultGWPingIntf == key then
+      return getState(defaultGateway)
+    end
+    return "None"
+  end,
+  name = function(mapping, param, key)
+	local name = get_from_uci({ config = "network", sectionname = key , option = "name"})
+	if name == nil then
+		return ""
+	end
+	return name
+	end
+}
+
+--The value is like: 1.1.1.1,2.2.2.2
+local function dnsServersSplit(value)
+    local result = {}
+    for i in string.gmatch(value, "([^,]+)") do
+        result[#result+1] = i
+    end
+    if #result == 0 then
+        result = ""
+    end
+    return result
+end
+
+network_interface_.set = {
+  dnsserver1_ping = function(mapping, param, value, key)
+    getDnsServers(key)
+    if dnsServer1 ~= "" then
+      checkIfAvailableAndStart(dnsServer1 , key)
+    end
+    return true
+  end,
+  dnsserver2_ping = function(mapping, param, value, key)
+    getDnsServers(key)
+    if dnsServer2 ~= "" then
+      checkIfAvailableAndStart(dnsServer2, key)
+    end
+    return true
+  end,
+  dnsserver1_query = function(mapping, param, value, key)
+    getDnsServers(key)
+    if dnsServer1 ~= "" then
+      checkIfResolveAndStart(dnsServer1 , key)
+    end
+    return true
+  end,
+  dnsserver2_query = function(mapping, param, value, key)
+    getDnsServers(key)
+    if dnsServer2 ~= "" then
+      checkIfResolveAndStart(dnsServer2, key)
+    end
+    return true
+  end,
+  nexthop_ping = function(mapping, param, value, key)
+    nextHopLcl =  getNexthopInfo(key)
+    if nextHopLcl ~= "" then
+      checkIfAvailableAndStart(nextHopLcl , key)
+    end
+    return true
+  end,
+  status_ping_test = pushState,
+  default_gateway_ping = function(mapping, param, value, key)
+    getDefaultGateway()
+    if defaultGateway ~= "" then
+      checkIfAvailableAndStart(defaultGateway, key)
+      defaultGWPingIntf = key
+    end
+    return true
+  end,
+  static_dns_servers = function(mapping, param, value, key) --the value is null or 1.1.1.1,2.2.2.2
+    local dnsServersTable = dnsServersSplit(value)
+    network_binding.sectionname = key
+    network_binding.option = "dns"
+    uci_helper.set_on_uci(network_binding, dnsServersTable, commitapply)
+    transaction[network_binding.config] = true
+    return true
+  end,
+}
+
+network_interface_.entries = entriesInterfaces
+network_interface_.commit = function()
+    ping_helper.uci_ipping_commit()
+    for config, _ in pairs(transaction) do
+        uci_helper.commit(config)
+    end
+    transaction = {}
+end
+
+network_interface_.revert = function()
+    ping_helper.uci_ipping_revert()
+    for config, _ in pairs(transaction) do
+        uci_helper.revert(config)
+    end
+    transaction = {}
+end
+clear_ping_results(section)
+register(network_interface_)

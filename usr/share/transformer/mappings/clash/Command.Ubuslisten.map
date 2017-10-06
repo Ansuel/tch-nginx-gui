@@ -1,0 +1,7 @@
+local command = {
+  name = "ubuslisten",
+  full_path = "/bin/ubus",
+  operands = {"command"},
+}
+
+mapper("command").registerCommand(command)

@@ -1,0 +1,250 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_IP_Interface_i_IPv6Address_i_ = {
+  objectType = {
+    name = "Device.IP.Interface.{i}.IPv6Address.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "IPv6AddressNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readOnly",  --readWrite not supported
+        type = "boolean",
+        default = "false",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Disabled",
+          "Enabled",
+          "Error_Misconfigured",
+          "Error",
+        },
+        default = "Disabled",
+      },
+--[[ TODO
+      IPAddressStatus = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Preferred",
+          "Deprecated",
+          "Invalid",
+          "Inaccessible",
+          "Unknown",
+          "Tentative",
+          "Duplicate",
+          "Optimistic",
+        },
+        default = "Invalid",
+      },
+--]]
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        max = "64",
+     },
+     IPAddress = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      Origin = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "AutoConfigured",
+          "DHCPv6",
+          "WellKnown",
+          "Static",
+        },
+        default = "Static",
+      },
+      Prefix = {
+        access = "readOnly", --readWrite not supported
+        type = "string",
+        pathRef = true,
+        targetParent = "Device.IP.Interface.{i}.IPv6Prefix.{i}.",
+        default = "",
+      },
+      PreferredLifetime = {
+        access = "readOnly", --readWrite not supported
+        type = "dateTime",
+        default = "9999-12-31T23:59:59Z",
+      },
+      ValidLifetime = {
+        access = "readOnly", --readWrite not supported
+        type = "dateTime",
+        default = "9999-12-31T23:59:59Z",
+      },
+--[[ TODO
+      Anycast = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+--]]
+    }
+  }
+}
+
+local os = os
+
+-- Entries are formed based on the contents of /proc/net/if_inet6 and ubus call
+
+-- 00000000000000000000000000000001 01 80 10 80 lo
+-- +------------------------------+ ++ ++ ++ ++ ++
+-- |                                |  |  |  |  |
+-- 1                                2  3  4  5  6
+
+-- 1. IPv6 address displayed in 32 hexadecimal chars without colons as separator
+-- 4. Scope value (0x00 Global, 0x20 Link-Local, and 0x10 Loopback)
+-- 6. Device name
+
+local function getLinkLocalAddress(deviceName)
+  local linkAddress
+  local fd = io.open("/proc/net/if_inet6", "r")
+  if fd then
+    for line in fd:lines() do
+      local ip, scope, interface = line:match("(%S+)%s+%S+%s+%S+%s+(%S+)%s+%S+%s+(%S+)")
+      if interface == deviceName and scope == "20" then
+        linkAddress = (ip:gsub("(....)", "%1:")):sub(1, -2)
+        linkAddress = (linkAddress:gsub("0000?", "")):gsub("::+", "::")
+        linkAddress = linkAddress:gsub('(%w+)', function(value) return value:gsub("^0*", "") end)
+      end
+    end
+  fd:close()
+  end
+  return linkAddress
+end
+
+local ipaddr = require 'transformer.shared.models.device2.ipaddr'
+local dmordering = require 'transformer.shared.models.dmordering'
+local ipcache = {}
+
+local function preprocessIP(primaryIntf, ip)
+  ip.enabled = true
+  if ip.proto=='local' and ip.ipaddr=='' then
+    ip.ipaddr = getLinkLocalAddress(ip.l3_device)
+  end
+  return ip
+end
+
+Device_IP_Interface_i_IPv6Address_i_.entries = function(mapping, ifname)
+  local entries = {}
+  local ifs = dmordering.linksTo("network.interface", ifname)
+  local _, iplist = ipaddr.getAddrList(ifs)
+
+  ipcache = {}
+  for i, addr in ipairs(iplist) do
+    local key = (i==1) and ifname or (ifname..'|'..i)
+    ipcache[key] = preprocessIP(ifname, addr)
+    entries[#entries+1] = key
+  end
+  return entries
+end
+
+local function getStatus(ip)
+  return ip.enabled and "Enabled" or "Disabled"
+end
+
+local function getEnable(ip)
+  return ip.enabled and "1" or "0"
+end
+
+local function getIPAddress(ip)
+  return ip.ipaddr or ""
+end
+
+local function getPrefix(ip)
+  return resolve("Device.IP.Interface.{i}.IPv6Prefix.{i}.", ip.ifname) or ""
+end
+
+local function getPreferredLifetime(ip)
+  if ip.preferred then
+    return os.date("!%Y-%m-%dT%H:%M:%SZ", ip.preferred)
+  end
+  return "9999-12-31T23:59:59Z"
+end
+
+local function getValidLifetime(ip)
+  if ip.valid then
+    return os.date("!%Y-%m-%dT%H:%M:%SZ", ip.valid)
+  end
+  return "9999-12-31T23:59:59Z"
+end
+
+local originMap = {
+  ['local'] = "AutoConfigured",
+  dhcpv6 = "DHCPv6",
+  ['6rd'] = "DHCPv6",
+  wellknown = "WellKnown"
+}
+local function getOrigin(ip)
+  return originMap[ip.proto] or "AutoConfigured"
+end
+
+Device_IP_Interface_i_IPv6Address_i_.get = {
+  Status = function(_, _, key)
+    return getStatus(ipcache[key])
+  end,
+  Enable = function(_, _, key)
+    return getEnable(ipcache[key])
+  end,
+  IPAddress = function(_, _, key)
+    return getIPAddress(ipcache[key])
+  end,
+  Prefix = function(_, _, key)
+    return getPrefix(ipcache[key])
+  end,
+  PreferredLifetime = function(_, _, key)
+    return getPreferredLifetime(ipcache[key])
+  end,
+  ValidLifetime = function(_, _, key)
+    return getValidLifetime(ipcache[key])
+  end,
+  Origin = function(_, _, key)
+    return getOrigin(ipcache[key])
+  end,
+}
+
+Device_IP_Interface_i_IPv6Address_i_.getall = function(mapping,key,parentKey)
+  local ip = ipcache[key]
+  return {
+    Enable = getEnable(ip),
+    Status = getStatus(ip),
+    IPAddress = getIPAddress(ip),
+    Prefix = getPrefix(ip),
+    PreferredLifetime = getPreferredLifetime(ip),
+    ValidLifetime = getValidLifetime(ip),
+    Origin = getOrigin(ip),
+  }
+end
+
+Device_IP_Interface_i_IPv6Address_i_.set = {
+  IPAddress = function()
+    -- This parameter is reported as being writable, but it can only be
+    -- modified if the Origin parameter is 'Static'
+    -- This maping however never reports 'Static' for the Origin.
+    -- So this parameter is not actually settable.
+    return nil, "setting IPv6 address is not allowed: Origin is not Static"
+  end
+}
+
+local function setUbusEvent(mapping, action, data)
+  if data["ipv6-address"] then
+    return { { key = data["interface"], paramname = "IPAddress" } }
+  end
+end
+
+Device_IP_Interface_i_IPv6Address_i_.add_watchers = function(mapping)
+  local ubusEventSource = eventsource("ubus")
+  ubusEventSource.watch_event(mapping, setUbusEvent, "network.interface")
+end
+
+register(Device_IP_Interface_i_IPv6Address_i_)

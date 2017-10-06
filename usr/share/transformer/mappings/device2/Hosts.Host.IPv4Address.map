@@ -1,0 +1,47 @@
+-- Automatically generated from Device:2.2
+-- using generator version 2.1
+local Device_Hosts_Host_i_IPv4Address_i_ = {
+  objectType = {
+    name = "Device.Hosts.Host.{i}.IPv4Address.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "IPv4AddressNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      IPAddress = {
+        access = "readOnly",
+        type = "string",
+      },
+    }
+  }
+}
+
+local conn = mapper("ubus").connect()
+local split_key = mapper("nwcommon").split_key
+
+local function getDataForHost(hostkey)
+  local data = {}
+  data = conn:call("hostmanager.device", "get",  { name = hostkey })
+  return data[hostkey] or data
+end
+
+Device_Hosts_Host_i_IPv4Address_i_.entries = function(mapping, parentkey)
+  local data = getDataForHost(parentkey)
+  local hostkeys = {}
+  for k,v in pairs(data.ipv4) do
+    if v.state == "connected" then
+      hostkeys[#hostkeys + 1] = parentkey .. "|" .. k
+    end
+  end
+  return hostkeys
+end
+
+Device_Hosts_Host_i_IPv4Address_i_.get = {
+  IPAddress = function(mapping,param,key)
+    local devname,ip_intf = split_key(key)
+    local data = getDataForHost(devname)
+    return data.ipv4[ip_intf].address
+  end,
+}
+
+register(Device_Hosts_Host_i_IPv4Address_i_)

@@ -1,0 +1,130 @@
+-- Automatically generated from InternetGatewayDevice:1.14 and Device:2.10
+-- using generator version 2.3
+local Multi_DeviceInfo_VendorConfigFile_i_ = {
+  objectType = {
+    name = "#ROOT.DeviceInfo.VendorConfigFile.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "VendorConfigFileNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Name = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      Version = {
+        access = "readOnly",
+        type = "string",
+        max = "16",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      Date = {
+        access = "readOnly",
+        type = "dateTime",
+      },
+      Description = {
+        access = "readOnly",
+        type = "string",
+        max = "256",
+      },
+--[[ TODO:
+      UseForBackupRestore = {
+        access = "readOnly",
+        type = "boolean",
+      }
+--]]
+    }
+  }
+}
+
+local uci = require("uci")
+local lfs = require("lfs")
+local bt = require("transformer.shared.banktable")
+local entries = {}
+local activeBank = bt.getCurrentBank()
+local passiveBank = bt.getOtherBank()
+
+do
+  -- Two Keys used : active and passive for activeBank and passiveBank
+  -- Use the passive key only for the dual bank scenario
+  entries[#entries + 1] = "active"
+  if lfs.attributes("/overlay/" .. passiveBank, "mode") == "directory" then
+     entries[#entries + 1] = "passive"
+  end
+end
+
+Multi_DeviceInfo_VendorConfigFile_i_.entries = function()
+  return entries
+end
+
+local function getOverlay(bank)
+  return string.format("/overlay/%s/etc/config/", bank)
+end
+
+local function getMostRecentModifiedTime(bank)
+  local path = getOverlay(bank)
+  local recentModifiedTime = 0
+  if lfs.attributes(path, "mode") == "directory" then
+    for file in lfs.dir(path) do
+      local attr = lfs.attributes(path .. file)
+      local modifiedTime = attr and attr.modification
+      if modifiedTime and recentModifiedTime < modifiedTime then
+        recentModifiedTime = modifiedTime
+      end
+    end
+  end
+  return recentModifiedTime
+end
+
+local function getOptionFromBank(bank, option)
+  -- Use uci instead of uci_helper, because we need to be able to access the other bank.
+  -- With cursor we can retrieve the configuration option from other the bank.
+  local cursor = uci.cursor(getOverlay(bank))
+  local value = cursor:get(option)
+  cursor:close()
+  return value
+end
+
+local function getBankName(key)
+  if key == "active" then
+    return activeBank
+  else
+    return passiveBank
+  end
+end
+
+local function getName(mapping, param, key)
+  local mask = getOptionFromBank(activeBank, "env.var.mask_override_igd_" .. getBankName(key))
+  if mask == nil then
+    -- bank should be "bank_1" or "bank_2"
+    mask = getOptionFromBank(getBankName(key), "version.@version[0].mask")
+  end
+  return mask or ""
+end
+
+local function getDate(mapping, param, key)
+    return os.date("%FT%XZ", getMostRecentModifiedTime(getBankName(key)))
+end
+
+local function getDesc(mapping, param, key)
+    return "Vendor config file is " .. getBankName(key) .. " configuration"
+end
+
+Multi_DeviceInfo_VendorConfigFile_i_.get = {
+  Version = "1.00",
+  Name = getName,
+  Date = getDate,
+  Description = getDesc,
+}
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_DeviceInfo_VendorConfigFile_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end

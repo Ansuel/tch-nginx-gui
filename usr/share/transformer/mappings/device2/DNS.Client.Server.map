@@ -1,0 +1,258 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_DNS_Client_Server_i_ = {
+  objectType = {
+    name = "Device.DNS.Client.Server.{i}.",
+    access = "readOnly", -- readWrite not supported
+    numEntriesParameter = "ServerNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readOnly", -- no way to enable/disable the DNS server in GW
+        type = "boolean",
+        default = "false",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Disabled",
+          "Enabled",
+          "Error",
+        },
+        default = "Disabled",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        max = "64",
+      },
+      DNSServer = {
+        access = "readWrite",
+        type = "string",
+      },
+      Interface = {
+        access = "readOnly", --readwrite not supported
+        type = "string",
+        max = "256",
+        pathRef = true,
+        targetParent = "Device.IP.Interface.{i}.",
+        default = "",
+      },
+      Type = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "DHCPv4",
+          "DHCPv6",
+          "RouterAdvertisement",
+          "IPCP",
+          "Static",
+        },
+        default = "Static",
+      },
+    }
+  }
+}
+
+local ipairs = ipairs
+local inet = require "tch.inet"
+local mapper = mapper
+local resolve = resolve
+local pairs = pairs
+local nwCommon = mapper('nwcommon')
+local uciHelper = mapper("ucihelper")
+local ubusConnection = mapper("ubus").connect()
+local getFromUci = uciHelper.get_from_uci
+local networkBinding = { config = "network" }
+local isConfigChanged = false
+local keyMap = {}
+
+local typeMap = {
+  ["static"] = "Static",
+  ["dhcp"] = "DHCPv4",
+  ["dhcpv6"] = "DHCPv6",
+  ["ppp"] = "IPCP",
+  ["pppoe"] = "IPCP",
+  ["pppoa"] = "IPCP",
+}
+
+local function ifExists(interface, dnsValue)
+  for _,v in pairs(keyMap) do
+    if v and v.interface == interface and v.dnsServer == dnsValue then
+      return true
+    end
+  end
+  return false
+end
+
+local function getStaticDNSServers()
+  local dnsServers = {}
+  local interface
+  local wanInterfaces = nwCommon.findLanWanInterfaces(true)
+  wanInterfaces[#wanInterfaces + 1] = "loopback"
+  for _, v in ipairs(wanInterfaces) do
+    wanInterfaces[v] = true
+  end
+  networkBinding.sectionname = "interface"
+  uciHelper.foreach_on_uci(networkBinding, function(s)
+    interface = s[".name"]
+    if wanInterfaces[interface] then
+      dnsServers[interface] = s.dns
+    end
+  end)
+  return dnsServers
+end
+
+local function updateKeyMap(interface, dnsServerEntry, count, dnsClientServerEntries)
+  local keyEntry
+  if not ifExists(interface, dnsServerEntry) then
+    keyEntry = interface..count
+    count = count + 1
+    dnsClientServerEntries[#dnsClientServerEntries+1] = keyEntry
+    keyMap[keyEntry] = { interface = interface, dnsServer = dnsServerEntry }
+  end
+  return count
+end
+
+
+Device_DNS_Client_Server_i_.entries = function()
+  keyMap = {}
+  local count = 0
+  local dnsClientServerEntries = {}
+  local wanInterfaces = nwCommon.findLanWanInterfaces(true)
+  local dnsServers = getStaticDNSServers()
+
+  -- Populating static dns entries from uci
+  for interface, dnsServerEntry in pairs(dnsServers) do
+    if dnsServerEntry then
+      for _, dnsServerUciEntry in ipairs(dnsServerEntry) do
+        count = updateKeyMap(interface, dnsServerUciEntry, count, dnsClientServerEntries)
+      end
+    end
+  end
+
+  -- Populating dynamic dns entries from ubus
+  for _, interface in pairs(wanInterfaces) do
+    local ubusStatus = ubusConnection:call("network.interface." .. interface, "status", {})
+    if ubusStatus and ubusStatus["dns-server"] then
+      for _, dnsServerEntry in pairs(ubusStatus["dns-server"]) do
+        count = updateKeyMap(interface, dnsServerEntry, count, dnsClientServerEntries)
+      end
+    end
+  end
+  return dnsClientServerEntries
+end
+
+local function getUciValue(key, option)
+  networkBinding.sectionname = key
+  networkBinding.option = option
+  return getFromUci(networkBinding) or ""
+end
+
+local function getType(key)
+  local dnsServers = getUciValue(keyMap[key].interface, "dns")
+  if dnsServers ~= "" then
+    for _,v in pairs(dnsServers) do
+      if v == keyMap[key].dnsServer then
+        return typeMap["static"] or ""
+      end
+    end
+  end
+  return typeMap[getUciValue(keyMap[key].interface, "proto")] or ""
+end
+
+Device_DNS_Client_Server_i_.get = {
+  Enable = "1",
+
+  Status = "Enabled",
+
+  DNSServer = function(mapping, param, key)
+    return keyMap[key].dnsServer or ""
+  end,
+
+  Interface = function(mapping, param, key)
+    return resolve("Device.IP.Interface.{i}.",keyMap[key].interface) or ""
+  end,
+
+  Type = function(mapping, param, key)
+    return getType(key)
+  end,
+}
+
+Device_DNS_Client_Server_i_.getall = function(mapping, key)
+  return {
+    Enable = "1",
+    Status = "Enabled",
+    DNSServer = keyMap[key].dnsServer or "",
+    Interface = resolve("Device.IP.Interface.{i}.",keyMap[key].interface) or "",
+    Type = getType(key),
+  }
+end
+
+local function setDNSServer(value, dnsServer, interface, key)
+  local isFlag = false
+  if inet.isValidIPv4(value) or inet.isValidIPv6(value) then
+    local result = getUciValue(interface, "dns")
+    if result ~= "" then
+      local dnsServers = {}
+      -- iterating over the list of dns-servers and modifying the DNS Server to the given DNS Server value
+      for _,v in pairs(result) do
+        if v == value then
+          isFlag = true
+        elseif v == dnsServer then
+          dnsServers[#dnsServers+1] = value
+        elseif v ~= dnsServer then
+          dnsServers[#dnsServers+1] = v
+        end
+      end
+      if isFlag then
+        return false, "The given DNS Server is already present"
+      end
+      networkBinding.sectionname = interface
+      networkBinding.option = "dns"
+      uciHelper.set_on_uci(networkBinding,dnsServers,commitapply)
+      isConfigChanged = true
+      return true
+    end
+  else
+    return false, "Not a valid ip address"
+  end
+end
+
+Device_DNS_Client_Server_i_.set = {
+  DNSServer = function(mapping, param, value, key)
+    if (getType(key) == "Static") then
+      if value == keyMap[key].dnsServer then
+        return nil, "The DNS Server to be modified is same as the existing DNS server"
+      else
+        local success, error = setDNSServer(value, keyMap[key].dnsServer, keyMap[key].interface, key)
+        if not success then
+          return nil,error
+        end
+      end
+    else
+      return nil,"Dynamic DNSServer value cannot be modified"
+    end
+  end
+}
+
+Device_DNS_Client_Server_i_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(networkBinding)
+    isConfigChanged = false
+  end
+end
+
+Device_DNS_Client_Server_i_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(networkBinding)
+    isConfigChanged = false
+  end
+end
+
+register(Device_DNS_Client_Server_i_)

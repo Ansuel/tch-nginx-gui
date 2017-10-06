@@ -1,0 +1,13 @@
+local InternetGatewayDevice_X_HPSAInfo_ = {
+  objectType = {
+    name = "InternetGatewayDevice.X_HPSAInfo.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    description = "This object specifies information specific to the connected device such as a dongle, for Vodafone.",
+    parameters = {
+    }
+  }
+}
+
+register(InternetGatewayDevice_X_HPSAInfo_)

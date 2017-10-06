@@ -1,0 +1,48 @@
+local mapper = mapper
+local config_wansensing = "wansensing"
+
+-- uci.wansensing
+mapper("uci_1to1").registerConfigMap(config_wansensing)
+
+-- uci.wansensing.global.
+local wansensing_global  = {
+    config = config_wansensing,
+    section = "global",
+    type = "wansensing",
+    options = { "enable", "l2type", "l3type", "tracelevel" },
+}
+
+mapper("uci_1to1").registerSimpleMap(wansensing_global)
+
+-- uci.wansensing.eth.
+local wansensing_eth = {
+    config = config_wansensing,
+    section = "eth",
+    type = "iftype",
+    options = { "enable" },
+    lists = { "interface" },
+}
+
+mapper("uci_1to1").registerSimpleMap(wansensing_eth)
+
+-- uci.wansensing.ptm.
+local wansensing_ptm = {
+    config = config_wansensing,
+    section = "ptm",
+    type = "iftype",
+    options = { "enable" },
+    lists = { "interface" },
+}
+
+mapper("uci_1to1").registerSimpleMap(wansensing_ptm)
+
+-- uci.wansensing.atm.
+local wansensing_atm = {
+    config = config_wansensing,
+    section = "atm",
+    type = "iftype",
+    options = { "enable" },
+    lists = { "interface" },
+}
+
+mapper("uci_1to1").registerSimpleMap(wansensing_atm)

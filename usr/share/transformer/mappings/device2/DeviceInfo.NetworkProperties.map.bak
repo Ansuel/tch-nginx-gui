@@ -1,0 +1,65 @@
+-- Manually generated
+local Device_DeviceInfo_NetworkProperties_ = {
+  objectType  = {
+    name = "Device.DeviceInfo.NetworkProperties.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      X_000E50_WanSyncStatus = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "ADSL",
+          "VDSL",
+          "ETH_WAN",
+          "SENS",
+        },
+        default = "SENS",
+      },
+      X_BELGACOM_WanSyncStatus = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "ADSL",
+          "VDSL",
+          "ETH_WAN",
+          "SENS",
+        },
+        default = "SENS",
+      },
+    }
+  }
+}
+
+local uciHelper = mapper("ucihelper")
+local wanSensingBinding = { config = "wansensing", sectionname = "global", option = "l2type" }
+
+local valueMap = {
+  ["ADSL"] = "ADSL",
+  ["VDSL"] = "VDSL",
+  ["ETH"]  = "ETH_WAN",
+  [""]     = "SENS",
+}
+
+Device_DeviceInfo_NetworkProperties_.get = function()
+  return valueMap[uciHelper.get_from_uci(wanSensingBinding)]
+end
+
+local function setUciEvent(mapping, action, config, sectionType, sectionName, option)
+  local events = {}
+  if mapping.objectType.parameters["X_000E50_WanSyncStatus"] then
+    events[#events + 1] = { key = "", paramname = "X_000E50_WanSyncStatus" }
+  end
+  if mapping.objectType.parameters["X_BELGACOM_WanSyncStatus"] then
+    events[#events + 1] = { key = "", paramname = "X_BELGACOM_WanSyncStatus" }
+  end
+  return events
+end
+
+Device_DeviceInfo_NetworkProperties_.add_watchers = function(mapping)
+  local uciEventSource = eventsource("uci")
+  uciEventSource.watch(mapping, { set = setUciEvent }, "wansensing", "wansensing", "global", "l2type")
+end
+
+register(Device_DeviceInfo_NetworkProperties_)

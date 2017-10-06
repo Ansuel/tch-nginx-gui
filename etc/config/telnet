@@ -1,0 +1,2 @@
+config telnet 'general'
+	option enable '0'

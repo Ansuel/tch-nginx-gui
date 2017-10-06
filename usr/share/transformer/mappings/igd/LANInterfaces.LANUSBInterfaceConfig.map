@@ -1,0 +1,22 @@
+-- Automatically generated from InternetGatewayDevice:1.4
+-- using generator version 2.1
+local InternetGatewayDevice_LANInterfaces_LANUSBInterfaceConfig_i_ = {
+  objectType = {
+    name = "InternetGatewayDevice.LANInterfaces.LANUSBInterfaceConfig.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "LANUSBInterfaceNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+    }
+  }
+}
+local function entriesLANUSBInterfaceConfig(mapping)
+    -- no products with usb network interfaces
+    return {}
+end
+
+InternetGatewayDevice_LANInterfaces_LANUSBInterfaceConfig_i_.entries = entriesLANUSBInterfaceConfig
+
+register(InternetGatewayDevice_LANInterfaces_LANUSBInterfaceConfig_i_)
+

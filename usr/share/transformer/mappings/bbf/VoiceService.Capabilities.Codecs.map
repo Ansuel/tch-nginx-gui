@@ -1,0 +1,220 @@
+local lfs = require("lfs")
+
+if lfs.attributes("/etc/config/mmpbx", "mode") ~= "file" then
+  return
+end
+
+local tonumber, tostring, ipairs, setmetatable =
+      tonumber, tostring, ipairs, setmetatable
+local format, match = string.format, string.match
+local ucihelper = mapper("ucihelper")
+local generate_key_on_uci = ucihelper.generate_key_on_uci
+local foreach_on_uci = ucihelper.foreach_on_uci
+
+local Multi_Services_VoiceService_i_Capabilities_Codecs_i_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.Capabilities.Codecs.{i}.",
+        access = "readOnly",
+        minEntries = 0,
+        maxEntries = math.huge,
+        parameters = {
+            EntryID = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+            },
+            Codec = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "string",
+                max = "64",
+                enumeration = {
+                    "G.711MuLaw",
+                    "G.711ALaw",
+                    "G.726",
+                    "G.729",
+                    "G.729a",
+                    "G.729e",
+                    "G.728",
+                    "G.723.1",
+                    "G.722",
+                    "G.722.1",
+                    "G.722.2",
+                    "GSM-FR",
+                    "GSM-HR",
+                    "GSM-EFR",
+                    "iLBC",
+                },
+            },
+            BitRate = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+            },
+            PacketizationPeriod = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                list = true,
+                type = "string",
+                max = "64",
+            },
+            SilenceSuppression = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "boolean",
+            },
+        }
+    }
+}
+
+local cvtBoolean = setmetatable({
+    ['0'] = '1',
+    ['1'] = '0',
+}, mt)
+
+local mt = { __index = function() return "" end }
+local codec_rates = setmetatable({
+    PCMU = "64000",
+    PCMA = "64000",
+    G722 = "64000",
+    ["G726-16"] = "16000",
+    ["G726-24"] = "24000",
+    ["G726-32"] = "32000",
+    ["G726-40"] = "40000",
+    G729 = "8000",
+    G723 = "6300",
+    AMR = "12200"
+}, mt)
+
+local codec_ptime = setmetatable({
+    PCMU = "20",
+    PCMA = "20",
+    G722 = "20",
+    ["G726-16"] = "20",
+    ["G726-24"] = "20",
+    ["G726-32"] = "20",
+    ["G726-40"] = "20",
+    G729 = "20",
+    G723 = "30",
+    ["telephone-event"] = "20",
+    AMR = "20"
+}, mt)
+
+local codec_binding = { config = "mmpbx", sectionname = "codec_filter" }
+local content_codecs = {}
+
+Multi_Services_VoiceService_i_Capabilities_Codecs_i_.entries = function(mapping, parentkey)
+    local entries = {}
+    local codecs = {}
+    local entry = 0
+    local name = ""
+    local binding = { config = "mmpbx" }
+    local blacklist
+    local codec_list = " "
+    local flag = 0
+    local codec_blacklist = ""
+    local device_binding = {config = "mmpbxbrcmfxsdev", sectionname = "device"}
+    -- there can be multiple codec filters with the same name (internal and
+    -- sip have their own set of codecs) but here we should report each
+    -- codec only once
+    foreach_on_uci(device_binding, function(s)
+        blacklist = s.codec_black_list
+        if blacklist ~= nil then
+            if type(blacklist) == "table" and flag == 0 then
+                blacklist = table.concat(blacklist, " ")
+                flag = 1
+            end
+            if codec_blacklist ~= "" then
+                if type(blacklist) == "string" then
+                    if string.match(codec_blacklist, blacklist) then
+                        codec_list = codec_list..blacklist
+                    end
+                elseif type(blacklist) == "table" then
+                    for i,j in ipairs(blacklist) do
+                        if string.match(codec_blacklist, j) then
+                            codec_list = codec_list..j
+                        end
+                    end
+                end
+            else
+                codec_blacklist = blacklist
+            end
+        end
+    end)
+    foreach_on_uci(codec_binding, function(s)
+        if s.name ~= "telephone-event" and (not codec_list:match(s.name))then
+            entry = entry + 1
+            name = s.name
+            if ((not s._key) or (tonumber(s._key) == nil)) then
+                binding.sectionname = s[".name"]
+                binding.option = "_key"
+                ucihelper.set_on_uci(binding, tonumber(entry),commitapply)
+                ucihelper.commit(binding)
+            end
+            if not codecs[name] then
+                entries[#entries + 1] = format("%s|%s", entry, parentkey)
+                content_codecs[tostring(entry)] = s
+                codecs[name] = true
+            end
+        end
+    end)
+    return entries
+end
+
+local codec_map = {
+    EntryID = function(s)
+        return s._key  -- backwards compatibility; see entries()
+    end,
+    Codec = "name",
+    BitRate = function(s)
+        return codec_rates[s.name]
+    end,
+    PacketizationPeriod = function(s)
+        return codec_ptime[s.name]
+    end,
+    SilenceSuppression = function(s)
+        return cvtBoolean[s.remove_silence_suppression]
+    end,
+}
+
+Multi_Services_VoiceService_i_Capabilities_Codecs_i_.getall = function(mapping, key)
+    local data = {}
+    local id = match(key, "^(.*)|")
+    local s = content_codecs[id]
+
+    for p,_ in pairs(Multi_Services_VoiceService_i_Capabilities_Codecs_i_.objectType.parameters) do
+        if codec_map[p] then
+            if type(codec_map[p]) == "function" then
+                data[p] = codec_map[p](s) or ""
+            else
+                data[p] = s[codec_map[p]] or ""
+            end
+        end
+    end
+    return data
+end
+
+Multi_Services_VoiceService_i_Capabilities_Codecs_i_.get = function(mapping, param, key)
+    local id = match(key, "^(.*)|")
+    local s = content_codecs[id]
+
+    if codec_map[param] then
+        if type(codec_map[param]) == "function" then
+            return codec_map[param](s)
+        else
+            return s[codec_map[param]]
+        end
+    end
+    return ""
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_Services_VoiceService_i_Capabilities_Codecs_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end

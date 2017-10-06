@@ -1,0 +1,1134 @@
+-- Automatically generated from InternetGatewayDevice:1.14
+-- using generator version 2.3
+local WLANConfiguration = {
+    objectType = {
+        name = "#ROOT.WLANConfiguration.{i}.",
+        access = "readOnly",
+        numEntriesParameter = "LANWLANConfigurationNumberOfEntries",
+        minEntries = 0,
+        maxEntries = math.huge,
+        aliasParameter = "Alias",
+        parameters = {
+            Enable = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            Status = {
+                access = "readOnly",
+                type = "string",
+                enumeration = {
+                    "Up",
+                    "Error",
+                    "Disabled",
+                },
+            },
+            Alias = {
+                access = "readWrite",
+                activeNotify = "canDeny",
+                type = "string",
+            },
+            Name = {
+                access = "readOnly",
+                type = "string",
+                max = "16",
+            },
+            BSSID = {
+                access = "readOnly",
+                type = "string",
+            },
+            MaxBitRate = {
+                access = "readOnly", --readWrite not supported
+                type = "string",
+                max = "4",
+            },
+            Channel = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "255",
+                    },
+                },
+            },
+            SSID = {
+                access = "readWrite",
+                type = "string",
+                max = "32",
+            },
+            BeaconType = {
+                access = "readWrite",
+                type = "string",
+                enumeration = {
+                    "None",
+                    "Basic",
+                    "WPA",
+                    "11i",
+		    "WPAand11i",
+		    --[[ Currently not supported
+                    "BasicandWPA",
+                    "Basicand11i",
+                    "BasicandWPAand11i",
+		    --]]
+                },
+            },
+            MACAddressControlEnabled = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            Standard = {
+                access = "readOnly",
+                type = "string",
+                enumeration = {
+                    "a",
+                    "b",
+                    "g",
+                    "g-only",
+                    "n",
+                },
+            },
+            WEPKeyIndex = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                        max = "4",
+                    },
+                },
+            },
+            KeyPassphrase = {
+                access = "readWrite",
+                hidden = "true",
+                type = "string",
+                max = "63",
+            },
+            WEPEncryptionLevel = {
+                access = "readOnly",
+                list = true,
+                max = "64",
+                type = "string",
+                enumeration = {
+                    "Disabled",
+                    "40-bit",
+                    "104-bit",
+                },
+            },
+            BasicEncryptionModes = {
+                access = "readWrite",
+                type = "string",
+                max = "31",
+                enumeration = {
+                    "None",
+                    "WEPEncryption",
+                },
+            },
+            BasicAuthenticationMode = {
+                access = "readOnly", -- readwrite not supported
+                type = "string",
+                max = "31",
+                enumeration = {
+                    "None",
+		    --[[ Other values are currently not supported.
+		    "EAPAuthentication",
+                    "SharedAuthentication",--]]
+                },
+            },
+            WPAEncryptionModes = {
+                access = "readWrite",
+                type = "string",
+                max = "31",
+                enumeration = {
+                    "TKIPEncryption",
+
+                    --[[ This should only be queried when beacon type includes WPA and only expose TKIP in WPA
+                    "AESEncryption",
+                    "TKIPandAESEncryption",
+                    --]]
+                },
+            },
+            WPAAuthenticationMode = {
+                access = "readWrite",
+                type = "string",
+                max = "31",
+                enumeration = {
+                    "PSKAuthentication",
+                    "EAPAuthentication",
+                },
+            },
+            IEEE11iEncryptionModes = {
+                access = "readWrite",
+                type = "string",
+                max = "31",
+                enumeration = {
+                    "AESEncryption",
+                    --[[ This should only be queried when beacon type includes WPA2 and only expose AES in WPA2
+                    "TKIPEncryption",
+                    "TKIPandAESEncryption",
+                    --]]
+                },
+            },
+            IEEE11iAuthenticationMode = {
+                access = "readWrite",
+                type = "string",
+                max = "31",
+                enumeration = {
+                    "PSKAuthentication",
+                    "EAPAuthentication",
+                    -- "EAPandPSKAuthentication", This should only be queried when beacon type includes WPA2 and not allowing dual support
+                },
+            },
+            PossibleChannels = {
+                access = "readOnly",
+                list = true,
+                max = "1024",
+                type = "string",
+            },
+            BasicDataTransmitRates = {
+                access = "readWrite",
+                list = true,
+                max = "256",
+                type = "string",
+            },
+            OperationalDataTransmitRates = {
+                access = "readWrite",
+                list = true,
+                max = "256",
+                type = "string",
+            },
+            PossibleDataTransmitRates = {
+                access = "readOnly",
+                list = true,
+                max = "256",
+                type = "string",
+            },
+            InsecureOOBAccessEnabled = {
+                access = "readOnly", -- readWrite currently not supported, hence making readOnly
+                type = "boolean",
+            },
+            BeaconAdvertisementEnabled = {
+                access = "readOnly",
+                type = "boolean",
+            },
+            SSIDAdvertisementEnabled = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            RadioEnabled = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            TransmitPowerSupported = {
+                access = "readOnly",
+                max = "64",
+                type = "string",
+            },
+            TransmitPower = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                  {
+                    min = "25",
+                    max = "100",
+                  },
+                },
+            },
+            AutoRateFallBackEnabled = {
+                -- No lower layer support, hence write functionality is disabled currently
+                access = "readOnly",
+                type = "boolean",
+            },
+            LocationDescription = {
+                access = "readOnly", -- readWrite currently not supported, hence making readOnly.
+                type = "string",
+                max = "4096",
+            },
+            RegulatoryDomain = {
+                access = "readWrite",
+                type = "string",
+                max = "3",
+            },
+            TotalPSKFailures = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+            },
+            TotalIntegrityFailures = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+            },
+            ChannelsInUse = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                list = true,
+                max = "1024",
+                type = "string",
+            },
+            DeviceOperationMode = {
+                access = "readOnly", -- readWrite not supported
+                type = "string",
+                max = "31",
+                enumeration = {
+                    "InfrastructureAccessPoint",
+                --[[other values are not supported currently.
+		    "WirelessBridge",
+                    "WirelessRepeater",
+                    "WirelessStation",--]]
+                },
+            },
+            DistanceFromRoot = {
+                access = "readOnly",-- readWrite currently not supported, hence making readOnly
+                type = "unsignedInt",
+            },
+            PeerBSSID = {
+                access = "readOnly", -- readWrite currently not supported, hence making readOnly
+                type = "string",
+            },
+            AuthenticationServiceMode = {
+                access = "readWrite",
+                type = "string",
+                enumeration = {
+                    "None",
+                    "LinkAuthentication",
+                    "RadiusClient",
+                },
+            },
+            WMMSupported = {
+                access = "readOnly",
+                type = "boolean",
+            },
+            UAPSDSupported = {
+                access = "readOnly",
+                type = "boolean",
+            },
+            UAPSDEnable = {
+                access = "readOnly", -- readWrite not supported
+                type = "boolean",
+            },
+            WMMEnable = {
+                access = "readOnly", -- no readWrite since as per TRS "By default a Technicolor Gateway must enable WMM on all radio interfaces"
+                type = "boolean",
+            },
+            TotalBytesSent = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+            },
+            TotalBytesReceived = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+            },
+            TotalPacketsSent = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+            },
+            TotalPacketsReceived = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+            },
+            X_000E50_ACSState = {
+                access = "readOnly",
+                type = "string",
+            },
+            X_000E50_ACSMode = {
+                access = "readOnly",
+                type = "string",
+            },
+            X_000E50_ACSCHMonitorPeriod = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                        max = "10",
+                    },
+                },
+            },
+            X_000E50_ACSScanReport = {
+                access = "readOnly",
+                type = "string",
+                max = "4096",
+            },
+            X_000E50_ACSScanHistory = {
+                access = "readOnly",
+                type = "string",
+                max = "2560",
+            },
+            X_000E50_ACSRescanPeriod = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "604800",
+                    },
+                },
+            },
+            X_000E50_ACSRescanDelayPolicy = {
+                access = "readWrite",
+                type = "string",
+                -- As per the implementation,it accepts only the following values.
+                enumeration = {
+                    "always",
+                    "nostation",
+                    "notraffic",
+                },
+            },
+            X_000E50_ACSRescanDelay = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "10",
+                        max = "3600",
+                    },
+                },
+            },
+            X_000E50_ACSRescanDelayMaxEvents = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                        max = "999",
+                    },
+                },
+            },
+            X_000E50_ACSCHFailLockoutPeriod = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                        max = "86400",
+                    },
+                },
+            },
+            X_000E50_ChannelWidth = {
+                access = "readWrite",
+                type = "string",
+            },
+            X_000E50_ShortGuardInterval = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            X_000E50_SpaceTimeBlockCoding = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            X_000E50_CyclicDelayDiversity = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            AutoChannelEnable = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            X_000E50_ACSRescan = {
+                access = "readOnly", -- readWrite currently not supported, hence making readOnly.
+                type = "boolean",
+            },
+            X_000E50_ACSBssList = {
+                access = "readOnly",
+                type = "string",
+                max = "16384",
+            },
+            X_000E50_ChannelMode = {
+                access = "readWrite",
+                type = "string",
+                enumeration = {
+                    "Auto",
+                    "Manual",
+                },
+            },
+            X_000E50_Power = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                        max = "4",
+                    },
+                },
+            },
+            X_000E50_PowerDefault = {
+                access = "readOnly",
+                type = "string",
+            },
+            X_000E50_PowerList = {
+                access = "readOnly",
+                type = "string",
+            },
+            X_000E50_PacketsDropped = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+            },
+            X_000E50_PacketsErrored = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+            },
+            X_000E50_RemotelyManaged = {
+                access = "readOnly",
+                type = "boolean",
+            },
+            X_000E50_UpgradeURL = {
+                access = "readWrite",
+                type = "string",
+            },
+            X_000E50_UpgradeCheckPeriod = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                        max = "8760", -- one year
+                   },
+                },
+            },
+            X_000E50_UpgradeSWVersion = {
+                access = "readOnly",
+                type = "string",
+            },
+            X_000E50_BandSteerEnable = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            X_000E50_ChannelBandwidth = {
+                access = "readWrite",
+                type = "string",
+                enumeration = {
+                    "Auto",
+                    "20MHz",
+                    "20/40MHz",
+                },
+            },
+            X_AutoChannelReselectionTimeout = {
+                access = "readWrite",
+                type = "unsignedInt",
+                description = "Configuration of the timer for auto channel reslection",
+                range = {
+                    {
+                        min = "0",
+                        max = "604800",
+                    },
+                },
+            },
+            X_AutoChannelReselectionEnable = {
+                access = "readWrite",
+                type = "boolean",
+                description = "Enable or Disable WiFi auto channel reselection Default value: 1",
+            },
+            X_WPS_V2_ENABLE = {
+                access = "readWrite",
+                type = "boolean",
+                description = "Enable or disable WPS 2.0",
+            },
+        -- TotalAssociations
+        -- automatically created when InternetGatewayDevice.LANDevice.{i}.WLANConfiguration.{i}.AssociatedDevice.{i}. is loaded
+        }
+    }
+}
+
+local require, mapper = require, mapper
+local ipairs, pairs = ipairs, pairs
+local register, commitapply = register, commitapply
+local eventsource, tostring = eventsource, tostring
+
+local uci_helper = mapper("ucihelper")
+local common = mapper("nwcommon")
+local wlc = require("transformer.shared.WLANConfigurationCommon").getMappings(commitapply)
+
+local conn = mapper("ubus").connect()
+
+local function lan_interfaces(network)
+  local nw_interfaces = {} -- e.g. `lan`
+  local ll_interfaces = {} -- e.g. `eth0`, `wl0`
+
+  if network then -- query a specific network
+    nw_interfaces[network] = true
+    local lowerlayers = common.get_lower_layers(network)
+    for _, l in pairs(lowerlayers or {}) do
+      ll_interfaces[l] = true
+    end
+  else
+    local laninterfaces = common.findLanWanInterfaces(false)
+
+    for _, interface in pairs(laninterfaces or {}) do
+      nw_interfaces[interface] = true
+      local lowerlayers = common.get_lower_layers(interface)
+      for _, l in pairs(lowerlayers or {}) do
+        ll_interfaces[l] = true
+      end
+    end
+  end
+
+  return nw_interfaces, ll_interfaces
+end
+
+local dmordering = require "transformer.shared.models.dmordering"
+local objectPath = "InternetGatewayDevice.WLANDevices.{i}."
+
+local entries = function(network)
+  local lan = {}
+  local other = {}
+
+  local lan_nw_interfaces, lan_ll_devices = lan_interfaces(network)
+
+  local wlanssids = conn:call("wireless.ssid", "get", {})
+  local wlanradio = conn:call("wireless.radio", "get", {})
+
+  for wlanintf, v in pairs(wlanssids or {}) do
+    local radio = wlanradio and wlanradio[v.radio]
+    local isRemote = radio and radio.remotely_managed == 1
+    if isRemote then
+      local wl_network = uci_helper.get_from_uci({ config = "wireless", sectionname = wlanintf, option = "network", extended = true})
+
+      if network == wl_network then -- belongs to the queried network, e.g. `lan`
+        lan[#lan + 1] = wlanintf .. "_remote"
+      else
+        if not lan_nw_interfaces[wl_network] then -- belongs to a network that is not a LAN network
+          other[#other + 1] = wlanintf .. "_remote"
+        end
+      end
+    else
+      if lan_ll_devices[wlanintf] then
+        lan[#lan + 1] = wlanintf -- integrated and belongs to a LAN network
+      else
+        other[#other + 1] = wlanintf  -- integrated and does not belong to a LAN network
+      end
+    end
+  end
+
+  lan = dmordering.sort(lan, objectPath)
+  other = dmordering.sort(other, objectPath)
+
+  return lan, other
+end
+
+local entriesWLANInterfaces = function()
+  local _, e = entries()
+  return e
+end
+
+local entriesWLANDevice = function(_, parentkey)
+  local e = entries(parentkey)
+  return e
+end
+
+local iface_binding = {config = "wireless", sectionname = "wifi-iface"}
+
+-- For a given radio name (radio_2G for instance), return the wifi-iface sections associated with it in UCI (wl0)
+local function getIfacesForRadio(radio)
+  local ifaces = {}
+  uci_helper.foreach_on_uci(iface_binding, function(s)
+    if s["device"] == radio then
+      ifaces[#ifaces + 1] = s[".name"]
+    end
+  end)
+  return ifaces
+end
+
+local ap_binding = {config = "wireless", sectionname = nil, option = "iface", extended = true}
+
+-- For a given AP name (ap0 for instance), return the wifi-iface section associated with it in UCI (wl0)
+local function getIfaceForAP(ap)
+  ap_binding.sectionname = ap
+  return uci_helper.get_from_uci(ap_binding)
+end
+
+local wireless_binding = { config = "wireless" }
+
+local function get_uci_section(sectionname)
+  wireless_binding.sectionname = sectionname
+  return uci_helper.getall_from_uci(wireless_binding)
+end
+
+-- TODO remove this workaround when NG-15901 is implemented
+local function handle_state_option(sectionname)
+  local ifaces, igd
+  local section = get_uci_section(sectionname)
+  if section[".type"] == "wifi-iface" then
+    ifaces = sectionname
+    igd = "Enable"
+  elseif section[".type"] == "wifi-ap" then
+    ifaces = section["iface"]
+    igd = "Enable"
+  elseif section[".type"] == "wifi-device" then
+    ifaces = getIfacesForRadio(sectionname)
+    igd = "RadioEnabled"
+  end
+  return ifaces, igd
+end
+
+local function translate_cb(_, _, _, _, sectionname, option)
+  local ifaces
+  local igd
+  if option == "ssid" then
+    ifaces = sectionname
+    igd = "SSID"
+  elseif option == "channel" then
+    ifaces = getIfacesForRadio(sectionname)
+    igd = "Channel"
+  elseif option == "wpa_psk_key" then
+    ifaces = getIfaceForAP(sectionname)
+    igd = "KeyPassphrase"
+  elseif option == "state" then
+    ifaces, igd =  handle_state_option(sectionname)
+  end
+  if igd and ifaces then
+    local events = {}
+    if type(ifaces) == "table" then
+      for _,v in ipairs(ifaces) do
+        events[#events + 1] = { key = v, paramname = igd }
+        events[#events + 1] = { key = v.."_remote", paramname = igd }
+      end
+    else
+      events[#events + 1] = { key = ifaces, paramname = igd }
+      events[#events + 1] = { key = ifaces.."_remote", paramname = igd }
+    end
+    if #events > 0 then
+      return events
+    end
+  end
+end
+
+local function ubus_event_cb_status(mapping, event, data)
+  if data.oper_state and data.name then
+    return { { key = data["name"], paramname = "Status" }, { key = data["name"].."_remote", paramname = "Status" } }
+  end
+end
+
+local function ubus_event_cb_totalassociations(mapping, event, data)
+  if ( data["state"]== "Associated" or data["state"] == "Disconnected" ) then
+    local ap = data["ap_name"]
+    local iface = getIfaceForAP(ap)
+    if iface then
+      return { { key = iface, paramname = "TotalAssociations" }, { key = iface.."_remote", paramname = "TotalAssociations" } }
+    end
+  end
+end
+
+WLANConfiguration.add_watchers = function(mapping)
+  local uci_evsrc = eventsource("uci")
+  uci_evsrc.watch(mapping, { set = translate_cb }, "wireless", "wifi-iface", nil, "ssid")
+  uci_evsrc.watch(mapping, { set = translate_cb }, "wireless", "wifi-iface", nil, "state")
+  uci_evsrc.watch(mapping, { set = translate_cb }, "wireless", "wifi-device", nil, "channel")
+  uci_evsrc.watch(mapping, { set = translate_cb }, "wireless", "wifi-ap", nil, "wpa_psk_key")
+  uci_evsrc.watch(mapping, { set = translate_cb }, "wireless", "wifi-ap", nil, "state")
+  uci_evsrc.watch(mapping, { set = translate_cb }, "wireless", "wifi-device", nil, "state")
+
+  local ubus_evsrc = eventsource("ubus")
+  ubus_evsrc.watch_event(mapping, ubus_event_cb_status, "wireless.ssid")
+  ubus_evsrc.watch_event(mapping, ubus_event_cb_totalassociations, "wireless.accesspoint.station")
+end
+
+WLANConfiguration.entries = entriesWLANDevice
+WLANConfiguration.getall = wlc.wlan.getall
+WLANConfiguration.get = wlc.wlan.get
+WLANConfiguration.set = wlc.wlan.set
+WLANConfiguration.commit = wlc.wlan.commit
+WLANConfiguration.revert = wlc.wlan.revert
+
+register(WLANConfiguration)
+
+---WPS---
+local InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_WPS_ = {
+  objectType = {
+      name = "InternetGatewayDevice.LANDevice.{i}.WLANConfiguration.{i}.WPS.",
+      access = "readOnly",
+      minEntries = 1,
+      maxEntries = 1,
+      parameters = {
+        Enable = {
+          access = "readWrite",
+          type = "boolean",
+        },
+        DevicePassword = {
+          access = "readOnly", -- readWrite currently not supported, hence making readOnly
+          type = "unsignedInt"
+        },
+        ConfigMethodsSupported = {
+          access = "readOnly",
+          type = "string",
+        },
+      }
+   }
+}
+
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_WPS_.set = wlc.wps.set
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_WPS_.get = wlc.wps.get
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_WPS_.commit = wlc.wps.commit
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_WPS_.revert = wlc.wps.revert
+register(InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_WPS_)
+
+local InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_Stats_ = {
+    objectType = {
+        name = "InternetGatewayDevice.LANDevice.{i}.WLANConfiguration.{i}.Stats.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            ErrorsSent = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+            },
+            ErrorsReceived = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+            },
+            UnicastPacketsSent = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+            },
+            UnicastPacketsReceived = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+            },
+            DiscardPacketsSent = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+            },
+            DiscardPacketsReceived = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+            },
+            MulticastPacketsSent = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+            },
+            MulticastPacketsReceived = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+            },
+            BroadcastPacketsSent = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+            },
+            BroadcastPacketsReceived = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+            },
+            UnknownProtoPacketsReceived = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+            },
+        }
+    }
+}
+
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_Stats_.getall = wlc.stats.getall
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_Stats_.get = wlc.stats.get
+
+register(InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_Stats_)
+
+
+--- WEP keys
+local InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_WEPKey_i_ = {
+    objectType = {
+        name = "InternetGatewayDevice.LANDevice.{i}.WLANConfiguration.{i}.WEPKey.{i}.",
+        access = "readOnly",
+        minEntries = 1, -- TODO: understand why transformer complains about minEntries being 4 (see mapload.lua:84)
+        maxEntries = 4,
+        parameters = {
+            WEPKey = {
+                access = "readWrite",
+                hidden = "true",
+                type = "string",
+                max = "128",
+            }
+        }
+    }
+}
+
+local function wepkey_cb(mapping, action, config, sectiontype, sectionname, option)
+  if option == "wep_key" then
+     -- see WLANConfigurationCommon.lua for the reason:
+     -- 1) entriesWEPKey(), the key was composed of wifi-iface name(parentkey) + "_wep_" + [1-10]
+     -- 2) getWEPKey(), when set uci.wireless.wifi-ap.@?.wep_key,
+     --    all of InternetGatewayDevice.LANDevice.i.WLANConfiguration.i.WEPKey.?.WEPKey,
+     --    whose parentkey is this wifi-iface, will be changed
+     local iface = getIfaceForAP(sectionname)
+     if iface then
+        local events = {}
+        for i = 1,4 do
+            events[#events + 1] = { key = iface.."_wep_"..tostring(i), paramname = "WEPKey" }
+        end
+        return events
+     end
+  end
+end
+
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_WEPKey_i_.add_watchers = function(mapping)
+  local uci_evsrc = eventsource("uci")
+  uci_evsrc.watch(mapping, { set = wepkey_cb }, "wireless", "wifi-ap", nil, "wep_key")
+end
+
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_WEPKey_i_.entries = wlc.wepkey.entries
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_WEPKey_i_.get = wlc.wepkey.get
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_WEPKey_i_.set = wlc.wepkey.set
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_WEPKey_i_.commit = wlc.wepkey.commit
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_WEPKey_i_.revert = wlc.wepkey.revert
+
+register(InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_WEPKey_i_)
+
+--- Preshared Keys
+local InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_PreSharedKey_i_ = {
+    objectType = {
+        name = "InternetGatewayDevice.LANDevice.{i}.WLANConfiguration.{i}.PreSharedKey.{i}.",
+        access = "readOnly",
+        minEntries = 1, -- TODO: understand why transformer complains about minEntries being 10 (see mapload.lua:84)
+        maxEntries = 10,
+        parameters = {
+            PreSharedKey = {
+                access = "readOnly", -- readwrite not supported
+                type = "string",
+                max = "64",
+            },
+            KeyPassphrase = {
+                access = "readWrite",
+                hidden = "true",
+                type = "string",
+                max = "63",
+                min = "8",  -- Added this to line up Device:2 parameter
+            },
+            AssociatedDeviceMACAddress = {
+                access = "readOnly", -- readwrite not supported
+                type = "string",
+            }
+        }
+    }
+}
+
+local function presharedkey_cb(mapping, action, config, sectiontype, sectionname, option)
+  if option == "wpa_psk_key" then
+     -- see WLANConfigurationCommon.lua for the reason:
+     -- 1) entriesPreSharedKey(), the key was composed of wifi-iface name(parentkey) + "_psk_" + [1-10]
+     -- 2) getPreSharedKey["KeyPassphrase"], when set uci.wireless.wifi-ap.@?.wpa_psk_key
+     --    all of InternetGatewayDevice.LANDevice.i.WLANConfiguration.i.PreSharedKey.?.KeyPassphrase,
+     --    whose parentkey is this wifi-iface, will be changed
+     local iface = getIfaceForAP(sectionname)
+     if iface then
+        local events = {}
+        for i = 1,10 do
+            events[#events + 1] = { key = iface.."_psk_"..tostring(i), paramname = "KeyPassphrase" }
+        end
+        return events
+     end
+  end
+end
+
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_PreSharedKey_i_.add_watchers = function(mapping)
+  local uci_evsrc = eventsource("uci")
+  uci_evsrc.watch(mapping, { set = presharedkey_cb }, "wireless", "wifi-ap", nil, "wpa_psk_key")
+end
+
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_PreSharedKey_i_.entries = wlc.psk.entries
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_PreSharedKey_i_.get =  wlc.psk.get
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_PreSharedKey_i_.set = wlc.psk.set
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_PreSharedKey_i_.commit = wlc.psk.commit
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_PreSharedKey_i_.revert = wlc.psk.revert
+
+register(InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_PreSharedKey_i_)
+
+--- Associated Devices
+local InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_AssociatedDevice_i_ = {
+    objectType = {
+        name = "InternetGatewayDevice.LANDevice.{i}.WLANConfiguration.{i}.AssociatedDevice.{i}.",
+        access = "readOnly",
+        numEntriesParameter = "TotalAssociations",
+        minEntries = 0,
+        maxEntries = math.huge,
+        parameters = {
+            AssociatedDeviceMACAddress = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "string",
+            },
+            AssociatedDeviceIPAddress = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "string",
+                max = "64",
+            },
+            AssociatedDeviceAuthenticationState = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "boolean",
+            },
+            LastRequestedUnicastCipher = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "string",
+                max = "256",
+            },
+            LastRequestedMulticastCipher = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "string",
+                max = "256",
+            },
+            LastPMKId = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "string",
+                max = "256",
+            },
+            LastDataTransmitRate = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "string",
+                max = "4",
+            },
+            X_Status = {
+                access = "readOnly",
+                type = "string",
+                description = "Indicate current connection status of this client",
+                enumeration = {
+                    "Up",
+                    "Error",
+                    "Disabled",
+                },
+            },
+            X_LastDataUplinkRate = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "unsignedInt",
+                description = "Indicate the real uplink data rate of this client",
+                range = {
+                  {
+                   min = "1000",
+                   max = "600000",
+                 },
+               },
+             },
+             X_LastDataDownlinkRate = {
+                 access = "readOnly",
+                 activeNotify = "canDeny",
+                 type = "unsignedInt",
+                 description = "Indicate the real downlink date rate of this client",
+                 range = {
+                   {
+                    min = "1000",
+                    max = "600000",
+                 },
+               },
+             },
+             X_000E50_AssociatedDeviceRSSI = {
+                 access = "readOnly",
+                 activeNotify = "canDeny",
+                 type = "int",
+             },
+             X_000E50_LastDisconnectBy = {
+                 access = "readOnly",
+                 type = "string",
+                 description = "Indicates the lastdisconnect",
+             },
+             X_000E50_LastDisconnectReason = {
+                 access = "readOnly",
+                 type = "string",
+                 description = "Explains the reason for last disconnect",
+             },
+             X_000E50_TxNoAckFailures = {
+                 access = "readOnly",
+                 type = "string",
+                 description = "Transmitted number of acknowledgement failures",
+             },
+             X_000E50_TxPhyRate = {
+                 access = "readOnly",
+                 type = "string",
+                 description = "Transmitted physical rate",
+             },
+             X_000E50_RxPhyRate = {
+                 access = "readOnly",
+                 type = "string",
+                 description = "Received physical rate",
+             },
+             X_000E50_RSSIHistory = {
+                 access = "readOnly",
+                 type = "string",
+                 description = "History of Received Signal Strength Indication",
+             },
+             X_000E50_Capabilities = {
+                 access = "readOnly",
+                 type = "string",
+                 description = "Capabilities supported by the associated device",
+            },
+        }
+    }
+}
+
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_AssociatedDevice_i_.entries = wlc.assoc.entries
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_AssociatedDevice_i_.get = wlc.assoc.get
+
+register(InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_AssociatedDevice_i_)
+
+local InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_AssociatedDevice_i_X_Stats_ = {
+    objectType = {
+        name = "InternetGatewayDevice.LANDevice.{i}.WLANConfiguration.{i}.AssociatedDevice.{i}.X_Stats.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            Retransmissions = {
+               access = "readOnly",
+               type = "unsignedInt",
+               description = "Show the retransmissions of this WiFi client",
+               range = {
+                 {
+                   min = "0",
+                   max = "100",
+                 },
+               },
+             },
+             SignalStrength = {
+                access = "readOnly",
+                type = "int",
+                description = "Show the signal strength of this WiFi client",
+                range = {
+                  {
+                   min = "-200",
+                   max = "0",
+                  },
+               },
+            },
+        }
+    }
+}
+
+InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_AssociatedDevice_i_X_Stats_.get = wlc.X_Stats.get
+
+register(InternetGatewayDevice_LANDevice_i_WLANConfiguration_i_AssociatedDevice_i_X_Stats_)
+
+do
+  local duplicator = mapper("multiroot").duplicate
+  local duplicates = duplicator(WLANConfiguration, "#ROOT", {
+                       "InternetGatewayDevice.LANDevice.{i}",
+                       "InternetGatewayDevice.LANInterfaces"
+                     })
+  for _, mapping in ipairs(duplicates) do
+    if mapping.objectType.name:match("InternetGatewayDevice.LANDevice") then
+      mapping.entries = entriesWLANDevice
+    else
+      mapping.entries = entriesWLANInterfaces
+    end
+    register(mapping)
+  end
+end
+

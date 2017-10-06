@@ -1,0 +1,414 @@
+----------------------------------------------------------
+-- Mapping for bbf #ROOT.User.{i}.
+----------------------------------------------------------
+
+local Multi_User_i_= {
+  objectType = {
+    name = "#ROOT.{i}.",
+    access = "readWrite",
+    numEntriesParameter = "UserNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Username = {
+        access = "readWrite",
+        type = "string",
+        max = "64",
+      },
+      Password = {
+        access = "readWrite",
+        type = "string",
+        hidden = "true",
+        max = "64",
+      },
+      RemoteAccessCapable = {
+        access = "readOnly", -- currently readWrite not supported
+        type = "boolean",
+        default = "false",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      Enable = {
+        access = "readOnly", -- currently readWrite not supported
+        type = "boolean",
+        default = "true",
+      },
+      X_000E50_Role = {
+        access = "readWrite",
+        type = "string",
+        max = "64",
+      },
+--[[ TODO
+      Language = {
+        access = "readWrite",
+        type = "string",
+        max = "16",
+        default = "",
+      },
+--]]
+-- These parameter are specific to Vodafone, they are accessed using the "X_Management" sub-object.
+
+      FullName = {
+        access = "readOnly",
+        description = "Specifies the fullname of the user account.",
+        type = "string",
+      },
+      Group = {
+        access = "readWrite",
+        description = "Specifies the group to which the user belongs to. Namely user, support or admin.",
+        type = "string",
+      },
+      Permission = {
+        access = "readOnly",
+        type = "string",
+        description = "This parameter specifies a list of applications which are permitted to connect to with this account eg. GUI, cli.",
+      },
+    }
+  }
+}
+
+----------------------------------------------------------
+-- Mapper implementation
+----------------------------------------------------------
+local srp = require 'srp'
+local scp = require 'transformer.shared.setClashPassword'
+local mapper, ipairs, pairs, table = mapper, ipairs, pairs, table
+local insert, remove = table.insert, table.remove
+local uciHelper = mapper("ucihelper")
+local getFromUci = uciHelper.get_from_uci
+local generateKey = uciHelper.generate_key
+local setOnUci_raw = uciHelper.set_on_uci -- `raw` because we wrap it in setOnUci
+local deleteOnUci_raw = uciHelper.delete_on_uci -- `raw` because we wrap it in deleteOnUci
+local commitApply = commitapply
+local isConfigChanged = false
+local cliPwds = {}
+
+local function setOnUci(binding, value)
+  setOnUci_raw(binding, value, commitApply)
+  isConfigChanged = true
+end
+
+local function deleteOnUci(binding, value)
+  deleteOnUci_raw(binding, value, commitApply)
+  isConfigChanged = true
+end
+
+local function webBinding(sectionname, option)
+  return { config = "web", sectionname = sectionname, option = option }
+end
+
+local function getUserName(user)
+  return getFromUci(webBinding(user, "name"))
+end
+
+local function getRole(user)
+  return getFromUci(webBinding(user, "role"))
+end
+
+local function isUserInAssistance(user)
+  local section = getFromUci(webBinding("remote", "sessionmgr"))
+  local remoteUsers =  getFromUci(webBinding(section, "users"))
+  if type(remoteUsers) == "table" then
+    for _, rUser in ipairs(remoteUsers) do
+      if user == rUser then
+        return true
+      end
+    end
+  end
+end
+
+local function isUserInRemote(user)
+  local assistName = getFromUci(webBinding("remote", "user"))
+  return assistName == getUserName(user)
+end
+
+local function isRemoteUser(user)
+  return isUserInAssistance(user) and isUserInRemote(user)
+end
+
+local function isUserEnabled(user)
+  return true -- users are always `enabled`
+end
+
+local function isDefaultUser(user)
+  -- the user with `gak_id 1` is considered to be the default user;
+  -- they have the password printed on the box's sticker.
+  if getFromUci(webBinding(user, "gak_id")) == "1" then
+    return true
+  end
+  -- Check another criterion; defaultuser from uidefault
+  local defaultuser = getFromUci(webBinding("uidefault", "defaultuser"))
+  return defaultuser == user
+end
+
+local function getRemoteAccessCapable(user)
+  return isRemoteUser(user) and "1" or "0"
+end
+
+local function getUserEnabled(user)
+  return isUserEnabled(user) and "1" or "0"
+end
+
+local function setGuiPw(user, username, value)
+  local srp_salt, srp_verifier = srp.new_user(username, value)
+  setOnUci(webBinding(user, "srp_salt"), srp_salt)
+  setOnUci(webBinding(user, "srp_verifier"), srp_verifier)
+
+ -- [NG-48489] handle the GUI username/password migration from legacy build
+  setOnUci(webBinding(user, "legacy_salt"), "")
+end
+
+local function webUserExists(name)
+  local users = getFromUci(webBinding("default", "users"))
+  for _, user in ipairs(users) do
+     if name == user then
+       return true
+     end
+  end
+end
+
+local function webUserNameExists(username)
+  local result
+  uciHelper.foreach_on_uci(webBinding("user"), function(s)
+    if s.name == username then
+      result = true
+      return false
+    end
+  end)
+  return result
+end
+
+local function setUserName(user, username)
+  if username == "" then
+    if isUserEnabled(user) then
+      return nil, "User name must not be empty for enabled user"
+    end
+  else
+    if username == getUserName(user) then
+      return true --do not complain if the same name is written to a user
+    elseif scp.isClashUser(username) then
+      return nil, "A CLI user with that name already exists"
+    elseif webUserNameExists(username) then
+      return nil, "A web user with that name already exists"
+    end
+  end
+  setOnUci(webBinding(user, "name"), username)
+  return true
+end
+
+local function setCliPw(username, password)
+  if not scp.isClashUser(username) then
+    return true -- simply return success for non-CLI user
+  else
+    local valid, msg = scp.validateCredentials(username, password)
+    if not valid then
+      return nil, msg
+    else
+      -- Store CLI password if credentials valid; effective update happens in commit()
+      cliPwds[username] = password
+      return true
+    end
+  end
+end
+
+local function setPassword(user, password)
+  local username = getUserName(user)
+  if username == "" then
+    return nil, "Cannot set password for user with empty username"
+  end
+
+  -- (1) Set GUI password; never returns errors
+  setGuiPw(user, username, password)
+
+  -- (2) Set CLI password; may return errors
+  local ret =  setCliPw(username, password)
+
+  commitApply:newset("webuser_password")
+  return ret
+end
+
+local function setRole(user, role)
+  if role == "" then
+    return nil, "Role must not be empty"
+  end
+  setOnUci(webBinding(user, "role"), role)
+  return true
+end
+
+Multi_User_i_.entries = function()
+  local users = {}
+  uciHelper.foreach_on_uci(webBinding("user"), function(s)
+    users[#users+1] = s['.name']
+  end)
+  return users
+end
+
+local function addUser()
+  local username
+  repeat
+    username = "usr_default_" .. generateKey()
+  until not webUserExists(username)
+
+  setOnUci(webBinding(username), "user")
+
+  --New user's default role is 'guest'.
+  setRole(username, "guest")
+
+  local binding = webBinding("default","users")
+  local usernames =  getFromUci(binding)
+  insert(usernames, username)
+  setOnUci(binding, usernames)
+
+  -- Trigger web server restart; needed to make new user available
+  commitApply:newset("webuser_add")
+
+  return username
+end
+
+local function deleteUser(user)
+  deleteOnUci(webBinding(user))
+
+  local binding = webBinding("default","users")
+  local defaultUserList = getFromUci(binding)
+  for key, defaultUser in ipairs(defaultUserList) do
+    if user == defaultUser then
+      remove(defaultUserList, key)
+      break
+    end
+  end
+  setOnUci(binding, defaultUserList)
+
+  return true
+end
+
+Multi_User_i_.add = function(mapping)
+  local user = addUser()
+  if not user then
+    return nil, "Could not add user"
+  end
+  return user
+end
+
+Multi_User_i_.delete = function(mapping, key)
+  local username = getUserName(key)
+  -- Following users must not be deleted:
+  --    the default user, users with remote access, users with CLI access
+  if isDefaultUser(username) then
+    return nil, "The default user cannot be deleted"
+  elseif isRemoteUser(key) then
+    return nil, "User with remote access cannot be deleted"
+  elseif scp.isClashUser(username) then
+    return nil, "User with CLI access cannot be deleted"
+  end
+  return deleteUser(key)
+end
+
+local vodafoneLanguageMap = {
+  ["en-us"] = "en",
+  ["spn"] = "es",
+}
+
+Multi_User_i_.get = {
+  Password = "", -- passwords always shown as empty string
+  Enable = function(mapping, param, key)
+    return getUserEnabled(key)
+  end,
+  Username = function(mapping, param, key)
+    return getUserName(key)
+  end,
+  RemoteAccessCapable = function(mapping, param, key)
+    return getRemoteAccessCapable(key)
+  end,
+  X_000E50_Role = function(mapping, param, key)
+    return getRole(key)
+  end,
+  FullName = function(mapping, param, key)
+    return key
+  end,
+  Group = function(mapping, param, key)
+    return getRole(key)
+  end,
+  Permission = "Gui",
+  Language = function(mapping, param, key)
+    local language = getFromUci(webBinding(key, "language"))
+    return vodafoneLanguageMap[language] and vodafoneLanguageMap[language] or "en"
+  end,
+}
+
+Multi_User_i_.set = {
+  Username = function(mapping, param, value, key)
+    return setUserName(key, value)
+  end,
+  Password = function(mapping, param, value, key)
+    return setPassword(key, value)
+  end,
+  X_000E50_Role = function(mapping, param, value, key)
+    return setRole(key, value)
+  end,
+  Group = function(mapping, param, value, key)
+    return setRole(key, value)
+  end,
+  Language = function(mapping, param, value, key)
+    for language, option in pairs(vodafoneLanguageMap) do
+      if option == value then
+        value  = language
+        break
+      end
+    end
+    setOnUci(webBinding(key, "language"), value)
+    commitApply:newset("webuser_language") 
+  end
+}
+
+Multi_User_i_.commit = function ()
+  if isConfigChanged then
+    uciHelper.commit(webBinding())
+    isConfigChanged = false
+  end
+
+  for user, pass in pairs(cliPwds) do
+    scp.setPassword(user, pass)
+  end
+  cliPwds = {}
+end
+
+Multi_User_i_.revert = function ()
+  if isConfigChanged then
+    uciHelper.revert(webBinding())
+    isConfigChanged = false
+  end
+  cliPwds = {}
+end
+
+local function getParamForVodafone()
+  return {
+    access = "readWrite",
+    type = "string",
+    description = "specifies the Language for the user",
+    enumeration = {
+      "en",
+      "es"
+    },
+  }
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_User_i_, "#ROOT", {"InternetGatewayDevice.User", "Device.Users.User", "InternetGatewayDevice.X_Management.LoginAccount"})
+for _, dupli in ipairs(duplicates) do
+  if dupli.objectType.name:match("^InternetGatewayDevice.X_Management.") then
+    dupli.objectType.parameters["X_000E50_Role"] = nil
+    dupli.objectType.parameters["RemoteAccessCapable"] = nil
+    dupli.objectType.parameters.Language = getParamForVodafone()
+  else
+    dupli.objectType.parameters["FullName"] = nil
+    dupli.objectType.parameters["Group"] = nil
+    dupli.objectType.parameters["Permission"] = nil
+    dupli.objectType.parameters["Language"] = nil
+  end
+  register(dupli)
+end

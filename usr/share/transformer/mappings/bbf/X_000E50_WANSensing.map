@@ -1,0 +1,115 @@
+local Multi_X_000E50_WANSensing_ = {
+  objectType = {
+    name = "#ROOT.X_000E50_WANSensing.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      L2Type = {
+        access = "readOnly",
+        type = "string",
+        max = "32",
+      },
+      L3Type = {
+        access = "readOnly",
+        type = "string",
+        max = "32",
+      },
+      InitMode = {
+        access = "readWrite",
+        type = "string",
+        max = "32",
+      },
+    }
+  }
+}
+
+----------------------------------------------------------
+-- Local definitions
+-- -------------------------------------------------------
+local uci_helper = mapper("ucihelper")
+local binding={config="wansensing", sectionname="global"}
+
+----------------------------------------------------------
+-- Mapper implementation
+----------------------------------------------------------
+
+Multi_X_000E50_WANSensing_.get = {
+  Enable = function(mapping)
+    binding.option = "enable"
+    return uci_helper.get_from_uci(binding)
+  end,
+  L2Type = function(mapping)
+    binding.option = "l2type"
+    return uci_helper.get_from_uci(binding)
+  end,
+  L3Type =function(mapping)
+    binding.option = "l3type"
+    return uci_helper.get_from_uci(binding)
+  end,
+  InitMode = function(mapping)
+    binding.option = "initmode"
+    return uci_helper.get_from_uci(binding)
+  end,
+}
+
+Multi_X_000E50_WANSensing_.getall = function(mapping)
+  local allValues = uci_helper.getall_from_uci(binding)
+  return {
+    Enable = allValues.enable or '',
+    L2Type = allValues.l2type or '',
+    L3Type = allValues.l3type or '',
+    InitMode = allValues.initmode or '',
+  }
+end
+
+Multi_X_000E50_WANSensing_.set = {
+  Enable = function(mapping, param, value)
+    binding.option = "enable"
+    uci_helper.set_on_uci(binding, value, commitapply)
+  end,
+  InitMode = function(mapping, param, value)
+    local state_binding = {config = "wansensing", sectionname = "L2State"}
+    local isLxState = false
+    uci_helper.foreach_on_uci(state_binding, function(s)
+      if s['name'] == value then
+        isLxState = true
+        return false  -- exit loop
+      end
+    end)
+    if not isLxState then
+      state_binding.sectionname = "L3State"
+      uci_helper.foreach_on_uci(state_binding, function(s)
+         if s['name'] == value then
+           isLxState = true
+           return false  -- exit loop
+         end
+      end)
+    end
+
+    if isLxState then
+      binding.option = "initmode"
+      uci_helper.set_on_uci(binding, value, commitapply)
+    else
+      return nil, "Invalid value for InitMode"
+    end
+  end,
+}
+
+Multi_X_000E50_WANSensing_.commit = function()
+  uci_helper.commit(binding)
+end
+
+Multi_X_000E50_WANSensing_.revert = function()
+  uci_helper.revert(binding)
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_X_000E50_WANSensing_, "#ROOT", {"InternetGatewayDevice", "Device.DeviceInfo.NetworkProperties"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end

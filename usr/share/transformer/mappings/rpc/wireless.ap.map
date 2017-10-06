@@ -1,0 +1,134 @@
+local logger = require("transformer.logger")
+local log = logger.new("wireless.ap", 2)
+local register, pairs = register, pairs
+
+local wireless_ap_ = {
+  objectType = {
+    name = "rpc.wireless.ap.@.",
+    access = "readOnly",
+    numEntriesParameter = "APsNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+        ssid = {
+            access = "readOnly",
+            type = "string",
+        },
+        admin_state = {
+            access = "readWrite",
+            type = "boolean",
+        },
+        oper_state = {
+            access = "readOnly",
+            type = "boolean",
+        },
+        config_state = {
+            access = "readOnly",
+            type = "boolean",
+        },
+        ap_isolation = {
+            access = "readOnly",
+            type = "boolean",
+        },
+        public = {
+            access = "readWrite",
+            type = "boolean",
+        },
+        station_history = {
+            access = "readOnly",
+            type = "boolean",
+        },
+        max_assoc = {
+            access = "readWrite",
+            type = "string",
+        },
+        trace_modules = {
+            access = "readOnly",
+            type = "string",
+        },
+        trace_level = {
+            access = "readOnly",
+            type = "string",
+        },
+		display_connected_devices = {
+            access = "readOnly",
+            type = "boolean",
+        },
+    },
+  }
+}
+
+local require, mapper, error = require, mapper, error
+local uci_helper = mapper("ucihelper")
+local conn = mapper("ubus").connect()
+
+local function nilToEmptyString(st)
+    if st == nil then
+        return ""
+    else
+        return tostring(st)
+    end
+end
+
+local function getDataForAP(ap)
+    local result = conn:call("wireless.accesspoint", "get", { name = ap })
+    if result == nil then
+        error("Cannot retrieve ap info for ap " .. ap)
+    end
+    return result[ap]
+end
+
+local function entriesWirelessAP(mapping)
+    local entries = {}
+    local result = conn:call("wireless.accesspoint", "get", { })
+    if result ~= nil then
+        for k,_ in pairs(result) do
+            entries[#entries+1] = k
+        end
+    end
+    return entries
+end
+
+local function getall(mapping, key)
+    local apData = getDataForAP(key)
+    local sanitizedData = {}
+    for k,v in pairs(apData) do
+        sanitizedData[k] = nilToEmptyString(v)
+    end
+    return sanitizedData
+end
+
+local function get(mapping, paramName, key)
+	if paramName == "display_connected_devices" then
+		local value = uci_helper.get_from_uci({ config = "wireless", sectionname = key , option = 'display_connected_devices'})
+		return nilToEmptyString(value)
+	else
+    local apData = getDataForAP(key)
+    return nilToEmptyString(apData[paramName]);
+	end
+end
+
+local namemap = {admin_state="state"}
+local set = function(mapping, param, value, key)
+	if param == "admin_state" then
+		local SSIDwl = uci_helper.get_from_uci({ config = "wireless", sectionname = key, option = "iface"})
+		uci_helper.set_on_uci({ config = "wireless", sectionname = SSIDwl , option = "state"}, value, commitapply)
+		uci_helper.set_on_uci({ config = "wireless", sectionname = key , option = "state"}, value, commitapply)
+	else
+    uci_helper.set_on_uci({ config = "wireless", sectionname = key , option = namemap[param] or param}, value, commitapply)
+	end
+end
+
+wireless_ap_.entries = entriesWirelessAP
+wireless_ap_.getall = getall
+wireless_ap_.get = get
+wireless_ap_.set = set
+wireless_ap_.commit = function()
+    uci_helper.commit({config = "wireless"})
+end
+wireless_ap_.revert = function()
+    uci_helper.revert({config = "wireless"})
+end
+
+register(wireless_ap_)
+

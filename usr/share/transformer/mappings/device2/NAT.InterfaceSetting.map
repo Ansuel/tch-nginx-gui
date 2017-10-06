@@ -1,0 +1,151 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_NAT_InterfaceSetting_i_ = {
+  objectType = {
+    name = "Device.NAT.InterfaceSetting.{i}.",
+    access = "readOnly", -- readWrite currently not supported
+    numEntriesParameter = "InterfaceSettingNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Disabled",
+          "Enabled",
+          "Enabled_NATForcedDisabled",
+          "Enabled_PortMappingDisabled",
+          "Error_Misconfigured",
+          "Error",
+        },
+        default = "Disabled",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      Interface = {
+        access = "readOnly", --readwrite currently not supported since lowerlayer support is not available
+        type = "string",
+        max = "256",
+        pathRef = true,
+        targetParent = "Device.IP.Interface.{i}.",
+        default = "",
+      },
+    }
+  }
+}
+
+local mapper = mapper
+local nwCommon = mapper("nwcommon")
+local uciHelper = mapper("ucihelper")
+local interfaceToZone = nwCommon.interface2zone
+local dmordering = require "transformer.shared.models.dmordering"
+
+local v6Proto = {
+  ["6rd"] = true,
+  ["grev6"] = true,
+  ["grev6tap"] = true,
+  ["dhcpv6"] = true,
+}
+
+local statusMap = {
+  ["0"] = "Disabled",
+  ["1"] = "Enabled",
+}
+
+local networkBinding = { config = "network", sectionname = "interface"}
+
+Device_NAT_InterfaceSetting_i_.entries = function(mapping)
+  local entries = {}
+  uciHelper.foreach_on_uci(networkBinding, function(s)
+    if not v6Proto[s.proto] then
+      local ifname = s[".name"]
+      if interfaceToZone(ifname) then
+        entries[#entries + 1] = ifname
+      end
+    end
+  end)
+  return dmordering.sort(entries, mapping.objectType.name)
+end
+
+local function getZoneInfo(key)
+  return interfaceToZone(key)
+end
+
+local function getEnable(key, zoneInfo)
+  zoneInfo = zoneInfo or getZoneInfo(key)
+  if zoneInfo and (zoneInfo.masq) == "1" then
+    return "1"
+  end
+  return "0"
+end
+
+local function getStatus(key, zoneInfo)
+  local enable = getEnable(key, zoneInfo)
+  return statusMap[enable]
+end
+
+local function getInterface(key)
+  return resolve("Device.IP.Interface.{i}.", key) or ""
+end
+
+Device_NAT_InterfaceSetting_i_.get = {
+  Enable = function(_, _, key)
+    return getEnable(key)
+  end,
+  Status = function(_, _, key)
+    return getStatus(key)
+  end,
+  Interface = function(_, _, key)
+    return getInterface(key)
+  end,
+}
+
+Device_NAT_InterfaceSetting_i_.getall = function(mapping, key)
+  local zoneInfo = getZoneInfo(key)
+  return {
+    Enable = getEnable(key, zoneInfo),
+    Status = getStatus(key, zoneInfo),
+    Interface = getInterface(key),
+  }
+end
+
+local configChanged = false
+local firewallBinding = {config = "firewall" }
+
+Device_NAT_InterfaceSetting_i_.set = {
+  Enable = function(mapping, param, value, key)
+    local zoneInfo = getZoneInfo(key)
+    firewallBinding.sectionname = zoneInfo['.name']
+    firewallBinding.option = "masq"
+    uciHelper.set_on_uci(firewallBinding, value, commitapply)
+    configChanged = true
+  end
+}
+
+local function endTransaction(action)
+  if configChanged then
+    action(firewallBinding)
+    configChanged = false
+  end
+end
+
+Device_NAT_InterfaceSetting_i_.commit = function()
+  endTransaction(uciHelper.commit)
+end
+
+Device_NAT_InterfaceSetting_i_.revert = function()
+  endTransaction(uciHelper.revert)
+end
+
+register(Device_NAT_InterfaceSetting_i_)

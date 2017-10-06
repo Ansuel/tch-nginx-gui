@@ -1,0 +1,95 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_NeighborDiscovery_ = {
+  objectType = {
+    name = "Device.NeighborDiscovery.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      -- InterfaceSettingNumberOfEntries
+      -- automatically created when Device.NeighborDiscovery.InterfaceSetting.{i}. is loaded
+    }
+  }
+}
+
+local mapper = mapper
+local uciHelper = mapper("ucihelper")
+local nwCommon = mapper("nwcommon")
+local ipairs = ipairs
+local dhcpBinding = {config = "dhcp"}
+local isConfigChanged = false
+
+local function getInterfaces()
+  local interfaces = {}
+  local lan = nwCommon.findLanWanInterfaces(false)
+  dhcpBinding.sectionname = "dhcp"
+  uciHelper.foreach_on_uci(dhcpBinding, function(s)
+    for _,v in pairs(lan) do
+      if s.interface == v then
+        interfaces[#interfaces + 1] = s['.name']
+        break
+      end
+    end
+  end)
+  return interfaces
+end
+
+local function enableNDP(value, interfaces)
+  dhcpBinding.option = "ndp"
+  for _,interface in ipairs(interfaces) do
+    dhcpBinding.sectionname = interface
+    uciHelper.set_on_uci(dhcpBinding, value, commitapply)
+    isConfigChanged = true
+  end
+end
+
+Device_NeighborDiscovery_.get = {
+  Enable = function(mapping, param)
+    dhcpBinding.option = "ndp"
+    local enable = false
+    local interfaces = getInterfaces()
+    for _,interface in ipairs(interfaces) do
+      dhcpBinding.sectionname = interface
+      local value = uciHelper.get_from_uci(dhcpBinding)
+      if value ~= "" and value ~= "disabled" then
+        enable = true
+        break
+      end
+    end
+    return enable and "1" or "0"
+  end
+}
+
+-- A getall implementation is not done as it will not bring any improvement
+
+Device_NeighborDiscovery_.set = {
+  Enable = function(mapping, param, value)
+    local interfaces = getInterfaces()
+    if value == "1" then
+      enableNDP("relay", interfaces)
+    elseif value == "0" then
+      enableNDP("disabled", interfaces)
+    end
+  end
+}
+
+Device_NeighborDiscovery_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(dhcpBinding)
+    isConfigChanged = false
+  end
+end
+
+Device_NeighborDiscovery_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(dhcpBinding)
+    isConfigChanged = false
+  end
+end
+
+register(Device_NeighborDiscovery_)

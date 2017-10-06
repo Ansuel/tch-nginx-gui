@@ -1,0 +1,195 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_DynamicDNS_Client_i_ = {
+  objectType = {
+    name = "Device.DynamicDNS.Client.{i}.",
+    access = "readOnly", -- readWrite not supported
+    numEntriesParameter = "ClientNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Connecting",
+          "Authenticating",
+          "Updated",
+          "Error_Misconfigured",
+          "Error",
+          "Disabled",
+        },
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      LastError = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "NO_ERROR",
+          "MISCONFIGURATION_ERROR",
+          "DNS_ERROR",
+          "CONNECTION_ERROR",
+          "AUTHENTICATION_ERROR",
+          "TIMEOUT_ERROR",
+          "PROTOCOL_ERROR",
+        },
+      },
+      Server = {
+        access = "readOnly", --readWrite not supported
+        type = "string",
+        max = "256",
+        pathRef = true,
+        targetParent = "Device.DynamicDNS.Server.{i}.",
+      },
+      Interface = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        pathRef = true,
+        targetParent = "Device.IP.Interface.{i}.",
+      },
+      Username = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      Password = {
+        access = "readWrite",
+        hidden = "true",
+        type = "string",
+        max = "256",
+      },
+      -- HostnameNumberOfEntries
+      -- automatically created when Device.DynamicDNS.Client.{i}.Hostname.{i}. is loaded
+    }
+  }
+}
+
+local ddns = require("transformer.shared.ddns")
+local uciHelper = mapper("ucihelper")
+local forEachOnUci = uciHelper.foreach_on_uci
+
+local ddnsBinding = { config = "ddns" }
+local configChanged = false
+local open, pairs, resolve = io.open, pairs, resolve
+
+local paramMap = {
+  Enable    = "enabled",
+  Server    = "service_name",
+  URL       = "update_url",
+  Interface = "interface",
+  Username  = "username",
+  Password  = "password",
+}
+
+local function getUciValue(key, param, default)
+  ddnsBinding.sectionname = key
+  if param then
+    ddnsBinding.option = paramMap[param]
+    ddnsBinding.default = default
+    return uciHelper.get_from_uci(ddnsBinding)
+  end
+  return uciHelper.getall_from_uci(ddnsBinding)
+end
+
+local function getDdnsInfo(key)
+  local enable = getUciValue(key, "Enable", "0")
+  if enable == "0" then
+    return "Disabled", "NO_ERROR"
+  end
+  return ddns.getDdnsInfo(key)
+end
+
+Device_DynamicDNS_Client_i_.entries = function()
+  local ddnsEntries = {}
+  ddnsBinding.sectionname = "service"
+  forEachOnUci(ddnsBinding, function(s)
+    ddnsEntries[#ddnsEntries + 1] = s[".name"]
+  end)
+  return ddnsEntries
+end
+
+Device_DynamicDNS_Client_i_.get = {
+  Enable = function(mapping, param, key)
+    return getUciValue(key, param, "0")
+  end,
+
+  Status = function(mapping, param, key)
+    return getDdnsInfo(key)
+  end,
+
+  LastError = function(mapping, param, key)
+    local _, err = getDdnsInfo(key)
+    return err
+  end,
+
+  Server = function(mapping, param, key)
+    return resolve("Device.DynamicDNS.Server.{i}.", key) or ""
+  end,
+
+  Interface = function(mapping, param, key)
+    return resolve("Device.IP.Interface.{i}.", getUciValue(key, param)) or ""
+  end,
+
+  Username = function(mapping, param, key)
+    return getUciValue(key, param)
+  end,
+
+  Password = function(mapping, param, key)
+    return getUciValue(key, param)
+  end
+}
+
+Device_DynamicDNS_Client_i_.getall = function(mapping, key)
+  local allValues = getUciValue(key)
+  local status, err = getDdnsInfo(key)
+  return {
+    Enable    = allValues.enabled or "0",
+    Status    = status,
+    LastError = err,
+    Server    = resolve("Device.DynamicDNS.Server.{i}.", key) or "",
+    Interface = resolve("Device.IP.Interface.{i}.", allValues.interface or ""),
+    Username  = allValues.username or "",
+    Password  = allValues.password or ""
+  }
+end
+
+Device_DynamicDNS_Client_i_.set = function(mapping, param, value, key)
+  if param == "Interface" then
+    local rc
+    rc, value = pcall(tokey, value, "Device.IP.Interface.{i}.")
+    if not rc or not value then
+      return nil, "Invalid value"
+    end
+  end
+  ddnsBinding.sectionname = key
+  ddnsBinding.option = paramMap[param]
+  uciHelper.set_on_uci(ddnsBinding, value, commitapply)
+  configChanged = true
+end
+
+Device_DynamicDNS_Client_i_.commit = function()
+  if configChanged then
+    uciHelper.commit(ddnsBinding)
+    configChanged = false
+  end
+end
+
+Device_DynamicDNS_Client_i_.revert = function()
+  if configChanged then
+    uciHelper.revert(ddnsBinding)
+    configChanged = false
+  end
+end
+
+register(Device_DynamicDNS_Client_i_)

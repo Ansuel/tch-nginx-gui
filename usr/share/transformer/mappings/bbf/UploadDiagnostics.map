@@ -1,0 +1,396 @@
+-- Automatically generated from InternetGatewayDevice:1.3 and Device:2.10
+-- using generator version 2.3
+local Multi_UploadDiagnostics_ = {
+  objectType = {
+    name = "#ROOT.UploadDiagnostics.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      DiagnosticsState = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "None",
+          "Requested",
+          "Completed",
+          "Error_CannotResolveHostName",
+          "Error_NoRouteToHost",
+          "Error_InitConnectionFailed",
+          "Error_NoResponse",
+          "Error_PasswordRequestFailed",
+          "Error_LoginFailed",
+          "Error_NoTransferMode",
+          "Error_NoPASV",
+          "Error_NoCWD",
+          "Error_NoSTOR",
+          "Error_NoTransferComplete",
+          "Error_Timeout",
+          "Error_Internal",
+          "Error_Other",
+        },
+      },
+      Interface = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        pathRef = true,
+      },
+      UploadURL = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      UploadTransports = {
+        access = "readOnly",
+        list = true,
+        type = "string",
+        enumeration = {
+          "HTTP",
+          "FTP",
+        },
+      },
+      UploadDiagnosticsMaxConnections = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+      UploadDiagnosticsMaxIncrementalResult = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+      DSCP = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "63",
+          },
+        },
+      },
+      EthernetPriority = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "7",
+          },
+        },
+      },
+      TestFileLength = {
+        access = "readWrite",
+        type = "unsignedInt",
+      },
+      TimeBasedTestDuration = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "999",
+          },
+        },
+      },
+      TimeBasedTestMeasurementInterval = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "999",
+          },
+        },
+      },
+      TimeBasedTestMeasurementOffset = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "255",
+          },
+        },
+      },
+      ProtocolVersion = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "Any",
+          "IPv4",
+          "IPv6",
+        },
+      },
+      NumberOfConnections = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+      IPAddressUsed = {
+        access = "readOnly",
+        type = "string",
+      },
+      ROMTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "dateTime",
+      },
+      BOMTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "dateTime",
+      },
+      EOMTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "dateTime",
+      },
+      TestBytesSent = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      TotalBytesReceived = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      TotalBytesSent = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      TestBytesSentUnderFullLoading = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      TotalBytesReceivedUnderFullLoading = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      TotalBytesSentUnderFullLoading = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      PeriodOfFullLoading = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      TCPOpenRequestTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "dateTime",
+      },
+      TCPOpenResponseTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "dateTime",
+      },
+      -- PerConnectionResultNumberOfEntries
+      -- automatically created when Device.IP.Diagnostics.UploadDiagnostics.PerConnectionResult.{i}. is loaded
+      EnablePerConnectionResults = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "boolean",
+      },
+      -- IncrementalResultNumberOfEntries
+      -- automatically created when Device.IP.Diagnostics.UploadDiagnostics.IncrementalResult.{i}. is loaded
+    }
+  }
+}
+
+local uci_helper = mapper("ucihelper")
+local getFromUci = uci_helper.get_from_uci
+local tr143binding = { config = "tr143" }
+
+local function getSectionName(mapping)
+  if mapping.objectType.name:match("^InternetGatewayDevice") then
+    return "igd"
+  else
+    return "device2"
+  end
+end
+
+local helper = require("transformer.shared.tr143helper")
+
+Multi_UploadDiagnostics_.get = function(mapping, pname)
+  local config = "UploadDiagnostics"
+  local user = getSectionName(mapping)
+  return helper.tr143_get(config, user, pname)
+end
+
+Multi_UploadDiagnostics_.set = function(mapping, pname, pvalue)
+  local config = "UploadDiagnostics"
+  local user = getSectionName(mapping)
+  return helper.tr143_set(config, user, pname, pvalue, commitapply)
+end
+
+Multi_UploadDiagnostics_.commit = helper.tr143_commit
+
+Multi_UploadDiagnostics_.revert = helper.tr143_revert
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_UploadDiagnostics_, "#ROOT", {"InternetGatewayDevice", "Device.IP.Diagnostics"})
+for _, dupli in ipairs(duplicates) do
+  helper.startup(resolve, tokey)
+  register(dupli)
+end
+
+local Multi_UploadDiagnostics_PerConnectionResult_i_ = {
+  objectType = {
+    name = "#ROOT.UploadDiagnostics.PerConnectionResult.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "PerConnectionResultNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      ROMTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "dateTime",
+      },
+      BOMTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "dateTime",
+      },
+      EOMTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "dateTime",
+      },
+      TestBytesSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalBytesReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalBytesSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TCPOpenRequestTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "dateTime",
+      },
+      TCPOpenResponseTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "dateTime",
+      },
+    }
+  }
+}
+
+local PCRKeyToSectionName = {}
+
+Multi_UploadDiagnostics_PerConnectionResult_i_.get = function(mapping, pname, key)
+  local value
+  local keyid = key:match("|(.*)")
+  tr143binding.sectionname = PCRKeyToSectionName[keyid]
+  tr143binding.option = pname
+  value = getFromUci(tr143binding)
+  return value or ""
+end
+
+Multi_UploadDiagnostics_PerConnectionResult_i_.entries = function(mapping)
+  local entries = {}
+  tr143binding.sectionname = "UploadDiagnosticsPCR"
+  uci_helper.foreach_on_uci(tr143binding, function(s)
+    if not s._key then
+      s._key = uci_helper.generate_key_on_uci({ config = "tr143", sectionname = s[".name"] })
+      uci_helper.commit_keys(tr143binding)
+    end
+    entries [#entries + 1] = string.format("PCR|%s", s._key)
+    PCRKeyToSectionName[s._key] = s[".name"]
+  end)
+  return entries
+end
+
+local duplicates = duplicator(Multi_UploadDiagnostics_PerConnectionResult_i_, "#ROOT", {"InternetGatewayDevice", "Device.IP.Diagnostics"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local Multi_UploadDiagnostics_IncrementalResult_i_ = {
+  objectType = {
+    name = "#ROOT.UploadDiagnostics.IncrementalResult.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "IncrementalResultNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      TestBytesSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalBytesReceived = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      TotalBytesSent = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      StartTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "dateTime",
+      },
+      EndTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "dateTime",
+      },
+    }
+  }
+}
+
+
+local IRKeyToSectionName = {}
+
+Multi_UploadDiagnostics_IncrementalResult_i_.get = function(mapping, pname, key)
+  local value
+  local keyid = key:match("|(.*)")
+  tr143binding.sectionname = IRKeyToSectionName[keyid]
+  tr143binding.option = pname
+  value = getFromUci(tr143binding)
+  return value or ""
+end
+
+Multi_UploadDiagnostics_IncrementalResult_i_.entries = function(mapping)
+  local entries = {}
+  tr143binding.sectionname = "UploadDiagnosticsIR"
+  uci_helper.foreach_on_uci(tr143binding, function(s)
+    if not s._key then
+      s._key = uci_helper.generate_key_on_uci({ config = "tr143", sectionname = s[".name"] })
+      uci_helper.commit_keys(tr143binding)
+    end
+    entries [#entries + 1] = string.format("IR|%s", s._key)
+    IRKeyToSectionName[s._key] = s[".name"]
+  end)
+  return entries
+end
+
+local duplicates = duplicator(Multi_UploadDiagnostics_IncrementalResult_i_, "#ROOT", {"InternetGatewayDevice", "Device.IP.Diagnostics"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end

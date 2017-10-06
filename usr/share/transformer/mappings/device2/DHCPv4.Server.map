@@ -1,0 +1,86 @@
+-- Automatically generated from Device:2.9
+-- using generator version 2.2
+local Device_DHCPv4_Server_ = {
+  objectType = {
+    name = "Device.DHCPv4.Server.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      -- PoolNumberOfEntries
+      -- automatically created when Device.DHCPv4.Server.Pool.{i}. is loaded
+    }
+  }
+}
+
+local mapper, ipairs = mapper, ipairs
+local uciHelper = mapper("ucihelper")
+local common = mapper("nwcommon")
+local getFromUci = uciHelper.get_from_uci
+local forEachOnUci = uciHelper.foreach_on_uci
+local setOnUci = uciHelper.set_on_uci
+local dhcpBinding = {config="dhcp"}
+local isConfigChanged = false
+
+local function lanInterfaces(mapping, param, key)
+  local interfaces = {}
+  dhcpBinding.sectionname = "dhcp"
+  local lan = common.findLanWanInterfaces(false)
+  forEachOnUci(dhcpBinding, function(s)
+    for _,v in pairs(lan) do
+      if s['interface'] == v then
+        interfaces[#interfaces + 1] = s['.name']
+      end
+    end
+  end)
+  return interfaces
+end
+
+Device_DHCPv4_Server_.get = {
+  Enable = function(mapping, param, key)
+    local interfaces = lanInterfaces()
+    dhcpBinding.option = "dhcpv4"
+    dhcpBinding.default = "server"
+    for _,val in ipairs(interfaces) do
+      dhcpBinding.sectionname = val
+      local check = getFromUci(dhcpBinding)
+      if check == "server" then
+        return "1"
+      end
+    end
+    return "0"
+  end,
+}
+
+Device_DHCPv4_Server_.set = {
+  Enable = function(mapping, param, value, key)
+    local interfaces = lanInterfaces()
+    dhcpBinding.option = "dhcpv4"
+    value = (value == "1") and "server" or "disabled"
+    for _,val in ipairs(interfaces) do
+      dhcpBinding.sectionname = val
+      setOnUci(dhcpBinding, value, commitapply)
+    end
+    isConfigChanged = true
+  end,
+}
+
+Device_DHCPv4_Server_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(dhcpBinding)
+    isConfigChanged = false
+  end
+end
+
+Device_DHCPv4_Server_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(dhcpBinding)
+    isConfigChanged = false
+  end
+end
+
+register(Device_DHCPv4_Server_)

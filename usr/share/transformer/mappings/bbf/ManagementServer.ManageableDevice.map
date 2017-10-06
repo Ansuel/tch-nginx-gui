@@ -1,0 +1,120 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Multi_ = {
+  objectType = {
+    name = "#ROOT.ManagementServer.ManageableDevice.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "ManageableDeviceNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+--[[ Alias parameter is removed as the status is deprecated
+      Alias = {
+        access = "readWrite",
+        status = "deprecated",
+        type = "string",
+        max = "64",
+      },
+--]]
+      ManufacturerOUI = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+        max = "6",
+      },
+      SerialNumber = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+        max = "64",
+      },
+      ProductClass = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+        max = "64",
+      },
+      Host = {
+        access = "readOnly",
+        list = true,
+        max = "1024",
+        type = "string",
+        pathRef = true,
+    }
+  }
+}
+}
+local uci_helper = mapper("ucihelper")
+local conn = mapper("ubus").connect()
+local content = {}
+
+local ip_modes = {"ipv4", "ipv6"}
+local items = {
+    ["ManufacturerOUI"] = "manufacturer-oui",
+    ["SerialNumber"] = "serial-number",
+    ["ProductClass"] = "product-class"
+}
+
+Multi_.entries = function(mapping)
+    local entries = {}
+    content = {}
+    -- Reload the initial objects
+    local key = ""
+    local intf = ""
+    local found = false
+    local devices = conn:call("hostmanager.device", "get", {})
+    if type(devices) == "table" then
+        for host, device in pairs(devices) do
+            found = false
+            for _,mode in ipairs(ip_modes) do
+                if device["mac-address"] and device[mode] and type(device[mode]) == "table" then
+                    for _,v in pairs(device[mode]) do
+                        if v.dhcp and v.state and v.state == "connected"
+                            and v.dhcp.tags and v.dhcp.tags:match("cpewan%-id") then
+                            key = device["mac-address"]
+			    intf = device["interface"]
+                            entries[#entries + 1] = key
+                            content[key] = {}
+			    if mapping.dataModel == "device2" then
+                              content[key]["Host"] = resolve("Device.Hosts.Host.{i}.",host) or ""
+			    else
+			      content[key]["Host"] = resolve("InternetGatewayDevice.LANDevice.{i}.Hosts.Host.{i}.",intf.."|"..key.."|") or ""
+			    end
+                            for param,item in pairs(items) do
+                                content[key][param] = v.dhcp[item] or ""
+                            end
+                            found = true
+                            break
+                        end
+                    end
+                end
+                if found then break end
+            end
+        end
+    end
+    return entries
+end
+
+Multi_.getall = function(mapping, key)
+    return content[key]
+end
+
+Multi_.get = function(mapping, param, key)
+    if param and key and content[key] and content[key][param] then
+        return content[key][param]
+    end
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_, "#ROOT", {"InternetGatewayDevice","Device"})
+for _, dupli in ipairs(duplicates) do
+  if dupli.objectType.name:match("^InternetGatewayDevice.") then
+    dupli.dataModel = "igd"
+    dupli.objectType.parameters.Host.targetParent = "InternetGatewayDevice.Hosts.Host.{i}."
+  else
+    dupli.dataModel = "device2"
+    dupli.objectType.parameters.Host.targetParent = "Device.Hosts.Host.{i}."
+  end
+  register(dupli)
+end
+

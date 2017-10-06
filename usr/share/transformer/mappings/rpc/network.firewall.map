@@ -1,0 +1,411 @@
+local fwConfigMap = {
+  High          = {
+    ["level"]  = "high",
+    ["rules"]  = "highrules",
+    ["policies"] = {
+      ["forward"] = "DROP",
+      ["waninput"] = "DROP",
+      ["defaultoutgoing"] = "DROP",
+    },
+  },
+  Low           = {
+    ["level"] = "normal",
+    ["rules"]  = "normalrules",
+    ["policies"] = {
+      ["forward"] = "DROP",
+      ["waninput"] = "DROP",
+      ["defaultoutgoing"] = "ACCEPT",
+    },
+  },
+  X_000E50_User = {
+    ["level"] = "user",
+    ["rules"]  = "userrules",
+    ["policies"] = {
+      ["forward"] = "DROP",
+      ["waninput"] = "DROP",
+      ["defaultoutgoing"] = "ACCEPT",
+    },
+  },
+  Off = {
+    ["level"] = "lax",
+    ["rules"]  = "laxrules",
+    ["policies"] = {
+      ["forward"] = "ACCEPT",
+      ["waninput"] = "ACCEPT",
+      ["defaultoutgoing"] = "ACCEPT",
+    },
+  },
+  X_000E50_Lax = {
+    ["level"] = "lax",
+    ["rules"]  = "laxrules",
+    ["policies"] = {
+      ["forward"] = "ACCEPT",
+      ["waninput"] = "ACCEPT",
+      ["defaultoutgoing"] = "ACCEPT",
+    },
+  },
+}
+
+local network_firewall_ = {
+  objectType = {
+    name = "rpc.network.firewall.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      mode = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+            "lax",
+            "normal",
+            "high",
+            "user",
+        }
+      },
+      internetping = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      -- Two variables, one for ipv4 and another for ipv6
+      internetpingipv4 = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      internetpingipv6 = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      natstatus = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      useroutgoingdefault = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+            "ACCEPT",
+            "REJECT",
+            "DROP",
+        },
+      },
+      userincomingdefault = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+            "REJECT",
+            "DROP",
+        },
+      },
+      guestruleaddress = {
+        access = "readWrite",
+        type = "string",
+      },
+      enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+    },
+  }
+}
+
+local fwZone = {config = "firewall", sectionname = "zone"}
+local fw_helper = require("transformer.shared.firewall_helper")
+local uci_helper = mapper("ucihelper")
+local getFromUci = uci_helper.get_from_uci
+local fwBinding_default_outgoing = {config = "firewall", sectionname = "defaultoutgoing", option = "target"}
+local setOnUci = uci_helper.set_on_uci
+local fwBinding_admin_config = {config = "firewall", sectionname = "fwconfig", option = "acs_admin_config"}
+local configChanged = false
+local fwBinding_actual_level = {config = "firewall", sectionname = "fwconfig", option = "level"}
+local string, commitapply, pairs  = string, commitapply, pairs
+
+-- @return #boolean whether firewall is `enabled` or not
+-- The firewall is reported as enabled if flag acs_admin_config is not set
+local function getIsEnabled()
+  return (getFromUci(fwBinding_admin_config) == "")
+end
+
+-- @return #string the config that is currently active, according to the firewall level.
+-- @return #string nil, errmsg when the level cannot be translated to one of the fwConfigMap values.
+local function getActiveConfig(mapping)
+  local level = getFromUci(fwBinding_actual_level)
+  if level ~= "" then
+    for k, v in pairs(fwConfigMap) do
+      if level == v.level then
+        return k
+      end
+    end
+  end
+  return nil, "Invalid actual firewall level in UCI (" .. level .. ")"
+end
+
+local function activateRuleSet(config)
+  for k, v in pairs(fwConfigMap) do
+    local enable = 0
+    -- Only enable the specified config; all the rest will be explicitely disabled.
+    if k == config then
+      enable = 1
+    end
+    if v.rules then
+      setOnUci({config = "firewall", sectionname = v.rules, option = "enabled"}, enable, commitapply)
+    end
+  end
+end
+
+--- Set firewall.defaultoutgoing.target according to config
+local function setOutGoingPolicyTo(config)
+  if fwConfigMap[config] then
+    setOnUci(fwBinding_default_outgoing, fwConfigMap[config].policies.defaultoutgoing, commitapply)
+  end
+end
+
+--- Sets the forward and input policy for zone 'wan'
+local function setIncomingPolicyTo(config)
+  if fwConfigMap[config] then
+  -- set FORWARD and INPUT on wan zone to the policy
+    local fwBinding = {config = "firewall"}
+    uci_helper.foreach_on_uci(fwZone, function(s)
+      if s["name"] == "wan" then
+        fwBinding.sectionname = s[".name"]
+        fwBinding.option = "forward"
+        setOnUci(fwBinding, fwConfigMap[config].policies.forward , commitapply)
+        fwBinding.option = "input"
+        setOnUci(fwBinding, fwConfigMap[config].policies.waninput, commitapply)
+        return true
+      end
+    end)
+  end
+end
+
+--- Sets firewall.fwconfig.level according to specified config
+local function setFwConfigLevel(config)
+  if fwConfigMap[config] then
+    setOnUci(fwBinding_actual_level, fwConfigMap[config].level, commitapply)
+  end
+end
+
+-- The entry function to change firewall's UCI config
+--  If firewall is `Enabled`:
+--   * activates the rule set belonging to specified config
+--   * sets the outgoing policy
+--   * sets the incoming policy
+--   * sets fwconfig level
+-- Else updates the administrative config
+-- @return #string nil, errmsg if specified config is not valid
+local function setConfig(config)
+  if fwConfigMap[config] then
+    if getIsEnabled() then
+      activateRuleSet(config)
+      setOutGoingPolicyTo(config)
+      setIncomingPolicyTo(config)
+      setFwConfigLevel(config)
+    else
+      setOnUci(fwBinding_admin_config, config, commitapply)
+    end
+    configChanged = true
+    return true
+  end
+  return nil, "Invalid config"
+end
+
+-- Sets the firewall to `disabled config`, i.e. config `Off`
+-- The previously selected level is stored to UCI; it is restored by restoreConfig()
+-- @return #string nil, errmsg if config for disabled cannot be activated
+local function setToDisabledConfig(mapping)
+  if getIsEnabled() then
+    -- Keep the level that is active before setting to disabled config
+    local originalConfig = getActiveConfig(mapping)
+    local ok, err = setConfig("Off")
+    if not ok then
+      return nil, err
+    end
+    -- Store original config, but only if it is anything but `Off`
+    if originalConfig ~= "Off" then
+      setOnUci(fwBinding_admin_config, originalConfig, commitapply)
+      configChanged = true
+    end
+  end
+  return true
+end
+
+-- Restores the firewall config according to the level that was active before Enabled was set to `0`.
+-- @return #string nil, errmsg if config cannot be restored
+local function restoreConfig()
+  local restore = getFromUci(fwBinding_admin_config)
+  -- Always clear fwBinding_admin_config before trying to restore,
+  -- even if fwBinding_admin_config value would be invalid for some reason.
+  -- This guarantees us to start from a fresh state upon next `disable`
+  setOnUci(fwBinding_admin_config, "", commitapply)
+  configChanged = true
+  if restore ~= "" then
+    if not setConfig(restore) then
+      return nil, "Could not restore Firewall config to " .. restore
+    end
+  end
+  return true
+end
+
+local get = {
+    mode = function(mapping, param)
+        return fw_helper.get_firewall_mode()
+    end,
+    internetping = function(mapping, param)
+        -- Look for a rule named "Allow-Ping" or "Allow-Ping-wan" or "Allow-Ping6"and move it from enabled = 1 to 0
+        -- TODO use a named rule or rules group
+        local enabled = "0"
+        uci_helper.foreach_on_uci({config="firewall", sectionname="rule"}, function(s)
+            if s["name"] == "Allow-Ping" or s["name"] == "Allow-Ping-wan" then
+                enabled = s["enabled"] or "1" -- by default, a rule is enabled
+               -- if enabled is 1 break from loop
+                if enabled == "1" then
+                  return false
+                end
+            end
+        end)
+        return enabled
+    end,
+    internetpingipv4 = function(mapping, param)
+        -- Look for a rule named "Allow-Ping" or "Allow-Ping-wan" or "Allow-Ping4" and family is "ipv4" move it from enabled = 1 to 0
+        -- TODO use a named rule or rules group
+        local enabled = "0"
+        uci_helper.foreach_on_uci({config="firewall", sectionname="rule"}, function(s)
+            if (s["name"] == "Allow-Ping" or s["name"] == "Allow-Ping-wan") and s["family"] == "ipv4" then
+                enabled = s["enabled"] or "1" -- by default, a rule is enabled
+               -- if enabled is 1 break from loop
+                if enabled == "1" then
+                  return false
+                end
+            end
+        end)
+        return enabled
+    end,
+    internetpingipv6 = function(mapping, param)
+        -- Look for a rule named "Allow-Ping" or "Allow-Ping-wan" or "Allow-Ping6" and family is "ipv6" move it from enabled = 1 to 0
+        -- TODO use a named rule or rules group
+        local enabled = "0"
+        uci_helper.foreach_on_uci({config="firewall", sectionname="rule"}, function(s)
+            if (s["name"] == "Allow-Ping" or s["name"] == "Allow-Ping-wan" or s["name"] == "Allow-Ping6") and s["family"] == "ipv6" then
+                enabled = s["enabled"] or "1" -- by default, a rule is enabled
+               -- if enabled is 1 break from loop
+                if enabled == "1" then
+                  return false
+                end
+            end
+        end)
+        return enabled
+    end,
+    natstatus = function(mapping, param)
+        local enabled = "0"
+        uci_helper.foreach_on_uci({config="firewall", sectionname="zone"}, function(s)
+            if s["name"] == "wan" then
+                enabled = s["masq"]
+                return false
+            end
+        end)
+        return enabled
+    end,
+    useroutgoingdefault = function(mapping, param)
+        return uci_helper.get_from_uci({config= "firewall", sectionname="fwconfig", option="defaultoutgoing_user", default="ACCEPT"})
+    end,
+    userincomingdefault = function(mapping, param)
+        return uci_helper.get_from_uci({config= "firewall", sectionname="fwconfig", option="defaultincoming_user", default="DROP"})
+    end,
+    guestruleaddress = "",
+    enable = function()
+        return (getIsEnabled() and "1") or "0"
+    end,
+}
+
+local set = {
+    mode = function(mapping, paramname, paramvalue)
+        return fw_helper.set_firewall_mode(paramvalue, commitapply)
+    end,
+    natstatus = function(mapping, paramname, paramvalue)
+        uci_helper.foreach_on_uci({config="firewall", sectionname="zone"}, function(s)
+            if s["name"] == "wan" then
+                uci_helper.set_on_uci({config="firewall", sectionname=s[".name"], option="masq"}, paramvalue, commitapply)
+                return false
+            end
+        end)
+        uci_helper.commit({config = "firewall"})
+    end,
+    internetping = function(mapping, paramname, paramvalue)
+        -- Look for a rule named "Allow-Ping" or "Allow-Ping-wan" or "Allow-Ping6"and move it from enabled = 1 to 0
+        uci_helper.foreach_on_uci({config="firewall", sectionname="rule"}, function(s)
+            if s["name"] == "Allow-Ping" or s["name"] == "Allow-Ping-wan" or s["name"] == "Allow-Ping6" then
+                uci_helper.set_on_uci({config="firewall", sectionname=s[".name"], option="enabled"}, paramvalue, commitapply)
+                return true
+            end
+        end)
+        uci_helper.commit({config = "firewall"})
+    end,
+    internetpingipv4 = function(mapping, paramname, paramvalue)
+        -- Look for a rule named "Allow-Ping" or "Allow-Ping-wan" or "Allow-Ping6"and family is "ipv4" move it from enabled = 1 to 0
+        uci_helper.foreach_on_uci({config="firewall", sectionname="rule"}, function(s)
+            if (s["name"] == "Allow-Ping" or s["name"] == "Allow-Ping-wan" or s["name"] == "Allow-Ping6") and s["family"] == "ipv4" then
+                uci_helper.set_on_uci({config="firewall", sectionname=s[".name"], option="enabled"}, paramvalue, commitapply)
+                return true
+            end
+        end)
+        uci_helper.commit({config = "firewall"})
+    end,
+    internetpingipv6 = function(mapping, paramname, paramvalue)
+        -- Look for a rule named "Allow-Ping" or "Allow-Ping-wan" or "Allow-Ping6"and family is "ipv6" move it from enabled = 1 to 0
+        uci_helper.foreach_on_uci({config="firewall", sectionname="rule"}, function(s)
+            if (s["name"] == "Allow-Ping" or s["name"] == "Allow-Ping-wan" or s["name"] == "Allow-Ping6") and s["family"] == "ipv6" then
+                uci_helper.set_on_uci({config="firewall", sectionname=s[".name"], option="enabled"}, paramvalue, commitapply)
+                return true
+            end
+        end)
+        uci_helper.commit({config = "firewall"})
+    end,
+    useroutgoingdefault = function(mapping, paramname, paramvalue)
+        uci_helper.set_on_uci({config= "firewall", sectionname="fwconfig", option="defaultoutgoing_user"}, paramvalue, commitapply)
+
+        local mode = fw_helper.get_firewall_mode()
+        if mode == "user" then
+           fw_helper.setoutgoingpolicyto(paramvalue, commitapply)
+        end
+
+        uci_helper.commit({config = "firewall"})
+    end,
+    userincomingdefault = function(mapping, paramname, paramvalue)
+        uci_helper.set_on_uci({config= "firewall", sectionname="fwconfig", option="defaultincoming_user"}, paramvalue, commitapply)
+
+        local mode = fw_helper.get_firewall_mode()
+        if mode == "user" then
+          fw_helper.setincomingpolicyto(paramvalue, commitapply)
+        end
+
+        uci_helper.commit({config = "firewall"})
+
+    end,
+    guestruleaddress = function(mapping, paramname, paramvalue)
+        --value format: ipaddress|rulename1, rulename2, ...
+        local address, rulenames = string.match(paramvalue, "(.*)|(.*)")
+        local rule_names = {}
+        if address then
+            for name in string.gmatch(rulenames, "([^,]+)") do
+                rule_names[name] = true
+            end
+            uci_helper.foreach_on_uci({config="firewall", sectionname="rule"}, function(s)
+                if rule_names[s["name"]] and address ~= s["dest_ip"] then
+                    uci_helper.set_on_uci({config= "firewall", sectionname=s['.name'], option="dest_ip"}, address, commitapply)
+                end
+            end)
+            uci_helper.commit({config = "firewall"})
+        end
+    end,
+    enable = function(mapping, paramName, paramValue)
+        if paramValue == "0" then    -- Config for disabled will be active if value == 0
+          return setToDisabledConfig(mapping)
+        end
+        -- When enabled again, firewall will be restored to the last active config before it was disabled
+        return restoreConfig()
+    end,
+}
+
+network_firewall_.get = get
+network_firewall_.set = set
+register(network_firewall_)

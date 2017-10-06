@@ -1,0 +1,253 @@
+local mapper, string, huge = mapper, string, math.huge
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Multi_ = {
+  objectType = {
+    name = "#ROOT",
+    access = "readOnly", --readOnly is supported, since add/delete is not implemented
+    numEntriesParameter = "OptionNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readOnly",
+        type = "boolean",
+        default = "false",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        max = "64",
+      },
+      Tag = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+            max = "254",
+          },
+        },
+      },
+      Value = {
+        access = "readWrite",
+        type = "hexBinary",
+        min = "0",
+        max = "255",
+        default = "",
+      },
+    }
+  }
+}
+
+local uciHelper = mapper("ucihelper")
+local getFromUci = uciHelper.get_from_uci
+local setOnUci = uciHelper.set_on_uci
+local nwCommon = mapper("nwcommon")
+local dhcpBinding = { config = "dhcp"}
+local isConfigChanged = false
+local commitApply = commitapply
+local tagAndValue = {}
+
+local function toHex(str)
+  return (str:gsub('.', function (c)
+    return string.format('%02X', string.byte(c))
+  end))
+end
+
+-- Function that fetches the DHCP options from the UCI
+-- It splits the input key to get the value from uci.
+-- returns the list of DHCP options for the key and the index that came along with the input key
+local function getUciDhcpOption(key)
+  local index
+  key,index = nwCommon.split_key(key)
+  dhcpBinding.sectionname = key
+  dhcpBinding.option = "dhcp_option"
+  local result = getFromUci(dhcpBinding)
+  return result, tonumber(index)
+end
+
+-- Function to map the DHCP option-name with the option-number and vice versa, as per RFC2132
+-- supported options for the gateway is obtained from the command: "dnsmasq --help dhcp"
+local function loadOptionNameTagMap()
+  local optNameTagMap = {}
+  local fd = io.popen("dnsmasq --help dhcp")
+  if fd then
+    for line in fd:lines() do
+      local optNum, optName = line:match("^%s*(%d+)%s+(.*)")
+      if optNum and optName then
+        optNameTagMap[optName] = optNum
+        optNameTagMap[optNum] = optName -- map the number to the name so that indexing becomes simpler
+      end
+    end
+    fd:close()
+  end
+  return optNameTagMap
+end
+
+local optionNameTagMap = loadOptionNameTagMap()
+
+Multi_.entries = function(mapping,key)
+  local entries = {}
+  local count = 1
+  dhcpBinding.sectionname = nil
+  dhcpBinding.option  = nil
+  uciHelper.foreach_on_uci(dhcpBinding, function(s)
+    if((s['.name'] == key)) then
+      if(s.dhcp_option) then
+        for _,v in pairs(s['dhcp_option']) do
+          local _key = key .. "|" ..count  --This key scheme will break should be taken care while implementing add/delete.
+          entries[#entries + 1] = _key
+          tagAndValue[_key] = v
+          count = count + 1
+        end
+      end
+    end
+  end)
+  return entries
+end
+
+-- Table containing the possible patterns of DHCP options that are used.
+-- Ref: http://www.thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html
+-- tagValuePattern string contains the matching pattern to match the first occurence and extract the Tag and Value
+-- tag string contains the hardcoded tag for special patterns such as Vendor-Identifying Vendor Options(125) and  Vendor class identifier(60)
+-- tagAsName boolean if true, means that the tag is a name instead of a number ex: option:router (instead of tag 3)
+-- tagPattern string contains the pattern to extract the string before and after the Tag.
+-- valuePattern string contains the pattern to extract the string before the Value.
+local dhcpOptionPatterns =
+{
+  { tagValuePattern = "encap:(%d+),(.*)", tagPattern = "(.-encap:)%d+(,.*)", valuePattern = "(.-encap:%d+,).*" },
+  { tagValuePattern = "vi%-encap:%d+,(.*)", tag = '125', valuePattern = "(.-vi%-encap:%d+,).*" },
+  { tagValuePattern = "vendor:[^,]+,(.*)", tag = '60', valuePattern = "(.-vendor:[^,]+,).*"},
+  { tagValuePattern = "option:([^,]+),(.*)", tagAsName = true, tagPattern = "(.-%s?)option:[^,]+(,.*)", valuePattern = "(.-option:[^,]+,).*"},
+  { tagValuePattern = "(%d+),(.*)", tagPattern = "(.-%s?)%d+(,.*)", valuePattern = "(.-%d+,).*"},
+}
+
+-- Function to split the DHCP option string containing the tag and value pair.
+-- Traverse the input string from left to right(comma-based) , and extract the tag and value based on the first entry that matches any of the following:
+-- 'encap:' -> option tag is given behind the colon
+-- 'vi-encap:' -> option tag = 125 as per RFC3925.
+-- 'vendor:' -> option tag = 60 as per RFC3925.
+-- 'option:' -> translate the string behind the colon to the correct option tag
+-- a number value -> this is the option tag
+-- returns three values : Tag, hexadecimal equivalent of Value and the matched dhcpOptionPatterns row.
+
+local function getTagAndValueWithPattern(tagVal)
+  local dhcpTag, dhcpValue
+  local index = huge
+  local matchingPattern = {}
+  for _,v in ipairs(dhcpOptionPatterns) do
+    local start, tag, value
+    if v.tag then
+      tag = v.tag
+      start,_,value = tagVal:find(v.tagValuePattern)
+    else
+      start,_,tag,value = tagVal:find(v.tagValuePattern)
+    end
+    if start and start < index then
+      index = start
+      matchingPattern = v
+      if v.tagAsName then -- If the tag is a name instead of a number
+        tag = optionNameTagMap[tag]
+      end
+      dhcpTag = tag
+      dhcpValue = value
+    end
+  end
+  return dhcpTag or "" , toHex(dhcpValue or ""), matchingPattern
+end
+
+-- Function to update an existing DHCP option string with new Tag, preserving the pattern.
+local function updateDhcpTag(tagVal, tag)
+  local strPrefix,strPostfix, updatedOption
+  local _,_,pattern = getTagAndValueWithPattern(tagVal)
+  if pattern.tag then
+    return nil, "Set Failed. Changing this Tag is not allowed" -- applicable for Tags 125 and 60
+  end
+  strPrefix, strPostfix = tagVal:match(pattern.tagPattern or "")
+  if strPrefix and strPostfix then
+    if pattern.tagAsName then
+      -- If the tag name can be resolved then use the tag name. Otherwise use the tag number.
+      tag = optionNameTagMap[tag] and "option:" .. optionNameTagMap[tag] or tag
+    end
+    updatedOption = strPrefix .. tag .. strPostfix
+  end
+  return updatedOption
+end
+
+-- Function to update an existing DHCP option string with new Value, preserving the pattern.
+local function updateDhcpValue(tagVal, value)
+  local strPrefix, updatedOption
+  local _,_,pattern = getTagAndValueWithPattern(tagVal)
+  strPrefix = tagVal:match(pattern.valuePattern or "")
+  if strPrefix then
+    updatedOption = strPrefix .. nwCommon.hex2String(value)
+  end
+  return updatedOption
+end
+
+Multi_.get = {
+  Enable = "1",
+  Tag = function(mapping, param, key)
+    return (getTagAndValueWithPattern(tagAndValue[key] or ""))
+  end,
+  Value = function(mapping, param, key)
+    local _, value = getTagAndValueWithPattern(tagAndValue[key] or "")
+    return value
+  end,
+}
+
+Multi_.getall = function(mapping, key)
+  local tag, value = getTagAndValueWithPattern(tagAndValue[key] or "")
+  return { Tag = tag, Value = value}
+end
+
+Multi_.set = {
+  Tag = function(mapping, param, value, key)
+    local result,index = getUciDhcpOption(key)
+    if result and result ~= "" then
+      local val, err = updateDhcpTag(result[index], value)
+      if not val then
+        return val, err
+      end
+      result[index] = val
+    end
+    setOnUci(dhcpBinding, result, commitApply)
+    isConfigChanged = true
+  end,
+  Value = function(mapping, param, value, key)
+    local result,index = getUciDhcpOption(key)
+    if result and result ~= "" then
+      local val = updateDhcpValue(result[index], value)
+      if not val then
+        return val, "Set Failed. Invalid Value"
+      end
+      result[index] = val
+    end
+    setOnUci(dhcpBinding, result, commitApply)
+    isConfigChanged = true
+  end,
+}
+
+Multi_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(dhcpBinding)
+    isConfigChanged = false
+  end
+end
+
+Multi_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(dhcpBinding)
+    isConfigChanged = false
+  end
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_, "#ROOT", {"InternetGatewayDevice.LANDevice.{i}.LANHostConfigManagement.DHCPOption.{i}.", "Device.DHCPv4.Server.Pool.{i}.Option.{i}."})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end

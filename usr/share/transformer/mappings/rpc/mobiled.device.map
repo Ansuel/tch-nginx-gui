@@ -1,0 +1,56 @@
+local tonumber, table = tonumber, table
+
+local mobiled_device_ = {
+	objectType = {
+		name = 'rpc.mobiled.device.@.',
+		access = 'readOnly',
+		numEntriesParameter = "DeviceNumberOfEntries",
+		minEntries = 0,
+		maxEntries = math.huge,
+		parameters = {
+			status = {
+				access = "readOnly",
+				type = "string"
+			}
+		}
+	}
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+	return
+end
+
+local helper = require("mobiled.scripthelpers")
+
+local function getall(mapping, key)
+	return helper.getUbusData(conn, "mobiled", "status", { dev_idx = tonumber(string.match(key, '%d')) })
+end
+
+local function get(mapping, paramName, key)
+	return getall(mapping, key)[paramName]
+end
+
+local function mobiledDeviceEntries(mapping)
+	local info
+	for i=1,3 do
+		info = helper.getUbusData(conn, "mobiled", "status", {})
+		if info.devices ~= "" then
+			break
+		end
+	end
+	local numDevices = tonumber(info.devices)
+	local devices = {}
+	if numDevices and numDevices >= 1 then
+		for i=1,numDevices do
+			table.insert(devices, { tostring(i), "device" .. i })
+		end
+	end
+	return devices
+end
+
+mobiled_device_.getall = getall
+mobiled_device_.get = get
+mobiled_device_.entries = mobiledDeviceEntries
+
+register(mobiled_device_)

@@ -1,0 +1,2961 @@
+local sys_class_xdsl_ = {
+  objectType = {
+    name = "sys.class.xdsl.@.",
+    access = "readOnly",
+    numEntriesParameter = "InterfaceNumberOfEntries",
+    minEntries = 1,
+    maxEntries = 2,
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      RNCEnable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      VPI = {
+        access = "readWrite",
+        type = "string",
+      },
+      VCI = {
+        access = "readWrite",
+        type = "string",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Up",
+          "Initializing",
+          "EstablishingLink",
+          "NoSignal",
+          "Error",
+          "Disabled",
+          "Unknown"
+        },
+      },
+      ModulationType = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "ADSL_G.dmt",
+          "ADSL_G.lite",
+          "ADSL_G.dmt.bis",
+          "ADSL_re-adsl",
+          "ADSL_2plus",
+          "ADLS_four",
+          "ADSL_ANSI_T1.413",
+          "G.shdsl",
+          "IDSL",
+          "HDSL",
+          "SDSL",
+          "VDSL",
+          "G.fast"
+        },
+      },
+      BondingSupport = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      BondingStatus = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      UpstreamCurrRate = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamCurrRate = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamMaxRate = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamMaxRate = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalStart = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ShowtimeStart = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentDayStart = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentQuarterStart = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamNoiseMargin = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      DownstreamNoiseMargin = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      UpstreamAttenuation = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      DownstreamAttenuation = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      UpstreamPower = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      DownstreamDelay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      DownstreamPower = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      BytesSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedLong",
+      },
+      BytesReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedLong",
+      },
+      BitLoading = {
+       access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      UpstreamFECTotal = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamFECTotal = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamCRCTotal = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamCRCTotal = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamHECTotal = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamHECTotal = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamESTotal = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamESTotal = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamSESTotal = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamSESTotal = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamUASTotal = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamUASTotal = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamLOSTotal = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamLOSTotal = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamLOFTotal = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamLOFTotal = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamLOMTotal  = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamLOMTotal  = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      LinkRetrainTotal = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamFECCurrentQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamFECCurrentQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamCRCCurrentQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamCRCCurrentQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamHECCurrentQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamHECCurrentQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamESCurrentQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamESCurrentQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamSESCurrentQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamSESCurrentQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamUASCurrentQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamUASCurrentQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamLOSCurrentQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamLOSCurrentQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamLOFCurrentQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamLOFCurrentQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamLOMCurrentQuarter  = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamLOMCurrentQuarter  = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      LinkRetrainCurrentQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamFECPreviousQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamFECPreviousQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamCRCPreviousQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamCRCPreviousQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamHECPreviousQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamHECPreviousQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamESPreviousQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamESPreviousQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamSESPreviousQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamSESPreviousQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamUASPreviousQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamUASPreviousQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamLOSPreviousQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamLOSPreviousQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamLOFPreviousQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamLOFPreviousQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamLOMPreviousQuarter  = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamLOMPreviousQuarter  = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      LinkRetrainPreviousQuarter = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      UpstreamFECCurrentDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamFECCurrentDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamCRCCurrentDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamCRCCurrentDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamHECCurrentDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamHECCurrentDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamESCurrentDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamESCurrentDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamSESCurrentDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamSESCurrentDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamUASCurrentDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamUASCurrentDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamLOSCurrentDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamLOSCurrentDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamLOFCurrentDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamLOFCurrentDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamLOMCurrentDay  = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamLOMCurrentDay  = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      LinkRetrainCurrentDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamFECPreviousDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamFECPreviousDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamCRCPreviousDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamCRCPreviousDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamESPreviousDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamESPreviousDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamSESPreviousDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamSESPreviousDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamUASPreviousDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamUASPreviousDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamLOSPreviousDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamLOSPreviousDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamLOFPreviousDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamLOFPreviousDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamLOMPreviousDay  = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamLOMPreviousDay  = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      LinkRetrainPreviousDay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamFECSinceSync = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamFECSinceSync = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamCRCSinceSync = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamCRCSinceSync = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamHECSinceSync = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamHECSinceSync = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamESSinceSync = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamESSinceSync = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamSESSinceSync = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamSESSinceSync = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamUASSinceSync = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamUASSinceSync = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamLOSSinceSync = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamLOSSinceSync = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamLOFSinceSync = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamLOFSinceSync = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamLOMSinceSync  = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamLOMSinceSync  = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      LinkRetrainSinceSync = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamESLastShowtime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamESLastShowtime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamSESLastShowtime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamSESLastShowtime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamCRCLastShowtime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamCRCLastShowtime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamFECLastShowtime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamFECLastShowtime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamHECLastShowtime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamHECLastShowtime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      LastShowtimeStart = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamGINPRxQueue = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamGINPRxQueue = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamGINPTxQueue = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamGINPTxQueue = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamGINPRTxMode = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamGINPRTxMode = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamGINPLookBack = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamGINPLookBack = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamGINPRRCBits = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamGINPRRCBits = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamGINPRTxTx = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamGINPRTxTx = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamGINPRTxC = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamGINPRTxC = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamGINPRTxUC = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamGINPRTxUC = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamGINPLEFTRS = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamGINPLEFTRS = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamGINPMinEFTR = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamGINPMinEFTR = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamGINPErrFreeBits = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamGINPErrFreeBits = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      GINPStatus = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      VectoringDirectionMode = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      VectoringRxBitSwapMode = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      VectoringDisableVNMode = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      VectoringVceAddress = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      VectoringCntESPktSend = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      VectoringCntESPktDrop = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      VectoringCntESStatSend = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      VectoringCntESStatDrop = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      FirmwareVersion = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      UpstreamFramingR = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamFramingR = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamFramingS = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      DownstreamFramingS = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      UpstreamFramingD = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamFramingD = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamFramingL = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamFramingL = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamFramingN = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamFramingN = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamOR = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamOR = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamINP = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamINP = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamDelay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamDelay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamTrellis = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamTrellis = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ACTINP = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      DownstreamACTSNRMODE = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamACTSNRMODE = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ACTUALCE = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ActualInterleavingDelay = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      AllowedProfiles = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      DownstreamHLOGG = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamHLOGG = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamHLOGMT = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamHLOGMT = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamHLOGps = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      UpstreamHLOGps = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      DownstreamINMCC = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamINMIATO = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamINMIATS = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamINMINPEQMODE = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      INPREPORT = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      INTLVBLOCK = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      INTLVDEPTH = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamLATN = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      UpstreamLATN = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      LIMITMASK = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      LPATH = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      LSYMB = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      DownstreamLastStateTransmitted = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamLastStateTransmitted = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      LineEncoding = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      LinkEncapsulationSupported = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      LinkEncapsulationRequested = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      LinkEncapsulationUsed = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      LinkStatus = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      DownstreamMREFPSD  = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      UpstreamMREFPSD = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      NFEC = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      RFEC = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      DownstreamQLNMT = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamQLNMT = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamQLNps = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      UpstreamQLNps = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      DownstreamSATN = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      UpstreamSATN = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      DownstreamSNRG = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamSNRG = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamSNRMT = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UpstreamSNRMT = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamSNRMpb = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      UpstreamSNRMpb = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      DownstreamSNRps = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      UpstreamSNRps = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      StandardUsed = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      StandardsSupported = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      SuccessFailureCause = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UPBOKLE = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      US0MASK = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamVirtualNoisePSD = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      UpstreamVirtualNoisePSD = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      XTUCANSIRev = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      XTUCANSIStd = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      XTUCCountry = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      XTUCVendor = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      XTURANSIRev = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      XTURANSIStd = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      XTURCountry = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      XTURVendor = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      PowerManagementState = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      PacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedLong",
+      },
+      PacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedLong",
+      },
+      ErrorsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ErrorsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentProfile = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      DiscardPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DiscardPacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamACTATP = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      UpstreamACTATP = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      DownstreamACTPSD = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      UpstreamACTPSD = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "int",
+      },
+      DownstreamBITSps = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      UpstreamBITSps = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      DownstreamHLINps = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      UpstreamHLINps = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      RetrainReason = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      UpstreamSuperFrames = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      DownstreamSuperFrames = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      UpstreamSuperFrameErrors = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      DownstreamSuperFrameErrors = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      UpstreamRSWords = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      DownstreamRSWords = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      UpstreamRSCorrectableErrors = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      DownstreamRSCorrectableErrors = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      UpstreamRSUncorrectableErrors = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      DownstreamRSUncorrectableErrors = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      UpstreamOCDErrors = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      DownstreamOCDErrors = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      UpstreamLCDErrors = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      DownstreamLCDErrors = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      UpstreamTotalCells = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      DownstreamTotalCells = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+     },
+     UpstreamFramingK = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+     DownstreamFramingK = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ProfileName = {
+	access = "readOnly",
+	activeNotify = "canDeny",
+	type = "string",
+      },
+     Reset = {
+       access = "readWrite",
+       type = "boolean",
+     },
+    }
+  }
+}
+
+local xdslctl = require('transformer.shared.xdslctl')
+local mapper, commitapply, register = mapper, commitapply, register
+local table, string, tostring = table, string, tostring
+local find = string.find
+local cache = {}
+
+-- Translate mode to ModulationType
+local modemapping={
+  ["G.DMT"]="ADSL_G.dmt",
+  ["T1.413"]="ADSL_ANSI_T1.413",
+  ["G.lite"]="ADSL_G.lite",
+  ["AnnexI"]="ADSL_G.dmt.bis",
+  ["ADSL2"]="ADSL_G.dmt.bis",
+  ["ADSL2+"]="ADSL_2plus",
+  ["RE-ADSL2"]="ADSL_re-adsl",
+  ["VDSL2"]="VDSL2",
+  ["G.fast"]="G.fast",
+  ["Unknown"]="",
+}
+
+-- function to convert the mode coming from xdslctl to ModulationType
+local function convertMode(input)
+  if input~=nil then
+    local mainmode = string.match(input,"^(%S+)")
+    return modemapping[mainmode]
+  end
+  return ""
+end
+
+-- function to get mode from xdslctl + convert to ModulationType
+local function getMode(key)
+  local mode=xdslctl.infoValue("mode", nil, nil, key)
+  return convertMode(mode)
+end
+
+-- Create connection to ubus
+local conn = mapper("ubus").connect()
+
+-- Get xdsl status through ubus
+local function get_ubus_xdsl_status()
+  local result = conn:call("xdsl", "status", {})
+  if result == nil then
+    return 9
+  end
+  return result
+end
+
+-- Maps xdsl status to IGD Status
+local statusmap = {
+    [0] = "NoSignal",
+    [1] = "Initializing",
+    [2] = "Initializing",
+    [3] = "Initializing",
+    [4] = "EstablishingLink",
+    [5] = "Up",
+    [6] = "Initializing",
+    [7] = "Initializing",
+    [8] = "EstablishingLink",
+    [9] = "Unknown"
+}
+
+
+-- Get the xdsl status
+local function getStatus()
+  local status = get_ubus_xdsl_status()
+  if statusmap[status.statuscode] then
+    return statusmap[status.statuscode]
+  end
+  return statusmap[9]
+end
+
+local common = mapper("nwcommon")
+local uci_helper = mapper("ucihelper")
+local getIntfInfo = common.getIntfInfo
+
+--Get the key of the xdsl interface
+local function getIntf()
+  local key = {}
+  local network_binding = { sectionname = "interface", config = "network", option = "", default = "" }
+  local atm_binding = { sectionname ="atmdevice", config = "xtm", option = "path", default ="" }
+  local ptm_binding = { sectionname ="ptmdevice", config = "xtm", option = "path", default ="" }
+  local vlan_binding = {config="network", sectionname="device"}
+  local ifnames = {}
+  local vlanDevices = {}
+  local bcmvopiDevices = {}
+
+  uci_helper.foreach_on_uci(vlan_binding, function(s)
+      if s["name"] and s["ifname"] then
+          vlanDevices[s["name"]]=s["ifname"]
+      end
+  end)
+
+  vlan_binding.sectionname = "bcmvopi"
+  uci_helper.foreach_on_uci(vlan_binding, function(s)
+      if s["if"] then
+          bcmvopiDevices[s[".name"]]=s["if"]
+      end
+  end)
+
+  uci_helper.foreach_on_uci(network_binding, function(s)
+    ---
+    -- interfaces can have the following format
+    -- intf1 intf2 ... -> bridge
+    -- intf.vlan -> remove vlan
+    -- @interface -> alias (ignore it's already somewhere else)
+    local ifname = s['device'] or ''
+    for i in string.gmatch(ifname, "%S+") do -- split space separated
+      if bcmvopiDevices[i] then
+          ifnames[bcmvopiDevices[i]] = s[".name"]
+      elseif vlanDevices[i] then
+          ifnames[vlanDevices[i]] = s[".name"]
+      else
+          local j = string.match(i, "^[^%.@]+")
+          if j then
+              ifnames[j] = s[".name"]
+          end
+      end
+    end
+  end)
+
+  uci_helper.foreach_on_uci(atm_binding,function(se)
+    if ifnames[se['.name']] then
+      key[#key + 1] = se['.name']
+    end
+  end)
+  uci_helper.foreach_on_uci(ptm_binding,function(se)
+    if ifnames[se['.name']] then
+      key[#key + 1] = se['.name']
+    end
+  end)
+  -- Store key to avoid uci lookup next time this function is called
+  -- TODO caching is disabled for now since this needs transformer to restart after config changes
+  --getIntf = function() return key end
+  return key
+end
+
+--Get the statistic with specified name for the xdsl interface
+local function getStats(name)
+  local key = getIntf()
+  local result = 0
+  for i = 1,#key do
+    result = result + (tonumber(getIntfInfo(key[i], name)) or 0)
+  end
+  return tostring(result)
+end
+
+local uci_binding_enable = { config = "xdsl", sectionname = "dsl0", option = "enabled" }
+local uci_binding_rnc = { config = "xdsl", sectionname = "dsl0", option = "rncenabled", default="0" }
+local uci_binding_bonding_support = { config = "xdsl", sectionname = "dsl0", option = "bondingsupport", default="0" }
+local uci_binding_vpi = { config = "xtm", sectionname = "atm_Internet", option = "vpi" }
+local uci_binding_vci = { config = "xtm", sectionname = "atm_Internet", option = "vci" }
+
+local xtmctl = require("transformer.shared.xtmctl")
+local getBondingStatus = xtmctl.getBondingStatus
+
+local function getValue(param, val)
+  return tostring(cache[param] and (val - cache[param]) or val)
+end
+
+sys_class_xdsl_.get = {
+  Enable = function(mapping, param, key)
+    local enable = uci_helper.get_from_uci(uci_binding_enable)
+    return enable
+  end,
+  RNCEnable = function(mapping, param, key)
+    local rncenable = uci_helper.get_from_uci(uci_binding_rnc)
+    return rncenable
+  end,
+  VPI = function(mapping, param, key)
+    local vpi = uci_helper.get_from_uci(uci_binding_vpi)
+    return vpi
+  end,
+  VCI = function(mapping, param, key)
+    local vci = uci_helper.get_from_uci(uci_binding_vci)
+    return vci
+  end,
+  Status = function(mapping, param, key)
+    local status = xdslctl.infoValue("status", nil, nil, key)
+    local returnvalue
+    if status ~= nil then
+      if status == "Showtime" then
+        returnvalue = "Up"
+      elseif status == "Idle" then
+        returnvalue = "NoSignal"
+      else
+        returnvalue = "Initializing"
+      end
+    else
+      returnvalue = "Initializing"
+    end
+    return returnvalue
+    ---return getStatus()
+  end,
+  BondingSupport = function(mapping, param, key)
+    local bonding = uci_helper.get_from_uci(uci_binding_bonding_support)
+    return bonding
+  end,
+  BondingStatus = function(mapping, param, key)
+    local status = getBondingStatus()
+    return status
+  end,
+  ModulationType = function(mapping, param, key)
+    return getMode(key)
+  end,
+  UpstreamCurrRate = function (mapping, param, key)
+    return xdslctl.infoValue("currentrate", "us", "", key)
+  end,
+  DownstreamCurrRate = function(mapping, param, key)
+    return xdslctl.infoValue("currentrate", "ds", "", key)
+  end,
+  UpstreamMaxRate = function (mapping, param, key)
+    return xdslctl.infoValue("maxrate", "us", "", key)
+  end,
+  DownstreamMaxRate = function (mapping, param, key)
+    return xdslctl.infoValue("maxrate", "ds", "", key)
+  end,
+  TotalStart = function(mapping, param, key)
+    local val = xdslctl.stats("total","start", "", key)
+    return getValue(param, val)
+  end,
+  ShowtimeStart = function(mapping, param, key)
+    return xdslctl.stats("sincesync","start", "", key)
+  end,
+  CurrentDayStart = function(mapping, param, key)
+    return xdslctl.stats("currentday","start", "", key)
+  end,
+  CurrentQuarterStart = function(mapping, param, key)
+    return xdslctl.stats("currentquarter", "start", "", key)
+  end,
+  UpstreamNoiseMargin = function (mapping, param, key)
+    return xdslctl.infoValue("snr","us","", key)
+  end,
+  DownstreamNoiseMargin = function (mapping, param, key)
+    return xdslctl.infoValue("snr","ds","", key)
+  end,
+  UpstreamAttenuation = function (mapping, param, key)
+    local mode = xdslctl.infoValue("mode",nil,nil, key)
+    if mode then
+      if find(string.upper(mode), "VDSL") then
+        return xdslctl.infoPbParamsValue("attn","us","", key)
+      else
+        return xdslctl.infoValue("attn","us","", key)
+      end
+    else
+      return ""
+    end
+  end,
+  DownstreamAttenuation = function (mapping, param, key)
+    local mode = xdslctl.infoValue("mode",nil,nil, key)
+    if mode then
+      if find(string.upper(mode), "VDSL") then
+        return xdslctl.infoPbParamsValue("attn","ds","", key)
+      else
+        return xdslctl.infoValue("attn","ds","", key)
+      end
+    else
+      return ""
+    end
+  end,
+  UpstreamPower = function (mapping, param, key)
+    return xdslctl.infoValue("pwr","us","", key)
+  end,
+  DownstreamDelay  = function (mapping, param, key)
+    return xdslctl.infoValue("counters_delay", "ds", "", key)
+  end,
+  DownstreamPower = function (mapping, param, key)
+    return xdslctl.infoValue("pwr","ds","", key)
+  end,
+  BytesSent = function(mapping, param, key)
+    return getStats("tx_bytes")
+  end,
+  BytesReceived = function(mapping, param, key)
+    return getStats("rx_bytes")
+  end,
+  BitLoading = function (mapping, param, key)
+    return xdslctl.getBitLoading(key)
+  end,
+  UpstreamFECTotal = function (mapping, param, key)
+    return xdslctl.stats("total","fec","us", key)
+  end,
+  DownstreamFECTotal =  function (mapping, param, key)
+    return xdslctl.stats("total","fec","ds", key)
+  end,
+  UpstreamCRCTotal = function (mapping, param, key)
+    local val = xdslctl.stats("total","crc","us", key)
+    return getValue(param, val)
+  end,
+  DownstreamCRCTotal = function (mapping, param, key)
+    local val = xdslctl.stats("total","crc","ds", key)
+    return getValue(param, val)
+  end,
+  UpstreamHECTotal = function (mapping, param, key)
+    local val = xdslctl.stats("total","hec","us", key)
+    return getValue(param, val)
+  end,
+  DownstreamHECTotal = function (mapping, param, key)
+    local val = xdslctl.stats("total","hec","ds", key)
+    return getValue(param, val)
+  end,
+  UpstreamESTotal = function (mapping, param, key)
+    local val = xdslctl.stats("total","es","us", key)
+    return getValue(param, val)
+  end,
+  DownstreamESTotal  = function (mapping, param, key)
+    local val = xdslctl.stats("total","es","ds", key)
+    return getValue(param, val)
+  end,
+  UpstreamSESTotal = function (mapping, param, key)
+    local val = xdslctl.stats("total","ses","us", key)
+    return getValue(param, val)
+  end,
+  DownstreamSESTotal = function (mapping, param, key)
+    local val = xdslctl.stats("total","ses","ds", key)
+    return getValue(param, val)
+  end,
+  UpstreamUASTotal = function (mapping, param, key)
+    local val = xdslctl.stats("total","uas","us", key)
+    return getValue(param, val)
+  end,
+  DownstreamUASTotal = function (mapping, param, key)
+    local val = xdslctl.stats("total","uas","ds", key)
+    return getValue(param, val)
+  end,
+  UpstreamLOSTotal = function (mapping, param, key)
+    return xdslctl.stats("total","los","us", key)
+  end,
+  DownstreamLOSTotal = function (mapping, param, key)
+    return xdslctl.stats("total","los","ds", key)
+  end,
+  UpstreamLOFTotal = function (mapping, param, key)
+    return xdslctl.stats("total","lof","us", key)
+  end,
+  DownstreamLOFTotal = function (mapping, param, key)
+    return xdslctl.stats("total","lof","ds", key)
+  end,
+  UpstreamLOMTotal = function (mapping, param, key)
+    return xdslctl.stats("total","lom","us", key)
+  end,
+  DownstreamLOMTotal =  function (mapping, param, key)
+    return xdslctl.stats("total","lom","ds", key)
+  end,
+  LinkRetrainTotal = function (mapping, param, key)
+    return xdslctl.stats("total", "retr", "", key)
+  end,
+  UpstreamFECCurrentQuarter = function (mapping, param, key)
+    return xdslctl.stats("currentquarter","fec","us", key)
+  end,
+  DownstreamFECCurrentQuarter =  function (mapping, param, key)
+    return xdslctl.stats("currentquarter","fec","ds", key)
+  end,
+  UpstreamCRCCurrentQuarter = function (mapping, param, key)
+    return xdslctl.stats("currentquarter","crc","us", key)
+  end,
+  DownstreamCRCCurrentQuarter = function (mapping, param, key)
+    return xdslctl.stats("currentquarter","crc","ds", key)
+  end,
+  UpstreamHECCurrentQuarter = function (mapping, param, key)
+    return xdslctl.stats("currentquarter","hec","us", key)
+  end,
+  DownstreamHECCurrentQuarter = function (mapping, param, key)
+    return xdslctl.stats("currentquarter","hec","ds", key)
+  end,
+  UpstreamESCurrentQuarter = function (mapping, param, key)
+    return xdslctl.stats("currentquarter","es","us", key)
+  end,
+  DownstreamESCurrentQuarter = function (mapping, param, key)
+    return xdslctl.stats("currentquarter","es","ds", key)
+  end,
+  UpstreamSESCurrentQuarter = function (mapping, param, key)
+    return xdslctl.stats("currentquarter","ses","us", key)
+  end,
+  DownstreamSESCurrentQuarter = function (mapping, param, key)
+    return xdslctl.stats("currentquarter","ses","ds", key)
+  end,
+  UpstreamUASCurrentQuarter = function (mapping, param, key)
+    return xdslctl.stats("currentquarter","uas","us", key)
+  end,
+  DownstreamUASCurrentQuarter = function (mapping, param, key)
+    return xdslctl.stats("currentquarter","uas","ds", key)
+  end,
+  UpstreamLOSCurrentQuarter = function (mapping, param, key)
+    return xdslctl.stats("currentquarter","los","us", key)
+  end,
+  DownstreamLOSCurrentQuarter = function (mapping, param, key)
+    return xdslctl.stats("currentquarter","los","ds", key)
+  end,
+  UpstreamLOFCurrentQuarter = function (mapping, param, key)
+    return xdslctl.stats("currentquarter","lof","us", key)
+  end,
+  DownstreamLOFCurrentQuarter = function (mapping, param, key)
+    return xdslctl.stats("currentquarter","lof","ds", key)
+  end,
+  UpstreamLOMCurrentQuarter = function (mapping, param, key)
+    return xdslctl.stats("currentquarter","lom","us", key)
+  end,
+  DownstreamLOMCurrentQuarter =  function (mapping, param, key)
+    return xdslctl.stats("currentquarter","lom","ds", key)
+  end,
+  LinkRetrainCurrentQuarter = function (mapping, param, key)
+    return xdslctl.stats("currentquarter", "retr", "", key)
+  end,
+  UpstreamFECPreviousQuarter = function (mapping, param, key)
+    return xdslctl.stats("previousquarter","fec","us", key)
+  end,
+  DownstreamFECPreviousQuarter =  function (mapping, param, key)
+    return xdslctl.stats("previousquarter","fec","ds", key)
+  end,
+  UpstreamCRCPreviousQuarter = function (mapping, param, key)
+    return xdslctl.stats("previousquarter","crc","us", key)
+  end,
+  DownstreamCRCPreviousQuarter = function (mapping, param, key)
+    return xdslctl.stats("previousquarter","crc","ds", key)
+  end,
+  UpstreamHECPreviousQuarter = function (mapping, param, key)
+    return xdslctl.stats("previousquarter","hec","us", key)
+  end,
+  DownstreamHECPreviousQuarter = function (mapping, param, key)
+    return xdslctl.stats("previousquarter","hec","ds", key)
+  end,
+  UpstreamESPreviousQuarter = function (mapping, param, key)
+    return xdslctl.stats("previousquarter","es","us", key)
+  end,
+  DownstreamESPreviousQuarter  = function (mapping, param, key)
+    return xdslctl.stats("previousquarter","es","ds", key)
+  end,
+  UpstreamSESPreviousQuarter = function (mapping, param, key)
+    return xdslctl.stats("previousquarter","ses","us", key)
+  end,
+  DownstreamSESPreviousQuarter = function (mapping, param, key)
+    return xdslctl.stats("previousquarter","ses","ds", key)
+  end,
+  UpstreamUASPreviousQuarter = function (mapping, param, key)
+    return xdslctl.stats("previousquarter","uas","us", key)
+  end,
+  DownstreamUASPreviousQuarter = function (mapping, param, key)
+    return xdslctl.stats("previousquarter","uas","ds", key)
+  end,
+  UpstreamLOSPreviousQuarter = function (mapping, param, key)
+    return xdslctl.stats("previousquarter","los","us", key)
+  end,
+  DownstreamLOSPreviousQuarter = function (mapping, param, key)
+    return xdslctl.stats("previousquarter","los","ds", key)
+  end,
+  UpstreamLOFPreviousQuarter = function (mapping, param, key)
+    return xdslctl.stats("previousquarter","lof","us", key)
+  end,
+  DownstreamLOFPreviousQuarter = function (mapping, param, key)
+    return xdslctl.stats("previousquarter","lof","ds", key)
+  end,
+  UpstreamLOMPreviousQuarter = function (mapping, param, key)
+    return xdslctl.stats("previousquarter","lom","us", key)
+  end,
+  DownstreamLOMPreviousQuarter =  function (mapping, param, key)
+    return xdslctl.stats("previousquarter","lom","ds", key)
+  end,
+  LinkRetrainPreviousQuarter = function (mapping, param, key)
+    return xdslctl.stats("previousquarter", "retr", "", key)
+  end,
+  UpstreamFECCurrentDay = function (mapping, param, key)
+    return xdslctl.stats("currentday","fec","us", key)
+  end,
+  DownstreamFECCurrentDay =  function (mapping, param, key)
+    return xdslctl.stats("currentday","fec","ds", key)
+  end,
+  UpstreamCRCCurrentDay = function (mapping, param, key)
+    return xdslctl.stats("currentday","crc","us", key)
+  end,
+  DownstreamCRCCurrentDay = function (mapping, param, key)
+    return xdslctl.stats("currentday","crc","ds", key)
+  end,
+  UpstreamHECCurrentDay = function (mapping, param, key)
+    return xdslctl.stats("currentday","hec","us", key)
+  end,
+  DownstreamHECCurrentDay = function (mapping, param, key)
+    return xdslctl.stats("currentday","hec","ds", key)
+  end,
+  UpstreamESCurrentDay = function (mapping, param, key)
+    return xdslctl.stats("currentday","es","us", key)
+  end,
+  DownstreamESCurrentDay  = function (mapping, param, key)
+    return xdslctl.stats("currentday","es","ds", key)
+  end,
+  UpstreamSESCurrentDay = function (mapping, param, key)
+    return xdslctl.stats("currentday","ses","us", key)
+  end,
+  DownstreamSESCurrentDay = function (mapping, param, key)
+    return xdslctl.stats("currentday","ses","ds", key)
+  end,
+  UpstreamUASCurrentDay = function (mapping, param, key)
+    return xdslctl.stats("currentday","uas","us", key)
+  end,
+  DownstreamUASCurrentDay = function (mapping, param, key)
+    return xdslctl.stats("currentday","uas","ds", key)
+  end,
+  UpstreamLOSCurrentDay = function (mapping, param, key)
+    return xdslctl.stats("currentday","los","us", key)
+  end,
+  DownstreamLOSCurrentDay = function (mapping, param, key)
+    return xdslctl.stats("currentday","los","ds", key)
+  end,
+  UpstreamLOFCurrentDay = function (mapping, param, key)
+    return xdslctl.stats("currentday","lof","us", key)
+  end,
+  DownstreamLOFCurrentDay = function (mapping, param, key)
+    return xdslctl.stats("currentday","lof","ds", key)
+  end,
+  UpstreamLOMCurrentDay = function (mapping, param, key)
+    return xdslctl.stats("currentday","lom","us", key)
+  end,
+  DownstreamLOMCurrentDay =  function (mapping, param, key)
+    return xdslctl.stats("currentday","lom","ds", key)
+  end,
+  LinkRetrainCurrentDay = function (mapping, param, key)
+    return xdslctl.stats("currentday", "retr", "", key)
+  end,
+  UpstreamFECPreviousDay = function (mapping, param, key)
+    return xdslctl.stats("previousday","fec","us", key)
+  end,
+  DownstreamFECPreviousDay =  function (mapping, param, key)
+    return xdslctl.stats("previousday","fec","ds", key)
+  end,
+  UpstreamCRCPreviousDay = function (mapping, param, key)
+    return xdslctl.stats("previousday","crc","us", key)
+  end,
+  DownstreamCRCPreviousDay = function (mapping, param, key)
+    return xdslctl.stats("previousday","crc","ds", key)
+  end,
+  UpstreamESPreviousDay = function (mapping, param, key)
+    return xdslctl.stats("previousday","es","us", key)
+  end,
+  DownstreamESPreviousDay  = function (mapping, param, key)
+    return xdslctl.stats("previousday","es","ds", key)
+  end,
+  UpstreamSESPreviousDay = function (mapping, param, key)
+    return xdslctl.stats("previousday","ses","us", key)
+  end,
+  DownstreamSESPreviousDay = function (mapping, param, key)
+    return xdslctl.stats("previousday","ses","ds", key)
+  end,
+  UpstreamUASPreviousDay = function (mapping, param, key)
+    return xdslctl.stats("previousday","uas","us", key)
+  end,
+  DownstreamUASPreviousDay = function (mapping, param, key)
+    return xdslctl.stats("previousday","uas","ds", key)
+  end,
+  UpstreamLOSPreviousDay = function (mapping, param, key)
+    return xdslctl.stats("previousday","los","us", key)
+  end,
+  DownstreamLOSPreviousDay = function (mapping, param, key)
+    return xdslctl.stats("previousday","los","ds", key)
+  end,
+  UpstreamLOFPreviousDay = function (mapping, param, key)
+    return xdslctl.stats("previousday","lof","us", key)
+  end,
+  DownstreamLOFPreviousDay = function (mapping, param, key)
+    return xdslctl.stats("previousday","lof","ds", key)
+  end,
+  UpstreamLOMPreviousDay = function (mapping, param, key)
+    return xdslctl.stats("previousday","lom","us", key)
+  end,
+  DownstreamLOMPreviousDay =  function (mapping, param, key)
+    return xdslctl.stats("previousday","lom","ds", key)
+  end,
+  LinkRetrainPreviousDay = function (mapping, param, key)
+    return xdslctl.stats("previousday","retr", "", key)
+  end,
+  UpstreamFECSinceSync = function (mapping, param, key)
+    return xdslctl.stats("sincesync","fec","us", key)
+  end,
+  DownstreamFECSinceSync =  function (mapping, param, key)
+    return xdslctl.stats("sincesync","fec","ds", key)
+  end,
+  UpstreamCRCSinceSync = function (mapping, param, key)
+    return xdslctl.stats("sincesync","crc","us", key)
+  end,
+  DownstreamCRCSinceSync = function (mapping, param, key)
+    return xdslctl.stats("sincesync","crc","ds", key)
+  end,
+  UpstreamHECSinceSync = function (mapping, param, key)
+    return xdslctl.stats("sincesync","hec","us", key)
+  end,
+  DownstreamHECSinceSync = function (mapping, param, key)
+    return xdslctl.stats("sincesync","hec","ds", key)
+  end,
+  UpstreamESSinceSync = function (mapping, param, key)
+    return xdslctl.stats("sincesync","es","us", key)
+  end,
+  DownstreamESSinceSync  = function (mapping, param, key)
+    return xdslctl.stats("sincesync","es","ds", key)
+  end,
+  UpstreamSESSinceSync = function (mapping, param, key)
+    return xdslctl.stats("sincesync","ses","us", key)
+  end,
+  DownstreamSESSinceSync = function (mapping, param, key)
+    return xdslctl.stats("sincesync","ses","ds", key)
+  end,
+  UpstreamUASSinceSync = function (mapping, param, key)
+    return xdslctl.stats("sincesync","uas","us", key)
+  end,
+  DownstreamUASSinceSync = function (mapping, param, key)
+    return xdslctl.stats("sincesync","uas","ds", key)
+  end,
+  UpstreamLOSSinceSync = function (mapping, param, key)
+    return xdslctl.stats("sincesync","los","us", key)
+  end,
+  DownstreamLOSSinceSync = function (mapping, param, key)
+    return xdslctl.stats("sincesync","los","ds", key)
+  end,
+  UpstreamLOFSinceSync = function (mapping, param, key)
+    return xdslctl.stats("sincesync","lof","us", key)
+  end,
+  DownstreamLOFSinceSync = function (mapping, param, key)
+    return xdslctl.stats("sincesync","lof","ds", key)
+  end,
+  UpstreamLOMSinceSync = function (mapping, param, key)
+    return xdslctl.stats("sincesync","lom","us", key)
+  end,
+  DownstreamLOMSinceSync =  function (mapping, param, key)
+    return xdslctl.stats("sincesync","lom","ds", key )
+  end,
+  LinkRetrainSinceSync = function (mapping, params, key)
+    return xdslctl.stats("sincesync","retr", "", key )
+  end,
+  DownstreamESLastShowtime = function (mapping, params, key)
+    return xdslctl.stats("lastshowtime","es", "ds", key )
+  end,
+  UpstreamESLastShowtime = function (mapping, params, key)
+    return xdslctl.stats("lastshowtime","es", "us", key )
+  end,
+  DownstreamSESLastShowtime = function (mapping, params, key)
+    return xdslctl.stats("lastshowtime","ses", "ds", key )
+  end,
+  UpstreamSESLastShowtime = function (mapping, params, key)
+    return xdslctl.stats("lastshowtime","ses", "us", key )
+  end,
+  DownstreamCRCLastShowtime = function (mapping, params, key)
+    return xdslctl.stats("lastshowtime","crc", "us", key )
+  end,
+  UpstreamCRCLastShowtime = function (mapping, params, key)
+    return xdslctl.stats("lastshowtime","crc", "us", key )
+  end,
+  DownstreamFECLastShowtime = function (mapping, params, key)
+    return xdslctl.stats("lastshowtime","fec", "ds", key )
+  end,
+  UpstreamFECLastShowtime = function (mapping, params, key)
+    return xdslctl.stats("lastshowtime","fec", "us", key )
+  end,
+  DownstreamHECLastShowtime = function (mapping, params, key)
+    return xdslctl.stats("lastshowtime","hec", "ds", key )
+  end,
+  UpstreamHECLastShowtime = function (mapping, params, key)
+    return xdslctl.stats("lastshowtime","hec", "us", key )
+  end,
+  LastShowtimeStart = function (mapping, params, key)
+    return xdslctl.stats("lastshowtime","start", "", key )
+  end,
+  DownstreamGINPRxQueue = function (mapping, params, key)
+    return xdslctl.infoValue("ginp_rxqueue","ds","", key)
+  end,
+  UpstreamGINPRxQueue = function (mapping, params, key)
+    return xdslctl.infoValue("ginp_rxqueue","us","", key)
+  end,
+  DownstreamGINPTxQueue = function (mapping, params, key)
+    return xdslctl.infoValue("ginp_txqueue","ds","", key)
+  end,
+  UpstreamGINPTxQueue = function (mapping, params, key)
+    return xdslctl.infoValue("ginp_txqueue","us","", key)
+  end,
+  DownstreamGINPRTxMode = function (mapping, params, key)
+    return xdslctl.infoValue("ginp_rtxmode", "ds", "", key)
+  end,
+  UpstreamGINPRTxMode = function (mapping, params, key)
+    return xdslctl.infoValue("ginp_rtxmode", "us", "", key)
+  end,
+  DownstreamGINPLookBack = function (mapping, params, key)
+    return xdslctl.infoValue("ginp_lookback","ds","", key)
+  end,
+  UpstreamGINPLookBack = function (mapping, params, key)
+    return xdslctl.infoValue("ginp_lookback","us","", key)
+  end,
+  DownstreamGINPRRCBits = function (mapping, params, key)
+    return xdslctl.infoValue("ginp_rrcbits","ds","", key)
+  end,
+  UpstreamGINPRRCBits = function (mapping, params, key)
+    return xdslctl.infoValue("ginp_rrcbits","us","", key)
+  end,
+  DownstreamGINPRTxTx = function (mapping, params, key)
+    return xdslctl.infoValue("ginp_rtxtx","ds","", key)
+  end,
+  UpstreamGINPRTxTx = function (mapping, params, key)
+    return xdslctl.infoValue("ginp_rtxtx","us","", key)
+  end,
+  DownstreamGINPRTxC = function (mapping, params, key)
+    return xdslctl.infoValue("ginp_rtxc","ds","", key)
+  end,
+  UpstreamGINPRTxC = function (mapping, params, key)
+    return xdslctl.infoValue("ginp_rtxc","us","", key)
+  end,
+  DownstreamGINPRTxUC = function (mapping, params, key)
+    return xdslctl.infoValue("ginp_rtxuc","ds","", key)
+  end,
+  UpstreamGINPRTxUC = function (mapping, params, key)
+    return xdslctl.infoValue("ginp_rtxuc","us","", key)
+  end,
+  DownstreamGINPLEFTRS = function (mapping, params, key)
+    return xdslctl.infoValue("ginp_leftrs","ds","", key)
+  end,
+  UpstreamGINPLEFTRS = function (mapping, params, key)
+    return xdslctl.infoValue("ginp_leftrs","us","", key)
+  end,
+  DownstreamGINPMinEFTR = function (mapping, params, key)
+    return xdslctl.infoValue("ginp_mineftr","ds","", key)
+  end,
+  UpstreamGINPMinEFTR = function (mapping, params, key)
+    return xdslctl.infoValue("ginp_mineftr","us","", key)
+  end,
+  DownstreamGINPErrFreeBits = function (mapping, params, key)
+    return xdslctl.infoValue("ginp_errfreebits","ds","", key)
+  end,
+  UpstreamGINPErrFreeBits = function (mapping, params, key)
+    return xdslctl.infoValue("ginp_errfreebits","us","", key)
+  end,
+  GINPStatus = function (mapping, params, key)
+    return xdslctl.infoValue("ginp_status","","", key)
+  end,
+  VectoringDirectionMode = function (mapping, params, key)
+    return xdslctl.infoValue("vectoring_directionmode", "", "", key)
+  end,
+  VectoringRxBitSwapMode = function (mapping, params, key)
+    return xdslctl.infoValue("vectoring_rxbitswapmode", "", "", key)
+  end,
+  VectoringDisableVNMode = function (mapping, params, key)
+    return xdslctl.infoValue("vectoring_disablevnmode", "", "", key)
+  end,
+  VectoringVceAddress = function (mapping, params, key)
+    return xdslctl.infoValue("vectoring_vceaddress", "", "", key)
+  end,
+  VectoringCntESPktSend = function (mapping, params, key)
+    return xdslctl.infoValue("vectoring_cntespktsend", "", "", key)
+  end,
+  VectoringCntESPktDrop = function (mapping, params, key)
+    return xdslctl.infoValue("vectoring_cntespktdrop", "", "", key)
+  end,
+  VectoringCntESStatSend = function (mapping, params, key)
+    return xdslctl.infoValue("vectoring_cntesstatsend", "", "", key)
+  end,
+  VectoringCntESStatDrop = function (mapping, params, key)
+    return xdslctl.infoValue("vectoring_cntesstatdrop", "", "", key)
+  end,
+  FirmwareVersion = function (mapping, params, key)
+    return xdslctl.infoValue("firmware_version", "", "", key)
+  end,
+  UpstreamFramingR = function (mapping, params, key)
+    return xdslctl.infoValue("framing_r", "us", "", key)
+  end,
+  DownstreamFramingR = function (mapping, params, key)
+    return xdslctl.infoValue("framing_r", "ds", "", key)
+  end,
+  UpstreamFramingS = function (mapping, params, key)
+    return xdslctl.infoValue("framing_s", "us", "", key)
+  end,
+  DownstreamFramingS = function (mapping, params, key)
+    return xdslctl.infoValue("framing_s", "ds", "", key)
+  end,
+  UpstreamFramingD = function (mapping, params, key)
+    return xdslctl.infoValue("framing_d", "us", "", key)
+  end,
+  DownstreamFramingD = function (mapping, params, key)
+    return xdslctl.infoValue("framing_d", "ds", "", key)
+  end,
+  UpstreamFramingL = function (mapping, params, key)
+    return xdslctl.infoValue("framing_l", "us", "", key)
+  end,
+  DownstreamFramingL = function (mapping, params, key)
+    return xdslctl.infoValue("framing_l", "ds", "", key)
+  end,
+  UpstreamFramingN = function (mapping, params, key)
+    return xdslctl.infoValue("framing_n", "us", "", key)
+  end,
+  DownstreamFramingN = function (mapping, params, key)
+    return xdslctl.infoValue("framing_n", "ds", "", key)
+  end,
+  UpstreamOR = function (mapping, params, key)
+    return xdslctl.infoValue("counters_or", "us", "", key)
+  end,
+  DownstreamOR = function (mapping, params, key)
+    return xdslctl.infoValue("counters_or", "ds", "", key)
+  end,
+  UpstreamINP = function (mapping, params, key)
+    return xdslctl.infoValue("counters_inp", "us", "", key)
+  end,
+  DownstreamINP = function (mapping, params, key)
+    return xdslctl.infoValue("counters_inp", "ds", "", key)
+  end,
+  UpstreamDelay = function (mapping, params, key)
+    return xdslctl.infoValue("counters_delay", "us", "", key)
+  end,
+  DownstreamDelay = function (mapping, params, key)
+    return xdslctl.infoValue("counters_delay", "ds", "", key)
+  end,
+  UpstreamTrellis = function (mapping, params, key)
+    return xdslctl.infoValue("trellis", "us", "", key)
+  end,
+  DownstreamTrellis = function (mapping, params, key)
+    return xdslctl.infoValue("trellis", "ds", "", key)
+  end,
+  ACTINP = function (mapping, params, key)
+    return xdslctl.infoValue("ACTINP", "", "", key)
+  end,
+  DownstreamACTSNRMODE = function (mapping, params, key)
+    return xdslctl.infoValue("ACTSNRMODE", "ds", "", key)
+  end,
+  UpstreamACTSNRMODE = function (mapping, params, key)
+    return xdslctl.infoValue("ACTSNRMODE", "us", "", key)
+  end,
+  ACTUALCE = function (mapping, params, key)
+    return xdslctl.infoValue("ACTUALCE", "", "", key)
+  end,
+  ActualInterleavingDelay = function (mapping, params, key)
+    return xdslctl.infoValue("ActualInterleavingDelay", "", "", key)
+  end,
+  AllowedProfiles = function (mapping, params, key)
+    return xdslctl.infoValue("AllowedProfiles", "", "", key)
+  end,
+  DownstreamHLOGG = function (mapping, params, key)
+    return xdslctl.infoValue("HLOGG", "ds", "", key)
+  end,
+  UpstreamHLOGG = function (mapping, params, key)
+    return xdslctl.infoValue("HLOGG", "us", "", key)
+  end,
+  DownstreamHLOGMT = function (mapping, params, key)
+    return xdslctl.infoValue("HLOGMT", "ds", "", key)
+  end,
+  UpstreamHLOGMT = function (mapping, params, key)
+    return xdslctl.infoValue("HLOGMT", "us", "", key)
+  end,
+  DownstreamHLOGps = function (mapping, params, key)
+    return xdslctl.infoValue("HLOGps", "ds", "", key)
+  end,
+  UpstreamHLOGps = function (mapping, params, key)
+    return xdslctl.infoValue("HLOGps", "us", "", key)
+  end,
+  DownstreamINMCC = function (mapping, params, key)
+    return xdslctl.infoValue("INMCCds", "", "", key)
+  end,
+  DownstreamINMIATO = function (mapping, params, key)
+    return xdslctl.infoValue("INMIATOds", "", "", key)
+  end,
+  DownstreamINMIATS = function (mapping, params, key)
+    return xdslctl.infoValue("INMIATSds", "", "", key)
+  end,
+  DownstreamINMINPEQMODE = function (mapping, params, key)
+    return xdslctl.infoValue("INMINPEQMODEds", "", "", key)
+  end,
+  INPREPORT = function (mapping, params, key)
+    return xdslctl.infoValue("INPREPORT", "", "", key)
+  end,
+  INTLVBLOCK = function (mapping, params, key)
+    return xdslctl.infoValue("INTLVBLOCK", "", "", key)
+  end,
+  INTLVDEPTH = function (mapping, params, key)
+    return xdslctl.infoValue("INTLVDEPTH", "", "", key)
+  end,
+  ProfileName = function (mapping,params,key)
+    local curmode = xdslctl.infoValue("mode",nil,nil, key)
+    if curmode and find(curmode,"VDSL") then
+      return xdslctl.infoValue("vdsl2profile",nil,nil,key)
+    else
+      return ""
+    end
+  end,
+  DownstreamLATN = function (mapping, params, key)
+    return xdslctl.infoValue("LATN", "ds", "", key)
+  end,
+  UpstreamLATN = function (mapping, params, key)
+    return xdslctl.infoValue("LATN", "us", "", key)
+  end,
+  LIMITMASK = function (mapping, params, key)
+    return xdslctl.infoValue("LIMITMASK", "", "", key)
+  end,
+  LPATH = function (mapping, params, key)
+    return xdslctl.infoValue("LPATH", "", "", key)
+  end,
+  LSYMB = function (mapping, params, key)
+    return xdslctl.infoValue("LSYMB", "", "", key)
+  end,
+  DownstreamLastStateTransmitted = function (mapping, params, key)
+    return xdslctl.infoValue("LastStateTransmitted", "ds", "", key)
+  end,
+  UpstreamLastStateTransmitted = function (mapping, params, key)
+    return xdslctl.infoValue("LastStateTransmitted", "us", "", key)
+  end,
+  LineEncoding = function (mapping, params, key)
+    return xdslctl.infoValue("LineEncoding", "", "", key)
+  end,
+  LinkEncapsulationSupported = function (mapping, params, key)
+    return xdslctl.infoValue("LinkEncapsulationSupported", "", "", key)
+  end,
+  LinkEncapsulationRequested = function (mapping, params, key)
+    return xdslctl.infoValue("LinkEncapsulationRequested", "", "", key)
+  end,
+  LinkEncapsulationUsed = function (mapping, params, key)
+    return xdslctl.infoValue("LinkEncapsulationUsed", "", "", key)
+  end,
+  LinkStatus = function (mapping, params, key)
+    return xdslctl.infoValue("LinkStatus", "", "", key)
+  end,
+  DownstreamMREFPSD = function (mapping, params, key)
+    return xdslctl.infoValue("MREFPSD", "ds", "", key)
+  end,
+  UpstreamMREFPSD = function (mapping, params, key)
+    return xdslctl.infoValue("MREFPSD", "us", "", key)
+  end,
+  NFEC = function (mapping, params, key)
+    return xdslctl.infoValue("NFEC", "", "", key)
+  end,
+  RFEC = function (mapping, params, key)
+    return xdslctl.infoValue("RFEC", "", "", key)
+  end,
+  DownstreamQLNMT = function (mapping, params, key)
+    return xdslctl.infoValue("QLNMT", "ds", "", key)
+  end,
+  UpstreamQLNMT = function (mapping, params, key)
+    return xdslctl.infoValue("QLNMT", "us", "", key)
+  end,
+  DownstreamQLNps = function (mapping, params, key)
+    return xdslctl.infoValue("QLNps", "ds", "", key)
+  end,
+  UpstreamQLNps = function (mapping, params, key)
+    return xdslctl.infoValue("QLNps", "us", "", key)
+  end,
+  DownstreamSATN = function (mapping, params, key)
+    return xdslctl.infoValue("SATN", "ds", "", key)
+  end,
+  UpstreamSATN = function (mapping, params, key)
+    return xdslctl.infoValue("SATN", "us", "", key)
+  end,
+  DownstreamSNRG = function (mapping, params, key)
+    return xdslctl.infoValue("SNRG", "ds", "", key)
+  end,
+  UpstreamSNRG = function (mapping, params, key)
+    return xdslctl.infoValue("SNRG", "us", "", key)
+  end,
+  DownstreamSNRMT = function (mapping, params, key)
+    return xdslctl.infoValue("SNRMT", "ds", "", key)
+  end,
+  UpstreamSNRMT = function (mapping, params, key)
+    return xdslctl.infoValue("SNRMT", "us", "", key)
+  end,
+  DownstreamSNRMpb = function (mapping, params, key)
+    return xdslctl.infoValue("SNRMpb", "ds", "", key)
+  end,
+  UpstreamSNRMpb = function (mapping, params, key)
+    return xdslctl.infoValue("SNRMpb", "us", "", key)
+  end,
+  DownstreamSNRps = function (mapping, params, key)
+    return xdslctl.infoValue("SNRps", "ds", "", key)
+  end,
+  UpstreamSNRps = function (mapping, params, key)
+    return xdslctl.infoValue("SNRps", "us", "", key)
+  end,
+  StandardUsed = function (mapping, params, key)
+    return xdslctl.infoValue("StandardUsed", "", "", key)
+  end,
+  StandardsSupported = function (mapping, params, key)
+    return xdslctl.infoValue("StandardsSupported", "", "", key)
+  end,
+  SuccessFailureCause = function (mapping, params, key)
+    return xdslctl.infoValue("SuccessFailureCause", "", "", key)
+  end,
+  UPBOKLE = function (mapping, params, key)
+    return xdslctl.infoValue("UPBOKLE", "", "", key)
+  end,
+  US0MASK = function (mapping, params, key)
+    return xdslctl.infoValue("US0MASK", "", "", key)
+  end,
+  DownstreamVirtualNoisePSD = function (mapping, params, key)
+    return xdslctl.infoValue("VirtualNoisePSD", "ds", "", key)
+  end,
+  UpstreamVirtualNoisePSD = function (mapping, params, key)
+    return xdslctl.infoValue("VirtualNoisePSD", "us", "", key)
+  end,
+  XTUCANSIRev = function (mapping, params, key)
+    return xdslctl.infoValue("XTUCANSIRev", "", "", key)
+  end,
+  XTUCANSIStd = function (mapping, params, key)
+    return xdslctl.infoValue("XTUCANSIStd", "", "", key)
+  end,
+  XTUCCountry = function (mapping, params, key)
+    return xdslctl.infoValue("XTUCCountry", "", "", key)
+  end,
+  XTUCVendor = function (mapping, params, key)
+    return xdslctl.infoValue("XTUCVendor", "", "", key)
+  end,
+  XTURANSIRev = function (mapping, params, key)
+    return xdslctl.infoValue("XTURANSIRev", "", "", key)
+  end,
+  XTURANSIStd = function (mapping, params, key)
+    return xdslctl.infoValue("XTURANSIStd", "", "", key)
+  end,
+  XTURCountry = function (mapping, params, key)
+    return xdslctl.infoValue("XTURCountry", "", "", key)
+  end,
+  XTURVendor = function (mapping, params, key)
+    return xdslctl.infoValue("XTURVendor", "", "", key)
+  end,
+  PowerManagementState = function (mapping, params, key)
+    return xdslctl.infoValue("linkpowerstate", "", "", key)
+  end,
+  PacketsReceived = function (mapping, param, key)
+    local val = xdslctl.infoValue("counters_datacells", "ds", "", key)
+    return getValue(param, val)
+  end,
+  PacketsSent = function (mapping, param, key)
+    local val = xdslctl.infoValue("counters_datacells", "us", "", key)
+    return getValue(param, val)
+  end,
+  ErrorsReceived = function (mapping, param, key)
+    local val = xdslctl.infoValue("counters_biterr", "ds", "", key)
+    return getValue(param, val)
+  end,
+  ErrorsSent = function (mapping, param, key)
+    local val = xdslctl.infoValue("counters_biterr", "us", "", key)
+    return getValue(param, val)
+  end,
+  CurrentProfile = function (mapping, params, key)
+    return xdslctl.infoValue("vdsl2profile", "", "", key)
+  end,
+  DiscardPacketsReceived = function (mapping, params, key)
+    return xdslctl.infoValue("counters_dropcells", "ds", "", key)
+  end,
+  DiscardPacketsSent = function (mapping, params, key)
+    return xdslctl.infoValue("counters_dropcells", "us", "", key)
+  end,
+  DownstreamACTATP = function (mapping, params, key)
+    return xdslctl.infoValue("ACTATP", "ds", "", key)
+  end,
+  UpstreamACTATP = function (mapping, params, key)
+    return xdslctl.infoValue("ACTATP", "us", "", key)
+  end,
+  DownstreamACTPSD = function (mapping, params, key)
+    return xdslctl.infoValue("ACTPSD", "us", "", key)
+  end,
+  UpstreamACTPSD = function (mapping, params, key)
+    return xdslctl.infoValue("ACTPSD", "us", "", key)
+  end,
+  DownstreamBITSps = function (mapping, params, key)
+    return xdslctl.infoValue("BITSps", "ds", "", key)
+  end,
+  UpstreamBITSps = function (mapping, params, key)
+    return xdslctl.infoValue("BITSps", "us", "", key)
+  end,
+  DownstreamHLINps = function (mapping, params, key)
+    return xdslctl.infoValue("HLINps", "ds", "", key)
+  end,
+  UpstreamHLINps = function (mapping, params, key)
+    return xdslctl.infoValue("HLINps", "ds", "", key)
+  end,
+  RetrainReason = function (mapping, params, key)
+    return xdslctl.infoValue("lrtr", "", "", key)
+  end,
+  UpstreamSuperFrames = function (mapping, param, key)
+    local val = xdslctl.infoValue("counters_ohf", "us", "", key)
+    return getValue(param, val)
+  end,
+  DownstreamSuperFrames = function (mapping, param, key)
+    local val = xdslctl.infoValue("counters_ohf", "ds", "", key)
+    return getValue(param, val)
+  end,
+  UpstreamSuperFrameErrors = function (mapping, param, key)
+    local val =  xdslctl.infoValue("counters_ohferr", "us", "", key)
+    return getValue(param, val)
+  end,
+  DownstreamSuperFrameErrors = function (mapping, param, key)
+    local val = xdslctl.infoValue("counters_ohferr", "ds", "", key)
+    return getValue(param, val)
+  end,
+  UpstreamRSWords = function (mapping, param, key)
+    local val = xdslctl.infoValue("counters_rs", "us", "", key)
+    return getValue(param, val)
+  end,
+  DownstreamRSWords = function (mapping, param, key)
+    local val = xdslctl.infoValue("counters_rs", "ds", "", key)
+    return getValue(param, val)
+  end,
+  UpstreamRSCorrectableErrors = function (mapping, param, key)
+    local val = xdslctl.infoValue("counters_rscorr", "us", "", key)
+    return getValue(param, val)
+  end,
+  DownstreamRSCorrectableErrors = function (mapping, param, key)
+    local val = xdslctl.infoValue("counters_rscorr", "ds", "", key)
+    return getValue(param, val)
+  end,
+  UpstreamRSUncorrectableErrors = function (mapping, param, key)
+    local val = xdslctl.infoValue("counters_rsuncorr", "us", "", key)
+    return getValue(param, val)
+  end,
+  DownstreamRSUncorrectableErrors = function (mapping, param, key)
+    local val = xdslctl.infoValue("counters_rsuncorr", "ds", "", key)
+    return getValue(param, val)
+  end,
+  UpstreamOCDErrors = function (mapping, param, key)
+    local val = xdslctl.infoValue("counters_ocd", "us", "", key)
+    return getValue(param, val)
+  end,
+  DownstreamOCDErrors = function (mapping, param, key)
+    local val = xdslctl.infoValue("counters_ocd", "ds", "", key)
+    return getValue(param, val)
+  end,
+  UpstreamLCDErrors = function (mapping, param, key)
+    local val = xdslctl.infoValue("counters_lcd", "us", "", key)
+    return getValue(param, val)
+  end,
+  DownstreamLCDErrors = function (mapping, param, key)
+    local val = xdslctl.infoValue("counters_lcd", "ds", "", key)
+    return getValue(param, val)
+  end,
+  UpstreamTotalCells = function (mapping, param, key)
+    local val = xdslctl.infoValue("counters_totalcells", "us", "", key)
+    return getValue(param, val)
+  end,
+  DownstreamTotalCells = function (mapping, param, key)
+    local val = xdslctl.infoValue("counters_totalcells", "ds", "", key)
+    return getValue(param, val)
+  end,
+  UpstreamFramingK = function (mapping, params, key)
+    return xdslctl.infoValue("framing_K", "us", "", key)
+  end,
+  DownstreamFramingK = function (mapping, params, key)
+    return xdslctl.infoValue("framing_K", "ds", "", key)
+  end,
+  Reset = "0",
+}
+
+sys_class_xdsl_.getall = function(mapping, key)
+  local stats
+  local values = {}
+  local keys = {"status", "currentrate", "maxrate", "snr", "attn" ,"pwr", "counters_delay"}
+
+  values["Enable"] = uci_helper.get_from_uci(uci_binding_enable)
+  values["RNCEnable"] = uci_helper.get_from_uci(uci_binding_rnc)
+
+  values["BondingSupport"] = uci_helper.get_from_uci(uci_binding_bonding_support)
+  values["BondingStatus"] = getBondingStatus()
+  values["Reset"] = "0"
+
+  values["ModulationType"] = getMode(key)
+  stats = xdslctl.infoValueList(keys,key)
+  if stats["status"] ~= nil then
+    if stats["status"] == "Showtime" then
+      values["Status"] = "Up"
+    elseif stats["status"] == "Idle" then
+      values["Status"] = "NoSignal"
+    else
+      values["Status"] = "Initializing"
+    end
+  else
+    values["Status"] = "Initializing"
+  end
+
+  if(stats["currentrate"] ~= nil) then
+    values["UpstreamCurrRate"] = stats["currentrate"]["us"]
+    values["DownstreamCurrRate"] = stats["currentrate"]["ds"]
+    values["UpstreamMaxRate"] = stats["maxrate"]["us"]
+    values["DownstreamMaxRate"] = stats["maxrate"]["ds"]
+    values["UpstreamNoiseMargin"] = stats["snr"]["us"]
+    values["DownstreamNoiseMargin"] = stats["snr"]["ds"]
+    values["UpstreamAttenuation"] = stats["attn"]["us"]
+    values["DownstreamAttenuation"] = stats["attn"]["ds"]
+    values["UpstreamPower"] = stats["pwr"]["us"]
+    values["DownstreamPower"] = stats["pwr"]["ds"]
+    values["DownstreamDelay"] = stats["counters_delay"]["ds"]
+  else
+    values["UpstreamCurrRate"] = ""
+    values["DownstreamCurrRate"] = ""
+    values["UpstreamMaxRate"] = ""
+    values["DownstreamMaxRate"] = ""
+    values["UpstreamNoiseMargin"] = ""
+    values["DownstreamNoiseMargin"] = ""
+    values["UpstreamAttenuation"] = ""
+    values["DownstreamAttenuation"] = ""
+    values["UpstreamPower"] = ""
+    values["DownstreamPower"] = ""
+    values["DownstreamDelay"] = ""
+  end
+  values["BytesSent"] = getStats("tx_bytes")
+  values["BytesReceived"] = getStats("rx_bytes")
+  values["BitLoading"] = xdslctl.getBitLoading(key)
+  stats = xdslctl.allstats(key)
+
+  if(stats["sincesync"] ~= nil) then
+    values["TotalStart"] = tostring(cache["TotalStart"] and (stats["total"]["time"] - cache["TotalStart"]) or stats["total"]["time"])
+    values["ShowtimeStart"] = stats["sincesync"]["time"]
+    values["CurrentDayStart"] = stats["currentday"]["start"]
+    values["CurrentQuarterStart"] = stats["currentquarter"]["start"]
+    values["UpstreamFECTotal"] = stats["total"]["fec"]["us"]
+    values["DownstreamFECTotal"] = stats["total"]["fec"]["ds"]
+    values["UpstreamCRCTotal"] = tostring(cache["UpstreamCRCTotal"] and (stats["total"]["crc"]["us"] - cache["UpstreamCRCTotal"]) or stats["total"]["crc"]["us"])
+    values["DownstreamCRCTotal"] = tostring(cache["DownstreamCRCTotal"] and (stats["total"]["crc"]["ds"] - cache["DownstreamCRCTotal"]) or stats["total"]["crc"]["ds"])
+    values["UpstreamHECTotal"] = tostring(cache["UpstreamHECTotal"] and (stats["total"]["hec"]["us"] - cache["UpstreamHECTotal"]) or stats["total"]["hec"]["us"])
+    values["DownstreamHECTotal"] = tostring(cache["DownstreamHECTotal"] and (stats["total"]["hec"]["ds"] - cache["DownstreamHECTotal"]) or stats["total"]["hec"]["ds"])
+    values["UpstreamESTotal"] = tostring(cache["UpstreamESTotal"] and (stats["total"]["es"]["us"] - cache["UpstreamESTotal"]) or stats["total"]["es"]["us"])
+    values["DownstreamESTotal"] = tostring(cache["DownstreamESTotal"] and (stats["total"]["es"]["ds"] - cache["DownstreamESTotal"]) or stats["total"]["es"]["ds"])
+    values["UpstreamSESTotal"] = tostring(cache["UpstreamSESTotal"] and (stats["total"]["ses"]["us"] - cache["UpstreamSESTotal"]) or stats["total"]["ses"]["us"])
+    values["DownstreamSESTotal"] = tostring(cache["DownstreamSESTotal"] and (stats["total"]["ses"]["ds"] - cache["DownstreamSESTotal"]) or stats["total"]["ses"]["ds"])
+    values["UpstreamUASTotal"] = tostring(cache["UpstreamUASTotal"] and (stats["total"]["uas"]["us"] - cache["UpstreamUASTotal"]) or stats["total"]["uas"]["us"])
+    values["DownstreamUASTotal"] = tostring(cache["DownstreamUASTotal"] and (stats["total"]["uas"]["ds"] - cache["DownstreamUASTotal"]) or stats["total"]["uas"]["ds"])
+    values["UpstreamLOSTotal"] = stats["total"]["los"]["us"]
+    values["DownstreamLOSTotal"] = stats["total"]["los"]["ds"]
+    values["UpstreamLOFTotal"] = stats["total"]["lof"]["us"]
+    values["DownstreamLOFTotal"] = stats["total"]["lof"]["ds"]
+    values["UpstreamLOMTotal"] = stats["total"]["lom"]["us"]
+    values["DownstreamLOMTotal"] = stats["total"]["lom"]["ds"]
+    values["LinkRetrainTotal"] = stats["total"]["retr"]
+    values["UpstreamFECCurrentQuarter"] = stats["currentquarter"]["fec"]["us"]
+    values["DownstreamFECCurrentQuarter"] = stats["currentquarter"]["fec"]["ds"]
+    values["DownstreamFECCurrentQuarter"] = stats["currentquarter"]["crc"]["us"]
+    values["UpstreamCRCCurrentQuarter"] = stats["currentquarter"]["crc"]["us"]
+    values["DownstreamCRCCurrentQuarter"] = stats["currentquarter"]["crc"]["ds"]
+    values["UpstreamHECCurrentQuarter"] = stats["currentquarter"]["hec"]["us"]
+    values["DownstreamHECCurrentQuarter"] = stats["currentquarter"]["hec"]["ds"]
+    values["UpstreamESCurrentQuarter"] = stats["currentquarter"]["es"]["us"]
+    values["DownstreamESCurrentQuarter"] = stats["currentquarter"]["es"]["ds"]
+    values["UpstreamSESCurrentQuarter"] = stats["currentquarter"]["ses"]["us"]
+    values["DownstreamSESCurrentQuarter"] = stats["currentquarter"]["ses"]["ds"]
+    values["UpstreamUASCurrentQuarter"] = stats["currentquarter"]["uas"]["us"]
+    values["DownstreamUASCurrentQuarter"] = stats["currentquarter"]["uas"]["ds"]
+    values["UpstreamLOSCurrentQuarter"] = stats["currentquarter"]["los"]["us"]
+    values["DownstreamLOSCurrentQuarter"] = stats["currentquarter"]["los"]["ds"]
+    values["UpstreamLOFCurrentQuarter"] = stats["currentquarter"]["lof"]["us"]
+    values["DownstreamLOFCurrentQuarter"] = stats["currentquarter"]["lof"]["ds"]
+    values["UpstreamLOMCurrentQuarter"] = stats["currentquarter"]["lom"]["us"]
+    values["DownstreamLOMCurrentQuarter"] = stats["currentquarter"]["lom"]["ds"]
+    values["LinkRetrainCurrentQuarter"] = stats["currentquarter"]["retr"]
+    values["UpstreamFECPreviousQuarter"] = stats["previousquarter"]["fec"]["us"]
+    values["DownstreamFECPreviousQuarter"] = stats["previousquarter"]["fec"]["ds"]
+    values["UpstreamCRCPreviousQuarter"] = stats["previousquarter"]["crc"]["us"]
+    values["DownstreamCRCPreviousQuarter"] = stats["previousquarter"]["crc"]["ds"]
+    values["UpstreamHECPreviousQuarter"] = stats["previousquarter"]["hec"]["us"]
+    values["DownstreamHECPreviousQuarter"] = stats["previousquarter"]["hec"]["ds"]
+    values["UpstreamESPreviousQuarter"] = stats["previousquarter"]["es"]["us"]
+    values["DownstreamESPreviousQuarter"] = stats["previousquarter"]["es"]["ds"]
+    values["UpstreamSESPreviousQuarter"] = stats["previousquarter"]["ses"]["us"]
+    values["DownstreamSESPreviousQuarter"] = stats["previousquarter"]["ses"]["ds"]
+    values["UpstreamUASPreviousQuarter"] = stats["previousquarter"]["uas"]["us"]
+    values["DownstreamUASPreviousQuarter"] = stats["previousquarter"]["uas"]["ds"]
+    values["UpstreamLOSPreviousQuarter"] = stats["previousquarter"]["los"]["us"]
+    values["DownstreamLOSPreviousQuarter"] = stats["previousquarter"]["los"]["ds"]
+    values["UpstreamLOFPreviousQuarter"] = stats["previousquarter"]["lof"]["us"]
+    values["DownstreamLOFPreviousQuarter"] = stats["previousquarter"]["lof"]["ds"]
+    values["UpstreamLOMPreviousQuarter"] = stats["previousquarter"]["lom"]["us"]
+    values["DownstreamLOMPreviousQuarter"] =  stats["previousquarter"]["lom"]["ds"]
+    values["LinkRetrainPreviousQuarter"] = stats["previousquarter"]["retr"]
+    values["UpstreamFECCurrentDay"] = stats["currentday"]["fec"]["us"]
+    values["DownstreamFECCurrentDay"] =  stats["currentday"]["fec"]["ds"]
+    values["UpstreamCRCCurrentDay"] = stats["currentday"]["crc"]["us"]
+    values["DownstreamCRCCurrentDay"] = stats["currentday"]["crc"]["ds"]
+    values["UpstreamHECCurrentDay"] = stats["currentday"]["hec"]["us"]
+    values["DownstreamHECCurrentDay"] = stats["currentday"]["hec"]["ds"]
+    values["UpstreamESCurrentDay"] = stats["currentday"]["es"]["us"]
+    values["DownstreamESCurrentDay"] = stats["currentday"]["es"]["ds"]
+    values["UpstreamSESCurrentDay"] = stats["currentday"]["ses"]["us"]
+    values["DownstreamSESCurrentDay"] = stats["currentday"]["ses"]["ds"]
+    values["UpstreamUASCurrentDay"] = stats["currentday"]["uas"]["us"]
+    values["DownstreamUASCurrentDay"] = stats["currentday"]["uas"]["ds"]
+    values["UpstreamLOSCurrentDay"] = stats["currentday"]["los"]["us"]
+    values["DownstreamLOSCurrentDay"] = stats["currentday"]["los"]["ds"]
+    values["UpstreamLOFCurrentDay"] = stats["currentday"]["lof"]["us"]
+    values["DownstreamLOFCurrentDay"] = stats["currentday"]["lof"]["ds"]
+    values["UpstreamLOMCurrentDay"] = stats["currentday"]["lom"]["us"]
+    values["DownstreamLOMCurrentDay"] = stats["currentday"]["lom"]["ds"]
+    values["LinkRetrainCurrentDay"] = stats["currentday"]["retr"]
+    values["UpstreamFECPreviousDay"] = stats["previousday"]["fec"]["us"]
+    values["DownstreamFECPreviousDay"] =  stats["previousday"]["fec"]["ds"]
+    values["UpstreamCRCPreviousDay"] = stats["previousday"]["crc"]["us"]
+    values["DownstreamCRCPreviousDay"] = stats["previousday"]["crc"]["ds"]
+    values["UpstreamESPreviousDay"] = stats["previousday"]["es"]["us"]
+    values["DownstreamESPreviousDay"] = stats["previousday"]["es"]["ds"]
+    values["UpstreamSESPreviousDay"] = stats["previousday"]["ses"]["us"]
+    values["DownstreamSESPreviousDay"] = stats["previousday"]["ses"]["ds"]
+    values["UpstreamUASPreviousDay"] = stats["previousday"]["uas"]["us"]
+    values["DownstreamUASPreviousDay"] = stats["previousday"]["uas"]["ds"]
+    values["UpstreamLOSPreviousDay"] = stats["previousday"]["los"]["us"]
+    values["DownstreamLOSPreviousDay"] = stats["previousday"]["los"]["ds"]
+    values["UpstreamLOFPreviousDay"] = stats["previousday"]["lof"]["us"]
+    values["DownstreamLOFPreviousDay"] = stats["previousday"]["lof"]["ds"]
+    values["UpstreamLOMPreviousDay"] = stats["previousday"]["lom"]["us"]
+    values["DownstreamLOMPreviousDay"] = stats["previousday"]["lom"]["ds"]
+    values["LinkRetrainPreviousDay"] = stats["previousday"]["retr"]
+    values["UpstreamFECSinceSync"] = stats["sincesync"]["fec"]["us"]
+    values["DownstreamFECSinceSync"] =  stats["sincesync"]["fec"]["ds"]
+    values["UpstreamCRCSinceSync"] = stats["sincesync"]["crc"]["us"]
+    values["DownstreamCRCSinceSync"] = stats["sincesync"]["crc"]["ds"]
+    values["UpstreamHECSinceSync"] = stats["sincesync"]["hec"]["us"]
+    values["DownstreamHECSinceSync"] = stats["sincesync"]["hec"]["ds"]
+    values["UpstreamESSinceSync"] = stats["sincesync"]["es"]["us"]
+    values["DownstreamESSinceSync"] = stats["sincesync"]["es"]["ds"]
+    values["UpstreamSESSinceSync"] = stats["sincesync"]["ses"]["us"]
+    values["DownstreamSESSinceSync"] = stats["sincesync"]["ses"]["ds"]
+    values["UpstreamUASSinceSync"] = stats["sincesync"]["uas"]["us"]
+    values["DownstreamUASSinceSync"] = stats["sincesync"]["uas"]["ds"]
+    values["UpstreamLOSSinceSync"] = stats["sincesync"]["los"]["us"]
+    values["DownstreamLOSSinceSync"] = stats["sincesync"]["los"]["ds"]
+    values["UpstreamLOFSinceSync"] = stats["sincesync"]["lof"]["us"]
+    values["DownstreamLOFSinceSync"] = stats["sincesync"]["lof"]["ds"]
+    values["UpstreamLOMSinceSync"] = stats["sincesync"]["lom"]["us"]
+    values["DownstreamLOMSinceSync"] = stats["sincesync"]["lom"]["ds"]
+    values["LinkRetrainSinceSync"] = stats["sincesync"]["retr"]
+    values["DownstreamESLastShowtime"] = stats["lastshowtime"]["es"]["ds"]
+    values["UpstreamESLastShowtime"] = stats["lastshowtime"]["es"]["us"]
+    values["DownstreamSESLastShowtime"] = stats["lastshowtime"]["ses"]["ds"]
+    values["UpstreamSESLastShowtime"] = stats["lastshowtime"]["ses"]["us"]
+    values["DownstreamCRCLastShowtime"] = stats["lastshowtime"]["crc"]["ds"]
+    values["UpstreamCRCLastShowtime"] = stats["lastshowtime"]["crc"]["us"]
+    values["DownstreamFECLastShowtime"] = stats["lastshowtime"]["fec"]["ds"]
+    values["UpstreamFECLastShowtime"] = stats["lastshowtime"]["fec"]["us"]
+    values["DownstreamHECLastShowtime"] = stats["lastshowtime"]["hec"]["ds"]
+    values["UpstreamHECLastShowtime"] = stats["lastshowtime"]["hec"]["us"]
+    values["LastShowtimeStart"] = stats["lastshowtime"]["start"]
+      for k,_ in pairs(values) do
+        if values[k] == nil then
+            values[k] = ""
+        end
+      end
+    end
+  return values
+end
+
+sys_class_xdsl_.set = {
+  Enable = function(mapping, param, value)
+    uci_helper.set_on_uci(uci_binding_enable, value, mapping.commitapply)
+    uci_helper.commit(uci_binding_enable)
+    return true
+  end,
+  RNCEnable = function(mapping, param, value)
+    uci_helper.set_on_uci(uci_binding_rnc, value, mapping.commitapply)
+    uci_helper.commit(uci_binding_rnc)
+    return true
+  end,
+  VPI = function(mapping, param, value)
+    uci_helper.set_on_uci(uci_binding_vpi, value, mapping.commitapply)
+    uci_helper.commit(uci_binding_vpi)
+    return true
+  end,
+  VCI = function(mapping, param, value)
+    uci_helper.set_on_uci(uci_binding_vci, value, mapping.commitapply)
+    uci_helper.commit(uci_binding_vci)
+    return true
+  end,
+  BondingSupport = function(mapping, param, value)
+    uci_helper.set_on_uci(uci_binding_bonding_support, value, mapping.commitapply)
+    uci_helper.commit(uci_binding_bonding_support)
+    return true
+  end,
+  Reset = function(mapping, param, value, key)
+    -- Resetting the stats only for the below params to increase the performance
+    --  UpstreamCRCTotal, DownstreamCRCTotal
+    --  UpstreamHECTotal, DownstreamHECTotal
+    --  UpstreamESTotal, DownstreamESTotal
+    --  UpstreamSESTotal, DownstreamSESTotal
+    --  UpstreamUASTotal, DownstreamUASTotal
+    --  PacketsReceived, PacketsSent
+    --  ErrorsReceived, ErrorsSent
+    --  UpstreamSuperFrames, DownstreamSuperFrames
+    --  UpstreamSuperFrameErrors, DownstreamSuperFrameErrors
+    --  UpstreamRSWords, DownstreamRSWords
+    --  UpstreamRSCorrectableErrors, DownstreamRSCorrectableErrors
+    --  UpstreamRSUncorrectableErrors, DownstreamRSUncorrectableErrors
+    --  UpstreamOCDErrors, DownstreamOCDErrors
+    --  UpstreamLCDErrors, DownstreamLCDErrors
+    --  UpstreamTotalCells, DownstreamTotalCells
+    if value == "1" and getStatus() == "Up" then
+      cache = {}
+      cache["TotalStart"] = xdslctl.stats("total","start", "", key)
+      cache["DownstreamCRCTotal"] = xdslctl.stats("total","crc","ds", key)
+      cache["UpstreamCRCTotal"] = xdslctl.stats("total","crc","us", key)
+      cache["DownstreamSuperFrames"] = xdslctl.infoValue("counters_ohf", "ds", "", key)
+      cache["UpstreamSuperFrames"] = xdslctl.infoValue("counters_ohf", "us", "", key)
+      cache["DownstreamSuperFrameErrors"] = xdslctl.infoValue("counters_ohferr", "ds", "", key)
+      cache["UpstreamSuperFrameErrors"] = xdslctl.infoValue("counters_ohferr", "us", "", key)
+      cache["DownstreamRSWords"] = xdslctl.infoValue("counters_rs", "ds", "", key)
+      cache["UpstreamRSWords"] = xdslctl.infoValue("counters_rs", "us", "", key)
+      cache["DownstreamRSCorrectableErrors"] = xdslctl.infoValue("counters_rscorr", "ds", "", key)
+      cache["UpstreamRSCorrectableErrors"] = xdslctl.infoValue("counters_rscorr", "us", "", key)
+      cache["DownstreamRSUncorrectableErrors"] = xdslctl.infoValue("counters_rsuncorr", "ds", "", key)
+      cache["UpstreamRSUncorrectableErrors"] = xdslctl.infoValue("counters_rsuncorr", "us", "", key)
+      cache["DownstreamHECTotal"] = xdslctl.stats("total","hec","ds", key)
+      cache["UpstreamHECTotal"] = xdslctl.stats("total","hec","us", key)
+      cache["DownstreamOCDErrors"] = xdslctl.infoValue("counters_ocd", "ds", "", key)
+      cache["UpstreamOCDErrors"] = xdslctl.infoValue("counters_ocd", "us", "", key)
+      cache["DownstreamLCDErrors"] = xdslctl.infoValue("counters_lcd", "ds", "", key)
+      cache["UpstreamLCDErrors"] = xdslctl.infoValue("counters_lcd", "us", "", key)
+      cache["DownstreamTotalCells"] = xdslctl.infoValue("counters_totalcells", "ds", "", key)
+      cache["UpstreamTotalCells"] = xdslctl.infoValue("counters_totalcells", "us", "", key)
+      cache["PacketsReceived"] = xdslctl.infoValue("counters_datacells", "ds", "", key)
+      cache["PacketsSent"] = xdslctl.infoValue("counters_datacells", "us", "", key)
+      cache["ErrorsReceived"] = xdslctl.infoValue("counters_biterr", "ds", "", key)
+      cache["ErrorsSent"] = xdslctl.infoValue("counters_biterr", "us", "", key)
+      cache["DownstreamESTotal"] = xdslctl.stats("total","es","ds", key)
+      cache["UpstreamESTotal"] = xdslctl.stats("total","es","us", key)
+      cache["DownstreamSESTotal"] = xdslctl.stats("total","ses","ds", key)
+      cache["UpstreamSESTotal"] = xdslctl.stats("total","ses","us", key)
+      cache["DownstreamUASTotal"] = xdslctl.stats("total","uas","ds", key)
+      cache["UpstreamUASTotal"] = xdslctl.stats("total","uas","us", key)
+    else
+      cache = {}
+    end
+  end,
+}
+
+local function entriesInterfaces(mapping)
+  local intfs = {}
+  table.insert(intfs, "line0")
+  if xdslctl.isBondingSupported() then
+    table.insert(intfs, "line1")
+  end
+  return intfs;
+end
+
+local function setUbusEvent(mapping, action, data)
+  if data and data["status"] == "Idle" then
+    cache = {}
+  end
+end
+
+sys_class_xdsl_.add_watchers = function(mapping)
+  local ubusEventSource = eventsource("ubus")
+  ubusEventSource.watch_event(mapping, setUbusEvent, "xdsl")
+end
+
+sys_class_xdsl_.entries = entriesInterfaces
+sys_class_xdsl_.commitapply = commitapply
+
+register(sys_class_xdsl_)

@@ -1,0 +1,1071 @@
+-- Automatically generated from InternetGatewayDevice:1.4
+-- using generator version 2.1
+local WANPPPConnection = {
+  objectType = {
+    name = "InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANPPPConnection.{i}.",
+    access = "readOnly",  -- readWrite currently not supported
+    numEntriesParameter = "WANPPPConnectionNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      Reset = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      ConnectionStatus = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Unconfigured",
+          "Connecting",
+          "Authenticating",
+          "Connected",
+          "PendingDisconnect",
+          "Disconnecting",
+          "Disconnected",
+        },
+      },
+      PossibleConnectionTypes = {
+        access = "readOnly",
+        list = true,
+        type = "string",
+        enumeration = {
+          "Unconfigured",
+          "IP_Routed",
+          "DHCP_Spoofed",
+          "PPPoE_Bridged",
+          "PPPoE_Relay",
+          "PPTP_Relay",
+          "L2TP_Relay",
+        },
+      },
+      ConnectionType = {
+        access = "readOnly",  -- readWrite currently not supported
+        type = "string",
+        enumeration = {
+          "Unconfigured",
+          "IP_Routed",
+          "DHCP_Spoofed",
+          "PPPoE_Bridged",
+          "PPPoE_Relay",
+          "PPTP_Relay",
+          "L2TP_Relay",
+        },
+      },
+      PPPoESessionID = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+      DefaultGateway = {
+        access = "readOnly",
+        type = "string",
+      },
+      Name = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      Uptime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      LastConnectionError = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "ERROR_NONE",
+          "ERROR_ISP_TIME_OUT",
+          "ERROR_COMMAND_ABORTED",
+          "ERROR_NOT_ENABLED_FOR_INTERNET",
+          "ERROR_BAD_PHONE_NUMBER",
+          "ERROR_USER_DISCONNECT",
+          "ERROR_ISP_DISCONNECT",
+          "ERROR_IDLE_DISCONNECT",
+          "ERROR_FORCED_DISCONNECT",
+          "ERROR_SERVER_OUT_OF_RESOURCES",
+          "ERROR_RESTRICTED_LOGON_HOURS",
+          "ERROR_ACCOUNT_DISABLED",
+          "ERROR_ACCOUNT_EXPIRED",
+          "ERROR_PASSWORD_EXPIRED",
+          "ERROR_AUTHENTICATION_FAILURE",
+          "ERROR_NO_DIALTONE",
+          "ERROR_NO_CARRIER",
+          "ERROR_NO_ANSWER",
+          "ERROR_LINE_BUSY",
+          "ERROR_UNSUPPORTED_BITSPERSECOND",
+          "ERROR_TOO_MANY_LINE_ERRORS",
+          "ERROR_IP_CONFIGURATION",
+          "ERROR_UNKNOWN",
+        },
+        default = "ERROR_NONE",
+      },
+      AutoDisconnectTime = {
+        access = "readOnly",  -- readWrite currently not supported
+        type = "unsignedInt",
+      },
+      IdleDisconnectTime = {
+        access = "readOnly",  -- readWrite currently not supported
+        type = "unsignedInt",
+      },
+      WarnDisconnectDelay = {
+        access = "readOnly",  -- readWrite currently not supported
+        type = "unsignedInt",
+      },
+      RSIPAvailable = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      NATEnabled = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      Username = {
+        access = "readWrite",
+        type = "string",
+        max = "64",
+        default = "",
+      },
+      Password = {
+        access = "readWrite",
+        hidden = "true",
+        type = "string",
+        max = "64",
+        default = "",
+      },
+      PPPEncryptionProtocol = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "None",
+          "MPPE",
+        },
+      },
+      PPPCompressionProtocol = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "None",
+          "Van Jacobsen",
+          "STAC LZS",
+        },
+      },
+      PPPAuthenticationProtocol = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "PAP",
+          "CHAP",
+          "MS-CHAP",
+        },
+      },
+      ExternalIPAddress = {
+        access = "readOnly",
+        type = "string",
+      },
+      RemoteIPAddress = {
+        access = "readOnly",
+        type = "string",
+      },
+      MaxMRUSize = {
+        access = "readOnly",  -- readWrite currently not supported
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+            max = "1540",
+          },
+        },
+      },
+      CurrentMRUSize = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+            max = "1540",
+          },
+        },
+      },
+      DNSEnabled = {
+        access = "readOnly",  -- readWrite currently not supported
+        type = "boolean",
+        default = "true",
+      },
+      DNSOverrideAllowed = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      DNSServers = {
+        access = "readWrite",
+        list = true,
+        max = "64",
+        type = "string",
+      },
+      MACAddress = {
+        access = "readOnly",  -- readWrite currently not supported
+        type = "string",
+      },
+      MACAddressOverride = {
+        access = "readOnly",  -- readWrite currently not supported
+        type = "boolean",
+      },
+      TransportType = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "PPPoA",
+          "PPPoE",
+          "L2TP",
+          "PPTP",
+        },
+      },
+      PPPoEACName = {
+        access = "readOnly",  -- readWrite currently not supported
+        type = "string",
+        max = "256",
+        default = "",
+      },
+      PPPoEServiceName = {
+        access = "readOnly",  -- readWrite currently not supported
+        type = "string",
+        max = "256",
+        default = "",
+      },
+      ConnectionTrigger = {
+        access = "readOnly",  -- readWrite currently not supported
+        type = "string",
+        enumeration = {
+          "OnDemand",
+          "AlwaysOn",
+          "Manual",
+        },
+        default = "OnDemand",
+      },
+      RouteProtocolRx = {
+        access = "readOnly",  -- readWrite currently not supported
+        type = "string",
+        enumeration = {
+          "Off",
+          "RIPv1",
+          "RIPv2",
+          "OSPF",
+        },
+        default = "Off",
+      },
+      PPPLCPEcho = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      PPPLCPEchoRetry = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      ShapingRate = {
+        access = "readOnly",  -- readWrite currently not supported
+        type = "int",
+        range = {
+          {
+            min = "-1",
+          },
+        },
+        default = "-1",
+      },
+      ShapingBurstSize = {
+        access = "readOnly",  -- readWrite currently not supported
+        type = "unsignedInt",
+        default = "0",
+      },
+      X_000E50_IPv6_Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      X_000E50_VLANID = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+            max = "4095",
+          },
+        },
+      },
+      X_000E50_ExternalIPv6Address = {
+        access = "readOnly",
+        type = "string",
+      },
+      X_QoSEnable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "true",
+        description = "To enable or disable the QoS for the interface"
+      },
+      X_PBIT = {
+	access = "readWrite",
+	type = "unsignedInt",
+	default = "0",
+	range = {
+	  {
+	    min = "0",
+	    max = "7",
+	  },
+	},
+        description = "To set the pcp value in Qos for the interface"
+      },
+      -- PortMappingNumberOfEntries
+      -- automatically created when InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.
+      -- WANPPPConnection.{i}.PortMapping.{i}. is loaded
+    }
+  }
+}
+
+local mapper, register, eventsource = mapper, register, eventsource
+local common = mapper("nwcommon")
+local getIntfStats = common.getIntfStats
+local uci_helper = mapper("ucihelper")
+-- function aliases
+local get_from_uci = uci_helper.get_from_uci
+local set_on_uci = uci_helper.set_on_uci
+local interface2zone = common.interface2zone
+local type, ipairs, tostring, tonumber = type, ipairs, tostring, tonumber
+local match = string.match
+local open = io.open
+local query_keys = query_keys
+local concat = table.concat
+
+local wanconnection = require 'transformer.shared.wanconnection'
+local commitapply = commitapply
+local xtmconnection = require 'transformer.shared.models.igd.xtmconnection'
+local device_key = xtmconnection.resolve_key
+local qosBinding = { config = "qos" }
+local networkBinding = { config = "network" }
+
+-- convert pppstate to ConnectionStatus
+local pppstatemap = {
+  ["connected"]      = "Connected",
+  ["disconnected"]   = "Disconnected",
+  ["disconnecting"]  = "Disconnecting",
+  ["authenticating"] = "Authenticating",
+  ["connecting"]     = "Connecting"
+}
+
+-- convert ubus pppoe error to LastConnectionError
+local lastconnectionerrormap = {
+  ["OK"]="ERROR_NONE",
+  ["FATAL_ERROR"]="ERROR_COMMAND_ABORTED",
+  ["OPTION_ERROR"]="ERROR_COMMAND_ABORTED",
+  ["NOT_ROOT"]="ERROR_COMMAND_ABORTED",
+  ["NO_KERNEL_SUPPORT"]="ERROR_COMMAND_ABORTED",
+  ["USER_REQUEST"]="ERROR_USER_DISCONNECT",
+  ["LOCK_FAILED"]="ERROR_COMMAND_ABORTED",
+  ["OPEN_FAILED"]="ERROR_COMMAND_ABORTED",
+  ["CONNECT_FAILED"]="ERROR_COMMAND_ABORTED",
+  ["PTYCMD_FAILED"]="ERROR_COMMAND_ABORTED",
+  ["NEGOTIATION_FAILED"]="ERROR_FORCED_DISCONNECT",
+  ["PEER_AUTH_FAILED"]="ERROR_FORCED_DISCONNECT",
+  ["IDLE_TIMEOUT"]="ERROR_IDLE_DISCONNECT",
+  ["CONNECT_TIME"]="ERROR_ISP_DISCONNECT",
+  ["CALLBACK"]="ERROR_COMMAND_ABORTED",
+  ["PEER_DEAD"]="ERROR_FORCED_DISCONNECT",
+  ["HANGUP"]="ERROR_ISP_DISCONNECT",
+  ["LOOPBACK"]="ERROR_COMMAND_ABORTED",
+  ["INIT_FAILED"]="ERROR_COMMAND_ABORTED",
+  ["AUTH_TOPEER_FAILED"]="ERROR_ISP_DISCONNECT",
+  ["TRAFFIC_LIMIT"]="ERROR_ISP_DISCONNECT",
+  ["CNID_AUTH_FAILED"]="ERROR_USER_DISCONNECT",
+  ["UNKNOWN_ERROR"]="ERROR_UNKNOWN"
+}
+-- convert proto to TransportType
+local protomap = {
+  ["pppoe"]="PPPoE",
+  ["pppoa"]="PPPoA"
+}
+
+local function getDeviceName(mapping, key)
+  local interface = mapping._conn:getName(key)
+  return common.getIntfName(interface)
+end
+
+local function checkVlanDevice(device)
+  networkBinding.sectionname = device
+  networkBinding.option = "type"
+  local devtype = get_from_uci(networkBinding)
+  return devtype == "8021q"
+end
+
+local function getDNSOverrideAllowed(mapping, param, key)
+  networkBinding.sectionname = mapping._conn:getName(key)
+  networkBinding.option = "peerdns"
+  return get_from_uci(networkBinding)
+end
+
+local function getKeepAlive(_, param, key)
+  local binding = { config = "network", sectionname = "wan", option = "keepalive", default = "" }
+  local keepalive = get_from_uci(binding)
+  if keepalive == "" then
+    -- if no keepalive configured it is considered `5,1`; see `keepalive` UCI specification
+    keepalive = "5,1"
+  end
+  -- typical keepalive pattern: `5,10`
+  local retry, echo = keepalive:match("^(%d+),(%d+)")
+  if param == "PPPLCPEchoRetry" then
+    return retry or ""
+  elseif param == "PPPLCPEcho" then
+    return echo or ""
+  end
+end
+
+WANPPPConnection.connection = wanconnection.Connection('ppp', commitapply)
+
+WANPPPConnection.entries = function(mapping, parentkey)
+  local conn, keys = mapping.connection:load(parentkey)
+  mapping._cache = mapping._cache or {}
+  mapping._cache[parentkey] = conn
+  return keys
+end
+
+local param_to_option_map = {
+  Username = "username",
+  Password = "password",
+  IdleDisconnectTime = "demand",
+  MaxMRUSize = "mtu",
+  PPPoEACName = "ac",
+  PPPoEServiceName = "service",
+}
+
+local param_defaults = {
+  IdleDisconnectTime = "0",
+  MaxMRUSize = "1492",
+}
+
+local function getInterfaceOption(mapping, param, key)
+  local option = param_to_option_map[param]
+  if not option then
+    -- if this happens, your mapping is wrong
+    return ""
+  end
+  return mapping._conn:getInterfaceOption(key, option, param_defaults[param] or "")
+end
+
+local function setInterfaceOption(mapping, param, value, key)
+  local option = param_to_option_map[param]
+  if not option then
+    -- if this happens, your mapping is wrong
+    return nil, "no option mapping for "..param
+  end
+  local conn = mapping._conn
+  local v = conn:getInterfaceOption(key, option)
+  if value~=v then
+    local config = conn:setInterfaceOption(key, option, value)
+    if not config then
+      -- on this error the sdev entry is missing in the wanconfig for this intf.
+      return nil, "device not active and no sensing device specified"
+    end
+  end
+end
+
+local function translate_cb(mapping, action, config, sectiontype, sectionname, option)
+  local paramname
+  if option == "username" then
+    paramname = "Username"
+  elseif option == "password" then
+    paramname = "Password"
+  else
+    return
+  end
+  local keys = query_keys(mapping)
+  local pattern = "^" .. sectionname
+  local events = {}
+  for _, keyset in ipairs(keys) do
+    local key = keyset[1]
+    if match(key, pattern) then
+      events[#events + 1] = { key = key, paramname = paramname }
+    end
+  end
+  return events
+end
+
+local intf_info = {}
+local function get_intf_info(intf)
+  local info = intf_info[intf]
+  if not info then
+    info = {}
+    intf_info[intf] = info
+  end
+  return info
+end
+
+local function ip_intf_event(mapping, intf, msg)
+  local trigger
+  local addresses = msg["ipv4-address"]
+  local old_ip = intf.ipv4
+  local old_mask = intf.ipv4mask
+  local events = {}
+  if addresses and #addresses <= 1 then
+    local addr = addresses[1] or {}
+    trigger = (old_ip ~= addr.address) or (old_mask ~= addr.mask)
+    intf.ipv4 = addr.address
+    intf.ipv4mask = addr.mask
+  else
+    -- no or multiple addresses
+    trigger = true
+    intf.ipv4 = nil
+    intf.ipv4mask = nil
+  end
+
+  if trigger then
+    if msg.interface and type(msg.interface) == "string" then
+      local keys = query_keys(mapping)
+      local pattern = "^" .. msg["interface"]
+
+      for _, keyset in ipairs(keys) do
+        local key = keyset[1]
+        if match(key, pattern) then
+          events[#events + 1] = { key = key, paramname = "ExternalIPAddress" }
+        end
+      end --for
+    end --msg.interface...
+  end
+
+  return events
+end
+
+local function ppp_intf_event(mapping, intf, msg)
+  local pppstate = msg.pppinfo.pppstate
+  local events = {}
+
+  if intf.pppstate ~= pppstate then
+    intf.pppstate = pppstate
+    if msg.interface and type(msg.interface) == "string" then
+      local keys = query_keys(mapping)
+      local pattern = "^" .. msg["interface"]
+
+      for _, keyset in ipairs(keys) do
+        local key = keyset[1]
+        if match(key, pattern) then
+          events[#events + 1] = { key = key, paramname = "ConnectionStatus" }
+        end
+      end --for
+    end --if msg.interface...
+  end
+
+  return events
+end
+
+local function intf_action(mapping, intf, msg)
+  local action = msg.action
+  local events = {}
+
+  if intf.action ~= action then
+    intf.action = action
+    if msg.interface and type(msg.interface) == "string" then
+      local keys = query_keys(mapping)
+      local pattern = "^" .. msg["interface"]
+
+      for _, keyset in ipairs(keys) do
+        local key = keyset[1]
+        if match(key, pattern) then
+          events[#events + 1] = { key = key, paramname = "DNSServers" }
+        end
+      end --for
+    end --if msg.interface...
+  end --if intf.action
+
+  return events
+end
+
+local function network_interface_event(mapping, event, msg)
+  local intf = get_intf_info(msg.interface)
+  if msg["ipv4-address"] then
+    return ip_intf_event(mapping, intf, msg)
+  end
+  if msg["pppinfo"] then
+    return ppp_intf_event(mapping, intf, msg)
+  end
+  if msg["action"] then
+    return intf_action(mapping, intf, msg)
+  end
+end
+
+WANPPPConnection.add_watchers = function(mapping)
+  local uci_evsrc = eventsource("uci")
+  uci_evsrc.watch(mapping, { set = translate_cb }, "network", "interface", nil, "username")
+  uci_evsrc.watch(mapping, { set = translate_cb }, "network", "interface", nil, "password")
+  local ubus_evsrc = eventsource("ubus")
+  ubus_evsrc.watch_event(mapping, network_interface_event, "network.interface")
+end
+
+local getters = {
+  Enable = function(mapping, param, key)
+    return mapping._conn:getInterfaceOption(key, "auto", "1", "0")
+  end,
+  Reset = "0",
+  ConnectionStatus = function(mapping, param, key)
+    local status = mapping._conn:getInterfaceStatus(key)
+    if status and status.data and status.data.pppinfo then
+      local pppstate = pppstatemap[status.data.pppinfo.pppstate]
+      if pppstate ~= nil then
+        return pppstate
+      end
+    end
+    return "Disconnected"
+  end,
+  PossibleConnectionTypes = "IP_Routed",
+  ConnectionType = "IP_Routed",
+  PPPoESessionID = function (mapping, param, key)
+    local info = mapping._conn:getPPPoEInfo(key)
+    if info then
+      return tostring(tonumber(info.ID, 16))
+    end
+    return "1"
+  end,
+  DefaultGateway = function(mapping, param, key)
+    local status = mapping._conn:getInterfaceStatus(key)
+    if status and status.route then
+      for _, route in ipairs(status.route) do
+        if route.target == '0.0.0.0' and route.mask == 0 then
+          return route.nexthop
+        end
+      end
+    end
+    return ""
+  end,
+  Name = function(mapping, param, key)
+    return mapping._conn:getName(key)
+  end,
+  Uptime = function(mapping, param, key)
+    local status = mapping._conn:getInterfaceStatus(key)
+    if status and status.uptime then
+      return tostring(status.uptime)
+    end
+    return "0"
+  end,
+  LastConnectionError = function(mapping, param, key)
+    local status = mapping._conn:getInterfaceStatus(key)
+    local errors = status and status.errors
+    if errors then
+      for _, v in ipairs(errors) do
+        if v.subsystem:match("^pppo[ea]") then
+          local err = lastconnectionerrormap[v.code]
+          if err then
+            return err
+          end
+        end
+      end
+      return "ERROR_UNKNOWN"
+    end
+    return "ERROR_NONE"
+  end,
+  AutoDisconnectTime = "0",
+  IdleDisconnectTime = getInterfaceOption,
+  WarnDisconnectDelay = "0",
+  RSIPAvailable = "0", -- Realm-specific IP (see http://en.wikipedia.org/wiki/Realm-Specific_IP) not available
+  NATEnabled = function(mapping, param, key)
+    -- find out the firewall zone containing the key
+    -- interface and return its masq flag
+    local interface = mapping._conn:getInterface(key)
+    local zoneinfo = interface2zone(interface)
+    if (zoneinfo and tonumber(zoneinfo.masq) == 1) then
+      return "1"
+    end
+    return "0"
+  end,
+  Username = getInterfaceOption,
+  Password = getInterfaceOption,
+  PPPEncryptionProtocol = "None", -- not supported
+  PPPCompressionProtocol = "None", -- not supported
+  PPPAuthenticationProtocol = function(mapping, param, key)
+    local status = mapping._conn:getInterfaceStatus(key)
+    if status and status.data and status.data.pppinfo then
+      return status.data.pppinfo.auth or ""
+    end
+    return ""
+  end,
+  ExternalIPAddress = function(mapping, param, key)
+    local status = mapping._conn:getInterfaceStatus(key)
+    local ipv4 = status and status['ipv4-address']
+    if ipv4 and #ipv4 > 0 and ipv4[1].address then
+      return ipv4[1].address
+    end
+    return ""
+  end,
+  RemoteIPAddress = function(mapping, param, key)
+    local status = mapping._conn:getInterfaceStatus(key)
+    if status and status.route then
+      for _, route in ipairs(status.route) do
+        if route.target == '0.0.0.0' and route.mask == 0 then
+          return route.nexthop
+        end
+      end
+    end
+    return ""
+  end,
+  MaxMRUSize = getInterfaceOption,
+  CurrentMRUSize = function(mapping, param, key)
+    local conn = mapping._conn
+    if conn:isActive(key) then
+      return conn:getPhysicalInfo(key, "mtu", "L3") or ""
+    end
+    return ""
+  end,
+  DNSEnabled = "1", -- use dns servers provided by ppp
+  DNSOverrideAllowed = getDNSOverrideAllowed,
+  DNSServers = function(mapping, param, key)
+    local interface = mapping._conn:getInterface(key)
+    networkBinding.sectionname = interface
+    networkBinding.option = "dns"
+    local dnsServers = get_from_uci(networkBinding)
+    dnsServers = dnsServers ~= "" and dnsServers or {}
+    local dynamicDns = {}
+    local intfStatus = mapping._conn:getInterfaceStatus(key)
+    if intfStatus and intfStatus['dns-server'] then
+      dynamicDns = intfStatus['dns-server'] or {}
+    end
+    for _, v in ipairs(dynamicDns) do
+      dnsServers[#dnsServers + 1] = v
+    end
+    local duplicates = {}
+    local uniqueDnsServers = {}
+    for _, v in ipairs(dnsServers) do
+      if not duplicates[v] then
+        uniqueDnsServers[#uniqueDnsServers + 1] = v
+        duplicates[v] = true
+      end
+    end
+    return concat(uniqueDnsServers, ",")
+  end,
+  MACAddress = function(mapping, param, key)
+    return mapping._conn:getPhysicalInfo(key, "address", "L2")
+  end,
+  MACAddressOverride = "0",
+  TransportType = function(mapping, param, key)
+    local proto = mapping._conn:getInterfaceOption(key, "proto") or ""
+    return protomap[proto] or ""
+  end,
+  PPPoEACName = getInterfaceOption, -- get ac parameter from network.key uci (only present for pppoe)
+  PPPoEServiceName = getInterfaceOption,-- get service parameter from network.key uci (only present for pppoe)
+  ConnectionTrigger = "AlwaysOn",
+  RouteProtocolRx = "Off",
+  PPPLCPEcho = getKeepAlive,
+  PPPLCPEchoRetry = getKeepAlive,
+  ShapingRate = "-1", -- No shaping
+  ShapingBurstSize = "0", -- No Shaping
+  X_000E50_IPv6_Enable = function(mapping, param, key)
+    local conn = mapping._conn
+    if conn:getInterfaceDhcp6(key) then
+      return conn:getInterfaceOption(key, "ipv6", "1")
+    end
+    return "0"
+  end,
+  X_000E50_VLANID = function(mapping, param, key)
+    local d = mapping._conn.entries[key]
+    if d and d.vlanid then
+      return d.vlanid
+    end
+    return '-1'
+  end,
+  X_000E50_ExternalIPv6Address = function(mapping, param, key)
+    local v = mapping._conn:getInterfaceStatus(key)
+    v = v and v['ipv6-address']
+    v = v and v[1]
+    return (v and v['address']) or ""
+  end,
+  X_QoSEnable = function(mapping, param, key)
+    qosBinding.sectionname = mapping._conn:getName(key)
+    qosBinding.option = "enable"
+    qosBinding.default = "1"
+    return get_from_uci(qosBinding)
+  end,
+  X_PBIT = function(mapping, param, key)
+    qosBinding.sectionname = getDeviceName(mapping, key)
+    qosBinding.option = "pcp"
+    qosBinding.default = "0"
+    return get_from_uci(qosBinding)
+  end,
+}
+
+-- TODO: add getall() implementation
+
+
+local function setDNSOverrideAllowed(mapping, param, value, key)
+    networkBinding.sectionname = mapping._conn:getName(key)
+    networkBinding.option = "peerdns"
+    set_on_uci(networkBinding, value, commitapply)
+    mapping._conn.transactions[networkBinding.config] = true
+end
+
+WANPPPConnection.get = function(mapping, param, key, parentKey)
+	local value, err
+	mapping._conn = mapping._cache[parentKey]
+	local f = getters[param]
+	if type(f)=='string' then
+		value = f
+	else
+		value, err = f(mapping, param, key, parentKey)
+	end
+	return value, err
+end
+
+local setters = {
+  Enable =  function (mapping, param, value, key)
+    local conn = mapping._conn
+    local entry = conn.entries[key]
+    if not entry.wanconfig or entry.wanconfig.acs_control == "1" then
+      conn:setInterfaceOption(key, "auto", value)
+    else
+      if value ~= mapping.get.Enable(mapping, param, key) then
+        return nil, "Device under wansensing control"
+      end
+    end
+  end,
+  Reset = function(mapping, param, value, key)
+    if value == "1" then
+      local interface = mapping._conn:getInterface(key)
+      local file_handler = open("/tmp/.ppp_intf","w")
+      if file_handler then
+        file_handler:write(interface)
+        file_handler:close()
+        commitapply:newset("InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANPPPConnection.{i}.Reset")
+      else
+        return nil, "unexpected write error"
+      end
+    else
+      return true
+    end
+  end,
+  Name = function(mapping, param, value, key)
+    mapping._conn:setName(key, value)
+  end,
+  NATEnabled = function(mapping, param, value, key)
+    local interface = mapping._conn:getInterface(key)
+    local zoneinfo = interface2zone(interface)
+    local section = "@zone[" .. zoneinfo[".index"] .. "]"
+    local binding = {config = "firewall", sectionname = section, option = "masq", extended = true}
+    set_on_uci(binding, value, commitapply)
+    mapping._conn.transactions[binding.config] = true
+  end,
+  Username = setInterfaceOption,
+  Password = setInterfaceOption,
+  X_000E50_IPv6_Enable = function(mapping, param, value, key)
+    local conn = mapping._conn
+    if conn:getInterfaceDhcp6(key) then
+      local config = conn:setInterfaceOption(key, 'ipv6', value)
+      if not config then
+        return nil, "device not active and no sensing device specified"
+      end
+      return true
+    end
+    return nil, "IPv6 is not supported on this WANPPPConnection"
+  end,
+  X_000E50_VLANID = function(mapping, param, value, key, parentkey)
+    local config, error = mapping._conn:setVlan(key, value)
+    if not config and error then
+      return nil, error
+    end
+  end,
+  X_QoSEnable = function(mapping, param, value, key)
+    local name = mapping._conn:getName(key)
+    qosBinding.sectionname = name
+    local qosParams = uci_helper.getall_from_uci(qosBinding)
+    local sectionFound = next(qosParams)
+    -- create an interface section and set the option if the section does not exist
+    if not sectionFound then
+      qosBinding.option = nil
+      set_on_uci(qosBinding, "interface")
+      mapping._conn.transactions[qosBinding.config] = true
+    end
+    qosBinding.option = "enable"
+    set_on_uci(qosBinding, value, commitapply)
+    mapping._conn.transactions[qosBinding.config] = true
+  end,
+  X_PBIT = function(mapping, param, value, key)
+    local devname = getDeviceName(mapping, key)
+    if checkVlanDevice(devname) then
+      qosBinding.sectionname = devname
+      qosBinding.option = "pcp"
+      set_on_uci(qosBinding, value, commitapply)
+      mapping._conn.transactions[qosBinding.config] = true
+    else
+      return nil, "underlying device is not vlan device, PBIT cannot be set"
+    end
+  end,
+  DNSServers  = function(mapping, param, value, key)
+    local interface = mapping._conn:getInterface(key)
+    local dnsServers = {}
+    for dns in value:gmatch("[^,]+") do
+      dnsServers[#dnsServers + 1] = dns
+    end
+    networkBinding.sectionname = interface
+    networkBinding.option = "dns"
+    set_on_uci(networkBinding, dnsServers, commitapply)
+    mapping._conn.transactions[networkBinding.config] = true
+  end,
+  DNSOverrideAllowed = setDNSOverrideAllowed,
+}
+
+WANPPPConnection.set = function(mapping, param, value, key, parentkey)
+	local result
+	local err = "no setter"
+	mapping._conn = mapping._cache[parentkey]
+	local f = setters[param]
+	if f then
+		result, err = f(mapping, param, value, key, parentkey)
+		mapping._conn = nil
+	end
+	return result, err
+end
+
+WANPPPConnection.commit = function(mapping)
+	mapping.connection:commit()
+	mapping._cache = nil
+end
+
+WANPPPConnection.revert = function(mapping)
+	mapping.connection:revert()
+	mapping._cache = nil
+end
+
+register(WANPPPConnection)
+
+
+-- Automatically generated from InternetGatewayDevice:1.3
+-- using generator version 2.1
+local WANPPPConnection_Stats = {
+  objectType = {
+    name = "InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANPPPConnection.{i}.Stats.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      EthernetBytesSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      EthernetBytesReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      EthernetPacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      EthernetPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      EthernetBroadcastPacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      EthernetBroadcastPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      EthernetUnicastPacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      EthernetUnicastPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      EthernetMulticastPacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      EthernetMulticastPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      EthernetErrorsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      EthernetErrorsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      EthernetDiscardPacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      EthernetDiscardPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      EthernetUnknownProtoPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+    }
+  },
+  parent = WANPPPConnection,
+}
+
+local stats_map = {
+  EthernetBytesSent = "tx_bytes",
+  EthernetBytesReceived = "rx_bytes",
+  EthernetPacketsSent = "tx_packets",
+  EthernetPacketsReceived = "rx_packets",
+  EthernetDiscardPacketsSent = "tx_dropped",
+  EthernetDiscardPacketsReceived = "rx_dropped",
+  EthernetErrorsSent = "tx_errors",
+  EthernetErrorsReceived = "rx_errors"
+}
+
+local stats_ext_map = {
+  EthernetUnicastPacketsSent = "tx_unicast",
+  EthernetUnicastPacketsReceived = "rx_unicast",
+  EthernetMulticastPacketsSent = "txpckt",
+  EthernetMulticastPacketsReceived = "multicast",
+  EthernetBroadcastPacketsSent = "tx_broadcast",
+  EthernetBroadcastPacketsReceived = "rx_broadcast",
+  EthernetUnknownProtoPacketsReceived = "rxerr",
+}
+
+
+WANPPPConnection_Stats.get = function(mapping, param, key, parentkey)
+  local conn = mapping.parent._cache[parentkey]
+  local option = stats_map[param]
+  if option then
+    return conn:getPhysicalInfo(key, option, "L3") or "0"
+  elseif stats_ext_map[param] then
+    local devname = conn:getDevice(key)
+    if devname then
+      return getIntfStats(device_key(devname), stats_ext_map[param], "0")
+    end
+  end
+  return "0"
+end
+
+register(WANPPPConnection_Stats)

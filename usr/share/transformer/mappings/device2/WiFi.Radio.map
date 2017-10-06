@@ -1,0 +1,775 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+-- NG-88834 The radio status for 2.4 is displaying wrongly
+-- NG-94984 Workaround NG-94414 - GUI error when setting Device.WiFi.Radio.i.OperatingStandards
+local Device_WiFi_Radio_i_ = {
+  objectType = {
+    name = "Device.WiFi.Radio.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "RadioNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Up",
+          "Down",
+          "Unknown",
+          "Dormant",
+          "NotPresent",
+          "LowerLayerDown",
+          "Error",
+        },
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        max  = "64",
+      },
+      Name = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      LastChange = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      LowerLayers = {
+        access = "readOnly", -- this is the lowest layer
+        list = true,
+        max = "1024",
+        type = "string",
+        pathRef = true,
+      },
+      Upstream = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      MaxBitRate = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      SupportedFrequencyBands = {
+        access = "readOnly",
+        list = true,
+        type = "string",
+        enumeration = {
+          "2.4GHz",
+          "5GHz",
+        },
+      },
+      OperatingFrequencyBand = {
+        access = "readOnly",  -- this cannot be changed
+        type = "string",
+        enumeration = {
+          "2.4GHz",
+          "5GHz",
+        },
+      },
+      SupportedStandards = {
+        access = "readOnly",
+        list = true,
+        type = "string",
+        enumeration = {
+          "a",
+          "b",
+          "g",
+          "n",
+          "ac",
+        },
+      },
+      OperatingStandards = {
+        access = "readWrite",
+        list = true,
+        type = "string",
+        enumeration = {
+          "a",
+          "b",
+          "g",
+          "n",
+          "ac",
+        },
+      },
+      PossibleChannels = {
+        access = "readOnly",
+        list = true,
+        max = "1024",
+        type = "string",
+      },
+      ChannelsInUse = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        list = true,
+        max = "1024",
+        type = "string",
+      },
+      Channel = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+            max = "255",
+          },
+        },
+      },
+      AutoChannelSupported = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      AutoChannelEnable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      AutoChannelRefreshPeriod = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "604800",
+          },
+        },
+      },
+      OperatingChannelBandwidth = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "20MHz",
+          --[[ currently not supported due to unavailable lower layer support
+          "40MHz",
+          "80MHz",
+          "160MHz",
+          --]]
+          "Auto",
+        },
+      },
+      ExtensionChannel = {
+        access = "readOnly", -- readwrite currently not supported
+        type = "string",
+        enumeration = {
+          "AboveControlChannel",
+          "BelowControlChannel",
+          "Auto",
+        },
+      },
+      GuardInterval = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          -- "400nsec", Restricting Enum values because 'sgi' will return boolean values.
+          "800nsec",
+          "Auto",
+        },
+      },
+--[[ TODO
+      MCS = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+            max = "15",
+          },
+          {
+            min = "16",
+            max = "31",
+          },
+        },
+      },
+      TransmitPowerSupported = {
+        access = "readOnly",
+        list = true,
+        max = "64",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+            max = "100",
+          },
+        },
+      },
+      TransmitPower = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+            max = "100",
+          },
+        },
+      },
+--]]
+      IEEE80211hSupported = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      IEEE80211hEnabled = {
+        access = "readOnly", -- readwrite currently not supported
+        type = "boolean",
+      },
+      RegulatoryDomain = {
+        access = "readWrite",
+        type = "string",
+        min = "3",
+        max = "3",
+      },
+--[[ TODO
+      RetryLimit = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "7",
+          },
+        },
+      },
+      CCARequest = {
+        access = "readWrite",
+        type = "hexBinary",
+        min = "11",
+        max = "11",
+      },
+      CCAReport = {
+        access = "readOnly",
+        type = "hexBinary",
+        min = "12",
+        max = "12",
+      },
+      RPIHistogramRequest = {
+        access = "readWrite",
+        type = "hexBinary",
+        min = "11",
+        max = "11",
+      },
+      RPIHistogramReport = {
+        access = "readOnly",
+        type = "hexBinary",
+        min = "19",
+        max = "19",
+      },
+      FragmentationThreshold = {
+        access = "readWrite",
+        type = "unsignedInt",
+      },
+      LongRetryLimit = {
+        access = "readWrite",
+        type = "unsignedInt",
+      },
+      PacketAggregationEnable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+--]]
+      RTSThreshold = {
+        access = "readOnly", -- readwrite currently not supported due to unavailable lower layer support
+        type = "unsignedInt",
+      },
+      PreambleType = {
+        access = "readOnly", -- readwrite currently not supported due to unavailable lower layer support
+        type = "string",
+        enumeration = {
+          "short",
+          "long",
+          "auto",
+        },
+      },
+      DTIMPeriod = {
+        access = "readOnly", -- readwrite currently not supported due to unavailable lower layer support
+        type = "unsignedInt",
+      },
+      BeaconPeriod = {
+        access = "readOnly", -- readwrite currently not supported due to unavailable lower layer support
+        type = "unsignedInt",
+      },
+      BasicDataTransmitRates = {
+        access = "readWrite",
+        list = true,
+        type = "string",
+      },
+      OperationalDataTransmitRates = {
+        access = "readWrite",
+        list = true,
+        type = "string",
+      },
+--[[ TODO
+      SupportedDataTransmitRates = {
+        access = "readOnly",
+        list = true,
+        type = "string",
+      },
+]]--
+    }
+  },
+  aliasDefault = "Name",
+}
+
+local nwmodel = require "transformer.shared.models.device2.network"
+local WifiRadio = nwmodel.register("WifiRadio", Device_WiFi_Radio_i_.objectType.name)
+local model
+local nwWifi = require "transformer.shared.wifi"
+local tostring, string, table = tostring, string, table
+local format = string.format
+local commitapply, mapper = commitapply, mapper
+local uci_helper = mapper("ucihelper")
+local conn = mapper("ubus").connect()
+local getall_from_uci = uci_helper.getall_from_uci
+local wirelessBinding = {config="wireless"}
+local posix = require("tch.posix")
+local getClockTime = posix.clock_gettime
+local lastStateChangeTime = {}
+
+-- convert ext_channel_location to ExtensionChannel
+local extChannelMap = {
+  ["upper"] = "AboveControlChannel",
+  ["lower"] = "BelowControlChannel",
+  [""] = "Auto",
+}
+
+local cache = {
+  uci = {},
+  ubus = {}
+}
+
+local function drop_cache()
+  cache.uci = {}
+  cache.ubus = {}
+end
+
+local function trim(str) --Remove leading and trailing white spaces
+  return str and string.match(str, "^%s*(.-)%s*$") or ""
+end
+
+local function getFromUci(key, option)
+  local data = cache.uci[key]
+  if not data then
+    wirelessBinding.sectionname = key
+    wirelessBinding.option = nil
+    data = getall_from_uci(wirelessBinding)
+    cache.uci[key] = data or {}
+  end
+  return data[option]
+end
+
+local function getFromUbus(key, option)
+  local data = cache.ubus[key]
+  if not data then
+    for k, info in pairs(conn:call("wireless.radio", "get", {}) or {}) do
+      cache.ubus[k] = info
+    end
+    data = cache.ubus[key] or {}
+  end
+  return data[option]
+end
+
+local function getOption(modelKey, uciOption, ubusOption)
+  local key = model:getUciKey(modelKey)
+  local value
+  if uciOption then
+    value = getFromUci(key, uciOption)
+  end
+  if not value and ubusOption then
+    value = getFromUbus(key, ubusOption)
+  end
+  return value and tostring(value)
+end
+
+local uci_changed
+local function setOption(modelKey, option, value)
+  local key = model:getUciKey(modelKey)
+  local old = getOption(key, option)
+  if value~=old then
+    cache.uci[key].option = value
+    wirelessBinding.sectionname = key
+    wirelessBinding.option = option
+    uci_helper.set_on_uci(wirelessBinding, value, commitapply)
+    uci_changed = true
+  end
+end
+
+local function end_transaction(uci_action)
+  drop_cache()
+  if uci_changed then
+    uci_action(wirelessBinding)
+    uci_changed = false
+  end
+end
+
+function Device_WiFi_Radio_i_.entries(mapping)
+  drop_cache()
+  model = nwmodel.load()
+  return model:getKeys(WifiRadio)
+end
+
+local validStds = {
+  ["2.4GHz"] = {
+    b = true,
+    g = true,
+    n = true,
+  },
+  ["5GHz"] = {
+    a = true,
+    n = true,
+    ac = true,
+  }
+}
+local stdOrder = {"b", "g", "a", "n", "ac"}
+
+local function wifiStdToList(std)
+  local r = {}
+  for v in std:gmatch("[abgn]c?") do
+    r[#r+1] = v
+  end
+  return r
+end
+
+local function formatChannelsList(channels)
+    local v = channels:gsub("%s+", ",") --replace runs of spaces with a single comma
+    return v:match("^,?(.-),?$") --get rid of possible starting and/or ending comma
+end
+
+-- Maps possible values of channelwidth with equivalent device2 datamodel channelwidth
+local channelWidthMap = {
+  ["auto"]        = "Auto",
+  ["20"]          = "20MHz",
+  ["20MHz"]       = "20MHz",
+  ["40MHz"]       = "40MHz",
+  ["80MHz"]       = "80MHz",
+  ["20/40"]       = "Auto",
+  ["20/40MHz"]    = "Auto",
+  ["20/40/80"]    = "Auto",
+  ["20/40/80MHz"] = "Auto",
+}
+
+Device_WiFi_Radio_i_.get = {
+  Enable = function(mapping, param, key)
+    return getOption(key, "state", "admin_state") or "0"
+  end,
+
+  Status = function(mapping, param, key)
+    local state = getOption(key, nil, "admin_state")
+    if state == "1" then
+      return 'Up'
+    elseif state == "0" then
+      return 'Down'
+    else
+      return 'Error'
+    end
+  end,
+
+  Name = function(mapping, param, key)
+    return model:getName(key)
+  end,
+
+  LastChange = function(mapping, param, key)
+    return tostring(getClockTime(posix.CLOCK_MONOTONIC) - (lastStateChangeTime[key] or 0))
+  end,
+
+  LowerLayers = "",
+
+  Upstream = "0",
+
+  Channel = function(mapping, param, key)
+    local channel = getOption(key, "channel") or "auto"
+    if channel=="auto" then
+      -- channel not available in uci
+      channel = getOption(key, nil, "channel") or "255"
+    end
+    return channel
+  end,
+
+  BeaconPeriod = function(mapping, param, key)
+    return getOption(key, "beacon_period", "beacon_period") or ""
+  end,
+
+  DTIMPeriod = function(mapping, param, key)
+    return getOption(key, "dtim_interval", "dtim_interval") or ""
+  end,
+
+  PreambleType = function(mapping, param, key)
+    return getOption(key, "short_slot", "short_slot") or ""
+  end,
+
+  RTSThreshold = function(mapping, param, key)
+    return getOption(key, "rts_threshold", "rts_threshold") or ""
+  end,
+
+  GuardInterval = function(mapping, param, key)
+    local value = getOption(key, "sgi", "sgi")
+    if value == "1" then
+      return "Auto"
+    end
+    return "800nsec"
+  end,
+
+  AutoChannelSupported = "1",
+
+  AutoChannelEnable = function(mapping, param, key)
+    local req = getOption(key, "channel", "requested_channel")
+    if req == "auto" then
+      return '1'
+    else
+      return '0'
+    end
+  end,
+
+  AutoChannelRefreshPeriod = function(mapping, param, key)
+    local key = model:getUciKey(key)
+    local refreshPeriod = getFromUci(key, "acs_rescan_period")
+    if not refreshPeriod then
+      local radioData = conn:call("wireless.radio.acs", "get", {}) or {}
+      refreshPeriod = radioData[key] and tostring(radioData[key]["rescan_period"]) or "0"
+    end
+    return refreshPeriod
+  end,
+
+  MaxBitRate = function(mapping, param, key)
+    return getOption(key, nil, "max_phy_rate") or ""
+  end,
+
+  SupportedFrequencyBands = function(mapping, param, key)
+    return getOption(key, nil, "supported_frequency_bands") or ""
+  end,
+
+  OperatingFrequencyBand = function(mapping, param, key)
+    return getOption(key, nil, "band") or ""
+  end,
+
+  SupportedStandards = function(mapping, param, key)
+    local standard = getOption(key, nil, "supported_standards") or ""
+    return table.concat(wifiStdToList(standard), ",")
+  end,
+
+  OperatingStandards = function(mapping, param, key)
+    local standard = getOption(key, "standard", "standard") or ""
+    return table.concat(wifiStdToList(standard), ",")
+  end,
+
+  PossibleChannels = function(mapping, param, key)
+    return formatChannelsList(getOption(key, nil, "allowed_channels") or "")
+  end,
+
+  ChannelsInUse = function(mapping, param, key)
+    return formatChannelsList(getOption(key, nil, "used_channels") or "")
+  end,
+
+  OperatingChannelBandwidth = function(mapping, param, key)
+    return channelWidthMap[getOption(key, "channelwidth", "channel_width")] or "Auto"
+  end,
+
+  RegulatoryDomain = function(mapping, param, key)
+    return getOption(key, "country", "country") or ""
+  end,
+
+  BasicDataTransmitRates = function(mapping, param, key)
+    local rateset = getOption(key, "rateset", "rateset") or ""
+    local basicrates = {}
+    for rate in rateset:gmatch("([%d.]+)%(b%)") do
+        basicrates[#basicrates+1] = rate
+    end
+    return table.concat(basicrates, ",")
+  end,
+
+  OperationalDataTransmitRates = function(mapping, param, key)
+    local rateset = getOption(key, "rateset", "rateset") or ""
+    local r = {}
+    -- only keep the rate numbers, get rid of '(b)'
+    for rate in rateset:gmatch("([%d.]+)") do
+      r[#r+1] = rate
+    end
+    return table.concat(r, ",")
+  end,
+
+  ExtensionChannel = function(mapping, param, key)
+    return extChannelMap[getOption(key, nil, "ext_channel_location") or ""] or ""
+  end,
+
+  IEEE80211hSupported = function(mapping, param, key)
+    if getOption(key, nil, "supported_frequency_bands") or "" == "5GHz" then
+      local std = getOption(key, nil, "supported_standards") or ""
+      if std:match("a?n") then
+        return "1"
+      end
+    end
+    return "0"
+  end,
+
+  IEEE80211hEnabled = function(mapping, param, key)
+    if getOption(key, nil, "band") or "" == "5GHz" then
+      local std = getOption(key, nil, "standard") or ""
+      if std:match("a?n") then
+        return "1"
+      end
+    end
+    return "0"
+  end,
+}
+
+local function setOperatingStandards(key, value, param)
+  local band = getOption(key, nil, "band") or ""
+  local setList = {}
+  local tmpstd = ""
+  local cstd = 0
+  for std in value:gmatch("(%a+),?") do
+    if not validStds[band][std] then
+      return nil, format("Setting %s on %s band is not allowed", std, band)
+    end
+	for tmp in tmpstd:gmatch("(%a+),?") do
+		if tmp == std then
+			return nil, format("You can not use the %s standart more then once", std)
+		end
+	end
+	if tmpstd == "" then
+		tmpstd = std
+	else
+		tmpstd = format("%s,%s", tmpstd, std)
+	end
+	
+	cstd = cstd + 1
+    setList[std] = true
+  end
+	if cstd < 2 then
+		if band == "5GHz" then
+			return nil, "Supported standarts are only a,n or a,n,ac"
+		else--2,4GHz
+			return nil, "Supported standarts are only b,g or b,g,n"
+		end
+	end
+  value = {}
+  for _, std in ipairs(stdOrder) do
+    if setList[std] then
+      value[#value+1] = std
+    end
+  end
+  value = table.concat(value, "")
+  setOption(key, "standard", value)
+end
+
+-- Maps equivalent "channelwidth" from device2 datamodel to uci
+-- Contains the lowerlayer supported channelwidth
+local channelWidthFromDevToUci = {
+  ["Auto"] = "auto",
+  ["20MHz"] = "20"
+}
+
+Device_WiFi_Radio_i_.set = {
+  Enable = function(mapping, param, value, key)
+    return setOption(key, "state", value)
+  end,
+
+  OperatingStandards = function(mapping, param, value, key)
+    return setOperatingStandards(key, value, param)
+  end,
+
+  Channel = function(mapping, param, value, key)
+    local allowedChannels = getOption(key, nil, "allowed_channels")
+    if not allowedChannels then
+      return setOption(key, "channel", value)
+    end
+    for channel in allowedChannels:gmatch("(%d+)") do
+      if channel == value then
+        return setOption(key, "channel", value)
+      end
+    end
+    return nil, "Given channel is not allowed"
+  end,
+
+  AutoChannelEnable = function(mapping, param, value, key)
+    -- As of now, disabling of AutoChannelEnable on a disabled radio is not handled
+    local channelValue = getOption(key, "channel") or "auto"
+    if value == "1" then
+      value = "auto"
+      if channelValue == "auto" then
+        commitapply:newset("Device.WiFi.Radio.{i}.AutoChannelEnable")
+      end
+    elseif value == "0" then
+      if channelValue ~= "auto" then
+        value = channelValue -- just keep the value already set
+      else
+        value = getOption(key, nil, "channel") or "" --use the current one
+      end
+    end
+    setOption(key, "channel", value)
+  end,
+
+  GuardInterval = function(mapping, param, value, key)
+    if value == "Auto" then
+      value = "1"
+    else
+      value = "0"
+    end
+    setOption(key, "sgi", value)
+  end,
+
+  AutoChannelRefreshPeriod = function(mapping, param, value, key)
+    if value == "0" or tonumber(value) >= 60 then
+      setOption(key, "acs_rescan_period", value)
+    else
+      return nil,"Refresh Period must be 0 (only at boottime) or at least 60s"
+    end
+  end,
+
+  OperatingChannelBandwidth = function(mapping, param, value, key)
+    local supportedChannelWidth = channelWidthFromDevToUci[value]
+    if supportedChannelWidth then
+      return setOption(key, "channelwidth", supportedChannelWidth)
+    else
+      return nil, format("Cannot set channelwidth to %s as there is no lowerlayer support", value)
+    end
+  end,
+
+  RegulatoryDomain = function(mapping, param, value, key)
+    return setOption(key, "country", value)
+  end,
+
+  BasicDataTransmitRates = function(mapping, param, value, key)
+    local rateset = getOption(key, "rateset", "rateset") or ""
+    local val, error = nwWifi.setBasicRateset(value,rateset)
+    if val then
+      setOption(key, "rateset", val)
+    else
+      return nil, error
+    end
+  end,
+
+  OperationalDataTransmitRates = function(mapping, param, value, key)
+    local rateset = getOption(key, "rateset", "rateset") or ""
+    local val, error = nwWifi.setOperationalRateset(value,rateset)
+    if val then
+      setOption(key, "rateset", val)
+    else
+      return nil, error
+    end
+  end,
+}
+
+Device_WiFi_Radio_i_.commit = function()
+  end_transaction(uci_helper.commit)
+end
+
+Device_WiFi_Radio_i_.revert = function()
+  end_transaction(uci_helper.revert)
+end
+
+local function onStateChanged(mapping, action, config, sectionType, sectionName, option)
+  lastStateChangeTime[sectionName] = getClockTime(posix.CLOCK_MONOTONIC)
+  return { { key = sectionName, paramname = "Enable" } }
+end
+
+Device_WiFi_Radio_i_.add_watchers = function(mapping, param, key)
+  local uciEventSource = eventsource("uci")
+  uciEventSource.watch(mapping, { set = onStateChanged }, "wireless", "wifi-device", key, "state")
+end
+
+register(Device_WiFi_Radio_i_)

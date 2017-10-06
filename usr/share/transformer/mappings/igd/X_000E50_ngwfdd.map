@@ -1,0 +1,81 @@
+local InternetGatewayDevice_X_000E50_ngwfdd_= {
+  objectType = {
+    name = "InternetGatewayDevice.Services.X_000E50_ngwfdd.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      Tag = {
+        access = "readWrite",
+        type = "string",
+        max = "32",
+      },
+    }
+  }
+}
+
+----------------------------------------------------------
+-- Local definitions
+-- -------------------------------------------------------
+local uci_helper = mapper("ucihelper")
+local binding={config="ngwfdd", sectionname="config"}
+
+----------------------------------------------------------
+-- Mapper implementation
+----------------------------------------------------------
+
+InternetGatewayDevice_X_000E50_ngwfdd_.get = {
+  Enable = function(mapping)
+    binding.option = "enable"
+    binding.default = "0"
+    return uci_helper.get_from_uci(binding)
+  end,
+  Tag = function(mapping)
+    binding.option = "tag"
+    binding.default = ""
+    return uci_helper.get_from_uci(binding)
+  end,
+}
+
+InternetGatewayDevice_X_000E50_ngwfdd_.getall = function(mapping)
+  local allValues = uci_helper.getall_from_uci(binding)
+  return {
+    Enable = allValues.enable or "0",
+    Tag = allValues.tag or "",
+  }
+end
+
+local setSomething
+
+InternetGatewayDevice_X_000E50_ngwfdd_.set = {
+  Enable = function(mapping, param, value)
+    binding.option = "enable"
+    uci_helper.set_on_uci(binding, value, commitapply)
+    setSomething = true
+  end,
+  Tag = function(mapping, param, value)
+    binding.option = "tag"
+    uci_helper.set_on_uci(binding, value, commitapply)
+    setSomething = true
+  end,
+}
+
+InternetGatewayDevice_X_000E50_ngwfdd_.commit = function()
+  if setSomething then
+    uci_helper.commit(binding)
+    setSomething = nil
+  end
+end
+
+InternetGatewayDevice_X_000E50_ngwfdd_.revert = function()
+  if setSomething then
+    uci_helper.revert(binding)
+    setSomething = nil
+  end
+end
+
+register(InternetGatewayDevice_X_000E50_ngwfdd_)

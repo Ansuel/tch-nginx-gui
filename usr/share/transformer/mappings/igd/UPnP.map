@@ -1,0 +1,14 @@
+-- Automatically generated from InternetGatewayDevice:2.9
+-- using generator version 2.2
+local InternetGatewayDevice_UPnP_ = {
+  objectType = {
+    name = "InternetGatewayDevice.UPnP.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+    }
+  }
+}
+
+register(InternetGatewayDevice_UPnP_)

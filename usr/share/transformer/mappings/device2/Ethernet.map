@@ -1,0 +1,77 @@
+-- Automatically generated from Device:2.2
+-- using generator version 2.1
+local Device_Ethernet_ = {
+  objectType = {
+    name = "Device.Ethernet.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      -- InterfaceNumberOfEntries
+      -- automatically created when Device.Ethernet.Interface.{i}. is loaded
+      X_000E50_Eth4lanwanmode = {
+        access = "readWrite",
+        type = "boolean",
+        description = "if 1, switch the ETH4 from WAN into LAN mode",
+      }
+    }
+  }
+}
+
+local uciHelper = mapper("ucihelper")
+local getFromUci = uciHelper.get_from_uci
+local setOnUci = uciHelper.set_on_uci
+local ethernetBinding = {config = "ethernet", sectionname = "globals", option = "", default = ""}
+local commitApply = commitapply
+local isConfigChanged = false
+
+local function eth4lanwanmode_enabled()
+  local ret = 0
+  local fp = io.popen('ethswctl -c lanwan -p 1')
+  if fp then
+    for line in fp:lines() do
+      if line:match("^Success") then
+        ret = 1
+        break
+      end
+    end
+    fp:close()
+  end
+  return ret
+end
+
+Device_Ethernet_.get = {
+  X_000E50_Eth4lanwanmode = function(mapping, param, key)
+    ethernetBinding.option = "eth4lanwanmode"
+    ethernetBinding.default = "0"
+    return getFromUci(ethernetBinding)
+  end
+}
+
+Device_Ethernet_.set = {
+  X_000E50_Eth4lanwanmode = function(mapping, param, value, key)
+    ethernetBinding.option = "eth4lanwanmode"
+    setOnUci(ethernetBinding,value,commitApply)
+    isConfigChanged = true
+  end
+}
+
+Device_Ethernet_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(ethernetBinding)
+  end
+  isConfigChanged = false
+end
+
+Device_Ethernet_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(ethernetBinding)
+  end
+  isConfigChanged = false
+end
+
+if (eth4lanwanmode_enabled() == 0) then
+  Device_Ethernet_.objectType.parameters["X_000E50_Eth4lanwanmode"] = nil
+end
+
+register(Device_Ethernet_)

@@ -1,0 +1,8 @@
+local command = {
+  name = "mpstat",
+  full_path = "/usr/bin/clash-mpstat-wrapper",
+  options_with_argument = {"-P"},
+  operands = {"interval", "count"},
+}
+
+mapper("command").registerCommand(command)

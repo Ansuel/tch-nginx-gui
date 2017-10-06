@@ -1,0 +1,217 @@
+#!/bin/sh /etc/rc.common
+
+START=94
+EXTRA_COMMANDS="force"
+EXTRA_HELP="        force   Force root process even when root flag is already set"
+ 
+local rooted
+local force=0
+local version_gui=3.9
+local gui_hash
+
+check_root() {
+	
+	config_load "system"
+	
+	config_get_bool rooted config rooted 0
+	
+cat << EOF > /dev/console
+ === IMPORTANT =======================================
+  Checking root...
+EOF
+}
+
+force() {
+	force=1
+	boot
+}
+
+add_ipv6() {
+	uci set network.wan_ipv6=interface
+	uci set network.wan_ipv6.auto='0'
+	uci set network.wan_ipv6.proto='pppoe'
+	uci set network.wan_ipv6.demand='0'
+	uci set network.wan_ipv6.password='IPV6@alice6'
+	uci set network.wan_ipv6.macaddr=$(uci -q get network.wan.macaddr)
+	uci set network.wan_ipv6.ipv6='1'
+	uci set network.wan_ipv6.peerdns='1'
+	uci set network.wan_ipv6.keepalive_adaptive='0'
+	uci set network.wan_ipv6.dns_metric='0'
+	uci set network.wan_ipv6.ifname='wanptm0'
+	uci set network.wan_ipv6.username=$(uci -q get env.var.serial)-$(uci -q get env.var.oui)@alice6.it
+	uci set network.wan_ipv6.metric='10'
+	uci set network.wan6.ifname='@wan_ipv6'
+}
+
+add_ipoe() {
+	uci set network.ipoe=interface
+	uci set network.ipoe.proto='dhcp'
+	uci set network.ipoe.metric='1'
+	uci set network.ipoe.reqopts='1 3 6 43 51 58 59'
+	uci set network.ipoe.release='1'
+	uci set network.ipoe.neighreachabletime='1200000'
+	uci set network.ipoe.neighgcstaletime='2400'
+	uci set network.ipoe.ipv6='1'
+}
+
+remove_default_dns() {
+	uci -q del network.loopback.dns
+	uci -q del network.loopback.dns_metric
+}
+
+add_ppp_mgmt() {
+	uci set env.var.ppp_mgmt=$(uci -q get env.var.serial)-$(uci -q get env.var.oui)@00000.aliceres.mgmt
+}
+
+puryfy_wan_interface() { #creano problemi di dns per chissà quale diavolo di motivo... Ma l'utilità di sta roba eh telecom ? 
+	uci -q del network.wan.keepalive
+	uci -q del network.wan.graceful_restart
+	uci -q del network.wan.reqopts
+	uci -q del network.wan_ipv6.keepalive
+	uci -q del network.wan_ipv6.graceful_restart
+	uci -q del network.wan_ipv6.reqopts
+}
+
+fix_dns_dhcp_bug() {
+	uci -q del dhcp.lan.dhcpv4
+	uci set dhcp.odhcpd.maindhcp="0"
+}
+
+local encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
+local default_encrypted_pass='$5liEJpfo7NYE'
+local saved_encrypted_pass=$(uci -q get env.var.encrypted_pass)
+
+save_root_encrypt_pass() {
+	echo "  Storing encrypted password..." > /dev/console
+	uci set env.var.encrypted_pass=$encrypted_pass
+}
+
+generate_hash_gui() {
+	gui_hash=$(md5sum /tmp/GUI.tar.bz2 | awk '{ print $1}' )
+	uci set env.var.gui_hash=$gui_hash
+	uci set env.var.outdated_ver='0'
+}
+
+transfer_bank() {
+	if [ -d /overlay/bank_1 ] 
+	then
+		rm -r /overlay/bank_1
+	fi
+	mkdir /overlay/bank_1
+	cp -r /overlay/bank_2/* /overlay/bank_1
+	if [ -f /overlay/bank_1/etc/init.d/rootdevice ]
+		then
+		mtd erase /dev/mtd3
+		mtd write /dev/mtd4 /dev/mtd3
+	fi
+	activeversion=$( cat /proc/banktable/activeversion )
+	passiveversion=$( cat /proc/banktable/passiveversion )
+	
+	if [ "$activeversion" == "$passiveversion" ]
+		then
+		echo bank_1 > /proc/banktable/active
+		reboot
+	fi
+}
+
+check_bank() {
+	bank_check=$( uci -q get env.var.bank_check )
+	bootedbank=$( cat /proc/banktable/booted )
+	if [ ! $bank_check ]
+	then
+		uci set env.var.bank_check="1"
+	fi
+	if [ $bootedbank == "bank_2" ] && [ $bank_check == "1" ]
+	then
+		transfer_bank
+	else
+		echo "  Firmware in Bank_1... Not transfering..." > /dev/console
+	fi
+}
+
+check_gui_ver() {
+	if [ "$(uci -q get env.var.gui_version)" != $version_gui ]
+	then
+		uci set env.var.gui_version=$version_gui
+		/etc/init.d/transformer restart
+	fi
+}
+
+root() {
+
+	add_ipv6
+	add_ipoe
+	remove_default_dns
+	add_ppp_mgmt
+	puryfy_wan_interface
+	fix_dns_dhcp_bug
+	
+	uci set system.config.rooted='1'
+	uci set cwmpd.cwmpd_config.upgradesmanaged='1'
+	if [ ! $(awk -F: '/root/ {print $7 }' /etc/passwd) == "/bin/ash" ]
+	then
+		sed -i '1croot:x:0:0:root:/root:/bin/ash' /etc/passwd
+	fi
+	if [ ! $encrypted_pass == $default_encrypted_pass ] && [ -z $saved_encrypted_pass ]
+	then
+		echo -e "root\nroot" | passwd >/dev/nul
+		echo "  Setting root password" > /dev/console
+		save_root_encrypt_pass
+	else
+		if [ $encrypted_pass == $default_encrypted_pass ]
+		then
+			echo "  Root password detected" > /dev/console
+		else
+			if [ $encrypted_pass == $saved_encrypted_pass ]
+			then
+				echo "  Changed root password detected!" > /dev/console
+			else
+				echo "  New password detected!" > /dev/console
+				save_root_encrypt_pass
+			fi
+		fi
+	fi 
+	uci set dropbear.@dropbear[0].RootPasswordAuth='on'
+	uci set dropbear.@dropbear[0].PasswordAuth='on'
+	uci set dropbear.@dropbear[0].enable='1'
+	uci set wireless.global.wifi_analyzer_disable='0'
+	uci commit
+	if [ -f /etc/config/web_unlock ] 
+		then
+		if [ ! $(grep changelog /etc/config/web) ]
+			then
+			mv /etc/config/web /etc/config/web_back
+		fi
+		mv /etc/config/web_unlock /etc/config/web
+	fi
+	if [ -f /tmp/GUI.tar.bz2 ]
+		then
+		generate_hash_gui
+	fi
+	/etc/init.d/transformer restart
+	/etc/init.d/dropbear restart
+	/etc/init.d/cron restart
+	/etc/init.d/nginx restart
+	/etc/init.d/cwmpd restart
+	echo "  Process done. Your modem is now rooted!" > /dev/console
+}
+
+boot() {
+	check_root
+	check_bank
+	check_gui_ver
+	if [ $rooted -eq 0 ] 
+	then
+		echo "  Root not detected! Rooting..." > /dev/console
+		root
+	else  
+		if [ $force -eq 1 ] 
+			then
+				echo "  Root detected but force flag detected! Rerooting..." > /dev/console
+				root
+			else
+				echo "  Root detected! Doing nothing." > /dev/console
+		fi
+	fi
+	echo " ----------------------------------------------------- " > /dev/console
+}

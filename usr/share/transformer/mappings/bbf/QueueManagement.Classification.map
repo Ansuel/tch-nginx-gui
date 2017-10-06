@@ -1,0 +1,1271 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Multi_QoS_Classification_i_ = {
+  objectType = {
+    name = "#ROOT.{i}.",
+    access = "readOnly", -- ReadWrite currently not supported
+    numEntriesParameter = "ClassificationNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "boolean",
+        default = "false",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Disabled",
+          "Enabled",
+          "Error_Misconfigured",
+          "Error",
+        },
+        default = "Disabled",
+      },
+      Order = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+--[[ TODO
+      DHCPType = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "DHCPv4",
+          "DHCPv6",
+        },
+        default = "DHCPv4",
+      },
+--]]
+      Interface = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        pathRef = true,
+        default = "",
+      },
+      X_000E50_DestInterface = { -- Proprietary parameter to map the destination Interface.
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        pathRef = true,
+        default = "",
+      },
+      AllInterfaces = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "boolean",
+        default = "false",
+      },
+      DestIP = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      DestMask = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      DestIPExclude = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "boolean",
+        default = "false",
+      },
+      SourceIP = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      SourceMask = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      SourceIPExclude = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "boolean",
+        default = "false",
+      },
+      Protocol = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+            max = "255",
+          },
+        },
+        default = "-1",
+      },
+      ProtocolExclude = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "boolean",
+        default = "false",
+      },
+      DestPort = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+            max = "65535",
+          },
+        },
+        default = "-1",
+      },
+      DestPortRangeMax = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+            max = "65535",
+          },
+        },
+        default = "-1",
+      },
+      DestPortExclude = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "boolean",
+        default = "false",
+      },
+      SourcePort = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+            max = "65535",
+          },
+        },
+        default = "-1",
+      },
+      SourcePortRangeMax = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+            max = "65535",
+          },
+        },
+        default = "-1",
+      },
+      SourcePortExclude = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "boolean",
+        default = "false",
+      },
+      SourceMACAddress = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      SourceMACMask = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+--[[ TODO
+      SourceMACExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+--]]
+      DestMACAddress = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      DestMACMask = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+--[[  TODO
+     DestMACExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+--]]
+      Ethertype = {
+        access = "readOnly", -- readWrite Currently not supported
+        type = "int",
+        range = {
+          {
+            min = "-1",
+          },
+        },
+        default = "-1",
+      },
+--[[  TODO
+      EthertypeExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      SSAP = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+          },
+        },
+        default = "-1",
+      },
+      SSAPExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      DSAP = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+          },
+        },
+        default = "-1",
+      },
+      DSAPExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      LLCControl = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+          },
+        },
+        default = "-1",
+      },
+      LLCControlExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      SNAPOUI = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+          },
+        },
+        default = "-1",
+      },
+      SNAPOUIExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      SourceVendorClassID = {
+        access = "readWrite",
+        type = "string",
+        max = "255",
+        default = "",
+      },
+      SourceVendorClassIDv6 = {
+        access = "readWrite",
+        type = "hexBinary",
+        max = "65535",
+        default = "",
+      },
+      SourceVendorClassIDExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      SourceVendorClassIDMode = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "Exact",
+          "Prefix",
+          "Suffix",
+          "Substring",
+        },
+        default = "Exact",
+      },
+      DestVendorClassID = {
+        access = "readWrite",
+        type = "string",
+        max = "255",
+        default = "",
+      },
+      DestVendorClassIDv6 = {
+        access = "readWrite",
+        type = "hexBinary",
+        max = "65535",
+        default = "",
+      },
+      DestVendorClassIDExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      DestVendorClassIDMode = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "Exact",
+          "Prefix",
+          "Suffix",
+          "Substring",
+        },
+        default = "Exact",
+      },
+      SourceClientID = {
+        access = "readWrite",
+        type = "hexBinary",
+        max = "65535",
+        default = "",
+      },
+      SourceClientIDExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      DestClientID = {
+        access = "readWrite",
+        type = "hexBinary",
+        max = "65535",
+        default = "",
+      },
+      DestClientIDExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      SourceUserClassID = {
+        access = "readWrite",
+        type = "hexBinary",
+        max = "65535",
+        default = "",
+      },
+      SourceUserClassIDExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      DestUserClassID = {
+        access = "readWrite",
+        type = "hexBinary",
+        max = "65535",
+        default = "",
+      },
+      DestUserClassIDExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      SourceVendorSpecificInfo = {
+        access = "readWrite",
+        type = "hexBinary",
+        max = "65535",
+        default = "",
+      },
+      SourceVendorSpecificInfoExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      SourceVendorSpecificInfoEnterprise = {
+        access = "readWrite",
+        type = "unsignedInt",
+        default = "0",
+      },
+      SourceVendorSpecificInfoSubOption = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "0",
+            max = "255",
+          },
+        },
+        default = "0",
+      },
+      DestVendorSpecificInfo = {
+        access = "readWrite",
+        type = "hexBinary",
+        max = "65535",
+        default = "",
+      },
+      DestVendorSpecificInfoExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      DestVendorSpecificInfoEnterprise = {
+        access = "readWrite",
+        type = "unsignedInt",
+        default = "0",
+      },
+      DestVendorSpecificInfoSubOption = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "0",
+            max = "255",
+          },
+        },
+        default = "0",
+      },
+      TCPACK = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      TCPACKExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+--]]
+      IPLengthMin = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "unsignedInt",
+        default = "0",
+      },
+      IPLengthMax = {
+        access = "readOnly",-- readWrite currently not supported
+        type = "unsignedInt",
+        default = "0",
+      },
+      IPLengthExclude = {
+        access = "readOnly",-- readWrite currently not supported
+        type = "boolean",
+        default = "false",
+      },
+      DSCPCheck = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+            max = "63",
+          },
+        },
+        default = "-1",
+      },
+      DSCPExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      DSCPMark = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "int",
+        range = {
+          {
+            min = "-2",
+          },
+        },
+        default = "-1",
+      },
+      EthernetPriorityCheck = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+          },
+        },
+        default = "-1",
+      },
+      EthernetPriorityExclude = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "boolean",
+        default = "false",
+      },
+      EthernetPriorityMark = {
+        access = "readOnly", -- readWrite currently not supported
+        type = "int",
+        range = {
+          {
+            min = "-2",
+          },
+        },
+        default = "-1",
+      },
+--[[ TODO
+      InnerEthernetPriorityCheck = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+          },
+        },
+        default = "-1",
+      },
+      InnerEthernetPriorityExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      InnerEthernetPriorityMark = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-2",
+          },
+        },
+        default = "-1",
+      },
+      EthernetDEICheck = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+          },
+        },
+        default = "-1",
+      },
+      EthernetDEIExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+--]]
+      VLANIDCheck = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+          },
+        },
+        default = "-1",
+      },
+--[[ TODO
+      VLANIDExclude = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      OutOfBandInfo = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+          },
+        },
+        default = "-1",
+      },
+      ForwardingPolicy = {
+        access = "readWrite",
+        type = "unsignedInt",
+        default = "0",
+      },
+--]]
+      TrafficClass = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+          },
+        },
+        default = "-1",
+      },
+--[[ TODO
+      Policer = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        pathRef = true,
+        targetParent = "Device.QoS.Policer.{i}.",
+        default = "",
+      },
+      App = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        pathRef = true,
+        targetParent = "Device.QoS.App.{i}.",
+        default = "",
+      },
+--]]
+     ClassificationEnable = {
+       access = "readOnly", --readWrite currently not supported
+       type = "boolean",
+       default = "false",
+     },
+     ClassificationStatus = {
+       access = "readOnly",
+       type = "string",
+       enumeration = {
+         "Disabled",
+         "Enabled",
+         "Error",
+       },
+       default = "Disabled",
+     },
+     ClassificationOrder = {
+       access = "readOnly", --readWrite currently not supported
+       type = "unsignedInt",
+       range = {
+         {
+           min = "1",
+         },
+       },
+     },
+     ClassInterface = {
+       access = "readWrite",
+       type = "string",
+       max = "256",
+       default = "",
+       pathRef = true,
+     },
+     ClassQueue = {
+       access = "readOnly", -- readWrite currently not supported
+       type = "int",
+       range = {
+         {
+           min = "-1",
+         },
+       },
+       default = "-1",
+     },
+    }
+  }
+}
+
+local mapper, pairs, ipairs, string = mapper, pairs, ipairs, string
+local table, tonumber, tostring = table, tonumber, tostring
+local format = string.format
+local resolve, tokey = resolve, tokey
+local match = string.match
+local uciHelper = mapper("ucihelper")
+local nwCommon = mapper('nwcommon')
+local netmask2mask = nwCommon.netmask2mask
+local mask2netmask = nwCommon.mask2netmask
+local hex2Decimal = nwCommon.hex2Decimal
+local isMac = nwCommon.isMAC
+local lfs = require("lfs")
+local isConfigChanged = false
+local commitApply = commitapply
+local qosBinding = {config="qos"}
+local prevModifiedTime
+local keys={}
+local labels = {}
+local inet = require "tch.inet"
+local isValidIPv4Address=inet.isValidIPv4
+local isValidIPv4Subnet=nwCommon.isValidIPv4SubnetMask
+local findLanWanInterfaces = mapper("nwcommon").findLanWanInterfaces
+local wanconn = require("transformer.shared.wanconnection")
+local splitKey = mapper("nwcommon").split_key
+local ubus = mapper("ubus").connect()
+local qosHelper = require('transformer.shared.qoshelper')
+
+-- Ref: http://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml
+local protocolMap = { tcp = "6", udp = "17" , udplite = "136", icmp = "1", esp = "50", ah = "51", sctp = "132", all= "-1" }
+-- List of qos classification rules sections in UCI
+local classificationRules = {
+  classify = true,
+  reclassify = true,
+  l2classify = true,
+}
+
+local paramMap = {
+  SourceMACAddress = "macsrc",
+  SourceMACMask = "macsrc",
+  DestMACAddress = "macdst",
+  DestMACMask = "macdst",
+  VLANIDCheck = "vlanid",
+}
+
+local function convertStringToTable(str)
+  local tbl={}
+  -- uci entries of type "list" are interpretted as 'table' when they have multiple elements,
+  -- and interpretted as 'string' when they have a single element. So, handle 'table' types before processing.
+  if type(str) == 'table' then
+    return str
+  end
+  -- if the input string is a single element, then only one entry is added into the table
+  -- if it is a comma separated list, then all the comma separated entries are added into the table.
+  for item in string.gmatch(str or "", "([^,]+),?") do
+     tbl[#tbl + 1] = item
+  end
+  -- If the input is an empty string, then we return a table with one element containing ""
+  return #tbl > 0 and tbl or {""}
+end
+
+local function replaceTableValue(tbl, oldValue, newValue)
+  for k,v in ipairs(tbl) do
+    if v == oldValue then
+      tbl[k] = newValue
+    end
+  end
+  if #tbl == 0 then
+    tbl[#tbl+1] = newValue
+  end
+  return tbl
+end
+
+local function addEntry(section, srcIf, dstIf, dscpVal, srcPort, dstPort, _key, values)
+  local key = section .. "/" .. _key .. "/" .. #keys
+  keys[#keys +1] = key
+  keys[key] = {
+    order = #keys,
+    section = section,
+    srcif = srcIf,
+    dstif = dstIf,
+    srcport = srcPort,
+    dstport = dstPort,
+    dscp = dscpVal,
+    _key = _key,
+    name = values[".name"],
+    dsthost = values.dsthost,
+    srchost =  values.srchost,
+    proto =  values.proto,
+    vlanprio = values.vlanprio,
+    target = values.target,
+    vlanid = values.vlanid,
+    macsrc = values.macsrc,
+    macdst = values.macdst
+  }
+end
+
+local function setUciParam(sectionName, option, value)
+  qosBinding.sectionname = sectionName
+  qosBinding.option = option
+  uciHelper.set_on_uci(qosBinding, value, commitApply)
+  isConfigChanged = true
+end
+
+local function getUciParam(sectionName,paramName,default)
+  qosBinding.sectionname = sectionName
+  qosBinding.option = paramName
+  qosBinding.default = default
+  return uciHelper.get_from_uci(qosBinding)
+end
+
+local function setMACAddress(mapping, param, value, key)
+  if keys[key].section == "l2classify" then
+    if isMac(value) then
+      local macType = paramMap[param]
+      local MacAddress = keys[key][macType] or ""
+      local mask = match(MacAddress, "/(%S+)$")
+        if mask then
+          MacAddress = value.."/"..mask
+        else
+          MacAddress = value
+        end
+        setUciParam(keys[key].name, macType, MacAddress)
+    else
+      return nil,"Invalid MAC address format"
+    end
+  else
+    return nil,"section not applicable"
+  end
+end
+
+local function setMACMask(mapping, param, value, key)
+  if keys[key].section == "l2classify" then
+    if isMac(value) then
+      local macType = paramMap[param]
+      local MacMask = keys[key][macType] or ""
+      local macAddress = match(MacMask,"^([^/]+)")
+      if macAddress then
+        if value ~= "" then
+          MacMask = macAddress .. "/" .. value
+        else
+          MacMask = macAddress
+        end
+      else
+        if value ~= "" then
+          MacMask = "/" .. value
+        end
+      end
+      setUciParam(keys[key].name, macType, MacMask)
+    else
+      return nil,"Invalid MAC mask format"
+    end
+  else
+    return nil,"section not applicable"
+  end
+end
+
+Multi_QoS_Classification_i_.entries = function()
+  local qosParams, srcInterfaces, dstInterfaces, srcPorts, dstPorts, dscpValue
+  local lastModifiedTime = lfs.attributes("/etc/config/qos").modification
+  if lastModifiedTime == prevModifiedTime then
+    return keys
+  else
+    keys = {}
+  end
+  prevModifiedTime = lastModifiedTime
+  local keysModified = false
+  qosBinding.sectionname = nil -- to ensure that previous call to set() doesnot affect the entries
+  qosBinding.option = nil
+  qosParams = uciHelper.getall_from_uci(qosBinding)
+  for _,s in pairs(qosParams) do
+    if classificationRules[s[".type"]] then
+      if not s["_key"] then
+        qosBinding.sectionname=s[".name"]
+        local key = uciHelper.generate_key_on_uci(qosBinding)
+        keysModified = true
+        s["_key"] = key
+      end
+      srcInterfaces = convertStringToTable(s.srcif)
+      dstInterfaces = convertStringToTable(s.dstif)
+      dscpValue = convertStringToTable(s.dscp)
+      srcPorts = convertStringToTable(s.srcports)
+      dstPorts = convertStringToTable(s.dstports)
+      for _,srcIf in ipairs(srcInterfaces) do
+        for _,dstIf in ipairs(dstInterfaces) do
+          for _,dscpVal in ipairs (dscpValue) do
+            for _,srcPort in ipairs(srcPorts) do
+              for _,dstPort in ipairs(dstPorts) do
+                addEntry(s[".type"], srcIf, dstIf, dscpVal, srcPort, dstPort, s["_key"], s)
+              end
+            end
+          end
+        end
+      end
+    elseif s[".type"] == "label" then
+      labels[s[".name"]] = s
+    end
+    if keysModified then
+      qosBinding.sectionname = nil
+      uciHelper.commit_keys(qosBinding)
+    end
+  end
+  return keys
+end
+
+local function isLANInterface(interface)
+  local lanInterfaces = findLanWanInterfaces(false)
+  local isLan = false
+  for _, intf in pairs(lanInterfaces) do
+    if (interface == intf) then
+      isLan = true
+      break
+    end
+  end
+  return isLan
+end
+
+local function getInterfaceIGD(mapping, param, interface)
+  local path = ""
+  if isLANInterface(interface) then
+    path = resolve('InternetGatewayDevice.LANDevice.{i}.LANHostConfigManagement.IPInterface.{i}.', interface)
+  else
+    local key, status = wanconn.get_connection_key(interface)
+    if key and status then
+      if status.proto == "pppoe" or status.proto == "pppoa" then
+        path = resolve("InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANPPPConnection.{i}.", key)
+      else
+        path = resolve("InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANIPConnection.{i}.", key)
+      end
+    end
+  end
+  return path and path or ""
+end
+
+local function getInterfaceDevice2(mapping, param, interface)
+  return resolve("Device.IP.Interface.{i}.", interface) or ""
+end
+
+Multi_QoS_Classification_i_.get = {
+  Enable = "1", -- Hardcoded to '1', since there is no lower layer support available
+  ClassificationEnable = "1", -- Hardcoded to '1', since there is no lower layer support available
+  Status = "Enabled", -- Hardcoded to Enabled, since there is no lower layer support available
+  ClassificationStatus = "Enabled", -- Hardcoded to Enabled, since there is no lower layer support available
+  Order = function( mapping, param, key)
+    return tostring(keys[key].order or "")
+  end,
+  ClassificationOrder = function( mapping, param, key)
+    return tostring(keys[key].order or "")
+  end,
+  Interface = function( mapping, param, key)
+    return resolve("Device.IP.Interface.{i}.", keys[key].srcif or "") or ""
+  end,
+  ClassInterface = function(mapping, param, key)
+    return mapping._getInterface(mapping, param, keys[key].srcif)
+  end,
+  X_000E50_DestInterface = function(mapping, param, key)
+    return mapping._getInterface(mapping, param, keys[key].dstif)
+  end,
+  AllInterfaces = function(mapping, param, key)
+    if keys[key].srcif ~= "" then
+      return "0"
+    end
+    return "1"
+  end,
+  DestIP = function(mapping, param, key)
+    return match(keys[key].dsthost or "", "^([^/]+)") or ""
+  end,
+  DestMask = function(mapping, param, key)
+    local destMask = match(keys[key].dsthost or "", "/(%d+)$") or "32" -- if no mask is present, a mask of /32 (255.255.255.255) is assumed
+    return netmask2mask(tonumber(destMask))
+  end,
+  DestIPExclude = "0", -- Hardcoded to "0", since there is no lower layer support available
+  SourceIP = function(mapping, param, key)
+    return match(keys[key].srchost or "", "^([^/]+)") or ""
+  end,
+  SourceMask = function(mapping, param, key)
+    local srcMask = match(keys[key].srchost or "", "/(%d+)$") or "32" -- if no mask is present, a mask of /32 (255.255.255.255) is assumed
+    return netmask2mask(tonumber(srcMask))
+  end,
+  SourceIPExclude = "0", -- Hardcoded to "0", since there is no lower layer support available
+  Protocol = function(mapping, param, key)
+    local proto = keys[key].proto
+    return proto and protocolMap[proto] or "-1"
+  end,
+  ProtocolExclude =  "0", -- Hardcoded to "0", since there is no lower layer support available
+  DestPort = function(mapping, param, key)
+    local dstPort = keys[key].dstport or ""
+    return dstPort:match("^(%d+)") or "-1"
+  end,
+  DestPortRangeMax = function(mapping, param, key)
+    local dstPort = keys[key].dstport or ""
+    return dstPort:match(":(%d+)$") or "-1"
+  end,
+  DestPortExclude = "0", -- Hardcoded to "0", since there is no lower layer support available
+  SourcePort = function(mapping, param, key)
+    local srcPort = keys[key].srcport or ""
+    return srcPort:match("^(%d+)") or "-1"
+  end,
+  SourcePortRangeMax = function(mapping, param, key)
+    local srcPort = keys[key].srcport or ""
+    return srcPort:match(":(%d+)$") or "-1"
+  end,
+  SourcePortExclude = "0", -- Hardcoded to "0", since there is no lower layer support available
+  IPLengthMin = "0", -- Hardcoded to "0", since there is no lower layer support available
+  IPLengthMax = "0", -- Hardcoded to "0", since there is no lower layer support available
+  IPLengthExclude = "0", -- Hardcoded to "0", since there is no lower layer support available
+  DSCPCheck = function(mapping, param, key)
+    local dscp = string.gsub(keys[key].dscp or "", '!',"")
+    return qosHelper.mapDSCP(dscp, mapping.objectType.name)
+  end,
+  DSCPExclude = function(mapping, param, key)
+    if match(keys[key].dscp or "", '!') then
+      return "1"
+    end
+    return "0"
+  end,
+  DSCPMark = function(mapping, param, key)
+    local label = labels[keys[key].target or ""]
+    if label and label.dscp then
+      return qosHelper.mapDSCP(label.dscp, mapping.objectType.name)
+    end
+    return "-1"
+  end,
+  EthernetPriorityCheck = function(mapping, param, key)
+    return keys[key].vlanprio or "-1"
+  end,
+  EthernetPriorityExclude = "0", -- Hardcoded to "0", since there is no lower layer support available
+  EthernetPriorityMark = "-1", -- Hardcoded to -1, since there is no lower layer support available
+  TrafficClass = function(mapping, param, key)
+    local label = labels[keys[key].target or ""]
+    return label and label.trafficid or '-1'
+  end,
+  SourceMACAddress = function(mapping, param, key)
+    return match(keys[key].macsrc or "", "^([^/]+)") or ""
+  end,
+  SourceMACMask = function(mapping, param, key)
+    return match(keys[key].macsrc or "", "/(%S+)$") or "FF:FF:FF:FF:FF:FF"
+  end,
+  DestMACAddress = function(mapping, param, key)
+    return match(keys[key].macdst or "", "^([^/]+)") or ""
+  end,
+  DestMACMask = function(mapping, param, key)
+    return match(keys[key].macdst or "", "/(%S+)$") or "FF:FF:FF:FF:FF:FF"
+  end,
+  Ethertype = "1",
+  ClassQueue = "-1",
+  VLANIDCheck = function(mapping, param, key)
+    return keys[key].vlanid or "-1"
+  end
+}
+
+-- A getall implementation is not done as it will not bring any improvement,
+-- as data retrieval is done in the entries call.The get will use the cached
+-- data, no work is duplicated.
+
+local function getInterfaceName(path)
+  local interface
+  if path ~= "" then
+    interface = tokey(path,
+                  "InternetGatewayDevice.LANDevice.{i}.LANHostConfigManagement.IPInterface.{i}.",
+                  "InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANPPPConnection.{i}.",
+                  "InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANIPConnection.{i}.")
+    if interface and interface:match("|") then
+      interface = splitKey(interface)
+    end
+  end
+  return interface
+end
+
+Multi_QoS_Classification_i_.set = {
+  Interface = function(mapping, param, value, key)
+    local srcInterfaces= convertStringToTable(getUciParam(keys[key].name, "srcif", {}))
+    local srcInterface = keys[key].srcif or ""
+    value = tokey(value, "Device.IP.Interface.{i}.")
+    if value then
+      srcInterfaces = replaceTableValue(srcInterfaces, srcInterface, value)
+      setUciParam(keys[key].name, 'srcif', srcInterfaces)
+    end
+  end,
+  ClassInterface = function(mapping, param, value, key)
+    local srcInterfaces= convertStringToTable(getUciParam(keys[key].name, "srcif", {}))
+    local srcInterface = keys[key].srcif or ""
+    local interface  = getInterfaceName(value)
+    if interface then
+      srcInterfaces = replaceTableValue(srcInterfaces, srcInterface, interface)
+      setUciParam(keys[key].name, 'srcif', srcInterfaces)
+    end
+  end,
+  X_000E50_DestInterface = function(mapping, param, value, key)
+    local destInterfaces= convertStringToTable(getUciParam(keys[key].name, "dstif", {}))
+    local destinterface = keys[key].dstif or ""
+    local interface
+    if match(mapping.objectType.name, "^Device") then
+      interface = tokey(value, "Device.IP.Interface.{i}.")
+    else
+      interface = getInterfaceName(value)
+    end
+    if interface then
+      destInterfaces = replaceTableValue(destInterfaces, destinterface, interface)
+      setUciParam(keys[key].name, 'dstif', destInterfaces)
+    end
+  end,
+  DestIP = function(mapping, param, value, key)
+    if isValidIPv4Address(value) then
+      local dstHost = keys[key].dsthost or ""
+      local mask = match(dstHost,"/(%d+)")
+      dstHost = mask and ( value .. "/" .. mask ) or value
+      setUciParam(keys[key].name, 'dsthost', dstHost)
+    else
+      return nil, format("%s is not a valid IPv4 Address", value)
+    end
+  end,
+  DestMask = function(mapping, param, value, key)
+    if isValidIPv4Subnet(value) then
+      local dstHost = keys[key].dsthost or ""
+      local ipAddress = match(dstHost,"([^/]+)")
+      local mask = mask2netmask(value)
+      if ipAddress then
+        dstHost = mask ~= "" and ( ipAddress .. "/" .. mask ) or ipAddress
+      else
+        if mask ~= "" then
+          dstHost = "/" .. mask
+        end
+      end
+      setUciParam(keys[key].name, 'dsthost', dstHost)
+    else
+      return nil, format("%s is not a valid IPv4 SubnetMask", value)
+    end
+  end,
+  SourceIP = function(mapping, param, value, key)
+    if isValidIPv4Address(value) then
+      local srcHost = keys[key].srchost or ""
+      local mask = match(srcHost,"/(%d+)")
+      srcHost = mask and ( value .. "/" .. mask ) or value
+      setUciParam(keys[key].name, 'srchost', srcHost)
+    else
+      return nil, format("%s is not a valid IPv4 Address", value)
+    end
+  end,
+  SourceMask = function(mapping, param, value, key)
+    if isValidIPv4Subnet(value) then
+      local srcHost = keys[key].srchost or ""
+      local ipAddress = match(srcHost,"([^/]+)")
+      local mask = mask2netmask(value)
+      if ipAddress then
+        srcHost = mask ~= "" and ( ipAddress .. "/" .. mask ) or ipAddress
+      else
+        if mask ~= "" then
+          srcHost = "/" .. mask
+        end
+      end
+      setUciParam(keys[key].name, 'srchost', srcHost)
+    else
+      return nil, format("%s is not a valid IPv4 SubnetMask", value)
+    end
+  end,
+  Protocol = function(mapping, param, value, key)
+    for protoName,protoNum in pairs(protocolMap) do
+      if protoNum == value then
+        setUciParam(keys[key].name, 'proto', protoName)
+        break
+      end
+    end
+  end,
+  DestPort = function(mapping, param, value, key)
+    local destPort = keys[key].dstport or ""
+    local destPorts = convertStringToTable(getUciParam(keys[key].name, "dstports", ""))
+    local destPortRange = destPort:match(":(%d+)$") or ""
+    if destPort ~= "" and destPortRange ~= "" then
+      value = value .. ':' .. destPortRange
+    end
+    destPorts = replaceTableValue(destPorts, destPort, value)
+    destPorts = table.concat(destPorts, ',')
+    setUciParam(keys[key].name, 'dstports', destPorts)
+  end,
+  DestPortRangeMax = function(mapping, param, value, key)
+    local destPort = keys[key].dstport or ""
+    local destPorts = convertStringToTable(getUciParam(keys[key].name, "dstports", ""))
+    local portNo = destPort:match("^(%d+)")
+    if not portNo or portNo == "0" then
+      value = value .. ':' .. value
+    elseif tonumber(value) >= tonumber(portNo) then
+      value = portNo .. ':' .. value
+    else
+      return nil, format("DestPortRangeMax %s should be greater than DestPort %s", value, portNo)
+    end
+    destPorts = replaceTableValue(destPorts, destPort, value)
+    destPorts = table.concat(destPorts, ',')
+    setUciParam(keys[key].name, 'dstports', destPorts)
+  end,
+  SourcePort = function(mapping, param, value, key)
+    local srcPort = keys[key].srcport or ""
+    local srcPorts = convertStringToTable(getUciParam(keys[key].name, "srcports", ""))
+    local srcPortRange = srcPort:match(":(%d+)$") or ""
+    if srcPort ~= "" and srcPortRange ~= "" then
+      value = value .. ':' .. srcPortRange
+    end
+    srcPorts = replaceTableValue(srcPorts, srcPort, value)
+    srcPorts = table.concat(srcPorts, ',')
+    setUciParam(keys[key].name, 'srcports', srcPorts)
+  end,
+  SourcePortRangeMax = function(mapping, param, value, key)
+    local srcPort = keys[key].srcport or ""
+    local srcPorts = convertStringToTable(getUciParam(keys[key].name, "srcports", ""))
+    local portNo =srcPort:match("^(%d+)")
+    if not portNo or portNo == "0" then
+      value = value .. ':' .. value
+    elseif tonumber(value) >= tonumber(portNo) then
+      value = portNo .. ':' .. value
+    else
+      return nil, format("SourcePortRangeMax %s should be greater than SourcePort %s", value, portNo)
+    end
+    srcPorts = replaceTableValue(srcPorts, srcPort, value)
+    srcPorts = table.concat(srcPorts, ',')
+    setUciParam(keys[key].name, 'srcports', srcPorts)
+  end,
+  DSCPCheck = function(mapping, param, value, key)
+    if not value:match("^%-%d+") then
+      value = qosHelper.convertToHexDscp(value, keys[key].dscp)
+    end
+    local dscpList = convertStringToTable(getUciParam(keys[key].name, "dscp", {}))
+    local dscpVal =  keys[key].dscp or ""
+    local dscpNewList = replaceTableValue(dscpList, dscpVal, value)
+    setUciParam(keys[key].name, 'dscp', dscpNewList)
+  end,
+  DSCPExclude =function(mapping, param, value, key)
+    local dscpList = getUciParam(keys[key].name, "dscp", {})
+    local dscpVal = keys[key].dscp or ""
+    local dscp
+    if value == "1" then
+      if not dscpVal:match('^!') then
+        dscp = '!' .. dscpVal
+      end
+    else
+      dscp=dscpVal:match('^!(.*)')
+    end
+    if dscp then
+      local dscpNewList = replaceTableValue(dscpList, dscpVal, dscp)
+      setUciParam(keys[key].name, 'dscp', dscpNewList)
+    end
+  end,
+  EthernetPriorityCheck =function(mapping, param, value, key)
+    setUciParam(keys[key].name, 'vlanprio', value)
+  end,
+  TrafficClass = function(mapping, param, value, key)
+    for name,label in pairs(labels) do
+      if label.trafficid == value then
+        setUciParam(keys[key].name, 'target', name)
+        break;
+      end
+    end
+  end,
+  SourceMACAddress = setMACAddress,
+  SourceMACMask = setMACMask,
+  DestMACAddress = setMACAddress,
+  DestMACMask = setMACMask,
+  VLANIDCheck = function(mapping, param, value, key)
+    if keys[key].section == "l2classify" then
+      setUciParam(keys[key].name, paramMap[param], value)
+    end
+  end,
+}
+
+Multi_QoS_Classification_i_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(qosBinding)
+    isConfigChanged = false
+  end
+end
+
+Multi_QoS_Classification_i_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(qosBinding)
+    isConfigChanged = false
+  end
+end
+
+local function getParamForIgd()
+  return {
+    access = "readWrite",
+    type = "int",
+    range = {
+    {
+      min = "-1",
+    },
+    },
+    default = "-1",
+  }
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_QoS_Classification_i_, "#ROOT", {"InternetGatewayDevice.QueueManagement.Classification", "Device.QoS.Classification"})
+for _, dupli in ipairs(duplicates) do
+  if dupli.objectType.name:match('^InternetGatewayDevice.') then
+    -- Remove device2-specific parameters from igd
+    dupli.objectType.parameters.AllInterfaces = nil
+    dupli.objectType.parameters.Order = nil
+    dupli.objectType.parameters.Status = nil
+    dupli.objectType.parameters.Interface = nil
+    dupli._getInterface = getInterfaceIGD
+    dupli.objectType.parameters.DSCPCheck = getParamForIgd()
+  else
+    -- Remove igd-specific parameters from device2
+    dupli.objectType.parameters.ClassificationEnable = nil
+    dupli.objectType.parameters.ClassificationStatus = nil
+    dupli.objectType.parameters.ClassificationOrder = nil
+    dupli.objectType.parameters.ClassInterface = nil
+    dupli.objectType.parameters.ClassQueue = nil
+    dupli._getInterface = getInterfaceDevice2
+  end
+  register(dupli)
+end

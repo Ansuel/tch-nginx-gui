@@ -1,0 +1,140 @@
+local Multi_X_000E50_TimeOfDay_Schedule_i_ = {
+  objectType = {
+    name = "#ROOT.X_000E50_TimeOfDay.Schedule.{i}.",
+    access = "readWrite",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      StartTime = {
+        access = "readWrite",
+        type = "string",
+      },
+      StopTime = {
+        access = "readWrite",
+        type = "string",
+      },
+    }
+  }
+}
+
+local mapper, commitapply, tonumber = mapper, commitapply, tonumber
+local uciHelper = mapper("ucihelper")
+local getFromUci = uciHelper.get_from_uci
+local setOnUci = uciHelper.set_on_uci
+local todBinding = { config = "tod" }
+local configChanged
+
+local uciOption = {
+  ["StartTime"] = "start_time",
+  ["StopTime"] = "stop_time"
+}
+
+
+-- Looping through all the tod config with sectiontype as timer and storing the sectionname as the keys.
+Multi_X_000E50_TimeOfDay_Schedule_i_.entries = function()
+  local scheduleEntries = {}
+  todBinding.sectionname = "timer"
+  uciHelper.foreach_on_uci(todBinding, function(s)
+    scheduleEntries[#scheduleEntries + 1] = s[".name"]
+  end)
+  return scheduleEntries
+end
+
+local function getUciValue(mapping, param, key)
+  todBinding.sectionname = key
+  todBinding.option = uciOption[param]
+  return getFromUci(todBinding)
+end
+
+Multi_X_000E50_TimeOfDay_Schedule_i_.get = getUciValue
+
+local defaultWeekDays = { ["Mon"] = true, ["Tue"] = true, ["Wed"] = true, ["Thu"] = true, ["Fri"] = true, ["Sat"] = true, ["Sun"] = true, ["All"] = true }
+
+local function validateTime(time)
+  local weekdays, hour, minute = time:match("^(.*):(%d+):(%d+)$")
+  hour = tonumber(hour)
+  minute = tonumber(minute)
+  if not weekdays or not hour or not minute then
+    return false
+  end
+  if hour < 0 or hour > 23 then
+    return false
+  end
+  if minute < 0 or minute > 59 then
+    return false
+  end
+  for day in weekdays:gmatch("([^,]+)") do
+    if not defaultWeekDays[day] then
+      return false
+    end
+  end
+  return true
+end
+
+local function setUciValue(mapping, param, value, key)
+  local isValidTime = validateTime(value)
+  if not isValidTime then
+    return nil, "Invalid Time"
+  end
+  todBinding.sectionname = key
+  todBinding.option = uciOption[param]
+  setOnUci(todBinding, value, commitapply)
+  configChanged = true
+end
+
+Multi_X_000E50_TimeOfDay_Schedule_i_.set = setUciValue
+
+local function duplicateCheck(timerName)
+  todBinding.sectionname = timerName
+  local result = uciHelper.getall_from_uci(todBinding)
+  if next(result) then
+    return true
+  end
+  return
+end
+
+local function generateTimerName()
+  local key = uciHelper.generate_key()
+  key = string.sub(key, 1, 8)
+  local timerName = "schedule_" .. key
+  return timerName
+end
+
+-- This is to add an new #ROOT.X_000E50_TimeOfDay.Schedule.{i}
+-- We add a new config sectiontype timer with sectionname as schedule_key, this section is mapped to the newly created instance.
+Multi_X_000E50_TimeOfDay_Schedule_i_.add = function(mapping)
+  local timer, isDuplicateTimer
+  repeat
+    timer = generateTimerName()
+    isDuplicateTimer = duplicateCheck(timer)
+  until not isDuplicateTimer
+  uciHelper.set_on_uci({config = "tod", sectionname = timer}, "timer", commitapply)
+  configChanged = true
+  return timer
+end
+
+Multi_X_000E50_TimeOfDay_Schedule_i_.delete = function(mapping, key)
+  uciHelper.delete_on_uci( { config = "tod", sectionname = key }, commitapply)
+  configChanged = true
+  return true
+end
+
+Multi_X_000E50_TimeOfDay_Schedule_i_.commit = function()
+  if configChanged then
+    uciHelper.commit(todBinding)
+  end
+  configChanged = false
+end
+
+Multi_X_000E50_TimeOfDay_Schedule_i_.revert = function()
+  if configChanged then
+    uciHelper.revert(todBinding)
+  end
+  configChanged = false
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicate = duplicator(Multi_X_000E50_TimeOfDay_Schedule_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicate) do
+  register(dupli)
+end

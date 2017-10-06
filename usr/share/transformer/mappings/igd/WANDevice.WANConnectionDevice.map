@@ -1,0 +1,147 @@
+-- Automatically generated from InternetGatewayDevice:1.3
+-- using generator version 2.1
+
+local InternetGatewayDevice_WANDevice_i_WANConnectionDevice_i_ = {
+  objectType = {
+    name = "InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.",
+    access = "readWrite",
+    numEntriesParameter = "WANConnectionNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      -- WANIPConnectionNumberOfEntries
+      -- automatically created when InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANIPConnection.{i}. is loaded
+      -- WANPPPConnectionNumberOfEntries
+      -- automatically created when InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANPPPConnection.{i}. is loaded
+    }
+  }
+}
+
+local uci_helper = mapper("ucihelper")
+local split_key = mapper("nwcommon").split_key
+local xtmconnection = require "transformer.shared.models.igd.xtmconnection"
+
+local activedevice = require "transformer.shared.models.igd.activedevice"
+
+local add_on_uci = uci_helper.add_on_uci
+local set_on_uci = uci_helper.set_on_uci
+local foreach_on_uci = uci_helper.foreach_on_uci
+local commit_keys = uci_helper.commit_keys
+local commit_on_uci = uci_helper.commit
+local revert_keys = uci_helper.revert_keys
+local revert = uci_helper.revert
+local delete_on_uci = uci_helper.delete_on_uci
+
+local changes_done = false
+local xtm_binding = { config = "xtm"}
+local key2sectionname = {}
+
+local function loadAtmDevices(keys)
+  xtm_binding.sectionname = "atmdevice"
+  foreach_on_uci(xtm_binding, function(s)
+    local _key = s._key
+    if _key then
+      _key = parentkey .. "|" .. _key
+      keys[#keys+1] = _key
+      key2sectionname[_key] = s[".name"]
+    else
+      keys[#keys+1] = "ATM|" .. s[".name"]
+    end
+  end)
+end
+
+local function loadPtmDevices(keys)
+  local devs = {}
+  xtm_binding.sectionname = "ptmdevice"
+  foreach_on_uci(xtm_binding, function(s)
+    local dev = s['.name']
+    keys[#keys+1] = "ETH|"..dev
+    devs[dev] = true
+  end)
+  -- add placeholders
+  xtm_binding.sectionname = "ptmdevice_placeholder"
+  foreach_on_uci(xtm_binding, function(s)
+    local name = s['.name']
+    local dev = s.uciname or name:match("^(.*)_placeholder$")
+    if dev and not devs[dev] then
+      keys[#keys+1] = "ETH|"..dev
+      devs[dev] = true
+    end
+  end)
+end
+
+local function entries(mapping, parentkey)
+  local WANConnectionDevices = {}
+  local devtype, devname = split_key(parentkey)
+
+  if devtype == "ETH" then
+    WANConnectionDevices[#WANConnectionDevices + 1] = parentkey
+  elseif devtype == "DSL" then
+    loadAtmDevices(WANConnectionDevices)
+    loadPtmDevices(WANConnectionDevices)
+    WANConnectionDevices = xtmconnection.loadStatic_keys(WANConnectionDevices)
+  elseif devtype == "ACTIVE" then
+    local intfs = activedevice.getActiveInterfaces(devname)
+    for _, intf in ipairs(intfs) do
+      WANConnectionDevices[#WANConnectionDevices+1] = "ACTIVE|"..intf
+    end
+  end
+  return WANConnectionDevices
+end
+
+local function add(mapping, parentkey)
+  local devtype, devname = split_key(parentkey)
+  local _key = ""
+  if devtype == "ETH" then
+    return nil, "only one ETH WANConnectionDevices allowed"
+  elseif devtype == "DSL" then
+    xtm_binding.sectionname = "atmdevice"
+    local sectionname = add_on_uci(xtm_binding, commitapply)
+    xtm_binding.sectionname = sectionname
+    _key = uci_helper.generate_key()
+    xtm_binding.option = "_key"
+    set_on_uci(xtm_binding, _key)
+    _key = parentkey .. "|" .. _key
+    key2sectionname[_key] = sectionname
+  end
+  changes_done = true
+  return _key
+end
+
+local function delete(mapping, key)
+  xtm_binding.sectionname = key2sectionname[key]
+  if nil == xtm_binding.sectionname then
+    return nil, "The default WANConnectionDevice can't be deleted"
+  end
+  xtm_binding.option = nil
+  delete_on_uci(xtm_binding, commitapply)
+  changes_done = true
+  return true
+end
+
+local function commit()
+  if changes_done then
+    commit_keys(xtm_binding)
+    commit_on_uci(xtm_binding)
+    changes_done = false
+  end
+end
+
+local function revert()
+  if changes_done then
+    revert_keys(xtm_binding)
+    revert(xtm_binding)
+    changes_done = false
+  end
+end
+
+InternetGatewayDevice_WANDevice_i_WANConnectionDevice_i_.get = {
+}
+
+InternetGatewayDevice_WANDevice_i_WANConnectionDevice_i_.entries = entries
+InternetGatewayDevice_WANDevice_i_WANConnectionDevice_i_.add = add
+InternetGatewayDevice_WANDevice_i_WANConnectionDevice_i_.delete = delete
+InternetGatewayDevice_WANDevice_i_WANConnectionDevice_i_.commit = commit
+InternetGatewayDevice_WANDevice_i_WANConnectionDevice_i_.revert = revert
+
+register(InternetGatewayDevice_WANDevice_i_WANConnectionDevice_i_)

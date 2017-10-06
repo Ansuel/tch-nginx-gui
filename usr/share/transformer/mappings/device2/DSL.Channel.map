@@ -1,0 +1,332 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_DSL_Channel_i_ = {
+  objectType = {
+    name = "Device.DSL.Channel.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "ChannelNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      Name = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Up",
+          "Down",
+          "Unknown",
+          "Dormant",
+          "NotPresent",
+          "LowerLayerDown",
+          "Error",
+        },
+      },
+      LowerLayers = {
+        access = "readOnly",
+        list = true,
+        max = "1024",
+        type = "string",
+        pathRef = true,
+      },
+      UpstreamCurrRate = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      DownstreamCurrRate = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      LPATH = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            max = "3",
+          },
+        },
+      },
+      LinkEncapsulationSupported = {
+        access = "readOnly",
+        list = true,
+        type = "string",
+        enumeration = {
+          "G.992.3_Annex_K_ATM",
+          "G.992.3_Annex_K_PTM",
+          "G.993.2_Annex_K_ATM",
+          "G.993.2_Annex_K_PTM",
+          "G.994.1",
+        },
+      },
+      LinkEncapsulationUsed = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "G.992.3_Annex_K_ATM",
+          "G.992.3_Annex_K_PTM",
+          "G.993.2_Annex_K_ATM",
+          "G.993.2_Annex_K_PTM",
+        },
+      },
+      ACTINP = {
+        access = "readOnly",
+        type = "int",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      LastChange = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+--[[ TO DO
+      INTLVDEPTH = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      INTLVBLOCK = {
+        access = "readOnly",
+        type = "int",
+      },
+      ActualInterleavingDelay = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      INPREPORT = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      NFEC = {
+        access = "readOnly",
+        type = "int",
+      },
+      RFEC = {
+        access = "readOnly",
+        type = "int",
+      },
+      LSYMB = {
+        access = "readOnly",
+        type = "int",
+      },
+      ACTNDR = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      ACTINPREIN = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "255",
+          },
+        },
+      },
+--]]
+    }
+  },
+  aliasDefault = "Name"
+}
+
+local mapper, resolve = mapper, resolve
+local nwmodel = require "transformer.shared.models.device2.network"
+local DSLChannel = nwmodel.register("DSLChannel", Device_DSL_Channel_i_.objectType.name)
+
+local model
+
+local ubusConnection = mapper("ubus").connect()
+local xdslctl = require("transformer.shared.xdslctl")
+local posix = require("tch.posix")
+local tostring = tostring
+local getClockTime = posix.clock_gettime
+local lastStateChangeTime = 0
+
+local uciHelper = mapper("ucihelper")
+local isConfigChanged = false
+local xdslBinding = { config = "xdsl" }
+
+-- map table for xdsl status
+-- Note : Only up/down/unknown status available now .
+--        since lower layer support is not present.
+local statusMap = {
+  [-1] = "Down",
+  [0]  = "Down",
+  [1]  = "Down",
+  [2]  = "Down",
+  [3]  = "Down",
+  [4]  = "Down",
+  [5]  = "Up",
+  [6]  = "Down",
+  [7]  = "Down",
+  [8]  = "Down",
+}
+
+local function lineIdMap()
+  local map = {}
+  uciHelper.foreach_on_uci(xdslBinding, function(s)
+    local name = s['.name']
+    -- Replace dsl with line in name
+    map[name] = string.gsub(name, "dsl", "line")
+  end)
+  return map
+end
+local xdslctlLineIdMap = lineIdMap()
+
+-- keys to retrieve for getall (xdslctl info --show)
+local xdslInfoGetAllKeys = {
+  "currentrate",
+  "LinkEncapsulationSupported",
+  "LinkEncapsulationUsed",
+  "LPATH",
+  "ACTINP",
+}
+
+local function getStatus(key)
+  local status = ubusConnection:call("xdsl", "status", {})
+  if not status then
+    return nil, "cannot retrieve xdsl status"
+  end
+  local lineId
+  local i, j = string.find(key, "dsl")
+  if j then
+    local id = tonumber(string.sub(key, j+1))
+    if id then
+      lineId = "line"..tostring(id+1)
+    end
+  end
+  if lineId and status[lineId] then
+    status = statusMap[status[lineId].statuscode]
+  else
+    status = statusMap[status.statuscode]
+  end
+  if status  then
+    return status
+  end
+  return "Unknown"
+end
+
+Device_DSL_Channel_i_.entries = function(mapping, param, key)
+  model = nwmodel.load()
+  return model:getKeys(DSLChannel)
+end
+
+local function getEnable(mapping, param, key)
+  xdslBinding.sectionname = key
+  xdslBinding.option = "enabled"
+  xdslBinding.default = "1"
+  return uciHelper.get_from_uci(xdslBinding)
+end
+
+Device_DSL_Channel_i_.get = {
+  Name = function(mapping, param, key)
+    return key
+  end,
+
+  Enable = getEnable,
+
+  Status = function(mapping, param, key)
+    return getStatus(key)
+  end,
+
+  LowerLayers = function(mapping, param, key)
+    return model:getLowerLayersResolved(key, resolve)
+  end,
+
+  UpstreamCurrRate = function(mapping, param, key)
+    return xdslctl.infoValue("currentrate", "us", "0", xdslctlLineIdMap[key])
+  end,
+
+  DownstreamCurrRate = function(mapping, param, key)
+    return xdslctl.infoValue("currentrate", "ds", "0", xdslctlLineIdMap[key])
+  end,
+
+  LPATH = function(mapping, param, key)
+    return xdslctl.infoValue("LPATH", nil, nil, xdslctlLineIdMap[key]) or ""
+  end,
+
+  LinkEncapsulationSupported = function(mapping, param, key)
+    local link = xdslctl.infoValue("LinkEncapsulationSupported", nil, nil, xdslctlLineIdMap[key])
+    return link and link:gsub("%s%b()","") or ""
+  end,
+
+  LinkEncapsulationUsed = function(mapping, param, key)
+    return xdslctl.infoValue("LinkEncapsulationUsed", nil, nil, xdslctlLineIdMap[key]) or ""
+  end,
+
+  ACTINP = function(mapping, param, key)
+    return xdslctl.infoValue("ACTINP", nil, nil, xdslctlLineIdMap[key]) or ""
+  end,
+
+  LastChange = function()
+    return tostring(getClockTime(posix.CLOCK_MONOTONIC) - lastStateChangeTime)
+  end
+}
+
+Device_DSL_Channel_i_.getall = function(mapping, key)
+  -- get all required values from xdslctl info --show, xdslctl info --stats
+  local xdslInfoValues = xdslctl.infoValueList(xdslInfoGetAllKeys, xdslctlLineIdMap[key])
+  local link = xdslInfoValues["LinkEncapsulationSupported"]
+  return {
+    Name = key or "",
+    Enable = getEnable(mapping, nil, key) or "1",
+    Status =  getStatus(key) or "",
+    LowerLayers = model:getLowerLayersResolved(key, resolve),
+    UpstreamCurrRate = xdslInfoValues["currentrate"]["us"] or "0",
+    DownstreamCurrRate = xdslInfoValues["currentrate"]["ds"] or "0",
+    LPATH = xdslInfoValues["LPATH"] or "",
+    LinkEncapsulationSupported = link and link:gsub("%s%b()","") or "",
+    LinkEncapsulationUsed = xdslInfoValues["LinkEncapsulationUsed"] or "",
+    ACTINP = xdslInfoValues["ACTINP"] or "",
+    LastChange = tostring(getClockTime(posix.CLOCK_MONOTONIC) - lastStateChangeTime)
+  }
+end
+
+local function setUbusEvent(mapping, action, data)
+  if data["status"] then
+    lastStateChangeTime = getClockTime(posix.CLOCK_MONOTONIC)
+  end
+end
+
+Device_DSL_Channel_i_.add_watchers = function(mapping)
+  local ubusEventSource = eventsource("ubus")
+  ubusEventSource.watch_event(mapping, setUbusEvent, "xdsl")
+end
+
+Device_DSL_Channel_i_.set = {
+  Enable = function(mapping, param, value, key)                                                  
+    xdslBinding.sectionname = key
+    xdslBinding.option = "enabled"
+    uciHelper.set_on_uci(xdslBinding, value, commitapply)
+    isConfigChanged = true
+  end,
+}
+
+Device_DSL_Channel_i_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(xdslBinding)
+    isConfigChanged = false
+  end
+end
+
+Device_DSL_Channel_i_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(xdslBinding)
+    isConfigChanged = false
+  end
+end
+
+register(Device_DSL_Channel_i_)

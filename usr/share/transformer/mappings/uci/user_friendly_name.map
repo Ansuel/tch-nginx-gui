@@ -1,0 +1,13 @@
+local mapper = mapper
+
+-- uci.user_friendly_name
+mapper("uci_1to1").registerConfigMap("user_friendly_name")
+
+-- uci.user_friendly_name.name
+local uci_friendly_name = {
+  config = "user_friendly_name",
+  type = "name",
+  options = { "name", "mac", "type" }
+}
+
+mapper("uci_1to1").registerMultiMap(uci_friendly_name)

@@ -1,0 +1,167 @@
+local commitapply, string, register, tonumber, mapper = commitapply, string, register, tonumber, mapper
+local helper = require("mobiled.scripthelpers")
+
+local obj = {
+	objectType = {
+		name = "Device.Cellular.AccessPoint.{i}.",
+		access = "readOnly",
+		numEntriesParameter = "AccessPointNumberOfEntries",
+		minEntries = 0,
+		maxEntries = math.huge,
+		aliasParameter = "Alias",
+		parameters = {
+			Enable = {
+				access = "readOnly",
+				type = "boolean"
+			},
+			Alias = {
+				access = "readWrite",
+				activeNotify = "canDeny",
+				type = "string",
+				max = "64",
+			},
+			APN = {
+				access = "readWrite",
+				type = "string",
+				max = "64"
+			},
+			Username = {
+				access = "readWrite",
+				type = "string",
+				max = "64"
+			},
+			Password = {
+				access = "readWrite",
+				type = "string",
+				max = "64"
+			},
+			Interface = {
+				access = "readOnly",
+				type = "string"
+			}
+		}
+	}
+}
+
+local uci_helper = mapper("ucihelper")
+local conn = mapper("ubus").connect()
+if not conn then
+	return
+end
+
+local function entries(mapping)
+	local accessPoints = {}
+	uci_helper.foreach_on_uci({config="network", sectionname="interface"}, function(s)
+		if s.proto and string.match(s.proto, "mobiled") then
+			if s.profile and s.session_id then
+				table.insert(accessPoints, s['.name'])
+			end
+		end
+	end)
+	return accessPoints
+end
+
+local function getBindingForIndex(key)
+	return {
+		config="mobiled",
+		sectionname="@profile[" .. key .. "]",
+		extended = true
+	}
+end
+
+local function setOnInterface(key, param, val)
+	local binding={sectionname=key, config="network",option=param,default=""}
+	uci_helper.set_on_uci(binding, val, commitapply)
+	uci_helper.commit(binding)
+end
+
+local function setOnProfile(key, param, value, nocommit)
+	local profileId
+	uci_helper.foreach_on_uci({config="network", sectionname="interface"}, function(s)
+		if s['.name'] == key then
+			profileId = s.profile
+		end
+	end)
+
+	local profile
+	if tonumber(profileId) then
+		uci_helper.foreach_on_uci({config="mobiled", sectionname="profile"}, function(s)
+			if s.id == profileId then
+				profile = s[".index"]
+			end
+		end)
+	end
+
+	if profile then
+		local binding = getBindingForIndex(profile)
+		binding.option = param
+		uci_helper.set_on_uci(binding, value, commitapply)
+		if not nocommit then
+			uci_helper.commit(binding)
+		end
+	end
+end
+
+local function getall(mapping, key)
+	local data = {}
+
+	data.Enable = "0"
+	data.APN = ""
+	data.Username = ""
+	data.Password = ""
+	data.Proxy = ""
+	data.ProxyPort = ""
+	data.Interface = ""
+
+	local profileId
+	uci_helper.foreach_on_uci({config="network", sectionname="interface"}, function(s)
+		if s['.name'] == key then
+			if not s.enabled or s.enabled == '1' then
+				data.Enable = "1"
+			end
+			local dev_idx = "1"
+			if s.dev_idx then dev_idx = tostring(s.dev_idx) end
+			local info = helper.getUbusData(conn, "mobiled.device", "get", { dev_idx = tonumber(dev_idx) })
+			data.Interface = resolve("Device.Cellular.Interface.{i}.", info.imei) or ""
+			profileId = s.profile
+			return false
+		end
+	end)
+
+	if tonumber(profileId) then
+		uci_helper.foreach_on_uci({config="mobiled", sectionname="profile"}, function(s)
+			if s.id == profileId then
+				data.APN = s.apn or ""
+				data.Username = s.username or ""
+				data.Password = s.password or ""
+			end
+		end)
+	end
+	return data
+end
+
+local function get(mapping, paramName, key)
+	return getall(mapping, key)[paramName]
+end
+
+local set = {
+	Enable = function(mapping, paramname, paramvalue, key)
+		setOnInterface(key, "enabled", paramvalue)
+	end,
+	APN = function(mapping, paramname, paramvalue, key)
+		setOnProfile(key, "apn", paramvalue)
+	end,
+	Username = function(mapping, paramname, paramvalue, key)
+		setOnProfile(key, "username", paramvalue)
+	end,
+	Password = function(mapping, paramname, paramvalue, key)
+		setOnProfile(key, "password", paramvalue)
+	end
+}
+
+obj.getall = getall
+obj.get = get
+obj.set = set
+obj.entries = entries
+
+register(obj)

@@ -1,0 +1,426 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_WiFi_AccessPoint_i_ = {
+  objectType = {
+    name = "Device.WiFi.AccessPoint.{i}.",
+    access = "readOnly", -- currently readWrite not supported
+    numEntriesParameter = "AccessPointNumberOfEntries",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Disabled",
+          "Enabled",
+          "Error_Misconfigured",
+          "Error",
+        },
+        default = "Disabled",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      SSIDReference = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        pathRef = true,
+        targetParent = "Device.WiFi.SSID.{i}.",
+        default = "",
+      },
+      SSIDAdvertisementEnabled = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      X_000E50_BandSteerEnabled = {
+        access = "readWrite",
+        type = "boolean",
+      },
+--[[ TODO
+      RetryLimit = {
+        access = "readWrite",
+        status = "deprecated",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "7",
+          },
+        },
+      },
+--]]
+      WMMCapability = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      UAPSDCapability = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      WMMEnable = {
+        access = "readOnly", -- no readWrite since as per TRS "By default a Technicolor Gateway must enable WMM on all radio interfaces"
+        type = "boolean",
+      },
+      UAPSDEnable = {
+        access = "readOnly", --readWrite not supported
+        type = "boolean",
+      },
+      -- AssociatedDeviceNumberOfEntries
+      -- automatically created when Device.WiFi.AccessPoint.{i}.AssociatedDevice.{i}. is loaded
+      MaxAssociatedDevices = {
+        access = "readWrite",
+        type = "unsignedInt",
+        default = "0",
+      },
+      IsolationEnable = {
+        access = "readOnly", -- Currently readWrite not supported
+        type = "boolean",
+      },
+      MACAddressControlEnabled = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      AllowedMACAddress = {
+        access = "readWrite",
+        list = true,
+        type = "string",
+      },
+    }
+  }
+}
+
+local nwmodel = require 'transformer.shared.models.device2.network'
+nwmodel.register('WiFiAP', Device_WiFi_AccessPoint_i_.objectType.name)
+local model
+
+local commitapply, mapper = commitapply, mapper
+local uci_helper = mapper("ucihelper")
+local getFromUci = uci_helper.get_from_uci
+local nwCommon = mapper("nwcommon")
+local conn = mapper("ubus").connect()
+local binding_wireless = {config = "wireless"}
+local isConfigChanged = false
+local bandSteerHelper = require("transformer.shared.bandsteerhelper")
+local getBsAp = bandSteerHelper.getBsAp
+local isBaseIface = bandSteerHelper.isBaseIface
+local getBandSteerId = bandSteerHelper.getBandSteerId
+local getBandSteerPeerIface = bandSteerHelper.getBandSteerPeerIface
+local canEnableBandSteer = bandSteerHelper.canEnableBandSteer
+local canDisableBandSteer = bandSteerHelper.canDisableBandSteer
+local isBandSteerEnabledByAp = bandSteerHelper.isBandSteerEnabledByAp
+local setBandSteerPeerIfaceSSID = bandSteerHelper.setBandSteerPeerIfaceSSIDByLocalIface
+
+local pairs, next =
+      pairs, next
+
+local accessPointMap = {
+  Enable = "state",
+  SSIDAdvertisementEnabled = "public",
+  MaxAssociatedDevices = "max_assoc",
+  IsolationEnable = "ap_isolation",
+  SSIDReference = "iface",
+  AllowedMACAddress = "acl_accept_list",
+  MACAddressControlEnabled = "acl_mode"
+}
+
+local function entriesWifiAccess(mapping)
+  model = nwmodel.load()
+  return model:getKeys('WiFiAP')
+end
+
+local function getDataForWifiAccess(apkey)
+  local data = conn:call("wireless.accesspoint", "get",  { name = model:getUciKey(apkey) })
+    if data == nil then
+      return {}
+    end
+  return data[apkey] or {}
+end
+
+local function getAllIfaceDataFromSsid()
+  local result = conn:call("wireless.ssid", "get", {})
+  if result == nil then
+      error("Cannot retrieve ssid.")
+  end
+  return result
+end
+
+local function getApBandSteerId(ap)
+  binding_wireless.sectionname = model:getUciKey(ap)
+  binding_wireless.option = "bandsteer_id"
+  return uci_helper.get_from_uci(binding_wireless)
+end
+
+local function getUciValue(param, key, default)
+  binding_wireless.sectionname = model:getUciKey(key)
+  binding_wireless.option = accessPointMap[param]
+  binding_wireless.default = default
+  local value = getFromUci(binding_wireless)
+  if (type(value) == 'table') then
+    return table.concat(value, ",") or ""
+  end
+  return value
+end
+
+local getWifiAccess = {
+  Enable = function(mapping, param, key)
+    return getUciValue(param, key, "0")
+  end,
+
+  Status = function(mapping, param, key)
+    local access_values = getDataForWifiAccess(key)
+      if access_values.oper_state == 1 then
+        return 'Enabled'
+      else
+        return 'Disabled'
+      end
+  end,
+
+  AllowedMACAddress = function(mapping, param, key)
+    return getUciValue(param, key)
+  end,
+
+  MACAddressControlEnabled = function(mapping, param, key)
+    local enabled
+    binding_wireless.sectionname = model:getUciKey(key)
+    binding_wireless.option = accessPointMap[param]
+    enabled = getFromUci(binding_wireless)
+    if enabled == "disabled" or enabled == "unlock" then
+      enabled = "0"
+    else
+      enabled = "1"
+    end
+    return enabled
+  end,
+
+  SSIDReference = function(mapping, param, key)
+    return model:getLowerLayersResolved(key, resolve)
+  end,
+
+  SSIDAdvertisementEnabled = function(mapping, param, key)
+    return getUciValue(param, key, "0")
+  end,
+
+  X_000E50_BandSteerEnabled = function(mapping, param, key)
+    return isBandSteerEnabledByAp(key) and "1" or "0"
+  end,
+
+  WMMCapability = "1", -- returning 1 as we are supporting wmm
+
+  UAPSDCapability = "0", -- returning 0 as we don't have support for wmm power save
+
+  WMMEnable = "1", -- as per TRS "By default a Technicolor Gateway must enable WMM on all radio interfaces"
+
+  UAPSDEnable = "0", -- returning 0 as we don't have support for wmm power save
+
+  MaxAssociatedDevices = function(mapping, param, key)
+    return getUciValue(param, key, "0")
+  end,
+
+  IsolationEnable = function(mapping, param, key)
+    return getUciValue(param, key, "0")
+  end,
+}
+
+local function getBandSteerRelatedNode(apKey, apNode)
+  local iface2, errmsg = getBandSteerPeerIface(apNode.ssid)
+  if not iface2 then
+    return nil, errmsg
+  end
+
+  local bspeerap = getBsAp(iface2)
+  if not bspeerap then
+    return nil, "Band steering switching node does not exist"
+  end
+
+  if isBaseIface(apNode.ssid) then
+    return apKey, bspeerap, apNode.ssid, iface2
+  else
+    return bspeerap, apKey, iface2, apNode.ssid
+  end
+end
+
+--to set the authentication related content
+local function setBandSteerPeerApAuthentication(baseap, needsetap)
+  binding_wireless.sectionname = baseap
+  binding_wireless.option = "security_mode"
+  local value = uci_helper.get_from_uci(binding_wireless)
+
+  binding_wireless.sectionname = needsetap
+  uci_helper.set_on_uci(binding_wireless, value, commitapply)
+
+  binding_wireless.sectionname = baseap
+  binding_wireless.option = "wpa_psk_key"
+  value = uci_helper.get_from_uci(binding_wireless)
+
+  binding_wireless.sectionname = needsetap
+  uci_helper.set_on_uci(binding_wireless, value, commitapply)
+
+  return
+end
+
+local function setBandSteerID(ap, bspeerap, bsid, oper)
+  if "1" == oper then
+    binding_wireless.sectionname = ap
+    binding_wireless.option = "bandsteer_id"
+    uci_helper.set_on_uci(binding_wireless, bsid, commitapply)
+
+    binding_wireless.sectionname = bspeerap
+    binding_wireless.option = "bandsteer_id"
+    uci_helper.set_on_uci(binding_wireless, bsid, commitapply)
+  else
+    binding_wireless.sectionname = ap
+    binding_wireless.option = "bandsteer_id"
+    uci_helper.set_on_uci(binding_wireless, "off", commitapply)
+
+    binding_wireless.sectionname = bspeerap
+    binding_wireless.option = "bandsteer_id"
+    uci_helper.set_on_uci(binding_wireless, "off", commitapply)
+  end
+
+  return
+end
+
+local function disableBandSteer(key)
+  local apData = getDataForWifiAccess(key)
+    if not apData or not next(apData) then
+      return nil, "The related AP node cannot be found."
+    end
+
+    local ret, errmsg = canDisableBandSteer(key, apData.ssid)
+    if not ret then
+      return nil, errmsg
+    end
+
+    local baseap, needsetap, baseiface, needsetiface = getBandSteerRelatedNode(key, apData)
+    setBandSteerID(baseap, needsetap, "off",  "0")
+
+    --to reset the ssid
+    setBandSteerPeerIfaceSSID(baseiface, needsetiface, "0")
+    isConfigChanged = true
+
+    return
+  end
+
+  --1\Only the admin_state enabled, then enable bandsteering
+  --2\2.4G related ap will act as based node
+  local function enableBandSteer(key)
+    local apNode = getDataForWifiAccess(key)
+    if not apNode then
+      return nil, "AP node is invalid."
+    end
+
+    local ret, errmsg = canEnableBandSteer(key, apNode, apNode.ssid)
+    if not ret then
+      return nil, errmsg
+    end
+
+    --to set the bandsteer ids
+    local baseap, needsetap, baseiface, needsetiface = getBandSteerRelatedNode(key, apNode)
+
+  local bsid, errmsg = getBandSteerId(apNode.ssid)
+  if not bsid then
+    return nil, errmsg
+  end
+
+  setBandSteerID(baseap, needsetap, bsid,  "1")
+  setBandSteerPeerIfaceSSID(baseiface, needsetiface, "1")
+  setBandSteerPeerApAuthentication(baseap, needsetap)
+  isConfigChanged = true
+
+  return
+end
+
+local function setDataOnUci(mapping, param, value, key)
+  binding_wireless.sectionname = model:getUciKey(key)
+  binding_wireless.option = accessPointMap[param]
+  uci_helper.set_on_uci(binding_wireless, value, commitapply)
+  isConfigChanged = true
+end
+
+local function getAclMode(key)
+  binding_wireless.sectionname = model:getUciKey(key)
+  binding_wireless.option = "acl_mode"
+  return getFromUci(binding_wireless)
+end
+
+local setWifiAccess = {
+  X_000E50_BandSteerEnabled = function(mapping, param, value, key)
+    if "1" == value then
+      return enableBandSteer(key)
+    else
+      return disableBandSteer(key)
+    end
+  end,
+
+  Enable = setDataOnUci,
+
+  SSIDAdvertisementEnabled = setDataOnUci,
+
+  MaxAssociatedDevices = setDataOnUci,
+
+  IsolationEnable = setDataOnUci,
+
+  SSIDReference = function(mapping, param, value, key)
+    local rc
+    rc, value = pcall(tokey, value, "Device.WiFi.SSID.{i}.")
+    if not rc or not value then
+      return nil, "Invalid value"
+    end
+    setDataOnUci(mapping, param, value, key)
+  end,
+
+  MACAddressControlEnabled = function(mapping, param, value, key)
+    local aclmode = "disabled"
+    if value == "1" then
+      aclmode = "lock"
+    end
+    setDataOnUci(mapping, param, aclmode, key)
+  end,
+
+  AllowedMACAddress = function(mapping, param, value, key)
+    local macList = {}
+    if getAclMode(key) == "lock" then
+      for mac in string.gmatch(value, '([^,]+)') do
+        if nwCommon.isMAC(mac) then
+          macList[#macList+1] = mac
+        else
+          return nil, "Invalid MAC address; cannot set"
+        end
+      end
+      setDataOnUci(mapping, param, macList, key)
+    else
+      return nil, "Set Failed. MAC Address Control is currently disabled"
+    end
+  end,
+}
+
+Device_WiFi_AccessPoint_i_.entries = entriesWifiAccess
+Device_WiFi_AccessPoint_i_.get = getWifiAccess
+Device_WiFi_AccessPoint_i_.set = setWifiAccess
+
+Device_WiFi_AccessPoint_i_.commit = function()
+  if isConfigChanged then
+    uci_helper.commit(binding_wireless)
+    isConfigChanged = false
+  end
+end
+
+Device_WiFi_AccessPoint_i_.revert = function()
+  if isConfigChanged then
+    uci_helper.revert(binding_wireless)
+    isConfigChanged = false
+  end
+end
+
+register(Device_WiFi_AccessPoint_i_)

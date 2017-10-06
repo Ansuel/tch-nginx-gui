@@ -1,0 +1,24 @@
+local config_dlnad = "dlnad"
+
+mapper("uci_1to1").registerConfigMap(config_dlnad)
+
+-- uci.dlnad.config
+local dlnad_config = {
+  config = config_dlnad,
+  section = "config",
+  type = "dlnad",
+  options = { "enabled", "manufacturer_url", "model_url", "mount_path",
+	      "radioStations_enabled", "friendly_name", "uuid", "model_name" },
+}
+
+mapper("uci_1to1").registerSimpleMap(dlnad_config)
+
+-- uci.dlnad.log.
+local log_level = {
+  config = config_dlnad,
+  section = "log",
+  type = "global",
+  options = { "mud_logLevel", "mvfs_logLevel", "dlnad_logLevel" },
+}
+
+mapper("uci_1to1").registerSimpleMap(log_level)

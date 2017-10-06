@@ -1,0 +1,7 @@
+local command = {
+  name = "mptcpconns",
+  full_path = "/bin/cat",
+  operands = {"path"},
+}
+
+mapper("command").registerCommand(command)

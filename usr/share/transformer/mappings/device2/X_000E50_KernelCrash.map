@@ -1,0 +1,94 @@
+local Device_X_000E50_KernelCrash_= {
+  objectType = {
+    name = "Device.Services.X_000E50_KernelCrash.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    description = "Configuration for uploading kernel crash information for further analysis",
+    parameters = {
+      URL = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        description = "URL where to upload the kernel crash data to",
+      },
+      Action = {
+        access = "readWrite",
+        type = "string",
+        max = "64",
+        description = "Specifies what to do with the kernel crash data after uploading",
+        enumeration = {
+          "compress",
+          "delete",
+        },
+      },
+      Upload = {
+        access = "readWrite",
+        type = "boolean",
+        default = "1",
+        description = "Enable or disable the uploading of the kernel crash data",
+      },
+    }
+  }
+}
+
+----------------------------------------------------------
+-- Local definitions
+-- -------------------------------------------------------
+local uciHelper = mapper("ucihelper")
+local kernelCrashBinding = { config = "kernel_crash_handler", sectionname = "@kernel_crash[0]", extended = true }
+local configChanged
+
+----------------------------------------------------------
+-- Mapper implementation
+----------------------------------------------------------
+
+local paramMap = {
+  ["URL"] = "url",
+  ["Action"] = "action",
+  ["Upload"] = "upload",
+}
+
+local function getKernelCrashValues(mapping, param)
+  kernelCrashBinding.option = paramMap[param]
+  kernelCrashBinding.default = nil
+  if param == "Upload" then
+    kernelCrashBinding.default = "1"
+  end
+  return uciHelper.get_from_uci(kernelCrashBinding)
+end
+
+Device_X_000E50_KernelCrash_.get = getKernelCrashValues
+
+Device_X_000E50_KernelCrash_.getall = function()
+  local allValues = uciHelper.getall_from_uci(kernelCrashBinding)
+  return {
+    URL = allValues.url or "",
+    Action = allValues.action or "",
+    Upload = allValues.upload or "1",
+  }
+end
+
+local function setKernelCrashValues(mapping, param, value)
+  kernelCrashBinding.option = paramMap[param]
+  uciHelper.set_on_uci(kernelCrashBinding, value, commitapply)
+  configChanged = true
+end
+
+Device_X_000E50_KernelCrash_.set = setKernelCrashValues
+
+Device_X_000E50_KernelCrash_.commit = function()
+  if configChanged then
+    uciHelper.commit(kernelCrashBinding)
+    configChanged = false
+  end
+end
+
+Device_X_000E50_KernelCrash_.revert = function()
+  if configChanged then
+    uciHelper.revert(kernelCrashBinding)
+    configChanged = false
+  end
+end
+
+register(Device_X_000E50_KernelCrash_)

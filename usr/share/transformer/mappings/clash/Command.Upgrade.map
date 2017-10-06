@@ -1,0 +1,8 @@
+local command = {
+  name = "upgrade",
+  full_path = "/usr/bin/clash-upgrade-wrapper",
+  options_without_argument = {"-s"},
+  options_with_argument = {"-d"},
+}
+
+mapper("command").registerCommand(command)

@@ -1,0 +1,154 @@
+-- Manually generated
+local Device_Services_Multi_WlanGW_i_ = {
+  objectType = {
+    name = "Device.Services.#VENDOR.WlanGW.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "WlanGWNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "true",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        default = "Disabled",
+      },
+      CheckPrivateWifi = {
+        access = "readWrite",
+        type = "boolean",
+        default = "true",
+      },
+      CheckPrivateWifiEncryption = {
+        access = "readWrite",
+        type = "boolean",
+        default = "true",
+      },
+      AllowEthWanMode = {
+        access = "readWrite",
+        type = "boolean",
+        default = "true",
+      },
+      VLANID = {
+        access = "readWrite",
+        type = "unsignedInt",
+        default = "0",
+      },
+      SSIDReference = {
+        access = "readOnly", -- readWrite not supported, no lower layer support
+        type = "string",
+        max = "256",
+        pathRef = true,
+        default = "",
+      },
+      GRETunnel = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        pathRef = true,
+        targetParent = "Device.GRE.Tunnel.{i}.",
+        default = "",
+      },
+    }
+  }
+}
+
+local string = string
+local mapper, pairs, resolve, match  = mapper, pairs, resolve, string.match
+local nwmodel = require "transformer.shared.models.device2.network"
+local ubusConnection = mapper("ubus").connect()
+local uciHelper = mapper("ucihelper")
+local hotspotData = {}
+local binding = { config = "gre_hotspotd", sectionname = "hotspot" }
+
+Device_Services_Multi_WlanGW_i_.entries = function()
+  local hotspotEntries = {}
+  hotspotData = ubusConnection:call("gre-hotspotd", "get", {})
+  uciHelper.foreach_on_uci(binding, function(s)
+     hotspotEntries[#hotspotEntries + 1] = s[".name"]
+  end)
+  return hotspotEntries
+end
+
+Device_Services_Multi_WlanGW_i_.get = {
+  Enable = function(mapping, param, key)
+    return hotspotData and hotspotData[key] and hotspotData[key]["enable"] == false and "0" or "1"
+  end,
+  Status = function(mapping, param, key)
+    return hotspotData and hotspotData[key] and hotspotData[key]["state"] or "Disabled"
+  end,
+  VLANID = function(mapping, param, key)
+    return hotspotData and hotspotData[key] and hotspotData[key]["vlan-id"] or "0"
+  end,
+  SSIDReference = function(mapping, param, key)
+    local accessPointData = ubusConnection:call("wireless.accesspoint", "get", {}) or {}
+    local wifiSSID = hotspotData and hotspotData[key] and hotspotData[key]["wifi-iface"]
+    local ssid_name = type(wifiSSID) == "table" and wifiSSID[1] or wifiSSID
+    for accessPoint, data in pairs(accessPointData) do
+      if data["ssid"] == ssid_name then
+        local model = nwmodel.load()
+        return model:getLowerLayersResolved(accessPoint, resolve) or ""
+      end
+    end
+    return ""
+  end,
+  GRETunnel = function(mapping, param, key)
+    return hotspotData and hotspotData[key] and hotspotData[key]["gre-iface"] and resolve("Device.GRE.Tunnel.{i}.", "gre-" .. hotspotData[key]["gre-iface"]) or ""
+  end,
+  CheckPrivateWifi = function(mapping, param, key)
+    return hotspotData and hotspotData[key] and hotspotData[key]["check-private-wifi"] == false and "0" or "1"
+  end,
+  CheckPrivateWifiEncryption = function(mapping, param, key)
+    return hotspotData and hotspotData[key] and hotspotData[key]["check-private-wifi-encryption"] == false and "0" or "1"
+  end,
+  AllowEthWanMode = function(mapping, param, key)
+    return hotspotData and hotspotData[key] and hotspotData[key]["allow-ethwan-mode"] == false and "0" or "1"
+  end,
+}
+
+-- A getall implementation is not done as it will not bring any improvement
+-- as data retrieval is done in the entries call. The get will use the cached data
+-- no work is duplicated
+
+Device_Services_Multi_WlanGW_i_.set = {
+  Enable = function(mapping, param, value, key)
+    ubusConnection:call("gre-hotspotd", "set", {["name"] = key, ["enable"] = value})
+  end,
+  VLANID = function(mapping, param, value, key)
+    for hotspot, data in pairs(hotspotData) do
+      if data and (data["vlan-id"] == value) and key ~= hotspot then
+        return nil, string.format("VLANID %s is already assigned to %s", value, hotspot)
+      end
+    end
+    ubusConnection:call("gre-hotspotd", "set", {["name"] = key, ["vlan-id"] = value})
+  end,
+  GRETunnel = function(mapping, param, value, key)
+    local err
+    err, value = pcall(tokey, value, "Device.GRE.Tunnel.{i}.")
+    value = value and match(value, "gre%-(%S+)")
+    if not err or not value or value == "" then
+      return nil, "Invalid value"
+    end
+    local vlanid = hotspotData[key]["vlan-id"] or "0"
+    -- "vlan-id" is explicitly set to its current value to avoid the value automatically changing to 0 while "gre-iface" is set
+    ubusConnection:call("gre-hotspotd", "set", {["name"] = key, ["gre-iface"] = value, ["vlan-id"] = vlanid})
+  end,
+  CheckPrivateWifi = function(mapping, param, value, key)
+    ubusConnection:call("gre-hotspotd", "set", {["name"] = key, ["check-private-wifi"] = value})
+  end,
+  CheckPrivateWifiEncryption = function(mapping, param, value, key)
+    ubusConnection:call("gre-hotspotd", "set", {["name"] = key, ["check-private-wifi-encryption"] = value})
+  end,
+  AllowEthWanMode = function(mapping, param, value, key)
+    ubusConnection:call("gre-hotspotd", "set", {["name"] = key, ["allow-ethwan-mode"] = value})
+  end,
+}
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Device_Services_Multi_WlanGW_i_, "#VENDOR", { "X_BELGACOM_HotspotService", "X_000E50_HotspotService" })
+for _, dupli in ipairs(duplicates) do
+  register (dupli)
+end

@@ -1,0 +1,1430 @@
+local lfs = require("lfs")
+
+if lfs.attributes("/etc/config/mmpbx", "mode") ~= "file" then
+  return
+end
+
+local uci_helper = mapper("ucihelper")
+local conn = mapper("ubus").connect()
+local binding = {}
+local transactions = {}
+local mt = { __index = function() return "" end }
+local common_default = setmetatable({}, mt)
+local get_from_uci = uci_helper.get_from_uci
+local dynamic_binding = {config = "mmpbx", sectionname = "codec_filter"}
+local function Commit()
+    local binding = {}
+    for config in pairs(transactions) do
+        binding.config = config
+        uci_helper.commit(binding)
+    end
+    transactions = {}
+end
+local function Revert()
+    local binding = {}
+    for config in pairs(transactions) do
+        binding.config = config
+        uci_helper.revert(binding)
+    end
+    transactions = {}
+end
+
+local function revTable(inTable)
+    local revTable = { }
+    for k,v in pairs(inTable) do
+        revTable[v] = k
+    end
+    return revTable
+end
+local dscp = {
+    cs0 = "0",
+    cs1 = "8",
+    af11 = "10",
+    af12 = "12",
+    af13 = "14",
+    cs2 = "16",
+    af21 = "18",
+    af22 = "20",
+    af23 = "22",
+    cs3 = "24",
+    af31 = "26",
+    af32 = "28",
+    af33 = "30",
+    cs4 = "32",
+    af41 = "34",
+    af42 = "36",
+    af43 = "38",
+    cs5 = "40",
+    ef = "46",
+    cs6 = "48",
+    cs7 = "56",
+}
+local rev_dscp = revTable(dscp)
+local precedence = {
+    ["routine"] = "0",
+    ["priority"] = "8",
+    ["immediate"] = "16",
+    ["flash"] = "24",
+    ["flash override"] = "32",
+    ["critic/ecp"] = "40",
+    ["internetwork control"] = "48",
+    ["network control"] = "50",
+}
+local algorithmMap = {
+  ["fixed"] = "reg_back_off_timeout",
+  ["exponential"] = "reg_back_off_timeout_min",
+  ["random"] = "reg_back_off_timeout_min",
+  [""] = "reg_back_off_timeout",
+}
+local rev_precedence = revTable(precedence)
+
+local function getDSCPMark(object, field_option, value_option)
+    local QoSField, QoSValue = "", ""
+    if type(object) == "table" then
+        if object[field_option] and object[value_option] then
+            QoSField = object[field_option]
+            QoSValue = object[value_option]
+        else
+            object.option = field_option
+            QoSField = uci_helper.get_from_uci(object)
+            object.option = value_option
+            QoSValue = uci_helper.get_from_uci(object)
+        end
+        local dscpmark = ""
+        if (QoSField == "dscp") then
+            dscpmark = dscp[QoSValue]
+        elseif (QoSField == "precedence") then
+            dscpmark = precedence[QoSValue]
+        end
+        if (dscpmark == nil) then
+            dscpmark = QoSValue or ""
+        end
+        return dscpmark
+    end
+    return ""
+end
+
+local function setDSCPMark(binding, value, field_option, value_option)
+    binding.option = field_option
+    local QoSField = uci_helper.get_from_uci(binding)
+    local checkvalue = value
+    if (QoSField == "dscp") then
+        checkvalue = rev_dscp[value]
+    elseif (QoSField == "precedence") then
+        local precedenceorder = checkvalue
+        if (checkvalue ~= "50") then
+            precedenceorder = tostring (math.modf(checkvalue/8)*8)
+        end
+        checkvalue = rev_precedence[precedenceorder]
+    end
+    if (checkvalue ~= nil) then
+        value = checkvalue
+    end
+    binding.option = value_option
+    uci_helper.set_on_uci(binding, value, commitapply)
+end
+
+local function getAllParams(maps, parameters)
+    return function(mapping, key)
+        local config, sectionname = key:match("(.*)|(.*)")
+        binding.config = config
+        binding.sectionname = sectionname
+        binding.option = nil
+        local object = uci_helper.getall_from_uci(binding)
+        local map = maps[config]
+
+        local data = {}
+
+        for p,_ in pairs(parameters) do
+            if map.value[p] then
+                if type(map.value[p]) == 'function' then
+                    data[p] = map.value[p](object)
+                else
+                    data[p] = object[map.value[p]]
+                end
+            end
+            data[p] = data[p] or map.default[p]
+        end
+        return data
+    end
+end
+
+local function getParam(maps)
+    return function(mapping, param, key)
+        local config, sectionname = key:match("(.*)|(.*)")
+        binding.config = config
+        binding.sectionname = sectionname
+        local map = maps[config]
+        if map.value[param] then
+            if type(map.value[param]) == "function" then
+                return map.value[param](binding)
+            else
+                binding.option = map.value[param]
+                binding.default = map.default[param]
+                return uci_helper.get_from_uci(binding)
+            end
+        else
+            return map.default[param]
+        end
+    end
+end
+
+local function setParam(maps, set_maps)
+    return function(mapping, param, value, key)
+        local config, sectionname = key:match("(.*)|(.*)")
+        binding.config = config
+        binding.sectionname = sectionname
+        local map = maps[config]
+        local set_map = set_maps[config]
+        local msg, err
+
+        if set_map[param] then
+            if type(set_map[param]) == "function" then
+                msg, err = set_map[param](binding, value)
+                transactions[binding.config] = true
+                if err then
+                    return nil, err
+                end
+                return true
+            elseif type(map.value[param]) == "string" then
+                binding.option = map.value[param]
+                uci_helper.set_on_uci(binding, value, commitapply)
+                transactions[binding.config] = true
+                return true
+            end
+        end
+        return nil, "Not supported currently"
+    end
+end
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_SIP_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.SIP.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            ProxyServer = {
+                access = "readWrite",
+                type = "string",
+                max = "256",
+                default = "",
+            },
+            ProxyServerPort = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "65535",
+                    },
+                },
+                default = "5060",
+            },
+            ProxyServerTransport = {
+                access = "readWrite",
+                type = "string",
+                enumeration = {
+                    "TCP",
+                    "UDP",
+                    "undefined",
+                },
+                default = "UDP",
+            },
+            RegistrarServer = {
+                access = "readWrite",
+                type = "string",
+                max = "256",
+                default = "",
+            },
+            RegistrarServerPort = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "65535",
+                    },
+                },
+                default = "5060",
+            },
+            RegistrarServerTransport = {
+                access = "readWrite",
+                type = "string",
+                enumeration = {
+                    "TCP",
+                    "UDP",
+                    "undefined",
+                },
+                default = "UDP",
+            },
+            AuthRealm = {
+                access = "readWrite",
+                type = "string",
+                max = "256",
+                default = "",
+            },
+            UserAgentDomain = {
+                access = "readWrite",
+                type = "string",
+                max = "256",
+                default = "",
+            },
+            UserAgentPort = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "65535",
+                    },
+                },
+                default = "0",
+            },
+            UserAgentTransport = {
+                access = "readWrite",
+                type = "string",
+                enumeration = {
+                    "TCP",
+                    "UDP",
+                    "undefined",
+                },
+                default = "UDP",
+            },
+            OutboundProxy = {
+                access = "readWrite",
+                type = "string",
+                max = "256",
+                default = "",
+            },
+            OutboundProxyPort = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "65535",
+                    },
+                },
+                default = "5060",
+            },
+            Organization = {
+                access = "readWrite",
+                type = "string",
+                max = "256",
+                default = "",
+            },
+            RegistrationPeriod = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+            },
+            TimerT1 = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+            },
+            TimerT2 = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+            },
+            TimerT4 = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+            },
+            TimerA = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+            },
+            TimerB = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+            },
+            TimerC = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+            },
+            TimerD = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+            },
+            TimerE = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+            },
+            TimerF = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+            },
+            TimerG = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+            },
+            TimerH = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+            },
+            TimerI = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+            },
+            TimerJ = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+            },
+            TimerK = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+            },
+            InviteExpires = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+            },
+            ReInviteExpires = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+                default = "0",
+            },
+            RegisterExpires = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+            },
+            RegistersMinExpires = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+            },
+            RegisterRetryInterval = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+            },
+            InboundAuth = {
+                access = "readWrite",
+                type = "string",
+                enumeration = {
+                    "None",
+                    "Digest",
+                },
+                default = "None",
+            },
+            InboundAuthUsername = {
+                access = "readWrite",
+                type = "string",
+                max = "256",
+                default = "",
+            },
+            InboundAuthPassword = {
+                access = "readWrite",
+                hidden = "true",
+                type = "string",
+                max = "256",
+                default = "",
+            },
+            UseCodecPriorityInSDPResponse = {
+                access = "readWrite",
+                type = "boolean",
+                default = "false",
+            },
+            DSCPMark = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "63",
+                    },
+                },
+                default = "0",
+            },
+            --      VLANIDMark = {
+            --        access = "readWrite",
+            --        type = "int",
+            --        range = {
+            --          {
+            --            min = "-1",
+            --          },
+            --        },
+            --        default = "-1",
+            --      },
+            --      EthernetPriorityMark = {
+            --        access = "readWrite",
+            --        type = "int",
+            --        range = {
+            --          {
+            --            min = "-1",
+            --          },
+            --        },
+            --        default = "-1",
+            --      },
+            X_000E50_401407Waiting = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                    },
+                },
+                default = "0",
+            },
+            X_000E50_RegisterBackOffTimer = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                    },
+                },
+            },
+            X_AltRegistrarServer = {
+                access = "readWrite",
+                type = "string",
+                max = "256",
+                default = "",
+            },
+            X_AltRegistrarServerPort = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "65535",
+                    },
+                },
+                default = "5095",
+            },
+            X_000E50_SecProxyServer = {
+                access = "readWrite",
+                type = "string",
+                max = "256",
+                default = "",
+            },
+            X_000E50_SecProxyServerPort = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "65535",
+                    },
+                },
+                default = "5060",
+            },
+            X_AltProxyServer = {
+                access = "readWrite",
+                type = "string",
+                max = "256",
+                default = "",
+            },
+            X_AltProxyServerPort = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "65535",
+                    },
+                },
+                default = "5095",
+            },
+            X_000E50_MaxRetransInvite = {
+                access = "readWrite",
+                type = "int",
+                default = "-1",
+            },
+            X_000E50_MaxRetransNonInvite = {
+                access = "readWrite",
+                type = "int",
+                default = "-1",
+            },
+            -- automatically created when Multi.Services.VoiceService.{i}.VoiceProfile.{i}.SIP.EventSubscribe.{i}. is loaded
+            -- SIPEventSubscribeNumberOfElements = {
+            --     access = "readOnly",
+            --     type = "unsignedInt",
+            --     default = "0",
+            -- },
+            -- SIPResponseMapNumberOfElements
+            SIPResponseMapNumberOfElements = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            -- automatically created when Multi.Services.VoiceService.{i}.VoiceProfile.{i}.SIP.ResponseMap.{i}. is loaded
+            X_FASTWEB_RegisterExpiresRefreshPercent = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "100",
+                    },
+                },
+            },
+            X_FASTWEB_RegisterSleepTimeMin = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "65535",
+                    },
+                },
+            },
+            X_FASTWEB_RegisterSleepTimeMax = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "65535",
+                    },
+                },
+            },
+            X_000E50_403Waiting = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "86400",
+                    },
+                },
+                default = "0",
+            },
+            X_000E50_400503Waiting = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "86400",
+                    },
+                },
+                default = "0",
+             },
+             X_000E50_Other4xx5xx6xxWaiting = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "86400",
+                    },
+                },
+                default = "0",
+             },
+             X_000E50_TimerFExpWaiting = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "86400",
+                    },
+                },
+                default = "0",
+             },
+             X_000E50_StopRegisterOn403 = {
+                access = "readWrite",
+                type = "boolean",
+                default = "false",
+             },
+             X_000E50_StopRegisterOnTimerF = {
+                access = "readWrite",
+                type = "boolean",
+                default = "false",
+             },
+             X_000E50_StopRegisterOn408 = {
+                access = "readWrite",
+                type = "boolean",
+                default = "false",
+             },
+             X_000E50_RegisterBackOffTimerMax = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "86400",
+                    },
+                },
+                default = "0",
+             },
+             ConferenceCallDomainURI = {
+                access = "readWrite",
+                type = "string",
+                max = "256",
+                default = "",
+             },
+             X_SessionExpires = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "65535",
+                    },
+                },
+                default = "1800",
+            },
+        }
+    }
+}
+
+local sip_net_map = {
+    value = {
+        ProxyServer = "primary_proxy",
+        ProxyServerPort = "primary_proxy_port",
+        ProxyServerTransport = "transport_type",
+        RegistrarServer = "primary_registrar",
+        RegistrarServerPort = "primary_registrar_port",
+        RegistrarServerTransport = "transport_type",
+        AuthRealm = "realm",
+        UserAgentDomain = "domain_name",
+        UserAgentPort = "local_port",
+        UserAgentTransport = "transport_type",
+        OutboundProxy = "primary_proxy",
+        OutboundProxyPort = "primary_proxy_port",
+        RegistrationPeriod = "reg_expire",
+        TimerT1 = "timer_T1",
+        TimerT2 = "timer_T2",
+        TimerT4 = "timer_T4",
+        TimerA = "timer_T1",
+        TimerB = "timer_B",
+        TimerD = "timer_D",
+        TimerE = "timer_T1",
+        TimerF = "timer_F",
+        TimerG = "timer_T1",
+        --hard code T4, now only consider UDP type
+        TimerI = "timer_T4",
+        TimerJ = "timer_J",
+        --hard code T4, now only consider UDP type
+        TimerK = "timer_T4",
+        RegisterExpires = "reg_expire",
+        RegisterRetryInterval = "reg_back_off_timeout",
+        X_000E50_401407Waiting = "401_407_waiting_time",
+        InviteExpires = "invite_expire_timer",
+        X_000E50_SecProxyServer = "secondary_proxy",
+        X_000E50_SecProxyServerPort = "secondary_proxy_port",
+        X_AltProxyServer = "secondary_proxy",
+        X_AltProxyServerPort = "secondary_proxy_port",
+        X_AltRegistrarServer = "secondary_registrar",
+        X_AltRegistrarServerPort = "secondary_registrar_port",
+        X_000E50_MaxRetransInvite = "max_retransmits_invite",
+        X_000E50_MaxRetransNonInvite = "max_retransmits_non_invite",
+        X_000E50_403Waiting = "403_waiting_time",
+        X_000E50_400503Waiting = "400_503_waiting_time",
+        X_000E50_Other4xx5xx6xxWaiting = "4xx_5xx_6xx_waiting_time",
+        X_000E50_TimerFExpWaiting = "timer_F_expiry_waiting_time",
+        X_000E50_StopRegisterOn403 = "stop_register_on_403",
+        X_000E50_StopRegisterOnTimerF = "stop_register_on_TimerF",
+        X_000E50_StopRegisterOn408 = "stop_register_on_408",
+        X_000E50_RegisterBackOffTimerMax = "reg_back_off_timeout_max",
+	X_SessionExpires = "session_expires",
+        TimerH = function(object)
+            local timer = ""
+            local option = "timer_T1"
+            if type(object) == "table" then
+                if object[option] then
+                    timer = object[option]
+                else
+                    object.option = option
+                    timer = uci_helper.get_from_uci(object)
+                end
+            end
+            if (timer ~= "") then
+                return tostring(tonumber(timer) * 64)
+            end
+            return ""
+        end,
+        DSCPMark = function(object)
+            return getDSCPMark(object, "control_qos_field", "control_qos_value")
+        end,
+        X_FASTWEB_RegisterExpiresRefreshPercent = function(object)
+            local reg_expire_T_before = ""
+            local reg_expire = ""
+
+            if type(object) == "table" then
+                if object["reg_expire_T_before"] then
+                    reg_expire_T_before = object["reg_expire_T_before"]
+                else
+                    object.option = "reg_expire_T_before"
+                    reg_expire_T_before = uci_helper.get_from_uci(object)
+                end
+                if object["reg_expire"] then
+                    reg_expire = object["reg_expire"]
+                else
+                    object.option = "reg_expire"
+                    reg_expire = uci_helper.get_from_uci(object)
+                end
+
+                if reg_expire_T_before ~= "" and reg_expire ~= "" then
+                   local registerExpiresRefreshPercent = math.modf((reg_expire-reg_expire_T_before)/reg_expire * 100)
+                   return tostring(registerExpiresRefreshPercent)
+                end
+            end
+            return ""
+        end,
+        X_000E50_RegisterBackOffTimer = function(object)
+            local binding = { config = "mmpbxrvsipnet", sectionname = "sip_net", option = "reg_back_off_timeout_algorithm"}
+            local algorithm = get_from_uci(binding)
+            binding.option = algorithmMap[algorithm]
+            return get_from_uci(binding)
+        end,
+        X_FASTWEB_RegisterSleepTimeMin = "reg_back_off_timeout_min";
+        X_FASTWEB_RegisterSleepTimeMax = "reg_back_off_timeout_max";
+        ConferenceCallDomainURI = function(object)
+            local binding = { config = "mmpbxrvsipnet", sectionname = "sip_net", option = "conference_factory_uri_user_part"}
+            local userPart, domainName
+            userPart = get_from_uci(binding)
+            if userPart ~="" then
+                if (userPart:match("@")) then
+                    return userPart
+                else
+                    binding.option = "primary_proxy"
+                    domainName = get_from_uci(binding)
+                    if domainName == "" then
+                        binding.option = "domain_name"
+                        domainName = get_from_uci(binding)
+                    end
+                    return userPart .."@".. domainName
+                end
+            end
+            return ""
+        end,
+    },
+    default = setmetatable({
+        ProxyServerTransport = "undefined",
+        RegistrarServerTransport = "undefined",
+        RegisterExpires = "1",
+        TimerC = "180000",
+        InviteExpires = "0",
+        ReInviteExpires = "1",
+        RegistersMinExpires = "1",
+        UseCodecPriorityInSDPResponse = "1",
+        SIPResponseMapNumberOfElements = "0",
+        X_FASTWEB_RegisterExpiresRefreshPercent = "98",
+        X_FASTWEB_RegisterSleepTimeMin = "600",
+        X_FASTWEB_RegisterSleepTimeMax = "900",
+        X_000E50_RegisterBackOffTimer = "32",
+        X_000E50_MaxRetransInvite = "-1",
+        X_000E50_MaxRetransNonInvite = "-1",
+        ConferenceCallDomainURI = "",
+        X_SessionExpires = "",
+    }, mt),
+}
+
+local sip_server_map = {
+    value = {
+        RegistrarServer = "domain",
+        RegistrarServerPort = "registrar_port",
+    },
+    default = common_default,
+}
+
+local sip_maps = {
+    mmpbxrvsipnet = sip_net_map,
+    mmpbxrvsipdev = sip_server_map,
+}
+
+local set_sip_net_map = {
+    ProxyServer = true,
+    ProxyServerPort = true,
+    ProxyServerTransport = true,
+    RegistrarServer = true,
+    RegistrarServerPort = true,
+    RegistrarServerTransport = true,
+    AuthRealm = true,
+    UserAgentDomain = true,
+    UserAgentPort = true,
+    UserAgentTransport = true,
+    OutboundProxy = true,
+    OutboundProxyPort = true,
+    RegistrationPeriod = true,
+    TimerT1 = true,
+    TimerT2 = true,
+    TimerT4 = true,
+    TimerB = true,
+    TimerD = true,
+    TimerF = true,
+    TimerJ = true,
+    RegisterExpires = true,
+    RegisterRetryInterval = true,
+    InviteExpires = true,
+    X_000E50_401407Waiting = true,
+    X_AltRegistrarServer = true,
+    X_AltRegistrarServerPort = true,
+    X_AltProxyServer = true,
+    X_AltProxyServerPort = true,
+    X_000E50_SecProxyServer = true,
+    X_000E50_SecProxyServerPort = true,
+    X_000E50_MaxRetransInvite = true,
+    X_000E50_MaxRetransNonInvite = true,
+    X_000E50_403Waiting = true,
+    X_000E50_400503Waiting = true,
+    X_000E50_Other4xx5xx6xxWaiting = true,
+    X_000E50_TimerFExpWaiting = true,
+    X_000E50_StopRegisterOn403 = true,
+    X_000E50_StopRegisterOnTimerF = true,
+    X_000E50_StopRegisterOn408 = true,
+    X_000E50_RegisterBackOffTimerMax = true,
+    DSCPMark = function(binding, value)
+    setDSCPMark(binding, value, "control_qos_field", "control_qos_value")
+    end,
+    X_FASTWEB_RegisterExpiresRefreshPercent = function(binding, value)
+            local reg_expire = ""
+            binding.option = "reg_expire"
+            reg_expire = uci_helper.get_from_uci(binding)
+
+            local set_reg_expire_T_before = reg_expire - math.modf(reg_expire*value / 100)
+            binding.option = "reg_expire_T_before"
+            uci_helper.set_on_uci(binding, set_reg_expire_T_before, commitapply)
+    end,
+    X_000E50_RegisterBackOffTimer = function(binding, value)
+         binding.option = "reg_back_off_timeout_algorithm"
+         local algorithm = get_from_uci(binding)
+         binding.option = algorithmMap[algorithm]
+         uci_helper.set_on_uci(binding, value, commitapply)
+    end,
+    X_FASTWEB_RegisterSleepTimeMin = true,
+    X_FASTWEB_RegisterSleepTimeMax = true,
+    ConferenceCallDomainURI = function(binding, value)
+        binding.option = "conference_factory_uri_user_part"
+        uci_helper.set_on_uci(binding, value, commitapply)
+    end,
+    X_SessionExpires = function(binding,value)
+        binding.option = "min_session_expires"
+        local min_session_expires = get_from_uci(binding)
+        if (tonumber(min_session_expires) > tonumber(value)) then
+            uci_helper.set_on_uci(binding,value,commitapply)
+        end
+        binding.option = "session_expires"
+        uci_helper.set_on_uci(binding,value,commitapply)
+    end,
+}
+
+local set_sip_server_map = {
+    RegistrarServer = true,
+    RegistrarServerPort = true,
+}
+
+local set_sip_maps = {
+    mmpbxrvsipnet = set_sip_net_map,
+    mmpbxrvsipdev = set_sip_server_map,
+}
+
+Multi_Services_VoiceService_i_VoiceProfile_i_SIP_.getall = getAllParams(sip_maps, Multi_Services_VoiceService_i_VoiceProfile_i_SIP_.objectType.parameters)
+
+Multi_Services_VoiceService_i_VoiceProfile_i_SIP_.get = getParam(sip_maps)
+
+Multi_Services_VoiceService_i_VoiceProfile_i_SIP_.set = setParam(sip_maps, set_sip_maps)
+
+Multi_Services_VoiceService_i_VoiceProfile_i_SIP_.commit = Commit
+
+Multi_Services_VoiceService_i_VoiceProfile_i_SIP_.revert = Revert
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_SIP_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+
+
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_SIP_EventSubscribe_i_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.SIP.EventSubscribe.{i}.",
+        access = "readOnly",
+        minEntries = 0,
+        maxEntries = math.huge,
+        numEntriesParameter = "SIPEventSubscribeNumberOfElements",
+        parameters = {
+            Event = {
+                access = "readWrite",
+                type = "string",
+                max = "32",
+                default = "",
+            },
+            Notifier = {
+                access = "readWrite",
+                --hidden = "true",
+                type = "string",
+                max = "256",
+                default = "",
+            },
+            NotifierPort = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "65535",
+                    },
+                },
+                default = "0"
+            },
+            --[[NotifierTransPort = {
+                access = "readWrite",
+                type = "string",
+                max = "32",
+                default = "",
+            },--]]
+            ExpireTime = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                    },
+                },
+
+                default = "",
+            },
+
+            X_FASTWEB_SubscribeRefreshPercent = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "100",
+                    },
+                },
+                default = "99"
+
+            },
+            X_FASTWEB_SubscribeSleepTimeMin = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "65535",
+                    },
+                },
+                default = "1800"
+
+            },
+            X_FASTWEB_SubscribeSleepTimeMax = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "65535",
+                    },
+                },
+                default = "2100"
+
+            },
+
+            -- automatically created when Multi.Services.VoiceService.{i}.VoiceProfile.{i}.Line.{i}.SIP.EventSubscribe.{i}. is loaded
+        }
+    }
+}
+Multi_Services_VoiceService_i_VoiceProfile_i_SIP_EventSubscribe_i_.entries = function(mapping, parentkey)
+    local entries = {}
+    local sipnet_binding = { config = "mmpbxrvsipnet", sectionname = "sip_net", option = "subscription_event"}
+    local event_subscribe = get_from_uci(sipnet_binding)
+    if ((event_subscribe ~= nil) and (type(event_subscribe) == "table")) then
+        for index,name in ipairs(event_subscribe) do
+            entries[#entries + 1] = parentkey .. "|" .. name .. "|" .. index
+        end
+    end
+    return entries
+end
+
+local subscribe_map = {
+    Event = "subscription_event",
+    Notifier = "subscription_notifier",
+    NotifierPort = "subscription_notifier_port",
+    ExpireTime = "subscription_expire_time",
+    X_FASTWEB_SubscribeRefreshPercent = "subscription_refresh_percent",
+    X_FASTWEB_SubscribeSleepTimeMin = "subscription_retry_time_min",
+    X_FASTWEB_SubscribeSleepTimeMax = "subscription_retry_time_max",
+}
+
+local function subscribe_getter(mapping, paramname, key)
+    binding.config = "mmpbxrvsipnet"
+    binding.sectionname = "sip_net"
+    binding.option = subscribe_map[paramname]
+    local value_table = get_from_uci(binding)
+    local index = key:match(".*|.*|(.*)")
+    return value_table[tonumber(index)]
+end
+local function subscribe_setter(mapping, paramname, paramvalue, key)
+    binding.config = "mmpbxrvsipnet"
+    binding.sectionname = "sip_net"
+    binding.option = subscribe_map[paramname]
+    local index = key:match(".*|.*|(.*)")
+    local value_table = get_from_uci(binding)
+    if (#value_table > 0 and value_table[tonumber(index)] ~= nil) then
+        value_table[tonumber(index)] = paramvalue
+    end
+    uci_helper.set_on_uci(binding, value_table, commitapply)
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_SIP_EventSubscribe_i_.get = subscribe_getter
+Multi_Services_VoiceService_i_VoiceProfile_i_SIP_EventSubscribe_i_.set = subscribe_setter
+
+
+Multi_Services_VoiceService_i_VoiceProfile_i_SIP_EventSubscribe_i_.commit = function()
+    uci_helper.commit({config = "mmpbxrvsipnet"})
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_SIP_EventSubscribe_i_.revert = function()
+    uci_helper.revert({config = "mmpbxrvsipnet"})
+end
+
+
+duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_SIP_EventSubscribe_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_RTP_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.RTP.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            LocalPortMin = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "65535",
+                    },
+                },
+                default = "0",
+            },
+            LocalPortMax = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "65535",
+                    },
+                },
+                default = "0",
+            },
+            DSCPMark = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "63",
+                    },
+                },
+            },
+            --      VLANIDMark = {
+            --        access = "readWrite",
+            --        type = "int",
+            --        range = {
+            --          {
+            --            min = "-1",
+            --          },
+            --        },
+            --        default = "-1",
+            --      },
+            --      EthernetPriorityMark = {
+            --        access = "readWrite",
+            --        type = "int",
+            --        range = {
+            --          {
+            --            min = "-1",
+            --          },
+            --        },
+            --        default = "-1",
+            --      },
+            TelephoneEventPayloadType = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                         min = "0",
+                         max = "128",
+                    },
+                },
+            },
+        }
+    }
+}
+
+local rtp_net_map = {
+    value = {
+        LocalPortMin = "rtp_local_port_min",
+        LocalPortMax = "rtp_local_port_max",
+        DSCPMark = function(object)
+            return getDSCPMark(object, "realtime_qos_field", "realtime_qos_value")
+        end,
+        TelephoneEventPayloadType = function(object)
+            local id, flag
+            uci_helper.foreach_on_uci(dynamic_binding, function(s)
+                if s.name == "telephone-event" then
+                    if s.dynamic_rtp_payload_type ~= nil then
+                        id = s.dynamic_rtp_payload_type
+                    else
+                        id = 96
+                    end
+                end
+            end)
+            return tostring(id)
+        end
+    },
+    default = common_default,
+}
+
+local rtp_server_map = {
+    value = {
+    },
+    default = common_default,
+}
+
+local rtp_maps = {
+    mmpbxrvsipnet = rtp_net_map,
+    mmpbxrvsipdev = rtp_server_map,
+}
+
+local set_rtp_net_map = {
+    LocalPortMin = true,
+    LocalPortMax = true,
+    DSCPMark = function(binding, value)
+        setDSCPMark(binding, value, "realtime_qos_field", "realtime_qos_value")
+    end,
+    TelephoneEventPayloadType = function(binding, value)
+            uci_helper.foreach_on_uci(dynamic_binding, function(s)
+                if ((s.name == "telephone-event") and ((s.media_filter == "media_filter_audio_generic") or (s.media_filter == "media_filter_audio_sip"))) then
+                    local binding = {config = "mmpbx"}
+                    binding.sectionname = s[".name"]
+                    binding.option = "dynamic_rtp_payload_type"
+                    uci_helper.set_on_uci(binding, value, commitapply)
+                    transactions[binding.config] = true
+                    uci_helper.commit(binding)
+                    return true
+                end
+            end)
+    end
+}
+
+local set_rtp_maps = {
+    mmpbxrvsipnet = set_rtp_net_map,
+    mmpbxrvsipdev = {},
+}
+
+Multi_Services_VoiceService_i_VoiceProfile_i_RTP_.getall = getAllParams(rtp_maps, Multi_Services_VoiceService_i_VoiceProfile_i_RTP_.objectType.parameters)
+
+Multi_Services_VoiceService_i_VoiceProfile_i_RTP_.get = getParam(rtp_maps)
+
+Multi_Services_VoiceService_i_VoiceProfile_i_RTP_.set = setParam(rtp_maps, set_rtp_maps)
+
+Multi_Services_VoiceService_i_VoiceProfile_i_RTP_.commit = Commit
+
+Multi_Services_VoiceService_i_VoiceProfile_i_RTP_.revert = Revert
+
+duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_RTP_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_RTP_RTCP = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.RTP.RTCP.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            Enable = {
+                access = "readWrite",
+                type = "boolean",
+                default = "false",
+            },
+            TxRepeatInterval = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "65535",
+                    },
+                },
+                default = "5000",
+            },
+        }
+    }
+}
+
+local rtcp_net_map = {
+    value = {
+        Enable = function(object)
+            return "1"
+        end,
+        TxRepeatInterval = function(binding, value)
+            local res
+            binding.config = "mmpbxbrcmfxsdev"
+            binding.sectionname = "device"
+            binding.option = nil
+            uci_helper.foreach_on_uci(binding, function(s)
+                 res = s.rtcp_interval
+                 return false
+            end)
+            return res or "5000"
+        end,
+    },
+    default = common_default,
+}
+
+local rtcp_server_map = {
+    value = { },
+    default = common_default,
+}
+
+local rtcp_maps = {
+    mmpbxrvsipnet = rtcp_net_map,
+    mmpbxrvsipdev = rtcp_server_map,
+}
+
+local set_rtcp_net_map = {
+        Enable = function(binding, value)
+            if paramvalue ~= "true" and paramvalue ~= "1" then
+                return nil, "can not disable RTCP"
+            end
+        end,
+        TxRepeatInterval = function(binding, value)
+             binding.config = "mmpbxbrcmfxsdev"
+             binding.sectionname = "device"
+             binding.option = nil
+
+             local set_binding = {config = "mmpbxbrcmfxsdev"}
+             set_binding.option = "rtcp_interval"
+             uci_helper.foreach_on_uci(binding, function(s)
+                 set_binding.sectionname = s[".name"]
+                 uci_helper.set_on_uci(set_binding, value, commitapply)
+             end)
+             transactions[set_binding.config] = true
+        end,
+}
+
+local set_rtcp_maps = {
+    mmpbxrvsipnet = set_rtcp_net_map,
+    mmpbxrvsipdev = {},
+}
+
+Multi_Services_VoiceService_i_VoiceProfile_i_RTP_RTCP.getall = getAllParams(rtcp_maps,
+Multi_Services_VoiceService_i_VoiceProfile_i_RTP_RTCP.objectType.parameters)
+
+Multi_Services_VoiceService_i_VoiceProfile_i_RTP_RTCP.get = getParam(rtcp_maps)
+
+Multi_Services_VoiceService_i_VoiceProfile_i_RTP_RTCP.set = setParam(rtcp_maps, set_rtcp_maps)
+
+Multi_Services_VoiceService_i_VoiceProfile_i_RTP_RTCP.commit = Commit
+
+Multi_Services_VoiceService_i_VoiceProfile_i_RTP_RTCP.revert = Revert
+
+duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_RTP_RTCP, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+

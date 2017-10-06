@@ -1,0 +1,126 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_DHCPv4_Server_Pool_i_Client_i_ = {
+  objectType = {
+    name = "Device.DHCPv4.Server.Pool.{i}.Client.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "ClientNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        max = "64",
+      },
+      Chaddr = {
+        access = "readOnly",
+        type = "string",
+      },
+      Active = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      -- IPv4AddressNumberOfEntries
+      -- automatically created when Device.DHCPv4.Server.Pool.{i}.Client.{i}.IPv4Address.{i}. is loaded
+      -- OptionNumberOfEntries
+      -- automatically created when Device.DHCPv4.Server.Pool.{i}.Client.{i}.Option.{i}. is loaded
+    }
+  }
+}
+
+local ubusConnection= mapper("ubus").connect()
+local nwCommon = mapper("nwcommon")
+local splitKey = nwCommon.split_key
+local uciHelper = mapper("ucihelper")
+local getFromUci = uciHelper.get_from_uci
+local dhcpBinding = { config = "dhcp" }
+
+local function processSingleDataEntries(val,start,limit)
+  local result
+  for k,v in pairs(val) do
+    if type(v) == "table" and k ~= "dhcp"  then
+      result = processSingleDataEntries(v,start,limit)
+      if result == 1 then break end
+    elseif k == "dhcp" and val["state"] == "connected" then
+      local addr = val["address"]
+      if (addr and addr:match("^(%d+)%.(%d+)%.(%d+)%.(%d+)$"))  then
+        local chunks = { addr:match("^(%d+)%.(%d+)%.(%d+)%.(%d+)$") }
+          if(chunks[4] and tonumber(start) and tonumber(chunks[4])>tonumber(start) and tonumber(chunks[4])<(tonumber(start)+tonumber(limit))) then
+            return 1
+          end
+       end
+    end
+  end
+  return result
+end
+
+local function getUciParam(key, option)
+  dhcpBinding.sectionname = key
+  dhcpBinding.option = option
+  return getFromUci(dhcpBinding)
+end
+
+Device_DHCPv4_Server_Pool_i_Client_i_.entries = function(mapping, parentkey)
+  local entries = {}
+  local present = {}
+  local data = ubusConnection:call("hostmanager.device", "get",  {})
+  local start = getUciParam(parentkey, "start")
+  local limit = getUciParam(parentkey, "limit")
+  local interfaceName = getUciParam(parentkey, "interface")
+  local l3Interface = nwCommon.getIntfName(interfaceName)
+  for key,val in pairs(data) do
+    if val["ipv4"] and val["l3interface"] == l3Interface then
+      local result = processSingleDataEntries(val,start,limit)
+      if result and not present[key] then
+        entries[#entries+1] = parentkey .. "|" ..key
+        present[key] = true
+      end
+    end
+  end
+  return entries
+end
+
+local function getData(hostkey)
+  local data = {}
+  data = ubusConnection:call("hostmanager.device", "get",  { name = hostkey })
+  if data then
+    return data[hostkey]
+  end
+  return data
+end
+
+local function getChaddr(mapping,param,key)
+  local _,devname = splitKey(key)
+  return getData(devname)["mac-address"] or ""
+end
+
+local function getActive(mapping,param,key)
+  local _,devname = splitKey(key)
+  local devTable = getData(devname)
+  devTable = devTable and devTable['ipv4'] or {}
+  for _,n in pairs(devTable) do
+    if n["dhcp"] and n["state"] == "connected" then
+      return "1"
+    end
+  end
+  return "0"
+end
+
+Device_DHCPv4_Server_Pool_i_Client_i_.get = {
+  Chaddr = getChaddr,
+  Active = getActive,
+}
+
+Device_DHCPv4_Server_Pool_i_Client_i_.getall = function(mapping,key)
+  local allValues = {
+    Chaddr = getChaddr(mapping,nil,key),
+    Active = getActive(mapping,nil,key),
+  }
+  return allValues
+end
+
+register(Device_DHCPv4_Server_Pool_i_Client_i_)
+

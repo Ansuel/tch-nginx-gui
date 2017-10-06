@@ -1,0 +1,57 @@
+
+local SmartControl = {
+	objectType = {
+		name = "#ROOT.X_000E50_SmartControl.",
+		access = "readOnly",
+		minEntries = 1,
+		maxEntries = 1,
+		parameters = {
+			Enable = {
+				access = "readWrite",
+				type = "boolean",
+			},
+			Status = {
+				access = "readOnly",
+				type = "string",
+				enumeration = {
+					"Enabled",
+					"Disabled",
+				}
+			}
+		}
+	}
+}
+
+local uciswitch = require('transformer.shared.uciswitch')
+local switcher = uciswitch.switcher('/etc/smartcontrol/enable', commitapply)
+
+SmartControl.get = {
+	Enable = function()
+		return switcher:isEnabled() and "1" or "0"
+	end,
+	Status = function()
+		return switcher:isEnabled() and "Enabled" or "Disabled"
+	end,
+}
+
+SmartControl.set = {
+	Enable = function(_, _, enable)
+		if not switcher:enable(enable=="1") then
+			return nil, "failed to switch"
+		end
+	end,
+}
+
+SmartControl.commit = function()
+	switcher:commit()
+end
+
+SmartControl.revert = function()
+	switcher:revert()
+end
+
+local duplicate = mapper("multiroot").duplicate
+local duplicates = duplicate(SmartControl, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, mapping in ipairs(duplicates) do
+	register(mapping)
+end

@@ -1,0 +1,704 @@
+-- Automatically generated from InternetGatewayDevice:1.14
+-- using generator version 2.3
+local InternetGatewayDevice_Layer3Forwarding_ = {
+  objectType = {
+    name = "InternetGatewayDevice.Layer3Forwarding.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      DefaultConnectionService = {
+        access = "readOnly",  -- readWrite currently not supported
+        type = "string",
+        max = "256",
+      },
+      -- ForwardNumberOfEntries
+      -- automatically created when InternetGatewayDevice.Layer3Forwarding.Forwarding.{i}. is loaded
+    }
+  }
+}
+
+-- Automatically generated from InternetGatewayDevice:1.14
+-- using generator version 2.3
+local Multi_Layer3Forwarding_Forwarding_i_ = {
+  objectType = {
+    name = "#ROOT.{i}.",
+    access = "readWrite",
+    enableParameter = "Enable",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Disabled",
+          "Enabled",
+          "Error",
+        },
+        default = "Disabled",
+      },
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      StaticRoute = {
+        access = "readOnly",
+        type = "boolean",
+        default = "true",
+      },
+      Type = {
+        access = "readOnly",  -- readWrite currently not supported
+        status = "deprecated",
+        type = "string",
+        enumeration = {
+          "Default",
+          "Network",
+          "Host",
+        },
+        default = "Host",
+      },
+      DestIPAddress = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      DestSubnetMask = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      SourceIPAddress = {
+        access = "readOnly",  -- readWrite currently not supported
+        type = "string",
+        default = "",
+      },
+      SourceSubnetMask = {
+        access = "readOnly",  -- readWrite currently not supported
+        type = "string",
+        default = "",
+      },
+      ForwardingPolicy = {
+        access = "readOnly",  -- readWrite currently not supported
+        type = "int",
+        range = {
+          {
+            min = "-1",
+          },
+        },
+        default = "-1",
+      },
+      GatewayIPAddress = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      Interface = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        pathRef = true,
+      },
+      ForwardingMetric = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+          },
+        },
+        default = "-1",
+      },
+--[[
+      MTU = {
+        access = "readOnly",  -- readWrite currently not supported
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+            max = "1540",
+          },
+        },
+      },
+--]]
+    }
+  }
+}
+local mapper, register = mapper, register
+local pairs, ipairs, tonumber, resolve, match = pairs, ipairs, tonumber, resolve, string.match
+local nwCommon = mapper('nwcommon')
+local findLanWanInterfaces = nwCommon.findLanWanInterfaces
+local ubus = mapper("ubus").connect()
+local uciHelper = mapper('ucihelper')
+local networkBinding = { config = "network"}
+local loadRoutes = nwCommon.loadRoutes
+local forEachOnUci = uciHelper.foreach_on_uci
+local getIntfName = nwCommon.getIntfName
+local routingHelper = require('transformer.shared.secrouting_helper')
+local dmordering = require 'transformer.shared.models.dmordering'
+local activedevice = require 'transformer.shared.models.igd.activedevice'
+
+local inet = require "tch.inet"
+local generateKeyOnUci = uciHelper.generate_key_on_uci
+local isValidIPv4Address = inet.isValidIPv4
+local isValidIPv4Subnet = nwCommon.isValidIPv4SubnetMask
+local netmask2mask = nwCommon.netmask2mask
+local mask2netmask = nwCommon.mask2netmask
+local commitKeys = uciHelper.commit_keys
+local revertKeys = uciHelper.revert_keys
+local splitKey = nwCommon.split_key
+local isConfigChanged
+local commitapply = commitapply
+
+local function getVlanDeviceName(device)
+  local intf = ""
+  networkBinding.sectionname = "device"
+  forEachOnUci(networkBinding, function(s)
+    if s.name == device then
+      intf = s.ifname or ""
+      return false
+    end
+  end)
+  return intf
+end
+
+local function get_interfaces()
+  local interfaces = {}
+  local info = ubus:call("network.interface", "dump", {})
+  for _, intf in ipairs(info.interface or {}) do
+    local ipv4 = intf['ipv4-address']
+    ipv4 = ipv4 and ipv4[1]
+    if ipv4 then
+      intf.ipv4 = ipv4
+      interfaces[intf.interface] = intf
+    end
+  end
+  -- mark the wan interfaces
+  for _, wanif in ipairs(findLanWanInterfaces(true)) do
+    local intf = interfaces[wanif]
+    if intf then
+      intf.is_wan = true
+    end
+  end
+  return interfaces
+end
+
+local intf_cache
+local function get_intf(L3name)
+  if not intf_cache then
+    local interfaces = get_interfaces()
+    local L3map = {}
+    for _, intf in pairs(interfaces) do
+      local l3 = intf.l3_device
+      if l3 then
+        L3map[l3] = intf
+      end
+    end
+    intf_cache = L3map
+  end
+  return intf_cache[L3name]
+end
+
+local function get_physical(intf)
+  local physical = intf.physical -- use cached if present
+  if not physical then
+    physical = getVlanDeviceName(intf.device)
+    if physical=='' and intf.device then
+      physical = intf.device:match("^([^.]+)")
+    end
+    if physical=='' and intf.l3_device then
+      physical = intf.l3_device:match("^([^.]+)")
+    end
+    intf.physical = physical
+  end
+  return physical
+end
+
+local function is_ppp(intf)
+  local proto = intf.proto or ""
+  return proto:match("^ppp")
+end
+
+local function resolve_connection_device(mapping, intf)
+  if intf then
+    if match(mapping.objectType.name, "^InternetGatewayDevice") then --igd
+      if intf.is_wan then
+        local key
+        if not activedevice.isActiveInterface(intf.interface) then
+          key = intf.interface..'|'..get_physical(intf)
+        else
+          key = "ACTIVE|"..intf.interface
+        end
+        if is_ppp(intf) then
+          return resolve("InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANPPPConnection.{i}.", key) or ''
+        else
+          return resolve("InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANIPConnection.{i}.", key) or ''
+        end
+      else
+        return resolve("InternetGatewayDevice.LANDevice.{i}.", intf.interface) or ''
+      end
+    else --device2
+      return resolve("Device.IP.Interface.{i}.", intf.interface) or ''
+    end
+  end
+  return ''
+end
+
+InternetGatewayDevice_Layer3Forwarding_.get = {
+  DefaultConnectionService = function (mapping)
+    -- Find Interface where Destination == 0.0.0.0
+    intf_cache = nil
+    local defaultL3 = loadRoutes(true)
+    if not defaultL3 then
+      -- there is no default route
+      return ''
+    end
+    return resolve_connection_device(mapping, get_intf(defaultL3))
+  end,
+}
+
+register(InternetGatewayDevice_Layer3Forwarding_)
+
+-- cache of routes, filled in in entries and used in get
+local routes = {}
+local routeType = {}
+
+local function staticRouteName(route)
+  if route['.anonymous'] then
+    return route._key
+  else
+    return route['.name']
+  end
+end
+
+-- get all uci static routes
+-- @return table static routes
+--         table disabled static routes
+local function getStaticRoutes()
+  local staticRoutes = {}
+  local keyGenerated
+
+  -- get uci static routes
+  for _, sectiontype in ipairs{"route", "disabled_route"} do
+    networkBinding.sectionname = sectiontype
+    forEachOnUci(networkBinding, function(s)
+      local interface, gateway, target, mask
+      if s['.anonymous'] then
+        if not s._key then
+          networkBinding.sectionname = s[".name"]
+          s._key = generateKeyOnUci(networkBinding)
+          keyGenerated = true
+        end
+      end
+      interface = s.interface and getIntfName(s.interface) or ""
+      gateway = s.gateway and s.gateway or "0.0.0.0"
+      target = s.target and s.target or "0.0.0.0"
+      mask = match(target, "/(%d+)") or ""
+      if not mask or mask == "" then
+        mask = s.netmask and mask2netmask(s.netmask) or "32"
+        target = target .. "/" .. mask
+        s.target = target
+      end
+      if sectiontype == "route" then
+        s._routeType = "static"
+        staticRoutes[interface .. "|" .. target .. "|" .. gateway] = s
+      else
+        s._routeType = "disabled"
+      end
+      staticRoutes[#staticRoutes+1] = s
+    end)
+  end
+
+  if keyGenerated then
+    commitKeys(networkBinding)
+  end
+  return staticRoutes
+end
+
+local keyToInterface
+Multi_Layer3Forwarding_Forwarding_i_.entries = function(mapping, parentKey)
+  intf_cache = nil
+  keyToInterface = {}
+  routes = {}
+  routeType = {}
+  local ipv4FwdEntries = {}
+  local intfRoutes, key
+  local staticRoutes = getStaticRoutes()
+
+  local IGD = match(mapping.objectType.name, "^InternetGatewayDevice")
+
+  --for Device2 the routes are already loaded in the parent. But in IGD there is no parent so the routes must be loaded here
+  if IGD then
+    intfRoutes = loadRoutes()
+  else
+    local secIntfRtTableMap = routingHelper.getCachedSecRouteMap()
+    intfRoutes = routingHelper.getRoutesforRtTable(parentKey, loadRoutes(), secIntfRtTableMap)
+  end
+
+  -- add static routes to entries
+  for _, route  in ipairs(staticRoutes) do
+    key = staticRouteName(route)
+    if not parentKey then --to distinguish DEV2 and IGD ??!!
+      ipv4FwdEntries[#ipv4FwdEntries+1] = key
+      routes[key] = route
+      routeType[key] = route._routeType
+    else
+      -- for dev2 add entry to specific route table
+      if parentKey == route.interface then
+        ipv4FwdEntries[#ipv4FwdEntries+1] = key
+        routes[key] = route
+        routeType[key] = route._routeType
+      end
+    end
+    route._routeType = nil --it would pollute uci
+  end
+
+  local srcDestIPAndMask, srcIPAndMask
+  -- local table to store source, destination ip address and subnetmask
+  local srcDestIPAndMaskList = {}
+  -- add dynamic routes to entries
+  for _, route in ipairs(intfRoutes) do
+    key = route.ifname .."|" .. route.destip .. "|" .. route.gateway
+    -- Store source and destination, ip and subnetmask in a table to find the duplicate entries
+    keyToInterface[key] = get_intf(route.ifname)
+    if keyToInterface[key] then
+      local ip = keyToInterface[key].ipv4
+      local srcIPAddr = ip and ip.address or ''
+      local srcSubnetMask = ip and ip.mask or "0"
+      srcIPAndMask = srcIPAddr .. "/" .. srcSubnetMask
+    else
+      srcIPAndMask = ""
+    end
+    srcDestIPAndMask = route.destip .. "|" .. srcIPAndMask
+    -- Duplicate check for source and destination, ip and subnetmask
+    -- As per the bbf standards the combination of the former four fields should be unique
+    -- Only if it is not a duplicate add it to entries
+    if not staticRoutes[key] and not srcDestIPAndMaskList[srcDestIPAndMask] then
+      ipv4FwdEntries[#ipv4FwdEntries+1] = key
+      routes[key] = route
+      routeType[key] = "dynamic"
+    end
+    srcDestIPAndMaskList[srcDestIPAndMask] = true
+  end
+
+  local orderName = mapping.objectType.name
+  if not IGD then -- DEV2
+    orderName = orderName.."/"..parentKey
+  end
+
+  return dmordering.sort(ipv4FwdEntries, orderName)
+end
+
+Multi_Layer3Forwarding_Forwarding_i_.get = {
+  Enable = function(mapping, param, key)
+    if routeType[key] == "disabled" then
+      return "0"
+    end
+    return "1"
+  end,
+
+  Status = function(mapping, param, key)
+    if routeType[key] == "disabled" then
+      return "Disabled"
+    end
+    return "Enabled"
+  end,
+
+  Type = 'Host',
+  DestIPAddress = function(mapping, param, key)
+    local route = routes[key]
+    if route then
+      if route.destip then
+        return match(route.destip, "[^%/]*") or ''
+      elseif route.target then
+        return route.target:match("([^/]+)") or ""
+      end
+    end
+    return ""
+  end,
+  DestSubnetMask = function(mapping, param, key)
+    local mask
+    local route = routes[key]
+    if route then
+      if route.destip then
+        mask = match(route.destip,'/(%d+)') or '32'
+      elseif route.target then
+        mask =  match(route.target,'/(%d+)') or "32"
+      end
+      return netmask2mask(tonumber(mask)) or ""
+    end
+    return ""
+  end,
+  SourceIPAddress = function(mapping, param, key)
+    local route = routes[key]
+    if route then
+      if keyToInterface[key] then
+        local ip = keyToInterface[key].ipv4
+        return ip and ip.address or ''
+      end
+    end
+    return ''
+  end,
+  SourceSubnetMask = function(mapping, param, key)
+    local route = routes[key]
+    if route then
+      if keyToInterface[key] then
+        local ip = keyToInterface[key].ipv4
+        return netmask2mask(ip and ip.mask or 0)
+      end
+    end
+    return ''
+  end,
+  ForwardingPolicy = '-1',
+  GatewayIPAddress = function(mapping, param, key)
+    local route = routes[key]
+    return route and route.gateway or ''
+  end,
+  Interface = function(mapping, param, key)
+    local route = routes[key]
+    local intf = route.ifname
+    if not intf and route.interface then
+      intf = getIntfName(route.interface)
+    end
+    return resolve_connection_device(mapping, route and keyToInterface[key])
+  end,
+  ForwardingMetric = function(mapping, param, key)
+    local route = routes[key]
+    return route and route.metric or '0'
+  end,
+  StaticRoute = function(mapping, param, key)
+    if routeType[key] == "dynamic" then
+      return "0"
+    end
+    return "1"
+  end,
+}
+
+-- A getall implementation is not done as it will not bring any improvement,
+-- as data retrieval is done in the entries call. The get will use the cached
+-- data, no work is duplicated.
+
+-- create or delete a section in uci corresponding to the route specified
+-- @param key the key formed in entries
+-- @param newtype specifies the type of static route(enabled/disabled) the needs to be added
+local function createRouteSection(key, newtype)
+  -- delete the route section
+  local route = routes[key]
+  networkBinding.sectionname = route[".name"]
+  networkBinding.option = nil
+  uciHelper.delete_on_uci(networkBinding, commitapply)
+
+  -- add the route section
+  local sectionName
+  if route['.anonymous'] then
+    networkBinding.sectionname = newtype
+    sectionName = uciHelper.add_on_uci(networkBinding, commitapply)
+  else
+    sectionName = route['.name']
+    networkBinding.sectionname = sectionName
+    uciHelper.set_on_uci(networkBinding, newtype, commitapply)
+  end
+  if sectionName then
+    networkBinding.sectionname = sectionName
+    for k, v in pairs(route) do
+      networkBinding.option = k
+      uciHelper.set_on_uci(networkBinding, tostring(v), commitapply)
+    end
+    isConfigChanged = true
+  end
+end
+
+Multi_Layer3Forwarding_Forwarding_i_.set = {
+  Enable = function(mapping, param, value, key)
+    if routeType[key] ~= "dynamic" then
+      if routeType[key] == "disabled" and value == "1" then
+        routeType[key] = "static"
+        createRouteSection(key, "route")
+      elseif routeType[key] == "static" and value == "0" then
+        routeType[key] = "disabled"
+        createRouteSection(key, "disabled_route")
+      end
+    else
+      return nil, "Dynamic routes cannot be Enabled or Disabled"
+    end
+  end,
+
+  DestIPAddress = function(mapping, param, value, key)
+    if routeType[key] ~= "dynamic" then
+      if not isValidIPv4Address(value) then
+        return nil,  "Invalid IP Address"
+      end
+      local route = routes[key]
+      local destIP = route.target or route.destip or ""
+      local mask = match(destIP, "/(%d+)")
+      destIP = mask and ( value .. "/" .. mask ) or value
+      local sectionName = route[".name"]
+      networkBinding.sectionname = sectionName
+      networkBinding.option = "target"
+      uciHelper.set_on_uci(networkBinding, destIP, commitapply)
+      isConfigChanged = true
+    else
+      return nil, "Only static routes can be modified"
+    end
+  end,
+
+  DestSubnetMask = function(mapping, param, value, key)
+    if routeType[key] ~= "dynamic" then
+      if not isValidIPv4Subnet(value) then
+        return nil,  "Invalid subnet mask"
+      end
+      local route = routes[key]
+      local destIP = route.target or route.destip
+      local ipAddress = match(destIP,"([^/]+)")
+      local mask = mask2netmask(value)
+      if ipAddress then
+        destIP = mask ~= "" and ( ipAddress .. "/" .. mask ) or ipAddress
+      else
+        if mask ~= "" then
+          destIP = "/" .. mask
+        end
+      end
+      local sectionName = route[".name"]
+      networkBinding.sectionname = sectionName
+      networkBinding.option = "target"
+      uciHelper.set_on_uci(networkBinding, destIP, commitapply)
+      networkBinding.option = "netmask"
+      if uciHelper.get_from_uci(networkBinding) ~= "" then
+        uciHelper.set_on_uci(networkBinding, value, commitapply)
+      end
+      isConfigChanged = true
+    else
+      return nil, "Only static routes can be modified"
+    end
+  end,
+
+  GatewayIPAddress = function(mapping, param, value, key)
+    if routeType[key] ~= "dynamic" then
+      if not isValidIPv4Address(value) then
+        return nil,  "Invalid IP Address"
+      end
+      local route = routes[key]
+      local sectionName = route[".name"]
+      networkBinding.sectionname = sectionName
+      networkBinding.option = "gateway"
+      uciHelper.set_on_uci(networkBinding, value, commitapply)
+      isConfigChanged = true
+    else
+      return nil, "Only static routes can be modified."
+    end
+  end,
+
+  Interface = function(mapping, param, value, key)
+    if routeType[key] ~= "dynamic" then
+      -- Convert path to key; this is always the UCI/UBUS interface name, like wan, lan, ...
+      local pvalue = tokey(value,
+        "InternetGatewayDevice.LANDevice.{i}.LANHostConfigManagement.IPInterface.{i}.",
+        "InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANIPConnection.{i}.",
+        "InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANPPPConnection.{i}.",
+        "Device.IP.Interface.{i}.")
+
+      if pvalue and pvalue:match("|") then
+        -- Interface name is the first part of the WANDevice.WANConnectionDevice.WANIP/WANPPP key
+        value = splitKey(pvalue)
+      else
+        value = pvalue
+      end
+      if (not value) then
+        return nil, "Invalid value"
+      end
+      local route = routes[key]
+      local sectionName = route[".name"]
+      networkBinding.sectionname = sectionName
+      networkBinding.option = "interface"
+      uciHelper.set_on_uci(networkBinding, value, commitapply)
+      isConfigChanged = true
+    else
+      return nil, "Only static routes can be modified."
+    end
+  end,
+
+  ForwardingMetric = function(mapping, param, value, key)
+    if routeType[key] ~= "dynamic" then
+      local route = routes[key]
+      local sectionName = route[".name"]
+      networkBinding.sectionname = sectionName
+      networkBinding.option = "metric"
+      uciHelper.set_on_uci(networkBinding, value, commitapply)
+      isConfigChanged = true
+    else
+      return nil, "Only static routes can be modified."
+    end
+  end,
+
+}
+
+Multi_Layer3Forwarding_Forwarding_i_.add = function(mapping, key)
+  networkBinding.sectionname = "route"
+  local sectionName = uciHelper.add_on_uci(networkBinding, commitapply)
+  if sectionName then
+    networkBinding.sectionname = sectionName
+    if match(mapping.objectType.name, "^Device") and key ~= "main" then
+      networkBinding.option = "interface"
+      uciHelper.set_on_uci(networkBinding, key, commitapply)
+    end
+    uciHelper.commit(networkBinding)
+    isConfigChanged = true
+    local _key = generateKeyOnUci(networkBinding)
+    if _key then
+      commitKeys(networkBinding)
+      return _key
+    else
+      revertKeys(networkBinding)
+    end
+  end
+end
+
+Multi_Layer3Forwarding_Forwarding_i_.delete = function(mapping, key)
+  if routeType[key] ~= "dynamic" then
+    local route = routes[key]
+    networkBinding.sectionname = route[".name"]
+    uciHelper.delete_on_uci(networkBinding, commitapply)
+    isConfigChanged = true
+    return true
+  end
+  return nil, "only static routes can be deleted."
+end
+
+Multi_Layer3Forwarding_Forwarding_i_.commit = function ()
+  if isConfigChanged then
+    uciHelper.commit(networkBinding)
+    isConfigChanged = false
+  end
+end
+
+Multi_Layer3Forwarding_Forwarding_i_.revert = function ()
+  if isConfigChanged then
+    uciHelper.revert(networkBinding)
+    isConfigChanged = false
+  end
+end
+
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_Layer3Forwarding_Forwarding_i_, "#ROOT", {"InternetGatewayDevice.Layer3Forwarding.Forwarding", "Device.Routing.Router.{i}.IPv4Forwarding"})
+for _, dupli in ipairs(duplicates) do
+  if dupli.objectType.name:match("^InternetGatewayDevice.") then
+    dupli.objectType.numEntriesParameter = "ForwardNumberOfEntries"
+  else
+    dupli.objectType.numEntriesParameter = "IPv4ForwardingNumberOfEntries"
+    -- Remove igd-specific parameters from device2
+    dupli.objectType.parameters["Type"] = nil
+    dupli.objectType.parameters["SourceIPAddress"] = nil
+    dupli.objectType.parameters["SourceSubnetMask"] = nil
+    dupli.objectType.parameters["ForwardingPolicy"] = nil
+    dupli.objectType.parameters["MTU"] = nil
+  end
+  register(dupli)
+end

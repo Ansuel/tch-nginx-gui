@@ -1,0 +1,87 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+
+local Device_DeviceInfo_Processor_i_ = {
+  objectType = {
+    name = "Device.DeviceInfo.Processor.{i}.",
+    access = "readOnly",
+    numEntriesParameter = "ProcessorNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    aliasParameter = "Alias",
+    parameters = {
+      Alias = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        max = "64",
+      },
+      Architecture = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "arm",
+          "i386",
+          "m68010",
+          "m68k",
+          "mipseb",
+          "mipsel",
+          "powerpc",
+          "sh3eb",
+          "sh3el",
+          "x86_64",
+        },
+      },
+    }
+  }
+}
+
+local string,io = string,io
+local processor = {}
+local architecture
+
+do
+  local function getProcessorEntries()
+    local fd = io.open("/proc/cpuinfo")
+    if fd then
+      for line in fd:lines() do
+        if line:find("processor") then
+          processor[#processor+1] = line:match("%d+")
+        end
+      end
+      fd:close()
+    end
+    return processor
+  end
+
+  local function getProcessorArchitecture()
+    local arc = ""
+    local fp = io.popen('uname -m')
+    if fp then
+      arc = fp:read()
+      fp:close()
+    end
+    if arc:match("mips") then
+      if string.byte(string.dump(function() end),7) then
+        return "mipsel"
+      else
+        return "mipseb"
+      end
+    end
+    return arc:match("arm") or arc
+  end
+  processor = getProcessorEntries()
+  architecture = getProcessorArchitecture()
+end
+
+Device_DeviceInfo_Processor_i_.entries = function()
+  return processor
+end
+
+Device_DeviceInfo_Processor_i_.get = {
+  Architecture = architecture
+}
+
+-- A getall implementation is not done as it will not bring any improvement
+
+register(Device_DeviceInfo_Processor_i_)

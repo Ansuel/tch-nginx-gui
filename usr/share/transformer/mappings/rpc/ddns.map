@@ -1,0 +1,139 @@
+local register = register;
+local uci_helper = mapper("ucihelper")
+local open, popen, strmatch = io.open, io.popen, string.match
+local find, lower = string.find, string.lower
+local tinsert = table.insert
+local ddns_ = {
+    objectType = {
+        name = 'rpc.ddns.',
+        access = 'readOnly',
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+	      status = {
+	        access = "readOnly",
+	        type = "string"
+	      },
+
+        }
+    }
+}
+
+ddns_.get = {
+  status = function(mapping, param, key)
+    local state = "No error received from server"
+    local services = {}
+    local ddns_binding = {config = "ddns", sectionname = "service"}
+
+    uci_helper.foreach_on_uci(ddns_binding, function(s)
+        services[#services + 1] = s['.name']
+    end)
+
+    -- Currently we only support one service
+    if services[1] then
+        --special process for namecheap,zoneedit,easydns,free
+        local errFile = "/var/run/ddns/" .. services[1] .. ".err"
+        local datFile = "/var/run/ddns/" .. services[1] .. ".dat"
+        local logFile = "/var/log/ddns/" .. services[1] .. ".log"
+        local cmdResult = nil
+        local handle = open(errFile)
+        if handle then
+            local cmdResult = handle:read("*a")
+            handle:close()
+            if cmdResult and "" ~= cmdResult then
+                return cmdResult
+            else
+                --special process for namecheap,zoneedit,easydns,free
+                local errString = "cat " .. datFile .. "| grep "
+                local errInfo = {errString .. '".*401"',
+                                 errString .. '".*TEXT=" | sed -n "s/.*TEXT=\\"\\(.*\\)\\" ZONE.*/\\1/gp"',
+                                 errString .. '".*Err1" | sed -n "s/.*Err1>\\(.*\\)<\\/Err1.*/\\1/gp"',
+                                 errString .. '"^.*fail"',
+                                 errString .. '".*nohost"',
+                                 errString .. '".*badauth"',
+                                 errString .. '".*200 OK"',
+                                 errString .. '".*ERR Not authenticated"',
+                                 errString .. '".*HTTP Basic: Access denied"',
+                                 errString .. '".*500"',
+                                 errString .. '".*notify NG"',
+                                 errString .. '".*good"',
+                                 errString .. '".*nochg"',
+                                 errString .. '".*The password you supplied is not valid"',
+                                }
+                for _, v in ipairs(errInfo) do
+                    handle = popen(v)
+                    if handle then
+                        cmdResult = handle:read("*a")
+                        handle:close()
+                        if "" ~= cmdResult then
+                            if strmatch(v, "401") or strmatch(v, "500") or strmatch(v, "notify NG") or strmatch(v, "The password you supplied is not valid") then
+                                return "Failed to Authenticate"
+                            end
+
+                            if strmatch(v, "good") or strmatch(v, "nochg") or strmatch(v, "200") then
+                                return "Domain's IP updated"
+                            end
+
+                            return cmdResult
+                        end
+                    end
+                end
+            end
+
+            -- Read the log file
+            local file
+            local lines = {}
+            local checkIntervalFound = false
+            local detectRegisteredIPFound = false
+            local updateSuccessful  = false
+
+            file = open(logFile)
+            if file then
+              for line in file:lines() do
+                tinsert(lines, line)
+              end
+              file:close()
+
+              -- check the log from the last line to the last ddns start
+              for k = #lines, 1, -1 do
+                local line = lines[k]
+
+                -- ddns starts
+                if find(line, "last update:") then
+                  break
+                end
+
+                if find(lower(line), "error") or find(lower(line), "fail") then
+                  break
+                end
+
+                if find(line, "Update successful") or find(line, "Forced update successful") then
+                  updateSuccessful = true
+                  break
+                end
+
+                if strmatch(line, ".+Waiting %d+ seconds %(Check Interval%)") then
+                  checkIntervalFound = true
+                end
+                if find(line, "Detect registered/public IP") then
+                  detectRegisteredIPFound = true
+                end
+
+                if checkIntervalFound and detectRegisteredIPFound then
+                  -- The registered IP equals to the local IP.
+                  break
+                end
+              end
+
+              if updateSuccessful or (checkIntervalFound and detectRegisteredIPFound) then
+                -- indicate the domain's IP updated
+                state = "Domain's IP updated"
+              end
+            end
+        end
+    end
+    return state
+  end
+}
+
+register(ddns_)

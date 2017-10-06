@@ -1,0 +1,88 @@
+-- Automatically generated from Device:2.10
+-- using generator version 2.3
+local Device_RouterAdvertisement_ = {
+  objectType = {
+    name = "Device.RouterAdvertisement.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      -- InterfaceSettingNumberOfEntries
+      -- automatically created when Device.RouterAdvertisement.InterfaceSetting.{i}. is loaded
+    }
+  }
+}
+
+local mapper = mapper
+local uciHelper = mapper("ucihelper")
+local forEachOnUci = uciHelper.foreach_on_uci
+local setOnUci = uciHelper.set_on_uci
+local nwCommon = mapper("nwcommon")
+local dhcpBinding = { config = "dhcp" }
+local isConfigChanged = false
+
+local function setUciParam(sectionName, paramName, value)
+  dhcpBinding.sectionname = sectionName
+  dhcpBinding.option = paramName
+  setOnUci(dhcpBinding, value, commitapply)
+  isConfigChanged = true
+end
+
+local function lanInterfaces()
+  local lanInterfaces = {}
+  for _, intfName in pairs(nwCommon.findLanWanInterfaces(false)) do
+    lanInterfaces[intfName] = true
+  end
+  return lanInterfaces
+end
+
+Device_RouterAdvertisement_.get = {
+  Enable = function(mapping, param, key)
+    -- Get all DHCP Pools status to decide global status
+    local lan = lanInterfaces()
+    local isEnable = "0"
+    dhcpBinding.sectionname = "dhcp"
+    forEachOnUci(dhcpBinding, function(s)
+      if lan[s['interface']] and s["dhcpv6"] == "server" and s["ra"] == "server" then
+        isEnable = "1"
+        return false
+      end
+    end)
+    return isEnable
+  end,
+}
+
+Device_RouterAdvertisement_.set = {
+  Enable = function(mapping, param, value)
+    -- Modify all DHCP pools as per new value
+    local lan = lanInterfaces()
+    value = (value == "1") and "server" or "disabled"
+    dhcpBinding.sectionname = "dhcp"
+    forEachOnUci(dhcpBinding, function(s)
+      if lan[s['interface']] and s["dhcpv6"] then
+        setUciParam(s[".name"], "ra", value)
+        setUciParam(s[".name"], "dhcpv6", value)
+      end
+    end)
+  end
+}
+
+Device_RouterAdvertisement_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(dhcpBinding)
+    isConfigChanged = false
+  end
+end
+
+Device_RouterAdvertisement_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(dhcpBinding)
+    isConfigChanged = false
+  end
+end
+
+register(Device_RouterAdvertisement_)

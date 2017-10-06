@@ -1,0 +1,48 @@
+-- Automatically generated from InternetGatewayDevice:1.3
+-- using generator version 2.1
+local InternetGatewayDevice_Capabilities_ = {
+  objectType = {
+    name = "InternetGatewayDevice.Capabilities.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+    }
+  }
+}
+
+register(InternetGatewayDevice_Capabilities_)
+
+local InternetGatewayDevice_Capabilities_PerformanceDiagnostic_ = {
+  objectType = {
+    name = "InternetGatewayDevice.Capabilities.PerformanceDiagnostic.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      DownloadTransports = {
+        access = "readOnly",
+        list = true,
+        type = "string",
+        enumeration = {
+          "HTTP",
+          "FTP",
+        },
+      },
+      UploadTransports = {
+        access = "readOnly",
+        list = true,
+        type = "string",
+        enumeration = {
+          "HTTP",
+          "FTP",
+        },
+      },
+    }
+  }
+}
+InternetGatewayDevice_Capabilities_PerformanceDiagnostic_.get = function (mapping, pname, key, parentkey)
+    return "HTTP"
+end
+register(InternetGatewayDevice_Capabilities_PerformanceDiagnostic_)
+

@@ -1,0 +1,67 @@
+-- Manually generated
+local Device_DeviceInfo_Multi_i_ = {
+  objectType = {
+    name = "Device.DeviceInfo.#VENDOR.{i}.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = 2,
+    parameters = {
+      SoftwareVersion = {
+        access = "readOnly",
+        type = "string",
+      },
+    }
+  }
+}
+
+local mapper = mapper
+local uci_helper = mapper("ucihelper")
+local get_from_uci = uci_helper.get_from_uci
+local versionBinding = { config = "version", sectionname = "@version[0]", option = "version", extended = true }
+local versionBindingActive = { config = "env", sectionname = "var", option = "friendly_sw_version_activebank"}
+local versionBindingPassive = { config = "env", sectionname = "var", option = "friendly_sw_version_passivebank"}
+local swV
+
+local function getSoftwareVersion(bank)
+  local softwareVersion = ""
+  if bank == "booted" then
+    softwareVersion = get_from_uci(versionBindingActive)
+  elseif bank == "notbooted" then
+    softwareVersion = get_from_uci(versionBindingPassive)
+  end
+  if softwareVersion == "" then
+    softwareVersion = get_from_uci(versionBinding)
+  end
+  if softwareVersion ~= "" and softwareVersion ~= "Unknown" then
+    swV = softwareVersion:match("([^%-]+)%-")
+    if swV ~= nil then
+       softwareVersion = swV
+    end
+  end
+  return softwareVersion
+end
+
+local activeVersion = getSoftwareVersion("booted")
+local passiveVersion = getSoftwareVersion("notbooted")
+
+Device_DeviceInfo_Multi_i_.entries = function()
+  if activeVersion ~= "" and passiveVersion ~= "" then
+    return { "booted", "notbooted" }
+  end
+  return { "booted" } -- For single bank boards.
+end
+
+Device_DeviceInfo_Multi_i_.get = function(mapping, param, key)
+  if key == "booted" then
+    return activeVersion
+  elseif key == "notbooted" then
+    return passiveVersion
+  end
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Device_DeviceInfo_Multi_i_, "#VENDOR", { "X_000E50_SoftwareBank", "SoftwareBank" })
+for _, dupli in ipairs(duplicates) do
+  dupli.objectType.numEntriesParameter = dupli.objectType.name:match("X_000E50_") and "X_000E50_SoftwareBankNumberOfEntries" or "SoftwareBankNumberOfEntries"
+  register (dupli)
+end

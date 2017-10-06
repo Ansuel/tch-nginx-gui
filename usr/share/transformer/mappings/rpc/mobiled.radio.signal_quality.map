@@ -1,0 +1,150 @@
+local mobiled_radio_signal_quality_ = {
+    objectType = {
+        name = 'rpc.mobiled.device.@.radio.signal_quality.',
+        access = 'readOnly',
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            rsrq = {
+                access = "readOnly",
+                type = "string"
+            },
+            rssi = {
+                access = "readOnly",
+                type = "string"
+            },
+            rsrp = {
+                 access = "readOnly",
+                 type = "string"
+            },
+            rscp = {
+                 access = "readOnly",
+                 type = "string"
+            },
+            snr = {
+                 access = "readOnly",
+                 type = "string"
+            },
+            cinr = {
+                 access = "readOnly",
+                 type = "string"
+            },
+            path_loss = {
+                 access = "readOnly",
+                 type = "string"
+            },
+            ecio = {
+                 access = "readOnly",
+                 type = "string"
+            },
+            phy_cell_id = {
+                 access = "readOnly",
+                 type = "string"
+            },
+            dl_arfcn = {
+                access = "readOnly",
+                type = "string"
+            },
+            dl_uarfcn = {
+                access = "readOnly",
+                type = "string"
+            },
+            dl_earfcn = {
+                access = "readOnly",
+                type = "string"
+            },
+            ul_arfcn = {
+                access = "readOnly",
+                type = "string"
+            },
+            ul_uarfcn = {
+                access = "readOnly",
+                type = "string"
+            },
+            ul_earfcn = {
+                access = "readOnly",
+                type = "string"
+            },
+            lte_ul_freq = {
+                access = "readOnly",
+                type = "string"
+            },
+            lte_dl_freq = {
+                access = "readOnly",
+                type = "string"
+            },
+            lte_dl_bandwidth = {
+                access = "readOnly",
+                type = "string"
+            },
+            lte_ul_bandwidth = {
+                access = "readOnly",
+                type = "string"
+            },
+            lte_band = {
+                access = "readOnly",
+                type = "string"
+            },
+            tx_power = {
+                access = "readOnly",
+                type = "string"
+            },
+            bler_main = {
+                access = "readOnly",
+                type = "string"
+            },
+            bler_div = {
+                access = "readOnly",
+                type = "string"
+            },
+            bler_total = {
+                access = "readOnly",
+                type = "string"
+            },
+            radio_interface = {
+                access = "readOnly",
+                type = "string"
+            },
+            rrc_state = {
+                access = "readOnly",
+                type = "string",
+                enumeration = {
+                    "idle",
+                    "connected"
+                }
+            },
+            ri = {
+                access = "readOnly",
+                type = "unsignedInt"
+            },
+            cqi = {
+                access = "readOnly",
+                type = "unsignedInt"
+            },
+            radio_bearer_type = {
+                access = "readOnly",
+                type = "string"
+            }
+        }
+    }
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+    return
+end
+
+local helper = require("mobiled.scripthelpers")
+
+local function getall(mapping, key)
+    return helper.getUbusData(conn, "mobiled.radio", "signal_quality", { dev_idx = tonumber(string.match(key, '%d')) })
+end
+
+local function get(mapping, paramName, key)
+    return getall(mapping, key)[paramName]
+end
+
+mobiled_radio_signal_quality_.getall = getall
+mobiled_radio_signal_quality_.get = get
+
+register(mobiled_radio_signal_quality_)

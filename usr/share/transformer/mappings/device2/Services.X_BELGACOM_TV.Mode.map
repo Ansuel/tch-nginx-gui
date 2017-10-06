@@ -1,0 +1,61 @@
+-- Manually generated
+local x_belgacom_tv_ = {
+  objectType = {
+    name = "Device.Services.X_BELGACOM_TV.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+        Mode = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "Routed",
+          "Bridged"
+        },
+        default = "Routed",
+      }
+    }
+  }
+}
+
+local uciHelper = mapper("ucihelper")
+local binding = { config = "env", sectionname = "var" }
+local configChanged = false
+local commitApply = commitapply
+
+x_belgacom_tv_.get = {
+   Mode = function()
+     binding.option = "PXS_TV_MODE_REQ"
+     binding.default = "Routed"
+     return uciHelper.get_from_uci(binding)
+   end
+}
+
+--setting PXM_TV_MODE_REQ, wansensing will update nw config & PXM_TV_MODE_CUR
+x_belgacom_tv_.set = {
+   Mode = function(_, _, paramvalue)
+     binding.option = "PXS_TV_MODE_REQ"
+     if paramvalue ~= uciHelper.get_from_uci(binding) then
+       uciHelper.set_on_uci(binding, paramvalue, commitApply)
+       configChanged = true
+     end
+   end
+}
+
+
+x_belgacom_tv_.commit = function()
+  if configChanged then
+    uciHelper.commit(binding)
+    configChanged = false
+  end
+end
+
+x_belgacom_tv_.revert = function()
+  if configChanged then
+    uciHelper.revert(binding)
+    configChanged = false
+  end
+end
+
+register(x_belgacom_tv_)

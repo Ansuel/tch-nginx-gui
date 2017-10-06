@@ -1,0 +1,6 @@
+local command = {
+  name = "dsldiagd",
+  full_path = "/usr/bin/dsldiagd",
+}
+
+mapper("command").registerCommand(command)

@@ -1,0 +1,111 @@
+-- Automatically generated from Device:2.9
+-- using generator version 2.2
+local Device_UPnP_Device_ = {
+  objectType = {
+    name = "Device.UPnP.Device.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      UPnPMediaServer = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      UPnPIGD = {
+        access = "readWrite",
+        type = "boolean",
+      },
+--[[ TODO:
+      UPnPMediaRenderer = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      UPnPWLANAccessPoint = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      UPnPQoSDevice  = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      UPnPQoSPolicyHolder = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      UPnPDMBasicMgmt = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      UPnPDMConfigurationMgmt = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      UPnPDMSoftwareMgmt = {
+        access = "readWrite",
+        type = "boolean",
+      },
+--]]
+    }
+  }
+}
+
+local uciHelper = mapper("ucihelper")
+local getFromUci = uciHelper.get_from_uci
+local setOnUci = uciHelper.set_on_uci
+local upnpBinding = { config = "upnpd", sectionname = "config", option = "enable_upnp"}
+local mediaServerBinding = { config = "dlnad", sectionname = "config", option = "enabled"}
+local transactions = {}
+local commit = uciHelper.commit
+local revert = uciHelper.revert
+local commitapply, pairs = commitapply, pairs
+
+Device_UPnP_Device_.get = {
+  Enable = function(mapping, param, key)
+    return getFromUci(upnpBinding)
+  end,
+  UPnPIGD = function(mapping, param, key)
+    return getFromUci(upnpBinding)
+  end,
+  UPnPMediaServer =  function(mapping, param, key)
+    local dlnad_enabled = getFromUci(mediaServerBinding)
+    return dlnad_enabled ~= "" and dlnad_enabled or "0"
+  end,
+}
+
+Device_UPnP_Device_.set = {
+  Enable = function(mapping, param, value, key)
+    setOnUci(upnpBinding,value,commitapply)
+    transactions[upnpBinding.config] = true
+  end,
+  UPnPIGD = function(mapping, param, value, key)
+    setOnUci(upnpBinding,value,commitapply)
+    transactions[upnpBinding.config] = true
+  end,
+  UPnPMediaServer = function(mapping, param, value, key)
+    if getFromUci(mediaServerBinding) == "" then
+       return nil, "UPnPMediaServer support is not available"
+    end
+    setOnUci(mediaServerBinding,value,commitapply)
+    transactions[mediaServerBinding.config] = true
+  end,
+}
+
+Device_UPnP_Device_.commit = function()
+  for config,_ in pairs(transactions) do
+    commit({config = config})
+  end
+  transactions = {}
+end
+
+Device_UPnP_Device_.revert = function()
+  for config,_ in pairs(transactions) do
+    revert({config = config})
+  end
+  transactions = {}
+end
+
+register(Device_UPnP_Device_)
