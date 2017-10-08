@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
  
 local rooted
 local force=0
-local version_gui=3.10
+local version_gui=3.11
 local gui_hash
 
 check_root() {
@@ -75,6 +75,8 @@ puryfy_wan_interface() { #creano problemi di dns per chissà quale diavolo di mo
 fix_dns_dhcp_bug() {
 	uci -q del dhcp.lan.dhcpv4
 	uci set dhcp.odhcpd.maindhcp="0"
+	/etc/init.d/odhcpd stop
+	/etc/init.d/odhcpd disable
 }
 
 local encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)

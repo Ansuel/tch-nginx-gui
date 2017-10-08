@@ -1,4 +1,4 @@
 ^dhcp /usr/share/transformer/scripts/check_leases; /etc/init.d/miniupnpd-tch restart ;
 ^dhcp /etc/init.d/dnsmasq restart
-^dhcp%.%?%.[^%.]+%.ra.* /etc/init.d/odhcpd restart
+#^dhcp%.%?%.[^%.]+%.ra.* /etc/init.d/odhcpd restart
 
