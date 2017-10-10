@@ -27,7 +27,7 @@ else
 end
 
 function M.isVoiceMode()
-    if ppp_state and ppp_state == ppp_mgmt then
+    if ppp_state and ppp_mgmt and ppp_state == ppp_mgmt then
         return true
     else
         return false

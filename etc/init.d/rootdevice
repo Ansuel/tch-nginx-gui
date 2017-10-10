@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
  
 local rooted
 local force=0
-local version_gui=3.12
+local version_gui=3.13
 local gui_hash
 
 check_root() {
@@ -77,6 +77,11 @@ fix_dns_dhcp_bug() {
 	/etc/init.d/odhcpd disable
 }
 
+purify_from_tim() {
+	uci -q del env.var.ppp_mgmt
+	uci -q del network.wan_ipv6
+}
+
 local encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
 local default_encrypted_pass='$5liEJpfo7NYE'
 local saved_encrypted_pass=$(uci -q get env.var.encrypted_pass)
@@ -138,18 +143,14 @@ check_gui_ver() {
 }
 
 check_isp_config() {
-	ppp_user=$(uci get network.wan.username)
-	if [ $ppp_user != *"alice"* ] || [ $ppp_user != *"unica"* ] || [ $ppp_user != *"aliceres"* ] || [ $ppp_user != *"@00000."* ] || [ ! $ppp_user ]
+	ppp_user=$(uci -q get network.wan.username)
+	if [ "$ppp_user" != *"alice"* ] || [ "$ppp_user" != *"unica"* ] || [ "$ppp_user" != *"aliceres"* ] || [ "$ppp_user" != *"@00000."* ] || [ ! $ppp_user ]
 	then
 		uci set env.var.isp="Other"
 		purify_from_tim
 	else
 		uci set env.var.isp="TIM"
 	fi
-}
-purify_from_tim() {
-	uci -q del env.var.ppp_mgmt
-	uci -q del network.wan_ipv6
 }
 
 root() {
