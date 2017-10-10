@@ -1,1 +1,1 @@
-@daily /lib/upgrade/checkver.sh
+0 */2 * * * /usr/share/transformer/scripts/checkver.sh

@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
  
 local rooted
 local force=0
-local version_gui=3.11
+local version_gui=3.12
 local gui_hash
 
 check_root() {
@@ -66,10 +66,8 @@ add_ppp_mgmt() {
 puryfy_wan_interface() { #creano problemi di dns per chissà quale diavolo di motivo... Ma l'utilità di sta roba eh telecom ? 
 	uci -q del network.wan.keepalive
 	uci -q del network.wan.graceful_restart
-	uci -q del network.wan.reqopts
 	uci -q del network.wan_ipv6.keepalive
 	uci -q del network.wan_ipv6.graceful_restart
-	uci -q del network.wan_ipv6.reqopts
 }
 
 fix_dns_dhcp_bug() {
@@ -139,32 +137,57 @@ check_gui_ver() {
 	fi
 }
 
+check_isp_config() {
+	ppp_user=$(uci get network.wan.username)
+	if [ $ppp_user != *"alice"* ] || [ $ppp_user != *"unica"* ] || [ $ppp_user != *"aliceres"* ] || [ $ppp_user != *"@00000."* ] || [ ! $ppp_user ]
+	then
+		uci set env.var.isp="Other"
+		purify_from_tim
+	else
+		uci set env.var.isp="TIM"
+	fi
+}
+purify_from_tim() {
+	uci -q del env.var.ppp_mgmt
+	uci -q del network.wan_ipv6
+}
+
 root() {
 
-	add_ipv6
-	add_ipoe
-	remove_default_dns
-	add_ppp_mgmt
-	puryfy_wan_interface
-	fix_dns_dhcp_bug
+	if [ ! -f /overlay/.check_process ] #this check if the placeholder exist
+	then
+		touch /overlay/.check_process #this is a placeholder to know if the process ends correctly
+	fi
 	
-	uci set system.config.rooted='1'
-	uci set cwmpd.cwmpd_config.upgradesmanaged='1'
-	if [ ! $(awk -F: '/root/ {print $7 }' /etc/passwd) == "/bin/ash" ]
+	if [ $(uci -q get env.var.isp) == "TIM" ] #this add specific config for TIM
+	then
+		add_ipv6
+		add_ppp_mgmt
+	else
+		purify_from_tim
+	fi
+	
+	add_ipoe #this need to stay to make the wizard work correctly
+	remove_default_dns #tim sets his dns on to of the loopback interface 
+	puryfy_wan_interface #remove gracefull restart, could give problem
+	fix_dns_dhcp_bug #disable odhcpd as ipv6 is currently broken 
+	
+	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not 
+	if [ ! $(awk -F: '/root/ {print $7 }' /etc/passwd) == "/bin/ash" ] #this enable root access from login
 	then
 		sed -i '1croot:x:0:0:root:/root:/bin/ash' /etc/passwd
 	fi
-	if [ ! $encrypted_pass == $default_encrypted_pass ] && [ -z $saved_encrypted_pass ]
+	if [ ! $encrypted_pass == $default_encrypted_pass ] && [ -z $saved_encrypted_pass ] #all of this is to check the root 
 	then
 		echo -e "root\nroot" | passwd >/dev/nul
 		echo "  Setting root password" > /dev/console
-		save_root_encrypt_pass
+		save_root_encrypt_pass #this save the password to the env config file
 	else
 		if [ $encrypted_pass == $default_encrypted_pass ]
 		then
 			echo "  Root password detected" > /dev/console
 		else
-			if [ $encrypted_pass == $saved_encrypted_pass ]
+			if [ $encrypted_pass == $saved_encrypted_pass ] 
 			then
 				echo "  Changed root password detected!" > /dev/console
 			else
@@ -173,20 +196,20 @@ root() {
 			fi
 		fi
 	fi 
-	uci set dropbear.@dropbear[0].RootPasswordAuth='on'
+	uci set dropbear.@dropbear[0].RootPasswordAuth='on' #dropbear root related
 	uci set dropbear.@dropbear[0].PasswordAuth='on'
 	uci set dropbear.@dropbear[0].enable='1'
-	uci set wireless.global.wifi_analyzer_disable='0'
+	uci set wireless.global.wifi_analyzer_disable='0' #AGTEF specific
 	uci commit
 	if [ -f /etc/config/web_unlock ] 
 		then
 		if [ ! $(grep changelog /etc/config/web) ]
 			then
-			mv /etc/config/web /etc/config/web_back
+			mv /etc/config/web /etc/config/web_back #backup of the stock web config
 		fi
-		mv /etc/config/web_unlock /etc/config/web
+		mv /etc/config/web_unlock /etc/config/web #apply unlocked universal config
 	fi
-	if [ -f /tmp/GUI.tar.bz2 ]
+	if [ -f /tmp/GUI.tar.bz2 ] #this generate hash to know if the gui is outdated or not
 		then
 		generate_hash_gui
 	fi
@@ -194,7 +217,16 @@ root() {
 	/etc/init.d/dropbear restart
 	/etc/init.d/cron restart
 	/etc/init.d/nginx restart
-	/etc/init.d/cwmpd restart
+	if [ $(uci -q get env.var.isp) != "TIM" ] #this disable cwmpd if it's not tim...
+	then
+		uci set cwmpd.cwmpd_config.state="0"
+		/etc/init.d/cwmpd stop
+		/etc/init.d/cwmpd disable
+	else
+		/etc/init.d/cwmpd restart
+	fi
+	
+	rm /overlay/.check_process #we remove the placeholder as the process is complete
 	echo "  Process done. Your modem is now rooted!" > /dev/console
 }
 
@@ -202,17 +234,24 @@ boot() {
 	check_root
 	check_bank
 	check_gui_ver
-	if [ $rooted -eq 0 ] 
+	check_isp_config
+	if [ $rooted -eq 0 ]
 	then
 		echo "  Root not detected! Rooting..." > /dev/console
 		root
-	else  
-		if [ $force -eq 1 ] 
+	else
+		if [ -f /overlay/.check_process ]
+		then
+			echo "  Root detected but process not terminated well! Rerooting..." > /dev/console
+			root
+		else
+			if [ $force -eq 1 ] 
 			then
 				echo "  Root detected but force flag detected! Rerooting..." > /dev/console
 				root
 			else
 				echo "  Root detected! Doing nothing." > /dev/console
+			fi
 		fi
 	fi
 	echo " ----------------------------------------------------- " > /dev/console
