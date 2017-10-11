@@ -211,7 +211,7 @@ root() {
 	uci set dropbear.@dropbear[0].PasswordAuth='on'
 	uci set dropbear.@dropbear[0].enable='1'
 	uci set wireless.global.wifi_analyzer_disable='0' #AGTEF specific
-	uci commit
+	
 	if [ -f /etc/config/web_unlock ] 
 		then
 		if [ ! $(grep changelog /etc/config/web) ]
@@ -234,9 +234,12 @@ root() {
 		/etc/init.d/cwmpd stop
 		/etc/init.d/cwmpd disable
 	else
+		uci set cwmpd.cwmpd_config.state='1'
 		/etc/init.d/cwmpd enable
 		/etc/init.d/cwmpd restart
 	fi
+	
+	uci commit
 	
 	rm /overlay/.check_process #we remove the placeholder as the process is complete
 	echo "  Process done. Your modem is now rooted!" > /dev/console
