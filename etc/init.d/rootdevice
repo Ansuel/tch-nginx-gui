@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
  
 local rooted
 local force=0
-local version_gui=3.13
+local version_gui=3.14
 local gui_hash
 
 check_root() {
@@ -144,12 +144,22 @@ check_gui_ver() {
 
 check_isp_config() {
 	ppp_user=$(uci -q get network.wan.username)
-	if [ "$ppp_user" != *"alice"* ] || [ "$ppp_user" != *"unica"* ] || [ "$ppp_user" != *"aliceres"* ] || [ "$ppp_user" != *"@00000."* ] || [ ! $ppp_user ]
+	if  [ ! $ppp_user ]
 	then
 		uci set env.var.isp="Other"
 		purify_from_tim
 	else
-		uci set env.var.isp="TIM"
+		if echo $ppp_user | grep -q "alice" || 
+		   echo $ppp_user | grep -q "agcombo" || 
+		   echo $ppp_user | grep -q "unica" || 
+		   echo $ppp_user | grep -q "aliceres" ||
+		   echo $ppp_user | grep -q "@00000."
+		then
+			uci set env.var.isp="TIM"
+		else
+			uci set env.var.isp="Other"
+			purify_from_tim
+		fi
 	fi
 }
 
@@ -220,10 +230,11 @@ root() {
 	/etc/init.d/nginx restart
 	if [ $(uci -q get env.var.isp) != "TIM" ] #this disable cwmpd if it's not tim...
 	then
-		uci set cwmpd.cwmpd_config.state="0"
+		uci set cwmpd.cwmpd_config.state='0'
 		/etc/init.d/cwmpd stop
 		/etc/init.d/cwmpd disable
 	else
+		/etc/init.d/cwmpd enable
 		/etc/init.d/cwmpd restart
 	fi
 	
