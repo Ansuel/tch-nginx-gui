@@ -26,6 +26,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
         },
       }
       local html = {}
+	  html[#html + 1] = ui_helper.createLabel(T"3.15", "Possibile fix tod wireless", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"3.14", "Fix card_limiter", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"3.13", "Fix per user non telecom", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"3.12", "Miglioramento script root e aggiunte alcune traduzioni", basic)

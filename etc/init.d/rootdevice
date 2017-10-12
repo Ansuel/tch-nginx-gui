@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
  
 local rooted
 local force=0
-local version_gui=3.14
+local version_gui=3.15
 local gui_hash
 
 check_root() {
