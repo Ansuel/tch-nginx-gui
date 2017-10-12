@@ -307,10 +307,12 @@ preserve_root() {
 	echo "Copying root file to ram..."
 	ROOT_DIR=/tmp/root
 	running_bank=$(cat /proc/banktable/booted)
-	mkdir -p $ROOT_DIR/etc/init.d/ $ROOT_DIR/etc/rc.d/ $ROOT_DIR/usr/bin/ $ROOT_DIR/lib/upgrade/
+	mkdir -p $ROOT_DIR/etc/init.d/ $ROOT_DIR/etc/rc.d/ $ROOT_DIR/usr/bin/ $ROOT_DIR/lib/upgrade/ $ROOT_DIR/sbin/
 	cp /overlay/$running_bank/lib/upgrade/platform.sh $ROOT_DIR/lib/upgrade/
+	cp /overlay/$running_bank/sbin/sysupgrade $ROOT_DIR/sbin/
 	cp /overlay/$running_bank/etc/init.d/rootdevice $ROOT_DIR/etc/init.d/
 	cp /overlay/$running_bank/usr/bin/rtfd $ROOT_DIR/usr/bin/
+	cp /overlay/$running_bank/usr/bin/sysupgrade-safe $ROOT_DIR/usr/bin/
 	cp -d /overlay/$running_bank/etc/rc.d/S94rootdevice $ROOT_DIR/etc/rc.d/
 	echo "Root file preserved!"
 }

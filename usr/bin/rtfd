@@ -104,10 +104,12 @@ kill_running_processes() {
 preserve_root() {
 	ROOT_DIR=/tmp/root
 	running_bank=$(cat /proc/banktable/booted)
-	mkdir -p $ROOT_DIR/etc/init.d/ $ROOT_DIR/etc/rc.d/ $ROOT_DIR/usr/bin/ $ROOT_DIR/lib/upgrade/
+	mkdir -p $ROOT_DIR/etc/init.d/ $ROOT_DIR/etc/rc.d/ $ROOT_DIR/usr/bin/ $ROOT_DIR/lib/upgrade/ $ROOT_DIR/sbin/
 	cp /lib/upgrade/platform.sh $ROOT_DIR/lib/upgrade/
+	cp /sbin/sysupgrade $ROOT_DIR/sbin/
 	cp /etc/init.d/rootdevice $ROOT_DIR/etc/init.d/
 	cp /usr/bin/rtfd $ROOT_DIR/usr/bin/
+	cp /usr/bin/sysupgrade-safe $ROOT_DIR/usr/bin/
 	cp -d /etc/rc.d/S94rootdevice $ROOT_DIR/etc/rc.d/
 }
 
