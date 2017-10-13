@@ -256,20 +256,6 @@ local function upgradefwstatus()
     os.remove(untaint(content.location .. content.filename))
     ngx.print('{ "success":"false" , "errorcode":"' .. untaint(content.errorcode) .. '" }')
   end
-
-  ngx.exit(ngx.HTTP_OK)
-end
-
-local function import_gui()
-  local filename = "GUI.tar.bz2"
-
-  -- flush the web template cache
-  lp.flush()
-
-  local dl = untaint("/tmp/") .. filename
-  os.execute(string.format("bzcat %s | tar -C / -xvf -", dl))
-
-  ngx.print('{ "success":"true" }')
   ngx.exit(ngx.HTTP_OK)
 end
 
@@ -289,9 +275,6 @@ if ngx.req.get_method() == "POST" then
   -- do not call get_post_args before we know that we don't have a file sent otherwise it will fail
   if action == "import_config" then
     return import_config()
-  end
-  if action == "import_gui" then
-    return import_gui()
   end
   if action == "upgradefw" then
     return upgradefw()
@@ -896,14 +879,6 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	    html[#html + 1] = ui_helper.createLabel("", T"No Upgrade found")
 		html[#html + 1] = ui_helper.createButton(T"Upgrade Gui", T"Force Upgrade", "icon-refresh", upgrade_gui)
 	  end
-	  html[#html + 1] = '</form><form class="form-horizontal" id="form-offline-gui" method="post" action="modals/gateway-modal.lp?action=import_gui" enctype="multipart/form-data">'
-          html[#html + 1] = '<div class="control-group">'
-          html[#html + 1] = format('<label class="control-label">%s</label>', T"Offline Upgrade")
-          html[#html + 1] = '<div class="controls">'
-          html[#html + 1] = '<input type="file" name="guifile" id="file-gui">&nbsp;'
-          html[#html + 1] = ui_helper.createSimpleButton(T"Upgrade", "icon-refresh", offline_upgrade_gui)
-          html[#html + 1] = '</div></div>'
-	  
 	  ngx.print(html)
       %>
 	  <legend><%= T"Eco Settings" %></legend>
@@ -979,61 +954,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     tch.showProgress("<%=T'Upgrading...'%>");
     return resetreboot($("#rebooting-msg"), $(this), "system_upgrade_gui");
   });
-  
-  $("#btn-offline-upgrade-gui").click(function() {
-    var nofile_msg = $("#import-nofile-msg");
-    var wrongext_msg = $("#import-wrong-ext-msg");
-    var toobig_msg = $("#import-too-big-msg");
-    if ($("#file-gui").val() == "") {
-      nofile_msg.removeClass("hide");
-      nofile_msg[0].scrollIntoView();
-      return false;
-    }
-    nofile_msg.addClass("hide");
 
-    var validExtensions = ['tar.bz2'];
-    var fileName = $("#file-gui").val();
-    var fileNameExt = fileName.substr(fileName.lastIndexOf('.') + 1);
-    if ($.inArray(fileNameExt, validExtensions) == -1){
-        wrongext_msg.removeClass("hide");
-	wrongext_msg[0].scrollIntoView();
-	return false;
-    }
-    var fileSize = $("#file-gui")[0].files[0].size;
-    if (fileSize > 1048576) {
-        toobig_msg.removeClass("hide");
-	toobig_msg[0].scrollIntoView();
-	return false;
-    }
-
-    var _this = $(this).parents(".control-group");
-    $("#import-failed-msg").addClass("hide");
-    var importing_msg = $("#importing-msg");
-    importing_msg.removeClass("hide");
-    importing_msg[0].scrollIntoView();
-    $.fileUpload($("#form-offline-gui"), {
-      params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },
-      completeCallback: function(form, response) {
-        $("#importing-msg").addClass("hide");
-        if (response.success) {
-          var msg = $("#rebooting-msg");
-          var msg_dst = $(_this);
-          msg_dst.after(msg);
-          msg.removeClass("hide");
-          msg[0].scrollIntoView();
-          wait_for_webserver_down();
-        }
-        else {
-          $("#import-failed-msg").removeClass("hide");
-		  //$("#import-failed-msg").text(response);
-		  if(response.error == "buildversion"){
-		  $("#import-failed-msg").text('<%=T"The Backup file you try to load has not been taken from the actual SW-Release, please use correct Backup File"%>');
-		  }
-        }
-      }
-    });
-    return false;
-  });
   
   $("#btn-remove-root").click(function() {
     $("#confirming-msg-remove-root").removeClass("hide");
