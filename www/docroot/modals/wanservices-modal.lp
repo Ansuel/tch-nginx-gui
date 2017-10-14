@@ -329,14 +329,6 @@ local pfw_columns = {
     attr = { input = { class="span1", maxlength="11" }, autocomplete=portslist },
   },
   {
-    header = T"Destination IP",
-    name = "destinationip",
-    param = "dest_ip",
-    type = "text",
-	hide = true,
-    attr = { input = { class="span2", maxlength="15" }, autocomplete=hosts_ac },
-  },
-  {
     header = T"Destination MAC (Insert Local Ip to search Mac)",
     name = "destinationmac",
     param = "dest_mac",
