@@ -234,7 +234,6 @@ root() {
 		/etc/init.d/cwmpd stop
 		/etc/init.d/cwmpd disable
 	else
-		uci set cwmpd.cwmpd_config.state='1'
 		/etc/init.d/cwmpd enable
 		/etc/init.d/cwmpd restart
 	fi
