@@ -58,9 +58,7 @@ local params = utils.get_params()
 						<h4 id="sigval-title">');  ngx.print( T"Most recent values" ); ngx.print('</h4>\
 						');  
 							local html = {}
-							local options = {span = {class = "span5", id = "status-value"}}
-							tinsert(html, ui_helper.createLabel(T"Device Status:", "", options))
-							options = {span = {class = "span5", id = "nas_state-value"}}
+							local options = {span = {class = "span5", id = "nas_state-value"}}
 							tinsert(html, ui_helper.createLabel(T"Network Status:", "", options))
 							options = {span = {class = "span5", id = "service_state-value"}}
 							tinsert(html, ui_helper.createLabel(T"Service Status:", "", options))
@@ -88,6 +86,8 @@ local params = utils.get_params()
 							tinsert(html, ui_helper.createLabel(T"RSRP:", "", options))
 							options = {span = {class = "span5", id = "snr-value"}}
 							tinsert(html, ui_helper.createLabel(T"SNR:", "", options))
+							options = {span = {class = "span5", id = "sinr-value"}}
+							tinsert(html, ui_helper.createLabel(T"SINR:", "", options))
 							options = {span = {class = "span5", id = "cinr-value"}}
 							tinsert(html, ui_helper.createLabel(T"CINR:", "", options))
 							options = {span = {class = "span5", id = "path_loss-value"}}
@@ -150,6 +150,11 @@ local params = utils.get_params()
 				label: "RSRP (dBm)",\
 				color:  "#4C0B5F",\
 				data: []\
+			},\
+                        rscp : {\
+				label: "RSCP (dBm)",\
+				color: "#7FFF00",\
+				data: []\
 			}\
 		};\
 		this.period_seconds = 0;\
@@ -183,10 +188,9 @@ local params = utils.get_params()
 						var line = data.data[i];\
 						for (var key in self.data) {\
 							var val = line[key];\
-							if(val === "") {\
-								val = self.minValue;\
+							if(val !== "") {\
+								self.data[key].data.push({uptime: line.uptime, value: val});\
 							}\
-							self.data[key].data.push({uptime: line.uptime, value: val});\
 						}\
 					}\
 					if(data.data.length) {\
@@ -255,8 +259,8 @@ local params = utils.get_params()
 					for (var i = 0; i < length; i++) {\
 						res.push([this.period_seconds - (this.last_uptime - this.data[key].data[i].uptime), this.data[key].data[i].value]);\
 					}\
+					plotData.push({ data : res, label : this.data[key].label, color : this.data[key].color });\
 				}\
-				plotData.push({ data : res, label : this.data[key].label, color : this.data[key].color });\
 			}\
 			return plotData;\
 		};\
@@ -277,29 +281,6 @@ local params = utils.get_params()
 					if(data[key] === "") {\
 						$("#"+key+"-value").parent().parent().hide();\
 					} else {\
-						if(key == "status") {\
-							if(data[key] == "WaitingForDevice") {\
-								data[key] = "');  ngx.print( utils.mobiled_state_map["WaitingForDevice"] ); ngx.print('";\
-							} else if(data[key] == "DeviceInit") {\
-								data[key] = "');  ngx.print( utils.mobiled_state_map["DeviceInit"] ); ngx.print('";\
-							} else if(data[key] == "SimInit") {\
-								data[key] = "');  ngx.print( utils.mobiled_state_map["SimInit"] ); ngx.print('";\
-							} else if(data[key] == "DeviceRemove") {\
-								data[key] = "');  ngx.print( utils.mobiled_state_map["DeviceRemove"] ); ngx.print('";\
-							} else if(data[key] == "UnlockSim") {\
-								data[key] = "');  ngx.print( utils.mobiled_state_map["UnlockSim"] ); ngx.print('";\
-							} else if(data[key] == "RegisterNetwork") {\
-								data[key] = "');  ngx.print( utils.mobiled_state_map["RegisterNetwork"] ); ngx.print('";\
-							} else if(data[key] == "DataSessionSetup") {\
-								data[key] = "');  ngx.print( utils.mobiled_state_map["DataSessionSetup"] ); ngx.print('";\
-							} else if(data[key] == "Idle") {\
-								data[key] = "');  ngx.print( utils.mobiled_state_map["Idle"] ); ngx.print('";\
-							} else if(data[key] == "DeviceConfigure") {\
-								data[key] = "');  ngx.print( utils.mobiled_state_map["DeviceConfigure"] ); ngx.print('";\
-							} else if(data[key] == "NetworkScan") {\
-								data[key] = "');  ngx.print( utils.mobiled_state_map["NetworkScan"] ); ngx.print('";\
-							}\
-						}\
 						if(key == "radio_interface") {\
 							if(data[key] == "no_service") {\
 								data[key] = "');  ngx.print( utils.radio_interface_map["no_service"] ); ngx.print('";\
@@ -360,6 +341,7 @@ local params = utils.get_params()
 			rsrp: "dBm",\
 			rsrq: "dB",\
 			snr:  "dB",\
+			sinr:  "dB",\
 			cinr:  "dB",\
 			path_loss:  "dB",\
 			ecio: "dB",\
@@ -426,7 +408,7 @@ local params = utils.get_params()
 			}\
 		},\
 		legend: {\
-			noColumns: 3,\
+			noColumns: 0,\
 			container: $("#plot-legend")\
 		},\
 		grid: { hoverable: true, clickable: true },\

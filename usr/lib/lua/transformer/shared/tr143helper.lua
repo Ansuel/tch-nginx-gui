@@ -1,5 +1,4 @@
 local M = {}
-local match = string.match
 local pairs = pairs
 
 local uci = require 'transformer.mapper.ucihelper'
@@ -11,6 +10,13 @@ local transactions = {}
 local resolve, tokey
 local tr143binding = { config = "tr143" }
 local init_state = false
+
+local paramMap = {
+  X_0876FF_PeriodOfFullLoading = "PeriodOfFullLoading",
+  X_0876FF_TotalBytesReceivedUnderFullLoading = "TotalBytesReceivedUnderFullLoading",
+  X_0876FF_TestBytesReceivedUnderFullLoading = "TestBytesReceivedUnderFullLoading",
+  X_0876FF_TestBytesSentUnderFullLoading = "TestBytesSentUnderFullLoading",
+}
 
 local function resolveInterface(user, value)
     local path
@@ -58,8 +64,16 @@ local function setInterface(user, param, value)
       "InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANIPConnection.{i}.",
       "InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANPPPConnection.{i}.")
      if value and value:match("|") then
-      -- Interface name is the first part of the WANDevice.WANConnectionDevice.WANIP/WANPPP key
-       value = split_key(value)
+       -- Interface name can be first or second part of the WANDevice.WANConnectionDevice.WANIP/WANPPP key.
+       -- If wansensing is in use and activedevice section is configured in wanconfig, then the first part
+       -- of WANDevice.WANConnectionDevice.WANIP/WANPPP key is "ACTIVE" and the second part is the Interface name.
+       -- In all other cases, Interface name is the first part of the WANDevice.WANConnectionDevice.WANIP/WANPPP key.
+       local intfName, devName = split_key(value)
+       if intfName == "ACTIVE" then
+         value = devName
+       else
+         value = intfName
+       end
      end
    end
    return value
@@ -73,7 +87,39 @@ function M.tr143_get(config, user, pname)
   end
 
   tr143binding.sectionname = config
-  tr143binding.option = pname
+  if pname == "X_0876FF_ConcurrentSession" or pname == "X_000E50_ConcurrentSession" then
+    local diagOptions = uci.getall_from_uci(tr143binding)
+    if config == "DownloadDiagnostics" then
+      if diagOptions and diagOptions.NumberOfConnections and diagOptions.DownloadDiagnosticMaxConnections and diagOptions.NumberOfConnections <= diagOptions.DownloadDiagnosticMaxConnections then
+        return diagOptions.NumberOfConnections
+      end
+      return "0"
+    end
+    if config == "UploadDiagnostics" then
+      if diagOptions and diagOptions.NumberOfConnections and diagOptions.UploadDiagnosticsMaxConnections and diagOptions.NumberOfConnections <= diagOptions.UploadDiagnosticsMaxConnections then
+        return diagOptions.NumberOfConnections
+      end
+      return "0"
+    end
+  end
+  if pname == "X_0876FF_Throughput" then
+    local diagOptions = uci.getall_from_uci(tr143binding) or {}
+    if diagOptions.PeriodOfFullLoading and diagOptions.PeriodOfFullLoading ~= "0" and diagOptions.TotalBytesReceivedUnderFullLoading then
+      return tostring(8 * (tonumber(diagOptions.TotalBytesReceivedUnderFullLoading)/tonumber(diagOptions.PeriodOfFullLoading)))
+    end
+    return "0"
+  end
+
+  if pname == "DiagnosticsState" then
+    tr143binding.option = pname
+    local state = uci.get_from_uci(tr143binding)
+    if user == "igd" and state == "Error_Other" then
+      return "Error_InitConnectionFailed"
+    end
+    return state
+  end
+
+  tr143binding.option = paramMap[pname] or pname
   value = uci.get_from_uci(tr143binding)
 
   if pname == "Interface" and value ~= "" then

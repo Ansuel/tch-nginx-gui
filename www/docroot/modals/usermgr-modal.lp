@@ -399,18 +399,9 @@ end
 \
 <div class="modal-body update">\
 ');  
-local tabs = {
-    {
-        desc = T"User Manager",
-        active = "active",
-        target = "modals/usermgr-modal.lp",
-    },
-    {
-        desc = T"Log Viewer",
-        target = "modals/logviewer-modal.lp",
-    },
-}
-ngx.print(ui_helper.createModalTabs(tabs))
+    local lp = require("web.lp")
+    lp.setpath("/www/snippets/")
+    lp.include("tabs-management.lp")
   ngx.print('\
 \
 <form class="form-horizontal" method="post" action="modals/usermgr-modal.lp">\

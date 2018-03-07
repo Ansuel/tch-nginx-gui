@@ -1,25 +1,29 @@
-<%
--- NG-56123; NG-62887; NG-48150; NG-69530; NG-85826
+--pretranslated: do not change this file
+ 
 -- Enable localization
+-- NG-56123; NG-62887; NG-48150; NG-69530; NG-85826
+--NG-103901 GUI gateway-modal has to modified in fact of generic changes
 gettext.textdomain('webui-core')
 
 local lp = require("web.lp")
 local proxy = require("datamodel")
+local inet = require("tch.inet")
 local ui_helper = require("web.ui_helper")
 local message_helper = require("web.uimessage_helper")
 local content_helper = require("web.content_helper")
 local post_helper = require("web.post_helper")
-local format,find,sub,match, untaint = string.format, string.find, string.sub,string.match, string.untaint
+local format,find,sub, match, untaint = string.format, string.find, string.sub, string.match, string.untaint
 local floor, ipairs = math.floor, ipairs
 local timezone = require("transformer.shared.timezone")
 local gVCS = post_helper.getValidateCheckboxSwitch()
+local gOV = post_helper.getOrValidation
+local gAV = post_helper.getAndValidation
 local session = ngx.ctx.session
 
 local tech = false
 if session:getrole() == "engineer" then
 	tech = true
-end
-
+end	
 local function wait_for_completion(base_path, return_json, filename)
   local state_path = base_path .. "state"
   local info_path = base_path .. "info"
@@ -45,16 +49,15 @@ local function wait_for_completion(base_path, return_json, filename)
     if content.state == "Requested" then
       ngx.log(ngx.ERR, "Timeout on ", base_path)
     else
-	
-		ngx.log(ngx.ERR, format('Error on %s (state="%s", info="%s")',
-			base_path, content.state, content.info or ""))
+      ngx.log(ngx.ERR, format('Error on %s (state="%s", info="%s")',
+      base_path, content.state, content.info or ""))
     end
     if return_json then
-	if match(content.info, "buildversion") then
+		if match(content.info, "Buildversion") then
 			ngx.print('{ "error":"buildversion" }')
 		else
-      ngx.print('{ "error":"10" }')
-	  end
+			ngx.print('{ "error":"10" }')
+		end
       ngx.exit(ngx.OK)
     else
       ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
@@ -238,6 +241,26 @@ local function upgradefw()
   ngx.exit(ngx.HTTP_OK)
 end
 
+local function upgradeguifile()
+  local filename = "GUI.tar.bz2"
+  local fwupgrade_location = "/tmp/"
+
+
+  -- flush the web template cache
+  lp.flush()
+
+  local dl = untaint(fwupgrade_location) .. filename
+
+  local rcv_ok, rcv_errno, rcv_errmsg = receive_file(dl, 'name="upgradefile"')
+
+  proxy.set("rpc.system.upgradegui", "1")
+  proxy.apply()
+  
+  ngx.print('{ "success":"true" }')
+  ngx.exit(ngx.HTTP_OK)
+
+end
+
 local function upgradefwstatus()
   local fwupgrade_rpc_path = "rpc.system.fwupgrade."
 
@@ -256,6 +279,7 @@ local function upgradefwstatus()
     os.remove(untaint(content.location .. content.filename))
     ngx.print('{ "success":"false" , "errorcode":"' .. untaint(content.errorcode) .. '" }')
   end
+
   ngx.exit(ngx.HTTP_OK)
 end
 
@@ -275,6 +299,9 @@ if ngx.req.get_method() == "POST" then
   -- do not call get_post_args before we know that we don't have a file sent otherwise it will fail
   if action == "import_config" then
     return import_config()
+  end
+  if action == "upgradeguifile" then
+    return upgradeguifile()
   end
   if action == "upgradefw" then
     return upgradefw()
@@ -375,10 +402,45 @@ local ntp_columns = {
   }
 }
 
+-- Function to check the NTP server input and throws error if the entry/ip falls between IPv4 loopback range or it is a IPv4 subnet mask.
+local function checkNTP(ip)
+  if ip and inet.isValidIPv4(untaint(ip)) then
+    if post_helper.validateIPv4Netmask(ip) then
+      return nil,T"Cannot use IPv4 subnet mask."
+    end
+    local startLoopback = "127.0.0.0"
+    local endLoopback = "127.255.255.255"
+    if not (startLoopback <= ip and ip <= endLoopback) then
+      return true
+    else
+      return nil,T"Cannot use loopback IPv4 address range."
+    end
+  end
+end
+
 local function validateNTP(value, object, key)
+-- Adding localdevicemask in post to find the input is a network or broadcast IPv4 address in advancedIPValidation
+  object["localdevmask"] = proxy.get("uci.network.interface.@lan.netmask")[1].value
+  local ntp_servers = session:retrieve("ntp_data")
+  if ntp_servers then
+    for _,v in pairs(ntp_servers) do
+       if (v[1] == value) then
+         return nil, T"Duplicate entry is not allowed"
+       end
+    end
+  end
+
   if post_helper.validateStringIsIP(value) then
-    local IPValidation = post_helper.getOrValidation(post_helper.advancedIPValidation, post_helper.validateStringIsIPv6)
-    return IPValidation(value, object, key)
+    local ipaddr = proxy.get("rpc.network.interface.@lan.ipaddr")[1].value
+    local wan_ipaddr = proxy.get("rpc.network.interface.@wan.ipaddr")[1].value
+    if ipaddr and ipaddr == value then
+       return nil, T"Cannot use the gateway IP address."
+    elseif wan_ipaddr and wan_ipaddr == value then
+       return nil, T"Cannot use the gateway WAN IP address."
+    else
+       local IPValidation = gOV(gAV(checkNTP, post_helper.advancedIPValidation), post_helper.validateStringIsIPv6)
+       return IPValidation(value, object, key)
+    end
   else
     return post_helper.validateStringIsDomainName(value)
   end
@@ -394,17 +456,16 @@ local ntp_options = {
   createMsg = T"Add new NTP server",
   minEntries = 1,
   maxEntries = 3,
-  canEdit = false,
-  canAdd = false,
-  canDelete = false
 }
-if tech then
-  ntp_options.canEdit = true
-  ntp_options.canAdd = true
-  ntp_options.canDelete = true
-end
-local ntp_data, ntp_helpmsg = post_helper.handleTableQuery(ntp_columns, ntp_options, nil, nil, ntp_valid)
 
+if(session:getrole() ~= "engineer") then
+   ntp_options.canEdit = false
+	ntp_options.canAdd = true
+   ntp_options.canDelete = false
+end
+
+local ntp_data, ntp_helpmsg = post_helper.handleTableQuery(ntp_columns, ntp_options, nil, nil, ntp_valid)
+session:store("ntp_data",ntp_data)
 
 -- Configurable system parameters
 local system_params = {
@@ -531,17 +592,16 @@ local function getCpuStepName(list)
     end
   end
 end
-%>
-
-<% ngx.print(ui_helper.createHeader(T"Gateway", true, true)) %>
-<div class="modal-body update">
-<%
+  ngx.print('\
+\
+');  ngx.print(ui_helper.createHeader(T"Gateway", true, true))   ngx.print('\
+<div class="modal-body update">\
+');  
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
-%>
-<fieldset>
-  <legend><%= T"Global Information" %></legend>
-    <form class="form-horizontal" method="post" action="modals/gateway-modal.lp">
-    <%
+  ngx.print('\
+<fieldset>\
+  <legend>'); ngx.print( T"Global Information" ); ngx.print('</legend>\
+    <form class="form-horizontal" method="post" action="modals/gateway-modal.lp">')
       local basic = {
         span = {
           class = "span5"
@@ -723,13 +783,13 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       html[#html + 1] = ui_helper.createLabel(T"Uptime", post_helper.secondsToTime(content["uptime"]), basic)
       html[#html + 1] = ui_helper.createLabel(T"System Time", content["system_time"], basic)
 --      html[#html + 1] = ui_helper.createInputSelect(T"Timezone", "system_timezone", timezones, system_data["system_timezone"], basic)
-      if tech then
-	  html[#html + 1] = ui_helper.createCheckboxSwitch(T"Network Timezone", "system_network_timezone", system_data["system_network_timezone"], nw_enable_class)
+	if tech then		  
+      html[#html + 1] = ui_helper.createCheckboxSwitch(T"Network Timezone", "system_network_timezone", system_data["system_network_timezone"], nw_enable_class)
       local currentTZ_remote = getTimeZoneName(timezones, true)
       local currentTZ_gui = getTimeZoneName(timezones, false)
       html[#html + 1] = ui_helper.createLabel(T"Current Timezone", currentTZ_remote, default_tz_class)
       html[#html + 1] = ui_helper.createInputSelect(T"Current Timezone", "system_timezone", timezones, currentTZ_gui, user_tz_class)
-	  else
+	else
 	  local netTimez = "On"
 	  if system_data["system_network_timezone"] == "0" then
 		netTimez = "Off"
@@ -737,11 +797,12 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = ui_helper.createLabel(T"Network Timezone", netTimez)
       html[#html + 1] = ui_helper.createLabel(T"Current Timezone", system_data["system_zonename"])
       end
-	  -- NTP servers
+      -- NTP servers
       html[#html + 1] = format('<div class="control-group advanced hide"><label class="control-label">%s</label><div class="controls">', T"NTP servers")
       html[#html + 1] = ui_helper.createTable(ntp_columns, ntp_data, ntp_options, nil, ntp_helpmsg)
       html[#html + 1] = '</div></div>'
-	  html[#html + 1] = ui_helper.createAlertBlock(T"Restarting, please wait...", rebooting)
+
+      html[#html + 1] = ui_helper.createAlertBlock(T"Restarting, please wait...", rebooting)
       html[#html + 1] = ui_helper.createButton(T"Restart Device", T"Restart", "icon-refresh", wait_for_reboot)
       html[#html + 1] = ui_helper.createAlertBlock(T"Resetting to factory defaults, please wait...", resetting)
       html[#html + 1] = ui_helper.createButton(T"Factory Defaults", T"Reset", "icon-bolt", wait_for_reset)
@@ -760,8 +821,8 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       html[#html + 1] = ui_helper.createAlertBlock(T"Importing failed; please try again.", importing_fail)
       html[#html + 1] = ui_helper.createAlertBlock(T"Importing failed; Invalid file used: expected file with extension bin.  Please use correct file.", importing_wrong_ext_fail)
       html[#html + 1] = ui_helper.createAlertBlock(T"Importing failed; Invalid file used: file too large.  Please use correct.  Please use correct file..", importing_too_big_fail)
-	  
-	if tech then
+
+	if tech then		 
       if cui.upgradefw == "1" then
         if cui.upgradefw == "1" then
           html[#html + 1] = '</form><form class="form-horizontal" id="form-upgradefw" method="post" action="modals/gateway-modal.lp?action=upgradefw" enctype="multipart/form-data">'
@@ -778,14 +839,13 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
           html[#html + 1] = ui_helper.createAlertBlock(T"Firmware upgrade failed.  Invalid file used: expected file with extension rbi.  Please use correct firmware.", upgrading_wrong_ext_fail)
           html[#html + 1] = ui_helper.createAlertBlock(T"Firmware upgrade failed.  Invalid file used: file too large.  Please use correct firmware.", upgrading_too_big_fail)
         end
-      end
-	
+	  end
       html[#html + 1] = ui_helper.createLabel(T"ACS URL", content["acs_url"], basic)
     end  
 	ngx.print(html)
-    %>
-	<legend><%= T"Advanced Reset" %></legend>
-	<%
+	
+	local html = {}
+	html[#html + 1] = '<legend>' .. T"Advanced Reset" .. '</legend>'
 	  local reset_gui = {
         group = {
           class = "wait-for-reset"
@@ -822,7 +882,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
         }
       }
 	  
-	  local html = {}
+	  
 	  html[#html + 1] = ui_helper.createAlertBlock(T"This resets the custom gui. No custom configuration will be removed in the process. The Gui will stay unlocked with all the functions available for the stock firmware file. Remember to clean cache browser after this.", info_box)
 	  html[#html + 1] = ui_helper.createButton(T"Restore Gui", T"Restore", "icon-refresh", reset_gui)
 	  html[#html + 1] = ui_helper.createAlertBlock(T"This resets the router and removes the root file. After the reboot the modem will be as it was when you bought it.", info_box)
@@ -836,10 +896,16 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 		</div>
 	  </div>
 	  ]], T"Confirm", T"Cancel")
+	  
 	  ngx.print(html)
-      %>
-	  <legend><%= T"Upgrade GUI" %></legend>
-	<%
+	  
+	  local html = {}
+	  html[#html + 1] = '<legend>' .. T"Upgrade GUI" .. '</legend>'
+	  local basic = {
+        span = {
+          class = "span5"
+        },
+      }
 	  local upgrade_gui = {
         group = {
           class = "wait-for-reset"
@@ -869,296 +935,402 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
           id = "upgrade-msg"
         }
       }
+	  local upload_gui_file = {
+        button = {
+          class = "import-gui custom-handler",
+          id = "btn-import-gui"
+        }
+      }
+	  local upload_gui_fail = {
+        alert = {
+          class = "alert-error hide",
+          id = "upgrade-gui-fail"
+        }
+      }
+	  local upload_gui_alert = {
+        alert = {
+          class = "alert-info hide",
+          id = "upload-gui-alert"
+        }
+      }
+	  local updating = {
+        alert = {
+          class = "alert hide",
+          id = "updating-msg"
+        }
+      }
 	  
-	  local html = {}
 	  html[#html + 1] = ui_helper.createAlertBlock(T"This upgrade the GUI to the latest available version on the site", info_box)
 	  if content["outdated_ver"] == "1" then
-	    html[#html + 1] = ui_helper.createLabel("", T"Upgrade Found")
+	    html[#html + 1] = ui_helper.createLabel("State", T"Upgrade Found", basic)
 		html[#html + 1] = ui_helper.createButton(T"Upgrade Gui", T"Upgrade", "icon-refresh", upgrade_gui)
 	  else 
-	    html[#html + 1] = ui_helper.createLabel("", T"No Upgrade found")
+	    html[#html + 1] = ui_helper.createLabel("State", T"No Upgrade found", basic)
 		html[#html + 1] = ui_helper.createButton(T"Upgrade Gui", T"Force Upgrade", "icon-refresh", upgrade_gui)
 	  end
+	  html[#html + 1] = '</form><form class="form-horizontal" id="form-import-gui" method="post" action="modals/gateway-modal.lp?action=upgradeguifile" enctype="multipart/form-data">'
+      html[#html + 1] = '<div id="offline-upgrade-gui-div" class="control-group">'
+      html[#html + 1] = format('<label class="control-label">%s</label>', T"Offline GUI upgrade")
+      html[#html + 1] = '<div class="controls">'
+      html[#html + 1] = '<input type="file" name="upgradefile" id="file-upgradegui">&nbsp;'
+      html[#html + 1] = ui_helper.createSimpleButton(T"Upgrade", "icon-shield", upload_gui_file)
+      html[#html + 1] = '</div></div>'
+	  html[#html + 1] = ui_helper.createAlertBlock(T"Upgrade failed; please try again.", upload_gui_fail)
+	  html[#html + 1] = ui_helper.createAlertBlock(T"Uploading file. Please wait...", upload_gui_alert)
+	  html[#html + 1] = '<div class="alert alert-info hide" id="upgrade-gui-bar">'
+	  html[#html + 1] = T"Upgrade in progress..."
+	  html[#html + 1] = '  <div id="upgrade-gui-bar" class="progress progress-striped active">'
+      html[#html + 1] = '    <div class="bar bar-warning" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" >'
+      html[#html + 1] = '</div></div></div>'
+	  html[#html + 1] = ui_helper.createAlertBlock(T"Updating file. Please wait...", updating)
+	  
 	  ngx.print(html)
-      %>
-	  <legend><%= T"Eco Settings" %></legend>
-      <%
+	  
 	  local html = {}
+	  html[#html + 1] = '<legend>' .. T"Eco Settings" .. '</legend>'
+	  
 	  html[#html + 1] = ui_helper.createSwitch(T"Ethernet EEE", "eee", eco_content["eee"])
 	  html[#html + 1] = ui_helper.createSwitch(T"Ethernet AutoGreen", "autogreeen", eco_content["autogreeen"])
 	  html[#html + 1] = ui_helper.createSwitch(T"Ethernet Ethapd", "ethapd", eco_content["ethapd"])
 	  html[#html + 1] = ui_helper.createSwitch(T"Cpu Wait", "wait", eco_content["wait"])
 	  local cpu_step_gui = getCpuStepName(cpu_step, false)
 	  html[#html + 1] = ui_helper.createInputSelect(T"Cpu Speed", "cpuspeed", cpu_step , cpu_step_gui)
+	  
 	  ngx.print(html)
-      %>
-    </form>
-  </fieldset>
-</div>
-<script>
-(function() {
-  var refreshTimeOut = 5000;
-  var refreshDelay = 3000;
-  var target = $(".modal form").attr("action");
-
-  function wait_for_webserver_running() {
-    $.ajax({ url: "/", timeout: refreshTimeOut })
-    .done(function(data) {
-      window.location.href = "/";
-    })
-    .fail(function() {
-      window.setTimeout(wait_for_webserver_running, refreshDelay);
-    });
-  }
-
-  function wait_for_webserver_down() {
-    $.ajax({ url: target, timeout: refreshTimeOut })
-    .done(function() {
-      window.setTimeout(wait_for_webserver_down, refreshDelay);
-    })
-    .fail(function() {
-      window.setTimeout(wait_for_webserver_running, refreshDelay);
-    });
-  }
-
-  function resetreboot(msg, msg_dst, action) {
-    msg_dst.after(msg);
-    msg.removeClass("hide");
-    msg[0].scrollIntoView();
-    $.post(
-      target,
-      { action: action, CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },
-      wait_for_webserver_down,
-      "json"
-    );
-    return false;
-  }
-
-  $("#btn-system-reboot").click(function() {
-     tch.showProgress("<%=T'Rebooting...'%>");
-     return resetreboot($("#rebooting-msg"), $(this), "system_reboot" );
-  });
-
-  $("#btn-system-reset").click(function() {
-    tch.showProgress("<%=T'Resetting...'%>");
-    return resetreboot($("#resetting-msg"), $(this), "system_reset");
-  });
-  
-  $("#btn-reset-gui").click(function() {
-    tch.showProgress("<%=T'Resetting...'%>");
-    return resetreboot($("#resetting-msg"), $(this), "system_reset_gui");
-  });
-  
-  $("#btn-upgrade-gui").click(function() {
-    $("#btn-upgrade-gui").addClass("hide");
-    tch.showProgress("<%=T'Upgrading...'%>");
-    return resetreboot($("#rebooting-msg"), $(this), "system_upgrade_gui");
-  });
-
-  
-  $("#btn-remove-root").click(function() {
-    $("#confirming-msg-remove-root").removeClass("hide");
-	$("#remove-root-changes").removeClass("hide");
-  });
-  
-  $("#remove-root-confirm").click(function() {
-  	$("#confirming-msg-remove-root").addClass("hide");
-  	$("#remove-root-changes").addClass("hide");
-  	tch.showProgress("<%=T'Resetting...'%>");
-  	return resetreboot($("#resetting-msg"), $(this), "system_remove_root");
-  });
-  
-  $("#remove-root-cancel").click(function() {
-  	$("#confirming-msg-remove-root").addClass("hide");
-  	$("#remove-root-changes").addClass("hide");
-  });
-
-  $(".export-config").click(function() {
-    $.fileDownload(target, {
-      httpMethod: "POST",
-      data: new Array({ name : "action", value : "export_config" },
-                      { name : "CSRFtoken", value : $("meta[name=CSRFtoken]").attr("content") }),
-      prepareCallback: function() {
-        $("#export-failed-msg").addClass("hide");
-        var exporting_msg = $("#exporting-msg");
-        exporting_msg.removeClass("hide");
-        exporting_msg[0].scrollIntoView();
-      },
-      successCallback: function() {
-        $("#exporting-msg").addClass("hide");
-      },
-      failCallback: function() {
-        var export_failed_msg = $("#export-failed-msg");
-        export_failed_msg.removeClass("hide");
-        export_failed_msg[0].scrollIntoView();
-        $("#exporting-msg").addClass("hide");
-      }
-    });
-    return false;
-  });
-
-  $(".import-config").click(function() {
-    var nofile_msg = $("#import-nofile-msg");
-    var wrongext_msg = $("#import-wrong-ext-msg");
-    var toobig_msg = $("#import-too-big-msg");
-    if ($("#file-import").val() == "") {
-      nofile_msg.removeClass("hide");
-      nofile_msg[0].scrollIntoView();
-      return false;
-    }
-    nofile_msg.addClass("hide");
-
-    var validExtensions = ['bin'];
-    var fileName = $("#file-import").val();
-    var fileNameExt = fileName.substr(fileName.lastIndexOf('.') + 1);
-    if ($.inArray(fileNameExt, validExtensions) == -1){
-        wrongext_msg.removeClass("hide");
-	wrongext_msg[0].scrollIntoView();
-	return false;
-    }
-    var fileSize = $("#file-import")[0].files[0].size;
-    if (fileSize > 1048576) {
-        toobig_msg.removeClass("hide");
-	toobig_msg[0].scrollIntoView();
-	return false;
-    }
-
-    var _this = $(this).parents(".control-group");
-    $("#import-failed-msg").addClass("hide");
-    var importing_msg = $("#importing-msg");
-    importing_msg.removeClass("hide");
-    importing_msg[0].scrollIntoView();
-    $.fileUpload($("#form-import"), {
-      params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },
-      completeCallback: function(form, response) {
-        $("#importing-msg").addClass("hide");
-        if (response.success) {
-          var msg = $("#rebooting-msg");
-          var msg_dst = $(_this);
-          msg_dst.after(msg);
-          msg.removeClass("hide");
-          msg[0].scrollIntoView();
-          wait_for_webserver_down();
-        }
-        else {
-          $("#import-failed-msg").removeClass("hide");
-		  //$("#import-failed-msg").text(response);
-		  if(response.error == "buildversion"){
-		  $("#import-failed-msg").text('<%=T"The Backup file you try to load has not been taken from the actual SW-Release, please use correct Backup File"%>');
-		  }
-        }
-      }
-    });
-    return false;
-  });
-
-  function wait_for_upgradefw() {
-
- // Do not use the default values.
- // On low memory boards sysupgrade use all resources.
- // Do not request too often an upgradefwstatus.
- // It takes more than 5 sec to check if sysupgrade is running.
- // Sysupgrade is running for at least 10 sec.
-
-    var upgrfw_refreshTimeOut = 15000;
-    var upgrfw_refreshDelay = 10000;
-    var msg = $("#upgrade-busy-msg");
-    var msg_dst = $(this);
-    msg_dst.after(msg);
-    msg.removeClass("hide");
-    msg[0].scrollIntoView();
-    function waitForShutdownOrError() {
-      $.ajax({ url: target, data: "action=upgradefwstatus", timeout: upgrfw_refreshTimeOut, dataType: "json" })
-      .done(function(data) {
-        if (data.success == "true") {
-          window.setTimeout(waitForShutdownOrError, upgrfw_refreshDelay);
-        }
-        else {
-          msg.addClass("hide");
-          var failure_msg = $("#upgrade-failed-msg");
-          switch (data.errorcode) {
-          case "1":
-            failure_msg.text("<%= T'Firmware upgrade failed.  Insufficient free memory available. Please reboot and try again.' %>");
-            break;
-          case "10":
-          case "255":
-            failure_msg.text("<%= T'Firmware upgrade failed; please use the correct firmware.' %>");
-            break;
-          case "15":
-            failure_msg.text("<%= T'Firmware upgrade failed; build signed with wrong key' %>");
-            break;
-          default:
-            failure_msg.text("<%= T'Firmware upgrade failed.' %>");
-            break;
-          }
-          failure_msg.text(failure_msg.text() + " (<%= T'Errorcode: ' %>" + data.errorcode + ")")
-          failure_msg.removeClass("hide");
-          failure_msg[0].scrollIntoView();
-          tch.removeProgress()
-        }
-      })
-      .fail(wait_for_webserver_running)
-    }
-    window.setTimeout(waitForShutdownOrError, upgrfw_refreshDelay);
-    return false;
-  }
-
-  $(".upgradefw").click(function() {
-    var nofile_msg = $("#upgrade-nofile-msg");
-    var wrongext_msg = $("#upgrade-wrong-ext-msg");
-    var toobig_msg = $("#upgrade-too-big-msg");
-    if ($("#file-upgradefw").val() == "") {
-      nofile_msg.removeClass("hide");
-      nofile_msg[0].scrollIntoView();
-      return false;
-    }
-    nofile_msg.addClass("hide");
-
-    var validExtensions = ['rbi','fw'];
-    var fileName = $("#file-upgradefw").val();
-    var fileNameExt = fileName.substr(fileName.lastIndexOf('.') + 1);
-    if ($.inArray(fileNameExt, validExtensions) == -1){
-        wrongext_msg.removeClass("hide");
-	wrongext_msg[0].scrollIntoView();
-	return false;
-    }
-    wrongext_msg.addClass("hide");
-    var fileSize = $("#file-upgradefw")[0].files[0].size;
-
-    $.ajax({ url: target, data: "action=getbanksize", timeout: refreshTimeOut, dataType: "json" })
-      .done(function(data) {
-          if (data.success == "true") {
-	    var targetBankSize = Number(data.banksize);
-
-	    if (fileSize > targetBankSize) {
-    		toobig_msg.removeClass("hide");
-		toobig_msg[0].scrollIntoView();
-		return false;
-	    }
-	  }
-      })
-    toobig_msg.addClass("hide");
-
-    var _this = $(this).parents(".control-group");
-    $("#upgrade-failed-msg").addClass("hide");
-    var upgrading_msg = $("#upgrade-transfer-msg");
-    upgrading_msg.removeClass("hide");
-    upgrading_msg[0].scrollIntoView();
-    tch.showProgress("<%=T'Upgrading...'%>");
-    $.fileUpload($("#form-upgradefw"), {
-      params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },
-      completeCallback: function(form, response) {
-        $("#upgrade-transfer-msg").addClass("hide");
-        if (response.success) {
-          wait_for_upgradefw.call(_this);
-        }
-        else {
-          $("#upgrade-failed-msg").removeClass("hide");
-        }
-      }
-    });
-    return false;
-  });
-}());
-</script>
-<% ngx.print(ui_helper.createFooter()) %>
+ngx.print('\
+    </form>\
+  </fieldset>\
+</div>\
+');
+ngx.print('\
+<script>\
+(function() {\
+  var refreshTimeOut = 5000;\
+  var refreshDelay = 3000;\
+  var target = $(".modal form").attr("action");\
+  var valeur = 2;\
+\
+  function wait_for_webserver_running() {\
+    $.ajax({ url: "/", timeout: refreshTimeOut })\
+    .done(function(data) {\
+	  valeur = 100;\
+	  $(".bar").css("width", valeur+"%").attr("aria-valuenow", valeur);\
+      window.location.href = "/";\
+    })\
+    .fail(function() {\
+	  valeur += 5.5;\
+      $(".bar").css("width", valeur+"%").attr("aria-valuenow", valeur);\
+      window.setTimeout(wait_for_webserver_running, refreshDelay);\
+    });\
+  }\
+\
+  function wait_for_webserver_down() {\
+    $.ajax({ url: target, timeout: refreshTimeOut })\
+    .done(function() {\
+      window.setTimeout(wait_for_webserver_down, refreshDelay);\
+    })\
+    .fail(function() {\
+      window.setTimeout(wait_for_webserver_running, refreshDelay);\
+    });\
+  }\
+\
+  function resetreboot(msg, msg_dst, action) {\
+    msg_dst.after(msg);\
+    msg.removeClass("hide");\
+    msg[0].scrollIntoView();\
+    $.post(\
+      target,\
+      { action: action, CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
+      wait_for_webserver_down,\
+      "json"\
+    );\
+    return false;\
+  }\
+  $("#btn-system-reboot").click(function() {\
+     var heading = "');  ngx.print('Restart Device'); ngx.print('";\
+     var processMsg = "');  ngx.print(T'Rebooting'); ngx.print('";\
+     confirmationDialogue(\'');  ngx.print(T"Do you want to continue?"); ngx.print('\',heading);\
+     $(document).on("click", ".Restart", function() {\
+          tch.removeProgress();\
+          tch.showProgress(processMsg);\
+          return resetreboot($("#rebooting-msg"), $(this), "system_reboot" );\
+     });\
+  });\
+\
+  $("#btn-system-reset").click(function() {\
+      var heading = "');  ngx.print('Factory Defaults'); ngx.print('";\
+      var processMsg = "');  ngx.print(T'Resetting'); ngx.print('";\
+      confirmationDialogue(\'');  ngx.print(T"Do you want to continue? "); ngx.print('\',heading);\
+      $(document).on("click", ".Factory", function() {\
+          tch.removeProgress();\
+          tch.showProgress(processMsg);\
+          return resetreboot($("#resetting-msg"), $(this), "system_reset");\
+      });\
+  });\
+\
+  $("#btn-reset-gui").click(function() {\
+    tch.showProgress("'); ngx.print('Resetting...'); ngx.print('");\
+    return resetreboot($("#resetting-msg"), $(this), "system_reset_gui");\
+  });\
+\
+  $("#btn-upgrade-gui").click(function() {\
+    $("#btn-upgrade-gui").addClass("hide");\
+    resetreboot($("#updating-msg"), $(this), "system_upgrade_gui");\
+	$("#upgrade-gui-bar").removeClass("hide");\
+	$(".bar").css("width", valeur+"%").attr("aria-valuenow", valeur);\
+    wait_for_webserver_down();\
+  });\
+\
+  $("#btn-remove-root").click(function() {\
+    $("#confirming-msg-remove-root").removeClass("hide");\
+	$("#remove-root-changes").removeClass("hide");\
+  });\
+\
+  $("#remove-root-confirm").click(function() {\
+  	$("#confirming-msg-remove-root").addClass("hide");\
+  	$("#remove-root-changes").addClass("hide");\
+  	tch.showProgress("'); ngx.print( T'Resetting...' ); ngx.print('");\
+  	return resetreboot($("#resetting-msg"), $(this), "system_remove_root");\
+  });\
+\
+  $("#remove-root-cancel").click(function() {\
+  	$("#confirming-msg-remove-root").addClass("hide");\
+  	$("#remove-root-changes").addClass("hide");\
+  });\
+\
+  $(document).on("click", "#cancel", function() {\
+      tch.removeProgress();\
+  });\
+\
+  $(".export-config").click(function() {\
+    $.fileDownload(target, {\
+      httpMethod: "POST",\
+      data: new Array({ name : "action", value : "export_config" },\
+                      { name : "CSRFtoken", value : $("meta[name=CSRFtoken]").attr("content") }),\
+      prepareCallback: function() {\
+        $("#export-failed-msg").addClass("hide");\
+        var exporting_msg = $("#exporting-msg");\
+        exporting_msg.removeClass("hide");\
+        exporting_msg[0].scrollIntoView();\
+      },\
+      successCallback: function() {\
+        $("#exporting-msg").addClass("hide");\
+      },\
+      failCallback: function() {\
+        var export_failed_msg = $("#export-failed-msg");\
+        export_failed_msg.removeClass("hide");\
+        export_failed_msg[0].scrollIntoView();\
+        $("#exporting-msg").addClass("hide");\
+      }\
+    });\
+    return false;\
+  });\
+\
+  $(".import-config").click(function() {\
+    var nofile_msg = $("#import-nofile-msg");\
+    var wrongext_msg = $("#import-wrong-ext-msg");\
+    var toobig_msg = $("#import-too-big-msg");\
+    if ($("#file-import").val() == "") {\
+      nofile_msg.removeClass("hide");\
+      nofile_msg[0].scrollIntoView();\
+      return false;\
+    }\
+    nofile_msg.addClass("hide");\
+\
+    var validExtensions = [\'bin\'];\
+    var fileName = $("#file-import").val();\
+    var fileNameExt = fileName.substr(fileName.lastIndexOf(\'.\') + 1);\
+    if ($.inArray(fileNameExt, validExtensions) == -1){\
+        wrongext_msg.removeClass("hide");\
+	wrongext_msg[0].scrollIntoView();\
+	return false;\
+    }\
+    var fileSize = $("#file-import")[0].files[0].size;\
+    if (fileSize > 1048576) {\
+        toobig_msg.removeClass("hide");\
+	toobig_msg[0].scrollIntoView();\
+	return false;\
+    }\
+\
+    var _this = $(this).parents(".control-group");\
+    $("#import-failed-msg").addClass("hide");\
+    var importing_msg = $("#importing-msg");\
+    importing_msg.removeClass("hide");\
+    importing_msg[0].scrollIntoView();\
+    $.fileUpload($("#form-import"), {\
+      params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
+      completeCallback: function(form, response) {\
+        $("#importing-msg").addClass("hide");\
+        if (response.success) {\
+          var msg = $("#rebooting-msg");\
+          var msg_dst = $(_this);\
+          msg_dst.after(msg);\
+          msg.removeClass("hide");\
+          msg[0].scrollIntoView();\
+          wait_for_webserver_down();\
+        }\
+        else {\
+          $("#import-failed-msg").removeClass("hide");\
+		  if(response.error == "buildversion"){\
+		  $("#import-failed-msg").text("'); ngx.print(T'The Backup file you try to load has not been taken from the actual SW-Release, please use correct Backup File'); ngx.print('");\
+		  }\
+        }\
+      }\
+    });\
+    return false;\
+  });\
+\
+  $(".import-gui").click(function() {\
+    var nofile_msg = $("#upgrade-gui-fail");\
+    var wrongext_msg = $("#upgrade-gui-fail");\
+	nofile_msg.addClass("hide");\
+    if ($("#file-upgradegui").val() == "") {\
+      nofile_msg.removeClass("hide");\
+      nofile_msg[0].scrollIntoView();\
+      return false;\
+    }\
+\
+    var validExtensions = [\'bz2\'];\
+    var fileName = $("#file-upgradegui").val();\
+\
+    var fileNameExt = fileName.substr(fileName.lastIndexOf(".") + 1);\
+    if ($.inArray(fileNameExt, validExtensions) == -1){\
+        wrongext_msg.removeClass("hide");\
+		wrongext_msg[0].scrollIntoView();\
+		return false;\
+    }\
+    var fileSize = $("#file-upgradegui")[0].files[0].size;\
+	var importing_msg = $("#upload-gui-alert");\
+    var _this = $(this).parents(".control-group");\
+	importing_msg.removeClass("hide");\
+	importing_msg[0].scrollIntoView();\
+    $.fileUpload($("#form-import-gui"), {\
+      params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
+      completeCallback: function(form, response) {\
+        if (response.success) {\
+		  importing_msg.addClass("hide");\
+		  $("#offline-upgrade-gui-div").addClass("hide");\
+		  $("#upgrade-gui-bar").removeClass("hide");\
+		  $(".bar").css("width", valeur+"%").attr("aria-valuenow", valeur);\
+          wait_for_webserver_down();\
+        }\
+        else {\
+		  importing_msg.addClass("hide");\
+          $("#upgrade-gui-fail").removeClass("hide");\
+		  }\
+      }\
+    });\
+    return false;\
+  });\
+\
+  function wait_for_upgradefw() {\
+\
+ // Do not use the default values.\
+ // On low memory boards sysupgrade use all resources.\
+ // Do not request too often an upgradefwstatus.\
+ // It takes more than 5 sec to check if sysupgrade is running.\
+ // Sysupgrade is running for at least 10 sec.\
+\
+    var upgrfw_refreshTimeOut = 15000;\
+    var upgrfw_refreshDelay = 10000;\
+    var msg = $("#upgrade-busy-msg");\
+    var msg_dst = $(this);\
+    msg_dst.after(msg);\
+    msg.removeClass("hide");\
+    msg[0].scrollIntoView();\
+    function waitForShutdownOrError() {\
+      $.ajax({ url: target, data: "action=upgradefwstatus", timeout: upgrfw_refreshTimeOut, dataType: "json" })\
+      .done(function(data) {\
+        if (data.success == "true") {\
+          window.setTimeout(waitForShutdownOrError, upgrfw_refreshDelay);\
+        }\
+        else {\
+          msg.addClass("hide");\
+          var failure_msg = $("#upgrade-failed-msg");\
+          switch (data.errorcode) {\
+          case "1":\
+            failure_msg.text("');  ngx.print( T'Firmware upgrade failed.  Insufficient free memory available. Please reboot and try again.' ); ngx.print('");\
+            break;\
+          case "10":\
+          case "255":\
+            failure_msg.text("');  ngx.print( T'Firmware upgrade failed; please use the correct firmware.' ); ngx.print('");\
+            break;\
+          case "15":\
+            failure_msg.text("');  ngx.print( T'Firmware upgrade failed; build signed with wrong key' ); ngx.print('");\
+            break;\
+          default:\
+            failure_msg.text("');  ngx.print( T'Firmware upgrade failed.' ); ngx.print('");\
+            break;\
+          }\
+          failure_msg.text(failure_msg.text() + " (');  ngx.print( T'Errorcode: ' ); ngx.print('" + data.errorcode + ")")\
+          failure_msg.removeClass("hide");\
+          failure_msg[0].scrollIntoView();\
+          tch.removeProgress()\
+        }\
+      })\
+      .fail(wait_for_webserver_running)\
+    }\
+    window.setTimeout(waitForShutdownOrError, upgrfw_refreshDelay);\
+    return false;\
+  }\
+\
+  $(".upgradefw").click(function() {\
+    var nofile_msg = $("#upgrade-nofile-msg");\
+    var wrongext_msg = $("#upgrade-wrong-ext-msg");\
+    var toobig_msg = $("#upgrade-too-big-msg");\
+    if ($("#file-upgradefw").val() == "") {\
+      nofile_msg.removeClass("hide");\
+      nofile_msg[0].scrollIntoView();\
+      return false;\
+    }\
+    nofile_msg.addClass("hide");\
+\
+    var validExtensions = [\'rbi\',\'fw\'];\
+    var fileName = $("#file-upgradefw").val();\
+    var fileNameExt = fileName.substr(fileName.lastIndexOf(\'.\') + 1);\
+    if ($.inArray(fileNameExt, validExtensions) == -1){\
+        wrongext_msg.removeClass("hide");\
+	wrongext_msg[0].scrollIntoView();\
+	return false;\
+    }\
+    wrongext_msg.addClass("hide");\
+    var fileSize = $("#file-upgradefw")[0].files[0].size;\
+\
+    $.ajax({ url: target, data: "action=getbanksize", timeout: refreshTimeOut, dataType: "json" })\
+      .done(function(data) {\
+          if (data.success == "true") {\
+	    var targetBankSize = Number(data.banksize);\
+\
+	    if (fileSize > targetBankSize) {\
+    		toobig_msg.removeClass("hide");\
+		toobig_msg[0].scrollIntoView();\
+		return false;\
+	    }\
+	  }\
+      })\
+    toobig_msg.addClass("hide");\
+\
+    var _this = $(this).parents(".control-group");\
+    $("#upgrade-failed-msg").addClass("hide");\
+    var upgrading_msg = $("#upgrade-transfer-msg");\
+    upgrading_msg.removeClass("hide");\
+    upgrading_msg[0].scrollIntoView();\
+    tch.showProgress("');  ngx.print(T'Upgrading...'); ngx.print('");\
+    $.fileUpload($("#form-upgradefw"), {\
+      params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
+      completeCallback: function(form, response) {\
+        $("#upgrade-transfer-msg").addClass("hide");\
+        if (response.success) {\
+          wait_for_upgradefw.call(_this);\
+        }\
+        else {\
+          $("#upgrade-failed-msg").removeClass("hide");\
+        }\
+      }\
+    });\
+    return false;\
+  });\
+}());\
+</script>\
+');  ngx.print(ui_helper.createFooter())   ngx.print('\
+');

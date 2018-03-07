@@ -1,7 +1,0 @@
-local command = {
-  name = "ifstat",
-  full_path = "/usr/bin/ifstat",
-  options_with_argument = {"-i"},
-}
-
-mapper("command").registerCommand(command)

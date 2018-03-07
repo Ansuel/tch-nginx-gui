@@ -1,6 +1,7 @@
 local popen = io.popen
 local string = string
 local register = register
+local uci_helper = mapper("ucihelper")
 
 local sys_log_ = {
     objectType = {
@@ -13,12 +14,36 @@ local sys_log_ = {
                 access = "readOnly",
                 type = "string"
             },
+            routingtable = {
+                access = "readOnly",
+                type = "string"
+            },
+            connections = {
+                access = "readOnly",
+                type = "string"
+            },
         },
     }
 }
 
-local DeviceLog = function()
-    local log = popen("/sbin/logread")
+local get = {
+devicelog = function()
+    --check if persistentlog enabled
+    local persistenlog_enabled = false
+    local log_binding = {config="system", sectionname="log"}
+    uci_helper.foreach_on_uci(log_binding, function(s)
+       if s.path and s.size and s.rotate then
+         persistenlog_enabled = true
+         return false
+       end
+    end)
+    local log
+    if persistenlog_enabled then
+      log = popen('cat `ls -r /root/log/message*`')
+    else
+      log = popen("/sbin/logread")
+    end
+
     if log == nil then
         return ""
     end
@@ -27,7 +52,33 @@ local DeviceLog = function()
         return ""
     end
     return string.sub(logString, -32768)
-end
+end,
+routingtable = function()
+    local log = popen("/sbin/route -n")
+    if log == nil then
+        return ""
+    end
+    local logString = log:read("*a")
+    log:close()
+    if logString == nil then
+        return ""
+    end
+    return logString
+end,
 
-sys_log_.get = DeviceLog
+connections = function()
+    local log = popen("cat /proc/net/nf_conntrack")
+    if log == nil then
+        return ""
+    end
+    local logString = log:read("*a")
+    log:close()
+    if logString == nil then
+        return ""
+    end
+    return string.sub(logString,-32768)
+end
+}
+
+sys_log_.get = get
 register(sys_log_)

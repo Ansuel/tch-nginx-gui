@@ -55,16 +55,6 @@ local Multi_Services_VoiceService_i_PhyInterface_i_ = {
                     "Error",
                 },
             },
-            X_PortStatus = {
-               access = "readOnly",
-               type = "string",
-               description = "Displays the hook state of the connected device",
-               enumeration = {
-                   "OnHook",
-                   "OffHook",
-                   "Error",
-               },
-            },
             X_BELGACOM_VoiceProfileID = {
                access = "readWrite",
                type = "unsignedInt",
@@ -96,12 +86,6 @@ local entriesInfo
 local outgoing = {}
 
 local transactions = {}
-
-local stateMapping = {
-  ["onHook"] = "OnHook",
-  ["offHook"] = "OffHook",
-  ["error"] = "Error",
-}
 
 local Line_profile_id = {
     "sip_profile_0",
@@ -193,14 +177,6 @@ local function getInterfaceID(mapping, paramname, key)
     return tostring(id + 1)
 end
 
-local function getHookState(mapping, paramname, key)
-  local fxsState = conn:call("mmpbxbrcmfxs.state", "get", {["device"] = key})
-  if fxsState and fxsState[key] then
-    return stateMapping[fxsState[key]["hookState"]] or "Error"
-  end
-  return stateMapping["error"]
-end
-
 Multi_Services_VoiceService_i_PhyInterface_i_.get = {
     PhyPort = getID,
     InterfaceID = getInterfaceID,
@@ -244,8 +220,19 @@ Multi_Services_VoiceService_i_PhyInterface_i_.get = {
         end
        return res
     end,
-    X_000E50_HookState = getHookState,
-    X_PortStatus = getHookState,
+    X_000E50_HookState = function(mapping, paramname, key)
+        local none_mt = { __index = function() return "Error" end }
+        local stateMapping = setmetatable({
+        ["onHook"] = "OnHook",
+        ["offHook"] = "OffHook",
+        ["error"] = "Error",
+        }, none_mt)
+        local fxsState = conn:call("mmpbxbrcmfxs.state", "get", {["device"]=key})
+        if fxsState and fxsState[key] then
+            return stateMapping[fxsState[key]["hookState"]]
+        end
+        return stateMapping["error"]
+    end,
     X_BELGACOM_VoiceProfileID = "1",
     X_BELGACOM_LineID = function ( mapping, paramname, key, parentkey)
         local object = outgoing[key]

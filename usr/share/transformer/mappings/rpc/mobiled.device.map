@@ -11,6 +11,10 @@ local mobiled_device_ = {
 			status = {
 				access = "readOnly",
 				type = "string"
+			},
+			display_status = {
+				access = "readOnly",
+				type = "string"
 			}
 		}
 	}
@@ -32,13 +36,7 @@ local function get(mapping, paramName, key)
 end
 
 local function mobiledDeviceEntries(mapping)
-	local info
-	for i=1,3 do
-		info = helper.getUbusData(conn, "mobiled", "status", {})
-		if info.devices ~= "" then
-			break
-		end
-	end
+	local info = helper.getUbusData(conn, "mobiled", "status", {})
 	local numDevices = tonumber(info.devices)
 	local devices = {}
 	if numDevices and numDevices >= 1 then

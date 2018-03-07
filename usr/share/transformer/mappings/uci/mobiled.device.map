@@ -15,14 +15,7 @@ local mobiled_device_ = {
 			},
 			radio_pref = {
 				access = "readWrite",
-				type = "string",
-				enumeration = {
-					"lte",
-					"umts",
-					"gsm",
-					"cdma",
-					"auto"
-				}
+				type = "string"
 			},
 			lte_bands = {
 				access = "readWrite",
@@ -54,7 +47,12 @@ local mobiled_device_ = {
 			},
 			roaming = {
 				access = "readWrite",
-				type = "boolean"
+				type = "string",
+				enumeration = {
+					"none",
+					"national",
+					"international",
+				}
 			},
 			imei = {
 				access = "readWrite",
@@ -75,6 +73,31 @@ local mobiled_device_ = {
 			reuse_profiles = {
 				access = "readWrite",
 				type = "boolean"
+			},
+			minimum_attach_delay = {
+				access = "readWrite",
+				type = "unsignedInt",
+			},
+			maximum_attach_delay = {
+				access = "readWrite",
+				type = "unsignedInt",
+			},
+			detach_mode = {
+				access = "readWrite",
+				type = "string",
+				enumeration = {
+					"none",
+					"detach",
+					"poweroff"
+				}
+			},
+			disable_mode = {
+				access = "readWrite",
+				type = "string",
+				enumeration = {
+					"lowpower",
+					"airplane"
+				}
 			}
 		}
 	}
@@ -185,11 +208,20 @@ local function getallMobiledDevices(mapping, key)
 	return result
 end
 
+local roamingmap = {
+	["0"] = "none",
+	["1"] = "international",
+}
+
 local function get(mapping, paramName, key)
 	if paramName == "plmn" then
 		local mcc = getFromUCI(key, "mcc")
 		local mnc = getFromUCI(key, "mnc")
 		return mcc .. mnc
+	end
+	if paramName == "roaming" then
+		local roaming = getFromUCI(key, paramName)
+		return roamingmap[roaming] or roaming
 	end
 	return getFromUCI(key, paramName)
 end

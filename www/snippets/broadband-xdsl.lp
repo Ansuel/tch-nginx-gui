@@ -1,4 +1,5 @@
-<%
+--pretranslated: do not change this file
+
 -- Hide Switch for user admin to enable/disable DSL
 -- Enable localization
 -- NG-88797 WAN statistics is not automatically getting updates as LAN statistics
@@ -128,15 +129,14 @@ local dsl_switch_valid = {
 }
 local dsl_switch_data, dsl_switch_helpmsg = post_helper.handleQuery(dsl_switch_params, dsl_switch_valid)
 
-%>
 
-<fieldset>
-  <%
-    ngx.print(ui_helper.createMessages(message_helper.popMessages()))
-  %>
-  <legend><%= T"Physical link status" %></legend>
+ngx.print('\
+<fieldset>\
+\
+  ');  ngx.print(ui_helper.createMessages(message_helper.popMessages())); ngx.print('\
+\
+  <legend>'); ngx.print( T"Physical link status" ); ngx.print('</legend>')
 
-  <%
     local html = {}
 
     -- Icons
@@ -363,6 +363,7 @@ local dsl_switch_data, dsl_switch_helpmsg = post_helper.handleQuery(dsl_switch_p
       end
     end
     ngx.print(html)
-  %>
 
-</fieldset>
+	ngx.print('\
+</fieldset>\
+');

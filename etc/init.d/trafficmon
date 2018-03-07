@@ -1,0 +1,33 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+APP=trafficmon
+DATA_DIR=/tmp/$APP
+CRONTABS=/etc/crontabs
+CRONRULE=$CRONTABS/root
+
+start() {
+    if [ ! "$(cat $CRONRULE | grep /sbin/trafficmon.lua)" ]; then
+		if [ ! -d $CRONTABS ]; then
+			mkdir -p $CRONTABS
+		fi
+		
+		echo " " >> $CRONRULE
+        echo "*/10 * * * * /sbin/trafficmon.lua" >> $CRONRULE
+        echo "*/3 * * * * /sbin/trafficdata.lua" >> $CRONRULE
+        if [ ! "$(ps | grep -q cron)" ]; then
+            /etc/init.d/cron start
+		else
+			/etc/init.d/cron restart
+        fi
+    fi
+    mkdir -p $DATA_DIR
+    trafficmon.lua -i
+    trafficdata.lua
+
+
+}
+
+stop() {
+    rm -rf $DATA_DIR
+}

@@ -48,11 +48,12 @@ local hlp_attributes = {
 local hlp_defaultObject = {
 }
 
+-- Removing duplicate entries having interface as loopback
 local function hlp_filter(object)
-    if object["intf"] == "loopback" then
-        return nil
-    end
-    return true
+  if object["intf"] == "loopback" then
+     return nil
+  end
+  return true
 end
 
 local hlp_options = {

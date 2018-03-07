@@ -1,8 +1,0 @@
-local command = {
-  name = "coredump",
-  full_path = "/usr/bin/clash-coredump-wrapper",
-  options_without_argument = {"-l"},
-  options_with_argument = {"-p"},
-}
-
-mapper("command").registerCommand(command)

@@ -169,7 +169,7 @@ local function getall(mapping, key)
 
   local offset = findoffset(data, "src")
   if offset then
-    if data[offset+2] then
+    if data[offset+2] and data[offset+2] ~= "metric" then
       store["Source"] = data[offset+1] .. "/" .. data[offset+2]
     else
       store["Source"] = data[offset+1]

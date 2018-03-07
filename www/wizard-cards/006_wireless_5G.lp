@@ -13,7 +13,8 @@ local gVIPIL = post_helper.getValidationIfPropInList
 local vPSK = post_helper.validatePSK
 local format = string.format
 
-local path_ap_security = "rpc.wireless.ap.@ap2.security."
+local path_ap_data = "uci.wireless.wifi-ap.@ap1."
+local path_ap_security = "rpc.wireless.ap.@ap1.security."
 local supported_modes_data  = proxy.get(path_ap_security .. "supported_modes")
 local supported_modes = format("%s", supported_modes_data and supported_modes_data[1] and supported_modes_data[1].value or "")
 local secmodes = {}
@@ -30,8 +31,8 @@ for mode in supported_modes:gmatch("[^%s]+") do
 end
 
 local mapParams = {
-  security_5G = path_ap_security .. "mode",
-  wpa_psk_5G = path_ap_security .. "wpa_psk_passphrase",
+  security_5G = path_ap_data .. "security_mode",
+  wpa_psk_5G = path_ap_data .. "wpa_psk_key",
 }
 
 local mapValid = {

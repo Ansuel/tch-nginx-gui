@@ -46,7 +46,8 @@ end
 -- @return #nil when the input string is not a properly formatted string of (comma or space separated) integer or float values,
 --   the function returns nil, along with an error message "Invalid Value"
 function M.setBasicRateset(value,rateset)
-  local ratesetTable = toList(rateset, "(%d+%.?%d?)%(?b?%)?[,%s]?")
+  local ratesetTable = string.gsub(rateset, "%d*%.*%d*%(b%)[,%s]?", "") -- removes all the values containing (b)
+  ratesetTable = toList(ratesetTable, "([^,%s]+)")
   local basicRatesetMap, errMsg = toMap(value, "([^,%s]+)", "%d+") -- match all comma or space separated values, validate if match contains numbers
   if not basicRatesetMap then
     return nil, errMsg
@@ -81,7 +82,11 @@ function M.setOperationalRateset(value,rateset)
   for index, rate in ipairs(value) do
     if basicRatesetMap[rate] then -- If the rate is in the basic rates map append "(b)" and add to result list
       value[index] = rate .. "(b)"
+      basicRatesetMap[rate] = nil
     end
+  end
+  for rate in pairs(basicRatesetMap) do
+    value[#value+1] = rate .. "(b)"
   end
   return concat(value," ")
 end

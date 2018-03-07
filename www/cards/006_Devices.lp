@@ -27,11 +27,12 @@ local session = ngx.ctx.session
 if session:hasAccess("/modals/device-modal.lp") then
   modalPath = "/modals/device-modal.lp"
   modal_link='class="modal-link" data-toggle="modal" data-remote="modals/device-modal.lp" data-id="device-modal"'
+  wireless_modal_link='class="modal-link" data-toggle="modal" data-remote="modals/wifi-nurse-modal.lp" data-id="device-modal"'
 end
   ngx.print('\
 \
 <div class="span3">\
-  <div class="smallcard">\
+  <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
     ');  ngx.print( ui_helper.createCardHeader(T"Devices", modalPath, switchName, nil)  ); ngx.print('\
     <div class="content card_bg" data-bg-text="&#xf1e6;">\
 	<div class="divtable">\
@@ -62,7 +63,7 @@ end
             '<p class="subinfos">',
             format( N('<strong id = "Wifi_Devices" %1$s>%2$d Wi-Fi device</strong> connected',
                       '<strong id = "Wifi_Devices" %1$s>%2$d Wi-Fi devices</strong> connected', nWiFi),
-                      modal_link, nWiFi),
+                      wireless_modal_link, nWiFi),
 --NG-89441            '</p>',
 --NG-89441           '<p class="subinfos">',
 --NG-89441            format( N('<strong id = "Ethernet_Devices" %1$s>%2$d Hotspot device</strong> connected',

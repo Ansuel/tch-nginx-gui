@@ -32,12 +32,12 @@ end
 function M.parseLine(line)
   local lasthost, lastip, times
   for attempt in line:gmatch("[^*]*%*") do
-    local host, ip, time = match(attempt, "%S+%s+(%S+)%s+%((%S+)%)%s+(%d+)%.%d+%s+ms")
+    local host, ip, time = match(attempt, "%S+%s+(%S+)%s+%((%S+)%)%s+(%d+%.%d+)%s+ms")
     if (host) then
       lasthost = host
       lastip = ip
     else
-      time = match(attempt, "(%d+)%.%d+%s+ms")
+      time = match(attempt, "(%d+%.%d+)%s+ms")
     end
     time = time or "0"
     if (times) then
@@ -60,7 +60,7 @@ function M.read_trace_results(user, file)
 
   local totaltime = tonumber(fh:read())
   local ipaddr_used
-  if user ~= "diagping" then
+  if user ~= "diagping" and user ~= "webui" then
     ipaddr_used = fh:read()
   end
 
@@ -69,7 +69,7 @@ function M.read_trace_results(user, file)
     local lasthost, lastip, times
     line = string.gsub(line, "(%S%sms)", "%1*")
 
-    if user == "diagping" then
+    if user == "diagping" or user == "webui" then
       --handling * in table instead of blank line in traceroute std output
       if line:match("(%d+%s+)%*") then
         lasthost, lastip, times = "*", "*", "*"
@@ -83,7 +83,7 @@ function M.read_trace_results(user, file)
 
     if (lasthost and lastip) then
       if times ~= "*" then
-        times = times and sub(times, 1, 16)
+        times = times and sub(times, 1, 20)
       end
       -- If the reverse DNS lookup failed, clear out Hostname
       if (lasthost == lastip) and lasthost ~= "*" then
@@ -93,7 +93,7 @@ function M.read_trace_results(user, file)
     end
   end
   fh:close()
-  if user ~= "diagping" then
+  if user ~= "diagping" and user ~= "webui" then
     -- cache results
     traceroute_results[user], traceroute_totaltime[user], traceroute_ipaddr_used[user] = results, totaltime, ipaddr_used
   end
@@ -101,7 +101,7 @@ function M.read_trace_results(user, file)
 end
 
 function M.read_traceroute_results(user, name)
-  if user == "diagping" then
+  if user == "diagping" or user == "webui" then
    return M.read_trace_results(user, "/tmp/trace_".. user)
 -- if traceroute_results is not empty, we have cached results
   elseif (traceroute_results[user]) then
@@ -126,6 +126,9 @@ function M.startup(user, binding)
     uci.set_on_uci(uci_binding[user]["DataBlockSize"], 38)
     uci.set_on_uci(uci_binding[user]["DSCP"], 0)
     uci.set_on_uci(uci_binding[user]["MaxHopCount"], 30)
+    if user == "webui" then
+      uci.set_on_uci(uci_binding[user]["ipType"], "ipv4")
+    end
     else
     local value = uci.get_from_uci({config = "traceroute", sectionname = user})
     if value == '' then
@@ -136,6 +139,9 @@ function M.startup(user, binding)
       uci.set_on_uci(uci_binding[user]["DataBlockSize"], 38)
       uci.set_on_uci(uci_binding[user]["DSCP"], 0)
       uci.set_on_uci(uci_binding[user]["MaxHopCount"], 30)
+      if user == "webui" then
+        uci.set_on_uci(uci_binding[user]["ipType"], "ipv4")
+      end
     end
   end
   uci.set_on_uci(uci_binding[user]["DiagnosticsState"], "None")

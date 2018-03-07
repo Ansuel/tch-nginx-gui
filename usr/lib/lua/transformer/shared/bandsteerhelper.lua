@@ -72,7 +72,7 @@ function M.isBandSteerSectionConfigured(bandsteerID)
       end
   end
 
-  return false
+  return false, "Please configure band steer section " .. bandsteerID
 end
 
 function M.getBandSteerId(iface)

@@ -49,7 +49,7 @@ if assistant then
 %>
 
 <div class="span3">
-  <div class="smallcard">
+  <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">
     <% if admin then
         ngx.print(ui_helper.createCardHeader(T"Assistance", modal))
     else

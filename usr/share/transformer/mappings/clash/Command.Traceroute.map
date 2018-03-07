@@ -1,9 +1,0 @@
-local command = {
-  name = "traceroute",
-  full_path = "/usr/bin/traceroute",
-  options_without_argument = {"-F","-I", "-l", "-d", "-n", "-r", "-v"},
-  options_with_argument = {"-m", "-p", "-q", "-s", "-t", "-w", "-g"},
-  operands = {"host", "bytes"},
-}
-
-mapper("command").registerCommand(command)

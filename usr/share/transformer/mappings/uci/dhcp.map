@@ -17,7 +17,7 @@ local dhcp_dnsmasq = {
         "tftp_root", "rebind_protection", "rebind_localhost"
     },
     lists = {
-        "addnhosts", "bogusnxdomain", "interface", "notinterface", "server","rebind_domain",
+        "addnhosts", "bogusnxdomain", "interface", "notinterface", "server","rebind_domain", "hostname"
     }
 }
 
@@ -29,7 +29,7 @@ local dhcp_dhcp = {
     type = "dhcp",
     options = {
         "dynamicdhcp", "force", "ignore", "interface", "leasetime", "limit",
-        "networkid", "start", "dhcpv6", "ra", "ra_max_mtu", "ra_hoplimit",
+        "networkid", "start", "dhcpv6", "ra", "ra_mtu", "ra_hoplimit",
         "ra_lifetime", "ra_maxinterval", "ra_mininterval", "ra_management",
         "instance", "master", "dhcpv4", "ndp", "ra_default", "ra_offlink",
         "ra_preference", "ra_reachable", "ra_retransmit", "ndproxy_routing",
@@ -49,7 +49,7 @@ local dhcp_host = {
     options = { "ip", "mac", "name", "owner" }
 }
 
-mapper("uci_1to1").registerMultiMap(dhcp_host)
+mapper("uci_1to1").registerNamedMultiMap(dhcp_host)
 
 -- uci.dhcp.classifier.{i}
 local dhcp_classifier = {
@@ -58,7 +58,7 @@ local dhcp_classifier = {
     options = { "mac", "vendorclass", "userclass", "circuitid", "remoteid", "subscrid" }
 }
 
-mapper("uci_1to1").registerMultiMap(dhcp_classifier)
+mapper("uci_1to1").registerNamedMultiMap(dhcp_classifier)
 
 -- uci.dhcp.boot.{i}
 local dhcp_boot = {
@@ -70,7 +70,7 @@ local dhcp_boot = {
     }
 }
 
-mapper("uci_1to1").registerMultiMap(dhcp_boot)
+mapper("uci_1to1").registerNamedMultiMap(dhcp_boot)
 
 -- uci.dhcp.dnsrule.{i}
 local dhcp_dnsrule = {
@@ -79,7 +79,7 @@ local dhcp_dnsrule = {
     options = { "dnsset", "policy", "data", "domain", "outpolicy", "enable"}
 }
 
-mapper("uci_1to1").registerMultiMap(dhcp_dnsrule)
+mapper("uci_1to1").registerNamedMultiMap(dhcp_dnsrule)
 
 -- uci.dhcp.vendorclass.{i}
 local dhcp_vendorclass = {
@@ -88,7 +88,7 @@ local dhcp_vendorclass = {
     options = { "vendorclass", "networkid", }
 }
 
-mapper("uci_1to1").registerMultiMap(dhcp_vendorclass)
+mapper("uci_1to1").registerNamedMultiMap(dhcp_vendorclass)
 
 -- uci.dhcp.dnsserver
 local dhcp_dnsserver = {
@@ -110,4 +110,13 @@ local dhcp_match = {
     }
 }
 
-mapper("uci_1to1").registerMultiMap(dhcp_match)
+mapper("uci_1to1").registerNamedMultiMap(dhcp_match)
+
+-- uci.dhcp.relay.{i}
+local dhcp_relay = {
+    config = config_dhcp,
+    type = "relay",
+    options = { "local_addr", "server_addr", "interface" }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(dhcp_relay)

@@ -1,9 +1,12 @@
 --NG-96253 GPON-Diagnostics/Network needs to be lifted to TI specific functionalities
 --NG-102545 GUI broadband is showing SFP Broadband GUI page when Ethernet 4 is connected
 local open, popen, string, register = io.open, io.popen, string, register
---local log = require("transformer.logger")
+local match, floor = string.match, math.floor
+local conn = mapper("ubus").connect()
+local register, mapper, eventsource = register, mapper, eventsource
 local sfp = require("transformer.shared.sfp")
-
+local ethStatus
+local upper = string.upper
 local isConfigChanged = false
 local uciHelper = mapper("ucihelper")
 local commitapply = commitapply
@@ -13,12 +16,15 @@ if flag == 0 then
   return
 end
 
+-- Manually generated Multi_Optical_Interface_i_
 local Multi_Optical_Interface_i_ = {
   objectType = {
-    name = "rpc.optical.Interface.{i}.",
+    name = "#ROOT",
     access = "readOnly",
     minEntries = 1,
     maxEntries = math.huge,
+    numEntriesParameter = "InterfaceNumberOfEntries",
+    aliasParameter = "Alias",
     parameters = {
       Enable = {
         access = "readWrite",
@@ -33,6 +39,55 @@ local Multi_Optical_Interface_i_ = {
         type = "int",
       },
       TransmitOpticalLevel = {
+        access = "readOnly",
+        type = "int",
+      },
+      X_FASTWEB_Flap = {
+        access = "readOnly",
+        type = "int",
+        description = "Incremental number of optical up/down transition states",
+      },
+      X_FASTWEB_VendorName = {
+        access = "readOnly",
+        type = "string",
+        description = "P2P/GPON SFP Vendor Name"
+      },
+      X_FASTWEB_SFPType = {
+        access = "readOnly",
+        type = "string",
+        description = "P2P/GPON SFP Type"
+      },
+      Alias = {
+        access = "readWrite",
+        type = "string",
+      },
+      Name = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      LowerLayers = {
+        access = "readOnly",
+        type = "string",
+        max = "1024",
+      },
+      Upstream = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      LowerOpticalThreshold = {
+        access = "readOnly",
+        type = "int",
+      },
+      UpperOpticalThreshold = {
+        access = "readOnly",
+        type = "int",
+      },
+      LowerTransmitPowerThreshold = {
+        access = "readOnly",
+        type = "int",
+      },
+      UpperTransmitPowerThreshold = {
         access = "readOnly",
         type = "int",
       },
@@ -61,6 +116,32 @@ Multi_Optical_Interface_i_.get = {
   end,
   TransmitOpticalLevel = function()
     return sfp.getLevel("TransmitOpticalLevel")
+  end,
+  X_FASTWEB_Flap = function()
+    return sfp.getSFPFlap()
+  end,
+  X_FASTWEB_VendorName = function()
+    return sfp.getSFPVendorName()
+  end,
+  X_FASTWEB_SFPType = function()
+    return upper(sfp.getSFPType())
+  end,
+  Name = function()
+    return upper(sfp.getSFPType())
+  end,
+  LowerLayers = "",
+  Upstream = "1",
+  LowerOpticalThreshold = function(mapping, param)
+    return sfp.getThresholdValues(param)
+  end,
+  UpperOpticalThreshold = function(mapping, param)
+    return sfp.getThresholdValues(param)
+  end,
+  LowerTransmitPowerThreshold = function(mapping, param)
+    return sfp.getThresholdValues(param)
+  end,
+  UpperTransmitPowerThreshold = function(mapping, param)
+    return sfp.getThresholdValues(param)
   end,
 	VendorName = function()
 	return sfp.getSFPVendorName()
@@ -92,11 +173,30 @@ Multi_Optical_Interface_i_.revert = function()
   end
 end
 
-register(Multi_Optical_Interface_i_)
+local function ubusEventTriggered(mapping, action, data)
+  local wanInterface = sfp.getWanInterface()
+  if data and data.interface == wanInterface and data.action ~= ethStatus then
+    ethStatus = data.action
+    local sfp_flap = sfp.getSFPFlap()
+    sfp.setUciParam("sfp_flap", sfp_flap + 1)
+    sfp.commit()
+  end
+end
+
+Multi_Optical_Interface_i_.add_watchers = function(mapping)
+  local ubusEventSource = eventsource("ubus")
+  ubusEventSource.watch_event(mapping, ubusEventTriggered, "network.link")
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_Optical_Interface_i_, "#ROOT", { "rpc.optical.Interface.{i}.", "Device.Optical.Interface.{i}." })
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
 
 local Multi_Optical_Interface_i_Stats_ = {
   objectType = {
-    name = "rpc.optical.Interface.{i}.Stats.",
+    name = "#ROOT",
     access = "readOnly",
     minEntries = 1,
     maxEntries = 1,
@@ -158,4 +258,8 @@ Multi_Optical_Interface_i_Stats_.set = function(mapping, paramName, paramValue, 
   end
 end
 
-register(Multi_Optical_Interface_i_Stats_)
+duplicator = mapper("multiroot").duplicate
+duplicates = duplicator(Multi_Optical_Interface_i_Stats_, "#ROOT", { "rpc.optical.Interface.{i}.Stats.", "Device.Optical.Interface.{i}.Stats." })
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end

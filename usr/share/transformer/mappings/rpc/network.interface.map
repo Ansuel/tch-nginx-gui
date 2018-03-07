@@ -184,21 +184,16 @@ local network_interface_ = {
 local ipairs, pairs, io = ipairs, pairs, io
 local commitapply, mapper = commitapply, mapper
 local tostring, type = tostring, type
-local logger = require("transformer.logger")
-local log = logger.new("network.interface", 2)
 local open = io.open
 local uci_helper = mapper("ucihelper")
 local get_from_uci = uci_helper.get_from_uci
 local common = mapper("nwcommon")
 local get_ubus_interface_status = common.get_ubus_interface_status
-local get_ubus_device_status = common.get_ubus_device_status
 local get_intf_stat=common.get_intf_stat
-local get_lower_layers = common.get_lower_layers
 local findLanWanInterfaces = common.findLanWanInterfaces
 local ping_helper = require("transformer.shared.ippinghelper")
 local mobileconnection = require("transformer.shared.mobileconnection")
 local section = "network_rpc"
-local STATE_STORE = "/var/state/rpc_network"
 local NUM_REP = "2"
 local state_table = {}
 local defaultGWPingIntf = ""
@@ -255,7 +250,7 @@ end
 
 local function get_dnsCheckState()
     local resolve_state
-    local fd,msg = open(DNS_CHECK_FILE, "r")
+    local fd = open(DNS_CHECK_FILE, "r")
     if fd then
         resolve_state = fd:read("*a")
         fd:close()
@@ -299,7 +294,7 @@ local function checkIfResolveAndStart(host, interface)
       for _,v in pairs(dns_state_table) do
           if(v == "Requested") then
               skipped = true
-              return
+              break
           end
       end
       if skipped == false then
@@ -508,9 +503,9 @@ local function getNexthopInfo(key)
   local route  = v and v[1]
   local nexthop = (route and route['nexthop']) or ""
   if (v) then
-    for i, route in ipairs(v) do
-      if route['mask'] == 0 then
-        nexthop = route['nexthop']
+    for i, routeHop in ipairs(v) do
+      if routeHop['mask'] == 0 then
+        nexthop = routeHop['nexthop']
         break
       end
     end
@@ -591,7 +586,7 @@ end
 
 local scopeMap = {
   ipv6uniqueglobaladdr = "global",
-  ipv6uniquelocaladdr  = "link",
+  ipv6uniquelocaladdr  = "global",
   ipv6linklocaladdr    = "link"
 }
 
@@ -631,7 +626,6 @@ network_interface_.get = {
   NTPServers = function(mapping, param, key)
       local interface = get_interface(key)
       local v = get_ubus_interface_status(interface)
-      local v = get_ubus_interface_status(key)
       v = v and v['data']
       return (v and v['ntpserver']) or ""
   end,
@@ -943,16 +937,16 @@ network_interface_.set = {
 network_interface_.entries = entriesInterfaces
 network_interface_.commit = function()
     ping_helper.uci_ipping_commit()
-    for config, _ in pairs(transaction) do
-        uci_helper.commit(config)
+    for conf in pairs(transaction) do
+        uci_helper.commit(conf)
     end
     transaction = {}
 end
 
 network_interface_.revert = function()
     ping_helper.uci_ipping_revert()
-    for config, _ in pairs(transaction) do
-        uci_helper.revert(config)
+    for conf in pairs(transaction) do
+        uci_helper.revert(conf)
     end
     transaction = {}
 end

@@ -43,6 +43,7 @@ local function getDataForBsslist(ap)
 
   local sanitizedData = {}
     for k,v in pairs(result[ap]) do
+      v.channel = v.chan_descr:match("(%d+)[\/]*") or v.channel
       sanitizedData[k.."_"..ap] = v
     end
     return sanitizedData

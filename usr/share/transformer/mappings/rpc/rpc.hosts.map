@@ -5,9 +5,11 @@ local pairs, error = pairs, error
 local string = string
 local nwcommon = mapper("nwcommon")
 local conn = mapper("ubus").connect() -- Opens connection to UBUS to retrieve data.
-local lanInterfacesCache --These will cache the lan interfaces, based on the firewall config
+local network = require("transformer.shared.common.network")
+local lanInterfacesCache = {} --These will cache the lan interfaces, based on the firewall config
 local hostsCache -- This cache will be used , instead of getting value from ubus call everytime.
-local match, gmatch = string.match, string.gmatch
+local match = string.match
+local tostring = tostring
 local uciHelper = mapper("ucihelper")
 local dhcpBinding = { config = "dhcp", sectionname = "host" }
 local staticLeases = {}
@@ -23,20 +25,8 @@ local rpc_host_ = {
   }
 }
 
-local function isInterfaceInList(interfacesList, interface)
-  if not interfacesList then
-    error("Interfaces list is nil")
-  end
-  for _, intf in pairs(interfacesList) do
-    if interface == intf then
-      return true
-    end
-  end
-  return false
-end
-
 local function isLanInterface(interface)
-        return isInterfaceInList(lanInterfacesCache, interface)
+  return network.listContains(lanInterfacesCache, interface)
 end
 
 -- wirelessRadio is used to retrieve radio name . if it's remotely managed and intergrated ap.
@@ -69,7 +59,7 @@ local function getExternalWifiIntfType()
     end
     --get radio-remote information
     local radioremoteMAC, radioremoteIntf
-    local radioremote, errmsg = conn:call("wireless.radio.remote", "get", { name = keyValue })
+    local radioremote = conn:call("wireless.radio.remote", "get", { name = keyValue })
     if radioremote then
       local _, v = next(radioremote)
       if v then
@@ -125,7 +115,7 @@ end
 
 register(rpc_host_)
 
--- sys.hosts.host.{i}
+-- rpc.hosts.host.{i}
 local rpc_hosts_host_i_ = {
   objectType = {
     name = "rpc.hosts.host.{i}.",
@@ -138,11 +128,23 @@ local rpc_hosts_host_i_ = {
         access = "readOnly",
         type = "string",
       },
+      IPv4= {
+        access = "readOnly",
+        type = "string",
+      },
+      IPv6= {
+        access = "readOnly",
+        type = "string",
+      },
       MACAddress = {
         access = "readOnly",
         type = "string",
       },
-     L2Interface = {
+      L2Interface = {
+         access = "readOnly",
+         type = "string",
+      },
+      L3Interface = {
          access = "readOnly",
          type = "string",
       },
@@ -280,20 +282,48 @@ local function extractIPAddresses(dev)
   end
 
   local addresses = ""
-  -- Extract IPv4 addresses
-  if dev["ipv4"] then
-    for _,value in pairs(dev["ipv4"]) do
-      addresses = extractAddress(value, addresses)
-    end
-  end
-  -- Extract IPv6 addresses
-  if dev["ipv6"] then
-    for _,value in pairs(dev["ipv6"]) do
-      addresses = extractAddress(value, addresses)
+  lanInterfacesCache = nwcommon.findLanWanInterfaces(false)
+  local addr = {"ipv4", "ipv6"}
+  -- Extract IPv4 addresses and IPv6 addresses
+  for _, ip in pairs(addr) do
+    if dev[ip] then
+      for _, value in pairs(dev[ip]) do
+        for _, intf in pairs(lanInterfacesCache) do  -- check if lan interface
+          if(dev["interface"] == intf) then
+             addresses = extractAddress(value, addresses)
+          end
+        end
+      end
     end
   end
   return addresses
 end
+
+local function extractIPv4(dev)
+   local addresses = ""
+   if dev ~= nil then
+     -- Extract IPv4 addresses
+     if dev["ipv4"] ~= nil then
+       for _,value in pairs(dev["ipv4"]) do
+         addresses = extractAddress(value, addresses)
+       end
+     end
+   end
+   return addresses
+ end
+ 
+ local function extractIPv6(dev)
+   local addresses = ""
+   if dev ~= nil then
+     -- Extract IPv6 addresses
+     if dev["ipv6"] ~= nil then
+       for _,value in pairs(dev["ipv6"]) do
+         addresses = extractAddress(value, addresses)
+       end
+     end
+   end
+   return addresses
+ end
 
 local function extractL2Interface(dev)
   local intfType, macAddr = getExternalWifiIntfType()
@@ -374,6 +404,8 @@ rpc_hosts_host_i_.getall = function(mapping, key)
   return {
        MACAddress = key,
        IPAddress = extractIPAddresses(dev),
+       IPv4 = extractIPv4(dev),
+       IPv6 = extractIPv6(dev),
        L2Interface = extractL2Interface(dev) or "",
        State = extractState(dev),
        Delete = "0",
@@ -393,11 +425,20 @@ rpc_hosts_host_i_.get = {
   IPAddress = function(mapping, param, key)
     return extractIPAddresses(key2dev(key))
   end,
+  IPv4 = function(mapping, param, key)
+     return extractIPv4(key2dev(key))
+  end,
+  IPv6 = function(mapping, param, key)
+     return extractIPv6(key2dev(key))
+  end,
   MACAddress = function(mapping, param, key)
     return key
   end,
-   L2Interface = function(mapping, param, key)
+  L2Interface = function(mapping, param, key)
     return extractL2Interface(key2dev(key)) or ""
+  end,
+  L3Interface = function(mapping, param, key)
+    return key2dev(key)["l3interface"] or ""
   end,
   State = function(mapping, param, key)
     return extractState(key2dev(key))

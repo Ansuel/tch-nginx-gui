@@ -1,0 +1,111 @@
+-- Manually generated
+local ATMStats = {
+  objectType = {
+    name = "rpc.ATMStats.",
+    access = "readOnly",
+    minEntries =1,
+    maxEntries =1,
+    parameters = {
+      inOctets = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      outOctets = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      inPackets = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      outPackets = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      inOAMcells = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      outOAMcells = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      inASMcells = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      outASMcells = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      inPacketerrors = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      inCellerrors = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      reset = {
+        access = "readWrite",
+        type = "boolean",
+      },
+    }
+  }
+}
+
+local register, popen = register, io.popen
+
+-- mapping all params in a lookup table with the parsed arguments
+local accessAtmStatsmap = {
+  ["inOctets"] = "in octets",
+  ["outOctets"] = "out octets",
+  ["inPackets"] = "in packets",
+  ["outPackets"] = "out packets",
+  ["inOAMcells"] = "in OAM cells",
+  ["outOAMcells"] = "out OAM cells",
+  ["inASMcells"] = "in ASM cells",
+  ["outASMcells"] = "out ASM cells",
+  ["inPacketerrors"] = "in packet errors",
+  ["inCellerrors"] = "in cell errors",
+}
+
+-- getAtmStats() function is fetching "xtmctl operate intf --stats" all values and storing in a table called atmStatsCache
+local function getAtmStats()
+  local atmStatsCache = {}
+  local fd = popen("xtmctl operate intf --stats")
+  if fd then
+    for line in fd:lines() do
+      local key, val = line:match("(.-)%s+(%d+)")
+      if key then
+       atmStatsCache[key] = val
+      end
+    end
+    fd:close()
+  end
+  return  atmStatsCache
+end
+
+ATMStats.get = function(mappings, param, key)
+  if param == "reset" then
+    return "0"
+  end
+  local values = getAtmStats()
+  return accessAtmStatsmap[param] and values[accessAtmStatsmap[param]] or "0"
+end
+
+ATMStats.getall= function()
+  local atmStatsCache = getAtmStats()
+  local values = {}
+  for param, stats in pairs(accessAtmStatsmap) do
+    values[param] = atmStatsCache[stats] or "0"
+  end
+  return values
+end
+
+ATMStats.set= function(mapping, param, value)
+  if param == "reset" and value == "1" then
+    popen("xtmctl operate intf --stats reset")
+  end
+end 
+register(ATMStats)

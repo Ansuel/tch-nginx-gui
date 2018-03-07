@@ -1,7 +1,0 @@
-local command = {
-  name = "brctl",
-  full_path = "/usr/bin/brctl",
-  options_without_argument = {"show"},
-}
-
-mapper("command").registerCommand(command)

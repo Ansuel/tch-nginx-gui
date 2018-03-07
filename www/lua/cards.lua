@@ -37,7 +37,7 @@ end
 local function card_visible(session, config, cardname)
   local card = config[cardname]
   if card then
-    local acces
+    local access
     if card.modal then
       access = session:hasAccess(card.modal)
     end

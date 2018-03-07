@@ -3,37 +3,31 @@ local cmdhelper = require("transformer.shared.cmdhelper")
 local uci_helper = require("transformer.mapper.ucihelper")
 local luabcm = require("luabcm")
 
-local tonumber, tostring, ipairs = tonumber, tostring, ipairs
-
-local logger = require("transformer.logger")
-local log = logger.new("rpc.xdsl", 2)
+local tonumber, tostring, os, setmetatable, string, lower = tonumber, tostring, os, setmetatable, string, lower
 
 local M = {}
-local strToBoolean = {
-  ["Off"]      = 0,
-  ["On"]       = 1,
-  ["Enabled"]  = 1,
-  ["Disabled"] = 0
+local encodeBooleanMap = {
+  ["off"]      = 0,
+  ["on"]       = 1,
+  ["enabled"]  = 1,
+  ["disabled"] = 0
 }
--- if table is accessed with unknown/nil index/key, return ""
-setmetatable(strToBoolean, { __index = function() return "" end })
 
-local function toBoolean(str)
-  return strToBoolean[str]
+-- if encodeBooleanMap table is accessed with known index respective value is returned
+-- else if table is accessed with unknown/nil index/key, return ""
+local function decodeBooleanConfig(str)
+  str = str and string.lower(str)
+  return encodeBooleanMap[str] or ""
 end
 
-local function divideBy10(nr)
-  if nr ~= nil then
-    return tostring( nr / 10 )
-  else
-    return 0
-  end
+local function adjustScale(nr)
+  return nr and tostring( nr / 10 ) or "0"
 end
 
 -- generic values table for cmdhelper.parseCmd
-local values={}
+local xdslInfo = {}
 -- the adslMib to be loaded to data model for the current lineid
-local adslMib={}
+local adslMib = {}
 -- cache of adslMib for line0 and line1
 local adslMibCache = {
   [0] = {},
@@ -46,18 +40,18 @@ local lastUpdateTime = {
   [1] = 0
 }
 
-local xdslctlinfo0={command="xdslctl info --show",lookup={
-  ["status"]={pat="^Status:%s+(%S+)"},
-  ["tpstc"]={pat="^TPS%-TC:%s+(.*)$"},
-  ["linit"]={pat="^Last initialization procedure status:%s+(.*)$"},
+local xdslctlinfo0 = { command = "xdslctl info --show", lookup = {
+  status = { pat = "^Status:%s+(%S+)"},
+  tpstc  = { pat= "^TPS%-TC:%s+(.*)$"},
+  linit  = { pat = "^Last initialization procedure status:%s+(.*)$"},
 }}
 
-local xdslctlinfo1={command="xdslctl1 info --show",lookup={
-  ["status"]={pat="^Status:%s+(%S+)"},
-  ["tpstc"]={pat="^TPS%-TC:%s+(.*)$"},
+local xdslctlinfo1 = { command = "xdslctl1 info --show", lookup={
+  status = { pat = "^Status:%s+(%S+)"},
+  tpstc = { pat = "^TPS%-TC:%s+(.*)$"},
 }}
 
-local xdslctlinfo={line0=xdslctlinfo0, line1=xdslctlinfo1}
+local xdslctlinfo = { line0 = xdslctlinfo0, line1 = xdslctlinfo1 }
 
 -- Setup a default value to be line0
 local function setDefault(t, d)
@@ -67,36 +61,25 @@ end
 setDefault(xdslctlinfo, xdslctlinfo0)
 
 local function valueFromCmd(cmdlookup, key, subkey, defaultvalue)
-  cmdhelper.parseCmd(cmdlookup, {key}, values)
-  local val=values[key]
-  if val~=nil then
-    if subkey~=nil then
-      if val[subkey]~=nil then
-        return val[subkey]
-      end
-    else
-      return val
-    end
+  cmdhelper.parseCmd(cmdlookup, {key}, xdslInfo)
+  local val = xdslInfo[key]
+  if val and val[subkey] then
+    return val[subkey]
+  elseif val then
+    return val
   end
   return defaultvalue
 end
 
 local function addEmptyAdslMib(mibparam1, value1, mibparam2, value2)
   adslMib[mibparam1] = value1
-  if mibparam2 ~= nil then
+  if mibparam2 then
     adslMib[mibparam2] = value2
   end
 end
 
-local function addEmptyAdslMib2(mib, mibparam1, value1, mibparam2, value2)
-  mib[mibparam1] = value1
-  if mibparam2 ~= nil then
-    mib[mibparam2] = value2
-  end
-end
-
-function createTableWithEmptyValues()
-  adslMib={}
+local function createTableWithEmptyValues()
+  adslMib = {}
   addEmptyAdslMib( "GDMT", 0 )
   addEmptyAdslMib( "GLITE", 0 )
   addEmptyAdslMib( "T1413", 0 )
@@ -114,6 +97,7 @@ function createTableWithEmptyValues()
   addEmptyAdslMib( "CoMinMgn", 0 )
   addEmptyAdslMib( "24k", 0 )
   addEmptyAdslMib( "PhyReXmtUs", 0 )
+  addEmptyAdslMib( "PhyReXmtDs", 0 )
   addEmptyAdslMib( "TpsTc", nil )
   addEmptyAdslMib( "MonitorTone", 0 )
   addEmptyAdslMib( "DynamicD", 0 )
@@ -127,139 +111,139 @@ function createTableWithEmptyValues()
   addEmptyAdslMib( "TrainingStatus", "Disabled")
   addEmptyAdslMib( "Mode", "Unknown" )
   addEmptyAdslMib( "LastRetrainReason", "")
-  addEmptyAdslMib( "LastInitializationProcedureStatus",0)
-  addEmptyAdslMib( "DownstreamMaxBitRate", 0,"UpstreamMaxBitRate",0)
-  addEmptyAdslMib( "DownstreamCurrRate", 0,"UpstreamCurrRate",0)
-  addEmptyAdslMib( "PowerManagementState",0)
-  addEmptyAdslMib( "CurrentProfile",0)
-  addEmptyAdslMib( "TpsTcBcm", nil )
+  addEmptyAdslMib( "LastInitializationProcedureStatus", 0)
+  addEmptyAdslMib( "DownstreamMaxBitRate", 0, "UpstreamMaxBitRate", 0)
+  addEmptyAdslMib( "DownstreamCurrRate", 0, "UpstreamCurrRate", 0)
+  addEmptyAdslMib( "PowerManagementState", 0)
+  addEmptyAdslMib( "CurrentProfile", 0)
+  addEmptyAdslMib( "TpsTcBcm" )
   addEmptyAdslMib( "LineStatus", "Disabled")
-  addEmptyAdslMib( "TrainingStatus","Disabled")
-  addEmptyAdslMib( "TRELLISds",0, "TRELLISus",0)
-  addEmptyAdslMib( "DownstreamSNR",0, "UpstreamSNR",0)
+  addEmptyAdslMib( "TrainingStatus", "Disabled")
+  addEmptyAdslMib( "TRELLISds", 0, "TRELLISus", 0)
+  addEmptyAdslMib( "DownstreamSNR", 0, "UpstreamSNR", 0)
   addEmptyAdslMib( "DownstreamAttenuation", 0, "UpstreamAttenuation", 0)
   addEmptyAdslMib( "DownstreamPower", 0,"UpstreamPower", 0)
-  addEmptyAdslMib( "DownstreamFramingMSGc", 0,"UpstreamFramingMSGc",0 )
-  addEmptyAdslMib( "DownstreamFramingB", 0, "UpstreamFramingB",0)
-  addEmptyAdslMib( "DownstreamFramingM", 0, "UpstreamFramingM",0)
-  addEmptyAdslMib( "DownstreamFramingT", 0, "UpstreamFramingT",0)
-  addEmptyAdslMib( "DownstreamFramingR", 0, "UpstreamFramingR",0)
-  addEmptyAdslMib( "DownstreamFramingS", 0, "UpstreamFramingS",0)
-  addEmptyAdslMib( "DownstreamFramingL", 0, "UpstreamFramingL",0)
-  addEmptyAdslMib( "DownstreamInterleaveDepth", 0, "UpstreamInterleaveDepth",0)
-  addEmptyAdslMib( "DownstreamFramingI", 0,"UpstreamFramingI",0)
-  addEmptyAdslMib( "DownstreamFramingN", 0,"UpstreamFramingN",0)
-  addEmptyAdslMib( "DownstreamFramingQ", 0,"UpstreamFramingQ",0)
-  addEmptyAdslMib( "DownstreamFramingV", 0,"UpstreamFramingV",0)
-  addEmptyAdslMib( "DownstreamFramingK", 0,"UpstreamFramingK",0)
-  addEmptyAdslMib( "OHFDs", 0,"OHFUs",0)
-  addEmptyAdslMib( "OHFErrDs", 0,"OHFErrUs",0)
-  addEmptyAdslMib( "SFDs", 0,"SFUs",0)
-  addEmptyAdslMib( "SFErrDs", 0,"SFErrUs",0)
-  addEmptyAdslMib( "RSDs", 0,"RSUs",0)
-  addEmptyAdslMib( "RSCorrDs", 0, "RSCorrUs",0)
-  addEmptyAdslMib( "RSUnCorrDs", 0,"RSUnCorrUs",0)
-  addEmptyAdslMib( "ShowtimeXTURHECErrors", 0,"ShowtimeXTUCHECErrors",0)
-  addEmptyAdslMib( "OCDDs", 0, "OCDUs",0)
-  addEmptyAdslMib( "LCDDs", 0,"LCDUs",0)
-  addEmptyAdslMib( "BytesReceived", 0, "BytesSent",0)
-  addEmptyAdslMib( "PacketsReceived", 0, "PacketsSent",0)
-  addEmptyAdslMib( "DiscardPacektsReceived", 0,"DiscardPacektsSent",0)
-  addEmptyAdslMib( "ErrorsReceived", 0,"ErrorsSent",0)
-  addEmptyAdslMib( "ShowtimeErroredSecsDs", 0,"ShowtimeErroredSecsUs",0)
-  addEmptyAdslMib( "ShowtimeSeverelyErroredSecsDs", 0,"ShowtimeSeverelyErroredSecsUs",0)
-  addEmptyAdslMib( "ShowtimeUnavailableSecsDs", 0,"ShowtimeUnavailableSecsUs",0)
-  addEmptyAdslMib( "ShowtimeAvailableSecs",0)
-  addEmptyAdslMib( "INPDs", 0,"INPUs",0)
-  addEmptyAdslMib( "INPReinDs", 0,"INPReinUs",0)
-  addEmptyAdslMib( "DownstreamDelay", 0,"UpstreamDelay",0)
-  addEmptyAdslMib( "PERDs", 0,"PERUs",0) 
-  addEmptyAdslMib( "ORDs", 0,"ORUs",0)
-  addEmptyAdslMib( "AGRDs", 0,"AGRUs",0)
-  addEmptyAdslMib( "BitswapDs", 0,"BitswapUs",0)
-  addEmptyAdslMib( "DownstreamNoiseMargin", 0,"UpstreamNoiseMargin",0)
-  addEmptyAdslMib( "TotalXTURFECErrors", 0,"TotalXTUCFECErrors",0)
-  addEmptyAdslMib( "TotalXTURCRCErrors", 0,"TotalXTUCCRCErrors",0)
-  addEmptyAdslMib( "TotalXTURHECErrors", 0,"TotalXTUCHECErrors",0)
-  addEmptyAdslMib( "TotalErroredSecsDs", 0,"TotalErroredSecsUs",0)
-  addEmptyAdslMib( "TotalSeverelyErroredSecsDs", 0,"TotalSeverelyErroredSecsUs",0)
-  addEmptyAdslMib( "TotalUnavailableSecsDs", 0,"TotalUnavailableSecsUs",0)
-  addEmptyAdslMib( "TotalLossOfSignalSecsDs", 0,"TotalLossOfSignalSecsUs",0)
-  addEmptyAdslMib( "TotalLossOfFramingSecsDs", 0,"TotalLossOfFramingSecsUs",0)
-  addEmptyAdslMib( "TotalLossOfMarginSecsDs", 0,"TotalLossOfMarginSecsUs",0)
-  addEmptyAdslMib( "TotalRetrainCount","0")
-  addEmptyAdslMib( "TotalTime",0)
+  addEmptyAdslMib( "DownstreamFramingMSGc", 0,"UpstreamFramingMSGc", 0 )
+  addEmptyAdslMib( "DownstreamFramingB", 0, "UpstreamFramingB", 0)
+  addEmptyAdslMib( "DownstreamFramingM", 0, "UpstreamFramingM", 0)
+  addEmptyAdslMib( "DownstreamFramingT", 0, "UpstreamFramingT", 0)
+  addEmptyAdslMib( "DownstreamFramingR", 0, "UpstreamFramingR", 0)
+  addEmptyAdslMib( "DownstreamFramingS", 0, "UpstreamFramingS", 0)
+  addEmptyAdslMib( "DownstreamFramingL", 0, "UpstreamFramingL", 0)
+  addEmptyAdslMib( "DownstreamInterleaveDepth", 0, "UpstreamInterleaveDepth", 0)
+  addEmptyAdslMib( "DownstreamFramingI", 0, "UpstreamFramingI", 0)
+  addEmptyAdslMib( "DownstreamFramingN", 0, "UpstreamFramingN", 0)
+  addEmptyAdslMib( "DownstreamFramingQ", 0, "UpstreamFramingQ", 0)
+  addEmptyAdslMib( "DownstreamFramingV", 0, "UpstreamFramingV", 0)
+  addEmptyAdslMib( "DownstreamFramingK", 0, "UpstreamFramingK", 0)
+  addEmptyAdslMib( "OHFDs", 0, "OHFUs", 0)
+  addEmptyAdslMib( "OHFErrDs", 0, "OHFErrUs", 0)
+  addEmptyAdslMib( "SFDs", 0, "SFUs", 0)
+  addEmptyAdslMib( "SFErrDs", 0, "SFErrUs", 0)
+  addEmptyAdslMib( "RSDs", 0, "RSUs", 0)
+  addEmptyAdslMib( "RSCorrDs", 0, "RSCorrUs", 0)
+  addEmptyAdslMib( "RSUnCorrDs", 0, "RSUnCorrUs", 0)
+  addEmptyAdslMib( "ShowtimeXTURHECErrors", 0, "ShowtimeXTUCHECErrors", 0)
+  addEmptyAdslMib( "OCDDs", 0, "OCDUs", 0)
+  addEmptyAdslMib( "LCDDs", 0, "LCDUs", 0)
+  addEmptyAdslMib( "BytesReceived", 0, "BytesSent", 0)
+  addEmptyAdslMib( "PacketsReceived", 0, "PacketsSent", 0)
+  addEmptyAdslMib( "DiscardPacektsReceived", 0, "DiscardPacektsSent", 0)
+  addEmptyAdslMib( "ErrorsReceived", 0, "ErrorsSent", 0)
+  addEmptyAdslMib( "ShowtimeErroredSecsDs", 0, "ShowtimeErroredSecsUs", 0)
+  addEmptyAdslMib( "ShowtimeSeverelyErroredSecsDs", 0, "ShowtimeSeverelyErroredSecsUs", 0)
+  addEmptyAdslMib( "ShowtimeUnavailableSecsDs", 0, "ShowtimeUnavailableSecsUs", 0)
+  addEmptyAdslMib( "ShowtimeAvailableSecs", 0)
+  addEmptyAdslMib( "INPDs", 0, "INPUs", 0)
+  addEmptyAdslMib( "INPReinDs", 0, "INPReinUs", 0)
+  addEmptyAdslMib( "DownstreamDelay", 0, "UpstreamDelay", 0)
+  addEmptyAdslMib( "PERDs", 0, "PERUs", 0)
+  addEmptyAdslMib( "ORDs", 0, "ORUs", 0)
+  addEmptyAdslMib( "AGRDs", 0, "AGRUs", 0)
+  addEmptyAdslMib( "BitswapDs", 0, "BitswapUs", 0)
+  addEmptyAdslMib( "DownstreamNoiseMargin", 0, "UpstreamNoiseMargin", 0)
+  addEmptyAdslMib( "TotalXTURFECErrors", 0, "TotalXTUCFECErrors", 0)
+  addEmptyAdslMib( "TotalXTURCRCErrors", 0, "TotalXTUCCRCErrors", 0)
+  addEmptyAdslMib( "TotalXTURHECErrors", 0, "TotalXTUCHECErrors", 0)
+  addEmptyAdslMib( "TotalErroredSecsDs", 0, "TotalErroredSecsUs", 0)
+  addEmptyAdslMib( "TotalSeverelyErroredSecsDs", 0, "TotalSeverelyErroredSecsUs", 0)
+  addEmptyAdslMib( "TotalUnavailableSecsDs", 0, "TotalUnavailableSecsUs", 0)
+  addEmptyAdslMib( "TotalLossOfSignalSecsDs", 0, "TotalLossOfSignalSecsUs", 0)
+  addEmptyAdslMib( "TotalLossOfFramingSecsDs", 0, "TotalLossOfFramingSecsUs", 0)
+  addEmptyAdslMib( "TotalLossOfMarginSecsDs", 0, "TotalLossOfMarginSecsUs", 0)
+  addEmptyAdslMib( "TotalRetrainCount", "0")
+  addEmptyAdslMib( "TotalTime", 0)
   addEmptyAdslMib( "TotalStart", 0)
-  addEmptyAdslMib( "QuarterHourXTURFECErrors", 0,"QuarterHourXTUCFECErrors",0)
-  addEmptyAdslMib( "QuarterHourXTURCRCErrors", 0,"QuarterHourXTUCCRCErrors",0)
-  addEmptyAdslMib( "QuarterHourXTURHECErrors", 0,"QuarterHourXTUCHECErrors",0)
-  addEmptyAdslMib( "QuarterHourErroredSecsDs", 0,"QuarterHourErroredSecsUs",0)
-  addEmptyAdslMib( "QuarterHourSeverelyErroredSecsDs", 0,"QuarterHourSeverelyErroredSecsUs",0)
-  addEmptyAdslMib( "QuarterHourUnavailableSecsDs", 0,"QuarterHourUnavailableSecsUs",0)
-  addEmptyAdslMib( "QuarterHourLossOfSignalSecsDs", 0,"QuarterHourLossOfSignalSecsUs",0)
-  addEmptyAdslMib( "QuarterHourLossOfFramingSecsDs", 0,"QuarterHourLossOfFramingSecsUs",0)
-  addEmptyAdslMib( "QuarterHourLossOfMarginSecsDs", 0,"QuarterHourLossOfMarginSecsUs",0)
-  addEmptyAdslMib( "QuarterHourRetrainCount","0")
-  addEmptyAdslMib( "QuarterHourTime",0)
-  addEmptyAdslMib( "QuarterHourStart",0)
-  addEmptyAdslMib( "PreviousQuarterHourXTURFECErrors", 0,"PreviousQuarterHourXTUCFECErrors",0)
-  addEmptyAdslMib( "PreviousQuarterHourXTURCRCErrors", 0,"PreviousQuarterHourXTUCCRCErrors",0)
-  addEmptyAdslMib( "PreviousQuarterHourXTURHECErrors", 0,"PreviousQuarterHourXTUCHECErrors",0)
-  addEmptyAdslMib( "PreviousQuarterHourErroredSecsDs", 0,"PreviousQuarterHourErroredSecsUs",0)
-  addEmptyAdslMib( "PreviousQuarterHourSeverelyErroredSecsDs", 0,"PreviousQuarterHourSeverelyErroredSecsUs",0)
-  addEmptyAdslMib( "PreviousQuarterHourUnavailableSecsDs", 0,"PreviousQuarterHourUnavailableSecsUs",0)
-  addEmptyAdslMib( "PreviousQuarterHourLossOfSignalSecsDs", 0,"PreviousQuarterHourLossOfSignalSecsUs",0)
-  addEmptyAdslMib( "PreviousQuarterHourLossOfFramingSecsDs", 0,"PreviousQuarterHourLossOfFramingSecsUs",0)
-  addEmptyAdslMib( "PreviousQuarterHourLossOfMarginSecsDs", 0,"PreviousQuarterHourLossOfMarginSecsUs",0)
-  addEmptyAdslMib( "PreviousQuarterHourRetrainCount","0")
-  addEmptyAdslMib( "PreviousQuarterHourTime",0)
-  addEmptyAdslMib( "CurrentDayXTURFECErrors", 0,"CurrentDayXTUCFECErrors",0)
-  addEmptyAdslMib( "CurrentDayXTURCRCErrors", 0,"CurrentDayXTUCCRCErrors",0)
-  addEmptyAdslMib( "CurrentDayXTURHECErrors", 0,"CurrentDayXTUCHECErrors",0)
-  addEmptyAdslMib( "CurrentDayErroredSecsDs", 0,"CurrentDayErroredSecsUs",0)
-  addEmptyAdslMib( "CurrentDaySeverelyErroredSecsDs", 0,"CurrentDaySeverelyErroredSecsUs",0)
-  addEmptyAdslMib( "CurrentDayUnavailableSecsDs", 0,"CurrentDayUnavailableSecsUs",0)
-  addEmptyAdslMib( "CurrentDayLossOfSignalSecsDs", 0,"CurrentDayLossOfSignalSecsUs",0)
-  addEmptyAdslMib( "CurrentDayLossOfFramingSecsDs", 0,"CurrentDayLossOfFramingSecsUs",0)
-  addEmptyAdslMib( "CurrentDayLossOfMarginSecsDs", 0,"CurrentDayLossOfMarginSecsUs",0)
-  addEmptyAdslMib( "CurrentDayRetrainCount","0")
-  addEmptyAdslMib( "CurrentDayTime",0)
-  addEmptyAdslMib( "CurrentDayStart",0)
-  addEmptyAdslMib( "PreviousDayXTURFECErrors", 0,"PreviousDayXTUCFECErrors",0)
-  addEmptyAdslMib( "PreviousDayXTURCRCErrors", 0,"PreviousDayXTUCCRCErrors",0)
-  addEmptyAdslMib( "PreviousDayXTURHECErrors", 0,"PreviousDayXTUCHECErrors",0)
-  addEmptyAdslMib( "PreviousDayErroredSecsDs", 0,"PreviousDayErroredSecsUs",0)
-  addEmptyAdslMib( "PreviousDaySeverelyErroredSecsDs", 0,"PreviousDaySeverelyErroredSecsUs",0)
-  addEmptyAdslMib( "PreviousDayUnavailableSecsDs", 0,"PreviousDayUnavailableSecsUs",0)
-  addEmptyAdslMib( "PreviousDayLossOfSignalSecsDs", 0,"PreviousDayLossOfSignalSecsUs",0)
-  addEmptyAdslMib( "PreviousDayLossOfFramingSecsDs", 0,"PreviousDayLossOfFramingSecsUs",0)
-  addEmptyAdslMib( "PreviousDayLossOfMarginSecsDs", 0,"PreviousDayLossOfMarginSecsUs",0)
-  addEmptyAdslMib( "PreviousDayRetrainCount","0")
-  addEmptyAdslMib( "PreviousDayTime",0)
-  addEmptyAdslMib( "ShowtimeXTURFECErrors", 0,"ShowtimeXTUCFECErrors",0)
-  addEmptyAdslMib( "ShowtimeXTURCRCErrors", 0,"ShowtimeXTUCCRCErrors",0)
-  addEmptyAdslMib( "ShowtimeXTURHECErrors", 0,"ShowtimeXTURHECErrors",0)
-  addEmptyAdslMib( "ShowtimeErroredSecsDs", 0,"ShowtimeErroredSecsUs",0)
-  addEmptyAdslMib( "LastShowtimeUnavailableSecsDs", 0,"LastShowtimeUnavailableSecsUs",0)
-  addEmptyAdslMib( "LastShowtimeLossOfSignalSecsDs", 0,"LastShowtimeLossOfSignalSecsUs",0)
-  addEmptyAdslMib( "LastShowtimeLossOfFramingSecsDs", 0,"LastShowtimeLossOfFramingSecsUs",0)
-  addEmptyAdslMib( "LastShowtimeLossOfMarginSecsDs", 0,"LastShowtimeLossOfMarginSecsUs",0)
-  addEmptyAdslMib( "LastShowtimeRetrainCount","0")
-  addEmptyAdslMib( "ShowtimeSeverelyErroredSecsDs", 0,"ShowtimeSeverelyErroredSecsUs",0)
-  addEmptyAdslMib( "ShowtimeUnavailableSecsDs", 0,"ShowtimeUnavailableSecsUs",0)
-  addEmptyAdslMib( "ShowtimeLossOfSignalSecsDs", 0,"ShowtimeLossOfSignalSecsUs",0)
-  addEmptyAdslMib( "ShowtimeLossOfFramingSecsDs", 0,"ShowtimeLossOfFramingSecsUs",0)
-  addEmptyAdslMib( "ShowtimeLossOfMarginSecsDs", 0,"ShowtimeLossOfMarginSecsUs",0)
-  addEmptyAdslMib( "ShowtimeRetrainCount","0")
-  addEmptyAdslMib( "ShowtimeTime",0)
+  addEmptyAdslMib( "QuarterHourXTURFECErrors", 0, "QuarterHourXTUCFECErrors", 0)
+  addEmptyAdslMib( "QuarterHourXTURCRCErrors", 0, "QuarterHourXTUCCRCErrors", 0)
+  addEmptyAdslMib( "QuarterHourXTURHECErrors", 0, "QuarterHourXTUCHECErrors", 0)
+  addEmptyAdslMib( "QuarterHourErroredSecsDs", 0, "QuarterHourErroredSecsUs", 0)
+  addEmptyAdslMib( "QuarterHourSeverelyErroredSecsDs", 0, "QuarterHourSeverelyErroredSecsUs", 0)
+  addEmptyAdslMib( "QuarterHourUnavailableSecsDs", 0, "QuarterHourUnavailableSecsUs", 0)
+  addEmptyAdslMib( "QuarterHourLossOfSignalSecsDs", 0, "QuarterHourLossOfSignalSecsUs", 0)
+  addEmptyAdslMib( "QuarterHourLossOfFramingSecsDs", 0, "QuarterHourLossOfFramingSecsUs", 0)
+  addEmptyAdslMib( "QuarterHourLossOfMarginSecsDs", 0, "QuarterHourLossOfMarginSecsUs", 0)
+  addEmptyAdslMib( "QuarterHourRetrainCount", "0")
+  addEmptyAdslMib( "QuarterHourTime", 0)
+  addEmptyAdslMib( "QuarterHourStart", 0)
+  addEmptyAdslMib( "PreviousQuarterHourXTURFECErrors", 0, "PreviousQuarterHourXTUCFECErrors", 0)
+  addEmptyAdslMib( "PreviousQuarterHourXTURCRCErrors", 0, "PreviousQuarterHourXTUCCRCErrors", 0)
+  addEmptyAdslMib( "PreviousQuarterHourXTURHECErrors", 0, "PreviousQuarterHourXTUCHECErrors", 0)
+  addEmptyAdslMib( "PreviousQuarterHourErroredSecsDs", 0, "PreviousQuarterHourErroredSecsUs", 0)
+  addEmptyAdslMib( "PreviousQuarterHourSeverelyErroredSecsDs", 0, "PreviousQuarterHourSeverelyErroredSecsUs", 0)
+  addEmptyAdslMib( "PreviousQuarterHourUnavailableSecsDs", 0, "PreviousQuarterHourUnavailableSecsUs", 0)
+  addEmptyAdslMib( "PreviousQuarterHourLossOfSignalSecsDs", 0, "PreviousQuarterHourLossOfSignalSecsUs", 0)
+  addEmptyAdslMib( "PreviousQuarterHourLossOfFramingSecsDs", 0, "PreviousQuarterHourLossOfFramingSecsUs", 0)
+  addEmptyAdslMib( "PreviousQuarterHourLossOfMarginSecsDs", 0, "PreviousQuarterHourLossOfMarginSecsUs", 0)
+  addEmptyAdslMib( "PreviousQuarterHourRetrainCount", "0")
+  addEmptyAdslMib( "PreviousQuarterHourTime", 0)
+  addEmptyAdslMib( "CurrentDayXTURFECErrors", 0, "CurrentDayXTUCFECErrors", 0)
+  addEmptyAdslMib( "CurrentDayXTURCRCErrors", 0, "CurrentDayXTUCCRCErrors", 0)
+  addEmptyAdslMib( "CurrentDayXTURHECErrors", 0, "CurrentDayXTUCHECErrors", 0)
+  addEmptyAdslMib( "CurrentDayErroredSecsDs", 0, "CurrentDayErroredSecsUs", 0)
+  addEmptyAdslMib( "CurrentDaySeverelyErroredSecsDs", 0, "CurrentDaySeverelyErroredSecsUs", 0)
+  addEmptyAdslMib( "CurrentDayUnavailableSecsDs", 0, "CurrentDayUnavailableSecsUs", 0)
+  addEmptyAdslMib( "CurrentDayLossOfSignalSecsDs", 0, "CurrentDayLossOfSignalSecsUs", 0)
+  addEmptyAdslMib( "CurrentDayLossOfFramingSecsDs", 0, "CurrentDayLossOfFramingSecsUs", 0)
+  addEmptyAdslMib( "CurrentDayLossOfMarginSecsDs", 0, "CurrentDayLossOfMarginSecsUs", 0)
+  addEmptyAdslMib( "CurrentDayRetrainCount", "0")
+  addEmptyAdslMib( "CurrentDayTime", 0)
+  addEmptyAdslMib( "CurrentDayStart", 0)
+  addEmptyAdslMib( "PreviousDayXTURFECErrors", 0, "PreviousDayXTUCFECErrors", 0)
+  addEmptyAdslMib( "PreviousDayXTURCRCErrors", 0, "PreviousDayXTUCCRCErrors", 0)
+  addEmptyAdslMib( "PreviousDayXTURHECErrors", 0, "PreviousDayXTUCHECErrors", 0)
+  addEmptyAdslMib( "PreviousDayErroredSecsDs", 0, "PreviousDayErroredSecsUs", 0)
+  addEmptyAdslMib( "PreviousDaySeverelyErroredSecsDs", 0, "PreviousDaySeverelyErroredSecsUs", 0)
+  addEmptyAdslMib( "PreviousDayUnavailableSecsDs", 0, "PreviousDayUnavailableSecsUs", 0)
+  addEmptyAdslMib( "PreviousDayLossOfSignalSecsDs", 0, "PreviousDayLossOfSignalSecsUs", 0)
+  addEmptyAdslMib( "PreviousDayLossOfFramingSecsDs", 0, "PreviousDayLossOfFramingSecsUs", 0)
+  addEmptyAdslMib( "PreviousDayLossOfMarginSecsDs", 0, "PreviousDayLossOfMarginSecsUs", 0)
+  addEmptyAdslMib( "PreviousDayRetrainCount", "0")
+  addEmptyAdslMib( "PreviousDayTime", 0)
+  addEmptyAdslMib( "ShowtimeXTURFECErrors", 0, "ShowtimeXTUCFECErrors", 0)
+  addEmptyAdslMib( "ShowtimeXTURCRCErrors", 0, "ShowtimeXTUCCRCErrors", 0)
+  addEmptyAdslMib( "ShowtimeXTURHECErrors", 0, "ShowtimeXTUCHECErrors", 0)
+  addEmptyAdslMib( "ShowtimeErroredSecsDs", 0, "ShowtimeErroredSecsUs", 0)
+  addEmptyAdslMib( "LastShowtimeUnavailableSecsDs", 0, "LastShowtimeUnavailableSecsUs", 0)
+  addEmptyAdslMib( "LastShowtimeLossOfSignalSecsDs", 0, "LastShowtimeLossOfSignalSecsUs", 0)
+  addEmptyAdslMib( "LastShowtimeLossOfFramingSecsDs", 0, "LastShowtimeLossOfFramingSecsUs", 0)
+  addEmptyAdslMib( "LastShowtimeLossOfMarginSecsDs", 0, "LastShowtimeLossOfMarginSecsUs", 0)
+  addEmptyAdslMib( "LastShowtimeRetrainCount", "0")
+  addEmptyAdslMib( "ShowtimeSeverelyErroredSecsDs", 0, "ShowtimeSeverelyErroredSecsUs", 0)
+  addEmptyAdslMib( "ShowtimeUnavailableSecsDs", 0, "ShowtimeUnavailableSecsUs", 0)
+  addEmptyAdslMib( "ShowtimeLossOfSignalSecsDs", 0, "ShowtimeLossOfSignalSecsUs", 0)
+  addEmptyAdslMib( "ShowtimeLossOfFramingSecsDs", 0, "ShowtimeLossOfFramingSecsUs", 0)
+  addEmptyAdslMib( "ShowtimeLossOfMarginSecsDs", 0, "ShowtimeLossOfMarginSecsUs", 0)
+  addEmptyAdslMib( "ShowtimeRetrainCount", "0")
+  addEmptyAdslMib( "ShowtimeTime", 0)
   addEmptyAdslMib( "ShowtimeStart", 0)
-  addEmptyAdslMib( "LastShowtimeXTURFECErrors", 0,"LastShowtimeXTUCFECErrors",0)
-  addEmptyAdslMib( "LastShowtimeXTURCRCErrors", 0,"LastShowtimeXTUCCRCErrors",0)
-  addEmptyAdslMib( "LastShowtimeXTURHECErrors", 0,"LastShowtimeXTURHECErrors",0)
-  addEmptyAdslMib( "LastShowtimeErroredSecsDs", 0,"LastShowtimeErroredSecsUs",0)
-  addEmptyAdslMib( "LastShowtimeSeverelyErroredSecsDs", 0,"LastShowtimeSeverelyErroredSecsUs",0)
-  addEmptyAdslMib( "LastShowtimeTime",0)
-  addEmptyAdslMib( "LastShowtimeStart",0)
+  addEmptyAdslMib( "LastShowtimeXTURFECErrors", 0, "LastShowtimeXTUCFECErrors", 0)
+  addEmptyAdslMib( "LastShowtimeXTURCRCErrors", 0, "LastShowtimeXTUCCRCErrors", 0)
+  addEmptyAdslMib( "LastShowtimeXTURHECErrors", 0, "LastShowtimeXTURHECErrors", 0)
+  addEmptyAdslMib( "LastShowtimeErroredSecsDs", 0, "LastShowtimeErroredSecsUs", 0)
+  addEmptyAdslMib( "LastShowtimeSeverelyErroredSecsDs", 0, "LastShowtimeSeverelyErroredSecsUs", 0)
+  addEmptyAdslMib( "LastShowtimeTime", 0)
+  addEmptyAdslMib( "LastShowtimeStart", 0)
   addEmptyAdslMib( "BitLoading", "0")
   addEmptyAdslMib( "Qds", 0)
   addEmptyAdslMib( "Qus", 0)
@@ -353,6 +337,145 @@ function createTableWithEmptyValues()
   addEmptyAdslMib( "ACTPSDds", 0, "ACTPSDus", 0)
   addEmptyAdslMib( "BITSpsds", " ", "BITSpsus", " ")
   addEmptyAdslMib( "HLINpsds", " ", "HLINpsus", " ")
+ -- g.fast parameters
+  addEmptyAdslMib( "TotalBSWStartedDs", 0 )
+  addEmptyAdslMib( "TotalBSWStartedUs", 0 )
+  addEmptyAdslMib( "TotalBSWCompletedDs", 0 )
+  addEmptyAdslMib( "TotalBSWCompletedUs", 0 )
+  addEmptyAdslMib( "TotalSRAStartedDs", 0 )
+  addEmptyAdslMib( "TotalSRAStartedUs", 0 )
+  addEmptyAdslMib( "TotalSRACompletedDs", 0 )
+  addEmptyAdslMib( "TotalSRACompletedUs", 0 )
+  addEmptyAdslMib( "TotalFRAStartedDs", 0 )
+  addEmptyAdslMib( "TotalFRAStartedUs", 0 )
+  addEmptyAdslMib( "TotalFRACompletedDs", 0 )
+  addEmptyAdslMib( "TotalFRACompletedUs", 0 )
+  addEmptyAdslMib( "TotalRPAStartedDs", 0 )
+  addEmptyAdslMib( "TotalRPAStartedUs", 0 )
+  addEmptyAdslMib( "TotalRPACompletedDs", 0 )
+  addEmptyAdslMib( "TotalRPACompletedUs", 0 )
+  addEmptyAdslMib( "TotalTIGAStartedDs", 0 )
+  addEmptyAdslMib( "TotalTIGAStartedUs", 0 )
+  addEmptyAdslMib( "TotalTIGACompletedDs", 0 )
+  addEmptyAdslMib( "TotalTIGACompletedUs", 0 )
+  addEmptyAdslMib( "TotalRTXUC", 0 )
+  addEmptyAdslMib( "TotalRTXTX", 0 )
+  addEmptyAdslMib( "ShowtimeBSWStartedDs", 0 )
+  addEmptyAdslMib( "ShowtimeBSWStartedUs", 0 )
+  addEmptyAdslMib( "ShowtimeBSWCompletedDs", 0 )
+  addEmptyAdslMib( "ShowtimeBSWCompletedUs", 0 )
+  addEmptyAdslMib( "ShowtimeSRAStartedDs", 0 )
+  addEmptyAdslMib( "ShowtimeSRAStartedUs", 0 )
+  addEmptyAdslMib( "ShowtimeSRACompletedDs", 0 )
+  addEmptyAdslMib( "ShowtimeSRACOmpletedUs", 0 )
+  addEmptyAdslMib( "ShowtimeFRAStartedDs", 0 )
+  addEmptyAdslMib( "ShowtimeFRAStartedUs", 0 )
+  addEmptyAdslMib( "ShowtimeFRACompletedDs", 0 )
+  addEmptyAdslMib( "ShowtimeFRACompletedUs", 0 )
+  addEmptyAdslMib( "ShowtimeRPAStartedDs", 0 )
+  addEmptyAdslMib( "ShowtimeRPAStartedUs", 0 )
+  addEmptyAdslMib( "ShowtimeRPACompletedDs", 0 )
+  addEmptyAdslMib( "ShowtimeRPACompletedUs", 0 )
+  addEmptyAdslMib( "ShowtimeTIGAStartedDs", 0 )
+  addEmptyAdslMib( "ShowtimeTIGAStartedUs", 0 )
+  addEmptyAdslMib( "ShowtimeTIGACompletedDs", 0 )
+  addEmptyAdslMib( "ShowtimeTIGACompletedUs", 0 )
+  addEmptyAdslMib( "ShowtimeRTXUC", 0 )
+  addEmptyAdslMib( "ShowtimeRTXTX", 0 )
+  addEmptyAdslMib( "LastShowtimeBSWStartedDs", 0 )
+  addEmptyAdslMib( "LastShowtimeBSWStartedUs", 0 )
+  addEmptyAdslMib( "LastShowtimeBSWCompletedDs", 0 )
+  addEmptyAdslMib( "LastShowtimeBSWCompletedUs", 0 )
+  addEmptyAdslMib( "LastShowtimeSRAStartedDs", 0 )
+  addEmptyAdslMib( "LastShowtimeSRAStartedUs", 0 )
+  addEmptyAdslMib( "LastShowtimeSRACompletedDs", 0 )
+  addEmptyAdslMib( "LastShowtimeSRACOmpletedUs", 0 )
+  addEmptyAdslMib( "LastShowtimeFRAStartedDs", 0 )
+  addEmptyAdslMib( "LastShowtimeFRAStartedUs", 0 )
+  addEmptyAdslMib( "LastShowtimeFRACompletedDs", 0 )
+  addEmptyAdslMib( "LastShowtimeFRACompletedUs", 0 )
+  addEmptyAdslMib( "LastShowtimeRPAStartedDs", 0 )
+  addEmptyAdslMib( "LastShowtimeRPAStartedUs", 0 )
+  addEmptyAdslMib( "LastShowtimeRPACompletedDs", 0 )
+  addEmptyAdslMib( "LastShowtimeRPACompletedUs", 0 )
+  addEmptyAdslMib( "LastShowtimeTIGAStartedDs", 0 )
+  addEmptyAdslMib( "LastShowtimeTIGAStartedUs", 0 )
+  addEmptyAdslMib( "LastShowtimeTIGACompletedDs", 0 )
+  addEmptyAdslMib( "LastShowtimeTIGACompletedUs", 0 )
+  addEmptyAdslMib( "LastShowtimeRTXUC", 0 )
+  addEmptyAdslMib( "LastShowtimeRTXTX", 0 )
+  addEmptyAdslMib( "CurrentDayBSWStartedDs", 0 )
+  addEmptyAdslMib( "CurrentDayBSWStartedUs", 0 )
+  addEmptyAdslMib( "CurrentDayBSWCompletedDs", 0 )
+  addEmptyAdslMib( "CurrentDayBSWCompletedUs", 0 )
+  addEmptyAdslMib( "CurrentDaySRAStartedDs", 0 )
+  addEmptyAdslMib( "CurrentDaySRAStartedUs", 0 )
+  addEmptyAdslMib( "CurrentDaySRACompletedDs", 0 )
+  addEmptyAdslMib( "CurrentDaySRACompletedUs", 0 )
+  addEmptyAdslMib( "CurrentDayFRAStartedDs", 0 )
+  addEmptyAdslMib( "CurrentDayFRAStartedUs", 0 )
+  addEmptyAdslMib( "CurrentDayFRACompletedDs", 0 )
+  addEmptyAdslMib( "CurrentDayFRACompletedUs", 0 )
+  addEmptyAdslMib( "CurrentDayRPAStartedDs", 0 )
+  addEmptyAdslMib( "CurrentDayRPAStartedUs", 0 )
+  addEmptyAdslMib( "CurrentDayRPACompletedDs", 0 )
+  addEmptyAdslMib( "CurrentDayRPACompletedUs", 0 )
+  addEmptyAdslMib( "CurrentDayTIGAStartedDs", 0 )
+  addEmptyAdslMib( "CurrentDayTIGAStartedUs", 0 )
+  addEmptyAdslMib( "CurrentDayTIGACompletedDs", 0 )
+  addEmptyAdslMib( "CurrentDayTIGACompletedUs", 0 )
+  addEmptyAdslMib( "CurrentDayRTXUC", 0 )
+  addEmptyAdslMib( "CurrentDayRTXTX", 0 )
+  addEmptyAdslMib( "QuarterHourBSWStartedDs", 0 )
+  addEmptyAdslMib( "QuarterHourBSWStartedUs", 0 )
+  addEmptyAdslMib( "QuarterHourBSWCompletedDs", 0 )
+  addEmptyAdslMib( "QuarterHourBSWCompletedUs", 0 )
+  addEmptyAdslMib( "QuarterHourSRAStartedDs", 0 )
+  addEmptyAdslMib( "QuarterHourSRAStartedUs", 0 )
+  addEmptyAdslMib( "QuarterHourSRACompletedDs", 0 )
+  addEmptyAdslMib( "QuarterHourSRACompletedUs", 0 )
+  addEmptyAdslMib( "QuarterHourFRAStartedDs", 0 )
+  addEmptyAdslMib( "QuarterHourFRAStartedUs", 0 )
+  addEmptyAdslMib( "QuarterHourFRACompletedDs", 0 )
+  addEmptyAdslMib( "QuarterHourFRACompletedUs", 0 )
+  addEmptyAdslMib( "QuarterHourRPAStartedDs", 0 )
+  addEmptyAdslMib( "QuarterHourRPAStartedUs", 0 )
+  addEmptyAdslMib( "QuarterHourRPACompletedDs", 0 )
+  addEmptyAdslMib( "QuarterHourRPACompletedUs", 0 )
+  addEmptyAdslMib( "QuarterHourTIGAStartedDs", 0 )
+  addEmptyAdslMib( "QuarterHourTIGAStartedUs", 0 )
+  addEmptyAdslMib( "QuarterHourTIGACompletedDs", 0 )
+  addEmptyAdslMib( "QuarterHourTIGACompletedUs", 0 )
+  addEmptyAdslMib( "QuarterHourRTXUC", 0 )
+  addEmptyAdslMib( "QuarterHourRTXTX", 0 )
+  addEmptyAdslMib( "EOCBytesSent", 0 )
+  addEmptyAdslMib( "EOCBytesReceived", 0 )
+  addEmptyAdslMib( "EOCPacketsSent", 0 )
+  addEmptyAdslMib( "EOCPacketsReceived", 0 )
+  addEmptyAdslMib( "EOCMessagesSent", 0 )
+  addEmptyAdslMib( "EOCMessagesReceived", 0 )
+  addEmptyAdslMib( "LastTransmittedDownstreamSignal", 0 )
+  addEmptyAdslMib( "LastTransmittedUpstreamSignal", 0 )
+  addEmptyAdslMib( "SNRMRMCds", 0 )
+  addEmptyAdslMib( "SNRMRMCus", 0 )
+  addEmptyAdslMib( "BITSRMCpsds", " " )
+  addEmptyAdslMib( "BITSRMCpsus", " " )
+  addEmptyAdslMib( "FEXTCANCELds", 0 )
+  addEmptyAdslMib( "FEXTCANCELus", 0 )
+  addEmptyAdslMib( "ETRds", 0 )
+  addEmptyAdslMib( "ETRus", 0 )
+  addEmptyAdslMib( "ATTETRds", 0 )
+  addEmptyAdslMib( "ATTETRus", 0 )
+  addEmptyAdslMib( "MINEFTR", 0 )
+  addEmptyAdslMib( "UPBOKLEPb", " ")
+  addEmptyAdslMib( "UPBOKLERPb", " ")
+end
+
+--- Function to return converted us/ds values from AdslMib
+-- @param act     Function to call if conversion is needed. E.g adjustScale, decodeBooleanConfig.
+-- @param value   ds/us value from adslMib
+local function convertAdslValue(act, value)
+  return act and act(value) or tostring(value or "")
 end
 
 --- Function which stores info from AdslMib into another table.
@@ -363,52 +486,19 @@ end
 -- @param index   Name of the parameter in the table.
 -- @param ds      Name of the parameter in adslMib for downstream direction.
 -- @param us      Name of the parameter in adslMib for upstream direction.
--- @param act     Function to call if conversion is needed. E.g divideBy10, toBoolean.
+-- @param act     Function to call if conversion is needed. E.g adjustScale, decodeBooleanConfig.
 local function addAdslMibValue( adslmib, table, index, ds, us, act )
-  if us ~= nil then
+  if us then
     table[index] = {}
-    if act ~= nil then
-      table[index]["ds"] = act(adslmib[ds])
-      table[index]["us"] = act(adslmib[us])
-    else
-      table[index]["ds"] = tostring(adslmib[ds])
-      table[index]["us"] = tostring(adslmib[us])
-    end
+    table[index]["ds"] = convertAdslValue(act, adslmib[ds])
+    table[index]["us"] = convertAdslValue(act, adslmib[us])
   else
-    if act ~= nil then
-      table[index] = act(adslmib[ds])
-    else
-      table[index] = tostring(adslmib[ds])
-    end
-  end
-end 
-
---- Function which stores info from AdslMib into another table.
--- @param adslmib AdslMib structure to read data from.
--- @param table   Table to store the requested values.
--- @param index   Name of the parameter in the table.
--- @param value   Name of the parameter in the adslMib.
--- @param act     Function to call if conversion is needed. E.g. divideBy10, toBoolean.
-local function addAdslMibValue2( adslmib, table, index, value, act )
-  --table[index] = {}
-  if act ~= nil then
-    table[index] = act(adslmib[value])
-  else
-    table[index] = tostring(adslmib[value])
+    table[index] = convertAdslValue(act, adslmib[ds])
   end
 end
 
---- Add additional subkeys to a parameter.
--- This function can be used to extend the parameters set by the
--- addAdslMibValue function. For example if you have a parameter
--- which has more than Upstream and Downstream values. E.g. 
--- currentrate.
--- @param table   Table which contains the parameter.
--- @param param   Name of the parameter which has to be extended.
--- @param key     Element to add to the parameter.
--- @param value   Value for this new element.
-local function addAdditionalSubKey( table, param, key, value )
-  table[param][key] = tostring(value)
+local function getLineNum(line)
+  return line == "line1" and 1 or 0
 end
 
 --- Function to retrieve adslMib info.
@@ -417,13 +507,8 @@ end
 -- @param lineid Line number.
 -- @return sets global adslMib variable.
 local function getAdslMibInfo(lineid)
-  local line
-  if lineid == "line1" then
-    line = 1
-  else
-    line = 0
-  end
-  local diff = os.difftime(os.time(), lastUpdateTime[line])
+  local line = getLineNum(lineid)
+  local diff = os.time() - lastUpdateTime[line]
   if diff > 5 then
     tmp = luabcm.getAdslMib(line)
     lastUpdateTime[line] = os.time()
@@ -453,9 +538,9 @@ local paramMap = {
   ["linestatus"] = {"LineStatus"},
   ["trainingstatus"] = {"TrainingStatus"},
   ["trellis"]= {"TRELLISds", "TRELLISus"},
-  ["snr"] = {"DownstreamSNR", "UpstreamSNR", divideBy10},
-  ["attn"] = {"DownstreamAttenuation", "UpstreamAttenuation", divideBy10},
-  ["pwr"] = {"DownstreamPower", "UpstreamPower", divideBy10},
+  ["snr"] = {"DownstreamSNR", "UpstreamSNR", adjustScale},
+  ["attn"] = {"DownstreamAttenuation", "UpstreamAttenuation", adjustScale},
+  ["pwr"] = {"DownstreamPower", "UpstreamPower", adjustScale},
   ["framing_msgc"] = {"DownstreamFramingMSGc", "UpstreamFramingMSGc"},
   ["framing_b"] = {"DownstreamFramingB", "UpstreamFramingB"},
   ["framing_m"] = {"DownstreamFramingM", "UpstreamFramingM"},
@@ -571,24 +656,37 @@ local paramMap = {
   ["ACTPSD"] = {"ACTPSDds", "ACTPSDus"},
   ["BITSps"] = {"BITSpsds", "BITSpsus"},
   ["HLINps"] = {"HLINpsds", "HLINpsus"},
+  ["EOCBytesSent"] = {"EOCBytesSent"},
+  ["EOCBytesReceived"] = {"EOCBytesReceived"},
+  ["EOCPacketsSent"] = {"EOCPacketsSent"},
+  ["EOCPacketsReceived"] = {"EOCPacketsReceived"},
+  ["EOCMessagesSent"] = {"EOCMessagesSent"},
+  ["EOCMessagesReceived"] = {"EOCMessagesReceived"},
+  ["LastTransmittedDownstreamSignal"] = {"LastTransmittedDownstreamSignal"},
+  ["LastTransmittedUpstreamSignal"] = {"LastTransmittedUpstreamSignal"},
+  ["SNRMRMC"] = {"SNRMRMCds" , "SNRMRMCus"},
+  ["BITSRMCps"] = {"BITSRMCpsds", "BITSRMCpsus"},
+  ["FEXTCANCEL"] = {"FEXTCANCELds", "FEXTCANCELus"},
+  ["ETR"] = {"ETRds", "ETRus"},
+  ["ATTETR"] = {"ATTETRds", "ATTETRus"},
+  ["MINEFTR"] = {"MINEFTR"},
+  ["UPBOKLEPb"] = {"UPBOKLEPb"},
+  ["UPBOKLERPb"] = {"UPBOKLERPb"},
 }
 
 --- Retrieves the INFO values from the AdslMib.
 -- @param lineid  Line number to retrieve data for.
 -- @return Table which contains the different INFO values.
 local function getInfoValuesFromAdslMib( lineid )
-  local getallvalues = {}
-
+  local allvalues = {}
   getAdslMibInfo(lineid)
-  --addAdslMibValue( adslMib, getallvalues, "status", "TrainingStatus")
-  getallvalues["status"] = valueFromCmd(xdslctlinfo[lineid], "status")
- -- getallvalues["linit"] = valueFromCmd(xdslctlinfo, "linit", nil, nil)
-  getallvalues["linit"] = valueFromCmd(xdslctlinfo[lineid], "linit")
+  allvalues.status = valueFromCmd(xdslctlinfo[lineid], "status")
+  allvalues.linit = valueFromCmd(xdslctlinfo[lineid], "linit")
   for key, param in pairs(paramMap) do
-    addAdslMibValue( adslMib, getallvalues, key, param[1], param[2], param[3] )
+    addAdslMibValue( adslMib, allvalues, key, param[1], param[2], param[3] )
   end
-  addAdditionalSubKey( getallvalues, "currentrate", "channel", 0 )
-  return getallvalues
+  allvalues.currentrate.channel = "0"
+  return allvalues
 end
 
 --- Retrieves a sigle INFO value form the AdslMib.
@@ -599,11 +697,8 @@ end
 local function getInfoValueFromAdslMib( lineid, key, subkey )
   local getValue = {}
   getAdslMibInfo(lineid)
-  if key == "status" then
-    return valueFromCmd( xdslctlinfo[lineid], "status" )
-  end
-  if key == "linit" then
-    return valueFromCmd( xdslctlinfo[lineid], "linit" )
+  if key == "status" or key == "linit" then
+    return valueFromCmd( xdslctlinfo[lineid], key )
   end
   local param = paramMap[key] or {}
   addAdslMibValue( adslMib, getValue, key, param[1], param[2], param[3] )
@@ -618,7 +713,7 @@ end
 -- @return Table with the periodic interval statistics.
 local function getStatsValuesFromAdslMib( lineid )
   local t={}
-  
+
   getAdslMibInfo(lineid)
 
   t["total"] = {}
@@ -676,12 +771,18 @@ local function getStatsValuesFromAdslMib( lineid )
   addAdslMibValue( adslMib, t["currentday"], "retr", "CurrentDayRetrainCount")
   addAdslMibValue( adslMib, t["currentday"], "time", "CurrentDayTime")
   addAdslMibValue( adslMib, t["currentday"], "start", "CurrentDayStart")
+  addAdslMibValue( adslMib, t["lastshowtime"], "fec", "LastShowtimeXTURFECErrors", "LastShowtimeXTUCFECErrors")
+  addAdslMibValue( adslMib, t["lastshowtime"], "crc", "LastShowtimeXTURCRCErrors", "LastShowtimeXTUCCRCErrors")
+  addAdslMibValue( adslMib, t["lastshowtime"], "hec", "LastShowtimeXTURHECErrors", "LastShowtimeXTUCHECErrors")
+  addAdslMibValue( adslMib, t["lastshowtime"], "es",  "LastShowtimeErroredSecsDs", "LastShowtimeErroredSecsUs")
+  addAdslMibValue( adslMib, t["lastshowtime"], "ses", "LastShowtimeSeverelyErroredSecsDs", "LastShowtimeSeverelyErroredSecsUs")
   addAdslMibValue( adslMib, t["lastshowtime"], "uas", "LastShowtimeUnavailableSecsDs", "LastShowtimeUnavailableSecsUs")
   addAdslMibValue( adslMib, t["lastshowtime"], "los", "LastShowtimeLossOfSignalSecsDs", "LastShowtimeLossOfSignalSecsUs")
   addAdslMibValue( adslMib, t["lastshowtime"], "lof", "LastShowtimeLossOfFramingSecsDs", "LastShowtimeLossOfFramingSecsUs")
   addAdslMibValue( adslMib, t["lastshowtime"], "lom", "LastShowtimeLossOfMarginSecsDs", "LastShowtimeLossOfMarginSecsUs")
   addAdslMibValue( adslMib, t["lastshowtime"], "retr", "LastShowtimeRetrainCount")
   addAdslMibValue( adslMib, t["lastshowtime"], "time", "LastShowtimeTime")
+  addAdslMibValue( adslMib, t["lastshowtime"], "start", "LastShowtimeStart")
   addAdslMibValue( adslMib, t["previousday"], "fec", "PreviousDayXTURFECErrors", "PreviousDayXTUCFECErrors")
   addAdslMibValue( adslMib, t["previousday"], "crc", "PreviousDayXTURCRCErrors", "PreviousDayXTUCCRCErrors")
   addAdslMibValue( adslMib, t["previousday"], "hec", "PreviousDayXTURHECErrors", "PreviousDayXTUCHECErrors")
@@ -705,13 +806,62 @@ local function getStatsValuesFromAdslMib( lineid )
   addAdslMibValue( adslMib, t["sincesync"], "retr", "ShowtimeRetrainCount")
   addAdslMibValue( adslMib, t["sincesync"], "time", "ShowtimeTime")
   addAdslMibValue( adslMib, t["sincesync"], "start", "ShowtimeStart")
-  addAdslMibValue( adslMib, t["lastshowtime"], "fec", "LastShowtimeXTURFECErrors", "LastShowtimeXTUCFECErrors")
-  addAdslMibValue( adslMib, t["lastshowtime"], "crc", "LastShowtimeXTURCRCErrors", "LastShowtimeXTUCCRCErrors")
-  addAdslMibValue( adslMib, t["lastshowtime"], "hec", "LastShowtimeXTURHECErrors", "LastShowtimeXTUCHECErrors")
-  addAdslMibValue( adslMib, t["lastshowtime"], "es",  "LastShowtimeErroredSecsDs", "LastShowtimeErroredSecsUs")
-  addAdslMibValue( adslMib, t["lastshowtime"], "ses", "LastShowtimeSeverelyErroredSecsDs", "LastShowtimeSeverelyErroredSecsUs")
-  addAdslMibValue( adslMib, t["lastshowtime"], "start", "LastShowtimeStart")
-
+ -- g.fast periodic statistics
+  addAdslMibValue( adslMib, t["total"], "bswStarted", "TotalBSWStartedDs", "TotalBSWStartedUs" )
+  addAdslMibValue( adslMib, t["total"], "bswCompleted", "TotalBSWCompletedDs", "TotalBSWCompletedUs" )
+  addAdslMibValue( adslMib, t["total"], "sraStarted", "TotalSRAStartedDs", "TotalSRAStartedUs" )
+  addAdslMibValue( adslMib, t["total"], "sraCompleted", "TotalSRACompletedDs", "TotalSRACompletedUs" )
+  addAdslMibValue( adslMib, t["total"], "fraStarted", "TotalFRAStartedDs", "TotalFRAStartedUs" )
+  addAdslMibValue( adslMib, t["total"], "fraCompleted", "TotalFRACompletedDs", "TotalFRACompletedUs" )
+  addAdslMibValue( adslMib, t["total"], "rpaStarted", "TotalRPAStartedDs", "TotalRPAStartedUs" )
+  addAdslMibValue( adslMib, t["total"], "rpaCompleted", "TotalRPACompletedDs", "TotalRPACompletedUs" )
+  addAdslMibValue( adslMib, t["total"], "tigaStarted", "TotalTIGAStartedDs", "TotalTIGAStartedUs" )
+  addAdslMibValue( adslMib, t["total"], "tigaCompleted", "TotalTIGACompletedDs", "TotalTIGACompletedUs" )
+  addAdslMibValue( adslMib, t["total"], "rtx", "TotalRTXUC", "TotalRTXTX" )
+  addAdslMibValue( adslMib, t["sincesync"], "bswStarted", "ShowtimeBSWStartedDs", "ShowtimeBSWStartedUs" )
+  addAdslMibValue( adslMib, t["sincesync"], "bswCompleted", "ShowtimeBSWCompletedDs", "ShowtimeBSWCompletedUs" )
+  addAdslMibValue( adslMib, t["sincesync"], "sraStarted", "ShowtimeSRAStartedDs", "ShowtimeSRAStartedUs" )
+  addAdslMibValue( adslMib, t["sincesync"], "sraCompleted", "ShowtimeSRACompletedDs", "ShowtimeSRACOmpletedUs" )
+  addAdslMibValue( adslMib, t["sincesync"], "fraStarted", "ShowtimeFRAStartedDs", "ShowtimeFRAStartedUs" )
+  addAdslMibValue( adslMib, t["sincesync"], "fraCompleted", "ShowtimeFRACompletedDs", "ShowtimeFRACompletedUs" )
+  addAdslMibValue( adslMib, t["sincesync"], "rpaStarted", "ShowtimeRPAStartedDs", "ShowtimeRPAStartedUs" )
+  addAdslMibValue( adslMib, t["sincesync"], "rpaCompleted", "ShowtimeRPACompletedDs", "ShowtimeRPACompletedUs" )
+  addAdslMibValue( adslMib, t["sincesync"], "tigaStarted", "ShowtimeTIGAStartedDs", "ShowtimeTIGAStartedUs" )
+  addAdslMibValue( adslMib, t["sincesync"], "tigaCompleted", "ShowtimeTIGACompletedDs", "ShowtimeTIGACompletedUs" )
+  addAdslMibValue( adslMib, t["sincesync"], "rtx", "ShowtimeRTXUC", "ShowtimeRTXTX" )
+  addAdslMibValue( adslMib, t["currentday"], "bswStarted", "CurrentDayBSWStartedDs", "CurrentDayBSWStartedUs" )
+  addAdslMibValue( adslMib, t["currentday"], "bswCompleted", "CurrentDayBSWCompletedDs", "CurrentDayBSWCompletedUs" )
+  addAdslMibValue( adslMib, t["currentday"], "sraStarted", "CurrentDaySRAStartedDs", "CurrentDaySRAStartedUs" )
+  addAdslMibValue( adslMib, t["currentday"], "sraCompleted", "CurrentDaySRACompletedDs", "CurrentDaySRACompletedUs" )
+  addAdslMibValue( adslMib, t["currentday"], "fraStarted", "CurrentDayFRAStartedDs", "CurrentDayFRAStartedUs" )
+  addAdslMibValue( adslMib, t["currentday"], "fraCompleted", "CurrentDayFRACompletedDs", "CurrentDayFRACompletedUs" )
+  addAdslMibValue( adslMib, t["currentday"], "rpaStarted", "CurrentDayRPAStartedDs", "CurrentDayRPAStartedUs" )
+  addAdslMibValue( adslMib, t["currentday"], "rpaCompleted", "CurrentDayRPACompletedDs", "CurrentDayRPACompletedUs" )
+  addAdslMibValue( adslMib, t["currentday"], "tigaStarted", "CurrentDayTIGAStartedDs", "CurrentDayTIGAStartedUs" )
+  addAdslMibValue( adslMib, t["currentday"], "tigaCompleted", "CurrentDayTIGACompletedDs", "CurrentDayTIGACompletedUs" )
+  addAdslMibValue( adslMib, t["currentday"], "rtx", "CurrentDayRTXUC", "CurrentDayRTXTX" )
+  addAdslMibValue( adslMib, t["lastshowtime"], "bswStarted", "LastShowtimeBSWStartedDs", "LastShowtimeBSWStartedUs" )
+  addAdslMibValue( adslMib, t["lastshowtime"], "bswCompleted", "LastShowtimeBSWCompletedDs", "LastShowtimeBSWCompletedUs" )
+  addAdslMibValue( adslMib, t["lastshowtime"], "sraStarted", "LastShowtimeSRAStartedDs", "LastShowtimeSRAStartedUs" )
+  addAdslMibValue( adslMib, t["lastshowtime"], "sraCompleted", "LastShowtimeSRACompletedDs", "LastShowtimeSRACOmpletedUs" )
+  addAdslMibValue( adslMib, t["lastshowtime"], "fraStarted", "LastShowtimeFRAStartedDs", "LastShowtimeFRAStartedUs" )
+  addAdslMibValue( adslMib, t["lastshowtime"], "fraCompleted", "LastShowtimeFRACompletedDs", "LastShowtimeFRACompletedUs" )
+  addAdslMibValue( adslMib, t["lastshowtime"], "rpaStarted", "LastShowtimeRPAStartedDs", "LastShowtimeRPAStartedUs" )
+  addAdslMibValue( adslMib, t["lastshowtime"], "rpaCompleted", "LastShowtimeRPACompletedDs", "LastShowtimeRPACompletedUs" )
+  addAdslMibValue( adslMib, t["lastshowtime"], "tigaStarted", "LastShowtimeTIGAStartedDs", "LastShowtimeTIGAStartedUs" )
+  addAdslMibValue( adslMib, t["lastshowtime"], "tigaCompleted", "LastShowtimeTIGACompletedDs", "LastShowtimeTIGACompletedUs" )
+  addAdslMibValue( adslMib, t["lastshowtime"], "rtx", "LastShowtimeRTXUC", "LastShowtimeRTXTX" )
+  addAdslMibValue( adslMib, t["currentquarter"], "bswStarted", "QuarterHourBSWStartedDs", "QuarterHourBSWStartedUs" )
+  addAdslMibValue( adslMib, t["currentquarter"], "bswCompleted", "QuarterHourBSWCompletedDs", "QuarterHourBSWCompletedUs" )
+  addAdslMibValue( adslMib, t["currentquarter"], "sraStarted", "QuarterHourSRAStartedDs", "QuarterHourSRAStartedUs" )
+  addAdslMibValue( adslMib, t["currentquarter"], "sraCompleted", "QuarterHourSRACompletedDs", "QuarterHourSRACompletedUs" )
+  addAdslMibValue( adslMib, t["currentquarter"], "fraStarted", "QuarterHourFRAStartedDs", "QuarterHourFRAStartedUs" )
+  addAdslMibValue( adslMib, t["currentquarter"], "fraCompleted", "QuarterHourFRACompletedDs", "QuarterHourFRACompletedUs" )
+  addAdslMibValue( adslMib, t["currentquarter"], "rpaStarted", "QuarterHourRPAStartedDs", "QuarterHourRPAStartedUs" )
+  addAdslMibValue( adslMib, t["currentquarter"], "rpaCompleted", "QuarterHourRPACompletedDs", "QuarterHourRPACompletedUs" )
+  addAdslMibValue( adslMib, t["currentquarter"], "tigaStarted", "QuarterHourTIGAStartedDs", "QuarterHourTIGAStartedUs" )
+  addAdslMibValue( adslMib, t["currentquarter"], "tigaCompleted", "QuarterHourTIGACompletedDs", "QuarterHourTIGACompletedUs" )
+  addAdslMibValue( adslMib, t["currentquarter"], "rtx", "QuarterHourRTXUC", "QuarterHourRTXTX" )
   return t
 end
 
@@ -719,80 +869,69 @@ end
 -- @param lineid Line number to retrieve data for.
 -- @return Table which contains the profile information values.
 local function getProfileValuesFromAdslMib( lineid )
-  local values={}
+  local profileData = {}
 
   getAdslMibInfo(lineid)
 
-  addAdslMibValue2( adslMib, values, "mod_g.dmt", "GDMT", toBoolean )
-  addAdslMibValue2( adslMib, values, "mod_g.lite", "GLITE", toBoolean )
-  addAdslMibValue2( adslMib, values, "mod_t1.413", "T1413", toBoolean )
-  addAdslMibValue2( adslMib, values, "mod_adsl2", "ADSL2", toBoolean )
-  addAdslMibValue2( adslMib, values, "mod_annexl", "ANNEXL", toBoolean )
-  addAdslMibValue2( adslMib, values, "mod_adsl2plus", "ADSL2P", toBoolean )
-  addAdslMibValue2( adslMib, values, "mod_annexm", "ANNEXM", toBoolean )
-  addAdslMibValue2( adslMib, values, "mod_vdsl2", "VDSL2", toBoolean )
-  addAdslMibValue2( adslMib, values, "mod_gfast", "GFAST", toBoolean )
-  addAdslMibValue2( adslMib, values, "phonelinepair", "LinePair" )
-  addAdslMibValue2( adslMib, values, "cap_bitswap", "Bitswap", toBoolean )
-  addAdslMibValue2( adslMib, values, "cap_sra", "SRA", toBoolean )
-  addAdslMibValue2( adslMib, values, "cap_trellis", "Trellis", toBoolean )
-  addAdslMibValue2( adslMib, values, "cap_sesdrop", "SESDrop", toBoolean )
-  addAdslMibValue2( adslMib, values, "cap_cominmgn", "CoMinMgn", toBoolean )
-  addAdslMibValue2( adslMib, values, "cap_24k", "24k", toBoolean )
-  addAdslMibValue2( adslMib, values, "cap_phyrexmt", "PhyReXmtUs", toBoolean )
-  addAdslMibValue2( adslMib, values, "cap_tpstc", "TpsTc", toBoolean )
-  addAdslMibValue2( adslMib, values, "cap_monitortone", "MonitorTone", toBoolean )
-  addAdslMibValue2( adslMib, values, "cap_dynamicd", "DynamicD", toBoolean )
-  addAdslMibValue2( adslMib, values, "cap_dynamicf", "DynamicF", toBoolean )
-  addAdslMibValue2( adslMib, values, "cap_v43", "V43", toBoolean )
-  addAdslMibValue2( adslMib, values, "cap_sos", "SOS", toBoolean )
-  addAdslMibValue2( adslMib, values, "cap_trainingmargin", "TrainingMargin", toBoolean )
-  addAdslMibValue2( adslMib, values, "cap_ginpus", "GINPUs", toBoolean )
-  addAdslMibValue2( adslMib, values, "cap_ginpds", "GINPDs", toBoolean )
-  addAdslMibValue2( adslMib, values, "cap_ikns", "IKNS", toBoolean )
+  addAdslMibValue( adslMib, profileData, "mod_g.dmt", "GDMT", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "mod_g.lite", "GLITE", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "mod_t1.413", "T1413", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "mod_adsl2", "ADSL2", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "mod_annexl", "ANNEXL", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "mod_adsl2plus", "ADSL2P", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "mod_annexm", "ANNEXM", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "mod_vdsl2", "VDSL2", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "mod_gfast", "GFAST", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "phonelinepair", "LinePair" )
+  addAdslMibValue( adslMib, profileData, "cap_bitswap", "Bitswap", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "cap_sra", "SRA", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "cap_trellis", "Trellis", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "cap_sesdrop", "SESDrop", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "cap_cominmgn", "CoMinMgn", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "cap_24k", "24k", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "cap_phyrexmtus", "PhyReXmtUs", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "cap_phyrexmtds", "PhyReXmtDs", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "cap_tpstc", "TpsTc", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "cap_monitortone", "MonitorTone", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "cap_dynamicd", "DynamicD", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "cap_dynamicf", "DynamicF", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "cap_v43", "V43", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "cap_sos", "SOS", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "cap_trainingmargin", "TrainingMargin", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "cap_ginpus", "GINPUs", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "cap_ginpds", "GINPDs", nil, decodeBooleanConfig )
+  addAdslMibValue( adslMib, profileData, "cap_ikns", "IKNS", nil, decodeBooleanConfig )
 
-  return values
+  return profileData
 end
 
 --- Function to retrieve profile information from AdslMib.
 -- @param lineid Line number to retrieve data for.
 -- @return Table which contains the profile information values.
 local function getPerBandValuesFromAdslMib( lineid )
-  local values={}
+  local peerBand = {}
   getAdslMibInfo(lineid)
 
-  addAdslMibValue( adslMib, values, "attn", "LineAttenuationPBDownstream", "LineAttenuationPBUpstream") 
-  return values
+  addAdslMibValue( adslMib, peerBand, "attn", "LineAttenuationPBDownstream", "LineAttenuationPBUpstream")
+  return peerBand
 end
 
 --- Function to retrieve Non Linear Noise Monitoring information.
 -- @param lineid Line number to retrieve data for.
 -- @return Table which contains the NLNM results.
 local function getNLNMInfo( lineid )
-  local values = {}
-  local results = {}
-  local line
-  if lineid == "line1" then
-    line = 1
-  else
-    line = 0
-  end
+  local line = getLineNum(lineid)
 
-  results = luabcm.getNLNM(line)
-  if tostring(results) == "-1" then
-    values["NonLinearityFlag"] = 0
-    values["NumberOfAffectedBins"] = 0
-    values["ThresholdNumberOfBins"] = 0
-    values["ENR"] = 0
-    values["ThresholdValue"] = 0
-  else
-    values["NonLinearityFlag"] = tostring(results["NonLinearityFlag"])
-    values["NumberOfAffectedBins"] = tostring(results["NumberOfAffectedBins"])
-    values["ThresholdNumberOfBins"] = tostring(results["ThresholdNumberOfBins"])
-    values["ENR"] = tostring(results["ENR"])
-    values["ThresholdValue"] = tostring(results["ThresholdValue"])
-  end
-  return values  
+  local nlnmData = luabcm.getNLNM(line)
+  local nlnm = {}
+
+  nlnm["NonLinearityFlag"] = nlnmData["NonLinearityFlag"] and tostring(nlnmData["NonLinearityFlag"]) or "0"
+  nlnm["NumberOfAffectedBins"] = nlnmData["NumberOfAffectedBins"] and tostring(nlnmData["NumberOfAffectedBins"]) or "0"
+  nlnm["ThresholdNumberOfBins"] = nlnmData["ThresholdNumberOfBins"] and tostring(nlnmData["ThresholdNumberOfBins"]) or "0"
+  nlnm["ENR"] = nlnmData["ENR"] and tostring(nlnmData["ENR"]) or "0"
+  nlnm["ThresholdValue"] = nlnmData["ThresholdValue"] and tostring(nlnmData["ThresholdValue"]) or "0"
+
+  return nlnm
 end
 
 --- Function to set the NLNM threshold value.
@@ -800,13 +939,7 @@ end
 -- @param value New NLNM threshold value.
 -- @return none.
 local function setNLNMThresholdValue( lineid, value )
-  local line
-  if lineid == "line1" then
-    line = 1
-  else
-    line = 0
-  end
-  log:error("set xdslctl ThresholdValue with value: " .. value )
+  local line = getLineNum(lineid)
   luabcm.setNLNM( line, tonumber(value) )
 end
 
@@ -814,28 +947,17 @@ end
 -- @param lineid Line number to retrieve data for.
 -- @return Table which contains the NLNM results.
 local function getBridgeTapDetectionInfo( lineid )
-  local values = {}
-  local results = {}
-  local line
-  if lineid == "line1" then
-    line = 1
-  else
-    line = 0
-  end
+  local line = getLineNum(lineid)
 
-  results = luabcm.getBTDetection(line)
-  if tostring(results) == "-1" then
-    values["BridgeTapDetected"] = 0
-    values["LocalMinimumTone"] = 0
-    values["BridgeTapDistance"] = 0
-    values["BitrateLoss"] = 0
-  else
-    values["BridgeTapDetected"] = tostring(results["BridgeTapDetected"])
-    values["LocalMinimumTone"] = tostring(results["LocalMinimumTone"])
-    values["BridgeTapDistance"] = tostring(results["BridgeTapDistance"])
-    values["BitrateLoss"] = tostring(results["BitrateLoss"])
-  end
-  return values
+  local bridgeTapData = luabcm.getBTDetection(line)
+  local bridgeTap = {}
+
+  bridgeTap["BridgeTapDetected"] = bridgeTapData["BridgeTapDetected"] and tostring(bridgeTapData["BridgeTapDetected"]) or "0"
+  bridgeTap["LocalMinimumTone"] = bridgeTapData["LocalMinimumTone"] and tostring(bridgeTapData["LocalMinimumTone"]) or "0"
+  bridgeTap["BridgeTapDistance"] = bridgeTapData["BridgeTapDistance"] and tostring(bridgeTapData["BridgeTapDistance"]) or "0"
+  bridgeTap["BitrateLoss"] = bridgeTapData["BitrateLoss"] and tostring(bridgeTapData["BitrateLoss"]) or "0"
+
+  return bridgeTap
 end
 
 --- function to get single info value from AdslMib.
@@ -860,12 +982,8 @@ end
 -- @param defaultvalue deprecated.
 -- @param lineid    Line number to retrieve data from.
 function M.profileValue( key, subkey, defaultvalue, lineid )
-  local results = getProfileValuesFromAdslMib( lineid )
-  if subkey ~= nil and subkey ~= "" then
-    return results[key][subkey]
-  else
-    return results[key]
-  end
+  local profile = getProfileValuesFromAdslMib( lineid )
+  return subkey and profile[key][subkey] or profile[key]
 end
 
 --- function to get a list of profile values from the AdslMib.
@@ -879,8 +997,7 @@ end
 -- @param keylist   Key as in currentday,sincesync,...
 -- @param lineid    Line number to retrieve data from.
 function M.statsIntervalValueList( keylist, lineid )
-  local results = getStatsValuesFromAdslMib(lineid)
-  return results
+  return getStatsValuesFromAdslMib(lineid)
 end
 
 --- function to get a single periodic interval value from the AdslMib.
@@ -890,38 +1007,31 @@ end
 --                    (Downstream)
 -- @param lineid      Line number to retrieve data from.
 function M.stats( section, key, direction, lineid )
-  local results = getStatsValuesFromAdslMib(lineid)
-  if direction ~= nil and direction ~= "" then
-    return results[section][key][direction]
-  else
-    return results[section][key]
+  local periodicInterval = getStatsValuesFromAdslMib(lineid)
+  if direction and direction ~= "" then
+    return periodicInterval[section][key][direction]
   end
+  return periodicInterval[section][key]
 end
 
 --- Function to get all the values from the AdslMib.
 -- @return A table with all the stats,capabilities,etc...
 function M.allstats( lineid )
-  local results = getStatsValuesFromAdslMib(lineid)
-  return results
+  return getStatsValuesFromAdslMib(lineid)
 end
 
 --- function to get single value from xdslctl info --pbParams
 -- @param key key (string) as in xdslctlpbParams.lookup
 -- @param subkey subkey (string) as in xdslctlpbParams.lookup[key].subkeys
 function M.infoPbParamsValue(key, subkey, defaultvalue, lineid)
-  local results = getPerBandValuesFromAdslMib(lineid)
-  if subkey ~= nil and subkey ~= "" then
-    return results[key][subkey]
-  else
-    return results[key]
-  end
+  local pbData = getPerBandValuesFromAdslMib(lineid)
+  return subkey and pbData[key][subkey] or pbData[key]
 end
 
 --- Function to get all the values form NLNM.
 -- @return A table with all the NLNM values.
 function M.getNLNM( lineid )
-  local results = getNLNMInfo(lineid)
-  return results
+  return getNLNMInfo(lineid)
 end
 
 --- Function to retrieve a single NLNM value.
@@ -931,12 +1041,8 @@ end
 --                    (Downstream)
 -- @param lineid      Line number to retrieve data from.
 function M.getNLNMValue( key, subkey, defaultvalue, lineid )
-  local results = getNLNMInfo(lineid)
-  if subkey ~= nil and subkey ~= "" then
-    return results[key][subkey]
-  else
-    return results[key]
-  end
+  local nlnm = getNLNMInfo(lineid)
+  return subkey and nlnm[key][subkey] or nlnm[key]
 end
 
 --- Function to set the NLNM Threshold value.
@@ -950,8 +1056,7 @@ end
 -- @param lineId  Line number.
 -- @return Table with the Bridge Tap Detection results.
 function M.getBridgeTapInfo( lineid )
-  local results = getBridgeTapDetectionInfo(lineid)
-  return results
+  return getBridgeTapDetectionInfo(lineid)
 end
 
 --- Retrieves a single Bridge Tap result.
@@ -960,12 +1065,8 @@ end
 -- @param defaultvalue  The default value.
 -- @param lineId        Dsl Line number.
 function M.getBridgeTapInfoValue( key, subkey, defaultvalue, lineid )
-  local results = getBridgeTapDetectionInfo(lineid)
-  if subkey ~= nil and subkey ~= "" then
-    return results[key][subkey]
-  else
-    return results[key]
-  end
+  local bridgeTap = getBridgeTapDetectionInfo(lineid)
+  return subkey and bridgeTap[key][subkey] or bridgeTap[key]
 end
 
 ---function to retrieve the BitLoading information.

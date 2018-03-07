@@ -1,6 +1,8 @@
 -- Object mapping and implementation of rpc.network.firewall.portforwardgroup.
 local mapper, register = mapper, register
 
+local uci_helper = mapper("ucihelper")
+
 -- In OpenWrt, port forwarding is referred to as "redirects" or "user redirects"(user defined port forwarding). In the
 -- /etc/firewall/config file 'config redirect' section is used to represent a port forwarding rule. Further a 'config
 -- redirectgroup' section is defined to collect all the port forwarding/rules into a group. A redirectsgroup "userredirects"
@@ -26,7 +28,7 @@ local mapping_userredirects_rpc = {
     objectType = {
         name = "rpc.network.firewall.portforwardgroup.",
         access = "readOnly",
-        minEntries = 1,
+        minEntries = 0,
         maxEntries = 1,
         parameters = mapping_userredirects_uci.objectType.parameters,
     }
@@ -39,6 +41,16 @@ local redirect_key = "userredirects"
 ---------------------------------------------------------
 -- rpc.network.firewall.portforwardgroup. CALLBACKS
 ---------------------------------------------------------
+
+local firewallBinding = { config = "firewall", sectionname = "userredirects" }
+mapping_userredirects_rpc.entries = function(mapping)
+  local redirectsgroup = uci_helper.get_from_uci(firewallBinding)
+  if redirectsgroup ~= "" then
+    return {"1"}
+  else
+    return {}
+  end
+end
 
 mapping_userredirects_rpc.get = function(mapping, param)
     mapping.uciMap.entries(mapping.uciMap)
@@ -67,5 +79,5 @@ mapping_userredirects_rpc.revert = function(mapping)
     return mapping.uciMap.revert(mapping.uciMap)
 end
 
--- Register the object
+-- Register the object.
 register(mapping_userredirects_rpc)

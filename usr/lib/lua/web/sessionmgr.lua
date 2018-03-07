@@ -4,6 +4,8 @@ local dm = require("datamodel")
 local srp = require("srp")
 local printf = require("web.web").printf
 local get_cookies = require("web.web").get_cookies
+local string = string
+local format = string.format
 local untaint = string.untaint
 local gsub = string.gsub
 local posix = require("tch.posix")
@@ -221,6 +223,52 @@ function SessionMgr:authorizeRequest(session, resource)
   return true
 end
 
+local function validHostDMPaths()
+  local intf = dm.get({"uci.dhcp.dhcp."}, false) or {}
+  local paths = {"uci.system.system.@system[0].hostname",
+                 "uci.dhcp.dnsmasq.@dnsmasq[0].hostname."}
+  for _, v in ipairs(intf) do
+    if v.path:match("^uci%.dhcp%.dhcp%.") then
+       if v.param == "interface" and v.value ~= "" then
+           paths[#paths + 1] = format('rpc.network.interface.@%s.ipaddr', v.value)
+           paths[#paths + 1] = format('rpc.network.interface.@%s.ip6addr', v.value)
+       end
+    end
+  end
+  return paths
+end
+
+--- Verify if the given hostname a valid hostname or IP address for this system
+-- @param http_req_host The hostname/IP address that needs to be authenticated
+-- @return True if the hostname is valid. Otherwise false
+local function hostIsValid(http_req_host)
+  local host = dm.get(validHostDMPaths(), false) or {}
+  for _, v in ipairs(host) do
+    if v.path == "uci.system.system.@system[0]." then
+       if http_req_host == v.value then
+          return true
+       end
+    elseif v.path:match("^uci%.dhcp%.dnsmasq%.@dnsmasq%[0%]%.hostname%.") then
+       if v.param == "value" and http_req_host == v.value then
+         return true
+       end
+    elseif v.path:match("^rpc%.network%.interface%.") then
+       if (v.param == "ipaddr" or v.param == "ip6addr") then
+         if v.value ~= "" and http_req_host == v.value then
+           return true
+         end
+       end
+    end
+  end
+  return false
+end
+
+local function preventDNSRebind()
+  --if not hostIsValid(untaint(ngx.var.http_host)) then
+  --  ngx.exit(ngx.HTTP_UNAUTHORIZED)
+  --end
+end
+
 local function redirectIfNotAuthorized(mgr, session, sessionID)
   local rc, resp_code = mgr:authorizeRequest(session, ngx.var.uri)
   if not rc then
@@ -312,6 +360,7 @@ end
 function SessionMgr:checkrequest(noActivityUpdate)
   local session, sessionID = getSessionForRequest(self, noActivityUpdate)
   redirectIfServiceNotAvailable(session)
+  preventDNSRebind()
   redirectIfNotAuthorized(self, session, sessionID)
   storeSessionInNginx(session)
 end
@@ -456,6 +505,7 @@ function SessionMgr:handleAuth()
       -- TODO: shouldn't reveal that the username is unknown; instead
       --       we should generate a fake salt and B and in the second
       --       step simply report that authentication failed
+      ngx.log(ngx.ERR, "Invalid login credentials")
       ngx.print('{ "error":"failed" }')
     else
       if not checkBruteForceWaitingTimeForUser(self, I) then
@@ -493,7 +543,8 @@ function SessionMgr:handleAuth()
       printf('{ "M":"%s" }', M2)
     else
       if not preventBruteForce(self, verifier:username(), errmsg) then
-         printf('{ "error":"%s" }', errmsg or "failed")
+        ngx.log(ngx.ERR, "Invalid login credentials")
+        printf('{ "error":"%s" }', errmsg or "failed")
       end
     end
 

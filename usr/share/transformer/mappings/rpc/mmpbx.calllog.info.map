@@ -178,3 +178,169 @@ mmpbx_calllog_info.delete = function(mapping, key)
 end
 
 register(mmpbx_calllog_info)
+
+local mmpbx_profile_statistics = {
+    objectType = {
+        name = "rpc.mmpbx.profilestatistics.@.",
+        access = "readOnly",
+        minEntries = 0,
+        maxEntries = math.huge,
+        parameters = {
+            profile = {
+                access = "readOnly",
+                type = "string",
+            },
+            incomingCalls = {
+                access = "readOnly",
+                type = "string",
+            },
+            incomingCallsConnected = {
+                access = "readOnly",
+                type = "string",
+            },
+            incomingCallsFailed = {
+                access = "readOnly",
+                type = "string",
+            },
+            outgoingCalls = {
+                access = "readOnly",
+                type = "string",
+            },
+            outgoingCallsConnected = {
+                access = "readOnly",
+                type = "string",
+            },
+            outgoingCallsFailed = {
+                access = "readOnly",
+                type = "string",
+            },
+            droppedCalls = {
+                access = "readOnly",
+                type = "string",
+            },
+            totalCallDuration = {
+                access = "readOnly",
+                type = "string",
+            },
+        },
+    },
+}
+
+local function entriesProfileStats ()
+    local entries = {}
+    local profile_stats = conn:call("mmdbd.profile.statistics", "get", {} )
+    if profile_stats then
+        for _,v in pairs (profile_stats) do
+            entries[#entries+1] = v.profile
+        end
+    end
+    return entries
+end
+
+local function getallProfileStats(mapping,key)
+   local content = conn:call("mmdbd.profile.statistics", "get", { profile = key } )
+   local profile_stats = {}
+   if content and content[1] then
+      for param,v in pairs (content[1]) do
+         profile_stats[param] = tostring(v) or ""
+      end
+   end
+   return profile_stats
+end
+
+local function getProfileStats(mapping, param, key)
+    local content = conn:call("mmdbd.profile.statistics", "get", { profile = key } )
+    if content and content[1] then
+        return tostring(content[1][param]) or ""
+    end
+    return ""
+end
+
+mmpbx_profile_statistics.entries = entriesProfileStats
+mmpbx_profile_statistics.getall = getallProfileStats
+mmpbx_profile_statistics.get = getProfileStats
+
+register(mmpbx_profile_statistics)
+
+local mmpbx_device_statistics = {
+    objectType = {
+        name = "rpc.mmpbx.devicestatistics.@.",
+        access = "readOnly",
+        minEntries = 0,
+        maxEntries = math.huge,
+        parameters = {
+            device = {
+                access = "readOnly",
+                type = "string",
+            },
+            incomingCalls = {
+                access = "readOnly",
+                type = "string",
+            },
+            incomingCallsConnected = {
+                access = "readOnly",
+                type = "string",
+            },
+            incomingCallsFailed = {
+                access = "readOnly",
+                type = "string",
+            },
+            outgoingCalls = {
+                access = "readOnly",
+                type = "string",
+            },
+            outgoingCallsConnected = {
+                access = "readOnly",
+                type = "string",
+            },
+            outgoingCallsFailed = {
+                access = "readOnly",
+                type = "string",
+            },
+            droppedCalls = {
+                access = "readOnly",
+                type = "string",
+            },
+            totalCallDuration = {
+                access = "readOnly",
+                type = "string",
+            },
+        },
+    },
+}
+
+local function entriesDeviceStats ()
+    local entries = {}
+    local device_stats = conn:call("mmdbd.device.statistics", "get", {} )
+    if device_stats then
+        for _,v in pairs (device_stats) do
+            entries[#entries+1] = v.device
+        end
+    end
+    return entries
+end
+
+local function getallDeviceStats(mapping,key)
+   local content = conn:call("mmdbd.device.statistics", "get", { device = key } )
+   local device_stats = {}
+   if content and content[1] then
+      for param,v in pairs (content[1]) do
+         device_stats[param] = tostring(v) or ""
+      end
+   end
+   return device_stats
+end
+
+local function getDeviceStats(mapping, param, key)
+    local content = conn:call("mmdbd.device.statistics", "get", { device = key } )
+    if content and content[1] then
+        return tostring(content[1][param]) or ""
+    end
+    return ""
+end
+
+mmpbx_device_statistics.entries = entriesDeviceStats
+mmpbx_device_statistics.getall = getallDeviceStats
+mmpbx_device_statistics.get = getDeviceStats
+
+register(mmpbx_device_statistics)

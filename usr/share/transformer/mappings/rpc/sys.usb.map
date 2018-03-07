@@ -1,9 +1,11 @@
-local register, require = register, require
+local register, require, mapper, io, math, string = register, require, mapper, io, math, string
 local lfs = require("lfs")
 local uci = require('uci')
-local match, tostring, open = string.match, tostring, io.open
-local popen = io.popen
+local open = io.open
 local posix = require("tch.posix")
+local nwCommon = mapper("nwcommon")
+local splitKey = nwCommon.split_key
+
 local sys_usb_ = {
     objectType = {
         name = "sys.usb.",
@@ -96,7 +98,7 @@ local function isDir(path)
 end
 
 local function firstline(filename)
-    local fd, msg = open(filename)
+    local fd = open(filename)
     if not fd then
         -- you could return nil and and error message but that will abort
         -- iterating over all parameters.
@@ -175,7 +177,10 @@ end
 local entriesSysBusUsbDevicespartitions -- forward declaration
 local umountDeviceTable = {}
 local function unmountUsb(mapping, paramName, paramValue, key)
-    umountDeviceTable = entriesSysBusUsbDevicespartitions(mapping,key)
+    local umountDeviceTableEntry = entriesSysBusUsbDevicespartitions(mapping,key)
+    for _, devName in pairs(umountDeviceTableEntry) do
+      umountDeviceTable[#umountDeviceTable + 1] = splitKey(devName)
+    end
     commitapply:newset("rpc.usb.umount")
 end
 
@@ -372,7 +377,7 @@ function entriesSysBusUsbDevicespartitions(mapping, parentkey)
         for _, v in pairs(dev_list) do
             local dev = string.match(v, "sd[a-z][0-9]*")
             if dev and part_list[dev] then
-                entries[#entries+1] =  dev
+                entries[#entries+1] =  dev .. "|" .. parentkey
             end
         end
         fp:close()
@@ -452,16 +457,17 @@ local function getDlnadProfileStatus(key)
 end
 
 local function getpartitions(mapping, paramName, key, parentkey)
+    local devName = splitKey(key)
     if paramName == "path" then
-        return key
+        return devName
     elseif paramName == "FileSystem" then
-        return getFileSystem(key)
+        return getFileSystem(devName)
     elseif paramName == "Share" then
-        return getSambaShareName(key)
+        return getSambaShareName(devName)
     elseif paramName == "ProfileStatus" then
-        return getDlnadProfileStatus(key)
+        return getDlnadProfileStatus(devName)
     else
-        local mount = getMountPoint(key)
+        local mount = getMountPoint(devName)
         if mount == "" then
           return mount
         end

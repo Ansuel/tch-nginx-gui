@@ -1,8 +1,0 @@
-local command = {
-  name = "showinfo",
-  full_path = "/usr/bin/clash-showinfo-wrapper",
-  options_without_argument = { "-i" },
-  options_with_argument = { "--command", "--info", "--filter" },
-}
-
-mapper("command").registerCommand(command)

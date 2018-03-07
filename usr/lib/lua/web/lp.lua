@@ -7,7 +7,7 @@ local error, loadstring, ipairs =
 local tinsert, tremove = table.insert, table.remove
 local open = io.open
 
-local translate = require("web.template").translate
+local lp_translate = require("web.template").translate
 
 -- the name of the directory from which files can be include()'ed
 -- !! should be outside of the document root for security reasons !!
@@ -46,6 +46,17 @@ local function flush()
   cache = {}
 end
 
+local function translate(template)
+  local translated = template:match("^--pretranslated")
+  local translated_string
+  if translated then
+    translated_string = template
+  else
+    translated_string = lp_translate(template)
+  end
+  return translated_string
+end
+
 ----------------------------------------------------------------------------
 -- Translates a template into a Lua function.
 -- Does NOT execute the resulting function.
@@ -59,13 +70,7 @@ end
 -- @scope internal
 ----------------------------------------------------------------------------
 local function compile (template, chunkname)
-  local translated = template:match("^--pretranslated")
-  local translated_string
-  if translated then
-    translated_string = template
-  else
-    translated_string = translate(template)
-  end
+  local translated_string = translate(template)
   local f, err = loadstring(translated_string, chunkname)
 
   if not f then

@@ -69,10 +69,33 @@ local incoming_missed_str = T"Incoming Missed"
 local outgoing_success_str = T"Outgoing Successful"
 local outgoing_failed_str = T"Outgoing Failed"
 
-local stats_columns = {
+local stats_columns_device = {
   {
     header = T"Device Name",
     name = "deviceName",
+  },
+  {
+    header = incoming_success_str,
+    name = "incoming_success",
+  },
+  {
+    header = incoming_missed_str,
+    name = "incoming_missed",
+  },
+  {
+    header = outgoing_success_str,
+    name = "outgoing_success",
+  },
+  {
+    header = outgoing_failed_str,
+    name = "outgoing_failed",
+  },
+}
+
+local stats_columns_profile = {
+  {
+    header = T"Profile Number",
+    name = "localNumber",
   },
   {
     header = incoming_success_str,
@@ -127,10 +150,15 @@ local dev_config = {
     ["sipdev"] = "mmpbxrvsipdev",
 }
 
+
+local profile_config = {
+    ["sipnet"] = "mmpbxrvsipnet",
+}
+
 local function getDeviceFriendlyNames()
     local devpattern = "([^%._@]+_dev_%d+)"
     local results, dev = nil, ""
-    local mapTable, stats_data, index = {}, {}, {}
+    local mapTable, device_stats_data, dev_index = {}, {}, {}
     for _,v in pairs(dev_config) do
         results = proxy.get("uci." .. v .. ".device.")
         if results then
@@ -138,24 +166,41 @@ local function getDeviceFriendlyNames()
                 if vv.param == "user_friendly_name" then
                     dev = vv.path:match(devpattern)
                     mapTable[dev] = vv.value
-                    local data = {}
-                    data[#data+1] = dev
-                    for k=1,4 do
-                        data[#data+1] = 0
-                    end
-                    stats_data[#stats_data+1] = data
-                    index[dev] = #stats_data
+                    device_stats_data[#device_stats_data+1] = {dev, 0, 0, 0, 0}
+                    dev_index[dev] = #device_stats_data
                 end
             end
         end
     end
-    return setmetatable(mapTable, untaint_mt), stats_data, setmetatable(index, untaint_mt)
+    return setmetatable(mapTable, untaint_mt), device_stats_data, setmetatable(dev_index, untaint_mt)
 end
 
-local mapTable, stats_data, index = getDeviceFriendlyNames()
+local function getProfileFriendlyNames()
+    local profilepattern = "([^%._@]+_profile_%d+)"
+    local results, profile = nil, ""
+    local mapTable1, profile_stats_data, profile_index = {}, {}, {}
+    for _,v in pairs(profile_config) do
+        results = proxy.get("uci." .. v .. ".profile.")
+        if results then
+            for _,vv in ipairs(results) do
+                if vv.param == "uri" then
+		            profile = vv.path:match(profilepattern)
+					mapTable1[profile] = vv.value
+                    profile_stats_data[#profile_stats_data+1] = {profile, 0, 0, 0, 0}
+                    profile_index[profile] = #profile_stats_data
+                end
+            end
+        end
+    end
+    return setmetatable(mapTable1, untaint_mt), profile_stats_data, setmetatable(profile_index, untaint_mt)
+end
+
+local mapTable, device_stats_data, dev_index = getDeviceFriendlyNames()
+local mapTable1, profile_stats_data, profile_index = getProfileFriendlyNames()
 
 local basepath = "rpc.mmpbx.calllog.info."
 local logTable = content_helper.convertResultToObject(basepath .. "@", proxy.get(basepath))
+
 table.sort(logTable, function(a,b)
     if tonumber(a.paramindex) < tonumber(b.paramindex) then
         return false
@@ -183,9 +228,24 @@ local function convert2Sec(value)
     return 0
 end
 
+-- It will check the given URI/NUMBER is present in config.
+-- Return true if it is present, false if it is deleted.
+local function isLocalPartyValid(localParty)
+    for _,uri in pairs(mapTable1) do
+	    if uri == localParty then
+		    return true
+		end
+	end
+	return false
+end
+
 for k,v in ipairs(logTable) do
     local data = {}
-    data[lcns.LocalNumber] = v.Localparty
+	if isLocalPartyValid(v.Localparty) then
+        data[lcns.LocalNumber] = v.Localparty
+	else
+	    data[lcns.LocalNumber] = "NA"
+	end
     data[lcns.RemoteNumber] = v.Remoteparty
     data[lcns.DateTime] = v.startTime
     data[lcns.Duration] = v.connectedTime
@@ -197,37 +257,22 @@ for k,v in ipairs(logTable) do
         else
             data[lcns.Duration] = updateDuration(os.time() - connectedTime)
         end
+    else
+        data[lcns.Duration] = "00:00:00"
     end
     data[lcns.DeviceName] = gsub(v.deviceName, "([^%,]+)", mapTable)
     for deviceName in gmatch(v.deviceName,"([^%,]+)") do
-        local stats = stats_data[index[deviceName]]
         if v.Direction == "2" then
             if v.connectedTime == "0" then
                 data[lcns.CallType] = outgoing_failed_str
-                if stats then
-                    stats[scns["outgoing_failed"]] = stats[scns["outgoing_failed"]] + 1
-                    total[scns["outgoing_failed"]] = total[scns["outgoing_failed"]] + 1
-                end
             else
                 data[lcns.CallType] = outgoing_success_str
-                if stats then
-                    stats[scns["outgoing_success"]] = stats[scns["outgoing_success"]] + 1
-                    total[scns["outgoing_success"]] = total[scns["outgoing_success"]] + 1
-                end
             end
         else
             if v.connectedTime == "0" then
                 data[lcns.CallType] = incoming_missed_str
-                if stats then
-                    stats[scns["incoming_missed"]] = stats[scns["incoming_missed"]] + 1
-                    total[scns["incoming_missed"]] = total[scns["incoming_missed"]] + 1
-                end
             else
                 data[lcns.CallType] = incoming_success_str
-                if stats then
-                    stats[scns["incoming_success"]] = stats[scns["incoming_success"]] + 1
-                    total[scns["incoming_success"]] = total[scns["incoming_success"]] + 1
-                end
             end
         end
     end
@@ -247,13 +292,45 @@ for k,v in ipairs(logTable) do
     calllog_data[k] = data
 end
 
+basepath = "rpc.mmpbx.devicestatistics."
+local devStatsTable = content_helper.convertResultToObject(basepath .. "@", proxy.get(basepath))
+local stats
+
+for _,v in ipairs(devStatsTable) do
+    if dev_index[v.device] then
+        stats = device_stats_data[dev_index[v.device]]
+	    stats[scns["incoming_missed"]]   = tonumber(v.incomingCallsFailed)
+	    stats[scns["incoming_success"]]  = tonumber(v.incomingCallsConnected)
+	    stats[scns["outgoing_failed"]]       = tonumber(v.outgoingCallsFailed)
+	    stats[scns["outgoing_success"]]   = tonumber(v.outgoingCallsConnected)
+	end
+end
+
+basepath = "rpc.mmpbx.profilestatistics."
+local profileStatsTable = content_helper.convertResultToObject(basepath .. "@", proxy.get(basepath))
+
+for _,v in ipairs(profileStatsTable) do
+    if profile_index[v.profile] then
+        stats = profile_stats_data[profile_index[v.profile]]
+	    stats[scns["incoming_missed"]]   = tonumber(v.incomingCallsFailed)
+	    stats[scns["incoming_success"]]  = tonumber(v.incomingCallsConnected)
+	    stats[scns["outgoing_failed"]]       = tonumber(v.outgoingCallsFailed)
+	    stats[scns["outgoing_success"]]   = tonumber(v.outgoingCallsConnected)
+
+	    total[scns["incoming_missed"]]   = total[scns["incoming_missed"]] + stats[scns["incoming_missed"]]
+	    total[scns["incoming_success"]]  = total[scns["incoming_success"]] + stats[scns["incoming_success"]]
+	    total[scns["outgoing_failed"]]       = total[scns["outgoing_failed"]] + stats[scns["outgoing_failed"]]
+	    total[scns["outgoing_success"]]   = total[scns["outgoing_success"]] + stats[scns["outgoing_success"]]
+	end
+end
+
 local order = {
     f = 1,
     d = 2,
     s = 3,
 }
 
-table.sort(stats_data, function(a,b)
+table.sort(device_stats_data, function(a,b)
     local order_a = order[a[1]:sub(1,1)]
     local order_b = order[b[1]:sub(1,1)]
     if order_a < order_b or (order_a == order_b and a[1] < b[1]) then
@@ -263,11 +340,27 @@ table.sort(stats_data, function(a,b)
     end
 end)
 
-for _,v in pairs(stats_data) do
+for _,v in pairs(device_stats_data) do
     v[1] = mapTable[v[1]] or v[1]
 end
 
-stats_data[#stats_data + 1] = total
+table.sort(profile_stats_data, function(a,b)
+    local profilepattern = "(profile_(%d+))"
+    local _, a_num = a[1]:match(profilepattern)
+    local _, b_num = b[1]:match(profilepattern)
+    if tonumber(a_num) < tonumber(b_num) then
+       return true
+    else
+       return false
+    end
+end)
+
+for _,v in pairs(profile_stats_data) do
+    v[1] = mapTable1[v[1]] or v[1]
+end
+
+--add total row at end
+profile_stats_data[#profile_stats_data + 1] = total
 
 -- clear call log button
 local clear_call_log = {
@@ -304,7 +397,8 @@ end
             </center>
         <fieldset>
             <legend><%= T"Call Statistics" %></legend>
-            <%= ui_helper.createTable(stats_columns, stats_data, stats_options) %>
+            <%= ui_helper.createTable(stats_columns_device, device_stats_data, stats_options) %>
+            <%= ui_helper.createTable(stats_columns_profile, profile_stats_data, stats_options) %>
         </fieldset>
         </fiedset>
    </form>

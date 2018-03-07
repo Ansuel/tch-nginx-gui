@@ -10,6 +10,7 @@ local post_helper = require("web.post_helper")
 local proxy = require("datamodel")
 local vSII = post_helper.validateStringIsIP
 local role = ngx.ctx.session:getrole()
+local uniqueKey = post_helper.getRandomKey()
 
 local dyn_route_columns = {
     {
@@ -140,7 +141,10 @@ local static_route_columns = {
 
 local static_route_options = {
     tableid = "staticroutes",
-    basepath = "uci.network.route.",
+    basepath = "uci.network.route.@.",
+    createMsg = T"Add new static IPv4 route",
+    objectName  = uniqueKey,
+    addNamedObject = true,
 }
 
 if (role == "engineer") then

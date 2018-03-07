@@ -447,9 +447,9 @@ function getInfo(mac,ap,getpath)\
           recvpctstart = 0;\
           retransctstart = 0;\
         }\
-        $("#Packets_Sent").html(data.Packets_Sent-sentpctstart);\
-        $("#Packets_Received").html(data.Packets_Received-recvpctstart);\
-        $("#Packets_Retrans").html(data.Packets_Retrans-retransctstart);\
+        $("#Packets_Sent").html(data.Packets_Sent);\
+        $("#Packets_Received").html(data.Packets_Received);\
+        $("#Packets_Retrans").html(data.Packets_Retrans);\
 \
         $("#Current_Time").html(data.Current_Time);\
 \

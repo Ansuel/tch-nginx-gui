@@ -88,7 +88,7 @@ sys_upnp_redirect_i_.entries = function(mapping)
   lease_cache = {}
   local upnpkeys = {}
   for line in fd:lines() do
-    local proto, interface, src_dport, dest_ip, dest_port, stop_time, descr = string.match(line, '([UDTCP]+):(%S+):(%d+):([%d%s%.]+):(%d+):(%d+):([^\r^\n]*)')
+    local proto, interface, src_dport, dest_ip, dest_port, stop_time, descr = string.match(line, '([UDTCP]+):(%S+):(%d+):%S+:([%d%s%.]+):(%d+):(%d+):([^\r^\n]*)')
     local key = proto .. interface .. dest_port .. src_dport
     upnpkeys[#upnpkeys+1] = key
     lease_cache[key] = {

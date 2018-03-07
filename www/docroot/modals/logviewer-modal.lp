@@ -1,6 +1,7 @@
 --pretranslated: do not change this file
  
 -- Localization
+-- NG-105177 [Workaround] TI [GUI] - Some of the tabs throws Internal server error
 gettext.textdomain('webui-core')
 
 local proxy = require("datamodel")
@@ -11,6 +12,7 @@ local post_helper = require("web.post_helper")
 local logdownload_helper = require("logdownload_helper")
 local type, setmetatable, random = type, setmetatable, math.random
 local table, ipairs, istainted, format = table, ipairs, string.istainted, string.format
+local session = ngx.ctx.session
 
 local logdata = proxy.get("sys.log.devicelog")
 logdata = logdata[1].value
@@ -108,22 +110,15 @@ end
 <div class="modal-body update no-save">\
 \
 ');  
-local tabs = {
-    {
-        desc = T"User Manager",
-        target = "modals/usermgr-modal.lp",
-    },
-    {
-        desc = T"Log Viewer",
-        active = "active",
-        target = "modals/logviewer-modal.lp",
-    },
-}
-ngx.print(ui_helper.createModalTabs(tabs))
+    local lp = require("web.lp")
+    lp.setpath("/www/snippets/")
+    lp.include("tabs-management.lp")
   ngx.print('\
 \
 <form class="form-horizontal" method="post" action="');  ngx.print( ngx.var.request_uri ); ngx.print('">\
-');  
+');
+
+
       local filterclass = {
         span = {
           style = "float:left;",
@@ -162,7 +157,13 @@ ngx.print(ui_helper.createTable(log_columns, log_array, log_options, nil, nil))
 </fieldset>\
 </form>\
 </div>\
-<div class="modal-footer">\
+')
+if session:getrole() == "engineer" then
+	ngx.print('\
+	</div>\
+	')
+end
+ngx.print('<div class="modal-footer">\
     <div id="modal-no-change">\
         <div class="btn btn-primary btn-large" data-dismiss="modal">');  ngx.print( T"Close" ); ngx.print('</div>\
     </div>\

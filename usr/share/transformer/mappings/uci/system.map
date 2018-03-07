@@ -63,6 +63,19 @@ local system_buffer = {
 }
 mapper("uci_1to1").registerSimpleMap(system_buffer)
 
+-- uci.system.config
+local system_config = {
+   config = config_system,
+   section = "config",
+   type = "config",
+   options = {
+     "iad_function",
+     "import_restricted",
+     "enable_usb3_support",
+   },
+}
+mapper("uci_1to1").registerSimpleMap(system_config)
+
 -- uci.system.coredump
 local system_coredump = {
   config = config_system,
@@ -71,4 +84,3 @@ local system_coredump = {
 }
 
 mapper("uci_1to1").registerNamedMultiMap(system_coredump)
-

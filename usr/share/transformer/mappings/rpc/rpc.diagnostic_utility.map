@@ -217,7 +217,7 @@ diagnostic_utility_.get = {
     return status and status.up and "1" or "0"
   end,
   dataIPconnection = function()
-    if wwanProto() == "router" then
+    if wwanProto() == "dhcp" then
       return getIntfInfo("wwan", "ipaddr") ~= "" and "1" or "0"
     end
     local proto = getIntfInfo("wan", "proto")
@@ -234,7 +234,7 @@ diagnostic_utility_.get = {
     return "0"
   end,
   dataPPPconnection = function()
-    if wwanProto() == "router" then
+    if wwanProto() == "ppp" then
       return getIntfInfo("wwan", "ipaddr") ~= "" and "1" or "0"
     end
     local proto = getIntfInfo("wan", "proto")

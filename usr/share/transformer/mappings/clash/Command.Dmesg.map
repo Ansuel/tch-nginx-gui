@@ -1,7 +1,0 @@
-local command = {
-  name = "dmesg",
-  full_path = "/bin/dmesg",
-  options_without_argument = {"-c"},
-}
-
-mapper("command").registerCommand(command)

@@ -74,6 +74,10 @@ local function get_cwmp_interface()
   return _cwmp_intf
 end
 
+local function lcm_state_change_event_cb(mapping, event, msg)
+  return {{ key = "", paramname = "LCMStateChange" }}
+end
+
 local function network_interface_event_cb(mapping, event, msg)
   local action = msg.action
   if action == "ifup" or action == "ifdown" then
@@ -97,6 +101,10 @@ register({
       DiagnosticsComplete = {
         access = "readWrite",
         type = "boolean",
+      },
+      LCMStateChange = {
+        access = "readWrite",
+        type = "boolean",
       }
     }
   },
@@ -108,5 +116,6 @@ register({
   add_watchers = function(mapping)
     local ubusEventsrc = eventsource("ubus")
     ubusEventsrc.watch_event(mapping, network_interface_event_cb, "network.interface")
+    ubusEventsrc.watch_event(mapping, lcm_state_change_event_cb, "lcm.pkg.statechange")
   end
 })

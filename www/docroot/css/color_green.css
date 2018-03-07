@@ -1,0 +1,330 @@
+
+body::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+body::-webkit-scrollbar-button {
+  width: 0px;
+  height: 0px;
+}
+body::-webkit-scrollbar-thumb {
+  background: rgba(30, 116, 30, 0.50);
+}
+body::-webkit-scrollbar-thumb:hover {
+  background: rgba(30, 116, 30, 0.80);
+}
+body::-webkit-scrollbar-thumb:active {
+  background: rgba(30, 116, 30, 1);
+}
+body::-webkit-scrollbar-track {
+  background: transparent;
+}
+body::-webkit-scrollbar-track:hover {
+  background: transparent;
+}
+body::-webkit-scrollbar-track:active {
+  background: transparent;
+}
+body::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.modal-body::-webkit-scrollbar-button {
+  width: 0px;
+  height: 0px;
+}
+.modal-body::-webkit-scrollbar-thumb {
+  background: rgba(30, 116, 30, 0.50);
+}
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(30, 116, 30, 0.80);
+}
+.modal-body::-webkit-scrollbar-thumb:active {
+  background: rgba(30, 116, 30, 1);
+}
+.modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.modal-body::-webkit-scrollbar-track:hover {
+  background: transparent;
+}
+.modal-body::-webkit-scrollbar-track:active {
+  background: transparent;
+}
+.modal-body::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.modal-body {
+  padding: 0px 15px;
+}
+
+legend {
+  background-color: rgb(255, 255, 255);
+  position: sticky;
+  top: 0px;
+}
+
+.scroll-down {
+  opacity: 1;
+  -webkit-transition: all .5s ease-in 3s;
+  transition: all .5s ease-in 3s;
+}
+
+.scroll-down {
+  position: fixed;
+  bottom: 30px;
+  left: 100%;
+  margin-left: -50px;
+  width: 32px;
+  height: 32px;
+  background-size: 14px auto;
+  border-radius: 50%;
+  z-index: 5;
+  -webkit-animation: bounce 2s infinite 2s;
+  animation: bounce 2s infinite 2s;
+  -webkit-transition: all .2s ease-in;
+  transition: all .2s ease-in;
+}
+
+.scroll-down:before {
+	position: absolute;
+    top: calc(50% - 8px);
+    left: calc(50% - 7px);
+    color:rgb(30, 116, 30);
+	content: "\f063";
+	display:block;
+	position:absolute;
+	font:38px/1 FontAwesome
+}
+
+.scroll-up {
+  opacity: 1;
+  -webkit-transition: all .5s ease-in 3s;
+  transition: all .5s ease-in 3s;
+}
+
+.scroll-up {
+  position: fixed;
+  bottom: 30px;
+  left: 100%;
+  margin-left: -50px;
+  width: 32px;
+  height: 32px;
+  background-size: 14px auto;
+  border-radius: 50%;
+  z-index: 5;
+  -webkit-animation: bounce 2s infinite 2s;
+  animation: bounce 2s infinite 2s;
+  -webkit-transition: all .2s ease-in;
+  transition: all .2s ease-in;
+}
+
+.scroll-up:before {
+	position: absolute;
+    top: calc(50% - 8px);
+    left: calc(50% - 7px);
+    color:rgb(30, 116, 30);
+	content: "\f062";
+	display:block;
+	position:absolute;
+	font:38px/1 FontAwesome
+}
+
+@keyframes bounce {
+  0%,
+  100%,
+  20%,
+  50%,
+  80% {
+    -webkit-transform: translateY(0);
+    -ms-transform: translateY(0);
+    transform: translateY(0);
+  }
+  40% {
+    -webkit-transform: translateY(-10px);
+    -ms-transform: translateY(-10px);
+    transform: translateY(-10px);
+  }
+  60% {
+    -webkit-transform: translateY(-5px);
+    -ms-transform: translateY(-5px);
+    transform: translateY(-5px);
+  }
+}
+
+.logo{
+  margin-top: -30px; 
+}
+
+.smallcard .modal-link:hover {
+  color: rgb(30, 116, 30);
+}
+
+.smallcard .someInfos{
+	color:#333333;
+}
+
+.btn-primary, .smallcard .header, .smallcard .header .settings {
+  background-color: rgb(30, 116, 30);
+  background-image: -moz-linear-gradient(top, rgb(30, 116, 30) 20%, rgb(29, 36, 29) 100%);
+  background-image: -webkit-gradient(linear, 0 0, 20% 100%, from(rgb(30, 116, 30)), to(rgb(29, 36, 29)));
+  background-image: -webkit-linear-gradient(top, rgb(30, 116, 30) 20%, rgb(29, 36, 29) 100%);
+  background-image: -o-linear-gradient(top, rgb(30, 116, 30) 20%, rgb(29, 36, 29) 100%);
+  background-image: linear-gradient(to bottom, rgb(30, 116, 30) 20%, rgb(29, 36, 29) 100%);
+  background-repeat: repeat-x;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff440359', endColorstr='#ff7c1a74', GradientType=0);
+  border-color: rgb(30, 116, 30) rgb(30, 116, 30) rgb(30, 116, 30);
+  border: 1px solid rgb(30, 116, 30);
+  text-shadow: 0 1px 0px #000000;
+}
+
+.switchOn {
+  background-color: rgb(30, 116, 30);
+}
+
+.modal-header {
+  color: rgb(30, 116, 30);
+  border-bottom: 1px solid rgb(30, 116, 30);
+}
+
+.modal-footer {
+  border-top:1px solid rgb(30, 116, 30);
+  -webkit-border-radius:0 0 6px 6px;
+  -moz-border-radius:0 0 6px 6px;
+  border-radius:0 0 6px 6px;
+  -webkit-box-shadow:inset 0 1px 0 rgb(98, 196, 98);
+  -moz-box-shadow:inset 0 1px 0 rgb(98, 196, 98);
+  box-shadow:inset 0 1px 0 rgb(98, 196, 98);
+}
+
+.btn {
+  color: rgb(30, 116, 30);
+}
+
+.btn-primary {
+  color: #ededed;
+}
+
+.btn[disabled] {
+  color: #6e0a8f;
+}
+
+.btn:hover, .btn:focus, .btn:active, .btn.active, .btn.disabled, .btn[disabled] {
+color: #48848F;
+background-color: #e6e6e6;
+}
+
+.btn:hover:hover, .btn:hover:focus, .btn:hover:active, .btn:hover.active, .btn:hover.disabled, .btn:hover[disabled] {
+color: #ffffff;
+background-color: rgb(30, 116, 30);
+}
+
+.btn:hover,.btn:focus{background-position:0 0px;}
+
+.button:hover:hover, .button:hover:focus, .button:hover:active, .button:hover.active, .button:hover.disabled, .button:hover[disabled] {
+color: #ffffff;
+background-color: rgb(30, 116, 30);
+}
+
+.button:hover {
+text-shadow: 0 -1px 0px rgba(0, 0, 0, 0.2);
+color: #ffffff;
+text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+background-color: rgb(30, 116, 30);
+  background-image: -moz-linear-gradient(top, rgb(30, 116, 30) 20%, rgb(29, 36, 29) 100%);
+  background-image: -webkit-gradient(linear, 0 0, 20% 100%, from(rgb(30, 116, 30)), to(rgb(29, 36, 29)));
+  background-image: -webkit-linear-gradient(top, rgb(30, 116, 30) 20%, rgb(29, 36, 29) 100%);
+  background-image: -o-linear-gradient(top, rgb(30, 116, 30) 20%, rgb(29, 36, 29) 100%);
+  background-image: linear-gradient(to bottom, rgb(30, 116, 30) 20%, rgb(29, 36, 29) 100%);
+background-repeat: repeat-x;
+filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffcb2bbe', endColorstr='#ff440359', GradientType=0);
+border-color: rgb(30, 116, 30) rgb(30, 116, 30) rgb(30, 116, 30);
+border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+-webkit-box-shadow: inset 0px 1px 0px rgba(255,255,255,.5), 0px 0px 5px rgb(92, 247, 65);
+-moz-box-shadow: inset 0px 1px 0px rgba(255,255,255,.5), 0px 0px 5px rgb(92, 247, 65);
+box-shadow: inset 0px 1px 0px rgba(255,255,255,.5), 0px 0px 5px rgb(92, 247, 65);
+border: 1px solid rgb(30, 116, 30);
+outline: none;
+}
+.smallcard .header .settings:hover:hover, .smallcard .header .settings:hover:focus, .smallcard .header .settings:hover:active, .smallcard .header .settings:hover.active, .smallcard .header .settings:hover.disabled, .smallcard .header .settings:hover[disabled] {
+color: #ffffff;
+background-color: rgb(30, 116, 30);
+}
+.smallcard .header .settings:hover {
+text-shadow: 0 -1px 0px rgba(0, 0, 0, 0.2);
+color: #ffffff;
+text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+background-color: rgb(30, 116, 30);
+  background-image: -moz-linear-gradient(top, rgb(30, 116, 30) 20%, rgb(29, 36, 29) 100%);
+  background-image: -webkit-gradient(linear, 0 0, 20% 100%, from(rgb(30, 116, 30)), to(rgb(29, 36, 29)));
+  background-image: -webkit-linear-gradient(top, rgb(30, 116, 30) 20%, rgb(29, 36, 29) 100%);
+  background-image: -o-linear-gradient(top, rgb(30, 116, 30) 20%, rgb(29, 36, 29) 100%);
+  background-image: linear-gradient(to bottom, rgb(30, 116, 30) 20%, rgb(29, 36, 29) 100%);
+background-repeat: repeat-x;
+filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffcb2bbe', endColorstr='#ff440359', GradientType=0);
+border-color: rgb(30, 116, 30) rgb(30, 116, 30) rgb(30, 116, 30);
+border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+-webkit-box-shadow: inset 0px 1px 0px rgba(255,255,255,.5), 0px 0px 5px rgb(92, 247, 65);
+-moz-box-shadow: inset 0px 1px 0px rgba(255,255,255,.5), 0px 0px 5px rgb(92, 247, 65);
+box-shadow: inset 0px 1px 0px rgba(255,255,255,.5), 0px 0px 5px rgb(92, 247, 65);
+border: 1px solid rgb(30, 116, 30);
+outline: none;
+}
+
+
+.nav-list>.active>a, .nav-list>.active>a:hover, .nav-list>.active>a:focus {
+  color: #ffffff;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.2);
+  background-color: rgb(30, 116, 30);
+}
+
+.nav>li>a:hover, .nav>li>a:focus {
+text-decoration: none;
+background-color: #cccccc;
+}
+
+a {
+color: rgb(30, 116, 30);
+text-decoration: none;
+}
+
+.dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus, .dropdown-submenu:hover>a, .dropdown-submenu:focus>a {
+  color: #2bb6cb;
+}
+
+.card_bg:after {
+    color: rgba(151, 187, 151, 0.40);
+}
+
+.smallcard {
+    -webkit-box-shadow: 0 2px 20px 0px rgba(56, 132, 56, 0.65);
+    -moz-box-shadow: 0 2px 20px 0px rgba(56, 132, 56, 0.65);
+    box-shadow: 0 2px 20px 0px rgba(56, 132, 56, 0.65);
+}
+
+.gateway_bg {
+    position: fixed;
+}
+
+.gateway_bg:after {
+    color: rgba(151, 187, 151, 0.40);
+}
+
+.login_bg:after {
+    color: rgba(151, 187, 151, 0.40);
+}
+
+.login {
+    background-color: rgb(255, 255, 255);
+    border-top: 4px solid rgb(30, 116, 30);
+    -webkit-box-shadow: 0 2px 20px 0px rgba(56, 132, 56, 0.65);
+    -moz-box-shadow: 0 2px 20px 0px rgba(56, 132, 56, 0.65);
+    box-shadow: 0 2px 20px 0px rgba(56, 132, 56, 0.65);
+}

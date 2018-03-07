@@ -1,7 +1,0 @@
-local command = {
-  name = "xdslctl",
-  full_path = "/usr/bin/xdslctl",
-  options_without_argument = {"info", "profile", "--show", "--state", "--stats", "--SNR", "--QLN", "--Hlog", "--Hlin", "--HlinS", "--Bits", "--pbParams", "--vendor", "--version", "--cfg" },
-}
-
-mapper("command").registerCommand(command)

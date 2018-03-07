@@ -1,7 +1,0 @@
-local command = {
-  name = "ps",
-  full_path = "/bin/ps",
-  options_without_argument = {"-w"},
-}
-
-mapper("command").registerCommand(command)

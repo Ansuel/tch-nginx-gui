@@ -112,7 +112,7 @@ local wireless_radio_ = {
 	        type = "string",
         },
 		frame_bursting = {
-	        access = "readOnly",
+	        access = "readWrite",
 	        type = "string",
         },
 		sgi = {
@@ -222,13 +222,22 @@ local function getChannel(key, radioData)
         return channel ~= "" and channel ~= "auto" and channel or radioData.channel
 end
 
+local function getAllowedChannels(key, radioData)
+        wirelessBinding.sectionname = key
+        wirelessBinding.option = "allowed_channels"
+        local allowed_channels = uci_helper.get_from_uci(wirelessBinding)
+        return allowed_channels ~= "" and allowed_channels or radioData.allowed_channels or ""
+end
+
 local function getParameterValue(key, paramName, value, radioData)
-        local radioData = radioData or getDataForRadio(key)
+        radioData = radioData or getDataForRadio(key)
         value = value or radioData[paramName]
         if paramName == "requested_channel" then
                 value = getRequestedChannel(key, radioData)
         elseif paramName == "channel" then
                 value = getChannel(key, radioData)
+        elseif paramName == "allowed_channels" then
+                value = getAllowedChannels(key, radioData)
         end
         return nilToEmptyString(value)
 end

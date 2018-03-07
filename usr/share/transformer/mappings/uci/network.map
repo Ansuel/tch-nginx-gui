@@ -120,7 +120,7 @@ local network_alias = {
     }
 }
 
-uci_1to1.registerMultiMap(network_alias )
+uci_1to1.registerNamedMultiMap(network_alias )
 
 -- uci.network.route.{i}
 local network_route = {
@@ -131,7 +131,7 @@ local network_route = {
     }
 }
 
-uci_1to1.registerMultiMap(network_route )
+uci_1to1.registerNamedMultiMap(network_route )
 
 -- uci.network.disabled_route.{i}
 local network_disabled_route = {
@@ -142,7 +142,7 @@ local network_disabled_route = {
     }
 }
 
-uci_1to1.registerMultiMap(network_disabled_route )
+uci_1to1.registerNamedMultiMap(network_disabled_route )
 
 -- uci.network.route6.{i}
 local network_route6 = {
@@ -153,7 +153,7 @@ local network_route6 = {
     }
 }
 
-uci_1to1.registerMultiMap(network_route6)
+uci_1to1.registerNamedMultiMap(network_route6)
 
 -- uci.network.device.{i}
 local network_device = {

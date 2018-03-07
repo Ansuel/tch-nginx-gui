@@ -1,6 +1,6 @@
 local M = {}
 local open = io.open
-local format, match = string.format, string.match
+local format, match, lower = string.format, string.match, string.lower
 local pairs = pairs
 local sort, concat = table.sort, table.concat
 
@@ -11,10 +11,12 @@ local services_default_cfg = profile_default.services
 local naming_rule = profile_default.naming_rule
 local dial_plan_entry_default = profile_default.dial_plan_entry_default
 local dial_plan_pattern_generator = profile_default.dial_plan_pattern_generator
-
+local set_on_uci = uci_helper.set_on_uci
+local commit = uci_helper.commit
 local mmpbx_binding = { config="mmpbx" }
 local service_binding = { config = "mmpbx", sectionname = "service"}
 local sipnet_binding = { config="mmpbxrvsipnet" }
+local named_parameter = profile_default.services.named_service_section
 local binding = {}
 
 local function incomingmap_set(profile, ports, transactions, commitapply)
@@ -35,15 +37,16 @@ local function incomingmap_set(profile, ports, transactions, commitapply)
         if #ports == 0 then
             return false
         else
-            local section = uci_helper.add_on_uci(mmpbx_binding)
-            binding.sectionname = section
-            binding.option = "profile"
-            uci_helper.set_on_uci(binding, profile, commitapply)
+            mmpbx_binding.sectionname = "incoming_map_"..profile
+            set_on_uci(mmpbx_binding, "incoming_map", commitapply)
+            mmpbx_binding.option = "profile"
+            set_on_uci(mmpbx_binding, profile, commitapply)
         end
     elseif #ports == 0 then
-        binding.option = nil
-        uci_helper.delete_on_uci(binding, commitapply)
-        transactions[binding.config] = true
+        mmpbx_binding.option = nil
+        mmpbx_binding.sectionname = binding.sectionname
+        uci_helper.delete_on_uci(mmpbx_binding, commitapply)
+        transactions[mmpbx_binding.config] = true
         return true
     elseif type(uci_devices) == 'table' then
         sort(uci_devices)
@@ -52,23 +55,25 @@ local function incomingmap_set(profile, ports, transactions, commitapply)
             return false
         end
     end
-
-    binding.option = "device"
-    uci_helper.set_on_uci(binding, ports, commitapply)
-    transactions[binding.config] = true
+    if (binding.sectionname ~= nil) then
+        mmpbx_binding.sectionname = binding.sectionname
+    end
+    mmpbx_binding.option = "device"
+    set_on_uci(mmpbx_binding, ports, commitapply)
+    transactions[mmpbx_binding.config] = true
     return true
 end
 
 local function outgoingmap_create(profile, device, transactions, commitapply)
-    mmpbx_binding.sectionname = "outgoing_map"
-    local section = uci_helper.add_on_uci(mmpbx_binding)
-    mmpbx_binding.sectionname = section
+    mmpbx_binding = { config = "mmpbx"}
+    mmpbx_binding.sectionname = "outgoing_map_"..device
+    set_on_uci(mmpbx_binding, "outgoing_map", commitapply)
     mmpbx_binding.option = "device"
-    uci_helper.set_on_uci(mmpbx_binding, device, commitapply)
+    set_on_uci(mmpbx_binding, device, commitapply)
     mmpbx_binding.option = "profile"
-    uci_helper.set_on_uci(mmpbx_binding, { profile }, commitapply)
+    set_on_uci(mmpbx_binding, { profile }, commitapply)
     mmpbx_binding.option = "priority"
-    uci_helper.set_on_uci(mmpbx_binding, { "1" }, commitapply)
+    set_on_uci(mmpbx_binding, { "1" }, commitapply)
     transactions[mmpbx_binding.config] = true
 end
 
@@ -170,7 +175,7 @@ function M.port_set(profile, ports, transactions, commitapply)
 end
 
 local function getHighestSipId()
-    local highest = 0
+    local highest = -1
     sipnet_binding.sectionname = "profile"
     uci_helper.foreach_on_uci(sipnet_binding, function(s)
         local id = tonumber(s['.name']:match("(%d+)$"))
@@ -202,57 +207,54 @@ local function add_services(profile_name, transactions, commitapply)
 
         local services = {}
         for k,v in pairs(services_default_cfg.append or {}) do
-            services[k] = v
+            if not v["servicetype"] or v["servicetype"] == "profile" then
+                services[k] = v
+            end
         end
 
         uci_helper.foreach_on_uci(service_binding, function(s)
-	    if services[s["type"]] and not s.device then
-		local profiles = s["profile"] or {}
+            if services[s["type"]] and not s.device then
+                local profiles = s["profile"] or {}
                 profiles[#profiles+1] = profile_name
                 binding.sectionname = s[".name"]
                 binding.option = "profile"
-                uci_helper.set_on_uci(binding, profiles, commitapply)
+                set_on_uci(binding, profiles, commitapply)
                 services[s["type"]] = nil
             end
         end)
 
         for k,v in pairs(services_default_cfg.add or {}) do
-            services[k] = v
+            if not v["servicetype"] or v["servicetype"] == "profile" then
+                services[k] = v
+            end
         end
 
         for k,v in pairs (services) do
-            local service_name = uci_helper.add_on_uci(service_binding)
-            transactions[service_binding.config] = true
-            binding.sectionname = service_name
-            binding.option = "type"
-            uci_helper.set_on_uci(binding, k, commitapply)
-            binding.option = "profile"
-            uci_helper.set_on_uci(binding, {profile_name}, commitapply)
-            for param, value in pairs (v) do
-                binding.option = param
-                uci_helper.set_on_uci(binding, value, commitapply)
+            if (profile_name:match("sip_profile_(.*)$")) then
+                if (named_parameter == true) then
+                    local id = profile_name:match("sip_profile_(.*)$")
+                    mmpbx_binding.sectionname = "service".."_"..lower(k).."_"..id
+                    mmpbx_binding.option = nil
+                else
+                    mmpbx_binding.sectionname = "service"
+                    local sectionname = uci_helper.add_on_uci(mmpbx_binding)
+                    mmpbx_binding.sectionname = sectionname
+                end
+		set_on_uci(mmpbx_binding,"service",commitapply)
+                mmpbx_binding.option = "type"
+                set_on_uci(mmpbx_binding, k, commitapply)
+                mmpbx_binding.option = "profile"
+                set_on_uci(mmpbx_binding, {profile_name}, commitapply)
+                for param, value in pairs (v) do
+                    if param ~= "servicetype" then
+                        mmpbx_binding.option = param
+                        set_on_uci(mmpbx_binding, value, commitapply)
+                    end
+                end
             end
         end
     end
-end
-
-function M.delete_sip_dial_plan_entry(dpename, transactions, commitapply)
-    mmpbx_binding.sectionname = "dial_plan_entry"
-    mmpbx_binding.option = nil
-    local found = false
-    uci_helper.foreach_on_uci(mmpbx_binding, function(s)
-        if s[".name"] == dpename then
-            found = true
-            return found
-        end
-    end)
-    if found then
-        mmpbx_binding.sectionname = dpename
-        uci_helper.delete_on_uci(mmpbx_binding, commitapply)
-        transactions[mmpbx_binding.config] = true
-        uci_helper.commit(mmpbx_binding)
-        return true
-    end
+    transactions[mmpbx_binding.config] = true
 end
 
 function M.add_sip_dial_plan_entry(id, sip_net, transactions, commitapply)
@@ -271,31 +273,25 @@ function M.add_sip_dial_plan_entry(id, sip_net, transactions, commitapply)
         mmpbx_binding.sectionname = "dial_plan_entry"
         uci_helper.foreach_on_uci(mmpbx_binding, function(s)
         if (s['.name']) then
-                if (s['.name']:match("dial_plan_entry_generic")) then
-                        local next_index = tonumber((s['.name']:match("dial_plan_entry_generic_(.*)$")))
-                        if next_index > max_dial_plan then
-                                max_dial_plan = next_index
-                        end
+            if (s['.name']:match("dial_plan_entry_generic")) then
+                local next_index = tonumber((s['.name']:match("dial_plan_entry_generic_(.*)$")))
+                if next_index > max_dial_plan then
+                   max_dial_plan = next_index
                 end
+            end
         end
     end)
-    if max_dial_plan > 0 then
-	mmpbx_binding.sectionname = "dial_plan_entry_generic_"..max_dial_plan+1
-	uci_helper.set_on_uci(mmpbx_binding,"dial_plan_entry",commitapply)
-    else
-	mmpbx_binding.sectionname = "dial_plan_entry"
-        local sectionname = uci_helper.add_on_uci(mmpbx_binding, commitapply)
-        mmpbx_binding.sectionname = sectionname
-    end
+    mmpbx_binding.sectionname = "dial_plan_entry_generic_"..max_dial_plan+1
+    set_on_uci(mmpbx_binding,"dial_plan_entry",commitapply)
     local _key = uci_helper.generate_key()
     mmpbx_binding.option = "_key"
-    uci_helper.set_on_uci(mmpbx_binding, _key)
+    set_on_uci(mmpbx_binding, _key)
     _key = "dial_plan_entry" .. "|" .. _key
     mmpbx_binding.option = "dial_plan"
-    uci_helper.set_on_uci(mmpbx_binding, "dial_plan_generic",commitapply)
+    set_on_uci(mmpbx_binding, dial_plan,commitapply)
     for k,v in pairs(profile_default.dial_plan_entry_table) do
           mmpbx_binding.option = k
-          uci_helper.set_on_uci(mmpbx_binding, v, commitapply)
+          set_on_uci(mmpbx_binding, v, commitapply)
     end
     transactions[mmpbx_binding.config] = true
     return _key
@@ -327,6 +323,55 @@ local function add_dial_plan_entry(id, sip_net, transactions, commitapply)
             mmpbx_binding.option = k
             uci_helper.set_on_uci(mmpbx_binding, v, commitapply)
         end
+    end
+end
+local function getHighestProfileId()
+    local highest = 0
+    local binding = {config="tod", sectionname="voicednd" }
+    uci_helper.foreach_on_uci(binding, function(s)
+        local id = tonumber(s['.name']:match("profile(%d+)") or "0")
+        if (highest < id) then
+             highest = id
+        end
+    end)
+    return highest + 1
+end
+local function add_tod_entry(profile_name, transactions, commitapply)
+    local binding = {config="tod", sectionname="tod" }
+    local voicednd_config_present = false
+    uci_helper.foreach_on_uci(binding, function(s)
+        if s[".name"] == "voicednd" then
+            voicednd_config_present = true
+        end
+    end)
+    if voicednd_config_present == true then     -- if tod is enabled then only add the voicednd & action section
+        --Add voicednd section
+        local id = getHighestProfileId()
+        local voicednd_sec_name = format ("profile%s", id)
+        binding.sectionname = voicednd_sec_name
+        binding.option = nil
+        uci_helper.set_on_uci(binding, "voicednd", commitapply)
+
+        local profile_list = {profile_name}
+        binding.option = "profile"
+        uci_helper.set_on_uci(binding, profile_list, commitapply)
+
+        -- Add action section
+        binding.sectionname = "dnd_"..voicednd_sec_name
+        binding.option = nil
+        uci_helper.set_on_uci(binding, "action", commitapply)
+
+        local defaults = {
+            enabled = "1",
+            script = "voicedndscript",
+            object = "voicednd."..voicednd_sec_name,
+            timers = {""},
+        }
+        for k,v in pairs(defaults) do
+            binding.option = k
+            uci_helper.set_on_uci(binding, v, commitapply)
+        end
+        transactions[binding.config] = true
     end
 end
 
@@ -363,6 +408,7 @@ function M.profile_add(add_sipnet_defaults, transactions, commitapply)
     mmpbx_binding.option = "config"
     uci_helper.set_on_uci(mmpbx_binding, "mmpbxrvsipnet", commitapply)
     add_services(profile_name, transactions, commitapply)
+    add_tod_entry(profile_name, transactions, commitapply)
     if dial_plan_entry_default then
         add_dial_plan_entry(id, "sip_net", transactions, commitapply)
     end
@@ -399,6 +445,24 @@ local function delete_services(profile, transactions, commitapply)
     end
 end
 
+function M.delete_sip_dial_plan_entry(dpename, transactions, commitapply)
+    mmpbx_binding.sectionname = "dial_plan_entry"
+    mmpbx_binding.option = nil
+    local found = false
+    uci_helper.foreach_on_uci(mmpbx_binding, function(s)
+        if s[".name"] == dpename then
+            found = true
+            return found
+        end
+    end)
+    if found then
+        mmpbx_binding.sectionname = dpename
+        uci_helper.delete_on_uci(mmpbx_binding, commitapply)
+        transactions[mmpbx_binding.config] = true
+        return true
+    end
+end
+
 local function delete_dial_plan_entry(profile, transactions, commitapply)
     mmpbx_binding.sectionname = "dial_plan_entry"
     mmpbx_binding.option = nil
@@ -415,6 +479,48 @@ local function delete_dial_plan_entry(profile, transactions, commitapply)
     end
 end
 
+local function delete_tod_entry(profile, transactions, commitapply)
+    local binding = {config="tod", sectionname="voicednd" }
+    local entries = {}
+    uci_helper.foreach_on_uci(binding, function(s)
+         if type(s.profile) == "table" then
+             local new_profiles = {}
+             for _,v in pairs(s.profile) do
+                 if v ~= profile then
+                     new_profiles[#new_profiles+1] = v
+                 end
+             end
+             if #new_profiles == 0 then
+                entries[#entries+1] = s[".name"]
+             elseif #s.profile ~= #new_profiles then
+                binding.sectionname = s[".name"]
+                binding.option = "profile"
+                uci_helper.set_on_uci(binding, new_profiles, commitapply)
+                transactions[binding.config] = true
+             end
+         end
+    end)
+    for _,v in pairs(entries) do
+        binding.sectionname = "action"
+        uci_helper.foreach_on_uci(binding, function(s)
+            if s.object == "voicednd."..v then
+                if s.timers and type(s.timers) == "table" then
+                    for _,w in pairs(s.timers) do
+                        if w ~= "" then
+                            binding.sectionname = w
+                            uci_helper.delete_on_uci(binding, commitapply)
+                        end
+                    end
+                end
+                binding.sectionname = s[".name"]
+                uci_helper.delete_on_uci(binding, commitapply)
+            end
+        end)
+        binding.sectionname = v
+        uci_helper.delete_on_uci(binding, commitapply)
+        transactions[binding.config] = true
+    end
+end
 function M.profile_delete(profile, transactions, commitapply)
     sipnet_binding.sectionname = profile
     sipnet_binding.option = nil
@@ -428,7 +534,32 @@ function M.profile_delete(profile, transactions, commitapply)
     if dial_plan_entry_default then
         delete_dial_plan_entry(profile, transactions, commitapply)
     end
+    delete_tod_entry(profile, transactions, commitapply)
     M.port_set(profile, {}, transactions, commitapply)
+end
+
+function M.find_device_support(parentkey)
+    local numOfFxs, numOfDect, numOfSipdev = 0, 0, 0
+    local entries = {}
+
+    binding.config = "mmpbx"
+    binding.sectionname = "device"
+    uci_helper.foreach_on_uci(binding, function(s)
+    if parentkey:match(s.config) then
+        entries[#entries + 1] = s['.name']
+    end
+        if s['.name']:sub(1,1) == "f" then
+            numOfFxs = numOfFxs + 1
+        end
+        if s['.name']:sub(1,1) == "d" then
+            numOfDect = numOfDect + 1
+        end
+        if s['.name']:sub(1,1) == "s" then
+            numOfSipdev = numOfSipdev + 1
+        end
+    end)
+
+    return numOfFxs, numOfDect, numOfSipdev
 end
 
 return M

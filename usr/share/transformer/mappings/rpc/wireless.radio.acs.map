@@ -23,6 +23,7 @@ local wireless_radio_acs_ = {
 
 local uci_helper = mapper("ucihelper")
 local ubus = require("ubus")
+local network = require("transformer.shared.common.network")
 local conn = ubus.connect()
 if not conn then
   error("Failed to connect to ubusd")
@@ -40,7 +41,7 @@ end
 
 local set = {
   rescan = function(mapping, paramname, paramValue, key)
-    conn:call("wireless.radio.acs", "rescan", { name = key, act = 0 })
+    network.triggerACSRescan(key)
   end
 }
 

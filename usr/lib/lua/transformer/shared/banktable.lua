@@ -170,13 +170,35 @@ function M.isOtherBankValid()
     if f then
       local data = f:read(32)
       f:close()
-      local fvp = 0
-      for i=1,4 do
-        fvp = fvp*256 + data:byte(i)
+      if (data:sub(0,4)=="UBI#") then
+        local blockSize = 4096
+        local pat = "VERSTART"
+        local patLength = #pat
+        local f = open(devname, "rb")
+        local size = f:seek('end')
+        f:seek('set', 0)
+        local block = f:read(blockSize + patLength)
+        while block do
+          if block:find(pat) then
+            valid = true
+            break
+          end
+          if f:seek('cur')==size then
+            break
+          end
+          f:seek('cur', -patLength)
+          block = f:read(blockSize + patLength)
+        end
+        f:close()
+      else
+        local fvp = 0
+        for i=1,4 do
+          fvp = fvp*256 + data:byte(i)
+        end
+        valid = (fvp==0) and (data:sub(18,21)=="LINU")
       end
-      valid = (fvp==0) and (data:sub(18,21)=="LINU")
     end
-  end
+   end
   return valid
 end
 

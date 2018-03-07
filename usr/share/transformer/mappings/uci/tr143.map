@@ -25,7 +25,7 @@ local tr143_DownloadDiagnosticsPCR = {
               "TotalBytesReceived", "TotalBytesSent" }
 }
 
-mapper("uci_1to1").registerMultiMap(tr143_DownloadDiagnosticsPCR)
+mapper("uci_1to1").registerNamedMultiMap(tr143_DownloadDiagnosticsPCR)
 
 --uci.tr143.DownloadDiagnosticsIR
 local tr143_DownloadDiagnosticsIR = {
@@ -34,7 +34,7 @@ local tr143_DownloadDiagnosticsIR = {
   options = { "TestBytesReceived", "TotalBytesReceived", "TotalBytesSent", "StartTime", "EndTime" }
 }
 
-mapper("uci_1to1").registerMultiMap(tr143_DownloadDiagnosticsIR)
+mapper("uci_1to1").registerNamedMultiMap(tr143_DownloadDiagnosticsIR)
 
 
 -- uci.tr143.UploadDiagnostics
@@ -60,7 +60,7 @@ local tr143_UploadDiagnosticsPCR = {
               "TotalBytesReceived", "TotalBytesSent" }
 }
 
-mapper("uci_1to1").registerMultiMap(tr143_UploadDiagnosticsPCR)
+mapper("uci_1to1").registerNamedMultiMap(tr143_UploadDiagnosticsPCR)
 
 --uci.tr143.UploadDiagnosticsIR
 local tr143_UploadDiagnosticsIR = {
@@ -69,7 +69,7 @@ local tr143_UploadDiagnosticsIR = {
   options = { "TestBytesSent", "TotalBytesReceived", "TotalBytesSent", "StartTime", "EndTime" }
 }
 
-mapper("uci_1to1").registerMultiMap(tr143_UploadDiagnosticsIR)
+mapper("uci_1to1").registerNamedMultiMap(tr143_UploadDiagnosticsIR)
 
 
 --uci.tr143.UDPEchoDiagnositics
@@ -93,7 +93,7 @@ local tr143_IndividualPacketResult = {
             },
 }
 
-mapper("uci_1to1").registerMultiMap(tr143_IndividualPacketResult)
+mapper("uci_1to1").registerNamedMultiMap(tr143_IndividualPacketResult)
 
 --uci.tr143.ServerSelectionDiagnostics
 local tr143_ServerSelectionDiagnostics = {

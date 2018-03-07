@@ -9,7 +9,7 @@ local uci = require 'transformer.mapper.ucihelper'
 local common = require 'transformer.mapper.nwcommon'
 local xtmconnection = require 'transformer.shared.models.igd.xtmconnection'
 local activedevice = require 'transformer.shared.models.igd.activedevice'
-
+local ucinw = {config="network"}
 --[[
 Network object hierarchy:
 
@@ -252,25 +252,33 @@ end
 
 --- retrieve the correct key for the given wan interface connection
 -- @param interface [string] the logical name of the interface
--- @return key, status, vlaninfo
+-- @return key, status, vlaninfo. vlaninfo is optional and it is not returned for active interface
 -- this function is meant to be used by other mapping that need to retrieve
 -- a key for a given wan connection. This function will properly handle
 -- the different vlan scenarios.
 local function get_connection_key(interface)
-	local key, vlaninfo
-	local conn = {}
-	conn.vlans, conn.vlanmode = get_vlans()
-	local ll_intfs, status = common.get_lower_layers_with_status(interface)
-	if #ll_intfs>1 then
-		-- ignore bridged devices
-		return
-	end
-	local lower_intf = ll_intfs[1]
-	if lower_intf then
-		vlaninfo = make_vlan_info(conn, lower_intf)
-		key = make_key(interface, vlaninfo.devname)
-	end
-	return key, status, vlaninfo
+	if not activedevice.isActiveInterface(interface) then
+                local key, vlaninfo
+                local conn = {}
+                conn.vlans, conn.vlanmode = get_vlans()
+                local ll_intfs, status = common.get_lower_layers_with_status(interface)
+                if #ll_intfs>1 then
+                        -- ignore bridged devices
+                        return
+                end
+                local lower_intf = ll_intfs[1]
+                if lower_intf then
+                        vlaninfo = make_vlan_info(conn, lower_intf)
+                        key = make_key(interface, vlaninfo.devname)
+                end
+                return key, status, vlaninfo
+        else
+                local key = "ACTIVE|"..interface
+                ucinw.sectionname = interface
+                ucinw.option = "proto"
+                local proto = uci.get_from_uci(ucinw)
+                return key, {proto=proto}
+        end
 end
 M.get_connection_key = get_connection_key
 
@@ -300,9 +308,11 @@ end
 local function real_getKeys(self, devname)
 	-- add the fixed IP devices
 	local wan_intf = get_wanconfig(self.connType)
+        -- devname may be of format atm_wan|dsl1. This is due to two dsl configured and the 2nd key will have dslname appended. Split and take the first key
+        local dev = devname:match("^([^|]+)")
 	for _, s in ipairs(wan_intf) do
 		local vlaninfo = make_vlan_info(self, s.ifname)
-		if vlaninfo.devname==devname then
+		if vlaninfo.devname==dev then
 			vlaninfo.wanconfig = s
 			vlaninfo.interface = s.interface
 			add_entry(self, make_key(s.interface, devname), vlaninfo)
@@ -323,7 +333,7 @@ local function real_getKeys(self, devname)
 				ll_intfs = remove_entries(ll_intfs, s.pppoerelay)
 				for _, v in ipairs(ll_intfs) do
 					local vlaninfo = make_vlan_info(self, v)
-					if vlaninfo.devname == devname then
+					if vlaninfo.devname == dev then
 						-- include the interface/loweLayer combo if there is either
 						-- a single lowerLayer or the current lowerLayer is the
 						-- active one (eg in an ATM bridge interface)
@@ -771,17 +781,17 @@ Connection.__index = Connection
 function Connection:load(parentKey)
 	local conn
 	local keys
-	
+
 	conn = self._conn_cache[parentKey]
-	if not conn then 
+	if not conn then
 		conn = createConnectionList(self.connType, self.commitapply)
 		self._conn_cache[parentKey] = conn
 	end
-	
+
 	if conn then
 		keys = conn:getKeys(parentKey)
 	end
-	
+
 	return conn, keys
 end
 

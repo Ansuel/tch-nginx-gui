@@ -16,7 +16,7 @@ local firewall_defaults = {
     }
 }
 
-mapper("uci_1to1").registerMultiMap(firewall_defaults)
+mapper("uci_1to1").registerNamedMultiMap(firewall_defaults)
 
 -- uci.firewall.zone.{i}
 local firewall_zone = {
@@ -31,7 +31,7 @@ local firewall_zone = {
     }
 }
 
-mapper("uci_1to1").registerMultiMap(firewall_zone)
+mapper("uci_1to1").registerNamedMultiMap(firewall_zone)
 
 -- uci.firewall.forwarding.{i}
 local firewall_forwarding = {
@@ -42,7 +42,7 @@ local firewall_forwarding = {
     }
 }
 
-mapper("uci_1to1").registerMultiMap(firewall_forwarding)
+mapper("uci_1to1").registerNamedMultiMap(firewall_forwarding)
 
 -- uci.firewall.redirect.{i}
 local firewall_redirect_options = {
@@ -145,7 +145,7 @@ uh.foreach_on_uci({ config = "firewall", sectionname = "rulesgroup"}, function(s
             options = firewall_rule_options,
             lists = firewall_rule_list,
         }
-        mapper("uci_1to1").registerMultiMap(rg)
+        mapper("uci_1to1").registerNamedMultiMap(rg)
     end
 end)
 
@@ -195,3 +195,15 @@ local firewall_cone = {
 }
 
 mapper("uci_1to1").registerMultiMap(firewall_cone)
+
+-- uci.firewall.disabled_cone.{i}.
+
+local firewall_disabled_cone = {
+    config = config_firewall,
+    type = "disabled_cone",
+    options = {
+       "name", "src", "dest_port", "src_port", "dest_ip"
+    },
+}
+
+mapper("uci_1to1").registerMultiMap(firewall_disabled_cone)

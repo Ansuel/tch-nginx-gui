@@ -55,7 +55,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
 
     function B(b, f, l) {
         if (void 0 === l && 1 === b.nodeType)
-            if (l = "data-" + f.replace(ea, "-$1").toLowerCase(), l = b.getAttribute(l), "string" === typeof l) {
+            if (l = "data-" + f.replace(fa, "-$1").toLowerCase(), l = b.getAttribute(l), "string" === typeof l) {
                 try {
                     l = "true" === l ? !0 : "false" === l ? !1 : "null" === l ? null : +l + "" === l ? +l : ua.test(l) ? e.parseJSON(l) : l
                 } catch (y) {}
@@ -77,7 +77,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
                 c = q ? e.cache : b,
                 d = q ? b[a] : b[a] && a;
             if (d && c[d] && (y || c[d].data) || !(void 0 === l && "string" === typeof f)) {
-                d || (d = q ? b[a] = Z.pop() || e.guid++ : a);
+                d || (d = q ? b[a] = aa.pop() || e.guid++ : a);
                 c[d] || (c[d] = q ? {} : {
                     toJSON: e.noop
                 });
@@ -219,13 +219,13 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
     }
 
     function N(b, f) {
-        for (var l, y, a, q = [], c = 0, d = b.length; c < d; c++)
-            if (y = b[c], y.style)
-                if (q[c] = e._data(y, "olddisplay"), l = y.style.display, f) !q[c] && "none" ===
-                    l && (y.style.display = ""), "" === y.style.display && pa(y) && (q[c] = e._data(y, "olddisplay", V(y.nodeName)));
+        for (var l, y, a, c = [], d = 0, m = b.length; d < m; d++)
+            if (y = b[d], y.style)
+                if (c[d] = e._data(y, "olddisplay"), l = y.style.display, f) !c[d] && "none" ===
+                    l && (y.style.display = ""), "" === y.style.display && pa(y) && (c[d] = e._data(y, "olddisplay", V(y.nodeName)));
                 else if (a = pa(y), l && "none" !== l || !a) e._data(y, "olddisplay", a ? l : e.css(y, "display"));
-        for (c = 0; c < d; c++)
-            if (y = b[c], y.style && (!f || "none" === y.style.display || "" === y.style.display)) y.style.display = f ? q[c] || "" : "none";
+        for (d = 0; d < m; d++)
+            if (y = b[d], y.style && (!f || "none" === y.style.display || "" === y.style.display)) y.style.display = f ? c[d] || "" : "none";
         return b
     }
 
@@ -233,7 +233,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
         return (b = Ob.exec(f)) ? Math.max(0, b[1] - (e || 0)) + (b[2] || "px") : f
     }
 
-    function ga(b, f, l, y, a) {
+    function ha(b, f, l, y, a) {
         f = l === (y ? "border" : "content") ? 4 : "width" === f ? 1 : 0;
         for (var c = 0; 4 > f; f += 2) "margin" === l && (c += e.css(b,
             l + va[f], !0, a)), y ? ("content" === l && (c -= e.css(b, "padding" + va[f], !0, a)), "margin" !== l && (c -= e.css(b, "border" + va[f] + "Width", !0, a))) : (c += e.css(b, "padding" + va[f], !0, a), "padding" !== l && (c += e.css(b, "border" + va[f] + "Width", !0, a)));
@@ -253,11 +253,11 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
             a = parseFloat(a) ||
                 0
         }
-        return a + ga(b, f, l || (d ? "border" : "content"), y, c) + "px"
+        return a + ha(b, f, l || (d ? "border" : "content"), y, c) + "px"
     }
 
-    function R(b, f, e, y, a) {
-        return new R.prototype.init(b, f, e, y, a)
+    function R(b, f, e, a, c) {
+        return new R.prototype.init(b, f, e, a, c)
     }
 
     function S() {
@@ -393,24 +393,24 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
         } catch (b) {}
     }
 
-    function ba(b) {
+    function ca(b) {
         return e.isWindow(b) ? b : 9 === b.nodeType ? b.defaultView || b.parentWindow : !1
     }
-    var Z = [],
-        P = Z.slice,
-        ma = Z.concat,
-        fa = Z.push,
-        Xa = Z.indexOf,
-        aa = {},
-        na = aa.toString,
-        ca = aa.hasOwnProperty,
+    var aa = [],
+        P = aa.slice,
+        ma = aa.concat,
+        ga = aa.push,
+        Xa = aa.indexOf,
+        ba = {},
+        na = ba.toString,
+        da = ba.hasOwnProperty,
         E = {},
         e = function(b, f) {
             return new e.fn.init(b, f)
         },
         Ha = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,
         Ya = /^-ms-/,
-        da = /-([\da-z])/gi,
+        ea = /-([\da-z])/gi,
         Ca = function(b, f) {
             return f.toUpperCase()
         };
@@ -456,9 +456,9 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
         end: function() {
             return this.prevObject || this.constructor(null)
         },
-        push: fa,
-        sort: Z.sort,
-        splice: Z.splice
+        push: ga,
+        sort: aa.sort,
+        splice: aa.splice
     };
     e.extend = e.fn.extend = function() {
         var b, f, l, a, c, q = arguments[0] || {},
@@ -501,17 +501,17 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
             var f;
             if (!b || "object" !== e.type(b) || b.nodeType || e.isWindow(b)) return !1;
             try {
-                if (b.constructor && !ca.call(b, "constructor") && !ca.call(b.constructor.prototype, "isPrototypeOf")) return !1
+                if (b.constructor && !da.call(b, "constructor") && !da.call(b.constructor.prototype, "isPrototypeOf")) return !1
             } catch (l) {
                 return !1
             }
             if (E.ownLast)
-                for (f in b) return ca.call(b, f);
+                for (f in b) return da.call(b, f);
             for (f in b);
-            return void 0 === f || ca.call(b, f)
+            return void 0 === f || da.call(b, f)
         },
         type: function(b) {
-            return null == b ? b + "" : "object" === typeof b || "function" === typeof b ? aa[na.call(b)] || "object" : typeof b
+            return null == b ? b + "" : "object" === typeof b || "function" === typeof b ? ba[na.call(b)] || "object" : typeof b
         },
         globalEval: function(b) {
             b && e.trim(b) && (a.execScript || function(b) {
@@ -520,7 +520,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
             })(b)
         },
         camelCase: function(b) {
-            return b.replace(Ya, "ms-").replace(da, Ca)
+            return b.replace(Ya, "ms-").replace(ea, Ca)
         },
         nodeName: function(b, f) {
             return b.nodeName && b.nodeName.toLowerCase() === f.toLowerCase()
@@ -548,7 +548,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
         makeArray: function(b,
             f) {
             var l = f || [];
-            null != b && (r(Object(b)) ? e.merge(l, "string" === typeof b ? [b] : b) : fa.call(l, b));
+            null != b && (r(Object(b)) ? e.merge(l, "string" === typeof b ? [b] : b) : ga.call(l, b));
             return l
         },
         inArray: function(b, f, e) {
@@ -596,14 +596,17 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
         },
         support: E
     });
+																									   
+												  
+	   
     e.each("Boolean Number String Function Array Date RegExp Object Error".split(" "),
         function(b, f) {
-            aa["[object " + f + "]"] = f.toLowerCase()
+            ba["[object " + f + "]"] = f.toLowerCase()
         });
     var la = function(b) {
         function f(b, f, e, l) {
             var a, c, y, q, d;
-            (f ? f.ownerDocument || f : x) !== r && ha(f);
+            (f ? f.ownerDocument || f : x) !== r && Z(f);
             f = f || r;
             e = e || [];
             if (!b || "string" !== typeof b) return e;
@@ -790,7 +793,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
                             q(null, U = [], h, Q)
                         }
                         for (d = U.length; d--;)
-                            if ((m = U[d]) && -1 < (h = q ? ca.call(a, m) : g[d])) a[h] = !(y[h] = m)
+                            if ((m = U[d]) && -1 < (h = q ? da.call(a, m) : g[d])) a[h] = !(y[h] = m)
                     }
                 } else U = F(U === y ? U.splice(v, U.length) : U), q ? q(null, y, U, Q) : Aa.apply(y, U)
             })
@@ -803,7 +806,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
             for (var y = c ? 1 : 0, q = k(function(b) {
                     return b === f
                 }, e, !0), d = k(function(b) {
-                    return -1 < ca.call(f, b)
+                    return -1 < da.call(f, b)
                 }, e, !0), Q = [function(b, e, l) {
                     return !c && (l || e !== X) || ((f = e).nodeType ? q(b, e, l) : d(b, e, l))
                 }]; y < a; y++)
@@ -862,7 +865,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
                 };
             return l ? a(q) : q
         }
-        var t, N, A, B, G, V, E, T, X, D, W, ha, r, u, w, C, J, ga, Ra, R = "sizzle" + -new Date,
+        var t, N, A, B, G, V, E, T, X, D, W, Z, r, u, w, C, J, ha, Ra, R = "sizzle" + -new Date,
             x = b.document,
             z = 0,
             Ba = 0,
@@ -876,33 +879,33 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
             La = "undefined",
             K = -2147483648,
             L = {}.hasOwnProperty,
-            da = [],
-            Pa = da.pop,
-            mb = da.push,
-            Aa = da.push,
-            P = da.slice,
-            ca = da.indexOf || function(b) {
+            ea = [],
+            Pa = ea.pop,
+            mb = ea.push,
+            Aa = ea.push,
+            P = ea.slice,
+            da = ea.indexOf || function(b) {
                 for (var f = 0, e = this.length; f < e; f++)
                     if (this[f] === b) return f;
                 return -1
             },
             ia = "(?:\\\\.|[\\w-]|[^\\x00-\\xa0])+".replace("w", "w#"),
             gb = "\\[[\\x20\\t\\r\\n\\f]*((?:\\\\.|[\\w-]|[^\\x00-\\xa0])+)(?:[\\x20\\t\\r\\n\\f]*([*^$|!~]?\x3d)[\\x20\\t\\r\\n\\f]*(?:'((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\"|(" + ia + "))|)[\\x20\\t\\r\\n\\f]*\\]",
-            fa = ":((?:\\\\.|[\\w-]|[^\\x00-\\xa0])+)(?:\\((('((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\")|((?:\\\\.|[^\\\\()[\\]]|" +
+            ga = ":((?:\\\\.|[\\w-]|[^\\x00-\\xa0])+)(?:\\((('((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\")|((?:\\\\.|[^\\\\()[\\]]|" +
             gb + ")*)|.*)\\)|)",
             za = RegExp("^[\\x20\\t\\r\\n\\f]+|((?:^|[^\\\\])(?:\\\\.)*)[\\x20\\t\\r\\n\\f]+$", "g"),
             Ga = /^[\x20\t\r\n\f]*,[\x20\t\r\n\f]*/,
             Ha = /^[\x20\t\r\n\f]*([>+~]|[\x20\t\r\n\f])[\x20\t\r\n\f]*/,
-            ba = RegExp("\x3d[\\x20\\t\\r\\n\\f]*([^\\]'\"]*?)[\\x20\\t\\r\\n\\f]*\\]", "g"),
-            tb = RegExp(fa),
+            ca = RegExp("\x3d[\\x20\\t\\r\\n\\f]*([^\\]'\"]*?)[\\x20\\t\\r\\n\\f]*\\]", "g"),
+            tb = RegExp(ga),
             ma = RegExp("^" + ia + "$"),
-            Z = {
+            aa = {
                 ID: /^#((?:\\.|[\w-]|[^\x00-\xa0])+)/,
                 CLASS: /^\.((?:\\.|[\w-]|[^\x00-\xa0])+)/,
                 TAG: RegExp("^(" + "(?:\\\\.|[\\w-]|[^\\x00-\\xa0])+".replace("w", "w*") + ")"),
                 ATTR: RegExp("^" + gb),
                 PSEUDO: RegExp("^" +
-                    fa),
+                    ga),
                 CHILD: RegExp("^:(only|first|last|nth|nth-last)-(child|of-type)(?:\\([\\x20\\t\\r\\n\\f]*(even|odd|(([+-]|)(\\d*)n|)[\\x20\\t\\r\\n\\f]*(?:([+-]|)[\\x20\\t\\r\\n\\f]*(\\d+)|))[\\x20\\t\\r\\n\\f]*\\)|)", "i"),
                 bool: RegExp("^(?:checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|ismap|loop|multiple|open|readonly|required|scoped)$", "i"),
                 needsContext: RegExp("^[\\x20\\t\\r\\n\\f]*[\x3e+~]|:(even|odd|eq|gt|lt|nth|first|last)(?:\\([\\x20\\t\\r\\n\\f]*((?:-\\d)?\\d*)[\\x20\\t\\r\\n\\f]*\\)|)(?\x3d[^-]|$)",
@@ -914,16 +917,16 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
             na = /^(?:#([\w-]+)|(\w+)|\.([\w-]+))$/,
             la = /[+~]/,
             ra = /'|\\/g,
-            aa = RegExp("\\\\([\\da-f]{1,6}[\\x20\\t\\r\\n\\f]?|([\\x20\\t\\r\\n\\f])|.)", "ig"),
+            ba = RegExp("\\\\([\\da-f]{1,6}[\\x20\\t\\r\\n\\f]?|([\\x20\\t\\r\\n\\f])|.)", "ig"),
             ta = function(b, f, e) {
                 b = "0x" + f - 65536;
                 return b !== b || e ? f : 0 > b ? String.fromCharCode(b + 65536) : String.fromCharCode(b >> 10 | 55296, b & 1023 | 56320)
             };
         try {
-            Aa.apply(da = P.call(x.childNodes), x.childNodes), da[x.childNodes.length].nodeType
+            Aa.apply(ea = P.call(x.childNodes), x.childNodes), ea[x.childNodes.length].nodeType
         } catch (Fa) {
             Aa = {
-                apply: da.length ? function(b, f) {
+                apply: ea.length ? function(b, f) {
                     mb.apply(b, P.call(f))
                 } : function(b, f) {
                     for (var e = b.length, l = 0; b[e++] = f[l++];);
@@ -935,7 +938,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
         G = f.isXML = function(b) {
             return (b = b && (b.ownerDocument || b).documentElement) ? "HTML" !== b.nodeName : !1
         };
-        ha = f.setDocument = function(b) {
+        Z = f.setDocument = function(b) {
             var f = b ? b.ownerDocument || b : x;
             b = f.defaultView;
             if (f === r || 9 !== f.nodeType || !f.documentElement) return r;
@@ -943,9 +946,9 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
             u = f.documentElement;
             w = !G(f);
             b && b !== b.top && (b.addEventListener ? b.addEventListener("unload", function() {
-                ha()
+                Z()
             }, !1) : b.attachEvent && b.attachEvent("onunload", function() {
-                ha()
+                Z()
             }));
             N.attributes = c(function(b) {
                 b.className =
@@ -971,12 +974,12 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
                     return e && e.parentNode ? [e] : []
                 }
             }, A.filter.ID = function(b) {
-                var f = b.replace(aa, ta);
+                var f = b.replace(ba, ta);
                 return function(b) {
                     return b.getAttribute("id") === f
                 }
             }) : (delete A.find.ID, A.filter.ID = function(b) {
-                var f = b.replace(aa, ta);
+                var f = b.replace(ba, ta);
                 return function(b) {
                     return (b = typeof b.getAttributeNode !== La && b.getAttributeNode("id")) && b.value === f
                 }
@@ -1014,10 +1017,10 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
                 b.querySelectorAll("*,:x");
                 C.push(",.*:")
             });
-            (N.matchesSelector = ka.test(ga = u.matches || u.webkitMatchesSelector || u.mozMatchesSelector || u.oMatchesSelector || u.msMatchesSelector)) && c(function(b) {
-                N.disconnectedMatch = ga.call(b, "div");
-                ga.call(b, "[s!\x3d'']:x");
-                J.push("!\x3d", fa)
+            (N.matchesSelector = ka.test(ha = u.matches || u.webkitMatchesSelector || u.mozMatchesSelector || u.oMatchesSelector || u.msMatchesSelector)) && c(function(b) {
+                N.disconnectedMatch = ha.call(b, "div");
+                ha.call(b, "[s!\x3d'']:x");
+                J.push("!\x3d", ga)
             });
             C = C.length && RegExp(C.join("|"));
             J = J.length && RegExp(J.join("|"));
@@ -1037,7 +1040,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
                 if (l) return l;
                 l = (b.ownerDocument || b) === (e.ownerDocument || e) ? b.compareDocumentPosition(e) : 1;
                 return l & 1 || !N.sortDetached && e.compareDocumentPosition(b) === l ? b === f || b.ownerDocument === x && Ra(x, b) ? -1 : e === f || e.ownerDocument ===
-                    x && Ra(x, e) ? 1 : D ? ca.call(D, b) - ca.call(D, e) : 0 : l & 4 ? -1 : 1
+                    x && Ra(x, e) ? 1 : D ? da.call(D, b) - da.call(D, e) : 0 : l & 4 ? -1 : 1
             } : function(b, e) {
                 if (b === e) return W = !0, 0;
                 var l, a = 0;
@@ -1045,7 +1048,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
                 var c = e.parentNode,
                     y = [b],
                     q = [e];
-                if (!l || !c) return b === f ? -1 : e === f ? 1 : l ? -1 : c ? 1 : D ? ca.call(D, b) - ca.call(D, e) : 0;
+                if (!l || !c) return b === f ? -1 : e === f ? 1 : l ? -1 : c ? 1 : D ? da.call(D, b) - da.call(D, e) : 0;
                 if (l === c) return d(b, e);
                 for (l = b; l = l.parentNode;) y.unshift(l);
                 for (l = e; l = l.parentNode;) q.unshift(l);
@@ -1059,20 +1062,20 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
         };
         f.matchesSelector = function(b, e) {
             (b.ownerDocument || b) !== r &&
-                ha(b);
-            e = e.replace(ba, "\x3d'$1']");
+                Z(b);
+            e = e.replace(ca, "\x3d'$1']");
             if (N.matchesSelector && w && (!J || !J.test(e)) && (!C || !C.test(e))) try {
-                var l = ga.call(b, e);
+                var l = ha.call(b, e);
                 if (l || N.disconnectedMatch || b.document && 11 !== b.document.nodeType) return l
             } catch (a) {}
             return 0 < f(e, r, null, [b]).length
         };
         f.contains = function(b, f) {
-            (b.ownerDocument || b) !== r && ha(b);
+            (b.ownerDocument || b) !== r && Z(b);
             return Ra(b, f)
         };
         f.attr = function(b, f) {
-            (b.ownerDocument || b) !== r && ha(b);
+            (b.ownerDocument || b) !== r && Z(b);
             var e = A.attrHandle[f.toLowerCase()],
                 e = e && L.call(A.attrHandle, f.toLowerCase()) ? e(b, f, !w) : void 0;
             return void 0 !== e ? e : N.attributes || !w ? b.getAttribute(f) :
@@ -1113,7 +1116,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
         A = f.selectors = {
             cacheLength: 50,
             createPseudo: a,
-            match: Z,
+            match: aa,
             attrHandle: {},
             find: {},
             relative: {
@@ -1134,8 +1137,8 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
             },
             preFilter: {
                 ATTR: function(b) {
-                    b[1] = b[1].replace(aa, ta);
-                    b[3] = (b[3] || b[4] || b[5] || "").replace(aa, ta);
+                    b[1] = b[1].replace(ba, ta);
+                    b[3] = (b[3] || b[4] || b[5] || "").replace(ba, ta);
                     "~\x3d" === b[2] && (b[3] = " " + b[3] + " ");
                     return b.slice(0, 4)
                 },
@@ -1147,7 +1150,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
                 },
                 PSEUDO: function(b) {
                     var f, e = !b[6] && b[2];
-                    if (Z.CHILD.test(b[0])) return null;
+                    if (aa.CHILD.test(b[0])) return null;
                     if (b[3]) b[2] = b[4] || b[5] || "";
                     else if (e && tb.test(e) && (f = V(e, !0)) && (f = e.indexOf(")", e.length - f) - e.length)) b[0] = b[0].slice(0, f), b[2] = e.slice(0, f);
                     return b.slice(0, 3)
@@ -1155,7 +1158,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
             },
             filter: {
                 TAG: function(b) {
-                    var f = b.replace(aa, ta).toLowerCase();
+                    var f = b.replace(ba, ta).toLowerCase();
                     return "*" === b ? function() {
                         return !0
                     } : function(b) {
@@ -1225,7 +1228,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
                     var l, c = A.pseudos[b] || A.setFilters[b.toLowerCase()] ||
                         f.error("unsupported pseudo: " + b);
                     return c[R] ? c(e) : 1 < c.length ? (l = [b, b, "", e], A.setFilters.hasOwnProperty(b.toLowerCase()) ? a(function(b, f) {
-                        for (var l, a = c(b, e), y = a.length; y--;) l = ca.call(b, a[y]), b[l] = !(f[l] = a[y])
+                        for (var l, a = c(b, e), y = a.length; y--;) l = da.call(b, a[y]), b[l] = !(f[l] = a[y])
                     }) : function(b) {
                         return c(b, 0, l)
                     }) : c
@@ -1259,7 +1262,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
                 }),
                 lang: a(function(b) {
                     ma.test(b || "") || f.error("unsupported lang: " + b);
-                    b = b.replace(aa, ta).toLowerCase();
+                    b = b.replace(ba, ta).toLowerCase();
                     return function(f) {
                         var e;
                         do
@@ -1369,7 +1372,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
                     type: a[0].replace(za, " ")
                 }), q = q.slice(l.length);
                 for (y in A.filter)
-                    if ((a = Z[y].exec(q)) && (!Q[y] || (a = Q[y](a)))) l = a.shift(), c.push({
+                    if ((a = aa[y].exec(q)) && (!Q[y] || (a = Q[y](a)))) l = a.shift(), c.push({
                         value: l,
                         type: y,
                         matches: a
@@ -1397,15 +1400,15 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
             if (1 === Q.length) {
                 c = Q[0] = Q[0].slice(0);
                 if (2 < c.length && "ID" === (y = c[0]).type && N.getById && 9 === f.nodeType && w && A.relative[c[1].type]) {
-                    if (f = (A.find.ID(y.matches[0].replace(aa, ta), f) || [])[0]) d && (f = f.parentNode);
+                    if (f = (A.find.ID(y.matches[0].replace(ba, ta), f) || [])[0]) d && (f = f.parentNode);
                     else return e;
                     b = b.slice(c.shift().value.length)
                 }
-                for (a = Z.needsContext.test(b) ? 0 : c.length; a--;) {
+                for (a = aa.needsContext.test(b) ? 0 : c.length; a--;) {
                     y = c[a];
                     if (A.relative[q = y.type]) break;
                     if (q = A.find[q])
-                        if (l = q(y.matches[0].replace(aa, ta), la.test(c[0].type) &&
+                        if (l = q(y.matches[0].replace(ba, ta), la.test(c[0].type) &&
                                 p(f.parentNode) || f)) {
                             c.splice(a, 1);
                             b = l.length && v(c);
@@ -1418,7 +1421,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
         };
         N.sortStable = R.split("").sort(qa).join("") === R;
         N.detectDuplicates = !!W;
-        ha();
+        Z();
         N.sortDetached = c(function(b) {
             return b.compareDocumentPosition(r.createElement("div")) & 1
         });
@@ -1849,7 +1852,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
         return 1 !== l && 9 !== l ? !1 : !f || !0 !== f && b.getAttribute("classid") === f
     };
     var ua = /^(?:\{[\w\W]*\}|\[[\w\W]*\])$/,
-        ea = /([A-Z])/g;
+        fa = /([A-Z])/g;
     e.extend({
         cache: {},
         noData: {
@@ -2084,8 +2087,8 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
         },
         trigger: function(b, f, l, c) {
             var d, q, h, m, g, p, n = [l || L],
-                v = ca.call(b, "type") ? b.type : b;
-            g = ca.call(b, "namespace") ? b.namespace.split(".") : [];
+                v = da.call(b, "type") ? b.type : b;
+            g = da.call(b, "namespace") ? b.namespace.split(".") : [];
             h = d = l = l || L;
             if (!(3 === l.nodeType || 8 === l.nodeType) && !jb.test(v + e.event.triggered))
                 if (0 <= v.indexOf(".") &&
@@ -2414,7 +2417,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
         fb = /^\s+/,
         kb = /<(?!area|br|col|embed|hr|img|input|link|meta|param)(([\w:]+)[^>]*)\/>/gi,
         lb = /<([\w:]+)/,
-        ha = /<tbody/i,
+        Z = /<tbody/i,
         Ra = /<|&#?\w+;/,
         La = /<(?:script|style|link)/i,
         Aa = /checked\s*(?:[^=]|=\s*.checked.)/i,
@@ -2492,7 +2495,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
                 for (d = n[0]; d--;) m = m.lastChild;
                 !E.leadingWhitespace && fb.test(q) && I.push(f.createTextNode(fb.exec(q)[0]));
                 if (!E.tbody)
-                    for (d = (q = "table" === g && !ha.test(q) ? m.firstChild : "\x3ctable\x3e" === n[1] && !ha.test(q) ? m : 0) && q.childNodes.length; d--;) e.nodeName(p = q.childNodes[d], "tbody") && !p.childNodes.length && q.removeChild(p);
+                    for (d = (q = "table" === g && !Z.test(q) ? m.firstChild : "\x3ctable\x3e" === n[1] && !Z.test(q) ? m : 0) && q.childNodes.length; d--;) e.nodeName(p = q.childNodes[d], "tbody") && !p.childNodes.length && q.removeChild(p);
                 e.merge(I, m.childNodes);
                 for (m.textContent = ""; m.firstChild;) m.removeChild(m.firstChild);
                 m = k.lastChild
@@ -2512,7 +2515,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
                         if (q.events)
                             for (c in q.events) n[c] ? e.event.remove(a, c) : e.removeEvent(a, c, q.handle);
                         g[d] && (delete g[d], p ? delete a[m] : typeof a.removeAttribute !== H ? a.removeAttribute(m) :
-                            a[m] = null, Z.push(d))
+                            a[m] = null, aa.push(d))
                     }
         }
     });
@@ -2530,7 +2533,8 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
         prepend: function() {
             return this.domManip(arguments, function(b) {
                 if (1 === this.nodeType || 11 === this.nodeType || 9 === this.nodeType) {
-                    var f = I(this, b);
+                    var f = I(this,
+                        b);
                     f.insertBefore(b, f.firstChild)
                 }
             })
@@ -2628,7 +2632,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
     }, function(b, f) {
         e.fn[b] = function(b) {
             for (var a = 0, c = [], d = e(b), h = d.length - 1; a <= h; a++) b = a === h ? this : this.clone(!0), e(d[a])[f](b),
-                fa.apply(c, b.get());
+                ga.apply(c, b.get());
             return this.pushStack(c)
         }
     });
@@ -2803,7 +2807,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
             },
             set: function(b, a, c) {
                 var d = c && Fa(b);
-                return G(b, a, c ? ga(b, f, c, E.boxSizing && "border-box" === e.css(b, "boxSizing", !1, d), d) : 0)
+                return G(b, a, c ? ha(b, f, c, E.boxSizing && "border-box" === e.css(b, "boxSizing", !1, d), d) : 0)
             }
         }
     });
@@ -3585,29 +3589,29 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
                     }
                     a: {
                         f = s;y = k;V = G;E = d;
-                        var ha, W, r, M = {},
+                        var r, Z, W, M = {},
                             D = f.dataTypes.slice();
                         if (D[1])
-                            for (W in f.converters) M[W.toLowerCase()] = f.converters[W];
+                            for (Z in f.converters) M[Z.toLowerCase()] = f.converters[Z];
                         for (T = D.shift(); T;)
-                            if (f.responseFields[T] && (V[f.responseFields[T]] = y), !r && (E && f.dataFilter) && (y = f.dataFilter(y, f.dataType)), r = T, T = D.shift())
-                                if ("*" === T) T = r;
-                                else if ("*" !== r && r !== T) {
-                            W = M[r + " " + T] || M["* " + T];
-                            if (!W)
-                                for (ha in M)
-                                    if (k = ha.split(" "), k[1] === T && (W = M[r + " " + k[0]] || M["* " + k[0]])) {
-                                        !0 === W ? W = M[ha] : !0 !== M[ha] && (T = k[0], D.unshift(k[1]));
+                            if (f.responseFields[T] && (V[f.responseFields[T]] = y), !W && (E && f.dataFilter) && (y = f.dataFilter(y, f.dataType)), W = T, T = D.shift())
+                                if ("*" === T) T = W;
+                                else if ("*" !== W && W !== T) {
+                            Z = M[W + " " + T] || M["* " + T];
+                            if (!Z)
+                                for (r in M)
+                                    if (k = r.split(" "), k[1] === T && (Z = M[W + " " + k[0]] || M["* " + k[0]])) {
+                                        !0 === Z ? Z = M[r] : !0 !== M[r] && (T = k[0], D.unshift(k[1]));
                                         break
                                     }
-                            if (!0 !== W)
-                                if (W && f["throws"]) y = W(y);
+                            if (!0 !== Z)
+                                if (Z && f["throws"]) y = Z(y);
                                 else try {
-                                    y = W(y)
-                                } catch (C) {
+                                    y = Z(y)
+                                } catch (u) {
                                     k = {
                                         state: "parsererror",
-                                        error: W ? C : "No conversion from " + r + " to " + T
+                                        error: Z ? u : "No conversion from " + W + " to " + T
                                     };
                                     break a
                                 }
@@ -4039,7 +4043,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
                 a = h.documentElement;
                 if (!e.contains(a, c)) return d;
                 typeof c.getBoundingClientRect !== H && (d = c.getBoundingClientRect());
-                c = ba(h);
+                c = ca(h);
                 return {
                     top: d.top + (c.pageYOffset || a.scrollTop) - (a.clientTop || 0),
                     left: d.left + (c.pageXOffset || a.scrollLeft) - (a.clientLeft || 0)
@@ -4075,7 +4079,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
         var c = /Y/.test(a);
         e.fn[b] = function(d) {
             return oa(this, function(b, d, h) {
-                var m = ba(b);
+                var m = ca(b);
                 if (void 0 === h) return m ? a in m ? m[a] : m.document.documentElement[d] :
                     b[d];
                 m ? m.scrollTo(!c ? h : e(m).scrollLeft(), c ? h : e(m).scrollTop()) : b[d] = h
@@ -4331,6 +4335,22 @@ function Apprise(a, u) {
                 $window.unbind("beforeunload");
                 $window.unbind("keydown");
                 AppriseQueue[0] && (Apprise(AppriseQueue[0].text, AppriseQueue[0].options), AppriseQueue.splice(0, 1))
+		  
+								   
+											 
+																																																												  
+		  
+										 
+				
+																						
+												   
+						
+									  
+						 
+							   
+												   
+				  
+						   
             })
         }, this.keyPress = function() {
             $window.bind("keydown", function(a) {
@@ -4538,6 +4558,7 @@ function Apprise(a, u) {
                 g.focus()
             })
         })
+	  
 }(window.jQuery);
 ! function(a) {
     function u() {
@@ -5515,6 +5536,22 @@ function Apprise(a, u) {
         this.v("mark") && 1 < a.length && (z = this.v("mark") + a[1]);
         return this.v("to")(r + this.v("prefix") + k + u + z + this.v("postfix"))
     };
+									
+					   
+																	
+		 
+			  
+												  
+							  
+						 
+																	 
+											
+															 
+																								
+																																		   
+												 
+								
+	  
     r.prototype.from =
         function(a) {
             function c(a) {
@@ -5581,6 +5618,11 @@ function Apprise(a, u) {
             throw new RangeError("(Link) Invalid Link.");
         }
     };
+											  
+									   
+																																					   
+												  
+	  
     c.prototype.write =
         function(a, c, g, k) {
             if (!(this.update && !1 === k))
@@ -5972,7 +6014,7 @@ function Apprise(a, u) {
         function A(c) {
             a("." + S[15]).removeClass(S[15]);
             c.cursor && a("body").css("cursor", "").off(".nui");
-            ga.off(".nui");
+            ha.off(".nui");
             D.removeClass(S[12]);
             v(["set", "change"])
         }
@@ -5980,12 +6022,12 @@ function Apprise(a, u) {
         function G(c, e) {
             1 === e.handles.length && e.handles[0].children().addClass(S[15]);
             c.stopPropagation();
-            F(R.move, ga, I, {
+            F(R.move, ha, I, {
                 start: c.calcPoint,
                 handles: e.handles,
                 positions: [B[0], B[x.length - 1]]
             });
-            F(R.end, ga, A, null);
+            F(R.end, ha, A, null);
             c.cursor && (a("body").css("cursor", a(c.target).css("cursor")), 1 < x.length && D.addClass(S[12]), a("body").on("selectstart.nui", !1))
         }
 
@@ -6090,7 +6132,7 @@ function Apprise(a, u) {
     function G() {
         return this[0][!arguments.length ? "vGet" : "vSet"].apply(this[0], arguments)
     }
-    var ga = a(document),
+    var ha = a(document),
         qa = a.fn.val,
         R = window.navigator.pointerEnabled ? {
             start: "pointerdown",
@@ -6281,6 +6323,8 @@ function Apprise(a, u) {
 })(jQuery);
 var tch = tch || {};
 (function(a) {
+	count = 0		 
+
     function u() {
         I && (window.clearTimeout(I), I = void 0);
         p && (window.clearTimeout(p), p = void 0)
@@ -6306,7 +6350,7 @@ var tch = tch || {};
 
     function c() {
         "1" === $("meta[name\x3dAdvanced]").attr("content") && ($(".advanced.hide").removeClass("hide"), $(".modal-action-advanced").parent().remove());
-		wz();
+		wz();	 
         $(".tooltip-on").tooltip();
         $(".monitor-changes").each(function() {
             w(this, !0)
@@ -6383,7 +6427,7 @@ var tch = tch || {};
         }, 1E3)
     }
 
-	function wz() {
+    function wz() {
         var a = $(".modal-body .wizard").first();
         if (0 !== a.length) {
             var c = 0,
@@ -6396,7 +6440,8 @@ var tch = tch || {};
             h.hide();
             c < h.length ? ($(".wizard-confirm").hide(), h.eq(c).show(), $("#wizard-complete").hide(), 0 === c && $("#wizard-previous").hide()) : $("#wizard-next").hide()
         }
-    }
+    }				   
+	
     function d() {
         $(".modal-body .typeahead").each(function(a, c) {
             var d = $(c),
@@ -6558,9 +6603,9 @@ var tch = tch || {};
             })
         }
     }
-	function wa(a) {
-        var c =
-            $(".wizard");
+
+    function wa(a) {
+        var c = $(".wizard");
         if ("true" !== c.attr("button-clicked")) {
             c.attr("button-clicked", "true");
             V && clearTimeout(V);
@@ -6665,6 +6710,9 @@ var tch = tch || {};
         d.change();
         return !1
     });
+																  
+		   
+	   
     $(document).on("click",
         ".modal-action-advanced",
         function() {
@@ -6721,6 +6769,9 @@ var tch = tch || {};
     $(document).on("click", "table .btn-table-cancel:not(.disabled)", function() {
         x("TABLE-CANCEL", this)
     });
+																				  
+																								  
+	   
     $(document).on("change",
         'table .switch input[type\x3d"hidden"]',
         function() {
@@ -6753,7 +6804,10 @@ var tch = tch || {};
         $(a.target).hasClass("modal") && u()
     });
     $(document).on("hidden", ".modal", function(a) {
-        $(a.target).hasClass("modal") && window.location.reload(!0)
+		$(a.target).hasClass("modal")
+        if (count > 0) {
+            window.location.reload(!0)
+        }
     });
     var J = !1;
     $(document).on("click touchend", '[data-toggle\x3d"modal"]', function(a) {
@@ -6773,6 +6827,7 @@ var tch = tch || {};
         }
     });
     $(document).on("click", "#save-config", function() {
+		count = count + 1				 
         var a = $(".modal form"),
             c = a.serializeArray();
         c.push({
@@ -6816,7 +6871,7 @@ var tch = tch || {};
         r(a, d, function() {
             0 === $(".error").length ? ($(".loading-wrapper").removeClass("hide"), $(".btn").hide(), window.location.reload(!0)) : $('.error input:not([type\x3d"hidden"])').first().focus()
         })
-    });
+    }); 
     $(document).on("click", ".nav a", function() {
         var a = $(this),
             c = a.attr("data-remote");
@@ -6860,7 +6915,7 @@ var tch = tch || {};
             return (new Number(a.charCodeAt(0))).toString(16)
         })
     }
-	a.nextWizardCard = wa
+	a.nextWizardCard = wa				 
 })(tch);
 $(document).ready(function() {
     var a = $(".someInfos");
@@ -6875,6 +6930,36 @@ $(document).ready(function() {
     });
     1 < window.location.hash.length && ($('div[data-id\x3d"' + window.location.hash.substring(1) + '"]').click(), window.location.hash = "")
 });
+
+$(document).ready(function() {
+    var a = $(".smallsomeInfos");
+    a.click(function() {
+        a.tooltip("hide")
+    });
+    a.tooltip();
+    $(".tooltip-on").tooltip();
+    $('select[name\x3d"webui_language"]').on("change", function() {
+        tch.setCookie("webui_language", $(this).val(), 30);
+        location.reload(!0)
+    });
+    1 < window.location.hash.length && ($('div[data-id\x3d"' + window.location.hash.substring(1) + '"]').click(), window.location.hash = "")
+});
+
+function confirmationDialogue(a, u) {
+    var r = '\x3cdiv class\x3d"header"\x3e\x3cdiv data-toggle\x3d"modal" class\x3d"header-title pull-left"\x3e\x3cp\x3e' + u + "\x3c/p\x3e\x3c/div\x3e\x3c/div\x3e";
+    $("body").append('\x3cdiv class\x3d"popUpBG"\x3e\x3c/div\x3e');
+    $("body").append('\x3cdiv id\x3d"popUp"  class\x3d"popUp smallcard popUp-modal"\x3e' + r + '\x3cdiv id\x3d"Poptxt" class\x3d"content"\x3e\x3c/div\x3e');
+    var c = a + '\x3cbr/\x3e\x3cdiv class \x3d "pull-center"\x3e\x3cdiv id\x3d"ok" class\x3d "btn btn-primary btn-large ' +
+        u + '" align\x3d"center"\x3e' + okButton + '\x3c/div\x3e\x3cdiv id\x3d"cancel" class\x3d"btn btn-primary btn-large" align\x3d"center"\x3e' + cancelButton + "\x3c/div\x3e\x3c/div\x3e",
+        g = $(document).height(),
+        r = $(window).height(),
+        k = $(window).scrollTop();
+    $("#Poptxt").html(c);
+    $(".popUpBG").css("height", g);
+    c = $(".header .settings").css("background-color");
+    $(".spinner3 div").css("background-color", c);
+    10 < k && $("#popUp").css("top", 0.4 * r + k)
+}
 var qrcode = function() {
     function a(c, d) {
         if ("undefined" == typeof c.length) throw Error(c.length + "/" + d);
@@ -7590,8 +7675,8 @@ var qrcode = function() {
         function v(a, c, e) {
             a.stopPropagation();
             a.preventDefault();
-            if (!da && !s(c) && !c.hasClass("dwa")) {
-                da = !0;
+            if (!ea && !s(c) && !c.hasClass("dwa")) {
+                ea = !0;
                 var d = c.find(".dw-ul");
                 u(d);
                 clearInterval(ja);
@@ -7616,7 +7701,7 @@ var qrcode = function() {
                 m = c.keys || h;
             a.each(h, function(a, c) {
                 0 == d % 20 && (e += '\x3c/div\x3e\x3cdiv class\x3d"dw-bf"\x3e');
-                e += '\x3cdiv role\x3d"option" aria-selected\x3d"false" class\x3d"dw-li dw-v" data-val\x3d"' + m[a] + '"' + (g[a] ? ' aria-label\x3d"' + g[a] + '"' : "") + ' style\x3d"height:' + ba + "px;line-height:" + ba + 'px;"\x3e\x3cdiv class\x3d"dw-i"\x3e' + c + "\x3c/div\x3e\x3c/div\x3e";
+                e += '\x3cdiv role\x3d"option" aria-selected\x3d"false" class\x3d"dw-li dw-v" data-val\x3d"' + m[a] + '"' + (g[a] ? ' aria-label\x3d"' + g[a] + '"' : "") + ' style\x3d"height:' + ca + "px;line-height:" + ca + 'px;"\x3e\x3cdiv class\x3d"dw-i"\x3e' + c + "\x3c/div\x3e\x3c/div\x3e";
                 d++
             });
             return e += "\x3c/div\x3e"
@@ -7635,7 +7720,7 @@ var qrcode = function() {
         }
 
         function z() {
-            H.temp = Ka && null !== H.val && H.val != ea.val() || null === H.values ? K.parseValue(ea.val() || "", H) : H.values.slice(0);
+            H.temp = Ka && null !== H.val && H.val != fa.val() || null === H.values ? K.parseValue(fa.val() || "", H) : H.values.slice(0);
             ka()
         }
 
@@ -7645,7 +7730,7 @@ var qrcode = function() {
             h ? (a.each(["t", "webkitT", "MozT", "OT", "msT"], function(a, c) {
                 if (void 0 !== e[c + "ransform"]) return d = e[c + "ransform"], !1
             }), d = d.split(")")[0].split(", "), c = d[13] || d[5]) : c = e.top.replace("px", "");
-            return Math.round(Wa - c / ba)
+            return Math.round(Wa - c / ca)
         }
 
         function T(a, c) {
@@ -7655,7 +7740,7 @@ var qrcode = function() {
         }
 
         function X(a, c, e, d, g) {
-            var k = (Wa - e) * ba,
+            var k = (Wa - e) * ca,
                 m = a[0].style;
             k == Ea[c] && pa[c] || (d && k != Ea[c] && Y("onAnimStart", [P, c, d]), Ea[c] = k, m[I + "Transition"] = "all " + (d ? d.toFixed(3) : 0) + "s ease-out", h ? m[I + "Transform"] = "translate3d(0," + k + "px,0)" : m.top = k + "px", pa[c] && T(a, c), d && g && (a.closest(".dwwl").addClass("dwa"), pa[c] = setTimeout(function() {
                 T(a, c)
@@ -7676,8 +7761,8 @@ var qrcode = function() {
                         (u < t && u && 2 !== g || !t || 0 > p - t || 1 == g) && m.hasClass("dw-v") ? p += u : (m = r, p -= t)
                     }
                     if (!m.hasClass("dw-sel") || v) H.temp[d] = m.attr("data-val"), a(".dw-sel", k).removeClass("dw-sel"), K.multiple || (a(".dw-sel", k).removeAttr("aria-selected"), m.attr("aria-selected", "true")), m.addClass("dw-sel"), X(k, d, p, v ? c : 0.1, v ? h : !1)
-                }), Z = K.formatResult(H.temp), "inline" ==
-                K.display ? ka(d, 0, !0) : a(".dwv", P).html(C(Z)), d && Y("onChange", [Z]))
+                }), aa = K.formatResult(H.temp), "inline" ==
+                K.display ? ka(d, 0, !0) : a(".dwv", P).html(C(aa)), d && Y("onChange", [aa]))
         }
 
         function Y(c, e) {
@@ -7709,44 +7794,44 @@ var qrcode = function() {
 
         function Ga(a) {
             var c = oa[xa] - 1;
-            Ba(a, c < L ? Ia :
-                c, 2, !0)
+            Ba(a, c < L ?
+                Ia : c, 2, !0)
         }
 
         function ka(a, c, e, d) {
             Da && !e && W(c);
-            Z = K.formatResult(H.temp);
-            d || (H.values = H.temp.slice(0), H.val = Z);
-            a && Ka && ea.val(Z).trigger("change")
+            aa = K.formatResult(H.temp);
+            d || (H.values = H.temp.slice(0), H.val = aa);
+            a && Ka && fa.val(aa).trigger("change")
         }
-        var Wa, ba, Z, P, ma, fa, Xa, aa, na, ca, E, e, Ha, Ya, da, Ca, la, ra, za, ya, wa, L, Ia, sa, xa, ja, Ua, Ja, H = this,
+        var Wa, ca, aa, P, ma, ga, Xa, ba, na, da, E, e, Ha, Ya, ea, Ca, la, ra, za, ya, wa, L, Ia, sa, xa, ja, Ua, Ja, H = this,
             Za = a.mobiscroll,
             ua = d,
-            ea = a(ua),
+            fa = a(ua),
             K = p({}, O),
             va = {},
             pa = {},
             oa = {},
             Ea = {},
             Qa = [],
-            Ka = ea.is("input"),
+            Ka = fa.is("input"),
             Da = !1,
             jb = function(e) {
-                c(e) && (!n && !s(this) && !da) && (e.preventDefault(), n = !0, Ca = "clickpick" != K.mode, sa = a(".dw-ul", this), u(sa), wa = (la = void 0 !== pa[xa]) ? S(sa) : oa[xa], ra = g(e, "Y"), za = new Date,
+                c(e) && (!n && !s(this) && !ea) && (e.preventDefault(), n = !0, Ca = "clickpick" != K.mode, sa = a(".dw-ul", this), u(sa), wa = (la = void 0 !== pa[xa]) ? S(sa) : oa[xa], ra = g(e, "Y"), za = new Date,
                     ya = ra, X(sa, xa, wa, 0.001), Ca && sa.closest(".dwwl").addClass("dwa"), a(document).on(J, db).on(M, ab))
             },
             db = function(a) {
-                Ca && (a.preventDefault(), a.stopPropagation(), ya = g(a, "Y"), X(sa, xa, Math.max(L - 1, Math.min(wa + (ra - ya) / ba, Ia + 1))));
+                Ca && (a.preventDefault(), a.stopPropagation(), ya = g(a, "Y"), X(sa, xa, Math.max(L - 1, Math.min(wa + (ra - ya) / ca, Ia + 1))));
                 la = !0
             },
             ab = function(c) {
                 var e = new Date - za;
-                c = Math.max(L - 1, Math.min(wa + (ra - ya) / ba, Ia + 1));
+                c = Math.max(L - 1, Math.min(wa + (ra - ya) / ca, Ia + 1));
                 var d, g = sa.offset().top;
                 300 > e ? (e = (ya - ra) / e, d = e * e / K.speedUnit, 0 > ya - ra && (d = -d)) : d = ya - ra;
-                e = Math.round(wa - d / ba);
+                e = Math.round(wa - d / ca);
                 if (!d && !la) {
-                    var g = Math.floor((ya - g) / ba),
+                    var g = Math.floor((ya - g) / ca),
                         h = a(".dw-li", sa).eq(g);
                     d = Ca;
                     !1 !== Y("onValueTap", [h]) ? e = g : d = !0;
@@ -7769,7 +7854,7 @@ var qrcode = function() {
                 d.hasClass("dwwb") && c(e) && v(e, d.closest(".dwwl"), d.hasClass("dwwbp") ? Pa : Ga)
             },
             eb = function(c) {
-                da && (clearInterval(ja), da = !1);
+                ea && (clearInterval(ja), ea = !1);
                 a(document).off(M, eb);
                 a(".dwb-a", P).removeClass("dwb-a")
             },
@@ -7778,7 +7863,7 @@ var qrcode = function() {
                     v(c, a(this), Ga) : 40 == c.keyCode && v(c, a(this), Pa)
             },
             kb = function(a) {
-                da && (clearInterval(ja), da = !1)
+                ea && (clearInterval(ja), ea = !1)
             },
             lb = function(c) {
                 if (!s(this)) {
@@ -7798,37 +7883,37 @@ var qrcode = function() {
                 h = a(".dwwr", P);
                 var t = a(".dw", P),
                     u = {};
-                k = void 0 === K.anchor ? ea : K.anchor;
+                k = void 0 === K.anchor ? fa : K.anchor;
                 ma = a(window).width();
                 Xa = a(window).height();
-                fa = (fa = window.innerHeight) || Xa;
+                ga = (ga = window.innerHeight) || Xa;
                 /modal|bubble/.test(K.display) && (a(".dwc", P).each(function() {
                     e = a(this).outerWidth(!0);
                     s += e;
                     r = e > r ? e : r
                 }), e = s > ma ? r : s, h.width(e).css("white-space", s > ma ? "" : "nowrap"));
-                aa = t.outerWidth();
+                ba = t.outerWidth();
                 na = t.outerHeight(!0);
-                ca = na <= fa && aa <= ma;
-                "modal" == K.display ? (d = (ma - aa) / 2, g = c + (fa - na) / 2) : "bubble" == K.display ? (v = !0, p = a(".dw-arrw-i", P), d = k.offset(), m = d.top, n = d.left, h = k.outerWidth(), k = k.outerHeight(), d = n - (t.outerWidth(!0) -
-                    h) / 2, d = d > ma - aa ? ma - (aa + 20) : d, d = 0 <= d ? d : 20, g = m - na, g < c || m > c + fa ? (t.removeClass("dw-bubble-top").addClass("dw-bubble-bottom"), g = m + k) : t.removeClass("dw-bubble-bottom").addClass("dw-bubble-top"), p = p.outerWidth(), h = n + h / 2 - (d + (aa - p) / 2), a(".dw-arr", P).css({
+                da = na <= ga && ba <= ma;
+                "modal" == K.display ? (d = (ma - ba) / 2, g = c + (ga - na) / 2) : "bubble" == K.display ? (v = !0, p = a(".dw-arrw-i", P), d = k.offset(), m = d.top, n = d.left, h = k.outerWidth(), k = k.outerHeight(), d = n - (t.outerWidth(!0) -
+                    h) / 2, d = d > ma - ba ? ma - (ba + 20) : d, d = 0 <= d ? d : 20, g = m - na, g < c || m > c + ga ? (t.removeClass("dw-bubble-top").addClass("dw-bubble-bottom"), g = m + k) : t.removeClass("dw-bubble-bottom").addClass("dw-bubble-top"), p = p.outerWidth(), h = n + h / 2 - (d + (ba - p) / 2), a(".dw-arr", P).css({
                     left: Math.max(0, Math.min(h, p))
-                })) : (u.width = "100%", "top" == K.display ? g = c : "bottom" == K.display && (g = c + fa - na));
+                })) : (u.width = "100%", "top" == K.display ? g = c : "bottom" == K.display && (g = c + ga - na));
                 u.top = 0 > g ? 0 : g;
                 u.left = d;
                 t.css(u);
                 a(".dw-persp", P).height(0).height(g + na > a(document).height() ? g + na : a(document).height());
-                v && (g + na > c + fa || m > c + fa) && a(window).scrollTop(g +
-                    na - fa)
+                v && (g + na > c + ga || m > c + ga) && a(window).scrollTop(g +
+                    na - ga)
             }
         };
         H.enable = function() {
             K.disabled = !1;
-            Ka && ea.prop("disabled", !1)
+            Ka && fa.prop("disabled", !1)
         };
         H.disable = function() {
             K.disabled = !0;
-            Ka && ea.prop("disabled", !0)
+            Ka && fa.prop("disabled", !0)
         };
         H.setValue = function(c, e, d, g) {
             H.temp = a.isArray(c) ? c.slice(0) : K.parseValue.call(ua, c + "", H);
@@ -7894,8 +7979,8 @@ var qrcode = function() {
                 a.each(e, function(a, c) {
                     Qa[g] = c;
                     d = void 0 !== c.label ? c.label : a;
-                    k += '\x3ctd\x3e\x3cdiv class\x3d"dwwl dwrc dwwl' + g + '"\x3e' + ("scroller" != K.mode ? '\x3cdiv class\x3d"dwb-e dwwb dwwbp" style\x3d"height:' + ba + "px;line-height:" +
-                        ba + 'px;"\x3e\x3cspan\x3e+\x3c/span\x3e\x3c/div\x3e\x3cdiv class\x3d"dwb-e dwwb dwwbm" style\x3d"height:' + ba + "px;line-height:" + ba + 'px;"\x3e\x3cspan\x3e\x26ndash;\x3c/span\x3e\x3c/div\x3e' : "") + '\x3cdiv class\x3d"dwl"\x3e' + d + '\x3c/div\x3e\x3cdiv tabindex\x3d"0" aria-live\x3d"off" aria-label\x3d"' + d + '" role\x3d"listbox" class\x3d"dwww"\x3e\x3cdiv class\x3d"dww" style\x3d"height:' + K.rows * ba + "px;min-width:" + K.width + 'px;"\x3e\x3cdiv class\x3d"dw-ul"\x3e';
+                    k += '\x3ctd\x3e\x3cdiv class\x3d"dwwl dwrc dwwl' + g + '"\x3e' + ("scroller" != K.mode ? '\x3cdiv class\x3d"dwb-e dwwb dwwbp" style\x3d"height:' + ca + "px;line-height:" +
+                        ca + 'px;"\x3e\x3cspan\x3e+\x3c/span\x3e\x3c/div\x3e\x3cdiv class\x3d"dwb-e dwwb dwwbm" style\x3d"height:' + ca + "px;line-height:" + ca + 'px;"\x3e\x3cspan\x3e\x26ndash;\x3c/span\x3e\x3c/div\x3e' : "") + '\x3cdiv class\x3d"dwl"\x3e' + d + '\x3c/div\x3e\x3cdiv tabindex\x3d"0" aria-live\x3d"off" aria-label\x3d"' + d + '" role\x3d"listbox" class\x3d"dwww"\x3e\x3cdiv class\x3d"dww" style\x3d"height:' + K.rows * ca + "px;min-width:" + K.width + 'px;"\x3e\x3cdiv class\x3d"dw-ul"\x3e';
                     k += r(g);
                     k += '\x3c/div\x3e\x3cdiv class\x3d"dwwol"\x3e\x3c/div\x3e\x3c/div\x3e\x3cdiv class\x3d"dwwo"\x3e\x3c/div\x3e\x3c/div\x3e\x3cdiv class\x3d"dwwol"\x3e\x3c/div\x3e\x3c/div\x3e\x3c/td\x3e';
                     g++
@@ -7909,7 +7994,7 @@ var qrcode = function() {
             Y("onMarkupReady", [P]);
             "inline" != K.display ? (P.appendTo("body"), E && !c && (P.addClass("dw-trans"), setTimeout(function() {
                 P.removeClass("dw-trans").find(".dw").removeClass(h)
-            }, 350))) : ea.is("div") ? ea.html(P) : P.insertAfter(ea);
+            }, 350))) : fa.is("div") ? fa.html(P) : P.insertAfter(fa);
             Y("onMarkupInserted", [P]);
             Da = !0;
             Ha.init(P, H);
@@ -7925,7 +8010,7 @@ var qrcode = function() {
                     13 == a.keyCode ? H.select() : 27 == a.keyCode && H.cancel()
                 });
                 if (K.scrollLock) P.on("touchmove touchstart", function(a) {
-                    ca && a.preventDefault()
+                    da && a.preventDefault()
                 });
                 a("input,select,button").each(function() {
                     this.disabled || (a(this).attr("autocomplete") && a(this).data("autocomplete", a(this).attr("autocomplete")), a(this).addClass("dwtd").prop("disabled", !0).attr("autocomplete", "off"))
@@ -7936,7 +8021,7 @@ var qrcode = function() {
                         clearTimeout(e);
                         e = setTimeout(function() {
                             var c = "scroll" == a.type;
-                            (c && ca || !c) && H.position(!c)
+                            (c && da || !c) && H.position(!c)
                         }, 100)
                     });
                 H.alert(K.ariaDesc)
@@ -7945,10 +8030,10 @@ var qrcode = function() {
             P.on(A, ".dwb-e", sb).on("keydown", ".dwb-e", function(c) {
                 32 == c.keyCode && (c.preventDefault(), c.stopPropagation(), a(this).click())
             });
-            Y("onShow", [P, Z])
+            Y("onShow", [P, aa])
         };
         H.hide = function(c, e) {
-            if (!Da || !1 === Y("onClose", [Z, e])) return !1;
+            if (!Da || !1 === Y("onClose", [aa, e])) return !1;
             a(".dwtd").each(function() {
                 a(this).prop("disabled", !1).removeClass("dwtd");
                 a(this).data("autocomplete") ? a(this).attr("autocomplete", a(this).data("autocomplete")) : a(this).removeAttr("autocomplete")
@@ -7960,7 +8045,7 @@ var qrcode = function() {
             Ea = {};
             Da = !1;
             Ja = !0;
-            ea.focus()
+            fa.focus()
         };
         H.select = function() {
             !1 !== H.hide(!1, "set") && (ka(!0, 0, !0), Y("onSelect", [H.val]))
@@ -7984,21 +8069,21 @@ var qrcode = function() {
             p(m, a);
             p(K, Ha.defaults, Ya, m);
             H.settings = K;
-            ea.off(".dw");
+            fa.off(".dw");
             if (a = Za.presets[K.preset]) va = a.call(ua, H), p(K, va, m);
             Wa = Math.floor(K.rows / 2);
-            ba = K.height;
+            ca = K.height;
             E = K.animate;
             Da && H.hide();
             if ("inline" == K.display) H.show();
             else {
                 z();
-                if (Ka && (void 0 === Ua && (Ua = ua.readOnly), ua.readOnly = !0, K.showOnFocus)) ea.on("focus.dw", function() {
+                if (Ka && (void 0 === Ua && (Ua = ua.readOnly), ua.readOnly = !0, K.showOnFocus)) fa.on("focus.dw", function() {
                     Ja || H.show();
                     Ja = !1
                 });
                 K.showOnTap &&
-                    H.tap(ea, function() {
+                    H.tap(fa, function() {
                         H.show()
                     })
             }
@@ -8013,7 +8098,7 @@ var qrcode = function() {
         };
         H.destroy = function() {
             H.hide();
-            ea.off(".dw");
+            fa.off(".dw");
             delete D[ua.id];
             Ka && (ua.readOnly = Ua)
         };
@@ -8248,7 +8333,7 @@ var qrcode = function() {
                     d: "getDate",
                     h: function(a) {
                         a = a.getHours();
-                        a = ga && 12 <= a ? a - 12 : a;
+                        a = ha && 12 <= a ? a - 12 : a;
                         return r(a, S)
                     },
                     i: function(a) {
@@ -8266,7 +8351,7 @@ var qrcode = function() {
                 v = p.timeWheels,
                 N = m.match(/D/),
                 G = v.match(/a/i),
-                ga = v.match(/h/),
+                ha = v.match(/h/),
                 qa = "datetime" == V ? p.dateFormat + p.separator + p.timeFormat : "time" == V ? p.timeFormat : p.dateFormat,
                 R = new Date,
                 S = p.stepHour,
@@ -8335,7 +8420,7 @@ var qrcode = function() {
                         A++;
                         h = [];
                         s = [];
-                        for (t = 0; t < (ga ? 12 : 24); t += S) s.push(t), h.push(ga && 0 == t ? 12 : v.match(/hh/i) && 10 > t ? "0" + t : t);
+                        for (t = 0; t < (ha ? 12 : 24); t += S) s.push(t), h.push(ha && 0 == t ? 12 : v.match(/hh/i) && 10 > t ? "0" + t : t);
                         n(D, s, h, p.hourText)
                     } else if (x == M.i) {
                     A++;
@@ -8397,7 +8482,7 @@ var qrcode = function() {
                             y: Y.getFullYear(),
                             m: 11,
                             d: 31,
-                            h: r(ga ? 11 : 23, S),
+                            h: r(ha ? 11 : 23, S),
                             i: r(59, T),
                             s: r(59, X),
                             a: 1

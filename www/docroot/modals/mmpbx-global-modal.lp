@@ -64,11 +64,25 @@ local sipnet_columns = {
     attr = { input = { class="span2" } },
   },
   {
+    header = T"Domain Name",
+    name = "DomainName",
+    param = "domain_name",
+    type = "text",
+    attr = { input = { class="span2" } },
+  },
+  {
+    header = T"Realm",
+    name = "realm",
+    param = "realm",
+    type = "text",
+    attr = { input = { class="span2" } },
+  },
+  {
     header = T"Primary RegistrarPort",
     name = "primaryRegistrarPort",
     param = "primary_registrar_port",
     type = "text",
-    attr = { input = { class="span2" } },
+    attr = { input = { class="span1" } },
   },
   {
     header = T"Primary Proxy",
@@ -82,20 +96,22 @@ local sipnet_columns = {
     name = "primaryProxyPort",
     param = "primary_proxy_port",
     type = "text",
-    attr = { input = { class="span2" } },
+    attr = { input = { class="span1" } },
   },
   {
     header = T"Expire Time",
     name = "regExpire",
     param = "reg_expire",
     type = "text",
-    attr = { input = { class="span2" } },
+    attr = { input = { class="span1" } },
   },
 }
 
 local sipnet_valid = {
     primaryRegistrarPort = post_helper.validateStringIsPort,
     primaryRegistrar = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),
+	DomainName = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),
+	realm = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),
     primaryProxy = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),
     primaryProxyPort = post_helper.getValidateNumberInRange(0,65535),
     regExpire = post_helper.validateRegExpire,

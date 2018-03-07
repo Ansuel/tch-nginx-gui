@@ -1,16 +1,20 @@
 -- NG-85341; NG-85376; NG-85436; NG-91245
 -- [NG-97949] Incorrect GUI indication
--- NG-70591 GUI : Unable to configure infinite lease time (-1) from GUI but data model allows
+--NG-70591 GUI : Unable to configure infinite lease time (-1) from GUI but data model allows
+-- NG-103912 GUI new generic post_helper.lua is taken
 local ngx, require = ngx, require
 local proxy = require("datamodel")
+local io = require("io")
 local bit = require("bit")
 local inet = require("tch.inet")
 local content_helper = require("web.content_helper")
 local message_helper = require("web.uimessage_helper")
-local pairs, ipairs, tonumber, type, setmetatable = pairs, ipairs, tonumber, type, setmetatable
+local pairs, ipairs, tonumber, type, setmetatable, next = pairs, ipairs, tonumber, type, setmetatable, next
 local floor = math.floor
+local open = io.open
 local random, huge = math.random, math.huge
 local istainted, format, match, find, sub, untaint, lower = string.istainted, string.format, string.match, string.find, string.sub, string.untaint, string.lower
+local gsub, upper = string.gsub, string.upper
 local concat, remove = table.concat, table.remove
 local untaint_mt = require("web.taint").untaint_mt
 local min = math.min
@@ -76,7 +80,6 @@ function M.handleQuery(mapParams, mapValidation)
             for k,v in pairs(content) do
                 original_data[k] = v
             end
-
             -- now overwrite the data
             for k,v in pairs(post_data) do
                 if mapParams[k] and not mapValidation[k] then
@@ -93,17 +96,24 @@ function M.handleQuery(mapParams, mapValidation)
 
             -- Now assuming that everything was validated, we can prepare to store the data
             if validated then
+                for index, postcontent in pairs(content) do
+                  -- Save only the updated values
+                    if postcontent == original_data[index] then
+                        content[index] = nil
+                    end
+                end
                 local ok, msg = content_helper.setObject(content, mapParams)
                 if ok then
-                    ok, msg = proxy.apply()
+                    if next(content) then
+                        ok, msg = proxy.apply()
+                    end
                     -- now in case some validation function removed some data, we bring it back from the original load
                     -- for instance, password validation will just remove the password data when getting the dummy value
-                    for k,_ in pairs(mapParams) do
+                    for k in pairs(mapParams) do
                         if not content[k] then
                             content[k] = original_data[k]
                         end
                     end
-
                     if not ok then
                         ngx.log(ngx.ERR, "apply failed: " .. msg)
                         message_helper.pushMessage(T"Error while applying changes", "error")
@@ -111,7 +121,9 @@ function M.handleQuery(mapParams, mapValidation)
                         message_helper.pushMessage(T"Changes saved successfully", "success")
                     end
                 else
-                    ngx.log(ngx.ERR, "setObject failed: " .. msg)
+                    for _,v in ipairs (msg) do
+                        ngx.log(ngx.ERR, "setObject failed on " .. v.path .. ": " .. v.errcode .. " " .. v.errmsg)
+                    end
                     message_helper.pushMessage(T"Error while saving changes", "error")
                     -- we cannot assume every transaction is atomic (not every mapping will implement it) so to be safe
                     -- we reload the data
@@ -669,18 +681,41 @@ function M.validateStringIsIP(value)
     return nil, T"Invalid IP address."
 end
 
-
 ---
--- @function [parent=#post_helper] validateStringIsMAC
+-- This function is used to validate MAC address format and reserved MAC address.
+-- the [value] a valid MAC address format
+-- the [value] is not the reserved MAC address based on the RFC7042
+-- don't allow if mac address is in Mulicast or Unicast or IPv6 mulicast or PPP ranges.
 -- @param value
--- @return #boolean, #string
-local mac_pattern = "^%x%x:%x%x:%x%x:%x%x:%x%x:%x%x$"
+-- @return true or nil+error message
+local mac_pattern1 = "^%x%x:%x%x:%x%x:%x%x:%x%x:%x%x$"
+local mac_pattern2 = "^%x%x%-%x%x%-%x%x%-%x%x%-%x%x%-%x%x$"
 function M.validateStringIsMAC(value)
+    local mac
     if not value then
-        return nil, T"Invalid input."
+        return nil, T"Invalid input"
     end
-    if not value:match(mac_pattern) or value == "00:00:00:00:00:00" or lower(value) == "ff:ff:ff:ff:ff:ff" then
-        return nil, T"Invalid MAC address, it must be of the form 00:11:22:33:44:55."
+    if value:match(mac_pattern1) then
+        mac = gsub(value,":","")
+    elseif value:match(mac_pattern2) then
+        mac = gsub(value,"-","")
+    else
+        return nil, T"Invalid MAC address, it must be of the form 00:11:22:33:44:55 or 00-11-22-33-44-55"
+    end
+
+    mac = upper(mac)
+    if mac == "000000000000" or mac == "FFFFFFFFFFFF" then
+        return nil, T"Invalid MAC address"
+    end
+
+    --reference link: https://tools.ietf.org/html/rfc7042
+    --validate Reserved MAC filtering functionality. It is validating that:
+    --Multicast identifiers from 01-00-5E-00-00-00 to 01-00-5E-FF-FF-FF
+    --Unicast identifiers from 00-00-5E-00-00-00 to 00-00-5E-FF-FF-FF
+    --IPv6 multicast identifiers from 33-33-00-00-00-00 to 33-33-FF-FF-FF-FF
+    --PPP identified from CF-00-00-00-00-00 to CF-FF-FF-FF-FF-FF
+    if (match(mac, "^0[01]005E")) or (sub(mac, 1, 4) == "3333") or (sub(mac, 1, 2) == "CF") then
+        return nil, T"Reserved MAC address"
     end
     return true
 end
@@ -1073,8 +1108,7 @@ function M.validateStringIsLeaseTime(value)
     local number, precision = value:match(leasetime_pattern)
     number = number and tonumber(number)
     if not number or number < 1 then
-        --return nil, T"Invalid value; enter a number greater than 0, followed by 's' for seconds or 'm' for minutes or 'h' for hours or 'd' for days or 'w' for weeks. No spaces." --original
-		return nil, T"Invalid value; enter 'infinite' for infinite time or a number greater than 0, followed by 's' for seconds or 'm' for minutes or 'h' for hours or 'd' for days or 'w' for weeks. No spaces."
+        return nil, T"Invalid value; enter 'infinite' for infinite time or a number greater than 0, followed by 's' for seconds or 'm' for minutes or 'h' for hours or 'd' for days or 'w' for weeks. No spaces."
     end
     if (((precision == "s") and (number < 120)) or
         ((precision == "m") and (number < 2))) then
@@ -1225,12 +1259,17 @@ local psklength = M.getValidateStringLengthInRange(8,63)
 local pskmatch = "^[ -~]+$"
 --- This function validates a WPA/WPA2 PSK key
 -- It must be between 8 and 63 characters long and those characters must be ASCII printable (32-126)
+-- or 64 hexa decimal values (0-9,a-f,A-F)
 -- @param #string psk the PSK key to validate
 -- @return #boolean, #string
 function M.validatePSK(psk)
-    local err, msg = psklength(psk)
-    if not err then
-        return err, msg
+    if psk and #psk == 64 and psk:match("^[%x]+$") then
+        return true
+    else
+        local err, msg = psklength(psk)
+        if not err then
+            return err, msg
+        end
     end
 
     if not match(psk, pskmatch) then
@@ -1288,17 +1327,18 @@ end
 -- end of code related to WPS pin validation
 
 --- check for WEP keys
+-- 5,10,13 and 26 characters are allowed for the WEP key
+-- 5 and 13 can contain ASCII characters
+-- 10 and 26 can only contain Hexadecimal values
 -- @param #string value the WEP key
 -- @return #boolean, #string
 function M.validateWEP(value)
-    if value == nil or (#value ~= 5 and #value ~= 10 and #value ~=13 and #value ~=26 ) then
+    if value == nil or (#value ~= 5 and #value ~= 10 and #value ~= 13 and #value ~= 26) then
         return nil, T"Invalid length, a WEP key must be 5, 10, 13 or 26 characters long, length of 10 and 26 can only contain the letters A to F or digits"
     end
 
-	if (#value == 10 or #value == 26) then 
-		if not value:match("^[A-F%d]+$") then
-			return nil, T"A WEP key of length 10 or 26 can only contain the letters A to F or digits"
-		end
+    if (#value == 10 or #value == 26) and (not value:match("^[%x]+$")) then
+        return nil, T"A WEP key of length 10 or 26 can only contain the letters A to F or digits"
     end
     return true
 end
@@ -1462,6 +1502,12 @@ function M.advancedIPValidation(value, object, key)
         return nil, T"Invalid IP Address."
     end
 
+    local startLoopback = "127.0.0.0"
+    local endLoopback = "127.255.255.255"
+    if ipv42num(startLoopback) <= ip and ip <= ipv42num(endLoopback)  then
+        return nil,T"Cannot use IPv4 loopback address range."
+    end
+
     --don't allow if ip is in the CLASS A IP range 0.0.0.0/2, except the private 10.0.0.0/8 range
     local endClassARange = "127.255.255.255"
     local startClassAPrivRange = "10.0.0.0"
@@ -1509,6 +1555,34 @@ function M.advancedIPValidation(value, object, key)
     end
     return true
 end
+
+local classAIPStart = ipv42num("10.0.0.0")
+local classAIPEnd = ipv42num("10.255.255.255")
+local classBIPStart = ipv42num("172.16.0.0")
+local classBIPEnd = ipv42num("172.31.255.255")
+local classCIPStart = ipv42num("192.168.0.0")
+local classCIPEnd = ipv42num("192.168.255.255")
+
+--- Check whether the given IPv4 address is a public address.
+-- @string value The IP address to be validated.
+-- @return true or nil+error message
+function M.isPublicIP(value)
+    if not value then
+        return nil, T"Invalid IP Address."
+    end
+
+    local ip = ipv42num(value)
+    if not ip then
+        return nil, T"Invalid IP Address"
+    end
+
+    if (classAIPStart <= ip and ip <= classAIPEnd) or (classBIPStart <= ip and ip <= classBIPEnd) or
+      (classCIPStart <= ip and ip <= classCIPEnd) then
+        return nil, T"Not a Public Address"
+    end
+    return true
+end
+
 ---This function converts a CIDR(Classless Inter-domain routing) notation to a subnet mask. Eg, convert 24 to 255.255.255.0
 -- @param #string 'cidr' The CIDR notation number. Eg: "24"
 -- @return #string network mask or nil+error message. Eg: "255.255.255.0"
@@ -1624,6 +1698,50 @@ function M.validateQTN(value)
   return nil, T"Invalid input."
 end
 
+-- validate the given ip/subnet is network address or not
+function M.isNetworkAddress(ipAddress, subnetMask)
+  local netMask = ipv42num(subnetMask)
+  local ip = M.ipv42num(ipAddress)
+  if not ip then
+    return nil, T"Invalid IP Address."
+  end
+  --if network == ip
+  if bit.band(ip, netMask) == ip then
+    return true
+  end
+  return nil, T"Invalid Network Address."
+end
+
+--- This function is used to get default subnet mask.
+-- if user enters the [ipAddress] without subnet mask, get default mask.
+-- the [ipAddress] is in the Class A IP range 10.0.0.0 to 127.255.255.255, then return default mask "8"
+-- the [ipAddress] is in the Class B IP range 128.0.0.0 to 191.255.255.255, then return default mask "16"
+-- the [ipAddress] is in the Class C IP range 192.0.0.0 to 223.255.255.255, then return default mask "24"
+-- @return #default subnet mask, nil+error message
+function M.getDefaultSubnetMask(ipAddress)
+  local defaultSubnetMask
+  if not ipAddress then
+    return nil, T"Invalid IP Address."
+  end
+  local ip = M.ipv42num(ipAddress)
+  if not ip then
+    return nil, T"Invalid IP Address."
+  end
+  -- If user enters an IPv4 address with class A range then default mask is "255.0.0.0"
+  if ipv42num("10.0.0.0") <= ip and ip <= ipv42num("127.255.255.255") then
+    defaultSubnetMask = "8"
+  --If user enters an IPv4 address with class B range then default mask is "255.255.0.0"
+  elseif ipv42num("128.0.0.0") <= ip and ip <= ipv42num("191.255.255.255") then
+    defaultSubnetMask = "16"
+  --If user enters an IPv4 address with class C range then default mask is "255.255.255.0"
+  elseif ipv42num("192.0.0.0") <= ip and ip <= ipv42num("223.255.255.255") then
+    defaultSubnetMask = "24"
+  else
+    return nil,  T"IP Address does not belong to Class A, B or C."
+  end
+  return defaultSubnetMask
+end
+
 -- Calculate the number of effective hosts possible in the network with the given subnet mask.
 -- @string subnetmask The subnet mask, in dotted-decimal notation.
 -- @treturn number The number of effective hosts possible in the network with the given subnet mask.
@@ -1634,5 +1752,51 @@ function M.getPossibleHostsInSubnet(subnetmask)
     return nil, host_bits
   end
   return (2^host_bits) - 2
+end
+
+-- Validate the given IP address is not in the broadcast, multicast, loopback, reserved, gatewayip, network.
+-- @string object The localdevIP and localdevmask.
+-- @string value The IPv4 address.
+-- @treturn true For valid IP address.
+-- @error Error message.
+function M.staticLeaseIPValidation(value, object)
+  local valid, errmsg = M.advancedIPValidation(value, object)
+  if not valid then
+    return nil, errmsg
+  end
+  local networkvalid  =  M.getValidateStringIsDeviceIPv4(object["localdevIP"], object["localdevmask"])
+  local isnetworkvaild, msg = networkvalid(value)
+  if not isnetworkvaild then
+     return isnetworkvaild, msg
+  end
+  return true
+end
+
+--Generate random key for new rule
+--@return 16 digit random key.
+function M.getRandomKey()
+  local bytes
+  local key = ("%02X"):rep(16)
+  local fd = open("/dev/urandom", "r")
+  if fd then
+    bytes = fd:read(16)
+    fd:close()
+  end
+  return key:format(bytes:byte(1, 16))
+end
+
+--validates the SSID if both pattern matches then only the user able to apply changes
+--if any of the pattern fails then it will show the corresponding Error messages
+function M.validateSSID(value)
+  local validSSID = "^[^?\"$%[%]+\\]*$"
+  local validStart = "^[^%s#!;]"
+  if not value then
+    return nil, T"SSID should not be empty"
+  elseif not value:match(validStart) then
+    return nil, T"SSID should not start with ; # !"
+  elseif not value:match(validSSID) then
+    return nil, T"SSID should not contain ?, \", $, [, \\, ],and + special characters"
+  end
+  return true
 end
 return M

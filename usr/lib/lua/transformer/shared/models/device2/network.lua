@@ -52,6 +52,7 @@ local allTypes = {
 	"ATMLink", -- an ADSL link
 	"DSLChannel", -- a DSL channel
 	"DSLLine", --a DSL line
+	"GFASTLine", --a G.fast line
 	"EthInterface", -- a physical Ethernet interface
 	"WifiRadio", -- a wireless radio
 	"WiFiSSID", -- an SSID
@@ -601,6 +602,12 @@ local function loadDsl(model)
 	end
 end
 
+local function loadGFast(model)
+	local name = "fast0"
+	local line = model:add("GFASTLine", "fast:"..name)
+	line.device = name
+end
+
 local function xtmObjectPresent(obj)
 	if obj.type == 'ATMLink' then
 		return xdsl.isADSL()
@@ -917,6 +924,10 @@ local function createIntfLowerLayer(model, s, cfg, ifname)
 		if not phys then
 			phys = ifname
 			vid = nil
+		end
+		if phys == "lo" then
+			-- this is the loopback device, no lower layer should be created for it
+			return
 		end
 		-- The link (and VLAN) will be named after the interface.
 		-- The config is defined in the interface section so each interface gets its
@@ -1291,6 +1302,7 @@ load_model = function()
 		model:add("loopback", "lo")
 		loadEthernet(model)
 		loadDsl(model)
+		loadGFast(model)
 		loadXtm(model)
 		loadNetwork(model)
 		load_wireless(model)

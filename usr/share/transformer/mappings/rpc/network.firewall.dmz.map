@@ -10,7 +10,7 @@ local mapping_dmz_rpc = {
     objectType = {
         name = "rpc.network.firewall.dmz.",
         access = "readOnly",
-        minEntries = 1,
+        minEntries = 0,
         maxEntries = 1,
         parameters = {
             enable = {
@@ -26,6 +26,16 @@ local mapping_dmz_rpc = {
 }
 
 local uci_helper = mapper("ucihelper")
+
+local firewallBinding = {config = "firewall", sectionname = "dmzredirects" }
+mapping_dmz_rpc.entries = function(mapping)
+  local dmzredirect = uci_helper.get_from_uci(firewallBinding)
+  if dmzredirect ~= "" then
+    return {"1"}
+  else
+    return {}
+  end
+end
 
 mapping_dmz_rpc.get = {
     enable = function(mapping, param)

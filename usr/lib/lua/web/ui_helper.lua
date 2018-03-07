@@ -2,6 +2,9 @@
 --NG-96253 GPON-Diagnostics/Network needs to be lifted to TI specific functionalities
 --NG-94758 GUI: Mobile card and modal are not completely translated
 --NG-102545 GUI broadband is showing SFP Broadband GUI page when Ethernet 4 is connected
+--NG-103913 GUI new generic ui_helper.lua is taken
+--NG-103998 GUI generic ui_helper.lua causes an issue in every modal head
+--[NG-107029] GUI Diagnostics status NOK for sfp and LAN4
 local require, pairs, ipairs, type, tonumber, getfenv = require, pairs, ipairs, type, tonumber, getfenv
 local format, find, gsub, gmatch = string.format, string.find, string.gsub, string.gmatch
 local huge = math.huge
@@ -1270,6 +1273,7 @@ local function createTableDataEdit(columns, data, add, helpmsg)
         button = {
             class = "btn-mini btn-primary btn-table-add tooltip-on",
             ["data-placement"] = "top",
+            ["id"] = "btn-table-add",
             ["data-original-title"] = T"Add",
         }
     }
@@ -1277,6 +1281,7 @@ local function createTableDataEdit(columns, data, add, helpmsg)
         button = {
             class = "btn-mini btn-primary btn-table-modify tooltip-on",
             ["data-placement"] = "top",
+            ["id"] = "btn-table-modify",
             ["data-original-title"] = T"Apply",
         }
     }
@@ -1284,6 +1289,7 @@ local function createTableDataEdit(columns, data, add, helpmsg)
         button = {
             class = "btn-mini btn-danger btn-table-cancel tooltip-on",
             ["data-placement"] = "top",
+            ["id"] = "btn-table-cancel",
             ["data-original-title"] = T"Cancel",
         }
     }
@@ -1312,15 +1318,16 @@ local function createTableDataEdit(columns, data, add, helpmsg)
     end
 
     content[#content + 1] = "<td>"
-    if add == true then
-        content[#content + 1] = M.createSimpleButton("","icon-plus-sign", attrAdd)
-        content[#content + 1] = " "
-        content[#content + 1] = M.createSimpleButton("","icon-remove", attrCancel)
-    elseif #aggreg_lines < 1 then
-        content[#content + 1] = M.createSimpleButton("","icon-ok", attrModify)
-        content[#content + 1] = " "
-        content[#content + 1] = M.createSimpleButton("","icon-remove", attrCancel)
-    end
+
+        if #aggreg_lines < 1 then
+            if add == true then
+               content[#content + 1] = M.createSimpleButton("","icon-plus-sign", attrAdd)
+            else
+               content[#content + 1] = M.createSimpleButton("","icon-ok", attrModify)
+            end
+            content[#content + 1] = " "
+            content[#content + 1] = M.createSimpleButton("","icon-remove", attrCancel)
+        end
 
     content[#content + 1] = "</td></tr>"
 
@@ -1336,13 +1343,19 @@ local function createTableDataEdit(columns, data, add, helpmsg)
         content[#content + 1] = "</td><td></td>"
         content[#content + 1] = "</tr>"
     end
-    if not add and #aggreg_lines > 0 then
-       content[#content + 1] = format('<tr> <td class="btn-col-OK" colspan="%d">', numcolumns)
-       content[#content + 1] = M.createSimpleButton("","icon-ok", attrModify)
-       content[#content + 1] = " "
-       content[#content + 1] = M.createSimpleButton("","icon-remove", attrCancel)
-       content[#content + 1] = "</td></tr>"
+
+    if  #aggreg_lines > 0  then
+        content[#content + 1] = format('<tr> <td class="btn-col-OK" colspan="%d">', numcolumns)
+            if not add then
+               content[#content + 1] = M.createSimpleButton("","icon-ok", attrModify)
+            else
+               content[#content + 1] = M.createSimpleButton("","icon-plus-sign", attrAdd)
+            end
+        content[#content + 1] = " "
+        content[#content + 1] = M.createSimpleButton("","icon-remove", attrCancel)
+        content[#content + 1] = "</td></tr>"
     end
+
     return content
 end
 
@@ -1813,11 +1826,7 @@ function M.createHeader(name, hasAdvanced, hasRefresh, autorefresh, helpLink)
 
     -- Display the refresh button in the modal header if required
     if hasRefresh == true then
-        html[#html + 1] = format([[
-		<span class="modal-action">
-			<span class="modal-action-refresh" id="Refresh_id"><i class="icon-refresh"></i> %s</span>
-		</span>
-		]], T"refresh data")
+        html[#html + 1] = format('<span class="modal-action"><span class="modal-action-refresh" id="Refresh_id"><i class="icon-refresh"></i> %s</span></span>', T"refresh data")
     end
 
     -- Display the show advanced button in the modal header if required
@@ -1869,7 +1878,6 @@ end
 --- Template
 --   <div class="header">
 --      <div class="header-title pull-left" data-toggle="modal" data-remote="modals/device-modal.lp" data-id="device-modal"><p>Devices</p></div>
---		<div id="signal-strength-indicator-small-card"><div><div class="bar-small bar-small1"></div><div class="bar-small bar-small2"></div><div class="bar-small bar-small3"></div><div class="bar-small bar-small4"></div><div class="bar-small bar-small5"></div></div></div>
 --      <div class="switch"><div class="switcher"></div><input value="0" type="hidden" name="uci_wan_auto"></div>
 --      <div class="settings" data-toggle="modal" data-remote="modals/device-modal.lp" data-id="device-modal"><i class="icon-cogs"></i></div>
 --    </div>
@@ -1878,7 +1886,6 @@ end
 -- @param #string modalPath URL to the modal, if nil, then no modal will open and no configure icon displayed
 -- @param #string switchName if nil, then no switch will be added
 -- @param #string switchValue
--- @param #number mobile, to show the signal strength indicator
 -- @return #string for ngx.print
 function M.createCardHeader(title, modalPath, switchName, switchValue, attributes, mobile)
     local dataId
@@ -1930,8 +1937,7 @@ function M.createCardHeader(title, modalPath, switchName, switchValue, attribute
 	if mobile == 1 then
 		html[#html + 1] = [[<div id="signal-strength-indicator-small-card"><div><div class="bar-small bar-small1"></div><div class="bar-small bar-small2"></div><div class="bar-small bar-small3"></div><div class="bar-small bar-small4"></div><div class="bar-small bar-small5"></div></div></div>]]
     end
-	
-	html[#html + 1] = [[</div>]]
+    html[#html + 1] = [[</div>]]
     return html
 end
 
@@ -2024,7 +2030,7 @@ function M.createSwitchPort(num, state, speed, attributes)
         [[<div class="socket-light off align-right" style="opacity:.5;"></div>]],
         [[<div class="socket-light off align-left" style="opacity:.5;"></div>]]
     }
-    if state == "up" or state == "OPERATION (O5)" then
+    if state == "up" or state == "Up" then
         html[#html + 1] = format("<div %s></div>", stateAttr)
     end
     if showSpeed then

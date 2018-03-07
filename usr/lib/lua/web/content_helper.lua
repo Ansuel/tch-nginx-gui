@@ -1,5 +1,5 @@
 local proxy = require("datamodel")
-local html_escape = require("web.web").html_escape
+
 local open = io.open
 local pairs, ipairs, unpack, type, tonumber = pairs, ipairs, unpack, type, tonumber
 local concat, sort = table.concat, table.sort
@@ -578,6 +578,7 @@ M.tableEquals = tableEquals
 -- @param #string list2
 -- @return #string mergedList
 function M.getMergedList(list1, list2)
+  local html_escape = require("web.web").html_escape
   local mergedList = ""
   list1 = html_escape(list1) -- remove tainted string from list1
   list2 = html_escape(list2) -- remove tainted string from list2

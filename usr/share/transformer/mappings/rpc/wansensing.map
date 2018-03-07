@@ -15,7 +15,7 @@ local wansensing_ = {
 
 wansensing_.get = function()
   return "0"
-end
+end 
 
 wansensing_.set = function(mapping, param, value)
   if value == "1" then

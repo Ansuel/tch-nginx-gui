@@ -1,6 +1,7 @@
 <%
 
 -- Enable localization
+-- NG-105177 [Workaround] TI [GUI] - Some of the tabs throws Internal server error
 gettext.textdomain('webui-voice')
 
 local proxy = require ("datamodel")
@@ -8,6 +9,9 @@ local ui_helper = require("web.ui_helper")
 local post_helper = require("web.post_helper")
 local content_helper = require ("web.content_helper")
 local message_helper = require("web.uimessage_helper")
+local service_default = require("transformer.shared.servicedefault")
+local append_service = service_default.services.append
+local named_uci = service_default.services.named_service_section
 local find, format, lower = string.find, string.format, string.lower
 local remove, concat = table.remove, table.concat
 local role = ngx.ctx.session:getrole()
@@ -392,6 +396,7 @@ local content_services_display_data = copyTable(content_services_sorted)
 
 local helpmsg = {}
 local select_name = nil
+local isAppendService = false
 
 if ngx.req.get_method() == "POST" then
     local success = false
@@ -403,9 +408,13 @@ if ngx.req.get_method() == "POST" then
 
     -- For security, check for service type if HOLD skip POST processing
     if select_name ~= "HOLD" and select_name then
+        isAppendService = (append_service[select_name] ~= nil)
 	for i,v in ipairs(content_services_sorted[select_name]) do
             if tonumber(v["activated"]) then
                 mapValid["activated_"..select_name.."_" ..i] = vB
+            end
+            if isAppendService then	--For append service only one row will be present.
+                break
             end
         end
 
@@ -423,6 +432,9 @@ if ngx.req.get_method() == "POST" then
                     if tonumber(v["timeout"]) then
                         mapValid["timeout_"..select_name.."_" ..i] = post_helper.validatePositiveNum
                     end
+                end
+                if isAppendService then	--For append service only one row will be present.
+                    break
                 end
 	    end
 
@@ -451,13 +463,14 @@ if ngx.req.get_method() == "POST" then
                     end
                     if config_changed then
                         local results = proxy.get(v["path"]..v["related_to"]..".")
-                        if #results > 1 then     --Service section is having morethan one profile/device
+                        if (not isAppendService) and (#results > 1) then
+                            -- if service is not in append, then new section will be added, to be backward compatible (old GUI behaviour)
                             for _,w in ipairs(results) do
                                 if w["value"] == v["name"] then
                                     --Delete the device/profile from existing service section
                                     proxy.del(w["path"])
-                                        local new_service_path
-				    if (isNamedParam == true) then
+                                    local new_service_path
+                                    if (isNamedParam == true) or (named_uci == true) then
                                         local section_name = format("service_%s_%s",lower(select_name), v["name"])
                                         local new_service = proxy.add(services_base_path, section_name)
                                         new_service_path = services_base_path.."@"..new_service.."."
@@ -465,15 +478,15 @@ if ngx.req.get_method() == "POST" then
                                         local new_service = proxy.add(services_base_path)
                                         new_service_path = services_base_path..new_service.."."
                                     end
-				    content_set[new_service_path.."type"] = select_name
+                                    content_set[new_service_path.."type"] = select_name
                                     content_set[new_service_path.."provisioned"] = "1"
                                     content_set[new_service_path.."activated"] =  v["activated"]
-                            if tonumber(v["internal_transfer"]) then
-                                content_set[new_service_path.."internal_transfer"] = v["internal_transfer"]
-                            end
-                            if tonumber(v["external_transfer"]) then
-                                content_set[new_service_path.."external_transfer"] = v["external_transfer"]
-                            end
+                                    if tonumber(v["internal_transfer"]) then
+                                        content_set[new_service_path.."internal_transfer"] = v["internal_transfer"]
+                                    end
+                                    if tonumber(v["external_transfer"]) then
+                                        content_set[new_service_path.."external_transfer"] = v["external_transfer"]
+                                    end
                                     if tonumber(v["cw_reject_persistency"]) then
                                         content_set[new_service_path.."cw_reject_persistency"] =  v["cw_reject_persistency"]
                                     end
@@ -488,9 +501,9 @@ if ngx.req.get_method() == "POST" then
 
                                     v["path"] = new_service_path
                                     apply_cahnges = true
-			        end
-			    end
-		        elseif #results == 1 then     --Service section is having only one profile/device
+                                end
+                            end
+                        else
                             content_set[v["path"].."activated"] =  v["activated"]
                             if tonumber(v["cw_reject_persistency"]) then
                                 content_set[v["path"].."cw_reject_persistency"] =  v["cw_reject_persistency"]
@@ -510,6 +523,9 @@ if ngx.req.get_method() == "POST" then
                             apply_cahnges = true
 		        end
 		    end
+                    if isAppendService then	--For append service only one row will be present.
+                        break
+                    end
 	        end
 		if apply_cahnges then
 		    local ok, msg = proxy.set(content_set)
@@ -543,6 +559,9 @@ if ngx.req.get_method() == "POST" then
                     if tonumber(v["timeout"]) and post_args["timeout_"..select_name.."_" ..i] ~= v["timeout"] then
                         v["timeout"] = post_args["timeout_"..select_name.."_" ..i]
                     end
+                    if isAppendService then	--For append service only one row will be present.
+                        break
+                    end
                 end
 	        message_helper.pushMessage(T"Some parameters failed validation", "error")
             end
@@ -560,87 +579,147 @@ local baseclass = "monitor-service_name"
 local attribute = {}
 local row_num = 0
 
-for k,v in pairs(content_services_display_data) do
-    table_created = false
-    row_num = 0
+local function addTableHeader(tableDate, serviceName)
+    local tableFirstRow = tableDate[1]
+    related_to = tableFirstRow["related_to"]
+    --Creating Table Header
+    html[#html + 1] =  '<div class="control-group monitor-service_name monitor-' .. serviceName ..'">'
+    html[#html + 1] =  '<table class="table table-striped"><thead><tr>'
+    if related_to == "profile"  then
+        html[#html + 1] = format("<th>%s</th>", T"Profile")
+    elseif related_to == "device" then
+        html[#html + 1] = format("<th>%s</th>", T"Device")
+    end
+    if tonumber(tableFirstRow["activated"]) then
+        html[#html + 1] = format("<th>%s</th>", T"Activate")
+    end
+    if tonumber(tableFirstRow["cw_reject_persistency"]) then
+        html[#html + 1] = format("<th>%s</th>", T"CW Reject Persistency")
+    end
+    if services_with_dest[serviceName] then
+        html[#html + 1] = format("<th>%s</th>", T"Destination No.")
+    end
+    if tonumber(tableFirstRow["timeout"]) then
+        html[#html + 1] = format("<th>%s</th>", T"TimeOut")
+    end
+    html[#html + 1] =  "</tr></thead>"
+end
 
-    for _,w in ipairs(v) do
+local function addTableEnd()
+    html[#html + 1] =  "</table>"
+    html[#html + 1] =  "</div>"
+end
+
+local function addAddServiceInTable(serviceData, serviceName)
+    html[#html + 1] = "<tbody>"
+
+    for i,w in ipairs(serviceData) do
         related_to = w["related_to"]
-        if not table_created then
-            --Creating Table Header
-            html[#html + 1] =  "<div class=\"control-group monitor-service_name monitor-" .. k .."\">"
-            html[#html + 1] =  "<table class=\"table table-striped\"><thead><tr>"
-            if related_to == "profile"  then
-                html[#html + 1] = format("<th>%s</th>", T"Profile")
-            elseif related_to == "device" then
-                html[#html + 1] = format("<th>%s</th>", T"Device")
-            end
-            if tonumber(w["activated"]) then
-                html[#html + 1] = format("<th>%s</th>", T"Activate")
-            end
-            if tonumber(w["cw_reject_persistency"]) then
-                html[#html + 1] = format("<th>%s</th>", T"CW Reject Persistency")
-            end
-            if services_with_dest[k] then
-                html[#html + 1] = format("<th>%s</th>", T"Destination No.")
-            end
-            if tonumber(w["timeout"]) then
-                html[#html + 1] = format("<th>%s</th>", T"TimeOut")
-            end
-            html[#html + 1] =  "</tr></thead>"
-            html[#html + 1] = "<tbody>"
-            table_created = true
-        end
-        if related_to then
-            row_num = row_num + 1
-            html[#html + 1] = "<tr>"
+        html[#html + 1] = "<tr>"
 
+        html[#html + 1] = "<td>"
+        if related_to == "device" then
+            html[#html + 1] =  device_friendlynames[w["name"]]
+        else
+            html[#html + 1] =  w["name"]
+        end
+        html[#html + 1] = "</td>"
+
+        if tonumber(w["activated"]) then
             html[#html + 1] = "<td>"
-            if related_to == "device" then
-                html[#html + 1] =  device_friendlynames[w["name"]]
+            if serviceName == "HOLD" then
+                html[#html + 1] = service_status_map[w["activated"]]
             else
-                html[#html + 1] =  w["name"]
+                html[#html + 1] =  createSimpleCheckboxSwitch("activated_"..serviceName.."_" ..i , w["activated"])
             end
             html[#html + 1] = "</td>"
+        end
+        if tonumber(w["cw_reject_persistency"]) then
+            html[#html + 1] = "<td>"
+            html[#html + 1] =  createSimpleCheckboxSwitch("cw_reject_persistency_"..serviceName.."_" ..i , w["cw_reject_persistency"])
+            html[#html + 1] = "</td>"
+        end
+        if services_with_dest[serviceName] then
+            html[#html + 1] = "<td>"
+            html[#html + 1] =  ui_helper.createSimpleInputText("destination_"..serviceName.."_" ..i, w["destination"], nil, helpmsg["destination_"..serviceName.."_" ..i])
+            html[#html + 1] = "</td>"
+        end
 
-            if tonumber(w["activated"]) then
-                html[#html + 1] = "<td>"
-                if k == "HOLD" then
-                    html[#html + 1] = service_status_map[w["activated"]]
-                else
-                    html[#html + 1] =  createSimpleCheckboxSwitch("activated_"..k.."_" ..row_num , w["activated"])
-                end
-                html[#html + 1] = "</td>"
-            end
-            if tonumber(w["cw_reject_persistency"]) then
-                html[#html + 1] = "<td>"
-                html[#html + 1] =  createSimpleCheckboxSwitch("cw_reject_persistency_"..k.."_" ..row_num , w["cw_reject_persistency"])
-                html[#html + 1] = "</td>"
-            end
-            if services_with_dest[k] then
-                html[#html + 1] = "<td>"
-                html[#html + 1] =  ui_helper.createSimpleInputText("destination_"..k.."_" ..row_num, w["destination"], nil, helpmsg["destination_"..k.."_" ..row_num])
-                html[#html + 1] = "</td>"
-            end
-
-            if tonumber(w["timeout"]) then
-                html[#html + 1] = "<td>"
+        if tonumber(w["timeout"]) then
+            html[#html + 1] = "<td>"
 				if tech then
-                html[#html + 1] =  ui_helper.createSimpleInputText("timeout_"..k.."_" ..row_num, w["timeout"], nil, helpmsg["timeout_"..k.."_" ..row_num])
+				html[#html + 1] =  ui_helper.createSimpleInputText("timeout_"..serviceName.."_" ..i, w["timeout"], nil, helpmsg["timeout_"..serviceName.."_" ..i])
 				else
 				html[#html + 1] =  format("<span class='span2 simple-desc'>%s</span>",w["timeout"])
 				end
                 html[#html + 1] = "</td>"
-            end
+        end
+        html[#html + 1] = "</tr>"
+     end
+     html[#html + 1] =  "</tbody>"
+end
 
-            html[#html + 1] = "</tr>"
+local function addAppendServiceInTable(serviceData, serviceName)
+    local tableFirstRow = serviceData[1]
+    related_to = tableFirstRow["related_to"]
+    html[#html + 1] = "<tbody>"
+    local displayData
+    local deviceOrProfileName
+    for _,w in ipairs(serviceData) do
+        if related_to == "device" then
+            deviceOrProfileName =  device_friendlynames[w["name"]]
+        else
+            deviceOrProfileName =  w["name"]
+        end
+        if displayData then
+            displayData = displayData.."<br>"..deviceOrProfileName
+        else
+	    displayData = deviceOrProfileName
         end
     end
+        html[#html + 1] = "<tr>"
 
-    if table_created then
-        html[#html + 1] =  "</tbody></table>"
-        html[#html + 1] =  "</div>"
+        html[#html + 1] = "<td>"
+        html[#html + 1] = displayData
+        html[#html + 1] = "</td>"
+
+        if tonumber(tableFirstRow["activated"]) then
+            html[#html + 1] = '<td style="vertical-align:middle">'
+            if serviceName == "HOLD" then
+                html[#html + 1] = service_status_map[tableFirstRow["activated"]]
+            else
+                html[#html + 1] =  createSimpleCheckboxSwitch("activated_"..serviceName.."_" .."1" , tableFirstRow["activated"])
+            end
+            html[#html + 1] = "</td>"
+        end
+        if tonumber(tableFirstRow["cw_reject_persistency"]) then
+            html[#html + 1] = '<td style="vertical-align:middle">'
+            html[#html + 1] =  createSimpleCheckboxSwitch("cw_reject_persistency_"..serviceName.."_" .."1" , tableFirstRow["cw_reject_persistency"])
+            html[#html + 1] = "</td>"
+        end
+        if services_with_dest[serviceName] then
+            html[#html + 1] = '<td style="vertical-align:middle">'
+            html[#html + 1] =  ui_helper.createSimpleInputText("destination_"..serviceName.."_" .."1", tableFirstRow["destination"], nil, helpmsg["destination_"..serviceName.."_" .."1"])
+            html[#html + 1] = "</td>"
+        end
+        if tonumber(tableFirstRow["timeout"]) then
+            html[#html + 1] = '<td style="vertical-align:middle">'
+            html[#html + 1] =  ui_helper.createSimpleInputText("timeout_"..serviceName.."_" .."1", tableFirstRow["timeout"], nil, helpmsg["timeout_"..serviceName.."_" .."1"])
+            html[#html + 1] = "</td>"
+        end
+        html[#html + 1] = "</tr>"
+     html[#html + 1] =  "</tbody>"
+end
+
+for k,v in pairs(content_services_display_data) do
+    isAppendService = (append_service[k] ~= nil)
+    addTableHeader(v,k)
+    if isAppendService then
+        addAppendServiceInTable(v,k)
+    else
+        addAddServiceInTable(v,k)
     end
+    addTableEnd()
 end
 
 attribute = {
@@ -688,7 +767,14 @@ end
 <script>
 $(document).ready(function() {
     $("#save-config").attr("id","save-form");
-    $(".btn-primary").click(function(){
+    $("#save-form").click(function(){
+       //Keep data related to currently selected service & remove extra data which is not needed in the POST operation.
+       var selected_service = $("#service_name").val();
+       $('.modal form input').each(function(){
+          if((this.name).indexOf(selected_service) < 0){	// textbox/checkbox name is not related to selected service.
+             this.remove();
+          }
+       });
        $('.modal form input:checked[value="0"]').each(function(){
           $(this).val("1");
        });
@@ -712,7 +798,7 @@ $(document).ready(function() {
     $('input[type="checkbox"]').change(function(){
         $('#modal-no-change').fadeOut(300);
         $('#modal-changes').delay(350).fadeIn(300);
-    return false;	// For stoping the POST
+        return false;	// For stoping the POST
     });
     $('input[type="text"]').change(function(){
         $('#modal-no-change').fadeOut(300);

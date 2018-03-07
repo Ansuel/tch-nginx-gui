@@ -12,6 +12,22 @@ local content_helper = require("web.content_helper")
 local post_helper = require("web.post_helper")
 local format, match = string.format, string.match
 
+local gui_skin_option = {
+      { "blue", T'Blue'},
+      { "violet", T'Violet'},
+      { "green", T'Green'},
+}
+
+local gui_skin_Params = {
+  gui_skin = "uci.env.var.gui_skin",
+}
+
+local gui_skin_valid = {
+  gui_skin = post_helper.getValidateInEnumSelect(gui_skin_option),
+}
+
+local gui_skin_content, helpmsg = post_helper.handleQuery(gui_skin_Params, gui_skin_valid)
+
 local env = {
   factory = "uci.env.rip.factory_id",
   serial = "uci.env.rip.serial",
@@ -21,6 +37,16 @@ local env = {
   passiveversion = "sys.banktable.passiveversion",
 }
 content_helper.getExactContent(env)
+
+-- Check availability of file, return true if found, else false
+local function file_check(file_name)
+  local file_found=io.open(file_name, "rb")
+  if file_found==nil then
+    return false
+  else
+    return true
+  end
+end
 
 local serial_num = format("%s%s",env.factory,env.serial)
 local syslog_present, syslog_filter_sw = "0", "0"
@@ -47,16 +73,16 @@ end
 
 local dbpath = "uci.dropbear.dropbear."
 local dbvalues = proxy.get(dbpath)
-local data = content_helper.convertResultToObject(dbpath,dbvalues)
+local data = content_helper.convertResultToObject(dbpath, dbvalues)
 
-for i,v in pairs(data) do
-		if v.Interface == "lan" then
-		   ssh_lan = v.enable
-		   ssh_lan_index = v.paramindex
-		elseif v.Interface == "wan" then
-		   ssh_wan = v.enable
-		   ssh_wan_index = v.paramindex
-		end
+for _,v in pairs(data) do
+  if v.Interface == "lan" then
+    ssh_lan = v.enable
+    ssh_lan_index = v.paramindex
+  elseif v.Interface == "wan" then
+    ssh_wan = v.enable
+    ssh_wan_index = v.paramindex
+  end
 end
 	
 local Syslog = proxy.get("uci.system.system.@system[0].log_ip","uci.system.system.@system[0].log_filter_ip")
@@ -173,12 +199,14 @@ local syslog_valid = {
 }
 local syslog_Params, helpmsg = post_helper.handleQuery(syslog_Params, syslog_valid)
 
+local telnet_available = file_check("/bin/busybox_telnet")
+
 local telnet_Params = {
-  telnet_enable = "uci.telnet.general.enable",
-}
+	telnet_enable = "uci.telnet.general.enable",
+}	
 
 local telnet_valid = {
-  telnet_enable = vB,
+	telnet_enable = vB,
 }
 
 local telnet_content, helpmsg = post_helper.handleQuery(telnet_Params, telnet_valid)
@@ -316,7 +344,14 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       ngx.print(html)
       ngx.print('\
 </fieldset>\
-\
+	<fieldset>\
+	<legend>');  ngx.print( T"Gui Skin" ); ngx.print('</legend>\
+		');  
+		local html = {}
+		html[#html + 1] = ui_helper.createInputSelect(T"Gui Skin", "gui_skin", gui_skin_option, gui_skin_content["gui_skin"])
+		ngx.print(html)
+		ngx.print('\
+	</fieldset>\
 <fieldset>\
   <legend>');  ngx.print( T"SSH Access" ); ngx.print('</legend>\
     ');  
@@ -326,15 +361,19 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       ngx.print(html)
       ngx.print('\
 </fieldset>\
-\
-<fieldset>\
-  <legend>');  ngx.print( T"Telnet Access" ); ngx.print('</legend>\
-    ');  
-      local html = {}
-      html[#html + 1] = ui_helper.createSwitch(T"LAN", "telnet_enable", telnet_content["telnet_enable"] , basic)
-      ngx.print(html)
-      ngx.print('\
-</fieldset>\
+');
+if telnet_available then
+	ngx.print('\
+	<fieldset>\
+	<legend>');  ngx.print( T"Telnet Access" ); ngx.print('</legend>\
+		');  
+		local html = {}
+		html[#html + 1] = ui_helper.createSwitch(T"LAN", "telnet_enable", telnet_content["telnet_enable"] , basic)
+		ngx.print(html)
+		ngx.print('\
+	</fieldset>');
+end
+ngx.print('\
 \
 <fieldset>\
   <legend>');  ngx.print( T"System Log" ); ngx.print('</legend>\
@@ -487,5 +526,5 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
   });\
 }());\
 </script>\
-');  ngx.print(ui_helper.createFooter())   ngx.print('\
+');  ngx.print(ui_helper.createFooter());   ngx.print('\
 '); 

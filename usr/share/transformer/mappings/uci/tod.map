@@ -1,41 +1,89 @@
-local require, mapper, register = require, mapper, register
-local table, pairs, tostring, error = table, pairs, tostring, error
-local string = string
-local uci_helper = mapper("ucihelper")
-local concat = table.concat
-local insert = table.insert
-local everyday =  {"Sun", "Sat", "Fri", "Thu", "Wed", "Tue", "Mon"}
-local commitapply = commitapply
-local tod_binding = { config = "tod" }
+local mapper, register = mapper, register
 local config_tod = "tod"
-local math = math
+
+-- uci.tod.global
+local tod = {
+  config = config_tod,
+  section = "global",
+  options = { "enabled", "tod_enabled", "time_change_monfreq"},
+}
+
+mapper("uci_1to1").registerSimpleMap(tod)
+
+-- uci.tod.todvoicednd
+local uci_helper = mapper("ucihelper")
+local tod_binding = { config = "tod" , sectionname = "voicednd"}
+local tod_voice_ = {
+  objectType = {
+    name = "uci.tod.todvoicednd.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      enabled = {
+        access = "readWrite",
+        type = "boolean"
+      },
+      ringing = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "on",
+          "off"
+        }
+      },
+      timerandactionmodified = {
+        access = "readWrite",
+        type = "boolean"
+      },
+    }
+  }
+}
+
+tod_voice_.get = function(mapping, paramname, key)
+  tod_binding.option = paramname
+  return uci_helper.get_from_uci(tod_binding)
+end
+
+tod_voice_.set = function(mapping, paramname, paramvalue, key)
+    tod_binding.option = paramname
+    uci_helper.set_on_uci(tod_binding,paramvalue)
+    uci_helper.commit(tod_binding)
+    if (paramname == "ringing") then
+        commitapply:newset("uci.tod.todvoicednd.ringing")
+    elseif (paramname == "enabled") then
+        commitapply:newset("uci.tod.todvoicednd.enabled")
+    end
+end
+
+register(tod_voice_)
 
 -- uci.hosts
 mapper("uci_1to1").registerConfigMap(config_tod)
 
 -- uci.tod.host.{i}
 local tod_host = {
-    config = config_tod,
-    type = "host",
-    options = { "enabled", "type", "id", "mode", "start_time", "stop_time" },
-    lists = { "weekdays" },
+  config = config_tod,
+  type = "host",
+  options = { "enabled", "type", "id", "mode", "start_time", "stop_time", "rule_name" },
+  lists = { "weekdays" },
 }
-mapper("uci_1to1").registerMultiMap(tod_host)
+mapper("uci_1to1").registerNamedMultiMap(tod_host)
 
 -- belows for wifitod feature
 -- uci.tod.ap.{i}
 local tod_ap = {
-    config = config_tod,
-    type = "ap",
-    options = { "state"},
+  config = config_tod,
+  type = "ap",
+  options = { "state", "ap" },
 }
 mapper("uci_1to1").registerNamedMultiMap(tod_ap)
 
 -- uci.tod.wifitod.{i}
 local tod_wifitod = {
-    config = config_tod,
-    type = "wifitod",
-    lists = { "ap" },
+  config = config_tod,
+  type = "wifitod",
+  lists = { "ap" },
 }
 local mapping_wifitod = mapper("uci_1to1").createNamedMultiMap(tod_wifitod)
 register(mapping_wifitod)
@@ -43,402 +91,26 @@ mapper("uci_1to1").registerSubmaps(mapping_wifitod.submappings)
 
 -- uci.tod.action.{i}
 local tod_action = {
-    config = config_tod,
-    type = "action",
-    options = { "enabled", "object", "path", "timer"},
+  config = config_tod,
+  type = "action",
+  options = { "enabled", "object", "script"},
+  lists = { "timers" },
 }
 mapper("uci_1to1").registerNamedMultiMap(tod_action)
 
 -- uci.tod.timer.{i}
 local tod_timer = {
-    config = config_tod,
-    type = "timer",
-    lists = { "weekdays", "start_time", "stop_time"}
+  config = config_tod,
+  type = "timer",
+  options = {"start_time", "stop_time", "periodic", "name", "enabled"},
 }
 mapper("uci_1to1").registerNamedMultiMap(tod_timer)
 
-------------------------------------------------------------------
--- define the interface for WEB-ui
-------------------------------------------------------------------
-
--- uci.tod.interface.{i}
-local mapinfo_wifitod_uci = {
-    config = config_tod,
-    type = "webinterf_data",
-    options = { "ap", "enabled", "mode" , "start_time", "stop_time"},
-    lists = { "weekdays" }
+-- uci.tod.voicednd.{i}
+local tod_voicednd = {
+  config = config_tod,
+  type = "voicednd",
+  lists = { "profile" },
 }
+mapper("uci_1to1").registerNamedMultiMap(tod_voicednd)
 
-local mapping_wifitod_uci_ = mapper("uci_1to1").createNamedMultiMap(mapinfo_wifitod_uci)
-local mapping_wifitod_uci = {
-    objectType = {
-        name = "uci.tod.webinterf.@.",
-        access = mapping_wifitod_uci_.objectType.access,
-        minEntries = mapping_wifitod_uci_.objectType.minEntries,
-        maxEntries = mapping_wifitod_uci_.objectType.maxEntries,
-        parameters = mapping_wifitod_uci_.objectType.parameters,
-    }
-}
-
--- the index --> {action = action's name, wifitod = wifitod's name, AP = the SSID's name, timer = timer's name}
-local DB_lite, key_lst = {}, {}                -- in memory for better performance
-
-local get_index_from = function (name)
-  local i = 0
-  for k, v in ipairs(key_lst) do
-    if v == name then
-      i = k
-	  break
-    end
-  end
-  return i
-end
-
--- Generate a new section name
-local wifitod_get_unused_name = function (sec)
-  local id = math.random(0, 0xfffe)
-  local name = "" .. sec .. string.format("%04X", id)
-  return name
-end
-
-local add = function (mapping, name)
-
-  -- defines the default values for ap/action/wifitod/timer
-  local timer_sec = wifitod_get_unused_name("timer")
-  local action_sec = wifitod_get_unused_name("wifitodaction")
-  local wifitod_sec = wifitod_get_unused_name("wifitod")
-  local ap_sec = wifitod_get_unused_name("ap")
-
-  -- suppose the app (named "all") section always exists
-  tod_binding.sectionname = ap_sec
-  tod_binding.option = nil
-  uci_helper.set_on_uci(tod_binding, "ap", commitapply)
-  tod_binding.option = "ap"
-  uci_helper.set_on_uci(tod_binding, "all", commitapply)
-  tod_binding.option = "state"
-  uci_helper.set_on_uci(tod_binding, "1", commitapply)
-
-  tod_binding.sectionname = timer_sec
-  tod_binding.option = nil
-  uci_helper.set_on_uci(tod_binding, "timer", commitapply)
-  tod_binding.option = "start_time"
-  uci_helper.set_on_uci(tod_binding, { "00:00" }, commitapply)
-  tod_binding.option = "stop_time"
-  uci_helper.set_on_uci(tod_binding, { "23:59" }, commitapply)
-  tod_binding.option = "weekdays"
-  uci_helper.set_on_uci(tod_binding, everyday, commitapply)
-
-  tod_binding.sectionname = wifitod_sec
-  tod_binding.option = nil
-  uci_helper.set_on_uci(tod_binding, "wifitod", commitapply)
-  tod_binding.option = "ap"
-  uci_helper.set_on_uci(tod_binding, { ap_sec }, commitapply)
-
-  tod_binding.sectionname = action_sec
-  tod_binding.option = nil
-  uci_helper.set_on_uci(tod_binding, "action", commitapply)
-  tod_binding.option = "enabled"
-  uci_helper.set_on_uci(tod_binding, "1", commitapply)
-  tod_binding.option = "object"
-  uci_helper.set_on_uci(tod_binding, "wifitod." .. wifitod_sec, commitapply)
-  tod_binding.option = "script"
-  uci_helper.set_on_uci(tod_binding, "wifitodscript", commitapply)
-  tod_binding.option = "timer"
-  uci_helper.set_on_uci(tod_binding, timer_sec, commitapply)
-
-  DB_lite[#DB_lite+1] = { AP = ap_sec, timer = timer_sec, action = action_sec, wifitod = wifitod_sec}
-  local sec_name = wifitod_get_unused_name("webinterf_data")
-  key_lst[#key_lst+1] = sec_name
-
-  -- create the weekdays section as the transformer can see it
-  local weekdays = everyday
-  tod_binding.sectionname = sec_name
-  tod_binding.option = nil
-  uci_helper.set_on_uci(tod_binding, "webinterf_data", commitapply)
-
-   -- only save the weekdays on UCI, others are not necessary
-  tod_binding.option = "weekdays"
-  uci_helper.set_on_uci(tod_binding, weekdays, commitapply)
-
-  return key_lst[#key_lst]
-end
-
-mapping_wifitod_uci.add = add
-
-local load_config = function ()
-    local ac_binding = {config="tod", sectionname="action"}
-    local ac_list = {}
-
-    -- 1. from the action section, get all the infomation
-    uci_helper.foreach_on_uci(ac_binding, function(s)
-      insert(ac_list, {action = s['.name'], wifitod = s['object'], timer = s['timer']} )
-    end)
-
-    local wi_binding = {config="tod", sectionname="wifitod"}
-
-    -- 2. then check every SSID for the wifitod section
-    for _, ac in ipairs(ac_list) do
-
-      uci_helper.foreach_on_uci(wi_binding, function(wi)
-        if ac['wifitod'] == "wifitod." .. wi['.name'] then
-
-         -- 3. check every SSID in the list
-         for _, ssid in ipairs(wi['ap']) do
-
-          -- 4. save the info in the DB_lite
-		  -- save the weekdays as well
-		  local weekdays = uci_helper.get_from_uci( {config = "tod", sectionname = ac['timer'], option = 'weekdays'})
-
-		  -- get the section's name for the SSID
-		  local ap_sec = ssid
-          DB_lite[#DB_lite+1] = { action = ac['action'], wifitod = wi['.name'], AP = ap_sec, timer = ac['timer']}
-		  local sec_name = wifitod_get_unused_name("webinterf_data")
-          key_lst[#key_lst+1] = sec_name
-
-		  -- create the weekdays in uci as the transformer can see it when get returns
-          tod_binding.sectionname = sec_name
-          tod_binding.option = nil
-          uci_helper.set_on_uci(tod_binding, "webinterf_data", commitapply)
-          -- only save the weekdays on UCI, others are not necessary
-          tod_binding.option = "weekdays"
-          uci_helper.set_on_uci(tod_binding, weekdays, commitapply)
-
-         end
-         return false  -- break the foreach loop
-        end
-      end)
-
-    end -- for loop
-
-    -- check to start TOD daemon
-    if #DB_lite > 0 then
-      tod_binding.sectionname = "global"
-      tod_binding.option = nil
-      uci_helper.set_on_uci(tod_binding, "tod", commitapply)
-      tod_binding.option = "enabled"
-      uci_helper.set_on_uci(tod_binding, "1", commitapply)
-    end
-end
-
-local getter = {
-
-  start_time = function (mapping, paramName, key, ...)
-    local dummy
-    tod_binding.sectionname = DB_lite[key]['timer']
-    tod_binding.option = 'start_time'
-    local time = uci_helper.get_from_uci(tod_binding)
-    if time == nil or time == "" then
-      time = {"00:00"}
-    end
-    if type(time) == "table" then
-      dummy, time = next(time)  -- just return the 1st item
-    end
-    return time
-  end,
-
-  stop_time = function (mapping, paramName, key, ...)
-    local dummy
-    tod_binding.sectionname = DB_lite[key]['timer']
-    tod_binding.option = 'stop_time'
-    local time = uci_helper.get_from_uci(tod_binding)
-    if time == nil or time == "" then
-        time = {"23:59"}
-    end
-    if type(time) == "table" then
-      dummy, time = next(time)
-    end
-    return time
-  end,
-
-  enabled = function (mapping, paramName, key, ...)
-    tod_binding.sectionname = DB_lite[key]['action']
-    tod_binding.option = 'enabled'
-    local enabled = uci_helper.get_from_uci(tod_binding)
-    if enabled == "" or enabled == "1" then
-      return "1"
-    else
-      return "0"
-    end
-  end,
-
-  weekdays = function (mapping, paramName, key, ...)
-    tod_binding.sectionname = DB_lite[key]['timer']
-    tod_binding.option = 'weekdays'
-    local days = uci_helper.get_from_uci(tod_binding)
-    if days == nil or days == "" then
-      days = everyday
-    end
-    return days
-  end,
-
-  ap = function (mapping, paramName, key, ...)
-    tod_binding.sectionname = DB_lite[key]['AP']
-    tod_binding.option = 'ap'
-    local ap = uci_helper.get_from_uci(tod_binding)
-    return ap
-  end,
-
-  mode = function (mapping, paramName, key, ...)
-    tod_binding.sectionname = DB_lite[key]['AP']
-    tod_binding.option = 'state'
-    local state = uci_helper.get_from_uci(tod_binding)
-    if state == "" or state == "1" then
-      state = "on"
-    else
-      state = "off"
-    end
-    return state
-  end,
-}
-
-local setter = {
-  ap = function(mapping, param, value, key, ...)
-    -- do nothing for AP
-  end,
-  mode = function(mapping, param, value, key, ...)
-    tod_binding.sectionname = "" .. DB_lite[key]['AP']
-    tod_binding.option = nil
-    uci_helper.set_on_uci(tod_binding, "ap", commitapply)
-
-    if value == "1" or value == "on" then
-      value = "1"
-    elseif value == "0" or value == "off" then
-      value = "0"
-    else
-      value = "0"
-    end
-    tod_binding.option = "state"
-    uci_helper.set_on_uci(tod_binding, value, commitapply)
-  end,
-
-  start_time = function(mapping, param, value, key, ...)
-    tod_binding.sectionname = DB_lite[key]['timer']
-    tod_binding.option = nil
-    uci_helper.set_on_uci(tod_binding, "timer", commitapply)
-
-    tod_binding.option = param
-    uci_helper.set_on_uci(tod_binding, { value }, commitapply)
-  end,
-
-  stop_time = function(mapping, param, value, key, ...)
-    tod_binding.sectionname = DB_lite[key]['timer']
-    tod_binding.option = nil
-    uci_helper.set_on_uci(tod_binding, "timer", commitapply)
-
-    tod_binding.option = param
-    uci_helper.set_on_uci(tod_binding, { value }, commitapply)
-  end,
-
-  weekdays = function(mapping, param, value, key, ...)
-    tod_binding.sectionname = DB_lite[key]['timer']
-    tod_binding.option = nil
-    uci_helper.set_on_uci(tod_binding, "timer", commitapply)
-
-    tod_binding.option = param
-    uci_helper.set_on_uci(tod_binding, value, commitapply)
-  end,
-
-  enabled = function(mapping, param, value, key, ...)
-    tod_binding.sectionname = DB_lite[key]['action']
-    tod_binding.option = nil
-    uci_helper.set_on_uci(tod_binding, "action", commitapply)
-
-    tod_binding.option = "enabled"
-    uci_helper.set_on_uci(tod_binding, value, commitapply)
-  end,
-}
-
-mapping_wifitod_uci.set = function(mapping, param, value, key, ...)
-  setter[param] (mapping, param, value, get_index_from(key), ...)
-  return true
-end
-
-mapping_wifitod_uci.get = function(mapping, param, key, ...)
-  return getter[param] (mapping, param, get_index_from(key), ...)
-end
-
-mapping_wifitod_uci.delete = function(mapping, key, parentkey, ...)
-  local i = get_index_from(key)
-  tod_binding.sectionname = DB_lite[i]['timer']
-  tod_binding.option = nil
-  uci_helper.delete_on_uci(tod_binding, commitapply)
-  tod_binding.sectionname = DB_lite[i]['action']
-  uci_helper.delete_on_uci(tod_binding, commitapply)
-  tod_binding.sectionname = DB_lite[i]['wifitod']
-  uci_helper.delete_on_uci(tod_binding, commitapply)
-  tod_binding.sectionname = DB_lite[i]['AP']
-  uci_helper.delete_on_uci(tod_binding, commitapply)
-  -- delete the webinterf_data
- tod_binding.sectionname = key
-  uci_helper.delete_on_uci(tod_binding, commitapply)
-
-  -- clean up DB_lite and key_lst (key/name)
-  table.remove(DB_lite, i)
-  table.remove(key_lst, i)
-
-  return true
-end
-
-mapping_wifitod_uci.deleteall = function(mapping, parentkey, key, ...)
-  for _, k in ipairs(key_lst) do
-    mapping_wifitod_uci.delete(mapping, k, nil, ...)
-  end
-  return true
-end
-
-mapping_wifitod_uci.commit = function(mapping)
-  -- the right chance to save the weekdays on UCI, otherwise can't be saved successfully!!!!
-  -- both the webinterf_data and uci.tod.webinterf. should be updated accordingly!!!!
-  for k, v in ipairs(DB_lite) do
-    tod_binding.sectionname = key_lst[k]
-    tod_binding.option = 'weekdays'
-    local weekdays = uci_helper.get_from_uci(tod_binding)
-    setter['weekdays'](mapping, "weekdays", weekdays, k)
-  end
-
-  commitapply:newset("uci.tod.webinterf.")
-  -- to start TOD daemon anyway
-  tod_binding.sectionname = "global"
-  tod_binding.option = nil
-  uci_helper.set_on_uci(tod_binding, "tod", commitapply)
-  tod_binding.option = "enabled"
-  uci_helper.set_on_uci(tod_binding, "1", commitapply)
-
-  uci_helper.commit(tod_binding)
-
-  return true
-end
-
-mapping_wifitod_uci.getall = function (mapping, key, ...)
-end
-
-mapping_wifitod_uci.revert = function(mapping)
-  uci_helper.revert(tod_binding)
-end
-mapping_wifitod_uci.entries = function (mapping)
-  return key_lst
-end
-
-register(mapping_wifitod_uci)
-for _, submap in ipairs(mapping_wifitod_uci_.submappings) do
-  submap.objectType.name = mapping_wifitod_uci.objectType.name .. submap.binding.option .. ".@."
-  register(submap)
-end
-
--- clean up the webinterf_data
-tod_binding.sectionname="webinterf_data"
-local webinterf_data = {}
-uci_helper.foreach_on_uci(tod_binding, function(s)
-  insert(webinterf_data, s['.name'])
- end)
-
-for _, name in ipairs(webinterf_data) do
-  tod_binding.sectionname = name
-  tod_binding.option = nil
-  uci_helper.delete_on_uci(tod_binding, commitapply)
-end
-uci_helper.commit(tod_binding)
-
--- load all infomation
-math.randomseed(os.time())
-load_config()

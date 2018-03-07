@@ -22,7 +22,7 @@ end
   ngx.print('\
 \
 <div class="span3">\
-  <div class="smallcard">\
+  <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
 \
     ');  
     local eth4_data = {
@@ -43,12 +43,60 @@ end
     <div class="content card_bg" data-bg-text="&#xf085;">\
 	<div class="divtable">\
      <table align="center" cellspacing="10%" cellpadding="10%" >\
-      <tr>');  if xdsl_exist and eth4_data["eth4_status"] ~= "up" then   ngx.print('\
-      <td><div data-toggle="modal" data-remote="modals/diagnostics-xdsl-modal.lp" data-id="diagnostics-xdsl-modal"><img  href="#" rel="tooltip" data-original-title="XDSL" src="/img/bandwidth-px-png.png" alt="dsl"></div></td>\
-    ');  end  ngx.print('\
-      <td><div data-toggle="modal" data-remote="modals/diagnostics-ping-modal.lp" data-id="diagnostics-ping-modal"><img href="#" rel="tooltip" data-original-title="PING" src="/img/pocket-32-black.png" alt="ping/trace"></div></td></tr>\
-      <tr><td><div data-toggle="modal" data-remote="modals/diagnostics-connection-modal.lp" data-id="diagnostics-connection-modal"><img href="#" rel="tooltip" data-original-title="CONNECTION" src="/img/connection-established.png" alt="connection"></div></td>\
-      <td><div data-toggle="modal" data-remote="modals/diagnostics-network-modal.lp" data-id="diagnostics-network-modal"><img href="#" rel="tooltip" data-original-title="NETWORK" src="/img/network_sans-32.png" alt="network"></div></td></tr>\
+      <tr>');  
+	if xdsl_exist and eth4_data["eth4_status"] ~= "up" then   ngx.print('\
+		  <td>\
+		    <div data-toggle="modal" data-remote="modals/diagnostics-xdsl-modal.lp" data-id="diagnostics-xdsl-modal">\
+			  <picture>\
+				<source srcset="/img/bandwidth-px-png.webp" type="image/webp">\
+				<source srcset="/img/bandwidth-px-png.png" type="image/png">\
+				<img class="smallsomeInfos" href="#" rel="tooltip" data-placement="bottom" data-original-title="XDSL" src="/img/bandwidth-px-png.png" alt="dsl">\
+			  </picture>\
+			</div>\
+		  </td>\
+	');
+	end	
+	ngx.print('\
+          <td>\
+			<div data-toggle="modal" data-remote="modals/diagnostics-ping-modal.lp" data-id="diagnostics-ping-modal">\
+			  <picture>\
+			    <source srcset="/img/pocket-32-black.webp" type="image/webp">\
+		        <source srcset="/img/pocket-32-black.png" type="image/png">\
+			    <img class="smallsomeInfos" href="#" rel="tooltip" data-placement="bottom" data-original-title="PING" src="/img/pocket-32-black.png" alt="ping/trace">\
+			  </picture>\
+			</div>\
+	      </td>\
+		  <td>\
+	        <div data-toggle="modal" data-remote="modals/port-mirror-modal.lp" data-id="port-mirror-modal">\
+			    <i class="smallsomeInfos fa fa-exchange" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="PORT-MIRROR" alt="port-mirror"></i>\
+			</div>\
+	      </td>\
+	    </tr>\
+        <tr>\
+		  <td>\
+			<div data-toggle="modal" data-remote="modals/diagnostics-connection-modal.lp" data-id="diagnostics-connection-modal">\
+			  <picture>\
+				<source srcset="/img/connection-established.webp" type="image/webp">\
+				<source srcset="/img/connection-established.png" type="image/png">\
+				<img class="smallsomeInfos" href="#" rel="tooltip" data-placement="top" data-original-title="CONNECTION" src="/img/connection-established.png" alt="connection">\
+			  </picture>\
+		    </div>\
+	      </td>\
+		  <td>\
+	        <div data-toggle="modal" data-remote="modals/diagnostics-network-modal.lp" data-id="diagnostics-network-modal">\
+			  <picture>\
+				<source srcset="/img/network_sans-32.webp" type="image/webp">\
+				<source srcset="/img/network_sans-32.png" type="image/png">\
+			    <img class="smallsomeInfos" href="#" rel="tooltip" data-placement="top" data-original-title="NETWORK" src="/img/network_sans-32.png" alt="network">\
+			  </picture>\
+			</div>\
+	      </td>\
+		  <td>\
+	        <div data-toggle="modal" data-remote="modals/diagnostics-tcpdump-modal.lp" data-id="diagnostics-network-tcpdump">\
+			    <i class="smallsomeInfos fa fa-download" style="font-size:32px;" href="#" rel="tooltip" data-placement="top" data-original-title="TCPDUMP" alt="tcpdump"></i>\
+			</div>\
+	      </td>\
+	    </tr>\
       </table>\
     </div>\
 	</div>\

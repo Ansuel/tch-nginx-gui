@@ -1,31 +1,54 @@
-<%
--- Enable localization
-gettext.textdomain('webui-core')
+--pretranslated: do not change this file
 
-local lp = require("web.lp")
-local proxy = require("datamodel")
 local ui_helper = require("web.ui_helper")
-local message_helper = require("web.uimessage_helper")
-local content_helper = require("web.content_helper")
 
-%>
+ngx.print(ui_helper.createHeader("Changelog", false, false)) 
 
-<% ngx.print(ui_helper.createHeader("Changelog", false, false)) %>
-<div class="modal-body update">
-<%
-ngx.print(ui_helper.createMessages(message_helper.popMessages()))
-%>
-<fieldset>
-	<legend><%= T"Mainline 17.1 Gold" %></legend>
-    <form class="form-horizontal" method="post" action="modals/changelog.lp">
-    <%
+ngx.print('\
+<div class="modal-body no-save">\
+  <fieldset>\
+    <form class="form-horizontal" method="post" action="modals/changelog.lp">\
+    ');
+	  local html = {}
 	  local basic = {
         span = {
           class = "span8",
 		  style = "border-bottom: 1px solid #e5e5e5;padding-bottom: 10px"
         },
       }
-      local html = {}
+      
+	  html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan" .. '</legend>'
+	  html[#html + 1] = ui_helper.createLabel(T"5.1", "Refix tab lan e fix cwmpd (forse)", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"5.0", "Fix autocompletamento e tab lan", basic)
+	  html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan" .. '</legend>'
+	  html[#html + 1] = ui_helper.createLabel(T"4.6", "Fixato switch tab mobile", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"4.5", "Selettore skin gui nella tab Sistema Extra", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"4.4", "Fix pagina wireless", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"4.3", "Traduzioni aggiornate (thx @DarkNiko), altri fix telegestione e altro", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"4.2", "Altri fix, gui stabile", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"4.1", "Vari fix, telegestione fixata (forse? no...), gui stabile", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"4.0", "Rebase Completo", basic)
+	  html[#html + 1] = '<legend>' .. T"Mainline 17.1 Aqua" .. '</legend>'
+	  html[#html + 1] = ui_helper.createLabel(T"3.36", "Fix grafico 5Ghz", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"3.35", "Svecchiamento grafica pt.2", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"3.34", "Fix grafico lan", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"3.33", "Migliorata velocità gui", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"3.32", "Migliorata configurazione wizard voip (chiede anche il resto ora....)", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"3.31", "Aggiunte voci domain name e realm sezione voip", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"3.30", "Fix riattivazione dhcp e bridge mode", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"3.29", "Fix telegestione", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"3.28", "Testing accesso remoto con scelta di porta. (Necessario un reboot per cambiare la porta)", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"3.27", "Aggiornato nginx, attivato gzip compression aumentata reattività webui", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"3.26", "Fixed opkg update problem (openssl-util manuallty installed) and mac address", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"3.25", "Verde è più bello :)", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"3.24", "Fix vari, wizard fixato", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"3.23", "Aggiunto Traffic Monitor nella sezione dispositivi", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"3.22", "Fix vari", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"3.21", "Fix bug aggiornamento disponibile", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"3.20", "Aggiunto update gui offline e fix vari", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"3.19", "Nuovi pacchetti (kmod funzionanti), aggiornato opkg repo. Si ringrazia Roleo per la compilazione", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"3.18", "Introdotto nuovo daemon dlnad", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"3.17", "Fix sysupgrade (flash altra partizione ma niente switchover, ora flasha quella su cui è presente il firmware e non esegue switchover)", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"3.16", "Rimosso aggiornamento adsl e cwmpd... ", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"3.15", "Possibile fix tod wireless", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"3.14", "Fix card_limiter", basic)
@@ -43,20 +66,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = ui_helper.createLabel(T"3.2", "Tutti in bank_1, inserito check in boot per forzare tutti lì", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"3.1", "Tab DHCP fixata", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"3.0", "Merge cambiamenti da AGTEF_1.0.4_007", basic)
-	ngx.print(html)
-    %>
-    </form>
-  </fieldset>
-	<legend><%= T"Mainline 17.1 Gold" %></legend>
-    <form class="form-horizontal" method="post" action="modals/changelog.lp">
-    <%
-	  local basic = {
-        span = {
-          class = "span8",
-		  style = "border-bottom: 1px solid #e5e5e5;padding-bottom: 10px"
-        },
-      }
-      local html = {}
+	  html[#html + 1] = '<legend>' .. T"Mainline 17.1 Aqua" .. '</legend>'
 	  html[#html + 1] = ui_helper.createLabel(T"2.23", "Aggiunto bottone transfer to bank 1 nella tab system (Funzioni Avanzate) ", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"2.22", "Aggiunto bottone switchover e informazioni sui bank nella tab system", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"2.21", "Fixata casella DDNS non visualizzata", basic)
@@ -95,9 +105,12 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = ui_helper.createLabel(T"1.2", "Aggiunte tab switch e QOS (WIP)", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"1.1", "Abilitate tab nascoste", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"1.0", "Rimosso css e logo tim", basic)
+	
 	ngx.print(html)
-    %>
-    </form>
-  </fieldset>
-</div>
-<% ngx.print(ui_helper.createFooter()) %>
+	
+ngx.print('\
+    </form>\
+  </fieldset>\
+</div>\
+');  ngx.print( ui_helper.createFooter() ); ngx.print('\
+'); 

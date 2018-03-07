@@ -13,6 +13,7 @@ local gVIPIL = post_helper.getValidationIfPropInList
 local vPSK = post_helper.validatePSK
 local format = string.format
 
+local path_ap_data = "uci.wireless.wifi-ap.@ap0."
 local path_ap_security = "rpc.wireless.ap.@ap0.security."
 local supported_modes_data  = proxy.get(path_ap_security .. "supported_modes")
 local supported_modes = format("%s", supported_modes_data and supported_modes_data[1] and supported_modes_data[1].value or "")
@@ -30,8 +31,8 @@ for mode in supported_modes:gmatch("[^%s]+") do
 end
 
 local mapParams = {
-  security = path_ap_security .. "mode",
-  wpa_psk = path_ap_security .. "wpa_psk_passphrase",
+  security = path_ap_data .. "security_mode",
+  wpa_psk = path_ap_data .. "wpa_psk_key",
 }
 
 local mapValid = {
@@ -75,6 +76,7 @@ local content, helpmsg = wizard_helper.handleQuery(mapParams, mapValid)
     <fieldset>
       <%
         local html = {}
+		html[#html+1] = ui_helper.createLabel(T"Security Key Type: ", secmodes_matched[format("%s",content["security"])])
         html[#html+1] = ui_helper.createLabel(T"Security Key: ", content["wpa_psk"])
         ngx.print(html)
       %>

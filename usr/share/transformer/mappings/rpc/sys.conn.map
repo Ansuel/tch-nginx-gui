@@ -124,6 +124,10 @@ local sys_conn_host_i_ = {
         access = "readOnly",
         type = "string",
       },
+      MACAddress = {
+        access = "readOnly",
+        type = "string",
+      },
       NumberOfConnections = {
         access = "readOnly",
         type = "unsignedInt",
@@ -161,7 +165,7 @@ sys_conn_host_i_.entries = function()
         break
       end
     end
-    local name = ""
+    local name
     if data["user-friendly-name"] and data["user-friendly-name"] ~= "" then
       name = data["user-friendly-name"]
     elseif data["hostname"] and data["hostname"] ~= "" then
@@ -171,7 +175,7 @@ sys_conn_host_i_.entries = function()
     end
     local mac = data["mac-address"]
     local qtnMac = string.lower(uciHelper.get_from_uci(envBinding))
-    if mac ~= qtnMac and data["state"] == "connected" then
+    if mac ~= qtnMac and data.state == "connected" and data.interface == "lan" then
       entries[#entries+1] = mac
       devInfo[mac] = { ipv4 = ipv4, ipv6 = ipv6, HostName = name }
     end
@@ -209,6 +213,9 @@ sys_conn_host_i_.get = {
     return devInfo[key].ipv6
   end,
   LinkLocalAddress = "",
+  MACAddress = function(mapping, param, key)
+    return key
+  end,
   NumberOfConnections = function(mapping, param ,key)
     return getNumberOfConnections("ipv4", key, ipv4Conn)
   end,

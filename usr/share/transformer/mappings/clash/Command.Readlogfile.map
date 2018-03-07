@@ -1,8 +1,0 @@
-local command = {
-  name = "readlogfile",
-  full_path = "/usr/bin/tail",
-  operands = {"file"},
-  options_without_argument = {"-f","+1"}
-}
-
-mapper("command").registerCommand(command)

@@ -11,7 +11,7 @@ local ch = require("web.content_helper")
 local string, pairs, ngx = string, pairs, ngx
 local ui_helper = require("web.ui_helper")
 local format, print, match = string.format, ngx.print , string.match
-local eth0, eth1, eth2, eth3, wifi = {}, {}, {}, {}, {}
+local eth0, eth1, eth2, eth3, wifi, moca0 = {}, {}, {}, {}, {}, {}
 
 local function AJAX(ap,path,mac)
   if ap and path and mac then
@@ -68,6 +68,14 @@ local tabs = {
         active = "active",
         target = "modals/hostmap-modal.lp",
     },
+	{
+            desc = T"WiFi Nurse",
+            target = "modals/wifi-nurse-modal.lp",
+    },
+	{
+        desc = T"Traffic Monitor",
+        target = "modals/traffic-monitor.lp",
+    },
 }
 ngx.print(ui_helper.createModalTabs(tabs))
   ngx.print('\
@@ -84,6 +92,7 @@ local ethstate = {
       ["eth2"] = "0",
       ["eth3"] = "0",
       ["eth4"] = "0",
+      ["moca0"] = "0",
 }
 for _, v in pairs (eth_sys_content) do
   if v.status == "up" then
@@ -99,7 +108,7 @@ end
   for _,f in ipairs(hosts) do
       local displayname = f.HostName
       if displayname == "" then
-         f.HostName = format("%s%s",T"Unknown",string.upper(f.MACAddress):sub(-6))
+         f.HostName = format("%s [ %s ]",T"Unknown",f.MACAddress)
       end
       local intf = f.L2Interface
       if intf == "vlan_eth0" or intf == "eth0" then
@@ -110,6 +119,8 @@ end
         eth2[#eth2+1] = f
       elseif intf == "vlan_eth3" or intf == "eth3" then
         eth3[#eth3+1] = f
+      elseif intf == "moca0" then
+        moca0[#moca0+1] = f
       else
         f.path = "sys.hosts.host."..f.paramindex
         wifi[#wifi+1] = f
@@ -118,7 +129,7 @@ end
 
   html[#html+1]=format("<legend>%s</legend>",T"Ethernet Ports")
   html[#html+1]="<table class=\"hostmaptable\">"
-  html[#html+1]=format("<tr class=\"grey\"><td class=\"centertxt centertitle\">%s</td><td class=\"centertxt centertitle\">%s</td><td class=\"centertxt centertitle\">%s</td><td class=\"centertxt centertitle\">%s</td></tr>",T"Port 1",T"Port 2",T"Port 3",T"Port 4")
+  html[#html+1]=format("<tr class=\"grey\"><td class=\"centertxt centertitle\">%s</td><td class=\"centertxt centertitle\">%s</td><td class=\"centertxt centertitle\">%s</td><td class=\"centertxt centertitle\">%s</td><td class=\"centertxt centertitle\">%s</td></tr>",T"Port 1",T"Port 2",T"Port 3",T"Port 4",T"MoCA")
   html[#html+1]="<tr>"
   --ETH0
   html[#html+1]="<td class=\"twentyfive\">"
@@ -142,6 +153,12 @@ end
   html[#html+1]="<td class=\"twentyfive\">"
   for x=1, #eth3, 1 do
       html[#html+1] = generate_host(eth3[x].HostName, eth3[x].IPAddress, eth3[x].MACAddress:upper(), ethstate["eth3"], eth3[x].State, eth3[x].path)
+  end
+  html[#html+1]="</td>"
+  --MoCA
+  html[#html+1]="<td class=\"twentyfive\">"
+  for x=1, #moca0 do
+      html[#html+1] = generate_host(moca0[x].HostName, moca0[x].IPAddress, moca0[x].MACAddress:upper(), ethstate["moca0"], moca0[x].State, moca0[x].path)
   end
   html[#html+1]="</td></tr></table><br/>"
   --WIFI

@@ -1,8 +1,0 @@
-local command = {
-  name = "route",
-  full_path = "/sbin/route",
-  options_without_argument = {"add", "del"},
-  options_with_argument = {"-net", "-host", "netmask", "gw", "metric", "dev"},
-}
-
-mapper("command").registerCommand(command)

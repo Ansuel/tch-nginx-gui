@@ -23,12 +23,23 @@ local mode_map = {
     { "1", T'Permanent'},
 }
 
+local user_map = {
+    { "admin", T'Admin' },
+    { "assist", T'Assistant'},
+	{ "guest", T'Guest'},
+}
+
 local mode_map2 = setmetatable({
     ["0"]= T'Temporary',
     ["1"]= T'Permanent',
 }, untaint_mt)
 
 local checkbox_map = setmetatable({
+    ["0"]= T'No',
+    ["1"]= T'Yes',
+}, untaint_mt)
+
+local checkbox_map2 = setmetatable({
     ["0"]= T'No',
     ["1"]= T'Yes',
 }, untaint_mt)
@@ -136,18 +147,27 @@ if ngx.var.request_method == "POST" then
     end
 end
 
+local mapValid = {
+    port = post_helper.getValidateNumberInRange(0,65535),
+	user =  post_helper.validateNonEmptyString,
+}
+
+local mapParams = {
+	user = "uci.web.assistance.@remote.user",
+	port = "uci.web.assistance.@remote.port",
+}
+
+local content2, helpmsg2 = post_helper.handleQuery(mapParams, mapValid)
+
 if not content then
    content = {}
    content["ra_enabled"] = assistant:enabled() and "1" or "0"
    content["mode"] = (timeout == "-1") and "1" or "0"
    content["random_psw"] = uci_assist_srp and "0" or "1"
+   content["random_port"] = not ( content2["port"] == "" ) and "0" or "1"
 end
 
 content["password"]=""
-if content["random_psw"] == "1" and assistant:enabled() then
-   content["password"] = assistant:password()
-end
-
 if content["random_psw"] == "1" and assistant:enabled() then
    content["password"] = assistant:password()
 end
@@ -200,17 +220,21 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
      html[#html + 1] = ui_helper.createInputSelect(T"Mode", "mode", mode_map, content["mode"],ra_cfg_class)
      html[#html + 1] = ui_helper.createLabel(T"Mode", mode_map2[content["mode"]],ra_class)
   end
-
-  html[#html + 1] = ui_helper.createLabel(T"Username", assistant:username())
+  
+     html[#html + 1] = ui_helper.createLabel(T"Username", assistant:username())
+  
   local password = assistant:password()
   if (assistant:enabled() and password =="") or (content["random_psw"] == "0") then
      password = "********"
   end
   if assistant:enabled() then
+     html[#html + 1] = ui_helper.createLabel(T"Port", content2["port"])
      html[#html + 1] = ui_helper.createLabel(T"Use Random Password", checkbox_map[content["random_psw"]])
      html[#html + 1] = ui_helper.createLabel(T"Password", password)
      html[#html + 1] = error and ui_helper.createLabel("Error", error) or ''
   else
+		html[#html + 1] = ui_helper.createInputText(T"Port", "port" , content2["port"], ra_cfg_class , helpmsg2["port"])
+     html[#html + 1] = ui_helper.createLabel(T"Port", content2["port"] , ra_class)
      html[#html + 1] = ui_helper.createSwitch(T"Use Random Password", "random_psw", content["random_psw"],ra_cfg_class)
      html[#html + 1] = ui_helper.createLabel(T"Use Random Password", checkbox_map[content["random_psw"]],ra_class)
      html[#html + 1] = ui_helper.createInputText(T"Password", "password", content["password"], ra_cfg_class, helpmsg["password"])
@@ -252,6 +276,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
                 var error = $(\''); ngx.print('.error'); ngx.print('\');\
                  $(\''); ngx.print('.error input:not([type="hidden"])'); ngx.print('\').first().focus();\
             });\
+			location.reload();\
         };\
 \
         var user = "'); ngx.print( assistant:username() ); ngx.print('";\

@@ -1501,13 +1501,13 @@ local sys_class_xdsl_ = {
         access = "readOnly",
         activeNotify = "canDeny",
         type = "string",
-     },
-     UpstreamFramingK = {
+      },
+      UpstreamFramingK = {
         access = "readOnly",
         activeNotify = "canDeny",
         type = "unsignedInt",
       },
-     DownstreamFramingK = {
+      DownstreamFramingK = {
         access = "readOnly",
         activeNotify = "canDeny",
         type = "unsignedInt",
@@ -1517,10 +1517,555 @@ local sys_class_xdsl_ = {
 	activeNotify = "canDeny",
 	type = "string",
       },
-     Reset = {
-       access = "readWrite",
-       type = "boolean",
-     },
+      Reset = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      TotalBSWStartedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalBSWStartedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalBSWCompletedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalBSWCompletedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalSRAStartedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalSRAStartedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalSRACompletedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalSRACompletedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalFRAStartedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalFRAStartedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalFRACompletedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalFRACompletedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalRPAStartedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalRPAStartedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalRPACompletedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalRPACompletedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalTIGAStartedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalTIGAStartedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalTIGACompletedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalTIGACompletedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalRTXUC = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TotalRTXTX = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ShowtimeBSWStartedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ShowtimeBSWStartedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ShowtimeBSWCompletedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ShowtimeBSWCompletedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ShowtimeSRAStartedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ShowtimeSRAStartedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ShowtimeSRACompletedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ShowtimeSRACOmpletedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ShowtimeFRAStartedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ShowtimeFRAStartedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ShowtimeFRACompletedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ShowtimeFRACompletedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ShowtimeRPAStartedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ShowtimeRPAStartedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ShowtimeRPACompletedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ShowtimeRPACompletedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ShowtimeTIGAStartedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ShowtimeTIGAStartedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ShowtimeTIGACompletedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ShowtimeTIGACompletedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ShowtimeRTXUC = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ShowtimeRTXTX = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentDayBSWStartedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentDayBSWStartedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentDayBSWCompletedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentDayBSWCompletedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentDaySRAStartedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentDaySRAStartedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentDaySRACompletedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentDaySRACompletedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentDayFRAStartedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentDayFRAStartedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentDayFRACompletedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentDayFRACompletedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentDayRPAStartedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentDayRPAStartedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentDayRPACompletedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentDayRPACompletedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentDayTIGAStartedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentDayTIGAStartedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentDayTIGACompletedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentDayTIGACompletedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentDayRTXUC = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      CurrentDayRTXTX = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      QuarterHourBSWStartedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      QuarterHourBSWStartedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      QuarterHourBSWCompletedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      QuarterHourBSWCompletedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      QuarterHourSRAStartedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      QuarterHourSRAStartedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      QuarterHourSRACompletedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      QuarterHourSRACompletedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      QuarterHourFRAStartedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      QuarterHourFRAStartedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      QuarterHourFRACompletedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      QuarterHourFRACompletedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      QuarterHourRPAStartedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      QuarterHourRPAStartedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      QuarterHourRPACompletedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      QuarterHourRPACompletedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      QuarterHourTIGAStartedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      QuarterHourTIGAStartedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      QuarterHourTIGACompletedDs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      QuarterHourTIGACompletedUs = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      QuarterHourRTXUC = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      QuarterHourRTXTX = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      EOCBytesSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      EOCBytesReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      EOCPacketsSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      EOCPacketsReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      EOCMessagesSent = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      EOCMessagesReceived = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      LastTransmittedDownstreamSignal = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      LastTransmittedUpstreamSignal = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      SNRMRMCds = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      SNRMRMCus = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      BITSRMCpsds = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      BITSRMCpsus = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      FEXTCANCELds = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      FEXTCANCELus = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ETRds = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ETRus = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ATTETRds = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      ATTETRus = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      MINEFTR = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      UPBOKLEPb = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      UPBOKLERPb = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
     }
   }
 }
@@ -1682,6 +2227,10 @@ local getBondingStatus = xtmctl.getBondingStatus
 
 local function getValue(param, val)
   return tostring(cache[param] and (val - cache[param]) or val)
+end
+
+local function isNot35bProfile(key)
+  return  (xdslctl.infoValue("vdsl2profile","","",key) or "") ~= "35b"
 end
 
 sys_class_xdsl_.get = {
@@ -2362,10 +2911,10 @@ sys_class_xdsl_.get = {
     return xdslctl.infoValue("HLOGMT", "us", "", key)
   end,
   DownstreamHLOGps = function (mapping, params, key)
-    return xdslctl.infoValue("HLOGps", "ds", "", key)
+    return isNot35bProfile(key) and xdslctl.infoValue("HLOGps", "ds", "", key) or "0"
   end,
   UpstreamHLOGps = function (mapping, params, key)
-    return xdslctl.infoValue("HLOGps", "us", "", key)
+    return isNot35bProfile(key) and xdslctl.infoValue("HLOGps", "us", "", key) or "0"
   end,
   DownstreamINMCC = function (mapping, params, key)
     return xdslctl.infoValue("INMCCds", "", "", key)
@@ -2451,10 +3000,10 @@ sys_class_xdsl_.get = {
     return xdslctl.infoValue("QLNMT", "us", "", key)
   end,
   DownstreamQLNps = function (mapping, params, key)
-    return xdslctl.infoValue("QLNps", "ds", "", key)
+    return isNot35bProfile(key) and xdslctl.infoValue("QLNps", "ds", "", key) or "0"
   end,
   UpstreamQLNps = function (mapping, params, key)
-    return xdslctl.infoValue("QLNps", "us", "", key)
+    return isNot35bProfile(key) and xdslctl.infoValue("QLNps", "us", "", key) or "0"
   end,
   DownstreamSATN = function (mapping, params, key)
     return xdslctl.infoValue("SATN", "ds", "", key)
@@ -2481,10 +3030,10 @@ sys_class_xdsl_.get = {
     return xdslctl.infoValue("SNRMpb", "us", "", key)
   end,
   DownstreamSNRps = function (mapping, params, key)
-    return xdslctl.infoValue("SNRps", "ds", "", key)
+    return isNot35bProfile(key) and xdslctl.infoValue("SNRps", "ds", "", key) or "0"
   end,
   UpstreamSNRps = function (mapping, params, key)
-    return xdslctl.infoValue("SNRps", "us", "", key)
+    return isNot35bProfile(key) and xdslctl.infoValue("SNRps", "us", "", key) or "0"
   end,
   StandardUsed = function (mapping, params, key)
     return xdslctl.infoValue("StandardUsed", "", "", key)
@@ -2578,10 +3127,10 @@ sys_class_xdsl_.get = {
     return xdslctl.infoValue("BITSps", "us", "", key)
   end,
   DownstreamHLINps = function (mapping, params, key)
-    return xdslctl.infoValue("HLINps", "ds", "", key)
+    return isNot35bProfile(key) and xdslctl.infoValue("HLINps", "ds", "", key) or "0"
   end,
   UpstreamHLINps = function (mapping, params, key)
-    return xdslctl.infoValue("HLINps", "ds", "", key)
+    return isNot35bProfile(key) and xdslctl.infoValue("HLINps", "us", "", key) or "0"
   end,
   RetrainReason = function (mapping, params, key)
     return xdslctl.infoValue("lrtr", "", "", key)
@@ -2657,6 +3206,336 @@ sys_class_xdsl_.get = {
     return xdslctl.infoValue("framing_K", "ds", "", key)
   end,
   Reset = "0",
+
+
+  -- G.fast parameters
+  TotalBSWStartedDs = function (mapping, params, key)
+    return xdslctl.stats("total","bswStarted", "ds", key)
+  end,
+  TotalBSWStartedUs = function (mapping, params, key)
+    return xdslctl.stats("total","bswStarted", "us", key)
+  end,
+  TotalBSWCompletedDs = function (mapping, params, key)
+    return xdslctl.stats("total","bswCompleted", "ds", key)
+  end,
+  TotalBSWCompletedUs = function (mapping, params, key)
+    return xdslctl.stats("total","bswCompleted", "us", key)
+  end,
+  TotalSRAStartedDs = function (mapping, params, key)
+    return xdslctl.stats("total","sraStarted", "ds", key)
+  end,
+  TotalSRAStartedUs = function (mapping, params, key)
+    return xdslctl.stats("total","sraStarted", "us", key)
+  end,
+  TotalSRACompletedDs = function (mapping, params, key)
+    return xdslctl.stats("total","sraCompleted", "ds", key)
+  end,
+  TotalSRACompletedUs = function (mapping, params, key)
+    return xdslctl.stats("total","sraCompleted", "us", key)
+  end,
+  TotalFRAStartedDs = function (mapping, params, key)
+    return xdslctl.stats("total","fraStarted", "ds", key)
+  end,
+  TotalFRAStartedUs = function (mapping, params, key)
+    return xdslctl.stats("total","fraStarted", "us", key)
+  end,
+  TotalFRACompletedDs = function (mapping, params, key)
+    return xdslctl.stats("total","fraCompleted", "ds", key)
+  end,
+  TotalFRACompletedUs = function (mapping, params, key)
+    return xdslctl.stats("total","fraCompleted", "us", key)
+  end,
+  TotalRPAStartedDs = function (mapping, params, key)
+    return xdslctl.stats("total","rpaStarted", "ds", key)
+  end,
+  TotalRPAStartedUs = function (mapping, params, key)
+    return xdslctl.stats("total","rpaStarted", "us", key)
+  end,
+  TotalRPACompletedDs = function (mapping, params, key)
+    return xdslctl.stats("total","rpaCompleted", "ds", key)
+  end,
+  TotalRPACompletedUs = function (mapping, params, key)
+    return xdslctl.stats("total","rpaCompleted", "us", key)
+  end,
+  TotalTIGAStartedDs = function (mapping, params, key)
+    return xdslctl.stats("total","tigaStarted", "ds", key)
+  end,
+  TotalTIGAStartedUs = function (mapping, params, key)
+    return xdslctl.stats("total","tigaStarted", "us", key)
+  end,
+  TotalTIGACompletedDs = function (mapping, params, key)
+    return xdslctl.stats("total","tigaCompleted", "ds", key)
+  end,
+  TotalTIGACompletedUs = function (mapping, params, key)
+    return xdslctl.stats("total","tigaCompleted", "us", key)
+  end,
+  TotalRTXUC = function (mapping, params, key)
+    return xdslctl.stats("total","rtx", "ds", key)
+  end,
+  TotalRTXTX = function (mapping, params, key)
+    return xdslctl.stats("total","rtx", "us", key)
+  end,
+  ShowtimeBSWStartedDs = function (mapping, params, key)
+    return xdslctl.stats("sincesync","bswStarted", "ds", key)
+  end,
+  ShowtimeBSWStartedUs = function (mapping, params, key)
+    return xdslctl.stats("sincesync","bswStarted", "us", key)
+  end,
+  ShowtimeBSWCompletedDs = function (mapping, params, key)
+    return xdslctl.stats("sincesync","bswCompleted", "ds", key)
+  end,
+  ShowtimeBSWCompletedUs = function (mapping, params, key)
+    return xdslctl.stats("sincesync","bswCompleted", "us", key)
+  end,
+  ShowtimeSRAStartedDs = function (mapping, params, key)
+    return xdslctl.stats("sincesync","sraStarted", "ds", key)
+  end,
+  ShowtimeSRAStartedUs = function (mapping, params, key)
+    return xdslctl.stats("sincesync","sraStarted", "ds", key)
+  end,
+  ShowtimeSRACompletedDs = function (mapping, params, key)
+    return xdslctl.stats("sincesync","sraCompleted", "ds", key)
+  end,
+  ShowtimeSRACOmpletedUs = function (mapping, params, key)
+    return xdslctl.stats("sincesync","sraCompleted", "us", key)
+  end,
+  ShowtimeFRAStartedDs = function (mapping, params, key)
+    return xdslctl.stats("sincesync","fraStarted", "ds", key)
+  end,
+  ShowtimeFRAStartedUs = function (mapping, params, key)
+    return xdslctl.stats("sincesync","fraStarted", "us", key)
+  end,
+  ShowtimeFRACompletedDs = function (mapping, params, key)
+    return xdslctl.stats("sincesync","fraCompleted", "ds", key)
+  end,
+  ShowtimeFRACompletedUs = function (mapping, params, key)
+    return xdslctl.stats("sincesync","fraCompleted", "us", key)
+  end,
+  ShowtimeRPAStartedDs = function (mapping, params, key)
+    return xdslctl.stats("sincesync","rpaStarted", "ds", key)
+  end,
+  ShowtimeRPAStartedUs = function (mapping, params, key)
+    return xdslctl.stats("sincesync","rpaStarted", "us", key)
+  end,
+  ShowtimeRPACompletedDs = function (mapping, params, key)
+    return xdslctl.stats("sincesync","rpaCompleted", "ds", key)
+  end,
+  ShowtimeRPACompletedUs = function (mapping, params, key)
+    return xdslctl.stats("sincesync","rpaCompleted", "us", key)
+  end,
+  ShowtimeTIGAStartedDs = function (mapping, params, key)
+    return xdslctl.stats("sincesync","tigaStarted", "ds", key)
+  end,
+  ShowtimeTIGAStartedUs = function (mapping, params, key)
+    return xdslctl.stats("sincesync","tigaStarted", "us", key)
+  end,
+  ShowtimeTIGACompletedDs = function (mapping, params, key)
+    return xdslctl.stats("sincesync","tigaCompleted", "ds", key)
+  end,
+  ShowtimeTIGACompletedUs = function (mapping, params, key)
+    return xdslctl.stats("sincesync","tigaCompleted", "us", key)
+  end,
+  ShowtimeRTXUC = function (mapping, params, key)
+    return xdslctl.stats("sincesync","rtx", "ds", key)
+  end,
+  ShowtimeRTXTX = function (mapping, params, key)
+    return xdslctl.stats("sincesync","rtx", "us", key)
+  end,
+  CurrentDayBSWStartedDs = function (mapping, params, key)
+   return xdslctl.stats("currentday","bswStarted", "ds", key)
+  end,
+  CurrentDayBSWStartedUs = function (mapping, params, key)
+   return xdslctl.stats("currentday","bswStarted", "us", key)
+  end,
+  CurrentDayBSWCompletedDs = function (mapping, params, key)
+   return xdslctl.stats("currentday","bswCompleted", "ds", key)
+  end,
+  CurrentDayBSWCompletedUs = function (mapping, params, key)
+   return xdslctl.stats("currentday","bswCompleted", "us", key)
+  end,
+  CurrentDaySRAStartedDs = function (mapping, params, key)
+   return xdslctl.stats("currentday","sraStarted", "ds", key)
+  end,
+  CurrentDaySRAStartedUs = function (mapping, params, key)
+   return xdslctl.stats("currentday","sraStarted", "us", key)
+  end,
+  CurrentDaySRACompletedDs = function (mapping, params, key)
+   return xdslctl.stats("currentday","sraCompleted", "ds", key)
+  end,
+  CurrentDaySRACompletedUs = function (mapping, params, key)
+   return xdslctl.stats("currentday","sraCompleted", "us", key)
+  end,
+  CurrentDayFRAStartedDs = function (mapping, params, key)
+   return xdslctl.stats("currentday","fraStarted", "ds", key)
+  end,
+  CurrentDayFRAStartedUs = function (mapping, params, key)
+   return xdslctl.stats("currentday","fraStarted", "us", key)
+  end,
+  CurrentDayFRACompletedDs = function (mapping, params, key)
+   return xdslctl.stats("currentday","fraCompleted", "ds", key)
+  end,
+  CurrentDayFRACompletedUs = function (mapping, params, key)
+   return xdslctl.stats("currentday","fraCompleted", "us", key)
+  end,
+  CurrentDayRPAStartedDs = function (mapping, params, key)
+   return xdslctl.stats("currentday","rpaStarted", "ds", key)
+  end,
+  CurrentDayRPAStartedUs = function (mapping, params, key)
+   return xdslctl.stats("currentday","rpaStarted", "us", key)
+  end,
+  CurrentDayRPACompletedDs = function (mapping, params, key)
+   return xdslctl.stats("currentday","rpaCompleted", "ds", key)
+  end,
+  CurrentDayRPACompletedUs = function (mapping, params, key)
+   return xdslctl.stats("currentday","rpaCompleted", "us", key)
+  end,
+  CurrentDayTIGAStartedDs = function (mapping, params, key)
+   return xdslctl.stats("currentday","tigaStarted", "ds", key)
+  end,
+  CurrentDayTIGAStartedUs = function (mapping, params, key)
+   return xdslctl.stats("currentday","tigaStarted", "us", key)
+  end,
+  CurrentDayTIGACompletedDs = function (mapping, params, key)
+   return xdslctl.stats("currentday","tigaCompleted", "ds", key)
+  end,
+  CurrentDayTIGACompletedUs = function (mapping, params, key)
+   return xdslctl.stats("currentday","tigaCompleted", "us", key)
+  end,
+  CurrentDayRTXUC = function (mapping, params, key)
+   return xdslctl.stats("currentday","rtx", "ds", key)
+  end,
+  CurrentDayRTXTX = function (mapping, params, key)
+   return xdslctl.stats("currentday","rtx", "us", key)
+  end,
+  QuarterHourBSWStartedDs = function (mapping, params, key)
+   return xdslctl.stats("currentquarter","bswStarted", "ds", key)
+  end,
+  QuarterHourBSWStartedUs = function (mapping, params, key)
+   return xdslctl.stats("currentquarter","bswStarted", "us", key)
+  end,
+  QuarterHourBSWCompletedDs = function (mapping, params, key)
+   return xdslctl.stats("currentquarter","bswCompleted", "ds", key)
+  end,
+  QuarterHourBSWCompletedUs = function (mapping, params, key)
+   return xdslctl.stats("currentquarter","bswCompleted", "us", key)
+  end,
+  QuarterHourSRAStartedDs = function (mapping, params, key)
+   return xdslctl.stats("currentquarter","sraStarted", "ds", key)
+  end,
+  QuarterHourSRAStartedUs = function (mapping, params, key)
+   return xdslctl.stats("currentquarter","sraStarted", "us", key)
+  end,
+  QuarterHourSRACompletedDs = function (mapping, params, key)
+   return xdslctl.stats("currentquarter","sraCompleted", "ds", key)
+  end,
+  QuarterHourSRACompletedUs = function (mapping, params, key)
+   return xdslctl.stats("currentquarter","sraCompleted", "us", key)
+  end,
+  QuarterHourFRAStartedDs = function (mapping, params, key)
+   return xdslctl.stats("currentquarter","fraStarted", "ds", key)
+  end,
+  QuarterHourFRAStartedUs = function (mapping, params, key)
+   return xdslctl.stats("currentquarter","fraStarted", "us", key)
+  end,
+  QuarterHourFRACompletedDs = function (mapping, params, key)
+   return xdslctl.stats("currentquarter","fraCompleted", "ds", key)
+  end,
+  QuarterHourFRACompletedUs = function (mapping, params, key)
+   return xdslctl.stats("currentquarter","fraCompleted", "us", key)
+  end,
+  QuarterHourRPAStartedDs = function (mapping, params, key)
+   return xdslctl.stats("currentquarter","rpaStarted", "ds", key)
+  end,
+  QuarterHourRPAStartedUs = function (mapping, params, key)
+   return xdslctl.stats("currentquarter","rpaStarted", "us", key)
+  end,
+  QuarterHourRPACompletedDs = function (mapping, params, key)
+   return xdslctl.stats("currentquarter","rpaCompleted", "ds", key)
+  end,
+  QuarterHourRPACompletedUs = function (mapping, params, key)
+   return xdslctl.stats("currentquarter","rpaCompleted", "us", key)
+  end,
+  QuarterHourTIGAStartedDs = function (mapping, params, key)
+   return xdslctl.stats("currentquarter","tigaStarted", "ds", key)
+  end,
+  QuarterHourTIGAStartedUs = function (mapping, params, key)
+   return xdslctl.stats("currentquarter","tigaStarted", "us", key)
+  end,
+  QuarterHourTIGACompletedDs = function (mapping, params, key)
+   return xdslctl.stats("currentquarter","tigaCompleted", "ds", key)
+  end,
+  QuarterHourTIGACompletedUs = function (mapping, params, key)
+   return xdslctl.stats("currentquarter","tigaCompleted", "us", key)
+  end,
+  QuarterHourRTXUC = function (mapping, params, key)
+   return xdslctl.stats("currentquarter","rtx", "ds", key)
+  end,
+  QuarterHourRTXTX = function (mapping, params, key)
+   return xdslctl.stats("currentquarter","rtx", "us", key)
+  end,
+  EOCBytesSent = function (mapping, params, key)
+    return xdslctl.infoValue("EOCBytesSent", "", "", key)
+  end,
+  EOCBytesReceived = function (mapping, params, key)
+    return xdslctl.infoValue("EOCBytesReceived", "", "", key)
+  end,
+  EOCPacketsSent = function (mapping, params, key)
+    return xdslctl.infoValue("EOCPacketsSent", "", "", key)
+  end,
+  EOCPacketsReceived = function (mapping, params, key)
+    return xdslctl.infoValue("EOCPacketsReceived", "", "", key)
+  end,
+  EOCMessagesSent = function (mapping, params, key)
+    return xdslctl.infoValue("EOCMessagesSent", "", "", key)
+  end,
+  EOCMessagesReceived = function (mapping, params, key)
+    return xdslctl.infoValue("EOCMessagesReceived", "", "", key)
+  end,
+  LastTransmittedDownstreamSignal = function (mapping, params, key)
+    return xdslctl.infoValue("LastTransmittedDownstreamSignal", "", "", key)
+  end,
+  LastTransmittedUpstreamSignal = function (mapping, params, key)
+    return xdslctl.infoValue("LastTransmittedUpstreamSignal", "", "", key)
+  end,
+  SNRMRMCds = function (mapping, params, key)
+    return xdslctl.infoValue("SNRMRMC", "ds", "", key)
+  end,
+  SNRMRMCus = function (mapping, params, key)
+    return xdslctl.infoValue("SNRMRMC", "us", "", key)
+  end,
+  BITSRMCpsds = function (mapping, params, key)
+    return xdslctl.infoValue("BITSRMCps", "ds", "", key)
+  end,
+  BITSRMCpsus = function (mapping, params, key)
+    return xdslctl.infoValue("BITSRMCps", "us", "", key)
+  end,
+  FEXTCANCELds = function (mapping, params, key)
+    return xdslctl.infoValue("FEXTCANCEL", "ds", "", key)
+  end,
+  FEXTCANCELus = function (mapping, params, key)
+    return xdslctl.infoValue("FEXTCANCEL", "us", "", key)
+  end,
+  ETRds = function (mapping, params, key)
+    return xdslctl.infoValue("ETR", "ds", "", key)
+  end,
+  ETRus = function (mapping, params, key)
+    return xdslctl.infoValue("ETR", "us", "", key)
+  end,
+  ATTETRds = function (mapping, params, key)
+    return xdslctl.infoValue("ATTETR", "ds", "", key)
+  end,
+  ATTETRus = function (mapping, params, key)
+    return xdslctl.infoValue("ATTETR", "us", "", key)
+  end,
+  MINEFTR = function (mapping, params, key)
+    return xdslctl.infoValue("MINEFTR", "", "", key)
+  end,
+  UPBOKLEPb = function (mapping, params, key)
+    return xdslctl.infoValue("UPBOKLEPb", "", "", key)
+  end,
+  UPBOKLERPb = function (mapping, params, key)
+    return xdslctl.infoValue("UPBOKLERPb", "", "", key)
+  end,
 }
 
 sys_class_xdsl_.getall = function(mapping, key)
@@ -2844,6 +3723,95 @@ sys_class_xdsl_.getall = function(mapping, key)
     values["DownstreamHECLastShowtime"] = stats["lastshowtime"]["hec"]["ds"]
     values["UpstreamHECLastShowtime"] = stats["lastshowtime"]["hec"]["us"]
     values["LastShowtimeStart"] = stats["lastshowtime"]["start"]
+    values["TotalBSWStartedDs"] = stats["total"]["bswStarted"]["ds"]
+    values["TotalBSWStartedUs"] = stats["total"]["bswStarted"]["us"]
+    values["TotalBSWCompletedDs"] = stats["total"]["bswCompleted"]["ds"]
+    values["TotalBSWCompletedUs"] = stats["total"]["bswCompleted"]["us"]
+    values["TotalSRAStartedDs"] = stats["total"]["sraStarted"]["ds"]
+    values["TotalSRAStartedUs"] = stats["total"]["sraStarted"]["us"]
+    values["TotalSRACompletedDs"] = stats["total"]["sraCompleted"]["ds"]
+    values["TotalSRACompletedUs"] = stats["total"]["sraCompleted"]["us"]
+    values["TotalFRAStartedDs"] = stats["total"]["fraStarted"]["ds"]
+    values["TotalFRAStartedUs"] = stats["total"]["fraStarted"]["us"]
+    values["TotalFRACompletedDs"] = stats["total"]["fraCompleted"]["ds"]
+    values["TotalFRACompletedUs"] = stats["total"]["fraCompleted"]["us"]
+    values["TotalRPAStartedDs"] = stats["total"]["rpaStarted"]["ds"]
+    values["TotalRPAStartedUs"] = stats["total"]["rpaStarted"]["us"]
+    values["TotalRPACompletedDs"] = stats["total"]["rpaCompleted"]["ds"]
+    values["TotalRPACompletedUs"] = stats["total"]["rpaCompleted"]["us"]
+    values["TotalTIGAStartedDs"] = stats["total"]["tigaStarted"]["ds"]
+    values["TotalTIGAStartedUs"] = stats["total"]["tigaStarted"]["us"]
+    values["TotalTIGACompletedDs"] = stats["total"]["tigaCompleted"]["ds"]
+    values["TotalTIGACompletedUs"] = stats["total"]["tigaCompleted"]["us"]
+    values["TotalRTXUC"] = stats["total"]["rtx"]["ds"]
+    values["TotalRTXTX"] = stats["total"]["rtx"]["us"]
+    values["ShowtimeBSWStartedDs"] = stats["sincesync"]["bswStarted"]["ds"]
+    values["ShowtimeBSWStartedUs"] = stats["sincesync"]["bswStarted"]["us"]
+    values["ShowtimeBSWCompletedDs"] = stats["sincesync"]["bswCompleted"]["ds"]
+    values["ShowtimeBSWCompletedUs"] = stats["sincesync"]["bswCompleted"]["us"]
+    values["ShowtimeSRAStartedDs"] = stats["sincesync"]["sraStarted"]["ds"]
+    values["ShowtimeSRAStartedUs"] = stats["sincesync"]["sraStarted"]["ds"]
+    values["ShowtimeSRACompletedDs"] = stats["sincesync"]["sraCompleted"]["ds"]
+    values["ShowtimeSRACOmpletedUs"] = stats["sincesync"]["sraCompleted"]["us"]
+    values["ShowtimeFRAStartedDs"] = stats["sincesync"]["fraStarted"]["ds"]
+    values["ShowtimeFRAStartedUs"] = stats["sincesync"]["fraStarted"]["us"]
+    values["ShowtimeFRACompletedDs"] = stats["sincesync"]["fraCompleted"]["ds"]
+    values["ShowtimeFRACompletedUs"] = stats["sincesync"]["fraCompleted"]["us"]
+    values["ShowtimeRPAStartedDs"] = stats["sincesync"]["rpaStarted"]["ds"]
+    values["ShowtimeRPAStartedUs"] = stats["sincesync"]["rpaStarted"]["us"]
+    values["ShowtimeRPACompletedDs"] = stats["sincesync"]["rpaCompleted"]["ds"]
+    values["ShowtimeRPACompletedUs"] = stats["sincesync"]["rpaCompleted"]["us"]
+    values["ShowtimeTIGAStartedDs"] = stats["sincesync"]["tigaStarted"]["ds"]
+    values["ShowtimeTIGAStartedUs"] = stats["sincesync"]["tigaStarted"]["us"]
+    values["ShowtimeTIGACompletedDs"] = stats["sincesync"]["tigaCompleted"]["ds"]
+    values["ShowtimeTIGACompletedUs"] = stats["sincesync"]["tigaCompleted"]["us"]
+    values["ShowtimeRTXUC"] = stats["sincesync"]["rtx"]["ds"]
+    values["ShowtimeRTXTX"] = stats["sincesync"]["rtx"]["us"]
+    values["CurrentDayBSWStartedDs"] = stats["currentday"]["bswStarted"]["ds"]
+    values["CurrentDayBSWStartedUs"] = stats["currentday"]["bswStarted"]["us"]
+    values["CurrentDayBSWCompletedDs"] = stats["currentday"]["bswCompleted"]["ds"]
+    values["CurrentDayBSWCompletedUs"] = stats["currentday"]["bswCompleted"]["us"]
+    values["CurrentDaySRAStartedDs"] = stats["currentday"]["sraStarted"]["ds"]
+    values["CurrentDaySRAStartedUs"] = stats["currentday"]["sraStarted"]["us"]
+    values["CurrentDaySRACompletedDs"] = stats["currentday"]["sraCompleted"]["ds"]
+    values["CurrentDaySRACompletedUs"] = stats["currentday"]["sraCompleted"]["us"]
+    values["CurrentDayFRAStartedDs"] = stats["currentday"]["fraStarted"]["ds"]
+    values["CurrentDayFRAStartedUs"] = stats["currentday"]["fraStarted"]["us"]
+    values["CurrentDayFRACompletedDs"] = stats["currentday"]["fraCompleted"]["ds"]
+    values["CurrentDayFRACompletedUs"] = stats["currentday"]["fraCompleted"]["us"]
+    values["CurrentDayRPAStartedDs"] = stats["currentday"]["rpaStarted"]["ds"]
+    values["CurrentDayRPAStartedUs"] = stats["currentday"]["rpaStarted"]["us"]
+    values["CurrentDayRPACompletedDs"] = stats["currentday"]["rpaCompleted"]["ds"]
+    values["CurrentDayRPACompletedUs"] = stats["currentday"]["rpaCompleted"]["us"]
+    values["CurrentDayTIGAStartedDs"] = stats["currentday"]["tigaStarted"]["ds"]
+    values["CurrentDayTIGAStartedUs"] = stats["currentday"]["tigaStarted"]["us"]
+    values["CurrentDayTIGACompletedDs"] = stats["currentday"]["tigaCompleted"]["ds"]
+    values["CurrentDayTIGACompletedUs"] = stats["currentday"]["tigaCompleted"]["us"]
+    values["CurrentDayRTXUC"] = stats["currentday"]["rtx"]["ds"]
+    values["CurrentDayRTXTX"] = stats["currentday"]["rtx"]["us"]
+    values["QuarterHourBSWStartedDs"] = stats["currentquarter"]["bswStarted"]["ds"]
+    values["QuarterHourBSWStartedUs"] = stats["currentquarter"]["bswStarted"]["us"]
+    values["QuarterHourBSWCompletedDs"] = stats["currentquarter"]["bswCompleted"]["ds"]
+    values["QuarterHourBSWCompletedUs"] = stats["currentquarter"]["bswCompleted"]["us"]
+    values["QuarterHourSRAStartedDs"] = stats["currentquarter"]["sraStarted"]["ds"]
+    values["QuarterHourSRAStartedUs"] = stats["currentquarter"]["sraStarted"]["us"]
+    values["QuarterHourSRACompletedDs"] = stats["currentquarter"]["sraCompleted"]["ds"]
+    values["QuarterHourSRACompletedUs"] = stats["currentquarter"]["sraCompleted"]["us"]
+    values["QuarterHourFRAStartedDs"] = stats["currentquarter"]["fraStarted"]["ds"]
+    values["QuarterHourFRAStartedUs"] = stats["currentquarter"]["fraStarted"]["us"]
+    values["QuarterHourFRACompletedDs"] = stats["currentquarter"]["fraCompleted"]["ds"]
+    values["QuarterHourFRACompletedUs"] = stats["currentquarter"]["fraCompleted"]["us"]
+    values["QuarterHourRPAStartedDs"] = stats["currentquarter"]["rpaStarted"]["ds"]
+    values["QuarterHourRPAStartedUs"] = stats["currentquarter"]["rpaStarted"]["us"]
+    values["QuarterHourRPACompletedDs"] = stats["currentquarter"]["rpaCompleted"]["ds"]
+    values["QuarterHourRPACompletedUs"] = stats["currentquarter"]["rpaCompleted"]["us"]
+    values["QuarterHourTIGAStartedDs"] = stats["currentquarter"]["tigaStarted"]["ds"]
+    values["QuarterHourTIGAStartedUs"] = stats["currentquarter"]["tigaStarted"]["us"]
+    values["QuarterHourTIGACompletedDs"] = stats["currentquarter"]["tigaCompleted"]["ds"]
+    values["QuarterHourTIGACompletedUs"] = stats["currentquarter"]["tigaCompleted"]["us"]
+    values["QuarterHourRTXUC"] = stats["currentquarter"]["rtx"]["ds"]
+    values["QuarterHourRTXTX"] = stats["currentquarter"]["rtx"]["us"]
+
       for k,_ in pairs(values) do
         if values[k] == nil then
             values[k] = ""

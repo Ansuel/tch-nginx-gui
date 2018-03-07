@@ -91,6 +91,7 @@ local vQTN = post_helper.validateQTN
 local gOV = post_helper.getOptionalValidation
 local vSIDN = post_helper.validateStringIsDomainName
 local vSIIP = post_helper.validateStringIsIP
+local vSIM = post_helper.validateStringIsMAC											
 
 local function set_lookup_host(value, object, key)
     object["ddns_lookup_host"] = object["ddns_domain"]
@@ -286,7 +287,7 @@ end
 -- Firewall forwarding rules
 local pfw_columns = {
   {
-    header = T"State",
+    header = "",
     name = "enabled",
     param = "enabled",
     type = "switch",
@@ -333,7 +334,7 @@ local pfw_columns = {
     name = "destinationmac",
     param = "dest_mac",
     type = "text",
-    attr = { input = { class="span2", maxlength="15" }, autocomplete=hosts_mac_ac },
+    attr = { input = { class="span2", maxlength="17" }, autocomplete=hosts_mac_ac },
   },
 }
 
@@ -408,6 +409,7 @@ local pfw_valid = {
     wanport = gAV(vSIPR,allowed_ports()),
     destinationip = gAV(vSIDIP,vQTN),
     protocol = gVIES(protocolList),
+	destinationmac = vSIM,
 }
 
 -- ip handleTableQuery parameter filter callback to only show ipv4 port forwardings ...
@@ -417,7 +419,7 @@ local function pfw_filter(data)
     if (data.target == "DNAT" and
         data.src == "wan" and
         data.dest == "lan" and
-        data.family == "ipv4") then
+        data.family == "ipv4" and data.name ~= "DMZ rule") then
         return true
     end
 
@@ -708,7 +710,7 @@ local dnsrule_columns = {
 }
 
 local function dns_sort(rule1, rule2)
-  return tonumber(rule1.paramindex) < tonumber(rule2.paramindex)
+  return rule1.paramindex < rule2.paramindex
 end
 
 local domain_valid = {
@@ -716,9 +718,11 @@ local domain_valid = {
 }
 local dnsrule_options = {
     tableid = "dnsrules",
-    basepath = "uci.dhcp.dnsrule.",
+    basepath = "uci.dhcp.dnsrule.@.",
     createMsg = T"Add new dns rule",
-    sorted = dns_sort
+    sorted = dns_sort,
+    objectName  = post_helper.getRandomKey(),
+    addNamedObject = true
 }
 
 local dnsrule_data, dnsrule_helpmsg = post_helper.handleTableQuery(dnsrule_columns, dnsrule_options, nil, nil, domain_valid)
@@ -819,9 +823,9 @@ local upnp_data, upnp_helpmsg = post_helper.handleTableQuery(upnp_columns, upnp_
 \
     <fieldset>\
       <legend>');  ngx.print( T"IPv4 Port forwarding table" ); ngx.print('</legend>\
-	    <div class="alert alert-info">'); 
+      <div class="alert alert-info">'); 
 	    ngx.print(T"To disable Port Forward Rules, edit the rule on the right and then switch the button on the left.");
-	    ngx.print('</div>');
+	    ngx.print('</div>');			 
         ngx.print(ui_helper.createTable(pfw_columns, pfw_data, pfw_options, nil, pfw_helpmsg))
         ngx.print('\
     </fieldset>\
@@ -872,7 +876,7 @@ local upnp_data, upnp_helpmsg = post_helper.handleTableQuery(upnp_columns, upnp_
             ui_helper.createSwitch(T"Enabled", "ddns_enabled", qry_data["ddns_enabled"], nil, qry_helpmsg["ddns_enabled"]),
             ui_helper.createInputSelect(T"Service Name", "ddns_service_name", ddns_supported_services, qry_data["ddns_service_name"], nil, qry_helpmsg["ddns_service_name"]),
 			ui_helper.createSwitch(T"HTTPS", "ddns_usehttps", qry_data["ddns_usehttps"], nil, qry_helpmsg["ddns_usehttps"]),
-            ui_helper.createLabel(T"", T"Note: HTTPS mode will enable encryption but not certificate-based authentication of DynDNS service", { span = {class = "span12"},}),
+            ui_helper.createLabel(T"", T"Note: HTTPS mode will enable encryption but not certificate-based authentication of DynDNS service", { span = {class = "span7"},}),
             ui_helper.createInputText(T"Domain", "ddns_domain", qry_data["ddns_domain"], nil, qry_helpmsg["ddns_domain"]),
             ui_helper.createInputText(T"User Name", "ddns_username", qry_data["ddns_username"], nil, qry_helpmsg["ddns_username"]),
             ui_helper.createInputPassword(T"Password", "ddns_password", qry_data["ddns_password"], nil, qry_helpmsg["ddns_password"])
@@ -880,7 +884,7 @@ local upnp_data, upnp_helpmsg = post_helper.handleTableQuery(upnp_columns, upnp_
         if qry_data["ddns_enabled"] == "1" then
           local basic = {
             span = {
-            class = "span12"
+            class = "span4"
             },
           }
           ngx.print(

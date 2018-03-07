@@ -8,14 +8,13 @@
 --NG-95384 TI-WiFi 5GHz : Ospiti 5GHz Security mode fails and Main 5GHz has new features
 --NG-96425 TI-[GUI] - Changing SSID name of Guest 5GHz is not coherent in Wireless and Local Network Modal
 --NG-100744 Custo-GUI: ubus call timeout when changing WiFi state and security settings
+--NG-136046 GUI-Wireless- WPS AP PIN code must appear disabled
 
 local istainted = string.istainted
 local untaint_mt = require("web.taint").untaint_mt
 local setmetatable = setmetatable
 local untaint = string.untaint
 local session = ngx.ctx.session
-
-
 
 -- Localization
 gettext.textdomain('webui-core')
@@ -301,10 +300,7 @@ for i,v in ipairs(radios) do
         path .. ".integrated_ap",
         path .. ".phy_rate",
         path .. ".country",
-        path .. ".channel",
-        path .. ".standard",
-        path .. ".requested_channel",
-        path .. ".requested_channel_width")
+        path .. ".channel")
   if rdata ~= nil then
     radioData[v] = {
       supported_frequency_bands=rdata[1].value,
@@ -314,9 +310,6 @@ for i,v in ipairs(radios) do
       phy_rate = rdata[5].value,
       country = rdata[6].value,
       channel = rdata[7].value,
-	  standard = rdata[8].value,
-      requested_channel = rdata[9].value,
-      requested_channel_width = rdata[10].value,
     }
   end
 end
@@ -406,7 +399,7 @@ local cddList = {
 local channelwidth = cwmaps[cw[untaint(radioData[curradio].supported_standards)]]
 
 local supported_modes_data  = proxy.get("rpc.wireless.ap.@" .. curap .. ".security.supported_modes")
-local supported_modes = string.format("%s", supported_modes_data and supported_modes_data[1] and supported_modes_data[1].value or "")
+local supported_modes = format("%s", supported_modes_data and supported_modes_data[1] and supported_modes_data[1].value or "")
 local secmodes = {}
 local secmodes_matched = {
      ["none"] = T"None",
@@ -643,6 +636,9 @@ local function getParamsAndValidation()
     wpa_psk = pathap .. "security.wpa_psk_passphrase",
     acl_mode = pathap .. "acl.mode",
     wps_button_handler = wpshandler_data and "uci.button.button.@wps.handler",
+    standard = pathradio .. "standard",
+    requested_channel = pathradio .. "requested_channel",
+    requested_channel_width = pathradio .. "requested_channel_width",
     }
 	
 	if isguest=="1" then
@@ -655,6 +651,7 @@ local function getParamsAndValidation()
         mapParams.requested_channel = pathradio .. "requested_channel"
         mapParams.requested_channel_width = pathradio .. "requested_channel_width"
         mapParams.wps_enabled = pathap .. "wps.admin_state"
+        mapParams.frame_bursting = pathradio .. "frame_bursting"
   -- Bug fix for NG-12032 GUI wireless enable/disable not working properly
     for k, v in pairs(radios) do
       if v~=curradio then
@@ -681,9 +678,13 @@ local function getParamsAndValidation()
       mapParams.radius_account_port = pathradius .. "acct0.port"
       mapParams.radius_account_secret = pathradius .. "acct0.secret"
     end
-    mapParams.sgi = pathradio .. "sgi"
-    mapParams.cdd = pathradio .. "cdd"
-    mapParams.stbc = pathradio .. "stbc"
+    -- validation check on cdd with default value 'auto' would fail in guest page
+    -- just ignore these parameters since they are not shown in guest page
+    if isguest ~= "1" then
+      mapParams.sgi = pathradio .. "sgi"
+      mapParams.cdd = pathradio .. "cdd"
+      mapParams.stbc = pathradio .. "stbc"
+    end
   end
 
   if bspeerap then
@@ -739,6 +740,7 @@ local function getParamsAndValidation()
      return true
     end,
     bsid = getValidateBandSteerPeerFields,
+    frame_bursting = vB,
     ap_broadcast_ssid = vB,
     requested_channel = gVIES(allowed_channels),
     admin_state = vB,
@@ -953,17 +955,29 @@ if #wls > 1 then
       local freq = "2.4"
       local isDuplicate = {}
       for i,v in ipairs(wls) do
-          if not isDuplicate[v.radio] and (v.radio == "radio_5G" or v.radio == "radio_2G") then
-            if v.radio == "radio_5G" then freq = "5" or "2.4" end
-            local active = ""
-            if getWifiAnalyzer == v.iface then
-              active = "active"
-              radio = v.radio
-            end
-            local url = "modals/wireless-modal.lp?radio=" .. v.radio .. "&isWifiAnalyzer=" .. v.iface
-            html[#html+1] = string.format('<li class="%s"><a href="#" data-remote="%s" >%s %sGHz</a></li>',active, url, T"Analyzer",freq )
+        if not isDuplicate[v.radio] and (v.radio == "radio_5G" or v.radio == "radio_2G") then
+          if v.radio == "radio_5G" then freq = "5" or "2.4" end
+          local active = ""
+          if getWifiAnalyzer == v.iface then
+            active = "active"
+            radio = v.radio
           end
-          isDuplicate[v.radio] = true
+          local url = "modals/wireless-modal.lp?radio=" .. v.radio .. "&isWifiAnalyzer=" .. v.iface
+          html[#html+1] = format('<li class="%s"><a href="#" data-remote="%s" id ="wifianalyzer_%s">%s %sGHz</a></li>',active, url,freq,T"Analyzer",freq )
+          local link_id = "2"
+          if freq == "5" then link_id = "5" end
+          html[#html + 1] = format([[
+             <div><div id = linkconfirming-msg_%s class= "alert hide"> %s </div> ]],
+             link_id,T"If you use this tool, devices connected will be disconnected and will be able to connect after 1 minute.")
+          html[#html + 1] = format([[
+             <div id="linkrescan-changes_%s" class="hide">
+             <div id="linkrescan-cancel_%s" class="btn">%s</div>
+             <div id="linkrescan-confirm_%s" class="btn btn-primary" data-toggle="modal", data-remote="%s">%s</div>
+             </div></div>
+             ]],
+             link_id,link_id,T"Cancel",link_id,url,T"Accept")
+        end
+        isDuplicate[v.radio] = true
       end
     end
     if session:hasAccess("/modals/wireless-client-modal.lp") then
@@ -1109,12 +1123,12 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
 
             html[#html + 1] = ui_helper.createInputSelect(T"Channel Width", "channelwidth80", cw_80, content["requested_channel_width"], cw80attributes)
             html[#html + 1] = '</div>'
-            -- html[#html + 1] = ui_helper.createSwitch("Frame bursting", "framebursting", content["framebursting"], advanced)
 
             if isExtRemman ~= "1" and isIntRemman ~= "1" then
                 html[#html + 1] = ui_helper.createSwitch(T"Short Guard Interval", "sgi", content["sgi"], advanced)
                 html[#html + 1] = ui_helper.createInputSelect(T"Cyclic-Delay Diversity", "cdd", cddList, content["cdd"], advanced)
                 html[#html + 1] = ui_helper.createSwitch(T"Space Time Block Code", "stbc", content["stbc"], advanced)
+                html[#html + 1] = ui_helper.createSwitch(T"Frame Bursting", "frame_bursting", content["frame_bursting"], advanced)
             end
         end
     end
@@ -1192,6 +1206,13 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
             },
         }
         html[#html + 1] = ui_helper.createAlertBlock(T"Security for this wireless network is disabled, anybody can connect or listen to it", security_warning)
+
+        local wep_warning = {
+            alert = {
+                class = "alert-error monitor-security monitor-wep"
+            },
+        }
+        html[#html + 1] = ui_helper.createAlertBlock(T"WEP is known to be flawed as a wireless security mode, usage of a more secure mode based on WPA2 is recommended.",wep_warning)
 
         html[#html + 1] = ui_helper.createInputSelect(T"Security Mode", "security", secmodes, content["security"], secattributes)
         end
@@ -1289,7 +1310,7 @@ if isguest ~= "1"  then
     if (tonumber(content["wps_ap_setup_locked"]) == 1) then
         content["wps_ap_pin_code"] = T"Disabled"
     end
-    html[#html + 1] = ui_helper.createLabel(T"WPS AP PIN code", content["wps_ap_pin_code"], wps_class)
+    --html[#html + 1] = ui_helper.createLabel(T"WPS AP PIN code", content["wps_ap_pin_code"], wps_class)
 
     wps_class["input"] = {
         class="no-save",
@@ -1381,7 +1402,7 @@ end
             html[#html + 1] = [[</fieldset>]]
             ngx.print(html)
         end
-         ngx.print('\
+        ngx.print('\
 \
 <fieldset>\
 ');  if content["security"] ~= "wpa-wpa2" and content["security"] ~= "wpa2" then   ngx.print('\
@@ -1391,7 +1412,7 @@ end
                         <div class="btn custom-handler" data-remote="modals/wireless-qrcode-modal.lp?iface=%s&ap=%s" data-toggle="modal">
                             %s
                         </div>
-                    </center>
+                    </center>&nbsp
                  ]], curiface, curap, T"Generate QRCode")
 ); ngx.print('\
 ');  end  ngx.print('\
@@ -1427,8 +1448,28 @@ else
 ');  end   ngx.print('\
 ');  ngx.print( T"Please update your browser to use this page." ); ngx.print('\
 </canvas>\
-<div style = "display:block;" class="alert alert-error monitor-security monitor-none monitor-hidden-security hide">');  ngx.print(T"The scan will interrupt the ongoing wifi traffic"); ngx.print('</div>\
-<div id="ReScan" style="width:650px;text-align:right;margin-right:20px;"><div class="btn btn-primary btn-large">Re-scan</div></div>\
+\
+');  
+    html = {}
+
+    local freq = "2"
+    if radio == "radio_5G" then freq = "5" or "2" end
+    html[#html + 1] = format([[
+      <div id="ReScan_%s" style="width:650px;text-align:right;margin-right:20px;"><div class="btn btn-primary btn-large">%s</div></div>]],
+      freq,T"Re-scan")
+
+    html[#html + 1] = format([[
+      <div id = confirming-msg_%s class= "alert hide"> %s </div> ]],
+      freq,T"If you use this tool, devices connected will be disconnected and will be able to connect after 1 minute.")
+    html[#html + 1] = format([[
+      <div id="rescan-changes_%s" class="hide">
+      <div id="rescan-cancel_%s" class="btn">%s</div>
+      <div id="rescan-confirm_%s" class="btn btn-primary" data-dimiss="modal">%s</div></div>]],
+      freq,freq,T"Cancel",freq,T"Accept")
+    ngx.print(html)
+  ngx.print('\
+\
+\
 </div>\
 <div id="key" style="width: 700px;"></div>\
 <div id ="analyzerloader1" style="height:100px"><img src = "/img/loading.gif"></img></div>\
@@ -1437,6 +1478,7 @@ else
 </form>\
 \
 <script language ="javascript">\
+\
 function get_random_color() {\
   var letters = \'0123456789ABCDEF\'.split(\'\');\
   var color = \'#\';\
@@ -1562,104 +1604,145 @@ function get_random_color() {\
     }\
 \
     ');  end  ngx.print('\
-    var key=document.getElementById("key");\
-    key.innerHTML = "";\
-    var offset = 30;\
-    var startcolor = parseInt("00000F",16 );\
-    var color = startcolor;\
-    key.innerHTML=key.innerHTML+"<br/>";\
-    key.innerHTML=key.innerHTML+"<div style=\'display: inline-block;width:200px;\'><b>');  ngx.print( T'Network Name (SSID)'); ngx.print('</b></div>";\
-    key.innerHTML=key.innerHTML+"<div style=\'display: inline-block;width:80px;text-align: center;\'><b>');  ngx.print( T'Channel' ); ngx.print('</b></div>";\
-    key.innerHTML=key.innerHTML+"<div style=\'display: inline-block;width:60px;text-align: center;\'><b>');  ngx.print( T'40MHz'); ngx.print('</b></div>";\
-    ');  if radio ~= "radio_2G" then   ngx.print('\
-    key.innerHTML=key.innerHTML+"<div style=\'display: inline-block;width:60px;text-align: center;\'><b>');  ngx.print( T'80MHz'); ngx.print('</b></div>";\
-    ');  end   ngx.print('\
-    key.innerHTML=key.innerHTML+"<div style=\'display: inline-block;width:180px;text-align: center;\'><b>');  ngx.print( T'Signal Strength (RSSI)'); ngx.print('</b></div><br/>";\
+    var color = parseInt("00000F", 16);\
+    // analyzer table header\
+    $("#key").empty().append(\
+      $("<br/>"),\
+      $("<div>").addClass("col_ssid").text("');  ngx.print( T'Network Name (SSID)'); ngx.print('"),\
+      $("<div>").addClass("col_channel").text("');  ngx.print( T'Channel' ); ngx.print('"),\
+      $("<div>").addClass("col_str").text("');  ngx.print( T'40MHz'); ngx.print('"),\
+      ');  if radio ~= "radio_2G" then   ngx.print('\
+        $("<div>").addClass("col_str").text("');  ngx.print( T'80MHz'); ngx.print('"),\
+      ');  end   ngx.print('\
+      $("<div>").addClass("col_rssi").text("');  ngx.print( T'Signal Strength (RSSI)'); ngx.print('"),\
+      $("<br/>")\
+    );\
   }\
-    function generateGraph(ssid,channel,rssi,cap){\
-      color =  get_random_color();\
-      var Mhz = 1;\
-      var Str = "&nbsp;";\
-      var cap = parseInt(cap,16).toString(2);\
+  function generateGraph(ssid,channel,rssi,cap){\
+    color =  get_random_color();\
+    var Mhz = 1;\
+    var Str = "";\
+    var cap = parseInt(cap,16).toString(2);\
 \
-      /*if(cap.indexOf("40MHz")!=-1)\
-      {\
-        Mhz = 2;\
-        Str = "*"\
-      }\
-      */\
-      while (cap.length <= 16)\
-        {\
-         cap = "0"+cap;\
-        }\
-\
-     if (cap.charAt(cap.length-bittarget40) == "1") {\
-         Mhz = 2;\
-         Str = \'*\';\
-      }\
-      ');  if radio == "radio_2G" then   ngx.print('\
-      //2.4GHz\
-      var xcoord = 80+(channel*40);\
-      var sig = rssi;\
-      if (sig > maximum){sig = maximum }else if (sig < minimum){sig = minimum}\
-      ctx.beginPath();\
-\
-      color =  get_random_color();\
-      ctx.strokeStyle = color;\
-\
-        ctx.moveTo(xcoord-(80*Mhz), 350);\
-        ctx.quadraticCurveTo(xcoord, get_curve_y_from_sig(maximum, minimum, range, sig), xcoord+(80*(Mhz)), 350);\
-\
-      ctx.stroke();\
-       ');  else   ngx.print('\
-       //5GH\
-      var chlist40 = [38,46,54,62,102,110,118,126,134,142]\
-      var chlist80 = [42,58,106,122,138]\
-      var str40 = ""\
-      var str80 = ""\
-      for (i = 0; i <= chlist40.length; i++) {\
-          if (chlist40[i] == channel){\
-            str40 = "*";\
-            Mhz = 2;\
-          }\
-      }\
-      for (i = 0; i <= chlist80.length; i++) {\
-          if (chlist80[i] == channel){\
-            str80 = "*";\
-            Mhz = 4;\
-          }\
-      }\
-      var xcoord = 0\
-      if  (channel <= 64) {\
-         xcoord = 60+((channel-36)*7.5);\
-      }else{\
-         xcoord = 360+((channel-100)*7.5);\
-      }\
-\
-      var sig = rssi;\
-\
-      if (sig > maximum){sig = maximum }else if (sig < minimum){sig = minimum}\
-          ctx.beginPath();\
-          color =  get_random_color();\
-          ctx.strokeStyle = color;\
-          ctx.moveTo(xcoord-(15*Mhz), 350);\
-          ctx.quadraticCurveTo(xcoord, get_curve_y_from_sig(maximum, minimum, range, sig) , xcoord+(15*Mhz), 350);\
-          ctx.stroke();\
-       ');  end   ngx.print('\
-      key.innerHTML=key.innerHTML+"<font style=\\\'color:"+color+";\\\'>"\
-      key.innerHTML=key.innerHTML+"<div style=\'display: inline-block;width:200px;color:"+color+";\'><b>"+ssid+"</b></div>"\
-      key.innerHTML=key.innerHTML+"<div style=\'display: inline-block;width:80px;color:"+color+";text-align: center;\'><b>"+channel+"</b></div>"\
-      ');  if radio == "radio_2G" then   ngx.print('\
-         key.innerHTML=key.innerHTML+"<div style=\'display: inline-block;width:60px;color:"+color+";text-align: center;\'><b>"+Str+"</b></div>"\
-      ');  else  ngx.print('\
-        key.innerHTML=key.innerHTML+"<div style=\'display: inline-block;width:60px;color:"+color+";text-align: center;\'><b>"+str40+"</b></div>"\
-        key.innerHTML=key.innerHTML+"<div style=\'display: inline-block;width:60px;color:"+color+";text-align: center;\'><b>"+str80+"</b></div>"\
-      ');  end  ngx.print('\
-      key.innerHTML=key.innerHTML+"<div style=\'display: inline-block;width:180px;color:"+color+";text-align: center;\'><b>"+rssi+"</b></div>"\
-      key.innerHTML=key.innerHTML+"</font><br/>"\
+    /*if(cap.indexOf("40MHz")!=-1)\
+    {\
+      Mhz = 2;\
+      Str = "*"\
     }\
+    */\
+    while (cap.length <= 16)\
+      {\
+       cap = "0"+cap;\
+      }\
+\
+   if (cap.charAt(cap.length-bittarget40) == "1") {\
+       Mhz = 2;\
+       Str = \'*\';\
+    }\
+    ');  if radio == "radio_2G" then   ngx.print('\
+    //2.4GHz\
+    var xcoord = 80+(channel*40);\
+    var sig = rssi;\
+    if (sig > maximum){sig = maximum }else if (sig < minimum){sig = minimum}\
+    ctx.beginPath();\
+\
+    color =  get_random_color();\
+    ctx.strokeStyle = color;\
+\
+      ctx.moveTo(xcoord-(80*Mhz), 350);\
+      ctx.quadraticCurveTo(xcoord, get_curve_y_from_sig(maximum, minimum, range, sig), xcoord+(80*(Mhz)), 350);\
+\
+    ctx.stroke();\
+     ');  else   ngx.print('\
+     //5GH\
+    var chlist40 = [38,46,54,62,102,110,118,126,134,142]\
+    var chlist80 = [42,58,106,122,138]\
+    var str40 = ""\
+    var str80 = ""\
+    for (i = 0; i <= chlist40.length; i++) {\
+        if (chlist40[i] == channel){\
+          str40 = "*";\
+          Mhz = 2;\
+        }\
+    }\
+    for (i = 0; i <= chlist80.length; i++) {\
+        if (chlist80[i] == channel){\
+          str80 = "*";\
+          Mhz = 4;\
+        }\
+    }\
+    var xcoord = 0\
+    if  (channel <= 64) {\
+       xcoord = 60+((channel-36)*7.5);\
+    }else{\
+       xcoord = 360+((channel-100)*7.5);\
+    }\
+\
+    var sig = rssi;\
+\
+    if (sig > maximum){sig = maximum }else if (sig < minimum){sig = minimum}\
+        ctx.beginPath();\
+        color =  get_random_color();\
+        ctx.strokeStyle = color;\
+        ctx.moveTo(xcoord-(15*Mhz), 350);\
+        ctx.quadraticCurveTo(xcoord, get_curve_y_from_sig(maximum, minimum, range, sig) , xcoord+(15*Mhz), 350);\
+        ctx.stroke();\
+     ');  end   ngx.print('\
+\
+     // A new row for analyzer table\
+     var row = $("<div>").css("color", color);\
+\
+     // Append the row\
+     $("#key").append(row);\
+\
+     // Add columns to the new row\
+    $(row).append(\
+      $("<div>").addClass("col_ssid").text(ssid),\
+      $("<div>").addClass("col_channel").text(channel),\
+      ');  if radio == "radio_2G" then   ngx.print('\
+        $("<div>").addClass("col_str").text(Str),\
+      ');  else  ngx.print('\
+        $("<div>").addClass("col_str").text(str40),\
+        $("<div>").addClass("col_str").text(str80),\
+      ');  end  ngx.print('\
+      $("<div>").addClass("col_rssi").text(rssi),\
+      $("<br/>")\
+    );\
+  }\
+\
+  function show_rescanconfirming(freq,show){\
+    var msg_id = "confirming-msg_" + freq;\
+    var rescan_id = "rescan-changes_" + freq;\
+    if (show == 1){\
+      $("div[id^= "+ rescan_id +"]").show();\
+      $("div[id^= "+ msg_id +"]").show();\
+    }\
+    else {\
+      $("div[id^= "+ rescan_id +"]").hide();\
+      $("div[id^= "+ msg_id +"]").hide();\
+    }\
+  }\
+\
+  $("div[id^=\'ReScan_\']").click(function() {\
+    var freq = (this.id).split("_")[1];\
+    show_rescanconfirming(freq,1);\
+  });\
+\
+  $("div[id^=\'rescan-confirm_\']").click(function() {\
+    var freq = (this.id).split("_")[1];\
+    show_rescanconfirming(freq,0);\
+  });\
+\
+  $("div[id^=\'rescan-cancel_\']").click(function() {\
+    var freq = (this.id).split("_")[1];\
+    show_rescanconfirming(freq,0);\
+  });\
+\
     $(document).ready(function(){\
-      $("#ReScan").on("click",function(a){\
+      $("div[id^=\'rescan-confirm_\']").on("click",function(a) {\
+        var freq = (this.id).split("_")[1];\
+        show_rescanconfirming(freq,0);\
+\
         var params = [];\
         params.push({\
           name : "action",\
@@ -1714,6 +1797,40 @@ end
         $(\'#acl_list_div\').replaceWith(data);\
     });\
 ');  end  ngx.print('\
+\
+function show_linkconfirming(freq,show){\
+  var msg_id = "linkconfirming-msg_" + freq;\
+  var link_id = "linkrescan-changes_" + freq;\
+\
+  if (show == 1){\
+    $("div[id = "+ link_id +"]").show();\
+    $("div[id = "+ msg_id +"]").show();\
+  }\
+  else{\
+    $("div[id = "+ link_id +"]").hide();\
+    $("div[id = "+ msg_id +"]").hide();\
+  }\
+}\
+\
+$("a[id^=\'wifianalyzer_\']").click(function() {\
+  var iface = (this.id).split("_")[1];\
+  var freq = iface.split(".")[0];\
+  show_linkconfirming(freq, 1);\
+  return false;\
+});\
+\
+$("div[id^=\'linkrescan-confirm_\']").click(function() {\
+  var iface = (this.id).split("_")[1];\
+  var freq = iface.split(".")[0];\
+  show_linkconfirming(freq, 0);\
+});\
+\
+$("div[id^=\'linkrescan-cancel_\']").click(function() {\
+  var iface = (this.id).split("_")[1];\
+  var freq = iface.split(".")[0];\
+  show_linkconfirming(freq, 0);\
+});\
+\
 $("#aclmode").change(function(){\
 var aclmode = $(this).val();\
 if(aclmode == "register"){\

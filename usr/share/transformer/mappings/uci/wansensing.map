@@ -9,9 +9,8 @@ local wansensing_global  = {
     config = config_wansensing,
     section = "global",
     type = "wansensing",
-    options = { "enable", "l2type", "l3type", "tracelevel" },
+    options = { "enable", "l2type", "l3type", "tracelevel", "autofailover" },
 }
-
 mapper("uci_1to1").registerSimpleMap(wansensing_global)
 
 -- uci.wansensing.eth.
@@ -22,7 +21,6 @@ local wansensing_eth = {
     options = { "enable" },
     lists = { "interface" },
 }
-
 mapper("uci_1to1").registerSimpleMap(wansensing_eth)
 
 -- uci.wansensing.ptm.
@@ -33,7 +31,6 @@ local wansensing_ptm = {
     options = { "enable" },
     lists = { "interface" },
 }
-
 mapper("uci_1to1").registerSimpleMap(wansensing_ptm)
 
 -- uci.wansensing.atm.
@@ -44,5 +41,69 @@ local wansensing_atm = {
     options = { "enable" },
     lists = { "interface" },
 }
-
 mapper("uci_1to1").registerSimpleMap(wansensing_atm)
+
+-- uci.wansensing.L2State.
+local wansensing_L2State  = {
+    config = config_wansensing,
+    section = "L2State",
+    type = "L2State",
+    options = { "name", "entryexits", "mains", "timeout" },
+}
+mapper("uci_1to1").registerNamedMultiMap(wansensing_L2State)
+
+-- uci.wansensing.L3State.
+local wansensing_L3State  = {
+    config = config_wansensing,
+    section = "L3State",
+    type = "L3State",
+    options = { "name", "entryexits", "mains", "timeout" },
+}
+mapper("uci_1to1").registerNamedMultiMap(wansensing_L3State)
+
+-- uci.wansensing.worker.
+local wansensing_worker  = {
+    config = config_wansensing,
+    section = "worker",
+    type = "worker",
+    options = { "enable", "name", "mains" },
+}
+mapper("uci_1to1").registerNamedMultiMap(wansensing_worker)
+
+-- uci.wansensing.voip_mgmt.
+local wansensing_voip_mgmt  = {
+    config = config_wansensing,
+    section = "voip_mgmt",
+    type = "interface",
+    options = { "classgroup", "upload", "enable"},
+}
+mapper("uci_1to1").registerSimpleMap(wansensing_voip_mgmt)
+
+-- uci.wansensing.TO_VOIP_MGMT.
+local wansensing_TO_VOIP_MGMT  = {
+    config = config_wansensing,
+    section = "TO_VOIP_MGMT",
+    type = "classgroup",
+    options = { "classes", "default", "policy"},
+}
+mapper("uci_1to1").registerSimpleMap(wansensing_TO_VOIP_MGMT)
+
+-- uci.wansensing.HTB_Q0.
+local wansensing_HTB_Q0  = {
+    config = config_wansensing,
+    section = "HTB_Q0",
+    type = "class",
+    options = { "rate", "priority", "leafqdisc" },
+    list = { "trafficid" },
+}
+mapper("uci_1to1").registerSimpleMap(wansensing_HTB_Q0)
+
+-- uci.wansensing.HTB_Q1.
+local wansensing_HTB_Q1  = {
+    config = config_wansensing,
+    section = "HTB_Q1",
+    type = "class",
+    options = { "rate", "priority", "leafqdisc" },
+    list = { "trafficid" },
+}
+mapper("uci_1to1").registerSimpleMap(wansensing_HTB_Q1)

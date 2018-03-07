@@ -56,7 +56,9 @@ local function get_status(_, _, key)
     else
       status = "up"
     end
-    f:close()
+    if f then
+      f:close()
+    end
     return status
 end
 

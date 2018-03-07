@@ -21,6 +21,10 @@ local xdsl_ = {
             access = "readWrite",
             type = "string"
           },
+	  dslversion = {
+            access = "readOnly",
+            type = "string"
+	  },
         }
     }
 }
@@ -63,7 +67,14 @@ local function get(mapping, paramName, key)
         else
             return modes or ""
         end
-	else
+    elseif paramName == "dslversion" then
+        local dsl_supported, dsl = pcall(require,"transformer.shared.xdslctl")
+        local version = ""
+        if dsl_supported then
+            version = dsl.infoValue('firmware_version')
+        end
+        return version
+    else
         local state = getDataForXdsl()
         return nilToEmptyString(state[paramName]);
     end

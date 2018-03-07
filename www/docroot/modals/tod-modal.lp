@@ -11,16 +11,18 @@ local parental_helper = require("parental_helper")
 local tod = parental_helper.getTod()
 local tod_columns, tod_default, tod_valid, tod_sort_func, tod_mac_to_hostname =
       tod.columns, tod.default, tod.valid, tod.sort_func, tod.mac_to_hostname
-
+local uniqueKey = post_helper.getRandomKey()
 local tod_options = {
     tableid     = "tod",
-    basepath    = "uci.tod.host.",
+    basepath    = "uci.tod.host.@.",
     createMsg   = T"Add New Rule",
     canAdd      = true,
     canDelete   = true,
     canApply    = true,
     canEdit     = true,
     sorted      = tod_sort_func,
+    objectName  = uniqueKey,
+    addNamedObject = true,
 }
 
 -- function that can be used to validate tod rule
@@ -29,11 +31,11 @@ local tod_options = {
 -- @param #key validation key name
 -- @return #boolean or nil+error message
 local function todRuleVerification(value, object, key)
-  local retVal, errorMsg = parental_helper.validateTodRule(value, object, key, "AccessControl")
-  if not retVal then
-    message_helper.pushMessage(format("%s",errorMsg), "error")
-  end
-  return retVal
+   local retVal, errorMsg = parental_helper.validateTodRule(value, object, key, "AccessControl")
+   if not retVal then
+      message_helper.pushMessage(format("%s",errorMsg), "error")
+   end
+   return retVal
 end
 
 tod_valid["weekdays"] = todRuleVerification
@@ -63,6 +65,9 @@ tod_mac_to_hostname(tod_data)
         var warning = \'<div class="control-group"><div style="padding-top: 12px;" class="controls"><span class="alert">\'\
                       +\'');  ngx.print( T"The Gateway will block/allow all the time if none of the days are selected" ); ngx.print('</span></div></div>\';\
         $(\'#stoptime\').parent().parent().after(warning);\
+        $(".additional-edit .checkbox input").each(function(index) {\
+            $(this).attr("id", "tod-day"+index);\
+        });\
       </script>\
     ');  end  ngx.print('\
   </form>\
@@ -80,6 +85,12 @@ tod_mac_to_hostname(tod_data)
         };\
         $("#starttime").mobiscroll().time(opt);\
         $("#stoptime").mobiscroll().time(opt);\
+    });\
+    $(".additional-edit .checkbox input").click(function() {\
+        if ($(this).attr("checked"))\
+            $(this).removeAttr("checked");\
+        else\
+            $(this).attr("checked", "checked");\
     });\
 </script>\
 ');  ngx.print( ui_helper.createFooter() ); ngx.print('\

@@ -1,4 +1,5 @@
 -- NG-85826; NG-91245
+-- NG-103901 GUI gateway-modal has to modified in fact of generic changes			 
 local logger = require("transformer.logger")
 local log = logger.new("ConfigCommon")
 
@@ -75,6 +76,11 @@ end
 -- return true if import without signature is allowed
 local function check_import_unsigned()
   return uci_get_boolean(uci_prefix_config .. "import_unsigned")
+end
+
+-- return true if import_restricted is enabled in the config
+local function check_import_restricted()
+  return uci_get_boolean(uci_prefix_config .. "import_restricted")
 end
 
 local function get_rip_random(rip_random)
@@ -644,16 +650,17 @@ local function import_read_data(import_data, filepath)
   f_data:close()
 end
 
+-- To verify the build version from the imported config
 -- NG-85826
 local function import_check_buildversion(import_data)
-	bv_dev = uci_cursor:get(uci_path_header["BUILDVERSION"])
-	if bv_dev ~= import_data.header["BUILDVERSION"] then
-		if string.match(import_data.header["BUILDVERSION"] , "_DUMMY") then
-			if import_data.header["BUILDVERSION"] ~= string.format("%s%s", bv_dev, "_DUMMY") then
-				throw_error()
-			end
-		elseif string.match(bv_dev , "_DUMMY") then
-			if bv_dev ~= string.format("%s%s", import_data.header["BUILDVERSION"], "_DUMMY") then
+  local version = uci_cursor:get(uci_path_header["BUILDVERSION"])
+  if version ~= import_data.header["BUILDVERSION"] then
+	if string.match(import_data.header["BUILDVERSION"] , "_DUMMY") then
+		if import_data.header["BUILDVERSION"] ~= string.format("%s%s", version, "_DUMMY") then
+			throw_error()
+		end
+	elseif string.match(version , "_DUMMY") then
+			if version ~= string.format("%s%s", import_data.header["BUILDVERSION"], "_DUMMY") then
 				throw_error()
 			end
 		else
@@ -864,16 +871,21 @@ local function import_execute(import_mapdata)
     return
   end
 
+  -- To check if the import is done on the same build version
   -- NG-85826: check BUILDVERSION
-  if import_data.header["BUILDVERSION"] then
-	import_mapdata.info = "checking buildversion"
-	rv, err = pcall(import_check_buildversion, import_data)
-	if not rv then
-      import_set_error(import_mapdata, format("buildversion check faild (%s)", get_error_info(err) or "?"))
-      return
+  if check_import_restricted() then
+    if import_data.header["BUILDVERSION"] then
+      import_mapdata.info = "checking buildversion"
+      rv, err = pcall(import_check_buildversion, import_data)
+      if not rv then
+        import_set_error(import_mapdata, format("Buildversion check failed (%s)", get_error_info(err) or "?"))
+        return
+      end
+    else
+      import_set_error(import_mapdata, "Buildversion cannot be found")
     end
- end
-  
+  end
+
   -- check signature if present
   if import_data.header["SIGNATUREKEY"] then
     import_mapdata.info = "checking signature"

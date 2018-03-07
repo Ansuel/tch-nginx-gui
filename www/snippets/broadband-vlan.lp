@@ -1,4 +1,5 @@
-<%
+--pretranslated: do not change this file
+
 -- NG.... to support vlan device methode
 
 -- Enable localization
@@ -177,18 +178,21 @@ if string.match(iface, "eth") then
 	end
 	end
 end
-	local check
-	if string.match(iface, "%.") then
-		check = "dotnot"
-	else
-		check = "devnot"
-	end
+
+local check
+
+if string.match(iface, "%.") then
+	check = "dotnot"
+else
+	check = "devnot"
+end
+
 local b
+
 if check == "dotnot" then
 	if string.match(difname, "%.") then
 		b = string.match(difname, "[%w]+")
 		difname = string.match(difname, "[%w]+")
-		ngx.print(b)
 	else
 		b="empty"
 	end
@@ -201,6 +205,7 @@ else
 end
 
 local intf_state = "disabled"
+
 local intf_state_map = {
     disabled = T"VLAN disabled",
     connected = T"VLAN enabled",
@@ -218,14 +223,14 @@ if difname ~= "" then
 else
     intf_state = "disabled"
 end
-%>
 
-<fieldset>
-  <%
-    ngx.print(ui_helper.createMessages(message_helper.popMessages()))
-  %>
-  <legend><%= T"Internet channel" %></legend>
-  <%
+ngx.print('\
+<fieldset>\
+\
+    '); ngx.print(ui_helper.createMessages(message_helper.popMessages())) ngx.print('\
+\
+  <legend>'); ngx.print( T"Internet channel" ); ngx.print('</legend>');
+
 	liste = {	{"devnot", "Device"},
 				{"dotnot", "Dot"},
 			}
@@ -254,5 +259,6 @@ end
 	end
     ngx.print(html)
 	
-  %>
-</fieldset>
+  ngx.print('\
+</fieldset>\
+');

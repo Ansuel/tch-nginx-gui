@@ -101,6 +101,7 @@ local uiconfig_map = {
       "nsplink",
       "upgradefw",
       "alwaysadvanced",
+      "expertMode_globalMsg",
       "open_sw_link",
       -- options used by some custo's
       "nsplogo",
@@ -109,3 +110,15 @@ local uiconfig_map = {
     }
 }
 uci.registerNamedMultiMap(uiconfig_map)
+
+-- uci.web.card
+local card_map = {
+  config = "web",
+  type = "card",
+  options = {
+      "modal",
+      "card",
+      "hide",
+    }
+}
+uci.registerNamedMultiMap(card_map)

@@ -132,7 +132,12 @@ do
     if post_data then
       -- check CSRF token
       local session = ngx.ctx.session
-      session:checkCSRFtoken(post_data.CSRFtoken)  -- does not return on failure
+      if session then
+        -- We only check the CSRF token if the session is there. If there is no session present,
+        -- this signals a GUI that is not using the webframework. GUI's that do use the webframework
+        -- will always have a session at the time get_post_args can be called.
+        session:checkCSRFtoken(post_data.CSRFtoken)  -- does not return on failure
+      end
       post_data = taint_table(post_data)
     end
     return post_data, err

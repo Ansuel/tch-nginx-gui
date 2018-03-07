@@ -16,8 +16,8 @@ function M.listClashUsers()
   local fd = open("/etc/passwd", "r")
   if fd then
     for line in fd:lines() do
-      local user = line:match("^(.-):.*clash")
-      if user then
+      local user = line:match("^(.-):.*shell")
+      if user and user ~= "root" then
         users[user] = true
       end
     end
@@ -102,7 +102,7 @@ end
 -- @tparam boolean password_is_crypted A flag indicating that password is already encrypted, or not.
 -- @return true or nil, errmsg
 local function execUpdate(user, password, password_is_crypted)
-  local cmd='/usr/share/transformer/scripts/update_passw.sh "%s" "%s" "%s"'
+  local cmd="/usr/share/transformer/scripts/update_passw.sh '%s' '%s' '%s'"
   local crypted = (password_is_crypted and "-e") or ""
   cmd = cmd:format(user, password, crypted)
   os.execute(cmd)

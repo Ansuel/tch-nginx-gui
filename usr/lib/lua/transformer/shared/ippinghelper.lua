@@ -65,8 +65,8 @@ function M.read_ping_results(user, name)
 end
 
 function M.read_ping_trace_results(user)
-    if user ~= "diagping" then
-       return nil, "Ping traces valid only for Diagping"
+    if user ~= "diagping" and user ~= "webui" then
+       return nil, "Ping traces valid only for Diagping or Webui"
     end
     local fh, msg = open("/tmp/ping_".. user)
     if not fh then
@@ -99,18 +99,28 @@ function M.startup(user, binding)
     end
     f:write("config user '".. user .."'\n")
     f:close()
-    uci.set_on_uci(uci_binding[user]["NumberOfRepetitions"], 3)
     uci.set_on_uci(uci_binding[user]["Timeout"], 10000)
     uci.set_on_uci(uci_binding[user]["DataBlockSize"], 56)
-    uci.set_on_uci(uci_binding[user]["DSCP"], 0) 
+    uci.set_on_uci(uci_binding[user]["DSCP"], 0)
+    if user == "webui" then
+      uci.set_on_uci(uci_binding[user]["ipType"], "IPv4")
+      uci.set_on_uci(uci_binding[user]["NumberOfRepetitions"], 4)
+    else
+      uci.set_on_uci(uci_binding[user]["NumberOfRepetitions"], 3)
+    end
   else
     local value = uci.get_from_uci({config = "ipping", sectionname = user})
     if value == '' then
       uci.set_on_uci({ config = "ipping", sectionname = user},"user")
-      uci.set_on_uci(uci_binding[user]["NumberOfRepetitions"], 3)
       uci.set_on_uci(uci_binding[user]["Timeout"], 10000)
       uci.set_on_uci(uci_binding[user]["DataBlockSize"], 56)
       uci.set_on_uci(uci_binding[user]["DSCP"], 0)
+      if user == "webui" then
+        uci.set_on_uci(uci_binding[user]["ipType"], "IPv4")
+        uci.set_on_uci(uci_binding[user]["NumberOfRepetitions"], 4)
+      else
+        uci.set_on_uci(uci_binding[user]["NumberOfRepetitions"], 3)
+      end
     end
   end
   uci.set_on_uci(uci_binding[user]["DiagnosticsState"], "None")
@@ -122,7 +132,7 @@ function M.uci_ipping_get(user, pname)
   local value
   local config = "ipping"
 
-  if uci_binding[user] == nil then 
+  if not uci_binding[user] then
      uci_binding[user] = {
        DiagnosticsState = { config = config, sectionname = user, option = "state" },
        Interface = { config = config, sectionname = user, option = "interface" },

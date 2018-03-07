@@ -103,6 +103,18 @@ local mobiled_network_sessions = {
 			pdn_retry_timer_remaining = {
 				access = "readOnly",
 				type = "unsignedInt"
+			},
+			optional = {
+				access = "readOnly",
+				type = "boolean"
+			},
+			changed = {
+				access = "readOnly",
+				type = "boolean"
+			},
+			activated = {
+				access = "readOnly",
+				type = "boolean"
 			}
 		}
 	}
@@ -177,6 +189,9 @@ local function getSessionInfoData(key, parentkey)
 		result.ifname = data.ifname
 		result.interface = data.interface
 		result.apn = data.apn
+		result.changed = data.changed
+		result.optional = data.optional
+		result.activated = data.activated
 		result.session_state = data.session_state
 		if not result.session_state or result.session_state == "" then
 			result.session_state = "disconnected"

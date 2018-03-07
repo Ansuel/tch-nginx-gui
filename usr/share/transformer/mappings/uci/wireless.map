@@ -12,7 +12,8 @@ local wireless_wifidevice = {
               "ht_security_restriction", "sgi", "interference_mode", "interference_channel_list",
               "acs_config_file", "acs_state", "acs_chanim_tracing", "acs_traffic_tracing",
               "acs_trace_level", "acs_rescan_period", "acs_allowed_channels", "frame_bursting",
-              "stbc", "cdd", "tx_power_adjust", "tx_power_overrule_reg", "wifi_button_enable", "encryptiontype"
+              "stbc", "cdd", "tx_power_adjust", "tx_power_overrule_reg", "wifi_button_enable", "encryptiontype",
+              "allowed_channels"
  }
 }
 

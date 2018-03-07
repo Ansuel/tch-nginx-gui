@@ -6,9 +6,10 @@ if flag == 0 then
   return
 end
 
+-- Manually generated Multi_Optical_
 local Multi_Optical_ = {
   objectType = {
-    name = "rpc.optical.",
+    name = "#ROOT",
     access = "readOnly",
     minEntries = 1,
     maxEntries = 1,
@@ -17,4 +18,8 @@ local Multi_Optical_ = {
   }
 }
 
-register(Multi_Optical_)
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_Optical_, "#ROOT", { "rpc.optical.", "Device.Optical." })
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end

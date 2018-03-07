@@ -10,4 +10,4 @@ local uci_friendly_name = {
   options = { "name", "mac", "type" }
 }
 
-mapper("uci_1to1").registerMultiMap(uci_friendly_name)
+mapper("uci_1to1").registerNamedMultiMap(uci_friendly_name)

@@ -13,7 +13,7 @@ local function setlanguage()
 end
 
 -- Enable localization
--- NG-92675 implement changes required from the customer
+-- NG-92675 implement changes required from the customer														
 gettext.textdomain('webui-mobiled')
 
 local lteParams = require("web.lte-params")
@@ -39,6 +39,19 @@ internal.radio_tech_map = {
 	["auto"]	= T"Auto"
 }
 
+internal.radio_preference_map = {
+	["auto"]           = T"Auto",
+	["lte_preferred"]  = T"LTE Preferred",
+	["lte_only"]       = T"LTE Only",
+	["lte"]            = T"LTE",
+	["umts_preferred"] = T"UMTS Preferred",
+	["umts_only"]      = T"UMTS Only",
+	["umts"]           = T"UMTS",
+	["gsm_preferred"]  = T"GSM Preferred",
+	["gsm_only"]       = T"GSM Only",
+	["gsm"]            = T"GSM"
+}
+
 internal.antenna_map = {
 	["internal"]	= T"Internal",
 	["external"]	= T"External",
@@ -51,22 +64,17 @@ internal.rrc_state_map = {
 }
 
 internal.mobiled_state_map = {
-	["WaitingForDevice"]	= T"Unplugged",
-	["DeviceInit"]			= T"Initializing device",
-	["DeviceConfigure"]		= T"Configuring device",
-	["SimInit"]				= T"Initializing SIM",
-	["DeviceRemove"]		= T"Disconnecting",
-	["UnlockSim"]			= T"SIM locked",
-	["RegisterNetwork"]		= T"Searching network",
-	["DataSessionSetup"]	= T"Starting data session(s)",
-	["Idle"]				= T"Connected",
-	["NetworkScan"]			= T"Scanning networks",
-	["FirmwareUpgrade"]		= T"Upgrading firmware",
+	["no_device"]			= T"Unplugged",
+	["configuring_device"]	= T"Configuring device",
+	["initializing_sim"]	= T"SIM locked",
+	["connecting"]			= T"Connecting",
+	["connected"]			= T"Connected",
+	["disconnected"]		= T"Disconnected",
+	["scanning_network"]	= T"Scanning networks",
+	["upgrading_firmware"]	= T"Upgrading firmware",
 	["SelectAntenna"]		= T"Selecting antenna",
-	["PlatformConfigure"]	= T"Configuring platform",
-	["Disabled"]			= T"Disabled",
-	["QualTest"]			= T"Qualification test",
-	["Error"]				= T"Error"
+	["disabled"]			= T"Disabled",
+	["error"]				= T"Error"
 }
 
 internal.sim_state_map = {

@@ -21,10 +21,13 @@ end
 local cui = {
   defaultuser = "uci.web.uiconfig.@uidefault.defaultuser",
   nsplink = "uci.web.uiconfig.@uidefault.nsplink",
+  timestamp = "uci.version.version.@version[0].timestamp",
   gui_version = "uci.env.var.gui_version",
+  gui_skin = "uci.env.var.gui_skin",
 }
 content_helper.getExactContent(cui)
-
+local year = cui.timestamp
+local current_year = (string.sub(year,1,4))								   
 --Start for legacy migration: GUI username/password [NG-48489]
 local users = content_helper.getMatchedContent("uci.web.user.")
 local userNames = ""
@@ -37,17 +40,17 @@ for _, v in ipairs(users) do
   end
 end
 
-if ngx.req.get_method() == "POST" then
-  local post_args = ngx.req.get_post_args()
+if ngx.req.get_method() == "POST" and ngx.req.get_post_args().resetLegacySalt then
+										   
   --As the legacy user password has changed, to remove the legacy label,i.e., option legacy_salt.
-  if post_args.resetLegacySalt and post_args.username then
-    local username = untaint(post_args.name)
-    local user = content_helper.getMatchedContent("uci.web.user.", {name = username})
-    if user and #user > 0 then
-      user = user[1]
-      proxy.set(user.path .. "legacy_salt", "")
-      proxy.apply()
-    end
+														  
+											
+  local user = content_helper.getMatchedContent("uci.web.user.", {name = ngx.ctx.session:getusername()})
+  if user and #user > 0 then
+    user = user[1]
+    proxy.set(user.path .. "legacy_salt", "")
+    proxy.apply()
+	   
   end
 end
 --End for legacy migration: GUI username/password [NG-48489]
@@ -78,7 +81,7 @@ end
 	<link rel="stylesheet" href="/css/font-awesome.css">\
 	<link href="/css/responsive.css" rel="stylesheet">\
 	<link rel="shortcut icon"    type="image/x-icon"   href="/img/favicon.ico"    />\
-	<link rel="stylesheet" href="/css/color.css">\
+	<link rel="stylesheet" href="/css/color_');  ngx.print( cui.gui_skin ); ngx.print('.css">\
 <!--	<link href="/css/TIM.css" rel="stylesheet"> -->\
     <!--[if IE 7]><link rel="stylesheet" href="/css/font-awesome-ie7.css"><![endif]-->\
     <script src="/js/main-min.js" ></script>\
@@ -192,7 +195,7 @@ end
     </div>\
    <div class="row">\
 		<div class="copyright span12">\
-			<p>&copy; Technicolor 2015</p>\
+			<p>&copy; Technicolor ');  ngx.print(current_year); ngx.print('</p>\
 			<p>Modified Ver. [ ');  ngx.print( cui.gui_version ); ngx.print(' ]</p>\
 			<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> && Unlock Utility by <font style="color:#0088cc;">ADeltaX</font> && Translated by <font style="color:#0088cc;">DarkNiko</font></p>\
 		</div>\

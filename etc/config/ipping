@@ -1,0 +1,31 @@
+
+config user 'device2'
+	option count '3'
+	option timeout '10000'
+	option size '56'
+	option dscp '0'
+	option state 'None'
+
+config user 'igd'
+	option count '3'
+	option timeout '10000'
+	option size '56'
+	option dscp '0'
+	option state 'None'
+
+config user 'network_rpc'
+	option timeout '10000'
+	option size '56'
+	option dscp '0'
+	option host '192.168.1.254'
+	option count '2'
+	option interface 'wan'
+	option state 'None'
+
+config user 'diagping'
+	option count '3'
+	option timeout '10000'
+	option size '56'
+	option dscp '0'
+	option state 'None'
+

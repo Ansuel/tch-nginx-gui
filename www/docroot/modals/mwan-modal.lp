@@ -49,7 +49,7 @@ local select_path = {
 local policy_intfs = {}
 
 -----------------------------------------------------------
--- select_tables {} 
+-- select_tables {}
 -- get valid route table from /etc/iproute2/rt_tables
 -- Route table id > 0 && id < 100
 -----------------------------------------------------------
@@ -85,7 +85,7 @@ end
 -- select_policy {}
 -- valid policy
 --
--- select_wan_intfs {} 
+-- select_wan_intfs {}
 -- available & wan & not used interfaces
 --
 -- select_src_intfs {}
@@ -218,9 +218,11 @@ local host_columns = {
 
 local host_options = {
     tableid = "mwan_host",
-    basepath = "uci.mwan.host.",
+    basepath = "uci.mwan.host.@.",
     createMsg = T"Add new host rule",
     sorted = "policy",
+    objectName  = post_helper.getRandomKey(),
+    addNamedObject = true,
 }
 
 local function validateSelectedPath(value,data,key)
@@ -315,9 +317,11 @@ local rule_columns = {
 
 local rule_options = {
   tableid = "mwan_rule",
-  basepath = "uci.mwan.rule.",
+  basepath = "uci.mwan.rule.@.",
   createMsg = T"Add new rule",
   sorted = "policy",
+  objectName  = post_helper.getRandomKey(),
+  addNamedObject = true,
 }
 
 local fwrule_valid = {

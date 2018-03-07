@@ -53,6 +53,10 @@ local mobiled_device_capabilities_ = {
                 access = "readOnly",
                 type = "boolean"
             },
+            radio_preferences = {
+                access = "readOnly",
+                type = "string"
+            },
         }
     }
 }

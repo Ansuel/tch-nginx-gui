@@ -1,0 +1,7 @@
+#!/bin/sh
+# Copyright (c) 2014 Technicolor
+
+lanip=`uci get network.lan.ipaddr`
+
+sed -i "s/^[0-9]*\.[0-9]*\.[0-9]*\.[0-9]* mygateway telecom\.gateway/$lanip mygateway telecom\.gateway/g" /etc/hosts
+

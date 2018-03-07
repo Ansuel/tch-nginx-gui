@@ -1,5 +1,0 @@
-local command = {
-  name = "mptcpkpi",
-  full_path = "/usr/bin/clash-mptcpkpi-wrapper",
-}
-mapper("command").registerCommand(command)

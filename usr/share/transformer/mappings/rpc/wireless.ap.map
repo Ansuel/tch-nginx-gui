@@ -1,5 +1,3 @@
-local logger = require("transformer.logger")
-local log = logger.new("wireless.ap", 2)
 local register, pairs = register, pairs
 
 local wireless_ap_ = {
@@ -58,9 +56,10 @@ local wireless_ap_ = {
   }
 }
 
-local require, mapper, error = require, mapper, error
+local require, mapper = require, mapper
 local uci_helper = mapper("ucihelper")
 local conn = mapper("ubus").connect()
+local network = require("transformer.shared.common.network")
 
 local function nilToEmptyString(st)
     if st == nil then
@@ -68,14 +67,6 @@ local function nilToEmptyString(st)
     else
         return tostring(st)
     end
-end
-
-local function getDataForAP(ap)
-    local result = conn:call("wireless.accesspoint", "get", { name = ap })
-    if result == nil then
-        error("Cannot retrieve ap info for ap " .. ap)
-    end
-    return result[ap]
 end
 
 local function entriesWirelessAP(mapping)
@@ -90,7 +81,7 @@ local function entriesWirelessAP(mapping)
 end
 
 local function getall(mapping, key)
-    local apData = getDataForAP(key)
+    local apData = network.getAccessPointInfo(key)
     local sanitizedData = {}
     for k,v in pairs(apData) do
         sanitizedData[k] = nilToEmptyString(v)
@@ -103,7 +94,7 @@ local function get(mapping, paramName, key)
 		local value = uci_helper.get_from_uci({ config = "wireless", sectionname = key , option = 'display_connected_devices'})
 		return nilToEmptyString(value)
 	else
-    local apData = getDataForAP(key)
+    local apData =  network.getAccessPointInfo(key)
     return nilToEmptyString(apData[paramName]);
 	end
 end

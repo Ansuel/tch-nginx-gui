@@ -12,7 +12,8 @@ local dhcpState_text = ""
 local dhcpState
 
 local mapParams = {
-    dhcpState = "uci.dhcp.dhcp.@lan.dhcpv4",
+    dhcpv4State = "uci.dhcp.dhcp.@lan.dhcpv4",
+	dhcpIgnore = "uci.dhcp.dhcp.@lan.ignore",										 
     localdevIP = "uci.network.interface.@lan.ipaddr",
     localdevmask = "uci.network.interface.@lan.netmask",
     localIPv6 = "uci.network.interface.@lan.ipv6",
@@ -20,12 +21,12 @@ local mapParams = {
 }
 content_helper.getExactContent(mapParams)
 
-if mapParams["dhcpState"] == "" or mapParams["dhcpState"] == "server" then
-    dhcpState_text = T"DHCP enabled"
-    dhcpState = "1"
+if mapParams["dhcpIgnore"] == "1" or mapParams["dhcpv4State"] == "disabled" then
+  dhcpState_text = T"DHCP disabled"
+  dhcpState = "0"
 else
-    dhcpState_text = T"DHCP disabled"
-    dhcpState = "0"
+  dhcpState_text = T"DHCP enabled"
+  dhcpState = "1"
 end
 local LANv6 = "none"
 
@@ -59,7 +60,7 @@ if session:hasAccess("/modals/ethernet-modal.lp") then
 end
   ngx.print('\
 <div class="span3">\
-  <div class="smallcard">\
+  <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
 \
     ');  ngx.print( ui_helper.createCardHeader(T"Local Network", modalPath, switchName, nil) ); ngx.print('\
 \

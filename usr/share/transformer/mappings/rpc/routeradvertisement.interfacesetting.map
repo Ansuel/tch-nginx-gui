@@ -8,6 +8,17 @@ local ra_interfacesetting_ = {
     minEntries = 0,
     maxEntries = math.huge,
     parameters = {
+      ra_enable = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "disabled",
+          "server",
+          "relay",
+          "hybrid"
+        },
+        default = "disabled",
+      },
       adv_managed_flag = {
         access = "readWrite",
         type = "boolean",
@@ -66,15 +77,17 @@ local dhcpBinding = { config = "dhcp" }
 local configChanged
 
 local paramMap = {
+  ra_enable             = "ra",
   adv_managed_flag      = "ra_management",
   adv_other_config_flag = "ra_management",
   adv_default_lifetime  = "ra_lifetime",
-  adv_link_mtu          = "ra_max_mtu",
+  adv_link_mtu          = "ra_mtu",
   max_rtr_adv_interval  = "ra_maxinterval",
   min_rtr_adv_interval  = "ra_mininterval"
 }
 
 local defaultValues = {
+  ra_enable            = "disabled",
   adv_managed_flag     = "1",
   adv_other_config_flag = "1",
   adv_default_lifetime = "1800",
@@ -106,6 +119,9 @@ local function getUciValue(param, key)
 end
 
 ra_interfacesetting_.get = {
+  ra_enable = function(mapping, param, key)
+    return getUciValue(param, key)
+  end,
   adv_managed_flag = function(mapping, param, key)
     local value = getUciValue(param, key)
     return value ~= "0" and "1" or "0"
@@ -132,10 +148,11 @@ ra_interfacesetting_.getall = function(mapping, key)
   dhcpBinding.sectionname = key
   local allValues = uciHelper.getall_from_uci(dhcpBinding)
   return {
+    ra_enable = allValues["ra_enable"] or defaultValues["ra_enable"],
     adv_managed_flag = allValues["ra_management"] and (allValues["ra_management"] ~= "0" and "1" or "0") or defaultValues["adv_managed_flag"],
     adv_other_config_flag = allValues["ra_management"] and (allValues["ra_management"] == "2" and "0" or "1") or defaultValues["adv_other_config_flag"],
     adv_default_lifetime = allValues["ra_lifetime"] and allValues["ra_lifetime"] or defaultValues["adv_default_lifetime"],
-    adv_link_mtu = allValues["ra_max_mtu"] and allValues["ra_max_mtu"] or defaultValues["adv_link_mtu"],
+    adv_link_mtu = allValues["ra_mtu"] and allValues["ra_mtu"] or defaultValues["adv_link_mtu"],
     max_rtr_adv_interval = allValues["ra_maxinterval"] and allValues["ra_maxinterval"] or defaultValues["max_rtr_adv_interval"],
     min_rtr_adv_interval = allValues["ra_mininterval"] and allValues["ra_mininterval"] or defaultValues["min_rtr_adv_interval"],
   }

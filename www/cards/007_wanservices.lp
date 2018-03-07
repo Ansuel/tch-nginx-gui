@@ -80,7 +80,7 @@ end
   ngx.print('\
 \
 <div class="span3">\
-  <div class="smallcard">\
+  <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
 \
     ');  ngx.print( ui_helper.createCardHeader(T"WAN Services", modalPath, switchName, nil) ); ngx.print('\
 \

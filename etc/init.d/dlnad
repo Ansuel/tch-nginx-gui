@@ -1,0 +1,118 @@
+#!/bin/sh /etc/rc.common
+
+START=98
+STOP=02
+
+DLNAD_BIN=/usr/bin/dlnad
+DLNAD_PID_FILE=/var/run/dlnad.pid
+CONF_FILE=/var/etc/dlnad.conf
+MNT_FILE=/var/etc/mount_path.conf
+
+start()
+{
+   if [ -f $DLNAD_PID_FILE ]; then
+     logger -t dlnad "dlnad already running"
+     return 1
+   fi
+
+   config_load dlnad
+   local enabled mountpath manufacturer_url radiostations_enabled friendly_name uuid modelname
+   local loglevel
+   config_get enabled config enabled
+   config_get mountpath config mount_path
+   config_get manufacturer_url config manufacturer_url
+   config_get model_url config model_url
+   config_get radiostations_enabled config radioStations_enabled
+   config_get friendly_name config friendly_name
+   config_get uuid config uuid
+   config_get modelname config model_name
+   config_get loglevel log dlnad_logLevel
+
+   config_load env
+   local board_name board_serial device_name
+   local serial_no manufacturer model_no
+   config_get board_name rip board_mnemonic
+   config_get board_serial var serial
+   config_get device_name var prod_name
+   config_get serial_no var prod_number
+   config_get manufacturer var company_name
+   config_get model_no var prod_number
+
+   config_load mountd
+   local mountdir
+   config_get mountdir mountd path
+
+   if [ $enabled == "1" ]; then
+     if [ ! -f $CONF_FILE ]; then
+       echo "enabled=$enabled" >> $CONF_FILE
+       echo "manufacturer_url=$manufacturer_url" >> $CONF_FILE
+       echo "model_url=$model_url" >> $CONF_FILE
+       echo "radiostations_enabled=$radiostations_enabled" >> $CONF_FILE
+       echo "mount_path=$mountpath" >> $CONF_FILE
+
+       echo "board_name=$board_name" >> $CONF_FILE
+       echo "board_serial=$board_serial" >> $CONF_FILE
+       echo "device_name=$device_name" >> $CONF_FILE
+       echo "serial_no=$serial_no" >> $CONF_FILE
+       echo "manufacturer=$manufacturer" >> $CONF_FILE
+       echo "model_no=$model_no" >> $CONF_FILE
+       echo "friendly_name=$friendly_name" >> $CONF_FILE
+
+       echo "model_name=$modelname" >> $CONF_FILE
+       echo "uuid=$uuid" >> $CONF_FILE
+       echo "loglevel=$loglevel" >> $CONF_FILE
+     fi
+
+     if grep -q mount_path $CONF_FILE; then
+       echo $mountpath | sed "s:\/:\\\/:g" > $MNT_FILE
+
+       mnt_path=$(cat $MNT_FILE)
+       sed -i -e "s/\/tmp\/run\/mountd\/.*/${mnt_path}/g" $CONF_FILE
+     fi
+
+     logger -t dlnad "Starting dlnad"
+     mkdir -m 0777 -p /tmp/dlnad
+     #Added a extra check for the existence of the dlnad process to prevent recursive case
+     if ! pgrep -x "/usr/bin/dlnad" > /dev/null; then
+       $DLNAD_BIN -f $CONF_FILE &
+     fi
+     pid_dlnad=$(ps | grep $DLNAD_BIN | grep -v grep | awk '{print $1}')
+     echo $pid_dlnad > $DLNAD_PID_FILE
+  else
+    logger -t dlnad "dlnad config disabled"
+    return 1;
+  fi
+}
+
+reload() {
+  local dlnad_enabled
+  config_load dlnad
+  config_get dlnad_enabled config enabled
+  if [[ "$dlnad_enabled" = "0" ]]; then
+    logger -t dlnad "Reload: WARNING DLNA Disabled, Stopping DLNAD"
+    stop
+  else
+    logger -t dlnad "Reload: restarting"
+    restart
+  fi
+
+  return 0
+}
+
+stop()
+{
+   logger -t dlnad "Stopping dlnad"
+   service_stop $DLNAD_BIN
+
+   if [ -f $DLNAD_PID_FILE ]; then
+     rm -f $DLNAD_PID_FILE
+   fi
+
+   if [ -f $CONF_FILE ]; then
+     rm -f $CONF_FILE
+   fi
+
+   if [ -f $MNT_FILE ]; then
+     rm -f $CONF_FILE
+   fi
+}

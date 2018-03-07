@@ -2,6 +2,7 @@
 
 --NG-96253 GPON-Diagnostics/Network needs to be lifted to TI specific functionalities
 --NG-102545 GUI broadband is showing SFP Broadband GUI page when Ethernet 4 is connected
+--[NG-107029] GUI Diagnostics status NOK for sfp and LAN4
 -- Localization
 gettext.textdomain('webui-core')
 
@@ -103,7 +104,7 @@ ngx.print('\
               if(ports_speed[v]) then
                 ngx.print('<p class="socket-legend">'); ngx.print(format(T"%s Mbps", ports_speed[v])); ngx.print('</legend>')
               end
-			elseif eth["op" .. v] == "OPERATION (05)" then
+			elseif eth["op" .. v] == "Up" then
 			  ngx.print('<p class="socket-legend" id = "<%=v%>">'); ngx.print(T"Connected-SFP"); ngx.print('<\p>')
               if(ports_speed[v]) then
                 ngx.print('<p class="socket-legend">'); ngx.print(format(T"%s Mbps", ports_speed[v])); ngx.print('</legend>')
@@ -115,6 +116,8 @@ ngx.print('\
         end
       ngx.print('</div>\
     </div>\
+	</fieldset>\
+	<fieldset>\
     <legend>'); ngx.print(T"Network Statistics"); ngx.print('</legend>')
     
 	local wireless = proxy.get("rpc.wireless.ssid.")

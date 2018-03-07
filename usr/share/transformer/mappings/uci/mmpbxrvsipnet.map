@@ -57,7 +57,7 @@ local mmpbxrvsipnet_network = {
     "call_waiting_provisional_response",
     "call_waiting_reject_response",
     "reliable_provisional_response",
-    "re_registaration_mode",
+    "re_registration_mode",
     "forking_mode",
     "ingress_media_timeout",
     "session_timer",

@@ -1,0 +1,9 @@
+#NG-87265; NG-71142
+
+config dlnad 'config'
+	option enabled '1'
+	option manufacturer_url 'http://www.technicolor.com'
+	option model_url 'http://www.technicolor.com'
+	option radioStations_enabled '0'
+	option friendly_name 'Modem TIM'
+

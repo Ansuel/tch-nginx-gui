@@ -1,8 +1,0 @@
-local command = {
-  name = "newsrpuser",
-  full_path = "/usr/bin/newsrpuser",
-  options_with_argument = {"-p", "-u"},
-  options_without_argument = {"-f"},
-}
-
-mapper("command").registerCommand(command)

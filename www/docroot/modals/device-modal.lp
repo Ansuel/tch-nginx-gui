@@ -21,6 +21,19 @@ local function validateUnknownHostname(value)
 end
 
 -- devices forwarding rules
+local devicetypes = {
+    { "Generic", T"Generic" },
+    { "DesktopComputer", T"DesktopComputer" },
+    { "Laptop", T"Laptop" },
+    { "STB", T"STB" },
+    { "PDA", T"PDA" },
+    { "GS", T"GS" },
+    { "Phone", T"Phone" },
+    { "GSM", T"GSM" },
+    { "Printer", T"Printer" },
+    { "Storage", T"Storage" },
+    { "None", T"None" },
+}
 local devices_columns = {
   {--[1]
     header = T"Status",
@@ -35,18 +48,25 @@ local devices_columns = {
     name = "FriendlyName",
     param = "FriendlyName",
     type = "text",
-    readonly = true,
-    attr = { input = { class="span3" } },
+    attr = { input = { class="span2" } },
   },
   {--[3]
-    header = T"IP address",
-    name = "ipaddress",
+    header = T"IPv4",
+    name = "ipv4",
     param = "IPAddress",
     type = "text",
     readonly = true,
-    attr = { input = { class="span2" } },
+    attr = { input = { class="span1" } },
   },
   {--[4]
+    header = T"IPv6",
+    name = "ipv6",
+    param = "IPv6",
+    type = "text",
+    readonly = true,
+    attr = { input = { class="span1" } },
+  },
+  {--[5]
     header = T"MAC address",
     name = "macaddress",
     param = "MACAddress",
@@ -54,15 +74,15 @@ local devices_columns = {
     readonly = true,
     attr = { input = { class="span2" } },
   },
-  {--[5]
-    header = T"Type",
+  {--[6]
+    header = T"InterfaceType",
     name = "interfacetype",
     param = "InterfaceType",
     type = "text",
     readonly = true,
     attr = { input = { class="span2" } },
   },
-  {--[6]
+  {--[7]
     header = T"Port",
     name = "port",
     param = "Port",
@@ -70,7 +90,31 @@ local devices_columns = {
     readonly = true,
     attr = { input = { class="span1" } },
   },
-  {--[7]
+  {--[8]
+    header = T"Connection Time",
+    name = "ConnectionTime",
+    param = "ConnectedTime",
+    type = "text",
+    readonly = true,
+    attr = { input = { class="span1" } },
+  },
+  {--[9]
+    header = T"Lease time",
+    name = "dhcpLeaseTime",
+    param = "DhcpLeaseTime",
+    type = "text",
+    readonly = true,
+    attr = { input = { class="span1" } },
+  },
+  {--[10]
+    header = T"Device Type",
+    name = "devicetype",
+    param = "DeviceType",
+    type = "select",
+    values = devicetypes,
+    attr = { select = { class="span2" } },
+  },
+  {--[11]
     header = T"SSID",
     name = "ssid",
     param = "SSID",
@@ -84,7 +128,7 @@ local device_valid = {
     FriendlyName = gOrV(vSIDN, validateUnknownHostname),
 }
 local devices_options = {
-    canEdit = false,
+    canEdit = true,
     canAdd = false,
     canDelete = false,
     tableid = "devices",
@@ -115,6 +159,8 @@ local devices_filter = function(data)
     data["InterfaceType"] = "wireless - 5GHz"
   elseif match(data["L2Interface"], "eth*") then
     data["InterfaceType"] = "Ethernet"
+  elseif match(data["L2Interface"], "moca*") then
+    data["InterfaceType"] = "MoCA"
   end
   return true
 end
@@ -124,7 +170,26 @@ local devices_data, devices_helpmsg = post_helper.handleTableQuery(devices_colum
 for k, v in pairs (devices_data) do
    devices_data[k][1] = format("%s",v[1])
    devices_data[k][5] = format("%s",v[5]:gsub("^%l", string.upper))
+
+    if v[1] == "1" then
+      if v[9] ~= "" and v[8] ~= "" then
+        v[9] = post_helper.secondsToTime(tonumber(v[9])- (os.time()- tonumber(v[8]))%tonumber(v[9]))
+      else
+        v[9]="-"
+      end
+
+      if v[8] ~= "" then
+        v[8] = post_helper.secondsToTime(os.time()- tonumber(v[8]))
+      else
+        v[8] = "-"
+      end
+    else
+      v[8] = "-"
+      v[9] = "-"
+    end
 end
+
+
   ngx.print('\
 \
 ');  ngx.print( ui_helper.createHeader(T"Devices", false, true) ); ngx.print('\
@@ -140,6 +205,14 @@ if ngx.ctx.session:hasAccess("/modals/hostmap-modal.lp") then
         {
             desc = T"Devices Map",
             target = "modals/hostmap-modal.lp",
+        },
+		{
+            desc = T"WiFi Nurse",
+            target = "modals/wifi-nurse-modal.lp",
+        },
+		{
+            desc = T"Traffic Monitor",
+            target = "modals/traffic-monitor.lp",
         },
     }
     ngx.print(ui_helper.createModalTabs(tabs))

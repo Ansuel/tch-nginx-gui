@@ -8,7 +8,7 @@ local ngwfdd_config = {
   config = config_ngwfdd,
   section = "config",
   type = "config",
-  options = {"enable", "tag" }
+  options = {"enable", "tag", "base_url", "core_url" }
 }
 mapper("uci_1to1").registerSimpleMap(ngwfdd_config)
 

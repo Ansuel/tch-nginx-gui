@@ -12,7 +12,7 @@ local content_helper = require("web.content_helper")
 
 
 local wan = {
-    iface = "uci.network.interface.@wan.ifname",
+    iface = "uci.network.interface.@ptm0.ifname",
 }
 content_helper.getExactContent(wan)
 

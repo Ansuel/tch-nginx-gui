@@ -26,11 +26,11 @@ local qos_classify = {
   config = config_qos,
   type = "classify",
   options = { "target", "family", "proto", "srchost", "dsthost", "ports", "srcports",
-              "dstports", "mark", "helper", "layer7" },
+              "dstports", "mark", "helper", "layer7", "srcmac" },
   lists = { "srcif", "dstif", "proto_option", "tos", "dscp" }
 }
 
-mapper("uci_1to1").registerMultiMap(qos_classify)
+mapper("uci_1to1").registerNamedMultiMap(qos_classify)
 
 -- uci.qos.reclassify
 local qos_reclassify = {
@@ -41,7 +41,7 @@ local qos_reclassify = {
   lists = { "srcif", "dstif", "proto_option", "tos", "dscp" }
 }
 
-mapper("uci_1to1").registerMultiMap(qos_reclassify)
+mapper("uci_1to1").registerNamedMultiMap(qos_reclassify)
 
 --uci.qos.interface
 local qos_interface = {
@@ -63,6 +63,6 @@ mapper("uci_1to1").registerNamedMultiMap(qos_classgroup)
 local qos_device = {
   config = config_qos,
   type = "device",
-  options = { "enable", "classgroup", "switchclassification" }
+  options = { "enable", "classgroup", "switchclassification", "pcp", "force_pcp" }
 }
 mapper("uci_1to1").registerNamedMultiMap(qos_device)

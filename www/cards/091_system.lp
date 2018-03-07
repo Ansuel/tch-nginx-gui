@@ -11,6 +11,16 @@ local proxy = require("datamodel")
 local modalPath = "/modals/system-modal.lp"
 syslog_present = "Disabled"
 
+-- Check availability of file, return true if found, else false
+local function file_check(file_name)
+  local file_found=io.open(file_name, "rb")
+  if file_found==nil then
+    return false
+  else
+    return true
+  end
+end
+
 local Syslog = proxy.get("uci.system.system.@system[0].log_ip", "uci.system.system.@system[0].log_filter_ip")
 if Syslog and (Syslog[1].value ~= "" or Syslog[2].value ~= "") then
     syslog_present = "Enabled"
@@ -48,12 +58,16 @@ end
       Disabled = "off",
       Enabled = "green",
     }
-	
-local TELNET = proxy.get("uci.telnet.general.enable")
-if TELNET and (TELNET[1].value == "1") then
-    telnet_enable = "Enabled"
-else
-	telnet_enable = "Disabled"
+
+local telnet_available = file_check("/bin/busybox_telnet")
+
+if telnet_available then
+	local TELNET = proxy.get("uci.telnet.general.enable")
+	if TELNET and (TELNET[1].value == "1") then
+		telnet_enable = "Enabled"
+	else
+		telnet_enable = "Disabled"
+	end
 end
     local TELNET_state_map = {
       Disabled = T"Telnet Disabled",
@@ -69,7 +83,7 @@ end
     local modal_link = format("class=\"modal-link\" data-toggle=\"modal\" data-remote=\"%s\" data-id=\"device-modal\"",modalPath)
   ngx.print('\
 <div class="span3">\
-  <div class="smallcard">\
+  <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
     ');  ngx.print( ui_helper.createCardHeader(T"System Extras", modalPath) ); ngx.print('\
     <div class="content card_bg" data-bg-text="&#xf1de;">\
       <div class="divtable">');
@@ -77,9 +91,12 @@ end
 				ui_helper.createSimpleLight(nil, syslog_state_map[syslog_present], { light = { class = syslog_light_map[syslog_present] } }),
 				'<br/>',
 				ui_helper.createSimpleLight(nil, SSH_state_map[ssh_enable], { light = { class = SSH_light_map[ssh_enable] } }),
-				'<br/>',
-				ui_helper.createSimpleLight(nil, TELNET_state_map[telnet_enable], { light = { class = TELNET_light_map[telnet_enable] } })
-			);
+				'<br/>');
+			if telnet_available then
+				ngx.print(
+					ui_helper.createSimpleLight(nil, TELNET_state_map[telnet_enable], { light = { class = TELNET_light_map[telnet_enable] } })
+				);
+			end
 		ngx.print('\
       </div>\
     </div>\

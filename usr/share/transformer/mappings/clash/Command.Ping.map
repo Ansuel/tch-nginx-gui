@@ -1,9 +1,0 @@
-local command = {
-  name = "ping",
-  full_path = "/bin/ping",
-  options_without_argument = {"-4", "-6", "-q"},
-  options_with_argument = {"-c", "-s", "-t", "-I", "-W", "-w"},
-  operands = {"host"},
-}
-
-mapper("command").registerCommand(command)

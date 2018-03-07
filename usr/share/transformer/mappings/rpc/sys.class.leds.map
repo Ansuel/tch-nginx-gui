@@ -75,14 +75,17 @@ local function entriesSysClassLeds(mapping)
 	local entries = {}
 	for file in lfs.dir(syspath) do
 		-- Weird but the symlinks in /sys/class/net return nil for mode
-	    if lfs.attributes(file,"mode")== nil then 
-	    	table.insert(entries, file)
-	    end
+            if lfs.attributes(file,"mode")== nil then
+                file = file:gsub(":", "_")
+                table.insert(entries, file)
+            end
 	end
 	return entries
 end
 
 local function get(mapping, paramName, key)
+        local ledColor = key:match("_([^_]+)$") or ""
+        key = key:gsub("_[^_]+$", ":") .. ledColor 
 	local result = firstline(syspath .. key .. "/" .. paramName)
 	-- This one is a special case, it returns the list of triggers with the selected one between []
 	if paramName == "trigger" then
@@ -93,6 +96,8 @@ local function get(mapping, paramName, key)
 end
 
 local function set(mapping, paramName, paramValue, key)
+    local ledColor = key:match("_([^_]+)$") or ""
+    key = key:gsub("_[^_]+$", ":") .. ledColor
     local f = open(syspath .. key .. "/" .. paramName, 'w+')
     if f then
         f:write(paramValue .. '\n')

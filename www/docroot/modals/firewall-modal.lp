@@ -74,6 +74,9 @@ local vNES = post_helper.validateNonEmptyString
 local gOV = post_helper.getOptionalValidation
 local vIP4AS = post_helper.validateIPAndSubnet(4)
 local vIP6AS = post_helper.validateIPAndSubnet(6)
+local gDSM = post_helper.getDefaultSubnetMask
+local netMaskToMask = post_helper.cidr2mask
+local isNA = post_helper.isNetworkAddress
 
 local fw_valid = {
     fwv4_ping = vB,
@@ -307,11 +310,29 @@ local function removeSpace(validation)
  end
 end
 
+local function validateSourceIP(value, object, key)
+  local retVal, msg
+  local ipAddress, netMask = str_match(value,"^([^/]+)/?(%d*)$")
+  retVal, msg = vIP4AS(value, object, key)
+  if retVal and netMask == "" then
+    --To add default subnet mask to the IPv4 Network Address if not explicitly mentioned.
+    netMask = gDSM(ipAddress)
+    if netMask then
+      local isNetworkAddress = isNA(ipAddress, netMaskToMask(netMask))
+      if isNetworkAddress then
+        object[key] = value .. "/" .. netMask
+      end
+    end
+    return true
+  end
+  return retVal, msg
+end
+
 local fwrule_valid = {
     enabled = vB,
     target = gVIES(fwrules_targets),
     protocol = gVIES(protolist.IPv4Protocol),
-    src_ip = vIP4AS,
+    src_ip = validateSourceIP,
     src_port = gOV(vSIPR),
     dest_ip = vIP4AS,
     dest_port = rulesDuplicateCheck("rpc.network.firewall.userrule.", "fwrules",fwrule_columns),
@@ -597,7 +618,7 @@ local fwrule_v6_valid = {
     enabled_v6 = vB,
     target_v6 = gVIES(fwrules_targets),
     protocol_v6 = gVIES(protolist.IPv6Protocol),
-    src_ip_v6 = vIP6AS,
+    src_ip_v6 = gOV(vIP6AS),
     src_port_v6 = gOV(vSIPR),
     dest_ip_v6 = vIP6AS,
     dest_port_v6 = rulesDuplicateCheck("rpc.network.firewall.userrule_v6.", "fwrules_v6",fwrule_v6_columns),

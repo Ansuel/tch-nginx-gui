@@ -1,5 +1,6 @@
 local M={}
---- Function executes the specified command and parses its output based on lookup and keyarray
+local ipairs, next, table = ipairs, next, table
+--- Function executes the specified command and parses its output based on lookup and keys
 -- @param cmdlookup   A table of the form {command="command to execute",lookup={parsing rules}}
 --                    command  A string specifying the command to execute.
 --                    lookup   A table specifying the rules to parse the output of command.
@@ -13,87 +14,75 @@ local M={}
 --                             subkeys (optional) Is needed if there are multiple values extracted from the same line of output.
 --                                                These values are then stored in values["keyname"][subkeys[i]]
 --
--- @param keyarray    An array of keynames to be retrieved from the output
--- @param valuearray  A table to return the extracted values for each keyname in keyarray
+-- @param keys    An array of keynames to be retrieved from the output
+-- @param xdslInfo A table to return the extracted values for each keyname in keys
 -- examples in xdslctl.lua
-function M.parseCmd(cmdlookup,keyarray,valuearray)
-  local debug=false
-  local cmd=cmdlookup.command
-  local lookup=cmdlookup.lookup
+function M.parseCmd(cmdlookup, keys, xdslInfo)
+  local debug = false
+  local cmd = cmdlookup.command
+  local lookup = cmdlookup.lookup
   local pipe = io.popen(cmd)
-  if pipe==nil then
+  if not pipe then
     -- failed to open pipe return nil
-    for _,k in ipairs(keyarray) do
-      valuearray[k]=nil
+    for _, key in ipairs(keys) do
+      xdslInfo[key] = nil
     end
     return
   end
-  local line=pipe:read("*line")
-  local val,act,subkeys
-  -- deep copy keyarray as it will be altered
-  local dupkeyarray={}
-  for _,k in ipairs(keyarray) do
-    dupkeyarray[#dupkeyarray+1]=k
+  local line = pipe:read("*line")
+  local val, act, subkeys
+  -- deep copy keys as it will be altered
+  local dupkeys = {}
+  for _, k in ipairs(keys) do
+    dupkeys[#dupkeys + 1] = k
   end
   while line do
-    if line:len()>0 then
-      for i,k in ipairs(dupkeyarray) do
-        if lookup[k]~=nil then
-          subkeys=lookup[k].subkeys
-          if subkeys~=nil then
+    if line:len() > 0 then
+      for index, key in ipairs(dupkeys) do
+        if lookup[key] then
+          subkeys=lookup[key].subkeys
+          if subkeys then
             -- multiple values extracted from a single line
-            val={string.match(line,lookup[k].pat)}
-            if next(val)~=nil then
-              valuearray[k]={}
+            val = {line:match(lookup[key].pat)}
+            if next(val) then
+              xdslInfo[key] = {}
               -- remove key from search keys as the value has been found
-              table.remove(dupkeyarray,i)
-              act=lookup[k].act
-              if act~=nil then
-                for j,v in ipairs(val) do
-                  valuearray[k][subkeys[j]]=act(v)
-                end
-              else
-                for j,v in ipairs(val) do
-                  valuearray[k][subkeys[j]]=v
-                end
+              table.remove(dupkeys, index)
+              act = lookup[key].act
+              for subLine, pattern in ipairs(val) do
+                xdslInfo[key][subkeys[subLine]] = act and act(pattern) or pattern
               end
               break
             end
           else
             -- single value extracted
-            val=string.match(line,lookup[k].pat)
-            if val~=nil then
+            val = line:match(lookup[key].pat)
+            if val then
               -- remove key from search keys as the value has been found
-              table.remove(dupkeyarray,i)
-              act=lookup[k].act
-              if act~=nil then
-                  valuearray[k]=act(val)
-              else
-                  valuearray[k]=val
-              end
+              table.remove(dupkeys, index)
+              act=lookup[key].act
+              xdslInfo[key] = act and act(val) or val
               break
             end
           end
         end
       end
-      if next(dupkeyarray)==nil then
+      if not next(dupkeys) then
         break
       end
     end
-    line=pipe:read("*line")
+    line = pipe:read("*line")
   end
-  -- if there are keys left in dupkeyarray which have not been resolved
+  -- if there are keys left in dupkeys which have not been resolved
   -- fill in the corresponding values with nil
-  for _,k in ipairs(dupkeyarray) do
-    valuearray[k]=nil
+  for _, key in ipairs(dupkeys) do
+    xdslInfo[key] = nil
   end
-  if debug==true
-  then
-    for _,k in ipairs(keyarray)
+  if debug then
+    for _, key in ipairs(keys)
     do
-      if valuearray[k]==nil
-      then
-        print("Param " .. k .. " not found")
+      if not xdslInfo[key] then
+        print("Param " .. key .. " not found")
       end
     end
   end

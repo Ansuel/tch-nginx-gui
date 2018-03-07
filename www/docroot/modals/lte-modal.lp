@@ -7,6 +7,7 @@ local ngx, tostring, tonumber, ipairs, setmetatable, tinsert, gmatch = ngx, tost
 -- NG-90744 TI-GUI : WWAN interface automatically enables itself when we disable
 gettext.textdomain('webui-mobiled')
 
+local proxy = require("datamodel")
 local utils = require("web.lte-utils")
 local ui_helper = require("web.ui_helper")
 local post_helper = require("web.post_helper")
@@ -14,16 +15,6 @@ local untaint_mt = require("web.taint").untaint_mt
 local content_helper = require("web.content_helper")
 local message_helper = require("web.uimessage_helper")
 local proxy = require("datamodel")
-
-local valueValid = {
-    lte_enabled = post_helper.validateBoolean,
-}
-
-local valueParams = {
-    lte_enabled = "uci.mobiled.device_defaults.enabled",
-}
-
-local content = post_helper.handleQuery(valueParams, valueValid)
 
 local function validate_in_enum_or_empty(enum)
 	local choices = setmetatable({}, untaint_mt)
@@ -56,6 +47,20 @@ local function validate_earfcn(value)
 		end
 	end
 	return true
+end
+
+local function validate_data_limit(value)
+	if value == "" then
+		return true
+	end
+	return post_helper.getValidateNumberInRange(1, 1024)(value)
+end
+
+local function validate_reset_day(value)
+	if value == "" then
+		return true
+	end
+	return post_helper.getValidateNumberInRange(1, 31)(value)
 end
 
 local function get_profile_select(device)
@@ -94,11 +99,37 @@ local function get_device_data(dev_idx)
 	if not device.capabilities then return nil end
 	device.capabilities.max_data_sessions = tonumber(device.capabilities.max_data_sessions) or 0
 
+	device.radio_preferences = {}
+	local num_radio_preferences = tonumber(utils.getContent(rpc_path)["RadioPreferenceNumberOfEntries"])
+	if num_radio_preferences and num_radio_preferences > 0 then
+		for i=1, num_radio_preferences do
+			local radio_preference = utils.getContent(string.format("%sradio_preference.@%d.", rpc_path, i))
+			if not radio_preference then return nil end
+			table.insert(device.radio_preferences, radio_preference)
+		end
+	end
+
 	device.info = utils.getContent(rpc_path .. "info.")
 	if not device.info then return nil end
 
-	device.status = utils.getContent(rpc_path .. "status")
+	device.status = utils.getContent(rpc_path .. "display_status")
 	if not device.status then return nil end
+
+	local mobileWan = content_helper.getMatchedContent("uci.network.interface.@.", { session_id = "0" }, 1)
+	if #mobileWan >= 1 then
+		local interface = string.match(mobileWan[1].path, '.@(.-).$')
+		local path = string.format("uci.datausage.interface.@%s.", interface)
+		local ifname = proxy.get(path .. "ifname")
+		if not ifname or ifname[1].value ~= "@" .. interface then
+			if not ifname then
+				proxy.add("uci.datausage.interface.", interface)
+				proxy.set(path .. "usage_cycle_reset_day", "1")
+			end
+			proxy.set(path .. "ifname", "@" .. interface)
+			proxy.apply()
+		end
+		device.datausage_ifname = "@" .. interface
+	end
 
 	return device
 end
@@ -151,7 +182,7 @@ local function get_radio_selection_section(page, html)
 end
 
 local function get_antenna_selection_section(page, html)
-	if page.platform.capabilities.antenna_controls then
+	if page.platform.capabilities.antenna_controls and page.platform.info.antenna_controls then
 		local advanced = {
 			group = {
 				class = "advanced hide"
@@ -168,6 +199,75 @@ local function get_antenna_selection_section(page, html)
 				tinsert(html, ui_helper.createLabel(T"Selected Antenna" .. ":", utils.antenna_map[page.platform.info.antenna_controls[1].current_antenna], { group = { class = "advanced hide" }, span = val }))
 			end
 		end
+	end
+end
+
+local function get_datausage_section(page, html)
+	if page.datausage.ifname then
+		if page.content["datausage_monitor_enabled"] == "" then
+			page.content["datausage_monitor_enabled"] = '1'
+		end
+
+		tinsert(html, "<fieldset><legend>" .. T"Data Usage" .. "</legend>")
+		tinsert(html, ui_helper.createSwitch(T"Data Usage Monitoring", "datausage_monitor_enabled", page.content["datausage_monitor_enabled"]))
+		tinsert(html, '<div data-bind="visible: dataUsageEnabled() == true">')
+		tinsert(html, '<table id="datausage"><tr><th></th><th>' .. T"Uplink" .. '</th><td rowspan="3" style="background-repeat: no-repeat;" class="datausage_image"></td><th>' .. T"Downlink" .. '</th></tr>')
+		tinsert(html, '<tr><td class="control-label datausage_header" style="width:60px;">' .. T"Current" .. '</td><td data-bind="text: txBitRate" class="datausage"></td><td data-bind="text: rxBitRate" class="datausage"></td></tr>')
+		tinsert(html, '<tr><td class="control-label datausage_header" style="width:60px;">' .. T"Total" .. '</td><td data-bind="text: txVolumeTotal" class="datausage"></td><td data-bind="text: rxVolumeTotal" class="datausage"></td></tr></table>')
+		tinsert(html, '<div class="control-group"><label class="control-label">' .. T"Total Volume" .. ': </label><div class="controls"><span class= "span2 simple-desc" data-bind="text: volumeTotal"></span></div></div>')
+		tinsert(html, '<div style="clear:both;" class="control-group number-picker"> \
+			<label class="control-label">' .. T"Monthly Reset Day" .. ':</label>\
+			<div class="controls picked-number-wrapper"> \
+				<input type="text" class="picked-number" id="datausage_cycle_reset_day" name="datausage_cycle_reset_day"> \
+			</div> \
+			<div class="controls pick-number-now"> \
+				<div class="number hr-timer"> \
+					<div class="movable-area"> \
+						<ul></ul> \
+					</div> \
+				</div> \
+			</div> \
+		</div>')
+		tinsert(html, ui_helper.createSwitch(T"Enable Limit", "datausage_limit_enabled", page.content["datausage_limit_enabled"]))
+		tinsert(html, '<div data-bind="visible: dataUsageLimitEnabled() == true">')
+		local limit_settings = {
+			group = {
+				class = "float-left"
+			},
+			controls = {
+				style = "width:95px;"
+			},
+			input = {
+				style = "width:80px;text-align: right;"
+			}
+		}
+		tinsert(html, ui_helper.createInputText(T"Data Usage Limit" .. ":", "datausage_limit", page.content["datausage_limit"], limit_settings, page.helpmsg["datausage_limit"]))
+		limit_settings = {
+			label = {
+				class = "hidden"
+			},
+			select = {
+				style = "width:55px;"
+			}
+		}
+		tinsert(html, ui_helper.createInputSelect(T"", "datausage_limit_unit", page.datausage.limit_units, page.content["datausage_limit_unit"], limit_settings))
+		local datausage_limit_reached = {
+			alert = {
+				class = "alert-error hide",
+				id = "datausage-limit-reached-msg"
+			}
+		}
+		tinsert(html, ui_helper.createAlertBlock(T"Data usage limit reached", datausage_limit_reached))
+		tinsert(html, '</div>')
+				local button_class = {
+			button = {
+				class = "custom-handler"
+			}
+		}
+		button_class.button.id = "btn-reset-datausage"
+		tinsert(html, ui_helper.createButton(T"Reset Data Usage", T"Reset", "icon-refresh", button_class))
+		tinsert(html, '<div class="alert alert-info">' .. T"* Data usage is only an approximation. For actual usage, please refer to your network operator" .. '</div>')
+		tinsert(html, '</div></fieldset>')
 	end
 end
 
@@ -337,6 +437,17 @@ local function get_page(platform, device)
 			{ "auto", T"Auto" },
 			{ "manual", T"Manual" }
 		},
+		datausage = {
+			limit_units = {
+				{ "MB", T'MB'},
+				{ "GB", T'GB'}
+			}
+		},
+		roaming_select = {
+			{ "none", T"None" },
+			{ "national", T"National" },
+			{ "international", T"International" }
+		},
 		radio_select = {},
 		lte_band_select = {},
 		lte_band_selected = {},
@@ -344,14 +455,28 @@ local function get_page(platform, device)
 	}
 
 	if type(device) == "table" then
+		if device.datausage_ifname then
+			p.datausage.ifname = device.datausage_ifname
+			p.mapParams["datausage_cycle_reset_day"] = "uci.datausage.interface." .. p.datausage.ifname .. ".usage_cycle_reset_day"
+			p.mapValid["datausage_cycle_reset_day"] = validate_reset_day
+			p.mapParams["datausage_monitor_enabled"] = "uci.datausage.interface." .. p.datausage.ifname .. ".enabled"
+			p.mapValid["datausage_monitor_enabled"] = post_helper.validateBoolean
+			p.mapParams["datausage_limit_enabled"] = "uci.datausage.interface." .. p.datausage.ifname .. ".usage_limit_enabled"
+			p.mapValid["datausage_limit_enabled"] = post_helper.validateBoolean
+			p.mapParams["datausage_limit_unit"] = "uci.datausage.interface." .. p.datausage.ifname .. ".usage_limit_unit"
+			p.mapValid["datausage_limit_unit"] = post_helper.getValidateInEnumSelect(p.datausage.limit_units)
+			p.mapParams["datausage_limit"] = "uci.datausage.interface." .. p.datausage.ifname .. ".usage_limit"
+			p.mapValid["datausage_limit"] = validate_data_limit
+		end
+
 		p.mapParams["interface_enabled"] = device.uci_path .. "enabled"
 
 		p.mapParams["roaming"] = device.uci_path .. "roaming"
-		p.mapValid["roaming"] = post_helper.validateBoolean
+		p.mapValid["roaming"] = validate_in_enum_or_empty(p.roaming_select)
 
-		for radio in device.capabilities.supported_modes:gmatch("%S+") do
-			if utils.radio_tech_map[radio] ~= "" then
-				tinsert(p.radio_select, { radio, utils.radio_tech_map[radio] })
+		for _, radio_preference in ipairs(device.radio_preferences) do
+			if utils.radio_preference_map[radio_preference.name] ~= "" then
+				tinsert(p.radio_select, { radio_preference.radios, utils.radio_preference_map[radio_preference.name] })
 			end
 		end
 
@@ -391,7 +516,7 @@ local function get_page(platform, device)
 		end
 	end
 
-	p.content = post_helper.handleQuery(p.mapParams, p.mapValid)
+	p.content, p.helpmsg = post_helper.handleQuery(p.mapParams, p.mapValid)
 	setmetatable(p.content, { __index = function() return "" end })
 
 	for band in p.content["lte_bands"]:gmatch("%w+") do
@@ -414,11 +539,23 @@ if mobiled.num_devices and mobiled.num_devices >= 1 then
 	end
 end
 
+local mapParamsSwich = {
+	lte_enabled = "uci.mobiled.device_defaults.enabled";
+}
+
+local mapValidSwitch = {
+	lte_enabled = post_helper.validateBoolean;
+}
+
+local lte_switch, helpmsg = post_helper.handleQuery(mapParamsSwich , mapValidSwitch)
+
 local page = get_page(get_platform_data(), mobiled.devices[1])
   ngx.print('\
 \
 <link href="/css/chosen.css" rel="stylesheet">\
+<link href="/css/numberpicker.css" rel="stylesheet">\
 <script language="javascript" type="text/javascript" src="js/chosen-min.js"></script>\
+<script language="javascript" type="text/javascript" src="js/numberpicker-min.js"></script>\
 \
 <style>\
 	.uneven {\
@@ -457,6 +594,30 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
 		float: left;\
 		margin-right: 5px;\
 	}\
+	.datausage_image {\
+		background: url("img/datausage-updown.png");\
+		height: 128px;\
+		width:128px;\
+	}\
+	.datausage, .datausage_header {\
+		font-size:28px;\
+		width:165px;\
+		margin-top:50px;\
+		color:#3a87ad;\
+		text-align:center;\
+	}\
+	.datausage_header {\
+		margin: 0;\
+		padding-top: 15px !important;\
+		width: 80px !important;\
+		font-size: 20px;\
+	}\
+	#datausage th {\
+		font-size: 20px;\
+	}\
+	.help-inline {\
+		min-width: 350px;\
+	}\
 </style>\
 \
 ');  
@@ -488,14 +649,14 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
 					class = "span5"
 				}
 			}
-			tinsert(html, "<fieldset><legend>" .. T"General Status And Settings" .. "</legend>")
+			tinsert(html, "<fieldset><legend>" .. T"Device Status And Settings" .. "</legend>")
 			tinsert(html, ui_helper.createMessages(message_helper.popMessages()))
 
 			tinsert(html, ui_helper.createSwitch(T"Enabled", "interface_enabled", page.content["interface_enabled"]))
-			tinsert(html, ui_helper.createSwitch(T"Allow Roaming", "roaming", page.content["roaming"]))
+			tinsert(html, ui_helper.createInputSelect(T"Allow Roaming", "roaming", page.roaming_select, page.content["roaming"]))
 
-			if utils.mobiled_state_map[page.device.status.status] ~= "" then
-				tinsert(html, ui_helper.createLabel(T"Device Status" .. ":", utils.mobiled_state_map[page.device.status.status]))
+			if utils.mobiled_state_map[page.device.status.display_status] ~= "" then
+				tinsert(html, ui_helper.createLabel(T"Device Status" .. ":", utils.mobiled_state_map[page.device.status.display_status]))
 			end
 
 			get_radio_selection_section(page, html)
@@ -567,6 +728,7 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
 			</fieldset>\
 			');  
 			html = {}
+			get_datausage_section(page, html)
 			get_network_interface_section(page, html)
 			get_session_info_section(page, html)
 			get_device_info_section(page, html)
@@ -614,8 +776,67 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
 		}, "json");\
 	}\
 \
+	function getDataUsage() {\
+		lteModal.getDataUsage();\
+	}\
+\
+	function get_bitrate(val) {\
+		val *= 8;\
+		if(val > 1000*1000) {\
+			val /= 1000*1000;\
+			val = Math.round( val * 10 ) / 10;\
+			return val + " Mbit/s";\
+		} else if(val > 1000) {\
+			val /= 1000;\
+			val = Math.round( val * 10 ) / 10;\
+			return val + " Kbit/s";\
+		}\
+		return val + " bit/s"\
+	}\
+\
+	function get_data_volume(val) {\
+		if(val > 1024*1024*1024) {\
+			val /= 1024*1024*1024;\
+			val = Math.round( val * 10 ) / 10;\
+			return val + " GB";\
+		} else if(val > 1024*1024) {\
+			val /= 1024*1024;\
+			val = Math.round( val * 10 ) / 10;\
+			return val + " MB";\
+		} else if(val > 1024) {\
+			val /= 1024;\
+			val = Math.round( val * 10 ) / 10;\
+			return val + " KB";\
+		}\
+		return val + " B"\
+	}\
+\
 	var LteModal = function () {\
 		var self = this;\
+		this.dataUsageLimitEnabled = ko.observable(false);\
+		this.dataUsageEnabled = ko.observable(false);\
+		this.txBytes = ko.observable(0);\
+		this.rxBytes = ko.observable(0);\
+		this.txBitRate = ko.computed(function() {\
+			return get_bitrate(this.txBytes());\
+		}, this);\
+		this.rxBitRate = ko.computed(function() {\
+			return get_bitrate(this.rxBytes());\
+		}, this);\
+		this.txBytesTotal = ko.observable(0);\
+		this.rxBytesTotal = ko.observable(0);\
+		this.txVolumeTotal = ko.computed(function() {\
+			return get_data_volume(this.txBytesTotal());\
+		}, this);\
+		this.rxVolumeTotal = ko.computed(function() {\
+			return get_data_volume(this.rxBytesTotal());\
+		}, this);\
+		this.bytesTotal = ko.computed(function() {\
+			return parseInt(this.txBytesTotal()) + parseInt(this.rxBytesTotal());\
+		}, this);\
+		this.volumeTotal = ko.computed(function() {\
+			return get_data_volume(this.bytesTotal());\
+		}, this);\
 		this.currentMnc = ko.observable(0);\
 		this.currentMcc = ko.observable(0);\
 		this.manualPlmnSelection = ko.observable(false);\
@@ -678,10 +899,58 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
 				self.scanResults(data);\
 			}, "json");\
 		}\
+		this.getDataUsage = function() {\
+			var params = [ { name: \'action\', value: "get" },\
+						{ name: \'interface\', value: "');  ngx.print( page.datausage.ifname or "" ); ngx.print('" },\
+						tch.elementCSRFtoken() ];\
+			$.post("/ajax/datausage.lua", params, function(datausage) {\
+				self.txBytes(datausage.tx_bytes_average || 0);\
+				self.rxBytes(datausage.rx_bytes_average || 0);\
+				self.txBytesTotal(datausage.tx_bytes_total || 0);\
+				self.rxBytesTotal(datausage.rx_bytes_total || 0);\
+				if(datausage.usage_limit_reached == "true") {\
+					$(\'#datausage-limit-reached-msg\').removeClass(\'hide\');\
+				} else {\
+					$(\'#datausage-limit-reached-msg\').addClass(\'hide\');\
+				}\
+			}, "json");\
+		}\
+		this.resetDataUsage = function() {\
+			var params = [{ name: "action", value: "reset"},\
+						{ name: \'interface\', value: "');  ngx.print( page.datausage.ifname or "" ); ngx.print('" },\
+						tch.elementCSRFtoken()];\
+			$.post("/ajax/datausage.lua", params, function(data) {}, \'json\');\
+		};\
+		$("#btn-reset-datausage").click(function() {\
+			self.resetDataUsage();\
+		});\
+		this.startDatausageMonitor = function() {\
+			if(self.dataUsageTimer == undefined) {\
+				getDataUsage();\
+				self.dataUsageTimer = setInterval(getDataUsage, (3*1000));\
+				$(".number-picker").numberPicker({\
+					numberRangeStart: 1,\
+					numberRangeEnd: 28,\
+					disableColor: "#989c9c",\
+					enableColor: "#6c246c",\
+					arrowTopSymbol: "&#9650;",\
+					arrowBottomSymbol: "&#9660;",\
+					scrollPos : 520,\
+					initNumber : "');  ngx.print( page.content["datausage_cycle_reset_day"] or "1" ); ngx.print('",\
+					buttonText : "');  ngx.print( T"SET" ); ngx.print('"\
+				});\
+			}\
+		};\
+		this.stopDatausageMonitor = function() {\
+			if(self.dataUsageTimer) {\
+				clearInterval(self.dataUsageTimer);\
+				self.dataUsageTimer = undefined;\
+			}\
+		};\
 	};\
 \
 	$("select[name=\'radio_pref\']").change(function() {\
-		if($(this).val() == \'lte\' || $(this).val() == \'auto\') {\
+		if(/\\blte\\b/.test($(this).val())) {\
 			$(\'#lte_bands_pref\').parent().parent().show();\
 			if(document.getElementById("input[name=\'earfcn\']") == true) {\
 				$("input[name=\'earfcn\']").parent().parent().show();\
@@ -701,7 +970,7 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
 \
 	$(\'#lte_bands_pref\').chosen({allow_single_deselect:true});\
 \
-	if($("select[name=\'radio_pref\']").val() != \'lte\' && $("select[name=\'radio_pref\']").val() != \'auto\' && $(\'#radio_pref\').attr("data-radio_pref") != \'lte\') {\
+	if(!/\\blte\\b/.test($("select[name=\'radio_pref\']").val()) && !/\\blte\\b/.test($(\'#radio_pref\').attr("data-radio_pref"))) {\
 		$(\'#lte_bands_pref\').parent().parent().hide();\
 		if(document.getElementById("input[name=\'earfcn\']") == true) {\
 			$("input[name=\'earfcn\']").parent().parent().hide();\
@@ -737,7 +1006,34 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
 			lteModal.manualPlmnSelection(false);\
 		}\
 	});\
-	\
+\
+	if($("#datausage_limit_enabled").val() == \'1\') {\
+		lteModal.dataUsageLimitEnabled(true);\
+	}\
+\
+	if($("#datausage_monitor_enabled").val() == \'1\') {\
+		lteModal.dataUsageEnabled(true);\
+		lteModal.startDatausageMonitor();\
+	}\
+\
+	$("#datausage_limit_enabled").change(function() {\
+		if($(this).val() == \'1\') {\
+			lteModal.dataUsageLimitEnabled(true);\
+		} else {\
+			lteModal.dataUsageLimitEnabled(false);\
+		}\
+	});\
+\
+	$("#datausage_monitor_enabled").change(function() {\
+		if($(this).val() == \'1\') {\
+			lteModal.dataUsageEnabled(true);\
+			lteModal.startDatausageMonitor();\
+		} else {\
+			lteModal.dataUsageEnabled(false);\
+			lteModal.stopDatausageMonitor();\
+		}\
+	});\
+\
 	lteModal.resumeNetworkScan();\
 </script>\
 '); 

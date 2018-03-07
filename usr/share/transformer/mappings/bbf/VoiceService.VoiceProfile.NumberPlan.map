@@ -9,7 +9,7 @@ local mt = { __index = function() return "" end }
 local common_default = setmetatable({}, mt)
 local set_on_uci = uci_helper.set_on_uci
 local dial_binding = {config = "mmpbx" , sectionname = "dial_plan_entry"}
-local profile_helper = require("transformer.shared.profile_helper")
+
 local function Commit()
     local binding = {}
     for config in pairs(transactions) do
@@ -447,7 +447,7 @@ local dial_plan_entry_map = {
     value = {
         PrefixRange = function(object)
             local pattern = object.pattern
-            if pattern and (pattern:sub(1, 1) == "^") then
+            if(pattern:sub(1, 1) == "^") then
                 pattern = pattern:sub(2)
             end
             return pattern or ""
@@ -666,13 +666,45 @@ Multi_Services_VoiceService_i_VoiceProfile_i_NumberingPlan_PrefixInfo_i_.revert 
 
 
 Multi_Services_VoiceService_i_VoiceProfile_i_NumberingPlan_PrefixInfo_i_.add = function(mapping)
-    return profile_helper.add_sip_dial_plan_entry(0,sip_net,transactions, commitapply)
+    binding.sectionname = "dial_plan_entry"
+    local sectionname = uci_helper.add_on_uci(binding, commitapply)
+    binding.sectionname = sectionname
+    local _key = uci_helper.generate_key()
+    binding.option = "_key"
+    set_on_uci(binding, _key)
+    _key = "dial_plan_entry" .. "|" .. _key
+    binding.option = "dial_plan"
+    set_on_uci(binding, "dial_plan_generic",commitapply)
+    binding.option = "enabled"
+    set_on_uci(binding, "1", commitapply)
+    binding.option = "allow"
+    set_on_uci(binding, "1", commitapply)
+    binding.option = "include_eon"
+    set_on_uci(binding, "0", commitapply)
+    binding.option = "priority"
+    set_on_uci(binding, "low", commitapply)
+    binding.option = "apply_forced_profile"
+    set_on_uci(binding, "0", commitapply)
+    binding.option = "min_length"
+    set_on_uci(binding, "1", commitapply)
+    binding.option = "max_length"
+    set_on_uci(binding, "30", commitapply)
+    binding.option = "pattern"
+    set_on_uci(binding, "^ ", commitapply)
+    transactions[binding.config] = true
+    uci_helper.commit(binding)
+    return _key
 end
 
 Multi_Services_VoiceService_i_VoiceProfile_i_NumberingPlan_PrefixInfo_i_.delete = function (mapping,key)
     local ntype,keyid=getInfoFromKey(key)
     local dp_entry=content_entries[keyid]
-    return profile_helper.delete_sip_dial_plan_entry(dp_entry['.name'],transactions, commitapply)
+    binding.sectionname = dp_entry['.name']
+    binding.option = nil
+    uci_helper.delete_on_uci(binding, commitapply)
+    uci_helper.commit(binding)
+    transactions[binding.config] = true
+    return true
 end
 
 duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_NumberingPlan_PrefixInfo_i_, "#ROOT", {"InternetGatewayDevice", "Device"})

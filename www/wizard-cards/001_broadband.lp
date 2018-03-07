@@ -33,9 +33,7 @@ local wan_proto_options = {
 local ifname2wantype = setmetatable({
     ["atmwan"] = "adsl",
     ["wanptm0"] = "vdsl",
-    ["ptm0"] = "vdsl",
     ["waneth4"] = "eth",
-    ["eth4"] = "eth",
 }, untaint_mt)
 
 local wan_atm_uci_path = "uci.xtm.atmdevice.@atmwan."

@@ -1,12 +1,15 @@
 -- NG-60620
 -- NG-102389 TI VBNT-K : Devices connected in WiFi is Listed under Ethernet Interface
 local require = require
-local register = register
 local table, pairs, tostring, error = table, pairs, tostring, error
+local register, commitapply, mapper, io = register, commitapply, mapper, io
+local uciHelper = mapper("ucihelper")
+local get_from_uci = uciHelper.get_from_uci
 local string = string
 local format, match, gmatch = string.format, string.match, string.gmatch
-local popen = io.popen
+local hostsCache
 local nwcommon = mapper("nwcommon")
+local network = require("transformer.shared.common.network")
 
 -- sys.hosts
 local Sys_Hosts_ = {
@@ -73,56 +76,77 @@ local function getInterfaceZoneType(interface)
     return nil
 end
 
+local intfType, macAddr, keyValue
+local qtnMAC = string.lower(get_from_uci({ config = "env", sectionname = "var", option = "qtn_eth_mac" }))
+local modeCheck = false
 local function getExternalWifiIntfType(devices)
-  local wirelessRadio = conn:call("wireless.radio", "get" , {})
-  local keyValue
-  local intfType=""
-  local  macAddr=""
-  local isRemmanAndIntegrAp = false
-  if (wirelessRadio == nil) then
-    return intfType, macAddr
+ local ssid
+  if intfType and macAddr then
+     return intfType, macAddr
   end
-  for e, f in pairs(wirelessRadio) do
-    if f["remotely_managed"] == 1 and f["integrated_ap"] == 1 then
-      keyValue = e
-      isRemmanAndIntegrAp = true
-      break
+  if not keyValue and modeCheck == false then
+    local wirelessRadio = conn:call("wireless.radio", "get" , {}) or {}
+    modeCheck = true
+    for key, value in pairs(wirelessRadio) do
+      if value["remotely_managed"] == 1 and value["integrated_ap"] == 1 then
+        keyValue = key
+        break
+      end
     end
   end
   if (keyValue) then
-    local ssid = conn:call("wireless.ssid", "get", {})
-    if (ssid == nil) then
+    if not macAddr then
+      ssid = conn:call("wireless.ssid", "get", {})
+    end
+    if not ssid then
       return intfType, macAddr
+    end
+    --get radio-remote information
+    local radioremoteMAC, radioremoteIntf
+    local radioremote = conn:call("wireless.radio.remote", "get", { name = keyValue })
+    if radioremote then
+      local _, v = next(radioremote)
+      if v then
+        radioremoteMAC = v["macaddr"]
+        radioremoteIntf = v["ifname"]
+      end
     end
     for z,l in pairs(ssid) do
       if l["radio"] == keyValue and z == "wl1" then
-        local result = ("0x" .. string.sub(l["mac_address"],(#l["mac_address"] -1)))
+        local result = ("0x" .. string.sub(l["mac_address"],(#l["mac_address"]-1)))
         local obtMacAddr = string.format("%02x",((result -1)%256))
-        macAddr= string.gsub(l["mac_address"],(string.sub(l["mac_address"],(#l["mac_address"] -1))),obtMacAddr)
+        local mac_prefix = string.sub(l["mac_address"], 1, (#l["mac_address"] -2))
+        macAddr = string.format("%s%s", mac_prefix, obtMacAddr)
+        if qtnMAC == macAddr then
+          break
+        end
       end
       -- In case the ssid is remotely managed, integrated and disabled, the received macaddress via wireless.ssid  is 0,
       -- then we need to get the mac via wireless.radio.remote
-      if ((macAddr == "ff:ff:ff:ff:ff:ff" ) and isRemmanAndIntegrAp ) then
-        local radioremote = conn:call("wireless.radio.remote", "get", { name = keyValue })
-        if radioremote then
-          local _, l = next(radioremote)
-          if l then
-            macAddr = l["macaddr"]
-          end
+      if ((macAddr == "ff:ff:ff:ff:ff:ff" ) and keyValue ) then
+        if not intfType or not macAddr then
+          macAddr = radioremoteMAC
+          intfType = radioremoteIntf
         end
       end
     end
-    devices = devices or conn:call("hostmanager.device" ,"get", {})
-    for _,w in pairs(devices) do
-      if w["mac-address"] == macAddr then
-        intfType= w["l2interface"]
+    if not intfType  then
+      for _,w in pairs(hostsCache) do
+        if w["mac-address"] == macAddr then
+          intfType= w["l2interface"]
+        end
       end
     end
+    --Bridged to Routed mode change will not have host for Quantenna, intfType will not be available.
+    if not intfType and macAddr == radioremoteMAC then
+      intfType = radioremoteIntf
+    end
+  else
+    macAddr = qtnMAC
   end
   return intfType, macAddr
 end
 
-local hostsCache
 --Updates the host cache and LAN interface cache
 local function updateLanCache()
     --Update the hosts cache from hostmanager
@@ -225,6 +249,15 @@ local Sys_Hosts_Host_i_ = {
         access = "readOnly",
         type = "string",
       },
+      IPv4= {
+        access = "readOnly",
+        type = "string",
+      },
+      IPv6= {
+        access = "readOnly",
+        type = "string",
+      },
+
       MACAddress = {
         access = "readOnly",
         type = "string",
@@ -393,6 +426,32 @@ local function extractIPAddresses(dev)
     return addresses
 end
 
+local function extractIPv4(dev)
+   local addresses = ""
+   if dev ~= nil then
+     -- Extract IPv4 addresses
+     if dev["ipv4"] ~= nil then
+       for _,value in pairs(dev["ipv4"]) do
+         addresses = extractAddress(value, addresses)
+       end
+     end
+   end
+   return addresses
+ end
+ 
+ local function extractIPv6(dev)
+   local addresses = ""
+   if dev ~= nil then
+     -- Extract IPv6 addresses
+     if dev["ipv6"] ~= nil then
+       for _,value in pairs(dev["ipv6"]) do
+         addresses = extractAddress(value, addresses)
+       end
+     end
+   end
+   return addresses
+ end
+
 -- If dev["ext-info"} is available then extract upload/download Tx/Rx statistics
 local function extractStats(dev, param)
    local ParamVal = "0"
@@ -481,7 +540,7 @@ local function extractDhcpLeaseTime(dev)
         return ""
     end
     local path="/tmp/dhcp.leases"
-    local fd, msg = io.open(path)
+    local fd = io.open(path)
     assert(fd)
     local leasetable = fd:read("*all")
     for leasetime,macaddr in gmatch(leasetable, "(%d+)%s+(%x%x:%x%x:%x%x:%x%x:%x%x:%x%x)%s+") do
@@ -576,8 +635,6 @@ local function extractSpeed(dev)
     return ""
 end
 
-local uciHelper = mapper("ucihelper")
-local get_from_uci = uciHelper.get_from_uci
 local set_on_uci = uciHelper.set_on_uci
 local foreach_on_uci = uciHelper.foreach_on_uci
 local delete_on_uci = uciHelper.delete_on_uci
@@ -600,6 +657,8 @@ Sys_Hosts_Host_i_.getall = function(mapping, key)
     return {
         MACAddress = extractMacAddresses(dev),
         IPAddress = extractIPAddresses(dev),
+	IPv4 = extractIPv4(dev),
+        IPv6 = extractIPv6(dev),
         HostName = extractHostName(dev, extraInfo),
         HostType = extraInfo and extraInfo["HostType"] or "",
         InterfaceType = extractInterfaceType(dev),
@@ -692,7 +751,6 @@ Sys_Hosts_Host_i_.set = {
       set_on_uci(qos_binding,mac,commitapply)
 
       qos_binding={ config= "qos" }
-      qossectionname =  "mac" .. mac_without_colon
       qos_binding.sectionname = qossectionname
       local qos_entry = get_from_uci(qos_binding)
       if qos_entry == "" then
@@ -718,7 +776,7 @@ Sys_Hosts_Host_i_.set = {
         end
       end)
       if not static_lease_binding_found then
-        local result, err = uciHelper.add_on_uci(dhcp_binding)
+        local result = uciHelper.add_on_uci(dhcp_binding)
         if result then
           local dhcp_binding_set = {config = "dhcp", sectionname=result , option = "mac"}
           set_on_uci(dhcp_binding_set,mac,commitapply)
@@ -761,6 +819,15 @@ Sys_Hosts_Host_i_.get = {
     local dev = key2dev(key)
     return extractIPAddresses(dev)
   end,
+  IPv4 = function(mapping, param, key)
+     local dev = key2dev(key)
+     return extractIPv4(dev)
+  end,
+  IPv6 = function(mapping, param, key)
+     local dev = key2dev(key)
+     return extractIPv6(dev)
+  end,
+
   MACAddress = function(mapping, param, key)
     local dev = key2dev(key)
     return extractMacAddresses(dev)

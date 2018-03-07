@@ -54,6 +54,10 @@ local mobiled_profile_ = {
                     "pap",
                     "chap"
                 }
+            },
+            dial_string = {
+                access = "readWrite",
+                type = "string"
             }
         }
     }
@@ -63,7 +67,7 @@ local uci_helper = mapper("ucihelper")
 
 local profilesBinding = {
       config="mobiled",
-      sectionname="profile",
+      sectionname="profile"
 }
 
 local function entriesMobiledProfiles(mapping)
@@ -81,7 +85,7 @@ local function getBindingForIndex(key)
     return {
         config="mobiled",
         sectionname="@profile[" .. key .. "]",
-        extended = true,
+        extended = true
     }
 end
 

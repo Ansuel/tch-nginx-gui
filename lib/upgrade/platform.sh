@@ -20,7 +20,11 @@ platform_is_dualbank() {
 
 platform_streaming_bank() {
 	if platform_is_dualbank; then
-		cat /proc/banktable/notbooted
+		if [ "$SWITCHBANK" -eq 1 ]; then
+			cat /proc/banktable/notbooted
+		else
+			cat /proc/banktable/booted
+		fi
 	fi
 }
 
@@ -60,7 +64,6 @@ get_image() { # <source> [ <command> ]
 	if [ ${UPGRADE_SAFELY:-0} -eq 1 ]; then
 		# make sure the upgrade happens streaming or is done
 		# from a locally downloaded file
-		if [ -z $(platform_streaming_bank) ]; then
 			#no streaming possible
 			if [ "$filetype" != "file" ]; then
 				local CACHED_STREAM_FILE=$(get_cache_filename $1)
@@ -72,7 +75,6 @@ get_image() { # <source> [ <command> ]
 				from=$CACHED_STREAM_FILE
 			fi
 			cmd="cat"
-		fi
 	fi
 	eval "$cmd \$from ${conc:+| $conc}"
 	rv=$?
@@ -145,15 +147,10 @@ platform_check_image_imp() {
 
 	rm -f $(get_cache_filename $1)
 
-	BANK=$(platform_streaming_bank)
-	if [ ! -z $BANK ]; then
-		mtd erase $BANK
-	else
-		#single bank, no streaming
-		stop_apps ${UPGRADE_MODE:-NO_GUI}
-		if [ ${UPGRADE_SAFELY:-0} -eq 1 ]; then
-			get_image "$1" >/dev/null
-		fi
+	#single bank, no streaming
+	stop_apps ${UPGRADE_MODE:-NO_GUI}
+	if [ ${UPGRADE_SAFELY:-0} -eq 1 ]; then
+		get_image "$1" >/dev/null
 	fi
 
 	MEMFREE=$(awk '/(MemFree|Buffers)/ {free+=$2} END {print free}' /proc/meminfo)
@@ -287,55 +284,66 @@ mount_overlay_if_necessary() {
 platform_check_image() {
 	platform_check_image_imp "$@"
 	if [ $? -ne 0 ]; then
-		local BANK=$(platform_streaming_bank)
-		if [ ! -z $BANK ]; then
-			mtd erase $BANK
-		fi
 		return 1
 	fi
 }
 
+target_bank=$(cat /proc/banktable/notbooted)
+running_bank=$(cat /proc/banktable/booted)
+ROOT_TMP_DIR=/tmp/root
+
 root_device() {
-	echo "Root File found! Good Job!"
-	target_bank=$(cat /proc/banktable/notbooted)
-	mkdir /overlay/$target_bank 
-	bzcat /tmp/unlock.tar.bz2 | tar -C /overlay/$target_bank -xf -
+	echo "GUI File found! Good Job!"
+	ROOT_FILE=$ROOT_TMP_DIR/GUI.tar.bz2
+	
+	if [ "$SWITCHBANK" -eq 1 ]; then
+		mkdir /overlay/$target_bank
+		bzcat $ROOT_FILE | tar -C /overlay/$target_bank -xf -
+		echo "Restoring GUI file in flash"
+		mkdir -p /overlay/$target_bank/root/
+		cp $ROOT_FILE /overlay/$target_bank/root/
+	else
+		mkdir /overlay/$running_bank
+		bzcat $ROOT_FILE | tar -C /overlay/$running_bank -xf -
+		echo "Restoring GUI file in flash"
+		mkdir -p /overlay/$running_bank/root/
+		cp $ROOT_FILE /overlay/$running_bank/root/
+	fi
 	echo "Device Rooted"
 }
 
 preserve_root() {
 	echo "Copying root file to ram..."
-	ROOT_DIR=/tmp/root
-	running_bank=$(cat /proc/banktable/booted)
-	mkdir -p $ROOT_DIR/etc/init.d/ $ROOT_DIR/etc/rc.d/ $ROOT_DIR/usr/bin/ $ROOT_DIR/lib/upgrade/ $ROOT_DIR/sbin/
-	cp /overlay/$running_bank/lib/upgrade/platform.sh $ROOT_DIR/lib/upgrade/
-	cp /overlay/$running_bank/sbin/sysupgrade $ROOT_DIR/sbin/
-	cp /overlay/$running_bank/etc/init.d/rootdevice $ROOT_DIR/etc/init.d/
-	cp /overlay/$running_bank/usr/bin/rtfd $ROOT_DIR/usr/bin/
-	cp /overlay/$running_bank/usr/bin/sysupgrade-safe $ROOT_DIR/usr/bin/
-	cp -d /overlay/$running_bank/etc/rc.d/S94rootdevice $ROOT_DIR/etc/rc.d/
+	mkdir -p $ROOT_TMP_DIR/
+	if [ -f /overlay/$running_bank/root/GUI.tar.bz2 ]; then
+		cp /overlay/$running_bank/root/GUI.tar.bz2 $ROOT_TMP_DIR
+	else
+		mkdir -p $ROOT_TMP_DIR/etc/init.d/ $ROOT_TMP_DIR/etc/rc.d/ $ROOT_TMP_DIR/usr/bin/ $ROOT_TMP_DIR/lib/upgrade/ $ROOT_TMP_DIR/sbin/
+		cp /overlay/$running_bank/lib/upgrade/platform.sh $ROOT_TMP_DIR/lib/upgrade/
+		cp /overlay/$running_bank/sbin/sysupgrade $ROOT_TMP_DIR/sbin/
+		cp /overlay/$running_bank/etc/init.d/rootdevice $ROOT_TMP_DIR/etc/init.d/
+		cp /overlay/$running_bank/usr/bin/rtfd $ROOT_TMP_DIR/usr/bin/
+		cp /overlay/$running_bank/usr/bin/sysupgrade-safe $ROOT_TMP_DIR/usr/bin/
+		cp -d /overlay/$running_bank/etc/rc.d/S94rootdevice $ROOT_TMP_DIR/etc/rc.d/
+	fi
 	echo "Root file preserved!"
 }
 
 emergency_restore_root() {
 	echo "Rooting file not found! Using emergency method."
-	target_bank=$(cat /proc/banktable/notbooted)
-	running_bank=$(cat /proc/banktable/booted)
-	ROOT_DIR=/tmp/root
 	mkdir /overlay/bank_1 /overlay/bank_2
-	cp -dr $ROOT_DIR/* /overlay/bank_1/
-	cp -dr $ROOT_DIR/* /overlay/bank_2/
+	cp -dr $ROOT_TMP_DIR/* /overlay/bank_1/
+	cp -dr $ROOT_TMP_DIR/* /overlay/bank_2/
 	echo "Device Rooted"
 }
 
 platform_do_upgrade() {
 	mount_overlay_if_necessary
-	if [ -f /tmp/unlock.tar.bz2 ] || [ -f /overlay/$(cat /proc/banktable/booted)/etc/init.d/rootdevice ]
+	if [ -f /$ROOT_TMP_DIR/GUI.tar.bz2 ] || [ -f /overlay/$(cat /proc/banktable/booted)/etc/init.d/rootdevice ]
 	then
 		preserve_root
-		target_bank=$(cat /proc/banktable/notbooted)
 		rm -r /overlay/*
-		if [ -f /tmp/unlock.tar.bz2 ]
+		if [ -f /$ROOT_TMP_DIR/GUI.tar.bz2 ]
 		then
 			root_device
 		else
@@ -348,7 +356,11 @@ platform_do_upgrade() {
 			echo $target_bank > /proc/banktable/active
 		fi
 		if platform_is_dualbank; then
-			platform_do_upgrade_bank $1 $target_bank || exit 1
+			if [ "$SWITCHBANK" -eq 1 ]; then
+				platform_do_upgrade_bank $1 $target_bank || exit 1
+			else
+				platform_do_upgrade_bank $1 $running_bank || exit 1
+			fi
 		else
 			platform_do_upgrade_bank $1 bank_1 || exit 1
 			mkdir -p /overlay/homeware_conversion
@@ -376,15 +388,11 @@ platform_do_upgrade_bank() {
 		return 1;
 	fi
 
-	if [ -z $(platform_streaming_bank) ]; then
 		v "Programming..."
 		(get_image "$1" | ((bli_parser > /dev/null ) && bli_unseal) | mtd write - $2 ) || {
 			show_error 16 "Flash write failure"
 			return 1;
 		}
-	else
-		v "Image already flashed"
-	fi
 
 	v "Clearing FVP of $MTD..."
 	dd bs=4 count=1 if=/dev/zero of=$MTD 2>/dev/null || {

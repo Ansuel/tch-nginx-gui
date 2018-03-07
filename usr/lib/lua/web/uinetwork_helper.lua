@@ -32,7 +32,7 @@ function M.getAutocompleteHostsList()
     for i,v in ipairs(hosts) do
 	    local name = ww.html_escape(v.FriendlyName)
 	    local iplist = ww.html_escape(v.IPAddress)
-        local macaddr = ww.html_escape(v.MACAddress)
+            local macaddr = ww.html_escape(v.MACAddress)
 	    local friendlyName
 
             --Get the IPv4 hosts

@@ -1,0 +1,89 @@
+local igmpsnooping_ = {
+  objectType = {
+    name = "rpc.igmpsnooping.@.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      device = {
+        access = "readOnly",
+        type = "string",
+      },
+      src_dev = {
+        access = "readOnly",
+        type = "string",
+      },
+      group = {
+        access = "readOnly",
+        type = "string",
+      },
+      reporter = {
+        access = "readOnly",
+        type = "string",
+      },
+      Index = {
+        access = "readOnly",
+        type = "string",
+      },
+    }
+  }
+}
+
+local gmatch, match = string.gmatch, string.match
+local pairs = pairs
+local open = io.open
+local inet = require("tch.inet")
+
+local function entries()
+  local readtable = open("/proc/net/igmp_snooping")
+  local entries = {}
+  if readtable ~= nil then
+    for line in readtable:lines() do
+      local index = match(line, "(%x+)%s+%S+$")
+      if index then
+        entries[#entries + 1] = index
+      end
+    end
+  end
+  return entries
+end
+
+local match_table = {
+  device = 2,
+  src_dev = 3,
+  group = 7,
+  reporter = 11,
+  Index = 13,
+}
+
+local function getall(mapping, key)
+  local store = {}
+  local readtable = open("/proc/net/igmp_snooping")
+  if readtable ~= nil then
+    for line in readtable:lines() do
+      if match(line, key) ~= nil then
+        local data = {}
+        for words in gmatch(line, "%S+") do
+          data[#data + 1] = words
+        end
+        for k,v in pairs(match_table) do
+          if k == "group" or k == "reporter" then
+            store[k] = inet.hexIPv4ToString(match(data[v], "(%x%x%x%x%x%x%x%x)")) or ""
+          else
+            store[k] = data[v]
+          end
+        end
+      end
+    end
+  end
+  return store
+end
+
+local function get(mapping, paramName, key)
+  return getall(mapping, key)[paramName]
+end
+
+igmpsnooping_.getall = getall
+igmpsnooping_.entries = entries
+igmpsnooping_.get = get
+register(igmpsnooping_)

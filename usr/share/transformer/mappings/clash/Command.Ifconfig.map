@@ -1,7 +1,0 @@
-local command = {
-  name = "ifconfig",
-  full_path = "/sbin/ifconfig",
-  operands = {"interface"},
-}
-
-mapper("command").registerCommand(command)

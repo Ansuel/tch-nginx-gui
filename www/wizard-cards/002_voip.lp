@@ -21,11 +21,10 @@ local mapParams = {
     sip_password = sip_profile_p .. "password",
     sip_displayname = sip_profile_p .. "display_name",
     sip_registrar = sip_net_p .. "primary_registrar",
-    sip_domain = sip_net_p .. "domain_name",
-}
-
-local state_t = {
-    {"it", T"IT"},
+	sip_primary_proxy = sip_net_p .. "primary_proxy",
+	sip_primary_proxy_port = sip_net_p .. "primary_proxy_port",
+    sip_domain_name = sip_net_p .. "domain_name",
+	sip_realm = sip_net_p .. "realm",
 }
 
 local function validateNonspaceString(value, object, key)
@@ -83,18 +82,21 @@ local mapValid = {
     sip_enabled = vB,
     sip_number = gCV(getSipEnabled, getValidateSipAccount, clearParam),
     sip_password = gCV(getSipEnabled, getValidateSipPassword, clearParam),
-    sip_domain = gCV(getSipEnabled, getValidateDomain, clearParam),
+    sip_domain_name = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),
+	sip_realm = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),
+	sip_registrar = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),
+	sip_username = gCV(getSipEnabled, getValidateSipAccount, clearParam),
+	sip_primary_proxy = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),
+	sip_primary_proxy_port = post_helper.getValidateNumberInRange(0,65535),
 }
 
 local content, helpmsg = wizard_helper.handleQuery(mapParams, mapValid)
-
-local service_name = content["isp"] == "Internode" and "NodePhone" or "Netphone"
 
 %>
 <div class='wizard-card'>
     <fieldset>
       <%="<legend></legend>"%>
-      <%='<h4>' .. T("VoIP " .. service_name .. " Setup") .. '</h4>'%>
+      <%='<h4>' .. T("VoIP Setup") .. '</h4>'%>
       <%
         local info_attr = {
             alert = {
@@ -102,7 +104,7 @@ local service_name = content["isp"] == "Internode" and "NodePhone" or "Netphone"
             },
          }
         local html = {}
-        local textinfo = T("VoIP (" .. service_name .. ") is an optional phone service that runs over the internet. If you have purchased this service, enter your VoIP settings here. You'll find your settings in your VoIP activation email.")
+        local textinfo = T("VoIP is an optional phone service that runs over the internet. If you have purchased this service, enter your VoIP settings here. You'll find your settings in your VoIP activation email.")
         html[#html+1] = ui_helper.createAlertBlock(textinfo, info_attr)
         html[#html+1] = ui_helper.createMessages(message_helper.popMessages())
         local buttonClass = {
@@ -115,6 +117,12 @@ local service_name = content["isp"] == "Internode" and "NodePhone" or "Netphone"
         html[#html+1] = ui_helper.createSwitch("", "sip_enabled", content["sip_enabled"], hideClass)
         html[#html+1] = ui_helper.createInputText(T"VoIP Phone number:", "sip_number", content["sip_number"], nil, helpmsg["sip_number"])
         html[#html+1] = ui_helper.createInputText(T"VoIP Password:", "sip_password", content["sip_password"], nil, helpmsg["sip_password"])
+		html[#html+1] = ui_helper.createInputText(T"VoIP Username:", "sip_username", content["sip_username"], nil, helpmsg["sip_username"])
+		html[#html+1] = ui_helper.createInputText(T"VoIP Registar:", "sip_registrar", content["sip_registrar"], nil, helpmsg["sip_registrar"])
+		html[#html+1] = ui_helper.createInputText(T"VoIP Proxy:", "sip_primary_proxy", content["sip_primary_proxy"], nil, helpmsg["sip_primary_proxy"])
+		html[#html+1] = ui_helper.createInputText(T"VoIP Proxy Port:", "sip_primary_proxy_port", content["sip_primary_proxy_port"], nil, helpmsg["sip_primary_proxy_port"])
+		html[#html+1] = ui_helper.createInputText(T"VoIP Realm:", "sip_realm", content["sip_realm"], nil, helpmsg["sip_realm"])
+		html[#html+1] = ui_helper.createInputText(T"VoIP Domain Name:", "sip_domain_name", content["sip_domain_name"], nil, helpmsg["sip_domain_name"])
         ngx.print(html)
       %>
     </fieldset>
@@ -124,8 +132,14 @@ local service_name = content["isp"] == "Internode" and "NodePhone" or "Netphone"
     <fieldset>
       <%
         local html = {}
-        html[#html+1] = ui_helper.createLabel(T"VoIP Phone number: ", content["sip_number"])
-        html[#html+1] = ui_helper.createLabel(T"VoIP Password: ", content["sip_password"])
+        html[#html+1] = ui_helper.createLabel(T"VoIP Phone number:", content["sip_number"])
+        html[#html+1] = ui_helper.createLabel(T"VoIP Password:", content["sip_password"])
+		html[#html+1] = ui_helper.createLabel(T"VoIP Username:", content["sip_username"])
+		html[#html+1] = ui_helper.createLabel(T"VoIP Registar:", content["sip_registrar"])
+		html[#html+1] = ui_helper.createLabel(T"VoIP Proxy:", content["sip_primary_proxy"])
+		html[#html+1] = ui_helper.createLabel(T"VoIP Proxy Port:", content["sip_primary_proxy_port"])
+		html[#html+1] = ui_helper.createLabel(T"VoIP Realm:", content["sip_realm"])
+		html[#html+1] = ui_helper.createLabel(T"VoIP Domain Name:",content["sip_domain_name"])
         ngx.print(html)
       %>
     </fieldset>

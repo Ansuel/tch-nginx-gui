@@ -8,7 +8,9 @@ local dlnad_config = {
   section = "config",
   type = "dlnad",
   options = { "enabled", "manufacturer_url", "model_url", "mount_path",
-	      "radioStations_enabled", "friendly_name", "uuid", "model_name" },
+	      "radioStations_enabled", "friendly_name", "uuid", "model_name",
+	      "sharing", "share_all_folder", "max_sharedfolders" },
+  lists = { "interface" }
 }
 
 mapper("uci_1to1").registerSimpleMap(dlnad_config)
@@ -22,3 +24,13 @@ local log_level = {
 }
 
 mapper("uci_1to1").registerSimpleMap(log_level)
+
+--uci.dlnad.@partitions
+local dlnad_partitions = {
+  config = config_dlnad,
+  type = "partitions",
+  options = { "name", "sharing", "share_all_folder", "serial", "share_name", "active" },
+  lists = { "share_path" }
+}
+
+mapper("uci_1to1").registerMultiMap(dlnad_partitions)

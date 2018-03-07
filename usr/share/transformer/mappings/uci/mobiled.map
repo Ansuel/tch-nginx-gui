@@ -30,7 +30,7 @@ local mobiled_device_defaults = {
   config = config_mobiled,
   section = "device_defaults",
   type = "device_defaults",
-  options = { "enabled", "radio_pref", "lte_bands", "earfcn", "network_selection", "roaming", "mcc", "mnc", "reuse_profiles" }
+  options = { "enabled", "radio_pref", "lte_bands", "earfcn", "network_selection", "roaming", "mcc", "mnc", "reuse_profiles", "minimum_attach_delay", "maximum_attach_delay", "detach_mode", "disable_mode" }
 }
 
 mapper("uci_1to1").registerSimpleMap(mobiled_device_defaults)

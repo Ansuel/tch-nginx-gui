@@ -28,7 +28,7 @@ local mwan_rule = {
     }
 }
 
-mapper("uci_1to1").registerMultiMap(mwan_rule)
+mapper("uci_1to1").registerNamedMultiMap(mwan_rule)
 
 -- uci.mwan.host.{i}
 local mwan_host = {
@@ -42,4 +42,4 @@ local mwan_host = {
     }
 }
 
-mapper("uci_1to1").registerMultiMap(mwan_host)
+mapper("uci_1to1").registerNamedMultiMap(mwan_host)

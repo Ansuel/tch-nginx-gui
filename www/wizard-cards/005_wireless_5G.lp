@@ -11,14 +11,12 @@ local vB = post_helper.validateBoolean
 local format = string.format
 
 local mapParams = {
-  ap_5G_enabled = "rpc.wireless.ap.@ap2.admin_state",
-  ssid_5G = "rpc.wireless.ssid.@wl1.ssid",
-  ap_5G_broadcast = "rpc.wireless.ap.@ap2.public",
+  ap_5G_enabled = "uci.wireless.wifi-iface.@wl1.state",
+  ssid_5G = "uci.wireless.wifi-iface.@wl1.ssid",
 }
 
 local mapValid = {
   ap_5G_enabled = vB,
-  ap_5G_broadcast = vB,
   ssid_5G = gVSLIR(1,32),
 }
 
@@ -48,7 +46,6 @@ local bool2enable = {
         html[#html+1] = ui_helper.createAlertBlock(T"Your modem already has a unique WiFi network set up by default. You can change the broadcast name here if desired, or turn off WiFi completely. You can also hide your WiFi network name from other devices by turning off SSID broadcast.", info_attr)
         html[#html+1] = ui_helper.createMessages(message_helper.popMessages())
         html[#html+1] = ui_helper.createSwitch(T"Wireless 5GHz (WiFi):", "ap_5G_enabled", content["ap_5G_enabled"], nil, helpmsg["ap_5G_enabled"])
-        html[#html+1] = ui_helper.createSwitch(T"SSID Broadcast:", "ap_5G_broadcast", content["ap_5G_broadcast"], nil, helpmsg["ap_5G_broadcast"])
         html[#html+1] = ui_helper.createInputText(T"SSID Broadcast Name (Max 32 characters):", "ssid_5G", content["ssid_5G"], nil, helpmsg["ssid_5G"])
         ngx.print(html)
       %>
@@ -59,7 +56,6 @@ local bool2enable = {
       <%
         local html = {}
         html[#html+1] = ui_helper.createLabel(T"Wireless 5GHz (WiFi): ", bool2on[format("%s",content["ap_5G_enabled"])])
-        html[#html+1] = ui_helper.createLabel(T"SSID Broadcast: ", bool2enable[format("%s",content["ap_5G_broadcast"])])
         html[#html+1] = ui_helper.createLabel(T"SSID Broadcast Name: ", content["ssid_5G"])
         ngx.print(html)
       %>

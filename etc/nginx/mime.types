@@ -11,9 +11,7 @@ types {
 
     application/x-font-ttf                ttc ttf;
     application/x-font-otf           	  otf;
-    application/font-woff                 woff;
     application/font-woff2                woff2;
-    application/vnd.ms-fontobject         eot;
 
     text/mathml                           mml;
     text/plain                            txt;

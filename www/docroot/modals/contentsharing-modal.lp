@@ -29,11 +29,16 @@ local function file_check(file_name)
   end
 end
 if ngx.req.get_method() == "POST" and ngx.req.get_post_args().action =="eject" then
-  local path = format("sys.usb.device.%d.unmount", ngx.req.get_post_args().ejectIndex)
-  if proxy.set(path, "1") then
+  local path = format("sys.usb.device.%d.", ngx.req.get_post_args().ejectIndex)
+  if proxy.set(path .. "unmount", "1") then
     proxy.apply()
     --Let ngx wait until complete USB mount successfully, otherwise the GUI table will display the ejected devices.
-    ngx.sleep(5)
+    local sec = 0
+    repeat
+      ngx.sleep(5)
+      sec = sec + 5
+      local result, errmsg = proxy.get(path)
+    until not result or sec >= 60
   else
     message_helper.pushMessage(T"Error while ejecting USB disk", "error")
   end
@@ -74,6 +79,8 @@ if dlna_available then
     end
 end
 
+mapParams["usb3_enabled"] = "uci.system.config.enable_usb3_support"
+
 local function valid_samba_dlna_string(value)
   local rc, msg = vNES(value)
   if not rc then
@@ -107,6 +114,7 @@ local mapValid = {
 	samba_description = valid_empty_string,
 	dlna_enabled = post_helper.validateBoolean,
 	dlna_friendly_name = valid_empty_string,
+	usb3_enabled = post_helper.validateBoolean,
 }
 
 if ngx.req.get_method() == "POST" and ngx.req.get_post_args().action == "SAVE" then
@@ -124,6 +132,17 @@ end
 
 if dlna_available or samba_available then
 	content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
+end
+
+if ngx.var.request_method == "POST" and ngx.req.get_post_args().action == "SAVE" then
+  if ngx.req.get_post_args().cs_flag == "1"  then
+    ngx.header.content_type = "application/json"
+    ngx.print('{ "success":"true" }')
+    ngx.timer.at(0, function()
+      proxy.apply()
+    end)
+    ngx.exit(ngx.HTTP_OK)
+  end
 end
 
 -- usb Devices
@@ -362,6 +381,13 @@ convertReceivedData(content_info)
 			ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 			local html = {}
 
+			local changes = {
+				alert = {
+					class = "alert alert-success hide",
+					id = "success-msg"
+				}
+			}
+			tinsert(html, ui_helper.createAlertBlock(T"Changes saved successfully", changes))
 			tinsert(html, "<fieldset><legend>" .. T"General status" .. "</legend>")
 			local advanced = {
 				group = { class = "advanced hide"},
@@ -371,6 +397,39 @@ convertReceivedData(content_info)
 				group = { class = "advanced show"},
 				span = { class = "span4" }
 			}
+			local toggle = {
+				span = { class = "span4" },
+				input = {
+					id = "toggle-usb3",
+				}
+			}
+			local warning = {
+				span = { class = "span4" },
+				alert = {
+					class = "alert-warning hide",
+					id = "warning-msg"
+				},
+			}
+			local reboot_warning = {
+				span = { class = "span4" },
+				alert = {
+					class = "alert-warning hide",
+					id = "reboot-warning-msg"
+				},
+			}
+			local rebooting = {
+				alert = {
+					class = "alert-warning hide",
+					id = "rebooting-msg"
+				}
+			}
+			local flagattr = {
+				input = {
+					class = "hide",
+					id = "cs-flag"
+				}
+			}
+
 			if samba_available then
 				tinsert(html, ui_helper.createSwitch(T"Samba Filesharing", "samba_enabled", (content["samba_enabled"] ~= "0" and "1" or "0"), attributes))
 				tinsert(html, ui_helper.createLabel(T"Samba name: ", content["samba_name"], advancedhide))
@@ -384,6 +443,13 @@ convertReceivedData(content_info)
 				tinsert(html, ui_helper.createInputText(T"DLNA name: ", "dlna_friendly_name", content["dlna_friendly_name"], advanced, helpmsg["dlna_friendly_name"]))
 				tinsert(html, ui_helper.createLabel(T"Profiler status: ", getProfileStatus()))
 			end
+
+			tinsert(html, ui_helper.createSwitch(T"USB 3.1 Enabled", "usb3_enabled", (content["usb3_enabled"] ~= "" and content["usb3_enabled"] or "1"), toggle))
+			tinsert(html, ui_helper.createAlertBlock(T"It is recommended to use the USB in the 2.0 standard. The use of USB in 3.1 standard can remarkably affect the Wi-Fi performance at 2.4 Ghz band.", warning))
+			tinsert(html, ui_helper.createAlertBlock(T"Toggling USB3.1 support will reboot the Gateway", reboot_warning))
+			tinsert(html, ui_helper.createAlertBlock(T"Restarting, please wait...", rebooting))
+			tinsert(html, ui_helper.createSimpleInputText("cs_flag", "0", flagattr))
+
 			tinsert(html, "</fieldset>")
 
 			if samba_available then
@@ -396,8 +462,24 @@ convertReceivedData(content_info)
 		  ngx.print('\
 	</form>\
 </div>\
-');  ngx.print(ui_helper.createFooter())   ngx.print('\
+');  ngx.print(string.format([[
+<div class="modal-footer">
+  <div id="modal-no-change">
+    <div id="close-config" class="btn btn-primary btn-large" data-dismiss="modal">%s</div>
+  </div>
+  <div id="modal-changes" class="hide">
+    <div id="cancel-config" class="btn btn-large" data-dismiss="modal">%s</div>
+    <div id="save-cs-config" class="btn btn-primary btn-large">%s</div>
+  </div>
+</div>
+]], T"Close", T"Cancel", T"Save")); ngx.print('\
+\
 <script>\
+var refreshTimeOut = 5000;\
+var refreshDelay = 3000;\
+var target = $(".modal form").attr("action");\
+var usb3_support = $("#toggle-usb3").val();\
+\
 $("#usbDev .eject").click(function(){\
   var index = $(this).attr("index");\
   var tparam = [];\
@@ -412,6 +494,71 @@ $("#usbDev .eject").click(function(){\
   tparam.push(tch.elementCSRFtoken());\
   tch.loadModal("/modals/contentsharing-modal.lp", tparam, function(){\
      tch.scrollRowIntoView("usbDev", 1);});\
+});\
+\
+$("#toggle-usb3").change(function() {\
+  if($("#toggle-usb3").val() === "1") {\
+    $("#warning-msg").removeClass("hide");\
+  } else {\
+    $("#warning-msg").addClass("hide");\
+  }\
+  $("#reboot-warning-msg").removeClass("hide");\
+  $("#cs-flag").val("1");\
+  if(usb3_support === $("#toggle-usb3").val()) {\
+    $("#warning-msg").addClass("hide");\
+    $("#reboot-warning-msg").addClass("hide");\
+  }\
+});\
+\
+function wait_for_webserver_running() {\
+  $.ajax({ url: "/", timeout: refreshTimeOut })\
+  .done(function(data) {\
+    document.open("text/html");\
+    document.write(data);\
+    document.close();\
+  })\
+  .fail(function() {\
+    window.setTimeout(wait_for_webserver_running, refreshDelay);\
+  });\
+}\
+\
+function wait_for_webserver_down() {\
+  $.ajax({ url: target, timeout: refreshTimeOut })\
+  .done(function() {\
+    window.setTimeout(wait_for_webserver_down, refreshDelay);\
+  })\
+  .fail(function() {\
+    window.setTimeout(wait_for_webserver_running, refreshDelay);\
+  });\
+}\
+\
+$(document).on("click", "#save-cs-config", function() {\
+  var form = $(".modal form");\
+  var params = form.serializeArray();\
+  if (($("#cs-flag").val() === "1") && (usb3_support !== $("#toggle-usb3").val())) {\
+    $("#rebooting-msg").removeClass("hide");\
+    $("#warning-msg").addClass("hide");\
+    $("#reboot-warning-msg").addClass("hide");\
+    $("#success-msg").addClass("hide");\
+  }\
+  else {\
+    $("#success-msg").removeClass("hide");\
+  }\
+  params.push({\
+    name : "action",\
+    value : "SAVE"\
+  }, {\
+    name : "fromModal",\
+    value : "YES"\
+  }, tch.elementCSRFtoken());\
+  var target = form.attr("action");\
+  $.post(\
+    target,\
+    params,\
+    wait_for_webserver_down,\
+    "json"\
+  );\
+  return false;\
 });\
 </script>\
 '); 

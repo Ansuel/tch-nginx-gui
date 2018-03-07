@@ -6,6 +6,7 @@ local nwCommon = require("transformer.mapper.nwcommon")
 
 local conn = ubus.connect()
 local wirelessBinding = { config = "wireless" }
+local wirelessDefaultsBinding = { config = "wireless-defaults" }
 local pairs, string, table, tonumber, tostring = pairs, string, table, tonumber, tostring
 local floor = math.floor
 local configChanged
@@ -69,19 +70,44 @@ local transmitPowerMap = {
   ["100"]= "0",
 }
 
-local function getFromUci(sectionname, option)
+local wpsStateMap = {
+    configured    = "Configured",
+    notconfigured = "Not configured",
+}
+
+local DFSChannels = { 52, 56, 60, 64, 100, 104, 108, 112, 116, 132, 136, 140 }
+
+local function getFromUci(sectionname, option, default)
   wirelessBinding.sectionname = sectionname
   if option then
     wirelessBinding.option = option
+    wirelessBinding.default = default
     return uciHelper.get_from_uci(wirelessBinding)
   end
   return uciHelper.getall_from_uci(wirelessBinding)
+end
+
+local function getFromWirelessDefaults(sectionname, option, default)
+  wirelessDefaultsBinding.sectionname = sectionname
+  if option then
+    wirelessDefaultsBinding.option = option
+    wirelessDefaultsBinding.default = default
+    return uciHelper.get_from_uci(wirelessDefaultsBinding)
+  end
+  return uciHelper.getall_from_uci(wirelessDefaultsBinding)
 end
 
 local function setOnUci(sectionname, option, value, commitapply)
   wirelessBinding.sectionname = sectionname
   wirelessBinding.option = option
   uciHelper.set_on_uci(wirelessBinding, value, commitapply)
+  configChanged = true
+end
+
+local function deleteOnUci(sectionname, commitapply)
+  wirelessBinding.sectionname = sectionname
+  wirelessBinding.option = nil
+  uciHelper.delete_on_uci(wirelessBinding, commitapply)
   configChanged = true
 end
 
@@ -226,9 +252,9 @@ local function getBandSteerRelatedNode(ap, key)
     return nil, "Band steering peer AP is invalid."
   end
   if bandSteerHelper.isBaseIface(peerAP) then
-    return ap, peerAP, key, iface
-  else
     return peerAP, ap, iface, key
+  else
+    return ap, peerAP, key, iface
   end
 end
 
@@ -639,6 +665,151 @@ local function setDevicePassword(value, key)
   end
 end
 
+local function getUUID(key)
+  local uuid = getDataFromAP(key, "uuid")
+  local uuidValue = {}
+  local pattern = { uuid:sub(1,8), uuid:sub(9,12), uuid:sub(13,16), uuid:sub(17,20), uuid:sub(21,32) }
+  if uuid ~= "" then
+    for _, v in ipairs(pattern) do
+      uuidValue[ #uuidValue + 1] = v
+    end
+  end
+  return table.concat(uuidValue, "-")
+end
+
+local function getConfigurationState(key)
+  local ap = getAPFromIface(key)
+  local state = getFromUci(ap, "wsc_state")
+  if state == "" then
+    local data = conn:call("wireless.accesspoint.wps", "get", { name = ap }) or {}
+    state = data[ap] and data[ap].wsc_state or ""
+  end
+  return wpsStateMap[state] or ""
+end
+
+--- retrieves either allowed or denied MAC addresses
+-- @function getMACAddresses
+-- @param iface the interface name
+-- @param option the option to get either allowed or denied MAC addresses
+local function getMACAddresses(iface, option)
+  local macList = {}
+  local result = getFromUci(getAPFromIface(iface), option)
+  if result ~= "" then
+    for _,v in ipairs(result) do
+      macList[#macList+1] = v
+    end
+  end
+  return table.concat(macList, ',')
+end
+
+--- sets either allowed or denied MAC addresses
+-- @function setMACAddresses
+-- @param iface the interface name
+-- @param option the option to set either allowed or denied MAC addresses
+local function setMACAddresses(iface, option, value)
+  local macList = {}
+  for mac in string.gmatch(value, '([^,]+)') do
+    if nwCommon.isMAC(mac) then
+      macList[#macList + 1] = mac
+    else
+      return nil, "Invalid MAC address; cannot set"
+    end
+  end
+  setOnUci(getAPFromIface(iface), option, macList, commitapply)
+end
+
+--- returns the supported standards list
+-- @function convertToList
+-- @param standards the supported standards
+local function convertToList(standards)
+  local stdList = {}
+  for std in standards:gmatch("[abgn]c?") do
+    stdList[#stdList+1] = std
+  end
+  return table.concat(stdList, ",")
+end
+
+--- Deletes existing section and creates new section
+-- @param sectionType section type
+-- @param sectionName section name
+local function createSection(sectionType, sectionName)
+  deleteOnUci(sectionName, commitapply)
+  wirelessBinding.sectionname = sectionName
+  uciHelper.set_on_uci(wirelessBinding, sectionType)
+end
+
+--- Restores the default configuration from wireless-defaults config
+-- @param sectionType section type
+-- @param sectionName section name
+local function restoreSection(sectionType, sectionName)
+  createSection(sectionType, sectionName)
+  local wirelessDefaults = getFromWirelessDefaults(sectionName)
+  for option, value in pairs(wirelessDefaults) do
+    if not option:match("^%.") then
+      setOnUci(sectionName, option, value, commitapply)
+    end
+  end
+end
+
+--- Converts channel string into list
+-- @param str channel string
+local function channelStrToList(str)
+  local list = {}
+  for channel in str:gmatch("(%d+)") do
+    list[#list+1] = tonumber(channel)
+  end
+  return list
+end
+
+--- Checks if the given channel is present in the given channel list
+-- @param channels channels list
+-- @param chan channel number
+local function channelExist(channels, chan)
+  for _, channel in pairs(channels) do
+    if chan == channel then
+      return true
+    end
+  end
+  return false
+end
+
+--- Checks whether DFS channels are enabled
+-- @param radio the radio name
+local function getDFSStatus(radio)
+  local channels = channelStrToList(getFromUci(radio, "allowed_channels"))
+  for _, channel in pairs(channels) do
+    if channelExist(DFSChannels, channel) then
+      return "1"
+    end
+  end
+  return "0"
+end
+
+--- Adds DFS channels to allowed channels list
+-- @param channels the allowed channels list
+local function addDFSChannels(channels)
+  for _, dfsChannel in pairs(DFSChannels) do
+    local exist = channelExist(channels, dfsChannel)
+    if not exist then
+      channels[#channels + 1] = tonumber(dfsChannel)
+    end
+  end
+  table.sort(channels)
+  return table.concat(channels, " ")
+end
+
+--- Removes DFS channels from allowed channels list
+-- @param channels the allowed channels list
+local function removeDFSChannels(channels)
+  for key, channel in pairs(channels) do
+    if channelExist(DFSChannels, channel) then
+      channels[key] = nil
+    end
+  end
+  table.sort(channels)
+  return table.concat(channels, " ")
+end
+
 local M = {}
 
 M.getMappings = function(commitapply)
@@ -892,6 +1063,50 @@ M.getMappings = function(commitapply)
       local channelBandWidth = getFromUci(radio, "channelwidth")
       return channelBandWidth == "auto" and "Auto" or tostring(channelBandWidth)
     end,
+    X_0876FF_AllowedMACAddresses = function(mapping, param, key)
+      return getMACAddresses(key, "acl_accept_list")
+    end,
+    X_0876FF_DeniedMACAddresses = function(mapping, param, key)
+      return getMACAddresses(key, "acl_deny_list")
+    end,
+    X_0876FF_SupportedFrequencyBands = function(mapping, param, key)
+      local radio = getRadioFromIface(key)
+      return getDataFromRadio(radio, "supported_frequency_bands")
+    end,
+    X_0876FF_OperatingFrequencyBand = function(mapping, param, key)
+      local radio = getRadioFromIface(key)
+      return getDataFromRadio(radio, "band")
+    end,
+    X_0876FF_SupportedStandards = function(mapping, param, key)
+      local standards = getDataFromRadio(getRadioFromIface(key), "supported_standards")
+      return convertToList(standards)
+    end,
+    X_0876FF_KeyPassphrase = function(mapping, param, key)
+      local ap = getAPFromIface(key)
+      return getFromUci(ap, "wpa_psk_key")
+    end,
+    X_0876FF_RestoreDefaultKey = "0", -- always returns "0", If enabled sets the default key from wireless-defaults
+    X_0876FF_RestoreDefaultWireless = "0", -- always returns "0", If enabled, resets the default configuration of particular interface and ap
+    X_0876FF_DFSAvailable = function(mapping, param, key)
+      local radio = getRadioFromIface(key)
+      if radio == "radio_2G" then
+        return "0" -- always returns "0", since DFS Channels are supported only for radio_5G
+      else
+        return "1" -- always returns "1", since DFS Channels are supported
+      end
+    end,
+    X_0876FF_DFSEnable = function(mapping, param, key)
+      local radio = getRadioFromIface(key)
+      if radio == "radio_2G" then
+        return "0" -- always returns "0", since DFS Channels are supported only for radio_5G
+      else
+        return getDFSStatus(radio)
+      end
+    end,
+    X_0876FF_MaxConcurrentDevices = function(mapping, param, key)
+      local ap = getAPFromIface(key)
+      return getFromUci(ap, "max_assoc", "0")
+    end,
   }
 
   local function getallWLANDevice(mapping, key)
@@ -961,6 +1176,15 @@ M.getMappings = function(commitapply)
       X_000E50_SpaceTimeBlockCoding = uciValues.stbc and uciValues.stbc or "",
       X_000E50_CyclicDelayDiversity = uciValues.cdd and uciValues.cdd or "",
       X_000E50_ChannelBandwidth = uciValues.channelwidth and (uciValues.channelwidth == "auto" and "Auto" or tostring(uciValues.channelwidth)) or "",
+      X_0876FF_AllowedMACAddresses = getMACAddresses(key, "acl_accept_list"),
+      X_0876FF_DeniedMACAddresses = getMACAddresses(key, "acl_deny_list"),
+      X_0876FF_SupportedFrequencyBands = radioData.supported_frequency_bands and tostring(radioData.supported_frequency_bands) or "",
+      X_0876FF_OperatingFrequencyBand = radioData.band and tostring(radioData.band) or "",
+      X_0876FF_SupportedStandards = convertToList(radioData.supported_standards),
+      X_0876FF_KeyPassphrase = getFromUci(ap, "wpa_psk_key"),
+      X_0876FF_DFSAvailable = (radio == "radio_2G") and "0" or "1",
+      X_0876FF_DFSEnable = (radio == "radio_2G") and "0" or getDFSStatus(radio),
+      X_0876FF_MaxConcurrentDevices = getFromUci(ap, "max_assoc", "0"),
    }
    end
 
@@ -1009,7 +1233,8 @@ M.getMappings = function(commitapply)
       return nil,"Invalid power value"
     end,
     BeaconType = function(mapping, param, value, key)
-      if not bandSteerHelper.isBaseIface(key) and bandSteerHelper.isBandSteerEnabledByIface(key) then
+      local iface = key:gsub("_remote", "")
+      if not bandSteerHelper.isBaseIface(iface) and bandSteerHelper.isBandSteerEnabledByIface(iface) then
         return nil, "Cannot modify the value when bandsteer is enabled"
       end
       local ap = getAPFromIface(key)
@@ -1059,19 +1284,21 @@ M.getMappings = function(commitapply)
       if (len < 8 or len > 63) then
         return nil,"invalid value"
       end
-      if not bandSteerHelper.isBaseIface(key) and bandSteerHelper.isBandSteerEnabledByIface(key) then
+      local iface = key:gsub("_remote", "")
+      if not bandSteerHelper.isBaseIface(iface) and bandSteerHelper.isBandSteerEnabledByIface(iface) then
         return nil, "Cannot modify KeyPassphrase when bandsteer is enabled"
       else
         local ap = getAPFromIface(key)
         setOnUci(ap, "wpa_psk_key", value, commitapply)
-        modifyBSPeerNodeAuthentication("ssid", value, key, commitapply)
+        modifyBSPeerNodeAuthentication("wpa_psk_key", value, key, commitapply)
         for wepKey in pairs(wepKeys[ap]) do
           wepKeys[ap][wepKey] = value
         end
       end
     end,
     BasicEncryptionModes = function(mapping, param, value, key)
-      if not bandSteerHelper.isBaseIface(key) and bandSteerHelper.isBandSteerEnabledByIface(key) and value == "WEPEncryption" then
+      local iface = key:gsub("_remote", "")
+      if not bandSteerHelper.isBaseIface(iface) and bandSteerHelper.isBandSteerEnabledByIface(iface) and value == "WEPEncryption" then
         return nil, "Cannot modify BasicEncryptionModes when band steer enabled"
       end
       local ap = getAPFromIface(key)
@@ -1097,25 +1324,29 @@ M.getMappings = function(commitapply)
       end
     end,
     WPAEncryptionModes = function(mapping, param, value, key)
-      if not bandSteerHelper.isBaseIface(key) and bandSteerHelper.isBandSteerEnabledByIface(key) then
+      local iface = key:gsub("_remote", "")
+      if not bandSteerHelper.isBaseIface(iface) and bandSteerHelper.isBandSteerEnabledByIface(iface) then
         return nil, "Cannot modify the value when bandsteer is enabled"
       end
       -- hardcoded to TKIPEncrytption, based on lower layer support.
     end,
     WPAAuthenticationMode = function(mapping, param, value, key)
-      if not bandSteerHelper.isBaseIface(key) and bandSteerHelper.isBandSteerEnabledByIface(key) then
+      local iface = key:gsub("_remote", "")
+      if not bandSteerHelper.isBaseIface(iface) and bandSteerHelper.isBandSteerEnabledByIface(iface) then
         return nil, "Cannot modify the value when bandsteer is enabled"
       end
       return setAuthenticationMode(key, value, commitapply)
     end,
     IEEE11iEncryptionModes = function(mapping, param, value, key)
-      if not bandSteerHelper.isBaseIface(key) and bandSteerHelper.isBandSteerEnabledByIface(key) then
+      local iface = key:gsub("_remote", "")
+      if not bandSteerHelper.isBaseIface(iface) and bandSteerHelper.isBandSteerEnabledByIface(iface) then
         return nil, "Cannot modify the value when bandsteer is enabled"
       end
       -- hardcoded to AESEncrytption, based on lower layer support.
     end,
     IEEE11iAuthenticationMode = function(mapping, param, value, key)
-      if not bandSteerHelper.isBaseIface(key) and bandSteerHelper.isBandSteerEnabledByIface(key) then
+      local iface = key:gsub("_remote", "")
+      if not bandSteerHelper.isBaseIface(iface) and bandSteerHelper.isBandSteerEnabledByIface(iface) then
         return nil, "Cannot modify the value when bandsteer is enabled"
       end
       return setAuthenticationMode(key, value, commitapply)
@@ -1154,7 +1385,8 @@ M.getMappings = function(commitapply)
     end,
     AuthenticationServiceMode = function(mapping, param, value, key)
       local mode = authServiceModeMap[value]
-      if not bandSteerHelper.isBaseIface(key) and bandSteerHelper.isBandSteerEnabledByIface(key) and mode == "wep" then
+      local iface = key:gsub("_remote", "")
+      if not bandSteerHelper.isBaseIface(iface) and bandSteerHelper.isBandSteerEnabledByIface(iface) and mode == "wep" then
         return nil, "Can not modify the value to wep when band steer enabled"
       end
       setOnUci(getAPFromIface(key), "security_mode", mode, commitapply)
@@ -1273,6 +1505,47 @@ M.getMappings = function(commitapply)
       end
       setOnUci(radio, "channelwidth", value, commitapply)
     end,
+    X_0876FF_AllowedMACAddresses = function(mapping, param, value, key)
+      return setMACAddresses(key, "acl_accept_list", value)
+    end,
+    X_0876FF_DeniedMACAddresses = function(mapping, param, value, key)
+      return setMACAddresses(key, "acl_deny_list", value)
+    end,
+    X_0876FF_KeyPassphrase = function(mapping, param, value, key)
+      local ap = getAPFromIface(key)
+      setOnUci(ap, "wpa_psk_key", value, commitapply)
+    end,
+    X_0876FF_RestoreDefaultKey = function(mapping, param, value, key)
+      if value == "1" then
+        local ap = getAPFromIface(key)
+        local defaultKey = getFromWirelessDefaults(ap, "wpa_psk_key")
+        setOnUci(ap, "wpa_psk_key", defaultKey, commitapply)
+      end
+    end,
+    X_0876FF_RestoreDefaultWireless = function(mapping, param, value, key)
+      if value == "1" then
+        local ifaceName = key:gsub("_remote", "") or ""
+        local ap = getAPFromIface(key)
+        -- restore the default configuration for interface
+        restoreSection("wifi-iface", ifaceName)
+        -- restore the default configuration for accesspoint
+        restoreSection("wifi-ap", ap)
+      end
+    end,
+    X_0876FF_DFSEnable = function(mapping, param, value, key)
+      local radio = getRadioFromIface(key)
+      if radio == "radio_5G" then
+        local channels = channelStrToList(getDataFromRadio(radio, "allowed_channels"))
+        if value == "1" then
+          channels = addDFSChannels(channels)
+        else
+          channels = removeDFSChannels(channels)
+        end
+        setOnUci(radio, "allowed_channels", channels, commitapply)
+      else
+        return nil, "For 2G mode, DFSEnable is not available"
+      end
+    end,
   }
 
   -- WEPKey section
@@ -1281,7 +1554,7 @@ M.getMappings = function(commitapply)
   end
 
   local function getWEPKey(mapping, param, key, parentkey)
-    return getFromUci(getAPFromIface(key), "wep_key")
+    return getFromUci(getAPFromIface(parentkey), "wep_key")
   end
 
   -- 5,10,13 and 26 characters are allowed for the WEP key
@@ -1317,9 +1590,12 @@ M.getMappings = function(commitapply)
     KeyPassphrase = function(mapping, param, key, parentKey)
       return getFromUci(getAPFromIface(parentKey), "wpa_psk_key")
     end,
-    AssociatedDeviceMACAddress = ""
+    AssociatedDeviceMACAddress = "",
+    X_0876FF_PreSharedKey = "",
+    X_0876FF_KeyPassphrase = function(mapping, param, key, parentKey)
+      return getFromUci(getAPFromIface(parentKey), "wpa_psk_key")
+    end
   }
-
 
   local setPreSharedKey = {
     KeyPassphrase = function(mapping, param, value, key, parentKey)
@@ -1453,6 +1729,7 @@ M.getMappings = function(commitapply)
       return txRate:match("%d+") or ""
     end,
     X_Status = getStatus,
+    X_000E50_Status = getStatus,
     X_LastDataUplinkRate = getStationInfo,
     X_000E50_LastDataUplinkRate = getStationInfo,
     X_LastDataDownlinkRate = getStationInfo,
@@ -1474,15 +1751,67 @@ M.getMappings = function(commitapply)
     end,
     DevicePassword = "0",
     ConfigMethodsSupported = "Label,PushButton",
+    X_0876FF_DevicePassword = function(mapping, param, key)
+      return getFromUci(getAPFromIface(key), "wps_ap_pin")
+    end,
+    UUID = function(mapping, param, key)
+      return getUUID(key)
+    end,
+    ConfigMethodsEnabled = "PushButton",
+    ConfigurationState = function(mapping, param, key)
+      return getConfigurationState(key)
+    end,
+    DeviceName = function(mapping, param, key)
+      return getAPFromIface(key)
+    end,
+    SetupLockedState = function(mapping, param, key)
+      local setupLock = getFromUci(getAPFromIface(key), "wps_ap_setup_locked", "0")
+      return setupLock == "1" and "LockedByLocalManagement" or "Unlocked"
+    end,
+    SetupLock = function(mapping, param, key)
+      return getFromUci(getAPFromIface(key), "wps_ap_setup_locked", "0")
+    end,
+    X_0876FF_PushButton = "0",
+    X_000E50_PushButton = "0",
   }
 
-  local setWPS ={
+  local getallWPS = function(mapping, key)
+    local ap = getAPFromIface(key)
+    local apData = getFromUci(ap)
+    local setupLock = apData.wps_ap_setup_locked or "0"
+    return {
+      Enable = apData.wps_state and apData.wps_state or "",
+      X_0876FF_DevicePassword = apData.wps_ap_pin and apData.wps_ap_pin or "",
+      SetupLock = setupLock,
+      SetupLockedState = setupLock == "1" and "LockedByLocalManagement" or "Unlocked",
+      UUID = getUUID(key),
+      ConfigurationState = getConfigurationState(key),
+      DeviceName = ap
+    }
+  end
+
+  local function triggerWPSPushButton(value)
+    if value == "1" then
+      conn:call("wireless", "wps_button", {})
+    end
+  end
+
+  local setWPS = {
     Enable = function(mapping, param, value, key)
       local ap = getAPFromIface(key)
       setOnUci(ap, "wps_state", value, commitapply)
     end,
     DevicePassword = function(mapping, param, value, key)
       return setDevicePassword(value, key)
+    end,
+    SetupLock = function(mapping, param, value, key)
+      setOnUci(getAPFromIface(key), "wps_ap_setup_locked", value, commitapply)
+    end,
+    X_0876FF_PushButton = function(mapping, param, value)
+      triggerWPSPushButton(value)
+    end,
+    X_000E50_PushButton = function(mapping, param, value)
+      triggerWPSPushButton(value)
     end,
   }
 
@@ -1568,6 +1897,7 @@ M.getMappings = function(commitapply)
     },
     wps = {
       get = getWPS,
+      getall = getallWPS,
       set = setWPS,
       commit = commit,
       revert = revert

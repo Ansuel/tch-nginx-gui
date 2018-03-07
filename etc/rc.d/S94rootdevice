@@ -1,1 +1,467 @@
-../init.d/rootdevice
+#!/bin/ash /etc/rc.common
+
+START=94
+EXTRA_COMMANDS="force"
+EXTRA_HELP="        force   Force root process even when root flag is already set"
+
+local rooted
+force=0
+version_gui=5.1.4
+
+check_root() {
+	
+	config_load "system"
+	
+	config_get_bool rooted config rooted 0
+	
+cat << EOF > /dev/console
+ === IMPORTANT =======================================
+  Checking root...
+EOF
+}
+
+force() {
+	force=1
+	boot
+}
+
+add_ipv6() {
+	uci set network.wan_ipv6=interface
+	uci set network.wan_ipv6.auto='0'
+	uci set network.wan_ipv6.proto='pppoe'
+	uci set network.wan_ipv6.demand='0'
+	uci set network.wan_ipv6.password='IPV6@alice6'
+	uci set network.wan_ipv6.macaddr=$(uci -q get network.wan.macaddr)
+	uci set network.wan_ipv6.ipv6='1'
+	uci set network.wan_ipv6.peerdns='1'
+	uci set network.wan_ipv6.keepalive_adaptive='0'
+	uci set network.wan_ipv6.dns_metric='0'
+	uci set network.wan_ipv6.ifname='wanptm0'
+	uci set network.wan_ipv6.username=$(uci -q get env.var.serial)-$(uci -q get env.var.oui)@alice6.it
+	uci set network.wan_ipv6.metric='10'
+	uci set network.wan6.ifname='@wan_ipv6'
+}
+
+add_ipoe() {
+	uci set network.ipoe=interface
+	uci set network.ipoe.proto='dhcp'
+	uci set network.ipoe.metric='1'
+	uci set network.ipoe.reqopts='1 3 6 43 51 58 59'
+	uci set network.ipoe.release='1'
+	uci set network.ipoe.neighreachabletime='1200000'
+	uci set network.ipoe.neighgcstaletime='2400'
+	uci set network.ipoe.ipv6='1'
+}
+
+remove_default_dns() {
+	uci -q del network.loopback.dns
+	uci -q del network.loopback.dns_metric
+}
+
+add_ppp_mgmt() {
+	uci set env.var.ppp_mgmt=$(uci -q get env.var.serial)-$(uci -q get env.var.oui)@00000.aliceres.mgmt
+}
+
+puryfy_wan_interface() { #creano problemi di dns per chissa'  quale diavolo di motivo... Ma l'utilitÃ  di sta roba eh telecom ? 
+	uci -q del network.wan.keepalive
+	uci -q del network.wan.graceful_restart
+	uci -q del network.wan_ipv6.keepalive
+	uci -q del network.wan_ipv6.graceful_restart
+}
+
+fix_dns_dhcp_bug() {
+	uci set dhcp.odhcpd.maindhcp="0"
+	if [ $(uci get dhcp.odhcpd.maindhcp) = "1" ]; then
+		/etc/init.d/odhcpd stop
+		/etc/init.d/odhcpd disable
+	fi
+}
+
+purify_from_tim() {
+	uci -q del env.var.ppp_mgmt
+	uci -q del network.wan_ipv6
+	uci -q del dhcp.dnsmasq.server
+}
+
+encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
+default_encrypted_pass='$5liEJpfo7NYE'
+saved_encrypted_pass=$(uci -q get env.var.encrypted_pass)
+
+save_root_encrypt_pass() {
+	echo "  Storing encrypted password..." > /dev/console
+	uci set env.var.encrypted_pass=$encrypted_pass
+}
+
+generate_hash_gui() {
+	if [ -f /tmp/GUI.tar.bz2 ]; then
+		gui_hash=$(md5sum /tmp/GUI.tar.bz2 | awk '{ print $1}' )
+	else
+		if [ -f /root/GUI.tar.bz2 ];then
+			gui_hash=$(md5sum /root/GUI.tar.bz2 | awk '{ print $1}' )
+		else
+			gui_hash="0"
+		fi
+	fi
+	uci set env.var.gui_hash=$gui_hash
+	uci set env.var.outdated_ver='0'
+}
+
+transfer_bank() {
+	if [ -d /overlay/bank_1 ]; then
+		rm -r /overlay/bank_1
+	fi
+	mkdir /overlay/bank_1
+	cp -r /overlay/bank_2/* /overlay/bank_1
+	if [ -f /overlay/bank_1/etc/init.d/rootdevice ]; then
+		mtd erase /dev/mtd3
+		mtd write /dev/mtd4 /dev/mtd3
+	fi
+	activeversion=$( cat /proc/banktable/activeversion )
+	passiveversion=$( cat /proc/banktable/passiveversion )
+	
+	if [ "$activeversion" = "$passiveversion" ]; then
+		echo bank_1 > /proc/banktable/active
+		reboot
+	fi
+}
+
+check_bank() {
+	bank_check=$( uci -q get env.var.bank_check )
+	bootedbank=$( cat /proc/banktable/booted )
+	if [ ! $bank_check ]; then
+		uci set env.var.bank_check="1"
+	fi
+	if [ $bootedbank = "bank_2" ] && [ $bank_check = "1" ]; then
+		transfer_bank
+	else
+		echo "  Firmware in Bank_1... Not transfering..." > /dev/console
+	fi
+}
+
+check_gui_ver() {
+	if [ "$(uci -q get env.var.gui_version)" != $version_gui ]; then
+		uci set env.var.gui_version=$version_gui
+	fi
+}
+
+check_new_dlnad() {
+	if [ -f /etc/init.d/dland ] && [ ! -k /etc/rc.d/S98dlnad ] && [ -f /etc/init.d/minidlna ]; then
+		/etc/init.d/minidlna stop
+		/etc/init.d/minidlna disable
+		/etc/init.d/dlnad enable
+		/etc/init.d/dlnad start
+	fi
+}
+
+check_upgrade_shit() {
+	if [ -f /lib/upgrade/resetgui.sh ]; then
+		rm /lib/upgrade/resetgui.sh
+		rm /lib/upgrade/transfer_bank1.sh
+		rm /lib/upgrade/upgradegui.sh 
+		rm /lib/upgrade/checkver.sh 
+		rm /lib/upgrade/hardreset.sh
+	fi
+}
+
+check_isp_config() {
+	ppp_user=$(uci -q get network.wan.username)
+	if  [ ! "$ppp_user" ]; then
+		uci set env.var.isp="Other"
+		purify_from_tim
+	else
+		if echo "$ppp_user" | grep -q "alice" || 
+		   echo "$ppp_user" | grep -q "agcombo" || 
+		   echo "$ppp_user" | grep -q "unica" || 
+		   echo "$ppp_user" | grep -q "aliceres" ||
+		   echo "$ppp_user" | grep -q "@00000." ; 
+		then
+			uci set env.var.isp="TIM"
+		else
+			uci set env.var.isp="Other"
+			purify_from_tim
+		fi
+	fi
+}
+
+create_symlink() {
+	if [ -f /bin/busybox_telnet ]; then
+		ln -sf ../../bin/busybox_telnet /usr/sbin/telnetd
+		/etc/init.d/telnet enable
+	fi
+	/etc/init.d/wol enable
+}
+
+orig_config_gen() {
+	if [ ! -f /etc/config/wol ] && [ -f /etc/config/wol_orig ]; then
+		mv /etc/config/wol_orig /etc/config/wol
+	else
+		if [ -f /etc/config/wol_orig ]; then
+			rm /etc/config/wol_orig
+		fi
+	fi
+	if [ ! -f /etc/config/dlnad ] && [ -f /etc/config/dlnad_orig ]; then
+		mv /etc/config/dlnad_orig /etc/config/dlnad
+	else
+		if [ -f /etc/config/dlnad_orig ]; then
+			rm /etc/config/dlnad_orig
+		fi
+	fi
+	if [ ! -f /etc/config/telnet ] && [ -f /etc/config/telnet_orig ]; then
+		mv /etc/config/telnet_orig /etc/config/telnet
+	else
+		if [ -f /etc/config/telnet_orig ]; then
+			rm /etc/config/telnet_orig
+		fi
+	fi
+}
+
+trafficmon_support() {
+	if [ -d /root/trafficmon ]; then
+		killall trafficmon
+		rm -rf /root/trafficmon
+	fi
+	if [ -f /etc/init.d/trafficmon ] && [ ! -k /etc/rc.d/S99trafficmon ] && [ ! -d /tmp/trafficmon ]; then
+		/etc/init.d/trafficmon enable
+		/etc/init.d/trafficmon start
+	fi
+	
+}
+
+checkver_cron() {
+	if [ -f /etc/crontabs/root ]; then
+		if ! cat /etc/crontabs/root | grep -q checkver ; then
+			echo " " > /etc/crontabs/root
+			echo "0 */2 * * * /usr/share/transformer/scripts/checkver.sh" > /etc/crontabs/root
+			/etc/init.d/cron restart
+		fi
+		if [ -f /etc/crontabs/root_gui ]; then
+			rm /etc/crontabs/root_gui
+		fi
+	else
+		if [ -f /etc/crontabs/root_gui ]; then
+			mv /etc/crontabs/root_gui /etc/crontabs/root
+			/etc/init.d/cron restart
+		fi
+	fi	
+}
+
+restore_original_mapper() {
+	
+	local orig_dir=/rom/usr/share/transformer/mappings
+	local target=/usr/share/transformer/mappings
+	
+	if [ $(md5sum $orig_dir/device2/Device.map | awk '{print $1}') != $(md5sum $target/device2/Device.map | awk '{print $1}') ]; then
+		mkdir /tmp/tmp_bff_file
+		cp $target/bbf/VoiceService* /tmp/tmp_bff_file/
+		rm -r $target/bbf/*
+		rm -r $target/device2/*
+		rm -r $target/clash/*
+		rm -r $target/igd/*
+		cp $orig_dir/bbf/* $target/bbf
+		cp $orig_dir/clash/* $target/clash
+		cp $orig_dir/device2/* $target/device2
+		cp $orig_dir/igd/* $target/igd
+		cp /tmp/tmp_bff_file/* $target/bbf
+		rm -r /tmp/tmp_bff_file
+		logger "Restoring mapper device file"
+	fi
+}
+
+transformer_lib_check() {
+	local orig_dir=/rom/usr
+	local target=/usr
+	
+	if [ $(md5sum $orig_dir/lib/lua/transformer/shared/dhcp.lua | awk '{print $1}') != $(md5sum $target/lib/lua/transformer/shared/dhcp.lua | awk '{print $1}') ]; then
+		rm $target/share/transformer/mappings/rpc/*
+		rm $target/share/transformer/mappings/uci/*
+		rm -r $target/lib/lua/tch/*
+		rm -r $target/lib/lua/transformer/*
+		cp $orig_dir/share/transformer/mappings/rpc/* $target/share/transformer/mappings/rpc
+		cp $orig_dir/share/transformer/mappings/uci/* $target/share/transformer/mappings/uci
+		cp $orig_dir/bin/transformer $target/bin/
+		cp -r $orig_dir/lib/lua/tch/* $target/lib/lua/tch
+		cp -r $orig_dir/lib/lua/transformer/* $target/lib/lua/transformer
+		bzcat /root/GUI.tar.bz2 | tar -C / -xvf - #reapply the upgrade as in the gui we store some of this file that we restored
+		logger "Restoring transformer lib"
+		#/etc/init.d/transformer restart
+	fi
+}
+
+check_uci_gui_skin() {
+	if [ ! $( uci get -q env.var.gui_skin ) ]; then
+		uci set env.var.gui_skin="green"
+	fi
+}
+
+remove_https_check_cwmpd() {
+	uci set cwmpd.cwmpd_config.enforce_https='0'
+	uci set cwmpd.cwmpd_config.ssl_verifypeer='0'
+}
+
+add_telecom_stock_dsn() {
+	uci set dhcp.dnsmasq.server='151.99.125.1'
+}
+
+root() {
+	
+	/etc/init.d/watchdog-tch stop
+	logger "Disable watchdog"
+	
+	logger "Start rooting"
+	if [ ! -f /root/.check_process ]; then #this check if the placeholder exist
+		touch /root/.check_process #this is a placeholder to know if the process ends correctly
+	fi
+	logger "Stopping nginx and transformer"
+	/etc/init.d/nginx stop
+
+	logger "Checking if we are on TIM configuration"
+	if [ $(uci -q get env.var.isp) ]; then
+		if [ $(uci -q get env.var.isp) = "TIM" ]; then #this add specific config for TIM
+			add_ipv6
+			add_ppp_mgmt
+			add_telecom_stock_dsn
+		else
+			purify_from_tim
+		fi
+	fi
+	
+	logger "Check and cleanup"
+	add_ipoe #this need to stay to make the wizard work correctly
+	logger "Remove default dns"
+	remove_default_dns #tim sets his dns on to of the loopback interface 
+	logger "Purify wan"
+	puryfy_wan_interface #remove gracefull restart, could give problem
+	logger "Fix dns bug"
+	fix_dns_dhcp_bug #disable odhcpd as ipv6 is currently broken 
+	logger "Enable dlnad"
+	check_new_dlnad #this enable a new dlna deamon introduced with 17.1, the old one is keep
+	logger "Fix Sysupgrade"
+	check_upgrade_shit #this if old script are present to fix sysupgrade
+	logger "Check orig config"
+	orig_config_gen #this check if new config are already present
+	logger "Trafficmon inizialization"
+	trafficmon_support #support trafficmon
+	logger "Restore original mapper"
+	restore_original_mapper #this restore the original file autogenerated as they are specific to the build version.
+	logger "Transformer lib check"
+	transformer_lib_check #another cleanup
+	logger "Remove https check"
+	remove_https_check_cwmpd #cleanup
+	
+	logger "Setting root flag"
+	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not
+	
+	logger "Save root password if modified"
+	if [ ! $(awk -F: '/root/ {print $7 }' /etc/passwd) = "/bin/ash" ]; then #this enable root access from login
+		sed -i '1croot:x:0:0:root:/root:/bin/ash' /etc/passwd
+	fi
+	if [ ! $encrypted_pass = $default_encrypted_pass ] && [ -z $saved_encrypted_pass ]; then #all of this is to check the root 
+		echo -e "root\nroot" | passwd >/dev/nul
+		echo "  Setting root password" > /dev/console
+		save_root_encrypt_pass #this save the password to the env config file
+	else
+		if [ $encrypted_pass = $default_encrypted_pass ]; then
+			echo "  Root password detected" > /dev/console
+		else
+			if [ $encrypted_pass = $saved_encrypted_pass ]; then
+				echo "  Changed root password detected!" > /dev/console
+			else
+				echo "  New password detected!" > /dev/console
+				save_root_encrypt_pass
+			fi
+		fi
+	fi
+	
+	logger "Setting dropbear settings"
+	uci set dropbear.@dropbear[0].RootPasswordAuth='on' #dropbear root related
+	uci set dropbear.@dropbear[0].PasswordAuth='on'
+	uci set dropbear.@dropbear[0].enable='1'
+	
+	uci set wireless.global.wifi_analyzer_disable='0' #AGTEF specific
+	
+	logger "Unlocking web interface if needed"
+	if [ -f /etc/config/web_unlock ]; then
+		if [ ! $(grep -q changelog /etc/config/web) ]; then
+			mv /etc/config/web /etc/config/web_back #backup of the stock web config
+		fi
+		mv /etc/config/web_unlock /etc/config/web #apply unlocked universal config
+	fi
+	if [ -f /tmp/GUI.tar.bz2 ] || [ -f /root/GUI.tar.bz2 ];then #this generate hash to know if the gui is outdated or not
+		generate_hash_gui
+	fi
+	
+	logger "Sync version"
+	if [ -f /usr/share/transformer/scripts/checkver.sh ]; then
+		checkver_cron
+	fi
+	
+	logger "Apply modification"
+	uci commit
+	
+	logger "Restarting dropbear"
+	/etc/init.d/dropbear restart
+	
+	logger "Restarting dnsmasq"
+	/etc/init.d/dnsmasq restart
+	
+	rm /root/.check_process #we remove the placeholder as the process is complete
+	logger "Process done."
+	echo "  Process done. Your modem is now rooted!" > /dev/console
+	
+	if [ $(uci -q get env.var.isp) ]; then
+		if [ $(uci -q get env.var.isp) != "TIM" ]; then #this disable cwmpd if it's not tim...
+			uci set cwmpd.cwmpd_config.state='0'
+			if [ $(uci get cwmpd.cwmpd_config.state) = "1" ]; then
+				if [ -f /var/run/cwmpd.pid ]; then
+					/etc/init.d/cwmpd stop
+				fi
+				/etc/init.d/cwmpd disable
+			fi
+		else
+			if uci get cwmpd.cwmpd_config.acs_url | grep -q 10700 || uci get cwmpd.cwmpd_config.acs_url | grep -q 10500; then #ssl mismatch telecom problem... 
+				uci set cwmpd.cwmpd_config.acs_url=https://regman-mon.interbusiness.it:10800/acs/
+			fi
+			/etc/init.d/cwmpd enable
+			if [ ! -f /var/run/cwmpd.pid ]; then
+				/etc/init.d/cwmpd start
+			fi
+		fi
+	fi
+	
+	logger "Restarting transformer"
+	/etc/init.d/transformer restart
+	sleep 20
+	logger "Restarting nginx"
+	/etc/init.d/nginx start
+	logger "Restarting transformer a second time cause it's just shit..."
+	/etc/init.d/transformer restart
+	
+	/etc/init.d/watchdog-tch start
+	
+	logger "Resetting cwmp and watchdog"
+}
+
+boot() {
+	check_root
+	check_bank
+	check_gui_ver
+	check_isp_config
+	create_symlink
+	if [ $rooted -ne 1 ]; then
+		echo "  Root not detected! Rooting..." > /dev/console
+		root
+	else
+		if [ -f /root/.check_process ]; then
+			echo "  Root detected but process not terminated well! Rerooting..." > /dev/console
+			root
+		else
+			if [ $force -eq 1 ]; then
+				echo "  Root detected but force flag detected! Rerooting..." > /dev/console
+				root
+			else
+				echo "  Root detected! Doing nothing." > /dev/console
+			fi
+		fi
+	fi
+	echo " ----------------------------------------------------- " > /dev/console
+}

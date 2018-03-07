@@ -11,14 +11,12 @@ local vB = post_helper.validateBoolean
 local format = string.format
 
 local mapParams = {
-  ap_enabled = "rpc.wireless.ap.@ap0.admin_state",
-  ssid = "rpc.wireless.ssid.@wl0.ssid",
-  ap_broadcast = "rpc.wireless.ap.@ap0.public",
+  ap_enabled = "uci.wireless.wifi-iface.@wl0.state",
+  ssid = "uci.wireless.wifi-iface.@wl0.ssid",
 }
 
 local mapValid = {
   ap_enabled = vB,
-  ap_broadcast = vB,
   ssid = gVSLIR(1,32),
 }
 
@@ -48,7 +46,6 @@ local bool2enable = {
         html[#html+1] = ui_helper.createAlertBlock(T"Your modem already has a unique WiFi network set up by default. You can change the broadcast name here if desired, or turn off WiFi completely. You can also hide your WiFi network name from other devices by turning off SSID broadcast.", info_attr)
         html[#html+1] = ui_helper.createMessages(message_helper.popMessages())
         html[#html+1] = ui_helper.createSwitch(T"Wireless 2.4GHz (WiFi):", "ap_enabled", content["ap_enabled"], nil, helpmsg["ap_enabled"])
-        html[#html+1] = ui_helper.createSwitch(T"SSID Broadcast:", "ap_broadcast", content["ap_broadcast"], nil, helpmsg["ap_broadcast"])
         html[#html+1] = ui_helper.createInputText(T"SSID Broadcast Name (Max 32 characters):", "ssid", content["ssid"], nil, helpmsg["ssid"])
         ngx.print(html)
       %>
@@ -59,7 +56,6 @@ local bool2enable = {
       <%
         local html = {}
         html[#html+1] = ui_helper.createLabel(T"Wireless 2.4GHz (WiFi): ", bool2on[format("%s",content["ap_enabled"])])
-        html[#html+1] = ui_helper.createLabel(T"SSID Broadcast: ", bool2enable[format("%s",content["ap_broadcast"])])
         html[#html+1] = ui_helper.createLabel(T"SSID Broadcast Name: ", content["ssid"])
         ngx.print(html)
       %>

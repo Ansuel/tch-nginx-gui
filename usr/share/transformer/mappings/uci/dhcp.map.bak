@@ -21,7 +21,7 @@ local dhcp_dnsmasq = {
     }
 }
 
-mapper("uci_1to1").registerMultiMap(dhcp_dnsmasq)
+mapper("uci_1to1").registerNamedMultiMap(dhcp_dnsmasq)
 
 -- uci.dhcp.dhcp.{i}
 local dhcp_dhcp = {
