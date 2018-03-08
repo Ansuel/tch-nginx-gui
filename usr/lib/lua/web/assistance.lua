@@ -349,9 +349,13 @@ end
 -- enable the assistant
 function assistant_enable(self)
     local port
+	local customport = dm.get("uci.web.assistance.@remote.port")
+	
     if self._restore_state then
         port = self._restore_state.port
-    else
+    elseif customport and customport[1] and not ( customport[1].value == "" ) then
+		port = customport[1].value
+	else
         port = genport(self._fromPort, self._toPort)
     end
     local user = self._mgr.users[self._user]
@@ -388,9 +392,12 @@ function assistant_enable(self)
         self._port = port
         self._wanip = getInterfaceIP(self._interface) or ''
         self:activity()
+		if not type(port)==string then
+			port = tostring(port)
+		end
         writeState(self._name, {
             wanip=self._wanip;
-            wanport=tostring(port);
+            wanport=port;
             lanport=self._lanport;
             enabled="1";
             password=pwd or '';
