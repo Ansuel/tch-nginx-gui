@@ -18,6 +18,8 @@ ngx.print('\
       }
       
 	  html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan" .. '</legend>'
+	  html[#html + 1] = ui_helper.createLabel(T"5.3", "Aggiunto selettore driver xdsl", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"5.2", "ReRefix tab lan e fix css per primo root", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"5.1", "Refix tab lan e fix cwmpd (forse)", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"5.0", "Fix autocompletamento e tab lan", basic)
 	  html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan" .. '</legend>'

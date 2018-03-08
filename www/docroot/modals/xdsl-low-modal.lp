@@ -8,6 +8,7 @@ local proxy = require("datamodel")
 local ui_helper = require("web.ui_helper")
 local message_helper = require("web.uimessage_helper")
 local content_helper = require("web.content_helper")
+local post_helper = require("web.post_helper")
 local format,sub,match,untaint = string.format, string.sub, string.match, string.untaint
 
 local all_modes = {"adsl2", "adsl2annexl", "adsl2annexm", "adsl2plus", "gdmt", "glite", "t1413", "vdsl2" }
@@ -68,6 +69,7 @@ if ngx.var.request_method == "POST" then
                local clean = proxy.del(v.found)
          end
       end
+	  proxy.set("rpc.system.refreshdriver", "1")
       proxy.apply()
     end
 end
@@ -127,6 +129,25 @@ for _, v in pairs (profiles_content) do
   end
 end
 
+local driver_option = {
+	  { "A2pvbH042j2.d26r", T'A2pvbH042j2.d26r (Asus DSL-AC88U)'},
+	  { "A2pvbH042n.d26r", T'A2pvbH042n.d26r (Netgear D7000)'},
+	  { "A2pvbH042o.d26r", T'A2pvbH042o.d26r (TG799VAC Xtream Fastweb)'},
+      { "A2pvbH042r.d26r", T'A2pvbH042r.d26r (AGTEF_1.0.3)'},
+	  { "A2pvbH042u.d26r", T'A2pvbH042u.d26r (AGTEF_1.0.4)'},
+	  { "A2pvfbH043g.d26r", T'A2pvfbH043g.d26r !! DA TESTARE !! (TG800 Vbant-s)'},
+      { "A2pvfbH043k.d26r", T'A2pvfbH043k.d26r (AGTEF_1.1.0)'},
+}
+
+local driver_Params = {
+  driver_ver = "uci.env.var.driver_version",
+}
+
+local driver_valid = {
+  driver_ver = post_helper.getValidateInEnumSelect(driver_option),
+}
+
+local driver_content, helpmsg = post_helper.handleQuery(driver_Params, driver_valid)
 
   ngx.print('\
 \
@@ -145,6 +166,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       local html = {}
       html[#html + 1] = ui_helper.createLight(T"Status", nil, state_map[untaint(content.dsl0_enabled)], { light = { class = light_map[untaint(content.dsl0_enabled)] } })
       html[#html + 1] = ui_helper.createLabel(T"Firmware Version",content.dsl0_xdsl_FirmwareVersion, span5 )
+	  html[#html + 1] = ui_helper.createInputSelect(T"Driver Version", "driver_ver", driver_option, driver_content["driver_ver"])
       html[#html + 1] = ui_helper.createLabel(T"EOC Vendor ID",content.dsl0_eoc_vendor_id, span5 )
       html[#html + 1] = ui_helper.createLabel(T"EOC Serial Number",content.dsl0_eoc_serial_number, span5 )
       html[#html + 1] = [[<div class="control-group"><label class="control-label">]]
@@ -174,9 +196,8 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       html[#html + 1] = ui_helper.createLabel(T"Phy Extra Mask",content.dsl0_xdsl_cfg1_mask, span5 )
       ngx.print(html)
       ngx.print('\
-    </form>\
+	</form>\
   </fieldset>\
 </div>\
-\
-');  ngx.print(ui_helper.createFooter())   ngx.print('\
-'); 
+');   ngx.print(ui_helper.createFooter())  ngx.print('\
+');

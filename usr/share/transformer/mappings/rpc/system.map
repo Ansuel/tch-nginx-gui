@@ -66,6 +66,10 @@ local system_ = {
                 access = "readWrite",
                 type = "boolean",
             },
+		refreshdriver = {
+                access = "readWrite",
+                type = "boolean",
+            },
 	    transfer_bank1 = {
                 access = "readWrite",
                 type = "boolean",
@@ -92,6 +96,7 @@ local system_ = {
 		removeroot = "0",
 		transfer_bank1 = "0",
         switchover = "0",
+		refreshdriver = "0",
         uptime = function()
             local fd, msg = open("/proc/uptime")
             if not fd then

@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=5.1.4
+version_gui=5.3.11
 
 check_root() {
 	
@@ -302,6 +302,27 @@ add_telecom_stock_dsn() {
 	uci set dhcp.dnsmasq.server='151.99.125.1'
 }
 
+check_dnsmasq_name() {
+	if [ $( uci get -q dhcp.@dnsmasq[0] ) ]; then
+		uci rename dhcp.@dnsmasq[0]=@dnsmasq
+	fi
+}
+
+create_driver_setting() {
+	if [ $( uci get -q env.var.driver_version ) ]; then
+		uci set env.var.driver_version=$(transformer-cli get rpc.xdsl.dslversion | awk '{print $4}')
+	fi
+}
+
+dropbear_file_check() {
+	if [ $(uci get dropbear.wan.enable) ]; then
+		rm /etc/config/dropbear_new
+	else
+		rm /etc/config/dropbear
+		mv /etc/config/dropbear_new /etc/config/dropbear
+	fi
+}
+
 root() {
 	
 	/etc/init.d/watchdog-tch stop
@@ -311,6 +332,7 @@ root() {
 	if [ ! -f /root/.check_process ]; then #this check if the placeholder exist
 		touch /root/.check_process #this is a placeholder to know if the process ends correctly
 	fi
+	
 	logger "Stopping nginx and transformer"
 	/etc/init.d/nginx stop
 
@@ -347,6 +369,14 @@ root() {
 	transformer_lib_check #another cleanup
 	logger "Remove https check"
 	remove_https_check_cwmpd #cleanup
+	logger "Check css presence"
+	check_uci_gui_skin #check css
+	logger "Check if dnsmasq is names as we need it for the webui"
+	check_dnsmasq_name #check dnsmasq name in uci
+	logger "Check driver setting"
+	create_driver_setting #create diver setting if not present
+	logger "Check Dropbear config file"
+	dropbear_file_check  #check dropbear config
 	
 	logger "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not

@@ -3,6 +3,7 @@
 -- Enable localization
 gettext.textdomain('webui-core')
 
+local format = string.format
 local ui_helper = require("web.ui_helper")
 local content_helper = require("web.content_helper")
 local session = ngx.ctx.session
@@ -12,8 +13,10 @@ local lfs = require"lfs"
 
 local content = {
       dsl0_enabled = "uci.xdsl.xdsl.@dsl0.enabled",
+	  xdsl_version = "rpc.xdsl.dslversion",
   }
 content_helper.getExactContent(content)
+
 if session:hasAccess(modalPath) and lfs.attributes("/etc/config/xdsl", "mode") == "file" then
 
   local state_map_DSL = {
@@ -39,6 +42,9 @@ if session:hasAccess(modalPath) and lfs.attributes("/etc/config/xdsl", "mode") =
                 ');  
                 html={}
                 html[#html+1] = ui_helper.createSimpleLight(nil, status_msg, { light = {class=status}})
+				html[#html+1] = '<p class="subinfos">'
+                html[#html+1] = format(T"xDSL Driver Version: <strong id=\"cwmpconfcard_acsurl\">%s</strong>", content.xdsl_version )
+				html[#html+1] = '</p>'
                 ngx.print(html)
                   ngx.print('\
            </div>\
