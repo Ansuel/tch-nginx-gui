@@ -147,6 +147,7 @@ local mapParams = {
 }
 
 local mapPPPstats = {
+  uptime = "rpc.network.interface.@wan.uptime",
   discardR = "sys.class.net.@pppoe-wan.statistics.rx_dropped",
   discardS = "sys.class.net.@pppoe-wan.statistics.tx_dropped",
   broadcastR = "sys.class.net.@pppoe-wan.statistics.rx_broadcast",
@@ -295,6 +296,7 @@ ajax_helper.handleAjaxQuery(content_rpc, function(c)
 	if proxy.get("uci.network.interface.@wan.ipv6")[1].value == "1" then
 	c.dnsv6 = content_helper.getMergedList(c.dnsv6, dnsv6)
 	end
+	c.uptime = post_helper.secondsToTime(mapPPPstats.uptime)
 	c.discard = format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.discardS, iconDown, mapPPPstats.discardR)
 	c.broadcast = format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.broadcastS, iconDown, mapPPPstats.broadcastR)
 	c.multicast = format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.multicastS, iconDown, mapPPPstats.multicastR)
@@ -386,6 +388,9 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     -- Label that shows PPP status
 	ajax_attr_light.light.class = ppp_light_map[ppp_status]
     html[#html + 1] = ui_helper.createLight(T"Status", nil, ppp_state_map[ppp_status], ajax_attr_light)
+	ajax_attr.span.id = "uptime"
+	ajax_attr.span.class = "span4 simple-desc"
+	html[#html + 1] = ui_helper.createLabel(T"Uptime", post_helper.secondsToTime(mapPPPstats["uptime"]),  ajax_attr)
     -- Switch PPP on/off
     html[#html + 1] = ui_helper.createSwitch(T"Enabled", "uci_wan_auto", content.uci_wan_auto)
     html[#html + 1] = ui_helper.createSwitch(T"NAT", "uci_wan_masq", content.uci_wan_masq)

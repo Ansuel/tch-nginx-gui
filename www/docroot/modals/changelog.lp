@@ -18,6 +18,8 @@ ngx.print('\
       }
       
 	  html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan" .. '</legend>'
+	  html[#html + 1] = ui_helper.createLabel(T"5.6", "Aggiunto uptime wan", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"5.5", "Fixato cpustep, thx @shdf", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"5.4", "Fixato selettore porta nella tab assist", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"5.3", "Aggiunto selettore driver xdsl", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"5.2", "ReRefix tab lan e fix css per primo root", basic)

@@ -4,6 +4,7 @@ gettext.textdomain('webui-core')
 
 local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
+local post_helper = require("web.post_helper")
 local proxy = require("datamodel")
 
 local table = table
@@ -16,6 +17,7 @@ local content_uci = {
 content_helper.getExactContent(content_uci)
 
 local content_rpc = {
+  uptime = "rpc.network.interface.@wan.uptime",
   wan_ppp_state = "rpc.network.interface.@wan.ppp.state",
   wan_ppp_error = "rpc.network.interface.@wan.ppp.error",
   ipaddr = "rpc.network.interface.@wan.ipaddr",
@@ -125,11 +127,14 @@ end
 <%= ui_helper.createCardHeader(T"Internet Access", modalPath, switchName, content_uci.wan_auto) %>
 <div class="content card_bg" data-bg-text="&#xf0ac;">
 <div class="divtable">
-  <%= ui_helper.createSimpleLight(nil, ppp_state_map[ppp_status], { light = { class = ppp_light_map[ppp_status] } }) %>
+  <%= ui_helper.createSimpleLight(nil, ppp_state_map[ppp_status] , { light = { class = ppp_light_map[ppp_status] } }) %>
   <p class="subinfos">
      <%if ppp_status == "connected" then
        if content_rpc["ipaddr"] and content_rpc["ipaddr"]:len() > 0 then
-         ngx.print(format(T'WAN IP is <strong>%s</strong>', content_rpc["ipaddr"]))
+         ngx.print(format(T'WAN IP is <strong>%s</strong>' .. "<br/>", content_rpc["ipaddr"]))
+	     if IPv6State == "disabled" then
+		   ngx.print(format(T'Uptime: <strong>%s</strong>', post_helper.secondsToTime(content_rpc["uptime"])))
+		 end
        elseif content_rpc["ip6addr"] and content_rpc["ip6addr"]:len() > 0 then
 	 ngx.print(format(T'WAN IP is <strong>%s</strong>', content_rpc["ip6addr"]))
        end
