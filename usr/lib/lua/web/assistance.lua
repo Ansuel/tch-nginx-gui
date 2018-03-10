@@ -313,12 +313,13 @@ local function restore(assistant)
     if (not state) or (state.enabled ~= '1') then
         return
     end
-
-    local port = tonumber(untaint(state.port))
-    if not port then
-        return
-    end
-    state.port = port
+	
+	local port = tonumber(untaint(state.port))
+	if not port then
+		return
+	end
+	
+	state.port = port
 
     assistant._restore_state = state
     assistant:enable(true)
@@ -348,11 +349,16 @@ end
 
 -- enable the assistant
 function assistant_enable(self)
+	
     local port
 	local customport = dm.get("uci.web.assistance.@remote.port")
 	
     if self._restore_state then
-        port = self._restore_state.port
+		if customport and customport[1] and not customport[1].value == self._restore_state.port then
+			port = customport[1].value
+		else
+			port = self._restore_state.port
+		end
     elseif customport and customport[1] and not ( customport[1].value == "" ) then
 		port = customport[1].value
 	else
@@ -389,12 +395,12 @@ function assistant_enable(self)
             --set dummy password here as self._psw is used to check if the assistant is enabled or not
             self._psw = "_DUMMY_PASSWORD_"
         end
-        self._port = port
+		
+		port = tostring(untaint(port))
+        
+		self._port = port
         self._wanip = getInterfaceIP(self._interface) or ''
         self:activity()
-		if not type(port)==string then
-			port = tostring(port)
-		end
         writeState(self._name, {
             wanip=self._wanip;
             wanport=port;
@@ -404,6 +410,7 @@ function assistant_enable(self)
             mode = self._permanent and "1" or "0";
             ifname = self._interface
         })
+		
         return true
     end
     return nil, "internal error: user disappeared"

@@ -216,6 +216,35 @@ function M.secondsToTime(time)
   return nil, T"Positive number expected."
 end
 
+-- Construct an time string from the number of seconds
+-- @param #number time
+-- @return #string number of seconds
+function M.secondsToTimeMinutes(time)
+  local time_no = tonumber(time)
+  if (time_no and time_no >= 0) then
+    local durations = {
+      floor(time_no / 86400),      -- days
+      floor(time_no / 3600) % 24,  -- hours
+      floor(time_no / 60) % 60,    -- minutes
+    }
+    local start = 3
+	local duration = durations[3]
+    durations[3] = format(N("%d minute", "%d minutes", duration), duration)
+    duration = durations[2]
+    if duration > 0 then
+      start = 2
+    end
+    durations[2] = format(N("%d hour", "%d hours", duration), duration)
+    duration = durations[1]
+    if duration > 0 then
+      start = 1
+    end
+    durations[1] = format(N("%d day", "%d days", duration), duration)
+    return concat(durations, " ", start)
+  end
+  return nil, T"Positive number expected."
+end
+
 -- Ensuring the integrity of the changes made to a table
 -- modify -> might overwrite previous changes, or line could have been deleted - check when starting the change and when applying the change
 -- delete -> might try to delete something that was already deleted

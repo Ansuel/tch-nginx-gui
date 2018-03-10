@@ -18,6 +18,8 @@ local assistant = assistance.getAssistant(secname)
 local gVChkbox = post_helper.getValidateCheckboxSwitch()
 local format = string.format
 
+local untaint = string.untaint
+
 local mode_map = {
     { "0", T'Temporary' },
     { "1", T'Permanent'},
@@ -84,6 +86,12 @@ local content=nil
 if ngx.var.request_method == "POST" then
     content = ngx.req.get_post_args()
     if content["action"]=="SAVE" then
+	
+		if content["ra_enabled"] == "1" then --let's set the port before assist:enable
+			proxy.set("uci.web.assistance.@remote.port" , content["port"])
+			proxy.apply()
+		end
+		
         gVChkbox(content["ra_enabled"], content, "ra_enabled")
         local password = nil
         local newstate = content["ra_enabled"] or state
@@ -281,6 +289,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 \
         var user = "'); ngx.print( assistant:username() ); ngx.print('";\
         var password = $(\''); ngx.print('input[name="password"]'); ngx.print('\').val();\
+		var port = $(\''); ngx.print('input[name="port"]'); ngx.print('\').val();\
 \
         if(password != null ) {\
              var srp = new SRP();\
