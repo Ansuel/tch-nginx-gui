@@ -114,6 +114,7 @@ config ruleset 'ruleset_main'
 	list rules 'logroutingtablemodal'
 	list rules 'logconnectionsmodal'
 	list rules 'wifinursemodal'
+	list rules 'applicationsmodal'
 
 config rule 'gateway'
 	option target '/gateway.lp'
@@ -140,6 +141,11 @@ config rule 'homepage'
 
 config rule 'gatewaymodal'
 	option target '/modals/gateway-modal.lp'
+	list roles 'admin'
+	list roles 'engineer'
+
+config rule 'applicationsmodal'
+	option target '/modals/applications-modal.lp'
 	list roles 'admin'
 	list roles 'engineer'
 

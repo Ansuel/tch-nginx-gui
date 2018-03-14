@@ -35,6 +35,12 @@ setup_cpuspeed() {
     pwrctl config --cpuspeed $cpuspeed
 }
 
+move_irq_interrupts_cpu1() {
+	echo 2 > /proc/irq/72/smp_affinity
+	echo 2 > /proc/irq/92/smp_affinity
+	echo 2 > /proc/irq/98/smp_affinity
+}
+
 setup() {
     config_load power
     setup_autogreeen
@@ -42,6 +48,7 @@ setup() {
     setup_ethapd
     setup_wait
     setup_cpuspeed
+	move_irq_interrupts_cpu1
 }
 
 start() {

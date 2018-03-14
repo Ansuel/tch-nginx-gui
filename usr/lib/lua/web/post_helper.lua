@@ -219,27 +219,33 @@ end
 -- Construct an time string from the number of seconds
 -- @param #number time
 -- @return #string number of seconds
-function M.secondsToTimeMinutes(time)
+function M.secondsToTimeShort(time)
   local time_no = tonumber(time)
   if (time_no and time_no >= 0) then
     local durations = {
       floor(time_no / 86400),      -- days
       floor(time_no / 3600) % 24,  -- hours
       floor(time_no / 60) % 60,    -- minutes
+	  floor(time_no) % 60          -- seconds
     }
-    local start = 3
-	local duration = durations[3]
-    durations[3] = format(N("%d minute", "%d minutes", duration), duration)
+    local start = 4
+    local duration = durations[4]
+    durations[4] = format(N("%d s", "%d s", duration), duration)
+    duration = durations[3]
+    if duration > 0 then
+      start = 3
+    end
+    durations[3] = format(N("%d m", "%d m", duration), duration)
     duration = durations[2]
     if duration > 0 then
       start = 2
     end
-    durations[2] = format(N("%d hour", "%d hours", duration), duration)
+    durations[2] = format(N("%d h", "%d h", duration), duration)
     duration = durations[1]
     if duration > 0 then
       start = 1
     end
-    durations[1] = format(N("%d day", "%d days", duration), duration)
+    durations[1] = format(N("%d d", "%d d", duration), duration)
     return concat(durations, " ", start)
   end
   return nil, T"Positive number expected."

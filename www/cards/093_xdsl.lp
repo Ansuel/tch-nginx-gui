@@ -43,7 +43,7 @@ if session:hasAccess(modalPath) and lfs.attributes("/etc/config/xdsl", "mode") =
                 html={}
                 html[#html+1] = ui_helper.createSimpleLight(nil, status_msg, { light = {class=status}})
 				html[#html+1] = '<p class="subinfos">'
-                html[#html+1] = format(T"xDSL Driver Version: <strong id=\"cwmpconfcard_acsurl\">%s</strong>", content.xdsl_version )
+                html[#html+1] = format(T"Driver Version: </br><strong id=\"cwmpconfcard_acsurl\">%s</strong>", content.xdsl_version )
 				html[#html+1] = '</p>'
                 ngx.print(html)
                   ngx.print('\

@@ -74,7 +74,7 @@ if ngx.var.request_method == "POST" then
     if action == "BRIDGEMODE" then
         if not bridgemode.isBridgedMode() then
             bridgemode.configBridgedMode()
-            return resetreboot("rpc.system.reboot", "GUI")
+            --return resetreboot("rpc.system.reboot", "GUI")
         end
     end
 end
@@ -311,6 +311,7 @@ ngx.print('</form>\
 ')
 ngx.print("<script type='text/javascript'>");
 ngx.print('\
+var rebootMsg = \'');  ngx.print(T"Restarting, please wait..."); ngx.print('\';\
 $(function() {\
 \
 	var refreshTimeOut = 5000;\

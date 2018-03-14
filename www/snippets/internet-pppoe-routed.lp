@@ -390,7 +390,9 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     html[#html + 1] = ui_helper.createLight(T"Status", nil, ppp_state_map[ppp_status], ajax_attr_light)
 	ajax_attr.span.id = "uptime"
 	ajax_attr.span.class = "span4 simple-desc"
-	html[#html + 1] = ui_helper.createLabel(T"Uptime", post_helper.secondsToTime(mapPPPstats["uptime"]),  ajax_attr)
+	if not ( mapPPPstats["uptime"] == "" ) then
+		html[#html + 1] = ui_helper.createLabel(T"Uptime", post_helper.secondsToTime(mapPPPstats["uptime"]),  ajax_attr)
+	end
     -- Switch PPP on/off
     html[#html + 1] = ui_helper.createSwitch(T"Enabled", "uci_wan_auto", content.uci_wan_auto)
     html[#html + 1] = ui_helper.createSwitch(T"NAT", "uci_wan_masq", content.uci_wan_masq)

@@ -87,8 +87,22 @@ sys_upnp_redirect_i_.entries = function(mapping)
   end
   lease_cache = {}
   local upnpkeys = {}
+  
+  -- UPnPfix BEGIN
+  -- first read the line in the miniupnp-igdv* format
+  -- if it fails (interface == nil) then apply the patch for miniupnp v2.
   for line in fd:lines() do
     local proto, interface, src_dport, dest_ip, dest_port, stop_time, descr = string.match(line, '([UDTCP]+):(%S+):(%d+):%S+:([%d%s%.]+):(%d+):(%d+):([^\r^\n]*)')
+    -- If it fails try with the miniupnp v2 format ("interface" is missing)
+    if interface == nil then 
+    	proto, src_dport, dest_ip, dest_port, stop_time, descr = string.match(line, '([UDTCP]+):(%d+):([%d%s%.]+):(%d+):(%d+):([^\r^\n]*)')
+        -- Not a clean solution, since the interface name is wired. Not that the ifname seems to matter..
+        -- TODO: to get the name dynamically. Maybe by use of.. ?
+	-- local cmd = "netstat -nr | grep '^0.0.0.0' | grep -o '[^ ]*$'"
+    	
+		interface = "pppoe-wan"
+    end
+  -- UPnPfix END
     local key = proto .. interface .. dest_port .. src_dport
     upnpkeys[#upnpkeys+1] = key
     lease_cache[key] = {

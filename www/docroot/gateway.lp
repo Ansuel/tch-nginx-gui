@@ -124,8 +124,9 @@ ngx.print('\
                     <button class="btn"> ]]
             html[#html + 1] = session:getusername()
             html[#html + 1] = [[ </button>
-                    <button class="btn dropdown-toggle" data-toggle="dropdown">
-                      <span class="caret"></span>
+                    <button class="btn dropdown-toggle" data-toggle="dropdown"><span class="caret"></span> ]]
+			html[#html + 1] = T"Advanced "		
+            html[#html + 1] = [[
                     </button>
                     <ul class="dropdown-menu pull-right"> ]]
             if session:getusername() ~= assistant:username() then
@@ -133,6 +134,15 @@ ngx.print('\
                 html[#html + 1] = T"Profile Settings"
                 html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
             end
+			html[#html + 1] = [[ <li><a tabindex="-1" href="/aria"> ]]
+			html[#html + 1] = T"Aria2 Webui"
+			html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
+			html[#html + 1] = [[ <li><a tabindex="-1" href="/luci"> ]]
+			html[#html + 1] = T"Luci Webui"
+			html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
+			html[#html + 1] = [[ <li><a tabindex="-1" href="/transmission"> ]]
+			html[#html + 1] = T"Transmission Webui"
+			html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
             html[#html + 1] = [[ <li><a tabindex="-1" href="/" id="signout"> ]]
             html[#html + 1] = T"Sign out"
             html[#html + 1] = [[</a></li></ul></div>]]

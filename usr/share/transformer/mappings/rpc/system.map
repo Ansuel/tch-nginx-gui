@@ -54,23 +54,47 @@ local system_ = {
                 access = "readWrite",
                 type = "boolean",
             },
-	    resetgui = {
+			resetgui = {
+					access = "readWrite",
+					type = "boolean",
+				},
+			upgradegui = {
+					access = "readWrite",
+					type = "boolean",
+			},
+			removeroot = {
+					access = "readWrite",
+					type = "boolean",
+				},
+			refreshdriver = {
+					access = "readWrite",
+					type = "boolean",
+				},
+			transfer_bank1 = {
                 access = "readWrite",
                 type = "boolean",
             },
-	    upgradegui = {
-                access = "readWrite",
-                type = "boolean",
-	    },
-	    removeroot = {
+			install_luci = {
                 access = "readWrite",
                 type = "boolean",
             },
-		refreshdriver = {
+			remove_luci = {
                 access = "readWrite",
                 type = "boolean",
             },
-	    transfer_bank1 = {
+			install_aria2 = {
+                access = "readWrite",
+                type = "boolean",
+            },
+			remove_aria2 = {
+                access = "readWrite",
+                type = "boolean",
+            },
+			install_transmission = {
+                access = "readWrite",
+                type = "boolean",
+            },
+			remove_transmission = {
                 access = "readWrite",
                 type = "boolean",
             },
@@ -97,6 +121,12 @@ local system_ = {
 		transfer_bank1 = "0",
         switchover = "0",
 		refreshdriver = "0",
+		install_luci = "0",
+		remove_luci = "0",
+		install_aria2 = "0",
+		remove_aria2 = "0",
+		install_transmission = "0",
+		remove_transmission = "0",		
         uptime = function()
             local fd, msg = open("/proc/uptime")
             if not fd then

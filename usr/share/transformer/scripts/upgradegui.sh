@@ -30,8 +30,11 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 	fi
 	
 	# Check GUI hash
-	wget $URL_BASE/$CHECKSUM_FILE $WORKING_DIR
-	if [ $(md5sum $WORKING_DIR/$FILE_NAME | awk '{print $1}') != $(cat $WORKING_DIR/$CHECKSUM_FILE) ]; then
+	if [ -f /tmp/$CHECKSUM_FILE ]; then
+		rm $WORKING_DIR/$CHECKSUM_FILE
+	fi
+	wget $URL_BASE/$CHECKSUM_FILE
+	if [ $(md5sum $WORKING_DIR/$FILE_NAME | awk '{print $1}') != $(cat $WORKING_DIR/$CHECKSUM_FILE | awk '{print $1}') ]; then
 	echo "ERROR: file corrupted" >&2
 	exit 1
 	fi

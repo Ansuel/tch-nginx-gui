@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=5.7.0
+version_gui=5.11.0
 
 check_root() {
 	
@@ -111,9 +111,9 @@ transfer_bank() {
 		rm -r /overlay/bank_1
 	fi
 	mkdir /overlay/bank_1
-	cp -r /overlay/bank_2/* /overlay/bank_1
+	cp -r /overlay/bank_2/* /overlay/bank_1/
 	if [ -f /overlay/bank_1/etc/init.d/rootdevice ]; then
-		mtd erase /dev/mtd3
+		#mtd erase /dev/mtd3
 		mtd write /dev/mtd4 /dev/mtd3
 	fi
 	activeversion=$( cat /proc/banktable/activeversion )
@@ -131,7 +131,7 @@ check_bank() {
 	if [ ! $bank_check ]; then
 		uci set env.var.bank_check="1"
 	fi
-	if [ $bootedbank = "bank_2" ] && [ $bank_check = "1" ]; then
+	if ( [ ! $( uci -q get env.var.bank_check ) ] || [ ! $bank_check = "0" ] ) && [ $bootedbank = "bank_2" ]; then
 		transfer_bank
 	else
 		echo "  Firmware in Bank_1... Not transfering..." > /dev/console
@@ -325,6 +325,82 @@ dropbear_file_check() {
 	fi
 }
 
+check_noip_file() {
+	if [ -d /etc/ddns_new ]; then
+		if [ -d /etc/ddns ]; then
+				rm -r /etc/ddns_new
+		else
+			mv /etc/ddns_new /etc/ddns
+		fi
+	fi
+}
+
+disable_eco_param() {
+	uci set power.ethernet.eee='0'
+	uci set power.ethernet.autogreeen='0'
+	uci set power.ethernet.ethapd='0'
+}
+
+enable_new_upnp() {
+	if [ ! -f /etc/init.d/miniupnpd ]; then
+		/etc/init.d/miniupnpd-tch stop
+		/etc/init.d/miniupnpd-tch disable
+		/etc/init.d/miniupnpd enable
+		/etc/init.d/miniupnpd start
+	fi
+}
+
+wifi_fix_24g() {
+	wl down
+	wl obss_prot set 0
+	wl -i wl0 gmode Performance
+	wl -i wl0 up
+	
+}
+
+create_gui_type() {
+	if [ ! $( uci get -q env.var.aria2_webui) ]; then
+		if [ -d /www/docroot/aria ]; then
+			uci set env.var.aria2_webui="1"
+		else
+			uci set env.var.aria2_webui="0"
+		fi
+	fi
+	if [ ! $( uci get -q env.var.luci_webui) ]; then
+		if [ -d /www_luci ]; then
+			uci set env.var.luci_webui="1"
+		else
+			uci set env.var.luci_webui="0"
+		fi
+	fi
+	if [ ! $( uci get -q env.var.transmission_webui) ]; then
+		if [ -d /www/docroot/transmission ]; then
+			uci set env.var.transmission_webui="1"
+		else
+			uci set env.var.transmission_webui="0"
+		fi
+	fi
+}
+
+update_dhcp_config() {
+	if [ $(uci get -q dhcp.lan.dhcpv4)  == "1" ]; then
+		uci set dhcp.lan.dhcpv4='server'
+	fi
+	if [ $(uci get dhcp.lan.dhcpv4) == "0" ]; then
+		uci set dhcp.lan.dhcpv4='disabled'
+	fi
+}
+
+add_application_modal() {
+	if [ $(uci get -q web.applicationsmodal) ]; then
+		uci set web.applicationsmodal=rule
+		uci set web.applicationsmodal.target='/modals/applications-modal.lp'
+		uci add_list web.applicationsmodal.roles='admin' 
+		uci add_list web.applicationsmodal.roles='engineer'
+		uci add_list web.ruleset_main.rules='applicationsmodal'
+	fi
+}
+
 root() {
 	
 	/etc/init.d/watchdog-tch stop
@@ -380,9 +456,24 @@ root() {
 	create_driver_setting #create diver setting if not present
 	logger "Check Dropbear config file"
 	dropbear_file_check  #check dropbear config
+	logger "Check ddns directory"
+	check_noip_file #check ddns directory in /etc
+	logger "Check eco param"
+	disable_eco_param #This disable eco param as they introduce some latency
+	logger "Enable new upnp"
+	enable_new_upnp #New upnp fix
+	logger "Sync dhcp configuration for new webui"
+	update_dhcp_config #Dhcp sync
+	logger "Create gui type in config"
+	create_gui_type #Gui Type
+	logger "Add new web option"
+	add_application_modal #New Option
 	
 	logger "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not
+
+	logger "Disable reboot after crash, this gives race condition..."
+	uci set system.@coredump[0].reboot='0'
 	
 	logger "Save root password if modified"
 	if [ ! $(awk -F: '/root/ {print $7 }' /etc/passwd) = "/bin/ash" ]; then #this enable root access from login
@@ -414,10 +505,12 @@ root() {
 	
 	logger "Unlocking web interface if needed"
 	if [ -f /etc/config/web_unlock ]; then
-		if [ ! $(grep -q changelog /etc/config/web) ]; then
+		if [ ! $(grep -q changelog /etc/config/web) ] || [ ! $(grep -q mmpbx-statistics-modal.lp /etc/config/web) ] ; then
 			mv /etc/config/web /etc/config/web_back #backup of the stock web config
+			mv /etc/config/web_unlock /etc/config/web #apply unlocked universal config
+		else
+			rm /etc/config/web_unlock
 		fi
-		mv /etc/config/web_unlock /etc/config/web #apply unlocked universal config
 	fi
 	if [ -f /tmp/GUI.tar.bz2 ] || [ -f /root/GUI.tar.bz2 ];then #this generate hash to know if the gui is outdated or not
 		generate_hash_gui
@@ -430,6 +523,9 @@ root() {
 	
 	logger "Apply modification"
 	uci commit
+	
+	logger "Restart power init"
+	/etc/init.d/power restart
 	
 	logger "Restarting dropbear"
 	/etc/init.d/dropbear restart
@@ -480,6 +576,7 @@ boot() {
 	check_gui_ver
 	check_isp_config
 	create_symlink
+	wifi_fix_24g
 	if [ $rooted -ne 1 ]; then
 		echo "  Root not detected! Rooting..." > /dev/console
 		root

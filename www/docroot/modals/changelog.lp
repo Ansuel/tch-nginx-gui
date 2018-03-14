@@ -18,6 +18,10 @@ ngx.print('\
       }
       
 	  html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan" .. '</legend>'
+	  html[#html + 1] = ui_helper.createLabel(T"5.11", "Iniziale supporto per luci,ariang e transmission", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"5.10", "Upnp fix thx  Jecht_Sin", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"5.9", "Test wifi fix, thx aezakmi123", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"5.8", "Latenza maggiorata fixata, (disabilitati risparmi energetici per le porte ed il traffico 5ghz", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"5.7", "Fixata finalmente tab assistenza e selettore porte. (questa volta per sempre...)", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"5.6", "Aggiunto uptime wan", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"5.5", "Fixato cpustep, thx @shdf", basic)
