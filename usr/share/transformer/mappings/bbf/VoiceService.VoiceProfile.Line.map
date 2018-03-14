@@ -5,22 +5,30 @@ local lfs = require("lfs")
 if lfs.attributes("/etc/config/mmpbx", "mode") ~= "file" then
   return
 end
-local match, format = string.match, string.format
-local tostring, tonumber, ipairs, pairs, setmetatable = tostring, tonumber, ipairs, pairs, setmetatable
+local string = string
+local match, format, find, sub, commitapply, eventsource, mapper, math, os, ceil = string.match, string.format, string.find, string.sub, commitapply, eventsource, mapper, math, os, math.ceil
+local tostring, tonumber, ipairs, pairs, setmetatable, register, table, type = tostring, tonumber, ipairs, pairs, setmetatable, register, table, type
 local uci_helper = mapper("ucihelper")
 local get_from_uci = uci_helper.get_from_uci
 local set_on_uci = uci_helper.set_on_uci
+local add_on_uci = uci_helper.add_on_uci
 local profile_helper = require("transformer.shared.profile_helper")
 local conn = mapper("ubus").connect()
 local binding = {}
+local del_binding = {}
+local add_binding = {}
 local service_binding = { config = "mmpbx", sectionname = "service"}
 local incoming_binding = { config = "mmpbx", sectionname = "incoming_map"}
 local outgoing_binding = { config = "mmpbx", sectionname = "outgoing_map"}
+local toneBinding = { config = "mmpbxbrcmcountry", sectionname = "ring_map", option = "general_ring"}
 local mt = { __index = function() return "" end }
 local common_default = setmetatable({}, mt)
 local numOfFxs, numOfDect, numOfSipdev
-local isDectEnabled, isSipdevEnabled
 local rtp_session = {}
+local service_default = require("transformer.shared.servicedefault")
+local add_service = service_default.services.add
+local named_parameter = service_default.services.named_service_section
+local profile_update = {}
 local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_ = {
     objectType = {
         name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.Line.{i}.",
@@ -121,13 +129,15 @@ local CallStates = setmetatable({
     MMPBX_CALLSTATE_DIALING = "Calling",
     MMPBX_CALLSTATE_ALERTING = "Ringing",
     MMPBX_CALLSTATE_CALL_DELIVERED = "Connecting",
-    MMPBX_CALLSTATE_CONNECTED = "InCall"
+    MMPBX_CALLSTATE_CONNECTED = "InCall",
+    MMPBX_CALLSTATE_DISCONNECTED = "Disconnecting"
 }, { __index = function() return "Idle" end })
 
 local ProfileRegStatus = setmetatable({
     Registering = "Registering",
     Registered = "Up",
-    Unregistering = "Unregistering"
+    Unregistering = "Unregistering",
+    Unregistered = "Disabled",
 }, { __index = function() return "Disabled" end })
 
 local DevRegStatus = {
@@ -142,11 +152,72 @@ local EnableStatus = {
     ['Disabled'] = "0",
 }
 
+local MessageWaitingStatus = {
+    ['yes'] = '1',
+    ['no'] = '0',
+}
+
+local ConferenceCallingStatus = setmetatable({
+    Disabled = "Disabled",
+    Idle = "Idle",
+    SecondaryCalling = "SecondaryCalling",
+    SecondaryConnecting = "SecondaryConnecting",
+    SecondaryConnected = "SecondaryConnected",
+    InConferenceCall = "InConferenceCall"
+}, { __index = function() return "Idle" end })
+
+local CallWaitingStatus = setmetatable({
+    Disabled = "Disabled",
+    Idle = "Idle",
+    SecondaryRinging = "SecondaryRinging",
+    SecondaryConnecting = "SecondaryConnecting",
+    SecondaryConnected = "SecondaryConnected",
+}, { __index = function() return "Idle" end })
+
 local configfile_sip = "mmpbxrvsipnet"
 
 local transactions = {}
 
+local function isInTable(value, list)
+    if (type(list) ~= "table") then
+       return nil
+    end
+    for k, v in pairs(list) do
+        if v == value then
+            return k
+        end
+    end
+    return nil
+end
+
 local function line_commit()
+    for index, value in pairs(profile_update) do
+	local profile_new = {}
+        for index1, value1 in pairs(value) do
+	    profile_new["profile"] = index
+	    if index1 == "Enable" then
+                profile_new["enable"] = tonumber(EnableStatus[value1])
+	    else
+		if not profile_new["SIP"] then
+		    profile_new["SIP"] = {}
+		    profile_new["SIP"][1] = {}
+	        end
+	        if index1 == "URI" then
+		    profile_new["SIP"][1]["uri"] = value1
+	        elseif index1 == "AuthPassword" then
+		    profile_new["SIP"][1]["password"] = value1
+	        elseif index1 == "AuthUserName" then
+		    profile_new["SIP"][1]["user_name"] = value1
+	        elseif index1 == "CallerIDName" then
+		    profile_new["SIP"][1]["display_name"] = value1
+	        elseif index1 == "X_000E50_DisplayName" then
+		    profile_new["SIP"][1]["display_name"] = value1
+	        end
+	    end
+        end
+	conn:call("mmpbx.profile", "update",profile_new)
+    end
+    profile_update = {}
     local binding = {}
     for config in pairs(transactions) do
         binding.config = config
@@ -180,19 +251,61 @@ local line_sip_net_map = {
         Reset = function() return "0" end,
         CallState = function(config, name)
             local calls = conn:call("mmpbx.call", "get", {})
+	    local callTable = {}
+	    local mediaTable = {}
             if calls and type(calls) == "table" then
                 for _,v in pairs(calls) do
                     if v.callState ~= nil and v.profile == name then
-                        return CallStates[v.callState]
-                    end
+		        callTable[#callTable + 1] = v.callState
+		        mediaTable[#callTable + 1] = v.mediaState
+		    end
                 end
-            end
-            return "Idle"
+		if (#callTable > 0) then
+		    local index = isInTable("MMPBX_MEDIASTATE_REMOTEHELD", mediaTable)
+                    if index then
+                        return "Hold"
+                    end
+		    local isLocalHold = false
+		    index = isInTable("MMPBX_MEDIASTATE_LOCALHELD", mediaTable)
+                    if index then
+			if #callTable == 2 then    -- if 2 active calls & one call in local held, Get the other call status
+			    local otherCallIndex = index == 1 and 2 or 1
+			    if mediaTable[otherCallIndex] == "MMPBX_MEDIASTATE_REMOTEHELD" or mediaTable[otherCallIndex] == "MMPBX_MEDIASTATE_LOCALHELD" or mediaTable[otherCallIndex] == "MMPBX_MEDIASTATE_LOCALREMOTEHELD" then
+			        return "Hold"
+			    else
+			        return  CallStates[callTable[otherCallIndex]]
+			    end
+			else    --Only one call then it is Hold
+			    return "Hold"
+			end
+		    end
+		    index = isInTable("MMPBX_MEDIASTATE_LOCALREMOTEHELD", mediaTable)
+		    if index then
+		        if #callTable == 2 then    -- if 2 active calls & one call in local remote held, Get the other call status
+		            local otherCallIndex = index == 1 and 2 or 1
+			    if mediaTable[otherCallIndex] == "MMPBX_MEDIASTATE_REMOTEHELD" or mediaTable[otherCallIndex] == "MMPBX_MEDIASTATE_LOCALHELD" or mediaTable[otherCallIndex] == "MMPBX_MEDIASTATE_LOCALREMOTEHELD" then
+			        return "Hold"
+			    else
+			        return  CallStates[callTable[otherCallIndex]]
+			    end
+		        else    --Only one call then it is Hold
+			    return "Hold"
+		        end
+		    end
+		    --No call in hold then return callstate of first call
+		    return CallStates[callTable[1]]
+		end
+	    end
+	    return "Idle"
         end,
         Status = function(config, name)
             local profiles = conn:call("mmpbx.profile", "get", {})
             local regStatus = profiles and profiles[name] and profiles[name]["sipRegisterState"] or ""
-            return ProfileRegStatus[regStatus]
+            if (ProfileRegStatus[regStatus] == "Disabled") and profiles and profiles[name] and (profiles[name]["enable"] == "true") then
+                return "Error"
+            else
+                return ProfileRegStatus[regStatus]
+            end
         end,
         DirectoryNumber = "directory_Number",
         PhyReferenceList = function(config, name)
@@ -281,44 +394,18 @@ local function getInfoFromKey(key, parentkey)
 end
 
 
-local uris = {}
 Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_.entries = function(mapping, parentkey)
     local entries = {}
     registrars = {}
-    numOfFxs = 0
-    numOfDect = 0
-    numOfSipdev = 0
-    isDectEnabled, isSipdevEnabled = 0, 0
     binding.config = "mmpbxrvsipnet"
     binding.sectionname = "profile"
-    uris = {}
     uci_helper.foreach_on_uci(binding, function(s)
         if parentkey:match("mmpbxrvsipnet") then
             entries[#entries + 1] = s['.name']
-            uris[s.uri] = true
         end
     end)
 
-    binding.config = "mmpbx"
-    binding.sectionname = "device"
-    uci_helper.foreach_on_uci(binding, function(s)
-    if parentkey:match(s.config) then
-        entries[#entries + 1] = s['.name']
-    end
-        numOfFxs = numOfFxs or 0
-        numOfDect = numOfDect or 0
-        if s['.name']:sub(1,1) == "f" then
-            numOfFxs = numOfFxs + 1
-        end
-        if s['.name']:sub(1,1) == "d" then
-            isDectEnabled = 1
-            numOfDect = numOfDect + 1
-        end
-        if s['.name']:sub(1,1) == "s" then
-            isSipdevEnabled = 1
-            numOfSipdev = numOfSipdev + 1
-        end
-    end)
+    numOfFxs, numOfDect, numOfSipdev = profile_helper.find_device_support(parentkey)
 
     registrars = conn:call("mmpbxrvsipdev.registrar", "list", {})
     return entries
@@ -373,11 +460,21 @@ local function setParam(maps, set_maps)
         binding.sectionname = name
         local map = maps[ltype]
         local set_map = set_maps[ltype]
-
+        local mmpbx_state = uci_helper.get_from_uci({config="mmpbx", sectionname="state"})
+	if not profile_update[name] then
+	    profile_update[name] = {}
+	end
         if set_map[param] then
             if type(set_map[param]) == "function" then
                 binding.option = nil
-                local err, msg = set_map[param](binding, value)
+		if ((ltype == "sip_profile") and (param == "Enable" or param == "URI" or param == "AuthPassword") and (mmpbx_state == "RUNNING")) then
+		    local err, msg = set_map[param](binding, value, ltype)
+                    transactions[binding.config] = true
+		    profile_update[name][param] = value
+		else
+		    local err, msg = set_map[param](binding, value)
+		    transactions[binding.config] = true
+		end
                 if not err and msg then
                     return err, msg
                 end
@@ -385,7 +482,14 @@ local function setParam(maps, set_maps)
                 return true
             elseif type(map.value[param]) == "string" then
                 binding.option = map.value[param]
-                uci_helper.set_on_uci(binding, value, commitapply)
+		if ((ltype == "sip_profile") and (param == "X_000E50_DisplayName" or param == "AuthUserName") and (mmpbx_state == "RUNNING")) then
+		    uci_helper.set_on_uci(binding, value)
+		    transactions[binding.config] = true
+		    profile_update[name][param] = value
+		else
+		    uci_helper.set_on_uci(binding, value, commitapply)
+		    transactions[binding.config] = true
+		end
                 transactions[binding.config] = true
                 return true
             end
@@ -394,14 +498,20 @@ local function setParam(maps, set_maps)
     end
 end
 
-local function setEnable(binding, paramvalue)
+local function setEnable(binding, paramvalue, ltype)
     local value = "0"
+    local mmpbx_state = uci_helper.get_from_uci({config="mmpbx", sectionname="state"})
     binding.option = "enabled"
     if paramvalue == "Quiescent" then
        paramvalue = "Disabled"
     end
     value = EnableStatus[paramvalue]
-    uci_helper.set_on_uci(binding, value, commitapply)
+    if (ltype == "sip_profile") and (mmpbx_state == "RUNNING") then
+	uci_helper.set_on_uci(binding, value)
+    else
+	uci_helper.set_on_uci(binding, value, commitapply)
+    end
+
 end
 
 local function setReset(binding, paramvalue)
@@ -422,26 +532,35 @@ local set_line_sip_net_map = {
             return nil, "Please firstly add the profile"
         end
 
+	local err = 0
         local profile = binding.sectionname
         local port = 0
         local devices = {}
-        local name
         for n in paramvalue:gmatch("[^,]+") do
-            port = tonumber(n) - 1
-            if port then
-                if (port < numOfFxs) and (port >= 0) then
-                    devices[#devices + 1] = format("fxs_dev_%d", port)
-                elseif (isDectEnabled == 1) and (port < (numOfFxs + numOfDect)) then
-                    devices[#devices + 1] = format("dect_dev_%d", port - numOfFxs)
-                elseif (isSipdevEnabled == 1) and (port < (numOfFxs + numOfDect + numOfSipdev)) then
-                    devices[#devices + 1] = format("sip_dev_%d", port - numOfFxs - numOfDect )
+            if not (n:match("%W")) then
+                port = tonumber(n) - 1
+                if port then
+                    if (port < numOfFxs) and (port >= 0) then
+                        devices[#devices + 1] = format("fxs_dev_%d", port)
+                    elseif (numOfDect > 0) and (port >= 0) and (port < (numOfFxs + numOfDect)) then
+                        devices[#devices + 1] = format("dect_dev_%d", port - numOfFxs)
+                    elseif (numOfSipdev > 0) and (port >= 0) and (port < (numOfFxs + numOfDect + numOfSipdev)) then
+                        devices[#devices + 1] = format("sip_dev_%d", port - numOfFxs - numOfDect )
+                    elseif (port < -1) or (port >= (numOfFxs + numOfDect + numOfSipdev)) then
+		        err = 1
+	            end
+                else
+                    return nil, "The value is invalid"
                 end
-            else
-                return nil, "The value is invalid"
             end
         end
-        profile_helper.port_set(profile, devices, transactions, commitapply)
-        return true
+	if (err == 1 and #devices == 0) then
+	    return nil, "The value is invalid"
+	end
+	if (#devices > 0) or (paramvalue == "") or (paramvalue == "0") then
+            profile_helper.port_set(profile, devices, transactions, commitapply)
+	end
+            return true
     end,
     X_000E50_DisplayName = true,
 }
@@ -474,7 +593,7 @@ Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_.add = function(mapping, par
 end
 
 Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_.delete = function(mapping, key, parentkey)
-    local config, name, ltype = getInfoFromKey(key, parentkey)
+    local _, _, ltype = getInfoFromKey(key, parentkey)
     if (ltype == "sip_profile") then
         profile_helper.profile_delete(key, transactions, commitapply)
         return true
@@ -573,18 +692,36 @@ local sip_maps = {
 
 local set_sip_sip_net_map = {
     AuthUserName = true,
-    AuthPassword = function(binding, value)
+    AuthPassword = function(binding, value, ltype)
         binding.option = "password"
-        uci_helper.set_on_uci(binding, value, commitapply)
+        local mmpbx_state = uci_helper.get_from_uci({config="mmpbx", sectionname="state"})
+	if (ltype == "sip_profile") and (mmpbx_state == "RUNNING") then
+            uci_helper.set_on_uci(binding, value)
+	else
+	    uci_helper.set_on_uci(binding, value, commitapply)
+	end
         return true
     end,
-    URI = function(binding, value)
+    URI = function(binding, value, ltype)
         binding.option = "uri"
+        local uris = {}
+        local mmpbx_state = uci_helper.get_from_uci({config="mmpbx", sectionname="state"})
+        local profile_binding = { config = "mmpbxrvsipnet", sectionname = "profile", option = "uri"}
+
+	uci_helper.foreach_on_uci(profile_binding, function(s)
+            if s.uri ~= nil then
+                uris[s.uri] = true
+            end
+        end)
 
         if uci_helper.get_from_uci(binding) ~= value and uris[value] then
-            return nil, "this URI has alreay existed"
+            return nil, "this URI has already existed"
         end
-        uci_helper.set_on_uci(binding, value, commitapply)
+	if (ltype == "sip_profile") and (mmpbx_state == "RUNNING") then
+            uci_helper.set_on_uci(binding, value)
+        else
+            uci_helper.set_on_uci(binding, value, commitapply)
+        end
         return true
     end,
 }
@@ -641,6 +778,94 @@ end
 Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_SIP_.commit = line_commit
 Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_SIP_.revert = line_revert
 duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_SIP_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_SIP_EventSubscribe_i_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.Line.{i}.SIP.EventSubscribe.{i}.",
+        access = "readOnly",
+        minEntries = 0,
+        maxEntries = math.huge,
+        numEntriesParameter = "SIPEventSubscribeNumberOfElements",
+        parameters = {
+            Event = {
+                access = "readOnly",
+                type = "string",
+                max = "32",
+            },
+            AuthUserName = {
+                access = "readWrite",
+                type = "string",
+                max = "128",
+                default = "",
+            },
+            AuthPassword = {
+                access = "readWrite",
+                type = "string",
+                hidden = "true",
+                max = "128",
+                default = "",
+            },
+        }
+    }
+}
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_SIP_EventSubscribe_i_.entries = function(mapping, parentkey, grandkey)
+    local entries = {}
+    local profile_binding = { config = "mmpbxrvsipnet", sectionname = "profile"}
+    uci_helper.foreach_on_uci(profile_binding, function(s)
+        if (s[".name"] == parentkey) then
+            local event_subscribe = s.subscription_event
+            if ((event_subscribe ~= nil) and (type(event_subscribe) == "table")) then
+                for index,name in ipairs(event_subscribe) do
+                    entries[#entries + 1] = parentkey .. "|" .. name .. "|" .. index
+                end
+            end
+        end
+    end)
+    return entries
+end
+
+local subscribe_map = {
+    Event = "subscription_event",
+    AuthUserName = "subscription_user_name",
+    AuthPassword = "subscription_password",
+}
+
+local function subscribe_getter(mapping, paramname, key, parentkey)
+    binding.config = "mmpbxrvsipnet"
+    binding.sectionname = parentkey
+    binding.option = subscribe_map[paramname]
+    local value_table = get_from_uci(binding)
+    local index = key:match(".*|.*|(.*)")
+    return value_table[tonumber(index)]
+end
+local function subscribe_setter(mapping, paramname, paramvalue, key, parentkey)
+    binding.config = "mmpbxrvsipnet"
+    binding.sectionname = parentkey
+    binding.option = subscribe_map[paramname]
+    local index = key:match(".*|.*|(.*)")
+    local value_table = get_from_uci(binding)
+    if (#value_table > 0 and value_table[tonumber(index)] ~= nil) then
+        value_table[tonumber(index)] = paramvalue
+    end
+    set_on_uci(binding, value_table, commitapply)
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_SIP_EventSubscribe_i_.get = subscribe_getter
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_SIP_EventSubscribe_i_.set = subscribe_setter
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_SIP_EventSubscribe_i_.commit = function()
+    uci_helper.commit({config = "mmpbxrvsipnet"})
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_SIP_EventSubscribe_i_.revert = function()
+    uci_helper.revert({config = "mmpbxrvsipnet"})
+end
+
+duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_SIP_EventSubscribe_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
 for _, dupli in ipairs(duplicates) do
   register(dupli)
 end
@@ -886,6 +1111,10 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Stats_ = {
                 access = "readOnly",
                 type = "unsignedInt",
             },
+            X_000E50_CurrCallInboundTotalRTCPXrPackets = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
             X_000E50_CurrCallMaxRTCPOneWayDelay = {
                 access = "readOnly",
                 type = "unsignedInt",
@@ -927,6 +1156,10 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Stats_ = {
                 type = "unsignedInt",
             },
             X_000E50_CurrCallOutboundTotalRTCPPackets = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_CurrCallOutboundTotalRTCPXrPackets = {
                 access = "readOnly",
                 type = "unsignedInt",
             },
@@ -1010,6 +1243,10 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Stats_ = {
                 access = "readOnly",
                 type = "unsignedInt",
             },
+            X_000E50_LastCallInboundTotalRTCPXrPackets = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
             X_000E50_LastCallMaxRTCPOneWayDelay = {
                 access = "readOnly",
                 type = "unsignedInt",
@@ -1051,6 +1288,10 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Stats_ = {
                 type = "unsignedInt",
             },
             X_000E50_LastCallOutboundTotalRTCPPackets = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            X_000E50_LastCallOutboundTotalRTCPXrPackets = {
                 access = "readOnly",
                 type = "unsignedInt",
             },
@@ -1138,6 +1379,10 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Stats_ = {
                 access = "readOnly",
                 type = "unsignedInt",
             },
+            X_000E50_AccumInboundTotalRTCPXrPackets = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
             X_000E50_AccumMaxRTCPOneWayDelay = {
                 access = "readOnly",
                 type = "unsignedInt",
@@ -1186,6 +1431,11 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Stats_ = {
                 access = "readOnly",
                 type = "unsignedInt",
             },
+            X_000E50_AccumOutboundTotalRTCPXrPackets = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+
             X_000E50_AccumSumRTCPOneWayDelay = {
                 access = "readOnly",
                 type = "unsignedInt",
@@ -1272,6 +1522,7 @@ local current_ongoing_stats_map = {
     X_000E50_CurrCallInboundSumSqrFractionLoss = "InboundSumSqrFractionLoss",
     X_000E50_CurrCallInboundSumSqrInterarrivalJitter = "InboundSumSqrInterarrivalJitter",
     X_000E50_CurrCallInboundTotalRTCPPackets = "InboundTotalRTCPPackets",
+    X_000E50_CurrCallInboundTotalRTCPXrPackets = "InboundTotalRTCPXrPackets",
     X_000E50_CurrCallMaxRTCPOneWayDelay = "MaxRTCPOneWayDelay",
     X_000E50_CurrCallMaxRTCPRoundTripDelay = "WorstRoundTripDelay",
     X_000E50_CurrCallOutboundAvgInterarrivalJitter = "AverageFarEndInterarrivalJitter",
@@ -1283,13 +1534,14 @@ local current_ongoing_stats_map = {
     X_000E50_CurrCallOutboundSumSqrFractionLoss = "OutboundSumSqrFractionLoss",
     X_000E50_CurrCallOutboundSumSqrInterarrivalJitter = "OutboundSumSqrInterarrivalJitter",
     X_000E50_CurrCallOutboundTotalRTCPPackets = "OutboundTotalRTCPPackets",
+    X_000E50_CurrCallOutboundTotalRTCPXrPackets = "OutboundTotalRTCPXrPackets",
     X_000E50_CurrCallSumRTCPOneWayDelay = "SumRTCPOneWayDelay",
     X_000E50_CurrCallSumRTCPRoundTripDelay = "SumRTCPRoundTripDelay",
     X_000E50_CurrCallSumSqrRTCPOneWayDelay = "SumSqrRTCPOneWayDelay",
     X_000E50_CurrCalllSumSqrRTCPRoundTripDelay = "SumSqrRTCPRoundTripDelay",
     X_000E50_CurrCallConnectTimeStamp = "SessionStartTime",
     X_000E50_CurrCallDuration = "SessionDuration",
-    X_000E50_CurrCallCodecInUse = "",
+    X_000E50_CurrCallCodecInUse = "codec",
     X_000E50_CurrCallRemoteIP = "FarEndIPAddress"
 
 }
@@ -1310,6 +1562,7 @@ local last_call_stats_map = {
     X_000E50_LastCallInboundSumSqrFractionLoss = "InboundSumSqrFractionLoss",
     X_000E50_LastCallInboundSumSqrInterarrivalJitter = "InboundSumSqrInterarrivalJitter",
     X_000E50_LastCallInboundTotalRTCPPackets = "InboundTotalRTCPPackets",
+    X_000E50_LastCallInboundTotalRTCPXrPackets = "InboundTotalRTCPXrPackets",
     X_000E50_LastCallMaxRTCPOneWayDelay = "MaxRTCPOneWayDelay",
     X_000E50_LastCallMaxRTCPRoundTripDelay = "WorstRoundTripDelay",
     X_000E50_LastCallOutboundAvgInterarrivalJitter = "AverageFarEndInterarrivalJitter",
@@ -1321,6 +1574,7 @@ local last_call_stats_map = {
     X_000E50_LastCallOutboundSumSqrFractionLoss = "OutboundSumSqrFractionLoss",
     X_000E50_LastCallOutboundSumSqrInterarrivalJitter = "OutboundSumSqrInterarrivalJitter",
     X_000E50_LastCallOutboundTotalRTCPPackets = "OutboundTotalRTCPPackets",
+    X_000E50_LastCallOutboundTotalRTCPXrPackets = "OutboundTotalRTCPXrPackets",
     X_000E50_LastCallSumRTCPOneWayDelay = "SumRTCPOneWayDelay",
     X_000E50_LastCallSumRTCPRoundTripDelay = "SumRTCPRoundTripDelay",
     X_000E50_LastCallSumSqrRTCPOneWayDelay = "SumSqrRTCPOneWayDelay",
@@ -1333,8 +1587,8 @@ local last_call_stats_map = {
     X_000E50_LastCallCodecInUse = "Codec",
 }
 
-local time_t={}
 local function convert2Sec(value)
+    local time_t={}
     time_t.year, time_t.month, time_t.day, time_t.hour, time_t.min, time_t.sec = value:match("(%d+)-(%d+)-(%d+)%s+(%d+):(%d+):(%d+)")
     if time_t.year then
         return os.time(time_t)
@@ -1353,7 +1607,7 @@ local function stats_get(mapping, param, key, parentkey)
         return  "0"
     end
     if param == "ServerDownTime" then
-        local config, name, ltype = getInfoFromKey(key, parentkey)
+        local _, name = getInfoFromKey(key, parentkey)
         local profiles = conn:call("mmpbx.profile", "get", {})
         if profiles and profiles[name] then
             value = profiles[name]["serverDownTime"] or "0"
@@ -1394,8 +1648,8 @@ local function stats_get(mapping, param, key, parentkey)
     if current_ongoing_call_map[param] then
         local call_info = conn:call("mmpbx.call", "get", {["profile"]=uri})
         local ubus_name = current_ongoing_call_map[param]
-        if call_info and call_info[1] then
-            value = tostring(call_info[1][ubus_name] or "0")
+        for _,callinfo_param in pairs (call_info) do
+            value = tostring(callinfo_param[ubus_name] or "0")
         end
         return value
     end
@@ -1464,6 +1718,7 @@ local function stats_getall(mapping, key, parentkey)
         X_000E50_CurrCallInboundSumSqrFractionLoss = "0",
         X_000E50_CurrCallInboundSumSqrInterarrivalJitter = "0",
         X_000E50_CurrCallInboundTotalRTCPPackets = "0",
+        X_000E50_CurrCallInboundTotalRTCPXrPackets = "0",
         X_000E50_CurrCallMaxRTCPOneWayDelay = "0",
         X_000E50_CurrCallMaxRTCPRoundTripDelay = "0",
         X_000E50_CurrCallOutboundAvgInterarrivalJitter = "0",
@@ -1475,6 +1730,7 @@ local function stats_getall(mapping, key, parentkey)
         X_000E50_CurrCallOutboundSumSqrFractionLoss = "0",
         X_000E50_CurrCallOutboundSumSqrInterarrivalJitter = "0",
         X_000E50_CurrCallOutboundTotalRTCPPackets = "0",
+        X_000E50_CurrCallOutboundTotalRTCPXrPackets = "0",
         X_000E50_CurrCallSumRTCPOneWayDelay = "0",
         X_000E50_CurrCallSumRTCPRoundTripDelay = "0",
         X_000E50_CurrCallSumSqrRTCPOneWayDelay = "0",
@@ -1495,6 +1751,7 @@ local function stats_getall(mapping, key, parentkey)
         X_000E50_LastCallInboundSumSqrFractionLoss = "0",
         X_000E50_LastCallInboundSumSqrInterarrivalJitter = "0",
         X_000E50_LastCallInboundTotalRTCPPackets = "0",
+        X_000E50_LastCallInboundTotalRTCPXrPackets = "0",
         X_000E50_LastCallMaxRTCPOneWayDelay = "0",
         X_000E50_LastCallMaxRTCPRoundTripDelay = "0",
         X_000E50_LastCallOutboundAvgInterarrivalJitter = "0",
@@ -1506,6 +1763,7 @@ local function stats_getall(mapping, key, parentkey)
         X_000E50_LastCallOutboundSumSqrFractionLoss = "0",
         X_000E50_LastCallOutboundSumSqrInterarrivalJitter = "0",
         X_000E50_LastCallOutboundTotalRTCPPackets = "0",
+        X_000E50_LastCallOutboundTotalRTCPXrPackets = "0",
         X_000E50_LastCallSumRTCPOneWayDelay = "0",
         X_000E50_LastCallSumRTCPRoundTripDelay = "0",
         X_000E50_LastCallSumSqrRTCPOneWayDelay = "0",
@@ -1521,6 +1779,7 @@ local function stats_getall(mapping, key, parentkey)
         X_000E50_AccumInboundSumSqrFractionLoss = "0",
         X_000E50_AccumInboundSumSqrInterarrivalJitter = "0",
         X_000E50_AccumInboundTotalRTCPPackets = "0",
+        X_000E50_AccumInboundTotalRTCPXrPackets = "0",
         X_000E50_AccumMaxRTCPOneWayDelay = "0",
         X_000E50_AccumMaxRTCPRoundTripDelay = "0",
         X_000E50_AccumOutboundAvgInterarrivalJitter = "0",
@@ -1533,6 +1792,7 @@ local function stats_getall(mapping, key, parentkey)
         X_000E50_AccumOutboundSumSqrFractionLoss = "0",
         X_000E50_AccumOutboundSumSqrInterarrivalJitter = "0",
         X_000E50_AccumOutboundTotalRTCPPackets = "0",
+        X_000E50_AccumOutboundTotalRTCPXrPackets = "0",
         X_000E50_AccumSumRTCPOneWayDelay = "0",
         X_000E50_AccumSumRTCPRoundTripDelay = "0",
         X_000E50_AccumSumSqrRTCPOneWayDelay = "0",
@@ -1545,13 +1805,23 @@ local function stats_getall(mapping, key, parentkey)
     }
     local uri_get=getParam(sip_maps)
     local uri = uri_get(mapping, "URI", key, parentkey)
-    if uri == "" then
+    local delimiter1 = find(uri,":")
+    local delimiter2 = find(uri,"@")
+    local modified_uri
+    if delimiter1 ~= nil and delimiter2 ~= nil then
+       modified_uri = sub(uri,(delimiter1+1),(delimiter2-1))
+    elseif delimiter1 == nil and delimiter2 ~= nil then
+       modified_uri = sub(uri,0,(delimiter2-1))
+    else
+       modified_uri = uri
+    end
+    if modified_uri == "" then
         return results
     end
 
 
     local cur_codec = 0
-    local rtp_session = conn:call("mmpbx.rtp.session", "list", {["rtcp"]="1", ["name"]=uri} )
+    local rtp_session = conn:call("mmpbx.rtp.session", "list", {["rtcp"]="1", ["name"]=modified_uri} )
     if rtp_session and rtp_session[1] then
         for k, v in pairs(current_ongoing_stats_map) do
             if k ~= X_000E50_CurrCallCodecInUse then
@@ -1577,21 +1847,21 @@ local function stats_getall(mapping, key, parentkey)
 	end
     end
 
-    local call_info = conn:call("mmpbx.call", "get", {["profile"]=uri} )
+    local call_info = conn:call("mmpbx.call", "get", {["profile"]=modified_uri} )
     if call_info and call_info[1] then
         for k, v in pairs(current_ongoing_call_map) do
             results[k] = tostring(call_info[1][v] or "0")
         end
     end
 
-    local callnumber = conn:call("mmdbd.callnumber.statistics", "get", {["profile"]=uri} )
+    local callnumber = conn:call("mmdbd.callnumber.statistics", "get", {["profile"]=modified_uri} )
     if callnumber and callnumber[1] then
         for k, v in pairs(callnumber_statistic_map) do
 	   results[k] = tostring(callnumber[1][v] or "0")
 	end
     end
 
-    local call_stats = conn:call("mmdbd.call.statistics", "get", {["profile"]=uri})
+    local call_stats = conn:call("mmdbd.call.statistics", "get", {["profile"]=modified_uri})
     if call_stats then
         for _, v in pairs(call_stats) do
             for _, v2 in pairs(v) do
@@ -1615,7 +1885,7 @@ local function stats_getall(mapping, key, parentkey)
         end
     end
 
-    local config, name, ltype = getInfoFromKey(key, parentkey)
+    local _, name = getInfoFromKey(key, parentkey)
     local profiles = conn:call("mmpbx.profile", "get", {})
     if profiles and profiles[name] then
         results.ServerDownTime =  tostring(profiles[name]["serverDownTime"]) or "0"
@@ -1633,10 +1903,165 @@ Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Stats_.set = function(mappin
     end
     if param == "ResetStatistics" then
         conn:call("mmdbd.call.statistics", "reset", {["profile"]=uri})
-        return true
+        conn:call("mmdbd.callnumber.statistics", "reset", {["profile"]=uri})
+        conn:call("mmdbd.calllog", "delete", {["profile"]=uri})
+	return true
     end
 end
 duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Stats_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Stats_X_List_i_ = {
+    objectType = {
+      name = "#ROOT",
+      access = "readOnly",
+      minEntries = 0,
+      maxEntries = math.huge,
+      description = "call statistics of particular profile",
+      parameters = {
+          CallingNumber = {
+              access = "readOnly",
+              type = "string",
+	      max = "64",
+	      description = "The Number from which the call was initiated",
+          },
+          CalledNumber = {
+              access = "readOnly",
+              type = "string",
+              max = "64",
+              description = "The Number to which the call was given",
+          },
+          Duration = {
+              access = "readOnly",
+              type = "string",
+              max = "64",
+	      description = "Duration of the call in seconds",
+          },
+          Status = {
+              access = "readOnly",
+              type = "string",
+              max = "64",
+              description = "Termination reason of the call",
+          },
+          Codec = {
+              access = "readOnly",
+              type = "string",
+              max = "64",
+              description = "Codec used for Call"
+          },
+          SourceIP = {
+              access = "readOnly",
+              type = "string",
+              description = "IP Address of Local user",
+          },
+          SourcePort = {
+              access = "readOnly",
+              type = "unsignedInt",
+              description = "Port used by local user",
+          },
+         DestinationIP = {
+              access = "readOnly",
+              type = "string",
+              description = "IP Address of remote user",
+          },
+          DestinationPort = {
+              access = "readOnly",
+              type = "unsignedInt",
+              description = "Port used by remote user",
+          },
+          Status = {
+              access = "readOnly",
+              type = "string",
+              description = "Displays the status of the call",
+              enumeration = {
+                  "Dialed",
+                  "Missed",
+                  "Received",
+              },
+          },
+      }
+    }
+}
+
+local stats = {}
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Stats_X_List_i_.entries = function(mapping, parentKey, grandKey)
+  local entries = {}
+  stats = {}
+  local uri_get = getParam(sip_maps)
+  local uri = uri_get(mapping, "URI", parentKey, grandKey)
+  if uri == "" then
+    return {}
+  end
+  local callStats = conn:call("mmdbd.call.statistics", "get", {["profile"] = uri} )
+  if callStats then
+    for _, calllog in pairs(callStats) do
+      for _, params in ipairs(calllog) do
+        local key = tostring(params.CallKey)
+        entries[#entries + 1] =  key
+        stats[key] = params
+        stats[key]["uri"] = uri
+      end
+    end
+  end
+  return entries
+end
+
+local function getDuration(key)
+  local connectedTime = tostring(stats[key].connectedTime or "0")
+  local endTime = tostring(stats[key].endTime or "0")
+  if endTime ~= "0" and connectedTime ~= "0" then
+    return tostring(convert2Sec(endTime) - convert2Sec(connectedTime))
+  end
+  return "0"
+end
+
+-- Returns the status of the call [Dialled or Recieved or Missed]
+-- @param key generated in entries function
+local function getCallStatus(key)
+  local direction = stats[key].Direction and tostring(stats[key].Direction) or ""
+  local connectedTime = stats[key].connectedTime and tostring(stats[key].connectedTime)or ""
+  if direction == "2" then
+    return "Dialed"
+  elseif direction == "1" and connectedTime ~= "0" then
+    return "Received"
+  elseif direction == "1" and connectedTime == "0" then
+    return "Missed"
+  end
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Stats_X_List_i_.get = {
+  CallingNumber = function(mapping, param, key)
+    return stats[key].uri or ""
+  end,
+  CalledNumber = function(mapping, param, key)
+    return stats[key].Remote or ""
+  end,
+  Duration = function(mapping, param, key)
+    return getDuration(key)
+  end,
+  Codec = function(mapping, param, key)
+    return stats[key].Codec or ""
+  end,
+  SourceIP = function(mapping, param, key)
+    return stats[key].LocalIPAddress or ""
+  end,
+  SourcePort = function(mapping, param, key)
+    return stats[key].LocalUDPPort and tostring(stats[key].LocalUDPPort) or ""
+  end,
+  DestinationIP = function(mapping, param, key)
+    return stats[key].FarEndIPAddress or ""
+  end,
+  DestinationPort = function(mapping, param, key)
+    return stats[key].FarEndUDPPort and tostring(stats[key].FarEndUDPPort) or ""
+  end,
+  Status = function(mapping, param, key)
+    return getCallStatus(key) or ""
+  end,
+}
+
+local duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Stats_X_List_i_, "#ROOT", {"InternetGatewayDevice.Services.VoiceService.{i}.VoiceProfile.{i}.Line.{i}.Stats.X_List.{i}.", "InternetGatewayDevice.Services.VoiceService.{i}.VoiceProfile.{i}.Line.{i}.Stats.X_000E50_List.{i}."})
 for _, dupli in ipairs(duplicates) do
   register(dupli)
 end
@@ -1665,50 +2090,50 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_CallingFeatures_ = {
                 access = "readWrite",
                 type = "boolean",
             },
-            --      CallWaitingStatus = {
-            --        access = "readOnly",
-            --        type = "string",
-            --        enumeration = {
-            --          "Disabled",
-            --          "Idle",
-            --          "SecondaryRinging",
-            --          "SecondaryConnecting",
-            --          "SecondaryConnected",
-            --        },
-            --      },
+            CallWaitingStatus = {
+                access = "readOnly",
+                type = "string",
+                enumeration = {
+                  "Disabled",
+                  "Idle",
+                  "SecondaryRinging",
+                  "SecondaryConnecting",
+                  "SecondaryConnected",
+                },
+            },
             MaxSessions = {
                 access = "readWrite",
                 type = "unsignedInt",
             },
-            --      ConferenceCallingStatus = {
-            --        access = "readOnly",
-            --        type = "string",
-            --        enumeration = {
-            --          "Disabled",
-            --          "Idle",
-            --          "SecondaryCalling",
-            --          "SecondaryConnecting",
-            --          "SecondaryConnected",
-            --          "InConferenceCall",
-            --        },
-            --      },
-            --      ConferenceCallingSessionCount = {
-            --        access = "readOnly",
-            --        type = "unsignedInt",
-            --        range = {
-            --          {
-            --            min = "0",
-            --            max = "0",
-            --          },
-            --          {
-            --            min = "1",
-            --            max = "1",
-            --          },
-            --          {
-            --            min = "1",
-            --          },
-            --        },
-            --      },
+            ConferenceCallingStatus = {
+                access = "readOnly",
+                type = "string",
+                enumeration = {
+                  "Disabled",
+                  "Idle",
+                  "SecondaryCalling",
+                  "SecondaryConnecting",
+                  "SecondaryConnected",
+                  "InConferenceCall",
+                },
+            },
+            ConferenceCallingSessionCount = {
+                access = "readOnly",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "0",
+                    },
+                    {
+                        min = "1",
+                        max = "1",
+                    },
+                    {
+                        min = "1",
+                    },
+               },
+            },
             CallForwardUnconditionalEnable = {
                 access = "readWrite",
                 type = "boolean",
@@ -1736,10 +2161,10 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_CallingFeatures_ = {
                 type = "string",
                 max = "32",
             },
-            --      CallForwardOnNoAnswerRingCount = {
-            --        access = "readWrite",
-            --        type = "unsignedInt",
-            --      },
+            CallForwardOnNoAnswerRingCount = {
+                access = "readWrite",
+                type = "unsignedInt",
+            },
             CallTransferEnable = {
                 access = "readWrite",
                 type = "boolean",
@@ -1748,10 +2173,10 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_CallingFeatures_ = {
                 access = "readWrite",
                 type = "boolean",
             },
-            --      MessageWaiting = {
-            --        access = "readOnly",
-            --        type = "boolean",
-            --      },
+            MessageWaiting = {
+                access = "readOnly",
+                type = "boolean",
+            },
             AnonymousCallBlockEnable = {
                 access = "readWrite",
                 type = "boolean",
@@ -1760,10 +2185,10 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_CallingFeatures_ = {
                 access = "readWrite",
                 type = "boolean",
             },
-            --      DoNotDisturbEnable = {
-            --        access = "readWrite",
-            --        type = "boolean",
-            --      },
+            DoNotDisturbEnable = {
+                access = "readWrite",
+                type = "boolean",
+            },
                     CallReturnEnable = {
                       access = "readWrite",
                       type = "boolean",
@@ -1782,29 +2207,143 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_CallingFeatures_ = {
                 type = "boolean",
                 default = "true"
             },
+            X_CallHoldProv = {
+                access = "readWrite",
+                type = "boolean",
+		description = "Enable/Disable the call Hold provision",
+            },
+            X_CallHoldEnable = {
+                access = "readWrite",
+                type = "boolean",
+		description = "Enable/Disable the call Hold activation",
+            },
+            X_CallWaitingProv = {
+                access = "readWrite",
+                type = "boolean",
+		description = "Enable/Disable the call waiting option",
+            },
+            X_ThreeWayProv = {
+                access = "readWrite",
+                type = "boolean",
+		description = "Enable/Disable the conference calling provision",
+            },
+            X_ThreeWayEnable = {
+                access = "readWrite",
+                type = "boolean",
+		description = "Enable/Disable the conference call option",
+            },
+            X_CallTransferProv = {
+                access = "readWrite",
+                type = "boolean",
+		description = "Enable/Disable the call transfer provision",
+            },
+            X_AutoCallProv = {
+                access = "readWrite",
+                type = "boolean",
+                description = "Enable/Disable the Provision of warmline service",
+            },
+            X_AutoCallEnable = {
+                access = "readWrite",
+                type = "boolean",
+		description = "Enable/Disable the activation  of warmline service",
+            },
+            X_AutoCallNumber = {
+                access = "readWrite",
+                type = "string",
+		max = "256",
+		description = "Automatic calling Number in warmline service",
+            },
+            X_AutoCallInterval = {
+                access = "readWrite",
+                type = "unsignedInt",
+		description = "specifies the timeout of warmline service",
+            },
+            X_000E50_CallHoldProv = {
+                access = "readWrite",
+                type = "boolean",
+                description = "Enable/Disable the call Hold provision",
+            },
+            X_000E50_CallHoldEnable = {
+                access = "readWrite",
+                type = "boolean",
+                description = "Enable/Disable the call Hold activation",
+            },
+            X_000E50_CallWaitingProv = {
+                access = "readWrite",
+                type = "boolean",
+                description = "Enable/Disable the call waiting option",
+            },
+            X_000E50_ThreeWayProv = {
+                access = "readWrite",
+                type = "boolean",
+                description = "Enable/Disable the conference calling provision",
+            },
+            X_000E50_ThreeWayEnable = {
+                access = "readWrite",
+                type = "boolean",
+                description = "Enable/Disable the conference call option",
+            },
+            X_000E50_CallTransferProv = {
+                access = "readWrite",
+                type = "boolean",
+                description = "Enable/Disable the call transfer provision",
+            },
+            X_000E50_AutoCallProv = {
+                access = "readWrite",
+                type = "boolean",
+                description = "Enable/Disable the Provision of warmline service",
+            },
+            X_000E50_AutoCallEnable = {
+                access = "readWrite",
+                type = "boolean",
+                description = "Enable/Disable the activation  of warmline service",
+            },
+            X_000E50_AutoCallNumber = {
+                access = "readWrite",
+                type = "string",
+                max = "256",
+                description = "Automatic calling Number in warmline service",
+            },
+            X_000E50_AutoCallInterval = {
+                access = "readWrite",
+                type = "unsignedInt",
+                description = "specifies the timeout of warmline service",
+            },
+            X_CallTransferActivate = {
+                access = "readWrite",
+                type = "boolean",
+                description = "Enable/Disable call transfer service",
+            },
         }
     }
 }
 
 -- Get the SIP highest priority device
-local function getSipDevice(name)
+local function getSipDevice(name, service)
     local device = ""
     local priority = 65535
-
-    uci_helper.foreach_on_uci(outgoing_binding, function(s)
-        if s.profile and type(s.profile) == "table" then
-            for i,v in ipairs(s.profile) do
-                if (v == name) then
-                    local level = tonumber(s.priority[i])
-                    if (priority > level or (priority == level and s.device == "fxs_dev_0")) then
-                        device = s.device
-                        priority = level
+    if (service == "CALL_WAITING" or service == "TRANSFER" or service == "CONFERENCE" or service == "WARMLINE") then
+        uci_helper.foreach_on_uci(incoming_binding, function(s)
+            if s.profile and type(s.profile) == "string" and s.profile == name then
+                device = table.concat(s.device, " ")
+            end
+        end)
+    else
+        uci_helper.foreach_on_uci(outgoing_binding, function(s)
+            if s.profile and type(s.profile) == "table" then
+                for i,v in ipairs(s.profile) do
+                    if (v == name) then
+                        local level = tonumber(s.priority[i])
+                        if (priority > level or (priority == level and s.device == "fxs_dev_0")) then
+                            device = s.device
+                            priority = level
+                        end
+                        break
                     end
-                    break
                 end
             end
-        end
-    end)
+        end)
+    end
     return device, priority
 end
 
@@ -1839,21 +2378,57 @@ local function convertSdpInfo(value)
     return convert_sdp_info[value]
 end
 
+local function convertConferenceStatus(value)
+     return ConferenceCallingStatus[value] or "Idle"
+end
+
+local function convertCallWaitingStatus(value)
+     return CallWaitingStatus[value] or "Idle"
+end
+
+local function translateSecondsAndRingCount(value, isRingCount)
+    local newValue = get_from_uci(toneBinding)
+    local ringDuration = 6 -- default ring duration. Also "short" tone is always of 6 seconds duration
+    if (newValue and type(newValue) == "table") then
+        if (newValue[1] and newValue[1] == "long") then
+            if newValue[2] then
+               local lengthOfPattern = tonumber(newValue[2]:sub(3,4),16) -- extracts number of bits, converts hex to decimal
+               ringDuration = lengthOfPattern * 0.05 --for BRCM, each bit in pattern represents 50 ms
+            end
+        end
+    end
+    if (ringDuration ~= 0) then
+        if value then
+            value = tonumber(value)
+            value = isRingCount and (value * ringDuration) or (value / ringDuration)
+            return tostring(ceil(value))
+        end
+        return ""
+    end
+end
+
 local call_common_default = setmetatable({
     CallerIDEnable = "1",
     CallerIDNameEnable = "1",
     AnonymousCalEnable = "0",
+    DoNotDisturbEnable = "0",
     CallForwardUnconditionalEnable = "0",
     CallForwardOnBusyEnable = "0",
     CallForwardOnNoAnswerEnable = "0",
+    CallForwardOnNoAnswerRingCount = "0",
     AnonymousCallBlockEnable = "0",
     CallWaitingEnable = "1",
     CallTransferEnable = "1",
     MaxSessions = "2",
     MWIEnable = "0",
+    MessageWaiting = "0",
     CallReturnEnable = "0",
     X_FASTWEB_SendRemoteCHTone = "true",
-    X_FASTWEB_PlayLocalCHTone = "true"
+    X_FASTWEB_PlayLocalCHTone = "true",
+    CallWaitingStatus = "Idle",
+    ConferenceCallingStatus = "Idle",
+    ConferenceCallingSessionCount = "0",
+    X_CallTransferActivate = "1",
 }, mt)
 
 local call_sip_net_map = {
@@ -1868,13 +2443,40 @@ local call_sip_net_map = {
         CallForwardOnBusyNumber = {"CFBS", "destination"},
         CallForwardOnNoAnswerEnable = {"CFNR", "provisioned"},
         CallForwardOnNoAnswerNumber = {"CFNR", "destination"},
-        CallTransferEnable = {"TRANSFER", "provisioned", true, getSipDevice},
+        CallForwardOnNoAnswerRingCount = {"CFNR", "timeout", nil, translateSecondsAndRingCount},
+        CallTransferEnable = {"TRANSFER", "activated", true, getSipDevice},
         MWIEnable = {"MWI", "provisioned"},
+        MessageWaiting = {nil, "messageWaiting", nil, nil },
         AnonymousCallBlockEnable = {"ACR", "provisioned"},
         AnonymousCalEnable = {"CLIR", "provisioned"},
+        DoNotDisturbEnable = {"DND", "provisioned"},
         CallReturnEnable = {"CALL_RETURN", "provisioned"},
+        CallWaitingStatus = {nil, "callWaitingStatus", nil, convertCallWaitingStatus},
+        ConferenceCallingStatus = {nil, "conferenceCallingStatus", nil, convertConferenceStatus},
+        ConferenceCallingSessionCount = {nil, "conferenceCallingSessionCount",nil, nil},
         X_FASTWEB_SendRemoteCHTone = {"sip_net","sdp_direction_call_hold", nil, convertSdpInfo},
-        X_FASTWEB_PlayLocalCHTone = {"sip_net","sdp_direction_call_hold_answer", nil, convertSdpInfo2}
+        X_FASTWEB_PlayLocalCHTone = {"sip_net","sdp_direction_call_hold_answer", nil, convertSdpInfo2},
+        X_CallHoldProv = {"HOLD", "provisioned"},
+        X_CallHoldEnable = {"HOLD", "activated"},
+        X_CallWaitingProv = {"CALL_WAITING", "provisioned", true, getSipDevice},
+        X_ThreeWayProv = {"CONFERENCE", "provisioned", true, getSipDevice},
+        X_ThreeWayEnable = {"CONFERENCE", "activated", true, getSipDevice},
+	X_CallTransferProv  = {"TRANSFER", "provisioned", true, getSipDevice},
+        X_AutoCallProv = {"WARMLINE", "provisioned", true, getSipDevice},
+        X_AutoCallEnable  = {"WARMLINE", "activated", true, getSipDevice},
+        X_AutoCallNumber = {"WARMLINE", "destination", true, getSipDevice},
+        X_AutoCallInterval = {"WARMLINE", "timeout", true, getSipDevice},
+        X_CallTransferActivate = {"TRANSFER", "activated", true, getSipDevice},
+        X_000E50_CallHoldProv = {"HOLD", "provisioned"},
+        X_000E50_CallHoldEnable = {"HOLD", "activated"},
+        X_000E50_CallWaitingProv = {"CALL_WAITING", "provisioned", true, getSipDevice},
+        X_000E50_ThreeWayProv = {"CONFERENCE", "provisioned", true, getSipDevice},
+        X_000E50_ThreeWayEnable = {"CONFERENCE", "activated", true, getSipDevice},
+        X_000E50_CallTransferProv  = {"TRANSFER", "provisioned", true, getSipDevice},
+        X_000E50_AutoCallProv = {"WARMLINE", "provisioned", true, getSipDevice},
+        X_000E50_AutoCallEnable  = {"WARMLINE", "activated", true, getSipDevice},
+        X_000E50_AutoCallNumber = {"WARMLINE", "destination", true, getSipDevice},
+        X_000E50_AutoCallInterval = {"WARMLINE", "timeout", true, getSipDevice},
     },
     default = call_common_default,
 }
@@ -1903,13 +2505,36 @@ local set_call_sip_net_map = {
     CallForwardOnBusyNumber = false,
     CallForwardOnNoAnswerEnable = true,
     CallForwardOnNoAnswerNumber = false,
+    CallForwardOnNoAnswerRingCount = false,
     CallTransferEnable = false,
     MWIEnable = false,
     CallReturnEnable = false,
     AnonymousCallBlockEnable = false,
     AnonymousCalEnable = false,
+    DoNotDisturbEnable = false,
     X_FASTWEB_SendRemoteCHTone = false,
-    X_FASTWEB_PlayLocalCHTone = false
+    X_FASTWEB_PlayLocalCHTone = false,
+    X_CallHoldProv = false,
+    X_CallHoldEnable = false,
+    X_CallWaitingProv = false,
+    X_ThreeWayProv = false,
+    X_ThreeWayEnable = false,
+    X_CallTransferProv  = false,
+    X_AutoCallProv = false,
+    X_AutoCallEnable  = false,
+    X_AutoCallNumber = false,
+    X_AutoCallInterval = false,
+    X_000E50_CallHoldProv = false,
+    X_000E50_CallHoldEnable = false,
+    X_000E50_CallWaitingProv = false,
+    X_000E50_ThreeWayProv = false,
+    X_000E50_ThreeWayEnable = false,
+    X_000E50_CallTransferProv  = false,
+    X_000E50_AutoCallProv = false,
+    X_000E50_AutoCallEnable  = false,
+    X_000E50_AutoCallNumber = false,
+    X_000E50_AutoCallInterval = false,
+    X_CallTransferActivate = false
 }
 local set_call_sip_server_map = {}
 
@@ -1934,14 +2559,100 @@ local function getCallValue(map, s, param, hasprofile, name)
                     res = cb(res)
                 end
             else
-                local device = cb(name)
-                if s.device and table.concat(s.device, " "):match(device) then
-                    res = s[option]
+                local device = cb(name, stype)
+                if (stype == "CALL_WAITING" or stype == "TRANSFER" or stype == "CONFERENCE" or stype == "WARMLINE") then
+                    if s.device and type(s.device) == "table" then
+                        local noOfDevice = #s.device
+                        local deviceName = table.concat(s.device, " ")
+                        if noOfDevice == 1 then
+                            if device:match(deviceName) then
+                                res = s[option]
+                            end
+                        else
+                            -- more than one device is present in service
+                            for deviceName in device:gmatch("%S+") do
+                                if device:match(deviceName) then
+                                    res = s[option]
+                                end
+                            end
+                        end
+                    end
+                else
+                    if s.device and table.concat(s.device, " "):match(device) then
+                        res = s[option]
+                    end
                 end
             end
         end
     end
     return res
+end
+
+local function getCallWaitingAndConferenceStatus(map,param, key, data)
+    local call_status = conn:call("mmpbx.device", "get", {})
+    if call_status and type(call_status) == "table" then
+        local device = {}
+        local isMatchingDevice = false
+        local serviceStatus = map.value[param][2]
+        local cb = map.value[param][4]
+        local statusName = ""
+        device = getSipDevice(key,"CALL_WAITING")
+        -- Loop over device table, if device matches with profile's incoming map device
+        -- then store the confernece/callwaiting status and profile used for call
+        for deviceName,attribute in pairs(call_status) do
+            if device:match(deviceName) then
+                statusName = statusName .. "," .. attribute[serviceStatus]
+            end
+        end
+        for _,attribute in pairs(call_status) do
+            -- If "profileUsed" is not empty for a device then return service status of that device
+            if ((attribute[serviceStatus])  and (attribute.profileUsed:match(key))) then
+                if (type(data) == "table") then
+                    data[param] = cb and cb(attribute[serviceStatus]) or tostring(attribute[serviceStatus])
+                else
+                    data = cb and cb(attribute[serviceStatus]) or tostring(attribute[serviceStatus])
+                end
+                return data
+            end
+        end
+        for deviceName,attribute in pairs(call_status) do
+        -- When service status is "Disabled" or "Idle" then return the service status based the profile's incoming map device status
+            if ((attribute[serviceStatus]) and ((attribute[serviceStatus] =="Disabled") or (attribute[serviceStatus] =="Idle")) and (attribute.profileUsed == "")) then
+                if device == deviceName then      -- single profile, single device mapping case
+                    isMatchingDevice = true
+                elseif (device:match(deviceName)) then    -- single profile, multiple device mapping case
+                    if statusName:match("Disabled") then
+                        attribute[serviceStatus] = "Disabled"
+                        isMatchingDevice = true
+                    elseif statusName:match("Idle") and not statusName:match("Disabled") then
+                        attribute[serviceStatus] = "Idle"
+                        isMatchingDevice = true
+                    end
+                end
+                if isMatchingDevice then
+                    if (type(data) == "table") then
+                        data[param] = cb and cb(attribute[serviceStatus]) or tostring(attribute[serviceStatus])
+                    else
+                        data = cb and cb(attribute[serviceStatus]) or tostring(attribute[serviceStatus])
+                    end
+                    return data
+                end
+            end
+        end
+        return data
+    end
+end
+
+local function getMessageWaitingStatus(map,param, key,data)
+    local profiles = conn:call("mmpbx.profile", "get", {})
+    if profiles and profiles[key] then
+        if (type(data) == "table") then
+            data[param] = MessageWaitingStatus[(profiles[key][map.value[param][2]])] or "0"
+        else
+            data = MessageWaitingStatus[(profiles[key][map.value[param][2]])] or "0"
+        end
+        return data
+    end
 end
 
 Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_CallingFeatures_.getall = function(mapping, key, parentkey)
@@ -1952,12 +2663,11 @@ Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_CallingFeatures_.getall = fu
         local hasprofile = s.profile and table.concat(s.profile, " "):match(name)
         for p,v in pairs(map.value) do
             if type(v) == "table" then
-                data[p] = data[p] or getCallValue(map, s, p, hasprofile)
+                data[p] = data[p] or getCallValue(map, s, p, hasprofile, name)
             end
         end
     end)
     for p,_ in pairs(Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_CallingFeatures_.objectType.parameters) do
-
         if type(map.value[p]) == "table" then
             if (p == "X_FASTWEB_SendRemoteCHTone" or p == "X_FASTWEB_PlayLocalCHTone") then
                 binding.config = configfile_sip
@@ -1966,6 +2676,10 @@ Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_CallingFeatures_.getall = fu
                 local cb = map.value[p][4]
                 local res = get_from_uci(binding)
                 data[p] = cb and cb(res)
+            elseif (p == "ConferenceCallingStatus" or p == "CallWaitingStatus" or p == "ConferenceCallingSessionCount") then
+                getCallWaitingAndConferenceStatus(map,p, key,  data)
+            elseif (p == "MessageWaiting") then
+		getMessageWaitingStatus(map,p, key, data)
             end
 
         elseif type(map.value[p]) == "string" then
@@ -1992,6 +2706,10 @@ Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_CallingFeatures_.get = funct
             local cb = map.value[param][4]
             res = get_from_uci(binding)
             res =  cb and cb(res) or "true"
+        elseif (param == "ConferenceCallingStatus" or param == "CallWaitingStatus" or param == "ConferenceCallingSessionCount") then
+           res =  getCallWaitingAndConferenceStatus(map,param, key, res)
+        elseif (param == "MessageWaiting") then
+            res = getMessageWaitingStatus(map,param, key, res)
         else
             local stype = map.value[param][1]
             local option = map.value[param][2]
@@ -2006,11 +2724,30 @@ Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_CallingFeatures_.get = funct
                             return true
                         end
                     else
-                        local device = cb(name)
-                        if s.device and table.concat(s.device, " "):match(device) then
-                            res = s[option]
-                        end
+                        local device = cb(name, stype)
+                        if (stype == "CALL_WAITING" or stype == "TRANSFER" or stype == "CONFERENCE" or stype == "WARMLINE") then
+                            if s.device and type(s.device) == "table" then
+                                local noOfDevice = #s.device
+                                local deviceName = table.concat(s.device, " ")
+                                if noOfDevice == 1 then
+                                    if device:match(deviceName) then
+                                        res = s[option]
+                                    end
+                                else
+                                    -- more than one device is present in service
+                                    for deviceName in device:gmatch("%S+") do
+                                        if device:match(deviceName) then
+                                            res = s[option]
+                                        end
+                                    end
+                                end
+                            end
+                        else
+                            if s.device and table.concat(s.device, " "):match(device) then
+                                res = s[option] or ""
+                            end
                         return true
+                        end
                     end
                 end
             end)
@@ -2024,18 +2761,87 @@ Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_CallingFeatures_.get = funct
     return res
 end
 
+-- This function checks if device name is present in incoming/outgoing map based "stype", if present "option" is updated with "value"
+local function checkDevice(cb, name, value, s, stype, option)
+    local device = cb(name, stype)
+    local device_binding = {config = "mmpbx", sectionname = s['.name']}
+    if s.device and type(s.device == "table") then
+        local deviceName = table.concat(s.device, " ")
+        if device ~= nil then
+            if #s.device == 1 then
+                -- only one device is present in service
+                if device:match(deviceName) then
+                -- only id service is provisioned, it is activated
+                    if (option == "provisioned") then
+                        device_binding.option = "provisioned"
+                        set_on_uci(device_binding, value, commitapply)
+                        device_binding.option = "activated"
+                        set_on_uci(device_binding, value, commitapply)
+                    end
+                    if (option == "activated") then
+                        if s.provisioned == "1" then
+                            device_binding.option = "activated"
+                            set_on_uci(device_binding, value, commitapply)
+                        end
+                    end
+                    transactions[device_binding.config] = true
+                end
+            else
+                -- more than one device is present in service
+                for deviceName in device:gmatch("%S+") do
+                    if device:match(deviceName) then
+                        -- only id service is provisioned, it is activated
+                        if (option == "provisioned") then
+                            device_binding.option = "provisioned"
+                            set_on_uci(device_binding, value, commitapply)
+                            device_binding.option = "activated"
+                            set_on_uci(device_binding, value, commitapply)
+                        end
+                        if (option == "activated") then
+                            if s.provisioned == "1" then
+                                device_binding.option = "activated"
+                                set_on_uci(device_binding, value, commitapply)
+                            end
+                        end
+                        transactions[device_binding.config] = true
+                    end
+                end
+            end
+        end
+    else
+        local device = cb(name)
+        if s.device and table.concat(s.device, " "):match(device) then
+            if s.provisioned and s.provisioned == "1" then
+                set_on_uci(binding, value, commitapply)
+                transactions[binding.config] = true
+                return true
+            end
+        end
+    end
+    return false
+end
+
 Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_CallingFeatures_.set = function(mapping, param, value, key, parentkey)
     local config, name, ltype = getInfoFromKey(key, parentkey)
     local map = call_maps[ltype]
     local set_map = set_call_maps[ltype]
-
+    local mmpbx_state = uci_helper.get_from_uci({config="mmpbx", sectionname="state"})
+    if not profile_update[name] then
+        profile_update[name] = {}
+    end
     if set_map[param] ~= nil then
         if type(map.value[param]) == "string" then
             binding.config = config
             binding.sectionname = name
             binding.option = map.value[param]
-            uci_helper.set_on_uci(binding, value, commitapply)
-            transactions[binding.config] = true
+	    if (ltype == "sip_profile") and (param == "CallerIDName") and (mmpbx_state == "RUNNING") then
+		uci_helper.set_on_uci(binding, value)
+		transactions[binding.config] = true
+		profile_update[name][param] = value
+	    else
+		uci_helper.set_on_uci(binding, value, commitapply)
+		transactions[binding.config] = true
+            end
             return true
         elseif type(map.value[param]) == "table" then
             local stype = map.value[param][1]
@@ -2051,38 +2857,166 @@ Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_CallingFeatures_.set = funct
                 transactions[binding.config] = true
                 return true
             else
-                binding.config = "mmpbx"
+                local ismodified = 0
                 uci_helper.foreach_on_uci(service_binding, function(s)
-                    binding.sectionname = s['.name']
-                    if (s["type"] == stype) then
-                        binding.option = option
-                        if option == "provisioned" then
+                    if (s['type'] == stype) then
+                        if ((add_service[stype] ~= nil) and ((s.device and #s.device > 1) or (s.profile and #s.profile > 1))) then
                             if not isdevice then
-                                if s.profile and table.concat(s.profile, " "):match(name) then
-                                    if cb then
-                                        value = cb(value)
+                                -- particular profile is deleted from existing service section and new section created
+                                -- instead of enabling/disabling a service for all sip profiles
+                                del_binding.config = "mmpbx"
+                                del_binding.sectionname = s['.name']
+                                del_binding.option = "profile"
+                                local new_profile_list = {}
+                                if (#s.profile > 1) then
+                                    for _, value in ipairs(s.profile) do
+                                        if value ~= name then
+                                            -- if profile is present, it is removed from it and ismodified is set
+                                            new_profile_list[#new_profile_list + 1] = value
+                                        end
                                     end
-                                uci_helper.set_on_uci(binding, value, commitapply)
-                                binding.option = "activated"
-                                uci_helper.set_on_uci(binding, value, commitapply)
-                                transactions[binding.config] = true
-                                return false
+                                    if (#s.profile ~= #new_profile_list) then
+                                        ismodified = 1
+                                    end
+                                    -- if ismodified is true, then remove profile from existing section and new uci section is created
+                                    if (ismodified == 1) then
+                                        set_on_uci(del_binding, new_profile_list, commitapply)
+                                        transactions[del_binding.config] = true
+                                        s.profile = new_profile_list
+                                        add_binding.config = "mmpbx"
+                                        -- if named parameter is supported, then create new section with name
+                                        if (named_parameter == true) then
+                                            add_binding.sectionname = s['.name'].."_"..name
+                                            add_binding.option = nil
+                                            set_on_uci(add_binding, "service", commitapply)
+                                        else
+                                            add_binding.sectionname = "service"
+                                            local sectionname = add_on_uci(add_binding)
+                                            add_binding.sectionname = sectionname
+                                        end
+                                        transactions[add_binding.config] = true
+                                        add_binding.option = "profile"
+                                        local profile_list = {name}
+                                        set_on_uci(add_binding, profile_list, commitapply)
+                                        transactions[add_binding.config] = true
+                                        add_binding.option = option
+                                        if cb then
+                                            value = cb(value)
+                                        end
+                                        set_on_uci(add_binding, value, commitapply)
+                                        transactions[add_binding.config] = true
+                                        -- existing parameters from old section are copied into new section
+                                        for parameter, old_value in pairs(s) do
+                                            add_binding.option = parameter
+                                            if parameter ~= ".anonymous" and parameter ~= "_key" and parameter ~= ".name" and parameter ~= ".type" and parameter ~=  ".index" and parameter ~= option and parameter ~= "profile" then
+                                                set_on_uci(add_binding, old_value, commitapply)
+                                            end
+                                        end
+                                    end
                                 end
                             else
-                                local device = cb(name)
-                                if s.device and table.concat(s.device, " "):match(device) then
-                                    uci_helper.set_on_uci(binding, value, commitapply)
-                                    binding.option = "activated"
-                                    uci_helper.set_on_uci(binding, value, commitapply)
-                                    transactions[binding.config] = true
-                                    return false
+                                -- particular device is deleted from existing service section and new section created
+                                -- instead of enabling/disabling a service for all devices
+                                local device = cb(name,s['type'])
+                                del_binding.config = "mmpbx"
+                                del_binding.sectionname = s['.name']
+                                del_binding.option = "device"
+                                for deviceName in device:gmatch("%S+") do
+                                    local new_dev_list = {}
+                                    if (#s.device > 1) then
+                                        for _, value in ipairs(s.device) do
+                                            if value ~= deviceName then
+                                                -- if device is present, it is removed from it and ismodified is set
+                                                new_dev_list[#new_dev_list + 1] = value
+                                            end
+                                        end
+                                        if (#s.device ~= #new_dev_list) then
+                                            ismodified = 1
+                                        end
+                                        -- if ismodified is true, then remove device from existing section and new uci section is created
+                                        if (ismodified == 1) then
+                                            set_on_uci(del_binding, new_dev_list, commitapply)
+                                            transactions[del_binding.config] = true
+                                            s.device = new_dev_list
+                                            add_binding.config = "mmpbx"
+                                            -- if named parameter is supported, then create new section with name
+                                            if (named_parameter == true) then
+                                                add_binding.sectionname = s['.name'] .."_".. deviceName
+                                                add_binding.option = nil
+                                                set_on_uci(add_binding, "service", commitapply)
+                                            else
+                                                add_binding.sectionname = "service"
+                                                local sectionname = add_on_uci(add_binding)
+                                                add_binding.sectionname = sectionname
+                                            end
+                                            add_binding.option = "device"
+                                            local device_list = {deviceName}
+                                            set_on_uci(add_binding, device_list, commitapply)
+                                            add_binding.option = option
+                                            set_on_uci(add_binding, value, commitapply)
+                                            transactions[add_binding.config] = true
+                                            -- existing parameters from old section are copied into new section
+                                            for parameter, old_value in pairs(s) do
+                                                add_binding.option = parameter
+                                                if parameter ~= ".anonymous" and parameter ~= "_key" and parameter ~= ".name" and parameter ~= ".type" and parameter ~= ".index" and parameter ~= option and parameter ~= "device" then
+                                                    set_on_uci(add_binding, old_value, commitapply)
+                                                    transactions[add_binding.config] = true
+                                                end
+                                            end
+                                        end
+                                    end
                                 end
                             end
-                        elseif option == "destination" then
-                            if s.profile and table.concat(s.profile, " "):match(name) then
-                                uci_helper.set_on_uci(binding, value, commitapply)
-                                transactions[binding.config] = true
+                            if ismodified == 1 then
                                 return false
+                            end
+                        else
+                            binding.config = "mmpbx"
+                            binding.sectionname = s['.name']
+                            binding.option = option
+                            if option == "provisioned" then
+                                if not isdevice then
+                                    if s.profile and table.concat(s.profile, " "):match(name) then
+                                        if cb then
+                                            value = cb(value)
+                                        end
+                                        set_on_uci(binding, value, commitapply)
+                                        -- CFx based services will be only provisioned and not activated via TR-069
+                                        if (stype ~= "CFU" and stype ~= "CFBS" and stype ~= "CFNR") then
+                                            binding.option = "activated"
+                                            set_on_uci(binding, value, commitapply)
+                                        end
+                                        transactions[binding.config] = true
+                                        return false
+                                    end
+                                else
+                                    checkDevice(cb, name, value, s, stype, option)
+                                end
+                            elseif option == "destination" then
+                                if s.profile then
+                                    if table.concat(s.profile, " "):match(name) then
+                                        set_on_uci(binding, value, commitapply)
+                                        transactions[binding.config] = true
+                                        return false
+                                    end
+                                else
+                                    checkDevice(cb, name, value, s, stype, option)
+                                end
+                            elseif option == "activated" or option == "timeout" then
+                                if not isdevice then
+                                    if s.profile and table.concat(s.profile, " "):match(name) then
+                                        if cb then
+                                            value = (param == "CallForwardOnNoAnswerRingCount") and cb(value, true) or cb(value)
+                                        end
+                                        if s.provisioned and s.provisioned == "1" then
+                                            set_on_uci(binding, value, commitapply)
+                                            transactions[binding.config] = true
+                                        end
+                                        return false
+                                    end
+                                else
+                                    checkDevice(cb, name, value, s, stype, option)
+                                end
                             end
                         end
                     end
@@ -2135,7 +3069,7 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_VoiceProcessing_ = {
 
 
 local function processing_get_EchoCancellation(mapping, param, key, parentkey)
-    local config, name, ltype = getInfoFromKey(key, parentkey)
+    local _, name  = getInfoFromKey(key, parentkey)
     local device = getSipDevice(name)
     binding.config = "mmpbxbrcmfxsdev"
     binding.sectionname = device
@@ -2144,7 +3078,7 @@ local function processing_get_EchoCancellation(mapping, param, key, parentkey)
 end
 
 local function processing_set_EchoCancellation(mapping, param, value, key, parentkey)
-    local config, name, ltype = getInfoFromKey(key, parentkey)
+    local _, name = getInfoFromKey(key, parentkey)
     local device = getSipDevice(name)
     binding.config = "mmpbxbrcmfxsdev"
     binding.sectionname = device
@@ -2174,7 +3108,7 @@ Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_VoiceProcessing_.get = {
     EchoCancellationEnable = processing_get_EchoCancellation,
     EchoCancellationInUse = processing_get_EchoCancellation,
     EchoCancellationTail = function(mapping, param, key)
-        return "32ms"
+        return "32"
     end
 }
 
@@ -2537,14 +3471,16 @@ local function codec_get(mapping, param, key, parentkey)
    if rtp_session then
         for k,v in pairs (rtp_session) do
             if uri == v["LineName"] then
-                if param == "TransmitCodec" then
-                    value = v[1][1]["codec"]
-                elseif param == "TransmitBitRate" then
-                    value = tostring(v[1][1]["bitRate"])
-                elseif param == "TransmitSilenceSuppression" then
-                    value = tostring(v[1][1]["vad"])
-                elseif param == "TransmitPacketizationPeriod" then
-                    value = tostring(v[1][1]["packetTime"])
+                if v[1][1] ~=nil then
+                    if param == "TransmitCodec" then
+                        value = v[1][1]["codec"]
+                    elseif param == "TransmitBitRate" then
+                        value = tostring(v[1][1]["bitRate"])
+                    elseif param == "TransmitSilenceSuppression" then
+                        value = tostring(v[1][1]["vad"])
+                    elseif param == "TransmitPacketizationPeriod" then
+                        value = tostring(v[1][1]["packetTime"])
+                    end
                 end
                 if param == "ReceiveCodec" then
                     value = v[2][1]["codec"]
@@ -2553,8 +3489,8 @@ local function codec_get(mapping, param, key, parentkey)
                 elseif param == "ReceiveSilenceSuppression" then
                     value = tostring(v[2][1]["vad"])
                 end
-	        end
 	    end
+	end
    end
 
    return value
@@ -2581,7 +3517,7 @@ local function codec_getall(mapping, key, parentkey)
     if rtp_session then
         for k,v in pairs (rtp_session) do
             if uri == v["LineName"] then
-                if v[1]["direction"] == "Transmit" then
+                if v[1]["direction"] == "Transmit" and v[1][1] ~=nil then
                     results.Transmitresults = v[1][1]["codec"]
                     results.TransmitBitRate = tostring(v[1][1]["bitRate"])
                     results.TransmitSilenceSuppression = tostring(v[1][1]["vad"])
@@ -2732,7 +3668,7 @@ Multi_Services_VoiceService_i_VoiceProfile_i_Line_i_Codec_List_i_.entries = func
             end
         end
     end)
-    local res = uci_helper.foreach_on_uci(codec_binding, function(s)
+    uci_helper.foreach_on_uci(codec_binding, function(s)
         -- We need to be backwards compatible: key generation has been updated
         -- to store entryID as _key but the new code has to be able to deal with
         -- the old _key and _entryID fields.

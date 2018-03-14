@@ -16,7 +16,8 @@ ngx.print('\
 		  style = "border-bottom: 1px solid #e5e5e5;padding-bottom: 10px"
         },
       }
-      
+      html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_1.1.1_001 )" .. '</legend>'
+	  html[#html + 1] = ui_helper.createLabel(T"6.0", "Rebase con i nuovi cambiamenti", basic)
 	  html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan" .. '</legend>'
 	  html[#html + 1] = ui_helper.createLabel(T"5.11", "Iniziale supporto per luci,ariang e transmission", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"5.10", "Upnp fix thx  Jecht_Sin", basic)
@@ -30,7 +31,7 @@ ngx.print('\
 	  html[#html + 1] = ui_helper.createLabel(T"5.2", "ReRefix tab lan e fix css per primo root", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"5.1", "Refix tab lan e fix cwmpd (forse)", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"5.0", "Fix autocompletamento e tab lan", basic)
-	  html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan" .. '</legend>'
+	  html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_1.1.0 )" .. '</legend>'
 	  html[#html + 1] = ui_helper.createLabel(T"4.6", "Fixato switch tab mobile", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"4.5", "Selettore skin gui nella tab Sistema Extra", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"4.4", "Fix pagina wireless", basic)

@@ -1834,4 +1834,56 @@ function M.validateSSID(value)
   end
   return true
 end
+
+local function formatAttenuation(attenuation, direction, index)
+    return format("%s%s%s%s%s",
+        direction or "",
+        index or "",
+        (direction or index) and " " or "",
+        attenuation,
+        (attenuation == "N/A") and "" or " dB"
+    )
+end
+
+--- Formats the attenuation values for ADSL in the format "20.2 dB" (OR) "8.7 dB",
+--- VDSL in the format "DS0 20.2 dB, DS1 53.6 dB, DS2 N/A (OR) US0 8.0 dB, US1 N/A, US2 41.6 dB"
+-- @string attenuation the attenuation value
+-- @string direction upstream or downstream direction
+-- @treturn string the formatted string of attenuation values for VDSL/ADSL
+function M.populateAttenuation(attenuation, direction)
+    if not attenuation then
+        return
+    end
+    if find(attenuation, "[,%s]") then
+        local attenTable = {}
+        for atten in attenuation:gmatch('([^,%s]+)') do
+            local n = #attenTable
+            attenTable[n + 1] = formatAttenuation(atten, direction, n)
+        end
+        return table.concat(attenTable, ", ")
+    else
+        return formatAttenuation(attenuation)
+    end
+end
+
+--- Is upgrade allowed or not
+-- @param upgradefw upgradefw config value
+-- @param userRole Role of the user
+-- @return true if upgrade is allowed
+-- @return nil if upgrade is not allowed
+function M.isUpgradeAllowed(upgradefw, userRole)
+  if upgradefw ~= "1" then
+    return
+  end
+  local allowedRoles = proxy.get("uci.web.uiconfig.@uidefault.upgradefw_role.") or {}
+  if #allowedRoles == 0 then
+    return true
+  end
+  for _, role in ipairs(allowedRoles) do
+    if role.value == userRole then
+      return true
+    end
+  end
+end
+
 return M

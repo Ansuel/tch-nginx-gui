@@ -26,6 +26,11 @@ end
 
 local ddns_supported_services , valid_services = {}, {}
 
+local igd_select = {
+    { "igdv1", T'1'},
+    { "igdv2", T'2'},
+}
+
 local function generate_ddns_supported_services()
     -- open the supported services file that come with the ddns package
     local f = io.open("/etc/ddns/services", "r")
@@ -72,6 +77,7 @@ local qry_params = {
     upnp_status = "uci.upnpd.config.enable_upnp",
     upnp_natpmp = "uci.upnpd.config.enable_natpmp",
     upnp_secure_mode = "uci.upnpd.config.secure_mode",
+    upnp_igd_version = "uci.upnpd.config.datamodel_version",
 }
 
 -- Shortcuts to validation helpers to make lines shorter
@@ -117,6 +123,7 @@ local qry_valid = {
     upnp_status = vB,
     upnp_natpmp = vB,
     upnp_secure_mode = vB,
+    upnp_igd_version = gVIES(igd_select),
 }
 
 local ddns_state_map = {
@@ -792,6 +799,12 @@ local upnp_options = {
     basepath = "sys.upnp.redirect.",
 }
 
+local range_warning = {
+    alert = {
+      class = "alert-range"
+    },
+}
+
 local upnp_data, upnp_helpmsg = post_helper.handleTableQuery(upnp_columns, upnp_options, nil, nil, nil)
 
   ngx.print('\
@@ -827,6 +840,7 @@ local upnp_data, upnp_helpmsg = post_helper.handleTableQuery(upnp_columns, upnp_
 	    ngx.print(T"To disable Port Forward Rules, edit the rule on the right and then switch the button on the left.");
 	    ngx.print('</div>');			 
         ngx.print(ui_helper.createTable(pfw_columns, pfw_data, pfw_options, nil, pfw_helpmsg))
+        ngx.print(ui_helper.createAlertBlock(format("%s <strong>\":\"</strong> %s",T"To use port ranges use", T"for example 500:505."), range_warning))
         ngx.print('\
     </fieldset>\
 \
@@ -863,6 +877,8 @@ local upnp_data, upnp_helpmsg = post_helper.handleTableQuery(upnp_columns, upnp_
           ui_helper.createSwitch(T"UPnP IGD Enabled", "upnp_status", qry_data["upnp_status"], advanced, qry_helpmsg["upnp_status"]),
           ui_helper.createSwitch(T"NAT-PMP Enabled", "upnp_natpmp", qry_data["upnp_natpmp"], advanced, qry_helpmsg["upnp_natpmp"]),
           ui_helper.createSwitch(T"Secure Mode Enabled", "upnp_secure_mode", qry_data["upnp_secure_mode"], advanced, qry_helpmsg["upnp_secure_mode"]),
+          ui_helper.createInputSelect(T"Datamodel Version", "upnp_igd_version", igd_select, qry_data.upnp_igd_version, advanced),
+          ui_helper.createLabel(T"", T"Note: Datamodel version <b>1</b> may be required for older applications.", {span = {class = "span12 advanced hide"},}),
           ui_helper.createTable(upnp_columns, upnp_data, upnp_options, nil, upnp_helpmsg)
         )
         ngx.print('\

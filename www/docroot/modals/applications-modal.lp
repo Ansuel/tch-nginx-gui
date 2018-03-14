@@ -172,7 +172,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = ui_helper.createAlertBlock(T"This will install transmission and transmission-webui", info_box)
 	  html[#html + 1] = T"State: "
 	  html[#html + 1] = "<strong>" .. T"Transmission is " .. transmission_webuiState .. " installed" .. "</strong></br>"
-	  html[#html + 1] = T"Webui on: " .. "http://" .. mapParams.local_ip_modem .. "/transmission"
+	  html[#html + 1] = T"Webui on: " .. "http://" .. mapParams.local_ip_modem .. "/transmission/web/"
 	  html[#html + 1] = "</br>"
 	  html[#html + 1] = "</br>"
 	  if mapParams["transmission_webui"] and mapParams["transmission_webui"] == "1" then
@@ -219,7 +219,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
   $("#btn-install-transmission").click(function() {\
-     post("install_trabsmission" );\
+     post("install_transmission" );\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
   $("#btn-remove-transmission").click(function() {\

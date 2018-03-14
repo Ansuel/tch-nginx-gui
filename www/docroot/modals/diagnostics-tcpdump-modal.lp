@@ -21,9 +21,12 @@ local path_tcpdump = format("rpc.system.tcpdump.")
 
 local function validateCount(value, object, key)
   local max = 16000
-  local result = proxy.get("rpc.system.tcpdump.refcount")
-  if result and result[1].value then
-    max = 2*tonumber(untaint(result[1].value))
+  local result = proxy.get("rpc.system.tcpdump.refcount") or {}
+  if result[1] and result[1].value then
+    result = 2*tonumber(untaint(result[1].value))
+    if result < max then
+      max = result
+    end
   end
   return post_helper.getValidateNumberInRange(1, tonumber(max))(value, object, key)
 end

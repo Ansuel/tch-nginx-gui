@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=5.11.1
+version_gui=6.0.7
 
 check_root() {
 	
@@ -401,6 +401,12 @@ add_application_modal() {
 	fi
 }
 
+check_relay_dhcp() {
+	if [ ! $(uci get -q dhcp.relay) ]; then
+		uci set dhcp.relay=relay
+	fi
+}
+
 root() {
 	
 	/etc/init.d/watchdog-tch stop
@@ -468,6 +474,8 @@ root() {
 	create_gui_type #Gui Type
 	logger "Add new web option"
 	add_application_modal #New Option
+	logger "New DHCPRelay Option"
+	check_relay_dhcp #Sync option
 	
 	logger "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not

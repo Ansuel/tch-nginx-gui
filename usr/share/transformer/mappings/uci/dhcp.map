@@ -120,3 +120,12 @@ local dhcp_relay = {
 }
 
 mapper("uci_1to1").registerNamedMultiMap(dhcp_relay)
+
+-- uci.dhcp.relaybackup.{i}
+local dhcp_relay_backup = {
+    config = config_dhcp,
+    type = "relaybackup",
+    options = { "local_addr", "server_addr", "interface" }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(dhcp_relay_backup)

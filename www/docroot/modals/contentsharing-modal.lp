@@ -540,10 +540,13 @@ $(document).on("click", "#save-cs-config", function() {\
     $("#warning-msg").addClass("hide");\
     $("#reboot-warning-msg").addClass("hide");\
     $("#success-msg").addClass("hide");\
+    tch.showProgress("');  ngx.print(T'Rebooting...'); ngx.print('");\
   }\
   else {\
     $("#success-msg").removeClass("hide");\
   }\
+  $(\'#modal-changes\').hide();\
+  $(\'#modal-no-change\').show();\
   params.push({\
     name : "action",\
     value : "SAVE"\

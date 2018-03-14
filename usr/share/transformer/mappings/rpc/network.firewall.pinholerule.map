@@ -94,15 +94,17 @@ mapping_rule_rpc.set = function(mapping, param, value, key)
         if param == "dest_ip" then
             local family -- family deduced from the IP value
             local macAddr -- mac address of dest_ip value
+            local ipConfiguration
 
             if string.find(value, ":") then
                 family = "ipv6"
             else
                 family = "ipv4"
+                ipConfiguration = "dynamic"
             end
             mapping.uciMap.set(mapping.uciMap, "family", family, key)
 
-            macAddr = fw_helper.ip2mac(ubus_connect, family, value) or ""
+            macAddr = fw_helper.ip2mac(ubus_connect, family, value, ipConfiguration) or ""
             mapping.uciMap.set(mapping.uciMap, "dest_mac", macAddr, key)
 
             if macAddr ~= "" then

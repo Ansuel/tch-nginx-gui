@@ -1,1 +1,1 @@
-^Device%.UserInterface%.RemoteAccess%.Enable /usr/share/transformer/scripts/remote_assistance.sh
+^Device%.UserInterface%.RemoteAccess%.Enable /usr/share/transformer/scripts/remote_assistance.sh & /etc/init.d/firewall reload

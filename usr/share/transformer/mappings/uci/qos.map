@@ -43,6 +43,17 @@ local qos_reclassify = {
 
 mapper("uci_1to1").registerNamedMultiMap(qos_reclassify)
 
+-- uci.qos.l2classify
+local qos_l2classify = {
+  config = config_qos,
+  type = "l2classify",
+  options = { "target", "proto", "macsrc", "macdst", "pkttype", "limit",
+              "limitburst"},
+  lists = { "srcif", "dstif"  }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(qos_l2classify)
+
 --uci.qos.interface
 local qos_interface = {
   config = config_qos,

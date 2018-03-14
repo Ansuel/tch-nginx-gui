@@ -6,6 +6,7 @@ local remove = os.remove
 local tostring = tostring
 local match = string.match
 local upload_ca_filename = ""
+local rebootHelper = require("transformer.shared.reboot_helper")
 
 local rebootreasons = {}
 do
@@ -110,6 +111,19 @@ local system_ = {
                access = "readWrite",
                type = "string",
             },
+            scheduledreboot = {
+               access = "readWrite",
+               type = "dateTime",
+            },
+            reboottime = {
+               access = "readOnly",
+               type = "dateTime",
+            },
+            scheduledrebootreason = {
+               access = "readWrite",
+               type = "string",
+               enumeration = rebootreasons,
+            },
         }
     },
     get = {
@@ -139,6 +153,22 @@ local system_ = {
         rebootreasons = table.concat(rebootreasons, ", "),
         upload_ca_file = function()
           return upload_ca_filename or ""
+        end,
+        scheduledreboot = function()
+            return rebootHelper.getRebootOptions("time", "0001-01-01T00:00:00Z")
+        end,
+        reboottime = function()
+	    local file = io.open("/proc/uptime")
+            if file then
+              local uptime = file:read("*a")
+              uptime = tonumber(uptime:match("^(%d+)")) or 0
+              file:close()
+              return (os.date("%Y-%m-%dT%H:%M:%SZ", os.time()-uptime))
+            end
+            return ""
+        end,
+        scheduledrebootreason =  function()
+            return rebootHelper.getRebootOptions("rebootreason", "CLI")
         end,
     },
     set = function(mapping, paramname, paramvalue)
@@ -173,11 +203,25 @@ local system_ = {
             fd_cert:write(data)
             fd_cert:close()
             os.remove("/tmp/" .. paramvalue)
+        elseif paramname == "scheduledreboot" then
+            local var, err =  rebootHelper.setRebootOptions("enabled", "1")
+            if not var then
+              return nil, err
+            end
+            local ok, errmsg = rebootHelper.setRebootOptions("time", paramvalue)
+            if not ok then
+              return nil, errmsg
+            end
+            commitapply:newset("scheduledReboot")
+        elseif paramname == "scheduledrebootreason" then
+            return rebootHelper.setRebootOptions("rebootreason", paramvalue)
         end
         if paramvalue == "1" then
             commitapply:newset("rpc.system." .. paramname)
         end
-    end
+    end,
+    commit = rebootHelper.uci_system_commit,
+    revert = rebootHelper.uci_system_revert,
 }
 
 register(system_)

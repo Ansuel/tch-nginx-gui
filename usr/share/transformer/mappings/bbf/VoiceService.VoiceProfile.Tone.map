@@ -737,33 +737,7 @@ local set_pattern_map = {
                  else
                      eq_tone_section = new_play
                  end
-                 local au_binding = { config = "mmpbx", sectionname = "audionotification" }
-                 foreach_on_uci(au_binding,function(section)
-                     if (section.play) then
-                         for i=1, #section.play do
-                             if (section.play[i] == eq_tone_section) then
-                                 local newobj = content_entries[eq_tone_section]
-                                 local add_binding = {config = "mmpbx"}
-                                 add_binding.sectionname = "tone_"..magic..binding.sectionname..i+magic+math.random(100)
-                                 set_on_uci(add_binding,"tone",commitapply)
-                                 commit(add_binding)
-                                 tone_binding = { config = "mmpbx"}
-                                 tone_binding.sectionname = section[".name"]
-                                 local temp_object = content_entries[eq_tone_section]
-                                 local tempfreq = temp_object.frequency
-                                 local temppower = temp_object.power
-                                 tone_binding.sectionname = add_binding.sectionname
-                                 new_play = add_binding.sectionname
-                                 tone_binding.option = "frequency"
-                                 set_on_uci(tone_binding, tempfreq, commitapply)
-                                 commit(tone_binding)
-                                 tone_binding.option = "power"
-                                 set_on_uci(tone_binding, temppower, commitapply)
-                                 commit(tone_binding)
-                             end
-                         end
-                     end
-                 end)
+
                  local newobj = content_entries[eq_tone_section]
                  local play_list = object1.play
                  local previous_play = play_list[tonumber(playid + 1)]
@@ -772,6 +746,34 @@ local set_pattern_map = {
                      binding.option = "play"
                      set_on_uci(binding, play_list, commitapply)
                      commit(binding)
+
+                     local au_binding = { config = "mmpbx", sectionname = "audionotification" }
+                     foreach_on_uci(au_binding,function(section)
+                         if (section.play) then
+                             for i=1, #section.play do
+                                 if ((section.play[i] == eq_tone_section) and (section[".name"] == object1[".name"])) then
+                                     local newobj = content_entries[eq_tone_section]
+                                     local add_binding = {config = "mmpbx"}
+                                     add_binding.sectionname = "tone_"..magic..binding.sectionname..i+magic+math.random(100)
+                                     set_on_uci(add_binding,"tone",commitapply)
+                                     commit(add_binding)
+                                     tone_binding = { config = "mmpbx"}
+                                     tone_binding.sectionname = section[".name"]
+                                     local temp_object = content_entries[eq_tone_section]
+                                     local tempfreq = temp_object.frequency
+                                     local temppower = temp_object.power
+                                     tone_binding.sectionname = add_binding.sectionname
+                                     new_play = add_binding.sectionname
+                                     tone_binding.option = "frequency"
+                                     set_on_uci(tone_binding, tempfreq, commitapply)
+                                     commit(tone_binding)
+                                     tone_binding.option = "power"
+                                     set_on_uci(tone_binding, temppower, commitapply)
+                                     commit(tone_binding)
+                                 end
+                             end
+                         end
+                     end)
 
   -- While changing an entry in list play, we should update loop_from and loop_to also if it is existing in that list
 

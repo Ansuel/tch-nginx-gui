@@ -12,6 +12,7 @@ local string, pairs, ngx = string, pairs, ngx
 local ui_helper = require("web.ui_helper")
 local format, print, match = string.format, ngx.print , string.match
 local eth0, eth1, eth2, eth3, wifi, moca0 = {}, {}, {}, {}, {}, {}
+local moca_interface = proxy.get("uci.moca.global.enable")
 
 local function AJAX(ap,path,mac)
   if ap and path and mac then
@@ -129,7 +130,11 @@ end
 
   html[#html+1]=format("<legend>%s</legend>",T"Ethernet Ports")
   html[#html+1]="<table class=\"hostmaptable\">"
-  html[#html+1]=format("<tr class=\"grey\"><td class=\"centertxt centertitle\">%s</td><td class=\"centertxt centertitle\">%s</td><td class=\"centertxt centertitle\">%s</td><td class=\"centertxt centertitle\">%s</td><td class=\"centertxt centertitle\">%s</td></tr>",T"Port 1",T"Port 2",T"Port 3",T"Port 4",T"MoCA")
+  if moca_interface then
+    html[#html+1]=format("<tr class=\"grey\"><td class=\"centertxt centertitle\">%s</td><td class=\"centertxt centertitle\">%s</td><td class=\"centertxt centertitle\">%s</td><td class=\"centertxt centertitle\">%s</td><td class=\"centertxt centertitle\">%s</td></tr>",T"Port 1",T"Port 2",T"Port 3",T"Port 4",T"MoCA")
+  else
+    html[#html+1]=format("<tr class=\"grey\"><td class=\"centertxt centertitle\">%s</td><td class=\"centertxt centertitle\">%s</td><td class=\"centertxt centertitle\">%s</td><td class=\"centertxt centertitle\">%s</td></tr>",T"Port 1",T"Port 2",T"Port 3",T"Port 4")
+  end
   html[#html+1]="<tr>"
   --ETH0
   html[#html+1]="<td class=\"twentyfive\">"

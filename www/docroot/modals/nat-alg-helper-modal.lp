@@ -58,10 +58,12 @@ end
 
 local hlp_options = {
     tableid = "helper",
-    basepath = "uci.firewall.helper.",
+    basepath = "uci.firewall.helper.@.",
     canAdd = false,
     canDelete = false,
     canEdit = true,
+    objectName  = post_helper.getRandomKey(),
+    addNamedObject = true,
 }
 
 local hlp_data, hlp_helpmsg = post_helper.handleTableQuery(hlp_columns, hlp_options, hlp_filter, hlp_defaultObject)

@@ -4,11 +4,16 @@
 -- Enable localization
 -- NG-58110
 -- NG-78957
+-- GHG-3791  Implemented Custo changes based on new baseline 17.3-238
 gettext.textdomain('webui-core')
 local ui_helper = require("web.ui_helper")
 local proxy = require("datamodel")
 local triesbeforemsg = 3
 local content_helper = require("web.content_helper")
+local proxy = require("datamodel") -- Custo
+local format = string.format
+local passwd_count_msg = format(T"You are trying to login with wrong password for %s times", '<span id="pwdCount"></span>')
+local timer_msg = format(T"Please wait %s seconds to enter new password", '<span id="timerSec"></span>')
 
 if ngx.var.request_method == "GET" and ngx.req.get_uri_args().action == "getcsrf" then
   ngx.print(ngx.ctx.session:getCSRFtoken())
@@ -151,6 +156,27 @@ ngx.print('\
 		</div>\
 	</div>\
   </div>\
+<div class="modal-fade hide" id="loginfailure" data-backdrop="static" role="dialog">\
+     <div class="popUp smallcard popUp-modal span4" style="margin-top: -50px">\
+       <div class="header"><div data-toggle="modal" class="header-title pull-left"><p>Processing</p></div></div>\
+        <div class="modal-body no-padding">\
+           <form class="form-horizontal">\
+              <div>\
+                 <label id="wronguser-attempt" for="inputPassword" class="control-label">');  ngx.print(passwd_count_msg); ngx.print('<br/>');  ngx.print(timer_msg); ngx.print('</label>\
+              </div>\
+              <div id="spinner" class="spinner" align="center">\
+              <div class="spinner3">\
+                <div class="rect1" style="background-color: rgb(92, 22, 96);"></div>\
+                <div class="rect2" style="background-color: rgb(92, 22, 96);"></div>\
+                <div class="rect3" style="background-color: rgb(92, 22, 96);"></div>\
+                <div class="rect4" style="background-color: rgb(92, 22, 96);"></div>\
+                <div class="rect5" style="background-color: rgb(92, 22, 96);"></div>\
+              </div>\
+             </div>\
+           </form>\
+        </div>\
+      </div>\
+  </div>\
 <!--[if IE 7]><link rel="stylesheet" href="/css/font-awesome-ie7.css"><![endif]-->\
 <script  language="JavaScript" type="text/javascript"   src="/js/main-min.js" ></script>\
 <!--[if lt IE 9]> <script src="/js/media-min.js"></script> <![endif]-->\
@@ -187,6 +213,7 @@ $(document).ready(\
       var index = -1;\
       var userNameArray = userNames.split(",")\
       var legacySaltArray = legacySalts.split(",")\
+	  var timesecond;\
 \
       for (var i = 0; i < userNameArray.length - 1; i ++)\
       {\
@@ -209,7 +236,7 @@ $(document).ready(\
         // we\'re logged in.\
         // Otherwise we explicitly go back to the main page.\
         if (window.location.pathname.search(/\\/login\\.lp$/) == -1){\
-  		    var curl = window.location.href\
+  		  var curl = window.location.href\
           window.location.href = curl.substring(0,curl.indexOf("#"));\
         }else\
           window.location = "/";\
@@ -218,19 +245,40 @@ $(document).ready(\
       if(err == 403){\
         $.get("login.lp", {action:"getcsrf"}, function (data){\
           $(\'meta[name=CSRFtoken]\').attr(\'content\', data);\
-          srp.identify("/authenticate", $("#srp_username")[0].value, password);\
+          if (!$("#loginfailure").is(":visible")) {\
+            srp.identify("/authenticate", $("#srp_username")[0].value, password);\
+          }\
         });\
       }else{\
         $("#sign-me-in").text(\'');  ngx.print( T"Sign in" ); ngx.print('\');\
         $("#erroruserpass").show();\
         $(".control-group").addClass("error");\
       }\
-        tries++;\
+      timeSecond = err.waitTime;\
+      tries++;\
+      if (timeSecond > 0 ) {\
+        $("#timerSec").text(timeSecond);\
+        $("#pwdCount").text(tries);\
+        $(\'#loginfailure\').modal(\'show\');\
+      }\
+      updateWaitingTime();\
         if(triesbeforemsg > 0 && tries >= triesbeforemsg) {\
             $("#defaultpassword").show();\
         }\
       }\
-      srp.identify("/authenticate", $("#srp_username")[0].value, password);\
+      function updateWaitingTime() {\
+        var timeInterval = setInterval(function() {\
+          $("#timerSec").text(--timeSecond);\
+          if (timeSecond <= 0) {\
+            clearInterval(timeInterval);\
+            $(\'#loginfailure\').modal(\'hide\');\
+            $("#sign-me-in").removeAttr("disabled");\
+          };\
+        }, 1000);\
+      }\
+      if (!$("#loginfailure").is(":visible")) {\
+        srp.identify("/authenticate", $("#srp_username")[0].value, password);\
+      }\
     });\
     $("#forgot-login-password").on("click", "a", function(){\
       $("#login").hide();\

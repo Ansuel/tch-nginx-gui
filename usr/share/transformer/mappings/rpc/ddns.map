@@ -1,33 +1,45 @@
-local register = register;
+local ddns = {
+  objectType = {
+    name = 'rpc.ddns.',
+    access = 'readOnly',
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      status = {
+        access = "readOnly",
+        type = "string"
+      },
+      ActiveServices = {
+        access = "readOnly",
+        type = "string",
+        description = "a list of references to active services"
+      }
+    }
+  }
+}
+
 local uci_helper = mapper("ucihelper")
 local open, popen, strmatch = io.open, io.popen, string.match
 local find, lower = string.find, string.lower
-local tinsert = table.insert
-local ddns_ = {
-    objectType = {
-        name = 'rpc.ddns.',
-        access = 'readOnly',
-        minEntries = 1,
-        maxEntries = 1,
-        parameters = {
-	      status = {
-	        access = "readOnly",
-	        type = "string"
-	      },
 
-        }
-    }
-}
-
-ddns_.get = {
-  status = function(mapping, param, key)
-    local state = "No error received from server"
+local loadServices
+do
+  local ddns_binding = {config = "ddns", sectionname = "service"}
+  loadServices = function()
+    local serviceNames = {}
     local services = {}
-    local ddns_binding = {config = "ddns", sectionname = "service"}
-
     uci_helper.foreach_on_uci(ddns_binding, function(s)
-        services[#services + 1] = s['.name']
+      local name = s['.name']
+      serviceNames[#serviceNames + 1] = name
+      services[name] = s
     end)
+    return serviceNames, services
+  end
+end
+
+local function ddnsStatus()
+    local state = "No error received from server"
+    local services = loadServices()
 
     -- Currently we only support one service
     if services[1] then
@@ -90,7 +102,7 @@ ddns_.get = {
             file = open(logFile)
             if file then
               for line in file:lines() do
-                tinsert(lines, line)
+                lines[#lines+1] = line
               end
               file:close()
 
@@ -133,7 +145,22 @@ ddns_.get = {
         end
     end
     return state
+end
+
+local function ddnsActiveServices()
+  local _, services = loadServices()
+  local active = {}
+  for name, service in pairs(services) do
+    if service.enabled=="1" and service.domain~="" then
+      active[#active+1] = resolve("uci.ddns.service.@.", name)
+    end
   end
+  return table.concat(active, " ")
+end
+
+ddns.get = {
+  status = ddnsStatus,
+  ActiveServices = ddnsActiveServices 
 }
 
-register(ddns_)
+register(ddns)

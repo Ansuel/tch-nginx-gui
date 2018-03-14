@@ -24,6 +24,11 @@ local Multi_Services_VoiceService_i_ = {
         access = "readWrite",
         type = "boolean",
       },
+      X_FASTWEB_BoundIfName = {
+        access = "readOnly",
+        type = "string",
+        description = "Used to identify the interface used for outgoing voice packet, return the interface name, if available.",
+      },
       -- VoiceProfileNumberOfEntries
       -- automatically created when Multi.Services.VoiceService.{i}.VoiceProfile.{i}. is loaded
       -- X_BELGACOM_PhyInterfaceNumberOfEntries
@@ -56,6 +61,13 @@ Multi_Services_VoiceService_i_.get = {
        binding.default = "0"
        return uci_helper.get_from_uci(binding)
    end,
+   X_FASTWEB_BoundIfName = function ()
+       binding.config = "mmpbxrvsipnet"
+       binding.sectionname = "sip_net"
+       binding.option = "interface"
+       binding.default = ""
+       return uci_helper.get_from_uci(binding)
+   end,
 }
 
 
@@ -80,19 +92,19 @@ Multi_Services_VoiceService_i_.set = {
 }
 
 Multi_Services_VoiceService_i_.commit = function()
-    local binding = {}
+    local conf_binding = {}
     for config in pairs(transactions) do
-        binding.config = config
-        uci_helper.commit(binding)
+        conf_binding.config = config
+        uci_helper.commit(conf_binding)
     end
     transactions = {}
 end
 
 Multi_Services_VoiceService_i_.revert = function()
-    local binding = {}
+    local config_binding = {}
     for config in pairs(transactions) do
-        binding.config = config
-        uci_helper.revert(binding)
+        config_binding.config = config
+        uci_helper.revert(config_binding)
     end
     transactions = {}
 end
@@ -185,9 +197,9 @@ local function convertPref(value)
 end
 
 Multi_Services_VoiceService_i_X_000E50_AreaCode_i_.entries = function(mapping, parentkey)
-    local entries = {}
+    local ua_entries = {}
     if parentkey:match("INTUA") then
-        return entries
+        return ua_entries
     end
     areacode_binding.sectionname = "areacode_translation"
     uci_helper.foreach_on_uci(areacode_binding, function(s)
@@ -198,10 +210,10 @@ Multi_Services_VoiceService_i_X_000E50_AreaCode_i_.entries = function(mapping, p
             s._key = uci_helper.generate_key_on_uci(areacode_binding)
             uci_helper.commit_keys(areacode_binding)
         end
-            entries [#entries + 1] = string.format("areacode_translation|%s",s._key)
+            ua_entries [#ua_entries + 1] = string.format("areacode_translation|%s",s._key)
             areacode_entries [s._key] = s
     end)
-    return entries
+    return ua_entries
 end
 
 local areacode_map = {
@@ -253,7 +265,10 @@ Multi_Services_VoiceService_i_X_000E50_AreaCode_i_.get = function(mapping, param
     end
 end
 
-local duplicates = duplicator(Multi_Services_VoiceService_i_X_000E50_AreaCode_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
+duplicates = duplicator(Multi_Services_VoiceService_i_X_000E50_AreaCode_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
 for _, dupli in ipairs(duplicates) do
+  if dupli.objectType.name:match("^InternetGatewayDevice.") then
+    dupli.objectType.parameters["X_FASTWEB_BoundIfName"] = nil
+  end
   register(dupli)
 end

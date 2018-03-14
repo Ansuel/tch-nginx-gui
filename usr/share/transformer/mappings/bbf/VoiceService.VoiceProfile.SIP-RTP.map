@@ -572,6 +572,23 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_SIP_ = {
                     },
                 },
             },
+            X_AltRegistrarServer = {
+                access = "readWrite",
+                type = "string",
+                max = "256",
+                default = "",
+            },
+            X_AltRegistrarServerPort = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "65535",
+                    },
+                },
+                default = "5095",
+            },
             X_000E50_SecProxyServer = {
                 access = "readWrite",
                 type = "string",
@@ -588,6 +605,23 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_SIP_ = {
                     },
                 },
                 default = "5060",
+            },
+            X_AltProxyServer = {
+                access = "readWrite",
+                type = "string",
+                max = "256",
+                default = "",
+            },
+            X_AltProxyServerPort = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "65535",
+                    },
+                },
+                default = "5095",
             },
             X_000E50_MaxRetransInvite = {
                 access = "readWrite",
@@ -717,6 +751,17 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_SIP_ = {
                 max = "256",
                 default = "",
              },
+             X_SessionExpires = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "65535",
+                    },
+                },
+                default = "1800",
+            },
         }
     }
 }
@@ -756,6 +801,10 @@ local sip_net_map = {
         InviteExpires = "invite_expire_timer",
         X_000E50_SecProxyServer = "secondary_proxy",
         X_000E50_SecProxyServerPort = "secondary_proxy_port",
+        X_AltProxyServer = "secondary_proxy",
+        X_AltProxyServerPort = "secondary_proxy_port",
+        X_AltRegistrarServer = "secondary_registrar",
+        X_AltRegistrarServerPort = "secondary_registrar_port",
         X_000E50_MaxRetransInvite = "max_retransmits_invite",
         X_000E50_MaxRetransNonInvite = "max_retransmits_non_invite",
         X_000E50_403Waiting = "403_waiting_time",
@@ -766,6 +815,7 @@ local sip_net_map = {
         X_000E50_StopRegisterOnTimerF = "stop_register_on_TimerF",
         X_000E50_StopRegisterOn408 = "stop_register_on_408",
         X_000E50_RegisterBackOffTimerMax = "reg_back_off_timeout_max",
+	X_SessionExpires = "session_expires",
         TimerH = function(object)
             local timer = ""
             local option = "timer_T1"
@@ -855,6 +905,7 @@ local sip_net_map = {
         X_000E50_MaxRetransInvite = "-1",
         X_000E50_MaxRetransNonInvite = "-1",
         ConferenceCallDomainURI = "",
+        X_SessionExpires = "",
     }, mt),
 }
 
@@ -896,6 +947,10 @@ local set_sip_net_map = {
     RegisterRetryInterval = true,
     InviteExpires = true,
     X_000E50_401407Waiting = true,
+    X_AltRegistrarServer = true,
+    X_AltRegistrarServerPort = true,
+    X_AltProxyServer = true,
+    X_AltProxyServerPort = true,
     X_000E50_SecProxyServer = true,
     X_000E50_SecProxyServerPort = true,
     X_000E50_MaxRetransInvite = true,
@@ -932,7 +987,15 @@ local set_sip_net_map = {
         binding.option = "conference_factory_uri_user_part"
         uci_helper.set_on_uci(binding, value, commitapply)
     end,
-
+    X_SessionExpires = function(binding,value)
+        binding.option = "min_session_expires"
+        local min_session_expires = get_from_uci(binding)
+        if (tonumber(min_session_expires) > tonumber(value)) then
+            uci_helper.set_on_uci(binding,value,commitapply)
+        end
+        binding.option = "session_expires"
+        uci_helper.set_on_uci(binding,value,commitapply)
+    end,
 }
 
 local set_sip_server_map = {
@@ -960,6 +1023,165 @@ local duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_SIP_,
 for _, dupli in ipairs(duplicates) do
   register(dupli)
 end
+
+
+
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_SIP_EventSubscribe_i_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.SIP.EventSubscribe.{i}.",
+        access = "readOnly",
+        minEntries = 0,
+        maxEntries = math.huge,
+        numEntriesParameter = "SIPEventSubscribeNumberOfElements",
+        parameters = {
+            Event = {
+                access = "readWrite",
+                type = "string",
+                enumeration = {
+                    "reg",
+                    "message-summary",
+                },
+                default = "",
+            },
+            Notifier = {
+                access = "readWrite",
+                --hidden = "true",
+                type = "string",
+                max = "256",
+                default = "",
+            },
+            NotifierPort = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "65535",
+                    },
+                },
+                default = "0"
+            },
+            --[[NotifierTransPort = {
+                access = "readWrite",
+                type = "string",
+                max = "32",
+                default = "",
+            },--]]
+            ExpireTime = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                    },
+                },
+
+                default = "",
+            },
+
+            X_FASTWEB_SubscribeRefreshPercent = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "100",
+                    },
+                },
+                default = "99"
+
+            },
+            X_FASTWEB_SubscribeSleepTimeMin = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "65535",
+                    },
+                },
+                default = "1800"
+
+            },
+            X_FASTWEB_SubscribeSleepTimeMax = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "0",
+                        max = "65535",
+                    },
+                },
+                default = "2100"
+
+            },
+
+            -- automatically created when Multi.Services.VoiceService.{i}.VoiceProfile.{i}.Line.{i}.SIP.EventSubscribe.{i}. is loaded
+        }
+    }
+}
+Multi_Services_VoiceService_i_VoiceProfile_i_SIP_EventSubscribe_i_.entries = function(mapping, parentkey)
+    local entries = {}
+    local sipnet_binding = { config = "mmpbxrvsipnet", sectionname = "sip_net", option = "subscription_event"}
+    local event_subscribe = get_from_uci(sipnet_binding)
+    if ((event_subscribe ~= nil) and (type(event_subscribe) == "table")) then
+        for index,name in ipairs(event_subscribe) do
+            entries[#entries + 1] = parentkey .. "|" .. index
+        end
+    end
+    return entries
+end
+
+local subscribe_map = {
+    Event = "subscription_event",
+    Notifier = "subscription_notifier",
+    NotifierPort = "subscription_notifier_port",
+    ExpireTime = "subscription_expire_time",
+    X_FASTWEB_SubscribeRefreshPercent = "subscription_refresh_percent",
+    X_FASTWEB_SubscribeSleepTimeMin = "subscription_retry_time_min",
+    X_FASTWEB_SubscribeSleepTimeMax = "subscription_retry_time_max",
+}
+
+local function subscribe_getter(mapping, paramname, key)
+    binding.config = "mmpbxrvsipnet"
+    binding.sectionname = "sip_net"
+    binding.option = subscribe_map[paramname]
+    local value_table = get_from_uci(binding)
+    local index = key:match(".*|(.*)")
+    return value_table[tonumber(index)]
+end
+local function subscribe_setter(mapping, paramname, paramvalue, key)
+    binding.config = "mmpbxrvsipnet"
+    binding.sectionname = "sip_net"
+    binding.option = subscribe_map[paramname]
+    local index = key:match(".*|(.*)")
+    local value_table = get_from_uci(binding)
+    if (#value_table > 0 and value_table[tonumber(index)] ~= nil) then
+        value_table[tonumber(index)] = paramvalue
+    end
+    uci_helper.set_on_uci(binding, value_table, commitapply)
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_SIP_EventSubscribe_i_.get = subscribe_getter
+Multi_Services_VoiceService_i_VoiceProfile_i_SIP_EventSubscribe_i_.set = subscribe_setter
+
+
+Multi_Services_VoiceService_i_VoiceProfile_i_SIP_EventSubscribe_i_.commit = function()
+    uci_helper.commit({config = "mmpbxrvsipnet"})
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_SIP_EventSubscribe_i_.revert = function()
+    uci_helper.revert({config = "mmpbxrvsipnet"})
+end
+
+
+duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_SIP_EventSubscribe_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+
 
 local Multi_Services_VoiceService_i_VoiceProfile_i_RTP_ = {
     objectType = {
@@ -1076,16 +1298,6 @@ local set_rtp_net_map = {
         setDSCPMark(binding, value, "realtime_qos_field", "realtime_qos_value")
     end,
     TelephoneEventPayloadType = function(binding, value)
-        local setAllowed = true
-        local dynamic_payload = conn:call("mmpbx.media.codec", "get", {})
-        if dynamic_payload and type(dynamic_payload) == "table" then
-            for i,j in pairs(dynamic_payload) do
-                if tostring(j["payloadType"]) == tostring(value) then
-                    setAllowed = false
-                end
-            end
-        end
-        if setAllowed == true or value == "108" then
             uci_helper.foreach_on_uci(dynamic_binding, function(s)
                 if ((s.name == "telephone-event") and ((s.media_filter == "media_filter_audio_generic") or (s.media_filter == "media_filter_audio_sip"))) then
                     local binding = {config = "mmpbx"}
@@ -1097,9 +1309,6 @@ local set_rtp_net_map = {
                     return true
                 end
             end)
-        else
-            return nil,"PayloadType already exists for another codec"
-        end
     end
 }
 

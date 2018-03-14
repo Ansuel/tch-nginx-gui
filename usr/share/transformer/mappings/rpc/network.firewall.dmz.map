@@ -99,15 +99,17 @@ mapping_dmzredirect_rpc.set = function(mapping, param, value)
         if param == "dest_ip" then
             local family -- family deduced from the IP value
             local macAddr -- mac address of dest_ip value
+            local ipConfiguration
 
             if string.find(value, ":") then
                 family = "ipv6"
             else
                 family = "ipv4"
+                ipConfiguration = "dynamic"
             end
             mapping.uciMap.set(mapping.uciMap, "family", family, redirect_key)
 
-            macAddr = fw_helper.ip2mac(ubus_connect, family, value) or ""
+            macAddr = fw_helper.ip2mac(ubus_connect, family, value, ipConfiguration) or ""
             mapping.uciMap.set(mapping.uciMap, "dest_mac", macAddr, redirect_key)
 
             if macAddr ~= "" then

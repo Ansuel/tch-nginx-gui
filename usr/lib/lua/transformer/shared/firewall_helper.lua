@@ -2,6 +2,7 @@ local M = {}
 
 local require, ipairs, math, pairs, type = require, ipairs, math, pairs, type
 local uci_helper = require 'transformer.mapper.ucihelper'
+local firewallBinding = { config = "firewall", sectionname = "dmzredirect" }
 
 local function getincomingpolicyformode(mode)
     return uci_helper.get_from_uci({config= "firewall", sectionname="fwconfig", option="defaultincoming_" .. mode, default="DROP"})
@@ -87,10 +88,12 @@ function M.get_blocked_redirects(mode)
 end
 
 function M.set_dmz_enable(paramvalue, commitapply)
-        uci_helper.set_on_uci({config= "firewall", sectionname="fwconfig", option="dmz"}, paramvalue, commitapply)
+        uci_helper.set_on_uci({config = "firewall", sectionname = "fwconfig", option = "dmz"}, paramvalue, commitapply)
         if not M.dmz_blocked() then
-          uci_helper.set_on_uci({config= "firewall", sectionname="dmzredirects", option="enabled"}, paramvalue, commitapply)
-          uci_helper.set_on_uci({config= "firewall", sectionname="dmzredirect", option="enabled"}, paramvalue, commitapply)
+            uci_helper.set_on_uci({config = "firewall", sectionname = "dmzredirects", option = "enabled"}, paramvalue, commitapply)
+            uci_helper.foreach_on_uci(firewallBinding, function(s)
+                uci_helper.set_on_uci({config = "firewall", sectionname = s[".name"], option = "enabled"}, paramvalue, commitapply)
+            end)
         end
         uci_helper.commit({config = "firewall"})
 end
@@ -140,11 +143,11 @@ end
 
 -- PURPOSE: Given an IP address retrieve the MAC address from hostmanager
 -- RETURNS: String with MAC address (or nil)
-function M.ip2mac(ubus_connect, ipFamily, ipAddr)
+function M.ip2mac(ubus_connect, ipFamily, ipAddr, ipConfiguration)
     local macAddr -- MAC addr for ipAddr
     local devices -- table of hostmanager device with ipAddr
 
-    if not(ubus_connect and ipFamily and ipAddr) then
+    if not(ubus_connect and (ipFamily == "ipv4" or ipFamily == "ipv6") and ipAddr) then
         return nil
     end
 
@@ -160,6 +163,9 @@ function M.ip2mac(ubus_connect, ipFamily, ipAddr)
             if type(dev[ipFamily]) == "table" then
                 for _, ip in pairs(dev[ipFamily]) do
                     if ip["address"] == ipAddr and ip["state"] == "connected" then
+                        if ipConfiguration and ip["configuration"] ~= ipConfiguration then
+                            return nil
+                        end
                         macAddr = dev["mac-address"]
                         break
                     end
@@ -174,8 +180,16 @@ function M.ip2mac(ubus_connect, ipFamily, ipAddr)
             -- if none of the devices currently owns this IP address,
             -- select the first device returned by host manager query
             local _, dev = next(devices, nil)
-            if (dev) then
-                macAddr = dev["mac-address"]
+            if dev and type(dev[ipFamily]) == "table" then
+                for _, ip in pairs(dev[ipFamily]) do
+                    if ip["address"] == ipAddr then
+                        if ipConfiguration and ip["configuration"] ~= ipConfiguration then
+                            return nil
+                        end
+                        macAddr = dev["mac-address"]
+                        break
+                    end
+                end
             end
         end
     end

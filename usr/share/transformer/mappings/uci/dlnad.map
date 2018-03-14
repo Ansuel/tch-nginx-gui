@@ -33,4 +33,4 @@ local dlnad_partitions = {
   lists = { "share_path" }
 }
 
-mapper("uci_1to1").registerMultiMap(dlnad_partitions)
+mapper("uci_1to1").registerNamedMultiMap(dlnad_partitions)

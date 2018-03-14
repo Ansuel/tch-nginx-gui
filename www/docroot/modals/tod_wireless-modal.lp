@@ -1,6 +1,7 @@
 --pretranslated: do not change this file
  
 -- Localization
+-- NG-155433 Wireless Control - Rule switches on all APs, also Guest APs
 gettext.textdomain('webui-core')
 
 local ui_helper = require("web.ui_helper")
@@ -171,7 +172,9 @@ local function onAdd(success, content, onModify)
     proxy.add(tod_timer_path, "timer"..index)
     proxy.add(tod_wifitod_path, "wifitod"..index)
     proxy.add(tod_wifitod_path .. "@wifitod"..index..".ap.")
-    proxy.add(tod_ap_path, "ap"..index)
+    proxy.add(tod_wifitod_path .. "@wifitod"..index..".ap.")
+    proxy.add(tod_ap_path, "ap0"..index)
+    proxy.add(tod_ap_path, "ap1"..index)
   end
 
   content.weekdays = concat(content.weekdays, ",")
@@ -187,10 +190,14 @@ local function onAdd(success, content, onModify)
   setObject[format("%s@timer%s.start_time", tod_timer_path, index)] = content.start_time
   setObject[format("%s@timer%s.stop_time", tod_timer_path, index)] = content.stop_time
 
-  setObject[format("%s@wifitod%s.ap.@1.value", tod_wifitod_path, index)] = "ap"..index
+  setObject[format("%s@wifitod%s.ap.@1.value", tod_wifitod_path, index)] = "ap0"..index
+  setObject[format("%s@wifitod%s.ap.@2.value", tod_wifitod_path, index)] = "ap1"..index
 
-  setObject[format("%s@ap%s.state", tod_ap_path, index)] = content.mode == "on" and "1" or "0"
-  setObject[format("%s@ap%s.ap", tod_ap_path, index)] = "all"
+  setObject[format("%s@ap0%s.state", tod_ap_path, index)] = content.mode == "on" and "1" or "0"
+  setObject[format("%s@ap0%s.ap", tod_ap_path, index)] = "ap0"
+
+  setObject[format("%s@ap1%s.state", tod_ap_path, index)] = content.mode == "on" and "1" or "0"
+  setObject[format("%s@ap1%s.ap", tod_ap_path, index)] = "ap1"
   proxy.set(setObject)
   proxy.apply()
   return true
@@ -203,7 +210,8 @@ end
 
 local function onDelete(success)
   local index = success:match("action(.+)")
-  proxy.del(format("uci.tod.ap.@ap%s.", index))
+  proxy.del(format("uci.tod.ap.@ap0%s.", index))
+  proxy.del(format("uci.tod.ap.@ap1%s.", index))
   proxy.del(format("uci.tod.action.@action%s.", index))
   proxy.del(format("uci.tod.timer.@timer%s.", index))
   proxy.del(format("uci.tod.wifitod.@wifitod%s.", index))
@@ -249,7 +257,7 @@ local timer_data = {}
 
 for i, v in ipairs(tod_data) do
   v[1] = v[1] -- status
-  v[2] = ap_list[i].ap -- ap
+  v[2] = "all" -- ap
   local days, start_time = timer_list[i].start_time:match("^(.-):(.+)$")
   v[3] = start_time -- start_time
   v[4] = timer_list[i].stop_time:match("^.-:(.+)$") -- stop_time

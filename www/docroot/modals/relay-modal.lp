@@ -3,20 +3,19 @@
 --[[
 Version 1.0 DHCP Relay Setup Page
 
-  - Aloow direct configuration of the PPP Username and Password LAN IP and subnet and edit the DHCP Relay
+  - Allow direct configuration of DHCP Relay
 
 ]]
 -- Enable localization
 gettext.textdomain('webui-core')
 
-local lp = require("web.lp")
 local proxy = require("datamodel")
 local ui_helper = require("web.ui_helper")
 local message_helper = require("web.uimessage_helper")
-local content_helper = require("web.content_helper")
 local post_helper = require("web.post_helper")
-local format,find,sub,untaint = string.format, string.find, string.sub, string.untaint
-local floor, ipairs = math.floor, ipairs
+local content_helper = require("web.content_helper")
+local valEnumSel = post_helper.getValidateInEnumSelect
+local format, match = string.format, string.match
 
 local function resetreboot(path,value)
   proxy.set(path, value)
@@ -28,9 +27,19 @@ local function resetreboot(path,value)
   ngx.exit(ngx.HTTP_OK)
 end
 
-
-
 if ngx.req.get_method() == "POST" then
+  local setIPValues = {}
+  if ngx.req.get_post_args().uci_relay_status == "0" then
+    setIPValues["uci.dhcp.relay.@relay.server_addr"] = ""
+    setIPValues["uci.dhcp.relay.@relay.local_addr"] = ""
+    setIPValues["uci.dhcp.relay.@relay.interface"] = ""
+    proxy.del("uci.dhcp.relaybackup.")
+    proxy.add("uci.dhcp.relaybackup.", post_helper.getRandomKey())
+    proxy.set(setIPValues)
+  else
+    proxy.del("uci.dhcp.relaybackup.")
+  end
+  proxy.apply()
   local action = ngx.req.get_post_args().action
   -- now process non-file POSTs
   if action == "system_reset" then
@@ -40,56 +49,106 @@ if ngx.req.get_method() == "POST" then
   end
 end
 
+local uci_relay_status = "0"
+
 local relay_Params = {
-    uci_username = "uci.network.interface.@wan.username",
-    uci_password = "uci.network.interface.@wan.password",
-    uci_relay_status = "uci.dhcprelay.config.enabled",
-    uci_relay_ip = "uci.dhcprelay.config.serverip",
-    uci_lan_ip = "uci.network.interface.@lan.ipaddr",
-    uci_lan_mask = "uci.network.interface.@lan.netmask",
+    uci_relay_server_ip = "uci.dhcp.relay.@relay.server_addr",
+    uci_relay_local_ip  = "uci.dhcp.relay.@relay.local_addr",
+    uci_relay_interface = "uci.dhcp.relay.@relay.interface"
 }
 
-local gCV = post_helper.getConditionalValidation
-local gVIES = post_helper.getValidateInEnumSelect
-local vB = post_helper.validateBoolean
-local vNES = post_helper.validateNonEmptyString
-local vSIP = post_helper.validateStringIsPort
-local gVP = post_helper.getValidationPassword
-local gOV = post_helper.getOptionalValidation
+local vSII = post_helper.validateStringIsIP
 local aIPV = post_helper.advancedIPValidation
-local vIP4N = post_helper.validateIPv4Netmask
+local pIPV = post_helper.isPublicIP
+local gAV = post_helper.getAndValidation
 
-
-local function validateUsername (value, postdata)
-  local err,msg = vNES(value)
-  if not err then
-    return err,msg
-  end
-
-  local content_uci = {
-    wan_domain = "uci.network.interface.@wan.domain",
-  }
-  content_helper.getExactContent(content_uci)
-
-  if content_uci["wan_domain"] ~= "" then
-    if string.find(value, "@") then
-      return nil, T"Invalid username, domain locked"
+--the [value] a valid IPv4 address
+--the [value] is not the GW IP address
+--the [value] is not the GW WAN IP address
+--@return nil+error message
+local function validateRelay(value, object, key)
+  if vSII(value) then
+    local ipaddr = proxy.get("rpc.network.interface.@lan.ipaddr")[1].value
+    local wan_ipaddr = proxy.get("rpc.network.interface.@wan.ipaddr")[1].value
+    if ipaddr == value then
+       return nil, T"Cannot use the gateway IP address."
     end
-    postdata["uci_wan_username"] = format('%s@%s', value, content_uci["wan_domain"])
+    if wan_ipaddr == value then
+       return nil, T"Cannot use the gateway WAN IP address."
+    end
+    --Adding localdevicemask in post to find the input is a network or broadcast IPv4 address in advancedIPValidation
+    object["localdevmask"] = proxy.get("uci.network.interface.@lan.netmask")[1].value
+    return true
   end
-  return true
+end
+
+-- Description Function to get the list of wan interface Paths
+-- @function getWanInterfacePath
+-- @return table
+local function getWanInterfacePath()
+  local interfaceList = proxy.getPN("rpc.network.interface.", true)
+  local wanIntfPaths = {}
+  if interfaceList then
+    for _,intf in ipairs(interfaceList) do
+      local values = proxy.get(intf.path .. "type")
+      if values ~= "" and values[1].value == "wan" then
+        wanIntfPaths[#wanIntfPaths + 1] = values[1].path
+      end
+    end
+  end
+  return wanIntfPaths
+end
+
+local wanIntfPaths = getWanInterfacePath()
+local wanData = content_helper.convertResultToObject("rpc.network.interface.", proxy.get(unpack(wanIntfPaths)))
+
+local wanConInfo = {}
+for _, data in ipairs(wanData) do
+  if data.type == "wan" then
+    wanConInfo[#wanConInfo + 1] = {}
+    wanConInfo[#wanConInfo].interface = match(data.paramindex, "([%w%_]+)")
+  end
+end
+
+local WanDetails = {}
+for _, data in ipairs(wanConInfo) do
+  if data.interface ~= "wan6" then
+    WanDetails[#WanDetails + 1] = {
+      data and data.interface,
+      data and data.interface,
+    }
+  end
 end
 
 local relay_valid = {
-    uci_username = gCV(validateUsername, gOV(validateUsername)),
-    uci_password = gCV(gVP(vNES), gVP()),
-    uci_relay_status = vB,
-    uci_relay_ip = aIPV,
-    uci_lan_ip = aIPV,
-    uci_lan_mask = vIP4N,
+  uci_relay_server_ip = gAV(validateRelay, aIPV),
+  uci_relay_local_ip  = gAV(validateRelay, pIPV),
+  uci_relay_interface = valEnumSel(WanDetails),
 }
 
+local function getRelayBackUpValues()
+  local getBackUpValues = content_helper.convertResultToObject("uci.dhcp.relaybackup.", proxy.get("uci.dhcp.relaybackup."))
+  if getBackUpValues and next(getBackUpValues) then
+    for _, v in pairs(getBackUpValues) do
+      relay_Params["uci_relay_server_ip"] = format("uci.dhcp.relaybackup.%s.server_addr", v.paramindex)
+      relay_Params["uci_relay_local_ip"]  = format("uci.dhcp.relaybackup.%s.local_addr", v.paramindex)
+      relay_Params["uci_relay_interface"] = format("uci.dhcp.relaybackup.%s.interface", v.paramindex)
+    end
+  end
+end
+
+if (ngx.req.get_method() == "POST" and  ngx.req.get_post_args().uci_relay_status == "0") then
+  getRelayBackUpValues()
+end
+
+if proxy.get("uci.dhcp.relay.@relay.server_addr")[1].value == "" and proxy.get("uci.dhcp.relay.@relay.local_addr")[1].value == "" then
+  getRelayBackUpValues()
+end
+
 local relay_Values, helpmsg = post_helper.handleQuery(relay_Params, relay_valid)
+if proxy.get("uci.dhcp.relay.@relay.server_addr")[1].value ~= "" and proxy.get("uci.dhcp.relay.@relay.local_addr")[1].value ~= "" then
+  uci_relay_status = "1"
+end
 local title = T"DHCP Relay Setup"
   ngx.print('\
 \
@@ -100,54 +159,14 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
   ngx.print('\
 <form class="form-horizontal" method="post" action="modals/relay-modal.lp">\
 <fieldset>\
-  <legend>');  ngx.print( T"PPP" ); ngx.print('</legend>\
-\
-    ');  
-    html = {}
-    -- PPP username
-    local class_username = {
-      input = {
-        maxlength= "128",
-        class = "span6",
-      }
-    }
-    html[#html + 1] = format("<div class='control-group'><label class='control-label'>%s</label><div class='controls'>",T"Username")
-    html[#html + 1] = ui_helper.createSimpleInputText("uci_username", relay_Values["uci_username"], class_username, helpmsg["uci_username"])
-    html[#html + 1] = [[</div></div>]]
-
-    -- PPP password
-    local class_password = class_username
-    html[#html + 1] = ui_helper.createInputPassword(T"Password", "uci_password", relay_Values["uci_password"], class_username, helpmsg["uci_password"])
-    ngx.print(html)
-      ngx.print('\
-\
-</fieldset>\
-<fieldset>\
-  <legend>');  ngx.print( T"LAN" ); ngx.print('</legend>\
-       ');  
-         local html = {}
-         html[#html + 1] = ui_helper.createInputText(T"IP Address", "uci_lan_ip", relay_Values["uci_lan_ip"],{},helpmsg["uci_lan_ip"])
-         html[#html + 1] = ui_helper.createInputText(T"Subnet Mask", "uci_lan_mask", relay_Values["uci_lan_mask"], nil, helpmsg["uci_lan_mask"])
-         ngx.print(html)
-
-         ngx.print('\
-\
-</fieldset>\
-<fieldset>\
   <legend>');  ngx.print( T"DHCP Relay" ); ngx.print('</legend>\
        ');  
          local html = {}
-         html[#html + 1] = ui_helper.createSwitch(T"Enabled", "uci_relay_status", relay_Values["uci_relay_status"])
-         html[#html + 1] = ui_helper.createInputText(T"Relay IP", "uci_relay_ip", relay_Values["uci_relay_ip"], nil, helpmsg["uci_relay_ip"])
-         local Relay_Warn = {
-          alert = {
-                  class = "alert-warning"
-          },
-        }
-         html[#html + 1] = ui_helper.createAlertBlock(T"When changing any parameters in this section you will need to reboot the Router to make the changes take effect",  Relay_Warn)
-
+         html[#html + 1] = ui_helper.createSwitch(T"Status", "uci_relay_status", uci_relay_status)
+         html[#html + 1] = ui_helper.createInputText(T"Server IP", "uci_relay_server_ip", relay_Values["uci_relay_server_ip"], nil, helpmsg["uci_relay_server_ip"])
+         html[#html + 1] = ui_helper.createInputText(T"Local IP", "uci_relay_local_ip", relay_Values["uci_relay_local_ip"], nil, helpmsg["uci_relay_local_ip"])
+         html[#html + 1] = ui_helper.createInputSelect(T"Interface", "uci_relay_interface", WanDetails, relay_Values["uci_relay_interface"])
          ngx.print(html)
-
          ngx.print('\
 \
 </fieldset>\

@@ -96,6 +96,34 @@ end
 
 createUsbPartitionTable()
 
+local function concatPrinter(printer_table, delimiter)
+    local result = ""
+    for _, v in ipairs(printer_table) do
+      result = result .. delimiter .. v
+    end
+    return result
+end
+
+local function removeDuplicateEntry(usbpart_data)
+    local tableDict, duplicateIndices = {}, {}
+    -- Converts all nested tables into string and also to find all duplicate indices
+    for i, t in ipairs(usbpart_data) do
+      local key = concatPrinter(t, "|")
+      if not tableDict[key] then
+        tableDict[key] = true
+      else
+         duplicateIndices[#duplicateIndices+1] = i
+      end
+    end
+    -- Iteration over duplicate indices from backwards and removed the value
+    for i = #duplicateIndices, 1, -1 do
+      table.remove(usbpart_data, duplicateIndices[i])
+    end
+    return usbpart_data
+end
+
+removeDuplicateEntry(usbpart_data)
+
   ngx.print('\
 \
 ');  ngx.print( ui_helper.createHeader(T"Printer Sharing", false, true, nil)); ngx.print('\
