@@ -74,7 +74,7 @@ if ngx.var.request_method == "POST" then
     if action == "BRIDGEMODE" then
         if not bridgemode.isBridgedMode() then
             bridgemode.configBridgedMode()
-            --return resetreboot("rpc.system.reboot", "GUI")
+            return resetreboot("rpc.system.reboot", "GUI")
         end
     end
 end
