@@ -44,9 +44,18 @@ fi
 
 #clean old www dir
 
-for dir in /www/*; do
-    [ "$dir" = "docroot/aria" ] && continue
-    rm -rf "$dir"
+for dir in /www/* ; do
+    if [ "$dir" = "/www/docroot" ]; then
+		for subdir in /www/docroot/* ; do
+			if [ "$subdir" = "/www/docroot/aria" ]; then
+				continue
+			else
+				rm -rf "$subdir"
+			fi
+		done
+    else
+		rm -rf "$dir"
+	fi
 done
 
 # Extract new GUI to /
