@@ -44,7 +44,10 @@ fi
 
 #clean old www dir
 
-rm -r /www
+for dir in /www/*; do
+    [ "$dir" = "docroot/aria" ] && continue
+    rm -rf "$dir"
+done
 
 # Extract new GUI to /
 bzcat "$WORKING_DIR/$FILE_NAME" | tar -C "$TARGET_DIR" -xvf -

@@ -13,6 +13,7 @@ local mapParams = {
 	luci_webui = "uci.env.var.luci_webui",										 
     aria2_webui = "uci.env.var.aria2_webui",
     transmission_webui = "uci.env.var.transmission_webui",
+	blacklist_application = "uci.env.var.blacklist_app",
 }
 content_helper.getExactContent(mapParams)
 
@@ -49,6 +50,17 @@ else
   transmission_webuiState = "0"
 end
 
+local blacklist_applicationState_text = ""
+local blacklist_applicationState
+
+if mapParams["blacklist_application"] and mapParams["blacklist_application"] == "1" then
+  blacklist_applicationState_text = T"Blacklist is installed"
+  blacklist_applicationState = "1"
+else
+  blacklist_applicationState_text = T"Blacklist is not installed"
+  blacklist_applicationState = "0"
+end
+
 local modalPath = nil
 local switchName = nil
 local session = ngx.ctx.session
@@ -75,7 +87,8 @@ end
 		html[#html + 1] = ui_helper.createSimpleLight(aria2_webuiState, aria2_webuiState_text, nil, nil  )
 		html[#html + 1] = "</br>"
 		html[#html + 1] = ui_helper.createSimpleLight(transmission_webuiState, transmission_webuiState_text, nil, nil )
-		
+		html[#html + 1] = "</br>"
+		html[#html + 1] = ui_helper.createSimpleLight(blacklist_applicationState, blacklist_applicationState_text, nil, nil )
 		ngx.print(html)
         ngx.print('\
 \

@@ -141,12 +141,14 @@ if (ngx.req.get_method() == "POST" and  ngx.req.get_post_args().uci_relay_status
   getRelayBackUpValues()
 end
 
-if proxy.get("uci.dhcp.relay.@relay.server_addr")[1].value == "" and proxy.get("uci.dhcp.relay.@relay.local_addr")[1].value == "" then
+server_addr = proxy.get("uci.dhcp.relay.@relay.server_addr")
+
+if not server_addr or ( server_addr[1].value == "" and proxy.get("uci.dhcp.relay.@relay.local_addr")[1].value == "" )  then
   getRelayBackUpValues()
 end
 
 local relay_Values, helpmsg = post_helper.handleQuery(relay_Params, relay_valid)
-if proxy.get("uci.dhcp.relay.@relay.server_addr")[1].value ~= "" and proxy.get("uci.dhcp.relay.@relay.local_addr")[1].value ~= "" then
+if server_addr and server_addr[1].value ~= "" and proxy.get("uci.dhcp.relay.@relay.local_addr")[1].value ~= "" then
   uci_relay_status = "1"
 end
 local title = T"DHCP Relay Setup"

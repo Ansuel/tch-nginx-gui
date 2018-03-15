@@ -140,7 +140,7 @@ ngx.print('\
 			html[#html + 1] = [[ <li><a tabindex="-1" href="/luci"> ]]
 			html[#html + 1] = T"Luci Webui"
 			html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
-			html[#html + 1] = [[ <li><a tabindex="-1" href="/transmission"> ]]
+			html[#html + 1] = [[ <li><a tabindex="-1" href="/transmission/web/"> ]]
 			html[#html + 1] = T"Transmission Webui"
 			html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
             html[#html + 1] = [[ <li><a tabindex="-1" href="/" id="signout"> ]]

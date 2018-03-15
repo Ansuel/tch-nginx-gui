@@ -22,7 +22,9 @@ local relay_Params = {
 local getBackUpValues = content_helper.convertResultToObject("uci.dhcp.relaybackup.", proxy.get("uci.dhcp.relaybackup."))
 content_helper.getExactContent(relay_Params)
 
-if proxy.get("uci.dhcp.relay.@relay.server_addr")[1].value == "" and proxy.get("uci.dhcp.relay.@relay.local_addr")[1].value == "" then
+local server_addr = proxy.get("uci.dhcp.relay.@relay.server_addr")
+
+if not server_addr or (server_addr[1].value == "" and proxy.get("uci.dhcp.relay.@relay.local_addr")[1].value == "") then
   dhcprelay_state = "disabled"
   if getBackUpValues and next(getBackUpValues) then
     for _, v in pairs(getBackUpValues) do
@@ -42,20 +44,22 @@ local dhcp_state_map = {
     connected = T"DHCP Relay enabled",
 }
 
-  ngx.print('\r\
-<div class="span3">\r\
-    <div class="smallcard">\r\
-      ');  ngx.print( ui_helper.createCardHeader(T"Relay Setup", "modals/relay-modal.lp") ); ngx.print('\r\
-      <div class="content">\r\
+  ngx.print('\
+<div class="span3">\
+    <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
+      ');  ngx.print( ui_helper.createCardHeader(T"Relay Setup", "modals/relay-modal.lp") ); ngx.print('\
+      <div class="content card_bg" data-bg-text="&#xf079;">\
         ');  ngx.print(ui_helper.createSimpleLight(nil, dhcp_state_map[dhcprelay_state] , { light = { class = dhcp_light_map[dhcprelay_state], id = "relaysetupcard_dhcprelaystatusled" },  span = { id = "relaysetupcard_dhcprelaystatus" }}))
-          ngx.print(format('<p class = "subinfos" > Server IP : <strong id="relaysetupcard_relayip">%s</strong></p>',relay_Params["uci_relay_server_ip"] ))
-          ngx.print(format('<p class = "subinfos" > Local IP : <strong id="relaysetupcard_relayip">%s</strong></p>',relay_Params["uci_relay_local_ip"] ))
-         ngx.print(format('<p class = "subinfos" > Interface : <strong id="relaysetupcard_relayip">%s</strong></p>',relay_Params["interface"] ))
-          ngx.print('\r\
-     </div>\r\
-    </div>\r\
-</div>\r\
+          if server_addr and not server_addr[1].value == "" then 
+		    ngx.print(format('<p class = "subinfos" > Server IP : <strong id="relaysetupcard_relayip">%s</strong></p>',relay_Params["uci_relay_server_ip"] ))
+            ngx.print(format('<p class = "subinfos" > Local IP : <strong id="relaysetupcard_relayip">%s</strong></p>',relay_Params["uci_relay_local_ip"] ))
+            ngx.print(format('<p class = "subinfos" > Interface : <strong id="relaysetupcard_relayip">%s</strong></p>',relay_Params["interface"] ))
+          end
+		  ngx.print('\
+     </div>\
+    </div>\
+</div>\
 ');  
 end
-  ngx.print('\r\
+  ngx.print('\
 '); 

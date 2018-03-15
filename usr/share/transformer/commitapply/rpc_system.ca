@@ -11,5 +11,7 @@
 ^rpc%.system%.remove_aria2 /usr/share/transformer/scripts/remove_aria2.sh
 ^rpc%.system%.install_transmission /usr/share/transformer/scripts/install_transmission.sh
 ^rpc%.system%.remove_transmission /usr/share/transformer/scripts/remove_transmission.sh
+^rpc%.system%.install_blacklist /usr/share/transformer/scripts/install_blacklist.sh
+^rpc%.system%.remove_blacklist /usr/share/transformer/scripts/remove_blacklist.sh
 ^rpc%.system%.refreshdriver /usr/share/transformer/scripts/refresh_driver.sh
 ^sys%.bootp%.enable /usr/bin/bootp

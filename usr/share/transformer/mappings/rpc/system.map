@@ -99,6 +99,14 @@ local system_ = {
                 access = "readWrite",
                 type = "boolean",
             },
+			install_blacklist = {
+                access = "readWrite",
+                type = "boolean",
+            },
+			remove_blacklist = {
+                access = "readWrite",
+                type = "boolean",
+            },
             uptime = {
                 access = "readOnly",
                 type = "unsignedInt",
@@ -140,7 +148,9 @@ local system_ = {
 		install_aria2 = "0",
 		remove_aria2 = "0",
 		install_transmission = "0",
-		remove_transmission = "0",		
+		remove_transmission = "0",	
+		install_blacklist = "0",
+		remove_blacklist = "0",	
         uptime = function()
             local fd, msg = open("/proc/uptime")
             if not fd then
