@@ -63,6 +63,10 @@ local system_ = {
 					access = "readWrite",
 					type = "boolean",
 			},
+			checkver = {
+					access = "readWrite",
+					type = "boolean",
+			},
 			removeroot = {
 					access = "readWrite",
 					type = "boolean",
@@ -139,6 +143,7 @@ local system_ = {
         reset = "0",
 		resetgui = "0",
 		upgradegui = "0",
+		checkver = "0",
 		removeroot = "0",
 		transfer_bank1 = "0",
         switchover = "0",

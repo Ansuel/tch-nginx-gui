@@ -230,22 +230,22 @@ function M.secondsToTimeShort(time)
     }
     local start = 4
     local duration = durations[4]
-    durations[4] = format(N("%d s", "%d s", duration), duration)
+    durations[4] = format(N("%ds", "%ds", duration), duration)
     duration = durations[3]
     if duration > 0 then
       start = 3
     end
-    durations[3] = format(N("%d m", "%d m", duration), duration)
+    durations[3] = format(N("%dm:", "%dm:", duration), duration)
     duration = durations[2]
     if duration > 0 then
       start = 2
     end
-    durations[2] = format(N("%d h", "%d h", duration), duration)
+    durations[2] = format(N("%dh:", "%dh:", duration), duration)
     duration = durations[1]
     if duration > 0 then
       start = 1
     end
-    durations[1] = format(N("%d d", "%d d", duration), duration)
+    durations[1] = format(N("%d day", "%d days", duration), duration)
     return concat(durations, " ", start)
   end
   return nil, T"Positive number expected."

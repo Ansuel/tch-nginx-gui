@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=6.1.14
+version_gui=6.2.7
 
 check_root() {
 	
@@ -365,8 +365,9 @@ create_gui_type() {
 		else
 			uci set env.var.aria2_webui="0"
 		fi
-	elif [ ! -d /www/docroot/aria ]; then #this restore aria... my bad for this bug...
-		/usr/share/transformer/scripts/install_aria.sh
+	elif [ ! -d /www/docroot/aria ] && [ -f /usr/share/transformer/scripts/install_aria2.sh ]; then 
+		#this restore aria... my bad for this bug...
+		/usr/share/transformer/scripts/install_aria2.sh
 	fi
 	if [ ! $( uci get -q env.var.luci_webui) ]; then
 		if [ -d /www_luci ]; then

@@ -19,7 +19,7 @@ local function appapply(action)
   else
 	state = "0"
   end
-  if not uci_set == "blacklist" then
+  if not ( uci_set == "blacklist" ) then
 	proxy.set("uci.env.var." .. uci_set .. "_webui",state)
   else
 	proxy.set("uci.env.var." .. uci_set .. "_app",state)
@@ -70,41 +70,17 @@ local mapParams = {
 }
 content_helper.getExactContent(mapParams)
 
-local luci_webuiState
+local StateParams = {}
 
-if mapParams["luci_webui"] and mapParams["luci_webui"] == "1" then
-  luci_webuiState = ""
-else
-  luci_webuiState = "not"
+for Params in pairs(mapParams) do
+	if mapParams[Params] and mapParams[Params] == "1" then
+		StateParams[Params] = ""
+	else
+		StateParams[Params] = T"not"
+	end
 end
-
-local aria2_webuiState
-
-if mapParams["aria2_webui"] and mapParams["aria2_webui"] == "1" then
-  aria2_webuiState = ""
-else
-  aria2_webuiState = "not"
-end
-
-local transmission_webuiState
-
-if mapParams["transmission_webui"] and mapParams["transmission_webui"] == "1" then
-  transmission_webuiState = ""
-else
-  transmission_webuiState = "not"
-end
-
-local blacklist_application
-
-if mapParams["blacklist_application"] and mapParams["blacklist_application"] == "1" then
-  blacklist_applicationState = ""
-else
-  blacklist_applicationState = "not"
-end
-
-
-
-  ngx.print('\
+	
+ngx.print('\
 \
 ');  ngx.print(ui_helper.createHeader(T"Application List", false, false))   ngx.print('\
 <div class="modal-body update">\
@@ -136,14 +112,14 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = '<legend>' .. T"Luci GUI !! BROKEN !!" .. '</legend>'
 	  html[#html + 1] = ui_helper.createAlertBlock(T"This will install uhttpd and luci", info_box)
 	  html[#html + 1] = T"State: "
-	  html[#html + 1] = "<strong>" .. T"Luci is " .. luci_webuiState .. " installed" .. "</strong></br>"
+	  html[#html + 1] = "<strong>" .. T"Luci is " .. StateParams["luci_webui"] .. T" installed" .. "</strong></br>"
 	  local luci_link = format("http://%s/luci",mapParams.local_ip_modem)
 	  html[#html + 1] = T"Webui on: " .. '<a href="' .. luci_link .. '">' .. luci_link .. "</a>"
 	  html[#html + 1] = "</br>"
 	  local luci_direct_link = format("http://%s:9080",mapParams.local_ip_modem)
 	  html[#html + 1] = T" (or " .. '<a href="' .. luci_direct_link .. '">' .. luci_direct_link .. "</a>" .. " )"
 	  html[#html + 1] = "</br>"
-	  html[#html + 1] = "<strong>Disabled for now... need to wait @Roleo</strong>"
+	  html[#html + 1] = T"<strong>Disabled for now... need to wait @Roleo</strong>"
 	  html[#html + 1] = "</br>"
 	  if mapParams["luci_webui"] and mapParams["luci_webui"] == "1" then
 		html[#html + 1] = ui_helper.createSimpleButton(T"Remove Luci", "icon-refresh", remove_luci)
@@ -168,7 +144,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = '<legend>' .. T"Aria2 GUI" .. '</legend>'
 	  html[#html + 1] = ui_helper.createAlertBlock(T"This will install aria2 and ariang webui", info_box)
 	  html[#html + 1] = T"State: "
-	  html[#html + 1] = "<strong>" .. T"Aria2 is " .. aria2_webuiState .. " installed" .. "</strong></br>"
+	  html[#html + 1] = "<strong>" .. T"Aria2 is " .. StateParams["aria2_webui"] .. T" installed" .. "</strong></br>"
 	  local aria_link = format("http://%s/aria",mapParams.local_ip_modem)  
 	  html[#html + 1] = T"Webui on: " .. '<a href="' .. aria_link .. '">' .. aria_link .."</a>"
 	  html[#html + 1] = "</br>"
@@ -195,7 +171,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = '<legend>' .. T"Transmission GUI" .. '</legend>'
 	  html[#html + 1] = ui_helper.createAlertBlock(T"This will install transmission and transmission-webui", info_box)
 	  html[#html + 1] = T"State: "
-	  html[#html + 1] = "<strong>" .. T"Transmission is " .. transmission_webuiState .. " installed" .. "</strong></br>"
+	  html[#html + 1] = "<strong>" .. T"Transmission is " .. StateParams["transmission_webui"] .. T" installed" .. "</strong></br>"
 	  local transmission_link = format("http://%s/transmission/web/",mapParams.local_ip_modem) 
 	  html[#html + 1] = T"Webui on: " .. '<a href="' .. transmission_link .. '">' .. transmission_link .."</a>"
 	  html[#html + 1] = "</br>"
@@ -226,7 +202,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = '<legend>' .. T"Blacklist App" .. '</legend>'
 	  html[#html + 1] = ui_helper.createAlertBlock(T"This will install the blacklist application", info_box)
 	  html[#html + 1] = T"State: "
-	  html[#html + 1] = "<strong>" .. T"The Blacklist app is " .. blacklist_applicationState .. " installed" .. "</strong></br>"
+	  html[#html + 1] = "<strong>" .. T"The Blacklist app is " .. StateParams["blacklist_application"] .. T" installed" .. "</strong></br>"
 	  local blacklist_link = "http://blacklist.satellitar.it/"
 	  html[#html + 1] = T"Support site: " .. '<a href="' .. blacklist_link .. '">' .. blacklist_link .."</a>"
 	  html[#html + 1] = "</br>"

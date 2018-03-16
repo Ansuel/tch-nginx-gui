@@ -8,8 +8,9 @@ local proxy = require("datamodel")
 local content_helper = require("web.content_helper")
 local insert, format = table.insert, string.format
 
+local gui_version = proxy.get("uci.env.var.gui_version")[1].value
+
 local mapParams = {
-    gui_version = "uci.env.var.gui_version",
 	luci_webui = "uci.env.var.luci_webui",										 
     aria2_webui = "uci.env.var.aria2_webui",
     transmission_webui = "uci.env.var.transmission_webui",
@@ -17,48 +18,18 @@ local mapParams = {
 }
 content_helper.getExactContent(mapParams)
 
-local luci_webuiState_text = ""
-local luci_webuiState
+local StateParams = {}
+local ParamsText = {}
 
-if mapParams["luci_webui"] and mapParams["luci_webui"] == "1" then
-  luci_webuiState_text = T"Luci WebUi installed"
-  luci_webuiState = "1"
-else
-  luci_webuiState_text = T"Luci WebUi not installed"
-  luci_webuiState = "0"
-end
-
-local aria2_webuiState_text = ""
-local aria2_webuiState
-
-if mapParams["aria2_webui"] and mapParams["aria2_webui"] == "1" then
-  aria2_webuiState_text = T"Aria2 WebUi installed"
-  aria2_webuiState = "1"
-else
-  aria2_webuiState_text = T"Aria2 WebUi not installed"
-  aria2_webuiState = "0"
-end
-
-local transmission_webuiState_text = ""
-local transmission_webuiState
-
-if mapParams["transmission_webui"] and mapParams["transmission_webui"] == "1" then
-  transmission_webuiState_text = T"Transmission WebUi installed"
-  transmission_webuiState = "1"
-else
-  transmission_webuiState_text = T"Transmission WebUi not installed"
-  transmission_webuiState = "0"
-end
-
-local blacklist_applicationState_text = ""
-local blacklist_applicationState
-
-if mapParams["blacklist_application"] and mapParams["blacklist_application"] == "1" then
-  blacklist_applicationState_text = T"Blacklist is installed"
-  blacklist_applicationState = "1"
-else
-  blacklist_applicationState_text = T"Blacklist is not installed"
-  blacklist_applicationState = "0"
+for Params in pairs(mapParams) do
+	local ParamsName = Params:gsub("_(.*)",""):gsub("^%l", string.upper)
+	if mapParams[Params] and mapParams[Params] == "1" then
+		StateParams[Params] = "1"
+		ParamsText[Params] = ParamsName .. T" is installed"
+	else
+		StateParams[Params] = "0"
+		ParamsText[Params] = ParamsName .. T" is not installed"
+	end
 end
 
 local modalPath = nil
@@ -79,16 +50,10 @@ end
       ');  
         local html = {}
 		
-		html[#html + 1] = "<strong>"
-		html[#html + 1] = T"Gui Version: " .. mapParams["gui_version"]
-		html[#html + 1] = "</strong></br>"
-        html[#html + 1] = ui_helper.createSimpleLight(luci_webuiState, luci_webuiState_text, nil, nil  )
-		html[#html + 1] = "</br>"
-		html[#html + 1] = ui_helper.createSimpleLight(aria2_webuiState, aria2_webuiState_text, nil, nil  )
-		html[#html + 1] = "</br>"
-		html[#html + 1] = ui_helper.createSimpleLight(transmission_webuiState, transmission_webuiState_text, nil, nil )
-		html[#html + 1] = "</br>"
-		html[#html + 1] = ui_helper.createSimpleLight(blacklist_applicationState, blacklist_applicationState_text, nil, nil )
+		for Params in pairs(mapParams) do
+			html[#html + 1] = ui_helper.createSimpleLight(StateParams[Params], ParamsText[Params], nil, nil  )
+		end
+		
 		ngx.print(html)
         ngx.print('\
 \

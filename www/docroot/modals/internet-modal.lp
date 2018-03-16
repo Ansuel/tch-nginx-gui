@@ -55,14 +55,6 @@ ngx.print(ui_helper.createHeader(T"Internet Access", tech, true))
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 %>
 
-<%
-	if not bridgemode.isBridgedMode() then
-%>
-
-<%
-    if #imh > 1 then
-    -- Only included if there are 2 or more connection modes
-%>
 <fieldset id="conn_mode" class="advanced hide">
 <legend><%= T"Connection mode" %></legend>
 
@@ -93,10 +85,6 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	end
 %>
 </fieldset>
-
-<% end %>
-
-<% end %>
 
 <% end %>
 <%

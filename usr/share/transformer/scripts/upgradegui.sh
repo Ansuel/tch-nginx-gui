@@ -47,7 +47,7 @@ fi
 for dir in /www/* ; do
     if [ "$dir" = "/www/docroot" ]; then
 		for subdir in /www/docroot/* ; do
-			if [ "$subdir" = "/www/docroot/aria" ]; then
+			if [ "$subdir" = "/www/docroot/aria" ] || [ "$subdir" = "/www/docroot/transmission" ]; then
 				continue
 			else
 				rm -rf "$subdir"

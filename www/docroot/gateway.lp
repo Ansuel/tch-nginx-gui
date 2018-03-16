@@ -23,6 +23,16 @@ content_helper.getExactContent(cui)
 local year= cui.timestamp
 local current_year = (string.sub(year,1,4))
 
+local function apply(action)
+  proxy.set("rpc.system." .. action, "1")
+  ngx.header.content_type = "application/json"
+  ngx.print('{ "success":"true" }')
+  ngx.timer.at(0, function()
+    proxy.apply()
+  end)
+  ngx.exit(ngx.HTTP_OK)
+end
+
 if ngx.req.get_method() == "POST" then
   local post_args = ngx.req.get_post_args()
   if post_args.passwordchange == "dontremind" then
@@ -32,6 +42,9 @@ if ngx.req.get_method() == "POST" then
         proxy.apply()
       end
     end
+  end
+  if post_args.action == "checkver" then
+	return apply("checkver")
   end
   if post_args.do_signout then
     session:logout()
@@ -267,6 +280,24 @@ $(function() {\
     e.preventDefault();\
     $("html, body").animate({ scrollTop: $($(this).attr("href")).offset().top}, 500, "linear");\
   });\
+\
+  var target = $(".modal form").attr("action");\
+\
+  function post(action) {\
+    $.post(\
+      target,\
+      { action: action, CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
+      null,\
+      "json"\
+    );\
+    return false;\
+  }\
+\
+  $("#update").click(function() {\
+	 console.error("ciao");\
+     post("checkver");\
+	 setTimeout(function(){location.reload();}, 2000);\
+     });\
 });\
 </script>\
 ');
