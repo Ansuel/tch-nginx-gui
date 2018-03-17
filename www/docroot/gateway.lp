@@ -18,8 +18,14 @@ local cui = {
 	gui_version = "uci.env.var.gui_version",
 	outdated_ver = "uci.env.var.outdated_ver",
 	gui_skin = "uci.env.var.gui_skin",
+	luci_webui = "uci.env.var.luci_webui",										 
+    aria2_webui = "uci.env.var.aria2_webui",
+    transmission_webui = "uci.env.var.transmission_webui",
+	blacklist_application = "uci.env.var.blacklist_app",
+	new_ver = "uci.env.var.new_ver",
 }
 content_helper.getExactContent(cui)
+
 local year= cui.timestamp
 local current_year = (string.sub(year,1,4))
 
@@ -114,18 +120,16 @@ ngx.print('\
 			html[#html + 1] = [[ </div> ]]
 		end
 		if cui.outdated_ver == "1" then
-			html[#html + 1] = '<div class="btn" style="margin-right:10px" id="update">' 
+			html[#html + 1] = '<div class="btn" style="margin-right:10px">' 
 			html[#html + 1] = '<a style="color:red" class="someInfos" rel="tooltip" data-placement="bottom" data-original-title="'
 			html[#html + 1] = T"Go to the gateway tab and click on the Upgrade buttom, to autoupgrade to the new GUI."
-			html[#html + 1] = '" href="https://www.ilpuntotecnicoeadsl.com/sblocco-smart-modem-evolution-dga4130-agtef" target="_blank">'
+			html[#html + 1] = '" data-toggle="modal" data-remote="modals/gateway-modal.lp">'
 			html[#html + 1] = T"Upgrade Available" 
+			html[#html + 1] = " <strong>("
+			html[#html + 1] = cui.new_ver
+			html[#html + 1] = ")</strong>" 
 			html[#html + 1] = '</a>'
 			html[#html + 1] = '</div>'
-		else
-			html[#html + 1] = '<div class="btn" style="margin-right:10px" id="update">' 
-			html[#html + 1] = '<a style="color:red" href="https://www.ilpuntotecnicoeadsl.com/sblocco-smart-modem-evolution-dga4130-agtef" target="_blank">'
-			html[#html + 1] = T"Check Upgrade" 
-			html[#html + 1] = '</a></div>'
 		end
         html[#html + 1] = '<div class="btn" style="margin-right:10px" id="wizard-btn" data-toggle="modal" data-remote="modals/wizard-modal.lp">' .. T"Setup Wizard" .. '</div>'
         if session:isdefaultuser() then
@@ -147,13 +151,22 @@ ngx.print('\
                 html[#html + 1] = T"Profile Settings"
                 html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
             end
-			html[#html + 1] = [[ <li><a tabindex="-1" href="/aria"> ]]
+			html[#html + 1] = [[ <li><a tabindex="-1" href="https://www.ilpuntotecnicoeadsl.com/forum/index.php/topic,77325.0.html" target="_blank"> ]]
+			html[#html + 1] = T"Support Forum"
+			html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
+			html[#html + 1] = [[ <li><a tabindex="-1" href="https://github.com/Ansuel/tch-nginx-gui" target="_blank"> ]]
+			html[#html + 1] = T"Github Gui"
+			html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
+			html[#html + 1] = [[ <li><a tabindex="-1" id="update"> ]]
+			html[#html + 1] = T"Check Upgrade" 
+			html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
+			html[#html + 1] = [[ <li><a tabindex="-1" target="_blank" href="/aria"> ]]
 			html[#html + 1] = T"Aria2 Webui"
 			html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
-			html[#html + 1] = [[ <li><a tabindex="-1" href="/luci"> ]]
+			html[#html + 1] = [[ <li><a tabindex="-1" target="_blank" href="/luci"> ]]
 			html[#html + 1] = T"Luci Webui"
 			html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
-			html[#html + 1] = [[ <li><a tabindex="-1" href="/transmission/web/"> ]]
+			html[#html + 1] = [[ <li><a tabindex="-1" target="_blank" href="/transmission/web/"> ]]
 			html[#html + 1] = T"Transmission Webui"
 			html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
             html[#html + 1] = [[ <li><a tabindex="-1" href="/" id="signout"> ]]
@@ -294,7 +307,6 @@ $(function() {\
   }\
 \
   $("#update").click(function() {\
-	 console.error("ciao");\
      post("checkver");\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\

@@ -363,6 +363,7 @@ local content = {
   fwversion_override = "uci.versioncusto.override.fwversion_override",
   gui_version = "uci.env.var.gui_version",
   outdated_ver = "uci.env.var.outdated_ver",
+  new_ver = "uci.env.var.new_ver",
 }
 
 content_helper.getExactContent(content)
@@ -963,6 +964,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = ui_helper.createAlertBlock(T"This upgrade the GUI to the latest available version on the site", info_box)
 	  if content["outdated_ver"] == "1" then
 	    html[#html + 1] = ui_helper.createLabel("State", T"Upgrade Found", basic)
+		html[#html + 1] = ui_helper.createLabel(T"New Version", content["new_ver"], basic)
 		html[#html + 1] = ui_helper.createButton(T"Upgrade Gui", T"Upgrade", "icon-refresh", upgrade_gui)
 	  else 
 	    html[#html + 1] = ui_helper.createLabel("State", T"No Upgrade found", basic)
@@ -1078,6 +1080,7 @@ ngx.print('\
 	$(".container").css("pointer-events", "none");\
 	$(".modal").css("pointer-events", "none");\
     $("#btn-upgrade-gui").addClass("hide");\
+	$("#offline-upgrade-gui-div").addClass("hide");\
     resetreboot($("#updating-msg"), $(this), "system_upgrade_gui");\
 	$("#upgrade-gui-bar").removeClass("hide");\
 	$(".bar").css("width", valeur+"%").attr("aria-valuenow", valeur);\

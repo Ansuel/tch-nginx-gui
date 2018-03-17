@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=6.3.99-3
+version_gui=6.4.12
 
 check_root() {
 	
@@ -102,6 +102,7 @@ generate_hash_gui() {
 			gui_hash="0"
 		fi
 	fi
+	uci set env.var.new_ver="Unknown"
 	uci set env.var.gui_hash=$gui_hash
 	uci set env.var.outdated_ver='0'
 }

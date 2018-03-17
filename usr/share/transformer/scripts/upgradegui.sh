@@ -9,7 +9,7 @@ PERMANENT_STORE_DIR="/root"
 TARGET_DIR="/"
 FILE_NAME="GUI.tar.bz2"
 URL_BASE="http://repository.ilpuntotecnicoeadsl.com/files/Ansuel/AGTEF"
-CHECKSUM_FILE="checksum.md5"
+CHECKSUM_FILE="version"
 
 if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload is now present
 	# Enter /tmp folder
@@ -34,7 +34,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 		rm $WORKING_DIR/$CHECKSUM_FILE
 	fi
 	wget $URL_BASE/$CHECKSUM_FILE
-	if [ $(md5sum $WORKING_DIR/$FILE_NAME | awk '{print $1}') != $(cat $WORKING_DIR/$CHECKSUM_FILE | awk '{print $1}') ]; then
+	if ! grep -q $(md5sum $WORKING_DIR/$FILE_NAME | awk '{print $1}') $WORKING_DIR/$CHECKSUM_FILE ; then
 	echo "ERROR: file corrupted" >&2
 	exit 1
 	fi

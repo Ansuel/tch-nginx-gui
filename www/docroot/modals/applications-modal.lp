@@ -115,10 +115,10 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = T"State: "
 	  html[#html + 1] = "<strong>" .. T"Luci is " .. StateParams["luci_webui"] .. T" installed" .. "</strong></br>"
 	  local luci_link = format("http://%s/luci",mapParams.local_ip_modem)
-	  html[#html + 1] = T"Webui on: " .. '<a href="' .. luci_link .. '">' .. luci_link .. "</a>"
+	  html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. luci_link .. '">' .. luci_link .. "</a>"
 	  html[#html + 1] = "</br>"
 	  local luci_direct_link = format("http://%s:9080",mapParams.local_ip_modem)
-	  html[#html + 1] = T" (or " .. '<a href="' .. luci_direct_link .. '">' .. luci_direct_link .. "</a>" .. " )"
+	  html[#html + 1] = T" (or " .. '<a target="_blank" href="' .. luci_direct_link .. '">' .. luci_direct_link .. "</a>" .. " )"
 	  html[#html + 1] = "</br>"
 	  html[#html + 1] = T"<strong>Disabled for now... need to wait @Roleo</strong>"
 	  html[#html + 1] = "</br>"
@@ -147,7 +147,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = T"State: "
 	  html[#html + 1] = "<strong>" .. T"Aria2 is " .. StateParams["aria2_webui"] .. T" installed" .. "</strong></br>"
 	  local aria_link = format("http://%s/aria",mapParams.local_ip_modem)  
-	  html[#html + 1] = T"Webui on: " .. '<a href="' .. aria_link .. '">' .. aria_link .."</a>"
+	  html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. aria_link .. '">' .. aria_link .."</a>"
 	  html[#html + 1] = "</br>"
 	  html[#html + 1] = "</br>"
 	  if mapParams["aria2_webui"] and mapParams["aria2_webui"] == "1" then
@@ -174,10 +174,10 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = T"State: "
 	  html[#html + 1] = "<strong>" .. T"Transmission is " .. StateParams["transmission_webui"] .. T" installed" .. "</strong></br>"
 	  local transmission_link = format("http://%s/transmission/web/",mapParams.local_ip_modem) 
-	  html[#html + 1] = T"Webui on: " .. '<a href="' .. transmission_link .. '">' .. transmission_link .."</a>"
+	  html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. transmission_link .. '">' .. transmission_link .."</a>"
 	  html[#html + 1] = "</br>"
 	  local transmission_direct_link = format("http://%s:9091/transmission",mapParams.local_ip_modem)
-	  html[#html + 1] = T" (or " .. '<a href="' .. transmission_direct_link .. '">' .. transmission_direct_link .. "</a>" .. " )"
+	  html[#html + 1] = T" (or " .. '<a target="_blank" href="' .. transmission_direct_link .. '">' .. transmission_direct_link .. "</a>" .. " )"
 	  html[#html + 1] = "</br>"
 	  html[#html + 1] = "</br>"
 	  if mapParams["transmission_webui"] and mapParams["transmission_webui"] == "1" then
@@ -205,7 +205,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = T"State: "
 	  html[#html + 1] = "<strong>" .. T"The Blacklist app is " .. StateParams["blacklist_application"] .. T" installed" .. "</strong></br>"
 	  local blacklist_link = "http://blacklist.satellitar.it/"
-	  html[#html + 1] = T"Support site: " .. '<a href="' .. blacklist_link .. '">' .. blacklist_link .."</a>"
+	  html[#html + 1] = T"Support site: " .. '<a  target="_blank" href="' .. blacklist_link .. '">' .. blacklist_link .."</a>"
 	  html[#html + 1] = "</br>"
 	  html[#html + 1] = "</br>"
 	  if mapParams["blacklist_application"] and mapParams["blacklist_application"] == "1" then
