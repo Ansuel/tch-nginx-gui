@@ -12,6 +12,7 @@ local format,sub,match,untaint = string.format, string.sub, string.match, string
 
 local function appapply(action)
   proxy.set("rpc.system." .. action, "1")
+  lp.flush()
   local uci_set = action:gsub("(.*)_","")
   local action_type = action:gsub("_(.*)","")
   if action_type == "install" then
