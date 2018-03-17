@@ -114,18 +114,9 @@ ngx.print('\
 			html[#html + 1] = [[ </div> ]]
 		end
 		if cui.outdated_ver == "1" then
-			html[#html + 1] = '<div class="btn" style="margin-right:10px" id="update">' 
-			html[#html + 1] = '<a style="color:red" class="someInfos" rel="tooltip" data-placement="bottom" data-original-title="'
-			html[#html + 1] = T"Go to the gateway tab and click on the Upgrade buttom, to autoupgrade to the new GUI."
-			html[#html + 1] = '" href="https://www.ilpuntotecnicoeadsl.com/sblocco-smart-modem-evolution-dga4130-agtef" target="_blank">'
-			html[#html + 1] = T"Upgrade Available" 
-			html[#html + 1] = '</a>'
+			html[#html + 1] = '<div class="btn" style="margin-right:10px; background-color:#5bb75b; color:#ffffff;" id="update" data-toggle="modal" data-remote="modals/gateway-modal.lp">' 
+			html[#html + 1] = T"Update Available" 
 			html[#html + 1] = '</div>'
-		else
-			html[#html + 1] = '<div class="btn" style="margin-right:10px" id="update">' 
-			html[#html + 1] = '<a style="color:red" href="https://www.ilpuntotecnicoeadsl.com/sblocco-smart-modem-evolution-dga4130-agtef" target="_blank">'
-			html[#html + 1] = T"Check Upgrade" 
-			html[#html + 1] = '</a></div>'
 		end
         html[#html + 1] = '<div class="btn" style="margin-right:10px" id="wizard-btn" data-toggle="modal" data-remote="modals/wizard-modal.lp">' .. T"Setup Wizard" .. '</div>'
         if session:isdefaultuser() then
