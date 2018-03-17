@@ -51,12 +51,12 @@ ngx.print('\
         '); ngx.print( ui_helper.createCardHeader(T"CWMP", modalPath, switchName, cwmp_run) ); ngx.print('\
         <div class="content card_bg" data-bg-text="&#xf1c0;">\
 		<div class="divtable">\
-                '); ngx.print(ui_helper.createSimpleLight(nil, state, { light = { class = light, id = "cwmpconfcard_cwmpstatusled"}, span = { id = "cwmpconfcard_cwmpstatus" } }) ); ngx.print('\
+                '); ngx.print(ui_helper.createSimpleLight(nil, state, { light = { class = light, id = "cwmpconfcard_cwmpstatusled"}, span = { id = "cwmpconfcard_cwmpstatus" } }) );  if content.cwmp_state == "1" then ngx.print('\
             <p class="subinfos">\
                 '); ngx.print(format(T"ACS URL: <strong id=\"cwmpconfcard_acsurl\">%s</strong>",url )); ngx.print('\
             </p>\
             <p class="subinfos">\
-                '); ngx.print(format(T"Periodic: <strong id=\"cwmpconfcard_periodicinterval\">%s</strong>",value["cwmp_periodic"] )); ngx.print('\
+                '); ngx.print(format(T"Periodic: <strong id=\"cwmpconfcard_periodicinterval\">%s</strong>",value["cwmp_periodic"] )); end ngx.print('\
             </p>\
          </div>\
 		 </div>\
