@@ -80,7 +80,7 @@ end
 					</div>\
 				</div>'); ngx.print('\
 			<p class="subinfos">\
-				<div style="height: 25px;" data-bind="visible: mobileStatus().length > 0">\
+				<div style="height: 25px; margin: 20px;" data-bind="visible: mobileStatus().length > 0">\
 					<label class="card-label">');  ngx.print( T"Status"..":" ); ngx.print('</label>\
 					<div class="controls">\
 						<strong data-bind="text: mobileStatus"></strong>\
@@ -98,7 +98,7 @@ end
 						<strong data-bind="text: signalQuality"></strong>\
 					</div>\
 				</div>\
-				<div style="height: 25px;" data-bind="visible: deviceStatus().length > 0">\
+				<div style="height: 25px; margin: 20px;" data-bind="visible: deviceStatus().length > 0">\
 					<div class="controls">\
 						<strong data-bind="text: deviceStatus"></strong>\
 					</div>\
