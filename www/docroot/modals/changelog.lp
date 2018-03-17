@@ -17,6 +17,7 @@ ngx.print('\
         },
       }
       html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_1.1.1_001 )" .. '</legend>'
+	  html[#html + 1] = ui_helper.createLabel(T"6.3", "Soppressione dei log eccessivi e fix funzione di esport", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"6.2", "Taaaaanto bugfix e reso il bottone controlla aggiornamenti funzionante", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"6.1", "Aggiunto blacklist tool agli installer", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"6.0", "Rebase con i nuovi cambiamenti", basic)

@@ -1074,6 +1074,9 @@ ngx.print('\
   });\
 \
   $("#btn-upgrade-gui").click(function() {\
+    $(".modal-backdrop").css("pointer-events", "none");\
+	$(".container").css("pointer-events", "none");\
+	$(".modal").css("pointer-events", "none");\
     $("#btn-upgrade-gui").addClass("hide");\
     resetreboot($("#updating-msg"), $(this), "system_upgrade_gui");\
 	$("#upgrade-gui-bar").removeClass("hide");\

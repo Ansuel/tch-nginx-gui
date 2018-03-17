@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=6.2.7
+version_gui=6.3.99
 
 check_root() {
 	
@@ -417,6 +417,34 @@ check_relay_dhcp() {
 	fi
 }
 
+suppress_excessive_logging() {
+	if [ $(uci get igmpproxy.globals.trace) == "1" ]; then
+		uci set igmpproxy.globals.trace='0'
+	fi
+	/etc/init.d/mobiled restart #Restart this to actually disable it... (broken and shitt init.d)
+	if [ $(uci get wansensing.global.tracelevel) == "1" ]; then #we don't need that we are still connected to vdsl -.-
+		uci set wansensing.global.tracelevel='3'
+	fi
+	if [ ! $(uci get -q transformer.@main[0].log_level) ]; then #shutup no description warn
+		uci set transformer.@main[0].log_level='2'
+	fi
+	if [ ! $(uci get -q system.@system[0].cronloglevel) ]; then #resolve spamlog of trafficdata
+		uci set system.@system[0].cronloglevel="1"
+	fi
+	if [ ! $(uci get -q ledfw.syslog) ]; then #suppress loggin of ledfw... we don't need it...
+		uci set ledfw.syslog=syslog
+		uci set ledfw.syslog.trace='0'
+	fi
+}
+
+check_aria_dir() {
+	if [ -d /etc/config/aria2 ]; then #Fix generation of config
+		mv /etc/config/aria2 /etc/aria2
+		killall aria2
+		aria2c --enable-rpc --rpc-listen-all=true --rpc-allow-origin-all --daemon=true --conf-path=/etc/aria2/aria2.conf
+	fi
+}
+
 root() {
 	
 	/etc/init.d/watchdog-tch stop
@@ -486,6 +514,10 @@ root() {
 	add_application_modal #New Option
 	logger "New DHCPRelay Option"
 	check_relay_dhcp #Sync option
+	logger "Disable trace from igmpproxy"
+	suppress_excessive_logging #Suppress logging
+	logger "Moving aria2 dir"
+	check_aria_dir #Fix config function
 	
 	logger "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not
