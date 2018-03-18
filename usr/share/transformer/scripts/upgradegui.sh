@@ -7,7 +7,7 @@ tar=/bin/tar
 WORKING_DIR="/tmp"
 PERMANENT_STORE_DIR="/root"
 TARGET_DIR="/"
-FILE_NAME="GUI.tar.bz2"
+FILE_NAME='GUI"$update_branch".tar.bz2'
 URL_BASE="http://repository.ilpuntotecnicoeadsl.com/files/Ansuel/AGTEF"
 CHECKSUM_FILE="version"
 
@@ -22,6 +22,13 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 	for file in "$WORKING_DIR"/*; do
 	rm -f "$FILE_NAME"*
 	done
+	
+	# Check update_branch
+	if [ ! $(uci get -q env.var.update_branch) ] ||  [ $(uci get env.var.update_branch) == "1" ]; then
+		update_branch=""
+	else
+		update_branch="_dev"
+	fi
 	
 	# Download new GUI to /tmp
 	if ! $wget $URL_BASE/$FILE_NAME; then

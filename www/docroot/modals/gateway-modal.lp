@@ -580,6 +580,21 @@ local mapEcoParams = {
 
 local eco_content,eco_helpmsg = post_helper.handleQuery(mapEcoParams, mapEcoValid)
 
+local update_branch_option = {
+      { "stable", T'Stable'},
+      { "dev", T'Dev'},
+}
+
+local update_branch_Params = {
+  update_branch = "uci.env.var.update_branch",
+}
+
+local update_branch_valid = {
+  update_branch = post_helper.getValidateInEnumSelect(update_branch_option),
+}
+
+local update_branch_content, helpmsg = post_helper.handleQuery(update_branch_Params, update_branch_valid)
+
 local cpu_step = require("cpu_step")
 
 local function getCpuStepName(list)
@@ -960,8 +975,9 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
           id = "updating-msg"
         }
       }
-	  
 	  html[#html + 1] = ui_helper.createAlertBlock(T"This upgrade the GUI to the latest available version on the site", info_box)
+	  html[#html + 1] = ui_helper.createInputSelect(T"Update Branch", "update_branch", update_branch_option, update_branch_content["update_branch"])
+	  
 	  if content["outdated_ver"] == "1" then
 	    html[#html + 1] = ui_helper.createLabel("State", T"Upgrade Found", basic)
 		html[#html + 1] = ui_helper.createLabel(T"New Version", content["new_ver"], basic)
@@ -970,13 +986,14 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	    html[#html + 1] = ui_helper.createLabel("State", T"No Upgrade found", basic)
 		html[#html + 1] = ui_helper.createButton(T"Upgrade Gui", T"Force Upgrade", "icon-refresh", upgrade_gui)
 	  end
+	  
 	  html[#html + 1] = '</form><form class="form-horizontal" id="form-import-gui" method="post" action="modals/gateway-modal.lp?action=upgradeguifile" enctype="multipart/form-data">'
-      html[#html + 1] = '<div id="offline-upgrade-gui-div" class="control-group">'
+	  html[#html + 1] = '<div id="offline-upgrade-gui-div" class="control-group">'
       html[#html + 1] = format('<label class="control-label">%s</label>', T"Offline GUI upgrade")
       html[#html + 1] = '<div class="controls">'
       html[#html + 1] = '<input type="file" name="upgradefile" id="file-upgradegui">&nbsp;'
       html[#html + 1] = ui_helper.createSimpleButton(T"Upgrade", "icon-shield", upload_gui_file)
-      html[#html + 1] = '</div></div>'
+	  html[#html + 1] = '</div></div>'
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Upgrade failed; please try again.", upload_gui_fail)
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Uploading file. Please wait...", upload_gui_alert)
 	  html[#html + 1] = '<div class="alert alert-info hide" id="upgrade-gui-bar">'

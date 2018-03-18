@@ -15,8 +15,8 @@ echo 'enable-rpc=true' >> $ARIA2_DIR/aria2.conf
 echo 'rpc-allow-origin-all=true' >> $ARIA2_DIR/aria2.conf
 echo 'rpc-listen-all=true' >> $ARIA2_DIR/aria2.conf
 echo 'rpc-listen-port=6800' >> $ARIA2_DIR/aria2.conf
-echo 'input-file=/etc/config/aria2/aria2.session' >> $ARIA2_DIR/aria2.conf
-echo 'save-session=/etc/config/aria2/aria2.session' >> $ARIA2_DIR/aria2.conf
+echo 'input-file=/etc/aria2/aria2.session' >> $ARIA2_DIR/aria2.conf
+echo 'save-session=/etc/aria2/aria2.session' >> $ARIA2_DIR/aria2.conf
 echo 'save-session-interval=300' >> $ARIA2_DIR/aria2.conf
 echo 'dir=/mnt/usb/USB-A1' >> $ARIA2_DIR/aria2.conf
 

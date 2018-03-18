@@ -1,4 +1,9 @@
-online_md5=$(curl -k -s http://repository.ilpuntotecnicoeadsl.com/files/Ansuel/AGTEF/GUI.tar.bz2 | md5sum | awk '{print $1}')
+if [ ! $(uci get -q env.var.update_branch) ] ||  [ $(uci get env.var.update_branch) == "1" ]; then
+	update_branch=""
+else
+	update_branch="_dev"
+fi
+online_md5=$(curl -k -s http://repository.ilpuntotecnicoeadsl.com/files/Ansuel/AGTEF/GUI"$update_branch".tar.bz2 | md5sum | awk '{print $1}')
 local_md5=$(uci get env.var.gui_hash)
 version_file=$(curl -k -s http://repository.ilpuntotecnicoeadsl.com/files/Ansuel/AGTEF/version)
 
