@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=6.4.12
+version_gui=6.4.14
 
 check_root() {
 	
@@ -443,7 +443,7 @@ check_aria_dir() {
 		mv /etc/config/aria2 /etc/aria2
 	fi
 	if [ $(pgrep aria2) ]; then
-		killall aria2
+		killall aria2c
 		aria2c --enable-rpc --rpc-listen-all=true --rpc-allow-origin-all --daemon=true --conf-path=/etc/aria2/aria2.conf
 	fi
 }
