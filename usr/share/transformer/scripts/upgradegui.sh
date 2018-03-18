@@ -47,30 +47,30 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 	fi
 fi
 
-#/etc/init.d/nginx stop
-#
-##clean old www dir
-#
-#for dir in /www/* ; do
-#    if [ "$dir" = "/www/docroot" ]; then
-#		for subdir in /www/docroot/* ; do
-#			if [ "$subdir" = "/www/docroot/aria" ] || [ "$subdir" = "/www/docroot/transmission" ]; then
-#				continue
-#			else
-#				rm -rf "$subdir"
-#			fi
-#		done
-#    else
-#		rm -rf "$dir"
-#	fi
-#done
-#
-## Extract new GUI to /
-#bzcat "$WORKING_DIR/$FILE_NAME" | tar -C "$TARGET_DIR" -xvf -
-#
-##Copy GUI file to permanent dir
-#cp $WORKING_DIR/$FILE_NAME $PERMANENT_STORE_DIR
-#rm $WORKING_DIR/$FILE_NAME
-#
-## Run init.d script
-#/etc/init.d/rootdevice force
+/etc/init.d/nginx stop
+
+#clean old www dir
+
+for dir in /www/* ; do
+    if [ "$dir" = "/www/docroot" ]; then
+		for subdir in /www/docroot/* ; do
+			if [ "$subdir" = "/www/docroot/aria" ] || [ "$subdir" = "/www/docroot/transmission" ]; then
+				continue
+			else
+				rm -rf "$subdir"
+			fi
+		done
+    else
+		rm -rf "$dir"
+	fi
+done
+
+# Extract new GUI to /
+bzcat "$WORKING_DIR/$FILE_NAME" | tar -C "$TARGET_DIR" -xvf -
+
+#Copy GUI file to permanent dir
+cp $WORKING_DIR/$FILE_NAME $PERMANENT_STORE_DIR
+rm $WORKING_DIR/$FILE_NAME
+
+# Run init.d script
+/etc/init.d/rootdevice force
