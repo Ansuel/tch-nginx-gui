@@ -4,10 +4,17 @@ wget=/usr/bin/wget
 bzcat=/usr/bin/bzcat
 tar=/bin/tar
 
+# Check update_branch
+if [ ! $(uci get -q env.var.update_branch) ] ||  [ $(uci get env.var.update_branch) == "1" ]; then
+	update_branch=""
+else
+	update_branch="_dev"
+fi
+
 WORKING_DIR="/tmp"
 PERMANENT_STORE_DIR="/root"
 TARGET_DIR="/"
-FILE_NAME='GUI"$update_branch".tar.bz2'
+FILE_NAME='GUI'$update_branch'.tar.bz2'
 URL_BASE="http://repository.ilpuntotecnicoeadsl.com/files/Ansuel/AGTEF"
 CHECKSUM_FILE="version"
 
@@ -22,13 +29,6 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 	for file in "$WORKING_DIR"/*; do
 	rm -f "$FILE_NAME"*
 	done
-	
-	# Check update_branch
-	if [ ! $(uci get -q env.var.update_branch) ] ||  [ $(uci get env.var.update_branch) == "1" ]; then
-		update_branch=""
-	else
-		update_branch="_dev"
-	fi
 	
 	# Download new GUI to /tmp
 	if ! $wget $URL_BASE/$FILE_NAME; then
@@ -47,30 +47,30 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 	fi
 fi
 
-/etc/init.d/nginx stop
-
-#clean old www dir
-
-for dir in /www/* ; do
-    if [ "$dir" = "/www/docroot" ]; then
-		for subdir in /www/docroot/* ; do
-			if [ "$subdir" = "/www/docroot/aria" ] || [ "$subdir" = "/www/docroot/transmission" ]; then
-				continue
-			else
-				rm -rf "$subdir"
-			fi
-		done
-    else
-		rm -rf "$dir"
-	fi
-done
-
-# Extract new GUI to /
-bzcat "$WORKING_DIR/$FILE_NAME" | tar -C "$TARGET_DIR" -xvf -
-
-#Copy GUI file to permanent dir
-cp $WORKING_DIR/$FILE_NAME $PERMANENT_STORE_DIR
-rm $WORKING_DIR/$FILE_NAME
-
-# Run init.d script
-/etc/init.d/rootdevice force
+#/etc/init.d/nginx stop
+#
+##clean old www dir
+#
+#for dir in /www/* ; do
+#    if [ "$dir" = "/www/docroot" ]; then
+#		for subdir in /www/docroot/* ; do
+#			if [ "$subdir" = "/www/docroot/aria" ] || [ "$subdir" = "/www/docroot/transmission" ]; then
+#				continue
+#			else
+#				rm -rf "$subdir"
+#			fi
+#		done
+#    else
+#		rm -rf "$dir"
+#	fi
+#done
+#
+## Extract new GUI to /
+#bzcat "$WORKING_DIR/$FILE_NAME" | tar -C "$TARGET_DIR" -xvf -
+#
+##Copy GUI file to permanent dir
+#cp $WORKING_DIR/$FILE_NAME $PERMANENT_STORE_DIR
+#rm $WORKING_DIR/$FILE_NAME
+#
+## Run init.d script
+#/etc/init.d/rootdevice force

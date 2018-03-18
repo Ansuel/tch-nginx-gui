@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=6.4.17
+version_gui=6.4.25
 
 check_root() {
 	
@@ -93,17 +93,23 @@ save_root_encrypt_pass() {
 }
 
 generate_hash_gui() {
-	if [ -f /tmp/GUI.tar.bz2 ]; then
-		gui_hash=$(md5sum /tmp/GUI.tar.bz2 | awk '{ print $1}' )
+	if [ ! $(uci get -q env.var.update_branch) ] ||  [ $(uci get env.var.update_branch) == "1" ]; then
+		uci set env.var.update_branch="stable"
+		update_branch=""
 	else
-		if [ -f /root/GUI.tar.bz2 ];then
-			gui_hash=$(md5sum /root/GUI.tar.bz2 | awk '{ print $1}' )
+		uci set env.var.update_branch="dev"
+		update_branch="_dev"
+	fi
+	if [ -f /tmp/GUI$update_branch.tar.bz2 ]; then
+		gui_hash=$(md5sum /tmp/GUI$update_branch.tar.bz2 | awk '{ print $1}' )
+	else
+		if [ -f /root/GUI$update_branch.tar.bz2 ];then
+			gui_hash=$(md5sum /root/GUI$update_branch.tar.bz2 | awk '{ print $1}' )
 		else
 			gui_hash="0"
 		fi
 	fi
 	uci set env.var.new_ver="Unknown"
-	uci set env.var.update_branch="stable"
 	uci set env.var.gui_hash=$gui_hash
 	uci set env.var.outdated_ver='0'
 }
@@ -566,7 +572,8 @@ root() {
 			rm /etc/config/web_unlock
 		fi
 	fi
-	if [ -f /tmp/GUI.tar.bz2 ] || [ -f /root/GUI.tar.bz2 ];then #this generate hash to know if the gui is outdated or not
+	if [ -f /tmp/GUI.tar.bz2 ] || [ -f /root/GUI.tar.bz2 ] || 
+	   [ -f /tmp/GUI_dev.tar.bz2 ] || [ -f /root/GUI_dev.tar.bz2 ];then #this generate hash to know if the gui is outdated or not
 		generate_hash_gui
 	fi
 	

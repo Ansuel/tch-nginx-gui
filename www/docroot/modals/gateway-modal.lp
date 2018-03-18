@@ -242,7 +242,15 @@ local function upgradefw()
 end
 
 local function upgradeguifile()
-  local filename = "GUI.tar.bz2"
+
+  local update_branch = proxy.get("uci.env.var.update_branch")
+  local filename
+  if update_branch and ( update_branch[1].value == "dev" ) then
+	filename = "GUI_dev.tar.bz2"
+  else
+	filename = "GUI.tar.bz2"
+  end
+  
   local fwupgrade_location = "/tmp/"
 
 
