@@ -97,13 +97,17 @@ ngx.print('\
 \
       <div class="header span12" id="headertab">\
         <a href="<%= cui.nsplink %>" target="_blank">\
-		  <picture>\
-		    <source srcset="/img/logo.webp" type="image/webp">\
+		  <picture>');
+		  
+		if cui.gui_skin == "TIM" then
+		ngx.print('<img width="168px" height="39px" src="/img/TIM.png">');
+		else
+		ngx.print('<source srcset="/img/logo.webp" type="image/webp">\
 		    <source srcset="/img/logo.png" type="image/png">\
-		    <img width="131px" height="50px" src="/img/logo.png">\
-		  </picture>\
+		    <img width="131px" height="50px" src="/img/logo.png">');
+		end
+		ngx.print('  </picture>\
 		</a>\
-	<!--	<img class="timlogo" src="/img/TIM.png">-->\
 \
 		');
 		
