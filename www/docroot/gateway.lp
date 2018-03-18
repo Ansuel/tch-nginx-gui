@@ -97,13 +97,17 @@ ngx.print('\
 \
       <div class="header span12" id="headertab">\
         <a href="<%= cui.nsplink %>" target="_blank">\
-		  <picture>\
-		    <source srcset="/img/logo.webp" type="image/webp">\
+		  <picture>');
+		  
+		if cui.gui_skin == "TIM" then
+		ngx.print('<img width="168px" height="39px" src="/img/TIM.png">');
+		else
+		ngx.print('<source srcset="/img/logo.webp" type="image/webp">\
 		    <source srcset="/img/logo.png" type="image/png">\
-		    <img width="131px" height="50px" src="/img/logo.png">\
-		  </picture>\
+		    <img width="131px" height="50px" src="/img/logo.png">');
+		end
+		ngx.print('  </picture>\
 		</a>\
-	<!--	<img class="timlogo" src="/img/TIM.png">-->\
 \
 		');
 		
@@ -157,7 +161,7 @@ ngx.print('\
 			html[#html + 1] = [[ <li><a tabindex="-1" href="https://github.com/Ansuel/tch-nginx-gui" target="_blank"> ]]
 			html[#html + 1] = T"Github Gui"
 			html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
-			html[#html + 1] = [[ <li><a tabindex="-1" id="update"> ]]
+			html[#html + 1] = [[ <li><a style="cursor: pointer;" tabindex="-1" id="update"> ]]
 			html[#html + 1] = T"Check Upgrade" 
 			html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
 			html[#html + 1] = [[ <li><a tabindex="-1" target="_blank" href="/aria"> ]]
