@@ -2244,7 +2244,6 @@ table.table tbody tr td.btn-col-OK
 	display:none;
 	float:left;
 	min-width:160px;
-	padding:5px 0;
 	margin:2px 0 0;
 	list-style:none;
 	background-color:#fff;
@@ -2272,18 +2271,17 @@ table.table tbody tr td.btn-col-OK
 .dropdown-menu .divider
 {
 	*width:100%;
-	height:1px;
-	margin:9px 1px;
+	height:1.5px;
 	*margin:-5px 0 5px;
 	overflow:hidden;
 	background-color:#e5e5e5;
-	border-bottom:1px solid #fff
+	border-bottom:1.5px solid #fff
 }
 
 .dropdown-menu>li>a
 {
 	display:block;
-	padding:3px 20px;
+	padding:7px 15px;
 	clear:both;
 	font-weight:400;
 	line-height:20px;

@@ -157,7 +157,7 @@ ngx.print('\
 			html[#html + 1] = [[ <li><a tabindex="-1" href="https://github.com/Ansuel/tch-nginx-gui" target="_blank"> ]]
 			html[#html + 1] = T"Github Gui"
 			html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
-			html[#html + 1] = [[ <li><a tabindex="-1" id="update"> ]]
+			html[#html + 1] = [[ <li><a style="cursor: pointer;" tabindex="-1" id="update"> ]]
 			html[#html + 1] = T"Check Upgrade" 
 			html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
 			html[#html + 1] = [[ <li><a tabindex="-1" target="_blank" href="/aria"> ]]
