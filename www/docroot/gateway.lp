@@ -96,7 +96,7 @@ ngx.print('\
     <div class="row" style="z-index : 3;  position: relative;" >\
 \
       <div class="header span12" id="headertab">\
-        <a href="<%= cui.nsplink %>" target="_blank">\
+        <a href="');  ngx.print( cui.nsplink ); ngx.print('" target="_blank">\
 		  <picture>');
 		  
 		if cui.gui_skin == "TIM" then

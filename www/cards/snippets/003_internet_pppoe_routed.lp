@@ -151,7 +151,7 @@ $(document).ready(function () {
 			this.pppoe_uptime = ko.observable("");
 			this.refresh = function () {
 				$.post("/ajax/internet.lua?auto_update=true", [tch.elementCSRFtoken()], function(data) {
-					if(data.cpuload != undefined) {
+					if(data.pppoe_uptime != undefined) {
 						self.pppoe_uptime(data.pppoe_uptime);
 					}
 				}, "json");

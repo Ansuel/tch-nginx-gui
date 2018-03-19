@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=6.5.0
+version_gui=6.5.5
 
 logo_project() {
 cat << EOF > /dev/console
@@ -17,7 +17,7 @@ cat << EOF > /dev/console
 ██╔══██║██║╚██╗██║╚════██║██║   ██║██╔══╝  ██║     
 ██║  ██║██║ ╚████║███████║╚██████╔╝███████╗███████╗
 ╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝ ╚═════╝ ╚══════╝╚══════╝
-(Modified Gui RootScript)                  (Christo) 
+(Modified Gui RootScript)                  (Christo)
 
 EOF
 
@@ -119,7 +119,7 @@ save_root_encrypt_pass() {
 }
 
 generate_hash_gui() {
-	if [ ! $(uci get -q env.var.update_branch) ] ||  [ $(uci get env.var.update_branch) == "1" ]; then
+	if [ ! $(uci get -q env.var.update_branch) ] ||  [ $(uci get env.var.update_branch) == "stable" ]; then
 		uci set env.var.update_branch="stable"
 		update_branch=""
 	else
