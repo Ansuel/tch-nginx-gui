@@ -4,7 +4,6 @@ gettext.textdomain('webui-core')
 
 local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
-local post_helper = require("web.post_helper")
 local proxy = require("datamodel")
 
 local table = table
@@ -125,7 +124,7 @@ end
 %>
 
 <%= ui_helper.createCardHeader(T"Internet Access", modalPath, switchName, content_uci.wan_auto) %>
-<div class="content card_bg" data-bg-text="&#xf0ac;">
+<div id="pppoe-internet-tab" class="content card_bg" data-bg-text="&#xf0ac;">
 <div class="divtable">
   <%= ui_helper.createSimpleLight(nil, ppp_state_map[ppp_status] , { light = { class = ppp_light_map[ppp_status] } }) %>
   <p class="subinfos">
@@ -133,7 +132,7 @@ end
        if content_rpc["ipaddr"] and content_rpc["ipaddr"]:len() > 0 then
          ngx.print(format(T'WAN IP is <strong>%s</strong>' .. "<br/>", content_rpc["ipaddr"]))
 	     if IPv6State == "disabled" and content_rpc["uptime"] then
-		   ngx.print(format(T'Uptime: <strong>%s</strong>', post_helper.secondsToTimeShort(content_rpc["uptime"])))
+		   ngx.print(T"Uptime: " .. '<strong data-bind="text: pppoe_uptime"></strong>')
 		 end
        elseif content_rpc["ip6addr"] and content_rpc["ip6addr"]:len() > 0 then
 	 ngx.print(format(T'WAN IP is <strong>%s</strong>', content_rpc["ip6addr"]))
@@ -145,3 +144,23 @@ end
   </p>
 </div>
 </div>
+<script>
+$(document).ready(function () {
+		var PPPoEInternetCard = function () {
+			var self = this;
+			this.pppoe_uptime = ko.observable("");
+			this.refresh = function () {
+				$.post("/ajax/internet.lua?auto_update=true", [tch.elementCSRFtoken()], function(data) {
+					if(data.cpuload != undefined) {
+						self.pppoe_uptime(data.pppoe_uptime);
+					}
+				}, "json");
+			};
+			setInterval(self.refresh, 5000);
+			self.refresh();
+		};
+
+		var PPPoEInternetCard = new PPPoEInternetCard();
+		ko.applyBindings(PPPoEInternetCard, document.getElementById('pppoe-internet-tab'));
+})
+</script>

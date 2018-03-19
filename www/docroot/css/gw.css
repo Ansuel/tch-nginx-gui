@@ -7204,7 +7204,7 @@ form .switch
 {
 	width:100%;
 	display:inline-block;
-	position:absolute;
+	position:relative;
 	z-index:20
 }
 

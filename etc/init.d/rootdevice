@@ -6,7 +6,33 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=6.4.27
+version_gui=6.5.0
+
+logo_project() {
+cat << EOF > /dev/console
+
+ █████╗ ███╗   ██╗███████╗██╗   ██╗███████╗██╗     
+██╔══██╗████╗  ██║██╔════╝██║   ██║██╔════╝██║     
+███████║██╔██╗ ██║███████╗██║   ██║█████╗  ██║     
+██╔══██║██║╚██╗██║╚════██║██║   ██║██╔══╝  ██║     
+██║  ██║██║ ╚████║███████║╚██████╔╝███████╗███████╗
+╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝ ╚═════╝ ╚══════╝╚══════╝
+(Modified Gui RootScript)                  (Christo) 
+
+EOF
+
+logger << EOF
+
+                                     _ 
+     /\  (Modified Gui RootScript)  | | 
+    /  \    _ __   ___  _   _   ___ | |
+   / /\ \  | '_ \ / __|| | | | / _ \| |
+  / ____ \ | | | |\__ \| |_| ||  __/| |
+ /_/    \_\|_| |_||___/ \__,_| \___||_|
+                                       
+                             (Christo)  
+EOF
+}
 
 check_root() {
 	
@@ -409,13 +435,29 @@ update_dhcp_config() {
 	fi
 }
 
-add_application_modal() {
-	if [ $(uci get -q web.applicationsmodal) ]; then
+add_new_web_rule() {
+	if [ ! $(uci get -q web.applicationsmodal) ]; then
 		uci set web.applicationsmodal=rule
 		uci set web.applicationsmodal.target='/modals/applications-modal.lp'
 		uci add_list web.applicationsmodal.roles='admin' 
 		uci add_list web.applicationsmodal.roles='engineer'
 		uci add_list web.ruleset_main.rules='applicationsmodal'
+	fi
+	if [ ! $(uci get -q web.ajaxgatewaytab) ]; then
+		uci set web.ajaxgatewaytab=rule
+		uci set web.ajaxgatewaytab.target='/ajax/cpuload.lua'
+		uci add_list web.ajaxgatewaytab.roles='admin' 
+		uci add_list web.ajaxgatewaytab.roles='engineer'
+		uci add_list web.ajaxgatewaytab.roles='guest'
+		uci add_list web.ruleset_main.rules='ajaxgatewaytab'
+	fi
+	if [ ! $(uci get -q web.ajaxinternet) ]; then
+		uci set web.ajaxinternet=rule
+		uci set web.ajaxinternet.target='/ajax/internet.lua'
+		uci add_list web.ajaxinternet.roles='admin' 
+		uci add_list web.ajaxinternet.roles='engineer'
+		uci add_list web.ajaxinternet.roles='guest'
+		uci add_list web.ruleset_main.rules='ajaxinternet'
 	fi
 }
 
@@ -436,8 +478,9 @@ suppress_excessive_logging() {
 	if [ ! $(uci get -q transformer.@main[0].log_level) ]; then #shutup no description warn
 		uci set transformer.@main[0].log_level='2'
 	fi
-	if [ ! $(uci get -q system.@system[0].cronloglevel) ]; then #resolve spamlog of trafficdata
-		uci set system.@system[0].cronloglevel="1"
+	if [ ! $(uci get -q system.@system[0].cronloglevel) ] || [ $(uci get system.@system[0].cronloglevel) == '1' ]; then #resolve spamlog of trafficdata
+		uci set system.@system[0].cronloglevel="0"
+		/etc/init.d/cron restart
 	fi
 	if [ ! $(uci get -q ledfw.syslog) ]; then #suppress loggin of ledfw... we don't need it...
 		uci set ledfw.syslog=syslog
@@ -521,7 +564,7 @@ root() {
 	logger "Create gui type in config"
 	create_gui_type #Gui Type
 	logger "Add new web option"
-	add_application_modal #New Option
+	add_new_web_rule #This check new option so that we don't replace the one present
 	logger "New DHCPRelay Option"
 	check_relay_dhcp #Sync option
 	logger "Disable trace from igmpproxy"
@@ -565,7 +608,7 @@ root() {
 	
 	logger "Unlocking web interface if needed"
 	if [ -f /etc/config/web_unlock ]; then
-		if [ ! $(grep -q changelog /etc/config/web) ] || [ ! $(grep -q mmpbx-statistics-modal.lp /etc/config/web) ] ; then
+		if [ ! $(uci get -q web.changelog) ] || [ ! $(uci get -q web.mmpbxstatisticsmodal) ] ; then
 			mv /etc/config/web /etc/config/web_back #backup of the stock web config
 			mv /etc/config/web_unlock /etc/config/web #apply unlocked universal config
 		else
@@ -632,6 +675,7 @@ root() {
 }
 
 boot() {
+    logo_project
 	check_root
 	check_bank
 	check_gui_ver

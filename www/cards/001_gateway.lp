@@ -5,6 +5,7 @@
 gettext.textdomain('webui-core')
 
 local proxy = require("datamodel")
+local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
 
 local find, sub = string.find, string.sub
@@ -20,6 +21,12 @@ if name then
 else
     name = ""
 end
+
+local content = {}
+
+content["loadavg"] = content_helper.readfile("/proc/loadavg","string")
+local cpuload = content["loadavg"]
+cpuload = string.sub(cpuload,1,14)
 
 local modalPath = nil
 local switchName = nil
@@ -41,13 +48,16 @@ if session:hasAccess("/modals/gateway-modal.lp") then
 end
   ngx.print('\
 \
-<div class="span3">\
+<div class="span3" id="gatewaytab">\
   <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
     ');  ngx.print( ui_helper.createCardHeader(T"Gateway", modalPath, switchName, nil, nil) ); ngx.print('\
     <div class="content card_bg" data-bg-text="&#xf129;">\
 	<div class="divtable">\
       <div class="light green" id="Gateway_=LED_Id"></div>\
-      <p><strong id = "Version_Id">');  ngx.print(string.format(T"Version %s (%s)", name, version)); ngx.print('</strong></p>\
+      <p><strong id = "Version_Id">');  ngx.print(string.format(T"Version %s (%s)", name, version)); ngx.print('</strong></br>');
+	  ngx.print( T"Cpu Load"..":" ); ngx.print('\
+					<strong data-bind="text: cpuload">\
+					</strong>\
       <div data-remote="modals/gateway-modal.lp" data-id="gateway-modal">\
 	    <picture>\
 		    <source srcset="/img/gateway_'); ngx.print(model); ngx.print('.webp" type="image/webp">\
@@ -59,4 +69,24 @@ end
     </div>\
   </div>\
 </div>\
+<script>\
+$(document).ready(function () {\
+		var GatewayCard = function () {\
+			var self = this;\
+			this.cpuload = ko.observable("");\
+			this.refresh = function () {\
+				$.post("/ajax/cpuload.lua?auto_update=true", [tch.elementCSRFtoken()], function(data) {\
+					if(data.cpuload != undefined) {\
+						self.cpuload(data.cpuload);\
+					}\
+				}, "json");\
+			};\
+			setInterval(self.refresh, 5000);\
+			self.refresh();\
+		};\
+\
+		var GatewayCard = new GatewayCard();\
+		ko.applyBindings(GatewayCard, document.getElementById(\'gatewaytab\'));\
+})\
+</script>\
 '); 

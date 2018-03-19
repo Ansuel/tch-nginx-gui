@@ -6,6 +6,7 @@ local ui_helper = require("web.ui_helper")
 local proxy = require("datamodel")
 local json = require("dkjson")
 local utils = require("web.lte-utils")
+local post_helper = require("web.post_helper")
 
 local ppp_status, ppp_light_map, ppp_state_map
 
@@ -22,6 +23,7 @@ local content_rpc = {
   wan_ppp_state = "rpc.network.interface.@wan.ppp.state",
   wan_ppp_error = "rpc.network.interface.@wan.ppp.error",
   ipaddr = "rpc.network.interface.@wan.ipaddr",
+  ppp_uptime = "rpc.network.interface.@wan.uptime",
 }
 
 for i,v in ipairs(proxy.getPN("rpc.network.interface.", true)) do
@@ -131,6 +133,7 @@ if ppp_status then
 end
 
 local data = {
+  ppp_uptime = post_helper.secondsToTimeShort(content_rpc["ppp_uptime"]) or "",
   ppp_status = ppp_status or "",
   ppp_light = ppp_light or "" ,
   ppp_state = ppp_state or "",
