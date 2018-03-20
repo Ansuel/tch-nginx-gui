@@ -13,6 +13,7 @@ local bridge_limit_list = {
   ["diagnostics.lp"] = true,
   ["iproutes.lp"] = true,
   ["system.lp"] = true,
+  ["xdsl.lp"] = true,
 }
 
 local voice_limit_list = {
