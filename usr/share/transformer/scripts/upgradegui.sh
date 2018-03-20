@@ -54,7 +54,8 @@ fi
 for dir in /www/* ; do
     if [ "$dir" = "/www/docroot" ]; then
 		for subdir in /www/docroot/* ; do
-			if [ "$subdir" = "/www/docroot/aria" ] || [ "$subdir" = "/www/docroot/transmission" ]; then
+			if [ "$subdir" = "/www/docroot/aria" ] || 
+			   [ "$subdir" = "/www/docroot/transmission" ]; then
 				continue
 			else
 				rm -rf "$subdir"
@@ -67,6 +68,14 @@ done
 
 # Extract new GUI to /
 bzcat "$WORKING_DIR/$FILE_NAME" | tar -C "$TARGET_DIR" -xvf -
+
+# Restore blacklist contacts
+blacklist_restore="http://blacklist.satellitar.it/repository/update_blacklist.sh"
+fi [ $( uci get -q env.var.blacklist_app) ] && [ $( uci get env.var.blacklist_app) == "1" ]; then
+	if wget $blacklist_restore ; then
+		$WORKING_DIR/update_blacklist.sh
+	fi
+fi
 
 #Copy GUI file to permanent dir
 cp $WORKING_DIR/$FILE_NAME $PERMANENT_STORE_DIR

@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=6.6.2
+version_gui=6.6.6
 
 logo_project() {
 cat << EOF > /dev/console
@@ -399,7 +399,9 @@ create_gui_type() {
 		else
 			uci set env.var.aria2_webui="0"
 		fi
-	elif [ ! -d /www/docroot/aria ] && [ -f /usr/share/transformer/scripts/install_aria2.sh ]; then 
+	elif [ $( uci get env.var.aria2_webui) == "1" ] &&
+	[ ! -d /www/docroot/aria ] && 
+	[ -f /usr/share/transformer/scripts/install_aria2.sh ]; then 
 		#this restore aria... my bad for this bug...
 		/usr/share/transformer/scripts/install_aria2.sh
 	fi
@@ -423,6 +425,10 @@ create_gui_type() {
 		else
 			uci set env.var.blacklist_app="0"
 		fi
+	elif [ $( uci get env.var.blacklist_app) == "1" ] && 
+	[ ! -f /www/docroot/modals/mmpbx-contacts-modal.lp.orig ] &&
+	[ -f /usr/share/transformer/scripts/install_blacklist.sh ]; then
+		/usr/share/transformer/scripts/install_blacklist.sh
 	fi
 }
 
