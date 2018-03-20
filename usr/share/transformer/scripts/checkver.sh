@@ -11,12 +11,14 @@ version_file=$(curl -k -s $version_file)
 
 new_version=$(echo "$version_file" | grep $online_md5 | awk '{print $2}' )
 
-if [ "$online_md5" == "$local_md5" ]; then
-    uci set env.var.outdated_ver=0
-	uci set env.var.new_ver="Unknown"
-else
-    uci set env.var.outdated_ver=1
-	uci set env.var.new_ver=$new_version
+if version_file ; then #cool way to test if we have internet connection
+	if [ "$online_md5" == "$local_md5" ]; then
+		uci set env.var.outdated_ver=0
+		uci set env.var.new_ver="Unknown"
+	else
+		uci set env.var.outdated_ver=1
+		uci set env.var.new_ver=$new_version
+	fi
 fi
 
 uci commit
