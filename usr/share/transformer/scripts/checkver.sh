@@ -1,4 +1,4 @@
-if [ ! $(uci get -q env.var.update_branch) ] ||  [ $(uci get env.var.update_branch) == "1" ]; then
+if [ ! $(uci get -q env.var.update_branch) ] ||  [ $(uci get env.var.update_branch) == "stable" ]; then
 	update_branch=""
 else
 	update_branch="_dev"
