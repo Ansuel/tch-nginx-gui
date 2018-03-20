@@ -55,9 +55,9 @@ end
 	<div class="divtable">\
       <div class="light green" id="Gateway_=LED_Id"></div>\
       <p><strong id = "Version_Id">');  ngx.print(string.format(T"Version %s (%s)", name, version)); ngx.print('</strong></br>');
-	  ngx.print( T"Cpu Load"..":" ); ngx.print('\
+	  ngx.print(<span style="margin: 20px;">' ..  T"Cpu Load"..":" ); ngx.print('\
 					<strong data-bind="text: cpuload">\
-					</strong>\
+					</strong></span>\
       <div data-remote="modals/gateway-modal.lp" data-id="gateway-modal">\
 	    <picture>\
 		    <source srcset="/img/gateway_'); ngx.print(model); ngx.print('.webp" type="image/webp">\
