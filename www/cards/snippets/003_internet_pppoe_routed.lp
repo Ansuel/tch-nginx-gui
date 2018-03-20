@@ -132,7 +132,7 @@ end
        if content_rpc["ipaddr"] and content_rpc["ipaddr"]:len() > 0 then
          ngx.print(format(T'WAN IP is <strong>%s</strong>' .. "<br/>", content_rpc["ipaddr"]))
 	     if IPv6State == "disabled" and content_rpc["uptime"] then
-		   ngx.print(T"Uptime: " .. '<strong data-bind="text: pppoe_uptime"></strong>')
+		   ngx.print(T"Uptime" .. ": " .. '<strong data-bind="text: pppoe_uptime"></strong>')
 		 end
        elseif content_rpc["ip6addr"] and content_rpc["ip6addr"]:len() > 0 then
 	 ngx.print(format(T'WAN IP is <strong>%s</strong>', content_rpc["ip6addr"]))

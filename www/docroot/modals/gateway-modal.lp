@@ -987,11 +987,11 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = ui_helper.createInputSelect(T"Update Branch", "update_branch", update_branch_option, update_branch_content["update_branch"])
 	  
 	  if content["outdated_ver"] == "1" then
-	    html[#html + 1] = ui_helper.createLabel("State", T"Upgrade Found", basic)
+	    html[#html + 1] = ui_helper.createLabel(T"State", T"Upgrade Found", basic)
 		html[#html + 1] = ui_helper.createLabel(T"New Version", content["new_ver"], basic)
 		html[#html + 1] = ui_helper.createButton(T"Upgrade Gui", T"Upgrade", "icon-refresh", upgrade_gui)
 	  else 
-	    html[#html + 1] = ui_helper.createLabel("State", T"No Upgrade found", basic)
+	    html[#html + 1] = ui_helper.createLabel(T"State", T"No Upgrade found", basic)
 		html[#html + 1] = ui_helper.createButton(T"Upgrade Gui", T"Force Upgrade", "icon-refresh", upgrade_gui)
 	  end
 	  
