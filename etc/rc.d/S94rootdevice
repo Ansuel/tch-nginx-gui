@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=6.6.6
+version_gui=6.6.22
 
 logo_project() {
 cat << EOF > /dev/console
@@ -484,8 +484,8 @@ suppress_excessive_logging() {
 	if [ ! $(uci get -q transformer.@main[0].log_level) ]; then #shutup no description warn
 		uci set transformer.@main[0].log_level='2'
 	fi
-	if [ ! $(uci get -q system.@system[0].cronloglevel) ] || [ $(uci get system.@system[0].cronloglevel) == '1' ]; then #resolve spamlog of trafficdata
-		uci set system.@system[0].cronloglevel="0"
+	if [ ! $(uci get -q system.@system[0].cronloglevel) ] || [ $(uci get system.@system[0].cronloglevel) == '0' ]; then #resolve spamlog of trafficdata
+		uci set system.@system[0].cronloglevel="5"
 		/etc/init.d/cron restart
 	fi
 	if [ ! $(uci get -q ledfw.syslog) ]; then #suppress loggin of ledfw... we don't need it...

@@ -20,10 +20,17 @@ local dmz_attributes = {
 	id = "DMZ_Status"}
 }
 
+local upnp_attributes = {
+	light = { id = "UPNP_Status_Led" },
+	span = { class = "span4",
+	id = "UPNP_Status"}
+}
+
 -- WAN services data
 local wan_services_data = {
   dmz_enable = "rpc.network.firewall.dmz.enable",
   dmz_blocked = "rpc.network.firewall.dmz.blocked",
+  upnp_enabled = "uci.upnpd.config.enable_upnp",
   upnp_rules = "sys.upnp.RedirectNumberOfEntries",
   ddns_enabled = "uci.ddns.service.@myddns_ipv4.enabled",
   --ddns_status = "rpc.ddns.status",
@@ -77,6 +84,18 @@ if session:hasAccess("/modals/wanservices-modal.lp") then
   modal_link_port = 'class="modal-link" id="PortForwarding_Id" data-toggle="modal" data-remote="modals/wanservices-modal.lp" data-id="wanservices-modal"'
   modal_link_upnp = 'class="modal-link" id="upnp_Id" data-toggle="modal" data-remote="modals/wanservices-modal.lp" data-id="wanservices-modal"'
 end
+
+local upnpstate_text
+local upnpstate
+if wan_services_data["upnp_enabled"] == "1" then
+  upnpstate_text = format( N("<strong %s>%d UPnP</strong> rule is active",
+                      "<strong %s>%d UPnP</strong> rules are active", n_upnp_rules),
+                      modal_link_upnp, n_upnp_rules)
+  upnpstate = "1"
+else
+  upnpstate_text = T"Upnp disabled"
+  upnpstate = "0"
+end
   ngx.print('\
 \
 <div class="span3">\
@@ -89,16 +108,13 @@ end
     ');  ngx.print(
 	    ui_helper.createSimpleLight(state, dmzstate, dmz_attributes),
             ui_helper.createSimpleLight(ddns_light_map[format("%s", wan_services_data["ddns_enabled"])] or "0", ddns_enabled_map[format("%s", wan_services_data["ddns_enabled"])], dynDns_attributes),
-
+			ui_helper.createSimpleLight(upnpstate, upnpstate_text, dmz_attributes),
             '<p></p>',
             '<p class="subinfos">',
             format( N("<strong %s>%d port forwarding</strong> rule is defined",
                       "<strong %s>%d port forwarding</strong> rules are defined", n_redir_rules),
                       modal_link_port, n_redir_rules),
 	    '<br/>',
-            format( N("<strong %s>%d UPnP</strong> rule is active",
-                      "<strong %s>%d UPnP</strong> rules are active", n_upnp_rules),
-                      modal_link_upnp, n_upnp_rules),
             '</p>'
         )
       ngx.print('\

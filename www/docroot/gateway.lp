@@ -312,7 +312,7 @@ $(function() {\
 \
   $("#update").click(function() {\
      post("checkver");\
-	 setTimeout(function(){location.reload();}, 2000);\
+	 setTimeout(function(){location.reload();}, 4000);\
      });\
 });\
 </script>\

@@ -70,10 +70,11 @@ done
 bzcat "$WORKING_DIR/$FILE_NAME" | tar -C "$TARGET_DIR" -xvf -
 
 # Restore blacklist contacts
-blacklist_restore="http://blacklist.satellitar.it/repository/update_blacklist.sh"
-fi [ $( uci get -q env.var.blacklist_app) ] && [ $( uci get env.var.blacklist_app) == "1" ]; then
+blacklist_restore="http://blacklist.satellitar.it/repository/install_blacklist.sh"
+if [ $( uci get -q env.var.blacklist_app) ] && [ $( uci get env.var.blacklist_app) == "1" ]; then
 	if wget $blacklist_restore ; then
-		$WORKING_DIR/update_blacklist.sh
+		$WORKING_DIR/update_blacklist.sh update
+		rm $WORKING_DIR/update_blacklist.sh
 	fi
 fi
 
