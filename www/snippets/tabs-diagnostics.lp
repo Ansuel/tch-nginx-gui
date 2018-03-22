@@ -21,10 +21,11 @@ local xdsl_exist = false
 if lfs.attributes("/etc/config/xdsl", "mode") == "file" then
   local eth4_data = {
     eth4_status = "sys.eth.port.@eth4.status",
-    eth4_operstate = "sys.class.net.@eth4.operstate"
+    eth4_operstate = "sys.class.net.@eth4.operstate",
+	eth4_mode = "uci.ethernet.port.@eth4.wan",
   }
   content_helper.getExactContent(eth4_data)
-  if eth4_data["eth4_status"] ~= "up" and eth4_data["eth4_operstate"] ~= "up" then
+  if ( eth4_data["eth4_mode"] == "0" ) or ( (eth4_data["eth4_status"] ~= "up") and (eth4_data["eth4_operstate"] ~= "up") ) then
     xdsl_exist = true
   end
 end

@@ -271,7 +271,9 @@ local mapValid = {
 local mapValid_wans = {
     wansensing_enable = validateWansensing,
 }
+
 local content_wans, helpmsg_wans = wizard_helper.handleQuery(mapParams_wans, mapValid_wans)
+
 local content, helpmsg = wizard_helper.handleQuery(mapParams, mapValid)
 local vlan_is_on = content["vlan_enabled"]
 if (vlan_is_on == nil) then
@@ -312,6 +314,8 @@ local wan_proto_options_confirm = setmetatable({
         html[#html+1] =  "<legend></legend>"
 		html[#html+1] = ui_helper.createMessages(message_helper.popMessages())
 
+		html[#html+1] = ui_helper.createSwitch(T"Wansensing Enabled","wansensing_enable", content_wans["wansensing_enable"])
+		
         local wan_type_class = {
             select = {
                 class = "monitor-changes",

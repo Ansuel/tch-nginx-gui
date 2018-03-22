@@ -957,14 +957,17 @@ if type(content) == "table" then
 end
 
 mapParSFP = {
-				ethsfp = "uci.ethernet.globals.eth4lanwanmode"
+				ethsfp = "uci.ethernet.globals.eth4lanwanmode",
+				eth4_wanmode = "uci.ethernet.port.@eth4.wan"
 			}
 			
 mapValSFP = {
-				ethsfp = vB
+				ethsfp = vB,
+				eth4_wanmode = vB,
 			}
 			
-local content, helpmsg = post_helper.handleQuery(mapParSFP, mapValSFP)
+local content_sfp, helpmsg = post_helper.handleQuery(mapParSFP, mapValSFP)
+local sfp_presence = proxy.get("uci.env.rip.sfp")[1].value
 
   ngx.print('\
 \
@@ -1033,7 +1036,11 @@ local content, helpmsg = post_helper.handleQuery(mapParSFP, mapValSFP)
 						html[#html + 1] = ui_helper.createCheckboxGroup(T"Ethernet Ports enabled", "ethports", ethports, ethports_checked, {checkbox = { class="inline" }}, nil)
 					end
 					html[#html + 1] = ui_helper.createAlertBlock(T"Switch the WAN port to a normal LAN port", info_box)
-					html[#html + 1] = ui_helper.createSwitch(T"WAN-Port LAN Mode", "ethsfp", content["ethsfp"], adv)
+					if ( content_sfp["sfp_presence"] == "1" ) then 
+						html[#html + 1] = ui_helper.createSwitch(T"WAN-Port LAN Mode", "ethsfp", content_sfp["ethsfp"])
+					else
+						html[#html + 1] = ui_helper.createSwitch(T"WAN-Port LAN Mode", "eth4_wanmode", content_sfp["eth4_wanmode"])
+					end
 					local IPv6addr = proxy.get("rpc.network.interface.@"..curintf..".ip6addr")[1].value
 					if IPv6addr == "" then
 						html[#html + 1] = ui_helper.createLabel(T"LAN IPv6", T"IPv6 not assigned", advanced)
