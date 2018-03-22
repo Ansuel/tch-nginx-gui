@@ -13,8 +13,10 @@ else
     wansensing_state = "0"
 end
 
+wanmode = proxy.get("uci.network.config.wan_mode")[1].value
+
 function M.isBridgedMode()
-    if wansensing_state and wansensing_state == "1"  then
+    if wansensing_state and ( wansensing_state == "1" ) and not ( wanmode == "bridge" ) then
         return false
     else
         return true
@@ -23,7 +25,7 @@ end
 
 function M.configBridgedMode()
     local success = false
-	local ifnames = 'eth0 eth1 eth2 eth3 eth5 wanptm0'
+	local ifnames = 'eth0 eth1 eth2 eth3 eth5 ptm0.835'
 	
     success = proxy.set({
         ["uci.wansensing.global.enable"] = '0',
@@ -47,7 +49,7 @@ end
 
 function M.disableBridgedMode()
     local success = false
-	local ifnames = 'eth0 eth1 eth2 eth3 eth5'
+	local ifnames = 'eth0 eth1 eth2 eth3 eth5 ptm0.835'
 	
     success = proxy.set({
         ["uci.wansensing.global.enable"] = '1',

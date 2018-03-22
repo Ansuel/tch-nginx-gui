@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=6.6.22
+version_gui=6.7.5
 
 logo_project() {
 cat << EOF > /dev/console
@@ -657,12 +657,18 @@ root() {
 				/etc/init.d/cwmpd disable
 			fi
 		else
-			if uci get cwmpd.cwmpd_config.acs_url | grep -q 10700 || uci get cwmpd.cwmpd_config.acs_url | grep -q 10500; then #ssl mismatch telecom problem... 
+			new_platform=https://regman-mon.interbusiness.it:10800/acs/
+			if [ ! "$(curl -s -k $new_platform)" ] ; then
+				uci set cwmpd.cwmpd_config.acs_url=https://regman-tl.interbusiness.it:10700/acs/ 
+			else
 				uci set cwmpd.cwmpd_config.acs_url=https://regman-mon.interbusiness.it:10800/acs/
 			fi
+			uci commit
 			/etc/init.d/cwmpd enable
 			if [ ! -f /var/run/cwmpd.pid ]; then
 				/etc/init.d/cwmpd start
+			else
+				/etc/init.d/cwmpd restart
 			fi
 		fi
 	fi

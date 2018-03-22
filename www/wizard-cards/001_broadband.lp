@@ -39,7 +39,6 @@ local ifname2wantype = setmetatable({
 local wan_atm_uci_path = "uci.xtm.atmdevice.@atmwan."
 local wan_atm_uci_ipoe_path = "uci.xtm.atmdevice.@atmwan."
 local wan_interface_path = "uci.network.interface.@wan."
-local static_dns_path = "rpc.network.interface.@wan.static_dns_servers"
 
 local mapParams = {
     nsplink = "uci.web.uiconfig.@uidefault.nsplink",
@@ -59,7 +58,6 @@ local mapParams = {
     wan_static_ipaddr = wan_interface_path .. "ipaddr",
     wan_static_submsk = wan_interface_path .. "netmask",
     wan_static_gatewayip = wan_interface_path .. "gateway",
-    wan_static_dns = static_dns_path,
     wan_metric = wan_interface_path .. "metric",
     wan_dhcp_reqopts = wan_interface_path .. "reqopts",
     wan_dhcp_neighreachabletime = wan_interface_path .. "neighreachabletime",
@@ -81,12 +79,12 @@ local mapParams_wans = {
 }
 
 local function validateVlanID(value, object, key)
-    if object["wan_type"] ~= "vdsl" and object["wan_type"] ~= "eth" or object["vlan_enabled"] == "0" or object["wan_proto"] ~= "pppoe" then
+    if (object["wan_type"] ~= "vdsl") and (object["wan_type"] ~= "eth") or (object["vlan_enabled"] == "0") or (object["wan_proto"] ~= "pppoe") then
         object["id_vlan_eth"] = nil
         object["id_vlan_vdsl"] = nil
         return true
     else
-        if object["wan_type"] == "vdsl" and "id_vlan_vdsl" ~= key or object["wan_type"] == "eth" and "id_vlan_eth" ~= key then
+        if (object["wan_type"] == "vdsl") and ("id_vlan_vdsl" ~= key) or (object["wan_type"] == "eth") and ("id_vlan_eth" ~= key) then
             object[key] = nil
             return true
         end
@@ -94,30 +92,30 @@ local function validateVlanID(value, object, key)
 
     local pattern = "^(%d+)$"
     local number = { string.match(value, pattern) }
-    if #number ~= 1 or tonumber(number[1]) < 2 or tonumber(number[1]) > 4094 then
+    if (#number ~= 1) or (tonumber(number[1]) < 2) or (tonumber(number[1]) > 4094) then
         return nil, T"Invalid VLAN ID, it must be a number on the range 2-4094"
     end
     return vN(value)
 end
 
 local function validateWanIfName(value, object, key)
-    if object["wan_type"] == "adsl" then
-        if "pppoe" == object["wan_proto"] or "pppoa" == object["wan_proto"] then
+    if (object["wan_type"] == "adsl") then
+        if ("pppoe" == object["wan_proto"]) or ("pppoa" == object["wan_proto"]) then
             object["wan_ifname"] = "atmwan"
         end
-        if "dhcp" == object["wan_proto"] or "static" == object["wan_proto"] then
+        if ("dhcp" == object["wan_proto"]) or ("static" == object["wan_proto"]) then
             object["wan_ifname"] = "atmwan"
         end
     end
-    if object["wan_type"] == "vdsl" then
+    if (object["wan_type"] == "vdsl") then
         object["wan_ifname"] = "ptm0"
-        if "pppoe" == object["wan_proto"] and object["vlan_enabled"] == "1" then
+        if ("pppoe" == object["wan_proto"]) and (object["vlan_enabled"] == "1") then
             object["wan_ifname"] = "wanptm0"
         end
     end
-    if object["wan_type"] == "eth" then
+    if (object["wan_type"] == "eth") then
         object["wan_ifname"] = "eth4"
-        if "pppoe" == object["wan_proto"] and object["vlan_enabled"] == "1" then
+        if ("pppoe" == object["wan_proto"]) and (object["vlan_enabled"] == "1") then
             object["wan_ifname"] = "waneth4"
         end
     end
@@ -125,27 +123,27 @@ local function validateWanIfName(value, object, key)
 end
 
 local function validateWanIfProto(value, object, key)
-    if object["wan_type"] == "adsl" then
-        if object["wan_proto"] == "pppoe" then
+    if (object["wan_type"] == "adsl") then
+        if (object["wan_proto"] == "pppoe") then
             object["wan_ppp_ulp"] = "eth"
             object["wan_ppp_enc"] = "llc"
         end
 
-        if object["wan_proto"] == "pppoa" then
+        if (object["wan_proto"] == "pppoa") then
             object["wan_ppp_ulp"] = "ppp"
             object["wan_ppp_enc"] = "vcmux"
         end
     end
 
-    if object["wan_proto"] == "pppoe" or object["wan_proto"] == "pppoa" then
-        object["wan_metric"] = "10"
+    if (object["wan_proto"] == "pppoe") or (object["wan_proto"] == "pppoa") then
+        object["wan_metric"] = "0"
         object["wan_ppp_keepalive"] = "4,20"
     else
         object["wan_metric"] = "1"
         object["wan_ppp_keepalive"] = ""
     end
 
-    if object["wan_proto"] == "dhcp" then
+    if (object["wan_proto"] == "dhcp") then
         object["wan_dhcp_reqopts"] = "1 3 6 43 51 58 59"
         object["wan_dhcp_neighreachabletime"] = "1200000"
         object["wan_dhcp_neighgcstaletime"] = "2400"
@@ -155,11 +153,10 @@ local function validateWanIfProto(value, object, key)
         object["wan_dhcp_neighgcstaletime"] = ""
     end
 
-    if object["wan_proto"] ~= "static" then
+    if (object["wan_proto"] ~= "static") then
         object["wan_static_ipaddr"] = ""
         object["wan_static_submsk"] = ""
         object["wan_static_gatewayip"] = ""
-        object["wan_static_dns"] = ""
     end
     object["wan_peerdns"] = ""
 
@@ -193,8 +190,8 @@ local function validateWanPPPPassword(value, object, key)
 end
 
 local function validateVpiAndVciNum(value, object, key)
-    if object["wan_type"] == "adsl" then
-        if object["wan_proto"] == "pppoa" then
+    if (object["wan_type"] == "adsl") then
+        if (object["wan_proto"] == "pppoa") then
             object[key .. "_if"] = value
         else
             object[key .. "_if"] = ""
@@ -207,39 +204,15 @@ local function validateVpiAndVciNum(value, object, key)
 end
 
 local function validateWanStaticIpAddr(value, object, key)
-    if object["wan_proto"] == "static" then
+    if (object["wan_proto"] == "static") then
         return vSIP(value)
     end
     object[key] = ""
     return true
 end
 
-local dns_errors = {}
-local function validateDnsServers(value, object, key)
-    if object["wan_proto"] == "static" then
-        local ret1, msg1 = vSIP(object["wan_static_pri_dns"])
-        local ret2, msg2 = vSIP(object["wan_static_sec_dns"])
-        if ret1 and ret2 then
-            object["wan_static_dns"] = object["wan_static_pri_dns"] .. "," .. object["wan_static_sec_dns"]
-            return true
-        end
-        if not ret1 then
-            dns_errors["wan_static_pri_dns"] = true
-        end
-
-        if not ret2 then
-            dns_errors["wan_static_sec_dns"] = true
-        end
-        if not ret1 then return ret1, msg1 end
-        if not ret2 then return ret2, msg2 end
-    end
-    object[key] = ""
-    return true
-end
-
-
 local function validateWanStaticIpNetMask(value, object, key)
-    if object["wan_proto"] == "static" then
+    if (object["wan_proto"] == "static") then
         return vIPv4MSK(value)
     end
     object[key] = ""
@@ -247,19 +220,18 @@ local function validateWanStaticIpNetMask(value, object, key)
 end
 
 local function validateWansensing(value, object, key)
-    if object["wansensing_enable"] == "1" then
+    if (object["wansensing_enable"] == "1") then
         local content = {
             wan_ifname = "uci.network.interface.@wan.ifname",
             wan_proto = "uci.network.interface.@wan.proto",
             ppp_ifname = "uci.network.interface.@wan.ifname",
         }
         content_helper.getExactContent(content)
-        if object["wan_type"] ~= ifname2wantype[content["wan_ifname"]] or content["wan_proto"] ~= object["wan_proto"] then
+        if (object["wan_type"] ~= ifname2wantype[content["wan_ifname"]]) or (content["wan_proto"] ~= object["wan_proto"]) then
             object[key] = "0"
             object["wansensing_l2type"] = ""
             object["wansensing_l3type"] = ""
             object["ppp_auto"] = "0"
-            object["pppv_auto"] = "0"
             object["ipoe_auto"] = "0"
             object["wan_auto"] = "1"
             return true
@@ -269,7 +241,6 @@ local function validateWansensing(value, object, key)
     object["wansensing_l2type"] = nil
     object["wansensing_l3type"] = nil
     object["ppp_auto"] = nil
-    object["pppv_auto"] = nil
     object["ipoe_auto"] = nil
     object["wan_auto"] = nil
     return true
@@ -277,7 +248,7 @@ end
 
 local function getWanType(content, content_wans)
     local wansensing_l2type = lower(content_wans["wansensing_l2type"])
-    if wansensing_l2type == "" then wansensing_l2type = "adsl" end
+    if (wansensing_l2type == "") then wansensing_l2type = "adsl" end
     return content["wan_type"] or ifname2wantype[content["wan_ifname"]] or wansensing_l2type
 end
 
@@ -292,7 +263,6 @@ local mapValid = {
     wan_ipoe_vci_number = validateVpiAndVciNum,
     wan_static_ipaddr = validateWanStaticIpAddr,
     wan_static_submsk = validateWanStaticIpNetMask,
-    wan_static_dns = validateDnsServers,
     wan_static_gatewayip = validateWanStaticIpAddr,
     id_vlan_vdsl = validateVlanID,
     id_vlan_eth = validateVlanID,
@@ -304,31 +274,21 @@ local mapValid_wans = {
 local content_wans, helpmsg_wans = wizard_helper.handleQuery(mapParams_wans, mapValid_wans)
 local content, helpmsg = wizard_helper.handleQuery(mapParams, mapValid)
 local vlan_is_on = content["vlan_enabled"]
-if vlan_is_on == nil then
-    if string.find(content["wan_ifname"], "^vlan_") ~= nil then
+if (vlan_is_on == nil) then
+    if (string.find(content["wan_ifname"], "^vlan_") ~= nil) then
         vlan_is_on = "1"
     else
         vlan_is_on = "0"
     end
 end
 
-if ngx.req.get_method() == "GET" then
+if (ngx.req.get_method() == "GET") then
     session:store("network_password", content["wan_ppp_password"])
-elseif content["action"] == "SAVE" then
+elseif (content["action"] == "SAVE") then
     session:store("network_password", nil)
 end
 
 local wan_type = getWanType(content, content_wans)
-
-if not content["wan_static_pri_dns"] then
-    local dns_servers = {}
-    --to get the dns server value, the string is 1.1.1.1,2.2.2.2,
-    for dns_server in gmatch(content["wan_static_dns"], "([^,]+)") do
-        dns_servers[#dns_servers+1] = dns_server
-    end
-    content["wan_static_pri_dns"] = dns_servers[1] or ""
-    content["wan_static_sec_dns"] = dns_servers[2] or ""
-end
 
 local wan_interface_options_confirm = setmetatable({
     ["adsl"] = "ADSL",
@@ -419,9 +379,6 @@ local wan_proto_options_confirm = setmetatable({
         html[#html+1] = ui_helper.createInputText(T"Static IP Address:", "wan_static_ipaddr", content["wan_static_ipaddr"], wan_static_class, helpmsg["wan_static_ipaddr"])
         html[#html+1] = ui_helper.createInputText(T"Static Subnet Mask:", "wan_static_submsk", content["wan_static_submsk"], wan_static_class, helpmsg["wan_static_submsk"])
         html[#html+1] = ui_helper.createInputText(T"Static Gateway:", "wan_static_gatewayip", content["wan_static_gatewayip"], wan_static_class, helpmsg["wan_static_gatewayip"])
-        html[#html+1] = ui_helper.createInputText(T"Static Primary DNS: ",  "wan_static_pri_dns", content["wan_static_pri_dns"], wan_static_class, dns_errors["wan_static_pri_dns"] and helpmsg["wan_static_dns"])
-        html[#html+1] = ui_helper.createInputText(T"Static Secondary DNS: ", "wan_static_sec_dns", content["wan_static_sec_dns"], wan_static_class, dns_errors["wan_static_sec_dns"] and helpmsg["wan_static_dns"])
-
         ngx.print(html)
     %>
   </fieldset>
@@ -452,8 +409,6 @@ local wan_proto_options_confirm = setmetatable({
             html[#html+1] = ui_helper.createLabel(T"Static IP Address:", content["wan_static_ipaddr"])
             html[#html+1] = ui_helper.createLabel(T"Static Subnet Mask:", content["wan_static_submsk"])
             html[#html+1] = ui_helper.createLabel(T"Static Gateway:", content["wan_static_gatewayip"])
-            html[#html+1] = ui_helper.createLabel(T"Static Primary DNS: ", content["wan_static_pri_dns"])
-            html[#html+1] = ui_helper.createLabel(T"Static Secondary DNS: ", content["wan_static_sec_dns"])
         end
         if  (wan_type == "adsl") then
             if (content["wan_proto"] == "pppoe" or content["wan_proto"] == "pppoa") then

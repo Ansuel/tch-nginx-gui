@@ -17,6 +17,7 @@ ngx.print('\
         },
       }
       html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_1.1.1_001 )" .. '</legend>'
+	  html[#html + 1] = ui_helper.createLabel(T"6.7", "Reworkato voicemode e bridgemode, fixato problema telegestione non funzionante, aggiornate traduzioni", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"6.6", "Vari fix, si spera stabile sta volta", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"6.5", "Nuovo release channel dev, cpuload e altro in gui, quintacolonna (non il programma)", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"6.4", "Miglioramenti al sistema di aggiornamento gui", basic)

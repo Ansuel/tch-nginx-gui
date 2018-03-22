@@ -27,7 +27,7 @@ else
 end
 
 function M.isVoiceMode()
-    if ppp_state and not ppp_mgmt == "0" and ppp_state == ppp_mgmt then
+    if ppp_state and not ( ppp_mgmt == "0" ) and ( ppp_state == ppp_mgmt ) then
         return true
     else
         return false
@@ -36,11 +36,16 @@ end
 
 function M.configVoiceMode()
     local success = false
+	local ifnames = 'eth0 eth1 eth2 eth3 eth5 ptm0.835'
 	
     success = proxy.set({
         ["uci.network.interface.@wan.username"] = ppp_mgmt,
 		["uci.dhcp.dhcp.@lan.ignore"] = '1',
-		["uci.network.device.@wanptm0.vid"] = '835', --dovrebbe essere 837 ma ancora non ho trovato un modo per generare due vlanid... 
+		["uci.wireless.wifi-device.@radio_2G.state"] = '0',
+		["uci.wireless.wifi-device.@radio_5G.state"] = '0',
+		["uci.network.interface.@lan.ifname"] = ifnames,
+		["uci.network.interface.@wan.ifname"] = 'ptm0.837',
+		["uci.network.interface.@wan.password"] = 'alicenewag',
     })
 	
     success = success and proxy.apply()
@@ -49,11 +54,16 @@ end
 
 function M.disableVoiceMode()
     local success = false
+	local ifnames = 'eth0 eth1 eth2 eth3 eth5 ptm0.835'
 	
     success = proxy.set({
         ["uci.network.interface.@wan.username"] = ppp_original,
+		["uci.wireless.wifi-device.@radio_2G.state"] = '1',
+		["uci.wireless.wifi-device.@radio_5G.state"] = '1',
 		["uci.dhcp.dhcp.@lan.ignore"] = '0',
-		["uci.network.device.@wanptm0.vid"] = '835',
+		["uci.network.interface.@lan.ifname"] = ifnames,
+		["uci.network.interface.@wan.ifname"] = 'ptm0.835',
+		["uci.network.interface.@wan.password"] = 'alicenewag',
     })
 
     success = success and proxy.apply()
