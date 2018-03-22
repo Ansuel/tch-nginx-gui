@@ -117,10 +117,6 @@ ngx.print('\
 <form class="form-horizontal" method="post" action="modals/broadband-modal.lp">\
 ')
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
-
-    if #bmh > 1 then
-    -- Only included if there are 2 or more connection modes
-	if mapParam.wsens == "0" then
 ngx.print('\
 <fieldset id="conn_mode" class="advanced hide">\
 <legend>');ngx.print(T"Broadband type");ngx.print('</legend>')
@@ -150,29 +146,22 @@ ngx.print('\
 ngx.print('\
 </fieldset>\
 ')
-
-
-end
-end
-
-if mapParam.sfp == "1" and mapParam.wsens == "1" then
-ngx.print('\
-<fieldset id="conn_mode" class="advanced hide">\
-<legend>');ngx.print(T"Set 4th Ethernet Port as WAN or as LAN");ngx.print('</legend>')
-
-	local adv = {
-					values = {
-                    on = "0",
-                    off = "1"
-                  }
-				}
-	local html = {}
-	html[#html + 1] = ui_helper.createSwitch(T"WAN-Mode", "ethsfp", content["ethsfp"], adv)
-	ngx.print(html)
-	ngx.print('\
-</fieldset>\
-')
-end
+--ngx.print('\
+--<fieldset id="conn_mode" class="advanced hide">\
+--<legend>');ngx.print(T"Set 4th Ethernet Port as WAN or as LAN");ngx.print('</legend>')
+--
+--	local adv = {
+--					values = {
+--                    on = "0",
+--                    off = "1"
+--                  }
+--				}
+--	local html = {}
+--	html[#html + 1] = ui_helper.createSwitch(T"WAN-Mode", "ethsfp", content["ethsfp"], adv)
+--	ngx.print(html)
+--	ngx.print('\
+--</fieldset>\
+--')
 ngx.print('<fieldset>');
 	ngx.print('<legend>'); ngx.print(T"Network mode"); ngx.print('</legend>');
 	 

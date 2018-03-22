@@ -956,6 +956,16 @@ if type(content) == "table" then
     end
 end
 
+mapParSFP = {
+				ethsfp = "uci.ethernet.globals.eth4lanwanmode"
+			}
+			
+mapValSFP = {
+				ethsfp = vB
+			}
+			
+local content, helpmsg = post_helper.handleQuery(mapParSFP, mapValSFP)
+
   ngx.print('\
 \
 ');  ngx.print(ui_helper.createHeader(T"Local Network", true, false))   ngx.print('\
@@ -1004,6 +1014,12 @@ end
                   class = "advanced hide"
                 }
               }
+			  local info_box = {
+		        alert = {
+				  class = "alert alert-info",
+				}
+			  }
+		
               -- Labels that shows the Local Device IP address & network subnet
 				local html = {}
 			  
@@ -1016,6 +1032,8 @@ end
 					if curintf == "lan" and tech then
 						html[#html + 1] = ui_helper.createCheckboxGroup(T"Ethernet Ports enabled", "ethports", ethports, ethports_checked, {checkbox = { class="inline" }}, nil)
 					end
+					html[#html + 1] = ui_helper.createAlertBlock(T"Switch the WAN port to a normal LAN port", info_box)
+					html[#html + 1] = ui_helper.createSwitch(T"WAN-Port LAN Mode", "ethsfp", content["ethsfp"], adv)
 					local IPv6addr = proxy.get("rpc.network.interface.@"..curintf..".ip6addr")[1].value
 					if IPv6addr == "" then
 						html[#html + 1] = ui_helper.createLabel(T"LAN IPv6", T"IPv6 not assigned", advanced)
