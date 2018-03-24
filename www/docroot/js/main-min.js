@@ -3878,7 +3878,7 @@ $.fn.noUiSlider - WTFPL - refreshless.com/nouislider/ */
                 send: function(c, d) {
                     var h, m = b.xhr(),
                         g = ++ic;
-                    m.open(b.type, b.url, b.async, b.username, b.password);
+                    m.open(b.type, b.url, b.async || true, b.username, b.password);
                     if (b.xhrFields)
                         for (h in b.xhrFields) m[h] = b.xhrFields[h];
                     b.mimeType && m.overrideMimeType && m.overrideMimeType(b.mimeType);

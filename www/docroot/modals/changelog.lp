@@ -17,6 +17,7 @@ ngx.print('\
         },
       }
       html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_1.1.1_001 )" .. '</legend>'
+	  html[#html + 1] = ui_helper.createLabel(T"6.8", "Aggiunto gestore led", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"6.7", "Reworkato voicemode e bridgemode, fixato problema telegestione non funzionante, aggiornate traduzioni", basic)
 	  html[#html + 1] = ui_helper.createLabel("", "aggiunto bottone per convertire porta WAN e opzioni per switchare modalità di connessione",basic)
 	  html[#html + 1] = ui_helper.createLabel(T"6.6", "Vari fix, si spera stabile sta volta", basic)

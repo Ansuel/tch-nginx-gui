@@ -588,6 +588,16 @@ local mapEcoParams = {
 
 local eco_content,eco_helpmsg = post_helper.handleQuery(mapEcoParams, mapEcoValid)
 
+local mapLedValid = {
+    eco_led = post_helper.validateBoolean,
+}
+
+local mapLedParams = {
+	eco_led = "uci.ledfw.status_led.enable",
+}
+
+local led_content,led_helpmsg = post_helper.handleQuery(mapLedParams, mapLedValid)
+
 local update_branch_option = {
       { "stable", T'Stable'},
       { "dev", T'Dev'},
@@ -1022,6 +1032,15 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = ui_helper.createSwitch(T"Cpu Wait", "wait", eco_content["wait"])
 	  local cpu_step_gui = getCpuStepName(cpu_step, false)
 	  html[#html + 1] = ui_helper.createInputSelect(T"Cpu Speed", "cpuspeed", cpu_step , cpu_step_gui)
+	  
+	  ngx.print(html)
+	  
+	  local html = {}
+	  html[#html + 1] = '<legend>' .. T"Led Settings" .. '</legend>'
+
+	  html[#html + 1] = ui_helper.createAlertBlock(T"Turn off all led if all service are up and running", info_box)
+	  html[#html + 1] = ui_helper.createSwitch(T"Eco Led", "eco_led", led_content["eco_led"])
+	  
 	  
 	  ngx.print(html)
 ngx.print('\

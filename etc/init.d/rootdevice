@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=6.7.14
+version_gui=6.7.22
 
 logo_project() {
 cat << EOF > /dev/console
@@ -504,6 +504,20 @@ check_aria_dir() {
 	fi
 }
 
+led_integration() {
+	if [ $(uci get -q ledfw.status_led.enable) ] ; then
+		uci set ledfw.status_led.enable='0'
+	fi
+}
+
+check_wansensing() {
+	if [ -d /usr/lib/lua/wansensing ] && [ ! -d /usr/lib/lua/wansensingfw ] ; then
+		rm /usr/lib/lua/wansensing/scripthelpers.lua
+		mv /usr/lib/lua/wansensingfw/scripthelpers.lua /usr/lib/lua/wansensing/scripthelpers.lua
+		rm -r /usr/lib/lua/wansensing
+	fi
+}
+
 root() {
 	
 	/etc/init.d/watchdog-tch stop
@@ -577,6 +591,10 @@ root() {
 	suppress_excessive_logging #Suppress logging
 	logger "Moving aria2 dir"
 	check_aria_dir #Fix config function
+	logger "Creating new option for led definition"
+	led_integration #New option led
+	logger "Old build detected, moving wansensing file"
+	check_wansensing # Move wansensing file to old directory
 	
 	logger "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not
