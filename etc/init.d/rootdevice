@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=6.7.22
+version_gui=6.7.24
 
 logo_project() {
 cat << EOF > /dev/console
@@ -153,19 +153,18 @@ transfer_bank() {
 	activeversion=$( cat /proc/banktable/activeversion )
 	passiveversion=$( cat /proc/banktable/passiveversion )
 	
-	if [ "$activeversion" = "$passiveversion" ]; then
+	if [ "$activeversion" == "$passiveversion" ]; then
 		echo bank_1 > /proc/banktable/active
 		reboot
 	fi
 }
 
 check_bank() {
-	bank_check=$( uci -q get env.var.bank_check )
+	bank_check=$( uci get env.var.bank_check )
 	bootedbank=$( cat /proc/banktable/booted )
-	if [ ! $bank_check ]; then
-		uci set env.var.bank_check="1"
-	fi
-	if ( [ ! $( uci -q get env.var.bank_check ) ] || [ ! $bank_check = "0" ] ) && [ $bootedbank = "bank_2" ]; then
+	if [ ! $( uci -q get env.var.bank_check ) ] && [ $bootedbank == "bank_2" ]; then
+		transfer_bank
+	elif [ $bank_check == "1" ] && [ $bootedbank == "bank_2" ]; then
 		transfer_bank
 	else
 		echo "  Firmware in Bank_1... Not transfering..." > /dev/console
@@ -623,6 +622,10 @@ root() {
 		fi
 	fi
 	
+	if [ ! $(uci get -q env.var.bank_check) ]; then #this set bank_check bit if not present
+		uci set env.var.bank_check="1"
+	fi
+	
 	logger "Setting dropbear settings"
 	uci set dropbear.@dropbear[0].RootPasswordAuth='on' #dropbear root related
 	uci set dropbear.@dropbear[0].PasswordAuth='on'
@@ -707,7 +710,6 @@ root() {
 boot() {
     logo_project
 	check_root
-	check_bank
 	check_gui_ver
 	check_isp_config
 	create_symlink
@@ -728,5 +730,6 @@ boot() {
 			fi
 		fi
 	fi
+	check_bank
 	echo " ----------------------------------------------------- " > /dev/console
 }
