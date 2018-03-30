@@ -54,7 +54,7 @@ local function xdslctlget(dtype,request)
 	local f = io.open("/tmp/" .. request,"r")
 	
 	for l in f:lines() do
-		if n>7 then 
+		if n>8 then 
 			if request == "Hlog" then
 				l = l:gsub("(.*)-","")
 				l = "-" .. l
@@ -84,11 +84,12 @@ local function xdslctlget(dtype,request)
 				l = l:gsub("%s*","")
 				data = data .. l .. ", "
 			end
-			scanband = scanband .. n-7 .. ", "
 		end
 		n=n+1
 	end
 	f:close()
+	
+	scanband = tostring(n-8)
 	
 	local file = io.open("/tmp/" .. request .. "Param","w+")
 	io.output(file)

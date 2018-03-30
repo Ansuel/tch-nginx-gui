@@ -85,6 +85,7 @@ ngx.print('\
 	<script src="/js/aos.js"></script>\
 	<script async src="/js/graphic-min.js"></script>\
 	<script async src="/js/Chart.min.js"></script>\
+	<script async src="/js/srp-min.js" ></script>\
   </head>\
 '); ngx.print('\
 <body>\

@@ -7,8 +7,9 @@ local proxy = require("datamodel")
 local ui_helper = require("web.ui_helper")
 
 local function xdslctlget(dtype,request)
-	local label = proxy.get("rpc.xdslctl." .. request .. "ScanBand")
+	local scanband = proxy.get("rpc.xdslctl." .. request .. "ScanBand")
 	local data = ""
+	local label = ""
 	if dtype == "value" then
 		file = io.open("/tmp/".. request .. "Param","r")
 		if file then
@@ -21,8 +22,11 @@ local function xdslctlget(dtype,request)
 			return "0"
 		end
 	else
-		if label then
-			return label[1].value
+		if scanband then
+			for n=1,tonumber(scanband[1].value) do
+				label = label .. n .. ", "
+			end
+			return label
 		else
 			return "0"
 		end

@@ -87,7 +87,8 @@ if ngx.var.request_method == "POST" then
     content = ngx.req.get_post_args()
     if content["action"]=="SAVE" then
 	
-		if content["ra_enabled"] == "1" then --let's set the port before assist:enable
+		if content["ra_enabled"] == "1" and ( (content["port"] == "") or 
+			( (tonumber(content["port"]) > 0 ) and (tonumber(content["port"]) < 65565 )))then --let's set the port before assist:enable
 			proxy.set("uci.web.assistance.@remote.port" , content["port"])
 			proxy.apply()
 		end
@@ -155,8 +156,15 @@ if ngx.var.request_method == "POST" then
     end
 end
 
+local function validateEmptyString(value)
+    if value == "" then
+        return true
+    end
+    return nil, T"String must be empty or a port."
+end
+
 local mapValid = {
-    port = post_helper.getValidateNumberInRange(0,65535),
+    port = post_helper.getOrValidation(post_helper.getValidateNumberInRange(0,65535),validateEmptyString),
 	user =  post_helper.validateNonEmptyString,
 }
 
