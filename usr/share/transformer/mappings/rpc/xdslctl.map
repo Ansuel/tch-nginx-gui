@@ -1,0 +1,137 @@
+local logger = require("transformer.logger")
+local log = logger.new("rpc.xdslctl", 2)
+local register = register;
+
+local xdslctl_ = {
+    objectType = {
+        name = 'rpc.xdslctl.',
+        access = 'readOnly',
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+          Hlog = {
+            access = "readOnly",
+            type = "string"
+          },
+		  HlogScanBand = {
+            access = "readOnly",
+            type = "string"
+          },
+		  Bits = {
+            access = "readOnly",
+            type = "string"
+          },
+		  BitsScanBand = {
+            access = "readOnly",
+            type = "string"
+          },
+		  QLN = {
+            access = "readOnly",
+            type = "string"
+          },
+		  QLNScanBand = {
+            access = "readOnly",
+            type = "string"
+          },
+		  SNR = {
+            access = "readOnly",
+            type = "string"
+          },
+		  SNRScanBand = {
+            access = "readOnly",
+            type = "string"
+          },
+        }
+    }
+}
+
+local function xdslctlget(dtype,request)
+    local data = ""
+	local n  = 0
+	local scanband = ""
+	os.execute("xdslctl info --" .. request .. " > /tmp/" .. request)
+	
+	local f = io.open("/tmp/" .. request,"r")
+	
+	for l in f:lines() do
+		if n>7 then 
+			if request == "Hlog" then
+				l = l:gsub("(.*)-","")
+				l = "-" .. l
+				if ( tonumber(l) > -96 ) then 
+					data = data .. l .. ", "
+				else
+					data = data .. "NaN" .. ", "
+				end
+			elseif request == "QLN" then
+				l = l:gsub("(.*)-","")
+				l = "-" .. l
+				if ( tonumber(l) > -160 ) then 
+					data = data .. l .. ", "
+				else
+					data = data .. "NaN" .. ", "
+				end
+			elseif request == "SNR" then
+				l = string.sub(l,-7)
+				l = l:gsub("%s","")
+				if ( tonumber(l) > 0 ) then 
+					data = data .. l .. ", "
+				else
+					data = data .. "NaN" .. ", "
+				end
+			else
+				l = string.sub(l,-2)
+				l = l:gsub("%s*","")
+				data = data .. l .. ", "
+			end
+			scanband = scanband .. n-7 .. ", "
+		end
+		n=n+1
+	end
+	f:close()
+	
+	local file = io.open("/tmp/" .. request .. "Param","w+")
+	io.output(file)
+	io.write(data)
+	io.close(file)
+	
+	os.execute("rm /tmp/" .. request)
+	if dtype == "data" then
+		return data
+	else
+		return scanband
+	end
+end
+
+local function get(mapping, paramName, key)
+    local Hlog , HlogScanBand , Bits , BitsScanBand , QLN , QLNScanBand , SNR , SNRScanBand
+	if paramName == "Hlog" then
+		Hlog = xdslctlget("data","Hlog")
+		return Hlog
+	elseif paramName == "HlogScanBand" then
+		HlogScanBand = xdslctlget("scanband","Hlog")
+		return HlogScanBand
+	elseif paramName == "Bits" then
+		Bits = xdslctlget("data","Bits")
+		return Bits
+	elseif paramName == "BitsScanBand" then
+		BitsScanBand = xdslctlget("scanband","Bits")
+		return BitsScanBand
+	elseif paramName == "QLN" then
+		QLN = xdslctlget("data","QLN")
+		return QLN
+	elseif paramName == "QLNScanBand" then
+		QLNScanBand = xdslctlget("scanband","QLN")
+		return QLNScanBand
+	elseif paramName == "SNR" then
+		SNR = xdslctlget("data","SNR")
+		return SNR
+	elseif paramName == "SNRScanBand" then
+		SNRScanBand = xdslctlget("scanband","SNR")
+		return SNRScanBand
+	end
+end
+
+xdslctl_.get = get
+
+register(xdslctl_)

@@ -81,8 +81,10 @@ ngx.print('\
     <!--[if lt IE 9]> <script src="/js/media-min.js"></script> <![endif]-->\
     <title>');  ngx.print( T"Gateway" ); ngx.print('</title>\
 	<script src="/js/main-min.js" ></script>\
-	<script src="js/knockout-min.js"></script>\
+	<script async src="js/knockout-min.js"></script>\
 	<script src="/js/aos.js"></script>\
+	<script async src="/js/graphic-min.js"></script>\
+	<script async src="/js/Chart.min.js"></script>\
   </head>\
 '); ngx.print('\
 <body>\

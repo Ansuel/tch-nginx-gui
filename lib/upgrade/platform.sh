@@ -132,7 +132,7 @@ platform_check_bliheader() {
 	fi
 
 	# Variant ID must match exactly the RIP settings
-	if [ "`cat /proc/rip/8003`" != "`bli_field "$INFO" varid`" ]; then
+	if [ "`cat /proc/rip/8003`" != "`bli_field "$INFO" varid`"  ]; then
 		show_error 8 "Incorrect Variant ID"
 		return 1
 	fi
@@ -364,7 +364,8 @@ platform_do_upgrade() {
 					platform_do_upgrade_bank $1 $running_bank || exit 1
 				else
 					echo "Rooting file not present in new config! Aborting... "
-					exit 1
+					emergency_restore_root
+					reboot
 				fi
 			else
 				platform_do_upgrade_bank $1 bank_1 || exit 1

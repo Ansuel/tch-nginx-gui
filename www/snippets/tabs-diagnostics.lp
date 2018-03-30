@@ -9,6 +9,7 @@ local ipairs, string, table = ipairs, string, table
 local lfs = require("lfs")
 local items = {
     {"diagnostics-xdsl-modal.lp", T"xDSL"},
+	{"diagnostics-xdsl-graphics-modal.lp", T"xDSL Graphics"},
     {"diagnostics-ping-modal.lp", T"Ping & Traceroute"},
     {"diagnostics-connection-modal.lp", T"Connection"},
     {"diagnostics-network-modal.lp", T"Network"},
@@ -34,7 +35,8 @@ local tabs = {}
 local session = ngx.ctx.session
 
 for _,v in pairs(items) do
-    if session:hasAccess("/modals/" .. v[1])  and (v[1] ~= "diagnostics-xdsl-modal.lp"  or  xdsl_exist ) then
+    if session:hasAccess("/modals/" .. v[1])  and (v[1] ~= "diagnostics-xdsl-modal.lp"  or  xdsl_exist ) 
+		and	(v[1] ~= "diagnostics-xdsl-graphics-modal.lp"  or  xdsl_exist ) then
        tabs[#tabs+1] = v
     end
 end

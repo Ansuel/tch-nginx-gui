@@ -52,7 +52,7 @@ content_helper.getExactContent(content)
             intf_state = "disconnected"
         end
     end
-    local label = format(T"Interface %s status", v)
+    local label = format(T"Interface is %s status", ,stats.operstate)
     html[#html + 1] = ui_helper.createLight(label, nil, intf_state_map[intf_state], {light = {class = intf_light_map[intf_state]}})
 	ngx.print(html)
 	if content["dsl_enable"] == "1" then

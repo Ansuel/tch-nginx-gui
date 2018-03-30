@@ -671,7 +671,7 @@ end
 M.l2HasCarrier = function(l2intf)
     local status, carrier = pcall(run_checkLinkState,l2intf)
 	local eth4_mode = uci.cursor:get("ethernet", "eth4", "wan")
-    if status and ( carrier == 'up' ) and  ( eth4_mode == '1' ) then
+    if status and ( carrier == 'up' ) and ( eth4_mode == '1' ) then
        return true
     else
        return false

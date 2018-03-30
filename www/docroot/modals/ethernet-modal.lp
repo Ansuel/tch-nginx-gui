@@ -956,18 +956,20 @@ if type(content) == "table" then
     end
 end
 
-mapParSFP = {
-				ethsfp = "uci.ethernet.globals.eth4lanwanmode",
-				eth4_wanmode = "uci.ethernet.port.@eth4.wan"
-			}
-			
-mapValSFP = {
-				ethsfp = vB,
-				eth4_wanmode = vB,
-			}
-			
+local sfp_presence = proxy.get("uci.env.rip.sfp")
+
+local mapParSFP = {}
+local mapValSFP = {}
+
+if sfp_presence and  (sfp_presence[1].value == "1") then
+	mapParSFP.ethsfp = "uci.ethernet.globals.eth4lanwanmode"
+	mapValSFP.ethsfp = vB
+else
+	mapParSFP.eth4_wanmode = "uci.ethernet.port.@eth4.wan"			
+	mapValSFP.eth4_wanmode = vB
+end
+
 local content_sfp, helpmsg = post_helper.handleQuery(mapParSFP, mapValSFP)
-local sfp_presence = proxy.get("uci.env.rip.sfp")[1].value
 
   ngx.print('\
 \
@@ -1036,7 +1038,7 @@ local sfp_presence = proxy.get("uci.env.rip.sfp")[1].value
 						html[#html + 1] = ui_helper.createCheckboxGroup(T"Ethernet Ports enabled", "ethports", ethports, ethports_checked, {checkbox = { class="inline" }}, nil)
 					end
 					html[#html + 1] = ui_helper.createAlertBlock(T"Switch the WAN port to a normal LAN port", info_box)
-					if ( content_sfp["sfp_presence"] == "1" ) then 
+					if sfp_presence and ( sfp_presence[1].value == "1" ) then 
 						html[#html + 1] = ui_helper.createSwitch(T"WAN-Port LAN Mode", "ethsfp", content_sfp["ethsfp"])
 					else
 						html[#html + 1] = ui_helper.createSwitch(T"WAN-Port LAN Mode", "eth4_wanmode", content_sfp["eth4_wanmode"])

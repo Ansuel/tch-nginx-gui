@@ -511,6 +511,7 @@ datarows[4]["header"] = T"Previous Quarter"
 datarows[5]["header"] = T"Current Day"
 datarows[6]["header"] = T"Previous Day"
 datarows[7]["header"] = T"Since Sync"
+
   ngx.print('\
 \
 ');  ngx.print(ui_helper.createHeader(T"Diagnostics DSL", true, true))   ngx.print('\
@@ -541,12 +542,12 @@ datarows[7]["header"] = T"Since Sync"
         end
         ngx.print('\
     </fieldset>\
-    <div id="xdsl_advanced_data" class="advanced hide"><img src="/img/loading.gif"/></div>\
-    <fieldset>\
-      <legend>');  ngx.print( T"DSL Bit Loading" ); ngx.print('</legend>\
-      <div id="dsl_bit_chart" style="max-width:880px;overflow-x:auto"><img src="/img/loading.gif"/></div>\
-    </fieldset>\
-    <font color="white">\
+    <div id="xdsl_advanced_data" class="advanced hide"><img src="/img/loading.gif"/></div>');
+    --<fieldset>\
+    --  <legend>');  ngx.print( T"DSL Bit Loading" ); ngx.print('</legend>\
+    --  <div id="dsl_bit_chart" style="max-width:880px;overflow-x:auto"><img src="/img/loading.gif"/></div>\
+    --</fieldset>\
+    ngx.print('<font color="white">\
       ');  
         ngx.print(T(content["firmware_version"]))
         ngx.print('\

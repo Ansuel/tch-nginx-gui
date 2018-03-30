@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=6.7.26
+version_gui=6.7.40
 
 logo_project() {
 cat << EOF > /dev/console
@@ -145,7 +145,7 @@ transfer_bank() {
 		rm -r /overlay/bank_1
 	fi
 	mkdir /overlay/bank_1
-	cp -r /overlay/bank_2/* /overlay/bank_1/
+	cp -a /overlay/bank_2/* /overlay/bank_1/
 	if [ -f /overlay/bank_1/etc/init.d/rootdevice ]; then
 		#mtd erase /dev/mtd3
 		mtd write /dev/mtd4 /dev/mtd3
@@ -331,7 +331,7 @@ remove_https_check_cwmpd() {
 	uci set cwmpd.cwmpd_config.ssl_verifypeer='0'
 }
 
-add_telecom_stock_dsn() {
+add_telecom_stock_dns() {
 	uci set dhcp.dnsmasq.server='151.99.125.1'
 }
 
@@ -464,6 +464,14 @@ add_new_web_rule() {
 		uci add_list web.ajaxinternet.roles='guest'
 		uci add_list web.ruleset_main.rules='ajaxinternet'
 	fi
+	if [ ! $(uci get -q web.diagnosticsxdslgraphicsmodal) ]; then
+		uci set web.diagnosticsxdslgraphicsmodal=rule
+		uci set web.diagnosticsxdslgraphicsmodal.target='/modals/diagnostics-xdsl-graphics-modal.lp'
+		uci add_list web.diagnosticsxdslgraphicsmodal.roles='admin' 
+		uci add_list web.diagnosticsxdslgraphicsmodal.roles='engineer'
+		uci add_list web.diagnosticsxdslgraphicsmodal.roles='guest'
+		uci add_list web.ruleset_main.rules='diagnosticsxdslgraphicsmodal'
+	fi
 }
 
 check_relay_dhcp() {
@@ -532,10 +540,10 @@ root() {
 
 	logger "Checking if we are on TIM configuration"
 	if [ $(uci -q get env.var.isp) ]; then
-		if [ $(uci -q get env.var.isp) = "TIM" ]; then #this add specific config for TIM
+		if [ $(uci get env.var.isp) = "TIM" ]; then #this add specific config for TIM
 			add_ipv6
 			add_ppp_mgmt
-			add_telecom_stock_dsn
+			add_telecom_stock_dns
 		else
 			purify_from_tim
 		fi
@@ -683,6 +691,9 @@ root() {
 				uci set cwmpd.cwmpd_config.acs_url=https://regman-tl.interbusiness.it:10700/acs/ 
 			else
 				uci set cwmpd.cwmpd_config.acs_url=https://regman-mon.interbusiness.it:10800/acs/
+			fi
+			if [ $(uci get cwmpd.cwmpd_config.interface) != "wan" ]; then
+				uci set cwmpd.cwmpd_config.interface='wan'
 			fi
 			uci commit
 			/etc/init.d/cwmpd enable
