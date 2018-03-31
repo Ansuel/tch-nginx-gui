@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=6.7.45
+version_gui=6.7.54
 
 logo_project() {
 cat << EOF > /dev/console
@@ -179,10 +179,14 @@ check_gui_ver() {
 
 check_new_dlnad() {
 	if [ -f /etc/init.d/dland ] && [ ! -k /etc/rc.d/S98dlnad ] && [ -f /etc/init.d/minidlna ]; then
-		/etc/init.d/minidlna stop
+		if pgrep "minidlna" ; then
+			/etc/init.d/minidlna stop
+		fi
 		/etc/init.d/minidlna disable
 		/etc/init.d/dlnad enable
-		/etc/init.d/dlnad start
+		if ! pgrep "dlnad"; then
+			/etc/init.d/dlnad start
+		fi
 	fi
 }
 
@@ -525,6 +529,27 @@ check_wansensing() {
 	fi
 }
 
+remove_downgrade_bit() {
+	if [ $(uci get env.rip.board_mnemonic) == "VBNT-S" ] && [ $(uci get env.var.prod_number) == "4132" ] && [ -f /proc/rip/0123 ]; then
+		logger "Downgrade limitation bit detected... Removing.."
+		rmmod keymanager
+		rmmod ripdrv
+		mv /lib/modules/3.4.11/ripdrv.ko /lib/modules/3.4.11/ripdrv.ko_back
+		mv /root/ripdrv.ko /lib/modules/3.4.11/ripdrv.ko
+		insmod ripdrv
+		echo 0123 > /proc/rip/delete
+		echo 0122 > /proc/rip/delete
+		rmmod ripdrv
+		logger "Restoring original driver"
+		rm /lib/modules/3.4.11/ripdrv.ko
+		mv /lib/modules/3.4.11/ripdrv.ko_back /lib/modules/3.4.11/ripdrv.ko
+		insmod ripdrv
+		insmod keymanager
+	elif [ -f /root/ripdrv.ko ]; then
+		rm /root/ripdrv.ko
+	fi
+}
+
 root() {
 	
 	/etc/init.d/watchdog-tch stop
@@ -536,8 +561,10 @@ root() {
 	fi
 	
 	logger "Stopping nginx and transformer"
-	/etc/init.d/nginx stop
-
+	if pgrep "nginx"; then
+		/etc/init.d/nginx stop
+	fi
+		
 	logger "Checking if we are on TIM configuration"
 	if [ $(uci -q get env.var.isp) ]; then
 		if [ $(uci get env.var.isp) = "TIM" ]; then #this add specific config for TIM
@@ -602,6 +629,8 @@ root() {
 	led_integration #New option led
 	logger "Old build detected, moving wansensing file"
 	check_wansensing # Move wansensing file to old directory
+	logger "Checking downgrade limitation bit"
+	remove_downgrade_bit #Use custom driver to remove this... thx @Roleo
 	
 	logger "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not

@@ -42,9 +42,20 @@ content_helper.getExactContent(content)
     local stats = {
         operstate = "sys.class.net.@ptm0.operstate",
         carrier = "sys.class.net.@ptm0.carrier",
+		wansensing_state = "uci.wansensing.global.l2type",
     }
     content_helper.getExactContent(stats)
 
+	if stats.wansensing_state == "VDSL" then
+		wan_bridge = "ptm0" 
+	elseif stats.wansensing_state == "ETH" then
+		wan_bridge = "eth4"
+	elseif stats.wansensing_state == "ADSL" then
+		wan_bridge = "atm0"
+	else
+		wan_bridge = ""
+	end
+	
     if stats.operstate == "up" then
         if stats.carrier ~= "0" then
             intf_state = "connected"
@@ -52,7 +63,7 @@ content_helper.getExactContent(content)
             intf_state = "disconnected"
         end
     end
-    local label = format(T"Interface is %s status", ,stats.operstate)
+    local label = format(T"Interface <strong>%s</strong> status",wan_bridge)
     html[#html + 1] = ui_helper.createLight(label, nil, intf_state_map[intf_state], {light = {class = intf_light_map[intf_state]}})
 	ngx.print(html)
 	if content["dsl_enable"] == "1" then

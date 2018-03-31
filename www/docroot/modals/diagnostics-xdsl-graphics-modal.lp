@@ -66,11 +66,7 @@ _, SNRLegend = pcall(xdslctlget, "legend","SNR")
 	<fieldset>\
       <legend>');  ngx.print( T"DSL Hlog" ); ngx.print('</legend>\
 		<div style="overflow-x:auto;max-width:1130px;">')
-		  if profile and ( profile[1].value == "BrcmPriv1") then
-		  	ngx.print('<div style="height: 400px;width:2260px;">')
-		  else
 		  	ngx.print('<div style="height: 400px;width:1130px;">')
-		  end
 		  ngx.print('\
 		    <canvas id="HlogChart"></canvas>\
 		  </div>\
@@ -79,11 +75,7 @@ _, SNRLegend = pcall(xdslctlget, "legend","SNR")
 	<fieldset>\
       <legend>');  ngx.print( T"DSL QLN" ); ngx.print('</legend>\
 	    <div style="overflow-x:auto;max-width:1130px;">')
-		  if profile and ( profile[1].value == "BrcmPriv1") then
-		  	ngx.print('<div style="height: 400px;width:2260px;">')
-		  else
 		  	ngx.print('<div style="height: 400px;width:1130px;">')
-		  end
 		  ngx.print('\
 		    <canvas id="QLNChart"></canvas>\
 		  </div>\
@@ -92,11 +84,7 @@ _, SNRLegend = pcall(xdslctlget, "legend","SNR")
 	<fieldset>\
       <legend>');  ngx.print( T"DSL SNR" ); ngx.print('</legend>\
 	    <div style="overflow-x:auto;max-width:1130px;">')
-		  if profile and ( profile[1].value == "BrcmPriv1") then
-		  	ngx.print('<div style="height: 400px;width:2260px;">')
-		  else
 		  	ngx.print('<div style="height: 400px;width:1130px;">')
-		  end
 		  ngx.print('\
 		    <canvas id="SNRChart"></canvas>\
 		  </div>\
@@ -105,11 +93,7 @@ _, SNRLegend = pcall(xdslctlget, "legend","SNR")
 	<fieldset>\
       <legend>');  ngx.print( T"DSL Bits" ); ngx.print('</legend>\
 		<div style="overflow-x:auto;max-width:1130px;">')
-		  if profile and ( profile[1].value == "BrcmPriv1") then
-		  	ngx.print('<div style="height: 400px;width:16096px;">')
-		  else
-		  	ngx.print('<div style="height: 400px;width:8048px;">')
-		  end
+		  	ngx.print('<div style="height: 400px;width:8500px;">')
 		  ngx.print('\
 		    <canvas id="BitsChart"></canvas>\
 		  </div>\
@@ -153,9 +137,9 @@ var hlog_ctx = document.getElementById("HlogChart").getContext("2d");\
     }\
 });\
     for (i = 0; i < HlogChart.data.datasets[0].data.length; i++) {\
-    if ( (7 < i && i < 32) || \
-	(871 < i && i < 1205) || \
-	(1972 < i && i < 3203) ) {\
+    if ( (5 < i && i < 32) || \
+	(869 < i && i < 1205) || \
+	(1970 < i && i < 3203) ) {\
         pointBackgroundColor.push("#90cd8a");\
     } else {\
         pointBackgroundColor.push("#f58368");\
@@ -196,9 +180,9 @@ var qln_ctx = document.getElementById("QLNChart").getContext("2d");\
     }\
 });\
     for (i = 0; i < QLNChart.data.datasets[0].data.length; i++) {\
-    if ( (7 < i && i < 32) || \
-	(871 < i && i < 1205) || \
-	(1972 < i && i < 3203) ) {\
+    if ( (5 < i && i < 32) || \
+	(869 < i && i < 1205) || \
+	(1970 < i && i < 3203) ) {\
         pointBackgroundColor.push("#90cd8a");\
     } else {\
         pointBackgroundColor.push("#f58368");\
@@ -239,9 +223,9 @@ var snr_ctx = document.getElementById("SNRChart").getContext("2d");\
     }\
 });\
     for (i = 0; i < SNRChart.data.datasets[0].data.length; i++) {\
-    if ( (7 < i && i < 32) || \
-	(871 < i && i < 1205) || \
-	(1972 < i && i < 3203) ) {\
+    if ( (5 < i && i < 32) || \
+	(869 < i && i < 1205) || \
+	(1970 < i && i < 3203) ) {\
         pointBackgroundColor.push("#90cd8a");\
     } else {\
         pointBackgroundColor.push("#f58368");\
@@ -276,9 +260,9 @@ var bits_ctx = document.getElementById("BitsChart").getContext("2d");\
     }\
 });\
     for (i = 0; i < BitsChart.data.datasets[0].data.length; i++) {\
-    if ( (7 < i && i < 32) || \
-	(871 < i && i < 1205) || \
-	(1972 < i && i < 3203) ) {\
+    if ( (5 < i && i < 32) || \
+	(869 < i && i < 1205) || \
+	(1970 < i && i < 3203) ) {\
         backgroundColor.push("#90cd8a");\
     } else {\
         backgroundColor.push("#f58368");\

@@ -290,7 +290,7 @@ platform_check_image() {
 
 target_bank=$(cat /proc/banktable/notbooted)
 running_bank=$(cat /proc/banktable/booted)
-ROOT_TMP_DIR=/tmp/root
+ROOT_TMP_DIR=/tmp/rootfile
 
 root_device() {
 	echo "GUI File found! Good Job!"
@@ -313,27 +313,27 @@ root_device() {
 }
 
 preserve_root() {
+	local emergencydir=$ROOT_TMP_DIR/emergency
 	echo "Copying root file to ram..."
 	mkdir -p $ROOT_TMP_DIR
 	if [ -f /overlay/$running_bank/root/GUI.tar.bz2 ]; then
 		cp /overlay/$running_bank/root/GUI.tar.bz2 $ROOT_TMP_DIR/
-	else
-		mkdir -p $ROOT_TMP_DIR/etc/init.d $ROOT_TMP_DIR/etc/rc.d $ROOT_TMP_DIR/usr/bin $ROOT_TMP_DIR/lib/upgrade $ROOT_TMP_DIR/sbin
-		cp /overlay/$running_bank/lib/upgrade/platform.sh $ROOT_TMP_DIR/lib/upgrade/
-		cp /overlay/$running_bank/sbin/sysupgrade $ROOT_TMP_DIR/sbin/
-		cp /overlay/$running_bank/etc/init.d/rootdevice $ROOT_TMP_DIR/etc/init.d/
-		cp /overlay/$running_bank/usr/bin/rtfd $ROOT_TMP_DIR/usr/bin/
-		cp /overlay/$running_bank/usr/bin/sysupgrade-safe $ROOT_TMP_DIR/usr/bin/
-		cp -d /overlay/$running_bank/etc/rc.d/S94rootdevice $ROOT_TMP_DIR/etc/rc.d/
 	fi
+	mkdir -p $emergencydir/etc/init.d $emergencydir/etc/rc.d $emergencydir/usr/bin $emergencydir/lib/upgrade $emergencydir/sbin
+	cp /overlay/$running_bank/lib/upgrade/platform.sh $emergencydir/lib/upgrade/
+	cp /overlay/$running_bank/sbin/sysupgrade $emergencydir/sbin/
+	cp /overlay/$running_bank/etc/init.d/rootdevice $emergencydir/etc/init.d/
+	cp /overlay/$running_bank/usr/bin/rtfd $emergencydir/usr/bin/
+	cp /overlay/$running_bank/usr/bin/sysupgrade-safe $emergencydir/usr/bin/
+	cp -d /overlay/$running_bank/etc/rc.d/S94rootdevice $emergencydir/etc/rc.d/
 	echo "Root file preserved!"
 }
 
 emergency_restore_root() {
 	echo "Rooting file not found! Using emergency method."
 	mkdir /overlay/bank_1 /overlay/bank_2
-	cp -dr $ROOT_TMP_DIR/* /overlay/bank_1/
-	cp -dr $ROOT_TMP_DIR/* /overlay/bank_2/
+	cp -dr $emergencydir/* /overlay/bank_1/
+	cp -dr $emergencydir/* /overlay/bank_2/
 	echo "Device Rooted"
 }
 
@@ -351,9 +351,9 @@ platform_do_upgrade() {
 				emergency_restore_root
 			fi
 			
-			if [ ! -z $device ]; then
-				umount $device
-			fi
+			#if [ ! -z $device ]; then
+			#	umount $device
+			#fi
 			if [ "$SWITCHBANK" -eq 1 ]; then
 				echo $target_bank > /proc/banktable/active
 			fi
@@ -378,7 +378,7 @@ platform_do_upgrade() {
 		fi
 	else
 		echo "Rooting file not present! Terminating upgrade process.."
-		exit 1
+		reboot
 	fi
 }
 
