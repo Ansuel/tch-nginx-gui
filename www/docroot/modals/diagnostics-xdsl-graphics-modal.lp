@@ -5,6 +5,8 @@ gettext.textdomain('webui-core')
 
 local proxy = require("datamodel")
 local ui_helper = require("web.ui_helper")
+local content_helper = require("web.content_helper")
+local format = string.format
 
 local function xdslctlget(dtype,request)
 	local scanband = proxy.get("rpc.xdslctl." .. request .. "ScanBand")
@@ -45,6 +47,38 @@ _, QLN = pcall(xdslctlget, "value","QLN")
 _, QLNLegend = pcall(xdslctlget, "legend","QLN")
 _, SNR = pcall(xdslctlget, "value","SNR")
 _, SNRLegend = pcall(xdslctlget, "legend","SNR")
+
+local UsBandNumber = proxy.get("rpc.xdslctl.UsBandNumber")
+
+local BandPlanCondition
+
+if UsBandNumber then
+
+	local function getUsBandPlan(n,dtype) 
+		if dtype == "Initial" then
+			local UsInitial = proxy.get(format("rpc.xdslctl.Us%dBandInitial",n))[1].value
+			return UsInitial
+		else
+			local UsFinal = proxy.get(format("rpc.xdslctl.Us%dBandFinal",n))[1].value
+			return UsFinal
+		end
+	end
+	
+	BandPlanCondition = "( " 
+	
+	for i=1,tonumber(UsBandNumber[1].value) do
+		local UsInitial, UsFinal
+		_, UsInitial = pcall(getUsBandPlan,i,"Initial")
+		_, UsFinal = pcall(getUsBandPlan,i,"Final")
+		if not ( tostring(i) == UsBandNumber[1].value ) then
+			BandPlanCondition = BandPlanCondition .. "(" .. tonumber(UsInitial)-2 .. " < i && i < " .. tonumber(UsFinal) .. ") || "
+		else
+			BandPlanCondition = BandPlanCondition .. "(" .. tonumber(UsInitial)-2 .. " < i && i < " .. tonumber(UsFinal) .. ")"
+		end
+	end
+	
+	BandPlanCondition = BandPlanCondition .. " )"
+end
 
   ngx.print('\
 \
@@ -137,9 +171,7 @@ var hlog_ctx = document.getElementById("HlogChart").getContext("2d");\
     }\
 });\
     for (i = 0; i < HlogChart.data.datasets[0].data.length; i++) {\
-    if ( (5 < i && i < 32) || \
-	(869 < i && i < 1205) || \
-	(1970 < i && i < 3203) ) {\
+    if '); ngx.print(BandPlanCondition); ngx.print('  {\
         pointBackgroundColor.push("#90cd8a");\
     } else {\
         pointBackgroundColor.push("#f58368");\
@@ -180,9 +212,7 @@ var qln_ctx = document.getElementById("QLNChart").getContext("2d");\
     }\
 });\
     for (i = 0; i < QLNChart.data.datasets[0].data.length; i++) {\
-    if ( (5 < i && i < 32) || \
-	(869 < i && i < 1205) || \
-	(1970 < i && i < 3203) ) {\
+    if '); ngx.print(BandPlanCondition); ngx.print('  {\
         pointBackgroundColor.push("#90cd8a");\
     } else {\
         pointBackgroundColor.push("#f58368");\
@@ -223,9 +253,7 @@ var snr_ctx = document.getElementById("SNRChart").getContext("2d");\
     }\
 });\
     for (i = 0; i < SNRChart.data.datasets[0].data.length; i++) {\
-    if ( (5 < i && i < 32) || \
-	(869 < i && i < 1205) || \
-	(1970 < i && i < 3203) ) {\
+    if '); ngx.print(BandPlanCondition); ngx.print('  {\
         pointBackgroundColor.push("#90cd8a");\
     } else {\
         pointBackgroundColor.push("#f58368");\
@@ -260,9 +288,7 @@ var bits_ctx = document.getElementById("BitsChart").getContext("2d");\
     }\
 });\
     for (i = 0; i < BitsChart.data.datasets[0].data.length; i++) {\
-    if ( (5 < i && i < 32) || \
-	(869 < i && i < 1205) || \
-	(1970 < i && i < 3203) ) {\
+    if '); ngx.print(BandPlanCondition); ngx.print('  {\
         backgroundColor.push("#90cd8a");\
     } else {\
         backgroundColor.push("#f58368");\

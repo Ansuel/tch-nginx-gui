@@ -275,9 +275,9 @@ mount_overlay_if_necessary() {
 		mkdir -p /overlay
 		device=/dev/mtdblock$(grep -E "(rootfs_data|userfs)" /proc/mtd | sed 's/mtd\([0-9]\):.*\(rootfs_data\|userfs\).*/\1/')
 		mount $device /overlay -t jffs2
-		sleep 1
+		sleep 3
 		mount -o remount,rw /overlay
-		sleep 1
+		sleep 3
 	fi
 }
 
@@ -290,77 +290,101 @@ platform_check_image() {
 
 target_bank=$(cat /proc/banktable/notbooted)
 running_bank=$(cat /proc/banktable/booted)
-ROOT_TMP_DIR=/tmp/rootfile
 
 root_device() {
 	echo "GUI File found! Good Job!"
-	ROOT_FILE=$ROOT_TMP_DIR/GUI.tar.bz2
+	local root_tmp_dirt=/tmp/rootfile
+	local gui_file=$root_tmp_dirt/GUI.tar.bz2
 	
 	if [ "$SWITCHBANK" -eq 1 ]; then
 		mkdir /overlay/$target_bank
-		bzcat $ROOT_FILE | tar -C /overlay/$target_bank -xf -
+		bzcat $gui_file | tar -C /overlay/$target_bank -xf -
 		echo "Restoring GUI file in flash"
 		mkdir -p /overlay/$target_bank/root
-		cp $ROOT_FILE /overlay/$target_bank/root/
+		cp $gui_file /overlay/$target_bank/root/
 	else
 		mkdir /overlay/$running_bank
-		bzcat $ROOT_FILE | tar -C /overlay/$running_bank -xf -
+		bzcat $gui_file | tar -C /overlay/$running_bank -xf -
 		echo "Restoring GUI file in flash"
 		mkdir -p /overlay/$running_bank/root
-		cp $ROOT_FILE /overlay/$running_bank/root/
+		cp $gui_file /overlay/$running_bank/root/
 	fi
 	echo "Device Rooted"
 }
 
 preserve_root() {
-	local emergencydir=$ROOT_TMP_DIR/emergency
+	local root_tmp_dirt=/tmp/rootfile
+	local emergencydir=/tmp/rootfile/emergency
 	echo "Copying root file to ram..."
-	mkdir -p $ROOT_TMP_DIR
+	mkdir /tmp/rootfile
+	mkdir $emergencydir
 	if [ -f /overlay/$running_bank/root/GUI.tar.bz2 ]; then
-		cp /overlay/$running_bank/root/GUI.tar.bz2 $ROOT_TMP_DIR/
+		cp /overlay/$running_bank/root/GUI.tar.bz2 $root_tmp_dirt/
 	fi
-	mkdir -p $emergencydir/etc/init.d $emergencydir/etc/rc.d $emergencydir/usr/bin $emergencydir/lib/upgrade $emergencydir/sbin
+	mkdir $emergencydir/etc
+	mkdir $emergencydir/etc/init.d 
+	mkdir $emergencydir/etc/rc.d 
+	mkdir $emergencydir/usr
+	mkdir $emergencydir/usr/bin 
+	mkdir $emergencydir/lib
+	mkdir $emergencydir/lib/upgrade 
+	mkdir $emergencydir/sbin
 	cp /overlay/$running_bank/lib/upgrade/platform.sh $emergencydir/lib/upgrade/
 	cp /overlay/$running_bank/sbin/sysupgrade $emergencydir/sbin/
 	cp /overlay/$running_bank/etc/init.d/rootdevice $emergencydir/etc/init.d/
 	cp /overlay/$running_bank/usr/bin/rtfd $emergencydir/usr/bin/
 	cp /overlay/$running_bank/usr/bin/sysupgrade-safe $emergencydir/usr/bin/
 	cp -d /overlay/$running_bank/etc/rc.d/S94rootdevice $emergencydir/etc/rc.d/
-	echo "Root file preserved!"
+	if [ -f $emergencydir/etc/init.d/rootdevice ]; then
+		echo "Root file preserved!"
+	else
+		echo "Root file not copied to ram!"
+	fi
 }
 
 emergency_restore_root() {
+	local emergencydir=/tmp/rootfile/emergency
 	echo "Rooting file not found! Using emergency method."
-	mkdir /overlay/bank_1 /overlay/bank_2
+	mkdir /overlay/bank_1 
+	mkdir /overlay/bank_2
 	cp -dr $emergencydir/* /overlay/bank_1/
 	cp -dr $emergencydir/* /overlay/bank_2/
 	echo "Device Rooted"
 }
 
 platform_do_upgrade() {
+	sleep 5
 	mount_overlay_if_necessary
-	if [ -f /$ROOT_TMP_DIR/GUI.tar.bz2 ] || [ -f /overlay/$(cat /proc/banktable/booted)/etc/init.d/rootdevice ]; then
 	
+	local root_tmp_dirt=/tmp/rootfile
+	
+	if [ -f $root_tmp_dirt/GUI.tar.bz2 ] || [ -f /overlay/$(cat /proc/banktable/booted)/etc/init.d/rootdevice ]; then
+		
 		preserve_root
-		rm -r /overlay/*
+		
+		rm -r /overlay/bank_1
+		rm -r /overlay/bank_2
 		
 		if [ ! -d /overlay/bank_1 ] && [ ! -d /overlay/bank_2 ]; then
-			if [ -f /$ROOT_TMP_DIR/GUI.tar.bz2 ]; then
+			if [ -f /$root_tmp_dirt/GUI.tar.bz2 ]; then
 				root_device
 			else
 				emergency_restore_root
 			fi
 			
-			#if [ ! -z $device ]; then
-			#	umount $device
-			#fi
 			if [ "$SWITCHBANK" -eq 1 ]; then
 				echo $target_bank > /proc/banktable/active
 			fi
 			if platform_is_dualbank; then
 				if [ "$SWITCHBANK" -eq 1 ] && [ -f /overlay/$target_bank/etc/init.d/rootdevice ]; then
+					if [ ! -z $device ]; then
+						umount $device
+					fi
 					platform_do_upgrade_bank $1 $target_bank || exit 1
 				elif [ -f /overlay/$running_bank/etc/init.d/rootdevice ]; then
+					if [ ! -z $device ]; then
+						umount $device
+					fi
 					platform_do_upgrade_bank $1 $running_bank || exit 1
 				else
 					echo "Rooting file not present in new config! Aborting... "

@@ -93,7 +93,7 @@ if wan_services_data["upnp_enabled"] == "1" then
                       modal_link_upnp, n_upnp_rules)
   upnpstate = "1"
 else
-  upnpstate_text = T"Upnp disabled"
+  upnpstate_text = T"UPnP disabled"
   upnpstate = "0"
 end
   ngx.print('\
