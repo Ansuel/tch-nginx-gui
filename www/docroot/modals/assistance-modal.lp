@@ -249,7 +249,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
      html[#html + 1] = ui_helper.createLabel(T"Password", password)
      html[#html + 1] = error and ui_helper.createLabel("Error", error) or ''
   else
-		html[#html + 1] = ui_helper.createInputText(T"Port", "port" , content2["port"], ra_cfg_class , helpmsg2["port"])
+	 html[#html + 1] = ui_helper.createInputText(T"Port", "port" , content2["port"], ra_cfg_class , helpmsg2["port"])
      html[#html + 1] = ui_helper.createLabel(T"Port", content2["port"] , ra_class)
      html[#html + 1] = ui_helper.createSwitch(T"Use Random Password", "random_psw", content["random_psw"],ra_cfg_class)
      html[#html + 1] = ui_helper.createLabel(T"Use Random Password", checkbox_map[content["random_psw"]],ra_class)
@@ -292,7 +292,9 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
                 var error = $(\''); ngx.print('.error'); ngx.print('\');\
                  $(\''); ngx.print('.error input:not([type="hidden"])'); ngx.print('\').first().focus();\
             });\
-			location.reload();\
+			setTimeout(function() {\
+				location.reload();\
+			}, 1000);\
         };\
 \
         var user = "'); ngx.print( assistant:username() ); ngx.print('";\
