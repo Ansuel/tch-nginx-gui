@@ -276,7 +276,7 @@ local function redirectIfNotAuthorized(mgr, session, sessionID)
     if resp_code == ngx.HTTP_NOT_FOUND then
       ngx.exit(resp_code)
     end
-    ngx.log(ngx.ERR, "Unauthorized request")
+    ngx.log(ngx.WARN, "Unauthorized request")
     -- Not authorized; show the login page.
     -- Make sure this internal redirect uses the new session ID
     -- (if one was created) to avoid allocating a new session.

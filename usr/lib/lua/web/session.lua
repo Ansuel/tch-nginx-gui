@@ -214,7 +214,7 @@ end
 -- @return True if the token matches.
 function Session:checkCSRFtoken(token)
   if token ~= self.CSRFtoken then
-    ngx.log(ngx.ERR, "POST without CSRF token")
+    ngx.log(ngx.WARN, "POST without CSRF token")
     ngx.exit(ngx.HTTP_FORBIDDEN)
   end
   return true
