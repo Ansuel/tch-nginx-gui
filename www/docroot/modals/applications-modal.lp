@@ -60,6 +60,12 @@ if ngx.req.get_method() == "POST" then
   if action == "remove_blacklist" then
 	return appapply("remove_blacklist")
   end
+  if action == "install_xupnp" then
+	return appapply("install_xupnp")
+  end
+  if action == "remove_xupnp" then
+	return appapply("remove_xupnp")
+  end
 end
 
 local mapParams = {
@@ -68,6 +74,7 @@ local mapParams = {
     transmission_webui = "uci.env.var.transmission_webui",
 	local_ip_modem = "uci.network.interface.@lan.ipaddr",
 	blacklist_application = "uci.env.var.blacklist_app",
+	xupnp_application = "uci.env.var.xupnp_app",
 }
 content_helper.getExactContent(mapParams)
 
@@ -215,6 +222,37 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  end
 	  
 	  html[#html+1] = "</fieldset>"
+	  html[#html+1] = "</div>"
+	  html[#html + 1] = "</br>"
+	  local install_xupnp = {
+        button = {
+          id = "btn-install-xupnp"
+        }
+      }
+	  local remove_xupnp = {
+        button = {
+          id = "btn-remove-xupnp"
+        }
+      }
+	  html[#html+1] = '<div class="span3">'
+	  html[#html+1] = "<fieldset>"
+	  html[#html + 1] = '<legend>' .. T"XUPnP App" .. '</legend>'
+	  html[#html + 1] = ui_helper.createAlertBlock(T"This will install the XUPnP application", info_box)
+	  html[#html + 1] = T"State: "
+	  html[#html + 1] = "<strong>" .. T"The XUPnP app is " .. StateParams["xupnp_application"] .. T" installed" .. "</strong></br>"
+	  local xupnp_link = format("http://%s/xupnp",mapParams.local_ip_modem) 
+	  html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. xupnp_link .. '">' .. xupnp_link .."</a>"
+	  html[#html + 1] = "</br>"
+	  local xupnp_direct_link = format("http://%s:4041",mapParams.local_ip_modem)
+	  html[#html + 1] = T" (or " .. '<a target="_blank" href="' .. xupnp_direct_link .. '">' .. xupnp_direct_link .. "</a>" .. " )"
+	  html[#html + 1] = "</br>"
+	  html[#html + 1] = "</br>"
+	  if mapParams["xupnp_application"] and mapParams["xupnp_application"] == "1" then
+		html[#html + 1] = ui_helper.createSimpleButton(T"Remove XUPnP", "icon-refresh", remove_xupnp)
+	  else
+		html[#html + 1] = ui_helper.createSimpleButton(T"Install XUPnP", "icon-refresh", install_xupnp)
+	  end
+	  html[#html+1] = "</fieldset>"
 	  html[#html + 1] = "</br>"
 	  html[#html+1] = "</div>"
       ngx.print(html)
@@ -266,6 +304,14 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
      });\
   $("#btn-remove-blacklist").click(function() {\
      post("remove_blacklist" );\
+	 setTimeout(function(){location.reload();}, 2000);\
+     });\
+  $("#btn-install-xupnp").click(function() {\
+     post("install-xupnp" );\
+	 setTimeout(function(){location.reload();}, 2000);\
+     });\
+  $("#btn-remove-xupnp").click(function() {\
+     post("remove-xupnp" );\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
 }());\

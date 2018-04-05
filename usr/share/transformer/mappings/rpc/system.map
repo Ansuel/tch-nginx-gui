@@ -111,6 +111,14 @@ local system_ = {
                 access = "readWrite",
                 type = "boolean",
             },
+			install_xupnp = {
+                access = "readWrite",
+                type = "boolean",
+            },
+			remove_xupnp = {
+                access = "readWrite",
+                type = "boolean",
+            },
             uptime = {
                 access = "readOnly",
                 type = "unsignedInt",
@@ -156,6 +164,8 @@ local system_ = {
 		remove_transmission = "0",	
 		install_blacklist = "0",
 		remove_blacklist = "0",	
+		install_xupnp = "0",
+		remove_xupnp = "0",	
         uptime = function()
             local fd, msg = open("/proc/uptime")
             if not fd then
