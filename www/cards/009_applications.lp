@@ -10,7 +10,10 @@ local insert, format = table.insert, string.format
 
 local gui_version = proxy.get("uci.env.var.gui_version")[1].value
 
+local marketing_version = proxy.get("uci.version.version.@version[0].marketing_version")[1].value
+
 local mapParams = {
+	xupnp_application = "uci.env.var.xupnp_app",
 	luci_webui = "uci.env.var.luci_webui",										 
     aria2_webui = "uci.env.var.aria2_webui",
     transmission_webui = "uci.env.var.transmission_webui",
@@ -23,12 +26,22 @@ local ParamsText = {}
 
 for Params in pairs(mapParams) do
 	local ParamsName = Params:gsub("_(.*)",""):gsub("^%l", string.upper)
-	if mapParams[Params] and mapParams[Params] == "1" then
-		StateParams[Params] = "1"
-		ParamsText[Params] = ParamsName .. T" is installed"
+	if Params == "xupnp_application" and tonumber(marketing_version) >= 17.3 then
+		if mapParams[Params] and mapParams[Params] == "1" then
+			StateParams[Params] = "1"
+			ParamsText[Params] = ParamsName .. T" is installed"
+		else
+			StateParams[Params] = "0"
+			ParamsText[Params] = ParamsName .. T" is not installed"
+		end
 	else
-		StateParams[Params] = "0"
-		ParamsText[Params] = ParamsName .. T" is not installed"
+		if mapParams[Params] and mapParams[Params] == "1" then
+			StateParams[Params] = "1"
+			ParamsText[Params] = ParamsName .. T" is installed"
+		else
+			StateParams[Params] = "0"
+			ParamsText[Params] = ParamsName .. T" is not installed"
+		end
 	end
 end
 

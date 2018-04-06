@@ -17,7 +17,13 @@ ngx.print('\
         },
       }
       html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_1.1.1_001 )" .. '</legend>'
-	  html[#html + 1] = ui_helper.createLabel(T"6.8", "Aggiunto gestore led", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"6.13", "Aggiunta traduzione tedesca Thx meyergru", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"6.12", "Introdotta autorimozione del bit antidowngrade AGTHP", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"6.11", "Fixato upgrade", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"6.10", "Aggiunta xupnp (solo per agtef 1.1.0 e superiori)", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"6.10", "Aggiunti grafici Xdsl", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"6.9", "Aggiunto bottone WAN-MODE (WIP)", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"6.8", "Aggiunto gestore led (WIP)", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"6.7", "Reworkato voicemode e bridgemode, fixato problema telegestione non funzionante, aggiornate traduzioni", basic)
 	  html[#html + 1] = ui_helper.createLabel("", "aggiunto bottone per convertire porta WAN e opzioni per switchare modalità di connessione",basic)
 	  html[#html + 1] = ui_helper.createLabel(T"6.6", "Vari fix, si spera stabile sta volta", basic)

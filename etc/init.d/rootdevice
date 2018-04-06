@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=6.7.69
+version_gui=6.13.0
 
 logo_project() {
 cat << EOF > /dev/console
@@ -557,6 +557,21 @@ remove_downgrade_bit() {
 	fi
 }
 
+apply_right_opkg_repo() {
+	if [ -f /etc/opkg.conf_17.3 ]; then
+		local marketing_version=$(uci get -q version.@version[0].marketing_version)
+		if [ $marketing_version ]; then
+			if [ $marketing_version == "17.3" ]; then
+				rm /etc/okpg.conf
+				mv /etc/opkg.conf_17.3 /etc/opkg.conf
+			else
+				rm /etc/okpg.conf
+				mv /etc/opkg.conf_16.3 /etc/opkg.conf
+			fi
+		fi
+	fi
+}
+
 root() {
 	
 	/etc/init.d/watchdog-tch stop
@@ -638,6 +653,8 @@ root() {
 	check_wansensing # Move wansensing file to old directory
 	logger "Checking downgrade limitation bit"
 	remove_downgrade_bit #Use custom driver to remove this... thx @Roleo
+	logger "Checking opkg conf"
+	apply_right_opkg_repo #Check opkg conf based on version
 	
 	logger "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not

@@ -90,6 +90,7 @@ local content = {
     dsl0_xdsl_cfg1_value            = "uci.xdsl.xdsl.@dsl0.xdsl_cfg1_value",
     dsl0_xdsl_cfg1_mask             = "uci.xdsl.xdsl.@dsl0.xdsl_cfg1_mask",
     dsl0_xdsl_FirmwareVersion       = "sys.class.xdsl.@line0.FirmwareVersion",
+	marketing_version				= "uci.version.version.@version[0].marketing_version",
 }
 
 content_helper.getExactContent(content)
@@ -130,14 +131,18 @@ for _, v in pairs (profiles_content) do
 end
 
 local driver_option = {
-	  { "A2pvbH042j2.d26r", T'A2pvbH042j2.d26r (Asus DSL-AC88U)'},
-	  { "A2pvbH042n.d26r", T'A2pvbH042n.d26r (Netgear D7000)'},
-	  { "A2pvbH042o.d26r", T'A2pvbH042o.d26r (TG799VAC Xtream Fastweb)'},
-      { "A2pvbH042r.d26r", T'A2pvbH042r.d26r (AGTEF_1.0.3)'},
-	  { "A2pvbH042u.d26r", T'A2pvbH042u.d26r (AGTEF_1.0.4)'},
-	  { "A2pvfbH043g.d26r", T'A2pvfbH043g.d26r !! DA TESTARE !! (TG800 Vbant-s)'},
-      { "A2pvfbH043k.d26r", T'A2pvfbH043k.d26r (AGTEF_1.1.0)'},
+	  { "A2pvbH042j2.d26r", 'A2pvbH042j2.d26r (Asus DSL-AC88U)'},
+	  { "A2pvbH042n.d26r", 'A2pvbH042n.d26r (Netgear D7000)'},
+	  { "A2pvbH042o.d26r", 'A2pvbH042o.d26r (TG799VAC Xtream Fastweb)'},
+      { "A2pvbH042r.d26r", 'A2pvbH042r.d26r (AGTEF_1.0.3)'},
+	  { "A2pvbH042u.d26r", 'A2pvbH042u.d26r (AGTEF_1.0.4)'},
 }
+
+if tonumber(content.marketing_version) >= 17.3 then
+	table.insert(driver_option,{ "A2pvfbH043g.d26r", 'A2pvfbH043g.d26r (TG800 Vbant-s)'})
+	table.insert(driver_option, { "A2pvfbH043k.d26r", 'A2pvfbH043k.d26r (AGTEF_1.1.0)'})
+end
+
 
 local driver_Params = {
   driver_ver = "uci.env.var.driver_version",
