@@ -1041,7 +1041,7 @@ local content_sfp, helpmsg = post_helper.handleQuery(mapParSFP, mapValSFP)
 					if sfp_presence and ( sfp_presence[1].value == "1" ) then 
 						html[#html + 1] = ui_helper.createSwitch(T"WAN-Port LAN Mode", "ethsfp", content_sfp["ethsfp"])
 					else
-						html[#html + 1] = ui_helper.createSwitch(T"WAN-Port LAN Mode", "eth4_wanmode", content_sfp["eth4_wanmode"])
+						html[#html + 1] = ui_helper.createLabel(T"WAN-Port LAN Mode", T"Not supported on AGTEF for now")
 					end
 					local IPv6addr = proxy.get("rpc.network.interface.@"..curintf..".ip6addr")[1].value
 					if IPv6addr == "" then

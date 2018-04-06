@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=6.13.0
+version_gui=6.13.4
 
 logo_project() {
 cat << EOF > /dev/console
@@ -97,7 +97,7 @@ puryfy_wan_interface() { #creano problemi di dns per chissa'  quale diavolo di 
 
 fix_dns_dhcp_bug() {
 	uci set dhcp.odhcpd.maindhcp="0"
-	if [ $(uci get dhcp.odhcpd.maindhcp) = "1" ]; then
+	if [ $(uci get -q dhcp.odhcpd.maindhcp) = "1" ]; then
 		/etc/init.d/odhcpd stop
 		/etc/init.d/odhcpd disable
 	fi
@@ -119,7 +119,7 @@ save_root_encrypt_pass() {
 }
 
 generate_hash_gui() {
-	if [ ! $(uci get -q env.var.update_branch) ] ||  [ $(uci get env.var.update_branch) == "stable" ]; then
+	if [ ! $(uci get -q env.var.update_branch) ] ||  [ $(uci get -q env.var.update_branch) == "stable" ]; then
 		uci set env.var.update_branch="stable"
 		update_branch=""
 	else
@@ -160,7 +160,7 @@ transfer_bank() {
 }
 
 check_bank() {
-	bank_check=$( uci get env.var.bank_check )
+	bank_check=$( uci get -q env.var.bank_check )
 	bootedbank=$( cat /proc/banktable/booted )
 	if [ ! $( uci -q get env.var.bank_check ) ] && [ $bootedbank == "bank_2" ]; then
 		transfer_bank
@@ -353,7 +353,7 @@ create_driver_setting() {
 
 dropbear_file_check() {
 	if [ -f /etc/config/dropbear_new ]; then
-		if [ $(uci get dropbear.wan.enable) ]; then
+		if [ $(uci get -q dropbear.wan.enable) ]; then
 			rm /etc/config/dropbear_new
 		else
 			rm /etc/config/dropbear
@@ -402,7 +402,7 @@ create_gui_type() {
 		else
 			uci set env.var.aria2_webui="0"
 		fi
-	elif [ $( uci get env.var.aria2_webui) == "1" ] &&
+	elif [ $( uci get -q env.var.aria2_webui) == "1" ] &&
 	[ ! -d /www/docroot/aria ] && 
 	[ -f /usr/share/transformer/scripts/install_aria2.sh ]; then 
 		#this restore aria... my bad for this bug...
@@ -435,7 +435,7 @@ create_gui_type() {
 		else
 			uci set env.var.blacklist_app="0"
 		fi
-	elif [ $( uci get env.var.blacklist_app) == "1" ] && 
+	elif [ $( uci get -q env.var.blacklist_app) == "1" ] && 
 	[ ! -f /www/docroot/modals/mmpbx-contacts-modal.lp.orig ] &&
 	[ -f /usr/share/transformer/scripts/install_blacklist.sh ]; then
 		/usr/share/transformer/scripts/install_blacklist.sh
@@ -446,7 +446,7 @@ update_dhcp_config() {
 	if [ $(uci get -q dhcp.lan.dhcpv4)  == "1" ]; then
 		uci set dhcp.lan.dhcpv4='server'
 	fi
-	if [ $(uci get dhcp.lan.dhcpv4) == "0" ]; then
+	if [ $(uci get -q dhcp.lan.dhcpv4) == "0" ]; then
 		uci set dhcp.lan.dhcpv4='disabled'
 	fi
 }
@@ -492,17 +492,17 @@ check_relay_dhcp() {
 }
 
 suppress_excessive_logging() {
-	if [ $(uci get igmpproxy.globals.trace) == "1" ]; then
+	if [ $(uci get -q igmpproxy.globals.trace) == "1" ]; then
 		uci set igmpproxy.globals.trace='0'
 	fi
 	/etc/init.d/mobiled restart #Restart this to actually disable it... (broken and shitt init.d)
-	if [ $(uci get wansensing.global.tracelevel) == "1" ]; then #we don't need that we are still connected to vdsl -.-
+	if [ $(uci get -q wansensing.global.tracelevel) == "1" ]; then #we don't need that we are still connected to vdsl -.-
 		uci set wansensing.global.tracelevel='3'
 	fi
 	if [ ! $(uci get -q transformer.@main[0].log_level) ]; then #shutup no description warn
 		uci set transformer.@main[0].log_level='2'
 	fi
-	if [ ! $(uci get -q system.@system[0].cronloglevel) ] || [ $(uci get system.@system[0].cronloglevel) == '0' ]; then #resolve spamlog of trafficdata
+	if [ ! $(uci get -q system.@system[0].cronloglevel) ] || [ $(uci get -q system.@system[0].cronloglevel) == '0' ]; then #resolve spamlog of trafficdata
 		uci set system.@system[0].cronloglevel="5"
 		/etc/init.d/cron restart
 	fi
@@ -537,7 +537,7 @@ check_wansensing() {
 }
 
 remove_downgrade_bit() {
-	if [ $(uci get env.rip.board_mnemonic) == "VBNT-S" ] && [ $(uci get env.var.prod_number) == "4132" ] && [ -f /proc/rip/0123 ]; then
+	if [ $(uci get -q env.rip.board_mnemonic) == "VBNT-S" ] && [ $(uci get -q env.var.prod_number) == "4132" ] && [ -f /proc/rip/0123 ]; then
 		logger "Downgrade limitation bit detected... Removing.."
 		rmmod keymanager
 		rmmod ripdrv
@@ -562,11 +562,17 @@ apply_right_opkg_repo() {
 		local marketing_version=$(uci get -q version.@version[0].marketing_version)
 		if [ $marketing_version ]; then
 			if [ $marketing_version == "17.3" ]; then
-				rm /etc/okpg.conf
+				if [ -f /etc/okpg.conf ]; then
+					rm /etc/okpg.conf
+				fi
 				mv /etc/opkg.conf_17.3 /etc/opkg.conf
+				rm /etc/opkg.conf_16.3
 			else
-				rm /etc/okpg.conf
+				if [ -f /etc/okpg.conf ]; then
+					rm /etc/okpg.conf
+				fi
 				mv /etc/opkg.conf_16.3 /etc/opkg.conf
+				rm /etc/opkg.conf_17.3
 			fi
 		fi
 	fi
@@ -589,7 +595,7 @@ root() {
 		
 	logger "Checking if we are on TIM configuration"
 	if [ $(uci -q get env.var.isp) ]; then
-		if [ $(uci get env.var.isp) = "TIM" ]; then #this add specific config for TIM
+		if [ $(uci get -q env.var.isp) = "TIM" ]; then #this add specific config for TIM
 			add_ipv6
 			add_ppp_mgmt
 			add_telecom_stock_dns
@@ -732,7 +738,7 @@ root() {
 	if [ $(uci -q get env.var.isp) ]; then
 		if [ $(uci -q get env.var.isp) != "TIM" ]; then #this disable cwmpd if it's not tim...
 			uci set cwmpd.cwmpd_config.state='0'
-			if [ $(uci get cwmpd.cwmpd_config.state) = "1" ]; then
+			if [ $(uci get -q cwmpd.cwmpd_config.state) = "1" ]; then
 				if [ -f /var/run/cwmpd.pid ]; then
 					/etc/init.d/cwmpd stop
 				fi
@@ -745,7 +751,7 @@ root() {
 			else
 				uci set cwmpd.cwmpd_config.acs_url=https://regman-mon.interbusiness.it:10800/acs/
 			fi
-			if [ $(uci get cwmpd.cwmpd_config.interface) != "wan" ]; then
+			if [ $(uci get -q cwmpd.cwmpd_config.interface) != "wan" ]; then
 				uci set cwmpd.cwmpd_config.interface='wan'
 			fi
 			uci commit
