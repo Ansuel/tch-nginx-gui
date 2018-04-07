@@ -20,7 +20,7 @@ local function appapply(action)
   else
 	state = "0"
   end
-  if not ( uci_set == "blacklist" ) then
+  if not ( uci_set == "blacklist" ) and not ( uci_set == "xupnp" ) then
 	proxy.set("uci.env.var." .. uci_set .. "_webui",state)
   else
 	proxy.set("uci.env.var." .. uci_set .. "_app",state)
@@ -242,11 +242,8 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 		html[#html + 1] = ui_helper.createAlertBlock(T"This will install the XUPnP application", info_box)
 		html[#html + 1] = T"State: "
 		html[#html + 1] = "<strong>" .. T"The XUPnP app is " .. StateParams["xupnp_application"] .. T" installed" .. "</strong></br>"
-		local xupnp_link = format("http://%s/xupnp",mapParams.local_ip_modem) 
+		local xupnp_link = format("http://%s:4044/ui/",mapParams.local_ip_modem) 
 		html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. xupnp_link .. '">' .. xupnp_link .."</a>"
-		html[#html + 1] = "</br>"
-		local xupnp_direct_link = format("http://%s:4041",mapParams.local_ip_modem)
-		html[#html + 1] = T" (or " .. '<a target="_blank" href="' .. xupnp_direct_link .. '">' .. xupnp_direct_link .. "</a>" .. " )"
 		html[#html + 1] = "</br>"
 		html[#html + 1] = "</br>"
 		if mapParams["xupnp_application"] and mapParams["xupnp_application"] == "1" then
@@ -310,11 +307,11 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
   $("#btn-install-xupnp").click(function() {\
-     post("install-xupnp" );\
+     post("install_xupnp" );\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
   $("#btn-remove-xupnp").click(function() {\
-     post("remove-xupnp" );\
+     post("remove_xupnp" );\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
 }());\

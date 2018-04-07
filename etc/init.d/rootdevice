@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=6.13.4
+version_gui=6.13.14
 
 logo_project() {
 cat << EOF > /dev/console
@@ -179,12 +179,12 @@ check_gui_ver() {
 
 check_new_dlnad() {
 	if [ -f /etc/init.d/dland ] && [ ! -k /etc/rc.d/S98dlnad ] && [ -f /etc/init.d/minidlna ]; then
-		if pgrep "minidlna" ; then
+		if [ "$(pgrep "minidlna")" ] ; then
 			/etc/init.d/minidlna stop
 		fi
 		/etc/init.d/minidlna disable
 		/etc/init.d/dlnad enable
-		if ! pgrep "dlnad"; then
+		if [ ! "$(pgrep "dlnad")" ] ; then
 			/etc/init.d/dlnad start
 		fi
 	fi
@@ -516,7 +516,7 @@ check_aria_dir() {
 	if [ -d /etc/config/aria2 ]; then #Fix generation of config
 		mv /etc/config/aria2 /etc/aria2
 	fi
-	if [ $(pgrep aria2) ]; then
+	if [ "$(pgrep aria2)" ]; then
 		killall aria2c
 		aria2c --enable-rpc --rpc-listen-all=true --rpc-allow-origin-all --daemon=true --conf-path=/etc/aria2/aria2.conf
 	fi
@@ -589,7 +589,7 @@ root() {
 	fi
 	
 	logger "Stopping nginx and transformer"
-	if pgrep "nginx"; then
+	if [ "$(pgrep "nginx")" ]; then
 		/etc/init.d/nginx stop
 	fi
 		
