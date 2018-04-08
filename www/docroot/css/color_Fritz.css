@@ -1,0 +1,429 @@
+*, .container, .row, .span3, .span12 {
+  margin: 0;
+  padding: 0;
+}
+
+.icon-cogs {
+  all: initial;
+  opacity: 0;
+  visibility: hidden;
+  display: none;
+}
+
+.smallcard .header .settings {
+  all: initial;
+  opacity: 0;
+}
+
+.row[style="z-index : 2;  position: relative;"] {
+  width: 15.5rem;
+  margin: 1.5rem 0.5rem 0 0;
+  background-color: #fff;
+  box-shadow: 0 0.1875rem 0.375rem rgba(0,0,0,0.25);
+  font-size: 1.125rem;
+}
+
+.container {
+  width: 100%;
+}
+
+.span3 {
+  cursor: pointer;
+  width: 100%;
+  max-width: 15.5rem;
+}
+
+.span12 {
+  width: 100%;
+  box-sizing: content-box;
+  height: 6.25rem;
+}
+
+.header picture {
+  margin-left: 4rem;
+  position: relative;
+  top: 1rem;
+}
+
+body {
+  background-color: #f0eee6;
+  padding: 0;
+}
+
+.header {
+  background-color: #006ec0;
+}
+
+#footer {
+  position: fixed;
+  bottom: 0.5rem;
+  left: 1rem;
+  width: 14rem;
+}
+
+.gateway_bg, .popUpBG {
+  visibility: hidden;
+  display: none;
+}
+
+.smallcard {
+  margin: 0 0 0 0;
+  box-shadow: 0 0 0 rgba(0,0,0,0);
+}
+
+.span3 .smallcard .content {
+  visibility: hidden;
+  display: none;
+}
+
+.span3 .smallcard .header {
+  margin-bottom: 0px;
+  background-image: none;
+  background-color: #ffffff;
+  color: #3F464C;
+  text-shadow: none;
+  border-bottom: none;
+}
+
+.modal-backdrop {
+  visibility: hidden;
+}
+
+.modal, .modal.fade.in {
+ z-index:3;
+  width: calc(100% - 17.25rem);
+  height: auto;
+  max-height: calc(100% - 7.4rem);
+  overflow: hidden;
+  overflow-y: auto;
+  margin: 0;
+  left: 16.5rem;
+  top: 2.5rem;
+  border: 0;
+  border-radius: 0;
+  margin-top: 3.8rem;
+  padding-top: 1rem;
+  padding-bottom: 0;
+}
+
+.modal-header, .row-fluid .span4, .row-fluid .span11 {
+  position: fixed;
+  border: 0;
+  border-radius: 0;
+  top: 3rem;
+  left: 16.5rem;
+  width: calc(100% - 17.25rem);
+}
+
+.modal-body {
+  overflow: hidden;
+  max-height: max-content;
+}
+
+.modal-footer {
+  position: sticky;
+  border: 0;
+  border-radius: 0;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  bottom: 0;
+}
+
+.login {
+  box-shadow: 0 0.1875rem 0.375rem rgba(0,0,0,0.25);
+  border: none;
+  padding: 0;
+}
+
+.span4 {
+  border: 0;
+  width: 460px;
+}
+
+.offset4 {
+  margin: 0 auto;
+  float: none;
+  display: block;
+  box-sizing: content-box;
+}
+
+h2 {
+  display: block;
+  padding: 0 0 0 1.25rem;
+  font-size: 1.25rem;
+  color: #ffffff;
+  letter-spacing: 0.025rem;
+  line-height: 3.4rem;
+  text-align: left;
+  height: 3.25rem;
+  margin: auto;
+  background-color: #268edf;
+  font-weight: 100;
+}
+
+.btn, .btn:hover, .btn:hover:hover, .header .btn, .btn-group>.btn:first-child, .btn-group>.btn+.dropdown-toggle, .modal-footer .btn+.btn {
+  min-width: 4.5rem;
+  margin: 0;
+  background-image: none;
+  background-color: #268edf;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0.35rem 1rem;
+  border: 0;
+  border-radius: 0;
+  text-shadow: none;
+  box-shadow: none;
+  transform: none;
+  transition: initial;
+  text-shadow: none;
+  filter: none;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+.header select, .header .btn,  .header .btn:hover, .btn-group>.btn:first-child, .btn-group>.btn+.dropdown-toggle{
+  position: relative;
+  top: 0.5rem;
+  border:0;
+  border-radius:0;
+  background-color: rgba(0,0,0,0);
+  color: #fff;
+}
+
+
+#webui_language option {
+    margin: 40px;
+    background: #006ec0;
+    color: #fff;
+}
+
+.btn-group>.btn:first-child{
+	Cursor: default;
+}
+
+
+.login_bg:after {
+  color: #e5e4dc;
+}
+
+input.span3, input.span3:focus {
+  color: #3F464C;
+  vertical-align: middle;
+  display: inline-block;
+  border: 1px solid #d5d5d5;
+  box-sizing: border-box;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+div.login input.span3, div.login input.span3:focus {
+  width: 17.25rem;
+  margin: 0 0 0.5rem;
+  position: absolute;
+  right: 1.25rem;
+}
+
+.logo-technicolor {
+  position: fixed;
+  top: 0;
+  height: 6.25rem;
+  display: flex;
+  left: 0;
+  background-color: #006ec0;
+  width: 100%;
+  margin: 0;
+}
+
+div.logo-technicolor a {
+  margin-top: 1rem;
+  margin-left: 3rem;
+}
+
+.switch {
+  position: absolute;
+  right: 15px;
+}
+
+.copyright {
+  position: absolute;
+  bottom: 10px;
+}
+
+.tooLongTitle p {
+  overflow: initial;
+  text-overflow: initial;
+}
+
+.switchOn {
+  background-color: #006ec0;
+}
+
+.span1 {
+  all: initial;
+  opacity: 0;
+  visibility: hidden;
+  display: none;
+}
+
+.span11 {
+  padding-right: 1.5rem;
+  padding-top: 0.4rem;
+}
+
+.modal-action, .modal-action:hover, .modal-action i {
+  opacity: 0.999;
+  color: #fff;
+}
+
+.modal-action:hover, .modal-action:hover i {
+  color: #ddd;
+}
+
+.popUp {
+  position: absolute;
+  max-width: calc(100% - 17.2rem);
+  height: auto;
+  max-height: calc(100% - 7.3rem);
+  overflow: hidden;
+  margin: 0;
+  left: 16.5rem;
+  top: 2.5rem;
+  border: 0;
+  border-radius: 0;
+  margin-top: 3.8rem;
+  padding-bottom: 0;
+  box-shadow: 0 0.1875rem 0.375rem rgba(0,0,0,0.25);
+}
+
+.popUp .header {
+  box-shadow: none;
+  background-color: #268edf;
+  background-image: none;
+  text-shadow: none;
+  border-bottom: none;
+  position: fixed;
+  top: 3rem;
+  width: calc(100% - 18.5rem);
+  padding: 0 0 0 1.25rem;
+  font-size: 1.25rem;
+  letter-spacing: 0.025rem;
+  line-height: 3.4rem;
+  height: 3.25rem;
+}
+
+.popUp .content {
+  display: block;
+  margin: 0 auto;
+  min-height: 14rem;
+  width: calc(100% - 18.5rem);
+}
+
+#Poptxt{
+  padding-top: 8rem;
+  text-align:center;
+}
+
+.spinner3 {
+  filter: invert(30%);
+}
+
+select.span3, input, input[type="text"]:focus {
+  border-radius: 0;
+  border-color: gray;
+  box-shadow: none;
+}
+
+.pull-right{
+  margin-right: 20px;
+}
+
+label[for="srp_username"]:after{
+  content: "Your username:";
+}
+
+label[for="srp_password"]:after{
+  content: "Your password:";
+}
+input::placeholder{
+  color:#fff;
+  opacity: 0; 
+}
+
+.logo-technicolor:after{
+  content:"TIM Modem";
+  position:fixed;
+  top: 2.5rem;
+  width:100%;
+  color: #fff;
+  font-size: 3rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+.open>.dropdown-menu{
+  margin:0;
+  margin-top:0.5rem;
+  z-index:10;
+  border:0;
+  border-radius:0;
+}
+
+.btn-group.open .btn.dropdown-toggle{
+	background-color:#268edf
+}
+
+.nav-tabs{
+  position: fixed;
+  margin: 0;
+  background-image: none;
+  background-color: #268edf;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0.35rem 1rem;
+  border: 0;
+  left: 16.5rem;
+  top: 6.28rem;
+  border-radius: 0;
+  width: calc(100% - 19.25rem);
+  text-shadow: none;
+  box-shadow: none;
+  transform: none;
+  transition: initial;
+  text-shadow: none;
+  filter: none;
+  padding-top: 0;
+  padding-bottom: 0.06rem;
+}
+.nav-tabs li, .nav-tabs>li>a, .nav>li>a:hover{
+  border: 0;
+  padding-top: 0.15rem;
+  border-radius: 0;
+  background-color: #006ec0;
+  color: rgba(255, 255, 255, 0.5);
+  text-shadow: none;
+}
+.nav-list>li>a, .nav-list, .nav-list>li>a:hover{
+  border: 0;
+  padding-top: 0.15rem;
+  border-radius: 0;
+  background-color: #fff;
+  color: #006ec0;
+}
+
+.nav-tabs>li>a:hover{
+    color: #ffffff
+}
+
+.nav-tabs li{
+	margin-right: 0.5rem;
+}
+.nav-tabs>.active>a, .nav-tabs>.active{
+    
+}
+
+.nav-tabs>.active>a, .nav-tabs>.active>a:hover{
+    border: 0;
+    background-color: #006ec0;
+    color: #ffffff;
+    cursor: pointer;
+}
