@@ -118,7 +118,7 @@ end
 </head>\
 <body>\
   <div class="container">\
-    <div class="logo-technicolor">'); ngx.print('<a href="'); ngx.print(cui.nsplink) ngx.print('" target="_blank"><img src="/img/logo.gif"></a></div>\
+    <div class="logo-technicolor">'); ngx.print('<a href="'); ngx.print(cui.nsplink) ngx.print('" target="_blank"><img src="/img/logo.png"></a></div>\
     <div class="row">\
       <div class="offset4 span4">\
         <div class="login">\
