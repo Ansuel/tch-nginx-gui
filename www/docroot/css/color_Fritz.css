@@ -1,6 +1,7 @@
 *, .container, .row, .span3, .span12 {
   margin: 0;
   padding: 0;
+  transition:unset;
 }
 
 .icon-cogs {
@@ -90,7 +91,7 @@ body {
 }
 
 .modal, .modal.fade.in {
- z-index:3;
+  z-index:3;
   width: calc(100% - 17.25rem);
   height: auto;
   max-height: calc(100% - 7.4rem);
@@ -164,7 +165,8 @@ h2 {
 
 .btn, .btn:hover, .btn:hover:hover, .header .btn, .btn-group>.btn:first-child, .btn-group>.btn+.dropdown-toggle, .modal-footer .btn+.btn {
   min-width: 4.5rem;
-  margin: 0;
+  margin:0;
+  margin-right: 1rem;
   background-image: none;
   background-color: #268edf;
   color: #ffffff;
@@ -206,7 +208,8 @@ h2 {
   color: #e5e4dc;
 }
 
-input.span3, input.span3:focus {
+input.span3, input.span3:focus, input[type="text"] {
+  margin-right: 1rem;
   color: #3F464C;
   vertical-align: middle;
   display: inline-block;
@@ -240,8 +243,9 @@ div.logo-technicolor a {
 }
 
 .switch {
-  position: absolute;
-  right: 15px;
+ box-shadow:none;
+ border-radius:7px;
+ margin:0;
 }
 
 .copyright {
@@ -250,6 +254,7 @@ div.logo-technicolor a {
 }
 
 .tooLongTitle p {
+  width:auto;
   overflow: initial;
   text-overflow: initial;
 }
@@ -327,9 +332,9 @@ div.logo-technicolor a {
   filter: invert(30%);
 }
 
-select.span3, input, input[type="text"]:focus {
+select, select.span3, input, input[type="text"]:focus {
   border-radius: 0;
-  border-color: gray;
+  border-color: #d5d5d5;
   box-shadow: none;
 }
 
@@ -337,11 +342,11 @@ select.span3, input, input[type="text"]:focus {
   margin-right: 20px;
 }
 
-label[for="srp_username"]:after{
+.login_bg label[for="srp_username"]:after{
   content: "Your username:";
 }
 
-label[for="srp_password"]:after{
+.login_bg label[for="srp_password"]:after{
   content: "Your password:";
 }
 input::placeholder{
@@ -382,7 +387,7 @@ input::placeholder{
   padding: 0.35rem 1rem;
   border: 0;
   left: 16.5rem;
-  top: 6.28rem;
+  top: 6.2rem;
   border-radius: 0;
   width: calc(100% - 19.25rem);
   text-shadow: none;
@@ -426,4 +431,9 @@ input::placeholder{
     background-color: #006ec0;
     color: #ffffff;
     cursor: pointer;
+}
+
+div.login input.span3, div.login input.span3:focus{
+  right: 0px;
+  position:relative;
 }
