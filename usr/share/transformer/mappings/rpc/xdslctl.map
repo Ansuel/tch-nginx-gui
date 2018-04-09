@@ -108,8 +108,8 @@ local function xdslctlget(dtype,request)
 					data = data .. "NaN" .. ", "
 				end
 			elseif request == "SNR" then
-				l = string.sub(l,-7)
-				l = l:gsub("%s","")
+				l = string.sub(l,-8)
+				l = l:gsub("%s*","")
 				if ( tonumber(l) > 0 ) then 
 					data = data .. l .. ", "
 				else
