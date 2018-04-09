@@ -441,6 +441,14 @@ function getInfo(mac,ap,getpath)\
         $("#freq").html(data.freq);\
         $("#ssid").html(data.ssid);\
 \
+        if (data.freq == "5GHz") {\
+          $("div.control-group:contains(\'Power Transitions\')").addClass(\'hide\');\
+          $("div.control-group:contains(\'Data\')").addClass(\'hide\');\
+        } else {\
+          $("div.control-group:contains(\'Power Transitions\')").removeClass(\'hide\');\
+          $("div.control-group:contains(\'Data\')").removeClass(\'hide\');\
+        }\
+\
         if(data.Packets_Sent<sentpctstart || data.Packets_Received<recvpctstart ||data.Packets_Retrans<retransctstart)\
         {\
           sentpctstart = 0;\

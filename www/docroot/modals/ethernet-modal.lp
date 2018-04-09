@@ -474,6 +474,12 @@ for k,v in ipairs(all_dhcp_intfs) do
         break
     end
 end
+
+-- If the current interface is "STB", in order to get the DHCP range, name it as "lan"
+if cur_dhcp_intf == "STB" then
+  cur_dhcp_intf = "lan"
+end
+
 -- Standard parameters
 local mapParams = {
 	domainName = "uci.dhcp.dnsmasq.@dnsmasq.domain",
@@ -625,6 +631,31 @@ local function getDHCPData(object)
   return baseip, netmask, dhcpstart, dhcpend
 end
 
+local STB_IP = {
+  start = "uci.dhcp.dhcp.@STB.start",
+  limit = "uci.dhcp.dhcp.@STB.limit"
+}
+content_helper.getExactContent(STB_IP)
+
+local function calculateSTBRange(object)
+  local stbstart = STB_IP.start
+  local stblimit = STB_IP.limit
+  local baseip, netmask = getDHCPData(object)
+  local ipstart,ipend = calculateDHCPStartAddress(baseip,netmask,tonumber(stbstart),tonumber(stblimit))
+  ipstart = ipv42num(ipstart)
+  ipend = ipv42num(ipend)
+  return ipstart, ipend
+end
+
+local function STBCheck(object, stbrange)
+  if all_dhcp_intfs[1].paramindex == "STB" then
+    local ipstart,ipend = calculateSTBRange(object)
+      if stbrange >= ipstart and stbrange <= ipend then
+        return "nil",T"Lan pool range is overlap with the STB pool range"
+      end
+  end
+end
+
 -- Validation is done for the dhcpLimit for the particular subnet
 -- If different subnet mask is given other than 255.255.255.0, then the
 -- DHCP Range limit has to be calculated from the new subnet and the validation
@@ -632,6 +663,11 @@ end
 local function validateLimit(value, object)
   if match(value, "^[0-9]*$") then
     local baseip, netmask, dhcpstart, dhcpend = getDHCPData(object)
+
+    local ok,error = STBCheck(object, dhcpend)
+    if ok then
+      return nil, error
+    end
 
     if not dhcpend then
        return nil, T"DHCP End Address is Invalid"

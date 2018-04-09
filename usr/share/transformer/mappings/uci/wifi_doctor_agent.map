@@ -8,7 +8,7 @@ local wifi_doctor_agent_config = {
   config = config_wifi_doctor_agent,
   section = "config",
   type = "config",
-  options = {"enabled", "cs_url", "cs_buf_sz", "cs_buf_period", "active_radio"}
+  options = {"enabled", "cs_url", "cs_buf_sz", "cs_buf_period", "active_radio", "enable_friendly_name"}
 }
 mapper("uci_1to1").registerSimpleMap(wifi_doctor_agent_config)
 

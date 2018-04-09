@@ -1,8 +1,9 @@
 -- NG-60620
 -- NG-102389 TI VBNT-K : Devices connected in WiFi is Listed under Ethernet Interface
 local require = require
-local table, pairs, tostring, error = table, pairs, tostring, error
+local table, pairs, tostring, error = table, pairs, tostring, error  
 local register, commitapply, mapper, io = register, commitapply, mapper, io
+local pairs, tostring, error = pairs, tostring, error
 local uciHelper = mapper("ucihelper")
 local get_from_uci = uciHelper.get_from_uci
 local string = string
@@ -87,9 +88,9 @@ local function getExternalWifiIntfType(devices)
   if not keyValue and modeCheck == false then
     local wirelessRadio = conn:call("wireless.radio", "get" , {}) or {}
     modeCheck = true
-    for key, value in pairs(wirelessRadio) do
-      if value["remotely_managed"] == 1 and value["integrated_ap"] == 1 then
-        keyValue = key
+    for radioID, radio in pairs(wirelessRadio) do
+      if radio.remotely_managed == 1 and radio.integrated_ap == 1 then
+        keyValue = radioID
         break
       end
     end
@@ -105,17 +106,17 @@ local function getExternalWifiIntfType(devices)
     local radioremoteMAC, radioremoteIntf
     local radioremote = conn:call("wireless.radio.remote", "get", { name = keyValue })
     if radioremote then
-      local _, v = next(radioremote)
-      if v then
-        radioremoteMAC = v["macaddr"]
-        radioremoteIntf = v["ifname"]
+      local _, radio = next(radioremote)
+      if radio then
+        radioremoteMAC = radio.macaddr
+        radioremoteIntf = radio.ifname
       end
     end
-    for z,l in pairs(ssid) do
-      if l["radio"] == keyValue and z == "wl1" then
-        local result = ("0x" .. string.sub(l["mac_address"],(#l["mac_address"]-1)))
-        local obtMacAddr = string.format("%02x",((result -1)%256))
-        local mac_prefix = string.sub(l["mac_address"], 1, (#l["mac_address"] -2))
+    for _, wlInterface in pairs(ssid) do
+      if wlInterface.radio == keyValue then
+        local lastByte = tonumber(wlInterface.mac_address:sub(-2), 16)
+        local obtMacAddr = string.format("%02x", ((lastByte -1) % 256))
+        local mac_prefix = string.sub(wlInterface.mac_address, 1, -3)
         macAddr = string.format("%s%s", mac_prefix, obtMacAddr)
         if qtnMAC == macAddr then
           break
@@ -131,9 +132,9 @@ local function getExternalWifiIntfType(devices)
       end
     end
     if not intfType  then
-      for _,w in pairs(hostsCache) do
-        if w["mac-address"] == macAddr then
-          intfType= w["l2interface"]
+      for _, device in pairs(hostsCache) do
+        if device["mac-address"] == macAddr then
+          intfType= device.l2interface
         end
       end
     end
@@ -384,15 +385,7 @@ end
 Sys_Hosts_Host_i_.entries = function(mapping)
   --Update the interfaces and hosts cache - every time someone starts iteration on the hosts
   updateLanCache()
-  wanInterfacesCache = nwcommon.findLanWanInterfaces(true)
-  local _, macAddr = getExternalWifiIntfType(hostsCache)
-  local Hosts = {}
-
-  for k, v in pairs(hostsCache) do
-    if (v["technology"] == "wireless" or v["technology"] == "ethernet") and (v["mac-address"] ~= macAddr)  then
-        Hosts[#Hosts+1] = k
-    end
-  end
+  local Hosts = network.getHostInfo(hostsCache)
   loadHostExtraInfo()
   return Hosts
 end
@@ -908,7 +901,6 @@ Sys_Hosts_Host_i_.get = {
 	end
 	return ssid
   end
-
 }
 Sys_Hosts_Host_i_.commit = function()
   for config,_ in pairs(transactions) do
