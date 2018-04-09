@@ -35,7 +35,7 @@ content_helper.getExactContent(cui)
   <div class="container">
     <div class="row">
       <div class="header span12">
-        <a href="<%= cui.nsplink %>" target="_blank"><img src="/img/logo.gif"></a>
+        <a href="<%= cui.nsplink %>" target="_blank"><img src="/img/logo.png"></a>
 		<!-- <img class="timlogo" src="/img/TIM.png"> -->
       </div>
     </div>
