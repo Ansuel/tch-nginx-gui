@@ -23,7 +23,6 @@ local vSII = post_helper.validateStringIsIP
 local vSIM = post_helper.validateStringIsMAC
 local gVSLIR = post_helper.getValidateStringLengthInRange
 
-local device = "All"
 local site = ""
 
 local function validateSiteAndDuplicateCheck(value,data,key)
@@ -114,9 +113,13 @@ local parental_columns = {
         header = T"Device",
         name = "device",
         param = "device",
-        type = "text",
+        type = "select",
         default = "All",
-        attr = { input = { class="span2", maxlength="15"}, autocomplete=hosts_ac },
+        values = {
+          {"all", "All"},
+          {"single", "Single"},
+        },
+        attr = { select = { class= "span2" } },
     },
 }
 
@@ -132,21 +135,25 @@ local parental_options = {
     addNamedObject   = true,
 }
 
-local function validateDevice(value, object, key)
-    -- confirm the entered value is a valid IP address or the special "All" entry
-    if vSII(value) or (value == "All") then
-        return true
+local function validateMAC(value, object, key)
+    -- To skip the MAC validation check if device is "All"
+    if  object.device ~= "all" then
+        local valid, error = vSIM(value,object,key)
+        if valid then
+           return true
+        else
+           return nil, error
+        end
+    else
+       return true
     end
-
-    -- the entry is not valid, mark it and return the help string
-    return nil, T"Invalid device, entry must be either a valid IP or \"All\""
 end
 
 local entries_valid = {
     ["site"] = validateSiteAndDuplicateCheck,
-    ["device"] = validateDevice,
-    ["devices_mac"] = vSIM,
+    ["devices_mac"] = validateMAC,
 }
+
 local parental_filter = function(data)
   if not string.match(data["site"], "^http://") then
     data["site"] = "http://".. data["site"]
@@ -243,13 +250,20 @@ local help_link = { href="/help/index.html?anchor=" .. uri:match("/([^/]+)%.lp")
   </form>\
 </div>\
 <script type=\'text/javascript\'>\
+if($("#device").val() == "all")\
+   $(\'#devices_mac\').attr(\'disabled\', true);\
 $("[name =\'devices_mac\']").change(function () {\
     if ((this.value) == "custom") {\
-          $(this).replaceWith($(\'<input/>\',{\'type\':\'text\', \'name\':\'devices_mac\'}));\
+          $(this).replaceWith($(\'<input/>\',{\'type\':\'text\', \'id\':\'devices_mac\', \'name\':\'devices_mac\'}));\
     }\
+});\
+$("[name =\'device\']").change(function () {\
+    if($("#device").val() == "all")\
+           $(\'#devices_mac\').attr(\'disabled\', true);\
+    else\
+           $(\'#devices_mac\').attr(\'disabled\', false);\
 });\
 </script>\
 \
 ');  ngx.print( ui_helper.createFooter() ); ngx.print('\
-\
 '); 

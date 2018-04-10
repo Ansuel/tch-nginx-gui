@@ -162,6 +162,17 @@ local devices_filter = function(data)
   elseif match(data["L2Interface"], "moca*") then
     data["InterfaceType"] = "MoCA"
   end
+
+  --Display some default device type, when DeviceType entry is empty
+  if data["DeviceType"] == "" then
+    if match(data["L2Interface"], "eth*") then
+      data["DeviceType"] = "DesktopComputer"
+    elseif match(data["L2Interface"], "^wl*") then
+      data["DeviceType"] = "Phone"
+    else
+      data["DeviceType"] = "unknown"
+    end
+  end
   return true
 end
 
@@ -173,7 +184,7 @@ for k, v in pairs (devices_data) do
 
     if v[1] == "1" then
       if v[9] ~= "" and v[8] ~= "" then
-        v[9] = post_helper.secondsToTime(tonumber(v[9])- (os.time()- tonumber(v[8]))%tonumber(v[9]))
+        v[9] = post_helper.secondsToTime(tonumber(v[9])- (os.time()- tonumber(v[8]))%tonumber(v[9])) or T"Infinite"
       else
         v[9]="-"
       end

@@ -5,3 +5,4 @@
 ^wireless%..+%.upload_rate /etc/hotplug.d/net/60-guestwifi-rate-limiting RELOAD
 ^wireless%..+%.download_rate /etc/hotplug.d/net/60-guestwifi-rate-limiting RELOAD
 ^wireless%..+%.rate_control_enabled /etc/hotplug.d/net/60-guestwifi-rate-limiting RELOAD
+^wireless%.[^%.]+%.wl[^%.]+%.state /etc/init.d/network reload

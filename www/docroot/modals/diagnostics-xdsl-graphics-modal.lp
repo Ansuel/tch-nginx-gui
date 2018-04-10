@@ -194,7 +194,7 @@ var qln_ctx = document.getElementById("QLNChart").getContext("2d");\
         scales: {\
             yAxes: [{\
                 ticks: {\
-                    beginAtZero:true,\
+                    beginAtZero:false,\
                 }\
             }]\
         },\

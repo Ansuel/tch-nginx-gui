@@ -63,6 +63,7 @@ local foreach_on_uci = uciHelper.foreach_on_uci
 local get_from_uci = uciHelper.get_from_uci
 
 local network_binding = { config = "network", sectionname = "interface" }
+local firewallBinding = { config = "firewall", sectionname = "userredirect" }
 local upnp_binding = { config = "upnpd", sectionname="config", option="external_iface" }
 local upnp_interfaces = {}
 for value in gmatch(get_from_uci(upnp_binding), "%S+") do
@@ -78,6 +79,25 @@ local function get_ipinterface(l3_interface)
     end
   end)
   return iface or ""
+end
+
+local function isPortmapPresent(upnpProto, upnpDestPort, upnpSrcDPort)
+  local result = false
+  local protoFound
+  foreach_on_uci(firewallBinding, function(s)
+    protoFound = false
+    if s.proto and type(s.proto) == "table" then
+      for _, proto in ipairs(s.proto) do
+        if proto == "Any" or proto == upnpProto then
+          if (upnpDestPort == s.dest_port and upnpSrcDPort == s.src_dport) or (s.tch_map_endrange and upnpDestPort <= s.tch_map_endrange and upnpDestPort >= s.src_dport) then
+            result = true
+            return false
+          end
+        end
+      end
+    end
+  end)
+  return result
 end
 
 sys_upnp_redirect_i_.entries = function(mapping)

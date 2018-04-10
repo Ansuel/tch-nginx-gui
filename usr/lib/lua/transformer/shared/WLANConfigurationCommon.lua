@@ -9,7 +9,7 @@ local wirelessBinding = { config = "wireless" }
 local wirelessDefaultsBinding = { config = "wireless-defaults" }
 local pairs, string, table, tonumber, tostring = pairs, string, table, tonumber, tostring
 local floor = math.floor
-local configChanged
+local transactions = {}
 
 local beaconTypeMap = {
   ["none"]         = "Basic",
@@ -87,6 +87,25 @@ local function getFromUci(sectionname, option, default)
   return uciHelper.getall_from_uci(wirelessBinding)
 end
 
+local function commit()
+  for config, changed in pairs(transactions) do
+    if changed then
+      uciHelper.commit({ config = config })
+      transactions[config] = false
+    end
+  end
+end
+
+local function revert()
+  for config, changed in pairs(transactions) do
+    if changed then
+      uciHelper.revert({ config = config })
+      transactions[config] = false
+    end
+  end
+  transactions = {}
+end
+
 local function getFromWirelessDefaults(sectionname, option, default)
   wirelessDefaultsBinding.sectionname = sectionname
   if option then
@@ -101,14 +120,14 @@ local function setOnUci(sectionname, option, value, commitapply)
   wirelessBinding.sectionname = sectionname
   wirelessBinding.option = option
   uciHelper.set_on_uci(wirelessBinding, value, commitapply)
-  configChanged = true
+  transactions[wirelessBinding.config] = true  
 end
 
 local function deleteOnUci(sectionname, commitapply)
   wirelessBinding.sectionname = sectionname
   wirelessBinding.option = nil
   uciHelper.delete_on_uci(wirelessBinding, commitapply)
-  configChanged = true
+  transactions[wirelessBinding.config] = true
 end
 
 --- Retrieves the ap for the given iface
@@ -1873,20 +1892,6 @@ M.getMappings = function(commitapply)
     }
   end
 
-  local function commit()
-    if configChanged then
-      uciHelper.commit(wirelessBinding)
-      configChanged = false
-    end
-  end
-
-  local function revert()
-    if configChanged then
-      uciHelper.revert(wirelessBinding)
-      configChanged = false
-    end
-  end
-
   return {
     wlan = {
       getAll = getallWLANDevice,
@@ -1930,5 +1935,13 @@ M.getMappings = function(commitapply)
  }
 
 end
+
+M.setBandSteerID = setBandSteerID
+M.enableBandSteer = enableBandSteer
+M.getAPFromIface = getAPFromIface
+M.getFromUci = getFromUci     
+M.setOnUci = setOnUci            
+M.commit = commit             
+M.revert = revert
 
 return M

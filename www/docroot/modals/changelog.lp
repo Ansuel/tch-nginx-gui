@@ -16,6 +16,8 @@ ngx.print('\
 		  style = "border-bottom: 1px solid #e5e5e5;padding-bottom: 10px"
         },
       }
+	  html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_1.1.1_002 )" .. '</legend>'
+	  html[#html + 1] = ui_helper.createLabel(T"7.0", "Rebase sul nuovo firmware", basic)
       html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_1.1.1_001 )" .. '</legend>'
 	  html[#html + 1] = ui_helper.createLabel(T"6.13", "Aggiunta traduzione tedesca Thx meyergru", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"6.12", "Introdotta autorimozione del bit antidowngrade AGTHP", basic)

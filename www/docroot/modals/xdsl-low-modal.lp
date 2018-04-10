@@ -139,6 +139,7 @@ local driver_option = {
 }
 
 if tonumber(content.marketing_version) >= 17.3 then
+	table.insert(driver_option,{ "A2pvfbH043g.d26r", 'A2pvfbH043f.d26r (DSL AC88U) !! TO TEST !!'})
 	table.insert(driver_option,{ "A2pvfbH043g.d26r", 'A2pvfbH043g.d26r (TG800 Vbant-s)'})
 	table.insert(driver_option, { "A2pvfbH043k.d26r", 'A2pvfbH043k.d26r (AGTEF_1.1.0)'})
 end
