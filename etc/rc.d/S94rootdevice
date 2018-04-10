@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=7.0.0
+version_gui=7.1.3
 
 logo_project() {
 cat << EOF > /dev/console
@@ -266,7 +266,7 @@ trafficmon_support() {
 
 checkver_cron() {
 	if [ -f /etc/crontabs/root ]; then
-		if ! cat /etc/crontabs/root | grep -q checkver ; then
+		if [ ! "$(cat /etc/crontabs/root | grep -q checkver)" ] ; then
 			echo " " > /etc/crontabs/root
 			echo "0 */2 * * * /usr/share/transformer/scripts/checkver.sh" > /etc/crontabs/root
 			/etc/init.d/cron restart
@@ -482,6 +482,13 @@ add_new_web_rule() {
 		uci add_list web.diagnosticsxdslgraphicsmodal.roles='engineer'
 		uci add_list web.diagnosticsxdslgraphicsmodal.roles='guest'
 		uci add_list web.ruleset_main.rules='diagnosticsxdslgraphicsmodal'
+	fi
+	if [ ! $(uci get -q web.mwanmodal) ]; then
+		uci set web.mwanmodal=rule
+		uci set web.mwanmodal.target='/modals/mwan-modal.lp'
+		uci add_list web.mwanmodal.roles='admin' 
+		uci add_list web.mwanmodal.roles='engineer'
+		uci add_list web.ruleset_main.rules='mwanmodal'
 	fi
 }
 

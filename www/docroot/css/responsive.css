@@ -516,7 +516,7 @@
     }
 }
 
-@media screen and (min-width: 1200px) and (max-width:1300px) {
+@media screen and (min-width: 1200px) and (max-width:1399px) {
     .row {
         margin-left:-30px;
         *zoom:1;}
