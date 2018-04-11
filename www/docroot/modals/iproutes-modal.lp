@@ -220,6 +220,11 @@ local dns_options = {
 ');  ngx.print(ui_helper.createHeader(T"IP Extras", false, true))   ngx.print('\
 \
 <div class="modal-body update">\
+');  
+    local lp = require("web.lp")
+    lp.setpath("/www/snippets/")
+    lp.include("tabs-internet.lp")
+  ngx.print('\
   <form class="form-horizontal" method="post" action="modals/iproutes-modal.lp">\
     ');  
         ngx.print(ui_helper.createMessages(message_helper.popMessages()))

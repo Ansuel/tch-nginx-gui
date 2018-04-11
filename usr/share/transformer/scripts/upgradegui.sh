@@ -79,8 +79,12 @@ if [ $( uci get -q env.var.blacklist_app) ] && [ $( uci get env.var.blacklist_ap
 fi
 
 #Copy GUI file to permanent dir
-cp $WORKING_DIR/$FILE_NAME $PERMANENT_STORE_DIR
+if [ -f $PERMANENT_STORE_DIR/$FILE_NAME ]; then
+	rm $PERMANENT_STORE_DIR/$FILE_NAME
+fi
+cp $WORKING_DIR/$FILE_NAME $PERMANENT_STORE_DIR/
 rm $WORKING_DIR/$FILE_NAME
+rm $WORKING_DIR/$CHECKSUM_FILE
 
 # Run init.d script
 /etc/init.d/rootdevice force

@@ -9,8 +9,8 @@ start_service() {
 	if [ "$_ENABLED" = "1" ]; then
 		PID=$(pgrep -f /usr/bin/mobiled)
 		if [ -n "$PID" ]; then
-			echo "Delaying Mobiled startup. Waiting for $PID to terminate"
-			while kill -0 "$PID"; do
+			logger -t mobiled "Delaying Mobiled startup. Waiting for $PID to terminate"
+			while [ $(pgrep -f /usr/bin/mobiled) ]; do
 				sleep 1
 			done
 		fi
@@ -30,13 +30,13 @@ service_triggers() {
 }
 
 reload_service() {
-	if $(pgrep -f /usr/bin/mobiled) ; then
+	if [ "$(pgrep -f /usr/bin/mobiled)" ] ; then
 		kill -s HUP $(pgrep -f /usr/bin/mobiled)
 	fi
 }
 
 stop_service() {
-	if $(pgrep -f /usr/bin/mobiled) ; then
+	if [ "$(pgrep -f /usr/bin/mobiled)" ] ; then
 		kill -s HUP $(pgrep -f /usr/bin/mobiled)
 	fi
 }
