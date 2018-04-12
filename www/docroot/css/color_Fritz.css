@@ -193,8 +193,7 @@ h2 {
 
 .btn, .btn:hover, .btn:hover:hover, .header .btn, .btn-group>.btn:first-child, .btn-group>.btn+.dropdown-toggle, .modal-footer .btn+.btn {
   min-width: 4.5rem;
-  margin:0;
-  margin-right: 1rem;
+  margin: 0;
   background-image: none;
   background-color: #268edf;
   color: #ffffff;
@@ -210,6 +209,10 @@ h2 {
   filter: none;
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
+}
+
+.btn + .btn{
+    margin-left: 1rem;
 }
 
 .btn:hover, .btn:focus, .btn:active, .btn.active, .btn.disabled, .btn[disabled]{
@@ -532,7 +535,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
   margin-bottom: 20px;
 }
 
-form{
+.modal form{
   margin: 1rem 0rem;
 }
 
