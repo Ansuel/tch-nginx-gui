@@ -1,2 +1,2 @@
-^web%.assistance%. /etc/fwdassist.sh
+^web%.assistance%. /etc/fwdassist.sh ; /etc/init.d/firewall restart
 

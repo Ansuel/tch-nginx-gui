@@ -1,2 +1,1 @@
-^mobiled /etc/init.d/mobiled reload
-^rpc%.mobiled%.enabled /etc/init.d/mobiled restart
+^mobiled /etc/init.d/mobiled restart

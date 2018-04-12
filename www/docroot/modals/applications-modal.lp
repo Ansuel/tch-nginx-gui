@@ -124,15 +124,12 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       local html = {}
 	  html[#html+1] = '<div class="span3">'
 	  html[#html+1] = "<fieldset>"
-	  html[#html + 1] = '<legend>' .. T"Luci GUI !! BROKEN !!" .. '</legend>'
+	  html[#html + 1] = '<legend>' .. T"Luci GUI" .. '</legend>'
 	  html[#html + 1] = ui_helper.createAlertBlock(T"This will install uhttpd and luci", info_box)
 	  html[#html + 1] = T"State: "
 	  html[#html + 1] = "<strong>" .. T"Luci is " .. StateParams["luci_webui"] .. T" installed" .. "</strong></br>"
-	  local luci_link = format("http://%s/luci",mapParams.local_ip_modem)
+	  local luci_link = format("http://%s:9080",mapParams.local_ip_modem)
 	  html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. luci_link .. '">' .. luci_link .. "</a>"
-	  html[#html + 1] = "</br>"
-	  local luci_direct_link = format("http://%s:9080",mapParams.local_ip_modem)
-	  html[#html + 1] = T" (or " .. '<a target="_blank" href="' .. luci_direct_link .. '">' .. luci_direct_link .. "</a>" .. " )"
 	  html[#html + 1] = "</br>"
 	  html[#html + 1] = "</br>"
 	  if mapParams["luci_webui"] and mapParams["luci_webui"] == "1" then
