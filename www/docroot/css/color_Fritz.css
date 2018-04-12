@@ -1,17 +1,9 @@
 *, .container, .row, .span3, .span12 {
   margin: 0;
   padding: 0;
-  transition:unset;
 }
 
-.icon-cogs {
-  all: initial;
-  opacity: 0;
-  visibility: hidden;
-  display: none;
-}
-
-.smallcard .header .settings, .smallcard:hover .header .settings {
+.icon-cogs, .smallcard .header .settings, .smallcard:hover .header .settings {
   all: initial;
   opacity: 0;
   visibility: hidden;
@@ -24,8 +16,10 @@
   background-color: #fff;
   box-shadow: 0 0.1875rem 0.375rem rgba(0,0,0,0.25);
   font-size: 1.125rem;
+  overflow-y:auto;
+  position: absolute !important;
+  max-height: calc(100% - 18rem);
 }
-
 
 .row[style="z-index : 3;  position: relative;"] {
   position: unset !important;
@@ -77,6 +71,9 @@ body {
 .smallcard {
   margin: 0 0 0 0;
   box-shadow: 0 0 0 rgba(0,0,0,0);
+  opacity: 1 !important;
+  transform: initial !important;
+  transition: initial !important;
 }
 
 .span3 .smallcard .content {
@@ -97,14 +94,14 @@ body {
   visibility: hidden;
 }
 
-.modal, .modal.fade.in {
+.modal, .modal.fade.in, .modal.fade {
   z-index:3;
   width: calc(100% - 17.25rem);
   height: auto;
   max-height: calc(100% - 7.5rem);
   margin: 0;
   overflow-y:auto;
-  overflow-x:hidden;
+  overflow-x: hidden;
   left: 16.5rem;
   top: 2.5rem;
   border: 0;
@@ -112,6 +109,14 @@ body {
   margin-top: 3.8rem;
   padding-top: 1rem;
   padding-bottom: 0;
+  transition-duration: 0.0001s;
+  transition-timing-function: step-start;
+  transform: initial;
+  opacity: 1;
+}
+
+.modal.fade{
+  opacity:0;
 }
 
 .modal-header, .row-fluid .span4, .row-fluid .span11 {
@@ -126,7 +131,7 @@ body {
 .modal-body {
   min-height: 15.1rem;
   overflow-y:auto;
-  overflow-x:hidden;
+  overflow-x:auto;
   max-height: 1000rem;
   max-height: -moz-max-content;
   max-height: -webkit-max-content;
@@ -206,7 +211,12 @@ h2 {
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
 }
-.header select, .header .btn,  .header .btn:hover, .btn-group>.btn:first-child, .btn-group>.btn+.dropdown-toggle{
+
+.btn:hover, .btn:focus, .btn:active, .btn.active, .btn.disabled, .btn[disabled]{
+	color: #444;
+}
+
+.header select, .header .btn,  .header .btn:hover, .header .btn-group>.btn:first-child, .btn-group>.btn+.dropdown-toggle{
   position: relative;
   top: 0.5rem;
   border:0;
@@ -215,17 +225,15 @@ h2 {
   color: #fff;
 }
 
-
 #webui_language option {
     margin: 40px;
     background: #006ec0;
     color: #fff;
 }
 
-.btn-group>.btn:first-child{
+.header .btn-group>.btn:first-child{
 	Cursor: default;
 }
-
 
 .login_bg:after {
   color: #e5e4dc;
@@ -280,7 +288,7 @@ div.logo-technicolor a {
   background-color: #006ec0;
 }
 
-.span1 {
+.span1 a{
   all: initial;
   opacity: 0;
   visibility: hidden;
@@ -300,9 +308,11 @@ div.logo-technicolor a {
 .modal-action:hover, .modal-action:hover i {
   color: #ddd;
 }
+
 body{
   overflow: hidden;
 }
+
 .popUp {
   position: absolute;
   width: calc(100% - 17.2rem);
@@ -317,7 +327,9 @@ body{
   margin-top: 3.8rem;
   padding-bottom: 0;
   box-shadow: none;
+  cursor: default;
 }
+
 .popUp:after {
   content: '';
   position: absolute;
@@ -337,12 +349,11 @@ body{
     z:index:-1;
     margin-left:-0.5rem;
     width: calc(100% + 1rem);
-    height: calc(9.7rem + 100%);
+    height: 100rem;
     top: 100%;
     left: 0px;
     background-color: #f0eee6;
 }
-
 
 .popUp .header {
   box-shadow: none;
@@ -393,6 +404,7 @@ select, select.span3, input, input[type="text"]:focus {
 .login_bg label[for="srp_password"]:after{
   content: "Your password:";
 }
+
 input::placeholder{
   color:#fff;
   opacity: 0; 
@@ -422,12 +434,13 @@ input::placeholder{
 }
 
 .nav-tabs{
+  z-index:1;
   position: fixed;
   margin: 0;
   background-image: none;
   background-color: #268edf;
   color: #ffffff;
-  cursor: pointer;
+  cursor: default;
   padding: 0.35rem 1rem;
   border: 0;
   left: 16.5rem;
@@ -443,6 +456,17 @@ input::placeholder{
   padding-top: 0;
   padding-bottom: 0.06rem;
 }
+
+.form-horizontal .nav-tabs{
+  position:unset;
+  background-color: transparent;
+  margin-bottom: 1rem;
+}
+
+.form-horizontal .nav-tabs li, .form-horizontal .nav-tabs>li>a, .form-horizontal .nav>li>a:hover{
+  background-color: #268edf;
+}
+
 .nav-tabs li, .nav-tabs>li>a, .nav>li>a:hover{
   border: 0;
   padding-top: 0.15rem;
@@ -450,7 +474,9 @@ input::placeholder{
   background-color: #006ec0;
   color: rgba(255, 255, 255, 0.5);
   text-shadow: none;
+  cursor: pointer;
 }
+
 .nav-list>li>a, .nav-list, .nav-list>li>a:hover{
   border: 0;
   padding-top: 0.15rem;
@@ -504,4 +530,12 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 
 .modal-body legend{
   margin-bottom: 20px;
+}
+
+form{
+  margin: 1rem 0rem;
+}
+
+.span8{
+  width:auto;
 }
