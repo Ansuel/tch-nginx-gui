@@ -107,6 +107,10 @@ local system_ = {
                 access = "readWrite",
                 type = "boolean",
             },
+			install_emptyblacklist = {
+                access = "readWrite",
+                type = "boolean",
+            },
 			remove_blacklist = {
                 access = "readWrite",
                 type = "boolean",
@@ -163,6 +167,7 @@ local system_ = {
 		install_transmission = "0",
 		remove_transmission = "0",	
 		install_blacklist = "0",
+		install_emptyblacklist = "0",
 		remove_blacklist = "0",	
 		install_xupnp = "0",
 		remove_xupnp = "0",	

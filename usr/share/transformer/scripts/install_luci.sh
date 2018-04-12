@@ -1,5 +1,6 @@
 opkg update
-opkg install --force-overwrite luci
+mv /usr/lib/lua/uci.so /usr/lib/lua/uci.so_bak
+opkg install --force-reinstall libuci-lua luci rpcd
 mkdir /www_luci
 mv /www/cgi-bin /www_luci/
 mv /www/luci-static /www_luci/
@@ -16,5 +17,6 @@ if [ ! $(uci get uhttpd.main.listen_http | grep 9080) ]; then
 	uci add_list uhttpd.main.listen_https='[::]:9433'
 	uci set uhttpd.main.home='/www_luci'
 fi
+
 uci commit
 /etc/init.d/uhttpd restart

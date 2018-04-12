@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=7.1.8
+version_gui=7.2.8
 
 logo_project() {
 cat << EOF > /dev/console
@@ -128,6 +128,10 @@ generate_hash_gui() {
 	fi
 	if [ -f /tmp/GUI$update_branch.tar.bz2 ]; then
 		gui_hash=$(md5sum /tmp/GUI$update_branch.tar.bz2 | awk '{ print $1}' )
+		if [ -f /root/GUI$update_branch.tar.bz2 ];then
+			rm /root/GUI$update_branch.tar.bz2
+		fi
+		cp /tmp/GUI$update_branch.tar.bz2 /root/GUI$update_branch.tar.bz2
 	else
 		if [ -f /root/GUI$update_branch.tar.bz2 ];then
 			gui_hash=$(md5sum /root/GUI$update_branch.tar.bz2 | awk '{ print $1}' )
@@ -162,12 +166,24 @@ transfer_bank() {
 check_bank() {
 	bank_check=$( uci get -q env.var.bank_check )
 	bootedbank=$( cat /proc/banktable/booted )
-	if [ ! $( uci -q get env.var.bank_check ) ] && [ $bootedbank == "bank_2" ]; then
-		transfer_bank
-	elif [ $bank_check == "1" ] && [ $bootedbank == "bank_2" ]; then
-		transfer_bank
+	env_config_bank1="/overlay/bank_1/etc/config/env"
+	get_config_bank1=$(cat /etc/config/env | grep bank_check | awk '{print $3}' | sed "s/'//g")
+	if [ $bootedbank == "bank_2" ]; then
+		if [ ! $( uci -q get env.var.bank_check ) ]; then
+			if [ -f $env_config_bank1 ] && [ $get_config_bank1 == "0" ]; then
+				echo "  Firmware in Bank_2 but check_bank set to 0... Not transferring" > /dev/console
+			else
+				transfer_bank
+			fi
+		elif [ $bank_check == "1" ]; then
+			if [ -f $env_config_bank1 ] && [ $get_config_bank1 == "0" ]; then
+				echo "  Firmware in Bank_2 but check_bank set to 0... Not transferring" > /dev/console
+			else
+				transfer_bank
+			fi
+		fi
 	else
-		echo "  Firmware in Bank_1... Not transfering..." > /dev/console
+		echo "  Firmware in Bank_1... Not transferring..." > /dev/console
 	fi
 }
 

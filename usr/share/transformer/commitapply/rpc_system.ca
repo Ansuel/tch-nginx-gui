@@ -13,6 +13,7 @@
 ^rpc%.system%.install_transmission /usr/share/transformer/scripts/install_transmission.sh
 ^rpc%.system%.remove_transmission /usr/share/transformer/scripts/remove_transmission.sh
 ^rpc%.system%.install_blacklist /usr/share/transformer/scripts/install_blacklist.sh
+^rpc%.system%.install_emptyblacklist /usr/share/transformer/scripts/install_blacklist.sh empty
 ^rpc%.system%.remove_blacklist /usr/share/transformer/scripts/remove_blacklist.sh
 ^rpc%.system%.install_xupnp /usr/share/transformer/scripts/install_xupnp.sh
 ^rpc%.system%.remove_xupnp /usr/share/transformer/scripts/remove_xupnp.sh
