@@ -41,7 +41,23 @@ content_helper.getExactContent(cui)
 </head>\r\
 <body>\r\
   <div class="container">\r\
-    <div class="logo-technicolor"><a href="');  ngx.print( cui.nsplink ); ngx.print('" target="_blank"><img src="/img/logo.gif"></a></div>\r\
+            <div class="logo-technicolor">\
+	<a href="'); ngx.print(cui.nsplink); ngx.print('" target="_blank">\
+	  <picture>');
+		if cui.gui_skin == "TIM" then
+			ngx.print('<img width="168px" height="39px" src="/img/TIM.png">');
+		elseif cui.gui_skin == "Fritz" then
+			ngx.print('<source srcset="/img/logo_white.webp" type="image/webp">\
+				<source srcset="/img/logo_white.png" type="image/png">\
+				<img width="131px" height="50px" src="/img/logo_white.png">');
+		else
+			ngx.print('<source srcset="/img/logo.webp" type="image/webp">\
+				<source srcset="/img/logo.png" type="image/png">\
+				<img width="131px" height="50px" src="/img/logo.png">');
+		end
+	  ngx.print('  </picture>\
+	</a>\
+	</div>\r\
     <div class="row">\r\
       <div class="offset4 span4">\r\
 	<div class="login">\r\

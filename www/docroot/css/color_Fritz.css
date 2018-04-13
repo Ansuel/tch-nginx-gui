@@ -44,7 +44,7 @@
 .header picture {
   margin-left: 4rem;
   position: relative;
-  top: 1rem;
+  top: 1.5rem;
 }
 
 body {
@@ -90,7 +90,7 @@ body {
   color: #ccc;
 }
 
-@media only screen and (max-width: 82rem) {
+@media only screen and (max-width: 50rem) {
   div.span3 .content{
     visibility:hidden;
   }
@@ -532,8 +532,8 @@ input.span3, input.span3:focus, textarea, input[type="text"], input[type="passwo
 }
 
 div.logo-technicolor a {
-  margin-top: 1rem;
-  margin-left: 3rem;
+  margin-top: 1.5rem;
+  margin-left: 4rem;
 }
 
 .switch {
@@ -839,12 +839,4 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
   background-color: transparent;
   box-shadow: 0 0.1875rem 0.375rem rgba(0,0,0,0.65);
   pointer-events: none
-}
-
-img[src="/img/logo.png"]{
-  box-sizing: border-box;
-  width: 131px;
-  height: 50px;
-  padding-left:131px;
-  background: url(/img/logo-white.png) no-repeat;
 }
