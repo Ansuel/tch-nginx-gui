@@ -155,8 +155,18 @@ ngx.print('\
     <div class="row">\
 		<div class="copyright span12">\
 			<p>&copy; Technicolor ');  ngx.print(current_year); ngx.print('</p>\
-			<p>Modified Ver. [ '); ngx.print( cui.gui_version ); ngx.print(' ]</p>\
-			<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> && Unlock Utility by <font style="color:#0088cc;">ADeltaX</font> && Translated by <font style="color:#0088cc;">DarkNiko</font></p>\
+			<p>GUI Version [ '); ngx.print( cui.gui_version ); ngx.print(' ]</p>\
+			<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> && Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>');
+			local lang_credit = ""
+			if not ( tostring(gettext.language()) == "en-us" ) then
+				if tostring(gettext.language()) == "it-it" then
+					lang_credit = "DarkNiko"
+				elseif tostring(gettext.language()) == "de-de" then
+					lang_credit = "meyergru"
+				end
+				ngx.print(' && Translated by <font style="color:#0088cc;">' .. lang_credit .. '</font>')
+			end
+			ngx.print('</p>\
 		</div>\
 	</div>\
   </div>\
