@@ -13,11 +13,11 @@ local post_helper = require("web.post_helper")
 local format, match = string.format, string.match
 
 local gui_skin_option = {
-      { "Fritz", T'Fritz!Box'},
       { "blue", T'Blue'},
       { "violet", T'Violet'},
       { "green", T'Green'},
 	  { "TIM" , T'Enhanced Tim'},
+	  { "Fritz", T'Fritz!Box'},
 }
 
 local gui_skin_Params = {
