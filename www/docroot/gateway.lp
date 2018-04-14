@@ -139,7 +139,7 @@ ngx.print('\
 			html[#html + 1] = '</a>'
 			html[#html + 1] = '</div>'
 		end
-		if not ( session:getusername() == "guest" ) then
+		if session:getusername() == "admin" then
 			html[#html + 1] = '<div class="btn" style="margin-right:10px" id="wizard-btn" data-toggle="modal" data-remote="modals/wizard-modal.lp">' .. T"Setup Wizard" .. '</div>'
         end
 		if session:isdefaultuser() then

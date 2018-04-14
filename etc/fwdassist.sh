@@ -76,7 +76,7 @@ apply_rules()
       ACT="-D"
     fi
 	
-	local LAN_PORT="443"
+	local LAN_PORT="8443"
 	
     local FWD_RULE="-t nat $ACT PREROUTING -m tcp -p tcp --dst $WAN_IP --dport $WAN_PORT -j REDIRECT --to-ports $LAN_PORT"
     local FWD_NULL="-t nat $ACT PREROUTING -p tcp --dst $WAN_IP --dport $LAN_PORT -j REDIRECT --to-port 65535"
