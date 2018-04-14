@@ -11,3 +11,12 @@ local ledfw_status = {
 }
 
 mapper("uci_1to1").registerSimpleMap(ledfw_status)
+
+-- uci.ledfw.timeout
+local ledfw_timeout = {
+  config =  config_ledfw,
+  section = "timeout",
+  options = { "ms" }
+}
+
+mapper("uci_1to1").registerSimpleMap(ledfw_timeout)

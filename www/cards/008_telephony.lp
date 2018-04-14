@@ -47,7 +47,6 @@ for _, v in pairs (sipprofile_content) do
     end
 end
 
-switchName = "mmpbx_enabled"
 if mmpbx_state == "1" then
     if session:hasAccess("/modals/mmpbx-global-modal.lp") then
         modalPath = "/modals/mmpbx-global-modal.lp"
@@ -61,6 +60,11 @@ if mmpbx_state == "1" then
 elseif session:hasAccess("/modals/mmpbx-global-modal.lp") then
     modalPath = "/modals/mmpbx-global-modal.lp"
 end
+
+if session:hasAccess("/modals/mmpbx-global-modal.lp") then
+	switchName = "mmpbx_enabled"
+end
+
 %>
 
 <div class="span3">

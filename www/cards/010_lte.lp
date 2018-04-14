@@ -35,7 +35,8 @@ else
     lte_state = "0"
 end
 
-switchName = "lte_enabled"
+local switchName = nil
+
 -- In case we are waiting for the user to enter the PIN code, we redirect to the SIM page
 local allowSimRedirect = false
 if session:hasAccess("/modals/lte-sim.lp") then
@@ -56,6 +57,7 @@ end
 
 local modalPath = nil
 if session:hasAccess("/modals/lte-modal.lp") then 
+	switchName = "lte_enabled"
 	modalPath = "/modals/lte-modal.lp"
 end
 

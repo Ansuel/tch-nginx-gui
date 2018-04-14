@@ -1,1 +1,1 @@
-^ledfw /etc/init.d/ledfw reload
+^ledfw%.status_led%.enable ifdown wan && ifup wan
