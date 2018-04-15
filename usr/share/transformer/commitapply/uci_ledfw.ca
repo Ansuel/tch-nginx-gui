@@ -1,1 +1,1 @@
-^ledfw /etc/init.d/ledfw reload
+^ledfw /etc/init.d/ledfw restart ;  /etc/init.d/network restart

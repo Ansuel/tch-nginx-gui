@@ -17,6 +17,10 @@ ngx.print('\
         },
       }
 	  html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_1.1.1_002 )" .. '</legend>'
+	  html[#html + 1] = ui_helper.createLabel(T"7.5", "Fix ethernet modal e fix iniziale wake on wan", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"7.4", "Bottone Eco Led ora funzionante! Fix vari, crediti, abilitato login https e fix assistance", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"7.3", "Aggiunto bottone per installare una blacklist vuota", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"7.2", "Aggiunto luci, supporto iniziale, wifi rotto.", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"7.1", "Aggiunta pagina mwan, se qualcuno sa a che serve spiegatemi...", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"7.0", "Rebase sul nuovo firmware", basic)
       html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_1.1.1_001 )" .. '</legend>'

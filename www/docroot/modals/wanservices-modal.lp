@@ -145,9 +145,11 @@ local del_pfw_index = nil
 local wol = io.open("/lib/functions/firewall-wol.sh", "r") and proxy.get("uci.wol.config.")
 if wol then
   qry_params.WOL_enabled = "uci.wol.config.enabled"
+  qry_params.WOL_ip = "uci.wol.config.dest_ip"
   qry_params.WOL_port = "uci.wol.config.src_dport"
   qry_valid.WOL_enabled = vB
   qry_valid.WOL_port = vSIP
+  qry_valid.WOL_ip = vSIIP
 end
 
 local qry_data, qry_helpmsg = post_helper.handleQuery(qry_params, qry_valid)
@@ -878,7 +880,7 @@ local upnp_data, upnp_helpmsg = post_helper.handleTableQuery(upnp_columns, upnp_
           ui_helper.createSwitch(T"NAT-PMP Enabled", "upnp_natpmp", qry_data["upnp_natpmp"], advanced, qry_helpmsg["upnp_natpmp"]),
           ui_helper.createSwitch(T"Secure Mode Enabled", "upnp_secure_mode", qry_data["upnp_secure_mode"], advanced, qry_helpmsg["upnp_secure_mode"]),
           ui_helper.createInputSelect(T"Datamodel Version", "upnp_igd_version", igd_select, qry_data.upnp_igd_version, advanced),
-          ui_helper.createLabel(T"", T"Note: Datamodel version <b>1</b> may be required for older applications.", {span = {class = "span12 advanced hide"},}),
+          ui_helper.createLabel(T"", T"Note: Datamodel version <b>1</b> may be required for older applications.", {span = {class = "span6 advanced hide"},}),
           ui_helper.createTable(upnp_columns, upnp_data, upnp_options, nil, upnp_helpmsg)
         )
         ngx.print('\
@@ -911,11 +913,15 @@ local upnp_data, upnp_helpmsg = post_helper.handleTableQuery(upnp_columns, upnp_
     </fieldset>\
 \
     ');  if wol then  ngx.print('\
-      <fieldset class="advanced hide">\
+      <fieldset>\
         <legend>');  ngx.print( T"Wake on LAN over the Internet" ); ngx.print('</legend>\
         ');  
           ngx.print(ui_helper.createSwitch(T"Enabled", "WOL_enabled", qry_data["WOL_enabled"], nil, qry_helpmsg["WOL_enabled"]),
-                    ui_helper.createInputText(T"WAN port", "WOL_port", qry_data["WOL_port"], nil, qry_helpmsg["WOL_port"]))
+                    ui_helper.createInputText(T"WAN port", "WOL_port", qry_data["WOL_port"], nil, qry_helpmsg["WOL_port"]),
+					ui_helper.createLabel(T"", T"Note: You need to inser an unused ip on the local LAN to make the WakeOnWAN work.", {span = {class = "span6"},}),
+					ui_helper.createInputText(T"Unused IP", "WOL_ip", qry_data["WOL_ip"], nil, qry_helpmsg["WOL_ip"]),
+					ui_helper.createAlertBlock(T"Now create a port forward rule that point to this ip with the port you want to use.", range_warning)
+					)
           ngx.print('\
       </fieldset>\
     ');  end  ngx.print('\

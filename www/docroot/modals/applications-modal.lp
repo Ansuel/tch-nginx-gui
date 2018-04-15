@@ -13,6 +13,9 @@ local format,sub,match,untaint = string.format, string.sub, string.match, string
 local function appapply(action)
   proxy.set("rpc.system." .. action, "1")
   lp.flush()
+  if ( action == "install_emptyblacklist" ) then
+	action = "install_blacklist"
+  end
   local uci_set = action:gsub("(.*)_","")
   local action_type = action:gsub("_(.*)","")
   if action_type == "install" then
@@ -56,6 +59,9 @@ if ngx.req.get_method() == "POST" then
   end
   if action == "install_blacklist" then
 	return appapply("install_blacklist")
+  end
+  if action == "install_emptyblacklist" then
+	return appapply("install_emptyblacklist")
   end
   if action == "remove_blacklist" then
 	return appapply("remove_blacklist")
@@ -118,17 +124,13 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       local html = {}
 	  html[#html+1] = '<div class="span3">'
 	  html[#html+1] = "<fieldset>"
-	  html[#html + 1] = '<legend>' .. T"Luci GUI !! BROKEN !!" .. '</legend>'
+	  html[#html + 1] = '<legend>' .. T"Luci GUI" .. '</legend>'
 	  html[#html + 1] = ui_helper.createAlertBlock(T"This will install uhttpd and luci", info_box)
 	  html[#html + 1] = T"State: "
 	  html[#html + 1] = "<strong>" .. T"Luci is " .. StateParams["luci_webui"] .. T" installed" .. "</strong></br>"
-	  local luci_link = format("http://%s/luci",mapParams.local_ip_modem)
+	  local luci_link = format("http://%s:9080",mapParams.local_ip_modem)
 	  html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. luci_link .. '">' .. luci_link .. "</a>"
 	  html[#html + 1] = "</br>"
-	  local luci_direct_link = format("http://%s:9080",mapParams.local_ip_modem)
-	  html[#html + 1] = T" (or " .. '<a target="_blank" href="' .. luci_direct_link .. '">' .. luci_direct_link .. "</a>" .. " )"
-	  html[#html + 1] = "</br>"
-	  html[#html + 1] = T"<strong>Disabled for now... need to wait @Roleo</strong>"
 	  html[#html + 1] = "</br>"
 	  if mapParams["luci_webui"] and mapParams["luci_webui"] == "1" then
 		html[#html + 1] = ui_helper.createSimpleButton(T"Remove Luci", "icon-refresh", remove_luci)
@@ -201,6 +203,11 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
           id = "btn-install-blacklist"
         }
       }
+	  local install_empty_blacklist = {
+        button = {
+          id = "btn-install-empty-blacklist"
+        }
+      }
 	  local remove_blacklist = {
         button = {
           id = "btn-remove-blacklist"
@@ -220,6 +227,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 		html[#html + 1] = ui_helper.createSimpleButton(T"Remove Blacklist", "icon-refresh", remove_blacklist)
 	  else
 		html[#html + 1] = ui_helper.createSimpleButton(T"Install Blacklist", "icon-refresh", install_blacklist)
+		html[#html + 1] = ui_helper.createSimpleButton(T"Install empty blacklist", "icon-refresh", install_empty_blacklist)
 	  end
 	  
 	  html[#html+1] = "</fieldset>"
@@ -275,11 +283,11 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     return false;\
   }\
   $("#btn-install-luci").click(function() {\
-     --post("install_luci" );\
+     post("install_luci" );\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
   $("#btn-remove-luci").click(function() {\
-     --post("remove_luci" );\
+     post("remove_luci" );\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
   $("#btn-install-aria2").click(function() {\
@@ -300,6 +308,10 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
      });\
   $("#btn-install-blacklist").click(function() {\
      post("install_blacklist" );\
+	 setTimeout(function(){location.reload();}, 2000);\
+     });\
+  $("#btn-install-empty-blacklist").click(function() {\
+     post("install_emptyblacklist" );\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
   $("#btn-remove-blacklist").click(function() {\

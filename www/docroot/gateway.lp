@@ -131,20 +131,22 @@ ngx.print('\
 				html[#html + 1] = [[ " href="https://plus.google.com/u/0/communities/108761366800436892116" target="_blank">BETA BUILD</a> ]]
 			html[#html + 1] = [[ </div> ]]
 		end
-		if cui.outdated_ver == "1" then
-			html[#html + 1] = '<div class="btn" style="margin-right:10px">' 
-			html[#html + 1] = '<a style="color:red" class="someInfos" rel="tooltip" data-placement="bottom" data-original-title="'
-			html[#html + 1] = T"Go to the gateway tab and click on the Upgrade buttom, to autoupgrade to the new GUI."
-			html[#html + 1] = '" data-toggle="modal" data-remote="modals/gateway-modal.lp">'
-			html[#html + 1] = T"Upgrade Available" 
-			html[#html + 1] = " <strong>("
-			html[#html + 1] = cui.new_ver
-			html[#html + 1] = ")</strong>" 
-			html[#html + 1] = '</a>'
-			html[#html + 1] = '</div>'
-		end
-        html[#html + 1] = '<div class="btn" style="margin-right:10px" id="wizard-btn" data-toggle="modal" data-remote="modals/wizard-modal.lp">' .. T"Setup Wizard" .. '</div>'
-        if session:isdefaultuser() then
+		if not ( session:getusername() == "guest" ) then
+			if cui.outdated_ver == "1" then
+				html[#html + 1] = '<div class="btn" style="margin-right:10px">' 
+				html[#html + 1] = '<a style="color:red" class="someInfos" rel="tooltip" data-placement="bottom" data-original-title="'
+				html[#html + 1] = T"Go to the gateway tab and click on the Upgrade buttom, to autoupgrade to the new GUI."
+				html[#html + 1] = '" data-toggle="modal" data-remote="modals/gateway-modal.lp">'
+				html[#html + 1] = T"Upgrade Available" 
+				html[#html + 1] = " <strong>("
+				html[#html + 1] = cui.new_ver
+				html[#html + 1] = ")</strong>" 
+				html[#html + 1] = '</a>'
+				html[#html + 1] = '</div>'
+			end
+			html[#html + 1] = '<div class="btn" style="margin-right:10px" id="wizard-btn" data-toggle="modal" data-remote="modals/wizard-modal.lp">' .. T"Setup Wizard" .. '</div>'
+        end
+		if session:isdefaultuser() then
             html[#html + 1] = '<a href="login.lp" class="btn" id="signin">'
             html[#html + 1] = T"Sign in"
             html[#html + 1] = '</a>'
@@ -163,24 +165,32 @@ ngx.print('\
                 html[#html + 1] = T"Profile Settings"
                 html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
             end
-			html[#html + 1] = [[ <li><a tabindex="-1" href="https://www.ilpuntotecnicoeadsl.com/forum/index.php/topic,77325.0.html" target="_blank"> ]]
-			html[#html + 1] = T"Support Forum"
-			html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
-			html[#html + 1] = [[ <li><a tabindex="-1" href="https://github.com/Ansuel/tch-nginx-gui" target="_blank"> ]]
-			html[#html + 1] = T"Github Gui"
-			html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
-			html[#html + 1] = [[ <li><a style="cursor: pointer;" tabindex="-1" id="update"> ]]
-			html[#html + 1] = T"Check Upgrade" 
-			html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
-			html[#html + 1] = [[ <li><a tabindex="-1" target="_blank" href="/aria"> ]]
-			html[#html + 1] = T"Aria2 Webui"
-			html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
-			html[#html + 1] = [[ <li><a tabindex="-1" target="_blank" href="/luci"> ]]
-			html[#html + 1] = T"Luci Webui"
-			html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
-			html[#html + 1] = [[ <li><a tabindex="-1" target="_blank" href="/transmission/web/"> ]]
-			html[#html + 1] = T"Transmission Webui"
-			html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
+				html[#html + 1] = [[ <li><a tabindex="-1" href="https://www.ilpuntotecnicoeadsl.com/forum/index.php/topic,77325.0.html" target="_blank"> ]]
+				html[#html + 1] = T"Support Forum"
+				html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
+				html[#html + 1] = [[ <li><a tabindex="-1" href="https://github.com/Ansuel/tch-nginx-gui" target="_blank"> ]]
+				html[#html + 1] = T"Github Gui"
+				html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
+			if not ( session:getusername() == "guest" ) then
+				html[#html + 1] = [[ <li><a style="cursor: pointer;" tabindex="-1" id="update"> ]]
+				html[#html + 1] = T"Check Upgrade" 
+				html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
+				if cui.aria2_webui == "1" then
+				html[#html + 1] = [[ <li><a tabindex="-1" target="_blank" href="/aria"> ]]
+				html[#html + 1] = T"Aria2 Webui"
+				html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
+				end
+				if cui.luci_webui == "1" then
+				html[#html + 1] = [[ <li><a tabindex="-1" target="_blank" href=":9080"> ]]
+				html[#html + 1] = T"Luci Webui"
+				html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
+				end
+				if cui.transmission_webui == "1" then
+				html[#html + 1] = [[ <li><a tabindex="-1" target="_blank" href="/transmission/web/"> ]]
+				html[#html + 1] = T"Transmission Webui"
+				html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
+				end
+			end
             html[#html + 1] = [[ <li><a tabindex="-1" href="/" id="signout"> ]]
             html[#html + 1] = T"Sign out"
             html[#html + 1] = [[</a></li></ul></div>]]
@@ -244,8 +254,18 @@ ngx.print('\
     <div id="footer" class="row">\
 			<div class="copyright span12">\
 			<p>&copy; Technicolor ');  ngx.print(current_year); ngx.print('</p>\
-			<p>Modified Ver. [ '); ngx.print( cui.gui_version ); ngx.print(' ] 2017 <a href data-toggle="modal" data-remote="modals/changelog.lp">Changelog</a></p>\
-			<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> && Unlock Utility by <font style="color:#0088cc;">ADeltaX</font> && Translated by <font style="color:#0088cc;">DarkNiko</font></p>\
+			<p>GUI Version [ '); ngx.print( cui.gui_version ); ngx.print(' ] 2018 <a href data-toggle="modal" data-remote="modals/changelog.lp">Changelog</a></p>\
+			<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> && Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>');
+			local lang_credit = ""
+			if not ( tostring(gettext.language()) == "en-us" ) then
+				if tostring(gettext.language()) == "it-it" then
+					lang_credit = "DarkNiko"
+				elseif tostring(gettext.language()) == "de-de" then
+					lang_credit = "meyergru"
+				end
+				ngx.print(' && Translated by <font style="color:#0088cc;">' .. lang_credit .. '</font>')
+			end
+			ngx.print('</p>\
 		</div>\
 	</div>\
   </div>\

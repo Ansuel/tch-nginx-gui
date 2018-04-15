@@ -34,9 +34,37 @@ local users = content_helper.getMatchedContent("uci.web.user.")
 local userNames = ""
 local legacySalts = ""
 
-local httpi = proxy.get("rpc.network.interface.@wan.up")[1].value
-local httpi_wwan = proxy.get("rpc.network.interface.@wwan.up")[1].value
-local wan_sensing = proxy.get("uci.wansensing.global.enable")[1].value
+local httpi = proxy.get("rpc.network.interface.@wan.up")
+
+if httpi and httpi[1].value then
+	httpi = httpi[1].value
+else
+	httpi = ""
+end
+
+local httpi_wwan = proxy.get("rpc.network.interface.@wwan.up")
+
+if httpi_wwan and httpi_wwan[1].value then
+	httpi_wwan = httpi_wwan[1].value
+else
+	httpi_wwan = ""
+end
+
+local wan_sensing = proxy.get("uci.wansensing.global.enable")
+
+if wan_sensing and wan_sensing[1].value then
+	wan_sensing = wan_sensing[1].value
+else
+	wan_sensing = ""
+end
+
+local assistance_port = proxy.get("uci.web.assist_state.@state_remote.port")
+
+if assistance_port and not  ( assistance_port[1].value == "" ) then
+	assistance_port = assistance_port[1].value
+else
+	assistance_port = "0"
+end
 
 
 for _, v in ipairs(users) do
@@ -158,8 +186,18 @@ ngx.print('\
     <div class="row">\
 		<div class="copyright span12">\
 			<p>&copy; Technicolor ');  ngx.print(current_year); ngx.print('</p>\
-			<p>Modified Ver. [ '); ngx.print( cui.gui_version ); ngx.print(' ]</p>\
-			<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> && Unlock Utility by <font style="color:#0088cc;">ADeltaX</font> && Translated by <font style="color:#0088cc;">DarkNiko</font></p>\
+			<p>GUI Version [ '); ngx.print( cui.gui_version ); ngx.print(' ]</p>\
+			<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> && Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>');
+			local lang_credit = ""
+			if not ( tostring(gettext.language()) == "en-us" ) then
+				if tostring(gettext.language()) == "it-it" then
+					lang_credit = "DarkNiko"
+				elseif tostring(gettext.language()) == "de-de" then
+					lang_credit = "meyergru"
+				end
+				ngx.print(' && Translated by <font style="color:#0088cc;">' .. lang_credit .. '</font>')
+			end
+			ngx.print('</p>\
 		</div>\
 	</div>\
   </div>\
@@ -196,6 +234,10 @@ $(document).ready(\
     var triesbeforemsg = ');  ngx.print( triesbeforemsg ); ngx.print(';\
     var tries = 0;\
     var password = "";\
+	var port = window.location.port || ( window.location.protocol === \'https:\' ? \'443\' : \'80\');\
+	if ( port == '); ngx.print(assistance_port); ngx.print(' ) {\
+		document.getElementById("srp_username").value = "assist";\
+	}\
 \
     // Set the focus on the first input field\
     $(\'form:first *:input[type!=hidden]:first\').focus();\

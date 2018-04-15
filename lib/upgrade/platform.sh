@@ -275,9 +275,9 @@ mount_overlay_if_necessary() {
 		mkdir -p /overlay
 		device=/dev/mtdblock$(grep -E "(rootfs_data|userfs)" /proc/mtd | sed 's/mtd\([0-9]\):.*\(rootfs_data\|userfs\).*/\1/')
 		mount $device /overlay -t jffs2
-		sleep 3
+		sleep 10
 		mount -o remount,rw /overlay
-		sleep 3
+		sleep 10
 	fi
 }
 
@@ -353,7 +353,7 @@ emergency_restore_root() {
 }
 
 platform_do_upgrade() {
-	sleep 5
+	sleep 10
 	mount_overlay_if_necessary
 	
 	local root_tmp_dirt=/tmp/rootfile
