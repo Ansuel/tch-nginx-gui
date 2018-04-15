@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=7.4.11
+version_gui=7.5.6
 
 logo_project() {
 cat << EOF > /dev/console
@@ -386,8 +386,8 @@ add_telecom_stock_dns() {
 }
 
 check_dnsmasq_name() {
-	if [ $( uci get -q dhcp.@dnsmasq[0] ) ]; then
-		uci rename dhcp.@dnsmasq[0]=@dnsmasq
+	if [ "$( uci show dhcp | grep dhcp.@dnsmasq )" ]; then
+		uci rename dhcp.@dnsmasq[0]=dnsmasq
 	fi
 }
 
@@ -425,11 +425,15 @@ disable_eco_param() {
 }
 
 enable_new_upnp() {
-	if [ ! -f /etc/init.d/miniupnpd ]; then
-		/etc/init.d/miniupnpd-tch stop
-		/etc/init.d/miniupnpd-tch disable
-		/etc/init.d/miniupnpd enable
-		/etc/init.d/miniupnpd start
+	if [ -f /etc/init.d/miniupnpd ]; then
+		if [ $(uci get -q uci get upnpd.config.enable_upnp) == "1" ]; then
+			/etc/init.d/miniupnpd-tch stop
+			/etc/init.d/miniupnpd-tch disable
+			/etc/init.d/miniupnpd enable
+			if [ ! "$(pgrep "miniupnpd")" ]; then
+				/etc/init.d/miniupnpd restart
+			fi
+		fi
 	fi
 }
 

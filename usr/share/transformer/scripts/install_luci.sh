@@ -9,11 +9,11 @@ mv /www/index.html /www_luci/
 if [ ! $(uci get uhttpd.main.listen_http | grep 9080) ]; then
 	uci del_list uhttpd.main.listen_http='0.0.0.0:80'
 	uci add_list uhttpd.main.listen_http='0.0.0.0:9080'
-	uci del_list uhttpd.main.listen_http='[::]:9080'
+	uci del_list uhttpd.main.listen_http='[::]:80'
 	uci add_list uhttpd.main.listen_http='[::]:9080'
 	uci del_list uhttpd.main.listen_https='0.0.0.0:443'
 	uci add_list uhttpd.main.listen_https='0.0.0.0:9443'
-	uci del_list uhttpd.main.listen_https='[::]:433'
+	uci del_list uhttpd.main.listen_https='[::]:443'
 	uci add_list uhttpd.main.listen_https='[::]:9433'
 	uci set uhttpd.main.home='/www_luci'
 fi
