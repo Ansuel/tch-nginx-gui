@@ -127,19 +127,19 @@ ngx.print('\
 				html[#html + 1] = [[ " href="https://plus.google.com/u/0/communities/108761366800436892116" target="_blank">BETA BUILD</a> ]]
 			html[#html + 1] = [[ </div> ]]
 		end
-		if cui.outdated_ver == "1" then
-			html[#html + 1] = '<div class="btn" style="margin-right:10px">' 
-			html[#html + 1] = '<a style="color:red" class="someInfos" rel="tooltip" data-placement="bottom" data-original-title="'
-			html[#html + 1] = T"Go to the gateway tab and click on the Upgrade buttom, to autoupgrade to the new GUI."
-			html[#html + 1] = '" data-toggle="modal" data-remote="modals/gateway-modal.lp">'
-			html[#html + 1] = T"Upgrade Available" 
-			html[#html + 1] = " <strong>("
-			html[#html + 1] = cui.new_ver
-			html[#html + 1] = ")</strong>" 
-			html[#html + 1] = '</a>'
-			html[#html + 1] = '</div>'
-		end
-		if session:getusername() == "admin" then
+		if not ( session:getusername() == "guest" ) then
+			if cui.outdated_ver == "1" then
+				html[#html + 1] = '<div class="btn" style="margin-right:10px">' 
+				html[#html + 1] = '<a style="color:red" class="someInfos" rel="tooltip" data-placement="bottom" data-original-title="'
+				html[#html + 1] = T"Go to the gateway tab and click on the Upgrade buttom, to autoupgrade to the new GUI."
+				html[#html + 1] = '" data-toggle="modal" data-remote="modals/gateway-modal.lp">'
+				html[#html + 1] = T"Upgrade Available" 
+				html[#html + 1] = " <strong>("
+				html[#html + 1] = cui.new_ver
+				html[#html + 1] = ")</strong>" 
+				html[#html + 1] = '</a>'
+				html[#html + 1] = '</div>'
+			end
 			html[#html + 1] = '<div class="btn" style="margin-right:10px" id="wizard-btn" data-toggle="modal" data-remote="modals/wizard-modal.lp">' .. T"Setup Wizard" .. '</div>'
         end
 		if session:isdefaultuser() then
@@ -171,15 +171,21 @@ ngx.print('\
 				html[#html + 1] = [[ <li><a style="cursor: pointer;" tabindex="-1" id="update"> ]]
 				html[#html + 1] = T"Check Upgrade" 
 				html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
+				if cui.aria2_webui == "1" then
 				html[#html + 1] = [[ <li><a tabindex="-1" target="_blank" href="/aria"> ]]
 				html[#html + 1] = T"Aria2 Webui"
 				html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
-				html[#html + 1] = [[ <li><a tabindex="-1" target="_blank" href="/luci"> ]]
+				end
+				if cui.luci_webui == "1" then
+				html[#html + 1] = [[ <li><a tabindex="-1" target="_blank" href=":9080"> ]]
 				html[#html + 1] = T"Luci Webui"
 				html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
+				end
+				if cui.transmission_webui == "1" then
 				html[#html + 1] = [[ <li><a tabindex="-1" target="_blank" href="/transmission/web/"> ]]
 				html[#html + 1] = T"Transmission Webui"
 				html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
+				end
 			end
             html[#html + 1] = [[ <li><a tabindex="-1" href="/" id="signout"> ]]
             html[#html + 1] = T"Sign out"
