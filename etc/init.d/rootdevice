@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=7.5.6
+version_gui=7.6.1
 
 logo_project() {
 cat << EOF > /dev/console
@@ -97,8 +97,11 @@ puryfy_wan_interface() { #creano problemi di dns per chissa'  quale diavolo di 
 
 fix_dns_dhcp_bug() {
 	uci set dhcp.odhcpd.maindhcp="0"
-	if [ $(uci get -q dhcp.odhcpd.maindhcp) = "1" ]; then
+	if [ $(pgrep "odhcpd") ]; then
 		/etc/init.d/odhcpd stop
+		/etc/init.d/dnsmasq restart
+	fi
+	if [ "$(ls /etc/rc.d/ | grep odhcpd)" ]; then
 		/etc/init.d/odhcpd disable
 	fi
 }
@@ -426,12 +429,14 @@ disable_eco_param() {
 
 enable_new_upnp() {
 	if [ -f /etc/init.d/miniupnpd ]; then
-		if [ $(uci get -q uci get upnpd.config.enable_upnp) == "1" ]; then
-			/etc/init.d/miniupnpd-tch stop
-			/etc/init.d/miniupnpd-tch disable
-			/etc/init.d/miniupnpd enable
-			if [ ! "$(pgrep "miniupnpd")" ]; then
-				/etc/init.d/miniupnpd restart
+		if [ $(uci get -q upnpd.config.enable_upnp) ]; then
+			if [ $(uci get -q upnpd.config.enable_upnp) == "1" ]; then
+				/etc/init.d/miniupnpd-tch stop
+				/etc/init.d/miniupnpd-tch disable
+				/etc/init.d/miniupnpd enable
+				if [ ! "$(pgrep "miniupnpd")" ]; then
+					/etc/init.d/miniupnpd restart
+				fi
 			fi
 		fi
 	fi
