@@ -1,4 +1,4 @@
-.container, .row, .span3, .span12 {
+.container, .row, .span3, .span12{
  margin: 0;
  padding: 0;
 }
@@ -10,7 +10,7 @@
  display: none;
 }
 
-.row[style="z-index : 2;  position: relative;"] {
+.row[style="z-index : 2;  position: relative;"]{
  width: 15.5rem;
  top: 6.3rem;
  margin: 1.5rem 0.5rem 0 0;
@@ -22,60 +22,60 @@
  max-height: calc(100% - 18rem);
 }
 
-.row[style="z-index : 3;  position: relative;"] {
+.row[style="z-index : 3;  position: relative;"]{
  position: fixed !important;
- width: 100vw;
-}
-
-.container {
  width: 100%;
 }
 
-.span3 {
+.container{
+ width: 100%;
+}
+
+.span3{
  cursor: pointer;
  width: 100%;
  max-width: 15.5rem;
 }
 
-.span12 {
+.span12{
  width: 100%;
  box-sizing: content-box;
  height: 6.25rem;
 }
 
-.header picture {
+.header picture{
  margin-left: 4rem;
  position: relative;
  top: 1.5rem;
 }
 
-body {
+body{
  background-color: #f0eee6;
  padding: 0;
  overflow-y: auto;
 }
 
-.header {
+.header{
  background-color: #006ec0;
 }
 
-#footer {
+#footer{
  position: fixed;
  bottom: 0.5rem;
  left: 1rem;
  width: 14rem;
 }
 
-.gateway_bg, .popUpBG {
+.gateway_bg, .popUpBG{
  visibility: hidden;
  display: none;
 }
 
-.modal-backdrop {
+.modal-backdrop{
  visibility: hidden;
 }
 
-.modal, .modal.fade.in, .modal.fade {
+.modal, .modal.fade.in, .modal.fade{
  z-index:3;
  width: calc(100% - 17.25rem);
  height: auto;
@@ -99,7 +99,7 @@ body {
  opacity:0;
 }
 
-.modal-header, .row-fluid .span4, .row-fluid .span11 {
+.modal-header, .row-fluid .span4, .row-fluid .span11{
  position: fixed;
  border: 0;
  border-radius: 0;
@@ -108,7 +108,7 @@ body {
  width: calc(100% - 17.25rem) !important;
 }
 
-.modal-body {
+.modal-body{
  min-height: 15.1rem;
  overflow-y:auto;
  overflow-x:auto;
@@ -117,7 +117,7 @@ body {
  padding: 15px;
 }
 
-.modal-footer {
+.modal-footer{
  padding: 14px 0;
  position: sticky;
  border: 0;
@@ -128,25 +128,25 @@ body {
  bottom: 0;
 }
 
-div.login input.span3, div.login input.span3:focus {
+div.login input.span3, div.login input.span3:focus{
  right: 0px;
  position:relative;
 }
 
-div.login_bg input.span3, div.login_bg input.span3:focus {
+div.login_bg input.span3, div.login_bg input.span3:focus{
  width: 17.25rem;
  margin: 0 0 0.5rem;
  position: absolute;
  right: 1.25rem;
 }
 
-.login {
+.login{
  box-shadow: 0 0.1875rem 0.375rem rgba(0,0,0,0.25);
  border: none;
  padding: 0;
 }
 
-.span4, .offset4 {
+.span4, .offset4{
  border: 0;
  width: 460px !important;
  margin: 0 auto !important;
@@ -155,7 +155,7 @@ div.login_bg input.span3, div.login_bg input.span3:focus {
  box-sizing: content-box;
 }
 
-h2 {
+h2{
  display: block;
  padding: 0 0 0 1.25rem;
  font-size: 1.25rem;
@@ -169,7 +169,7 @@ h2 {
  font-weight: 100;
 }
 
-.btn, .btn:hover, .btn:hover:hover, .header .btn, .btn-group>.btn:first-child, .btn-group>.btn+.dropdown-toggle, .modal-footer .btn+.btn {
+.btn, .btn:hover, .btn:hover:hover, .header .btn, .btn-group>.btn:first-child, .btn-group>.btn+.dropdown-toggle, .modal-footer .btn+.btn{
  min-width: 4.5rem;
  margin: 0;
  background-image: none;
@@ -206,7 +206,7 @@ h2 {
  color: #fff;
 }
 
-#webui_language option {
+#webui_language option{
  margin: 40px;
  background: #006ec0;
  color: #fff;
@@ -216,11 +216,11 @@ h2 {
 	Cursor: default;
 }
 
-.login_bg:after {
+.login_bg:after{
  color: #e5e4dc;
 }
 
-input.span3, input.span3:focus, textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"], .uneditable-input {
+input.span3, input.span3:focus, textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"], .uneditable-input{
  margin-right: 1rem;
  color: #3F464C;
  vertical-align: middle;
@@ -231,7 +231,7 @@ input.span3, input.span3:focus, textarea, input[type="text"], input[type="passwo
  box-shadow: none;
 }
 
-.logo-technicolor {
+.logo-technicolor{
  position: fixed;
  top: 0;
  height: 6.25rem;
@@ -242,30 +242,30 @@ input.span3, input.span3:focus, textarea, input[type="text"], input[type="passwo
  margin: 0;
 }
 
-div.logo-technicolor a {
+div.logo-technicolor a{
  margin-top: 1.5rem;
  margin-left: 4rem;
 }
 
-.switch {
+.switch{
  box-shadow:none;
  border-radius:7px;
  margin:0;
 }
 
-.copyright {
+.copyright{
  display:table;
  position: absolute;
  bottom: 10px;
 }
 
-.tooLongTitle p {
+.tooLongTitle p{
  width:auto;
  overflow: initial;
  text-overflow: initial;
 }
 
-.switchOn {
+.switchOn{
  background-color: #006ec0;
 }
 
@@ -276,29 +276,29 @@ div.logo-technicolor a {
  display: none;
 }
 
-.span11 {
+.span11{
  padding-right: 1.5rem;
  padding-top: 0.4rem;
 }
 
-.modal-action, .modal-action:hover, .modal-action i {
+.modal-action, .modal-action:hover, .modal-action i{
  opacity: 0.999;
  color: #fff;
 }
 
-.modal-action:hover, .modal-action:hover i {
+.modal-action:hover, .modal-action:hover i{
  color: #ddd;
 }
 
-.popUp {
- position: absolute;
+.popUp{
+ position: fixed;
  width: calc(100% - 17.2rem);
  max-width: calc(100% - 17.25rem);
  height: 22rem;
  overflow: visible;
  margin: 0;
  left: 16.5rem;
- top: 2.5rem;
+ top: 3rem !important;
  border: 0;
  border-radius: 0;
  margin-top: 3.8rem;
@@ -307,7 +307,7 @@ div.logo-technicolor a {
  cursor: default;
 }
 
-.popUp:after {
+.popUp:after{
  content: '';
  position: absolute;
  width: 100%;
@@ -320,7 +320,7 @@ div.logo-technicolor a {
  pointer-events: none
 }
 
-.popUp:before {
+.popUp:before{
  content: '';
  position: absolute;
  z:index:-1;
@@ -332,7 +332,7 @@ div.logo-technicolor a {
  background-color: #f0eee6;
 }
 
-.popUp .header {
+.popUp .header{
  box-shadow: none;
  background-color: #268edf;
  background-image: none;
@@ -348,7 +348,7 @@ div.logo-technicolor a {
  height: 3.25rem;
 }
 
-.popUp .content {
+.popUp .content{
  display: block;
  margin: 0 auto;
  min-height: 14rem;
@@ -357,15 +357,16 @@ div.logo-technicolor a {
 
 #Poptxt{
  padding-top: 8rem;
+ padding-left:0;
  text-align:center;
  position: static;
 }
 
-.spinner3 {
+.spinner3{
  filter: invert(30%);
 }
 
-select, select.span3, input, input[type="text"]:focus {
+select, select.span3, input, input[type="text"]:focus{
  border-radius: 0;
  border-color: #d5d5d5;
  box-shadow: none;
@@ -402,7 +403,7 @@ input::placeholder{
 .open>.dropdown-menu{
  margin:0;
  margin-top:0.5rem;
- z-index:8;
+ z-index: 80;
  border:0;
  border-radius:0;
 }
@@ -514,7 +515,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
  margin: 1rem 0rem;
 }
 
-.modal:before {
+.modal:before{
  content: '';
  position: absolute;
  z-index:-1;
@@ -526,7 +527,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
  background-color: #f0eee6;
 }
 
-.modal:after {
+.modal:after{
  content: '';
  position: absolute;
  width: 100%;
@@ -551,7 +552,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
  max-width: 15.5rem !important;
 }
 
-#applications-modal fieldset br {
+#applications-modal fieldset br{
   display: none;
 }
 
@@ -564,7 +565,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
  margin-top: 3px;
 }
 
-.smallcard {
+.smallcard{
  margin: 0 0 0 0;
  box-shadow: 0 0 0 rgba(0,0,0,0);
  opacity: 1 !important;
@@ -572,7 +573,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
  transition: initial !important;
 }
 
-.span3 .smallcard .content {
+.span3 .smallcard .content{
  position: fixed;
  background-color: #fff;
  box-shadow: 0 0.1875rem 0.375rem rgba(0,0,0,0.25);
@@ -582,11 +583,11 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
  width: 14rem;
 }
 
-.span3 .smallcard .card_bg:after {
+.span3 .smallcard .card_bg:after{
  color: #ccc;
 }
 
-.span3 .smallcard .header {
+.span3 .smallcard .header{
  margin-bottom: 0px;
  background-image: none;
  background-color: #ffffff;
@@ -595,7 +596,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
  border-bottom: none;
 }
 
-@media only screen and (min-width: 50rem) {
+@media only screen and (min-width: 50rem){
  div.span3:nth-of-type(2n+1) .content{
   left: calc(50% - 8rem);
  }
@@ -657,7 +658,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
  }
 }
 
-@media only screen and (min-width: 66rem) {
+@media only screen and (min-width: 66rem){
  div.span3:nth-of-type(3n+1) .content{
   left: calc(50% - 16rem);
  }
@@ -707,7 +708,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
  }
 }
 
-@media only screen and (min-width: 82rem) {
+@media only screen and (min-width: 82rem){
  div.span3:nth-of-type(4n+1) .content{
   left: calc(50% - 24rem);
  }
@@ -753,7 +754,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
  }
 }
 
-@media only screen and (min-width: 98rem) {
+@media only screen and (min-width: 98rem){
  div.span3:nth-of-type(5n+1) .content{
   left: calc(50% - 32rem);
  }
@@ -799,7 +800,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
  }
 }
 
-@media only screen and (min-width: 114rem) {
+@media only screen and (min-width: 114rem){
  div.span3:nth-of-type(6n+1) .content{
   left: calc(50% - 40rem);
  }
@@ -848,14 +849,14 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
   top: 8rem;
  }
 }
-@media only screen and (min-width: 50rem) {
- .row[style="z-index : 2;  position: relative;"] {
-  width: 15.5rem !important;
+@media only screen and (min-width: 50rem){
+ .row[style="z-index : 2;  position: relative;"]{
+  margin-left: 0 !important;
  }
 }
 
 
-@media only screen and (max-width: 50rem) {
+@media only screen and (max-width: 50rem){
  .header.span12{
   height: 3.75rem;
   box-shadow: 0 0.1875rem 0.375rem rgba(0,0,0,0.25);
@@ -880,7 +881,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
   height:100% !important;
  }
 
- .row[style="z-index : 2;  position: relative;"] {
+ .row[style="z-index : 2;  position: relative;"]{
   width: 15.5rem;
   top: 0px;
   z-index: 10 !important;
@@ -891,7 +892,8 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
   overflow-y:auto;
   position: fixed !important;
   max-height: 100%;
-  transition: width 0.2s;
+  height:100%;
+  transition: margin 0.2s;
  }
  
  .apprise-overlay{
@@ -908,7 +910,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
   display: none;
  }
  
- .modal, .modal.fade.in, .modal.fade {
+ .modal, .modal.fade.in, .modal.fade{
   left: 0;
   top: 2.45rem;
   width: 100%;
@@ -917,7 +919,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
   padding-top: 0;
  }
   
- .modal-header, .row-fluid .span4, .row-fluid .span11 {
+ .modal-header, .row-fluid .span4, .row-fluid .span11{
   position: fixed;
   border: 0;
   border-radius: 0;
@@ -925,6 +927,11 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
   left: 0;
   width: 100% !important;
   background-color: #006ec0;
+  box-shadow: 0 0.27rem 0.375rem rgba(0,0,0,0.25);
+ }
+ 
+ .modal-body{
+  height: 100%;
  }
 
  .nav-tabs{
@@ -952,7 +959,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
   background-color: #268edf;
  }
 
- .popUp {
+ .popUp{
   position: fixed;
   width: 100% !important;
   max-width: initial;
@@ -964,10 +971,55 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
  .popUp .header{
    top:0;
    width:100%;
+   background-color: #006ec0;
  }
- 
- .popUp .content{
+
+ #Poptxt{
+  position:absolute;
   display:initial !important;
   color: #000;
+  width: 100%;
+ }
+ 
+ .logo-technicolor{
+  height: 3.75rem;
+ }
+ 
+ .logo-technicolor:after{
+  font-size:1.25rem;
+  top:1.5rem;
+  padding-left:8rem;
+  text-align:left;
+ }
+ 
+ .span4, .offset4{
+  width: 100% !important;
+ }
+
+.row .span4.offset4, .login{
+  margin: 0;
+  margin-top: 3.75rem;
+  height: calc(100vh - 3.75rem);
+ }
+
+ fieldset h2{
+  display:none;
+ }
+
+ .login_bg{
+  padding-top: 1rem;
+ }
+
+ .login_bg:after{
+  content:'';
+ }
+
+ div.logo-technicolor a{
+  margin:0.7rem;
+ }
+
+ div.logo-technicolor picture img{
+  width: 75%;
+  height: auto;
  }
 }
