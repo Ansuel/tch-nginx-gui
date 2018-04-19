@@ -9,7 +9,7 @@ local ipairs, string, table = ipairs, string, table
 
 local lfs = require("lfs")
 local items = {
-    {"wireless-modal.lp",T"Wireless "},
+    {"wireless-modal.lp",T"Wireless"},
     {"tod_wireless-modal.lp",T"Wireless Control"},
 }
 
