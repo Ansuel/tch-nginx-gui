@@ -1,1 +1,0 @@
-^dhcp /etc/init.d/dnsmasq restart

@@ -1,2 +1,0 @@
-^switchOver$ /usr/bin/switchover
-^scheduledReboot$ /usr/sbin/scheduledreboot_helper; /etc/init.d/cron restart

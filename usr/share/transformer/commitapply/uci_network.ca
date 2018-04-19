@@ -1,3 +1,0 @@
-^network /etc/init.d/network reload ;
-^network%..*%.pppoerelay /etc/init.d/pppoe-relay-tch reload ;
-^network%..*%.lte_backup%.auto [ -x /usr/share/transformer/scripts/send_lte_backup_event.sh ] && /usr/share/transformer/scripts/send_lte_backup_event.sh

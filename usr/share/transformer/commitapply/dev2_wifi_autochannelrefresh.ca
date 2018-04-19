@@ -1,1 +1,0 @@
-^Device%.WiFi%.Radio%.[^%.]+%.AutoChannelEnable ubus call wireless.radio.acs rescan

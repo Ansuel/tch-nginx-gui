@@ -1,1 +1,0 @@
-^Device%.DHCPv6%.Client%.[^%.]+%.Renew /usr/share/transformer/scripts/renewDHCPv6.sh

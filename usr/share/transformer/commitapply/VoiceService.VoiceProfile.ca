@@ -1,2 +1,0 @@
-Services%.VoiceService%.[^%.]+%.VoiceProfile%.[^%.]+%.Reset /etc/init.d/mmpbxd restart
-Services%.VoiceService%.[^%.]+%.VoiceProfile%.[^%.]+%.Line%.[^%.]+%.Reset /etc/init.d/mmpbxd restart

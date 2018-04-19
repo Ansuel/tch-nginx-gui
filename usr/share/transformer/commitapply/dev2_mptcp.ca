@@ -1,2 +1,0 @@
-^mproxy%..*%.profile [ -x /usr/share/transformer/scripts/set_profile.sh ] && /usr/share/transformer/scripts/set_profile.sh
-^mproxy /etc/init.d/mproxy restart

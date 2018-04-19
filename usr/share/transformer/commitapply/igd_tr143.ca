@@ -1,4 +1,0 @@
-^tr143%.[^%.]+%.DownloadDiagnostics /usr/bin/tr143 restart DownloadDiagnostics
-^tr143%.[^%.]+%.UploadDiagnostics /usr/bin/tr143 restart UploadDiagnostics
-^tr143%.[^%.]+%.UDPEchoDiagnostics /usr/bin/tr143 restart UDPEchoDiagnostics
-^tr143%.[^%.]+%.ServerSelectionDiagnostics /usr/bin/tr143 restart ServerSelectionDiagnostics

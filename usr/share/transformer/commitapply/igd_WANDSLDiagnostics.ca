@@ -1,1 +1,0 @@
-^InternetGatewayDevice%.WANDevice%.[^%.]+%.WANDSLDiagnostics.LoopDiagnosticsState start-stop-daemon -K -p /var/run/dsldiaginvoker.pid; start-stop-daemon -S -b -p /var/run/dsldiaginvoker.pid -m -x /usr/bin/dsldiaginvoker

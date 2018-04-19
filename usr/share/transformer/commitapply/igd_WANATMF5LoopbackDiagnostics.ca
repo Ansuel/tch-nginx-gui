@@ -1,1 +1,0 @@
-^wanatmf5loopback start-stop-daemon -K -p /var/run/atmpinginvoker.pid; start-stop-daemon -S -b -p /var/run/atmpinginvoker.pid -m -x /usr/bin/atmpinginvoker

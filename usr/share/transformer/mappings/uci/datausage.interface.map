@@ -1,9 +1,0 @@
-local uci_1to1 = mapper("uci_1to1")
-
-local datausage_interface = {
-	config = "datausage",
-	type = "interface",
-	options = { "persist_threshold", "ifname", "tx_bytes_total", "rx_bytes_total", "usage_cycle_reset_day", "usage_cycle_enddate", "enabled", "usage_limit_unit", "usage_limit", "usage_limit_enabled" }
-}
-
-uci_1to1.registerNamedMultiMap(datausage_interface)

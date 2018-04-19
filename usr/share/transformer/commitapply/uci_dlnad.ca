@@ -1,7 +1,0 @@
-^dlnad /etc/init.d/dlnad reload
-^dlnad%..+%.mvfs_logLevel /etc/init.d/mvfs restart && /etc/init.d/mud restart
-^dlnad%..+%.mud_logLevel /etc/init.d/mud restart
-^dlnad%..+%.share_all_folder /etc/init.d/mud reload
-^dlnad%..+%.sharing /etc/init.d/mud reload
-^dlnad%..+%.max_sharedfolders /etc/init.d/mud reload
-^dlnad%..+%.share_path /etc/init.d/mud reload

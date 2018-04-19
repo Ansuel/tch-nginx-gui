@@ -1,9 +1,0 @@
-/etc/nginx/fastcgi_params
-/etc/nginx/naxsi_core.rules
-/etc/nginx/koi-win
-/usr/sbin/nginx
-/etc/nginx/win-utf
-/etc/nginx/koi-utf
-/etc/init.d/nginx
-/etc/nginx/mime.types
-/lib/upgrade/keep.d/nginx
