@@ -15,13 +15,16 @@ local intf_state_map = {
     disabled = T"Bridge disabled",
     connected = T"Bridge connected",
     disconnected = T"Bridge not connected",
+	connecting = T"Connecting...",
 }
 
 local intf_light_map = {
   disabled = "off",
   disconnected = "red",
   connected = "green",
+  connecting = "orange",
 }
+
 local intf_state = "disabled"
 
 local stats = {
@@ -34,8 +37,10 @@ if stats.operstate == "up" then
     if stats.carrier ~= "0" then
         intf_state = "connected"
     else
-        intf_state = intf_state ~= "connected" and "disconnected"
+        intf_state = "connecting"
     end
+else
+	intf_state = "disabled"
 end
 
 

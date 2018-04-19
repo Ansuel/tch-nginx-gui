@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=7.6.1
+version_gui=7.7.9
 
 logo_project() {
 cat << EOF > /dev/console
@@ -274,7 +274,9 @@ create_symlink() {
 		ln -sf ../../bin/busybox_telnet /usr/sbin/telnetd
 		/etc/init.d/telnet enable
 	fi
-	/etc/init.d/wol enable
+	if [ ! -f /etc/rc.d/S70wol ]; then 
+		/etc/init.d/wol enable
+	fi
 }
 
 orig_config_gen() {
@@ -351,6 +353,10 @@ restore_original_mapper() {
 		rm -r /tmp/tmp_bff_file
 		logger "Restoring mapper device file"
 	fi
+	if [ $(md5sum $orig_dir/bbf/VoiceService.VoiceProfile.Line.map | awk '{print $1}') != $(md5sum $target/bbf/VoiceService.VoiceProfile.Line.map | awk '{print $1}') ]; then
+		rm $target$mapper/bbf/VoiceService.VoiceProfile.Line.map
+		cp $orig_dir$mapper/bbf/VoiceService.VoiceProfile.Line.map $orig_dir$mapper/bbf/
+	fi #Solve some problems with cwmp AGTEF_1.0.3
 }
 
 transformer_lib_check() {
@@ -647,6 +653,29 @@ apply_right_opkg_repo() {
 	fi
 }
 
+real_ver_entitied() {
+	if [ -f /rom/etc/uci-defaults/tch_5000_versioncusto ]; then
+		local short_ver=$(cat /proc/banktable/activeversion | cut -c1-17)
+		local real_ver=$(cat /rom/etc/uci-defaults/tch_5000_versioncusto  | grep $short_ver | awk '{print $2}')
+		if [ "$real_ver" == "" ]; then
+			real_ver="Not Found"
+		fi
+		if [ ! "$(uci get -q versioncusto.override.fwversion_override_real)" ]; then
+			uci set versioncusto.override.fwversion_override_real=$real_ver
+		elif [ "$(uci get -q versioncusto.override.fwversion_override_real)" != $real_ver ]; then
+			uci set versioncusto.override.fwversion_override_real=$real_ver
+		fi
+	fi
+}
+
+new_wol_implementation() {
+	if [ -f /lib/functions/firewall-wol.sh ]; then
+		rm /lib/functions/firewall-wol.sh
+		uci set wol.config.dest_port=9
+		/etc/init.d/wol restart
+	fi
+}
+
 root() {
 	
 	/etc/init.d/watchdog-tch stop
@@ -740,6 +769,10 @@ root() {
 	remove_downgrade_bit #Use custom driver to remove this... thx @Roleo
 	logger "Checking opkg conf"
 	apply_right_opkg_repo #Check opkg conf based on version
+	logger "Creating and checking real version"
+	real_ver_entitied #Support for spoofing firm
+	logger "Creating new wol implementation"
+	new_wol_implementation #New Wol
 	
 	logger "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not

@@ -1,5 +1,8 @@
 opkg update
 mv /usr/lib/lua/uci.so /usr/lib/lua/uci.so_bak
+if [ -f /etc/config/uhttpd ]; then
+	rm /etc/config/uhttpd
+fi
 opkg install --force-reinstall libuci-lua luci rpcd
 mkdir /www_luci
 mv /www/cgi-bin /www_luci/

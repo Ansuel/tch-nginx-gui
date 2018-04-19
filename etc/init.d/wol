@@ -8,6 +8,9 @@ start_service() {
     local enabled
     local dest_ip
     local dest_intf
+    local src_intf
+    local src_dport
+	local dest_port
     local dev
 
     . /lib/functions/network.sh
@@ -15,7 +18,10 @@ start_service() {
     config_get_bool enabled config enabled 0
     [ $enabled -eq 0 ] && return 0
     config_get dest_ip config dest_ip
+    config_get src_dport config src_dport
+	config_get dest_port config dest_port 9
     config_get dest_intf config dest_intf "lan"
+    config_get src_intf config src_intf "wan"
     network_get_device dev $dest_intf
 
     if [ -n "$dest_ip" -a -n "$dev" ]; then
@@ -32,21 +38,36 @@ start_service() {
             count=$(( $count + 1 ))
         done
         ip neigh add $dest_ip lladdr ff:ff:ff:ff:ff:ff nud permanent dev $dev
+	# Add port forwarding
+	uci set firewall.WakeOnWan=redirect
+	uci set firewall.WakeOnWan.family=ipv4
+	uci set firewall.WakeOnWan.dest_ip=$dest_ip
+	uci set firewall.WakeOnWan.dest=$dest_intf
+	uci set firewall.WakeOnWan.src=$src_intf
+	uci set firewall.WakeOnWan.target=DNAT
+	uci set firewall.WakeOnWan.src_dport=$src_dport
+	uci set firewall.WakeOnWan.proto=udp
+	uci set firewall.WakeOnWan.dest_port=$dest_port
+	uci commit firewall
     fi
 
-    fw3 -q reload
+    /etc/init.d/firewall reload
 }
 
 stop_service() {
     logger -t wol "Stopping WOL"
     local dest_ip
     local dest_intf
+    local src_intf
+    local src_dport
     local dev
 
     . /lib/functions/network.sh
     config_load wol
     config_get dest_ip config dest_ip
+    config_get src_dport config src_dport
     config_get dest_intf config dest_intf "lan"
+    config_get src_intf config src_intf "wan"
     network_get_device dev $dest_intf
 
     if [ -n "$dest_ip" -a -n "$dev" ]; then
@@ -54,9 +75,14 @@ stop_service() {
         ip route del ${dest_ip}/32 dev $dev
         # Delete a static ARP spoofing entry
         ip neigh del $dest_ip lladdr ff:ff:ff:ff:ff:ff nud permanent dev $dev
+	# Delete port forwarding
+	if [ $(uci get -q firewall.WakeOnWan) ]; then
+		uci delete firewall.WakeOnWan
+	fi
+	uci commit firewall
     fi
 
-    fw3 -q reload
+    /etc/init.d/firewall reload
 }
 
 validate_section_wol()
@@ -65,6 +91,7 @@ validate_section_wol()
         'enabled:bool:1' \
         'src_intf:string' \
         'src_dport:or(port, portrange)' \
+		'dest_dport:or(port, portrange)' \
         'dest_intf:string' \
         'dest_ip:cidr'
 }

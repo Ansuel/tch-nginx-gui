@@ -17,12 +17,14 @@ local intf_state_map = {
     disabled = T"disabled",
     connected = T"connected",
     disconnected = T"not connected",
+	connecting = T"Connecting...",
 }
 
 local intf_light_map = {
   disabled = "off",
   disconnected = "red",
   connected = "green",
+  connecting = "orange",
 }
 
 local content = {
@@ -59,9 +61,11 @@ content_helper.getExactContent(content)
     if stats.operstate == "up" then
         if stats.carrier ~= "0" then
             intf_state = "connected"
-        else
-            intf_state = "disconnected"
-        end
+		else
+			intf_state = "connecting"
+		end
+    else
+        intf_state = "disconnected"
     end
     local label = format(T"Interface <strong>%s</strong> status",wan_bridge)
     html[#html + 1] = ui_helper.createLight(label, nil, intf_state_map[intf_state], {light = {class = intf_light_map[intf_state]}})

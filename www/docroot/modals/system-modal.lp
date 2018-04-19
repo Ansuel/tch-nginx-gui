@@ -29,6 +29,12 @@ local gui_skin_valid = {
 
 local gui_skin_content, helpmsg = post_helper.handleQuery(gui_skin_Params, gui_skin_valid)
 
+local fwversion_override_Params = { fwversion_override = "uci.versioncusto.override.fwversion_override", }
+
+local fwversion_override_valid = { fwversion_override = post_helper.validateNonEmptyString, }
+
+local fwversion_override_content, fwversion_override_helpmsg = post_helper.handleQuery(fwversion_override_Params, fwversion_override_valid)
+
 local env = {
   factory = "uci.env.rip.factory_id",
   serial = "uci.env.rip.serial",
@@ -342,6 +348,20 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  end
 	  html[#html + 1] = ui_helper.createAlertBlock(T"This switch disable the check to force the firmware to be on bank_1", info_box)
 	  html[#html + 1] = ui_helper.createSwitch(T"Bank Check", "bank_check", bank_check_content["bank_check"])
+      ngx.print(html)
+      ngx.print('\
+</fieldset>\
+<fieldset>\
+  <legend>');  ngx.print( "Version Spoof" ); ngx.print('</legend>\
+    ');
+	  local info_box = {
+        alert = {
+			class = "alert alert-info",
+		}
+      }
+      local html = {}
+	  html[#html + 1] = ui_helper.createAlertBlock(T"If a newer version is present in the acs server, cwmpd will try to upgrade the modem and will not send any info. This brake some remote app like MyTIMFisso. Change the version here to fake it.", info_box)
+	  html[#html + 1] = ui_helper.createInputText(T"Version Set", "fwversion_override", fwversion_override_content["fwversion_override"], nil , fwversion_override_helpmsg["fwversion_override"])
       ngx.print(html)
       ngx.print('\
 </fieldset>\

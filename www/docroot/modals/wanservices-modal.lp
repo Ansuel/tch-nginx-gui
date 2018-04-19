@@ -142,14 +142,21 @@ local ddns_light_map = {
 
 local del_pfw_index = nil
 
-local wol = io.open("/lib/functions/firewall-wol.sh", "r") and proxy.get("uci.wol.config.")
+local wol_dest_port_select = {
+    { "7", '7'},
+    { "9", '9'},
+}
+
+local wol = io.open("/etc/init.d/wol", "r") and proxy.get("uci.wol.config.")
 if wol then
   qry_params.WOL_enabled = "uci.wol.config.enabled"
   qry_params.WOL_ip = "uci.wol.config.dest_ip"
   qry_params.WOL_port = "uci.wol.config.src_dport"
+  qry_params.WOL_dest_port = "uci.wol.config.dest_dport"
   qry_valid.WOL_enabled = vB
   qry_valid.WOL_port = vSIP
   qry_valid.WOL_ip = vSIIP
+  qry_valid.WOL_dest_port = gVIES(wol_dest_port_select)
 end
 
 local qry_data, qry_helpmsg = post_helper.handleQuery(qry_params, qry_valid)
@@ -920,7 +927,7 @@ local upnp_data, upnp_helpmsg = post_helper.handleTableQuery(upnp_columns, upnp_
                     ui_helper.createInputText(T"WAN port", "WOL_port", qry_data["WOL_port"], nil, qry_helpmsg["WOL_port"]),
 					ui_helper.createLabel(T"", T"Note: You need to inser an unused ip on the local LAN to make the WakeOnWAN work.", {span = {class = "span6"},}),
 					ui_helper.createInputText(T"Unused IP", "WOL_ip", qry_data["WOL_ip"], nil, qry_helpmsg["WOL_ip"]),
-					ui_helper.createAlertBlock(T"Now create a port forward rule that point to this ip with the port you want to use.", range_warning)
+					ui_helper.createInputSelect(T"Local Port", "WOL_dest_port", wol_dest_port_select, qry_data["WOL_dest_port"],nil)
 					)
           ngx.print('\
       </fieldset>\
