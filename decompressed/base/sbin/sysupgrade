@@ -259,12 +259,12 @@ if [ ! -f /tmp/failsafe ] ; then
 fi
 fi
 
-if [ -n "$(rootfs_type)" -a "$REBOOT" -eq 1 ]; then
-	v "Switching to ramdisk..."
-	run_ramfs '. /lib/functions.sh; include /lib/upgrade; do_upgrade'
-else
+#if [ -n "$(rootfs_type)" -a "$REBOOT" -eq 1 ]; then
+#	v "Switching to ramdisk..."
+#	run_ramfs '. /lib/functions.sh; include /lib/upgrade; do_upgrade'
+#else
 	v "Do upgrade directly"
 	do_upgrade
-fi
+#fi
 
 ubus send fwupgrade '{ "state": "done" }'
