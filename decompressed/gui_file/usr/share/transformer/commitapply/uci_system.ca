@@ -1,0 +1,1 @@
+^system  /usr/share/transformer/scripts/uci_system.sh;/etc/init.d/lsyslogd restart;

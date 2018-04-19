@@ -1,0 +1,1 @@
+^InternetGatewayDevice%.WANDevice%.[^%.]+%.WANConnectionDevice%.[^%.]+%.WANIPConnection%.[^%.]+%.DefaultGateway read line < /tmp/.wan_intf ; ifup $line ; rm /tmp/.wan_intf

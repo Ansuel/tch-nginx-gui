@@ -1,0 +1,2 @@
+^InternetGatewayDevice%.WANDevice%.[^%.]+%.WANDSLInterfaceConfig%.X_0876FF_ProfileSelected  read line < /tmp/.DSL_intf ; xdslctl start configure --profile $line ; rm /tmp/.DSL_intf ; 
+

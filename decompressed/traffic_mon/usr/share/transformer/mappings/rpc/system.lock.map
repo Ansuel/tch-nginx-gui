@@ -1,0 +1,62 @@
+local lfs = require("lfs")
+-- Set one default dir for lock
+local datadir  = "/tmp/trafficmon/"
+local locker
+
+local lock_ = {
+    objectType = {
+        name = 'rpc.system.lock.',
+        access = 'readOnly',
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            lock = {
+                access = "readOnly",
+                type = "boolean",
+            },
+            free = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            lockdir = {
+                access = "readWrite",
+                type = "string",
+            },
+        }
+    },
+    get = {
+        lock = function()
+            if datadir == "" then
+                return "0"
+            end
+            local lktmp = lfs.lock_dir(datadir)
+            if lktmp then
+                locker = lktmp
+                return "1"
+            else
+                return "0"
+            end
+        end,
+        free = function()
+            if locker then
+                return "0"
+            else
+                return "1"
+            end
+        end,
+        lockdir = datadir,
+    },
+    set = {
+        free = function(mapping, paramname, paramvalue)
+            if locker then
+                locker:free()
+                locker = nil
+            end
+        end,
+        lockdir = function(mapping, paramname, paramvalue)
+            datadir = paramvalue
+        end,
+    }
+}
+
+register(lock_)

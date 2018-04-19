@@ -1,0 +1,15 @@
+
+local uci_1to1 = mapper("uci_1to1")
+local config_usb = "usb"
+
+uci_1to1.registerConfigMap(config_usb)
+
+-- uci.usb.ehci_emi_detect
+local usb_ehci_emi_detect = {
+  config = config_usb,
+  section = "ehci_emi_detect",
+  type = "ehci_emi_detect",
+  options = { "emi_detected", "companion", "emi_dev_id" },
+}
+uci_1to1.registerNamedMultiMap(usb_ehci_emi_detect )
+

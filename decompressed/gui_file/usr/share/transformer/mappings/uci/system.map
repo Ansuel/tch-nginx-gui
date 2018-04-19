@@ -1,0 +1,86 @@
+
+local config_system = "system"
+
+-- uci.system
+mapper("uci_1to1").registerConfigMap(config_system)
+
+-- uci.system.system
+local system_system = {
+  config = config_system,
+  type = "system",
+  options = { "hostname", "timezone", "zonename", "network_timezone", "wizard_accessed",
+              "log_ip", "log_port", "log_type",
+              "log_file", "log_prefix", "log_size", "log_filter_ip",
+              "log_filter_file",
+  },
+  lists = { "log_filter" }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(system_system)
+
+-- uci.system.ntp
+local system_ntp = {
+  config = config_system,
+  section = "ntp",
+  type = "timeserver",
+  options = { "enable_server", "enable_client", "synced", "use_dhcp", "disabled_servers" },
+  lists = { "server" }
+}
+
+mapper("uci_1to1").registerSimpleMap(system_ntp)
+
+-- uci.system.warmboot
+local system_warmboot = {
+  config = config_system,
+  section = "warmboot",
+  type = "warmboot",
+  options = { "reboot" }
+}
+
+mapper("uci_1to1").registerSimpleMap(system_warmboot)
+
+-- uci.wanservices.service
+local system_wanservice = {
+   config = config_system,
+   type = "wan-service",
+   options = {
+     "proto",
+     "ports",
+   },
+}
+mapper("uci_1to1").registerNamedMultiMap(system_wanservice)
+
+-- uci.system.buffer
+local system_buffer = {
+   config = config_system,
+   section = "buffer",
+   type = "lsyslogbuffer",
+   options = {
+     "size",
+     "logname",
+     "timeout",
+   },
+}
+mapper("uci_1to1").registerSimpleMap(system_buffer)
+
+-- uci.system.config
+local system_config = {
+   config = config_system,
+   section = "config",
+   type = "config",
+   options = {
+     "iad_function",
+     "import_restricted",
+     "enable_usb3_support",
+   },
+}
+mapper("uci_1to1").registerSimpleMap(system_config)
+
+-- uci.system.coredump
+local system_coredump = {
+  config = config_system,
+  type = "coredump",
+  options = {"action", "path", "url", "reboot"}
+}
+
+mapper("uci_1to1").registerNamedMultiMap(system_coredump)

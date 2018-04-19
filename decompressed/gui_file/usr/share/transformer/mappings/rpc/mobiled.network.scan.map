@@ -1,0 +1,65 @@
+local tostring, tonumber, string = tostring, tonumber, string
+
+local mobiled_network_scan = {
+    objectType = {
+        name = "rpc.mobiled.device.@.network.scan.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            scanning = {
+                access = "readOnly",
+                type = "boolean",
+            },
+            duration = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            start = {
+                access = "readWrite",
+                type = "boolean",
+            }
+        }
+    }
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+    return
+end
+
+local helper = require("mobiled.scripthelpers")
+
+local function getall(mapping, key)
+    local data = helper.getUbusData(conn, "mobiled.network", "scan", { dev_idx = tonumber(string.match(key, '%d')) })
+    local result = {}
+    if helper.tablelength(data) > 0 then
+        if data.scanning == "true" then
+            result['start'] = "false"
+            result['scanning'] = "true"
+        elseif data.scanning == "false" then
+            result['start'] = "true"
+            result['scanning'] = "false"
+        end
+        result.duration = data.duration
+    end
+    setmetatable(result, { __index = function() return "" end })
+    return result
+end
+
+local function get(mapping, paramName, key)
+    return getall(mapping, key)[paramName]
+end
+
+local function set(mapping, paramName, paramValue, key)
+    if paramName == "start" and (tostring(paramValue) == "true" or tostring(paramValue) == "1") then
+        return conn:call("mobiled.network", "scan", { start = true, dev_idx = tonumber(string.match(key, '%d')) })
+    end
+end
+
+mobiled_network_scan.get = get
+mobiled_network_scan.getall = getall
+mobiled_network_scan.set = set
+
+register(mobiled_network_scan)
+

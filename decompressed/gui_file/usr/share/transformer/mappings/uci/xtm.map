@@ -1,0 +1,32 @@
+local mapper = mapper
+local config_xtm = "xtm"
+
+-- uci.xtm
+mapper("uci_1to1").registerConfigMap(config_xtm)
+
+-- uci.xtm.atmdevice.{i}
+local xtm_atmdevice  = {
+    config = config_xtm,
+    type = "atmdevice",
+    options = { "vpi", "vci", "ulp", "enc", "path", "td", "priority", "weight" }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(xtm_atmdevice)
+
+-- uci.xtm.ptmdevice.{i}
+local xtm_ptmdevice = {
+    config = config_xtm,
+    type = "ptmdevice",
+    options = { "priority", "path" }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(xtm_ptmdevice)
+
+-- uci.xtm.trafficdesc.{i}
+local xtm_trafficdesc = {
+    config = config_xtm,
+    type = "trafficdesc",
+    options = { "servicecat", "pcr", "scr", "mbs", "mcr" }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(xtm_trafficdesc)

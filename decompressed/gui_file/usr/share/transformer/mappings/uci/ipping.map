@@ -1,0 +1,212 @@
+local uci_ipping_ = {
+  objectType = {
+    name = "uci.ipping.@.",
+    access = "readWrite",
+    minEntries = 1,
+    maxEntries = math.huge,
+    parameters = {
+      DiagnosticsState = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        enumeration = {
+          "None",
+          "Requested",
+          "Complete",
+          "Error_CannotResolveHostName",
+          "Error_Internal",
+          "Error_Other",
+        },
+      },
+      Interface = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      Host = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      NumberOfRepetitions = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+      Timeout = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+      DataBlockSize = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+            max = "65535",
+          },
+        },
+      },
+      DSCP = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "63",
+          },
+        },
+      },
+      SuccessCount = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      FailureCount = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      AverageResponseTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      MinimumResponseTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      MaximumResponseTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+    }
+  }
+}
+
+
+
+local uci = mapper("ucihelper")
+local config = "ipping"
+local function entries_users(mapping)
+    local users = {}
+    local binding = {
+      config="ipping",
+      sectionname="user",
+    }
+    uci.foreach_on_uci(binding, function(s)
+    -- iterate over the interfaces
+      table.insert(users, s['.name'])
+    end)
+    return users
+end
+
+local helper = require("transformer.shared.ippinghelper")
+local clear_ping_results = helper.clear_ping_results
+local read_ping_trace_results = helper.read_ping_trace_results
+
+--key is the user of the ipping functionality
+uci_ipping_.get = function (mapping, pname,key)
+  return helper.uci_ipping_get(key,pname)
+end
+uci_ipping_.set = function (mapping, pname, pvalue,key)
+ return helper.uci_ipping_set(key,pname, pvalue, commitapply)
+end
+uci_ipping_.add = function(mapping,name)
+  local section
+  if name ~= nil then
+     section = name
+     local uci_binding = {
+       DiagnosticsState = { config = config, sectionname = section, option = "state" },
+       Interface = { config = config, sectionname = section, option = "interface" },
+       Host = { config = config, sectionname = section, option = "host" },
+       NumberOfRepetitions = { config = config, sectionname = section, option = "count" },
+       Timeout = { config = config, sectionname = section, option = "timeout" },
+       DataBlockSize = { config = config, sectionname = section, option = "size" },
+       DSCP = { config = config, sectionname = section, option = "dscp" },
+     }
+     return helper.startup(name, uci_binding)
+  else
+    error("you have to provide a name")
+  end
+end
+uci_ipping_.delete = function()
+   error("not implemented")
+end
+uci_ipping_.entries=entries_users
+uci_ipping_.commit=helper.uci_ipping_commit
+uci_ipping_.revert=helper.uci_ipping_revert
+
+register(uci_ipping_)
+
+local uci_ipping_Trace_i_ = {
+  objectType = {
+    name = "uci.ipping.@.Trace.@.",
+    access = "readOnly",
+    numEntriesParameter = "TraceNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      Bytes = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      IP = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      Seq = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      TTL = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      Time = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+    }
+  }
+}
+
+uci_ipping_Trace_i_.get = function(mapping, pname, key, pkey)
+  local res = read_ping_trace_results(pkey)
+  local rres = (res and res[tonumber(key)] and res[tonumber(key)][pname]) or ""
+  return rres
+end
+
+uci_ipping_Trace_i_.set = function(mapping, pname, key, pkey)
+  return nil, "Invalid path"
+end
+
+uci_ipping_Trace_i_.entries = function(mapping, pkey)
+  local result = {}
+  local res = read_ping_trace_results(pkey)
+  if res then
+  for i,j in ipairs(res) do
+    result[i]=tostring(i)
+  end
+  end
+  return result
+end
+
+
+register(uci_ipping_Trace_i_)

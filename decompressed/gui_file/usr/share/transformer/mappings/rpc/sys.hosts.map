@@ -1,0 +1,937 @@
+-- NG-60620
+-- NG-102389 TI VBNT-K : Devices connected in WiFi is Listed under Ethernet Interface
+local require = require
+local table, pairs, tostring, error = table, pairs, tostring, error  
+local register, commitapply, mapper, io = register, commitapply, mapper, io
+local pairs, tostring, error = pairs, tostring, error
+local uciHelper = mapper("ucihelper")
+local get_from_uci = uciHelper.get_from_uci
+local string = string
+local format, match, gmatch = string.format, string.match, string.gmatch
+local hostsCache
+local nwcommon = mapper("nwcommon")
+local network = require("transformer.shared.common.network")
+
+-- sys.hosts
+local Sys_Hosts_ = {
+  objectType = {
+    name = "sys.hosts.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      WirelessNumberOfEntries = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      EthernetNumberOfEntries = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      ActiveWirelessNumberOfEntries = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      ActiveEthernetNumberOfEntries = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+    }
+  }
+}
+-- Open connection to UBUS
+local conn = mapper("ubus").connect()
+--Returns true if the interface was found in the list of interfaces
+local function isInterfaceInList(interfaces, interface)
+    if (interfaces == nil) then
+      error("Interfaces list is nil")
+    end
+    for _, intf in pairs(interfaces) do
+        if interface == intf then
+           return true
+        end
+    end
+    return false
+end
+
+--These will cache the lan/wan interfaces, based on the firewall config
+local lanInterfacesCache
+local wanInterfacesCache
+
+-- Uses the cached list. Make sure to update lanInterfacesCache (only) when needed
+local function isLanInterface(interface)
+        return isInterfaceInList(lanInterfacesCache, interface)
+end
+
+-- false for lan, true for wan, nil for unknown
+-- Uses the cached lists. Make sure to update lanInterfacesCache (only) when needed
+local function getInterfaceZoneType(interface)
+    --Check if it's LAN
+    if (isInterfaceInList(lanInterfacesCache, interface)) then
+        return false
+    end
+    --Check if it's WAN
+    if (isInterfaceInList(wanInterfacesCache, interface)) then
+        return true
+    end
+    return nil
+end
+
+local intfType, macAddr, keyValue
+local qtnMAC = string.lower(get_from_uci({ config = "env", sectionname = "var", option = "qtn_eth_mac" }))
+local modeCheck = false
+local function getExternalWifiIntfType(devices)
+ local ssid
+  if intfType and macAddr then
+     return intfType, macAddr
+  end
+  if not keyValue and modeCheck == false then
+    local wirelessRadio = conn:call("wireless.radio", "get" , {}) or {}
+    modeCheck = true
+    for radioID, radio in pairs(wirelessRadio) do
+      if radio.remotely_managed == 1 and radio.integrated_ap == 1 then
+        keyValue = radioID
+        break
+      end
+    end
+  end
+  if (keyValue) then
+    if not macAddr then
+      ssid = conn:call("wireless.ssid", "get", {})
+    end
+    if not ssid then
+      return intfType, macAddr
+    end
+    --get radio-remote information
+    local radioremoteMAC, radioremoteIntf
+    local radioremote = conn:call("wireless.radio.remote", "get", { name = keyValue })
+    if radioremote then
+      local _, radio = next(radioremote)
+      if radio then
+        radioremoteMAC = radio.macaddr
+        radioremoteIntf = radio.ifname
+      end
+    end
+    for _, wlInterface in pairs(ssid) do
+      if wlInterface.radio == keyValue then
+        local lastByte = tonumber(wlInterface.mac_address:sub(-2), 16)
+        local obtMacAddr = string.format("%02x", ((lastByte -1) % 256))
+        local mac_prefix = string.sub(wlInterface.mac_address, 1, -3)
+        macAddr = string.format("%s%s", mac_prefix, obtMacAddr)
+        if qtnMAC == macAddr then
+          break
+        end
+      end
+      -- In case the ssid is remotely managed, integrated and disabled, the received macaddress via wireless.ssid  is 0,
+      -- then we need to get the mac via wireless.radio.remote
+      if ((macAddr == "ff:ff:ff:ff:ff:ff" ) and keyValue ) then
+        if not intfType or not macAddr then
+          macAddr = radioremoteMAC
+          intfType = radioremoteIntf
+        end
+      end
+    end
+    if not intfType  then
+      for _, device in pairs(hostsCache) do
+        if device["mac-address"] == macAddr then
+          intfType= device.l2interface
+        end
+      end
+    end
+    --Bridged to Routed mode change will not have host for Quantenna, intfType will not be available.
+    if not intfType and macAddr == radioremoteMAC then
+      intfType = radioremoteIntf
+    end
+  else
+    macAddr = qtnMAC
+  end
+  return intfType, macAddr
+end
+
+--Updates the host cache and LAN interface cache
+local function updateLanCache()
+    --Update the hosts cache from hostmanager
+    --Request "ext_info" as well while invoking conn:call on "hostmanager.device"
+    hostsCache = conn:call("hostmanager.device", "get", { ["ext-info"] = true })
+    if hostsCache == nil then
+      error("retrieving hosts failed")
+    end
+    --Update the lan interfaces cache
+    lanInterfacesCache = nwcommon.findLanWanInterfaces(false)
+end
+
+local function getWirelessNumberOfEntries(mapping)
+    if (mapping) then
+        updateLanCache()
+    end
+    local numberOfHosts = 0
+    local intfType, macAddr = getExternalWifiIntfType(hostsCache)
+    for _, v in pairs(hostsCache) do
+      if ((v["technology"] == "wireless" and isLanInterface(v["interface"])) or
+          (v["mac-address"] ~= macAddr and v["technology"] == "ethernet" and (v["l2interface"] == intfType or v["l2interface"] == match(v["l2interface"], "wl%d+_%d+")))) then
+        numberOfHosts = numberOfHosts + 1
+      end
+    end
+    return tostring(numberOfHosts)
+end
+
+local function getEthernetNumberOfEntries(mapping)
+    if (mapping) then
+        updateLanCache()
+    end
+    local numberOfHosts = 0
+    local intfType, macAddr = getExternalWifiIntfType(hostsCache)
+    for _, v in pairs(hostsCache) do
+      if v["technology"] == "ethernet" and isLanInterface(v["interface"])  and  (v["l2interface"] ~= intfType and v["mac-address"] ~= macAddr and v["l2interface"] ~= match(v["l2interface"], "wl%d+_%d+")) then
+        numberOfHosts = numberOfHosts + 1
+      end
+    end
+    return tostring(numberOfHosts)
+end
+
+local function getActiveWirelessNumberOfEntries(mapping)
+    if (mapping) then
+        updateLanCache()
+    end
+    local numberOfHosts = 0
+    local intfType, macAddr = getExternalWifiIntfType(hostsCache)
+    for _, v in pairs(hostsCache) do
+      if v["state"] == "connected" and ((v["technology"] == "wireless" and isLanInterface(v["interface"])) or (v["mac-address"] ~= macAddr and v["technology"] == "ethernet" and (v["l2interface"] == intfType or v["l2interface"] == match(v["l2interface"], "wl%d+_%d+")))) then
+        numberOfHosts = numberOfHosts + 1
+      end
+    end
+    return tostring(numberOfHosts)
+end
+
+local function getActiveEthernetNumberOfEntries(mapping)
+    if (mapping) then
+        updateLanCache()
+    end
+    local numberOfHosts = 0
+    local intfType, macAddr = getExternalWifiIntfType(hostsCache)
+    for _, v in pairs(hostsCache) do
+      if v["technology"] == "ethernet" and  isLanInterface(v["interface"]) and (v["l2interface"] ~= intfType and v["l2interface"] ~= match(v["l2interface"], "wl%d+_%d+") and v["mac-address"] ~= macAddr) and v["state"] == "connected" then
+        numberOfHosts = numberOfHosts + 1
+      end
+    end
+    return tostring(numberOfHosts)
+end
+
+Sys_Hosts_.get = {
+  WirelessNumberOfEntries = getWirelessNumberOfEntries,
+  EthernetNumberOfEntries = getEthernetNumberOfEntries,
+  ActiveWirelessNumberOfEntries = getActiveWirelessNumberOfEntries,
+  ActiveEthernetNumberOfEntries = getActiveEthernetNumberOfEntries
+}
+
+local all_values = {}
+Sys_Hosts_.getall = function()
+  --Update the interfaces and hosts cache
+  updateLanCache()
+  all_values["WirelessNumberOfEntries"] = getWirelessNumberOfEntries()
+  all_values["EthernetNumberOfEntries"] = getEthernetNumberOfEntries()
+  all_values["ActiveWirelessNumberOfEntries"] = getActiveWirelessNumberOfEntries()
+  all_values["ActiveEthernetNumberOfEntries"] = getActiveEthernetNumberOfEntries()
+  return all_values
+end
+
+register(Sys_Hosts_)
+
+-- sys.hosts.host.{i}
+local Sys_Hosts_Host_i_ = {
+  objectType = {
+    name = "sys.hosts.host.{i}.",
+    access = "readWrite",
+    numEntriesParameter = "HostNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      IPAddress = {
+        access = "readOnly",
+        type = "string",
+      },
+      IPv4= {
+        access = "readOnly",
+        type = "string",
+      },
+      IPv6= {
+        access = "readOnly",
+        type = "string",
+      },
+
+      MACAddress = {
+        access = "readOnly",
+        type = "string",
+      },
+      HostName = {
+        access = "readWrite",
+        type = "string",
+        max = "64",
+      },
+      HostType = {
+        access = "readWrite",
+        type = "string",
+        max = "16",
+      },
+      InterfaceType = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Ethernet",
+          "USB",
+          "802.11",
+          "HomePNA",
+          "HomePlug",
+          "Other",
+        }
+      },
+      FirewallZone = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "LAN",
+          "WAN",
+          "Unknown"
+        }
+      },
+      ConnectedTime = {
+         access = "readOnly",
+         type = "string",
+      },
+      DhcpLeaseTime = {
+         access = "readOnly",
+         type = "string",
+      },
+      L2Interface = {
+         access = "readOnly",
+         type = "string",
+      },
+      L3Interface = {
+         access = "readOnly",
+         type = "string",
+      },
+      State = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      Port = {
+        access = "readOnly",
+        type = "string",
+      },
+      Speed = {
+         access = "readOnly",
+         type = "string",
+      },
+      Priority = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      BytesSent = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      BytesReceived = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      PktsSent = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      PktsReceived = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+	  SSID = {
+        access = "readOnly",
+        type = "string",
+      },
+    }
+  }
+}
+
+
+-- Extract an IP address from the given value and add it to the list
+local function extractAddress(value, addresses)
+  if value["state"] == "connected" then
+    if addresses == "" then
+      addresses = value["address"]
+    else
+      addresses = addresses .. " " .. value["address"]
+    end
+  end
+  return addresses
+end
+
+local hostExtraInfo
+local hostExtraInfoFile = "/etc/hosts_ext"
+local function loadHostExtraInfo()
+  if not hostExtraInfo then
+    hostExtraInfo = {}
+    local f = io.open(hostExtraInfoFile, 'r')
+    if f then
+      for ln in f:lines() do
+        local mac, hostName, hostType = ln:match('([^|]*)|([^|]*)|([^|]*)')
+        if mac then
+          hostExtraInfo[mac] = { HostName = hostName, HostType = hostType }
+        end
+      end
+      f:close()
+    end
+    return hostExtraInfo
+  end
+end
+
+Sys_Hosts_Host_i_.entries = function(mapping)
+  --Update the interfaces and hosts cache - every time someone starts iteration on the hosts
+  updateLanCache()
+  local Hosts = network.getHostInfo(hostsCache)
+  loadHostExtraInfo()
+  return Hosts
+end
+
+-- Convert a device key to device information
+local function key2dev(key)
+    return hostsCache[key]
+end
+local function extractMacAddresses(dev)
+    if dev ~= nil and dev["mac-address"] ~= nil then
+        return dev["mac-address"]
+    end
+    return ""
+end
+local function extractIPAddresses(dev)
+    local addresses = ""
+    if dev ~= nil then
+        -- Extract IPv4 addresses
+        if dev["ipv4"] ~= nil then
+            for _,value in pairs(dev["ipv4"]) do
+                addresses = extractAddress(value, addresses)
+            end
+        end
+        -- Extract IPv6 addresses
+        if dev["ipv6"] ~= nil then
+            for _,value in pairs(dev["ipv6"]) do
+                addresses = extractAddress(value, addresses)
+            end
+        end
+    end
+    return addresses
+end
+
+local function extractIPv4(dev)
+   local addresses = ""
+   if dev ~= nil then
+     -- Extract IPv4 addresses
+     if dev["ipv4"] ~= nil then
+       for _,value in pairs(dev["ipv4"]) do
+         addresses = extractAddress(value, addresses)
+       end
+     end
+   end
+   return addresses
+ end
+ 
+ local function extractIPv6(dev)
+   local addresses = ""
+   if dev ~= nil then
+     -- Extract IPv6 addresses
+     if dev["ipv6"] ~= nil then
+       for _,value in pairs(dev["ipv6"]) do
+         addresses = extractAddress(value, addresses)
+       end
+     end
+   end
+   return addresses
+ end
+
+-- If dev["ext-info"} is available then extract upload/download Tx/Rx statistics
+local function extractStats(dev, param)
+   local ParamVal = "0"
+
+   if dev and dev["ext-info"] then
+        local ext_info_val = dev["ext-info"]
+        local stats_val = ext_info_val["stats"]
+        if stats_val ~= nil then
+            if (param == "BytesReceived") then
+                local down_val = stats_val["down"]
+
+                if down_val and down_val["bytes"] then
+                   ParamVal = tostring(down_val["bytes"])
+                end
+            elseif (param == "PktsReceived") then
+                local down_val = stats_val["down"]
+
+                if down_val and down_val["packets"] then
+                    ParamVal = tostring(down_val["packets"])
+                end
+            elseif (param == "BytesSent") then
+                 local up_val = stats_val["up"]
+
+                 if up_val and up_val["bytes"] then
+                    ParamVal = tostring(up_val["bytes"])
+                 end
+            elseif (param == "PktsSent") then
+                 local up_val = stats_val["up"]
+
+                 if up_val and up_val["packets"] then
+                    ParamVal = tostring(up_val["packets"])
+                 end
+            end
+        end
+   end
+
+   return ParamVal
+end
+
+local function extractHostName(dev, extraInfo)
+    local HostName = extraInfo and extraInfo["HostName"]
+    if not HostName or HostName == "" then
+        if dev ~= nil and dev["hostname"] ~= nil then
+            return dev["hostname"]
+        end
+        return ""
+    end
+    return HostName
+end
+
+local function extractInterfaceType(dev)
+   local intfType, macAddr = getExternalWifiIntfType()
+   if dev == nil then
+       return ""
+   end
+   if dev["mac-address"] ~= macAddr and (dev["l2interface"] == intfType or dev["l2interface"] == match(dev["l2interface"], "wl%d+_%d+")) then
+      return "wireless"
+   else
+        return dev["technology"]
+   end
+end
+
+local function extractFirewallZone(dev)
+    local isWan
+    if dev ~= nil and dev["interface"] ~= nil then
+       isWan = getInterfaceZoneType(dev["interface"])
+    end
+    if isWan == nil then
+        return "Unknown"
+    end
+    if ( isWan == false) then
+        return "LAN"
+    end
+    return "WAN"
+end
+
+local function extractConnectedTime(dev)
+    if dev ~= nil and dev["connected_time"] ~= nil then
+        return tostring(dev["connected_time"])
+    end
+    return ""
+end
+
+local function extractDhcpLeaseTime(dev)
+    if dev == nil or dev["mac-address"] == nil then
+        return ""
+    end
+    local path="/tmp/dhcp.leases"
+    local fd = io.open(path)
+    assert(fd)
+    local leasetable = fd:read("*all")
+    for leasetime,macaddr in gmatch(leasetable, "(%d+)%s+(%x%x:%x%x:%x%x:%x%x:%x%x:%x%x)%s+") do
+        if dev["mac-address"] == macaddr then
+            fd:close()
+            return leasetime or ""
+        end
+    end
+    fd:close()
+    return ""
+end
+
+local function extractL2Interface(dev)
+   local intfType, macAddr = getExternalWifiIntfType()
+   if dev == nil or dev["mac-address"] == nil or dev["l2interface"] == nil then
+       return ""
+   end
+   if dev["mac-address"] ~= macAddr and dev["l2interface"] == intfType then
+     return "wl1"
+   else
+     return dev["l2interface"]
+   end
+end
+
+local function extractl3interface(dev)
+    if dev ~= nil and dev["l3interface"] ~= nil then
+        return dev["l3interface"]
+    end
+    return ""
+end
+
+local function extractState(dev)
+    if dev ~= nil and dev["state"] == "connected" then
+        return "1"
+    end
+    return "0"
+end
+
+local function extractPort(dev)
+    -- [CL] Some platforms don't have l2interfaces that make sense (e.g. without switch driver)
+    -- [CL] If the device in the hostmanager ubus call knows what port a device is attached to, let's trust it
+    -- [CL] Hacking this into the generic sys.hosts.map file until someone can explain me how to properly customize this without
+    -- [CL] copying the entire file and hence losing all future functionality/bugfixes since noone looks at our platforms anyway.
+    local intfType, macAddr = getExternalWifiIntfType()
+    if dev == nil then
+        return ""
+    end
+    if dev["switchport"] ~= nil then
+        return tostring(dev["switchport"])
+    else
+        if dev["technology"] == "ethernet" and isLanInterface(dev["interface"]) and dev["l2interface"] == intfType and dev["mac-address"] ~= macAddr then
+           return ""
+       elseif dev["technology"] == "ethernet" and isLanInterface(dev["interface"]) and dev["l2interface"] ~= nil then
+           local portNumber = string.match(dev["l2interface"],"%a*(%d+)")
+           if portNumber ~= nil then
+               portNumber = portNumber + 1
+               return tostring(portNumber)
+           end
+           return ""
+       end
+       return ""
+    end
+end
+
+local function getInterfaceState(l2interface)
+    local f = io.open("/sys/class/net/" .. l2interface .. "/speed")
+    if f == nil then
+	return ""
+    end
+    local speed = f:read("*number")
+    f:close()
+    return tostring(speed) or ""
+end
+
+local function extractSpeed(dev)
+    if dev == nil then
+        return ""
+    end
+    if dev["technology"] == "wireless" then
+        if dev["wireless"] and dev["wireless"]["tx_phy_rate"] ~= nil then
+            return tostring(dev["wireless"]["tx_phy_rate"] / 1000)
+        end
+        return ""
+    elseif dev["technology"] == "ethernet" then
+        if dev["l2interface"] ~= nil and dev["l2interface"] ~= "" then
+            return getInterfaceState(dev["l2interface"])
+        elseif dev["l3interface"] ~= nil then
+            return getInterfaceState(dev["l3interface"])
+        end
+        return ""
+    end
+    return ""
+end
+
+local set_on_uci = uciHelper.set_on_uci
+local foreach_on_uci = uciHelper.foreach_on_uci
+local delete_on_uci = uciHelper.delete_on_uci
+local commit = uciHelper.commit
+local revert = uciHelper.revert
+
+local gsub = string.gsub
+local function getPriority(key)
+  local qos_binding = { config = "qos"}
+  qos_binding.sectionname = "host" .. gsub(key,"%W","")
+  qos_binding.option = "priority"
+  qos_binding.default = "0"
+  return get_from_uci(qos_binding)
+end
+
+Sys_Hosts_Host_i_.getall = function(mapping, key)
+    local dev = key2dev(key)
+    local mac =  extractMacAddresses(dev)
+    local extraInfo = hostExtraInfo[mac]
+    return {
+        MACAddress = extractMacAddresses(dev),
+        IPAddress = extractIPAddresses(dev),
+	IPv4 = extractIPv4(dev),
+        IPv6 = extractIPv6(dev),
+        HostName = extractHostName(dev, extraInfo),
+        HostType = extraInfo and extraInfo["HostType"] or "",
+        InterfaceType = extractInterfaceType(dev),
+        FirewallZone = extractFirewallZone(dev),
+        ConnectedTime = extractConnectedTime(dev),
+        DhcpLeaseTime= extractDhcpLeaseTime(dev),
+        L2Interface = extractL2Interface(dev),
+        L3Interface = extractl3interface(dev),
+        State = extractState(dev),
+        Port = extractPort(dev),
+        Speed = extractSpeed(dev),
+        Priority = getPriority(mac),
+        BytesSent =  extractStats(dev, "BytesSent"),
+        BytesReceived = extractStats(dev, "BytesReceived"),
+        PktsSent = extractStats(dev, "PktsSent"),
+        PktsReceived = extractStats(dev, "PktsReceived"),
+    }
+end
+
+local transactions = {}
+local deviceExtroInfoChanged = false
+
+local function saveHostExtraInfo()
+  local f = io.open(hostExtraInfoFile, 'w')
+  if f then
+    for mac, extraInfo in pairs(hostExtraInfo) do
+      extraInfo.HostName = extraInfo.HostName or ""
+      extraInfo.HostType = extraInfo.HostType or ""
+      if (extraInfo.HostName == "") and (extraInfo.HostType == "") then
+        hostExtraInfo[mac] = nil
+      else
+        f:write(format("%s|%s|%s\n", mac, extraInfo.HostName, extraInfo.HostType))
+      end
+    end
+    f:close()
+  end
+end
+
+local function setHostExtraInfo(mapping, param, value, key)
+  if match(value, "|") then
+    return nil, "'|' is not allowed"
+  end
+  local dev = key2dev(key)
+  local mac = extractMacAddresses(dev)
+  hostExtraInfo[mac] = hostExtraInfo[mac] or {}
+  hostExtraInfo[mac][param] = hostExtraInfo[mac][param] or ""
+  if hostExtraInfo[mac][param] ~= value then
+    hostExtraInfo[mac][param] = value
+    deviceExtroInfoChanged = true
+  end
+end
+
+Sys_Hosts_Host_i_.set = {
+  -- Set function for "Priority" param
+  Priority = function(mapping, param, value, key)
+    local qos_binding = {config = "qos"}
+    local dhcp_binding = {config ="dhcp", sectionname = "host"}
+    local dev = key2dev(key)
+    local mac = extractMacAddresses(dev)
+    local mac_without_colon = gsub(mac,"%W","")
+    local qossectionname = "mac" .. mac_without_colon
+    if value == "1" then
+
+      -- STEP FOLLOWED IN BELOW CODE
+      -- 1. Check whether "gaming" label available or not.
+      -- 2. If label not available, create "gaming" label with an higher trafficid(trafficid = 7) in order to be send out in a higher priority queue.
+      -- 3. Create the host entry, set the priority to 1
+      -- 4. Add the reclassify entry in the "qos" configuration with the source IP address
+
+      -- START --
+      -- Check the existing gaming label available or not
+      qos_binding.sectionname = "gamingpriority"
+      local qos_gaming_label_data = get_from_uci(qos_binding)
+      -- If not available, create the new label
+      if qos_gaming_label_data == "" then
+
+	set_on_uci(qos_binding,"label",commitapply)
+	qos_binding.option = "trafficid"
+	set_on_uci(qos_binding,"7",commitapply)
+      end
+      -- Set the "priority" to "1".
+      qos_binding={ config= "qos" }
+      qos_binding.sectionname = "host" .. mac_without_colon
+      set_on_uci(qos_binding,"host",commitapply)
+
+      qos_binding.option="priority"
+      set_on_uci(qos_binding,value,commitapply)
+
+      qos_binding.option="mac"
+      set_on_uci(qos_binding,mac,commitapply)
+
+      qos_binding={ config= "qos" }
+      qos_binding.sectionname = qossectionname
+      local qos_entry = get_from_uci(qos_binding)
+      if qos_entry == "" then
+        if mac then
+
+          qos_binding.sectionname = qossectionname
+          set_on_uci(qos_binding,"reclassify",commitapply)
+
+          qos_binding.option="srcmac"
+          set_on_uci(qos_binding,mac,commitapply)
+
+          -- Point this "reclassify" to the "gamingpriority" class which we created.
+          qos_binding.option="target"
+          set_on_uci(qos_binding,"gamingpriority",commitapply)
+        end
+      end
+      transactions[qos_binding.config] = true
+      local static_lease_binding_found = false
+      -- Limitation: If static lease removed by GUI, then there will be issue when the Gaming device is rebooted and got different IP address.
+      foreach_on_uci(dhcp_binding,function(s)
+        if s["mac"] == mac then  -- Not checking the owner, already user via gui or other applications might have added static lease
+          static_lease_binding_found = true
+        end
+      end)
+      if not static_lease_binding_found then
+        local result = uciHelper.add_on_uci(dhcp_binding)
+        if result then
+          local dhcp_binding_set = {config = "dhcp", sectionname=result , option = "mac"}
+          set_on_uci(dhcp_binding_set,mac,commitapply)
+
+          dhcp_binding_set.option = "owner"
+          set_on_uci(dhcp_binding_set,"gamingdevice", commitapply)
+
+          transactions[dhcp_binding.config] = true
+        end
+      end
+      -- END --
+    else
+      -- Delete the entries "qos" configuration.
+      -- Not deleting the "gamingpriority" class which may be used by another device.
+      local qos_delete_binding={ config = "qos" }
+      qos_delete_binding.sectionname="host" .. mac_without_colon
+      delete_on_uci(qos_delete_binding,commitapply)
+      qos_delete_binding.sectionname="mac" .. mac_without_colon
+      delete_on_uci(qos_delete_binding,commitapply)
+      transactions[qos_binding.config] = true
+      local dhcp_delete
+      foreach_on_uci(dhcp_binding, function(s)
+        if s["owner"] == "gamingdevice" and s["mac"] == mac then
+          dhcp_delete = s[".name"]
+        end
+      end)
+      if dhcp_delete then
+        local dhcp_binding_delete = {config="dhcp", sectionname = dhcp_delete}
+        delete_on_uci(dhcp_binding_delete,commitapply)
+        transactions[dhcp_binding.config] = true
+      end
+    end
+  end,
+  HostName = setHostExtraInfo,
+  HostType = setHostExtraInfo,
+}
+
+Sys_Hosts_Host_i_.get = {
+  IPAddress = function(mapping, param, key)
+    local dev = key2dev(key)
+    return extractIPAddresses(dev)
+  end,
+  IPv4 = function(mapping, param, key)
+     local dev = key2dev(key)
+     return extractIPv4(dev)
+  end,
+  IPv6 = function(mapping, param, key)
+     local dev = key2dev(key)
+     return extractIPv6(dev)
+  end,
+
+  MACAddress = function(mapping, param, key)
+    local dev = key2dev(key)
+    return extractMacAddresses(dev)
+  end,
+  HostName = function(mapping, param, key)
+    local dev = key2dev(key)
+    local mac = extractMacAddresses(dev)
+    return extractHostName(dev, hostExtraInfo[mac])
+  end,
+  HostType = function(mapping, param, key)
+    local dev = key2dev(key)
+    local mac = extractMacAddresses(dev)
+    return hostExtraInfo[mac] and hostExtraInfo[mac][param] or ""
+  end,
+  InterfaceType = function(mapping, param, key)
+    local dev = key2dev(key)
+    return extractInterfaceType(dev)
+  end,
+  FirewallZone = function(mapping, param, key)
+    local dev = key2dev(key)
+    return extractFirewallZone(dev)
+  end,
+  ConnectedTime = function(mapping, param, key)
+    local dev = key2dev(key)
+    return extractConnectedTime(dev)
+  end,
+  DhcpLeaseTime = function(mapping, param, key)
+    local dev = key2dev(key)
+    return extractDhcpLeaseTime(dev)
+  end,
+  L2Interface = function(mapping, param, key)
+    local dev = key2dev(key)
+    return extractL2Interface(dev)
+  end,
+  L3Interface = function(mapping, param, key)
+    local dev = key2dev(key)
+    return extractl3interface(dev)
+  end,
+  State = function(mapping, param, key)
+    local dev = key2dev(key)
+    return extractState(dev)
+  end,
+  Port = function(mapping, param, key)
+    local dev = key2dev(key)
+    return extractPort(dev)
+  end,
+  Speed = function(mapping, param, key)
+    local dev = key2dev(key)
+    return extractSpeed(dev)
+  end,
+  Priority = function(mapping, param, key)
+    local dev = key2dev(key)
+    local mac = extractMacAddresses(dev)
+    return getPriority(mac)
+  end,
+  BytesSent =  function(mapping, param, key)
+    local dev = key2dev(key)
+    return extractStats(dev, param)
+  end,
+  BytesReceived = function(mapping, param, key)
+    local dev = key2dev(key)
+    return extractStats(dev, param)
+  end,
+  PktsSent = function(mapping, param, key)
+    local dev = key2dev(key)
+    return extractStats(dev, param)
+  end,
+  PktsReceived = function(mapping, param, key)
+    local dev = key2dev(key)
+    return extractStats(dev, param)
+  end,
+  SSID = function(mapping, param, key)
+	local dev = key2dev(key)
+    local iface = extractL2Interface(dev)
+	local ssid = get_from_uci({ config = "wireless", sectionname = iface , option = "ssid"})
+	if ssid == nil then
+		return ""
+	end
+	return ssid
+  end
+}
+Sys_Hosts_Host_i_.commit = function()
+  for config,_ in pairs(transactions) do
+    commit({config = config})
+  end
+  transactions = {}
+  if deviceExtroInfoChanged then
+    saveHostExtraInfo()
+    deviceExtroInfoChanged = false
+  end
+end
+
+Sys_Hosts_Host_i_.revert = function()
+  for config,_ in pairs(transactions) do
+    revert({config = config})
+  end
+  transactions = {}
+  if deviceExtroInfoChanged then
+    hostExtraInfo = nil
+    deviceExtroInfoChanged = false
+  end
+end
+
+Sys_Hosts_Host_i_.add = function(mapping, key)
+    return nil, "hostmanager device can't be added"
+end
+
+Sys_Hosts_Host_i_.delete = function(mapping, key)
+    local dev = key2dev(key)
+    local mac = dev["mac-address"] or ""
+    return conn:call("hostmanager.device", "delete", { ["mac-address"] = mac } )
+end
+
+register(Sys_Hosts_Host_i_)

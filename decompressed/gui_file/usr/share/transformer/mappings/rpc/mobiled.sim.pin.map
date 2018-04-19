@@ -1,0 +1,111 @@
+local tonumber, string = tonumber, string
+
+local mobiled_sim_pin_ = {
+    objectType = {
+        name = 'rpc.mobiled.device.@.sim.pin.',
+        access = 'readOnly',
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+              pin_state = {
+                access = "readOnly",
+                type = "string"
+              },
+              unlock_retries_left = {
+                access = "readOnly",
+                type = "unsignedInt"
+              },
+              unblock_retries_left= {
+                access = "readOnly",
+                type = "unsignedInt"
+              },
+              unlock={
+                access = "readWrite",
+                type = "string"
+              },
+              unblock={
+                access = "readWrite",
+                type = "string"
+              },
+              change={
+                access = "readWrite",
+                type = "string"
+              },
+              enable={
+                access = "readWrite",
+                type = "string"
+              },
+              disable={
+                access = "readWrite",
+                type = "string"
+              }
+        }
+    }
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+    return
+end
+
+local helper = require("mobiled.scripthelpers")
+
+local function getall(mapping, key)
+    return helper.getUbusData(conn, "mobiled.sim.pin", "get", { dev_idx = tonumber(string.match(key, '%d')) })
+end
+
+local function get(mapping, paramName, key)
+    return getall(mapping, key)[paramName]
+end
+
+local function set(mapping, paramName, paramValue, key)
+    if paramName == "unlock" then
+        if #paramValue >= 4 and #paramValue <= 8 then
+            local ret = conn:call("mobiled.sim.pin", "unlock", { dev_idx = tonumber(string.match(key, '%d')), pin = paramValue })
+            if type(ret) == "table" and ret.error then
+              return nil, ret.error
+            end
+            return true
+        end
+    elseif paramName == "unblock" then
+        local pinCode, pukCode = paramValue:match("([^,]+),([^,]+)")
+        if #pinCode >= 4 and #pinCode <= 8 and #pukCode >= 8 and #pukCode <= 16 then
+            local ret = conn:call("mobiled.sim.pin", "unblock", { dev_idx = tonumber(string.match(key, '%d')), puk = pukCode, newpin = pinCode })
+            if type(ret) == "table" and ret.error then
+              return nil, ret.error
+            end
+            return true
+        end
+    elseif paramName == "change" then
+        local oldPin, newPin = paramValue:match("([^,]+),([^,]+)")
+        if #oldPin >= 4 and #oldPin <= 8 and #newPin >= 4 and #newPin <= 8 then
+            local ret = conn:call("mobiled.sim.pin", "change", { dev_idx = tonumber(string.match(key, '%d')), pin = oldPin, newpin = newPin })
+            if type(ret) == "table" and ret.error then
+              return nil, ret.error
+            end
+            return true
+        end
+    elseif paramName == "disable" then
+        if #paramValue >= 4 and #paramValue <= 8 then
+            local ret = conn:call("mobiled.sim.pin", "disable", { dev_idx = tonumber(string.match(key, '%d')), pin = paramValue })
+            if type(ret) == "table" and ret.error then
+              return nil, ret.error
+            end
+            return true
+        end
+    elseif paramName == "enable" then
+        if #paramValue >= 4 and #paramValue <= 8 then
+            local ret = conn:call("mobiled.sim.pin", "enable", { dev_idx = tonumber(string.match(key, '%d')), pin = paramValue })
+            if type(ret) == "table" and ret.error then
+              return nil, ret.error
+            end
+            return true
+        end
+    end
+end
+
+mobiled_sim_pin_.getall = getall
+mobiled_sim_pin_.get = get
+mobiled_sim_pin_.set = set
+
+register(mobiled_sim_pin_)

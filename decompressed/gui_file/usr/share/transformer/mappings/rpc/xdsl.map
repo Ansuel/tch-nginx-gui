@@ -1,0 +1,104 @@
+local logger = require("transformer.logger")
+local log = logger.new("rpc.xdsl", 2)
+local register = register;
+
+local xdsl_ = {
+    objectType = {
+        name = 'rpc.xdsl.',
+        access = 'readOnly',
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+          status = {
+            access = "readOnly",
+            type = "string"
+          },
+          statuscode = {
+            access = "readOnly",
+            type = "string"
+          },
+          multimode = {
+            access = "readWrite",
+            type = "string"
+          },
+	  dslversion = {
+            access = "readOnly",
+            type = "string"
+	  },
+        }
+    }
+}
+
+local conn = mapper("ubus").connect()
+local uci_helper = mapper("ucihelper")
+
+local function nilToEmptyString(st)
+    if st == nil then
+        return ""
+    else
+        return tostring(st)
+    end
+end
+
+local function getDataForXdsl()
+    local result = conn:call("xdsl", "status", {  })
+    if result == nil then
+        log:error("Failed to retrieve XDSL status")
+        return {}
+    end
+    return result
+end
+
+local function getall(mapping, key)
+    local state = getDataForXdsl()
+    local sanitizedData = {}
+    for k,v in pairs(state) do
+        sanitizedData[k] = nilToEmptyString(v)
+    end
+    return sanitizedData
+end
+
+local xdsl_binding = { config = 'xdsl', sectionname = 'dsl0', option = 'multimode' }
+local function get(mapping, paramName, key)
+    if paramName == 'multimode' then
+        local modes = uci_helper.get_from_uci(xdsl_binding)
+        if type(modes) == 'table' then
+            return table.concat(modes, ",")
+        else
+            return modes or ""
+        end
+    elseif paramName == "dslversion" then
+        local dsl_supported, dsl = pcall(require,"transformer.shared.xdslctl")
+        local version = ""
+        if dsl_supported then
+            version = dsl.infoValue('firmware_version')
+        end
+        return version
+    else
+        local state = getDataForXdsl()
+        return nilToEmptyString(state[paramName]);
+    end
+end
+
+local function set(mapping, paramName, value, key)
+    if paramName == 'multimode' then
+        local multimode = {}
+        for v in string.gmatch(value, "([^,]+)") do
+            multimode[#multimode+1] = v
+        end
+        return uci_helper.set_on_uci(xdsl_binding, multimode, commitapply)
+    end
+    return nil, "Not supported"
+end
+
+xdsl_.getall = getall
+xdsl_.get = get
+xdsl_.set = set
+xdsl_.commit = function()
+    uci_helper.commit(xdsl_binding)
+end
+xdsl_.revert = function()
+    uci_helper.revert(xdsl_binding)
+end
+
+register(xdsl_)

@@ -1,0 +1,188 @@
+local commitapply = commitapply
+
+-- uci.mobiled.profile
+local mobiled_profile_ = {
+    objectType = {
+        name = "uci.mobiled.profile.@.",
+        numEntriesParameter = "numProfiles",
+        access = "readWrite",
+        minEntries = 0,
+        maxEntries = math.huge,
+        parameters = {
+            id = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            pdptype = {
+                access = "readWrite",
+                type = "string",
+                enumeration = {
+                    "ipv4",
+                    "ipv6",
+                    "ipv4v6"
+                }
+            },
+            apn = {
+                access = "readWrite",
+                type = "string"
+            },
+            name = {
+                access = "readWrite",
+                type = "string"
+            },
+            editable = {
+                access = "readOnly",
+                type = "boolean"
+            },
+            visible = {
+                access = "readOnly",
+                type = "boolean"
+            },
+            username = {
+                access = "readWrite",
+                type = "string"
+            },
+            password = {
+                access = "readWrite",
+                type = "password"
+            },
+            authentication = {
+                access = "readWrite",
+                type = "string",
+                enumeration = {
+                    "none",
+                    "pap",
+                    "chap"
+                }
+            },
+            dial_string = {
+                access = "readWrite",
+                type = "string"
+            }
+        }
+    }
+}
+
+local uci_helper = mapper("ucihelper")
+
+local profilesBinding = {
+      config="mobiled",
+      sectionname="profile"
+}
+
+local function entriesMobiledProfiles(mapping)
+    local profiles = {}
+
+    local function cb(t)
+        local l = #profiles
+        profiles[l+1] = tostring(l)
+    end
+    uci_helper.foreach_on_uci(profilesBinding, cb)
+    return profiles
+end
+
+local function getBindingForIndex(key)
+    return {
+        config="mobiled",
+        sectionname="@profile[" .. key .. "]",
+        extended = true
+    }
+end
+
+local function getFirstAvailableId()
+    local all = {}
+    uci_helper.foreach_on_uci(profilesBinding, function(s)
+        if s.id then
+            all[s.id] = true
+        end
+    end)
+    local i = 1
+    while all[tostring(i)] do
+        i = i+1
+    end
+    return tostring(i)
+end
+
+local function addDefaults(key)
+    local default_cfg = {
+        enabled = "1",
+        visible = "1",
+        editable = "1",
+        id = getFirstAvailableId(),
+    }
+
+    local binding = getBindingForIndex(key)
+    for param, value in pairs(default_cfg) do
+        binding.option = param
+        uci_helper.set_on_uci(binding, value, commitapply)
+    end
+end
+
+local function addMobiledProfiles(mapping)
+    local result = uci_helper.add_on_uci(profilesBinding, commitapply)
+    if not result then
+        return nil, "No object could be added for this multi instance object"
+    end
+    uci_helper.commit(profilesBinding)
+    local items = entriesMobiledProfiles(mapping)
+    local profile = tostring(#items-1)
+    addDefaults(profile)
+    return profile
+end
+
+local function deleteMobiledProfiles(mapping, key)
+    local binding = getBindingForIndex(key)
+    uci_helper.delete_on_uci(binding, commitapply)
+    uci_helper.commit(binding)
+    return true
+end
+
+local function getallFromUCI(key)
+    local binding = getBindingForIndex(key)
+    local result = uci_helper.getall_from_uci(binding)
+    return result
+end
+
+local function getFromUCI(key, param)
+    local binding = getBindingForIndex(key)
+    binding.option = param
+    local result = uci_helper.get_from_uci(binding)
+    return result
+end
+
+local function setOnUCI(key, param, value, nocommit)
+    local binding = getBindingForIndex(key)
+    binding.option = param
+    uci_helper.set_on_uci(binding, value, commitapply)
+    if not nocommit then
+        uci_helper.commit(binding)
+    end
+end
+
+local function getallMobiledProfiles(mapping, key)
+    local result = getallFromUCI(key)
+    result['index'] = key
+    return result
+end
+
+local function get(mapping, paramname, key)
+    if paramname == "authentication" then
+        local type = getFromUCI(key, paramname)
+        if type == "" then
+            return "none"
+        end
+    else
+        return getFromUCI(key, paramname)
+    end
+end
+local function set(mapping, paramname, paramvalue, key)
+    return setOnUCI(key, paramname, paramvalue)
+end
+
+mobiled_profile_.getall = getallMobiledProfiles
+mobiled_profile_.get = get
+mobiled_profile_.set = set
+mobiled_profile_.add = addMobiledProfiles
+mobiled_profile_.delete = deleteMobiledProfiles
+mobiled_profile_.entries = entriesMobiledProfiles
+register(mobiled_profile_)

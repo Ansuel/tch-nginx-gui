@@ -1,0 +1,799 @@
+local register = register
+local mapper, pairs, ipairs, string, commitapply = mapper, pairs, ipairs, string, commitapply
+local table, tonumber, gsub = table, tonumber, string.gsub
+local format, match = string.format, string.match
+local uciHelper = mapper("ucihelper")
+local forEachOnUci = uciHelper.foreach_on_uci
+local nwCommon = mapper('nwcommon')
+local isMac = nwCommon.isMAC
+local netmask2mask = nwCommon.netmask2mask
+local mask2netmask = nwCommon.mask2netmask
+local hex2Decimal = nwCommon.hex2Decimal
+local configChanged
+local qosBinding = { config = "qos" }
+local inet = require "tch.inet"
+local isValidIPv4Address = inet.isValidIPv4
+local isValidIPv4Subnet = nwCommon.isValidIPv4SubnetMask
+local qosHelper = require('transformer.shared.qoshelper')
+
+local function setUciParam(sectionName, option, value)
+  qosBinding.sectionname = sectionName
+  qosBinding.option = option
+  uciHelper.set_on_uci(qosBinding, value, commitapply)
+  configChanged = true
+end
+
+local function getUciParam(sectionName, paramName, default)
+  qosBinding.sectionname = sectionName
+  qosBinding.option = paramName
+  qosBinding.default = default
+  return uciHelper.get_from_uci(qosBinding)
+end
+
+local qos_ = {
+  objectType = {
+    name = "rpc.qos.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      QueueList = {
+        access = "readOnly",
+        type = "string",
+      },
+      WanUpstreamBw = {
+        access = "readWrite",
+        type = "string",
+      },
+    }
+  },
+}
+
+local function getEnable(sectionName)
+  local enable
+  qosBinding.sectionname = sectionName
+  forEachOnUci(qosBinding, function(s)
+    if not s.enable or s.enable == "1" then
+      enable = "1"
+      return
+    end
+  end)
+  return enable
+end
+
+qos_.get = {
+  Enable = function()
+    return getEnable("interface") or getEnable("device") and "1" or "0"
+  end,
+  QueueList = function()
+    local queueList = {}
+    local queue = {}
+    qosBinding.sectionname = "label"
+    forEachOnUci(qosBinding, function(s)
+      if s[".name"] and not queueList[s[".name"]] then
+        queue[#queue + 1] = s[".name"]
+        queueList[s[".name"]] = true
+      end
+    end)
+    return table.concat(queue, ",")
+  end,
+  WanUpstreamBw = function()
+    return getUciParam("wan", "upload", "512")
+  end,
+}
+
+local function setEnable(sectionName, value)
+  qosBinding.sectionname = sectionName
+  forEachOnUci(qosBinding, function(s)
+    setUciParam(s[".name"], "enable", value)
+  end)
+end
+
+qos_.set = {
+  Enable = function(mapping, param, value)
+    setEnable("interface", value)
+    setEnable("device", value)
+    if value == "1" then
+      commitapply:newset("qos.enable")
+    else
+      commitapply:newset("qos.disable")
+    end
+  end,
+  WanUpstreamBw = function(mapping, param, value)
+    setUciParam("wan", "upload", value)
+  end
+}
+
+qos_.commit = function()
+  if configChanged then
+    uciHelper.commit(qosBinding)
+    configChanged = false
+  end
+end
+
+qos_.revert = function()
+  if configChanged then
+    uciHelper.revert(qosBinding)
+    configChanged = false
+  end
+end
+
+register(qos_)
+
+local qos_rule_ = {
+  objectType = {
+    name = "rpc.qos.classification.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+    }
+  }
+}
+
+register(qos_rule_)
+
+local qos_rule_Multi_ = {
+  objectType = {
+    name = "rpc.qos.classification.#ROOT.{i}.",
+    access = "readWrite",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean"
+      },
+      Order = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+      Interface = {
+        access = "readWrite",
+        type = "string",
+      },
+      Protocol = {
+        access = "readWrite",
+        type = "int",
+        range = {
+          {
+            min = "-1",
+            max = "255",
+          },
+        },
+        default = "-1",
+      },
+      SourceIP = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      SourceMask = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      DestIP = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      DestMask = {
+        access = "readWrite",
+        type = "string",
+        default = "",
+      },
+      SourcePort = {
+        access = "readWrite",
+        type = "string",
+      },
+      SourcePortRangeMax = {
+        access = "readWrite",
+        type = "string",
+      },
+      DestPort = {
+        access = "readWrite",
+        type = "string",
+      },
+      DestPortRangeMax = {
+        access = "readWrite",
+        type = "string",
+      },
+      DSCPCheck = {
+        access = "readWrite",
+        type = "string",
+        range = {
+          {
+            max = "63",
+          },
+        },
+      },
+      DSCPMark = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            max = "63",
+          },
+        },
+      },
+      EthernetPriorityCheck = {
+        access = "readWrite",
+        type = "unsignedInt",
+      },
+      RuleType = {
+        access = "readOnly",
+        type = "string",
+      },
+      EthernetProtocol = {
+        access = "readWrite",
+        type = "string",
+      },
+      SourceMACAddress = {
+        access = "readWrite",
+        type = "string",
+      },
+      SourceMACMask = {
+        access = "readWrite",
+        type = "string",
+      },
+      DestMACAddress = {
+        access = "readWrite",
+        type = "string",
+      },
+      DestMACMask = {
+        access = "readWrite",
+        type = "string",
+      },
+      ProtocolExclude = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      SourceIPExclude = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      DestIPExclude = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      SourceMACExclude = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      DestMACExclude = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      Queue = {
+        access = "readWrite",
+        type = "string"
+      },
+      Name = {
+        access = "readWrite",
+        type = "string"
+      },
+    },
+  },
+}
+
+local keyToSectionName = {}
+
+-- Ref: http://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml
+local protocolMap = {
+  tcp  = "6",
+  igmp = "2",
+  udp  = "17",
+  udplite = "136",
+  icmp = "1",
+  esp  = "50",
+  ah   = "51",
+  sctp = "132",
+  all  = "-1"
+}
+
+local paramMap = {
+  SourceMACAddress = "macsrc",
+  SourceMACMask = "macsrc",
+  SourceMACExclude = "macsrc",
+  DestMACAddress = "macdst",
+  DestMACMask = "macdst",
+  DestMACExclude = "macdst",
+  EthernetProtocol = true,
+}
+
+-- set the MACAddress to the qos rule as follows
+   -- check if rule is of type "l2classify" and validates for MACAddress format
+   -- validate the exclude pattern(!) in the option fetched from uci and if present concatenate the exclude pattern to the MACAddress to be set
+   -- match for the mask [i.e value after / from the format MAC address[/mask]]  value from the option fetched from uci
+   -- if mask present concatenate the MACAddress to the mask and set on uci
+local function setMACAddress(mapping, param, value, key)
+  if isMac(value) then
+    local macType = paramMap[param]
+    local MacAddress = getUciParam(keyToSectionName[key], macType)
+    if match(MacAddress, "^!") then
+      value = "!" .. value
+    end
+    local mask = match(MacAddress, "/(%S+)$")
+    if mask then
+      MacAddress = value.."/"..mask
+    else
+      MacAddress = value
+    end
+    setUciParam(keyToSectionName[key], macType, MacAddress)
+  else
+    return nil,"Invalid MAC address format"
+  end
+end
+
+-- set the MACMask to the qos rule as follows
+   -- check if rule is of type "l2classify" and validates for MACAddress format
+   -- match for the MACAddress [i.e value before / from the format MAC address[/mask]]  value from the option fetched from uci
+   -- if MACAddress present concatenate the MACAddress with MACMask and set on uci else concatenate "/" with MACMask and set on uci
+local function setMACMask(mapping, param, value, key)
+  if isMac(value) then
+    local macType = paramMap[param]
+    local MacMask = getUciParam(keyToSectionName[key], macType)
+    local macAddress = match(MacMask, "^([^/]+)")
+    if macAddress then
+      MacMask = value ~= "" and macAddress .. "/" .. value or macAddress
+    else
+      if value ~= "" then
+        MacMask = "/" .. value
+      end
+    end
+    setUciParam(keyToSectionName[key], macType, MacMask)
+  else
+    return nil,"Invalid MAC mask format"
+  end
+end
+
+-- set the Exclude pattern to the qos rule as follows
+   -- check if rule is of type "l2classify"
+   -- if value is "1" and the option[srchost/dsthost] fetched from uci does not have any exclude pattern(!) concatenate exclude pattern to the value fetched and set on uci
+   -- if values is "0" remove the exclude pattern from the option and set on uci
+local function setMACExclude(mapping, param, value, key)
+  local mac = getUciParam(keyToSectionName[key], paramMap[param])
+  local macVal
+  if value == "1" then
+    if not mac:match("^!") then
+      macVal = "!" .. mac
+    else
+      macVal = mac
+    end
+  else
+    macVal = mac:match("([^!]+)") or ""
+  end
+  setUciParam(keyToSectionName[key], paramMap[param], macVal)
+end
+
+-- set the Exclude pattern to the qos rule as follows
+  -- if value is "1" and the option[proto] fetched from uci does not have any exclude pattern(!) concatenate exclude pattern to the value fetched and set on
+  -- if values is "0" remove the exclude pattern from the option and set on uci
+local function iPExclude(mapping, param, value, key)
+  local host = (param == "SourceIPExclude") and "srchost" or "dsthost"
+  local ip = getUciParam(keyToSectionName[key], host)
+  local excludeIP
+  if value == "1" then
+    if not ip:match("^!") then
+      excludeIP = "!" .. ip
+    else
+      excludeIP = ip
+    end
+  else
+    excludeIP = ip:match("([^!]+)") or ""
+  end
+  setUciParam(keyToSectionName[key], host, excludeIP)
+end
+
+local keyGenerated
+
+-- This function is used to get the classification type
+local function getClassification(mapping)
+  if mapping.objectType.name:match("^rpc.qos.classification.classify.") then
+    return "classify"
+  elseif mapping.objectType.name:match("^rpc.qos.classification.reclassify.") then
+    return "reclassify"
+  else
+    return "l2classify"
+  end
+end
+
+-- This is the entries function to generate the keys for classify, reclassify and l2classify objects
+-- If family is "ipv6" for classify/reclassify sections then we omit that in keys
+-- If proto is "IPv6" for l2classify sections then we omit that in keys
+qos_rule_Multi_.entries = function(mapping)
+  local entries = {}
+  local classification = getClassification(mapping)
+  qosBinding.sectionname = classification
+  qosBinding.option = nil
+  local result = uciHelper.foreach_on_uci(qosBinding, function(s)
+    local key = s._key
+    if not key then
+      qosBinding.sectionname = s[".name"]
+      key = uciHelper.generate_key_on_uci(qosBinding)
+      keyGenerated = true
+    end
+    if (classification == "l2classify" and s.proto ~= "IPv6") or (classification == "classify" and s.family ~= "ipv6") or (classification == "reclassify" and s.family ~= "ipv6") then
+      keyToSectionName[key] = s[".name"]
+      entries[#entries+1] = key
+    end
+  end)
+  if keyGenerated and result then
+    uciHelper.commit_keys(qosBinding)
+  else
+    uciHelper.revert_keys(qosBinding)
+  end
+  keyGenerated = false
+  return entries
+end
+
+qos_rule_Multi_.get = {
+  Enable = function( mapping, param, key)
+    return getUciParam(keyToSectionName[key], "enable", "1")
+  end,
+  Order = function( mapping, param, key)
+    return ""
+  end,
+  Interface = function( mapping, param, key)
+    local interface = getUciParam(keyToSectionName[key], "srcif") or {}
+    return interface and interface[1] or ""
+  end,
+  Protocol = function(mapping, param, key)
+    local proto = match(getUciParam(keyToSectionName[key], "proto"), "([^!]+)")
+    return proto and protocolMap[proto] or "-1"
+  end,
+  SourceIP = function(mapping, param, key)
+    local ip = match(getUciParam(keyToSectionName[key], "srchost"), "^!?([^/]+)") or ""
+    return gsub(ip ,'!',"")
+  end,
+  SourceMask = function(mapping, param, key)
+    local srcMask = match(getUciParam(keyToSectionName[key], "srchost"), "/(%d+)$") or "32" -- if no mask is present, a mask of /32 (255.255.255.255) is assumed
+    return netmask2mask(tonumber(srcMask))
+  end,
+  DestIP = function(mapping, param, key)
+    local ip = match(getUciParam(keyToSectionName[key], "dsthost"), "^!?([^/]+)") or ""
+    return gsub(ip ,'!',"")
+  end,
+  DestMask = function(mapping, param, key)
+    local destMask = match(getUciParam(keyToSectionName[key], "dsthost"), "/(%d+)$") or "32" -- if no mask is present, a mask of /32 (255.255.255.255) is assumed
+    return netmask2mask(tonumber(destMask))
+  end,
+  DestPort = function(mapping, param, key)
+    local dstPort = getUciParam(keyToSectionName[key], "dstports")
+    return dstPort:match("^(%d+)") or ""
+  end,
+  DestPortRangeMax = function(mapping, param, key)
+    local dstPort = getUciParam(keyToSectionName[key], "dstports")
+    return dstPort:match(":(%d+)$") or ""
+  end,
+  SourcePort = function(mapping, param, key)
+    local srcPort = getUciParam(keyToSectionName[key], "srcports")
+    return srcPort:match("^(%d+)") or ""
+  end,
+  SourcePortRangeMax = function(mapping, param, key)
+    local srcPort = getUciParam(keyToSectionName[key], "srcports")
+    return srcPort:match(":(%d+)$") or ""
+  end,
+  DSCPCheck = function(mapping, param, key)
+    local dscpVal = getUciParam(keyToSectionName[key], "dscp")
+    local dscp
+    -- dscp param could be defined as list or option in uci. List is returned as table and option is returned as string
+    if type(dscpVal) == 'table' then
+      dscp = dscpVal and dscpVal[1] or ""
+    else
+      dscp = dscpVal
+    end
+    return qosHelper.mapDSCP(gsub(dscp, '!',""), mapping.objectType.name)
+  end,
+  DSCPMark = function(mapping, param, key)
+    local label = getUciParam(keyToSectionName[key], "target") or ""
+    local dscp = getUciParam(label, "dscp") or ""
+    return qosHelper.mapDSCP(dscp, mapping.objectType.name)
+  end,
+  EthernetPriorityCheck = function(mapping, param, key)
+    return getUciParam(keyToSectionName[key], "vlanprio") or "0"
+  end,
+  RuleType = function(mapping, param, key)
+    return getClassification(mapping)
+  end,
+  EthernetProtocol = function(mapping, param, key)
+    return gsub(getUciParam(keyToSectionName[key], "proto"), '!', "") or ""
+  end,
+  SourceMACAddress = function(mapping, param, key)
+    local address = match(getUciParam(keyToSectionName[key], "macsrc"), "^([^/]+)") or ""
+    return gsub(address, '!', "")
+  end,
+  SourceMACMask = function(mapping, param, key)
+    return match(getUciParam(keyToSectionName[key], "macsrc"), "/(%S+)$") or "FF:FF:FF:FF:FF:FF"
+  end,
+  DestMACAddress = function(mapping, param, key)
+    local address = match(getUciParam(keyToSectionName[key], "macdst"), "^([^/]+)") or ""
+    return gsub(address, '!', "")
+  end,
+  DestMACMask = function(mapping, param, key)
+    return match(getUciParam(keyToSectionName[key], "macdst"), "/(%S+)$") or "FF:FF:FF:FF:FF:FF"
+  end,
+  ProtocolExclude = function(mapping, param, key)
+    return match(getUciParam(keyToSectionName[key], "proto"), "!") and "1" or "0"
+  end,
+  SourceIPExclude = function(mapping, param, key)
+    return match(getUciParam(keyToSectionName[key], "srchost"), "!") and "1" or "0"
+  end,
+  DestIPExclude = function(mapping, param, key)
+    return  match(getUciParam(keyToSectionName[key], "dsthost"), "!") and "1" or "0"
+  end,
+  SourceMACExclude = function(mapping, param, key)
+    return match(getUciParam(keyToSectionName[key], "macsrc"), "!") and "1" or "0"
+  end,
+  DestMACExclude = function(mapping, param, key)
+    return match(getUciParam(keyToSectionName[key], "macdst"), "!") and "1" or "0"
+  end,
+  Queue = function(mapping, param, key)
+    return getUciParam(keyToSectionName[key], "target")
+  end,
+  Name = function(mapping, param, key)
+    return getUciParam(keyToSectionName[key], "rulename")
+  end
+}
+
+qos_rule_Multi_.set = {
+  Enable = function(mapping, param, value, key)
+    setUciParam(keyToSectionName[key], 'enable', value)
+  end,
+  Interface = function(mapping, param, value, key)
+    setUciParam(keyToSectionName[key], 'srcif', { value })
+  end,
+
+  -- set the DestIP to the qos rule as follows
+    -- validate the exclude pattern(!) in the option fetched from uci and if present concatenate the exclude pattern to the DestIP to be set
+    -- match for the mask [i.e value after / from the format IPAddress[/mask]]  value from the option fetched from uci
+    -- if mask present concatenate the IPAddress to the mask and set on uci
+  DestIP = function(mapping, param, value, key)
+    if value == "" or isValidIPv4Address(value) then
+      local dstHost = getUciParam(keyToSectionName[key], "dsthost")
+      local mask = match(dstHost,"/(%d+)")
+      if match(dstHost, "^!") then
+        value = "!" .. value
+      end
+      dstHost = mask and ( value .. "/" .. mask ) or value
+      setUciParam(keyToSectionName[key], 'dsthost', dstHost)
+    else
+      return nil, format("%s is not a valid IPv4 Address", value)
+    end
+  end,
+
+  -- set the DestMask to the qos rule as follows
+    -- match for the IPAddress [i.e value before / from the format IPAddress[/mask]]  value from the option fetched from uci
+    -- if IPAddress present concatenate the IPAddress with Mask and set on uci else concatenate "/" with MACMask and set on uci
+  DestMask = function(mapping, param, value, key)
+    if isValidIPv4Subnet(value) then
+      local dstHost = getUciParam(keyToSectionName[key], "dsthost")
+      local ipAddress = match(dstHost,("^[^/]+"))
+      local mask = mask2netmask(value)
+      if ipAddress then
+        dstHost = mask ~= "" and ( ipAddress .. "/" .. mask ) or ipAddress
+        setUciParam(keyToSectionName[key], 'dsthost', dstHost)
+       end
+    else
+      return nil, format("%s is not a valid IPv4 SubnetMask", value)
+    end
+  end,
+  SourceIP = function(mapping, param, value, key)
+    if value == "" or isValidIPv4Address(value) then
+      local srcHost = getUciParam(keyToSectionName[key], "srchost")
+      local mask = match(srcHost,"/(%d+)")
+      if match(srcHost, "^!") then
+        value = "!" .. value
+      end
+      srcHost = mask and ( value .. "/" .. mask ) or value
+      setUciParam(keyToSectionName[key], 'srchost', srcHost)
+    else
+      return nil, format("%s is not a valid IPv4 Address", value)
+    end
+  end,
+  SourceMask = function(mapping, param, value, key)
+    if isValidIPv4Subnet(value) then
+      local srcHost = getUciParam(keyToSectionName[key], "srchost")
+      local ipAddress = match(srcHost,("^[^/]+"))
+      local mask = mask2netmask(value)
+      if ipAddress then
+        srcHost = mask ~= "" and ( ipAddress .. "/" .. mask ) or ipAddress
+        setUciParam(keyToSectionName[key], 'srchost', srcHost)
+      end
+    else
+      return nil, format("%s is not a valid IPv4 SubnetMask", value)
+    end
+  end,
+  Protocol = function(mapping, param, value, key)
+    for protoName, protoNum in pairs(protocolMap) do
+      if protoNum == value then
+        setUciParam(keyToSectionName[key], 'proto', protoName)
+        break
+      end
+    end
+  end,
+  DestPort = function(mapping, param, value, key)
+    local destPort = getUciParam(keyToSectionName[key], "dstports")
+    local destPortRange = destPort:match(":(%d+)$") or ""
+    if destPort ~= "" and destPortRange ~= "" then
+      value = value .. ':' .. destPortRange
+    end
+    setUciParam(keyToSectionName[key], 'dstports', value)
+  end,
+  DestPortRangeMax = function(mapping, param, value, key)
+    if value ~= "" then
+      local destPort = getUciParam(keyToSectionName[key], "dstports")
+      local portNo = destPort:match("^(%d+)")
+      if not portNo or portNo == "0" then
+        value = value .. ':' .. value
+      else
+        value = portNo .. ':' .. value
+      end
+     end
+      setUciParam(keyToSectionName[key], 'dstports', value)
+  end,
+  SourcePort = function(mapping, param, value, key)
+    local srcPort = getUciParam(keyToSectionName[key], "srcports")
+    local srcPortRange = srcPort:match(":(%d+)$") or ""
+    if srcPort ~= "" and srcPortRange ~= "" then
+      value = value .. ':' .. srcPortRange
+    end
+    setUciParam(keyToSectionName[key], 'srcports', value)
+  end,
+  SourcePortRangeMax = function(mapping, param, value, key)
+    if value ~= "" then
+      local srcPort = getUciParam(keyToSectionName[key], "srcports")
+      local portNo = srcPort:match("^(%d+)")
+      if not portNo or portNo == "0" then
+        value = value .. ':' .. value
+      else
+        value = portNo .. ':' .. value
+      end
+    end
+    setUciParam(keyToSectionName[key], 'srcports', value)
+  end,
+  DSCPCheck =function(mapping, param, value, key)
+    value = qosHelper.convertToHexDscp(value)
+    local dscp = getUciParam(keyToSectionName[key], "dscp")
+    -- dscp param could be defined as list or option in uci.
+    -- if the type is defined as list, set it as list
+    if type(dscp) == 'table' then
+      setUciParam(keyToSectionName[key], 'dscp', { value })
+    else
+      setUciParam(keyToSectionName[key], 'dscp', value)
+    end
+  end,
+  DSCPMark = function(mapping, param, value, key)
+    value = qosHelper.convertToHexDscp(value)
+    local label = getUciParam(keyToSectionName[key], "target")
+    setUciParam(label, "dscp", value)
+  end,
+  EthernetPriorityCheck = function(mapping, param, value, key)
+    setUciParam(keyToSectionName[key], 'vlanprio', value)
+  end,
+  EthernetProtocol = function(mapping, param, value, key)
+    if match(getUciParam(keyToSectionName[key], "proto"), "^!") then
+      value = "!" .. value
+    end
+    return setUciParam(keyToSectionName[key], "proto", value)
+  end,
+  SourceMACAddress = setMACAddress,
+  SourceMACMask = setMACMask,
+  DestMACAddress = setMACAddress,
+  DestMACMask = setMACMask,
+
+  -- set the Exclude pattern to the qos rule as follows
+    -- check if rule is of type "l2classify"
+    -- if value is "1" and the option[proto] fetched from uci does not have any exclude pattern(!) concatenate exclude pattern to the value fetched and set on
+    -- if values is "0" remove the exclude pattern from the option and set on uci
+  ProtocolExclude = function(mapping, param, value, key)
+    local proto = getUciParam(keyToSectionName[key], "proto")
+    local protoVal
+    if value == "1" then
+      if not proto:match("^!") then
+        protoVal = "!" .. proto
+      else
+        protoVal = proto
+      end
+    else
+      protoVal = proto:match("([^!]+)") or ""
+    end
+    return setUciParam(keyToSectionName[key], "proto", protoVal)
+  end,
+  DestIPExclude = iPExclude,
+  SourceIPExclude = iPExclude,
+  SourceMACExclude = setMACExclude,
+  DestMACExclude = setMACExclude,
+  Queue = function(mapping, param, value, key)
+    setUciParam(keyToSectionName[key], "target", value)
+  end,
+  Name = function(mapping, param, value, key)
+    setUciParam(keyToSectionName[key], "rulename", value)
+  end
+}
+
+-- This function is to add a new instance for classify, reclassify or l2classify section
+qos_rule_Multi_.add = function(mapping)
+  local max_value = 0
+  local value = getClassification(mapping)
+  qosBinding.sectionname = value
+  forEachOnUci(qosBinding, function(s)
+    if (s[".name"]:match(value)) then
+      local next_index = tonumber((s[".name"]:match(value .."_(.*)$")))
+      if next_index > max_value then
+        max_value = next_index
+      end
+    end
+  end)
+  qosBinding.sectionname = format("%s_%s", value, tostring(max_value + 1))
+  qosBinding.option = nil
+  uciHelper.set_on_uci(qosBinding, value, commitapply)
+  local sectionName = qosBinding.sectionname
+  if sectionName then
+    uciHelper.commit(qosBinding)
+    configChanged = true
+    qosBinding.sectionname = sectionName
+    local key = uciHelper.generate_key_on_uci(qosBinding)
+    if key then
+      keyToSectionName[key] = sectionName
+      uciHelper.commit_keys(qosBinding)
+      setUciParam(sectionName, "_key", key)
+      return key
+    else
+      uciHelper.revert_keys(qosBinding)
+    end
+  end
+end
+
+-- This function is to delete the given instance for classify, reclassify or l2classify section
+qos_rule_Multi_.delete = function(mapping, key)
+  qosBinding.sectionname = keyToSectionName[key]
+  qosBinding.option = nil
+  uciHelper.delete_on_uci(qosBinding, commitapply)
+  qosBinding.sectionname = nil
+  configChanged = true
+  return true
+end
+
+qos_rule_Multi_.commit = function()
+  if configChanged then
+    uciHelper.commit(qosBinding)
+    configChanged = false
+  end
+end
+
+qos_rule_Multi_.revert = function()
+  if configChanged then
+    uciHelper.revert(qosBinding)
+    configChanged = false
+  end
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(qos_rule_Multi_, "#ROOT", {"classify", "reclassify", "l2classify"})
+for _, dupli in ipairs(duplicates) do
+  if not dupli.objectType.name:match("^rpc.qos.classification.l2classify.") then
+    -- DSCP remarking is applicable only for reclassify, so we make this param as nil for classify rules
+    if dupli.objectType.name:match("^rpc.qos.classification.classify.") then
+      dupli.objectType.parameters.DSCPMark = nil
+    end
+    for param in pairs(paramMap) do
+      dupli.objectType.parameters[param] = nil
+    end
+  else
+    -- DSCP remarking is applicable only for reclassify, so we make this param as nil for l2classify rules
+    dupli.objectType.parameters.DSCPMark = nil
+  end
+  register(dupli)
+end
+

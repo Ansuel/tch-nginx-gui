@@ -1,0 +1,184 @@
+local logger = require("transformer.logger")
+local log = logger.new("wireless.ssid", 2)
+local register, pairs, ipairs = register, pairs, ipairs
+
+local wireless_ssid_ = {
+  objectType = {
+    name = "rpc.wireless.ssid.@.",
+    access = "readOnly",
+    numEntriesParameter = "SSIDsNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+        radio = {
+            access = "readOnly",
+            type = "string",
+        },
+        bssid = {
+            access = "readOnly",
+            type = "string",
+        },
+        mac_address = {
+            access = "readOnly",
+            type = "string",
+        },
+        ssid = {
+            access = "readWrite",
+            type = "string",
+        },
+        admin_state = {
+            access = "readOnly",
+            type = "boolean",
+        },
+        oper_state = {
+            access = "readOnly",
+            type = "boolean",
+        },
+        reliable_multicast = {
+            access = "readOnly",
+            type = "boolean",
+        },
+        lan = { -- Does the interface belong to a LAN zone
+            access = "readOnly",
+            type = "boolean",
+        },
+        stb = {
+            access = "readOnly",
+            type = "boolean",
+        },
+        ap_display_name = {
+            access = "readOnly",
+            type = "string",
+        },
+        network = {
+            access = "readOnly",
+            type = "string",
+        },
+    },
+  }
+}
+
+local mapper = mapper
+local uci_helper = mapper("ucihelper")
+local nwcommon = mapper("nwcommon")
+local conn = mapper("ubus").connect()
+local ssidDataCache
+
+local function nilToEmptyString(st)
+    if st == nil then
+        return ""
+    else
+        return tostring(st)
+    end
+end
+
+local function getDataForIface(iface)
+    local result = ssidDataCache or conn:call("wireless.ssid", "get", { name = iface })
+    result[iface]["stb"] = uci_helper.get_from_uci({ config = "wireless", sectionname = iface, option = "stb", extended = true})
+    result[iface]["ap_display_name"] = uci_helper.get_from_uci({ config = "wireless", sectionname = iface, option = "ap_display_name", extended = true})
+    if result == nil then
+        log:error("Cannot retrieve ssid info for iface " .. iface)
+        return {}
+    end
+    return result[iface]
+end
+
+local function getDataForRadio(radio)
+    local result = conn:call("wireless.radio", "get", { name = radio })
+    if result == nil then
+        log:error("Cannot retrieve radio info for " .. radio)
+        return {}
+    end
+    return result[radio]
+end
+
+local function entriesWirelessSSID()
+    local entries = {}
+    ssidDataCache = conn:call("wireless.ssid", "get", { })
+    if ssidDataCache then
+        for key in pairs(ssidDataCache) do
+            entries[#entries+1] = key
+        end
+    end
+    return entries
+end
+
+local function getLANStateForIface(ssidData, iface)
+    local lan = nwcommon.findLanWanInterfaces(false)
+    local radioData = getDataForRadio(ssidData.radio)
+    local lanmap = {}
+    local intfmap = {}
+
+    for _,v in ipairs(lan) do
+        lanmap[v] = true
+        local ll_intfs = nwcommon.get_lower_layers(v)
+
+        if ll_intfs ~= nil then
+            for _,l in ipairs(ll_intfs) do
+                intfmap[l] = true
+            end
+        end
+    end
+
+    if radioData.remotely_managed == 1 then
+        local network = uci_helper.get_from_uci({ config = "wireless", sectionname = iface, option = "network", extended = true})
+        if network and lanmap[network] then
+            return "1"
+        else
+            return "0"
+        end
+    else
+        if intfmap[iface] then
+            return "1"
+        else
+            return "0"
+        end
+    end
+end
+
+local function getNetwork(key)
+  return uci_helper.get_from_uci({config = "wireless", sectionname = key, option = "network"})
+end
+
+local function getall(_, key)
+    local ssidData = getDataForIface(key)
+    local sanitizedData = {}
+    for k,v in pairs(ssidData) do
+        sanitizedData[k] = nilToEmptyString(v)
+    end
+    sanitizedData.network = getNetwork(key)
+    sanitizedData.lan = getLANStateForIface(ssidData, key)
+    return sanitizedData
+end
+
+local function get(_, paramName, key)
+    local ssidData = getDataForIface(key)
+    if paramName == "lan" then
+        return getLANStateForIface(ssidData, key)
+    elseif paramName == "network" then
+        return getNetwork(key)
+    else
+        return nilToEmptyString(ssidData[paramName]);
+    end
+end
+
+local set = {
+    ssid = function(_, param, value, key)
+         uci_helper.set_on_uci({
+            config = "wireless", sectionname = key , option = param
+        }, value, commitapply)
+    end,
+}
+wireless_ssid_.entries = entriesWirelessSSID
+wireless_ssid_.getall = getall
+wireless_ssid_.get = get
+wireless_ssid_.set = set
+wireless_ssid_.commit = function()
+    uci_helper.commit({config = "wireless"})
+end
+wireless_ssid_.revert = function()
+    uci_helper.revert({config = "wireless"})
+end
+
+register(wireless_ssid_)
+

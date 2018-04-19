@@ -1,0 +1,205 @@
+local uci_traceroute_ = {
+  objectType = {
+    name = "uci.traceroute.@.",
+    access = "readWrite",
+    minEntries = 1,
+    maxEntries = math.huge,
+    parameters = {
+      DiagnosticsState = {
+        access = "readWrite",
+        activeNotify = "canDeny",
+        type = "string",
+        enumeration = {
+          "None",
+          "Requested",
+          "Canceled",
+          "Complete",
+          "Error_CannotResolveHostName",
+          "Error_MaxHopCountExceeded",
+        },
+      },
+      Interface = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+        pathRef = true,
+      },
+      Host = {
+        access = "readWrite",
+        type = "string",
+        max = "256",
+      },
+      NumberOfTries = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+            max = "3",
+          },
+        },
+      },
+      Timeout = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+          },
+        },
+      },
+      DataBlockSize = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+            max = "65535",
+          },
+        },
+      },
+      DSCP = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "0",
+            max = "63",
+          },
+        },
+      },
+      MaxHopCount = {
+        access = "readWrite",
+        type = "unsignedInt",
+        range = {
+          {
+            min = "1",
+            max = "64",
+          },
+        },
+      },
+      ResponseTime = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      -- RouteHopsNumberOfEntries
+      -- automatically created when InternetGatewayDevice.TraceRouteDiagnostics.RouteHops.{i}. is loaded
+    }
+  }
+}
+
+local uci_traceroute_RouteHops_i_ = {
+  objectType = {
+    name = "uci.traceroute.@.RouteHops.@.",
+    access = "readOnly",
+    numEntriesParameter = "RouteHopsNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      HopHost = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+        max = "256",
+      },
+      HopHostAddress = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "string",
+      },
+      HopErrorCode = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
+      HopRTTimes = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        list = true,
+        max = "16",
+        type = "unsignedInt",
+      },
+    }
+  }
+}
+
+local open = io.open
+local logger = require("transformer.logger")
+local uci = mapper("ucihelper")
+local config = "traceroute"
+local function entries_users(mapping)
+    local users = {}
+    local binding = {
+      config="traceroute",
+      sectionname="user",
+    }
+    uci.foreach_on_uci(binding, function(s)
+    -- iterate over the interfaces
+      table.insert(users, s['.name'])
+    end)
+    return users
+end
+
+
+local helper = require("transformer.shared.traceroutehelper")
+local clear_traceroute_results = helper.clear_traceroute_results
+local read_traceroute_results = helper.read_traceroute_results
+local paramIndexMap = { HopHost = 1, HopHostAddress = 2, HopRTTimes = 3, HopErrorCode = 4 }
+
+uci_traceroute_.get = function(mapping, pname, key)
+    return helper.uci_traceroute_get(key, pname)
+end
+uci_traceroute_.set = function(mapping, pname, pvalue, key)
+    return helper.uci_traceroute_set(key, pname, pvalue, commitapply)
+end
+uci_traceroute_.add = function(mapping, name)
+    local section
+    if name ~= nil then
+        section = name
+        local uci_binding = {
+          DiagnosticsState = { config = config, sectionname = section, option = "state" },
+          Interface = { config = config, sectionname = section, option = "interface" },
+          Host = { config = config, sectionname = section, option = "host" },
+          NumberOfTries = { config = config, sectionname = section, option = "tries" },
+          Timeout = { config = config, sectionname = section, option = "timeout" },
+          DataBlockSize = { config = config, sectionname = section, option = "size" },
+          DSCP = { config = config, sectionname = section, option = "dscp" },
+          MaxHopCount = { config = config, sectionname = section, option = "hopcount" },
+        }
+        return helper.startup(name, uci_binding)
+    else
+        error("you have to provide a name")
+    end
+end
+uci_traceroute_.delete = function()
+   error("not implemented")
+end
+
+uci_traceroute_.entries=entries_users
+
+uci_traceroute_RouteHops_i_.get = function(mapping, pname, key, pkey)
+  local paramIndex = paramIndexMap[pname] or 0
+  local res = read_traceroute_results(pkey)
+  local rres = (res and res[tonumber(key)] and res[tonumber(key)][paramIndex]) or ""
+  return rres
+end
+
+uci_traceroute_RouteHops_i_.set = function(mapping, pname, key, pkey)
+  return nil, "Invalid path"
+end
+
+uci_traceroute_RouteHops_i_.entries = function(mapping, pkey)
+  local result = {}
+  local res = read_traceroute_results(pkey)
+  for i,j in ipairs(res) do
+    result[i]=tostring(i)
+  end
+
+  return result
+end
+
+uci_traceroute_.commit=helper.uci_traceroute_commit
+uci_traceroute_.revert=helper.uci_traceroute_revert
+register(uci_traceroute_)
+register(uci_traceroute_RouteHops_i_)

@@ -1,0 +1,50 @@
+local register = register;
+
+-- Manually generated
+local wireless_radio_acs_ = {
+  objectType = {
+    name = "rpc.wireless.radio.@.acs.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      scan_report = {
+        access = "readOnly",
+        type = "string",
+      },
+      rescan = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
+    },
+  }
+}
+
+local uci_helper = mapper("ucihelper")
+local ubus = require("ubus")
+local network = require("transformer.shared.common.network")
+local conn = ubus.connect()
+if not conn then
+  error("Failed to connect to ubusd")
+end
+
+
+local function get (mapping, paramname, key)
+  local content = {}
+  content = conn:call("wireless.radio.acs", "get", { name = key } )
+    if content[key] and content[key][paramname] then
+      return tostring(content[key][paramname])
+    end
+    return ""
+end
+
+local set = {
+  rescan = function(mapping, paramname, paramValue, key)
+    network.triggerACSRescan(key)
+  end
+}
+
+wireless_radio_acs_.get = get
+wireless_radio_acs_.set = set
+register(wireless_radio_acs_)

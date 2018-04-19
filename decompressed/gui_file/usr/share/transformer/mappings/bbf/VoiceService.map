@@ -1,0 +1,274 @@
+local lfs = require("lfs")
+
+if lfs.attributes("/etc/config/mmpbx", "mode") ~= "file" then
+  return
+end
+
+local uci_helper = mapper("ucihelper")
+local transactions = {}
+local binding = {}
+
+local Multi_Services_VoiceService_i_ = {
+  objectType = {
+    name = "#ROOT.Services.VoiceService.{i}.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = math.huge,
+    numEntriesParameter = "VoiceServiceNumberOfEntries",
+    parameters = {
+      X_000E50_FXOState = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      X_000E50_FXSState = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      X_FASTWEB_BoundIfName = {
+        access = "readOnly",
+        type = "string",
+        description = "Used to identify the interface used for outgoing voice packet, return the interface name, if available.",
+      },
+      -- VoiceProfileNumberOfEntries
+      -- automatically created when Multi.Services.VoiceService.{i}.VoiceProfile.{i}. is loaded
+      -- X_BELGACOM_PhyInterfaceNumberOfEntries
+      -- automatically created when Multi.Services.VoiceService.{i}.PhyInterface.{i}. is loaded
+    }
+  }
+}
+
+-- Two User Agents:
+-- 1. InternetGatewayDevice.Services.VoiceService.1 is the SIP clients
+-- 2. InternetGatewayDevice.Services.VoiceService.2 is the INTUA of the B2BUA
+local entries = {"SIPUA", "INTUA"}
+Multi_Services_VoiceService_i_.entries = function(mapping, parentkey)
+    return entries
+end
+
+Multi_Services_VoiceService_i_.get = {
+   X_000E50_FXOState = function (mapping, paramname, key)
+       binding.config = "mmpbxbrcmfxonet"
+       binding.sectionname = "fxo_profile"
+       binding.option = "enabled"
+       binding.default = "0"
+       return uci_helper.get_from_uci(binding)
+   end,
+
+   X_000E50_FXSState = function (mapping, paramname, key)
+       binding.config = "mmpbxbrcmfxsdev"
+       binding.sectionname = "fxs_dev_0"
+       binding.option = "relay_state"
+       binding.default = "0"
+       return uci_helper.get_from_uci(binding)
+   end,
+   X_FASTWEB_BoundIfName = function ()
+       binding.config = "mmpbxrvsipnet"
+       binding.sectionname = "sip_net"
+       binding.option = "interface"
+       binding.default = ""
+       return uci_helper.get_from_uci(binding)
+   end,
+}
+
+
+Multi_Services_VoiceService_i_.set = {
+   X_000E50_FXOState = function (mapping, paramname, paramvalue, key)
+       binding.config = "mmpbxbrcmfxonet"
+       binding.sectionname = "fxo_profile"
+       binding.option = "enabled"
+       uci_helper.set_on_uci(binding, paramvalue, commitapply)
+       transactions[binding.config] = true;
+  end,
+  X_000E50_FXSState = function (mapping, paramname, paramvalue, key)
+       binding.config = "mmpbxbrcmfxsdev"
+       binding.sectionname = "fxs_dev_0"
+       binding.option = "relay_state"
+       uci_helper.set_on_uci(binding, paramvalue, commitapply)
+
+       binding.sectionname = "fxs_dev_1"
+       uci_helper.set_on_uci(binding, paramvalue, commitapply)
+       transactions[binding.config] = true;
+  end,
+}
+
+Multi_Services_VoiceService_i_.commit = function()
+    local conf_binding = {}
+    for config in pairs(transactions) do
+        conf_binding.config = config
+        uci_helper.commit(conf_binding)
+    end
+    transactions = {}
+end
+
+Multi_Services_VoiceService_i_.revert = function()
+    local config_binding = {}
+    for config in pairs(transactions) do
+        config_binding.config = config
+        uci_helper.revert(config_binding)
+    end
+    transactions = {}
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_Services_VoiceService_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local areacode_binding = { config = "mmpbx", sectionname = "areacode_translation"}
+local areacode_entries = {}
+
+local Multi_Services_VoiceService_i_X_000E50_AreaCode_i_ = {
+  objectType = {
+    name = "#ROOT.Services.VoiceService.{i}.X_000E50_AreaCode.{i}.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = math.huge,
+    numEntriesParameter = "X_000E50_AreaCodeNumberOfEntries",
+    parameters = {
+      Level = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+             min = "1",
+             max = "5"
+          }
+        },
+      },
+      AreaCode = {
+        access = "readOnly",
+        type = "string",
+        min = "1",
+        max = "20",
+      },
+      Action = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "showareacode",
+          "hideareacode"
+        }
+      },
+      Prefix = {
+        access = "readOnly",
+        type = "string",
+        max = "20",
+      },
+      delete = {
+        access = "readOnly",
+        type = "unsignedInt",
+        range = {
+          {
+            max = "20"
+          }
+        },
+      },
+      executeprefdel = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "always",
+          "insideareacode"
+        }
+      }
+      -- "X_000E50_AreaCodeNumberOfEntries",
+      -- automatically created when Multi.Services.VoiceService.{i}.X_000E50_AreaCode.{i}. is loaded
+    }
+  }
+}
+
+local translate_action = {
+    ['1'] = "showareacode",
+    ['0'] = "hideareacode",
+}
+
+local translate_prefdel = {
+    ['0'] = "insideareacode",
+    ['1'] = "always",
+}
+
+local function convertAction(value)
+    return translate_action[value]
+end
+
+local function convertPref(value)
+    return translate_prefdel[value]
+end
+
+Multi_Services_VoiceService_i_X_000E50_AreaCode_i_.entries = function(mapping, parentkey)
+    local ua_entries = {}
+    if parentkey:match("INTUA") then
+        return ua_entries
+    end
+    areacode_binding.sectionname = "areacode_translation"
+    uci_helper.foreach_on_uci(areacode_binding, function(s)
+        if (not s._key) then
+            areacode_binding.config = "mmpbx"
+            areacode_binding.sectionname = s[".name"]
+            areacode_binding.option = "_key"
+            s._key = uci_helper.generate_key_on_uci(areacode_binding)
+            uci_helper.commit_keys(areacode_binding)
+        end
+            ua_entries [#ua_entries + 1] = string.format("areacode_translation|%s",s._key)
+            areacode_entries [s._key] = s
+    end)
+    return ua_entries
+end
+
+local areacode_map = {
+    value = {
+        Level = "level",
+        AreaCode = "areacode",
+        Action = {"show" , convertAction},
+        Prefix = "prefix",
+        delete = "remove_header_length",
+        executeprefdel = { "execprefdel", convertPref },
+    },
+    default = {
+        Level = "1",
+        AreaCode = "",
+        Action = "showareacode",
+        Prefix = "",
+        delete = "0",
+        executeprefdel = "insideareacode",
+    }
+}
+
+Multi_Services_VoiceService_i_X_000E50_AreaCode_i_.getall = function(mapping, key)
+    local data = {}
+    local keyid = key:match("|(.*)")
+    local object = areacode_entries[keyid]
+    for p in pairs (Multi_Services_VoiceService_i_X_000E50_AreaCode_i_.objectType.parameters) do
+        if (areacode_map.value[p]) then
+            if type(areacode_map.value[p]) == 'table' then
+                local conversion = (areacode_map.value[p][2])
+                data[p] = conversion and conversion(object[areacode_map.value[p][1]])
+            else
+                data[p] = object[areacode_map.value[p]]
+            end
+        end
+        data[p] = data[p] or areacode_map.default[p]
+    end
+    return data
+end
+
+Multi_Services_VoiceService_i_X_000E50_AreaCode_i_.get = function(mapping, param, key)
+    local keyid = key:match("|(.*)")
+    local object = areacode_entries[keyid]
+    if type(areacode_map.value[param]) == "table" then
+        local conversion = (areacode_map.value[param][2])
+        local result = conversion and conversion(object[areacode_map.value[param][1]])
+        return result or areacode_map.default[param]
+    else
+        return object[areacode_map.value[param]] or areacode_map.default[param]
+    end
+end
+
+duplicates = duplicator(Multi_Services_VoiceService_i_X_000E50_AreaCode_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  if dupli.objectType.name:match("^InternetGatewayDevice.") then
+    dupli.objectType.parameters["X_FASTWEB_BoundIfName"] = nil
+  end
+  register(dupli)
+end

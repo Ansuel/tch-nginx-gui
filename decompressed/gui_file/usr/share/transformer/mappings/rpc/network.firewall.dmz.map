@@ -1,0 +1,179 @@
+-- global functions used
+local require, mapper, register = require, mapper, register
+local string, table, pairs, tostring, error = string, table, pairs, tostring, error
+
+-- library helpers
+local fw_helper = require("transformer.shared.firewall_helper")
+local ubus_connect = mapper("ubus").connect()
+
+local mapping_dmz_rpc = {
+    objectType = {
+        name = "rpc.network.firewall.dmz.",
+        access = "readOnly",
+        minEntries = 0,
+        maxEntries = 1,
+        parameters = {
+            enable = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            blocked = {
+                access = "readOnly",
+                type = "boolean",
+            },
+        },
+    }
+}
+
+local uci_helper = mapper("ucihelper")
+
+local firewallBinding = {config = "firewall", sectionname = "dmzredirects" }
+mapping_dmz_rpc.entries = function(mapping)
+  local dmzredirect = uci_helper.get_from_uci(firewallBinding)
+  if dmzredirect ~= "" then
+    return {"1"}
+  else
+    return {}
+  end
+end
+
+mapping_dmz_rpc.get = {
+    enable = function(mapping, param)
+        return uci_helper.get_from_uci({config= "firewall", sectionname="fwconfig", option="dmz", default="0"})
+    end,
+    blocked = function(mapping, param)
+        return fw_helper.dmz_blocked() and "1" or "0"
+    end,
+}
+
+mapping_dmz_rpc.set = {
+    enable = function(mapping, paramname, paramvalue)
+      fw_helper.set_dmz_enable(paramvalue, commitapply)
+    end,
+}
+
+register(mapping_dmz_rpc)
+
+-- uci.firewall.dmzredirect.@
+local mapinfo_dmzredirect_uci = {
+    config = "firewall",
+    type = "dmzredirect",
+    options = { "enabled", "name", "family", "src", "dest", "dest_mac", "dest_ip", "target" },
+}
+
+local mapping_dmzredirect_uci = mapper("uci_1to1").createNamedMultiMap(mapinfo_dmzredirect_uci)
+
+local mapping_dmzredirect_rpc = {
+    uciMap = mapping_dmzredirect_uci, -- so the underlying uci is available in callbacks
+    objectType = {
+        name = "rpc.network.firewall.dmz.redirect.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = mapping_dmzredirect_uci.objectType.parameters,
+    }
+}
+local redirect_key = "dmzredirect"
+
+mapping_dmzredirect_rpc.get = function(mapping, param)
+    mapping.uciMap.entries(mapping.uciMap)
+    local result, errmsg = mapping.uciMap.get(mapping.uciMap, param, redirect_key)
+    if param == "dest_ip" and (result == "0.0.0.0" or result == "::") then
+        result = "unknown"
+    end
+    return result, errmsg
+end
+
+mapping_dmzredirect_rpc.getall = function(mapping)
+    mapping.uciMap.entries(mapping.uciMap)
+    local result, errmsg = mapping.uciMap.getall(mapping.uciMap, redirect_key)
+    if type(result) == "table" and (result.dest_ip == "0.0.0.0" or result.dest_ip == "::") then
+        result.dest_ip = "unknown"
+    end
+    return result, errmsg
+end
+
+mapping_dmzredirect_rpc.set = function(mapping, param, value)
+    mapping.uciMap.entries(mapping.uciMap)
+    if value ~= "" then
+        if param == "dest_ip" then
+            local family -- family deduced from the IP value
+            local macAddr -- mac address of dest_ip value
+            local ipConfiguration
+
+            if string.find(value, ":") then
+                family = "ipv6"
+            else
+                family = "ipv4"
+                ipConfiguration = "dynamic"
+            end
+            mapping.uciMap.set(mapping.uciMap, "family", family, redirect_key)
+
+            macAddr = fw_helper.ip2mac(ubus_connect, family, value, ipConfiguration) or ""
+            mapping.uciMap.set(mapping.uciMap, "dest_mac", macAddr, redirect_key)
+
+            if macAddr ~= "" then
+                -- Don't write the IP address to /etc/config/firewall because
+                -- it changes. The address will be written to /var/state/firewall
+                -- which won't persist across a reboot.
+                -- (See redirecthelper for process that does this)
+                if (family == "ipv6") then
+                    value = "::"
+                else
+                    value = "0.0.0.0"
+                end
+            end
+        elseif param == "dest_mac" then
+            local family = string.lower(mapping.uciMap.get(mapping.uciMap, "family", redirect_key))
+            local ipAddr = mapping.uciMap.get(mapping.uciMap, "dest_ip", redirect_key)
+
+            if family == "ipv6" then
+                ipAddr = "::"
+            elseif family == "ipv4" then
+                ipAddr = "0.0.0.0"
+            elseif ipAddr ~= "" then
+                if string.find(ipAddr, ":") then
+                    family = "ipv6"
+                    ipAddr = "::"
+                else
+                    family = "ipv4"
+                    ipAddr = "0.0.0.0"
+                end
+            end
+
+            mapping.uciMap.set(mapping.uciMap, "family", family, redirect_key)
+            mapping.uciMap.set(mapping.uciMap, "dest_ip", ipAddr, redirect_key)
+        elseif param == "family" then
+            value = string.lower(value)
+            local macAddr = mapping.uciMap.get(mapping.uciMap, "dest_mac", redirect_key)
+            if macAddr ~= "" then
+                if value == "ipv6" then
+                    mapping.uciMap.set(mapping.uciMap, "dest_ip", "::", redirect_key)
+                elseif value == "ipv4" then
+                    mapping.uciMap.set(mapping.uciMap, "dest_ip", "0.0.0.0", redirect_key)
+                end
+            end
+        end
+    end
+    return mapping.uciMap.set(mapping.uciMap, param, value, redirect_key)
+end
+
+mapping_dmzredirect_rpc.commit = function(mapping)
+    local result, errmsg -- standard return
+
+    result, errmsg = mapping.uciMap.commit(mapping.uciMap)
+
+    -- update /var/state/firewall
+    -- Notify redirecthelper that we modified something.
+    -- dynamic dest_ip might need changed
+    ubus_connect:call("redirecthelper", "update", {})
+
+    return result, errmsg
+end
+
+mapping_dmzredirect_rpc.revert = function(mapping)
+    return mapping.uciMap.revert(mapping.uciMap)
+end
+
+register(mapping_dmzredirect_rpc)
+

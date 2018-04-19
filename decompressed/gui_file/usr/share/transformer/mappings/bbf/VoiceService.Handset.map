@@ -1,0 +1,180 @@
+local lfs = require("lfs")
+
+if lfs.attributes("/etc/config/mmpbx", "mode") ~= "file" then
+  return
+end
+
+local tostring, tonumber, ipairs, pairs, setmetatable =
+      tostring, tonumber, ipairs, pairs, setmetatable
+local match, format = string.match, string.format
+local conn = mapper("ubus").connect()
+
+local Multi_Services_VoiceService_i_X_000E50_Handset_i_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.X_000E50_Handset.{i}.",
+        access = "readOnly",
+        minEntries = 0,
+        maxEntries = math.huge,
+        numEntriesParameter = "NumberOfHandsets",
+        parameters = {
+            TerminalName = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "string",
+            },
+            IPEI = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "string",
+            },
+            EMC = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "string",
+            },
+            HardwareVersion = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "string",
+            },
+            SoftwareVersion = {
+                access = "readOnly",
+                activeNotify = "canDeny",
+                type = "string",
+            },
+        }
+    }
+}
+
+local function getdevice(name)
+    local content = conn:call("mmpbxbrcmdect.devices", "list", {})
+    if type(content) == 'table' then
+        for key, val in pairs(content) do
+            if name == key then
+                return val
+            end
+        end
+    end
+    return {}
+end
+
+Multi_Services_VoiceService_i_X_000E50_Handset_i_.entries = function(mapping, parentkey)
+    local entries = {}
+    if parentkey == "SIPUA" then
+        local content = conn:call("mmpbxbrcmdect.devices", "list", {})
+        if type(content) == 'table' then
+            for key, val in pairs(content) do
+                entries[#entries + 1] = key
+            end
+        end
+        table.sort(entries)
+    end
+    return entries
+end
+
+local hs_igduci_mapping = {
+    TerminalName = "userFriendlyName",
+    IPEI = "ipui",
+    EMC = "emc",
+    HardwareVersion = "hardwareVersion",
+    SoftwareVersion = "softwareVersion",
+}
+
+Multi_Services_VoiceService_i_X_000E50_Handset_i_.get = function (mapping, paramname, key)
+    return getdevice(key)[hs_igduci_mapping[paramname]] or ""
+end
+
+Multi_Services_VoiceService_i_X_000E50_Handset_i_.getall = function (mapping, key)
+    local params = {}
+    local dev = getdevice(key)
+    for mykey, ucikey in pairs(hs_igduci_mapping) do
+        if dev[ucikey] ~= nil then
+            params[mykey] = dev[ucikey]
+        else
+            params[mykey] = ""
+        end
+    end
+    return params
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_Services_VoiceService_i_X_000E50_Handset_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local Multi_Services_VoiceService_i_X_000E50_HandsetUpgrade_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.X_000E50_HandsetUpgrade.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            -- NumberOfHandsetUpgradeURLEntries
+            -- automatically created when Multi.Services.VoiceService.{i}.X_000E50_HandsetUpgrade.URL.{i}. is loaded
+        }
+    }
+}
+
+duplicates = duplicator(Multi_Services_VoiceService_i_X_000E50_HandsetUpgrade_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local Multi_Services_VoiceService_i_X_000E50_HandsetUpgrade_URL_i_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.X_000E50_HandsetUpgrade.URL.{i}.",
+        access = "readWrite",
+        numEntriesParameter = "NumberOfHandsetUpgradeURLEntries",
+        minEntries = 1,
+        maxEntries = math.huge,
+        parameters = {
+            EMC = {
+                access = "readWrite",
+                type = "string",
+            },
+            HardwareVersion = {
+                access = "readWrite",
+                type = "string",
+            },
+            SoftwareVersion = {
+                access = "readWrite",
+                type = "string",
+            },
+            URL = {
+                access = "readWrite",
+                type = "string",
+            },
+            SoftwareVersionOld = {
+                access = "readWrite",
+                type = "string",
+            },
+        }
+    }
+}
+local uci_binding = {
+    global_config="mmpbxbrcmdectdev",
+    global_type="suota",
+    EMC="emc",
+    HardwareVersion="hardware_version",
+    SoftwareVersion="software_version",
+    URL="url",
+    SoftwareVersionOld="software_old_version",
+}
+
+
+mapper("multiuci").connect(Multi_Services_VoiceService_i_X_000E50_HandsetUpgrade_URL_i_,uci_binding)
+
+local url_entries = Multi_Services_VoiceService_i_X_000E50_HandsetUpgrade_URL_i_.entries
+Multi_Services_VoiceService_i_X_000E50_HandsetUpgrade_URL_i_.entries = function(mapping, parentkey)
+    if parentkey == "SIPUA" then
+        return url_entries(mapping)
+    else
+        return {}
+    end
+end
+
+duplicates = duplicator(Multi_Services_VoiceService_i_X_000E50_HandsetUpgrade_URL_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end

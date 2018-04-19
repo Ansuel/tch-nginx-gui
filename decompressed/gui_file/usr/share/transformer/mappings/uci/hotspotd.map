@@ -1,0 +1,172 @@
+local config_hotspotd = "hotspotd"
+
+-- uci.hotspotd
+mapper("uci_1to1").registerConfigMap(config_hotspotd)
+
+-- uci.hotspotd.main
+local hotspotd_main = {
+  config = config_hotspotd,
+  section = "main",
+  options = { "devname","iface","iface_eap","ifb","ifb2","iface_priv","ipv4",
+              "ipv6","enable","deploy","preauth","trigger_disconnect","nasid","bandwidth_threshold",
+              "bandwidth_hysteresis", "location_name",
+  },
+}
+mapper("uci_1to1").registerSimpleMap(hotspotd_main)
+
+-- uci.hotspotd.client
+local hotspotd_client = {
+  config = config_hotspotd,
+  section = "client",
+  options = { "limit","auth_limit","preauth_limit","tunnel_backend","idle_max","timer","auth", },
+}
+mapper("uci_1to1").registerSimpleMap(hotspotd_client)
+
+-- uci.hotspotd.redirect
+local hotspotd_redirect = {
+  config = config_hotspotd,
+  section = "redirect",
+  options = { "maxconn","port","url","templateurl", },
+}
+mapper("uci_1to1").registerSimpleMap(hotspotd_redirect)
+
+-- uci.hotspotd.portal
+local hotspotd_portal = {
+  config = config_hotspotd,
+  section = "portal",
+  options = { "maxconn","port", },
+  passwords = { "secret" }
+}
+mapper("uci_1to1").registerSimpleMap(hotspotd_portal)
+
+-- uci.hotspotd.firewall
+local hotspotd_firewall = {
+  config = config_hotspotd,
+  section = "firewall",
+  options = { "hammer_times","services_udp","ipv4_forward_chain","ipv6_forward_chain",
+              "ipv4_input_chain","ipv6_input_chain","ipv4_output_chain","ipv6_output_chain",
+              "ipv4_prerouting_chain","ipv6_postrouting_chain",
+  },
+}
+mapper("uci_1to1").registerSimpleMap(hotspotd_firewall)
+
+-- uci.hotspotd.traffic
+local hotspotd_traffic = {
+  config = config_hotspotd,
+  section = "traffic",
+  options = { "overall_kbit_in","overall_kbit_out","shaping", },
+}
+mapper("uci_1to1").registerSimpleMap(hotspotd_traffic)
+
+-- uci.hotspotd.whitelist
+local hotspotd_whitelist = {
+  config = config_hotspotd,
+  section = "whitelist",
+  options = { "timeout", },
+  lists = { "static", },
+}
+mapper("uci_1to1").registerSimpleMap(hotspotd_whitelist)
+
+-- uci.hotspotd.radauth
+local hotspotd_radauth = {
+  config = config_hotspotd,
+  section = "radauth",
+  options = { "port", },
+  lists = { "server","templateserver", },
+}
+mapper("uci_1to1").registerSimpleMap(hotspotd_radauth)
+
+-- uci.hotspotd.radacct
+local hotspotd_radacct = {
+  config = config_hotspotd,
+  section = "radacct",
+  options = { "port", },
+  passwords = { "secret" },
+  lists = { "server","templateserver", },
+}
+mapper("uci_1to1").registerSimpleMap(hotspotd_radacct)
+
+-- uci.hotspotd.radeapauth
+local hotspotd_radeapauth = {
+  config = config_hotspotd,
+  section = "radeapauth",
+  options = { "port", },
+}
+mapper("uci_1to1").registerSimpleMap(hotspotd_radeapauth)
+
+-- uci.hotspotd.radeapacct
+local hotspotd_radeapacct = {
+  config = config_hotspotd,
+  section = "radeapacct",
+  options = { "port", },
+}
+mapper("uci_1to1").registerSimpleMap(hotspotd_radeapacct)
+
+-- uci.hotspotd.tunnel
+local hotspotd_tunnel = {
+  config = config_hotspotd,
+  section = "tunnel",
+  options = { "fallback","type","pppd_timeout","l2tp_hello_delay","l2tp_max_retry",
+              "l2tp_rtx_delay","l2tp_start_max_retry","l2tp_start_rtx_delay",
+              "lcp_echo_interval","lcp_echo_failure","enabled",
+  },
+  lists = { "server","templateserver", },
+}
+mapper("uci_1to1").registerSimpleMap(hotspotd_tunnel)
+
+-- uci.hotspotd.acm
+local hotspotd_acm = {
+  config = config_hotspotd,
+  section = "acm",
+  options = { "acmbstatus","acmakstatus", },
+}
+mapper("uci_1to1").registerSimpleMap(hotspotd_acm)
+
+-- uci.hotspotd.private
+local hotspotd_private = {
+  config = config_hotspotd,
+  section = "private",
+  options = { "enabled","timer","acct", },
+}
+mapper("uci_1to1").registerSimpleMap(hotspotd_private)
+
+-- uci.hotspotd.privacct
+local hotspotd_privacct = {
+  config = config_hotspotd,
+  section = "privacct",
+  options = { "interval","port", },
+}
+mapper("uci_1to1").registerSimpleMap(hotspotd_privacct)
+
+-- uci.hotspotd.service
+local hotspotd_service = {
+  config = config_hotspotd,
+  section = "service",
+  options = { "proto","port", },
+  lists = { "name", },
+}
+mapper("uci_1to1").registerSimpleMap(hotspotd_service)
+
+-- uci.hotspotd.grantee
+local hotspotd_grantee = {
+  config = config_hotspotd,
+  section = "grantee",
+  options = { "service_name", },
+}
+mapper("uci_1to1").registerSimpleMap(hotspotd_grantee)
+
+-- uci.hotspotd.wifi-iface
+local hotspotd_wifi_iface = {
+  config = config_hotspotd,
+  type = "wifi-iface",
+  options = { "enable","iface", },
+}
+mapper("uci_1to1").registerNamedMultiMap(hotspotd_wifi_iface)
+
+-- uci.hotspotd.state
+local hotspotd_state = {
+  config = config_hotspotd,
+  section = "state",
+  options = { "status","extendedstatus","extendedstatuslog","deploy", },
+}
+mapper("uci_1to1").registerSimpleMap(hotspotd_state)

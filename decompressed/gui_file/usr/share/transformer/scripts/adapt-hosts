@@ -1,0 +1,17 @@
+#!/bin/sh
+# Copyright (c) 2017 Technicolor
+
+. /lib/functions.sh
+
+config_load network
+config_get lanip lan ipaddr
+
+if [ -n "$lanip" ]; then
+  _update_host_addr(){
+    local hostname="${1}"
+    sed -i "s/^[0-9]*\.[0-9]*\.[0-9]*\.[0-9]* *$hostname/$lanip $hostname/g" /etc/hosts
+  }
+
+  config_load dhcp
+  config_list_foreach main hostname _update_host_addr
+fi

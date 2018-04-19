@@ -1,0 +1,119 @@
+local network_interface_ppp_ = {
+  objectType = {
+    name = "rpc.network.interface.@.ppp.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      state = {
+        access = "readOnly",
+        type = "string",
+      },
+      error = {
+        access = "readOnly",
+        type = "string",
+      },
+      ll_intf = {
+        access = "readOnly",
+        type = "string",
+      },
+      ll_dev = {
+        access = "readOnly",
+        type = "string",
+      },
+      uptime = {
+        access = "readOnly",
+        type = "string",
+      },
+    },
+  }
+}
+
+local logger = require("transformer.logger")
+local log = logger.new("network.interface.ppp", 2)
+local uci_helper = mapper("ucihelper")
+local nw_common = mapper("nwcommon")
+
+
+local function get_state(mapping, paramName, key)
+  local intf_status = nw_common.get_ubus_interface_status(key)
+  if intf_status and intf_status.data and intf_status.data.pppinfo
+    and intf_status.data.pppinfo.pppstate ~= nil then
+    return intf_status.data.pppinfo.pppstate
+  end
+  return ""
+end
+
+local function get_error(mapping, paramName, key)
+  local intf_status = nw_common.get_ubus_interface_status(key)
+  if intf_status and intf_status.errors then
+    for _,v in ipairs(intf_status.errors) do
+      if (v.subsystem == "pppoe" or v.subsystem == "pppoa") and v.code ~= nil then
+        return v.code
+      end
+    end
+  end
+  return ""
+end
+
+local function get_ll_intf(mapping, paramName, key)
+  local ll_intfs = nw_common.get_lower_layers(key)
+  for _,v in ipairs(ll_intfs) do
+    local vlanDevices = {}
+    local vlan_binding = {config="network", sectionname="device"}
+    uci_helper.foreach_on_uci(vlan_binding, function(s)
+        if s["name"] and s["ifname"] then
+            vlanDevices[s["name"]]=s["ifname"]
+        end
+    end)
+
+    local bcmvopiDevices = {}
+    vlan_binding.sectionname = "bcmvopi"
+    uci_helper.foreach_on_uci(vlan_binding, function(s)
+        if s["if"] then
+            bcmvopiDevices[s[".name"]]=s["if"]
+        end
+    end)
+
+    -- strip vlan id
+    local no_vid = ""
+    if (string.match(v, "^veip")) then
+	    no_vid = string.gsub(v,'_%d+','')
+    elseif vlanDevices[v] then
+        -- in case the ll_intf is vlan device, use the ifname of the vlan device
+        no_vid=vlanDevices[v]
+    elseif bcmvopiDevices[v] then
+        --in case the ll_intf is bcmvopi device use the if of the device
+        no_vid=bcmvopiDevices[v]
+    else
+        no_vid = string.gsub(v,'%.%d+','')
+    end
+    if #ll_intfs == 1 or nw_common.device_in_use(no_vid) then
+      if paramName == "ll_intf" then
+        return no_vid
+      else
+        return v
+      end
+    end
+  end
+  return ""
+end
+
+local function get_uptime(mapping, paramName, key)
+  local intf_status = nw_common.get_ubus_interface_status(key)
+
+  if intf_status and intf_status.uptime ~= nil then
+    return tostring(intf_status.uptime)
+  end
+  return ""
+end
+
+network_interface_ppp_.get = {
+  state = get_state,
+  error = get_error,
+  ll_intf = get_ll_intf,
+  ll_dev = get_ll_intf,
+  uptime = get_uptime,
+}
+register(network_interface_ppp_)
+

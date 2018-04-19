@@ -1,0 +1,84 @@
+local logger = require("transformer.logger")
+local log = logger.new("wireless.ap.security", 2)
+local register = register;
+
+local 
+wireless_ap_security_ = {
+  objectType = {
+    name = "rpc.wireless.ap.@.security.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+        mode = {
+            access = "readWrite",
+            type = "string",
+        },
+        wep_key = {
+            access = "readWrite",
+            type = "password",
+        },
+        wpa_psk_passphrase = {
+            access = "readWrite",
+            type = "password",
+        },
+        supported_modes = {
+            access = "readOnly",
+            type = "string",
+        },
+    },
+  }
+}
+
+local uci_helper = mapper("ucihelper")
+local conn = mapper("ubus").connect()
+
+local function nilToEmptyString(st)
+    if st == nil then
+        return ""
+    else
+        return tostring(st)
+    end
+end
+
+local function getDataForAP(ap)
+    local result = conn:call("wireless.accesspoint.security", "get", { name = ap })
+    if result == nil then
+        log:error("Cannot retrieve security info for ap " .. ap)
+        return {}
+    end
+    return result[ap]
+end
+
+local function getall(mapping, key)
+    local apData = getDataForAP(key)
+    local sanitizedData = {}
+    for k,v in pairs(apData) do
+        sanitizedData[k] = nilToEmptyString(v)
+    end
+    return sanitizedData
+end
+
+local function get(mapping, paramName, key)
+    local apData = getDataForAP(key)
+    return nilToEmptyString(apData[paramName]);
+end
+
+local namemap = {   mode="security_mode",
+                    wpa_psk_passphrase="wpa_psk_key"
+                }
+local set = function(mapping, param, value, key)
+    uci_helper.set_on_uci({ config = "wireless", sectionname = key , option = namemap[param] or param}, value, commitapply)
+end
+
+wireless_ap_security_.getall = getall
+wireless_ap_security_.get = get
+wireless_ap_security_.set = set
+wireless_ap_security_.commit = function()
+    uci_helper.commit({config = "wireless"})
+end
+wireless_ap_security_.revert = function()
+    uci_helper.revert({config = "wireless"})
+end
+
+register(wireless_ap_security_)

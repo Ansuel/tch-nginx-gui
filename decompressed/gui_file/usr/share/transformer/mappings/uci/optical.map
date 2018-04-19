@@ -1,0 +1,16 @@
+local config_optical = "optical"
+
+-- uci.optical
+local uci_optical = mapper("uci_1to1").createConfigMap(config_optical)
+register(uci_optical)
+
+-- uci.optical.config
+local optical_config = {
+  config = config_optical,
+  section = "optical",
+  options = { "enable",
+            },
+}
+
+local uci_optical_config = mapper("uci_1to1").createSimpleMap(optical_config)
+register(uci_optical_config)

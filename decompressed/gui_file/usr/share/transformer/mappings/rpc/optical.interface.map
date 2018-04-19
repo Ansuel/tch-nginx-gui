@@ -1,0 +1,265 @@
+--NG-96253 GPON-Diagnostics/Network needs to be lifted to TI specific functionalities
+--NG-102545 GUI broadband is showing SFP Broadband GUI page when Ethernet 4 is connected
+local open, popen, string, register = io.open, io.popen, string, register
+local match, floor = string.match, math.floor
+local conn = mapper("ubus").connect()
+local register, mapper, eventsource = register, mapper, eventsource
+local sfp = require("transformer.shared.sfp")
+local ethStatus
+local upper = string.upper
+local isConfigChanged = false
+local uciHelper = mapper("ucihelper")
+local commitapply = commitapply
+local opticalBinding = {config="optical", sectionname="optical", option="enable"}
+local flag = sfp.readSFPFlag()
+if flag == 0 then
+  return
+end
+
+-- Manually generated Multi_Optical_Interface_i_
+local Multi_Optical_Interface_i_ = {
+  objectType = {
+    name = "#ROOT",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = math.huge,
+    numEntriesParameter = "InterfaceNumberOfEntries",
+    aliasParameter = "Alias",
+    parameters = {
+      Enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      Status = {
+        access = "readOnly",
+        type = "string",
+      },
+      OpticalSignalLevel = {
+        access = "readOnly",
+        type = "int",
+      },
+      TransmitOpticalLevel = {
+        access = "readOnly",
+        type = "int",
+      },
+      X_FASTWEB_Flap = {
+        access = "readOnly",
+        type = "int",
+        description = "Incremental number of optical up/down transition states",
+      },
+      X_FASTWEB_VendorName = {
+        access = "readOnly",
+        type = "string",
+        description = "P2P/GPON SFP Vendor Name"
+      },
+      X_FASTWEB_SFPType = {
+        access = "readOnly",
+        type = "string",
+        description = "P2P/GPON SFP Type"
+      },
+      Alias = {
+        access = "readWrite",
+        type = "string",
+      },
+      Name = {
+        access = "readOnly",
+        type = "string",
+        max = "64",
+      },
+      LowerLayers = {
+        access = "readOnly",
+        type = "string",
+        max = "1024",
+      },
+      Upstream = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      LowerOpticalThreshold = {
+        access = "readOnly",
+        type = "int",
+      },
+      UpperOpticalThreshold = {
+        access = "readOnly",
+        type = "int",
+      },
+      LowerTransmitPowerThreshold = {
+        access = "readOnly",
+        type = "int",
+      },
+      UpperTransmitPowerThreshold = {
+        access = "readOnly",
+        type = "int",
+      },
+		VendorName = {
+        access = "readOnly",
+        type = "string",
+      },		 
+    },
+  }
+}
+
+-- Currently by default single entry is formed
+Multi_Optical_Interface_i_.entries = function(mapping)
+  return { "1" }
+end
+
+Multi_Optical_Interface_i_.get = {
+  Enable = function()
+    return sfp.getEnable()
+  end,
+  Status = function()
+    return sfp.getStatus()
+  end,
+  OpticalSignalLevel = function()
+    return sfp.getLevel("OpticalSignalLevel")
+  end,
+  TransmitOpticalLevel = function()
+    return sfp.getLevel("TransmitOpticalLevel")
+  end,
+  X_FASTWEB_Flap = function()
+    return sfp.getSFPFlap()
+  end,
+  X_FASTWEB_VendorName = function()
+    return sfp.getSFPVendorName()
+  end,
+  X_FASTWEB_SFPType = function()
+    return upper(sfp.getSFPType())
+  end,
+  Name = function()
+    return upper(sfp.getSFPType())
+  end,
+  LowerLayers = "",
+  Upstream = "1",
+  LowerOpticalThreshold = function(mapping, param)
+    return sfp.getThresholdValues(param)
+  end,
+  UpperOpticalThreshold = function(mapping, param)
+    return sfp.getThresholdValues(param)
+  end,
+  LowerTransmitPowerThreshold = function(mapping, param)
+    return sfp.getThresholdValues(param)
+  end,
+  UpperTransmitPowerThreshold = function(mapping, param)
+    return sfp.getThresholdValues(param)
+  end,
+	VendorName = function()
+	return sfp.getSFPVendorName()
+	end,					 
+}
+
+Multi_Optical_Interface_i_.getall = function()
+  return sfp.getOpticals()
+end
+
+Multi_Optical_Interface_i_.set = {
+  Enable = function(mapping, param, value, key)
+    uciHelper.set_on_uci(opticalBinding, value, commitapply)
+    isConfigChanged = true
+  end,
+}
+
+Multi_Optical_Interface_i_.commit = function()
+  if isConfigChanged then
+    uciHelper.commit(opticalBinding)
+    isConfigChanged = false
+  end
+end
+
+Multi_Optical_Interface_i_.revert = function()
+  if isConfigChanged then
+    uciHelper.revert(opticalBinding)
+    isConfigChanged = false
+  end
+end
+
+local function ubusEventTriggered(mapping, action, data)
+  local wanInterface = sfp.getWanInterface()
+  if data and data.interface == wanInterface and data.action ~= ethStatus then
+    ethStatus = data.action
+    local sfp_flap = sfp.getSFPFlap()
+    sfp.setUciParam("sfp_flap", sfp_flap + 1)
+    sfp.commit()
+  end
+end
+
+Multi_Optical_Interface_i_.add_watchers = function(mapping)
+  local ubusEventSource = eventsource("ubus")
+  ubusEventSource.watch_event(mapping, ubusEventTriggered, "network.link")
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_Optical_Interface_i_, "#ROOT", { "rpc.optical.Interface.{i}.", "Device.Optical.Interface.{i}." })
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local Multi_Optical_Interface_i_Stats_ = {
+  objectType = {
+    name = "#ROOT",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      BytesSent = {
+        access = "readOnly",
+        type = "unsignedLong",
+      },
+      BytesReceived = {
+        access = "readOnly",
+        type = "unsignedLong",
+      },
+      PacketsSent = {
+        access = "readOnly",
+        type = "unsignedLong",
+      },
+      PacketsReceived = {
+        access = "readOnly",
+        type = "unsignedLong",
+      },
+      ErrorsSent = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      ErrorsReceived = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      DiscardPacketsSent = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      DiscardPacketsReceived = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+	  reset = {
+        access = "readWrite",
+        type = "boolean",
+      },
+    },
+  }
+}
+
+Multi_Optical_Interface_i_Stats_.get = function(mapping, param)
+	if param == "reset" then
+		return "0"
+	end
+  return sfp.getStats(param)
+end
+
+--[[Multi_Optical_Interface_i_Stats_.getall = function()
+  return sfp.getAllStats()
+end]]
+
+Multi_Optical_Interface_i_Stats_.set = function(mapping, paramName, paramValue, key)
+  if paramName == "reset" and paramValue == "1" then
+    return sfp.resetStatsGponSFP()
+  end
+end
+
+duplicator = mapper("multiroot").duplicate
+duplicates = duplicator(Multi_Optical_Interface_i_Stats_, "#ROOT", { "rpc.optical.Interface.{i}.Stats.", "Device.Optical.Interface.{i}.Stats." })
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end

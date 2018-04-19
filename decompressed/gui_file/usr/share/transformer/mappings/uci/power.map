@@ -1,0 +1,24 @@
+local config_power = "power"
+
+-- uci.power
+mapper("uci_1to1").registerConfigMap(config_power)
+
+-- uci.power.ethernet
+local power_ethernet  = {
+    config = config_power,
+    section = "ethernet",
+    type = "ethernet",
+    options = { "eee", "autogreeen", "ethapd" },
+}
+
+mapper("uci_1to1").registerSimpleMap(power_ethernet)
+
+-- uci.power.cpu
+local power_cpu  = {
+    config = config_power,
+    section = "cpu",
+    type = "cpu",
+    options = { "wait", "cpuspeed" },
+}
+
+mapper("uci_1to1").registerSimpleMap(power_cpu)

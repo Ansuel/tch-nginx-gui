@@ -1,0 +1,90 @@
+local table = table
+local string = string
+local uci_helper = mapper("ucihelper")
+
+local sys_eth_ = {
+    objectType = {
+        name = "sys.eth.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {},
+    }
+}
+
+register(sys_eth_)
+
+-- sys.eth.port.{i}
+local sys_eth_port_i_ = {
+  objectType = {
+    name = "sys.eth.port.@.",
+    access = "readOnly",
+    numEntriesParameter = "PortNumberOfEntries",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      status = {
+        access = "readOnly",
+        type = "string",
+      },
+      speed = {
+        access = "readOnly",
+        type = "string",
+      },
+      mode = {
+        access = "readOnly",
+        type = "string",
+      }
+    }
+  }
+}
+
+local function entriesEthPorts()
+    local entries = {}
+    local eth_binding = {config="ethernet", sectionname="port"}
+    uci_helper.foreach_on_uci(eth_binding, function(s)
+      table.insert(entries, s['.name'])
+    end)
+    return entries
+end
+
+local function get_status(_, _, key)
+    local f = io.open("/sys/class/net/" .. key .. "/carrier")
+    local status
+    if f == nil or f:read("*number") ~= 1 then
+      status = "down"
+    else
+      status = "up"
+    end
+    if f then
+      f:close()
+    end
+    return status
+end
+
+local function get_speed(_, _, key)
+    local f = io.open("/sys/class/net/" .. key .. "/speed")
+    if f == nil then
+      return ""
+    end
+    local speed = f:read("*number") or ""
+    f:close()
+    return tostring(speed)
+end
+
+local function get_mode(_, _, key)
+    local speed = get_speed(_, _, key)
+    if speed == "" then
+      return ""
+    end
+    return speed .. "BT"
+end
+
+sys_eth_port_i_.get = {
+    status = get_status,
+    speed = get_speed,
+    mode = get_mode,
+}
+
+sys_eth_port_i_.entries = entriesEthPorts
+register(sys_eth_port_i_)

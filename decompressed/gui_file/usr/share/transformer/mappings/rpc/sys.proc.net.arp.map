@@ -1,0 +1,78 @@
+local sys_proc_net_arp_ = {
+  objectType = {
+    name = "sys.proc.net.arp.{i}.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      ip_address = {
+        access = "readOnly",
+        type = "string",
+      },
+      hw_type = {
+        access = "readOnly",
+        type = "string",
+      },
+      flags = {
+        access = "readOnly",
+        type = "string",
+      },
+      hw_address = {
+        access = "readOnly",
+        type = "string",
+      },
+      mask = {
+        access = "readOnly",
+        type = "string",
+      },
+      device = {
+        access = "readOnly",
+        type = "string",
+      },
+    }
+  }
+}
+local arpPath="/proc/net/arp"
+local arp_cache = {}
+
+--- Example output of /proc/net/arp
+-- IP address       HW type     Flags       HW address            Mask     Device
+-- 192.168.1.100    0x1         0x2         00:26:5a:ef:86:17     *        br-lan
+sys_proc_net_arp_.entries = function(mapping)
+  local fd = io.open(arpPath)
+  if not fd then
+    return {}
+  end
+  arp_cache = {}
+  local arpkeys = {}
+  local skipheader = true
+  for line in fd:lines() do
+    if not skipheader then
+      local ipaddress, hwtype, flags, hwaddress, mask, device = string.match(line, '^(%S+)%s+(%S+)%s+(%S+)%s+(%S+)%s+(%S+)%s+(%S+)$')
+      local key = ipaddress .. hwaddress .. device
+      arpkeys[#arpkeys+1] = key
+      arp_cache[key] = {
+        ip_address = ipaddress,
+        hw_type = hwtype,
+        flags = flags,
+        hw_address = hwaddress,
+        mask = mask,
+        device = device,
+      }
+    end
+    skipheader = false
+  end
+  fd:close()
+  return arpkeys
+end
+
+sys_proc_net_arp_.get = function(mapping, param, key)
+  return arp_cache[key][param]
+end
+
+sys_proc_net_arp_.getall = function(mapping, key)
+  return arp_cache[key]
+end
+
+register(sys_proc_net_arp_)
+

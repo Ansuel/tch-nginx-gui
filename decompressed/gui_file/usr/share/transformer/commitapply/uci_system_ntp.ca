@@ -1,0 +1,2 @@
+^system /etc/init.d/sysntpd restart
+timezone /etc/init.d/sysntpd restart

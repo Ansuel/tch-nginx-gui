@@ -1,0 +1,86 @@
+local string, tonumber, type = string, tonumber, type
+
+local obj = {
+	objectType = {
+		name = 'rpc.mobiled.device.@.sms.message.@.',
+		access = 'readOnly',
+		numEntriesParameter = "MessageNumberOfEntries",
+		minEntries = 0,
+		maxEntries = math.huge,
+		parameters = {
+			status = {
+				access = "readOnly",
+				type = "string"
+			},
+			number = {
+				access = "readOnly",
+				type = "string"
+			},
+			text = {
+				access = "readOnly",
+				type = "string"
+			},
+			date = {
+				access = "readOnly",
+				type = "string"
+			},
+			id = {
+				access = "readOnly",
+				type = "unsignedInt"
+			}
+		}
+	}
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+	return
+end
+
+local helper = require("mobiled.scripthelpers")
+
+local message_cache = {}
+
+local function getFromCache(key, parentkey, cache)
+	if not cache then return nil end
+	local dev_idx = tonumber(string.match(parentkey, '%d+')) or 1
+	if not cache[dev_idx] then return nil end
+	local message_id = tonumber(string.match(key, '%d+'))
+	if message_id then
+		for _, message in pairs(cache[dev_idx]) do
+			if tonumber(message.id) == message_id then
+				return message
+			end
+		end
+	end
+	return nil
+end
+
+local function getall(mapping, key, parentkey)
+	local message = getFromCache(key, parentkey, message_cache) or {}
+	setmetatable(message, { __index = function() return "" end })
+	return message
+end
+
+local function get(mapping, paramName, key, parentkey)
+	return getall(mapping, key, parentkey)[paramName]
+end
+
+local function smsEntries(mapping, key)
+	local dev_idx =  tonumber(string.match(key, '%d+'))
+	local data = helper.getUbusData(conn, "mobiled.sms", "get", { dev_idx = dev_idx })
+	local messages = {}
+	if type(data.messages) == "table" then
+		message_cache[dev_idx] = data.messages
+		for i, message in pairs(data.messages) do
+			table.insert(messages, { tostring(i), "message" .. message.id })
+		end
+	end
+	return messages
+end
+
+obj.getall = getall
+obj.get = get
+obj.entries = smsEntries
+
+register(obj)

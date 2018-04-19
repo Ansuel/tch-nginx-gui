@@ -1,0 +1,100 @@
+local tinsert, format = table.insert, string.format
+local conn = mapper("ubus").connect()
+
+local mmpbx_rvsipdev = {
+    objectType = {
+    name = "rpc.mmpbx.rvsipdev.@.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = math.huge,
+    parameters = {
+        friendlyName = {
+            access = "readOnly",
+            type = "string",
+        },
+        clientAddress = {
+            access = "readOnly",
+            type = "string",
+        },
+        URI = {
+            access = "readOnly",
+            type = "string",
+        },
+        registered = {
+            access = "readOnly",
+            type = "string",
+        },
+    }
+  }
+}
+
+local mmpbx_rvsipdev_reload = {
+    objectType = {
+    name = "rpc.mmpbx.rvsipdevreload.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+        reload = {
+            access = "readWrite",
+            type = "string",
+        },
+    }
+  }
+}
+
+local function entriesProfile ()
+    local devices, entries = {}, {}
+    devices = conn:call("mmpbxrvsipdev.registrar", "list", {} )
+    if devices then
+        for name, _ in pairs (devices) do
+            entries[#entries+1] = name
+        end
+    end
+    return entries
+end
+
+local function get (mapping, paramname, key)
+    local content = conn:call("mmpbxrvsipdev.registrar", "list", {} )
+    if content then
+        for k, v in pairs (content) do
+            if (type(v) == "table") and k == key then
+                return v[paramname] or ""
+            end
+        end
+    end
+    return ""
+end
+
+local function getAllProfiles (mapping, key)
+    local instance = conn:call("mmpbxrvsipdev.registrar", "list", {} )
+    local data = {}
+    if instance then
+        for k, v in pairs (instance) do
+            if (type(v) == "table") and k == key then
+                for param, value in pairs (v) do
+                    data[param] = value or ""
+                end
+            end
+        end
+    end
+    return data
+end
+
+local function getReload (mapping, paramname, key)
+    return ""
+end
+
+local function setReload (mapping, paramname,value, key)
+    conn:call("mmpbxrvsipdev.configuration", "reload", {})
+end
+mmpbx_rvsipdev.entries = entriesProfile
+mmpbx_rvsipdev.getall = getAllProfiles
+mmpbx_rvsipdev.get = get
+mmpbx_rvsipdev_reload.get = getReload
+mmpbx_rvsipdev_reload.set = setReload
+
+register(mmpbx_rvsipdev)
+register(mmpbx_rvsipdev_reload)
+
+

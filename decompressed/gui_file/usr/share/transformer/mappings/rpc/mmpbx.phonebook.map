@@ -1,0 +1,260 @@
+local format = string.format
+local conn = mapper("ubus").connect()
+
+local next = next
+local mmpbx_phonebook_extended = {
+    objectType = {
+      name = "rpc.mmpbx.phonebook.",
+      access = "readOnly",
+      minEntries = 1,
+      maxEntries = 1,
+      parameters = {
+          version = {
+              access = "readOnly",
+              type = "string",
+          },
+          newentry = {
+              access = "readWrite",
+              type = "string",
+          },
+      }
+    }
+}
+
+mmpbx_phonebook_extended.get = {
+    version = function(mapping, paramName, key)
+        local content = conn:call("mmdbd.phonebook", "version", {})
+        local version = content and content["Phonebook Version"] or 0
+        return tostring(version)
+    end,
+    newentry = function(mapping, paramName, key)
+        return ""
+    end
+}
+
+mmpbx_phonebook_extended.set = {
+    newentry = function(mapping, param, value, key)
+        local firstname, lastname, homenumber, mobilenumber, worknumber = string.match(value,"(.*),(.*),(.*),(.*),(.*)")
+        local entry = conn:call("mmdbd.phonebook", "create", { FirstName = firstname or "", LastName = lastname or "",
+                                                               Numbers = {
+                                                                {Number = homenumber or "", TypeID = "0"},
+                                                                {Number = mobilenumber or "", TypeID = "1"},
+                                                                {Number = worknumber or "", TypeID = "2"}}
+                                                             })
+        key = entry["entryID"]
+        if key then
+            key = tostring(key)
+            return nil, key
+        else
+            return nil, "create phonebook entry failed"
+        end
+    end
+}
+
+register(mmpbx_phonebook_extended)
+
+local mmpbx_phonebook = {
+    objectType = {
+      name = "rpc.mmpbx.phonebook_entry.@.",
+      access = "readWrite",
+      minEntries = 0,
+      maxEntries = math.huge,
+      parameters = {
+          FirstName = {
+              access = "readWrite",
+              type = "string",
+          },
+          LastName = {
+              access = "readWrite",
+              type = "string",
+          },
+          HomeNumber = {
+              access = "readWrite",
+              type = "string",
+          },
+          MobileNumber = {
+              access = "readWrite",
+              type = "string",
+          },
+          WorkNumber = {
+              access = "readWrite",
+              type = "string",
+          },
+          ContactID = {
+              access = "readOnly",
+              type = "string",
+          },
+          NumberReferenceList = {
+              access = "readOnly",
+              type = "string",
+          },
+      }
+    }
+}
+
+local numbers_t = {
+    ["home"] = "HomeNumber",
+    ["work"] = "WorkNumber",
+    ["mobile"] = "MobileNumber",
+}
+
+local number_type = {
+   ["HomeNumber"] = "0",
+   ["MobileNumber"] = "1",
+   ["WorkNumber"] = "2",
+}
+
+local phonebook_entries = {}
+local entries = {}
+
+mmpbx_phonebook.entries =  function()
+    local content = conn:call("mmdbd.phonebook", "version", {})
+    local version = content and content["Phonebook Version"] or 0
+    if version ~= phonebook_entries.version then
+        phonebook_entries.version = version
+        entries = {}
+        local added ={}
+        content = conn:call("mmdbd.phonebook", "list", {})
+        local data = content and content["results"]
+        if type(data) == 'table' then
+            for _, v in pairs(data) do
+                local id = v["ContactID"]
+                local number_type = v["Type"]
+                phonebook_entries[id] = phonebook_entries[id] or {}
+                phonebook_entries[id][numbers_t[number_type]] = v["Number"]
+                phonebook_entries[id]["FirstName"] = v["FirstName"]
+                phonebook_entries[id]["LastName"] = v["Name"]
+                phonebook_entries[id]["ContactID"] = v["ContactID"]
+                phonebook_entries[id]["NumberReferenceList"] = v["NumberReferenceList"]
+                if id and not added[id] then
+                    entries[#entries+1] = id
+                    added[id] = true
+                end
+            end
+        end
+    end
+    return entries
+end
+
+mmpbx_phonebook.get = function(mapping, param, key)
+    local data = phonebook_entries[key]
+    return data and data[param] or ""
+end
+
+mmpbx_phonebook.getall = function(mapping,key)
+    return phonebook_entries[key] or { FirstName = "", LastName = "", HomeNumber = "", MobileNumber = "", WorkNumber = "", ContactID = "", NumberReferenceList = "" }
+end
+
+
+local content_update = {}
+local content_update_empty = {}
+
+mmpbx_phonebook.set = function(mapping, param, value, key)
+    content_update[key] = content_update[key] or { ID = key, FirstName = "", LastName = "", Numbers={}}
+    content_update_empty[key] = content_update_empty[key] or { ID = key, FirstName = "", LastName = "", Numbers={}}
+    local update_empty
+    if param == "FirstName" or param == "LastName" then
+        content_update[key][param] = value
+        content_update_empty[key][param] = value
+    else
+        if phonebook_entries[key][param] == nil then
+            update_empty = true
+        end
+        local numbers = content_update[key]["Numbers"]
+        local numbers_empty = content_update_empty[key]["Numbers"]
+        local typeId = number_type[param]
+        for k,v in pairs(numbers) do
+            if v.TypeID == typeId then
+                if update_empty then
+                    numbers_empty[k].Number = value
+                else
+                    numbers[k].Number = value
+                end
+                return true
+            end
+        end
+        if not update_empty then
+            numbers[#numbers + 1] = {Number = value, TypeID = typeId}
+        else
+            numbers_empty[#numbers_empty + 1] = {Number = value, TypeID = typeId}
+        end
+    end
+    return true
+end
+
+mmpbx_phonebook.add = function(mapping, key)
+    local entry = conn:call("mmdbd.phonebook", "create", { FirstName = "", LastName = "",
+                                                           Numbers = {
+                                                            {Number = "", TypeID = "0"},
+                                                            {Number = "", TypeID = "1"},
+                                                            {Number = "", TypeID = "2"}}
+                                                         })
+    key = entry["entryID"]
+    if key then
+        key = tostring(key)
+        return key
+    else
+        return nil, "create phonebook entry failed"
+    end
+end
+
+mmpbx_phonebook.delete = function(mapping, key)
+    conn:call("mmdbd.phonebook", "delete", { id = key } )
+    return true
+end
+
+mmpbx_phonebook.commit = function()
+    for k,v in pairs(content_update_empty) do
+        if next(v["Numbers"]) ~= nil then
+            conn:call("mmdbd.phonebook", "update_empty", v)
+        end
+    end
+    for k,v in pairs(content_update) do
+        if next(v["Numbers"]) ~= nil then
+            conn:call("mmdbd.phonebook", "update", v)
+        end
+    end
+    content_update = {}
+    content_update_empty = {}
+end
+
+register(mmpbx_phonebook)
+
+local mmpbx_phonebook_flush = {
+    objectType = {
+      name = "rpc.mmpbx.phonebook.flush.",
+      access = "readOnly",
+      minEntries = 1,
+      maxEntries = 1,
+      parameters = {
+        keepAll = {
+          access = "readWrite",
+          type = "boolean",
+          default = "false",
+        },
+        keepDefault = {
+          access = "readWrite",
+          type = "boolean",
+          default = "false",
+        },
+      }
+    }
+}
+
+local mmpbxPhonebookFlushKeepAll = {"CallLog","InternalNames","DectSystemSettings","LineSettings","DectContactNumbers","DectContactTypes","DectContactNumbers"}
+
+mmpbx_phonebook_flush.set = {
+    keepAll = function(mapping, paramName, paramValue, key)
+        conn:call("mmdbd.flush", "flush", { names = mmpbxPhonebookFlushKeepAll })
+    end,
+    keepDefault = function(mapping, paramName, paramValue, key)
+        os.remove("/etc/lasdb.db")
+    end,
+}
+
+mmpbx_phonebook_flush.get = {
+    keepAll = "false",
+    keepDefault = "false",
+}
+
+register(mmpbx_phonebook_flush)

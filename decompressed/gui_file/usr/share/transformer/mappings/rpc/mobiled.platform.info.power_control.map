@@ -1,0 +1,58 @@
+local obj = {
+	objectType = {
+		name = 'rpc.mobiled.platform.info.power_control.@.',
+		access = 'readOnly',
+		minEntries = 1,
+		maxEntries = math.huge,
+		numEntriesParameter = "PowerControlNumberOfEntries",
+		parameters = {
+			current_power_state = {
+				access = "readOnly",
+				type = "string"
+			}
+		}
+	}
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+	return
+end
+
+local helper = require("mobiled.scripthelpers")
+
+local function getall(mapping, key)
+	local result = {}
+	setmetatable(result, { __index = function() return "" end })
+	local id = string.match(key, "^power_control(.*)$")
+	local info = helper.getUbusData(conn, "mobiled.platform", "get", {})
+	if type(info.power_controls) == "table" then
+		for _, control in pairs(info.power_controls) do
+			if control.id == id then
+				return control
+			end
+		end
+	end
+	return result
+end
+
+local function get(mapping, paramName, key)
+	return getall(mapping, key)[paramName]
+end
+
+local function powerControlEntries(mapping)
+	local info = helper.getUbusData(conn, "mobiled.platform", "get", {})
+	local powerControls = {}
+	if type(info.power_controls) == "table" then
+		for i, control in pairs(info.power_controls) do
+			table.insert(powerControls, { tostring(i), "power_control" .. control.id })
+		end
+	end
+	return powerControls
+end
+
+obj.getall = getall
+obj.get = get
+obj.entries = powerControlEntries
+
+register(obj)

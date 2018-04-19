@@ -1,0 +1,20 @@
+local mapper = mapper
+local config_xdsl = "xdsl"
+
+-- uci.xdsl
+mapper("uci_1to1").registerConfigMap(config_xdsl)
+
+-- uci.xdsl.xdsl.{i}
+local xdsl_xdsl  = {
+    config = config_xdsl,
+    type = "xdsl",
+    options = { "enabled", "rncenabled", "eoc_vendor_id", "handshake_switch_timeout",
+                "demod_cap_value", "demod_cap_mask", "demod_cap2_value", "demod_cap2_mask", "aux_features_value",
+                "aux_features_mask", "vdsl_cfg_flags_value", "vdsl_cfg_flags_mask", "xdsl_cfg1_value", "xdsl_cfg1_mask",
+                "eoc_serial_number", "tpstc", "maxdsdatarate", "maxusdatarate", "maxaggrdatarate" },
+    lists = {
+        "multimode", "profile",
+    }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(xdsl_xdsl)

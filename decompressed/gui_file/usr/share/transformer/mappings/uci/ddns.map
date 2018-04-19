@@ -1,0 +1,32 @@
+local config_ddns = "ddns"
+
+-- uci.ddns
+mapper("uci_1to1").registerConfigMap(config_ddns)
+
+-- uci.ddns.service
+local ddns_service = {
+   config = config_ddns,
+   type = "service",
+   options = {
+      "enabled", "interface", "service_name", "domain", "lookup_host",
+      "username", "force_interval", "force_unit",
+      "check_interval", "check_unit", "retry_interval", "retry_unit",
+      "ip_source", "ip_network", "ip_interface", "ip_script", "ip_url",
+      "update_url", "use_https", "cacert",
+   },
+   passwords = {
+      "password"
+   }
+}
+mapper("uci_1to1").registerNamedMultiMap(ddns_service)
+
+-- uci.ddns.service
+local ddns_global = {
+   config = config_ddns,
+   type = "ddns",
+   options = {
+      "date_format", "log_lines", "allow_local_ip", "use_curl",
+   }
+}
+mapper("uci_1to1").registerNamedMultiMap(ddns_global)
+

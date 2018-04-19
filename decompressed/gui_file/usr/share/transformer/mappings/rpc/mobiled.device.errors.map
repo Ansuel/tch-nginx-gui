@@ -1,0 +1,94 @@
+local string, tonumber, type, pairs = string, tonumber, type, pairs
+
+local obj = {
+	objectType = {
+		name = 'rpc.mobiled.device.@.errors.@.',
+		access = 'readOnly',
+		minEntries = 0,
+		maxEntries = math.huge,
+		parameters = {
+			type = {
+				access = "readOnly",
+				type = "string"
+			},
+			severity = {
+				access = "readOnly",
+				type = "string"
+			},
+			state = {
+				access = "readOnly",
+				type = "string"
+			},
+			uptime = {
+				access = "readOnly",
+				type = "unsignedInt"
+			},
+			reject_cause_message = {
+				access = "readOnly",
+				type = "string"
+			},
+			pdp_type = {
+				access = "readOnly",
+				type = "string"
+			},
+			reject_cause = {
+				access = "readOnly",
+				type = "unsignedInt"
+			}
+		}
+	}
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+	return
+end
+
+local helper = require("mobiled.scripthelpers")
+
+local function getErrors(key, parentKey)
+	local result = {}
+	local data = helper.getUbusData(conn, "mobiled.device", "errors", { dev_idx = tonumber(string.match(parentKey, '%d')) })
+	if type(data.errors) == "table" then
+		for i, error in pairs(data.errors) do
+			local id = "error_" .. i
+			if id == key then
+				result = data.errors[i]
+				if type(result.data) == "table" then
+					result.reject_cause_message = result.data.reject_cause_message
+					result.reject_cause = result.data.reject_cause
+					result.pdp_type = result.data.pdp_type
+					result.data = nil
+				end
+				break
+			end
+		end
+	end
+	setmetatable(result, { __index = function() return "" end })
+	return result
+end
+
+local function getall(mapping, key, parentKey)
+	return getErrors(key, parentKey)
+end
+
+local function get(mapping, paramName, key, parentKey)
+	return getall(mapping, key, parentKey)[paramName]
+end
+
+local function errorEntries(mapping, key)
+	local data = helper.getUbusData(conn, "mobiled.device", "errors", { dev_idx = tonumber(string.match(key, '%d')) })
+	local errors = {}
+	if type(data.errors) == "table" then
+		for i, error in pairs(data.errors) do
+			table.insert(errors, {tostring(i), "error_" .. i })
+		end
+	end
+	return errors
+end
+
+obj.getall = getall
+obj.get = get
+obj.entries = errorEntries
+
+register(obj)

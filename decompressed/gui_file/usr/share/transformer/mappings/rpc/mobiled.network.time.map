@@ -1,0 +1,65 @@
+local tonumber, string = tonumber, string
+
+local obj = {
+    objectType = {
+        name = 'rpc.mobiled.device.@.network.time.',
+        access = 'readOnly',
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            daylight_saving_time = {
+                access = "readOnly",
+                type = "unsignedInt"
+            },
+            localtime = {
+                access = "readOnly",
+                type = "unsignedInt"
+            },
+            localtimestr = {
+                access = "readOnly",
+                type = "string"
+            },
+            time = {
+                access = "readOnly",
+                type = "unsignedInt"
+            },
+            timestr = {
+                access = "readOnly",
+                type = "string"
+            },
+            timezone = {
+                access = "readOnly",
+                type = "unsignedInt"
+            }
+        }
+    }
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+    return
+end
+
+local helper = require("mobiled.scripthelpers")
+
+local function getall(mapping, key)
+    local data = helper.getUbusData(conn, "mobiled.network", "time", { dev_idx = tonumber(string.match(key, '%d')) })
+    local timestamp = tonumber(data.localtime)
+    if timestamp then
+        data['localtimestr'] = os.date('%Y-%m-%d %H:%M:%S', timestamp)
+        if tonumber(data.timezone) then
+            data['time'] = tostring(timestamp+(tonumber(data.timezone)*60))
+            data['timestr'] = os.date('%Y-%m-%d %H:%M:%S', timestamp+(tonumber(data.timezone)*60))
+        end
+    end
+    return data
+end
+
+local function get(mapping, paramName, key)
+    return getall(mapping, key)[paramName]
+end
+
+obj.getall = getall
+obj.get = get
+
+register(obj)

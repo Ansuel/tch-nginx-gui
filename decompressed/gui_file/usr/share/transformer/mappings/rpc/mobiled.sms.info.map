@@ -1,0 +1,53 @@
+local tonumber = tonumber
+
+local obj = {
+	objectType = {
+		name = "rpc.mobiled.device.@.sms.info.",
+		access = "readOnly",
+		minEntries = 1,
+		maxEntries = 1,
+		parameters = {
+			read_messages = {
+				access = "readOnly",
+				type = "unsignedInt",
+			},
+			unread_messages = {
+				access = "readOnly",
+				type = "unsignedInt",
+			},
+			max_messages = {
+				access = "readOnly",
+				type = "unsignedInt",
+			},
+			total_messages = {
+				access = "readOnly",
+				type = "unsignedInt",
+			},
+		}
+	}
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+	return
+end
+
+local helper = require("mobiled.scripthelpers")
+
+local function getall(mapping, key)
+	local data = helper.getUbusData(conn, "mobiled.sms", "info", { dev_idx = tonumber(string.match(key, '%d')) })
+	if data.read_messages ~= "" and data.unread_messages ~= "" then
+		data.total_messages = tostring(tonumber(data.read_messages) + tonumber(data.unread_messages))
+	end
+	return data
+end
+
+local function get(mapping, paramName, key)
+	return getall(mapping, key)[paramName]
+end
+
+obj.getall = getall
+obj.get = get
+
+register(obj)
+

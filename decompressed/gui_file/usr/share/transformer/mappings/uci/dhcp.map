@@ -1,0 +1,131 @@
+local mapper = mapper
+local config_dhcp = "dhcp"
+
+-- uci.dhcp
+mapper("uci_1to1").registerConfigMap(config_dhcp)
+
+-- uci.dhcp.dnsmasq.{i}
+local dhcp_dnsmasq = {
+    config = config_dhcp,
+    type = "dnsmasq",
+    options = {
+        "add_local_domain", "add_local_hostname", "authoritative", "boguspriv",
+        "cachelocal", "cachesize", "dhcp_boot", "dhcphostsfile", "dhcpleasemax", "dnsforwardmax", "domain",
+        "domainneeded", "ednspacket_max", "enable_tftp", "expandhosts", "filterwin2k", "fqdn",
+        "leasefile", "local", "localise_queries", "logqueries", "nodaemon", "nohosts", "nonegcache", "noresolv",
+        "nonwildcard", "port", "queryport", "readethers", "resolvfile", "strictorder",
+        "tftp_root", "rebind_protection", "rebind_localhost"
+    },
+    lists = {
+        "addnhosts", "bogusnxdomain", "interface", "notinterface", "server","rebind_domain", "hostname"
+    }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(dhcp_dnsmasq)
+
+-- uci.dhcp.dhcp.{i}
+local dhcp_dhcp = {
+    config = config_dhcp,
+    type = "dhcp",
+    options = {
+        "dynamicdhcp", "force", "ignore", "interface", "leasetime", "limit",
+        "networkid", "start", "dhcpv6", "ra", "ra_mtu", "ra_hoplimit",
+        "ra_lifetime", "ra_maxinterval", "ra_mininterval", "ra_management",
+        "instance", "master", "dhcpv4", "ndp", "ra_default", "ra_offlink",
+        "ra_preference", "ra_reachable", "ra_retransmit", "ndproxy_routing",
+        "ndproxy_slave",
+    },
+    lists = {
+        "dhcp_option", "dns", "domain", "ndproxy_static",
+    }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(dhcp_dhcp)
+
+-- uci.dhcp.host.{i}
+local dhcp_host = {
+    config = config_dhcp,
+    type = "host",
+    options = { "ip", "mac", "name", "owner" }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(dhcp_host)
+
+-- uci.dhcp.classifier.{i}
+local dhcp_classifier = {
+    config = config_dhcp,
+    type = "classifier",
+    options = { "mac", "vendorclass", "userclass", "circuitid", "remoteid", "subscrid" }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(dhcp_classifier)
+
+-- uci.dhcp.boot.{i}
+local dhcp_boot = {
+    config = config_dhcp,
+    type = "boot",
+    options = { "filename", "networkid", "serveraddress", "servername" },
+    lists = {
+        "dhcp_option",
+    }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(dhcp_boot)
+
+-- uci.dhcp.dnsrule.{i}
+local dhcp_dnsrule = {
+    config = config_dhcp,
+    type = "dnsrule",
+    options = { "dnsset", "policy", "data", "domain", "outpolicy", "enable"}
+}
+
+mapper("uci_1to1").registerNamedMultiMap(dhcp_dnsrule)
+
+-- uci.dhcp.vendorclass.{i}
+local dhcp_vendorclass = {
+    config = config_dhcp,
+    type = "vendorclass",
+    options = { "vendorclass", "networkid", }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(dhcp_vendorclass)
+
+-- uci.dhcp.dnsserver
+local dhcp_dnsserver = {
+    config = config_dhcp,
+    section = "dnsserver",
+    type = "dnscustom",
+    options = { "dns1", "dns2", }
+}
+
+mapper("uci_1to1").registerSimpleMap(dhcp_dnsserver)
+
+-- uci.dhcp.match.{i}
+local dhcp_match = {
+    config = config_dhcp,
+    type = "match",
+    options = { "networkid", "match", "force" },
+    lists = {
+        "dhcp_option",
+    }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(dhcp_match)
+
+-- uci.dhcp.relay.{i}
+local dhcp_relay = {
+    config = config_dhcp,
+    type = "relay",
+    options = { "local_addr", "server_addr", "interface" }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(dhcp_relay)
+
+-- uci.dhcp.relaybackup.{i}
+local dhcp_relay_backup = {
+    config = config_dhcp,
+    type = "relaybackup",
+    options = { "local_addr", "server_addr", "interface" }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(dhcp_relay_backup)

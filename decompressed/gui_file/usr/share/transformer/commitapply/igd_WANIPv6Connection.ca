@@ -1,0 +1,1 @@
+^InternetGatewayDevice%.WANDevice%.[^%.]+%.WANConnectionDevice%.[^%.]+%.X_0876FF_WANIPv6Connection%.[^%.]+%.Reset for file in /tmp/ipv6_intf/*;do interface=$(basename "$file");ifup $interface;rm $file;done

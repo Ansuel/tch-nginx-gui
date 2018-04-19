@@ -1,0 +1,38 @@
+local mapper = mapper
+local config_mmpbxrvsipdev = "mmpbxrvsipdev"
+
+-- uci.mmpbxrvsipdev
+mapper("uci_1to1").registerConfigMap(config_mmpbxrvsipdev)
+
+-- uci.mmpbxrvsipdev.device
+local mmpbxrvsipdev_device = {
+  config = config_mmpbxrvsipdev,
+  type = "device",
+  options = {
+    "user_name",
+    "enabled",
+    "uri",
+    "display_name",
+    "user_friendly_name",
+    "clientmac",
+    "clientname",
+    "push_type",
+    "push_token",
+  },
+  passwords = {
+    "password",
+    "defaultpassword",
+  }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(mmpbxrvsipdev_device)
+
+-- uci.mmpbxrvsipdev.server
+local mmpbxrvsipdev_sipserver = {
+    config = config_mmpbxrvsipdev,
+    section = "sip_server",
+    type = "server",
+    options = { "interface", "push_notification_support" },
+}
+
+mapper("uci_1to1").registerSimpleMap(mmpbxrvsipdev_sipserver)

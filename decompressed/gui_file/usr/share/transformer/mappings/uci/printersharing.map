@@ -1,0 +1,16 @@
+local config_printersharing = "printersharing"
+
+-- uci.printersharing
+mapper("uci_1to1").registerConfigMap(config_printersharing)
+
+--config printersharing config
+--        option enabled '1'
+local printersharing_config = {
+  config = config_printersharing,
+  section = "config",
+  type = "printersharing",
+  options = { "enabled"}
+}
+
+mapper("uci_1to1").registerSimpleMap(printersharing_config)
+

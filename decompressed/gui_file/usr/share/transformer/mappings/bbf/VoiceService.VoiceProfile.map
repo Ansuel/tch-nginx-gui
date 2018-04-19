@@ -1,0 +1,933 @@
+local lfs = require("lfs")
+
+if lfs.attributes("/etc/config/mmpbx", "mode") ~= "file" then
+  return
+end
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_ = {
+    objectType = {
+        name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.",
+        access = "readWrite",
+        minEntries = 0,
+        maxEntries = math.huge,
+        numEntriesParameter = "VoiceProfileNumberOfEntries",
+        enableParameter = "Enable",
+        parameters = {
+            Enable = {
+                access = "readWrite",
+                type = "string",
+                enumeration = {
+                    "Disabled",
+                    "Quiescent",
+                    "Enabled",
+                },
+                default = "Disabled",
+            },
+            Reset = {
+                access = "readWrite",
+                type = "boolean",
+                default = "false",
+            },
+            --      -- NumberOfLines
+            --      -- automatically created when Multi.Services.VoiceService.{i}.VoiceProfile.{i}.Line.{i}. is loaded
+            Name = {
+                access = "readWrite",
+                type = "string",
+                max = "64",
+                default = "",
+            },
+            SignalingProtocol = {
+                access = "readWrite",
+                type = "string",
+                enumeration = {
+                    "SIP",
+                    "MGCP",
+                    "H323",
+                },
+                default = "",
+            },
+            MaxSessions = {
+                access = "readWrite",
+                type = "unsignedInt",
+                default = "0",
+            },
+            DTMFMethod = {
+                access = "readWrite",
+                type = "string",
+                max = "64",
+                enumeration = {
+                     "InBand",
+                     "RFC2833",
+                     "SIPInfo",
+                },
+                default = "InBand",
+            },
+            DTMFMethodG711 = {
+                access = "readWrite",
+                type = "string",
+                max = "64",
+                enumeration = {
+                    "InBand",
+                    "RFC2833",
+                    "SIPInfo",
+                },
+                default = "",
+            },
+            Region = {
+                access = "readWrite",
+                type = "string",
+            },
+            --      DigitMap = {
+            --        access = "readWrite",
+            --        type = "string",
+            --        max = "256",
+            --        default = "",
+            --      },
+            --      DigitMapEnable = {
+            --        access = "readWrite",
+            --        type = "boolean",
+            --        default = "true",
+            --      },
+            --      STUNEnable = {
+            --        access = "readWrite",
+            --        type = "boolean",
+            --        default = "false",
+            --      },
+            --      STUNServer = {
+            --        access = "readWrite",
+            --        type = "string",
+            --        max = "256",
+            --        default = "",
+            --      },
+            --      NonVoiceBandwidthReservedUpstream = {
+            --        access = "readWrite",
+            --        type = "unsignedInt",
+            --        default = "0",
+            --      },
+            --      NonVoiceBandwidthReservedDownstream = {
+            --        access = "readWrite",
+            --        type = "unsignedInt",
+            --        default = "0",
+            --      },
+            PSTNFailOver = {
+                access = "readWrite",
+                type = "boolean",
+                default = "false",
+            },
+            FaxPassThrough = {
+                access = "readWrite",
+                type = "string",
+                enumeration = {
+                    "Disable",
+                    "Auto",
+                    "Force",
+                },
+                default = "Auto",
+            },
+            ModemPassThrough = {
+                access = "readWrite",
+                type = "string",
+                enumeration = {
+                    "Disable",
+                    "Auto",
+                    "Force",
+                },
+                default = "Auto",
+            },
+            X_000E50_FNN = {
+                access = "readWrite",
+                type = "string",
+                default = "",
+            },
+            X_000E50_Interface = {
+                access = "readWrite",
+                type = "string",
+                default = "",
+            },
+	    X_000E50_ResetCode = {
+	       access = "readWrite",
+	       type = "string",
+	       default = "*#101",
+	    },
+
+	    X_000E50_InterDigitTimer = {
+	       access = "readWrite",
+	       type = "unsignedInt",
+	       default = "6",
+	    },
+
+	    X_000E50_ShortInterDigitTimer = {
+	       access = "readWrite",
+	       type = "unsignedInt",
+	       default = "0",
+	    },
+            X_000E50_SubRegion = {
+               access = "readWrite",
+               type = "unsignedInt",
+               range = {
+                  {
+                     min = "0",
+                     max = "10",
+                  },
+               },
+            },
+        }
+    }
+}
+
+local uci_helper = mapper("ucihelper")
+local common = mapper('nwcommon')
+local split_key = common.split_key
+local findLanWanInterfaces = common.findLanWanInterfaces
+local wanconn = require("transformer.shared.wanconnection")
+local conn = mapper("ubus").connect()
+local calls = {}
+local profile_helper = require("transformer.shared.profile_helper")
+local numOfFxs, numOfDect, numOfSipdev
+
+local enablestatus = {
+    ['0'] = "Disabled",
+    ['1'] = "Enabled",
+    ['Enabled'] = "1",
+    ['Disabled'] = "0",
+}
+
+local binding = {}
+local transactions = {}
+local faxpassthrough = setmetatable({
+    inband_renegotiation = "Auto",
+    t38 = "Auto",
+    disabled = "Disable",
+    Auto = "inband_renegotiation",
+    Disable = "disabled",
+}, { __index = function() return "" end })
+
+-- Array Items:
+-- 1. config file name
+-- 2. specific seciton type for getting sectionnames
+-- 3. parent key for filter
+local configs = {
+    {"mmpbxrvsipnet", "network", "SIPUA"},
+    {"mmpbxrvsipdev", "server", "INTUA"},
+}
+
+local function countryTR104(val, countryType)
+    if calls and type(calls) == "table" then
+        for country,code in pairs(calls) do
+            if countryType == "tr104" and country == val then
+                return code["ISOStandard"]
+            elseif countryType == "country" and code["ISOStandard"] == val then
+                return country
+            end
+        end
+    end
+end
+
+local function getCountry()
+    binding.config = "mmpbx"
+    binding.sectionname = "global"
+    binding.option = "country"
+    return uci_helper.get_from_uci(binding)
+end
+
+local function subRegion(value)
+    local country = getCountry()
+    local region = countryTR104(country, "tr104")
+    local subregion = tonumber(value)
+    if region then
+        if calls and type(calls) == "table" then
+            for i,j in pairs(calls) do
+                if region == j["ISOStandard"] and subregion == j["subRegion"] then
+                    return i
+                end
+            end
+        end
+    end
+    return ""
+end
+
+local dtmf_setmap = setmetatable({
+  RFC2833 = "rfc2833",
+  SIPInfo = "sipinfo",
+  InBand = "disabled",
+}, { __index = function() return "" end })
+
+local dtmf_getmap = setmetatable({
+  auto = "RFC2833",
+  rfc2833 = "RFC2833",
+  sipinfo = "SIPInfo",
+  disabled = "InBand",
+}, { __index = function() return "" end })
+
+Multi_Services_VoiceService_i_VoiceProfile_i_.entries = function(mapping, parentkey)
+    local entries = {}
+    calls = conn:call("mmbrcm.countries", "get", {})
+
+    for _,v in pairs(configs) do
+        if v[3] == parentkey then
+            binding.config = v[1]
+            binding.sectionname = v[2]
+            uci_helper.foreach_on_uci(binding, function(s)
+                entries[#entries + 1] = v[1] .. "|" .. s['.name']
+            end)
+        end
+    end
+
+    numOfFxs, numOfDect, numOfSipdev = profile_helper.find_device_support(parentkey)
+
+    return entries
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_.get = {
+    Enable = function ()
+        binding.config = "mmpbx"
+        binding.sectionname = "global"
+        binding.option = "enabled"
+        local res = uci_helper.get_from_uci(binding)
+        return enablestatus[res]
+    end,
+    Name = function(mapping, paramname, key)
+        local config, sectionname = key:match("(.*)|(.*)")
+        binding.config = config
+        binding.sectionname = sectionname
+        binding.option = "user_friendly_name"
+        return uci_helper.get_from_uci(binding)
+    end,
+    SignalingProtocol = "SIP",
+    MaxSessions = function ()
+        -- Must be less than or equal to VoiceService.{i}.Capabilities.MaxSessionCount
+        -- Multi.Services.VoiceService.1.Capabilities.MaxSessionCount = 4
+        binding.config = "mmpbxrvsipnet"
+        binding.sectionname = "sip_net"
+        binding.option = "cac"
+        local cac = uci_helper.get_from_uci(binding)
+        cac = tonumber(cac)
+        if (cac == nil or cac == 0 or cac < -1) then
+            return ""
+        elseif (cac == -1 or 2 * cac > 4) then
+            local maxsessions = (numOfFxs * 2)
+            if (numOfDect <= 1) then
+                maxsessions = maxsessions + (numOfDect * 2)
+            else
+            -- 4 simultaneous DECT calls
+                maxsessions = maxsessions + 4
+            end
+            maxsessions = maxsessions + (numOfSipdev * 2)
+            return tostring(maxsessions)
+        else
+            return tostring(2 * cac)
+        end
+    end,
+    Region = function()
+        binding.config = "mmpbx"
+        binding.sectionname = "global"
+        binding.option = "country"
+        local country = uci_helper.get_from_uci(binding)
+        local tr104 = countryTR104(country, "tr104")
+        if tr104 then
+            return tr104
+        else
+            return ""
+        end
+    end,
+    FaxPassThrough = function()
+        local res
+        binding.config = "mmpbxbrcmfxsdev"
+        binding.sectionname = "global"
+        binding.option = "fax_transport"
+        local faxTransport = uci_helper.get_from_uci(binding)
+        res = faxpassthrough[faxTransport]
+        return res or ""
+    end,
+    ModemPassThrough = "Auto",
+    PSTNFailOver = "false",
+    DTMFMethod = function(mapping, paramname, key)
+        binding.config = "mmpbxrvsipnet"
+        binding.sectionname = "sip_net"
+        binding.option = "dtmf_relay"
+        return  dtmf_getmap[uci_helper.get_from_uci(binding)] or ""
+    end,
+    DTMFMethodG711 = function(mapping, paramname, key)
+        binding.config = "mmpbxrvsipnet"
+        binding.sectionname = "sip_net"
+        binding.option = "dtmf_relay"
+        return  dtmf_getmap[uci_helper.get_from_uci(binding)] or ""
+    end,
+    X_000E50_FNN = function(mapping, paramname, key)
+        binding.config = "mmpbxbrcmfxonet"
+        binding.sectionname = "fxo_profile"
+        binding.option = "enabled"
+        local fxo_profile_enabled = uci_helper.get_from_uci(binding)
+        if (fxo_profile_enabled == "0") then
+            binding.config = "mmpbxrvsipnet"
+            binding.sectionname = "sip_profile_0"
+            binding.option = "uri"
+            return uci_helper.get_from_uci(binding)
+        end
+        return ""
+    end,
+    X_000E50_Interface = function(mapping, paramname, key)
+        local config, sectionname = key:match("(.*)|(.*)")
+        binding.config = config
+        binding.sectionname = sectionname
+        binding.option = "interface"
+        local value =  uci_helper.get_from_uci(binding)
+        if mapping.objectType.name:match('^Device%.') then
+            return resolve('Device.IP.Interface.{i}.', value) or ""
+        end
+        local path = ""
+        local lanInterfaces = findLanWanInterfaces(false)
+        local isLan = false
+        for _,j in pairs(lanInterfaces) do
+            if (value == j) then
+                isLan = true
+                break
+            end
+        end
+        if (isLan) then
+            path = resolve('InternetGatewayDevice.LANDevice.{i}.LANHostConfigManagement.IPInterface.{i}.', value)
+        else
+            local wanport = wanconn.get_connection_key(value)
+            path = resolve('InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANPPPConnection.{i}.', wanport) or resolve('InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANIPConnection.{i}.', wanport)
+        end
+        return path or ""
+    end,
+    Reset = "0",
+    X_000E50_ResetCode = function (mapping, paramname, key)
+       binding.config = "mmpbx"
+       binding.sectionname = "scc_entry"
+       local val
+       uci_helper.foreach_on_uci(binding, function(s)
+         if (s["service_type"] == "RESET_NETWORK") then
+	    val = s["pattern"]
+	 end
+       end)
+       return val or "*#101"
+    end,
+    X_000E50_InterDigitTimer = function (mapping, paramname, key)
+       binding.config = "mmpbx"
+       binding.sectionname = "dial_plan_generic"
+       binding.option = "open_inter_digit_timer"
+       return uci_helper.get_from_uci(binding)
+    end,
+    X_000E50_ShortInterDigitTimer = function (mapping, paramname, key)
+       binding.config = "mmpbx"
+       binding.sectionname = "dial_plan_generic"
+       binding.option = "closed_inter_digit_timer"
+       return uci_helper.get_from_uci(binding)
+    end,
+    X_000E50_SubRegion = function()
+       local country = getCountry()
+       if calls and type(calls) == "table" then
+          for i,j in pairs(calls) do
+             if i == country then
+                return tostring(j["subRegion"])
+             end
+          end
+       end
+       return ""
+     end
+}
+
+local function rfc2833Mode(paramvalue)
+       binding.config = "mmpbx"
+       binding.sectionname = "codec_filter"
+
+       local set_binding = {}
+       set_binding.config = "mmpbx"
+       set_binding.sectionname = "codec_filter"
+
+       if (paramvalue == "RFC2833") then
+            uci_helper.foreach_on_uci(binding, function(s)
+              if s.name == "telephone-event" then
+                 set_binding.sectionname = s[".name"]
+                 set_binding.option = "allow"
+                 uci_helper.set_on_uci(set_binding, "1", commitapply)
+                 transactions[set_binding.config] = true
+              end
+            end)
+
+            set_binding.config = "mmpbxbrcmfxsdev"
+            set_binding.sectionname = "fxs_dev_0"
+            set_binding.option = "codec_black_list"
+            local list = uci_helper.get_from_uci(set_binding)
+            if (list ~= "") then
+                for index, value in ipairs(list) do
+                    if value == "telephone-event" then
+                       table.remove(list,index)
+                       index = index - 1
+                    end
+                 end
+                 uci_helper.set_on_uci(set_binding, list)
+                 transactions[set_binding.config] = true
+            end
+
+            set_binding.sectionname = "fxs_dev_1"
+            set_binding.option = "codec_black_list"
+            local list = uci_helper.get_from_uci(set_binding)
+            if (list ~= "") then
+                for index, value in ipairs(list) do
+                    if value == "telephone-event" then
+                       table.remove(list,index)
+                       index = index - 1
+                    end
+                 end
+                 uci_helper.set_on_uci(set_binding, list)
+                 transactions[set_binding.config] = true
+            end
+
+       elseif (paramvalue == "InBand" or paramvalue == "SIPInfo" ) then
+            binding.config = "mmpbx"
+            binding.sectionname = "codec_filter"
+
+            set_binding.config = "mmpbx"
+            set_binding.sectionname = "codec_filter"
+            uci_helper.foreach_on_uci(binding, function(s)
+                if s.name == "telephone-event" then
+                   set_binding.sectionname = s[".name"]
+                   set_binding.option = "allow"
+                   uci_helper.set_on_uci(set_binding, "0", commitapply)
+                   transactions[set_binding.config] = true
+                end
+            end)
+
+            local check = 0
+            set_binding.config = "mmpbxbrcmfxsdev"
+            set_binding.sectionname = "fxs_dev_0"
+            set_binding.option = "codec_black_list"
+            local list = uci_helper.get_from_uci(set_binding)
+            if (list ~= "") then
+                check = 0
+                for index, value in ipairs(list) do
+                    if value == "telephone-event" then
+                       check = 1
+                    end
+                 end
+                 if (check ~= 1) then
+                    table.insert(list, 1, "telephone-event")
+                    uci_helper.set_on_uci(set_binding, list)
+                    transactions[set_binding.config] = true
+                 end
+            else
+                 list = {}
+                 table.insert(list, "telephone-event")
+                 uci_helper.set_on_uci(set_binding, list)
+                 transactions[set_binding.config] = true
+            end
+
+            set_binding.sectionname = "fxs_dev_1"
+            set_binding.option = "codec_black_list"
+            local list = uci_helper.get_from_uci(set_binding)
+            if (list ~= "") then
+                check = 0
+                for index, value in ipairs(list) do
+                    if value == "telephone-event" then
+                       check = 1
+                    end
+                 end
+                 if (check ~= 1) then
+                    table.insert(list, 1, "telephone-event")
+                    uci_helper.set_on_uci(set_binding, list)
+                    transactions[set_binding.config] = true
+                 end
+            else
+                 list = {}
+                 table.insert(list, "telephone-event")
+                 uci_helper.set_on_uci(set_binding, list)
+                 transactions[set_binding.config] = true
+            end
+       end
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_.set = {
+    Enable = function (mapping, paramname, paramvalue, key)
+        binding.config = "mmpbx"
+        binding.sectionname = "global"
+        binding.option = "enabled"
+        local val = "0"
+        if paramvalue == "Quiescent" then
+            paramvalue = "Disabled"
+        end
+        val = enablestatus[paramvalue]
+        uci_helper.set_on_uci(binding, val, commitapply)
+        transactions[binding.config] = true
+    end,
+    Name = function(mapping, paramname, paramvalue, key)
+        local config, sectionname = key:match("(.*)|(.*)")
+        binding.config = config
+        binding.sectionname = sectionname
+        binding.option = "user_friendly_name"
+        uci_helper.set_on_uci(binding, paramvalue, commitapply)
+        transactions[binding.config] = true
+    end,
+    SignalingProtocol = function (mapping, paramname, paramvalue, key)
+        if paramvalue == "SIP" then
+            return
+        end
+        return nil, "Only support SIP"
+    end,
+    MaxSessions = function (mapping, paramname, paramvalue, key)
+        -- Must be less than or equal to VoiceService.{i}.Capabilities.MaxSessionCount
+        -- Multi.Services.VoiceService.1.Capabilities.MaxSessionCount = 4
+        paramvalue = tonumber(paramvalue)
+        if (paramvalue == 2 or paramvalue == 4) then
+            binding.config = "mmpbxrvsipnet"
+            binding.sectionname = "sip_net"
+            binding.option = "cac"
+            paramvalue = paramvalue/2
+            uci_helper.set_on_uci(binding, paramvalue, commitapply)
+            transactions[binding.config] = true
+        elseif (paramvalue > 4) then
+        -- "the value must be less than or equal to VoiceService.{i}.Capabilities.MaxSessionCount"
+        -- This MAY be greater than the number of lines if each line can support more than one session
+            if ((numOfFxs + numOfDect + numOfSipdev) > 2) then
+                binding.config = "mmpbxrvsipnet"
+                binding.sectionname = "sip_net"
+                binding.option = "cac"
+                paramvalue = -1
+                uci_helper.set_on_uci(binding, paramvalue, commitapply)
+                transactions[binding.config] = true
+            else
+                return nil, "Less than 2 devices are configured, so the MaxSessions must be less than 5"
+            end
+        else
+            return nil, "the value must be non-zero even number"
+        end
+    end,
+    Region = function(mapping, paramname, paramvalue, key)
+         local country = countryTR104(paramvalue, "country")
+         if country then
+            paramvalue = country
+         else
+            return nil, "the value is invalid"
+         end
+         binding.config = "mmpbx"
+         binding.sectionname = "global"
+         binding.option = "country"
+         uci_helper.set_on_uci(binding, paramvalue, commitapply)
+         transactions[binding.config] = true
+         return true
+    end,
+    FaxPassThrough = function (mapping, paramname, paramvalue, key)
+        if paramvalue == "Force" then
+            return nil, "can not set 'Force' for FaxPassThrough"
+        else
+            binding.config = "mmpbxbrcmfxsdev"
+            binding.sectionname = "global"
+            binding.option = "fax_transport"
+            uci_helper.set_on_uci(binding, faxpassthrough[paramvalue], commitapply)
+            transactions[binding.config] = true
+        end
+    end,
+    PSTNFailOver = function (mapping, paramname, paramvalue, key)
+        if paramvalue ~= "false" and paramvalue ~= "0" then
+            return nil, "invalid value"
+        end
+    end,
+    ModemPassThrough  = function ()
+        return true   -- Hardcoded to set only the value "Auto"
+    end,
+    DTMFMethodG711 = function (mapping, paramname, paramvalue, key)
+        if dtmf_setmap[paramvalue] then
+            binding.config = "mmpbxrvsipnet"
+            binding.sectionname = "sip_net"
+            binding.option = "dtmf_relay"
+            uci_helper.set_on_uci(binding, dtmf_setmap[paramvalue], commitapply)
+            transactions[binding.config] = true
+
+            rfc2833Mode(paramvalue)
+        else
+            return nil, "invalid value"
+        end
+    end,
+    DTMFMethod  = function (mapping, paramname, paramvalue, key)
+        if dtmf_setmap[paramvalue] then
+            binding.config = "mmpbxrvsipnet"
+            binding.sectionname = "sip_net"
+            binding.option = "dtmf_relay"
+            uci_helper.set_on_uci(binding, dtmf_setmap[paramvalue], commitapply)
+            transactions[binding.config] = true
+
+            rfc2833Mode(paramvalue)
+        else
+            return nil, "invalid value"
+        end
+    end,
+    X_000E50_FNN = function (mapping, paramname, paramvalue, key)
+        binding.config = "mmpbxbrcmfxonet"
+        binding.sectionname = "fxo_profile"
+        binding.option = "enabled"
+        local fxo_profile_enabled = uci_helper.get_from_uci(binding)
+        if (fxo_profile_enabled == "0") then
+            binding.config = "mmpbxrvsipnet"
+            binding.sectionname = "sip_profile_0"
+            binding.option = "uri"
+            uci_helper.set_on_uci(binding, paramvalue, commitapply)
+            transactions[binding.config] = true
+        elseif (fxo_profile_enabled == "1") then
+            return nil, "It does not implemented for PSTN mode!"
+        else
+            return nil, "It is not SIP or PSTN mode"
+        end
+    end,
+    X_000E50_Interface = function(mapping, paramname, paramvalue, key)
+        -- Convert path to key; this is always the UCI/UBUS interface name, like wan, lan, ...
+        local intf = ""
+        if string.find(paramvalue,"InternetGatewayDevice.LANDevice.-") or string.find(paramvalue, "InternetGatewayDevice.WANDevice.-") or string.find(paramvalue, "Device.IP.Interface.-")then
+        local value = tokey(paramvalue,
+            "InternetGatewayDevice.LANDevice.{i}.LANHostConfigManagement.IPInterface.{i}.",
+            "InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANIPConnection.{i}.",
+            "InternetGatewayDevice.WANDevice.{i}.WANConnectionDevice.{i}.WANPPPConnection.{i}.",
+            "Device.IP.Interface.{i}."
+        )
+        if value and value:match("|") then
+            -- Interface name is the first part of the WANDevice.WANConnectionDevice.WANIP/WANPPP key
+            -- Interface name is the second part of the WANDevice.WANConnectionDevice.WANIP/WANPPP key for active devices
+            paramvalue, intf = split_key(value)
+        else
+            paramvalue = value
+        end
+        if (not paramvalue) then
+            return nil, "Invalid value"
+        end
+        local config, sectionname = key:match("(.*)|(.*)")
+        binding.config = config
+        binding.sectionname = sectionname
+        binding.option = "interface"
+        if paramvalue == "ACTIVE" then
+          uci_helper.set_on_uci(binding, intf, commitapply)
+        else
+          uci_helper.set_on_uci(binding, paramvalue, commitapply)
+        end
+        transactions[binding.config] = true
+        else
+            return nil, "given is not a valid interface"
+        end
+    end,
+    Reset = function(mapping, paramname, paramvalue, key)
+        if paramvalue == "1" then
+            commitapply:newset("Services.VoiceService.{i}.VoiceProfile.{i}.Reset")
+        else
+            return nil, "can not reset voice profile when reset value is not 1"
+        end
+    end,
+    X_000E50_ResetCode = function (mapping, paramname, paramvalue, key)
+       binding.config = "mmpbx"
+       binding.sectionname = "scc_entry"
+
+       if (not paramvalue) then
+	  return nil, "Invalid value"
+       end
+
+       local success
+       uci_helper.foreach_on_uci(binding, function(s)
+         if (s["service_type"] == "RESET_NETWORK") then
+	    binding.sectionname = s['.name']
+	    uci_helper.set_on_uci(binding, paramvalue, commitapply)
+	    transactions[binding.config] = true
+	    success = "1"
+	 end
+       end)
+       if success == "1" then
+	  return true
+       else
+	  return nil, "can not set reset code to reset_network service, check if the service is provisioned"
+       end
+    end,
+    X_000E50_InterDigitTimer = function (mapping, paramname, paramvalue, key)
+       if (not paramvalue) then
+	  return nil, "Invalid value"
+       end
+
+       binding.config = "mmpbx"
+       binding.sectionname = "dial_plan_generic"
+       binding.option = "open_inter_digit_timer"
+       uci_helper.set_on_uci(binding, paramvalue, commitapply)
+       transactions[binding.config] = true
+    end,
+    X_000E50_ShortInterDigitTimer = function (mapping, paramname, paramvalue, key)
+       if (not paramvalue) then
+	  return nil, "Invalid value"
+       end
+
+       binding.config = "mmpbx"
+       binding.sectionname = "dial_plan_generic"
+       binding.option = "closed_inter_digit_timer"
+       uci_helper.get_from_uci(binding, paramvalue, commitapply)
+       transactions[binding.config] = true
+    end,
+    X_000E50_SubRegion = function(mapping, paramname, paramvalue, key)
+       local subregion = subRegion(paramvalue)
+       local country = getCountry()
+       if subregion ~= "" then
+          if subregion == country then
+             return nil, "Subregion already exist"
+          else
+             paramvalue = subregion
+          end
+       else
+          return nil, "the value is invalid"
+       end
+       binding.config = "mmpbx"
+       binding.sectionname = "global"
+       binding.option = "country"
+       uci_helper.set_on_uci(binding, paramvalue, commitapply)
+       transactions[binding.config] = true
+       return true
+    end,
+}
+
+Multi_Services_VoiceService_i_VoiceProfile_i_.commit = function()
+    local binding = {}
+    for config in pairs(transactions) do
+        binding.config = config
+        uci_helper.commit(binding)
+    end
+    transactions = {}
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_.revert = function()
+    local binding = {}
+    for config in pairs(transactions) do
+        binding.config = config
+        uci_helper.revert(binding)
+    end
+    transactions = {}
+end
+
+
+Multi_Services_VoiceService_i_VoiceProfile_i_.add = function ()
+    error ("not implemented")
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_.delete = function ()
+    error ("not implemented")
+end
+
+local duplicator = mapper("multiroot").duplicate
+local duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end
+
+local Multi_Services_VoiceService_i_VoiceProfile_i_FaxT38_ = {
+    objectType = {
+      name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.FaxT38.",
+      access = "readOnly",
+      minEntries = 1,
+      maxEntries = 1,
+      parameters = {
+        Enable = {
+          access = "readWrite",
+          type = "boolean",
+        },
+        HighSpeedRedundancy = {
+          access = "readWrite",
+          type = "unsignedInt",
+          range = {
+              {
+                  min = "0",
+                  max = "3",
+              },
+          },
+        },
+        LowSpeedRedundancy = {
+          access = "readWrite",
+          type = "unsignedInt",
+          range = {
+              {
+                  min = "0",
+                  max = "3",
+              },
+          },
+        },
+        BitRate = {
+          access = "readOnly",    -- ReadWrite not supported.
+          type = "unsignedInt",
+        },
+        TCFMethod = {
+          access = "readOnly",    -- ReadWrite not supported.
+          type = "string",
+          enumeration = {
+            "Local",
+            "Network"
+          },
+          default = "",
+        },
+      }
+    }
+}
+
+local function get_T38Redundancy(mapping, param, key)
+        local res
+        local brcmfxsdev_binding = {config="mmpbxbrcmfxsdev", sectionname="global", option="t38_redundancy"}
+        res = uci_helper.get_from_uci(brcmfxsdev_binding)
+        if res ~= nil and res >= "0" and res <= "3" then
+            return res
+        else
+            return ""
+        end
+end
+
+local function set_T38Redundancy(mapping, paramname, paramvalue, key)
+        local brcmfxsdev_binding = {config="mmpbxbrcmfxsdev", sectionname="global", option="t38_redundancy"}
+        local t38_redundancy = uci_helper.get_from_uci(brcmfxsdev_binding)
+        if paramvalue ~= nil and paramvalue >= "0" and paramvalue <= "3" and paramvalue ~= t38_redundancy then
+            uci_helper.set_on_uci(brcmfxsdev_binding, paramvalue ,commitapply)
+        end
+end
+
+
+Multi_Services_VoiceService_i_VoiceProfile_i_FaxT38_.get = {
+    Enable = function (mapping, param, key)
+        local res = 0
+        binding.config = "mmpbxbrcmfxsdev"
+        binding.sectionname = "global"
+        binding.option = "fax_transport"
+        res = uci_helper.get_from_uci(binding)
+        if res == "t38" then
+            return "1"
+        else
+            return "0"
+        end
+    end,
+
+    HighSpeedRedundancy = get_T38Redundancy,
+    LowSpeedRedundancy = get_T38Redundancy,
+    BitRate = "14400",  -- Hardcoded in sdp at mmpbxbrcmfxs
+    TCFMethod = "Network",
+}
+
+Multi_Services_VoiceService_i_VoiceProfile_i_FaxT38_.set = {
+    Enable = function (mapping, paramname, paramvalue, key)
+        binding.config = "mmpbxbrcmfxsdev"
+        binding.sectionname = "global"
+        binding.option = "fax_transport"
+        local fax_transport = uci_helper.get_from_uci(binding)
+        if paramvalue == "1" and fax_transport ~= "t38"  then
+            uci_helper.set_on_uci(binding, "t38", commitapply)
+            transactions[binding.config] = true
+        elseif paramvalue == "0" and fax_transport == "t38"  then
+            uci_helper.set_on_uci(binding, "inband_renegotiation", commitapply)
+            transactions[binding.config] = true
+        end
+    end,
+
+    HighSpeedRedundancy = set_T38Redundancy,
+    LowSpeedRedundancy = set_T38Redundancy,
+}
+
+Multi_Services_VoiceService_i_VoiceProfile_i_FaxT38_.commit = function()
+    binding.config = "mmpbxbrcmfxsdev"
+    uci_helper.commit(binding)
+end
+
+Multi_Services_VoiceService_i_VoiceProfile_i_FaxT38_.revert = function()
+    binding.config = "mmpbxbrcmfxsdev"
+    uci_helper.revert(binding)
+end
+
+duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_FaxT38_, "#ROOT", {"InternetGatewayDevice", "Device"})
+for _, dupli in ipairs(duplicates) do
+  register(dupli)
+end

@@ -1,0 +1,101 @@
+local mapper = mapper
+local config_mmpbxrvsipnet = "mmpbxrvsipnet"
+
+-- uci.mmpbxrvsipnet
+mapper("uci_1to1").registerConfigMap(config_mmpbxrvsipnet)
+
+-- uci.mmpbxrvsipnet.radvision
+local mmpbxrvsipnet_radvision = {
+  config = config_mmpbxrvsipnet,
+  type = "radvision",
+  options = { "trace"}
+}
+mapper("uci_1to1").registerNamedMultiMap(mmpbxrvsipnet_radvision)
+
+-- uci.mmpbxrvsipnet.network
+local mmpbxrvsipnet_network = {
+  config = config_mmpbxrvsipnet,
+  type = "network",
+  options = {
+    "user_friendly_name",
+    "cac",
+    "transparent_soc_transmission",
+    "domain_name",
+    "interface",
+    "interface6",
+    "local_port",
+    "primary_proxy",
+    "primary_proxy_port",
+    "secondary_proxy",
+    "secondary_proxy_port",
+    "primary_registrar",
+    "primary_registrar_port",
+    "secondary_registrar",
+    "secondary_registrar_port",
+    "transport_type",
+    "reg_expire",
+    "reg_expire_T_before",
+    "reg_back_off_timeout",
+    "realm",
+    "realm_check",
+    "401_407_waiting_time",
+    "dtmf_relay",
+    "dtmf_relay_translation",
+    "timer_T1",
+    "timer_T2",
+    "timer_T4",
+    "timer_B",
+    "timer_D",
+    "timer_F",
+    "timer_J",
+    "provisional_timer",
+    "sdp_call_hold_direction",
+    "uri_clir_format",
+    "privacy_handling",
+    "rejection_response",
+    "no_answer_response",
+    "call_waiting_provisional_response",
+    "call_waiting_reject_response",
+    "reliable_provisional_response",
+    "re_registration_mode",
+    "forking_mode",
+    "ingress_media_timeout",
+    "session_timer",
+    "min_session_expires",
+    "session_expires",
+    "fail_behaviour",
+    "min_period_proxy_redundancy",
+    "escape_hash",
+    "escape_star",
+    "control_qos_field",
+    "control_qos_value",
+    "realtime_qos_field",
+    "realtime_qos_value",
+    "fax_transport",
+    "early_detect_fax",
+    "reinvite_stop_audio",
+    "rport_in_via",
+    "rtp_local_port_min",
+    "rtp_local_port_max",
+    "switch_back_to_primary_proxy_timer",
+    "proxy_selection_policy"
+  }
+}
+mapper("uci_1to1").registerNamedMultiMap(mmpbxrvsipnet_network)
+
+--uci.mmpbxrvsipnet.profile
+local mmpbxrvsipnet_profile = {
+  config = config_mmpbxrvsipnet,
+  type = "profile",
+  options = { "enabled", "network", "uri", "user_name", "display_name"},
+  passwords = { "password" }
+}
+mapper("uci_1to1").registerNamedMultiMap(mmpbxrvsipnet_profile)
+
+--uci.mmpbxrvsipnet.mmpbxrvsipnet
+local mmpbxrvsipnet_mmpbxrvsipnet = {
+  config = config_mmpbxrvsipnet,
+  type = "mmpbxrvsipnet",
+  options = { "trace_level", "radvision_trace_level"},
+}
+mapper("uci_1to1").registerNamedMultiMap(mmpbxrvsipnet_mmpbxrvsipnet)

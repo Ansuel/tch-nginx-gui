@@ -1,0 +1,195 @@
+local uh = mapper("ucihelper")
+local format, gmatch, find, match = string.format, string.gmatch, string.find, string.match
+local popen = io.popen
+local tonumber, ipairs, pairs = tonumber, ipairs, pairs
+local bit = require("bit")
+
+local sys_class_iproutes_ = {
+  objectType = {
+    name = "sys.class.iproutes.@.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      Destination = {
+        access = "readOnly",
+        type = "string",
+      },
+      Gateway = {
+        access = "readOnly",
+        type = "string",
+      },
+      Mask = {
+        access = "readOnly",
+        type = "string",
+      },
+      Source = {
+        access = "readOnly",
+        type = "string",
+      },
+      Metric = {
+        access = "readOnly",
+        type = "string",
+      },
+      Iface = {
+        access = "readOnly",
+        type = "string",
+      },
+      Table = {
+        access = "readOnly",
+        type = "string",
+      },
+    }
+  }
+}
+
+local function HEXIP2string(HEX)
+  local D1, D2, D3, D4 = match(HEX, "(%x%x)(%x%x)(%x%x)(%x%x)")
+  D1, D2, D3, D4 = tonumber(D1, 16), tonumber(D2, 16), tonumber(D3, 16), tonumber(D4, 16)
+  return format("%d.%d.%d.%d", D1, D2, D3, D4)
+end
+
+local function convertmask(x)
+  local num = bit.lshift(0xffffffff, 32-x)
+  local hex_num = bit.tohex(num)
+  return HEXIP2string(hex_num)
+end
+
+local function findoffset(tabletest,wordtest)
+  for x=1, #tabletest do
+    if tabletest[x] == wordtest then
+      return x
+    end
+  end
+  return nil
+end
+
+local binding = { config = "network", sectionname = "interface" }
+
+local function generate_iptables()
+  local iptables = { main = true }
+  uh.foreach_on_uci(binding, function(s)
+    if s["ip4table"]  then
+      iptables[s["ip4table"]] = true
+    end
+  end)
+  return iptables
+end
+
+local function getIPIntf(x)
+  local returnvar = ""
+  uh.foreach_on_uci(binding, function(s)
+    if x == s["ifname"] then
+      returnvar = s[".name"]
+      return false
+    end
+  end)
+  return returnvar
+end
+
+local cache = {}
+local notallowed = {
+  ["local"]       = true,
+  ["broadcast"]   = true,
+  ["unreachable"] = true,
+  ["fe80"]        = true,
+  ["ff00"]        = true,
+}
+
+local function generate_data(tableref)
+  local data = cache[tableref]
+  if data then
+    return data
+  end
+  data = {}
+  cache[tableref] = data
+  local readtable = popen(format("ip route show table %s 2>&1", tableref))
+  for line in readtable:lines() do
+    if line ~= "" and find(line, "Error:") == nil then
+      local words = {}
+      for word in gmatch(line, "%S+") do
+        words[#words+1] = word
+      end
+      if not notallowed[words[1]] then
+        data[#data + 1] = words
+      end
+    end
+  end
+  readtable:close()
+  return data
+end
+
+local function entriesRoutes()
+  local entries = {}
+  cache = {}
+  local iptables = generate_iptables()
+  for iptable in pairs(iptables) do
+    local datastore = generate_data(iptable)
+    for i in ipairs(datastore) do
+      entries[#entries+1] = iptable .. "-" .. i
+    end
+  end
+  return entries
+end
+
+local function getall(mapping, key)
+  local tb, idx = match(key, "(%w+)%-(%w+)")
+  local datastore = generate_data(tb)
+  local data = datastore[tonumber(idx)]
+  local store = { Destination = "", Gateway = "0.0.0.0", Mask = "", Source = "", Metric = "", Iface = "", Table = tb }
+
+  if data[1] ~= "default" then
+    local split = {}
+    for word in gmatch(data[1], "%w+") do
+      split[#split+1] = word
+    end
+    store["Destination"] = format("%s.%s.%s.%s",split[1],split[2],split[3],split[4])
+    if split[5] then
+      store["Mask"] = convertmask(split[5])
+    else
+      store["Mask"] = "255.255.255.255"
+    end
+  else
+    if data[1] == "default" then
+      data[1] = "0.0.0.0"
+    end
+    store["Destination"] = data[1]
+    store["Mask"] = "0.0.0.0"
+  end
+
+  local offset = findoffset(data, "via")
+  if offset then
+    store["Gateway"] = data[offset+1]
+  end
+
+  local offset = findoffset(data, "dev")
+  if offset then
+    store["Iface"] = getIPIntf(data[offset+1])
+  end
+
+  local offset = findoffset(data, "src")
+  if offset then
+    if data[offset+2] and data[offset+2] ~= "metric" then
+      store["Source"] = data[offset+1] .. "/" .. data[offset+2]
+    else
+      store["Source"] = data[offset+1]
+    end
+  end
+
+  local offset = findoffset(data, "metric")
+  if offset then
+    store["Metric"] = data[offset+1]
+  else
+    store["Metric"] = "0"
+  end
+  return store
+end
+
+local function get(mapping, paramName, key)
+  return getall(mapping, key)[paramName]
+end
+
+sys_class_iproutes_.getall = getall
+sys_class_iproutes_.entries = entriesRoutes
+sys_class_iproutes_.get = get
+register(sys_class_iproutes_)

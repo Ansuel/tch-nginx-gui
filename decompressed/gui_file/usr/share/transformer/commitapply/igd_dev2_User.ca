@@ -1,0 +1,2 @@
+webuser_add /etc/init.d/nginx restart
+webuser_password /etc/init.d/nginx restart

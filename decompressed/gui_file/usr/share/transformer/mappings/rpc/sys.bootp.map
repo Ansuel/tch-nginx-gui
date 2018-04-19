@@ -1,0 +1,32 @@
+
+local sys_bootp_ = {
+  objectType = {
+    name = "sys.bootp.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      enable = {
+        access = "readWrite",
+        type = "boolean"
+      },
+    },
+  }
+}
+
+local function get(mapping)
+  return "0"
+end
+
+local set = {
+  enable = function(mapping, param, value)
+  if value == "1" then
+    commitapply:newset("sys.bootp.enable")
+  end
+end
+}
+
+sys_bootp_.get = get
+sys_bootp_.set = set
+
+register(sys_bootp_)

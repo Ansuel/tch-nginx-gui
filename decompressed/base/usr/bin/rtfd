@@ -1,0 +1,181 @@
+#!/bin/sh
+
+# Reset to factory default:
+#
+# Erase the configuration of the active SW bank and reboot.
+
+usage() {
+	echo "Reset to factory default: Erase active configuration"
+	echo "$(basename $0) [--all | --soft]"
+	echo "Option:"
+	echo "   --all : Remove all configurations (by erasing user partition)"
+	echo "   --soft: keep selected settings"
+}
+
+get_alive_processes(){
+	if [[ $1 != "PID" && $1 != "NAME" ]]; then echo; exit; fi
+	alive_processes=""
+	for i in $(find /proc/[0-9]* -name exe -maxdepth 1); do
+		name=$(readlink $i);
+		if [[ ! -z $name ]]; then
+			basename_process=$(basename $name)
+			case $basename_process in
+				busybox|rtfd|dropbear|boot|procd)
+					# exclude some processes that might hang while killing
+					;;
+				*)
+					if [[ $1 == "NAME" ]]; then
+						alive_processes="$(basename $name) $alive_processes";
+					fi
+					if [[ $1 == "PID" ]]; then
+						alive_processes="$(echo $i | sed 's|/proc/\([0-9]*\)/exe|\1|') $alive_processes";
+					fi
+					;;
+			esac
+		fi
+	done
+	echo $alive_processes
+}
+
+kill_running_processes() {
+	# First stop watchdog to prevent a reboot while killing processes
+	[ -f /etc/init.d/watchdog-tch ] && /etc/init.d/watchdog-tch stop
+	# Gently remove the processes according to their start order
+	for i in $(ls /etc/rc.d/S* | sort -r); do
+		case $(basename $(readlink $i)) in
+			boot|network|dropbear) # don't stop these processes
+				echo "Don't stop $i"
+				;;
+			mm*|transformer) # Some processes need a bit of time to stop
+				echo "Stopping $i ..."
+				$i stop
+				sleep 1
+				;;
+			*)
+				echo "Stopping $i ..."
+				$i stop
+				;;
+		esac
+	done
+
+#Stop mmpbx kindly if's not yet stopped and give it time of 30 sec max
+	if [ -f /var/state/mmpbx ]; then
+	   last_mmpbx_state=`cat /var/state/mmpbx | grep "mmpbx.state" | tail -1`;
+		if [ $last_mmpbx_state != "mmpbx.state='NA'" ]; then
+
+			#if stopping is on progress, then don't stop again, and let it continue to stop
+			if [ $last_mmpbx_state != "mmpbx.state='STOPPING'" ]; then
+			echo "mmpbx is in state $last_mmpbx_state => stop it";
+			/etc/init.d/mmpbxd stop
+			else
+			echo "mmpbx is in state STOPPING, let it continue";
+			fi
+
+			timeout=30;
+			wait_time=0;
+			# wait maximum 30s for mmpbx to be completely stopped
+			while [ $last_mmpbx_state != "mmpbx.state='NA'" ] && [ $wait_time -lt $timeout ]; do
+			sleep 1;
+			wait_time=`expr $wait_time + 1`;
+			last_mmpbx_state=`cat /var/state/mmpbx | grep "mmpbx.state" | tail -1`; #last state is written in the last line of /var/state/mmpbx
+			echo "$last_mmpbx_state , time is $wait_time seconds";
+			done
+		fi
+	else
+		echo "/var/state/mmpbx doesn't exist";
+	fi
+
+	echo "Processes stopped !"
+	# Be a bit less gently to processes that would still be out there
+	alive_processes_name=$(get_alive_processes NAME)
+	for i in $alive_processes_name; do
+		echo "killing $i..."
+		killall $i
+		sleep 1
+	done
+	# Now it is really time to shut down remaining processes...
+	alive_processes_pid=$(get_alive_processes PID)
+	if [[ -n "$alive_processes_pid" ]]; then
+		echo "Still some processes alive, hard kill them ($alive_processes_pid)"
+		kill -9 $alive_processes_pid
+	fi
+}
+
+preserve_root() {
+	ROOT_DIR=/tmp/root
+	running_bank=$(cat /proc/banktable/booted)
+	mkdir -p $ROOT_DIR/etc/init.d/ $ROOT_DIR/etc/rc.d/ $ROOT_DIR/usr/bin/ $ROOT_DIR/lib/upgrade/ $ROOT_DIR/sbin/
+	cp /lib/upgrade/platform.sh $ROOT_DIR/lib/upgrade/
+	cp /sbin/sysupgrade $ROOT_DIR/sbin/
+	cp /etc/init.d/rootdevice $ROOT_DIR/etc/init.d/
+	cp /usr/bin/rtfd $ROOT_DIR/usr/bin/
+	cp /usr/bin/sysupgrade-safe $ROOT_DIR/usr/bin/
+	cp -d /etc/rc.d/S94rootdevice $ROOT_DIR/etc/rc.d/
+}
+
+restore_root(){
+	ROOT_DIR=/tmp/root
+	mkdir /overlay/bank_1 /overlay/bank_2
+	cp -dr $ROOT_DIR/* /overlay/bank_1/
+	cp -dr $ROOT_DIR/* /overlay/bank_2/
+}
+
+write_rtfd_mark() {
+	local RTFD_MARK=/overlay/remove_due_to_rtfd
+	if [ -d /proc/banktable ]; then
+		# Create a link to point to the configuration to be erased (done at next boot, before mounting the overlay)
+		rm -r /overlay/$(cat /proc/banktable/booted)
+	fi
+}
+
+case $# in
+	0)
+		preserve_root
+		rm -rf /overlay/*
+		restore_root
+		reboot
+		;;
+
+	1)
+		preserve_root
+		if [[ $1 == "--help" ]]; then
+			usage
+			exit 0
+		fi
+		if [[ $1 == "--all" ]] || [[ $1 == "--soft" ]]; then
+			OVERLAY_TYPE=""
+			if ( mount | grep 'on /overlay type jffs2' >/dev/null ) ; then
+				OVERLAY_TYPE="jffs2"
+			elif ( mount | grep 'ubi0:user on /overlay type ubifs' >/dev/null ) ; then
+				OVERLAY_TYPE="ubifs"
+			elif ( mount | grep 'ubi2:overlay on /overlay type ubifs' >/dev/null ) ; then
+				OVERLAY_TYPE="ubifs"
+			else
+				echo "Error: Unknown overlay type"
+				echo
+				exit 1
+			fi
+
+			# kill processes to make sure no process is writting in the overlay
+			kill_running_processes
+
+			rm -rf /overlay/*
+			sync
+			restore_root
+			reboot
+		else
+			echo "Error: Invalid arguments"
+			echo
+			usage
+			exit 1
+		fi
+		;;
+
+	*)
+		echo "Error: Invalid arguments"
+		echo
+		usage
+		exit 1
+		;;
+esac
+

@@ -1,0 +1,62 @@
+local open, popen, string, register = io.open, io.popen, string, register
+--local log = require("transformer.logger")
+local sfp = require("transformer.shared.sfp")
+
+local flag = sfp.readSFPFlag()
+if flag == 0 then
+  return
+end
+
+local Optical_link_ = {
+  objectType = {
+    name = "rpc.optical.link.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      GPHY4LanWanMode = {
+        access = "readOnly",
+        type = "string",
+      },
+      GPHY4LinkStatus = {
+        access = "readOnly",
+        type = "string",
+      },
+      SfpLinkStatus = {
+        access = "readOnly",
+        type = "string",
+      },
+      Eth4WanType = {
+        access = "readOnly",
+        type = "string",
+      },
+    },
+  }
+}
+
+Optical_link_.get = {
+  GPHY4LanWanMode = function()
+    return sfp.getGPHY4Mode()
+  end,
+  GPHY4LinkStatus = function()
+    return sfp.getGPHY4LinkStatus()
+  end,
+  SfpLinkStatus = function()
+    return sfp.getSfpLinkStatus()
+  end,
+  Eth4WanType = function()
+    return sfp.getWanType()
+  end,
+}
+
+Optical_link_.getall = function()
+  local linkValues = {}
+  linkValues["GPHY4LanWanMode"] = sfp.getGPHY4Mode()
+  linkValues["GPHY4LinkStatus"] = sfp.getGPHY4LinkStatus()
+  linkValues["SfpLinkStatus"] = sfp.getSfpLinkStatus()
+  linkValues["Eth4WanType"] = sfp.getWanType()
+  return linkValues
+end
+
+register(Optical_link_)
+

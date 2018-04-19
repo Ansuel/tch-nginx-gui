@@ -1,0 +1,218 @@
+local conn = mapper("ubus").connect()
+local uci_helper = mapper("ucihelper")
+
+local mmpbx_callstatistics = {
+    objectType = {
+        name = "rpc.mmpbx.callstatistics.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            clear = {
+                access = "readWrite",
+                type = "boolean",
+                default = "0",
+            },
+        }
+    }
+}
+
+mmpbx_callstatistics.get = {
+    clear = "0",
+}
+
+mmpbx_callstatistics.set = {
+    clear = function(mapping, param, value)
+        if value == "1" then
+           conn:call("mmdbd.call.statistics", "reset", {})
+        end
+    end,
+}
+register(mmpbx_callstatistics)
+
+local mmpbx_callstatistics_historical = {
+    objectType = {
+        name = "rpc.mmpbx.callstatistics.historical.@.",
+        access = "readWrite",
+        minEntries = 0,
+        maxEntries = math.huge,
+        parameters = {
+            DirectoryNumber = {
+                access = "readOnly",
+                type = "string",
+            },
+            ReceiveInterarrivalJitter = {
+               access = "readOnly",
+               type = "unsignedInt",
+            },
+            FarEndInterarrivalJitter  = {
+               access = "readOnly",
+               type = "unsignedInt",
+            },
+            RoundTripDelay  = {
+               access = "readOnly",
+               type = "unsignedInt",
+            },
+            Remote = {
+               access = "readOnly",
+               type = "string",
+            },
+        },
+    },
+}
+
+
+local function entriesCallStatisticsHistorical ()
+    local entries = {}
+    local callstatistics = conn:call("mmdbd.call.statistics", "get", {} )
+    if callstatistics then
+          for _,v in pairs (callstatistics['CALL STATISTICS']) do
+            entries[#entries+1] = {tostring(v["CallKey"]),tostring(v["DirectoryNumber"]).. "|" .. tostring(v["CallKey"])}
+        end
+    end
+    return entries
+end
+
+local mt = { __index = function() return "" end }
+local historical_statistics_map = setmetatable({
+    ReceiveInterarrivalJitter = true,
+    FarEndInterarrivalJitter = true,
+    RoundTripDelay = true,
+},mt)
+
+local binding = {
+    sectionname = "",
+    config = "mmpbxrvsipnet",
+    default = "",
+    option = "uri"
+}
+
+local function getallHistorical(mapping,key)
+    local data = {}
+    local profile = key:match("^(.+)|")
+    local callstatistics = conn:call("mmdbd.call.statistics", "get", {} )
+    if callstatistics then
+        for _,v in pairs (callstatistics['CALL STATISTICS']) do
+           if ((tostring(v["DirectoryNumber"]).. "|" .. tostring(v["CallKey"])) == key) then
+              for k, _ in pairs (historical_statistics_map) do
+                  data[k] = tostring(v[k] or "0")
+              end
+              data["Remote"] = tostring(v["Remote"] or "")
+              data["DirectoryNumber"] = tostring(v["DirectoryNumber"] or "")
+           end
+        end
+    end
+    return data
+end
+
+
+local function getHistorical(mapping, param, key)
+    local profile = key:match("^(.+)|")
+    local callstatistics = conn:call("mmdbd.call.statistics", "get", {})
+    if callstatistics then
+        for _,v in pairs (callstatistics['CALL STATISTICS']) do
+            if ((tostring(v["DirectoryNumber"]).. "|" .. tostring(v["CallKey"])) == key) then
+                if param == "Remote" or param == "DirectoryNumber" then
+                    return tostring(v[param] or "")
+                else
+                    return tostring(v[param] or "0")
+                end
+            end
+        end
+    end
+    return ""
+end
+
+mmpbx_callstatistics_historical.entries = entriesCallStatisticsHistorical
+mmpbx_callstatistics_historical.getall = getallHistorical
+mmpbx_callstatistics_historical.get = getHistorical
+mmpbx_callstatistics_historical.add = function(mapping, name)
+    return nil, "Historical quaility log can't be added"
+end
+
+mmpbx_callstatistics_historical.delete = function(mapping, key)
+    local key = key:match("^(.+)|")
+    conn:call("mmdbd.call.statistics", "reset", {})
+    return true
+end
+register(mmpbx_callstatistics_historical)
+
+
+local mmpbx_callstatistics_ongoing = {
+    objectType = {
+        name = "rpc.mmpbx.callstatistics.ongoing.@.",
+        access = "readWrite",
+        minEntries = 0,
+        maxEntries = math.huge,
+        parameters = {
+            LineName = {
+                access = "readOnly",
+                type = "string",
+            },
+            ReceiveInterarrivalJitter  = {
+               access = "readOnly",
+               type = "unsignedInt",
+            },
+            FarEndInterarrivalJitter  = {
+               access = "readOnly",
+               type = "unsignedInt",
+            },
+            RoundTripDelay  = {
+               access = "readOnly",
+               type = "unsignedInt",
+            },
+        },
+    },
+}
+
+local function entriesCallStatisticsOngoing (mapping,parentkey)
+    local entries = {}
+    local rtp_session = conn:call("mmpbx.rtp.session", "list", {["rtcp"]="1"})
+    if rtp_session then
+        for _,v in pairs (rtp_session) do
+            entries[#entries+1] = tostring(v["LineName"])
+        end
+    end
+    return entries
+end
+
+local ongoing_statistics_map = setmetatable({
+    LineName  = true,
+    ReceiveInterarrivalJitter = true,
+    FarEndInterarrivalJitter = true,
+    RoundTripDelay = true,
+},mt)
+
+local function getallOngoing(mapping,key)
+    local data = {}
+    local rtp_session = conn:call("mmpbx.rtp.session", "list", {["rtcp"]="1",["name"]=key})
+    if rtp_session and rtp_session[1] then
+        for k, _ in pairs (ongoing_statistics_map) do
+            data[k] = tostring(rtp_session[1][k]) or "0"
+        end
+    end
+    return data
+end
+
+local function getOngoing(mapping, param, key)
+    local rtp_session = conn:call("mmpbx.rtp.session", "list", {["rtcp"]="1",["name"]=key})
+    if rtp_session and rtp_session[1] then
+        return tostring(rtp_session[1][param]) or "0"
+    end
+    return "0"
+end
+
+mmpbx_callstatistics_ongoing.entries = entriesCallStatisticsOngoing
+mmpbx_callstatistics_ongoing.getall = getallOngoing
+mmpbx_callstatistics_ongoing.get = getOngoing
+
+mmpbx_callstatistics_ongoing.add = function(mapping, name)
+    return nil, "Ongoing statistics can't be added"
+end
+
+mmpbx_callstatistics_ongoing.delete = function(mapping, key)
+    return nil, "Ongoing statistics can't be deleted"
+end
+
+register(mmpbx_callstatistics_ongoing)
+

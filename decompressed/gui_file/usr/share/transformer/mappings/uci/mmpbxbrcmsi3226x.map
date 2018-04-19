@@ -1,0 +1,18 @@
+local mapper = mapper
+local config_mmpbxbrcmsi3226x = "mmpbxbrcmsi3226x"
+
+-- uci.mmpbxbrcmsi3226x
+mapper("uci_1to1").registerConfigMap(config_mmpbxbrcmsi3226x)
+
+-- uci.mmpbxbrcmsi3226x.mmbrcmxdrvslicgains
+local mmbrcmxdrvslicgains = {
+  config = config_mmpbxbrcmsi3226x,
+  section   = "xdrv_slic_gains",
+  type = "mmbrcmxdrvslicgains",
+  options = {
+    "fxs_profile_dlp",
+    "fxs_profile_tx_gain"
+  }
+}
+mapper("uci_1to1").registerSimpleMap(mmbrcmxdrvslicgains)
+

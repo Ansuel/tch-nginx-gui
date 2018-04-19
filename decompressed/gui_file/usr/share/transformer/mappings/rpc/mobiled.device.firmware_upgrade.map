@@ -1,0 +1,71 @@
+local tonumber, string = tonumber, string
+
+local helper = require("mobiled.scripthelpers")
+
+local mobiled_device_firmware_upgrade_ = {
+    objectType = {
+        name = 'rpc.mobiled.device.@.firmware_upgrade.',
+        access = 'readOnly',
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            path = {
+                access = "readWrite",
+                type = "string"
+            },
+            status = {
+                access = "readOnly",
+                type = "string",
+                enumeration = {
+                    "not_running",
+                    "checking_version",
+                    "upgrade_available",
+                    "downloading",
+                    "downloaded",
+                    "flashing",
+                    "rebooting",
+                    "done",
+                    "failed",
+                    "no_upgrade_available"
+                }
+            },
+            completion = {
+                access = "readOnly",
+                type = "unsignedInt"
+            },
+            error_code = {
+                access = "readOnly",
+                type = "unsignedInt"
+            },
+            target_version = {
+                access = "readOnly",
+                type = "string"
+            },
+        }
+    }
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+    return
+end
+
+local function getall(mapping, key)
+    return helper.getUbusData(conn, "mobiled.device", "firmware_upgrade", { dev_idx = tonumber(string.match(key, '%d')) })
+end
+
+local function get(mapping, paramName, key)
+    return getall(mapping, key)[paramName]
+end
+
+local function set(mapping, paramName, paramvalue, key)
+    if(paramName == "path") then
+        conn:call("mobiled.device", "firmware_upgrade", { ["path"] = paramvalue, dev_idx = tonumber(string.match(key, '%d')) })
+    end
+end
+
+mobiled_device_firmware_upgrade_.getall = getall
+mobiled_device_firmware_upgrade_.get = get
+mobiled_device_firmware_upgrade_.set = set
+
+register(mobiled_device_firmware_upgrade_)

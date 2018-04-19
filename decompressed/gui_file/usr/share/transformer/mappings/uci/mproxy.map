@@ -1,0 +1,66 @@
+local config_mproxy = "mproxy"
+local uci_1to1 = mapper("uci_1to1")
+
+-- uci.mproxy
+uci_1to1.registerConfigMap(config_mproxy)
+
+-- uci.mproxy.globals
+local mproxy_globals = {
+  config = config_mproxy,
+  section = "globals",
+  type = "globals",
+  options = { "enable", "mode", "profile"}
+}
+uci_1to1.registerSimpleMap(mproxy_globals)
+
+-- uci.mproxy.profile
+local mproxy_profile = {
+  config = config_mproxy,
+  type = "profile",
+  lists = { "master" , "slave", "filter_ifaces", "monitored_ifaces"}
+}
+uci_1to1.registerNamedMultiMap(mproxy_profile)
+
+-- uci.mproxy.pathmanager
+local mproxy_pathmanager = {
+  config = config_mproxy,
+  section = "pathmanager",
+  type = "pathmanager",
+  options = { "mode" }
+}
+uci_1to1.registerSimpleMap(mproxy_pathmanager)
+
+-- uci.mproxy.overflow
+local mproxy_overflow = {
+  config = config_mproxy,
+  section = "overflow",
+  type = "overflow",
+  options = {"mode", "enable_up", "enable_down", "disable_up", "disable_down", "enable_up_cp_br", "enable_down_cp_br", "disable_up_cp_br", "disable_down_cp_br" },
+}
+uci_1to1.registerSimpleMap(mproxy_overflow)
+
+-- uci.mproxy.scheduler
+local mproxy_scheduler = {
+  config = config_mproxy,
+  section = "scheduler",
+  type = "scheduler",
+  options = { "mode" }
+}
+uci_1to1.registerSimpleMap(mproxy_scheduler)
+
+-- uci.mproxy.stats
+local mproxy_stats = {
+  config = config_mproxy,
+  section = "stats",
+  type = "stats",
+  options = { "export", "server", "rate"}
+}
+uci_1to1.registerSimpleMap(mproxy_stats)
+
+-- uci.mproxy.web
+local mproxy_web = {
+  config = config_mproxy,
+  type = "web",
+  options = { "showpage", "showbutton"}
+}
+uci_1to1.registerNamedMultiMap(mproxy_web)

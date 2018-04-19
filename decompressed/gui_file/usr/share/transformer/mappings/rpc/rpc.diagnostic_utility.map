@@ -1,0 +1,270 @@
+--Manually generated
+
+local diagnostic_utility_ = {
+  objectType = {
+    name = "rpc.diagnostic_utility.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      lanstatus = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      numberoflandevices = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      wanstatus = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      wanmode = {
+        access = "readOnly",
+        type = "string",
+      },
+      linkstatus = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      dataIPconnection = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      voiceIPconnection = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      dataPPPconnection = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      voicePPPconnection = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      numberofUSBdevices = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      wifi2G = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      wifi2Gstatus = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      wifi5G = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      wifi5Gstatus = {
+        access = "readOnly",
+        type = "boolean",
+      },
+    },
+  }
+}
+
+local mapper, tostring = mapper, tostring
+local lfs = require("lfs")
+local uciHelper = mapper("ucihelper")
+local nwCommon = mapper("nwcommon")
+local conn = mapper("ubus").connect()
+local networkBinding = { config = "network" }
+local envBinding = { config = "env", sectionname = "var", option = "qtn_eth_mac" }
+local wansensingBinding = { config = "wansensing", sectionname = "global", option = "l2type" }
+local ethernetBinding = { config = "ethernet", sectionname = "port" }
+
+local function getIntfInfo(intf, option, default)
+  networkBinding.sectionname = intf
+  networkBinding.option = option
+  networkBinding.default = default
+  return uciHelper.get_from_uci(networkBinding)
+end
+
+local function getWwanLinkStatus()
+  local status = conn:call("network.interface.wwan", "status", {}) or {}
+  return status.up and "1" or "0"
+end
+
+local statusmap = {
+    [0] = "NoSignal",
+    [1] = "Initializing",
+    [2] = "Initializing",
+    [3] = "Initializing",
+    [4] = "EstablishingLink",
+    [5] = "Up",
+    [6] = "Initializing",
+    [7] = "Initializing",
+    [8] = "EstablishingLink",
+    [9] = "Unknown"
+}
+
+local function getDSLStatus()
+  local status = conn:call("xdsl", "status", {}) or {}
+  if statusmap[status.statuscode] then
+    return statusmap[status.statuscode]
+  end
+  return statusmap[9]
+end
+
+local function getEthWanPort()
+  local port
+  uciHelper.foreach_on_uci(ethernetBinding, function(s)
+    if s.wan == "1" then
+      port = s[".name"]
+      return false
+    end
+  end)
+  return port
+end
+
+local function getEthWanStatus()
+  local wanPort = getEthWanPort()
+  if not wanPort then
+    return "NOT CONNECTED"
+  else
+    local operstate = getIntfInfo(wanPort, "operstate", "down")
+    local statusVal
+    if operstate == "up" then
+      statusVal = "CONNECTED"
+    elseif operstate == "down" then
+      statusVal = "NOT CONNECTED"
+    end
+    return statusVal
+  end
+end
+
+local function validate_isDongleUp()
+  return getEthWanStatus() ~= "CONNECTED" and getDSLStatus() ~= "Up" and getWwanLinkStatus() == "1"
+end
+
+local function wwanProto()
+  local data = conn:call("mobiled.network", "sessions", {}) or {}
+  return data.proto
+end
+
+local function getNumOfLanDevices()
+  local hostsData = conn:call("hostmanager.device", "get", {}) or {}
+  local lanDevices = 0
+  local qtnMac = string.lower(uciHelper.get_from_uci(envBinding))
+  local lanInterfaces = nwCommon.findLanWanInterfaces(false) or {}
+  local interfaces = {}
+  for _, v in ipairs(lanInterfaces) do
+    interfaces[v] = true
+  end
+  for _, v in pairs(hostsData) do
+    if (v["technology"] == "wireless" or v["technology"] == "ethernet") and interfaces[v.interface] and v["mac-address"] ~= qtnMac and v["state"] == "connected" then
+      lanDevices = lanDevices + 1
+    end
+  end
+  return tostring(lanDevices)
+end
+
+local function getIPConnection(intf)
+  local data = conn:call("network.interface." .. intf, "status", {} ) or {}
+  if data and data["ipv4-address"] and data["ipv4-address"][1]["address"] then
+    return "1"
+  end
+  return "0"
+end
+
+local function getNumberOfUSBDevices()
+  local pattern = "^(%d+)-([%d%.]+)$"
+  local count = 0
+  for file in lfs.dir("/sys/bus/usb/devices/") do
+    if file:match(pattern) then
+      count = count + 1
+    end
+  end
+  return tostring(count)
+end
+
+local function getWifiInfo(option, radio)
+  local wifiInfo = conn:call("wireless.radio", "get", {}) or {}
+  if wifiInfo and wifiInfo[radio] and wifiInfo[radio][option] then
+    return tostring(wifiInfo[radio][option])
+  end
+  return "0"
+end
+
+diagnostic_utility_.get = {
+  lanstatus = function()
+    return getIntfInfo("lan", "auto", "1")
+  end,
+  numberoflandevices = function()
+    return getNumOfLanDevices()
+  end,
+  wanstatus = function()
+    if validate_isDongleUp() then
+      return getIntfInfo("wwan", "auto", "1")
+    end
+    return getIntfInfo("wan", "auto", "1")
+  end,
+  wanmode = function()
+    if validate_isDongleUp() then
+      return "MOBILE"
+    end
+    return uciHelper.get_from_uci(wansensingBinding)
+  end,
+  linkstatus = function()
+    if validate_isDongleUp() then
+      return getWwanLinkStatus()
+    end
+    local status = conn:call("network.interface.wan", "status", {})
+    return status and status.up and "1" or "0"
+  end,
+  dataIPconnection = function()
+    if wwanProto() == "dhcp" then
+      return getIntfInfo("wwan", "ipaddr") ~= "" and "1" or "0"
+    end
+    local proto = getIntfInfo("wan", "proto")
+    if proto:match("dhcp") == "dhcp" then
+      return getIPConnection("wan")
+    end
+    return "0"
+  end,
+  voiceIPconnection = function()
+    local proto = getIntfInfo("voip_mgmt", "proto")
+    if proto:match("dhcp") == "dhcp" then
+      return getIPConnection("voip_mgmt")
+    end
+    return "0"
+  end,
+  dataPPPconnection = function()
+    if wwanProto() == "ppp" then
+      return getIntfInfo("wwan", "ipaddr") ~= "" and "1" or "0"
+    end
+    local proto = getIntfInfo("wan", "proto")
+    if proto:match("ppp") == "ppp" then
+      return getIPConnection("wan")
+    end
+    return "0"
+  end,
+  voicePPPconnection = function()
+    local proto = getIntfInfo("voip_mgmt", "proto")
+    if proto:match("ppp") == "ppp" then
+      return getIPConnection("voip_mgmt")
+    end
+    return "0"
+  end,
+  numberofUSBdevices = function()
+    return getNumberOfUSBDevices()
+  end,
+  wifi2G = function()
+    return getWifiInfo("oper_state", "radio_2G")
+  end,
+  wifi2Gstatus = function()
+    return getWifiInfo("admin_state", "radio_2G")
+  end,
+  wifi5G = function()
+    return getWifiInfo("oper_state", "radio_5G")
+  end,
+  wifi5Gstatus = function()
+    return getWifiInfo("admin_state", "radio_5G")
+  end,
+}
+
+register(diagnostic_utility_)
