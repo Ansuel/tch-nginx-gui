@@ -183,10 +183,10 @@ end
                 &nbsp;\
                 <div id="change-my-pass" class="btn btn-primary btn-large">');  ngx.print( T"Change password" ); ngx.print('</div>\
 				<div id="updating" style="display:none" class="btn btn-primary btn-large">');  ngx.print( T"Updating" ); ngx.print('</div>\
-				<div id="insecure_question" style="display:none;font-size: 20px;margin-right:48px" >');  ngx.print( createPwdLabel(T"Continuare comunque?") ); ngx.print('</div>\
-				<a id="yes" style="display:none" class="btn btn-primary btn-large">');  ngx.print( T"SI" ); ngx.print('</a>\
+				<div id="insecure_question" style="display:none;font-size: 20px;margin-right:48px" >');  ngx.print( createPwdLabel(T"Continue anyway?") ); ngx.print('</div>\
+				<a id="yes" style="display:none" class="btn btn-primary btn-large">');  ngx.print( T"Yes" ); ngx.print('</a>\
 				&nbsp;\
-				<div id="no" style="display:none" class="btn btn-primary btn-large">');  ngx.print( T"NO" ); ngx.print('</div>\
+				<div id="no" style="display:none" class="btn btn-primary btn-large">');  ngx.print( T"No" ); ngx.print('</div>\
 			</div>\
           </fieldset>\
         </form>\
