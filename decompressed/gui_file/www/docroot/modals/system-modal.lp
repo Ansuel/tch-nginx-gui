@@ -352,7 +352,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       ngx.print('\
 </fieldset>\
 <fieldset>\
-  <legend>');  ngx.print( "Version Spoof" ); ngx.print('</legend>\
+  <legend>');  ngx.print( T"Version Spoof" ); ngx.print('</legend>\
     ');
 	  local info_box = {
         alert = {
