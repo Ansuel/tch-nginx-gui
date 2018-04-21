@@ -9,7 +9,35 @@ local xdslctl_ = {
         minEntries = 1,
         maxEntries = 1,
         parameters = {
-          Hlog = {
+          HlogUs1 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  HlogUs2 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  HlogUs3 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  HlogUs4 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  HlogDs1 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  HlogDs2 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  HlogDs3 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  HlogDs4 = {
             access = "readOnly",
             type = "string"
           },
@@ -17,7 +45,35 @@ local xdslctl_ = {
             access = "readOnly",
             type = "string"
           },
-		  Bits = {
+		  BitsUs1 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  BitsUs2 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  BitsUs3 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  BitsUs4 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  BitsDs1 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  BitsDs2 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  BitsDs3 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  BitsDs4 = {
             access = "readOnly",
             type = "string"
           },
@@ -25,7 +81,39 @@ local xdslctl_ = {
             access = "readOnly",
             type = "string"
           },
-		  QLN = {
+		  QLNUs1 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  QLNUs1 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  QLNUs2 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  QLNUs3 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  QLNUs4 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  QLNDs1 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  QLNDs2 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  QLNDs3 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  QLNDs4 = {
             access = "readOnly",
             type = "string"
           },
@@ -33,7 +121,35 @@ local xdslctl_ = {
             access = "readOnly",
             type = "string"
           },
-		  SNR = {
+		  SNRUs1 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  SNRUs2 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  SNRUs3 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  SNRUs4 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  SNRDs1 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  SNRDs2 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  SNRDs3 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  SNRDs4 = {
             access = "readOnly",
             type = "string"
           },
@@ -57,6 +173,22 @@ local xdslctl_ = {
             access = "readOnly",
             type = "string"
           },
+		  Ds1BandInitial = {
+            access = "readOnly",
+            type = "string"
+          },
+		  Ds2BandInitial = {
+            access = "readOnly",
+            type = "string"
+          },
+		  Ds3BandInitial = {
+            access = "readOnly",
+            type = "string"
+          },
+		  Ds4BandInitial = {
+            access = "readOnly",
+            type = "string"
+          },
 		  Us1BandFinal = {
             access = "readOnly",
             type = "string"
@@ -73,7 +205,27 @@ local xdslctl_ = {
             access = "readOnly",
             type = "string"
           },
+		  Ds1BandFinal = {
+            access = "readOnly",
+            type = "string"
+          },
+		  Ds2BandFinal = {
+            access = "readOnly",
+            type = "string"
+          },
+		  Ds3BandFinal = {
+            access = "readOnly",
+            type = "string"
+          },
+		  Ds4BandFinal = {
+            access = "readOnly",
+            type = "string"
+          },
 		  UsBandNumber = {
+            access = "readOnly",
+            type = "string"
+          },
+		  DsBandNumber = {
             access = "readOnly",
             type = "string"
           },
@@ -81,16 +233,49 @@ local xdslctl_ = {
     }
 }
 
-local function xdslctlget(dtype,request)
+local function xdslband(n,dtype,bandtype)
+	local line
+	if ( bandtype == "Us" ) then
+		line = "12p"
+	else
+		line = "13p"
+	end
+	local cmd = ("xdslctl info --pbParams | sed -n " .. line) 
+	local f = assert(io.popen(cmd, 'r'))
+	local s = assert(f:read('*a'))
+	local r = "0"
+	local c = 1
+	f:close()
+	s = string.gsub(s, '[\n\r]+', ' ')
+	for w in string.gmatch (s, "%((.-)%)") do
+		if c == n then
+			if dtype == "Initial" then
+				r = string.match(w,"(.-)%,")
+			elseif dtype == "Final" then
+				r = string.match(w,"%,(%d*)")
+			end
+		end
+		c=c+1
+	end
+	if dtype == "BandNumber" then
+		return tostring(c-1)
+	else
+		return r
+	end
+end
+
+local function xdslctlget(dtype,request,band,bandtype)
     local data = ""
 	local n  = 0
 	local scanband = ""
-	os.execute("xdslctl info --" .. request .. " > /tmp/" .. request)
+	local bandstart = tonumber(xdslband(band,"Initial",bandtype))+8
+	local bandend = tonumber(xdslband(band,"Final",bandtype))+8
+	local cmd = "xdslctl info --" .. request
 	
-	local f = io.open("/tmp/" .. request,"r")
+	local f = assert(io.popen(cmd,"r"))
 	
 	for l in f:lines() do
-		if n>8 then 
+		if n>=bandstart and n<=bandend then
 			if request == "Hlog" then
 				l = l:gsub("(.*)-","")
 				l = "-" .. l
@@ -127,12 +312,6 @@ local function xdslctlget(dtype,request)
 	
 	scanband = tostring(n-8)
 	
-	local file = io.open("/tmp/" .. request .. "Param","w+")
-	io.output(file)
-	io.write(data)
-	io.close(file)
-	
-	os.execute("rm /tmp/" .. request)
 	if dtype == "data" then
 		return data
 	else
@@ -140,83 +319,42 @@ local function xdslctlget(dtype,request)
 	end
 end
 
-local function xdslusband(n,dtype)
-	local cmd = ("xdslctl info --pbParams | sed -n 12p") 
-	local f = assert(io.popen(cmd, 'r'))
-	local s = assert(f:read('*a'))
-	local r = "0"
-	local c = 1
-	f:close()
-	s = string.gsub(s, '[\n\r]+', ' ')
-	for w in string.gmatch (s, "%((.-)%)") do
-		if c == n then
-			if dtype == "Initial" then
-				r = string.match(w,"(.-)%,")
-			elseif dtype == "Final" then
-				r = string.match(w,"%,(%d*)")
-			end
-		end
-		c=c+1
-	end
-	if dtype == "BandNumber" then
-		return tostring(c-1)
-	else
-		return r
-	end
-end
-
 local function get(mapping, paramName, key)
-	if paramName == "Hlog" then
-		local Hlog = xdslctlget("data","Hlog")
-		return Hlog
-	elseif paramName == "HlogScanBand" then
-		local HlogScanBand = xdslctlget("scanband","Hlog")
-		return HlogScanBand
-	elseif paramName == "Bits" then
-		local Bits = xdslctlget("data","Bits")
-		return Bits
+	if paramName == "HlogScanBand" then
+		return xdslctlget("scanband","Hlog",0,"Ds")
+	elseif paramName:match("Hlog") then
+		local band = tonumber(paramName:sub(7,7))
+		local bandtype = paramName:sub(5,6)
+		return xdslctlget("data","Hlog",band,bandtype)
 	elseif paramName == "BitsScanBand" then
-		local BitsScanBand = xdslctlget("scanband","Bits")
-		return BitsScanBand
-	elseif paramName == "QLN" then
-		local QLN = xdslctlget("data","QLN")
-		return QLN
+		return xdslctlget("scanband","Bits",0,"Ds")
+	elseif paramName:match("Bits") then
+		local band = tonumber(paramName:sub(7,7))
+		local bandtype = paramName:sub(5,6)
+		return xdslctlget("data","Bits",band,bandtype)
 	elseif paramName == "QLNScanBand" then
-		local QLNScanBand = xdslctlget("scanband","QLN")
-		return QLNScanBand
-	elseif paramName == "SNR" then
-		local SNR = xdslctlget("data","SNR")
-		return SNR
+		return xdslctlget("scanband","QLN",0,"Ds")
+	elseif paramName:match("QLN") then
+		local band = tonumber(paramName:sub(6,6))
+		local bandtype = paramName:sub(4,5) 
+		return xdslctlget("data","QLN",band,bandtype)
 	elseif paramName == "SNRScanBand" then
-		local SNRScanBand = xdslctlget("scanband","SNR")
-		return SNRScanBand
-	elseif paramName == "Us1BandFinal" then
-		local Us1BandFinal = xdslusband(1,"Final")
-		return Us1BandFinal
-	elseif paramName == "Us2BandFinal" then
-		local Us2BandFinal = xdslusband(2,"Final")
-		return Us2BandFinal
-	elseif paramName == "Us3BandFinal" then
-		local Us3BandFinal = xdslusband(3,"Final")
-		return Us3BandFinal
-	elseif paramName == "Us4BandFinal" then
-		local Us4BandFinal = xdslusband(4,"Final")
-		return Us4BandFinal
-	elseif paramName == "Us1BandInitial" then
-		local Us1BandInitial = xdslusband(1,"Initial")
-		return Us1BandInitial
-	elseif paramName == "Us2BandInitial" then
-		local Us2BandInitial = xdslusband(2,"Initial")
-		return Us2BandInitial
-	elseif paramName == "Us3BandInitial" then
-		local Us3BandInitial = xdslusband(3,"Initial")
-		return Us3BandInitial
-	elseif paramName == "Us4BandInitial" then
-		local Us4BandInitial = xdslusband(4,"Initial")
-		return Us4BandInitial
-	elseif paramName == "UsBandNumber" then
-		local UsBandNumber = xdslusband(0,"BandNumber")
-		return UsBandNumber
+		return xdslctlget("scanband","SNR",0,"Ds")
+	elseif paramName:match("SNR") then
+		local band = tonumber(paramName:sub(6,6))
+		local bandtype = paramName:sub(4,5) 
+		return xdslctlget("data","SNR",band,bandtype)
+	elseif paramName:match("Final") then
+		local band = tonumber(paramName:sub(3,3))
+		local bandtype = paramName:sub(1,2)
+		return xdslband(band,"Final",bandtype)
+	elseif paramName:match("Initial") then
+		local band = tonumber(paramName:sub(3,3))
+		local bandtype = paramName:sub(1,2)
+		return xdslband(band,"Initial",bandtype)
+	elseif paramName:match("BandNumber") then
+		local bandtype = paramName:sub(1,2)
+		return xdslband(0,"BandNumber",bandtype)
 	end
 end
 

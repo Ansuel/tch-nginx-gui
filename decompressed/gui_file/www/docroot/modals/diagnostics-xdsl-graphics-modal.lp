@@ -13,16 +13,71 @@ local function xdslctlget(dtype,request)
 	local data = ""
 	local label = ""
 	if dtype == "value" then
-		file = io.open("/tmp/".. request .. "Param","r")
-		if file then
-			for l in file:lines() do
-				data = data .. l
-			end
-			io.close()
-			return data
-		else
-			return "0"
+	
+		local us1start = tonumber(proxy.get("rpc.xdslctl.Us1BandInitial")[1].value)
+		for i=0,us1start-2 do
+			data = data .. "NaN" .. ", "
 		end
+		
+		data = data .. proxy.get("rpc.xdslctl." .. request .. "Us1")[1].value
+		
+		local us1end = tonumber(proxy.get("rpc.xdslctl.Us1BandFinal")[1].value)
+		local ds1start = tonumber(proxy.get("rpc.xdslctl.Ds1BandInitial")[1].value)
+		for i=0,ds1start-us1end-2 do
+			data = data .. "NaN" .. ", "
+		end
+		
+		data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds1")[1].value
+		
+		local ds1end = tonumber(proxy.get("rpc.xdslctl.Ds1BandFinal")[1].value)
+		local us2start = tonumber(proxy.get("rpc.xdslctl.Us2BandInitial")[1].value)
+		for i=0,us2start-ds1end-2 do
+			data = data .. "NaN" .. ", "
+		end
+		
+		data = data .. proxy.get("rpc.xdslctl." .. request .. "Us2")[1].value
+		
+		local us2end = tonumber(proxy.get("rpc.xdslctl.Us2BandFinal")[1].value)
+		local ds2start = tonumber(proxy.get("rpc.xdslctl.Ds2BandInitial")[1].value)
+		for i=0,ds2start-us2end-2 do
+			data = data .. "NaN" .. ", "
+		end
+		
+		data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds2")[1].value
+		
+		local ds2end = tonumber(proxy.get("rpc.xdslctl.Ds2BandFinal")[1].value)
+		local us3start = tonumber(proxy.get("rpc.xdslctl.Us3BandInitial")[1].value)
+		for i=0,us3start-ds2end-2 do
+			data = data .. "NaN" .. ", "
+		end
+		
+		data = data .. proxy.get("rpc.xdslctl." .. request .. "Us3")[1].value
+		
+		local us3end = tonumber(proxy.get("rpc.xdslctl.Us3BandFinal")[1].value)
+		local us4start = tonumber(proxy.get("rpc.xdslctl.Us4BandInitial")[1].value)
+		for i=0,us4start-us3end-2 do
+			data = data .. "NaN" .. ", "
+		end
+		
+		data = data .. proxy.get("rpc.xdslctl." .. request .. "Us4")[1].value
+		
+		local us4end = tonumber(proxy.get("rpc.xdslctl.Us4BandFinal")[1].value)
+		local ds3start = tonumber(proxy.get("rpc.xdslctl.Ds3BandInitial")[1].value)
+		for i=0,ds3start-us4end-2 do
+			data = data .. "NaN" .. ", "
+		end
+		
+		data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds3")[1].value
+		
+		local ds3end = tonumber(proxy.get("rpc.xdslctl.Ds3BandFinal")[1].value)
+		local ds4start = tonumber(proxy.get("rpc.xdslctl.Ds4BandInitial")[1].value)
+		for i=0,ds4start-ds3end-2 do
+			data = data .. "NaN" .. ", "
+		end
+		
+		data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds4")[1].value
+		
+		return data
 	else
 		if scanband then
 			for n=1,tonumber(scanband[1].value) do
