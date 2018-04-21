@@ -177,7 +177,8 @@ ngx.print('\
 				html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
 				end
 				if cui.luci_webui == "1" then
-				html[#html + 1] = [[ <li><a tabindex="-1" target="_blank" href=":9080"> ]]
+				html[#html + 1] = [[ <li><a tabindex="-1" target="_blank" href="/" 
+									onclick="javascript:event.target.port=9080"> ]]
 				html[#html + 1] = T"Luci Webui"
 				html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
 				end
