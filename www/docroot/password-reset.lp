@@ -28,7 +28,7 @@ content_helper.getExactContent(cui)
 <!DOCTYPE HTML>\r\
 ');  ngx.print( string.format('<html lang="%s">', gettext.language()) ); ngx.print('\r\
 <head>\r\
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">\r\
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">\r\
     <meta charset="UTF-8">\r\
     <meta name="CSRFtoken" content="');  ngx.print( ngx.ctx.session:getCSRFtoken() ); ngx.print('">\r\
     <link href="/css/gw.css" rel="stylesheet">\r\

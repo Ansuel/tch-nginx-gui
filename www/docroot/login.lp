@@ -78,7 +78,7 @@ end
 <!DOCTYPE HTML>\
 ');  ngx.print( string.format('<html lang="%s">', gettext.language()) ); ngx.print('\
 <head>\
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">\
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">\
     <meta charset="UTF-8">\
     <meta name="CSRFtoken" content="');  ngx.print( ngx.ctx.session:getCSRFtoken() ); ngx.print('">\
     <link href="/css/gw.css" rel="stylesheet">\

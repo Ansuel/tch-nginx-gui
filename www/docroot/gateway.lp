@@ -66,17 +66,15 @@ ngx.print('\
 ');  ngx.print( string.format('<html lang="%s">', gettext.language()) ); ngx.print('\
   <head>\
     <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">\
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">\
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">\
     <meta charset="UTF-8">\
     <meta name="CSRFtoken" content="');  ngx.print( session:getCSRFtoken() ); ngx.print('">\
     <meta name="Advanced" content="');  ngx.print( cui.advanced ); ngx.print('">\
     <link href="/css/gw.css" rel="stylesheet">\
 	<link rel="shortcut icon"    type="image/x-icon"   href="/img/favicon.ico"    />\
     <link href="/css/responsive.css" rel="stylesheet">\
-	<link rel="stylesheet" href="/css/font-awesome.css">');
-	ngx.print('<link rel="stylesheet" href="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/style.css">');
-	ngx.print('<script src="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/script.js"></script>');
-    ngx.print('<!--[if IE 7]><link rel="stylesheet" href="/css/font-awesome-ie7.css"><![endif]-->\
+	<link rel="stylesheet" href="/css/font-awesome.css">\
+	<!--[if IE 7]><link rel="stylesheet" href="/css/font-awesome-ie7.css"><![endif]-->\
 	<link rel="stylesheet" href="/css/aos.css" >\
     <!--[if lt IE 9]> <script src="/js/media-min.js"></script> <![endif]-->\
     <title>');  ngx.print( T"Gateway" ); ngx.print('</title>\
@@ -85,8 +83,10 @@ ngx.print('\
 	<script src="/js/aos.js"></script>\
 	<script async src="/js/graphic-min.js"></script>\
 	<script async src="/js/Chart.min.js"></script>\
-	<script async src="/js/srp-min.js" ></script>\
-  </head>\
+	<script async src="/js/srp-min.js" ></script>');
+	ngx.print('<link rel="stylesheet" href="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/style.css">');
+	ngx.print('<script src="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/script.js"></script>');
+  ngx.print('</head>\
 '); ngx.print('\
 <body>\
 \
