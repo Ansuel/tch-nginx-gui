@@ -63,6 +63,11 @@ boot() {
 }
 
 start() {
+
+	uci set upnpd.config.upload=$(xdslctl info | sed -n 6p | awk '{print $6}')
+	uci set upnpd.config.download=$(xdslctl info | sed -n 6p | awk '{print $11}')
+	uci commit upnpd
+	
 	config_load "upnpd"
 	local extiface intiface upload download logging secure enabled natpmp
 	local extip port usesysuptime conffile serial_number model_number
@@ -132,7 +137,7 @@ start() {
 
 		[ "$port" != "auto" ] && \
 			echo "port=$port" >>$tmpconf
-
+		
 		config_load "upnpd"
 		upnpd_write_bool enable_natpmp 1
 		upnpd_write_bool enable_upnp 1
@@ -180,7 +185,6 @@ start() {
 
 	    config_foreach conf_rule_add perm_rule "$tmpconf"
 	fi
-
 
 	if [ -n "$ifname" ]; then
 		# start firewall

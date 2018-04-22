@@ -65,6 +65,7 @@ local get_from_uci = uciHelper.get_from_uci
 local network_binding = { config = "network", sectionname = "interface" }
 local firewallBinding = { config = "firewall", sectionname = "userredirect" }
 local upnp_binding = { config = "upnpd", sectionname="config", option="external_iface" }
+local wan_mode = get_from_uci({ config = "network", sectionname="config", option="wan_mode" })
 local upnp_interfaces = {}
 for value in gmatch(get_from_uci(upnp_binding), "%S+") do
   upnp_interfaces[value] = value
@@ -112,6 +113,9 @@ sys_upnp_redirect_i_.entries = function(mapping)
   -- first read the line in the miniupnp-igdv* format
   -- if it fails (interface == nil) then apply the patch for miniupnp v2.
   for line in fd:lines() do
+	if line:match("&gt;") then
+		line = string.gsub(line,"-&gt;"," => ")
+	end
     local proto, interface, src_dport, dest_ip, dest_port, stop_time, descr = string.match(line, '([UDTCP]+):(%S+):(%d+):%S+:([%d%s%.]+):(%d+):(%d+):([^\r^\n]*)')
     -- If it fails try with the miniupnp v2 format ("interface" is missing)
     if interface == nil then 
@@ -119,9 +123,17 @@ sys_upnp_redirect_i_.entries = function(mapping)
         -- Not a clean solution, since the interface name is wired. Not that the ifname seems to matter..
         -- TODO: to get the name dynamically. Maybe by use of.. ?
 	-- local cmd = "netstat -nr | grep '^0.0.0.0' | grep -o '[^ ]*$'"
-    	
-		interface = "pppoe-wan"
+    	if wan_mode == "pppoe" then
+			interface = "pppoe-wan"
+		elseif wan_mode == "pppoa" then
+			interface = "pppoa-wan"
+		else
+			interface = ""
+		end
     end
+	if descr:match(":") then
+		descr = string.gsub(descr,":"," ")
+	end
   -- UPnPfix END
     local key = proto .. interface .. dest_port .. src_dport
     upnpkeys[#upnpkeys+1] = key
