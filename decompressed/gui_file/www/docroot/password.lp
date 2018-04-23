@@ -80,10 +80,10 @@ end
     <link href="/css/gw.css" rel="stylesheet">\
 	<link rel="stylesheet" href="/css/font-awesome.css">\
 	<link href="/css/responsive.css" rel="stylesheet">\
-	<link rel="shortcut icon"    type="image/x-icon"   href="/img/favicon.ico"    />\
-	<link rel="stylesheet" href="/css/color_');  ngx.print( cui.gui_skin ); ngx.print('.css">\
-<!--	<link href="/css/TIM.css" rel="stylesheet"> -->\
-    <!--[if IE 7]><link rel="stylesheet" href="/css/font-awesome-ie7.css"><![endif]-->\
+	<link rel="shortcut icon"    type="image/x-icon"   href="/img/favicon.ico"    />');
+	ngx.print('<link rel="stylesheet" href="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/style.css">');
+	ngx.print('<script src="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/script.js"></script>');
+    ngx.print('<!--[if IE 7]><link rel="stylesheet" href="/css/font-awesome-ie7.css"><![endif]-->\
     <script src="/js/main-min.js" ></script>\
     <!--[if lt IE 9]> <script src="/js/media-min.js"></script> <![endif]-->\
     <script src="/js/srp-min.js" ></script>\
@@ -118,7 +118,23 @@ end
 </head>\
 <body>\
   <div class="container">\
-    <div class="logo-technicolor">'); ngx.print('<a href="'); ngx.print(cui.nsplink) ngx.print('" target="_blank"><img src="/img/logo.gif"></a></div>\
+    <div class="logo-technicolor">\
+	<a href="'); ngx.print(cui.nsplink); ngx.print('" target="_blank">\
+	  <picture>');
+		if cui.gui_skin == "TIM" then
+			ngx.print('<img width="168px" height="39px" src="/img/TIM.png">');
+		elseif cui.gui_skin == "Fritz" then
+			ngx.print('<source srcset="/img/logo_white.webp" type="image/webp">\
+				<source srcset="/img/logo_white.png" type="image/png">\
+				<img width="131px" height="50px" src="/img/logo_white.png">');
+		else
+			ngx.print('<source srcset="/img/logo.webp" type="image/webp">\
+				<source srcset="/img/logo.png" type="image/png">\
+				<img width="131px" height="50px" src="/img/logo.png">');
+		end
+	  ngx.print('  </picture>\
+	</a>\
+	</div>\
     <div class="row">\
       <div class="offset4 span4">\
         <div class="login">\

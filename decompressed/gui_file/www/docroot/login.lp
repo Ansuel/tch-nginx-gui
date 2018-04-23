@@ -78,16 +78,16 @@ end
 <!DOCTYPE HTML>\
 ');  ngx.print( string.format('<html lang="%s">', gettext.language()) ); ngx.print('\
 <head>\
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">\
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">\
     <meta charset="UTF-8">\
     <meta name="CSRFtoken" content="');  ngx.print( ngx.ctx.session:getCSRFtoken() ); ngx.print('">\
     <link href="/css/gw.css" rel="stylesheet">\
 	<link rel="stylesheet" href="/css/font-awesome.css">\
     <link href="/css/responsive.css" rel="stylesheet">\
-	<link rel="shortcut icon"    type="image/x-icon"   href="/img/favicon.ico"    />\
-	<link rel="stylesheet" href="/css/color_');  ngx.print( cui.gui_skin ); ngx.print('.css">\
-<!--	<link href="/css/TIM.css" rel="stylesheet">-->\
-	<link rel="stylesheet" href="/css/aos.css" >\
+	<link rel="shortcut icon"    type="image/x-icon"   href="/img/favicon.ico"    />');
+	ngx.print('<link rel="stylesheet" href="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/style.css">');
+	ngx.print('<script src="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/script.js"></script>');
+    ngx.print('<link rel="stylesheet" href="/css/aos.css" >\
     <title>');  ngx.print( T"Login" ); ngx.print('</title>\
 </head>'); 
 ngx.print('\
@@ -97,15 +97,18 @@ ngx.print('\
 	<a href="'); ngx.print(cui.nsplink); ngx.print('" target="_blank">\
 	  <picture>');
 		if cui.gui_skin == "TIM" then
-		ngx.print('<img width="168px" height="39px" src="/img/TIM.png">');
+			ngx.print('<img width="168px" height="39px" src="/img/TIM.png">');
+		elseif cui.gui_skin == "Fritz" then
+			ngx.print('<source srcset="/img/logo_white.webp" type="image/webp">\
+				<source srcset="/img/logo_white.png" type="image/png">\
+				<img width="131px" height="50px" src="/img/logo_white.png">');
 		else
-		ngx.print('<source srcset="/img/logo.webp" type="image/webp">\
-		    <source srcset="/img/logo.png" type="image/png">\
-		    <img width="131px" height="50px" src="/img/logo.png">');
+			ngx.print('<source srcset="/img/logo.webp" type="image/webp">\
+				<source srcset="/img/logo.png" type="image/png">\
+				<img width="131px" height="50px" src="/img/logo.png">');
 		end
 	  ngx.print('  </picture>\
 	</a>\
-<!-- <img class="timlogo" src="/img/TIM.png">-->\
 	</div>\
 \
 	<div class="row">\

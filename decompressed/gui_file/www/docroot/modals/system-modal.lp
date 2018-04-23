@@ -17,6 +17,7 @@ local gui_skin_option = {
       { "violet", T'Violet'},
       { "green", T'Green'},
 	  { "TIM" , T'Enhanced Tim'},
+	  { "Fritz", T'Fritz!Box'},
 }
 
 local gui_skin_Params = {
