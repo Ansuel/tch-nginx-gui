@@ -946,6 +946,30 @@ div.span3:nth-of-type(13) .content{
  .row[style="z-index : 2;  position: relative;"]{
   margin-left: 0 !important;
  }
+ 
+ .open>.dropdown-menu{
+  margin-top:-1.2rem;
+  margin-right: 7rem;
+ }
+
+ .dropdown-menu>li>a, .dropdown-menu>li{
+  display: inline !important;
+  white-space: nowrap;
+ }
+
+ .dropdown-menu>li>a, .dropdown-menu>li>a:hover{
+  margin: 0;
+  padding: 0.5rem;
+  background-color: #fff;
+ }
+ 
+ .dropdown-toggle .caret{
+  border-bottom: 4px solid transparent;
+  border-top: 4px solid transparent;
+  border-right: 4px solid;
+  margin-top: 5px;
+  margin-right: 6px;
+ }
 }
 
 @media only screen and (max-width: 50rem){
@@ -1076,6 +1100,9 @@ div.span3:nth-of-type(13) .content{
   display:initial !important;
   color: #000;
   width: 100%;
+  top: 2rem;
+  left: 0;
+  margin:0;
  }
 
  .logo-technicolor{
@@ -1147,5 +1174,17 @@ div.span3:nth-of-type(13) .content{
   top: 0px;
   left: 0px;
   background-color: #006ec0;
+ }
+ 
+ .modal-footer{
+  position: fixed;
+ }
+ 
+ .modal-body{
+  max-height: calc(100vh - 9em);
+ }
+ 
+ .modal-body fieldset{
+  padding-bottom: 3rem;
  }
 }

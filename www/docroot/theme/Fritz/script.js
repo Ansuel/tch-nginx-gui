@@ -30,7 +30,9 @@ window.addEventListener('scroll', function(){
 window.onload = function(){
   
   document.querySelector('.apprise-overlay').style.opacity = "";
-  
+  $(document).off("touchend", '[data-toggle\x3d"modal"]');
+  $(document).off("touchend", ".smallcard");
+	
   if (document.querySelector('.row[style="z-index : 2;  position: relative;"]') != null){
     window.onresize = updateHeight;
     updateHeight();
@@ -45,8 +47,9 @@ window.onload = function(){
     });
 
     document.querySelector('.row[style="z-index : 2;  position: relative;"]').addEventListener('click', function (e) {
-	  if (e.target.childNodes.length == 2)
-        e.target.childNodes[0].click();
+	  if (e.target.childNodes.length == 2 && e.target.childNodes[0].nodeName == "DIV" && e.target.childNodes[1].nodeName == "DIV")
+		e.target.childNodes[0].click();
+		
 	  closeNav();
     });
   }
