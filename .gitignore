@@ -1,0 +1,6 @@
+transfer.bat
+transfer_dev.bat
+total/*
+compressed/*
+!compressed/version
+!compressed/GUI.tar.bz2

@@ -1,6 +1,0 @@
-config wol 'config'
-        option enabled '0'
-        option src_intf 'wan'
-        option src_dport '9'
-        option dest_intf 'br-lan'
-        option dest_ip '192.168.1.253'
