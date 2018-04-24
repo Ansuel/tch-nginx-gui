@@ -571,6 +571,8 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
  color: #3F464C;
  text-shadow: none;
  border-bottom: none;
+ white-space: nowrap;
+ overflow: hidden;
 }
 
 @media only screen and (max-width: 18rem){
