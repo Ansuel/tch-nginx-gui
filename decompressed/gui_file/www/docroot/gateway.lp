@@ -85,7 +85,10 @@ ngx.print('\
 	<script async src="/js/Chart.min.js"></script>\
 	<script async src="/js/srp-min.js" ></script>');
 	ngx.print('<link rel="stylesheet" href="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/style.css">');
+local script_file_presence = io.open(string.format("/www/docroot/theme/%s/script.js",cui.gui_skin),"r")
+if script_file_presence then
 	ngx.print('<script src="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/script.js"></script>');
+end
   ngx.print('</head>\
 '); ngx.print('\
 <body>\
