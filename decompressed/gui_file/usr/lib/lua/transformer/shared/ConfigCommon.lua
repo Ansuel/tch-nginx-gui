@@ -340,7 +340,7 @@ local function export_package(data, package, pkg)
     export_config_start_package(data, package)
     local types_count = {}
     -- iterate all sections
-    uci_cursor:foreach(package, function(uci_section)
+    uci_cursor:foreach(package,nil, function(uci_section)
       local sectiontype = uci_section['.type']
       local sectionname
       if uci_section['.anonymous'] == false then
@@ -557,7 +557,7 @@ end
 local function config_reset_package(package)
    local sections = {}
    -- iterate all sections
-  uci_cursor:foreach(package, function(section)
+  uci_cursor:foreach(package,nil, function(section)
     sections[#sections + 1] = section['.name']
     -- required to keep iterating
     return true

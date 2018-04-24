@@ -279,6 +279,7 @@ local function xdslctlget(dtype,request,band,bandtype)
 			if request == "Hlog" then
 				l = l:gsub("(.*)-","")
 				l = "-" .. l
+				l = l:sub(1, -3)
 				if ( tonumber(l) > -96 ) then 
 					data = data .. l .. ","
 				else
@@ -287,6 +288,7 @@ local function xdslctlget(dtype,request,band,bandtype)
 			elseif request == "QLN" then
 				l = l:gsub("(.*)-","")
 				l = "-" .. l
+				l = l:sub(1, -3)
 				if ( tonumber(l) > -160 ) then 
 					data = data .. l .. ","
 				else
@@ -295,6 +297,7 @@ local function xdslctlget(dtype,request,band,bandtype)
 			elseif request == "SNR" then
 				l = string.sub(l,-8)
 				l = l:gsub("%s*","")
+				l = l:sub(1, -3)
 				if ( tonumber(l) > 0 ) then 
 					data = data .. l .. ","
 				else
