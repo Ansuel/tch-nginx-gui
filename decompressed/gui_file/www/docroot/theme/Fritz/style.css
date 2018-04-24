@@ -10,17 +10,17 @@
  display: none;
 }
 
-.row[style="z-index : 2;  position: relative;"]{
+.row[style="z-index : 2;  position: relative;"], .row[style="position: relative; z-index: 2;"]{
  width: 15.5rem;
  top: 6.3rem;
  margin: 1.5rem 0.5rem 0 0;
  background-color: #fff;
  box-shadow: 0 0.1875rem 0.375rem rgba(0,0,0,0.25);
  font-size: 1.125rem;
- overflow-y:auto;
  position: fixed !important;
  max-height: calc(100% - 18rem);
 }
+
 
 .row[style="z-index : 3;  position: relative;"]{
  position: fixed !important;
@@ -101,6 +101,7 @@ body{
 
 .modal-header, .row-fluid .span4, .row-fluid .span11{
  position: fixed;
+ position: -ms-device-fixed;
  border: 0;
  border-radius: 0;
  top: 3rem;
@@ -119,7 +120,6 @@ body{
 
 .modal-footer{
  padding: 14px 0;
- position: sticky;
  border: 0;
  border-radius: 0;
  width: 100%;
@@ -398,6 +398,7 @@ input::placeholder{
  font-size: 3rem;
  font-weight: bold;
  text-align: center;
+ left: 0;
 }
 
 .open>.dropdown-menu{
@@ -546,6 +547,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
  opacity: 1 !important;
  transform: initial !important;
  transition: initial !important;
+ overflow: visible !important;
 }
 
 .span3 .smallcard .content{
@@ -569,6 +571,8 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
  color: #3F464C;
  text-shadow: none;
  border-bottom: none;
+ white-space: nowrap;
+ overflow: hidden;
 }
 
 @media only screen and (max-width: 18rem){
@@ -943,10 +947,13 @@ div.span3:nth-of-type(13) .content{
 }
 
 @media only screen and (min-width: 50rem){
- .row[style="z-index : 2;  position: relative;"]{
+ .row[style="z-index : 2;  position: relative;"], .row[style="position: relative; z-index: 2;"]{
   margin-left: 0 !important;
+  overflow-y: auto !important;
  }
- 
+ _::-webkit-full-page-media, _:future, :root .row[style="z-index : 2;  position: relative;"]{
+  overflow-y: visible !important;
+ }
  .open>.dropdown-menu{
   margin-top:-1.2rem;
   margin-right: 7rem;
@@ -969,6 +976,10 @@ div.span3:nth-of-type(13) .content{
   border-right: 4px solid;
   margin-top: 5px;
   margin-right: 6px;
+ }
+ 
+ .row[style="z-index : 3;  position: relative;"]{
+  box-shadow: none !important;
  }
 }
 
@@ -996,7 +1007,7 @@ div.span3:nth-of-type(13) .content{
   -webkit-overflow-scrolling: touch;
  }
 
- .row[style="z-index : 2;  position: relative;"]{
+ .row[style="z-index : 2;  position: relative;"], .row[style="position: relative; z-index: 2;"]{
   width: 15.5rem;
   top: 0px;
   margin: 0;
