@@ -280,30 +280,30 @@ local function xdslctlget(dtype,request,band,bandtype)
 				l = l:gsub("(.*)-","")
 				l = "-" .. l
 				if ( tonumber(l) > -96 ) then 
-					data = data .. l .. ", "
+					data = data .. l .. ","
 				else
-					data = data .. "NaN" .. ", "
+					data = data .. "NaN" .. ","
 				end
 			elseif request == "QLN" then
 				l = l:gsub("(.*)-","")
 				l = "-" .. l
 				if ( tonumber(l) > -160 ) then 
-					data = data .. l .. ", "
+					data = data .. l .. ","
 				else
-					data = data .. "NaN" .. ", "
+					data = data .. "NaN" .. ","
 				end
 			elseif request == "SNR" then
 				l = string.sub(l,-8)
 				l = l:gsub("%s*","")
 				if ( tonumber(l) > 0 ) then 
-					data = data .. l .. ", "
+					data = data .. l .. ","
 				else
-					data = data .. "NaN" .. ", "
+					data = data .. "NaN" .. ","
 				end
 			else
 				l = string.sub(l,-2)
 				l = l:gsub("%s*","")
-				data = data .. l .. ", "
+				data = data .. l .. ","
 			end
 		end
 		n=n+1

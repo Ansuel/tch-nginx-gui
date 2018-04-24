@@ -375,6 +375,12 @@ local content = {
 }
 
 content_helper.getExactContent(content)
+
+if content["product_name"] and content["product_name"] == "AGHP" then
+	content["product_name"] = "AGTHP" --Wrong product name by telecom!
+end
+
+
 if content["firmware_version"] then
   local version = content["firmware_version"]
   local newversion
