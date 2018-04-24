@@ -38,9 +38,11 @@ window.onload = function(){
     updateHeight();
     closeNav();
     document.querySelector('.header.span12').addEventListener('click', function (e) {
-      if (e.pageX  < 60) {
-        openNav();
-      }
+	  if (e.pageX != 0 && e.pageY !=0){
+		if (e.pageX  < 60 && window.innerWidth <= (50 * parseFloat(getComputedStyle(document.documentElement).fontSize))) {
+			openNav();
+		}
+	  }
     });
     document.querySelector('.apprise-overlay').addEventListener('click', function (e) {
       closeNav();
@@ -60,6 +62,7 @@ var modalOpen = false;
 
 function updateHeight(){
 	if (!blockHeight){
+		ruleR1.style.transform = 'translateY( 0px)';
 		var maxheight = 0;
 		var j;
 		for (j = 0; j < elmArr.length; j++) { 
@@ -69,11 +72,13 @@ function updateHeight(){
 			} 
 		}
 		ruleR6.style.height = (maxheight+30) + "px";
+		ruleR1.style.transform = 'translateY( -' + window.scrollY + 'px)';
 	}
 }
 
 function openNav() {
-	ruleR2.style.marginLeft  = "0";
+	ruleR2.style.marginLeft = "0";
+	ruleR2.style.overflow = "auto";
 	ruleR3.style.opacity = "0.6";
 	ruleR5.style.filter = "brightness(0.4)";
 	ruleR3.style.pointerEvents  = "all";
@@ -85,6 +90,7 @@ function openNav() {
 
 function closeNav() {
 	ruleR2.style.marginLeft  = "-15.5rem";
+	ruleR2.style.overflow = "visible";
 	ruleR3.style.opacity = "0";
 	ruleR5.style.filter = "brightness(1)";
 	ruleR3.style.pointerEvents  = "none";
