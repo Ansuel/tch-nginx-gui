@@ -7,10 +7,17 @@ CRONTABS=/etc/crontabs
 CRONRULE=$CRONTABS/root
 
 start() {
-    if [ ! "$(cat $CRONRULE | grep /sbin/trafficmon.lua)" ]; then
-		if [ ! -d $CRONTABS ]; then
-			mkdir -p $CRONTABS
-		fi
+	if [ ! -d $CRONTABS ]; then
+		mkdir -p $CRONTABS
+	fi
+
+	if [ ! -f $CRONRULE ] && [ -f $CRONTABS/root_gui ]; then
+		mv $CRONTABS/root_gui $CRONRULE
+	elif [ ! -f $CRONRULE ]; then
+		touch $CRONRULE
+	fi
+	
+	if [ ! "$(cat $CRONRULE | grep /sbin/trafficmon.lua)" ]; then
 		
 		echo " " >> $CRONRULE
         echo "*/10 * * * * /sbin/trafficmon.lua" >> $CRONRULE
