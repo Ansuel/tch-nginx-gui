@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=7.8.7
+version_gui=7.8.9
 
 logo_project() {
 cat << EOF > /dev/console
@@ -680,6 +680,15 @@ new_wol_implementation() {
 	fi
 }
 
+add_xdsl_option() {
+	if [ ! $(uci get -q xdsl.dsl0.sra) ]; then
+		uci set xdsl.dsl0.sra=1
+	fi
+	if [ ! $(uci get -q xdsl.dsl0.bitswap) ]; then
+		uci set xdsl.dsl0.bitswap=1
+	fi
+}
+
 root() {
 	
 	/etc/init.d/watchdog-tch stop
@@ -777,6 +786,8 @@ root() {
 	real_ver_entitied #Support for spoofing firm
 	logger "Creating new wol implementation"
 	new_wol_implementation #New Wol
+	logger "Sync new xdsl option"
+	add_xdsl_option #New xdsl option
 	
 	logger "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not

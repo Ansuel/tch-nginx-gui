@@ -229,6 +229,24 @@ local bank_check_valid = {
 
 local bank_check_content, helpmsg = post_helper.handleQuery(bank_check_Params, bank_check_valid)
 
+local config_Params = {
+  export_plaintext = "uci.system.config.export_plaintext",
+  import_plaintext = "uci.system.config.import_plaintext",
+  import_unsigned = "uci.system.config.import_unsigned",
+  export_unsigned = "uci.system.config.export_unsigned",
+  import_restricted = "uci.system.config.import_restricted",
+}
+
+local config_valid = {
+  export_plaintext = vB,
+  import_plaintext = vB,
+  import_unsigned = vB,
+  export_unsigned = vB,
+  import_restricted = vB,
+}
+
+local config_content, helpmsg = post_helper.handleQuery(config_Params, config_valid)
+
 local function resetreboot(path)
   proxy.set(path, "1")
   ngx.header.content_type = "application/json"
@@ -363,6 +381,25 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       local html = {}
 	  html[#html + 1] = ui_helper.createAlertBlock(T"If a newer version is present in the acs server, cwmpd will try to upgrade the modem and will not send any info. This brake some remote app like MyTIMFisso. Change the version here to fake it.", info_box)
 	  html[#html + 1] = ui_helper.createInputText(T"Version Set", "fwversion_override", fwversion_override_content["fwversion_override"], nil , fwversion_override_helpmsg["fwversion_override"])
+      ngx.print(html)
+      ngx.print('\
+</fieldset>\
+<fieldset>\
+  <legend>');  ngx.print( T"Config creation option" ); ngx.print('</legend>\
+    ');
+	  local info_box = {
+        alert = {
+			class = "alert alert-info",
+		}
+      }
+      local html = {}
+	  html[#html + 1] = ui_helper.createAlertBlock(T"This control the type of config exported and the type of config can be imported.", info_box)
+	  html[#html + 1] = ui_helper.createSwitch(T"Export PlainText", "export_plaintext", config_content["export_plaintext"])
+	  html[#html + 1] = ui_helper.createSwitch(T"Export UnSigned", "export_unsigned", config_content["export_unsigned"])
+	  html[#html + 1] = ui_helper.createSwitch(T"Import PlainText", "import_plaintext", config_content["import_plaintext"])
+	  html[#html + 1] = ui_helper.createSwitch(T"Import UnSigned", "import_unsigned", config_content["import_unsigned"])
+	  html[#html + 1] = ui_helper.createAlertBlock(T"This check if the config file is provided from the same firmware versione.", info_box)
+	  html[#html + 1] = ui_helper.createSwitch(T"Import Restricted", "import_restricted", config_content["import_restricted"])
       ngx.print(html)
       ngx.print('\
 </fieldset>\

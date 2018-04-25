@@ -70,6 +70,10 @@ local system_config = {
    type = "config",
    options = {
      "iad_function",
+	 "export_plaintext",
+	 "export_unsigned",
+	 "import_plaintext",
+	 "import_unsigned",
      "import_restricted",
      "enable_usb3_support",
    },
