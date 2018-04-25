@@ -4,30 +4,24 @@ local proxy = require("datamodel")
 
 local M = {}
 
-local ppp_state, error = proxy.get("uci.network.interface.@wan.username")
-local ppp_original, error = proxy.get("uci.env.var.ppp_realm_ipv4")
-local ppp_mgmt, error = proxy.get("uci.env.var.ppp_mgmt")
+local ppp_state = proxy.get("uci.network.interface.@wan.username")
+local ppp_original = proxy.get("uci.env.var.ppp_realm_ipv4")
+local ppp_mgmt = proxy.get("uci.env.var.ppp_mgmt")
 
 if ppp_state then
-    ppp_state = format("%s",ppp_state[1].value)
-else
-    ppp_state = "0"
+    ppp_state = ppp_state[1].value
 end
 
 if ppp_original then
-    ppp_original = format("%s",ppp_original[1].value)
-else
-    ppp_original = "0"
+    ppp_original = ppp_original[1].value
 end
 
 if ppp_mgmt then
-    ppp_mgmt = format("%s",ppp_mgmt[1].value)
-else
-    ppp_mgmt = "0"
+    ppp_mgmt = ppp_mgmt[1].value
 end
 
 function M.isVoiceMode()
-    if ppp_state and not ( ppp_mgmt == "0" ) and ( ppp_state == ppp_mgmt ) then
+    if ppp_state and ppp_mgmt and ( ppp_state == ppp_mgmt ) then
         return true
     else
         return false
@@ -39,7 +33,7 @@ function M.configVoiceMode()
 	local ifnames = 'eth0 eth1 eth2 eth3 eth5 ptm0.835'
 	
     success = proxy.set({
-        ["uci.network.interface.@wan.username"] = ppp_mgmt,
+        ["uci.network.interface.@wan.username"] = ppp_mgmt or "Unknown",
 		["uci.dhcp.dhcp.@lan.ignore"] = '1',
 		["uci.wireless.wifi-device.@radio_2G.state"] = '0',
 		["uci.wireless.wifi-device.@radio_5G.state"] = '0',
@@ -57,7 +51,7 @@ function M.disableVoiceMode()
 	local ifnames = 'eth0 eth1 eth2 eth3 eth5 ptm0.835'
 	
     success = proxy.set({
-        ["uci.network.interface.@wan.username"] = ppp_original,
+        ["uci.network.interface.@wan.username"] = ppp_original or "Unknown",
 		["uci.wireless.wifi-device.@radio_2G.state"] = '1',
 		["uci.wireless.wifi-device.@radio_5G.state"] = '1',
 		["uci.dhcp.dhcp.@lan.ignore"] = '0',

@@ -158,7 +158,7 @@ xdsl_config() {
     fi
 	
 	config_get sra "$cfg" sra 1
-    if [ "$tpstc" == 0 ]; then
+    if [ "$sra" == 0 ]; then
 		srastring="--sra off"
 	else
 		srastring="--sra on"
@@ -195,7 +195,7 @@ xdsl_read_config() {
 start() {
     xdsl_read_config
     if [ "${CONNSTATUS:-1}" -gt 0 ]; then
-
+	
 	if [ -n "$ADVANCED_OPTIONS" ]; then
 	  eval "$APP start --up $CONFIGURE_OPTIONS $ADVANCED_OPTIONS"
         else

@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=7.8.9
+version_gui=7.9.0
 
 logo_project() {
 cat << EOF > /dev/console
@@ -687,6 +687,12 @@ add_xdsl_option() {
 	if [ ! $(uci get -q xdsl.dsl0.bitswap) ]; then
 		uci set xdsl.dsl0.bitswap=1
 	fi
+	# Trying to understanding why this option were not applied i found that this option was the culprit
+	# So this hex code means something... i found that the first bit is related to sra (>5 activate sra)
+	# The third is related to bitswap (>2) enables it
+	# demod_cap2_value (default 0x390000)
+	# setting them to 0x000000 disable  sesdrop (second bit <6) CoMinMgn (first bit >1) 24k (first bit 1) 
+	uci set xdsl.dsl0.demod_cap_mask="0x00047a"
 }
 
 root() {
