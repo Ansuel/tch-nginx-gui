@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=7.9.1
+version_gui=7.9.3
 
 logo_project() {
 cat << EOF > /dev/console
@@ -693,6 +693,7 @@ add_xdsl_option() {
 	# demod_cap2_value (default 0x390000)
 	# setting them to 0x000000 disable  sesdrop (second bit <6) CoMinMgn (first bit >1) 24k (first bit 1) 
 	uci set xdsl.dsl0.demod_cap_mask="0x00047a"
+	uci set xdsl.dsl0.demod_cap_value="0x00047a"
 }
 
 root() {

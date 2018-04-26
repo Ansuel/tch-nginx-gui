@@ -74,36 +74,51 @@ local function xdslctlget(request)
 	local data = ""
 	
 	data = data .. SpaceBand["band1"]
+	if proxy.get("rpc.xdslctl." .. request .. "Us1") then
+		data = data .. proxy.get("rpc.xdslctl." .. request .. "Us1")[1].value
+		
+		data = data .. SpaceBand["band2"]
+	end
 	
-	data = data .. proxy.get("rpc.xdslctl." .. request .. "Us1")[1].value
+	if proxy.get("rpc.xdslctl." .. request .. "Ds1") then
+		data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds1")[1].value
 	
-	data = data .. SpaceBand["band2"]
+		data = data .. SpaceBand["band3"]
+	end
 	
-	data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds1")[1].value
+	if proxy.get("rpc.xdslctl." .. request .. "Us2") then
+		data = data .. proxy.get("rpc.xdslctl." .. request .. "Us2")[1].value
 	
-	data = data .. SpaceBand["band3"]
+		data = data .. SpaceBand["band4"]
+	end
 	
-	data = data .. proxy.get("rpc.xdslctl." .. request .. "Us2")[1].value
+	if proxy.get("rpc.xdslctl." .. request .. "Ds2") then
+		data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds2")[1].value
 	
-	data = data .. SpaceBand["band4"]
+		data = data .. SpaceBand["band5"]
+	end
 	
-	data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds2")[1].value
+	if proxy.get("rpc.xdslctl." .. request .. "Us3") then
+		data = data .. proxy.get("rpc.xdslctl." .. request .. "Us3")[1].value
 	
-	data = data .. SpaceBand["band5"]
+		data = data .. SpaceBand["band6"]
+	end
 	
-	data = data .. proxy.get("rpc.xdslctl." .. request .. "Us3")[1].value
+	if proxy.get("rpc.xdslctl." .. request .. "Us4") then
+		data = data .. proxy.get("rpc.xdslctl." .. request .. "Us4")[1].value
 	
-	data = data .. SpaceBand["band6"]
+		data = data .. SpaceBand["band7"]
+	end
 	
-	data = data .. proxy.get("rpc.xdslctl." .. request .. "Us4")[1].value
+	if proxy.get("rpc.xdslctl." .. request .. "Ds3") then
+		data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds3")[1].value
 	
-	data = data .. SpaceBand["band7"]
+		data = data .. SpaceBand["band8"]
+	end
 	
-	data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds3")[1].value
-	
-	data = data .. SpaceBand["band8"]
-	
-	data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds4")[1].value
+	if proxy.get("rpc.xdslctl." .. request .. "Ds4") then
+		data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds4")[1].value
+	end
 	
 	return data
 end

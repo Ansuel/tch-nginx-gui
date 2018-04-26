@@ -288,7 +288,7 @@ local function xdslctlget(dtype,request,band,bandtype)
 			elseif request == "QLN" then
 				l = l:gsub("(.*)-","")
 				l = "-" .. l
-				l = l:sub(1, -3)
+				l = l:sub(1, -4)
 				if ( tonumber(l) > -160 ) then 
 					data = data .. l .. ","
 				else
