@@ -340,27 +340,52 @@ local function export_package(data, package, pkg)
     export_config_start_package(data, package)
     local types_count = {}
     -- iterate all sections
-    uci_cursor:foreach(package,nil, function(uci_section)
-      local sectiontype = uci_section['.type']
-      local sectionname
-      if uci_section['.anonymous'] == false then
-        sectionname = uci_section['.name']
-        if (pkg.sn[sectionname] ~= nil) then return true end -- skip (defined section)
-      else
-        if pkg.sn["@" .. sectiontype] ~= nil then return true end  -- skip (defined sectiontype)
-        types_count[sectiontype] = (types_count[sectiontype] and types_count[sectiontype] + 1) or 0
-        sectionname = format('@%s[%d]', sectiontype, types_count[sectiontype])
-      end
-      export_config_set_section(data, package, sectionname, sectiontype)
-
-      for key,value in pairs(uci_section) do
-        if not match(key, "^[._]") then
-          export_config_set_param(data, package, sectionname, key, value)
-        end
-      end
-      -- required to keep iterating
-      return true
-    end)
+	local luci_webui = uci_cursor:get("env","var","luci_webui")
+	if luci_webui and luci_webui == "1" then
+		uci_cursor:foreach(package, nil , function(uci_section)
+		local sectiontype = uci_section['.type']
+		local sectionname
+		if uci_section['.anonymous'] == false then
+			sectionname = uci_section['.name']
+			if (pkg.sn[sectionname] ~= nil) then return true end -- skip (defined section)
+		else
+			if pkg.sn["@" .. sectiontype] ~= nil then return true end  -- skip (defined sectiontype)
+			types_count[sectiontype] = (types_count[sectiontype] and types_count[sectiontype] + 1) or 0
+			sectionname = format('@%s[%d]', sectiontype, types_count[sectiontype])
+		end
+		export_config_set_section(data, package, sectionname, sectiontype)
+	
+		for key,value in pairs(uci_section) do
+			if not match(key, "^[._]") then
+			export_config_set_param(data, package, sectionname, key, value)
+			end
+		end
+		-- required to keep iterating
+		return true
+		end)
+	else
+		uci_cursor:foreach(package, function(uci_section)
+		local sectiontype = uci_section['.type']
+		local sectionname
+		if uci_section['.anonymous'] == false then
+			sectionname = uci_section['.name']
+			if (pkg.sn[sectionname] ~= nil) then return true end -- skip (defined section)
+		else
+			if pkg.sn["@" .. sectiontype] ~= nil then return true end  -- skip (defined sectiontype)
+			types_count[sectiontype] = (types_count[sectiontype] and types_count[sectiontype] + 1) or 0
+			sectionname = format('@%s[%d]', sectiontype, types_count[sectiontype])
+		end
+		export_config_set_section(data, package, sectionname, sectiontype)
+	
+		for key,value in pairs(uci_section) do
+			if not match(key, "^[._]") then
+			export_config_set_param(data, package, sectionname, key, value)
+			end
+		end
+		-- required to keep iterating
+		return true
+		end)
+	end
 
     export_config_end_package(data, package)
   end
@@ -557,11 +582,20 @@ end
 local function config_reset_package(package)
    local sections = {}
    -- iterate all sections
-  uci_cursor:foreach(package,nil, function(section)
-    sections[#sections + 1] = section['.name']
-    -- required to keep iterating
-    return true
-  end)
+   local luci_webui = uci_cursor:get("env","var","luci_webui")
+   if luci_webui and luci_webui == "1" then
+   	uci_cursor:foreach(package,nil, function(section)
+   		sections[#sections + 1] = section['.name']
+   		-- required to keep iterating
+   		return true
+   	end)
+   else
+   	uci_cursor:foreach(package, function(section)
+   		sections[#sections + 1] = section['.name']
+   		-- required to keep iterating
+   		return true
+   	end)
+   end
 
   -- delete all sections
   for _,section in ipairs(sections) do

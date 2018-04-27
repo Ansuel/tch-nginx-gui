@@ -1,1 +1,1 @@
-^ledfw /etc/init.d/ledfw restart ;  /etc/init.d/network restart
+^ledfw /usr/share/transformer/scripts/check_ecoled.sh
