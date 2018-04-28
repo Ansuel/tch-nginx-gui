@@ -225,6 +225,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = "</br>"
 	  if mapParams["blacklist_application"] and mapParams["blacklist_application"] == "1" then
 		html[#html + 1] = ui_helper.createSimpleButton(T"Remove Blacklist", "icon-refresh", remove_blacklist)
+		html[#html + 1] = ui_helper.createSimpleButton(T"Update blacklist app", "icon-refresh", install_empty_blacklist)
 	  else
 		html[#html + 1] = ui_helper.createSimpleButton(T"Install Blacklist", "icon-refresh", install_blacklist)
 		html[#html + 1] = ui_helper.createSimpleButton(T"Install empty blacklist", "icon-refresh", install_empty_blacklist)

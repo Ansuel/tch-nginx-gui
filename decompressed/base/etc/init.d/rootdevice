@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=7.9.8
+version_gui=7.9.10
 
 logo_project() {
 cat << EOF > /dev/console
@@ -599,8 +599,9 @@ check_aria_dir() {
 }
 
 led_integration() {
-	if [ $(uci get -q ledfw.status_led.enable) ] ; then
+	if [ ! $(uci get -q ledfw.status_led.enable) ] ; then
 		uci set ledfw.status_led.enable='0'
+		uci set ledfw.timeout.ms='0'
 	else
 		if [ $(uci get -q ledfw.status_led.enable) == "0" ] && [ $(uci get -q ledfw.timeout.ms) != "0" ] ; then
 			uci set ledfw.timeout.ms='0'
