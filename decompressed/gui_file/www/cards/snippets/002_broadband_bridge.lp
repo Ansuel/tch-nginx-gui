@@ -9,6 +9,8 @@ local tonumber = tonumber
 
 local ui_helper = require("web.ui_helper")
 local content_helper = require("web.content_helper")
+local bridgedmode = require("bridgedmode_helper")
+local voicemode = require("voicemode_helper")
 
 -- Figure out interface state
 local intf_state_map = {
@@ -74,6 +76,12 @@ end
 <div class="divtable">\
   ');  
     local html = {
+	if bridgedmode.isBridgedMode() then
+		ngx.print(format("<strong>%s</strong></br>",T"Bridge Mode Active"))
+	end
+	if voicemode.isVoiceMode() then
+		ngx.print(format("<strong>%s</strong></br>",T"Voice Mode Active"))
+	end
       ui_helper.createSimpleLight(nil, intf_state_map[intf_state], {light = {class = intf_light_map[intf_state]}}),
       '<p class="subinfos">',
       "",

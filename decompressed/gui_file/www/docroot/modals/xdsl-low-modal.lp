@@ -147,14 +147,14 @@ end
 
 local driver_Params = {
   driver_ver = "uci.env.var.driver_version",
-  ds10_sra						= "uci.xdsl.xdsl.@dsl0.sra",
-  ds10_bitswap					= "uci.xdsl.xdsl.@dsl0.bitswap",
+  ds10_sra = "uci.xdsl.xdsl.@dsl0.sra",
+  ds10_bitswap = "uci.xdsl.xdsl.@dsl0.bitswap",
 }
 
 local driver_valid = {
   driver_ver = post_helper.getValidateInEnumSelect(driver_option),
-  ds10_sra =  post_helper.validateBoolean,
-  ds10_bitswap	=  post_helper.validateBoolean,
+  ds10_sra = post_helper.validateBoolean,
+  ds10_bitswap = post_helper.validateBoolean,
 }
 
 local driver_content, helpmsg = post_helper.handleQuery(driver_Params, driver_valid)
@@ -177,8 +177,8 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       html[#html + 1] = ui_helper.createLight(T"Status", nil, state_map[untaint(content.dsl0_enabled)], { light = { class = light_map[untaint(content.dsl0_enabled)] } })
       html[#html + 1] = ui_helper.createLabel(T"Firmware Version",content.dsl0_xdsl_FirmwareVersion, span5 )
 	  html[#html + 1] = ui_helper.createInputSelect(T"Driver Version", "driver_ver", driver_option, driver_content["driver_ver"])
-	  html[#html + 1] = ui_helper.createSwitch(T"SRA", "sra", driver_content["ds10_sra"])
-	  html[#html + 1] = ui_helper.createSwitch(T"Bitswap", "bitswap", driver_content["ds10_bitswap"])
+	  html[#html + 1] = ui_helper.createSwitch(T"SRA", "ds10_sra", driver_content["ds10_sra"])
+	  html[#html + 1] = ui_helper.createSwitch(T"Bitswap", "ds10_bitswap", driver_content["ds10_bitswap"])
       html[#html + 1] = ui_helper.createLabel(T"EOC Vendor ID",content.dsl0_eoc_vendor_id, span5 )
       html[#html + 1] = ui_helper.createLabel(T"EOC Serial Number",content.dsl0_eoc_serial_number, span5 )
       html[#html + 1] = [[<div class="control-group"><label class="control-label">]]

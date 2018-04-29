@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=7.11.1
+version_gui=7.11.4
 
 logo_project() {
 cat << EOF > /dev/console
@@ -898,20 +898,32 @@ root() {
 			fi
 		else
 			new_platform=https://regman-mon.interbusiness.it:10800/acs/
-			if [ ! "$(curl -s -k $new_platform)" ] ; then
-				uci set cwmpd.cwmpd_config.acs_url=https://regman-tl.interbusiness.it:10700/acs/ 
+			unified_platform=https://regman-tl.interbusiness.it:10700/acs/ 
+			mgmt_platform=https://regman-tl.interbusiness.it:10500/acs/
+			if [ "$(curl -s -k $new_platform)" ]; then
+				uci set cwmpd.cwmpd_config.acs_url=$new_platform
+			elif [ "$(curl -s -k $unified_platform)" ]; then
+				uci set cwmpd.cwmpd_config.acs_url=$unified_platform
+			elif [ "$(curl -s -k $mgmt_platform)" ]; then
+				uci set cwmpd.cwmpd_config.acs_url=$mgmt_platform
 			else
-				uci set cwmpd.cwmpd_config.acs_url=https://regman-mon.interbusiness.it:10800/acs/
+				uci set cwmpd.cwmpd_config.acs_url="None"
 			fi
 			if [ $(uci get -q cwmpd.cwmpd_config.interface) != "wan" ]; then
 				uci set cwmpd.cwmpd_config.interface='wan'
 			fi
-			uci commit
-			/etc/init.d/cwmpd enable
-			if [ ! -f /var/run/cwmpd.pid ]; then
-				/etc/init.d/cwmpd start
+			uci commit cwmpd
+			if [ $(uci get -q cwmpd.cwmpd_config.acs_url) == "None" ]; then
+				if [ -f /var/run/cwmpd.pid ]; then
+					/etc/init.d/cwmpd stop
+				fi
 			else
-				/etc/init.d/cwmpd restart
+				/etc/init.d/cwmpd enable
+				if [ ! -f /var/run/cwmpd.pid ]; then
+					/etc/init.d/cwmpd start
+				else
+					/etc/init.d/cwmpd restart
+				fi
 			fi
 		fi
 	fi
