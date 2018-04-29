@@ -1051,7 +1051,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  local html = {}
 	  html[#html + 1] = '<legend>' .. T"Led Settings" .. '</legend>'
 
-	  html[#html + 1] = ui_helper.createAlertBlock(T"Turn off all led if all service are up and running. You can press the INFO buttom (buttom on the power led) to show the led status.", info_box)
+	  html[#html + 1] = ui_helper.createAlertBlock(T"Turn off all led if all service are up and running. You can press the INFO button (button on the power led) to show the led status.", info_box)
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Modify this option will restart the wan connection (to sync the led with the new config)", warn_box)
 	  html[#html + 1] = ui_helper.createSwitch(T"Eco Led", "eco_led", led_content["eco_led"])
 	  html[#html + 1] = ui_helper.createInputText(T"Timeout", "eco_led_timeout", led_content["eco_led_timeout"], basic , led_helpmsg["eco_led_timeout"] )

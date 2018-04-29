@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=7.10.5
+version_gui=7.11.1
 
 logo_project() {
 cat << EOF > /dev/console
@@ -119,19 +119,6 @@ saved_encrypted_pass=$(uci -q get env.var.encrypted_pass)
 save_root_encrypt_pass() {
 	echo "  Storing encrypted password..." > /dev/console
 	uci set env.var.encrypted_pass=$encrypted_pass
-}
-
-check_gui_presence() {
-	if [ ! -f /root/GUI.tar.bz2 ]; then
-		if [ ! -f /tmp/GUI.tar.bz2 ]; then
-			if ping -q -c 1 -W 1 8.8.8.8 >/dev/null; then
-				wget http://repository.ilpuntotecnicoeadsl.com/files/Ansuel/AGTEF/GUI.tar.bz2 -O /tmp/GUI.tar.bz2
-				cp /tmp/GUI.tar.bz2 /root
-			fi
-		else
-			cp /tmp/GUI.tar.bz2 /root
-		fi
-	fi
 }
 
 cumulative_check_gui() {
