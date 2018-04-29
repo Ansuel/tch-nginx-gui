@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=7.9.12
+version_gui=7.10.5
 
 logo_project() {
 cat << EOF > /dev/console
@@ -121,30 +121,64 @@ save_root_encrypt_pass() {
 	uci set env.var.encrypted_pass=$encrypted_pass
 }
 
-generate_hash_gui() {
-	if [ ! $(uci get -q env.var.update_branch) ] ||  [ $(uci get -q env.var.update_branch) == "stable" ]; then
+check_gui_presence() {
+	if [ ! -f /root/GUI.tar.bz2 ]; then
+		if [ ! -f /tmp/GUI.tar.bz2 ]; then
+			if ping -q -c 1 -W 1 8.8.8.8 >/dev/null; then
+				wget http://repository.ilpuntotecnicoeadsl.com/files/Ansuel/AGTEF/GUI.tar.bz2 -O /tmp/GUI.tar.bz2
+				cp /tmp/GUI.tar.bz2 /root
+			fi
+		else
+			cp /tmp/GUI.tar.bz2 /root
+		fi
+	fi
+}
+
+cumulative_check_gui() {
+	#This create update_branch entities
+	if [ ! $(uci get -q env.var.update_branch) ]; then
 		uci set env.var.update_branch="stable"
 		update_branch=""
+	elif [ $(uci get -q env.var.update_branch) == "stable" ]; then
+		update_branch=""
 	else
-		uci set env.var.update_branch="dev"
 		update_branch="_dev"
 	fi
+	
+	#This make sure we have stable GUI in /root
+	if [ ! -f /root/GUI.tar.bz2 ]; then
+		if [ ! -f /tmp/GUI.tar.bz2 ]; then
+			if ping -q -c 1 -W 1 8.8.8.8 >/dev/null; then
+				wget http://repository.ilpuntotecnicoeadsl.com/files/Ansuel/AGTEF/GUI.tar.bz2 -O /root/GUI.tar.bz2
+			fi
+		else
+			cp /tmp/GUI.tar.bz2 /root
+		fi
+	fi
+	
+	#This move tmp gui in /root
 	if [ -f /tmp/GUI$update_branch.tar.bz2 ]; then
-		gui_hash=$(md5sum /tmp/GUI$update_branch.tar.bz2 | awk '{ print $1}' )
 		if [ -f /root/GUI$update_branch.tar.bz2 ];then
 			rm /root/GUI$update_branch.tar.bz2
 		fi
-		cp /tmp/GUI$update_branch.tar.bz2 /root/GUI$update_branch.tar.bz2
-	else
-		if [ -f /root/GUI$update_branch.tar.bz2 ];then
-			gui_hash=$(md5sum /root/GUI$update_branch.tar.bz2 | awk '{ print $1}' )
-		else
-			gui_hash="0"
-		fi
+		mv /tmp/GUI$update_branch.tar.bz2 /root/GUI$update_branch.tar.bz2
 	fi
-	uci set env.var.new_ver="Unknown"
-	uci set env.var.gui_hash=$gui_hash
-	uci set env.var.outdated_ver='0'
+	
+	#This generate new hash
+	if [ -f /root/GUI$update_branch.tar.bz2 ];then
+		gui_hash=$(md5sum /root/GUI$update_branch.tar.bz2 | awk '{ print $1}' )
+	else
+		gui_hash="0"
+	fi
+	if [ ! $(uci get -q env.var.gui_version) ] && [ ! $(uci get -q env.var.gui_hash) ]; then
+		uci set env.var.new_ver="Unknown"
+		uci set env.var.gui_hash=$gui_hash
+		uci set env.var.outdated_ver='0'
+	elif [ $(uci get -q env.var.gui_hash) != $gui_hash ]; then
+		uci set env.var.new_ver="Unknown"
+		uci set env.var.gui_hash=$gui_hash
+		uci set env.var.outdated_ver='0'
+	fi
 }
 
 transfer_bank() {
@@ -842,10 +876,8 @@ root() {
 	
 	uci set wireless.global.wifi_analyzer_disable='0' #AGTEF specific
 	
-	if [ -f /tmp/GUI.tar.bz2 ] || [ -f /root/GUI.tar.bz2 ] || 
-	   [ -f /tmp/GUI_dev.tar.bz2 ] || [ -f /root/GUI_dev.tar.bz2 ];then #this generate hash to know if the gui is outdated or not
-		generate_hash_gui
-	fi
+	logger "Doing various check and generating hash..."
+	cumulative_check_gui #Handle strange installation
 	
 	logger "Sync version"
 	if [ -f /usr/share/transformer/scripts/checkver.sh ]; then

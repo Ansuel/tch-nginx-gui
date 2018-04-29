@@ -174,6 +174,7 @@ end
 
 local ddns_status = "error"
 local ddns_update_info = "No error received from server"
+local ddns_message = nil
 
 if qry_data.ddns_enabled ~= "1" then
   ddns_status = "disabled"
@@ -182,14 +183,17 @@ else
     ddns_status = "updating"
   elseif ddns_status_data.ddns_status then
     if ddns_status_data.ddns_status == "Domain's IP updated" then
+	  ddns_message = T"Domain's IP updated"
       ddns_status = "updated"
     elseif ddns_status_data.ddns_status == "No error received from server" then
+	  ddns_message = T"No error received from server"
       ddns_status = "updating"
     else
+	  ddns_message = format("%s : ", T"ERROR") .. ddns_status_data.ddns_status 
       ddns_status = "error"
     end
 
-    ddns_update_info = format("%s", ddns_status_data.ddns_status)
+    ddns_update_info = format("%s", ddns_message or ddns_status_data.ddns_status)
   end
 end
 

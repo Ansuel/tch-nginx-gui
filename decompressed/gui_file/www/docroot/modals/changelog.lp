@@ -17,6 +17,7 @@ ngx.print('\
         },
       }
 	  html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_1.1.1_002 )" .. '</legend>'
+	  html[#html + 1] = ui_helper.createLabel(T"7.10", "Bugfix vari, andare su github per controllare.", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"7.9", "Aggiunta possibilità di disattivare sra e bitswap, ditemi se devo aggiungerne altre...", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"7.8", "Aggiunta skin Fritz e bug fix minori", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"7.7", "Aggiungo Version Spoof nella tab sistema avanzato. Segnala una versione falsa alla telegestione per permettere la sincronizzazione dei dati.", basic)

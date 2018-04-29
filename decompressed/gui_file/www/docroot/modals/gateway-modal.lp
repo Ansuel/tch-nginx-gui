@@ -1109,21 +1109,17 @@ ngx.print('\
   $("#btn-system-reboot").click(function() {\
      var heading = "');  ngx.print('Restart Device'); ngx.print('";\
      var processMsg = "');  ngx.print(T'Rebooting'); ngx.print('";\
-     $(document).on("click", ".Restart", function() {\
           tch.removeProgress();\
           tch.showProgress(processMsg);\
           return resetreboot($("#rebooting-msg"), $(this), "system_reboot" );\
-     });\
   });\
 \
   $("#btn-system-reset").click(function() {\
       var heading = "');  ngx.print('Factory Defaults'); ngx.print('";\
       var processMsg = "');  ngx.print(T'Resetting'); ngx.print('";\
-      $(document).on("click", ".Factory", function() {\
           tch.removeProgress();\
           tch.showProgress(processMsg);\
           return resetreboot($("#resetting-msg"), $(this), "system_reset");\
-      });\
   });\
 \
   $("#btn-reset-gui").click(function() {\
