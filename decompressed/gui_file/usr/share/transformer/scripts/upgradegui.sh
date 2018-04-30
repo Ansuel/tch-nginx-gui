@@ -84,7 +84,9 @@ if [ -f $PERMANENT_STORE_DIR/$FILE_NAME ]; then
 fi
 cp $WORKING_DIR/$FILE_NAME $PERMANENT_STORE_DIR/
 rm $WORKING_DIR/$FILE_NAME
-rm $WORKING_DIR/$CHECKSUM_FILE
+if [ -f $WORKING_DIR/$CHECKSUM_FILE ]; then
+	rm $WORKING_DIR/$CHECKSUM_FILE
+fi
 
 # Run init.d script
 /etc/init.d/rootdevice force

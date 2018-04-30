@@ -131,7 +131,7 @@ for _, v in pairs (profiles_content) do
 end
 
 local driver_option = {
-	  { "A2pvbH042j2.d26r", 'A2pvbH042j2.d26r (Asus DSL-AC88U)'},
+	  { "A2pvbH042j2.d26r", 'A2pvbH042j2.d26r (Asus DSL-AC88U) ' .. 'Best value'},
 	  { "A2pvbH042n.d26r", 'A2pvbH042n.d26r (Netgear D7000)'},
 	  { "A2pvbH042o.d26r", 'A2pvbH042o.d26r (TG799VAC Xtream Fastweb)'},
       { "A2pvbH042r.d26r", 'A2pvbH042r.d26r (AGTEF_1.0.3)'},
@@ -139,7 +139,8 @@ local driver_option = {
 }
 
 if tonumber(content.marketing_version) >= 17.3 then
-	table.insert(driver_option,{ "A2pvfbH043g.d26r", 'A2pvfbH043f.d26r (DSL AC88U) !! TO TEST !!'})
+	table.insert(driver_option, { "A2pvfbH043b.d26r", 'A2pvfbH043b.d26r (New FastGate Fastweb)'})
+	table.insert(driver_option,{ "A2pvfbH043g.d26r", 'A2pvfbH043f.d26r (DSL AC88U) ' .. T'Less Ping'})
 	table.insert(driver_option,{ "A2pvfbH043g.d26r", 'A2pvfbH043g.d26r (TG800 Vbant-s)'})
 	table.insert(driver_option, { "A2pvfbH043k.d26r", 'A2pvfbH043k.d26r (AGTEF_1.1.0)'})
 end
