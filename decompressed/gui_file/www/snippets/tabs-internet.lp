@@ -9,6 +9,7 @@ local ipairs, string = ipairs, string
 local items = {
     {"iproutes-modal.lp", T"Ip Extras"},
     {"mwan-modal.lp", T"Routing Policy"},
+	{"bridge-grouping-modal.lp", T"Bridge Grouping"},
 }
 
 

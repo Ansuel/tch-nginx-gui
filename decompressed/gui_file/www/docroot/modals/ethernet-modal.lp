@@ -656,11 +656,23 @@ local function STBCheck(object, stbrange)
   end
 end
 
+local function GWIPChanged()
+	local post_data = ngx.req.get_post_args()
+	local localdevIP = proxy.get("uci.network.interface.@" .. curintf .. ".ipaddr")
+	if localdevIP and not ( localdevIP[1].value == post_data["localdevIP"] ) then
+		return true
+	end
+	return false
+end
+
 -- Validation is done for the dhcpLimit for the particular subnet
 -- If different subnet mask is given other than 255.255.255.0, then the
 -- DHCP Range limit has to be calculated from the new subnet and the validation
 -- has to be done for the new limit.
 local function validateLimit(value, object)
+  if GWIPChanged() then --we bypass validation as the gateway ip has changed
+  	return true
+  end
   if match(value, "^[0-9]*$") then
     local baseip, netmask, dhcpstart, dhcpend = getDHCPData(object)
 
@@ -705,6 +717,9 @@ end
 -- For different subnets, validation for dhcpStart Address has to be done
 -- from the new DHCP Range with respect to the subnet mask & Network Address
 local function validateDHCPStart(value, object)
+	if GWIPChanged() then --we bypass validation as the gateway ip has changed
+		return true
+	end
     if match(value, "^[0-9]*$") then
       local baseip, netmask, dhcpstart, dhcpend = getDHCPData(object)
 
