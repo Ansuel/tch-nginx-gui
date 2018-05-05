@@ -20,6 +20,9 @@ local gOV = post_helper.getOrValidation
 local gAV = post_helper.getAndValidation
 local session = ngx.ctx.session
 
+local bridgedmode = require("bridgedmode_helper")
+local voicemode = require("voicemode_helper")
+
 local tech = false
 if session:getrole() == "engineer" then
 	tech = true
@@ -1009,13 +1012,15 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = ui_helper.createAlertBlock(T"This upgrade the GUI to the latest available version on the site", info_box)
 	  html[#html + 1] = ui_helper.createInputSelect(T"Update Branch", "update_branch", update_branch_option, update_branch_content["update_branch"])
 	  
-	  if content["outdated_ver"] == "1" then
-	    html[#html + 1] = ui_helper.createLabel(T"State", T"Upgrade Found", basic)
-		html[#html + 1] = ui_helper.createLabel(T"New Version", content["new_ver"], basic)
-		html[#html + 1] = ui_helper.createButton(T"Upgrade Gui", T"Upgrade", "icon-refresh", upgrade_gui)
-	  else 
-	    html[#html + 1] = ui_helper.createLabel(T"State", T"No Upgrade found", basic)
-		html[#html + 1] = ui_helper.createButton(T"Upgrade Gui", T"Force Upgrade", "icon-refresh", upgrade_gui)
+	  if not bridgedmode.isBridgedMode() and not voicemode.isVoiceMode() then
+		if content["outdated_ver"] == "1" then
+			html[#html + 1] = ui_helper.createLabel(T"State", T"Upgrade Found", basic)
+			html[#html + 1] = ui_helper.createLabel(T"New Version", content["new_ver"], basic)
+			html[#html + 1] = ui_helper.createButton(T"Upgrade Gui", T"Upgrade", "icon-refresh", upgrade_gui)
+		else 
+			html[#html + 1] = ui_helper.createLabel(T"State", T"No Upgrade found", basic)
+			html[#html + 1] = ui_helper.createButton(T"Upgrade Gui", T"Force Upgrade", "icon-refresh", upgrade_gui)
+		end
 	  end
 	  
 	  html[#html + 1] = '</form><form class="form-horizontal" id="form-import-gui" method="post" action="modals/gateway-modal.lp?action=upgradeguifile" enctype="multipart/form-data">'

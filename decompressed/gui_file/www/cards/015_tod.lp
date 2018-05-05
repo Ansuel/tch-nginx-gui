@@ -30,12 +30,9 @@ local tod_data = post_helper.handleTableQuery(tod_columns, tod_options)
 
 -- get wifi tod
 local todwifi = require("parental_helper").getTodwifi()
-if not todwifi then
-	todwifi = ""
-else
+if todwifi then
 local todwifi_columns, todwifi_default, todwifi_valid, todwifi_sort_func =
       todwifi.columns, todwifi.default, todwifi.valid, todwifi.sort_func
-end
 
 local todwifi_options = {
     tableid     = "tod",
@@ -43,6 +40,8 @@ local todwifi_options = {
 }
 
 local todwifi_data = post_helper.handleTableQuery(todwifi_columns, todwifi_options, nil, todwifi_default, todwifi_valid)
+
+end
 
 -- get rules' count
 local rulecount = (type(tod_data)=="table") and #tod_data or 0

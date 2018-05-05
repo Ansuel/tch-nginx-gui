@@ -32,7 +32,7 @@ local modalPath = nil
 local switchName = nil
 local session = ngx.ctx.session
 
-local variant = proxy.get("uci.env.var.hardware_version")[1].value
+local variant = proxy.get("uci.env.rip.board_mnemonic")[1].value
 
 if  ( variant == "VBNT-K" ) then
 	model = "AGTEF"
@@ -55,7 +55,7 @@ end
 	<div class="divtable">\
       <div class="light green" id="Gateway_=LED_Id"></div>\
       <p><strong id = "Version_Id">');  ngx.print(string.format(T"Version %s (%s)", name, version)); ngx.print('</strong></br>');
-	  ngx.print('<span style="margin: 20px;">' ..  T"Cpu Load"..":" ); ngx.print('\
+	  ngx.print('<span class="subinfos">' ..  T"Cpu Load"..":" ); ngx.print('\
 					<strong data-bind="text: cpuload">\
 					</strong></span>\
       <div data-remote="modals/gateway-modal.lp" data-id="gateway-modal">\
