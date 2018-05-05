@@ -30,8 +30,12 @@ local tod_data = post_helper.handleTableQuery(tod_columns, tod_options)
 
 -- get wifi tod
 local todwifi = require("parental_helper").getTodwifi()
+if not todwifi then
+	todwifi = ""
+else
 local todwifi_columns, todwifi_default, todwifi_valid, todwifi_sort_func =
       todwifi.columns, todwifi.default, todwifi.valid, todwifi.sort_func
+end
 
 local todwifi_options = {
     tableid     = "tod",

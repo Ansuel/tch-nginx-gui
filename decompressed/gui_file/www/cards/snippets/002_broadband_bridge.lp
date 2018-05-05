@@ -74,20 +74,17 @@ end
 ');  ngx.print( ui_helper.createCardHeader(T"Broadband", modalPath) ); ngx.print('\
 <div class="content card_bg" data-bg-text="&#xf0b2;">\
 <div class="divtable">\
-  ');  
-    local html = {
+  ');
 	if bridgedmode.isBridgedMode() then
 		ngx.print(format("<strong>%s</strong></br>",T"Bridge Mode Active"))
 	end
 	if voicemode.isVoiceMode() then
 		ngx.print(format("<strong>%s</strong></br>",T"Voice Mode Active"))
 	end
-      ui_helper.createSimpleLight(nil, intf_state_map[intf_state], {light = {class = intf_light_map[intf_state]}}),
+      ngx.print(ui_helper.createSimpleLight(nil, intf_state_map[intf_state], {light = {class = intf_light_map[intf_state]}}),
       '<p class="subinfos">',
       "",
-      '</p>',
-    }
-    ngx.print(html)
+      '</p>')
 	if xdsl_data["dsl_enable"] == "1" then
 		local iconUp = "<i class=\"icon-upload icon-small gray\"></i> "
 		local iconDown = " <i class=\"icon-download icon-small gray\"></i> "
