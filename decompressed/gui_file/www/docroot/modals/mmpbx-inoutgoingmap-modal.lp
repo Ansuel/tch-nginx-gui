@@ -1,4 +1,5 @@
-<%
+--pretranslated: do not change this file
+
 -- Enable localization
 --NG-96261 VOIP WEB GUI: VoIP configuration changes applied event if not saved
 --NG-97938 GUI Telephony - In/Out Mapping
@@ -153,10 +154,10 @@ if ngx.req.get_method() == "POST" then
 
     for i in ipairs(outgoing_map_allowed_indexes) do
         for _,w in ipairs(incoming_outgoing_map_columns) do
-	    if w.type == "checkboxswitch" then
-	        incoming_outgoing_map_valid["outg_"..w.name.."."..i] = vB
-	    end
-	end
+			if w.type == "checkboxswitch" then
+				incoming_outgoing_map_valid["outg_"..w.name.."."..i] = vB
+			end
+		end
     end
     success = content_helper.validateObject(post_args, incoming_outgoing_map_valid)
 
@@ -164,29 +165,30 @@ if ngx.req.get_method() == "POST" then
         local rpcpath = "rpc.mmpbx.sip_incomingmap.@"
 	local path = ""
 	local content_set = {}
-        for i,v in ipairs(incoming_map_allowed_indexes) do
-	    path = rpcpath..v.paramindex
-            for j,w in ipairs(incoming_outgoing_map_columns) do
-		if w.type == "checkboxswitch" then
-		    if post_args["inc_"..w.name.."."..i] and  post_args["inc_"..w.name.."."..i] ~= incoming_map_data[i][j] then
-		        content_set[path.."."..w.param] = post_args["inc_"..w.name.."."..i]
-		    end
-		end
+    for i,v in ipairs(incoming_map_allowed_indexes) do
+	 path = rpcpath..v.paramindex
+		for j,w in ipairs(incoming_outgoing_map_columns) do
+			if w.type == "checkboxswitch" then
+				if post_args["inc_"..w.name.."."..i] and  post_args["inc_"..w.name.."."..i] ~= incoming_map_data[i][j] then
+					content_set[path.."."..w.param] = post_args["inc_"..w.name.."."..i]
+				end
+			end
 	    end
-        end
+    end
 
 	rpcpath = "rpc.mmpbx.sip_outgoingmap.@"
 
 	for i,v in ipairs(outgoing_map_allowed_indexes) do
 	    path = rpcpath..v.paramindex
-            for j,w in ipairs(incoming_outgoing_map_columns) do
-		if w.type == "checkboxswitch" then
-		    if post_args["outg_"..w.name.."."..i] == "1" and post_args["outg_"..w.name.."."..i] ~= outgoing_map_data[i][j] then
-		        content_set[path.."."..w.param] = post_args["outg_"..w.name.."."..i]
-		    end
-		end
+        for j,w in ipairs(incoming_outgoing_map_columns) do
+			if w.type == "checkboxswitch" then
+				if post_args["outg_"..w.name.."."..i] and post_args["outg_"..w.name.."."..i] ~= outgoing_map_data[i][j] then
+					content_set[path.."."..w.param] = post_args["outg_"..w.name.."."..i]
+				end
+			end
 	    end
-        end
+    end
+	
 	-- if content_set is not empty then only set.
 	if next(content_set) then
 	    local ok, msg = proxy.set(content_set)
@@ -272,98 +274,64 @@ local uri = ngx.var.uri
 if ngx.var.args and string.len(ngx.var.args) > 0 then
     uri = uri .. "?" .. ngx.var.args
 end
-%>
 
-<%= ui_helper.createHeader(T"Telephony", false, true) %>
-
-<div class="modal-body update">
-  <%
+ngx.print(ui_helper.createHeader(T"Telephony", false, true));
+ngx.print('\
+<div class="modal-body update">\
+')
     local lp = require("web.lp")
     lp.setpath("/www/snippets/")
     lp.include("tabs-voice.lp")
-  %>
-  <form class="form-horizontal" method="post" action="<%= uri %>">
-      <%= ui_helper.createMessages(message_helper.popMessages()) %>
-      <fieldset id ="mmpbx-incomingmap-tab">
-      <legend><%= T"Incoming Maps" %></legend>
-      <%
-	ngx.print(incoming_map_table)
-      %>
-
-     </fieldset>
-
-	<fieldset id ="mmpbx-outgoingmap-tab">
-      <legend><%= T"Outgoing Maps" %></legend>
-      <%
-	ngx.print(outgoing_map_table)
-      %>
-
-    </fieldset>
-  </form>
-</div>
-
-<%= ui_helper.createFooter() %>
-<script>
-$(document).ready(function() {
-    $("#save-config").attr("id","save-form");
-    $("#save-form").click(function(){
-       $('.modal form input:checked[value="0"]').each(function(){
-          $(this).val("1");
-       });
-       var form = $(".modal form");
-       var params = form.serializeArray();
-       $('.modal form input[type="checkbox"]:not(:checked)').each(function(){
-          if(this.value == "1" || this.value == "0"){
-             params.push({name: this.name, value:"0"});
-          }
-        });
-        params.push({
-          name : "action",
-          value : "SAVE"
-        }, {
-          name : "fromModal",
-          value : "YES"
-        }, tch.elementCSRFtoken());
-        var target = form.attr("action");
-        tch.loadModal(target, params, function (){});
-    });
-
-    $('input[type="checkbox"]').change(function(){
-        var checkboxname = $(this).attr("name");
-	var isSameOutMapselected = false
-	var check = checkboxname.search("out")
-	if(check != -1)
-	{
-	var numprofiles = <%=#outgoing_map_data %>;
-	var devname = checkboxname.split(".")
-	var tmpname = ""
-	for(var i=1; i <= numprofiles; i++)
-	{
-	    tmpname = devname[0]+"."+i
-	    $('input[type="checkbox"]').each(function(){
-	        if($(this).attr("name") == tmpname)
-		{
-		    if(tmpname == checkboxname)
-		    {
-		        //if the same checkbox is selected by user for outgoing maps we should not save the changes.i
-			if($(this).attr('checked'))
-			{
-			    isSameOutMapselected = true;
-			}
-			$(this).prop('checked', true);
-		    }else
-	            {
-		        $(this).prop('checked', false);
-		    }
-		}
-	    });
-	}}
-	if(!isSameOutMapselected)
-	{
-	    $('#modal-no-change').fadeOut(300);
-            $('#modal-changes').delay(350).fadeIn(300);
-	}
-	return false;	// For stoping the POST
-    });
-});
-</script>
+	local html = {}
+	
+	html[#html+1] = format('<form class="form-horizontal" method="post" action="%s">',uri)
+    html[#html+1] = ui_helper.createMessages(message_helper.popMessages())
+    html[#html+1] = '<fieldset id ="mmpbx-incomingmap-tab">'
+    html[#html+1] = '<legend>' .. T"Incoming Maps" .. '</legend>'
+	html[#html+1] = incoming_map_table
+	html[#html+1] = '</fieldset>'
+	html[#html+1] = '<fieldset id ="mmpbx-outgoingmap-tab">'
+    html[#html+1] = '<legend>' .. T"Outgoing Maps" .. '</legend>'
+	html[#html+1] = outgoing_map_table
+	html[#html+1] = [[
+		</fieldset>
+	</form>
+	</div>
+	]]
+	html[#html+1] = ui_helper.createFooter()
+	ngx.print(html)
+ngx.print('\
+<script>\
+$(document).ready(function() {\
+    $("#save-config").attr("id","save-form");\
+    $("#save-form").click(function(){\
+       $(\'.modal form input:checked[value="0"]\').each(function(){\
+          $(this).val("1");\
+       });\
+       var form = $(".modal form");\
+       var params = form.serializeArray();\
+       $(\'.modal form input[type="checkbox"]:not(:checked)\').each(function(){\
+          if(this.value == "1" || this.value == "0"){\
+             params.push({name: this.name, value:"0"});\
+          }\
+        });\
+        params.push({\
+          name : "action",\
+          value : "SAVE"\
+        }, {\
+          name : "fromModal",\
+          value : "YES"\
+        }, tch.elementCSRFtoken());\
+        var target = form.attr("action");\
+        tch.loadModal(target, params, function (){});\
+    });\
+\
+    $(\'input[type="checkbox"]\').change(function(){\
+        var checkboxname = $(this).attr("name");\
+	    $(\'#modal-no-change\').fadeOut(300);\
+            $(\'#modal-changes\').delay(350).fadeIn(300);\
+	return false;	// For stoping the POST\
+    });\
+});\
+</script>\
+');
