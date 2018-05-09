@@ -6,7 +6,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=7.12.10
+version_gui=7.12.13
 
 logo_project() {
 cat << EOF > /dev/console
@@ -145,19 +145,19 @@ cumulative_check_gui() {
 	
 	#This move tmp gui in /root
 	if [ -f /tmp/GUI$update_branch.tar.bz2 ]; then
-		if [ -f /root/GUI$update_branch.tar.bz2 ];then
+		if [ -f /root/GUI$update_branch.tar.bz2 ]; then
 			rm /root/GUI$update_branch.tar.bz2
 		fi
 		mv /tmp/GUI$update_branch.tar.bz2 /root/GUI$update_branch.tar.bz2
 	fi
 	
 	#This generate new hash
-	if [ -f /root/GUI$update_branch.tar.bz2 ];then
+	if [ -f /root/GUI$update_branch.tar.bz2 ]; then
 		gui_hash=$(md5sum /root/GUI$update_branch.tar.bz2 | awk '{ print $1}' )
 	else
 		gui_hash="0"
 	fi
-	if [ ! $(uci get -q env.var.gui_version) ] && [ ! $(uci get -q env.var.gui_hash) ]; then
+	if [ ! $(uci get -q env.var.gui_hash) ]; then
 		uci set env.var.new_ver="Unknown"
 		uci set env.var.gui_hash=$gui_hash
 		uci set env.var.outdated_ver='0'
