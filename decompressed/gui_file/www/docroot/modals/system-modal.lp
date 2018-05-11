@@ -379,7 +379,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 		}
       }
       local html = {}
-	  html[#html + 1] = ui_helper.createAlertBlock(T"If a newer version is present in the acs server, cwmpd will try to upgrade the modem and will not send any info. This brake some remote app like MyTIMFisso. Change the version here to fake it.", info_box)
+	  html[#html + 1] = ui_helper.createAlertBlock(T"If a newer version is present in the acs server, cwmpd will try to upgrade the modem and will not send any info. This breaks some remote app like MyTIMFisso. Change the version here to fake it.", info_box)
 	  html[#html + 1] = ui_helper.createInputText(T"Version Set", "fwversion_override", fwversion_override_content["fwversion_override"], nil , fwversion_override_helpmsg["fwversion_override"])
       ngx.print(html)
       ngx.print('\
