@@ -14,6 +14,8 @@ local lfs = require"lfs"
 local content = {
       dsl0_enabled = "uci.xdsl.xdsl.@dsl0.enabled",
 	  xdsl_version = "rpc.xdsl.dslversion",
+	  dslam_chipset = "rpc.xdslctl.DslamChipset",
+	  dslam_version = "rpc.xdslctl.DslamVersion"
   }
 content_helper.getExactContent(content)
 
@@ -43,7 +45,11 @@ if session:hasAccess(modalPath) and lfs.attributes("/etc/config/xdsl", "mode") =
                 html={}
                 html[#html+1] = ui_helper.createSimpleLight(nil, status_msg, { light = {class=status}})
 				html[#html+1] = '<p class="subinfos">'
-                html[#html+1] = format(T"Driver Version: </br><strong id=\"cwmpconfcard_acsurl\">%s</strong>", content.xdsl_version )
+                html[#html+1] = format(T"Driver Version: <strong>%s</strong>", content.xdsl_version )
+				html[#html+1] = '</br>'
+				html[#html+1] = format(T"Dslam Chipset: <strong>%s</strong>", content.dslam_chipset )
+				html[#html+1] = '</br>'
+				html[#html+1] = format(T"Dslam Version: <strong>%s</strong>", content.dslam_version )
 				html[#html+1] = '</p>'
                 ngx.print(html)
                   ngx.print('\

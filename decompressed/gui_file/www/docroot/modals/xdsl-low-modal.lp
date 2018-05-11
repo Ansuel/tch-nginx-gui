@@ -91,6 +91,8 @@ local content = {
     dsl0_xdsl_cfg1_mask             = "uci.xdsl.xdsl.@dsl0.xdsl_cfg1_mask",
     dsl0_xdsl_FirmwareVersion       = "sys.class.xdsl.@line0.FirmwareVersion",
 	marketing_version				= "uci.version.version.@version[0].marketing_version",
+	dslam_chipset 					= "rpc.xdslctl.DslamChipset",
+	dslam_version 					= "rpc.xdslctl.DslamVersion"
 }
 
 content_helper.getExactContent(content)
@@ -176,7 +178,9 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       local span5 = { span = { class = "span5" } }
       local html = {}
       html[#html + 1] = ui_helper.createLight(T"Status", nil, state_map[untaint(content.dsl0_enabled)], { light = { class = light_map[untaint(content.dsl0_enabled)] } })
-      html[#html + 1] = ui_helper.createLabel(T"Firmware Version",content.dsl0_xdsl_FirmwareVersion, span5 )
+      html[#html + 1] = ui_helper.createLabel(T"Dslam Chipset",content.dslam_chipset, span5 )
+	  html[#html + 1] = ui_helper.createLabel(T"Dslam Firmware Version",content.dslam_version, span5 )
+	  html[#html + 1] = ui_helper.createLabel(T"Firmware Version",content.dsl0_xdsl_FirmwareVersion, span5 )
 	  html[#html + 1] = ui_helper.createInputSelect(T"Driver Version", "driver_ver", driver_option, driver_content["driver_ver"])
 	  html[#html + 1] = ui_helper.createSwitch(T"SRA", "ds10_sra", driver_content["ds10_sra"])
 	  html[#html + 1] = ui_helper.createSwitch(T"Bitswap", "ds10_bitswap", driver_content["ds10_bitswap"])
