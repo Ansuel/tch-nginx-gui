@@ -152,7 +152,7 @@ ngx.print('\
             </div>\
             -->\
             <div class="pull-right">\
-                <a href="/" class="btn btn-primary btn-large">');  ngx.print( T"Cancel" ); ngx.print('</a>\
+                <a id="sign-cancel" href="/" class="btn btn-primary btn-large">');  ngx.print( T"Cancel" ); ngx.print('</a>\
                 &nbsp;\
                 <div id="sign-me-in" class="btn btn-primary btn-large">');  ngx.print( T"Sign in" ); ngx.print('</div>\
             </div>\
@@ -255,6 +255,7 @@ $(document).ready(\
     });\
 \
     $("#sign-me-in").on("click", function () {\
+	  $("#sign-cancel").hide();\
       $(this).text(\'');  ngx.print( T"Verifying" ); ngx.print('\');\
       password = $("#srp_password")[0].value;\
 \
@@ -304,6 +305,7 @@ $(document).ready(\
       }else{\
         $("#sign-me-in").text(\'');  ngx.print( T"Sign in" ); ngx.print('\');\
         $("#erroruserpass").show();\
+		$("#sign-cancel").show();\
         $(".control-group").addClass("error");\
       }\
       timeSecond = err.waitTime;\
