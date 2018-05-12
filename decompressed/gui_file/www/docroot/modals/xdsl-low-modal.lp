@@ -92,7 +92,8 @@ local content = {
     dsl0_xdsl_FirmwareVersion       = "sys.class.xdsl.@line0.FirmwareVersion",
 	marketing_version				= "uci.version.version.@version[0].marketing_version",
 	dslam_chipset 					= "rpc.xdslctl.DslamChipset",
-	dslam_version 					= "rpc.xdslctl.DslamVersion"
+	dslam_version 					= "rpc.xdslctl.DslamVersion",
+	dslam_version_raw				= "rpc.xdslctl.DslamVersionRaw"
 }
 
 content_helper.getExactContent(content)
@@ -142,7 +143,8 @@ local driver_option = {
 
 if tonumber(content.marketing_version) >= 17.3 then
 	table.insert(driver_option, { "A2pvfbH043b.d26r", 'A2pvfbH043b.d26r (New FastGate Fastweb)'})
-	table.insert(driver_option,{ "A2pvfbH043g.d26r", 'A2pvfbH043f.d26r (DSL AC88U) ' .. T'Less Ping'})
+	table.insert(driver_option,{ "A2pvfbH043e.d26r", 'A2pvfbH043e.d26r (Zyxel 8823)'})
+	table.insert(driver_option,{ "A2pvfbH043f.d26r", 'A2pvfbH043f.d26r (DSL AC88U) ' .. T'Less Ping'})
 	table.insert(driver_option,{ "A2pvfbH043g.d26r", 'A2pvfbH043g.d26r (TG800 Vbant-s)'})
 	table.insert(driver_option, { "A2pvfbH043k.d26r", 'A2pvfbH043k.d26r (AGTEF_1.1.0)'})
 end
@@ -179,7 +181,11 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       local html = {}
       html[#html + 1] = ui_helper.createLight(T"Status", nil, state_map[untaint(content.dsl0_enabled)], { light = { class = light_map[untaint(content.dsl0_enabled)] } })
       html[#html + 1] = ui_helper.createLabel(T"Dslam Chipset",content.dslam_chipset, span5 )
-	  html[#html + 1] = ui_helper.createLabel(T"Dslam Firmware Version",content.dslam_version, span5 )
+	  if content.dslam_version_raw:sub(0,2) == "0x" then
+		html[#html + 1] = ui_helper.createLabel(T"Dslam Firmware Version",format("%s ( %s )", content.dslam_version , content.dslam_version_raw) , span5 )
+	  else
+		html[#html + 1] = ui_helper.createLabel(T"Dslam Firmware Version",format(T"Invalid version, can't convert. Raw value: %s", content.dslam_version_raw) , span5 )
+	  end
 	  html[#html + 1] = ui_helper.createLabel(T"Firmware Version",content.dsl0_xdsl_FirmwareVersion, span5 )
 	  html[#html + 1] = ui_helper.createInputSelect(T"Driver Version", "driver_ver", driver_option, driver_content["driver_ver"])
 	  html[#html + 1] = ui_helper.createSwitch(T"SRA", "ds10_sra", driver_content["ds10_sra"])

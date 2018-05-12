@@ -19,6 +19,11 @@ local content = {
   }
 content_helper.getExactContent(content)
 
+if not content.dslam_chipset then
+	content.dslam_chipset = T"Not Up"
+	content.dslam_version = " "
+end
+
 if session:hasAccess(modalPath) and lfs.attributes("/etc/config/xdsl", "mode") == "file" then
 
   local state_map_DSL = {

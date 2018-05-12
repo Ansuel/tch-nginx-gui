@@ -1308,9 +1308,9 @@ function M.validatePSK(psk)
     end
 
     if not match(psk, pskmatch) then
-        return nil, T"The wireless key contains invalid characters, only space, letters, numbers and the following characters !\"#$%&()*+,-./:;<=>?@[\\]^_{|}~ are allowed."
-	elseif match(psk, "[']+") or match(psk, "[`]+") then
-		return nil, T"The wireless key contains invalid characters, only space, letters, numbers and the following characters !\"#$%&()*+,-./:;<=>?@[\\]^_{|}~ are allowed."
+        return nil, T"The wireless key contains invalid characters, only space, letters, numbers and the following characters !\"'`#$%&()*+,-./:;<=>?@[\\]^_{|}~ are allowed."
+	--elseif match(psk, "[']+") or match(psk, "[`]+") then
+	--	return nil, T"The wireless key contains invalid characters, only space, letters, numbers and the following characters !\"#$%&()*+,-./:;<=>?@[\\]^_{|}~ are allowed."
     end
 
     return true

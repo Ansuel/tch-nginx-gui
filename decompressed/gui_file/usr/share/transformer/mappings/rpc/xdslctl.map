@@ -237,6 +237,10 @@ local xdslctl_ = {
             access = "readOnly",
             type = "string"
           },
+		  DslamVersionRaw = {
+            access = "readOnly",
+            type = "string"
+          },
         }
     }
 }
@@ -342,13 +346,15 @@ local function xdslctlDslamInfo(itype)
 	
 	if itype == "chipset" then
 		result = chipset
-	elseif itype == "version" then
+	elseif itype == "version" or itype == "version_raw" then
 		arg=" | sed '8q;d' | cut -d ':' -f 3"
 		local version_read = io.popen(cmd .. arg)
 		result = version_read:read()
-		if chipset:match("BDCM") then
-			result = result:gsub("(.*)x","")
-			result = tonumber(result:sub(0,2),16) .. "." .. tonumber(result:sub(2,4),16)
+		if itype == "version" then
+			if result:sub(0,2) == "0x" then
+				result = result:gsub("(.*)x","")
+				result = tonumber(result:sub(0,2),16) .. "." .. tonumber(result:sub(3,4),16)
+			end
 		end
 		version_read:close()
 	end
@@ -396,6 +402,8 @@ local function get(mapping, paramName, key)
 		return xdslctlDslamInfo("chipset")
 	elseif paramName == "DslamVersion" then
 		return xdslctlDslamInfo("version")
+	elseif paramName == "DslamVersionRaw" then
+		return xdslctlDslamInfo("version_raw")
 	end
 end
 
