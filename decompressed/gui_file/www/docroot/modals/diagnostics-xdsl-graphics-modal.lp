@@ -8,134 +8,62 @@ local ui_helper = require("web.ui_helper")
 local content_helper = require("web.content_helper")
 local format = string.format
 
-																 
-
-					  
-
-local SpaceBand = {
-	band1 = "",
-	band2 = "",
-	band3 = "",
-	band4 = "",
-	band5 = "",
-	band6 = "",
-	band7 = "",
-	band8 = "",
-}
-
-local DSL_Up = proxy.get("sys.class.xdsl.@line0.Status")[1].value
-
-if DSL_Up == "Up" then
-  for index=1,8 do
-  	if index==1 then
-  		local us1start = tonumber(proxy.get("rpc.xdslctl.Us1BandInitial")[1].value)
-  		for i=0,us1start-2 do
-  			SpaceBand["band1"] = SpaceBand["band1"] .. "NaN" .. ","
-  		end
-  	elseif index==2 then
-  		local us1end = tonumber(proxy.get("rpc.xdslctl.Us1BandFinal")[1].value)
-  		local ds1start = tonumber(proxy.get("rpc.xdslctl.Ds1BandInitial")[1].value)
-  		for i=0,ds1start-us1end-2 do
-  			SpaceBand["band2"] = SpaceBand["band2"] .. "NaN" .. ","
-  		end
-  	elseif index==3 then
-  		local ds1end = tonumber(proxy.get("rpc.xdslctl.Ds1BandFinal")[1].value)
-  		local us2start = tonumber(proxy.get("rpc.xdslctl.Us2BandInitial")[1].value)
-  		for i=0,us2start-ds1end-2 do
-  			SpaceBand["band3"] = SpaceBand["band3"] .. "NaN" .. ","
-  		end
-  	elseif index==4 then
-  		local us2end = tonumber(proxy.get("rpc.xdslctl.Us2BandFinal")[1].value)
-  		local ds2start = tonumber(proxy.get("rpc.xdslctl.Ds2BandInitial")[1].value)
-  		for i=0,ds2start-us2end-2 do
-  			SpaceBand["band4"] = SpaceBand["band4"] .. "NaN" .. ","
-  		end
-  	elseif index==5 then
-  		local ds2end = tonumber(proxy.get("rpc.xdslctl.Ds2BandFinal")[1].value)
-  		local us3start = tonumber(proxy.get("rpc.xdslctl.Us3BandInitial")[1].value)
-  		for i=0,us3start-ds2end-2 do
-  			SpaceBand["band5"] = SpaceBand["band5"] .. "NaN" .. ","
-  		end
-  	elseif index==6 then
-  		local us3end = tonumber(proxy.get("rpc.xdslctl.Us3BandFinal")[1].value)
-  		local us4start = tonumber(proxy.get("rpc.xdslctl.Us4BandInitial")[1].value)
-  		for i=0,us4start-us3end-2 do
-  			SpaceBand["band6"] = SpaceBand["band6"] .. "NaN" .. ","
-  		end
-  	elseif index==7 then
-  		local us4end = tonumber(proxy.get("rpc.xdslctl.Us4BandFinal")[1].value)
-  		local ds3start = tonumber(proxy.get("rpc.xdslctl.Ds3BandInitial")[1].value)
-  		for i=0,ds3start-us4end-2 do
-  			SpaceBand["band7"] = SpaceBand["band7"] .. "NaN" .. ","
-  		end
-  	elseif index==8 then
-  		local ds3end = tonumber(proxy.get("rpc.xdslctl.Ds3BandFinal")[1].value)
-  		local ds4start = tonumber(proxy.get("rpc.xdslctl.Ds4BandInitial")[1].value)
-  		for i=0,ds4start-ds3end-2 do
-  			SpaceBand["band8"] = SpaceBand["band8"] .. "NaN" .. ","
-  		end
-  	end
-  end
-
-end
-
-local function xdslctlget(request)
+local function xdslctlget(request,bandtype)
   local data=""
   
-  if proxy.get("rpc.xdslctl." .. request .. "Us1") then
-  	if not ( request == "Hlog" or request == "QLN" ) then
-  		data = data .. SpaceBand["band1"]
-  	end
-  	data = data .. proxy.get("rpc.xdslctl." .. request .. "Us1")[1].value
-  	if not ( request == "Hlog" or request == "QLN" ) then
-  		data = data .. SpaceBand["band2"]
-  	end
-  end
-  
-  if proxy.get("rpc.xdslctl." .. request .. "Ds1") then
-  	data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds1")[1].value
-  	if not ( request == "Hlog" or request == "QLN" ) then
-  		data = data .. SpaceBand["band3"]
-  	end
-  end
-  
-  if proxy.get("rpc.xdslctl." .. request .. "Us2") then
-  	data = data .. proxy.get("rpc.xdslctl." .. request .. "Us2")[1].value
-  	if not ( request == "Hlog" or request == "QLN" ) then
-  		data = data .. SpaceBand["band4"]
-  	end
-  end
-  
-  if proxy.get("rpc.xdslctl." .. request .. "Ds2") then
-  	data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds2")[1].value
-  	if not ( request == "Hlog" or request == "QLN" ) then
-  		data = data .. SpaceBand["band5"]
-  	end
-  end
-  
-  if proxy.get("rpc.xdslctl." .. request .. "Us3") then
-  	data = data .. proxy.get("rpc.xdslctl." .. request .. "Us3")[1].value
-  	if not ( request == "Hlog" or request == "QLN" ) then
-  		data = data .. SpaceBand["band6"]
-  	end
-  end
-  
-  if proxy.get("rpc.xdslctl." .. request .. "Us4") then
-  	data = data .. proxy.get("rpc.xdslctl." .. request .. "Us4")[1].value
-  	if not ( request == "Hlog" or request == "QLN" ) then
-  		data = data .. SpaceBand["band7"]
-  	end
-  end
-  
-  if proxy.get("rpc.xdslctl." .. request .. "Ds3") then
-  	data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds3")[1].value
-  	if not ( request == "Hlog" or request == "QLN" ) then
-  		data = data .. SpaceBand["band8"]
-  	end
-  end
-  
-  if proxy.get("rpc.xdslctl." .. request .. "Ds4") then
-  	data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds4")[1].value
+  if bandtype == "Us" then
+    if proxy.get("rpc.xdslctl." .. request .. "Us1") then
+    	data = data .. proxy.get("rpc.xdslctl." .. request .. "Us1")[1].value
+    end
+	
+	if proxy.get("rpc.xdslctl." .. request .. "Us2") then
+	  Ds1Band = tonumber(proxy.get("rpc.xdslctl.Ds1ScannedBand")[1].value)
+	  for i=0,Ds1Band do
+	  	data = data .. "NaN,"
+	  end
+	  data = data .. proxy.get("rpc.xdslctl." .. request .. "Us2")[1].value
+    end
+	
+	if proxy.get("rpc.xdslctl." .. request .. "Us3") then
+	  Ds2Band = tonumber(proxy.get("rpc.xdslctl.Ds2ScannedBand")[1].value)
+	  for i=0,Ds2Band do
+	  	data = data .. "NaN,"
+	  end
+      data = data .. proxy.get("rpc.xdslctl." .. request .. "Us3")[1].value
+    end
+	
+	 if proxy.get("rpc.xdslctl." .. request .. "Us4") then
+    	data = data .. proxy.get("rpc.xdslctl." .. request .. "Us4")[1].value
+    end
+  else
+    if proxy.get("rpc.xdslctl." .. request .. "Ds1") then
+	  Us1Band = tonumber(proxy.get("rpc.xdslctl.Us1ScannedBand")[1].value)
+	  for i=0,Us1Band do
+	  	data = data .. "NaN,"
+	  end
+    	data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds1")[1].value
+    end
+    
+    if proxy.get("rpc.xdslctl." .. request .. "Ds2") then
+		Us2Band = tonumber(proxy.get("rpc.xdslctl.Us2ScannedBand")[1].value)
+	  for i=0,Us2Band do
+	  	data = data .. "NaN,"
+	  end
+    	data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds2")[1].value
+    end
+    
+    if proxy.get("rpc.xdslctl." .. request .. "Ds3") then
+	Us3Band = tonumber(proxy.get("rpc.xdslctl.Us3ScannedBand")[1].value)
+	Us4Band = tonumber(proxy.get("rpc.xdslctl.Us4ScannedBand")[1].value)
+	  for i=0,(Us3Band+Us4Band) do
+	  	data = data .. "NaN,"
+	  end
+    	data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds3")[1].value
+    end
+    
+    if proxy.get("rpc.xdslctl." .. request .. "Ds4") then
+    	data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds4")[1].value
+    end
   end
   
   if data == "" then
@@ -153,14 +81,16 @@ else
 	scanband = "0"
 end
 
-local Hlog, HlogLegend, Bits, BitsLegend, QLN, QLNLegend, SNR, SNRLegend 
-
 local profile = proxy.get("sys.class.xdsl.@line0.ProfileName")
 
-_, Hlog = pcall(xdslctlget, "Hlog")
-_, Bits = pcall(xdslctlget, "Bits")
-_, QLN = pcall(xdslctlget, "QLN")
-_, SNR = pcall(xdslctlget, "SNR")
+local _, HlogUs = pcall(xdslctlget, "Hlog","Us")
+local _, BitsUs = pcall(xdslctlget, "Bits","Us")
+local _, QLNUs = pcall(xdslctlget, "QLN","Us")
+local _, SNRUs = pcall(xdslctlget, "SNR","Us")
+local _, HlogDs = pcall(xdslctlget, "Hlog","Ds")
+local _, BitsDs = pcall(xdslctlget, "Bits","Ds")
+local _, QLNDs = pcall(xdslctlget, "QLN","Ds")
+local _, SNRDs = pcall(xdslctlget, "SNR","Ds")
 
 local UsBandNumber = proxy.get("rpc.xdslctl.UsBandNumber")
 
@@ -241,7 +171,7 @@ end
 	<fieldset>\
       <legend>');  ngx.print( T"DSL Bits" ); ngx.print('</legend>\
 		<div style="overflow-x:auto;max-width:1130px;">')
-		  	ngx.print('<div style="height: 400px;width:8500px;">')
+		  	ngx.print('<div style="height: 400px;width:1130px;">')
 		  ngx.print('\
 		    <canvas id="BitsChart"></canvas>\
 		  </div>\
@@ -258,8 +188,14 @@ var hlog_ctx = document.getElementById("HlogChart").getContext("2d");\
 	var HlogChart = new Chart(hlog_ctx, {\
     type: "line",\
     data: {labels: labelLegend,\
-	"datasets":[{"data":['); ngx.print(Hlog); ngx.print('],\
-	"pointBackgroundColor": pointBackgroundColor,\
+	"datasets":[{"data":['); ngx.print(HlogUs); ngx.print('],\
+	"pointBackgroundColor": "#90cd8a",\
+	"lineTension":0.1,\
+	"pointBorderWidth":"0.6",\
+	"pointRadius":"0.6",\
+    },\
+	{"data":['); ngx.print(HlogDs); ngx.print('],\
+	"pointBackgroundColor": "#f58368",\
 	"lineTension":0.1,\
 	"pointBorderWidth":"0.6",\
 	"pointRadius":"0.6",\
@@ -290,8 +226,13 @@ var qln_ctx = document.getElementById("QLNChart").getContext("2d");\
 	var QLNChart = new Chart(qln_ctx, {\
     type: "line",\
     data: {labels: labelLegend,\
-	"datasets":[{"data":['); ngx.print(QLN); ngx.print('],\
-	"pointBackgroundColor": pointBackgroundColor,\
+	"datasets":[{"data":['); ngx.print(QLNUs); ngx.print('],\
+	"pointBackgroundColor": "#90cd8a",\
+	"lineTension":0.1,\
+	"pointBorderWidth":"0.6",\
+	"pointRadius":"0.6",\
+    },{"data":['); ngx.print(QLNDs); ngx.print('],\
+	"pointBackgroundColor": "#f58368",\
 	"lineTension":0.1,\
 	"pointBorderWidth":"0.6",\
 	"pointRadius":"0.6",\
@@ -322,8 +263,14 @@ var snr_ctx = document.getElementById("SNRChart").getContext("2d");\
 	var SNRChart = new Chart(snr_ctx, {\
     type: "line",\
     data: {labels: labelLegend,\
-	"datasets":[{"data":['); ngx.print(SNR); ngx.print('],\
-	"pointBackgroundColor": pointBackgroundColor,\
+	"datasets":[{"data":['); ngx.print(SNRUs); ngx.print('],\
+	"pointBackgroundColor": "#90cd8a",\
+	"lineTension":0.1,\
+	"pointBorderWidth":"0.6",\
+	"pointRadius":"0.6",\
+    },\
+	{"data":['); ngx.print(SNRDs); ngx.print('],\
+	"pointBackgroundColor": "#f58368",\
 	"lineTension":0.1,\
 	"pointBorderWidth":"0.6",\
 	"pointRadius":"0.6",\
@@ -351,14 +298,27 @@ var snr_ctx = document.getElementById("SNRChart").getContext("2d");\
     }\
 });\
 var bits_ctx = document.getElementById("BitsChart").getContext("2d");\
-	var BitsChart = new Chart(bits_ctx, {\
-    type: "bar",\
+        var BitsChart = new Chart(bits_ctx, {\
+    type: "line",\
     data: {labels: labelLegend,\
-	"datasets":[{"data":['); ngx.print(Bits); ngx.print('],\
-	"backgroundColor": backgroundColor,\
+        "datasets":[{"data":['); ngx.print(BitsUs); ngx.print('],\
+        "pointBackgroundColor": "#90cd8a",\
+        "backgroundColor": "#90cd8a",\
+        "lineTension":0.1,\
+        "pointBorderWidth":"0.6",\
+        "pointRadius":"0.6",\
+        "fill":"start",\
+    },\
+	{"data":['); ngx.print(BitsDs); ngx.print('],\
+        "pointBackgroundColor": "#f58368",\
+        "backgroundColor": "#f58368",\
+        "lineTension":0.1,\
+        "pointBorderWidth":"0.1",\
+        "pointRadius":"0.1",\
+        "fill":"start",\
     }]},\
     options: {\
-		maintainAspectRatio: false,\
+                maintainAspectRatio: false,\
         scales: {\
             yAxes: [{\
                 ticks: {\
@@ -366,8 +326,11 @@ var bits_ctx = document.getElementById("BitsChart").getContext("2d");\
                 }\
             }]\
         },\
-		legend: {display: false},\
-		animation: {\
+                spanGaps:false,\
+                showLines:true,\
+                pointStyle:"cross",\
+                legend: {display: false},\
+                animation: {\
             duration: 0,\
         },\
         hover: {\
@@ -386,27 +349,5 @@ setTimeout(function(){\
 	SNRChart.update();\
 	BitsChart.update();\
 }, 250);\
-var SNRlen = SNRChart.data.datasets[0].data.length;\
-var BitsLen = BitsChart.data.datasets[0].data.length;\
-setTimeout(function(){\
-	for (i = 0; i < SNRlen; i++) {\
-		if '); ngx.print(BandPlanCondition); ngx.print('  {\
-			pointBackgroundColor.push("#90cd8a");\
-		} else {\
-			pointBackgroundColor.push("#f58368");\
-		}\
-	}\
-	HlogChart.update();\
-	QLNChart.update();\
-	SNRChart.update();\
-    for (i = 0; i < BitsLen; i++) {\
-		if '); ngx.print(BandPlanCondition); ngx.print('  {\
-			backgroundColor.push("#90cd8a");\
-		} else {\
-			backgroundColor.push("#f58368");\
-		}\
-	}\
-	BitsChart.update();\
-}, 500);\
 </script>\
 '); 

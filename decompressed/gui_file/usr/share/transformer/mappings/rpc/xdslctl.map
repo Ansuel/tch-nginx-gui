@@ -221,6 +221,38 @@ local xdslctl_ = {
             access = "readOnly",
             type = "string"
           },
+		  Us1ScannedBand = {
+            access = "readOnly",
+            type = "int"
+          },
+		  Us2ScannedBand = {
+            access = "readOnly",
+            type = "int"
+          },
+		  Us3ScannedBand = {
+            access = "readOnly",
+            type = "int"
+          },
+		  Us4ScannedBand = {
+            access = "readOnly",
+            type = "int"
+          },
+		  Ds1ScannedBand = {
+            access = "readOnly",
+            type = "int"
+          },
+		  Ds2ScannedBand = {
+            access = "readOnly",
+            type = "int"
+          },
+		  Ds3ScannedBand = {
+            access = "readOnly",
+            type = "int"
+          },
+		  Ds4ScannedBand = {
+            access = "readOnly",
+            type = "int"
+          },
 		  UsBandNumber = {
             access = "readOnly",
             type = "string"
@@ -280,6 +312,7 @@ end
 local function xdslctlget(dtype,request,band,bandtype)
     local data = ""
 	local n  = 0
+	local scannedband = 0
 	local scanband = ""
 	local bandstart = tonumber(xdslband(band,"Initial",bandtype)) or 0
 	local bandend = tonumber(xdslband(band,"Final",bandtype)) or 0
@@ -287,24 +320,26 @@ local function xdslctlget(dtype,request,band,bandtype)
 	
 	local f = assert(io.popen(cmd,"r"))
 	
-	if request == "Hlog" or request == "QLN" then
-		if bandtype == "Us" and band == 1 then
-			bandstart = 0
-		elseif bandtype == "Ds" and band == 1 then
-			bandstart = tonumber(xdslband(1,"Final","Us"))+1
-		elseif bandtype == "Us" and band == 2 then
-			bandstart = tonumber(xdslband(1,"Final","Ds"))+1
-		elseif bandtype == "Ds" and band == 2 then
-			bandstart = tonumber(xdslband(2,"Final","Us"))+1
-		elseif bandtype == "Us" and band == 3 then
-			bandstart = tonumber(xdslband(2,"Final","Ds"))+1
-		elseif bandtype == "Us" and band == 4 then
-			bandstart = tonumber(xdslband(3,"Final","Us"))+1
-		elseif bandtype == "Ds" and band == 3 then
+	if bandtype == "Us" and band == 1 then
+		bandstart = 0
+	elseif bandtype == "Ds" and band == 1 then
+		bandstart = tonumber(xdslband(1,"Final","Us"))+1
+	elseif bandtype == "Us" and band == 2 then
+		bandstart = tonumber(xdslband(1,"Final","Ds"))+1
+	elseif bandtype == "Ds" and band == 2 then
+		bandstart = tonumber(xdslband(2,"Final","Us"))+1
+	elseif bandtype == "Us" and band == 3 then
+		bandstart = tonumber(xdslband(2,"Final","Ds"))+1
+	elseif bandtype == "Us" and band == 4 then
+		bandstart = tonumber(xdslband(3,"Final","Us"))+1
+	elseif bandtype == "Ds" and band == 3 then
+		if tonumber(xdslband(4,"Final","Us")) == 0 then --The Us4 band is not present!
+			bandstart = tonumber(xdslband(3,"Final","Us"))+1 --Take the Us3 to start
+		else
 			bandstart = tonumber(xdslband(4,"Final","Us"))+1
-		elseif bandtype == "Ds" and band == 4 then
-			bandstart = tonumber(xdslband(3,"Final","Ds"))+1
 		end
+	elseif bandtype == "Ds" and band == 4 then
+		bandstart = tonumber(xdslband(3,"Final","Ds"))+1
 	end
 	
 	for l in f:lines() do
@@ -339,8 +374,13 @@ local function xdslctlget(dtype,request,band,bandtype)
 			elseif request == "Bits" then
 				l = string.sub(l,-2)
 				l = l:gsub("%s*","")
-				data = data .. l .. ","
+				if ( tonumber(l) > 0 ) then 
+					data = data .. l .. ","
+				else
+					data = data .. "NaN" .. ","
+				end
 			end
+			scannedband=scannedband+1
 		end
 		n=n+1
 	end
@@ -350,8 +390,10 @@ local function xdslctlget(dtype,request,band,bandtype)
 	
 	if dtype == "data" then
 		return data
-	else
+	elseif dtype == "scanband" then
 		return scanband
+	elseif dtype == "scannedband" then
+		return tostring(scannedband)
 	end
 end
 
@@ -424,6 +466,10 @@ local function get(mapping, paramName, key)
 	elseif paramName:match("BandNumber") then
 		local bandtype = paramName:sub(1,2)
 		return xdslband(0,"BandNumber",bandtype)
+	elseif paramName:match("ScannedBand") then
+		local band = tonumber(paramName:sub(3,3))
+		local bandtype = paramName:sub(1,2)
+		return xdslctlget("scannedband","SNR",band,bandtype)
 	elseif paramName == "DslamChipset" then
 		return xdslctlDslamInfo("chipset")
 	elseif paramName == "DslamVersion" then
