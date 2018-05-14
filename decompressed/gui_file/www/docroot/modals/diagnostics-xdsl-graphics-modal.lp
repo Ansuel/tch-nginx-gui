@@ -8,6 +8,10 @@ local ui_helper = require("web.ui_helper")
 local content_helper = require("web.content_helper")
 local format = string.format
 
+																 
+
+					  
+
 local SpaceBand = {
 	band1 = "",
 	band2 = "",
@@ -19,108 +23,126 @@ local SpaceBand = {
 	band8 = "",
 }
 
-for index=1,8 do
-	if index==1 then
-		local us1start = tonumber(proxy.get("rpc.xdslctl.Us1BandInitial")[1].value)
-		for i=0,us1start-2 do
-			SpaceBand["band1"] = SpaceBand["band1"] .. "NaN" .. ", "
-		end
-	elseif index==2 then
-		local us1end = tonumber(proxy.get("rpc.xdslctl.Us1BandFinal")[1].value)
-		local ds1start = tonumber(proxy.get("rpc.xdslctl.Ds1BandInitial")[1].value)
-		for i=0,ds1start-us1end-2 do
-			SpaceBand["band2"] = SpaceBand["band2"] .. "NaN" .. ", "
-		end
-	elseif index==3 then
-		local ds1end = tonumber(proxy.get("rpc.xdslctl.Ds1BandFinal")[1].value)
-		local us2start = tonumber(proxy.get("rpc.xdslctl.Us2BandInitial")[1].value)
-		for i=0,us2start-ds1end-2 do
-			SpaceBand["band3"] = SpaceBand["band3"] .. "NaN" .. ", "
-		end
-	elseif index==4 then
-		local us2end = tonumber(proxy.get("rpc.xdslctl.Us2BandFinal")[1].value)
-		local ds2start = tonumber(proxy.get("rpc.xdslctl.Ds2BandInitial")[1].value)
-		for i=0,ds2start-us2end-2 do
-			SpaceBand["band4"] = SpaceBand["band4"] .. "NaN" .. ", "
-		end
-	elseif index==5 then
-		local ds2end = tonumber(proxy.get("rpc.xdslctl.Ds2BandFinal")[1].value)
-		local us3start = tonumber(proxy.get("rpc.xdslctl.Us3BandInitial")[1].value)
-		for i=0,us3start-ds2end-2 do
-			SpaceBand["band5"] = SpaceBand["band5"] .. "NaN" .. ", "
-		end
-	elseif index==6 then
-		local us3end = tonumber(proxy.get("rpc.xdslctl.Us3BandFinal")[1].value)
-		local us4start = tonumber(proxy.get("rpc.xdslctl.Us4BandInitial")[1].value)
-		for i=0,us4start-us3end-2 do
-			SpaceBand["band6"] = SpaceBand["band6"] .. "NaN" .. ", "
-		end
-	elseif index==7 then
-		local us4end = tonumber(proxy.get("rpc.xdslctl.Us4BandFinal")[1].value)
-		local ds3start = tonumber(proxy.get("rpc.xdslctl.Ds3BandInitial")[1].value)
-		for i=0,ds3start-us4end-2 do
-			SpaceBand["band7"] = SpaceBand["band7"] .. "NaN" .. ", "
-		end
-	elseif index==8 then
-		local ds3end = tonumber(proxy.get("rpc.xdslctl.Ds3BandFinal")[1].value)
-		local ds4start = tonumber(proxy.get("rpc.xdslctl.Ds4BandInitial")[1].value)
-		for i=0,ds4start-ds3end-2 do
-			SpaceBand["band8"] = SpaceBand["band8"] .. "NaN" .. ", "
-		end
-	end
+local DSL_Up = proxy.get("sys.class.xdsl.@line0.Status")[1].value
+
+if DSL_Up == "Up" then
+  for index=1,8 do
+  	if index==1 then
+  		local us1start = tonumber(proxy.get("rpc.xdslctl.Us1BandInitial")[1].value)
+  		for i=0,us1start-2 do
+  			SpaceBand["band1"] = SpaceBand["band1"] .. "NaN" .. ","
+  		end
+  	elseif index==2 then
+  		local us1end = tonumber(proxy.get("rpc.xdslctl.Us1BandFinal")[1].value)
+  		local ds1start = tonumber(proxy.get("rpc.xdslctl.Ds1BandInitial")[1].value)
+  		for i=0,ds1start-us1end-2 do
+  			SpaceBand["band2"] = SpaceBand["band2"] .. "NaN" .. ","
+  		end
+  	elseif index==3 then
+  		local ds1end = tonumber(proxy.get("rpc.xdslctl.Ds1BandFinal")[1].value)
+  		local us2start = tonumber(proxy.get("rpc.xdslctl.Us2BandInitial")[1].value)
+  		for i=0,us2start-ds1end-2 do
+  			SpaceBand["band3"] = SpaceBand["band3"] .. "NaN" .. ","
+  		end
+  	elseif index==4 then
+  		local us2end = tonumber(proxy.get("rpc.xdslctl.Us2BandFinal")[1].value)
+  		local ds2start = tonumber(proxy.get("rpc.xdslctl.Ds2BandInitial")[1].value)
+  		for i=0,ds2start-us2end-2 do
+  			SpaceBand["band4"] = SpaceBand["band4"] .. "NaN" .. ","
+  		end
+  	elseif index==5 then
+  		local ds2end = tonumber(proxy.get("rpc.xdslctl.Ds2BandFinal")[1].value)
+  		local us3start = tonumber(proxy.get("rpc.xdslctl.Us3BandInitial")[1].value)
+  		for i=0,us3start-ds2end-2 do
+  			SpaceBand["band5"] = SpaceBand["band5"] .. "NaN" .. ","
+  		end
+  	elseif index==6 then
+  		local us3end = tonumber(proxy.get("rpc.xdslctl.Us3BandFinal")[1].value)
+  		local us4start = tonumber(proxy.get("rpc.xdslctl.Us4BandInitial")[1].value)
+  		for i=0,us4start-us3end-2 do
+  			SpaceBand["band6"] = SpaceBand["band6"] .. "NaN" .. ","
+  		end
+  	elseif index==7 then
+  		local us4end = tonumber(proxy.get("rpc.xdslctl.Us4BandFinal")[1].value)
+  		local ds3start = tonumber(proxy.get("rpc.xdslctl.Ds3BandInitial")[1].value)
+  		for i=0,ds3start-us4end-2 do
+  			SpaceBand["band7"] = SpaceBand["band7"] .. "NaN" .. ","
+  		end
+  	elseif index==8 then
+  		local ds3end = tonumber(proxy.get("rpc.xdslctl.Ds3BandFinal")[1].value)
+  		local ds4start = tonumber(proxy.get("rpc.xdslctl.Ds4BandInitial")[1].value)
+  		for i=0,ds4start-ds3end-2 do
+  			SpaceBand["band8"] = SpaceBand["band8"] .. "NaN" .. ","
+  		end
+  	end
+  end
+
 end
 
 local function xdslctlget(request)
-	local data = ""
-	
-	data = data .. SpaceBand["band1"]
-	if proxy.get("rpc.xdslctl." .. request .. "Us1") then
-		data = data .. proxy.get("rpc.xdslctl." .. request .. "Us1")[1].value
-		
-		data = data .. SpaceBand["band2"]
-	end
-	
-	if proxy.get("rpc.xdslctl." .. request .. "Ds1") then
-		data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds1")[1].value
-	
-		data = data .. SpaceBand["band3"]
-	end
-	
-	if proxy.get("rpc.xdslctl." .. request .. "Us2") then
-		data = data .. proxy.get("rpc.xdslctl." .. request .. "Us2")[1].value
-	
-		data = data .. SpaceBand["band4"]
-	end
-	
-	if proxy.get("rpc.xdslctl." .. request .. "Ds2") then
-		data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds2")[1].value
-	
-		data = data .. SpaceBand["band5"]
-	end
-	
-	if proxy.get("rpc.xdslctl." .. request .. "Us3") then
-		data = data .. proxy.get("rpc.xdslctl." .. request .. "Us3")[1].value
-	
-		data = data .. SpaceBand["band6"]
-	end
-	
-	if proxy.get("rpc.xdslctl." .. request .. "Us4") then
-		data = data .. proxy.get("rpc.xdslctl." .. request .. "Us4")[1].value
-	
-		data = data .. SpaceBand["band7"]
-	end
-	
-	if proxy.get("rpc.xdslctl." .. request .. "Ds3") then
-		data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds3")[1].value
-	
-		data = data .. SpaceBand["band8"]
-	end
-	
-	if proxy.get("rpc.xdslctl." .. request .. "Ds4") then
-		data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds4")[1].value
-	end
-	
-	return data
+  local data=""
+  
+  if proxy.get("rpc.xdslctl." .. request .. "Us1") then
+  	if not ( request == "Hlog" or request == "QLN" ) then
+  		data = data .. SpaceBand["band1"]
+  	end
+  	data = data .. proxy.get("rpc.xdslctl." .. request .. "Us1")[1].value
+  	if not ( request == "Hlog" or request == "QLN" ) then
+  		data = data .. SpaceBand["band2"]
+  	end
+  end
+  
+  if proxy.get("rpc.xdslctl." .. request .. "Ds1") then
+  	data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds1")[1].value
+  	if not ( request == "Hlog" or request == "QLN" ) then
+  		data = data .. SpaceBand["band3"]
+  	end
+  end
+  
+  if proxy.get("rpc.xdslctl." .. request .. "Us2") then
+  	data = data .. proxy.get("rpc.xdslctl." .. request .. "Us2")[1].value
+  	if not ( request == "Hlog" or request == "QLN" ) then
+  		data = data .. SpaceBand["band4"]
+  	end
+  end
+  
+  if proxy.get("rpc.xdslctl." .. request .. "Ds2") then
+  	data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds2")[1].value
+  	if not ( request == "Hlog" or request == "QLN" ) then
+  		data = data .. SpaceBand["band5"]
+  	end
+  end
+  
+  if proxy.get("rpc.xdslctl." .. request .. "Us3") then
+  	data = data .. proxy.get("rpc.xdslctl." .. request .. "Us3")[1].value
+  	if not ( request == "Hlog" or request == "QLN" ) then
+  		data = data .. SpaceBand["band6"]
+  	end
+  end
+  
+  if proxy.get("rpc.xdslctl." .. request .. "Us4") then
+  	data = data .. proxy.get("rpc.xdslctl." .. request .. "Us4")[1].value
+  	if not ( request == "Hlog" or request == "QLN" ) then
+  		data = data .. SpaceBand["band7"]
+  	end
+  end
+  
+  if proxy.get("rpc.xdslctl." .. request .. "Ds3") then
+  	data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds3")[1].value
+  	if not ( request == "Hlog" or request == "QLN" ) then
+  		data = data .. SpaceBand["band8"]
+  	end
+  end
+  
+  if proxy.get("rpc.xdslctl." .. request .. "Ds4") then
+  	data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds4")[1].value
+  end
+  
+  if data == "" then
+  	return "0"
+  end
+  
+  return data
 end
 
 local scanband = proxy.get("rpc.xdslctl.HlogScanBand")
@@ -142,7 +164,7 @@ _, SNR = pcall(xdslctlget, "SNR")
 
 local UsBandNumber = proxy.get("rpc.xdslctl.UsBandNumber")
 
-local BandPlanCondition
+local BandPlanCondition = "( false )"
 
 if UsBandNumber then
 

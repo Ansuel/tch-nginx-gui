@@ -269,6 +269,7 @@ local function xdslband(n,dtype,bandtype)
 		end
 		c=c+1
 	end
+	
 	if dtype == "BandNumber" then
 		return tostring(c-1)
 	else
@@ -280,14 +281,34 @@ local function xdslctlget(dtype,request,band,bandtype)
     local data = ""
 	local n  = 0
 	local scanband = ""
-	local bandstart = tonumber(xdslband(band,"Initial",bandtype))+8
-	local bandend = tonumber(xdslband(band,"Final",bandtype))+8
+	local bandstart = tonumber(xdslband(band,"Initial",bandtype)) or 0
+	local bandend = tonumber(xdslband(band,"Final",bandtype)) or 0
 	local cmd = "xdslctl info --" .. request
 	
 	local f = assert(io.popen(cmd,"r"))
 	
+	if request == "Hlog" or request == "QLN" then
+		if bandtype == "Us" and band == 1 then
+			bandstart = 0
+		elseif bandtype == "Ds" and band == 1 then
+			bandstart = tonumber(xdslband(1,"Final","Us"))+1
+		elseif bandtype == "Us" and band == 2 then
+			bandstart = tonumber(xdslband(1,"Final","Ds"))+1
+		elseif bandtype == "Ds" and band == 2 then
+			bandstart = tonumber(xdslband(2,"Final","Us"))+1
+		elseif bandtype == "Us" and band == 3 then
+			bandstart = tonumber(xdslband(2,"Final","Ds"))+1
+		elseif bandtype == "Us" and band == 4 then
+			bandstart = tonumber(xdslband(3,"Final","Us"))+1
+		elseif bandtype == "Ds" and band == 3 then
+			bandstart = tonumber(xdslband(4,"Final","Us"))+1
+		elseif bandtype == "Ds" and band == 4 then
+			bandstart = tonumber(xdslband(3,"Final","Ds"))+1
+		end
+	end
+	
 	for l in f:lines() do
-		if n>=bandstart and n<=bandend then
+		if n>=(bandstart+8) and n<=(bandend+8) then
 			if request == "Hlog" then
 				l = l:gsub("(.*)-","")
 				l = "-" .. l
@@ -315,7 +336,7 @@ local function xdslctlget(dtype,request,band,bandtype)
 				else
 					data = data .. "NaN" .. ","
 				end
-			else
+			elseif request == "Bits" then
 				l = string.sub(l,-2)
 				l = l:gsub("%s*","")
 				data = data .. l .. ","
@@ -352,8 +373,13 @@ local function xdslctlDslamInfo(itype)
 		result = version_read:read()
 		if itype == "version" then
 			if result:sub(0,2) == "0x" then
-				result = result:gsub("(.*)x","")
-				result = tonumber(result:sub(0,2),16) .. "." .. tonumber(result:sub(3,4),16)
+				if chipset:match("BDCM") then
+					result = result:gsub("(.*)x","")
+					result = tonumber(result:sub(0,2),16) .. "." .. tonumber(result:sub(3,4),16)
+				elseif chipset:match("IFTN") then
+					result = result:gsub("(.*)x","")
+					result = tonumber(result:sub(0,1),16) .. "." .. tonumber(result:sub(2,3),16) .. "." .. tonumber(result:sub(4,4),16)
+				end
 			end
 		end
 		version_read:close()

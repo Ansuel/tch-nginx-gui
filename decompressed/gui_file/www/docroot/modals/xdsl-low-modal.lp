@@ -98,6 +98,12 @@ local content = {
 
 content_helper.getExactContent(content)
 
+if content.dslam_chipset:match("BDCM") then
+	content.dslam_chipset = "Broadcom" .. " ( " .. content.dslam_chipset .. " )"
+elseif content.dslam_chipset:match("IFTN") then
+	content.dslam_chipset = "Infineon" .. " ( " .. content.dslam_chipset .. " )"
+end
+
 local state_map = {
     ["0"] = T"Disabled",
     ["1"] = T"Enabled",
@@ -147,6 +153,7 @@ if tonumber(content.marketing_version) >= 17.3 then
 	table.insert(driver_option,{ "A2pvfbH043f.d26r", 'A2pvfbH043f.d26r (DSL AC88U) ' .. T'Less Ping'})
 	table.insert(driver_option,{ "A2pvfbH043g.d26r", 'A2pvfbH043g.d26r (TG800 Vbant-s)'})
 	table.insert(driver_option, { "A2pvfbH043k.d26r", 'A2pvfbH043k.d26r (AGTEF_1.1.0)'})
+	table.insert(driver_option, { "A2pvfbH043o.d26r", 'A2pvfbH043o.d26r (DSL88U) ' .. T'Beta Firmware'})
 end
 
 

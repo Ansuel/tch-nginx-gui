@@ -19,6 +19,12 @@ local content = {
   }
 content_helper.getExactContent(content)
 
+if content.dslam_chipset:match("BDCM") then
+	content.dslam_chipset = "Broadcom"
+elseif content.dslam_chipset:match("IFTN") then
+	content.dslam_chipset = "Infineon"
+end
+
 if not content.dslam_chipset then
 	content.dslam_chipset = T"Not Up"
 	content.dslam_version = " "
@@ -45,7 +51,7 @@ if session:hasAccess(modalPath) and lfs.attributes("/etc/config/xdsl", "mode") =
       <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
           ');  ngx.print( ui_helper.createCardHeader(T"xDSL Config", modalPath) ); ngx.print('\
           <div class="content card_bg" data-bg-text="&#xf2db;">\
-          <div class="divtable">\
+          <div class="divtable" style="width: 105%;">\
                 ');  
                 html={}
                 html[#html+1] = ui_helper.createSimpleLight(nil, status_msg, { light = {class=status}})

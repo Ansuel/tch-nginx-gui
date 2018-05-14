@@ -138,7 +138,7 @@ end
 			if cui.outdated_ver == "1" then
 				html[#html + 1] = '<div class="btn" style="margin-right:10px">' 
 				html[#html + 1] = '<a style="color:red" class="someInfos" rel="tooltip" data-placement="bottom" data-original-title="'
-				html[#html + 1] = T"Go to the gateway tab and click on the Upgrade buttom, to autoupgrade to the new GUI."
+				html[#html + 1] = T"Go to the gateway tab and click on the Upgrade button, to autoupgrade to the new GUI."
 				html[#html + 1] = '" data-toggle="modal" data-remote="modals/gateway-modal.lp">'
 				html[#html + 1] = T"Upgrade Available" 
 				html[#html + 1] = " <strong>("
