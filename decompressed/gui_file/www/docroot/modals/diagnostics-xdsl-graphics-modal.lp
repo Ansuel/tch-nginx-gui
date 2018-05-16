@@ -10,6 +10,7 @@ local format = string.format
 
 local function xdslctlget(request,bandtype)
   local data=""
+  local space={}
   
   if bandtype == "Us" then
     if proxy.get("rpc.xdslctl." .. request .. "Us1") then
@@ -18,18 +19,20 @@ local function xdslctlget(request,bandtype)
 	
 	if proxy.get("rpc.xdslctl." .. request .. "Us2") then
 	  Ds1Band = tonumber(proxy.get("rpc.xdslctl.Ds1ScannedBand")[1].value)
+	  space={}
 	  for i=0,Ds1Band do
-	  	data = data .. "NaN,"
+	  	space[#space+1] = "NaN,"
 	  end
-	  data = data .. proxy.get("rpc.xdslctl." .. request .. "Us2")[1].value
+	  data = data .. table.concat(space) .. proxy.get("rpc.xdslctl." .. request .. "Us2")[1].value
     end
 	
 	if proxy.get("rpc.xdslctl." .. request .. "Us3") then
 	  Ds2Band = tonumber(proxy.get("rpc.xdslctl.Ds2ScannedBand")[1].value)
+	  space={}
 	  for i=0,Ds2Band do
-	  	data = data .. "NaN,"
+	  	space[#space+1] = "NaN,"
 	  end
-      data = data .. proxy.get("rpc.xdslctl." .. request .. "Us3")[1].value
+      data = data .. table.concat(space) .. proxy.get("rpc.xdslctl." .. request .. "Us3")[1].value
     end
 	
 	 if proxy.get("rpc.xdslctl." .. request .. "Us4") then
@@ -38,27 +41,30 @@ local function xdslctlget(request,bandtype)
   else
     if proxy.get("rpc.xdslctl." .. request .. "Ds1") then
 	  Us1Band = tonumber(proxy.get("rpc.xdslctl.Us1ScannedBand")[1].value)
+	  space={}
 	  for i=0,Us1Band do
-	  	data = data .. "NaN,"
+	  	space[#space+1] = "NaN,"
 	  end
-    	data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds1")[1].value
+    	data = data .. table.concat(space) .. proxy.get("rpc.xdslctl." .. request .. "Ds1")[1].value
     end
     
     if proxy.get("rpc.xdslctl." .. request .. "Ds2") then
-		Us2Band = tonumber(proxy.get("rpc.xdslctl.Us2ScannedBand")[1].value)
+	  Us2Band = tonumber(proxy.get("rpc.xdslctl.Us2ScannedBand")[1].value)
+	  space={}
 	  for i=0,Us2Band do
-	  	data = data .. "NaN,"
+	  	space[#space+1] = "NaN,"
 	  end
-    	data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds2")[1].value
+    	data = data .. table.concat(space) .. proxy.get("rpc.xdslctl." .. request .. "Ds2")[1].value
     end
     
     if proxy.get("rpc.xdslctl." .. request .. "Ds3") then
-	Us3Band = tonumber(proxy.get("rpc.xdslctl.Us3ScannedBand")[1].value)
-	Us4Band = tonumber(proxy.get("rpc.xdslctl.Us4ScannedBand")[1].value)
+	  Us3Band = tonumber(proxy.get("rpc.xdslctl.Us3ScannedBand")[1].value)
+	  Us4Band = tonumber(proxy.get("rpc.xdslctl.Us4ScannedBand")[1].value)
+	  space={}
 	  for i=0,(Us3Band+Us4Band) do
-	  	data = data .. "NaN,"
+	  	space[#space+1] = "NaN,"
 	  end
-    	data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds3")[1].value
+    	data = data .. table.concat(space) .. proxy.get("rpc.xdslctl." .. request .. "Ds3")[1].value
     end
     
     if proxy.get("rpc.xdslctl." .. request .. "Ds4") then
@@ -93,36 +99,6 @@ local _, QLNDs = pcall(xdslctlget, "QLN","Ds")
 local _, SNRDs = pcall(xdslctlget, "SNR","Ds")
 
 local UsBandNumber = proxy.get("rpc.xdslctl.UsBandNumber")
-
-local BandPlanCondition = "( false )"
-
-if UsBandNumber then
-
-	local function getUsBandPlan(n,dtype) 
-		if dtype == "Initial" then
-			local UsInitial = proxy.get(format("rpc.xdslctl.Us%dBandInitial",n))[1].value
-			return UsInitial
-		else
-			local UsFinal = proxy.get(format("rpc.xdslctl.Us%dBandFinal",n))[1].value
-			return UsFinal
-		end
-	end
-	
-	BandPlanCondition = "( " 
-	
-	for i=1,tonumber(UsBandNumber[1].value) do
-		local UsInitial, UsFinal
-		_, UsInitial = pcall(getUsBandPlan,i,"Initial")
-		_, UsFinal = pcall(getUsBandPlan,i,"Final")
-		if not ( tostring(i) == UsBandNumber[1].value ) then
-			BandPlanCondition = BandPlanCondition .. "(" .. tonumber(UsInitial)-2 .. " < i && i < " .. tonumber(UsFinal) .. ") || "
-		else
-			BandPlanCondition = BandPlanCondition .. "(" .. tonumber(UsInitial)-2 .. " < i && i < " .. tonumber(UsFinal) .. ")"
-		end
-	end
-	
-	BandPlanCondition = BandPlanCondition .. " )"
-end
 
   ngx.print('\
 \
@@ -182,8 +158,6 @@ end
 ');  ngx.print(ui_helper.createFooter())   ngx.print('\
 <script>\
 var labelLegend = [ 0 ];\
-var pointBackgroundColor = [];\
-var backgroundColor = [];\
 var hlog_ctx = document.getElementById("HlogChart").getContext("2d");\
 	var HlogChart = new Chart(hlog_ctx, {\
     type: "line",\

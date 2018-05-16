@@ -280,23 +280,34 @@ local xdslctl_ = {
 local function xdslband(n,dtype,bandtype)
 	local line
 	if ( bandtype == "Us" ) then
-		line = "12p"
+		line = 12
 	else
-		line = "13p"
+		line = 13
 	end
-	local cmd = ("xdslctl info --pbParams | sed -n " .. line) 
+	local linescan=1
+	local cmd = ("xdslctl info --pbParams")
 	local f = assert(io.popen(cmd, 'r'))
-	local s = assert(f:read('*a'))
+	local s
+	for l in f:lines() do
+		if linescan == line then
+			s = l
+			break
+		end
+		linescan=linescan+1
+	end
 	local r = "0"
 	local c = 1
 	f:close()
-	s = string.gsub(s, '[\n\r]+', ' ')
-	for w in string.gmatch (s, "%((.-)%)") do
+	s = s:gsub('[\n\r]+', '')
+	for w in s:gmatch("%((.-)%)") do
 		if c == n then
 			if dtype == "Initial" then
 				r = string.match(w,"(.-)%,")
 			elseif dtype == "Final" then
 				r = string.match(w,"%,(%d*)")
+			end
+			if not dtype == BandNumber then
+				break
 			end
 		end
 		c=c+1
@@ -344,43 +355,50 @@ local function xdslctlget(dtype,request,band,bandtype)
 	
 	for l in f:lines() do
 		if n>=(bandstart+8) and n<=(bandend+8) then
-			if request == "Hlog" then
-				l = l:gsub("(.*)-","")
-				l = "-" .. l
-				l = l:sub(1, -3)
-				if ( tonumber(l) > -96 ) then 
-					data = data .. l .. ","
-				else
-					data = data .. "NaN" .. ","
-				end
-			elseif request == "QLN" then
-				l = l:gsub("(.*)-","")
-				l = "-" .. l
-				l = l:sub(1, -4)
-				if ( tonumber(l) > -160 ) then 
-					data = data .. l .. ","
-				else
-					data = data .. "NaN" .. ","
-				end
-			elseif request == "SNR" then
-				l = string.sub(l,-8)
-				l = l:gsub("%s*","")
-				l = l:sub(1, -3)
-				if ( tonumber(l) > 0 ) then 
-					data = data .. l .. ","
-				else
-					data = data .. "NaN" .. ","
-				end
-			elseif request == "Bits" then
-				l = string.sub(l,-2)
-				l = l:gsub("%s*","")
-				if ( tonumber(l) > 0 ) then 
-					data = data .. l .. ","
-				else
-					data = data .. "NaN" .. ","
+			if not ( dtype == "scanband" ) then
+				if dtype == "data" then
+					if request == "Hlog" then
+						l = l:gsub("(.*)-","")
+						l = "-" .. l
+						l = l:sub(1, -3)
+						if ( tonumber(l) > -96 ) then 
+							data = data .. l .. ","
+						else
+							data = data .. "NaN" .. ","
+						end
+					elseif request == "QLN" then
+						l = l:gsub("(.*)-","")
+						l = "-" .. l
+						l = l:sub(1, -4)
+						if ( tonumber(l) > -160 ) then 
+							data = data .. l .. ","
+						else
+							data = data .. "NaN" .. ","
+						end
+					elseif request == "SNR" then
+						l = string.sub(l,-8)
+						l = l:gsub("%s*","")
+						l = l:sub(1, -3)
+						if ( tonumber(l) > 0 ) then 
+							data = data .. l .. ","
+						else
+							data = data .. "NaN" .. ","
+						end
+					elseif request == "Bits" then
+						l = string.sub(l,-2)
+						l = l:gsub("%s*","")
+						if ( tonumber(l) > 0 ) then 
+							data = data .. l .. ","
+						else
+							data = data .. "NaN" .. ","
+						end
+					end
+				elseif dtype == "scannedband" then
+					scannedband=scannedband+1
+				elseif n>(bandend+8) then
+					break
 				end
 			end
-			scannedband=scannedband+1
 		end
 		n=n+1
 	end

@@ -154,8 +154,11 @@ ngx.print('\
             <div class="pull-right">\
                 <a id="sign-cancel" href="/" class="btn btn-primary btn-large">');  ngx.print( T"Cancel" ); ngx.print('</a>\
                 &nbsp;\
-                <div id="sign-me-in" class="btn btn-primary btn-large">');  ngx.print( T"Sign in" ); ngx.print('</div>\
-            </div>\
+                <div class="btn btn-primary btn-large">\
+				  <span id="sign-me-in-icon"></span>\
+				  <span id="sign-me-in">');  ngx.print( T"Sign in" ); ngx.print('</span>\
+				</div>\
+			</div>\
             <!--<div id="forgot-login-password">\
                 <a href="#">');  ngx.print(T"Forgot Login Password")  ngx.print('</a>\
            </div>-->\
@@ -256,6 +259,9 @@ $(document).ready(\
 \
     $("#sign-me-in").on("click", function () {\
 	  $("#sign-cancel").hide();\
+	  $("#sign-me-in-icon").show();\
+	  $("#sign-me-in-icon").css("margin-right","5px");\
+	  $("#sign-me-in-icon").addClass("fa fa-refresh fa-spin");\
       $(this).text(\'');  ngx.print( T"Verifying" ); ngx.print('\');\
       password = $("#srp_password")[0].value;\
 \
@@ -306,6 +312,9 @@ $(document).ready(\
         $("#sign-me-in").text(\'');  ngx.print( T"Sign in" ); ngx.print('\');\
         $("#erroruserpass").show();\
 		$("#sign-cancel").show();\
+		$("#sign-me-in-icon").show();\
+		$("#sign-me-in-icon").addClass("fa-spin");\
+		$("#sign-me-in-icon").toggle();\
         $(".control-group").addClass("error");\
       }\
       timeSecond = err.waitTime;\

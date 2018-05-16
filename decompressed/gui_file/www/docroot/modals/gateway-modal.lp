@@ -614,15 +614,25 @@ local update_branch_option = {
       { "dev", T'Dev'},
 }
 
-local update_branch_Params = {
+local update_hour_option = {}
+
+for i=0,23 do
+	update_hour_option[#update_hour_option+1] = { tostring(i) , tostring(i) .. ":00"}
+end
+
+local update_Params = {
   update_branch = "uci.env.var.update_branch",
+  update_autoupgrade = "uci.env.var.autoupgrade",
+  update_autoupgrade_hour = "uci.env.var.autoupgrade_hour",
 }
 
-local update_branch_valid = {
+local update_valid = {
   update_branch = post_helper.getValidateInEnumSelect(update_branch_option),
+  update_autoupgrade = post_helper.validateBoolean,
+  update_autoupgrade_hour = post_helper.getValidateInEnumSelect(update_hour_option),
 }
 
-local update_branch_content, helpmsg = post_helper.handleQuery(update_branch_Params, update_branch_valid)
+local update_content, helpmsg = post_helper.handleQuery(update_Params, update_valid)
 
 local cpu_step = require("cpu_step")
 
@@ -1010,9 +1020,11 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
         }
       }
 	  html[#html + 1] = ui_helper.createAlertBlock(T"This upgrade the GUI to the latest available version on the site", info_box)
-	  html[#html + 1] = ui_helper.createInputSelect(T"Update Branch", "update_branch", update_branch_option, update_branch_content["update_branch"])
+	  html[#html + 1] = ui_helper.createInputSelect(T"Update Branch", "update_branch", update_branch_option, update_content["update_branch"])
 	  
 	  if not bridgedmode.isBridgedMode() and not voicemode.isVoiceMode() then
+		html[#html + 1] = ui_helper.createSwitch(T"AutoUpgrade", "update_autoupgrade", update_content["update_autoupgrade"])
+		html[#html + 1] = ui_helper.createInputSelect(T"Update Hours", "update_autoupgrade_hour", update_hour_option, update_content["update_autoupgrade_hour"])
 		if content["outdated_ver"] == "1" then
 			html[#html + 1] = ui_helper.createLabel(T"State", T"Upgrade Found", basic)
 			html[#html + 1] = ui_helper.createLabel(T"New Version", content["new_ver"], basic)
