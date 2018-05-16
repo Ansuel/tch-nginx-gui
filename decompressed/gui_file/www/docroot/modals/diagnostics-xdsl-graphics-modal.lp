@@ -8,67 +8,90 @@ local ui_helper = require("web.ui_helper")
 local content_helper = require("web.content_helper")
 local format = string.format
 
+local band = {
+	Ds1Band = tonumber(proxy.get("rpc.xdslctl.Ds1ScannedBand")[1].value),
+	Ds2Band = tonumber(proxy.get("rpc.xdslctl.Ds2ScannedBand")[1].value),
+	Us1Band = tonumber(proxy.get("rpc.xdslctl.Us1ScannedBand")[1].value),
+	Us2Band = tonumber(proxy.get("rpc.xdslctl.Us2ScannedBand")[1].value),
+	Us3Band = tonumber(proxy.get("rpc.xdslctl.Us3ScannedBand")[1].value),
+	Us4Band = tonumber(proxy.get("rpc.xdslctl.Us4ScannedBand")[1].value),
+}
+
 local function xdslctlget(request,bandtype)
   local data=""
   local space={}
   
   if bandtype == "Us" then
-    if proxy.get("rpc.xdslctl." .. request .. "Us1") then
-    	data = data .. proxy.get("rpc.xdslctl." .. request .. "Us1")[1].value
+  
+	local Us1 = proxy.get("rpc.xdslctl." .. request .. "Us1")
+    if Us1 then
+    	data = data .. Us1[1].value
     end
 	
-	if proxy.get("rpc.xdslctl." .. request .. "Us2") then
-	  Ds1Band = tonumber(proxy.get("rpc.xdslctl.Ds1ScannedBand")[1].value)
+	local Us2 = proxy.get("rpc.xdslctl." .. request .. "Us2")
+	if Us2 then
+	  
 	  space={}
-	  for i=0,Ds1Band do
+	  for i=0,band.Ds1Band do
 	  	space[#space+1] = "NaN,"
 	  end
-	  data = data .. table.concat(space) .. proxy.get("rpc.xdslctl." .. request .. "Us2")[1].value
+	  data = data .. table.concat(space) .. Us2[1].value
     end
 	
-	if proxy.get("rpc.xdslctl." .. request .. "Us3") then
-	  Ds2Band = tonumber(proxy.get("rpc.xdslctl.Ds2ScannedBand")[1].value)
+	local Us3 = proxy.get("rpc.xdslctl." .. request .. "Us3")
+	
+	if Us3 then
+	  
 	  space={}
-	  for i=0,Ds2Band do
+	  for i=0,band.Ds2Band do
 	  	space[#space+1] = "NaN,"
 	  end
-      data = data .. table.concat(space) .. proxy.get("rpc.xdslctl." .. request .. "Us3")[1].value
+      data = data .. table.concat(space) .. Us3[1].value
     end
 	
-	 if proxy.get("rpc.xdslctl." .. request .. "Us4") then
-    	data = data .. proxy.get("rpc.xdslctl." .. request .. "Us4")[1].value
+	local Us4 = proxy.get("rpc.xdslctl." .. request .. "Us4")
+	
+	 if Us4 then
+    	data = data .. Us4[1].value
     end
   else
-    if proxy.get("rpc.xdslctl." .. request .. "Ds1") then
-	  Us1Band = tonumber(proxy.get("rpc.xdslctl.Us1ScannedBand")[1].value)
+	
+	local Ds1 = proxy.get("rpc.xdslctl." .. request .. "Ds1")
+	
+    if Ds1 then
 	  space={}
-	  for i=0,Us1Band do
+	  for i=0,band.Us1Band do
 	  	space[#space+1] = "NaN,"
 	  end
-    	data = data .. table.concat(space) .. proxy.get("rpc.xdslctl." .. request .. "Ds1")[1].value
+    	data = data .. table.concat(space) .. Ds1[1].value
     end
     
-    if proxy.get("rpc.xdslctl." .. request .. "Ds2") then
-	  Us2Band = tonumber(proxy.get("rpc.xdslctl.Us2ScannedBand")[1].value)
+	local Ds2 = proxy.get("rpc.xdslctl." .. request .. "Ds2")
+	
+    if Ds2 then
+	  
 	  space={}
-	  for i=0,Us2Band do
+	  for i=0,band.Us2Band do
 	  	space[#space+1] = "NaN,"
 	  end
-    	data = data .. table.concat(space) .. proxy.get("rpc.xdslctl." .. request .. "Ds2")[1].value
+    	data = data .. table.concat(space) .. Ds2[1].value
     end
     
-    if proxy.get("rpc.xdslctl." .. request .. "Ds3") then
-	  Us3Band = tonumber(proxy.get("rpc.xdslctl.Us3ScannedBand")[1].value)
-	  Us4Band = tonumber(proxy.get("rpc.xdslctl.Us4ScannedBand")[1].value)
+	local Ds3 = proxy.get("rpc.xdslctl." .. request .. "Ds3")
+	
+    if Ds3 then
+	  
 	  space={}
-	  for i=0,(Us3Band+Us4Band) do
+	  for i=0,(band.Us3Band+band.Us4Band) do
 	  	space[#space+1] = "NaN,"
 	  end
-    	data = data .. table.concat(space) .. proxy.get("rpc.xdslctl." .. request .. "Ds3")[1].value
+    	data = data .. table.concat(space) .. Ds3[1].value
     end
     
-    if proxy.get("rpc.xdslctl." .. request .. "Ds4") then
-    	data = data .. proxy.get("rpc.xdslctl." .. request .. "Ds4")[1].value
+	local Ds4 = proxy.get("rpc.xdslctl." .. request .. "Ds4")
+	
+    if Ds4 then
+    	data = data .. Ds4[1].value
     end
   end
   

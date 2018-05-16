@@ -337,6 +337,9 @@ local function xdslctlget(dtype,request,band,bandtype)
 		bandstart = tonumber(xdslband(1,"Final","Us"))+1
 	elseif bandtype == "Us" and band == 2 then
 		bandstart = tonumber(xdslband(1,"Final","Ds"))+1
+		if xdslband(2,"Final","Us") == 0 then --We don't have Us2, execpt we are in no VDSL
+			bandend = 512 --Max bit for ADSL2+
+		end
 	elseif bandtype == "Ds" and band == 2 then
 		bandstart = tonumber(xdslband(2,"Final","Us"))+1
 	elseif bandtype == "Us" and band == 3 then
@@ -351,6 +354,9 @@ local function xdslctlget(dtype,request,band,bandtype)
 		end
 	elseif bandtype == "Ds" and band == 4 then
 		bandstart = tonumber(xdslband(3,"Final","Ds"))+1
+		if bandend > 4096 then --We are on 35b mode
+			bandend = 8192 --Max bit for 35b
+		end
 	end
 	
 	for l in f:lines() do
