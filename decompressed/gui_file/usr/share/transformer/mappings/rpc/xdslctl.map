@@ -33,7 +33,11 @@ local xdslctl_ = {
             access = "readOnly",
             type = "string"
           },
-		  HlogDs3 = {
+		  HlogDs3Split1 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  HlogDs3Split2 = {
             access = "readOnly",
             type = "string"
           },
@@ -69,7 +73,11 @@ local xdslctl_ = {
             access = "readOnly",
             type = "string"
           },
-		  BitsDs3 = {
+		  BitsDs3Split1 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  BitsDs3Split2 = {
             access = "readOnly",
             type = "string"
           },
@@ -109,7 +117,11 @@ local xdslctl_ = {
             access = "readOnly",
             type = "string"
           },
-		  QLNDs3 = {
+		  QLNDs3Split1 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  QLNDs3Split2 = {
             access = "readOnly",
             type = "string"
           },
@@ -145,7 +157,11 @@ local xdslctl_ = {
             access = "readOnly",
             type = "string"
           },
-		  SNRDs3 = {
+		  SNRDs3Split1 = {
+            access = "readOnly",
+            type = "string"
+          },
+		  SNRDs3Split1 = {
             access = "readOnly",
             type = "string"
           },
@@ -287,7 +303,7 @@ local function xdslband(n,dtype,bandtype)
 	local linescan=1
 	local cmd = ("xdslctl info --pbParams")
 	local f = assert(io.popen(cmd, 'r'))
-	local s
+	local s = ""
 	for l in f:lines() do
 		if linescan == line then
 			s = l
@@ -320,13 +336,13 @@ local function xdslband(n,dtype,bandtype)
 	end
 end
 
-local function xdslctlget(dtype,request,band,bandtype)
+local function xdslctlget(dtype,request,band,bandtype,split)
     local data = ""
 	local n  = 0
 	local scannedband = 0
 	local scanband = ""
 	local bandstart = tonumber(xdslband(band,"Initial",bandtype)) or 0
-	local bandend = tonumber(xdslband(band,"Final",bandtype)) or 0
+	local bandend = tonumber(xdslband(band,"Final",bandtype)) or -1
 	local cmd = "xdslctl info --" .. request
 	
 	local f = assert(io.popen(cmd,"r"))
@@ -347,21 +363,34 @@ local function xdslctlget(dtype,request,band,bandtype)
 	elseif bandtype == "Us" and band == 4 then
 		bandstart = tonumber(xdslband(3,"Final","Us"))+1
 	elseif bandtype == "Ds" and band == 3 then
-		if tonumber(xdslband(4,"Final","Us")) == 0 then --The Us4 band is not present!
-			bandstart = tonumber(xdslband(3,"Final","Us"))+1 --Take the Us3 to start
+		if bandend > 4096 then --We are on 35b mode
+			if split == 1 then
+				bandend = (8192-bandstart)/2
+			elseif split == 2 then
+				bandstart = ((8192-bandstart)/2)+1
+				bandend = 8192 --Max bit for 35b
+			end
 		else
-			bandstart = tonumber(xdslband(4,"Final","Us"))+1
+			if tonumber(xdslband(4,"Final","Us")) == 0 then --The Us4 band is not present!
+				bandstart = tonumber(xdslband(3,"Final","Us"))+1 --Take the Us3 to start
+			else
+				bandstart = tonumber(xdslband(4,"Final","Us"))+1
+			end
+			if split == 2 then
+				bandstart = 0
+				bandend = -1
+			end
 		end
 	elseif bandtype == "Ds" and band == 4 then
 		bandstart = tonumber(xdslband(3,"Final","Ds"))+1
-		if bandend > 4096 then --We are on 35b mode
-			bandend = 8192 --Max bit for 35b
-		end
 	end
 	
 	for l in f:lines() do
 		if n>=(bandstart+8) and n<=(bandend+8) then
 			if not ( dtype == "scanband" ) then
+				if n>(bandend+8) then
+					break
+				end
 				if dtype == "data" then
 					if request == "Hlog" then
 						l = l:gsub("(.*)-","")
@@ -401,8 +430,6 @@ local function xdslctlget(dtype,request,band,bandtype)
 					end
 				elseif dtype == "scannedband" then
 					scannedband=scannedband+1
-				elseif n>(bandend+8) then
-					break
 				end
 			end
 		end
@@ -460,24 +487,44 @@ local function get(mapping, paramName, key)
 	elseif paramName:match("Hlog") then
 		local band = tonumber(paramName:sub(7,7))
 		local bandtype = paramName:sub(5,6)
+		if paramName:match("Split1") then
+			return xdslctlget("data","Hlog",band,bandtype,1)
+		elseif paramName:match("Split2") then
+			return xdslctlget("data","Hlog",band,bandtype,2)
+		end
 		return xdslctlget("data","Hlog",band,bandtype)
 	elseif paramName == "BitsScanBand" then
 		return xdslctlget("scanband","Bits",0,"Ds")
 	elseif paramName:match("Bits") then
 		local band = tonumber(paramName:sub(7,7))
 		local bandtype = paramName:sub(5,6)
+		if paramName:match("Split1") then
+			return xdslctlget("data","Bits",band,bandtype,1)
+		elseif paramName:match("Split2") then
+			return xdslctlget("data","Bits",band,bandtype,2)
+		end
 		return xdslctlget("data","Bits",band,bandtype)
 	elseif paramName == "QLNScanBand" then
 		return xdslctlget("scanband","QLN",0,"Ds")
 	elseif paramName:match("QLN") then
 		local band = tonumber(paramName:sub(6,6))
 		local bandtype = paramName:sub(4,5) 
+		if paramName:match("Split1") then
+			return xdslctlget("data","QLN",band,bandtype,1)
+		elseif paramName:match("Split2") then
+			return xdslctlget("data","QLN",band,bandtype,2)
+		end
 		return xdslctlget("data","QLN",band,bandtype)
 	elseif paramName == "SNRScanBand" then
 		return xdslctlget("scanband","SNR",0,"Ds")
 	elseif paramName:match("SNR") then
 		local band = tonumber(paramName:sub(6,6))
 		local bandtype = paramName:sub(4,5) 
+		if paramName:match("Split1") then
+			return xdslctlget("data","SNR",band,bandtype,1)
+		elseif paramName:match("Split2") then
+			return xdslctlget("data","SNR",band,bandtype,2)
+		end
 		return xdslctlget("data","SNR",band,bandtype)
 	elseif paramName:match("Final") then
 		local band = tonumber(paramName:sub(3,3))

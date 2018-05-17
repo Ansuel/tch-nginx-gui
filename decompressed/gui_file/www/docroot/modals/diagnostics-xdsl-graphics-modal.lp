@@ -32,7 +32,7 @@ local function xdslctlget(request,bandtype)
 	if Us2 then
 	  
 	  space={}
-	  for i=0,band.Ds1Band do
+	  for i=1,band.Ds1Band do
 	  	space[#space+1] = "NaN,"
 	  end
 	  data = data .. table.concat(space) .. Us2[1].value
@@ -43,7 +43,7 @@ local function xdslctlget(request,bandtype)
 	if Us3 then
 	  
 	  space={}
-	  for i=0,band.Ds2Band do
+	  for i=1,band.Ds2Band do
 	  	space[#space+1] = "NaN,"
 	  end
       data = data .. table.concat(space) .. Us3[1].value
@@ -60,7 +60,7 @@ local function xdslctlget(request,bandtype)
 	
     if Ds1 then
 	  space={}
-	  for i=0,band.Us1Band do
+	  for i=1,band.Us1Band do
 	  	space[#space+1] = "NaN,"
 	  end
     	data = data .. table.concat(space) .. Ds1[1].value
@@ -71,21 +71,27 @@ local function xdslctlget(request,bandtype)
     if Ds2 then
 	  
 	  space={}
-	  for i=0,band.Us2Band do
+	  for i=1,band.Us2Band do
 	  	space[#space+1] = "NaN,"
 	  end
     	data = data .. table.concat(space) .. Ds2[1].value
     end
     
-	local Ds3 = proxy.get("rpc.xdslctl." .. request .. "Ds3")
+	local Ds3Split1 = proxy.get("rpc.xdslctl." .. request .. "Ds3Split1")
 	
-    if Ds3 then
+    if Ds3Split1 then
 	  
 	  space={}
-	  for i=0,(band.Us3Band+band.Us4Band) do
+	  for i=1,(band.Us3Band+band.Us4Band) do
 	  	space[#space+1] = "NaN,"
 	  end
-    	data = data .. table.concat(space) .. Ds3[1].value
+    	data = data .. table.concat(space) .. Ds3Split1[1].value
+    end
+	
+	local Ds3Split2 = proxy.get("rpc.xdslctl." .. request .. "Ds3Split2")
+	
+    if Ds3Split2 then
+    	data = data .. Ds3Split2[1].value
     end
     
 	local Ds4 = proxy.get("rpc.xdslctl." .. request .. "Ds4")
