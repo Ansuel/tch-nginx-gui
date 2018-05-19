@@ -93,12 +93,6 @@ local function xdslctlget(request,bandtype)
     if Ds3Split2 then
     	data = data .. Ds3Split2[1].value
     end
-	
-	local Ds3Split3 = proxy.get("rpc.xdslctl." .. request .. "Ds3Split2")
-	
-    if Ds3Split3 then
-    	data = data .. Ds3Split3[1].value
-    end
     
 	local Ds4 = proxy.get("rpc.xdslctl." .. request .. "Ds4")
 	
