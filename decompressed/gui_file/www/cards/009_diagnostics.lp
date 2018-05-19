@@ -56,14 +56,10 @@ end
 			</div>\
 		  </td>\
 		  <td>\
-		    <div data-toggle="modal" data-remote="modals/diagnostics-xdsl-graphics-modal.lp" data-id="diagnostics-xdsl-graphics-modal">\
-			  <picture>\
-				<source srcset="/img/fontawesome-chart-line.webp" type="image/webp">\
-				<source srcset="/img/fontawesome-chart-line.png" type="image/png">\
-				<img class="smallsomeInfos" href="#" rel="tooltip" data-placement="bottom" data-original-title="XDSL charts" src="/img/fontawesome-chart-line.png" alt="charts">\
-			  </picture>\
-			</div>\
-		  </td>\
+                    <div data-toggle="modal" data-remote="modals/diagnostics-xdsl-graphics-modal.lp" data-id="diagnostics-xdsl-graphics-modal">\
+                            <i class="smallsomeInfos fa fa-line-chart" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="XDSL charts" alt="charts"></i>\
+                        </div>\
+                  </td>\
 	');
 	end	
 	ngx.print('\
