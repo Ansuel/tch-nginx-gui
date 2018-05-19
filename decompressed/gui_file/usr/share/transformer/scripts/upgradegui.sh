@@ -52,14 +52,19 @@ else
 	update_branch="_dev"
 fi
 
+#Check if stable have a new version 
+
+
 WORKING_DIR="/tmp"
 PERMANENT_STORE_DIR="/root"
 TARGET_DIR="/"
 FILE_NAME='GUI'$update_branch'.tar.bz2'
-URL_BASE="https://repository.ilpuntotecnicoeadsl.com/files/Ansuel/AGTEF"
+URL_BASE="https://repository.ilpuntotecnico.com/files/Ansuel/AGTEF"
 CHECKSUM_FILE="version"
+UPGRADE_FROM_STABLE=0
 
 if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload is now present
+	
 	logger -s -t "Upgrade Script" "Downloading GUI file..."
 	# Enter /tmp folder
 	if ! cd "$WORKING_DIR"; then
@@ -83,9 +88,58 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 		rm $WORKING_DIR/$CHECKSUM_FILE
 	fi
 	$wget -q $URL_BASE/$CHECKSUM_FILE
-	if ! grep -q $(md5sum $WORKING_DIR/$FILE_NAME | awk '{print $1}') $WORKING_DIR/$CHECKSUM_FILE ; then
-	logger -s -t "Upgrade Script" "ERROR: file corrupted" >&2
-	exit 1
+	
+	downloaded_md5=$(md5sum $WORKING_DIR/$FILE_NAME | awk '{print $1}')
+	
+	if ! grep -q $downloaded_md5 $WORKING_DIR/$CHECKSUM_FILE ; then
+		rm $WORKING_DIR/$FILE_NAME
+		rm $WORKING_DIR/$CHECKSUM_FILE
+		logger -s -t "Upgrade Script" "ERROR: File corrupted!!!" >&2
+		logger -s -t "Upgrade Script" "ERROR: Removing upgrade file and aborting." >&2
+		exit 1
+	fi
+	
+	if [ "$update_branch" ]; then
+		if [ "$update_branch" == "_dev" ]; then
+		
+			STABLE_FILE_NAME='GUI.tar.bz2'
+				
+			if [ -f $WORKING_DIR/$STABLE_FILE_NAME ]; then
+				rm $WORKING_DIR/$STABLE_FILE_NAME
+			fi
+			
+			# Download stable GUI to /tmp
+			
+			if ! $wget -q $URL_BASE/$STABLE_FILE_NAME; then
+				logger -s -t "Upgrade Script" "ERROR: can't find stable GUI file" >&2
+				rm $WORKING_DIR/$FILE_NAME
+				rm $WORKING_DIR/$CHECKSUM_FILE
+				exit 1
+			fi
+			
+			stable_md5=$( md5sum $WORKING_DIR/$STABLE_FILE_NAME | awk '{print $1}')
+			
+			if ! grep -q $stable_md5 $WORKING_DIR/$CHECKSUM_FILE ; then
+				rm $WORKING_DIR/$STABLE_FILE_NAME
+				rm $WORKING_DIR/$CHECKSUM_FILE
+				logger -s -t "Upgrade Script" "ERROR: Stable file corrupted!!!" >&2
+				logger -s -t "Upgrade Script" "ERROR: Removing upgrade file and aborting." >&2
+				exit 1
+			fi
+			
+			stable_version=$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $stable_md5 | awk '{print $2}' | sed -e 's/\.//g' )
+			
+			dev_version=$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $downloaded_md5 | awk '{print $2}' | sed -e 's/\.//g' )
+			
+			if [ $stable_version -gt $dev_version ]; then
+				logger -s -t "Upgrade Script" "Found newer versio in stable branch, using it..."
+				rm $WORKING_DIR/$FILE_NAME
+				FILE_NAME=$STABLE_FILE_NAME
+				UPGRADE_FROM_STABLE=1
+			else
+				rm $WORKING_DIR/$STABLE_FILE_NAME
+			fi
+		fi
 	fi
 else
 	logger -s -t "Upgrade Script" "Found file in /tmp dir... Except offline upgrade!"
@@ -131,6 +185,11 @@ if [ -f $PERMANENT_STORE_DIR/$FILE_NAME ]; then
 	rm $PERMANENT_STORE_DIR/$FILE_NAME
 fi
 cp $WORKING_DIR/$FILE_NAME $PERMANENT_STORE_DIR/
+if [ $UPGRADE_FROM_STABLE == 1 ]; then
+	DEV_FILE_NAME="GUI_dev.tar.bz2"
+	logger -s -t "Upgrade Script" "Upgrading from stable, copying to both archive..."
+	cp $WORKING_DIR/$FILE_NAME $PERMANENT_STORE_DIR/$DEV_FILE_NAME
+fi
 rm $WORKING_DIR/$FILE_NAME
 if [ -f $WORKING_DIR/$CHECKSUM_FILE ]; then
 	rm $WORKING_DIR/$CHECKSUM_FILE
