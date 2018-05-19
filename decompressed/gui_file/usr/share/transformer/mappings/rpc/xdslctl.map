@@ -1,5 +1,6 @@
 local logger = require("transformer.logger")
 local log = logger.new("rpc.xdslctl", 2)
+local format, concat, popen = string.format , table.concat , io.popen
 local register = register;
 
 local xdslctl_ = {
@@ -302,7 +303,7 @@ local function xdslband(n,dtype,bandtype)
 	end
 	local linescan=1
 	local cmd = ("xdslctl info --pbParams")
-	local f = assert(io.popen(cmd, 'r'))
+	local f = assert(popen(cmd, 'r'))
 	local s = ""
 	for l in f:lines() do
 		if linescan == line then
@@ -322,7 +323,7 @@ local function xdslband(n,dtype,bandtype)
 			elseif dtype == "Final" then
 				r = string.match(w,"%,(%d*)")
 			end
-			if not dtype == BandNumber then
+			if not ( dtype == BandNumber ) then
 				break
 			end
 		end
@@ -337,7 +338,7 @@ local function xdslband(n,dtype,bandtype)
 end
 
 local function xdslctlget(dtype,request,band,bandtype,split)
-    local data = ""
+    local data = {}
 	local n  = 0
 	local scannedband = 0
 	local scanband = ""
@@ -345,7 +346,7 @@ local function xdslctlget(dtype,request,band,bandtype,split)
 	local bandend = tonumber(xdslband(band,"Final",bandtype)) or -1
 	local cmd = "xdslctl info --" .. request
 	
-	local f = assert(io.popen(cmd,"r"))
+	local f = assert(popen(cmd,"r"))
 	
 	if bandtype == "Us" and band == 1 then
 		bandstart = 0
@@ -363,19 +364,19 @@ local function xdslctlget(dtype,request,band,bandtype,split)
 	elseif bandtype == "Us" and band == 4 then
 		bandstart = tonumber(xdslband(3,"Final","Us"))+1
 	elseif bandtype == "Ds" and band == 3 then
+		if tonumber(xdslband(4,"Final","Us")) == 0 then --The Us4 band is not present!
+			bandstart = tonumber(xdslband(3,"Final","Us"))+1 --Take the Us3 to start
+		else
+			bandstart = tonumber(xdslband(4,"Final","Us"))+1
+		end
 		if bandend > 4096 then --We are on 35b mode
 			if split == 1 then
-				bandend = (8192-bandstart)/2
+				bandend = bandstart+(math.floor((8192-bandstart)/2))
 			elseif split == 2 then
-				bandstart = ((8192-bandstart)/2)+1
+				bandstart = bandstart+(math.floor((8192-bandstart)/2))+1
 				bandend = 8192 --Max bit for 35b
 			end
 		else
-			if tonumber(xdslband(4,"Final","Us")) == 0 then --The Us4 band is not present!
-				bandstart = tonumber(xdslband(3,"Final","Us"))+1 --Take the Us3 to start
-			else
-				bandstart = tonumber(xdslband(4,"Final","Us"))+1
-			end
 			if split == 2 then
 				bandstart = 0
 				bandend = -1
@@ -393,39 +394,32 @@ local function xdslctlget(dtype,request,band,bandtype,split)
 				end
 				if dtype == "data" then
 					if request == "Hlog" then
-						l = l:gsub("(.*)-","")
-						l = "-" .. l
-						l = l:sub(1, -3)
-						if ( tonumber(l) > -96 ) then 
-							data = data .. l .. ","
+						l = l:gsub("(.*)-",""):sub(1, -4)
+						if ( tonumber(l)*-1 > -96 ) then 
+							data[#data+1] = format("-%s,",l)
 						else
-							data = data .. "NaN" .. ","
+							data[#data+1] = "NaN,"
 						end
 					elseif request == "QLN" then
-						l = l:gsub("(.*)-","")
-						l = "-" .. l
-						l = l:sub(1, -4)
-						if ( tonumber(l) > -160 ) then 
-							data = data .. l .. ","
+						l = l:gsub("(.*)-",""):sub(1, -4)
+						if ( tonumber(l)*-1 > -160 ) then 
+							data[#data+1] = format("-%s,",l)
 						else
-							data = data .. "NaN" .. ","
+							data[#data+1] = "NaN,"
 						end
 					elseif request == "SNR" then
-						l = string.sub(l,-8)
-						l = l:gsub("%s*","")
-						l = l:sub(1, -3)
+						l = l:sub(-8):gsub("%s*",""):sub(1, -3)
 						if ( tonumber(l) > 0 ) then 
-							data = data .. l .. ","
+							data[#data+1] = format("%s,",l)
 						else
-							data = data .. "NaN" .. ","
+							data[#data+1] = "NaN,"
 						end
 					elseif request == "Bits" then
-						l = string.sub(l,-2)
-						l = l:gsub("%s*","")
+						l = l:sub(-2):gsub("%s*","")
 						if ( tonumber(l) > 0 ) then 
-							data = data .. l .. ","
+							data[#data+1] = format("%s,",l)
 						else
-							data = data .. "NaN" .. ","
+							data[#data+1] = "NaN,"
 						end
 					end
 				elseif dtype == "scannedband" then
@@ -440,7 +434,7 @@ local function xdslctlget(dtype,request,band,bandtype,split)
 	scanband = tostring(n-8)
 	
 	if dtype == "data" then
-		return data
+		return concat(data) or ""
 	elseif dtype == "scanband" then
 		return scanband
 	elseif dtype == "scannedband" then
@@ -454,7 +448,7 @@ local function xdslctlDslamInfo(itype)
 	local result = " "
 	
 	local chipset_arg=" | sed '8q;d' | cut -d ':' -f 2 | sed -e 's/^[ \t]*//'"
-	local chipset_read=io.popen(cmd .. chipset_arg)
+	local chipset_read=popen(cmd .. chipset_arg)
 	local chipset = chipset_read:read()
 	chipset_read:close()
 	
@@ -462,7 +456,7 @@ local function xdslctlDslamInfo(itype)
 		result = chipset
 	elseif itype == "version" or itype == "version_raw" then
 		arg=" | sed '8q;d' | cut -d ':' -f 3"
-		local version_read = io.popen(cmd .. arg)
+		local version_read = popen(cmd .. arg)
 		result = version_read:read()
 		if itype == "version" then
 			if result:sub(0,2) == "0x" then

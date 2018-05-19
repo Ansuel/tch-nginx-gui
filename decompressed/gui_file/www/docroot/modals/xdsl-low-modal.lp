@@ -149,8 +149,8 @@ local driver_option = {
 
 if tonumber(content.marketing_version) >= 17.3 then
 	table.insert(driver_option, { "A2pvfbH043b.d26r", 'A2pvfbH043b.d26r (New FastGate Fastweb)'})
-	table.insert(driver_option,{ "A2pvfbH043e.d26r", 'A2pvfbH043e.d26r (Zyxel 8823)'})
-	table.insert(driver_option,{ "A2pvfbH043f.d26r", 'A2pvfbH043f.d26r (DSL AC88U) ' .. T'Less Ping'})
+	-- table.insert(driver_option,{ "A2pvfbH043e.d26r", 'A2pvfbH043e.d26r (Zyxel 8823)'}) --Annex b???
+	--table.insert(driver_option,{ "A2pvfbH043f.d26r", 'A2pvfbH043f.d26r (DSL AC88U) ' .. T'Less Ping'}) --Missing 
 	table.insert(driver_option,{ "A2pvfbH043g.d26r", 'A2pvfbH043g.d26r (TG800 Vbant-s)'})
 	table.insert(driver_option, { "A2pvfbH043k.d26r", 'A2pvfbH043k.d26r (AGTEF_1.1.0)'})
 	table.insert(driver_option, { "A2pvfbH043o.d26r", 'A2pvfbH043o.d26r (DSL88U) ' .. T'Beta Firmware'})
@@ -190,6 +190,8 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       html[#html + 1] = ui_helper.createLabel(T"Dslam Chipset",content.dslam_chipset, span5 )
 	  if content.dslam_version_raw:sub(0,2) == "0x" then
 		html[#html + 1] = ui_helper.createLabel(T"Dslam Firmware Version",format("%s ( %s )", content.dslam_version , content.dslam_version_raw) , span5 )
+	  elseif content.dslam_version_raw == "" then
+		html[#html + 1] = ui_helper.createLabel(T"Dslam Firmware Version",T"Can't recover dslam version." , span5 )
 	  else
 		html[#html + 1] = ui_helper.createLabel(T"Dslam Firmware Version",format(T"Invalid version, can't convert. Raw value: %s", content.dslam_version_raw) , span5 )
 	  end

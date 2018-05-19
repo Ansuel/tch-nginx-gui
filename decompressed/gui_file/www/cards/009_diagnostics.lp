@@ -55,11 +55,11 @@ end
 			  </picture>\
 			</div>\
 		  </td>\
-		  <td>\
-                    <div data-toggle="modal" data-remote="modals/diagnostics-xdsl-graphics-modal.lp" data-id="diagnostics-xdsl-graphics-modal">\
-                            <i class="smallsomeInfos fa fa-line-chart" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="XDSL charts" alt="charts"></i>\
-                        </div>\
-                  </td>\
+		   <td>\
+		    <div data-toggle="modal" data-remote="modals/diagnostics-xdsl-graphics-modal.lp" data-id="iagnostics-xdsl-graphics-modal">\
+			  <i class="smallsomeInfos fa fa-line-chart" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="XDSL GRAPH" alt="dsl graph"></i>\
+			</div>\
+		  </td>\
 	');
 	end	
 	ngx.print('\

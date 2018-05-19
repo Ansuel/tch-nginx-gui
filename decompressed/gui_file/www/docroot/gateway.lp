@@ -136,15 +136,19 @@ end
 		end
 		if not ( session:getusername() == "guest" ) then
 			if cui.outdated_ver == "1" then
-				html[#html + 1] = '<div class="btn" style="margin-right:10px">' 
-				html[#html + 1] = '<a style="color:red" class="someInfos" rel="tooltip" data-placement="bottom" data-original-title="'
-				html[#html + 1] = T"Go to the gateway tab and click on the Upgrade button, to autoupgrade to the new GUI."
-				html[#html + 1] = '" data-toggle="modal" data-remote="modals/gateway-modal.lp">'
+				html[#html + 1] = '<div id="upgradebtn" class="btn someInfos" style="margin-right:10px; color:orangered" '
+				if not ( cui.gui_skin == "Fritz" ) then
+					html[#html + 1] = 'rel="tooltip" data-placement="bottom" data-original-title="'
+					html[#html + 1] = T"Go to the gateway tab and click on the Upgrade button, to autoupgrade to the new GUI."
+					html[#html + 1] = '" '
+				end
+				html[#html + 1] = 'data-toggle="modal" data-remote="modals/gateway-modal.lp">'
+				html[#html + 1] = '<span>'
 				html[#html + 1] = T"Upgrade Available" 
-				html[#html + 1] = " <strong>("
+				html[#html + 1] = " <strong>( "
 				html[#html + 1] = cui.new_ver
-				html[#html + 1] = ")</strong>" 
-				html[#html + 1] = '</a>'
+				html[#html + 1] = " )</strong>" 
+				html[#html + 1] = '</span>'
 				html[#html + 1] = '</div>'
 			end
 			html[#html + 1] = '<div class="btn" style="margin-right:10px" id="wizard-btn" data-toggle="modal" data-remote="modals/wizard-modal.lp">' .. T"Setup Wizard" .. '</div>'
@@ -346,6 +350,14 @@ $(function() {\
      post("checkver");\
 	 setTimeout(function(){location.reload();}, 4000);\
      });\
+  $("#upgradebtn").hover(\
+	function() {\
+		$("#upgradebtn").css("color","white");\
+	},\
+	function() {\
+		$("#upgradebtn").css("color","orangered");\
+	}\
+  );\
 });\
 </script>\
 ');
