@@ -51,7 +51,12 @@ if [ "$wanmode" != "bridge" ] && [ $connectivity == "yes" ]; then
 			stable_link=$base_dir'/GUI.tar.bz2'
 			stable_md5=$(curl -k -s $stable_link | md5sum | awk '{print $1}')
 			stable_version=$(echo "$version_file" | grep $stable_md5 | awk '{print $2}' )
-			if [ $( echo $stable_version | sed -e 's/\.//g') -gt $( echo $new_version | sed -e 's/\.//g') ]; then
+			if [ $( echo $stable_version | tail -c 3 | grep "." ) ]; then
+				stable_version_norm=$stable_version"0"
+			else
+				stable_version_norm=$stable_version
+			fi
+			if [ $( echo $stable_version_norm | sed -e 's/\.//g') -gt $( echo $new_version | sed -e 's/\.//g') ]; then
 				new_version=$stable_version" STABLE"
 			fi
 			if [ $local_md5 != $stable_md5 ]; then
