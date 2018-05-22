@@ -30,7 +30,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=7.16.3
+version_gui=7.16.4
 
 logo_project() {
 cat << EOF > /dev/console
@@ -754,7 +754,7 @@ add_xdsl_option() {
 }
 
 create_simbolic_utility() {
-	if [ -h /usr/sbin/upgradegui ]; then
+	if [ ! -h /usr/sbin/upgradegui ]; then
 		upgrade_utility=/usr/share/transformer/scripts/upgradegui.sh
 		check_ver=/usr/share/transformer/scripts/checkver.sh
 		if [ -f $upgrade_utility ]; then
