@@ -11,6 +11,9 @@ local content_helper = require("web.content_helper")
 local post_helper = require("web.post_helper")
 local format,sub,match,untaint = string.format, string.sub, string.match, string.untaint
 
+local bridgedmode = require("bridgedmode_helper")
+local voicemode = require("voicemode_helper")
+
 local all_modes = {"adsl2", "adsl2annexl", "adsl2annexm", "adsl2plus", "gdmt", "glite", "t1413", "vdsl2" }
 
 table.sort(all_modes, function(a,b)
@@ -196,7 +199,11 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 		html[#html + 1] = ui_helper.createLabel(T"Dslam Firmware Version",format(T"Invalid version, can't convert. Raw value: %s", content.dslam_version_raw) , span5 )
 	  end
 	  html[#html + 1] = ui_helper.createLabel(T"Firmware Version",content.dsl0_xdsl_FirmwareVersion, span5 )
-	  html[#html + 1] = ui_helper.createInputSelect(T"Driver Version", "driver_ver", driver_option, driver_content["driver_ver"])
+	  if not bridgedmode.isBridgedMode() and not voicemode.isVoiceMode() then
+		html[#html + 1] = ui_helper.createInputSelect(T"Driver Version", "driver_ver", driver_option, driver_content["driver_ver"])
+	  else
+		html[#html + 1] = ui_helper.createLabel(T"Driver Version",T"In this mode, the script you cant download the driver. Download and apply it manually. Look in the forum repository for more info. ", span5 )
+	  end
 	  html[#html + 1] = ui_helper.createSwitch(T"SRA", "ds10_sra", driver_content["ds10_sra"])
 	  html[#html + 1] = ui_helper.createSwitch(T"Bitswap", "ds10_bitswap", driver_content["ds10_bitswap"])
       html[#html + 1] = ui_helper.createLabel(T"EOC Vendor ID",content.dsl0_eoc_vendor_id, span5 )

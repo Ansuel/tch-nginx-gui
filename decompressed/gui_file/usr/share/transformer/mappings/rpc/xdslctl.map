@@ -186,7 +186,7 @@ local xdslctl_ = {
             access = "readOnly",
             type = "string"
           },
-		  SNRDs3Split1 = {
+		  SNRDs3Split2 = {
             access = "readOnly",
             type = "string"
           },

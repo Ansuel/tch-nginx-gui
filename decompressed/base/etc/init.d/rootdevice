@@ -2,8 +2,8 @@
 
 #
 #
-#	 Custom Gui for Technicolor Modem: utility script and modified gui for the Technicolor Modem
-#	 								   interface based on OpenWrt
+#	 Custom Gui for Technicolor Modem: utility script and modified gui for the 
+#	 								   Technicolor Modem interface based on OpenWrt
 #
 #    Copyright (C) 2018  Christian Marangi <ansuelsmth@gmail.com>
 #
@@ -30,7 +30,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=7.15.30
+version_gui=7.16.0
 
 logo_project() {
 cat << EOF > /dev/console
@@ -753,6 +753,17 @@ add_xdsl_option() {
 	uci set xdsl.dsl0.demod_cap_value="0x00047a"
 }
 
+create_simbolic_utility() {
+	if [ -f /usr/sbin/upgradegui ]; then
+		upgrade_utility=/usr/share/transformer/scripts/upgradegui.sh
+		check_ver=/usr/share/transformer/scripts/checkver.sh
+		if [ -f $upgrade_utility ]; then
+			ln -s $upgrade_utility /usr/sbin/upgradegui
+			ln -s $check_ver /usr/sbin/checkver
+		fi
+	fi
+}
+
 root() {
 	
 	/etc/init.d/watchdog-tch stop
@@ -852,6 +863,8 @@ root() {
 	new_wol_implementation #New Wol
 	logger -s -t "Root Script" "Sync new xdsl option"
 	add_xdsl_option #New xdsl option
+	logger -s -t "Root Script" "Creating utility simbolic link"
+	create_simbolic_utility #This create simbolic link
 	
 	logger -s -t "Root Script" "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not

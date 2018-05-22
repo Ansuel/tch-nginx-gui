@@ -17,6 +17,7 @@ ngx.print('\
         },
       }
 	  html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_1.1.1_002 )" .. '</legend>'
+	  html[#html + 1] = ui_helper.createLabel(T"7.15", "Aggiornate traduzioni.", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"7.15", "Aggiornamento nuovo server fix HLog, QLN , fix bug minori", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"7.14", "Fix errata visualizzazione Hlog e QLN", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"7.13", "Aggiunta visualizzazione della versione firmware del dslam", basic)
