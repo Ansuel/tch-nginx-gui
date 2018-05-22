@@ -14,6 +14,7 @@ local bridge_limit_list = {
   ["iproutes.lp"] = true,
   ["system.lp"] = true,
   ["xdsl.lp"] = true,
+  ["applications.lp"] = true,	
 }
 
 local voice_limit_list = {
@@ -27,6 +28,7 @@ local voice_limit_list = {
   ["iproutes.lp"] = true,
   ["system.lp"] = true,
   ["xdsl.lp"] = true,
+  ["applications.lp"] = true,	
 }
 
 function M.get_limit_info()
