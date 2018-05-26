@@ -228,6 +228,7 @@ ngx.print('\
         </div>\
       </div>\
   </div>\
+<script src="/js/jquery.min.js" ></script>\
 <!--[if IE 7]><link rel="stylesheet" href="/css/font-awesome-ie7.css"><![endif]-->\
 <script  language="JavaScript" type="text/javascript"   src="/js/main-min.js" ></script>\
 <!--[if lt IE 9]> <script src="/js/media-min.js"></script> <![endif]-->\

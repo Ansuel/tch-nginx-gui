@@ -48,7 +48,7 @@ end
 
 function M.disableVoiceMode()
     local success = false
-	local ifnames = 'eth0 eth1 eth2 eth3 eth5 ptm0.835'
+	local ifnames = 'eth0 eth1 eth2 eth3 eth5'
 	
     success = proxy.set({
         ["uci.network.interface.@wan.username"] = ppp_original or "Unknown",
@@ -56,7 +56,7 @@ function M.disableVoiceMode()
 		["uci.wireless.wifi-device.@radio_5G.state"] = '1',
 		["uci.dhcp.dhcp.@lan.ignore"] = '0',
 		["uci.network.interface.@lan.ifname"] = ifnames,
-		["uci.network.interface.@wan.ifname"] = 'ptm0.835',
+		["uci.network.interface.@wan.ifname"] = 'wanptm0',
 		["uci.network.interface.@wan.password"] = 'alicenewag',
     })
 

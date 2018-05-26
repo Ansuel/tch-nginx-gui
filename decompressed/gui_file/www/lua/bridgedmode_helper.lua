@@ -49,7 +49,7 @@ end
 
 function M.disableBridgedMode()
     local success = false
-	local ifnames = 'eth0 eth1 eth2 eth3 eth5 ptm0.835'
+	local ifnames = 'eth0 eth1 eth2 eth3 eth5'
 	
     success = proxy.set({
         ["uci.wansensing.global.enable"] = '1',

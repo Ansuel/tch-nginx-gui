@@ -78,6 +78,7 @@ ngx.print('\
 	<link rel="stylesheet" href="/css/aos.css" >\
     <!--[if lt IE 9]> <script src="/js/media-min.js"></script> <![endif]-->\
     <title>');  ngx.print( T"Gateway" ); ngx.print('</title>\
+	<script src="/js/jquery.min.js" ></script>\
 	<script src="/js/main-min.js" ></script>\
 	<script src="js/knockout-min.js"></script>\
 	<script src="/js/aos.js"></script>\
@@ -329,7 +330,7 @@ if (document.body.scrollTop > 60 || document.documentElement.scrollTop > 60) {\
 }\
 \
 $(function() {\
-  $("a[href*=#]").on("click", function(e) {\
+  $("a[href*=\'#\']").on("click", function(e) {\
     e.preventDefault();\
     $("html, body").animate({ scrollTop: $($(this).attr("href")).offset().top}, 500, "linear");\
   });\
