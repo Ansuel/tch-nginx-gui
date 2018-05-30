@@ -1176,7 +1176,7 @@ $(function() {\
          iPv6StateOnlyChanged = 2;\
     });\
     //Override the save button click event to update the IPv6 state alone.\
-    $("#save-config").click(function(){\
+    $("#save-config").on("click", function(){\
          if(iPv6StateOnlyChanged == 1){\
           var params = [];\
           params.push({\
@@ -1207,14 +1207,14 @@ $(function() {\
      });\
 \
     var currentlanip = "');  ngx.print( content["localdevIP"] ); ngx.print('";\
-    $("[name=\'localdevIP\']").change(function(){\
+    $("[name=\'localdevIP\']").on("change", function(){\
       if (currentlanip == $("[name=\'dnsServer\']").val()){\
           $("[name=\'dnsServer\']").val($(this).val());\
           currentlanip = $(this).val();\
       }\
     });\
 \
-    $("#save-config").click(function(){\
+    $("#save-config").on("click", function(){\
       if($("#Hide_Advanced_id").is(":visible"))\
         $("#isAdvanced").val("1");\
       else\
@@ -1222,14 +1222,14 @@ $(function() {\
     });\
 \
 });\
-$("[name =\'sleases_mac\']").change(function () {\
+$("[name =\'sleases_mac\']").on("change", function () {\
     if ((this.value) == "custom") {\
           $(this).replaceWith($(\'<input/>\',{\'type\':\'text\', \'name\':\'sleases_mac\'}));\
     }\
 });\
 \
 ');  if dhcpDefaultExist then   ngx.print('\
-$("#btn-dhcp-reset").click(function(){\
+$("#btn-dhcp-reset").on("click", function(){\
   ');  for k,v in pairs(dhcpDefaultExist) do   ngx.print('\
     $("#');  ngx.print(k); ngx.print('").val("');  ngx.print(v); ngx.print('");\
   ');  end  ngx.print('\

@@ -278,7 +278,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 \
 <script src="/js/srp-min.js" ></script>\
 <script type="text/javascript" >\
-    $("#save-assistance-config").click(function () {\
+    $("#save-assistance-config").on("click", function () {\
         function sendData()\
         {\
             var form = $(".modal form");\

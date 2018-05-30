@@ -257,12 +257,12 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     return false;\
   }\
 \
-   $("#btn-system-reboot").click(function() {\
+   $("#btn-system-reboot").on("click", function() {\
     return resetreboot($("#rebooting-msg"), $(this), "system_reboot");\
   });\
 \
 \
-$("#btn-system-reset").click(function() {\
+$("#btn-system-reset").on("click", function() {\
     return resetreboot($("#resetting-msg"), $(this), "system_reset");\
   });\
 \

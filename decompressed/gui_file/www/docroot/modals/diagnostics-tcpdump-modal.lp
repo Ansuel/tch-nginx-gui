@@ -281,7 +281,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 (function() {\
   var target = $(".modal form").attr("action");\
 \
-  $(".tcpdump-download").click(function() {\
+  $(".tcpdump-download").on("click", function() {\
     $.fileDownload(target, {\
       httpMethod: "POST",\
       data: new Array({ name : "action", value : "tcpdump_download" },\

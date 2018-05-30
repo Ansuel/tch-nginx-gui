@@ -330,7 +330,7 @@ end
         });
     }
 
-    $("#btn-pairing").click(function() {
+    $("#btn-pairing").on("click", function() {
         pairProgress('<%=T"Pairing in progress, Please press Cancel button for stop pairing."%>');
         $.post(
             target,
@@ -345,7 +345,7 @@ end
             $(".modal-body").scrollTop(scrolltop);
         });
     };
-    $("#btn-unreg").click(function() {
+    $("#btn-unreg").on("click", function() {
         if (document.getElementById("handset_id").value == "all") {
             var r = confirm("Are you sure you want to Unregister all the Dect Handset?");
             if (r == false) {
@@ -385,7 +385,7 @@ end
            wht= wht*(4/10)+sp;
            $('#popUp').css("top",wht);
         }
-        $("#cancel_pairing").click(function() {
+        $("#cancel_pairing").on("click", function() {
 	    $.post(
             target,
             {

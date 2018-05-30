@@ -243,7 +243,7 @@ ngx.print('<legend>');  ngx.print( T"System Log - Active Connections" ); ngx.pri
 (function() {\
   var target = $(".modal form").attr("action");\
 \
-  $(".export-conntracklog").click(function() {\
+  $(".export-conntracklog").on("click", function() {\
     $.fileDownload(target, {\
       httpMethod: "POST",\
       data: new Array({ name : "action", value : "export_conntrack_log" },\

@@ -480,7 +480,7 @@ var refreshDelay = 3000;\
 var target = $(".modal form").attr("action");\
 var usb3_support = $("#toggle-usb3").val();\
 \
-$("#usbDev .eject").click(function(){\
+$("#usbDev .eject").on("click", function(){\
   var index = $(this).attr("index");\
   var tparam = [];\
   tparam.push({\

@@ -539,39 +539,39 @@ ngx.print('\
     return false;\
   }\
 \
-  $("#btn-system-bootp").click(function() {\
+  $("#btn-system-bootp").on("click", function() {\
      if (confirm("');  ngx.print(T"This will put your gateway into LAN Upgrade"); ngx.print('")){\
        tch.showProgress(\'');  ngx.print(T"Rebooting..."); ngx.print('\');\
        return resetreboot($("#bootp-msg"), $(this), "system_bootp");\
      }\
   });\
 \
-  $("#btn-system-switchover").click(function() {\
+  $("#btn-system-switchover").on("click", function() {\
      if (confirm("');  ngx.print(T"This will switch the active bank with the passive one"); ngx.print('")){\
        tch.showProgress(\'');  ngx.print(T"Rebooting..."); ngx.print('\');\
        return resetreboot($("#switchover-msg"), $(this), "system_switchover");\
      }\
   });\
 \
-  $("#btn-system-transfer-bank1").click(function() {\
+  $("#btn-system-transfer-bank1").on("click", function() {\
      if (confirm("');  ngx.print(T"This will transfer the active firmware and config to the bank 1"); ngx.print('")){\
        tch.showProgress(\'');  ngx.print(T"Rebooting..."); ngx.print('\');\
        return resetreboot($("#transfer-bank1-msg"), $(this), "system_trasnfer_bank_1");\
      }\
   });\
 \
-  $("[name=syslog_present]").change(function(){\
+  $("[name=syslog_present]").on("change", function(){\
     $("[name=syslog_ip]").val("");\
     $("[name=syslog_filter_ip]").val("");\
   });\
 \
-  $("#btn-serial").click(function(){\
+  $("#btn-serial").on("click", function(){\
     $("[name=syslog_prefix]").val("');  ngx.print(serial_num); ngx.print('");\
     $("#modal-no-change").slideUp();\
     $("#modal-changes").slideDown();\
   });\
 \
-  $("[name=syslog_filter_sw]").change(function(){\
+  $("[name=syslog_filter_sw]").on("change", function(){\
      if ($( this ).val() == "0"){\
        $("[name=syslog_ip]").val($("[name=syslog_filter_ip]").val());\
        $("[name=syslog_filter_ip]").val("");\

@@ -767,7 +767,7 @@ end
 <script>
 $(document).ready(function() {
     $("#save-config").attr("id","save-form");
-    $("#save-form").click(function(){
+    $("#save-form").on("click", function(){
        //Keep data related to currently selected service & remove extra data which is not needed in the POST operation.
        var selected_service = $("#service_name").val();
        $('.modal form input').each(function(){

@@ -921,7 +921,7 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
 						tch.elementCSRFtoken()];\
 			$.post("/ajax/datausage.lua", params, function(data) {}, \'json\');\
 		};\
-		$("#btn-reset-datausage").click(function() {\
+		$("#btn-reset-datausage").on("click", function() {\
 			self.resetDataUsage();\
 		});\
 		this.startDatausageMonitor = function() {\

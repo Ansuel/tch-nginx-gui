@@ -322,7 +322,7 @@ session:store("timer_data", timer_data)
         $("#starttime").mobiscroll().time(opt);\
         $("#stoptime").mobiscroll().time(opt);\
     });\
-    $(".btn-table-add, .btn-table-modify").click(function() {\
+    $(".btn-table-add, .btn-table-modify").on("click", function() {\
         // ui_helper adds dummy hidden checkbox if no checkboxes are checked. we don\'t need that.\
         if ($("form .additional-edit input[name=weekdays]:visible:checked").length > 0) {\
           $("form input[name=weekdays]:hidden").removeAttr("name");\

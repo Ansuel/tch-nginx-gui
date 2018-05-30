@@ -239,13 +239,13 @@ function Popupdevice(Title,txt,height){\
    var width = window.innerWidth || document.documentElement.clientWidth;\
    $d.css({\'left\': center,  \'margin\' : \'0px\', \'border-radius\': \'13px\'}).appendTo(\'body\').slideDown("fast");\
    $(\'html, body\').css({\'overflow\': \'hidden\',\'height\': \'100%\'});\
-  $( ".device_popUpBG" ).click(function() {\
+  $( ".device_popUpBG" ).on("click", function() {\
         $(".device_popUpBG").remove();\
         $("#device_popUp").remove();\
         clearTimeout(timerajax);\
         $(\'html, body\').css({\'overflow\': \'auto\',\'height\': \'auto\'});\
   });\
-  $( "#device_popUp" ).click(function() {\
+  $( "#device_popUp" ).on("click", function() {\
         $(".device_popUpBG").remove();\
         $("#device_popUp").remove();\
         clearTimeout(timerajax);\
@@ -301,7 +301,7 @@ function getInfo(mac,path,wifi,ap)\
            //window.setTimeout(function(){ bars(random(100));}, 1500);\
    }\
    $(function(d) {\
-      $( ".host" ).click(function(e) {\
+      $( ".host" ).on("click", function(e) {\
         var height = "300";\
         var wifi = $(this).attr(\'data-wifi\');\
         var path = $(this).attr(\'data-hostpath\');\

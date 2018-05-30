@@ -1123,7 +1123,7 @@ ngx.print('\
     );\
     return false;\
   }\
-  $("#btn-system-reboot").click(function() {\
+  $("#btn-system-reboot").on("click", function() {\
      var heading = "');  ngx.print('Restart Device'); ngx.print('";\
      var processMsg = "');  ngx.print(T'Rebooting'); ngx.print('";\
           tch.removeProgress();\
@@ -1131,7 +1131,7 @@ ngx.print('\
           return resetreboot($("#rebooting-msg"), $(this), "system_reboot" );\
   });\
 \
-  $("#btn-system-reset").click(function() {\
+  $("#btn-system-reset").on("click", function() {\
       var heading = "');  ngx.print('Factory Defaults'); ngx.print('";\
       var processMsg = "');  ngx.print(T'Resetting'); ngx.print('";\
           tch.removeProgress();\
@@ -1139,12 +1139,12 @@ ngx.print('\
           return resetreboot($("#resetting-msg"), $(this), "system_reset");\
   });\
 \
-  $("#btn-reset-gui").click(function() {\
+  $("#btn-reset-gui").on("click", function() {\
     tch.showProgress("'); ngx.print('Resetting...'); ngx.print('");\
     return resetreboot($("#resetting-msg"), $(this), "system_reset_gui");\
   });\
 \
-  $("#btn-upgrade-gui").click(function() {\
+  $("#btn-upgrade-gui").on("click", function() {\
     $(".modal-backdrop").css("pointer-events", "none");\
 	$(".container").css("pointer-events", "none");\
 	$(".modal").css("pointer-events", "none");\
@@ -1156,19 +1156,19 @@ ngx.print('\
     wait_for_webserver_down();\
   });\
 \
-  $("#btn-remove-root").click(function() {\
+  $("#btn-remove-root").on("click", function() {\
     $("#confirming-msg-remove-root").removeClass("hide");\
 	$("#remove-root-changes").removeClass("hide");\
   });\
 \
-  $("#remove-root-confirm").click(function() {\
+  $("#remove-root-confirm").on("click", function() {\
   	$("#confirming-msg-remove-root").addClass("hide");\
   	$("#remove-root-changes").addClass("hide");\
   	tch.showProgress("'); ngx.print( T'Resetting...' ); ngx.print('");\
   	return resetreboot($("#resetting-msg"), $(this), "system_remove_root");\
   });\
 \
-  $("#remove-root-cancel").click(function() {\
+  $("#remove-root-cancel").on("click", function() {\
   	$("#confirming-msg-remove-root").addClass("hide");\
   	$("#remove-root-changes").addClass("hide");\
   });\
@@ -1177,7 +1177,7 @@ ngx.print('\
       tch.removeProgress();\
   });\
 \
-  $(".export-config").click(function() {\
+  $(".export-config").on("click", function() {\
     $.fileDownload(target, {\
       httpMethod: "POST",\
       data: new Array({ name : "action", value : "export_config" },\
@@ -1201,7 +1201,7 @@ ngx.print('\
     return false;\
   });\
 \
-  $(".import-config").click(function() {\
+  $(".import-config").on("click", function() {\
     var nofile_msg = $("#import-nofile-msg");\
     var wrongext_msg = $("#import-wrong-ext-msg");\
     var toobig_msg = $("#import-too-big-msg");\
@@ -1255,7 +1255,7 @@ ngx.print('\
     return false;\
   });\
 \
-  $(".import-gui").click(function() {\
+  $(".import-gui").on("click", function() {\
     var nofile_msg = $("#upgrade-gui-fail");\
     var wrongext_msg = $("#upgrade-gui-fail");\
 	nofile_msg.addClass("hide");\
@@ -1349,7 +1349,7 @@ ngx.print('\
     return false;\
   }\
 \
-  $(".upgradefw").click(function() {\
+  $(".upgradefw").on("click", function() {\
     var nofile_msg = $("#upgrade-nofile-msg");\
     var wrongext_msg = $("#upgrade-wrong-ext-msg");\
     var toobig_msg = $("#upgrade-too-big-msg");\

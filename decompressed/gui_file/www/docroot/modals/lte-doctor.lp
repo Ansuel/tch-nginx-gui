@@ -376,7 +376,7 @@ local params = utils.get_params()
 	function addPanArrow(dir, right, top, offset, placeholder) {\
 		$("<img class=\'navbutton\' src=\'/img/arrow-" + dir + ".gif\' style=\'right:" + right + "px;top:" + top + "px\'>")\
 		.appendTo(placeholder)\
-		.click(function (e) {\
+		.on("click", function (e) {\
 			e.preventDefault();\
 			plot.pan(offset);\
 		});\
@@ -385,7 +385,7 @@ local params = utils.get_params()
 	function addZoomArrow(dir, right, top, placeholder) {\
 		$("<img class=\'navbutton\' src=\'/img/arrow-" + dir + ".gif\' style=\'right:" + right + "px;top:" + top + "px\'>")\
 		.appendTo(placeholder)\
-		.click(function (e) {\
+		.on("click", function (e) {\
 			e.preventDefault();\
 			if(dir == "up") {\
 				plot.zoom(100);\

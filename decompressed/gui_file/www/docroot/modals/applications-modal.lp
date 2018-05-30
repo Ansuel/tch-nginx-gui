@@ -283,47 +283,47 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     );\
     return false;\
   }\
-  $("#btn-install-luci").click(function() {\
+  $("#btn-install-luci").on("click", function() {\
      post("install_luci" );\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
-  $("#btn-remove-luci").click(function() {\
+  $("#btn-remove-luci").on("click", function() {\
      post("remove_luci" );\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
-  $("#btn-install-aria2").click(function() {\
+  $("#btn-install-aria2").on("click", function() {\
      post("install_aria2" );\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
-  $("#btn-remove-aria2").click(function() {\
+  $("#btn-remove-aria2").on("click", function() {\
      post("remove_aria2" );\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
-  $("#btn-install-transmission").click(function() {\
+  $("#btn-install-transmission").on("click", function() {\
      post("install_transmission" );\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
-  $("#btn-remove-transmission").click(function() {\
+  $("#btn-remove-transmission").on("click", function() {\
      post("remove_transmission" );\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
-  $("#btn-install-blacklist").click(function() {\
+  $("#btn-install-blacklist").on("click", function() {\
      post("install_blacklist" );\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
-  $("#btn-install-empty-blacklist").click(function() {\
+  $("#btn-install-empty-blacklist").on("click", function() {\
      post("install_emptyblacklist" );\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
-  $("#btn-remove-blacklist").click(function() {\
+  $("#btn-remove-blacklist").on("click", function() {\
      post("remove_blacklist" );\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
-  $("#btn-install-xupnp").click(function() {\
+  $("#btn-install-xupnp").on("click", function() {\
      post("install_xupnp" );\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
-  $("#btn-remove-xupnp").click(function() {\
+  $("#btn-remove-xupnp").on("click", function() {\
      post("remove_xupnp" );\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\

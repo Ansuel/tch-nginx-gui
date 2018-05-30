@@ -31,6 +31,13 @@ else
 fi
 base_dir=https://repository.ilpuntotecnico.com/files/Ansuel/AGTEF
 
+if [ $1 ]; then
+	if [ $1 == "Schedule" ]; then
+		RANDOM=$(awk -v min=1 -v max=3600 'BEGIN{srand(); print int(min+rand()*(max-min+1))}')
+		sleep $RANDOM
+	fi
+fi
+
 if [ "$wanmode" != "bridge" ] && [ $connectivity == "yes" ]; then
 	if [ ! $(uci get -q env.var.update_branch) ] ||  [ $(uci get env.var.update_branch) == "stable" ]; then
 		update_branch=""

@@ -490,7 +490,7 @@ function addNewRow() {
     $('#sipProfileTable').append('<tr><td>'+EnableSW+'</td><td></td><td>'+UserName+'</td><td>'+uri+'</td><td>'+Password+'</td><td>'+DisplayName+'</td><td>'+NetWork+'</td><td></td><td></td><td>'+CancelBtn+'</td></tr>');
 
     //Enabling the Cancel action for newly added row
-    $('.btn-table-cncl').click(function(){
+    $('.btn-table-cncl').on("click", function(){
 	$(this).parent().parent().attr("style","display: none;");
 	$(this).parent().children('input').val(0);
     });
@@ -508,18 +508,18 @@ $(document).ready(function() {
         $('#modal-no-change').fadeOut(300);
         $('#modal-changes').delay(350).fadeIn(300);
     });
-    $('.btn-table-addrow').click(function(){
+    $('.btn-table-addrow').on("click", function(){
 	addNewRow();
         $('#modal-no-change').fadeOut(300);
         $('#modal-changes').delay(350).fadeIn(300);
     });
-    $('.btn-table-dlt').click(function(){
+    $('.btn-table-dlt').on("click", function(){
 	$(this).parent().parent().attr("style","display: none;");
 	$(this).parent().children('input').val(1);
         $('#modal-no-change').fadeOut(300);
         $('#modal-changes').delay(350).fadeIn(300);
     });
-    $('.btn-table-cncl').click(function(){
+    $('.btn-table-cncl').on("click", function(){
 	$(this).parent().parent().attr("style","display: none;");
 	$(this).parent().children('input').val(0);
         $('#modal-no-change').fadeOut(300);

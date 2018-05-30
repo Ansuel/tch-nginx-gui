@@ -342,12 +342,12 @@ $(function() {\
 		return false;\
 	}\
 \
-	$("#btn-bridgemode").click(function() {\
+	$("#btn-bridgemode").on("click", function() {\
 		$("#confirming-msg-bridgemode").removeClass("hide");\
 		$("#bridgemode-changes").removeClass("hide");\
 	});\
 \
-	$("#bridgemode-confirm").click(function() {\
+	$("#bridgemode-confirm").on("click", function() {\
 		$("#confirming-msg-bridgemode").addClass("hide");\
 		$("#bridgemode-changes").addClass("hide");\
 		$("#btn-bridgemode").addClass("hide");\
@@ -355,23 +355,23 @@ $(function() {\
 		return resetreboot($("#rebooting-msg-bridgemode"), $("#btn-bridgemode"), "BRIDGEMODE");\
 	});\
 \
-	$("#bridgemode-cancel").click(function() {\
+	$("#bridgemode-cancel").on("click", function() {\
 		$("#confirming-msg-bridgemode").addClass("hide");\
 		$("#bridgemode-changes").addClass("hide");\
 	});\
 \
-	$("#btn-revertbridgemode").click(function() {\
+	$("#btn-revertbridgemode").on("click", function() {\
 		$("#infomessage").addClass("hide");\
 		tch.showProgress(rebootMsg);\
 		return resetreboot($("#rebooting-msg-revertbridgemode"), $("#btn-revertbridgemode"), "REVERTBRIDGEMODE");\
 	});\
 \
-	$("#btn-voicemode").click(function() {\
+	$("#btn-voicemode").on("click", function() {\
 		$("#confirming-msg-voicemode").removeClass("hide");\
 		$("#voicemode-changes").removeClass("hide");\
 	});\
 \
-	$("#voicemode-confirm").click(function() {\
+	$("#voicemode-confirm").on("click", function() {\
 		$("#confirming-msg-voicemode").addClass("hide");\
 		$("#voicemode-changes").addClass("hide");\
 		$("#btn-voicemode").addClass("hide");\
@@ -379,12 +379,12 @@ $(function() {\
 		return resetreboot($("#rebooting-msg-voicemode"), $("#btn-voicemode"), "VOICEMODE");\
 	});\
 \
-	$("#voicemode-cancel").click(function() {\
+	$("#voicemode-cancel").on("click", function() {\
 		$("#confirming-msg-voicemode").addClass("hide");\
 		$("#voicemode-changes").addClass("hide");\
 	});\
 \
-	$("#btn-revertvoicemode").click(function() {\
+	$("#btn-revertvoicemode").on("click", function() {\
 		$("#infomessage").addClass("hide");\
 		tch.showProgress(rebootMsg);\
 		return resetreboot($("#rebooting-msg-revertvoicemode"), $("#btn-revertvoicemode"), "REVERTVOICEMODE");\

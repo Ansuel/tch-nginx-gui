@@ -30,7 +30,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=7.16.9
+version_gui=7.17.0
 
 logo_project() {
 cat << EOF > /dev/console
@@ -369,12 +369,16 @@ trafficmon_support() {
 checkver_cron() {
 	if [ -f /etc/crontabs/root ]; then
 		if [ ! "$(cat /etc/crontabs/root | grep -q checkver)" ] ; then
-			echo " " > /etc/crontabs/root
-			echo "0 */2 * * * /usr/share/transformer/scripts/checkver.sh" > /etc/crontabs/root
+			echo "0 5 * * * /usr/share/transformer/scripts/checkver.sh Schedule >/dev/null 2>&1" >> /etc/crontabs/root
 			/etc/init.d/cron restart
 		fi
 		if [ -f /etc/crontabs/root_gui ]; then
 			rm /etc/crontabs/root_gui
+		fi
+		if [ ! $(cat /etc/crontabs/root | grep Schedule) ] && [ $(cat /etc/crontabs/root | grep -q checkver) ]; then
+			sed -e /scripts/d -i /etc/crontabs/root
+			echo "0 5 * * * /usr/share/transformer/scripts/checkver.sh Schedule >/dev/null 2>&1" >> /etc/crontabs/root
+			/etc/init.d/cron restart
 		fi
 	else
 		if [ -f /etc/crontabs/root_gui ]; then
@@ -755,12 +759,22 @@ add_xdsl_option() {
 
 create_simbolic_utility() {
 	if [ ! -h /usr/sbin/upgradegui ]; then
-		upgrade_utility=/usr/share/transformer/scripts/upgradegui.sh
-		check_ver=/usr/share/transformer/scripts/checkver.sh
+		upgrade_utility=/usr/share/transformer/scripts/upgradegui
+		check_ver=/usr/share/transformer/scripts/checkver
 		if [ -f $upgrade_utility ]; then
 			ln -s $upgrade_utility /usr/sbin/upgradegui
 			ln -s $check_ver /usr/sbin/checkver
 		fi
+	fi
+}
+
+update_checkver_upgrade_script() {
+	if [ -f /usr/share/transformer/scripts/upgradegui.sh ]; then
+		rm /usr/sbin/upgradegui
+		rm /usr/sbin/checkver
+		create_simbolic_utility
+		rm /usr/share/transformer/scripts/upgradegui.sh
+		rm /usr/share/transformer/scripts/checkver.sh
 	fi
 }
 
@@ -865,6 +879,8 @@ root() {
 	add_xdsl_option #New xdsl option
 	logger -s -t "Root Script" "Creating utility simbolic link"
 	create_simbolic_utility #This create simbolic link
+	logger -s -t "Root Script" "Clean old script"
+	update_checkver_upgrade_script #This clean old script
 	
 	logger -s -t "Root Script" "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not

@@ -304,7 +304,7 @@ ngx.print('\
 <script>\
 $(document).ready(function() {\
     $("#save-config").attr("id","save-form");\
-    $("#save-form").click(function(){\
+    $("#save-form").on("click", function(){\
        $(\'.modal form input:checked[value="0"]\').each(function(){\
           $(this).val("1");\
        });\

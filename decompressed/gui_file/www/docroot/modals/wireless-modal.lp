@@ -1723,17 +1723,17 @@ function get_random_color() {\
     }\
   }\
 \
-  $("div[id^=\'ReScan_\']").click(function() {\
+  $("div[id^=\'ReScan_\']").on("click", function() {\
     var freq = (this.id).split("_")[1];\
     show_rescanconfirming(freq,1);\
   });\
 \
-  $("div[id^=\'rescan-confirm_\']").click(function() {\
+  $("div[id^=\'rescan-confirm_\']").on("click", function() {\
     var freq = (this.id).split("_")[1];\
     show_rescanconfirming(freq,0);\
   });\
 \
-  $("div[id^=\'rescan-cancel_\']").click(function() {\
+  $("div[id^=\'rescan-cancel_\']").on("click", function() {\
     var freq = (this.id).split("_")[1];\
     show_rescanconfirming(freq,0);\
   });\
@@ -1812,20 +1812,20 @@ function show_linkconfirming(freq,show){\
   }\
 }\
 \
-$("a[id^=\'wifianalyzer_\']").click(function() {\
+$("a[id^=\'wifianalyzer_\']").on("click", function() {\
   var iface = (this.id).split("_")[1];\
   var freq = iface.split(".")[0];\
   show_linkconfirming(freq, 1);\
   return false;\
 });\
 \
-$("div[id^=\'linkrescan-confirm_\']").click(function() {\
+$("div[id^=\'linkrescan-confirm_\']").on("click", function() {\
   var iface = (this.id).split("_")[1];\
   var freq = iface.split(".")[0];\
   show_linkconfirming(freq, 0);\
 });\
 \
-$("div[id^=\'linkrescan-cancel_\']").click(function() {\
+$("div[id^=\'linkrescan-cancel_\']").on("click", function() {\
   var iface = (this.id).split("_")[1];\
   var freq = iface.split(".")[0];\
   show_linkconfirming(freq, 0);\
@@ -1858,7 +1858,7 @@ function get_status_acl() {\
     });	},5000);\
 }\
 \
-$("#btn_acl").click(function() {\
+$("#btn_acl").on("click", function() {\
    if($("#btn_acl").attr("disabled")!= undefined ) return false;\
    $.post("modals/wireless-modal.lp",{ action: "set_reg", curap: "');  ngx.print(curap); ngx.print('", CSRFtoken: $("meta[name=CSRFtoken]").attr("content")},\
       get_status_acl);\
@@ -1874,7 +1874,7 @@ $(document).ready(function() {\
     }\
 });\
 \
-$(\'input[id="band_steer_enabled"]\').click(function(){\
+$(\'input[id="band_steer_enabled"]\').on("click", function(){\
     if ("1" == bschecked) {\
         $(\'option[value="wep"]\').hide();\
         $(\'option[value="wpa-wpa2"]\').hide();\

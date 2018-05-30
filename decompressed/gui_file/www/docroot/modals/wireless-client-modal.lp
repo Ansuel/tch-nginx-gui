@@ -510,7 +510,7 @@ $(function() {\
         if (timerajax){clearTimeout(timerajax)};\
         tch.loadModal(\'/modals/wireless-client-modal.lp\', \'device=\'+client_selected.val());\
     });\
-    btn_refresh.click(function() {\
+    btn_refresh.on("click", function() {\
         if (timerajax){clearTimeout(timerajax)};\
         var devicestr = "";\
         if (client_selected.val() != "0"){\
@@ -519,7 +519,7 @@ $(function() {\
         tch.loadModal(\'/modals/wireless-client-modal.lp\', devicestr);\
     });\
 \
-    btn_return.click(function() {\
+    btn_return.on("click", function() {\
         if (timerajax){clearTimeout(timerajax)};\
             tch.loadModal(\'/modals/wireless-modal.lp\', \'\', function() {\
             $(".modal").modal();\

@@ -354,14 +354,14 @@ ngx.print(ui_helper.createFooter())
 					}\
 				}\
 			};\
-			$("#grp-disable-pin").click(function() {\
+			$("#grp-disable-pin").on("click", function() {\
 					self.setSimView("disable");\
 					$("#grp-change-pin").addClass("hide");\
 					$("#pin-code").removeClass("hide");\
 					$("#reset-changes").removeClass("hide");\
 					$("#resetting-msg").removeClass("hide");\
 			});\
-			$("#grp-change-pin").click(function() {\
+			$("#grp-change-pin").on("click", function() {\
 					self.setSimView("change");\
 					$("#grp-disable-pin").addClass("hide");\
 					$("#pin-code").removeClass("hide");\
@@ -370,23 +370,23 @@ ngx.print(ui_helper.createFooter())
 					$("#reset-changes").removeClass("hide");\
 					$("#changing-msg").removeClass("hide");\
 			});\
-			$("#btn-unblock-pin").click(function() {\
+			$("#btn-unblock-pin").on("click", function() {\
 					self.setSimView("unblock");\
 					$("#newpin-code").removeClass("hide");\
 					$("#puk-code").removeClass("hide");\
 					$("#reset-changes").removeClass("hide");\
 			});\
-			$("#btn-unlock-pin").click(function() {\
+			$("#btn-unlock-pin").on("click", function() {\
 					self.setSimView("unlock");\
 					$("#pin-code").removeClass("hide");\
 					$("#reset-changes").removeClass("hide");\
 			});\
-			$("#btn-enable-pin").click(function() {\
+			$("#btn-enable-pin").on("click", function() {\
 					self.setSimView("enable");\
 					$("#pin-code").removeClass("hide");\
 					$("#reset-changes").removeClass("hide");\
 			});\
-			$("#reset-confirm").click(function() {\
+			$("#reset-confirm").on("click", function() {\
 				this.state = self.simViewState();\
 				if(this.state == "disable") {\
 					self.setPinState("disable");\
@@ -410,7 +410,7 @@ ngx.print(ui_helper.createFooter())
 					self.unblockPin();\
 				}\
 			});\
-			$("#reset-cancel").click(function() {\
+			$("#reset-cancel").on("click", function() {\
 				this.state = self.simViewState();\
 				if(this.state == "disable") {\
 					$("#grp-change-pin").removeClass("hide");\

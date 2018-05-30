@@ -171,7 +171,7 @@ ngx.print('<div class="modal-footer">\
 <script type="text/javascript">\
     var target = $(".modal form").attr("action");\
 \
-    $(".export-conntracklog").click(function() {\
+    $(".export-conntracklog").on("click", function() {\
       $.fileDownload(target, {\
         httpMethod: "POST",\
         data: new Array({ name : "action", value : "export_log" },\

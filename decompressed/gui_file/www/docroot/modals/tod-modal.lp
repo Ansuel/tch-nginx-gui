@@ -86,7 +86,7 @@ tod_mac_to_hostname(tod_data)
         $("#starttime").mobiscroll().time(opt);\
         $("#stoptime").mobiscroll().time(opt);\
     });\
-    $(".additional-edit .checkbox input").click(function() {\
+    $(".additional-edit .checkbox input").on("click", function() {\
         if ($(this).attr("checked"))\
             $(this).removeAttr("checked");\
         else\

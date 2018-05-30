@@ -85,6 +85,7 @@ ngx.print('\
 	<script async src="/js/graphic-min.js"></script>\
 	<script async src="/js/Chart.min.js"></script>\
 	<script async src="/js/srp-min.js" ></script>');
+	--ngx.print('<script src="/js/jquery-migrate.js" ></script>')  <-- Usefull to debug deprecated function from jquery update
 	ngx.print('<link rel="stylesheet" href="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/style.css">');
 local script_file_presence = io.open(string.format("/www/docroot/theme/%s/script.js",cui.gui_skin),"r")
 if script_file_presence then
@@ -245,7 +246,7 @@ end
         ngx.print(html)  ngx.print('\
         <script>\
           $("#password_reminder").modal();\
-          $("#save-config").click(function(){\
+          $("#save-config").on("click", function(){\
             var value = $("input[name=passwordchange]:checked").val();\
             if(value == "now"){\
                window.location = "/password.lp";\
@@ -347,11 +348,11 @@ $(function() {\
     return false;\
   }\
 \
-  $("#update").click(function() {\
+  $("#update").on("click", function() {\
      post("checkver");\
 	 setTimeout(function(){location.reload();}, 4000);\
      });\
-  $("#upgradebtn").hover(\
+  $("#upgradebtn").on("hover",\
 	function() {\
 		$("#upgradebtn").css("color","white");\
 	},\
