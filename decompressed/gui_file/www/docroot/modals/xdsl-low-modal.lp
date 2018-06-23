@@ -9,7 +9,7 @@ local ui_helper = require("web.ui_helper")
 local message_helper = require("web.uimessage_helper")
 local content_helper = require("web.content_helper")
 local post_helper = require("web.post_helper")
-local format,sub,match,untaint = string.format, string.sub, string.match, string.untaint
+local tinsert,format,sub,match,untaint = table.insert,string.format, string.sub, string.match, string.untaint
 
 local bridgedmode = require("bridgedmode_helper")
 local voicemode = require("voicemode_helper")
@@ -142,21 +142,29 @@ for _, v in pairs (profiles_content) do
   end
 end
 
-local driver_option = {
-	  { "A2pvbH042j2.d26r", 'A2pvbH042j2.d26r (Asus DSL-AC88U) ' .. 'Best value'},
-	  { "A2pvbH042n.d26r", 'A2pvbH042n.d26r (Netgear D7000)'},
-	  { "A2pvbH042o.d26r", 'A2pvbH042o.d26r (TG799VAC Xtream Fastweb)'},
-      { "A2pvbH042r.d26r", 'A2pvbH042r.d26r (AGTEF_1.0.3)'},
-	  { "A2pvbH042u.d26r", 'A2pvbH042u.d26r (AGTEF_1.0.4)'},
-}
+local driver_option = nil
 
-if tonumber(content.marketing_version) >= 17.3 then
-	table.insert(driver_option, { "A2pvfbH043b.d26r", 'A2pvfbH043b.d26r (New FastGate Fastweb)'})
-	-- table.insert(driver_option,{ "A2pvfbH043e.d26r", 'A2pvfbH043e.d26r (Zyxel 8823)'}) --Annex b???
-	--table.insert(driver_option,{ "A2pvfbH043f.d26r", 'A2pvfbH043f.d26r (DSL AC88U) ' .. T'Less Ping'}) --Missing 
-	table.insert(driver_option,{ "A2pvfbH043g.d26r", 'A2pvfbH043g.d26r (TG800 Vbant-s)'})
-	table.insert(driver_option, { "A2pvfbH043k.d26r", 'A2pvfbH043k.d26r (AGTEF_1.1.0)'})
-	table.insert(driver_option, { "A2pvfbH043o.d26r", 'A2pvfbH043o.d26r (DSL88U) ' .. T'Beta Firmware'})
+if content.dsl0_xdsl_FirmwareVersion:match(".*H042") or content.dsl0_xdsl_FirmwareVersion:match(".*H042") then
+
+	tinsert(driver_option, { "B2pvbH042l.d26r", 'B2pvbH042l.d26r (DSL-AC87VG_v1.00.10)'})
+	tinsert(driver_option, { "A2pvbH042n.d26r", 'A2pvbH042n.d26r (Netgear D7000)'})
+	tinsert(driver_option, { "A2pvbH042j2.d26r", 'A2pvbH042j2.d26r (Asus DSL-AC88U) ' .. 'Best value'})
+	tinsert(driver_option, { "A2pvbH042o.d26r", 'A2pvbH042o.d26r (TG799VAC Xtream Fastweb)'})
+	tinsert(driver_option, { "A2pvbH042r.d26r", 'A2pvbH042r.d26r (AGTEF_1.0.3)'})
+	tinsert(driver_option, { "B2pvbH042s.d26r", 'B2pvbH042s.d26r (Archer_VR2800vV1_1.2.0_0.9.1)'})
+	tinsert(driver_option, { "A2pvbH042u.d26r", 'A2pvbH042u.d26r (AGTEF_1.0.4)'})
+	
+	if tonumber(content.marketing_version) >= 17.3 then
+		tinsert(driver_option, { "A2pvfbH043b.d26r", 'A2pvfbH043b.d26r (New FastGate Fastweb)'})
+		tinsert(driver_option, { "B2pvfbH043e.d26r", 'B2pvfbH043e.d26r (DSL-AC87VG_v1.00.13)'})
+		--table.insert(driver_option,{ "A2pvfbH043e.d26r", 'A2pvfbH043e.d26r (Zyxel 8823)'}) --Annex b???
+		--table.insert(driver_option,{ "A2pvfbH043f.d26r", 'A2pvfbH043f.d26r (DSL AC88U) ' .. T'Less Ping'}) --Missing
+		tinsert(driver_option, { "B2pvfbH043g.d26r", 'B2pvfbH043g.d26r (DSL-AC68VG_v5.00.04)'})
+		tinsert(driver_option, { "A2pvfbH043g.d26r", 'A2pvfbH043g.d26r (TG800 Vbant-s)'})
+		tinsert(driver_option, { "A2pvfbH043k.d26r", 'A2pvfbH043k.d26r (AGTEF_1.1.0)'})
+		tinsert(driver_option, { "B2pvfbH043k.d26r", 'B2pvfbH043k.d26r (DSL-AC88U-B_v1.10.05)'})
+		tinsert(driver_option, { "A2pvfbH043o.d26r", 'A2pvfbH043o.d26r (DSL88U) ' .. T'Beta Firmware'})
+	end
 end
 
 
@@ -199,7 +207,9 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 		html[#html + 1] = ui_helper.createLabel(T"Dslam Firmware Version",format(T"Invalid version, can't convert. Raw value: %s", content.dslam_version_raw) , span5 )
 	  end
 	  html[#html + 1] = ui_helper.createLabel(T"Firmware Version",content.dsl0_xdsl_FirmwareVersion, span5 )
-	  if not bridgedmode.isBridgedMode() and not voicemode.isVoiceMode() then
+	  if not driver_option then
+		html[#html + 1] = ui_helper.createLabel(T"Driver Version",T"We don't have any firmware for this modem, please report them to the github page. ", span5 )
+	  elseif not bridgedmode.isBridgedMode() and not voicemode.isVoiceMode() then
 		html[#html + 1] = ui_helper.createInputSelect(T"Driver Version", "driver_ver", driver_option, driver_content["driver_ver"])
 	  else
 		html[#html + 1] = ui_helper.createLabel(T"Driver Version",T"In this mode, the script you cant download the driver. Download and apply it manually. Look in the forum repository for more info. ", span5 )

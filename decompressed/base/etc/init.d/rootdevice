@@ -30,7 +30,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=7.18.22
+version_gui=7.18.27
 
 logo_project() {
 cat << EOF > /dev/console
@@ -300,6 +300,7 @@ check_upgrade_shit() {
 
 check_isp_config() {
 	ppp_user=$(uci -q get network.wan.username)
+	cwmp_url=$(uci -q get cwmpd.cwmpd_config.acs_url)
 	if  [ ! "$ppp_user" ]; then
 		uci set env.var.isp="Other"
 		purify_from_tim
@@ -311,7 +312,8 @@ check_isp_config() {
 		   echo "$ppp_user" | grep -q "@00000." ; 
 		then
 			uci set env.var.isp="TIM"
-		elif echo "$ppp_user" | grep -q "tiscali.it" ; then
+		elif echo "$ppp_user" | grep -q "tiscali.it" || #acs tiscali is preconfigured 
+			echo "$cwmp_url" | grep -q "tiscali.it" ; then #on tiscali firmware only
 			uci set env.var.isp="Tiscali"
 		else
 			uci set env.var.isp="Other"
@@ -970,6 +972,7 @@ root() {
 	
 	logger -s -t "Root Script" "Setting dropbear settings"
 	uci set dropbear.@dropbear[0].Interface='lan'
+	uci set dropbear.@dropbear[0].RootLogin='1'
 	uci set dropbear.@dropbear[0].RootPasswordAuth='on' #dropbear root related
 	uci set dropbear.@dropbear[0].PasswordAuth='on'
 	uci set dropbear.@dropbear[0].enable='1'
