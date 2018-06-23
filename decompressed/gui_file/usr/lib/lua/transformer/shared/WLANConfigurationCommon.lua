@@ -328,8 +328,8 @@ local function enableBandSteer(key, commitapply)
   setBandSteerID(baseAP, relatedAP, bsid, true, commitapply)
   setBandSteerPeerIfaceSSID(baseIface, relatedIface, true, commitapply)
   -- set the authentication according to base AP authentication
-  setOnUci(relatedIface, "security_mode", getFromUci(baseIface, "security_mode"), commitapply)
-  setOnUci(relatedIface, "wpa_psk_key", getFromUci(baseAP, "wpa_psk_key"), commitapply)
+  setOnUci(relatedAP, "security_mode", getFromUci(baseAP, "security_mode"), commitapply)
+  setOnUci(relatedAP, "wpa_psk_key", getFromUci(baseAP, "wpa_psk_key"), commitapply)
 end
 
 -- Disables bandsteering

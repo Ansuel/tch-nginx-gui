@@ -141,13 +141,14 @@ uciwire = content_helper.convertResultToObject("uci.wireless.wifi-ap.",uciwire)
 
 --Construct the device type based on value of L2Interface
 local devices_filter = function(data)
-	for i,v in ipairs(uciwire) do
-		if data["L2Interface"] == v.iface then
-			if v.display_connected_devices and v.display_connected_devices ~= "1" then
-				return false
-			end
-		end
-	end
+  --Disable this stupid filter... We are root arter all ;)
+	--for i,v in ipairs(uciwire) do
+	--	if data["L2Interface"] == v.iface then
+	--		if v.display_connected_devices and v.display_connected_devices ~= "1" then
+	--			return false
+	--		end
+	--	end
+	--end
   --Display only the IP Address of physically connected devices
   if data["State"] and data["State"] == "0" then
      data["IPAddress"] = ""

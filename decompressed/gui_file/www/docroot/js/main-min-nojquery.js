@@ -2167,10 +2167,10 @@ function Apprise(a, u) {
                 }, r),
                 g = "ajaxUploader-iframe-" + Math.round((new Date).getTime() / 1E3);
             a("body").after('\x3ciframe width\x3d"0" height\x3d"0" style\x3d"display:none;" name\x3d"' + g + '" id\x3d"' + g + '"/\x3e');
-            a("#" + g).load(function() {
+            a("#" + g).on("load", function() {
                 var g, d = this.contentWindow.document.body.innerHTML;
                 try {
-                    g = a.parseJSON(d)
+                    g = JSON.parse(d)
                 } catch (n) {
                     g = d
                 }
@@ -2189,9 +2189,9 @@ function Apprise(a, u) {
                 }
                 return d
             });
-            u.submit(function(a) {
+            u.on("submit", function(a) {
                 a.stopPropagation()
-            }).submit()
+            }).trigger("submit")
         }
     })
 })(jQuery);

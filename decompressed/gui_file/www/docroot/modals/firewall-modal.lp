@@ -7,6 +7,7 @@ gettext.textdomain('webui-core')
 -- NG-93802 TI-GUI : Enabling/Disabling IPv6 Firewall option is not available in GUI
 
 local ngx = ngx
+local proxy = require("datamodel")
 local ui_helper = require("web.ui_helper")
 local post_helper = require("web.post_helper")
 local message_helper = require("web.uimessage_helper")
@@ -54,6 +55,10 @@ local fw_params = {
     fw_outgoing_policy = "rpc.network.firewall.useroutgoingdefault",
     fw_incoming_policy = "rpc.network.firewall.userincomingdefault",
 }
+
+if not proxy.get(fw_params.fw_ipv6) then
+	fw_params.fw_ipv6 = nil
+end
 
 -- Retrieve GW IP + netmask for use by validation function
 local ipdetails = {
@@ -504,7 +509,7 @@ local fwrule_ping_defaultObject = {
     src = "wan",
     target = "ACCEPT",
     name = "WhiteList",
-    proto = "icmp"
+    proto = { "icmp" }
 }
 
 -- pingrule handleTableQuery parameter to check validity of new entry values
@@ -759,8 +764,10 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     ngx.print(ui_helper.createSwitch(T"Answer All IPv4 Internet pings", "fwv4_ping", content["fwv4_ping"], switch_class_enable))
     ngx.print(ui_helper.createAlertBlock(T"Answer only these selected Internet IPv4 pings", pingrespv4_alert_attr))
     ngx.print(ui_helper.createTable(fwrulev4_ping_columns, fwrulev4_ping_data, fwrulev4_ping_options, pingrespv4_table_attr, fwrulev4_ping_helpmsg))
-
-	ngx.print(ui_helper.createSwitch(T"IPv6 Firewall", "fw_ipv6", content["fw_ipv6"]))
+	
+	if content["fw_ipv6"] then
+		ngx.print(ui_helper.createSwitch(T"IPv6 Firewall", "fw_ipv6", content["fw_ipv6"]))
+	end
 	
     ngx.print(ui_helper.createSwitch(T"Answer All IPv6 Internet pings", "fwv6_ping", content["fwv6_ping"], switch_class_enable))
     ngx.print(ui_helper.createAlertBlock(T"Answer only these selected Internet IPv6 pings", pingrespv6_alert_attr))

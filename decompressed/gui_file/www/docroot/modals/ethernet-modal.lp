@@ -969,7 +969,7 @@ local baseip = ipv42num(content["localdevIP"])
 local netmask = ipv42num(content["localdevmask"])
 local start = tonumber(content["dhcpStart"])
 local numips = tonumber(content["dhcpLimit"])
-local ipstart,ipend,network
+local ipstart,ipend,network, modemIPChangeState
 if start and numips and not helpmsg["localdevIP"] and not helpmsg["localdevmask"] and not helpmsg["dhcpStart"] and not helpmsg["dhcpLimit"] then
   ipstart,ipend,network = calculateDHCPStartAddress(baseip,netmask,start,numips)
   session:store("dhcpStartAddr",ipstart)
@@ -985,6 +985,9 @@ if helpmsg["leaseTime"] then
 end
   if ngx.var.request_method == "POST" then
     local gwIP = session:retrieve("old_ip")
+    if curintf == "lan" and content["localdevIP"]~= gwIP and not next(helpmsg) then
+       modemIPChangeState = "1"
+    end
     session:store("old_ip",(content["localdevIP"]))
 
   -- Redirect the GUI only if the local GW device IP address is changed for the "lan" interface
@@ -1136,7 +1139,7 @@ local content_sfp, helpmsg = post_helper.handleQuery(mapParSFP, mapValSFP)
                  ngx.print('\
               ');  
               -- Do not display the static lease when the interface is not lan
-              if curintf == "lan" then
+              if curintf == "lan" and modemIPChangeState ~= "1" then
                 ngx.print('\
                   <legend>');  ngx.print( T"Static leases" ); ngx.print('</legend>\
                   ');  

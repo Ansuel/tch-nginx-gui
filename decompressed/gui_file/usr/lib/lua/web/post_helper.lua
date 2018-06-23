@@ -1511,6 +1511,29 @@ function M.validateStringIsIPv6(value)
         return nil, T"Invalid IPv6 Address, address group is invalid."
     end
 end
+
+
+-- Return broadcast address as number to calling function
+local function broadcastAddress(network, netmask)
+  local broadcast = bit.bor(network, bit.bnot(netmask))
+  return broadcast
+end
+
+-- Return network address as number to calling function
+local function networkAddress(ipAddr, netmask)
+  local network = bit.band(ipAddr,netmask)
+  return network
+end
+
+-- validate the given ip/subnet is broadcast address or not
+function M.isBroadcastAddress(ip, subnetMask)
+  local netmask = ipv42num(subnetMask)
+  local network = networkAddress(ip, netmask)
+  local broadcast = broadcastAddress(network, netmask)
+
+  return broadcast == ip
+end
+
 --- This function is used for Local Device IP validation and NTP server validation. It is validating that:
 -- if object["localdevmask"] is a valid netmask
 -- the [value] a valid IPv4 address,
@@ -1573,19 +1596,15 @@ function M.advancedIPValidation(value, object, key)
 
 
     --in case of valid ip is the broadcast or network adress based on the network mask
-    local netmask
-    if object["localdevmask"] then
-        netmask =  ipv42num(object["localdevmask"])
-        local network = bit.band(ip, netmask)
-
-        --If broadcast == ip
-        if bit.bor(network, bit.bnot(netmask)) == ip then
-            return nil, T"Cannot use the broadcast address."
+    if object.localdevmask then
+        local success1, errmsg = M.isNetworkAddress(value, object.localdevmask)
+        if success1 then
+            return nil, T"Cannot use the network address"
         end
 
-        --if network == ip
-        if bit.band(ip, netmask) == ip then
-            return nil, T"Cannot use the network address."
+        local success2, errmsg2 = M.isBroadcastAddress(ip, object.localdevmask)
+        if success2 then
+            return nil, T"Cannot use the broadcast address"
         end
     end
     return true
@@ -1616,6 +1635,74 @@ function M.isPublicIP(value)
         return nil, T"Not a Public Address"
     end
     return true
+end
+
+--- is the given ip address valid as a DNS server IP in the given context
+-- @param @tstring ipaddr the IP address
+-- @param @ttable dnsData the localdev mask
+-- @return true or nil+error message
+function M.DNSIPValidation(ipaddr, dnsData)
+    local ip = ipv42num(ipaddr)
+    if not ip then
+        return nil, T"Invalid IP Address."
+    end
+
+    if startLoopback <= ip and ip <= endLoopback then
+        return nil,T"Cannot use IPv4 loopback address range"
+    end
+
+    if startMulticastRange <= ip and endMulticastRange >= ip then
+        return nil, T"Cannot use a multicast address"
+    end
+
+    if limitedBroadcast == ip then
+        return nil, T"Cannot use the limited broadcast destination address"
+    end
+
+    local success1, errmsg = M.isNetworkAddress(ipaddr, dnsData.localdevmask)
+    if success1 then
+        return nil, T"Cannot use the network address"
+    end
+
+    local success2, errmsg2 = M.isBroadcastAddress(ip, dnsData.localdevmask)
+    if success2 then
+        return nil, T"Cannot use the broadcast address"
+    end
+
+    return true
+end
+
+--- Check whether the given IP address is in any WAN interface subnet range
+-- @tstring ipAddress the IP address
+-- @ttable all_intfs the all interfaces
+-- @treturn true and interface name if the given IP address is in any WAN subnet range otherwise nil
+function M.isWANIP(ipAddress, all_intfs)
+  local ip = ipv42num(ipAddress)
+  if not ip then
+    return nil, T"Invalid input"
+  end
+
+  for _, v in ipairs(all_intfs) do
+    local networkWan, wanIpMax
+    if v.type == "wan" and v.ipaddr ~= "" then
+      local baseip = ipv42num(v.ipaddr)
+      local netmask = inet.netmaskToNumber(tonumber(v.ipmask))
+      if not netmask then
+        return nil, T"Invalid netmask"
+      end
+
+      if baseip and netmask then
+        networkWan = networkAddress(baseip, netmask)
+        wanIpMax = broadcastAddress(networkWan, netmask)
+      end
+
+      if networkWan and wanIpMax then
+        if networkWan <= ip and ip <= wanIpMax then
+          return true, v.paramindex
+        end
+      end
+    end
+  end
 end
 
 ---This function converts a CIDR(Classless Inter-domain routing) notation to a subnet mask. Eg, convert 24 to 255.255.255.0
@@ -1884,6 +1971,17 @@ function M.isUpgradeAllowed(upgradefw, userRole)
       return true
     end
   end
+end
+
+-- Is space allowed or not
+-- @param value is a input string
+-- @return true if no space in input string
+-- @return nil, error message if space in input string
+function M.isSpaceInString(value)
+  if value:match("%s") then
+    return nil, T"space is not allowed"
+  end
+  return true
 end
 
 return M

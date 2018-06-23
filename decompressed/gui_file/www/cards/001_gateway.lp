@@ -9,18 +9,9 @@ local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
 
 local find, sub = string.find, string.sub
-local version = proxy.get("uci.version.version.@version[0].marketing_version")
-if version then
-    version = version[1].value
-else
-    version = ""
-end
-local name = proxy.get("uci.version.version.@version[0].marketing_name")
-if name then
-    name = name[1].value
-else
-    name = ""
-end
+local version = proxy.get("uci.version.version.@version[0].marketing_version")[1].value or ""
+
+local name = proxy.get("uci.version.version.@version[0].marketing_name")[1].value or ""
 
 local content = {}
 
@@ -32,14 +23,15 @@ local modalPath = nil
 local switchName = nil
 local session = ngx.ctx.session
 
-local variant = proxy.get("uci.env.rip.board_mnemonic")[1].value
+local variant = proxy.get("uci.env.var.prod_friendly_name")[1].value or ""
+local model = nil
 
-if  ( variant == "VBNT-K" ) then
-	model = "AGTEF"
-end
-
-if ( variant == "VBNT-S" ) then
-	model = "AGTHP"
+if  ( variant == "DGA4130" ) then
+	model = "_AGTEF"
+elseif ( variant == "DGA4132" ) then
+	model = "_AGTHP"
+elseif ( variant == "MediaAccess TG789vac v2" ) then
+	model = "_TG789vac"
 end
 	
 if session:hasAccess("/modals/gateway-modal.lp") then
@@ -60,9 +52,9 @@ end
 					</strong></span>\
       <div data-remote="modals/gateway-modal.lp" data-id="gateway-modal">\
 	    <picture>\
-		    <source srcset="/img/gateway_'); ngx.print(model); ngx.print('.webp" type="image/webp">\
-		    <source srcset="/img/gateway_'); ngx.print(model); ngx.print('.png" type="image/png">\
-        <img class="someInfos" href="#" rel="tooltip" data-placement="top" data-original-title="');  ngx.print( T"your gateway" ); ngx.print('" src="/img/gateway_'); ngx.print(model); ngx.print('.png" alt="gateway">\
+		    <source srcset="/img/gateway'); ngx.print(model); ngx.print('.webp" type="image/webp">\
+		    <source srcset="/img/gateway'); ngx.print(model); ngx.print('.png" type="image/png">\
+        <img class="someInfos" href="#" rel="tooltip" data-placement="top" data-original-title="');  ngx.print( T"your gateway" ); ngx.print('" src="/img/gateway'); ngx.print(model); ngx.print('.png" alt="gateway">\
 		</picture>\
 		</div>\
       </div>\

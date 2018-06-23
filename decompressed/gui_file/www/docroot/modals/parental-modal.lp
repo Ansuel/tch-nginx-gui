@@ -3,7 +3,7 @@
 -- Localization
 --NG-101457 [TI] - Language Pack : [CTS-Workaround] Translation on Modal Parental Controle not taken into account
 gettext.textdomain('webui-parental')
-
+local proxy = require("datamodel")
 local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
 local message_helper = require("web.uimessage_helper")
@@ -53,12 +53,12 @@ local function validateSiteAndDuplicateCheck(value,data,key)
   return nil,err
 end
 
-if ngx.var.request_method == "POST" then
+--[[if ngx.var.request_method == "POST" then
     local content = ngx.req.get_post_args()
 
     -- os.execute("/etc/init.d/urlfilterd-tch stop")
     -- os.execute("/etc/init.d/urlfilterd-tch start")
-end
+end]]--
 
 -- In UCI
 -- config 'URLfilter'
@@ -189,7 +189,7 @@ local keywords_valid = {
     ["keywords"] = gVSLIR(1,19),
 }
 
-local parental_data, parental_helpmsg = post_helper.handleTableQuery(parental_columns, parental_options, parental_filter, nil, entries_valid)
+local parental_data, parental_helpmsg = post_helper.handleTableQuery(parental_columns, parental_options, nil, nil, entries_valid)
 -- session variable parental_site contains all the Rules
 session:store("parental_site", parental_data)
 local keywords_data, keywords_helpmsg = post_helper.handleTableQuery(keywords_columns, keywords_options, nil, nil, keywords_valid)
@@ -217,6 +217,30 @@ if ngx.var.request_method == "POST" then
         break
       end
     end
+    local function get_content_name(parental_options)
+      local objectname = parental_options.objectName
+      if post_data.action == "TABLE-MODIFY" then
+        objectname = parental_options.changesessionindex
+      end
+      return objectname
+    end
+    if post_data.site and post_data.site ~= "" then
+      local url = post_data.site:match("^(.*)/$") or post_data.site
+      if url:match("http") then
+        url = url:match("//([^/]+)")
+        if url:match("www") then
+          url = string.match(url,"%.(%S+)")
+        end
+      elseif url:match("www") then
+        url = url:match("%.([^/]+)")
+      elseif url:match("/") then
+        url = url:match("([^/]+)")
+      else
+        url = string.match(url,"(%S+)")
+      end
+      proxy.set({ ["uci.parental.URLfilter.@" .. get_content_name(parental_options) .. ".site"] = url})
+      proxy.apply()
+    end
   end
 end
 
@@ -227,7 +251,7 @@ local help_link = { href="/help/index.html?anchor=" .. uri:match("/([^/]+)%.lp")
 ');  ngx.print(ui_helper.createHeader(T"Parental Controls", false, false, nil) ); ngx.print('\
 \
 <div class="modal-body update">\
-');  
+');
     local lp = require("web.lp")
     lp.setpath("/www/snippets/")
     lp.include("tabs-tod.lp")
@@ -239,7 +263,7 @@ local help_link = { href="/help/index.html?anchor=" .. uri:match("/([^/]+)%.lp")
 ');  ngx.print(
         ui_helper.createSwitch(T"Enabled", "sites_enabled", qry_data["sites_enabled"], nil, qry_helpmsg["sites_enabled"]),
         --ui_helper.createSwitch(T"Exclude Mode", "sites_exclude", qry_data["sites_exclude"], nil, qry_helpmsg["sites_exclude"]),
-        ui_helper.createAlertBlock(T"Note:Parental control url filter not supported for https sites.",exporting_alert),
+        ui_helper.createAlertBlock(T"Note:Parental control url filter not supported for https sites and will block all the webpages related to the given domain name.",exporting_alert),
         ui_helper.createTable(parental_columns, parental_data, parental_options, nil, parental_helpmsg)
 ); ngx.print('\
     <legend>');  ngx.print( T"Keyword Filter" ); ngx.print('</legend>\
@@ -266,4 +290,4 @@ $("[name =\'device\']").change(function () {\
 </script>\
 \
 ');  ngx.print( ui_helper.createFooter() ); ngx.print('\
-'); 
+');

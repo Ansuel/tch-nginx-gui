@@ -24,6 +24,8 @@ local AF_INET6 = posix.AF_INET6
 local inet_pton = posix.inet_pton
 local match, format = string.match, string.format
 local tonumber, type = tonumber, type
+local max = math.max
+local min = math.min
 
 local M = {}
 
@@ -99,6 +101,16 @@ function M.isValidGlobalUnicastv6Address(ipv6addr)
     end
   end
   return nil, "Invalid Global Unicast Address"
+end
+
+--- Convert a number of bits to a number representing the netmask
+-- In particular it will check that the input netmask falls in the range of 1 to 32
+-- @tnumber num the subnet value as number
+-- @treturn number representing the netmask or nil
+function M.netmaskToNumber(num)
+  if num and 1 <= num and num <= 32 then
+    return (2^num-1)*(2^(32-num))
+  end
 end
 
 return M

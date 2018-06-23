@@ -96,11 +96,11 @@ end)
 local firewall_rule_options = {
     "enabled", "name", "family", "src", "dest", "ipset", "extra", "limit", "limit_burst", "utc_time",
     "start_date", "stop_date", "start_time", "stop_time", "weekdays", "monthdays", "mark", "set_mark", "set_xmark",
-    "target", "proto","src_ip", "src_mac", "src_port", "dest_ip", "dest_port",
+    "target", "src_ip", "src_mac", "src_port", "dest_ip", "dest_port",
 
 }
 local firewall_rule_list = {
-    "icmp_type",
+    "icmp_type", "proto",
 }
 
 local firewall_rule = {

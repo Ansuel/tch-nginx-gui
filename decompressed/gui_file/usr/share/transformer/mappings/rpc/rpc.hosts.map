@@ -265,14 +265,7 @@ rpc_hosts_host_i_.entries = function(mapping)
   updateLanCache()
   loadStaticLeases()
   updateDhcpInfo()
-  local _, macAddr = getExternalWifiIntfType()
-  local Hosts = {}
-  for _, v in pairs(hostsCache) do
-    if (v["technology"] == "wireless" or v["technology"] == "ethernet") and (isLanInterface(v["interface"]) or v["technology"] == "wireless" ) and(v["mac-address"] ~= macAddr)  then
-        Hosts[#Hosts+1] = v["mac-address"]
-    end
-  end
-  return Hosts
+  return network.getHostInfo(hostsCache, function(info) return info["mac-address"] end)
 end
 
 -- Only connected IP address are retrieved with this parameter
@@ -476,11 +469,7 @@ rpc_hosts_host_i_.get = {
   SSID = function(mapping, param, key)
 	local dev = key2dev(key)
     local iface = extractL2Interface(dev)
-	local ssid = uciHelper.get_from_uci({ config = "wireless", sectionname = iface , option = "ssid"})
-	if ssid == nil then
-		return ""
-	end
-	return ssid
+    return iface and uciHelper.get_from_uci({ config = "wireless", sectionname = iface , option = "ssid"}) or ""
   end,
 }
 

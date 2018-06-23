@@ -1,2 +1,3 @@
 ^samba /etc/init.d/samba reload; /etc/init.d/samba-nmbd reload
-^samba%.%?%.samba%.filesharing /etc/init.d/samba restart
+^samba%.samba%.samba%.filesharing$ /etc/init.d/samba restart
+^samba%.sambashare%.printers%.enabled /etc/init.d/samba restart

@@ -89,7 +89,9 @@ end
   ngx.print('\
 \
 ');  ngx.print( ui_helper.createCardHeader(T"Broadband", modalPath) ); ngx.print('\
-<div class="content">\
-  ');  ngx.print( ui_helper.createSimpleLight(nil, intf_state_map[intf_state], { light = { class = intf_light_map[intf_state] } }) ); ngx.print('\
+<div class="content card_bg" data-bg-text="&#xf0b2;">\
+  <div class="divtable">\
+    ');  ngx.print( ui_helper.createSimpleLight(nil, intf_state_map[intf_state], { light = { class = intf_light_map[intf_state] } }) ); ngx.print('\
+  </div>\
 </div>\
 '); 

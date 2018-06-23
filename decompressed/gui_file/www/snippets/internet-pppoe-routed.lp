@@ -312,7 +312,10 @@ content_helper.getExactContent(content_rpc)
 local dnstab = split(content_rpc.dns_loopback, "[^%,]+")
 local dnsv4, dnsv6 = dns_filter(dnstab)
 content_rpc.dns = content_helper.getMergedList(content_rpc.dns_wan, dnsv4)
-content_rpc.dnsv6 = content_helper.getMergedList(content_rpc.dnsv6, dnsv6)
+
+if proxy.get("uci.network.interface.@wan.ipv6")[1].value == "1" then
+	content_rpc.dnsv6 = content_helper.getMergedList(c.dnsv6, dnsv6)
+end
 
 local wan_atm_uci_path = format("uci.xtm.atmdevice.@%s.", content_rpc["wan_ppp_ll_intf"])
 local wan_ppp_over_atm = proxy.get(wan_atm_uci_path) ~= nil
@@ -422,18 +425,18 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	ajax_attr.span.id = "dns"
     html[#html+1] = ui_helper.createLabel(T"DNS servers", content_rpc["dns"], ajax_attr)
 	if proxy.get("uci.network.interface.@wan.ipv6")[1].value == "1" then
-   --if content_rpc["ip6addr"] and content_rpc["ip6addr"]:len() > 0 then
-		ajax_attr.span.id = "ip6addr"
-        html[#html+1] = ui_helper.createLabel(T"IPv6 Address", content_rpc["ip6addr"], ajax_attr)
-    --end
-    --if content_rpc["ip6prefix"] and content_rpc["ip6prefix"]:len() > 0 then
-		ajax_attr.span.id = "ip6prefix"
-        html[#html+1] = ui_helper.createLabel(T"IPv6 Prefix", content_rpc["ip6prefix"], ajax_attr)
-    --end
-   --if content_rpc["dnsv6"] and content_rpc["dnsv6"]:len() > 0 then
-		ajax_attr.span.id = "dnsv6"
-        html[#html+1] = ui_helper.createLabel(T"IPv6 DNS", content_rpc["dnsv6"],ajax_attr)
-   --end
+		if content_rpc["ip6addr"] and content_rpc["ip6addr"]:len() > 0 then
+		jax_attr.span.id = "ip6addr"
+		html[#html+1] = ui_helper.createLabel(T"IPv6 Address", content_rpc["ip6addr"], ajax_attr)
+		end
+		if content_rpc["ip6prefix"] and content_rpc["ip6prefix"]:len() > 0 then
+		jax_attr.span.id = "ip6prefix"
+		html[#html+1] = ui_helper.createLabel(T"IPv6 Prefix", content_rpc["ip6prefix"], ajax_attr)
+		end
+		if content_rpc["dnsv6"] and content_rpc["dnsv6"]:len() > 0 then
+			ajax_attr.span.id = "dnsv6"
+			html[#html+1] = ui_helper.createLabel(T"IPv6 DNS", content_rpc["dnsv6"],ajax_attr)
+		end
    end
 
 

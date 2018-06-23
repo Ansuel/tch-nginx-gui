@@ -67,13 +67,17 @@ local mapValid = {
 	lan_queues_default = gVIES(lan_queue_options),
 }
 
+if not proxy.get(mapParams.wan_queues_enabled) then
+	mapParams.wan_queues_enabled = "uci.qos.interface.@wan.enable"
+end
+	
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
 
 if content.wan_queues_enabled == "" then
-    content.wan_queues_enabled = "1"
+    content.wan_queues_enabled = "0"
 end
 if content.lan_queues_enabled == "" then
-    content.lan_queues_enabled = "1"
+    content.lan_queues_enabled = "0"
 end
 
 -- queue table

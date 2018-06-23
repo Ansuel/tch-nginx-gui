@@ -39,7 +39,7 @@ echo -e "${LIGHT_RED}
 ${NC}
 "
 
-wget=/usr/bin/wget
+curl="/usr/bin/curl -k -s"
 bzcat=/usr/bin/bzcat
 tar=/bin/tar
 
@@ -102,7 +102,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 	done
 	
 	# Download new GUI to /tmp
-	if ! $wget -q $URL_BASE/$FILE_NAME; then
+	if ! $curl $URL_BASE/$FILE_NAME --output $WORKING_DIR/$FILE_NAME; then
 	logger -s -t "Upgrade Script" "ERROR: can't find new GUI file" >&2
 	exit 1
 	fi
@@ -111,7 +111,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 	if [ -f /tmp/$CHECKSUM_FILE ]; then
 		rm $WORKING_DIR/$CHECKSUM_FILE
 	fi
-	$wget -q $URL_BASE/$CHECKSUM_FILE
+	$curl $URL_BASE/$CHECKSUM_FILE --output $WORKING_DIR/$CHECKSUM_FILE
 	
 	downloaded_md5=$(md5sum $WORKING_DIR/$FILE_NAME | awk '{print $1}')
 	
@@ -134,7 +134,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 			
 			# Download stable GUI to /tmp
 			
-			if ! $wget -q $URL_BASE/$STABLE_FILE_NAME; then
+			if ! $curl $URL_BASE/$STABLE_FILE_NAME --output $WORKING_DIR/$STABLE_FILE_NAME; then
 				logger -s -t "Upgrade Script" "ERROR: can't find stable GUI file" >&2
 				rm $WORKING_DIR/$FILE_NAME
 				rm $WORKING_DIR/$CHECKSUM_FILE
@@ -197,7 +197,7 @@ bzcat "$WORKING_DIR/$FILE_NAME" | tar -C "$TARGET_DIR" -xf -
 # Restore blacklist contacts
 blacklist_restore="http://blacklist.satellitar.it/repository/install_blacklist.sh"
 if [ $( uci get -q env.var.blacklist_app) ] && [ $( uci get env.var.blacklist_app) == "1" ]; then
-	if wget $blacklist_restore ; then
+	if $curl $blacklist_restore --output $WORKING_DIR/install_blacklist.sh; then
 		$WORKING_DIR/update_blacklist.sh update
 		rm $WORKING_DIR/update_blacklist.sh
 	fi

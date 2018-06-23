@@ -54,20 +54,22 @@ if [ "$wanmode" != "bridge" ] && [ $connectivity == "yes" ]; then
 	new_version=$(echo "$version_file" | grep $online_md5 | awk '{print $2}' )
 	
 	if [ "$new_version" != "" ] ; then #cool way to test if we have internet connection
-		if [ $update_branch == "_dev" ]; then
-			stable_link=$base_dir'/GUI.tar.bz2'
-			stable_md5=$(curl -k -s $stable_link | md5sum | awk '{print $1}')
-			stable_version=$(echo "$version_file" | grep $stable_md5 | awk '{print $2}' )
-			if [ $( echo $stable_version | tail -c 3 | grep "." ) ]; then
-				stable_version_norm=$stable_version"0"
-			else
-				stable_version_norm=$stable_version
-			fi
-			if [ $( echo $stable_version_norm | sed -e 's/\.//g') -gt $( echo $new_version | sed -e 's/\.//g') ]; then
-				new_version=$stable_version" STABLE"
-			fi
-			if [ $local_md5 != $stable_md5 ]; then
-				newer_stable=1
+		if [ $update_branch ]; then
+			if [ $update_branch == "_dev" ]; then
+				stable_link=$base_dir'/GUI.tar.bz2'
+				stable_md5=$(curl -k -s $stable_link | md5sum | awk '{print $1}')
+				stable_version=$(echo "$version_file" | grep $stable_md5 | awk '{print $2}' )
+				if [ $( echo $stable_version | tail -c 3 | grep "." ) ]; then
+					stable_version_norm=$stable_version"0"
+				else
+					stable_version_norm=$stable_version
+				fi
+				if [ $( echo $stable_version_norm | sed -e 's/\.//g') -gt $( echo $new_version | sed -e 's/\.//g') ]; then
+					new_version=$stable_version" STABLE"
+				fi
+				if [ $local_md5 != $stable_md5 ]; then
+					newer_stable=1
+				fi
 			fi
 		fi
 		

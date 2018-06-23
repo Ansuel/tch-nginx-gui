@@ -534,7 +534,10 @@ local profile_map = {
             pbinding.config = object.config
             pbinding.sectionname = name
             pbinding.option = "uri"
-            return uci_helper.get_from_uci(pbinding) or ""
+	    local val = uci_helper.get_from_uci(pbinding) or ""
+            pbinding.option = "enabled"
+	    local isEnabled = uci_helper.get_from_uci(pbinding) or ""
+	    return isEnabled == "0" and "" or val
         end,
         PrefixMinNumberOfDigits = scc_entry_map.value.PrefixMinNumberOfDigits,
         PrefixMaxNumberOfDigits = PrefixMinNumberOfDigits,

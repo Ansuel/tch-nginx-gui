@@ -8,9 +8,9 @@ local proxy = require("datamodel")
 local content_helper = require("web.content_helper")
 local insert, format = table.insert, string.format
 
-local gui_version = proxy.get("uci.env.var.gui_version")[1].value
+local gui_version = proxy.get("uci.env.var.gui_version")[1].value or nil
 
-local marketing_version = proxy.get("uci.version.version.@version[0].marketing_version")[1].value
+local marketing_version = proxy.get("uci.version.version.@version[0].marketing_version")[1].value or nil
 
 local mapParams = {
 	xupnp_application = "uci.env.var.xupnp_app",
@@ -19,6 +19,7 @@ local mapParams = {
     transmission_webui = "uci.env.var.transmission_webui",
 	blacklist_application = "uci.env.var.blacklist_app",
 }
+
 content_helper.getExactContent(mapParams)
 
 local StateParams = {}

@@ -121,9 +121,17 @@ local function deleteFirewallUserRules(mapping, key)
     return true
 end
 
+local function getProtoValue(protocol)
+  if type(protocol) == "table" then
+    return protocol[1] or ""
+  end
+  return protocol or ""
+end
+
 local function getallFromUCI(key)
     local binding = getBindingForIndex(key)
     local result = uci_helper.getall_from_uci(binding)
+    result.proto = getProtoValue(result.proto)
     return result
 end
 
@@ -176,7 +184,7 @@ local getFirewallUserRules = {
         return getFromUCI(key, paramname)
     end,
     proto =  function(mapping, paramname, key)
-        return getFromUCI(key, paramname)
+	return getProtoValue(getFromUCI(key, paramname))
     end,
     family =  function(mapping, paramname, key)
         return getFromUCI(key, paramname)
@@ -224,7 +232,8 @@ local setFirewallUserRules = {
         setOnUCI(key, paramname, paramvalue)
     end,
     proto =  function(mapping, paramname, paramvalue, key)
-        setOnUCI(key, paramname, paramvalue)
+        local value = { paramvalue }
+        setOnUCI(key, paramname, value)
     end,
     family =  function(mapping, paramname, paramvalue, key)
         setOnUCI(key, paramname, paramvalue)

@@ -1,1 +1,1 @@
-^parental /etc/init.d/firewall restart
+^parental /etc/init.d/firewall reload;/etc/init.d/weburl restart

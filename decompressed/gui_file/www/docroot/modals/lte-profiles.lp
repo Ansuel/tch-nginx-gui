@@ -11,6 +11,7 @@ local utils = require("web.lte-utils")
 local ui_helper = require("web.ui_helper")
 local post_helper = require("web.post_helper")
 local content_helper = require("web.content_helper")
+local gAV = post_helper.getAndValidation
 
 local interfaces_basepath = "uci.network.interface.@."
 local interfaces_columns = {
@@ -67,9 +68,9 @@ local authtypes = {
 
 local profile_valid = {
 	["apn"] = isValidAPN,
-	["name"] = post_helper.getValidateStringLengthInRange(1, maxFieldSize),
-	["username"] = post_helper.getValidateStringLengthInRange(0, maxFieldSize),
-	["password"] = post_helper.getValidationPassword(post_helper.getValidateStringLengthInRange(0, maxFieldSize)),
+       	["name"] = gAV(post_helper.getValidateStringLengthInRange(1, maxFieldSize), post_helper.isSpaceInString),
+	["username"] = gAV(post_helper.getValidateStringLengthInRange(0, maxFieldSize), post_helper.isSpaceInString),
+	["password"] = gAV(post_helper.getValidationPassword(post_helper.getValidateStringLengthInRange(0, maxFieldSize)), post_helper.isSpaceInString),
 	["pdptype"] = post_helper.getValidateInEnumSelect(pdptypes)
 }
 
