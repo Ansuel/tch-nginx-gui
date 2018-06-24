@@ -161,6 +161,7 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H042") or content.dsl0_xdsl_Firmwa
 		--table.insert(driver_option,{ "A2pvfbH043f.d26r", 'A2pvfbH043f.d26r (DSL AC88U) ' .. T'Less Ping'}) --Missing
 		tinsert(driver_option, { "B2pvfbH043g.d26r", 'B2pvfbH043g.d26r (DSL-AC68VG_v5.00.04)'})
 		tinsert(driver_option, { "A2pvfbH043g.d26r", 'A2pvfbH043g.d26r (TG800 Vbant-s)'})
+		tinsert(driver_option, { "B2pvfbH043i1.d26r", 'B2pvfbH043i1.d26r (VMG8823-B60B_5.13)'})
 		tinsert(driver_option, { "A2pvfbH043k.d26r", 'A2pvfbH043k.d26r (AGTEF_1.1.0)'})
 		tinsert(driver_option, { "B2pvfbH043k.d26r", 'B2pvfbH043k.d26r (DSL-AC88U-B_v1.10.05)'})
 		tinsert(driver_option, { "A2pvfbH043o.d26r", 'A2pvfbH043o.d26r (DSL88U) ' .. T'Beta Firmware'})
