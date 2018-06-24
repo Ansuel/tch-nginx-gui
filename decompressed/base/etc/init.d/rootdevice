@@ -30,7 +30,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=7.18.33
+version_gui=7.18.39
 
 logo_project() {
 cat << EOF > /dev/console
@@ -373,7 +373,7 @@ trafficmon_support() {
 checkver_cron() {
 	if [ -f /etc/crontabs/root ]; then
 		if [ ! "$(cat /etc/crontabs/root | grep -q checkver)" ] ; then
-			echo "0 5 * * * /usr/share/transformer/scripts/checkver.sh Schedule >/dev/null 2>&1" >> /etc/crontabs/root
+			echo "0 5 * * * /usr/share/transformer/scripts/checkver Schedule >/dev/null 2>&1" >> /etc/crontabs/root
 			/etc/init.d/cron restart
 		fi
 		if [ -f /etc/crontabs/root_gui ]; then
@@ -381,7 +381,7 @@ checkver_cron() {
 		fi
 		if [ ! $(cat /etc/crontabs/root | grep Schedule) ] && [ $(cat /etc/crontabs/root | grep -q checkver) ]; then
 			sed -e /scripts/d -i /etc/crontabs/root
-			echo "0 5 * * * /usr/share/transformer/scripts/checkver.sh Schedule >/dev/null 2>&1" >> /etc/crontabs/root
+			echo "0 5 * * * /usr/share/transformer/scripts/checkver Schedule >/dev/null 2>&1" >> /etc/crontabs/root
 			/etc/init.d/cron restart
 		fi
 	else
@@ -983,7 +983,7 @@ root() {
 	cumulative_check_gui #Handle strange installation
 	
 	logger -s -t "Root Script" "Sync version"
-	if [ -f /usr/share/transformer/scripts/checkver.sh ]; then
+	if [ -f /usr/share/transformer/scripts/checkver ]; then
 		checkver_cron
 	fi
 	

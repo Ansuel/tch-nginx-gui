@@ -51,7 +51,7 @@ if [ "$1" ]; then
 			if [ "$(cat /etc/crontabs/root | grep upgradegui )" ]; then
 				sed -i '/upgradegui/d' /etc/crontabs/root
 			fi
-			echo "* "$hour" * * * /usr/share/transformer/scripts/upgradegui.sh AutoUpgrade" >> /etc/crontabs/root
+			echo "0 "$hour" * * * /usr/share/transformer/scripts/upgradegui AutoUpgrade >/dev/null 2>&1" >> /etc/crontabs/root
 		else
 			if [ "$(cat /etc/crontabs/root | grep upgradegui )" ]; then
 				sed -i '/upgradegui/d' /etc/crontabs/root
@@ -61,7 +61,7 @@ if [ "$1" ]; then
 	fi	
 	
 	if [ $1 == "AutoUpgrade" ]; then
-		/usr/share/transformer/scripts/checkver.sh
+		/usr/share/transformer/scripts/checkver
 		if [ $(uci get env.var.outdated_ver) == "0" ]; then
 			logger -s -t "Upgrade Script" "Already at latest version. Abort upgrade."
 			exit 0
