@@ -197,6 +197,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     <form class="form-horizontal" method="post" action="modals/xdsl-low-modal.lp">\
     ');  
       local span5 = { span = { class = "span5" } }
+	  local alertinfo = { alert = { class = "alert-info" } }
       local html = {}
       html[#html + 1] = ui_helper.createLight(T"Status", nil, state_map[untaint(content.dsl0_enabled)], { light = { class = light_map[untaint(content.dsl0_enabled)] } })
       html[#html + 1] = ui_helper.createLabel(T"Dslam Chipset",content.dslam_chipset, span5 )
@@ -210,10 +211,12 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = ui_helper.createLabel(T"Firmware Version",content.dsl0_xdsl_FirmwareVersion, span5 )
 	  if not driver_option then
 		html[#html + 1] = ui_helper.createLabel(T"Driver Version",T"We don't have any firmware for this modem, please report them to the github page. ", span5 )
-	  elseif not bridgedmode.isBridgedMode() and not voicemode.isVoiceMode() then
-		html[#html + 1] = ui_helper.createInputSelect(T"Driver Version", "driver_ver", driver_option, driver_content["driver_ver"])
 	  else
-		html[#html + 1] = ui_helper.createLabel(T"Driver Version",T"In this mode, the script you cant download the driver. Download and apply it manually. Look in the forum repository for more info. ", span5 )
+	    if bridgedmode.isBridgedMode() or voicemode.isVoiceMode() then
+		  html[#html + 1] = ui_helper.createAlertBlock(T"In this mode, your modem may not have internet connection. The script may fail to download the new firmware. \
+														It is advised to download and apply it manually. Look in the forum repository for more info. ", alertinfo)
+		end
+		html[#html + 1] = ui_helper.createInputSelect(T"Driver Version", "driver_ver", driver_option, driver_content["driver_ver"])
 	  end
 	  html[#html + 1] = ui_helper.createSwitch(T"SRA", "ds10_sra", driver_content["ds10_sra"])
 	  html[#html + 1] = ui_helper.createSwitch(T"Bitswap", "ds10_bitswap", driver_content["ds10_bitswap"])
