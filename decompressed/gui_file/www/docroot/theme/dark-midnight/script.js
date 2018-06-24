@@ -27,7 +27,7 @@ window.addEventListener('scroll', function(){
 	ruleR1.style.transform = 'translateY( -' + window.scrollY + 'px)';
 });
 
-$( document ).ready(function() {
+window.onload = function(){
   
   document.querySelector('.apprise-overlay').style.opacity = "";
   $(document).off("touchend", '[data-toggle\x3d"modal"]');
@@ -55,7 +55,8 @@ $( document ).ready(function() {
 	  closeNav();
     });
   }
-});
+}
+
 var blockHeight = false;
 var modalOpen = false;
 

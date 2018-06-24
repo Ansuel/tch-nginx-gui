@@ -30,7 +30,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=7.18.39
+version_gui=7.18.44
 
 logo_project() {
 cat << EOF > /dev/console
@@ -379,7 +379,7 @@ checkver_cron() {
 		if [ -f /etc/crontabs/root_gui ]; then
 			rm /etc/crontabs/root_gui
 		fi
-		if [ ! $(cat /etc/crontabs/root | grep Schedule) ] && [ $(cat /etc/crontabs/root | grep -q checkver) ]; then
+		if [ ! "$(cat /etc/crontabs/root | grep -q Schedule)" ] && [ "$(cat /etc/crontabs/root | grep -q checkver)" ]; then
 			sed -e /scripts/d -i /etc/crontabs/root
 			echo "0 5 * * * /usr/share/transformer/scripts/checkver Schedule >/dev/null 2>&1" >> /etc/crontabs/root
 			/etc/init.d/cron restart
