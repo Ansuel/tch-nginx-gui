@@ -17,6 +17,8 @@ ngx.print('\
         },
       }
 	  html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_1.1.1_002 )" .. '</legend>'
+	  html[#html + 1] = ui_helper.createLabel(T"8.0", "Aggiunto supporto per TG789vac (firmware Tiscali), fix cambio password, fix minori agli script, aggiunta pagina per Flow Cache.", basic)
+	  html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_1.1.1_002 )" .. '</legend>'
 	  html[#html + 1] = ui_helper.createLabel(T"7.17", "Aggiornate librerie web Aos.js e Jquery. Fix regole cron", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"7.16", "Aggiornate traduzioni.", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"7.15", "Aggiornamento nuovo server fix HLog, QLN , fix bug minori", basic)
