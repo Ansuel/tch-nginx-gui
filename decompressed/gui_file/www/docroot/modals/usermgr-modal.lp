@@ -461,6 +461,14 @@ end
         upass.first().after(\'<span class="help-inline">\' + msg + \'</span>\');\
     }\
 \
+	function display_info_message(msg)\
+    {\
+        var upass = $(\'.modal input[name="password"]\');\
+        upass.addClass("info");\
+        upass.closest(".control-group").addClass("info");\
+        upass.first().after(\'<span class="help-inline">\' + msg + \'</span>\');\
+    }\
+\
     function clear_error_user()\
     {\
         var uinput = $(\'.modal input[name="name"]\');\
@@ -499,11 +507,13 @@ end
         if((password.length < 12) || (passwordCheck(password)) < 5){\
             if(password.length == 0) {\
                 display_error_message("');  ngx.print( T"Provide a password to prevent unauthorized access to the gateway" ); ngx.print('");\
-            }\
+				return;\
+			}\
             else {\
-                display_error_message("');  ngx.print( T"Password must contain at least 12 alphanumeric characters including both upper and lower case letters," .. "<br/>" .. T"at least one number and at least one special character" ); ngx.print('");\
+                display_error_message("');  ngx.print( T"Password should contain at least 12 alphanumeric characters including both upper and lower case letters,"
+				.. "<br/>" .. T"at least one number and at least one special character" ); ngx.print('");\
+				display_info_message("'); ngx.print( T"This could cause security risk, take care of this." .. "<b>" .. T"Applying anyway..." ); ngx.print('");\
             }\
-            return;\
         }\
 \
         if(password !== password2) {\
@@ -566,7 +576,13 @@ end
                 sendData(cryptpw);\
             });\
         }\
-        srp.success = generateSaltAndVerifier;\
+\
+		if((password.length < 12) || (passwordCheck(password)) < 5){\
+			setTimeout( srp.success = generateSaltAndVerifier, 2000);\
+		} else {\
+			srp.success = generateSaltAndVerifier;\
+		}\
+\
         srp.error_message = function() {\
             var upass = $(\'.modal input[name="oldpassword"]\');\
             upass.addClass("error");\

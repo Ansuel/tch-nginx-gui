@@ -15,6 +15,7 @@ if ngx.req.get_method() == "POST" and ngx.req.get_post_args().action == "Passwor
         proxy.apply()
       end
     end
+	ngx.ctx.session:logout()
     ngx.exit(ngx.HTTP_OK)
 end
 
@@ -87,6 +88,8 @@ if script_file_presence then
 	ngx.print('<script src="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/script.js"></script>');
 end
     ngx.print('<!--[if IE 7]><link rel="stylesheet" href="/css/font-awesome-ie7.css"><![endif]-->\
+	<script src="/js/jquery.min.js" ></script>\
+	<script src="/js/jquery-migrate.js" ></script>\
     <script src="/js/main-min-nojquery.js" ></script>\
     <!--[if lt IE 9]> <script src="/js/media-min.js"></script> <![endif]-->\
     <script src="/js/srp-min.js" ></script>\
