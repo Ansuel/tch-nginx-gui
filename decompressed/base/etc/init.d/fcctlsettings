@@ -1,0 +1,53 @@
+#!/bin/sh /etc/rc.common
+#set -x
+START=99
+
+setup_state() {
+    config_get enabled state enabled 1
+	if [ $enabled == 1 ]; then
+		fcctl enable
+	else
+		fcctl disable
+	fi
+}
+
+config_l2tp() {
+    config_get l2tp option l2tp 1
+    fcctl config $l2tp
+}
+
+config_gre() {
+    config_get gre option gre 1
+    fcctl config $gre
+}
+
+config_ipv6() {
+    config_get ipv6 option ipv6 1
+    fcctl config $ipv6
+}
+
+config_mcast() {
+    config_get mcast option mcast 1
+    fcctl config $mcast
+}
+
+config_mcast-learn() {
+    config_get mcast-learn option mcast-learn 1
+    fcctl config "$mcast-learn"
+}
+
+setup() {
+    config_load fcctlsettings
+    setup_state
+    config_l2tp
+    config_gre
+    config_ipv6
+    config_mcast
+	config_mcast-learn
+}
+
+start() {
+    setup
+}
+
+

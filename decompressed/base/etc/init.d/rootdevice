@@ -30,7 +30,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=7.18.53
+version_gui=7.18.54
 
 logo_project() {
 cat << EOF > /dev/console
@@ -633,6 +633,13 @@ add_new_web_rule() {
 		uci add_list web.mwanmodal.roles='engineer'
 		uci add_list web.ruleset_main.rules='mwanmodal'
 	fi
+	if [ ! $(uci get -q web.fastcacheoptionmodal) ]; then
+		uci set web.fastcacheoptionmodal=rule
+		uci set web.fastcacheoptionmodal.target='/modals/fast-cache-option-modal.lp'
+		uci add_list web.fastcacheoptionmodal.roles='admin' 
+		uci add_list web.fastcacheoptionmodal.roles='engineer'
+		uci add_list web.ruleset_main.rules='fastcacheoptionmodal'
+	fi
 }
 
 check_relay_dhcp() {
@@ -817,6 +824,20 @@ clean_specific_file() {
 	rm /root/upgrade-pack-specificDGA.tar.bz2
 	rm /root/telnet_support-specificDGA.tar.bz2
 	rm /root/custom-ripdrv-specificDGA.tar.bz2
+}
+
+fcctlsettings_daemon() {
+	if [ ! -f /etc/config/fcctlsettings ]; then
+		if [ -f /etc/config/fcctlsettings_new ]; then
+			mv /etc/config/fcctlsettings_new /etc/config/fcctlsettings
+		fi
+	else
+		rm /etc/config/fcctlsettings_new
+	fi
+	if [ ! -k /etc/rc.d/S99fcctlsettings ] && [ -f /etc/init.d/fcctlsettings ]; then
+		/etc/init.d/fcctlsettings enable
+		/etc/init.d/fcctlsettings start
+	fi
 }
 
 root() {

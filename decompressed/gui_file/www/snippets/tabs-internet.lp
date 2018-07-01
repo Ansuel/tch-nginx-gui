@@ -10,6 +10,7 @@ local items = {
     {"iproutes-modal.lp", T"Ip Extras"},
     {"mwan-modal.lp", T"Routing Policy"},
 	{"bridge-grouping-modal.lp", T"Bridge Grouping"},
+	{"fast-cache-option-modal.lp", T"Fast Cache Option"},
 }
 
 

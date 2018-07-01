@@ -1,0 +1,24 @@
+local config_power = "fcctlsettings"
+
+-- uci.fcctlsettings
+mapper("uci_1to1").registerConfigMap(config_fcctlsettings)
+
+-- uci.fcctlsettings.state
+local fcctlsettings_state  = {
+    config = config_fcctlsettings,
+    section = "state",
+    type = "state",
+    options = { "enabled" },
+}
+
+mapper("uci_1to1").registerSimpleMap(fcctlsettings_state)
+
+-- uci.fcctlsettings.option
+local fcctlsettings_option  = {
+    config = config_fcctlsettings,
+    section = "option",
+    type = "option",
+    options = { "l2tp", "gre", "ipv6", "mcast", "mcast-learn" },
+}
+
+mapper("uci_1to1").registerSimpleMap(fcctlsettings_option)
