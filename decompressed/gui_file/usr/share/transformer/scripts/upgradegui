@@ -155,8 +155,24 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 			
 			dev_version=$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $downloaded_md5 | awk '{print $2}' | sed -e 's/\.//g' )
 			
-			if [ $stable_version -gt $dev_version ]; then
-				logger -s -t "Upgrade Script" "Found newer versio in stable branch, using it..."
+			stable_version_norm=$stable_version
+			if [ "$( echo $stable_version | grep -E '\.[0-9]\.' )" ]; then
+				stable_version_norm="$( echo $stable_version | sed 's|\.\([0-9]\.\)|.0\1|g' )"
+			fi
+			if [ "$( echo $stable_version_norm | tail -c 3 | grep "\." )" ]; then
+				stable_version_norm=$stable_version_norm"0"
+			fi
+			
+			dev_version_norm=$dev_version
+			if [ "$( echo $dev_version | grep -E '\.[0-9]\.' )" ]; then
+				dev_version_norm="$( echo $dev_version | sed 's|\.\([0-9]\.\)|.0\1|g' )"
+			fi
+			if [ "$( echo $dev_version_norm | tail -c 3 | grep "\." )" ]; then
+				dev_version_norm=$dev_version_norm"0"
+			fi
+			
+			if [ $stable_version_norm -gt $dev_version_norm ]; then
+				logger -s -t "Upgrade Script" "Found newer version in stable branch, using it..."
 				rm $WORKING_DIR/$FILE_NAME
 				FILE_NAME=$STABLE_FILE_NAME
 				UPGRADE_FROM_STABLE=1
