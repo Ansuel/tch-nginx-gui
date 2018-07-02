@@ -227,17 +227,20 @@ local mapParam = {
 local function validateIPv6(value, object, key)
     local valid, msg = post_helper.validateBoolean(value, object, key)
     if valid and value ~= proxy.get("uci.network.interface.@" .. curintf .. ".ipv6")[1].value then
-    local envIPv6 = proxy.get("uci.env.var.ppp_realm_ipv6")[1].value
-	local envIPv4 = proxy.get("uci.env.var.ppp_realm_ipv4")[1].value
-	local pppuser = "uci.network.interface.@wan.username"
-	local device = proxy.get("uci.network.device.")
-	local devifn = content_helper.convertResultToObject("uci.network.device.",device)
-	local devindex = {}
-	for i,v in ipairs(devifn) do
-			devindex[#devindex+1] = v.paramindex
-	end
+		local envIPv6 = proxy.get("uci.env.var.ppp_realm_ipv6")[1].value or nil
+		local envIPv4 = proxy.get("uci.env.var.ppp_realm_ipv4")[1].value or nil
+		local isp = proxy.get("uci.env.var.isp")[1].value or nil
+		local pppuser = "uci.network.interface.@wan.username"
+		local device = proxy.get("uci.network.device.")
+		local devifn = content_helper.convertResultToObject("uci.network.device.",device)
+		local devindex = {}
+		for i,v in ipairs(devifn) do
+				devindex[#devindex+1] = v.paramindex
+		end
 		if value == "0" then
-			proxy.set(pppuser, envIPv4)
+			if isp and isp == "Tim" then
+				proxy.set(pppuser, envIPv4)
+			end
 			proxy.set("uci.network.interface.@wan.ipv6", value)
 			proxy.set("uci.network.interface.@wan6.auto", value)
 			proxy.apply()
@@ -258,7 +261,9 @@ local function validateIPv6(value, object, key)
                 ngx.sleep(3) -- ugly but need to give it the time to complete
             end
         elseif value == "1" then
-			proxy.set(pppuser, envIPv6)
+			if isp and isp == "Tim" then
+				proxy.set(pppuser, envIPv6)
+			end
 			proxy.set("uci.network.interface.@wan.ipv6", value)
 			proxy.set("uci.network.interface.@wan6.auto", value)
 			for i, v in ipairs(devindex) do

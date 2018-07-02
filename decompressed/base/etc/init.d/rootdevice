@@ -30,7 +30,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=8.0.5
+version_gui=8.0.7
 
 logo_project() {
 cat << EOF > /dev/console
@@ -877,7 +877,9 @@ root() {
 	
 	logger -s -t "Root Script" "Stopping nginx and transformer"
 	while [ "$(pgrep "nginx")" ]; do
-		/etc/init.d/nginx stop
+		if [ "$(pgrep "nginx")" ]; then
+			/etc/init.d/nginx stop
+		fi
 	done
 		
 	logger -s -t "Root Script" "Checking if we are on TIM configuration"
