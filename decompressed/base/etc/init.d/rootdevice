@@ -30,7 +30,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=8.0.7
+version_gui=8.1.2
 
 logo_project() {
 cat << EOF > /dev/console

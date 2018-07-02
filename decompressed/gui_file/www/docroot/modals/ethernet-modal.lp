@@ -674,7 +674,8 @@ end
 -- DHCP Range limit has to be calculated from the new subnet and the validation
 -- has to be done for the new limit.
 local function validateLimit(value, object)
-  if GWIPChanged() or content["dhcpIgnore"] == "1" then --we bypass validation as the gateway ip has changed
+  local dhcpIgnore = proxy.get(mapParams["dhcpIgnore"])
+  if GWIPChanged() or ( dhcpIgnore and dhcpIgnore[1].value == "1") then --we bypass validation as the gateway ip has changed
   	return true
   end
   if match(value, "^[0-9]*$") then
@@ -721,7 +722,8 @@ end
 -- For different subnets, validation for dhcpStart Address has to be done
 -- from the new DHCP Range with respect to the subnet mask & Network Address
 local function validateDHCPStart(value, object)
-	if GWIPChanged() or content["dhcpIgnore"] == "1" then --we bypass validation as the gateway ip has changed
+	local dhcpIgnore = proxy.get(mapParams["dhcpIgnore"])
+  if GWIPChanged() or ( dhcpIgnore and dhcpIgnore[1].value == "1") then --we bypass validation as the gateway ip has changed
 		return true
 	end
     if match(value, "^[0-9]*$") then
