@@ -45,137 +45,141 @@ function getValidateNumberInRange(min, max, value)
 
 end
 
-	local pathifname = "uci.network.interface.@wan.ifname"
-    local iface = proxy.get(pathifname)[1].value
-	local connection = ""
-	local path = ""
-	local vid = ""
-	local dname = ""
-	local difname = ""
-	if string.match(iface, "eth") then
+local pathifname = "uci.network.interface.@wan.ifname"
+local iface = proxy.get(pathifname)
+local connection = ""
+local path = ""
+local vid = ""
+local dname = ""
+local difname = ""
+
+if iface and iface[1].value then
+	iface = iface[1].value
+else
+	iface = ""
+end
+
+if string.match(iface, "eth") then
 	connection = "eth4"
 	path = "uci.network.device.@waneth4."
-		if string.match(iface, "%.") then
+	if string.match(iface, "%.") then
 		difname = string.match(iface, "eth4%.[%d]+")
 		vid = string.match(difname, "[^eth4%.]+")
-		else
-			if proxy.get(path) then
-				vid = proxy.get(path.."vid")[1].value
-				dname = proxy.get(path.."name")[1].value
-				difname = proxy.get(path.."ifname")[1].value
-			end
+	else
+		if proxy.get(path) then
+			vid = proxy.get(path.."vid")[1].value
+			dname = proxy.get(path.."name")[1].value
+			difname = proxy.get(path.."ifname")[1].value
 		end
-	elseif string.match(iface, "atm") then
+	end
+elseif string.match(iface, "atm") then
 	connection = "atmwan"
 	path = "uci.network.device.@wanatmwan."
-		if string.match(iface, "%.") then
+	if string.match(iface, "%.") then
 		difname = string.match(iface, "atmwan%.[%d]+")
 		vid = string.match(difname, "[^atmwan%.]+")
-		else
-			if proxy.get(path) then
-				vid = proxy.get(path.."vid")[1].value
-				dname = proxy.get(path.."name")[1].value
-				difname = proxy.get(path.."ifname")[1].value
-			end
-		end
 	else
+		if proxy.get(path) then
+			vid = proxy.get(path.."vid")[1].value
+			dname = proxy.get(path.."name")[1].value
+			difname = proxy.get(path.."ifname")[1].value
+		end
+	end
+else
 	connection = "ptm0"
 	path = "uci.network.device.@wanptm0."
-		if string.match(iface, "%.") then
-			difname = string.match(iface, "ptm0%.[%d]+")
-			vid = string.match(difname, "[^ptm0%.]+")
-		else
-			if proxy.get(path) then
-				vid = proxy.get(path.."vid")[1].value
-				dname = proxy.get(path.."name")[1].value
-				difname = proxy.get(path.."ifname")[1].value
-			end
+	if string.match(iface, "%.") then
+		difname = string.match(iface, "ptm0%.[%d]+")
+		vid = string.match(difname, "[^ptm0%.]+")
+	else
+		if proxy.get(path) then
+			vid = proxy.get(path.."vid")[1].value
+			dname = proxy.get(path.."name")[1].value
+			difname = proxy.get(path.."ifname")[1].value
 		end
-	
 	end
-	
+end	
 
 if ngx.var.request_method == "POST" then
     local content = ngx.req.get_post_args()
 	if content["action"]=="SAVE" then
-	range, helpmes = getValidateNumberInRange(2, 2048, content["intf_vlanid"])
-	if content["auswahlliste"] == "devnot" then
-		if range and (content["intf_vlanid"]~=vid or content["intf_vlan"]~="0") then
-			if proxy.get(path) then
-			dname = proxy.get(path.."name")[1].value
-			proxy.set(path.."vid", content["intf_vlanid"])
-			proxy.set(pathifname, dname)
-			ngx.print(dname)
-			proxy.set(path.."ifname", connection)
-			else
-			proxy.add("uci.network.device.", string.format("%s%s","wan",connection ))
-			proxy.set(path.."type","8021q")
-			proxy.set(path.."name","wan"..connection)
-			proxy.set(path.."macaddr", proxy.get("uci.env.rip.eth_mac")[1].value)
-			dname = proxy.get(path.."name")[1].value
-			proxy.set(path.."vid", content["intf_vlanid"])
-			proxy.set(pathifname, dname)
-			proxy.set(path.."ifname", connection)
+		range, helpmes = getValidateNumberInRange(2, 2048, content["intf_vlanid"])
+		if content["auswahlliste"] == "devnot" then
+			if range and (content["intf_vlanid"]~=vid or content["intf_vlan"]~="0") then
+				if proxy.get(path) then
+					dname = proxy.get(path.."name")[1].value
+					proxy.set(path.."vid", content["intf_vlanid"])
+					proxy.set(pathifname, dname)
+					ngx.print(dname)
+					proxy.set(path.."ifname", connection)
+				else
+					proxy.add("uci.network.device.", string.format("%s%s","wan",connection ))
+					proxy.set(path.."type","8021q")
+					proxy.set(path.."name","wan"..connection)
+					proxy.set(path.."macaddr", proxy.get("uci.env.rip.eth_mac")[1].value)
+					dname = proxy.get(path.."name")[1].value
+					proxy.set(path.."vid", content["intf_vlanid"])
+					proxy.set(pathifname, dname)
+					proxy.set(path.."ifname", connection)
+				end
+				proxy.apply()
 			end
-			proxy.apply()
+		elseif content["auswahlliste"] == "dotnot" then
+			if range and (content["intf_vlanid"]~=vid or content["intf_vlan"]~="0") then
+				if proxy.get(path) and proxy.get(path.."ifname")[1].value ~="" then
+					proxy.set(path.."ifname", "")
+				end				
+				proxy.set(pathifname, string.format("%s.%s",connection, content["intf_vlanid"]))
+				proxy.apply()
+			end
 		end
-	elseif content["auswahlliste"] == "dotnot" then
-		if range and (content["intf_vlanid"]~=vid or content["intf_vlan"]~="0") then
-			if proxy.get(path) and proxy.get(path.."ifname")[1].value ~="" then
-				proxy.set(path.."ifname", "")
-			end				
-			proxy.set(pathifname, string.format("%s.%s",connection, content["intf_vlanid"]))
-			proxy.apply()
-		end
-	end
 		if content["intf_vlan"]=="0" then
 			if proxy.get(path) then
-			proxy.set(path.."ifname", "")
+				proxy.set(path.."ifname", "")
 			end
 			proxy.set(pathifname, connection)
 			proxy.apply()
 		end
-	iface = proxy.get(pathifname)[1].value
-if string.match(iface, "eth") then
-	connection = "eth4"
-	path = "uci.network.device.@waneth4."
-		if string.match(iface, "%.") then
-		difname = string.match(iface, "eth4%.[%d]+")
-		vid = string.match(difname, "[^eth4%.]+")
+		if string.match(iface, "eth") then
+			connection = "eth4"
+			path = "uci.network.device.@waneth4."
+			if string.match(iface, "%.") then
+				difname = string.match(iface, "eth4%.[%d]+")
+				vid = string.match(difname, "[^eth4%.]+")
+			else
+				if proxy.get(path) then
+					vid = proxy.get(path.."vid")[1].value
+					dname = proxy.get(path.."name")[1].value
+					difname = proxy.get(path.."ifname")[1].value
+				end
+			end
+		elseif string.match(iface, "ptm") then
+			connection = "ptm0"
+			path = "uci.network.device.@wanptm0."
+			if string.match(iface, "%.") then
+				difname = string.match(iface, "ptm0%.[%d]+")
+				vid = string.match(difname, "[^ptm0%.]+")
+			else
+				if proxy.get(path) then
+					vid = proxy.get(path.."vid")[1].value
+					dname = proxy.get(path.."name")[1].value
+					difname = proxy.get(path.."ifname")[1].value
+				end
+			end
 		else
-			if proxy.get(path) then
-				vid = proxy.get(path.."vid")[1].value
-				dname = proxy.get(path.."name")[1].value
-				difname = proxy.get(path.."ifname")[1].value
+			connection = "atmwan"
+			path = "uci.network.device.@wanatmwan."
+			if string.match(iface, "%.") then
+				difname = string.match(iface, "atmwan%.[%d]+")
+				vid = string.match(difname, "[^atmwan%.]+")
+			else
+				if proxy.get(path) then
+					vid = proxy.get(path.."vid")[1].value
+					dname = proxy.get(path.."name")[1].value
+					difname = proxy.get(path.."ifname")[1].value
+				end
 			end
 		end
-	elseif string.match(iface, "ptm") then
-	connection = "ptm0"
-	path = "uci.network.device.@wanptm0."
-		if string.match(iface, "%.") then
-			difname = string.match(iface, "ptm0%.[%d]+")
-			vid = string.match(difname, "[^ptm0%.]+")
-		else
-			if proxy.get(path) then
-				vid = proxy.get(path.."vid")[1].value
-				dname = proxy.get(path.."name")[1].value
-				difname = proxy.get(path.."ifname")[1].value
-			end
-		end
-	else
-	connection = "atmwan"
-	path = "uci.network.device.@wanatmwan."
-		if string.match(iface, "%.") then
-		difname = string.match(iface, "atmwan%.[%d]+")
-		vid = string.match(difname, "[^atmwan%.]+")
-		else
-			if proxy.get(path) then
-				vid = proxy.get(path.."vid")[1].value
-				dname = proxy.get(path.."name")[1].value
-				difname = proxy.get(path.."ifname")[1].value
-			end
-		end
-	end
 	end
 end
 

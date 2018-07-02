@@ -4,19 +4,13 @@ local proxy = require("datamodel")
 
 local M = {}
 
-local wansensing_state, error = proxy.get("uci.wansensing.global.enable")
-local wan_proto = proxy.get("uci.network.interface.@wan.proto")[1].value
-
-if wansensing_state then
-    wansensing_state = format("%s",wansensing_state[1].value)
-else
-    wansensing_state = "0"
-end
-
-wanmode = proxy.get("uci.network.config.wan_mode")[1].value
+local wansensing_state = proxy.get("uci.wansensing.global.enable")
+local wan_proto = proxy.get("uci.network.interface.@wan.proto")
+local wan_mode = proxy.get("uci.network.config.wan_mode")
 
 function M.isBridgedMode()
-    if wansensing_state and ( wansensing_state == "1" ) and not ( wanmode == "bridge" ) then
+    if ( wansensing_state and ( wansensing_state[1].value == "1" ) ) 
+		and not ( wan_mode and ( wan_mode[1].value == "bridge" ) ) then
         return false
     else
         return true
@@ -64,7 +58,7 @@ function M.disableBridgedMode()
 		["uci.cwmpd.cwmpd_config.state"] = '1',
 		["uci.mobiled.device_defaults.enabled"] = '1',
 		["uci.network.interface.@lan.ifname"] = ifnames,
-		["uci.network.config.wan_mode"] = wan_proto,
+		["uci.network.config.wan_mode"] = wan_proto[1].value or "Unknown",
     })
 
     success = success and proxy.apply()

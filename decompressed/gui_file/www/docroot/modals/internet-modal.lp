@@ -25,8 +25,16 @@ if session:getrole() == "engineer" then
    tech = true
 end
 
-local wan_ppp_ll_intf = proxy.get("rpc.network.interface.@wan.ppp.ll_intf")[1].value
-local wan_ppp_over_atm = proxy.get(string.format("uci.xtm.atmdevice.@%s.", wan_ppp_ll_intf)) ~= nil
+local wan_ppp_ll_intf = proxy.get("rpc.network.interface.@wan.ppp.ll_intf")
+local wan_ppp_over_atm = ""
+
+if wan_ppp_ll_intf and wan_ppp_ll_intf[1].value then
+	wan_ppp_ll_intf = wan_ppp_ll_intf[1].value
+	wan_ppp_over_atm = proxy.get(string.format("uci.xtm.atmdevice.@%s.", wan_ppp_ll_intf)) ~= nil
+else
+	wan_ppp_ll_intf = ""
+end
+
 if not wan_ppp_over_atm then
    for k,v in ipairs(mode_options) do
        if v[1] == "pppoa" then

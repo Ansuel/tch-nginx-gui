@@ -65,7 +65,6 @@ local clear_network_stats = {
       ["data-value"] = "RESET"
     }
 }
-local validateDHCPIgnore = post_helper.validateDHCPIgnore
 local pIPV = post_helper.isPublicIP
 
 local hosts_mac = {}
@@ -670,7 +669,7 @@ end
 -- DHCP Range limit has to be calculated from the new subnet and the validation
 -- has to be done for the new limit.
 local function validateLimit(value, object)
-  if GWIPChanged() then --we bypass validation as the gateway ip has changed
+  if GWIPChanged() or content["dhcpIgnore"] == "1" then --we bypass validation as the gateway ip has changed
   	return true
   end
   if match(value, "^[0-9]*$") then
@@ -717,7 +716,7 @@ end
 -- For different subnets, validation for dhcpStart Address has to be done
 -- from the new DHCP Range with respect to the subnet mask & Network Address
 local function validateDHCPStart(value, object)
-	if GWIPChanged() then --we bypass validation as the gateway ip has changed
+	if GWIPChanged() or content["dhcpIgnore"] == "1" then --we bypass validation as the gateway ip has changed
 		return true
 	end
     if match(value, "^[0-9]*$") then
@@ -924,6 +923,10 @@ if (ngx.var.request_method == "POST")  and not next(helpmsg) then
     end
 end
 
+if content["dhcpIgnore"] == "" then
+	content["dhcpIgnore"] = "0"
+end
+
 -- because we do the localdevmask validation in localdevIP validation, we check if local ip starts with error msg "[netmask]".
 -- If so move it to localdevmask
 if helpmsg["localdevIP"] then
@@ -1073,6 +1076,11 @@ local content_sfp, helpmsg = post_helper.handleQuery(mapParSFP, mapValSFP)
                   class = "advanced hide"
                 }
               }
+			  local advanced_network = {
+                group = {
+                  class = "advanced hide"
+                }
+              }
 			  local info_box = {
 		        alert = {
 				  class = "alert alert-info",
@@ -1117,7 +1125,7 @@ local content_sfp, helpmsg = post_helper.handleQuery(mapParSFP, mapValSFP)
                 }
               ngx.print(
                   ui_helper.createSwitch(T"DHCP Server", "dhcpIgnore", content["dhcpIgnore"],switchDHCP),
-                  ui_helper.createLabel(T"Network address", network, advanced),
+                  ui_helper.createLabel(T"Network address", network, advanced_network),
                   ui_helper.createInputText(T"DHCP Start address", "dhcpStartAddress", ipstart, advanced, helpmsg["dhcpStart"]),
                   ui_helper.createInputText(T"DHCP End address", "dhcpEndAddress", ipend, advanced, helpmsg["dhcpLimit"]),
                   ui_helper.createInputText(T"Lease time", "leaseTime", content["leaseTime"], advanced, helpmsg["leaseTime"]),
@@ -1211,10 +1219,17 @@ $(function() {\
 \
     var currentlanip = "');  ngx.print( content["localdevIP"] ); ngx.print('";\
     $("[name=\'localdevIP\']").on("change", function(){\
+	  var NewIp = $(this).val();\
+	  var StartDHCP = $("[name=\'dhcpStartAddress\']").val().replace(currentlanip.match(/[0-9]+\.[0-9]+\.[0-9]+\./g),\'\');\
+	  var EndDHCP = $("[name=\'dhcpEndAddress\']").val().replace(currentlanip.match(/[0-9]+\.[0-9]+\.[0-9]+\./g),\'\');\
+	  var NewIpBase = NewIp.match(/[0-9]+\.[0-9]+\.[0-9]+\./g);\
       if (currentlanip == $("[name=\'dnsServer\']").val()){\
-          $("[name=\'dnsServer\']").val($(this).val());\
-          currentlanip = $(this).val();\
+          $("[name=\'dnsServer\']").val(NewIp);\
+          currentlanip = NewIp;\
       }\
+	  document.getElementById("'); ngx.print( T"Network address" ); ngx.print('").innerHTML = NewIpBase+"0";\
+	  $("[name=\'dhcpStartAddress\']").val(NewIpBase+StartDHCP);\
+	  $("[name=\'dhcpEndAddress\']").val(NewIpBase+EndDHCP);\
     });\
 \
     $("#save-config").on("click", function(){\

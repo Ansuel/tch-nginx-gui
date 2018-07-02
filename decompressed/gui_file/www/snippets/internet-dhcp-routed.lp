@@ -152,9 +152,18 @@ if content["uci_wan_auto"] ~= "0" then
     content["uci_wan_auto"] = "1"
 end
 
-local wan_ppp_ll_intf = proxy.get("rpc.network.interface.@wan.ppp.ll_intf")[1].value
-local wan_atm_uci_path = format("uci.xtm.atmdevice.@%s.", wan_ppp_ll_intf)
-local wan_ppp_over_atm = proxy.get(wan_atm_uci_path) ~= nil
+local wan_ppp_ll_intf = proxy.get("rpc.network.interface.@wan.ppp.ll_intf")
+local wan_ppp_over_atm = ""
+local wan_atm_uci_path = ""
+
+if wan_ppp_ll_intf and wan_ppp_ll_intf[1].value then
+	wan_ppp_ll_intf = wan_ppp_ll_intf[1].value
+	wan_atm_uci_path = format("uci.xtm.atmdevice.@%s.", wan_ppp_ll_intf)
+	wan_ppp_over_atm = proxy.get(wan_atm_uci_path) ~= nil
+else
+	wan_ppp_ll_intf = ""
+end
+
 if wan_ppp_over_atm then
   local content_uci_xtm = {
     wan_atm_ulp = wan_atm_uci_path.."ulp",
@@ -233,7 +242,9 @@ content_helper.getExactContent(cs)
 local dnstab = split(cs.dns_loopback, "[^%,]+")
 local dnsv4, dnsv6 = dns_filter(dnstab)
 cs.dns = content_helper.getMergedList(cs.dns_wan, dnsv4)
-cs.dnsv6 = content_helper.getMergedList(cs.dnsv6, dnsv6)
+if dnsv6 and cs.dnsv6 then
+	cs.dnsv6 = content_helper.getMergedList(cs.dnsv6, dnsv6)
+end
 
 -- account for inconsistencies in DNS display format by removing extra spaces
 if cs["dns"] and cs["dns"]:len() > 0 then
@@ -282,20 +293,21 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     html[#html+1] = ui_helper.createLabel(T"Gateway", cs["nexthop"], ajax_attr)
     ajax_attr.span.id = "dns"
     html[#html+1] = ui_helper.createLabel(T"DNS servers", cs["dns"],ajax_attr)
-	if proxy.get("uci.network.interface.@wan.ipv6")[1].value == "1" then
-    --if cs["ip6addr"] and cs["ip6addr"]:len() > 0 then
-    ajax_attr.span.id = "ip6addr"
-    html[#html+1] = ui_helper.createLabel(T"IPv6 address", cs["ip6addr"], ajax_attr)
-    --end
-    --if cs["ip6prefix"] and cs["ip6prefix"]:len() > 0 then
-    ajax_attr.span.id = "ip6prefix"
-    html[#html+1] = ui_helper.createLabel(T"IPv6 Prefix", cs["ip6prefix"], ajax_attr)
-    --end
-    --if cs["dnsv6"] and cs["dnsv6"]:len() > 0 then
-    -- make sure auto-refresh updates control with ONLY DNSv6 servers
-    ajax_attr.span.id = "dnsv6"
-    html[#html+1] = ui_helper.createLabel(T"IPv6 DNS", cs["dnsv6"], ajax_attr)
-    --end
+	local ipv6_enabled = proxy.get("uci.network.interface.@wan.ipv6")
+	if ipv6_enabled and ipv6_enabled[1].value == "1" then
+		if cs["ip6addr"] and cs["ip6addr"]:len() > 0 then
+			ajax_attr.span.id = "ip6addr"
+			html[#html+1] = ui_helper.createLabel(T"IPv6 address", cs["ip6addr"], ajax_attr)
+		end
+		if cs["ip6prefix"] and cs["ip6prefix"]:len() > 0 then
+			ajax_attr.span.id = "ip6prefix"
+			html[#html+1] = ui_helper.createLabel(T"IPv6 Prefix", cs["ip6prefix"], ajax_attr)
+		end
+		if cs["dnsv6"] and cs["dnsv6"]:len() > 0 then
+			-- make sure auto-refresh updates control with ONLY DNSv6 servers
+			ajax_attr.span.id = "dnsv6"
+			html[#html+1] = ui_helper.createLabel(T"IPv6 DNS", cs["dnsv6"], ajax_attr)
+		end
 	end
     html[#html+1] = ui_helper.createLabel(T"Lease obtained", cs["leaseobtained"])
     html[#html+1] = ui_helper.createLabel(T"Lease expires", cs["leaseexpires"])
