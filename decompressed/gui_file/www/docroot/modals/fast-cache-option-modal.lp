@@ -51,7 +51,7 @@ local fco_content, fco_helpmessage = post_helper.handleQuery(fco_Params, fco_val
 
   ngx.print('\
 \
-');  ngx.print(ui_helper.createHeader(T"Fast Cache Option", false, false))   ngx.print('\
+');  ngx.print(ui_helper.createHeader(T"Flow Cache Option", false, false))   ngx.print('\
 <div class="modal-body update">\
   <form class="form-horizontal" method="post" action="modals/fast-cache-option-modal.lp">\
     ');  

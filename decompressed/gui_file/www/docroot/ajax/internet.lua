@@ -26,17 +26,21 @@ local content_rpc = {
   pppoe_uptime = "rpc.network.interface.@wan.uptime",
 }
 
-for i,v in ipairs(proxy.getPN("rpc.network.interface.", true)) do
-  local intf = string.match(v.path, "rpc%.network%.interface%.@([^%.]+)%.")
-  if intf then
-    if intf == "6rd" then
-      content_rpc.ip6addr = "rpc.network.interface.@6rd.ip6addr"
-      content_rpc.ip6prefix = "rpc.network.interface.@6rd.ip6prefix"
-    elseif intf == "wan6" then
-     content_rpc.ip6addr = "rpc.network.interface.@wan6.ip6addr"
-     content_rpc.ip6prefix = "rpc.network.interface.@wan6.ip6prefix"
-    end
-  end
+local interface = proxy.getPN("rpc.network.interface.", true)
+
+if interface then
+	for i,v in ipairs(interface) do
+		local intf = string.match(v.path, "rpc%.network%.interface%.@([^%.]+)%.")
+		if intf then
+			if intf == "6rd" then
+			content_rpc.ip6addr = "rpc.network.interface.@6rd.ip6addr"
+			content_rpc.ip6prefix = "rpc.network.interface.@6rd.ip6prefix"
+			elseif intf == "wan6" then
+			content_rpc.ip6addr = "rpc.network.interface.@wan6.ip6addr"
+			content_rpc.ip6prefix = "rpc.network.interface.@wan6.ip6prefix"
+			end
+		end
+	end
 end
 
 content_helper.getExactContent(content_rpc)

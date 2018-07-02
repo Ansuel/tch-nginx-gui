@@ -100,7 +100,7 @@ for i=1,2,1 do
 		canAdd = false,
 		canDelete = false,
 		tableid = string.format("codecFXS%s",i),
-		basepath = string.format("Device.Services.VoiceService.%s.PhyInterface.%s.X_000E50_Codec.List.",i,i),
+		basepath = string.format("Device.Services.VoiceService.1.PhyInterface.%s.X_000E50_Codec.List.",i),
 	}
 end
 
