@@ -371,21 +371,25 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = ui_helper.createSwitch(T"Bank Check", "bank_check", bank_check_content["bank_check"])
       ngx.print(html)
       ngx.print('\
-</fieldset>\
-<fieldset>\
-  <legend>');  ngx.print( T"Version Spoof" ); ngx.print('</legend>\
-    ');
-	  local info_box = {
-        alert = {
-			class = "alert alert-info",
+</fieldset>');
+if not ( fwversion_override_content["fwversion_override"] == "" ) then
+	ngx.print('\
+	<fieldset>\
+	<legend>');  ngx.print( T"Version Spoof" ); ngx.print('</legend>\
+		');
+		local info_box = {
+			alert = {
+				class = "alert alert-info",
+			}
 		}
-      }
-      local html = {}
-	  html[#html + 1] = ui_helper.createAlertBlock(T"If a newer version is present in the acs server, cwmpd will try to upgrade the modem and will not send any info. This breaks some remote app like MyTIMFisso. Change the version here to fake it.", info_box)
-	  html[#html + 1] = ui_helper.createInputText(T"Version Set", "fwversion_override", fwversion_override_content["fwversion_override"], nil , fwversion_override_helpmsg["fwversion_override"])
-      ngx.print(html)
-      ngx.print('\
-</fieldset>\
+		local html = {}
+		html[#html + 1] = ui_helper.createAlertBlock(T"If a newer version is present in the acs server, cwmpd will try to upgrade the modem and will not send any info. This breaks some remote app like MyTIMFisso. Change the version here to fake it.", info_box)
+		html[#html + 1] = ui_helper.createInputText(T"Version Set", "fwversion_override", fwversion_override_content["fwversion_override"], nil , fwversion_override_helpmsg["fwversion_override"])
+		ngx.print(html)
+		ngx.print('\
+	</fieldset>');
+end
+ngx.print('\
 <fieldset>\
   <legend>');  ngx.print( T"Config creation option" ); ngx.print('</legend>\
     ');

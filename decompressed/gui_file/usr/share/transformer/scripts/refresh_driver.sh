@@ -41,11 +41,16 @@ checksums="
 db76ca2f5015dd17504f1c658373e0aa  A2pvbH042r.d26r
 bcfaed886a6dfd6cd2a0be2ac4e3823c  A2pvbH042u.d26r
 a981a610dc01a932216a3508cf3e325f  A2pvfbH043b.d26r
-f7fe190a7966a96e7340a928f96fbe77  A2pvfbH043e.d26r_BROKEN
 fbaade8f05cad074403b693fedc9a2b8  A2pvfbH043f.d26r
 fbaade8f05cad074403b693fedc9a2b8  A2pvfbH043g.d26r
 5988d3c56b0fee3ce0c3843cda4358b1  A2pvfbH043k.d26r
 6e8de6c77db38a5b5394f7f7c4221196  A2pvfbH043o.d26r
+efee94080f1ab7e29a1c7a571a6c8488  B2pvbH042l.d26r
+2a44b0dd6c0b24c29f8ea1aab10d60f0  B2pvbH042s.d26r
+3f85469797162bda08fabc28ed325042  B2pvfbH043e.d26r
+42e93153db06857021faf1de1b320f6d  B2pvfbH043g.d26r
+d76d9eebfccd572b0a0943cd3957b82a  B2pvfbH043i1.d26r
+1767c3c86b5e4f5b46ce024ccd4f91b2  B2pvfbH043k.d26r
 "
 
 installed_driver=$(transformer-cli get rpc.xdsl.dslversion | awk '{print $4}')
