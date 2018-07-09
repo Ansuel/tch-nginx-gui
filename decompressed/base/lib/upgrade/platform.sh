@@ -302,12 +302,14 @@ root_device() {
 		echo "Restoring GUI file in flash"
 		mkdir -p /overlay/$target_bank/root
 		cp $gui_file /overlay/$target_bank/root/
+		echo 1 > /overlay/$target_bank/root/.reapply_due_to_upgrade
 	else
 		mkdir /overlay/$running_bank
 		bzcat $gui_file | tar -C /overlay/$running_bank -xf -
 		echo "Restoring GUI file in flash"
 		mkdir -p /overlay/$running_bank/root
 		cp $gui_file /overlay/$running_bank/root/
+		echo 1 > /overlay/$running_bank/root/.reapply_due_to_upgrade
 	fi
 	echo "Device Rooted"
 }

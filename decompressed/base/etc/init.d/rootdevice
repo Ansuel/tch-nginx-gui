@@ -30,7 +30,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=8.1.8
+version_gui=8.1.11
 
 logo_project() {
 cat << EOF > /dev/console
@@ -874,6 +874,15 @@ root() {
 	logger -s -t "Root Script" "Start rooting"
 	if [ ! -f /root/.check_process ]; then #this check if the placeholder exist
 		touch /root/.check_process #this is a placeholder to know if the process ends correctly
+	fi
+	
+	if [ -f /root/.reapply_due_to_upgrade ]; then
+		if [ -f /root/GUI.tar.bz2 ]; then
+			logger -s -t "Root Script" "Resetting /www dir due to firmware upgrade..."
+			rm -r /www
+			bzcat /root/GUI.tar.bz2 | tar -C / -xf - www
+			rm /root/.reapply_due_to_upgrade
+		fi
 	fi
 	
 	logger -s -t "Root Script" "Stopping nginx and transformer"
