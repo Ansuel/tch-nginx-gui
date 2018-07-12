@@ -234,7 +234,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html+1] = "</fieldset>"
 	  html[#html+1] = "</div>"
 	  html[#html + 1] = "</br>"
-	  if tonumber(mapParams.marketing_version) >= 17.3 then
+	  if tonumber(mapParams.marketing_version:sub(1,4)) >= 17.3 then
 		local install_xupnp = {
 			button = {
 			id = "btn-install-xupnp"

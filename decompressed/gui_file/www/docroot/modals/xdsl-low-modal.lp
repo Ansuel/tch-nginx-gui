@@ -164,7 +164,7 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H043") or content.dsl0_xdsl_Firmwa
 	tinsert(driver_option, { "B2pvbH042s.d26r", 'B2pvbH042s.d26r (Archer_VR2800v V1 1.2.0_0.9.1)'})
 	tinsert(driver_option, { "A2pvbH042u.d26r", 'A2pvbH042u.d26r (AGTEF_1.0.4)'})
 	
-	if tonumber(content.marketing_version) >= 17.3 then
+	if tonumber(content.marketing_version:sub(1,4)) >= 17.3 then
 		tinsert(driver_option, { "A2pvfbH043b.d26r", 'A2pvfbH043b.d26r (New FastGate Fastweb)'})
 		tinsert(driver_option, { "B2pvfbH043e.d26r", 'B2pvfbH043e.d26r (DSL-AC87VG_v1.00.13)'})
 		--table.insert(driver_option,{ "A2pvfbH043e.d26r", 'A2pvfbH043e.d26r (Zyxel 8823)'}) --Annex b???

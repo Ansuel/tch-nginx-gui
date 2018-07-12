@@ -8,9 +8,23 @@ local proxy = require("datamodel")
 local content_helper = require("web.content_helper")
 local insert, format = table.insert, string.format
 
-local gui_version = proxy.get("uci.env.var.gui_version")[1].value or nil
+local marketing_version = proxy.get("uci.version.version.@version[0].marketing_version")
 
-local marketing_version = proxy.get("uci.version.version.@version[0].marketing_version")[1].value or nil
+local prod_friendly_name = proxy.get("uci.env.var.prod_friendly_name")
+
+local app_supported = false
+
+if prod_friendly_name and prod_friendly_name[1].value then
+	if prod_friendly_name[1].value == "DGA4132" or prod_friendly_name[1].value == "DGA4130" then
+		app_supported = true
+	end
+end
+
+if marketing_version and marketing_version[1].value then
+	marketing_version = marketing_version[1].value:sub(1,4)
+else
+	marketing_version = nil
+end
 
 local mapParams = {
 	xupnp_application = "uci.env.var.xupnp_app",
@@ -25,23 +39,25 @@ content_helper.getExactContent(mapParams)
 local StateParams = {}
 local ParamsText = {}
 
-for Params in pairs(mapParams) do
-	local ParamsName = Params:gsub("_(.*)",""):gsub("^%l", string.upper)
-	if Params == "xupnp_application" and tonumber(marketing_version) >= 17.3 then
-		if mapParams[Params] and mapParams[Params] == "1" then
-			StateParams[Params] = "1"
-			ParamsText[Params] = ParamsName .. T" is installed"
+if app_supported and marketing_version then
+	for Params in pairs(mapParams) do
+		local ParamsName = Params:gsub("_(.*)",""):gsub("^%l", string.upper)
+		if Params == "xupnp_application" and tonumber(marketing_version) >= 17.3 then
+			if mapParams[Params] and mapParams[Params] == "1" then
+				StateParams[Params] = "1"
+				ParamsText[Params] = ParamsName .. T" is installed"
+			else
+				StateParams[Params] = "0"
+				ParamsText[Params] = ParamsName .. T" is not installed"
+			end
 		else
-			StateParams[Params] = "0"
-			ParamsText[Params] = ParamsName .. T" is not installed"
-		end
-	else
-		if mapParams[Params] and mapParams[Params] == "1" then
-			StateParams[Params] = "1"
-			ParamsText[Params] = ParamsName .. T" is installed"
-		else
-			StateParams[Params] = "0"
-			ParamsText[Params] = ParamsName .. T" is not installed"
+			if mapParams[Params] and mapParams[Params] == "1" then
+				StateParams[Params] = "1"
+				ParamsText[Params] = ParamsName .. T" is installed"
+			else
+				StateParams[Params] = "0"
+				ParamsText[Params] = ParamsName .. T" is not installed"
+			end
 		end
 	end
 end
@@ -49,7 +65,7 @@ end
 local modalPath = nil
 local switchName = nil
 local session = ngx.ctx.session
-if session:hasAccess("/modals/applications-modal.lp") then
+if session:hasAccess("/modals/applications-modal.lp") and app_supported then
     modalPath = "/modals/applications-modal.lp"
 end
   ngx.print('\
@@ -64,8 +80,12 @@ end
       ');  
         local html = {}
 		
-		for Params in pairs(mapParams) do
-			html[#html + 1] = ui_helper.createSimpleLight(StateParams[Params], ParamsText[Params], nil, nil  )
+		if app_supported then
+			for Params in pairs(mapParams) do
+				html[#html + 1] = ui_helper.createSimpleLight(StateParams[Params], ParamsText[Params], nil, nil  )
+			end
+		else
+			html[#html + 1] = ui_helper.createSimpleLight("0",T"Application not supported on this device", nil , nil)
 		end
 		
 		ngx.print(html)

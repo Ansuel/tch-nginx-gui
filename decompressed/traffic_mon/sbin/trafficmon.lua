@@ -18,6 +18,8 @@ local function DataCollector(datadir, binit)
     --  line 2~145: 144 times data, every 10mins during 24hours.
     local datanum  = 145
     local types = {"tx_bytes", "rx_bytes"};
+	
+	local times = os.date('%H:%M')
 
     local ntotal, ntraffic = 0, 0
     local i, j, data = 0, 0, {}
@@ -46,7 +48,7 @@ local function DataCollector(datadir, binit)
                         i = 0
                         for line in f:lines() do
                             i = i + 1
-                            data[i] = tonumber(line)
+                            data[i] = line
                         end
                         f:close()
                         ntraffic = tonumber(ntotal) - data[1]
@@ -66,7 +68,7 @@ local function DataCollector(datadir, binit)
                                     f:write(v .. "\n")
                                 end
                             end
-                            f:write(ntraffic .. "\n")
+                            f:write(ntraffic .. " " ..  times .. "\n")
                             f:close()
                         end
                     end

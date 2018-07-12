@@ -17,6 +17,7 @@ ngx.print('\
         },
       }
 	  html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_1.1.1_002 )" .. '</legend>'
+	  html[#html + 1] = ui_helper.createLabel(T"8.2", "Supporto per nuovo firmware beta.", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"8.1", "Fix e migliorie al cambio ip nella tab LAN, fix bug reset ppp dopo cambio ip modem.", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"8.0", "Aggiunto supporto per TG789vac (firmware Tiscali), fix cambio password, fix minori agli script, aggiunta pagina per Flow Cache.", basic)
 	  html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_1.1.1_002 )" .. '</legend>'

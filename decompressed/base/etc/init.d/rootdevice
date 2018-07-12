@@ -30,7 +30,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=8.1.11
+version_gui=8.2.0
 
 logo_project() {
 cat << EOF > /dev/console
@@ -748,17 +748,18 @@ apply_right_opkg_repo() {
 
 real_ver_entitied() {
 	if [ -f /rom/etc/uci-defaults/tch_5000_versioncusto ] && [ -f /etc/config/versioncusto ]; then
-		local short_ver=$(cat /proc/banktable/activeversion | cut -c1-17)
-		local real_ver=$(cat /rom/etc/uci-defaults/tch_5000_versioncusto  | grep $short_ver | awk '{print $2}')
+		local short_ver=$(cat /proc/banktable/activeversion | grep -Eo ".*\..*\.[0-9]*-[0-9]*" )
+		local real_ver=$(cat /rom/etc/uci-defaults/tch_5000_versioncusto  | grep "$short_ver" | awk '{print $2}')
 		if [ "$real_ver" == "" ]; then
 			real_ver="Not Found"
 		fi
 		if [ ! "$(uci get -q versioncusto.override.fwversion_override_real)" ]; then
-			uci set versioncusto.override.fwversion_override_real=$real_ver
-		elif [ "$(uci get -q versioncusto.override.fwversion_override_real)" != $real_ver ]; then
-			uci set versioncusto.override.fwversion_override_real=$real_ver
+			uci set versioncusto.override.fwversion_override_real="$real_ver"
+		elif [ "$(uci get -q versioncusto.override.fwversion_override_real)" != "$real_ver" ]; then
+			uci set versioncusto.override.fwversion_override_real="$real_ver"
 		fi
-		uci set versioncusto.override.fwversion_override="1.1.1" #Set version to latest stable...
+		#Set version to latest stable...
+		uci set versioncusto.override.fwversion_override="1.1.1" 
 	fi
 }
 
@@ -844,7 +845,9 @@ fcctlsettings_daemon() {
 			mv /etc/config/fcctlsettings_new /etc/config/fcctlsettings
 		fi
 	else
-		rm /etc/config/fcctlsettings_new
+		if [ -f /etc/config/fcctlsettings_new ]; then
+			rm /etc/config/fcctlsettings_new
+		fi
 	fi
 	if [ ! -k /etc/rc.d/S99fcctlsettings ] && [ -f /etc/init.d/fcctlsettings ]; then
 		chmod 755 /etc/init.d/fcctlsettings
@@ -865,8 +868,10 @@ root() {
 	[ "$device_type" == "DGA" ] && logger -s -t "Root Script" "Apply specific DGA file..."
 	[ "$device_type" == "DGA" ] && apply_specific_DGA_package
 	
-	clean_specific_file
-	logger -s -t "Root Script" "Removing specific file and resuming root process..."
+	if [ -f /root/custom-ripdrv-specificDGA.tar.bz2 ]; then
+		clean_specific_file
+		logger -s -t "Root Script" "Removing specific file and resuming root process..."
+	fi
 	
 	/etc/init.d/watchdog-tch stop
 	logger -s -t "Root Script" "Disable watchdog"
