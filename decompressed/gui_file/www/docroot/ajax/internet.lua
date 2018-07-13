@@ -5,8 +5,8 @@ local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
 local proxy = require("datamodel")
 local json = require("dkjson")
-local utils = require("web.lte-utils")
 local post_helper = require("web.post_helper")
+local ngx = ngx
 
 local ppp_status, ppp_light_map, ppp_state_map
 
@@ -148,9 +148,8 @@ local data = {
 
 local buffer = {}
 if json.encode (data, { indent = false, buffer = buffer }) then
- ngx.header.content_type = "application/json"
- ngx.print(buffer)
+ ngx.say(buffer)
 else
- ngx.print("{}")
+ ngx.say("{}")
 end
-
+ngx.exit(ngx.HTTP_OK)

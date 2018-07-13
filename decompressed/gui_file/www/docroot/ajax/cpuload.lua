@@ -2,8 +2,8 @@
 gettext.textdomain('webui-mobiled')
 
 local json = require("dkjson")
-local utils = require("web.lte-utils")
 local content_helper = require("web.content_helper")
+local ngx = ngx
 
 local cpuload
 
@@ -16,6 +16,8 @@ local data = {
 
 local buffer = {}
 if json.encode (data, { indent = false, buffer = buffer }) then
-	utils.sendResponse(buffer)
+	ngx.say(buffer)
+else
+	ngx.say("{}")
 end
-utils.sendResponse("{}")
+ngx.exit(ngx.HTTP_OK)
