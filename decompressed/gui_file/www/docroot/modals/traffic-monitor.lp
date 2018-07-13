@@ -148,41 +148,62 @@ if content_result then
   wifitx = wifitx+content_result[11]*4096
 end
 
+local dst = os.date("*t", os.time()).isdst or false
+
 local wantotal = format("%.3f", wantx + wanrx)
 local lantotal = format("%.3f", lantx + lanrx)
 local wifitotal = format("%.3f", wifitx + wifirx)
 
 local function getTrafficData(dtype, name)
     local nline = 1
-    local data = ""
+    local data = {}
+	local datatime = {}
     filename = string.format("/tmp/trafficmon/%s_%s", name, dtype)
     f = io.open(filename, "r")
     if f then
         for line in f:lines() do
-            if (nline == 1) then
-                nline = 2
+            if (nline < 2 ) then
+                nline = nline + 1 --skip first line
             elseif (nline == 2) then
-                nline = 3
-                data = line
+				nline = nline +1
+                hours = line:match("%s.*"):gsub("%s+", ""):match("[0-9]+:"):gsub(":","") or nil
+				if dst then
+					hours = tonumber(hours) + 1
+				end
+				minutes = line:match("%s.*"):gsub("%s+", ""):match(":[0-9]+"):gsub(":","") or nil
+				times = (tonumber(hours)*60 + tonumber(minutes))*60*1000 or "NaN"
+				data[#data+1] = line:match(".*%s"):gsub("%s+", "") or "NaN"
+				datatime[#datatime+1] = times
             else
-                data = data .. "," .. line
+				hours = line:match("%s.*"):gsub("%s+", ""):match("[0-9]+:"):gsub(":","")
+				if dst then
+					hours = tonumber(hours) + 1
+				end
+				minutes = line:match("%s.*"):gsub("%s+", ""):match(":[0-9]+"):gsub(":","")
+				times = (tonumber(hours)*60 + tonumber(minutes))*60*1000 or "NaN"
+				data[#data+1] = ","
+				data[#data+1] = line:match(".*%s"):gsub("%s+", "") or "NaN"
+				datatime[#datatime+1] = ","
+				datatime[#datatime+1] = times
             end
         end
         f:close()
     end
-    return data
+    return table.concat(data) , table.concat(datatime) 
 end
 
 local wanTx, wanRx, lanTx, lanRx, wifiTx, wifiRx
 proxy.set("rpc.system.lock.datadir", "/tmp/trafficmon/")
+proxy.apply()
 
-_, wanTx = pcall(getTrafficData, "tx_bytes", content_wan.ifname)
-_, wanRx = pcall(getTrafficData, "rx_bytes", content_wan.ifname)
-_, lanTx = pcall(getTrafficData, "tx_bytes", "br-lan")
-_, lanRx = pcall(getTrafficData, "rx_bytes", "br-lan")
-_, wifiTx = pcall(getTrafficData, "tx_bytes", curiface)
-_, wifiRx = pcall(getTrafficData, "rx_bytes", curiface)
+_, wanTx, wanTxTime = pcall(getTrafficData, "tx_bytes", content_wan.ifname)
+_, wanRx, wanRxTime = pcall(getTrafficData, "rx_bytes", content_wan.ifname)
+_, lanTx, lanTxTime = pcall(getTrafficData, "tx_bytes", "br-lan")
+_, lanRx, lanTxTime = pcall(getTrafficData, "rx_bytes", "br-lan")
+_, wifiTx, wifiTxTime = pcall(getTrafficData, "tx_bytes", curiface)
+_, wifiRx, wifiRxTime = pcall(getTrafficData, "rx_bytes", curiface)
 proxy.set("rpc.system.lock.free", "0")
+proxy.apply()
 
 ngx.print('<script src ="/js/graphic-min.js"></script>')
 
@@ -234,54 +255,50 @@ end
 	  html[#html+1] = ui_helper.createLabel(T"Total Receive (in MB)", lanrx, attributes)
 	  html[#html+1] = "</fieldset>"
 	  html[#html+1] = "</div>"
-	  html[#html+1] = '<div class="span3">'
+	  html[#html+1] = '<div>'
 	  html[#html+1] = "<fieldset><legend>" .. T"Wi-Fi Network Traffic" .. "</legend>"
 	  html[#html+1] = ui_helper.createLabel(T"Total Mixed (in MB)",  wifitotal , attributes)
 	  html[#html+1] = ui_helper.createLabel(T"Total Send (in MB)", wifitx, attributes)
 	  html[#html+1] = ui_helper.createLabel(T"Total Receive (in MB)", wifirx, attributes)
 	  html[#html+1] = "</fieldset>"
 	  html[#html+1] = "</div>"
+	  html[#html+1] = '<div>'
 	  html[#html+1] = "<fieldset><legend>" .. T"Graph" .. "</legend>"
-	  html[#html+1] = [[
-					<table>
-					<tr>
-						<td style="background-color:red">&nbsp;&nbsp;&nbsp;&nbsp;</td>
-						<td nowrap>Total Send/Receive<input type="checkbox" id="redLine" name="redLine" checked onclick="redrawLine()"/></td>
-						<td style="background-color:green">&nbsp;&nbsp;&nbsp;&nbsp;</td>
-						<td nowrap>Total Send<input type="checkbox" id="greenLine" name="greenLine" checked onclick="redrawLine()"/></td>
-						<td style="background-color:blue">&nbsp;&nbsp;&nbsp;&nbsp;</td>
-						<td nowrap>Total Receive<input type="checkbox" id="blueLine" name="blueLine" checked onclick="redrawLine()"/></td>
-						<td width="40%">&nbsp;</td>
-					</tr>
-					</table>]]
-	html[#html+1] = "</fieldset>"
-	html[#html+1] = "<fieldset><legend>" .. T"WAN Graph" .. "</legend>"
-	html[#html+1] = [[<div id="wanTraffic">
-				<div id ="wanLineDiv" style ="position:relative;height:350px;width:600px;"></div>
-				</div>
-				]]
-	html[#html+1] = "</fieldset>"
-	html[#html+1] = "<fieldset><legend>" .. T"LAN Graph" .. "</legend>"
-	html[#html+1] = [[<div id="lanTraffic">
-				<div id ="lanLineDiv" style ="position:relative;height:350px;width:600px;"></div>
-				</div>
-				]]
-	html[#html+1] = "</fieldset>"
-	ngx.print(html)
-	local html = {}
-    html[#html+1] = '<ul class="nav nav-tabs">'
-    for i,v in ipairs(wls) do
-        local active = ""
-        if v.iface == curiface or ( v.iface == "wl1" and curiface == "eth5" ) then
-            active = "active"
-        end
-        local url = "modals/traffic-monitor.lp?iface=" .. v.iface
-        html[#html+1] = format('<li class="%s"><a id ="%s" href="#" data-remote="%s">%s</a></li>', active, v.iface , url, v.ssid)
-    end
-    html[#html+1] =  "</ul>"
-	html[#html+1] =  '<div id="wifiTraffic">\
-				<div id="wifiLineDiv" style="position:relative;height:350px;width:900px;"></div>\
-				</div>'
+	  html[#html+1] =	'<table>'
+	  html[#html+1] =	'<tr>'
+	  html[#html+1] =		'<td style="background-color:#90cd8a" >&nbsp;&nbsp;&nbsp;&nbsp;</td>'
+	  html[#html+1] =		'<td nowrap style="padding-right: 20px;padding-left: 10px;">'
+	  html[#html+1] =		T"Sent chart line"
+	  html[#html+1] =		'<input type="checkbox" id="sent" name="sent" checked style="margin-left:10px;"></td>'
+	  html[#html+1] =		'<td style="background-color:#f58368">&nbsp;&nbsp;&nbsp;&nbsp;</td>'
+	  html[#html+1] =		'<td nowrap style="padding-right: 20px;padding-left: 10px;">'
+	  html[#html+1] =		T"Received chart line"
+	  html[#html+1] =		'<input type="checkbox" id="received" name="received" checked style="margin-left:10px;"></td>'
+	  html[#html+1] =	'</tr>'
+	  html[#html+1] =	'</table>'
+	  html[#html+1] = "</fieldset>"
+	  html[#html+1] = "<fieldset><legend>" .. T"WAN Graph" .. "</legend>"
+	  html[#html+1] = '<div style="height:400px"><canvas id="WANChart"></canvas></div>'
+	  html[#html+1] = "</fieldset>"
+	  html[#html+1] = "<fieldset><legend>" .. T"LAN Graph" .. "</legend>"
+	  html[#html+1] = '<div style="height:400px"><canvas id="LANChart"></canvas></div>'
+	  html[#html+1] = "</fieldset>"
+	  html[#html+1] = "&nbsp"
+	  html[#html+1] = "<fieldset>"
+      html[#html+1] = '<ul class="nav nav-tabs">'
+      for i,v in ipairs(wls) do
+          local active = ""
+          if v.iface == curiface or ( v.iface == "wl1" and curiface == "eth5" ) then
+              active = "active"
+          end
+          local url = "modals/traffic-monitor.lp?iface=" .. v.iface
+          html[#html+1] = format('<li class="%s"><a id ="%s" href="#" data-remote="%s">%s</a></li>', active, v.iface , url, v.ssid)
+      end
+      html[#html+1] =  "</ul>"
+	  html[#html+1] =  '<div style="height:400px"><canvas id="WiFiChart"></canvas></div>'
+	  html[#html+1] = "</fieldset>"
+	  html[#html+1] = "</fieldset>"
+	  html[#html+1] = "</div>"
 	  ngx.print(html)
 	  
 	  ngx.print('\
@@ -289,30 +306,115 @@ end
  </div>\
 \
 	<script language ="javascript">\
-	var wanLine, lanLine, wifiLine;\
-	// Data will be done\
 \
-	function redrawLine()\
-	{\
-		wanLine.clearLine();\
-		lanLine.clearLine();\
-		wifiLine.clearLine();\
-		drawInit();\
-	}\
-\
-	function drawInit()\
-	{\
-		//Draw the line chart for internet triffic.\
-		wanLine = drawLineDiv("'); ngx.print(wanTx) ngx.print('", "'); ngx.print(wanRx) ngx.print('", "wan");\
-\
-		//Draw the line chart for lan triffic.\
-		lanLine = drawLineDiv("'); ngx.print(lanTx) ngx.print('", "'); ngx.print(lanRx) ngx.print('", "lan");\
-\
-		//Draw the line chart for wifi triffic.\
-		wifiLine = drawLineDiv("'); ngx.print(wifiTx) ngx.print('", "'); ngx.print(wifiRx) ngx.print('", "wifi");\
-	}\
-\
-	drawInit();\
+$("#sent").on("click", function() {\
+    if(this.checked) {\
+    LANChart.data.datasets[0].hidden=false;\
+	WANChart.data.datasets[0].hidden=false;\
+	WiFiChart.data.datasets[0].hidden=false;\
+	LANChart.update();\
+	WANChart.update();\
+	WiFiChart.update();\
+		} else {\
+    LANChart.data.datasets[0].hidden=true;\
+	WANChart.data.datasets[0].hidden=true;\
+	WiFiChart.data.datasets[0].hidden=true;\
+	LANChart.update();\
+	WANChart.update();\
+	WiFiChart.update();\
+}});\
+$("#received").on("click", function() {\
+    if(this.checked) {\
+    LANChart.data.datasets[1].hidden=false;\
+	WANChart.data.datasets[1].hidden=false;\
+	WiFiChart.data.datasets[1].hidden=false;\
+	LANChart.update();\
+	WANChart.update();\
+	WiFiChart.update();\
+		} else {\
+    LANChart.data.datasets[1].hidden=true;\
+	WANChart.data.datasets[1].hidden=true;\
+	WiFiChart.data.datasets[1].hidden=true;\
+	LANChart.update();\
+	WANChart.update();\
+	WiFiChart.update();\
+}});\
+function formatBytes(bytes,decimals) {\
+   if(bytes == 0) return "0 Bytes";\
+	var k = 1024,\
+    dm = decimals || 2,\
+    sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"],\
+    i = Math.floor(Math.log(bytes) / Math.log(k));\
+   return sizes[i] ? parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i] : "";\
+}\
+var TrafficChartOption = {\
+		maintainAspectRatio: false,\
+        legend: {display: false},\
+        scales: {\
+        xAxes: [{type: "time",\
+			distribution: "linear",\
+			time: {\
+				unit: "minute",\
+				displayFormats: {\
+				minute: "H:mm"}}}],\
+		yAxes: [{ticks: {\
+				beginAtZero:true,\
+				callback: function(value) { \
+					return formatBytes(value,2) \
+				},}}]},\
+		tooltips: {\
+                enabled: true,\
+                mode: "single",\
+                callbacks: {\
+                    label: function(tooltipItems, data) { \
+                        return formatBytes(tooltipItems.yLabel , 2);},\
+					title: function(tooltipItems, data) {\
+						return;}}},\
+		spanGaps:true,\
+		legend: {display: false},};\
+var wan_ctx = document.getElementById("WANChart").getContext("2d");\
+var WANChart = new Chart(wan_ctx, {\
+    type: "line",\
+    data: {labels: ['); ngx.print(wanTxTime); ngx.print('],\
+	"datasets":[{"data":['); ngx.print(wanTx); ngx.print('],\
+			"pointBackgroundColor": "#90cd8a",\
+			"backgroundColor": "#90cd8a50",\
+		},\
+		{"data":['); ngx.print(wanRx); ngx.print('],\
+			"pointBackgroundColor": "#f58368",\
+			"backgroundColor": "#f5836850",\
+    }]},\
+    options: TrafficChartOption \
+});\
+var lan_ctx = document.getElementById("LANChart").getContext("2d");\
+var LANChart = new Chart(lan_ctx, {\
+    type: "line",\
+    data: {labels: ['); ngx.print(lanTxTime); ngx.print('],\
+		"datasets":[{"data":['); ngx.print(lanTx); ngx.print('],\
+			"pointBackgroundColor": "#90cd8a",\
+			"backgroundColor": "#90cd8a50",\
+		},\
+		{"data":['); ngx.print(lanRx); ngx.print('],\
+			"pointBackgroundColor": "#f58368",\
+			"backgroundColor": "#f5836850",\
+    }]},\
+    options: TrafficChartOption, \
+});\
+var wifi_ctx = document.getElementById("WiFiChart").getContext("2d");\
+var WiFiChart = new Chart(wifi_ctx, {\
+    type: "line",\
+    data: {labels: ['); ngx.print(wifiTxTime); ngx.print('],\
+		"datasets":[{"data":['); ngx.print(wifiTx); ngx.print('],\
+			"pointBackgroundColor": "#90cd8a",\
+			"backgroundColor": "#90cd8a50",\
+		},\
+		{"data":['); ngx.print(wifiRx); ngx.print('],\
+			"	pointBackgroundColor": "#f58368",\
+				"backgroundColor": "#f5836850",\
+		}]},\
+    options: TrafficChartOption, \
+});\
+console.log(lan_ctx.data);\
 	</script>\
 ');  ngx.print( ui_helper.createFooter() ); ngx.print('\
 '); 

@@ -82,7 +82,7 @@ ngx.print('\
 	<script src="/js/main-min-nojquery.js" ></script>\
 	<script src="js/knockout-min.js"></script>\
 	<script src="/js/aos.js"></script>\
-	<script async src="/js/graphic-min.js"></script>\
+	<script async src="/js/moment.min.js" ></script>\
 	<script async src="/js/Chart.min.js"></script>\
 	<script async src="/js/srp-min.js" ></script>');
 	ngx.print('<script src="/js/jquery-migrate.js" ></script>')  -- Usefull to debug deprecated function from jquery update

@@ -144,6 +144,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 			stable_md5=$( md5sum $WORKING_DIR/$STABLE_FILE_NAME | awk '{print $1}')
 			
 			if ! grep -q $stable_md5 $WORKING_DIR/$CHECKSUM_FILE ; then
+				rm $WORKING_DIR/$FILE_NAME
 				rm $WORKING_DIR/$STABLE_FILE_NAME
 				rm $WORKING_DIR/$CHECKSUM_FILE
 				logger -s -t "Upgrade Script" "ERROR: Stable file corrupted!!!" >&2

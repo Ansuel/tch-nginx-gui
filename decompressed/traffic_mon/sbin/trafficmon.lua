@@ -19,7 +19,7 @@ local function DataCollector(datadir, binit)
     local datanum  = 145
     local types = {"tx_bytes", "rx_bytes"};
 	
-	local times = os.date('%H:%M')
+	local times = os.date('!%H:%M')
 
     local ntotal, ntraffic = 0, 0
     local i, j, data = 0, 0, {}
@@ -39,7 +39,7 @@ local function DataCollector(datadir, binit)
                 if binit then
                     f = io.open(fname, "w")
                     if f then
-                        f:write(ntotal .. "\n" .. ntotal .. "\n")
+                        f:write(ntotal .. "\n")
                         f:close()
                     end
                 else
