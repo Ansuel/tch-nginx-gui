@@ -6,4 +6,5 @@ config dlnad 'config'
 	option model_url 'http://www.technicolor.com'
 	option radioStations_enabled '0'
 	option friendly_name 'Modem TIM'
+	list interface 'lan'
 

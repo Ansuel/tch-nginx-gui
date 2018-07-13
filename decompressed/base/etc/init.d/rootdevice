@@ -30,7 +30,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=8.3.4
+version_gui=8.4.1
 
 logo_project() {
 cat << EOF > /dev/console
@@ -825,6 +825,12 @@ apply_specific_DGA_package() {
 	if [ -f /root/upnpfix-specificDGA.tar.bz2 ]; then
 		bzcat /root/upnpfix-specificDGA.tar.bz2 | tar -C / -xf -
 	fi
+	logger -s -t "Root Script" "Extracting dlnad_supprto-specificDGA.tar.bz2 ..."
+	if [ -f /root/dlnad_supprto-specificDGA.tar.bz2 ]; then
+		if [ ! -f /usr/bin/dlnad ]; then
+			bzcat /root/dlnad_supprto-specificDGA.tar.bz2 | tar -C / -xf -
+		fi
+	fi
 }
 
 clean_specific_file() {
@@ -832,6 +838,7 @@ clean_specific_file() {
 	rm /root/upgrade-pack-specificDGA.tar.bz2
 	rm /root/telnet_support-specificDGA.tar.bz2
 	rm /root/custom-ripdrv-specificDGA.tar.bz2
+	rm /root/dlnad_supprto-specificDGA.tar.bz2
 }
 
 fcctlsettings_daemon() {

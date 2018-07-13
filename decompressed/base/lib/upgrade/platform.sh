@@ -365,7 +365,9 @@ platform_do_upgrade() {
 		preserve_root
 		
 		rm -r /overlay/bank_1
-		rm -r /overlay/bank_2
+		if [ -d /overlay/bank_2 ]; then
+			rm -r /overlay/bank_2
+		fi
 		
 		if [ ! -d /overlay/bank_1 ] && [ ! -d /overlay/bank_2 ]; then
 			if [ -f /$root_tmp_dirt/GUI.tar.bz2 ]; then
