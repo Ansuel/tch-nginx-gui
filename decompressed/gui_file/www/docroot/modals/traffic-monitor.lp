@@ -414,7 +414,6 @@ var WiFiChart = new Chart(wifi_ctx, {\
 		}]},\
     options: TrafficChartOption, \
 });\
-console.log(lan_ctx.data);\
 	</script>\
 ');  ngx.print( ui_helper.createFooter() ); ngx.print('\
 '); 

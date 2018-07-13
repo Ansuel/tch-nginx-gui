@@ -29,6 +29,7 @@ if session:hasAccess("/modals/device-modal.lp") then
   modalPath = "/modals/device-modal.lp"
   modal_link='class="modal-link" data-toggle="modal" data-remote="modals/device-modal.lp" data-id="device-modal"'
   wireless_modal_link='class="modal-link" data-toggle="modal" data-remote="modals/wifi-nurse-modal.lp" data-id="device-modal"'
+  traffic_monitor_link='class="modal-link" data-toggle="modal" data-remote="modals/traffic-monitor.lp" data-id="device-modal"'
 end
   ngx.print('\
 \
@@ -65,12 +66,20 @@ end
             format( N('<strong id = "Wifi_Devices" %1$s>%2$d Wi-Fi device</strong> connected',
                       '<strong id = "Wifi_Devices" %1$s>%2$d Wi-Fi devices</strong> connected', nWiFi),
                       wireless_modal_link, nWiFi),
+			'</p>',
+			'<p class="subinfos">',
+				'<i style="margin-left:-20px;" class="fa fa-line-chart" href="#">&nbsp</i>',
+				format( '<strong id = "Traffic_Monitor" %1$s>%s</strong>', traffic_monitor_link, T"Traffic Monitor"),
+				--'<div data-toggle="modal" data-remote="modals/diagnostics-xdsl-graphics-modal.lp" data-id="iagnostics-xdsl-graphics-modal">',
+				--	,T("Traffic Monitor"),
+				--'</div>',
+            '</p>'
 --NG-89441            '</p>',
 --NG-89441           '<p class="subinfos">',
 --NG-89441            format( N('<strong id = "Ethernet_Devices" %1$s>%2$d Hotspot device</strong> connected',
 --NG-89441                     '<strong id = "Ethernet_Devices" %1$s>%2$d Hotspot devices</strong> connected', nHot),
 --NG-89441                     modal_link, nHot),
-           '</p>'
+--           '</p>'
         )
 --NG-89441,7725_upstep        if lfs.attributes("/etc/config/hotspot", "mode") == "file" then  ngx.print('                                     \
 --NG-89441,7725_upstep           <p class="subinfos">                                                             \
