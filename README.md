@@ -1,4 +1,4 @@
-<p># tch-nginx-gui</p>
+
 <h3><strong>This is a modified and universal version of the GUI installed on Technicolor Modem/Router fully compatibile with TG789vAC v2, DGA4130 and DGA4132, with many fix and new feature like:</strong></h3>
 <ul>
 <li>DLNA Fully working.</li>
