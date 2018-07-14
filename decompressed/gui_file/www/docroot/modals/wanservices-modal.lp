@@ -24,7 +24,7 @@ if session:getrole() == "engineer" then
 	tech = true
 end
 
-local ddns_supported_services , valid_services = {}, {}
+local ddns_supported_services = {}
 
 local igd_select = {
     { "igdv1", T'1'},
@@ -113,7 +113,7 @@ local qry_valid = {
     DMZ_enable = vB,
     DMZ_destinationip = gAV(gVIPIL(vSIDIP,"DMZ_enable",{"1"}),gOV(vQTN)),
     ddns_enabled = vB,
-    ddns_service_name = gAV(gOrV(vSIDN, vSIIP), gVIPIL(gVIES(valid_services), "ddns_enabled", {"1"})),
+    ddns_service_name = gAV(gOrV(vSIDN, vSIIP), gVIPIL(gVIES(ddns_supported_services), "ddns_enabled", {"1"})),
     ddns_username = gAV(gVIPIL(vNES, "ddnsv4_enabled", {"1"}), post_helper.isSpaceInString),
     ddns_password = gAV(gVP(gVIPIL(vNES, "ddnsv4_enabled", {"1"})), post_helper.isSpaceInString),
     ddns_domain = gAV(gOrV(vSIDN, vSIIP), gVIPIL(vNES, "ddns_enabled", {"1"})),

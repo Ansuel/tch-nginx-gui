@@ -30,7 +30,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=8.4.1
+version_gui=8.4.4
 
 logo_project() {
 cat << EOF > /dev/console
@@ -283,6 +283,17 @@ check_new_dlnad() {
 		/etc/init.d/minidlna disable
 		/etc/init.d/dlnad enable
 		if [ ! "$(pgrep "dlnad")" ] ; then
+			/etc/init.d/dlnad start
+		fi
+	fi
+	if [ -f /rom/usr/bin/dlnad ]; then
+		if [ "$(md5sum /rom/usr/bin/dlnad)" !=  "$(md5sum /usr/bin/dlnad)" ]; then
+			if [ "$(pgrep "dlnad")" ] ; then
+				/etc/init.d/dlnad stop
+			fi
+			rm /usr/bin/dlnad
+			cp /rom/usr/bin/dlnad /usr/bin/dlnad
+			cp /rom/etc/init.d/dlnad /etc/init.d/dlnad
 			/etc/init.d/dlnad start
 		fi
 	fi
