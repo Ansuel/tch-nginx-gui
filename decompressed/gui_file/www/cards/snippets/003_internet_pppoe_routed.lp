@@ -1,4 +1,5 @@
-<%
+--pretranslated: do not change this file
+
 -- Enable localization
 gettext.textdomain('webui-core')
 
@@ -6,6 +7,7 @@ local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
 local proxy = require("datamodel")
 
+local attributes = { light = { } ,span = { class = "span4" } }
 local table = table
 local format = string.format
 local content_uci = {
@@ -57,9 +59,9 @@ local ipv6_state_map = {
 setmetatable(ipv6_state_map, untaint_mt)
 
 local ipv6_light_map = {
-    none = "off",
-    noprefix = "orange",
-    prefix = "green",
+    none = "0",--"off"
+    noprefix = "2",--"orange"
+    prefix = "1",--"green"
 }
 setmetatable(ipv6_light_map, untaint_mt)
 
@@ -78,14 +80,14 @@ local untaint_mt = require("web.taint").untaint_mt
 setmetatable(ppp_state_map, untaint_mt)
 
 local ppp_light_map = {
-    disabled = "off",
-    disconnected = "red",
-    disconnecting = "orange",
-    connecting = "orange",
-    connected = "green",
-    error = "red",
-    AUTH_TOPEER_FAILED = "red",
-    NEGOTIATION_FAILED = "red",
+    disabled = "0",--"off"
+    disconnected = "4",--"red"
+    disconnecting = "2",--"orange"
+    connecting = "2",--"orange"
+    connected = "1",--"green"
+    error = "4",--"red"
+    AUTH_TOPEER_FAILED = "4",--"red"
+    NEGOTIATION_FAILED = "4",--"red"
 }
 
 setmetatable(ppp_light_map, untaint_mt)
@@ -121,14 +123,17 @@ if session:hasAccess("/modals/internet-modal.lp") then
     switchName = "uci_wan_auto"
     modalPath = "/modals/internet-modal.lp"
 end
-%>
 
-<%= ui_helper.createCardHeader(T"Internet Access", modalPath, switchName, content_uci.wan_auto) %>
-<div id="pppoe-internet-tab" class="content card_bg" data-bg-text="&#xf0ac;">
-<div class="divtable">
-  <%= ui_helper.createSimpleLight(nil, ppp_state_map[ppp_status] , { light = { class = ppp_light_map[ppp_status] } }) %>
-  <p class="subinfos">
-     <%if ppp_status == "connected" then
+attributes.light.id = "Internet_State_Led"
+attributes.span.id = "Internet_State_Enabled"
+
+ngx.print( ui_helper.createCardHeader(T"Internet Access", modalPath, switchName, content_uci.wan_auto) )
+ngx.print('\
+<div id="pppoe-internet-tab" class="content card_bg" data-bg-text="&#xf0ac;">\
+<div class="divtable">\
+  '); ngx.print( ui_helper.createSimpleLight(ppp_light_map[ppp_status], ppp_state_map[ppp_status] , attributes , "fa-globe") ); ngx.print('\
+  <p class="subinfos">')
+     if ppp_status == "connected" then
        if content_rpc["ipaddr"] and content_rpc["ipaddr"]:len() > 0 then
          ngx.print(format(T'WAN IP is <strong>%s</strong>' .. "<br/>", content_rpc["ipaddr"]))
 	     if IPv6State == "disabled" and content_rpc["uptime"] then
@@ -138,29 +143,31 @@ end
 	 ngx.print(format(T'WAN IP is <strong>%s</strong>', content_rpc["ip6addr"]))
        end
 	   if ppp_status == "connected" and IPv6State ~= "disabled" then
-         ngx.print(ui_helper.createSimpleLight(nil, ipv6_state_map[IPv6State] or T"Unknown", { light = { class = ipv6_light_map[IPv6State] or "red" } }))
+         ngx.print(ui_helper.createSimpleLight(ipv6_light_map[IPv6State] or "4" --[[ red ]] , ipv6_state_map[IPv6State] or T"Unknown", attributes,"fa-globe"))
         end
-     end%>
-  </p>
-</div>
-</div>
-<script>
-$(document).ready(function () {
-		var PPPoEInternetCard = function () {
-			var self = this;
-			this.pppoe_uptime = ko.observable("");
-			this.refresh = function () {
-				$.post("/ajax/internet.lua?auto_update=true", [tch.elementCSRFtoken()], function(data) {
-					if(data.pppoe_uptime != undefined) {
-						self.pppoe_uptime(data.pppoe_uptime);
-					}
-				}, "json");
-			};
-			setInterval(self.refresh, 5000);
-			self.refresh();
-		};
-
-		var PPPoEInternetCard = new PPPoEInternetCard();
-		ko.applyBindings(PPPoEInternetCard, document.getElementById('pppoe-internet-tab'));
-})
-</script>
+     end
+	ngx.print('\
+  </p>\
+</div>\
+</div>\
+<script>\
+$(document).ready(function () {\
+		var PPPoEInternetCard = function () {\
+			var self = this;\
+			this.pppoe_uptime = ko.observable("");\
+			this.refresh = function () {\
+				$.post("/ajax/internet.lua?auto_update=true", [tch.elementCSRFtoken()], function(data) {\
+					if(data.pppoe_uptime != undefined) {\
+						self.pppoe_uptime(data.pppoe_uptime);\
+					}\
+				}, "json");\
+			};\
+			setInterval(self.refresh, 5000);\
+			self.refresh();\
+		};\
+\
+		var PPPoEInternetCard = new PPPoEInternetCard();\
+		ko.applyBindings(PPPoEInternetCard, document.getElementById("pppoe-internet-tab"));\
+})\
+</script>\
+');

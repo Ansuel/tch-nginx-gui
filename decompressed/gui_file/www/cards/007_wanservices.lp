@@ -106,9 +106,9 @@ end
     <div class="content card_bg" data-bg-text="&#xf0c2;">\
 	<div class="divtable">\
     ');  ngx.print(
-	    ui_helper.createSimpleLight(state, dmzstate, dmz_attributes),
-            ui_helper.createSimpleLight(ddns_light_map[format("%s", wan_services_data["ddns_enabled"])] or "0", ddns_enabled_map[format("%s", wan_services_data["ddns_enabled"])], dynDns_attributes),
-			ui_helper.createSimpleLight(upnpstate, upnpstate_text, dmz_attributes),
+	    ui_helper.createSimpleLight(state, dmzstate, dmz_attributes,"fas fa-cogs"),
+            ui_helper.createSimpleLight(ddns_light_map[format("%s", wan_services_data["ddns_enabled"])] or "0", ddns_enabled_map[format("%s", wan_services_data["ddns_enabled"])], dynDns_attributes,"fas fa-link"),
+			ui_helper.createSimpleLight(upnpstate, upnpstate_text, dmz_attributes,"fas fa-random"),
             '<p></p>',
             '<p class="subinfos">',
             format( N("<strong %s>%d port forwarding</strong> rule is defined",

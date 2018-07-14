@@ -57,7 +57,7 @@ end
 		  </td>\
 		   <td>\
 		    <div data-toggle="modal" data-remote="modals/diagnostics-xdsl-graphics-modal.lp" data-id="iagnostics-xdsl-graphics-modal">\
-			  <i class="smallsomeInfos fa fa-line-chart" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="XDSL GRAPH" alt="dsl graph"></i>\
+			  <i class="smallsomeInfos fas fa-chart-line" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="XDSL GRAPH" alt="dsl graph"></i>\
 			</div>\
 		  </td>\
 	');
@@ -74,7 +74,7 @@ end
 	      </td>\
 		  <td>\
 	        <div data-toggle="modal" data-remote="modals/port-mirror-modal.lp" data-id="port-mirror-modal">\
-			    <i class="smallsomeInfos fa fa-exchange" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="PORT-MIRROR" alt="port-mirror"></i>\
+			    <i class="smallsomeInfos fas fa-exchange-alt" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="PORT-MIRROR" alt="port-mirror"></i>\
 			</div>\
 	      </td>\
 	    </tr>\

@@ -10,6 +10,7 @@ local format, match = string.format, string.match
 local proxy = require("datamodel")
 local ui_helper = require("web.ui_helper")
 local content_helper = require("web.content_helper")
+local attributes = { light = { } ,span = { class = "span4" } }
 local frequency = {}
 local function getFrequencyBand(v)
   if frequency[v] then
@@ -87,31 +88,27 @@ end
     <div class="content card_bg" data-bg-text="&#xf1eb;">\
 	<div class="divtable">\
 ');  
-
+	local html = {}
 for i,v in pairs(ssid_list) do
+  local wifi_text = '<strong style="margin-left:26px;font-size:30px;">...</strong>'
   if i <= 4 then
-    local status = "light off"
-    if(v.state == "1") then
-      status = "light green"
-    end  ngx.print('\
-  <div class="');  ngx.print(status); ngx.print('"></div>\
-    <p class="wifi-card"><strong>');  ngx.print(v.ssid); ngx.print('</strong>(');  ngx.print(v.radio); ngx.print(')</p>\
-  ');  else  ngx.print('\
-    <p class="wifi-card"><strong style="margin-left:26px;font-size:30px;">...</strong></p>\
-  ');  end
+	wifi_text = format('<strong>%s</strong>(%s)',v.ssid or nil ,v.radio or nil)
+  end
+  attributes.light.id = "WiFi_Enabled_Led"
+	attributes.span.id = "WiFi_Enabled"
+   html[#html+1] = ui_helper.createSimpleLight(v.state or "0", wifi_text, attributes,"fa fa-wifi")
 end
 for i,v in pairs(ssid_list_guest) do
+  local wifi_text = '<strong style="margin-left:26px;font-size:30px;">...</strong>'
   if i <= 4 then
-    local status = "light off"
-    if(v.state == "1") then
-      status = "light green"
-    end  ngx.print('\
-  <div class="');  ngx.print(status); ngx.print('"></div>\
-    <p class="wifi-card"><strong>');  ngx.print(v.ssid); ngx.print('</strong>(');  ngx.print(v.radio); ngx.print(')</p>\
-  ');  else  ngx.print('\
-    <p class="wifi-card"><strong style="margin-left:26px;font-size:30px;">...</strong></p>\
-  ');  end
-end  ngx.print('\
+	wifi_text = format('<strong>%s</strong>(%s)',v.ssid or nil ,v.radio or nil)
+  end
+  attributes.light.id = "WiFi_Guest_Enabled_Led"
+	attributes.span.id = "WiFi_Guest_Enabled"
+   html[#html+1] = ui_helper.createSimpleLight(v.state or "0", wifi_text, attributes,"fa fa-wifi")
+end  
+	ngx.print(html)
+	ngx.print('\
 	</div>\
     </div>\
   </div>\

@@ -69,7 +69,7 @@ end
 \
       ');  
         ngx.print(
-            ui_helper.createSimpleLight(dhcpState, dhcpState_text, { light = { id =  "LAN_DHCP_LEDStatus" }, span = { id =  "LAN_DHCP_Status" } } ),
+            ui_helper.createSimpleLight(dhcpState, dhcpState_text, { light = { id =  "LAN_DHCP_LEDStatus" }, span = { id =  "LAN_DHCP_Status" } },"fa fa-home" ),
             '<p class="subinfos">',
             format(T'Gateway IP is <strong id="Gateway_Ip">%s</strong> and netmask is <strong id="Netmask_Ip">%s</strong>', mapParams["localdevIP"], mapParams["localdevmask"]),
             '</p>',

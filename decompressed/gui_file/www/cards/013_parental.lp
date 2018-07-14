@@ -93,7 +93,7 @@ end
     <div class="content card_bg" data-bg-text="&#xf023;">
 	<div class="divtable">
     <% ngx.print(
-            ui_helper.createSimpleLight(blockenabled, switchtext, { light = { id =  "Site_BlockingStatus_Led" }, span = { id =  "Site_Blocking_Status" } }),
+            ui_helper.createSimpleLight(blockenabled, switchtext, { light = { id =  "Site_BlockingStatus_Led" }, span = { id =  "Site_Blocking_Status" } },"fa-ban"),
             '<p></p>',
             '<p class="subinfos">',
             format( N("<strong %s>%d site blocking</strong> rule is defined",

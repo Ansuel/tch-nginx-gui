@@ -1576,25 +1576,36 @@ end
 -- @param #string desc
 -- @param #table attributes
 -- @return #string for ngx.print
-function M.createSimpleLight(value, text, attributes)
+function M.createSimpleLight(value, text, attributes, icon_type)
     local defaults = {
         span = {
             class = "simple-desc",
         },
         light = {
-            class = "light"
+            class = "light",
+        },
+		icon = {
+            class = icon_type and format("light_icon fa %s", icon_type) or "light_icon off",
         }
     }
 
     if value ~= nil then
-       defaults.light.class = defaults.light.class .. (LedValuetoString[value] or " off")
+		if icon_type then
+			defaults.icon.class = defaults.icon.class .. (LedValuetoString[value] or " off")
+		else
+			defaults.light.class = defaults.light.class .. (LedValuetoString[value] or " off")
+		end
     end
 
     mergeAttributes(defaults, attributes)
     local span = createAttributesString(defaults["span"])
     local light = createAttributesString(defaults["light"])
-
-    return format("<span %s><div %s></div>%s</span>", span, light, text)
+	local icon = createAttributesString(defaults["icon"])
+	if icon_type then
+		return format("<span %s><div %s></div>%s</span>", span, icon, text)
+	else
+		return format("<span %s><div %s></div>%s</span>", span, light, text)
+	end
 end
 
 

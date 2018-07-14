@@ -49,6 +49,7 @@ local dhcp_state_map = {
     <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
       ');  ngx.print( ui_helper.createCardHeader(T"Relay Setup", "modals/relay-modal.lp") ); ngx.print('\
       <div class="content card_bg" data-bg-text="&#xf079;">\
+	  <div class="divtable">\
         ');  ngx.print(ui_helper.createSimpleLight(nil, dhcp_state_map[dhcprelay_state] , { light = { class = dhcp_light_map[dhcprelay_state], id = "relaysetupcard_dhcprelaystatusled" },  span = { id = "relaysetupcard_dhcprelaystatus" }}))
           if server_addr and not server_addr[1].value == "" then 
 		    ngx.print(format('<p class = "subinfos" > Server IP : <strong id="relaysetupcard_relayip">%s</strong></p>',relay_Params["uci_relay_server_ip"] ))
@@ -57,6 +58,7 @@ local dhcp_state_map = {
           end
 		  ngx.print('\
      </div>\
+	 </div>\
     </div>\
 </div>\
 ');  

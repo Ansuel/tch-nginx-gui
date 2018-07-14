@@ -34,7 +34,7 @@ local pathIndexList = {}
     ');  ngx.print(ui_helper.createCardHeader(T"Printer Sharing", modalPath, nil, nil) ); ngx.print('\
     <div class="content card_bg" data-bg-text="&#xf02f;">\
 	  <div class="divtable">\
-      ');  ngx.print(ui_helper.createSimpleLight(content["printersharing_enabled"], printersharing_state, attributes)); ngx.print('\
+      ');  ngx.print(ui_helper.createSimpleLight(content["printersharing_enabled"], printersharing_state, attributes,"fa fa-print")); ngx.print('\
       ');  for _,v in ipairs(printer_info) do
         local pathIndex = match(v.path, "^sys%.usb%.device%.(%d+)%.interface%.%d+%.")
 	if pathIndex then

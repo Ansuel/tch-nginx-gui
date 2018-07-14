@@ -99,7 +99,9 @@ legend {
 	content: "\f063";
 	display:block;
 	position:absolute;
-	font:38px/1 FontAwesome
+	font-size:38px;
+	font-family:"Font Awesome 5 Free";
+	font-weight:900;
 }
 
 .scroll-up {
@@ -132,7 +134,9 @@ legend {
 	content: "\f062";
 	display:block;
 	position:absolute;
-	font:38px/1 FontAwesome
+	font-size:38px;
+	font-family:"Font Awesome 5 Free";
+	font-weight:900;
 }
 
 @keyframes bounce {

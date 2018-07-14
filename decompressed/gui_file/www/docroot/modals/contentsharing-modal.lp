@@ -496,7 +496,7 @@ $("#usbDev .eject").on("click", function(){\
      tch.scrollRowIntoView("usbDev", 1);});\
 });\
 \
-$("#toggle-usb3").change(function() {\
+$("#toggle-usb3").on("change", function() {\
   if($("#toggle-usb3").val() === "1") {\
     $("#warning-msg").removeClass("hide");\
   } else {\

@@ -5915,6 +5915,19 @@ form .switch
 	box-shadow:inset 0 1px 3px rgba(255,255,255,0.5)
 }
 
+.light_icon
+{
+	display:block;
+	float:left;
+	margin-right: 5px;
+	font-weight: bold;
+}
+
+.light_icon.off
+{
+	color:#999;
+}
+
 .light.light-large
 {
 	width:12px;
@@ -7248,7 +7261,9 @@ form .switch
 	position:absolute;
 	bottom:-90px;
 	right:5px;
-	font:200px/1 FontAwesome
+	font:200px
+	font-family:"Font Awesome 5 Free";
+	font-weight:900;
 }
 
 .card_bg
@@ -7259,13 +7274,15 @@ form .switch
 
 .card_bg:after
 {
+	font-family:"Font Awesome 5 Free";
+	font-weight:900;
 	color:#dbccdc;
 	content:attr(data-bg-text);
 	display:block;
 	position:absolute;
-	bottom:-40px;
 	right:10px;
-	font:170px/1 FontAwesome
+	top: 80px;
+	font-size:170px
 }
 
 .login_bg
@@ -7276,13 +7293,15 @@ form .switch
 
 .login_bg:after
 {
+	font-family:"Font Awesome 5 Free";
+	font-weight:900;
 	color:#dbccdc;
 	content:attr(data-bg-text);
 	display:block;
 	position:absolute;
-	bottom:-150px;
+	bottom: 70px;
 	right:-40px;
-	font:400px/1 FontAwesome
+	font-size:400px
 }
 
 .gateway_bg
@@ -7292,13 +7311,14 @@ form .switch
 
 .gateway_bg:after
 {
+	font-family:"Font Awesome 5 Free";
+	font-weight:900;
 	color:#dbccdc;
 	content:attr(data-bg-text);
 	display:block;
 	position:absolute;
 	left:-400px;
-	top:-500px;
-	font:1000px/1 FontAwesome
+	font-size:1000px
 }
 
 .hand
@@ -7669,13 +7689,13 @@ tr .delete-row:hover
 
 @font-face
 {
-	font-family:'FontAwesome'
+	font-family: "Font Awesome 5 Regular";
 }
 
 [class^="icon-"],[class*=" icon-"]
 {
-	font-family:FontAwesome;
-	font-weight:400;
+	font-family:"Font Awesome 5 Free";
+	font-weight:900;
 	font-style:normal;
 	text-decoration:inherit;
 	-webkit-font-smoothing:antialiased;
@@ -7941,12 +7961,12 @@ a [class^="icon-"],a [class*=" icon-"]
 
 .icon-download:before
 {
-	content:"\f01a"
+	content:"\f358"
 }
 
 .icon-upload:before
 {
-	content:"\f01b"
+	content:"\f35b"
 }
 
 .icon-inbox:before
@@ -7966,7 +7986,7 @@ a [class^="icon-"],a [class*=" icon-"]
 
 .icon-refresh:before
 {
-	content:"\f021"
+	content:"\f2f1"
 }
 
 .icon-list-alt:before
@@ -8626,7 +8646,7 @@ a [class^="icon-"],a [class*=" icon-"]
 
 .icon-globe:before
 {
-	content:"\f0ac"
+	content:"\f57e"
 }
 
 .icon-wrench:before
@@ -8866,7 +8886,7 @@ a [class^="icon-"],a [class*=" icon-"]
 
 .icon-exchange:before
 {
-	content:"\f0ec"
+	content:"\f362"
 }
 
 .icon-cloud-download:before
@@ -9041,7 +9061,7 @@ a [class^="icon-"],a [class*=" icon-"]
 
 .icon-mail-reply:before,.icon-reply:before
 {
-	content:"\f112"
+	content:"\f3e5"
 }
 
 .icon-github-alt:before
@@ -9196,7 +9216,7 @@ a [class^="icon-"],a [class*=" icon-"]
 
 .icon-shield:before
 {
-	content:"\f132"
+	content:"\f3ed"
 }
 
 .icon-calendar-empty:before

@@ -672,7 +672,8 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 .span3 .smallcard .card_bg:after{
  color: #ffffff;
  font-size: 25px;
- margin-bottom: 45px;
+ top: 80%;
+ right: 5%;
 }
 
 .smallcard:hover{

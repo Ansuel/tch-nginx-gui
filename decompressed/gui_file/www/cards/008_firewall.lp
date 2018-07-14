@@ -37,7 +37,7 @@ local modes = setmetatable({
       <p class="subinfos">\
         ');  
             local html = {}
-            html[#html+1] = format(T"Firewall level: <strong id=\"Firewall_Level_ID\">%s</strong><br>", modes[content.mode] or "")
+            html[#html+1] = '<i style="margin-left:-20px;" class="fab fa-free-code-camp" aria-hidden="true" href="#">&nbsp</i>' .. format(T"Firewall level: <strong id=\"Firewall_Level_ID\">%s</strong><br>", modes[content.mode] or "")
             if content.mode == "user" then
                 html[#html+1] = format(T"<strong>%d</strong> IPv4 rule(s) defined<br>", content.numrules)
                 html[#html+1] = format(T"<strong>%d</strong> IPv6 rule(s) defined", content.numrules_v6)

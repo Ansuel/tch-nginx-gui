@@ -619,6 +619,11 @@ local function validateRadioandAp(value, object, key)
 	return valid, msg
 end
 
+local wps_button_mode = {
+	{ "wps_button_pressed.sh" , T"WPS Mode" },
+	{ "acl_button_pressed" , T"ACL Mode" },
+	{ "" , T"Disabled" },
+  }
 
 -- Constructing the rpc parameters and validations for post handleQuery
 local function getParamsAndValidation()
@@ -635,7 +640,7 @@ local function getParamsAndValidation()
     wep_key = pathap .. "security.wep_key",
     wpa_psk = pathap .. "security.wpa_psk_passphrase",
     acl_mode = pathap .. "acl.mode",
-    wps_button_handler = wpshandler_data and "uci.button.button.@wps.handler",
+    wps_button_handler = "uci.button.button.@wps.handler",
     standard = pathradio .. "standard",
     requested_channel = pathradio .. "requested_channel",
     requested_channel_width = pathradio .. "requested_channel_width",
@@ -735,10 +740,7 @@ local function getParamsAndValidation()
     radius_account_port = gOV(VIPIL_port),
     radius_authent_state = gCV(radiusCond, getReplaceValue("1"), getReplaceValue("0")), -- we know that we're enforcing the server ip and port is there
     radius_account_state = gCV(gAV(radiusCond, checkIPandPort), getReplaceValue("1"), getReplaceValue("0")), -- if no server ip or port, don't set to 1
-    wps_button_handler = function(val, object)
-      object.wps_button_handler = wps_button_handler[object.wps_enabled]
-     return true
-    end,
+    wps_button_handler = post_helper.getValidateInEnumSelect(wps_button_mode),
     bsid = getValidateBandSteerPeerFields,
     frame_bursting = vB,
     ap_broadcast_ssid = vB,
@@ -1328,6 +1330,7 @@ if isguest ~= "1"  then
     }
     if radioData[curradio].remotely_managed ~= "1" or radioData[curradio].integrated_ap == "1"  then
      html[#html + 1] = ui_helper.createButton(T"WPS PBC", T"Trigger", "icon-refresh", wps_class)
+	 html[#html + 1] = ui_helper.createInputRadio(T"WPS Buttom Mode", "wps_button_handler" , wps_button_mode , content["wps_button_handler"] , nil)
     end
 end
     if "1" == content["ap_enabled"] and "1" == bs_peer_network_enable and 1 == band_steer_supported then

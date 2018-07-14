@@ -10,6 +10,8 @@ local ui_helper = require("web.ui_helper")
 local bridgedmode = require("bridgedmode_helper")
 local voicemode = require("voicemode_helper")
 
+local attributes = { light = { } ,span = { class = "span4" } }
+
 local post_helper = require("web.post_helper")
 local content_helper = require("web.content_helper")
 
@@ -47,6 +49,27 @@ if session:hasAccess("/modals/broadband-modal.lp") then
     modalPath = "modals/broadband-modal.lp"
 end
 
+local xdslstate = nil
+
+if xdsl_data.dsl_status == "Up" or other_line_xdsl_data.dsl_status == "Up" then
+	xdslstate = "Up"
+elseif xdsl_data.dsl_status == "NoSignal" and other_line_xdsl_data.dsl_status == "NoSignal" then
+	xdslstate = "NoSignal"
+end
+
+local intf_light_map = {
+  NoSignal = "4",--"red"
+  Up = "1",--"green"
+}
+
+local intf_text_map = {
+  NoSignal = T"Disconnected",--"red"
+  Up = T"Connected",--"green"
+}
+
+attributes.light.id = "Broadband_LED"
+attributes.span.id = "Broadband_State_Enabled"
+
 ngx.print( ui_helper.createCardHeader(T"Broadband", modalPath) ); ngx.print('\
 <div class="content card_bg" data-bg-text="&#xf0b2;">\
 <div class="divtable">\
@@ -59,12 +82,9 @@ ngx.print( ui_helper.createCardHeader(T"Broadband", modalPath) ); ngx.print('\
   if voicemode.isVoiceMode() then
 	ngx.print(format("<strong>%s</strong></br>",T"Voice Mode Active"))
   end
-  if (xdsl_data["dsl_status"] == "Up") or (other_line_xdsl_data["dsl_status"] == "Up") then
-    ngx.print(
-      "<div class=\"light green\" id=\"Broadband_LED\"></div><p id=\"Broadband_Status_Id\">",
-      T"Connected",
-      "</p>"
-    )
+  ngx.print( ui_helper.createSimpleLight(intf_light_map[xdslstate] or "3" --[[ orange ]] ,
+				intf_text_map[xdslstate] or (T"Connecting" .. "..."), attributes,"fa-signal"))
+  if (xdslstate == "Up") then
     -- After disabling broadband the page immediately refreshes. At this time the state is still up but the line
     -- rate is already cleared.
     local rate_up = tonumber(xdsl_data["dsl_linerate_up"])
@@ -95,26 +115,6 @@ ngx.print( ui_helper.createCardHeader(T"Broadband", modalPath) ); ngx.print('\
         "</p>"
       )
     end
-  elseif xdsl_data["dsl_status"] == "NoSignal" and other_line_xdsl_data["dsl_status"] == "NoSignal" then
-    ngx.print(
-      "<div class=\"light red\" id=\"Broadband_LED\"></div><p>",
-      T"Disconnected",
-      "</p>"
-    )
-  elseif xdsl_data["dsl_status"] == "Unknown" then
-    ngx.print(
-      "<div class=\"light orange\" id=\"Broadband_LED\"></div><p>",
-      T"Connecting",
-      "</p>"
-    )
-  else
-    ngx.print(
-      "<div class=\"light orange\" id=\"Broadband_LED\"></div><p>",
-      T"Connecting",
-      ": ",
-      T(xdsl_data["dsl_status"]),
-      "...</p>"
-    )
   end
 ngx.print('\
 </div>\

@@ -18,7 +18,7 @@ if session:hasAccess("/modals/usermgr-modal.lp") then
 		<div class="divtable">\
             <p class="subinfos">\
 		<strong>\
-		   ');  ngx.print(T"User management and log viewer"); ngx.print('<br>		      \
+		   ');  ngx.print(T"User management and log viewer"); ngx.print('<br>\
 		</strong>\
             </p>\
         </div>\

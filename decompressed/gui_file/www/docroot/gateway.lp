@@ -70,10 +70,10 @@ ngx.print('\
     <meta charset="UTF-8">\
     <meta name="CSRFtoken" content="');  ngx.print( session:getCSRFtoken() ); ngx.print('">\
     <meta name="Advanced" content="');  ngx.print( cui.advanced ); ngx.print('">\
+	<link href="/css/font-awesome-all-5.1.0.css" rel="stylesheet">\
     <link href="/css/gw.css" rel="stylesheet">\
 	<link rel="shortcut icon"    type="image/x-icon"   href="/img/favicon.ico"    />\
     <link href="/css/responsive.css" rel="stylesheet">\
-	<link rel="stylesheet" href="/css/font-awesome.css">\
 	<!--[if IE 7]><link rel="stylesheet" href="/css/font-awesome-ie7.css"><![endif]-->\
 	<link rel="stylesheet" href="/css/aos.css" >\
     <!--[if lt IE 9]> <script src="/js/media-min.js"></script> <![endif]-->\

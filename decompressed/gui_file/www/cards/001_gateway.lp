@@ -45,8 +45,9 @@ end
     ');  ngx.print( ui_helper.createCardHeader(T"Gateway", modalPath, switchName, nil, nil) ); ngx.print('\
     <div class="content card_bg" data-bg-text="&#xf129;">\
 	<div class="divtable">\
-      <div class="light green" id="Gateway_=LED_Id"></div>\
-      <p><strong id = "Version_Id">');  ngx.print(string.format(T"Version %s (%s)", name, version)); ngx.print('</strong></br>');
+	  <p>\
+      <i class="fa fa-info" id="Gateway_=LED_Id"></i>\
+      <strong id = "Version_Id">');  ngx.print(string.format(T"Version %s (%s)", name, version)); ngx.print('</strong></br>');
 	  ngx.print('<span class="subinfos">' ..  T"Cpu Load"..":" ); ngx.print('\
 					<strong data-bind="text: cpuload">\
 					</strong></span>\

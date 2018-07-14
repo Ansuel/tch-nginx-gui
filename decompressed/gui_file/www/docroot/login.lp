@@ -81,8 +81,8 @@ end
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">\
     <meta charset="UTF-8">\
     <meta name="CSRFtoken" content="');  ngx.print( ngx.ctx.session:getCSRFtoken() ); ngx.print('">\
+	<link href="/css/font-awesome-all-5.1.0.css" rel="stylesheet">\
     <link href="/css/gw.css" rel="stylesheet">\
-	<link rel="stylesheet" href="/css/font-awesome.css">\
     <link href="/css/responsive.css" rel="stylesheet">\
 	<link rel="shortcut icon"    type="image/x-icon"   href="/img/favicon.ico"    />');
 	ngx.print('<link rel="stylesheet" href="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/style.css">');
@@ -262,7 +262,7 @@ $(document).ready(\
 	  $("#sign-cancel").hide();\
 	  $("#sign-me-in-icon").show();\
 	  $("#sign-me-in-icon").css("margin-right","5px");\
-	  $("#sign-me-in-icon").addClass("fa fa-refresh fa-spin");\
+	  $("#sign-me-in-icon").addClass("fa fa-sync fa-spin");\
       $(this).text(\'');  ngx.print( T"Verifying" ); ngx.print('\');\
       password = $("#srp_password")[0].value;\
 \

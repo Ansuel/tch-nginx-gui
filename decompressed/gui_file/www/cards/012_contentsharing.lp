@@ -93,19 +93,19 @@ end
 <div class="span3">\
 	<div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
 		');  ngx.print(ui_helper.createCardHeader(T"Content Sharing", modalPath, nil, nil) ); ngx.print('\
-		<div class="content card_bg" data-bg-text="&#xf115;">\
+		<div class="content card_bg" data-bg-text="&#xf07c;">\
 		<div class="divtable">\
 			');  
 				local html = {}
 				if samba_available then
 					attributes.light.id = "Samba_Filesharing_Enabled_Led"
 					attributes.span.id = "Samba_Filesharing_Enabled"
-					tinsert(html, ui_helper.createSimpleLight((content["samba_enabled"]~= '0' and "1" or "0"), sambastate, attributes))
+					tinsert(html, ui_helper.createSimpleLight((content["samba_enabled"]~= '0' and "1" or "0"), sambastate, attributes,"fas fa-hdd"))
 				end
 				if dlna_available then
 					attributes.light.id = "Dlna_Enabled_Led"
 					attributes.span.id = "Dlna_Enabled"
-					tinsert(html, ui_helper.createSimpleLight(content["dlna_enabled"], dlnastate, attributes))
+					tinsert(html, ui_helper.createSimpleLight(content["dlna_enabled"], dlnastate, attributes,"fa fa-folder"))
 				end
                                 for i,v in pairs(usbtab) do
                                         tinsert(html, ui_helper.createSimpleLight(nil, v.value, { light = { class = v.usbcon } }))

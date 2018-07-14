@@ -76,7 +76,7 @@ end
 	  <div class="divtable">
 	  <%
 	  local html = {}
-	  tinsert(html, ui_helper.createSimpleLight(mmpbx_state, mmpbx_info, { light = { id =  "Telephony_LEDStatus" }, span = { id =  "Telephony_Status" } } ))
+	  tinsert(html, ui_helper.createSimpleLight(mmpbx_state, mmpbx_info, { light = { id =  "Telephony_LEDStatus" }, span = { id =  "Telephony_Status" } },"fa fa-phone"))
 	  tinsert (html,[[<p class= "subinfos">]] )
 	  local name, value = "", ""
 	  local reged, notreged, reging = 0,0,0
