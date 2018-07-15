@@ -27,35 +27,37 @@ window.addEventListener('scroll', function(){
 	ruleR1.style.transform = 'translateY( -' + window.scrollY + 'px)';
 });
 
-window.onload = function(){
-  
-  document.querySelector('.apprise-overlay').style.opacity = "";
-  $(document).off("touchend", '[data-toggle\x3d"modal"]');
-  $(document).off("touchend", ".smallcard");
-	
-  if (document.querySelector('.row[style="z-index : 2;  position: relative;"]') != null){
-    window.onresize = updateHeight;
-    updateHeight();
-    closeNav();
-    document.querySelector('.header.span12').addEventListener('click', function (e) {
-	  if (e.pageX != 0 && e.pageY !=0){
-		if (e.pageX  < 60 && window.innerWidth <= (50 * parseFloat(getComputedStyle(document.documentElement).fontSize))) {
-			openNav();
-		}
-	  }
-    });
-    document.querySelector('.apprise-overlay').addEventListener('click', function (e) {
+$(document).ready(
+    function() {
+    document.querySelector('.apprise-overlay').style.opacity = "";
+    $(document).off("touchend", '[data-toggle\x3d"modal"]');
+    $(document).off("touchend", ".smallcard");
+  	
+    if (document.querySelector('.row[style="z-index : 2;  position: relative;"]') != null){
+      window.onresize = updateHeight;
+      updateHeight();
       closeNav();
-    });
-
-    document.querySelector('.row[style="z-index : 2;  position: relative;"]').addEventListener('click', function (e) {
-	  if (e.target.childNodes.length == 2 && e.target.childNodes[0].nodeName == "DIV" && e.target.childNodes[1].nodeName == "DIV")
-		e.target.childNodes[0].click();
-		
-	  closeNav();
-    });
+      document.querySelector('.header.span12').addEventListener('click', function (e) {
+  	  if (e.pageX != 0 && e.pageY !=0){
+  		if (e.pageX  < 60 && window.innerWidth <= (50 * parseFloat(getComputedStyle(document.documentElement).fontSize))) {
+  			openNav();
+  		}
+  	  }
+      });
+      document.querySelector('.apprise-overlay').addEventListener('click', function (e) {
+        closeNav();
+      });
+  
+      document.querySelector('.row[style="z-index : 2;  position: relative;"]').addEventListener('click', function (e) {
+  	  if (e.target.childNodes.length == 2 && e.target.childNodes[0].nodeName == "DIV" && e.target.childNodes[1].nodeName == "DIV")
+  		e.target.childNodes[0].click();
+  		
+  	  closeNav();
+      });
+    }
   }
-}
+)
+
 var blockHeight = false;
 var modalOpen = false;
 
