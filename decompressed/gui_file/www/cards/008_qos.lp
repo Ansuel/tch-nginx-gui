@@ -31,9 +31,11 @@ ngx.print('\
 			');
                 local html = {}
 				html[#html + 1] = "<p class='subinfos'>"
+                html[#html + 1] = '<i " class="fas fa-list-ul" aria-hidden="true" href="#">&nbsp</i>'
                 html[#html + 1] = format(N("<strong>%s queue(s)</strong> active"), dataQoS.numQueues)
 				html[#html + 1] = "</p>"
 				html[#html + 1] = "<p class='subinfos'>"
+                html[#html + 1] = '<i " class="fas fa-list-ul" aria-hidden="true" href="#">&nbsp</i>'
                 html[#html + 1] = format(N("<strong>%s classify rule(s)</strong> active"), dataQoS.numClassify)
 				html[#html + 1] = "</p>"
                 ngx.print (html)

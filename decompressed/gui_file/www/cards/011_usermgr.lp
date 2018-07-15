@@ -17,6 +17,7 @@ if session:hasAccess("/modals/usermgr-modal.lp") then
         <div class="content card_bg" data-bg-text="&#xf0c0;">\
 		<div class="divtable">\
             <p class="subinfos">\
+            <i " class="fas fa-user-alt" aria-hidden="true" href="#">&nbsp</i>\
 		<strong>\
 		   ');  ngx.print(T"User management and log viewer"); ngx.print('<br>\
 		</strong>\

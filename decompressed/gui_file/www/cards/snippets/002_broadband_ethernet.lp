@@ -91,7 +91,7 @@ end
 ');  ngx.print( ui_helper.createCardHeader(T"Broadband", modalPath) ); ngx.print('\
 <div class="content card_bg" data-bg-text="&#xf0b2;">\
   <div class="divtable">\
-    ');  ngx.print( ui_helper.createSimpleLight(intf_light_map[intf_state] , intf_state_map[intf_state], { light = {} },"fa-signal") ); ngx.print('\
+    ');  ngx.print( ui_helper.createSimpleLight(intf_light_map[intf_state] , intf_state_map[intf_state], { light = {} },"fas fa-retweet") ); ngx.print('\
   </div>\
 </div>\
 '); 

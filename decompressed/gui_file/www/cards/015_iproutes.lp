@@ -50,8 +50,9 @@ end
         ');  ngx.print( ui_helper.createCardHeader(T"IP Extras", "modals/iproutes-modal.lp") ); ngx.print('\
         <div class="content card_bg" data-bg-text="&#xf018;">\
 		<div class="divtable">\
-            <p class="subinfos">\
-            ');  
+                <p class="subinfos">\
+                <i class="fas fa-exchange-alt" aria-hidden="true" href="#">&nbsp</i>\
+              ');  
             local modal_link=format("class=\"modal-link\" data-toggle=\"modal\" data-remote=\"%s\" data-id=\"device-modal\"",modalPath)
             ngx.print(
             format( N('<strong %1$s>%2$d Route</strong>',
@@ -62,7 +63,7 @@ end
             <p class="subinfos">\
             ');  
             ngx.print(
-            format( N('<strong %1$s>%2$d DNS Server</strong>',
+           '<i " class="fas fa-server" aria-hidden="true" href="#">&nbsp</i>' .. format( N('<strong %1$s>%2$d DNS Server</strong>',
                       '<strong id="iproutescard_dnsservers" %1$s>%2$d DNS Servers</strong>', dns_count),
                       modal_link, dns_count))
               ngx.print('\

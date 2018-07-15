@@ -87,6 +87,7 @@ local script_file_presence = io.open(string.format("/www/docroot/theme/%s/script
 if script_file_presence then
 	ngx.print('<script src="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/script.js"></script>');
 end
+	ngx.print('\
 	<script src="/js/jquery.min.js" ></script>\
 	<script src="/js/jquery-migrate.js" ></script>\
     <script src="/js/main-min-nojquery.js" ></script>\

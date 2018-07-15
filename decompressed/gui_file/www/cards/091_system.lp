@@ -25,15 +25,16 @@ local Syslog = proxy.get("uci.system.system.@system[0].log_ip", "uci.system.syst
 if Syslog and (Syslog[1].value ~= "" or Syslog[2].value ~= "") then
     syslog_present = "Enabled"
 end
-    local syslog_state_map = {
-      Disabled = T"Syslog Disabled",
-      Enabled = T"Syslog Enabled",
-    }
 
-    local syslog_light_map = {
-      Disabled = "off",
-      Enabled = "green",
-    }
+local syslog_state_map = {
+  Disabled = T"Syslog Disabled",
+  Enabled = T"Syslog Enabled",
+}
+
+local syslog_light_map = {
+  Disabled = "0",--"off"
+  Enabled = "1",--"green"
+}
 
 local ssh_enable = "Disabled"
 local SSH_legacy = proxy.get("uci.dropbear.dropbear.@dropbear[0].enable")
@@ -49,37 +50,41 @@ if SSH_wan and (SSH_wan[1].value == "1") then
     ssh_enable = "Enabled"
 end
 
-    local SSH_state_map = {
-      Disabled = T"SSH Disabled",
-      Enabled = T"SSH Enabled",
-    }
+local SSH_state_map = {
+  Disabled = T"SSH Disabled",
+  Enabled = T"SSH Enabled",
+}
 
-    local SSH_light_map = {
-      Disabled = "off",
-      Enabled = "green",
-    }
+local SSH_light_map = {
+  Disabled = "0",--"off"
+  Enabled = "1",--"green"
+}
 
 local telnet_available = file_check("/bin/busybox_telnet")
+local telnet_state = "NotAvailable"
 
 if telnet_available then
 	local TELNET = proxy.get("uci.telnet.general.enable")
 	if TELNET and (TELNET[1].value == "1") then
-		telnet_enable = "Enabled"
+		telnet_state = "Enabled"
 	else
-		telnet_enable = "Disabled"
+		telnet_state = "Disabled"
 	end
 end
-    local TELNET_state_map = {
-      Disabled = T"Telnet Disabled",
-      Enabled = T"Telnet Enabled",
-    }
 
-    local TELNET_light_map = {
-      Disabled = "off",
-      Enabled = "green",
-    }
-	
-    if session:hasAccess("/modals/system-modal.lp") then
+local TELNET_state_map = {
+  Disabled = T"Telnet Disabled",
+  Enabled = T"Telnet Enabled",
+  NotAvailable = T"Telnet Not Available",
+}
+
+local TELNET_light_map = {
+  Disabled = "0",--"off"
+  Enabled = "1",--"green"
+  NotAvailable = "4",--red
+}
+
+if session:hasAccess("/modals/system-modal.lp") then
     local modal_link = format("class=\"modal-link\" data-toggle=\"modal\" data-remote=\"%s\" data-id=\"device-modal\"",modalPath)
   ngx.print('\
 <div class="span3">\
@@ -88,13 +93,13 @@ end
     <div class="content card_bg" data-bg-text="&#xf1de;">\
       <div class="divtable">');
 			ngx.print(
-				ui_helper.createSimpleLight(nil, syslog_state_map[syslog_present], { light = { class = syslog_light_map[syslog_present] } }),
+				ui_helper.createSimpleLight(syslog_light_map[syslog_present], syslog_state_map[syslog_present], nil,"fas fa-align-left"),
 				'<br/>',
-				ui_helper.createSimpleLight(nil, SSH_state_map[ssh_enable], { light = { class = SSH_light_map[ssh_enable] } }),
+				ui_helper.createSimpleLight(SSH_light_map[ssh_enable], SSH_state_map[ssh_enable], nil,"fas fa-keyboard"),
 				'<br/>');
 			if telnet_available then
 				ngx.print(
-					ui_helper.createSimpleLight(nil, TELNET_state_map[telnet_enable], { light = { class = TELNET_light_map[telnet_enable] } })
+					ui_helper.createSimpleLight(TELNET_light_map[telnet_state], TELNET_state_map[telnet_state], nil,"fas fa-terminal")
 				);
 			end
 		ngx.print('\

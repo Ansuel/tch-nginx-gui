@@ -71,7 +71,7 @@ end
 		');  ngx.print( ui_helper.createCardHeader(params.card_title, modalPath, switchName, lte_state) ); ngx.print('\
 		<div class="content card_bg" data-bg-text="&#xf012;">\
 		<div class="divtable">\
-			');  ngx.print( ui_helper.createSimpleLight(light.status, light.desc) ); ngx.print('\
+			');  ngx.print( ui_helper.createSimpleLight(light.status, light.desc)); ngx.print('\
 				<div id="signal-strength-indicator-small-card">\
 					<div>\
 						<div class="bar-small bar-small1"></div>\

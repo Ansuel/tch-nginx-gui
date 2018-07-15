@@ -61,7 +61,8 @@ if session:hasAccess("/modals/tod-modal.lp") then
     <% ngx.print(
             '<p></p>',
             '<p class="subinfos">',
-            format(N("<strong %s>%d Access Control</strong> rule defined",
+           '<i " class="far fa-eye" aria-hidden="true" href="#">&nbsp</i>',
+           format(N("<strong %s>%d Access Control</strong> rule defined",
                      "<strong id=\"todcard_timeofday\" %s>%d Access Control</strong> rules defined", rulecount),
                    'class="modal-link" data-toggle="modal" data-remote="modals/tod-modal.lp" data-id="tod-modal"',
                    rulecount),
@@ -72,7 +73,8 @@ if session:hasAccess("/modals/tod-modal.lp") then
        ngx.print(
             '<p></p>',
             '<p class="subinfos">',
-            format(N("<strong %s>%d Wireless Control</strong> rule defined",
+          '<i " class="far fa-eye" aria-hidden="true" href="#">&nbsp</i>',
+          format(N("<strong %s>%d Wireless Control</strong> rule defined",
                      "<strong id=\"todcard_timeofday\" %s>%d Wireless Control</strong> rules defined", rulecount_wifi),
                    'class="modal-link" data-toggle="modal" data-remote="modals/tod_wireless-modal.lp" data-id="tod-modal"',
                    rulecount_wifi),
