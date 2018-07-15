@@ -17,6 +17,7 @@ ngx.print('\
         },
       }
 	  html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_1.1.1_002 )" .. '</legend>'
+	  html[#html + 1] = ui_helper.createLabel(T"8.6", "Rework icone, aggiornata libreria fontawesome, fix e migliorie varie, TEST sfp->stptag per sbloccare classe di ip 192.168.2.1... si attendono feedback per gli utenti che usano modulo sfp ", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"8.5", "Traduzioni aggiornate, fixato ddns", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"8.4", "Fix sysupgrade e dlna", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"8.3", "Migliorato e fixata visualizzazione del monitor traffico nella tab Dispositivi Connessi.", basic)

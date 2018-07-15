@@ -30,7 +30,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=8.5.8
+version_gui=8.6.0
 
 logo_project() {
 cat << EOF > /dev/console
@@ -874,12 +874,22 @@ fcctlsettings_daemon() {
 	fi
 }
 
+sfp_rework() {
+	if [ "$uci get -q network.sfp" ]; then
+		logger -s -t "Root Script" "Moving sfp to sfptag..."
+		uci rename network.sfp=sfptag
+		uci set network.sfptag.ipaddr=192.168.10.1
+		/etc/init.d/network restart
+	fi
+}
+
 root() {
 
 	#THIS CHECK DEVICE TYPE AND INSTALL SPECIFIC FILE
 	device_type="$(uci get -q env.var.prod_friendly_name)"
 		
 	if [ "$device_type" == "DGA4132" ] || [ "$device_type" == "DGA4130" ]; then 
+		device_type_model="$device_type"
 		device_type="DGA"
 	fi
 
@@ -1005,6 +1015,8 @@ root() {
 	update_checkver_upgrade_script #This clean old script
 	logger -s -t "Root Script" "Adding fast cache options"
 	fcctlsettings_daemon #Adds fast cache options
+	logger -s -t "Root Script" "Reworking sfp interface in network..."
+	[ "$device_type_model" == "DGA4132" ] && sfp_rework #sfp to sfptag, to solve local ip problem 
 	
 	logger -s -t "Root Script" "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not
