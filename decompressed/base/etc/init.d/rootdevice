@@ -30,7 +30,7 @@ EXTRA_HELP="        force   Force root process even when root flag is already se
 
 local rooted
 force=0
-version_gui=8.6.0
+version_gui=8.6.2
 
 logo_project() {
 cat << EOF > /dev/console
@@ -875,11 +875,11 @@ fcctlsettings_daemon() {
 }
 
 sfp_rework() {
-	if [ "$uci get -q network.sfp" ]; then
+	if [ "$(uci get -q network.sfp)" ]; then
 		logger -s -t "Root Script" "Moving sfp to sfptag..."
 		uci rename network.sfp=sfptag
 		uci set network.sfptag.ipaddr=192.168.10.1
-		/etc/init.d/network restart
+		touch /root/.sfp_change
 	fi
 }
 
@@ -1015,7 +1015,7 @@ root() {
 	update_checkver_upgrade_script #This clean old script
 	logger -s -t "Root Script" "Adding fast cache options"
 	fcctlsettings_daemon #Adds fast cache options
-	logger -s -t "Root Script" "Reworking sfp interface in network..."
+	[ "$device_type_model" == "DGA4132" ] && logger -s -t "Root Script" "Reworking sfp interface in network..."
 	[ "$device_type_model" == "DGA4132" ] && sfp_rework #sfp to sfptag, to solve local ip problem 
 	
 	logger -s -t "Root Script" "Setting root flag"
@@ -1067,6 +1067,12 @@ root() {
 	logger -s -t "Root Script" "Sync version"
 	if [ -f /usr/share/transformer/scripts/checkver ]; then
 		checkver_cron
+	fi
+	
+	if [ -f /root/.sfp_change ]; then
+		rm /root/.sfp_change
+		/etc/init.d/network restart
+		ifup wan
 	fi
 	
 	logger -s -t "Root Script" "Apply modification"
