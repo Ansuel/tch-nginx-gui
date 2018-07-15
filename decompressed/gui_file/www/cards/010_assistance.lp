@@ -5,7 +5,7 @@
 gettext.textdomain('webui-core')
 
 local modal = '/modals/assistance-modal.lp'
-
+local attributes = { light = { id =  "Assistance_LEDStatus" }, span = { id =  "Assistance_Status" } }
 local format = string.format
 
 local session = ngx.ctx.session
@@ -15,7 +15,8 @@ local ui_helper = require 'web.ui_helper'
 local assistance = require 'web.assistance'
 local assistant = assistance.getAssistant('remote')
 
-local assistant_state = assistant:enabled() or "0"
+local assistant_state_light = assistant:enabled() or "0"
+local assistant_state = assistant:enabled() and T"Enabled" or T"Disabled"
 local url = assistant:URL() or nil
 
 local modal_link = nil
@@ -33,7 +34,7 @@ ngx.print('\
 	<div class="divtable">\
 	')
 		local html = {}
-		html[#html+1] = ui_helper.createSimpleLight(assistant_state, T"Enabled", { light = { id =  "Assistance_LEDStatus" }, span = { id =  "Assistance_Status" } },"fas fa-hands-helping")
+		html[#html+1] = ui_helper.createSimpleLight(assistant_state_light, assistant_state, attributes ,"fas fa-hands-helping")
         html[#html+1] = '<br/>'
 		if url then
             html[#html+1] = T"URL:" .. format(' <strong id="port">%s</strong>', url)
@@ -41,7 +42,7 @@ ngx.print('\
             html[#html+1] = T"Username:" .. format(' <strong id="username">%s</strong>', assistant:username())
 			html[#html+1] = '<br/>'
             html[#html+1] = T"Password:" .. format(' <strong id="password">%s</strong>', assistant:password())
-        else
+        elseif assistant:enabled() then
             html[#html+1] = T"There is no connection to the Internet."
         end
 		ngx.print(html)
