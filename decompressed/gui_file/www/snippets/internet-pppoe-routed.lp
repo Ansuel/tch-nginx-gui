@@ -310,11 +310,11 @@ end)
 content_helper.getExactContent(content_rpc)
 
 local dnstab = split(content_rpc.dns_loopback, "[^%,]+")
-local dnsv4, dnsv6 = dns_filter(dnstab)
+local dnsv4, dnsv6 = dns_filter(dnstab), dns_filter(dnstab)
 content_rpc.dns = content_helper.getMergedList(content_rpc.dns_wan, dnsv4)
 
 if proxy.get("uci.network.interface.@wan.ipv6")[1].value == "1" then
-	content_rpc.dnsv6 = content_helper.getMergedList(c.dnsv6, dnsv6)
+	content_rpc.dnsv6 = content_helper.getMergedList(content_rpc.dnsv6, dnsv6)
 end
 
 local wan_atm_uci_path = format("uci.xtm.atmdevice.@%s.", content_rpc["wan_ppp_ll_intf"])
