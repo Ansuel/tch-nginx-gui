@@ -868,6 +868,7 @@ local function validateSFPIP(value, object, key)
 	   local ipvalue = post_helper.validateStringIsIP(value) and ipv42num(value)
 	   local ipmask = post_data["localdevmask"]
 	   local ipnetmask = post_helper.validateStringIsIP(ipmask) and ipv42num(ipmask)
+	   local sfpintf = "sfptag"
 	   
 	   local ipnetwork, ipmaxvalue
 			if ipvalue and ipnetmask then
@@ -876,7 +877,7 @@ local function validateSFPIP(value, object, key)
 			end
 		--NG-100782>
 		for _,intf in pairs(all_intfs) do
-			if intf.paramindex ~= curintf then
+			if intf.paramindex ~= sfpintf then
 				local ipaddr = proxy.get("uci.network.interface.@" .. intf.paramindex .. ".ipaddr")[1].value
 				local mask = proxy.get("uci.network.interface.@" .. intf.paramindex .. ".netmask")[1].value
 				local baseip = post_helper.validateStringIsIP(ipaddr) and ipv42num(ipaddr)

@@ -84,13 +84,9 @@ end
 	<link href="/css/font-awesome-all-5.1.0.css" rel="stylesheet">\
     <link href="/css/gw.css" rel="stylesheet">\
     <link href="/css/responsive.css" rel="stylesheet">\
-	<link rel="shortcut icon"    type="image/x-icon"   href="/img/favicon.ico"    />');
-	ngx.print('<link rel="stylesheet" href="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/style.css">');
-local script_file_presence = io.open(string.format("/www/docroot/theme/%s/script.js",cui.gui_skin),"r")
-if script_file_presence then
-	ngx.print('<script src="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/script.js"></script>');
-end
-    ngx.print('<link rel="stylesheet" href="/css/aos.css" >\
+	<link rel="shortcut icon"    type="image/x-icon"   href="/img/favicon.ico"/>');
+	ngx.print('<link rel="stylesheet" href="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/style.css">\
+	<link rel="stylesheet" href="/css/aos.css" >\
     <title>');  ngx.print( T"Login" ); ngx.print('</title>\
 </head>'); 
 ngx.print('\
@@ -144,7 +140,7 @@ ngx.print('\
             </div>\
             <div class="control-group">\
                 <label for="srp_password"><div class="label-icon"><i class="icon-lock icon-large"></i></div></label>\
-                <input class="span3" type="password" placeholder="');  ngx.print( T"Your password" ); ngx.print('" id="srp_password"><br><br>\
+                <input class="span3" type="password" autocomplete="current-password" placeholder="');  ngx.print( T"Your password" ); ngx.print('" id="srp_password"><br><br>\
             </div>\
             <!-- HIDE WARNING - NOT NOT USED IN DEFAULT CUSTO\
             <div id="defaultpassword" class="alert alert-info hide">\
@@ -233,7 +229,12 @@ ngx.print('\
 <script  language="JavaScript" type="text/javascript"   src="/js/main-min-nojquery.js" ></script>\
 <!--[if lt IE 9]> <script src="/js/media-min.js"></script> <![endif]-->\
 <script  language="JavaScript" type="text/javascript"   src="/js/srp-min.js" ></script>\
-<script src="/js/aos.js"></script>\
+<script src="/js/aos.js"></script>');
+local script_file_presence = io.open(string.format("/www/docroot/theme/%s/script.js",cui.gui_skin),"r")
+if script_file_presence then
+	ngx.print('<script src="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/script.js"></script>');
+end
+ngx.print('\
 <script language="JavaScript" type="text/javascript">\
 AOS.init();\
 $(document).ready(\

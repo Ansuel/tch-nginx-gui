@@ -82,17 +82,17 @@ end
     <link href="/css/gw.css" rel="stylesheet">\
 	<link href="/css/responsive.css" rel="stylesheet">\
 	<link rel="shortcut icon"    type="image/x-icon"   href="/img/favicon.ico"    />');
-	ngx.print('<link rel="stylesheet" href="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/style.css">');
-local script_file_presence = io.open(string.format("/www/docroot/theme/%s/script.js",cui.gui_skin),"r")
-if script_file_presence then
-	ngx.print('<script src="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/script.js"></script>');
-end
-	ngx.print('\
+	ngx.print('<link rel="stylesheet" href="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/style.css">\
 	<script src="/js/jquery.min.js" ></script>\
 	<script src="/js/jquery-migrate.js" ></script>\
     <script src="/js/main-min-nojquery.js" ></script>\
     <!--[if lt IE 9]> <script src="/js/media-min.js"></script> <![endif]-->\
-    <script src="/js/srp-min.js" ></script>\
+    <script src="/js/srp-min.js" ></script>');
+	local script_file_presence = io.open(string.format("/www/docroot/theme/%s/script.js",cui.gui_skin),"r")
+	if script_file_presence then
+		ngx.print('<script src="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/script.js"></script>');
+	end
+	ngx.print('\
 	<style>\
 		@media screen and (max-width: 979px) and (min-width: 768px){\
 			.span4 {width: 300px;}\
@@ -181,7 +181,7 @@ end
                 <label for="srp_password"><div class="label-icon">\
                     <i class="icon-lock icon-large"></i>\
                 </div></label>\
-                <input class="span3" type="password" id="srp_password" autofocus><br><br>\
+                <input class="span3" type="password" autocomplete="current-password" id="srp_password" autofocus><br><br>\
             </div>\
             <!-- HIDE WARNING - NOT USED IN DEFAULT CUSTO\
             <div id="defaultpassword" class="alert alert-info hide">\
@@ -349,18 +349,18 @@ $(document).ready(\
 		srp.identify("/password", username, password);\
 	}\
     // Set the focus on the first input field\
-    $(\'form:first *:input[type!=hidden]:first\').focus();\
+    $(\'form:first *:input[type!=hidden]:first\').trigger("focus");\
     // Handle press of enter. Could be handled by adding a hidden input submit but\
     // this requires a lot of css tweaking to get it right since display:none does\
     // not work on every browser. So go for the js way\
-    $(\'form input\').keydown(function(e) {\
+    $(\'form input\').on("keydown", function(e) {\
         if(e.which == 13 || e.which == 10) {\
             e.preventDefault();\
             $("#change-my-pass").click();\
         }\
     });\
 \
-	$("#yes").click(function(){\
+	$("#yes").on("click", function(){\
 		$("#erroruserpass_2").hide();\
 		$("#no").hide();\
 		$("#yes").hide();\
@@ -370,7 +370,7 @@ $(document).ready(\
 		$("#updating").show();\
 	});\
 	\
-	$("#no").click(function(){\
+	$("#no").on ("click", function(){\
 		$("#yes").hide();\
 		$("#no").hide();\
 		$("#cancel").show();\
