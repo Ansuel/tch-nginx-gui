@@ -31,7 +31,7 @@ EXTRA_HELP="\
         debug   force command with debug log
 "
 
-version_gui=8.6.24
+version_gui=8.6.28
 
 logo_project() {
 cat << EOF > /dev/console
@@ -905,7 +905,11 @@ sfp_rework() {
 	if [ "$(uci get -q network.sfp)" ]; then
 		logger_command "Moving sfp to sfptag..."
 		uci rename network.sfp=sfptag
-		uci set network.sfptag.ipaddr=192.168.10.1
+		class_target=10
+		if [ $(uci get network.lan.ipaddr) == "192.168.$class_target.1" ]; then
+			class_target=$class_target+10
+		fi
+		uci set network.sfptag.ipaddr=192.168.$class_target.1
 		touch /root/.sfp_change
 	fi
 }

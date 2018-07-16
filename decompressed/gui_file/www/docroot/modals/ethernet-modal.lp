@@ -484,6 +484,21 @@ if cur_dhcp_intf == "STB" then
   cur_dhcp_intf = "lan"
 end
 
+local sfp_presence = proxy.get("uci.env.rip.sfp")
+
+local mapParSFP = {}
+local mapValSFP = {}
+
+if sfp_presence and  (sfp_presence[1].value == "1") then
+	mapParSFP.ethsfp = "uci.ethernet.globals.eth4lanwanmode"
+	mapValSFP.ethsfp = vB
+else
+	mapParSFP.eth4_wanmode = "uci.ethernet.port.@eth4.wan"			
+	mapValSFP.eth4_wanmode = vB
+end
+
+local content_sfp, helpmsg = post_helper.handleQuery(mapParSFP, mapValSFP)
+
 -- Standard parameters
 local mapParams = {
 	domainName = "uci.dhcp.dnsmasq.@dnsmasq.domain",
@@ -497,6 +512,10 @@ local mapParams = {
     --localIPv6 = "uci.network.interface.@" .. curintf .. ".ipv6",
     eth0 = "uci.ethernet.port.@eth0.enable",
 }
+
+if sfp_presence and  (sfp_presence[1].value == "1") then
+	mapParams["sfplocalip"] = "uci.network.interface.@sfptag.ipaddr"
+end
 
 local ethports = {
     {"eth0", "eth0"},
@@ -795,6 +814,11 @@ local function validateGWIP(value, object, key)
 				local mask = proxy.get("uci.network.interface.@" .. intf.paramindex .. ".netmask")[1].value
 				local baseip = post_helper.validateStringIsIP(ipaddr) and ipv42num(ipaddr)
 				local netmask = post_helper.validateStringIsIP(mask) and ipv42num(mask)
+				local sfplocalip = proxy.get("uci.network.interface.@sfptag.ipaddr")
+				
+				if sfplocalip and sfplocalip[1].value then
+					sfplocalip = sfplocalip[1].value
+				end
 
 				local network, ipmax
 				if baseip and netmask then
@@ -803,11 +827,81 @@ local function validateGWIP(value, object, key)
 				end
 			
 				if network and ipmax then
+					if ip == sfplocalip then
+						return nil, T"Gateway IP should not be in SFP interface IP Range, change that first"
+					end
 					if ip >= network and ip <= ipmax then
 						if intf.name ~= "" then
 							return nil, T"Gateway IP should not be in " .. intf.name .. T" IP Range"
 						else
 							return nil, T"Gateway IP should not be in " .. intf.paramindex .. T" IP Range"
+						end
+					end
+				--<NG-100782
+					if ipnetwork <= network and network <= ipmaxvalue then
+						if intf.name ~= "" then
+							return nil, T"The IP address is part of the "..intf.name.." IP Range"
+						else
+							return nil, T"The IP address is part of the "..intf.paramindex.." IP Range"
+						end
+					end
+				--NG-100782>
+				end
+			end
+		end
+   else
+	return nil, T"Public IP Range should not be used"
+   end
+   return true
+end
+
+local function validateSFPIP(value, object, key)
+   local val, errmsg = aIPV(value, object, key)
+	local post_data = ngx.req.get_post_args()
+   if not val then
+      return nil, errmsg
+   end
+
+   local ip = ipv42num(value)
+   --<NG-100782
+   if isNonPublicIPRange(ip) then
+	   local ipvalue = post_helper.validateStringIsIP(value) and ipv42num(value)
+	   local ipmask = post_data["localdevmask"]
+	   local ipnetmask = post_helper.validateStringIsIP(ipmask) and ipv42num(ipmask)
+	   
+	   local ipnetwork, ipmaxvalue
+			if ipvalue and ipnetmask then
+			  ipnetwork = bit.band(ipvalue, ipnetmask)
+			  ipmaxvalue = bit.bor(ipnetwork, bit.bnot(ipnetmask))
+			end
+		--NG-100782>
+		for _,intf in pairs(all_intfs) do
+			if intf.paramindex ~= curintf then
+				local ipaddr = proxy.get("uci.network.interface.@" .. intf.paramindex .. ".ipaddr")[1].value
+				local mask = proxy.get("uci.network.interface.@" .. intf.paramindex .. ".netmask")[1].value
+				local baseip = post_helper.validateStringIsIP(ipaddr) and ipv42num(ipaddr)
+				local netmask = post_helper.validateStringIsIP(mask) and ipv42num(mask)
+				local lanip = proxy.get("uci.network.interface.@lan.ipaddr")
+				
+				if lanip and lanip[1].value then
+					lanip = lanip[1].value
+				end
+
+				local network, ipmax
+				if baseip and netmask then
+				  network = bit.band(baseip, netmask)
+				  ipmax = bit.bor(network, bit.bnot(netmask))
+				end
+			
+				if network and ipmax then
+					if ip == lanip then
+						return nil, T"SFP IP should not be in Gateway interface IP Range, change that first"
+					end
+					if ip >= network and ip <= ipmax then
+						if intf.name ~= "" then
+							return nil, T"SFP IP should not be in " .. intf.name .. T" IP Range"
+						else
+							return nil, T"SFP IP should not be in " .. intf.paramindex .. T" IP Range"
 						end
 					end
 				--<NG-100782
@@ -880,6 +974,11 @@ local mapValid = {
     eth0 = vB,
     ethports = validateEthports,
 }
+
+if sfp_presence and  (sfp_presence[1].value == "1") then
+	mapValid["sfplocalip"] = validateSFPIP
+end
+
 if curintf == "lan" then
 	mapParams.localIPv6 = "uci.network.interface.@" .. curintf .. ".ipv6"
 	mapValid.localIPv6 = validateIPv6
@@ -903,9 +1002,9 @@ if (dnsIndex == #dhcp.options + 1) and (ngx.var.request_method == "POST") and (n
 end
 
 if ngx.var.request_method == "POST" then
-local post_data = ngx.req.get_post_args()
+	local post_data = ngx.req.get_post_args()
 	if post_data["action"] == "RESET" then
-	local lanip, lanmask, ipstart, iplimit, ltime, dhcpig = restdhcp()
+		local lanip, lanmask, ipstart, iplimit, ltime, dhcpig = restdhcp()
 		proxy.set("uci.network.interface.@"..curintf..".ipaddr",lanip)
 		proxy.set("uci.network.interface.@"..curintf..".netmask",lanmask)
 		proxy.set("uci.dhcp.dhcp.@"..curintf..".start", ipstart)
@@ -915,11 +1014,12 @@ local post_data = ngx.req.get_post_args()
 		if (dnsIndex < #dhcp.options +1) then
 			proxy.set(baseDHCPOptions .. "@" .. dnsIndex .. ".value", "6,"..lanip)
 		end
-	proxy.apply()
+		proxy.apply()
 	end
 end
 
 content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
+
 if (ngx.var.request_method == "POST")  and not next(helpmsg) then
    local dhcp_options_path = "uci.dhcp.dhcp.@"..cur_dhcp_intf..".dhcp_option."
    local dhcp_options = content_helper.convertResultToObject(dhcp_options_path,proxy.get(dhcp_options_path))
@@ -943,6 +1043,7 @@ if helpmsg["localdevIP"] then
     helpmsg["localdevmask"] = msg
   end
 end
+
 if helpmsg["dhcpLimit"] then
     local msg = match(helpmsg["dhcpLimit"], '^%[dhcpStart%] (.*)')
     if msg then
@@ -975,30 +1076,37 @@ if content["leaseTime"] == "infinite" then
 elseif not match(content["leaseTime"],"^0*([1-9]%d*[smhdw])$")then
   content["leaseTime"] = content["leaseTime"] .. "s"
 end
+
 local baseip = ipv42num(content["localdevIP"])
 local netmask = ipv42num(content["localdevmask"])
 local start = tonumber(content["dhcpStart"])
 local numips = tonumber(content["dhcpLimit"])
 local ipstart,ipend,network, modemIPChangeState
+
 if start and numips and not helpmsg["localdevIP"] and not helpmsg["localdevmask"] and not helpmsg["dhcpStart"] and not helpmsg["dhcpLimit"] then
-  ipstart,ipend,network = calculateDHCPStartAddress(baseip,netmask,start,numips)
+  ipstart , ipend , network = calculateDHCPStartAddress(baseip,netmask,start,numips)
   session:store("dhcpStartAddr",ipstart)
   session:store("dhcpEndAddr",ipend)
   session:store("networkAddr",network)
-else
+elseif ngx.var.request_method == "POST" then
   ipstart = ngx.req.get_post_args().dhcpStartAddress
   ipend = ngx.req.get_post_args().dhcpEndAddress
   network = session:retrieve("networkAddr")
- end
-if helpmsg["leaseTime"] then
+else
+  ipstart,ipend,network = "Error","Error","Error"
+end
+  
+if ngx.var.request_method == "POST" and helpmsg["leaseTime"] then
   content["leaseTime"] = ngx.req.get_post_args().leaseTime
 end
-  if ngx.var.request_method == "POST" then
-    local gwIP = session:retrieve("old_ip")
-    if curintf == "lan" and content["localdevIP"]~= gwIP and not next(helpmsg) then
-       modemIPChangeState = "1"
-    end
-    session:store("old_ip",(content["localdevIP"]))
+
+
+if ngx.var.request_method == "POST" then
+  local gwIP = session:retrieve("old_ip")
+  if curintf == "lan" and content["localdevIP"]~= gwIP and not next(helpmsg) then
+     modemIPChangeState = "1"
+  end
+  session:store("old_ip",(content["localdevIP"]))
 
   -- Redirect the GUI only if the local GW device IP address is changed for the "lan" interface
   if curintf == "lan" and content["localdevIP"]~= gwIP and not next(helpmsg) then  ngx.print('\
@@ -1019,21 +1127,6 @@ if type(content) == "table" then
         end
     end
 end
-
-local sfp_presence = proxy.get("uci.env.rip.sfp")
-
-local mapParSFP = {}
-local mapValSFP = {}
-
-if sfp_presence and  (sfp_presence[1].value == "1") then
-	mapParSFP.ethsfp = "uci.ethernet.globals.eth4lanwanmode"
-	mapValSFP.ethsfp = vB
-else
-	mapParSFP.eth4_wanmode = "uci.ethernet.port.@eth4.wan"			
-	mapValSFP.eth4_wanmode = vB
-end
-
-local content_sfp, helpmsg = post_helper.handleQuery(mapParSFP, mapValSFP)
 
   ngx.print('\
 \
@@ -1118,6 +1211,11 @@ local content_sfp, helpmsg = post_helper.handleQuery(mapParSFP, mapValSFP)
 					else
 					html[#html + 1] = ui_helper.createLabel(T"LAN IPv6", IPv6addr, advanced)
 					end
+					if sfp_presence and ( sfp_presence[1].value == "1" ) then 
+						html[#html + 1] = ui_helper.createAlertBlock(T"This is the internal IP of the SFP interface used for fiber connection.\
+																		This and the local Gateway IP must be different.", info_box)
+						html[#html + 1] = ui_helper.createInputText(T"SFP IP address", "sfplocalip", content["sfplocalip"],{},helpmsg["sfplocalip"])
+					end
 				end
 				ngx.print(html)
                 ngx.print('\
@@ -1130,14 +1228,14 @@ local content_sfp, helpmsg = post_helper.handleQuery(mapParSFP, mapValSFP)
                     off = "1"
                   }
                 }
-              ngx.print(
-                  ui_helper.createSwitch(T"DHCP Server", "dhcpIgnore", content["dhcpIgnore"],switchDHCP),
-                  ui_helper.createLabel(T"Network address", network, advanced_network),
-                  ui_helper.createInputText(T"DHCP Start address", "dhcpStartAddress", ipstart, advanced, helpmsg["dhcpStart"]),
-                  ui_helper.createInputText(T"DHCP End address", "dhcpEndAddress", ipend, advanced, helpmsg["dhcpLimit"]),
-                  ui_helper.createInputText(T"Lease time", "leaseTime", content["leaseTime"], advanced, helpmsg["leaseTime"]),
-                  ui_helper.createInputText(T"DNS server", "dnsServer", content["dnsServer"], advanced, helpmsg["dnsServer"])
-                )
+				local html = {}
+                  html[#html + 1] = ui_helper.createSwitch(T"DHCP Server", "dhcpIgnore", content["dhcpIgnore"],switchDHCP)
+                  html[#html + 1] = ui_helper.createLabel(T"Network address", network, advanced_network)
+                  html[#html + 1] = ui_helper.createInputText(T"DHCP Start address", "dhcpStartAddress", ipstart, advanced, helpmsg["dhcpStart"])
+                  html[#html + 1] = ui_helper.createInputText(T"DHCP End address", "dhcpEndAddress", ipend, advanced, helpmsg["dhcpLimit"])
+                  html[#html + 1] = ui_helper.createInputText(T"Lease time", "leaseTime", content["leaseTime"], advanced, helpmsg["leaseTime"])
+                  html[#html + 1] = ui_helper.createInputText(T"DNS server", "dnsServer", content["dnsServer"], advanced, helpmsg["dnsServer"])
+                ngx.print(html)
                  ngx.print('\
                ');  
                  --[[if dhcpDefaultExist then
@@ -1208,7 +1306,7 @@ $(function() {\
           {\
             name : "localIPv6",\
             value : $("#localIPv6").val()\
-          }, tch.elementCSRFtoken());\
+          }, CSRFtoken: $("meta[name=CSRFtoken]").attr("content"));\
           var target = $(".modal form").attr("action");\
           tch.showProgress(waitMsg);\
           $.post(target, params, function(response){\
