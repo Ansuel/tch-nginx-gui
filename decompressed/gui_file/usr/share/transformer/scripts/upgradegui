@@ -123,9 +123,13 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 		exit 1
 	fi
 	
+	logger -s -t "Upgrade Script" "Downloaded gui with hash: $downloaded_md5"
+	
 	if [ "$update_branch" ]; then
 		if [ "$update_branch" == "_dev" ]; then
 		
+			logger -s -t "Upgrade Script" "Dev branch detected... Checking for newer version in stable..."
+			
 			STABLE_FILE_NAME='GUI.tar.bz2'
 				
 			if [ -f $WORKING_DIR/$STABLE_FILE_NAME ]; then
@@ -152,6 +156,8 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 				exit 1
 			fi
 			
+			logger -s -t "Upgrade Script" "Downloaded stable gui with hash: $stable_md5"
+			
 			stable_version=$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $stable_md5 | awk '{print $2}' | sed -e 's/\.//g' )
 			
 			dev_version=$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $downloaded_md5 | awk '{print $2}' | sed -e 's/\.//g' )
@@ -161,16 +167,20 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 				stable_version_norm="$( echo $stable_version | sed 's|\.\([0-9]\.\)|.0\1|g' )"
 			fi
 			if [ "$( echo $stable_version_norm | tail -c 3 | grep "\." )" ]; then
-				stable_version_norm=$stable_version_norm"0"
+				stable_version_norm="$( echo $stable_version_norm | sed 's|\(\.[0-9][0-9]\.\)\([0-9]\)|\10\2|g' )"
 			fi
+			
+			logger -s -t "Upgrade Script" "Stable version found: $stable_version_norm"
 			
 			dev_version_norm=$dev_version
 			if [ "$( echo $dev_version | grep -E '\.[0-9]\.' )" ]; then
 				dev_version_norm="$( echo $dev_version | sed 's|\.\([0-9]\.\)|.0\1|g' )"
 			fi
 			if [ "$( echo $dev_version_norm | tail -c 3 | grep "\." )" ]; then
-				dev_version_norm=$dev_version_norm"0"
+				dev_version_norm="$( echo $dev_version_norm | sed 's|\(\.[0-9][0-9]\.\)\([0-9]\)|\10\2|g' )"
 			fi
+			
+			logger -s -t "Upgrade Script" "Dev version found: $dev_version_norm"
 			
 			if [ $stable_version_norm -gt $dev_version_norm ]; then
 				logger -s -t "Upgrade Script" "Found newer version in stable branch, using it..."

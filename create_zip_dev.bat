@@ -1,16 +1,3 @@
 @echo off
 
-bash -c "cd decompressed/base && tar -cf - * --owner=0 --group=0 | bzip2 -9 -c - > ../../compressed/base.tar.bz2"
-bash -c "cd decompressed/gui_file && tar -cf - *  --owner=0 --group=0 | bzip2 -9 -c - > ../../compressed/gui_file.tar.bz2"
-bash -c "cd decompressed/traffic_mon && tar -cf - *  --owner=0 --group=0 | bzip2 -9 -c - > ../../compressed/traffic_mon.tar.bz2"
-bash -c "cd decompressed/telnet_support-specificDGA && tar -cf - *  --owner=0 --group=0 | bzip2 -9 -c - > ../../compressed/telnet_support-specificDGA.tar.bz2"
-bash -c "cd decompressed/upnpfix-specificDGA && tar -cf - *  --owner=0 --group=0 | bzip2 -9 -c - > ../../compressed/upnpfix-specificDGA.tar.bz2"
-bash -c "cd decompressed/upgrade-pack-specificDGA && tar -cf - *  --owner=0 --group=0 | bzip2 -9 -c - > ../../compressed/upgrade-pack-specificDGA.tar.bz2"
-bash -c "cd decompressed/custom-ripdrv-specificDGA && tar -cf - *  --owner=0 --group=0 | bzip2 -9 -c - > ../../compressed/custom-ripdrv-specificDGA.tar.bz2"
-bash -c "cd decompressed/dlnad_supprto-specificDGA && tar -cf - *  --owner=0 --group=0 | bzip2 -9 -c - > ../../compressed/dlnad_supprto-specificDGA.tar.bz2"
-bash -c "rm -r total"
-bash -c "mkdir total"
-bash -c "cp -dr decompressed/base/* total && cp -dr decompressed/gui_file/* total && cp -dr decompressed/traffic_mon/* total"
-bash -c "mkdir total/root && cp compressed/telnet_support-specificDGA.tar.bz2 total/root && cp compressed/upnpfix-specificDGA.tar.bz2 total/root && cp compressed/upgrade-pack-specificDGA.tar.bz2 total/root && cp compressed/custom-ripdrv-specificDGA.tar.bz2 total/root && cp compressed/dlnad_supprto-specificDGA.tar.bz2 total/root"
-bash -c "cd total && tar -cf - *  --owner=0 --group=0 | bzip2 -9 -c - > ../compressed/GUI_dev.tar.bz2"
-bash -c "./update-version_dev.sh"
+bash -c "./inizialize_gui.sh dev"

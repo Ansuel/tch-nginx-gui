@@ -25,12 +25,13 @@
 #
 
 START=94
-EXTRA_COMMANDS="force"
-EXTRA_HELP="        force   Force root process even when root flag is already set"
+EXTRA_COMMANDS="force debug"
+EXTRA_HELP="\
+        force   Force root process even when root flag is already set
+        debug   force command with debug log
+"
 
-local rooted
-force=0
-version_gui=8.6.4
+version_gui=8.6.23
 
 logo_project() {
 cat << EOF > /dev/console
@@ -70,9 +71,10 @@ cat << EOF > /dev/console
 EOF
 }
 
-force() {
-	force=1
-	boot
+logger_command() {
+	if [ $debug  -eq 1 ]; then
+		logger -s -t "Root Script" "$1"
+	fi
 }
 
 add_ipv6() {
@@ -150,22 +152,33 @@ cumulative_check_gui() {
 	if [ ! $(uci get -q env.var.update_branch) ]; then
 		uci set env.var.update_branch="stable"
 		update_branch=""
+		logger_command "Setting update branch to STABLE"
 	elif [ $(uci get -q env.var.update_branch) == "stable" ]; then
 		update_branch=""
+		logger_command "Update branch detected: STABLE"
 	else
 		update_branch="_dev"
+		logger_command "Update branch detected: DEV"
 	fi
+	
 	
 	#This make sure we have stable GUI in /root
 	if [ ! -f /root/GUI.tar.bz2 ]; then
+		logger_command "Stable GUI not found in /root"
 		if [ ! -f /tmp/GUI.tar.bz2 ]; then
+			logger_command "Stable GUI not found in /tmp, downloading if possible..."
 			if ping -q -c 1 -W 1 8.8.8.8 >/dev/null; then
-				curl -k https://repository.ilpuntotecnico.com//files/Ansuel/AGTEF/GUI.tar.bz2 --output /root/GUI.tar.bz2
+				curl -k -s https://repository.ilpuntotecnico.com//files/Ansuel/AGTEF/GUI.tar.bz2 --output /root/GUI.tar.bz2
+			else
+				logger_command "Can't download stable GUI!"
 			fi
 		else
+			logger_command "Moving stable GUI from /tmp to /root"
 			cp /tmp/GUI.tar.bz2 /root
 		fi
 	fi
+	
+	logger_command "Updating GUI in /root folder from /tmp"
 	
 	#This move tmp gui in /root
 	if [ -f /tmp/GUI$update_branch.tar.bz2 ]; then
@@ -175,12 +188,26 @@ cumulative_check_gui() {
 		mv /tmp/GUI$update_branch.tar.bz2 /root/GUI$update_branch.tar.bz2
 	fi
 	
+	
+	
 	#This generate new hash
 	if [ -f /root/GUI$update_branch.tar.bz2 ]; then
+		old_gui_hash=$(uci get -q env.var.gui_hash)
 		gui_hash=$(md5sum /root/GUI$update_branch.tar.bz2 | awk '{ print $1}' )
+		if [ "$old_gui_hash" != "gui_hash" ]; then
+			logger_command "Detected upgrade!"
+			logger_command "Old GUI hash: $old_gui_hash"
+			logger_command "New GUI hash: $gui_hash"
+		else
+			logger_command "GUI hash set: $old_gui_hash"
+		fi
 	else
+		logger_command "Can't generate GUI hash, file not found!"
 		gui_hash="0"
 	fi
+	
+	logger_command "Resetting version info..."
+	
 	if [ ! $(uci get -q env.var.gui_hash) ]; then
 		uci set env.var.new_ver="Unknown"
 		uci set env.var.gui_hash=$gui_hash
@@ -287,7 +314,7 @@ check_new_dlnad() {
 		fi
 	fi
 	if [ -f /rom/usr/bin/dlnad ]; then
-		if [ "$(md5sum /rom/usr/bin/dlnad)" !=  "$(md5sum /usr/bin/dlnad)" ]; then
+		if [ "$(md5sum /rom/usr/bin/dlnad | awk '{print $1}')" !=  "$(md5sum /usr/bin/dlnad | awk '{print $1}')" ]; then
 			if [ "$(pgrep "dlnad")" ] ; then
 				/etc/init.d/dlnad stop
 			fi
@@ -424,7 +451,7 @@ restore_original_mapper() {
 		cp $orig_dir/igd/* $target/igd
 		cp /tmp/tmp_bff_file/* $target/bbf
 		rm -r /tmp/tmp_bff_file
-		logger -s -t "Root Script" "Restoring mapper device file"
+		logger_command "Restoring mapper device file"
 	fi
 	if [ ! -f $target/bbf/VoiceService.VoiceProfile.Line.map ]; then
 		cp $orig_dir$mapper/bbf/VoiceService.VoiceProfile.Line.map $orig_dir$mapper/bbf/
@@ -460,7 +487,7 @@ transformer_lib_check() {
 		fi
 		if [ $gui_pos != "" ]; then
 			bzcat $gui_pos | tar -C / -xf - #reapply the upgrade as in the gui we store some of this file that we restored
-			logger -s -t "Root Script" "Restoring transformer lib"
+			logger_command "Restoring transformer lib"
 		fi
 		#/etc/init.d/transformer restart
 	fi
@@ -717,7 +744,7 @@ check_wansensing() {
 
 remove_downgrade_bit() {
 	if [ $(uci get -q env.rip.board_mnemonic) == "VBNT-S" ] && [ $(uci get -q env.var.prod_number) == "4132" ] && [ -f /proc/rip/0123 ]; then
-		logger -s -t "Root Script" "Downgrade limitation bit detected... Removing.."
+		logger_command "Downgrade limitation bit detected... Removing.."
 		rmmod keymanager
 		rmmod ripdrv
 		mv /lib/modules/3.4.11/ripdrv.ko /lib/modules/3.4.11/ripdrv.ko_back
@@ -726,7 +753,7 @@ remove_downgrade_bit() {
 		echo 0123 > /proc/rip/delete
 		echo 0122 > /proc/rip/delete
 		rmmod ripdrv
-		logger -s -t "Root Script" "Restoring original driver"
+		logger_command "Restoring original driver"
 		rm /lib/modules/3.4.11/ripdrv.ko
 		mv /lib/modules/3.4.11/ripdrv.ko_back /lib/modules/3.4.11/ripdrv.ko
 		insmod ripdrv
@@ -820,23 +847,23 @@ update_checkver_upgrade_script() {
 }
 
 apply_specific_DGA_package() {
-	logger -s -t "Root Script" "Extracting custom-ripdrv-specificDGA.tar.bz2 ..."
+	logger_command "Extracting custom-ripdrv-specificDGA.tar.bz2 ..."
 	if [ -f /root/custom-ripdrv-specificDGA.tar.bz2 ]; then
 		bzcat /root/custom-ripdrv-specificDGA.tar.bz2 | tar -C / -xf -
 	fi
-	logger -s -t "Root Script" "telnet_support-specificDGA.tar.bz2 ..."
+	logger_command "Extracting telnet_support-specificDGA.tar.bz2 ..."
 	if [ -f /root/telnet_support-specificDGA.tar.bz2 ]; then
 		bzcat /root/telnet_support-specificDGA.tar.bz2 | tar -C / -xf -
 	fi
-	logger -s -t "Root Script" "Extracting upgrade-pack-specificDGA.tar.bz2 ..."
+	logger_command "Extracting upgrade-pack-specificDGA.tar.bz2 ..."
 	if [ -f /root/upgrade-pack-specificDGA.tar.bz2 ]; then
 		bzcat /root/upgrade-pack-specificDGA.tar.bz2 | tar -C / -xf -
 	fi
-	logger -s -t "Root Script" "Extracting upnpfix-specificDGA.tar.bz2 ..."
+	logger_command "Extracting upnpfix-specificDGA.tar.bz2 ..."
 	if [ -f /root/upnpfix-specificDGA.tar.bz2 ]; then
 		bzcat /root/upnpfix-specificDGA.tar.bz2 | tar -C / -xf -
 	fi
-	logger -s -t "Root Script" "Extracting dlnad_supprto-specificDGA.tar.bz2 ..."
+	logger_command "Extracting dlnad_supprto-specificDGA.tar.bz2 ..."
 	if [ -f /root/dlnad_supprto-specificDGA.tar.bz2 ]; then
 		if [ ! -f /usr/bin/dlnad ]; then
 			bzcat /root/dlnad_supprto-specificDGA.tar.bz2 | tar -C / -xf -
@@ -870,13 +897,13 @@ fcctlsettings_daemon() {
 	if [ ! -k /etc/rc.d/S99fcctlsettings ] && [ -f /etc/init.d/fcctlsettings ]; then
 		chmod 755 /etc/init.d/fcctlsettings
 		/etc/init.d/fcctlsettings enable
-		/etc/init.d/fcctlsettings start
+		/etc/init.d/fcctlsettings start > /dev/null
 	fi
 }
 
 sfp_rework() {
 	if [ "$(uci get -q network.sfp)" ]; then
-		logger -s -t "Root Script" "Moving sfp to sfptag..."
+		logger_command "Moving sfp to sfptag..."
 		uci rename network.sfp=sfptag
 		uci set network.sfptag.ipaddr=192.168.10.1
 		touch /root/.sfp_change
@@ -884,7 +911,9 @@ sfp_rework() {
 }
 
 root() {
-
+	
+	logger -s -t 'Root Script' "Rooting in progress..."
+	
 	#THIS CHECK DEVICE TYPE AND INSTALL SPECIFIC FILE
 	device_type="$(uci get -q env.var.prod_friendly_name)"
 		
@@ -893,39 +922,39 @@ root() {
 		device_type="DGA"
 	fi
 
-	[ "$device_type" == "DGA" ] && logger -s -t "Root Script" "Apply specific DGA file..."
+	[ "$device_type" == "DGA" ] && logger_command "Apply specific DGA file..."
 	[ "$device_type" == "DGA" ] && apply_specific_DGA_package
 	
 	if [ -f /root/custom-ripdrv-specificDGA.tar.bz2 ]; then
 		clean_specific_file
-		logger -s -t "Root Script" "Removing specific file and resuming root process..."
+		logger_command "Removing specific file and resuming root process..."
 	fi
 	
 	/etc/init.d/watchdog-tch stop
-	logger -s -t "Root Script" "Disable watchdog"
+	logger_command "Disable watchdog"
 	
-	logger -s -t "Root Script" "Start rooting"
+	logger_command "Start rooting"
 	if [ ! -f /root/.check_process ]; then #this check if the placeholder exist
 		touch /root/.check_process #this is a placeholder to know if the process ends correctly
 	fi
 	
 	if [ -f /root/.reapply_due_to_upgrade ]; then
 		if [ -f /root/GUI.tar.bz2 ]; then
-			logger -s -t "Root Script" "Resetting /www dir due to firmware upgrade..."
+			logger_command "Resetting /www dir due to firmware upgrade..."
 			rm -r /www
 			bzcat /root/GUI.tar.bz2 | tar -C / -xf - www
 			rm /root/.reapply_due_to_upgrade
 		fi
 	fi
 	
-	logger -s -t "Root Script" "Stopping nginx and transformer"
+	logger_command "Stopping nginx and transformer"
 	while [ "$(pgrep "nginx")" ]; do
 		if [ "$(pgrep "nginx")" ]; then
 			/etc/init.d/nginx stop
 		fi
 	done
 		
-	logger -s -t "Root Script" "Checking if we are on TIM configuration"
+	logger_command "Checking if we are on TIM configuration"
 	if [ $(uci -q get env.var.isp) ]; then
 		if [ $(uci get -q env.var.isp) == "TIM" ]; then #this add specific config for TIM
 			add_ipv6
@@ -936,7 +965,7 @@ root() {
 		fi
 	fi
 	
-	logger -s -t "Root Script" "Unlocking web interface if needed"
+	logger_command "Unlocking web interface if needed"
 	if [ -f /etc/config/web_unlock ]; then
 		if [ ! $(uci get -q web.changelog) ] || [ ! $(uci get -q web.mmpbxstatisticsmodal) ] ; then
 			mv /etc/config/web /etc/config/web_back #backup of the stock web config
@@ -946,85 +975,85 @@ root() {
 		fi
 	fi
 	
-	logger -s -t "Root Script" "Check and cleanup"
+	logger_command "Check and cleanup"
 	add_ipoe #this need to stay to make the wizard work correctly
-	logger -s -t "Root Script" "Remove default dns"
+	logger_command "Remove default dns"
 	remove_default_dns #tim sets his dns on to of the loopback interface 
-	logger -s -t "Root Script" "Purify wan"
+	logger_command "Purify wan"
 	puryfy_wan_interface #remove gracefull restart, could give problem
-	logger -s -t "Root Script" "Fix dns bug"
+	logger_command "Fix dns bug"
 	fix_dns_dhcp_bug #disable odhcpd as ipv6 is currently broken 
-	[ "$device_type" == "DGA" ] && logger -s -t "Root Script" "Enable dlnad"
+	[ "$device_type" == "DGA" ] && logger_command "Enable dlnad"
 	[ "$device_type" == "DGA" ] && check_new_dlnad #this enable a new dlna deamon introduced with 17.1, the old one is keep
-	logger -s -t "Root Script" "Fix Sysupgrade"
+	logger_command "Fix Sysupgrade"
 	check_upgrade_shit #this if old script are present to fix sysupgrade
-	logger -s -t "Root Script" "Check orig config"
+	logger_command "Check orig config"
 	orig_config_gen #this check if new config are already present
-	logger -s -t "Root Script" "Trafficmon inizialization"
+	logger_command "Trafficmon inizialization"
 	trafficmon_support #support trafficmon
-	logger -s -t "Root Script" "Restore original mapper"
+	logger_command "Restore original mapper"
 	restore_original_mapper #this restore the original file autogenerated as they are specific to the build version.
-	[ "$device_type" == "DGA" ] && logger -s -t "Root Script" "Transformer lib check"
+	[ "$device_type" == "DGA" ] && logger_command "Transformer lib check"
 	[ "$device_type" == "DGA" ] && transformer_lib_check #another cleanup
-	logger -s -t "Root Script" "Remove https check"
+	logger_command "Remove https check"
 	remove_https_check_cwmpd #cleanup
-	logger -s -t "Root Script" "Check css presence"
+	logger_command "Check css presence"
 	check_uci_gui_skin #check css
-	logger -s -t "Root Script" "Check if dnsmasq is names as we need it for the webui"
+	logger_command "Check if dnsmasq is names as we need it for the webui"
 	check_dnsmasq_name #check dnsmasq name in uci
 	uci set dhcp.dnsmasq=dnsmasq
-	logger -s -t "Root Script" "Check driver setting"
+	logger_command "Check driver setting"
 	create_driver_setting #create diver setting if not present
-	logger -s -t "Root Script" "Check Dropbear config file"
+	logger_command "Check Dropbear config file"
 	dropbear_file_check  #check dropbear config
-	logger -s -t "Root Script" "Check ddns directory"
+	logger_command "Check ddns directory"
 	check_noip_file #check ddns directory in /etc
-	logger -s -t "Root Script" "Check eco param"
+	logger_command "Check eco param"
 	eco_param #This disable eco param as they introduce some latency
-	[ "$device_type" == "DGA" ] && logger -s -t "Root Script" "Enable new upnp"
+	[ "$device_type" == "DGA" ] && logger_command "Enable new upnp"
 	[ "$device_type" == "DGA" ] && enable_new_upnp #New upnp fix
-	logger -s -t "Root Script" "Sync dhcp configuration for new webui"
+	logger_command "Sync dhcp configuration for new webui"
 	update_dhcp_config #Dhcp sync
-	logger -s -t "Root Script" "Create gui type in config"
+	logger_command "Create gui type in config"
 	create_gui_type #Gui Type
-	logger -s -t "Root Script" "Add new web option"
+	logger_command "Add new web option"
 	add_new_web_rule #This check new option so that we don't replace the one present
-	logger -s -t "Root Script" "New DHCPRelay Option"
+	logger_command "New DHCPRelay Option"
 	check_relay_dhcp #Sync option
-	logger -s -t "Root Script" "Disable trace from igmpproxy"
+	logger_command "Disable trace from igmpproxy"
 	suppress_excessive_logging #Suppress logging
-	logger -s -t "Root Script" "Moving aria2 dir"
+	logger_command "Moving aria2 dir"
 	check_aria_dir #Fix config function
-	logger -s -t "Root Script" "Creating new option for led definition"
+	logger_command "Creating new option for led definition"
 	led_integration #New option led
-	[ "$device_type" == "DGA" ] && logger -s -t "Root Script" "Old build detected, moving wansensing file"
+	[ "$device_type" == "DGA" ] && logger_command "Old build detected, moving wansensing file"
 	[ "$device_type" == "DGA" ] && check_wansensing # Move wansensing file to old directory
-	[ "$device_type" == "DGA" ] && logger -s -t "Root Script" "Checking downgrade limitation bit"
+	[ "$device_type" == "DGA" ] && logger_command "Checking downgrade limitation bit"
 	[ "$device_type" == "DGA" ] && remove_downgrade_bit #Use custom driver to remove this... thx @Roleo
-	[ "$device_type" == "DGA" ] && logger -s -t "Root Script" "Checking opkg conf"
+	[ "$device_type" == "DGA" ] && logger_command "Checking opkg conf"
 	[ "$device_type" == "DGA" ] && apply_right_opkg_repo #Check opkg conf based on version
-	logger -s -t "Root Script" "Creating and checking real version"
+	logger_command "Creating and checking real version"
 	real_ver_entitied #Support for spoofing firm
-	logger -s -t "Root Script" "Creating new wol implementation"
+	logger_command "Creating new wol implementation"
 	new_wol_implementation #New Wol
-	logger -s -t "Root Script" "Sync new xdsl option"
+	logger_command "Sync new xdsl option"
 	add_xdsl_option #New xdsl option
-	logger -s -t "Root Script" "Creating utility simbolic link"
+	logger_command "Creating utility simbolic link"
 	create_simbolic_utility #This create simbolic link
-	logger -s -t "Root Script" "Clean old script"
+	logger_command "Clean old script"
 	update_checkver_upgrade_script #This clean old script
-	logger -s -t "Root Script" "Adding fast cache options"
+	logger_command "Adding fast cache options"
 	fcctlsettings_daemon #Adds fast cache options
-	[ "$device_type_model" == "DGA4132" ] && logger -s -t "Root Script" "Reworking sfp interface in network..."
+	[ "$device_type_model" == "DGA4132" ] && logger_command "Reworking sfp interface in network..."
 	[ "$device_type_model" == "DGA4132" ] && sfp_rework #sfp to sfptag, to solve local ip problem 
 	
-	logger -s -t "Root Script" "Setting root flag"
+	logger_command "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not
 
-	logger -s -t "Root Script" "Disable reboot after crash, this gives race condition..."
+	logger_command "Disable reboot after crash, this gives race condition..."
 	uci set system.@coredump[0].reboot='0'
 	
-	logger -s -t "Root Script" "Save root password if modified"
+	logger_command "Save root password if modified"
 	if [ ! $(awk -F: '/root/ {print $7 }' /etc/passwd) = "/bin/ash" ]; then #this enable root access from login
 		sed -i '1croot:x:0:0:root:/root:/bin/ash' /etc/passwd
 	fi
@@ -1052,7 +1081,7 @@ root() {
 		uci set env.var.bank_check="1"
 	fi
 	
-	logger -s -t "Root Script" "Setting dropbear settings"
+	logger_command "Setting dropbear settings"
 	uci set dropbear.@dropbear[0].Interface='lan'
 	uci set dropbear.@dropbear[0].RootLogin='1'
 	uci set dropbear.@dropbear[0].RootPasswordAuth='on' #dropbear root related
@@ -1061,10 +1090,10 @@ root() {
 	
 	[ "$device_type" == "DGA" ] && uci set wireless.global.wifi_analyzer_disable='0' #AGTEF specific
 	
-	logger -s -t "Root Script" "Doing various check and generating hash..."
+	logger_command "Doing various check and generating hash..."
 	cumulative_check_gui #Handle strange installation
 	
-	logger -s -t "Root Script" "Sync version"
+	logger_command "Sync version"
 	if [ -f /usr/share/transformer/scripts/checkver ]; then
 		checkver_cron
 	fi
@@ -1075,23 +1104,23 @@ root() {
 		ifup wan
 	fi
 	
-	logger -s -t "Root Script" "Apply modification"
+	logger_command "Apply modification"
 	uci commit
 	
-	logger -s -t "Root Script" "Restart power init"
+	logger_command "Restart power init"
 	/etc/init.d/power restart
 	
-	logger -s -t "Root Script" "Restarting dropbear"
+	logger_command "Restarting dropbear"
 	/etc/init.d/dropbear restart
 	
-	logger -s -t "Root Script" "Restarting dnsmasq"
+	logger_command "Restarting dnsmasq"
 	/etc/init.d/dnsmasq restart
 	
 	rm /root/.check_process #we remove the placeholder as the process is complete
-	logger -s -t "Root Script" "Process done."
+	logger_command "Process done."
 	echo "  Process done. Your modem is now rooted!" > /dev/console
 	
-	logger -s -t "Root Script" "Checking if ISP is detected..."
+	logger_command "Checking if ISP is detected..."
 	if [ $(uci -q get env.var.isp) ]; then
 		if [ $(uci -q get env.var.isp) == "Other" ]; then #this disable cwmpd if it's not tim...
 			uci set cwmpd.cwmpd_config.state='0'
@@ -1104,8 +1133,8 @@ root() {
 		elif [ $(uci -q get env.var.isp) == "Tiscali" ]; then
 			uci set cwmpd.cwmpd_config.acs_url="http://webdirect.tr69.tiscali.it:8080/ftacs-basic/ACS"
 		elif [ $(uci -q get env.var.isp) == "TIM" ]; then
-			logger -s -t "Root Script" "TIM ISP detected..."
-			logger -s -t "Root Script" "Checking CWMP server..."
+			logger_command "TIM ISP detected..."
+			logger_command "Checking CWMP server..."
 			new_platform=https://regman-mon.interbusiness.it:10800/acs/
 			unified_platform=https://regman-tl.interbusiness.it:10700/acs/ 
 			mgmt_platform=https://regman-tl.interbusiness.it:10500/acs/
@@ -1118,7 +1147,7 @@ root() {
 			else
 				uci set cwmpd.cwmpd_config.acs_url="None"
 			fi
-			logger -s -t "Root Script" "CWMP Server detected: "$(uci get cwmpd.cwmpd_config.acs_url)
+			logger_command "CWMP Server detected: "$(uci get cwmpd.cwmpd_config.acs_url)
 			if [ $(uci get -q cwmpd.cwmpd_config.interface) != "wan" ]; then
 				uci set cwmpd.cwmpd_config.interface='wan'
 			fi
@@ -1138,18 +1167,37 @@ root() {
 		fi
 	fi
 	
-	logger -s -t "Root Script" "Restarting transformer"
+	logger_command "Restarting transformer"
 	/etc/init.d/transformer restart
-	logger -s -t "Root Script" "Waiting transformer to start for 20 seconds"
+	logger_command "Waiting transformer to start for 20 seconds"
 	sleep 20
-	logger -s -t "Root Script" "Restarting nginx"
+	logger_command "Restarting nginx"
 	/etc/init.d/nginx start
-	logger -s -t "Root Script" "Restarting transformer a second time cause it's just shit..."
+	logger_command "Restarting transformer a second time cause it's just shit..."
 	/etc/init.d/transformer restart
 	
 	/etc/init.d/watchdog-tch start
 	
-	logger -s -t "Root Script" "Resetting cwmp and watchdog"
+	logger_command "Resetting cwmp and watchdog"
+}
+
+###########################################################################################
+#                        Init.d function                                                  #
+###########################################################################################
+
+local rooted
+local force=0
+local debug=0
+
+force() {
+	force=1
+	boot
+}
+
+debug() {
+	debug=1
+	force=1
+	boot
 }
 
 boot() {
