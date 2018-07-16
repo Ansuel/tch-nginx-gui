@@ -31,7 +31,7 @@ EXTRA_HELP="\
         debug   force command with debug log
 "
 
-version_gui=8.6.23
+version_gui=8.6.24
 
 logo_project() {
 cat << EOF > /dev/console

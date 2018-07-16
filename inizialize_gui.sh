@@ -19,6 +19,7 @@ for index in "${modular_dir[@]}"; do
 	cd decompressed/$index
 	BZIP2=-9 tar -cjf ../../compressed/$index.tar.bz2 * --owner=0 --group=0
 	cd ../../
+	cp compressed/$index.tar.bz2 modular/
 done
 
 echo "Creating GUI dir"
