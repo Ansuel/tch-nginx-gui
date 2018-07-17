@@ -162,7 +162,7 @@ div.login_bg input.span3, div.login_bg input.span3:focus{
  border: 0;
  width: 460px !important;
  float: none;
- display: block;
+ margin: auto !important;
  box-sizing: content-box;
 }
 
