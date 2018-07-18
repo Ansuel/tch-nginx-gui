@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.6.34
+version_gui=8.6.35
 
 logo_project() {
 cat << EOF > /dev/console
@@ -915,7 +915,7 @@ sfp_rework() {
 	fi
 }
 
-root_checks() {
+rootchecks() {
 	logger_command "Save root password if modified"
 	if [ ! $(awk -F: '/root/ {print $7 }' /etc/passwd) = "/bin/ash" ]; then #this enable root access from login
 		sed -i '1croot:x:0:0:root:/root:/bin/ash' /etc/passwd
@@ -1096,7 +1096,7 @@ root() {
 	logger_command "Disable reboot after crash, this gives race condition..."
 	uci set system.@coredump[0].reboot='0'
 	
-	root_checks #This check root availability
+	rootchecks #This check root availability
 	
 	
 	if [ ! $(uci get -q env.var.bank_check) ]; then #this set bank_check bit if not present
@@ -1213,7 +1213,7 @@ debug() {
 }
 
 install() {
-	root_checks
+	rootchecks
 }
 
 boot() {
