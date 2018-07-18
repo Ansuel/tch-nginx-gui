@@ -29,9 +29,10 @@ EXTRA_COMMANDS="force debug"
 EXTRA_HELP="\
         force   Force root process even when root flag is already set
         debug   force command with debug log
+		install    This root the device for the initial installation
 "
 
-version_gui=8.6.32
+version_gui=8.6.34
 
 logo_project() {
 cat << EOF > /dev/console
@@ -914,6 +915,44 @@ sfp_rework() {
 	fi
 }
 
+root_checks() {
+	logger_command "Save root password if modified"
+	if [ ! $(awk -F: '/root/ {print $7 }' /etc/passwd) = "/bin/ash" ]; then #this enable root access from login
+		sed -i '1croot:x:0:0:root:/root:/bin/ash' /etc/passwd
+	fi
+	if ! [ $encrypted_pass == $default_encrypted_pass ] && [ -z $saved_encrypted_pass ]; then #all of this is to check the root 
+		echo -e "root\nroot" | passwd > /dev/null
+		if ! [ $encrypted_pass == $default_encrypted_pass ]; then
+			sed -i -e 's|"${encrypted_pass}"|"${default_encrypted_pass}"|' /etc/shadow
+		fi
+		echo "  Setting root password" > /dev/console
+		save_root_encrypt_pass #this save the password to the env config file
+	else
+		if [ $encrypted_pass == $default_encrypted_pass ]; then
+			echo "  Root password detected" > /dev/console
+		else
+			if [ $encrypted_pass == $saved_encrypted_pass ]; then
+				echo "  Changed root password detected!" > /dev/console
+			else
+				echo "  New password detected!" > /dev/console
+				save_root_encrypt_pass
+			fi
+		fi
+	fi
+	
+	logger_command "Setting dropbear settings"
+	uci set dropbear.@dropbear[0].Interface='lan'
+	uci set dropbear.@dropbear[0].RootLogin='1'
+	uci set dropbear.@dropbear[0].RootPasswordAuth='on' #dropbear root related
+	uci set dropbear.@dropbear[0].PasswordAuth='on'
+	uci set dropbear.@dropbear[0].enable='1'
+	
+	uci commit dropbear
+	
+	logger_command "Restarting dropbear"
+	/etc/init.d/dropbear restart
+}
+
 root() {
 	
 	logger -s -t 'Root Script' "Rooting in progress..."
@@ -1057,40 +1096,12 @@ root() {
 	logger_command "Disable reboot after crash, this gives race condition..."
 	uci set system.@coredump[0].reboot='0'
 	
-	logger_command "Save root password if modified"
-	if [ ! $(awk -F: '/root/ {print $7 }' /etc/passwd) = "/bin/ash" ]; then #this enable root access from login
-		sed -i '1croot:x:0:0:root:/root:/bin/ash' /etc/passwd
-	fi
-	if ! [ $encrypted_pass == $default_encrypted_pass ] && [ -z $saved_encrypted_pass ]; then #all of this is to check the root 
-		echo -e "root\nroot" | passwd > /dev/null
-		if ! [ $encrypted_pass == $default_encrypted_pass ]; then
-			sed -i -e 's|"${encrypted_pass}"|"${default_encrypted_pass}"|' /etc/shadow
-		fi
-		echo "  Setting root password" > /dev/console
-		save_root_encrypt_pass #this save the password to the env config file
-	else
-		if [ $encrypted_pass == $default_encrypted_pass ]; then
-			echo "  Root password detected" > /dev/console
-		else
-			if [ $encrypted_pass == $saved_encrypted_pass ]; then
-				echo "  Changed root password detected!" > /dev/console
-			else
-				echo "  New password detected!" > /dev/console
-				save_root_encrypt_pass
-			fi
-		fi
-	fi
+	root_checks #This check root availability
+	
 	
 	if [ ! $(uci get -q env.var.bank_check) ]; then #this set bank_check bit if not present
 		uci set env.var.bank_check="1"
 	fi
-	
-	logger_command "Setting dropbear settings"
-	uci set dropbear.@dropbear[0].Interface='lan'
-	uci set dropbear.@dropbear[0].RootLogin='1'
-	uci set dropbear.@dropbear[0].RootPasswordAuth='on' #dropbear root related
-	uci set dropbear.@dropbear[0].PasswordAuth='on'
-	uci set dropbear.@dropbear[0].enable='1'
 	
 	[ "$device_type" == "DGA" ] && uci set wireless.global.wifi_analyzer_disable='0' #AGTEF specific
 	
@@ -1113,9 +1124,6 @@ root() {
 	
 	logger_command "Restart power init"
 	/etc/init.d/power restart
-	
-	logger_command "Restarting dropbear"
-	/etc/init.d/dropbear restart
 	
 	logger_command "Restarting dnsmasq"
 	/etc/init.d/dnsmasq restart
@@ -1202,6 +1210,10 @@ debug() {
 	debug=1
 	force=1
 	boot
+}
+
+install() {
+	root_checks
 }
 
 boot() {
