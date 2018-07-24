@@ -16,5 +16,5 @@
 <li>And many other...</li>
 </ul>
 <p><strong>You can help the development of this GUI by opening issue to report issue or improvements.</strong><br /><strong>All the infos can be found here and on the relative forum.</strong></p>
-<p>(To write on this forum you need to write in the presentation section after the first login)<br />https://www.ilpuntotecnicoeadsl.com/sblocco-smart-modem-evolution-dga4130-agtef/<br />https://www.ilpuntotecnico.com/forum/index.php/topic,78162.0.html<br />https://www.ilpuntotecnicoeadsl.com/forum/index.php?topic=77325</p>
+<p>(To write on this forum you need to write in the presentation section after the first login)<br />https://www.ilpuntotecnico.com/sblocco-smart-modem-evolution-dga4130-agtef/<br />https://www.ilpuntotecnico.com/forum/index.php/topic,78162.0.html<br />https://www.ilpuntotecnico.com/forum/index.php?topic=77325</p>
 <p>&nbsp;</p>
