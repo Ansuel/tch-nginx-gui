@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.7.0
+version_gui=8.7.2
 
 logo_project() {
 cat << EOF > /dev/console
@@ -886,10 +886,10 @@ apply_specific_DGA_package() {
 	fi
 	logger_command "Extracting wgetfix-specificDGA.tar.bz2 ..."
 	if [ -f /root/wgetfix-specificDGA.tar.bz2 ]; then
-		if [ ! -f /usr/bin/dlnad ]; then
+		if [ ! "$(opkg info wget | grep Version | grep 1.17.1)" ]; then
 			bzcat /root/wgetfix-specificDGA.tar.bz2 | tar -C /tmp -xf -
-			opkg install /tmp/*.ipk
-			rm /tmp/*.ipk
+			opkg install /tmp/wget_1.17.1-1_brcm63xx-tch.ipk
+			rm /tmp/wget_1.17.1-1_brcm63xx-tch.ipk
 		fi
 	fi
 }
