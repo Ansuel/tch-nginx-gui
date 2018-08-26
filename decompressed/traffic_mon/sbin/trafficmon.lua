@@ -53,7 +53,7 @@ local function DataCollector(datadir, binit)
                         f:close()
                         ntraffic = tonumber(ntotal) - data[1]
                         if (ntraffic < 0) then
-                            ntraffic = string.format("%.0f", ntraffic)
+                            ntraffic = 0
                         end
                         f = io.open(fname, "w")
                         if f then
