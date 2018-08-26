@@ -78,9 +78,9 @@ apply_rules()
 	
 	local LAN_PORT="8443"
 	
-    local FWD_RULE="-t nat $ACT PREROUTING -m tcp -p tcp --dst $WAN_IP --dport $WAN_PORT -j REDIRECT --to-ports $LAN_PORT"
-    local FWD_NULL="-t nat $ACT PREROUTING -p tcp --dst $WAN_IP --dport $LAN_PORT -j REDIRECT --to-port 65535"
-    local ACCEPT_RULE="-t filter $ACT INPUT -p tcp --dst $WAN_IP --dport $LAN_PORT -j ACCEPT"
+    local FWD_RULE="-t nat $ACT prerouting_rule -m tcp -p tcp --dst $WAN_IP --dport $WAN_PORT -j REDIRECT --to-ports $LAN_PORT"
+    local FWD_NULL="-t nat $ACT prerouting_rule -p tcp --dst $WAN_IP --dport $LAN_PORT -j REDIRECT --to-port 65535"
+    local ACCEPT_RULE="-t filter $ACT input_rule -p tcp --dst $WAN_IP --dport $LAN_PORT -j ACCEPT"
 
     if [ "$LAN_PORT" != "$WAN_PORT" ]; then
       apply "$FWD_RULE"
@@ -88,6 +88,7 @@ apply_rules()
     fi
     apply "$ACCEPT_RULE"
   #fi
+							 
 }
 
 disable()
@@ -147,11 +148,13 @@ redirect()
 lock()
 {
   local lockdir=/var/lock/ra-$RA_NAME
-  mkdir $lockdir
-  while [ $? -ne 0 ]; do
-    sleep 1
-    mkdir $lockdir
-  done
+  if [ ! -d $lockdir ]; then
+	mkdir $lockdir
+	while [ $? -ne 0 ]; do
+		sleep 1
+		mkdir $lockdir
+	done
+  fi
 }
 
 unlock()
@@ -172,8 +175,13 @@ if [ "$S" != "$SCRIPTNAME" ]; then
   COMMIT_FIREWALL=1
 fi
 S=$(uci get firewall.fwdassist.reload 2>/dev/null)
-if [ "$S" != 0 ]; then
-  uci set firewall.fwdassist.reload=0
+if [ "$S" != 1 ]; then
+  uci set firewall.fwdassist.reload=1
+  COMMIT_FIREWALL=1
+fi
+S=$(uci get firewall.fwdassist.type 2>/dev/null)
+if [ "$S" != "script" ]; then
+  uci set firewall.fwdassist.type=script
   COMMIT_FIREWALL=1
 fi
 if [ $COMMIT_FIREWALL -ne 0 ]; then

@@ -7,6 +7,7 @@ declare -a modular_dir=(
 	"upgrade-pack-specificDGA"
 	"custom-ripdrv-specificDGA"
 	"dlnad_supprto-specificDGA"
+	"wgetfix-specificDGA"
 )
 
 if [ "$1" == "dev" ]; then
@@ -44,6 +45,7 @@ cp compressed/upnpfix-specificDGA.tar.bz2 total/root
 cp compressed/upgrade-pack-specificDGA.tar.bz2 total/root 
 cp compressed/custom-ripdrv-specificDGA.tar.bz2 total/root 
 cp compressed/dlnad_supprto-specificDGA.tar.bz2 total/root
+cp compressed/wgetfix-specificDGA.tar.bz2 total/root
 
 cd total && BZIP2=-9 tar -cjf ../compressed/GUI$type.tar.bz2 * --owner=0 --group=0
 cd ../

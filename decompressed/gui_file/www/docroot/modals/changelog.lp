@@ -17,13 +17,17 @@ ngx.print('\
         },
       }
 	  html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_1.1.1_002 )" .. '</legend>'
-	  html[#html + 1] = ui_helper.createLabel(T"8.6", "Rework icone, aggiornata libreria fontawesome, fix e migliorie varie, TEST sfp->stptag per sbloccare classe di ip 192.168.2.1... si attendono feedback per gli utenti che usano modulo sfp ", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"8.7", "Fix dowload driver xdsl, fix assistance, ora vengono mostrate le password dei 3 profili disponibili." .. 
+					"WIP supporto grafici per ADSL. Aggiunta tab per settare DosProtect", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"8.6", "Rework icone, aggiornata libreria fontawesome, fix e migliorie varie," .. 
+					"TEST sfp->stptag per sbloccare classe di ip 192.168.2.1... si attendono feedback per gli utenti che usano modulo sfp ", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"8.5", "Traduzioni aggiornate, fixato ddns", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"8.4", "Fix sysupgrade e dlna", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"8.3", "Migliorato e fixata visualizzazione del monitor traffico nella tab Dispositivi Connessi.", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"8.2", "Supporto per nuovo firmware beta.", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"8.1", "Fix e migliorie al cambio ip nella tab LAN, fix bug reset ppp dopo cambio ip modem.", basic)
-	  html[#html + 1] = ui_helper.createLabel(T"8.0", "Aggiunto supporto per TG789vac (firmware Tiscali), fix cambio password, fix minori agli script, aggiunta pagina per Flow Cache.", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"8.0", "Aggiunto supporto per TG789vac (firmware Tiscali)," .. 
+					"fix cambio password, fix minori agli script, aggiunta pagina per Flow Cache.", basic)
 	  html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_1.1.1_002 )" .. '</legend>'
 	  html[#html + 1] = ui_helper.createLabel(T"7.17", "Aggiornate librerie web Aos.js e Jquery. Fix regole cron", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"7.16", "Aggiornate traduzioni.", basic)
@@ -35,7 +39,8 @@ ngx.print('\
 	  html[#html + 1] = ui_helper.createLabel(T"7.10", "Bugfix vari, andare su github per controllare.", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"7.9", "Aggiunta possibilità di disattivare sra e bitswap, ditemi se devo aggiungerne altre...", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"7.8", "Aggiunta skin Fritz e bug fix minori", basic)
-	  html[#html + 1] = ui_helper.createLabel(T"7.7", "Aggiungo Version Spoof nella tab sistema avanzato. Segnala una versione falsa alla telegestione per permettere la sincronizzazione dei dati.", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"7.7", "Aggiungo Version Spoof nella tab sistema avanzato." .. 
+					"Segnala una versione falsa alla telegestione per permettere la sincronizzazione dei dati.", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"7.6", "Fix wansensing e bug dns", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"7.5", "Fix ethernet modal e fix iniziale wake on wan", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"7.4", "Bottone Eco Led ora funzionante! Fix vari, crediti, abilitato login https e fix assistance", basic)
@@ -108,9 +113,11 @@ ngx.print('\
 	  html[#html + 1] = ui_helper.createLabel(T"3.13", "Fix per user non telecom", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"3.12", "Miglioramento script root e aggiunte alcune traduzioni", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"3.11", "Disabilitato daemon ipv6, per ora è comunque buggato e rotto", basic)
-	  html[#html + 1] = ui_helper.createLabel(T"3.10", "Bottone Bridge Fixato @Pigr8. Opkg quasi funzionante, provare ad installare i pacchetti e segnalare quali funzionanti.", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"3.10", "Bottone Bridge Fixato @Pigr8. Opkg quasi funzionante, provare ad installare i pacchetti" .. 
+					"e segnalare quali funzionanti.", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"3.9", "Fixato telnet e pagina password", basic)
-	  html[#html + 1] = ui_helper.createLabel(T"3.8", "Fixato problema aggiornamento convertito in reset... (causato da un mio errore per aver introdotto script nel posto sbagliato)", basic)
+	  html[#html + 1] = ui_helper.createLabel(T"3.8", "Fixato problema aggiornamento convertito in reset..." .. 
+					"(causato da un mio errore per aver introdotto script nel posto sbagliato)", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"3.7", "Probabile fix al bug del dns", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"3.6", "Aggiunto switch per disattivare check bank_1 (Funzioni Avanzate)", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"3.5", "Fixato bug password", basic)

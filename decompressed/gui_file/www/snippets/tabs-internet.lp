@@ -11,6 +11,7 @@ local items = {
     {"mwan-modal.lp", T"Routing Policy"},
 	{"bridge-grouping-modal.lp", T"Bridge Grouping"},
 	{"fast-cache-option-modal.lp", T"Flow Cache Option"},
+	{"dosprotect-modal.lp", T"Dos Protect Option"},
 }
 
 

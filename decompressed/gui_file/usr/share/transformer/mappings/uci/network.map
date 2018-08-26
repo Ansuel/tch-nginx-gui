@@ -39,7 +39,7 @@ local network_interface = {
         "oseqno", "weakif", "network", "server", "buffering", "df", "sourcerouting", "iface", "updatekey", "profile", "pdnid",
         "session_id", "force_link", "srcintf", "connect_time", "lease", "lease_expires", "neighreachabletime", "neighgcstaletime",
         "delegate", "igmpversion", "enabled", "graceful_restart", "unnumbered", "dadtransmits", "sendopts", "authfail", "vendorid","name",
-        "bridge_flag",
+        "bridge_flag", "host_uniq", 
     },
     passwords = {
         "password"

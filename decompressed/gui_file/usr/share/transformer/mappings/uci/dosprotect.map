@@ -1,0 +1,14 @@
+local config_dosprotect = "dosprotect"
+
+-- uci.dosprotect
+mapper("uci_1to1").registerConfigMap(config_dosprotect)
+
+-- uci.dosprotect.globals
+local dosprotect_globals  = {
+    config = config_dosprotect,
+    section = "globals",
+    type = "globals",
+    options = { "enabled","rpfilter" },
+}
+
+mapper("uci_1to1").registerSimpleMap(dosprotect_globals)

@@ -205,8 +205,6 @@ _, wifiRx, wifiRxTime = pcall(getTrafficData, "rx_bytes", curiface)
 proxy.set("rpc.system.lock.free", "0")
 proxy.apply()
 
-ngx.print('<script src ="/js/graphic-min.js"></script>')
-
 ngx.print(ui_helper.createHeader(T"Traffic Monitor", false, false) ); ngx.print('\
 <div class="modal-body update no-save">\
 ');

@@ -65,6 +65,7 @@ local fco_content, fco_helpmessage = post_helper.handleQuery(fco_Params, fco_val
     <fieldset>\
       ');  
 			local html = {}
+			html[#html + 1] = '<legend>' .. T"Settings" .. '</legend>'
 			html[#html + 1] = ui_helper.createSwitch(T"Enabled", "fco_enable", fco_content["fco_enable"])
 			html[#html + 1] = ui_helper.createInputSelect(T"L2tp", "fco_l2tp", l2tp_option, fco_content["fco_l2tp"])
 			html[#html + 1] = ui_helper.createInputSelect(T"GRE", "fco_gre", gre_option, fco_content["fco_gre"])

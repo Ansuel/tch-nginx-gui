@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.6.37
+version_gui=8.7.0
 
 logo_project() {
 cat << EOF > /dev/console
@@ -414,14 +414,14 @@ checkver_cron() {
 		rm /etc/crontabs/root #THIS CHECK A VALID ROOT CRON... we remove it as it's useless if the owner is not root.
 	fi							#so someone should check it anyway
 	if [ -f /etc/crontabs/root ]; then
-		if [ ! "$(cat /etc/crontabs/root | grep -q checkver)" ] ; then
+		if [ ! "$(cat /etc/crontabs/root | grep checkver)" ] ; then
 			echo "0 5 * * * /usr/share/transformer/scripts/checkver Schedule >/dev/null 2>&1" >> /etc/crontabs/root
 			/etc/init.d/cron restart
 		fi
 		if [ -f /etc/crontabs/root_gui ]; then
 			rm /etc/crontabs/root_gui
 		fi
-		if [ ! "$(cat /etc/crontabs/root | grep -q Schedule)" ] && [ "$(cat /etc/crontabs/root | grep -q checkver)" ]; then
+		if [ ! "$(cat /etc/crontabs/root | grep Schedule)" ] && [ "$(cat /etc/crontabs/root | grep checkver)" ]; then
 			sed -e /scripts/d -i /etc/crontabs/root
 			echo "0 5 * * * /usr/share/transformer/scripts/checkver Schedule >/dev/null 2>&1" >> /etc/crontabs/root
 			/etc/init.d/cron restart
@@ -685,6 +685,20 @@ add_new_web_rule() {
 		uci add_list web.fastcacheoptionmodal.roles='engineer'
 		uci add_list web.ruleset_main.rules='fastcacheoptionmodal'
 	fi
+	if [ ! $(uci get -q web.dosprotectmodal) ]; then
+		uci set web.dosprotectmodal=rule
+		uci set web.dosprotectmodal.target='/modals/dosprotect-modal.lp'
+		uci add_list web.dosprotectmodal.roles='admin' 
+		uci add_list web.dosprotectmodal.roles='engineer'
+		uci add_list web.ruleset_main.rules='dosprotectmodal'
+	fi
+	if [ ! $(uci get -q web.mmpbxdectmodal) ]; then
+		uci set web.mmpbxdectmodal=rule
+		uci set web.mmpbxdectmodal.target='/modals/mmpbx-dect-modal.lp'
+		uci add_list web.mmpbxdectmodal.roles='admin' 
+		uci add_list web.mmpbxdectmodal.roles='engineer'
+		uci add_list web.ruleset_main.rules='mmpbxdectmodal'
+	fi
 }
 
 check_relay_dhcp() {
@@ -870,6 +884,14 @@ apply_specific_DGA_package() {
 			bzcat /root/dlnad_supprto-specificDGA.tar.bz2 | tar -C / -xf -
 		fi
 	fi
+	logger_command "Extracting wgetfix-specificDGA.tar.bz2 ..."
+	if [ -f /root/wgetfix-specificDGA.tar.bz2 ]; then
+		if [ ! -f /usr/bin/dlnad ]; then
+			bzcat /root/wgetfix-specificDGA.tar.bz2 | tar -C /tmp -xf -
+			opkg install /tmp/*.ipk
+			rm /tmp/*.ipk
+		fi
+	fi
 }
 
 clean_specific_file() {
@@ -878,6 +900,7 @@ clean_specific_file() {
 	rm /root/telnet_support-specificDGA.tar.bz2
 	rm /root/custom-ripdrv-specificDGA.tar.bz2
 	rm /root/dlnad_supprto-specificDGA.tar.bz2
+	rm /root/wgetfix-specificDGA.tar.bz2
 }
 
 fcctlsettings_daemon() {

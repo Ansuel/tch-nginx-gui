@@ -1307,7 +1307,7 @@ $(function() {\
           {\
             name : "localIPv6",\
             value : $("#localIPv6").val()\
-          }, CSRFtoken: $("meta[name=CSRFtoken]").attr("content"));\
+          }, tch.elementCSRFtoken());\
           var target = $(".modal form").attr("action");\
           tch.showProgress(waitMsg);\
           $.post(target, params, function(response){\

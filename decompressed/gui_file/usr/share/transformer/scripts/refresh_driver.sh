@@ -22,6 +22,8 @@
 #
 #
 
+curl="/usr/bin/curl -k -s"
+
 wanmode=$(uci get -q network.config.wan_mode)
 connectivity="yes"
 if ping -q -c 1 -W 1 8.8.8.8 >/dev/null; then
@@ -65,7 +67,8 @@ apply_driver() {
 
 download_Driver() {
 	logger "Downloading driver "$driver_set
-	wget -O /tmp/$driver_set https://repository.ilpuntotecnico.com/files/Ansuel/AGTEF/adsl_driver/$driver_set
+	remote_driver_dir=https://repository.ilpuntotecnico.com/files/Ansuel/AGTEF/adsl_driver
+	$curl $remote_driver_dir/$driver_set --output /tmp/$driver_set
 }
 
 test_apply() {

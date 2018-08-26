@@ -318,6 +318,33 @@ local xdslctl_ = {
     }
 }
 
+local cache = {}
+
+local function xdslmode()
+	local linescan=1
+	local showdatacmd = ("xdslctl info --show")
+	local showdata = popen(showdatacmd, 'r')
+	local showline
+	local dslmode=""
+	for showline in showdata:lines() do
+		if linescan == 9 then
+			if showline:match("ADSL") then
+				dslmode = "adsl"
+			end
+			break
+		end
+		linescan=linescan+1
+	end
+	showdata:close()
+	
+	return dslmode
+end
+
+if not cache["dslmode"] then
+	cache = {}
+	cache["dslmode"] = xdslmode()
+end
+
 local function xdslband(n,dtype,bandtype)
 	local line
 	if ( bandtype == "Us" ) then
@@ -325,46 +352,37 @@ local function xdslband(n,dtype,bandtype)
 	else
 		line = 13
 	end
-	local linescan=1
-	local showdatacmd = ("xdslctl info --show")
-	local data = assert(popen(showdatacmd, 'r'))
-	local modeline = 8
-	local dslmode=""
-	for l in data:lines() do
-		if linescan == 9 then
-			if l:match("ADSL") then
-				dslmode = "adsl"
-			end
-			break
-		end
-		linescan=linescan+1
-	end
-	data:close()
 	
-	linescan=1
+	local dslmode = cache["dslmode"] or xdslmode()
+	
+	local linescan=1
 	local result = "0"
 	local c = 1
+	local band
+	
+	local cachebandstring = bandtype .. n .. dtype
 	
 	if not ( dslmode == "adsl" ) then
 		local cmd = ("xdslctl info --pbParams")
-		local f = assert(popen(cmd, 'r'))
-		local s = ""
-		for l in f:lines() do
+		local pbfile = popen(cmd, 'r')
+		local pbstring = ""
+		local pbline
+		for pbline in pbfile:lines() do
 			if linescan == line then
-				s = l
+				pbstring = pbline
 				break
 			end
 			linescan=linescan+1
 		end
+		pbfile:close()
 		
-		f:close()
-		s = s:gsub('[\n\r]+', '')
-		for w in s:gmatch("%((.-)%)") do
+		pbstring = pbstring:gsub('[\n\r]+', '')
+		for band in pbstring:gmatch("%((.-)%)") do
 			if c == n then
 				if dtype == "Initial" then
-					result = string.match(w,"(.-)%,")
+					result = band:match("(.-)%,")
 				elseif dtype == "Final" then
-					result = string.match(w,"%,(%d*)")
+					result = band:match("%,(%d*)")
 				end
 				if not ( dtype == BandNumber ) then
 					break
@@ -395,6 +413,7 @@ local function xdslband(n,dtype,bandtype)
 	if dtype == "BandNumber" then
 		return tostring(c-1)
 	else
+		cache[cachebandstring] = result
 		return result
 	end
 end
@@ -402,13 +421,15 @@ end
 local function xdslctlget(dtype,request,band,bandtype,split)
     local data = {}
 	local n  = 0
+	local line
 	local scannedband = 0
 	local scanband = ""
-	local bandstart = tonumber(xdslband(band,"Initial",bandtype)) or 0
-	local bandend = tonumber(xdslband(band,"Final",bandtype)) or -1
+	
+	local bandstart = tonumber(cache[bandtype .. band .. "Initial"] or xdslband(band,"Initial",bandtype)) or 0
+	local bandend = tonumber(cache[bandtype .. band .. "Final"] or xdslband(band,"Final",bandtype)) or -1
 	local cmd = "xdslctl info --" .. request
 	
-	local f = assert(popen(cmd,"r"))
+	local infofile = popen(cmd,"r")
 	
 	if bandtype == "Us" and band == 1 then
 		bandstart = 0
@@ -448,7 +469,7 @@ local function xdslctlget(dtype,request,band,bandtype,split)
 		bandstart = tonumber(xdslband(3,"Final","Ds"))+1
 	end
 	
-	for l in f:lines() do
+	for line in infofile:lines() do
 		if n>=(bandstart+8) and n<=(bandend+8) then
 			if not ( dtype == "scanband" ) then
 				if n>(bandend+8) then
@@ -456,30 +477,30 @@ local function xdslctlget(dtype,request,band,bandtype,split)
 				end
 				if dtype == "data" then
 					if request == "Hlog" then
-						l = l:gsub("(.*)-",""):sub(1, -4)
-						if ( tonumber(l)*-1 > -96 ) then 
-							data[#data+1] = format("-%s,",l)
+						line = tonumber(line:gsub("(.*)-",""):sub(1, -4)) or 0 
+						if ( line*-1 > -96 ) then 
+							data[#data+1] = format("-%s,",line)
 						else
 							data[#data+1] = "NaN,"
 						end
 					elseif request == "QLN" then
-						l = l:gsub("(.*)-",""):sub(1, -4)
-						if ( tonumber(l)*-1 > -160 ) then 
-							data[#data+1] = format("-%s,",l)
+						line = tonumber(line:gsub("(.*)-",""):sub(1, -4)) or 0
+						if ( line*-1 > -160 ) then 
+							data[#data+1] = format("-%s,",line)
 						else
 							data[#data+1] = "NaN,"
 						end
 					elseif request == "SNR" then
-						l = l:sub(-8):gsub("%s*",""):sub(1, -3)
-						if ( tonumber(l) > 0 ) then 
-							data[#data+1] = format("%s,",l)
+						line = tonumber(line:sub(-8):gsub("%s*",""):sub(1, -3)) or 0
+						if ( line > 0 ) then 
+							data[#data+1] = format("%s,",line)
 						else
 							data[#data+1] = "NaN,"
 						end
 					elseif request == "Bits" then
-						l = l:sub(-2):gsub("%s*","")
-						if ( tonumber(l) > 0 ) then 
-							data[#data+1] = format("%s,",l)
+						line = tonumber(line:sub(-2):gsub("%s*","")) or 0
+						if ( line > 0 ) then 
+							data[#data+1] = format("%s,",line)
 						else
 							data[#data+1] = "NaN,"
 						end
@@ -491,7 +512,7 @@ local function xdslctlget(dtype,request,band,bandtype,split)
 		end
 		n=n+1
 	end
-	f:close()
+	infofile:close()
 	
 	scanband = tostring(n-8)
 	

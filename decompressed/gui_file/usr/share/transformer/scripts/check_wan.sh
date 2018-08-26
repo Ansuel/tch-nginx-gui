@@ -28,6 +28,7 @@ set_sfp() {
 			uci set network.sfptag.ifname=''
 			uci commit
 			/etc/init.d/network restart
+			/etc/init.d/ethernet reload
 		fi
 	else
 		if [ ! "$(uci get -q network.sfptag.ifname | grep eth4)" ]; then
@@ -35,6 +36,7 @@ set_sfp() {
 			uci set network.sfptag.ifname='eth4'
 			uci commit
 			/etc/init.d/network restart
+			/etc/init.d/ethernet reload
 		fi
 	fi
 }

@@ -78,12 +78,19 @@ local function getValidateSipPassword(value, object, key)
     return true
 end
 
+local function getValidateEmptyString(value, object, key)
+    if value == "" then
+        return true
+    end
+    return nil, T"Invalid value"
+end
+
 local mapValid = {
     sip_enabled = vB,
     sip_number = gCV(getSipEnabled, getValidateSipAccount, clearParam),
     sip_password = gCV(getSipEnabled, getValidateSipPassword, clearParam),
-    sip_domain_name = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),
-	sip_realm = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),
+    sip_domain_name = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName,getValidateEmptyString),
+	sip_realm = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName,getValidateEmptyString),
 	sip_registrar = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),
 	sip_username = gCV(getSipEnabled, getValidateSipAccount, clearParam),
 	sip_primary_proxy = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),

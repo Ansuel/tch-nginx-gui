@@ -33,12 +33,12 @@ local content_helper = require("web.content_helper")
 local format = string.format
 
 local band = {
-	Ds1Band = tonumber(proxy.get("rpc.xdslctl.Ds1ScannedBand")[1].value),
-	Ds2Band = tonumber(proxy.get("rpc.xdslctl.Ds2ScannedBand")[1].value),
-	Us1Band = tonumber(proxy.get("rpc.xdslctl.Us1ScannedBand")[1].value),
-	Us2Band = tonumber(proxy.get("rpc.xdslctl.Us2ScannedBand")[1].value),
-	Us3Band = tonumber(proxy.get("rpc.xdslctl.Us3ScannedBand")[1].value),
-	Us4Band = tonumber(proxy.get("rpc.xdslctl.Us4ScannedBand")[1].value),
+	Ds1Band = tonumber(proxy.get("rpc.xdslctl.Ds1ScannedBand")[1].value) or -1,
+	Ds2Band = tonumber(proxy.get("rpc.xdslctl.Ds2ScannedBand")[1].value) or -1,
+	Us1Band = tonumber(proxy.get("rpc.xdslctl.Us1ScannedBand")[1].value) or -1,
+	Us2Band = tonumber(proxy.get("rpc.xdslctl.Us2ScannedBand")[1].value) or -1,
+	Us3Band = tonumber(proxy.get("rpc.xdslctl.Us3ScannedBand")[1].value) or -1,
+	Us4Band = tonumber(proxy.get("rpc.xdslctl.Us4ScannedBand")[1].value) or -1,
 }
 
 local function xdslctlget(request,bandtype)

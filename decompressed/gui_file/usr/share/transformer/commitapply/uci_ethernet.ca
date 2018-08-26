@@ -1,2 +1,2 @@
-^ethernet /etc/init.d/ethernet  reload ; /usr/share/tranformer/scripts/check_wan.sh
+^ethernet /usr/share/tranformer/scripts/check_wan.sh
 

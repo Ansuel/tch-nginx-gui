@@ -144,6 +144,8 @@ local mapParams = {
   uci_wan_username = "uci.network.interface.@wan.username",
   uci_wan_password = "uci.network.interface.@wan.password",
   uci_wan_masq = "uci.firewall.zone."..zonenum..".masq",
+  uci_wan_host_uniq = "uci.network.interface.@wan.host_uniq",
+  uci_wan_mac = "uci.network.interface.@wan.macaddr",
 }
 
 local mapPPPstats = {
@@ -177,6 +179,13 @@ local vSII = post_helper.validateStringIsIP
 local vSIP = post_helper.validateStringIsPort
 local gVP = post_helper.getValidationPassword
 local gOV = post_helper.getOptionalValidation
+
+local function validateHostUniq (value, postdata)
+    if value:match("%W") and not ( value == "" ) then
+      return nil, T"Invalid host-uniqe tag, should be alphanumeric"
+    end
+  return true
+end
 
 local function validateUsername (value, postdata)
   local err,msg = vNES(value)
@@ -238,6 +247,8 @@ local mapValid = {
   uci_wan_username = gCV(isWanEnabled, validateUsername, gOV(validateUsername)),
   uci_wan_password = gCV(isWanEnabled, gVP(vNES), gVP()),
   uci_wan_masq = validateNat,
+  uci_wan_host_uniq = gCV(isWanEnabled, validateHostUniq),
+  uci_wan_mac = post_helper.validateStringIsMAC,
 }
 
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
@@ -409,6 +420,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	if tech then
     html[#html + 1] = "<div class='control-group'><label class='control-label'>" .. T"Username" .. "</label><div class='controls'>"
     html[#html + 1] = ui_helper.createSimpleInputText("uci_wan_username", content["uci_wan_username"], class_username, helpmsg["uci_wan_username"])
+	
     if content_uci["wan_domain"] ~= "" then
       html[#html + 1] = " @ " .. content_uci["wan_domain"]
     end
@@ -417,6 +429,8 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     -- PPP password
     local class_password = class_username
     html[#html + 1] = ui_helper.createInputPassword(T"Password", "uci_wan_password", content["uci_wan_password"], class_username, helpmsg["uci_wan_password"])
+	html[#html + 1] = ui_helper.createInputText(T"Host Uniq Tag","uci_wan_host_uniq", content["uci_wan_host_uniq"], nil, helpmsg["uci_wan_host_uniq"])
+	html[#html + 1] = ui_helper.createInputText(T"MAC Spoof (Wan MAC)","uci_wan_mac", content["uci_wan_mac"], nil, helpmsg["uci_wan_mac"])
 	end
 	ajax_attr.span.id = "ipaddr"
     html[#html+1] = ui_helper.createLabel(T"IP address", content_rpc["ipaddr"], ajax_attr)

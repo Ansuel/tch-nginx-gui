@@ -313,6 +313,9 @@ text-decoration: none;
     box-shadow: 0 2px 20px 0px rgba(56, 92, 132, 0.65);
 }
 
+.gateway_bg {
+    position: fixed;
+}
 .gateway_bg:after {
     color: rgba(179, 224, 253, 0.40);
 }
