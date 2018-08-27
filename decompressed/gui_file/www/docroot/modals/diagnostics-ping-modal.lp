@@ -400,15 +400,15 @@ local ping_trace_data, ping_trace_helpmsg = post_helper.handleTableQuery(ping_tr
         </div>
     </div>
 
-    <div style="max-width:880px;overflow-x:auto;">
+    <div>
     <%
     ngx.print(
         ui_helper.createLabel(T"Status:", format("%s %s", statusIconTrace, explanationTrace), attributes),
         ui_helper.createInputText(T"Hostname:","ipAddressTrace", ctracert.tracert_ipAddress, attrTrace, helpmsg["ipAddressTrace"]),
-        -- ui_helper.createInputText(T"Timeout:","Timeout", ctracert.tracert_timeout, attrTrace, helpmsg["Timeout"]),
+        ui_helper.createInputText(T"Timeout:","Timeout", ctracert.tracert_timeout, attrTrace, helpmsg["Timeout"]),
         ui_helper.createInputText(T"Max Hop Count:","MaxHopCount", ctracert.tracert_hopcount, pattern_hopcount, helpmsg["MaxHopCount"]),
         ui_helper.createInputText(T"Size (bytes):","MaxSize", ctracert.tracert_size, attrTrace, helpmsg["MaxSize"]),
-        -- ui_helper.createInputText(T"Tries:","Tries", ctracert.tracert_tries, attrTrace, helpmsg["Tries"]),
+        ui_helper.createInputText(T"Tries:","Tries", ctracert.tracert_tries, attrTrace, helpmsg["Tries"]),
         ui_helper.createTable(rh_columns, rh_data, rh_options, rh_attributes, rh_helpmsg)
     )
     %>

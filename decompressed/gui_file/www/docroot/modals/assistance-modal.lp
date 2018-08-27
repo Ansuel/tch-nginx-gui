@@ -148,10 +148,8 @@ if ngx.var.request_method == "POST" then
            if not ok then
               error = err
            end
-           message_helper.pushMessage(T"Changes saved successfully", "success")
         else
            content["ra_enabled"] = newstate
-           message_helper.pushMessage(T"Some parameters failed validation", "error")
         end
     end
 end
@@ -193,6 +191,7 @@ end
 ');  ngx.print( ui_helper.createHeader(T"Assistance") ); ngx.print('\
 <div class="modal-body update">\
 <form class="form-horizontal" method="post" action="modals/assistance-modal.lp">\
+&nbsp\
 ');  
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
   ngx.print('\

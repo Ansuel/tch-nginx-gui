@@ -556,9 +556,9 @@ datarows[7]["header"] = T"Since Sync"
 \
 ');  ngx.print(ui_helper.createFooter())   ngx.print('\
 <script>\
-$.get("/modals/diagnostics-xdsl-modal.lp?action=GET_BITS&show_line_one=');  ngx.print(content["showBondingStats"]); ngx.print('", function (data){\
-   $(\'#dsl_bit_chart\').replaceWith(data);\
-});\
+--$.get("/modals/diagnostics-xdsl-modal.lp?action=GET_BITS&show_line_one=');  ngx.print(content["showBondingStats"]); ngx.print('", function (data){\
+--   $(\'#dsl_bit_chart\').replaceWith(data);\
+--});\
 $.get("/modals/diagnostics-xdsl-modal.lp?action=GET_ADVANCED_DATA", function (data){\
     $(\'#xdsl_advanced_data\').replaceWith(data);\
     $(\'.modal-action-advanced\').each(function(){\

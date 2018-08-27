@@ -41,8 +41,8 @@ local content = {
   dsl_power_down = "sys.class.xdsl.@line0.DownstreamPower",
   dsl_attenuation_up = "sys.class.xdsl.@line0.UpstreamAttenuation",
   dsl_attenuation_down = "sys.class.xdsl.@line0.DownstreamAttenuation",
-  dsl_margin_up = "sys.class.xdsl.@line0.UpstreamNoiseMargin",
-  dsl_margin_down = "sys.class.xdsl.@line0.DownstreamNoiseMargin",
+  dsl_margin_up = "sys.class.xdsl.@line0.UpstreamSNRMpb",
+  dsl_margin_down = "sys.class.xdsl.@line0.DownstreamSNRMpb",
   dsl_transfered_up = "sys.class.xdsl.@line0.BytesSent",
   dsl_transfered_down = "sys.class.xdsl.@line0.BytesReceived",
   dsl_downstream_delay = "sys.class.xdsl.@line0.DownstreamDelay",
@@ -336,15 +336,11 @@ ngx.print('\
             ajax_attr
           )
       end
-      local dslMarginUp, dslMarginDown, otherDslMarginUp, otherDslMarginDown = 0, 0, 0, 0
-      if tonumber(content["dsl_margin_up"]) ~= nil and tonumber(content["dsl_margin_down"]) ~= nil then
-        dslMarginUp = content["dsl_margin_up"]
-        dslMarginDown = content["dsl_margin_down"]
-      end
-      if tonumber(content_other_line["dsl_margin_up"]) ~= nil and tonumber(content_other_line["dsl_margin_down"]) ~= nil then
-        otherDslMarginUp = content_other_line["dsl_margin_up"]
-        otherDslMarginDown = content_other_line["dsl_margin_down"]
-      end
+      local dslMarginUp, dslMarginDown, otherDslMarginUp, otherDslMarginDown
+      dslMarginUp = content["dsl_margin_up"]
+      dslMarginDown = content["dsl_margin_down"]
+      otherDslMarginUp = content_other_line["dsl_margin_up"]
+      otherDslMarginDown = content_other_line["dsl_margin_down"]
 	  ajax_attr.span.id="dsl_margin"
       if showBondingStats ~= true then
         html[#html + 1] =
