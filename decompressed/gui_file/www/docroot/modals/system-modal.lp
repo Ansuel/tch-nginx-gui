@@ -18,8 +18,9 @@ local gui_skin_option = {
       { "green", T'Green'},
 	  { "TIM" , T'Enhanced Tim'},
 	  { "Fritz", T'Fritz!Box'},
-	  { "dark-white", T'Dark/White'},
-	  { "dark-midnight", T'Dark/Midnight'},
+	  { "dark-white", T'Dark/White (Fritz Based)'},
+	  { "dark-midnight", T'Dark/Midnight (Fritz Based)'},
+	  { "dark-red", T'Red Dark'},
 }
 
 local gui_skin_Params = {

@@ -1834,7 +1834,7 @@ $("div[id^=\'linkrescan-cancel_\']").on("click", function() {\
   show_linkconfirming(freq, 0);\
 });\
 \
-$("#aclmode").change(function(){\
+$("#aclmode").on("change", function(){\
 var aclmode = $(this).val();\
 if(aclmode == "register"){\
     $("#acl_whitelist").attr("id","acl_register");\

@@ -477,29 +477,29 @@ local function xdslctlget(dtype,request,band,bandtype,split)
 				end
 				if dtype == "data" then
 					if request == "Hlog" then
-						line = tonumber(line:gsub("(.*)-",""):sub(1, -4)) or 0 
-						if ( line*-1 > -96 ) then 
+						line = line:gsub("(.*)-",""):sub(1, -4) or 0 
+						if ( tonumber(line*-1) > -96 ) then 
 							data[#data+1] = format("-%s,",line)
 						else
 							data[#data+1] = "NaN,"
 						end
 					elseif request == "QLN" then
-						line = tonumber(line:gsub("(.*)-",""):sub(1, -4)) or 0
-						if ( line*-1 > -160 ) then 
+						line = line:gsub("(.*)-",""):sub(1, -4) or 0
+						if ( tonumber(line*-1) > -160 ) then 
 							data[#data+1] = format("-%s,",line)
 						else
 							data[#data+1] = "NaN,"
 						end
 					elseif request == "SNR" then
-						line = tonumber(line:sub(-8):gsub("%s*",""):sub(1, -3)) or 0
-						if ( line > 0 ) then 
+						line = line:sub(-8):gsub("%s*",""):sub(1, -3) or 0
+						if ( tonumber(line) > 0 ) then 
 							data[#data+1] = format("%s,",line)
 						else
 							data[#data+1] = "NaN,"
 						end
 					elseif request == "Bits" then
-						line = tonumber(line:sub(-2):gsub("%s*","")) or 0
-						if ( line > 0 ) then 
+						line = line:sub(-2):gsub("%s*","") or 0
+						if ( tonumber(line) > 0 ) then 
 							data[#data+1] = format("%s,",line)
 						else
 							data[#data+1] = "NaN,"
