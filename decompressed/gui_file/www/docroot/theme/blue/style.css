@@ -331,3 +331,39 @@ text-decoration: none;
     -moz-box-shadow: 0 2px 20px 0px rgba(56, 92, 132, 0.65);
     box-shadow: 0 2px 20px 0px rgba(56, 92, 132, 0.65);
 }
+
+.header > .row{
+ margin-left: 2rem;
+ margin-right: 2rem;
+}
+
+#headertab {
+	height: auto;
+}
+
+@media screen and (max-width: 51rem) {
+	#webui_language {
+		width: 100%;
+	}
+	.header-sub-button {
+		width: 100%;
+	}
+	    
+	.header-button {
+		width: 9rem;
+	}
+	.btn-group>.btn+.dropdown-toggle {
+		padding-right: 0.5rem;
+		padding-left: 0.5rem;
+	}
+	
+	.btn-group>.btn:first-child {
+		padding-right: 0.5rem;
+		padding-left: 0.5rem;
+	}
+}
+
+.header-sub-button {
+	display: inline-block;
+	margin-left: 5px;
+}

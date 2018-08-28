@@ -8,7 +8,7 @@ styleSheet = styleEl.sheet;
 styleSheet.insertRule('.row .smallcard .content { transform: translateY( 0px);}');
 var ruleR1 = styleSheet.cssRules[0];
 
-styleSheet.insertRule('.row[style="z-index : 2;  position: relative;"] { marginLeft: 0;}');
+styleSheet.insertRule('#card-row { marginLeft: 0;}');
 var ruleR2 = styleSheet.cssRules[0];
 
 styleSheet.insertRule('.apprise-overlay { opacity: 0 !important; pointer-events: none}');
@@ -23,6 +23,9 @@ var ruleR5 = styleSheet.cssRules[0];
 styleSheet.insertRule('body{ height: 100%;}');
 var ruleR6 = styleSheet.cssRules[0];
 
+styleSheet.insertRule('#headertab {}');
+var ruleR7 = styleSheet.cssRules[0];
+
 window.addEventListener('scroll', function(){
 	ruleR1.style.transform = 'translateY( -' + window.scrollY + 'px)';
 });
@@ -33,11 +36,11 @@ $(document).ready(
     $(document).off("touchend", '[data-toggle\x3d"modal"]');
     $(document).off("touchend", ".smallcard");
   	
-    if (document.querySelector('.row[style="z-index : 2;  position: relative;"]') != null){
+    if (document.querySelector('#card-row') != null){
       window.onresize = updateHeight;
       updateHeight();
       closeNav();
-      document.querySelector('.header.span12').addEventListener('click', function (e) {
+      document.querySelector('#headertab').addEventListener('click', function (e) {
   	  if (e.pageX != 0 && e.pageY !=0){
   		if (e.pageX  < 60 && window.innerWidth <= (50 * parseFloat(getComputedStyle(document.documentElement).fontSize))) {
   			openNav();
@@ -48,7 +51,7 @@ $(document).ready(
         closeNav();
       });
   
-      document.querySelector('.row[style="z-index : 2;  position: relative;"]').addEventListener('click', function (e) {
+      document.querySelector('#card-row').addEventListener('click', function (e) {
   	  if (e.target.childNodes.length == 2 && e.target.childNodes[0].nodeName == "DIV" && e.target.childNodes[1].nodeName == "DIV")
   		e.target.childNodes[0].click();
   		
@@ -81,6 +84,8 @@ function updateHeight(){
 function openNav() {
 	ruleR2.style.marginLeft = "0";
 	ruleR2.style.overflow = "auto";
+	ruleR3.style.zIndex = "1";
+	ruleR7.style.zIndex = "0";
 	ruleR3.style.opacity = "0.6";
 	ruleR5.style.filter = "brightness(0.4)";
 	ruleR3.style.pointerEvents  = "all";
@@ -93,6 +98,8 @@ function openNav() {
 function closeNav() {
 	ruleR2.style.marginLeft  = "-15.5rem";
 	ruleR2.style.overflow = "visible";
+	ruleR3.style.zIndex = "2";
+	ruleR7.style.zIndex = "3";
 	ruleR3.style.opacity = "0";
 	ruleR5.style.filter = "brightness(1)";
 	ruleR3.style.pointerEvents  = "none";

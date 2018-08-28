@@ -5223,7 +5223,6 @@ button.btn.btn-mini,input[type="submit"].btn.btn-mini
 	font-size:16px;
 	line-height:20px;
 	font-weight:300;
-	color:#333;
 	margin-left:20px;
 	margin-top:3px
 }
@@ -7186,10 +7185,31 @@ form .switch
 .popUp-modal .pull-center{text-align:center;margin-top:30px;margin-bottom:10px;}
 .popUp-modal .pull-center .btn:first-child{margin-right:10px;}
 
-.header
-{
+.header{
 	padding:30px 0;
 	margin-bottom:30px
+}
+
+.header-logo {
+  display: inline-block;
+}
+
+.header-button {
+  float: right;
+  display: inline-block;
+}
+
+.header-sub-button {
+	display: inline-block;
+	margin-left: 5px;
+}
+
+#webui_language {
+	width: auto;
+    padding-top: 7px;
+    padding-bottom: 7px;
+    margin: auto;
+    height: 36px;
 }
 
 .copyright

@@ -10,7 +10,15 @@
  display: none;
 }
 
-.row[style="z-index : 2;  position: relative;"], .row[style="position: relative; z-index: 2;"]{
+.header-logo {
+  margin-left: 2rem;
+}
+
+.header-button {
+  margin-right: 2rem;
+}
+
+#card-row,.row[style="position: relative; z-index: 2;"]{
  width: 16.5rem;
  top: 4.8rem;
  margin: 1.5rem 0.5rem 0 0;
@@ -21,9 +29,10 @@
 }
 
 
-.row[style="z-index : 3;  position: relative;"]{
+#headertab {
  position: fixed !important;
  width: 100%;
+ z-index: 3;			
 }
 
 .container{
@@ -43,9 +52,7 @@
 }
 
 .header picture{
- margin-left: 3rem;
  position: relative;
- top: 1.2rem;
 }
 
 body{
@@ -58,6 +65,14 @@ body{
 
 .header{
  background-color: #000000;
+}
+
+.header-logo {
+  margin-left: 2rem;
+}
+
+.header-button {
+  margin-right: 2rem;
 }
 
 #footer{
@@ -1156,11 +1171,11 @@ div.span3:nth-of-type(13) .content{
 
 @media only screen and (min-width: 51rem){
 
- .row[style="z-index : 2;  position: relative;"], .row[style="position: relative; z-index: 2;"]{
+ #card-row, .row[style="position: relative; z-index: 2;"]{
   margin-left: 0 !important;
   overflow-y: auto !important;
  }
- _::-webkit-full-page-media, _:future, :root .row[style="z-index : 2;  position: relative;"]{
+ _::-webkit-full-page-media, _:future, :root #card-row{
   overflow-y: visible !important;
  }
  .open>.dropdown-menu{
@@ -1195,11 +1210,17 @@ div.span3:nth-of-type(13) .content{
 }
 
 @media only screen and (max-width: 51rem){
- .header.span12{
+ #headertab{
   height: 3.75rem;
+  padding: 0px;
+  margin: 0px;
  }
 
- .header.span12:before{
+ #headertab > .row {
+	display: inline-block;
+    float: right;
+ }
+ #headertab:before{
   content: "☰";
   font-size: 30pt;
   margin-left: 1rem;
@@ -1219,7 +1240,7 @@ div.span3:nth-of-type(13) .content{
   -webkit-overflow-scrolling: touch;
  }
 
- .row[style="z-index : 2;  position: relative;"], .row[style="position: relative; z-index: 2;"]{
+ #card-row, .row[style="position: relative; z-index: 2;"]{
   width: 15.5rem;
   top: 0px;
   margin: 0;
@@ -1232,7 +1253,7 @@ div.span3:nth-of-type(13) .content{
   height:100%;
   transition: margin 0.2s;
   -webkit-overflow-scrolling: touch;
-  z-index: 5 !important;
+  z-index: 5;
  }
 
  .row[style="z-index : 3;  position: relative;"]{

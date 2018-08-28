@@ -9,6 +9,7 @@ local proxy = require ("datamodel")
 local ui_helper = require("web.ui_helper")
 local post_helper = require("web.post_helper")
 local content_helper = require ("web.content_helper")
+local message_helper = require("web.uimessage_helper")
 local role = ngx.ctx.session:getrole()
 local vB = post_helper.validateBoolean
 local vNES = post_helper.validateNonEmptyString
@@ -121,6 +122,7 @@ end
   lp.include("tabs-voice.lp")
   %>
   <form class="form-horizontal" method="post" action="<%= uri %>">
+  <%= ui_helper.createMessages(message_helper.popMessages()) %> 
     <fieldset>
       <legend><%= T"Enable Pos" %></legend>
 		<%

@@ -100,11 +100,10 @@ end
   </div>\
     <a href="#footer" id="scroll-down" class="scroll-down" address="true"></a>\
 	<a href="#headertab" id="scroll-up"class="scroll-up hide" address="true"></a>\
-    <div class="container">\
 	<div class="gateway_bg" data-bg-text="&#xf0ac;"></div>\
-    <div class="row" style="z-index : 3;  position: relative;" >\
-\
-      <div class="header span12" id="headertab">\
+	<div class="header" id="headertab">\
+	  <div class="row" style="z-index : 3;  position: relative;" >\
+		<div class="header-logo">\
         <a href="');  ngx.print( cui.nsplink ); ngx.print('" target="_blank">\
 		  <picture>');
 		  
@@ -121,14 +120,13 @@ end
 		end
 		ngx.print('  </picture>\
 		</a>\
-\
+		</div>\
 		');
 		
         local session = ngx.ctx.session
-		local attri ={ select = {style ="width:auto; padding-top:7px; padding-bottom:7px; margin:auto; height: 36px"}}
         local html = {}
 
-        html[#html + 1] = [[<div class="pull-right" style="padding-right:10px">]]
+		html[#html + 1] = [[<div class="header-button">]]
 		if web.isDemoBuild() then
 			html[#html + 1] = [[ <div class="pull-right" style="color: red; font-weight: bold; text-align: center; font-size:x-large; line-height:150%; background-color: yellow; border: 2px solid; border-color: red; border-radius: 4px; padding-left: 7px;padding-right: 7px"> ]]
 				html[#html + 1] = [[ <a style="color:red" class="someInfos" rel="tooltip" data-placement="bottom" data-original-title=" ]] 
@@ -136,6 +134,9 @@ end
 				html[#html + 1] = [[ " href="https://plus.google.com/u/0/communities/108761366800436892116" target="_blank">BETA BUILD</a> ]]
 			html[#html + 1] = [[ </div> ]]
 		end
+		html[#html + 1] = '<div class="header-sub-button">'
+		html[#html + 1] = ui_helper.createLanguageSelect('webui-core', gettext.language())
+		html[#html + 1] = '</div>'
 		if not ( session:getusername() == "guest" ) then
 			if cui.outdated_ver == "1" then
 				html[#html + 1] = '<div id="upgradebtn" class="btn someInfos" style="margin-right:10px; color:orangered" '
@@ -153,8 +154,11 @@ end
 				html[#html + 1] = '</span>'
 				html[#html + 1] = '</div>'
 			end
-			html[#html + 1] = '<div class="btn" style="margin-right:10px" id="wizard-btn" data-toggle="modal" data-remote="modals/wizard-modal.lp">' .. T"Setup Wizard" .. '</div>'
+			html[#html + 1] = '<div class="header-sub-button">'
+			html[#html + 1] = '<div class="btn" id="wizard-btn" data-toggle="modal" data-remote="modals/wizard-modal.lp">' .. T"Setup Wizard" .. '</div>'
+			html[#html + 1] = '</div>'
         end
+		html[#html + 1] = '<div class="header-sub-button">'
 		if session:isdefaultuser() then
             html[#html + 1] = '<a href="login.lp" class="btn" id="signin">'
             html[#html + 1] = T"Sign in"
@@ -206,18 +210,15 @@ end
             html[#html + 1] = [[</a></li></ul></div>]]
 			
         end
-		
-        html[#html + 1] = [[</div>]]
-
-        html[#html + 1] = [[<div class="pull-right" style="padding-right:10px">]]
-        html[#html + 1] = ui_helper.createLanguageSelect('webui-core', gettext.language(),attri)
+		html[#html + 1] = '</div>'
         html[#html + 1] = [[</div>]]
 
         ngx.print(html)
         ngx.print('\
       </div>\
 	</div>\
-    <div class="row" style="z-index : 2;  position: relative;">\
+	<div class="container">\
+    <div id="card-row" class="row" style="z-index : 2;  position: relative;">\
 	');
         local lp = require("web.lp")
         local cards = require("cards")
