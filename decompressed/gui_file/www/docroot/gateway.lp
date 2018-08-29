@@ -140,12 +140,11 @@ end
 				html[#html + 1] = [[ " href="https://plus.google.com/u/0/communities/108761366800436892116" target="_blank">BETA BUILD</a> ]]
 			html[#html + 1] = [[ </div> ]]
 		end
-		html[#html + 1] = '<div class="header-sub-button">'
-		html[#html + 1] = ui_helper.createLanguageSelect('webui-core', gettext.language())
-		html[#html + 1] = '</div>'
+		
 		if not ( session:getusername() == "guest" ) then
 			if cui.outdated_ver == "1" then
-				html[#html + 1] = '<div id="upgradebtn" class="btn someInfos" style="margin-right:10px; color:orangered" '
+				html[#html + 1] = '<div class="header-sub-button">'
+				html[#html + 1] = '<div id="upgradebtn" class="btn someInfos"'
 				if not ( cui.gui_skin == "Fritz" ) then
 					html[#html + 1] = 'rel="tooltip" data-placement="bottom" data-original-title="'
 					html[#html + 1] = T"Go to the gateway tab and click on the Upgrade button, to autoupgrade to the new GUI."
@@ -159,9 +158,13 @@ end
 				html[#html + 1] = " )</strong>" 
 				html[#html + 1] = '</span>'
 				html[#html + 1] = '</div>'
+				html[#html + 1] = '</div>'
 			end
 			html[#html + 1] = '<div class="header-sub-button">'
 			html[#html + 1] = '<div class="btn" id="wizard-btn" data-toggle="modal" data-remote="modals/wizard-modal.lp">' .. T"Setup Wizard" .. '</div>'
+			html[#html + 1] = '</div>'
+			html[#html + 1] = '<div class="header-sub-button">'
+			html[#html + 1] = ui_helper.createLanguageSelect('webui-core', gettext.language())
 			html[#html + 1] = '</div>'
         end
 		html[#html + 1] = '<div class="header-sub-button">'
@@ -223,7 +226,25 @@ end
         ngx.print('\
       </div>\
 	</div>\
-	<div class="container">\
+	<div class="container">');
+	autoupgrade_view = cui.autoupgrade_view
+	if not ( autoupgrade_view == "none" ) and not ( autoupgrade_view == "" ) then
+		html = {}
+		local alert_success = {
+			alert = {
+				style = "text-align: center",
+				class = "alert-success"
+			},
+		}
+		if autoupgrade_view == "auto" then
+			html[#html + 1] = ui_helper.createAlertBlock(string.format(T("The modem has been upgraded automatically at <strong>%s:00</strong>" .. 
+						" to version <strong>%s</strong> successfully"),cui.autoupgrade_hour, cui.gui_version),alert_success)
+		else
+			html[#html + 1] = ui_helper.createAlertBlock(string.format(T"The modem has been upgraded to version <strong>%s</strong> successfully",cui.gui_version),alert_success)
+		end
+		ngx.print(html)
+	end
+	ngx.print('\
     <div id="card-row" class="row" style="z-index : 2;  position: relative;">\
 	');
         local lp = require("web.lp")
@@ -268,33 +289,6 @@ end
       ');  end
       session:store("password_reminder_shown", true)
     end
-	autoupgrade_view = cui.autoupgrade_view
-	if not ( autoupgrade_view == "none" ) and not ( autoupgrade_view == "" ) then
-		html = {}
-		local alert_success = {
-			alert = {
-				class = "alert-success"
-			},
-		}
-		html[#html + 1] = '<div class="modal fade in" id="autoupgrade_alert">'
-		html[#html + 1] = ui_helper.createHeader(T"AutoUpgrade Status")
-		html[#html + 1] = '<div class="modal-body">'
-		html[#html + 1] = '<form class="form-horizontal" method="post" action="gateway.lp">'
-		html[#html + 1] = '<fieldset>'
-		html[#html + 1] = '&nbsp'
-		if autoupgrade_view == "auto" then
-			html[#html + 1] = ui_helper.createAlertBlock(string.format(T("The modem has been upgraded automatically at <strong>%s:00</strong>" .. 
-						" to version <strong>%s</strong> successfully"),cui.autoupgrade_hour, cui.gui_version),alert_success)
-		else
-			html[#html + 1] = ui_helper.createAlertBlock(string.format("The modem has been upgraded to version <strong>%s</strong> successfully",cui.gui_version),alert_success)
-		end
-		html[#html + 1] = '</fieldset>'
-		html[#html + 1] = '</form>'
-		html[#html + 1] = '</div>'
-		html[#html + 1] = ui_helper.createFooter()
-		html[#html + 1] = '</div>'
-		ngx.print(html)
-	end
 	ngx.print('\
     <div id="footer" class="row">\
 			<div class="copyright span12">\
@@ -383,13 +377,6 @@ $(function() {\
     return false;\
   }\
 \
-  $("#autoupgrade_alert").modal();\
-  $("#autoupgrade_alert").on("click.dismiss.modal", function() {\
-	post("autoupgrade_view");\
-	});\
-  $(".modal-backdrop").on("click", function() {\
-	post("autoupgrade_view");\
-	});\
   $("#update").on("click", function() {\
      post("checkver");\
 	 setTimeout(function(){location.reload();}, 4000);\
@@ -401,7 +388,13 @@ $(function() {\
 	function() {\
 		$("#upgradebtn").css("color","orangered");\
 	}\
-  );\
+  );'); 
+  if not ( autoupgrade_view == "none" ) and not ( autoupgrade_view == "" ) then
+    ngx.print('\
+    post("autoupgrade_view");\
+    ');
+  end
+  ngx.print('\
 });\
 </script>\
 ');
