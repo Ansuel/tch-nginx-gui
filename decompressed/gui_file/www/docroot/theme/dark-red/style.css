@@ -8,13 +8,13 @@ body::-webkit-scrollbar-button {
   height: 0px;
 }
 body::-webkit-scrollbar-thumb {
-  background: rgba(54, 129, 221, 0.50);
+  background: rgba(244, 67, 54, 0.50);
 }
 body::-webkit-scrollbar-thumb:hover {
-  background: rgba(54, 129, 221, 0.80);
+  background: rgba(244, 67, 54, 0.80);
 }
 body::-webkit-scrollbar-thumb:active {
-  background: rgba(54, 129, 221, 1);
+  background: rgba(244, 67, 54, 1);
 }
 body::-webkit-scrollbar-track {
   background: transparent;
@@ -38,13 +38,13 @@ body::-webkit-scrollbar-corner {
   height: 0px;
 }
 .modal-body::-webkit-scrollbar-thumb {
-  background: rgba(54, 129, 221, 0.50);
+  background: rgba(244, 67, 54, 0.50);
 }
 .modal-body::-webkit-scrollbar-thumb:hover {
-  background: rgba(54, 129, 221, 0.80);
+  background: rgba(244, 67, 54, 0.80);
 }
 .modal-body::-webkit-scrollbar-thumb:active {
-  background: rgba(54, 129, 221, 1);
+  background: rgba(244, 67, 54, 1);
 }
 .modal-body::-webkit-scrollbar-track {
   background: transparent;
