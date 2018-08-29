@@ -283,8 +283,8 @@ end
 		html[#html + 1] = '<fieldset>'
 		html[#html + 1] = '&nbsp'
 		if autoupgrade_view == "auto" then
-			html[#html + 1] = ui_helper.createAlertBlock(string.format("The modem has been upgraded automatically at \
-							<strong>%s:00</strong> to version <strong>%s</strong> successfully",cui.autoupgrade_hour, cui.gui_version),alert_success)
+			html[#html + 1] = ui_helper.createAlertBlock(string.format(T("The modem has been upgraded automatically at <strong>%s:00</strong>" .. 
+						" to version <strong>%s</strong> successfully"),cui.autoupgrade_hour, cui.gui_version),alert_success)
 		else
 			html[#html + 1] = ui_helper.createAlertBlock(string.format("The modem has been upgraded to version <strong>%s</strong> successfully",cui.gui_version),alert_success)
 		end

@@ -1213,8 +1213,8 @@ end
 					html[#html + 1] = ui_helper.createLabel(T"LAN IPv6", IPv6addr, advanced)
 					end
 					if sfp_presence and ( sfp_presence[1].value == "1" ) then 
-						html[#html + 1] = ui_helper.createAlertBlock(T"This is the internal IP of the SFP interface used for fiber connection.\
-																		This and the local Gateway IP must be different.", info_box)
+						html[#html + 1] = ui_helper.createAlertBlock(T("This is the internal IP of the SFP interface used for fiber connection. " ..
+																		"This and the local Gateway IP must be different."), info_box)
 						html[#html + 1] = ui_helper.createInputText(T"SFP IP address", "sfplocalip", content["sfplocalip"],{},helpmsg["sfplocalip"])
 					end
 				end
@@ -1264,7 +1264,8 @@ end
                       }
                     }
                     ngx.print(
-                      ui_helper.createAlertBlock(T"The latest added/modified static lease is set to an IP that is already in use, please perform a reboot to apply the changes", confilictipchange_alert),
+                      ui_helper.createAlertBlock(T("The latest added/modified static lease is set to an IP that is already in use," .. 
+								" please perform a reboot to apply the changes"), confilictipchange_alert),
                       ui_helper.createTable(sleases_columns, sleases_data, sleases_options, nil, sleases_helpmsg))
                 ngx.print('\
               </fieldset>\
