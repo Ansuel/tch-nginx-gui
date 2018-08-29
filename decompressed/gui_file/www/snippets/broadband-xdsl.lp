@@ -41,8 +41,10 @@ local content = {
   dsl_power_down = "sys.class.xdsl.@line0.DownstreamPower",
   dsl_attenuation_up = "sys.class.xdsl.@line0.UpstreamAttenuation",
   dsl_attenuation_down = "sys.class.xdsl.@line0.DownstreamAttenuation",
-  dsl_margin_up = "sys.class.xdsl.@line0.UpstreamSNRMpb",
-  dsl_margin_down = "sys.class.xdsl.@line0.DownstreamSNRMpb",
+  dsl_margin_up = "sys.class.xdsl.@line0.UpstreamNoiseMargin",
+  dsl_margin_down = "sys.class.xdsl.@line0.DownstreamNoiseMargin",
+  dsl_margin_SNRM_up = "sys.class.xdsl.@line0.UpstreamSNRMpb",
+  dsl_margin_SNRM_down = "sys.class.xdsl.@line0.DownstreamSNRMpb",
   dsl_transfered_up = "sys.class.xdsl.@line0.BytesSent",
   dsl_transfered_down = "sys.class.xdsl.@line0.BytesReceived",
   dsl_downstream_delay = "sys.class.xdsl.@line0.DownstreamDelay",
@@ -75,6 +77,11 @@ local content_other_line = {
 
 content_helper.getExactContent(content)
 content_helper.getExactContent(content_other_line)
+
+if not ( content.dsl_margin_SNRM_down == "0.0" ) then
+	content.dsl_margin_down = content.dsl_margin_SNRM_down
+	content.dsl_margin_up = content.dsl_margin_SNRM_up
+end
 
 ajax_helper.handleAjaxQuery({dsl_uptime = "sys.class.xdsl.@line0.ShowtimeStart"}, function(c)
     c.dsl_uptime = post_helper.secondsToTime(c["dsl_uptime"])

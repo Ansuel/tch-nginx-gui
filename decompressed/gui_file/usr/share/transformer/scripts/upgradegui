@@ -65,8 +65,13 @@ if [ "$1" ]; then
 		if [ $(uci get env.var.outdated_ver) == "0" ]; then
 			logger -s -t "Upgrade Script" "Already at latest version. Abort upgrade."
 			exit 0
+			# Enabling alert for the gui about the autoupgrade
+			uci set env.var.autoupgradeview=auto
 		fi
 	fi
+else
+	# Enabling alert for the gui about the manual upgrade
+	uci set env.var.autoupgradeview=manual
 fi
 
 # Check update_branch

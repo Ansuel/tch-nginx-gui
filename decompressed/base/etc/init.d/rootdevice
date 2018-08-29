@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.7.7
+version_gui=8.7.9
 
 logo_project() {
 cat << EOF > /dev/console
@@ -221,6 +221,9 @@ cumulative_check_gui() {
 	if [ ! $(uci get -q env.var.autoupgrade) ]; then
 		uci set env.var.autoupgrade_hour=0
 		uci set env.var.autoupgrade=0
+	fi
+	if [ ! $(uci get -q env.var.autoupgradeview) ]; then
+		uci set env.var.autoupgradeview=none
 	fi
 }
 

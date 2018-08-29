@@ -23,6 +23,8 @@ local cui = {
     transmission_webui = "uci.env.var.transmission_webui",
 	blacklist_application = "uci.env.var.blacklist_app",
 	new_ver = "uci.env.var.new_ver",
+	autoupgrade_hour= "uci.env.var.autoupgrade_hour",
+	autoupgrade_view = "uci.env.var.autoupgradeview",
 }
 content_helper.getExactContent(cui)
 
@@ -51,6 +53,10 @@ if ngx.req.get_method() == "POST" then
   end
   if post_args.action == "checkver" then
 	return apply("checkver")
+  end
+  if post_args.action == "autoupgrade_view" then
+	proxy.set("uci.env.var.autoupgradeview", "none")
+	proxy.apply()
   end
   if post_args.do_signout then
     session:logout()
@@ -261,7 +267,35 @@ end
         </script>\
       ');  end
       session:store("password_reminder_shown", true)
-    end  ngx.print('\
+    end
+	autoupgrade_view = cui.autoupgrade_view
+	if not ( autoupgrade_view == "none" ) and not ( autoupgrade_view == "" ) then
+		html = {}
+		local alert_success = {
+			alert = {
+				class = "alert-success"
+			},
+		}
+		html[#html + 1] = '<div class="modal fade in" id="autoupgrade_alert">'
+		html[#html + 1] = ui_helper.createHeader(T"AutoUpgrade Status")
+		html[#html + 1] = '<div class="modal-body">'
+		html[#html + 1] = '<form class="form-horizontal" method="post" action="gateway.lp">'
+		html[#html + 1] = '<fieldset>'
+		html[#html + 1] = '&nbsp'
+		if autoupgrade_view == "auto" then
+			html[#html + 1] = ui_helper.createAlertBlock(string.format("The modem has been upgraded automatically at \
+							<strong>%s:00</strong> to version <strong>%s</strong> successfully",cui.autoupgrade_hour, cui.gui_version),alert_success)
+		else
+			html[#html + 1] = ui_helper.createAlertBlock(string.format("The modem has been upgraded to version <strong>%s</strong> successfully",cui.gui_version),alert_success)
+		end
+		html[#html + 1] = '</fieldset>'
+		html[#html + 1] = '</form>'
+		html[#html + 1] = '</div>'
+		html[#html + 1] = ui_helper.createFooter()
+		html[#html + 1] = '</div>'
+		ngx.print(html)
+	end
+	ngx.print('\
     <div id="footer" class="row">\
 			<div class="copyright span12">\
 			<p>&copy; Technicolor ');  ngx.print(current_year); ngx.print('</p>\
@@ -349,6 +383,13 @@ $(function() {\
     return false;\
   }\
 \
+  $("#autoupgrade_alert").modal();\
+  $("#autoupgrade_alert").on("click.dismiss.modal", function() {\
+	post("autoupgrade_view");\
+	});\
+  $(".modal-backdrop").on("click", function() {\
+	post("autoupgrade_view");\
+	});\
   $("#update").on("click", function() {\
      post("checkver");\
 	 setTimeout(function(){location.reload();}, 4000);\
