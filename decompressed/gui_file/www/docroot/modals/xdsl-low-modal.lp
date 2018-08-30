@@ -224,7 +224,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = ui_helper.createSwitch(T"SRA", "ds10_sra", driver_content["ds10_sra"])
 	  html[#html + 1] = ui_helper.createSwitch(T"Bitswap", "ds10_bitswap", driver_content["ds10_bitswap"])
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Modify the SNR will take effect on only ADSL connection, VDSL connection won't make any effect by this value!", alertinfo)
-	  html[#html + 1] = ui_helper.createSwitch(T"SNR", "ds10_snr", driver_content["ds10_snr"])
+	  html[#html + 1] = ui_helper.createInputText(T"SNR", "ds10_snr", driver_content["ds10_snr"])
       html[#html + 1] = ui_helper.createLabel(T"EOC Vendor ID",content.dsl0_eoc_vendor_id, span5 )
       html[#html + 1] = ui_helper.createLabel(T"EOC Serial Number",content.dsl0_eoc_serial_number, span5 )
       html[#html + 1] = [[<div class="control-group"><label class="control-label">]]

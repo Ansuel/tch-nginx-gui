@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.7.21
+version_gui=8.7.23
 
 logo_project() {
 cat << EOF > /dev/console
