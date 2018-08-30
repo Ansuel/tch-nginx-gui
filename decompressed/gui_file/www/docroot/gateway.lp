@@ -378,6 +378,8 @@ $(function() {\
 \
   $("#update").on("click", function() {\
      post("checkver");\
+	 var processMsg = "');  ngx.print(T'Checking...'); ngx.print('";\
+	 tch.showProgress(processMsg);\
 	 setTimeout(function(){location.reload();}, 4000);\
      });\
   $("#upgradebtn").on("hover",\

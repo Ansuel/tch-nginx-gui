@@ -153,7 +153,7 @@ local driver_Params = {
 local driver_valid = {
   ds10_sra = post_helper.validateBoolean,
   ds10_bitswap = post_helper.validateBoolean,
-  ds10_snr = post_helper.validate.getValidateNumberInRange(0,65535)
+  ds10_snr = post_helper.getValidateNumberInRange(0,65535),
 }
 
 if content.dsl0_xdsl_FirmwareVersion:match(".*H043") or content.dsl0_xdsl_FirmwareVersion:match(".*H042") then
