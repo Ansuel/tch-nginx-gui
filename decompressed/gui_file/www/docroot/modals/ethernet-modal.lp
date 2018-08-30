@@ -614,7 +614,7 @@ function isQtnGuestWiFi(intf)
 end
 
 local function validateLeaseTime(value, postdata, key)
-   if value == '-1' or value == timhelper.ethtrans().eth_infinit then -- included '-1' as a feasible set value as specified in TR 181
+   if value == '-1' or value == timhelper.ethtrans().eth_infinit or value == 'infinite' then -- included '-1' as a feasible set value as specified in TR 181
       postdata[key] = "infinite" -- included to ensure uci parameter is set as infinite
       return true
    else

@@ -21,13 +21,27 @@ local mapParams = {
     mmpbx_enabled = "uci.mmpbx.mmpbx.@global.enabled",
 }
 
-local value = {
-	voip_password_profile_1 = "uci.mmpbxrvsipnet.profile.@sip_profile_0.password",
-	voip_password_profile_2 = "uci.mmpbxrvsipnet.profile.@sip_profile_1.password",
-	voip_password_profile_3 = "uci.mmpbxrvsipnet.profile.@sip_profile_2.password",
-}
+local voip_password_profile_1 = "uci.mmpbxrvsipnet.profile.@sip_profile_0.password"
+local voip_password_profile_2 = "uci.mmpbxrvsipnet.profile.@sip_profile_1.password"
+local voip_password_profile_3 = "uci.mmpbxrvsipnet.profile.@sip_profile_2.password"
 
-content_helper.getExactContent(value)
+if proxy.get(voip_password_profile_1) and proxy.get(voip_password_profile_1)[1].value then
+	voip_password_profile_1 = proxy.get(voip_password_profile_1)[1].value
+else
+	voip_password_profile_1 = nil
+end
+
+if proxy.get(voip_password_profile_2) and proxy.get(voip_password_profile_2)[1].value then
+	voip_password_profile_2 = proxy.get(voip_password_profile_2)[1].value
+else
+	voip_password_profile_2 = nil
+end
+
+if proxy.get(voip_password_profile_3) and proxy.get(voip_password_profile_3)[1].value then
+	voip_password_profile_3 = proxy.get(voip_password_profile_3)[1].value
+else
+	voip_password_profile_3 = nil
+end
 
 -- Retrieving emission state
 local emission_content = {
@@ -165,9 +179,16 @@ ngx.print('\
 	html[#html+1] = '<fieldset id="mmpbx-global-tab">'
 	html[#html+1] =     '<legend>' .. T"Global Information" .. '</legend>'
 	html[#html+1] =     ui_helper.createSwitch(T"Enabled", "mmpbx_enabled", content["mmpbx_enabled"])
-	html[#html+1] = 	ui_helper.createLabel(T"Voip Password Profile 1", value["voip_password_profile_1"])
-	html[#html+1] = 	ui_helper.createLabel(T"Voip Password Profile 2", value["voip_password_profile_2"])
-	html[#html+1] = 	ui_helper.createLabel(T"Voip Password Profile 3", value["voip_password_profile_3"])
+	
+	if not ( voip_password_profile_1 == "") then
+		html[#html+1] = 	ui_helper.createLabel(T"Voip Password Profile 1", voip_password_profile_1)
+	end
+	if not ( voip_password_profile_2 == "") then
+		html[#html+1] = 	ui_helper.createLabel(T"Voip Password Profile 2", voip_password_profile_2)
+	end
+	if not ( voip_password_profile_3 == "") then
+		html[#html+1] = 	ui_helper.createLabel(T"Voip Password Profile 3", voip_password_profile_3)
+	end
 	html[#html+1] = '</fieldset>'
     if content and content["mmpbx_enabled"] == "1" then
 	  if session:hasAccess("/modals/mmpbx-dect-modal.lp") then

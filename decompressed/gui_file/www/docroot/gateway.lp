@@ -88,8 +88,7 @@ ngx.print('\
 	<script src="/js/main-min-nojquery.js" ></script>\
 	<script src="js/knockout-min.js"></script>\
 	<script src="/js/aos.js"></script>\
-	<script async src="/js/moment.min.js" ></script>\
-	<script async src="/js/Chart.min.js"></script>\
+	<script async src="/js/Chart.bundle.min.js"></script>\
 	<script async src="/js/srp-min.js" ></script>');
 	ngx.print('<script src="/js/jquery-migrate.js" ></script>')  -- Usefull to debug deprecated function from jquery update
 	ngx.print('<link rel="stylesheet" href="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/style.css">');

@@ -105,13 +105,13 @@ ngx.print( ui_helper.createCardHeader(T"Broadband", modalPath) ); ngx.print('\
         rate_down = rate_down + (floor(other_line_rate_down / 10) / 100)
       end
       ngx.print(
-        "<p  id=\"Line_Rate_Up\" class=\"subinfos\">&emsp; ",
-        iconUp,
-        format("%.2f Mbps", rate_up),
-        "</p>",
         "<p  id=\"Line_Rate_Down\" class=\"subinfos\">&emsp; ",
         iconDown,
         format('%.2f Mbps', rate_down),
+		"</p>",
+        "<p  id=\"Line_Rate_Up\" class=\"subinfos\">&emsp; ",
+        iconUp,
+        format("%.2f Mbps", rate_up),
         "</p>"
       )
     end
