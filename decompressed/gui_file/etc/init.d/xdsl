@@ -170,6 +170,11 @@ xdsl_config() {
 	else
 		bitswapstring="--bitswap on"
     fi
+	
+	config_get snr "$cfg" snr 0
+    if [ "$snr" != 0 ]; then
+		snrstring="--snr "$snr
+    fi
 
     config_get maxdsdatarate "$cfg" maxdsdatarate
     config_get maxusdatarate "$cfg" maxusdatarate
@@ -178,7 +183,7 @@ xdsl_config() {
       maxdataratestring=$(ucimaxdatarate2xdslctl "$maxdsdatarate" "$maxusdatarate" "$maxaggrdatarate")
     fi
 
-    CONFIGURE_OPTIONS="$modstring $srastring $bitswapstring $profilestring $tpstcstring"
+    CONFIGURE_OPTIONS="$modstring $snrstring $srastring $bitswapstring $profilestring $tpstcstring"
 
     ADVANCED_OPTIONS=$(uciadvancedconfig2xdslctl "$cfg")
     if [ -n "$maxdataratestring" ]; then

@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.7.17
+version_gui=8.7.19
 
 logo_project() {
 cat << EOF > /dev/console
@@ -833,6 +833,9 @@ add_xdsl_option() {
 	fi
 	if [ ! $(uci get -q xdsl.dsl0.bitswap) ]; then
 		uci set xdsl.dsl0.bitswap=1
+	fi
+	if [ ! $(uci get -q xdsl.dsl0.snr) ]; then
+		uci set xdsl.dsl0.snr=0
 	fi
 	# Trying to understanding why this option were not applied i found that this option was the culprit
 	# So this hex code means something... i found that the first bit is related to sra (>5 activate sra)
