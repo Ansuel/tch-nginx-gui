@@ -151,7 +151,7 @@ if ngx.var.args and string.len(ngx.var.args) > 0 then
 end
 
 
-ngx.print(ui_helper.createHeader(T"Telephony", false, true)); 
+ngx.print(ui_helper.createHeader(T"Telephony", false, true));
 ngx.print('\
 <div class="modal-body update">\
   ');
@@ -162,7 +162,7 @@ ngx.print('\
   <form class="form-horizontal" method="post" action="');ngx.print(uri); ngx.print('">'); ngx.print(
   ui_helper.createMessages(uimessage_helper.popMessages()));
 	local html = {}
-	
+
 	local emission_on_class = {
 	  		button = {
 	  			["data-name"] = "action",
@@ -175,11 +175,11 @@ ngx.print('\
 			["data-value"] = "emission_off",
 		}
 	}
-	
+
 	html[#html+1] = '<fieldset id="mmpbx-global-tab">'
 	html[#html+1] =     '<legend>' .. T"Global Information" .. '</legend>'
 	html[#html+1] =     ui_helper.createSwitch(T"Enabled", "mmpbx_enabled", content["mmpbx_enabled"])
-	
+
 	if not ( voip_password_profile_1 == "") then
 		html[#html+1] = 	ui_helper.createLabel(T"Voip Password Profile 1", voip_password_profile_1)
 	end
@@ -199,7 +199,7 @@ ngx.print('\
 	    else
           html[#html+1] = ui_helper.createButton(T"Emission Mode", T"Off", "icon-ban-circle icon-large red", emission_off_class)
 	    end
-        
+
         html[#html+1] = '</fieldset>'
       end
       html[#html+1] = '<fieldset>'
@@ -208,7 +208,7 @@ ngx.print('\
       html[#html+1] = '</fieldset>'
     end
 	ngx.print (html)
-	
+
 	ngx.print('\
     </form>\
 </div>\

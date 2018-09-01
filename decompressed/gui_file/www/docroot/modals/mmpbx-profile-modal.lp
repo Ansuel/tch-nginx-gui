@@ -190,7 +190,6 @@ local function validateNonspaceString(value, object, key)
     return true
 end
 
-local mask_password = "********"
 local function validatePassword(value, object, key)
     local password = string.format("%s", value)
     if #password == 0 then
@@ -198,9 +197,6 @@ local function validatePassword(value, object, key)
     end
     if string.find(password, "%s") then
         return nil, "Invalid password, space not allowed"
-    end
-    if password == mask_password then
-        object[key] = nil
     end
     return true
 end
@@ -222,7 +218,6 @@ local basepath = "rpc.mmpbx.sip_profile.@."
 local sip_data,allowedIndexes = content_helper.loadTableData(basepath, sip_columns, nil, sort_func)
 
 for _,v in pairs(sip_data) do
-    v[scns["password"]] = mask_password
     local name = v[scns["profile"]]
     local states = {
         regstate  = "rpc.mmpbx.profile.@" .. name .. ".sipRegisterState",
@@ -392,7 +387,7 @@ for i,v in ipairs(sip_display_data) do
 	        sip_table[#sip_table + 1] = ui_helper.createSimpleLight(w, "", {})
 	    end
         elseif sip_columns[j].type == "password" then
-            sip_table[#sip_table + 1] = ui_helper.createSimpleInputPassword(sip_columns[j].name.."."..i, w or "", sip_columns[j].attr,helpmsg[sip_columns[j].name.."."..i])
+            sip_table[#sip_table + 1] = ui_helper.createSimpleInputText(sip_columns[j].name.."."..i, w or "", sip_columns[j].attr,helpmsg[sip_columns[j].name.."."..i])
 	end
 	sip_table[#sip_table + 1] = "</td>"
     end

@@ -1,6 +1,6 @@
 --pretranslated: do not change this file
 
--- NG-84683; NG-89573 
+-- NG-84683; NG-89573
 
 -- Enable localization
 gettext.textdomain('webui-core')
@@ -97,12 +97,12 @@ local function split(str, ang)
 		table.insert(tab, vari)
 	end
 	return tab
-end 
+end
 
 local function dns_filter(tab)
 	local ipv4_dns = ""
 	local ipv6_dns = ""
-	
+
 	for _,v in ipairs(tab) do
 		if match(v, "^(%d+)%.(%d+)%.(%d+)%.(%d+)$") then
 			ipv4_dns=ipv4_dns..format("%s,", v)
@@ -110,7 +110,7 @@ local function dns_filter(tab)
 			ipv6_dns=ipv6_dns..format("%s,", v)
 		end
 	end
-	
+
 	if #ipv4_dns > 1 then
 		ipv4_dns = string.sub(ipv4_dns,1,#ipv4_dns-1)
 	end
@@ -266,7 +266,7 @@ ajax_helper.handleAjaxQuery(content_rpc, function(c)
 		c.dns = content_helper.getMergedList(proxy.get("rpc.network.interface.@wan.dnsservers")[1].value, dnsv4)
 	else
 		c.dns = dnsv4
-		
+
 	end
 	if proxy.get("uci.network.interface.@wan.ipv6")[1].value == "1" then
 		c.dnsv6 = content_helper.getMergedList(c.dnsv6, dnsv6)
@@ -340,12 +340,12 @@ end
   ngx.print('\
 \
 <fieldset>\
-');  
+');
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
   ngx.print('\
 <legend>');  ngx.print( T"PPP connection" ); ngx.print('</legend>\
 \
-');  
+');
   local html = {}
   -- Label that shows PPP status
   ajax_attr_light.light.class = ppp_light_map[ppp_status]
@@ -370,7 +370,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 
   -- PPP password
   local class_password = class_username
-  html[#html + 1] = ui_helper.createInputPassword(T"Password", "uci_wan_password", content["uci_wan_password"], class_username, helpmsg["uci_wan_password"])
+  html[#html + 1] = ui_helper.createInputText(T"Password", "uci_wan_password", content["uci_wan_password"], class_username, helpmsg["uci_wan_password"])
 	end
 	ajax_attr.span.id = "ipaddr"
   html[#html+1] = ui_helper.createLabel(T"IP address", content_rpc["ipaddr"],ajax_attr)
