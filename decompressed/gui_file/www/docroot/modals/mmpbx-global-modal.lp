@@ -179,14 +179,14 @@ ngx.print('\
 	html[#html+1] = '<fieldset id="mmpbx-global-tab">'
 	html[#html+1] =     '<legend>' .. T"Global Information" .. '</legend>'
 	html[#html+1] =     ui_helper.createSwitch(T"Enabled", "mmpbx_enabled", content["mmpbx_enabled"])
-
-	if not ( voip_password_profile_1 == "") then
+	
+	if voip_password_profile_1 and not ( voip_password_profile_1 == "") then
 		html[#html+1] = 	ui_helper.createLabel(T"Voip Password Profile 1", voip_password_profile_1)
 	end
-	if not ( voip_password_profile_2 == "") then
+	if voip_password_profile_2 and not ( voip_password_profile_2 == "") then
 		html[#html+1] = 	ui_helper.createLabel(T"Voip Password Profile 2", voip_password_profile_2)
 	end
-	if not ( voip_password_profile_3 == "") then
+	if voip_password_profile_3 and not ( voip_password_profile_3 == "") then
 		html[#html+1] = 	ui_helper.createLabel(T"Voip Password Profile 3", voip_password_profile_3)
 	end
 	html[#html+1] = '</fieldset>'

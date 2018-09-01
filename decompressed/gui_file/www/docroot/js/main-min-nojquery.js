@@ -2581,7 +2581,7 @@ var tch = tch || {};
         var d = $(this).children("input"),
             h = d.val();
         d.val(h === c ? a : c);
-        d.change();
+        d.trigger("change");
         return !1
     });
 																  
@@ -2718,7 +2718,7 @@ var tch = tch || {};
                 $("#modal-changes").show());
             var c = $(".modal-action-advanced:first").is(":visible");
             0 < a.closest(".advanced").length && !c && C();
-            $('.error input:not([type\x3d"hidden"])').first().focus()
+            $('.error input:not([type\x3d"hidden"])').first().trigger("focus")
         })
     });
 	var V = null;

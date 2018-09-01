@@ -463,7 +463,7 @@ function getInfo(mac,ap,getpath)\
 \
         bars(data.rssi);\
     })\
-    .error(function() {\
+    .fail(function() {\
     });\
    timerajax = window.setTimeout(function () {getInfo(mac,ap);}, checktimer);\
 }\
@@ -506,7 +506,7 @@ $(function() {\
     $(\'#save-config\').remove();\
     $("#chartcontainerwifi").css({\'left\': \'20px\', \'margin\' : \'0px\'});\
     $(".control-label").css({"font-weight":"bold"});\
-    client_selected.change(function() {\
+    client_selected.on("change", function() {\
         if (timerajax){clearTimeout(timerajax)};\
         tch.loadModal(\'/modals/wireless-client-modal.lp\', \'device=\'+client_selected.val());\
     });\
@@ -525,6 +525,12 @@ $(function() {\
             $(".modal").modal();\
         });\
    });\
+   $("#close-config").on("click", function() {\
+        if (timerajax){clearTimeout(timerajax)};\
+        });\
+   $(".modal-backdrop").on("click", function() {\
+        if (timerajax){clearTimeout(timerajax)};\
+        });\
    ');  if dyn_device then   ngx.print('\
        getInfo("');  ngx.print(output_details["mac"]); ngx.print('","');  ngx.print(output_details["ap"]); ngx.print('","');  ngx.print(path); ngx.print('")\
    ');  end   ngx.print('\

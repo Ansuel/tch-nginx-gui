@@ -1412,7 +1412,7 @@ end
 <legend>');  ngx.print( T"QR Code" ); ngx.print('</legend>\
 ');  ngx.print( format([[
                     <center>
-                        <div class="btn custom-handler" data-remote="modals/wireless-qrcode-modal.lp?iface=%s&ap=%s" data-toggle="modal">
+                        <div onclick="$('.modal-backdrop').remove();" class="btn custom-handler" data-remote="modals/wireless-qrcode-modal.lp?iface=%s&ap=%s" data-toggle="modal">
                             %s
                         </div>
                     </center>&nbsp

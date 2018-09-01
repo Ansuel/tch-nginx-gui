@@ -1,3 +1,8 @@
+
+echo "Fixing file..."
+find decompressed/ -type f -print0 | xargs -0 -n 4 -P 4 dos2unix -q > /dev/null
+echo "File fixed!"
+
 declare -a modular_dir=(
 	"base"
 	"gui_file"

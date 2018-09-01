@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.7.23
+version_gui=8.7.28
 
 logo_project() {
 cat << EOF > /dev/console
@@ -944,6 +944,15 @@ sfp_rework() {
 	fi
 }
 
+unlock_ssh_wan_tiscali() {
+	if [ $("uci get firewall.wan_SSH_rule1") ]; then
+		uci del firewall.wan_SSH_rule1
+	fi
+	if [ $("uci get firewall.wan_SSH_rule5") ]; then
+		uci del firewall.wan_SSH_rule1
+	fi
+}
+
 rootchecks() {
 	logger_command "Save root password if modified"
 	if [ ! $(awk -F: '/root/ {print $7 }' /etc/passwd) = "/bin/ash" ]; then #this enable root access from login
@@ -1117,7 +1126,8 @@ root() {
 	logger_command "Adding fast cache options"
 	fcctlsettings_daemon #Adds fast cache options
 	[ "$device_type_model" == "DGA4132" ] && logger_command "Reworking sfp interface in network..."
-	[ "$device_type_model" == "DGA4132" ] && sfp_rework #sfp to sfptag, to solve local ip problem 
+	[ "$device_type_model" == "DGA4132" ] && sfp_rework #sfp to sfptag, to solve local ip problem
+	[ "$device_type" == "MediaAccess TG789vac v2" ] && unlock_ssh_wan_tiscali
 	
 	logger_command "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not
