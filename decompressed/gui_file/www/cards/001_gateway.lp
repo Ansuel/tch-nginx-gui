@@ -32,6 +32,10 @@ elseif ( variant == "DGA4132" ) then
 	model = "_AGTHP"
 elseif ( variant == "MediaAccess TG789vac v2" ) then
 	model = "_TG789vac"
+elseif ( variant == "Technicolor TG799vac" ) then
+	model = "_TG799vac"
+elseif ( variant == "Technicolor TG800vac" ) then
+	model = "_TG800vac"
 end
 	
 if session:hasAccess("/modals/gateway-modal.lp") then
