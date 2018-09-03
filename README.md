@@ -42,7 +42,7 @@ General GUI Topic: https://www.ilpuntotecnico.com/forum/index.php/topic,78585.0.
 <h3>Than execute these shell commands:</h3><br />
 <strong>wget -P /tmp http://repository.ilpuntotecnico.com/files/Ansuel/AGTEF/GUI.tar.bz2<br />
 bzcat /tmp/GUI.tar.bz2 | tar -C / -xvf -<br />
-/etc/init.d/rootdevice force<br /></strong>
+/etc/init.d/rootdevice force<br /><br /></strong>
 
 if you get some error with the wget command just manually download the GUI.tar.bz2 file and put in /tmp folder via SCP than execute the other  commands
 
