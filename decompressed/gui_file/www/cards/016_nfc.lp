@@ -9,7 +9,7 @@ local content_helper = require("web.content_helper")
 local datamodel = require("datamodel")
 local variant = datamodel.get("uci.env.var.prod_friendly_name")[1].value or ""
 
-if ( variant == "Technicolor TG799vac" ) or ( variant == "Technicolor TG800vac" ) then
+if ( variant == "DJN2130" ) or ( variant == "Technicolor TG800vac" ) then
   local content_nfc = {
     enabled = "rpc.nfc.enabled",
   }
