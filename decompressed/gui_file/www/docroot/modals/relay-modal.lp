@@ -54,7 +54,11 @@ local uci_relay_status = "0"
 local relay_Params = {
     uci_relay_server_ip = "uci.dhcp.relay.@relay.server_addr",
     uci_relay_local_ip  = "uci.dhcp.relay.@relay.local_addr",
-    uci_relay_interface = "uci.dhcp.relay.@relay.interface"
+    uci_relay_interface = "uci.dhcp.relay.@relay.interface",
+    uci_pppoerelay_enable = "uci.pppoerelayd.config.enable",
+    uci_pppoerelay_server_intf = "uci.pppoerelayd.config.server_intf",
+    uci_pppoerelay_client_intf = "uci.pppoerelayd.config.client_intf",
+    uci_pppoerelay_nsessions = "uci.pppoerelayd.config.nsessions"
 }
 
 local vSII = post_helper.validateStringIsIP
@@ -99,8 +103,22 @@ local function getWanInterfacePath()
   return wanIntfPaths
 end
 
+local function getInterfacePath()
+  local interfaceList = proxy.getPN("rpc.network.interface.", true)
+  local wanIntfPaths = {}
+  if interfaceList then
+    for _,intf in ipairs(interfaceList) do
+      local values = proxy.get(intf.path .. "type")
+      wanIntfPaths[#wanIntfPaths + 1] = values[1].path
+    end
+  end
+  return wanIntfPaths
+end
+
 local wanIntfPaths = getWanInterfacePath()
+local allIntfPaths = getInterfacePath()
 local wanData = content_helper.convertResultToObject("rpc.network.interface.", proxy.get(unpack(wanIntfPaths)))
+local allData = content_helper.convertResultToObject("rpc.network.interface.", proxy.get(unpack(allIntfPaths)))
 
 local wanConInfo = {}
 for _, data in ipairs(wanData) do
@@ -120,10 +138,29 @@ for _, data in ipairs(wanConInfo) do
   end
 end
 
+local allConInfo = {}
+for _, data in ipairs(allData) do
+    allConInfo[#allConInfo + 1] = {}
+    allConInfo[#allConInfo].interface = match(data.paramindex, "([%w%_]+)")
+end
+
+local AllDetails = {}
+for _, data in ipairs(allConInfo) do
+	AllDetails[#AllDetails + 1] = {
+	  data and data.interface,
+	  data and data.interface,
+	}
+end
+
 local relay_valid = {
   uci_relay_server_ip = gAV(validateRelay, aIPV),
   uci_relay_local_ip  = gAV(validateRelay, pIPV),
   uci_relay_interface = valEnumSel(WanDetails),
+  uci_pppoerelay_enable = post_helper.validateBoolean,
+  uci_pppoerelay_client_intf = valEnumSel(AllDetails),
+  uci_pppoerelay_server_intf = valEnumSel(AllDetails),
+  uci_pppoerelay_nsessions = post_helper.validatePositiveNum
+
 }
 
 local function getRelayBackUpValues()
@@ -151,18 +188,18 @@ local relay_Values, helpmsg = post_helper.handleQuery(relay_Params, relay_valid)
 if server_addr and server_addr[1].value ~= "" and proxy.get("uci.dhcp.relay.@relay.local_addr")[1].value ~= "" then
   uci_relay_status = "1"
 end
-local title = T"DHCP Relay Setup"
+local title = T"Relay Setup"
   ngx.print('\
 \
 ');  ngx.print(ui_helper.createHeader(title, false, false))   ngx.print('\
 <div class="modal-body update">\
-');  
+');
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
   ngx.print('\
 <form class="form-horizontal" method="post" action="modals/relay-modal.lp">\
 <fieldset>\
   <legend>');  ngx.print( T"DHCP Relay" ); ngx.print('</legend>\
-       ');  
+       ');
          local html = {}
          html[#html + 1] = ui_helper.createSwitch(T"Status", "uci_relay_status", uci_relay_status)
          html[#html + 1] = ui_helper.createInputText(T"Server IP", "uci_relay_server_ip", relay_Values["uci_relay_server_ip"], nil, helpmsg["uci_relay_server_ip"])
@@ -173,44 +210,13 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 \
 </fieldset>\
 <fieldset>\
-  <legend>');  ngx.print( T"Quick Links" ); ngx.print('</legend>\
-       ');  
-        local wait_for_reboot = {
-          group = {
-            class = "wait-for-reboot"
-          },
-          button = {
-            id = "btn-system-reboot",
-            class = "custom-handler"
-          }
-        }
-
-        local wait_for_reset = {
-          group = {
-            class = "wait-for-reset"
-          },
-          button = {
-            id = "btn-system-reset",
-            class = "custom-handler"
-          }
-        }
-        local rebooting = {
-        alert = {
-          class = "alert hide",
-          id = "rebooting-msg"
-        }
-      }
-        local resetting = {
-        alert = {
-          class = "alert hide",
-          id = "resetting-msg"
-        }
-      }
+  <legend>');  ngx.print( T"PPPoE Relay" ); ngx.print('</legend>\
+       ');
         local html = {}
-        html[#html + 1] = ui_helper.createAlertBlock(T"Restarting, please wait...", rebooting)
-        html[#html + 1] = ui_helper.createButton(T"Restart Device", T"Restart", "icon-refresh", wait_for_reboot)
-        html[#html + 1] = ui_helper.createAlertBlock(T"Resetting to factory defaults, please wait...", resetting)
-        html[#html + 1] = ui_helper.createButton(T"Factory Defaults", T"Reset", "icon-bolt", wait_for_reset)
+        html[#html + 1] = ui_helper.createSwitch(T"Status", "uci_pppoerelay_enable", relay_Values["uci_pppoerelay_enable"])
+        html[#html + 1] = ui_helper.createInputSelect(T"Client Interface", "uci_pppoerelay_client_intf", AllDetails, relay_Values["uci_pppoerelay_client_intf"])
+        html[#html + 1] = ui_helper.createInputSelect(T"Server Interface", "uci_pppoerelay_server_intf", AllDetails, relay_Values["uci_pppoerelay_server_intf"])
+		html[#html + 1] = ui_helper.createInputText(T"Sessions", "uci_pppoerelay_nsessions", relay_Values["uci_pppoerelay_nsessions"], nil, helpmsg["uci_pppoerelay_nsessions"])
         ngx.print(html)
 
          ngx.print('\
@@ -219,54 +225,5 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 \
 </form>\
 </div>\
-<script>\
-(function() {\
-  var refreshTimeOut = 5000;\
-  var refreshDelay = 3000;\
-  var target = $(".modal form").attr("action");\
-\
-  function wait_for_webserver_running() {\
-    $.ajax({ url: target, timeout: refreshTimeOut, data: { check: "1"} })\
-    .done(function(data) {\
-      window.location.href = "/";\
-    })\
-    .fail(function() {\
-      window.setTimeout(wait_for_webserver_running, refreshDelay);\
-    });\
-  }\
-\
-  function wait_for_webserver_down() {\
-    $.ajax({ url: target, timeout: refreshTimeOut, data: { check: "1"}  })\
-    .done(function() {\
-      window.setTimeout(wait_for_webserver_down, refreshDelay);\
-    })\
-    .fail(function() {\
-      window.setTimeout(wait_for_webserver_running, refreshDelay);\
-    });\
-  }\
-  function resetreboot(msg, msg_dst, action) {\
-    msg_dst.after(msg);\
-    msg.removeClass("hide");\
-    msg[0].scrollIntoView();\
-    $.post(\
-      target,\
-      { action: action, CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
-      wait_for_webserver_down,\
-      "json"\
-    );\
-    return false;\
-  }\
-\
-   $("#btn-system-reboot").on("click", function() {\
-    return resetreboot($("#rebooting-msg"), $(this), "system_reboot");\
-  });\
-\
-\
-$("#btn-system-reset").on("click", function() {\
-    return resetreboot($("#resetting-msg"), $(this), "system_reset");\
-  });\
-\
-}());\
-</script>\
 ');  ngx.print(ui_helper.createFooter())   ngx.print('\
-'); 
+');
