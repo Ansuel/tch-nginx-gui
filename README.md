@@ -1,10 +1,10 @@
 <h3><strong>This is a modified and universal version of the GUI installed on Technicolor Modem/Router compatibile with (and probably not only):</strong></h3>
   <ul>
+  <li>DGA4132</li>
+  <li>DGA4130</li>
   <li>TG789vAC v2</li>
   <li>TG800</li>
   <li>TG799</li>
-  <li>DGA4130</li>
-  <li>DGA4132</li>
   </ul>
 with many fix and new feature like:
 <ul>
