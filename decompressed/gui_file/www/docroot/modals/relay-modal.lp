@@ -17,38 +17,6 @@ local content_helper = require("web.content_helper")
 local valEnumSel = post_helper.getValidateInEnumSelect
 local format, match = string.format, string.match
 
-local function resetreboot(path,value)
-  proxy.set(path, value)
-  ngx.header.content_type = "application/json"
-  ngx.print('{ "success":"true" }')
-  ngx.timer.at(0, function()
-    proxy.apply()
-  end)
-  ngx.exit(ngx.HTTP_OK)
-end
-
-if ngx.req.get_method() == "POST" then
-  local setIPValues = {}
-  if ngx.req.get_post_args().uci_relay_status == "0" then
-    setIPValues["uci.dhcp.relay.@relay.server_addr"] = ""
-    setIPValues["uci.dhcp.relay.@relay.local_addr"] = ""
-    setIPValues["uci.dhcp.relay.@relay.interface"] = ""
-    proxy.del("uci.dhcp.relaybackup.")
-    proxy.add("uci.dhcp.relaybackup.", post_helper.getRandomKey())
-    proxy.set(setIPValues)
-  else
-    proxy.del("uci.dhcp.relaybackup.")
-  end
-  proxy.apply()
-  local action = ngx.req.get_post_args().action
-  -- now process non-file POSTs
-  if action == "system_reset" then
-    return resetreboot("rpc.system.reset", "1")
-  elseif action == "system_reboot" then
-    return resetreboot("rpc.system.reboot", "GUI")
-  end
-end
-
 local uci_relay_status = "0"
 
 local relay_Params = {
@@ -196,19 +164,21 @@ local title = T"Relay Setup"
 ');
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
   ngx.print('\
-<form class="form-horizontal" method="post" action="modals/relay-modal.lp">\
-<fieldset>\
-  <legend>');  ngx.print( T"DHCP Relay" ); ngx.print('</legend>\
-       ');
-         local html = {}
-         html[#html + 1] = ui_helper.createSwitch(T"Status", "uci_relay_status", uci_relay_status)
-         html[#html + 1] = ui_helper.createInputText(T"Server IP", "uci_relay_server_ip", relay_Values["uci_relay_server_ip"], nil, helpmsg["uci_relay_server_ip"])
-         html[#html + 1] = ui_helper.createInputText(T"Local IP", "uci_relay_local_ip", relay_Values["uci_relay_local_ip"], nil, helpmsg["uci_relay_local_ip"])
-         html[#html + 1] = ui_helper.createInputSelect(T"Interface", "uci_relay_interface", WanDetails, relay_Values["uci_relay_interface"])
-         ngx.print(html)
-         ngx.print('\
-\
-</fieldset>\
+<form class="form-horizontal" method="post" action="modals/relay-modal.lp">');
+--ngx.print('\
+--<fieldset>\
+--  <legend>');  ngx.print( T"DHCP Relay" ); ngx.print('</legend>\
+--       ');
+--         local html = {}
+--         html[#html + 1] = ui_helper.createSwitch(T"Status", "uci_relay_status", uci_relay_status)
+--         html[#html + 1] = ui_helper.createInputText(T"Server IP", "uci_relay_server_ip", relay_Values["uci_relay_server_ip"], nil, helpmsg["uci_relay_server_ip"])
+--         html[#html + 1] = ui_helper.createInputText(T"Local IP", "uci_relay_local_ip", relay_Values["uci_relay_local_ip"], nil, helpmsg["uci_relay_local_ip"])
+--         html[#html + 1] = ui_helper.createInputSelect(T"Interface", "uci_relay_interface", WanDetails, relay_Values["uci_relay_interface"])
+--         ngx.print(html)
+--         ngx.print('\
+--\
+--</fieldset>');
+ngx.print('\
 <fieldset>\
   <legend>');  ngx.print( T"PPPoE Relay" ); ngx.print('</legend>\
        ');
