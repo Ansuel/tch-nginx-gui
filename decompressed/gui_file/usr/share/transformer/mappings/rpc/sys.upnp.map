@@ -131,7 +131,7 @@ sys_upnp_redirect_i_.entries = function(mapping)
 			interface = ""
 		end
     end
-	if descr:match(":") then
+	if descr and descr:match(":") then
 		descr = string.gsub(descr,":"," ")
 	end
   -- UPnPfix END

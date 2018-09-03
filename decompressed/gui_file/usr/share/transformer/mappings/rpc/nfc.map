@@ -1,0 +1,54 @@
+-- rpc for nfc ubus call
+
+local logger = require("transformer.logger")
+local log = logger.new("nfc", 2)
+local register = register;
+local nfc_ = {
+    objectType = {
+        name = "rpc.nfc.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            enabled = {
+                access = "readWrite",
+                type = "boolean",
+            },
+            exists = {
+                access = "readOnly",
+                type = "boolean",
+            },
+        },
+    }
+}
+
+local conn = mapper("ubus").connect()
+
+nfc_.get = {
+  enabled = function(mapping, param, key)
+    local result = conn:call("nfc.enabled", "get", {})
+    if result == nil then
+        log:error("Failed to retrieve nfc enable status")
+        return "false"
+    end
+    return result["enabled"]
+  end,
+
+  exists = function(mapping, param, key)
+    local f = io.open ("/var/run/nfcd_running")
+    local result = conn:call("nfc.enabled", "get", {})
+    if f and result and result["enabled"] then
+        return "true"
+    end
+    return "false"
+  end,
+}
+
+-- ubus cmd to disable nfc :  ubus call nfc.enabled set '{"enabled":"0"}'
+nfc_.set = {
+  enabled = function(mapping, param, value)
+    conn:call("nfc.enabled", "set", {["enabled"] = value})
+  end,
+}
+
+register(nfc_)

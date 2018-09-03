@@ -22,6 +22,8 @@ local format = string.format
 local datamodel = require ("datamodel")
 local mmpbx_state, error = datamodel.get("uci.mmpbx.mmpbx.@global.enabled")
 
+local variant = datamodel.get("uci.env.var.prod_friendly_name")[1].value or ""
+
 if mmpbx_state then
     mmpbx_state = format("%s",mmpbx_state[1].value)
 else
@@ -41,7 +43,8 @@ if mmpbx_state == "1" then
     for _,v in pairs(items) do
         if session:hasAccess("/modals/" .. v[1]) then
 	    if v[1] == "mmpbx-dect-modal.lp" then
-		if emission_state == "1" then
+		if ( emission_state == "1" ) and 
+		( variant == "Technicolor TG799vac" ) or ( variant == "Technicolor TG800vac" )  then
 		   tabs[#tabs+1] = v
                 end
 	    else

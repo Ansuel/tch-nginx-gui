@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.7.29
+version_gui=8.7.31
 
 logo_project() {
 cat << EOF > /dev/console
@@ -702,6 +702,13 @@ add_new_web_rule() {
 		uci add_list web.mmpbxdectmodal.roles='engineer'
 		uci add_list web.ruleset_main.rules='mmpbxdectmodal'
 	fi
+	if [ ! $(uci get -q web.nfcmodal) ]; then
+		uci set web.nfcmodal=rule
+		uci set web.nfcmodal.target='/modals/nfc-modal.lp'
+		uci add_list web.nfcmodal.roles='admin' 
+		uci add_list web.nfcmodal.roles='engineer'
+		uci add_list web.ruleset_main.rules='nfcmodal'
+	fi
 }
 
 check_relay_dhcp() {
@@ -762,7 +769,7 @@ check_wansensing() {
 
 remove_downgrade_bit() {
 	if [ $(uci get -q env.rip.board_mnemonic) == "VBNT-S" ] && [ $(uci get -q env.var.prod_number) == "4132" ] && [ -f /proc/rip/0123 ]; then
-		logger_command "Downgrade limitation bit detected... Removing.."
+		logger_command "Downgrade limitation bit detected... Removing..."
 		rmmod keymanager
 		rmmod ripdrv
 		mv /lib/modules/3.4.11/ripdrv.ko /lib/modules/3.4.11/ripdrv.ko_back
@@ -868,6 +875,7 @@ update_checkver_upgrade_script() {
 }
 
 apply_specific_DGA_package() {
+	logger_command "DGA device detected!"
 	logger_command "Extracting custom-ripdrv-specificDGA.tar.bz2 ..."
 	if [ -f /root/custom-ripdrv-specificDGA.tar.bz2 ]; then
 		bzcat /root/custom-ripdrv-specificDGA.tar.bz2 | tar -C / -xf -
@@ -1003,7 +1011,7 @@ root() {
 		device_type="DGA"
 	fi
 
-	[ "$device_type" == "DGA" ] && logger_command "Apply specific DGA file..."
+	[ "$device_type" == "DGA" ] && logger_command "Apply specific device file..."
 	[ "$device_type" == "DGA" ] && apply_specific_DGA_package
 	
 	if [ -f /root/custom-ripdrv-specificDGA.tar.bz2 ]; then
