@@ -27,7 +27,7 @@ with many fix and new feature like:
   https://www.ilpuntotecnico.com/forum/index.php?topic=77325</p>
 <p>&nbsp;</p>
 
-<h2><strong>Simplest install instructions to install Stable release:</strong></h2>
+<h2><strong>Simplest install instructions for Stable release:</strong></h2>
 
 <h3><strong>first get root acces to your Gateway</strong></h3>
 Some Topics to help you get root:
