@@ -133,7 +133,13 @@ function M.handleQuery(mapParams, mapValidation)
                     content_helper.getExactContent(content)
                 end
             else
-                message_helper.pushMessage(T"Some parameters failed validation", "error")
+				local err_msg = {}
+				err_msg[#err_msg+1] = T"Some parameters failed validation"
+				err_msg[#err_msg+1] = "</br>"
+				for i , j in pairs(helpmsg) do
+					err_msg[#err_msg+1] = "<strong>" .. i .. "</strong>" .. ": " .. j .. "</br>"
+				end
+				message_helper.pushMessage(table.concat(err_msg) , "error")
             end
         end
     end
