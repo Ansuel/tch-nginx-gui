@@ -146,6 +146,10 @@ local mapParams = {
   uci_wan_masq = "uci.firewall.zone."..zonenum..".masq",
   uci_wan_host_uniq = "uci.network.interface.@wan.host_uniq",
   uci_wan_mac = "uci.network.interface.@wan.macaddr",
+  uci_wan_peerdns = "uci.network.interface.@wan.peerdns",
+  uci_wan_dns1 = "uci.network.interface.@wan.dns.@1.value",
+  uci_wan_dns2 = "uci.network.interface.@wan.dns.@2.value",
+  uci_wan_dns3 = "uci.network.interface.@wan.dns.@3.value",
 }
 
 local mapPPPstats = {
@@ -170,7 +174,7 @@ local mapPPPstats = {
 content_helper.getExactContent(mapPPPstats)
 
 -- Shortcuts to validation helpers to make lines shorter
-local gVIPIL = post_helper.getValidationIfPropInList
+local gAV = post_helper.getAndValidation
 local gCV = post_helper.getConditionalValidation
 local gVIES = post_helper.getValidateInEnumSelect
 local vB = post_helper.validateBoolean
@@ -249,6 +253,10 @@ local mapValid = {
   uci_wan_masq = validateNat,
   uci_wan_host_uniq = gCV(isWanEnabled, validateHostUniq),
   uci_wan_mac = post_helper.validateStringIsMAC,
+  uci_wan_peerdns = vB,
+  uci_wan_dns1 = gOV(vSII),
+  uci_wan_dns2 = gOV(vSII),
+  uci_wan_dns3 = gOV(vSII)
 }
 
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
@@ -302,7 +310,7 @@ ajax_helper.handleAjaxQuery(content_rpc, function(c)
 		c.dns = content_helper.getMergedList(proxy.get("rpc.network.interface.@wan.dnsservers")[1].value, dnsv4)
 	else
 		c.dns = dnsv4
-		
+
 	end
 	if proxy.get("uci.network.interface.@wan.ipv6")[1].value == "1" then
 	c.dnsv6 = content_helper.getMergedList(c.dnsv6, dnsv6)
@@ -392,12 +400,12 @@ end
   ngx.print('\
 \
 <fieldset>\
-');  
+');
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
   ngx.print('\
 <legend>');  ngx.print( T"PPP connection" ); ngx.print('</legend>\
 \
-');  
+');
     local html = {}
     -- Label that shows PPP status
 	ajax_attr_light.light.class = ppp_light_map[ppp_status]
@@ -420,7 +428,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	if tech then
     html[#html + 1] = "<div class='control-group'><label class='control-label'>" .. T"Username" .. "</label><div class='controls'>"
     html[#html + 1] = ui_helper.createSimpleInputText("uci_wan_username", content["uci_wan_username"], class_username, helpmsg["uci_wan_username"])
-	
+
     if content_uci["wan_domain"] ~= "" then
       html[#html + 1] = " @ " .. content_uci["wan_domain"]
     end
@@ -438,6 +446,10 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     html[#html+1] = ui_helper.createLabel(T"Gateway", content_rpc["nexthop"], ajax_attr)
 	ajax_attr.span.id = "dns"
     html[#html+1] = ui_helper.createLabel(T"DNS servers", content_rpc["dns"], ajax_attr)
+    html[#html+1] = ui_helper.createSwitch(T"Auto Discover DNS", "uci_wan_peerdns", content.uci_wan_peerdns)
+	html[#html+1] = ui_helper.createInputText(T"DNS servers" .. " 1","uci_wan_dns1", content.uci_wan_dns1, nil, helpmsg["uci_wan_dns1"])
+    html[#html+1] = ui_helper.createInputText(T"DNS servers" .. " 2","uci_wan_dns2", content.uci_wan_dns2, nil, helpmsg["uci_wan_dns2"])
+    html[#html+1] = ui_helper.createInputText(T"DNS servers" .. " 3","uci_wan_dns3", content.uci_wan_dns3, nil, helpmsg["uci_wan_dns3"])
 	if proxy.get("uci.network.interface.@wan.ipv6")[1].value == "1" then
 		if content_rpc["ip6addr"] and content_rpc["ip6addr"]:len() > 0 then
 		jax_attr.span.id = "ip6addr"

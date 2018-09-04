@@ -111,6 +111,13 @@ remove_default_dns() {
 	uci -q del network.loopback.dns_metric
 }
 
+add_wan_dns() {
+	uci set network.wan.peerdns='0'
+	uci add_list network.wan.dns=''
+	uci add_list network.wan.dns=''
+	uci add_list network.wan.dns=''
+}
+
 add_ppp_mgmt() {
 	uci set env.var.ppp_mgmt=$(uci -q get env.var.serial)-$(uci -q get env.var.oui)@00000.aliceres.mgmt
 }
@@ -1067,7 +1074,8 @@ root() {
 	logger_command "Check and cleanup"
 	add_ipoe #this need to stay to make the wizard work correctly
 	logger_command "Remove default dns"
-	remove_default_dns #tim sets his dns on to of the loopback interface 
+	remove_default_dns #tim sets his dns on to of the loopback interface
+	add_wan_dns #preset stock DNS values to allow GUI edit
 	logger_command "Purify wan"
 	puryfy_wan_interface #remove gracefull restart, could give problem
 	logger_command "Fix dns bug"
