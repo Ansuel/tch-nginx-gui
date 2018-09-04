@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.7.44
+version_gui=8.7.46
 
 logo_project() {
 cat << EOF > /dev/console
@@ -962,10 +962,10 @@ sfp_rework() {
 }
 
 unlock_ssh_wan_tiscali() {
-	if [ $("uci get firewall.wan_SSH_rule1") ]; then
+	if [ $("uci get -q firewall.wan_SSH_rule1") ]; then
 		uci del firewall.wan_SSH_rule1
 	fi
-	if [ $("uci get firewall.wan_SSH_rule5") ]; then
+	if [ $("uci get -q firewall.wan_SSH_rule5") ]; then
 		uci del firewall.wan_SSH_rule1
 	fi
 }

@@ -7,6 +7,7 @@ local ui_helper = require("web.ui_helper")
 local message_helper = require("web.uimessage_helper")
 local post_helper = require("web.post_helper")
 local wizard_helper = require("wizard")
+local proxy = require("datamodel")
 local session = ngx.ctx.session
 local vNES = post_helper.validateNonEmptyString
 local vN = post_helper.validatePositiveNum
@@ -36,8 +37,17 @@ local ifname2wantype = setmetatable({
     ["waneth4"] = "eth",
 }, untaint_mt)
 
-local wan_atm_uci_path = "uci.xtm.atmdevice.@atmwan."
-local wan_atm_uci_ipoe_path = "uci.xtm.atmdevice.@atmwan."
+local atmpath
+
+for i,v in ipairs(proxy.getPN("uci.xtm.atmdevice.", true)) do
+	if v.path:match("@atm") then
+		atmpath = v.path
+	end
+end
+
+local wan_atm_uci_path = atmpath
+local wan_atm_uci_ipoe_path = atmpath
+
 local wan_interface_path = "uci.network.interface.@wan."
 
 local mapParams = {
