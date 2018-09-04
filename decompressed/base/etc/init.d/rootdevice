@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.7.43
+version_gui=8.7.44
 
 logo_project() {
 cat << EOF > /dev/console
@@ -112,10 +112,12 @@ remove_default_dns() {
 }
 
 add_wan_dns() {
-	uci set network.wan.peerdns='0'
-	uci add_list network.wan.dns=''
-	uci add_list network.wan.dns=''
-	uci add_list network.wan.dns=''
+	if [ ! $(uci -q get network.wan.dns) ]; then
+		uci set network.wan.peerdns='1'
+		uci add_list network.wan.dns=''
+		uci add_list network.wan.dns=''
+		uci add_list network.wan.dns=''
+	fi
 }
 
 add_ppp_mgmt() {
