@@ -50,3 +50,4 @@ Preview:
 <img src="https://i.imgur.com/ZcSANgW.png">
 
 <b>LUCI GUI not yet supported on the TG799, 800 and 797n v3</b>
+(A builroot system is need to compile necessary package to make luci works, rpcd and uhttpd)
