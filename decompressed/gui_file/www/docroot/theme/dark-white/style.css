@@ -28,6 +28,11 @@
  max-height: 60%;
 }
 
+#upgrade-alert {
+	margin: 10px 0px 0px 0px;
+}
+
+
 
 #headertab {
  position: fixed !important;

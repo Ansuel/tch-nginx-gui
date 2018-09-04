@@ -7359,6 +7359,13 @@ form .switch
 	top:35%
 }
 
+#upgrade-alert
+{
+	margin-bottom: -20px;
+    margin-top: 20px;
+	text-align: center;
+}
+
 .device_popupSelect
 {
 	z-index:10000;

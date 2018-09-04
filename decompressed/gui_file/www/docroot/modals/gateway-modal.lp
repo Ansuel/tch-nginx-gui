@@ -960,7 +960,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  ngx.print(html)
 	  
 	  local html = {}
-	  html[#html + 1] = '<legend>' .. T"Upgrade GUI" .. '</legend>'
+	  html[#html + 1] = '<legend id="GUI_Upgrade_Legend">' .. T"Upgrade GUI" .. '</legend>'
 	  local basic = {
         span = {
           class = "span5"
@@ -1405,7 +1405,14 @@ ngx.print('\
     });\
     return false;\
   });\
-}());\
+');
+if ngx.req.get_uri_args().action and ngx.req.get_uri_args().action == "manualguiupgrade" then
+  ngx.print('\
+       $("#GUI_Upgrade_Legend")[0].scrollIntoView();\
+  ');
+end
+ngx.print('\
+})();\
 </script>\
 ');  ngx.print(ui_helper.createFooter())   ngx.print('\
 ');

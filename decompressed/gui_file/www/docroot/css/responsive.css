@@ -53,6 +53,13 @@
     display: inherit !important;
 }
 
+@media screen and (min-width: 768px) {
+    #upgrade-alert{
+		margin-left: 2rem;
+		margin-right: 2rem;
+	}
+}
+
 @media screen and (min-width: 768px) and (max-width:979px) {
     .hidden-desktop {
         display:inherit !important;

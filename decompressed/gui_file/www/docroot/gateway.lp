@@ -149,12 +149,9 @@ end
 					html[#html + 1] = T"Go to the gateway tab and click on the Upgrade button, to autoupgrade to the new GUI."
 					html[#html + 1] = '" '
 				end
-				html[#html + 1] = 'data-toggle="modal" data-remote="modals/gateway-modal.lp">'
+				html[#html + 1] = 'data-toggle="modal" data-remote="modals/gateway-modal.lp?action=manualguiupgrade">'
 				html[#html + 1] = '<span>'
-				html[#html + 1] = T"Upgrade Available" 
-				html[#html + 1] = " <strong>( "
-				html[#html + 1] = cui.new_ver
-				html[#html + 1] = " )</strong>" 
+				html[#html + 1] = T"Upgrade"
 				html[#html + 1] = '</span>'
 				html[#html + 1] = '</div>'
 				html[#html + 1] = '</div>'
@@ -218,32 +215,38 @@ end
             html[#html + 1] = [[</a></li></ul></div>]]
 			
         end
-		html[#html + 1] = '</div>'
-        html[#html + 1] = [[</div>]]
-
-        ngx.print(html)
-        ngx.print('\
-      </div>\
-	</div>\
-	<div class="container">');
-	autoupgrade_view = cui.autoupgrade_view
-	if not ( autoupgrade_view == "none" ) and not ( autoupgrade_view == "" ) then
-		html = {}
-		local alert_success = {
-			alert = {
-				style = "text-align: center",
-				class = "alert-success"
-			},
-		}
-		if autoupgrade_view == "auto" then
-			html[#html + 1] = ui_helper.createAlertBlock(string.format(T("The modem has been upgraded automatically at <strong>%s:00</strong>" .. 
-						" to version <strong>%s</strong> successfully"),cui.autoupgrade_hour, cui.gui_version),alert_success)
-		else
-			html[#html + 1] = ui_helper.createAlertBlock(string.format(T"The modem has been upgraded to version <strong>%s</strong> successfully",cui.gui_version),alert_success)
+		html[#html + 1] =   "</div>"
+        html[#html + 1] =  "</div>"
+		html[#html + 1] = "</div>"
+		if cui.outdated_ver == "1" then
+			local alert_success = {
+				alert = {
+					class = "alert",
+					id = "upgrade-alert"
+				},
+			}
+			html[#html + 1] = ui_helper.createAlertBlock(string.format(T"Upgrade available! Version: <strong>%s</strong>",cui.new_ver),alert_success)
 		end
+		local autoupgrade_view = cui.autoupgrade_view
+		if not ( autoupgrade_view == "none" ) and not ( autoupgrade_view == "" ) then
+			local alert_success = {
+				alert = {
+					class = "alert-success",
+					id = "upgrade-alert"
+				},
+			}
+			if autoupgrade_view == "auto" then
+				html[#html + 1] = ui_helper.createAlertBlock(string.format(T("The modem has been upgraded automatically at <strong>%s:00</strong>" .. 
+							" to version <strong>%s</strong> successfully"),cui.autoupgrade_hour, cui.gui_version),alert_success)
+			else
+				html[#html + 1] = ui_helper.createAlertBlock(string.format(T"The modem has been upgraded to version <strong>%s</strong> successfully",cui.gui_version),alert_success)
+			end
+		end
+		
 		ngx.print(html)
-	end
 	ngx.print('\
+		</div>\
+	<div class="container">\
     <div id="card-row" class="row" style="z-index : 2;  position: relative;">\
 	');
         local lp = require("web.lp")
