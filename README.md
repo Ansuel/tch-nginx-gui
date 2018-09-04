@@ -46,3 +46,5 @@ If you get some error with the wget command just manually download the GUI.tar.b
 
 Preview:
 <img src="https://i.imgur.com/ZcSANgW.png">
+
+<b>LUCI GUI not yet supported on the TG799, 800 and 797n v3</b>
