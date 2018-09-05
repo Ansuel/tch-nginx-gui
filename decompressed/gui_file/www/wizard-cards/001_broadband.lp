@@ -287,7 +287,7 @@ local content_wans, helpmsg_wans = wizard_helper.handleQuery(mapParams_wans, map
 local content, helpmsg = wizard_helper.handleQuery(mapParams, mapValid)
 local vlan_is_on = content["vlan_enabled"]
 if (vlan_is_on == nil) then
-    if (string.find(content["wan_ifname"], "^vlan_") ~= nil) then
+    if string.match(content["wan_ifname"],"[%w]+") then
         vlan_is_on = "1"
     else
         vlan_is_on = "0"
