@@ -112,7 +112,7 @@ remove_default_dns() {
 }
 
 add_wan_dns() {
-	if [ ! $(uci -q get network.wan.dns) ]; then
+	if !(uci -q get network.wan.dns>/dev/null); then
 		uci set network.wan.peerdns='1'
 		uci add_list network.wan.dns=''
 		uci add_list network.wan.dns=''
@@ -962,11 +962,11 @@ sfp_rework() {
 }
 
 unlock_ssh_wan_tiscali() {
-	if [ $("uci get -q firewall.wan_SSH_rule1") ]; then
+	if (uci -q get firewall.wan_SSH_rule1>/dev/null); then
 		uci del firewall.wan_SSH_rule1
 	fi
-	if [ $("uci get -q firewall.wan_SSH_rule5") ]; then
-		uci del firewall.wan_SSH_rule1
+	if (uci -q get firewall.wan_SSH_rule5>/dev/null); then
+		uci del firewall.wan_SSH_rule5
 	fi
 }
 
