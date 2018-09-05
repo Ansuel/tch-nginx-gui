@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.7.47
+version_gui=8.7.48
 
 logo_project() {
 cat << EOF > /dev/console
@@ -185,6 +185,11 @@ cumulative_check_gui() {
 		else
 			logger_command "Moving stable GUI from /tmp to /root"
 			cp /tmp/GUI.tar.bz2 /root
+		fi
+		if [ -f /root/GUI.tar.bz2 ]; then
+			logger_command "Assume first times install, cleaning /www dir and reinstall"
+			rm -r /www/*
+			bzcat /root/GUI.tar.bz2 | tar -C / -xf - www
 		fi
 	fi
 	
