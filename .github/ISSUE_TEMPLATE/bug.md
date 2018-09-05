@@ -4,9 +4,9 @@ about: Bug Issue template
 
 ---
 
-Device: 
+Device Model: 
 Gui Version:
 
-Describe problem:
+Description of problem:
 
 How to reproduce (if possible):
