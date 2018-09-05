@@ -30,33 +30,32 @@ local mode_current = tabdata.current.name
 local mode_options = tabdata.options
 
 local vB = post_helper.validateBoolean
+local gOV = post_helper.getOptionalValidation
+
 mapParam = { 
 				wsens = "uci.wansensing.global.enable",
 				iface = "uci.network.interface.@wan.ifname",
 				dsl_status = "sys.class.xdsl.@line0.Status",
 				sfp = "uci.env.rip.sfp",
 			}
-			
+
 content_helper.getExactContent(mapParam)
 
-mapParSFP = {
-				ethsfp = "uci.ethernet.globals.eth4lanwanmode"
-			}
-			
-mapValSFP = {
-				ethsfp = vB
-			}
-			
-local content, helpmsg = post_helper.handleQuery(mapParSFP, mapValSFP)
-    if not tabdata.current.ajax then
-    -- only display if not doing an ajax request
-	if tech and mapParam.sfp == "1" then
-		ngx.print(ui_helper.createHeader(T"Broadband", true, true)) 
-	elseif mapParam.wsens == "1" and (mapParam.dsl_status ~= "Up" or string.match(mapParam.iface,"eth4")) then
-		ngx.print(ui_helper.createHeader(T"Broadband", false, true)) 
-	else
-		ngx.print(ui_helper.createHeader(T"Broadband", true, true))
-	end
+--mapParSFP = { ethsfp = "uci.ethernet.globals.eth4lanwanmode" }
+--
+--mapValSFP = { ethsfp = gOV(vB) }
+--
+--local content, helpmsg = post_helper.handleQuery(mapParSFP, mapValSFP)
+
+if not tabdata.current.ajax then
+   -- only display if not doing an ajax request
+if tech and mapParam.sfp == "1" then
+	ngx.print(ui_helper.createHeader(T"Broadband", true, true)) 
+elseif mapParam.wsens == "1" and (mapParam.dsl_status ~= "Up" or string.match(mapParam.iface,"eth4")) then
+	ngx.print(ui_helper.createHeader(T"Broadband", false, true)) 
+else
+	ngx.print(ui_helper.createHeader(T"Broadband", true, true))
+end
 	
 local function resetreboot(path, value)
   proxy.set(path, value)

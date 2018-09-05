@@ -12,6 +12,8 @@ local content_helper = require("web.content_helper")
 local post_helper = require("web.post_helper")
 local format, match = string.format, string.match
 
+local gOV = post_helper.getOptionalValidation
+
 local gui_skin_option = {
       { "blue", T'Blue'},
       { "violet", T'Violet'},
@@ -35,7 +37,7 @@ local gui_skin_content, helpmsg = post_helper.handleQuery(gui_skin_Params, gui_s
 
 local fwversion_override_Params = { fwversion_override = "uci.versioncusto.override.fwversion_override", }
 
-local fwversion_override_valid = { fwversion_override = post_helper.validateNonEmptyString, }
+local fwversion_override_valid = { fwversion_override = gOV(post_helper.validateNonEmptyString), }
 
 local fwversion_override_content, fwversion_override_helpmsg = post_helper.handleQuery(fwversion_override_Params, fwversion_override_valid)
 
@@ -212,15 +214,17 @@ local syslog_Params, helpmsg = post_helper.handleQuery(syslog_Params, syslog_val
 
 local telnet_available = file_check("/bin/busybox_telnet")
 
-local telnet_Params = {
-	telnet_enable = "uci.telnet.general.enable",
-}	
-
-local telnet_valid = {
-	telnet_enable = vB,
-}
-
-local telnet_content, helpmsg = post_helper.handleQuery(telnet_Params, telnet_valid)
+if telnet_available then
+	local telnet_Params = {
+		telnet_enable = "uci.telnet.general.enable",
+	}	
+	
+	local telnet_valid = {
+		telnet_enable = vB,
+	}
+	
+	local telnet_content, helpmsg = post_helper.handleQuery(telnet_Params, telnet_valid)
+end
 
 local bank_check_Params = {
   bank_check = "uci.env.var.bank_check",
