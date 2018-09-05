@@ -49,5 +49,5 @@ If you get an error while running the wget command just manually download the GU
 Preview:
 <img src="https://i.imgur.com/ZcSANgW.png">
 
-<b>LUCI GUI not yet supported on the TG799, 800 and 797n v3</b>
-<p>(A builroot system is need to compile necessary package to make luci works, rpcd and uhttpd)
+<b>LUCI GUI not yet supported on the TG799, 789, 800 and 797n v3</b>
+<p>A buildroot system is need to compile necessary packages to make luci work, otherwise rpcd will cause a segmentation fault and put the modem into a bootloop. At the moment a user is compiling LUCI to work on this architecture (brcm63xx-tch).
