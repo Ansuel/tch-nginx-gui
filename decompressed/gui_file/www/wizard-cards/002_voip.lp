@@ -8,6 +8,8 @@ local post_helper = require("web.post_helper")
 local gCV = post_helper.getConditionalValidation
 local vB = post_helper.validateBoolean
 local gVIES = post_helper.getValidateInEnumSelect
+local gOV = post_helper.getOptionalValidation
+local gOr = post_helper.getOrValidation
 local wizard_helper = require("wizard")
 local string = string
 local format, match, find = string.format, string.match, string.find
@@ -78,22 +80,15 @@ local function getValidateSipPassword(value, object, key)
     return true
 end
 
-local function getValidateEmptyString(value, object, key)
-    if value == "" then
-        return true
-    end
-    return nil, T"Invalid value"
-end
-
 local mapValid = {
     sip_enabled = vB,
     sip_number = gCV(getSipEnabled, getValidateSipAccount, clearParam),
     sip_password = gCV(getSipEnabled, getValidateSipPassword, clearParam),
-    sip_domain_name = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName,getValidateEmptyString),
-	sip_realm = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName,getValidateEmptyString),
-	sip_registrar = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),
+    sip_domain_name = gOV(gOr(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName)),
+	sip_realm = gOV(gOr(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName)),
+	sip_registrar = gOr(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),
 	sip_username = gCV(getSipEnabled, getValidateSipAccount, clearParam),
-	sip_primary_proxy = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),
+	sip_primary_proxy = gOV(gOr(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName)),
 	sip_primary_proxy_port = post_helper.getValidateNumberInRange(0,65535),
 }
 

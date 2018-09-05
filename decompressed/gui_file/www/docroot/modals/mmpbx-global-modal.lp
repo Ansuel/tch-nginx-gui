@@ -126,12 +126,15 @@ local sipnet_columns = {
   },
 }
 
+local gOV = post_helper.getOptionalValidation
+local gOr = post_helper.getOrValidation
+
 local sipnet_valid = {
     primaryRegistrarPort = post_helper.validateStringIsPort,
-    primaryRegistrar = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),
+    primaryRegistrar = gOr(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),
 	DomainName = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),
-	realm = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),
-    primaryProxy = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),
+	realm = gOV(gOr(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName)),
+    primaryProxy = gOV(gOr(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName)),
     primaryProxyPort = post_helper.getValidateNumberInRange(0,65535),
     regExpire = post_helper.validateRegExpire,
 }
