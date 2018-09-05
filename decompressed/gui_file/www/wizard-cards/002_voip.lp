@@ -88,7 +88,7 @@ local mapValid = {
 	sip_realm = gOV(gOr(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName)),
 	sip_registrar = gOr(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),
 	sip_username = gCV(getSipEnabled, getValidateSipAccount, clearParam),
-	sip_primary_proxy = gOr(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),
+	sip_primary_proxy = gOV(gOr(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName)),
 	sip_primary_proxy_port = post_helper.getValidateNumberInRange(0,65535),
 }
 
