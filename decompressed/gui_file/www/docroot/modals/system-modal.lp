@@ -213,26 +213,19 @@ local syslog_valid = {
 local syslog_Params, helpmsg = post_helper.handleQuery(syslog_Params, syslog_valid)
 
 local telnet_available = file_check("/bin/busybox_telnet")
+local telnet_content
 
 if telnet_available then
-	local telnet_Params = {
-		telnet_enable = "uci.telnet.general.enable",
-	}	
+	local telnet_Params = { telnet_enable = "uci.telnet.general.enable" }	
 	
-	local telnet_valid = {
-		telnet_enable = vB,
-	}
+	local telnet_valid = { telnet_enable = vB }
 	
-	local telnet_content, helpmsg = post_helper.handleQuery(telnet_Params, telnet_valid)
+	telnet_content, helpmsg = post_helper.handleQuery(telnet_Params, telnet_valid)
 end
 
-local bank_check_Params = {
-  bank_check = "uci.env.var.bank_check",
-}
+local bank_check_Params = { bank_check = "uci.env.var.bank_check" }
 
-local bank_check_valid = {
-  bank_check = vB,
-}
+local bank_check_valid = { bank_check = vB }
 
 local bank_check_content, helpmsg = post_helper.handleQuery(bank_check_Params, bank_check_valid)
 
@@ -432,19 +425,18 @@ ngx.print('\
       ngx.print('\
 </fieldset>\
 ');
-if telnet_available then
+if telnet_content then
 	ngx.print('\
 	<fieldset>\
 	<legend>');  ngx.print( T"Telnet Access" ); ngx.print('</legend>\
 		');  
 		local html = {}
-		html[#html + 1] = ui_helper.createSwitch(T"LAN", "telnet_enable", telnet_content["telnet_enable"] , basic)
+		html[#html + 1] = ui_helper.createSwitch(T"LAN", "telnet_enable", telnet_content["telnet_enable"], basic)
 		ngx.print(html)
 		ngx.print('\
 	</fieldset>');
 end
 ngx.print('\
-\
 <fieldset>\
   <legend>');  ngx.print( T"System Log" ); ngx.print('</legend>\
     ');  

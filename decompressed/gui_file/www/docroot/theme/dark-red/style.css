@@ -1,4 +1,3 @@
-
 body::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -8,13 +7,13 @@ body::-webkit-scrollbar-button {
   height: 0px;
 }
 body::-webkit-scrollbar-thumb {
-  background: rgba(244, 67, 54, 0.50);
+  background: #f4433680;
 }
 body::-webkit-scrollbar-thumb:hover {
-  background: rgba(244, 67, 54, 0.80);
+  background: #f44336cc;
 }
 body::-webkit-scrollbar-thumb:active {
-  background: rgba(244, 67, 54, 1);
+  background: #f44336;
 }
 body::-webkit-scrollbar-track {
   background: transparent;
@@ -38,13 +37,13 @@ body::-webkit-scrollbar-corner {
   height: 0px;
 }
 .modal-body::-webkit-scrollbar-thumb {
-  background: rgba(244, 67, 54, 0.50);
+  background: #f4433680;
 }
 .modal-body::-webkit-scrollbar-thumb:hover {
-  background: rgba(244, 67, 54, 0.80);
+  background: #f44336cc;
 }
 .modal-body::-webkit-scrollbar-thumb:active {
-  background: rgba(244, 67, 54, 1);
+  background: #f44336;
 }
 .modal-body::-webkit-scrollbar-track {
   background: transparent;
@@ -172,7 +171,7 @@ body {
   background-image: -o-linear-gradient(top, #232323 90%, #3a3a3a 90%);
   background-image: linear-gradient(to bottom, #232323 90%, #3a3a3a 90%);
   background-repeat: repeat-x;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff032b59', endColorstr='#ff1a4a7c', GradientType=0);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff032b59', endColorstr='#ff#cccccc', GradientType=0);
   border: 1px solid #3a3a3a;
   text-shadow: 0 1px 0px #000000;
 }
@@ -201,9 +200,9 @@ body {
   border-color: #f44336 #f44336 #f44336;
   border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
   filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
-  -webkit-box-shadow: inset 0px 1px 0px rgba(255,255,255,.5), 0px 0px 5px rgb(179, 224, 253);
-  -moz-box-shadow: inset 0px 1px 0px rgba(255,255,255,.5), 0px 0px 5px rgb(179, 224, 253);
-  box-shadow: inset 0px 1px 0px rgba(255,255,255,.5), 0px 0px 5px rgb(179, 224, 253);
+  -webkit-box-shadow: inset 0px 1px 0px rgba(255,255,255,.5), 0px 0px 5px #f44336;
+  -moz-box-shadow: inset 0px 1px 0px rgba(255,255,255,.5), 0px 0px 5px #f44336;
+  box-shadow: inset 0px 1px 0px rgba(255,255,255,.5), 0px 0px 5px #f44336;
   border: 1px solid #f44336;
   outline: none;
 }
@@ -230,15 +229,31 @@ legend {
   top: 0px;
 }
 
+.gray {
+  color: #ffffff;
+}
+
+.modal {
+  background-color: unset;
+}
+
 .modal-footer {
   border-top:1px solid #f44336;
   -webkit-border-radius:0 0 6px 6px;
   -moz-border-radius:0 0 6px 6px;
   border-radius:0 0 6px 6px;
-  -webkit-box-shadow:inset 0 1px 0 rgb(98, 149, 196);
-  -moz-box-shadow:inset 0 1px 0 rgb(98, 149, 196);
-  box-shadow:inset 0 1px 0 rgb(98, 149, 196);
+  -webkit-box-shadow:inset 0 1px 0 #f44336;
+  -moz-box-shadow:inset 0 1px 0 #f44336;
+  box-shadow:inset 0 1px 0 #f44336;
   background-color:#232323;
+}
+
+.modal-action, .modal-action i {
+  color: #ffffff;
+}
+
+.modal-action:hover, .modal-action:hover i {
+  color: #f44336;
 }
 
 .btn, .header .btn, #webui_language, .dropdown-menu>li>a {
@@ -254,7 +269,7 @@ legend {
 }
 
 .btn[disabled] {
-  color: #1a4a7c;
+  color: ##cccccc;
 }
 
 .btn:hover, .btn:focus, .btn:active, .btn.active, .btn.disabled, .btn[disabled] {
@@ -392,9 +407,9 @@ text-decoration: none;
 .login {
     background-color: #535353;
     border-top: 4px solid #f44336;
-    -webkit-box-shadow: 0 2px 20px 0px rgba(56, 92, 132, 0.65);
-    -moz-box-shadow: 0 2px 20px 0px rgba(56, 92, 132, 0.65);
-    box-shadow: 0 2px 20px 0px rgba(56, 92, 132, 0.65);
+    -webkit-box-shadow: 0 2px 20px 0px #f44336a6;
+    -moz-box-shadow: 0 2px 20px 0px #f44336a6;
+    box-shadow: 0 2px 20px 0px #f44336a6;
 }
 
 .table-striped tbody>tr:nth-child(odd)>td, .table-striped tbody>tr:nth-child(odd)>th,

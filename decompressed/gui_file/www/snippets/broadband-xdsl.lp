@@ -78,7 +78,7 @@ local content_other_line = {
 content_helper.getExactContent(content)
 content_helper.getExactContent(content_other_line)
 
-if not ( content.dsl_margin_SNRM_down == "0.0" ) then
+if not ( content.dsl_type:match("ADSL") ) then
 	content.dsl_margin_down = content.dsl_margin_SNRM_down
 	content.dsl_margin_up = content.dsl_margin_SNRM_up
 end

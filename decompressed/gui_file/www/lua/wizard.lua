@@ -52,7 +52,7 @@ function createFooter()
         <div id="wizard-previous" class="btn btn-primary btn-large">%s</div>
         <div id="wizard-next" class="btn btn-primary btn-large">%s</div>
         <div id="wizard-complete" class="btn btn-primary btn-large">%s</div>
-        <div id="cancel-config" class="btn btn-large" data-dismiss="modal">%s</div>
+        <div id="cancel-config" class="btn btn-primary btn-large" data-dismiss="modal">%s</div>
       </div>
     </div>
     ]], T"Back", T"Next", T"Finish", T"Exit")

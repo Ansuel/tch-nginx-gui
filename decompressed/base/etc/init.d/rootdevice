@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.7.50
+version_gui=8.7.54
 
 logo_project() {
 cat << EOF > /dev/console
@@ -112,7 +112,10 @@ remove_default_dns() {
 }
 
 add_wan_dns() {
-	if [ ! $(uci -q get network.wan.dns) ]; then
+	if [ ! "$(uci show network.wan | grep "network.wan.dns='' '' ''''")" ]; then
+		uci del network.wan.dns
+	fi
+	if [ ! "$(uci show network.wan | grep "network.wan.dns='' '' ''")" ]; then
 		uci set network.wan.peerdns='1'
 		uci add_list network.wan.dns=''
 		uci add_list network.wan.dns=''
