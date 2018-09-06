@@ -39,12 +39,12 @@ Some Topics to help you get root access:
 </ul>
 General GUI Topic: https://www.ilpuntotecnico.com/forum/index.php/topic,78585.0.html
 
-<h3>Then execute these commands:</h3><br />
-<strong>wget -P /tmp http://repository.ilpuntotecnico.com/files/Ansuel/AGTEF/GUI.tar.bz2<br />
+<h3>Then execute these commands (WAN active connection required):</h3><br />
+<strong>curl -k https://repository.ilpuntotecnico.com/files/Ansuel/AGTEF/GUI.tar.bz2 --output /tmp/GUI.tar.bz2<br />
 bzcat /tmp/GUI.tar.bz2 | tar -C / -xvf -<br />
 /etc/init.d/rootdevice force<br /><br /></strong>
 
-If you get an error while running the wget command just manually download the GUI.tar.bz2 file and put in /tmp folder via SCP then execute the other (non wget) commands listed above.
+If you get an error during download (or you have no WAN connection on the device) just manually download the GUI.tar.bz2 file and put in /tmp folder via SCP then execute the other (non wget) commands listed above.
 
 Preview:
 <img src="https://i.imgur.com/ZcSANgW.png">
