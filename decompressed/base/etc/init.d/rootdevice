@@ -184,6 +184,8 @@ cumulative_check_gui() {
 				curl -k -s https://repository.ilpuntotecnico.com//files/Ansuel/AGTEF/GUI.tar.bz2 --output /root/GUI.tar.bz2
 			else
 				logger_command "Can't download stable GUI!"
+				echo "Cant download stable GUI. Check your internet connection!"
+				
 			fi
 		else
 			logger_command "Moving stable GUI from /tmp to /root"
