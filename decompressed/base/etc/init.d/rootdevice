@@ -181,7 +181,7 @@ cumulative_check_gui() {
 		if [ ! -f /tmp/GUI.tar.bz2 ]; then
 			logger_command "Stable GUI not found in /tmp, downloading if possible..."
 			
-			if ping -q -c 1 -W 1 8.8.8.8 > /dev/null 2>&1; then
+			if ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then
 			   curl -k -s https://repository.ilpuntotecnico.com//files/Ansuel/AGTEF/GUI.tar.bz2 --output /root/GUI.tar.bz2
 			else
 				logger_command "Can't download stable GUI!"
