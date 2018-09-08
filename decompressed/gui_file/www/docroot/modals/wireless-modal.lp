@@ -644,11 +644,8 @@ local function getParamsAndValidation()
     standard = pathradio .. "standard",
     requested_channel = pathradio .. "requested_channel",
     requested_channel_width = pathradio .. "requested_channel_width",
+	ap_enabled = pathap .. "admin_state"
     }
-	
-	if isguest=="1" then
-		mapParams.ap_enabled = pathap .. "admin_state"
-	end
 
   if isguest ~= "1" then
         mapParams.admin_state = pathradio .. "admin_state"
