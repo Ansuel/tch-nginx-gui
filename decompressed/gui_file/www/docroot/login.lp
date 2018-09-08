@@ -185,23 +185,11 @@ ngx.print('\
       </div>\
 \
     </div>\
-    <div class="row">\
-		<div class="copyright span12">\
-			<p>&copy; Technicolor ');  ngx.print(current_year); ngx.print('</p>\
-			<p>GUI Version [ '); ngx.print( cui.gui_version ); ngx.print(' ]</p>\
-			<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> && Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>');
-			local lang_credit = ""
-			if not ( tostring(gettext.language()) == "en-us" ) then
-				if tostring(gettext.language()) == "it-it" then
-					lang_credit = "DarkNiko"
-				elseif tostring(gettext.language()) == "de-de" then
-					lang_credit = "meyergru"
-				end
-				ngx.print(' && Translated by <font style="color:#0088cc;">' .. lang_credit .. '</font>')
-			end
-			ngx.print('</p>\
-		</div>\
-	</div>\
+');
+	local lp = require("web.lp")
+    lp.setpath("/www/header-footer/")
+	lp.include("footer.lp")
+ngx.print('\
   </div>\
 <div class="modal-fade hide" id="loginfailure" data-backdrop="static" role="dialog">\
      <div class="popUp smallcard popUp-modal span4" style="margin-top: -50px">\
