@@ -580,10 +580,10 @@ local function getTimeZoneName(list, isRemote)
   return default_tztable[isRemote]
 end
 local mapEcoValid = {
-    eee = post_helper.validateBoolean,
-	autogreeen = post_helper.validateBoolean,
-	ethapd = post_helper.validateBoolean,
-	wait = post_helper.validateBoolean,
+    eee = vB,
+	autogreeen = vB,
+	ethapd = vB,
+	wait = vB,
 	cpuspeed = post_helper.validateNonEmptyString,
 }
 
@@ -598,7 +598,7 @@ local mapEcoParams = {
 local eco_content,eco_helpmsg = post_helper.handleQuery(mapEcoParams, mapEcoValid)
 
 local mapLedValid = {
-    eco_led = post_helper.validateBoolean,
+    eco_led = vB,
 	eco_led_timeout = post_helper.validatePositiveNum,
 }
 
@@ -628,7 +628,7 @@ local update_Params = {
 
 local update_valid = {
   update_branch = post_helper.getValidateInEnumSelect(update_branch_option),
-  update_autoupgrade = post_helper.validateBoolean,
+  update_autoupgrade = vB,
   update_autoupgrade_hour = post_helper.getValidateInEnumSelect(update_hour_option),
 }
 
