@@ -90,14 +90,24 @@ nf_conntrack_count:close()
 	html[#html + 1] = ui_helper.createLabel(T"Uptime", post_helper.secondsToTime(content["uptime"]), basic)
 	basic.span["data-bind"] = "text: cpuusage"
 	html[#html + 1] = ui_helper.createLabel(T"Cpu Usage", content["cpuusage"] .. "%", basic)
-	basic.span["data-bind"] = "text: ram_free"
-	html[#html + 1] = ui_helper.createLabel(T"Ram Free", content["ram_free"] .. " MB", basic)
-	basic.span["data-bind"] = nil
-	html[#html + 1] = ui_helper.createLabel(T"Ram Totale", content["ram_total"] .. " MB", basic)
-	basic.span["data-bind"] = "text: connection"
-	html[#html + 1] = ui_helper.createLabel(T"Connection", content["connection"], basic)
-	basic.span["data-bind"] = nil
-	html[#html + 1] = ui_helper.createLabel(T"Max Connection", content["total_connection"], basic)
+	html[#html + 1] = '<div class="control-group">'
+	html[#html + 1] =   '<label class="control-label">' .. T("RAM") .. '</label>'
+	html[#html + 1] =   '<div class="controls">'
+	html[#html + 1] =     '<span id="Ram" class=" simple-desc span3">'
+							'<span data-bind="text: ram_free">' .. content["ram_free"] .. '</span>'
+							' / ' .. content["ram_total"]
+						  '</span>'
+	html[#html + 1] =   '</div>'
+	html[#html + 1] = '</div>'
+	html[#html + 1] = '<div class="control-group">'
+	html[#html + 1] =   '<label class="control-label">' .. T("Connection") .. '</label>'
+	html[#html + 1] =   '<div class="controls">'
+	html[#html + 1] =     '<span id="Connection" class=" simple-desc span3">'
+							'<span data-bind="text: connection">' .. content["connection"] .. '</span>'
+							' / ' .. content["total_connection"]
+						  '</span>'
+	html[#html + 1] =   '</div>'
+	html[#html + 1] = '</div>'
 	basic.span["data-bind"] = "text: system_time"
 	html[#html + 1] = ui_helper.createLabel(T"System Time", content["system_time"], basic)
 	

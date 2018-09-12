@@ -29,7 +29,7 @@ local html = {}
 
 html[#html+1] =		'<div id="footer" class="row">'
 html[#html+1] =			'<div class="copyright">'
-html[#html+1] =				format('<p>&copy; Technicolor %s </p>', cui.gui_version)
+html[#html+1] =				format('<p>&copy; Technicolor %s </p>', current_year)
 html[#html+1] =				format('<p>GUI Version [ %s ] 2018 ',cui.gui_version)
 							if session:hasAccess("/modals/changelog.lp") then
 html[#html+1] =					'<a href data-toggle="modal" data-remote="modals/changelog.lp">Changelog</a>'
