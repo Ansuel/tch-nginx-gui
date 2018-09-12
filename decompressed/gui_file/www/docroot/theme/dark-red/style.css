@@ -321,7 +321,7 @@ text-decoration: none;
 
 .smallcard {
 	transition-property: all !important;
-	background-color: #535353;
+	background-color: #53535380;
     -webkit-box-shadow: 0 2px 20px 0px #f44336;
     -moz-box-shadow: 0 2px 20px 0px #f44336;
     box-shadow: 0 2px 20px 0px #f44336;
@@ -371,7 +371,7 @@ text-decoration: none;
 
 @media screen and (min-width: 767px) {
 	#headertab {
-		background-image: linear-gradient(45deg, transparent 55%, #535353 50%);
+		background-image: linear-gradient(45deg, transparent 55%, #53535380 45%);
 	}
 }
 
@@ -414,10 +414,18 @@ text-decoration: none;
 
 .table-striped tbody>tr:nth-child(odd)>td, .table-striped tbody>tr:nth-child(odd)>th,
 .btn-group>.btn, .btn-group>.dropdown-menu, .btn-group>.popover {
-    background-color: #3a3a3a;
+    background-color: #00000080;
+}
+
+.smallcard:hover .table-striped tbody>tr:nth-child(odd)>td, .smallcard:hover .table-striped tbody>tr:nth-child(odd)>th {
+    background-color: #f4433680;
 }
 
 .header > .row{
  margin-left: 2rem;
  margin-right: 2rem;
+}
+
+.copyright {
+	text-shadow: unset;
 }

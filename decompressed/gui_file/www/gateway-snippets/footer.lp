@@ -1,0 +1,85 @@
+--pretranslated: do not change this file
+
+-- Enable localization
+
+local proxy = require("datamodel")
+local content_helper = require("web.content_helper")
+local session = ngx.ctx.session
+local format = string.format
+
+local cui = {
+	timestamp = "uci.version.version.@version[0].timestamp",
+	gui_version = "uci.env.var.gui_version",
+}
+
+content_helper.getExactContent(cui)
+
+local year = cui.timestamp
+local current_year = string.sub(year,1,4)
+
+local lang_credit = ""
+
+if tostring(gettext.language()) == "it-it" then
+	lang_credit = "DarkNiko"
+elseif tostring(gettext.language()) == "de-de" then
+	lang_credit = "meyergru"
+end
+
+local html = {}
+
+html[#html+1] =		'<div id="footer" class="row">'
+html[#html+1] =			'<div class="copyright">'
+html[#html+1] =				format('<p>&copy; Technicolor %s </p>', cui.gui_version)
+html[#html+1] =				format('<p>GUI Version [ %s ] 2018 ',cui.gui_version)
+							if session:hasAccess("/modals/changelog.lp") then
+html[#html+1] =					'<a href data-toggle="modal" data-remote="modals/changelog.lp">Changelog</a>'
+							end
+html[#html+1] =				'</p>'
+html[#html+1] =				'<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> && Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>'
+							if not ( tostring(gettext.language()) == "en-us" ) then
+html[#html+1] =					' && Translated by <font style="color:#0088cc;">' .. lang_credit .. '</font>'
+							end
+html[#html+1] =				'</p>'
+html[#html+1] =			'</div>'
+html[#html+1] =		'</div>'
+
+ngx.print(html)
+
+ngx.print('\
+<script>\
+var processMsg=\'');  ngx.print(T"Processing"); ngx.print('\';\
+var openMsg = \'');  ngx.print(T"Loading..."); ngx.print('\';\
+var waitMsg = \'');  ngx.print(T"Please wait..."); ngx.print('\';\
+var loginMsg =\'');  ngx.print(T"Login Expired. Reloading."); ngx.print('\';\
+var okButton = \'');  ngx.print(T"Ok"); ngx.print('\';\
+var cancelButton = \'');  ngx.print(T"Cancel"); ngx.print('\';\
+function httpErrorMessage(err){\
+    switch(err.status){\
+        case 500:\
+            erromsg=\'');  ngx.print(T"Internal Server Error occured, please contact administrator"); ngx.print('\'\
+            break;\
+        case 404:\
+            erromsg=\'');  ngx.print(T"The requested file is not found! Please try again after some time"); ngx.print('\'\
+            break;\
+        case 503:\
+            erromsg=\'');  ngx.print(T"The server is currently unavailable, Please try again after some time"); ngx.print('\'\
+            break;\
+        case 408:\
+            erromsg=\'');  ngx.print(T"The server timed out waiting for the request"); ngx.print('\'\
+            break;\
+        default:\
+             erromsg=\'');  ngx.print(T"The request could not be performed due to some error"); ngx.print('\'\
+    }\
+    window.setTimeout(function(){\
+      erromsg = \'<div style="margin-left:35%;margin-top:9%;"><span class="alert-error">\'+erromsg+\'</span></div>\';\
+      var ht = $(\'.modal-body\').height();\
+      ht = toString(ht).match(/\\d+/) > 230 ? ht:230;\
+      $(\'.modal-body\').height(ht);\
+      var tab = $(\'.modal-body ul\').html();\
+      if(tab != undefined)\
+        erromsg = \'<ul class="nav nav-tabs">\' + tab + \'</ul>\' + erromsg;\
+      $(\'.modal-body\').html(erromsg);\
+    },400);\
+}\
+</script>\
+');

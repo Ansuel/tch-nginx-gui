@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.7.55
+version_gui=8.7.61
 
 logo_project() {
 cat << EOF > /dev/console
@@ -240,7 +240,10 @@ cumulative_check_gui() {
 		uci set env.var.autoupgrade=0
 	fi
 	if [ ! $(uci get -q env.var.autoupgradeview) ]; then
-		uci set env.var.autoupgradeview=none
+		uci set env.var.autoupgradeview="none"
+	fi
+	if [ ! $(uci get -q env.var.firstpage) ]; then
+		uci set env.var.firstpage="stats"
 	fi
 }
 
@@ -725,6 +728,27 @@ add_new_web_rule() {
 		uci add_list web.nfcmodal.roles='admin' 
 		uci add_list web.nfcmodal.roles='engineer'
 		uci add_list web.ruleset_main.rules='nfcmodal'
+	fi
+	if [ ! $(uci get -q web.stats) ]; then
+		uci set web.stats=rule
+		uci set web.stats.target='/stats.lp'
+		uci add_list web.stats.roles='admin' 
+		uci add_list web.stats.roles='engineer'
+		uci add_list web.ruleset_main.rules='stats'
+	fi
+	if [ ! $(uci get -q web.cards) ]; then
+		uci set web.cards=rule
+		uci set web.cards.target='/cards.lp'
+		uci add_list web.cards.roles='admin' 
+		uci add_list web.cards.roles='engineer'
+		uci add_list web.ruleset_main.rules='cards'
+	fi
+	if [ ! $(uci get -q web.ajaxtrafficcard) ]; then
+		uci set web.ajaxtrafficcard=rule
+		uci set web.ajaxtrafficcard.target='/ajax/traffic_graph.lp'
+		uci add_list web.ajaxtrafficcard.roles='admin' 
+		uci add_list web.ajaxtrafficcard.roles='engineer'
+		uci add_list web.ruleset_main.rules='ajaxtrafficcard'
 	fi
 }
 

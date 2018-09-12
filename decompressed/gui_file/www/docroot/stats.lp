@@ -9,19 +9,19 @@ local lp = require("web.lp")
 
 local firstpage
 
+local contentonly
+
 local cui = {
     advanced = "uci.web.uiconfig.@uidefault.alwaysadvanced",
 	gui_skin = "uci.env.var.gui_skin",
-	firstpage = "uci.env.var.firstpage",
 }
 content_helper.getExactContent(cui)
 
-if cui.firstpage == "stats" then
-	firstpage = "stats.lp"
-else
-	firstpage = "cards.lp"
+if ngx.req.get_method() == "GET" then
+	contentonly = ngx.req.get_uri_args().contentonly or false
 end
 
+if not contentonly then --Fix: Load content only if the entire page is need (loads workaround)
 ngx.print('\
 <!DOCTYPE HTML>\
 ');  ngx.print( string.format('<html lang="%s">', gettext.language()) ); ngx.print('\
@@ -55,15 +55,20 @@ end
 <body>\
 ');
 
-	lp.setpath("/www/gateway-snippets/")
-	lp.include("header.lp")
-	
-	lp.include(firstpage)
+lp.setpath("/www/gateway-snippets/")
+lp.include("header.lp")
+end
 
 	lp.setpath("/www/gateway-snippets/")
-	lp.include("footer.lp")
+	lp.include("stats.lp")
+
+if not contentonly then
+
+lp.setpath("/www/gateway-snippets/")
+lp.include("footer.lp")
 	
 ngx.print('\
 </body>\
 </html>\
 ');
+end

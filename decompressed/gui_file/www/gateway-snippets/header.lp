@@ -16,6 +16,8 @@ local web = require("web.web")
 local cui = {
 	nsplink = "uci.web.uiconfig.@uidefault.nsplink",
 	gui_skin = "uci.env.var.gui_skin",
+	gui_version = "uci.env.var.gui_version",
+	outdated_ver = "uci.env.var.outdated_ver",
 	luci_webui = "uci.env.var.luci_webui",										 
     aria2_webui = "uci.env.var.aria2_webui",
     transmission_webui = "uci.env.var.transmission_webui",
@@ -23,9 +25,24 @@ local cui = {
 	new_ver = "uci.env.var.new_ver",
 	autoupgrade_hour= "uci.env.var.autoupgrade_hour",
 	autoupgrade_view = "uci.env.var.autoupgradeview",
+	firstpage = "uci.env.var.firstpage"
 }
 
 content_helper.getExactContent(cui)
+
+local pageselector = {}
+
+if cui.firstpage == "stats" then
+	pageselector.page = "cards.lp"
+	pageselector.text = T"Cards"
+	pageselector.otherpage = "stats.lp"
+	pageselector.othertext = T"Stats"
+else
+	pageselector.page = "stats.lp"
+	pageselector.text = T"Stats"
+	pageselector.otherpage = "cards.lp"
+	pageselector.othertext = T"Cards"
+end
 
 local function apply(action)
   proxy.set("rpc.system." .. action, "1")
@@ -111,9 +128,15 @@ ngx.print('\
 			html[#html + 1] = '<div class="btn" id="wizard-btn" data-toggle="modal" data-remote="modals/wizard-modal.lp">' .. T"Setup Wizard" .. '</div>'
 			html[#html + 1] = '</div>'
 			html[#html + 1] = '<div class="header-sub-button">'
-			html[#html + 1] = ui_helper.createLanguageSelect('webui-core', gettext.language())
+			html[#html + 1] =   '<div class="btn" id="cards">' 
+			html[#html + 1] =     '<span id="refresh-cards"></span>'
+			html[#html + 1] =     '<span id="cards-text">' .. pageselector.text .. '</span>'
+			html[#html + 1] =   '</div>'
 			html[#html + 1] = '</div>'
         end
+			html[#html + 1] = '<div class="header-sub-button">'
+			html[#html + 1] = ui_helper.createLanguageSelect('webui-core', gettext.language())
+			html[#html + 1] = '</div>'
 		html[#html + 1] = '<div class="header-sub-button">'
 		if session:isdefaultuser() then
             html[#html + 1] = '<a href="login.lp" class="btn" id="signin">'
@@ -197,7 +220,44 @@ ngx.print(html)
 ngx.print('\
 </div>\
 <script>\
+var KoRequest = [];\
 $(function() {\
+\
+  var pathname = document.location.pathname;\
+  var page = "'); ngx.print(pageselector.page); ngx.print ('";\
+  var text = "'); ngx.print(pageselector.text); ngx.print ('";\
+  if (pathname == "/stats.lp") {\
+  	page = "cards.lp";\
+  	text = "'); ngx.print(T"Cards"); ngx.print ('";\
+	$("#cards-text").text(text);\
+  }\
+  if (pathname == "/cards.lp") {\
+  	page = "stats.lp";\
+  	text = "'); ngx.print(T"Stats"); ngx.print ('";\
+	$("#cards-text").text(text);\
+  }\
+  $("#cards").on("click", function() {\
+    var pathname = document.location.pathname;\
+	var text = "'); ngx.print(pageselector.othertext); ngx.print ('";\
+	if (pathname == "/stats.lp") {\
+		page = "cards.lp";\
+		text = "'); ngx.print(T"Stats"); ngx.print ('";\
+	}\
+	if (pathname == "/cards.lp") {\
+		page = "stats.lp";\
+		text = "'); ngx.print(T"Cards"); ngx.print ('";\
+	}\
+	$("#dynamic-content").load(page + "?contentonly=true");\
+	window.history.pushState("gateway", "Gateway - Cards", page);\
+	$("#cards-text").text(text);\
+	$("#refresh-cards").show();\
+	$("#refresh-cards").css("margin-right","5px");\
+	$("#refresh-cards").addClass("fa fa-sync fa-spin");\
+	KoRequest.forEach(function(element) {\
+		clearInterval(element);\
+	});\
+	KoRequest = [];\
+  });\
 \
   var target = $(".modal form").attr("action");\
 \

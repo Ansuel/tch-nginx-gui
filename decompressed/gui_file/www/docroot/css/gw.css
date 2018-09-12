@@ -5054,6 +5054,19 @@ button.btn.btn-mini,input[type="submit"].btn.btn-mini
 	position:relative
 }
 
+.infocard{
+	width: 47% !important;
+}
+
+.infocard > .smallcard .content {
+	height: auto;
+	padding: 0px;
+}
+
+.infocard > .smallcard .content > .divtable > .form-horizontal .control-group {
+	margin: 0px;
+}
+
 .smallcard .header
 {
 	overflow-y:hidden;
@@ -5732,7 +5745,9 @@ form .switch
 	margin-top:30px;
 	margin-bottom:20px;
 	text-align:center;
-	font:300 12px Helvetica,Arial,sans-serif
+	font:300 12px Helvetica,Arial,sans-serif;
+	margin-left: 0px;
+    width: 100%;
 }
 
 .copyright p

@@ -67,23 +67,21 @@ end
   </div>\
 </div>\
 <script>\
+var GatewayCardInterval;\
 $(document).ready(function () {\
-		var GatewayCard = function () {\
-			var self = this;\
-			this.cpuload = ko.observable("");\
-			this.refresh = function () {\
-				$.post("/ajax/cpuload.lua?auto_update=true", [tch.elementCSRFtoken()], function(data) {\
-					if(data.cpuload != undefined) {\
-						self.cpuload(data.cpuload);\
-					}\
-				}, "json");\
-			};\
-			setInterval(self.refresh, 5000);\
-			self.refresh();\
-		};\
+	var GatewayCardBinding = { cpuload: ko.observable(), };\
+	function GatewayCardRefresh() {\
+		$.post("/ajax/cpuload.lua", [tch.elementCSRFtoken()], function(data) {\
+			if(data.cpuload != undefined) {\
+				GatewayCardBinding.cpuload(data.cpuload);\
+			}\
+		}, "json");\
+	};\
 \
-		var GatewayCard = new GatewayCard();\
-		ko.applyBindings(GatewayCard, document.getElementById(\'gatewaytab\'));\
+	GatewayCardRefresh();\
+	ko.applyBindings(GatewayCardBinding, document.getElementById("gatewaytab"));\
+	GatewayCardInterval = setInterval(GatewayCardRefresh, 5000);\
+	KoRequest.push(GatewayCardInterval);\
 })\
 </script>\
 '); 
