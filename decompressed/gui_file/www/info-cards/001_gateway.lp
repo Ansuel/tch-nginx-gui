@@ -9,7 +9,7 @@ local content_helper = require("web.content_helper")
 local post_helper = require("web.post_helper")
 local ui_helper = require("web.ui_helper")
 
-local find, sub = string.find, string.sub
+local find, sub, format = string.find, string.sub, string.format
 
 local contentonly
 
@@ -84,7 +84,7 @@ nf_conntrack_count:close()
 	
 	basic.span["data-bind"] = nil
 	html[#html + 1] = ui_helper.createLabel(T"Product Name", content["product_name"], basic)
-	html[#html + 1] = ui_helper.createLabel(T"Software Version", string.format("%s %s",content["software_version"],content["software_name"]), basic)
+	html[#html + 1] = ui_helper.createLabel(T"Software Version", format("%s %s",content["software_version"],content["software_name"]), basic)
 	html[#html + 1] = ui_helper.createLabel(T"Gui Version", content["gui_version"], basic)
 	basic.span["data-bind"] = "text: uptime"
 	html[#html + 1] = ui_helper.createLabel(T"Uptime", post_helper.secondsToTime(content["uptime"]), basic)
