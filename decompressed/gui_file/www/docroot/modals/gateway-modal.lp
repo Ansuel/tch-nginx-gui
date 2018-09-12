@@ -15,7 +15,7 @@ local post_helper = require("web.post_helper")
 local format,find,sub, match, untaint = string.format, string.find, string.sub, string.match, string.untaint
 local floor, ipairs = math.floor, ipairs
 local timezone = require("transformer.shared.timezone")
-local gVCS = post_helper.getValidateCheckboxSwitch()
+local vB = post_helper.validateBoolean
 local gOV = post_helper.getOrValidation
 local gAV = post_helper.getAndValidation
 local session = ngx.ctx.session
@@ -26,7 +26,7 @@ local voicemode = require("voicemode_helper")
 local tech = false
 if session:getrole() == "engineer" then
 	tech = true
-end	
+end
 local function wait_for_completion(base_path, return_json, filename)
   local state_path = base_path .. "state"
   local info_path = base_path .. "info"
@@ -253,7 +253,7 @@ local function upgradeguifile()
   else
 	filename = "GUI.tar.bz2"
   end
-  
+
   local fwupgrade_location = "/tmp/"
 
 
@@ -266,7 +266,7 @@ local function upgradeguifile()
 
   proxy.set("rpc.system.upgradegui", "1")
   proxy.apply()
-  
+
   ngx.print('{ "success":"true" }')
   ngx.exit(ngx.HTTP_OK)
 
@@ -358,7 +358,7 @@ end
 local content = {
   acs_url = "uci.cwmpd.cwmpd_config.acs_url",
   vendor = "uci.env.var.company_name",
-  product_name = "uci.env.var.variant_friendly_name",
+  product_name = "uci.env.var.prod_name",
   software_name = "uci.version.version.@version[0].marketing_name",
   software_version = "uci.version.version.@version[0].marketing_version",
   firmware_version = "uci.env.var.friendly_sw_version_activebank",
@@ -514,8 +514,8 @@ local system_valid = {
     return true
   end,
   system_network_timezone = function(value, object, key)
-    local err,msg = gVCS(value, object, key)
-    if not err then
+    local err,msg = vB(value, object, key)
+    if err then
       return err,msg
     end
 
@@ -580,10 +580,10 @@ local function getTimeZoneName(list, isRemote)
   return default_tztable[isRemote]
 end
 local mapEcoValid = {
-    eee = post_helper.validateBoolean,
-	autogreeen = post_helper.validateBoolean,
-	ethapd = post_helper.validateBoolean,
-	wait = post_helper.validateBoolean,
+    eee = vB,
+	autogreeen = vB,
+	ethapd = vB,
+	wait = vB,
 	cpuspeed = post_helper.validateNonEmptyString,
 }
 
@@ -598,7 +598,7 @@ local mapEcoParams = {
 local eco_content,eco_helpmsg = post_helper.handleQuery(mapEcoParams, mapEcoValid)
 
 local mapLedValid = {
-    eco_led = post_helper.validateBoolean,
+    eco_led = vB,
 	eco_led_timeout = post_helper.validatePositiveNum,
 }
 
@@ -628,7 +628,7 @@ local update_Params = {
 
 local update_valid = {
   update_branch = post_helper.getValidateInEnumSelect(update_branch_option),
-  update_autoupgrade = post_helper.validateBoolean,
+  update_autoupgrade = vB,
   update_autoupgrade_hour = post_helper.getValidateInEnumSelect(update_hour_option),
 }
 
@@ -639,7 +639,7 @@ local cpu_step = require("cpu_step")
 local function getCpuStepName(list)
   local step = eco_content["cpuspeed"]
 
-  
+
   for _,v in ipairs(list) do
     local key = string.match(v[1], "^([^_]*)")
     if key == step then
@@ -651,7 +651,7 @@ end
 \
 ');  ngx.print(ui_helper.createHeader(T"Gateway", true, true))   ngx.print('\
 <div class="modal-body update">\
-');  
+');
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
   ngx.print('\
 <fieldset>\
@@ -838,8 +838,8 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       html[#html + 1] = ui_helper.createLabel(T"Uptime", post_helper.secondsToTime(content["uptime"]), basic)
       html[#html + 1] = ui_helper.createLabel(T"System Time", content["system_time"], basic)
 --      html[#html + 1] = ui_helper.createInputSelect(T"Timezone", "system_timezone", timezones, system_data["system_timezone"], basic)
-	if tech then		  
-      html[#html + 1] = ui_helper.createCheckboxSwitch(T"Network Timezone", "system_network_timezone", system_data["system_network_timezone"], nw_enable_class)
+	if tech then
+      html[#html + 1] = ui_helper.createSwitch(T"Network Timezone", "system_network_timezone", system_data["system_network_timezone"], nw_enable_class)
       local currentTZ_remote = getTimeZoneName(timezones, true)
       local currentTZ_gui = getTimeZoneName(timezones, false)
       html[#html + 1] = ui_helper.createLabel(T"Current Timezone", currentTZ_remote, default_tz_class)
