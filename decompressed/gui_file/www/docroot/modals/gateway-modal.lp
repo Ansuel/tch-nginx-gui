@@ -359,6 +359,7 @@ local content = {
   acs_url = "uci.cwmpd.cwmpd_config.acs_url",
   vendor = "uci.env.var.company_name",
   product_name = "uci.env.var.prod_name",
+  friendly_product_name = "uci.env.var.prod_friendly_name",
   software_name = "uci.version.version.@version[0].marketing_name",
   software_version = "uci.version.version.@version[0].marketing_version",
   firmware_version = "uci.env.var.friendly_sw_version_activebank",
@@ -379,8 +380,12 @@ local content = {
 
 content_helper.getExactContent(content)
 
-if content["product_name"] and content["product_name"] == "AGHP" then
-	content["product_name"] = "AGTHP" --Wrong product name by telecom!
+if content["friendly_product_name"] and content["friendly_product_name"] == "AGHP" then
+	content["friendly_product_name"] = "AGTHP" --Wrong product name by telecom!
+end
+
+if not ( content.friendly_product_name == "" ) then
+	content.product_name = format("%s ( %s )",content.product_name,content.friendly_product_name)
 end
 
 
