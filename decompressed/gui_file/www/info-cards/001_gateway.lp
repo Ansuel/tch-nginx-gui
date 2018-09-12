@@ -94,18 +94,18 @@ nf_conntrack_count:close()
 	html[#html + 1] =   '<label class="control-label">' .. T("RAM") .. '</label>'
 	html[#html + 1] =   '<div class="controls">'
 	html[#html + 1] =     '<span id="Ram" class=" simple-desc span3">'
-							'<span data-bind="text: ram_free">' .. content["ram_free"] .. '</span>'
-							' / ' .. content["ram_total"]
-						  '</span>'
+	html[#html + 1] =		format('<span data-bind="text: ram_free">%s</span>',content["ram_free"])
+	html[#html + 1] =		format(' / %s MB', content["ram_total"])
+	html[#html + 1] =	  '</span>'
 	html[#html + 1] =   '</div>'
 	html[#html + 1] = '</div>'
 	html[#html + 1] = '<div class="control-group">'
 	html[#html + 1] =   '<label class="control-label">' .. T("Connection") .. '</label>'
 	html[#html + 1] =   '<div class="controls">'
 	html[#html + 1] =     '<span id="Connection" class=" simple-desc span3">'
-							'<span data-bind="text: connection">' .. content["connection"] .. '</span>'
-							' / ' .. content["total_connection"]
-						  '</span>'
+	html[#html + 1] =		format('<span data-bind="text: connection">%s</span>',content["connection"])
+	html[#html + 1] =		format(' / %s', content["total_connection"])
+	html[#html + 1] =	  '</span>'
 	html[#html + 1] =   '</div>'
 	html[#html + 1] = '</div>'
 	basic.span["data-bind"] = "text: system_time"
