@@ -343,7 +343,7 @@ function formatBytes(bytes,decimals) {\
     dm = decimals || 2,\
     sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"],\
     i = Math.floor(Math.log(bytes) / Math.log(k));\
-   return sizes[i] ? parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i] : "";\
+   return (bytes / Math.pow(k, i)) > 0 ? parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i] : "0";\
 }\
 var TrafficChartOption = {\
 		maintainAspectRatio: false,\
