@@ -31,21 +31,6 @@ local user_map = {
 	{ "guest", T'Guest'},
 }
 
-local mode_map2 = setmetatable({
-    ["0"]= T'Temporary',
-    ["1"]= T'Permanent',
-}, untaint_mt)
-
-local checkbox_map = setmetatable({
-    ["0"]= T'No',
-    ["1"]= T'Yes',
-}, untaint_mt)
-
-local checkbox_map2 = setmetatable({
-    ["0"]= T'No',
-    ["1"]= T'Yes',
-}, untaint_mt)
-
 local srp_param_map = {
     srp_salt = "salt",
     srp_verifier = "verifier",
@@ -86,17 +71,22 @@ local content=nil
 if ngx.var.request_method == "POST" then
     content = ngx.req.get_post_args()
     if content["action"]=="SAVE" then
-	
-		if content["ra_enabled"] == "1" and ( (content["port"] == "") or 
-			( (tonumber(content["port"]) > 0 ) and (tonumber(content["port"]) < 65565 )))then --let's set the port before assist:enable
-			proxy.set("uci.web.assistance.@remote.port" , content["port"])
+
+		local convport = tonumber(content["port"])
+		if content["ra_enabled"] == "1" and ( (content["random_port"] == "1") or (content["port"] == "") or
+			( convport~= nil and (convport > 0 ) and (convport < 65565 )))then --let's set the port before assist:enable
+			if (content["random_port"] == "1") then
+				proxy.set("uci.web.assistance.@remote.port" , "")
+			else
+				proxy.set("uci.web.assistance.@remote.port" , content["port"])
+			end
 			proxy.apply()
 		end
-		
+
         gVChkbox(content["ra_enabled"], content, "ra_enabled")
         local password = nil
         local newstate = content["ra_enabled"] or state
-        if newstate~=state and newstate=="1" then
+        if newstate=="1" then
             gVChkbox(content["random_psw"], content, "random_psw")
             if content["random_psw"] == "0" then
                 -- the new setting is to use fixed password
@@ -118,7 +108,7 @@ if ngx.var.request_method == "POST" then
                     }
                 end
             else
-                -- remove passowrd for user assist if random password mode is enabled
+                -- remove password for user assist if random password mode is enabled
                 content["salt"] = ""
                 content["verifier"] = ""
             end
@@ -128,7 +118,7 @@ if ngx.var.request_method == "POST" then
            password = false
         end
         if next(helpmsg)==nil then
-           if newstate~=state and newstate=="1" then
+           if newstate=="1" then
               local assist_user_path_pattern = "uci.web.user.@%s.%s"
               local assistance_path_pattern = "uci.web.assistance.@%s.%s"
               local sets = {
@@ -143,6 +133,11 @@ if ngx.var.request_method == "POST" then
                 password.salt = string.untaint(password.salt)
                 password.verifier = string.untaint(password.verifier)
            end
+           state = assistant:enabled() and "1" or "0"
+		   if state == "1" then
+				--if already enabled disable to reload all config
+				assistant:enable(false)
+		   end
            local ok, err = assistant:enable(newstate=="1", content["mode"] == "1", password)
            state = assistant:enabled() and "1" or "0"
            if not ok then
@@ -178,7 +173,6 @@ if not content then
    content["ra_enabled"] = assistant:enabled() and "1" or "0"
    content["mode"] = (timeout == "-1") and "1" or "0"
    content["random_psw"] = uci_assist_srp and "0" or "1"
-   content["random_port"] = not ( content2["port"] == "" ) and "0" or "1"
 end
 
 content["password"]=""
@@ -188,11 +182,11 @@ end
 
   ngx.print('\
 \
-');  ngx.print( ui_helper.createHeader(T"Assistance") ); ngx.print('\
+');  ngx.print( ui_helper.createHeader(T"Assistance", false, false) ); ngx.print('\
 <div class="modal-body update">\
 <form class="form-horizontal" method="post" action="modals/assistance-modal.lp">\
 &nbsp\
-');  
+');
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
   ngx.print('\
 <fieldset>\
@@ -216,64 +210,48 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
            class = "monitor-changes",
         }
     }
-    local ra_cfg_class = {
+    local ra_class_port_0 = {
         group = {
-           class ="monitor-ra_enabled monitor-1",
+           class ="monitor-random_port monitor-0",
         }
     }
-    local ra_class = {
+    local ra_class_port_1 = {
         group = {
-           class ="monitor-ra_enabled monitor-0",
+           class ="monitor-random_port monitor-1",
+        }
+    }
+    local ra_class_password_0 = {
+        group = {
+           class ="monitor-random_psw monitor-0",
+        }
+    }
+    local ra_class_password_1 = {
+        group = {
+           class ="monitor-random_psw monitor-1",
         }
     }
 
-  html[#html + 1] = ui_helper.createSwitch(T"Enabled", "ra_enabled", content["ra_enabled"], ra_enable_class)
-  if assistant:enabled() then
-     html[#html + 1] = ui_helper.createLabel(T"Mode", mode_map2[content["mode"]])
-     html[#html + 1] = ui_helper.createLabel(T"URL", assistant:URL() or T"Not connected to the Internet")
-  else
-     html[#html + 1] = ui_helper.createInputSelect(T"Mode", "mode", mode_map, content["mode"],ra_cfg_class)
-     html[#html + 1] = ui_helper.createLabel(T"Mode", mode_map2[content["mode"]],ra_class)
-  end
-  
-     html[#html + 1] = ui_helper.createLabel(T"Username", assistant:username())
-  
-  local password = assistant:password()
-  if (assistant:enabled() and password =="") or (content["random_psw"] == "0") then
-     password = "********"
-  end
-  if assistant:enabled() then
-     html[#html + 1] = ui_helper.createLabel(T"Port", content2["port"])
-     html[#html + 1] = ui_helper.createLabel(T"Use Random Password", checkbox_map[content["random_psw"]])
-     html[#html + 1] = ui_helper.createLabel(T"Password", password)
-     html[#html + 1] = error and ui_helper.createLabel("Error", error) or ''
-  else
-	 html[#html + 1] = ui_helper.createInputText(T"Port", "port" , content2["port"], ra_cfg_class , helpmsg2["port"])
-     html[#html + 1] = ui_helper.createLabel(T"Port", content2["port"] , ra_class)
-     html[#html + 1] = ui_helper.createSwitch(T"Use Random Password", "random_psw", content["random_psw"],ra_cfg_class)
-     html[#html + 1] = ui_helper.createLabel(T"Use Random Password", checkbox_map[content["random_psw"]],ra_class)
-     html[#html + 1] = ui_helper.createInputText(T"Password", "password", content["password"], ra_cfg_class, helpmsg["password"])
-     html[#html + 1] = ui_helper.createLabel(T"Password", password,ra_class)
+	 html[#html + 1] = ui_helper.createSwitch(T"Enabled", "ra_enabled", content["ra_enabled"], ra_enable_class)
+	 html[#html + 1] = ui_helper.createInputSelect(T"Mode", "mode", mode_map, content["mode"])
+	 html[#html + 1] = ui_helper.createLabel(T"Username", assistant:username())
+     html[#html + 1] = ui_helper.createSwitch(T"Use Random Port", "random_port", content2["port"]==assistant:port() and "0" or "1",ra_enable_class)
+	 html[#html + 1] = ui_helper.createInputText(T"Port", "port" , content2["port"], ra_class_port_0, helpmsg2["port"])
+     html[#html + 1] = ui_helper.createLabel(T"Port", assistant:port(), ra_class_port_1)
+	local password = assistant:password()
+     html[#html + 1] = ui_helper.createSwitch(T"Use Random Password", "random_psw", content["random_psw"],ra_enable_class)
+     html[#html + 1] = ui_helper.createInputText(T"Password", "password", password, ra_class_password_0, helpmsg["password"])
+     html[#html + 1] = ui_helper.createLabel(T"Password", password, ra_class_password_1)
      html[#html + 1] = ui_helper.createSimpleInputHidden("salt", "")
      html[#html + 1] = ui_helper.createSimpleInputHidden("verifier", "")
-  end
-     html[#html + 1] = [[</fieldset>
-						</form>
-				       </div> ]] 
-	 html[#html + 1] = string.format([[
-     <div class="modal-footer">
-      <div id="modal-no-change">
-        <div id="close-config" class="btn btn-primary btn-large" data-dismiss="modal">%s</div>
-      </div>
-        <div id="modal-changes" class="hide">
-          <div id="cancel-config" class="btn btn-large" data-dismiss="modal">%s</div>
-          <div id="save-assistance-config" class="btn btn-primary btn-large">%s</div>
-        </div>
-      </div>
-    ]], T"Close", T"Cancel", T"Apply")
-  
+     html[#html + 1] = error and ui_helper.createLabel("Error", error) or ''
   ngx.print(html)
-	ngx.print('\
+ngx.print('\
+\
+</fieldset>\
+</form>\
+</div>\
+\
+'); ngx.print(ui_helper.createFooter()) ngx.print('\
 \
 <script src="/js/srp-min.js" ></script>\
 <script type="text/javascript" >\
@@ -288,24 +266,21 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
             }, tch.elementCSRFtoken());\
             var target = form.attr("action");\
             tch.loadModal(target, params, function () {\
-                var error = $(\''); ngx.print('.error'); ngx.print('\');\
-                 $(\''); ngx.print('.error input:not([type="hidden"])'); ngx.print('\').first().focus();\
+                var error = $(\'.error\');\
+                 $(\'.error input:not([type="hidden"])\').first().focus();\
             });\
-			setTimeout(function() {\
-				location.reload();\
-			}, 1000);\
         };\
 \
         var user = "'); ngx.print( assistant:username() ); ngx.print('";\
-        var password = $(\''); ngx.print('input[name="password"]'); ngx.print('\').val();\
-		var port = $(\''); ngx.print('input[name="port"]'); ngx.print('\').val();\
+        var password = $(\'input[name="password"]\').val();\
+		var port = $(\'input[name="port"]\').val();\
 \
-        if(password != null ) {\
+        if(password != "" ) {\
              var srp = new SRP();\
              srp.generateSaltAndVerifierTheCallback(user, password, function(salt, verifier) {\
-                 $(\''); ngx.print('input[name="salt"]'); ngx.print('\').val(salt);\
-                 $(\''); ngx.print('input[name="verifier"]'); ngx.print('\').val(verifier);\
-                 $(\''); ngx.print('input[name="password"]'); ngx.print('\').val(""); // clean that up no need to send it over the air\
+                 $(\'input[name="salt"]\').val(salt);\
+                 $(\'input[name="verifier"]\').val(verifier);\
+                 $(\'input[name="password"]\').val(""); // clean that up no need to send it over the air\
                  sendData();\
                  return;\
              });\
