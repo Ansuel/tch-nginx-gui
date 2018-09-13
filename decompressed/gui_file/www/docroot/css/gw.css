@@ -1105,6 +1105,7 @@ fieldset
 legend
 {
 	display:block;
+	z-index: 10;
 	width:100%;
 	padding:0;
 	margin-bottom:20px;
