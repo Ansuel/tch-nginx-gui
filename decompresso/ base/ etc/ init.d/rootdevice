@@ -111,15 +111,45 @@ remove_default_dns() {
 	uci -q del network.loopback.dns_metric
 }
 
-add_wan_dns() {
-	if [ ! "$(uci show network.wan | grep "network.wan.dns='' '' ''''")" ]; then
-		uci del network.wan.dns
+setup_network() {
+	#If needed remove duplicated DNS list entry
+	if [ ! $(uci show network.wan | grep "network.wan.dns='' '' ''''") ]; then
+		uci -q del network.wan.dns
 	fi
-	if [ ! "$(uci show network.wan | grep "network.wan.dns='' '' ''")" ]; then
-		uci set network.wan.peerdns='1'
-		uci add_list network.wan.dns=''
-		uci add_list network.wan.dns=''
-		uci add_list network.wan.dns=''
+	
+	#Add DNS list placeholder for GUI edit
+	if [ ! $(uci show network.wan | grep "network.wan.dns") ]; then
+		uci -q set network.wan.peerdns='1'
+		uci -q add_list network.wan.dns=''
+		uci -q add_list network.wan.dns=''
+		uci -q add_list network.wan.dns=''
+	fi
+	
+	#Set a pppoerelay empty interface if list is not present (UNO)
+	if [ ! $(uci show network.lan | grep "network.lan.pppoerelay") ]; then
+		uci -q add_list network.lan.pppoerelay=''
+	fi
+	
+	#Set a waneth4 interface if eth4 found (fix wizard on UNO)
+	if [ ! $(uci -q get network.waneth4) ]; then
+		uci -q add network.device
+		uci -q rename network.@device[-1]=waneth4
+		uci -q set network.waneth4.enabled=1
+		uci -q set network.waneth4.type=8021q
+		uci -q set network.waneth4.name=waneth4
+		uci -q set network.waneth4.ifname=eth4
+	fi
+	
+	#Set a SSH_wan firewall rule if not found (fix SSH Wan not working)
+	if [ ! $(uci -q get firewall.SSH_wan) ]; then
+		uci -q add firewall rule
+		uci -q rename firewall.@rule[-1]=SSH_wan
+		uci -q set firewall.SSH_wan.src=wan
+		uci -q set firewall.SSH_wan.name=SSH_wan
+		uci -q set firewall.SSH_wan.target=DROP
+		uci -q set firewall.SSH_wan.proto=tcp
+		uci -q set firewall.SSH_wan.dest_port=22
+		uci -q set firewall.SSH_wan.family=ipv4
 	fi
 }
 
@@ -1109,7 +1139,7 @@ root() {
 	add_ipoe #this need to stay to make the wizard work correctly
 	logger_command "Remove default dns"
 	remove_default_dns #tim sets his dns on to of the loopback interface
-	add_wan_dns #preset stock DNS values to allow GUI edit
+	setup_network #Fix some missing network value
 	logger_command "Purify wan"
 	puryfy_wan_interface #remove gracefull restart, could give problem
 	logger_command "Fix dns bug"
