@@ -16,17 +16,18 @@ if ngx.req.get_method() == "GET" then
 	contentonly = ngx.req.get_uri_args().contentonly or false
 end
 
-local interface = "ptm0"
+local interface = proxy.get("uci.network.interface.@wan.ifname") or false
 
-local int_rx = format("/sys/class/net/%s/statistics/rx_bytes",interface)
-local int_tx = format("/sys/class/net/%s/statistics/tx_bytes",interface)
-
-local file = io.open(int_rx,"r")
-local rx_traffic = file:read()
-file:close()
-file = io.open(int_tx,"r")
-local tx_traffic = file:read()
-file:close()
+if interface then
+	local int_rx = format("/sys/class/net/%s/statistics/rx_bytes",interface[1].value)
+	local int_tx = format("/sys/class/net/%s/statistics/tx_bytes",interface[1].value)
+	
+	local file = io.open(int_rx,"r")
+	local rx_traffic = file:read()
+	file:close()
+	file = io.open(int_tx,"r")
+	local tx_traffic = file:read()
+	file:close()
 
   ngx.print('\
 \
@@ -113,7 +114,7 @@ $(document).ready(function () {\
 		if (tx_traffic_complete) {\
 			var tx_traffic_old = tx_traffic_complete.textContent;\
 			var rx_traffic_old = rx_traffic_complete.textContent;\
-			var interface = "'); ngx.print(interface); ngx.print('";\
+			var interface = "'); ngx.print(interface[1].value); ngx.print('";\
 			$.post("/ajax/traffic_graph.lua?interface=" + interface + \
 				"&oldrx=" + rx_traffic_old + "&oldtx=" + tx_traffic_old,\
 				[tch.elementCSRFtoken()], function(data) {\
@@ -142,3 +143,5 @@ $(document).ready(function () {\
 })\
 </script>\
 '); 
+
+end

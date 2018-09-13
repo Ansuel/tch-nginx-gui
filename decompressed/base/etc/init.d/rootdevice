@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.7.68
+version_gui=8.7.70
 
 logo_project() {
 cat << EOF > /dev/console
@@ -743,12 +743,12 @@ add_new_web_rule() {
 		uci add_list web.cards.roles='engineer'
 		uci add_list web.ruleset_main.rules='cards'
 	fi
-	if [ ! $(uci get -q web.ajaxtrafficcard) ]; then
-		uci set web.ajaxtrafficcard=rule
-		uci set web.ajaxtrafficcard.target='/ajax/traffic_graph.lp'
-		uci add_list web.ajaxtrafficcard.roles='admin' 
-		uci add_list web.ajaxtrafficcard.roles='engineer'
-		uci add_list web.ruleset_main.rules='ajaxtrafficcard'
+	if [ ! $(uci get -q web.ajaxinfotrafficcard) ]; then
+		uci set web.ajaxinfotrafficcard=rule
+		uci set web.ajaxinfotrafficcard.target='/ajax/traffic_graph.lua'
+		uci add_list web.ajaxinfotrafficcard.roles='admin' 
+		uci add_list web.ajaxinfotrafficcard.roles='engineer'
+		uci add_list web.ruleset_main.rules='ajaxinfotrafficcard'
 	fi
 }
 
