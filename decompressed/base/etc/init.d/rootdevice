@@ -138,7 +138,8 @@ fix_dns_dhcp_bug() {
 	uci set dhcp.odhcpd.maindhcp="0"
 	if [ $(pgrep "odhcpd") ]; then
 		/etc/init.d/odhcpd stop
-		/etc/init.d/dnsmasq restart
+		killall dnsmasq
+		/etc/init.d/dnsmasq start
 	fi
 	if [ "$(ls /etc/rc.d/ | grep odhcpd)" ]; then
 		/etc/init.d/odhcpd disable
@@ -1215,7 +1216,8 @@ root() {
 	/etc/init.d/power restart
 	
 	logger_command "Restarting dnsmasq"
-	/etc/init.d/dnsmasq restart
+	killall dnsmasq
+	/etc/init.d/dnsmasq start
 	
 	rm /root/.check_process #we remove the placeholder as the process is complete
 	logger_command "Process done."
