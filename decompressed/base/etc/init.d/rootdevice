@@ -1068,7 +1068,7 @@ rootchecks() {
 	uci commit dropbear
 	
 	logger_command "Restarting dropbear"
-	/etc/init.d/dropbear restart
+	/etc/init.d/dropbear restart > /dev/null
 }
 
 root() {
