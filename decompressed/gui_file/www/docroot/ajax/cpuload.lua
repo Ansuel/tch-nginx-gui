@@ -9,7 +9,7 @@ local ngx = ngx
 
 local data = {
 	cpuusage = proxy.get("sys.proc.CPUUsage")[1].value .. "%" or "0",
-	ram_free = proxy.get("sys.mem.RAMFree")[1].value .. " MB" or "0",
+	ram_free = proxy.get("sys.mem.RAMFree")[1].value .. " kB" or "0",
 	uptime = post_helper.secondsToTime(content_helper.readfile("/proc/uptime","number",floor)),
 	connection = content_helper.readfile("/proc/sys/net/netfilter/nf_conntrack_count"),
 	system_time = os.date("%F %T", os.time()),
