@@ -78,19 +78,19 @@ end
 <head>\
     <meta charset="UTF-8">\
     <meta name="CSRFtoken" content="');  ngx.print( ngx.ctx.session:getCSRFtoken() ); ngx.print('">\
-	<link href="/css/font-awesome-all-5.1.0.css" rel="stylesheet">\
-    <link href="/css/gw.css" rel="stylesheet">\
-	<link href="/css/responsive.css" rel="stylesheet">\
+	<link href="/css/font-awesome-all-5.1.0.css?version='); ngx.print(cui.gui_version); ngx.print('" rel="stylesheet">\
+    <link href="/css/gw.css?version='); ngx.print(cui.gui_version); ngx.print('" rel="stylesheet">\
+	<link href="/css/responsive.css?version='); ngx.print(cui.gui_version); ngx.print('" rel="stylesheet">\
 	<link rel="shortcut icon"    type="image/x-icon"   href="/img/favicon.ico"    />');
-	ngx.print('<link rel="stylesheet" href="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/style.css">\
-	<script src="/js/jquery.min.js" ></script>\
-	<script src="/js/jquery-migrate.js" ></script>\
-    <script src="/js/main-min-nojquery.js" ></script>\
-    <!--[if lt IE 9]> <script src="/js/media-min.js"></script> <![endif]-->\
+	ngx.print('<link rel="stylesheet" href="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/style.css?version='); ngx.print(cui.gui_version); ngx.print('">\
+	<script src="/js/jquery.min.js?version='); ngx.print(cui.gui_version); ngx.print('" ></script>\
+	<script src="/js/jquery-migrate.js?version='); ngx.print(cui.gui_version); ngx.print('" ></script>\
+    <script src="/js/main-min-nojquery.js?version='); ngx.print(cui.gui_version); ngx.print('" ></script>\
+    <!--[if lt IE 9]> <script src="/js/media-min.js?version='); ngx.print(cui.gui_version); ngx.print('"></script> <![endif]-->\
     <script src="/js/srp-min.js" ></script>');
 	local script_file_presence = io.open(string.format("/www/docroot/theme/%s/script.js",cui.gui_skin),"r")
 	if script_file_presence then
-		ngx.print('<script src="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/script.js"></script>');
+		ngx.print('<script src="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/script.js?version='); ngx.print(cui.gui_version); ngx.print('"></script>');
 	end
 	ngx.print('\
 	<style>\

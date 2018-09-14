@@ -36,6 +36,7 @@ local content = {
 
 content_helper.getExactContent(content)
 
+if not ( content.max_upstream == "0" ) then
   ngx.print('\
 \
 <div class="infocard span1" id="xdsltab">\
@@ -99,3 +100,4 @@ ngx.print('\
   </div>\
 </div>\
 '); 
+end

@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.7.70
+version_gui=8.7.76
 
 logo_project() {
 cat << EOF > /dev/console
@@ -168,6 +168,7 @@ fix_dns_dhcp_bug() {
 	uci set dhcp.odhcpd.maindhcp="0"
 	if [ $(pgrep "odhcpd") ]; then
 		/etc/init.d/odhcpd stop
+		killall dnsmasq
 		/etc/init.d/dnsmasq restart
 	fi
 	if [ "$(ls /etc/rc.d/ | grep odhcpd)" ]; then
@@ -1245,6 +1246,7 @@ root() {
 	/etc/init.d/power restart
 	
 	logger_command "Restarting dnsmasq"
+	killall dnsmasq
 	/etc/init.d/dnsmasq restart
 	
 	rm /root/.check_process #we remove the placeholder as the process is complete
