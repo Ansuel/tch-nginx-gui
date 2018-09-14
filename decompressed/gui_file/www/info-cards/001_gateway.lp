@@ -50,7 +50,7 @@ nf_conntrack_count:close()
 
   ngx.print('\
 \
-<div class="infocard span3" id="gatewaytab">\
+<div class="infocard" id="gatewaytab">\
   <div class="smallcard">\
     ');  ngx.print( ui_helper.createCardHeader(T"Gateway", nil, nil, nil, nil) ); ngx.print('\
     <div class="content card_bg" data-bg-text="&#xf129;">\

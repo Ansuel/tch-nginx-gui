@@ -39,12 +39,13 @@ ngx.print('\
     <a href="#footer" id="scroll-down" class="scroll-down" address="true"></a>\
 	<a href="#headertab" id="scroll-up"class="scroll-up hide" address="true"></a>\
 	<div id="dynamic-content" class="container">\
-      <div id="card-row" class="row" style="z-index : 2;  position: relative;">\
+      <div id="card-row" class="row" style="z-index : 2;  position: relative; display:table;">\
 	  ');
 	  	lp.setpath("/www/cards/")
           local cards = require("cards")
           for _,v in pairs(cards.cards()) do
-            lp.include(v)
+					lp.include(v)
+			
           end
           ngx.print('\
       </div>\

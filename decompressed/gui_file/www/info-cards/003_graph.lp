@@ -31,7 +31,7 @@ if interface then
 
   ngx.print('\
 \
-<div class="infocard span3" id="graphtab">\
+<div class="infocard" id="graphtab">\
   <div class="smallcard">\
     ');  ngx.print( ui_helper.createCardHeader(T"WAN Traffic", nil, nil, nil, nil) ); ngx.print('\
     <div class="content card_bg" data-bg-text="&#xf129;">\
@@ -40,7 +40,7 @@ if interface then
 	<fieldset>');
 	
 	local html = {}
-	html[#html + 1] = '<div style="height:400px"><canvas id="WANChart"></canvas></div>'
+	html[#html + 1] = '<div style="height:400px; width:700px"><canvas id="WANChart"></canvas></div>'
 	html[#html + 1] = '<div id="rx_traffic_complete" class="hide" data-bind="text: rx_traffic_complete">' .. rx_traffic .. '</div>'
 	html[#html + 1] = '<div id="tx_traffic_complete" class="hide" data-bind="text: tx_traffic_complete">' .. tx_traffic .. '</div>'
 	
@@ -62,6 +62,7 @@ function formatBytes(bytes,decimals) {\
    return (bytes / Math.pow(k, i)) > 0 ? parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i] : "0";\
 }\
 var TrafficChartOption = {\
+		responsive:true,\
 		maintainAspectRatio: false,\
         legend: {display: false},\
         scales: {\

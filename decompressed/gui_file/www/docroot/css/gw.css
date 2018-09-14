@@ -5054,9 +5054,22 @@ button.btn.btn-mini,input[type="submit"].btn.btn-mini
 	z-index:2;
 	position:relative
 }
+#infocardrow {
+	z-index : 2;  
+	position: relative;
+	display: flex;
+}
+
+#leftinfocard {
+	flex : 50%;
+}
+
+#rightinfocard {
+	flex : 50%;
+}
 
 .infocard{
-	width: 47% !important;
+	width: calc( 100% - 30px );
 }
 
 .infocard > .smallcard .content {

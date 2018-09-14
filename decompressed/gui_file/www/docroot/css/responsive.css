@@ -1418,6 +1418,14 @@
     .row,.thumbnails {
         margin-left: 0;
     }
+	
+	#infocardrow {
+		display: block;
+	}
+	
+	.infocard {
+		width: 100%;
+	}
 
     .thumbnails>li {
         float: none;
@@ -1511,9 +1519,20 @@
         padding-top: 0;
         text-align: left;
     }
+	
+	.divtable > .form-horizontal .control-label {
+		float: left;
+		width: 160px;
+		padding-top: 5px;
+		text-align: right;
+    }
 
     .form-horizontal .controls {
-        margin-left: 0;
+        margin-left: 0px;
+    }
+	
+	.divtable > .form-horizontal .controls {
+		margin-left: 180px;
     }
 
     .form-horizontal .control-list {

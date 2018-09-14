@@ -39,7 +39,7 @@ content_helper.getExactContent(content)
 if not ( content.max_upstream == "0" ) then
   ngx.print('\
 \
-<div class="infocard span1" id="xdsltab">\
+<div class="infocard" id="xdsltab">\
   <div class="smallcard">\
     ');  ngx.print( ui_helper.createCardHeader(T"xDSL Info", nil, nil, nil, nil) ); ngx.print('\
     <div class="content card_bg" data-bg-text="&#xf129;">\

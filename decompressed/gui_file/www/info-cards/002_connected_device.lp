@@ -121,7 +121,7 @@ end
 
   ngx.print('\
 \
-<div class="infocard span3" id="devicetab">\
+<div class="infocard" id="devicetab">\
   <div class="smallcard">\
     ');  ngx.print( ui_helper.createCardHeader(T"Connected Devices", nil, nil, nil, nil) ); ngx.print('\
     <div class="content card_bg" data-bg-text="&#xf129;">\
