@@ -91,11 +91,11 @@ nf_conntrack_count:close()
 	basic.span["data-bind"] = "text: cpuusage"
 	html[#html + 1] = ui_helper.createLabel(T"Cpu Usage", content["cpuusage"] .. "%", basic)
 	html[#html + 1] = '<div class="control-group">'
-	html[#html + 1] =   '<label class="control-label">' .. T("RAM") .. '</label>'
+	html[#html + 1] =   '<label class="control-label">' .. T("Free Memory") .. '</label>'
 	html[#html + 1] =   '<div class="controls">'
 	html[#html + 1] =     '<span id="Ram" class=" simple-desc span3">'
 	html[#html + 1] =		format('<span data-bind="text: ram_free">%s</span>',content["ram_free"])
-	html[#html + 1] =		format(' / %s MB', content["ram_total"])
+	html[#html + 1] =		format(' / %s kB', content["ram_total"])
 	html[#html + 1] =	  '</span>'
 	html[#html + 1] =   '</div>'
 	html[#html + 1] = '</div>'
