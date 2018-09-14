@@ -112,9 +112,8 @@ local devices_data, devices_helpmsg = post_helper.handleTableQuery(devices_colum
 
 local connected_device = {}
 
-for k, v in pairs(devices_data) do
-	local hosts = proxy.get(format("rpc.hosts.host.%s.State",k))
-	if hosts and ( hosts[1].value == "1" ) then
+for k in pairs(devices_data) do
+	if not ( devices_data[k][2] == "" ) then
 		table.insert(connected_device,devices_data[k])
 	end
 end

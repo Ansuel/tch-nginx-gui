@@ -5058,6 +5058,7 @@ button.btn.btn-mini,input[type="submit"].btn.btn-mini
 	z-index : 2;  
 	position: relative;
 	display: flex;
+	margin-left: 0px;
 }
 
 #leftinfocard {
@@ -5066,6 +5067,10 @@ button.btn.btn-mini,input[type="submit"].btn.btn-mini
 
 #rightinfocard {
 	flex : 50%;
+}
+
+#rightinfocard > .infocard {
+	width: 100%;
 }
 
 .infocard{
