@@ -52,9 +52,9 @@ local function get_status(_, _, key)
     local f = io.open("/sys/class/net/" .. key .. "/carrier")
     local status
     if f == nil or f:read("*number") ~= 1 then
-      status = "down"
+      status = "Down"
     else
-      status = "up"
+      status = "Up"
     end
     if f then
       f:close()
