@@ -83,7 +83,7 @@ nf_conntrack_count:close()
 	local html = {}
 	
 	basic.span["data-bind"] = nil
-	html[#html + 1] = ui_helper.createLabel(T"Product Name", content["product_name"], basic)
+	html[#html + 1] = ui_helper.createLabel(T"Product Name", content["friendly_product_name"], basic)
 	html[#html + 1] = ui_helper.createLabel(T"Software Version", format("%s %s",content["software_version"],content["software_name"]), basic)
 	html[#html + 1] = ui_helper.createLabel(T"Gui Version", content["gui_version"], basic)
 	basic.span["data-bind"] = "text: uptime"
