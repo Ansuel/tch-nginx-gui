@@ -77,7 +77,7 @@ local function get_mode(_, _, key)
     if speed == "" then
       return ""
     end
-    return speed .. "BT"
+    return speed .. "BASE-T"
 end
 
 sys_eth_port_i_.get = {
