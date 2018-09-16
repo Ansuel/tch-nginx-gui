@@ -1,7 +1,6 @@
 --pretranslated: do not change this file
  
 -- Enable localization
--- NG-92675 implement changes required from the customer
 
 gettext.textdomain('webui-core')
 
@@ -10,38 +9,87 @@ local content_helper = require("web.content_helper")
 local post_helper = require("web.post_helper")
 local ui_helper = require("web.ui_helper")
 
+local variant = proxy.get("uci.env.var.prod_friendly_name")[1].value or ""
 local find, sub, format = string.find, string.sub, string.format
 
-local contentonly
-local call1simple
+local mmpbxd_columns = {
+  {--[1]
+    header = T"State",
+    name = "enable",
+    param = "enable",
+    type = "light",
+	readonly = true,
+    attr = { td = { ["data-bind"] = "text: device_hostname"}, input = { class="span2" } },
+	cell_attr = 'data-bind:"text: mmpbxd_line"',
+  },
+  {--[2]
+    header = T"Status",
+    name = "sipRegisterState",
+    param = "sipRegisterState",
+    type = "text",
+    readonly = true,
+    attr = { td = { ["data-bind"] = "text: device_ipv4"},input = {  class="span1" } },
+  },
+  {--[3]
+    header = T"Number",
+    name = "uri",
+    param = "uri",
+    type = "text",
+    readonly = true,
+    attr = { td = { ["data-bind"] = "text: device_ipv4" },input = { class="span1" } },
+  },
+  {--[4]
+    header = T"Line State",
+    name = "callState",
+    param = "callState",
+    type = "text",
+    readonly = true,
+    attr = { td = { ["data-bind"] = "text: device_ipv4" },input = { class="span2" } },
+  },
+}
 
-if ngx.req.get_method() == "GET" then
-	contentonly = ngx.req.get_uri_args().contentonly or false
+local  mmpbxd_options = {
+    canEdit = false,
+    canAdd = false,
+    canDelete = false,
+    tableid = "mmpbxd",
+    basepath = "rpc.mmpbx.profile.",
+}
+
+local mmpbxd_filter = function(data)
+  if data.uri then
+    data.uri = data.uri:sub(4)
+  end
+  
+  if data.callState then
+    if ( data.callState == "MMPBX_CALLSTATE_IDLE" ) then
+	  data.callState =  T"Idle"
+    end
+	  
+    if ( data.callState == "MMPBX_CALLSTATE_DIALING" ) then
+	  data.callState =  T"Dialing"
+    end
+	  
+    if ( data.callState == "MMPBX_CALLSTATE_CALL_DELIVERED" ) then
+	  data.callState =  T"Delivered/In Progress"
+    end
+  end
+  
+  return true
+end
+
+local  mmpbxd_data,  mmpbxd_helpmsg = post_helper.handleTableQuery(mmpbxd_columns,  mmpbxd_options,  mmpbxd_filter , nil, nil)
+
+local mmpbxd_data_polish = {}
+
+for n  in pairs(mmpbxd_data) do
+	if not ( mmpbxd_data[n][2] == "" ) and ( mmpbxd_data[n][1] == "true" ) then
+		table.insert(mmpbxd_data_polish,mmpbxd_data[n])
+	end
 end
 
 local content = {
   status = "rpc.mmpbx.state",
-  mode = "rpc.mmpbx.mode",
-  
-  en1 = "rpc.mmpbx.profile.@sip_profile_0.enable",
-  en2 = "rpc.mmpbx.profile.@sip_profile_1.enable",
-  en3 = "rpc.mmpbx.profile.@sip_profile_2.enable",
-  
-  state1 = "rpc.mmpbx.profile.@sip_profile_0.sipRegisterState",
-  state2 = "rpc.mmpbx.profile.@sip_profile_1.sipRegisterState",
-  state3 = "rpc.mmpbx.profile.@sip_profile_2.sipRegisterState",
-  
-  username1 = "uci.mmpbxrvsipnet.profile.@sip_profile_0.user_name",
-  username2 = "uci.mmpbxrvsipnet.profile.@sip_profile_1.user_name",
-  username3 = "uci.mmpbxrvsipnet.profile.@sip_profile_2.user_name",
-  
-  call1 = "rpc.mmpbx.profile.@sip_profile_0.callState",
-  call2 = "rpc.mmpbx.profile.@sip_profile_1.callState",
-  call3 = "rpc.mmpbx.profile.@sip_profile_2.callState",
-  
-  uri1 = "rpc.mmpbx.profile.@sip_profile_0.uri",
-  uri2 = "rpc.mmpbx.profile.@sip_profile_1.uri",
-  uri3 = "rpc.mmpbx.profile.@sip_profile_2.uri",
 
   accCode = "uci.mmpbxbrcmdectdev.dect_base.access_code",
   baseName = "uci.mmpbxbrcmdectdev.dect_base.user_friendly_name",
@@ -50,10 +98,7 @@ local content = {
 
 }
 
-
 content_helper.getExactContent(content)
-
-
 
 if not ( content.max_upstream == "0" ) then
   ngx.print('\
@@ -71,118 +116,25 @@ if not ( content.max_upstream == "0" ) then
         class = "span3"
       },
     }
-    local advanced = {
-      group = {
-        class = "advanced hide",
-      },
-      span = {
-        class = "span5"
-      },
-    }
-	local advancedshow = {
-      group = {
-        class = "advanced show",
-      },
-      span = {
-        class = "span5"
-      },
-    }
 	
 	local html = {}
 	
-html[#html + 1] = ui_helper.createLabel(T"Status", content["status"], basic)
-html[#html + 1] = ui_helper.createLabel(T"Mode", content["mode"], basic)
-------------------------------------------------------------------------------------------------------------line1
-if ( content.en1 == "true" ) then
-html[#html + 1] = ui_helper.createLabel(T"Line 1 Status", T"Enabled", basic)                  
-else
-html[#html + 1] = ui_helper.createLabel(T"Line 1 Status", T"Disabled", basic)
-end
-html[#html + 1] = ui_helper.createLabel(T"Line 1 State", content["state1"], basic)
+html[#html + 1] = ui_helper.createLabel(T"Service", content["status"], basic)
 
-if not ( content.state1 == "Unregistered" ) then
-html[#html + 1] = ui_helper.createLabel(T"      Username", content["username1"], basic)
-
-if ( content.call1 == "MMPBX_CALLSTATE_IDLE" ) then
-html[#html + 1] = ui_helper.createLabel(T"      Call State", T"Idle", basic)
-end
-
-if ( content.call1 == "MMPBX_CALLSTATE_DIALING" ) then
-html[#html + 1] = ui_helper.createLabel(T"      Call State", T"Dialing", basic)
-end
-
-if ( content.call1 == "MMPBX_CALLSTATE_CALL_DELIVERED" ) then
-html[#html + 1] = ui_helper.createLabel(T"      Call State", T"Delivered/In Progress", basic)
-end
-
-end
-------------------------------------------------------------------------------------------------------------line2
-if ( content.en2 == "true" ) then
-html[#html + 1] = ui_helper.createLabel(T"Line 2 Status", T"Enabled", basic)                  
-else
-html[#html + 1] = ui_helper.createLabel(T"Line 2 Status", T"Disabled", basic)
-end
-
-html[#html + 1] = ui_helper.createLabel(T"Line 2 State", content["state2"], basic)                  
-if not ( content.state2 == "Unregistered" ) then
-html[#html + 1] = ui_helper.createLabel(T"      Username", content["username2"], basic)
-
-if ( content.call2 == "MMPBX_CALLSTATE_IDLE" ) then
-html[#html + 1] = ui_helper.createLabel(T"      Call State", T"Idle", basic)
-end
-
-if ( content.call2 == "MMPBX_CALLSTATE_DIALING" ) then
-html[#html + 1] = ui_helper.createLabel(T"      Call State", T"Dialing", basic)
-end
-
-if ( content.call2 == "MMPBX_CALLSTATE_CALL_DELIVERED" ) then
-html[#html + 1] = ui_helper.createLabel(T"      Call State", T"Delivered/In Progress", basic)
-end
-
-end
------------------------------------------------------------------------------------------------------------line3
-if ( content.en3 == "true" ) then
-html[#html + 1] = ui_helper.createLabel(T"Line 3 Status", T"Enabled", basic)                  
-else
-html[#html + 1] = ui_helper.createLabel(T"Line 3 Status", T"Disabled", basic)
-end
-
-html[#html + 1] = ui_helper.createLabel(T"Line 3 State", content["state3"], basic)                
-if not ( content.state3 == "Unregistered" ) then
-html[#html + 1] = ui_helper.createLabel(T"      Username", content["username3"], basic)
-
-if ( content.call3 == "MMPBX_CALLSTATE_IDLE" ) then
-html[#html + 1] = ui_helper.createLabel(T"      Call State", T"Idle", basic)
-end
-
-if ( content.call3 == "MMPBX_CALLSTATE_DIALING" ) then
-html[#html + 1] = ui_helper.createLabel(T"      Call State", T"Dialing", basic)
-end
-
-if ( content.call3 == "MMPBX_CALLSTATE_CALL_DELIVERED" ) then
-html[#html + 1] = ui_helper.createLabel(T"      Call State", T"Delivered/In Progress", basic)
-end
-
-end
 ---------------------------------------------------------------------------------------------------------DECT
-if ( content.emission == "true" ) then
-html[#html + 1] = ui_helper.createLabel(T"DECT Emission Mode ", T"Enabled", basic)
-else 
-html[#html + 1] = ui_helper.createLabel(T"DECT Emission Mode ", T"Disabled", basic)
+if ( variant == "Technicolor TG799vac" ) or ( variant == "Technicolor TG800vac" )  then
+	if ( content.emission == "1" ) then
+		html[#html + 1] = ui_helper.createLabel(T"DECT Emission Mode ", T"Enabled", basic)
+		html[#html + 1] = ui_helper.createLabel(T"Base Name", content["baseName"], basic)
+		html[#html + 1] = ui_helper.createLabel(T"Base Code", content["accCode"], basic)
+	else 
+		html[#html + 1] = ui_helper.createLabel(T"DECT Emission Mode ", T"Disabled", basic)
+	end
 end
 
-html[#html + 1] = ui_helper.createLabel(T"Base Name", content["baseName"], basic)
-html[#html + 1] = ui_helper.createLabel(T"Base Code", content["accCode"], basic)
-
-
-
+html[#html + 1] = ui_helper.createTable(mmpbxd_columns, mmpbxd_data_polish, mmpbxd_options, nil, mmpbxd_helpmsg)
 
 --------------------------------------------------------------------------------------------------------
-
-
--- html[#html + 1] = ui_helper.createLabel(T"Max Upstream Rate", content["max_upstream"] .. " kbps", basic)
-
-
 	
 	ngx.print(html)
 ngx.print('\

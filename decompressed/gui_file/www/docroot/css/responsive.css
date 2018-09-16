@@ -1497,6 +1497,24 @@
     ul.typeahead li a {
         white-space: pre-line;
     }
+	
+	.infocard > .smallcard > .content > .divtable > .form-horizontal > fieldset > .control-group > table > thead > tr {
+		display: flex;
+		flex-wrap: wrap;
+	}
+	
+	.infocard > .smallcard > .content > .divtable > .form-horizontal > fieldset > .control-group > table > thead > tr > th {
+		width: calc( 50% - 16px );
+	}
+	
+	.infocard > .smallcard > .content > .divtable > .form-horizontal > fieldset > .control-group > table > tbody > tr {
+		display: flex;
+		flex-wrap: wrap;
+	}
+	
+	.infocard > .smallcard > .content > .divtable > .form-horizontal > fieldset > .control-group > table > tbody > tr > td {
+		width: calc( 50% - 16px );
+	}
 }
 
 @media screen and (max-width: 480px) {
