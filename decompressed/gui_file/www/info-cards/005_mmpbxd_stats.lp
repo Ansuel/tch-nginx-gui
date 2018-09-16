@@ -13,15 +13,6 @@ local variant = proxy.get("uci.env.var.prod_friendly_name")[1].value or ""
 local find, sub, format = string.find, string.sub, string.format
 
 local mmpbxd_columns = {
-  {--[1]
-    header = T"State",
-    name = "enable",
-    param = "enable",
-    type = "light",
-	readonly = true,
-    attr = { td = { ["data-bind"] = "text: device_hostname"}, input = { class="span2" } },
-	cell_attr = 'data-bind:"text: mmpbxd_line"',
-  },
   {--[2]
     header = T"Status",
     name = "sipRegisterState",
@@ -57,6 +48,9 @@ local  mmpbxd_options = {
 }
 
 local mmpbxd_filter = function(data)
+  if ( data.enable == "false" ) or ( data.sipRegisterState == "" ) then
+	return false
+  end
   if data.uri then
     data.uri = data.uri:sub(4)
   end
@@ -80,13 +74,6 @@ end
 
 local  mmpbxd_data,  mmpbxd_helpmsg = post_helper.handleTableQuery(mmpbxd_columns,  mmpbxd_options,  mmpbxd_filter , nil, nil)
 
-local mmpbxd_data_polish = {}
-
-for n  in pairs(mmpbxd_data) do
-	if not ( mmpbxd_data[n][2] == "" ) and ( mmpbxd_data[n][1] == "true" ) then
-		table.insert(mmpbxd_data_polish,mmpbxd_data[n])
-	end
-end
 
 local content = {
   status = "rpc.mmpbx.state",
@@ -132,7 +119,7 @@ if ( variant == "Technicolor TG799vac" ) or ( variant == "Technicolor TG800vac" 
 	end
 end
 
-html[#html + 1] = ui_helper.createTable(mmpbxd_columns, mmpbxd_data_polish, mmpbxd_options, nil, mmpbxd_helpmsg)
+html[#html + 1] = ui_helper.createTable(mmpbxd_columns, mmpbxd_data, mmpbxd_options, nil, mmpbxd_helpmsg)
 
 --------------------------------------------------------------------------------------------------------
 	

@@ -80,9 +80,10 @@ local devices_options = {
 
 --Construct the device type based on value of L2Interface
 local devices_filter = function(data)
+
   --Display only the IP Address of physically connected devices
   if data["State"] and data["State"] == "0" then
-     data["IPAddress"] = ""
+     return false
   end
 
   if match(data["L2Interface"], "^wl0") then
@@ -90,33 +91,15 @@ local devices_filter = function(data)
   elseif match(data["L2Interface"], "^wl1") then
     data["InterfaceType"] = "wireless - 5GHz"
   elseif match(data["L2Interface"], "eth*") then
-    data["InterfaceType"] = "Ethernet"
+    data["InterfaceType"] = "Ethernet - " .. data.Port
   elseif match(data["L2Interface"], "moca*") then
     data["InterfaceType"] = "MoCA"
   end
 
-  --Display some default device type, when DeviceType entry is empty
-  if data["DeviceType"] == "" then
-    if match(data["L2Interface"], "eth*") then
-      data["DeviceType"] = "DesktopComputer"
-    elseif match(data["L2Interface"], "^wl*") then
-      data["DeviceType"] = "Phone"
-    else
-      data["DeviceType"] = "unknown"
-    end
-  end
   return true
 end
 
 local devices_data, devices_helpmsg = post_helper.handleTableQuery(devices_columns, devices_options, devices_filter , nil, device_valid)
-
-local connected_device = {}
-
-for k in pairs(devices_data) do
-	if not ( devices_data[k][2] == "" ) then
-		table.insert(connected_device,devices_data[k])
-	end
-end
 
   ngx.print('\
 \
@@ -135,7 +118,7 @@ end
     }
 	
 	ajaxbasic.table["data-bind"] = "text: device_connected"
-    html[#html + 1] = ui_helper.createTable(devices_columns, connected_device, devices_options, ajaxbasic, devices_helpmsg)
+    html[#html + 1] = ui_helper.createTable(devices_columns, devices_data, devices_options, ajaxbasic, devices_helpmsg)
 	
 	ngx.print(html)
 ngx.print('\
