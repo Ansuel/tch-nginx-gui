@@ -220,6 +220,23 @@ ngx.print(html)
 ngx.print('\
 </div>\
 <script>\
+var target = $(".modal form").attr("action");\
+\
+function post(action) {\
+  $.post(\
+    target,\
+    { action: action, CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
+    null,\
+    "json"\
+  );\
+  return false;\
+}\
+function checkupdate() {\
+	post("checkver");\
+	 var processMsg = "');  ngx.print(T'Checking...'); ngx.print('";\
+	 tch.showProgress(processMsg);\
+	 setTimeout(function(){location.reload();}, 4000);\
+}\
 var KoRequest = [];\
 $(function() {\
 \
@@ -259,23 +276,9 @@ $(function() {\
 	KoRequest = [];\
   });\
 \
-  var target = $(".modal form").attr("action");\
-\
-  function post(action) {\
-    $.post(\
-      target,\
-      { action: action, CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
-      null,\
-      "json"\
-    );\
-    return false;\
-  }\
 \
   $("#update").on("click", function() {\
-     post("checkver");\
-	 var processMsg = "');  ngx.print(T'Checking...'); ngx.print('";\
-	 tch.showProgress(processMsg);\
-	 setTimeout(function(){location.reload();}, 4000);\
+     checkupdate();\
      });\
   $("#upgradebtn").on("hover",\
 	function() {\
