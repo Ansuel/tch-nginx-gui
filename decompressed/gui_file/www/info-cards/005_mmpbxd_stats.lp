@@ -51,7 +51,7 @@ local mmpbxd_filter = function(data)
   if ( data.enable == "false" ) or ( data.sipRegisterState == "" ) then
 	return false
   end
-  if data.uri then
+  if data.uri and data.uri:match("+") then
     data.uri = data.uri:sub(4)
   end
   
