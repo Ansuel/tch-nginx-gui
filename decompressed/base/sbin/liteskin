@@ -1,0 +1,19 @@
+#!/bin/sh
+
+if [ $1 == "replace" ]
+then
+curl https://raw.githubusercontent.com/kevdagoat/tch-nginx-gui-LITE/master/GUI-lite.tar.bz2 --output /tmp/lite.tar.bz2
+cp -r /www/cards /www/cards-original
+bzcat /tmp/lite.tar.bz2 | tar -C / -xvf -
+fi
+
+if [ $1 == "restore" ]
+    then
+    cp -r /www/cards-original /www/cards
+  fi 
+
+if [ -z $1 ]
+then
+echo "Specify an option"
+exit 1
+fi
