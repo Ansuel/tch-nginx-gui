@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.7.85
+version_gui=8.7.92
 
 logo_project() {
 cat << EOF > /dev/console
@@ -275,6 +275,9 @@ cumulative_check_gui() {
 	fi
 	if [ ! $(uci get -q env.var.firstpage) ]; then
 		uci set env.var.firstpage="stats"
+	fi
+	if [ ! $(uci get -q env.var.randomcolor) ]; then
+		uci set env.var.randomcolor="0"
 	fi
 }
 

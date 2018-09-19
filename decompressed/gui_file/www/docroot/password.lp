@@ -217,7 +217,7 @@ end
     </div>\
 ');
 	local lp = require("web.lp")
-	lp.setpath("/www/header-footer/")
+	lp.setpath("/www/gateway-snippets/")
 	lp.include("footer.lp")
 ngx.print('\
   </div>\

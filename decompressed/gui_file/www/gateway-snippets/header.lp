@@ -25,7 +25,8 @@ local cui = {
 	new_ver = "uci.env.var.new_ver",
 	autoupgrade_hour= "uci.env.var.autoupgrade_hour",
 	autoupgrade_view = "uci.env.var.autoupgradeview",
-	firstpage = "uci.env.var.firstpage"
+	firstpage = "uci.env.var.firstpage",
+	randomcolor = "uci.env.var.randomcolor",
 }
 
 content_helper.getExactContent(cui)
@@ -239,7 +240,16 @@ function checkupdate() {\
 }\
 var KoRequest = [];\
 $(function() {\
-\
+'); if cui.randomcolor == "1" then ngx.print('\
+   setInterval(function() {\
+      var colorR = Math.floor((Math.random() * 256));\
+      var colorG = Math.floor((Math.random() * 256));\
+      var colorB = Math.floor((Math.random() * 256));\
+	  $(":root").get(0).style.setProperty("--first-color-accent", "rgb(" + colorR + "," + colorG + "," + colorB + ")");\
+	  $(":root").get(0).style.setProperty("--first-color-accent-50", "rgba(" + colorR + "," + colorG + "," + colorB + ", 0.5)");\
+	  $(":root").get(0).style.setProperty("--first-color-accent-80", "rgba(" + colorR + "," + colorG + "," + colorB + ", 0.8)");\
+	}, 750);')
+end ngx.print('\
   var pathname = document.location.pathname;\
   var page = "'); ngx.print(pageselector.page); ngx.print ('";\
   var text = "'); ngx.print(pageselector.text); ngx.print ('";\
