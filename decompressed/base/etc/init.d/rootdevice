@@ -514,6 +514,10 @@ restore_original_mapper() {
 		rm $target$mapper/bbf/VoiceService.VoiceProfile.Line.map
 		cp $orig_dir$mapper/bbf/VoiceService.VoiceProfile.Line.map $orig_dir$mapper/bbf/
 	fi #Solve some problems with cwmp AGTEF_1.0.3
+	
+	#Remove ignored Root device naming from transformer
+	uci del_list transformer.@main[0].ignore_patterns='^Device%.'
+	uci del_list transformer.@main[0].ignore_patterns='^InternetGatewayDevice%.'
 }
 
 transformer_lib_check() {
@@ -1111,7 +1115,7 @@ root() {
 	logger_command "Stopping nginx and transformer"
 	while [ "$(pgrep "nginx")" ]; do
 		if [ "$(pgrep "nginx")" ]; then
-			/etc/init.d/nginx stop
+			/etc/init.d/nginx stop > /dev/null
 		fi
 	done
 		
