@@ -31,6 +31,9 @@ local content = {
 
 content_helper.getExactContent(content)
 
+content["ram_free"] = math.floor(tonumber(content["ram_free"]) / 1024) 
+content["ram_total"] = math.floor(tonumber(content["ram_total"]) / 1024) 
+
 if content["friendly_product_name"] and content["friendly_product_name"] == "AGHP" then
 	content["friendly_product_name"] = "AGTHP" --Wrong product name by telecom!
 end
@@ -102,7 +105,7 @@ nf_conntrack_count:close()
 	html[#html + 1] =   '<div class="controls">'
 	html[#html + 1] =     '<span id="Ram" class=" simple-desc span3">'
 	html[#html + 1] =		format('<span data-bind="text: ram_free">%s</span>',content["ram_free"])
-	html[#html + 1] =		format(' / %s kB', content["ram_total"])
+	html[#html + 1] =		format(' / %s MB', content["ram_total"])
 	html[#html + 1] =	  '</span>'
 	html[#html + 1] =   '</div>'
 	html[#html + 1] = '</div>'

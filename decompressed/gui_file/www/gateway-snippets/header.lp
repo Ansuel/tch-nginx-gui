@@ -129,7 +129,7 @@ ngx.print('\
 			html[#html + 1] = '<div class="btn" id="wizard-btn" data-toggle="modal" data-remote="modals/wizard-modal.lp">' .. T"Setup Wizard" .. '</div>'
 			html[#html + 1] = '</div>'
 			html[#html + 1] = '<div class="header-sub-button">'
-			html[#html + 1] =   '<div class="btn" id="cards">' 
+			html[#html + 1] =   '<div class="btn" id="swtichbuttom">' 
 			html[#html + 1] =     '<span id="refresh-cards"></span>'
 			html[#html + 1] =     '<span id="cards-text">' .. pageselector.text .. '</span>'
 			html[#html + 1] =   '</div>'
@@ -263,7 +263,7 @@ end ngx.print('\
   	text = "'); ngx.print(T"Stats"); ngx.print ('";\
 	$("#cards-text").text(text);\
   }\
-  $("#cards").on("click", function() {\
+  $("#swtichbuttom").on("click", function() {\
     var pathname = document.location.pathname;\
 	var text = "'); ngx.print(pageselector.othertext); ngx.print ('";\
 	if (pathname == "/stats.lp") {\

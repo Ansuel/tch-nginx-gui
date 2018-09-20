@@ -286,10 +286,9 @@ a:hover,a:focus
 {
 	float:left;
 	min-height:1px;
-	margin-left:20px
 }
 
-.container,.navbar-static-top .container,.navbar-fixed-top .container,.navbar-fixed-bottom .container
+.navbar-static-top .container,.navbar-fixed-top .container,.navbar-fixed-bottom .container
 {
 	width:940px
 }
@@ -5046,7 +5045,7 @@ button.btn.btn-mini,input[type="submit"].btn.btn-mini
 {
 	font-family:Helvetica,Arial,sans-serif;
 	background-color:#fff;
-	margin-bottom:20px;
+	margin: 0.6rem;
 	-webkit-box-shadow:0 2px 20px 0 rgba(203,43,190,0.50);
 	-moz-box-shadow:0 2px 20px 0 rgba(203,43,190,0.50);
 	box-shadow:0 2px 20px 0 rgba(203,43,190,0.50);
@@ -5054,11 +5053,23 @@ button.btn.btn-mini,input[type="submit"].btn.btn-mini
 	z-index:2;
 	position:relative
 }
+
 #infocardrow {
 	z-index : 2;  
 	position: relative;
 	display: flex;
 	margin-left: 0px;
+	flex-wrap: wrap;
+    justify-content: center;
+}
+
+#cardrow {
+	z-index : 2;  
+	position: relative;
+	display: flex;
+    flex-wrap: wrap;
+	margin-left: 0px;
+    justify-content: center;
 }
 
 #leftinfocard {
@@ -5069,12 +5080,12 @@ button.btn.btn-mini,input[type="submit"].btn.btn-mini
 	flex : 50%;
 }
 
-#rightinfocard > .infocard {
-	width: 100%;
+.infocard{
+	padding: 10px;
 }
 
-.infocard{
-	width: calc( 100% - 30px );
+.infocard > .smallcard{
+	margin: 0px;
 }
 
 .infocard > .smallcard .content {
@@ -5089,6 +5100,7 @@ button.btn.btn-mini,input[type="submit"].btn.btn-mini
 .smallcard .header
 {
 	overflow-y:hidden;
+	overflow-x:hidden;
 	font-size:18px;
 	margin-bottom:10px;
 	padding:10px;
@@ -7230,7 +7242,8 @@ form .switch
 
 .header-button {
   float: right;
-  display: inline-block;
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .header-sub-button {

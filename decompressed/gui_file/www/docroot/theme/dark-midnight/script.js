@@ -5,10 +5,10 @@ var styleEl = document.createElement('style'), styleSheet;
 document.head.appendChild(styleEl);
 styleSheet = styleEl.sheet;
 
-styleSheet.insertRule('.row .smallcard .content { transform: translateY( 0px);}');
+styleSheet.insertRule('#cardrow > .span3 > .smallcard > .content { transform: translateY( 0px);}');
 var ruleR1 = styleSheet.cssRules[0];
 
-styleSheet.insertRule('#card-row { marginLeft: 0;}');
+styleSheet.insertRule('#cardrow { marginLeft: 0;}');
 var ruleR2 = styleSheet.cssRules[0];
 
 styleSheet.insertRule('.apprise-overlay { opacity: 0 !important; pointer-events: none}');
@@ -35,8 +35,8 @@ $(document).ready(
     document.querySelector('.apprise-overlay').style.opacity = "";
     $(document).off("touchend", '[data-toggle\x3d"modal"]');
     $(document).off("touchend", ".smallcard");
-  	
-    if (document.querySelector('#card-row') != null){
+	
+    if (document.querySelector('#cardrow') != null){
       window.onresize = updateHeight;
       updateHeight();
       closeNav();
@@ -51,7 +51,7 @@ $(document).ready(
         closeNav();
       });
   
-      document.querySelector('#card-row').addEventListener('click', function (e) {
+      document.querySelector('#cardrow').addEventListener('click', function (e) {
   	  if (e.target.childNodes.length == 2 && e.target.childNodes[0].nodeName == "DIV" && e.target.childNodes[1].nodeName == "DIV")
   		e.target.childNodes[0].click();
   		
@@ -99,7 +99,7 @@ function closeNav() {
 	ruleR2.style.marginLeft  = "-15.5rem";
 	ruleR2.style.overflow = "visible";
 	ruleR3.style.zIndex = "2";
-	ruleR7.style.zIndex = "3";
+	ruleR7.style.zIndex = "6";
 	ruleR3.style.opacity = "0";
 	ruleR5.style.filter = "brightness(1)";
 	ruleR3.style.pointerEvents  = "none";

@@ -39,7 +39,7 @@ ngx.print('\
     <a href="#footer" id="scroll-down" class="scroll-down" address="true"></a>\
 	<a href="#headertab" id="scroll-up"class="scroll-up hide" address="true"></a>\
 	<div id="dynamic-content" class="container">\
-      <div id="card-row" class="row" style="z-index : 2;  position: relative; display:table;">\
+      <div id="cardrow" class="row">\
 	  ');
 	  	lp.setpath("/www/cards/")
           local cards = require("cards")

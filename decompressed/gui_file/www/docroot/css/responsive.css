@@ -137,10 +137,9 @@
     [class*="span"] {
         /* float:left; */
         min-height: 1px;
-        margin-left: 30px;
     }
 
-    .container,.navbar-static-top .container,.navbar-fixed-top .container,.navbar-fixed-bottom .container {
+    .navbar-static-top .container,.navbar-fixed-top .container,.navbar-fixed-bottom .container {
         width: 1470px;
     }
 
@@ -541,10 +540,9 @@
     [class*="span"] {
         /* float:left; */
         min-height: 1px;
-        margin-left: 30px;
     }
 
-    .container,.navbar-static-top .container,.navbar-fixed-top .container,.navbar-fixed-bottom .container {
+    .navbar-static-top .container,.navbar-fixed-top .container,.navbar-fixed-bottom .container {
         width: 1170px;
     }
 
@@ -964,10 +962,9 @@
     [class*="span"] {
         float: left;
         min-height: 1px;
-        margin-left: 20px;
     }
 
-    .container,.navbar-static-top .container,.navbar-fixed-top .container,.navbar-fixed-bottom .container {
+    .navbar-static-top .container,.navbar-fixed-top .container,.navbar-fixed-bottom .container {
         width: 724px;
     }
 
@@ -1421,6 +1418,11 @@
 	
 	#infocardrow {
 		display: block;
+	}
+	
+	
+	#swtichbuttom {
+		width: 70%;
 	}
 	
 	.infocard {

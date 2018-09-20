@@ -19,7 +19,7 @@ local leftcard = {}
 
 ngx.print('\
 <div id="dynamic-content" class="container">\
-<div id ="infocardrow" class="row">\
+  <div id ="infocardrow" class="row">\
 ')
 lp.setpath("/www/info-cards/")
        local cards = require("cards")
@@ -43,7 +43,9 @@ lp.setpath("/www/info-cards/")
 	end
 	ngx.print( '</div>' )
 
-ngx.print('</div>\
+ngx.print('\
+  </div>\
+</div>\
 <script>\
 AOS.init();\
 \

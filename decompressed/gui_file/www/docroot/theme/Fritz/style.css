@@ -1,4 +1,4 @@
-.container, .row, .span3, .span12{
+.span12{
  margin: 0;
  padding: 0;
 }
@@ -18,7 +18,7 @@
   margin-right: 2rem;
 }
 
-#card-row, .row[style="position: relative; z-index: 2;"]{
+#cardrow, .row[style="position: relative; z-index: 2;"]{
  width: 15.5rem;
  top: 6.3rem;
  margin: 1.5rem 0.5rem 0 0;
@@ -28,7 +28,6 @@
  position: fixed !important;
  max-height: calc(100% - 18rem);
 }
-
 
 #headertab {
  position: fixed !important;
@@ -81,7 +80,7 @@ body{
 #footer{
  position: fixed;
  bottom: 0.5rem;
- left: 1rem;
+ left: 2.5rem;
  width: 14rem;
 }
 
@@ -593,6 +592,21 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
  overflow: hidden;
 }
 
+#infocardrow {
+    top: 6rem;
+}
+
+.card_bg:after {
+    color: #b4b4b440;
+}
+
+.smallcard > .header {
+	background-color: #006ec0;
+	color: #ffffff;
+	background-image: unset;
+    border: unset;
+}
+
 @media only screen and (max-width: 18rem){
  div.span3 .content{
   display:none;
@@ -965,11 +979,11 @@ div.span3:nth-of-type(13) .content{
 }
 
 @media only screen and (min-width: 50rem){
- #card-row, .row[style="position: relative; z-index: 2;"]{
+ #cardrow, .row[style="position: relative; z-index: 2;"]{
   margin-left: 0 !important;
   overflow-y: auto !important;
  }
- _::-webkit-full-page-media, _:future, :root #card-row{
+ _::-webkit-full-page-media, _:future, :root #cardrow{
   overflow-y: visible !important;
  }
  .open>.dropdown-menu{
@@ -1006,6 +1020,7 @@ div.span3:nth-of-type(13) .content{
   height: 3.75rem;
   padding: 0px;
   margin: 0px;
+  z-index: 6;
  }
  
  #headertab > .row {
@@ -1023,6 +1038,11 @@ div.span3:nth-of-type(13) .content{
   line-height: 3.75rem;
   cursor: pointer;
  }
+ 
+ #swtichbuttom {
+	display: unset;
+	    top: 0.9rem;
+ }
 
  .header picture, .copyright{
   display:none;
@@ -1032,7 +1052,7 @@ div.span3:nth-of-type(13) .content{
   -webkit-overflow-scrolling: touch;
  }
 
- #card-row, .row[style="position: relative; z-index: 2;"]{
+ #cardrow, .row[style="position: relative; z-index: 2;"]{
   width: 15.5rem;
   top: 0px;
   margin: 0;

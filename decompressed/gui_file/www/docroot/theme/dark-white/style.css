@@ -1,4 +1,4 @@
-.container, .row, .span3, .span12{
+.span12{
  margin: 0;
  padding: 0;
 }
@@ -18,7 +18,7 @@
   margin-right: 2rem;
 }
 
-#card-row, .row[style="position: relative; z-index: 2;"]{
+#cardrow, .row[style="position: relative; z-index: 2;"]{
  width: 16.5rem;
  top: 4.8rem;
  margin: 1.5rem 0.5rem 0 0;
@@ -31,8 +31,6 @@
 #upgrade-alert {
 	margin: 10px 0px 0px 0px;
 }
-
-
 
 #headertab {
  position: fixed !important;
@@ -65,7 +63,6 @@ body{
  padding: 0;
  overflow-y: auto;
 }
-
 .header{
  background-color: #000000;
 }
@@ -81,10 +78,8 @@ body{
 #footer{
  position: fixed;
  bottom: 0.5rem;
- left: 1rem;
+ left: 2.5rem;
  width: 14rem;
-		   
-				   
 }
 
 .gateway_bg, .popUpBG{
@@ -624,6 +619,10 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 	border: 1px solid #000000
 }
 
+.card_bg:after {
+    color: #b4b4b440;
+}
+
 .light.green
 {
 	background-color:#00bbff;
@@ -632,6 +631,18 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 	-moz-box-shadow:inset 0 1px 3px rgba(255,255,255,.5),0 0 4px rgba(0,187, 255);
 	box-shadow:inset 0 1px 3px rgba(255,255,255,.5), 0 0 4px rgb(0, 187, 255)
 }
+
+#infocardrow {
+    top: 6rem;
+}
+
+.smallcard > .header {
+	background-color: #000000;
+	color: #ffffff;
+	background-image: unset;
+    border: unset;
+}
+
 
 ::-webkit-scrollbar-thumb{ background-color: #fff; } 
 ::-webkit-scrollbar-thumb:hover{ background-color: #9e9e9e;} 
@@ -1011,16 +1022,16 @@ div.span3:nth-of-type(13) .content{
 }
 
 @media only screen and (min-width: 51rem){
- #card-row, .row[style="position: relative; z-index: 2;"]{
+ #cardrow, .row[style="position: relative; z-index: 2;"]{
   margin-left: 0 !important;
   overflow-y: auto !important;
  }
- _::-webkit-full-page-media, _:future, :root #card-row{
+ _::-webkit-full-page-media, _:future, :root #cardrow{
   overflow-y: visible !important;
  }
  .open>.dropdown-menu{
   margin-top:-1.2rem;
-  margin-right: 7rem;
+  margin-right: 12.5rem;
   max-width:  650px;
  }
 
@@ -1053,6 +1064,7 @@ div.span3:nth-of-type(13) .content{
   height: 3.75rem;
   padding: 0px;
   margin: 0px;
+  z-index: 6;			 
  }
  
  #headertab > .row {
@@ -1070,6 +1082,11 @@ div.span3:nth-of-type(13) .content{
   cursor: pointer;
  }
 
+ #swtichbuttom {
+	display: unset;
+	    top: 0.9rem;
+ }
+ 
  .header picture, .copyright{
   display:none;
  }
@@ -1078,7 +1095,7 @@ div.span3:nth-of-type(13) .content{
   -webkit-overflow-scrolling: touch;
  }
 
- #card-row, .row[style="position: relative; z-index: 2;"]{
+ #cardrow, .row[style="position: relative; z-index: 2;"]{
   width: 15.5rem;
   top: 0px;
   margin: 0;
