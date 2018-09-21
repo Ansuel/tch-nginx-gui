@@ -275,6 +275,7 @@ end ngx.print('\
 		text = "'); ngx.print(T"Cards"); ngx.print ('";\
 	}\
 	$("#dynamic-content").load(page + "?contentonly=true");\
+	$(this).trigger("switchcard");\
 	window.history.pushState("gateway", "Gateway - Cards", page);\
 	$("#cards-text").text(text);\
 	$("#refresh-cards").show();\

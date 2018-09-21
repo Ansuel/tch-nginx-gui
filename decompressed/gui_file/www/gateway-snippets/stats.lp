@@ -18,7 +18,7 @@ local rightcard = {}
 local leftcard = {}
 
 ngx.print('\
-<div id="dynamic-content" class="container">\
+<div id="dynamic-content">\
   <div id ="infocardrow" class="row">\
 ')
 lp.setpath("/www/info-cards/")

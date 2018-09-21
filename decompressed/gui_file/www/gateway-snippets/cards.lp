@@ -38,7 +38,7 @@ ngx.print('\
   </div>\
     <a href="#footer" id="scroll-down" class="scroll-down" address="true"></a>\
 	<a href="#headertab" id="scroll-up"class="scroll-up hide" address="true"></a>\
-	<div id="dynamic-content" class="container">\
+	<div id="dynamic-content">\
       <div id="cardrow" class="row">\
 	  ');
 	  	lp.setpath("/www/cards/")

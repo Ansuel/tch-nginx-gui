@@ -8,7 +8,7 @@ styleSheet = styleEl.sheet;
 styleSheet.insertRule('#cardrow > .span3 > .smallcard > .content { transform: translateY( 0px);}');
 var ruleR1 = styleSheet.cssRules[0];
 
-styleSheet.insertRule('#cardrow { marginLeft: 0;}');
+styleSheet.insertRule('#headerbox { marginLeft: 0;}');
 var ruleR2 = styleSheet.cssRules[0];
 
 styleSheet.insertRule('.apprise-overlay { opacity: 0 !important; pointer-events: none}');
@@ -26,19 +26,24 @@ var ruleR6 = styleSheet.cssRules[0];
 styleSheet.insertRule('#headertab {}');
 var ruleR7 = styleSheet.cssRules[0];
 
-window.addEventListener('scroll', function(){
-	ruleR1.style.transform = 'translateY( -' + window.scrollY + 'px)';
-});
-
-$(document).ready(
-    function() {
-    document.querySelector('.apprise-overlay').style.opacity = "";
-    $(document).off("touchend", '[data-toggle\x3d"modal"]');
-    $(document).off("touchend", ".smallcard");
-	
-    if (document.querySelector('#cardrow') != null){
-      window.onresize = updateHeight;
-      updateHeight();
+function themescript() {
+	if ( $("#cardrow").length ) {
+	  $("#dynamic-content").append("<div id='headerbox'></div>");
+	  var num=1;
+	  $('.smallcard>.header').each(function() {
+		  $(this).attr('id', "headerid"+num);
+	  	$(this).detach().appendTo('#headerbox');
+		num++;
+	  });
+	  num = 1;
+	  $('.smallcard>.content').each(function() {
+		  $(this).attr('id', "cardid"+num);
+		  num++;
+	  });
+	  num = 1;
+	  if (document.querySelector('#headerbox') != null){
+      //window.onresize = updateHeight;
+      //updateHeight();
       closeNav();
       document.querySelector('#headertab').addEventListener('click', function (e) {
   	  if (e.pageX != 0 && e.pageY !=0){
@@ -51,15 +56,34 @@ $(document).ready(
         closeNav();
       });
   
-      document.querySelector('#cardrow').addEventListener('click', function (e) {
+      document.querySelector('#headerbox').addEventListener('click', function (e) {
   	  if (e.target.childNodes.length == 2 && e.target.childNodes[0].nodeName == "DIV" && e.target.childNodes[1].nodeName == "DIV")
   		e.target.childNodes[0].click();
   		
-  	  closeNav();
+  	    closeNav();
       });
-    }
-  }
-)
+	  
+      }
+	  $(".content.card_bg").on("click", function() {
+	  	var id = $(this).attr('id').replace(/cardid/, '');
+	  	$("#headerid"+id)[0].click();
+	  });
+	}
+}
+
+$(document).ready(
+    function() {
+	 
+    document.querySelector('.apprise-overlay').style.opacity = "";
+    $(document).off("touchend", '[data-toggle\x3d"modal"]');
+    $(document).off("touchend", ".smallcard");
+	
+	themescript();
+	
+	$("#swtichbuttom").on("switchcard", function() {
+		setTimeout(themescript, 3000);
+	});
+});
 
 var blockHeight = false;
 var modalOpen = false;

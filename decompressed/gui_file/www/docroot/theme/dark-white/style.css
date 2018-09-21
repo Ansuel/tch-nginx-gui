@@ -18,13 +18,13 @@
   margin-right: 2rem;
 }
 
-#cardrow, .row[style="position: relative; z-index: 2;"]{
+#headerbox {
  width: 16.5rem;
  top: 4.8rem;
  margin: 1.5rem 0.5rem 0 0;
  background-color: #fff;
  font-size: 1.125rem;
- position: fixed !important;
+ position: absolute;
  max-height: 60%;
 }
 
@@ -36,6 +36,10 @@
  position: fixed !important;
  width: 100%;
  z-index: 3;
+}
+
+#headerbox > .header {
+	cursor: pointer;
 }
 
 .container{
@@ -82,6 +86,9 @@ body{
  width: 14rem;
 }
 
+.container > #footer {
+	position: unset;
+}
 .gateway_bg, .popUpBG{
  visibility: hidden;
  display: none;
@@ -247,7 +254,6 @@ input.span3, input.span3:focus, textarea, input[type="text"], input[type="passwo
 }
 
 .logo-technicolor{
- position: fixed;
  top: 0;
  height: 6.25rem;
  display: flex;
@@ -270,7 +276,6 @@ div.logo-technicolor a{
 
 .copyright{
  display:table;
- position: absolute;
  bottom: 10px;
 }
 
@@ -540,6 +545,9 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 .span8{
  width:auto;
 }
+#cardrow > .span3 {
+	margin: 10px;
+}
 
 .smallcard p.subinfos{
  margin-left: 20px;
@@ -556,12 +564,10 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 }
 
 .span3 .smallcard .content{
- position: fixed;
  background-color: #fff;
  overflow: hidden;
  font-weight: 500;
  height: 8rem;
- width: 14rem;
 }
 
 .span3 .smallcard .card_bg:after{
@@ -579,7 +585,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
   box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 4px rgba(0, 0, 0, 0.1) inset;
 }
 
-.span3 .smallcard .header{
+#headerbox > .header{
  margin-bottom: 0px;
  background-image: none;
  background-color: #ffffff;
@@ -588,6 +594,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
  border-bottom: none;
  white-space: nowrap;
  overflow: hidden;
+ padding: 0px;			  
 }
 
 .alert-info
@@ -656,374 +663,18 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
  }
 }
 
-@media only screen and (min-width: 18rem){
- div.span3 .content{
-  left: 50%;
-  top: 268rem;
- }
- 
- div.span3:nth-of-type(26) .content{
-  top: 258rem;
- }
- 
- div.span3:nth-of-type(25) .content{
-  top: 248rem;
- }
- 
- div.span3:nth-of-type(24) .content{
-  top: 238rem;
- }
- 
- div.span3:nth-of-type(23) .content{
-  top: 228rem;
- }
- 
- div.span3:nth-of-type(22) .content{
-  top: 218rem;
- }
- 
- div.span3:nth-of-type(21) .content{
-  top: 208rem;
- }
- 
- div.span3:nth-of-type(20) .content{
-  top: 198rem;
- }
- 
- div.span3:nth-of-type(19) .content{
-  top: 188rem;
- }
- 
- div.span3:nth-of-type(18) .content{
-  top: 178rem;
- }
- 
- div.span3:nth-of-type(17) .content{
-  top: 168rem;
- }
- 
- div.span3:nth-of-type(16) .content{
-  top: 158rem;
- }
- 
- div.span3:nth-of-type(15) .content{
-  top: 148rem;
- }
- 
-div.span3:nth-of-type(14) .content{
-  top: 138rem;
- }
- 
-div.span3:nth-of-type(13) .content{
-  top: 128rem;
- }
- 
- div.span3:nth-of-type(12) .content{
-  top: 118rem;
- }
-
- div.span3:nth-of-type(11) .content{
-  top: 108rem;
- }
-
- div.span3:nth-of-type(10) .content{
-  top: 98rem;
- }
-
- div.span3:nth-of-type(9) .content{
-  top: 88rem;
- }
-
- div.span3:nth-of-type(8) .content{
-  top: 78rem;
- }
-
- div.span3:nth-of-type(7) .content{
-  top: 68rem;
- }
-
- div.span3:nth-of-type(6) .content{
-  top: 58rem;
- }
-
- div.span3:nth-of-type(5) .content{
-  top: 48rem;
- }
-
- div.span3:nth-of-type(4) .content{
-  top: 38rem;
- }
-
- div.span3:nth-of-type(3) .content{
-  top: 28rem;
- }
-
- div.span3:nth-of-type(2) .content{
-  top: 18rem;
- }
-
- div.span3:nth-of-type(1) .content{
-  top: 8rem;
- }
-}
-
-@media only screen and (min-width: 33rem){
- div.span3:nth-of-type(2n+1) .content{
-  left: calc(50% - 8rem);
- }
-
- div.span3:nth-of-type(2n) .content{
-  left: calc(50% + 8rem);
- }
-
- div.span3:nth-of-type(-n+26) .content{
-  top: 128rem;
- }
-
-  div.span3:nth-of-type(-n+24) .content{
-  top: 118rem;
- }
-
-  div.span3:nth-of-type(-n+22) .content{
-  top: 108rem;
- }
-
- div.span3:nth-of-type(-n+20) .content{
-  top: 98rem;
- }
-
- div.span3:nth-of-type(-n+18) .content{
-  top: 88rem;
- }
-
- div.span3:nth-of-type(-n+16) .content{
-  top: 78rem;
- }
-
- div.span3:nth-of-type(-n+14) .content{
-  top: 68rem;
- }
-
- div.span3:nth-of-type(-n+12) .content{
-  top: 58rem;
- }
-
- div.span3:nth-of-type(-n+10) .content{
-  top: 48rem;
- }
-
- div.span3:nth-of-type(-n+8) .content{
-  top: 38rem;
- }
-
- div.span3:nth-of-type(-n+6) .content{
-  top: 28rem;
- }
-
- div.span3:nth-of-type(-n+4) .content{
-  top: 18rem;
- }
-
- div.span3:nth-of-type(-n+2) .content{
-  top: 8rem;
- }
-}
-
-@media only screen and (min-width: 66rem){
- div.span3:nth-of-type(3n+1) .content{
-  left: calc(50% - 16rem);
- }
-
- div.span3:nth-of-type(3n+2) .content{
-  left: calc(50%);
- }
-
- div.span3:nth-of-type(3n) .content{
-  left: calc(50% + 16rem);
- }
- 
- div.span3:nth-of-type(-n+27) .content{
-  top: 88rem;
- }
-
- div.span3:nth-of-type(-n+24) .content{
-  top: 78rem;
- }
-
- div.span3:nth-of-type(-n+21) .content{
-  top: 68rem;
- }
-
- div.span3:nth-of-type(-n+18) .content{
-  top: 58rem;
- }
-
- div.span3:nth-of-type(-n+15) .content{
-  top: 48rem;
- }
-
- div.span3:nth-of-type(-n+12) .content{
-  top: 38rem;
- }
-
- div.span3:nth-of-type(-n+9) .content{
-  top: 28rem;
- }
-
- div.span3:nth-of-type(-n+6) .content{
-  top: 18rem;
- }
-
- div.span3:nth-of-type(-n+3) .content{
-  top: 8rem;
- }
-}
-
-@media only screen and (min-width: 82rem){
- div.span3:nth-of-type(4n+1) .content{
-  left: calc(50% - 24rem);
- }
-
- div.span3:nth-of-type(4n+2) .content{
-  left: calc(50% - 8rem);
- }
-
- div.span3:nth-of-type(4n+3) .content{
-  left: calc(50% + 8rem);
- }
-
- div.span3:nth-of-type(4n) .content{
-  left: calc(50% + 24rem);
- }
- 
- div.span3:nth-of-type(-n+26) .content{
-  top: 68rem;
- }
- 
- div.span3:nth-of-type(-n+24) .content{
-  top: 58rem;
- }
-
- div.span3:nth-of-type(-n+20) .content{
-  top: 48rem;
- }
-
- div.span3:nth-of-type(-n+16) .content{
-  top: 38rem;
- }
-
- div.span3:nth-of-type(-n+12) .content{
-  top: 28rem;
- }
-
- div.span3:nth-of-type(-n+8) .content{
-  top: 18rem;
- }
-
- div.span3:nth-of-type(-n+4) .content{
-  top: 8rem;
- }
-}
-
-@media only screen and (min-width: 98rem){
- div.span3:nth-of-type(5n+1) .content{
-  left: calc(50% - 32rem);
- }
-
- div.span3:nth-of-type(5n+2) .content{
-  left: calc(50% - 16rem);
- }
-
- div.span3:nth-of-type(5n+3) .content{
-  left: calc(50%);
- }
-
- div.span3:nth-of-type(5n+4) .content{
-  left: calc(50% + 16rem);
- }
-
- div.span3:nth-of-type(5n) .content{
-  left: calc(50% + 32rem);
- }
-
- div.span3:nth-of-type(-n+30) .content{
-  top: 58rem;
- }
-
- div.span3:nth-of-type(-n+25) .content{
-  top: 48rem;
- }
-
- div.span3:nth-of-type(-n+20) .content{
-  top: 38rem;
- }
-
- div.span3:nth-of-type(-n+15) .content{
-  top: 28rem;
- }
-
- div.span3:nth-of-type(-n+10) .content{
-  top: 18rem;
- }
-
- div.span3:nth-of-type(-n+5) .content{
-  top: 8rem;
- }
-}
-
-@media only screen and (min-width: 114rem){
- div.span3:nth-of-type(6n+1) .content{
-  left: calc(50% - 40rem);
- }
-
- div.span3:nth-of-type(6n+2) .content{
-  left: calc(50% - 24rem);
- }
-
- div.span3:nth-of-type(6n+3) .content{
-  left: calc(50% - 8rem);
- }
-
- div.span3:nth-of-type(6n+4) .content{
-  left: calc(50% + 8rem);
- }
-
- div.span3:nth-of-type(6n+5) .content{
-  left: calc(50% + 24rem);
- }
-
- div.span3:nth-of-type(6n) .content{
-  left: calc(50% + 40rem);
- }
-
- div.span3:nth-of-type(-n+36) .content{
-  top: 58rem;
- }
-
- div.span3:nth-of-type(-n+30) .content{
-  top: 48rem;
- }
-
- div.span3:nth-of-type(-n+24) .content{
-  top: 38rem;
- }
-
- div.span3:nth-of-type(-n+18) .content{
-  top: 28rem;
- }
-
- div.span3:nth-of-type(-n+12) .content{
-  top: 18rem;
- }
-
- div.span3:nth-of-type(-n+6) .content{
-  top: 8rem;
- }
-}
-
 @media only screen and (min-width: 51rem){
- #cardrow, .row[style="position: relative; z-index: 2;"]{
-  margin-left: 0 !important;
+  #headerbox {
+	margin-left: 0px !important;
+	overflow: auto !important;
+  }
+ .container > .row {
+    margin-top: 2rem;
+ }
+ 
+ #cardrow {
+  top: 8rem;
+  margin-left: 15.5rem;
   overflow-y: auto !important;
  }
  _::-webkit-full-page-media, _:future, :root #cardrow{
@@ -1060,11 +711,16 @@ div.span3:nth-of-type(13) .content{
 }
 
 @media only screen and (max-width: 51rem){
+ #cardrow {
+	margin-top: 4rem; 
+	position: absolute;
+	z-index: 0;
+ }
  #headertab{
   height: 3.75rem;
   padding: 0px;
   margin: 0px;
-  z-index: 6;			 
+  z-index: 6;
  }
  
  #headertab > .row {
@@ -1087,6 +743,14 @@ div.span3:nth-of-type(13) .content{
 	    top: 0.9rem;
  }
  
+ .container > #footer > .copyright {
+  display:unset;
+ }
+ 
+ .container > #footer {
+	margin-top: 1rem; 
+ }
+ 
  .header picture, .copyright{
   display:none;
  }
@@ -1095,7 +759,7 @@ div.span3:nth-of-type(13) .content{
   -webkit-overflow-scrolling: touch;
  }
 
- #cardrow, .row[style="position: relative; z-index: 2;"]{
+  #headerbox{
   width: 15.5rem;
   top: 0px;
   margin: 0;
@@ -1123,11 +787,6 @@ div.span3:nth-of-type(13) .content{
   height:100%;
   background-color:black;
   z-index: 4;
- }
-
- div.span3 .content{
-  margin-left:-7.5rem;
-  margin-top:-3.5rem;
  }
 
  .modal, .modal.fade.in, .modal.fade{
@@ -1214,14 +873,9 @@ div.span3:nth-of-type(13) .content{
   text-align: right;
  }
 
- .span4, .offset4{
-  width: 100% !important;
- }
-
 .row .span4.offset4, .login{
   margin: 0;
   margin-top: 3.75rem;
-  height: calc(100vh - 3.75rem);
  }
 
  fieldset h2{
@@ -1275,7 +929,6 @@ div.span3:nth-of-type(13) .content{
  }
  
  .pull-right {
-    margin-right: 10px;	
     margin-top: 0.3rem;
 }
  
@@ -1288,18 +941,14 @@ div.span3:nth-of-type(13) .content{
   margin-top: 16px;
  }
  
- .modal-body fieldset{
-  padding-bottom: 3rem;
-  margin-top: 6rem;
+ .modal-footer{
+  position: fixed;
  }
 }
 
 @media screen and (min-width: 1400px){
   .offset4 {
       margin-left: 730px;
-  }
-  div.offset4.span4{
-      margin-left: 35%;
   }
 }
 

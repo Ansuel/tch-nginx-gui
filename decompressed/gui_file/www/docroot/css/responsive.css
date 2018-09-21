@@ -1425,6 +1425,11 @@
 		width: 70%;
 	}
 	
+	.login {
+		margin-right: 20px;
+		margin-left: 20px;
+	}
+	
 	.infocard {
 		width: 100%;
 	}

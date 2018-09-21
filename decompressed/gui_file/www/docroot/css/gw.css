@@ -266,8 +266,12 @@ a:hover,a:focus
 
 .row
 {
-	margin-left:-20px;
+	margin-left: -20px;
 	*zoom:1
+}
+
+.container > .row {
+	margin: auto;
 }
 
 .row:before,.row:after
@@ -682,6 +686,8 @@ a:hover,a:focus
 
 .container
 {
+	display: flex;
+	flex-flow: column;
 	margin-right:auto;
 	margin-left:auto;
 	*zoom:1
@@ -5054,6 +5060,10 @@ button.btn.btn-mini,input[type="submit"].btn.btn-mini
 	position:relative
 }
 
+.container > #footer {
+	margin: auto;
+}
+
 #infocardrow {
 	z-index : 2;  
 	position: relative;
@@ -6535,7 +6545,6 @@ form .switch
 	-moz-box-shadow:0 2px 20px 0 rgba(203,43,190,0.50);
 	box-shadow:0 2px 20px 0 rgba(203,43,190,0.50);
 	overflow:hidden;
-	margin-top:50%;
 	padding:20px 20px 5px
 }
 
@@ -6599,9 +6608,9 @@ form .switch
 {
 	width:130px;
 	height:50px;
-	position:absolute;
-	left:50%;
-	margin:50px 0 0 -65px
+	margin: auto;
+	margin-top: 50px;
+	margin-bottom: 50px;
 }
 
 #forgot-login-password

@@ -77,6 +77,7 @@ end
 ');  ngx.print( string.format('<html lang="%s">', gettext.language()) ); ngx.print('\
 <head>\
     <meta charset="UTF-8">\
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">\
     <meta name="CSRFtoken" content="');  ngx.print( ngx.ctx.session:getCSRFtoken() ); ngx.print('">\
 	<link href="/css/font-awesome-all-5.1.0.css?version='); ngx.print(cui.gui_version); ngx.print('" rel="stylesheet">\
     <link href="/css/gw.css?version='); ngx.print(cui.gui_version); ngx.print('" rel="stylesheet">\
@@ -142,7 +143,7 @@ end
 	</a>\
 	</div>\
     <div class="row">\
-      <div class="offset4 span4">\
+      <div class="span4">\
         <div class="login">\
         <form class="form-horizontal">\
           <fieldset style="min-width:auto">\
