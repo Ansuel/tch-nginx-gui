@@ -72,8 +72,6 @@ local mapParams = {
     wan_dhcp_reqopts = wan_interface_path .. "reqopts",
     wan_dhcp_neighreachabletime = wan_interface_path .. "neighreachabletime",
     wan_dhcp_neighgcstaletime = wan_interface_path .. "neighgcstaletime",
-    ppp_username  = "uci.network.interface.@wan.username",
-    ppp_password = "uci.network.interface.@wan.password",
     wan_peerdns = wan_interface_path .. "peerdns",
     id_vlan_vdsl = "uci.network.device.@wanptm0.vid",
     id_vlan_eth = "uci.network.device.@waneth4.vid",
@@ -175,7 +173,7 @@ end
 
 local function validateWanPPPUsername(value, object, key)
     if (object["wan_proto"] == "pppoe" or object["wan_proto"] == "pppoa")  then
-        object["ppp_username"] = object[key]
+        object["wan_ppp_user_name"] = object[key]
         return vNES(value)
     end
     object[key] = ""
@@ -184,11 +182,6 @@ end
 
 local function validateWanPPPPassword(value, object, key)
     if (object["wan_proto"] == "pppoe" or object["wan_proto"] == "pppoa") then
-        if value == "********" then
-            object[key] = session:retrieve("network_password")
-            object["ppp_password"] = object[key]
-            return true
-        end
         local ret, msg = vNES(value)
         if ret then
             session:store("network_password", value)
@@ -378,12 +371,12 @@ local wan_proto_options_confirm = setmetatable({
                 class= "span4",
             },
         }
-        html[#html+1] = ui_helper.createInputText(T"Username: ", "wan_ppp_user_name", content["wan_ppp_user_name"], wan_ppp_class, helpmsg["wan_ppp_user_name"])
-        html[#html+1] = ui_helper.createInputPassword(T"Password:", "wan_ppp_password", content["wan_ppp_password"], wan_ppp_class, helpmsg["wan_ppp_password"])
-        html[#html+1] = ui_helper.createInputText(T"VPI Number: ", "wan_ppp_vpi_number", content["wan_ppp_vpi_number"], wan_pppoa_class, helpmsg["wan_ppp_vpi_number"])
-        html[#html+1] = ui_helper.createInputText(T"VPI Number: ", "wan_ipoe_vpi_number", content["wan_ipoe_vpi_number"], wan_ipoe_class, helpmsg["wan_ipoe_vpi_number"])
-        html[#html+1] = ui_helper.createInputText(T"VCI Number: ", "wan_ppp_vci_number", content["wan_ppp_vci_number"], wan_pppoa_class, helpmsg["wan_ppp_vci_number"])
-        html[#html+1] = ui_helper.createInputText(T"VCI Number: ", "wan_ipoe_vci_number", content["wan_ipoe_vci_number"], wan_ipoe_class, helpmsg["wan_ipoe_vci_number"])
+        html[#html+1] = ui_helper.createInputText(T"Username:", "wan_ppp_user_name", content["wan_ppp_user_name"], wan_ppp_class, helpmsg["wan_ppp_user_name"])
+        html[#html+1] = ui_helper.createInputText(T"Password:", "wan_ppp_password", content["wan_ppp_password"], wan_ppp_class, helpmsg["wan_ppp_password"])
+        html[#html+1] = ui_helper.createInputText(T"VPI Number:", "wan_ppp_vpi_number", content["wan_ppp_vpi_number"], wan_pppoa_class, helpmsg["wan_ppp_vpi_number"])
+        html[#html+1] = ui_helper.createInputText(T"VPI Number:", "wan_ipoe_vpi_number", content["wan_ipoe_vpi_number"], wan_ipoe_class, helpmsg["wan_ipoe_vpi_number"])
+        html[#html+1] = ui_helper.createInputText(T"VCI Number:", "wan_ppp_vci_number", content["wan_ppp_vci_number"], wan_pppoa_class, helpmsg["wan_ppp_vci_number"])
+        html[#html+1] = ui_helper.createInputText(T"VCI Number:", "wan_ipoe_vci_number", content["wan_ipoe_vci_number"], wan_ipoe_class, helpmsg["wan_ipoe_vci_number"])
 
         local wan_static_class = {
             group = {
@@ -426,19 +419,19 @@ local wan_proto_options_confirm = setmetatable({
         end
         if  (wan_type == "adsl") then
             if (content["wan_proto"] == "pppoe" or content["wan_proto"] == "pppoa") then
-                html[#html+1] = ui_helper.createLabel(T"VPI Number: ", content["wan_ppp_vpi_number"])
-                html[#html+1] = ui_helper.createLabel(T"VCI Number: ", content["wan_ppp_vci_number"])
+                html[#html+1] = ui_helper.createLabel(T"VPI Number:", content["wan_ppp_vpi_number"])
+                html[#html+1] = ui_helper.createLabel(T"VCI Number:", content["wan_ppp_vci_number"])
             else
-                html[#html+1] = ui_helper.createLabel(T"VPI Number: ", content["wan_ipoe_vpi_number"])
-                html[#html+1] = ui_helper.createLabel(T"VCI Number: ", content["wan_ipoe_vci_number"])
+                html[#html+1] = ui_helper.createLabel(T"VPI Number:", content["wan_ipoe_vpi_number"])
+                html[#html+1] = ui_helper.createLabel(T"VCI Number:", content["wan_ipoe_vci_number"])
             end
         end
         if (content["wan_proto"] == "pppoe" and content["vlan_enabled"] == "1") then
             if (wan_type == "vdsl") then
-                html[#html+1] = ui_helper.createLabel(T"VLAN ID: ", content["id_vlan_vdsl"])
+                html[#html+1] = ui_helper.createLabel(T"VLAN ID:", content["id_vlan_vdsl"])
             end
             if (wan_type == "eth") then
-                html[#html+1] = ui_helper.createLabel(T"VLAN ID: ", content["id_vlan_eth"])
+                html[#html+1] = ui_helper.createLabel(T"VLAN ID:", content["id_vlan_eth"])
             end
         end
         ngx.print(html)

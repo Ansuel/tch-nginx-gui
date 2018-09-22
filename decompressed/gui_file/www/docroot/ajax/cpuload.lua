@@ -2,16 +2,18 @@
 gettext.textdomain('webui-mobiled')
 
 local json = require("dkjson")
+local proxy = require("datamodel")
 local content_helper = require("web.content_helper")
+local post_helper = require("web.post_helper")
 local ngx = ngx
 
-local cpuload
-
-cpuload = content_helper.readfile("/proc/loadavg","string")
-cpuload = string.sub(cpuload,1,14)
-
 local data = {
-	cpuload = cpuload,
+	cpuusage = proxy.get("sys.proc.CPUUsage")[1].value .. "%" or "0",
+	ram_free = math.floor(tonumber(proxy.get("sys.mem.RAMFree")[1].value) / 1024) or "0",
+	uptime = post_helper.secondsToTime(content_helper.readfile("/proc/uptime","number",floor)),
+	connection = content_helper.readfile("/proc/sys/net/netfilter/nf_conntrack_count"),
+	system_time = os.date("%F %T", os.time()),
+	cpuload = content_helper.readfile("/proc/loadavg","string"):sub(1,14),
 }
 
 local buffer = {}

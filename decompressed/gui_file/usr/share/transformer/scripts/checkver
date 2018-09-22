@@ -57,7 +57,7 @@ if [ "$wanmode" != "bridge" ] && [ $connectivity == "yes" ]; then
 	if [ "$( echo $new_version | grep -E '\.[0-9]\.' )" ]; then
 		new_version_norm="$( echo $new_version | sed 's|\.\([0-9]\.\)|.0\1|g' )"
 	fi
-	if [ "$( echo $new_version | tail -c 3 | grep "\." )" ]; then
+	if [ "$( echo $new_version_norm | tail -c 3 | grep "\." )" ]; then
 		new_version_norm="$( echo $new_version_norm | sed 's|\(\.[0-9][0-9]\.\)\([0-9]\)|\10\2|g' )"
 	fi
 	

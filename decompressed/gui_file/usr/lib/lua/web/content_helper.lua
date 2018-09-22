@@ -52,18 +52,38 @@ end
 -- @return #bool, #string returns true if successful otherwise returns nil + errmsg
 function M.getExactContent(content)
     local paths = getValues(content)
-    local result, errmsg = proxy.get(unpack(paths))
-    local temp = {}
-    for _,v in ipairs(result or {}) do
-        temp[v.path..v.param] = v.value
-    end
-    for k,v in pairs(content) do
-        content[k] = temp[v] or ""
-    end
+    local result = proxy.get(unpack(paths))
+	local function PopulateValue()
+		local temp = {}
+		for _,v in ipairs(result or {}) do
+			temp[v.path..v.param] = v.value
+		end
+		for k,v in pairs(content) do
+			content[k] = temp[v] or ""
+		end
+	end
     if result then
+		PopulateValue()
         return true
     else
-        return nil, errmsg
+		local errmsg = {}
+		local errkey = {}
+		errmsg[#errmsg+1] = T"Exact data not found in this paths: "
+		errmsg[#errmsg+1] = "</br>"
+		for key, path in pairs(content) do
+			if not (proxy.get(path)) then
+				errmsg[#errmsg+1] = "Key <strong>" .. key .. "</strong>" .. " : " .. path .. "</br>"
+				errkey[#errkey+1] = key
+				content[key] = nil
+			end
+		end
+		paths = getValues(content)
+		result = proxy.get(unpack(paths))
+		PopulateValue()
+		for _,key in pairs(errkey) do
+			content[key] = "Exact path not found!"
+		end
+        return nil, table.concat(errmsg)
     end
 end
 

@@ -137,10 +137,9 @@
     [class*="span"] {
         /* float:left; */
         min-height: 1px;
-        margin-left: 30px;
     }
 
-    .container,.navbar-static-top .container,.navbar-fixed-top .container,.navbar-fixed-bottom .container {
+    .navbar-static-top .container,.navbar-fixed-top .container,.navbar-fixed-bottom .container {
         width: 1470px;
     }
 
@@ -541,10 +540,9 @@
     [class*="span"] {
         /* float:left; */
         min-height: 1px;
-        margin-left: 30px;
     }
 
-    .container,.navbar-static-top .container,.navbar-fixed-top .container,.navbar-fixed-bottom .container {
+    .navbar-static-top .container,.navbar-fixed-top .container,.navbar-fixed-bottom .container {
         width: 1170px;
     }
 
@@ -964,10 +962,9 @@
     [class*="span"] {
         float: left;
         min-height: 1px;
-        margin-left: 20px;
     }
 
-    .container,.navbar-static-top .container,.navbar-fixed-top .container,.navbar-fixed-bottom .container {
+    .navbar-static-top .container,.navbar-fixed-top .container,.navbar-fixed-bottom .container {
         width: 724px;
     }
 
@@ -1418,6 +1415,24 @@
     .row,.thumbnails {
         margin-left: 0;
     }
+	
+	#infocardrow {
+		display: block;
+	}
+	
+	
+	#swtichbuttom {
+		width: 70%;
+	}
+	
+	.login {
+		margin-right: 20px;
+		margin-left: 20px;
+	}
+	
+	.infocard {
+		width: 100%;
+	}
 
     .thumbnails>li {
         float: none;
@@ -1489,6 +1504,24 @@
     ul.typeahead li a {
         white-space: pre-line;
     }
+	
+	.infocard > .smallcard > .content > .divtable > .form-horizontal > fieldset > .control-group > table > thead > tr {
+		display: flex;
+		flex-wrap: wrap;
+	}
+	
+	.infocard > .smallcard > .content > .divtable > .form-horizontal > fieldset > .control-group > table > thead > tr > th {
+		width: calc( 50% - 16px );
+	}
+	
+	.infocard > .smallcard > .content > .divtable > .form-horizontal > fieldset > .control-group > table > tbody > tr {
+		display: flex;
+		flex-wrap: wrap;
+	}
+	
+	.infocard > .smallcard > .content > .divtable > .form-horizontal > fieldset > .control-group > table > tbody > tr > td {
+		width: calc( 50% - 16px );
+	}
 }
 
 @media screen and (max-width: 480px) {
@@ -1511,9 +1544,20 @@
         padding-top: 0;
         text-align: left;
     }
+	
+	.divtable > .form-horizontal .control-label {
+		float: left;
+		width: 160px;
+		padding-top: 5px;
+		text-align: right;
+    }
 
     .form-horizontal .controls {
-        margin-left: 0;
+        margin-left: 0px;
+    }
+	
+	.divtable > .form-horizontal .controls {
+		margin-left: 180px;
     }
 
     .form-horizontal .control-list {

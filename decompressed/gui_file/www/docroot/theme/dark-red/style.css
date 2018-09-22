@@ -1,3 +1,15 @@
+:root {
+	--first-color-accent: #f44336;
+	--first-color-accent-50: #f4433680; /* 50% transparent */
+	--first-color-accent-80: #f44336cc; /* 80% transparent */
+	--second-color-accent: #3a3a3a;
+	--third-color-accent: #232323;
+	--forth-color-accent: #535353;
+	--forth-color-accent-50: #53535380;
+	--text-general-color: #ffffff;
+	--sixth-color-accent: #000000;
+}
+
 body::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -7,13 +19,13 @@ body::-webkit-scrollbar-button {
   height: 0px;
 }
 body::-webkit-scrollbar-thumb {
-  background: #f4433680;
+  background: var(--first-color-accent-50);
 }
 body::-webkit-scrollbar-thumb:hover {
-  background: #f44336cc;
+  background: var(--first-color-accent-50);
 }
 body::-webkit-scrollbar-thumb:active {
-  background: #f44336;
+  background: var(--first-color-accent);
 }
 body::-webkit-scrollbar-track {
   background: transparent;
@@ -37,13 +49,13 @@ body::-webkit-scrollbar-corner {
   height: 0px;
 }
 .modal-body::-webkit-scrollbar-thumb {
-  background: #f4433680;
+  background: var(--first-color-accent-50);
 }
 .modal-body::-webkit-scrollbar-thumb:hover {
-  background: #f44336cc;
+  background: var(--first-color-accent-50);
 }
 .modal-body::-webkit-scrollbar-thumb:active {
-  background: #f44336;
+  background: var(--first-color-accent);
 }
 .modal-body::-webkit-scrollbar-track {
   background: transparent;
@@ -59,8 +71,8 @@ body::-webkit-scrollbar-corner {
 }
 
 body {
-	color: #fff;
-	background-color: #000;
+	color: var(--text-general-color);
+	background-color: var(--sixth-color-accent);
 }
 
 .scroll-down {
@@ -89,7 +101,7 @@ body {
 	position: absolute;
     top: calc(50% - 8px);
     left: calc(50% - 7px);
-    color:#f44336;
+    color: var(--first-color-accent);
 	content: "\f063";
 	display:block;
 	position:absolute;
@@ -124,7 +136,7 @@ body {
 	position: absolute;
     top: calc(50% - 8px);
     left: calc(50% - 7px);
-    color:#f44336;
+    color:var(--first-color-accent);
 	content: "\f062";
 	display:block;
 	position:absolute;
@@ -156,7 +168,7 @@ body {
 }
 
 .smallcard .modal-link:hover {
-  color: #f44336;
+  color: var(--first-color-accent);
 }
 
 .smallcard .someInfos{
@@ -164,73 +176,73 @@ body {
 }
 
 .btn-primary, .smallcard .header, .smallcard .header .settings, .btn, .header .btn, #webui_language, .dropdown-menu>li>a {
-  background-color: #3a3a3a;
-  background-image: -moz-linear-gradient(top, #232323 90%, #3a3a3a 90%);
-  background-image: -webkit-gradient(linear, 0 0, 90% 90%, from(#232323), to(#3a3a3a));
-  background-image: -webkit-linear-gradient(top, #232323 90%, #3a3a3a 90%);
-  background-image: -o-linear-gradient(top, #232323 90%, #3a3a3a 90%);
-  background-image: linear-gradient(to bottom, #232323 90%, #3a3a3a 90%);
+  background-color: var(--second-color-accent, #3a3a3a);
+  background-image: -moz-linear-gradient(top, var(--third-color-accent, #232323) 90%, var(--second-color-accent, #3a3a3a) 90%);
+  background-image: -webkit-gradient(linear, 0 0, 90% 90%, from(var(--third-color-accent, #232323)), to(var(--second-color-accent, #3a3a3a)));
+  background-image: -webkit-linear-gradient(top, var(--third-color-accent, #232323) 90%, var(--second-color-accent, #3a3a3a) 90%);
+  background-image: -o-linear-gradient(top, var(--third-color-accent, #232323) 90%, var(--second-color-accent, #3a3a3a) 90%);
+  background-image: linear-gradient(to bottom, var(--third-color-accent, #232323) 90%, var(--second-color-accent, #3a3a3a) 90%);
   background-repeat: repeat-x;
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff032b59', endColorstr='#ff#cccccc', GradientType=0);
-  border: 1px solid #3a3a3a;
-  text-shadow: 0 1px 0px #000000;
+  border: 1px solid var(--second-color-accent, #3a3a3a);
+  text-shadow: 0 1px 0px var(--sixth-color-accent);
 }
 
 .form-search input, .form-inline input, .form-horizontal input, .form-search textarea, .form-inline textarea, .form-horizontal textarea, .form-search select, 
 .form-inline select, .form-horizontal select, .form-search .help-inline, .form-inline .help-inline, .form-horizontal .help-inline, .form-search .uneditable-input, 
 .form-inline .uneditable-input, .form-horizontal .uneditable-input, .form-search .input-prepend, .form-inline .input-prepend, .form-horizontal .input-prepend, 
 .form-search .input-append, .form-inline .input-append, .form-horizontal .input-append {
-	background-color: #232323;
-	color: #ffffff;
+	background-color: var(--third-color-accent, #232323);
+	color: var(--text-general-color);
 }
 
 .smallcard .header .settings:hover , .button:hover, .btn:hover, .header .btn:hover,#webui_language:hover,#webui_language:active,
 .dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus, .dropdown-submenu:hover>a, .dropdown-submenu:focus>a {
   text-shadow: 0 -1px 0px rgba(0, 0, 0, 0.2);
-  color: #ffffff;
+  color: var(--text-general-color);
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
-  background-color: #f44336;
-  background-image: -moz-linear-gradient(top, #232323 90%, #f44336 90%);
-  background-image: -webkit-gradient(linear, 0 0, 90% 90%, from(#232323), to(#f44336));
-  background-image: -webkit-linear-gradient(top, #232323 90%, #f44336 90%);
-  background-image: -o-linear-gradient(top, #232323 90%, #f44336 90%);
-  background-image: linear-gradient(to bottom, #232323 90%, #f44336 90%);
+  background-color: var(--first-color-accent);
+  background-image: -moz-linear-gradient(top, var(--third-color-accent, #232323) 90%, var(--first-color-accent-50) 90%);
+  background-image: -webkit-gradient(linear, 0 0, 90% 90%, from(var(--third-color-accent, #232323)), to(#var(--first-color-accent)));
+  background-image: -webkit-linear-gradient(top, var(--third-color-accent, #232323) 90%, var(--first-color-accent-50) 90%);
+  background-image: -o-linear-gradient(top, var(--third-color-accent, #232323) 90%, var(--first-color-accent-50) 90%);
+  background-image: linear-gradient(to bottom, var(--third-color-accent, #232323) 90%, var(--first-color-accent-50) 90%);
   background-repeat: repeat-x;
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff2b76cb', endColorstr='#ff032b59', GradientType=0);
-  border-color: #f44336 #f44336 #f44336;
+  border-color: var(--first-color-accent-50) var(--first-color-accent-50) var(--first-color-accent);
   border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
   filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
-  -webkit-box-shadow: inset 0px 1px 0px rgba(255,255,255,.5), 0px 0px 5px #f44336;
-  -moz-box-shadow: inset 0px 1px 0px rgba(255,255,255,.5), 0px 0px 5px #f44336;
-  box-shadow: inset 0px 1px 0px rgba(255,255,255,.5), 0px 0px 5px #f44336;
-  border: 1px solid #f44336;
+  -webkit-box-shadow: inset 0px 1px 0px rgba(255,255,255,.5), 0px 0px 5px var(--first-color-accent);
+  -moz-box-shadow: inset 0px 1px 0px rgba(255,255,255,.5), 0px 0px 5px var(--first-color-accent);
+  box-shadow: inset 0px 1px 0px rgba(255,255,255,.5), 0px 0px 5px var(--first-color-accent);
+  border: 1px solid var(--first-color-accent);
   outline: none;
 }
 
 .switchOn {
-  background-color: #f44336;
+  background-color: var(--first-color-accent);
 }
 
 .modal-header {
-  color: #fff;
-  border-bottom: 1px solid #f44336;
-  background-color:#232323;
+  color: var(--text-general-color);
+  border-bottom: 1px solid var(--first-color-accent);
+  background-color:var(--third-color-accent, #232323);
 }
 
 .modal-body {
   padding: 0px 15px;
-  background-color: #3a3a3a;
+  background-color: var(--second-color-accent, #3a3a3a);
 }
 
 legend {
-  background-color: #3a3a3a;
-  color: #fff;
+  background-color: var(--second-color-accent, #3a3a3a);
+  color: var(--text-general-color);
   position: sticky;
   top: 0px;
 }
 
 .gray {
-  color: #ffffff;
+  color: var(--text-general-color);
 }
 
 .modal {
@@ -238,26 +250,26 @@ legend {
 }
 
 .modal-footer {
-  border-top:1px solid #f44336;
+  border-top:1px solid var(--first-color-accent);
   -webkit-border-radius:0 0 6px 6px;
   -moz-border-radius:0 0 6px 6px;
   border-radius:0 0 6px 6px;
-  -webkit-box-shadow:inset 0 1px 0 #f44336;
-  -moz-box-shadow:inset 0 1px 0 #f44336;
-  box-shadow:inset 0 1px 0 #f44336;
-  background-color:#232323;
+  -webkit-box-shadow:inset 0 1px 0 var(--first-color-accent);
+  -moz-box-shadow:inset 0 1px 0 var(--first-color-accent);
+  box-shadow:inset 0 1px 0 var(--first-color-accent);
+  background-color:var(--third-color-accent, #232323);
 }
 
 .modal-action, .modal-action i {
-  color: #ffffff;
+  color: var(--text-general-color);
 }
 
 .modal-action:hover, .modal-action:hover i {
-  color: #f44336;
+  color: var(--first-color-accent);
 }
 
 .btn, .header .btn, #webui_language, .dropdown-menu>li>a {
-  color: #ffffff;
+  color: var(--text-general-color);
 }
 
 .dropdown-menu .divider {
@@ -273,32 +285,32 @@ legend {
 }
 
 .btn:hover, .btn:focus, .btn:active, .btn.active, .btn.disabled, .btn[disabled] {
-color: #f44336;
+color: var(--first-color-accent);
 background-color: #e6e6e6;
 }
 
 .btn:hover:hover, .btn:hover:focus, .btn:hover:active, .btn:hover.active, .btn:hover.disabled, .btn:hover[disabled] {
-color: #ffffff;
-background-color: #f44336;
+color: var(--text-general-color);
+background-color: var(--first-color-accent);
 }
 
 .btn:hover,.btn:focus{background-position:0 0px;}
 
 .button:hover:hover, .button:hover:focus, .button:hover:active, .button:hover.active, .button:hover.disabled, .button:hover[disabled] {
-color: #ffffff;
-background-color: #f44336;
+color: var(--text-general-color);
+background-color: var(--first-color-accent);
 }
 
 .smallcard .header .settings:hover:hover, .smallcard .header .settings:hover:focus, .smallcard .header .settings:hover:active,
  .smallcard .header .settings:hover.active, .smallcard .header .settings:hover.disabled, .smallcard .header .settings:hover[disabled] {
-color: #535353;
-background-color: #f44336;
+color: var(--forth-color-accent, #535353);
+background-color: var(--first-color-accent);
 }
 
 .nav-list>.active>a, .nav-list>.active>a:hover, .nav-list>.active>a:focus {
-  color: #ffffff;
+  color: var(--text-general-color);
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.2);
-  background-color: #f44336;
+  background-color: var(--first-color-accent);
 }
 
 .nav>li>a:hover, .nav>li>a:focus {
@@ -307,12 +319,12 @@ background-color: #cccccc;
 }
 
 a {
-color: #f44336;
+color: var(--first-color-accent);
 text-decoration: none;
 }
 
 .dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus, .dropdown-submenu:hover>a, .dropdown-submenu:focus>a {
-  color: #ffffff;
+  color: var(--text-general-color);
 }
 
 .card_bg:after {
@@ -321,22 +333,23 @@ text-decoration: none;
 
 .smallcard {
 	transition-property: all !important;
-	background-color: #535353;
-    -webkit-box-shadow: 0 2px 20px 0px #f44336;
-    -moz-box-shadow: 0 2px 20px 0px #f44336;
-    box-shadow: 0 2px 20px 0px #f44336;
+	background-color: var(--forth-color-accent-50, var(--forth-color-accent, #535353)80);
+    -webkit-box-shadow: 0 2px 20px 0px var(--first-color-accent);
+    -moz-box-shadow: 0 2px 20px 0px var(--first-color-accent);
+    box-shadow: 0 2px 20px 0px var(--first-color-accent);
     transition: 200ms linear;
 }
 
 .smallcard:hover {
-	background-color: #f4433680;
-	box-shadow: 0 2px 20px 0px #fff;
+	background-color: var(--first-color-accent-50);
+	box-shadow: 0 2px 20px 0px var(--text-general-color);
 }
 
 .smallcard > .header {
 	background-color: transparent;
     border: 0px;
-    background-image: linear-gradient(135deg, rgb(0, 0, 0) 70%, #f4433600 50%);
+	color: var(--text-general-color);
+    background-image: linear-gradient(135deg, var(--sixth-color-accent) 70%, transparent 50%);
 }
 
 .header-title {
@@ -361,7 +374,7 @@ text-decoration: none;
 }
 
 #popUp {
-	color: #fff;
+	color: var(--text-general-color);
 }
 
 #headertab {
@@ -371,7 +384,7 @@ text-decoration: none;
 
 @media screen and (min-width: 767px) {
 	#headertab {
-		background-image: linear-gradient(45deg, transparent 55%, #535353 50%);
+		background-image: linear-gradient(45deg, transparent 55%, var(--forth-color-accent-50, var(--forth-color-accent, #535353)80) 45%);
 	}
 }
 
@@ -387,8 +400,8 @@ text-decoration: none;
 		width: 9rem;
 	}
 	.btn-group>.btn+.dropdown-toggle {
-		padding-right: 0.5rem;
-		padding-left: 0.5rem;
+		padding-right: 0.4rem;
+		padding-left: 0.4rem;
 	}
 	
 	.btn-group>.btn:first-child {
@@ -405,19 +418,28 @@ text-decoration: none;
 }
 
 .login {
-    background-color: #535353;
-    border-top: 4px solid #f44336;
-    -webkit-box-shadow: 0 2px 20px 0px #f44336a6;
-    -moz-box-shadow: 0 2px 20px 0px #f44336a6;
-    box-shadow: 0 2px 20px 0px #f44336a6;
+    background-color: var(--forth-color-accent, #535353);
+    border-top: 4px solid var(--first-color-accent);
+    -webkit-box-shadow: 0 2px 20px 0px var(--first-color-accent-50);
+    -moz-box-shadow: 0 2px 20px 0px var(--first-color-accent-50);
+    box-shadow: 0 2px 20px 0px var(--first-color-accent-50);
 }
 
 .table-striped tbody>tr:nth-child(odd)>td, .table-striped tbody>tr:nth-child(odd)>th,
 .btn-group>.btn, .btn-group>.dropdown-menu, .btn-group>.popover {
-    background-color: #3a3a3a;
+    background-color: #00000080;
+}
+
+.smallcard:hover .table-striped tbody>tr:nth-child(odd)>td, .smallcard:hover .table-striped tbody>tr:nth-child(odd)>th {
+    background-color: var(--first-color-accent-50);
 }
 
 .header > .row{
  margin-left: 2rem;
  margin-right: 2rem;
 }
+
+.copyright {
+	text-shadow: unset;
+}
+

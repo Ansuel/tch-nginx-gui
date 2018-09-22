@@ -18,15 +18,13 @@ local valEnumSel = post_helper.getValidateInEnumSelect
 local format, match = string.format, string.match
 
 local uci_relay_status = "0"
+local uci_pppoerelay_status = "0"
 
 local relay_Params = {
     uci_relay_server_ip = "uci.dhcp.relay.@relay.server_addr",
     uci_relay_local_ip  = "uci.dhcp.relay.@relay.local_addr",
     uci_relay_interface = "uci.dhcp.relay.@relay.interface",
-    uci_pppoerelay_enable = "uci.pppoerelayd.config.enable",
-    uci_pppoerelay_server_intf = "uci.pppoerelayd.config.server_intf",
-    uci_pppoerelay_client_intf = "uci.pppoerelayd.config.client_intf",
-    uci_pppoerelay_nsessions = "uci.pppoerelayd.config.nsessions"
+    uci_pppoerelay_laninterface = "uci.network.interface.@lan.pppoerelay.@1.value",
 }
 
 local vSII = post_helper.validateStringIsIP
@@ -63,20 +61,6 @@ local function getWanInterfacePath()
   if interfaceList then
     for _,intf in ipairs(interfaceList) do
       local values = proxy.get(intf.path .. "type")
-      if values ~= "" and values[1].value == "wan" then
-        wanIntfPaths[#wanIntfPaths + 1] = values[1].path
-      end
-    end
-  end
-  return wanIntfPaths
-end
-
-local function getInterfacePath()
-  local interfaceList = proxy.getPN("rpc.network.interface.", true)
-  local wanIntfPaths = {}
-  if interfaceList then
-    for _,intf in ipairs(interfaceList) do
-      local values = proxy.get(intf.path .. "type")
       wanIntfPaths[#wanIntfPaths + 1] = values[1].path
     end
   end
@@ -84,9 +68,7 @@ local function getInterfacePath()
 end
 
 local wanIntfPaths = getWanInterfacePath()
-local allIntfPaths = getInterfacePath()
 local wanData = content_helper.convertResultToObject("rpc.network.interface.", proxy.get(unpack(wanIntfPaths)))
-local allData = content_helper.convertResultToObject("rpc.network.interface.", proxy.get(unpack(allIntfPaths)))
 
 local wanConInfo = {}
 for _, data in ipairs(wanData) do
@@ -106,29 +88,10 @@ for _, data in ipairs(wanConInfo) do
   end
 end
 
-local allConInfo = {}
-for _, data in ipairs(allData) do
-    allConInfo[#allConInfo + 1] = {}
-    allConInfo[#allConInfo].interface = match(data.paramindex, "([%w%_]+)")
-end
-
-local AllDetails = {}
-for _, data in ipairs(allConInfo) do
-	AllDetails[#AllDetails + 1] = {
-	  data and data.interface,
-	  data and data.interface,
-	}
-end
-
 local relay_valid = {
-  uci_relay_server_ip = gAV(validateRelay, aIPV),
-  uci_relay_local_ip  = gAV(validateRelay, pIPV),
-  uci_relay_interface = valEnumSel(WanDetails),
-  uci_pppoerelay_enable = post_helper.validateBoolean,
-  uci_pppoerelay_client_intf = valEnumSel(AllDetails),
-  uci_pppoerelay_server_intf = valEnumSel(AllDetails),
-  uci_pppoerelay_nsessions = post_helper.validatePositiveNum
-
+--  uci_relay_server_ip = gAV(validateRelay, aIPV),
+--  uci_relay_local_ip  = gAV(validateRelay, pIPV),
+--  uci_relay_interface = valEnumSel(WanDetails),
 }
 
 local function getRelayBackUpValues()
@@ -142,8 +105,16 @@ local function getRelayBackUpValues()
   end
 end
 
-if (ngx.req.get_method() == "POST" and  ngx.req.get_post_args().uci_relay_status == "0") then
-  getRelayBackUpValues()
+if (ngx.req.get_method() == "POST") then
+  if  (ngx.req.get_post_args().uci_relay_status == "0") then
+	  getRelayBackUpValues()
+  end
+  if  (ngx.req.get_post_args().uci_pppoerelay_status == "1") then
+	  proxy.set(relay_Params["uci_pppoerelay_laninterface"], proxy.get("uci.network.interface.@wan.ifname")[1].value )
+  else
+	  proxy.set(relay_Params["uci_pppoerelay_laninterface"], "" )
+  end
+  proxy.apply()
 end
 
 server_addr = proxy.get("uci.dhcp.relay.@relay.server_addr")
@@ -178,15 +149,16 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 --         ngx.print('\
 --\
 --</fieldset>');
+
+if proxy.get("uci.network.interface.@wan.ifname")[1].value == relay_Values["uci_pppoerelay_laninterface"] then
+  uci_pppoerelay_status = "1"
+end
 ngx.print('\
 <fieldset>\
   <legend>');  ngx.print( T"PPPoE Relay" ); ngx.print('</legend>\
        ');
         local html = {}
-        html[#html + 1] = ui_helper.createSwitch(T"Status", "uci_pppoerelay_enable", relay_Values["uci_pppoerelay_enable"])
-        html[#html + 1] = ui_helper.createInputSelect(T"Client Interface", "uci_pppoerelay_client_intf", AllDetails, relay_Values["uci_pppoerelay_client_intf"])
-        html[#html + 1] = ui_helper.createInputSelect(T"Server Interface", "uci_pppoerelay_server_intf", AllDetails, relay_Values["uci_pppoerelay_server_intf"])
-		html[#html + 1] = ui_helper.createInputText(T"Sessions", "uci_pppoerelay_nsessions", relay_Values["uci_pppoerelay_nsessions"], nil, helpmsg["uci_pppoerelay_nsessions"])
+        html[#html + 1] = ui_helper.createSwitch(T"Status", "uci_pppoerelay_status", uci_pppoerelay_status)
         ngx.print(html)
 
          ngx.print('\

@@ -266,8 +266,12 @@ a:hover,a:focus
 
 .row
 {
-	margin-left:-20px;
+	margin-left: -20px;
 	*zoom:1
+}
+
+.container > .row {
+	margin: auto;
 }
 
 .row:before,.row:after
@@ -286,10 +290,9 @@ a:hover,a:focus
 {
 	float:left;
 	min-height:1px;
-	margin-left:20px
 }
 
-.container,.navbar-static-top .container,.navbar-fixed-top .container,.navbar-fixed-bottom .container
+.navbar-static-top .container,.navbar-fixed-top .container,.navbar-fixed-bottom .container
 {
 	width:940px
 }
@@ -683,6 +686,8 @@ a:hover,a:focus
 
 .container
 {
+	display: flex;
+	flex-flow: column;
 	margin-right:auto;
 	margin-left:auto;
 	*zoom:1
@@ -1105,6 +1110,7 @@ fieldset
 legend
 {
 	display:block;
+	z-index: 10;
 	width:100%;
 	padding:0;
 	margin-bottom:20px;
@@ -5045,7 +5051,7 @@ button.btn.btn-mini,input[type="submit"].btn.btn-mini
 {
 	font-family:Helvetica,Arial,sans-serif;
 	background-color:#fff;
-	margin-bottom:20px;
+	margin: 0.6rem;
 	-webkit-box-shadow:0 2px 20px 0 rgba(203,43,190,0.50);
 	-moz-box-shadow:0 2px 20px 0 rgba(203,43,190,0.50);
 	box-shadow:0 2px 20px 0 rgba(203,43,190,0.50);
@@ -5054,9 +5060,57 @@ button.btn.btn-mini,input[type="submit"].btn.btn-mini
 	position:relative
 }
 
+.container > #footer {
+	margin: auto;
+}
+
+#infocardrow {
+	z-index : 2;  
+	position: relative;
+	display: flex;
+	margin-left: 0px;
+	flex-wrap: wrap;
+    justify-content: center;
+}
+
+#cardrow {
+	z-index : 2;  
+	position: relative;
+	display: flex;
+    flex-wrap: wrap;
+	margin-left: 0px;
+    justify-content: center;
+}
+
+#leftinfocard {
+	flex : 50%;
+}
+
+#rightinfocard {
+	flex : 50%;
+}
+
+.infocard{
+	padding: 10px;
+}
+
+.infocard > .smallcard{
+	margin: 0px;
+}
+
+.infocard > .smallcard .content {
+	height: auto;
+	padding: 0px;
+}
+
+.infocard > .smallcard .content > .divtable > .form-horizontal .control-group {
+	margin: 0px;
+}
+
 .smallcard .header
 {
 	overflow-y:hidden;
+	overflow-x:hidden;
 	font-size:18px;
 	margin-bottom:10px;
 	padding:10px;
@@ -5732,7 +5786,9 @@ form .switch
 	margin-top:30px;
 	margin-bottom:20px;
 	text-align:center;
-	font:300 12px Helvetica,Arial,sans-serif
+	font:300 12px Helvetica,Arial,sans-serif;
+	margin-left: 0px;
+    width: 100%;
 }
 
 .copyright p
@@ -6489,7 +6545,6 @@ form .switch
 	-moz-box-shadow:0 2px 20px 0 rgba(203,43,190,0.50);
 	box-shadow:0 2px 20px 0 rgba(203,43,190,0.50);
 	overflow:hidden;
-	margin-top:50%;
 	padding:20px 20px 5px
 }
 
@@ -6553,9 +6608,9 @@ form .switch
 {
 	width:130px;
 	height:50px;
-	position:absolute;
-	left:50%;
-	margin:50px 0 0 -65px
+	margin: auto;
+	margin-top: 50px;
+	margin-bottom: 50px;
 }
 
 #forgot-login-password
@@ -7196,7 +7251,8 @@ form .switch
 
 .header-button {
   float: right;
-  display: inline-block;
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .header-sub-button {

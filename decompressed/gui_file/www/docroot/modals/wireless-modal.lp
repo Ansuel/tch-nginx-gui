@@ -644,11 +644,8 @@ local function getParamsAndValidation()
     standard = pathradio .. "standard",
     requested_channel = pathradio .. "requested_channel",
     requested_channel_width = pathradio .. "requested_channel_width",
+	ap_enabled = pathap .. "admin_state"
     }
-	
-	if isguest=="1" then
-		mapParams.ap_enabled = pathap .. "admin_state"
-	end
 
   if isguest ~= "1" then
         mapParams.admin_state = pathradio .. "admin_state"
@@ -974,7 +971,7 @@ if #wls > 1 then
           html[#html + 1] = format([[
              <div id="linkrescan-changes_%s" class="hide">
              <div id="linkrescan-cancel_%s" class="btn">%s</div>
-             <div id="linkrescan-confirm_%s" class="btn btn-primary" data-toggle="modal", data-remote="%s">%s</div>
+             <div id="linkrescan-confirm_%s" onclick='$(".modal-backdrop").remove();' class="btn btn-primary" data-toggle="modal", data-remote="%s">%s</div>
              </div></div>
              ]],
              link_id,link_id,T"Cancel",link_id,url,T"Accept")

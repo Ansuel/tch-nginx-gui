@@ -151,23 +151,21 @@ ngx.print('\
 </div>\
 </div>\
 <script>\
+var PPPoECardInterval;\
 $(document).ready(function () {\
-		var PPPoEInternetCard = function () {\
-			var self = this;\
-			this.pppoe_uptime = ko.observable("");\
-			this.refresh = function () {\
-				$.post("/ajax/internet.lua?auto_update=true", [tch.elementCSRFtoken()], function(data) {\
-					if(data.pppoe_uptime != undefined) {\
-						self.pppoe_uptime(data.pppoe_uptime);\
-					}\
-				}, "json");\
-			};\
-			setInterval(self.refresh, 5000);\
-			self.refresh();\
-		};\
+	var PPPoECardBinding = { pppoe_uptime: ko.observable(), };\
+	function PPPoECardRefresh() {\
+		$.post("/ajax/internet.lua", [tch.elementCSRFtoken()], function(data) {\
+			if(data.pppoe_uptime != undefined) {\
+				PPPoECardBinding.pppoe_uptime(data.pppoe_uptime);\
+			}\
+		}, "json");\
+	};\
 \
-		var PPPoEInternetCard = new PPPoEInternetCard();\
-		ko.applyBindings(PPPoEInternetCard, document.getElementById("pppoe-internet-tab"));\
+	PPPoECardRefresh();\
+	ko.applyBindings(PPPoECardBinding, document.getElementById("pppoe-internet-tab"));\
+	PPPoECardInterval = setInterval(PPPoECardRefresh, 3000);\
+	KoRequest.push(PPPoECardInterval);\
 })\
 </script>\
 ');

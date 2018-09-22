@@ -77,20 +77,21 @@ end
 ');  ngx.print( string.format('<html lang="%s">', gettext.language()) ); ngx.print('\
 <head>\
     <meta charset="UTF-8">\
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">\
     <meta name="CSRFtoken" content="');  ngx.print( ngx.ctx.session:getCSRFtoken() ); ngx.print('">\
-	<link href="/css/font-awesome-all-5.1.0.css" rel="stylesheet">\
-    <link href="/css/gw.css" rel="stylesheet">\
-	<link href="/css/responsive.css" rel="stylesheet">\
+	<link href="/css/font-awesome-all-5.1.0.css?version='); ngx.print(cui.gui_version); ngx.print('" rel="stylesheet">\
+    <link href="/css/gw.css?version='); ngx.print(cui.gui_version); ngx.print('" rel="stylesheet">\
+	<link href="/css/responsive.css?version='); ngx.print(cui.gui_version); ngx.print('" rel="stylesheet">\
 	<link rel="shortcut icon"    type="image/x-icon"   href="/img/favicon.ico"    />');
-	ngx.print('<link rel="stylesheet" href="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/style.css">\
-	<script src="/js/jquery.min.js" ></script>\
-	<script src="/js/jquery-migrate.js" ></script>\
-    <script src="/js/main-min-nojquery.js" ></script>\
-    <!--[if lt IE 9]> <script src="/js/media-min.js"></script> <![endif]-->\
+	ngx.print('<link rel="stylesheet" href="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/style.css?version='); ngx.print(cui.gui_version); ngx.print('">\
+	<script src="/js/jquery.min.js?version='); ngx.print(cui.gui_version); ngx.print('" ></script>\
+	<script src="/js/jquery-migrate.js?version='); ngx.print(cui.gui_version); ngx.print('" ></script>\
+    <script src="/js/main-min-nojquery.js?version='); ngx.print(cui.gui_version); ngx.print('" ></script>\
+    <!--[if lt IE 9]> <script src="/js/media-min.js?version='); ngx.print(cui.gui_version); ngx.print('"></script> <![endif]-->\
     <script src="/js/srp-min.js" ></script>');
 	local script_file_presence = io.open(string.format("/www/docroot/theme/%s/script.js",cui.gui_skin),"r")
 	if script_file_presence then
-		ngx.print('<script src="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/script.js"></script>');
+		ngx.print('<script src="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/script.js?version='); ngx.print(cui.gui_version); ngx.print('"></script>');
 	end
 	ngx.print('\
 	<style>\
@@ -142,7 +143,7 @@ end
 	</a>\
 	</div>\
     <div class="row">\
-      <div class="offset4 span4">\
+      <div class="span4">\
         <div class="login">\
         <form class="form-horizontal">\
           <fieldset style="min-width:auto">\
@@ -215,23 +216,11 @@ end
       </div>\
       </div>\
     </div>\
-   <div class="row">\
-		<div class="copyright span12">\
-			<p>&copy; Technicolor ');  ngx.print(current_year); ngx.print('</p>\
-			<p>GUI Version [ ');  ngx.print( cui.gui_version ); ngx.print(' ]</p>\
-			<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> && Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>');
-			local lang_credit = ""
-			if not ( tostring(gettext.language()) == "en-us" ) then
-				if tostring(gettext.language()) == "it-it" then
-					lang_credit = "DarkNiko"
-				elseif tostring(gettext.language()) == "de-de" then
-					lang_credit = "meyergru"
-				end
-				ngx.print(' && Translated by <font style="color:#0088cc;">' .. lang_credit .. '</font>')
-			end
-			ngx.print('</p>\
-		</div>\
-	</div>\
+');
+	local lp = require("web.lp")
+	lp.setpath("/www/gateway-snippets/")
+	lp.include("footer.lp")
+ngx.print('\
   </div>\
 <script>\
 function passwordCheck(password)\
