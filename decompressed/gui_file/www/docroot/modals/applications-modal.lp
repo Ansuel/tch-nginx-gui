@@ -51,6 +51,12 @@ if ngx.req.get_method() == "POST" then
   if action == "remove_aria2" then
 	return appapply("remove_aria2")
   end
+  if action == "install_telstra" then
+	return appapply("install_telstra")
+  end
+  if action == "remove_telstra" then
+	return appapply("remove_telstra")
+  end
   if action == "install_transmission" then
 	return appapply("install_transmission")
   end
@@ -82,6 +88,7 @@ local mapParams = {
 	local_ip_modem = "uci.network.interface.@lan.ipaddr",
 	blacklist_application = "uci.env.var.blacklist_app",
 	xupnp_application = "uci.env.var.xupnp_app",
+	telstra_webui = "uci.env.var.telstra_webui",
 }
 content_helper.getExactContent(mapParams)
 
@@ -264,6 +271,34 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 		html[#html + 1] = "</br>"
 		html[#html+1] = "</div>"
 	  end
+	  local install_telstra = {
+        button = {
+          id = "btn-install-telstra"
+        }
+      }
+	  local remove_telstra = {
+        button = {
+          id = "btn-remove-telstra"
+        }
+      }
+	  html[#html+1] = '<div class="span3">'
+	  html[#html+1] = "<fieldset>"
+	  html[#html + 1] = '<legend>' .. T"Telstra GUI" .. '</legend>'
+	  html[#html + 1] = ui_helper.createAlertBlock(T"This will install Telstra webui", info_box)
+	  html[#html + 1] = T"State: "
+	  html[#html + 1] = "<strong>" .. T"Telstra is " .. StateParams["telstra_webui"] .. T" installed" .. "</strong></br>"
+	  local telstra_gui = "/telstra-gui.lp"
+	  html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. telstra_gui .. '">' .. telstra_gui .."</a>"
+	  html[#html + 1] = "</br>"
+	  html[#html + 1] = T"Change the default page in system-extra to set this gui as default"
+	  html[#html + 1] = "</br>"
+	  if mapParams["telstra_webui"] and mapParams["telstra_webui"] == "1" then
+		html[#html + 1] = ui_helper.createSimpleButton(T"Remove Telstra GUI", "icon-refresh", install_telstra)
+	  else
+		html[#html + 1] = ui_helper.createSimpleButton(T"Install Telstra GUI", "icon-refresh", remove_telstra)
+	  end
+	  html[#html+1] = "</fieldset>"
+	  html[#html+1] = "</div>"
       ngx.print(html)
       ngx.print('\
     </form>\
@@ -297,6 +332,14 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
      });\
   $("#btn-remove-aria2").on("click", function() {\
      post("remove_aria2" );\
+	 setTimeout(function(){location.reload();}, 2000);\
+     });\
+  $("#btn-install-telstra").on("click", function() {\
+     post("install_telstra" );\
+	 setTimeout(function(){location.reload();}, 2000);\
+     });\
+  $("#btn-remove-telstra").on("click", function() {\
+     post("remove_telstra" );\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
   $("#btn-install-transmission").on("click", function() {\
