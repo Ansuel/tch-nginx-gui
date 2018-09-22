@@ -144,9 +144,6 @@ local mapParams = {
   uci_wan_password = "uci.network.interface.@wan.password",
   uci_wan_masq = "uci.firewall.zone."..zonenum..".masq",
   uci_wan_peerdns = "uci.network.interface.@wan.peerdns",
-  uci_wan_dns1 = "uci.network.interface.@wan.dns.@1.value",
-  uci_wan_dns2 = "uci.network.interface.@wan.dns.@2.value",
-  uci_wan_dns3 = "uci.network.interface.@wan.dns.@3.value",
 }
 
 -- Shortcuts to validation helpers to make lines shorter
@@ -159,6 +156,30 @@ local vSII = post_helper.validateStringIsIP
 local vSIP = post_helper.validateStringIsPort
 local gVP = post_helper.getValidationPassword
 local gOV = post_helper.getOptionalValidation
+
+local dns_options = {
+  tableid = "dns_servers",
+  basepath = "uci.network.interface.@wan.dns.@.",
+  createMsg = T"Add new" .. T"DNS server",
+  minEntries = 0,
+  maxEntries = 3,
+}
+
+local dns_columns = {
+  {
+    header = T"DNS IP",
+    name = "dns_server",
+    param = "value",
+    type = "text",
+  }
+}
+
+local dns_valid = {
+  dns_server = gOV(vSII)
+}
+
+local dns_data, dns_helpmsg = post_helper.handleTableQuery(dns_columns, dns_options, nil, nil, dns_valid)
+session:store("dns_data",dns_data)
 
 local function validateUsername (value, postdata)
   local err,msg = vNES(value)
@@ -221,9 +242,6 @@ local mapValid = {
   uci_wan_password = gCV(isWanEnabled, gVP(vNES), gVP()),
   uci_wan_masq = validateNat,
   uci_wan_peerdns = vB,
-  uci_wan_dns1 = gOV(vSII),
-  uci_wan_dns2 = gOV(vSII),
-  uci_wan_dns3 = gOV(vSII)
 }
 
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
@@ -387,9 +405,10 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
   ajax_attr.span.id = "dns"
   html[#html+1] = ui_helper.createLabel(T"DNS servers", content_rpc["dns"],ajax_attr)
   html[#html+1] = ui_helper.createSwitch(T"Auto Discover DNS", "uci_wan_peerdns", content.uci_wan_peerdns)
-  html[#html+1] = ui_helper.createInputText(T"DNS servers" .. " 1","uci_wan_dns1", content.uci_wan_dns1, nil, helpmsg["uci_wan_dns1"])
-  html[#html+1] = ui_helper.createInputText(T"DNS servers" .. " 2","uci_wan_dns2", content.uci_wan_dns2, nil, helpmsg["uci_wan_dns2"])
-  html[#html+1] = ui_helper.createInputText(T"DNS servers" .. " 3","uci_wan_dns3", content.uci_wan_dns3, nil, helpmsg["uci_wan_dns3"])
+  html[#html+1] = ui_helper.createSwitch(T"Auto Discover DNS", "uci_wan_peerdns", content.uci_wan_peerdns)
+  html[#html+1] = format('<label class="control-label">%s</label><div class="controls">', T"DNS servers")
+  html[#html+1] = ui_helper.createTable(dns_columns, dns_data, dns_options, nil, dns_helpmsg)
+  html[#html+1] = '</div>'
   if proxy.get("uci.network.interface.@wan_ipv6.auto")[1].value == "1" then
   --if content_rpc["ip6addr"] and content_rpc["ip6addr"]:len() > 0 then
   ajax_attr.span.id = "ip6addr"
