@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.8.3
+version_gui=8.8.12
 
 logo_project() {
 cat << EOF > /dev/console
@@ -1215,17 +1215,16 @@ telstra_support_check() {
 		uci add_list web.telstra_helpwifi.roles='engineer'
 		uci add_list web.ruleset_main.rules='telstra_helpwifi'
 	fi
-	
+
 	############# end telstra gui support ################################
-	if [ ! $( uci get -q env.var.luci_webui) ]; then
-		if [ -d /www_luci ]; then
-			uci set env.var.luci_webui="1"
-		else
-			uci set env.var.luci_webui="0"
-		fi
+	if [ ! $( uci get -q env.var.telstra_webui) ]; then
+		uci set env.var.telstra_webui="0"
 	fi
-	if [ "$(uci get -q env.var.telstra_webui)" == "1" ]; then
-		bzcat /root/telstra_gui.tar.bz2 | tar -C / -xf - 
+	if [ -f /root/telstra_gui.tar.bz2 ]; then
+		if [ "$(uci get -q env.var.telstra_webui)" == "1" ]; then
+			bzcat /root/telstra_gui.tar.bz2 | tar -C / -xf - 
+		fi
+		rm /root/telstra_gui.tar.bz2
 	fi
 }
 
@@ -1404,7 +1403,10 @@ root() {
 	fcctlsettings_daemon #Adds fast cache options
 	[ "$device_type_model" == "DGA4132" ] && logger_command "Reworking sfp interface in network..."
 	[ "$device_type_model" == "DGA4132" ] && sfp_rework #sfp to sfptag, to solve local ip problem
+	[ "$device_type" == "MediaAccess TG789vac v2" ] && logger_command "Unlocking ssh for tiscali firmware"
 	[ "$device_type" == "MediaAccess TG789vac v2" ] && unlock_ssh_wan_tiscali
+	logger_command "Reinstalling telstra gui if needed..."
+	telstra_support_check #telstra support check
 	
 	logger_command "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not

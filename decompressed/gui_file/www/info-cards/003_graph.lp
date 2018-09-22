@@ -10,7 +10,7 @@ local  format = string.format
 
 local interface = proxy.get("uci.network.interface.@wan.ifname")
 
-if interface and ( proxy.get(format("rpc.network.interface.@%s.up"),interface[1].value) == "1" ) then
+if interface and ( proxy.get("uci.network.interface.@wan.up") == "1" ) then
 	local int_rx = format("/sys/class/net/%s/statistics/rx_bytes",interface[1].value)
 	local int_tx = format("/sys/class/net/%s/statistics/tx_bytes",interface[1].value)
 	

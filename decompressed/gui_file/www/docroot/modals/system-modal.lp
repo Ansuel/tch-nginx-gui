@@ -28,6 +28,7 @@ local gui_skin_option = {
 local gui_skin_firstpage_page = {
 	{ "stats", T"Stats" },
 	{ "cards", T"Cards" },
+	{ "telstra", T"Telstra" },
 }
 
 local gui_skin_Params = {
