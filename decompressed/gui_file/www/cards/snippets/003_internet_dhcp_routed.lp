@@ -127,9 +127,7 @@ end
 attributes.light.id = "Internet_DHCP_LED"
 attributes.span.id = "Internet_DHCP_Status"
 
-ngx.print( ui_helper.createCardHeader(T"Internet Access", modalPath) ); ngx.print('\
-<div class="content card_bg" data-bg-text="&#xf0ac;">\
-  '); ngx.print( ui_helper.createSimpleLight(dhcp_light_map[dhcp_state], dhcp_state_map[dhcp_state], attributes, "fa-globe") ); ngx.print('\
+ngx.print( ui_helper.createSimpleLight(dhcp_light_map[dhcp_state], dhcp_state_map[dhcp_state], attributes, "fa-globe") ); ngx.print('\
   <p class="subinfos">\
   ');
     if dhcp_state == "connected" then
@@ -144,5 +142,4 @@ ngx.print( ui_helper.createCardHeader(T"Internet Access", modalPath) ); ngx.prin
     end
 	ngx.print('\
   </p>\
-</div>\
 ');

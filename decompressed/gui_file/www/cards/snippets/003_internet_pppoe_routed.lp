@@ -127,12 +127,9 @@ end
 attributes.light.id = "Internet_State_Led"
 attributes.span.id = "Internet_State_Enabled"
 
-ngx.print( ui_helper.createCardHeader(T"Internet Access", modalPath, switchName, content_uci.wan_auto) )
 ngx.print('\
-<div class="content card_bg" data-bg-text="&#xf0ac;">\
-<div class="divtable">\
   '); ngx.print( ui_helper.createSimpleLight(ppp_light_map[ppp_status], ppp_state_map[ppp_status] , attributes , "fa-globe") ); ngx.print('\
-  <p class="subinfos">')
+  <p class="subinfos" id="pppoe-internet-tab">')
      if ppp_status == "connected" then
        if content_rpc["ipaddr"] and content_rpc["ipaddr"]:len() > 0 then
          ngx.print(format(T'WAN IP is <strong>%s</strong>' .. "<br/>", content_rpc["ipaddr"]))
@@ -148,8 +145,6 @@ ngx.print('\
      end
 	ngx.print('\
   </p>\
-</div>\
-</div>\
 <script>\
 var PPPoECardInterval;\
 $(document).ready(function () {\
@@ -163,7 +158,7 @@ $(document).ready(function () {\
 	};\
 \
 	PPPoECardRefresh();\
-	ko.applyBindings(PPPoECardBinding, document.getElementById("internet-card"));\
+	ko.applyBindings(PPPoECardBinding, document.getElementById("pppoe-internet-tab"));\
 	PPPoECardInterval = setInterval(PPPoECardRefresh, 3000);\
 	KoRequest.push(PPPoECardInterval);\
 })\
