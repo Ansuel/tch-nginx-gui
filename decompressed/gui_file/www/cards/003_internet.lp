@@ -11,7 +11,7 @@ local tabdata = dyntab_helper.process(imh)
 
   ngx.print('\
 \
-<div class="span3">\
+<div class="span3" id="internet-card" >\
   <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
 \
 ');  

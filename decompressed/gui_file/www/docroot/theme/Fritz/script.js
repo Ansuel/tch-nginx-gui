@@ -41,6 +41,7 @@ function themescript() {
 		  num++;
 	  });
 	  num = 1;
+	  $("#headerbox").show('slow');
 	  if (document.querySelector('#headerbox') != null){
       //window.onresize = updateHeight;
       //updateHeight();
@@ -131,7 +132,6 @@ function closeNav() {
 	if (!modalOpen){
 		ruleR5.style.display = "block";
 		blockHeight = false;
-		updateHeight();
 	}
 }
 if (typeof $ !== 'undefined') {
@@ -149,7 +149,6 @@ if (typeof $ !== 'undefined') {
 		if (e.target.nodeName == "DIV"){
 			ruleR5.style.display = "block";
 			blockHeight = false;
-			updateHeight();
 			modalOpen = false;
 			ruleR4.style.boxShadow = "0 0.1875rem 0.375rem rgba(0,0,0,0.25)";
 		}

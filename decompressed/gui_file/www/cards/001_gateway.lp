@@ -44,7 +44,7 @@ if session:hasAccess("/modals/gateway-modal.lp") then
 end
   ngx.print('\
 \
-<div class="span3" id="gatewaytab">\
+<div class="span3" id="gateway-card">\
   <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
     ');  ngx.print( ui_helper.createCardHeader(T"Gateway", modalPath, switchName, nil, nil) ); ngx.print('\
     <div class="content card_bg" data-bg-text="&#xf129;">\
@@ -79,7 +79,7 @@ $(document).ready(function () {\
 	};\
 \
 	GatewayCardRefresh();\
-	ko.applyBindings(GatewayCardBinding, document.getElementById("gatewaytab"));\
+	ko.applyBindings(GatewayCardBinding, document.getElementById("gateway-card"));\
 	GatewayCardInterval = setInterval(GatewayCardRefresh, 5000);\
 	KoRequest.push(GatewayCardInterval);\
 })\
