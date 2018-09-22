@@ -49,13 +49,7 @@ content_helper.getExactContent(mapParam)
 
 if not tabdata.current.ajax then
    -- only display if not doing an ajax request
-if tech and mapParam.sfp == "1" then
-	ngx.print(ui_helper.createHeader(T"Broadband", true, true)) 
-elseif mapParam.wsens == "1" and (mapParam.dsl_status ~= "Up" or string.match(mapParam.iface,"eth4")) then
-	ngx.print(ui_helper.createHeader(T"Broadband", false, true)) 
-else
-	ngx.print(ui_helper.createHeader(T"Broadband", true, true))
-end
+ngx.print(ui_helper.createHeader(T"Broadband", true, true))
 	
 local function resetreboot(path, value)
   proxy.set(path, value)

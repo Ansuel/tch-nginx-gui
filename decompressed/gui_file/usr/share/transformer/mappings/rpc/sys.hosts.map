@@ -500,7 +500,7 @@ local function extractInterfaceType(dev)
    if dev == nil then
        return ""
    end
-   if dev["mac-address"] ~= macAddr and (dev["l2interface"] == intfType or dev["l2interface"] == match(dev["l2interface"], "wl%d+_%d+")) then
+   if (dev["mac-address"] ~= macAddr and (dev["l2interface"] == intfType) or ( dev["l2interface"] and dev["l2interface"] == match(dev["l2interface"], "wl%d+_%d+")))  then
       return "wireless"
    else
         return dev["technology"]

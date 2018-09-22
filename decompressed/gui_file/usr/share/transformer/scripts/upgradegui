@@ -163,9 +163,9 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 			
 			logger -s -t "Upgrade Script" "Downloaded stable gui with hash: $stable_md5"
 			
-			stable_version=$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $stable_md5 | awk '{print $2}' | sed -e 's/\.//g' )
+			stable_version=$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $stable_md5 | awk '{print $2}' )
 			
-			dev_version=$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $downloaded_md5 | awk '{print $2}' | sed -e 's/\.//g' )
+			dev_version=$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $downloaded_md5 | awk '{print $2}' )
 			
 			stable_version_norm=$stable_version
 			if [ "$( echo $stable_version | grep -E '\.[0-9]\.' )" ]; then
@@ -187,7 +187,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 			
 			logger -s -t "Upgrade Script" "Dev version found: $dev_version_norm"
 			
-			if [ $stable_version_norm -gt $dev_version_norm ]; then
+			if [ $( echo $stable_version_norm | sed -e 's/\.//g') -gt $( echo $dev_version_norm | sed -e 's/\.//g') ]; then
 				logger -s -t "Upgrade Script" "Found newer version in stable branch, using it..."
 				rm $WORKING_DIR/$FILE_NAME
 				FILE_NAME=$STABLE_FILE_NAME

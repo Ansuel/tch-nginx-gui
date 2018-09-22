@@ -170,8 +170,8 @@
 		width: 9rem;
 	}
 	.btn-group>.btn+.dropdown-toggle {
-		padding-right: 0.5rem;
-		padding-left: 0.5rem;
+		padding-right: 0.4rem;
+		padding-left: 0.4rem;
 	}
 	
 	.btn-group>.btn:first-child {

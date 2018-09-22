@@ -148,11 +148,11 @@ local content, helpmsg = wizard_helper.handleQuery(mapParams, mapValid)
 </div>
 <% end %>
 <script>
-  $("#no-voip").click(function(){
+  $("#no-voip").on("click", function(){
      $('input[name="sip_enabled"]').val("0");
      tch.nextWizardCard(1);
   });
-  $("#wizard-next").click(function(){
+  $("#wizard-next").on("click", function(){
      if ($("#no-voip").is(":visible")) {
         $('input[name="sip_enabled"]').val("1");
      };

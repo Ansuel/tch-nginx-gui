@@ -25,12 +25,21 @@ local gui_skin_option = {
 	  { "dark-red", T'Red Dark'},
 }
 
+local gui_skin_firstpage_page = {
+	{ "stats", T"Stats" },
+	{ "cards", T"Cards" },
+}
+
 local gui_skin_Params = {
   gui_skin = "uci.env.var.gui_skin",
+  gui_skin_firstpage = "uci.env.var.firstpage",
+  gui_randomcolor = "uci.env.var.randomcolor",
 }
 
 local gui_skin_valid = {
   gui_skin = post_helper.getValidateInEnumSelect(gui_skin_option),
+  gui_skin_firstpage = post_helper.getValidateInEnumSelect(gui_skin_firstpage_page),
+  gui_randomcolor = post_helper.validateBoolean,
 }
 
 local gui_skin_content, helpmsg = post_helper.handleQuery(gui_skin_Params, gui_skin_valid)
@@ -412,6 +421,8 @@ ngx.print('\
 		');  
 		local html = {}
 		html[#html + 1] = ui_helper.createInputSelect(T"Gui Skin", "gui_skin", gui_skin_option, gui_skin_content["gui_skin"])
+		html[#html + 1] = ui_helper.createInputSelect(T"Gui FirstPage", "gui_skin_firstpage", gui_skin_firstpage_page, gui_skin_content["gui_skin_firstpage"])
+		html[#html + 1] = ui_helper.createSwitch(T"Random Color", "gui_randomcolor", gui_skin_content["gui_randomcolor"])
 		ngx.print(html)
 		ngx.print('\
 	</fieldset>\
