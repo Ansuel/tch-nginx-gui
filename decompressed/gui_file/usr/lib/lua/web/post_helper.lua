@@ -241,17 +241,17 @@ function M.secondsToTimeShort(time)
     if duration > 0 then
       start = 3
     end
-    durations[3] = format(N("%dm:", "%dm:", duration), duration)
+    durations[3] = format(N("%dm", "%dm", duration), duration)
     duration = durations[2]
     if duration > 0 then
       start = 2
     end
-    durations[2] = format(N("%dh:", "%dh:", duration), duration)
+    durations[2] = format(N("%dh", "%dh", duration), duration)
     duration = durations[1]
     if duration > 0 then
       start = 1
     end
-    durations[1] = format(N("%d day", "%d days", duration), duration)
+    durations[1] = format(N("%dd", "%dd", duration), duration)
     return concat(durations, " ", start)
   end
   return nil, T"Positive number expected."
