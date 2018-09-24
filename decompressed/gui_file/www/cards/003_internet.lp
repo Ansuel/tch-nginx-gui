@@ -78,7 +78,6 @@ end
       <div class="divtable">\
 ');  
     lp.setpath("/www/cards/snippets/")
-    lp.include("003_internet_wan_sensing.lp")
     lp.include(mode_data[mode_active].card)
     -- have to bring it back to original value ... singleton
     lp.setpath("/www/cards/")
