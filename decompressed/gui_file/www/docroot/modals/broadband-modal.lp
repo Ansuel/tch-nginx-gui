@@ -13,15 +13,9 @@ local dyntab_helper = require("web.dyntab_helper")
 local content_helper = require("web.content_helper")
 local post_helper = require("web.post_helper")
 local proxy = require("datamodel")
-local session = ngx.ctx.session
 
 local bridgemode = require("bridgedmode_helper")
 local voicemode = require("voicemode_helper")
-
-local tech = false
-if session:getrole() == "admin" then
-	tech = true
-end
 
 local bmh = require("broadbandmode_helper")
 local tabdata = dyntab_helper.process(bmh)
@@ -32,135 +26,139 @@ local mode_options = tabdata.options
 local vB = post_helper.validateBoolean
 local gOV = post_helper.getOptionalValidation
 
-mapParam = { 
-				wsens = "uci.wansensing.global.enable",
-				iface = "uci.network.interface.@wan.ifname",
-				dsl_status = "sys.class.xdsl.@line0.Status",
-				sfp = "uci.env.rip.sfp",
-			}
+local variant = proxy.get("uci.env.var.prod_friendly_name")[1].value or ""
+
+mapParam = {
+	wsens = "uci.wansensing.global.enable",
+	iface = "uci.network.interface.@wan.ifname",
+	dsl_status = "sys.class.xdsl.@line0.Status",
+	sfp = "uci.env.rip.sfp",
+}
 
 content_helper.getExactContent(mapParam)
 
---mapParSFP = { ethsfp = "uci.ethernet.globals.eth4lanwanmode" }
---
---mapValSFP = { ethsfp = gOV(vB) }
---
---local content, helpmsg = post_helper.handleQuery(mapParSFP, mapValSFP)
+if variant == "DGA4132" then
+	mapParSFP = { ethsfp = "uci.ethernet.globals.eth4lanwanmode" }
+	mapValSFP = { ethsfp = gOV(vB) }
+	local content, helpmsg = post_helper.handleQuery(mapParSFP, mapValSFP)
+end
 
 if not tabdata.current.ajax then
-   -- only display if not doing an ajax request
-ngx.print(ui_helper.createHeader(T"Broadband", true, true))
-	
-local function resetreboot(path, value)
-  proxy.set(path, value)
-  ngx.header.content_type = "application/json"
-  ngx.print('{ "success":"true" }')
-  ngx.timer.at(0, function()
-    proxy.apply()
-  end)
-  ngx.exit(ngx.HTTP_OK)
-end
+	-- only display if not doing an ajax request
+	ngx.print(ui_helper.createHeader(T"Broadband", true, true))
 
-if ngx.var.request_method == "POST" then
-    content1 = ngx.req.get_post_args()
-    action = content1["action"]
-    if action == "BRIDGEMODE" then
-        if not bridgemode.isBridgedMode() then
-            bridgemode.configBridgedMode()
-            return resetreboot("rpc.system.reboot", "GUI")
-        end
-    end
-end
+	local function resetreboot(path, value)
+		proxy.set(path, value)
+		ngx.header.content_type = "application/json"
+		ngx.print('{ "success":"true" }')
+		ngx.timer.at(0, function()
+			proxy.apply()
+		end)
+		ngx.exit(ngx.HTTP_OK)
+	end
 
-if ngx.var.request_method == "POST" then
-    content1 = ngx.req.get_post_args()
-    action = content1["action"]
-    if action == "REVERTBRIDGEMODE" then
-        if bridgemode.isBridgedMode() then
-            bridgemode.disableBridgedMode()
-            return resetreboot("rpc.system.reboot", "GUI")
-        end
-    end
-end
+	if ngx.var.request_method == "POST" then
+		content1 = ngx.req.get_post_args()
+		action = content1["action"]
+		if action == "BRIDGEMODE" then
+			if not bridgemode.isBridgedMode() then
+				bridgemode.configBridgedMode()
+				return resetreboot("rpc.system.reboot", "GUI")
+			end
+		end
+	end
 
-if ngx.var.request_method == "POST" then
-    content1 = ngx.req.get_post_args()
-    action = content1["action"]
-    if action == "VOICEMODE" then
-        if not voicemode.isVoiceMode() then
-            voicemode.configVoiceMode()
-            return resetreboot("rpc.system.reboot", "GUI")
-        end
-    end
-end
+	if ngx.var.request_method == "POST" then
+		content1 = ngx.req.get_post_args()
+		action = content1["action"]
+		if action == "REVERTBRIDGEMODE" then
+			if bridgemode.isBridgedMode() then
+				bridgemode.disableBridgedMode()
+				return resetreboot("rpc.system.reboot", "GUI")
+			end
+		end
+	end
 
-if ngx.var.request_method == "POST" then
-    content1 = ngx.req.get_post_args()
-    action = content1["action"]
-    if action == "REVERTVOICEMODE" then
-        if voicemode.isVoiceMode() then
-            voicemode.disableVoiceMode()
-            return resetreboot("rpc.system.reboot", "GUI")
-        end
-    end
-end
+	if ngx.var.request_method == "POST" then
+		content1 = ngx.req.get_post_args()
+		action = content1["action"]
+		if action == "VOICEMODE" then
+			if not voicemode.isVoiceMode() then
+				voicemode.configVoiceMode()
+				return resetreboot("rpc.system.reboot", "GUI")
+			end
+		end
+	end
 
-ngx.print('\
+	if ngx.var.request_method == "POST" then
+		content1 = ngx.req.get_post_args()
+		action = content1["action"]
+		if action == "REVERTVOICEMODE" then
+			if voicemode.isVoiceMode() then
+				voicemode.disableVoiceMode()
+				return resetreboot("rpc.system.reboot", "GUI")
+			end
+		end
+	end
+
+	ngx.print('\
 <div class="modal-body update">\
 <form class="form-horizontal" method="post" action="modals/broadband-modal.lp">\
 ')
-ngx.print(ui_helper.createMessages(message_helper.popMessages()))
-ngx.print('\
+	ngx.print(ui_helper.createMessages(message_helper.popMessages()))
+	ngx.print('\
 <fieldset id="conn_mode" class="advanced hide">\
 <legend>');ngx.print(T"Broadband type");ngx.print('</legend>')
 
-    local html = {}
+	local html = {}
 
-    local mode_attributes = {
-        radio = {
-            class = "inline"
-        },
-        input = {
-            class = "no-save",
-            ["data-for"] = "SWITCH_MODE",
-        }
-    }
-    local mode_button = {
-        button = {
-            ["data-name"] = "action",
-            ["data-value"] = "SWITCH_MODE",
-        }
-    }
+	local mode_attributes = {
+		radio = {
+			class = "inline"
+		},
+		input = {
+			class = "no-save",
+			["data-for"] = "SWITCH_MODE",
+		}
+	}
+	local mode_button = {
+		button = {
+			["data-name"] = "action",
+			["data-value"] = "SWITCH_MODE",
+		}
+	}
 
-    html[#html+1] = ui_helper.createInputRadio(T"Mode", "newmode", mode_options, mode_current, mode_attributes)
-    html[#html+1] = ui_helper.createButton("", T"Switch connection mode", "icon-cog", mode_button)
+	html[#html+1] = ui_helper.createInputRadio(T"Mode", "newmode", mode_options, mode_current, mode_attributes)
+	html[#html+1] = ui_helper.createButton("", T"Switch connection mode", "icon-cog", mode_button)
 
-    ngx.print(html)
-ngx.print('\
+	ngx.print(html)
+	ngx.print('\
 </fieldset>\
 ')
---ngx.print('\
---<fieldset id="conn_mode" class="advanced hide">\
---<legend>');ngx.print(T"Set 4th Ethernet Port as WAN or as LAN");ngx.print('</legend>')
---
---	local adv = {
---					values = {
---                    on = "0",
---                    off = "1"
---                  }
---				}
---	local html = {}
---	html[#html + 1] = ui_helper.createSwitch(T"WAN-Mode", "ethsfp", content["ethsfp"], adv)
---	ngx.print(html)
---	ngx.print('\
---</fieldset>\
---')
-ngx.print('<fieldset>');
+	if variant == "DGA4132" then
+		ngx.print('\
+	<fieldset id="conn_mode" class="advanced hide">\
+	<legend>');ngx.print(T"Set 4th Ethernet Port as WAN or as LAN");ngx.print('</legend>')
+
+		local adv = {
+			values = {
+				on = "0",
+				off = "1"
+			}
+		}
+		local html = {}
+		html[#html + 1] = ui_helper.createSwitch(T"WAN-Mode", "ethsfp", content["ethsfp"], adv)
+		ngx.print(html)
+		ngx.print('\
+	</fieldset>\
+	')
+	end
+	ngx.print('<fieldset class="advanced hide">');
 	ngx.print('<legend>'); ngx.print(T"Network mode"); ngx.print('</legend>');
-	 
+
 	if not bridgemode.isBridgedMode() and not voicemode.isVoiceMode() then
 		local html = {}
-			
+
 		local confirming_bridgemode = {
 			alert = {
 				class = "alert hide",
@@ -174,14 +172,14 @@ ngx.print('<fieldset>');
 		}
 		local rebooting_bridgemode = {
 			alert = {
-			class = "alert hide",
-			id = "rebooting-msg-bridgemode"
+				class = "alert hide",
+				id = "rebooting-msg-bridgemode"
 			}
 		}
 		local detail_bridgemode = {
 			alert = {
-			class = "alert alert-info",
-			id = "detail-msg-bridgemode"
+				class = "alert alert-info",
+				id = "detail-msg-bridgemode"
 			}
 		}
 		html[#html + 1] = ui_helper.createAlertBlock(T"The <strong>Bridged Mode</strong> disables CWMP, Voip service and doesn't create any type of connection. It just connects to the DSLAM and bridges the traffic between a router and the DSLAM itself.", detail_bridgemode)
@@ -197,30 +195,30 @@ ngx.print('<fieldset>');
 		</div>
 		]], T"Confirm", T"Cancel")
 		ngx.print(html)
-	
+
 	elseif bridgemode.isBridgedMode() then
 		local html = {}
 		local infomessage = {
 			alert = {
-			class = "alert",
+				class = "alert",
 			}
 		}
 		local revertbridgemode_button = {
 			button = {
-                   id = "btn-revertbridgemode"
+				id = "btn-revertbridgemode"
 			}
 		}
 		local rebooting_revertbridge = {
 			alert = {
-			class = "alert hide",
-			id = "rebooting-msg-revertbridgemode"
+				class = "alert hide",
+				id = "rebooting-msg-revertbridgemode"
 			}
 		}
 		html[#html + 1] = ui_helper.createButton(T"Revert Bridge Mode", T"Revert Bridge Mode", "icon-cog", revertbridgemode_button)
 		html[#html + 1] = ui_helper.createAlertBlock(T"Switching to <strong>Routed Mode</strong> and restarting, please wait...", rebooting_revertbridge)
 		ngx.print(html)
 	end
-	
+
 	if not bridgemode.isBridgedMode() and not voicemode.isVoiceMode() then
 		local html = {}
 		local confirming_voicemode = {
@@ -236,14 +234,14 @@ ngx.print('<fieldset>');
 		}
 		local rebooting_voicemode = {
 			alert = {
-			class = "alert hide",
-			id = "rebooting-msg-voicemode"
+				class = "alert hide",
+				id = "rebooting-msg-voicemode"
 			}
 		}
 		local detail_voicemode = {
 			alert = {
-			class = "alert alert-info",
-			id = "detail-msg-voicemode"
+				class = "alert alert-info",
+				id = "detail-msg-voicemode"
 			}
 		}
 		html[#html + 1] = ui_helper.createAlertBlock(T"The <strong>Voice Mode</strong> disables CWMP and creates a special connection that only permits to use NTP and VOIP services. You need to use a separate router and make a separate PPPoE connection.", detail_voicemode)
@@ -263,18 +261,18 @@ ngx.print('<fieldset>');
 		local html = {}
 		local infomessage = {
 			alert = {
-			class = "alert",
+				class = "alert",
 			}
 		}
 		local revertvoicemode_button = {
 			button = {
-                   id = "btn-revertvoicemode"
+				id = "btn-revertvoicemode"
 			}
 		}
 		local rebooting_revertvoicemode = {
 			alert = {
-			class = "alert hide",
-			id = "rebooting-msg-revertvoicemode"
+				class = "alert hide",
+				id = "rebooting-msg-revertvoicemode"
 			}
 		}
 		html[#html + 1] = ui_helper.createButton(T"Revert Voice Mode", T"Revert Voice Mode", "icon-cog", revertvoicemode_button)
@@ -283,16 +281,16 @@ ngx.print('<fieldset>');
 	end
 	ngx.print('</fieldset>');
 end
-    lp.setpath("/www/snippets/")
-    lp.include(tabdata.current.view)
-    if not tabdata.current.ajax then
-    -- only display if not doing an ajax request
+lp.setpath("/www/snippets/")
+lp.include(tabdata.current.view)
+if not tabdata.current.ajax then
+	-- only display if not doing an ajax request
 
-ngx.print('</form>\
+	ngx.print('</form>\
 </div>\
 ')
-ngx.print("<script type='text/javascript'>");
-ngx.print('\
+	ngx.print("<script type='text/javascript'>");
+	ngx.print('\
 var rebootMsg = \'');  ngx.print(T"Restarting, please wait..."); ngx.print('\';\
 $(function() {\
 \
@@ -385,5 +383,5 @@ $(function() {\
 \
 });\
 </script>')
-ngx.print(ui_helper.createFooter())
+	ngx.print(ui_helper.createFooter())
 end
