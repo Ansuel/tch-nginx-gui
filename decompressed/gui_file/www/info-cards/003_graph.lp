@@ -1,24 +1,16 @@
 --pretranslated: do not change this file
  
 -- Enable localization
--- NG-92675 implement changes required from the customer
 gettext.textdomain('webui-core')
 
 local proxy = require("datamodel")
-local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
 
-local find, sub, format = string.find, string.sub, string.format
+local  format = string.format
 
-local contentonly
+local interface = proxy.get("uci.network.interface.@wan.ifname")
 
-if ngx.req.get_method() == "GET" then
-	contentonly = ngx.req.get_uri_args().contentonly or false
-end
-
-local interface = proxy.get("uci.network.interface.@wan.ifname") or false
-
-if interface then
+if interface and ( proxy.get("uci.network.interface.@wan.up") == "1" ) then
 	local int_rx = format("/sys/class/net/%s/statistics/rx_bytes",interface[1].value)
 	local int_tx = format("/sys/class/net/%s/statistics/tx_bytes",interface[1].value)
 	
@@ -100,9 +92,7 @@ var WANChart = new Chart(wan_ctx, {\
 			"backgroundColor": "#f5836850",\
     }]},\
     options: TrafficChartOption \
-});');
---if not contentonly then --Fix: Duplication of interval function every swtich of gateway mode
-ngx.print('\
+});\
 var InfoGraphCardInterval;\
 $(document).ready(function () {\
 	var InfoGraphCardBinding = { \

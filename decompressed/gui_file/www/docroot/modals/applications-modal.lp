@@ -51,6 +51,12 @@ if ngx.req.get_method() == "POST" then
   if action == "remove_aria2" then
 	return appapply("remove_aria2")
   end
+  if action == "install_telstra" then
+	return appapply("install_telstra")
+  end
+  if action == "remove_telstra" then
+	return appapply("remove_telstra")
+  end
   if action == "install_transmission" then
 	return appapply("install_transmission")
   end
@@ -82,6 +88,7 @@ local mapParams = {
 	local_ip_modem = "uci.network.interface.@lan.ipaddr",
 	blacklist_application = "uci.env.var.blacklist_app",
 	xupnp_application = "uci.env.var.xupnp_app",
+	telstra_webui = "uci.env.var.telstra_webui",
 }
 content_helper.getExactContent(mapParams)
 
@@ -264,6 +271,34 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 		html[#html + 1] = "</br>"
 		html[#html+1] = "</div>"
 	  end
+	  local install_telstra = {
+        button = {
+          id = "btn-install-telstra"
+        }
+      }
+	  local remove_telstra = {
+        button = {
+          id = "btn-remove-telstra"
+        }
+      }
+	  html[#html+1] = '<div class="span3">'
+	  html[#html+1] = "<fieldset>"
+	  html[#html + 1] = '<legend>' .. T"Telstra GUI" .. '</legend>'
+	  html[#html + 1] = ui_helper.createAlertBlock(T"This will install Telstra webui", info_box)
+	  html[#html + 1] = T"State: "
+	  html[#html + 1] = "<strong>" .. T"Telstra is " .. StateParams["telstra_webui"] .. T" installed" .. "</strong></br>"
+	  local telstra_gui = "/telstra-gui.lp"
+	  html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. telstra_gui .. '">' .. telstra_gui .."</a>"
+	  html[#html + 1] = "</br>"
+	  html[#html + 1] = T"Change the default page in system-extra to set this gui as default"
+	  html[#html + 1] = "</br>"
+	  if mapParams["telstra_webui"] and mapParams["telstra_webui"] == "1" then
+		html[#html + 1] = ui_helper.createSimpleButton(T"Remove Telstra GUI", "icon-refresh", remove_telstra)
+	  else
+		html[#html + 1] = ui_helper.createSimpleButton(T"Install Telstra GUI", "icon-refresh", install_telstra)
+	  end
+	  html[#html+1] = "</fieldset>"
+	  html[#html+1] = "</div>"
       ngx.print(html)
       ngx.print('\
     </form>\
@@ -273,58 +308,69 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 <script>\
 (function() {\
   var target = $(".modal form").attr("action");\
+  var installMsg = "');  ngx.print(T'Installing...'); ngx.print('";\
+  var removeMsg = "');  ngx.print(T'Removing...'); ngx.print('";\
 \
-  function post(action) {\
+  function post(action,processMsg) {\
     $.post(\
       target,\
       { action: action, CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
       null,\
       "json"\
     );\
+	tch.showProgress(processMsg);\
     return false;\
   }\
   $("#btn-install-luci").on("click", function() {\
-     post("install_luci" );\
+     post("install_luci",installMsg);\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
   $("#btn-remove-luci").on("click", function() {\
-     post("remove_luci" );\
+     post("remove_luci",removeMsg);\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
   $("#btn-install-aria2").on("click", function() {\
-     post("install_aria2" );\
+     post("install_aria2",installMsg);\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
   $("#btn-remove-aria2").on("click", function() {\
-     post("remove_aria2" );\
+     post("remove_aria2",removeMsg);\
+	 setTimeout(function(){location.reload();}, 2000);\
+     });\
+  $("#btn-install-telstra").on("click", function() {\
+     post("install_telstra",installMsg);\
+	 setTimeout(function(){location.reload();}, 2000);\
+     });\
+  $("#btn-remove-telstra").on("click", function() {\
+     post("remove_telstra",removeMsg);\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
   $("#btn-install-transmission").on("click", function() {\
-     post("install_transmission" );\
+     post("install_transmission",installMsg);\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
   $("#btn-remove-transmission").on("click", function() {\
-     post("remove_transmission" );\
+     post("remove_transmission",removeMsg);\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
   $("#btn-install-blacklist").on("click", function() {\
-     post("install_blacklist" );\
+     post("install_blacklist",installMsg);\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
   $("#btn-install-empty-blacklist").on("click", function() {\
-     post("install_emptyblacklist" );\
+     post("install_emptyblacklist",installMsg);\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
   $("#btn-remove-blacklist").on("click", function() {\
-     post("remove_blacklist" );\
+     post("remove_blacklist",removeMsg);\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
   $("#btn-install-xupnp").on("click", function() {\
-     post("install_xupnp" );\
+     post("install_xupnp",installMsg);\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
   $("#btn-remove-xupnp").on("click", function() {\
-     post("remove_xupnp" );\
+     post("remove_xupnp",removeMsg);\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
 }());\
