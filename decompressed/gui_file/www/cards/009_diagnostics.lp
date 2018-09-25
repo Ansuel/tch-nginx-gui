@@ -42,13 +42,13 @@ then
 			  <picture>\
 				<source srcset="/img/bandwidth-px-png.webp" type="image/webp">\
 				<source srcset="/img/bandwidth-px-png.png" type="image/png">\
-				<img class="smallsomeInfos" href="#" rel="tooltip" data-placement="bottom" data-original-title="XDSL" src="/img/bandwidth-px-png.png" alt="dsl">\
+				<img class="smallsomeInfos modal-link" href="#" rel="tooltip" data-placement="bottom" data-original-title="XDSL" src="/img/bandwidth-px-png.png" alt="dsl">\
 			  </picture>\
 			</div>\
 		  </td>\
 		   <td>\
 		    <div data-toggle="modal" data-remote="modals/diagnostics-xdsl-graphics-modal.lp" data-id="iagnostics-xdsl-graphics-modal">\
-			  <i class="smallsomeInfos fas fa-chart-line" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="XDSL GRAPH" alt="dsl graph"></i>\
+			  <i class="smallsomeInfos modal-link fas fa-chart-line" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="XDSL GRAPH" alt="dsl graph"></i>\
 			</div>\
 		  </td>');
     end
@@ -59,13 +59,13 @@ then
 			  <picture>\
 			    <source srcset="/img/pocket-32-black.webp" type="image/webp">\
 		        <source srcset="/img/pocket-32-black.png" type="image/png">\
-			    <img class="smallsomeInfos" href="#" rel="tooltip" data-placement="bottom" data-original-title="PING" src="/img/pocket-32-black.png" alt="ping/trace">\
+			    <img class="smallsomeInfos modal-link" href="#" rel="tooltip" data-placement="bottom" data-original-title="PING" src="/img/pocket-32-black.png" alt="ping/trace">\
 			  </picture>\
 			</div>\
 	      </td>\
 		  <td>\
 	        <div data-toggle="modal" data-remote="modals/port-mirror-modal.lp" data-id="port-mirror-modal">\
-			    <i class="smallsomeInfos fas fa-exchange-alt" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="PORT-MIRROR" alt="port-mirror"></i>\
+			    <i class="smallsomeInfos modal-link fas fa-exchange-alt" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="PORT-MIRROR" alt="port-mirror"></i>\
 			</div>\
 	      </td>\
 	    </tr>\
@@ -75,7 +75,7 @@ then
 			  <picture>\
 				<source srcset="/img/connection-established.webp" type="image/webp">\
 				<source srcset="/img/connection-established.png" type="image/png">\
-				<img class="smallsomeInfos" href="#" rel="tooltip" data-placement="top" data-original-title="CONNECTION" src="/img/connection-established.png" alt="connection">\
+				<img class="smallsomeInfos modal-link" href="#" rel="tooltip" data-placement="top" data-original-title="CONNECTION" src="/img/connection-established.png" alt="connection">\
 			  </picture>\
 		    </div>\
 	      </td>\
@@ -84,13 +84,13 @@ then
 			  <picture>\
 				<source srcset="/img/network_sans-32.webp" type="image/webp">\
 				<source srcset="/img/network_sans-32.png" type="image/png">\
-			    <img class="smallsomeInfos" href="#" rel="tooltip" data-placement="top" data-original-title="NETWORK" src="/img/network_sans-32.png" alt="network">\
+			    <img class="smallsomeInfos modal-link" href="#" rel="tooltip" data-placement="top" data-original-title="NETWORK" src="/img/network_sans-32.png" alt="network">\
 			  </picture>\
 			</div>\
 	      </td>\
 		  <td>\
 	        <div data-toggle="modal" data-remote="modals/diagnostics-tcpdump-modal.lp" data-id="diagnostics-network-tcpdump">\
-			    <i class="smallsomeInfos fa fa-download" style="font-size:32px;" href="#" rel="tooltip" data-placement="top" data-original-title="TCPDUMP" alt="tcpdump"></i>\
+			    <i class="smallsomeInfos modal-link fa fa-download" style="font-size:32px;" href="#" rel="tooltip" data-placement="top" data-original-title="TCPDUMP" alt="tcpdump"></i>\
 			</div>\
 	      </td>\
 	    </tr>\
