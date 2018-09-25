@@ -128,7 +128,7 @@ attributes.light.id = "Internet_State_Led"
 attributes.span.id = "Internet_State_Enabled"
 
 ngx.print('\
-  '); ngx.print( ui_helper.createSimpleLight(ppp_light_map[ppp_status], ppp_state_map[ppp_status] , attributes , "fa-globe") ); ngx.print('\
+  '); ngx.print( ui_helper.createSimpleLight(ppp_light_map[ppp_status], ppp_state_map[ppp_status] , attributes , "fa-at") ); ngx.print('\
   <p class="subinfos" id="pppoe-internet-tab">')
      if ppp_status == "connected" then
        if content_rpc["ipaddr"] and content_rpc["ipaddr"]:len() > 0 then
@@ -140,7 +140,7 @@ ngx.print('\
 	 ngx.print(format(T'WAN IP is <strong>%s</strong>', content_rpc["ip6addr"]))
        end
 	   if ppp_status == "connected" and IPv6State ~= "disabled" then
-         ngx.print(ui_helper.createSimpleLight(ipv6_light_map[IPv6State] or "4" --[[ red ]] , ipv6_state_map[IPv6State] or T"Unknown", attributes,"fa-globe"))
+         ngx.print(ui_helper.createSimpleLight(ipv6_light_map[IPv6State] or "4" --[[ red ]] , ipv6_state_map[IPv6State] or T"Unknown", attributes,"fa-at"))
         end
      end
 	ngx.print('\
