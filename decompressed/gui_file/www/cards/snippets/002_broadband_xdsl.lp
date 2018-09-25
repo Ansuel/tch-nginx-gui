@@ -35,7 +35,7 @@ local dsl_switch_params = {
   dsl_enable = "sys.class.xdsl.@line0.Enable",
 }
 local dsl_switch_valid = {
-    dsl_enable = post_helper.validateBoolean,
+  dsl_enable = post_helper.validateBoolean,
 }
 local dsl_switch_data, dsl_switch_helpmsg = post_helper.handleQuery(dsl_switch_params, dsl_switch_valid)
 
@@ -45,16 +45,16 @@ local switchName
 local modalPath
 
 if session:hasAccess("/modals/broadband-modal.lp") then
-    switchName = "dsl_enable"
-    modalPath = "modals/broadband-modal.lp"
+  switchName = "dsl_enable"
+  modalPath = "modals/broadband-modal.lp"
 end
 
 local xdslstate = nil
 
 if xdsl_data.dsl_status == "Up" or other_line_xdsl_data.dsl_status == "Up" then
-	xdslstate = "Up"
-elseif xdsl_data.dsl_status == "NoSignal" and other_line_xdsl_data.dsl_status == "NoSignal" then
-	xdslstate = "NoSignal"
+  xdslstate = "Up"
+elseif xdsl_data.dsl_status == "NoSignal" or other_line_xdsl_data.dsl_status == "NoSignal" then
+  xdslstate = "NoSignal"
 end
 
 local intf_light_map = {
@@ -74,48 +74,48 @@ ngx.print( ui_helper.createCardHeader(T"Broadband", modalPath) ); ngx.print('\
 <div class="content card_bg" data-bg-text="&#xf0b2;">\
 <div class="divtable">\
 ');
-  local iconUp = "<i class=\"icon-upload icon-small gray\"></i> "
-  local iconDown = " <i class=\"icon-download icon-small gray\"></i> "
-  if bridgedmode.isBridgedMode() then
-	ngx.print(format("<strong>%s</strong></br>",T"Bridge Mode Active"))
-  end
-  if voicemode.isVoiceMode() then
-	ngx.print(format("<strong>%s</strong></br>",T"Voice Mode Active"))
-  end
-  ngx.print( ui_helper.createSimpleLight(intf_light_map[xdslstate] or "3" --[[ orange ]] ,
-				intf_text_map[xdslstate] or (T"Connecting" .. "..."), attributes,"fa-signal"))
-  if (xdslstate == "Up") then
-    -- After disabling broadband the page immediately refreshes. At this time the state is still up but the line
-    -- rate is already cleared.
-    local rate_up = tonumber(xdsl_data["dsl_linerate_up"])
-    local rate_down = tonumber(xdsl_data["dsl_linerate_down"])
-    local other_line_rate_up = tonumber(other_line_xdsl_data["dsl_linerate_up"])
-    local other_line_rate_down = tonumber(other_line_xdsl_data["dsl_linerate_down"])
+local iconUp = "<i class=\"icon-upload icon-small gray\"></i> "
+local iconDown = " <i class=\"icon-download icon-small gray\"></i> "
+if bridgedmode.isBridgedMode() then
+  ngx.print(format("<strong>%s</strong></br>",T"Bridge Mode Active"))
+end
+if voicemode.isVoiceMode() then
+  ngx.print(format("<strong>%s</strong></br>",T"Voice Mode Active"))
+end
+ngx.print( ui_helper.createSimpleLight(intf_light_map[xdslstate] or "3" --[[ orange ]] ,
+  ("xDSL ") .. (intf_text_map[xdslstate] or (T"Connecting" .. "...")), attributes,"fa-signal"))
+if (xdslstate == "Up") then
+  -- After disabling broadband the page immediately refreshes. At this time the state is still up but the line
+  -- rate is already cleared.
+  local rate_up = tonumber(xdsl_data["dsl_linerate_up"])
+  local rate_down = tonumber(xdsl_data["dsl_linerate_down"])
+  local other_line_rate_up = tonumber(other_line_xdsl_data["dsl_linerate_up"])
+  local other_line_rate_down = tonumber(other_line_xdsl_data["dsl_linerate_down"])
 
-    if (rate_up and rate_down) or (other_line_rate_up and other_line_rate_down) then
-      if rate_up and rate_down then
-        rate_up = floor(rate_up / 10) / 100
-        rate_down = floor(rate_down / 10) / 100
-      else
-        rate_up = 0
-        rate_down = 0
-      end
-      if other_line_rate_up and other_line_rate_down then
-        rate_up = rate_up + (floor(other_line_rate_up / 10) / 100)
-        rate_down = rate_down + (floor(other_line_rate_down / 10) / 100)
-      end
-      ngx.print(
-        "<p  id=\"Line_Rate_Down\" class=\"subinfos\">&emsp; ",
-        iconDown,
-        format('%.2f Mbps', rate_down),
-		"</p>",
-        "<p  id=\"Line_Rate_Up\" class=\"subinfos\">&emsp; ",
-        iconUp,
-        format("%.2f Mbps", rate_up),
-        "</p>"
-      )
+  if (rate_up and rate_down) or (other_line_rate_up and other_line_rate_down) then
+    if rate_up and rate_down then
+      rate_up = floor(rate_up / 10) / 100
+      rate_down = floor(rate_down / 10) / 100
+    else
+      rate_up = 0
+      rate_down = 0
     end
+    if other_line_rate_up and other_line_rate_down then
+      rate_up = rate_up + (floor(other_line_rate_up / 10) / 100)
+      rate_down = rate_down + (floor(other_line_rate_down / 10) / 100)
+    end
+    ngx.print(
+      "<p  id=\"Line_Rate_Down\" class=\"subinfos\">&emsp; ",
+      iconDown,
+      format('%.2f Mbps', rate_down),
+      "</p>",
+      "<p  id=\"Line_Rate_Up\" class=\"subinfos\">&emsp; ",
+      iconUp,
+      format("%.2f Mbps", rate_up),
+      "</p>"
+    )
   end
+end
 ngx.print('\
 </div>\
 </div>');
