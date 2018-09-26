@@ -15,7 +15,7 @@ local prod_friendly_name = proxy.get("uci.env.var.prod_friendly_name")
 local app_supported = false
 
 if prod_friendly_name and prod_friendly_name[1].value then
-	if prod_friendly_name[1].value == "DGA4132" or prod_friendly_name[1].value == "DGA4130" then
+	if prod_friendly_name[1].value:match("DGA413") then
 		app_supported = true
 	end
 end
@@ -46,6 +46,9 @@ if app_supported and marketing_version then
 			if mapParams[Params] and mapParams[Params] == "1" then
 				StateParams[Params] = "1"
 				ParamsText[Params] = ParamsName .. T" is installed"
+			elseif app_supported == false then
+				StateParams[Params] = "2"
+				ParamsText[Params] = ParamsName .. T" is not supported"
 			else
 				StateParams[Params] = "0"
 				ParamsText[Params] = ParamsName .. T" is not installed"
@@ -54,6 +57,9 @@ if app_supported and marketing_version then
 			if mapParams[Params] and mapParams[Params] == "1" then
 				StateParams[Params] = "1"
 				ParamsText[Params] = ParamsName .. T" is installed"
+			elseif app_supported == false then
+				StateParams[Params] = "2"
+				ParamsText[Params] = ParamsName .. T" is not supported"
 			else
 				StateParams[Params] = "0"
 				ParamsText[Params] = ParamsName .. T" is not installed"

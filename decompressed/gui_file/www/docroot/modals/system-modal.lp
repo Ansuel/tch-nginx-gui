@@ -28,8 +28,13 @@ local gui_skin_option = {
 local gui_skin_firstpage_page = {
 	{ "stats", T"Stats" },
 	{ "cards", T"Cards" },
-	{ "telstra", T"Telstra" },
 }
+
+local telstra_gui = proxy.get("uci.env.var.telstra_webui")
+
+if telstra_gui and ( telstra_gui[1].value == "1" ) then
+	table.insert(gui_skin_firstpage_page, { "telstra", T"Telstra" })
+end
 
 local gui_skin_Params = {
   gui_skin = "uci.env.var.gui_skin",

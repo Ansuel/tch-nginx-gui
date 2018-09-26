@@ -10,6 +10,16 @@ local message_helper = require("web.uimessage_helper")
 local content_helper = require("web.content_helper")
 local format,sub,match,untaint = string.format, string.sub, string.match, string.untaint
 
+local prod_friendly_name = proxy.get("uci.env.var.prod_friendly_name")
+
+local app_supported = false
+
+if prod_friendly_name and prod_friendly_name[1].value then
+	if prod_friendly_name[1].value:match("DGA413") then
+		app_supported = true
+	end
+end
+
 local function appapply(action)
   proxy.set("rpc.system." .. action, "1")
   lp.flush()
@@ -112,7 +122,8 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
   ngx.print('\
 <fieldset>\
     <form class="form-horizontal" method="post" action="modals/applications-modal.lp">\
-    ');  
+    ');
+	if app_supported == true then
 	  local info_box = {
         alert = {
 			class = "alert alert-info",
@@ -271,6 +282,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 		html[#html + 1] = "</br>"
 		html[#html+1] = "</div>"
 	  end
+	end
 	  local install_telstra = {
         button = {
           id = "btn-install-telstra"
