@@ -118,7 +118,7 @@ for k,v in ipairs(devices) do
             iswireless = "0"
         end
 
-        local html = string.format('<div class="device"><a href=/device.lp?mac=%s&wireless=%s&ticked=%s><img src="/img/dev_laptop%s.gif"/></a><div class="deviceinfo right">%s</div><div><br /></div></div>', v[4], iswireless, ticked, ticked, tooltip)
+        local html = string.format('<div class="device"><a href=/device.lp?mac=%s&wireless=%s&ticked=%s><img src="/img/telstra/dev_laptop%s.gif"/></a><div class="deviceinfo right">%s</div><div><br /></div></div>', v[4], iswireless, ticked, ticked, tooltip)
 
         if v[5] == "wireless" then
             if uri == "/wifi.lp" then
@@ -206,7 +206,7 @@ for k,v in ipairs(usbdevices) do
 -- don't show embedded Huawei mobile on basic GUI
     if device_info.model ~= env["model"] or v[6] ~= device_info.vid or v[7] ~= device_info.pid then
         tooltip = string.format("Product Name: %s<br />Manufacturer: %s<br />Port: %s", v[1], v[2], port)
-        usb[#usb+1] = string.format('<div class="device"><img src="/img/dev_usb.png"/><div class="deviceinfo right">%s</div><div><br /></div></div>', tooltip)
+        usb[#usb+1] = string.format('<div class="device"><img src="/img/telstra/dev_usb.png"/><div class="deviceinfo right">%s</div><div><br /></div></div>', tooltip)
     end
 end
 
@@ -237,7 +237,7 @@ for _,v in ipairs(dectdevices) do
 
     if v[3] == "Located" then
         tooltip = string.format("Handset ID: %s<br />Friendly Name: %s>", v[1], v[2])
-        dect[#dect+1] = string.format('<div class="device"><img src="/img/dev_dectphone.png"/><div class="deviceinfo right">%s</div><div><br /></div></div>', tooltip)
+        dect[#dect+1] = string.format('<div class="device"><img src="/img/telstra/dev_dectphone.png"/><div class="deviceinfo right">%s</div><div><br /></div></div>', tooltip)
     end
 end
 
@@ -423,7 +423,7 @@ end
                                end
                               ngx.print('\
                             <div class="device">\
-                                <img class="devicepicture" src="/img/globe.png"/>\
+                                <img class="devicepicture" src="/img/telstra/globe.png"/>\
                                 <div class="deviceinfo right">');  ngx.print(wanhtml); ngx.print('</div>\
                             </div>\
                         </td>\
@@ -440,7 +440,7 @@ end
                                       ngx.print(wifihtml)
                                    end
                                    ngx.print('\
-                                <img class="devicepicture" src="/img/gw-telstra.png"/>\
+                                <img class="devicepicture" src="/img/telstra/gw-telstra.png"/>\
                                 <div class="deviceinfo right">');  ngx.print(gwhtml); ngx.print('</div>\
                             </div>\
                         </td>\
