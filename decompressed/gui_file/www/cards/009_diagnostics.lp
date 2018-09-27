@@ -39,11 +39,7 @@ then
       ngx.print('\
 		  <td>\
 		    <div data-toggle="modal" data-remote="modals/diagnostics-xdsl-modal.lp" data-id="diagnostics-xdsl-modal">\
-			  <picture>\
-				<source srcset="/img/bandwidth-px-png.webp" type="image/webp">\
-				<source srcset="/img/bandwidth-px-png.png" type="image/png">\
-				<img class="smallsomeInfos modal-link" href="#" rel="tooltip" data-placement="bottom" data-original-title="XDSL" src="/img/bandwidth-px-png.png" alt="dsl">\
-			  </picture>\
+				<i class="smallsomeInfos modal-link fas fa-list-ul" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="XDSL" src="/img/bandwidth-px-png.png" alt="dsl"></i>\
 			</div>\
 		  </td>\
 		   <td>\
@@ -56,11 +52,7 @@ then
   ngx.print('\
           <td>\
 			<div data-toggle="modal" data-remote="modals/diagnostics-ping-modal.lp" data-id="diagnostics-ping-modal">\
-			  <picture>\
-			    <source srcset="/img/pocket-32-black.webp" type="image/webp">\
-		        <source srcset="/img/pocket-32-black.png" type="image/png">\
-			    <img class="smallsomeInfos modal-link" href="#" rel="tooltip" data-placement="bottom" data-original-title="PING" src="/img/pocket-32-black.png" alt="ping/trace">\
-			  </picture>\
+			    <i class="smallsomeInfos modal-link fas fa-upload" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="PING" src="/img/pocket-32-black.png" alt="ping/trace"></i>\
 			</div>\
 	      </td>\
 		  <td>\
@@ -72,25 +64,17 @@ then
         <tr>\
 		  <td>\
 			<div data-toggle="modal" data-remote="modals/diagnostics-connection-modal.lp" data-id="diagnostics-connection-modal">\
-			  <picture>\
-				<source srcset="/img/connection-established.webp" type="image/webp">\
-				<source srcset="/img/connection-established.png" type="image/png">\
-				<img class="smallsomeInfos modal-link" href="#" rel="tooltip" data-placement="top" data-original-title="CONNECTION" src="/img/connection-established.png" alt="connection">\
-			  </picture>\
+				<i class="smallsomeInfos modal-link far fa-lightbulb" style="font-size:32px;" href="#" rel="tooltip" data-placement="top" data-original-title="CONNECTION" src="/img/connection-established.png" alt="connection"></i>\
 		    </div>\
 	      </td>\
 		  <td>\
 	        <div data-toggle="modal" data-remote="modals/diagnostics-network-modal.lp" data-id="diagnostics-network-modal">\
-			  <picture>\
-				<source srcset="/img/network_sans-32.webp" type="image/webp">\
-				<source srcset="/img/network_sans-32.png" type="image/png">\
-			    <img class="smallsomeInfos modal-link" href="#" rel="tooltip" data-placement="top" data-original-title="NETWORK" src="/img/network_sans-32.png" alt="network">\
-			  </picture>\
+			  <i class="smallsomeInfos modal-link fas fa-plug" style="font-size:32px;" href="#" rel="tooltip" data-placement="top" data-original-title="NETWORK" alt="network"></i>\
 			</div>\
 	      </td>\
 		  <td>\
 	        <div data-toggle="modal" data-remote="modals/diagnostics-tcpdump-modal.lp" data-id="diagnostics-network-tcpdump">\
-			    <i class="smallsomeInfos modal-link fa fa-download" style="font-size:32px;" href="#" rel="tooltip" data-placement="top" data-original-title="TCPDUMP" alt="tcpdump"></i>\
+			  <i class="smallsomeInfos modal-link fa fa-download" style="font-size:32px;" href="#" rel="tooltip" data-placement="top" data-original-title="TCPDUMP" alt="tcpdump"></i>\
 			</div>\
 	      </td>\
 	    </tr>\

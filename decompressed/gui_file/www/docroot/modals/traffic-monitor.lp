@@ -13,27 +13,17 @@ local tonumber = tonumber
 local format, match = string.format, string.match
 local traffic_data_file = "/var/state/traffic_data_file"
 
+local quantenna_wifi = proxy.get("uci.env.var.qtn_eth_mac") and true or false
 local getargs = ngx.req.get_uri_args()
 local getiface = getargs.iface
 
 local curiface = "wl0"
 local curssid = ""
 
-local fonpath = "uci.hotspotd.wifi-iface."
-local fonifaces = content_helper.convertResultToObject(fonpath .. "@.", proxy.get(fonpath))
-
-local ssidMap = {}
-
-for i,v in ipairs(fonifaces) do
-    local iface = string.format("%s", v.iface)
-    ssidMap[iface] = true
-end
-
 local piface = "uci.wireless.wifi-iface."
 local awls = content_helper.convertResultToObject(piface .. "@.", proxy.get(piface))
 local wls = {}
 for i,v in ipairs(awls) do
-    if not ssidMap[v.paramindex] then
         wls[#wls+1] = {
             radio = v.device,
             ssid = v.ssid,
@@ -41,12 +31,11 @@ for i,v in ipairs(awls) do
         }
         if v.paramindex == getiface then
             curiface = v.paramindex
-			if curiface == "wl1" then
+			if quantenna_wifi and curiface == "wl1" then
 				curiface = "eth5"
 			end
             curssid = v.ssid
         end
-    end
 end
 table.sort(wls, function(a,b)
     if a.radio == b.radio then
@@ -111,11 +100,16 @@ local lanrx = b2m(s2n(content_lan.rx_bytes))
 local wifitx, wifirx = 0, 0
 local content_wifi = {}
 for i,v in ipairs(wls) do
-    content_wifi["tx_bytes"] = "sys.class.net.@" .. v.iface .. ".statistics.tx_bytes"
-    content_wifi["rx_bytes"] = "sys.class.net.@" .. v.iface .. ".statistics.rx_bytes"
-    content_helper.getExactContent(content_wifi)
-    wifitx = wifitx + s2n(content_wifi.tx_bytes)
-    wifirx = wifirx + s2n(content_wifi.rx_bytes)
+	if proxy.get("sys.class.net.@" .. v.iface .. ".") then
+		if quantenna_wifi and v.iface == "wl1" then
+			v.iface = "eth5"
+		end
+		content_wifi["tx_bytes"] = "sys.class.net.@" .. v.iface .. ".statistics.tx_bytes"
+		content_wifi["rx_bytes"] = "sys.class.net.@" .. v.iface .. ".statistics.rx_bytes"
+		content_helper.getExactContent(content_wifi)
+		wifitx = wifitx + s2n(content_wifi.tx_bytes)
+		wifirx = wifirx + s2n(content_wifi.rx_bytes)
+	end 
 end
 wifitx = b2m(wifitx)
 wifirx = b2m(wifirx)
@@ -286,7 +280,7 @@ end
       html[#html+1] = '<ul class="nav nav-tabs">'
       for i,v in ipairs(wls) do
           local active = ""
-          if v.iface == curiface or ( v.iface == "wl1" and curiface == "eth5" ) then
+          if v.iface == curiface or ( quantenna_wifi and v.iface == "wl1" and curiface == "eth5" ) then
               active = "active"
           end
           local url = "modals/traffic-monitor.lp?iface=" .. v.iface

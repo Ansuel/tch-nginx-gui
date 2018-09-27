@@ -331,6 +331,10 @@ text-decoration: none;
     color: #b4b4b440;
 }
 
+.smallsomeInfos {
+    color: var(--text-general-color);
+}
+
 .smallcard {
 	transition-property: all !important;
 	background-color: var(--forth-color-accent-50, var(--forth-color-accent, #535353)80);

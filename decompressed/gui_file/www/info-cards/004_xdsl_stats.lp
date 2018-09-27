@@ -56,7 +56,7 @@ end
 <div class="infocard" id="xdsltab">\
   <div class="smallcard">\
     ');  ngx.print( ui_helper.createCardHeader(T"xDSL Info", nil, nil, nil, nil) ); ngx.print('\
-    <div class="content card_bg" data-bg-text="&#xf129;">\
+    <div class="content card_bg" data-bg-text="&#xf022;">\
 	<div class="divtable">\
 	<form class="form-horizontal">\
 	<fieldset>');

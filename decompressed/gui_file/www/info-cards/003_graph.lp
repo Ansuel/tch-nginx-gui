@@ -8,9 +8,10 @@ local ui_helper = require("web.ui_helper")
 
 local  format = string.format
 
-local interface = proxy.get("uci.network.interface.@wan.ifname")
+local interface = proxy.get("rpc.network.interface.@wan.ifname")
+local wan = proxy.get("rpc.network.interface.@wan.up") and proxy.get("rpc.network.interface.@wan.up")[1].value or nil
 
-if interface and ( proxy.get("uci.network.interface.@wan.up") == "1" ) then
+if interface and ( wan == "1" ) then
 	local int_rx = format("/sys/class/net/%s/statistics/rx_bytes",interface[1].value)
 	local int_tx = format("/sys/class/net/%s/statistics/tx_bytes",interface[1].value)
 	
@@ -26,7 +27,7 @@ if interface and ( proxy.get("uci.network.interface.@wan.up") == "1" ) then
 <div class="infocard" id="graphtab">\
   <div class="smallcard">\
     ');  ngx.print( ui_helper.createCardHeader(T"WAN Traffic", nil, nil, nil, nil) ); ngx.print('\
-    <div class="content card_bg" data-bg-text="&#xf129;">\
+    <div class="content card_bg" data-bg-text="&#xf1fe;">\
 	<div class="divtable">\
 	<form class="form-horizontal">\
 	<fieldset>');

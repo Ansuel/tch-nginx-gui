@@ -93,7 +93,7 @@ if not ( content.max_upstream == "0" ) then
 <div class="infocard" id="mmpbxdtab">\
   <div class="smallcard">\
     ');  ngx.print( ui_helper.createCardHeader(T"Telephony Info", nil, nil, nil, nil) ); ngx.print('\
-    <div class="content card_bg" data-bg-text="&#xf129;">\
+    <div class="content card_bg" data-bg-text="&#xf095;">\
 	<div class="divtable">\
 	<form class="form-horizontal">\
 	<fieldset>');

@@ -527,20 +527,29 @@ end
 
 local function xdslctlDslamInfo(itype)
 	local cmd = "xdslctl info --vendor"
-	local arg = " "
 	local result = " "
 	
-	local chipset_arg=" | sed '8q;d' | cut -d ':' -f 2 | sed -e 's/^[ \t]*//'"
-	local chipset_read=popen(cmd .. chipset_arg)
-	local chipset = chipset_read:read()
-	chipset_read:close()
+	local chipset
+	local version 
+	
+	local vendor_info = popen(cmd)
+	for line in vendor_info:lines() do
+		if line:match("ChipSet Vendor Id") then
+			chipset = line:gsub(".*:%s+",""):gsub(":.*","")
+		end
+		if line:match("ChipSet VersionNumber") then
+			version = line:gsub(".*:%s+","")
+		end
+	end
+	--local chipset_arg=" | sed '8q;d' | cut -d ':' -f 2 | sed -e 's/^[ \t]*//'"
+	--local chipset_read=popen(cmd .. chipset_arg)
+	--local chipset = chipset_read:read()
+	vendor_info:close()
 	
 	if itype == "chipset" then
 		result = chipset
 	elseif itype == "version" or itype == "version_raw" then
-		arg=" | sed '8q;d' | cut -d ':' -f 3"
-		local version_read = popen(cmd .. arg)
-		result = version_read:read()
+		result = version
 		if itype == "version" then
 			if result:sub(0,2) == "0x" then
 				if chipset:match("BDCM") then
@@ -552,7 +561,6 @@ local function xdslctlDslamInfo(itype)
 				end
 			end
 		end
-		version_read:close()
 	end
 	
 	return result

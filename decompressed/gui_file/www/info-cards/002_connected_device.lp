@@ -106,7 +106,7 @@ local devices_data, devices_helpmsg = post_helper.handleTableQuery(devices_colum
 <div class="infocard" id="devicetab">\
   <div class="smallcard">\
     ');  ngx.print( ui_helper.createCardHeader(T"Connected Devices", nil, nil, nil, nil) ); ngx.print('\
-    <div class="content card_bg" data-bg-text="&#xf129;">\
+    <div class="content card_bg" data-bg-text="&#xf1e6;">\
 	<div class="divtable">\
 	<form class="form-horizontal">\
 	<fieldset>');
