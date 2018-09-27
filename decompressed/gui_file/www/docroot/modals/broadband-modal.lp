@@ -37,12 +37,6 @@ mapParam = {
 
 content_helper.getExactContent(mapParam)
 
-if variant == "DGA4132" then
-	mapParSFP = { ethsfp = "uci.ethernet.globals.eth4lanwanmode" }
-	mapValSFP = { ethsfp = gOV(vB) }
-	local content, helpmsg = post_helper.handleQuery(mapParSFP, mapValSFP)
-end
-
 if not tabdata.current.ajax then
 	-- only display if not doing an ajax request
 	ngx.print(ui_helper.createHeader(T"Broadband", true, true))
@@ -135,24 +129,6 @@ if not tabdata.current.ajax then
 	ngx.print('\
 </fieldset>\
 ')
-	if variant == "DGA4132" then
-		ngx.print('\
-	<fieldset id="conn_mode" class="advanced hide">\
-	<legend>');ngx.print(T"Set 4th Ethernet Port as WAN or as LAN");ngx.print('</legend>')
-
-		local adv = {
-			values = {
-				on = "0",
-				off = "1"
-			}
-		}
-		local html = {}
-		html[#html + 1] = ui_helper.createSwitch(T"WAN-Mode", "ethsfp", content["ethsfp"], adv)
-		ngx.print(html)
-		ngx.print('\
-	</fieldset>\
-	')
-	end
 	ngx.print('<fieldset class="advanced hide">');
 	ngx.print('<legend>'); ngx.print(T"Network mode"); ngx.print('</legend>');
 
