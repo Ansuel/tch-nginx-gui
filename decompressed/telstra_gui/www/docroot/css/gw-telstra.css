@@ -1865,14 +1865,14 @@ table td[class*="span"], table th[class*="span"], .row-fluid table td[class*="sp
 	*margin-right: .3em;
 	line-height: 14px;
 	vertical-align: text-top;
-	background-image: url("../img/glyphicons-halflings.png");
+	background-image: url("../img/telstra/glyphicons-halflings.png");
 	background-position: 14px 14px;
 	background-repeat: no-repeat;
 	margin-top: 1px;
 }
 
 .icon-white, .nav-pills>.active>a>[class^="icon-"], .nav-pills>.active>a>[class*=" icon-"], .nav-list>.active>a>[class^="icon-"], .nav-list>.active>a>[class*=" icon-"], .navbar-inverse .nav>.active>a>[class^="icon-"], .navbar-inverse .nav>.active>a>[class*=" icon-"], .dropdown-menu>li>a:hover>[class^="icon-"], .dropdown-menu>li>a:focus>[class^="icon-"], .dropdown-menu>li>a:hover>[class*=" icon-"], .dropdown-menu>li>a:focus>[class*=" icon-"], .dropdown-menu>.active>a>[class^="icon-"], .dropdown-menu>.active>a>[class*=" icon-"], .dropdown-submenu:hover>a>[class^="icon-"], .dropdown-submenu:focus>a>[class^="icon-"], .dropdown-submenu:hover>a>[class*=" icon-"], .dropdown-submenu:focus>a>[class*=" icon-"] {
-	background-image: url("../img/glyphicons-halflings-white.png");
+	background-image: url("../img/telstra/glyphicons-halflings-white.png");
 }
 
 .icon-glass {
@@ -7615,67 +7615,67 @@ body {
 }
 
 .menubar .menu-item a .home {
-	background-image: url("/img/home.png");
+	background-image: url("/img/telstra/home.png");
 }
 
 .menubar .menu-item a .home.selected, .menubar .menu-item a:hover .home {
-	background-image: url("/img/home-active.png");
+	background-image: url("/img/telstra/home-active.png");
 }
 
 .menubar .menu-item a .broadband {
-	background-image: url("/img/broadband.png");
+	background-image: url("/img/telstra/broadband.png");
 }
 
 .menubar .menu-item a .broadband.selected, .menubar .menu-item a:hover .broadband {
-	background-image: url("/img/broadband-active.png");
+	background-image: url("/img/telstra/broadband-active.png");
 }
 
 .menubar .menu-item a .wifi {
-	background-image: url("/img/wifi.png");
+	background-image: url("/img/telstra/wifi.png");
 }
 
 .menubar .menu-item a .wifi.selected, .menubar .menu-item a:hover .wifi {
-	background-image: url("/img/wifi-active.png");
+	background-image: url("/img/telstra/wifi-active.png");
 }
 
 .menubar .menu-item a .contentsharing {
-	background-image: url("/img/contentsharing.png");
+	background-image: url("/img/telstra/contentsharing.png");
 }
 
 .menubar .menu-item a .contentsharing.selected, .menubar .menu-item a:hover .contentsharing {
-	background-image: url("/img/contentsharing-active.png");
+	background-image: url("/img/telstra/contentsharing-active.png");
 }
 
 .menubar .menu-item a .tod {
-	background-image: url("/img/parentalcontrol.png");
+	background-image: url("/img/telstra/parentalcontrol.png");
 }
 
 .menubar .menu-item a .tod.selected, .menubar .menu-item a:hover .tod {
-	background-image: url("/img/parentalcontrol-active.png");
+	background-image: url("/img/telstra/parentalcontrol-active.png");
 }
 
 .menubar .menu-item a .dyndns {
-	background-image: url("/img/services.png");
+	background-image: url("/img/telstra/services.png");
 }
 
 .menubar .menu-item a .dyndns.selected, .menubar .menu-item a:hover .dyndns {
-	background-image: url("/img/services-active.png");
+	background-image: url("/img/telstra/services-active.png");
 }
 
 .menubar .menu-item a .admin {
-	background-image: url("/img/admin.png");
+	background-image: url("/img/telstra/admin.png");
 }
 
 .menubar .menu-item a .admin.selected, .menubar .menu-item a:hover .admin {
-	background-image: url("/img/admin-active.png");
+	background-image: url("/img/telstra/admin-active.png");
 }
 
 .menubar .menu-item a .gateway {
-	background-image: url("/img/advanced.png");
+	background-image: url("/img/telstra/advanced.png");
 }
 
 .menubar .menu-item a .gateway.selected, .menubar .menu-item a:hover .gateway {
-	background-image: url("/img/advanced-active.png");
+	background-image: url("/img/telstra/advanced-active.png");
 }
 
 .form-horizontal .control-group {
@@ -7777,20 +7777,20 @@ body {
 }
 
 .networkmap .right {
-	background: #bce4fa no-repeat left bottom url('/img/tipright.png');
+	background: #bce4fa no-repeat left bottom url('/img/telstra/tipright.png');
 	padding: 8px 8px 8px 12px;
 	margin-left: 5px;
 }
 
 .networkmap .left {
-	background: #bce4fa no-repeat right bottom url('/img/tipleft.png');
+	background: #bce4fa no-repeat right bottom url('/img/telstra/tipleft.png');
 	padding: 8px 12px 8px 8px;
 	margin-left: 20px;
 	left: 30%;
 }
 
 .networkmap .longleft {
-	background: #bce4fa no-repeat right bottom url('/img/tiplongleft.png');
+	background: #bce4fa no-repeat right bottom url('/img/telstra/tiplongleft.png');
 	padding: 8px 12px 8px 8px;
 	margin-left: 20px;
 	left: 28%;

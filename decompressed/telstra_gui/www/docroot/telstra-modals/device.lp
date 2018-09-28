@@ -207,7 +207,7 @@ end
 			<form id="deviceForm" class="form-horizontal" method="post" action="');  ngx.print( uri ); ngx.print('">\
 				<div class="span5">\
 					');  
-					  ngx.print(ui_helper.createMessages(message_helper.popMessages()), string.format('<img src="img/dev_laptop%s.gif">', tickedstate))
+					  ngx.print(ui_helper.createMessages(message_helper.popMessages()), string.format('<img src="img/telstra/dev_laptop%s.gif">', tickedstate))
 					  ngx.print('\
 					');  
 					  local html = {}

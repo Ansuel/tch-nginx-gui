@@ -75,7 +75,7 @@
 
     local item = items[msg_key]
 
-    html[#html+1] = string.format('<div class="message"><img class="%s" src="/img/status.png"/>%s</div>', item[1], item[2])
+    html[#html+1] = string.format('<div class="message"><img class="%s" src="/img/telstra/status.png"/>%s</div>', item[1], item[2])
     ngx.print(html)
 
   ngx.print('\
