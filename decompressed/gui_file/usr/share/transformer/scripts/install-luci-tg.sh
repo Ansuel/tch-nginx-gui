@@ -1,6 +1,6 @@
 #!/bin/sh
 filename="nutterpc-tg-luci-6f3cf6e"
-rm -R /tmp/luciinstall
+
 mkdir /tmp/luciinstall
 curl -k -L https://github.com/nutterpc/tg-luci/tarball/master --output /tmp/luciinstall/luci.tar.gz
 gzip -d /tmp/luciinstall/luci.tar.gz
