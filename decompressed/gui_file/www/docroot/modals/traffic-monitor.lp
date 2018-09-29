@@ -350,7 +350,6 @@ var TrafficChartOption = {\
 				displayFormats: {\
 				minute: "H:mm"}}}],\
 		yAxes: [{ticks: {\
-				beginAtZero:true,\
 				callback: function(value) { \
 					return formatBytes(value,2) \
 				},}}]},\
