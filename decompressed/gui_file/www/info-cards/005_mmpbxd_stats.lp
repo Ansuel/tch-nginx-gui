@@ -113,10 +113,10 @@ if ( variant == "Technicolor TG799vac" ) or ( variant == "Technicolor TG800vac" 
 	if ( content.emission == "1" ) then
 		html[#html + 1] = ui_helper.createLabel(T"DECT Emission Mode ", T"Enabled", basic)
 	else 
-		html[#html + 1] = ui_helper.createLabel(T"Base Name", content["baseName"], basic)
-		html[#html + 1] = ui_helper.createLabel(T"Base Code", content["accCode"], basic)
 		html[#html + 1] = ui_helper.createLabel(T"DECT Emission Mode ", T"Disabled", basic)
 	end
+html[#html + 1] = ui_helper.createLabel(T"Base Name", content["baseName"], basic)
+html[#html + 1] = ui_helper.createLabel(T"Base Code", content["accCode"], basic)
 end
 
 html[#html + 1] = ui_helper.createTable(mmpbxd_columns, mmpbxd_data, mmpbxd_options, nil, mmpbxd_helpmsg)
