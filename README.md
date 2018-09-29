@@ -22,6 +22,7 @@ with many fixes and new features like:
 <li>Ability to install LuCI GUI or sharing service like transmission.</li>
 <li>Spoofing of firmware version to bypass CWMP controls.</li>
 <li>Select many skins for the GUI, like the Fritz!Box one.</li>
+<li>Install Telstra Basic GUI</li>
 <li>And many others...</li>
 </ul>
 <p><strong>You can help the development of this GUI by reporting issues or suggesting improvements.</strong><br /><strong>All the infomation can be found here and on the ilpuntotecnico forum (https://www.ilpuntotecnico.com/forum) (To write on this forum you need to write in the presentation section after the first login).</strong></p>
@@ -49,5 +50,5 @@ If you get an error during the download process or you have no Internet/WAN conn
 Preview:
 <img src="https://i.imgur.com/ZcSANgW.png">
 
-<b>LUCI GUI not yet supported on the TG799, 789, 800 and 797n v3</b>
-<p>A buildroot system is need to compile necessary packages to make luci work, otherwise rpcd will cause a segmentation fault and put the modem into a bootloop. At the moment a user is compiling LUCI to work on this architecture (brcm63xx-tch).
+<b>LUCI GUI not yet intergrated on the TG799, 789, 800 and 797n v3 GUI's</b>
+<p>If you would like to install LuCI on your modem, you can find the instructions and install script here: https://github.com/nutterpc/tg-luci
