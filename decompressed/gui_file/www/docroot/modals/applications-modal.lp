@@ -95,8 +95,12 @@ local mapParams = {
 	local_ip_modem = "uci.network.interface.@lan.ipaddr",
 }
 if prod_friendly_name and prod_friendly_name[1].value then
-	if prod_friendly_name[1].value:match("DGA413") then
+	if prod_friendly_name[1].value:match("DGA413") or 
+		prod_friendly_name[1].value:match("TG799") or 
+		prod_friendly_name[1].value:match("TG800") then
 		mapParams.luci_webui = "uci.env.var.luci_webui"
+	end
+	if prod_friendly_name[1].value:match("DGA413") then
 		mapParams.aria2_webui = "uci.env.var.aria2_webui"
 		mapParams.transmission_webui = "uci.env.var.transmission_webui"
 		mapParams.blacklist_application = "uci.env.var.blacklist_app"
