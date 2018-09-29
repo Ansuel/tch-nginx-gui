@@ -35,6 +35,6 @@ luci_remove_tg799() {
 
 [ "$device_type" == "DGA" ] && luci_remove_DGA
 
-[ "$(echo $device_type | grep TG800)" ] && luci_remove_tg799
+[ "$(echo $device_type | grep TG789)" ] && luci_remove_tg799
 
 [ "$(echo $device_type | grep TG799)" ] && luci_remove_tg799

@@ -41,6 +41,6 @@ luci_install_tg799() {
 
 [ "$device_type" == "DGA" ] && luci_install_DGA
 
-[ "$(echo $device_type | grep TG800)" ] && luci_install_tg799
+[ "$(echo $device_type | grep TG789)" ] && luci_install_tg799
 
 [ "$(echo $device_type | grep TG799)" ] && luci_install_tg799

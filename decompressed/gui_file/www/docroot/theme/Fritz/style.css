@@ -544,6 +544,9 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 		overflow: auto !important;
 		display: none;
 	}
+	.header-button {
+		margin-top: -2rem;
+	}
 	.container>.row {
 		margin-top: 2rem;
 	}

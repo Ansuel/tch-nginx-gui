@@ -97,7 +97,7 @@ local mapParams = {
 if prod_friendly_name and prod_friendly_name[1].value then
 	if prod_friendly_name[1].value:match("DGA413") or 
 		prod_friendly_name[1].value:match("TG799") or 
-		prod_friendly_name[1].value:match("TG800") then
+		prod_friendly_name[1].value:match("TG8789") then
 		mapParams.luci_webui = "uci.env.var.luci_webui"
 	end
 	if prod_friendly_name[1].value:match("DGA413") then
