@@ -409,18 +409,13 @@ local function xdslband(band_request,dtype,bandtype)
 					result = "512"
 				end
 			end
-		else
-			if dtype == "Initial" then
-				result = "0"
-			elseif dtype == "Final" then
-				result = "-1"
-			end
 		end
 	end
 	
 	if dtype == "BandNumber" then
 		return tostring(band_index-1)
 	else
+		if result == "0" and dtype == "Final" then result = "-1" end
 		cache[cachebandstring] = result
 		return result
 	end
@@ -450,7 +445,7 @@ local function xdslctlget(dtype,request,band,bandtype,split)
 	elseif bandtype == "Us" and band == 4 then
 		bandstart = tonumber(cache["Us" .. 3 .. "Final"] or xdslband(3,"Final","Us"))+1
 	elseif bandtype == "Ds" and band == 3 then
-		if tonumber(cache["Us" .. 1 .. "Final"] or xdslband(4,"Final","Us")) == 0 then --The Us4 band is not present!
+		if tonumber(cache["Us" .. 4 .. "Final"] or xdslband(4,"Final","Us")) == -1 then --The Us4 band is not present!
 			bandstart = tonumber(cache["Us" .. 3 .. "Final"] or xdslband(3,"Final","Us"))+1 --Take the Us3 to start
 		else
 			bandstart = tonumber(cache["Us" .. 4 .. "Final"] or xdslband(4,"Final","Us"))+1
