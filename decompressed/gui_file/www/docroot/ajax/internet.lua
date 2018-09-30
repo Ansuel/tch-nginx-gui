@@ -24,6 +24,10 @@ local content_rpc = {
   wan_ppp_error = "rpc.network.interface.@wan.ppp.error",
   ipaddr = "rpc.network.interface.@wan.ipaddr",
   pppoe_uptime = "rpc.network.interface.@wan.uptime",
+  up = "rpc.network.interface.@wan.up",
+  ipaddr = "rpc.network.interface.@wan.ipaddr",
+  nexthop = "rpc.network.interface.@wan.nexthop",
+  dns_wan = "rpc.network.interface.@wan.dnsservers",
 }
 
 local interface = proxy.getPN("rpc.network.interface.", true)
@@ -44,6 +48,16 @@ if interface then
 end
 
 content_helper.getExactContent(content_rpc)
+
+if content_rpc.dns_wan:match(",") then
+	content_rpc.dns_wan = content_rpc.dns_wan:gsub(","," , ")
+end
+
+if content_rpc.up == "1" then
+	content_rpc.up = T"Connected"
+else
+	content_rpc.up = T"Disconnected"
+end
 
 local IPv6State = "none"
 
@@ -138,12 +152,16 @@ end
 
 local data = {
   pppoe_uptime = post_helper.secondsToTimeShort(content_rpc["pppoe_uptime"]) or "",
+  pppoe_uptime_extended = post_helper.secondsToTime(content_rpc["pppoe_uptime"]) or "",
   ppp_status = ppp_status or "",
   ppp_light = ppp_light or "" ,
   ppp_state = ppp_state or "",
   WAN_IP = WAN_IP or "",
   ipv6_light = ipv6_light or "",
-  ipv6_state = ipv6_state or ""
+  ipv6_state = ipv6_state or "",
+  status = content_rpc["up"],
+  wangateway = content_rpc["nexthop"],
+  wandns = content_rpc["dns_wan"]
 }
 
 local buffer = {}

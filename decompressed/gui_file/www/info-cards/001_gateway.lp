@@ -1,7 +1,6 @@
 --pretranslated: do not change this file
  
 -- Enable localization
--- NG-92675 implement changes required from the customer
 gettext.textdomain('webui-core')
 
 local proxy = require("datamodel")
@@ -11,11 +10,6 @@ local ui_helper = require("web.ui_helper")
 
 local find, sub, format = string.find, string.sub, string.format
 
-local contentonly
-
-if ngx.req.get_method() == "GET" then
-	contentonly = ngx.req.get_uri_args().contentonly or false
-end
 
 local content = {
   product_name = "uci.env.var.prod_name",
@@ -64,22 +58,6 @@ nf_conntrack_count:close()
 	local basic = {
       span = {
         class = "span3"
-      },
-    }
-    local advanced = {
-      group = {
-        class = "advanced hide",
-      },
-      span = {
-        class = "span5"
-      },
-    }
-	local advancedshow = {
-      group = {
-        class = "advanced show",
-      },
-      span = {
-        class = "span5"
       },
     }
 	

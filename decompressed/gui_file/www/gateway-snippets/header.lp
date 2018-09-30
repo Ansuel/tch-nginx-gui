@@ -306,6 +306,19 @@ end ngx.print('\
     ');
   end
   ngx.print('\
+  ko.bindingHandlers.text = {\
+		init: function(element, valueAccessor) {\
+        $(element).text(ko.unwrap(valueAccessor()));\
+    },\
+    update: function(element, valueAccessor) {\
+        var value = ko.unwrap(valueAccessor());\
+        if ((value != $(element).text() ) && ( ! $(element).hasClass("hide") )) {\
+            $(element).fadeOut(function() {\
+                $(this).text(value).fadeIn();\
+            });\
+        }\
+    }\
+  };\
 });\
 </script>\
 ');
