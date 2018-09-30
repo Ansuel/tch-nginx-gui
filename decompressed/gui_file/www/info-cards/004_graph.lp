@@ -33,7 +33,7 @@ if interface and ( wan == "1" ) then
 	<fieldset>');
 	
 	local html = {}
-	html[#html + 1] = '<div style="height:400px; width:700px"><canvas id="WANChart"></canvas></div>'
+	html[#html + 1] = '<div id="canvas_container" style="height:400px;margin-right:20px;"><canvas id="WANChart"></canvas></div>'
 	html[#html + 1] = '<div id="rx_traffic_complete" class="hide" data-bind="text: rx_traffic_complete">' .. rx_traffic .. '</div>'
 	html[#html + 1] = '<div id="tx_traffic_complete" class="hide" data-bind="text: tx_traffic_complete">' .. tx_traffic .. '</div>'
 	
@@ -46,6 +46,16 @@ ngx.print('\
   </div>\
 </div>\
 <script>\
+if ( $(document).width() > 831 )\
+	$("#canvas_container").width($(document).width()/2-60);\
+else\
+	$("#canvas_container").width($(document).width()-50);\
+window.onresize = function(event) {\
+    if ( $(document).width() > 831 )\
+		$("#canvas_container").width($(document).width()/2-60);\
+	else\
+		$("#canvas_container").width($(document).width()-50);\
+};\
 function formatBytes(bytes,decimals) {\
    if(bytes == 0) return "0 Bytes";\
 	var k = 1024,\

@@ -78,7 +78,7 @@ end
 	
 	local basic = {
       span = {
-        class = "span3"
+        class = "span4"
       },
     }
 	
