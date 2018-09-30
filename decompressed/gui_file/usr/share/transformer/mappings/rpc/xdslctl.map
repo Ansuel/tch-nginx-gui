@@ -341,11 +341,15 @@ local function xdslmode()
 end
 
 if not cache["dslmode"] then
-	cache = {}
 	cache["dslmode"] = xdslmode()
 end
 
 local function xdslband(band_request,dtype,bandtype)
+	
+	if band_request == 0 and not ( dtype == "BandNumber" ) then
+		return nil
+	end
+	
 	local line
 	if ( bandtype == "Us" ) then
 		line = 12
@@ -384,7 +388,7 @@ local function xdslband(band_request,dtype,bandtype)
 				elseif dtype == "Final" then
 					result = band:match("%,(%d*)")
 				end
-				if not ( dtype == BandNumber ) then
+				if not ( dtype == "BandNumber" ) then
 					break
 				end
 			end
@@ -424,16 +428,11 @@ end
 
 local function xdslctlget(dtype,request,band,bandtype,split)
     local data = {}
-	local n  = 0
+	local lineread = 0
 	local line
 	local scannedband = 0
-	local scanband = ""
 	
 	local bandstart, bandend
-	
-	local cmd = "xdslctl info --" .. request
-	
-	local infofile = popen(cmd,"r")
 	
 	if bandtype == "Us" and band == 1 then
 		bandstart = 0
@@ -477,14 +476,19 @@ local function xdslctlget(dtype,request,band,bandtype,split)
 	if not bandstart then
 		bandstart = tonumber(cache[bandtype .. band .. "Initial"] or xdslband(band,"Initial",bandtype)) or 0
 	end
+	
 	if not bandend then
 		bandend = tonumber(cache[bandtype .. band .. "Final"] or xdslband(band,"Final",bandtype)) or -1
 	end
 	
+	local cmd = "xdslctl info --" .. request
+	
+	local infofile = popen(cmd,"r")
+	
 	for line in infofile:lines() do
-		if n>=(bandstart+8) and n<=(bandend+8) then
+		if lineread>=(bandstart+8) and lineread<=(bandend+8) then
 			if not ( dtype == "scanband" ) then
-				if n>(bandend+8) then
+				if lineread>(bandend+8) then
 					break
 				end
 				if dtype == "data" then
@@ -522,16 +526,14 @@ local function xdslctlget(dtype,request,band,bandtype,split)
 				end
 			end
 		end
-		n=n+1
+		lineread=lineread+1
 	end
 	infofile:close()
-	
-	scanband = tostring(n-8)
 	
 	if dtype == "data" then
 		return concat(data) or ""
 	elseif dtype == "scanband" then
-		return scanband
+		return tostring(lineread-8)
 	elseif dtype == "scannedband" then
 		return tostring(scannedband)
 	end
@@ -553,9 +555,6 @@ local function xdslctlDslamInfo(itype)
 			version = line:gsub(".*:%s+","")
 		end
 	end
-	--local chipset_arg=" | sed '8q;d' | cut -d ':' -f 2 | sed -e 's/^[ \t]*//'"
-	--local chipset_read=popen(cmd .. chipset_arg)
-	--local chipset = chipset_read:read()
 	vendor_info:close()
 	
 	if itype == "chipset" then
