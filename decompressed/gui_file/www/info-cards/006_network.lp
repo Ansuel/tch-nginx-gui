@@ -105,14 +105,14 @@ end
 port_data[#port_data+1] = { 
 	"Wi-Fi 2.4 Ghz", --type
 	( wifi_content.wifi24_status == "1" ) and T"Active" or T"Disabled", --status
-	wifi_content.wifi24_speed / 1000 .. " Mbps", --speed
+	( tonumber(wifi_content.wifi24_speed) or 0 ) / 1000 .. " Mbps", --speed
 	wifi_content.wifi24_mode, --mode
 }
 
 port_data[#port_data+1] = { 
 	"Wi-Fi 5 Ghz", --type
 	( wifi_content.wifi5_status == "1" ) and T"Active" or T"Disabled", --status
-	wifi_content.wifi5_speed / 1000 .. " Mbps", --speed
+	( tonumber(wifi_content.wifi5_speed) or 0 ) / 1000 .. " Mbps" , --speed
 	wifi_content.wifi5_mode, --mode
 }
 
