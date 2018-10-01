@@ -33,7 +33,7 @@ local content = {
 
 content_helper.getExactContent(content)
 
-if not ( content.max_upstream == "0" ) then
+if not ( content.dsl_linerate_down == "0" ) then
 
 content.dsl_linerate_up = floor(tonumber(content.dsl_linerate_up) / 10) / 100 .. "Mbps"
 content.dsl_linerate_down = floor(tonumber(content.dsl_linerate_down) / 10) / 100 .. "Mbps"
@@ -71,13 +71,13 @@ end
 	
 	html[#html + 1] = ui_helper.createLabel(T"Status", content["status"], basic)
 	html[#html + 1] = ui_helper.createLabel(T"xDSL Version", content["version"], basic)
-	html[#html + 1] = ui_helper.createLabel(T"Dslam Chipset",content.dslam_chipset, span5 )
+	html[#html + 1] = ui_helper.createLabel(T"DSLAM Chipset",content.dslam_chipset, span5 )
 	if content.dslam_version_raw:sub(0,2) == "0x" then
-		html[#html + 1] = ui_helper.createLabel(T"Dslam Firmware Version",format("%s ( %s )", content.dslam_version , content.dslam_version_raw) , span5 )
+		html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",format("%s ( %s )", content.dslam_version , content.dslam_version_raw) , span5 )
 	elseif content.dslam_version_raw == "" then
-		html[#html + 1] = ui_helper.createLabel(T"Dslam Firmware Version",T"Can't recover dslam version." , span5 )
+		html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",T"Can't recover dslam version." , span5 )
 	else
-		html[#html + 1] = ui_helper.createLabel(T"Dslam Firmware Version",format(T"Invalid version, can't convert. Raw value: %s", content.dslam_version_raw) , span5 )
+		html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",format(T"Invalid version, can't convert. Raw value: %s", content.dslam_version_raw) , span5 )
 	end
 	
 	html[#html + 1] = '<div class="control-group">'

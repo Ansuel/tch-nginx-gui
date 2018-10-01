@@ -67,17 +67,17 @@ nf_conntrack_count:close()
 	html[#html + 1] = ui_helper.createLabel(T"Product Name", content["product_name"], basic)
 	html[#html + 1] = ui_helper.createLabel(T"Software Version", format("%s %s",content["software_version"],content["software_name"]), basic)
 	html[#html + 1] = '<div class="control-group">'
-	html[#html + 1] =   '<label class="control-label">' .. T("Gui Version") .. '</label>'
+	html[#html + 1] =   '<label class="control-label">' .. T("GUI Version") .. '</label>'
 	html[#html + 1] =   '<div class="controls">'
-	html[#html + 1] =     '<span id="Gui Version" class=" simple-desc span3">'
-	html[#html + 1] = 		format('%s <a id="updateinfocard">%s</a>',content["gui_version"],T"Check Upgrade")
+	html[#html + 1] =     '<span id="GUI Version" class=" simple-desc span3">'
+	html[#html + 1] = 		format('%s <a id="updateinfocard" class="">%s</a>',content["gui_version"],T"Check Upgrade")
 	html[#html + 1] =	  '</span>'
 	html[#html + 1] =   '</div>'
 	html[#html + 1] = '</div>'
 	basic.span["data-bind"] = "text: uptime"
 	html[#html + 1] = ui_helper.createLabel(T"Uptime", post_helper.secondsToTime(content["uptime"]), basic)
 	basic.span["data-bind"] = "text: cpuusage"
-	html[#html + 1] = ui_helper.createLabel(T"Cpu Usage", content["cpuusage"] .. "%", basic)
+	html[#html + 1] = ui_helper.createLabel(T"CPU Usage", content["cpuusage"] .. "%", basic)
 	html[#html + 1] = '<div class="control-group">'
 	html[#html + 1] =   '<label class="control-label">' .. T("Free Memory") .. '</label>'
 	html[#html + 1] =   '<div class="controls">'
