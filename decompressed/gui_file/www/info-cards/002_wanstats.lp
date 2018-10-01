@@ -70,7 +70,7 @@ end
 \
 <div class="infocard" id="wanstatsinfotab">\
   <div class="smallcard">\
-    ');  ngx.print( ui_helper.createCardHeader(T"Wan Stats", nil, nil, nil, nil) ); ngx.print('\
+    ');  ngx.print( ui_helper.createCardHeader(T"WAN Stats", nil, nil, nil, nil) ); ngx.print('\
     <div class="content card_bg" data-bg-text="&#xf129;">\
 	<div class="divtable">\
 	<form class="form-horizontal">\
