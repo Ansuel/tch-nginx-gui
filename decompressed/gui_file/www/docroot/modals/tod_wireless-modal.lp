@@ -33,6 +33,8 @@ local ap_status_map = setmetatable({
   ["1"] = T"On"
 }, untaint_mt)
 
+local ap_list = { }
+
 local tod_timer_path = "uci.tod.timer."
 local tod_action_path = "uci.tod.action."
 local tod_wifitod_path = "uci.tod.wifitod."
@@ -171,10 +173,14 @@ local function onAdd(success, content, onModify)
     proxy.add(tod_action_path .. "@" .. success .. ".timers.")
     proxy.add(tod_timer_path, "timer"..index)
     proxy.add(tod_wifitod_path, "wifitod"..index)
-    proxy.add(tod_wifitod_path .. "@wifitod"..index..".ap.")
-    proxy.add(tod_wifitod_path .. "@wifitod"..index..".ap.")
-    proxy.add(tod_ap_path, "ap0"..index)
-    proxy.add(tod_ap_path, "ap1"..index)
+    --proxy.add(tod_wifitod_path .. "@wifitod"..index..".ap.")
+    --proxy.add(tod_wifitod_path .. "@wifitod"..index..".ap.")
+    --proxy.add(tod_ap_path, "ap0"..index)
+    --proxy.add(tod_ap_path, "ap1"..index)
+	for _ , ap in pairs(ap_list) do
+		proxy.add(tod_wifitod_path .. "@wifitod"..index..".ap.")
+		proxy.add(tod_ap_path, format("%s%s",ap,index))
+	end
   end
 
   content.weekdays = concat(content.weekdays, ",")
@@ -190,14 +196,24 @@ local function onAdd(success, content, onModify)
   setObject[format("%s@timer%s.start_time", tod_timer_path, index)] = content.start_time
   setObject[format("%s@timer%s.stop_time", tod_timer_path, index)] = content.stop_time
 
-  setObject[format("%s@wifitod%s.ap.@1.value", tod_wifitod_path, index)] = "ap0"..index
-  setObject[format("%s@wifitod%s.ap.@2.value", tod_wifitod_path, index)] = "ap1"..index
-
-  setObject[format("%s@ap0%s.state", tod_ap_path, index)] = content.mode == "on" and "1" or "0"
-  setObject[format("%s@ap0%s.ap", tod_ap_path, index)] = "ap0"
-
-  setObject[format("%s@ap1%s.state", tod_ap_path, index)] = content.mode == "on" and "1" or "0"
-  setObject[format("%s@ap1%s.ap", tod_ap_path, index)] = "ap1"
+  --setObject[format("%s@wifitod%s.ap.@1.value", tod_wifitod_path, index)] = "ap0"..index
+  --setObject[format("%s@wifitod%s.ap.@2.value", tod_wifitod_path, index)] = "ap1"..index
+  --
+  --setObject[format("%s@ap0%s.state", tod_ap_path, index)] = content.mode == "on" and "1" or "0"
+  --setObject[format("%s@ap0%s.ap", tod_ap_path, index)] = "ap0"
+  --
+  --setObject[format("%s@ap1%s.state", tod_ap_path, index)] = content.mode == "on" and "1" or "0"
+  --setObject[format("%s@ap1%s.ap", tod_ap_path, index)] = "ap1"
+  
+  local count = 1
+  
+  for _ , ap in pairs(ap_list) do
+	setObject[format("%s@wifitod%s.ap.@%s.value", tod_wifitod_path, index, count)] = ap..index
+	setObject[format("%s@%s%s.state", tod_ap_path, ap, index)] = content.mode == "on" and "1" or "0"
+	setObject[format("%s@%s%s.ap", tod_ap_path, ap, index)] = ap
+	count=count+1
+  end
+  
   proxy.set(setObject)
   proxy.apply()
   return true
@@ -225,7 +241,18 @@ if ngx.var.request_method == "POST" then
   local current_index = postargs.index
   local allowedIndexes = session:retrieve(tod_options.tableid .. ".allowedindexes") or {}
   current_index = allowedIndexes[current_index] and allowedIndexes[current_index].paramindex or -1
-
+  
+  ap_list = {}
+  
+  if postargs.ap == "" then
+	table.insert(ap_list,"ap0")
+	table.insert(ap_list,"ap1")
+	table.insert(ap_list,"ap2")
+	table.insert(ap_list,"ap3")
+  else
+	table.insert(ap_list,postargs.ap)
+  end
+  
   if postargs.action == "TABLE-NEW" then
     tod_options.editing = -1
   elseif postargs.action == "TABLE-EDIT" then
@@ -256,8 +283,21 @@ local ap_list = content_helper.convertResultToObject(tod_ap_path, proxy.get(tod_
 local timer_data = {}
 
 for i, v in ipairs(tod_data) do
+  local index = action_list[i].object:gsub("wifitod.wifitod","")
+  local wifi_list = {}
+  local wifitod_path = "uci.tod.wifitod.@wifitod"..index..".ap."
+  for value=1,4 do
+	local wifi_test = proxy.get(wifitod_path.."@"..value..".value")
+	if wifi_test then
+		local ap = wifi_test[1].value:sub(0,3)
+		local ssid = proxy.get("rpc.wireless.ap.@"..ap..".ssid")[1].value
+		local name = proxy.get("rpc.wireless.ssid.@"..ssid..".ssid")[1].value
+		wifi_list[#wifi_list+1] = tostring(untaint(name))
+		wifi_list[#wifi_list+1] = " "
+	end
+  end
   v[1] = v[1] -- status
-  v[2] = "all" -- ap
+  v[2] = table.concat(wifi_list) -- ap
   local days, start_time = timer_list[i].start_time:match("^(.-):(.+)$")
   v[3] = start_time -- start_time
   v[4] = timer_list[i].stop_time:match("^.-:(.+)$") -- stop_time
@@ -269,10 +309,11 @@ for i, v in ipairs(tod_data) do
   -- Sub Columns
   v[7] = {
     [1] = v[1], -- status
-    [2] = ap_list[i].state == "1" and "on" or "off", -- apState
-    [3] = v[3], -- start_time
-    [4] = v[4], -- stop_time
-    [5] = v[6] -- days
+	[2] = ap_list[i].ap, -- ap
+    [3] = ap_list[i].state == "1" and "on" or "off", -- apState
+    [4] = v[4], -- start_time
+    [5] = v[5], -- stop_time
+    [6] = v[7] -- days
   }
   timer_data[i] = {
     start_time = v[3],
@@ -322,7 +363,7 @@ session:store("timer_data", timer_data)
         $("#starttime").mobiscroll().time(opt);\
         $("#stoptime").mobiscroll().time(opt);\
     });\
-    $(".btn-table-add, .btn-table-modify").on("click", function() {\
+    $(".btn-table-add, .btn-table-modify").click(function() {\
         // ui_helper adds dummy hidden checkbox if no checkboxes are checked. we don\'t need that.\
         if ($("form .additional-edit input[name=weekdays]:visible:checked").length > 0) {\
           $("form input[name=weekdays]:hidden").removeAttr("name");\

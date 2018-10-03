@@ -294,6 +294,17 @@ end
 function M.getTodwifi()
   setlanguage()
 
+  local wifi_list = {
+	{"",T"All"},
+  }
+  
+  for i,v in ipairs(proxy.getPN("rpc.wireless.ap.", true)) do
+	local radio = string.match(v.path, "rpc%.wireless%.ap%.@([^%.]+)%.")
+	local ssid = proxy.get("rpc.wireless.ap.@"..radio..".ssid")[1].value
+	local name = proxy.get("rpc.wireless.ssid.@"..ssid..".ssid")[1].value
+	wifi_list[#wifi_list+1] = { radio , name }
+  end
+  
   local wifimodes = {
     { "on", T"On" },
     { "off", T"Off" },
@@ -314,7 +325,7 @@ function M.getTodwifi()
         name = "ap",
         param = "ap",
         type = "text",
-        readonly = true,
+		readonly = true,
         attr = { input = { class="span3" } },
     }, --[2]
     {
@@ -373,6 +384,14 @@ function M.getTodwifi()
                 type = "text",
                 attr = { input = { class="span2", maxlength="17"}, autocomplete=M.get_hosts_ac() },
             },--]]
+			{
+				header = T"Access Point",
+				name = "ap",
+				param = "ap",
+				type = "select",
+                values = wifi_list,
+				attr = { input = { class="span2" } },
+			}, --[2]
             {
                 header = T"AP State",
                 name = "mode",
@@ -427,7 +446,7 @@ function M.getTodwifi()
   return {
     columns = tod_columns,
     valid   = tod_valid,
-	days    = theWeekdays(),
+    days    = theWeekdays(),
     --default = tod_default,
     --sort_func = tod_sort_func,
   }
