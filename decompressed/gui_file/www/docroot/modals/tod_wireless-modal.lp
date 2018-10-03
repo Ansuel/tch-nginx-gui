@@ -249,6 +249,12 @@ if ngx.var.request_method == "POST" then
 	table.insert(ap_list,"ap1")
 	table.insert(ap_list,"ap2")
 	table.insert(ap_list,"ap3")
+  elseif postargs.ap == "main" then
+	table.insert(ap_list,"ap0")
+	table.insert(ap_list,"ap1")
+  elseif postargs.ap == "guest" then
+	table.insert(ap_list,"ap2")
+	table.insert(ap_list,"ap3")
   else
 	table.insert(ap_list,postargs.ap)
   end
@@ -311,9 +317,9 @@ for i, v in ipairs(tod_data) do
     [1] = v[1], -- status
 	[2] = ap_list[i].ap, -- ap
     [3] = ap_list[i].state == "1" and "on" or "off", -- apState
-    [4] = v[4], -- start_time
-    [5] = v[5], -- stop_time
-    [6] = v[7] -- days
+    [4] = v[3], -- start_time
+    [5] = v[4], -- stop_time
+    [6] = v[6] -- days
   }
   timer_data[i] = {
     start_time = v[3],
@@ -344,7 +350,10 @@ session:store("timer_data", timer_data)
       <script type="text/javascript">\
         var warning = \'<div class="control-group"><div style="padding-top: 12px;" class="controls"><span class="alert">\'\
                       +\'');  ngx.print( T"The Gateway will block/allow all the time if none of the days are selected" ); ngx.print('</span></div></div>\';\
+		var warning_ap = \'<div class="control-group"><div style="padding-top: 12px; padding-bottom: 12px;" class="controls"><span class="alert">\'\
+                      +\'');  ngx.print( T"The AP can be selected only once, to modify it you need to remove the rule." ); ngx.print('</span></div></div>\';\
         $(\'#stoptime\').parent().parent().after(warning);\
+		$(\'#ap\').parent().parent().after(warning_ap);\
       </script>\
     ');  end  ngx.print('\
   </form>\

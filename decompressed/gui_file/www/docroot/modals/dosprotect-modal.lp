@@ -24,14 +24,14 @@ local dos_content, dos_helpmessage = post_helper.handleQuery(dos_Params, dos_val
 
   ngx.print('\
 \
-');  ngx.print(ui_helper.createHeader(T"Flow Cache Option", false, false))   ngx.print('\
+');  ngx.print(ui_helper.createHeader(T"Dos Protect Option", false, false))   ngx.print('\
 <div class="modal-body update">\
 ');  
     local lp = require("web.lp")
     lp.setpath("/www/snippets/")
     lp.include("tabs-internet.lp")
   ngx.print('\
-  <form class="form-horizontal" method="post" action="modals/fast-cache-option-modal.lp">\
+  <form class="form-horizontal" method="post" action="modals/dosprotect-modal.lp">\
     ');  
         ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       ngx.print('\

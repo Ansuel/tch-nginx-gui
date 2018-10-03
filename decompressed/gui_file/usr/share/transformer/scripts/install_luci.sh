@@ -16,6 +16,9 @@ luci_install_DGA() {
 	mv /www/cgi-bin /www_luci/
 	mv /www/luci-static /www_luci/
 	mv /www/index.html /www_luci/
+	rm /usr/lib/lua/uci.so
+	mv /usr/lib/lua/uci.so_bak /usr/lib/lua/uci.so
+	sed -i 's/require "uci"/require "uci_luci"/g' /usr/lib/lua/luci/model/uci.lua #modify luci to load his original lib with different name
 	
 	if [ ! $(uci get uhttpd.main.listen_http | grep 9080) ]; then
 		uci del_list uhttpd.main.listen_http='0.0.0.0:80'
