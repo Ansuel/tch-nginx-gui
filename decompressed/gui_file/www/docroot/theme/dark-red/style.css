@@ -386,6 +386,26 @@ text-decoration: none;
 	margin-bottom: 20px;
 }
 
+.android-ics.light .dw {
+	background-color: var(--forth-color-accent);
+}
+
+.android-ics.light .dwb, .android-ics.light .dww .dw-li {
+	color: var(--text-general-color);
+}
+
+.android-ics .dw .dwwol {
+	border-top-color: var(--first-color-accent);
+    border-bottom-color: var(--first-color-accent);
+}
+
+.android-ics.light .dwwo {
+	background: linear-gradient(var(--forth-color-accent) 0%, rgba(245, 245, 245, 0) 52%, rgba(245, 245, 245, 0) 48%, var(--forth-color-accent) 100%);
+    background: -webkit-gradient(linear, left bottom, left top, from(var(--forth-color-accent)), color-stop(0.52, rgba(245, 245, 245, 0)), color-stop(0.48, rgba(245, 245, 245, 0)), to(var(--forth-color-accent)));
+    background: -moz-linear-gradient(var(--forth-color-accent) 0%, rgba(245, 245, 245, 0) 52%, rgba(245, 245, 245, 0) 48%, var(--forth-color-accent) 100%);
+    background: -o-linear-gradient(var(--forth-color-accent) 0%, rgba(245, 245, 245, 0) 52%, rgba(245, 245, 245, 0) 48%, var(--forth-color-accent) 100%);
+}
+
 @media screen and (min-width: 767px) {
 	#headertab {
 		background-image: linear-gradient(45deg, transparent 55%, var(--forth-color-accent-50, var(--forth-color-accent, #535353)80) 45%);

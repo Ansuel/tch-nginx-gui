@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.8.41
+version_gui=8.8.47
 
 logo_project() {
 cat << EOF > /dev/console
@@ -874,7 +874,7 @@ apply_right_opkg_repo() {
 	if [ -f /etc/opkg.conf_17.3 ]; then
 		local marketing_version=$(uci get -q version.@version[0].marketing_version)
 		if [ $marketing_version ]; then
-			if [ $marketing_version == "17.3" ]; then
+			if [ $( echo $marketing_version | grep "17.3" ) ]; then
 				if [ -f /etc/okpg.conf ]; then
 					rm /etc/okpg.conf
 				fi

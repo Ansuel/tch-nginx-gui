@@ -351,7 +351,7 @@ function Apprise(a, u) {
         enforceFocus: function() {
             var c = this;
             a(document).on("focusin.modal", function(a) {
-                c.$element[0] !== a.target && !c.$element.has(a.target).length && c.$element.focus()
+                c.$element[0] !== a.target && !c.$element.has(a.target).length && c.$element.trigger("focus")
             })
         },
         escape: function() {
@@ -3723,7 +3723,7 @@ var qrcode = function() {
                 a(document).on(M, eb);
                 d.hasClass("dwb-d") || d.addClass("dwb-a");
                 setTimeout(function() {
-                    d.blur()
+                    d.trigger("blur")
                 }, 10);
                 d.hasClass("dwwb") && c(e) && v(e, d.closest(".dwwl"), d.hasClass("dwwbp") ? Pa : Ga)
             },
@@ -3919,7 +3919,7 @@ var qrcode = function() {
             Ea = {};
             Da = !1;
             Ja = !0;
-            fa.focus()
+            fa.trigger("focus")
         };
         H.select = function() {
             !1 !== H.hide(!1, "set") && (ka(!0, 0, !0), Y("onSelect", [H.val]))

@@ -52,23 +52,5 @@ AOS.init();\
 $(document).ready(function () {\
 	$("#refresh-cards").hide();\
 });\
-window.onscroll = function() {scrollFunction()};\
-\
-function scrollFunction() {\
-if (document.body.scrollTop > 60 || document.documentElement.scrollTop > 60) {\
-        $("#scroll-up").removeClass("hide");\
-		$("#scroll-down").addClass("hide");\
-    } else {\
-        $("#scroll-up").addClass("hide");\
-		$("#scroll-down").removeClass("hide");\
-    }\
-}\
-\
-$(function() {\
-  $("a[href*=\'#\']").on("click", function(e) {\
-    e.preventDefault();\
-    $("html, body").animate({ scrollTop: $($(this).attr("href")).offset().top}, 500, "linear");\
-  });\
-});\
 </script>\
 ')
