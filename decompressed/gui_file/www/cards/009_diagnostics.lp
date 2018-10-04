@@ -39,12 +39,12 @@ then
       ngx.print('\
 		  <td>\
 		    <div data-toggle="modal" data-remote="modals/diagnostics-xdsl-modal.lp" data-id="diagnostics-xdsl-modal">\
-				<i class="smallsomeInfos modal-link fas fa-list-ul" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="XDSL" src="/img/bandwidth-px-png.png" alt="dsl"></i>\
+				<i class="smallsomeInfos modal-link fas fa-list-ul" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="'); ngx.print(T"xDSL"); ngx.print('" src="/img/bandwidth-px-png.png" alt="dsl"></i>\
 			</div>\
 		  </td>\
 		   <td>\
 		    <div data-toggle="modal" data-remote="modals/diagnostics-xdsl-graphics-modal.lp" data-id="iagnostics-xdsl-graphics-modal">\
-			  <i class="smallsomeInfos modal-link fas fa-chart-line" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="XDSL GRAPH" alt="dsl graph"></i>\
+			  <i class="smallsomeInfos modal-link fas fa-chart-line" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="'); ngx.print(T"xDSL Graphics"); ngx.print('" alt="dsl graph"></i>\
 			</div>\
 		  </td>');
     end
@@ -52,29 +52,29 @@ then
   ngx.print('\
           <td>\
 			<div data-toggle="modal" data-remote="modals/diagnostics-ping-modal.lp" data-id="diagnostics-ping-modal">\
-			    <i class="smallsomeInfos modal-link fas fa-upload" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="PING" src="/img/pocket-32-black.png" alt="ping/trace"></i>\
+			    <i class="smallsomeInfos modal-link fas fa-upload" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="'); ngx.print(T"Ping & Traceroute"); ngx.print('" src="/img/pocket-32-black.png" alt="ping/trace"></i>\
 			</div>\
 	      </td>\
 		  <td>\
 	        <div data-toggle="modal" data-remote="modals/port-mirror-modal.lp" data-id="port-mirror-modal">\
-			    <i class="smallsomeInfos modal-link fas fa-exchange-alt" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="PORT-MIRROR" alt="port-mirror"></i>\
+			    <i class="smallsomeInfos modal-link fas fa-exchange-alt" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="'); ngx.print(T"Port Mirror"); ngx.print('" alt="port-mirror"></i>\
 			</div>\
 	      </td>\
 	    </tr>\
         <tr>\
 		  <td>\
 			<div data-toggle="modal" data-remote="modals/diagnostics-connection-modal.lp" data-id="diagnostics-connection-modal">\
-				<i class="smallsomeInfos modal-link far fa-lightbulb" style="font-size:32px;" href="#" rel="tooltip" data-placement="top" data-original-title="CONNECTION" src="/img/connection-established.png" alt="connection"></i>\
+				<i class="smallsomeInfos modal-link far fa-lightbulb" style="font-size:32px;" href="#" rel="tooltip" data-placement="top" data-original-title="'); ngx.print(T"Connection"); ngx.print('" src="/img/connection-established.png" alt="connection"></i>\
 		    </div>\
 	      </td>\
 		  <td>\
 	        <div data-toggle="modal" data-remote="modals/diagnostics-network-modal.lp" data-id="diagnostics-network-modal">\
-			  <i class="smallsomeInfos modal-link fas fa-plug" style="font-size:32px;" href="#" rel="tooltip" data-placement="top" data-original-title="NETWORK" alt="network"></i>\
+			  <i class="smallsomeInfos modal-link fas fa-plug" style="font-size:32px;" href="#" rel="tooltip" data-placement="top" data-original-title="'); ngx.print(T"Network"); ngx.print('" alt="network"></i>\
 			</div>\
 	      </td>\
 		  <td>\
 	        <div data-toggle="modal" data-remote="modals/diagnostics-tcpdump-modal.lp" data-id="diagnostics-network-tcpdump">\
-			  <i class="smallsomeInfos modal-link fa fa-download" style="font-size:32px;" href="#" rel="tooltip" data-placement="top" data-original-title="TCPDUMP" alt="tcpdump"></i>\
+			  <i class="smallsomeInfos modal-link fa fa-download" style="font-size:32px;" href="#" rel="tooltip" data-placement="top" data-original-title="'); ngx.print(T"Tcpdump"); ngx.print('" alt="tcpdump"></i>\
 			</div>\
 	      </td>\
 	    </tr>\
