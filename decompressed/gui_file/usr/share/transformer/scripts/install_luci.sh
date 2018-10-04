@@ -11,10 +11,7 @@ luci_install_DGA() {
 	if [ -f /etc/config/uhttpd ]; then
 		rm /etc/config/uhttpd
 	fi
-	curl -k -s https://repository.ilpuntotecnico.com/files/Ansuel/AGTEF/tmp_package/libuci-lua_2017-04-12.1-2_brcm63xx-tch.ipk --output /tmp/libuci-lua.ipk
-	opkg install --force-reinstall /tmp/libuci-lua.ipk
-	rm /tmp/libuci-lua.ipk
-	opkg install --force-reinstall luci rpcd
+	opkg install --force-reinstall libuci-lua luci rpcd
 	mkdir /www_luci
 	mv /www/cgi-bin /www_luci/
 	mv /www/luci-static /www_luci/

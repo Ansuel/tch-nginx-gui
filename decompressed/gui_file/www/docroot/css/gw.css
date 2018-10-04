@@ -1389,7 +1389,7 @@ table {
 	border-top-right-radius: 4px
 }
 .table-striped tbody>tr:nth-child(odd)>td, .table-striped tbody>tr:nth-child(odd)>th {
-	background-color: #f9f9f9
+	background-color: #9e9e9e1a;
 }
 .table-hover tbody tr:hover>td, .table-hover tbody tr:hover>th {
 	background-color: #f5f5f5
@@ -3650,7 +3650,7 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 .card .information i {
 	margin-right: 5px
 }
-.smallcard:hover > .header > .pull-left {
+.span3 > .smallcard:hover > .header > .pull-left {
 	max-width: 140px;
     white-space: nowrap;
 }
@@ -5486,9 +5486,10 @@ form .switch {
 	color: #dbccdc;
 	content: attr(data-bg-text);
 	display: block;
-	position: absolute;
+	position: fixed;
 	left: -400px;
-	font-size: 1000px
+	font-size: 1000px;
+	z-index: -1;
 }
 .hand {
 	cursor: pointer

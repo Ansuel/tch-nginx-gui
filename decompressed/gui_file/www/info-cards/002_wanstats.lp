@@ -56,6 +56,10 @@ local content = {
 
 content_helper.getExactContent(content)
 
+if not ( content["uptime"] == "" ) then
+	content["uptime"] = post_helper.secondsToTime(content["uptime"])
+end
+
 if content.dns_wan:match(",") then
 	content.dns_wan = content.dns_wan:gsub(","," , ")
 end
@@ -96,7 +100,7 @@ end
 	basic.span["data-bind"] = "text: wandns"
 	html[#html+1] = ui_helper.createLabel(T"DNS servers", content["dns_wan"], basic)
 	basic.span["data-bind"] = "text: wanuptime"
-	html[#html + 1] = ui_helper.createLabel(T"Uptime", post_helper.secondsToTime(content["uptime"] or 0),  basic)
+	html[#html + 1] = ui_helper.createLabel(T"Uptime", content["uptime"],  basic)
 	
 	ngx.print(html)
 ngx.print('\

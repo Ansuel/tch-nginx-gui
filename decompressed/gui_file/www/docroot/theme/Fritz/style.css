@@ -35,7 +35,11 @@
 	z-index: 3;
 }
 #upgrade-alert {
-	margin: 10px 0px 0px 0px;
+	width: 100%;
+    position: fixed;
+    bottom: 0px;
+    margin: 0px;
+    border: 0;
 }
 .container {
 	width: 100%;

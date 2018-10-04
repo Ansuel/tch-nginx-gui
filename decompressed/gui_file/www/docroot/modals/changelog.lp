@@ -17,7 +17,10 @@ ngx.print('\
         },
       }
 	  html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_1.1.1_002 )" .. '</legend>'
-	  html[#html + 1] = ui_helper.createLabel(T"8.7", "Fix dowload driver xdsl, fix assistance, ora vengono mostrate le password dei 3 profili disponibili." .. 
+	  html[#html + 1] = ui_helper.createLabel(T"8.8", "Reworkata pagina iniziale gateway con caricamento dinamico ed introduzione della pagina statistiche." ..
+					"Nuova skin dark red. Introdotta possibilità di settare WifiTod per i wifi separatamente e per i wifi guest. Varie migliorie ai temi per desktop" ..
+					" e mobile. Aggiunta Telstra gui alle applicazioni. Fixato support dei pacchetti per firmware 1.2.0. Vari fix e miglioramenti all'interfaccia." , basic)
+	  html[#html + 1] = ui_helper.createLabel(T"8.7", "Fix download driver xdsl, fix assistance, ora vengono mostrate le password dei 3 profili disponibili." ..
 					"WIP supporto grafici per ADSL. Aggiunta tab per settare DosProtect", basic)
 	  html[#html + 1] = ui_helper.createLabel(T"8.6", "Rework icone, aggiornata libreria fontawesome, fix e migliorie varie," .. 
 					"TEST sfp->stptag per sbloccare classe di ip 192.168.2.1... si attendono feedback per gli utenti che usano modulo sfp ", basic)

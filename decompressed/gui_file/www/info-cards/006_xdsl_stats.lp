@@ -85,7 +85,7 @@ end
 	html[#html + 1] =   '<div class="controls">'
 	html[#html + 1] =     '<span id="Rate" class=" simple-desc span3">'
 	html[#html + 1] =		format('<i class="icon-download icon-small gray"></i> %s',content["max_downstream"])
-	html[#html + 1] =		'&nbsp'
+	html[#html + 1] =		'</br>'
 	html[#html + 1] =		format('<i class="icon-upload icon-small gray"></i> %s', content["max_upstream"])
 	html[#html + 1] =	  '</span>'
 	html[#html + 1] =   '</div>'
@@ -96,7 +96,7 @@ end
 	html[#html + 1] =   '<div class="controls">'
 	html[#html + 1] =     '<span id="Rate" class=" simple-desc span3">'
 	html[#html + 1] =		format('<i class="icon-download icon-small gray"></i> %s',content["dsl_linerate_down"])
-	html[#html + 1] =		'&nbsp'
+	html[#html + 1] =		'</br>'
 	html[#html + 1] =		format('<i class="icon-upload icon-small gray"></i> %s', content["dsl_linerate_up"])
 	html[#html + 1] =	  '</span>'
 	html[#html + 1] =   '</div>'
@@ -129,7 +129,7 @@ end
 	html[#html + 1] =   '<div class="controls">'
 	html[#html + 1] =     '<span id="Rate" class=" simple-desc span3">'
 	html[#html + 1] =		format('<i class="icon-download icon-small gray"></i> %s dBm',content["dsl_power_up"])
-	html[#html + 1] =		'&nbsp'
+	html[#html + 1] =		'</br>'
 	html[#html + 1] =		format('<i class="icon-upload icon-small gray"></i> %s dBm', content["dsl_power_down"])
 	html[#html + 1] =	  '</span>'
 	html[#html + 1] =   '</div>'

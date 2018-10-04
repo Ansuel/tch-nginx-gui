@@ -236,7 +236,7 @@ function M.getTod()
                 param = "start_time",
                 type = "text",
                 default = "00:00",
-                attr = { input = { class="span2", id="starttime", style="cursor:pointer; background-color:white" } },
+                attr = { input = { class="span2", id="starttime", style="cursor:pointer;" } },
             },
             {
                 header = T"Stop Time",
@@ -244,7 +244,7 @@ function M.getTod()
                 param = "stop_time",
                 type = "text",
                 default = "23:59",
-                attr = { input = { class="span2", id="stoptime", style="cursor:pointer; background-color:white" } },
+                attr = { input = { class="span2", id="stoptime", style="cursor:pointer;" } },
             },
             {
                 header = T"Day of week",
@@ -407,7 +407,7 @@ function M.getTodwifi()
                 param = "start_time",
                 type = "text",
                 default = "00:00",
-                attr = { input = { class="span2", id="starttime", style="cursor:pointer; background-color:white" } },
+                attr = { input = { class="span2", id="starttime", style="cursor:pointer;" } },
             },
             {
                 header = T"Stop Time",
@@ -415,7 +415,7 @@ function M.getTodwifi()
                 param = "stop_time",
                 type = "text",
                 default = "23:59",
-                attr = { input = { class="span2", id="stoptime", style="cursor:pointer; background-color:white" } },
+                attr = { input = { class="span2", id="stoptime", style="cursor:pointer;" } },
             },
             {
                 header = T"Day of week",
