@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.8.55
+version_gui=8.8.61
 
 logo_project() {
 cat << EOF > /dev/console
@@ -791,6 +791,13 @@ add_new_web_rule() {
 		uci add_list web.ajaxinfotrafficcard.roles='engineer'
 		uci add_list web.ruleset_main.rules='ajaxinfotrafficcard'
 	fi
+	if [ ! $(uci get -q web.ecomodal) ]; then
+		uci set web.ecomodal=rule
+		uci set web.ecomodal.target='/modals/eco-modal.lp'
+		uci add_list web.ecomodal.roles='admin' 
+		uci add_list web.ecomodal.roles='engineer'
+		uci add_list web.ruleset_main.rules='ecomodal'
+	fi
 }
 
 check_relay_dhcp() {
@@ -829,15 +836,15 @@ check_aria_dir() {
 }
 
 led_integration() {
-	if [ ! $(uci get -q ledfw.status_led.enable) ] ; then
+	if [ ! "$(uci get -q ledfw.status_led.enable)" ] ; then
 		uci set ledfw.status_led=status_led
 		uci set ledfw.status_led.enable='0'
-		uci set ledfw.timeout.ms='0'
-	else
-		if [ $(uci get -q ledfw.status_led.enable) == "0" ] && [ $(uci get -q ledfw.timeout.ms) != "0" ] ; then
-			uci set ledfw.timeout.ms='0'
-			/etc/init.d/ledfw restart
-		fi
+	fi
+	if [ "$(uci get -q ledfw.timeout.ms)" == "0" ]; then #This cannot be 0 as is needed to make status led works
+		uci set ledfw.timeout.ms='5000'
+		uci commit ledfw
+		killall /sbin/status-led-eventing.lua
+		/sbin/status-led-eventing.lua &
 	fi
 }
 

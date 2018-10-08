@@ -357,11 +357,15 @@ end ngx.print('\
     },\
     update: function(element, valueAccessor) {\
         var value = ko.unwrap(valueAccessor());\
-        if ((value != $(element).text() ) && ( ! $(element).hasClass("hide") )) {\
-            $(element).fadeOut(function() {\
-                $(this).text(value).fadeIn();\
-            });\
-        }\
+        if (value != $(element).text() ) {\
+			if ( ! $(element).hasClass("hide") ) {\
+				$(element).fadeOut(function() {\
+					$(this).text(value).fadeIn();\
+				});\
+			} else {\
+				$(element).text(value);\
+			}\
+		}\
     }\
   };\
 });\
