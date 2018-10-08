@@ -35,7 +35,8 @@ html[#html+1] =				format('<p>GUI Version [ %s ] 2018 ',cui.gui_version)
 html[#html+1] =					'<a href data-toggle="modal" data-remote="modals/changelog.lp">Changelog</a>'
 							end
 html[#html+1] =				'</p>'
-html[#html+1] =				'<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> && Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>'
+html[#html+1] =				'<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel </font>and <a href="https://github.com/Ansuel/tch-nginx-gui/graphs/contributors">these GitHub users.</a><br> Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>'
+
 							if not ( tostring(gettext.language()) == "en-us" ) then
 html[#html+1] =					' && Translated by <font style="color:#0088cc;">' .. lang_credit .. '</font>'
 							end
