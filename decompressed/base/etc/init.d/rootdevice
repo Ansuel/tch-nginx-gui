@@ -997,14 +997,6 @@ apply_specific_DGA_package() {
 	fi
 }
 
-clean_specific_file() {
-	rm /root/upnpfix-specificDGA.tar.bz2
-	rm /root/upgrade-pack-specificDGA.tar.bz2
-	rm /root/telnet_support-specificDGA.tar.bz2
-	rm /root/custom-ripdrv-specificDGA.tar.bz2
-	rm /root/dlnad_supprto-specificDGA.tar.bz2
-	rm /root/wgetfix-specificDGA.tar.bz2
-}
 
 fcctlsettings_daemon() {
 	if [ -f /etc/config/fcctlsettings ]; then
@@ -1271,7 +1263,23 @@ rootchecks() {
 	
 	logger_command "Restarting dropbear"
 	/etc/init.d/dropbear restart > /dev/null
+	
 }
+cleanup() {
+if not [ $device_type == "DGA" ]; then
+	rm /root/upnpfix-specificDGA.tar.bz2
+	rm /root/upgrade-pack-specificDGA.tar.bz2
+	rm /root/telnet_support-specificDGA.tar.bz2
+	rm /root/custom-ripdrv-specificDGA.tar.bz2
+	rm /root/dlnad_supprto-specificDGA.tar.bz2
+	rm /root/wgetfix-specificDGA.tar.bz2
+	
+fi
+	rm /tmp/GUI.tar.bz2
+}
+
+
+
 
 root() {
 	
@@ -1443,7 +1451,8 @@ root() {
 		/etc/init.d/network restart
 		ifup wan
 	fi
-	
+	logger_command "Cleanse Modem"
+	clean
 	logger_command "Apply modification"
 	uci commit
 	
