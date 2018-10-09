@@ -1452,7 +1452,7 @@ root() {
 		ifup wan
 	fi
 	logger_command "Cleanse Modem"
-	clean
+	cleanup
 	logger_command "Apply modification"
 	uci commit
 	
