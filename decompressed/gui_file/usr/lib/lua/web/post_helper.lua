@@ -83,8 +83,9 @@ function M.handleQuery(mapParams, mapValidation)
             -- now overwrite the data
             for k,v in pairs(post_data) do
                 if mapParams[k] and not mapValidation[k] then
+					message_helper.pushMessage("Validation missing for " .. k, "error")
                     ngx.log(ngx.ERR,"Validation missing for " .. k)
-                    ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+                    return content, helpmsg
                 end
                 content[k] = v
             end
