@@ -50,6 +50,5 @@ If you get an error during the download process or you have no Internet/WAN conn
 Preview:
 <img src="https://i.imgur.com/ZcSANgW.png">
 
-<b>LUCI GUI not yet intergrated on the TG799, 789, 800 and 797n v3 GUI's</b>
 <p>If you would like to install LuCI on your modem, you can find the instructions and install script here: https://github.com/nutterpc/tg-luci
-<p> or use the buttom on the gui in the Exstension Card
+<p> or use the Extensions card to install.
