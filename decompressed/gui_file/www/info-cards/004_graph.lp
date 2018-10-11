@@ -52,6 +52,7 @@ ngx.print('\
   </div>\
 </div>\
 <script>\
+var interval = 5000;\
 if ( $(document).width() > 831 )\
 	$("#canvas_container").width($(document).width()/2-60);\
 else\
@@ -81,14 +82,14 @@ var TrafficChartOption = {\
 		yAxes: [{ticks: {\
 				min: 0,\
 				callback: function(value) { \
-					return formatBytes(value,2) \
+					return formatBytes(value*(10/(interval/1000)),2) \
 				},}}],},\
 		tooltips: {\
                 enabled: true,\
                 mode: "single",\
                 callbacks: {\
                     label: function(tooltipItems, data) { \
-                        return formatBytes(tooltipItems.yLabel , 2);},\
+                        return formatBytes(tooltipItems.yLabel*(10/(interval/1000)) , 2);},\
 					title: function(tooltipItems, data) {\
 						return;}}},\
 		spanGaps:true,\
@@ -134,7 +135,7 @@ $(document).ready(function () {\
 					timelabel.push(date.getHours()+":"+date.getMinutes()+":"+date.getSeconds());\
 					wanRxdatasets.push(rx_traffic);\
 					wanTxdatasets.push(tx_traffic);\
-					if (wanTxdatasets.length > 30) {\
+					if (wanTxdatasets.length > 60) {\
 						wanTxdatasets.shift();\
 						wanRxdatasets.shift();\
 						timelabel.shift();\
@@ -146,7 +147,7 @@ $(document).ready(function () {\
 \
 	InfoGraphCardRefresh();\
 	ko.applyBindings(InfoGraphCardBinding, document.getElementById("graphtab"));\
-	InfoGraphCardInterval = setInterval(InfoGraphCardRefresh, 10000);\
+	InfoGraphCardInterval = setInterval(InfoGraphCardRefresh, interval);\
 	KoRequest.push(InfoGraphCardInterval);\
 })\
 </script>\
