@@ -340,8 +340,32 @@ local function xdslmode()
 	return dslmode
 end
 
+local function pbParams_find(bandtype)
+	local cmd = ("xdslctl info --pbParams")
+	local pbfile = popen(cmd, 'r')
+	local pbstring = ""
+	for pbline in pbfile:lines() do
+		if pbline:match("Medley Phase %(Final%) Band Plan") then
+			if ( bandtype == "Ds" ) then
+				pbfile:read("*l")
+			end
+			pbstring = pbfile:read("*l")
+			break
+		elseif pbline:match("VDSL Port Details") then
+			break
+		end
+	end
+	
+	pbfile:close()
+	
+	return pbstring
+end
+
+
 if not cache["dslmode"] then
 	cache["dslmode"] = xdslmode()
+	cache["pbLineUs"] = pbParams_find("Us")
+	cache["pbLineDs"] = pbParams_find("Ds")
 end
 
 local function xdslband(band_request,dtype,bandtype)
@@ -350,16 +374,8 @@ local function xdslband(band_request,dtype,bandtype)
 		return nil
 	end
 	
-	local line
-	if ( bandtype == "Us" ) then
-		line = 12
-	else
-		line = 13
-	end
-	
 	local dslmode = cache["dslmode"] or xdslmode()
-	
-	local linescan=1
+
 	local result = "0"
 	local band_index = 1
 	local band
@@ -367,19 +383,7 @@ local function xdslband(band_request,dtype,bandtype)
 	local cachebandstring = bandtype .. band_request .. dtype
 	
 	if not dslmode:match("ADSL") then
-		local cmd = ("xdslctl info --pbParams")
-		local pbfile = popen(cmd, 'r')
-		local pbstring = ""
-		local pbline
-		for pbline in pbfile:lines() do
-			if linescan == line then
-				pbstring = pbline
-				break
-			end
-			linescan=linescan+1
-		end
-		pbfile:close()
-		
+		local pbstring = cache["pbLine" .. bandtype] or pbParams_find(bandtype) or ""
 		pbstring = pbstring:gsub('[\n\r]+', '')
 		for band in pbstring:gmatch("%((.-)%)") do
 			if band_index == band_request then

@@ -11,9 +11,15 @@ local  format = string.format
 local interface = proxy.get("rpc.network.interface.@wan.ifname")
 local wan = proxy.get("rpc.network.interface.@wan.up") and proxy.get("rpc.network.interface.@wan.up")[1].value or nil
 
+local graph_interface = interface and interface[1].value or "br-lan"
+
+if graph_interface:match("wan") then
+	graph_interface = proxy.get(format("uci.network.device.@%s.ifname",graph_interface))[1].value or "br-lan"
+end
+
 if interface and ( wan == "1" ) then
-	local int_rx = format("/sys/class/net/%s/statistics/rx_bytes",interface[1].value)
-	local int_tx = format("/sys/class/net/%s/statistics/tx_bytes",interface[1].value)
+	local int_rx = format("/sys/class/net/%s/statistics/rx_bytes",graph_interface)
+	local int_tx = format("/sys/class/net/%s/statistics/tx_bytes",graph_interface)
 	
 	local file = io.open(int_rx,"r")
 	local rx_traffic = file:read()
@@ -116,7 +122,7 @@ $(document).ready(function () {\
 		if (tx_traffic_complete) {\
 			var tx_traffic_old = tx_traffic_complete.textContent;\
 			var rx_traffic_old = rx_traffic_complete.textContent;\
-			var interface = "'); ngx.print(interface[1].value); ngx.print('";\
+			var interface = "'); ngx.print(graph_interface); ngx.print('";\
 			$.post("/ajax/traffic_graph.lua?interface=" + interface + \
 				"&oldrx=" + rx_traffic_old + "&oldtx=" + tx_traffic_old,\
 				[tch.elementCSRFtoken()], function(data) {\
