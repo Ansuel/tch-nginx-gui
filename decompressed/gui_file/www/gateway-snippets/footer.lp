@@ -10,6 +10,8 @@ local format = string.format
 local cui = {
 	timestamp = "uci.version.version.@version[0].timestamp",
 	gui_version = "uci.env.var.gui_version",
+        product_number = "uci.env.var.prod_number",
+
 }
 
 content_helper.getExactContent(cui)
@@ -29,11 +31,17 @@ local html = {}
 
 html[#html+1] =		'<div id="footer" class="row">'
 html[#html+1] =			'<div class="copyright">'
+
 html[#html+1] =				format('<p>&copy; Technicolor %s </p>', current_year)
-html[#html+1] =				format('<p>GUI Version [ %s ] 2018 ',cui.gui_version)
+
 							if session:hasAccess("/modals/changelog.lp") then
-html[#html+1] =					'<a href data-toggle="modal" data-remote="modals/changelog.lp">Changelog</a>'
+html[#html+1] =					       format('<p>%s GUI Version <a href data-toggle="modal" data-remote="modals/changelog.lp">%s</a> 2018',cui.product_number ,cui.gui_version) 
 							end
+
+							if not session:hasAccess("/modals/changelog.lp") then
+html[#html+1] =					       format('<p>GUI Version %s 2018 ',cui.gui_version)
+							end
+
 html[#html+1] =				'</p>'
 html[#html+1] =				'<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel </font>and <a href="https://github.com/Ansuel/tch-nginx-gui/graphs/contributors">these GitHub users.</a><br> Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>'
 
@@ -51,25 +59,25 @@ ngx.print('\
 var processMsg=\'');  ngx.print(T"Processing"); ngx.print('\';\
 var openMsg = \'');  ngx.print(T"Loading..."); ngx.print('\';\
 var waitMsg = \'');  ngx.print(T"Please wait..."); ngx.print('\';\
-var loginMsg =\'');  ngx.print(T"Login Expired. Reloading."); ngx.print('\';\
+var loginMsg =\'');  ngx.print(T"Login Expired. Reloading..."); ngx.print('\';\
 var okButton = \'');  ngx.print(T"Ok"); ngx.print('\';\
 var cancelButton = \'');  ngx.print(T"Cancel"); ngx.print('\';\
 function httpErrorMessage(err){\
     switch(err.status){\
         case 500:\
-            erromsg=\'');  ngx.print(T"Internal Server Error occured, please contact administrator"); ngx.print('\'\
+            erromsg=\'');  ngx.print(T"Internal Server Error occured"); ngx.print('\'\
             break;\
         case 404:\
-            erromsg=\'');  ngx.print(T"The requested file is not found! Please try again after some time"); ngx.print('\'\
+            erromsg=\'');  ngx.print(T"The requested file is not found! Please try again later."); ngx.print('\'\
             break;\
         case 503:\
-            erromsg=\'');  ngx.print(T"The server is currently unavailable, Please try again after some time"); ngx.print('\'\
+            erromsg=\'');  ngx.print(T"The server is currently unavailable, Please try again later."); ngx.print('\'\
             break;\
         case 408:\
-            erromsg=\'');  ngx.print(T"The server timed out waiting for the request"); ngx.print('\'\
+            erromsg=\'');  ngx.print(T"The server timed out waiting for the request. Try refreshing this page."); ngx.print('\'\
             break;\
         default:\
-             erromsg=\'');  ngx.print(T"The request could not be performed due to some error"); ngx.print('\'\
+             erromsg=\'');  ngx.print(T"The request could not be performed due to an unknown error"); ngx.print('\'\
     }\
     window.setTimeout(function(){\
       erromsg = \'<div style="margin-left:35%;margin-top:9%;"><span class="alert-error">\'+erromsg+\'</span></div>\';\
