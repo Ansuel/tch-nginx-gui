@@ -11,7 +11,7 @@ local cui = {
 	timestamp = "uci.version.version.@version[0].timestamp",
 	gui_version = "uci.env.var.gui_version",
         product_number = "uci.env.var.prod_number",
-
+	provisioning = "uci.env.var.provisioning_code"
 }
 
 content_helper.getExactContent(cui)
@@ -35,7 +35,7 @@ html[#html+1] =			'<div class="copyright">'
 html[#html+1] =				format('<p>&copy; Technicolor %s </p>', current_year)
 
 							if session:hasAccess("/modals/changelog.lp") then
-html[#html+1] =					       format('<p>%s GUI Version <a href data-toggle="modal" data-remote="modals/changelog.lp">%s</a> 2018',cui.product_number ,cui.gui_version) 
+html[#html+1] =					       format('<p>%s %s. GUI Version <a href data-toggle="modal" data-remote="modals/changelog.lp">%s</a> 2018',cui.provisioning, cui.product_number, cui.gui_version) 
 							end
 
 							if not session:hasAccess("/modals/changelog.lp") then
