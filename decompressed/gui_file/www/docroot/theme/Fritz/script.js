@@ -82,6 +82,7 @@ $(document).ready(
 	if (window.location.pathname != "/cards.lp" ) {
 		$('#headertab').remove();
 		$('#footer').remove();
+		document.body.style.backgroundColor = "white";
 	}
 	themescript();
 	
