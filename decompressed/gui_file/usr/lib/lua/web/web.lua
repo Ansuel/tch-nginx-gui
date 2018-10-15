@@ -334,7 +334,7 @@ function M.isDemoBuild()
     local data = require("datamodel").get("uci.version.version.@version[0].mask")
     if data then
       local versionmask = data[1].value
-      cached_isDemoBuild = tonumber(versionmask:sub(3,3)) % 2 == 1 or versionmask:sub(4,4) == '9'
+      cached_isDemoBuild = tonumber(versionmask:gsub("[a-z]*",""):sub(3,3)) % 2 == 1 or versionmask:sub(4,4) == '9'
     else
       cached_isDemoBuild = true
     end

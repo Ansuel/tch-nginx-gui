@@ -14,7 +14,10 @@ local wan = proxy.get("rpc.network.interface.@wan.up") and proxy.get("rpc.networ
 local graph_interface = interface and interface[1].value or "br-lan"
 
 if graph_interface:match("wan") then
-	graph_interface = proxy.get(format("uci.network.device.@%s.ifname",graph_interface))[1].value or "br-lan"
+	local real_interface = proxy.get(format("uci.network.device.@%s.ifname",graph_interface))
+	if real_interface then
+		graph_interface = real_interface[1].value or "br-lan"
+	end
 end
 
 if interface and ( wan == "1" ) then

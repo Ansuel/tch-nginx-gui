@@ -131,6 +131,10 @@ local system_ = {
                 access = "readWrite",
                 type = "boolean",
             },
+			copy_bank = {
+                access = "readWrite",
+                type = "boolean",
+            },
             uptime = {
                 access = "readOnly",
                 type = "unsignedInt",
@@ -181,6 +185,7 @@ local system_ = {
 		remove_xupnp = "0",
 		install_telstra = "0",
 		remove_telstra = "0",	
+		copy_bank = "0",
         uptime = function()
             local fd, msg = open("/proc/uptime")
             if not fd then

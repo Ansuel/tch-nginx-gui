@@ -358,45 +358,62 @@ local function pbParams_find(bandtype)
 	
 	pbfile:close()
 	
+	if (select(2, pbstring:gsub("%(", "")) == 3 ) and ( bandtype == "Us" ) then
+	
+		pbstring = pbstring:gsub(":",": (0,32)") --handle strange case when onu disable US0
+	end
+	
 	return pbstring
+end
+
+local function parase_pbParams(bandtype,dtype)
+	local pbstring = cache["pbLine" .. bandtype] or pbParams_find(bandtype) or ""
+	pbstring = pbstring:gsub('[\n\r]+', '')
+	local bandlist = {}
+	local bandnumber = 0
+	for band in pbstring:gmatch("%((.-)%)") do
+		if dtype == "BandNumber" then
+			bandnumber = bandnumber +1
+		else
+			bandlist[#bandlist+1] = band
+		end
+	end
+	
+	if dtype == "BandNumber" then
+		return tostring(bandnumber)
+	else
+		cache["pbBand"..bandtype] = bandlist
+		return
+	end
 end
 
 
 if not cache["dslmode"] then
 	cache["dslmode"] = xdslmode()
+end
+
+if not cache["dslmode"]:match("ADSL") then
 	cache["pbLineUs"] = pbParams_find("Us")
 	cache["pbLineDs"] = pbParams_find("Ds")
+	parase_pbParams("Us")
+	parase_pbParams("Ds")
 end
 
 local function xdslband(band_request,dtype,bandtype)
 	
-	if band_request == 0 and not ( dtype == "BandNumber" ) then
-		return nil
-	end
-	
 	local dslmode = cache["dslmode"] or xdslmode()
 
 	local result = "0"
-	local band_index = 1
 	local band
 	
 	local cachebandstring = bandtype .. band_request .. dtype
 	
 	if not dslmode:match("ADSL") then
-		local pbstring = cache["pbLine" .. bandtype] or pbParams_find(bandtype) or ""
-		pbstring = pbstring:gsub('[\n\r]+', '')
-		for band in pbstring:gmatch("%((.-)%)") do
-			if band_index == band_request then
-				if dtype == "Initial" then
-					result = band:match("(.-)%,")
-				elseif dtype == "Final" then
-					result = band:match("%,(%d*)")
-				end
-				if not ( dtype == "BandNumber" ) then
-					break
-				end
-			end
-			band_index=band_index+1
+		local pbBand = cache["pbBand"..bandtype][band_request]
+		if dtype == "Initial" and pbBand then
+			result = pbBand:match("(.-)%,")
+		elseif dtype == "Final" and pbBand then
+			result = pbBand:match("%,(%d*)")
 		end
 	else
 		if band_request == 1 then
@@ -416,13 +433,10 @@ local function xdslband(band_request,dtype,bandtype)
 		end
 	end
 	
-	if dtype == "BandNumber" then
-		return tostring(band_index-1)
-	else
-		if result == "0" and dtype == "Final" then result = "-1" end
-		cache[cachebandstring] = result
-		return result
-	end
+
+	if result == "0" and dtype == "Final" then result = "-1" end
+	cache[cachebandstring] = result
+	return result
 end
 
 local function xdslctlget(dtype,request,band,bandtype,split)
@@ -631,7 +645,7 @@ local function get(mapping, paramName, key)
 		return xdslband(band,"Initial",bandtype)
 	elseif paramName:match("BandNumber") then
 		local bandtype = paramName:sub(1,2)
-		return xdslband(0,"BandNumber",bandtype)
+		return parase_pbParams(bandtype,"BandNumber")
 	elseif paramName:match("ScannedBand") then
 		local band = tonumber(paramName:sub(3,3))
 		local bandtype = paramName:sub(1,2)
