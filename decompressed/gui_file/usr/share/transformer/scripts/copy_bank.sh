@@ -11,11 +11,10 @@ if [ -d /overlay/$notbooted ]; then
 	rm -r /overlay/$notbooted
 fi
 if [ -d /overlay/$booted ]; then
-	cp -r /overlay/$booted/* /overlay/$notbooted/*
+	mkdir /overlay/$notbooted
+	cp -r /overlay/$booted/* /overlay/$notbooted/
 fi
 if [ -f /overlay/$notbooted/etc/init.d/rootdevice ]; then
 	mtd erase $dest
 	mtd write $orig $dest
 fi
-
-

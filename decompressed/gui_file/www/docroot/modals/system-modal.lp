@@ -607,9 +607,10 @@ ngx.print('\
   });\
 \
 $("#btn-system-copy-bank").on("click", function() {\
-     if (confirm("');  ngx.print(T"This will clone the running bank firmware."); ngx.print('")){\
+     if (confirm("');  ngx.print(T"This will clone the running bank firmware. The process will continue in the background but this could take a while. Continue?"); ngx.print('")){\
        tch.showProgress(\'');  ngx.print(T"Cloning started in background..."); ngx.print('\');\
-       resetreboot($("#transfer-bank1-msg"), $(this), "system_copy_bank");\
+       resetreboot($("#copy-bank-msg"), $(this), "system_copy_bank");\
+	   setTimeout(function(){location.reload();}, 4000);\
      }\
   });\
 \
