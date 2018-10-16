@@ -1,26 +1,28 @@
 --pretranslated: do not change this file
  
 -- Enable localization
--- NG-92675 implement changes required from the customer
 gettext.textdomain('webui-core')
 
 local proxy = require("datamodel")
-local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
 
-local find, sub, format = string.find, string.sub, string.format
+local  format = string.format
 
-local contentonly
+local interface = proxy.get("rpc.network.interface.@wan.ifname")
+local wan = proxy.get("rpc.network.interface.@wan.up") and proxy.get("rpc.network.interface.@wan.up")[1].value or nil
 
-if ngx.req.get_method() == "GET" then
-	contentonly = ngx.req.get_uri_args().contentonly or false
+local graph_interface = interface and interface[1].value or "br-lan"
+
+if graph_interface:match("wan") then
+	local real_interface = proxy.get(format("uci.network.device.@%s.ifname",graph_interface))
+	if real_interface then
+		graph_interface = real_interface[1].value or "br-lan"
+	end
 end
 
-local interface = proxy.get("uci.network.interface.@wan.ifname") or false
-
-if interface then
-	local int_rx = format("/sys/class/net/%s/statistics/rx_bytes",interface[1].value)
-	local int_tx = format("/sys/class/net/%s/statistics/tx_bytes",interface[1].value)
+if interface and ( wan == "1" ) then
+	local int_rx = format("/sys/class/net/%s/statistics/rx_bytes",graph_interface)
+	local int_tx = format("/sys/class/net/%s/statistics/tx_bytes",graph_interface)
 	
 	local file = io.open(int_rx,"r")
 	local rx_traffic = file:read()
@@ -34,13 +36,13 @@ if interface then
 <div class="infocard" id="graphtab">\
   <div class="smallcard">\
     ');  ngx.print( ui_helper.createCardHeader(T"WAN Traffic", nil, nil, nil, nil) ); ngx.print('\
-    <div class="content card_bg" data-bg-text="&#xf129;">\
+    <div class="content card_bg" data-bg-text="&#xf1fe;">\
 	<div class="divtable">\
 	<form class="form-horizontal">\
 	<fieldset>');
 	
 	local html = {}
-	html[#html + 1] = '<div style="height:400px; width:700px"><canvas id="WANChart"></canvas></div>'
+	html[#html + 1] = '<div id="canvas_container" style="height:400px;margin-right:20px;"><canvas id="WANChart"></canvas></div>'
 	html[#html + 1] = '<div id="rx_traffic_complete" class="hide" data-bind="text: rx_traffic_complete">' .. rx_traffic .. '</div>'
 	html[#html + 1] = '<div id="tx_traffic_complete" class="hide" data-bind="text: tx_traffic_complete">' .. tx_traffic .. '</div>'
 	
@@ -53,6 +55,17 @@ ngx.print('\
   </div>\
 </div>\
 <script>\
+var interval = 5000;\
+if ( $(document).width() > 831 )\
+	$("#canvas_container").width($(document).width()/2-60);\
+else\
+	$("#canvas_container").width($(document).width()-50);\
+window.onresize = function(event) {\
+    if ( $(document).width() > 831 )\
+		$("#canvas_container").width($(document).width()/2-60);\
+	else\
+		$("#canvas_container").width($(document).width()-50);\
+};\
 function formatBytes(bytes,decimals) {\
    if(bytes == 0) return "0 Bytes";\
 	var k = 1024,\
@@ -72,14 +85,14 @@ var TrafficChartOption = {\
 		yAxes: [{ticks: {\
 				min: 0,\
 				callback: function(value) { \
-					return formatBytes(value,2) \
+					return formatBytes(value*(10/(interval/1000)),2) \
 				},}}],},\
 		tooltips: {\
                 enabled: true,\
                 mode: "single",\
                 callbacks: {\
                     label: function(tooltipItems, data) { \
-                        return formatBytes(tooltipItems.yLabel , 2);},\
+                        return formatBytes(tooltipItems.yLabel*(10/(interval/1000)) , 2);},\
 					title: function(tooltipItems, data) {\
 						return;}}},\
 		spanGaps:true,\
@@ -100,9 +113,7 @@ var WANChart = new Chart(wan_ctx, {\
 			"backgroundColor": "#f5836850",\
     }]},\
     options: TrafficChartOption \
-});');
---if not contentonly then --Fix: Duplication of interval function every swtich of gateway mode
-ngx.print('\
+});\
 var InfoGraphCardInterval;\
 $(document).ready(function () {\
 	var InfoGraphCardBinding = { \
@@ -115,7 +126,7 @@ $(document).ready(function () {\
 		if (tx_traffic_complete) {\
 			var tx_traffic_old = tx_traffic_complete.textContent;\
 			var rx_traffic_old = rx_traffic_complete.textContent;\
-			var interface = "'); ngx.print(interface[1].value); ngx.print('";\
+			var interface = "'); ngx.print(graph_interface); ngx.print('";\
 			$.post("/ajax/traffic_graph.lua?interface=" + interface + \
 				"&oldrx=" + rx_traffic_old + "&oldtx=" + tx_traffic_old,\
 				[tch.elementCSRFtoken()], function(data) {\
@@ -127,7 +138,7 @@ $(document).ready(function () {\
 					timelabel.push(date.getHours()+":"+date.getMinutes()+":"+date.getSeconds());\
 					wanRxdatasets.push(rx_traffic);\
 					wanTxdatasets.push(tx_traffic);\
-					if (wanTxdatasets.length > 30) {\
+					if (wanTxdatasets.length > 60) {\
 						wanTxdatasets.shift();\
 						wanRxdatasets.shift();\
 						timelabel.shift();\
@@ -139,7 +150,7 @@ $(document).ready(function () {\
 \
 	InfoGraphCardRefresh();\
 	ko.applyBindings(InfoGraphCardBinding, document.getElementById("graphtab"));\
-	InfoGraphCardInterval = setInterval(InfoGraphCardRefresh, 10000);\
+	InfoGraphCardInterval = setInterval(InfoGraphCardRefresh, interval);\
 	KoRequest.push(InfoGraphCardInterval);\
 })\
 </script>\

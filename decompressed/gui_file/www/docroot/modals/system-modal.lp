@@ -30,6 +30,12 @@ local gui_skin_firstpage_page = {
 	{ "cards", T"Cards" },
 }
 
+local telstra_gui = proxy.get("uci.env.var.telstra_webui")
+
+if telstra_gui and ( telstra_gui[1].value == "1" ) then
+	table.insert(gui_skin_firstpage_page, { "telstra", T"Telstra" })
+end
+
 local gui_skin_Params = {
   gui_skin = "uci.env.var.gui_skin",
   gui_skin_firstpage = "uci.env.var.firstpage",
@@ -278,6 +284,9 @@ if ngx.req.get_method() == "POST" then
   if action == "system_trasnfer_bank_1" then
     return resetreboot("rpc.system.transfer_bank1", "1")
   end
+  if action == "system_copy_bank" then
+    return resetreboot("rpc.system.copy_bank", "1")
+  end
 end
 
 local title = T"System Extras"
@@ -349,6 +358,12 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
           id = "transfer-bank1-msg"
         }
       }
+	  local copy_bank_alert = {
+        alert = {
+          class = "alert-info hide",
+          id = "copy-bank-msg"
+        }
+      }
       local transfer_bank1 = {
         group = {
           class = "wait-for-reboot"
@@ -358,9 +373,23 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
           class = "custom-handler"
         }
       }
+	  local copy_bank = {
+        group = {
+          class = "wait-for-reboot"
+        },
+        button = {
+          id = "btn-system-copy-bank",
+          class = "custom-handler"
+        }
+      }
 	  local info_box = {
         alert = {
 			class = "alert alert-info",
+		}
+      }
+	  local warn_box = {
+        alert = {
+			class = "alert",
 		}
       }
       local html = {}
@@ -370,10 +399,13 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       html[#html + 1] = ui_helper.createAlertBlock(T"Switching bank, please wait...", switchover_alert)
 	  if env["activebank"] == "bank_2"
 		then
-		html[#html + 1] = ui_helper.createAlertBlock(T"This will transfer your configuration and firmware to the bank_1 and it will erase bank_2", info_box)
+		html[#html + 1] = ui_helper.createAlertBlock(T"This will transfer your configuration and firmware to the bank_1 and it will erase bank_2", warn_box)
 		html[#html + 1] = ui_helper.createButton(T"Transfer to", T"Bank 1", "icon-exchange", transfer_bank1)
 		html[#html + 1] = ui_helper.createAlertBlock(T"Transfering bank, please wait...", transfer_bank1_alert)
 	  end
+	  html[#html + 1] = ui_helper.createAlertBlock(T"This will clone firmware and config from the running bank to the inactive one. The content of the bank_2 overlay and config will be deleted!", warn_box)
+	  html[#html + 1] = ui_helper.createButton(T"Clone bank", T"Clone", "icon-exchange", copy_bank)
+	  html[#html + 1] = ui_helper.createAlertBlock(T"Cloning bank, please wait...", copy_bank_alert)
 	  html[#html + 1] = ui_helper.createAlertBlock(T"This switch disable the check to force the firmware to be on bank_1", info_box)
 	  html[#html + 1] = ui_helper.createSwitch(T"Bank Check", "bank_check", bank_check_content["bank_check"])
       ngx.print(html)
@@ -571,6 +603,14 @@ ngx.print('\
      if (confirm("');  ngx.print(T"This will transfer the active firmware and config to the bank 1"); ngx.print('")){\
        tch.showProgress(\'');  ngx.print(T"Rebooting..."); ngx.print('\');\
        return resetreboot($("#transfer-bank1-msg"), $(this), "system_trasnfer_bank_1");\
+     }\
+  });\
+\
+$("#btn-system-copy-bank").on("click", function() {\
+     if (confirm("');  ngx.print(T"This will clone the running bank firmware. The process will continue in the background but this could take a while. Continue?"); ngx.print('")){\
+       tch.showProgress(\'');  ngx.print(T"Cloning started in background..."); ngx.print('\');\
+       resetreboot($("#copy-bank-msg"), $(this), "system_copy_bank");\
+	   setTimeout(function(){location.reload();}, 4000);\
      }\
   });\
 \

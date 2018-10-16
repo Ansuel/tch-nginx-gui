@@ -83,8 +83,9 @@ function M.handleQuery(mapParams, mapValidation)
             -- now overwrite the data
             for k,v in pairs(post_data) do
                 if mapParams[k] and not mapValidation[k] then
+					message_helper.pushMessage("Validation missing for " .. k, "error")
                     ngx.log(ngx.ERR,"Validation missing for " .. k)
-                    ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+                    return content, helpmsg
                 end
                 content[k] = v
             end
@@ -241,17 +242,17 @@ function M.secondsToTimeShort(time)
     if duration > 0 then
       start = 3
     end
-    durations[3] = format(N("%dm:", "%dm:", duration), duration)
+    durations[3] = format(N("%dm", "%dm", duration), duration)
     duration = durations[2]
     if duration > 0 then
       start = 2
     end
-    durations[2] = format(N("%dh:", "%dh:", duration), duration)
+    durations[2] = format(N("%dh", "%dh", duration), duration)
     duration = durations[1]
     if duration > 0 then
       start = 1
     end
-    durations[1] = format(N("%d day", "%d days", duration), duration)
+    durations[1] = format(N("%dd", "%dd", duration), duration)
     return concat(durations, " ", start)
   end
   return nil, T"Positive number expected."

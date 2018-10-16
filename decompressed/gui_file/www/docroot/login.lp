@@ -113,7 +113,7 @@ ngx.print('\
       <div class="span4" id="login-card">\
         <div class="login" data-aos="fade-right" data-aos-delay="200" data-aos-anchor-placement="top-center">\
           <form class="form-horizontal">\
-		    <div class="login_bg" data-bg-text="&#xf0ac;">\
+		    <div class="login_bg" data-bg-text="&#xf023;">\
 		      <div style="z-index : 2;  position: relative;">\
                 <fieldset>\
                       <h2>');  ngx.print( T"Sign in" ); ngx.print('</h2>');

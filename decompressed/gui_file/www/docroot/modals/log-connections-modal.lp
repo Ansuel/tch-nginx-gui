@@ -267,7 +267,7 @@ ngx.print('<legend>');  ngx.print( T"System Log - Active Connections" ); ngx.pri
     return false;\
   });\
 \
-$("#searchInput").keyup(function () {\
+$("#searchInput").on("keyup", function () {\
     //split the current value of searchInput\
     var data = this.value.toUpperCase().split(" ");\
     //create a jquery object of the rows\
@@ -291,11 +291,8 @@ $("#searchInput").keyup(function () {\
     })\
     //show the rows that match.\
     .show();\
-}).focus(function () {\
+}).trigger("focus", function () {\
     this.value = "";\
-    $(this).css({\
-        "color": "black"\
-    });\
     $(this).unbind(\'focus\');\
 }).css({\
     "color": "#C0C0C0"\

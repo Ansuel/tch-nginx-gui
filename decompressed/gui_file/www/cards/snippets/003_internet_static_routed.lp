@@ -41,14 +41,12 @@ end
 
   ngx.print('\
 \
-');  ngx.print( ui_helper.createCardHeader(T"Internet Access", modalPath, nil, nil) ); ngx.print('\
-<div class="content">\
   ');  ngx.print( ui_helper.createSimpleLight(nil, static_state_map[static_state], { light = { class = static_light_map[static_state] } }) ); ngx.print('\
-  <p class="subinfos">\
-     ');  if static_state == "connected" then
-            ngx.print(format(T'WAN IP is <strong>%s</strong>', cs["ipaddr"]))
-        end
-       ngx.print('\
-  </p>\
-</div>\
+  ');  
+    if static_state == "connected" then
+        ngx.print('<p class="subinfos">',
+          format(T'WAN IP is <strong>%s</strong>', cs["ipaddr"]),
+          '</p>')
+    end
+    ngx.print('\
 '); 

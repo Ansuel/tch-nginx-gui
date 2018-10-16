@@ -127,9 +127,7 @@ end
 attributes.light.id = "Internet_DHCP_LED"
 attributes.span.id = "Internet_DHCP_Status"
 
-ngx.print( ui_helper.createCardHeader(T"Internet Access", modalPath) ); ngx.print('\
-<div class="content card_bg" data-bg-text="&#xf0ac;">\
-  '); ngx.print( ui_helper.createSimpleLight(dhcp_light_map[dhcp_state], dhcp_state_map[dhcp_state], attributes, "fa-globe") ); ngx.print('\
+ngx.print( ui_helper.createSimpleLight(dhcp_light_map[dhcp_state], dhcp_state_map[dhcp_state], attributes, "fa-at") ); ngx.print('\
   <p class="subinfos">\
   ');
     if dhcp_state == "connected" then
@@ -139,10 +137,9 @@ ngx.print( ui_helper.createCardHeader(T"Internet Access", modalPath) ); ngx.prin
 		  ngx.print(format(T'WAN IP is <strong id ="wan_ip">%s</strong>', cs["ip6addr"]))
 	    end
 	    if dhcp_state == "connected" and IPv6State ~= "disabled" then
-          ngx.print(ui_helper.createSimpleLight(ipv6_light_map[IPv6State] or "4" --[[ red ]], ipv6_state_map[IPv6State] or T"Unknown", attributes, "fa-globe" ))
+          ngx.print(ui_helper.createSimpleLight(ipv6_light_map[IPv6State] or "4" --[[ red ]], ipv6_state_map[IPv6State] or T"Unknown", attributes, "fa-at" ))
 	    end
     end
 	ngx.print('\
   </p>\
-</div>\
 ');

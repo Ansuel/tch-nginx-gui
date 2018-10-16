@@ -205,11 +205,11 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       html[#html + 1] = ui_helper.createLight(T"Status", nil, state_map[untaint(content.dsl0_enabled)], { light = { class = light_map[untaint(content.dsl0_enabled)] } })
       html[#html + 1] = ui_helper.createLabel(T"Dslam Chipset",content.dslam_chipset, span5 )
 	  if content.dslam_version_raw:sub(0,2) == "0x" then
-		html[#html + 1] = ui_helper.createLabel(T"Dslam Firmware Version",format("%s ( %s )", content.dslam_version , content.dslam_version_raw) , span5 )
+		html[#html + 1] = ui_helper.createLabel(T"Dslam Firmware",format("%s ( %s )", content.dslam_version , content.dslam_version_raw) , span5 )
 	  elseif content.dslam_version_raw == "" then
-		html[#html + 1] = ui_helper.createLabel(T"Dslam Firmware Version",T"Can't recover dslam version." , span5 )
+		html[#html + 1] = ui_helper.createLabel(T"Dslam Firmware",T"Can't recover dslam version." , span5 )
 	  else
-		html[#html + 1] = ui_helper.createLabel(T"Dslam Firmware Version",format(T"Invalid version, can't convert. Raw value: %s", content.dslam_version_raw) , span5 )
+		html[#html + 1] = ui_helper.createLabel(T"Dslam Firmware",format(T"Invalid version, can't convert. Raw value: %s", content.dslam_version_raw) , span5 )
 	  end
 	  html[#html + 1] = ui_helper.createLabel(T"Firmware Version",content.dsl0_xdsl_FirmwareVersion, span5 )
 	  if not driver_Params.driver_ver then

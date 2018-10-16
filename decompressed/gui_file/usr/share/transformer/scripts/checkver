@@ -86,6 +86,7 @@ if [ "$wanmode" != "bridge" ] && [ $connectivity == "yes" ]; then
 				if [ $( echo $stable_version_norm | sed -e 's/\.//g') -gt $( echo $new_version_norm | sed -e 's/\.//g') ]; then
 					logger -s -t "CheckVer Script" "Selecting stable version as it's newer than dev!"
 					new_version=$stable_version" STABLE"
+					online_md5="$stable_md5"
 					
 					if [ $local_md5 != $stable_md5 ]; then #This make sure that the new version is not already installed
 						newer_stable=1 #This could happen if the branch is dev and a stable version is installed.
@@ -96,8 +97,7 @@ if [ "$wanmode" != "bridge" ] && [ $connectivity == "yes" ]; then
 		else
 			logger -s -t "CheckVer Script" "Online version md5: $online_md5"
 		fi
-		
-		if [ "$online_md5" != "$local_md5" ] || [ $newer_stable == 1 ]; then
+		if [ "$online_md5" != "$local_md5" ] || [ $newer_stable -eq 1 ]; then
 			logger -s -t "CheckVer Script" "Online version selected: $new_version"
 			logger -s -t "CheckVer Script" "Setting outdate version bit!"
 			uci set env.var.outdated_ver=1

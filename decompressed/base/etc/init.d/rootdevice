@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.7.99
+version_gui=8.8.76
 
 logo_project() {
 cat << EOF > /dev/console
@@ -112,37 +112,40 @@ remove_default_dns() {
 }
 
 setup_network() {
-	#If needed remove duplicated DNS list entry
-	if [ ! $(uci show network.wan | grep "network.wan.dns='' '' ''''") ]; then
-		uci -q del network.wan.dns
-	fi
-	
-	#Add DNS list placeholder for GUI edit
-	if [ ! $(uci show network.wan | grep "network.wan.dns") ]; then
-		uci -q set network.wan.peerdns='1'
-		uci -q add_list network.wan.dns=''
-		uci -q add_list network.wan.dns=''
-		uci -q add_list network.wan.dns=''
-	fi
-	
 	#Set a pppoerelay empty interface if list is not present (UNO)
 	if [ ! $(uci show network.lan | grep "network.lan.pppoerelay") ]; then
 		uci -q add_list network.lan.pppoerelay=''
 	fi
 	
-	#Set a waneth4 interface if eth4 found (fix wizard on UNO)
+	#Set a waneth4 interface if not found (fix wizard on UNO)
 	if [ ! $(uci -q get network.waneth4) ]; then
-		uci -q add network.device
+		uci -q add network device > /dev/null
 		uci -q rename network.@device[-1]=waneth4
 		uci -q set network.waneth4.enabled=1
 		uci -q set network.waneth4.type=8021q
 		uci -q set network.waneth4.name=waneth4
-		uci -q set network.waneth4.ifname=eth4
+		uci -q set network.waneth4.vid=835
 	fi
-	
+	if [ ! $(uci -q get network.waneth4.vid) ]; then
+		uci -q set network.waneth4.vid=835
+	fi
+
+    #Set a wanptm0 interface if not found (fix wizard on UNO)
+    if [ ! $(uci -q get network.wanptm0) ]; then
+        uci -q add network device > /dev/null
+        uci -q rename network.@device[-1]=wanptm0
+        uci -q set network.wanptm0.enabled=1
+        uci -q set network.wanptm0.type=8021q
+        uci -q set network.wanptm0.name=wanptm0
+        uci -q set network.wanptm0.vid=835
+    fi
+	if [ ! $(uci -q get network.wanptm0.vid) ]; then
+		uci -q set network.wanptm0.vid=835
+	fi
+
 	#Set a SSH_wan firewall rule if not found (fix SSH Wan not working)
 	if [ ! $(uci -q get firewall.SSH_wan) ]; then
-		uci -q add firewall rule
+		uci -q add firewall rule > /dev/null
 		uci -q rename firewall.@rule[-1]=SSH_wan
 		uci -q set firewall.SSH_wan.src=wan
 		uci -q set firewall.SSH_wan.name=SSH_wan
@@ -788,6 +791,13 @@ add_new_web_rule() {
 		uci add_list web.ajaxinfotrafficcard.roles='engineer'
 		uci add_list web.ruleset_main.rules='ajaxinfotrafficcard'
 	fi
+	if [ ! $(uci get -q web.ecomodal) ]; then
+		uci set web.ecomodal=rule
+		uci set web.ecomodal.target='/modals/eco-modal.lp'
+		uci add_list web.ecomodal.roles='admin' 
+		uci add_list web.ecomodal.roles='engineer'
+		uci add_list web.ruleset_main.rules='ecomodal'
+	fi
 }
 
 check_relay_dhcp() {
@@ -826,15 +836,15 @@ check_aria_dir() {
 }
 
 led_integration() {
-	if [ ! $(uci get -q ledfw.status_led.enable) ] ; then
+	if [ ! "$(uci get -q ledfw.status_led.enable)" ] ; then
 		uci set ledfw.status_led=status_led
 		uci set ledfw.status_led.enable='0'
-		uci set ledfw.timeout.ms='0'
-	else
-		if [ $(uci get -q ledfw.status_led.enable) == "0" ] && [ $(uci get -q ledfw.timeout.ms) != "0" ] ; then
-			uci set ledfw.timeout.ms='0'
-			/etc/init.d/ledfw restart
-		fi
+	fi
+	if [ "$(uci get -q ledfw.timeout.ms)" == "0" ]; then #This cannot be 0 as is needed to make status led works
+		uci set ledfw.timeout.ms='5000'
+		uci commit ledfw
+		killall /sbin/status-led-eventing.lua
+		/sbin/status-led-eventing.lua &
 	fi
 }
 
@@ -871,7 +881,7 @@ apply_right_opkg_repo() {
 	if [ -f /etc/opkg.conf_17.3 ]; then
 		local marketing_version=$(uci get -q version.@version[0].marketing_version)
 		if [ $marketing_version ]; then
-			if [ $marketing_version == "17.3" ]; then
+			if [ $( echo $marketing_version | grep "17.3" ) ]; then
 				if [ -f /etc/okpg.conf ]; then
 					rm /etc/okpg.conf
 				fi
@@ -1037,6 +1047,191 @@ unlock_ssh_wan_tiscali() {
 	fi
 	if [ "$(uci get -q firewall.wan_SSH_rule5)" ]; then
 		uci del firewall.wan_SSH_rule5
+	fi
+}
+
+telstra_support_check() {
+	################# telstra gui support ###################
+	# We add rule anyway as if not present nginx gves 404 ###
+	
+	if [ ! $(uci get -q web.telstra_broadband.target) ]; then
+		uci set web.telstra_broadband=rule
+		uci set web.telstra_broadband.target='/telstra-modals/broadband.lp'
+		uci add_list web.telstra_broadband.roles='admin' 
+		uci add_list web.telstra_broadband.roles='engineer'
+		uci add_list web.ruleset_main.rules='telstra_broadband'
+	fi
+	if [ ! $(uci get -q web.telstra_contentsharing_refresh) ]; then
+		uci set web.telstra_contentsharing_refresh=rule
+		uci set web.telstra_contentsharing_refresh.target='/telstra-modals/contentsharing.lp'
+		uci add_list web.telstra_contentsharing_refresh.roles='admin' 
+		uci add_list web.telstra_contentsharing_refresh.roles='engineer'
+		uci add_list web.ruleset_main.rules='telstra_contentsharing_refresh'
+	fi
+	if [ ! $(uci get -q web.telstra_device) ]; then
+		uci set web.telstra_device=rule
+		uci set web.telstra_device.target='/telstra-modals/device.lp'
+		uci add_list web.telstra_device.roles='admin' 
+		uci add_list web.telstra_device.roles='engineer'
+		uci add_list web.ruleset_main.rules='telstra_device'
+	fi
+	if [ ! $(uci get -q web.telstra_dyndns) ]; then
+		uci set web.telstra_dyndns=rule
+		uci set web.telstra_dyndns.target='/telstra-modals/dyndns.lp'
+		uci add_list web.telstra_dyndns.roles='admin' 
+		uci add_list web.telstra_dyndns.roles='engineer'
+		uci add_list web.ruleset_main.rules='telstra_dyndns'
+	fi
+	if [ ! $(uci get -q web.telstra_home) ]; then
+		uci set web.telstra_home=rule
+		uci set web.telstra_home.target='/telstra-gui.lp'
+		uci add_list web.telstra_home.roles='admin' 
+		uci add_list web.telstra_home.roles='engineer'
+		uci add_list web.ruleset_main.rules='telstra_home'
+	fi
+	if [ ! $(uci get -q web.telstra_parental) ]; then
+		uci set web.telstra_parental=rule
+		uci set web.telstra_parental.target='/telstra-modals/parental-modal.lp'
+		uci add_list web.telstra_parental.roles='admin' 
+		uci add_list web.telstra_parental.roles='engineer'
+		uci add_list web.ruleset_main.rules='telstra_parental'
+	fi
+	if [ ! $(uci get -q web.telstra_portforwarding) ]; then
+		uci set web.telstra_portforwarding=rule
+		uci set web.telstra_portforwarding.target='/telstra-modals/portforwarding.lp'
+		uci add_list web.telstra_portforwarding.roles='admin' 
+		uci add_list web.telstra_portforwarding.roles='engineer'
+		uci add_list web.ruleset_main.rules='telstra_portforwarding'
+	fi
+	if [ ! $(uci get -q web.telstra_remoteaccess) ]; then
+		uci set web.telstra_remoteaccess=rule
+		uci set web.telstra_remoteaccess.target='/telstra-modals/remoteaccess.lp'
+		uci add_list web.telstra_remoteaccess.roles='admin' 
+		uci add_list web.telstra_remoteaccess.roles='engineer'
+		uci add_list web.ruleset_main.rules='telstra_remoteaccess'
+	fi
+	if [ ! $(uci get -q web.telstra_tod) ]; then
+		uci set web.telstra_tod=rule
+		uci set web.telstra_tod.target='/telstra-modals/tod.lp'
+		uci add_list web.telstra_tod.roles='admin' 
+		uci add_list web.telstra_tod.roles='engineer'
+		uci add_list web.ruleset_main.rules='telstra_tod'
+	fi
+	if [ ! $(uci get -q web.telstra_traffic) ]; then
+		uci set web.telstra_traffic=rule
+		uci set web.telstra_traffic.target='/telstra-modals/traffic.lp'
+		uci add_list web.telstra_traffic.roles='admin' 
+		uci add_list web.telstra_traffic.roles='engineer'
+		uci add_list web.ruleset_main.rules='telstra_traffic'
+	fi
+	if [ ! $(uci get -q web.telstra_user) ]; then
+		uci set web.telstra_user=rule
+		uci set web.telstra_user.target='/telstra-modals/user.lp'
+		uci add_list web.telstra_user.roles='admin' 
+		uci add_list web.telstra_user.roles='engineer'
+		uci add_list web.ruleset_main.rules='telstra_user'
+	fi
+	if [ ! $(uci get -q web.telstra_wifi) ]; then
+		uci set web.telstra_wifi=rule
+		uci set web.telstra_wifi.target='/telstra-modals/wifi.lp'
+		uci add_list web.telstra_wifi.roles='admin' 
+		uci add_list web.telstra_wifi.roles='engineer'
+		uci add_list web.ruleset_main.rules='telstra_wifi'
+	fi
+	if [ ! $(uci get -q web.telstra_wifiguest) ]; then
+		uci set web.telstra_wifiguest=rule
+		uci set web.telstra_wifiguest.target='/telstra-modals/wifiguest.lp'
+		uci add_list web.telstra_wifiguest.roles='admin' 
+		uci add_list web.telstra_wifiguest.roles='engineer'
+		uci add_list web.ruleset_main.rules='telstra_wifiguest'
+	fi
+	if [ ! $(uci get -q web.telstra_helpbroadband) ]; then
+		uci set web.telstra_helpbroadband=rule
+		uci set web.telstra_helpbroadband.target='/telstra-helpfiles/help_broadband.lp'
+		uci add_list web.telstra_helpbroadband.roles='admin' 
+		uci add_list web.telstra_helpbroadband.roles='engineer'
+		uci add_list web.ruleset_main.rules='telstra_helpbroadband'
+	fi
+	if [ ! $(uci get -q web.telstra_helpcontentsharing) ]; then
+		uci set web.telstra_helpcontentsharing=rule
+		uci set web.telstra_helpcontentsharing.target='/telstra-helpfiles/help_contentsharing.lp'
+		uci add_list web.telstra_helpcontentsharing.roles='admin' 
+		uci add_list web.telstra_helpcontentsharing.roles='engineer'
+		uci add_list web.ruleset_main.rules='telstra_helpcontentsharing'
+	fi
+	if [ ! $(uci get -q web.telstra_helpdyndns) ]; then
+		uci set web.telstra_helpdyndns=rule
+		uci set web.telstra_helpdyndns.target='/telstra-helpfiles/help_dyndns.lp'
+		uci add_list web.telstra_helpdyndns.roles='admin' 
+		uci add_list web.telstra_helpdyndns.roles='engineer'
+		uci add_list web.ruleset_main.rules='telstra_helpdyndns'
+	fi
+	if [ ! $(uci get -q web.telstra_helphome) ]; then
+		uci set web.telstra_helphome=rule
+		uci set web.telstra_helphome.target='/telstra-helpfiles/help_home.lp'
+		uci add_list web.telstra_helphome.roles='admin' 
+		uci add_list web.telstra_helphome.roles='engineer'
+		uci add_list web.ruleset_main.rules='telstra_helphome'
+	fi
+	if [ ! $(uci get -q web.telstra_helpportforwarding) ]; then
+		uci set web.telstra_helpportforwarding=rule
+		uci set web.telstra_helpportforwarding.target='/telstra-helpfiles/help_portforwarding.lp'
+		uci add_list web.telstra_helpportforwarding.roles='admin' 
+		uci add_list web.telstra_helpportforwarding.roles='engineer'
+		uci add_list web.ruleset_main.rules='telstra_helpportforwarding'
+	fi
+	if [ ! $(uci get -q web.telstra_helpremoteaccess) ]; then
+		uci set web.telstra_helpremoteaccess=rule
+		uci set web.telstra_helpremoteaccess.target='/telstra-helpfiles/help_remoteaccess.lp'
+		uci add_list web.telstra_helpremoteaccess.roles='admin' 
+		uci add_list web.telstra_helpremoteaccess.roles='engineer'
+		uci add_list web.ruleset_main.rules='telstra_helpremoteaccess'
+	fi
+	if [ ! $(uci get -q web.telstra_helpservices) ]; then
+		uci set web.telstra_helpservices=rule
+		uci set web.telstra_helpservices.target='/telstra-helpfiles/help_services.lp'
+		uci add_list web.telstra_helpservices.roles='admin' 
+		uci add_list web.telstra_helpservices.roles='engineer'
+		uci add_list web.ruleset_main.rules='telstra_helpservices'
+	fi
+	if [ ! $(uci get -q web.telstra_helptod) ]; then
+		uci set web.telstra_helptod=rule
+		uci set web.telstra_helptod.target='/telstra-helpfiles/help_tod.lp'
+		uci add_list web.telstra_helptod.roles='admin' 
+		uci add_list web.telstra_helptod.roles='engineer'
+		uci add_list web.ruleset_main.rules='telstra_helptod'
+	fi
+	if [ ! $(uci get -q web.telstra_helptraffic) ]; then
+		uci set web.telstra_helptraffic=rule
+		uci set web.telstra_helptraffic.target='/telstra-helpfiles/help_traffic.lp'
+		uci add_list web.telstra_helptraffic.roles='admin' 
+		uci add_list web.telstra_helptraffic.roles='engineer'
+		uci add_list web.ruleset_main.rules='telstra_helptraffic'
+	fi
+	if [ ! $(uci get -q web.telstra_helpusersetting) ]; then
+		uci set web.telstra_helpusersetting=rule
+		uci set web.telstra_helpusersetting.target='/telstra-helpfiles/help_usersetting.lp'
+		uci add_list web.telstra_helpusersetting.roles='admin' 
+		uci add_list web.telstra_helpusersetting.roles='engineer'
+		uci add_list web.ruleset_main.rules='telstra_helpusersetting'
+	fi
+	if [ ! $(uci get -q web.telstra_helpwifi) ]; then
+		uci set web.telstra_helpwifi=rule
+		uci set web.telstra_helpwifi.target='/telstra-helpfiles/help_wifi.lp'
+		uci add_list web.telstra_helpwifi.roles='admin' 
+		uci add_list web.telstra_helpwifi.roles='engineer'
+		uci add_list web.ruleset_main.rules='telstra_helpwifi'
+	fi
+
+	############# end telstra gui support ################################
+	if [ ! $( uci get -q env.var.telstra_webui) ]; then
+		uci set env.var.telstra_webui="0"
+	fi
+	if [ -f /root/telstra_gui.tar.bz2 ]; then
+		if [ "$(uci get -q env.var.telstra_webui)" == "1" ]; then
+			bzcat /root/telstra_gui.tar.bz2 | tar -C / -xf - 
+		fi
+		rm /root/telstra_gui.tar.bz2
 	fi
 }
 
@@ -1215,7 +1410,10 @@ root() {
 	fcctlsettings_daemon #Adds fast cache options
 	[ "$device_type_model" == "DGA4132" ] && logger_command "Reworking sfp interface in network..."
 	[ "$device_type_model" == "DGA4132" ] && sfp_rework #sfp to sfptag, to solve local ip problem
+	[ "$device_type" == "MediaAccess TG789vac v2" ] && logger_command "Unlocking ssh for tiscali firmware"
 	[ "$device_type" == "MediaAccess TG789vac v2" ] && unlock_ssh_wan_tiscali
+	logger_command "Reinstalling telstra gui if needed..."
+	telstra_support_check #telstra support check
 	
 	logger_command "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not

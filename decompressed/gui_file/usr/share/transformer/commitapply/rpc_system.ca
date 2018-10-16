@@ -17,5 +17,8 @@
 ^rpc%.system%.remove_blacklist /usr/share/transformer/scripts/remove_blacklist.sh
 ^rpc%.system%.install_xupnp /usr/share/transformer/scripts/install_xupnp.sh
 ^rpc%.system%.remove_xupnp /usr/share/transformer/scripts/remove_xupnp.sh
+^rpc%.system%.install_telstra /usr/share/transformer/scripts/install_telstra.sh
+^rpc%.system%.remove_telstra /usr/share/transformer/scripts/remove_telstra.sh
 ^rpc%.system%.refreshdriver /usr/share/transformer/scripts/refresh_driver.sh
+^rpc%.system%.copy_bank /usr/share/transformer/scripts/copy_bank.sh
 ^sys%.bootp%.enable /usr/bin/bootp

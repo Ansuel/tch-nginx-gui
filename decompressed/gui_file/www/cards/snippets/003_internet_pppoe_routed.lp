@@ -127,12 +127,9 @@ end
 attributes.light.id = "Internet_State_Led"
 attributes.span.id = "Internet_State_Enabled"
 
-ngx.print( ui_helper.createCardHeader(T"Internet Access", modalPath, switchName, content_uci.wan_auto) )
 ngx.print('\
-<div id="pppoe-internet-tab" class="content card_bg" data-bg-text="&#xf0ac;">\
-<div class="divtable">\
-  '); ngx.print( ui_helper.createSimpleLight(ppp_light_map[ppp_status], ppp_state_map[ppp_status] , attributes , "fa-globe") ); ngx.print('\
-  <p class="subinfos">')
+  '); ngx.print( ui_helper.createSimpleLight(ppp_light_map[ppp_status], ppp_state_map[ppp_status] , attributes , "fa-at") ); ngx.print('\
+  <p class="subinfos" id="pppoe-internet-tab">')
      if ppp_status == "connected" then
        if content_rpc["ipaddr"] and content_rpc["ipaddr"]:len() > 0 then
          ngx.print(format(T'WAN IP is <strong>%s</strong>' .. "<br/>", content_rpc["ipaddr"]))
@@ -143,13 +140,11 @@ ngx.print('\
 	 ngx.print(format(T'WAN IP is <strong>%s</strong>', content_rpc["ip6addr"]))
        end
 	   if ppp_status == "connected" and IPv6State ~= "disabled" then
-         ngx.print(ui_helper.createSimpleLight(ipv6_light_map[IPv6State] or "4" --[[ red ]] , ipv6_state_map[IPv6State] or T"Unknown", attributes,"fa-globe"))
+         ngx.print(ui_helper.createSimpleLight(ipv6_light_map[IPv6State] or "4" --[[ red ]] , ipv6_state_map[IPv6State] or T"Unknown", attributes,"fa-at"))
         end
      end
 	ngx.print('\
   </p>\
-</div>\
-</div>\
 <script>\
 var PPPoECardInterval;\
 $(document).ready(function () {\

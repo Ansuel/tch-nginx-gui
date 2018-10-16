@@ -314,6 +314,10 @@ local xdslctl_ = {
             access = "readOnly",
             type = "string"
           },
+		  DslMode = {
+            access = "readOnly",
+            type = "string"
+          },
         }
     }
 }
@@ -321,77 +325,98 @@ local xdslctl_ = {
 local cache = {}
 
 local function xdslmode()
-	local linescan=1
 	local showdatacmd = ("xdslctl info --show")
 	local showdata = popen(showdatacmd, 'r')
 	local showline
 	local dslmode=""
 	for showline in showdata:lines() do
-		if linescan == 9 then
-			if showline:match("ADSL") then
-				dslmode = "adsl"
-			end
+		if showline:match("Mode") then
+			dslmode = showline:gsub("Mode:%s+","")
 			break
 		end
-		linescan=linescan+1
 	end
 	showdata:close()
 	
 	return dslmode
 end
 
+local function pbParams_find(bandtype)
+	local cmd = ("xdslctl info --pbParams")
+	local pbfile = popen(cmd, 'r')
+	local pbstring = ""
+	for pbline in pbfile:lines() do
+		if pbline:match("Medley Phase %(Final%) Band Plan") then
+			if ( bandtype == "Ds" ) then
+				pbfile:read("*l")
+			end
+			pbstring = pbfile:read("*l")
+			break
+		elseif pbline:match("VDSL Port Details") then
+			break
+		end
+	end
+	
+	pbfile:close()
+	
+	if (select(2, pbstring:gsub("%(", "")) == 3 ) and ( bandtype == "Us" ) then
+	
+		pbstring = pbstring:gsub(":",": (0,32)") --handle strange case when onu disable US0
+	end
+	
+	return pbstring
+end
+
+local function parase_pbParams(bandtype,dtype)
+	local pbstring = cache["pbLine" .. bandtype] or pbParams_find(bandtype) or ""
+	pbstring = pbstring:gsub('[\n\r]+', '')
+	local bandlist = {}
+	local bandnumber = 0
+	for band in pbstring:gmatch("%((.-)%)") do
+		if dtype == "BandNumber" then
+			bandnumber = bandnumber +1
+		else
+			bandlist[#bandlist+1] = band
+		end
+	end
+	
+	if dtype == "BandNumber" then
+		return tostring(bandnumber)
+	else
+		cache["pbBand"..bandtype] = bandlist
+		return
+	end
+end
+
+
 if not cache["dslmode"] then
-	cache = {}
 	cache["dslmode"] = xdslmode()
 end
 
-local function xdslband(n,dtype,bandtype)
-	local line
-	if ( bandtype == "Us" ) then
-		line = 12
-	else
-		line = 13
-	end
+if not cache["dslmode"]:match("ADSL") then
+	cache["pbLineUs"] = pbParams_find("Us")
+	cache["pbLineDs"] = pbParams_find("Ds")
+	parase_pbParams("Us")
+	parase_pbParams("Ds")
+end
+
+local function xdslband(band_request,dtype,bandtype)
 	
 	local dslmode = cache["dslmode"] or xdslmode()
-	
-	local linescan=1
+
 	local result = "0"
-	local c = 1
 	local band
 	
-	local cachebandstring = bandtype .. n .. dtype
+	local cachebandstring = bandtype .. band_request .. dtype
 	
-	if not ( dslmode == "adsl" ) then
-		local cmd = ("xdslctl info --pbParams")
-		local pbfile = popen(cmd, 'r')
-		local pbstring = ""
-		local pbline
-		for pbline in pbfile:lines() do
-			if linescan == line then
-				pbstring = pbline
-				break
-			end
-			linescan=linescan+1
-		end
-		pbfile:close()
-		
-		pbstring = pbstring:gsub('[\n\r]+', '')
-		for band in pbstring:gmatch("%((.-)%)") do
-			if c == n then
-				if dtype == "Initial" then
-					result = band:match("(.-)%,")
-				elseif dtype == "Final" then
-					result = band:match("%,(%d*)")
-				end
-				if not ( dtype == BandNumber ) then
-					break
-				end
-			end
-			c=c+1
+	if not dslmode:match("ADSL") then
+		local pbBand = cache["pbBand"..bandtype][band_request]
+		if dtype == "Initial" and pbBand then
+			result = pbBand:match("(.-)%,")
+		elseif dtype == "Final" and pbBand then
+			result = pbBand:match("%,(%d*)")
 		end
 	else
-		if n == 0 then
+		if band_request == 1 then
 			if bandtype == "Us" then
 				if dtype == "Initial" then
 					result = "6"
@@ -405,53 +430,45 @@ local function xdslband(n,dtype,bandtype)
 					result = "512"
 				end
 			end
-		else
-			result = "-1"
 		end
 	end
 	
-	if dtype == "BandNumber" then
-		return tostring(c-1)
-	else
-		cache[cachebandstring] = result
-		return result
-	end
+
+	if result == "0" and dtype == "Final" then result = "-1" end
+	cache[cachebandstring] = result
+	return result
 end
 
 local function xdslctlget(dtype,request,band,bandtype,split)
     local data = {}
-	local n  = 0
+	local lineread = 0
 	local line
 	local scannedband = 0
-	local scanband = ""
 	
-	local bandstart = tonumber(cache[bandtype .. band .. "Initial"] or xdslband(band,"Initial",bandtype)) or 0
-	local bandend = tonumber(cache[bandtype .. band .. "Final"] or xdslband(band,"Final",bandtype)) or -1
-	local cmd = "xdslctl info --" .. request
-	
-	local infofile = popen(cmd,"r")
+	local bandstart, bandend
 	
 	if bandtype == "Us" and band == 1 then
 		bandstart = 0
 	elseif bandtype == "Ds" and band == 1 then
-		bandstart = tonumber(xdslband(1,"Final","Us"))+1
+		bandstart = tonumber(cache["Us" .. 1 .. "Final"] or xdslband(1,"Final","Us"))+1
 	elseif bandtype == "Us" and band == 2 then
-		bandstart = tonumber(xdslband(1,"Final","Ds"))+1
+		bandstart = tonumber(cache["Ds" .. 1 .. "Final"] or xdslband(1,"Final","Ds"))+1
 		if xdslband(2,"Final","Us") == 0 then --We don't have Us2, execpt we are in no VDSL
 			bandend = 512 --Max bit for ADSL2+
 		end
 	elseif bandtype == "Ds" and band == 2 then
-		bandstart = tonumber(xdslband(2,"Final","Us"))+1
+		bandstart = tonumber(cache["Us" .. 2 .. "Final"] or xdslband(2,"Final","Us"))+1
 	elseif bandtype == "Us" and band == 3 then
-		bandstart = tonumber(xdslband(2,"Final","Ds"))+1
+		bandstart = tonumber(cache["Ds" .. 2 .. "Final"] or xdslband(2,"Final","Ds"))+1
 	elseif bandtype == "Us" and band == 4 then
-		bandstart = tonumber(xdslband(3,"Final","Us"))+1
+		bandstart = tonumber(cache["Us" .. 3 .. "Final"] or xdslband(3,"Final","Us"))+1
 	elseif bandtype == "Ds" and band == 3 then
-		if tonumber(xdslband(4,"Final","Us")) == 0 then --The Us4 band is not present!
-			bandstart = tonumber(xdslband(3,"Final","Us"))+1 --Take the Us3 to start
+		if tonumber(cache["Us" .. 4 .. "Final"] or xdslband(4,"Final","Us")) == -1 then --The Us4 band is not present!
+			bandstart = tonumber(cache["Us" .. 3 .. "Final"] or xdslband(3,"Final","Us"))+1 --Take the Us3 to start
 		else
-			bandstart = tonumber(xdslband(4,"Final","Us"))+1
+			bandstart = tonumber(cache["Us" .. 4 .. "Final"] or xdslband(4,"Final","Us"))+1
 		end
+		bandend = tonumber(cache[bandtype .. band .. "Final"] or xdslband(band,"Final",bandtype))
 		if bandend > 4096 then --We are on 35b mode
 			if split == 1 then
 				bandend = bandstart+(math.floor((8192-bandstart)/2))
@@ -466,13 +483,25 @@ local function xdslctlget(dtype,request,band,bandtype,split)
 			end
 		end
 	elseif bandtype == "Ds" and band == 4 then
-		bandstart = tonumber(xdslband(3,"Final","Ds"))+1
+		bandstart = tonumber(cache["Ds" .. 3 .. "Final"] or xdslband(3,"Final","Ds"))+1
 	end
 	
+	if not bandstart then
+		bandstart = tonumber(cache[bandtype .. band .. "Initial"] or xdslband(band,"Initial",bandtype)) or 0
+	end
+	
+	if not bandend then
+		bandend = tonumber(cache[bandtype .. band .. "Final"] or xdslband(band,"Final",bandtype)) or -1
+	end
+	
+	local cmd = "xdslctl info --" .. request
+	
+	local infofile = popen(cmd,"r")
+	
 	for line in infofile:lines() do
-		if n>=(bandstart+8) and n<=(bandend+8) then
+		if lineread>=(bandstart+8) and lineread<=(bandend+8) then
 			if not ( dtype == "scanband" ) then
-				if n>(bandend+8) then
+				if lineread>(bandend+8) then
 					break
 				end
 				if dtype == "data" then
@@ -510,16 +539,14 @@ local function xdslctlget(dtype,request,band,bandtype,split)
 				end
 			end
 		end
-		n=n+1
+		lineread=lineread+1
 	end
 	infofile:close()
-	
-	scanband = tostring(n-8)
 	
 	if dtype == "data" then
 		return concat(data) or ""
 	elseif dtype == "scanband" then
-		return scanband
+		return tostring(lineread-8)
 	elseif dtype == "scannedband" then
 		return tostring(scannedband)
 	end
@@ -527,20 +554,26 @@ end
 
 local function xdslctlDslamInfo(itype)
 	local cmd = "xdslctl info --vendor"
-	local arg = " "
 	local result = " "
 	
-	local chipset_arg=" | sed '8q;d' | cut -d ':' -f 2 | sed -e 's/^[ \t]*//'"
-	local chipset_read=popen(cmd .. chipset_arg)
-	local chipset = chipset_read:read()
-	chipset_read:close()
+	local chipset
+	local version 
+	
+	local vendor_info = popen(cmd)
+	for line in vendor_info:lines() do
+		if line:match("ChipSet Vendor Id") then
+			chipset = line:gsub(".*:%s+",""):gsub(":.*","")
+		end
+		if line:match("ChipSet VersionNumber") then
+			version = line:gsub(".*:%s+","")
+		end
+	end
+	vendor_info:close()
 	
 	if itype == "chipset" then
 		result = chipset
 	elseif itype == "version" or itype == "version_raw" then
-		arg=" | sed '8q;d' | cut -d ':' -f 3"
-		local version_read = popen(cmd .. arg)
-		result = version_read:read()
+		result = version
 		if itype == "version" then
 			if result:sub(0,2) == "0x" then
 				if chipset:match("BDCM") then
@@ -552,7 +585,6 @@ local function xdslctlDslamInfo(itype)
 				end
 			end
 		end
-		version_read:close()
 	end
 	
 	return result
@@ -613,7 +645,7 @@ local function get(mapping, paramName, key)
 		return xdslband(band,"Initial",bandtype)
 	elseif paramName:match("BandNumber") then
 		local bandtype = paramName:sub(1,2)
-		return xdslband(0,"BandNumber",bandtype)
+		return parase_pbParams(bandtype,"BandNumber")
 	elseif paramName:match("ScannedBand") then
 		local band = tonumber(paramName:sub(3,3))
 		local bandtype = paramName:sub(1,2)
@@ -624,6 +656,8 @@ local function get(mapping, paramName, key)
 		return xdslctlDslamInfo("version")
 	elseif paramName == "DslamVersionRaw" then
 		return xdslctlDslamInfo("version_raw")
+	elseif paramName == "DslMode" then
+		return xdslmode()
 	end
 end
 

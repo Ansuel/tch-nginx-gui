@@ -1,5 +1,5 @@
 --pretranslated: do not change this file
- 
+
 -- Enable localization
 gettext.textdomain('webui-core')
 
@@ -59,15 +59,15 @@ end
 -- Figure out interface state
 local intf_state = "disabled"
 local intf_state_map = {
-    disabled = T"Ethernet disabled",
-    connected = T"Ethernet connected",
-    disconnected = T"Ethernet not connected",
+    disabled = "WAN ETH " .. T"disabled",
+    connected = "WAN ETH " .. T"connected",
+    disconnected = "WAN ETH " .. T"disconnected",
 }
 
 local intf_light_map = {
-  disabled = "0", --"off"
-  disconnected = "4",--"red"
-  connected = "1",--"green"
+    disabled = "0", --"off"
+    disconnected = "4",--"red"
+    connected = "1",--"green"
 }
 
 if stats.operstate == "up" then
@@ -86,12 +86,16 @@ local modalPath
 if session:hasAccess("/modals/broadband-modal.lp") then
     modalPath = "modals/broadband-modal.lp"
 end
-  ngx.print('\
+ngx.print('\
 \
 ');  ngx.print( ui_helper.createCardHeader(T"Broadband", modalPath) ); ngx.print('\
 <div class="content card_bg" data-bg-text="&#xf0b2;">\
   <div class="divtable">\
-    ');  ngx.print( ui_helper.createSimpleLight(intf_light_map[intf_state] , intf_state_map[intf_state], { light = {} },"fas fa-retweet") ); ngx.print('\
+    ');  ngx.print( ui_helper.createSimpleLight(intf_light_map[intf_state] , intf_state_map[intf_state], { light = {} },"fas fa-retweet") );
+if intf_state == "connected" then
+    ngx.print('<p class="subinfos">'); ngx.print(T"Speed"); ngx.print(": <strong>"); ngx.print(stats.speed); ngx.print('Mbps</strong></p>');
+end
+ngx.print('\
   </div>\
 </div>\
 '); 

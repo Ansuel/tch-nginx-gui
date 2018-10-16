@@ -42,7 +42,24 @@ for _, v in pairs (dns_rpc_content or {}) do
       dns_count = dns_count + #subcount
    end
 end
- 
+
+local dosprotect = proxy.get("uci.dosprotect.globals.enabled") and proxy.get("uci.dosprotect.globals.enabled")[1].value or "0"
+local flowcache = proxy.get("uci.fcctlsettings.state.enabled") and proxy.get("uci.fcctlsettings.state.enabled")[1].value or "0"
+
+local flowcache_status , dosprotect_status
+
+if dosprotect and dosprotect == "1" then
+    dosprotect_status = T"Dos Protect enabled"
+else
+    dosprotect_status = T"Dos Protect disabled"
+end
+
+if flowcache and flowcache == "1" then
+    flowcache_status = T"Flow Cache enabled"
+else
+    flowcache_status = T"Flow Cache disabled"
+end
+
   ngx.print('\
 \
 <div class="span3">\
@@ -50,10 +67,10 @@ end
         ');  ngx.print( ui_helper.createCardHeader(T"IP Extras", "modals/iproutes-modal.lp") ); ngx.print('\
         <div class="content card_bg" data-bg-text="&#xf018;">\
 		<div class="divtable">\
-                <p class="subinfos">\
-                <i class="fas fa-exchange-alt" aria-hidden="true" href="#">&nbsp</i>\
+            <p class="subinfos">\
+            <i class="fas fa-exchange-alt" aria-hidden="true" href="#">&nbsp</i>\
               ');  
-            local modal_link=format("class=\"modal-link\" data-toggle=\"modal\" data-remote=\"%s\" data-id=\"device-modal\"",modalPath)
+            local modal_link=format('class="modal-link" data-toggle="modal" data-remote="%s" data-id="device-modal"',modalPath)
             ngx.print(
             format( N('<strong %1$s>%2$d Route</strong>',
                       '<strong id="iproutescard_noofroutes" %1$s>%2$d Routes</strong> ', dyn_count),
@@ -68,6 +85,15 @@ end
                       modal_link, dns_count))
               ngx.print('\
             </p>\
+			')
+			local subinfo_light = {
+				span = {
+					style = "margin-left: 20px; font-weight: bold;"
+				}
+			}
+			ngx.print( ui_helper.createSimpleLight(dosprotect, dosprotect_status, subinfo_light,"fa fas fa-exchange-alt") )
+			ngx.print( ui_helper.createSimpleLight(flowcache, flowcache_status, subinfo_light,"fa fas fa-exchange-alt") )
+			ngx.print('\
          </div>\
 		 </div>\
 \

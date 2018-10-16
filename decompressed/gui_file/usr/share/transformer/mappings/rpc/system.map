@@ -123,6 +123,18 @@ local system_ = {
                 access = "readWrite",
                 type = "boolean",
             },
+			install_telstra = {
+                access = "readWrite",
+                type = "boolean",
+            },
+			remove_telstra = {
+                access = "readWrite",
+                type = "boolean",
+            },
+			copy_bank = {
+                access = "readWrite",
+                type = "boolean",
+            },
             uptime = {
                 access = "readOnly",
                 type = "unsignedInt",
@@ -170,7 +182,10 @@ local system_ = {
 		install_emptyblacklist = "0",
 		remove_blacklist = "0",	
 		install_xupnp = "0",
-		remove_xupnp = "0",	
+		remove_xupnp = "0",
+		install_telstra = "0",
+		remove_telstra = "0",	
+		copy_bank = "0",
         uptime = function()
             local fd, msg = open("/proc/uptime")
             if not fd then

@@ -42,91 +42,81 @@ local band = {
 }
 
 local function xdslctlget(request,bandtype)
-  local data=""
-  local space={}
+  local data={}
   
   if bandtype == "Us" then
   
 	local Us1 = proxy.get("rpc.xdslctl." .. request .. "Us1")
     if Us1 then
-    	data = data .. Us1[1].value
+    	data[#data+1] = Us1[1].value
     end
 	
 	local Us2 = proxy.get("rpc.xdslctl." .. request .. "Us2")
 	if Us2 then
-	  
-	  space={}
-	  for i=1,band.Ds1Band do
-	  	space[#space+1] = "NaN,"
+	  for i=1,band.Ds1Band do --Space
+	  	data[#data+1] = "NaN,"
 	  end
-	  data = data .. table.concat(space) .. Us2[1].value
+	  data[#data+1] = Us2[1].value
     end
 	
 	local Us3 = proxy.get("rpc.xdslctl." .. request .. "Us3")
 	
 	if Us3 then
-	  
-	  space={}
-	  for i=1,band.Ds2Band do
-	  	space[#space+1] = "NaN,"
+	  for i=1,band.Ds2Band do --Space
+	  	data[#data+1] = "NaN,"
 	  end
-      data = data .. table.concat(space) .. Us3[1].value
+      data[#data+1] = Us3[1].value
     end
 	
 	local Us4 = proxy.get("rpc.xdslctl." .. request .. "Us4")
 	
 	 if Us4 then
-    	data = data .. Us4[1].value
+    	data[#data+1] = Us4[1].value
     end
-  else
+  else --Ds
 	
 	local Ds1 = proxy.get("rpc.xdslctl." .. request .. "Ds1")
 	
     if Ds1 then
-	  space={}
-	  for i=1,band.Us1Band do
-	  	space[#space+1] = "NaN,"
+	  for i=1,band.Us1Band do --Space
+	  	data[#data+1] = "NaN,"
 	  end
-    	data = data .. table.concat(space) .. Ds1[1].value
+    	data[#data+1] = Ds1[1].value
     end
     
 	local Ds2 = proxy.get("rpc.xdslctl." .. request .. "Ds2")
 	
     if Ds2 then
-	  
-	  space={}
-	  for i=1,band.Us2Band do
-	  	space[#space+1] = "NaN,"
+	  for i=1,band.Us2Band do --Space
+	  	data[#data+1] = "NaN,"
 	  end
-    	data = data .. table.concat(space) .. Ds2[1].value
+    	data[#data+1] = Ds2[1].value
     end
     
 	local Ds3Split1 = proxy.get("rpc.xdslctl." .. request .. "Ds3Split1")
 	
     if Ds3Split1 then
-	  
-	  space={}
-	  for i=1,(band.Us3Band+band.Us4Band) do
-	  	space[#space+1] = "NaN,"
+	  for i=1,(band.Us3Band+band.Us4Band) do --Space
+	  	data[#data+1] = "NaN,"
 	  end
-    	data = data .. table.concat(space) .. Ds3Split1[1].value
+    	data[#data+1] = Ds3Split1[1].value
     end
 	
 	local Ds3Split2 = proxy.get("rpc.xdslctl." .. request .. "Ds3Split2")
 	
     if Ds3Split2 then
-    	data = data .. Ds3Split2[1].value
+    	data[#data+1] = Ds3Split2[1].value
     end
     
 	local Ds4 = proxy.get("rpc.xdslctl." .. request .. "Ds4")
 	
     if Ds4 then
-    	data = data .. Ds4[1].value
+    	data[#data+1] = Ds4[1].value
     end
   end
   
   if data == "" then
-  	return "0"
+  	return "NaN"
   end
   
   return data

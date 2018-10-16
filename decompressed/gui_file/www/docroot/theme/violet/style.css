@@ -123,13 +123,9 @@
  .smallcard {
      font-family:Helvetica,Arial,sans-serif;
      background-color:#fff;
-     margin-bottom:20px;
      -webkit-box-shadow:0 2px 20px 0 rgba(203,43,190,0.50);
      -moz-box-shadow:0 2px 20px 0 rgba(203,43,190,0.50);
      box-shadow:0 2px 20px 0 rgba(203,43,190,0.50);
-     overflow:hidden;
-     z-index:2;
-     position:relative 
 }
  .nav-list>.active>a, .nav-list>.active>a:hover, .nav-list>.active>a:focus {
      color: #ffffff;
