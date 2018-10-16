@@ -20,6 +20,8 @@ end
 local content = {
   product_name = "uci.env.var.prod_name",
   friendly_product_name = "uci.env.var.prod_friendly_name",
+  variant_friendly_name = "uci.env.var.variant_friendly_name",
+  provisioning_code = "uci.env.var.provisioning_code",
   software_name = "uci.version.version.@version[0].marketing_name",
   software_version = "uci.version.version.@version[0].marketing_version",
   firmware_version = "uci.env.var.friendly_sw_version_activebank",
@@ -39,7 +41,7 @@ if content["friendly_product_name"] and content["friendly_product_name"] == "AGH
 end
 
 if not ( content.friendly_product_name == "" ) and not ( content.friendly_product_name == content.product_name ) then
-	content.product_name = format("%s ( %s )",content.product_name,content.friendly_product_name)
+	content.product_name = format("%s %s",content.provisioning_code, content.variant_friendly_name)
 end
 
 local nf_conntrack_count = io.popen("sysctl -n -e net.nf_conntrack_max net.ipv4.netfilter.ip_conntrack_max")
@@ -86,7 +88,7 @@ nf_conntrack_count:close()
 	local html = {}
 	
 	basic.span["data-bind"] = nil
-	html[#html + 1] = ui_helper.createLabel(T"Product Name", content["product_name"], basic)
+	html[#html + 1] = ui_helper.createLabel(T"Product", content["product_name"], basic)
 	html[#html + 1] = ui_helper.createLabel(T"Software Version", format("%s %s",content["software_version"],content["software_name"]), basic)
 	html[#html + 1] = '<div class="control-group">'
 	html[#html + 1] =   '<label class="control-label">' .. T("Gui Version") .. '</label>'
