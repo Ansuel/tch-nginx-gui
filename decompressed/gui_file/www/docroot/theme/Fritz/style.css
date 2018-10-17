@@ -6,6 +6,8 @@
 	position: fixed;
 	background: #ffffff;
 	box-shadow: 0 0.1875rem 0.375rem rgba(0, 0, 0, 0.25);
+	overflow: auto;
+	overflow-y: scroll;
 }
 
 #swtichbuttom{
@@ -21,14 +23,20 @@
 	line-height: 2rem;
 	text-align: left;
 }
+#statsFrame>#dynamic-content>#infocardrow {
+	flex-wrap: nowrap;
+	display: flex !important;
+}
+@media only screen and (max-width: 89rem) {
+	#statsFrame>#dynamic-content>#infocardrow {
+		display: block !important;
+	}
+}
 .row {
 	margin-left: 0;
 }
 .infocard {
 	width: auto;
-}
-#infocardrow {
-	top: 0!important;
 }
 #cardrow {
 	display: none;
@@ -547,9 +555,6 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 #headerbox>.header>.header-title>p {
 	margin: 5px;
 }
-#infocardrow {
-	top: 6.3rem;
-}
 .card_bg:after {
 	color: #b4b4b4;
 	opacity: 0.25;
@@ -566,7 +571,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 	line-height: 0.6rem;
 	text-shadow: none;
 	
-	border-bottom: 0.2rem solid #2b97ec;
+	border-bottom: 0.25rem solid #2b97ec;
 }
 .smallcard>.header>.header-title{
 	margin-top: -1rem;

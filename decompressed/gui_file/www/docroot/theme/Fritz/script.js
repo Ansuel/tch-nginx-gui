@@ -76,9 +76,12 @@ $(document).ready(
     $(document).off("touchend", '[data-toggle\x3d"modal"]');
     $(document).off("touchend", ".smallcard");
 	if (window.location.pathname == "/cards.lp" ) {
-	$('<iframe src="/stats.lp" frameborder="0" scrolling="yes" id="statsFrame"></iframe>')
-     .insertAfter('#cardrow');
+	//$('<iframe src="/stats.lp" frameborder="0" scrolling="yes" id="statsFrame"></iframe>')
+    // .insertAfter('#cardrow');
+	 $('<div id="statsFrame"></div>').insertAfter(cardrow).load( "/stats.lp?contentonly=true" );
 	}
+	
+	
 	if (window.location.pathname != "/cards.lp" ) {
 		$('#headertab').remove();
 		$('#footer').remove();
