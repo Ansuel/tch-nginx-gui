@@ -6,6 +6,7 @@ if [ "$(uci get ledfw.timeout.ms)" == "0" ]; then
 fi
 if [ $(uci get ledfw.status_led.enable) == "1" ]; then
 	ubus send statusled '{"state":"enabled"}'
+	ubus send statusled '{"state":"active"}'
 else
 	ubus send statusled '{"state":"disabled"}'
 fi	

@@ -14,6 +14,8 @@ declare -a modular_dir=(
 	"dlnad_supprto-specificDGA"
 	"wgetfix-specificDGA"
 	"telstra_gui"
+	"ledfw_support-specificTG799"
+	"ledfw_support-specificTG800"
 )
 
 if [ "$1" == "dev" ]; then
@@ -52,6 +54,8 @@ cp compressed/upgrade-pack-specificDGA.tar.bz2 total/root
 cp compressed/custom-ripdrv-specificDGA.tar.bz2 total/root 
 cp compressed/dlnad_supprto-specificDGA.tar.bz2 total/root
 cp compressed/wgetfix-specificDGA.tar.bz2 total/root
+cp compressed/ledfw_support-specificTG799.tar.bz2 total/root
+cp compressed/ledfw_support-specificTG800.tar.bz2 total/root
 cp compressed/telstra_gui.tar.bz2 total/root
 
 cd total && BZIP2=-9 tar -cjf ../compressed/GUI$type.tar.bz2 * --owner=0 --group=0

@@ -107,8 +107,8 @@ for i,v in ipairs(wls) do
 		content_wifi["tx_bytes"] = "sys.class.net.@" .. v.iface .. ".statistics.tx_bytes"
 		content_wifi["rx_bytes"] = "sys.class.net.@" .. v.iface .. ".statistics.rx_bytes"
 		content_helper.getExactContent(content_wifi)
-		wifitx = wifitx + s2n(content_wifi.tx_bytes)
-		wifirx = wifirx + s2n(content_wifi.rx_bytes)
+		wifitx = wifitx + ( s2n(content_wifi.tx_bytes) or 0 )
+		wifirx = wifirx + ( s2n(content_wifi.rx_bytes) or 0 )
 	end 
 end
 wifitx = b2m(wifitx)
