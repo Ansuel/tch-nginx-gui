@@ -1,6 +1,6 @@
 #!/usr/bin/lua
 
---Version: 1.0
+--Version: 1.1
 
 -- local dbg = io.open("/tmp/sle.txt", "w") -- "a" for full logging
 
@@ -30,23 +30,35 @@ end
 
 local events = {}
 
-local function get_infoled_timeout()
+local function get_infoled_config(dtype)
 	
 	local lcur=uci.cursor()
 	
 	lcur:load(ledcfg)
 	
-	local info_service_led_timeout,err=lcur:get(ledcfg,'timeout','ms')
+	local result, err
 	
-	if info_service_led_timeout == nil then
-		info_service_led_timeout=3000
-	else
-		info_service_led_timeout=tonumber(info_service_led_timeout)
+	if dtype == "timeout" then
+		result,err=lcur:get(ledcfg,'timeout','ms')
+		
+		if result == nil then
+			result=3000
+		else
+			result=tonumber(result)
+		end
+	elseif dtype == "enable" then
+		result,err=lcur:get(ledcfg,'status_led','enable')
+		
+		if result == nil then
+			result=false
+		else
+			result=true
+		end
 	end
 	
 	lcur:close()
-	
-	return info_service_led_timeout
+		
+	return result
 end
 
 -- voice can be ENABLED RUNNING or NAsomething.  NA@ means NOT AVAILABLE see /etc/inet.d/mmpbxd
@@ -112,7 +124,7 @@ local function ledaction()
         conn:send("power", packet)
     else
         local packet = {}
-        if ( infobutton_pressed == false ) and ( get_infoled_timeout() > 0 ) then
+        if ( infobutton_pressed == false ) and get_infoled_config("enable") and ( get_infoled_config("timeout") > 0 ) then
             packet["state"] = "active"
             conn:send("statusled", packet)
         end
@@ -153,9 +165,9 @@ events['infobutton'] = function(msg)
         packet["state"] = "inactive"
         conn:send("statusled", packet)
         -- Setup a timer
-        if ( get_infoled_timeout() > 0 ) then
+        if ( get_infoled_config("timeout") > 0 ) then
             local timer = uloop.timer(info_timeout)
-            timer:set(get_infoled_timeout())
+            timer:set(get_infoled_config("timeout"))
         end
     end
 end

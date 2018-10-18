@@ -160,25 +160,17 @@ local function getTrafficData(dtype, name)
                 nline = nline + 1 --skip first line
             elseif (nline == 2) then
 				nline = nline +1
-                hours = line:match("%s.*"):gsub("%s+", ""):match("[0-9]+:"):gsub(":","") or nil
-				if dst then
-					hours = tonumber(hours) + 1
-				end
-				minutes = line:match("%s.*"):gsub("%s+", ""):match(":[0-9]+"):gsub(":","") or nil
-				times = (tonumber(hours)*60 + tonumber(minutes))*60*1000 or "NaN"
 				data[#data+1] = line:match(".*%s"):gsub("%s+", "") or "NaN"
-				datatime[#datatime+1] = times
+				datatime[#datatime+1] = '"'
+				datatime[#datatime+1] = line:match("%s.*"):gsub("%s+","") or "NaN"
+				datatime[#datatime+1] = '"'
             else
-				hours = line:match("%s.*"):gsub("%s+", ""):match("[0-9]+:"):gsub(":","")
-				if dst then
-					hours = tonumber(hours) + 1
-				end
-				minutes = line:match("%s.*"):gsub("%s+", ""):match(":[0-9]+"):gsub(":","")
-				times = (tonumber(hours)*60 + tonumber(minutes))*60*1000 or "NaN"
 				data[#data+1] = ","
 				data[#data+1] = line:match(".*%s"):gsub("%s+", "") or "NaN"
 				datatime[#datatime+1] = ","
-				datatime[#datatime+1] = times
+				datatime[#datatime+1] = '"'
+				datatime[#datatime+1] = line:match("%s.*"):gsub("%s+","") or "NaN"
+				datatime[#datatime+1] = '"'
             end
         end
         f:close()
@@ -190,8 +182,20 @@ local wanTx, wanRx, lanTx, lanRx, wifiTx, wifiRx
 proxy.set("rpc.system.lock.datadir", "/tmp/trafficmon/")
 proxy.apply()
 
-_, wanTx, wanTxTime = pcall(getTrafficData, "tx_bytes", content_wan.ifname)
-_, wanRx, wanRxTime = pcall(getTrafficData, "rx_bytes", content_wan.ifname)
+local interface = proxy.get("rpc.network.interface.@wan.ifname")
+local wan = proxy.get("rpc.network.interface.@wan.up") and proxy.get("rpc.network.interface.@wan.up")[1].value or nil
+
+local graph_interface = interface and interface[1].value or "br-lan"
+
+if graph_interface:match("wan") then
+	local real_interface = proxy.get(format("uci.network.device.@%s.ifname",graph_interface))
+	if real_interface then
+		graph_interface = real_interface[1].value or "br-lan"
+	end
+end
+
+_, wanTx, wanTxTime = pcall(getTrafficData, "tx_bytes", graph_interface)
+_, wanRx, wanRxTime = pcall(getTrafficData, "rx_bytes", graph_interface)
 _, lanTx, lanTxTime = pcall(getTrafficData, "tx_bytes", "br-lan")
 _, lanRx, lanTxTime = pcall(getTrafficData, "rx_bytes", "br-lan")
 _, wifiTx, wifiTxTime = pcall(getTrafficData, "tx_bytes", curiface)
@@ -199,7 +203,7 @@ _, wifiRx, wifiRxTime = pcall(getTrafficData, "rx_bytes", curiface)
 proxy.set("rpc.system.lock.free", "0")
 proxy.apply()
 
-ngx.print(ui_helper.createHeader(T"Traffic Monitor", false, false) ); ngx.print('\
+ngx.print(ui_helper.createHeader(T"Traffic Monitor", false, true) ); ngx.print('\
 <div class="modal-body update no-save">\
 ');
 if ngx.ctx.session:hasAccess("/modals/hostmap-modal.lp") then
@@ -233,6 +237,11 @@ end
 			label = { class = "control-label" } ,
 			span = { class = "span1 text-right" } ,
 			}
+	  local info_box = {
+          alert = {
+		  	class = "alert alert-info",
+		  }
+        }
 	  html[#html+1] = '<div class="span3">'
 	  html[#html+1] = "<fieldset><legend>" .. T"Internet Traffic" .. "</legend>"
 	  html[#html+1] = ui_helper.createLabel(T"Total Mixed (in MB)", wantotal , attributes)
@@ -256,6 +265,7 @@ end
 	  html[#html+1] = "</div>"
 	  html[#html+1] = '<div>'
 	  html[#html+1] = "<fieldset><legend>" .. T"Graph" .. "</legend>"
+	  html[#html+1] = ui_helper.createAlertBlock(T"The time displayed on the graph are based on the time set on this modem!", info_box)
 	  html[#html+1] =	'<table>'
 	  html[#html+1] =	'<tr>'
 	  html[#html+1] =		'<td style="background-color:#90cd8a" >&nbsp;&nbsp;&nbsp;&nbsp;</td>'
@@ -343,12 +353,6 @@ var TrafficChartOption = {\
 		maintainAspectRatio: false,\
         legend: {display: false},\
         scales: {\
-        xAxes: [{type: "time",\
-			distribution: "linear",\
-			time: {\
-				unit: "minute",\
-				displayFormats: {\
-				minute: "H:mm"}}}],\
 		yAxes: [{ticks: {\
 				callback: function(value) { \
 					return formatBytes(value,2) \
