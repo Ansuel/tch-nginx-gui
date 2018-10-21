@@ -134,7 +134,6 @@ if (typeof $ !== 'undefined') {
 	});
 
 	$(window).on('hidden.bs.modal', function(e) { 
-	console.log(e);
 		if (e.target.nodeName == "DIV" && e.target.className.includes("modal")){
 			ruleR1.style.visibility = "visible";
 			ruleR4.style.display = "block";
