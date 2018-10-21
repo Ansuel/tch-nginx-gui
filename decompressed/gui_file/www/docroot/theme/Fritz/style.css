@@ -426,9 +426,11 @@ input::placeholder {
 	margin: 0;
 	margin-top: 0.5rem;
 	z-index: 80;
-	border: 0;
+	border: none;
 	border-radius: 0;
+	box-shadow: none;
 }
+.b
 .btn-group.open .btn.dropdown-toggle {
 	background-color: #268edf
 }
@@ -631,8 +633,9 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 		overflow-y: visible !important;
 	}
 	.open>.dropdown-menu {
-		margin-top: -1.2rem;
+		margin-top: -1.75rem;
 		margin-right: 7rem;
+		height: 2.25rem;
 	}
 	.dropdown-menu>li>a, .dropdown-menu>li {
 		display: inline !important;
@@ -641,6 +644,9 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 	.dropdown-menu>li>a, .dropdown-menu>li>a:hover {
 		margin: 0;
 		padding: 0.5rem;
+		padding-top: 0;
+		text-align: center;
+		line-height: 2.25rem;
 		background-color: #fff;
 	}
 	.dropdown-toggle .caret {

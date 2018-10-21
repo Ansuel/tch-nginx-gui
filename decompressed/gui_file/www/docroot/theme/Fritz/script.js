@@ -68,8 +68,9 @@ function themescript() {
 $(document).ready(
     function() {
 	//if stats are not in an iframe
-	if (self === top && window.location.pathname != "/cards.lp") {
+	if (self === top && window.location.pathname != "/cards.lp" && window.location.pathname != "/password.lp") {
 		window.location.replace("/cards.lp");
+		return;
 	}
 	
     document.querySelector('.apprise-overlay').style.opacity = "";
@@ -82,7 +83,7 @@ $(document).ready(
 	}
 	
 	
-	if (window.location.pathname != "/cards.lp" ) {
+	if (window.location.pathname != "/cards.lp" && window.location.pathname != "/password.lp") {
 		$('#headertab').remove();
 		$('#footer').remove();
 		document.body.style.backgroundColor = "white";
