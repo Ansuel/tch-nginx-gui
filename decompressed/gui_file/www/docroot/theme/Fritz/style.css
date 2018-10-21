@@ -19,7 +19,7 @@
 	pointer-events: none;
 	height: 2rem;
 	font-size: 14pt;
-	vertical-align: center;
+	vertical-align: middle;
 	line-height: 2rem;
 	text-align: left;
 }
@@ -162,7 +162,7 @@ body {
 	height: 1.8rem;
 	text-align: left;
 	font-size: 14pt;
-	vertical-align: center;
+	vertical-align: middle;
 	background: #268edf;
 	width: calc(100% - 19rem) !important;
 }
@@ -567,11 +567,11 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 	height: 0.6rem;
 	font-size: 11pt;
 	font-weight: bold;
-	vertical-align: center;
+	vertical-align: middle;
 	line-height: 0.6rem;
 	text-shadow: none;
 	
-	border-bottom: 0.25rem solid #2b97ec;
+	border-bottom: medium solid #2b97ec;
 }
 .smallcard>.header>.header-title{
 	margin-top: -1rem;
@@ -584,7 +584,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 	height: 2.1rem;
 	font-size: 11pt;
 	font-weight: bold;
-	vertical-align: center;
+	vertical-align: middle;
 	line-height: 2.5rem;
 	text-shadow: none;
 }
@@ -606,7 +606,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 	height: 3rem;
 	font-size: 14pt;
 	font-weight: normal;
-	vertical-align: center;
+	vertical-align: middle;
 	line-height: 3rem;
 }
 

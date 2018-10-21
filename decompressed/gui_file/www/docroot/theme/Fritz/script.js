@@ -124,7 +124,7 @@ function closeNav() {
 }
 if (typeof $ !== 'undefined') {
 	$(window).on('shown.bs.modal', function(e) { 
-		if (e.target.nodeName == "DIV"){
+		if (e.target.nodeName == "DIV" && e.target.className.includes("modal")){
 			ruleR1.style.visibility = "hidden";
 			ruleR4.style.display = "none";
 			blockHeight = true;
@@ -133,7 +133,8 @@ if (typeof $ !== 'undefined') {
 	});
 
 	$(window).on('hidden.bs.modal', function(e) { 
-		if (e.target.nodeName == "DIV"){
+	console.log(e);
+		if (e.target.nodeName == "DIV" && e.target.className.includes("modal")){
 			ruleR1.style.visibility = "visible";
 			ruleR4.style.display = "block";
 			blockHeight = false;
