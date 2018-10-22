@@ -410,7 +410,7 @@ input::placeholder {
 	opacity: 0;
 }
 .logo-technicolor:after {
-	content: "TIM Modem";
+	content: "Technicolor";
 	position: fixed;
 	top: 2.5rem;
 	width: 100%;
@@ -482,10 +482,31 @@ input::placeholder {
 .nav-tabs>li>a:hover {
 	color: #ffffff
 }
+
+.nav-tabs>li {
+	display: inline-block;
+	float: none;
+}
+ul.nav-tabs {
+	overflow-x: auto;
+	white-space: nowrap;
+}
+ul.nav-tabs::-webkit-scrollbar {
+    height: 4px;
+}
+ul.nav-tabs::-webkit-scrollbar-thumb {
+    border-radius: 2px;
+}
+ul.nav-tabs::-webkit-scrollbar-track {
+    background: transparent; 
+}
+ul.nav-tabs::-webkit-scrollbar-thumb, ul.nav-tabs::-webkit-scrollbar-thumb:hover {
+    background: #444; 
+}
 .nav-tabs li {
 	margin-right: 0.5rem;
 }
-.nav-tabs>.active>a, .nav-tabs>.active>a:hover {
+.nav-tabs>.active>a, .nav-tabs>.active>a:hover, .nav-tabs>.active>a:focus, .nav>li>a:hover, .nav>li>a:focus {
 	border: 0;
 	background-color: #006ec0;
 	color: #ffffff;
@@ -763,7 +784,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 		background-color: #006ec0;
 		left: 0;
 		top: 6.2rem;
-		width: 100%;
+		width: calc(100% - 2rem);
 	}
 	.nav-tabs li, .nav-tabs>li>a, .nav>li>a:hover {
 		background-color: #268edf;
@@ -776,7 +797,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 		color: #fff;
 		background-color: #268edf;
 	}
-	.nav-tabs>.active>a, .nav-tabs>.active>a:hover {
+	.nav-tabs>.active>a, .nav-tabs>.active>a:hover, .nav-tabs>.active>a:focus, .nav>li>a:hover, .nav>li>a:focus{
 		background-color: #268edf;
 	}
 	.popUp {
