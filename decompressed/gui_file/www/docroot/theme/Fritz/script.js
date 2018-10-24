@@ -1,11 +1,10 @@
 var elmArr = document.getElementsByClassName("content");
 
-
 var styleEl = document.createElement('style'), styleSheet;
 document.head.appendChild(styleEl);
 styleSheet = styleEl.sheet;
 
-styleSheet.insertRule('#cardrow > .span3 > .smallcard > .content { transform: translateY( 0px);}');
+styleSheet.insertRule('#statsFrame { visibility: visible}');
 var ruleR1 = styleSheet.cssRules[0];
 
 styleSheet.insertRule('#headerbox { marginLeft: 0;}');
@@ -14,17 +13,11 @@ var ruleR2 = styleSheet.cssRules[0];
 styleSheet.insertRule('.apprise-overlay { opacity: 0 !important; pointer-events: none}');
 var ruleR3 = styleSheet.cssRules[0];
 
-styleSheet.insertRule('.row[style="z-index : 3;  position: relative;"] { transform: translateY( 0px);}');
+styleSheet.insertRule('.span3 .content { filter: brightness(1);}');
 var ruleR4 = styleSheet.cssRules[0];
 
-styleSheet.insertRule('.span3 .content { filter: brightness(1);}');
-var ruleR5 = styleSheet.cssRules[0];
-
-styleSheet.insertRule('body{ height: 100%;}');
-var ruleR6 = styleSheet.cssRules[0];
-
 styleSheet.insertRule('#headertab {}');
-var ruleR7 = styleSheet.cssRules[0];
+var ruleR5 = styleSheet.cssRules[0];
 
 function themescript() {
 	if ( $("#cardrow").length ) {
@@ -74,11 +67,27 @@ function themescript() {
 
 $(document).ready(
     function() {
-	 
+	//if stats are not in an iframe
+	if (self === top && window.location.pathname != "/cards.lp" && window.location.pathname != "/password.lp") {
+		window.location.replace("/cards.lp");
+		return;
+	}
+	
     document.querySelector('.apprise-overlay').style.opacity = "";
     $(document).off("touchend", '[data-toggle\x3d"modal"]');
     $(document).off("touchend", ".smallcard");
+	if (window.location.pathname == "/cards.lp" ) {
+	//$('<iframe src="/stats.lp" frameborder="0" scrolling="yes" id="statsFrame"></iframe>')
+    // .insertAfter('#cardrow');
+	 $('<div id="statsFrame"></div>').insertAfter(cardrow).load( "/stats.lp?contentonly=true" );
+	}
 	
+	
+	if (window.location.pathname != "/cards.lp" && window.location.pathname != "/password.lp") {
+		$('#headertab').remove();
+		$('#footer').remove();
+		document.body.style.backgroundColor = "white";
+	}
 	themescript();
 	
 	$("#swtichbuttom").on("switchcard", function() {
@@ -89,68 +98,47 @@ $(document).ready(
 var blockHeight = false;
 var modalOpen = false;
 
-
-function updateHeight(){
-	if (!blockHeight){
-		ruleR1.style.transform = 'translateY( 0px)';
-		var maxheight = 0;
-		var j;
-		for (j = 0; j < elmArr.length; j++) { 
-			height = elmArr[j].getBoundingClientRect().bottom;
-			if (height > maxheight) {
-				maxheight = height;
-			} 
-		}
-		ruleR6.style.height = (maxheight+30) + "px";
-		ruleR1.style.transform = 'translateY( -' + window.scrollY + 'px)';
-	}
-}
-
 function openNav() {
 	ruleR2.style.marginLeft = "0";
 	ruleR2.style.overflow = "auto";
 	ruleR3.style.zIndex = "1";
-	ruleR7.style.zIndex = "0";
+	ruleR5.style.zIndex = "0";
 	ruleR3.style.opacity = "0.6";
-	ruleR5.style.filter = "brightness(0.4)";
+	ruleR4.style.filter = "brightness(0.4)";
 	ruleR3.style.pointerEvents  = "all";
 	ruleR4.style.display = "none";
-	ruleR5.style.display = "none";
 	blockHeight = true;
-	ruleR6.style = "100%";
 }
 
 function closeNav() {
 	ruleR2.style.marginLeft  = "-15.5rem";
 	ruleR2.style.overflow = "visible";
 	ruleR3.style.zIndex = "2";
-	ruleR7.style.zIndex = "6";
+	ruleR5.style.zIndex = "6";
 	ruleR3.style.opacity = "0";
-	ruleR5.style.filter = "brightness(1)";
+	ruleR4.style.filter = "brightness(1)";
 	ruleR3.style.pointerEvents  = "none";
-	ruleR4.style.display = "block";
 	if (!modalOpen){
-		ruleR5.style.display = "block";
+		ruleR4.style.display = "block";
 		blockHeight = false;
 	}
 }
 if (typeof $ !== 'undefined') {
 	$(window).on('shown.bs.modal', function(e) { 
-		if (e.target.nodeName == "DIV"){
-			ruleR5.style.display = "none";
+		if (e.target.nodeName == "DIV" && e.target.className.includes("modal")){
+			ruleR1.style.visibility = "hidden";
+			ruleR4.style.display = "none";
 			blockHeight = true;
-			ruleR6.style = "100%";
-			ruleR4.style.boxShadow = "none";
 			modalOpen = true;
 		}
 	});
 
 	$(window).on('hidden.bs.modal', function(e) { 
-		if (e.target.nodeName == "DIV"){
-			ruleR5.style.display = "block";
+		if (e.target.nodeName == "DIV" && e.target.className.includes("modal")){
+			ruleR1.style.visibility = "visible";
+			ruleR4.style.display = "block";
 			blockHeight = false;
 			modalOpen = false;
-			ruleR4.style.boxShadow = "0 0.1875rem 0.375rem rgba(0,0,0,0.25)";
 		}
 	});
 }

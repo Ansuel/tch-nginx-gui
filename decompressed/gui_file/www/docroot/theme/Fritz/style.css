@@ -1,3 +1,46 @@
+#statsFrame {
+	height: calc(100% - 7.3rem);
+	width: calc(100% - 17rem);
+	top: 6.3rem;
+	left: 16.5rem;
+	position: fixed;
+	background: #ffffff;
+	box-shadow: 0 0.1875rem 0.375rem rgba(0, 0, 0, 0.25);
+	overflow: auto;
+	overflow-y: scroll;
+}
+
+#swtichbuttom{
+	position:fixed;
+	top: 3.25rem;
+	width: calc(100% - 19rem);
+	left: 16.5rem;
+	background: #268edf;
+	pointer-events: none;
+	height: 2rem;
+	font-size: 14pt;
+	vertical-align: middle;
+	line-height: 2rem;
+	text-align: left;
+}
+#statsFrame>#dynamic-content>#infocardrow {
+	flex-wrap: nowrap;
+	display: flex !important;
+}
+@media only screen and (max-width: 89rem) {
+	#statsFrame>#dynamic-content>#infocardrow {
+		display: block !important;
+	}
+}
+.row {
+	margin-left: 0;
+}
+.infocard {
+	width: auto;
+}
+#cardrow {
+	display: none;
+}
 .span12 {
 	margin: 0;
 	padding: 0;
@@ -16,9 +59,7 @@
 	margin-bottom: 0.5rem;
 }
 #headerbox {
-	width: 15.5rem;
 	top: 6.3rem;
-	margin: 1.5rem 0.5rem 0 0;
 	background-color: #fff;
 	box-shadow: 0 0.1875rem 0.375rem rgba(0, 0, 0, 0.25);
 	font-size: 1.125rem;
@@ -74,7 +115,7 @@ body {
 #footer {
 	position: fixed;
 	bottom: 0.5rem;
-	left: 2.5rem;
+	left: 0.5rem;
 	width: 14rem;
 }
 .container>#footer {
@@ -89,7 +130,7 @@ body {
 }
 .modal, .modal.fade.in, .modal.fade {
 	z-index: 6;
-	width: calc(100% - 17.25rem);
+	width: calc(100% - 17rem);
 	height: auto;
 	max-height: calc(100% - 7.5rem);
 	margin: 0;
@@ -111,13 +152,22 @@ body {
 }
 .modal-header, .row-fluid .span4, .row-fluid .span11 {
 	position: fixed;
-	position: -ms-device-fixed;
+	padding-left: 1rem;
 	border: 0;
 	border-radius: 0;
-	top: 3rem;
+	top: 3.25rem;
 	left: 16.5rem;
-	width: calc(100% - 17.25rem) !important;
+	height: 1.8rem;
+	text-align: left;
+	font-size: 14pt;
+	vertical-align: middle;
+	background: #268edf;
+	width: calc(100% - 19rem) !important;
 }
+ .row-fluid .span4 {
+ 	line-height: 3rem;
+ }
+
 .modal-body {
 	min-height: 15.1rem;
 	overflow-y: auto;
@@ -273,13 +323,13 @@ div.logo-technicolor a {
 }
 .popUp {
 	position: fixed;
-	width: calc(100% - 17.2rem);
-	max-width: calc(100% - 17.25rem);
+	width: calc(100% - 17rem);
+	max-width: calc(100% - 17rem);
 	height: 22rem;
 	overflow: visible;
 	margin: 0;
 	left: 16.5rem;
-	top: 3rem !important;
+	top: 3.25rem !important;
 	border: 0;
 	border-radius: 0;
 	margin-top: 3.8rem;
@@ -336,6 +386,7 @@ div.logo-technicolor a {
 	padding-left: 0;
 	text-align: center;
 	position: static;
+	display: block;
 }
 .spinner3 {
 	filter: invert(30%);
@@ -359,7 +410,7 @@ input::placeholder {
 	opacity: 0;
 }
 .logo-technicolor:after {
-	content: "TIM Modem";
+	content: "Technicolor";
 	position: fixed;
 	top: 2.5rem;
 	width: 100%;
@@ -373,9 +424,11 @@ input::placeholder {
 	margin: 0;
 	margin-top: 0.5rem;
 	z-index: 80;
-	border: 0;
+	border: none;
 	border-radius: 0;
+	box-shadow: none;
 }
+.b
 .btn-group.open .btn.dropdown-toggle {
 	background-color: #268edf
 }
@@ -392,7 +445,7 @@ input::placeholder {
 	left: 16.5rem;
 	top: 6.2rem;
 	border-radius: 0;
-	width: calc(100% - 19.25rem);
+	width: calc(100% - 19rem);
 	text-shadow: none;
 	box-shadow: none;
 	transform: none;
@@ -429,10 +482,31 @@ input::placeholder {
 .nav-tabs>li>a:hover {
 	color: #ffffff
 }
+
+.nav-tabs>li {
+	display: inline-block;
+	float: none;
+}
+ul.nav-tabs {
+	overflow-x: auto;
+	white-space: nowrap;
+}
+ul.nav-tabs::-webkit-scrollbar {
+    height: 4px;
+}
+ul.nav-tabs::-webkit-scrollbar-thumb {
+    border-radius: 2px;
+}
+ul.nav-tabs::-webkit-scrollbar-track {
+    background: transparent; 
+}
+ul.nav-tabs::-webkit-scrollbar-thumb, ul.nav-tabs::-webkit-scrollbar-thumb:hover {
+    background: #444; 
+}
 .nav-tabs li {
 	margin-right: 0.5rem;
 }
-.nav-tabs>.active>a, .nav-tabs>.active>a:hover {
+.nav-tabs>.active>a, .nav-tabs>.active>a:hover, .nav-tabs>.active>a:focus, .nav>li>a:hover, .nav>li>a:focus {
 	border: 0;
 	background-color: #006ec0;
 	color: #ffffff;
@@ -480,19 +554,6 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 #applications-modal fieldset br {
 	display: none;
 }
-.span8 {
-	width: auto;
-}
-#cardrow>.span3 {
-	margin: 10px;
-}
-#cardrow>.span3>.smallcard>.header {
-	display: none;
-}
-.smallcard p.subinfos {
-	margin-left: 20px;
-	margin-top: 3px;
-}
 .smallcard {
 	margin: 0 0 0 0;
 	box-shadow: 0 0 0 rgba(0, 0, 0, 0);
@@ -500,16 +561,6 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 	transform: initial !important;
 	transition: initial !important;
 	overflow: visible !important;
-}
-.span3 .smallcard .content {
-	background-color: #fff;
-	box-shadow: 0 0.1875rem 0.375rem rgba(0, 0, 0, 0.25);
-	overflow: hidden;
-	font-weight: 500;
-	height: 8rem;
-}
-.span3 .smallcard .card_bg:after {
-	color: #ccc;
 }
 #headerbox>.header {
 	margin-bottom: 0px;
@@ -525,28 +576,70 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 #headerbox>.header>.header-title>p {
 	margin: 5px;
 }
-#infocardrow {
-	top: 6.3rem;
-}
 .card_bg:after {
-	color: #b4b4b440;
+	color: #b4b4b4;
+	opacity: 0.25;
 }
 .smallcard>.header {
-	background-color: #006ec0;
+	background-color:white;
 	color: #ffffff;
 	background-image: unset;
 	border: unset;
+	height: 0.6rem;
+	font-size: 11pt;
+	font-weight: bold;
+	vertical-align: middle;
+	line-height: 0.6rem;
+	text-shadow: none;
+	
+	border-bottom: medium solid #2b97ec;
 }
-@media only screen and (max-width: 18rem) {
-	div.span3 .content {
-		display: none;
-	}
+.smallcard>.header>.header-title{
+	margin-top: -1rem;
+	margin-left: -1rem;
+	padding-left: 1rem;
+	padding-top: 0.2rem;
+	width: 14rem;
+	background-color: #2b97ec;
+	border: unset;
+	height: 2.1rem;
+	font-size: 11pt;
+	font-weight: bold;
+	vertical-align: middle;
+	line-height: 2.5rem;
+	text-shadow: none;
 }
+#popUp.smallcard>.header {
+	background-color: #268edf;
+	margin: 0;
+	padding: 0;
+	height: 3rem;
+	top: 3.25rem;
+	width: calc(100% - 17rem);
+	border-bottom: none;
+}
+
+#popUp.smallcard>.header>.header-title{
+	background-color: #268edf;
+	margin: 0;
+	padding: 0;
+	padding-left: 1rem;
+	height: 3rem;
+	font-size: 14pt;
+	font-weight: normal;
+	vertical-align: middle;
+	line-height: 3rem;
+}
+
 @media only screen and (min-width: 50rem) {
 	#headerbox {
 		margin-left: 0px !important;
 		overflow: auto !important;
 		display: none;
+		width: 15.5rem !important;
+		opacity: 1 !important;
+		margin: 1.5rem 0.5rem 0 0 !important;
+		height: auto !important;
 	}
 	.header-button {
 		margin-top: -2rem;
@@ -563,8 +656,9 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 		overflow-y: visible !important;
 	}
 	.open>.dropdown-menu {
-		margin-top: -1.2rem;
+		margin-top: -1.75rem;
 		margin-right: 7rem;
+		height: 2.25rem;
 	}
 	.dropdown-menu>li>a, .dropdown-menu>li {
 		display: inline !important;
@@ -573,6 +667,9 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 	.dropdown-menu>li>a, .dropdown-menu>li>a:hover {
 		margin: 0;
 		padding: 0.5rem;
+		padding-top: 0;
+		text-align: center;
+		line-height: 2.25rem;
 		background-color: #fff;
 	}
 	.dropdown-toggle .caret {
@@ -587,6 +684,14 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 	}
 }
 @media only screen and (max-width: 50rem) {
+	#statsFrame {
+		height: calc(100% - 60px);
+		width: 100%;
+		top: 60px;
+		left: 0px;
+		position: fixed;
+	}
+
 	#cardrow {
 		margin-top: 4rem;
 		position: absolute;
@@ -614,10 +719,6 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 		vertical-align: middle;
 		line-height: 3.75rem;
 		cursor: pointer;
-	}
-	#swtichbuttom {
-		display: unset;
-		top: 0.9rem;
 	}
 	.container>#footer>.copyright {
 		display: unset;
@@ -667,10 +768,10 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 		padding-top: 0;
 	}
 	.modal-header, .row-fluid .span4, .row-fluid .span11 {
+		height: unset;
 		position: fixed;
 		border: 0;
 		border-radius: 0;
-		top: 3rem;
 		left: 0;
 		width: 100% !important;
 		background-color: #006ec0;
@@ -683,7 +784,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 		background-color: #006ec0;
 		left: 0;
 		top: 6.2rem;
-		width: 100%;
+		width: calc(100% - 2rem);
 	}
 	.nav-tabs li, .nav-tabs>li>a, .nav>li>a:hover {
 		background-color: #268edf;
@@ -696,7 +797,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 		color: #fff;
 		background-color: #268edf;
 	}
-	.nav-tabs>.active>a, .nav-tabs>.active>a:hover {
+	.nav-tabs>.active>a, .nav-tabs>.active>a:hover, .nav-tabs>.active>a:focus, .nav>li>a:hover, .nav>li>a:focus{
 		background-color: #268edf;
 	}
 	.popUp {
@@ -782,5 +883,12 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 	}
 	.modal-body fieldset {
 		padding-bottom: 3rem;
+	}
+	#popUp.smallcard>.header {
+		width: 100%;
+		background-color: #006ec0; 
+	}
+	#popUp.smallcard>.header>.header-title{
+		background-color: #006ec0;
 	}
 }
