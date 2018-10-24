@@ -3,9 +3,10 @@
 -- Enable localization
 gettext.textdomain('webui-core')
 
+local proxy = require("datamodel")
 local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
-local proxy = require("datamodel")
+local post_helper = require("web.post_helper")
 
 local attributes = { light = { } ,span = { class = "span4" } }
 local table = table
@@ -128,31 +129,46 @@ attributes.light.id = "Internet_State_Led"
 attributes.span.id = "Internet_State_Enabled"
 
 ngx.print('\
+<span id="pppoe-internet-tab">\
+  <span data-bind="html: status_light">\
   '); ngx.print( ui_helper.createSimpleLight(ppp_light_map[ppp_status], ppp_state_map[ppp_status] , attributes , "fa-at") ); ngx.print('\
-  <p class="subinfos" id="pppoe-internet-tab">')
+  </span>\
+  <p class="subinfos">')
+	 local WAN_IP_text = '<span data-bind="html: WAN_IP_text"></span>'
+	 local uptime_text = '<span data-bind="html: uptime_text"></span>'
      if ppp_status == "connected" then
        if content_rpc["ipaddr"] and content_rpc["ipaddr"]:len() > 0 then
-         ngx.print(format(T'WAN IP is <strong>%s</strong>' .. "<br/>", content_rpc["ipaddr"]))
-	     if IPv6State == "disabled" and content_rpc["uptime"] then
-		   ngx.print(T"Uptime" .. ": " .. '<strong data-bind="text: pppoe_uptime"></strong>')
+		 WAN_IP_text = '<span data-bind="html: WAN_IP_text">'..format(T'WAN IP is <strong>%s</strong>'..'<br/>', content_rpc["ipaddr"])..'</span>'
+	     if content_rpc["uptime"] then
+		   uptime_text = '<span data-bind="html: uptime_text">'..format(T"Uptime : <strong>%s</strong>",(post_helper.secondsToTimeShort(content_rpc["uptime"]) or ""))..'</span>'
 		 end
-       elseif content_rpc["ip6addr"] and content_rpc["ip6addr"]:len() > 0 then
-	 ngx.print(format(T'WAN IP is <strong>%s</strong>', content_rpc["ip6addr"]))
+	end
+       if content_rpc["ip6addr"] and content_rpc["ip6addr"]:len() > 0 then
+		 ngx.print(format(T'WAN IP is <strong>%s</strong>', content_rpc["ip6addr"]))
        end
 	   if ppp_status == "connected" and IPv6State ~= "disabled" then
          ngx.print(ui_helper.createSimpleLight(ipv6_light_map[IPv6State] or "4" --[[ red ]] , ipv6_state_map[IPv6State] or T"Unknown", attributes,"fa-at"))
         end
      end
+     ngx.print(WAN_IP_text)
+	 ngx.print(uptime_text)
 	ngx.print('\
   </p>\
+</span>\
 <script>\
 var PPPoECardInterval;\
 $(document).ready(function () {\
-	var PPPoECardBinding = { pppoe_uptime: ko.observable(), };\
+	var PPPoECardBinding = {\
+		status_light: ko.observable(),\
+		uptime_text: ko.observable(),\
+		WAN_IP_text: ko.observable(),\
+	};\
 	function PPPoECardRefresh() {\
 		$.post("/ajax/internet.lua", [tch.elementCSRFtoken()], function(data) {\
 			if(data.pppoe_uptime != undefined) {\
-				PPPoECardBinding.pppoe_uptime(data.pppoe_uptime);\
+				PPPoECardBinding.status_light(data.status_light);\
+				PPPoECardBinding.uptime_text(data.uptime_text);\
+				PPPoECardBinding.WAN_IP_text(data.WAN_IP_text);\
 			}\
 		}, "json");\
 	};\

@@ -62,11 +62,8 @@ return {
         view = "internet-bridged.lp",
         card = "003_internet_bridged.lp",
         check = {
-            { "uci.network.interface.@wan.proto", "^bridge$"},
-			{ "uci.wansensing.global.enable", "^1$"},
+            { "uci.network.config.wan_mode", "^bridge$"}
         },
-        operations = {
-            { "uci.network.interface.@wan.proto", "bridge"},
-        },
+        operations = nil,
     },
 }

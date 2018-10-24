@@ -9,29 +9,46 @@ local tonumber = tonumber
 
 local ui_helper = require("web.ui_helper")
 local content_helper = require("web.content_helper")
-local bridgedmode = require("bridgedmode_helper")
-local voicemode = require("voicemode_helper")
+local dyntab_helper = require("web.dyntab_helper")
+
+local bmh = require("broadbandmode_helper")
+local tabdata = dyntab_helper.process(bmh)
+
+local content = {
+    wansensing_state = "uci.wansensing.global.l2type",
+}
+content_helper.getExactContent(content)
+
+local wan_bridge = ""
+
+if content.wansensing_state == "VDSL" then
+	wan_bridge = "ptm0" 
+elseif content.wansensing_state == "ETH" then
+	wan_bridge = "eth4"
+elseif content.wansensing_state == "ADSL" then
+	wan_bridge = "atmwan"
+end
 
 -- Figure out interface state
 local intf_state_map = {
-    disabled = T"Bridge disabled",
-    connected = T"Bridge connected",
-    disconnected = T"Bridge not connected",
-	connecting = T"Connecting...",
+    disabled = T"Bridge "..wan_bridge.. " disabled",
+    connected = T"Bridge "..wan_bridge.. " connected",
+    disconnected = T"Bridge "..wan_bridge.. " not connected",
+	connecting = T"Connecting "..wan_bridge.. " ...",
 }
 
 local intf_light_map = {
-  disabled = "off",
-  disconnected = "red",
-  connected = "green",
-  connecting = "orange",
+  disabled = "0",--"off",
+  disconnected = "4",--"red",
+  connected = "1",--"green",
+  connecting = "3",--"orange",
 }
 
 local intf_state = "disabled"
 
 local stats = {
-    operstate = "sys.class.net.@ptm0.operstate",
-    carrier = "sys.class.net.@ptm0.carrier",
+    operstate = "sys.class.net.@"..wan_bridge..".operstate",
+    carrier = "sys.class.net.@"..wan_bridge..".carrier",
 }
 content_helper.getExactContent(stats)
 
@@ -42,7 +59,7 @@ if stats.operstate == "up" then
         intf_state = "connecting"
     end
 else
-	intf_state = "disabled"
+	intf_state = "disconnected"
 end
 
 
@@ -75,19 +92,19 @@ end
 <div class="content card_bg" data-bg-text="&#xf0b2;">\
 <div class="divtable">\
   ');
-	if bridgedmode.isBridgedMode() then
+	if tabdata.current.name == "bridge" then
 		ngx.print(format("<strong>%s</strong></br>",T"Bridge Mode Active"))
 	end
-	if voicemode.isVoiceMode() then
+	if tabdata.current.name == "voice" then
 		ngx.print(format("<strong>%s</strong></br>",T"Voice Mode Active"))
 	end
-      ngx.print(ui_helper.createSimpleLight(nil, intf_state_map[intf_state], {light = {class = intf_light_map[intf_state]}}),
+      ngx.print(ui_helper.createSimpleLight(intf_light_map[intf_state], intf_state_map[intf_state], nil, "fas fa-at"),
       '<p class="subinfos">',
       "",
       '</p>')
-	if xdsl_data["dsl_enable"] == "1" then
-		local iconUp = "<i class=\"icon-upload icon-small gray\"></i> "
-		local iconDown = " <i class=\"icon-download icon-small gray\"></i> "
+	if content.wansensing_state:match("DSL") and xdsl_data["dsl_enable"] == "1" then
+		local iconUp = '<i class="icon-upload icon-small gray"></i> '
+		local iconDown = '<i class="icon-download icon-small gray"></i> '
 		
 		if (xdsl_data["dsl_status"] == "Up") or (other_line_xdsl_data["dsl_status"] == "Up") then
 		
@@ -111,36 +128,16 @@ end
 				rate_down = rate_down + (floor(other_line_rate_down / 10) / 100)
 			end
 			ngx.print(
-				"<p  id=\"Line_Rate_Up\" class=\"subinfos\">&emsp; ",
-				iconUp,
-				format("%.2f Mbps", rate_up),
-				"</p>",
-				"<p  id=\"Line_Rate_Down\" class=\"subinfos\">&emsp; ",
+				'<p  id="Line_Rate_Down" class="subinfos">&emsp; ',
 				iconDown,
 				format('%.2f Mbps', rate_down),
+				"</p>",
+				'<p  id="Line_Rate_Up" class="subinfos">&emsp; ',
+				iconUp,
+				format("%.2f Mbps", rate_up),
 				"</p>"
 			)
 			end
-		elseif xdsl_data["dsl_status"] == "NoSignal" and other_line_xdsl_data["dsl_status"] == "NoSignal" then
-			ngx.print(
-			"<div class=\"light red\" id=\"Broadband_LED\"></div><p>",
-			T"Disconnected",
-			"</p>"
-			)
-		elseif xdsl_data["dsl_status"] == "Unknown" then
-			ngx.print(
-			"<div class=\"light orange\" id=\"Broadband_LED\"></div><p>",
-			T"Connecting",
-			"</p>"
-			)
-		else
-			ngx.print(
-			"<div class=\"light orange\" id=\"Broadband_LED\"></div><p>",
-			T"Connecting",
-			": ",
-			T(xdsl_data["dsl_status"]),
-			"...</p>"
-			)
 		end
 	end
     ngx.print('\

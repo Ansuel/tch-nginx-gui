@@ -368,6 +368,23 @@ end ngx.print('\
 		}\
     }\
   };\
+  ko.bindingHandlers.html = {\
+		init: function(element, valueAccessor) {\
+        $(element).html(ko.unwrap(valueAccessor()));\
+    },\
+    update: function(element, valueAccessor) {\
+        var value = ko.unwrap(valueAccessor());\
+        if (value != $(element).html() ) {\
+			if ( ! $(element).hasClass("hide") ) {\
+				$(element).fadeOut(function() {\
+					$(this).html(value).fadeIn();\
+				});\
+			} else {\
+				$(element).html(value);\
+			}\
+		}\
+    }\
+  };\
 });\
 window.onscroll = function() {scrollFunction()};\
 \

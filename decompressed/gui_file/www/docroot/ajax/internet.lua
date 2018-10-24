@@ -174,14 +174,14 @@ else
 	setmetatable(ppp_state_map, untaint_mt)
 	
 	local ppp_light_map = {
-		disabled = "off",
-		disconnected = "red",
-		disconnecting = "orange",
-		connecting = "orange",
-		connected = "green",
-		error = "red",
-		AUTH_TOPEER_FAILED = "red",
-		NEGOTIATION_FAILED = "red",
+		disabled = "0",--"off"
+		disconnected = "4",--"red"
+		disconnecting = "2",--"orange"
+		connecting = "2",--"orange"
+		connected = "1",--"green"
+		error = "4",--"red"
+		AUTH_TOPEER_FAILED = "4",--"red"
+		NEGOTIATION_FAILED = "4",--"red"
 	}
 	
 	setmetatable(ppp_light_map, untaint_mt)
@@ -211,20 +211,23 @@ else
 	
 	local ppp_light, ppp_state, WAN_IP, ipv6_light, ipv6_state
 	if ppp_status then
-	ppp_light = ppp_light_map[ppp_status]
-	ppp_state = ppp_state_map[ppp_status]
-	if content_rpc["ipaddr"] and content_rpc["ipaddr"]:len() > 0 then
-		WAN_IP = content_rpc["ipaddr"]
-	elseif content_rpc["ip6addr"] and content_rpc["ip6addr"]:len() > 0 then
-		WAN_IP = content_rpc["ip6addr"]
-	end
-	if ppp_status == "connected" and IPv6State ~= "disabled" then
-		ipv6_light = ipv6_light_map[IPv6State]
-		ipv6_state = ipv6_state_map[IPv6State]
-	end
+		ppp_light = ppp_light_map[ppp_status]
+		ppp_state = ppp_state_map[ppp_status]
+		if content_rpc["ipaddr"] and content_rpc["ipaddr"]:len() > 0 then
+			WAN_IP = content_rpc["ipaddr"]
+		elseif content_rpc["ip6addr"] and content_rpc["ip6addr"]:len() > 0 then
+			WAN_IP = content_rpc["ip6addr"]
+		end
+		if ppp_status == "connected" and IPv6State ~= "disabled" then
+			ipv6_light = ipv6_light_map[IPv6State]
+			ipv6_state = ipv6_state_map[IPv6State]
+		end
 	end
 	
 	data = {
+	status_light = ui_helper.createSimpleLight(ppp_light_map[ppp_status], ppp_state_map[ppp_status] , attributes , "fa-at"),
+	WAN_IP_text = not ( content_rpc["ipaddr"] == "" ) and format(T'WAN IP is <strong>%s</strong>'..'<br/>', content_rpc["ipaddr"]) or "",
+	uptime_text = not ( content_rpc["pppoe_uptime"] == "" ) and format(T"Uptime" .. ": <strong>%s</strong>",post_helper.secondsToTimeShort(content_rpc["pppoe_uptime"])) or "",
 	pppoe_uptime = post_helper.secondsToTimeShort(content_rpc["pppoe_uptime"]) or "",
 	pppoe_uptime_extended = post_helper.secondsToTime(content_rpc["pppoe_uptime"]) or "",
 	ppp_status = ppp_status or "",
