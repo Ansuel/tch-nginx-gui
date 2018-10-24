@@ -11,8 +11,9 @@ local content_helper = require("web.content_helper")
 local post_helper = require("web.post_helper")
 local tinsert,format,sub,match,untaint = table.insert,string.format, string.sub, string.match, string.untaint
 
-local bridgedmode = require("bridgedmode_helper")
-local voicemode = require("voicemode_helper")
+local dyntab_helper = require("web.dyntab_helper")
+local bmh = require("broadbandmode_helper")
+local tabdata = dyntab_helper.process(bmh)
 
 local all_modes = {"adsl2", "adsl2annexl", "adsl2annexm", "adsl2plus", "gdmt", "glite", "t1413", "vdsl2" }
 
@@ -215,7 +216,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  if not driver_Params.driver_ver then
 		html[#html + 1] = ui_helper.createLabel(T"Driver Version",T"We don't have any firmware for this modem, please report them to the github page. ", span5 )
 	  else
-	    if bridgedmode.isBridgedMode() or voicemode.isVoiceMode() then
+	    if ( tabdata.current.name == "bridge" ) or ( tabdata.current.name == "voice" )  then
 		  html[#html + 1] = ui_helper.createAlertBlock(T"In this mode, your modem may not have internet connection. The script may fail to download the new firmware. \
 														It is advised to download and apply it manually. Look in the forum repository for more info. ", alertinfo)
 		end
