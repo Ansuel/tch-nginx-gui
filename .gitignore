@@ -4,3 +4,5 @@ total/*
 compressed/*
 !compressed/version
 !compressed/GUI.tar.bz2
+.DS_Store
+*.DS_Store
