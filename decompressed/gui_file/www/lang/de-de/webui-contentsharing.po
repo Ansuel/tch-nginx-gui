@@ -1,0 +1,144 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: webui-contentsharing\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-10-27 13:44+0200\n"
+"PO-Revision-Date: 2018-10-26 12:00+0200\n"
+"Last-Translator: Dr. Uwe Meyer-Gruhl\n"
+"Language-Team: none\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language-Name: Deutsch\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.2\n"
+
+msgid "Cancel"
+msgstr "Abbrechen"
+
+msgid "Changes saved successfully"
+msgstr "Änderungen wurden erfolgreich gespeichert"
+
+msgid "Close"
+msgstr "Schließen"
+
+msgid "Content Sharing"
+msgstr "Inhalt teilen"
+
+msgid "Currently there are <strong>%d</strong> connected devices"
+msgstr "Aktuell gibt es <strong>%d</strong> verbundene Geräte"
+
+msgid "Currently there are <strong>%s</strong> connected devices"
+msgstr "Aktuell gibt es <strong>%s</strong> verbundene Geräte"
+
+msgid "Currently there is <strong>%d</strong> connected device"
+msgstr "Aktuell gibt es <strong>%d</strong> verbundenes Gerät"
+
+msgid "DLNA Enabled"
+msgstr "DLNA eingeschaltet"
+
+msgid "DLNA disabled"
+msgstr "DLNA ausgeschaltet"
+
+msgid "DLNA enabled"
+msgstr "DLNA eingeschaltet"
+
+msgid "DLNA name: "
+msgstr "DLNA Name "
+
+msgid "Eject"
+msgstr "Auswerfen"
+
+msgid "Error while ejecting USB disk"
+msgstr "Fehler beim Auswerfen der USB-Platte"
+
+msgid "File System"
+msgstr "Dateisystem"
+
+msgid "Free Space"
+msgstr "Freier Platz"
+
+msgid "General status"
+msgstr "Allgemeiner Status"
+
+msgid "Hard Disk Information"
+msgstr "Festplatteninformation"
+
+msgid ""
+"It is recommended to use the USB in the 2.0 standard. The use of USB in 3.1 "
+"standard can remarkably affect the Wi-Fi performance at 2.4 Ghz band."
+msgstr ""
+"Es wird empfohlen, den USB-2.0-Standard zu verwenden. Die Verwendung von USB "
+"3.1 kann die WiFi-Leistungsfähigkeit im 2,4-GHz-Band stark beeinträchtigen."
+
+msgid "Manufacturer"
+msgstr "Hersteller"
+
+msgid "Only alphanumeric, space, underscore and dash characters allowed"
+msgstr ""
+"Nur alphanumerische Zeichen, Leerzeichen, Unterstrich und Minuszeichen "
+"erlaubt"
+
+msgid "Port"
+msgstr "Port"
+
+msgid "Power"
+msgstr "Strom"
+
+msgid "Product Name"
+msgstr "Produktname"
+
+msgid "Profiler status: "
+msgstr "Analysestatus "
+
+msgid "Rebooting..."
+msgstr "Neustarten..."
+
+msgid "Restarting, please wait..."
+msgstr "Neustart, bitte warten..."
+
+msgid "Samba Filesharing"
+msgstr "Samba Dateiserver"
+
+msgid "Samba Filesharing disabled"
+msgstr "Samba Dateiserver nicht aktiv"
+
+msgid "Samba Filesharing enabled"
+msgstr "Samba Dateiserver aktiv"
+
+msgid "Samba description: "
+msgstr "Samba Beschreibung "
+
+msgid "Samba name: "
+msgstr "Samba Name "
+
+msgid "Samba workgroup: "
+msgstr "Samba Arbeitsgruppe "
+
+msgid "Save"
+msgstr "Speichern"
+
+msgid "Share"
+msgstr "Teilen"
+
+msgid "Toggling USB3.1 support will reboot the Gateway"
+msgstr "Umschalten der USB-3.1-Unterstützung startet das Gateway neu"
+
+msgid "Total Space"
+msgstr "Gesamter Platz"
+
+msgid "USB 3.1 Enabled"
+msgstr "USB 3.1 eingeschaltet"
+
+msgid "Used Space"
+msgstr "Platz genutzt"
+
+msgid "Version"
+msgstr "Version"
+
+msgid "Volume"
+msgstr "Volume"
+
+msgid "no"
+msgstr "keine"

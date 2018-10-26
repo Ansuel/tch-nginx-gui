@@ -1,0 +1,566 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: webui-mobiled\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-06-21 15:33+0200\n"
+"PO-Revision-Date: 2017-10-21 14:22+0200\n"
+"Last-Translator: Piergiorgio Bellezza\n"
+"Language-Team: none\n"
+"Language: it\n"
+"Language-Name: Italiano\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.0.4\n"
+
+msgid "0 device connected"
+msgstr "0 dispositivi connessi"
+
+msgid "Access Technology"
+msgstr "Tecnologia di accesso"
+
+msgid "Access Technology:"
+msgstr "Tecnologia di accesso:"
+
+msgid "Add new profile"
+msgstr "Aggiungere nuovo profilo"
+
+msgid "Airplane mode"
+msgstr "Modalità aereo"
+
+msgid "Allow Roaming"
+msgstr "Consenti roaming"
+
+msgid "Allowed LTE Bands"
+msgstr "Bande LTE consentite"
+
+msgid "Antenna Selection"
+msgstr "Selezione antenna"
+
+msgid "Authenticating"
+msgstr "Autenticazione in corso"
+
+msgid "Authentication Type"
+msgstr "Modalità di autenticazione"
+
+msgid "Blocked"
+msgstr "Bloccato"
+
+msgid "Cancel"
+msgstr "Annulla"
+
+msgid "Change"
+msgstr "Modifica"
+
+msgid "Change PIN"
+msgstr "Modifica PIN"
+
+msgid "Choose A Band"
+msgstr "Scegliere una banda"
+
+msgid "Configuration"
+msgstr "Configurazione"
+
+msgid "Configuring device"
+msgstr "Configurazione del dispositivo in corso"
+
+msgid "Configuring platform"
+msgstr "Configurazione della piattaforma"
+
+msgid "Confirm"
+msgstr "Conferma"
+
+msgid "Confirm new PIN"
+msgstr "Conferma nuovo PIN"
+
+msgid "Connect"
+msgstr "Connetti"
+
+msgid "Connected"
+msgstr "Connesso"
+
+msgid "Connecting"
+msgstr "Connessione in corso"
+
+msgid "Description"
+msgstr "Descrizione"
+
+msgid "Device Information"
+msgstr "Informazioni sul prodotto"
+
+msgid "Device Status"
+msgstr "Stato del dispositivo"
+
+msgid "Device Status:"
+msgstr "Stato dispositivo:"
+
+msgid "Disable"
+msgstr "Disabilita"
+
+msgid "Disable PIN"
+msgstr "Disabilita PIN"
+
+msgid "Disabled"
+msgstr "Disabilitato"
+
+msgid "Disconnected"
+msgstr "Disconnesso"
+
+msgid "Disconnecting"
+msgstr "Disconnesione"
+
+msgid "Enable"
+msgstr "Abilita"
+
+msgid "Enable PIN"
+msgstr "Abilita PIN"
+
+msgid "Enabled"
+msgstr "Abilitato"
+
+msgid "Error"
+msgstr "Errore"
+
+msgid "External"
+msgstr "Esterno"
+
+msgid ""
+"Failed to change the PIN code. ( %d retry left ) Please make sure you "
+"entered the correct PIN."
+msgid_plural ""
+"Failed to change the PIN code. ( %d retries left ) Please make sure you "
+"entered the correct PIN."
+msgstr[0] ""
+"Modifica del codice PIN fallita. ( %d tentativo rimasto ) Assicurarsi di "
+"aver inserito il PIN corretto."
+msgstr[1] ""
+"Modifica del codice PIN fallita. ( %d tentativi rimasti ) Assicurarsi di "
+"aver inserito il PIN corretto."
+
+msgid ""
+"Failed to disable the PIN code. ( %d retry left ) Please make sure you "
+"entered the correct PIN."
+msgid_plural ""
+"Failed to disable the PIN code. ( %d retries left ) Please make sure you "
+"entered the correct PIN."
+msgstr[0] ""
+"Disabilitazione del codice PIN fallita. ( %d tentativo rimasto ) Assicurarsi "
+"di aver inserito il PIN corretto."
+msgstr[1] ""
+"Disabilitazione del codice PIN fallita. ( %d tentativi rimasti ) Assicurarsi "
+"di aver inserito il PIN corretto."
+
+msgid ""
+"Failed to enable the PIN code. ( %d retry left ) Please make sure you "
+"entered the correct PIN."
+msgid_plural ""
+"Failed to enable the PIN code. ( %d retries left ) Please make sure you "
+"entered the correct PIN."
+msgstr[0] ""
+"Abilitazione del codice PIN fallita. ( %d tentativo rimasto ) Assicurarsi di "
+"aver inserito il PIN corretto."
+msgstr[1] ""
+"Abilitazione del codice PIN fallita. ( %d tentativi rimasti ) Assicurarsi di "
+"aver inserito il PIN corretto."
+
+msgid ""
+"Failed to verify the PIN code. ( %d retry left ) Please make sure you "
+"entered the correct PIN."
+msgid_plural ""
+"Failed to verify the PIN code. ( %d retries left ) Please make sure you "
+"entered the correct PIN."
+msgstr[0] ""
+"Verifica del codice PIN fallita. ( %d tentativo rimasto ) Assicurarsi di "
+"aver inserito il PIN corretto."
+msgstr[1] ""
+"Verifica del codice PIN fallita. ( %d tentativi rimasti ) Assicurarsi di "
+"aver inserito il PIN corretto."
+
+msgid ""
+"Failed to verify the PUK code. ( %d retry left ) Please make sure you "
+"entered the correct PUK."
+msgid_plural ""
+"Failed to verify the PUK code. ( %d retries left ) Please make sure you "
+"entered the correct PUK."
+msgstr[0] ""
+"Verifica del codice PUK fallita. ( %d tentativo rimasto ) Assicurarsi di "
+"aver inserito il PUK corretto."
+msgstr[1] ""
+"Verifica del codice PUK fallita. ( %d tentativi rimasti ) Assicurarsi di "
+"aver inserito il PUK corretto."
+
+msgid "Fair"
+msgstr "Sufficiente"
+
+msgid "Firmware version"
+msgstr "Versione firmware"
+
+msgid "Forbidden"
+msgstr "Bloccato"
+
+msgid "From"
+msgstr "Da"
+
+msgid "General Status And Settings"
+msgstr "Stato globale e configurazione"
+
+msgid "Good"
+msgstr "Buono"
+
+msgid "Hardware version"
+msgstr "Versione hardware"
+
+msgid "IPv4 Address"
+msgstr "Indirizzo IPv4"
+
+msgid "IPv4 Primary DNS"
+msgstr "DNS primario IPv4"
+
+msgid "IPv4 Secondary DNS"
+msgstr "DNS secondario IPv4"
+
+msgid "IPv6 Address"
+msgstr "Indirizzo IPv6"
+
+msgid "IPv6 Connected"
+msgstr "IPv6 connesso"
+
+msgid "IPv6 Connecting"
+msgstr "IPv6 in connessione"
+
+msgid "IPv6 Disabled"
+msgstr "IPv6 disabilitato"
+
+msgid "Idle"
+msgstr "Inattivo"
+
+msgid "In use"
+msgstr "In uso"
+
+msgid "Initializing SIM"
+msgstr "Inizializzazione della SIM"
+
+msgid "Initializing device"
+msgstr "Inizializzazione del dispositivo in corso"
+
+msgid "Interface"
+msgstr "Interfaccia"
+
+msgid "Interfaces"
+msgstr "Interfacce"
+
+msgid "Internal"
+msgstr "Interno"
+
+msgid "Invalid value"
+msgstr "Valore non valido"
+
+msgid "Last five minutes"
+msgstr "Ultimi cinque minuti"
+
+msgid "Last hour"
+msgstr "Ultima ora"
+
+msgid "Last twenty minutes"
+msgstr "Ultimi venti minuti"
+
+msgid "Limited regional service"
+msgstr "Servizio regionale limitato"
+
+msgid "Limited service"
+msgstr "Servizio limitato"
+
+msgid "Linked Profile"
+msgstr "Profilo Collegato"
+
+msgid "Low-power mode"
+msgstr "Modalità low-power"
+
+msgid "Manual"
+msgstr "Manuale"
+
+msgid "Manufacturer"
+msgstr "Produttore"
+
+msgid "Message"
+msgstr "Messaggio"
+
+msgid "Mobile"
+msgstr "Rete Mobile"
+
+msgid "Model"
+msgstr "Modello"
+
+msgid "Most recent values"
+msgstr "Valori più recenti"
+
+msgid "Name"
+msgstr "Nome"
+
+msgid "Network Scan"
+msgstr "Analisi della rete"
+
+msgid "Network Selection"
+msgstr "Selezione rete"
+
+msgid "Network Status:"
+msgstr "Stato della rete:"
+
+msgid "New PIN"
+msgstr "Nuovo PIN"
+
+msgid "New PIN code and confirmed PIN code don't match."
+msgstr "Il nuovo codice PIN e quello confermato non coincidono."
+
+msgid "No network scan results"
+msgstr "Nessun analisi di rete precedente risulta attualmente disponibile"
+
+msgid "No service"
+msgstr "Nessun servizio"
+
+msgid "None"
+msgstr "Nessuno"
+
+msgid "Normal service"
+msgstr "Servizio normale"
+
+msgid "Not initialized"
+msgstr "Non inizializzato"
+
+msgid "Not registered"
+msgstr "Non registrato"
+
+msgid "Not verified"
+msgstr "Non verificato"
+
+msgid "Online"
+msgstr "Online"
+
+msgid "Operator:"
+msgstr "Operatore:"
+
+msgid "PDP Type"
+msgstr "Tipo PDP"
+
+msgid "PIN Protection"
+msgstr "Protezione PIN"
+
+msgid "PPP authentication failed"
+msgstr "Autenticazione PPP fallita"
+
+msgid "PPP connected"
+msgstr "PPP connesso"
+
+msgid "PPP connecting"
+msgstr "PPP in connessione"
+
+msgid "PPP disabled"
+msgstr "PPP disabilitato"
+
+msgid "PPP disconnected"
+msgstr "PPP disconnesso"
+
+msgid "PPP disconnecting"
+msgstr "PPP si sta disconnettendo"
+
+msgid "PPP error"
+msgstr "PPP in stato di errore"
+
+msgid "PPP negotiation failed"
+msgstr "Negoziazione PPP fallita"
+
+msgid "Permanently blocked"
+msgstr "Bloccato in modo permanente"
+
+msgid "Please enter PIN"
+msgstr "Introdurre il codice PIN"
+
+msgid "Please enter PUK"
+msgstr "Introdurre il codice PUK"
+
+msgid "Please enter a valid PIN."
+msgstr "Si prega di inserire un PIN valido."
+
+msgid "Please note that you are changing the PIN code"
+msgstr "Attenzione: si sta modificando il codice PIN"
+
+msgid "Please note that you are disabling the PIN code"
+msgstr "Attenzione: si sta disabilitando il codice PIN"
+
+msgid "Poor"
+msgstr "Scarso"
+
+msgid "Power mode"
+msgstr "Consumo di energia"
+
+msgid "Preferred"
+msgstr "Preferito"
+
+msgid "Previous network scan results"
+msgstr "Risultati analisi di rete precedente"
+
+msgid "Profiles"
+msgstr "Profili"
+
+msgid "Qualification test"
+msgstr "Qualification test"
+
+msgid "Quality"
+msgstr "Qualità"
+
+msgid "Radio Technology"
+msgstr "Tecnologia radio"
+
+msgid "Radio Type"
+msgstr "Tipologia radio"
+
+msgid "Read messages"
+msgstr "Messaggi letti"
+
+msgid "Received"
+msgstr "Ricevuto"
+
+msgid "Received an invalid string"
+msgstr "Stringa non valida"
+
+msgid "Registered"
+msgstr "Registrato"
+
+msgid "Registration denied"
+msgstr "Registrazione negata"
+
+msgid "Remove"
+msgstr "Rimuovi"
+
+msgid "SIM Not Present"
+msgstr "SIM assente"
+
+msgid "SIM Permanently Blocked"
+msgstr "SIM bloccata in modo permanente"
+
+msgid "SIM error"
+msgstr "Errore della SIM"
+
+msgid "SIM locked"
+msgstr "SIM bloccata"
+
+msgid "SIM not present"
+msgstr "SIM assente"
+
+msgid "SIM permanently blocked"
+msgstr "SIM bloccata in modo permanente"
+
+msgid "SIM ready"
+msgstr "SIM pronta"
+
+msgid "Scan Networks"
+msgstr "Analisi delle reti"
+
+msgid "Scan completed after"
+msgstr "Analisi completata dopo"
+
+msgid "Scanning for networks, please wait. This can take a few minutes..."
+msgstr ""
+"Analisi delle reti in corso, attendere prego. Potrebbero essere necessari "
+"alcuni minuti..."
+
+msgid "Scanning networks"
+msgstr "Scansione delle reti in corso"
+
+msgid "Searching for network"
+msgstr "Ricerca della rete"
+
+msgid "Searching network"
+msgstr "Ricerca della rete in corso"
+
+msgid "Selected Antenna"
+msgstr "Antenna selezionata"
+
+msgid "Selecting antenna"
+msgstr "Selezione dell'antenna"
+
+msgid "Service Status:"
+msgstr "Stato del servizio:"
+
+msgid "Session Duration"
+msgstr "Durata della sessione"
+
+msgid "Sleeping"
+msgstr "Addormentato"
+
+msgid "Starting data session(s)"
+msgstr "Avvio sessione(i) dati"
+
+msgid "Status"
+msgstr "Stato"
+
+msgid "Storage used"
+msgstr "Memoria utilizzata"
+
+msgid "Store PIN"
+msgstr "Memorizza PIN"
+
+msgid "Superb"
+msgstr "Eccellente"
+
+msgid "Suspended"
+msgstr "Sospeso"
+
+msgid "Temperature"
+msgstr "Temperatura"
+
+msgid ""
+"The EARFCN needs to be a number between 0 and 65535\n"
+"Use commas to separate multiple EARFCN values."
+msgstr ""
+"Il EARFCN deve essere un numero compreso tra 0 e 65535\n"
+"Se si utilizzano molteplici EARFCN utilizzare la virgola come separatore."
+
+msgid "The PIN code must be composed of 4 to 8 digits."
+msgstr "Il codice PIN deve avere una lunghezza compresa tra 4 e 8 cifre."
+
+msgid "The PUK code must be composed of 8 to 16 digits."
+msgstr "Il codice PIN deve avere una lunghezza compresa tra 8 e 16 cifre."
+
+msgid "The maximum APN size is %d characters"
+msgstr "La dimensione massima del campo APN è %d caratteri"
+
+msgid "Unblock"
+msgstr "Sblocca"
+
+msgid "Unblock PIN"
+msgstr "Sblocca PIN"
+
+msgid "Unlock"
+msgstr "Sblocca"
+
+msgid "Unlock PIN"
+msgstr "Sblocca PIN"
+
+msgid "Unplugged"
+msgstr "Scollegato"
+
+msgid "Unread messages"
+msgstr "Messaggi non letti"
+
+msgid "Upgrading firmware"
+msgstr "Aggiornamento firmware"
+
+msgid "Username"
+msgstr "Nome utente"
+
+msgid "Verified"
+msgstr "Verificato"
+
+msgid "Weak"
+msgstr "Debole"
+
+msgid "Yes"
+msgstr "Si"
+
+msgid "You currently don't have any messages"
+msgstr "Al momento non hai alcun messaggio"
+
+msgid "seconds"
+msgstr "secondi"

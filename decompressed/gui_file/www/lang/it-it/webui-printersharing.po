@@ -1,0 +1,51 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: webui-printersharing\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-06-21 15:33+0200\n"
+"PO-Revision-Date: 2017-10-01 13:51+0200\n"
+"Last-Translator: Piergiorgio Bellezza\n"
+"Language-Team: none\n"
+"Language: it\n"
+"Language-Name: Italiano\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.0.4\n"
+
+msgid "<div class=\" simple-desc span4\">Samba is disabled</div>"
+msgstr "<div class=\" simple-desc span4\">Samba è disabilitato</div>"
+
+msgid ""
+"<div class=\" simple-desc span4\">To connect: \\\\%s\\ or \\\\%s\\</div>"
+msgstr ""
+"<div class=\" simple-desc span4\">Per connettersi: \\\\%s\\ oppure \\\\%s\\</"
+"div>"
+
+msgid "Enabled"
+msgstr "Abilitato"
+
+msgid "Manufacturer"
+msgstr "Produttore"
+
+msgid "Port"
+msgstr "Porta"
+
+msgid "Printer Information"
+msgstr "Informazioni stampante"
+
+msgid "Printer Sharing"
+msgstr "Condivisione Stampante"
+
+msgid "Printer sharing disabled"
+msgstr "Condivisione stampante<br>disabilitata"
+
+msgid "Printer sharing enabled"
+msgstr "Condivisione stampante<br>abilitata"
+
+msgid "Product Name"
+msgstr "Nome prodotto"
+
+msgid "Version"
+msgstr "Versione"

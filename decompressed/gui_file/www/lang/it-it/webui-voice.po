@@ -1,0 +1,425 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: webui-voice\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-06-21 15:33+0200\n"
+"PO-Revision-Date: 2018-09-03 17:26+0200\n"
+"Last-Translator: Piergiorgio Bellezza\n"
+"Language-Team: none\n"
+"Language: it\n"
+"Language-Name: Italiano\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.2\n"
+
+msgid "<strong %s>%d </strong> Registered Account"
+msgid_plural "<strong %s>%d </strong> Registered Accounts"
+msgstr[0] "<strong %s>%d </strong> Account Registrato"
+msgstr[1] "<strong %s>%d </strong> Accounts Registrati"
+
+msgid "<strong %s>%d </strong> Registering Account"
+msgid_plural "<strong %s>%d </strong> Registering Accounts"
+msgstr[0] "<strong %s>%d </strong> Account In Registrazione"
+msgstr[1] "<strong %s>%d </strong> Accounts In Registrazione"
+
+msgid "<strong %s>%d </strong> Unregistered Account"
+msgid_plural "<strong %s>%d </strong> Unregistered Accounts"
+msgstr[0] "<strong %s>%d </strong> Account Non Registrato"
+msgstr[1] "<strong %s>%d </strong> Accounts Non Registrati"
+
+msgid "ALL"
+msgstr "TUTTI"
+
+msgid "Access Code"
+msgstr "Codice d´Accesso"
+
+msgid "Access code must composed of 4 digits"
+msgstr "Il codice d´accesso deve essere composto da 4 cifre"
+
+msgid "Activate"
+msgstr "Attiva"
+
+msgid "Add new contact"
+msgstr "Aggiungi nuovo contatto"
+
+msgid "Base Name"
+msgstr "Nome Base"
+
+msgid "Bit Rate"
+msgstr "Bit Rate"
+
+msgid "CW Reject Persistency"
+msgstr "Persistenza Rifiuto CW"
+
+msgid "Call Log"
+msgstr "Registro Chiamate"
+
+msgid "Call Statistics"
+msgstr "Statistiche Chiamate"
+
+msgid "Call Status"
+msgstr "Stato Chiamate"
+
+msgid "Call Type"
+msgstr "Tipo Chiamate"
+
+msgid "Cancel"
+msgstr "Cancella"
+
+msgid "Changes saved successfully"
+msgstr "Modifiche salvate correttamente"
+
+msgid "Clear call logs"
+msgstr "Cancella registri chiamate"
+
+msgid "Clear historical logs"
+msgstr "Cancellare cronologia dei log"
+
+msgid "Codec Assignment on FXS1"
+msgstr "Assegnazione Codec su FXS1"
+
+msgid "Codec Assignment on FXS2"
+msgstr "Assegnazione Codec su FXS2"
+
+msgid "Config VOIP Services"
+msgstr "Configura Servizi VOIP"
+
+msgid "Contacts"
+msgstr "Contatti"
+
+msgid "Create new"
+msgstr "Crea nuovo"
+
+msgid "DECT Emission"
+msgstr "Emissione DECT"
+
+msgid "Deactivate"
+msgstr "Disattiva"
+
+msgid "Deactivate & Erase"
+msgstr "Disattiva e Cancella"
+
+msgid "Delete"
+msgstr "Elimina"
+
+msgid "Destination No."
+msgstr "Numero di Destinazione."
+
+msgid "Device"
+msgstr "Dispositivo"
+
+msgid "Device List"
+msgstr "Elenco Dispositivi"
+
+msgid "Device Name"
+msgstr "Nome Dispositivo"
+
+msgid "Disabled"
+msgstr "Disabilitato"
+
+msgid "DisplayName"
+msgstr "Visualizza Nome"
+
+msgid "Domain Name"
+msgstr "Nome Dominio"
+
+msgid "Duration"
+msgstr "Durata"
+
+msgid "Emission Mode"
+msgstr "Modalità di Emissione"
+
+msgid "Enable Pos"
+msgstr "Abilita Pos"
+
+msgid "Enabled"
+msgstr "Abilitato"
+
+msgid "Error while applying changes"
+msgstr "Errore durante l'applicazione delle modifiche"
+
+msgid "Error while saving changes"
+msgstr "Errore durante il salvataggio delle modifiche"
+
+msgid "Expire Time"
+msgstr "Scadenza"
+
+msgid "FarEndInterarrivalJitter"
+msgstr "Jitter Invio"
+
+msgid "First Name"
+msgstr "Nome"
+
+msgid "Global"
+msgstr "Globale"
+
+msgid "Global Information"
+msgstr "Informazioni Globali"
+
+msgid "Handset ID"
+msgstr "ID Portatile"
+
+msgid "Handset Name"
+msgstr "Nome Portatile"
+
+msgid "Historical Statistics"
+msgstr "Cronologia Statistiche"
+
+msgid "Home Number"
+msgstr "Numero di Casa"
+
+msgid "In/Out Mapping"
+msgstr "Mappatura Ingresso/Uscita"
+
+msgid "Incoming Maps"
+msgstr "Mappature in Entrata"
+
+msgid "Incoming Missed"
+msgstr "Chiamate Non Risposte"
+
+msgid "Incoming Successful"
+msgstr "Chiamate Ricevute"
+
+msgid "Internal Profile"
+msgstr "Profilo Interno"
+
+msgid "Internal Telephone Numbers"
+msgstr "Numeri di Telefono Interni"
+
+msgid "Interrogate"
+msgstr "Interroga"
+
+msgid "Invalid value, space not allowed"
+msgstr "Valore non valido, spazio non consentito"
+
+msgid "Last Name"
+msgstr "Cognome"
+
+msgid "Local Number"
+msgstr "Numero Locale"
+
+msgid "Mapping Status"
+msgstr "Mappatura Stato"
+
+msgid "Mobile Number"
+msgstr "Numero Mobile"
+
+msgid "Name"
+msgstr "Nome"
+
+msgid "Number"
+msgstr "Numero"
+
+msgid "Off"
+msgstr "Spento"
+
+msgid "Office Number"
+msgstr "Numero Ufficio"
+
+msgid "On"
+msgstr "Attivo"
+
+msgid "Ongoing Statistics"
+msgstr "Statistiche In Corso"
+
+msgid "Outgoing Failed"
+msgstr "Chiamate in Uscita Fallite"
+
+msgid "Outgoing Maps"
+msgstr "Mappature In Uscita"
+
+msgid "Outgoing Successful"
+msgstr "Chiamate Effettuate"
+
+msgid "Packetization Period"
+msgstr "Intervallo Pacchettizzazione"
+
+msgid "Paging"
+msgstr "Impaginazione"
+
+msgid "Paging Handset"
+msgstr "Impaginazione Portatile"
+
+msgid "Pairing"
+msgstr "Accoppiamento"
+
+msgid "Pairing Handset"
+msgstr "Accoppiamento Portatile"
+
+msgid "Pairing Window Time in Sec"
+msgstr "Finestra Temporale di Accoppiamento in Sec"
+
+msgid "Pairing in progress, Please press Cancel button for stop pairing."
+msgstr ""
+"Accoppiamento in corso, Si prega di premere il tasto Cancella per "
+"interrompere l'accoppiamento."
+
+msgid "Pairing in progress, please wait..."
+msgstr "Accoppiamento in corso, si prega di attendere..."
+
+msgid "Pairing window value is invalid"
+msgstr "Il valore della finestra di accoppiamento non è valido"
+
+msgid "Password"
+msgstr "Password"
+
+msgid "Phone Book"
+msgstr "Rubrica Telefonica"
+
+msgid "Phone Number"
+msgstr "Numero di Telefono"
+
+msgid "Phone Numbers"
+msgstr "Numeri di Telefono"
+
+msgid "Please set URI."
+msgstr "Si prega di impostare URI."
+
+msgid "Please set password."
+msgstr "Si prega di impostare una password."
+
+msgid "Please set value."
+msgstr "Si prega di impostare un valore."
+
+msgid "Port"
+msgstr "Porta"
+
+msgid "Pos on FXS1"
+msgstr "Pos su FXS1"
+
+msgid "Pos on FXS2"
+msgstr "Pos su FXS2"
+
+msgid "Primary Proxy"
+msgstr "Proxy Primario"
+
+msgid "Primary ProxyPort"
+msgstr "Porta Proxy Primario"
+
+msgid "Primary Registrar"
+msgstr "Registrar Primario"
+
+msgid "Primary RegistrarPort"
+msgstr "Porta Registrar Primaria"
+
+msgid "Priority"
+msgstr "Priorità"
+
+msgid "Profile"
+msgstr "Profilo"
+
+msgid "Profile Number"
+msgstr "Numero Profilo"
+
+msgid "Quality Log"
+msgstr "Registro Qualità"
+
+msgid "ReceiveInterarrivalJitter"
+msgstr "Jitter Ricezione"
+
+msgid "Register"
+msgstr "Registra"
+
+msgid "Register & Activate"
+msgstr "Registra e Attiva"
+
+msgid "Registered"
+msgstr "Registrato"
+
+msgid "Remote Number"
+msgstr "Numero Remoto"
+
+msgid "Remoteparty"
+msgstr "Numero Remoto"
+
+msgid "RoundTripDelay"
+msgstr "Ritardo Andata e Ritorno"
+
+msgid "SIP Network"
+msgstr "Rete SIP"
+
+msgid "SIP Profile"
+msgstr "Profilo SIP"
+
+msgid "Service"
+msgstr "Servizio"
+
+msgid "Service Code Command"
+msgstr "Comando Codice di Servizio"
+
+msgid "Service Name"
+msgstr "Nome Servizio"
+
+msgid "Services"
+msgstr "Servizi"
+
+msgid "Silence Suppression"
+msgstr "Soppressione Silenzio"
+
+msgid "Sip Device"
+msgstr "Dispositivo SIP"
+
+msgid "Some parameters failed validation"
+msgstr "Alcuni parametri hanno fallito la convalida"
+
+msgid "Start"
+msgstr "Avvio"
+
+msgid "State"
+msgstr "Stato"
+
+msgid "Telephone Numbers"
+msgstr "Numeri di Telefono"
+
+msgid "Telephony"
+msgstr "Telefonia"
+
+msgid "Telephony disabled"
+msgstr "Telefonia disabilitata"
+
+msgid "Telephony enabled"
+msgstr "Telefonia abilitata"
+
+msgid "This URI has already existed, please input one not existed."
+msgstr "Questa URI esisteva già, si prega di inserirne una non esistente."
+
+msgid "Time"
+msgstr "Orario"
+
+msgid "TimeOut"
+msgstr "Scadenza"
+
+msgid "Total"
+msgstr "Totale"
+
+msgid "URI"
+msgstr "URI"
+
+msgid "Unregister"
+msgstr "Annulla Registrazione"
+
+msgid "Uri"
+msgstr "Uri"
+
+msgid "User Name"
+msgstr "Nome Utente"
+
+msgid "UserName"
+msgstr "Nome Utente"
+
+msgid "Voip Password"
+msgstr "Password VoIP"
+
+msgid "Voip Password Profile 1"
+msgstr "Password Profilo 1 VoIP"
+
+msgid "Voip Password Profile 2"
+msgstr "Password Profilo 2 VoIP"
+
+msgid "Voip Password Profile 3"
+msgstr "Password Profilo 3 VoIP"
+
+msgid "sipindex"
+msgstr "indice sip"

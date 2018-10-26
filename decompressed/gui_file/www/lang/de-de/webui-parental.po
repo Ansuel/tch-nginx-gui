@@ -1,0 +1,83 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: webui-parental\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-06-21 15:33+0200\n"
+"PO-Revision-Date: 2018-10-26 11:54+0200\n"
+"Last-Translator: Dr. Uwe Meyer-Gruhl\n"
+"Language-Team: none\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language-Name: Deutsch\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.2\n"
+
+msgid "<strong %s>%d site blocking</strong> rule is defined"
+msgid_plural "<strong %s>%d site blocking</strong> rules are defined"
+msgstr[0] "<strong %s>%d Blockierungsregel</strong> ist definiert"
+msgstr[1] "<strong %s>%d Blockierungsregeln</strong> sind definiert"
+
+msgid "Add New Keywords"
+msgstr "Hinzufügen neuer Schlüsselworte"
+
+msgid "Add New Site"
+msgstr "Hinzufügen neue Webseite"
+
+msgid "Cannot add the same site for a MAC multiple time"
+msgstr "Kann die selbe Seite nicht mehrmals für die gleiche MAC hinzufügen"
+
+msgid "Continue to the main page."
+msgstr "Weiter auf die Hauptseite."
+
+msgid "Destination is blocked due to parental control."
+msgstr "Ziel ist aufgrund von elterlicher Kontrolle gesperrt."
+
+msgid "Device"
+msgstr "Gerät"
+
+msgid "Enabled"
+msgstr "Eingeschaltet"
+
+msgid "Exclude Mode"
+msgstr "Ausschluss-Modus"
+
+msgid "Invalid device, entry must be either a valid IP or \"All\""
+msgstr "Ungültiges Gerät, Eintrag muss entweder eine gültige IP oder \"Alle\" sein"
+
+msgid "Keyword Filter"
+msgstr "Schlüsselwort-Filter"
+
+msgid "Keywords"
+msgstr "Schlüsselworte"
+
+msgid "MAC Address"
+msgstr "MAC-Adresse"
+
+msgid "MAC address"
+msgstr "MAC-Adresse"
+
+msgid "Note:Parental control url filter not supported for https sites."
+msgstr "Hinweis: Elterliche Kontrolle wird für HTTPS-Seiten nicht unterstützt."
+
+msgid "Parental Blocked"
+msgstr "Elterlich gesperrt"
+
+msgid "Parental Controls"
+msgstr "Elterliche Kontrolle"
+
+msgid "Site"
+msgstr "Webseite"
+
+msgid "Site Blocking"
+msgstr "Webseiten-Sperrung"
+
+msgid "Site blocking disabled"
+msgstr "Webseiten-Sperrung abgeschaltet"
+
+msgid "Site blocking enabled"
+msgstr "Webseiten-Sperrung eingeschaltet"
+
+msgid "custom"
+msgstr "Individuell"
