@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.9.2
+version_gui=8.9.5
 
 logo_project() {
 cat << EOF > /dev/console
@@ -153,6 +153,12 @@ setup_network() {
 		uci -q set firewall.SSH_wan.proto=tcp
 		uci -q set firewall.SSH_wan.dest_port=22
 		uci -q set firewall.SSH_wan.family=ipv4
+	fi
+	
+	#Rename ppp interface to wan to fix problem with TG800 strange Telstra configuration
+	if [ ! $(uci -q get network.wan.proto) ] && [ "$(uci -q get network.ppp)" ]; then
+		uci del network.wan
+		uci rename network.ppp=wan
 	fi
 }
 
