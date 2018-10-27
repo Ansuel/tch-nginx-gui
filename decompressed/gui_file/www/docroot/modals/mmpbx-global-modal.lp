@@ -26,21 +26,21 @@ local voip_password_profile_2 = "uci.mmpbxrvsipnet.profile.@sip_profile_1.passwo
 local voip_password_profile_3 = "uci.mmpbxrvsipnet.profile.@sip_profile_2.password"
 
 if proxy.get(voip_password_profile_1) and proxy.get(voip_password_profile_1)[1].value then
-	voip_password_profile_1 = proxy.get(voip_password_profile_1)[1].value
+    voip_password_profile_1 = proxy.get(voip_password_profile_1)[1].value
 else
-	voip_password_profile_1 = nil
+    voip_password_profile_1 = nil
 end
 
 if proxy.get(voip_password_profile_2) and proxy.get(voip_password_profile_2)[1].value then
-	voip_password_profile_2 = proxy.get(voip_password_profile_2)[1].value
+    voip_password_profile_2 = proxy.get(voip_password_profile_2)[1].value
 else
-	voip_password_profile_2 = nil
+    voip_password_profile_2 = nil
 end
 
 if proxy.get(voip_password_profile_3) and proxy.get(voip_password_profile_3)[1].value then
-	voip_password_profile_3 = proxy.get(voip_password_profile_3)[1].value
+    voip_password_profile_3 = proxy.get(voip_password_profile_3)[1].value
 else
-	voip_password_profile_3 = nil
+    voip_password_profile_3 = nil
 end
 
 local variant = proxy.get("uci.env.var.prod_friendly_name")[1].value or ""
@@ -55,75 +55,87 @@ emission_state = format("%s", emission_content.emission_state)
 
 local content = post_helper.handleQuery(mapParams, mapValid)
 if ngx.req.get_method() == "POST" then
-     local args = ngx.req.get_post_args()
-     local action = args["action"]
-     if action == "emission_on" then
-	   proxy.set("rpc.mmpbx.dectemission.state","1")
-     end
-     if action == "emission_off" then
-	   proxy.set("rpc.mmpbx.dectemission.state","0")
-     end
-     proxy.apply()
+    local args = ngx.req.get_post_args()
+    local action = args["action"]
+    if action == "emission_on" then
+        proxy.set("rpc.mmpbx.dectemission.state","1")
+    end
+    if action == "emission_off" then
+        proxy.set("rpc.mmpbx.dectemission.state","0")
+    end
+    proxy.apply()
 end
 -- SIP Networks
 local sipnet_columns = {
-  {
-    header = T"Name",
-    name = "user_friendly_name",
-    param = "user_friendly_name",
-    type = "label",
-    readonly = true,
-    attr = { input = { class="span2" }},
-  },
-  {
-    header = T"Primary Registrar",
-    name = "primaryRegistrar",
-    param = "primary_registrar",
-    type = "text",
-    attr = { input = { class="span2" } },
-  },
-  {
-    header = T"Domain Name",
-    name = "DomainName",
-    param = "domain_name",
-    type = "text",
-    attr = { input = { class="span2" } },
-  },
-  {
-    header = T"Realm",
-    name = "realm",
-    param = "realm",
-    type = "text",
-    attr = { input = { class="span2" } },
-  },
-  {
-    header = T"Primary RegistrarPort",
-    name = "primaryRegistrarPort",
-    param = "primary_registrar_port",
-    type = "text",
-    attr = { input = { class="span1" } },
-  },
-  {
-    header = T"Primary Proxy",
-    name = "primaryProxy",
-    param = "primary_proxy",
-    type = "text",
-    attr = { input = { class="span2" } },
-  },
-  {
-    header = T"Primary ProxyPort",
-    name = "primaryProxyPort",
-    param = "primary_proxy_port",
-    type = "text",
-    attr = { input = { class="span1" } },
-  },
-  {
-    header = T"Expire Time",
-    name = "regExpire",
-    param = "reg_expire",
-    type = "text",
-    attr = { input = { class="span1" } },
-  },
+    {
+        header = T"Name",
+        name = "user_friendly_name",
+        param = "user_friendly_name",
+        type = "text",
+        unique = true,
+        attr = { input = { class="span2" }},
+    },
+    {
+        header = T"Primary Registrar",
+        name = "primaryRegistrar",
+        param = "primary_registrar",
+        type = "text",
+        attr = { input = { class="span2" } },
+    },
+    {
+        header = T"Domain Name",
+        name = "DomainName",
+        param = "domain_name",
+        type = "text",
+        attr = { input = { class="span2" } },
+    },
+    {
+        header = T"Realm",
+        name = "realm",
+        param = "realm",
+        type = "text",
+        attr = { input = { class="span2" } },
+    },
+    {
+        header = T"Primary RegistrarPort",
+        name = "primaryRegistrarPort",
+        param = "primary_registrar_port",
+        type = "text",
+        default = "5060",
+        attr = { input = { class="span1" } },
+    },
+    {
+        header = T"Primary Proxy",
+        name = "primaryProxy",
+        param = "primary_proxy",
+        type = "text",
+        default = "0.0.0.0",
+        attr = { input = { class="span2" } },
+    },
+    {
+        header = T"Primary ProxyPort",
+        name = "primaryProxyPort",
+        param = "primary_proxy_port",
+        type = "text",
+        default = "0",
+        attr = { input = { class="span1" } },
+    },
+    {
+        header = T"Local Port",
+        name = "localPort",
+        param = "local_port",
+        type = "text",
+        unique = true,
+        attr = { input = { class="span2" } },
+    },
+    {
+        header = T"Expire Time",
+        name = "regExpire",
+        param = "reg_expire",
+        type = "text",
+        default = "3600",
+        attr = { input = { class="span1" } },
+    },
 }
 
 local gOV = post_helper.getOptionalValidation
@@ -132,23 +144,101 @@ local gOr = post_helper.getOrValidation
 local sipnet_valid = {
     primaryRegistrarPort = post_helper.validateStringIsPort,
     primaryRegistrar = gOr(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),
-	DomainName = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),
-	realm = gOV(gOr(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName)),
+    DomainName = gOV(gOr(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName)),
+    realm = gOV(gOr(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName)),
     primaryProxy = gOV(gOr(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName)),
     primaryProxyPort = post_helper.getValidateNumberInRange(0,65535),
     regExpire = post_helper.validateRegExpire,
 }
 
-local sipnet_options = {
-    canEdit = true,
-    canAdd = false,
-    canDelete = false,
-    tableid = "sipnet",
-    basepath = "uci.mmpbxrvsipnet.network.",
-    sorted = "user_friendly_name",
+local sipnet_default = {
+    interface = "wan",
+    cac = "-1",
+    transparent_soc_transmission = "0",
+    primary_proxy = "0.0.0.0",
+    secondary_proxy_port = "0",
+    secondary_registrar_port = "5060",
+    transport_type = "UDP",
+    reg_expire = "3600",
+    reg_expire_T_before = "1",
+    reg_back_off_timeout = "180",
+    realm_check = "0",
+    --401_407_waiting_time = "0",
+    dtmf_relay = "auto",
+    dtmf_relay_translation = "0",
+    timer_T1 = "500",
+    timer_T2 = "4000",
+    timer_T4 = "5000",
+    timer_B = "32000",
+    timer_D = "50000",
+    timer_F = "32000",
+    timer_J = "32000",
+    provisional_timer = "180",
+    --remote_hold_tone_enabled = "0",
+    --sdp_direction_call_hold = "sendonly",
+    --sdp_direction_call_hold_answer = "recvonly",
+    uri_clir_format = "standard",
+    privacy_handling = "apply",
+    rejection_response = "486",
+    no_answer_response = "480",
+    call_waiting_provisional_response = "182",
+    --call_waiting_alert_info = "0",
+    call_waiting_reject_response = "486",
+    reliable_provisional_response = "supported",
+    re_registration_mode = "standard", -- ims
+    forking_mode = "default",
+    ingress_media_timeout = "1000",
+    session_timer = "enabled",
+    min_session_expires = "90",
+    session_expires = "180",
+    fail_behaviour = "stop",
+    min_period_proxy_redundancy = "0",
+    escape_hash = "1",
+    escape_star = "0",
+    control_qos_field = "dscp",
+    control_qos_value = "ef",
+    realtime_qos_field = "dscp",
+    realtime_qos_value = "af42",
+    --from_anonymous_handling = "withheld",
+    --sip_over_ipv6 = "0",
+    --include_sip_instance = "0",
+    --waiting_time_for_registration_on_400_or_503_response = "300",
+    --update_support = "1",
+    --use_domain_in_contact = "0",
+    --use_domain_in_via = "0",
+    --sdp_direction_attribute_media_level_only = "0",
+    --stick_to_outbound_proxy = "1",
+    --registration_delay = "0",
+    --enable_re_register_on_cancel_timeout = "0",
+    rport_in_via = "1",
+    --optimized_authentication = "0",
+    --repeat_ringing_interval = "60",
+    --re_register_on_403 = "0",
+    --re_register_on_504 = "1",
+    --check_ttl_for_dns_record = "0",
+    --switch_next_proxy_on_failure_response = "0",
+    --dns_query_timeout = "5000",
+    switch_back_to_primary_proxy_timer = "0",
+    --conference_release_call_after_transfer = "1",
+    --disconnect_on_bye_response = "0",
+    --dnd_response = "486",
+    --hide_userinfo_and_port_in_subscription_request = "0",
+    --cancel_invite_timer = "32000",
+    --user_agent = "",-- MediaAccess TG789vac v2 Build 17.2.0278-0901
+    primary_proxy_port = "0",
+    primary_registrar = "",
+    primary_registrar_port = "5060"
 }
 
-local sipnet_data, sipnet_helpmsg = post_helper.handleTableQuery(sipnet_columns, sipnet_options, nil, nil, sipnet_valid)
+local sipnet_options = {
+    tableid = "sipnet",
+    basepath = "uci.mmpbxrvsipnet.network.@.",
+    sorted = "user_friendly_name",
+    objectName  = post_helper.getRandomKey(),
+    addNamedObject = true,
+}
+
+local sipnet_data, sipnet_helpmsg = post_helper.handleTableQuery(sipnet_columns, sipnet_options, nil, sipnet_default, sipnet_valid)
 
 local uri = ngx.var.uri
 if ngx.var.args and string.len(ngx.var.args) > 0 then
@@ -160,69 +250,69 @@ ngx.print(ui_helper.createHeader(T"Telephony", false, true));
 ngx.print('\
 <div class="modal-body update">\
   ');
-  local lp = require("web.lp")
-  lp.setpath("/www/snippets/")
-  lp.include("tabs-voice.lp")
-  ngx.print('\
+local lp = require("web.lp")
+lp.setpath("/www/snippets/")
+lp.include("tabs-voice.lp")
+ngx.print('\
   <form class="form-horizontal" method="post" action="');ngx.print(uri); ngx.print('">'); ngx.print(
-  ui_helper.createMessages(uimessage_helper.popMessages()));
-	local html = {}
+    ui_helper.createMessages(uimessage_helper.popMessages()));
+local html = {}
 
-	local emission_on_class = {
-	  		button = {
-	  			["data-name"] = "action",
-	  			["data-value"] = "emission_on",
-	  		}
- 	}
-	local emission_off_class = {
-		button = {
-			["data-name"] = "action",
-			["data-value"] = "emission_off",
-		}
-	}
+local emission_on_class = {
+    button = {
+        ["data-name"] = "action",
+        ["data-value"] = "emission_on",
+    }
+}
+local emission_off_class = {
+    button = {
+        ["data-name"] = "action",
+        ["data-value"] = "emission_off",
+    }
+}
 
-	html[#html+1] = '<fieldset id="mmpbx-global-tab">'
-	html[#html+1] =     '<legend>' .. T"Global Information" .. '</legend>'
-	html[#html+1] =     ui_helper.createSwitch(T"Enabled", "mmpbx_enabled", content["mmpbx_enabled"])
-	
-	if voip_password_profile_1 and not ( voip_password_profile_1 == "") then
-		html[#html+1] = 	ui_helper.createLabel(T"Voip Password Profile 1", voip_password_profile_1)
-	end
-	if voip_password_profile_2 and not ( voip_password_profile_2 == "") then
-		html[#html+1] = 	ui_helper.createLabel(T"Voip Password Profile 2", voip_password_profile_2)
-	end
-	if voip_password_profile_3 and not ( voip_password_profile_3 == "") then
-		html[#html+1] = 	ui_helper.createLabel(T"Voip Password Profile 3", voip_password_profile_3)
-	end
-	html[#html+1] = '</fieldset>'
-    if content and content["mmpbx_enabled"] == "1" then
-	  if session:hasAccess("/modals/mmpbx-dect-modal.lp") and 
-		( variant == "Technicolor TG800vac" ) or ( variant == "Technicolor TG799vac" ) then
-	    html[#html+1] = '<fieldset>'
+html[#html+1] = '<fieldset id="mmpbx-global-tab">'
+html[#html+1] =     '<legend>' .. T"Global Information" .. '</legend>'
+html[#html+1] =     ui_helper.createSwitch(T"Enabled", "mmpbx_enabled", content["mmpbx_enabled"])
+
+if voip_password_profile_1 and not ( voip_password_profile_1 == "") then
+    html[#html+1] = 	ui_helper.createLabel(T"Voip Password Profile 1", voip_password_profile_1)
+end
+if voip_password_profile_2 and not ( voip_password_profile_2 == "") then
+    html[#html+1] = 	ui_helper.createLabel(T"Voip Password Profile 2", voip_password_profile_2)
+end
+if voip_password_profile_3 and not ( voip_password_profile_3 == "") then
+    html[#html+1] = 	ui_helper.createLabel(T"Voip Password Profile 3", voip_password_profile_3)
+end
+html[#html+1] = '</fieldset>'
+if content and content["mmpbx_enabled"] == "1" then
+    if session:hasAccess("/modals/mmpbx-dect-modal.lp") and
+            ( variant == "Technicolor TG800vac" ) or ( variant == "Technicolor TG799vac" ) then
+        html[#html+1] = '<fieldset>'
         html[#html+1] = '<legend>' .. T"DECT Emission" .. '</legend>'
-	    if emission_state == "0" then
-	      html[#html+1] = ui_helper.createButton(T"Emission Mode", T"On", "icon-bolt", emission_on_class)
-	    else
-          html[#html+1] = ui_helper.createButton(T"Emission Mode", T"Off", "icon-ban-circle icon-large red", emission_off_class)
-	    end
+        if emission_state == "0" then
+            html[#html+1] = ui_helper.createButton(T"Emission Mode", T"On", "icon-bolt", emission_on_class)
+        else
+            html[#html+1] = ui_helper.createButton(T"Emission Mode", T"Off", "icon-ban-circle icon-large red", emission_off_class)
+        end
 
         html[#html+1] = '</fieldset>'
-      end
-      html[#html+1] = '<fieldset>'
-      html[#html+1] = '<legend>' .. T"SIP Network" .. '</legend>'
-      html[#html+1] =  ui_helper.createTable(sipnet_columns, sipnet_data, sipnet_options, nil, sipnet_helpmsg)
-      html[#html+1] = '</fieldset>'
     end
-	ngx.print (html)
+    html[#html+1] = '<fieldset>'
+    html[#html+1] = '<legend>' .. T"SIP Network" .. '</legend>'
+    html[#html+1] =  ui_helper.createTable(sipnet_columns, sipnet_data, sipnet_options, nil, sipnet_helpmsg)
+    html[#html+1] = '</fieldset>'
+end
+ngx.print (html)
 
-	ngx.print('\
+ngx.print('\
     </form>\
 </div>\
 '); ngx.print(
-ui_helper.createFooter()
+    ui_helper.createFooter()
 );
 if content and content["mmpbx_enabled"] == "0" then
-  ngx.print('\
+    ngx.print('\
   <style>\
     .disabled{\
        cursor:not-allowed !important;\
@@ -234,7 +324,7 @@ if content and content["mmpbx_enabled"] == "0" then
   </script>\
   ');
 else
-  ngx.print('\
+    ngx.print('\
   <script>\
     if($(".nav li a").hasClass("disabled")){\
       $(".nav li a").removeClass("disabled");\
