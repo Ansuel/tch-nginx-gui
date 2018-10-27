@@ -29,8 +29,7 @@ start_service() {
         ip route add ${dest_ip}/32 dev $dev
         # Add a static ARP spoofing entry
         local count="0"
-        while [ $count -lt 20 ]
-        do
+        while [ $count -lt 20 ]; do
             if [ -z $(ip neigh show to $dest_ip dev $dev | grep 'FAILED') ] ; then
               break
             fi
@@ -38,20 +37,20 @@ start_service() {
             count=$(( $count + 1 ))
         done
         ip neigh add $dest_ip lladdr ff:ff:ff:ff:ff:ff nud permanent dev $dev
-	# Add port forwarding
-	uci set firewall.WakeOnWan=redirect
-	uci set firewall.WakeOnWan.family=ipv4
-	uci set firewall.WakeOnWan.dest_ip=$dest_ip
-	uci set firewall.WakeOnWan.dest=$dest_intf
-	uci set firewall.WakeOnWan.src=$src_intf
-	uci set firewall.WakeOnWan.target=DNAT
-	uci set firewall.WakeOnWan.src_dport=$src_dport
-	uci set firewall.WakeOnWan.proto=udp
-	uci set firewall.WakeOnWan.dest_port=$dest_port
-	uci commit firewall
+		# Add port forwarding
+		uci set firewall.WakeOnWan=redirect
+		uci set firewall.WakeOnWan.family=ipv4
+		uci set firewall.WakeOnWan.dest_ip=$dest_ip
+		uci set firewall.WakeOnWan.dest=$dest_intf
+		uci set firewall.WakeOnWan.src=$src_intf
+		uci set firewall.WakeOnWan.target=DNAT
+		uci set firewall.WakeOnWan.src_dport=$src_dport
+		uci set firewall.WakeOnWan.proto=udp
+		uci set firewall.WakeOnWan.dest_port=$dest_port
+		uci commit firewall
     fi
 
-    /etc/init.d/firewall reload
+    /etc/init.d/firewall restart
 }
 
 stop_service() {

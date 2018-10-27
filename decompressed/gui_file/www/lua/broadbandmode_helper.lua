@@ -12,11 +12,17 @@ format = string.format
 local sfp = proxy.get("uci.env.rip.sfp") and proxy.get("uci.env.rip.sfp")[1].value or 0
 
 local function get_wansensing() 
-	return proxy.get("uci.wansensing.global.enable")[1].value
+	if proxy.get("uci.wansensing.global.enable") then
+		return proxy.get("uci.wansensing.global.enable")[1].value
+	end
+	return ""
 end
 
 local function get_wan_mode()
-	return proxy.get("uci.network.config.wan_mode") and proxy.get("uci.network.config.wan_mode")[1].value or ""
+	if proxy.get("uci.network.config.wan_mode") then
+		return proxy.get("uci.network.config.wan_mode")[1].value 
+	end
+	return ""
 end
 
 local function isVoiceMode()
@@ -60,17 +66,17 @@ local function bridge(mode)
 	if mode == "enable" then
 		proxy.set({
 			["uci.wansensing.global.enable"] = '0',
-			--["uci.network.interface.@wan.enabled"] = '0',
-			--["uci.network.interface.@wan.auto"] = '0',
-			--["uci.network.interface.@wan6.enabled"] = '0',
-			--["uci.network.interface.@wwan.enabled"] = '0',
-			--["uci.wireless.wifi-device.@radio_2G.state"] = '0',
-			--["uci.wireless.wifi-device.@radio_5G.state"] = '0',
-			--["uci.mmpbx.mmpbx.@global.enabled"] = '0',
-			--["uci.dhcp.dhcp.@lan.ignore"] = '1',
-			--["uci.cwmpd.cwmpd_config.state"] = '0',
-			--["uci.mobiled.device_defaults.enabled"] = '0',
-			--["uci.network.interface.@lan.ifname"] = ifnames .. wan_ifname,
+			["uci.network.interface.@wan.enabled"] = '0',
+			["uci.network.interface.@wan.auto"] = '0',
+			["uci.network.interface.@wan6.enabled"] = '0',
+			["uci.network.interface.@wwan.enabled"] = '0',
+			["uci.wireless.wifi-device.@radio_2G.state"] = '0',
+			["uci.wireless.wifi-device.@radio_5G.state"] = '0',
+			["uci.mmpbx.mmpbx.@global.enabled"] = '0',
+			["uci.dhcp.dhcp.@lan.ignore"] = '1',
+			["uci.cwmpd.cwmpd_config.state"] = '0',
+			["uci.mobiled.device_defaults.enabled"] = '0',
+			["uci.network.interface.@lan.ifname"] = ifnames .. wan_ifname,
 			["uci.network.config.wan_mode"] = 'bridge',
 		})
 	elseif not ( state and state[1].value == "bridge" ) then
@@ -80,22 +86,22 @@ local function bridge(mode)
 		
 		proxy.set({
 			["uci.wansensing.global.enable"] = '1',
-			--["uci.network.interface.@wan.enabled"] = '1',
-			--["uci.network.interface.@wan.auto"] = '1',
-			--["uci.network.interface.@wan6.enabled"] = '1',
-			--["uci.network.interface.@wwan.enabled"] = '1',
-			--["uci.wireless.wifi-device.@radio_2G.state"] = '1',
-			--["uci.wireless.wifi-device.@radio_5G.state"] = '1',
-			--["uci.mmpbx.mmpbx.@global.enabled"] = '1',
-			--["uci.dhcp.dhcp.@lan.ignore"] = '0',
-			--["uci.cwmpd.cwmpd_config.state"] = '1',
-			--["uci.mobiled.device_defaults.enabled"] = '1',
-			--["uci.network.interface.@lan.ifname"] = ifnames,
+			["uci.network.interface.@wan.enabled"] = '1',
+			["uci.network.interface.@wan.auto"] = '1',
+			["uci.network.interface.@wan6.enabled"] = '1',
+			["uci.network.interface.@wwan.enabled"] = '1',
+			["uci.wireless.wifi-device.@radio_2G.state"] = '1',
+			["uci.wireless.wifi-device.@radio_5G.state"] = '1',
+			["uci.mmpbx.mmpbx.@global.enabled"] = '1',
+			["uci.dhcp.dhcp.@lan.ignore"] = '0',
+			["uci.cwmpd.cwmpd_config.state"] = '1',
+			["uci.mobiled.device_defaults.enabled"] = '1',
+			["uci.network.interface.@lan.ifname"] = ifnames,
 			["uci.network.config.wan_mode"] = wan_proto and wan_proto[1].value or "dhcp",
 		})
 	end
 	
-	--restartNetwork()
+	restartNetwork()
 
     return
 end

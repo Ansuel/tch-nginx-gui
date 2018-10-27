@@ -1,0 +1,426 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: webui-voice\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-06-21 15:33+0200\n"
+"PO-Revision-Date: 2018-05-17 22:24+0200\n"
+"Last-Translator: Dr. Uwe Meyer-Gruhl\n"
+"Language-Team: none\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language-Name: Deutsch\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.0.7\n"
+
+msgid "<strong %s>%d </strong> Registered Account"
+msgid_plural "<strong %s>%d </strong> Registered Accounts"
+msgstr[0] "<strong %s>%d </strong> Registriertes Konto"
+msgstr[1] "<strong %s>%d </strong> Registrierte Konten"
+
+msgid "<strong %s>%d </strong> Registering Account"
+msgid_plural "<strong %s>%d </strong> Registering Accounts"
+msgstr[0] "<strong %s>%d </strong> Registrierendes Konto"
+msgstr[1] "<strong %s>%d </strong> Registrierende Konten"
+
+msgid "<strong %s>%d </strong> Unregistered Account"
+msgid_plural "<strong %s>%d </strong> Unregistered Accounts"
+msgstr[0] "<strong %s>%d </strong> Unregistriertes Konto"
+msgstr[1] "<strong %s>%d </strong> Unregistrierte Konten"
+
+msgid "ALL"
+msgstr "ALLE"
+
+msgid "Access Code"
+msgstr "Zugangscode"
+
+msgid "Access code must composed of 4 digits"
+msgstr "Zugangscode muss aus 4 Ziffern bestehen"
+
+msgid "Activate"
+msgstr "Aktivieren"
+
+msgid "Add new contact"
+msgstr "Hinzufügen neuer Kontakt"
+
+msgid "Base Name"
+msgstr "Basisname"
+
+msgid "Bit Rate"
+msgstr "Bitrate"
+
+msgid "CW Reject Persistency"
+msgstr "CW Reject Persistency"
+
+msgid "Call Log"
+msgstr "Anrufprotokoll"
+
+msgid "Call Statistics"
+msgstr "Anrufstatistik"
+
+msgid "Call Status"
+msgstr "Anrufstatus"
+
+msgid "Call Type"
+msgstr "Anruftyp"
+
+msgid "Cancel"
+msgstr "Abbrechen"
+
+msgid "Changes saved successfully"
+msgstr "Änderungen wurden erfolgreich gespeichert"
+
+msgid "Clear call logs"
+msgstr "Leeren Anrufprotokoll"
+
+msgid "Clear historical logs"
+msgstr "Löschen historische Protokolle"
+
+msgid "Codec"
+msgstr "Codec"
+
+msgid "Codec Assignment on FXS1"
+msgstr "Codec Zuweisung auf FXS1"
+
+msgid "Codec Assignment on FXS2"
+msgstr "Codec Zuweisung auf FXS1"
+
+msgid "Config VOIP Services"
+msgstr "Konfigurieren VoIP Dienste"
+
+msgid "Contacts"
+msgstr "Kontakte"
+
+msgid "Create new"
+msgstr "Hinzufügen"
+
+msgid "DECT"
+msgstr "DECT"
+
+msgid "DECT Emission"
+msgstr "DECT Emission"
+
+msgid "Deactivate"
+msgstr "Deaktivieren"
+
+msgid "Deactivate & Erase"
+msgstr "Deaktivieren & Löschen"
+
+msgid "Delete"
+msgstr "Löschen"
+
+msgid "Destination No."
+msgstr "Zielnummer"
+
+msgid "Device"
+msgstr "Gerät"
+
+msgid "Device List"
+msgstr "Geräteliste"
+
+msgid "Device Name"
+msgstr "Gerätename"
+
+msgid "Disabled"
+msgstr "Abgeschaltet"
+
+msgid "DisplayName"
+msgstr "Anzeigename"
+
+msgid "Domain Name"
+msgstr "Domain Name"
+
+msgid "Duration"
+msgstr "Dauer"
+
+msgid "Emission Mode"
+msgstr "Emissions-Modus"
+
+msgid "Enable Pos"
+msgstr "Pos einschalten"
+
+msgid "Enabled"
+msgstr "Eingeschaltet"
+
+msgid "Error while applying changes"
+msgstr "Fehler beim Anwenden der Änderungen"
+
+msgid "Error while saving changes"
+msgstr "Fehler beim Speichern der Änderungen"
+
+msgid "Expire Time"
+msgstr "Ablaufzeit"
+
+msgid "FarEndInterarrivalJitter"
+msgstr "FarEndInterarrivalJitter"
+
+msgid "First Name"
+msgstr "Vorname"
+
+msgid "Global"
+msgstr "Global"
+
+msgid "Global Information"
+msgstr "Globale Information"
+
+msgid "Handset ID"
+msgstr "Apparat"
+
+msgid "Handset Name"
+msgstr "Apparat Name"
+
+msgid "Historical Statistics"
+msgstr "Historische Statistiken"
+
+msgid "Home Number"
+msgstr "Zuhause Nummer"
+
+msgid "In/Out Mapping"
+msgstr "Ein/Aus Umleitungen"
+
+msgid "Incoming Maps"
+msgstr "Eingehende Umleitungen"
+
+msgid "Incoming Missed"
+msgstr "Eingehend verpasst"
+
+msgid "Incoming Successful"
+msgstr "Eingehend erfolgreich"
+
+msgid "Internal Profile"
+msgstr "Internes Profil"
+
+msgid "Internal Telephone Numbers"
+msgstr "Interne Telefonnummern"
+
+msgid "Interrogate"
+msgstr "Befragen"
+
+msgid "Invalid value, space not allowed"
+msgstr "Ungültiger Wert, Leerzeichen nicht erlaubt"
+
+msgid "Last Name"
+msgstr "Nachname"
+
+msgid "Local Number"
+msgstr "Lokale Nummer"
+
+msgid "Mapping Status"
+msgstr "Umleitungsstatus"
+
+msgid "Mobile Number"
+msgstr "Mobilrufnummer"
+
+msgid "Name"
+msgstr "Name"
+
+msgid "Number"
+msgstr "Nummer"
+
+msgid "Off"
+msgstr "Aus"
+
+msgid "Office Number"
+msgstr "Büronummer"
+
+msgid "On"
+msgstr "An"
+
+msgid "Ongoing Statistics"
+msgstr "Fortlaufende Statistik"
+
+msgid "Outgoing Failed"
+msgstr "Ausgehend fehlgeschlagen"
+
+msgid "Outgoing Maps"
+msgstr "Ausgehende Umleitungen"
+
+msgid "Outgoing Successful"
+msgstr "Ausgehend erfolgreich"
+
+msgid "Packetization Period"
+msgstr "Packetization Period"
+
+msgid "Paging"
+msgstr "Pager"
+
+msgid "Paging Handset"
+msgstr "Pager Apparat"
+
+msgid "Pairing"
+msgstr "Pairing"
+
+msgid "Pairing Handset"
+msgstr "Pairing Apparat"
+
+msgid "Pairing Window Time in Sec"
+msgstr "Pairing Zeitfenster in Sekunden"
+
+msgid "Pairing in progress, Please press Cancel button for stop pairing."
+msgstr "Pairing im Gang, bitte 'Abbrechen'-Knopf drücken zum Abbruch."
+
+msgid "Pairing in progress, please wait..."
+msgstr "Pairing im Gang, bitte warten..."
+
+msgid "Pairing window value is invalid"
+msgstr "Pairing-Zeitfenster Wert ungültig"
+
+msgid "Password"
+msgstr "Passwort"
+
+msgid "Phone Book"
+msgstr "Telefonbuch"
+
+msgid "Phone Number"
+msgstr "Telefonnummer"
+
+msgid "Phone Numbers"
+msgstr "Teelefonnnummern"
+
+msgid "Please set URI."
+msgstr "Bitte setzen Sie die URI."
+
+msgid "Please set password."
+msgstr "Bitte setzen Sie das Passwort."
+
+msgid "Please set value."
+msgstr "Bitte setzen Sie den Wert."
+
+msgid "Port"
+msgstr "Port"
+
+msgid "Pos on FXS1"
+msgstr "Pos auf FXS1"
+
+msgid "Pos on FXS2"
+msgstr "Pos auf FXS2"
+
+msgid "Primary Proxy"
+msgstr "Primärer Proxy"
+
+msgid "Primary ProxyPort"
+msgstr "Primärer Proxy-Port"
+
+msgid "Primary Registrar"
+msgstr "Primärer Registrar"
+
+msgid "Primary RegistrarPort"
+msgstr "Primärer Registrar-Port"
+
+msgid "Priority"
+msgstr "Priorität"
+
+msgid "Profile"
+msgstr "Profil"
+
+msgid "Profile Number"
+msgstr "Profilnummer"
+
+msgid "Quality Log"
+msgstr "Qualitätsprotokoll"
+
+msgid "Realm"
+msgstr "Bereich"
+
+msgid "ReceiveInterarrivalJitter"
+msgstr "ReceiveInterarrivalJitter"
+
+msgid "Register"
+msgstr "Registriere"
+
+msgid "Register & Activate"
+msgstr "Registriere & Aktiviere"
+
+msgid "Registered"
+msgstr "Registriert"
+
+msgid "Remote Number"
+msgstr "Entfernte Nummer"
+
+msgid "Remoteparty"
+msgstr "Entfernte Partei"
+
+msgid "RoundTripDelay"
+msgstr "RoundTrupDelay"
+
+msgid "SIP Network"
+msgstr "SIP Netzwerk"
+
+msgid "SIP Profile"
+msgstr "SIP Profil"
+
+msgid "Service"
+msgstr "Dienst"
+
+msgid "Service Code Command"
+msgstr "Dienst Code Kommando"
+
+msgid "Service Name"
+msgstr "Dienstname"
+
+msgid "Services"
+msgstr "Dienste"
+
+msgid "Silence Suppression"
+msgstr "Stille Unterdrückung"
+
+msgid "Sip Device"
+msgstr "SIP Gerät"
+
+msgid "Some parameters failed validation"
+msgstr "Einige Parameter konnten nicht validiert werden"
+
+msgid "Start"
+msgstr "Start"
+
+msgid "State"
+msgstr "Staat"
+
+msgid "Stop"
+msgstr "Stop"
+
+msgid "Telephone Numbers"
+msgstr "Telefonnummern"
+
+msgid "Telephony"
+msgstr "Telefonie"
+
+msgid "Telephony disabled"
+msgstr "Telefonie abgeschaltet"
+
+msgid "Telephony enabled"
+msgstr "Telefonie eingeschaltet"
+
+msgid "This URI has already existed, please input one not existed."
+msgstr "Diese URI existiert schon, bitte geben Sie eine neue ein."
+
+msgid "Time"
+msgstr "Zeit"
+
+msgid "TimeOut"
+msgstr "Zeitablauf"
+
+msgid "Total"
+msgstr "Gesamt"
+
+msgid "URI"
+msgstr "URI"
+
+msgid "Unregister"
+msgstr "Deregistrieren"
+
+msgid "Uri"
+msgstr "URI"
+
+msgid "User Name"
+msgstr "Benutzername"
+
+msgid "UserName"
+msgstr "Benutzername"
+
+msgid "Voip Password"
+msgstr "VoIP Passwort"
+
+msgid "sipindex"
+msgstr "sipindex"

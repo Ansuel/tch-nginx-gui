@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.8.97
+version_gui=8.9.2
 
 logo_project() {
 cat << EOF > /dev/console
@@ -581,7 +581,7 @@ check_dnsmasq_name() {
 
 create_driver_setting() {
 	if [ ! $( uci get -q env.var.driver_version ) ]; then
-		uci set env.var.driver_version=$(transformer-cli get rpc.xdsl.dslversion | awk '{print $4}')
+		uci set env.var.driver_version=$(xdslctl --version 2>&1 >/dev/null | grep "version -" | awk '{print $6}')
 	fi
 }
 
