@@ -52,11 +52,50 @@ local emission_content = {
 content_helper.getExactContent(emission_content)
 emission_state = format("%s", emission_content.emission_state)
 
-
+local network_section_name = post_helper.getRandomKey()
 local content = post_helper.handleQuery(mapParams, mapValid)
 if ngx.req.get_method() == "POST" then
     local args = ngx.req.get_post_args()
     local action = args["action"]
+	
+	local audionot_arr = {'dial', 'special', 'mwi', 'mwispecial', 'stutterdial', 'ringback', 'busy', 'callhold', 'rejection', 'confirmation', 'congestion'}
+	
+	if action == "TABLE-ADD" then
+		
+        local tempindex = proxy.add("uci.mmpbx.dial_plan.@dial_plan_generic.network.")
+        proxy.set("uci.mmpbx.dial_plan.@dial_plan_generic.network.@".. tempindex ..".value", network_section_name)
+		
+        tempindex = proxy.add("uci.mmpbx.scc.@scc_generic.network.")
+        proxy.set("uci.mmpbx.scc.@scc_generic.network.@".. tempindex ..".value", network_section_name)
+		
+        tempindex = proxy.add("uci.mmpbx.media_filter.@media_filter_audio_generic.network.")
+        proxy.set("uci.mmpbx.media_filter.@media_filter_audio_generic.network.@".. tempindex ..".value", network_section_name)
+		
+		for _ , key in pairs(proxy.getPN("uci.mmpbx.audionotification.",true)) do
+			tempindex = proxy.add(key.path .."network.")
+			proxy.set(key.path .."network.@".. tempindex ..".value", network_section_name)
+		end
+    end
+	
+	if action == "TABLE-DELETE" then
+		local function getIndex(path,network_section_name)
+			for _ , key in pairs(proxy.getPN(path, true)) do
+				if proxy.get(key.path.."value")[1].value == network_section_name then
+					return key.path
+				end
+			end
+			return nil
+		end
+	
+        proxy.del(getIndex("uci.mmpbx.scc.@scc_generic.network.", network_section_name))
+		proxy.del(getIndex("uci.mmpbx.dial_plan.@dial_plan_generic.network.", network_section_name))
+		proxy.del(getIndex("uci.mmpbx.media_filter.@media_filter_audio_generic.network.", network_section_name))
+		
+		for _ , key in pairs(proxy.getPN("uci.mmpbx.audionotification.",true)) do
+			proxy.del(getIndex(key.path .."network.", network_section_name))
+		end
+    end
+	
     if action == "emission_on" then
         proxy.set("rpc.mmpbx.dectemission.state","1")
     end
@@ -233,8 +272,8 @@ local sipnet_default = {
 local sipnet_options = {
     tableid = "sipnet",
     basepath = "uci.mmpbxrvsipnet.network.@.",
-    sorted = "user_friendly_name",
-    objectName  = post_helper.getRandomKey(),
+    --sorted = "user_friendly_name", --DO NO ACTIVATE SORTING OR WILL BREAK DELETE
+    objectName  = network_section_name,
     addNamedObject = true,
 }
 

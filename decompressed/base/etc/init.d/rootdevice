@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.9.8
+version_gui=8.9.21
 
 logo_project() {
 cat << EOF > /dev/console
@@ -830,7 +830,7 @@ suppress_excessive_logging() {
 		uci set ledfw.syslog.trace='0'
 	fi
 	if [ $(uci get -q mmpbx.global.trace_level) == "2" ]; then
-		mmpbx.global.trace_level='0'
+		uci set mmpbx.global.trace_level='0'
 	fi
 }
 
@@ -918,7 +918,7 @@ real_ver_entitied() {
 			uci set versioncusto.override.fwversion_override_real="$real_ver"
 		fi
 		#Set version to latest stable...
-		uci set versioncusto.override.fwversion_override="1.2.0" 
+		uci set versioncusto.override.fwversion_override="1.1.2"
 	fi
 }
 
@@ -1320,6 +1320,22 @@ ledfw_rework_tg800() {
 	fi
 }
 
+ledfw_rework_DGA() {
+	if [ "$(cat /usr/lib/lua/ledframework/ubus.lua | grep '\--restore default function of this')" ]; then
+		cp /rom/usr/lib/lua/ledframework/ubus.lua /usr/lib/lua/ledframework/
+	fi
+	if [ ! "$(cat /usr/lib/lua/ledframework/ubus.lua | grep 'cb("fwupgrade_state_" .. msg.state)')" ]; then
+		sed -i 'N;/events\['\''fwupgrade'\''\] = function(msg)/a\\t\tcb("fwupgrade_state_" .. msg.state)' /usr/lib/lua/ledframework/ubus.lua
+	fi
+	if [ ! "$(cat /etc/ledfw/stateMachines.lua | grep fw_upgrade)" ]; then
+		/etc/init.d/ledfw restart
+		logger_command "Extracting ledfw_support-specificDGA.bz2 ..."
+		if [ -f /root/ledfw_support-specificDGA.tar.bz2 ]; then
+			bzcat /root/ledfw_support-specificDGA.tar.bz2 | tar -C / -xf -
+		fi
+	fi
+}
+
 check_gui_tmp() {
 	logger_command "Found GUI in tmp dir... Cleaning..."
 	if [ -f /tmp/GUI_dev.tar.bz2 ]; then
@@ -1366,6 +1382,7 @@ root() {
 
 	[ -z "${device_type##*DGA413*}" ] && logger_command "Apply specific device file..."
 	[ -z "${device_type##*DGA413*}" ] && apply_specific_DGA_package
+	[ -z "${device_type##*DGA413*}" ] && ledfw_rework_DGA
 	[ -z "${device_type##*TG799*}" ] && ledfw_rework_tg799
 	[ -z "${device_type##*TG800*}" ] && ledfw_rework_tg800
 	
