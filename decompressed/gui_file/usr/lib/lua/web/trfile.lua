@@ -80,6 +80,19 @@ function M.load(filename)
 	end
     f_in:close()
 	
+	-- This make sure the lad line is added to the moStrings
+	if trans[1] then
+		moStrings[concat(orig)] = concat(trans)
+	end
+	if multi[1] then
+		if multistring[1] then
+			multi[#multi+1] = concat(multistring)
+			multistring = {}
+		end
+		moStrings[concat(orig)] = multi
+		multi = {}
+	end
+	
 	return moStrings, nstrings
 end
 

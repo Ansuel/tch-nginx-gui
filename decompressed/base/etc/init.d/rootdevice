@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.9.7
+version_gui=8.9.8
 
 logo_project() {
 cat << EOF > /dev/console
@@ -828,6 +828,9 @@ suppress_excessive_logging() {
 	if [ ! $(uci get -q ledfw.syslog) ]; then #suppress loggin of ledfw... we don't need it...
 		uci set ledfw.syslog=syslog
 		uci set ledfw.syslog.trace='0'
+	fi
+	if [ $(uci get -q mmpbx.global.trace_level) == "2" ]; then
+		mmpbx.global.trace_level='0'
 	fi
 }
 

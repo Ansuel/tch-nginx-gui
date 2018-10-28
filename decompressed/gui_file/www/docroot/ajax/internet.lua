@@ -1,5 +1,5 @@
 -- Enable localization
-gettext.textdomain('webui-mobiled')
+gettext.textdomain('webui-core')
 
 local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
