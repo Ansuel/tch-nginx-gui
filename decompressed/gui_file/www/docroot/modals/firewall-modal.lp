@@ -462,7 +462,7 @@ local fwrulev4_ping_options = {
     basepath = "uci.firewall.rule.@.",
     objectName  = uniqueKey,
     addNamedObject = true,
-    createMsg = T"Add new IPv4 Ping WhiteList rule",
+    createMsg = T"Add new IPv4 Ping Whitelist rule",
     -- Only allow table edits if overall remote ping is disabled when the page
     -- is loaded. If you disable remote ping your must save the change before
     -- editing is enabled. This is a GUI problem work around.
@@ -476,7 +476,7 @@ local fwrulev6_ping_options = {
     basepath = "uci.firewall.rule.@.",
     objectName  = uniqueKey,
     addNamedObject = true,
-    createMsg = T"Add new IPv6 Ping WhiteList rule",
+    createMsg = T"Add new IPv6 Ping Whitelist rule",
     -- Only allow table edits if overall remote ping is disabled when the page
     -- is loaded. If you disable remote ping your must save the change before
     -- editing is enabled. This is a GUI problem work around.
@@ -705,7 +705,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
         ui_helper.createSliderSelect(T"Level", "fw_level", fw_levels, content["fw_level"], fwlevel_attr),
         ui_helper.createAlertBlock(T"In <strong>low mode</strong>, firewall allows all outbound connections and rejects unknown incoming connections but acknowledges presence of the gateway.", lax_attr),
         ui_helper.createAlertBlock(T"In <strong>medium mode</strong>, firewall allows all outbound connections and silently drops unknown incoming connections.", normal_attr),
-        ui_helper.createAlertBlock(T"In <strong>high mode</strong>, firewall allows outgoing connections to HTTP, HTTPS, SMTP, POP3, IMAP, SSH services and silently drops unknown incoming connections. This may impact on web services like Internet Speed Test.", high_attr),
+        ui_helper.createAlertBlock(T"In <strong>high mode</strong>, firewall allows outgoing connections to HTTP, HTTPS, SMTP, POP3, IMAP, SSH services and silently drops unknown incoming connections. This may impact web services like Internet Speed Tests.", high_attr),
         ui_helper.createAlertBlock(T"In <strong>user mode</strong>, individual firewall rules may be configured as well as the default behavior.", user_attr)
     )
   ngx.print('\
