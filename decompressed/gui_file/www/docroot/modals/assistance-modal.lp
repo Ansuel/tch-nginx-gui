@@ -201,9 +201,9 @@ local infomessage = {
 }
 local html={}
 if assistant:enabled() then
-    html[#html + 1] = ui_helper.createAlertBlock(string.format(T"<p>Remote assistance is currently enabled. </p><p>Click 'Apply' button with the 'Enabled' checkbox disabled to disable remote assistance on your gateway </p>"),infomessage)
+    html[#html + 1] = ui_helper.createAlertBlock(string.format(T"<p>Remote assistance is currently enabled. </p><p>Click the 'Apply' button with the 'Enabled' checkbox unchecked to disable remote assistance on your gateway.</p>"),infomessage)
 else
-    html[#html + 1] = ui_helper.createAlertBlock(string.format(T"<p>Remote assistance is currently disabled.</p><p> By clicking on the 'Apply' button with the 'Enabled' checkbox enabled your gateway will be accessible from your broadband connection. After %s minutes of inactivity, or on reboot, remote assistance will be automatically disabled for 'Temporary' mode. </p><p> Please provide the following parameters to your ISP:</p>", timeout ),infomessage)
+    html[#html + 1] = ui_helper.createAlertBlock(string.format(T"<p>Remote assistance is currently disabled.</p><p> By clicking on the 'Apply' button with the 'Enabled' checkbox checked, your gateway web interface will be accessible from your broadband connection. After %s minutes of inactivity, or on a reboot, remote assistance will be automatically disabled if in 'Temporary' mode. </p><p> Please provide the following parameters to your ISP:</p>", timeout ),infomessage)
 end
 local ra_enable_class = {
     input = {
