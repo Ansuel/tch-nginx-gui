@@ -675,7 +675,7 @@ local function STBCheck(object, stbrange)
     if all_dhcp_intfs[1].paramindex == "STB" then
         local ipstart,ipend = calculateSTBRange(object)
         if stbrange >= ipstart and stbrange <= ipend then
-            return "nil",T"Lan pool range is overlap with the STB pool range"
+            return "nil",T"Lan pool range overlapps the STB pool range"
         end
     end
 end
@@ -711,7 +711,7 @@ local function validateLimit(value, object)
         end
 
         if dhcpstart and dhcpstart > dhcpend then
-            return nil, T"DHCP Start Address should not be greater than End Address"
+            return nil, T"DHCP Start Address should not be greater than the End Address"
         end
 
         if baseip and netmask and dhcpstart then
@@ -727,7 +727,7 @@ local function validateLimit(value, object)
             local validatorNumberInRange = post_helper.getValidateNumberInRange(1,limit)
             local limitvalue =  validatorNumberInRange(numips)
             if not limitvalue or dhcpend <= network or dhcpend >= ipmax then
-                return nil, T"DHCP End Address is not valid in Subnet Range"
+                return nil, T"DHCP End Address is not within the Subnet Range"
             end
             return true
         else
@@ -764,14 +764,14 @@ local function validateDHCPStart(value, object)
             local validatorNumberInRange = post_helper.getValidateNumberInRange(1,limit)
 
             if dhcpstart == baseip then
-                return nil, T"DHCP Start Address should not be Local Device IP Address"
+                return nil, T"DHCP Start Address should not be the Modem IP Address"
             elseif dhcpstart == network then
                 return nil, T"DHCP Start Address should not be a Network Address"
             end
 
             local val = validatorNumberInRange(start)
             if not val or dhcpstart <= network or dhcpstart >= ipmax then
-                return nil, T"DHCP Start Address is not valid in Subnet Range"
+                return nil, T"DHCP Start Address is not within the Subnet Range"
             end
 
             -- Setting the dhcpStart and dhcpLimit from the calculated DHCP Range
