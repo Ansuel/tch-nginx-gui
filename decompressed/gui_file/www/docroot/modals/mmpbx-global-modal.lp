@@ -13,6 +13,7 @@ local uimessage_helper = require("web.uimessage_helper")
 local format = string.format
 local session = ngx.ctx.session
 local content_helper = require("web.content_helper")
+
 local mapValid = {
     mmpbx_enabled = post_helper.validateBoolean,
 }
@@ -20,6 +21,8 @@ local mapValid = {
 local mapParams = {
     mmpbx_enabled = "uci.mmpbx.mmpbx.@global.enabled",
 }
+
+local content = post_helper.handleQuery(mapParams, mapValid)
 
 local voip_password_profile_1 = "uci.mmpbxrvsipnet.profile.@sip_profile_0.password"
 local voip_password_profile_2 = "uci.mmpbxrvsipnet.profile.@sip_profile_1.password"
@@ -52,58 +55,6 @@ local emission_content = {
 content_helper.getExactContent(emission_content)
 emission_state = format("%s", emission_content.emission_state)
 
-local network_section_name = post_helper.getRandomKey()
-local content = post_helper.handleQuery(mapParams, mapValid)
-if ngx.req.get_method() == "POST" then
-    local args = ngx.req.get_post_args()
-    local action = args["action"]
-	
-	local audionot_arr = {'dial', 'special', 'mwi', 'mwispecial', 'stutterdial', 'ringback', 'busy', 'callhold', 'rejection', 'confirmation', 'congestion'}
-	
-	if action == "TABLE-ADD" then
-		
-        local tempindex = proxy.add("uci.mmpbx.dial_plan.@dial_plan_generic.network.")
-        proxy.set("uci.mmpbx.dial_plan.@dial_plan_generic.network.@".. tempindex ..".value", network_section_name)
-		
-        tempindex = proxy.add("uci.mmpbx.scc.@scc_generic.network.")
-        proxy.set("uci.mmpbx.scc.@scc_generic.network.@".. tempindex ..".value", network_section_name)
-		
-        tempindex = proxy.add("uci.mmpbx.media_filter.@media_filter_audio_generic.network.")
-        proxy.set("uci.mmpbx.media_filter.@media_filter_audio_generic.network.@".. tempindex ..".value", network_section_name)
-		
-		for _ , key in pairs(proxy.getPN("uci.mmpbx.audionotification.",true)) do
-			tempindex = proxy.add(key.path .."network.")
-			proxy.set(key.path .."network.@".. tempindex ..".value", network_section_name)
-		end
-    end
-	
-	if action == "TABLE-DELETE" then
-		local function getIndex(path,network_section_name)
-			for _ , key in pairs(proxy.getPN(path, true)) do
-				if proxy.get(key.path.."value")[1].value == network_section_name then
-					return key.path
-				end
-			end
-			return nil
-		end
-	
-        proxy.del(getIndex("uci.mmpbx.scc.@scc_generic.network.", network_section_name))
-		proxy.del(getIndex("uci.mmpbx.dial_plan.@dial_plan_generic.network.", network_section_name))
-		proxy.del(getIndex("uci.mmpbx.media_filter.@media_filter_audio_generic.network.", network_section_name))
-		
-		for _ , key in pairs(proxy.getPN("uci.mmpbx.audionotification.",true)) do
-			proxy.del(getIndex(key.path .."network.", network_section_name))
-		end
-    end
-	
-    if action == "emission_on" then
-        proxy.set("rpc.mmpbx.dectemission.state","1")
-    end
-    if action == "emission_off" then
-        proxy.set("rpc.mmpbx.dectemission.state","0")
-    end
-    proxy.apply()
-end
 -- SIP Networks
 local sipnet_columns = {
     {
@@ -148,7 +99,6 @@ local sipnet_columns = {
         name = "primaryProxy",
         param = "primary_proxy",
         type = "text",
-        default = "0.0.0.0",
         attr = { input = { class="span2" } },
     },
     {
@@ -174,7 +124,7 @@ local sipnet_columns = {
         type = "text",
         default = "3600",
         attr = { input = { class="span1" } },
-    },
+    }
 }
 
 local gOV = post_helper.getOptionalValidation
@@ -194,7 +144,7 @@ local sipnet_default = {
     interface = "wan",
     cac = "-1",
     transparent_soc_transmission = "0",
-    primary_proxy = "0.0.0.0",
+    primary_proxy = "",
     secondary_proxy_port = "0",
     secondary_registrar_port = "5060",
     transport_type = "UDP",
@@ -269,12 +219,57 @@ local sipnet_default = {
     primary_registrar_port = "5060"
 }
 
+local function onAddVoice(current_section_index)
+	proxy.add("uci.mmpbx.network.",current_section_index)
+	proxy.set("uci.mmpbx.network.@"..current_section_index..".config","mmpbxrvsipnet")
+
+	proxy.get("uci.mmpbx.") --workaround to avoid HTTP 500 error
+
+    local tempindex = proxy.add("uci.mmpbx.dial_plan.@dial_plan_generic.network.")
+    proxy.set("uci.mmpbx.dial_plan.@dial_plan_generic.network.@".. tempindex ..".value", current_section_index)
+
+    tempindex = proxy.add("uci.mmpbx.scc.@scc_generic.network.")
+    proxy.set("uci.mmpbx.scc.@scc_generic.network.@".. tempindex ..".value", current_section_index)
+
+    tempindex = proxy.add("uci.mmpbx.media_filter.@media_filter_audio_generic.network.")
+    proxy.set("uci.mmpbx.media_filter.@media_filter_audio_generic.network.@".. tempindex ..".value", current_section_index)
+
+	for _ , key in pairs(proxy.getPN("uci.mmpbx.audionotification.",true)) do
+		tempindex = proxy.add(key.path .."network.")
+		proxy.set(key.path .."network.@".. tempindex ..".value", current_section_index)
+	end
+end
+
+local function onDeleteVoice(current_section_index)
+
+	local function getIndex(path,current_section_index)
+		for _ , key in pairs(proxy.getPN(path, true)) do
+			if proxy.get(key.path.."value")[1].value == current_section_index then
+				return key.path
+			end
+		end
+		return nil
+	end
+
+	proxy.del("uci.mmpbx.network.@"..current_section_index..".")
+
+	proxy.del(getIndex("uci.mmpbx.scc.@scc_generic.network.", current_section_index))
+	proxy.del(getIndex("uci.mmpbx.dial_plan.@dial_plan_generic.network.", current_section_index))
+	proxy.del(getIndex("uci.mmpbx.media_filter.@media_filter_audio_generic.network.", current_section_index))
+
+	for _ , key in pairs(proxy.getPN("uci.mmpbx.audionotification.",true)) do
+		proxy.del(getIndex(key.path .."network.", current_section_index))
+	end
+end
+
 local sipnet_options = {
     tableid = "sipnet",
     basepath = "uci.mmpbxrvsipnet.network.@.",
-    --sorted = "user_friendly_name", --DO NO ACTIVATE SORTING OR WILL BREAK DELETE
-    objectName  = network_section_name,
+    sorted = "user_friendly_name", --DO NO ACTIVATE SORTING OR WILL BREAK DELETE
+    objectName  = "voice"..post_helper.getRandomKey(),
     addNamedObject = true,
+	onAdd = onAddVoice,
+    onDelete = onDeleteVoice,
 }
 
 local sipnet_data, sipnet_helpmsg = post_helper.handleTableQuery(sipnet_columns, sipnet_options, nil, sipnet_default, sipnet_valid)
@@ -284,6 +279,18 @@ if ngx.var.args and string.len(ngx.var.args) > 0 then
     uri = uri .. "?" .. ngx.var.args
 end
 
+if ngx.req.get_method() == "POST" then
+    local args = ngx.req.get_post_args()
+    local action = args["action"]
+
+    if action == "emission_on" then
+        proxy.set("rpc.mmpbx.dectemission.state","1")
+    end
+    if action == "emission_off" then
+        proxy.set("rpc.mmpbx.dectemission.state","0")
+    end
+    proxy.apply()
+end
 
 ngx.print(ui_helper.createHeader(T"Telephony", false, true));
 ngx.print('\
