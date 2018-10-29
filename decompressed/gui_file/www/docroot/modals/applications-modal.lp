@@ -153,22 +153,22 @@ if StateParams["luci_webui"] ~= nil then
 	}
 	html[#html+1] = '<div class="span3">'
 	html[#html+1] = "<fieldset>"
-	html[#html + 1] = '<legend>' .. T"Luci GUI" .. '</legend>'
-	html[#html + 1] = ui_helper.createAlertBlock(T"This will install uhttpd and luci", info_box)
+	html[#html + 1] = '<legend>' .. T"LuCI GUI" .. '</legend>'
+	html[#html + 1] = ui_helper.createAlertBlock(T"This will install uhttpd and LuCI", info_box)
 	html[#html + 1] = T"State: "
-	html[#html + 1] = "<strong>" .. T"Luci is " .. StateParams["luci_webui"] .. T" installed" .. "</strong></br>"
+	html[#html + 1] = "<strong>" .. T"LuCI is " .. StateParams["luci_webui"] .. T" installed" .. "</strong></br>"
 	local luci_link = format("http://%s:9080",mapParams.local_ip_modem)
-	html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. luci_link .. '">' .. luci_link .. "</a>"
+	html[#html + 1] = T"WebUI on: " .. '<a target="_blank" href="' .. luci_link .. '">' .. luci_link .. "</a>"
 	html[#html + 1] = "</br>"
 	html[#html + 1] = "</br>"
 	if prod_friendly_name[1].value:match("DGA413") then
 		if mapParams["luci_webui"] and mapParams["luci_webui"] == "1" then
-			html[#html + 1] = ui_helper.createSimpleButton(T"Remove Luci", "icon-refresh", remove_luci)
+			html[#html + 1] = ui_helper.createSimpleButton(T"Remove LuCI", "icon-refresh", remove_luci)
 		else
-			html[#html + 1] = ui_helper.createSimpleButton(T"Install Luci", "icon-refresh", install_luci)
+			html[#html + 1] = ui_helper.createSimpleButton(T"Install LuCI", "icon-refresh", install_luci)
 		end
 	else
-		html[#html + 1] = ui_helper.createAlertBlock(T"BROKEN WILL COME SOON. A custom library is needed", info_box)
+		html[#html + 1] = ui_helper.createAlertBlock(T"BROKEN at the moment. A custom library is needed", info_box)
 	end
 	html[#html + 1] = "</br>"
 	html[#html+1] = "</fieldset>"
@@ -193,7 +193,7 @@ if StateParams["aria2_webui"] ~= nil then
 	html[#html + 1] = T"State: "
 	html[#html + 1] = "<strong>" .. T"Aria2 is " .. StateParams["aria2_webui"] .. T" installed" .. "</strong></br>"
 	local aria_link = format("http://%s/aria",mapParams.local_ip_modem)
-	html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. aria_link .. '">' .. aria_link .."</a>"
+	html[#html + 1] = T"WebUI on: " .. '<a target="_blank" href="' .. aria_link .. '">' .. aria_link .."</a>"
 	html[#html + 1] = "</br>"
 	html[#html + 1] = "</br>"
 	if mapParams["aria2_webui"] and mapParams["aria2_webui"] == "1" then
@@ -219,11 +219,11 @@ if StateParams["transmission_webui"] ~= nil then
 	html[#html+1] = '<div class="span4">'
 	html[#html+1] = "<fieldset>"
 	html[#html + 1] = '<legend>' .. T"Transmission GUI" .. '</legend>'
-	html[#html + 1] = ui_helper.createAlertBlock(T"This will install transmission and transmission-webui", info_box)
+	html[#html + 1] = ui_helper.createAlertBlock(T"This will install transmission-daemon and transmission-webui", info_box)
 	html[#html + 1] = T"State: "
 	html[#html + 1] = "<strong>" .. T"Transmission is " .. StateParams["transmission_webui"] .. T" installed" .. "</strong></br>"
 	local transmission_link = format("http://%s/transmission/web/",mapParams.local_ip_modem)
-	html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. transmission_link .. '">' .. transmission_link .."</a>"
+	html[#html + 1] = T"WebUI on: " .. '<a target="_blank" href="' .. transmission_link .. '">' .. transmission_link .."</a>"
 	html[#html + 1] = "</br>"
 	local transmission_direct_link = format("http://%s:9091/transmission",mapParams.local_ip_modem)
 	html[#html + 1] = T" (or " .. '<a target="_blank" href="' .. transmission_direct_link .. '">' .. transmission_direct_link .. "</a>" .. " )"
@@ -294,7 +294,7 @@ if StateParams["xupnp_application"] ~= nil then
 	html[#html + 1] = T"State: "
 	html[#html + 1] = "<strong>" .. T"The XUPnP app is " .. StateParams["xupnp_application"] .. T" installed" .. "</strong></br>"
 	local xupnp_link = format("http://%s:4044/ui/",mapParams.local_ip_modem)
-	html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. xupnp_link .. '">' .. xupnp_link .."</a>"
+	html[#html + 1] = T"WebUI on: " .. '<a target="_blank" href="' .. xupnp_link .. '">' .. xupnp_link .."</a>"
 	html[#html + 1] = "</br>"
 	html[#html + 1] = "</br>"
 	if mapParams["xupnp_application"] and mapParams["xupnp_application"] == "1" then
@@ -323,9 +323,9 @@ if StateParams["telstra_webui"] ~= nil then
 	html[#html + 1] = '<legend>' .. T"Telstra GUI" .. '</legend>'
 	html[#html + 1] = ui_helper.createAlertBlock(T"This will install Telstra webui", info_box)
 	html[#html + 1] = T"State: "
-	html[#html + 1] = "<strong>" .. T"Telstra is " .. StateParams["telstra_webui"] .. T" installed" .. "</strong></br>"
+	html[#html + 1] = "<strong>" .. T"Telstra GUI is " .. StateParams["telstra_webui"] .. T" installed" .. "</strong></br>"
 	local telstra_gui = "/telstra-gui.lp"
-	html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. telstra_gui .. '">' .. telstra_gui .."</a>"
+	html[#html + 1] = T"WebUI on: " .. '<a target="_blank" href="' .. telstra_gui .. '">' .. telstra_gui .."</a>"
 	html[#html + 1] = "</br>"
 	html[#html + 1] = T"Change the default page in system-extra to set this gui as default"
 	html[#html + 1] = "</br>"
