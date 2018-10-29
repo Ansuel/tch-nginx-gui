@@ -59,7 +59,7 @@ end
 	    <picture>\
 		    <source srcset="/img/gateway'); ngx.print(model); ngx.print('.webp" type="image/webp">\
 		    <source srcset="/img/gateway'); ngx.print(model); ngx.print('.png" type="image/png">\
-        <img class="someInfos" href="#" rel="tooltip" data-placement="top" data-original-title="');  ngx.print( T"your gateway" ); ngx.print('" src="/img/gateway'); ngx.print(model); ngx.print('.png" alt="gateway">\
+        <img class="someInfos" href="#" rel="tooltip" data-placement="top" data-original-title="');  ngx.print( T"Your Gateway" ); ngx.print('" src="/img/gateway'); ngx.print(model); ngx.print('.png" alt="gateway">\
 		</picture>\
 		</div>\
       </div>\
