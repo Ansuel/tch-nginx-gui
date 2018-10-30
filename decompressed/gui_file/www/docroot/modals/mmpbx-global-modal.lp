@@ -10,7 +10,7 @@ local ui_helper = require("web.ui_helper")
 local post_helper = require("web.post_helper")
 local content_helper = require("web.content_helper")
 local uimessage_helper = require("web.uimessage_helper")
-local format = string.format
+local format, untaint = string.format, string.untaint
 local session = ngx.ctx.session
 local content_helper = require("web.content_helper")
 
@@ -99,7 +99,6 @@ local sipnet_columns = {
         name = "primaryProxy",
         param = "primary_proxy",
         type = "text",
-        default = "0.0.0.0",
         attr = { input = { class="span2" } },
     },
     {
@@ -116,7 +115,7 @@ local sipnet_columns = {
         param = "local_port",
         type = "text",
         unique = true,
-        attr = { input = { class="span2" } },
+        attr = { input = { class="span1" } },
     },
     {
         header = T"Expire Time",
@@ -220,7 +219,12 @@ local sipnet_default = {
     primary_registrar_port = "5060"
 }
 
-local function onAddVoice(current_section_index)
+local function onAddVoice(current_section_index,content)
+
+	if not content.primaryProxy or ( untaint(content.primaryProxy) == "" ) then
+		proxy.set("uci.mmpbxrvsipnet.network.@"..current_section_index..".primary_proxy",untaint(content.primaryRegistrar))
+	end
+		
 	proxy.add("uci.mmpbx.network.",current_section_index)
 	proxy.set("uci.mmpbx.network.@"..current_section_index..".config","mmpbxrvsipnet")
 
@@ -303,56 +307,57 @@ lp.include("tabs-voice.lp")
 ngx.print('\
   <form class="form-horizontal" method="post" action="');ngx.print(uri); ngx.print('">'); ngx.print(
     ui_helper.createMessages(uimessage_helper.popMessages()));
-local html = {}
+	local html = {}
+	
+	local emission_on_class = {
+		button = {
+			["data-name"] = "action",
+			["data-value"] = "emission_on",
+		}
+	}
+	local emission_off_class = {
+		button = {
+			["data-name"] = "action",
+			["data-value"] = "emission_off",
+		}
+	}
+	
+	html[#html+1] = '<fieldset id="mmpbx-global-tab">'
+	html[#html+1] =     '<legend>' .. T"Global Information" .. '</legend>'
+	html[#html+1] =     ui_helper.createSwitch(T"Enabled", "mmpbx_enabled", content["mmpbx_enabled"])
+	
+	if voip_password_profile_1 and not ( voip_password_profile_1 == "") then
+		html[#html+1] = 	ui_helper.createLabel(T"Voip Password Profile 1", voip_password_profile_1)
+	end
+	if voip_password_profile_2 and not ( voip_password_profile_2 == "") then
+		html[#html+1] = 	ui_helper.createLabel(T"Voip Password Profile 2", voip_password_profile_2)
+	end
+	if voip_password_profile_3 and not ( voip_password_profile_3 == "") then
+		html[#html+1] = 	ui_helper.createLabel(T"Voip Password Profile 3", voip_password_profile_3)
+	end
+	html[#html+1] = '</fieldset>'
+	
+	if content and content["mmpbx_enabled"] == "1" then
+		if session:hasAccess("/modals/mmpbx-dect-modal.lp") and
+				( variant == "Technicolor TG800vac" ) or ( variant == "Technicolor TG799vac" ) then
+			html[#html+1] = '<fieldset>'
+			html[#html+1] = '<legend>' .. T"DECT Emission" .. '</legend>'
+			if emission_state == "0" then
+				html[#html+1] = ui_helper.createButton(T"Emission Mode", T"On", "icon-bolt", emission_on_class)
+			else
+				html[#html+1] = ui_helper.createButton(T"Emission Mode", T"Off", "icon-ban-circle icon-large red", emission_off_class)
+			end
+	
+			html[#html+1] = '</fieldset>'
+		end
+		html[#html+1] = '<fieldset>'
+		html[#html+1] = '<legend>' .. T"SIP Network" .. '</legend>'
+		html[#html+1] =  ui_helper.createTable(sipnet_columns, sipnet_data, sipnet_options, nil, sipnet_helpmsg)
+		html[#html+1] = '</fieldset>'
+	end
+	ngx.print (html)
 
-local emission_on_class = {
-    button = {
-        ["data-name"] = "action",
-        ["data-value"] = "emission_on",
-    }
-}
-local emission_off_class = {
-    button = {
-        ["data-name"] = "action",
-        ["data-value"] = "emission_off",
-    }
-}
-
-html[#html+1] = '<fieldset id="mmpbx-global-tab">'
-html[#html+1] =     '<legend>' .. T"Global Information" .. '</legend>'
-html[#html+1] =     ui_helper.createSwitch(T"Enabled", "mmpbx_enabled", content["mmpbx_enabled"])
-
-if voip_password_profile_1 and not ( voip_password_profile_1 == "") then
-    html[#html+1] = 	ui_helper.createLabel(T"Voip Password Profile 1", voip_password_profile_1)
-end
-if voip_password_profile_2 and not ( voip_password_profile_2 == "") then
-    html[#html+1] = 	ui_helper.createLabel(T"Voip Password Profile 2", voip_password_profile_2)
-end
-if voip_password_profile_3 and not ( voip_password_profile_3 == "") then
-    html[#html+1] = 	ui_helper.createLabel(T"Voip Password Profile 3", voip_password_profile_3)
-end
-html[#html+1] = '</fieldset>'
-if content and content["mmpbx_enabled"] == "1" then
-    if session:hasAccess("/modals/mmpbx-dect-modal.lp") and
-            ( variant == "Technicolor TG800vac" ) or ( variant == "Technicolor TG799vac" ) then
-        html[#html+1] = '<fieldset>'
-        html[#html+1] = '<legend>' .. T"DECT Emission" .. '</legend>'
-        if emission_state == "0" then
-            html[#html+1] = ui_helper.createButton(T"Emission Mode", T"On", "icon-bolt", emission_on_class)
-        else
-            html[#html+1] = ui_helper.createButton(T"Emission Mode", T"Off", "icon-ban-circle icon-large red", emission_off_class)
-        end
-
-        html[#html+1] = '</fieldset>'
-    end
-    html[#html+1] = '<fieldset>'
-    html[#html+1] = '<legend>' .. T"SIP Network" .. '</legend>'
-    html[#html+1] =  ui_helper.createTable(sipnet_columns, sipnet_data, sipnet_options, nil, sipnet_helpmsg)
-    html[#html+1] = '</fieldset>'
-end
-ngx.print (html)
-
-ngx.print('\
+	ngx.print('\
     </form>\
 </div>\
 '); ngx.print(

@@ -444,7 +444,6 @@ local interna_filter = function(data)
 	if ports then
 		ports = string.gsub(ports[1].value, "([^%,]+)", devMap)
 		ports = string.gsub(ports, "(%,)", " , ")
-		ngx.log(1,string.untaint(ports))
 		data.port = ports
 	end
 	
