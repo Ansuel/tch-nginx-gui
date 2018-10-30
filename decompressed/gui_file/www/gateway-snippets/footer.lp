@@ -10,6 +10,8 @@ local format = string.format
 local cui = {
 	timestamp = "uci.version.version.@version[0].timestamp",
 	gui_version = "uci.env.var.gui_version",
+	variant_friendly_name = "uci.env.var.variant_friendly_name",
+	provisioning_code = "uci.env.var.provisioning_code",
 }
 
 content_helper.getExactContent(cui)
@@ -30,11 +32,13 @@ local html = {}
 html[#html+1] =		'<div id="footer" class="row">'
 html[#html+1] =			'<div class="copyright">'
 html[#html+1] =				format('<p>&copy; Technicolor %s </p>', current_year)
-html[#html+1] =				format('<p>GUI Version [ %s ] 2018 ',cui.gui_version)
+html[#html+1] =				format('<p>%s %s GUI Version', cui.provisioning_code, cui.variant_friendly_name)
 							if session:hasAccess("/modals/changelog.lp") then
-html[#html+1] =					'<a href data-toggle="modal" data-remote="modals/changelog.lp">Changelog</a>'
+html[#html+1] =					format(' <a href data-toggle="modal" data-remote="modals/changelog.lp">%s</a>', cui.gui_version)
+							else
+html[#html+1] =					format(' %s', cui.gui_version)
 							end
-html[#html+1] =				'</p>'
+html[#html+1] =				format(' %s </p>', "2018")
 html[#html+1] =				'<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel </font>and <a href="https://github.com/Ansuel/tch-nginx-gui/graphs/contributors">these GitHub users.</a><br> Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>'
 
 							if not ( tostring(gettext.language()) == "en-us" ) then
