@@ -361,8 +361,6 @@ local content = {
   vendor = "uci.env.var.company_name",
   product_name = "uci.env.var.prod_name",
   friendly_product_name = "uci.env.var.prod_friendly_name",
-  variant_friendly_name = "uci.env.var.variant_friendly_name",
-  provisioning_code = "uci.env.var.provisioning_code",
   software_name = "uci.version.version.@version[0].marketing_name",
   software_version = "uci.version.version.@version[0].marketing_version",
   firmware_version = "uci.env.var.friendly_sw_version_activebank",
@@ -388,7 +386,7 @@ if content["friendly_product_name"] and content["friendly_product_name"] == "AGH
 end
 
 if not ( content.friendly_product_name == "" ) then
-	content.product_name = format("%s %s",content.provisioning_code, content.variant_friendly_name)
+	content.product_name = format("%s ( %s )",content.product_name,content.friendly_product_name)
 end
 
 
@@ -789,7 +787,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 
       local html = {}
       html[#html + 1] = ui_helper.createLabel(T"Product Vendor", content["vendor"], basic)
-      html[#html + 1] = ui_helper.createLabel(T"Product", content["product_name"], basic)
+      html[#html + 1] = ui_helper.createLabel(T"Product Name", content["product_name"], basic)
       html[#html + 1] = ui_helper.createLabel(T"Software Version", content["firmware_version"], basic)
 	  html[#html + 1] = ui_helper.createLabel(T"Gui Version", content["gui_version"], basic)
 	  html[#html + 1] = ui_helper.createLabel(T"Hostname", system_data["system_hostname"], advancedshow )
