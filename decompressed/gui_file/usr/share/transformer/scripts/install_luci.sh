@@ -32,7 +32,7 @@ luci_install_DGA() {
 		uci set uhttpd.main.home='/www_luci'
 	fi
 	
-	uci commit
+	uci commit uhttpd
 	/etc/init.d/uhttpd restart
 }
 

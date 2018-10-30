@@ -83,6 +83,7 @@ fi
 
 #Check if stable have a new version 
 
+ubus send fwupgrade '{"state":"upgrading"}'
 
 WORKING_DIR="/tmp"
 PERMANENT_STORE_DIR="/root"
@@ -98,6 +99,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 	# Enter /tmp folder
 	if ! cd "$WORKING_DIR"; then
 	logger -s -t "Upgrade Script" "ERROR: can't access $WORKING_DIR" >&2
+	ubus send fwupgrade '{"state":"done"}'
 	exit 1
 	fi
 	
@@ -109,6 +111,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 	# Download new GUI to /tmp
 	if ! $curl $URL_BASE/$FILE_NAME --output $WORKING_DIR/$FILE_NAME; then
 	logger -s -t "Upgrade Script" "ERROR: can't find new GUI file" >&2
+	ubus send fwupgrade '{"state":"done"}'
 	exit 1
 	fi
 	
@@ -125,6 +128,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 		rm $WORKING_DIR/$CHECKSUM_FILE
 		logger -s -t "Upgrade Script" "ERROR: File corrupted!!!" >&2
 		logger -s -t "Upgrade Script" "ERROR: Removing upgrade file and aborting." >&2
+		ubus send fwupgrade '{"state":"done"}'
 		exit 1
 	fi
 	
@@ -147,6 +151,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 				logger -s -t "Upgrade Script" "ERROR: can't find stable GUI file" >&2
 				rm $WORKING_DIR/$FILE_NAME
 				rm $WORKING_DIR/$CHECKSUM_FILE
+				ubus send fwupgrade '{"state":"done"}'
 				exit 1
 			fi
 			
@@ -158,6 +163,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 				rm $WORKING_DIR/$CHECKSUM_FILE
 				logger -s -t "Upgrade Script" "ERROR: Stable file corrupted!!!" >&2
 				logger -s -t "Upgrade Script" "ERROR: Removing upgrade file and aborting." >&2
+				ubus send fwupgrade '{"state":"done"}'
 				exit 1
 			fi
 			
@@ -254,4 +260,5 @@ fi
 logger -s -t "Upgrade Script" "Running rootdevice script"
 # Run init.d script
 /etc/init.d/rootdevice force
+ubus send fwupgrade '{"state":"done"}'
 logger -s -t "Upgrade Script" "Upgrade Done"

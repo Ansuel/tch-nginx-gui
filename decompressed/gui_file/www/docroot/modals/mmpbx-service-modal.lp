@@ -795,12 +795,12 @@ $(document).ready(function() {
         var target = form.attr("action");
         tch.loadModal(target, params, function (){});
     });
-    $('input[type="checkbox"]').change(function(){
+    $('input[type="checkbox"]').on("change",function(){
         $('#modal-no-change').fadeOut(300);
         $('#modal-changes').delay(350).fadeIn(300);
         return false;	// For stoping the POST
     });
-    $('input[type="text"]').change(function(){
+    $('input[type="text"]').on("change",function(){
         $('#modal-no-change').fadeOut(300);
         $('#modal-changes').delay(350).fadeIn(300);
     });

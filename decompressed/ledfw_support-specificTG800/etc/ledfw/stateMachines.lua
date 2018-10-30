@@ -37,6 +37,22 @@ patterns = {
 				staticLed("voip:purple", false)
             },
         }
+    },
+	fw_upgrade = {
+        state = "fwupgrade_state_done",
+        transitions = {
+            fwupgrade_state_done = {
+                fwupgrade_state_upgrading = "fwupgrade_state_upgrading",
+            },
+            fwupgrade_state_upgrading = {
+                fwupgrade_state_done = "fwupgrade_state_done"
+            }
+        },
+        actions = {
+            fwupgrade_state_upgrading = {
+                timerLed("power:blue", 50, 50)
+            }
+        }
     }
 }
 
@@ -79,6 +95,11 @@ stateMachines = {
                 staticLed("power:blue", false),
                 staticLed("power:green", false)
             },
+        }
+		,
+        patterns_depend_on = {
+            power_started = { "fw_upgrade" },
+            power_overheated = { "fw_upgrade" },
         }
     },
     broadband = {

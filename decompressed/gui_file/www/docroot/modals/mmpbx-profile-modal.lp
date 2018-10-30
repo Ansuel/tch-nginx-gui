@@ -1,4 +1,5 @@
-<%
+--pretranslated: do not change this file
+
 -- Enable localization
 -- NG-79256, on 29.11. change reverted back to original value, since generic Fix to come
 -- NG-81922
@@ -106,26 +107,36 @@ local sip_columns = {
     },
 }
 
+local internal_status = {
+	{ "1" , T"Enabled"},
+	{ "0" , T"Disabled"},
+}
+
 local internal_columns = {
     { --[1]
         header = T"Internal Profile",
         name = "profile",
         param = "paramindex",
+		readonly = true,
     },
     { --[2]
         header = T"Number",
         name = "number",
         param = "number",
+		type = "text",
     },
     { --[3]
         header = T"Port",
         name = "port",
         param = "port",
+		readonly = true,
     },
     { --[4]
-        header = T"Enabled",
+        header = T"Status",
         name = "enable",
         param = "enabled",
+		type = "select",
+		values = internal_status,
     },
 }
 
@@ -140,12 +151,6 @@ local scns = {
     ["network"] = 7,
     ["register"] = 8,
     ["call"] = 9,
-}
-
--- Identify internal table column number
-local icns = {
-    ["port"] = 3,
-    ["enable"] = 4,
 }
 
 local pattern = "(([^%._@]+)_profile_(%d+))"
@@ -422,131 +427,149 @@ sip_table[#sip_table + 1] = "</div>"
 
 local internal_options = {
     tableid = "internal_profile",
-    basepath = "rpc.mmpbx.internal_profile.@.",
-    canEdit = false,
+    basepath = "uci.mmpbxinternalnet.profile.@.",
+    canEdit = true,
     canAdd = false,
     canDelete = false,
     sorted = sort_func,
 }
 
-local internal_data, internal_helpmsg = post_helper.handleTableQuery(internal_columns, internal_options)
+local internal_valid = {
+	number = post_helper.getAndValidation(validateNonspaceString,post_helper.validateNonEmptyString),
+	enable = post_helper.getValidateInEnumSelect(internal_status),
+}
 
-for _,v in pairs(internal_data) do
-    v[icns["enable"]] = (v[icns["enable"]] == "1" and "Enabled") or "Disabled"
-    local ports = string.format("%s", v[icns["port"]])
-    ports = string.gsub(ports, "([^%,]+)", devMap)
-    ports = string.gsub(ports, "(%,)", "<br>")
-    v[icns["port"]] = ports
+local interna_filter = function(data)
+	local ports = proxy.get(string.format("rpc.mmpbx.internal_profile.@%s.port", data.paramindex )) -- port
+	if ports then
+		ports = string.gsub(ports[1].value, "([^%,]+)", devMap)
+		ports = string.gsub(ports, "(%,)", " , ")
+		ngx.log(1,string.untaint(ports))
+		data.port = ports
+	end
+	
+	return true
 end
+
+local internal_data, internal_helpmsg = post_helper.handleTableQuery(internal_columns, internal_options,interna_filter, nil, internal_valid)
 
 local uri = ngx.var.uri
 if ngx.var.args and string.len(ngx.var.args) > 0 then
     uri = uri .. "?" .. ngx.var.args
 end
-%>
 
-<%= ui_helper.createHeader(T"Telephony", false, true) %>
-
-<div class="modal-body update">
-  <%
+ngx.print( ui_helper.createHeader(T"Telephony", false, true) ); ngx.print('\
+\
+<div class="modal-body update">\
+  ');
   local lp = require("web.lp")
   lp.setpath("/www/snippets/")
   lp.include("tabs-voice.lp")
-  %>
-  <form class="form-horizontal" method="post" action="<%= uri %>">
-    <%= ui_helper.createMessages(message_helper.popMessages()) %>
-    <fieldset id="mmpbx-profile-tab">
-      <legend><%= T"Telephone Numbers" %></legend>
-      <% ngx.print(sip_table) %>
-    </fieldset>
-    <fieldset>
-      <legend><%= T"Internal Telephone Numbers" %></legend>
-      <%= ui_helper.createTable(internal_columns, internal_data, internal_options, nil, internal_helpmsg) %>
-    </fieldset>
-  </form>
-</div>
-
-<%= ui_helper.createFooter() %>
-
-<script>
-function addNewRow() {
-    var noOfRows = $("#sipProfileTable tr").length;   // We will get the value as the number of present rows + 1, the extra 1 because of the <tr> used for tabel header. So no need to increment it.
-
-    var EnableSW        = '<div class="control-group"><div class="switch switchOn" data-placement="right"><div class="switcher switcherOn" texton="ON" textoff="OFF" valon="1" valoff="0"></div><input value="1" name="enable.'+noOfRows+'" type="hidden"></input></div></div>';
-    var UserName        = '<input class="edit-input  span1" type="text" name="username.'+noOfRows+'" value=""></input>';
-    var uri             = '<input class="edit-input  span1" type="text" name="uri.'+noOfRows+'" value=""></input>';
-    var Password        = '<input class="edit-input  span1" type="password" name="password.'+noOfRows+'" value=""></input>';
-    var DisplayName     = '<input class="edit-input  span1" type="text" name="displayName.'+noOfRows+'" value=""></input>';
-    var NetWork         = '<div class="control-group"><select class=" span2" name="network.'+noOfRows+'"><%for _,v in pairs(sipnet_options) do%><option value="<%=v[1]%>"><%=v[2]%></option><%end%></select></div>';
-
-    var CancelBtn       = '<%=ui_helper.createSimpleButton("", "icon-remove", attrCancel)%>';
-    CancelBtn           = CancelBtn  + '<input value="1" name="isRowAdded.'+noOfRows+'" type="hidden">';
-
-    $('#sipProfileTable').append('<tr><td>'+EnableSW+'</td><td></td><td>'+UserName+'</td><td>'+uri+'</td><td>'+Password+'</td><td>'+DisplayName+'</td><td>'+NetWork+'</td><td></td><td></td><td>'+CancelBtn+'</td></tr>');
-
-    //Enabling the Cancel action for newly added row
-    $('.btn-table-cncl').on("click", function(){
-	$(this).parent().parent().attr("style","display: none;");
-	$(this).parent().children('input').val(0);
-    });
-
-    //Enabling tool tip for newly added row
-    $('.tooltip-on').tooltip();
-}
-
-$(document).ready(function() {
-    $('.switch, input[type="text"], input[type="password"]').change(function(){
-        $('#modal-no-change').fadeOut(300);
-        $('#modal-changes').delay(350).fadeIn(300);
-    });
-    $('.select').change(function(){
-        $('#modal-no-change').fadeOut(300);
-        $('#modal-changes').delay(350).fadeIn(300);
-    });
-    $('.btn-table-addrow').on("click", function(){
-	addNewRow();
-        $('#modal-no-change').fadeOut(300);
-        $('#modal-changes').delay(350).fadeIn(300);
-    });
-    $('.btn-table-dlt').on("click", function(){
-	$(this).parent().parent().attr("style","display: none;");
-	$(this).parent().children('input').val(1);
-        $('#modal-no-change').fadeOut(300);
-        $('#modal-changes').delay(350).fadeIn(300);
-    });
-    $('.btn-table-cncl').on("click", function(){
-	$(this).parent().parent().attr("style","display: none;");
-	$(this).parent().children('input').val(0);
-        $('#modal-no-change').fadeOut(300);
-        $('#modal-changes').delay(350).fadeIn(300);
-    });
-    $(document).off("change")
-});
-
-$(function(){
-    $('#sipProfileTable tbody tr').each (function() {
-      var regstate_column = 7, callstate_column = 8;
-      //Toolbox for column Registered
-      var reg = $(this).find("td").eq(regstate_column).find("div");
-      var reg_class = reg.attr("class");
-      var reg_hint = "Unregistered";
-      if (reg_class == "light green") {
-        reg_hint = "Registered";
-      }
-      else if (reg_class == "light orange") {
-        reg_hint = "Registering";
-      }
-      reg.attr({"class": "someInfos " + reg_class, "rel": "tooltip", "data-placement": "top", "data-original-title": reg_hint});
-
-      //Toolbox for column State
-      var call = $(this).find("td").eq(callstate_column).find("div");
-      var call_class = call.attr("class");
-      var call_hint = "Can't be used";
-      if (call_class == "light green") {
-        call_hint = "Can be used";
-      }
-      call.attr({"class": "someInfos " + call_class,"rel": "tooltip", "data-placement": "top", "data-original-title": call_hint});
-    })
-    $('.someInfos').tooltip();
-});
-</script>
+  
+  ngx.print('\
+  <form class="form-horizontal" method="post" action="'); ngx.print( uri ); ngx.print('">\
+    '); ngx.print( ui_helper.createMessages(message_helper.popMessages()) );
+	local html = {}
+	
+    html[#html+1] = '<fieldset id="mmpbx-profile-tab">'
+    html[#html+1] =   "<legend>".. T"Telephone Numbers".."</legend>"
+    html[#html+1] =   sip_table
+    html[#html+1] = "</fieldset>"
+    html[#html+1] = "<fieldset>"
+    html[#html+1] =   "<legend>"..T"Internal Telephone Numbers".."</legend>"
+    html[#html+1] =   ui_helper.createTable(internal_columns, internal_data, internal_options, nil, internal_helpmsg)
+    html[#html+1] = "</fieldset>"
+	
+	ngx.print(html)
+	ngx.print('\
+  </form>\
+</div>\
+\
+<script>\
+function addNewRow() {\
+    var noOfRows = $("#sipProfileTable tr").length;   // We will get the value as the number of present rows + 1, the extra 1 because of the <tr> used for tabel header. So no need to increment it.\
+\
+    var EnableSW        = \'<div class="control-group"><div class="switch switchOn" data-placement="right"><div class="switcher switcherOn" texton="ON" textoff="OFF" valon="1" valoff="0"></div><input value="1" name="enable.\'+noOfRows+\'" type="hidden"></input></div></div>\';\
+    var UserName        = \'<input class="edit-input  span1" type="text" name="username.\'+noOfRows+\'" value=""></input>\';\
+    var uri             = \'<input class="edit-input  span1" type="text" name="uri.\'+noOfRows+\'" value=""></input>\';\
+    var Password        = \'<input class="edit-input  span1" type="password" name="password.\'+noOfRows+\'" value=""></input>\';\
+    var DisplayName     = \'<input class="edit-input  span1" type="text" name="displayName.\'+noOfRows+\'" value=""></input>\';\
+    var NetWork         = \'<div class="control-group"><select class=" span2" name="network.\'+noOfRows+\'">')
+		for _,v in pairs(sipnet_options) do
+			ngx.print('<option value="'); ngx.print ( v[1] ); ngx.print('">'); ngx.print( v[2] ); ngx.print('</option>')
+		end
+	ngx.print('</select></div>\';\
+\
+    var CancelBtn       = \'') ngx.print( ui_helper.createSimpleButton("", "icon-remove", attrCancel) ); ngx.print('\';\
+    CancelBtn           = CancelBtn  + \'<input value="1" name="isRowAdded.\'+noOfRows+\'" type="hidden">\';\
+\
+    $("#sipProfileTable").append("<tr><td>"+EnableSW+"</td><td></td><td>"+UserName+"</td><td>"+uri+"</td><td>"+Password+"</td><td>"+DisplayName+"</td><td>"+NetWork+"</td><td></td><td></td><td>"+CancelBtn+"</td></tr>");\
+\
+    //Enabling the Cancel action for newly added row\
+    $(".btn-table-cncl").on("click", function(){\
+	$(this).parent().parent().attr("style","display: none;");\
+	$(this).parent().children("input").val(0);\
+    });\
+\
+    //Enabling tool tip for newly added row\
+    $(".tooltip-on").tooltip();\
+}\
+\
+$(document).ready(function() {\
+    $(\'input[type="text"], input[type="password"]\').on("input" , function(){\
+        $("#modal-no-change").fadeOut(300);\
+        $("#modal-changes").delay(350).fadeIn(300);\
+    });\
+    $("select, .switch").on("change", function(){\
+        $("#modal-no-change").fadeOut(300);\
+        $("#modal-changes").delay(350).fadeIn(300);\
+    });\
+    $(".btn-table-addrow").on("click", function(){\
+	addNewRow();\
+        $("#modal-no-change").fadeOut(300);\
+        $("#modal-changes").delay(350).fadeIn(300);\
+    });\
+    $(".btn-table-dlt").on("click", function(){\
+	$(this).parent().parent().attr("style","display: none;");\
+	$(this).parent().children("input").val(1);\
+        $("#modal-no-change").fadeOut(300);\
+        $("#modal-changes").delay(350).fadeIn(300);\
+    });\
+    $(".btn-table-cncl").on("click", function(){\
+	$(this).parent().parent().attr("style","display: none;");\
+	$(this).parent().children("input").val(0);\
+        $("#modal-no-change").fadeOut(300);\
+        $("#modal-changes").delay(350).fadeIn(300);\
+    });\
+    $(document).off("change")\
+});\
+\
+$(function(){\
+    $("#sipProfileTable tbody tr").each (function() {\
+      var regstate_column = 7, callstate_column = 8;\
+      //Toolbox for column Registered\
+      var reg = $(this).find("td").eq(regstate_column).find("div");\
+      var reg_class = reg.attr("class");\
+      var reg_hint = "Unregistered";\
+      if (reg_class == "light green") {\
+        reg_hint = "Registered";\
+      }\
+      else if (reg_class == "light orange") {\
+        reg_hint = "Registering";\
+      }\
+      reg.attr({"class": "someInfos " + reg_class, "rel": "tooltip", "data-placement": "top", "data-original-title": reg_hint});\
+\
+      //Toolbox for column State\
+      var call = $(this).find("td").eq(callstate_column).find("div");\
+      var call_class = call.attr("class");\
+      var call_hint = "Can\'t be used";\
+      if (call_class == "light green") {\
+        call_hint = "Can be used";\
+      }\
+      call.attr({"class": "someInfos " + call_class,"rel": "tooltip", "data-placement": "top", "data-original-title": call_hint});\
+    })\
+    $(".someInfos").tooltip();\
+});\
+</script>\
+\
+'); ngx.print ( ui_helper.createFooter() )

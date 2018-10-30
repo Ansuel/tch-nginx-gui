@@ -518,7 +518,7 @@ if sfp_presence and  (sfp_presence[1].value == "1") then
 end
 
 local ethports = {
-    {"eth0", "eth0"},
+    {"eth0", T"Port" .. " 1"},
 }
 
 -- Generic solution for boards without eth1/2/3
@@ -527,9 +527,10 @@ for i = 1, 3 do
     local ethport = "eth" .. i
     local path = "uci.ethernet.port.@" .. ethport .. "."
     local v = proxy.get(path .. "duplex")
+	local portname = T"Port" .. " " .. i
     if v ~= nil then
         ethport_count = ethport_count + 1
-        table.insert(ethports, {ethport, ethport})
+        table.insert(ethports, {ethport, portname})
         mapParams[ethport] = path .. "enable"
     end
 end

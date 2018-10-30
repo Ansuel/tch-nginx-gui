@@ -984,6 +984,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
           id = "updating-msg"
         }
       }
+	  html[#html + 1] = '<span id="GUI-upgrade-option">'
 	  html[#html + 1] = ui_helper.createAlertBlock(T"This upgrade the GUI to the latest available version on the site", info_box)
 	  html[#html + 1] = ui_helper.createInputSelect(T"Update Branch", "update_branch", update_branch_option, update_content["update_branch"])
 	  
@@ -999,6 +1000,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 			html[#html + 1] = ui_helper.createButton(T"Upgrade Gui", T"Force Upgrade", "icon-refresh", upgrade_gui)
 		end
 	  end
+	  html[#html + 1] = '</span>'
 	  
 	  html[#html + 1] = '</form><form class="form-horizontal" id="form-import-gui" method="post" action="modals/gateway-modal.lp?action=upgradeguifile" enctype="multipart/form-data">'
 	  html[#html + 1] = '<div id="offline-upgrade-gui-div" class="control-group">'
@@ -1094,9 +1096,11 @@ ngx.print('\
 	$(".modal").css("pointer-events", "none");\
     $("#btn-upgrade-gui").addClass("hide");\
 	$("#offline-upgrade-gui-div").addClass("hide");\
-    resetreboot($("#updating-msg"), $(this), "system_upgrade_gui");\
+	$("#GUI-upgrade-option").addClass("hide");\
 	$("#upgrade-gui-bar").removeClass("hide");\
+	$("#upgrade-gui-bar")[0].scrollIntoView();\
 	$(".bar").css("width", valeur+"%").attr("aria-valuenow", valeur);\
+    resetreboot($("#updating-msg"), $(this), "system_upgrade_gui");\
     wait_for_webserver_down();\
   });\
 \

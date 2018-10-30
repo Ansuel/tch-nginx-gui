@@ -16,9 +16,6 @@ local tabdata = dyntab_helper.process(imh)
 local mode_current = tabdata.current.name
 local mode_options = tabdata.options
 
-local bridgemode = require("bridgedmode_helper")
-local voicemode = require("voicemode_helper")
-
 local session = ngx.ctx.session
 local tech = false
 if session:getrole() == "engineer" then

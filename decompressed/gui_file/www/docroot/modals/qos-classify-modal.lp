@@ -1,4 +1,4 @@
-<%
+--pretranslated: do not change this file
 ----------------------------------------------------------------------------------
 -- Enable localization
 ----------------------------------------------------------------------------------
@@ -162,27 +162,34 @@ local options_proto = {
 
 local options_dscp = {
     {"", ""},
-    {"AF11", "AF11"},
-    {"AF12", "AF12"},
-    {"AF13", "AF13"},
-    {"AF21", "AF21"},
-    {"AF22", "AF22"},
-    {"AF23", "AF23"},
-    {"AF31", "AF31"},
-    {"AF32", "AF32"},
-    {"AF33", "AF33"},
-    {"AF41", "AF41"},
-    {"AF42", "AF42"},
-    {"AF43", "AF43"},
-    {"CS1", "CS1"},
-    {"CS2", "CS2"},
-    {"CS3", "CS3"},
-    {"CS4", "CS4"},
-    {"CS5", "CS5"},
-    {"CS6", "CS6"},
-    {"CS7", "CS7"},
-    {"EF", "EF"},
+    {"0x08", "CS1"},--8
+    {"0x0A", "AF11"},--10
+    {"0x0C", "AF12"},--12
+    {"0x0E", "AF13"},--14
+    {"0x10", "CS2"},--16
+    {"0x12", "AF21"},--18
+    {"0x14", "AF22"},--20
+    {"0x16", "AF23"},--22
+    {"0x18", "CS3"},--24
+    {"0x1A", "AF31"},--26
+    {"0x1C", "AF32"},--28
+    {"0x1E", "AF33"},--30
+    {"0x20", "CS4"},--32
+    {"0x22", "AF41"},--34
+    {"0x24", "AF42"},--36
+    {"0x26", "AF43"},--38
+    {"0x28", "CS5"},--40
+	{"0x2C", "VOICE-ADMIT"},--44
+    {"0x2E", "EF"}, --46
+    {"0x30", "CS6"},--48
+    {"0x38", "CS7"}, ----56
 }
+
+local dscp_helper = {}
+
+for _ , value in pairs(options_dscp) do
+	dscp_helper[value[1]]=value[2]
+end
 
 local classify_columns = {
     {
@@ -322,18 +329,24 @@ local classify_data, classify_helpMsg = post_helper.handleTableQuery(classify_co
 -- TODO:This is workaround solution to make GUI show normally.
 -- parameter DSCP changed from option to list,type should be changed to checkboxgroup,the GUI didn't show suitably.Need to improve the solution.
 for _,v in ipairs(classify_data) do
+	--print(v[8])
     if type(v[8]) == "table" then
-        table.concat(v[8], ",")
+		local tmp = {}
+		for _ , value in pairs(v[8]) do
+			if not ( value == "" ) then
+				tmp[#tmp+1] = dscp_helper[value]
+			end
+		end
+        v[8] = table.concat(tmp, ",")
     end
 end
 
 classify_columns[8].type = "select"
-%>
 
-<%= ui_helper.createHeader(T"QoS", false, true) %>
-
-<div class="modal-body update">
-    <%
+ngx.print( ui_helper.createHeader(T"QoS", false, true) ); ngx.print('\
+\
+<div class="modal-body update">\
+')
         local tabs = {
             {
                 desc = T"Queue",
@@ -346,70 +359,77 @@ classify_columns[8].type = "select"
             },
         }
         ngx.print(ui_helper.createModalTabs(tabs))
-    %>
-    <form class="form-horizontal" method="post" action="modals/qos-classify-modal.lp">
-        <fieldset>
-            <legend><%= T"QoS Label Table" %></legend>
-            <%= ui_helper.createTable(label_columns, label_data, label_options, nil, label_helpMsg) %>
-        </fieldset>
-        <fieldset>
-            <legend><%= T"QoS Classification Table" %></legend>
-            <%= ui_helper.createTable(classify_columns, classify_data, classify_options, nil, classify_helpMsg) %>
-        </fieldset>
-    </form>
-</div>
-
-<%= ui_helper.createFooter() %>
-
-<script type="text/javascript">
-    // Columns are ZERO indexed (make sure they match up with values above)
-    var column_label_target = 0;
-    var column_srcip = 1, column_dstip = 2;
-    var column_proto = 3;
-    var column_port = 4, column_srcport = 5, column_dstport = 6;
-
-    function findControlBox (index, type) {
-        return $("tr").last().children("td").eq(index).find(type);
-    }
-
-    function disableControlBox (obj) {
-        obj.val("").attr ("disabled", "disabled");
-    }
-
-    function enableControlBox (obj) {
-        obj.val("").removeAttr ("disabled");
-    }
-
-    // Retrieve control box information
-    var target_obj = findControlBox (column_label_target, "select");
-    var proto_obj = findControlBox (column_proto, "select");
-    var port_obj = findControlBox (column_port, "input");
-    var srcport_obj = findControlBox (column_srcport, "input");
-    var dstport_obj = findControlBox (column_dstport, "input");
-
-    function handle_port (proto) {
-        if (proto == "tcp" || proto == "udp")
-        {
-            enableControlBox (port_obj);
-            enableControlBox (srcport_obj);
-            enableControlBox (dstport_obj);
-        }
-        else
-        {
-            disableControlBox (port_obj);
-            disableControlBox (srcport_obj);
-            disableControlBox (dstport_obj);
-        }
-    };
-
-    $(document).ready(function () {
-        var proto = proto_obj.val();
-        handle_port(proto);
-    });
-
-    // Value change handler of protocol (*** ADD MORE ITEMS AS SUPPORTED ***)
-    proto_obj.change (function() {
-        var value = $(this).val();
-        handle_port(value);
-    });
-</script>
+    ngx.print('\
+    <form class="form-horizontal" method="post" action="modals/qos-classify-modal.lp">\
+	')
+		local html = {}
+		
+        html[#html+1] = "<fieldset>"
+        html[#html+1] =     "<legend>"..T"QoS Label Table".."</legend>"
+        html[#html+1] =     ui_helper.createTable(label_columns, label_data, label_options, nil, label_helpMsg)
+        html[#html+1] = "</fieldset>"
+        html[#html+1] = "<fieldset>"
+        html[#html+1] =	    "<legend>"..T"QoS Classification Table".."</legend>"
+        html[#html+1] =     ui_helper.createTable(classify_columns, classify_data, classify_options, nil, classify_helpMsg)
+        html[#html+1] = "</fieldset>"
+		
+		ngx.print(html)
+		
+		ngx.print('\
+    </form>\
+</div>\
+\
+<script type="text/javascript">\
+    // Columns are ZERO indexed (make sure they match up with values above)\
+    var column_label_target = 0;\
+    var column_srcip = 1, column_dstip = 2;\
+    var column_proto = 3;\
+    var column_port = 4, column_srcport = 5, column_dstport = 6;\
+\
+    function findControlBox (index, type) {\
+        return $("tr").last().children("td").eq(index).find(type);\
+    }\
+\
+    function disableControlBox (obj) {\
+        obj.val("").attr ("disabled", "disabled");\
+    }\
+\
+    function enableControlBox (obj) {\
+        obj.val("").removeAttr ("disabled");\
+    }\
+\
+    // Retrieve control box information\
+    var target_obj = findControlBox (column_label_target, "select");\
+    var proto_obj = findControlBox (column_proto, "select");\
+    var port_obj = findControlBox (column_port, "input");\
+    var srcport_obj = findControlBox (column_srcport, "input");\
+    var dstport_obj = findControlBox (column_dstport, "input");\
+\
+    function handle_port (proto) {\
+        if (proto == "tcp" || proto == "udp")\
+        {\
+            enableControlBox (port_obj);\
+            enableControlBox (srcport_obj);\
+            enableControlBox (dstport_obj);\
+        }\
+        else\
+        {\
+            disableControlBox (port_obj);\
+            disableControlBox (srcport_obj);\
+            disableControlBox (dstport_obj);\
+        }\
+    };\
+\
+    $(document).ready(function () {\
+        var proto = proto_obj.val();\
+        handle_port(proto);\
+    });\
+\
+    // Value change handler of protocol (*** ADD MORE ITEMS AS SUPPORTED ***)\
+    proto_obj.change (function() {\
+        var value = $(this).val();\
+        handle_port(value);\
+    });\
+</script>\
+')
+ngx.print( ui_helper.createFooter() )
