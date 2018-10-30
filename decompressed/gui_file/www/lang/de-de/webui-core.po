@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: webui-core\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-06-21 15:33+0200\n"
-"PO-Revision-Date: 2018-07-07 00:34+0200\n"
+"PO-Revision-Date: 2018-10-26 12:26+0200\n"
 "Last-Translator: Dr. Uwe Meyer-Gruhl\n"
 "Language-Team: none\n"
 "Language: de\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language-Name: Deutsch\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.0.8\n"
+"X-Generator: Poedit 2.2\n"
 
 msgid " (or "
 msgstr " (oder "
@@ -398,61 +398,61 @@ msgid "Active Version"
 msgstr "Aktive Version"
 
 msgid "Add New DNS"
-msgstr "Hinzufügen neuer DNS"
+msgstr "Neuen DNS hinzufügen"
 
 msgid "Add New Rule"
-msgstr "Hinzufügen neue Regel"
+msgstr "Neue Regel hinzufügen"
 
 msgid "Add new IPv4 Ping WhiteList rule"
-msgstr "Hinzufügen neue IPv4 Ping WhiteList Regel"
+msgstr "Neue IPv4 Ping WhiteList Regel hinzufügen"
 
 msgid "Add new IPv4 firewall rule"
-msgstr "Hinzufügen neue IPv4 Firewall Regel"
+msgstr "Neue IPv4 Firewall Regel hinzufügen"
 
 msgid "Add new IPv4 port mapping"
-msgstr "Hinzufügen neue IPv4 Portweiterleitung"
+msgstr "Neue IPv4 Portweiterleitung hinzufügen"
 
 msgid "Add new IPv6 Ping WhiteList rule"
-msgstr "Hinzufügen neue IPv6 Ping WhiteList Regel"
+msgstr "Neue IPv6 Ping WhiteList Regel hinzufügen"
 
 msgid "Add new IPv6 firewall rule"
-msgstr "Hinzufügen neue IPv6 Firewall Regel"
+msgstr "Neue IPv6 Firewall Regel hinzufügen"
 
 msgid "Add new IPv6 forwarding rule"
-msgstr "Hinzufügen neue IPv4 Portweiterleitung"
+msgstr "Neue IPv4 Portweiterleitung hinzufügen"
 
 msgid "Add new MAC address"
-msgstr "Hinzufügen neue MAC-Adresse"
+msgstr "Neue MAC-Adresse hinzufügen"
 
 msgid "Add new NTP server"
-msgstr "Hinzufügen neuer NTP Server"
+msgstr "Neuen NTP Server hinzufügen"
 
 msgid "Add new Syslog Filter"
-msgstr "Hinzufügen neuer Syslog Filter"
+msgstr "Neuer Syslog-Filter hinzufügen"
 
 msgid "Add new bridge"
-msgstr "Hinzufügen neue Brücke"
+msgstr "Neue Bridge hinzufügen"
 
 msgid "Add new dns rule"
-msgstr "Hinzufügen neue DNS Regel"
+msgstr "Neue DNS Regel hinzufügen"
 
 msgid "Add new host rule"
-msgstr "Hinzufügen neue Host-Regel"
+msgstr "Neue Host-Regel hinzufügen"
 
 msgid "Add new policy"
-msgstr "Hinzufügen neue Verhaltensregel"
+msgstr "Neue Verhaltensregel hinzufügen"
 
 msgid "Add new rule"
-msgstr "Hinzufügen neue Regel"
+msgstr "Neue Regel hinzufügen"
 
 msgid "Add new static IPv4 route"
-msgstr "Hinzufügen neue statische IPv4 Route"
+msgstr "Neue statische IPv4 Route hinzufügen"
 
 msgid "Add new static lease"
-msgstr "Hinzufügen neues statisches Lease"
+msgstr "Neuen statisches Lease hinzufügen"
 
 msgid "Add new user"
-msgstr "Hinzufügen neuer Benutzer"
+msgstr "Neuer Benutzer anlegen"
 
 msgid "Admin"
 msgstr "Administration"
@@ -892,10 +892,10 @@ msgid "DHCP connection"
 msgstr "DHCP Verbindung"
 
 msgid "DHCP disabled"
-msgstr "DHCP abgeschaltet"
+msgstr "DHCP deaktiviert"
 
 msgid "DHCP enabled"
-msgstr "DHCP eingeschaltet"
+msgstr "DHCP aktiviert"
 
 msgid "DHCP on"
 msgstr "DHCP ein"
@@ -910,10 +910,10 @@ msgid "DMZ blocked"
 msgstr "DMZ gesperrt"
 
 msgid "DMZ disabled"
-msgstr "DMZ abgeschaltet"
+msgstr "DMZ deaktiviert"
 
 msgid "DMZ enabled"
-msgstr "DMZ eingeschaltet"
+msgstr "DMZ aktiviert"
 
 msgid "DNS"
 msgstr "DNS"
@@ -1279,7 +1279,7 @@ msgid "Enable Syslog"
 msgstr "Syslog einschalten"
 
 msgid "Enabled"
-msgstr "Eingeschaltet"
+msgstr "Aktiviert"
 
 msgid "Encapsulation"
 msgstr "Verkapselung"
@@ -1495,7 +1495,7 @@ msgid "Flow Cache Option"
 msgstr "Flow Cache Option"
 
 msgid "Force Upgrade"
-msgstr "Erzwinge Aktualisierung"
+msgstr "Upgrade erzwingen"
 
 msgid "Forgot Login Password"
 msgstr "Anmeldekennwort vergessen"
@@ -2448,7 +2448,7 @@ msgid "PPP connection"
 msgstr "PPP Verbindung"
 
 msgid "PPP disabled"
-msgstr "PPP abgeschaltet"
+msgstr "PPP deaktiviert"
 
 msgid "PPP disconnected"
 msgstr "PPP getrennt"
@@ -2521,7 +2521,7 @@ msgid "Password:"
 msgstr "Kennwort:"
 
 msgid "Passwords do not match"
-msgstr "Kennworte stimmen nicht überein"
+msgstr "Kennwörter stimmen nicht überein"
 
 msgid "Periodic Inform"
 msgstr "Periodische Meldung"
@@ -2581,7 +2581,7 @@ msgid "Please wait %s seconds to enter new password"
 msgstr "Bitte warten Sie %s Sekunden, bevor Sie ein neues Passwort eingeben"
 
 msgid "Please wait..."
-msgstr "Bitte warten..."
+msgstr "Bitte warten…"
 
 msgid "Policy"
 msgstr "Verhaltensregel"
@@ -2750,10 +2750,10 @@ msgid "Ref"
 msgstr "Ref"
 
 msgid "Refresh"
-msgstr "Neuladen"
+msgstr "Aktualisieren"
 
 msgid "Refresh List"
-msgstr "Neuladen Liste"
+msgstr "Liste aktualisieren"
 
 msgid "Region"
 msgstr "Region"
@@ -2783,7 +2783,7 @@ msgid "Remove Luci"
 msgstr "Entferne Luci"
 
 msgid "Remove Root"
-msgstr "Entferne Root"
+msgstr "Root entfernen"
 
 msgid "Remove Transmission"
 msgstr "Entferne Transmission"
@@ -2792,10 +2792,10 @@ msgid "Remove XUPnP"
 msgstr "Entferne XUPnP"
 
 msgid "Repeat Password"
-msgstr "Wiederhole Kennwort"
+msgstr "Kennwort wiederholen"
 
 msgid "Repeat new password"
-msgstr "Wiederhole neues Kennwort"
+msgstr "Neues Kennwort wiederholen"
 
 msgid "Requested"
 msgstr "Angefordert"
@@ -2808,10 +2808,10 @@ msgid "Reset"
 msgstr "Zurücksetzen"
 
 msgid "Reset Configuration"
-msgstr "Zurücksetzen der Konfiguration"
+msgstr "Konfiguration zurücksetzen"
 
 msgid "Reset Password"
-msgstr "Zurücksetzen des Kennworts"
+msgstr "Kennwort zurücksetzen"
 
 msgid "Reset Stats"
 msgstr "Statistik zurücksetzen"
@@ -2820,28 +2820,28 @@ msgid "Reset to Factory"
 msgstr "Werkseinstellungen wiederherstellen"
 
 msgid "Reset to default"
-msgstr "Zurücksetzen auf Standardwerte"
+msgstr "Standardwerte wiederherstellen"
 
 msgid "Resetting"
 msgstr "Zurücksetzen"
 
 msgid "Resetting to factory defaults, please wait..."
-msgstr "Zurücksetzen auf Standardwerte, bitte warten..."
+msgstr "Zurücksetzen auf Standardwerte, bitte warten…"
 
 msgid "Resetting..."
-msgstr "Zurücksetzen..."
+msgstr "Zurücksetzen…"
 
 msgid "Restart"
 msgstr "Neustart"
 
 msgid "Restart Device"
-msgstr "Neustart Gerät"
+msgstr "Gerät neustarten"
 
 msgid "Restart all Tests"
-msgstr "Neustart aller Tests"
+msgstr "Alle Tests neustarten"
 
 msgid "Restarting, please wait..."
-msgstr "Neustarten, bitte warten..."
+msgstr "Neustarten, bitte warten…"
 
 msgid "Restore"
 msgstr "Wiederherstellen"
@@ -2850,7 +2850,7 @@ msgid "Restore Default Configuration"
 msgstr "Werkseinstellungen wiederherstellen"
 
 msgid "Restore Gui"
-msgstr "Wiederherstellen GUI"
+msgstr "GUI wiederherstellen"
 
 msgid "Retransmissions"
 msgstr "Neuübertragungen"
@@ -2919,10 +2919,10 @@ msgid "SSH Access"
 msgstr "SSH Zugang"
 
 msgid "SSH Disabled"
-msgstr "SSH abgeschaltet"
+msgstr "SSH deaktiviert"
 
 msgid "SSH Enabled"
-msgstr "SSH eingeschaltet"
+msgstr "SSH aktiviert"
 
 msgid "SSID"
 msgstr "SSID"
@@ -2966,7 +2966,7 @@ msgid "Selection"
 msgstr "Auswahl"
 
 msgid "Send Ping Request"
-msgstr "Senden Ping-Anforderung"
+msgstr "Ping-Anforderung senden"
 
 msgid "Seq"
 msgstr "Seq"
@@ -3137,7 +3137,7 @@ msgid "SwitchBank"
 msgstr "SwitchBank"
 
 msgid "Switching bank, please wait..."
-msgstr "Umschalten der Bank, bitte warten..."
+msgstr "Umschalten der Bank, bitte warten…"
 
 msgid ""
 "Switching to <strong>Bridged Mode</strong> and restarting, please wait..."
@@ -3161,10 +3161,10 @@ msgid "Symbol Rate"
 msgstr "Symbolrate"
 
 msgid "Syslog Disabled"
-msgstr "Syslog abgeschaltet"
+msgstr "Syslog deaktiviert"
 
 msgid "Syslog Enabled"
-msgstr "Syslog eingeschaltet"
+msgstr "Syslog aktiv"
 
 msgid "Syslog filters"
 msgstr "Syslog Filter"
@@ -3203,10 +3203,10 @@ msgid "Telnet Access"
 msgstr "Telnet Zugriff"
 
 msgid "Telnet Disabled"
-msgstr "Telnet abgeschaltet"
+msgstr "Telnet deaktivert"
 
 msgid "Telnet Enabled"
-msgstr "Telnet eingeschaltet"
+msgstr "Telnet aktiviert"
 
 msgid "Temporary"
 msgstr "Temporär"
@@ -3604,16 +3604,16 @@ msgid "Upgrade firmware"
 msgstr "Aktualisiere Firmware"
 
 msgid "Upgrade in progress..."
-msgstr "Aktualisierung im Gang..."
+msgstr "Aktualisierung im Gang…"
 
 msgid "Upgrading..."
-msgstr "Aktualisiere..."
+msgstr "Aktualisiere…"
 
 msgid "Uploading file. Please wait..."
-msgstr "Datei wird hochgeladen. Bitte warten..."
+msgstr "Datei wird hochgeladen. Bitte warten…"
 
 msgid "Uploading firmware, please wait..."
-msgstr "Firmware wird hochgeladen. Bitte warten..."
+msgstr "Firmware wird hochgeladen. Bitte warten…"
 
 msgid "Upstream Bonded Channels"
 msgstr "Upstream Bonded Channels"
@@ -3694,10 +3694,10 @@ msgid "VLAN ID"
 msgstr "VLAN ID"
 
 msgid "VLAN disabled"
-msgstr "VLAN abgeschaltet"
+msgstr "VLAN deaktiviert"
 
 msgid "VLAN enabled"
-msgstr "VLAN eingeschaltet"
+msgstr "VLAN aktiviert"
 
 msgid "VLAN not connected"
 msgstr "VLAN nicht verbunden"
@@ -3742,7 +3742,7 @@ msgid "WAN Available"
 msgstr "WAN verfügbar"
 
 msgid "WAN Enable"
-msgstr "WAN eingeschaltet"
+msgstr "WAN aktiviert"
 
 msgid "WAN Graph"
 msgstr "WAN Grafik"
