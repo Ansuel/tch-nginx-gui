@@ -99,6 +99,7 @@ local sipnet_columns = {
         name = "primaryProxy",
         param = "primary_proxy",
         type = "text",
+        default = "0.0.0.0",
         attr = { input = { class="span2" } },
     },
     {

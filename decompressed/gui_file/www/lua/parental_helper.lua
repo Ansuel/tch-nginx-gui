@@ -300,8 +300,8 @@ function M.getTodwifi()
   
   for i,v in ipairs(proxy.getPN("rpc.wireless.ap.", true)) do
 	local radio = string.match(v.path, "rpc%.wireless%.ap%.@([^%.]+)%.")
-	local ssid = proxy.get("rpc.wireless.ap.@"..radio..".ssid")[1].value
-	local name = proxy.get("rpc.wireless.ssid.@"..ssid..".ssid")[1].value
+	local ssid = proxy.get("rpc.wireless.ap.@"..radio..".ssid") and proxy.get("rpc.wireless.ap.@"..radio..".ssid")[1].value
+	local name = proxy.get("rpc.wireless.ssid.@"..ssid..".ssid") and proxy.get("rpc.wireless.ssid.@"..ssid..".ssid")[1].value
 	wifi_list[#wifi_list+1] = { radio , name }
   end
   

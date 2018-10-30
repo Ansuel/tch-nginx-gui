@@ -87,8 +87,8 @@ M.process = function(conf)
 
     if ngx.var.request_method == "POST" then
         content = ngx.req.get_post_args()
-        local action = content["action"]
-        local newmode = content["newmode"]
+        local action = content and content["action"]
+        local newmode = content and content["newmode"]
 
         if action == "SWITCH_MODE" then
             if gVIES(mode_options)(newmode) then

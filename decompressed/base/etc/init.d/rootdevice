@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.9.21
+version_gui=8.9.29
 
 logo_project() {
 cat << EOF > /dev/console
@@ -113,12 +113,12 @@ remove_default_dns() {
 
 setup_network() {
 	#Set a pppoerelay empty interface if list is not present (UNO)
-	if [ ! $(uci show network.lan | grep "network.lan.pppoerelay") ]; then
+	if [ ! "$(uci show network.lan | grep "network.lan.pppoerelay")" ]; then
 		uci -q add_list network.lan.pppoerelay=''
 	fi
 	
 	#Set a waneth4 interface if not found (fix wizard on UNO)
-	if [ ! $(uci -q get network.waneth4) ]; then
+	if [ ! "$(uci -q get network.waneth4)" ]; then
 		uci -q add network device > /dev/null
 		uci -q rename network.@device[-1]=waneth4
 		uci -q set network.waneth4.enabled=1
@@ -126,12 +126,12 @@ setup_network() {
 		uci -q set network.waneth4.name=waneth4
 		uci -q set network.waneth4.vid=835
 	fi
-	if [ ! $(uci -q get network.waneth4.vid) ]; then
+	if [ ! "$(uci -q get network.waneth4.vid)" ]; then
 		uci -q set network.waneth4.vid=835
 	fi
-
+    
     #Set a wanptm0 interface if not found (fix wizard on UNO)
-    if [ ! $(uci -q get network.wanptm0) ]; then
+    if [ ! "$(uci -q get network.wanptm0)" ]; then
         uci -q add network device > /dev/null
         uci -q rename network.@device[-1]=wanptm0
         uci -q set network.wanptm0.enabled=1
@@ -139,12 +139,12 @@ setup_network() {
         uci -q set network.wanptm0.name=wanptm0
         uci -q set network.wanptm0.vid=835
     fi
-	if [ ! $(uci -q get network.wanptm0.vid) ]; then
+	if [ ! "$(uci -q get network.wanptm0.vid)" ]; then
 		uci -q set network.wanptm0.vid=835
 	fi
-
+    
 	#Set a SSH_wan firewall rule if not found (fix SSH Wan not working)
-	if [ ! $(uci -q get firewall.SSH_wan) ]; then
+	if [ ! "$(uci -q get firewall.SSH_wan)" ]; then
 		uci -q add firewall rule > /dev/null
 		uci -q rename firewall.@rule[-1]=SSH_wan
 		uci -q set firewall.SSH_wan.src=wan
@@ -156,7 +156,7 @@ setup_network() {
 	fi
 	
 	#Rename ppp interface to wan to fix problem with TG800 strange Telstra configuration
-	if [ ! $(uci -q get network.wan.proto) ] && [ "$(uci -q get network.ppp)" ]; then
+	if [ ! "$(uci -q get network.wan.proto)" ] && [ "$(uci -q get network.ppp)" ]; then
 		uci del network.wan
 		uci rename network.ppp=wan
 	fi
@@ -813,7 +813,7 @@ check_relay_dhcp() {
 }
 
 suppress_excessive_logging() {
-	if [ $(uci get -q igmpproxy.globals.trace) == "1" ]; then
+	if [ "$(uci get -q igmpproxy.globals.trace)" == "1" ]; then
 		uci set igmpproxy.globals.trace='0'
 	fi
 	/etc/init.d/mobiled restart #Restart this to actually disable it... (broken and shitt init.d)
@@ -821,7 +821,7 @@ suppress_excessive_logging() {
 	if [ ! $(uci get -q transformer.@main[0].log_level) ]; then #shutup no description warn
 		uci set transformer.@main[0].log_level='2'
 	fi
-	if [ ! $(uci get -q system.@system[0].cronloglevel) ] || [ $(uci get -q system.@system[0].cronloglevel) == '0' ]; then #resolve spamlog of trafficdata
+	if [ ! $(uci get -q system.@system[0].cronloglevel) ] || [ "$(uci get -q system.@system[0].cronloglevel)" == '0' ]; then #resolve spamlog of trafficdata
 		uci set system.@system[0].cronloglevel="5"
 		/etc/init.d/cron restart
 	fi
@@ -829,7 +829,7 @@ suppress_excessive_logging() {
 		uci set ledfw.syslog=syslog
 		uci set ledfw.syslog.trace='0'
 	fi
-	if [ $(uci get -q mmpbx.global.trace_level) == "2" ]; then
+	if [ "$(uci get -q mmpbx.global.trace_level)" == "2" ]; then
 		uci set mmpbx.global.trace_level='0'
 	fi
 }
@@ -1013,6 +1013,7 @@ clean_specific_file() {
 	rm /root/wgetfix-specificDGA.tar.bz2
 	rm /root/ledfw_support-specificTG799.tar.bz2
 	rm /root/ledfw_support-specificTG800.tar.bz2
+	rm /root/ledfw_support-specificDGA.tar.bz2
 }
 
 fcctlsettings_daemon() {

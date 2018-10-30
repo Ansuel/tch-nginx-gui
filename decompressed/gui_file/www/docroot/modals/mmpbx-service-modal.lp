@@ -227,6 +227,7 @@ local scc_columns = {
     { header = T"Deactivate", },
     { header = T"Deactivate & Erase", },
     { header = T"Interrogate", },
+	{ header = T"Invoke", },
 }
 
 local scc_options = {
@@ -245,6 +246,7 @@ local scns = {
     ["deactivate"] = 5,
     ["deactivate_erase"] = 6,
     ["interrogate"] = 7,
+	["invoke"] = 8,
 }
 -- for Service Code Command table
 local scc_data = {}
@@ -253,12 +255,49 @@ local l = 1
 local table_created = false
 local related_to = nil
 
+local function getSccEntry()
+    local pattern, type, action = nil, nil, nil
+    local index, path = 0, ""
+    local results = proxy.get("uci.mmpbx.scc_entry.")
+    if results then
+        for _,v in ipairs(results) do
+            if path == "" then
+              path = v.path
+            end
+            if not ( v.path == path ) then
+                if type and action and pattern then
+                    if not content_services[type] then
+                        content_services[type] = {}
+                    end
+                    content_services[type][action] = pattern
+                end
+                pattern, type, action  = nil, nil, nil
+                path = v.path
+            end
+            v.value = string.format("%s", v.value)
+            if v.param == "pattern" then
+                pattern = v.value
+            elseif v.param == "service_type" then
+                type = v.value
+            elseif v.param == "action" then
+                action = v.value
+            end
+        if type and action and pattern then
+            if not content_services[type] then
+                content_services[type] = {}
+            end
+            content_services[type][action] = pattern
+        end
+        end
+    end
+end
+
 local function createSortedServicesList()
     for k,v in pairsByKeys(content_services) do
-        if role ~= "admin" or k == "CALL_WAITING" or k == "WARMLINE"  then
+        --if role ~= "admin" or k == "CALL_WAITING" or k == "WARMLINE"  then
             table_created = false
             for _,w in ipairs(v) do
-                if w["provisioned"] == "1" then
+                --if w["provisioned"] == "1" then
                     related_to = nil
                     if w["profile"] then
                         related_to = "profile"
@@ -275,6 +314,7 @@ local function createSortedServicesList()
                         scc_data[l][scns["deactivate"]] = v["deactivate"] or ""
                         scc_data[l][scns["deactivate_erase"]] = v["deactivate_erase"] or ""
                         scc_data[l][scns["interrogate"]] = v["interrogate"] or ""
+						scc_data[l][scns["invoke"]] = v["invoke"] or ""
                         l = l + 1
                         service_name[#service_name + 1] = {k, k}
                         content_services_sorted[k] = {}
@@ -306,7 +346,7 @@ local function createSortedServicesList()
                             end
                         end
                     end
-                end
+                --end
             end
             if content_services_sorted[k] then
                 if related_to == "device" then
@@ -315,45 +355,7 @@ local function createSortedServicesList()
                     table.sort(content_services_sorted[k], sorting_profile_table)
                 end
             end
-        end
-    end
-end
-
-local function getSccEntry()
-    local pattern, type, action = nil, nil, nil
-    local index, path = 0, ""
-    local results = proxy.get("uci.mmpbx.scc_entry.")
-    if results then
-        for _,v in ipairs(results) do
-            if path == "" then
-                path = v.path
-            end
-
-            if not v.path:match(path) then
-                if type and action and pattern then
-                    if not content_services[type] then
-                        content_services[type] = {}
-                    end
-                    content_services[type][action] = pattern
-                end
-                pattern, type, action  = nil, nil, nil
-                path = v.path
-            end
-            v.value = string.format("%s", v.value)
-            if v.param == "pattern" then
-                pattern = v.value
-            elseif v.param == "service_type" then
-                type = v.value
-            elseif v.param == "action" then
-                action = v.value
-            end
-        end
-        if type and action and pattern then
-            if not content_services[type] then
-                content_services[type] = {}
-            end
-            content_services[type][action] = pattern
-        end
+        --end
     end
 end
 

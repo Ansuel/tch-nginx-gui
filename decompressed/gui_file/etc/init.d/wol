@@ -11,7 +11,6 @@ start_service() {
     local src_intf
     local src_dport
 	local dest_port
-    local dev
 
     . /lib/functions/network.sh
     config_load wol
@@ -22,21 +21,20 @@ start_service() {
 	config_get dest_port config dest_port 9
     config_get dest_intf config dest_intf "lan"
     config_get src_intf config src_intf "wan"
-    network_get_device dev $dest_intf
 
-    if [ -n "$dest_ip" -a -n "$dev" ]; then
+    if [ -n "$dest_ip" -a -n "$dest_intf" ]; then
         # Add route entry
-        ip route add ${dest_ip}/32 dev $dev
+        ip route add ${dest_ip}/32 dev $dest_intf
         # Add a static ARP spoofing entry
         local count="0"
         while [ $count -lt 20 ]; do
-            if [ -z $(ip neigh show to $dest_ip dev $dev | grep 'FAILED') ] ; then
+            if [ -z $(ip neigh show to $dest_ip dev $dest_intf | grep 'FAILED') ] ; then
               break
             fi
             sleep 1
             count=$(( $count + 1 ))
         done
-        ip neigh add $dest_ip lladdr ff:ff:ff:ff:ff:ff nud permanent dev $dev
+        ip neigh add $dest_ip lladdr ff:ff:ff:ff:ff:ff nud permanent dev $dest_intf
 		# Add port forwarding
 		uci set firewall.WakeOnWan=redirect
 		uci set firewall.WakeOnWan.family=ipv4
@@ -59,7 +57,6 @@ stop_service() {
     local dest_intf
     local src_intf
     local src_dport
-    local dev
 
     . /lib/functions/network.sh
     config_load wol
@@ -67,13 +64,12 @@ stop_service() {
     config_get src_dport config src_dport
     config_get dest_intf config dest_intf "lan"
     config_get src_intf config src_intf "wan"
-    network_get_device dev $dest_intf
 
     if [ -n "$dest_ip" -a -n "$dev" ]; then
         # Delete route entry
-        ip route del ${dest_ip}/32 dev $dev
+        ip route del ${dest_ip}/32 dev $dest_intf
         # Delete a static ARP spoofing entry
-        ip neigh del $dest_ip lladdr ff:ff:ff:ff:ff:ff nud permanent dev $dev
+        ip neigh del $dest_ip lladdr ff:ff:ff:ff:ff:ff nud permanent dev $dest_intf
 	# Delete port forwarding
 	if [ $(uci get -q firewall.WakeOnWan) ]; then
 		uci delete firewall.WakeOnWan
