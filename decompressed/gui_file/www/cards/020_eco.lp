@@ -16,9 +16,9 @@ local content = {
 content_helper.getExactContent(content)
 
 if content.eco_led == "1" then
-	content.eco_led_text = T"Eco Led Enabled"
+	content.eco_led_text = T"Eco LED enabled"
 else
-	content.eco_led_text = T"Eco Led Disabled"
+	content.eco_led_text = T"Eco LED disabled"
 end
 
 if content.cpuspeed == "256" then
@@ -28,9 +28,9 @@ else
 end
 
 if content.eee == "1" then
-	content.eee_text = T"Energy Efficent Ethernet Enabled"
+	content.eee_text = T"Energy Efficent Ethernet enabled"
 else
-	content.eee_text = T"Energy Efficent Ethernet Disabled"
+	content.eee_text = T"Energy Efficent Ethernet disabled"
 end
 
 local modalPath = nil
