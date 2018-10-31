@@ -49,9 +49,9 @@ local flowcache = proxy.get("uci.fcctlsettings.state.enabled") and proxy.get("uc
 local flowcache_status , dosprotect_status
 
 if dosprotect and dosprotect == "1" then
-    dosprotect_status = T"Dos Protect enabled"
+    dosprotect_status = T"DoS Protect enabled"
 else
-    dosprotect_status = T"Dos Protect disabled"
+    dosprotect_status = T"DoS Protect disabled"
 end
 
 if flowcache and flowcache == "1" then
