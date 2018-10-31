@@ -3,11 +3,12 @@
   <li>DGA4132</li>
   <li>DGA4130</li>
   <li>TG789vac v2</li>
-  <li>TG800vac</li>
   <li>TG799vac</li>
+  <li>TG800vac</li>
   </ul>
 with many fixes and new features like:
 <ul>
+<li><b>Quick glance statistics page.</b></li>
 <li>DLNA Fully working.</li>
 <li>Visualise CPU load.</li>
 <li>Show VoIP Password directly on the GUI.</li>
@@ -36,7 +37,7 @@ Some Topics to help you get root access:
 <li>DGA4132 TIM: https://www.ilpuntotecnico.com/forum/index.php/topic,78162.html</li>
 <li>789vac v2 TIM: https://www.ilpuntotecnico.com/forum/index.php/topic,77071.html</li>
 <li>789vac v2 Tiscali: https://www.ilpuntotecnico.com/forum/index.php/topic,77988.html</li>
-<li>799vac, 800vac and 797n v3 Any ISP: https://www.crc.id.au/hacking-the-technicolor-tg799vac-and-unlocking-features/
+<li>799vac, 800vac and 797n v3 Any ISP: https://www.crc.id.au/hacking-the-technicolor-tg799vac-and-unlocking-features/</li>
 </ul>
 General GUI Topic: https://www.ilpuntotecnico.com/forum/index.php/topic,78585.0.html
 
@@ -52,3 +53,8 @@ Preview:
 
 <p>If you would like to install LuCI on your modem, you can find the instructions and install script here: https://github.com/nutterpc/tg-luci
 <p> or use the Extensions card to install.
+  
+If you find a bug, please report it using GitHub's Issue feature making sure you attach a photo and the log (Run: logread).
+If you upload config files, please remove your personal details including your public IP.
+In the future there will be a button/command in the GUI to generate a debug file.
+
