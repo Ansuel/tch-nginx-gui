@@ -658,7 +658,7 @@ msgstr "Connessioni"
 msgid "Core Settings"
 msgstr "Configurazioni principali"
 
-msgid "Cpu Load"
+msgid "CPU Load"
 msgstr "Carico Cpu"
 
 msgid "Cpu Speed"
@@ -927,7 +927,7 @@ msgstr "Direzione:"
 msgid "Disable VN Mode"
 msgstr "Disabilita modalità VN"
 
-msgid "Disabled"
+msgid "disabled"
 msgstr "Disabilitato"
 
 msgid "Discard Packets"
@@ -968,11 +968,11 @@ msgstr ""
 msgid "Dos Protect Option"
 msgstr "Opzione Protezione Dos"
 
-msgid "Dos Protect disabled"
-msgstr "Prot. Dos disabilitata"
+msgid "DoS Protect disabled"
+msgstr "Prot. DoS disabilitata"
 
-msgid "Dos Protect enabled"
-msgstr "Prot. Dos abilitata"
+msgid "DoS Protect enabled"
+msgstr "Prot. DoS abilitata"
 
 msgid "Download"
 msgstr "Scarica"
@@ -989,10 +989,10 @@ msgstr "Versione Driver"
 msgid "Driver Version: <strong>%s</strong>"
 msgstr "Versione Driver: <strong>%s</strong>"
 
-msgid "Dslam Chipset"
+msgid "DSLAM Chipset"
 msgstr "Chipset DSLAM"
 
-msgid "Dslam Chipset: <strong>%s</strong>"
+msgid "DSLAM Chipset: <strong>%s</strong>"
 msgstr "Chipset DSLAM : <strong>%s</strong>"
 
 msgid "Dslam Firmware Version"
@@ -1040,11 +1040,11 @@ msgstr "ERRORE"
 msgid "Eco Led"
 msgstr "Eco Led"
 
-msgid "Eco Led Disabled"
-msgstr "Eco Led Disabilitato"
+msgid "Eco LED disabled"
+msgstr "Eco Led disabilitato"
 
-msgid "Eco Led Enabled"
-msgstr "Eco Led Abilitato"
+msgid "Eco LED Enabled"
+msgstr "Eco Led abilitato"
 
 msgid "Eco Settings"
 msgstr "Impostazioni Eco"
@@ -1064,11 +1064,11 @@ msgstr "Attivato"
 msgid "Encapsulation"
 msgstr "Incapsulamento"
 
-msgid "Energy Efficent Ethernet Disabled"
-msgstr "Ottimizzazione Energtica Ethernet Disabilitata"
+msgid "Energy Efficent Ethernet disabled"
+msgstr "Ottimizzazione Energtica Ethernet disabilitata"
 
-msgid "Energy Efficent Ethernet Enabled"
-msgstr "Ottimizzazione Energtica Ethernet Abilitata"
+msgid "Energy Efficent Ethernet enabled"
+msgstr "Ottimizzazione Energtica Ethernet abilitata"
 
 msgid "Engineer"
 msgstr "Ingegnere"
@@ -2713,11 +2713,11 @@ msgstr "Informazioni Telefonia"
 msgid "Telnet Access"
 msgstr "Accesso Telnet"
 
-msgid "Telnet Disabled"
-msgstr "Telnet Disabilitato"
+msgid "Telnet disabled"
+msgstr "Telnet disabilitato"
 
-msgid "Telnet Enabled"
-msgstr "Telnet Abilitato"
+msgid "Telnet enabled"
+msgstr "Telnet abilitato"
 
 msgid "Temporary"
 msgstr "Temporaneo"
@@ -3115,7 +3115,7 @@ msgstr "Gestione Utente"
 msgid "User Name"
 msgstr "Nome Utente"
 
-msgid "User management and log viewer"
+msgid "User Management and Log Viewer"
 msgstr "Gestione utente e visualizzazione log"
 
 msgid "User name cannot be empty"
@@ -3401,8 +3401,8 @@ msgstr "syslog Disabilitato"
 msgid "syslog Enabled"
 msgstr "syslog Abilitato"
 
-msgid "tcpdump"
-msgstr "tcpdump"
+msgid "TCPDump"
+msgstr "TCPDump"
 
 msgid "updated"
 msgstr "aggiornato"
@@ -3434,5 +3434,5 @@ msgstr "Informazioni xDSL"
 msgid "xDSL Version"
 msgstr "Versione xDSL"
 
-msgid "your gateway"
+msgid "Your Gateway"
 msgstr "Il tuo gateway"
