@@ -161,15 +161,11 @@ if StateParams["luci_webui"] ~= nil then
 	html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. luci_link .. '">' .. luci_link .. "</a>"
 	html[#html + 1] = "</br>"
 	html[#html + 1] = "</br>"
-	if prod_friendly_name[1].value:match("DGA413") then
-		if mapParams["luci_webui"] and mapParams["luci_webui"] == "1" then
-			html[#html + 1] = ui_helper.createSimpleButton(T"Remove Luci", "icon-refresh", remove_luci)
-		else
-			html[#html + 1] = ui_helper.createSimpleButton(T"Install Luci", "icon-refresh", install_luci)
-		end
-	else
-		html[#html + 1] = ui_helper.createAlertBlock(T"BROKEN WILL COME SOON. A custom library is needed", info_box)
-	end
+    if mapParams["luci_webui"] and mapParams["luci_webui"] == "1" then
+        html[#html + 1] = ui_helper.createSimpleButton(T"Remove Luci", "icon-refresh", remove_luci)
+    else
+        html[#html + 1] = ui_helper.createSimpleButton(T"Install Luci", "icon-refresh", install_luci)
+    end
 	html[#html + 1] = "</br>"
 	html[#html+1] = "</fieldset>"
 	html[#html+1] = "</div>"
