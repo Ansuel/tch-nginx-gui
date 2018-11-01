@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.9.41
+version_gui=8.9.45
 
 logo_project() {
 cat << EOF > /dev/console
@@ -1025,21 +1025,21 @@ apply_specific_DGA_package() {
 	fi
 }
 
-apply_specific_TG800_package {
+apply_specific_TG800_package() {
 	logger_command "Extracting telnet_support-specificDGA/TG800.tar.bz2 ..."
 	if [ -f /root/telnet_support-specificDGA.tar.bz2 ]; then
 		bzcat /root/telnet_support-specificDGA.tar.bz2 | tar -C / -xf -
 	fi
 }
 
-apply_specific_TG789_package {
+apply_specific_TG789_package() {
 	logger_command "Extracting telnet_support-specificTG789/tg799.tar.bz2 ..."
 	if [ -f /root/telnet_support-specificTG789.tar.bz2 ]; then
 		bzcat /root/telnet_support-specificTG789.tar.bz2 | tar -C / -xf -
 	fi
 }
 
-apply_specific_TG799_package {
+apply_specific_TG799_package() {
 	logger_command "Extracting telnet_support-specificTG789/tg799.tar.bz2 ..."
 	if [ -f /root/telnet_support-specificTG789.tar.bz2 ]; then
 		bzcat /root/telnet_support-specificTG789.tar.bz2 | tar -C / -xf -
@@ -1050,6 +1050,7 @@ clean_specific_file() {
 	rm /root/upnpfix-specificDGA.tar.bz2
 	rm /root/upgrade-pack-specificDGA.tar.bz2
 	rm /root/telnet_support-specificDGA.tar.bz2
+	rm /root/telnet_support-specificTG789.tar.bz2
 	rm /root/custom-ripdrv-specificDGA.tar.bz2
 	rm /root/dlnad_supprto-specificDGA.tar.bz2
 	rm /root/wgetfix-specificDGA.tar.bz2
