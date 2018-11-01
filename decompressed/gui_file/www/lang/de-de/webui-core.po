@@ -806,7 +806,7 @@ msgstr "Basiseinstellungen"
 msgid "Correctables"
 msgstr "Korrigierbare"
 
-msgid "Cpu Load"
+msgid "CPU Load"
 msgstr "Prozessorlast"
 
 msgid "Cpu Speed"
@@ -1121,7 +1121,7 @@ msgstr "Richtung:"
 msgid "Disable VN Mode"
 msgstr "Abschalten VN Modus"
 
-msgid "Disabled"
+msgid "disabled"
 msgstr "Abgeschaltet"
 
 msgid "Discard Packets"
@@ -1209,10 +1209,10 @@ msgstr "Treiberversion: </br><strong id=\"cwmpconfcard_acsurl\">%s</strong>"
 msgid "Driver Version: <strong>%s</strong>"
 msgstr "Treiber Version: <strong>%s</strong>"
 
-msgid "Dslam Chipset"
+msgid "DSLAM Chipset"
 msgstr "DSlam Chipsatz"
 
-msgid "Dslam Chipset: <strong>%s</strong>"
+msgid "DSLAM Chipset: <strong>%s</strong>"
 msgstr "DSlam Chipsatz: <strong>%s</strong>"
 
 msgid "Dslam Firmware Version"
@@ -3193,8 +3193,8 @@ msgstr "TCP/UDP"
 msgid "TTL"
 msgstr "TTL"
 
-msgid "Tcpdump"
-msgstr "Tcpdump"
+msgid "TCPDump"
+msgstr "TCPDump"
 
 msgid "Tcpdump Log:"
 msgstr "Tcpdump Protokoll:"
@@ -3202,10 +3202,10 @@ msgstr "Tcpdump Protokoll:"
 msgid "Telnet Access"
 msgstr "Telnet Zugriff"
 
-msgid "Telnet Disabled"
+msgid "Telnet disabled"
 msgstr "Telnet deaktivert"
 
-msgid "Telnet Enabled"
+msgid "Telnet enabled"
 msgstr "Telnet aktiviert"
 
 msgid "Temporary"
@@ -3660,7 +3660,7 @@ msgstr "Benutzerverwaltung"
 msgid "User Name"
 msgstr "Benutzername"
 
-msgid "User management and log viewer"
+msgid "User Management and Log Viewer"
 msgstr "Benutzerverwaltung und Protokollansicht"
 
 msgid "User name cannot be empty"
@@ -3998,8 +3998,8 @@ msgstr "syslog abgeschaltet"
 msgid "syslog Enabled"
 msgstr "syslog eingeschaltet"
 
-msgid "tcpdump"
-msgstr "tcpdump"
+msgid "TCPDump"
+msgstr "TCPDump"
 
 msgid "updated"
 msgstr "aktualisiert"
@@ -4034,5 +4034,5 @@ msgstr "xDSL eingeschaltet"
 msgid "xDSL Graphics"
 msgstr "xDSL Grafiken"
 
-msgid "your gateway"
+msgid "Your Gateway"
 msgstr "Ihr Gateway"

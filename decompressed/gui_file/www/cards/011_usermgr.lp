@@ -19,7 +19,7 @@ if session:hasAccess("/modals/usermgr-modal.lp") then
             <p class="subinfos">\
             <i " class="fas fa-user-alt" aria-hidden="true" href="#">&nbsp</i>\
 		<strong>\
-		   ');  ngx.print(T"User management and log viewer"); ngx.print('<br>\
+		   ');  ngx.print(T"User Management and Log Viewer"); ngx.print('<br>\
 		</strong>\
             </p>\
         </div>\

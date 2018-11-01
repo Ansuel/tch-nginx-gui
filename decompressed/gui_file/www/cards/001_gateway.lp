@@ -52,14 +52,14 @@ end
 	  <p>\
       <i class="fa fa-info" id="Gateway_=LED_Id"></i>\
       <strong id = "Version_Id">');  ngx.print(string.format(T"Version %s (%s)", name, version)); ngx.print('</strong></br>');
-	  ngx.print('<span class="subinfos">' ..  T"Cpu Load"..":" ); ngx.print('\
+	  ngx.print('<span class="subinfos">' ..  T"CPU Load"..":" ); ngx.print('\
 					<strong data-bind="text: cpuload">\
 					</strong></span>\
       <div data-remote="modals/gateway-modal.lp" data-id="gateway-modal">\
 	    <picture>\
 		    <source srcset="/img/gateway'); ngx.print(model); ngx.print('.webp" type="image/webp">\
 		    <source srcset="/img/gateway'); ngx.print(model); ngx.print('.png" type="image/png">\
-        <img class="someInfos" href="#" rel="tooltip" data-placement="top" data-original-title="');  ngx.print( T"your gateway" ); ngx.print('" src="/img/gateway'); ngx.print(model); ngx.print('.png" alt="gateway">\
+        <img class="someInfos" href="#" rel="tooltip" data-placement="top" data-original-title="');  ngx.print( T"Your Gateway" ); ngx.print('" src="/img/gateway'); ngx.print(model); ngx.print('.png" alt="gateway">\
 		</picture>\
 		</div>\
       </div>\

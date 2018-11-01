@@ -59,9 +59,9 @@ if session:hasAccess(modalPath) and lfs.attributes("/etc/config/xdsl", "mode") =
 				if not ( content.dslam_chipset == "" ) then
                 	html[#html+1] = format(T"Driver Version: <strong>%s</strong>", content.xdsl_version )
 					html[#html+1] = '</br>'
-					html[#html+1] = format(T"Dslam Chipset: <strong>%s</strong>", content.dslam_chipset )
+					html[#html+1] = format(T"DSLAM Chipset: <strong>%s</strong>", content.dslam_chipset )
 					html[#html+1] = '</br>'
-					html[#html+1] = format(T"Dslam Version: <strong>%s</strong>", content.dslam_version )
+					html[#html+1] = format(T"DSLAM Version: <strong>%s</strong>", content.dslam_version )
 				end
 				html[#html+1] = '</p>'
                 ngx.print(html)

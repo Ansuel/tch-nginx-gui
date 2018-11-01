@@ -38,10 +38,10 @@ msgstr "Informazioni stampante"
 msgid "Printer Sharing"
 msgstr "Condivisione Stampante"
 
-msgid "Printer sharing disabled"
+msgid "Printer Sharing disabled"
 msgstr "Condivisione stampante<br>disabilitata"
 
-msgid "Printer sharing enabled"
+msgid "Printer Sharing enabled"
 msgstr "Condivisione stampante<br>abilitata"
 
 msgid "Product Name"
