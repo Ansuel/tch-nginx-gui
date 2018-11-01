@@ -1,13 +1,20 @@
 
 echo "Fixing file..."
 
+nfile=0
+
 check_file_ending() {
 	for file in $1/*; do
 		if [ -d $file ]; then
 			check_file_ending $file
 		else
-			if [ -f $file ] && [ $( dos2unix -ic $file ) ]; then
-				dos2unix $file
+			if [ -f $file ]; then
+				nfile=$[$nfile +1]
+				echo -ne 'File scanned: '$nfile'\r'
+				if [ $( dos2unix -ic $file ) ]; then
+					dos2unix $file
+					echo "Detected bad line-ending here: $file"
+				fi
 			fi
 		fi
 	done
@@ -15,8 +22,7 @@ check_file_ending() {
 }
 
 check_file_ending decompressed
-#find decompressed/ -type f -print0 | xargs -0 -n 4 -P 4 dos2unix -q > /dev/null
-#find decompressed/gui_file/www/lua/ -type f -print0 | xargs -0 -n 4 -P 4 dos2unix -ic 
+echo ""
 echo "File fixed!"
 
 declare -a modular_dir=(
@@ -41,13 +47,26 @@ if [ "$1" == "dev" ]; then
 	type="_dev"
 fi
 
+mkdir tar_tmp
+
 for index in "${modular_dir[@]}"; do
-	echo "Creating modular package $index"
+	
+	if [ -f modular/$index.tar.bz2 ]; then
+		old_md5=$(md5sum modular/$index.tar.bz2 | awk '{print $1}')
+	fi
+	
 	cd decompressed/$index
-	BZIP2=-9 tar -cjf ../../compressed/$index.tar.bz2 * --owner=0 --group=0
+	BZIP2=-9 tar -cjf ../../tar_tmp/$index.tar.bz2 * --owner=0 --group=0
 	cd ../../
-	cp compressed/$index.tar.bz2 modular/
+	
+	new_md5=$(md5sum tar_tmp/$index.tar.bz2 | awk '{print $1}')
+	if [ -z "$old_md5" ] || [ "$old_md5" != "$new_md5" ]; then
+		echo "Changes detected in modular package $index, updating..."
+		cp tar_tmp/$index.tar.bz2 modular/
+	fi
 done
+
+rm -r tar_tmp
 
 echo "Creating GUI dir"
 
@@ -67,7 +86,7 @@ for index in "${modular_dir[@]}"; do
 		echo "Copying file from "$index" to GUI dir"
 		cp -dr decompressed/$index/* total 
 	else
-		cp compressed/$index.tar.bz2 total/root
+		cp modular/$index.tar.bz2 total/root
 		echo "Adding specific file from "$index" to root dir"
 	fi
 done
@@ -75,10 +94,19 @@ done
 cd total && BZIP2=-9 tar -cjf ../compressed/GUI$type.tar.bz2 * --owner=0 --group=0
 cd ../
 
-echo "Adding md5sum of new GUI to version file"
 md5sum=$(md5sum compressed/GUI$type.tar.bz2 | awk '{print $1}')
 version=$(cat total/etc/init.d/rootdevice | grep -m1 version_gui | cut -d'=' -f 2)
 version_file=$(cat compressed/version)
 if ! grep -w -q "$version" compressed/version ; then
+	echo "Adding md5sum of new GUI to version file"
+	echo "Version: "$version" Md5sum: "$md5sum
+	echo $md5sum $version >> compressed/version
+else
+	echo "Md5sum already present. Overwriting..."
+	old_version_md5=$(grep -w "$version" compressed/version | awk '{print $1}')
+	sed -i "/$version/d" compressed/version
+	echo "Adding md5sum of new GUI to version file"
+	echo "Version: "$version" Old_Md5sum: "$old_version_md5
+	echo "Version: "$version" Md5sum: "$md5sum
 	echo $md5sum $version >> compressed/version
 fi
