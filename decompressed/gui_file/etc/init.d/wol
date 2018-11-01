@@ -39,7 +39,8 @@ start_service() {
 		uci set firewall.WakeOnWan=redirect
 		uci set firewall.WakeOnWan.family=ipv4
 		uci set firewall.WakeOnWan.dest_ip=$dest_ip
-		uci set firewall.WakeOnWan.dest=$dest_intf
+		# Hardcode lan interface for lan packet
+		uci set firewall.WakeOnWan.dest=lan
 		uci set firewall.WakeOnWan.src=$src_intf
 		uci set firewall.WakeOnWan.target=DNAT
 		uci set firewall.WakeOnWan.src_dport=$src_dport
@@ -65,7 +66,7 @@ stop_service() {
     config_get dest_intf config dest_intf "lan"
     config_get src_intf config src_intf "wan"
 
-    if [ -n "$dest_ip" -a -n "$dev" ]; then
+    if [ -n "$dest_ip" -a -n "$dest_intf" ]; then
         # Delete route entry
         ip route del ${dest_ip}/32 dev $dest_intf
         # Delete a static ARP spoofing entry

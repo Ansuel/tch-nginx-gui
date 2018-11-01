@@ -261,7 +261,7 @@ else
 	ppp_status = ppp_status or "",
 	ppp_light = ppp_light or "" ,
 	ppp_state = ppp_state or "",
-	WAN_IP = WAN_IP or "",
+	WAN_IP = content_rpc["ipaddr"] or "",
 	ipv6_light = ipv6_light or "",
 	ipv6_state = ipv6_state or "",
 	status = content_rpc["up"],

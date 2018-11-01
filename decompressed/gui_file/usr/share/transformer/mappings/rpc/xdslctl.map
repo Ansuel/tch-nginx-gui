@@ -569,6 +569,9 @@ local function xdslctlDslamInfo(itype)
 		end
 		if line:match("ChipSet VersionNumber") and ( itype == "version" or itype == "version_raw" ) then
 			result = line:gsub(".*:%s+","")
+			if ( itype == "version_raw" ) then
+				break
+			end
 			if result:sub(0,2) == "0x" then
 				if chipset:match("BDCM") then
 					result = result:gsub("(.*)x","")

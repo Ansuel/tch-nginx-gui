@@ -1,7 +1,8 @@
---pretranslated: do not change this file
- 
 -- Enable localization
 gettext.textdomain('webui-core')
+
+local json = require("dkjson")
+local ngx = ngx
 
 local proxy = require("datamodel")
 local ui_helper = require("web.ui_helper")
@@ -119,48 +120,32 @@ table.sort(port_data, function (a, b)
     return a[1] < b[1]
 end)
 
-  ngx.print('\
-\
-<div class="infocard" id="infoporttab">\
-  <div class="smallcard">\
-    ');  ngx.print( ui_helper.createCardHeader(T"Ports", nil, nil, nil, nil) ); ngx.print('\
-    <div class="content card_bg" data-bg-text="&#xf362;">\
-	<div class="divtable">\
-	<form class="form-horizontal">\
-	<fieldset>');
-	
-	local html = {}
-	
-	html[#html + 1] = '<span data-bind="html: port_table">'
-	html[#html + 1] = ui_helper.createTable(port_columns, port_data, port_options, nil, nil)
-	html[#html + 1] = '</span>'
-	
-	ngx.print(html)
-ngx.print('\
-	  </fieldset>\
-	  </form>\
-	  </div>\
-    </div>\
-  </div>\
-</div>\
-<script>\
-var InfoPortCardInterval;\
-$(document).ready(function () {\
-	var InfoPortCardBinding = {\
-		port_table: ko.observable(),\
-	};\
-	function InfoPortCardRefresh() {\
-		$.post("/ajax/port_status.lua", [tch.elementCSRFtoken()], function(data) {\
-			if(data.port_table != undefined) {\
-				InfoPortCardBinding.port_table(data.port_table);\
-			}\
-		}, "json");\
-	};\
-\
-	InfoPortCardRefresh();\
-	ko.applyBindings(InfoPortCardBinding, document.getElementById("infoporttab"));\
-	InfoPortCardInterval = setInterval(InfoPortCardRefresh, 10000);\
-	KoRequest.push(InfoPortCardInterval);\
-})\
-</script>\
-'); 
+local port_table = ui_helper.createTable(port_columns, port_data, port_options, nil, nil)
+
+local port_string = {}
+
+local function concat_table(port_table) 
+	for _ , table_string in pairs(port_table) do
+		if type(table_string) == "table" then
+			concat_table(table_string)
+		elseif type(table_string) == "userdata" then
+			port_string[#port_string+1] = string.untaint(table_string)
+		else
+			port_string[#port_string+1] = table_string
+		end
+	end
+end
+
+concat_table(port_table)
+
+local data = {
+	port_table = table.concat(port_string) or ""
+}
+
+local buffer = {}
+if json.encode (data, { indent = false, buffer = buffer }) then
+	ngx.say(buffer)
+else
+	ngx.say("{}")
+end
+ngx.exit(ngx.HTTP_OK)

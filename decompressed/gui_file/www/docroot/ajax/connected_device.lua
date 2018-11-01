@@ -1,20 +1,12 @@
 -- Enable localization
-gettext.textdomain('webui-mobiled')
+gettext.textdomain('webui-core')
 
 local json = require("dkjson")
-local content_helper = require("web.content_helper")
 local ngx = ngx
 
-local proxy = require("datamodel")
-local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
-local post_helper = require("web.post_helper")
-local string, ngx, os = string, ngx, os
-local tonumber = tonumber
-local format, match = string.format, string.match
-local gOrV = post_helper.getOrValidation
-local vSIDN = post_helper.validateStringIsDomainName
-local pattern = "^Unknown%-%x%x:%x%x:%x%x:%x%x:%x%x:%x%x$"
+local content_helper = require("web.content_helper")
+local match = string.match
 
 local devices_columns = {
   {--[2]
@@ -22,37 +14,48 @@ local devices_columns = {
     name = "FriendlyName",
     param = "FriendlyName",
     type = "text",
-    attr = { input = { class="span2" } },
   },
   {--[3]
     header = T"IPv4",
     name = "ipv4",
     param = "IPAddress",
     type = "text",
-    readonly = true,
-    attr = { input = { class="span1" } },
   },
   {--[6]
     header = T"InterfaceType",
     name = "interfacetype",
     param = "InterfaceType",
-    type = "text",
-    readonly = true,
-    attr = { input = { class="span1" } },
+	type = "text",
   },
   {--[11]
     header = T"SSID",
     name = "ssid",
     param = "SSID",
     type = "text",
-    readonly = true,
-    attr = { input = { class="span2" } },
   },
 }
 
-local device_valid = {
-    FriendlyName = gOrV(vSIDN, validateUnknownHostname),
-}
+--Construct the device type based on value of L2Interface
+local devices_filter = function(data)
+
+  --Display only the IP Address of physically connected devices
+  if data["State"] and data["State"] == "0" then
+     return false
+  end
+
+  if match(data["L2Interface"], "^wl0") then
+    data["InterfaceType"] = "wireless - 2.4GHz"
+  elseif match(data["L2Interface"], "^wl1") then
+    data["InterfaceType"] = "wireless - 5GHz"
+  elseif match(data["L2Interface"], "eth*") then
+    data["InterfaceType"] = "Ethernet - " .. data.Port
+  elseif match(data["L2Interface"], "moca*") then
+    data["InterfaceType"] = "MoCA"
+  end
+
+  return true
+end
+
 local devices_options = {
     canEdit = false,
     canAdd = false,
@@ -61,48 +64,32 @@ local devices_options = {
     basepath = "rpc.hosts.host.",
 }
 
---Construct the device type based on value of L2Interface
-local devices_filter = function(data)
-  --Display only the IP Address of physically connected devices
-  if data["State"] and data["State"] == "0" then
-     data["IPAddress"] = ""
-  end
+local devices_data = content_helper.loadTableData(devices_options.basepath, devices_columns, devices_filter , nil)
 
-  if match(data["L2Interface"], "^wl0") then
-    data["InterfaceType"] = "wireless - 2.4GHz"
-  elseif match(data["L2Interface"], "^wl1") then
-    data["InterfaceType"] = "wireless - 5GHz"
-  elseif match(data["L2Interface"], "eth*") then
-    data["InterfaceType"] = "Ethernet"
-  elseif match(data["L2Interface"], "moca*") then
-    data["InterfaceType"] = "MoCA"
-  end
+local device_table = ui_helper.createTable(devices_columns, devices_data, devices_options, nil, nil)
 
-  --Display some default device type, when DeviceType entry is empty
-  if data["DeviceType"] == "" then
-    if match(data["L2Interface"], "eth*") then
-      data["DeviceType"] = "DesktopComputer"
-    elseif match(data["L2Interface"], "^wl*") then
-      data["DeviceType"] = "Phone"
-    else
-      data["DeviceType"] = "unknown"
-    end
-  end
-  return true
-end
+local device_string = {}
 
-local devices_data, devices_helpmsg = post_helper.handleTableQuery(devices_columns, devices_options, devices_filter , nil, device_valid)
-
-local connected_device = {}
-
-for k, v in pairs(devices_data) do
-	if proxy.get(format("rpc.hosts.host.%s.State",k))[1].value == "1" then
-		table.insert(connected_device,devices_data[k])
+local function concat_table(device_table) 
+	for _ , table_string in pairs(device_table) do
+		if type(table_string) == "table" then
+			concat_table(table_string)
+		elseif type(table_string) == "userdata" then
+			device_string[#device_string+1] = string.untaint(table_string)
+		else
+			device_string[#device_string+1] = table_string
+		end
 	end
 end
 
+concat_table(device_table)
+
+local data = {
+	device_table = table.concat(device_string) or ""
+}
+
 local buffer = {}
-if json.encode (connected_device, { indent = false, buffer = buffer }) then
+if json.encode (data, { indent = false, buffer = buffer }) then
 	ngx.say(buffer)
 else
 	ngx.say("{}")

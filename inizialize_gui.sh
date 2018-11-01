@@ -8,6 +8,7 @@ declare -a modular_dir=(
 	"gui_file"
 	"traffic_mon"
 	"telnet_support-specificDGA"
+	"telnet_support-specificTG789"
 	"upnpfix-specificDGA"
 	"upgrade-pack-specificDGA"
 	"custom-ripdrv-specificDGA"
@@ -33,32 +34,27 @@ for index in "${modular_dir[@]}"; do
 done
 
 echo "Creating GUI dir"
+
 if [ -d total ]; then
 	rm -r total
 fi
+
 mkdir total
-
-echo "Copying file to GUI dir"
-cp -dr decompressed/base/* total 
-cp -dr decompressed/gui_file/* total 
-cp -dr decompressed/traffic_mon/* total
-
-echo "Adding specific file to root dir"
 
 if [ ! -d total/root ]; then
 	mkdir total/root
 fi
 
-cp compressed/telnet_support-specificDGA.tar.bz2 total/root
-cp compressed/upnpfix-specificDGA.tar.bz2 total/root
-cp compressed/upgrade-pack-specificDGA.tar.bz2 total/root 
-cp compressed/custom-ripdrv-specificDGA.tar.bz2 total/root 
-cp compressed/dlnad_supprto-specificDGA.tar.bz2 total/root
-cp compressed/wgetfix-specificDGA.tar.bz2 total/root
-cp compressed/ledfw_support-specificTG799.tar.bz2 total/root
-cp compressed/ledfw_support-specificTG800.tar.bz2 total/root
-cp compressed/ledfw_support-specificDGA.tar.bz2 total/root
-cp compressed/telstra_gui.tar.bz2 total/root
+for index in "${modular_dir[@]}"; do
+	
+	if [ $index == "base" ] || [ $index == "gui_file" ] || [ $index == "traffic_mon" ]; then
+		echo "Copying file from "$index" to GUI dir"
+		cp -dr decompressed/$index/* total 
+	else
+		cp compressed/$index.tar.bz2 total/root
+		echo "Adding specific file from "$index" to root dir"
+	fi
+done
 
 cd total && BZIP2=-9 tar -cjf ../compressed/GUI$type.tar.bz2 * --owner=0 --group=0
 cd ../
