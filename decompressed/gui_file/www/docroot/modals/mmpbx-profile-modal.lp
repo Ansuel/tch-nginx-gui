@@ -459,7 +459,7 @@ end
 
 ngx.print( ui_helper.createHeader(T"Telephony", false, true) ); ngx.print('\
 \
-<div class="modal-body update">\
+<div class="modal-body update" id="mmpbx-profile-modal">\
   ');
   local lp = require("web.lp")
   lp.setpath("/www/snippets/")
@@ -540,7 +540,7 @@ $(document).ready(function() {\
         $("#modal-no-change").fadeOut(300);\
         $("#modal-changes").delay(350).fadeIn(300);\
     });\
-    $(document).off("change")\
+    $("#mmpbx-profile-modal").off("change")\
 });\
 \
 $(function(){\
