@@ -356,6 +356,13 @@ local pfw_columns = {
     type = "text",
     attr = { input = { class="span2", maxlength="17" }, autocomplete=hosts_mac_ac },
   },
+  {
+    header = T"Destination IP",
+    name = "destinationip",
+    param = "dest_ip",
+    type = "text",
+    attr = { input = { class="span2", maxlength="17" }, autocomplete=hosts_ac },
+  },
 }
 
 
@@ -388,6 +395,13 @@ local function globalValid(data)
         if proto == "udp" or proto == "tcpudp" then
             udp[#udp+1] = { start = p1, ["end"] = p2, index = i }
         end
+		if ( v[6] == "" and v[7] == "" ) then
+			local mac_ip_err = {
+				destinationip = T"Yon need to insert at least a MAC or an IP",
+				destinationmac = T"Yon need to insert at least a MAC or an IP",
+			}
+			return nil, mac_ip_err
+		end
    end
     end
 
@@ -429,7 +443,8 @@ local pfw_valid = {
     wanport = gAV(vSIPR,allowed_ports()),
     destinationip = gAV(vSIDIP,vQTN),
     protocol = gVIES(protocolList),
-	destinationmac = vSIM,
+	destinationmac = gOV(vSIM),
+	destinationip = gOV(vSIIP),
 }
 
 -- ip handleTableQuery parameter filter callback to only show ipv4 port forwardings ...
