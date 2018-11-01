@@ -1,6 +1,22 @@
 
 echo "Fixing file..."
-find decompressed/ -type f -print0 | xargs -0 -n 4 -P 4 dos2unix -q > /dev/null
+
+check_file_ending() {
+	for file in $1/*; do
+		if [ -d $file ]; then
+			check_file_ending $file
+		else
+			if [ -f $file ] && [ $( dos2unix -ic $file ) ]; then
+				dos2unix $file
+			fi
+		fi
+	done
+	
+}
+
+check_file_ending decompressed
+#find decompressed/ -type f -print0 | xargs -0 -n 4 -P 4 dos2unix -q > /dev/null
+#find decompressed/gui_file/www/lua/ -type f -print0 | xargs -0 -n 4 -P 4 dos2unix -ic 
 echo "File fixed!"
 
 declare -a modular_dir=(
