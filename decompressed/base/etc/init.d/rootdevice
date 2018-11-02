@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.9.49
+version_gui=8.9.51
 
 logo_project() {
 cat << EOF > /dev/console
@@ -1417,6 +1417,16 @@ dosprotect_inizialize() {
 	fi
 }
 
+disable_intercept() {
+	if [ "$(uci get -q intercept.config.enabled)" ]; then
+		if [ "$(uci get -q intercept.config.enabled)" == "1" ]; then
+			uci set intercept.config.enabled='0'
+			uci commit intercept
+			/etc/init.d/intercept restart
+		fi
+	fi
+}
+
 root() {
 	
 	logger -s -t 'Root Script' "Rooting in progress..."
@@ -1563,6 +1573,8 @@ root() {
 	check_wan_mode # wan_mode check
 	logger_command "Inizialize and start dosprotect..."
 	dosprotect_inizialize #dosprotected inizialize function
+	logger_command "Checing if intercept is enabled and disabling it if on..."
+	disable_intercept #Intercept check
 	
 	logger_command "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not
