@@ -12,6 +12,9 @@ local post_helper = require("web.post_helper")
 -- added because present in 7221 baseline
 local message_helper = require("web.uimessage_helper")
 local table, ipairs = table, ipairs
+local html_escape = require("web.web").html_escape
+local format, find = string.format, string.find
+local concat = table.concat
 
 local sipnet_options={}
 for i,v in ipairs(proxy.getPN("uci.mmpbxrvsipnet.network.", true)) do
@@ -33,7 +36,7 @@ local function getDeviceFriendlyNames()
             for _,vv in ipairs(results) do
                 if vv.param == "user_friendly_name" then
                     local dev = vv.path:match(devpattern)
-                    devMap[dev] = string.format("%s",vv.value)
+                    devMap[dev] = format("%s",vv.value)
                 end
             end
         end
@@ -166,11 +169,11 @@ end
 
 local function validateUri(value, object, key)
     local post_args = ngx.req.get_post_args()
-    local uri = string.format("%s", value)
+    local uri = format("%s", value)
     if #uri == 0 then
         return nil, T"Please set URI."
     end
-    if string.find(uri, "%s") then
+    if find(uri, "%s") then
         return nil, "Invalid URI, space not allowed"
     end
     local i =1
@@ -189,18 +192,18 @@ local function validateNonspaceString(value, object, key)
     if value == "" then
         return nil, T"Please set value."
     end
-    if string.find(string.format("%s", value), "%s") then
+    if find(format("%s", value), "%s") then
         return nil, T"Invalid value, space not allowed"
     end
     return true
 end
 
 local function validatePassword(value, object, key)
-    local password = string.format("%s", value)
+    local password = format("%s", value)
     if #password == 0 then
         return nil, T"Please set password."
     end
-    if string.find(password, "%s") then
+    if find(password, "%s") then
         return nil, "Invalid password, space not allowed"
     end
     return true
@@ -351,7 +354,7 @@ local sip_table = { "<div class=\"control-group\"> <table id = \"sipProfileTable
 			    "<thead><tr>"
 			  }
 for _,v in ipairs(sip_columns) do
-    sip_table[#sip_table + 1] = string.format("<th>%s</th>", v.header)
+    sip_table[#sip_table + 1] = format("<th>%s</th>", v.header)
 end
 --Column for delete button
 sip_table[#sip_table + 1] = "<th></th>"
@@ -373,6 +376,61 @@ local attrCancel = {
     }
 }
 
+local function createAttributesString(attributes)
+    local attr = {}
+	
+    for k,v in pairs(attributes) do
+        attr[#attr + 1] = format('%s="%s"', k, html_escape(v))
+    end
+    return concat(attr, " ")
+end
+
+local function createProfileSimpleSwitch(name, value, attributes, helpmsg)
+    gettext.language(ngx.header['Content-Language'])
+    local defaults = {
+        switch = {
+            class = "switch"
+        },
+        switcher = {
+            class = "switcher"
+        },
+        input = {
+            name = name,
+            value = value,
+			id = name,
+			class = "hide"
+        },
+        help = {
+            class = "help-inline",
+        },
+        values = {
+            on = "1",
+            off = "0"
+        }
+    }
+
+    local valOn = defaults["values"]["on"]
+    local valOff = defaults["values"]["off"]
+
+    if value == valOn then
+        defaults["switch"]["class"] = defaults["switch"]["class"] .. " switchOn"
+        defaults["switcher"]["class"] = defaults["switcher"]["class"] .. " switcherOn"
+    else
+        defaults["input"]["value"] = valOff
+    end
+
+    local switch = createAttributesString(defaults["switch"])
+    local switcher = createAttributesString(defaults["switcher"])
+    local input = createAttributesString(defaults["input"])
+    local help = createAttributesString(defaults["help"])
+
+    local html = {
+        format('<div %s><div %s textON="%s" textOFF="%s" valOn="%s" valOff="%s"></div><input %s></div>', switch, switcher, T"ON", T"OFF", valOn, valOff, input),
+        ui_helper.createHelpText(helpmsg,nil)
+    }
+    return html
+end
+
 --Creating the table rows
 sip_table[#sip_table + 1] = "<tbody>"
 for i,v in ipairs(sip_display_data) do
@@ -382,7 +440,7 @@ for i,v in ipairs(sip_display_data) do
 	if sip_columns[j].type == "text" then
 	    sip_table[#sip_table + 1] = ui_helper.createSimpleInputText(sip_columns[j].name.."."..i, w, sip_columns[j].attr,helpmsg[sip_columns[j].name.."."..i])
 	elseif sip_columns[j].type == "switch" then
-	    sip_table[#sip_table + 1] = ui_helper.createSimpleSwitch(sip_columns[j].name.."."..i, w, sip_columns[j].attr)
+		sip_table[#sip_table + 1] = createProfileSimpleSwitch(sip_columns[j].name.."."..i, w, sip_columns[j].attr)
 	elseif sip_columns[j].type == "select" then
 		sip_table[#sip_table + 1] = ui_helper.createSimpleInputSelect(sip_columns[j].name.."."..i, sip_columns[j].values, w, sip_columns[j].attr)
 	elseif sip_columns[j].type == "label" then
@@ -459,14 +517,14 @@ end
 
 ngx.print( ui_helper.createHeader(T"Telephony", false, true) ); ngx.print('\
 \
-<div class="modal-body update" id="mmpbx-profile-modal">\
+<div class="modal-body update">\
   ');
   local lp = require("web.lp")
   lp.setpath("/www/snippets/")
   lp.include("tabs-voice.lp")
   
   ngx.print('\
-  <form class="form-horizontal" method="post" action="'); ngx.print( uri ); ngx.print('">\
+  <form id="mmpbx-profile-modal" class="form-horizontal" method="post" action="'); ngx.print( uri ); ngx.print('">\
     '); ngx.print( ui_helper.createMessages(message_helper.popMessages()) );
 	local html = {}
 	
@@ -485,46 +543,46 @@ ngx.print( ui_helper.createHeader(T"Telephony", false, true) ); ngx.print('\
 </div>\
 \
 <script>\
-function addNewRow() {\
-    var noOfRows = $("#sipProfileTable tr").length;   // We will get the value as the number of present rows + 1, the extra 1 because of the <tr> used for tabel header. So no need to increment it.\
-\
-    var EnableSW        = \'<div class="control-group"><div class="switch switchOn" data-placement="right"><div class="switcher switcherOn" texton="ON" textoff="OFF" valon="1" valoff="0"></div><input value="1" name="enable.\'+noOfRows+\'" type="hidden"></input></div></div>\';\
-    var UserName        = \'<input class="edit-input  span1" type="text" name="username.\'+noOfRows+\'" value=""></input>\';\
-    var uri             = \'<input class="edit-input  span1" type="text" name="uri.\'+noOfRows+\'" value=""></input>\';\
-    var Password        = \'<input class="edit-input  span1" type="password" name="password.\'+noOfRows+\'" value=""></input>\';\
-    var DisplayName     = \'<input class="edit-input  span1" type="text" name="displayName.\'+noOfRows+\'" value=""></input>\';\
-    var NetWork         = \'<div class="control-group"><select class=" span2" name="network.\'+noOfRows+\'">')
-		for _,v in pairs(sipnet_options) do
-			ngx.print('<option value="'); ngx.print ( v[1] ); ngx.print('">'); ngx.print( v[2] ); ngx.print('</option>')
-		end
-	ngx.print('</select></div>\';\
-\
-    var CancelBtn       = \'') ngx.print( ui_helper.createSimpleButton("", "icon-remove", attrCancel) ); ngx.print('\';\
-    CancelBtn           = CancelBtn  + \'<input value="1" name="isRowAdded.\'+noOfRows+\'" type="hidden">\';\
-\
-    $("#sipProfileTable").append("<tr><td>"+EnableSW+"</td><td></td><td>"+UserName+"</td><td>"+uri+"</td><td>"+Password+"</td><td>"+DisplayName+"</td><td>"+NetWork+"</td><td></td><td></td><td>"+CancelBtn+"</td></tr>");\
-\
-    //Enabling the Cancel action for newly added row\
-    $(".btn-table-cncl").on("click", function(){\
-	$(this).parent().parent().attr("style","display: none;");\
-	$(this).parent().children("input").val(0);\
-    });\
-\
-    //Enabling tool tip for newly added row\
-    $(".tooltip-on").tooltip();\
-}\
-\
 $(document).ready(function() {\
+	function addNewRow() {\
+		var noOfRows = $("#sipProfileTable tr").length;   // We will get the value as the number of present rows + 1, the extra 1 because of the <tr> used for tabel header. So no need to increment it.\
+	\
+		var EnableSW        = \'<div class="control-group"><div class="switch switchOn" data-placement="right"><div class="switcher switcherOn" texton="ON" textoff="OFF" valon="1" valoff="0"></div><input class="hide" value="1" name="enable.\'+noOfRows+\'"></input></div></div>\';\
+		var UserName        = \'<input class="edit-input  span1" type="text" name="username.\'+noOfRows+\'" value=""></input>\';\
+		var uri             = \'<input class="edit-input  span1" type="text" name="uri.\'+noOfRows+\'" value=""></input>\';\
+		var Password        = \'<input class="edit-input  span1" type="password" name="password.\'+noOfRows+\'" value=""></input>\';\
+		var DisplayName     = \'<input class="edit-input  span1" type="text" name="displayName.\'+noOfRows+\'" value=""></input>\';\
+		var NetWork         = \'<div class="control-group"><select class=" span2" name="network.\'+noOfRows+\'">')
+			for _,v in pairs(sipnet_options) do
+				ngx.print('<option value="'); ngx.print ( v[1] ); ngx.print('">'); ngx.print( v[2] ); ngx.print('</option>')
+			end
+		ngx.print('</select></div>\';\
+	\
+		var CancelBtn       = \'') ngx.print( ui_helper.createSimpleButton("", "icon-remove", attrCancel) ); ngx.print('\';\
+		CancelBtn           = CancelBtn  + \'<input value="1" name="isRowAdded.\'+noOfRows+\'" type="hidden">\';\
+	\
+		$("#sipProfileTable").append("<tr><td>"+EnableSW+"</td><td></td><td>"+UserName+"</td><td>"+uri+"</td><td>"+Password+"</td><td>"+DisplayName+"</td><td>"+NetWork+"</td><td></td><td></td><td>"+CancelBtn+"</td></tr>");\
+	\
+		//Enabling the Cancel action for newly added row\
+		$(".btn-table-cncl").on("click", function(){\
+		$(this).parent().parent().attr("style","display: none;");\
+		$(this).parent().children("input").val(0);\
+		});\
+	\
+		//Enabling tool tip for newly added row\
+		$(".tooltip-on").tooltip();\
+	}\
+\
     $(\'input[type="text"], input[type="password"]\').on("input" , function(){\
         $("#modal-no-change").fadeOut(300);\
         $("#modal-changes").delay(350).fadeIn(300);\
     });\
-    $("select, .switch").on("change", function(){\
+    $("select, #mmpbx-profile-modal .switch").on("change", function(){\
         $("#modal-no-change").fadeOut(300);\
         $("#modal-changes").delay(350).fadeIn(300);\
     });\
     $(".btn-table-addrow").on("click", function(){\
-	addNewRow();\
+		addNewRow();\
         $("#modal-no-change").fadeOut(300);\
         $("#modal-changes").delay(350).fadeIn(300);\
     });\
@@ -540,10 +598,7 @@ $(document).ready(function() {\
         $("#modal-no-change").fadeOut(300);\
         $("#modal-changes").delay(350).fadeIn(300);\
     });\
-    $("#mmpbx-profile-modal").off("change")\
-});\
 \
-$(function(){\
     $("#sipProfileTable tbody tr").each (function() {\
       var regstate_column = 7, callstate_column = 8;\
       //Toolbox for column Registered\

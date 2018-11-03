@@ -1,4 +1,4 @@
-<%
+--pretranslated: do not change this file
 
 -- Enable localization
 -- NG-105177 [Workaround] TI [GUI] - Some of the tabs throws Internal server error
@@ -738,73 +738,73 @@ if ngx.var.args and string.len(ngx.var.args) > 0 then
     uri = uri .. "?" .. ngx.var.args
 end
 
-%>
-
-<%= ui_helper.createHeader(T"Telephony", false, true) %>
-
-<div class="modal-body update">
-  <%
+ngx.print( ui_helper.createHeader(T"Telephony", false, true) ); ngx.print('\
+\
+<div class="modal-body update">\
+  ')
   local lp = require("web.lp")
   lp.setpath("/www/snippets/")
   lp.include("tabs-voice.lp")
-  %>
-  <form class="form-horizontal" method="post" action="<%= uri %>" >
-  <%= ui_helper.createMessages(message_helper.popMessages()) %>
-   <fieldset>
-      <legend><%= T"Config VOIP Services" %></legend>
-      <%
-        ngx.print(html)
-      %>
-    </fieldset>
-  </form>
+  
+  ngx.print('\
+  <form class="form-horizontal" method="post" action="'); ngx.print( uri ); ngx.print('" >\
+  '); ngx.print( ui_helper.createMessages(message_helper.popMessages()) ); ngx.print('\
+		<fieldset>\
+			<legend>'); ngx.print( T"Config VOIP Services" ); ngx.print('</legend>')
 
-  <fieldset>
-    <legend><%= T"Service Code Command" %></legend>
-    <%= ui_helper.createTable(scc_columns, scc_data, scc_options, nil, nil) %>
-  </fieldset>
-</div>
+				ngx.print(html)
 
-<%= ui_helper.createFooter() %>
-
-<script>
-$(document).ready(function() {
-    $("#save-config").attr("id","save-form");
-    $("#save-form").on("click", function(){
-       //Keep data related to currently selected service & remove extra data which is not needed in the POST operation.
-       var selected_service = $("#service_name").val();
-       $('.modal form input').each(function(){
-          if((this.name).indexOf(selected_service) < 0){	// textbox/checkbox name is not related to selected service.
-             this.remove();
-          }
-       });
-       $('.modal form input:checked[value="0"]').each(function(){
-          $(this).val("1");
-       });
-       var form = $(".modal form");
-       var params = form.serializeArray();
-       $('.modal form input[type="checkbox"]:not(:checked)').each(function(){
-          if(this.value == "1" || this.value == "0"){
-             params.push({name: this.name, value:"0"});
-          }
-        });
-        params.push({
-          name : "action",
-          value : "SAVE"
-        }, {
-          name : "fromModal",
-          value : "YES"
-        }, tch.elementCSRFtoken());
-        var target = form.attr("action");
-        tch.loadModal(target, params, function (){});
-    });
-    $('input[type="checkbox"]').on("change",function(){
-        $('#modal-no-change').fadeOut(300);
-        $('#modal-changes').delay(350).fadeIn(300);
-        return false;	// For stoping the POST
-    });
-    $('input[type="text"]').on("change",function(){
-        $('#modal-no-change').fadeOut(300);
-        $('#modal-changes').delay(350).fadeIn(300);
-    });
-});
-</script>
+			ngx.print('\
+			</fieldset>\
+		</form>\
+\
+		<fieldset>\
+			<legend>'); ngx.print( T"Service Code Command" ); ngx.print('</legend>\
+			'); ngx.print( ui_helper.createTable(scc_columns, scc_data, scc_options, nil, nil) ); ngx.print('\
+		</fieldset>\
+</div>\
+\
+<script>\
+$(document).ready(function() {\
+    $("#save-config").attr("id","save-form");\
+    $("#save-form").on("click", function(){\
+       //Keep data related to currently selected service & remove extra data which is not needed in the POST operation.\
+       var selected_service = $("#service_name").val();\
+       $(".modal form input").each(function(){\
+          if((this.name).indexOf(selected_service) < 0){	// textbox/checkbox name is not related to selected service.\
+             this.remove();\
+          }\
+       });\
+       $(\'.modal form input:checked[value="0"]\').each(function(){\
+          $(this).val("1");\
+       });\
+       var form = $(".modal form");\
+       var params = form.serializeArray();\
+       $(\'.modal form input[type="checkbox"]:not(:checked)\').each(function(){\
+          if(this.value == "1" || this.value == "0"){\
+             params.push({name: this.name, value:"0"});\
+          }\
+        });\
+        params.push({\
+          name : "action",\
+          value : "SAVE"\
+        }, {\
+          name : "fromModal",\
+          value : "YES"\
+        }, tch.elementCSRFtoken());\
+        var target = form.attr("action");\
+        tch.loadModal(target, params, function (){});\
+    });\
+    $(\'input[type="checkbox"]\').on("change",function(){\
+        $("#modal-no-change").fadeOut(300);\
+        $("#modal-changes").delay(350).fadeIn(300);\
+        return false;	// For stoping the POST\
+    });\
+    $(\'input[type="text"]\').on("change",function(){\
+        $("#modal-no-change").fadeOut(300);\
+        $("#modal-changes").delay(350).fadeIn(300);\
+    });\
+});\
+</script>\
+\
+'); ngx.print( ui_helper.createFooter() )
