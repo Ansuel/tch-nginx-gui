@@ -63,6 +63,7 @@ local env = {
   passivebank = "sys.banktable.passivebank",
   activeversion = "sys.banktable.activeversion",
   passiveversion = "sys.banktable.passiveversion",
+  rip_key_B = "rpc.system.rip_key_B",
 }
 content_helper.getExactContent(env)
 
@@ -316,6 +317,20 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  else
 		html[#html + 1] = ui_helper.createLabel(T"Passive Version", env["passiveversion"] , basic)
 	  end
+      ngx.print(html)
+      ngx.print('\
+</fieldset>\
+<fieldset>\
+  <legend>');  ngx.print( T"Key Info" ); ngx.print('</legend>\
+    ');  
+	  local basic = {
+        span = {
+          class = "span8"
+        },
+      }
+      local html = {}
+      html[#html + 1] = ui_helper.createLabel(T"Config decrypt key", env["rip_key_B"] , basic)
+
       ngx.print(html)
       ngx.print('\
 </fieldset>\

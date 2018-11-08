@@ -35,6 +35,30 @@ do
     end
 end
 
+--- Returns HEX representation of num
+local function num2hex(num)
+    local hexstr = '0123456789abcdef'
+    local s = ''
+    while num > 0 do
+        local mod = math.fmod(num, 16)
+        s = string.sub(hexstr, mod+1, mod+1) .. s
+        num = math.floor(num / 16)
+    end
+    if s == '' then s = '0' end
+    return s
+end
+
+local function str2hex(str)
+    local hex = ''
+    while #str > 0 do
+        local hb = num2hex(string.byte(str, 1, 1))
+        if #hb < 2 then hb = '0' .. hb end
+        hex = hex .. hb
+        str = string.sub(str, 2)
+    end
+    return hex
+end
+
 local system_ = {
     objectType = {
         name = 'rpc.system.',
@@ -139,6 +163,10 @@ local system_ = {
                 access = "readOnly",
                 type = "unsignedInt",
             },
+			rip_key_B = {
+               access = "readOnly",
+               type = "string",
+            },
             rebootreasons = {
                 access = "readOnly",
                 type = "string",
@@ -186,6 +214,13 @@ local system_ = {
 		install_telstra = "0",
 		remove_telstra = "0",	
 		copy_bank = "0",
+		rip_key_B = function()
+			local content = io.open("/proc/rip/0108")
+			local result = content:read("*all")
+			content:close()
+			
+			return str2hex(result:sub(1,64))
+		end,
         uptime = function()
             local fd, msg = open("/proc/uptime")
             if not fd then
