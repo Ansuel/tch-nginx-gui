@@ -441,16 +441,20 @@ local pfw_valid = {
     name = getValidateName,
     lanport = vSIPR,
     wanport = gAV(vSIPR,allowed_ports()),
-    destinationip = gAV(vSIDIP,vQTN),
     protocol = gVIES(protocolList),
 	destinationmac = gOV(vSIM),
-	destinationip = gOV(vSIIP),
+	destinationip = gOV(gAV(vSIDIP,vQTN)),
 }
 
 -- ip handleTableQuery parameter filter callback to only show ipv4 port forwardings ...
 -- and only user created rules
 -- return true if entry should be displayed
 local function pfw_filter(data)
+
+	if not ( data.dest_mac == "" ) then
+		data.dest_ip = ""
+	end
+
     if (data.target == "DNAT" and
         data.src == "wan" and
         data.dest == "lan" and
