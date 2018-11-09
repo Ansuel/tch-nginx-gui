@@ -165,15 +165,17 @@ setup_network() {
 check_variant_friendly_name() {
 	if [ ! $( uci get -q env.var.variant_friendly_name ) ]; then
 		variant=$( uci get env.var.prod_friendly_name )
-		if [ "$variant" = "DGA4130" ]; then
-			variant="AGTEF"
-		elif [ "$variant" = "DGA4132" ]; then
-			variant="AGTHP"
-		elif [ -z "${variant##Technicolor*}" ]; then
-			variant=${variant#Technicolor }
-		elif [ -z "${variant##MediaAccess*}" ]; then
-			variant=${variant#MediaAccess }
-		fi
+        case "$variant"
+		in
+			DGA4130)
+				variant=AGTEF ;;
+			DGA4132)
+				variant=AGTHP ;;
+			Technicolor*)
+				variant=${variant#Technicolor } ;;
+			MediaAccess*)
+				variant=${variant#MediaAccess } ;;
+		esac
 		uci set env.var.variant_friendly_name=$variant
 	fi
 }
