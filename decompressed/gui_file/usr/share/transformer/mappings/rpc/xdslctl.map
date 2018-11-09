@@ -318,26 +318,40 @@ local xdslctl_ = {
             access = "readOnly",
             type = "string"
           },
+		  DslProfile = {
+            access = "readOnly",
+            type = "string"
+          },
         }
     }
 }
 
 local cache = {}
 
-local function xdslmode()
+local function xdslmode(dtype)
 	local showdatacmd = ("xdslctl info --show")
 	local showdata = popen(showdatacmd, 'r')
 	local showline
-	local dslmode=""
+	local result
 	for showline in showdata:lines() do
-		if showline:match("Mode") then
-			dslmode = showline:gsub("Mode:%s+","")
-			break
+		if dtype:match("mode") then
+			if showline:match("Mode") then
+				result = (showline:gsub("Mode:%s+",""))
+				break
+			end
+		elseif dtype:match("profile") then
+			if showline:match("Profile") then
+				result = (showline:gsub("VDSL2 Profile:%s+Profile ",""))
+				if result:match("BrcmPriv1") then --Fix 35b line with wrong name
+					result = "35b"
+				end
+				break
+			end
 		end
 	end
 	showdata:close()
 	
-	return dslmode
+	return result or ""
 end
 
 local function pbParams_find(bandtype)
@@ -392,7 +406,7 @@ end
 
 
 if not cache["dslmode"] then
-	cache["dslmode"] = xdslmode()
+	cache["dslmode"] = xdslmode("mode")
 end
 
 if not cache["dslmode"]:match("ADSL") then
@@ -404,7 +418,7 @@ end
 
 local function xdslband(band_request,dtype,bandtype)
 	
-	local dslmode = cache["dslmode"] or xdslmode()
+	local dslmode = cache["dslmode"] or xdslmode("mode")
 
 	local result = "0"
 	local band
@@ -547,7 +561,7 @@ local function xdslctlget(dtype,request,band,bandtype,split)
 	infofile:close()
 	
 	if dtype == "data" then
-		return concat(data) or ""--tostring(bandstart) .. "End: " .. tostring(bandend)
+		return concat(data) or ""
 	elseif dtype == "scanband" then
 		return tostring(lineread-8)
 	elseif dtype == "scannedband" then
@@ -659,7 +673,9 @@ local function get(mapping, paramName, key)
 	elseif paramName == "DslamVersionRaw" then
 		return xdslctlDslamInfo("version_raw")
 	elseif paramName == "DslMode" then
-		return xdslmode()
+		return xdslmode("mode")
+	elseif paramName == "DslProfile" then
+		return xdslmode("profile")
 	end
 end
 
