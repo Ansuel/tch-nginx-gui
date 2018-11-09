@@ -358,9 +358,12 @@ local function pbParams_find(bandtype)
 	
 	pbfile:close()
 	
-	if (select(2, pbstring:gsub("%(", "")) == 3 ) and ( bandtype == "Us" ) then
-	
-		pbstring = pbstring:gsub(":",": (0,32)") --handle strange case when onu disable US0
+	if ( bandtype == "Us" ) then
+		local First_US_band = tonumber((pbstring:match("%([0-9]+,"):gsub("%(",""):gsub(",","")))
+		local Us_band_num = select(2, pbstring:gsub("%(", ""))
+		if ( Us_band_num == 3 ) and ( First_US_band > 100 ) then
+			pbstring = pbstring:gsub(":",": (0,32)") --handle strange case when onu disable US0
+		end 
 	end
 	
 	return pbstring
@@ -544,7 +547,7 @@ local function xdslctlget(dtype,request,band,bandtype,split)
 	infofile:close()
 	
 	if dtype == "data" then
-		return concat(data) or ""
+		return concat(data) or ""--tostring(bandstart) .. "End: " .. tostring(bandend)
 	elseif dtype == "scanband" then
 		return tostring(lineread-8)
 	elseif dtype == "scannedband" then
