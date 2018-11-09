@@ -165,7 +165,7 @@ setup_network() {
 check_variant_friendly_name() {
 	if [ ! $( uci get -q env.var.variant_friendly_name ) ]; then
 		variant=$( uci get env.var.prod_friendly_name )
-        case "$variant"
+		case "$variant"
 		in
 			DGA4130)
 				variant=AGTEF ;;
