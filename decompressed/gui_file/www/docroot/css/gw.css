@@ -7240,11 +7240,9 @@ a .icon-rotate-90:before, a .icon-rotate-180:before, a .icon-rotate-270:before, 
 	margin: 0
 }
 .simple-desc {
-	display: inline-block;
-	*display: inline;
-	*zoom: 1;
+	display: block;
 	vertical-align: middle;
-	padding-top: 5px;
+	padding-top: 2px;
 	margin-left: 0
 }
 .monitor-hidden-fw_level {
