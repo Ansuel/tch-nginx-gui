@@ -470,4 +470,4 @@ text-decoration: none;
 .copyright {
 	text-shadow: unset;
 }
-
+.copyright>p>font {color: var(--first-color-accent);}

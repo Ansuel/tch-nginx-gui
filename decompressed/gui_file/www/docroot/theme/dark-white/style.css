@@ -3,13 +3,11 @@
 	--bg-color2: #333;
 	--bg-color3: #000;
 }
-
 .alert-info {
 	background-color: #e6e6e6;
 	border-color: #e6e6e6;
 	color: #000000;
 }
-
 .light.green {
 	background-color: #00bbff;
 	border: 1px solid #00bbff;
@@ -17,7 +15,21 @@
 	-moz-box-shadow: inset 0 1px 3px rgba(255, 255, 255, .5), 0 0 4px rgba(0, 187, 255);
 	box-shadow: inset 0 1px 3px rgba(255, 255, 255, .5), 0 0 4px rgb(0, 187, 255);
 }
-
+#headerbox>.header {
+	color: #fff;
+}
+.switch {
+	box-shadow: none;
+	border-radius: 7px;
+	margin: 0;
+}
+.switchOn {
+	background-color: var(--bg-color1);
+}
+a {
+	color: var(--bg-color2);
+	text-decoration: none;
+}
 /*ALL ABOVE IS COPIED FROM THE MAIN SKIN CSS*/
 #statsFrame {
 	height: calc(100% - 7.3rem);
@@ -317,6 +329,7 @@ div.logo-technicolor a {
 	display: table;
 	bottom: 10px;
 }
+.copyright>p>font {color: var(--bg-color2);}
 .tooLongTitle p {
 	width: auto;
 	overflow: initial;

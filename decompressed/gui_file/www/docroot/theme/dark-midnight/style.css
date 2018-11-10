@@ -351,6 +351,7 @@ div.logo-technicolor a {
 	display: table;
 	bottom: 10px;
 }
+.copyright>p>font {color: var(--bg-color2);}
 .tooLongTitle p {
 	width: auto;
 	overflow: initial;

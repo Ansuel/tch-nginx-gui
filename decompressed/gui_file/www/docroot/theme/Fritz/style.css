@@ -303,10 +303,14 @@ div.logo-technicolor a {
 	border-radius: 7px;
 	margin: 0;
 }
+.switchOn {
+    background-color: var(--bg-color1);
+}
 .copyright {
 	display: table;
 	bottom: 10px;
 }
+.copyright>p>font {color: var(--bg-color2);}
 .tooLongTitle p {
 	width: auto;
 	overflow: initial;
