@@ -1065,10 +1065,10 @@ msgid "Encapsulation"
 msgstr "Incapsulamento"
 
 msgid "Energy Efficent Ethernet disabled"
-msgstr "Ottimizzazione Energtica Ethernet disabilitata"
+msgstr "Ottimizzazione Energetica Ethernet disabilitata"
 
 msgid "Energy Efficent Ethernet enabled"
-msgstr "Ottimizzazione Energtica Ethernet abilitata"
+msgstr "Ottimizzazione Energetica Ethernet abilitata"
 
 msgid "Engineer"
 msgstr "Ingegnere"
