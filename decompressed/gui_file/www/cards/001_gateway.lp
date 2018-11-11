@@ -30,9 +30,7 @@ if  ( variant == "DGA4130" ) then
 	model = "_AGTEF"
 elseif ( variant == "DGA4132" ) then
 	model = "_AGTHP"
-elseif ( variant == "MediaAccess TG789MYRvac v2 HP") then
-	model = "_TG789vac"
-elseif ( variant == "MediaAccess TG789vac v2" ) then
+elseif ( variant == "MediaAccess TG789vac v2" or variant == "MediaAccess TG789MYRvac v2 HP") then
 	model = "_TG789vac"
 elseif ( variant == "Technicolor TG799vac" ) then
 	model = "_TG799vac"
