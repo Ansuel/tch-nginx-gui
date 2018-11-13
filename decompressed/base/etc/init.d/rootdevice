@@ -1306,6 +1306,9 @@ wan_sensing_clean() {
 		sed -i '/delete_interface("wan")/d' /etc/wansensing/L3DHCPSenseEntryExit.lua
 		sed -i '/"ppp"/d' /etc/wansensing/L3DHCPSenseEntryExit.lua
 		sed -i '/copy_interface/d' /etc/wansensing/L3DHCPSenseEntryExit.lua
+		sed -i '/"network", "ipoe"/d' /etc/wansensing/L3DHCPSenseEntryExit.lua
+		sed -i '/"wan", "auto"/d' /etc/wansensing/L3DHCPSenseEntryExit.lua
+		sed -i '/"wan6", "auto"/d' /etc/wansensing/L3DHCPSenseEntryExit.lua
 	fi
 }
 
