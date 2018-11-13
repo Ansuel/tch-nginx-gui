@@ -587,7 +587,11 @@ check_dnsmasq_name() {
 
 create_driver_setting() {
 	if [ ! $( uci get -q env.var.driver_version ) ]; then
-		uci set env.var.driver_version=$(xdslctl --version 2>&1 >/dev/null | grep "version -" | awk '{print $6}')
+		uci set env.var.driver_version=$(xdslctl --version 2>&1 >/dev/null | grep "version -" | awk '{print $6}' | "s/\..*//")
+	else 
+		if [ "$( uci get -q env.var.driver_version | grep -F . )" ]; then
+			uci set env.var.driver_version=$(xdslctl --version 2>&1 >/dev/null | grep "version -" | awk '{print $6}' | "s/\..*//")
+		fi
 	fi
 }
 
