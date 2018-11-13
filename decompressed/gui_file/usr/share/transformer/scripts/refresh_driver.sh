@@ -58,6 +58,12 @@ d76d9eebfccd572b0a0943cd3957b82a  B2pvfbH043i1
 installed_driver=$(transformer-cli get rpc.xdsl.dslversion | awk '{print $4}')
 driver_set=$(uci get env.var.driver_version)
 
+if [ "$(cat /proc/cpuinfo | grep Processor | grep ARM)" ]; then
+	arch=arm
+else if [ "cat /proc/cpuinfo | grep 'cpu model' | grep MIPS" ]; then
+	arch=mips
+fi
+
 apply_driver() {
 	mv /tmp/$driver_set /etc/adsl/adsl_phy.bin
 	logger "Restarting xdslctl"
@@ -67,7 +73,7 @@ apply_driver() {
 
 download_Driver() {
 	logger "Downloading driver "$driver_set
-	remote_driver_dir=https://github.com/Ansuel/tch-nginx-gui/raw/dev/modular/xdsl_driver/arm/
+	remote_driver_dir=https://github.com/Ansuel/tch-nginx-gui/raw/dev/modular/xdsl_driver/$arch/
 	$curl $remote_driver_dir/$driver_set --output /tmp/$driver_set
 }
 
