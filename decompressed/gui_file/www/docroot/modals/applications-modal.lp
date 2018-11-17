@@ -21,7 +21,7 @@ else
 end
 
 local function appapply(action)
-	proxy.set("rpc.system." .. action, "1")
+	proxy.set("rpc.system.modgui.app." .. action, "1")
 	lp.flush()
 	if ( action == "install_emptyblacklist" ) then
 		action = "install_blacklist"

@@ -11,6 +11,7 @@ local message_helper = require("web.uimessage_helper")
 local content_helper = require("web.content_helper")
 local post_helper = require("web.post_helper")
 local format, match = string.format, string.match
+local untaint = string.untaint 
 
 local gOV = post_helper.getOptionalValidation
 
@@ -92,7 +93,7 @@ local function set_firewall(target)
    -- go through rules to find SSH-wan anonymous section name
    local rules = proxy.get("uci.firewall.rule.")
    for _,v in ipairs(rules) do
-      if v.param == "name" and string.untaint(v.value) == "SSH_wan" then
+      if v.param == "name" and untaint(v.value) == "SSH_wan" then
          proxy.set(v.path.."target", target)
          return
       end
@@ -126,8 +127,8 @@ if ngx.var.request_method == "POST" then
   local vars = ngx.req.get_post_args()
   if vars["action"] == "SAVE" then
     -- SSH Access
-    ssh_wan_new = string.untaint(vars["ssh_wan"])
-    ssh_lan_new = string.untaint(vars["ssh_lan"])
+    ssh_wan_new = untaint(vars["ssh_wan"])
+    ssh_lan_new = untaint(vars["ssh_lan"])
     local db_path = "uci.dropbear.dropbear.@dropbear["
 
     -- set lan
@@ -263,6 +264,25 @@ local config_valid = {
 
 local config_content, helpmsg = post_helper.handleQuery(config_Params, config_valid)
 
+local function wait_for_completion(base_path)
+  local state_path = base_path .. "state"
+  local sleep_time = 0.250
+  local max_time = 7
+  local total_time = 0
+  local content
+  repeat
+    ngx.sleep(sleep_time)
+    total_time = total_time + sleep_time
+
+    content = { state = state_path }
+    content_helper.getExactContent(content)
+
+    if content.state ~= "Requested" then
+      break
+    end
+  until (total_time >= max_time)
+end
+
 local function resetreboot(path)
   proxy.set(path, "1")
   ngx.header.content_type = "application/json"
@@ -280,13 +300,41 @@ if ngx.req.get_method() == "POST" then
     return resetreboot("sys.bootp.enable")
   end
   if action == "system_switchover" then
-    return resetreboot("rpc.system.switchover", "1")
+    return resetreboot("rpc.system.switchover")
   end
   if action == "system_trasnfer_bank_1" then
-    return resetreboot("rpc.system.transfer_bank1", "1")
+    return resetreboot("rpc.system.transfer_bank1")
   end
   if action == "system_copy_bank" then
-    return resetreboot("rpc.system.copy_bank", "1")
+    return resetreboot("rpc.system.copy_bank")
+  end
+  if action == "download_debug_report" then
+	local content = {
+		location = "rpc.system.modgui.debuglog.location",
+		filename = "rpc.system.modgui.debuglog.filename",
+	}
+	
+	-- Get transformer content
+	content_helper.getExactContent(content)
+	
+	-- return exported data
+	if not ( content.filename == "" ) then
+		ngx.header.content_disposition = "attachment; filename="..untaint(content.filename)
+		ngx.header.content_type = "application/octet-stream"
+		ngx.header.set_cookie = "fileDownload=true; Path=/"  -- the JS download code requires this cookie
+		local export_path = untaint(content.location .. content.filename)
+		local f = io.open(export_path, "r")
+		ngx.print(f:read("*all"))
+		f:close()
+		
+		-- and we're done
+		ngx.exit(ngx.HTTP_OK)
+	else
+		ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+	end
+  end
+  if action == "debug_report" then
+    return resetreboot("rpc.system.modgui.debuglog.start")
   end
 end
 
@@ -474,6 +522,30 @@ ngx.print('\
 		ngx.print('\
 	</fieldset>\
 <fieldset>\
+  <legend>');  ngx.print( T"Debug Report" ); ngx.print('</legend>\
+    ');  
+	  local generate_debug_report = {
+        button = {
+          id = "btn-system-gen-debug-report",
+          class = "custom-handler"
+        }
+      }
+	  local download_debug_report = {
+        button = {
+          id = "btn-system-debug-report",
+          class = "custom-handler"
+        }
+      }
+      local html = {}
+	  if not ( proxy.get("rpc.system.modgui.debuglog.filename")[1].value == "" ) then
+		html[#html + 1] = ui_helper.createButton(T"Debug Zip", T"Download Zip", "icon-exchange", download_debug_report)
+	  else
+		html[#html + 1] = ui_helper.createButton(T"Debug Zip", T"Generate", "icon-exchange", generate_debug_report)
+	  end
+      ngx.print(html)
+      ngx.print('\
+</fieldset>\
+<fieldset>\
   <legend>');  ngx.print( T"SSH Access" ); ngx.print('</legend>\
     ');  
       local html = {}
@@ -628,7 +700,23 @@ $("#btn-system-copy-bank").on("click", function() {\
 	   setTimeout(function(){location.reload();}, 4000);\
      }\
   });\
-\
+$("#btn-system-gen-debug-report").on("click", function() {\
+     tch.showProgress(\'');  ngx.print(T"Generating report in background..."); ngx.print('\');\
+	 resetreboot($(this), $(this), "debug_report");\
+	 wait_for_webserver_down();\
+  });\
+  $("#btn-system-debug-report").on("click", function() {\
+    $.fileDownload(target, {\
+      httpMethod: "POST",\
+      data: new Array({ name : "action", value : "download_debug_report" },\
+                      { name : "CSRFtoken", value : $("meta[name=CSRFtoken]").attr("content") }),\
+      prepareCallback: function() {\
+      },\
+      successCallback: function() {\
+      }\
+    });\
+    return false;\
+  });\
   $("[name=syslog_present]").on("change", function(){\
     $("[name=syslog_ip]").val("");\
     $("[name=syslog_filter_ip]").val("");\

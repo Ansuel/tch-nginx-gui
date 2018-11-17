@@ -265,7 +265,7 @@ local function upgradeguifile()
 
   local rcv_ok, rcv_errno, rcv_errmsg = receive_file(dl, 'name="upgradefile"')
 
-  proxy.set("rpc.system.upgradegui", "1")
+  proxy.set("rpc.system.modgui.upgradegui.start", "1")
   proxy.apply()
 
   ngx.print('{ "success":"true" }')
@@ -330,7 +330,7 @@ if ngx.req.get_method() == "POST" then
     return resetreboot("rpc.system.resetgui", "1")
   end
   if action == "system_upgrade_gui" then
-	return resetreboot("rpc.system.upgradegui", "1")
+	return resetreboot("rpc.system.modgui.upgradegui.start", "1")
   end
   if action == "system_remove_root" then
 	return resetreboot("rpc.system.removeroot", "1")
