@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.9.60
+version_gui=8.9.63
 
 logo_project() {
 cat << EOF > /dev/console
@@ -605,7 +605,7 @@ check_dnsmasq_name() {
 
 create_driver_setting() {
 	if [ ! $( uci get -q env.var.driver_version ) ]; then
-		uci set env.var.driver_version=$(xdslctl --version 2>&1 >/dev/null | grep "version -" | awk '{print $6}' | "s/\..*//")
+		uci set env.var.driver_version=$(xdslctl --version 2>&1 >/dev/null | grep "version -" | awk '{print $6}' | sed "s/\..*//")
 	else 
 		if [ "$( uci get -q env.var.driver_version | grep -F . )" ]; then
 			uci set env.var.driver_version=$(xdslctl --version 2>&1 >/dev/null | grep "version -" | awk '{print $6}' | sed "s/\..*//")
@@ -1730,11 +1730,17 @@ root() {
 	logger_command "Restarting transformer"
 	/etc/init.d/transformer restart
 	logger_command "Waiting transformer to start for 20 seconds"
-	sleep 20
+	
 	logger_command "Restarting nginx"
-	/etc/init.d/nginx start
-	logger_command "Restarting transformer a second time cause it's just shit..."
-	/etc/init.d/transformer restart
+	/etc/init.d/nginx restart
+	
+	#This file is present onyl in newer build that don't suffer this strange bug
+	if [ ! -f /usr/lib/lua/tch/logger.lua ]; then
+		#Wait this command better way to check if transformer is fully inizialized
+		transformer-cli get uci.env.var.oui
+		logger_command "Restarting transformer a second time cause it's just shit..."
+		/etc/init.d/transformer restart
+	fi
 	
 	/etc/init.d/watchdog-tch start
 	
