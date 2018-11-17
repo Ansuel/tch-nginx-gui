@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.9.57
+version_gui=8.9.59
 
 logo_project() {
 cat << EOF > /dev/console
@@ -590,7 +590,7 @@ create_driver_setting() {
 		uci set env.var.driver_version=$(xdslctl --version 2>&1 >/dev/null | grep "version -" | awk '{print $6}' | "s/\..*//")
 	else 
 		if [ "$( uci get -q env.var.driver_version | grep -F . )" ]; then
-			uci set env.var.driver_version=$(xdslctl --version 2>&1 >/dev/null | grep "version -" | awk '{print $6}' | "s/\..*//")
+			uci set env.var.driver_version=$(xdslctl --version 2>&1 >/dev/null | grep "version -" | awk '{print $6}' | sed "s/\..*//")
 		fi
 	fi
 }
