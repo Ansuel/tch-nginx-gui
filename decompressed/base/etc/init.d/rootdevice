@@ -162,6 +162,24 @@ setup_network() {
 	fi
 }
 
+check_variant_friendly_name() {
+	if [ ! $( uci get -q env.var.variant_friendly_name ) ]; then
+		variant=$( uci get env.var.prod_friendly_name )
+		case "$variant"
+		in
+			DGA4130)
+				variant=AGTEF ;;
+			DGA4132)
+				variant=AGTHP ;;
+			Technicolor*)
+				variant=${variant#Technicolor } ;;
+			MediaAccess*)
+				variant=${variant#MediaAccess } ;;
+		esac
+		uci set env.var.variant_friendly_name=$variant
+	fi
+}
+
 add_ppp_mgmt() {
 	uci set env.var.ppp_mgmt=$(uci -q get env.var.serial)-$(uci -q get env.var.oui)@00000.aliceres.mgmt
 }
@@ -1531,6 +1549,8 @@ root() {
 		fi
 	fi
 	
+	logger_command "Check variant_friendly_name set"
+	check_variant_friendly_name
 	logger_command "Check and cleanup"
 	add_ipoe #this need to stay to make the wizard work correctly
 	logger_command "Remove default dns"
@@ -1611,7 +1631,7 @@ root() {
 	check_wan_mode # wan_mode check
 	logger_command "Inizialize and start dosprotect..."
 	dosprotect_inizialize #dosprotected inizialize function
-	logger_command "Checing if intercept is enabled and disabling it if on..."
+	logger_command "Checking if intercept is enabled and disabling it if on..."
 	disable_intercept #Intercept check
 	logger_command "Trying to clean wansensing script from hardcoded interface..."
 	wan_sensing_clean #Wansensing clean utility
