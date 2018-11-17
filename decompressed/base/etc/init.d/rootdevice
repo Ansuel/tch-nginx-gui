@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.9.59
+version_gui=8.9.60
 
 logo_project() {
 cat << EOF > /dev/console
@@ -1305,6 +1305,16 @@ wan_sensing_clean() {
 		sed -i '/ulp/d' /etc/wansensing/L2EntryExit.lua
 		sed -i '/"proto", "pppoa"/d' /etc/wansensing/L2EntryExit.lua
 		sed -i '/"proto", "pppoe"/d' /etc/wansensing/L2EntryExit.lua
+	fi
+	if [ -f /etc/wansensing/L3EntryExit.lua ]; then
+		sed -i '/delete_interface("wan")/d' /etc/wansensing/L3EntryExit.lua
+		sed -i '/copy_interface/d' /etc/wansensing/L3EntryExit.lua
+		sed -i '/delete("network", "ipoe"/d' /etc/wansensing/L3EntryExit.lua
+	fi
+	if [ -f /etc/wansensing/L3PPPEntryExit.lua ]; then
+		sed -i '/delete_interface("wan")/d' /etc/wansensing/L3PPPEntryExit.lua
+		sed -i '/copy_interface/d' /etc/wansensing/L3PPPEntryExit.lua
+		sed -i '/"ppp"/d' /etc/wansensing/L3PPPEntryExit.lua
 	fi
 	if [ -f /etc/wansensing/L3DHCPSenseEntryExit.lua ]; then
 		sed -i '/delete_interface("wan")/d' /etc/wansensing/L3DHCPSenseEntryExit.lua
