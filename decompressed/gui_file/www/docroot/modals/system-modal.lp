@@ -308,10 +308,18 @@ if ngx.req.get_method() == "POST" then
   if action == "system_copy_bank" then
     return resetreboot("rpc.system.copy_bank")
   end
-  if action == "download_debug_report" then
+  if action == "debug_report" then
+	
+	local debuglog_path = "rpc.system.modgui.debuglog."
+	
+	proxy.set(debuglog_path.."start","1")
+	proxy.apply()
+	
+	wait_for_completion(debuglog_path)
+  
 	local content = {
-		location = "rpc.system.modgui.debuglog.location",
-		filename = "rpc.system.modgui.debuglog.filename",
+		location = debuglog_path.."location",
+		filename = debuglog_path.."filename",
 	}
 	
 	-- Get transformer content
@@ -332,9 +340,6 @@ if ngx.req.get_method() == "POST" then
 	else
 		ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
 	end
-  end
-  if action == "debug_report" then
-    return resetreboot("rpc.system.modgui.debuglog.start")
   end
 end
 
@@ -526,22 +531,12 @@ ngx.print('\
     ');  
 	  local generate_debug_report = {
         button = {
-          id = "btn-system-gen-debug-report",
-          class = "custom-handler"
-        }
-      }
-	  local download_debug_report = {
-        button = {
           id = "btn-system-debug-report",
           class = "custom-handler"
         }
       }
       local html = {}
-	  if not ( proxy.get("rpc.system.modgui.debuglog.filename")[1].value == "" ) then
-		html[#html + 1] = ui_helper.createButton(T"Debug Zip", T"Download Zip", "icon-exchange", download_debug_report)
-	  else
 		html[#html + 1] = ui_helper.createButton(T"Debug Zip", T"Generate", "icon-exchange", generate_debug_report)
-	  end
       ngx.print(html)
       ngx.print('\
 </fieldset>\
@@ -700,19 +695,16 @@ $("#btn-system-copy-bank").on("click", function() {\
 	   setTimeout(function(){location.reload();}, 4000);\
      }\
   });\
-$("#btn-system-gen-debug-report").on("click", function() {\
-     tch.showProgress(\'');  ngx.print(T"Generating report in background..."); ngx.print('\');\
-	 resetreboot($(this), $(this), "debug_report");\
-	 wait_for_webserver_down();\
-  });\
   $("#btn-system-debug-report").on("click", function() {\
     $.fileDownload(target, {\
       httpMethod: "POST",\
-      data: new Array({ name : "action", value : "download_debug_report" },\
+      data: new Array({ name : "action", value : "debug_report" },\
                       { name : "CSRFtoken", value : $("meta[name=CSRFtoken]").attr("content") }),\
       prepareCallback: function() {\
+		tch.showProgress(\'');  ngx.print(T"Generating report in background..."); ngx.print('\');\
       },\
       successCallback: function() {\
+		location.reload();\
       }\
     });\
     return false;\

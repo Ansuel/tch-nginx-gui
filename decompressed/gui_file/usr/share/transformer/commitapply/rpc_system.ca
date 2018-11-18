@@ -6,7 +6,7 @@
 ^rpc%.system%.modgui%.upgradegui%.start /usr/share/transformer/scripts/upgradegui
 ^rpc%.system%.checkver /usr/share/transformer/scripts/checkver
 ^rpc%.system%.transfer_bank1 /usr/share/transformer/scripts/transfer_bank1.sh
-^rpc%.system%.modgui%.debuglog%.start /usr/share/transformer/scripts/generate_debug_file.sh
+^rpc%.system%.modgui%.debuglog%.start /usr/share/transformer/scripts/generate_debug_file.sh dev
 ^rpc%.system%.modgui%.app%.install_luci /usr/share/transformer/scripts/install_luci.sh
 ^rpc%.system%.modgui%.app%.remove_luci /usr/share/transformer/scripts/remove_luci.sh
 ^rpc%.system%.modgui%.app%.install_aria2 /usr/share/transformer/scripts/install_aria2.sh
