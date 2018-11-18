@@ -1040,11 +1040,11 @@ msgstr "ERRORE"
 msgid "Eco Led"
 msgstr "Eco Led"
 
-msgid "Eco Led disabled"
-msgstr "Eco Led disabilitato"
+msgid "Eco LED disabled"
+msgstr "Eco LED disabilitato"
 
-msgid "Eco Led enabled"
-msgstr "Eco Led abilitato"
+msgid "Eco LED enabled"
+msgstr "Eco LED abilitato"
 
 msgid "Eco Settings"
 msgstr "Impostazioni Eco"
@@ -1065,10 +1065,10 @@ msgid "Encapsulation"
 msgstr "Incapsulamento"
 
 msgid "Energy Efficent Ethernet disabled"
-msgstr "Ottimizzazione Energtica Ethernet disabilitata"
+msgstr "Ottimizzazione Energetica Ethernet disabilitata"
 
 msgid "Energy Efficent Ethernet enabled"
-msgstr "Ottimizzazione Energtica Ethernet abilitata"
+msgstr "Ottimizzazione Energetica Ethernet abilitata"
 
 msgid "Engineer"
 msgstr "Ingegnere"
@@ -1838,6 +1838,9 @@ msgstr "Interfaccia Monitorata:"
 msgid "Multicast Packets"
 msgstr "Pacchetti Multicast"
 
+msgid "NA"
+msgstr "Non Avviato"
+
 msgid "NAT Helpers (ALG's)"
 msgstr "NAT Helpers (ALG´s)"
 
@@ -2312,6 +2315,9 @@ msgstr "Area"
 msgid "Register"
 msgstr "Registra"
 
+msgid "Registered"
+msgstr "Registrato"
+
 msgid "Relay Setup"
 msgstr "Impostazioni Relay"
 
@@ -2413,6 +2419,9 @@ msgstr "Tabella di routing"
 
 msgid "RpFilter"
 msgstr "Filtro Rp"
+
+msgid "RUNNING"
+msgstr "Avviato"
 
 msgid "Rx BitSwap Mode"
 msgstr "Modalità Rx BitSwap"
@@ -2579,6 +2588,9 @@ msgstr "Stabile"
 msgid "Start"
 msgstr "Avvia"
 
+msgid "STARTING"
+msgstr "In avvio"
+
 msgid "Start Time"
 msgstr "Orario d´inizio"
 
@@ -2614,6 +2626,9 @@ msgstr "Stato:"
 
 msgid "Stop"
 msgstr "Arresta"
+
+msgid "STOPPING"
+msgstr "In arresto"
 
 msgid "Stop Ping Request"
 msgstr "Interrompi ping"

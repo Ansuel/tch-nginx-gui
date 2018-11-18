@@ -35,6 +35,10 @@ local mmpbxd_filter = function(data)
   if data.uri and data.uri:match("+") then
     data.uri = data.uri:sub(4)
   end
+
+  if data.sipRegisterState then
+    data.sipRegisterState =  T(data.sipRegisterState)
+  end
   
   if data.callState then
     if ( data.callState == "MMPBX_CALLSTATE_IDLE" ) then
@@ -94,7 +98,7 @@ if not ( content.max_upstream == "0" ) then
 	
 	local html = {}
 	
-	html[#html + 1] = ui_helper.createLabel(T"Service", content["status"], basic)
+	html[#html + 1] = ui_helper.createLabel(T"Service", T(content["status"]), basic)
 	
 	if ( variant == "Technicolor TG799vac" ) or ( variant == "Technicolor TG800vac" )  then
 		if ( content.emission == "1" ) then
