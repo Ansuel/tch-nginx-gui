@@ -3023,7 +3023,6 @@ msgid ""
 msgstr ""
 "Spegne tutti i led se ogni servizio è attivo ed in funzione. Puoi premere il "
 "pulsante INFO (il pulsante sul power led) per mostrare lo stato dei led "
-"(solo su AGTEF!)"
 
 msgid "Tx Errors"
 msgstr "Errori Tx"
