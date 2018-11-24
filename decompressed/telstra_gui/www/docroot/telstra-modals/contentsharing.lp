@@ -23,16 +23,40 @@ local tonumber = tonumber
 
 -- Process POST query
 local post_helper = require("web.post_helper")
-local mapParams = {
-    dlna_enable = "uci.dlnad.config.enabled",
-    media_server_name = "uci.dlnad.config.friendly_name",
-}
-local mapValid = {
-    dlna_enable = post_helper.getValidateCheckboxSwitch(),
-    media_server_name = post_helper.validateNonEmptyString,
-}
+
+local function check_dlna(dtype)
+	local available = false
+	local binname
+	if file_check("/usr/bin/dlnad") then
+		binname = "dlnad"
+		available = true
+	elseif file_check("/usr/sbin/minidlnad") then
+		binname = "minidlna"
+		available = true
+	end
+	
+	if dtype:match("available") then
+		return available
+	elseif dtype:match("type") then
+		return binname or ""
+	end
+	
+	return ""
+end
+
+if check_dlna("available") then
+	local mapParams = {
+		dlna_enabled       = "uci."..check_dlna("type")..".config.enabled",
+		dlna_friendly_name = "uci."..check_dlna("type")..".config.friendly_name",
+	}
+	
+	local mapValid = {
+		dlna_enabled = post_helper.validateBoolean,
+		dlna_friendly_name = valid_empty_string,
+	}
 
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
+end
 -- End POST process
 
 local content_intf_lan = {
@@ -76,8 +100,10 @@ content_helper.getExactContent(content_samba)
   }
 
   local html = {}
-  html[#html + 1] = ui_helper.createCheckboxSwitch(T"Enable DLNA Server", "dlna_enable", content["dlna_enable"], attributes)
-  html[#html + 1] = ui_helper.createInputText(T"Media Server Name", "media_server_name", content["media_server_name"], attributes)
+  if check_dlna("available") then
+	html[#html + 1] = ui_helper.createCheckboxSwitch(T"Enable DLNA Server", "dlna_enable", content["dlna_enable"], attributes)
+	html[#html + 1] = ui_helper.createInputText(T"Media Server Name", "media_server_name", content["dlna_friendly_name"], attributes)
+  end
   html[#html + 1] = ui_helper.createLabel(T"Media Server IP", content_intf_lan.ipaddr)
 --  html[#html + 1] = ui_helper.createLabel(T"FTP Server State", str_ftp_server_enable)
   html[#html + 1] = ui_helper.createLabel(T"Network Folder Name", content_samba.name)

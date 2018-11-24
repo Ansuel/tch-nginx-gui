@@ -67,16 +67,34 @@ if samba_available then
     content_helper.getExactContent(content_info)
 end
 
+local function check_dlna(dtype)
+	local available = false
+	local binname
+	if file_check("/usr/bin/dlnad") then
+		binname = "dlnad"
+		available = true
+	elseif file_check("/usr/sbin/minidlnad") then
+		binname = "minidlna"
+		available = true
+	end
+	
+	if dtype:match("available") then
+		return available
+	elseif dtype:match("type") then
+		return binname or ""
+	end
+	
+	return ""
+end
 
-local dlna_available = file_check("/etc/init.d/dlnad")
-if dlna_available then
-    local dlnaMapParams = {
-        dlna_enabled       = "uci.dlnad.config.enabled",
-        dlna_friendly_name = "uci.dlnad.config.friendly_name",
-    }
-    for k,v in pairs(dlnaMapParams) do
-        mapParams[k] = v
-    end
+if check_dlna("available") then
+	local dlnaMapParams = {
+		dlna_enabled       = "uci."..check_dlna("type")..".config.enabled",
+		dlna_friendly_name = "uci."..check_dlna("type")..".config.friendly_name",
+	}
+	for k,v in pairs(dlnaMapParams) do
+		mapParams[k] = v
+	end
 end
 
 mapParams["usb3_enabled"] = "uci.system.config.enable_usb3_support"
