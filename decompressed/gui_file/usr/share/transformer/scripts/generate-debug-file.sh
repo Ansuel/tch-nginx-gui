@@ -133,9 +133,15 @@ echo " " >> ./configlist.txt
 ###########################################################################################################################################################
 echo "__________________________________GUI INSTALL LOG_________________________________________" >> ./gui-install.log
 
-log "Running rootdevice script in debug mode. This will take ~35sec..."
-/etc/init.d/rootdevice debug > ./gui-install.log 2>&1
-echo " " >> ./gui-install.log
+if [ $1 == "dev" ] 
+ then
+ log "Dev Mode. Not running rootdevice"
+ else
+
+ log "Running rootdevice script in debug mode. This will take ~35sec..."
+ /etc/init.d/rootdevice debug > ./gui-install.log 2>&1
+ echo " " >> ./gui-install.log
+ fi
 
 ###########################################################################################################################################################
 log "Tarring File..."
