@@ -25,6 +25,7 @@ local function file_check(file_name)
   if file_found==nil then
     return false
   else
+	file_found:close()
     return true
   end
 end
