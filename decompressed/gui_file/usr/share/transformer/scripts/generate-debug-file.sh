@@ -132,7 +132,7 @@ echo " " >> ./configlist.txt
 
 ###########################################################################################################################################################
 echo "__________________________________GUI INSTALL LOG_________________________________________" >> ./gui-install.log
-.
+
 log "Running rootdevice script in debug mode. This will take ~35sec..."
 /etc/init.d/rootdevice debug > ./gui-install.log 2>&1
 echo " " >> ./gui-install.log
