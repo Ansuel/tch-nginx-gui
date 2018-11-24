@@ -29,16 +29,7 @@ logger -s -t "DebugHelper" "$1"
 }
 #####################################################################
 
-if [ $1 == "help" ]
-then
-log "debug <command>"
-log "Commands Avaliable:"
-log "dev -run this tool without running rootdevice"
-log "help -show this"
-exit 1
-fi
-
-log "DebugHelper Started! Run debug help for commands."
+log "DebugHelper Started!"
 
 log "Removing directory /tmp/$DATE-DebugHelper/* to prevent duplicates"
 rm -R /tmp/$DATE-DebugHelper/* > /dev/null 2>&1
@@ -98,22 +89,22 @@ fi
 
 if [ $xupnp -eq 1 ] 
 then
-echo "xUPNP Installed" >> ./deviceinfo.txt
+ echo "xUPNP Installed" >> ./deviceinfo.txt
 fi
 
 if [ $blk -eq 1 ] 
 then
-echo "Blacklist Installed" >> ./deviceinfo.txt
+ echo "Blacklist Installed" >> ./deviceinfo.txt
 fi
 
 if [ $telstra -eq 1 ] 
 then
-echo "Telstra GUI Installed" >> ./deviceinfo.txt
+ echo "Telstra GUI Installed" >> ./deviceinfo.txt
 fi
 
 if [ $trans -eq 1 ] 
 then
-echo "Transmission Installed" >> ./deviceinfo.txt
+ echo "Transmission Installed" >> ./deviceinfo.txt
 fi
 echo "--------------------------------------" >> ./deviceinfo.txt
 
@@ -141,15 +132,14 @@ echo " " >> ./configlist.txt
 
 ###########################################################################################################################################################
 echo "__________________________________GUI INSTALL LOG_________________________________________" >> ./gui-install.log
-if [ $1 == "dev" ] 
-then
-log "Dev Mode. Not running rootdevice"
-else
+.
 log "Running rootdevice script in debug mode. This will take ~35sec..."
 /etc/init.d/rootdevice debug > ./gui-install.log 2>&1
 echo " " >> ./gui-install.log
-fi
+
 ###########################################################################################################################################################
 log "Tarring File..."
 tar -czvf ./DebugHelper$DATE.tar.gz /tmp/$DATE-DebugHelper > /dev/null 2>&1
-log "All Done! Zipped file can be found in /tmp/$DATE-DebugHelper/. The name of it is DebugHelper$DATE.tar.gz."
+cp ./DebugHelper$DATE.tar.gz /tmp/
+rm /tmp/$DATE-DebugHelper
+log "All Done! Zipped file can be found in /tmp/. The name of it is DebugHelper$DATE.tar.gz."
