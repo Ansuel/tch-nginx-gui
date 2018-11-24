@@ -147,7 +147,8 @@ if not cache["dslmode"] then
 	cache["dslmode"] = xdslmode("mode")
 end
 
-if cache["dslmode"] and not dslmode:match("G%.DMT") then
+if cache["dslmode"] and not cache["dslmode"]:match("G%.DMT") and 
+  not cache["dslmode"]:match("ADSL") then
 	cache["pbLineUs"] = pbParams_find("Us")
 	cache["pbLineDs"] = pbParams_find("Ds")
 	parase_pbParams("Us")
@@ -399,7 +400,9 @@ local function get(mapping, paramName, key)
 		return xdslband(band,"Initial",bandtype)
 	elseif paramName:match("BandNumber") then
 		local bandtype = paramName:sub(1,2)
-		return parase_pbParams(bandtype,"BandNumber")
+		return not cache["dslmode"]:match("ADSL") and not cache["dslmode"]:match("G%.DMT") 
+			and parase_pbParams(bandtype,"BandNumber")
+			or "1"
 	elseif paramName:match("ScannedBand") then
 		local band = tonumber(paramName:sub(3,3))
 		local bandtype = paramName:sub(1,2)

@@ -24,6 +24,16 @@ local tonumber = tonumber
 -- Process POST query
 local post_helper = require("web.post_helper")
 
+local function file_check(file_name)
+  local file_found=io.open(file_name, "r")
+  if file_found==nil then
+    return false
+  else
+	file_found:close()
+    return true
+  end
+end
+
 local function check_dlna(dtype)
 	local available = false
 	local binname
@@ -44,18 +54,21 @@ local function check_dlna(dtype)
 	return ""
 end
 
+local dlna_content, helpmsg
+
 if check_dlna("available") then
+	local type = check_dlna("type")
 	local mapParams = {
-		dlna_enabled       = "uci."..check_dlna("type")..".config.enabled",
-		dlna_friendly_name = "uci."..check_dlna("type")..".config.friendly_name",
+		dlna_enabled       = "uci."..type..".config.enabled",
+		dlna_friendly_name = "uci."..type..".config.friendly_name",
 	}
 	
 	local mapValid = {
-		dlna_enabled = post_helper.validateBoolean,
-		dlna_friendly_name = valid_empty_string,
+		dlna_enabled = post_helper.getValidateCheckboxSwitch(),
+		dlna_friendly_name = post_helper.validateNonEmptyString,
 	}
 
-local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
+	dlna_content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
 end
 -- End POST process
 
@@ -101,8 +114,8 @@ content_helper.getExactContent(content_samba)
 
   local html = {}
   if check_dlna("available") then
-	html[#html + 1] = ui_helper.createCheckboxSwitch(T"Enable DLNA Server", "dlna_enable", content["dlna_enable"], attributes)
-	html[#html + 1] = ui_helper.createInputText(T"Media Server Name", "media_server_name", content["dlna_friendly_name"], attributes)
+	html[#html + 1] = ui_helper.createCheckboxSwitch(T"Enable DLNA Server", "dlna_enabled", dlna_content["dlna_enabled"], attributes)
+	html[#html + 1] = ui_helper.createInputText(T"Media Server Name", "media_server_name", dlna_content["dlna_friendly_name"], attributes)
   end
   html[#html + 1] = ui_helper.createLabel(T"Media Server IP", content_intf_lan.ipaddr)
 --  html[#html + 1] = ui_helper.createLabel(T"FTP Server State", str_ftp_server_enable)
