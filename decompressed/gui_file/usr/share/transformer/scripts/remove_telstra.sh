@@ -1,3 +1,4 @@
+#!/bin/sh
 if [ -d /www/telstra-snippets ]; then
 	rm -r /www/telstra-snippets
 	rm /www/gateway-snippets/telstra-gui.lp

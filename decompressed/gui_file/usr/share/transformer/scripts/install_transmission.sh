@@ -1,3 +1,4 @@
+#!/bin/sh
 opkg update
 opkg install transmission-web transmission-daemon-openssl
 

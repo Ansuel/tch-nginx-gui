@@ -1,4 +1,4 @@
-##!/bin/sh
+#!/bin/sh
 ## Copyright (c) 2015 Technicolor
 #
 . $IPKG_INSTROOT/lib/functions.sh

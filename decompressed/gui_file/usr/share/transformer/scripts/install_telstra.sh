@@ -1,3 +1,4 @@
+#!/bin/sh
 if [ $(uci get env.var.update_branch) == "dev" ]; then
 	branch="dev"
 else

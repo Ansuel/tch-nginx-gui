@@ -1,4 +1,4 @@
-#
+#!/bin/sh
 #
 #	 Custom Gui for Technicolor Modem: utility script and modified gui for the Technicolor Modem
 #	 								   interface based on OpenWrt
