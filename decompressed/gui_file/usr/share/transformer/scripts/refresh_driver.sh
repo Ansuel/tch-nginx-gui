@@ -58,9 +58,9 @@ d76d9eebfccd572b0a0943cd3957b82a  B2pvfbH043i1
 installed_driver=$(transformer-cli get rpc.xdsl.dslversion | awk '{print $4}')
 driver_set=$(uci get env.var.driver_version)
 
-if [ $(cat /proc/cpuinfo | grep Processor | grep ARM) ]; then
+if [ "$(cat /proc/cpuinfo | grep Processor | grep ARM)" ]; then
 	arch=arm
-elif [ $(cat /proc/cpuinfo | grep 'cpu model' | grep MIPS) ]; then
+elif [ "$(cat /proc/cpuinfo | grep 'cpu model' | grep MIPS)" ]; then
 	arch=mips
 fi
 
