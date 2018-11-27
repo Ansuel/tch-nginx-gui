@@ -1,4 +1,4 @@
-#
+#!/bin/sh
 #
 #	 Custom Gui for Technicolor Modem: utility script and modified gui for the Technicolor Modem
 #	 								   interface based on OpenWrt
@@ -58,9 +58,9 @@ d76d9eebfccd572b0a0943cd3957b82a  B2pvfbH043i1
 installed_driver=$(transformer-cli get rpc.xdsl.dslversion | awk '{print $4}')
 driver_set=$(uci get env.var.driver_version)
 
-if [ "$(cat /proc/cpuinfo | grep Processor | grep ARM)" ]; then
+if [ $(cat /proc/cpuinfo | grep Processor | grep ARM) ]; then
 	arch=arm
-else if [ "cat /proc/cpuinfo | grep 'cpu model' | grep MIPS" ]; then
+elif [ $(cat /proc/cpuinfo | grep 'cpu model' | grep MIPS) ]; then
 	arch=mips
 fi
 
@@ -73,7 +73,7 @@ apply_driver() {
 
 download_Driver() {
 	logger "Downloading driver "$driver_set
-	remote_driver_dir=https://github.com/Ansuel/tch-nginx-gui/raw/dev/modular/xdsl_driver/$arch/
+	remote_driver_dir=https://raw.githubusercontent.com/Ansuel/tch-nginx-gui/dev/modular/xdsl_driver/$arch/
 	$curl $remote_driver_dir/$driver_set --output /tmp/$driver_set
 }
 
@@ -91,7 +91,7 @@ test_apply() {
 				fi
 			else
 				logger "Download corrupted, retrying..."
-				try=try+1
+				try=$((try+1))
 				download_Driver
 				if [ $try < 2 ]; then
 					test_apply
