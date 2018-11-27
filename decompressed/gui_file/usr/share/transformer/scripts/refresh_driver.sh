@@ -55,7 +55,7 @@ d76d9eebfccd572b0a0943cd3957b82a  B2pvfbH043i1
 1767c3c86b5e4f5b46ce024ccd4f91b2  B2pvfbH043k
 "
 
-installed_driver=$(transformer-cli get rpc.xdsl.dslversion | awk '{print $4}')
+installed_driver=$(transformer-cli get rpc.xdsl.dslversion | awk '{print $4}'  | cut -d. -f1)
 driver_set=$(uci get env.var.driver_version)
 
 if [ "$(cat /proc/cpuinfo | grep Processor | grep ARM)" ]; then
