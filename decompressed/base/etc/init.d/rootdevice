@@ -1692,6 +1692,8 @@ root() {
 			fi
 		elif [ $(uci -q get env.var.isp) == "Tiscali" ]; then
 			uci set cwmpd.cwmpd_config.acs_url="http://webdirect.tr69.tiscali.it:8080/ftacs-basic/ACS"
+			uci set cwmpd.cwmpd_config.acs_user="technicolor"
+			uci set cwmpd.cwmpd_config.acs_pass="techn_tr69@"
 		elif [ $(uci -q get env.var.isp) == "TIM" ]; then
 			logger_command "TIM ISP detected..."
 			logger_command "Checking CWMP server..."
