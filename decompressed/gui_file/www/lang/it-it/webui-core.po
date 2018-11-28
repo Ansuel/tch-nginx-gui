@@ -989,13 +989,13 @@ msgstr "Versione Driver"
 msgid "Driver Version: <strong>%s</strong>"
 msgstr "Versione Driver: <strong>%s</strong>"
 
-msgid "Dslam Chipset"
+msgid "DSLAM Chipset"
 msgstr "Chipset DSLAM"
 
 msgid "DSLAM Chipset: <strong>%s</strong>"
 msgstr "Chipset DSLAM : <strong>%s</strong>"
 
-msgid "Dslam Firmware Version"
+msgid "DSLAM Firmware Version"
 msgstr "Versione Firmware DSLAM"
 
 msgid "DSLAM Version: <strong>%s</strong>"
@@ -3447,6 +3447,9 @@ msgstr "Informazioni xDSL"
 
 msgid "xDSL Version"
 msgstr "Versione xDSL"
+
+msgid "xDSL Profile"
+msgstr "Profilo xDSL"
 
 msgid "Your Gateway"
 msgstr "Il tuo Gateway"

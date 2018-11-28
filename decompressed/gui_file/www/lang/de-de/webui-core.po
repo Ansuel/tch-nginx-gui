@@ -1210,16 +1210,16 @@ msgid "Driver Version: <strong>%s</strong>"
 msgstr "Treiber Version: <strong>%s</strong>"
 
 msgid "DSLAM Chipset"
-msgstr "DSlam Chipsatz"
+msgstr "DSLAM Chipsatz"
 
 msgid "DSLAM Chipset: <strong>%s</strong>"
-msgstr "DSlam Chipsatz: <strong>%s</strong>"
+msgstr "DSLAM Chipsatz: <strong>%s</strong>"
 
-msgid "Dslam Firmware Version"
-msgstr "DSlam Firmware Version"
+msgid "DSLAM Firmware Version"
+msgstr "DSLAM Firmware Version"
 
-msgid "Dslam Version: <strong>%s</strong>"
-msgstr "DSlam Version: <strong>%s</strong>"
+msgid "DSLAM Version: <strong>%s</strong>"
+msgstr "DSLAM Version: <strong>%s</strong>"
 
 msgid "Dst IP"
 msgstr "Ziel-IP"

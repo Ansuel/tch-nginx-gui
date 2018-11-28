@@ -80,6 +80,8 @@ end
 
 local content = {
 	dsl0_status 					= "sys.class.xdsl.@line0.Status",
+    dsl0_mode 					    = "rpc.xdslctl.DslMode",
+    dsl0_profile 					= "rpc.xdslctl.DslProfile",
     dsl0_enabled                    = "uci.xdsl.xdsl.@dsl0.enabled",
     dsl0_eoc_vendor_id              = "uci.xdsl.xdsl.@dsl0.eoc_vendor_id",
     dsl0_eoc_serial_number          = "uci.xdsl.xdsl.@dsl0.eoc_serial_number",
@@ -98,7 +100,7 @@ local content = {
 	marketing_version				= "uci.version.version.@version[0].marketing_version",
 	dslam_chipset 					= "rpc.xdslctl.DslamChipset",
 	dslam_version 					= "rpc.xdslctl.DslamVersion",
-	dslam_version_raw				= "rpc.xdslctl.DslamVersionRaw"
+    dslam_version_raw				= "rpc.xdslctl.DslamVersionRaw"
 }
 
 content_helper.getExactContent(content)
@@ -205,15 +207,17 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  local alertinfo = { alert = { class = "alert-info" } }
       local html = {}
       html[#html + 1] = ui_helper.createLight(T"Status", nil, state_map[untaint(content.dsl0_enabled)], { light = { class = light_map[untaint(content.dsl0_enabled)] } })
-	  html[#html + 1] = ui_helper.createLabel(T"Dsl Connection Status", content.dsl0_status, span5 )
+	  html[#html + 1] = ui_helper.createLabel(T"DSL Connection Status", content.dsl0_status, span5 )
 	  if ( content.dsl0_status == "Up" ) then
-		html[#html + 1] = ui_helper.createLabel(T"Dslam Chipset",content.dslam_chipset, span5 )
+        html[#html + 1] = ui_helper.createLabel(T"DSL Mode", content.dsl0_mode, span5 )
+        html[#html + 1] = ui_helper.createLabel(T"xDSL Profile", content.dsl0_profile, span5 )
+		html[#html + 1] = ui_helper.createLabel(T"DSLAM Chipset",content.dslam_chipset, span5 )
 		if content.dslam_version_raw:sub(0,2) == "0x" then
-			html[#html + 1] = ui_helper.createLabel(T"Dslam Firmware",format("%s ( %s )", content.dslam_version , content.dslam_version_raw) , span5 )
+			html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",format("%s ( %s )", content.dslam_version , content.dslam_version_raw) , span5 )
 		elseif content.dslam_version_raw == "" then
-			html[#html + 1] = ui_helper.createLabel(T"Dslam Firmware",T"Can't recover dslam version." , span5 )
+			html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",T"Can't recover DSLAM version." , span5 )
 		else
-			html[#html + 1] = ui_helper.createLabel(T"Dslam Firmware",format(T"Invalid version, can't convert. Raw value: %s", content.dslam_version_raw) , span5 )
+			html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",format(T"Invalid version, can't convert. Raw value: %s", content.dslam_version_raw) , span5 )
 		end
 	  end
 	  html[#html + 1] = ui_helper.createLabel(T"Firmware Version",content.dsl0_xdsl_FirmwareVersion, span5 )
