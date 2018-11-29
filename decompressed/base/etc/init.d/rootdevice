@@ -29,10 +29,10 @@ EXTRA_COMMANDS="force debug"
 EXTRA_HELP="\
         force   Force root process even when root flag is already set
         debug   force command with debug log
-		install    This root the device for the initial installation
+        install    This root the device for the initial installation
 "
 
-version_gui=8.9.82
+version_gui=8.9.81
 
 logo_project() {
 cat << EOF > /dev/console
@@ -1075,16 +1075,7 @@ apply_specific_TG799_package() {
 }
 
 clean_specific_file() {
-	rm /root/upnpfix-specificDGA.tar.bz2
-	rm /root/upgrade-pack-specificDGA.tar.bz2
-	rm /root/telnet_support-specificDGA.tar.bz2
-	rm /root/telnet_support-specificTG789.tar.bz2
-	rm /root/custom-ripdrv-specificDGA.tar.bz2
-	rm /root/dlnad_supprto-specificDGA.tar.bz2
-	rm /root/wgetfix-specificDGA.tar.bz2
-	rm /root/ledfw_support-specificTG799.tar.bz2
-	rm /root/ledfw_support-specificTG800.tar.bz2
-	rm /root/ledfw_support-specificDGA.tar.bz2
+	rm /root/*specific*.tar.bz2
 }
 
 fcctlsettings_daemon() {
@@ -1426,6 +1417,16 @@ ledfw_rework_tg800() {
 	fi
 }
 
+ledfw_rework_TG789() {
+	if [ ! "$(cat /etc/ledfw/stateMachines.lua | grep fw_upgrade)" ]; then
+		/etc/init.d/ledfw restart
+		logger_command "Extracting ledfw_support-specificTGA789.bz2 ..."
+		if [ -f /root/ledfw_support-specificTGA789.tar.bz2 ]; then
+			bzcat /root/ledfw_support-specificTGA789.tar.bz2 | tar -C / -xf -
+		fi
+	fi
+}
+
 ledfw_rework_DGA() {
 	if [ "$(cat /usr/lib/lua/ledframework/ubus.lua | grep '\--restore default function of this')" ]; then
 		cp /rom/usr/lib/lua/ledframework/ubus.lua /usr/lib/lua/ledframework/
@@ -1503,6 +1504,7 @@ root() {
 	[ -z "${device_type##*TG799*}" ] && apply_specific_TG799_package
 	[ -z "${device_type##*TG800*}" ] && apply_specific_TG800_package
 	[ -z "${device_type##*DGA413*}" ] && ledfw_rework_DGA
+	[ -z "${device_type##*TG789*}" ] && ledfw_rework_tg789
 	[ -z "${device_type##*TG799*}" ] && ledfw_rework_tg799
 	[ -z "${device_type##*TG800*}" ] && ledfw_rework_tg800
 	

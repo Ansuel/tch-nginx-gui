@@ -1,5 +1,5 @@
 -- The only available function is helper (ledhelper)
-local timerLed, staticLed, netdevLed, netdevLedOWRT, runFunc, uci, ubus, print, get_depending_led = timerLed, staticLed, netdevLed, netdevLedOWRT, runFunc, uci, ubus, print, get_depending_led
+local timerLed, staticLed, netdevLed, netdevLedOWRT, runFunc, uci, ubus, print, get_depending_led, xdsl_status = timerLed, staticLed, netdevLed, netdevLedOWRT, runFunc, uci, ubus, print, get_depending_led, xdsl_status
 local wl1_ifname = get_wl1_ifname()
 local itf_depending_led
 
@@ -14,6 +14,15 @@ end
 
 local function get_itf_depending_led()
    return itf_depending_led
+end
+
+-- When both xdsl and ethwan is connected and when eth4 is unplugged
+-- eth4_down event will be received from the net link
+-- however since xdsl is present, the internet LED behavior must not be modified
+-- this is exceptional to few scenarios where eth4 is used as LAN/WAN port
+-- hence always check the xdsl status before acting on the eth4_down event
+local function internet_nextState()
+   return ((xdsl_status() ~= 5) and "internet_disconnected" or nil)
 end
 
 patterns = {
@@ -48,43 +57,6 @@ patterns = {
                 staticLed("dect:orange", false),
                 staticLed("voip:green", false)
             },
-			status_upgrade = {
-                staticLed("broadband:red", false),
-                staticLed("broadband:green", false),
-                staticLed("internet:green", false),
-                staticLed("internet:red", false),
-                staticLed("iptv:green", false),
-                staticLed("iptv:red", false),
-                staticLed("ethernet:green", false),
-                staticLed("wireless:green", false),
-                staticLed("wireless:red", false),
-                staticLed("wireless_5g:green", false),
-                staticLed("wireless_5g:red", false),
-                staticLed("wps:orange", false),
-                staticLed("wps:red", false),
-                staticLed("wps:green", false),
-                staticLed("dect:red", false),
-                staticLed("dect:green", false),
-                staticLed("dect:orange", false),
-                staticLed("voip:green", false),
-				timerLed("power:orange", 125, 125)
-            }
-        }
-    },
-    remote_mgmt = {
-        state = "remote_mgmt_session_ends",
-        transitions = {
-            remote_mgmt_session_ends = {
-                remote_mgmt_session_begins = "remote_mgmt_session_begins",
-            },
-            remote_mgmt_session_begins = {
-                remote_mgmt_session_ends = "remote_mgmt_session_ends"
-            }
-        },
-        actions = {
-            remote_mgmt_session_begins = {
-                timerLed("power:green", 50, 50)
-            }
         }
     },
 	fw_upgrade = {
@@ -127,7 +99,7 @@ stateMachines = {
                 staticLed("power:blue", false),
                 staticLed("power:green", true)
             },
-            service_ok_fullpower = {
+			service_ok_fullpower = {
                 staticLed("power:orange", false),
                 staticLed("power:red", false),
                 staticLed("power:blue", false),
@@ -140,10 +112,10 @@ stateMachines = {
                 staticLed("power:green", false)
             },
         },
-        patterns_depend_on = {
-            power_started = { "remote_mgmt" , "fw_upgrade" },
-            service_ok_fullpower = { "remote_mgmt", "fw_upgrade" },
-            service_notok = { "remote_mgmt", "fw_upgrade" }
+		patterns_depend_on = {
+            power_started = { "fw_upgrade" },
+			service_ok_fullpower = { "fw_upgrade" },
+			service_notok = { "fw_upgrade" }
         }
     },
     broadband = {
@@ -176,7 +148,7 @@ stateMachines = {
                 netdevLed("broadband:green", 'eth4', 'link'),
             },
             training = {
-                timerLed("broadband:green", 250, 250)
+                staticLed("broadband:green", false)
             },
             synchronizing = {
                 timerLed("broadband:green", 125, 125)
@@ -207,6 +179,7 @@ stateMachines = {
             internet_connecting = {
                 network_interface_broadband_ifdown = "internet_disconnected",
                 xdsl_0 = "internet_disconnected",
+                network_device_eth4_down = internet_nextState,
 --                network_interface_wan_ifdown = "internet_disconnected",
 --                network_interface_wan6_ifdown = "internet_disconnected",
                 network_interface_wan_ifup = "internet_connected_ipv4_or_v6",
@@ -217,6 +190,7 @@ stateMachines = {
             },
             internet_connected_ipv4_or_v6 = {
                 xdsl_0 = "internet_disconnected",
+                network_device_eth4_down = internet_nextState,
                 xdsl_1 = "internet_connected_ipv4_or_v6_ddbdd",
                 xdsl_2 = "internet_connected_ipv4_or_v6_ddbdd",
                 network_interface_wan_ifdown = "internet_connecting",
@@ -229,6 +203,7 @@ stateMachines = {
             },
             internet_connected_ipv4_and_v6 = {
                 xdsl_0 = "internet_disconnected",
+                network_device_eth4_down = internet_nextState,
                 xdsl_1 = "internet_connected_ipv4_and_v6_ddbdd",
                 xdsl_2 = "internet_connected_ipv4_and_v6_ddbdd",
                 network_interface_wan_ifdown = "internet_connected_ipv4_or_v6",
@@ -563,7 +538,6 @@ stateMachines = {
         initial = "dectprofile_unusable",
         transitions = {
             dectprofile_unusable = {
-                dect_unregistered_usable = "dectprofile_usable",
                 dect_registered_usable = "dectprofile_usable",
                 dect_registered_true = "dectprofile_usable",
                 dect_registering_usable = "registering",
@@ -571,6 +545,7 @@ stateMachines = {
             },
             dectprofile_usable = {
                 dect_unregistered_unusable = "dectprofile_unusable",
+                dect_unregistered_usable = "dectprofile_unusable",
                 dect_registered_unusable = "dectprofile_unusable",
                 dect_registering_usable = "registering",
                 dect_registering_unusable = "registering",
@@ -578,7 +553,7 @@ stateMachines = {
             },
             dect_inuse = {
                 dect_unregistered_unusable = "dectprofile_unusable",
-                dect_registered_unusable = "dectprofile_unusable",
+                dect_unregistered_usable = "dectprofile_unusable",
                 dect_registering_usable = "registering",
                 dect_registering_unusable = "registering",
                 dect_inactive = "dectprofile_usable"
@@ -586,7 +561,7 @@ stateMachines = {
             registering = {
                 dect_unregistered_unusable = "dectprofile_unusable",
                 dect_registered_unusable = "dectprofile_unusable",
-                dect_unregistered_usable = "dectprofile_usable",
+                dect_unregistered_usable = "dectprofile_unusable",
                 dect_registered_usable = "dectprofile_usable",
                 dect_registered_true = "dectprofile_usable",
             }
@@ -615,6 +590,9 @@ stateMachines = {
             },
             dectprofile_unusable = {
                 "status"
+            },
+            dect_inuse = {
+                "status"
             }
         }
     },
@@ -626,23 +604,26 @@ stateMachines = {
 			fxs_lines_usable_off = "off",
 			fxs_active = "fxs_profiles_flash",
 			fxs_inactive = "fxs_profiles_solid",
+			fxs_lines_usable_idle = "off",
             },
             fxs_profiles_solid = {
 			fxs_active = "fxs_profiles_flash",
 			fxs_inactive = "fxs_profiles_usable",
 		    fxs_lines_error = "off",
 			fxs_lines_usable_off = "off",
+			fxs_lines_usable_idle = "off",
             },
             fxs_profiles_flash = {
 			fxs_inactive = "fxs_profiles_solid",
 			fxs_active  = "fxs_profiles_flash",
 			fxs_lines_error = "off",
-			fxs_lines_usable_off = "off",
+			fxs_lines_usable_idle = "off",
             },
             off = {
 			fxs_lines_usable = "fxs_profiles_usable",
 			fxs_lines_error = "off",
 			fxs_lines_usable_off = "off",
+			fxs_lines_usable_idle = "off",
             }
         },
         actions = {

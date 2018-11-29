@@ -47,7 +47,7 @@ patterns = {
         },
         actions = {
             fwupgrade_state_upgrading = {
-                timerLed("power:orange", 50, 50)
+                timerLed("power:blue", 50, 50)
             }
         }
     }

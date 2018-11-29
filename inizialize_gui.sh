@@ -37,6 +37,7 @@ declare -a modular_dir=(
 	"dlnad_supprto-specificDGA"
 	"wgetfix-specificDGA"
 	"telstra_gui"
+	"ledfw_support-specificTG789"
 	"ledfw_support-specificTG799"
 	"ledfw_support-specificTG800"
 	"ledfw_support-specificDGA"
