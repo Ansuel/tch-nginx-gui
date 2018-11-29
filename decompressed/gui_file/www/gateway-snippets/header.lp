@@ -302,8 +302,7 @@ end ngx.print('\
   	page = "cards.lp";\
   	text = "'); ngx.print(T"Cards"); ngx.print ('";\
 	$("#cards-text").text(text);\
-  }\
-  if (pathname == "/cards.lp") {\
+  } else if (pathname == "/cards.lp") {\
   	page = "stats.lp";\
   	text = "'); ngx.print(T"Stats"); ngx.print ('";\
 	$("#cards-text").text(text);\
@@ -313,19 +312,11 @@ end ngx.print('\
 	var text = "'); ngx.print(pageselector.othertext); ngx.print ('";\
 	if (pathname == "/stats.lp") {\
 		page = "cards.lp";\
-		text = "'); ngx.print(T"Stats"); ngx.print ('";\
-	}\
-	if (pathname == "/cards.lp") {\
+	} else if (pathname == "/cards.lp") {\
 		page = "stats.lp";\
-		text = "'); ngx.print(T"Cards"); ngx.print ('";\
 	}\
-	$("#dynamic-content").load(page + "?contentonly=true");\
-	$(this).trigger("switchcard");\
-	window.history.pushState("gateway", "Gateway - Cards", page);\
-	$("#cards-text").text(text);\
-	$("#refresh-cards").show();\
-	$("#refresh-cards").css("margin-right","5px");\
-	$("#refresh-cards").addClass("fa fa-sync fa-spin");\
+	window.location.replace(page);\
+	$("#refresh-cards").show().css("margin-right","5px").addClass("fa fa-sync fa-spin");\
 	KoRequest.forEach(function(element) {\
 		clearInterval(element);\
 	});\
