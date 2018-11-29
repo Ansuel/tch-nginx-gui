@@ -357,7 +357,7 @@ text-decoration: none;
 }
 
 .header-title {
-	max-width: 175px;
+	width: 72%;
 }
 
 .header-title > p {
