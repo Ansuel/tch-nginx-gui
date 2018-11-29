@@ -20,10 +20,6 @@ local gOV = post_helper.getOrValidation
 local gAV = post_helper.getAndValidation
 local session = ngx.ctx.session
 
-local dyntab_helper = require("web.dyntab_helper")
-local bmh = require("broadbandmode_helper")
-local tabdata = dyntab_helper.process(bmh)
-
 local tech = false
 if session:getrole() == "engineer" then
 	tech = true
@@ -987,6 +983,10 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = '<span id="GUI-upgrade-option">'
 	  html[#html + 1] = ui_helper.createAlertBlock(T"This upgrade the GUI to the latest available version on the site", info_box)
 	  html[#html + 1] = ui_helper.createInputSelect(T"Update Branch", "update_branch", update_branch_option, update_content["update_branch"])
+	  
+	  local dyntab_helper = require("web.dyntab_helper")
+	  local bmh = require("broadbandmode_helper")
+	  local tabdata = dyntab_helper.process(bmh)
 	  
 	  if not ( tabdata.current.name == "bridge" ) and not ( tabdata.current.name == "voice" )  then
 		html[#html + 1] = ui_helper.createSwitch(T"AutoUpgrade", "update_autoupgrade", update_content["update_autoupgrade"])

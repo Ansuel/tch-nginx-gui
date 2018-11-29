@@ -32,7 +32,7 @@ EXTRA_HELP="\
 		install    This root the device for the initial installation
 "
 
-version_gui=8.9.64
+version_gui=8.9.82
 
 logo_project() {
 cat << EOF > /dev/console
@@ -242,12 +242,17 @@ cumulative_check_gui() {
 			        curl -k -s https://repository.ilpuntotecnico.com//files/Ansuel/AGTEF/GUI.tar.bz2 --output /root/GUI.tar.bz2
 			else
 				logger_command "Can't download stable GUI!"
+				logger_command "Checking if GUI_dev is present in /tmp"
+				if [ -f /tmp/GUI_dev.tar.bz2 ]; then
+					logger_command "Found GUI_dev in /tmp, copying it as stable to generate a valid hash"
+					cp /tmp/GUI_dev.tar.bz2 /root/GUI.tar.bz2
+				fi
 			fi
 		else
 			logger_command "Moving stable GUI from /tmp to /root"
 			cp /tmp/GUI.tar.bz2 /root
 		fi
-		if [ -f /root/GUI.tar.bz2 ]; then
+		if [ -f /root/GUI.tar.bz2 ] && [ -s /root/GUI.tar.bz2 ]; then
 			logger_command "Assume first times install, cleaning /www dir and reinstall"
 			rm -r /www/*
 			bzcat /root/GUI.tar.bz2 | tar -C / -xf - www
@@ -554,7 +559,7 @@ transformer_lib_check() {
 	local orig_dir=/rom/usr
 	local target=/usr
 	
-	if [ $(md5sum $orig_dir/lib/lua/transformer/shared/dhcp.lua | awk '{print $1}') != $(md5sum $target/lib/lua/transformer/shared/dhcp.lua | awk '{print $1}') ]; then
+	if [ $(md5sum $orig_dir/lib/lua/transformer/commitapply.lua | awk '{print $1}') != $(md5sum $target/lib/lua/transformer/commitapply.lua | awk '{print $1}') ]; then
 		rm $target/share/transformer/mappings/rpc/*
 		rm $target/share/transformer/mappings/uci/*
 		rm -r $target/lib/lua/tch/*
@@ -572,10 +577,11 @@ transformer_lib_check() {
 		elif [ -f /tmp/GUI.tar.bz2 ]; then
 			gui_pos=/tmp/GUI.tar.bz2
 		elif [ -f /tmp/GUI_dev.tar.bz2 ]; then
-			gui_pos=/root/GUI_dev.tar.bz2
+			gui_pos=/tmp/GUI_dev.tar.bz2
 		fi
-		if [ $gui_pos != "" ]; then
-			bzcat $gui_pos | tar -C / -xf - #reapply the upgrade as in the gui we store some of this file that we restored
+		logger_command "Found gui here: "$gui_pos
+		if [ $gui_pos != "" ] && [ -s $gui_pos ]; then
+			bzcat $gui_pos | tar -C / -xf - usr #reapply the upgrade as in the gui we store some of this file that we restored
 			logger_command "Restoring transformer lib"
 		fi
 		#/etc/init.d/transformer restart
@@ -1514,7 +1520,7 @@ root() {
 	fi
 	
 	if [ -f /root/.reapply_due_to_upgrade ]; then
-		if [ -f /root/GUI.tar.bz2 ]; then
+		if [ -f /root/GUI.tar.bz2 ] && [ -s /root/GUI.tar.bz2 ]; then
 			logger_command "Resetting /www dir due to firmware upgrade..."
 			rm -r /www
 			bzcat /root/GUI.tar.bz2 | tar -C / -xf - www
@@ -1525,7 +1531,7 @@ root() {
 	logger_command "Stopping nginx"
 	while [ "$(pgrep "nginx")" ]; do
 		if [ "$(pgrep "nginx")" ]; then
-			/etc/init.d/nginx stop > /dev/null
+			/etc/init.d/nginx stop 2>/dev/null
 		fi
 	done
 		
@@ -1715,12 +1721,12 @@ root() {
 			fi
 			uci commit cwmpd
 			if [ $(uci get -q cwmpd.cwmpd_config.acs_url) == "None" ]; then
-				if [ -f /var/run/cwmpd.pid ]; then
+				if [ "$(pgrep "cwmpd")" ]; then
 					/etc/init.d/cwmpd stop
 				fi
 			else
 				/etc/init.d/cwmpd enable
-				if [ ! -f /var/run/cwmpd.pid ]; then
+				if [ ! "$(pgrep "cwmpd")" ]; then
 					/etc/init.d/cwmpd start
 				else
 					/etc/init.d/cwmpd restart
