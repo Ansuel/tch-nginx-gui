@@ -89,7 +89,7 @@ local function xdslmode(dtype)
 	end
 	showdata:close()
 	
-	return result or ""
+	return result or "Not Found"
 end
 
 local function pbParams_find(bandtype)
@@ -148,7 +148,8 @@ if not cache["dslmode"] then
 end
 
 if cache["dslmode"] and not cache["dslmode"]:match("G%.DMT") and 
-  not cache["dslmode"]:match("ADSL") then
+  not cache["dslmode"]:match("ADSL") and
+  not cache["dslmode"]:match("Not Found") then
 	cache["pbLineUs"] = pbParams_find("Us")
 	cache["pbLineDs"] = pbParams_find("Ds")
 	parase_pbParams("Us")
@@ -164,7 +165,8 @@ local function xdslband(band_request,dtype,bandtype)
 	
 	local cachebandstring = bandtype .. band_request .. dtype
 	
-	if not dslmode:match("ADSL") and not dslmode:match("G%.DMT") then
+	if not dslmode:match("ADSL") and not dslmode:match("G%.DMT") and 
+	  not cache["dslmode"]:match("Not Found") then
 		local pbBand = cache["pbBand"..bandtype][band_request]
 		if dtype == "Initial" and pbBand then
 			result = pbBand:match("(.-)%,")
