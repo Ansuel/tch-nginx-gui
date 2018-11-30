@@ -78,7 +78,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	    local html = {}
 	    html[#html + 1] = '<legend>' .. T"Led Settings" .. '</legend>'
         
-	    html[#html + 1] = ui_helper.createAlertBlock(T"Turn off all led if all service are up and running. You can press the INFO button (button on the power led) to show the led status.", info_box)
+	    html[#html + 1] = ui_helper.createAlertBlock(T"Turn off all leds if all services are up and running. Press INFO button (could be button with power led) to show led status.", info_box)
 	    html[#html + 1] = ui_helper.createSwitch(T"Eco Led", "eco_led", content["eco_led"])
 	    html[#html + 1] = ui_helper.createInputText(T"Timeout", "eco_led_timeout", content["eco_led_timeout"], basic , helpmsg["eco_led_timeout"] )
         ngx.print(html)
