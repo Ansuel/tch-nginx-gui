@@ -1573,6 +1573,9 @@ msgstr "Installa blacklist vuota"
 msgid "Interface"
 msgstr "Interfaccia"
 
+msgid "Interfaces"
+msgstr "Interfacce"
+
 msgid "Interface <strong>%s</strong> status"
 msgstr "Stato Interfaccia <strong>%s</strong>"
 

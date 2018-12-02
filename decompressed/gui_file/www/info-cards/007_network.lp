@@ -49,13 +49,13 @@ local  port_options = {
 }
 
 local port_filter = function(data)
-	
+
 	if data.status == "Up" then
 		data.status = T"Connected"
 	else
 		data.status = T"Disconnected"
 	end
-	
+
 	if data.speed == "1000" then
 		data.speed = "1 Gpbs"
 	elseif data.speed == "100" then
@@ -63,7 +63,7 @@ local port_filter = function(data)
 	elseif data.speed == "10" then
 		data.speed = "10 Mbps"
 	end
-	
+
 	if quantenna_wifi and data.paramindex:match("eth5") then
 		return false
 	elseif data.paramindex:match("eth4") and ( proxy.get("uci.ethernet.port.@eth4.wan")[1].value == "1" ) then
@@ -72,7 +72,7 @@ local port_filter = function(data)
 		port = data.paramindex:gsub("eth","")
 		data.paramindex = "LAN - " .. tonumber(port)+1
 	end
-  
+
   return true
 end
 
@@ -101,14 +101,14 @@ elseif wifi_content.wifi5_mode == "an" then
 	wifi_content.wifi5_mode = "a/n"
 end
 
-port_data[#port_data+1] = { 
+port_data[#port_data+1] = {
 	"Wi-Fi 2.4 Ghz", --type
 	( wifi_content.wifi24_status == "1" ) and T"Active" or T"Disabled", --status
 	( wifi_content.wifi24_status == "1" ) and ( wifi_content.wifi24_speed / 1000 .. " Mbps" ) or "", --speed
 	( wifi_content.wifi24_status == "1" ) and wifi_content.wifi24_mode or "", --mode
 }
 
-port_data[#port_data+1] = { 
+port_data[#port_data+1] = {
 	"Wi-Fi 5 Ghz", --type
 	( wifi_content.wifi5_status == "1" ) and T"Active" or T"Disabled", --status
 	( wifi_content.wifi5_status == "1" ) and ( wifi_content.wifi5_speed / 1000 .. " Mbps" ) or "", --speed
@@ -123,18 +123,18 @@ end)
 \
 <div class="infocard" id="infoporttab">\
   <div class="smallcard">\
-    ');  ngx.print( ui_helper.createCardHeader(T"Ports", nil, nil, nil, nil) ); ngx.print('\
+    ');  ngx.print( ui_helper.createCardHeader(T"Interfaces", nil, nil, nil, nil) ); ngx.print('\
     <div class="content card_bg" data-bg-text="&#xf362;">\
 	<div class="divtable">\
 	<form class="form-horizontal">\
 	<fieldset>');
-	
+
 	local html = {}
-	
+
 	html[#html + 1] = '<span data-bind="html: port_table">'
 	html[#html + 1] = ui_helper.createTable(port_columns, port_data, port_options, nil, nil)
 	html[#html + 1] = '</span>'
-	
+
 	ngx.print(html)
 ngx.print('\
 	  </fieldset>\
