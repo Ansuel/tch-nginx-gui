@@ -1,3 +1,37 @@
+if [ $CI == "true" ]; then
+  
+	rootdevice_file="decompressed/base/etc/init.d/rootdevice"
+	latest_version_link="https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/latest.version"
+	version=$(curl -s $latest_version_link)
+	
+	echo "Increment version as this is an autobuild"
+	
+	major=$(echo $version | grep -Eo "^[0-9]+")
+	dev_num=$(echo $version | sed -E s/[0-9]+\.[0-9]+\.//)
+	minor=$(echo $version | sed  s#$major\.## | sed s#\\.$dev_num## )
+	
+	if [ $((dev_num + 1)) -gt 99 ]; then
+		echo "dev_num greater than 99 increment minor"
+		dev_num=0
+		if [ $((minor + 1)) -gt 99 ]; then
+			echo "minor greater than 99 increment minor"
+			minor=0
+			major=$((major + 1))
+		else
+			minor=$((minor + 1))
+		fi
+	else
+		dev_num=$((dev_num + 1))
+	fi
+
+	new_version=$major.$minor.$dev_num
+	
+	echo "Detected version: "$version
+	echo "New version to apply: "$new_version
+	
+	sed -i s#version_gui=$version#version_gui=$new_version# $rootdevice_file
+fi
+
 
 echo "Fixing file..."
 
@@ -110,4 +144,28 @@ else
 	echo "Version: "$version" Old_Md5sum: "$old_version_md5
 	echo "Version: "$version" Md5sum: "$md5sum
 	echo $md5sum $version >> compressed/version
+fi
+
+if [ $CI == "true" ]; then
+  
+  git config --global user.name "CircleCI";
+  git config --global user.email "CircleCI";
+  
+  ssh -o StrictHostKeyChecking=no git@github.com
+  
+  echo "Publishing dev build to auto repo...";
+  git clone git@github.com:Ansuel/gui-dev-build-auto.git $HOME/gui-dev-build-auto/
+
+  cp compressed/version $HOME/gui-dev-build-auto/ -r;
+  cp compressed/GUI$type.tar.bz2 $HOME/gui-dev-build-auto/ -r;
+
+  cd $HOME/gui-dev-build-auto/;
+  
+  echo $version > latest.version
+
+  git add -A;
+  git commit -a -m "Automatic dev build. Version: $version";
+  git push origin master;
+
+  echo "Done.";
 fi

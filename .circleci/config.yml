@@ -1,0 +1,19 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/gui_build
+    branches:
+      only:
+        - dev
+    docker:
+      - image: ubuntu:cosmic
+    steps:
+      - checkout
+      - run:
+          name: Install docker need app
+          command: |
+            echo Start autobuild of dev gui...
+            apt-get update && apt-get install dos2unix git curl -y
+      - run:
+          name: Inizialize Gui
+          command: bash ./inizialize_gui.sh dev
