@@ -77,8 +77,8 @@ fi
 
 mkdir total
 
-if [ ! -d total/root ]; then
-	mkdir total/root
+if [ ! -d total/tmp ]; then
+	mkdir total/tmp
 fi
 
 for index in "${modular_dir[@]}"; do
@@ -87,8 +87,8 @@ for index in "${modular_dir[@]}"; do
 		echo "Copying file from "$index" to GUI dir"
 		cp -dr decompressed/$index/* total 
 	else
-		cp modular/$index.tar.bz2 total/root
-		echo "Adding specific file from "$index" to root dir"
+		cp modular/$index.tar.bz2 total/tmp
+		echo "Adding specific file from "$index" to tmp virtual dir"
 	fi
 done
 
