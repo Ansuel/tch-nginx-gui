@@ -91,7 +91,9 @@ end
 		html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",format(T"Invalid version, can't convert. Raw value: %s", content.dslam_version_raw) , basic )
 	end
 	basic.span["data-bind"] = "text: dsl_profile"
-	html[#html + 1] = ui_helper.createLabel(T"xDSL Profile", content.dsl_profile, basic )
+	if(content.dsl_profile ~= "Not found") then
+		html[#html + 1] = ui_helper.createLabel(T"VDSL Profile", content.dsl_profile, basic )
+	end
 
 	html[#html + 1] = '<div class="control-group">'
 	html[#html + 1] =   '<label class="control-label">' .. T("Max Rate") .. '</label>'

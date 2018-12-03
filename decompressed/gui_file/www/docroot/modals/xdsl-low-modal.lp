@@ -210,7 +210,9 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = ui_helper.createLabel(T"DSL Connection Status", content.dsl0_status, span5 )
 	  if ( content.dsl0_status == "Up" ) then
         html[#html + 1] = ui_helper.createLabel(T"DSL Mode", content.dsl0_mode, span5 )
-        html[#html + 1] = ui_helper.createLabel(T"xDSL Profile", content.dsl0_profile, span5 )
+        if(content.dsl0_profile ~= "Not found") then
+            html[#html + 1] = ui_helper.createLabel(T"VDSL Profile", content.dsl0_profile, span5 )
+        end
 		html[#html + 1] = ui_helper.createLabel(T"DSLAM Chipset",content.dslam_chipset, span5 )
 		if content.dslam_version_raw:sub(0,2) == "0x" then
 			html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",format("%s ( %s )", content.dslam_version , content.dslam_version_raw) , span5 )
