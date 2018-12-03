@@ -29,7 +29,7 @@ if [ $CI == "true" ]; then
 	echo "Detected version: "$version
 	echo "New version to apply: "$new_version
 	
-	sed -i s#version_gui=$version#version_gui=$new_version# $rootdevice_file
+	sed -i s#version_gui=TO_AUTO_COMPLETE#version_gui=$new_version# $rootdevice_file
 fi
 
 
@@ -129,23 +129,6 @@ done
 cd total && BZIP2=-9 tar -cjf ../compressed/GUI$type.tar.bz2 * --owner=0 --group=0
 cd ../
 
-md5sum=$(md5sum compressed/GUI$type.tar.bz2 | awk '{print $1}')
-version=$(cat total/etc/init.d/rootdevice | grep -m1 version_gui | cut -d'=' -f 2)
-version_file=$(cat compressed/version)
-if ! grep -w -q "$version" compressed/version ; then
-	echo "Adding md5sum of new GUI to version file"
-	echo "Version: "$version" Md5sum: "$md5sum
-	echo $md5sum $version >> compressed/version
-else
-	echo "Md5sum already present. Overwriting..."
-	old_version_md5=$(grep -w "$version" compressed/version | awk '{print $1}')
-	sed -i "/$version/d" compressed/version
-	echo "Adding md5sum of new GUI to version file"
-	echo "Version: "$version" Old_Md5sum: "$old_version_md5
-	echo "Version: "$version" Md5sum: "$md5sum
-	echo $md5sum $version >> compressed/version
-fi
-
 if [ $CI == "true" ]; then
   
   git config --global user.name "CircleCI";
@@ -155,8 +138,24 @@ if [ $CI == "true" ]; then
   
   echo "Publishing dev build to auto repo...";
   git clone git@github.com:Ansuel/gui-dev-build-auto.git $HOME/gui-dev-build-auto/
+  
+  md5sum=$(md5sum compressed/GUI$type.tar.bz2 | awk '{print $1}')
+  version=$(cat total/etc/init.d/rootdevice | grep -m1 version_gui | cut -d'=' -f 2)
+  version_file=$(cat compressed/version)
+  if ! grep -w -q "$version" $HOME/gui-dev-build-auto/version ; then
+  	echo "Adding md5sum of new GUI to version file"
+  	echo "Version: "$version" Md5sum: "$md5sum
+  	echo $md5sum $version >> $HOME/gui-dev-build-auto/version
+  else
+  	echo "Md5sum already present. Overwriting..."
+  	old_version_md5=$(grep -w "$version" $HOME/gui-dev-build-auto/version | awk '{print $1}')
+  	sed -i "/$version/d" compressed/version
+  	echo "Adding md5sum of new GUI to version file"
+  	echo "Version: "$version" Old_Md5sum: "$old_version_md5
+  	echo "Version: "$version" Md5sum: "$md5sum
+  	echo $md5sum $version >> $HOME/gui-dev-build-auto/version
+  fi
 
-  cp compressed/version $HOME/gui-dev-build-auto/ -r;
   cp compressed/GUI$type.tar.bz2 $HOME/gui-dev-build-auto/ -r;
 
   cd $HOME/gui-dev-build-auto/;

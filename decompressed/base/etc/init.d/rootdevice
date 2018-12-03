@@ -31,8 +31,8 @@ EXTRA_HELP="\
         debug   force command with debug log
         install    This root the device for the initial installation
 "
-
-version_gui=8.9.90
+#Gui version is now autocompleted base on latest dev, this variable will be replaced by the automatic script
+version_gui=TO_AUTO_COMPLETE 
 
 logo_project() {
 cat << EOF > /dev/console
