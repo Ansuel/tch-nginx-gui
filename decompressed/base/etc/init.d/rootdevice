@@ -1379,7 +1379,7 @@ rootchecks() {
 	/etc/init.d/dropbear restart > /dev/null
 }
 
-ledfw_rework_tg799() {
+ledfw_rework_TG799() {
 	if [ ! $(uci get -q button.info) ]; then
 		uci del button.easy_reset
 		uci set button.info=button
@@ -1398,7 +1398,7 @@ ledfw_rework_tg799() {
 	fi
 }
 
-ledfw_rework_tg800() {
+ledfw_rework_TG800() {
 	if [ ! $(uci get -q button.info) ]; then
 		uci del button.easy_reset
 		uci set button.info=button
@@ -1420,9 +1420,9 @@ ledfw_rework_tg800() {
 ledfw_rework_TG789() {
 	if [ ! "$(cat /etc/ledfw/stateMachines.lua | grep fw_upgrade)" ]; then
 		/etc/init.d/ledfw restart
-		logger_command "Extracting ledfw_support-specificTGA789.bz2 ..."
-		if [ -f /tmp/ledfw_support-specificTGA789.tar.bz2 ]; then
-			bzcat /tmp/ledfw_support-specificTGA789.tar.bz2 | tar -C / -xf -
+		logger_command "Extracting ledfw_support-specificTG789.bz2 ..."
+		if [ -f /tmp/ledfw_support-specificTG789.tar.bz2 ]; then
+			bzcat /tmp/ledfw_support-specificTG789.tar.bz2 | tar -C / -xf -
 		fi
 	fi
 }
@@ -1504,9 +1504,9 @@ root() {
 	[ -z "${device_type##*TG799*}" ] && apply_specific_TG799_package
 	[ -z "${device_type##*TG800*}" ] && apply_specific_TG800_package
 	[ -z "${device_type##*DGA413*}" ] && ledfw_rework_DGA
-	[ -z "${device_type##*TG789*}" ] && ledfw_rework_tg789
-	[ -z "${device_type##*TG799*}" ] && ledfw_rework_tg799
-	[ -z "${device_type##*TG800*}" ] && ledfw_rework_tg800
+	[ -z "${device_type##*TG789*}" ] && ledfw_rework_TG789
+	[ -z "${device_type##*TG799*}" ] && ledfw_rework_TG799
+	[ -z "${device_type##*TG800*}" ] && ledfw_rework_TG800
 	
 	if [ -f /tmp/custom-ripdrv-specificDGA.tar.bz2 ]; then
 		clean_specific_file
