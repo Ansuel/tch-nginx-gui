@@ -1465,7 +1465,7 @@ check_wan_mode() {
 }
 
 dosprotect_inizialize() {
-	if [ -f /lib/modules/*/xt_hashlimit.ko ]; then
+	if [ -f /lib/modules/3.4.11/xt_hashlimit.ko ]; then
 		if [ ! -f /etc/config/dosprotect ]; then
 			if [ -f /etc/config/dosprotect_orig ]; then
 				mv /etc/config/dosprotect_orig /etc/config/dosprotect
