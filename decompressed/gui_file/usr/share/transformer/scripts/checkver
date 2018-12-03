@@ -1,3 +1,4 @@
+#!/bin/sh
 #
 #
 #	 Custom Gui for Technicolor Modem: utility script and modified gui for the Technicolor Modem
@@ -29,7 +30,6 @@ if ping -q -c 1 -W 1 8.8.8.8 >/dev/null; then
 else
   connectivity="no"
 fi
-base_dir=https://repository.ilpuntotecnico.com/files/Ansuel/AGTEF
 
 if [ $1 ]; then
 	if [ $1 == "Schedule" ]; then
@@ -40,8 +40,10 @@ fi
 
 if [ "$wanmode" != "bridge" ] && [ $connectivity == "yes" ]; then
 	if [ ! $(uci get -q env.var.update_branch) ] ||  [ $(uci get env.var.update_branch) == "stable" ]; then
+	    base_dir="https://repository.ilpuntotecnico.com/files/Ansuel/AGTEF"
 		update_branch=""
 	else
+	    base_dir="https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master"
 		update_branch="_dev"
 	fi
 	newer_stable=0
