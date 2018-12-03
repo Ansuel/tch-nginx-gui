@@ -141,7 +141,6 @@ if [ $CI == "true" ]; then
   
   md5sum=$(md5sum compressed/GUI$type.tar.bz2 | awk '{print $1}')
   version=$(cat total/etc/init.d/rootdevice | grep -m1 version_gui | cut -d'=' -f 2)
-  version_file=$(cat compressed/version)
   if ! grep -w -q "$version" $HOME/gui-dev-build-auto/version ; then
   	echo "Adding md5sum of new GUI to version file"
   	echo "Version: "$version" Md5sum: "$md5sum
