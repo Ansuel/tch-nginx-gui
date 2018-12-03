@@ -64,12 +64,6 @@ if content.dns_wan:match(",") then
 	content.dns_wan = content.dns_wan:gsub(","," , ")
 end
 
-if content.up == "1" then
-	content.wan_state = T"Connected"
-else
-	content.wan_state = T"Disconnected"
-end
-
   ngx.print('\
 \
 <div class="infocard" id="wanstatsinfotab">\
@@ -89,7 +83,7 @@ end
 	local html = {}
 	
 	basic.span["data-bind"] = "text: status"
-	html[#html + 1] = ui_helper.createLabel(T"Status", content["wan_state"], basic)
+    html[#html + 1] = ui_helper.createLabel(T"Status", ui_helper.createSimpleLight(content.up, content.up == "1" and T"Connected" or T"Disconnected", nil, "fa fa-at"), basic)
 	basic.span["data-bind"] = nil
 	html[#html + 1] = ui_helper.createLabel(T"Broadband Connection", tabdata.current.description , basic)
 	html[#html + 1] = ui_helper.createLabel(T"Connection Type", mode_data[mode_active].description , basic)

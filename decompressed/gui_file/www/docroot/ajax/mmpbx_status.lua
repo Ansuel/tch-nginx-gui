@@ -37,21 +37,24 @@ local mmpbxd_filter = function(data)
     end
 
     if data.sipRegisterState then
-        data.sipRegisterState =  T(data.sipRegisterState)
+        data.sipRegisterState =  data.sipRegisterState
+        data.sipRegisterState = ui_helper.createSimpleLight(data.sipRegisterState=="Registered" and "1" or "0", T(data.sipRegisterState))
     end
 
     if data.callState then
         if ( data.callState == "MMPBX_CALLSTATE_IDLE" ) then
-            data.callState =  T"Idle"
+            data.callState =  "Idle"
         end
 
         if ( data.callState == "MMPBX_CALLSTATE_DIALING" ) then
-            data.callState =  T"Dialing"
+            data.callState =  "Dialing"
         end
 
         if ( data.callState == "MMPBX_CALLSTATE_CALL_DELIVERED" ) then
-            data.callState =  T"Delivered/In Progress"
+            data.callState =  "Delivered/In Progress"
         end
+
+        data.callState = ui_helper.createSimpleLight(data.callState=="Idle" and "0" or "1", T(data.callState), nil, "fa fa-phone")
     end
 
     return true

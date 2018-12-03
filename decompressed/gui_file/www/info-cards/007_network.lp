@@ -50,11 +50,7 @@ local  port_options = {
 
 local port_filter = function(data)
 
-	if data.status == "Up" then
-		data.status = T"Connected"
-	else
-		data.status = T"Disconnected"
-	end
+	data.status = ui_helper.createSimpleLight(data.status == "Up" and "1" or "0", "", {}) --status
 
 	if data.speed == "1000" then
 		data.speed = "1 Gpbs"
@@ -103,14 +99,14 @@ end
 
 port_data[#port_data+1] = {
 	"Wi-Fi 2.4 Ghz", --type
-	( wifi_content.wifi24_status == "1" ) and T"Active" or T"Disabled", --status
+	ui_helper.createSimpleLight(wifi_content.wifi24_status, "", {}, "fa fa-wifi"), --status
 	( wifi_content.wifi24_status == "1" ) and ( wifi_content.wifi24_speed / 1000 .. " Mbps" ) or "", --speed
 	( wifi_content.wifi24_status == "1" ) and wifi_content.wifi24_mode or "", --mode
 }
 
 port_data[#port_data+1] = {
 	"Wi-Fi 5 Ghz", --type
-	( wifi_content.wifi5_status == "1" ) and T"Active" or T"Disabled", --status
+	ui_helper.createSimpleLight(wifi_content.wifi5_status, "", {}, "fa fa-wifi"), --status
 	( wifi_content.wifi5_status == "1" ) and ( wifi_content.wifi5_speed / 1000 .. " Mbps" ) or "", --speed
 	( wifi_content.wifi5_status == "1" ) and wifi_content.wifi5_mode or "", --mode
 }
