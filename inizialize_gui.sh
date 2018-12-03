@@ -30,6 +30,18 @@ if [ $CI == "true" ]; then
 	echo "New version to apply: "$new_version
 	
 	sed -i s#version_gui=TO_AUTO_COMPLETE#version_gui=$new_version# $rootdevice_file
+	
+	git config --global user.name "CircleCI";
+    git config --global user.email "CircleCI";
+    
+    ssh -o StrictHostKeyChecking=no git@github.com
+    
+    echo "Publishing dev build to auto repo...";
+    git clone  --depth=1 git@github.com:Ansuel/gui-dev-build-auto.git $HOME/gui-dev-build-auto/
+	
+	if [ ! -d $HOME/gui-dev-build-auto/modular ]; then
+		mkdir $HOME/gui-dev-build-auto/modular
+	fi
 fi
 
 
@@ -86,8 +98,8 @@ mkdir tar_tmp
 
 for index in "${modular_dir[@]}"; do
 	
-	if [ -f modular/$index.tar.bz2 ]; then
-		old_md5=$(md5sum modular/$index.tar.bz2 | awk '{print $1}')
+	if [ $CI == "true" ] && [ -f $HOME/gui-dev-build-auto/modular/$index.tar.bz2 ]; then
+		old_md5=$(md5sum $HOME/gui-dev-build-auto/modular/$index.tar.bz2 | awk '{print $1}')
 	fi
 	
 	cd decompressed/$index
@@ -97,7 +109,7 @@ for index in "${modular_dir[@]}"; do
 	new_md5=$(md5sum tar_tmp/$index.tar.bz2 | awk '{print $1}')
 	if [ -z "$old_md5" ] || [ "$old_md5" != "$new_md5" ]; then
 		echo "Changes detected in modular package $index, updating..."
-		cp tar_tmp/$index.tar.bz2 modular/
+		cp tar_tmp/$index.tar.bz2 $HOME/gui-dev-build-auto/modular/
 	fi
 done
 
@@ -121,7 +133,7 @@ for index in "${modular_dir[@]}"; do
 		echo "Copying file from "$index" to GUI dir"
 		cp -dr decompressed/$index/* total 
 	else
-		cp modular/$index.tar.bz2 total/tmp
+		cp $HOME/gui-dev-build-auto/modular/$index.tar.bz2 total/tmp
 		echo "Adding specific file from "$index" to tmp virtual dir"
 	fi
 done
@@ -130,14 +142,6 @@ cd total && BZIP2=-9 tar -cjf ../compressed/GUI$type.tar.bz2 * --owner=0 --group
 cd ../
 
 if [ $CI == "true" ]; then
-  
-  git config --global user.name "CircleCI";
-  git config --global user.email "CircleCI";
-  
-  ssh -o StrictHostKeyChecking=no git@github.com
-  
-  echo "Publishing dev build to auto repo...";
-  git clone  --depth=1 git@github.com:Ansuel/gui-dev-build-auto.git $HOME/gui-dev-build-auto/
   
   md5sum=$(md5sum compressed/GUI$type.tar.bz2 | awk '{print $1}')
   version=$(cat total/etc/init.d/rootdevice | grep -m1 version_gui | cut -d'=' -f 2)
