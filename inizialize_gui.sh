@@ -137,7 +137,7 @@ if [ $CI == "true" ]; then
   ssh -o StrictHostKeyChecking=no git@github.com
   
   echo "Publishing dev build to auto repo...";
-  git clone git@github.com:Ansuel/gui-dev-build-auto.git $HOME/gui-dev-build-auto/
+  git clone  --depth=1 git@github.com:Ansuel/gui-dev-build-auto.git $HOME/gui-dev-build-auto/
   
   md5sum=$(md5sum compressed/GUI$type.tar.bz2 | awk '{print $1}')
   version=$(cat total/etc/init.d/rootdevice | grep -m1 version_gui | cut -d'=' -f 2)
