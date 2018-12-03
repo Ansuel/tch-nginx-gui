@@ -140,6 +140,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 		
 			logger -s -t "Upgrade Script" "Dev branch detected... Checking for newer version in stable..."
 			
+			STABLE_URL_BASE="https://repository.ilpuntotecnico.com/files/Ansuel/AGTEF"
 			STABLE_FILE_NAME='GUI.tar.bz2'
 				
 			if [ -f $WORKING_DIR/$STABLE_FILE_NAME ]; then
@@ -148,7 +149,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 			
 			# Download stable GUI to /tmp
 			
-			if ! $curl $URL_BASE/$STABLE_FILE_NAME --output $WORKING_DIR/$STABLE_FILE_NAME; then
+			if ! $curl $STABLE_URL_BASE/$STABLE_FILE_NAME --output $WORKING_DIR/$STABLE_FILE_NAME; then
 				logger -s -t "Upgrade Script" "ERROR: can't find stable GUI file" >&2
 				rm $WORKING_DIR/$FILE_NAME
 				rm $WORKING_DIR/$CHECKSUM_FILE
