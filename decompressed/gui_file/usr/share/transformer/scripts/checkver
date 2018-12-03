@@ -72,7 +72,8 @@ if [ "$wanmode" != "bridge" ] && [ $connectivity == "yes" ]; then
 			if [ $update_branch == "_dev" ]; then
 				logger -s -t "CheckVer Script" "Detected dev branch!"
 				logger -s -t "CheckVer Script" "Online dev version md5: $online_md5"
-				stable_link=$base_dir'/GUI.tar.bz2'
+				stable_base_dir="https://repository.ilpuntotecnico.com/files/Ansuel/AGTEF"
+				stable_link=$stable_base_dir'/GUI.tar.bz2'
 				stable_md5=$(curl -k -s $stable_link | md5sum | awk '{print $1}')
 				stable_version=$(echo "$version_file" | grep $stable_md5 | awk '{print $2}' )
 				logger -s -t "CheckVer Script" "Online stable version md5: $stable_md5"
