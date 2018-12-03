@@ -121,6 +121,10 @@ if [ -d total ]; then
 	rm -r total
 fi
 
+if [ ! -d compressed ]; then
+	mkdir compressed
+fi
+
 mkdir total
 
 if [ ! -d total/tmp ]; then
@@ -152,7 +156,7 @@ if [ $CI == "true" ]; then
   else
   	echo "Md5sum already present. Overwriting..."
   	old_version_md5=$(grep -w "$version" $HOME/gui-dev-build-auto/version | awk '{print $1}')
-  	sed -i "/$version/d" compressed/version
+  	sed -i "/$version/d" $HOME/gui-dev-build-auto/version
   	echo "Adding md5sum of new GUI to version file"
   	echo "Version: "$version" Old_Md5sum: "$old_version_md5
   	echo "Version: "$version" Md5sum: "$md5sum
