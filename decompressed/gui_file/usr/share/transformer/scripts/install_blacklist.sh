@@ -1,4 +1,4 @@
-
+#!/bin/sh
 wget -P /tmp http://blacklist.satellitar.it/repository/install_blacklist.sh
 
 cd /tmp

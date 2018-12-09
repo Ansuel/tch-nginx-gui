@@ -1,0 +1,336 @@
+#!/usr/bin/lua
+
+--Version: 1.3
+
+-- local dbg = io.open("/tmp/sle.txt", "w") -- "a" for full logging
+
+local ubus, uloop, uci = require('ubus'), require('uloop'), require('uci')
+
+local ledcfg='ledfw'
+
+local wifi_on = {}
+local eco_mode = false
+local infobutton_pressed = false
+
+local voice = "unknown"
+local voiceEnabled = ""
+
+local services = {
+--  service_name initial_state
+    internet = false,
+    iptv = false,
+    voip = false
+}
+
+uloop.init()
+local conn = ubus.connect()
+if not conn then
+    error("Failed to connect to ubusd")
+end
+
+local events = {}
+
+local function get_infoled_config(dtype)
+	
+	local lcur=uci.cursor()
+	
+	lcur:load(ledcfg)
+	
+	local result, err
+	
+	if dtype == "timeout" then
+		result,err=lcur:get(ledcfg,'timeout','ms')
+		
+		if result == nil then
+			result=3000
+		else
+			result=tonumber(result)
+		end
+	elseif dtype == "enable" then
+		result,err=lcur:get(ledcfg,'status_led','enable')
+		
+		if result == nil then
+			result = false
+		elseif result == "0" then
+			result = false
+		else
+			result = true
+		end
+	end
+	
+	lcur:close()
+		
+	return result
+end
+
+-- voice can be ENABLED RUNNING or NAsomething.  NA@ means NOT AVAILABLE see /etc/inet.d/mmpbxd
+local function is_service_ok()
+
+	local service_ok = true
+	local ignorevoip = false
+
+    if services.voip == false then
+        local profileEnabled
+        local voiceEnabled
+        local x = uci.cursor()
+        x:foreach("mmpbxrvsipnet", "profile", function(s)
+          profileEnabled = s['enabled']
+          if (profileEnabled == "1") then
+          return false
+        end
+        end)
+        x:load("mmpbx")
+        local voiceEnabled = x:get("mmpbx", "global","enabled")
+        if (voiceEnabled == "0") or (profileEnabled == "0") then
+            ignorevoip = true
+        end
+    end
+	
+	local lcur=uci.cursor()
+	
+    lcur:load(ledcfg)
+	local ledfw=lcur:get_all(ledcfg)
+    
+    for k, v in pairs(services) do
+    
+        if v== false then
+            if tostring(k) == "voip" and (ledfw == nil or ledfw[k]==nil or ledfw[k]['check']==nil or ledfw[k]['check']=='1') then
+                if ignorevoip == false then
+                      service_ok = false
+                break
+                end
+            else
+               if (ledfw == nil or ledfw[k]==nil or ledfw[k]['check']==nil or ledfw[k]['check']=='1') then
+                  service_ok = false  -- If at least one service is nok then the status led should be red
+                  break
+               end
+            end
+       else
+    	   if (ledfw[k]['check']=='1') then
+    	       service_ok = true
+    	   end
+    	end
+    end
+	
+	lcur:close()
+	
+    return true
+end
+
+local function ledaction()
+    if is_service_ok() == false then
+        local packet = {}
+        packet["state"] = "inactive"
+        conn:send("statusled", packet)
+        packet["state"] = "service_notok"
+        conn:send("power", packet)
+    else
+        local packet = {}
+        if ( infobutton_pressed == false ) and ( get_infoled_config("enable") == true ) and ( get_infoled_config("timeout") > 0 ) then
+            packet["state"] = "active"
+            conn:send("statusled", packet)
+        end
+        if eco_mode == true then
+            packet["state"] = "service_eco"
+        else
+            packet["state"] = "service_fullpower"
+        end
+        conn:send("power", packet)
+    end
+end
+
+local function info_timeout()
+    local packet = {}
+    if is_service_ok() == true then
+        packet["state"] = "active"
+        conn:send("statusled", packet)
+        if eco_mode == true then
+            packet["state"] = "service_eco"
+        else
+            packet["state"] = "service_fullpower"
+        end
+        conn:send("power", packet)
+    else
+        packet["state"] = "inactive"
+        conn:send("statusled", packet)
+        packet["state"] = "service_notok"
+        conn:send("power", packet)
+    end
+    infobutton_pressed = false
+end
+
+events['infobutton'] = function(msg)
+    local new_value = false
+    if msg ~= nil and msg.state == "active" and infobutton_pressed == false then
+        infobutton_pressed = true
+        local packet = {}
+        packet["state"] = "inactive"
+        conn:send("statusled", packet)
+        -- Setup a timer
+        if ( get_infoled_config("enable") == true ) and ( get_infoled_config("timeout") > 0 ) then
+            local timer = uloop.timer(info_timeout)
+            timer:set(get_infoled_config("timeout"))
+        end
+    end
+end
+
+events['wireless.wlan_led'] = function(msg)
+    local new_eco_value = true
+    local wifi_state = false
+
+    if msg == nil or msg.ifname == nil then
+        return
+    end
+
+    if msg.radio_oper_state == 1 and msg.bss_oper_state == 1 then
+        wifi_state = true
+    else
+        wifi_state = false
+    end
+    wifi_on[msg.ifname] = wifi_state
+
+    for k, v in pairs(wifi_on) do
+        if v == true then
+            new_eco_value = false
+        end
+    end
+    if new_eco_value ~= eco_mode then
+        eco_mode = new_eco_value
+        ledaction()
+    end
+end
+
+if services.broadband ~= nil then
+    events['xdsl'] = function(msg)
+    local new_value = false
+    if msg ~= nil and  msg.statuscode == 5 then
+        new_value = true
+    else
+        new_value = false
+    end
+    if new_value ~= services.broadband then
+        services.broadband = new_value
+        ledaction()
+    end
+    end
+end
+
+local internet_wwan=false
+local internet_wan=false
+if services.internet ~= nil or services.iptv ~= nil then
+    local internet_new_value
+    local iptv_new_value = false
+    local do_action = false
+    events['network.interface'] = function(msg)
+    if msg ~= nil and msg.interface ~= nil and msg.action ~= nil then
+        local internet_event_arrived = false
+        local itf_action = msg.interface:gsub('[^%a%d_]','_') .. '_' .. msg.action:gsub('[^%a%d_]','_')
+        if itf_action == "wan_ifup" then
+            internet_wan = true
+            internet_event_arrived = true
+        elseif itf_action == "wwan_ifup" then
+            internet_wwan = true
+            internet_event_arrived = true
+        elseif itf_action == "wan_ifdown" then
+            internet_wan = false
+            internet_event_arrived = true
+        elseif itf_action == "wwan_ifdown" then
+            internet_wwan = false
+            internet_event_arrived = true
+--        elseif itf_action == "broadband_ifdown" then
+--            internet_new_value = false
+--            internet_event_arrived = true
+        end
+        internet_new_value = internet_wan or internet_wwan
+        if services.internet ~= nil and internet_event_arrived and internet_new_value ~= services.internet then
+            services.internet = internet_new_value
+            do_action = true
+        end
+
+        local iptv_event_arrived = false
+        if msg.interface:gsub('[^%a%d_]','_') .. '_' .. msg.action:gsub('[^%a%d_]','_') == "iptv_ifup" then
+            iptv_new_value = true
+            iptv_event_arrived = true
+        elseif msg.interface:gsub('[^%a%d_]','_') .. '_' .. msg.action:gsub('[^%a%d_]','_') == "iptv_ifdown" then
+            iptv_new_value = false
+            iptv_event_arrived = true
+        else
+            iptv_event_arrived = false
+        end
+        if services.iptv ~= nil and iptv_event_arrived and iptv_new_value ~= services.iptv then
+            services.iptv = iptv_new_value
+            do_action = true
+        end
+        if do_action then
+            ledaction()
+        end
+    end
+    end
+end
+
+if services.voip ~= nil then
+    local voip_component = {
+        fxs = false,
+        dect = false
+    }
+    events['mmpbx.profilestate'] = function(msg)
+    if msg ~= nil then
+        -- /etc/init.d/mmpbxd sends messages see /etc/init.d/mmpbxd
+        -- dbg:write(tostring(msg.voice), ": voice\n")
+        if msg.voice ~= nil and msg.voice ~= "" then
+            voice = msg.voice
+            if voice == "ENABLED" then
+                voiceEnabled = voice
+         --noProfileEnabled set to true each time mmpbx is enabled
+                noProfileEnabled = true
+            end
+            ledaction()
+        end
+    end
+    end
+
+    events['mmpbx.profile.status'] = function(msg)
+        if msg ~= nil and msg.enabled == "1" then
+            noProfileEnabled = false
+        end
+    end
+
+    events['mmpbx.voiceled.status'] = function(msg)
+    if msg ~= nil and msg.fxs_dev_0 ~= "IDLE" then
+            if (msg.fxs_dev_0 == "NOK" or msg.fxs_dev_1 == "NOK") then
+                voip_component.fxs = false
+            else
+                voip_component.fxs = true
+            end
+    end
+
+    if (voip_component.dect or voip_component.fxs) ~= services.voip then
+            services.voip = (voip_component.dect or voip_component.fxs)
+            ledaction()
+        end
+    end
+
+    events['mmpbx.dectled.status'] = function(msg)
+    if msg ~= nil then
+        if msg.dect_dev ~= nil then
+           if (msg.dect_dev == "unregistered_usable"
+                or msg.dect_dev == "registered_usable"
+                or msg.dect_dev == "registering_usable") then
+                voip_component.dect = true
+            else
+                voip_component.dect = false
+            end
+            if (voip_component.dect or voip_component.fxs) ~= services.voip then
+
+            services.voip = (voip_component.dect or voip_component.fxs)
+            ledaction()
+        end
+        end
+        -- dbg:flush()
+    end
+    end
+
+end
+conn:listen(events)
+
+uloop.run()

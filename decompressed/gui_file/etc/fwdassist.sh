@@ -66,6 +66,10 @@ apply_rules()
   if [ -z $WAN_IP ]; then
     return
   fi
+  
+  if [ "$ENABLED" = "0" ] && [ ! "$(iptables -t nat -L | grep Assistant)" ]; then
+	return
+  fi
 
   #if [ -x $CUSTO_RULES ]; then
   #  $CUSTO_RULES
@@ -78,9 +82,11 @@ apply_rules()
 	
 	local LAN_PORT="8443"
 	
-    local FWD_RULE="-t nat $ACT prerouting_rule -m tcp -p tcp --dst $WAN_IP --dport $WAN_PORT -j REDIRECT --to-ports $LAN_PORT"
-    local FWD_NULL="-t nat $ACT prerouting_rule -p tcp --dst $WAN_IP --dport $LAN_PORT -j REDIRECT --to-port 65535"
-    local ACCEPT_RULE="-t filter $ACT input_rule -p tcp --dst $WAN_IP --dport $LAN_PORT -j ACCEPT"
+	local comment_rule="Assistant-GUI-Rule"
+	
+    local FWD_RULE="-t nat $ACT prerouting_rule -m tcp -p tcp --dst $WAN_IP --dport $WAN_PORT -m comment --comment $comment_rule -j REDIRECT --to-ports $LAN_PORT"
+    local FWD_NULL="-t nat $ACT prerouting_rule -p tcp --dst $WAN_IP --dport $LAN_PORT -m comment --comment $comment_rule -j REDIRECT --to-port 65535"
+    local ACCEPT_RULE="-t filter $ACT input_rule -p tcp --dst $WAN_IP --dport $LAN_PORT -m comment --comment $comment_rule -j ACCEPT"
 
     if [ "$LAN_PORT" != "$WAN_PORT" ]; then
       apply "$FWD_RULE"
@@ -137,11 +143,11 @@ redirect()
   WAN_IP=$(lua -e "dm=require'datamodel';r=dm.get('rpc.network.interface.@$IFNAME.ipaddr'); \
            if r and r[1] then print(r[1].value) end")
 
-  if status_changed ; then
+  #if status_changed ; then
     disable
     apply_rules
     update_state
-  fi
+  #fi
 
 }
 

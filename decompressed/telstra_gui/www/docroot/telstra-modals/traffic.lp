@@ -6,24 +6,23 @@ lp.include("header.lp")
 lp.include("navbar.lp")
 lp.include("menubar.lp")
 lp.include("message.lp")
-  ngx.print('\
-<script src ="/js/graphic-min.js"></script>\
-');  
--- Localization
-gettext.textdomain('webui-telstra')
+ 
+-- Enable localization
+gettext.textdomain('webui-core')
 
-local table, ipairs, require, ngx, io = table, ipairs, require, ngx, io
-local proxy = require("datamodel")
-local content_helper = require("web.content_helper")
+local proxy = require("datamodel")								  
 local ui_helper = require("web.ui_helper")
-local format = string.format
+local message_helper = require("web.uimessage_helper")
+local post_helper = require("web.post_helper")
+local content_helper = require("web.content_helper")
+local string, ngx, os = string, ngx, os
 local tonumber = tonumber
+local format, match = string.format, string.match
+local traffic_data_file = "/var/state/traffic_data_file"
 
+local quantenna_wifi = proxy.get("uci.env.var.qtn_eth_mac") and true or false
 local getargs = ngx.req.get_uri_args()
 local getiface = getargs.iface
-
-local check_data_file = "/root/trafficmon/check_data"
-local all_ifaces, content_iface = {}, {}
 
 local curiface = "wl0"
 local curssid = ""
@@ -32,20 +31,19 @@ local piface = "uci.wireless.wifi-iface."
 local awls = content_helper.convertResultToObject(piface .. "@.", proxy.get(piface))
 local wls = {}
 for i,v in ipairs(awls) do
-    wls[#wls+1] = {
-      radio = v.device,
-        ssid = v.ssid,
-        iface = v.paramindex
-    }
-    if v.paramindex == getiface then
-        curiface = v.paramindex
-        curssid = v.ssid
-    end
-    all_ifaces[v.paramindex] = true
+        wls[#wls+1] = {
+            radio = v.device,
+            ssid = v.ssid,
+            iface = v.paramindex
+        }
+        if v.paramindex == getiface then
+            curiface = v.paramindex
+			if quantenna_wifi and curiface == "wl1" then
+				curiface = "eth5"
+			end
+            curssid = v.ssid
+        end
 end
-
-content_iface.wifi = {{ iface = curiface}}
-
 table.sort(wls, function(a,b)
     if a.radio == b.radio then
         return a.iface < b.iface
@@ -54,29 +52,25 @@ table.sort(wls, function(a,b)
     end
 end)
 
-piface = "uci.ethernet.port."
-local aeth = content_helper.convertResultToObject(piface .. "@.", proxy.get(piface))
-local eth = {}
-for i,v in ipairs(aeth) do
-    if v.wan ~= "1" then
-        eth[#eth+1] = { iface = v.paramindex }
-        all_ifaces[v.paramindex] = true
-    end
+local wan_intf ="wan"
+local ipaddr = proxy.get("rpc.network.interface.@wwan.ipaddr")[1].value
+if ipaddr:len() ~= 0 then
+  wan_intf = "wwan"
 end
-content_iface.eth = eth
 
-local content_wan = {}
-local wwan_up = proxy.get("rpc.network.interface.@wwan.up")[1].value
-
-if wwan_up == "1" then
-    content_wan["iface"] = "rpc.network.interface.@wwan.ifname"
-else
-    content_wan["iface"] = "uci.network.interface.@wan.ifname"
-end
+local content_wan = {
+  tx_bytes = "rpc.network.interface.@" .. wan_intf .. ".tx_bytes",
+  rx_bytes = "rpc.network.interface.@" .. wan_intf .. ".rx_bytes",
+  ifname = "uci.network.interface.@" .. wan_intf .. ".ifname",
+}
 content_helper.getExactContent(content_wan)
-content_wan["iface"] = format("%s", content_wan["iface"])
-all_ifaces[content_wan["iface"]] = true
-content_iface.wan = { content_wan }
+
+local content_lan = {
+  tx_bytes = "rpc.network.interface.@lan.tx_bytes",
+  rx_bytes = "rpc.network.interface.@lan.rx_bytes",
+  ifname = "uci.network.interface.@lan.ifname",
+}
+content_helper.getExactContent(content_lan)
 
 local function s2n(str)
   if str == nil or str == "" then
@@ -87,263 +81,322 @@ local function s2n(str)
 end
 
 local function b2m(number)
-  return tonumber(format("%.3f", number / 1048576))
+  return format("%.3f", number / 1048576)
 end
 
-local function getTrafficHistoryData(direct, ifaces)
+local function getFile(file_name)
+  local fd = io.open(file_name,"r")
+  local values = {}
+    if fd  then
+       for l in fd:lines() do
+         values[#values+1] = l
+      end
+      fd:close()
+      return values
+    else
+      return nil
+    end
+end
+
+
+local wantx = b2m(s2n(content_wan.tx_bytes))
+local wanrx = b2m(s2n(content_wan.rx_bytes))
+local lantx = b2m(s2n(content_lan.tx_bytes))
+local lanrx = b2m(s2n(content_lan.rx_bytes))
+
+local wifitx, wifirx = 0, 0
+local content_wifi = {}
+for i,v in ipairs(wls) do
+	if proxy.get("sys.class.net.@" .. v.iface .. ".") then
+		if quantenna_wifi and v.iface == "wl1" then
+			v.iface = "eth5"
+		end
+		content_wifi["tx_bytes"] = "sys.class.net.@" .. v.iface .. ".statistics.tx_bytes"
+		content_wifi["rx_bytes"] = "sys.class.net.@" .. v.iface .. ".statistics.rx_bytes"
+		content_helper.getExactContent(content_wifi)
+		wifitx = wifitx + ( s2n(content_wifi.tx_bytes) or 0 )
+		wifirx = wifirx + ( s2n(content_wifi.rx_bytes) or 0 )
+	end 
+end
+wifitx = b2m(wifitx)
+wifirx = b2m(wifirx)
+
+local content_result = getFile(traffic_data_file)
+if content_result then
+  if s2n(content_result[2]) > s2n(wanrx)  then
+     content_result[1] = content_result[1]+1
+  end
+  if s2n(content_result[4]) > s2n(wantx)  then
+     content_result[3] = content_result[3]+1
+  end
+  if s2n(content_result[6]) > s2n(lanrx)  then
+     content_result[5] = content_result[5]+1
+  end
+  if s2n(content_result[8]) > s2n(lantx)  then
+     content_result[7] = content_result[7]+1
+  end
+  if s2n(content_result[10]) > s2n(wifirx)  then
+     content_result[9] = content_result[9]+1
+  end
+  if s2n(content_result[12]) > s2n(wifitx)  then
+     content_result[11] = content_result[11]+1
+  end
+  wanrx = wanrx+content_result[1]*4096
+  wantx = wantx+content_result[3]*4096
+  lanrx = lanrx+content_result[5]*4096
+  lantx = lantx+content_result[7]*4096
+  wifirx = wifirx+content_result[9]*4096
+  wifitx = wifitx+content_result[11]*4096
+end
+
+local dst = os.date("*t", os.time()).isdst or false
+
+local wantotal = format("%.3f", wantx + wanrx)
+local lantotal = format("%.3f", lantx + lanrx)
+local wifitotal = format("%.3f", wifitx + wifirx)
+
+local function getTrafficData(dtype, name)
     local nline = 1
     local data = {}
-    local total = 0
-    for _, v in ipairs(ifaces) do
-        local i = 0
-        filename = string.format("/root/trafficmon/%s_%s", v.iface, direct)
-        f = io.open(filename, "r")
-        if f then
-            for line in f:lines() do
-                if ( i > 0) then
-                    data[i] = data[i] or 0
-                    data[i] = data[i] + tonumber(line)
-                else
-                    total = total + tonumber(line)
-                end
-                i = i + 1
+	local datatime = {}
+    filename = string.format("/tmp/trafficmon/%s_%s", name, dtype)
+    f = io.open(filename, "r")
+    if f then
+        for line in f:lines() do
+            if (nline < 2 ) then
+                nline = nline + 1 --skip first line
+            elseif (nline == 2) then
+				nline = nline +1
+				data[#data+1] = line:match(".*%s"):gsub("%s+", "") or "NaN"
+				datatime[#datatime+1] = '"'
+				datatime[#datatime+1] = line:match("%s.*"):gsub("%s+","") or "NaN"
+				datatime[#datatime+1] = '"'
+            else
+				data[#data+1] = ","
+				data[#data+1] = line:match(".*%s"):gsub("%s+", "") or "NaN"
+				datatime[#datatime+1] = ","
+				datatime[#datatime+1] = '"'
+				datatime[#datatime+1] = line:match("%s.*"):gsub("%s+","") or "NaN"
+				datatime[#datatime+1] = '"'
             end
-            f:close()
         end
+        f:close()
     end
-    return table.concat(data, ","), total
+    return table.concat(data) , table.concat(datatime) 
 end
 
-local function getLastCheck(file_name)
-  local match = string.match
-  local fd = io.open(file_name,"r")
-  local lastcheck = {}
-  if fd then
-    local pattern = "([^|]*)|([^|]*)|(%d+)|(%d+)"
-    local i = 0
-    for line in fd:lines() do
-      i = i + 1
-      if i > 1 then
-        local iface, direct, carry, number = match(line, pattern)
-        if iface then
-          lastcheck[iface] = lastcheck[iface] or {}
-          lastcheck[iface][direct] = {
-            ["carry"] = tonumber(carry),
-            ["number"] = tonumber(number)
-          }
-        end
-      end
-    end
-    fd:close()
-    return lastcheck
-  end
+local wanTx, wanRx, lanTx, lanRx, wifiTx, wifiRx
+proxy.set("rpc.system.lock.datadir", "/tmp/trafficmon/")
+proxy.apply()
+
+local interface = proxy.get("rpc.network.interface.@wan.ifname")
+local wan = proxy.get("rpc.network.interface.@wan.up") and proxy.get("rpc.network.interface.@wan.up")[1].value or nil
+
+local graph_interface = interface and interface[1].value or "br-lan"
+
+if graph_interface:match("wan") then
+	local real_interface = proxy.get(format("uci.network.device.@%s.ifname",graph_interface))
+	if real_interface then
+		graph_interface = real_interface[1].value or "br-lan"
+	end
 end
 
-local count, lastcheck
-local history, lasttotal = {}, {}
-local types = { "rx_bytes", "tx_bytes" }
-proxy.set("rpc.system.lock.lockdir", "/root/trafficmon/")
-local lock = proxy.get("rpc.system.lock.lock")[1].value
-local count = 0
-while lock ~= "1" and count < 5 do
-    ngx.sleep(1)
-    lock = proxy.get("rpc.system.lock.lock")[1].value
-    count = count + 1
-end
-
-if count == 5 then
-    ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
-end
-
-_, lastcheck = pcall(getLastCheck, check_data_file)
-for iface_type, ifaces in pairs(content_iface) do
-  history[iface_type], lasttotal[iface_type] = {}, {}
-  for _, direct in ipairs(types) do
-    _, history[iface_type][direct], lasttotal[iface_type][direct] = pcall(getTrafficHistoryData, direct, ifaces)
-  end
-end
+_, wanTx, wanTxTime = pcall(getTrafficData, "tx_bytes", graph_interface)
+_, wanRx, wanRxTime = pcall(getTrafficData, "rx_bytes", graph_interface)
+_, lanTx, lanTxTime = pcall(getTrafficData, "tx_bytes", "br-lan")
+_, lanRx, lanTxTime = pcall(getTrafficData, "rx_bytes", "br-lan")
+_, wifiTx, wifiTxTime = pcall(getTrafficData, "tx_bytes", curiface)
+_, wifiRx, wifiRxTime = pcall(getTrafficData, "rx_bytes", curiface)
 proxy.set("rpc.system.lock.free", "0")
-
-
-local iface_total = {}
-for iface,_ in pairs(all_ifaces) do
-  if iface ~= "" then
-    for _, direct in pairs(types) do
-      iface_total[iface .. "_" .. direct] = "sys.class.net.@" .. iface ..".statistics." .. direct
-    end
-  end
-end
-content_helper.getExactContent(iface_total)
-
-if lastcheck then
-  for iface, _ in pairs(all_ifaces) do
-    if iface ~= "" then
-      for _, direct in pairs(types) do
-        local traffic_name = iface .. "_" .. direct
-        lastcheck[iface] = lastcheck[iface] or {}
-        local lastcheck_data = lastcheck[iface]
-        lastcheck_data[direct] = lastcheck_data[direct] or { carry = 0, number = 0 }
-        iface_total[traffic_name] = s2n(iface_total[traffic_name])
-        if lastcheck_data[direct]["number"] > iface_total[traffic_name] and iface_total[traffic_name] > 0 then
-          lastcheck_data[direct]["carry"] = lastcheck_data[direct]["carry"] + 1
-        end
-      end
-    end
-  end
-end
-
-local function getTrafficTotal(ifaces)
-  local total = { rx_bytes = 0, tx_bytes = 0}
-  local carry = { rx_bytes = 0, tx_bytes = 0}
-  for _, direct in ipairs(types) do
-    for _,v in ipairs(ifaces) do
-      if v.iface ~= "" then
-        total[direct] = total[direct] + iface_total[v.iface  .. "_" .. direct]
-        if lastcheck[v.iface] then
-          carry[direct] = carry[direct] + lastcheck[v.iface][direct]["carry"]
-        end
-      end
-    end
-    total[direct] = total[direct] + carry[direct]*4294967296
-  end
-  return total
-end
-
-local content_total = {}
-content_iface.allwifi = wls
-for iface_type, ifaces in pairs(content_iface) do
-    content_total[iface_type] = getTrafficTotal(ifaces)
-end
-
-for iface_type, data in pairs(history) do
-  for direct, value in pairs(data) do
-    history[iface_type][direct] = value .. "," .. tostring(content_total[iface_type][direct] - lasttotal[iface_type][direct])
-    content_total[iface_type][direct] = b2m(content_total[iface_type][direct])
-  end
-end
-content_total.allwifi.tx_bytes = b2m(content_total.allwifi.tx_bytes)
-content_total.allwifi.rx_bytes = b2m(content_total.allwifi.rx_bytes)
-
-for iface_type, total in pairs(content_total) do
-    content_total[iface_type]["txrx_bytes"]= format("%.3f", total.tx_bytes + total.rx_bytes)
-end
+proxy.apply()
 
 local attributes = {
   label = { class = "control-llabel" } ,
   span = { class = "span2 text-right" } ,
 }
-
-  ngx.print('\
-<div class="container toplevel">\
-');  lp.include("tabs-services.lp")   ngx.print('\
-<div class="row">\
-<div class="span11">\
-<fieldset>\
-<form class="form-horizontal" >\
-<legend>');  ngx.print( T"Internet Traffic" ); ngx.print('</legend>\
-');  
-ngx.print(
-  ui_helper.createLabel(T"Total Send/Receive (in MB)", content_total.wan.txrx_bytes , attributes),
-  ui_helper.createLabel(T"Total Send (in MB)", content_total.wan.tx_bytes, attributes),
-  ui_helper.createLabel(T"Total Receive (in MB)", content_total.wan.rx_bytes, attributes)
-)
-  ngx.print('\
-<legend>');  ngx.print( T"Ethernet Network Traffic" ); ngx.print('</legend>\
-');  
-ngx.print(
-  ui_helper.createLabel(T"Total Send/Receive (in MB)", content_total.eth.txrx_bytes , attributes),
-  ui_helper.createLabel(T"Total Send (in MB)", content_total.eth.tx_bytes, attributes),
-  ui_helper.createLabel(T"Total Receive (in MB)", content_total.eth.rx_bytes, attributes)
-)
-  ngx.print('\
-<legend>');  ngx.print( T"Wi-Fi Network Traffic" ); ngx.print('</legend>\
-');  
-ngx.print(
-  ui_helper.createLabel(T"Total Send/Receive (in MB)",  content_total.allwifi.txrx_bytes , attributes),
-  ui_helper.createLabel(T"Total Send (in MB)", content_total.allwifi.tx_bytes, attributes),
-  ui_helper.createLabel(T"Total Receive (in MB)", content_total.allwifi.rx_bytes, attributes)
-)
-  ngx.print('\
-</form>\
-</fieldset>\
-</div>\
-</div>\
-</div>\
-\
-<div class="container toplevel">\
-<div class="row">\
-<div class="span11">\
-<table width="100%">\
-  <tr>\
-    <td style="background-color:red">&nbsp;&nbsp;&nbsp;&nbsp;</td>\
-    <td nowrap>Total Send/Receive<input type="checkbox" id="redLine" name="redLine" checked onclick="redrawLine()"/></td>\
-    <td style="background-color:green">&nbsp;&nbsp;&nbsp;&nbsp;</td>\
-    <td nowrap>Total Send<input type="checkbox" id="greenLine" name="greenLine" checked onclick="redrawLine()"/></td>\
-    <td style="background-color:blue">&nbsp;&nbsp;&nbsp;&nbsp;</td>\
-    <td nowrap>Total Receive<input type="checkbox" id="blueLine" name="blueLine" checked onclick="redrawLine()"/></td>\
-    <td width="40%">&nbsp;</td>\
-  </tr>\
-</table>\
-\
-<div id="wanTraffic">\
-<div id ="wanLineDiv" style ="position:relative;height:350px;width:800px;"></div>\
-<center>Internet Traffic</center>\
-</div>\
-\
-<div id="lanTraffic">\
-<div id ="lanLineDiv" style ="position:relative;height:350px;width:800px;"></div>\
-<center>Ethernet Network Traffic</center>\
-</div>\
-\
-<ul class="nav nav-tabs">\
-  ');  
-    html = {}
+	
+	ngx.print(		'<div class="container toplevel">')
+	   lp.include(	  "tabs-services.lp") 
+	   
+	local html = {}
+	
+	html[#html+1] =   '<div class="row">'
+	html[#html+1] =     '<div class="span11">'
+	html[#html+1] =       '<fieldset>'
+	html[#html+1] =         '<form class="form-horizontal" >'
+                              
+	html[#html+1] = 		  "<legend>" .. T"Internet Traffic" .. "</legend>"
+	html[#html+1] = 		  ui_helper.createLabel(T"Total Mixed (in MB)", wantotal , attributes)
+	html[#html+1] = 		  ui_helper.createLabel(T"Total Send (in MB)", wantx, attributes)
+	html[#html+1] = 		  ui_helper.createLabel(T"Total Receive (in MB)", wanrx, attributes)
+					  
+	html[#html+1] = 		  "<legend>" .. T"Ethernet Network Traffic" .. "</legend>"
+	html[#html+1] = 		  ui_helper.createLabel(T"Total Mixed (in MB)", lantotal , attributes)
+	html[#html+1] = 		  ui_helper.createLabel(T"Total Send (in MB)", lantx, attributes)
+	html[#html+1] = 		  ui_helper.createLabel(T"Total Receive (in MB)", lanrx, attributes)
+					  
+	html[#html+1] = 		  "<legend>" .. T"Wi-Fi Network Traffic" .. "</legend>"
+	html[#html+1] = 		  ui_helper.createLabel(T"Total Mixed (in MB)",  wifitotal , attributes)
+	html[#html+1] = 		  ui_helper.createLabel(T"Total Send (in MB)", wifitx, attributes)
+	html[#html+1] = 		  ui_helper.createLabel(T"Total Receive (in MB)", wifirx, attributes)
+                            
+	html[#html+1] =         '</form>'
+	html[#html+1] =       '</fieldset>'
+	html[#html+1] =     '</div>'
+	html[#html+1] =   '</div>'
+	html[#html+1] = '</div>'
+	
+	html[#html+1] = '<div class="container toplevel">'
+	html[#html+1] =   '<div class="row">'
+	html[#html+1] =     '<div class="span11">'
+	html[#html+1] =       '<fieldset>'
+	html[#html+1] =         '<form class="form-horizontal" >'
+	html[#html+1] = "<fieldset><legend>" .. T"Graph" .. "</legend>"
+	html[#html+1] = ui_helper.createAlertBlock(T"The time displayed on the graph are based on the time set on this modem!", info_box)
+	html[#html+1] =	'<table>'
+	html[#html+1] =	'<tr>'
+	html[#html+1] =		'<td style="background-color:#90cd8a" >&nbsp;&nbsp;&nbsp;&nbsp;</td>'
+	html[#html+1] =		'<td nowrap style="padding-right: 20px;padding-left: 10px;">'
+	html[#html+1] =		T"Sent chart line"
+	html[#html+1] =		'<input type="checkbox" id="sent" name="sent" checked style="margin-left:10px;"></td>'
+	html[#html+1] =		'<td style="background-color:#f58368">&nbsp;&nbsp;&nbsp;&nbsp;</td>'
+	html[#html+1] =		'<td nowrap style="padding-right: 20px;padding-left: 10px;">'
+	html[#html+1] =		T"Received chart line"
+	html[#html+1] =		'<input type="checkbox" id="received" name="received" checked style="margin-left:10px;"></td>'
+	html[#html+1] =	'</tr>'
+	html[#html+1] =	'</table>'
+	html[#html+1] = "</fieldset>"
+	html[#html+1] = "<fieldset><legend>" .. T"WAN Graph" .. "</legend>"
+	html[#html+1] = '<div style="height:400px"><canvas id="WANChart"></canvas></div>'
+	html[#html+1] = "</fieldset>"
+	html[#html+1] = "<fieldset><legend>" .. T"LAN Graph" .. "</legend>"
+	html[#html+1] = '<div style="height:400px"><canvas id="LANChart"></canvas></div>'
+	html[#html+1] = "</fieldset>"
+	html[#html+1] = "&nbsp"
+	html[#html+1] = "<fieldset>"
+    html[#html+1] = '<ul class="nav nav-tabs">'
     for i,v in ipairs(wls) do
         local active = ""
-        if v.iface == curiface then
+        if v.iface == curiface or ( quantenna_wifi and v.iface == "wl1" and curiface == "eth5" ) then
             active = "active"
         end
         local url = "traffic.lp?iface=" .. v.iface
-        html[#html+1] = string.format('<li class="%s"><a href="%s" target="_self">%s</a></li>', active, url, v.ssid)
+        html[#html+1] = format('<li class="%s"><a id ="%s" a href="%s" target="_self">%s</a></li>', active, v.iface , url, v.ssid)
     end
-    ngx.print(html)
-    ngx.print('\
-</ul>\
-<div id="wifiTraffic">\
-<div id ="wifiLineDiv" style ="position:relative;height:350px;width:800px;"></div>\
-<center>Wi-Fi ');  ngx.print(curssid); ngx.print(' Network Traffic</center>\
-</div>\
-\
+    html[#html+1] =  "</ul>"
+	html[#html+1] =  '<div style="height:400px"><canvas id="WiFiChart"></canvas></div>'
+	html[#html+1] = "</fieldset>"
+	html[#html+1] =     '</div>'
+	html[#html+1] =   '</div>'
+	html[#html+1] = '</div>'
+
+	  
+	ngx.print(html)
+ngx.print('\
+<script src="/js/Chart.bundle.min.js"></script>\
 <script language ="javascript">\
-  var wanLine, lanLine, wifiLine;\
-  // Data will be done\
-\
-  function redrawLine()\
-  {\
-      wanLine.clearLine();\
-      lanLine.clearLine();\
-      wifiLine.clearLine();\
-      drawInit();\
-  }\
-\
-  function drawInit()\
-  {\
-      //Draw the line chart for internet triffic.\
-      wanLine = drawLineDiv("');  ngx.print(history.wan.tx_bytes); ngx.print('", "');  ngx.print(history.wan.rx_bytes); ngx.print('", "wan");\
-\
-      //Draw the line chart for lan triffic.\
-      lanLine = drawLineDiv("');  ngx.print(history.eth.tx_bytes); ngx.print('", "');  ngx.print(history.eth.rx_bytes); ngx.print('", "lan");\
-\
-      //Draw the line chart for wifi triffic.\
-      wifiLine = drawLineDiv("');  ngx.print(history.wifi.tx_bytes); ngx.print('", "');  ngx.print(history.wifi.rx_bytes); ngx.print('", "wifi");\
-  }\
-\
-  drawInit();\
+	\
+	$("#sent").on("click", function() {\
+		if(this.checked) {\
+		LANChart.data.datasets[0].hidden=false;\
+		WANChart.data.datasets[0].hidden=false;\
+		WiFiChart.data.datasets[0].hidden=false;\
+		LANChart.update();\
+		WANChart.update();\
+		WiFiChart.update();\
+			} else {\
+		LANChart.data.datasets[0].hidden=true;\
+		WANChart.data.datasets[0].hidden=true;\
+		WiFiChart.data.datasets[0].hidden=true;\
+		LANChart.update();\
+		WANChart.update();\
+		WiFiChart.update();\
+	}});\
+	$("#received").on("click", function() {\
+		if(this.checked) {\
+		LANChart.data.datasets[1].hidden=false;\
+		WANChart.data.datasets[1].hidden=false;\
+		WiFiChart.data.datasets[1].hidden=false;\
+		LANChart.update();\
+		WANChart.update();\
+		WiFiChart.update();\
+			} else {\
+		LANChart.data.datasets[1].hidden=true;\
+		WANChart.data.datasets[1].hidden=true;\
+		WiFiChart.data.datasets[1].hidden=true;\
+		LANChart.update();\
+		WANChart.update();\
+		WiFiChart.update();\
+	}});\
+	function formatBytes(bytes,decimals) {\
+	if(bytes == 0) return "0 Bytes";\
+		var k = 1024,\
+		dm = decimals || 2,\
+		sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"],\
+		i = Math.floor(Math.log(bytes) / Math.log(k));\
+	return (bytes / Math.pow(k, i)) > 0 ? parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i] : "0";\
+	}\
+	var TrafficChartOption = {\
+			maintainAspectRatio: false,\
+			legend: {display: false},\
+			scales: {\
+			yAxes: [{ticks: {\
+					callback: function(value) { \
+						return formatBytes(value,2) \
+					},}}]},\
+			tooltips: {\
+					enabled: true,\
+					mode: "single",\
+					callbacks: {\
+						label: function(tooltipItems, data) { \
+							return formatBytes(tooltipItems.yLabel , 2);},\
+						title: function(tooltipItems, data) {\
+							return;}}},\
+			spanGaps:true,\
+			legend: {display: false},};\
+	var wan_ctx = document.getElementById("WANChart").getContext("2d");\
+	var WANChart = new Chart(wan_ctx, {\
+		type: "line",\
+		data: {labels: ['); ngx.print(wanTxTime); ngx.print('],\
+		"datasets":[{"data":['); ngx.print(wanTx); ngx.print('],\
+				"pointBackgroundColor": "#90cd8a",\
+				"backgroundColor": "#90cd8a50",\
+			},\
+			{"data":['); ngx.print(wanRx); ngx.print('],\
+				"pointBackgroundColor": "#f58368",\
+				"backgroundColor": "#f5836850",\
+		}]},\
+		options: TrafficChartOption \
+	});\
+	var lan_ctx = document.getElementById("LANChart").getContext("2d");\
+	var LANChart = new Chart(lan_ctx, {\
+		type: "line",\
+		data: {labels: ['); ngx.print(lanTxTime); ngx.print('],\
+			"datasets":[{"data":['); ngx.print(lanTx); ngx.print('],\
+				"pointBackgroundColor": "#90cd8a",\
+				"backgroundColor": "#90cd8a50",\
+			},\
+			{"data":['); ngx.print(lanRx); ngx.print('],\
+				"pointBackgroundColor": "#f58368",\
+				"backgroundColor": "#f5836850",\
+		}]},\
+		options: TrafficChartOption, \
+	});\
+	var wifi_ctx = document.getElementById("WiFiChart").getContext("2d");\
+	var WiFiChart = new Chart(wifi_ctx, {\
+		type: "line",\
+		data: {labels: ['); ngx.print(wifiTxTime); ngx.print('],\
+			"datasets":[{"data":['); ngx.print(wifiTx); ngx.print('],\
+				"pointBackgroundColor": "#90cd8a",\
+				"backgroundColor": "#90cd8a50",\
+			},\
+			{"data":['); ngx.print(wifiRx); ngx.print('],\
+				"	pointBackgroundColor": "#f58368",\
+					"backgroundColor": "#f5836850",\
+			}]},\
+		options: TrafficChartOption, \
+	});\
 </script>\
-</div>\
-</div>\
-</div>\
-\
 ');  
 lp.include("footer.lp")
   ngx.print('\

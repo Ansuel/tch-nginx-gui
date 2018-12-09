@@ -74,7 +74,7 @@ then
 	      </td>\
 		  <td>\
 	        <div data-toggle="modal" data-remote="modals/diagnostics-tcpdump-modal.lp" data-id="diagnostics-network-tcpdump">\
-			  <i class="smallsomeInfos modal-link fa fa-download" style="font-size:32px;" href="#" rel="tooltip" data-placement="top" data-original-title="'); ngx.print(T"Tcpdump"); ngx.print('" alt="tcpdump"></i>\
+			  <i class="smallsomeInfos modal-link fa fa-download" style="font-size:32px;" href="#" rel="tooltip" data-placement="top" data-original-title="'); ngx.print(T"TCPDump"); ngx.print('" alt="tcpdump"></i>\
 			</div>\
 	      </td>\
 	    </tr>\

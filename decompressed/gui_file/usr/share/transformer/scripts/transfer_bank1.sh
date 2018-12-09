@@ -1,4 +1,5 @@
-if [ -d /overlay/bank_1 ] 
+#!/bin/sh
+if [ -d /overlay/bank_1 ]
 	then
 	rm -r /overlay/bank_1
 fi

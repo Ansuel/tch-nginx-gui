@@ -64,8 +64,6 @@ local mapParams = {
     uci_wan_username = "uci.network.interface.@" .. ppp_intf .. ".username",
     uci_wan_password = "uci.network.interface.@" .. ppp_intf .. ".password",
     uci_wan_password2 = "uci.network.interface.@" .. ppp_intf .. ".password",
-    uci_ppp_username = "uci.network.interface.@ppp.username",
-    uci_ppp_password = "uci.network.interface.@ppp.password",
 }
 
 -- Shortcuts to validation helpers to make lines shorter
@@ -87,14 +85,6 @@ local mapValid = {
     uci_wan_username = vNES,
     uci_wan_password = validatePassword,
     uci_wan_password2 = validatePassword,
-    uci_ppp_username = function(val, object)
-        object.uci_ppp_username = object.uci_wan_username
-        return true
-    end,
-    uci_ppp_password = function(val, object)
-        object.uci_ppp_password = object.uci_wan_password
-        return true
-    end,
 }
 
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)

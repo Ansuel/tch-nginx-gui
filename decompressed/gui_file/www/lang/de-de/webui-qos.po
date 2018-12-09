@@ -1,0 +1,124 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: webui-qos\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-02-09 08:45+0100\n"
+"PO-Revision-Date: 2018-10-26 12:28+0200\n"
+"Last-Translator: Dr. Uwe Meyer-Gruhl\n"
+"Language-Team: none\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language-Name: Deutsch\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.2\n"
+
+msgid "<p class='subinfos'><strong>%s classify rule(s)</strong> active</p>"
+msgid_plural ""
+"<p class='subinfos'><strong>%s classify rule(s)</strong> active</p>"
+msgstr[0] ""
+"<p class='subinfos'><strong>%s Klassifizierungsregel</strong> aktiv</p>"
+msgstr[1] ""
+"<p class='subinfos'><strong>%s Klassifizierungsregeln</strong> aktiv</p>"
+
+msgid "<p class='subinfos'><strong>%s queue(s)</strong> active</p>"
+msgid_plural "<p class='subinfos'><strong>%s queue(s)</strong> active</p>"
+msgstr[0] "<p class='subinfos'><strong>%s Warteschlange</strong> aktiv</p>"
+msgstr[1] "<p class='subinfos'><strong>%s Warteschlangen</strong> aktiv</p>"
+
+msgid "Add New Label"
+msgstr "Hinzufügen Neuen Titel"
+
+msgid "Add New Rule"
+msgstr "Hinzufügen neue Regel"
+
+msgid "Add new queue"
+msgstr "Hinzufügen neue Warteschlange"
+
+msgid "Algorithm"
+msgstr "Algorithmus"
+
+msgid "Classification"
+msgstr "Klassifikation"
+
+msgid "DSCP"
+msgstr "DSCP"
+
+msgid "Default"
+msgstr "Standard"
+
+msgid "Default Queue"
+msgstr "Standard-Warteschlange"
+
+msgid "Dest Host/IP"
+msgstr "Ziel-Host/-IP"
+
+msgid "Dest Port(s)"
+msgstr "Ziel-Port"
+
+msgid "Enabled"
+msgstr "Aktiviert"
+
+msgid "Label Name"
+msgstr "Titel Name"
+
+msgid "Label Target"
+msgstr "Titel Ziel"
+
+msgid "Name"
+msgstr "Name"
+
+msgid "Port(s)"
+msgstr "Port(s)"
+
+msgid "Priority"
+msgstr "Priorität"
+
+msgid "Protocol"
+msgstr "Protokoll"
+
+msgid "QoS"
+msgstr "QoS"
+
+msgid "QoS Classification Table"
+msgstr "QoS Klassifikationstabelle"
+
+msgid "QoS Label Table"
+msgstr "QoS Titel Tabelle"
+
+msgid "QoS Queue Scheduling on Interface LAN"
+msgstr "QoS Warteschlangenplanung für LAN Schnittstelle"
+
+msgid "QoS Queue Scheduling on Interface WAN"
+msgstr "QoS Warteschlangenplanung für WAN Schnittstelle"
+
+msgid "QoS Queue Table on Interface LAN"
+msgstr "QoS Warteschlangentabelle für LAN Schnittstelle"
+
+msgid "QoS Queue Table on Interface WAN"
+msgstr "QoS Warteschlangentabelle für WAN Schnittstelle"
+
+msgid "Queue"
+msgstr "Warteschlange"
+
+msgid "Source Host/IP"
+msgstr "Quell-Host/-IP"
+
+msgid "Source Port(s)"
+msgstr "Quell-Port(s)"
+
+msgid "Strict Priority"
+msgstr "Strenge Priorität"
+
+msgid "Strict Priority and Weighted Round Robin"
+msgstr "Strenge Priorität und gewichtetes Round Robin"
+
+msgid "Traffic ID"
+msgstr "Verkehrs-ID"
+
+msgid "Weight"
+msgstr "Gewicht"
+
+msgid "Weighted Round Robin"
+msgstr "Gewichtetes Round Robin"

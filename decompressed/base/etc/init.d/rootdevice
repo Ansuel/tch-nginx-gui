@@ -29,10 +29,10 @@ EXTRA_COMMANDS="force debug"
 EXTRA_HELP="\
         force   Force root process even when root flag is already set
         debug   force command with debug log
-		install    This root the device for the initial installation
+        install    This root the device for the initial installation
 "
 
-version_gui=8.8.76
+version_gui=8.9.81
 
 logo_project() {
 cat << EOF > /dev/console
@@ -113,12 +113,12 @@ remove_default_dns() {
 
 setup_network() {
 	#Set a pppoerelay empty interface if list is not present (UNO)
-	if [ ! $(uci show network.lan | grep "network.lan.pppoerelay") ]; then
+	if [ ! "$(uci show network.lan | grep "network.lan.pppoerelay")" ]; then
 		uci -q add_list network.lan.pppoerelay=''
 	fi
 	
 	#Set a waneth4 interface if not found (fix wizard on UNO)
-	if [ ! $(uci -q get network.waneth4) ]; then
+	if [ ! "$(uci -q get network.waneth4)" ]; then
 		uci -q add network device > /dev/null
 		uci -q rename network.@device[-1]=waneth4
 		uci -q set network.waneth4.enabled=1
@@ -126,12 +126,12 @@ setup_network() {
 		uci -q set network.waneth4.name=waneth4
 		uci -q set network.waneth4.vid=835
 	fi
-	if [ ! $(uci -q get network.waneth4.vid) ]; then
+	if [ ! "$(uci -q get network.waneth4.vid)" ]; then
 		uci -q set network.waneth4.vid=835
 	fi
-
+    
     #Set a wanptm0 interface if not found (fix wizard on UNO)
-    if [ ! $(uci -q get network.wanptm0) ]; then
+    if [ ! "$(uci -q get network.wanptm0)" ]; then
         uci -q add network device > /dev/null
         uci -q rename network.@device[-1]=wanptm0
         uci -q set network.wanptm0.enabled=1
@@ -139,12 +139,12 @@ setup_network() {
         uci -q set network.wanptm0.name=wanptm0
         uci -q set network.wanptm0.vid=835
     fi
-	if [ ! $(uci -q get network.wanptm0.vid) ]; then
+	if [ ! "$(uci -q get network.wanptm0.vid)" ]; then
 		uci -q set network.wanptm0.vid=835
 	fi
-
+    
 	#Set a SSH_wan firewall rule if not found (fix SSH Wan not working)
-	if [ ! $(uci -q get firewall.SSH_wan) ]; then
+	if [ ! "$(uci -q get firewall.SSH_wan)" ]; then
 		uci -q add firewall rule > /dev/null
 		uci -q rename firewall.@rule[-1]=SSH_wan
 		uci -q set firewall.SSH_wan.src=wan
@@ -153,6 +153,30 @@ setup_network() {
 		uci -q set firewall.SSH_wan.proto=tcp
 		uci -q set firewall.SSH_wan.dest_port=22
 		uci -q set firewall.SSH_wan.family=ipv4
+	fi
+	
+	#Rename ppp interface to wan to fix problem with TG800 strange Telstra configuration
+	if [ ! "$(uci -q get network.wan.proto)" ] && [ "$(uci -q get network.ppp)" ]; then
+		uci del network.wan
+		uci rename network.ppp=wan
+	fi
+}
+
+check_variant_friendly_name() {
+	if [ ! "$(uci get -q env.var.variant_friendly_name)" ]; then
+		variant=$(uci get env.var.prod_friendly_name)
+		case "$variant"
+		in
+			DGA4130)
+				variant=AGTEF ;;
+			DGA4132)
+				variant=AGTHP ;;
+			Technicolor*)
+				variant=${variant#Technicolor } ;;
+			MediaAccess*)
+				variant=${variant#MediaAccess } ;;
+		esac
+		uci set env.var.variant_friendly_name="$variant"
 	fi
 }
 
@@ -218,12 +242,17 @@ cumulative_check_gui() {
 			        curl -k -s https://repository.ilpuntotecnico.com//files/Ansuel/AGTEF/GUI.tar.bz2 --output /root/GUI.tar.bz2
 			else
 				logger_command "Can't download stable GUI!"
+				logger_command "Checking if GUI_dev is present in /tmp"
+				if [ -f /tmp/GUI_dev.tar.bz2 ]; then
+					logger_command "Found GUI_dev in /tmp, copying it as stable to generate a valid hash"
+					cp /tmp/GUI_dev.tar.bz2 /root/GUI.tar.bz2
+				fi
 			fi
 		else
 			logger_command "Moving stable GUI from /tmp to /root"
 			cp /tmp/GUI.tar.bz2 /root
 		fi
-		if [ -f /root/GUI.tar.bz2 ]; then
+		if [ -f /root/GUI.tar.bz2 ] && [ -s /root/GUI.tar.bz2 ]; then
 			logger_command "Assume first times install, cleaning /www dir and reinstall"
 			rm -r /www/*
 			bzcat /root/GUI.tar.bz2 | tar -C / -xf - www
@@ -530,7 +559,7 @@ transformer_lib_check() {
 	local orig_dir=/rom/usr
 	local target=/usr
 	
-	if [ $(md5sum $orig_dir/lib/lua/transformer/shared/dhcp.lua | awk '{print $1}') != $(md5sum $target/lib/lua/transformer/shared/dhcp.lua | awk '{print $1}') ]; then
+	if [ $(md5sum $orig_dir/lib/lua/transformer/commitapply.lua | awk '{print $1}') != $(md5sum $target/lib/lua/transformer/commitapply.lua | awk '{print $1}') ]; then
 		rm $target/share/transformer/mappings/rpc/*
 		rm $target/share/transformer/mappings/uci/*
 		rm -r $target/lib/lua/tch/*
@@ -548,10 +577,11 @@ transformer_lib_check() {
 		elif [ -f /tmp/GUI.tar.bz2 ]; then
 			gui_pos=/tmp/GUI.tar.bz2
 		elif [ -f /tmp/GUI_dev.tar.bz2 ]; then
-			gui_pos=/root/GUI_dev.tar.bz2
+			gui_pos=/tmp/GUI_dev.tar.bz2
 		fi
-		if [ $gui_pos != "" ]; then
-			bzcat $gui_pos | tar -C / -xf - #reapply the upgrade as in the gui we store some of this file that we restored
+		logger_command "Found gui here: "$gui_pos
+		if [ $gui_pos != "" ] && [ -s $gui_pos ]; then
+			bzcat $gui_pos | tar -C / -xf - usr #reapply the upgrade as in the gui we store some of this file that we restored
 			logger_command "Restoring transformer lib"
 		fi
 		#/etc/init.d/transformer restart
@@ -581,7 +611,11 @@ check_dnsmasq_name() {
 
 create_driver_setting() {
 	if [ ! $( uci get -q env.var.driver_version ) ]; then
-		uci set env.var.driver_version=$(transformer-cli get rpc.xdsl.dslversion | awk '{print $4}')
+		uci set env.var.driver_version=$(xdslctl --version 2>&1 >/dev/null | grep "version -" | awk '{print $6}' | sed "s/\..*//")
+	else 
+		if [ "$( uci get -q env.var.driver_version | grep -F . )" ]; then
+			uci set env.var.driver_version=$(xdslctl --version 2>&1 >/dev/null | grep "version -" | awk '{print $6}' | sed "s/\..*//")
+		fi
 	fi
 }
 
@@ -798,6 +832,27 @@ add_new_web_rule() {
 		uci add_list web.ecomodal.roles='engineer'
 		uci add_list web.ruleset_main.rules='ecomodal'
 	fi
+	if [ ! $(uci get -q web.ajaxinfoconndevicecard) ]; then
+		uci set web.ajaxinfoconndevicecard=rule
+		uci set web.ajaxinfoconndevicecard.target='/ajax/connected_device.lua'
+		uci add_list web.ajaxinfoconndevicecard.roles='admin' 
+		uci add_list web.ajaxinfoconndevicecard.roles='engineer'
+		uci add_list web.ruleset_main.rules='ajaxinfoconndevicecard'
+	fi
+	if [ ! $(uci get -q web.ajaxinfoportscard) ]; then
+		uci set web.ajaxinfoportscard=rule
+		uci set web.ajaxinfoportscard.target='/ajax/port_status.lua'
+		uci add_list web.ajaxinfoportscard.roles='admin' 
+		uci add_list web.ajaxinfoportscard.roles='engineer'
+		uci add_list web.ruleset_main.rules='ajaxinfoportscard'
+	fi
+	if [ ! $(uci get -q web.ajaxinfommpbxstatuscard) ]; then
+		uci set web.ajaxinfommpbxstatuscard=rule
+		uci set web.ajaxinfommpbxstatuscard.target='/ajax/mmpbx_status.lua'
+		uci add_list web.ajaxinfommpbxstatuscard.roles='admin' 
+		uci add_list web.ajaxinfommpbxstatuscard.roles='engineer'
+		uci add_list web.ruleset_main.rules='ajaxinfommpbxstatuscard'
+	fi
 }
 
 check_relay_dhcp() {
@@ -807,7 +862,7 @@ check_relay_dhcp() {
 }
 
 suppress_excessive_logging() {
-	if [ $(uci get -q igmpproxy.globals.trace) == "1" ]; then
+	if [ "$(uci get -q igmpproxy.globals.trace)" == "1" ]; then
 		uci set igmpproxy.globals.trace='0'
 	fi
 	/etc/init.d/mobiled restart #Restart this to actually disable it... (broken and shitt init.d)
@@ -815,13 +870,16 @@ suppress_excessive_logging() {
 	if [ ! $(uci get -q transformer.@main[0].log_level) ]; then #shutup no description warn
 		uci set transformer.@main[0].log_level='2'
 	fi
-	if [ ! $(uci get -q system.@system[0].cronloglevel) ] || [ $(uci get -q system.@system[0].cronloglevel) == '0' ]; then #resolve spamlog of trafficdata
+	if [ ! $(uci get -q system.@system[0].cronloglevel) ] || [ "$(uci get -q system.@system[0].cronloglevel)" == '0' ]; then #resolve spamlog of trafficdata
 		uci set system.@system[0].cronloglevel="5"
 		/etc/init.d/cron restart
 	fi
 	if [ ! $(uci get -q ledfw.syslog) ]; then #suppress loggin of ledfw... we don't need it...
 		uci set ledfw.syslog=syslog
 		uci set ledfw.syslog.trace='0'
+	fi
+	if [ "$(uci get -q mmpbx.global.trace_level)" == "2" ]; then
+		uci set mmpbx.global.trace_level='0'
 	fi
 }
 
@@ -840,10 +898,8 @@ led_integration() {
 		uci set ledfw.status_led=status_led
 		uci set ledfw.status_led.enable='0'
 	fi
-	if [ "$(uci get -q ledfw.timeout.ms)" == "0" ]; then #This cannot be 0 as is needed to make status led works
-		uci set ledfw.timeout.ms='5000'
-		uci commit ledfw
-		killall /sbin/status-led-eventing.lua
+	if [ "$(cat /sbin/status-led-eventing.lua | grep 'Version: 1.3')" ]; then #Restart statusledeventing if old version
+		killall status-led-eventing.lua
 		/sbin/status-led-eventing.lua &
 	fi
 }
@@ -911,7 +967,7 @@ real_ver_entitied() {
 			uci set versioncusto.override.fwversion_override_real="$real_ver"
 		fi
 		#Set version to latest stable...
-		uci set versioncusto.override.fwversion_override="1.1.1" 
+		uci set versioncusto.override.fwversion_override="1.1.2"
 	fi
 }
 
@@ -969,7 +1025,7 @@ apply_specific_DGA_package() {
 	if [ -f /root/custom-ripdrv-specificDGA.tar.bz2 ]; then
 		bzcat /root/custom-ripdrv-specificDGA.tar.bz2 | tar -C / -xf -
 	fi
-	logger_command "Extracting telnet_support-specificDGA.tar.bz2 ..."
+	logger_command "Extracting telnet_support-specificDGA/TG800.tar.bz2 ..."
 	if [ -f /root/telnet_support-specificDGA.tar.bz2 ]; then
 		bzcat /root/telnet_support-specificDGA.tar.bz2 | tar -C / -xf -
 	fi
@@ -997,13 +1053,29 @@ apply_specific_DGA_package() {
 	fi
 }
 
+apply_specific_TG800_package() {
+	logger_command "Extracting telnet_support-specificDGA/TG800.tar.bz2 ..."
+	if [ -f /root/telnet_support-specificDGA.tar.bz2 ]; then
+		bzcat /root/telnet_support-specificDGA.tar.bz2 | tar -C / -xf -
+	fi
+}
+
+apply_specific_TG789_package() {
+	logger_command "Extracting telnet_support-specificTG789/tg799.tar.bz2 ..."
+	if [ -f /root/telnet_support-specificTG789.tar.bz2 ]; then
+		bzcat /root/telnet_support-specificTG789.tar.bz2 | tar -C / -xf -
+	fi
+}
+
+apply_specific_TG799_package() {
+	logger_command "Extracting telnet_support-specificTG789/tg799.tar.bz2 ..."
+	if [ -f /root/telnet_support-specificTG789.tar.bz2 ]; then
+		bzcat /root/telnet_support-specificTG789.tar.bz2 | tar -C / -xf -
+	fi
+}
+
 clean_specific_file() {
-	rm /root/upnpfix-specificDGA.tar.bz2
-	rm /root/upgrade-pack-specificDGA.tar.bz2
-	rm /root/telnet_support-specificDGA.tar.bz2
-	rm /root/custom-ripdrv-specificDGA.tar.bz2
-	rm /root/dlnad_supprto-specificDGA.tar.bz2
-	rm /root/wgetfix-specificDGA.tar.bz2
+	rm /root/*specific*.tar.bz2
 }
 
 fcctlsettings_daemon() {
@@ -1235,6 +1307,40 @@ telstra_support_check() {
 	fi
 }
 
+wan_sensing_clean() {
+	#This will try to clean every hardcoded setting from isp config
+	if [ -f /etc/wansensing/L2EntryExit.lua ]; then
+		sed -i '/[cC][wW][mM][pP][dD]/d' /etc/wansensing/L2EntryExit.lua
+		sed -i '/mtu= "1500"/{N;d}' /etc/wansensing/L2EntryExit.lua
+		sed -i '/[mM][tT][uU]/d' /etc/wansensing/L2EntryExit.lua
+		sed -i '/vlan = default_vlan/{N;d}' /etc/wansensing/L2EntryExit.lua
+		sed -i '/vci/d' /etc/wansensing/L2EntryExit.lua
+		sed -i '/vpi/d' /etc/wansensing/L2EntryExit.lua
+		sed -i '/enc/d' /etc/wansensing/L2EntryExit.lua
+		sed -i '/ulp/d' /etc/wansensing/L2EntryExit.lua
+		sed -i '/"proto", "pppoa"/d' /etc/wansensing/L2EntryExit.lua
+		sed -i '/"proto", "pppoe"/d' /etc/wansensing/L2EntryExit.lua
+	fi
+	if [ -f /etc/wansensing/L3EntryExit.lua ]; then
+		sed -i '/delete_interface("wan")/d' /etc/wansensing/L3EntryExit.lua
+		sed -i '/copy_interface/d' /etc/wansensing/L3EntryExit.lua
+		sed -i '/delete("network", "ipoe"/d' /etc/wansensing/L3EntryExit.lua
+	fi
+	if [ -f /etc/wansensing/L3PPPEntryExit.lua ]; then
+		sed -i '/delete_interface("wan")/d' /etc/wansensing/L3PPPEntryExit.lua
+		sed -i '/copy_interface/d' /etc/wansensing/L3PPPEntryExit.lua
+		sed -i '/"ppp"/d' /etc/wansensing/L3PPPEntryExit.lua
+	fi
+	if [ -f /etc/wansensing/L3DHCPSenseEntryExit.lua ]; then
+		sed -i '/delete_interface("wan")/d' /etc/wansensing/L3DHCPSenseEntryExit.lua
+		sed -i '/"ppp"/d' /etc/wansensing/L3DHCPSenseEntryExit.lua
+		sed -i '/copy_interface/d' /etc/wansensing/L3DHCPSenseEntryExit.lua
+		sed -i '/"network", "ipoe"/d' /etc/wansensing/L3DHCPSenseEntryExit.lua
+		sed -i '/"wan", "auto"/d' /etc/wansensing/L3DHCPSenseEntryExit.lua
+		sed -i '/"wan6", "auto"/d' /etc/wansensing/L3DHCPSenseEntryExit.lua
+	fi
+}
+
 rootchecks() {
 	logger_command "Save root password if modified"
 	if [ ! $(awk -F: '/root/ {print $7 }' /etc/passwd) = "/bin/ash" ]; then #this enable root access from login
@@ -1273,20 +1379,134 @@ rootchecks() {
 	/etc/init.d/dropbear restart > /dev/null
 }
 
+ledfw_rework_tg799() {
+	if [ ! $(uci get -q button.info) ]; then
+		uci del button.easy_reset
+		uci set button.info=button
+		uci set button.info.button='BTN_3'
+		uci set button.info.action='released'
+		uci set button.info.handler='logger INFO button pressed ; ubus send infobutton '''{"state":"active"}''''
+		uci set button.info.min='0'
+		uci set button.info.max='2'
+		uci set ledfw.iptv.check='0'
+		uci commit ledfw
+		/etc/init.d/ledfw restart
+		logger_command "Extracting ledfw_support-specificTG799.tar.bz2 ..."
+		if [ -f /root/ledfw_support-specificTG799.tar.bz2 ]; then
+			bzcat /root/ledfw_support-specificTG799.tar.bz2 | tar -C / -xf -
+		fi
+	fi
+}
+
+ledfw_rework_tg800() {
+	if [ ! $(uci get -q button.info) ]; then
+		uci del button.easy_reset
+		uci set button.info=button
+		uci set button.info.button='BTN_3'
+		uci set button.info.action='released'
+		uci set button.info.handler='logger INFO button pressed ; ubus send infobutton '''{"state":"active"}''''
+		uci set button.info.min='3'
+		uci set button.info.max='5'
+		uci set ledfw.iptv.check='0'
+		uci commit ledfw
+		/etc/init.d/ledfw restart
+		logger_command "Extracting ledfw_support-specificTG800.bz2 ..."
+		if [ -f /root/ledfw_support-specificTG800.tar.bz2 ]; then
+			bzcat /root/ledfw_support-specificTG800.tar.bz2 | tar -C / -xf -
+		fi
+	fi
+}
+
+ledfw_rework_TG789() {
+	if [ ! "$(cat /etc/ledfw/stateMachines.lua | grep fw_upgrade)" ]; then
+		/etc/init.d/ledfw restart
+		logger_command "Extracting ledfw_support-specificTGA789.bz2 ..."
+		if [ -f /root/ledfw_support-specificTGA789.tar.bz2 ]; then
+			bzcat /root/ledfw_support-specificTGA789.tar.bz2 | tar -C / -xf -
+		fi
+	fi
+}
+
+ledfw_rework_DGA() {
+	if [ "$(cat /usr/lib/lua/ledframework/ubus.lua | grep '\--restore default function of this')" ]; then
+		cp /rom/usr/lib/lua/ledframework/ubus.lua /usr/lib/lua/ledframework/
+	fi
+	if [ ! "$(cat /usr/lib/lua/ledframework/ubus.lua | grep 'cb("fwupgrade_state_" .. msg.state)')" ]; then
+		sed -i 'N;/events\['\''fwupgrade'\''\] = function(msg)/a\\t\tcb("fwupgrade_state_" .. msg.state)' /usr/lib/lua/ledframework/ubus.lua
+	fi
+	if [ ! "$(cat /etc/ledfw/stateMachines.lua | grep fw_upgrade)" ]; then
+		/etc/init.d/ledfw restart
+		logger_command "Extracting ledfw_support-specificDGA.bz2 ..."
+		if [ -f /root/ledfw_support-specificDGA.tar.bz2 ]; then
+			bzcat /root/ledfw_support-specificDGA.tar.bz2 | tar -C / -xf -
+		fi
+	fi
+}
+
+check_gui_tmp() {
+	if [ -f /tmp/GUI_dev.tar.bz2 ]; then
+		logger_command "Found GUI_dev in tmp dir... Cleaning..."
+		rm /tmp/GUI_dev.tar.bz2
+	fi
+	if [ -f /tmp/GUI.tar.bz2 ]; then
+		logger_command "Found GUI in tmp dir... Cleaning..."
+		rm /tmp/GUI.tar.bz2
+	fi
+	if [ -d /total ]; then
+		rm -r /total
+	fi
+}
+
+check_wan_mode() {
+	if [ ! $(uci get -q network.config.wan_mode) ]; then
+		uci set network.config="config"
+		uci set network.config.wan_mode=$(uci get -q network.wan.proto)
+	fi
+}
+
+dosprotect_inizialize() {
+	if [ -f /etc/init.d/dosprotect ]; then
+		if [ ! -f /etc/config/dosprotect ]; then
+			if [ -f /etc/config/dosprotect_orig ]; then
+				mv /etc/config/dosprotect_orig /etc/config/dosprotect
+			fi
+		fi
+		if [ -f /etc/config/dosprotect_orig ]; then
+			rm /etc/config/dosprotect_orig
+		fi
+		if [ ! -f  /etc/rc.d/S*dosprotect ]; then
+			/etc/init.d/dosprotect enable
+			/etc/init.d/dosprotect start
+		fi
+	fi
+}
+
+disable_intercept() {
+	if [ "$(uci get -q intercept.config.enabled)" ]; then
+		if [ "$(uci get -q intercept.config.enabled)" == "1" ]; then
+			uci set intercept.config.enabled='0'
+			uci commit intercept
+			/etc/init.d/intercept restart
+		fi
+	fi
+}
+
 root() {
 	
 	logger -s -t 'Root Script' "Rooting in progress..."
 	
 	#THIS CHECK DEVICE TYPE AND INSTALL SPECIFIC FILE
 	device_type="$(uci get -q env.var.prod_friendly_name)"
-		
-	if [ "$device_type" == "DGA4132" ] || [ "$device_type" == "DGA4130" ]; then 
-		device_type_model="$device_type"
-		device_type="DGA"
-	fi
 
-	[ "$device_type" == "DGA" ] && logger_command "Apply specific device file..."
-	[ "$device_type" == "DGA" ] && apply_specific_DGA_package
+	[ -z "${device_type##*DGA413*}" ] && logger_command "Apply specific device file..."
+	[ -z "${device_type##*DGA413*}" ] && apply_specific_DGA_package
+	[ -z "${device_type##*TG789*}" ] && apply_specific_TG789_package
+	[ -z "${device_type##*TG799*}" ] && apply_specific_TG799_package
+	[ -z "${device_type##*TG800*}" ] && apply_specific_TG800_package
+	[ -z "${device_type##*DGA413*}" ] && ledfw_rework_DGA
+	[ -z "${device_type##*TG789*}" ] && ledfw_rework_tg789
+	[ -z "${device_type##*TG799*}" ] && ledfw_rework_tg799
+	[ -z "${device_type##*TG800*}" ] && ledfw_rework_tg800
 	
 	if [ -f /root/custom-ripdrv-specificDGA.tar.bz2 ]; then
 		clean_specific_file
@@ -1302,7 +1522,7 @@ root() {
 	fi
 	
 	if [ -f /root/.reapply_due_to_upgrade ]; then
-		if [ -f /root/GUI.tar.bz2 ]; then
+		if [ -f /root/GUI.tar.bz2 ] && [ -s /root/GUI.tar.bz2 ]; then
 			logger_command "Resetting /www dir due to firmware upgrade..."
 			rm -r /www
 			bzcat /root/GUI.tar.bz2 | tar -C / -xf - www
@@ -1310,10 +1530,10 @@ root() {
 		fi
 	fi
 	
-	logger_command "Stopping nginx and transformer"
+	logger_command "Stopping nginx"
 	while [ "$(pgrep "nginx")" ]; do
 		if [ "$(pgrep "nginx")" ]; then
-			/etc/init.d/nginx stop > /dev/null
+			/etc/init.d/nginx stop 2>/dev/null
 		fi
 	done
 		
@@ -1338,6 +1558,8 @@ root() {
 		fi
 	fi
 	
+	logger_command "Check variant_friendly_name set"
+	check_variant_friendly_name
 	logger_command "Check and cleanup"
 	add_ipoe #this need to stay to make the wizard work correctly
 	logger_command "Remove default dns"
@@ -1347,8 +1569,8 @@ root() {
 	puryfy_wan_interface #remove gracefull restart, could give problem
 	logger_command "Fix dns bug"
 	fix_dns_dhcp_bug #disable odhcpd as ipv6 is currently broken 
-	[ "$device_type" == "DGA" ] && logger_command "Enable dlnad"
-	[ "$device_type" == "DGA" ] && check_new_dlnad #this enable a new dlna deamon introduced with 17.1, the old one is keep
+	[ -z "${device_type##*DGA413*}" ] && logger_command "Enable dlnad"
+	[ -z "${device_type##*DGA413*}" ] && check_new_dlnad #this enable a new dlna deamon introduced with 17.1, the old one is keep
 	logger_command "Fix Sysupgrade"
 	check_upgrade_shit #this if old script are present to fix sysupgrade
 	logger_command "Check orig config"
@@ -1357,8 +1579,8 @@ root() {
 	trafficmon_support #support trafficmon
 	logger_command "Restore original mapper"
 	restore_original_mapper #this restore the original file autogenerated as they are specific to the build version.
-	[ "$device_type" == "DGA" ] && logger_command "Transformer lib check"
-	[ "$device_type" == "DGA" ] && transformer_lib_check #another cleanup
+	[ -z "${device_type##*DGA413*}" ] && logger_command "Transformer lib check"
+	[ -z "${device_type##*DGA413*}" ] && transformer_lib_check #another cleanup
 	logger_command "Remove https check"
 	remove_https_check_cwmpd #cleanup
 	logger_command "Check css presence"
@@ -1374,8 +1596,8 @@ root() {
 	check_noip_file #check ddns directory in /etc
 	logger_command "Check eco param"
 	eco_param #This disable eco param as they introduce some latency
-	[ "$device_type" == "DGA" ] && logger_command "Enable new upnp"
-	[ "$device_type" == "DGA" ] && enable_new_upnp #New upnp fix
+	[ -z "${device_type##*DGA413*}" ] && logger_command "Enable new upnp"
+	[ -z "${device_type##*DGA413*}" ] && enable_new_upnp #New upnp fix
 	logger_command "Sync dhcp configuration for new webui"
 	update_dhcp_config #Dhcp sync
 	logger_command "Create gui type in config"
@@ -1390,12 +1612,12 @@ root() {
 	check_aria_dir #Fix config function
 	logger_command "Creating new option for led definition"
 	led_integration #New option led
-	[ "$device_type" == "DGA" ] && logger_command "Old build detected, moving wansensing file"
-	[ "$device_type" == "DGA" ] && check_wansensing # Move wansensing file to old directory
-	[ "$device_type" == "DGA" ] && logger_command "Checking downgrade limitation bit"
-	[ "$device_type" == "DGA" ] && remove_downgrade_bit #Use custom driver to remove this... thx @Roleo
-	[ "$device_type" == "DGA" ] && logger_command "Checking opkg conf"
-	[ "$device_type" == "DGA" ] && apply_right_opkg_repo #Check opkg conf based on version
+	[ -z "${device_type##*DGA413*}" ] && logger_command "Old build detected, moving wansensing file"
+	[ -z "${device_type##*DGA413*}" ] && check_wansensing # Move wansensing file to old directory
+	[ -z "${device_type##*DGA413*}" ] && logger_command "Checking downgrade limitation bit"
+	[ -z "${device_type##*DGA413*}" ] && remove_downgrade_bit #Use custom driver to remove this... thx @Roleo
+	[ -z "${device_type##*DGA413*}" ] && logger_command "Checking opkg conf"
+	[ -z "${device_type##*DGA413*}" ] && apply_right_opkg_repo #Check opkg conf based on version
 	logger_command "Creating and checking real version"
 	real_ver_entitied #Support for spoofing firm
 	logger_command "Creating new wol implementation"
@@ -1408,12 +1630,20 @@ root() {
 	update_checkver_upgrade_script #This clean old script
 	logger_command "Adding fast cache options"
 	fcctlsettings_daemon #Adds fast cache options
-	[ "$device_type_model" == "DGA4132" ] && logger_command "Reworking sfp interface in network..."
-	[ "$device_type_model" == "DGA4132" ] && sfp_rework #sfp to sfptag, to solve local ip problem
+	[ "$device_type" == "DGA4132" ] && logger_command "Reworking sfp interface in network..."
+	[ "$device_type" == "DGA4132" ] && sfp_rework #sfp to sfptag, to solve local ip problem
 	[ "$device_type" == "MediaAccess TG789vac v2" ] && logger_command "Unlocking ssh for tiscali firmware"
 	[ "$device_type" == "MediaAccess TG789vac v2" ] && unlock_ssh_wan_tiscali
 	logger_command "Reinstalling telstra gui if needed..."
 	telstra_support_check #telstra support check
+	logger_command "Checking if wan_mode option exist..."
+	check_wan_mode # wan_mode check
+	logger_command "Inizialize and start dosprotect..."
+	dosprotect_inizialize #dosprotected inizialize function
+	logger_command "Checking if intercept is enabled and disabling it if on..."
+	disable_intercept #Intercept check
+	logger_command "Trying to clean wansensing script from hardcoded interface..."
+	wan_sensing_clean #Wansensing clean utility
 	
 	logger_command "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not
@@ -1428,7 +1658,7 @@ root() {
 		uci set env.var.bank_check="1"
 	fi
 	
-	[ "$device_type" == "DGA" ] && uci set wireless.global.wifi_analyzer_disable='0' #AGTEF specific
+	[ -z "${device_type##*DGA413*}" ] && uci set wireless.global.wifi_analyzer_disable='0' #AGTEF specific
 	
 	logger_command "Doing various check and generating hash..."
 	cumulative_check_gui #Handle strange installation
@@ -1470,6 +1700,8 @@ root() {
 			fi
 		elif [ $(uci -q get env.var.isp) == "Tiscali" ]; then
 			uci set cwmpd.cwmpd_config.acs_url="http://webdirect.tr69.tiscali.it:8080/ftacs-basic/ACS"
+			uci set cwmpd.cwmpd_config.acs_user="technicolor"
+			uci set cwmpd.cwmpd_config.acs_pass="techn_tr69@"
 		elif [ $(uci -q get env.var.isp) == "TIM" ]; then
 			logger_command "TIM ISP detected..."
 			logger_command "Checking CWMP server..."
@@ -1491,12 +1723,12 @@ root() {
 			fi
 			uci commit cwmpd
 			if [ $(uci get -q cwmpd.cwmpd_config.acs_url) == "None" ]; then
-				if [ -f /var/run/cwmpd.pid ]; then
+				if [ "$(pgrep "cwmpd")" ]; then
 					/etc/init.d/cwmpd stop
 				fi
 			else
 				/etc/init.d/cwmpd enable
-				if [ ! -f /var/run/cwmpd.pid ]; then
+				if [ ! "$(pgrep "cwmpd")" ]; then
 					/etc/init.d/cwmpd start
 				else
 					/etc/init.d/cwmpd restart
@@ -1505,14 +1737,24 @@ root() {
 		fi
 	fi
 	
+	check_gui_tmp
 	logger_command "Restarting transformer"
 	/etc/init.d/transformer restart
-	logger_command "Waiting transformer to start for 20 seconds"
-	sleep 20
+	
 	logger_command "Restarting nginx"
-	/etc/init.d/nginx start
-	logger_command "Restarting transformer a second time cause it's just shit..."
-	/etc/init.d/transformer restart
+	if [ "$(pgrep "nginx")" ] ; then
+		/etc/init.d/nginx restart
+	else
+		/etc/init.d/nginx start
+	fi
+	
+	#This file is present only in newer build that don't suffer this strange bug
+	if [ ! -f /usr/lib/lua/tch/logger.lua ]; then
+		#Wait this command better way to check if transformer is fully initialized
+		transformer-cli get uci.env.var.oui > /dev/null
+		logger_command "Restarting transformer a second time cause it's just shit..."
+		/etc/init.d/transformer restart
+	fi
 	
 	/etc/init.d/watchdog-tch start
 	
@@ -1556,7 +1798,7 @@ boot() {
 		device_type="DGA"
 	fi
 	
-	[ "$device_type" == "DGA" ] && wifi_fix_24g
+	[ -z "${device_type##*DGA413*}" ] && wifi_fix_24g
 	if [ $rooted -ne 1 ]; then
 		echo "  Root not detected! Rooting..." > /dev/console
 		root

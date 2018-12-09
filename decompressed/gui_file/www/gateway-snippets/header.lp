@@ -92,7 +92,7 @@ ngx.print('\
 		  
 		if cui.gui_skin == "TIM" then
 			ngx.print('<img width="168px" height="39px" src="/img/TIM.png">');
-		elseif cui.gui_skin == "Fritz" then
+		elseif cui.gui_skin == "Fritz" or string.match(cui.gui_skin, "[dD][aA][rR][kK]") then
 			ngx.print('<source srcset="/img/logo_white.webp" type="image/webp">\
 				<source srcset="/img/logo_white.png" type="image/png">\
 				<img width="131px" height="50px" src="/img/logo_white.png">');
@@ -302,8 +302,7 @@ end ngx.print('\
   	page = "cards.lp";\
   	text = "'); ngx.print(T"Cards"); ngx.print ('";\
 	$("#cards-text").text(text);\
-  }\
-  if (pathname == "/cards.lp") {\
+  } else if (pathname == "/cards.lp") {\
   	page = "stats.lp";\
   	text = "'); ngx.print(T"Stats"); ngx.print ('";\
 	$("#cards-text").text(text);\
@@ -313,19 +312,11 @@ end ngx.print('\
 	var text = "'); ngx.print(pageselector.othertext); ngx.print ('";\
 	if (pathname == "/stats.lp") {\
 		page = "cards.lp";\
-		text = "'); ngx.print(T"Stats"); ngx.print ('";\
-	}\
-	if (pathname == "/cards.lp") {\
+	} else if (pathname == "/cards.lp") {\
 		page = "stats.lp";\
-		text = "'); ngx.print(T"Cards"); ngx.print ('";\
 	}\
-	$("#dynamic-content").load(page + "?contentonly=true");\
-	$(this).trigger("switchcard");\
-	window.history.pushState("gateway", "Gateway - Cards", page);\
-	$("#cards-text").text(text);\
-	$("#refresh-cards").show();\
-	$("#refresh-cards").css("margin-right","5px");\
-	$("#refresh-cards").addClass("fa fa-sync fa-spin");\
+	window.location.replace(page);\
+	$("#refresh-cards").show().css("margin-right","5px").addClass("fa fa-sync fa-spin");\
 	KoRequest.forEach(function(element) {\
 		clearInterval(element);\
 	});\
@@ -364,6 +355,23 @@ end ngx.print('\
 				});\
 			} else {\
 				$(element).text(value);\
+			}\
+		}\
+    }\
+  };\
+  ko.bindingHandlers.html = {\
+		init: function(element, valueAccessor) {\
+        $(element).html(ko.unwrap(valueAccessor()));\
+    },\
+    update: function(element, valueAccessor) {\
+        var value = ko.unwrap(valueAccessor());\
+        if (value != $(element).html() ) {\
+			if ( ! $(element).hasClass("hide") ) {\
+				$(element).fadeOut(function() {\
+					$(this).html(value).fadeIn();\
+				});\
+			} else {\
+				$(element).html(value);\
 			}\
 		}\
     }\

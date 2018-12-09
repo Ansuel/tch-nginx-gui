@@ -118,16 +118,16 @@ for k,v in ipairs(devices) do
             iswireless = "0"
         end
 
-        local html = string.format('<div class="device"><a href=/device.lp?mac=%s&wireless=%s&ticked=%s><img src="/img/telstra/dev_laptop%s.gif"/></a><div class="deviceinfo right">%s</div><div><br /></div></div>', v[4], iswireless, ticked, ticked, tooltip)
+        local html = string.format('<div class="device"><a href=telstra-modals/device.lp?mac=%s&wireless=%s&ticked=%s><img src="/img/telstra/dev_laptop%s.gif"/></a><div class="deviceinfo right">%s</div><div><br /></div></div>', v[4], iswireless, ticked, ticked, tooltip)
 
         if v[5] == "wireless" then
-            if uri == "/wifi.lp" then
+            if uri == "telstra-modals/wifi.lp" then
                 if (getargs.radio=="2.4") and (v[8]=="wl0") then
                     wireless[#wireless+1] = html
                 elseif (getargs.radio=="5") and (v[8]=="wl1") then
                     wireless[#wireless+1] = html
                 end
-            elseif uri == "/wifiguest.lp" then
+            elseif uri == "telstra-modals/wifiguest.lp" then
                 if (getargs.guest=="2g_1") and (v[8]=="wl0_1") then
                     wireless[#wireless+1] = html
                 elseif (getargs.guest=="5g_1") and (v[8]=="wl1_1") then
@@ -139,7 +139,7 @@ for k,v in ipairs(devices) do
                 end
             end
         else
-            if uri ~= "/wifiguest.lp" then
+            if uri ~= "telstra-modals/wifiguest.lp" then
                 if(v[14]=="br-lan") then
                     wired[#wired+1] = html
                 end

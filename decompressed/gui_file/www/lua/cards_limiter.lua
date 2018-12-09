@@ -1,9 +1,6 @@
 
 local M = {}
 
-local bridgemode = require("bridgedmode_helper")
-local voicemode = require("voicemode_helper")
-
 local bridge_limit_list = {
   ["gateway.lp"] = true,
   ["broadband.lp"] = true,
@@ -34,7 +31,14 @@ local voice_limit_list = {
 }
 
 function M.get_limit_info()
-	return {bridgemode=bridgemode.isBridgedMode(),voicemode=voicemode.isVoiceMode()}
+	local dyntab_helper = require("web.dyntab_helper")
+	local bmh = require("broadbandmode_helper")
+	local tabdata = dyntab_helper.process(bmh)
+	
+	local bridgemode_status = tabdata.current.name:match("bridge") and true or false
+	local voicemode_status = tabdata.current.name:match("voice") and true or false
+	
+	return {bridgemode=bridgemode_status,voicemode=voicemode_status}
 end
 
 function M.card_limited(info, cardname)

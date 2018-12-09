@@ -1,4 +1,4 @@
-<%
+--pretranslated: do not change this file
 
 -- Enable localization
 -- NG-105177 [Workaround] TI [GUI] - Some of the tabs throws Internal server error
@@ -227,6 +227,7 @@ local scc_columns = {
     { header = T"Deactivate", },
     { header = T"Deactivate & Erase", },
     { header = T"Interrogate", },
+	{ header = T"Invoke", },
 }
 
 local scc_options = {
@@ -245,6 +246,7 @@ local scns = {
     ["deactivate"] = 5,
     ["deactivate_erase"] = 6,
     ["interrogate"] = 7,
+	["invoke"] = 8,
 }
 -- for Service Code Command table
 local scc_data = {}
@@ -253,12 +255,49 @@ local l = 1
 local table_created = false
 local related_to = nil
 
+local function getSccEntry()
+    local pattern, type, action = nil, nil, nil
+    local index, path = 0, ""
+    local results = proxy.get("uci.mmpbx.scc_entry.")
+    if results then
+        for _,v in ipairs(results) do
+            if path == "" then
+              path = v.path
+            end
+            if not ( v.path == path ) then
+                if type and action and pattern then
+                    if not content_services[type] then
+                        content_services[type] = {}
+                    end
+                    content_services[type][action] = pattern
+                end
+                pattern, type, action  = nil, nil, nil
+                path = v.path
+            end
+            v.value = string.format("%s", v.value)
+            if v.param == "pattern" then
+                pattern = v.value
+            elseif v.param == "service_type" then
+                type = v.value
+            elseif v.param == "action" then
+                action = v.value
+            end
+        if type and action and pattern then
+            if not content_services[type] then
+                content_services[type] = {}
+            end
+            content_services[type][action] = pattern
+        end
+        end
+    end
+end
+
 local function createSortedServicesList()
     for k,v in pairsByKeys(content_services) do
-        if role ~= "admin" or k == "CALL_WAITING" or k == "WARMLINE"  then
+        --if role ~= "admin" or k == "CALL_WAITING" or k == "WARMLINE"  then
             table_created = false
             for _,w in ipairs(v) do
-                if w["provisioned"] == "1" then
+                --if w["provisioned"] == "1" then
                     related_to = nil
                     if w["profile"] then
                         related_to = "profile"
@@ -275,6 +314,7 @@ local function createSortedServicesList()
                         scc_data[l][scns["deactivate"]] = v["deactivate"] or ""
                         scc_data[l][scns["deactivate_erase"]] = v["deactivate_erase"] or ""
                         scc_data[l][scns["interrogate"]] = v["interrogate"] or ""
+						scc_data[l][scns["invoke"]] = v["invoke"] or ""
                         l = l + 1
                         service_name[#service_name + 1] = {k, k}
                         content_services_sorted[k] = {}
@@ -306,7 +346,7 @@ local function createSortedServicesList()
                             end
                         end
                     end
-                end
+                --end
             end
             if content_services_sorted[k] then
                 if related_to == "device" then
@@ -315,45 +355,7 @@ local function createSortedServicesList()
                     table.sort(content_services_sorted[k], sorting_profile_table)
                 end
             end
-        end
-    end
-end
-
-local function getSccEntry()
-    local pattern, type, action = nil, nil, nil
-    local index, path = 0, ""
-    local results = proxy.get("uci.mmpbx.scc_entry.")
-    if results then
-        for _,v in ipairs(results) do
-            if path == "" then
-                path = v.path
-            end
-
-            if not v.path:match(path) then
-                if type and action and pattern then
-                    if not content_services[type] then
-                        content_services[type] = {}
-                    end
-                    content_services[type][action] = pattern
-                end
-                pattern, type, action  = nil, nil, nil
-                path = v.path
-            end
-            v.value = string.format("%s", v.value)
-            if v.param == "pattern" then
-                pattern = v.value
-            elseif v.param == "service_type" then
-                type = v.value
-            elseif v.param == "action" then
-                action = v.value
-            end
-        end
-        if type and action and pattern then
-            if not content_services[type] then
-                content_services[type] = {}
-            end
-            content_services[type][action] = pattern
-        end
+        --end
     end
 end
 
@@ -736,73 +738,73 @@ if ngx.var.args and string.len(ngx.var.args) > 0 then
     uri = uri .. "?" .. ngx.var.args
 end
 
-%>
-
-<%= ui_helper.createHeader(T"Telephony", false, true) %>
-
-<div class="modal-body update">
-  <%
+ngx.print( ui_helper.createHeader(T"Telephony", false, true) ); ngx.print('\
+\
+<div class="modal-body update">\
+  ')
   local lp = require("web.lp")
   lp.setpath("/www/snippets/")
   lp.include("tabs-voice.lp")
-  %>
-  <form class="form-horizontal" method="post" action="<%= uri %>" >
-  <%= ui_helper.createMessages(message_helper.popMessages()) %>
-   <fieldset>
-      <legend><%= T"Config VOIP Services" %></legend>
-      <%
-        ngx.print(html)
-      %>
-    </fieldset>
-  </form>
+  
+  ngx.print('\
+  <form class="form-horizontal" method="post" action="'); ngx.print( uri ); ngx.print('" >\
+  '); ngx.print( ui_helper.createMessages(message_helper.popMessages()) ); ngx.print('\
+		<fieldset>\
+			<legend>'); ngx.print( T"Config VOIP Services" ); ngx.print('</legend>')
 
-  <fieldset>
-    <legend><%= T"Service Code Command" %></legend>
-    <%= ui_helper.createTable(scc_columns, scc_data, scc_options, nil, nil) %>
-  </fieldset>
-</div>
+				ngx.print(html)
 
-<%= ui_helper.createFooter() %>
-
-<script>
-$(document).ready(function() {
-    $("#save-config").attr("id","save-form");
-    $("#save-form").on("click", function(){
-       //Keep data related to currently selected service & remove extra data which is not needed in the POST operation.
-       var selected_service = $("#service_name").val();
-       $('.modal form input').each(function(){
-          if((this.name).indexOf(selected_service) < 0){	// textbox/checkbox name is not related to selected service.
-             this.remove();
-          }
-       });
-       $('.modal form input:checked[value="0"]').each(function(){
-          $(this).val("1");
-       });
-       var form = $(".modal form");
-       var params = form.serializeArray();
-       $('.modal form input[type="checkbox"]:not(:checked)').each(function(){
-          if(this.value == "1" || this.value == "0"){
-             params.push({name: this.name, value:"0"});
-          }
-        });
-        params.push({
-          name : "action",
-          value : "SAVE"
-        }, {
-          name : "fromModal",
-          value : "YES"
-        }, tch.elementCSRFtoken());
-        var target = form.attr("action");
-        tch.loadModal(target, params, function (){});
-    });
-    $('input[type="checkbox"]').change(function(){
-        $('#modal-no-change').fadeOut(300);
-        $('#modal-changes').delay(350).fadeIn(300);
-        return false;	// For stoping the POST
-    });
-    $('input[type="text"]').change(function(){
-        $('#modal-no-change').fadeOut(300);
-        $('#modal-changes').delay(350).fadeIn(300);
-    });
-});
-</script>
+			ngx.print('\
+			</fieldset>\
+		</form>\
+\
+		<fieldset>\
+			<legend>'); ngx.print( T"Service Code Command" ); ngx.print('</legend>\
+			'); ngx.print( ui_helper.createTable(scc_columns, scc_data, scc_options, nil, nil) ); ngx.print('\
+		</fieldset>\
+</div>\
+\
+<script>\
+$(document).ready(function() {\
+    $("#save-config").attr("id","save-form");\
+    $("#save-form").on("click", function(){\
+       //Keep data related to currently selected service & remove extra data which is not needed in the POST operation.\
+       var selected_service = $("#service_name").val();\
+       $(".modal form input").each(function(){\
+          if((this.name).indexOf(selected_service) < 0){	// textbox/checkbox name is not related to selected service.\
+             this.remove();\
+          }\
+       });\
+       $(\'.modal form input:checked[value="0"]\').each(function(){\
+          $(this).val("1");\
+       });\
+       var form = $(".modal form");\
+       var params = form.serializeArray();\
+       $(\'.modal form input[type="checkbox"]:not(:checked)\').each(function(){\
+          if(this.value == "1" || this.value == "0"){\
+             params.push({name: this.name, value:"0"});\
+          }\
+        });\
+        params.push({\
+          name : "action",\
+          value : "SAVE"\
+        }, {\
+          name : "fromModal",\
+          value : "YES"\
+        }, tch.elementCSRFtoken());\
+        var target = form.attr("action");\
+        tch.loadModal(target, params, function (){});\
+    });\
+    $(\'input[type="checkbox"]\').on("change",function(){\
+        $("#modal-no-change").fadeOut(300);\
+        $("#modal-changes").delay(350).fadeIn(300);\
+        return false;	// For stoping the POST\
+    });\
+    $(\'input[type="text"]\').on("change",function(){\
+        $("#modal-no-change").fadeOut(300);\
+        $("#modal-changes").delay(350).fadeIn(300);\
+    });\
+});\
+</script>\
+\
+'); ngx.print( ui_helper.createFooter() )

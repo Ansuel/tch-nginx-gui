@@ -29,6 +29,8 @@ local bandsteer_helper = require("bandsteer_helper")
 local isBaseIface = bandsteer_helper.isBaseIface
 local disableBandSteer = bandsteer_helper.disableBandSteer
 
+local quantenna_wifi = proxy.get("uci.env.var.qtn_eth_mac") and true or false
+
 local getargs = ngx.req.get_uri_args()
 local radio, wl, ap, bspeerwl, bspeerap
 if getargs.radio == "5" then
@@ -497,12 +499,16 @@ end
 content["phy_rate"] = content["phy_rate"] or 0
 
 -- Let the Channel and Current channel present the same after save
-if content["channelconf"] ~= "auto" then
+if content["channelconf"] and content["channelconf"] ~= "auto" then
     content["channel"] = content["channelconf"]
 end
 
 -- Mac Address
-content["macaddress"] = proxy.get("sys.class.net.@" .. wl .. ".address")[1].value
+if quantenna_wifi and wl == "wl1" then
+	content["macaddress"] = proxy.get("sys.class.net.@eth5.address")[1].value
+else
+	content["macaddress"] = proxy.get("sys.class.net.@".. wl ..".address")[1].value
+end
 
 local acl_columns = {
     {

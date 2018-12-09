@@ -1,3 +1,9 @@
+local check_bin = io.open("/usr/bin/dlnad", "r")
+
+if check_bin then
+
+check_bin:close()
+
 local config_dlnad = "dlnad"
 
 mapper("uci_1to1").registerConfigMap(config_dlnad)
@@ -34,3 +40,5 @@ local dlnad_partitions = {
 }
 
 mapper("uci_1to1").registerNamedMultiMap(dlnad_partitions)
+
+end

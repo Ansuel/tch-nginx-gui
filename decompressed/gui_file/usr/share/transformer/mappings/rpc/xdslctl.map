@@ -22,9 +22,8 @@
 --
 --
 
-local logger = require("transformer.logger")
-local log = logger.new("rpc.xdslctl", 2)
 local format, concat, popen = string.format , table.concat , io.popen
+local tonumber, tostring = tonumber , tostring
 local register = register;
 
 local xdslctl_ = {
@@ -33,311 +32,64 @@ local xdslctl_ = {
         access = 'readOnly',
         minEntries = 1,
         maxEntries = 1,
-        parameters = {
-          HlogUs1 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  HlogUs2 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  HlogUs3 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  HlogUs4 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  HlogDs1 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  HlogDs2 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  HlogDs3Split1 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  HlogDs3Split2 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  HlogDs4 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  HlogScanBand = {
-            access = "readOnly",
-            type = "string"
-          },
-		  BitsUs1 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  BitsUs2 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  BitsUs3 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  BitsUs4 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  BitsDs1 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  BitsDs2 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  BitsDs3Split1 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  BitsDs3Split2 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  BitsDs4 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  BitsScanBand = {
-            access = "readOnly",
-            type = "string"
-          },
-		  QLNUs1 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  QLNUs1 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  QLNUs2 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  QLNUs3 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  QLNUs4 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  QLNDs1 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  QLNDs2 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  QLNDs3Split1 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  QLNDs3Split2 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  QLNDs4 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  QLNScanBand = {
-            access = "readOnly",
-            type = "string"
-          },
-		  SNRUs1 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  SNRUs2 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  SNRUs3 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  SNRUs4 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  SNRDs1 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  SNRDs2 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  SNRDs3Split1 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  SNRDs3Split2 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  SNRDs4 = {
-            access = "readOnly",
-            type = "string"
-          },
-		  SNRScanBand = {
-            access = "readOnly",
-            type = "string"
-          },
-		  Us1BandInitial = {
-            access = "readOnly",
-            type = "string"
-          },
-		  Us2BandInitial = {
-            access = "readOnly",
-            type = "string"
-          },
-		  Us3BandInitial = {
-            access = "readOnly",
-            type = "string"
-          },
-		  Us4BandInitial = {
-            access = "readOnly",
-            type = "string"
-          },
-		  Ds1BandInitial = {
-            access = "readOnly",
-            type = "string"
-          },
-		  Ds2BandInitial = {
-            access = "readOnly",
-            type = "string"
-          },
-		  Ds3BandInitial = {
-            access = "readOnly",
-            type = "string"
-          },
-		  Ds4BandInitial = {
-            access = "readOnly",
-            type = "string"
-          },
-		  Us1BandFinal = {
-            access = "readOnly",
-            type = "string"
-          },
-		  Us2BandFinal = {
-            access = "readOnly",
-            type = "string"
-          },
-		  Us3BandFinal = {
-            access = "readOnly",
-            type = "string"
-          },
-		  Us4BandFinal = {
-            access = "readOnly",
-            type = "string"
-          },
-		  Ds1BandFinal = {
-            access = "readOnly",
-            type = "string"
-          },
-		  Ds2BandFinal = {
-            access = "readOnly",
-            type = "string"
-          },
-		  Ds3BandFinal = {
-            access = "readOnly",
-            type = "string"
-          },
-		  Ds4BandFinal = {
-            access = "readOnly",
-            type = "string"
-          },
-		  Us1ScannedBand = {
-            access = "readOnly",
-            type = "int"
-          },
-		  Us2ScannedBand = {
-            access = "readOnly",
-            type = "int"
-          },
-		  Us3ScannedBand = {
-            access = "readOnly",
-            type = "int"
-          },
-		  Us4ScannedBand = {
-            access = "readOnly",
-            type = "int"
-          },
-		  Ds1ScannedBand = {
-            access = "readOnly",
-            type = "int"
-          },
-		  Ds2ScannedBand = {
-            access = "readOnly",
-            type = "int"
-          },
-		  Ds3ScannedBand = {
-            access = "readOnly",
-            type = "int"
-          },
-		  Ds4ScannedBand = {
-            access = "readOnly",
-            type = "int"
-          },
-		  UsBandNumber = {
-            access = "readOnly",
-            type = "string"
-          },
-		  DsBandNumber = {
-            access = "readOnly",
-            type = "string"
-          },
-		  DslamChipset = {
-            access = "readOnly",
-            type = "string"
-          },
-		  DslamVersion = {
-            access = "readOnly",
-            type = "string"
-          },
-		  DslamVersionRaw = {
-            access = "readOnly",
-            type = "string"
-          },
-		  DslMode = {
-            access = "readOnly",
-            type = "string"
-          },
-        }
+        parameters = {}
     }
 }
 
+local string_table = {access = "readOnly",type = "string"}
+local int_table = {access = "readOnly",type = "int"}
+
+for _ , type in pairs{ "Hlog" , "Bits", "SNR", "QLN" } do
+	xdslctl_.objectType.parameters[type.."ScanBand"] = string_table
+	for _, band in pairs{ "Ds" , "Us"} do
+		for _ , number in pairs{"1","2","3","4"} do
+			if ( band == "Ds" ) and ( number == "3" ) then
+				xdslctl_.objectType.parameters[type..band..number.."Split1"] = string_table
+				xdslctl_.objectType.parameters[type..band..number.."Split2"] = string_table
+			else
+				xdslctl_.objectType.parameters[type..band..number] = string_table
+			end
+			for _ , type in pairs{"Initial","Final","ScannedBand"} do
+				xdslctl_.objectType.parameters[band..number..type] = int_table
+			end
+		end
+		xdslctl_.objectType.parameters[band.."BandNumber"] = int_table
+	end
+end
+
+for _, type in pairs{"Chipset","Version","VersionRaw"} do
+	xdslctl_.objectType.parameters["Dslam"..type] = string_table
+end
+for _, type in pairs{"Mode","Profile"} do
+	xdslctl_.objectType.parameters["Dsl"..type] = string_table
+end
+
 local cache = {}
 
-local function xdslmode()
+local function xdslmode(dtype)
 	local showdatacmd = ("xdslctl info --show")
 	local showdata = popen(showdatacmd, 'r')
 	local showline
-	local dslmode=""
+	local result
 	for showline in showdata:lines() do
-		if showline:match("Mode") then
-			dslmode = showline:gsub("Mode:%s+","")
-			break
+		if dtype:match("mode") then
+			if showline:match("Mode") then
+				result = (showline:gsub("Mode:%s+",""))
+				break
+			end
+		elseif dtype:match("profile") then
+			if showline:match("Profile") then
+				result = (showline:gsub("VDSL2 Profile:%s+Profile ",""))
+				if result:match("BrcmPriv1") then --Fix 35b line with wrong name
+					result = "35b"
+				end
+				break
+			end
 		end
 	end
 	showdata:close()
 	
-	return dslmode
+	return result or "Not Found"
 end
 
 local function pbParams_find(bandtype)
@@ -358,9 +110,12 @@ local function pbParams_find(bandtype)
 	
 	pbfile:close()
 	
-	if (select(2, pbstring:gsub("%(", "")) == 3 ) and ( bandtype == "Us" ) then
-	
-		pbstring = pbstring:gsub(":",": (0,32)") --handle strange case when onu disable US0
+	if ( bandtype == "Us" ) then
+		local First_US_band = tonumber((pbstring:match("%([0-9]+,"):gsub("%(",""):gsub(",","")))
+		local Us_band_num = select(2, pbstring:gsub("%(", ""))
+		if ( Us_band_num == 3 ) and ( First_US_band > 100 ) then
+			pbstring = pbstring:gsub(":",": (0,32)") --handle strange case when onu disable US0
+		end 
 	end
 	
 	return pbstring
@@ -389,10 +144,12 @@ end
 
 
 if not cache["dslmode"] then
-	cache["dslmode"] = xdslmode()
+	cache["dslmode"] = xdslmode("mode")
 end
 
-if not cache["dslmode"]:match("ADSL") then
+if cache["dslmode"] and not cache["dslmode"]:match("G%.DMT") and 
+  not cache["dslmode"]:match("ADSL") and
+  not cache["dslmode"]:match("Not Found") then
 	cache["pbLineUs"] = pbParams_find("Us")
 	cache["pbLineDs"] = pbParams_find("Ds")
 	parase_pbParams("Us")
@@ -401,14 +158,15 @@ end
 
 local function xdslband(band_request,dtype,bandtype)
 	
-	local dslmode = cache["dslmode"] or xdslmode()
+	local dslmode = cache["dslmode"] or xdslmode("mode")
 
 	local result = "0"
 	local band
 	
 	local cachebandstring = bandtype .. band_request .. dtype
 	
-	if not dslmode:match("ADSL") then
+	if not dslmode:match("ADSL") and not dslmode:match("G%.DMT") and 
+	  not cache["dslmode"]:match("Not Found") then
 		local pbBand = cache["pbBand"..bandtype][band_request]
 		if dtype == "Initial" and pbBand then
 			result = pbBand:match("(.-)%,")
@@ -554,27 +312,24 @@ end
 
 local function xdslctlDslamInfo(itype)
 	local cmd = "xdslctl info --vendor"
-	local result = " "
-	
-	local chipset
-	local version 
-	
+	local result = ""
+	local chipset 
+
 	local vendor_info = popen(cmd)
+	
 	for line in vendor_info:lines() do
 		if line:match("ChipSet Vendor Id") then
 			chipset = line:gsub(".*:%s+",""):gsub(":.*","")
+			if itype == "chipset" then
+				result = chipset
+				break
+			end
 		end
-		if line:match("ChipSet VersionNumber") then
-			version = line:gsub(".*:%s+","")
-		end
-	end
-	vendor_info:close()
-	
-	if itype == "chipset" then
-		result = chipset
-	elseif itype == "version" or itype == "version_raw" then
-		result = version
-		if itype == "version" then
+		if line:match("ChipSet VersionNumber") and ( itype == "version" or itype == "version_raw" ) then
+			result = line:gsub(".*:%s+","")
+			if ( itype == "version_raw" ) then
+				break
+			end
 			if result:sub(0,2) == "0x" then
 				if chipset:match("BDCM") then
 					result = result:gsub("(.*)x","")
@@ -584,8 +339,10 @@ local function xdslctlDslamInfo(itype)
 					result = tonumber(result:sub(0,1),16) .. "." .. tonumber(result:sub(2,3),16) .. "." .. tonumber(result:sub(4,4),16)
 				end
 			end
+			break
 		end
 	end
+	vendor_info:close()
 	
 	return result
 end
@@ -645,7 +402,9 @@ local function get(mapping, paramName, key)
 		return xdslband(band,"Initial",bandtype)
 	elseif paramName:match("BandNumber") then
 		local bandtype = paramName:sub(1,2)
-		return parase_pbParams(bandtype,"BandNumber")
+		return not cache["dslmode"]:match("ADSL") and not cache["dslmode"]:match("G%.DMT") 
+			and parase_pbParams(bandtype,"BandNumber")
+			or "1"
 	elseif paramName:match("ScannedBand") then
 		local band = tonumber(paramName:sub(3,3))
 		local bandtype = paramName:sub(1,2)
@@ -657,7 +416,9 @@ local function get(mapping, paramName, key)
 	elseif paramName == "DslamVersionRaw" then
 		return xdslctlDslamInfo("version_raw")
 	elseif paramName == "DslMode" then
-		return xdslmode()
+		return xdslmode("mode")
+	elseif paramName == "DslProfile" then
+		return xdslmode("profile")
 	end
 end
 

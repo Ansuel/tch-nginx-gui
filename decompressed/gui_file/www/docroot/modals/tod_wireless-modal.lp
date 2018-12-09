@@ -1,5 +1,5 @@
 --pretranslated: do not change this file
- 
+
 -- Localization
 -- NG-155433 Wireless Control - Rule switches on all APs, also Guest APs
 gettext.textdomain('webui-core')
@@ -52,21 +52,21 @@ local function getRandomKey()
 end
 
 local function validateTime(value, object, key)
-    local timepattern = "^(%d+):(%d+)$"
-    local time = { match(value, timepattern) }
-    if #time == 2 then
-       local hour = tonumber(time[1])
-       local min = tonumber(time[2])
-       if hour < 0 or hour > 23 then
-          return nil, T"Invalid hour, must be between 0 and 23"
-       end
-       if min < 0 or min > 59 then
-          return nil, T"Invalid minutes, must be between 0 and 59"
-       end
-       return true
-    else
-       return nil, T"Invalid time (must be hh:mm)"
+  local timepattern = "^(%d+):(%d+)$"
+  local time = { match(value, timepattern) }
+  if #time == 2 then
+    local hour = tonumber(time[1])
+    local min = tonumber(time[2])
+    if hour < 0 or hour > 23 then
+      return nil, T"Invalid hour, must be between 0 and 23"
     end
+    if min < 0 or min > 59 then
+      return nil, T"Invalid minutes, must be between 0 and 59"
+    end
+    return true
+  else
+    return nil, T"Invalid time (must be hh:mm)"
+  end
 end
 
 -- validates days (Mon...Sun)
@@ -85,15 +85,15 @@ local function validateWeekdays(value)
 end
 
 local tod_options = {
-    tableid     = "tod",
-    basepath    = "uci.tod.action.",
-    createMsg   = T"Add New Rule",
-    canAdd      = true,
-    canDelete   = true,
-    canApply    = true,
-    canEdit     = true,
-    objectName  = "action"..getRandomKey(),
-    addNamedObject  = true
+  tableid     = "tod",
+  basepath    = "uci.tod.action.",
+  createMsg   = T"Add New Rule",
+  canAdd      = true,
+  canDelete   = true,
+  canApply    = true,
+  canEdit     = true,
+  objectName  = "action"..getRandomKey(),
+  addNamedObject  = true
 }
 
 local function daysOverlap(days1, days2)
@@ -134,8 +134,8 @@ local function validate_wifitod(postcontent, timer_data)
   for i, v in ipairs(timer_data) do
     if i ~= postcontent.index then
       if daysOverlap(postcontent.weekdays, v.days) and -- days overlap
-         postcontent.start_time <= v.stop_time and
-         postcontent.stop_time >= v.start_time then -- time overlaps
+              postcontent.start_time <= v.stop_time and
+              postcontent.stop_time >= v.start_time then -- time overlaps
         return nil, T"Overlapping times are not allowed."
       end
     end
@@ -177,10 +177,10 @@ local function onAdd(success, content, onModify)
     --proxy.add(tod_wifitod_path .. "@wifitod"..index..".ap.")
     --proxy.add(tod_ap_path, "ap0"..index)
     --proxy.add(tod_ap_path, "ap1"..index)
-	for _ , ap in pairs(ap_list) do
-		proxy.add(tod_wifitod_path .. "@wifitod"..index..".ap.")
-		proxy.add(tod_ap_path, format("%s%s",ap,index))
-	end
+    for _ , ap in pairs(ap_list) do
+      proxy.add(tod_wifitod_path .. "@wifitod"..index..".ap.")
+      proxy.add(tod_ap_path, format("%s%s",ap,index))
+    end
   end
 
   content.weekdays = concat(content.weekdays, ",")
@@ -204,16 +204,16 @@ local function onAdd(success, content, onModify)
   --
   --setObject[format("%s@ap1%s.state", tod_ap_path, index)] = content.mode == "on" and "1" or "0"
   --setObject[format("%s@ap1%s.ap", tod_ap_path, index)] = "ap1"
-  
+
   local count = 1
-  
+
   for _ , ap in pairs(ap_list) do
-	setObject[format("%s@wifitod%s.ap.@%s.value", tod_wifitod_path, index, count)] = ap..index
-	setObject[format("%s@%s%s.state", tod_ap_path, ap, index)] = content.mode == "on" and "1" or "0"
-	setObject[format("%s@%s%s.ap", tod_ap_path, ap, index)] = ap
-	count=count+1
+    setObject[format("%s@wifitod%s.ap.@%s.value", tod_wifitod_path, index, count)] = ap..index
+    setObject[format("%s@%s%s.state", tod_ap_path, ap, index)] = content.mode == "on" and "1" or "0"
+    setObject[format("%s@%s%s.ap", tod_ap_path, ap, index)] = ap
+    count=count+1
   end
-  
+
   proxy.set(setObject)
   proxy.apply()
   return true
@@ -241,24 +241,24 @@ if ngx.var.request_method == "POST" then
   local current_index = postargs.index
   local allowedIndexes = session:retrieve(tod_options.tableid .. ".allowedindexes") or {}
   current_index = allowedIndexes[current_index] and allowedIndexes[current_index].paramindex or -1
-  
+
   ap_list = {}
-  
+
   if postargs.ap == "" then
-	table.insert(ap_list,"ap0")
-	table.insert(ap_list,"ap1")
-	table.insert(ap_list,"ap2")
-	table.insert(ap_list,"ap3")
+    table.insert(ap_list,"ap0")
+    table.insert(ap_list,"ap1")
+    table.insert(ap_list,"ap2")
+    table.insert(ap_list,"ap3")
   elseif postargs.ap == "main" then
-	table.insert(ap_list,"ap0")
-	table.insert(ap_list,"ap1")
+    table.insert(ap_list,"ap0")
+    table.insert(ap_list,"ap1")
   elseif postargs.ap == "guest" then
-	table.insert(ap_list,"ap2")
-	table.insert(ap_list,"ap3")
+    table.insert(ap_list,"ap2")
+    table.insert(ap_list,"ap3")
   else
-	table.insert(ap_list,postargs.ap)
+    table.insert(ap_list,postargs.ap)
   end
-  
+
   if postargs.action == "TABLE-NEW" then
     tod_options.editing = -1
   elseif postargs.action == "TABLE-EDIT" then
@@ -293,14 +293,17 @@ for i, v in ipairs(tod_data) do
   local wifi_list = {}
   local wifitod_path = "uci.tod.wifitod.@wifitod"..index..".ap."
   for value=1,4 do
-	local wifi_test = proxy.get(wifitod_path.."@"..value..".value")
-	if wifi_test then
-		local ap = wifi_test[1].value:sub(0,3)
-		local ssid = proxy.get("rpc.wireless.ap.@"..ap..".ssid")[1].value
-		local name = proxy.get("rpc.wireless.ssid.@"..ssid..".ssid")[1].value
-		wifi_list[#wifi_list+1] = tostring(untaint(name))
-		wifi_list[#wifi_list+1] = " "
-	end
+    local wifi_test = proxy.get(wifitod_path.."@"..value..".value")
+    if wifi_test then
+      local ap = wifi_test[1].value:sub(0,3)
+      local ssid_get = proxy.get("rpc.wireless.ap.@"..ap..".ssid")
+      if ssid_get then
+        local ssid = ssid_get[1].value
+        local name = proxy.get("rpc.wireless.ssid.@"..ssid..".ssid")[1].value
+        wifi_list[#wifi_list+1] = tostring(untaint(name))
+        wifi_list[#wifi_list+1] = " "
+      end
+    end
   end
   v[1] = v[1] -- status
   v[2] = table.concat(wifi_list) -- ap
@@ -315,7 +318,7 @@ for i, v in ipairs(tod_data) do
   -- Sub Columns
   v[7] = {
     [1] = v[1], -- status
-	[2] = ap_list[i].ap, -- ap
+    [2] = ap_list[i].ap, -- ap
     [3] = ap_list[i].state == "1" and "on" or "off", -- apState
     [4] = v[3], -- start_time
     [5] = v[4], -- stop_time
@@ -330,18 +333,18 @@ end
 
 session:store("timer_data", timer_data)
 
-  ngx.print('\
+ngx.print('\
 \
 ');  ngx.print(ui_helper.createHeader(T"Time of Day") ); ngx.print('\
 ');  ngx.print(ui_helper.createMessages(message_helper.popMessages()) ); ngx.print('\
 \
 <div class="modal-body update">\
 \
-');  
-    local lp = require("web.lp")
-    lp.setpath("/www/snippets/")
-    lp.include("tabs-wireless.lp")
-  ngx.print('\
+');
+local lp = require("web.lp")
+lp.setpath("/www/snippets/")
+lp.include("tabs-wireless.lp")
+ngx.print('\
 \
   <form class="form-horizontal" method="post" action="/modals/tod_wireless-modal.lp">\
     <legend>');  ngx.print( T"Time of day wireless control" ); ngx.print('</legend>\
@@ -383,5 +386,4 @@ session:store("timer_data", timer_data)
         }\
     });\
 </script>\
-');  ngx.print( ui_helper.createFooter() ); ngx.print('\
-'); 
+');  ngx.print( ui_helper.createFooter() );

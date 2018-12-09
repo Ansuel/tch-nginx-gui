@@ -7,8 +7,10 @@ local format = string.format
 local floor = math.floor
 local tonumber = tonumber
 local ui_helper = require("web.ui_helper")
-local bridgedmode = require("bridgedmode_helper")
-local voicemode = require("voicemode_helper")
+
+local dyntab_helper = require("web.dyntab_helper")
+local bmh = require("broadbandmode_helper")
+local tabdata = dyntab_helper.process(bmh)
 
 local attributes = { light = { } ,span = { class = "span4" } }
 
@@ -74,12 +76,12 @@ ngx.print( ui_helper.createCardHeader(T"Broadband", modalPath) ); ngx.print('\
 <div class="content card_bg" data-bg-text="&#xf0b2;">\
 <div class="divtable">\
 ');
-local iconUp = "<i class=\"icon-upload icon-small gray\"></i> "
-local iconDown = " <i class=\"icon-download icon-small gray\"></i> "
-if bridgedmode.isBridgedMode() then
+local iconUp = '<i class="icon-upload icon-small gray"></i> '
+local iconDown = '<i class="icon-download icon-small gray"></i> '
+if tabdata.current.name == "bridge" then
   ngx.print(format("<strong>%s</strong></br>",T"Bridge Mode Active"))
 end
-if voicemode.isVoiceMode() then
+if tabdata.current.name == "voice" then
   ngx.print(format("<strong>%s</strong></br>",T"Voice Mode Active"))
 end
 ngx.print( ui_helper.createSimpleLight(intf_light_map[xdslstate] or "3" --[[ orange ]] ,
@@ -105,11 +107,11 @@ if (xdslstate == "Up") then
       rate_down = rate_down + (floor(other_line_rate_down / 10) / 100)
     end
     ngx.print(
-      "<p  id=\"Line_Rate_Down\" class=\"subinfos\">&emsp; ",
+      '<p  id="Line_Rate_Down" class="subinfos">&emsp; ',
       iconDown,
       format('%.2f Mbps', rate_down),
       "</p>",
-      "<p  id=\"Line_Rate_Up\" class=\"subinfos\">&emsp; ",
+      '<p  id="Line_Rate_Up" class="subinfos">&emsp; ',
       iconUp,
       format("%.2f Mbps", rate_up),
       "</p>"

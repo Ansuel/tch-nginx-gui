@@ -326,7 +326,7 @@ $(document).ready(function() {\
         tch.loadModal(target, params, function (){});\
     });\
 \
-    $(\'input[type="checkbox"]\').change(function(){\
+    $(\'input[type="checkbox"]\').on("change",function(){\
         var checkboxname = $(this).attr("name");\
 	    $(\'#modal-no-change\').fadeOut(300);\
             $(\'#modal-changes\').delay(350).fadeIn(300);\

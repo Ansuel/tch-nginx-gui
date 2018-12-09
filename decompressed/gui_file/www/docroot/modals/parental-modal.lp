@@ -276,12 +276,12 @@ local help_link = { href="/help/index.html?anchor=" .. uri:match("/([^/]+)%.lp")
 <script type=\'text/javascript\'>\
 if($("#device").val() == "all")\
    $(\'#devices_mac\').attr(\'disabled\', true);\
-$("[name =\'devices_mac\']").change(function () {\
+$("[name =\'devices_mac\']").on("change",function () {\
     if ((this.value) == "custom") {\
           $(this).replaceWith($(\'<input/>\',{\'type\':\'text\', \'id\':\'devices_mac\', \'name\':\'devices_mac\'}));\
     }\
 });\
-$("[name =\'device\']").change(function () {\
+$("[name =\'device\']").on("change",function () {\
     if($("#device").val() == "all")\
            $(\'#devices_mac\').attr(\'disabled\', true);\
     else\

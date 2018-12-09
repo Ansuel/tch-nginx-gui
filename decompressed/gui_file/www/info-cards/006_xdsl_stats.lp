@@ -28,7 +28,8 @@ local content = {
   dsl_margin_SNRM_down = "sys.class.xdsl.@line0.DownstreamSNRMpb",
   dslam_chipset = "rpc.xdslctl.DslamChipset",
   dslam_version = "rpc.xdslctl.DslamVersion",
-  dslam_version_raw = "rpc.xdslctl.DslamVersionRaw"
+  dslam_version_raw = "rpc.xdslctl.DslamVersionRaw",
+  dsl_profile = "rpc.xdslctl.DslProfile"
 }
 
 content_helper.getExactContent(content)
@@ -89,7 +90,9 @@ end
 	else
 		html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",format(T"Invalid version, can't convert. Raw value: %s", content.dslam_version_raw) , basic )
 	end
-	
+	basic.span["data-bind"] = "text: dsl_profile"
+	html[#html + 1] = ui_helper.createLabel(T"xDSL Profile", content.dsl_profile, basic )
+
 	html[#html + 1] = '<div class="control-group">'
 	html[#html + 1] =   '<label class="control-label">' .. T("Max Rate") .. '</label>'
 	html[#html + 1] =   '<div class="controls">'
@@ -173,6 +176,7 @@ $(document).ready(function () {\
 		dsl_margin_SNRM_down: ko.observable(), \
 		dslam_version: ko.observable(), \
 		dslam_chipset: ko.observable(), \
+		dsl_profile: ko.observable(), \
 	};\
 	function InfoXdslCardRefresh() {\
 		$.post("/ajax/internet.lua?datatype=xdsl", [tch.elementCSRFtoken()], function(data) {\
@@ -193,6 +197,7 @@ $(document).ready(function () {\
 				InfoXdslCardBinding.dsl_margin_SNRM_down(data.dsl_margin_SNRM_down);\
 				InfoXdslCardBinding.dslam_version(data.dslam_version);\
 				InfoXdslCardBinding.dslam_chipset(data.dslam_chipset);\
+				InfoXdslCardBinding.dsl_profile(data.dsl_profile);\
 			}\
 		}, "json");\
 	};\

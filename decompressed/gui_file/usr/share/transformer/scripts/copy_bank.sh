@@ -1,3 +1,4 @@
+#!/bin/sh
 bank_1="/dev/mtd3"
 bank_2="/dev/mtd4"
 

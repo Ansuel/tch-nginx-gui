@@ -1,5 +1,5 @@
 -- Enable localization
-gettext.textdomain('webui-mobiled')
+gettext.textdomain('webui-core')
 
 local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
@@ -34,6 +34,7 @@ if datatype and datatype== "xdsl" then
 		dsl_margin_SNRM_down = "sys.class.xdsl.@line0.DownstreamSNRMpb",
 		dslam_chipset = "rpc.xdslctl.DslamChipset",
 		dslam_version = "rpc.xdslctl.DslamVersion",
+		dsl_profile = "rpc.xdslctl.DslProfile"
 	}
 	
 	content = {
@@ -90,6 +91,7 @@ else
 	wan_proto = "uci.network.interface.@wan.proto",
 	wan_auto = "uci.network.interface.@wan.auto",
 	wan_ipv6 = "uci.network.interface.@wan.ipv6",
+	wan_mode = "uci.network.config.wan_mode",
 	}
 	content_helper.getExactContent(content_uci)
 	
@@ -159,78 +161,108 @@ else
 	}
 	setmetatable(ipv6_light_map, untaint_mt)
 	
-	local ppp_state_map = {
-		disabled = T"PPP disabled",
-		disconnecting = T"PPP disconnecting",
-		connected = T"PPP connected",
-		connecting = T"PPP connecting",
-		disconnected = T"PPP disconnected",
-		error = T"PPP error",
-		AUTH_TOPEER_FAILED = T"PPP authentication failed",
-		NEGOTIATION_FAILED = T"PPP negotiation failed",
-	}
+	local status_light
+	local attributes = { light = { } ,span = { class = "span4" } }
 	
-	local untaint_mt = require("web.taint").untaint_mt
-	setmetatable(ppp_state_map, untaint_mt)
-	
-	local ppp_light_map = {
-		disabled = "off",
-		disconnected = "red",
-		disconnecting = "orange",
-		connecting = "orange",
-		connected = "green",
-		error = "red",
-		AUTH_TOPEER_FAILED = "red",
-		NEGOTIATION_FAILED = "red",
-	}
-	
-	setmetatable(ppp_light_map, untaint_mt)
-	
-	local ppp_status
-	if content_uci.wan_auto ~= "0" then
-	-- WAN enabled
-	content_uci.wan_auto = "1"
-	ppp_status = format("%s", content_rpc.wan_ppp_state) -- untaint
-	if ppp_status == "" or ppp_status == "authenticating" then
-		ppp_status = "connecting"
-	elseif not ppp_state_map[ppp_status] then
-		ppp_status = "error"
-	end
-	
-	if not (content_rpc.wan_ppp_error == "" or content_rpc.wan_ppp_error == "USER_REQUEST") then
-		if ppp_state_map[content_rpc.wan_ppp_error] then
-			ppp_status = content_rpc.wan_ppp_error
-		else
+	if content_uci.wan_mode == "pppoe" then
+		local ppp_state_map = {
+			disabled = T"PPP disabled",
+			disconnecting = T"PPP disconnecting",
+			connected = T"PPP connected",
+			connecting = T"PPP connecting",
+			disconnected = T"PPP disconnected",
+			error = T"PPP error",
+			AUTH_TOPEER_FAILED = T"PPP authentication failed",
+			NEGOTIATION_FAILED = T"PPP negotiation failed",
+		}
+		
+		local untaint_mt = require("web.taint").untaint_mt
+		setmetatable(ppp_state_map, untaint_mt)
+		
+		local ppp_light_map = {
+			disabled = "0",--"off"
+			disconnected = "4",--"red"
+			disconnecting = "2",--"orange"
+			connecting = "2",--"orange"
+			connected = "1",--"green"
+			error = "4",--"red"
+			AUTH_TOPEER_FAILED = "4",--"red"
+			NEGOTIATION_FAILED = "4",--"red"
+		}
+		
+		setmetatable(ppp_light_map, untaint_mt)
+		
+		local ppp_status
+		if content_uci.wan_auto ~= "0" then
+		-- WAN enabled
+		content_uci.wan_auto = "1"
+		ppp_status = format("%s", content_rpc.wan_ppp_state) -- untaint
+		if ppp_status == "" or ppp_status == "authenticating" then
+			ppp_status = "connecting"
+		elseif not ppp_state_map[ppp_status] then
 			ppp_status = "error"
 		end
-	end
-	else
-	-- WAN disabled
-	ppp_status = "disabled"
+		
+		if not (content_rpc.wan_ppp_error == "" or content_rpc.wan_ppp_error == "USER_REQUEST") then
+			if ppp_state_map[content_rpc.wan_ppp_error] then
+				ppp_status = content_rpc.wan_ppp_error
+			else
+				ppp_status = "error"
+			end
+		end
+		else
+		-- WAN disabled
+		ppp_status = "disabled"
+		end
+		
+		local ppp_light, ppp_state, WAN_IP, ipv6_light, ipv6_state
+		if ppp_status then
+			ppp_light = ppp_light_map[ppp_status]
+			ppp_state = ppp_state_map[ppp_status]
+			if content_rpc["ipaddr"] and content_rpc["ipaddr"]:len() > 0 then
+				WAN_IP = content_rpc["ipaddr"]
+			elseif content_rpc["ip6addr"] and content_rpc["ip6addr"]:len() > 0 then
+				WAN_IP = content_rpc["ip6addr"]
+			end
+			if ppp_status == "connected" and IPv6State ~= "disabled" then
+				ipv6_light = ipv6_light_map[IPv6State]
+				ipv6_state = ipv6_state_map[IPv6State]
+			end
+		end
+		
+		status_light = ui_helper.createSimpleLight(ppp_light_map[ppp_status], ppp_state_map[ppp_status] , attributes , "fa-at")
+	elseif content_uci.wan_mode == "static" then
+
+		-- Figure out interface state
+		local static_state = "disabled"
+		local static_state_map = {
+			disabled = T"Static disabled",
+			connected = T"Static on",
+		}
+		
+		local static_light_map = {
+		disabled = "0",--"off",
+		connected = "1",--"green",
+		}
+		
+		if content_uci.wan_auto ~= "0" and content_rpc["ipaddr"]:len() > 0 then
+			static_state = "connected"
+		end
+		
+		status_light = ui_helper.createSimpleLight(static_light_map[static_state], static_state_map[static_state] , attributes , "fa-at")
 	end
 	
-	local ppp_light, ppp_state, WAN_IP, ipv6_light, ipv6_state
-	if ppp_status then
-	ppp_light = ppp_light_map[ppp_status]
-	ppp_state = ppp_state_map[ppp_status]
-	if content_rpc["ipaddr"] and content_rpc["ipaddr"]:len() > 0 then
-		WAN_IP = content_rpc["ipaddr"]
-	elseif content_rpc["ip6addr"] and content_rpc["ip6addr"]:len() > 0 then
-		WAN_IP = content_rpc["ip6addr"]
-	end
-	if ppp_status == "connected" and IPv6State ~= "disabled" then
-		ipv6_light = ipv6_light_map[IPv6State]
-		ipv6_state = ipv6_state_map[IPv6State]
-	end
-	end
 	
 	data = {
+	status_light = status_light or "",
+	WAN_IP_text = not ( content_rpc["ipaddr"] == "" ) and format(T'WAN IP is <strong>%s</strong>'..'<br/>', content_rpc["ipaddr"]) or "",
+	uptime_text = not ( content_rpc["pppoe_uptime"] == "" ) and format(T"Uptime" .. ": <strong>%s</strong>",post_helper.secondsToTimeShort(content_rpc["pppoe_uptime"])) or "",
 	pppoe_uptime = post_helper.secondsToTimeShort(content_rpc["pppoe_uptime"]) or "",
 	pppoe_uptime_extended = post_helper.secondsToTime(content_rpc["pppoe_uptime"]) or "",
 	ppp_status = ppp_status or "",
 	ppp_light = ppp_light or "" ,
 	ppp_state = ppp_state or "",
-	WAN_IP = WAN_IP or "",
+	WAN_IP = content_rpc["ipaddr"] or "",
 	ipv6_light = ipv6_light or "",
 	ipv6_state = ipv6_state or "",
 	status = content_rpc["up"],

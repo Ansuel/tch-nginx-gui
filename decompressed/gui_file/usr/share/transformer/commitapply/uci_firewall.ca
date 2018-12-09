@@ -1,1 +1,1 @@
-^firewall /etc/init.d/firewall reload
+^firewall /etc/init.d/firewall restart

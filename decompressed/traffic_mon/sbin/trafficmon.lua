@@ -19,10 +19,9 @@ local function DataCollector(datadir, binit)
     local datanum  = 145
     local types = {"tx_bytes", "rx_bytes"};
 	
-	local times = os.date('!%H:%M')
+	local times = os.date('%H:%M')
 
     local ntotal, ntraffic = 0, 0
-    local i, j, data = 0, 0, {}
     local f, fname = nil, ""
 
     for name in lfs.dir(dirname) do
@@ -45,10 +44,9 @@ local function DataCollector(datadir, binit)
                 else
                     f = io.open(fname, "r")
                     if f then
-                        i = 0
+						local data = {}
                         for line in f:lines() do
-                            i = i + 1
-                            data[i] = line
+                            data[#data+1] = line
                         end
                         f:close()
                         ntraffic = tonumber(ntotal) - data[1]
@@ -58,17 +56,32 @@ local function DataCollector(datadir, binit)
                         f = io.open(fname, "w")
                         if f then
                             f:write(ntotal .. "\n")
-                            if (i == datanum) then
-                                j = 2
-                            else
-                                j = 1
-                            end
-                            for i,v in ipairs(data) do
-                                if i > j then
-                                    f:write(v .. "\n")
-                                end
-                            end
-                            f:write(ntraffic .. " " ..  times .. "\n")
+
+							local insert = false
+                            for index,value in ipairs(data) do
+								if index > 1 and index <= datanum then
+									local oldtimes = tonumber((value:gsub("[0-9]+%s",""):gsub(":","")))--v:match(".*%s")--:gsub("%s+",""):gsub(":","")
+									local ntimes = tonumber((times:gsub(":","")))
+									if oldtimes == ntimes then
+										if not insert then
+											f:write(ntraffic .. " " ..  times .. "\n")
+											insert = true
+										end
+									elseif oldtimes > ntimes then
+										if not insert then
+											f:write(ntraffic .. " " ..  times .. "\n")
+											insert = true
+										end
+										f:write(value .. "\n")
+									else
+										f:write(value .. "\n")
+									end
+								end
+							end
+							if not insert then
+								f:write(ntraffic .. " " ..  times .. "\n")
+								insert = true
+							end
                             f:close()
                         end
                     end
