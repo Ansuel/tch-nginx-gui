@@ -1573,6 +1573,9 @@ msgstr "Installa blacklist vuota"
 msgid "Interface"
 msgstr "Interfaccia"
 
+msgid "Interfaces"
+msgstr "Interfacce"
+
 msgid "Interface <strong>%s</strong> status"
 msgstr "Stato Interfaccia <strong>%s</strong>"
 
@@ -3448,8 +3451,8 @@ msgstr "Informazioni xDSL"
 msgid "xDSL Version"
 msgstr "Versione xDSL"
 
-msgid "xDSL Profile"
-msgstr "Profilo xDSL"
+msgid "VDSL Profile"
+msgstr "Profilo VDSL"
 
 msgid "Your Gateway"
 msgstr "Il tuo Gateway"
