@@ -8,49 +8,56 @@ local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
 
 local mmpbxd_columns = {
-  {--[2]
-    header = T"Status",
-    name = "sipRegisterState",
-    param = "sipRegisterState",
-    type = "text",
-  },
-  {--[3]
-    header = T"Number",
-    name = "uri",
-    param = "uri",
-    type = "text",
-  },
-  {--[4]
-    header = T"Line State",
-    name = "callState",
-    param = "callState",
-    type = "text",
-  },
+    {--[2]
+        header = T"Status",
+        name = "sipRegisterState",
+        param = "sipRegisterState",
+        type = "text",
+    },
+    {--[3]
+        header = T"Number",
+        name = "uri",
+        param = "uri",
+        type = "text",
+    },
+    {--[4]
+        header = T"Line State",
+        name = "callState",
+        param = "callState",
+        type = "text",
+    },
 }
 
 local mmpbxd_filter = function(data)
-  if ( data.enable == "false" ) or ( data.sipRegisterState == "" ) then
-	return false
-  end
-  if data.uri and data.uri:match("+") then
-    data.uri = data.uri:sub(4)
-  end
-  
-  if data.callState then
-    if ( data.callState == "MMPBX_CALLSTATE_IDLE" ) then
-	  data.callState =  T"Idle"
+    if ( data.enable == "false" ) or ( data.sipRegisterState == "" ) then
+        return false
     end
-	  
-    if ( data.callState == "MMPBX_CALLSTATE_DIALING" ) then
-	  data.callState =  T"Dialing"
+    if data.uri and data.uri:match("+") then
+        data.uri = data.uri:sub(4)
     end
-	  
-    if ( data.callState == "MMPBX_CALLSTATE_CALL_DELIVERED" ) then
-	  data.callState =  T"Delivered/In Progress"
+
+    if data.sipRegisterState then
+        data.sipRegisterState =  data.sipRegisterState
+        data.sipRegisterState = ui_helper.createSimpleLight(data.sipRegisterState=="Registered" and "1" or "0", T(data.sipRegisterState))
     end
-  end
-  
-  return true
+
+    if data.callState then
+        if ( data.callState == "MMPBX_CALLSTATE_IDLE" ) then
+            data.callState =  "Idle"
+        end
+
+        if ( data.callState == "MMPBX_CALLSTATE_DIALING" ) then
+            data.callState =  "Dialing"
+        end
+
+        if ( data.callState == "MMPBX_CALLSTATE_CALL_DELIVERED" ) then
+            data.callState =  "Delivered/In Progress"
+        end
+
+        data.callState = ui_helper.createSimpleLight(data.callState=="Idle" and "0" or "1", T(data.callState), nil, "fa fa-phone")
+    end
+
+    return true
 end
 
 local  mmpbxd_options = {
@@ -67,28 +74,28 @@ local mmpbx_table = ui_helper.createTable(mmpbxd_columns, mmpbxd_data, mmpbxd_op
 
 local mmpbx_string = {}
 
-local function concat_table(mmpbx_table) 
-	for _ , table_string in pairs(mmpbx_table) do
-		if type(table_string) == "table" then
-			concat_table(table_string)
-		elseif type(table_string) == "userdata" then
-			mmpbx_string[#mmpbx_string+1] = string.untaint(table_string)
-		else
-			mmpbx_string[#mmpbx_string+1] = table_string
-		end
-	end
+local function concat_table(mmpbx_table)
+    for _ , table_string in pairs(mmpbx_table) do
+        if type(table_string) == "table" then
+            concat_table(table_string)
+        elseif type(table_string) == "userdata" then
+            mmpbx_string[#mmpbx_string+1] = string.untaint(table_string)
+        else
+            mmpbx_string[#mmpbx_string+1] = table_string
+        end
+    end
 end
 
 concat_table(mmpbx_table)
 
 local data = {
-	mmpbx_table = table.concat(mmpbx_string) or ""
+    mmpbx_table = table.concat(mmpbx_string) or ""
 }
 
 local buffer = {}
 if json.encode (data, { indent = false, buffer = buffer }) then
-	ngx.say(buffer)
+    ngx.say(buffer)
 else
-	ngx.say("{}")
+    ngx.say("{}")
 end
 ngx.exit(ngx.HTTP_OK)

@@ -37,21 +37,24 @@ local mmpbxd_filter = function(data)
   end
 
   if data.sipRegisterState then
-    data.sipRegisterState =  T(data.sipRegisterState)
+    data.sipRegisterState =  data.sipRegisterState
+    data.sipRegisterState = ui_helper.createSimpleLight(data.sipRegisterState=="Registered" and "1" or "0", T(data.sipRegisterState), nil)
   end
   
   if data.callState then
     if ( data.callState == "MMPBX_CALLSTATE_IDLE" ) then
-	  data.callState =  T"Idle"
+	  data.callState =  "Idle"
     end
 	  
     if ( data.callState == "MMPBX_CALLSTATE_DIALING" ) then
-	  data.callState =  T"Dialing"
+	  data.callState =  "Dialing"
     end
 	  
     if ( data.callState == "MMPBX_CALLSTATE_CALL_DELIVERED" ) then
-	  data.callState =  T"Delivered/In Progress"
+	  data.callState =  "Delivered/In Progress"
     end
+
+    data.callState = ui_helper.createSimpleLight(data.callState=="Idle" and "0" or "1", T(data.callState), nil, "fa fa-phone")
   end
   
   return true
@@ -98,16 +101,12 @@ if not ( content.max_upstream == "0" ) then
 	
 	local html = {}
 	
-	html[#html + 1] = ui_helper.createLabel(T"Service", T(content["status"]), basic)
-	
+	html[#html + 1] = ui_helper.createLabel(T"Service", ui_helper.createSimpleLight(content["status"]=="NA" and "0" or "1", T(content["status"])), basic)
+
 	if ( variant == "Technicolor TG799vac" ) or ( variant == "Technicolor TG800vac" )  then
-		if ( content.emission == "1" ) then
-			html[#html + 1] = ui_helper.createLabel(T"DECT Emission Mode ", T"Enabled", basic)
-		else 
-			html[#html + 1] = ui_helper.createLabel(T"DECT Emission Mode ", T"Disabled", basic)
-		end
-	html[#html + 1] = ui_helper.createLabel(T"Base Name", content["baseName"], basic)
-	html[#html + 1] = ui_helper.createLabel(T"Base Code", content["accCode"], basic)
+        html[#html + 1] = ui_helper.createLabel(T"DECT Emission Mode ", ui_helper.createSimpleLight(content.emission, content.emission == "1" and T"Enabled" or T"Disabled"), basic)
+        html[#html + 1] = ui_helper.createLabel(T"Base Name", content["baseName"], basic)
+        html[#html + 1] = ui_helper.createLabel(T"Base Code", content["accCode"], basic)
 	end
 	
 	html[#html + 1] = '<span data-bind="html: mmpbx_table">'

@@ -1899,6 +1899,9 @@ msgstr "Installiere leere Blacklist"
 msgid "Interface"
 msgstr "Schnittstelle"
 
+msgid "Interfaces"
+msgstr "Schnittstellen"
+
 msgid "Interface <strong>%s</strong> status"
 msgstr "Schnittstelle <strong>%s</strong> Status"
 
