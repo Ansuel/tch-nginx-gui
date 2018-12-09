@@ -3497,9 +3497,6 @@ msgstr "Auslöser"
 msgid "Tue."
 msgstr "Die."
 
-msgid "Turn off all leds if all service are up and running"
-msgstr "Abschalten aller LEDs wenn alle Dienste laufen"
-
 msgid ""
 "Turn off all leds if all services are up and running. Press INFO button "
 "(could be button with power led) to show led status."
