@@ -11,6 +11,7 @@ return {
         },
         operations = {
             { "uci.network.interface.@wan.proto", "dhcp"},
+            { "uci.network.config.wan_mode", "dhcp"},
         },
     },
     {
@@ -25,6 +26,7 @@ return {
         },
         operations = {
             { "uci.network.interface.@wan.proto", "pppoe"},
+            { "uci.network.config.wan_mode", "pppoe"},
         },
     },
     {
@@ -39,6 +41,7 @@ return {
         },
         operations = {
             { "uci.network.interface.@wan.proto", "pppoa"},
+            { "uci.network.config.wan_mode", "pppoa"},
         },
     },
     {
@@ -53,6 +56,7 @@ return {
         },
         operations = {
             { "uci.network.interface.@wan.proto", "static"},
+            { "uci.network.config.wan_mode", "static"},
         },
     },
 	{
