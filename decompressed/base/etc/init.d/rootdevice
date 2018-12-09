@@ -1385,7 +1385,7 @@ ledfw_rework_TG799() {
 		uci set button.info=button
 		uci set button.info.button='BTN_3'
 		uci set button.info.action='released'
-		uci set button.info.handler='logger INFO button pressed ; ubus send infobutton '''{"state":"active"}''''
+		uci set button.info.handler='logger INFO button pressed ; ubus send infobutton '\''{"state":"active"}'\'''
 		uci set button.info.min='0'
 		uci set button.info.max='2'
 		uci set ledfw.iptv.check='0'
@@ -1404,7 +1404,7 @@ ledfw_rework_TG800() {
 		uci set button.info=button
 		uci set button.info.button='BTN_3'
 		uci set button.info.action='released'
-		uci set button.info.handler='logger INFO button pressed ; ubus send infobutton '''{"state":"active"}''''
+		uci set button.info.handler='logger INFO button pressed ; ubus send infobutton '\''{"state":"active"}'\'''
 		uci set button.info.min='3'
 		uci set button.info.max='5'
 		uci set ledfw.iptv.check='0'
