@@ -15,6 +15,9 @@ jobs:
             echo Start autobuild of dev gui...
             apt-get update && apt-get install dos2unix git curl -y
       - run:
+          name: Check built type from last git log
+          command: bash ./scripts/0-detect-build-type.sh
+      - run:
           name: Increment version from latest build
           command: bash ./scripts/1-increment_autobuild_ver.sh
       - run:
@@ -22,7 +25,7 @@ jobs:
           command: bash ./scripts/2-clone_autobuild_dir.sh
       - run:
           name: Inizialize Gui
-          command: bash ./inizialize_gui.sh dev
+          command: bash ./inizialize_gui.sh
       - run:
           name: Upload new build, build and latest.version
           command: |

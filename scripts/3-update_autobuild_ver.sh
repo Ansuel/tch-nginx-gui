@@ -1,5 +1,9 @@
-if [ -f ~/.dev ]; then
-	type="_dev"
+if [ $CI == "true" ]; then
+	if [ -f ~/.dev ]; then
+		type="_dev"
+	elif [ -f ~/.stable ]; then
+		stable_msg="STABLE"
+	fi
 fi
 md5sum=$(md5sum compressed/GUI$type.tar.bz2 | awk '{print $1}')
 version=$(cat total/etc/init.d/rootdevice | grep -m1 version_gui | cut -d'=' -f 2)
@@ -24,7 +28,7 @@ cd $HOME/gui-dev-build-auto/;
 echo $version > latest.version
 
 git add -A;
-git commit -a -m "Automatic dev build. Version: $version";
+git commit -a -m "Automatic dev build. Version: $version $stable_msg";
 git push origin master;
 
 echo "Done.";

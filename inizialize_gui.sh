@@ -45,8 +45,11 @@ declare -a modular_dir=(
 if [ "$1" == "dev" ]; then
 	echo "Dev build detected"
 	type="_dev"
-	if [ $CI == "true" ]; then
-		touch ~/.dev
+fi
+
+if [ $CI == "true" ]; then
+	if [ -f ~/.dev ]; then
+		type="_dev"
 	fi
 fi
 
@@ -63,6 +66,11 @@ for index in "${modular_dir[@]}"; do
 	cd ../../
 	
 	new_md5=$(md5sum tar_tmp/$index.tar.bz2 | awk '{print $1}')
+	echo "------------------------------"
+	echo "File: $index.tar.bz2"
+	echo "Old md5: $old_md5"
+	echo "New md5: $new_md5"
+	echo "------------------------------"
 	if [ -z "$old_md5" ] || [ "$old_md5" != "$new_md5" ]; then
 		echo "Changes detected in modular package $index, updating..."
 		cp tar_tmp/$index.tar.bz2 $HOME/gui-dev-build-auto/modular/
