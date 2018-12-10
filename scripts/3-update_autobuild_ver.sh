@@ -25,6 +25,12 @@ cp compressed/GUI$type.tar.bz2 $HOME/gui-dev-build-auto/ -r;
 
 cd $HOME/gui-dev-build-auto/;
 
+if [ $CI == "true" ]; then
+	if [ -f ~/.stable ]; then
+		ecgo $version > stable.version
+	fi
+fi
+
 echo $version > latest.version
 
 git add -A;
