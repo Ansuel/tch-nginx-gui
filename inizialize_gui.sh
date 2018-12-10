@@ -58,19 +58,13 @@ mkdir tar_tmp
 for index in "${modular_dir[@]}"; do
 	
 	if [ $CI == "true" ] && [ -f $HOME/gui-dev-build-auto/modular/$index.tar.bz2 ]; then
-		old_md5=$(md5sum $HOME/gui-dev-build-auto/modular/$index.tar.bz2 | awk '{print $1}')
+		old_md5=$(md5sum <(bzcat $HOME/gui-dev-build-auto/modular/$index.tar.bz2) | awk '{print $1}')
 	fi
 	
 	cd decompressed/$index
-	BZIP2=-9 tar -cjf ../../tar_tmp/$index.tar.bz2 * --owner=0 --group=0
+	BZIP2=-9 tar --mtime='2018-01-01' -cjf ../../tar_tmp/$index.tar.bz2 * --owner=0 --group=0
 	cd ../../
-	
-	new_md5=$(md5sum tar_tmp/$index.tar.bz2 | awk '{print $1}')
-	echo "------------------------------"
-	echo "File: $index.tar.bz2"
-	echo "Old md5: $old_md5"
-	echo "New md5: $new_md5"
-	echo "------------------------------"
+	new_md5=$(md5sum <(bzcat tar_tmp/$index.tar.bz2) | awk '{print $1}')
 	if [ -z "$old_md5" ] || [ "$old_md5" != "$new_md5" ]; then
 		echo "Changes detected in modular package $index, updating..."
 		cp tar_tmp/$index.tar.bz2 $HOME/gui-dev-build-auto/modular/
