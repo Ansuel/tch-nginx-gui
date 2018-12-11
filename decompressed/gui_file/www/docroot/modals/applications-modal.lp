@@ -188,7 +188,7 @@ if StateParams["aria2_webui"] ~= nil then
 	html[#html + 1] = ui_helper.createAlertBlock(T"This will install aria2 and ariang webui", info_box)
 	html[#html + 1] = T"State: "
 	html[#html + 1] = "<strong>" .. T"Aria2 is " .. StateParams["aria2_webui"] .. T" installed" .. "</strong></br>"
-	local aria_link = format("http://%s/aria",mapParams.local_ip_modem)
+	local aria_link =  '/aria'
 	html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. aria_link .. '">' .. aria_link .."</a>"
 	html[#html + 1] = "</br>"
 	html[#html + 1] = "</br>"
@@ -218,7 +218,7 @@ if StateParams["transmission_webui"] ~= nil then
 	html[#html + 1] = ui_helper.createAlertBlock(T"This will install transmission and transmission-webui", info_box)
 	html[#html + 1] = T"State: "
 	html[#html + 1] = "<strong>" .. T"Transmission is " .. StateParams["transmission_webui"] .. T" installed" .. "</strong></br>"
-	local transmission_link = format("http://%s/transmission/web/",mapParams.local_ip_modem)
+	local transmission_link = '/transmission/web/'
 	html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. transmission_link .. '">' .. transmission_link .."</a>"
 	html[#html + 1] = "</br>"
 	local transmission_direct_link = format("http://%s:9091/transmission",mapParams.local_ip_modem)
