@@ -27,14 +27,18 @@ cd $HOME/gui-dev-build-auto/;
 
 if [ $CI == "true" ]; then
 	if [ -f ~/.stable ]; then
+		build_type_name="STABLE"
 		echo $version > stable.version
+	elif [ -f ~/.dev ]; then
+		build_type_name="DEV"
 	fi
+	commit_link=https://github.com/Ansuel/tch-nginx-gui/commit/$CIRCLE_SHA1
 fi
-
+#
 echo $version > latest.version
 
 git add -A;
-git commit -a -m "Automatic dev build. Version: $version $stable_msg";
+git commit -a -m "[$build_type_name] Version: $version Commit: $commit_link";
 git push origin master;
 
 echo "Done.";
