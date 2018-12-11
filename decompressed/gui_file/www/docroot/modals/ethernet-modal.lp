@@ -527,8 +527,8 @@ for i = 1, 3 do
     local ethport = "eth" .. i
     local path = "uci.ethernet.port.@" .. ethport .. "."
     local v = proxy.get(path .. "duplex")
-	local portname = T"Port" .. " " .. i
     if v ~= nil then
+        local portname = T"Port" .. " " .. i + 1
         ethport_count = ethport_count + 1
         table.insert(ethports, {ethport, portname})
         mapParams[ethport] = path .. "enable"
