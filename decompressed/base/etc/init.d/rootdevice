@@ -1402,11 +1402,13 @@ ledfw_rework_TG800() {
 	if [ ! $(uci get -q button.info) ]; then
 		uci del button.easy_reset
 		uci set button.info=button
-		uci set button.info.button='BTN_3'
+		uci set button.info.button='BTN_1'
 		uci set button.info.action='released'
 		uci set button.info.handler='logger INFO button pressed ; ubus send infobutton '\''{"state":"active"}'\'''
-		uci set button.info.min='3'
-		uci set button.info.max='5'
+		uci set button.info.min='0'
+		uci set button.info.max='2'
+		uci set button.wifi_onoff.min='2'
+		uci set button.wifi_onoff.max='8'
 		uci set ledfw.iptv.check='0'
 		uci commit ledfw
 		/etc/init.d/ledfw restart
