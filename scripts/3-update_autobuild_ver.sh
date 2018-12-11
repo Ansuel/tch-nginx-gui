@@ -27,7 +27,7 @@ cd $HOME/gui-dev-build-auto/;
 
 if [ $CI == "true" ]; then
 	if [ -f ~/.stable ]; then
-		ecgo $version > stable.version
+		echo $version > stable.version
 	fi
 fi
 
