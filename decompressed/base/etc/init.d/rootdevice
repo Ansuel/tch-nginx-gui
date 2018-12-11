@@ -898,7 +898,7 @@ led_integration() {
 		uci set ledfw.status_led=status_led
 		uci set ledfw.status_led.enable='0'
 	fi
-	if [ "$(cat /sbin/status-led-eventing.lua | grep 'Version: 1.3')" ]; then #Restart statusledeventing if old version
+	if [ "$(cat /sbin/status-led-eventing.lua | grep 'Version: 1.4')" ]; then #Restart statusledeventing if old version
 		killall status-led-eventing.lua
 		/sbin/status-led-eventing.lua &
 	fi
