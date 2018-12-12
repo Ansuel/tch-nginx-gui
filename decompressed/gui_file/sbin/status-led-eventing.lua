@@ -1,10 +1,13 @@
 #!/usr/bin/lua
 
---Version: 1.4
+--Version: 1.5
 
 -- local dbg = io.open("/tmp/sle.txt", "w") -- "a" for full logging
 
 local ubus, uloop, uci = require('ubus'), require('uloop'), require('uci')
+local posix = require("tch.posix")
+local openlog = posix.openlog
+local syslog = posix.syslog
 
 local ledcfg='ledfw'
 
@@ -21,6 +24,8 @@ local services = {
     iptv = false,
     voip = false
 }
+
+openlog("ledfw", posix.LOG_PID, posix.LOG_DAEMON)
 
 uloop.init()
 local conn = ubus.connect()
@@ -120,6 +125,7 @@ end
 local function ledaction()
     if is_service_ok() == false then
         local packet = {}
+		syslog(posix.LOG_WARNING,'Service not OK. Disabling EcoLed' .. action)
         packet["state"] = "inactive"
         conn:send("statusled", packet)
         packet["state"] = "service_notok"
@@ -127,6 +133,7 @@ local function ledaction()
     else
         local packet = {}
         if ( infobutton_pressed == false ) and ( get_infoled_config("enable") == true ) and ( get_infoled_config("timeout") > 0 ) then
+			syslog(posix.LOG_WARNING,'Service OK. Enabling EcoLed' .. action)
             packet["state"] = "active"
             conn:send("statusled", packet)
         end
