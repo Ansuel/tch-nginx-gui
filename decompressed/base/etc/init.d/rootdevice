@@ -642,9 +642,6 @@ check_noip_file() {
 }
 
 eco_param() {
-	uci set power.ethernet.eee='0'
-	uci set power.ethernet.autogreeen='0'
-	uci set power.ethernet.ethapd='0'
 	if [ ! $(uci get -q power.cpu) ]; then
 		uci set power.cpu=cpu
 		uci set power.cpu.cpuspeed='256'

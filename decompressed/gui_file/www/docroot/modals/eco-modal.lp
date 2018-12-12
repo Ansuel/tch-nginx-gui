@@ -66,8 +66,9 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 		  }
         }
 	    html[#html + 1] = '<legend>' .. T"Eco Settings" .. '</legend>'
-	    
-	    html[#html + 1] = ui_helper.createSwitch(T"Ethernet EEE", "eee", content["eee"])
+
+		html[#html + 1] = ui_helper.createAlertBlock(T"Turning on Ethernet power saving features can cause extra latency", info_box)
+		html[#html + 1] = ui_helper.createSwitch(T"Ethernet EEE", "eee", content["eee"])
 	    html[#html + 1] = ui_helper.createSwitch(T"Ethernet AutoGreen", "autogreeen", content["autogreeen"])
 	    html[#html + 1] = ui_helper.createSwitch(T"Ethernet Ethapd", "ethapd", content["ethapd"])
 	    html[#html + 1] = ui_helper.createSwitch(T"Cpu Wait", "wait", content["wait"])
@@ -78,7 +79,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	    local html = {}
 	    html[#html + 1] = '<legend>' .. T"Led Settings" .. '</legend>'
         
-	    html[#html + 1] = ui_helper.createAlertBlock(T"Turn off all leds if all services are up and running. Press INFO button (could be button with power led) to show led status.", info_box)
+	    html[#html + 1] = ui_helper.createAlertBlock(T"Turn off all LEDs (except info/power) if all services are up and running. Press INFO button (could be button with power LED) to show LED status.", info_box)
 	    html[#html + 1] = ui_helper.createSwitch(T"Eco Led", "eco_led", content["eco_led"])
 	    html[#html + 1] = ui_helper.createInputText(T"Timeout", "eco_led_timeout", content["eco_led_timeout"], basic , helpmsg["eco_led_timeout"] )
         ngx.print(html)
