@@ -32,7 +32,8 @@ EXTRA_HELP="\
         install    This root the device for the initial installation
 "
 #Gui version is now autocompleted base on latest dev, this variable will be replaced by the automatic script
-version_gui=TO_AUTO_COMPLETE 
+version_gui=TO_AUTO_COMPLETE
+led_eventing_version="1.5"
 
 logo_project() {
 cat << EOF > /dev/console
@@ -898,9 +899,16 @@ led_integration() {
 		uci set ledfw.status_led=status_led
 		uci set ledfw.status_led.enable='0'
 	fi
-	if [ "$(cat /sbin/status-led-eventing.lua | grep 'Version: 1.5')" ]; then #Restart statusledeventing if old version
-		killall status-led-eventing.lua
-		/sbin/status-led-eventing.lua &
+	#Restart statusledeventing if old version
+	if [ -f /tmp/status-led-eventing.lua_new ]; then
+		if [ ! "$(cat /sbin/status-led-eventing.lua | grep 'Version: $led_eventing_version')" ]; then
+			killall status-led-eventing.lua
+			rm /sbin/status-led-eventing.lua
+			mv /tmp/status-led-eventing.lua_new /sbin/
+			/sbin/status-led-eventing.lua &
+		else
+			rm /tmp/status-led-eventing.lua_new
+		fi
 	fi
 }
 
