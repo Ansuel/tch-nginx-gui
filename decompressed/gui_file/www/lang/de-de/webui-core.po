@@ -2867,6 +2867,9 @@ msgstr "Brückenmodus rückgängig machen"
 msgid "Revert Voice Mode"
 msgstr "Voice Modus rückgängig machen"
 
+msgid "Ringing"
+msgstr "Klingeln"
+
 msgid "Role"
 msgstr "Rolle"
 
@@ -3973,6 +3976,9 @@ msgstr "ungültige Gateway IP"
 
 msgid "invalid netmask"
 msgstr "ungültige Netzmaske"
+
+msgid "In Call"
+msgstr "In Anruf"
 
 msgid "low"
 msgstr "niedrig"

@@ -1641,6 +1641,9 @@ msgstr "Nome utente non valido, dominio bloccato"
 msgid "Invalid version, can't convert. Raw value: %s"
 msgstr "Versione non valida, impossibile convertire. Valore grezzo: %s"
 
+msgid "In Call"
+msgstr "In Chiamata"
+
 msgid "Ip Extras"
 msgstr "Extra IP"
 
@@ -2404,6 +2407,9 @@ msgstr "Disabilita Modalità Bridge"
 
 msgid "Revert Voice Mode"
 msgstr "Ritorna alla Modalità Voce"
+
+msgid "Ringing"
+msgstr "Squillando"
 
 msgid "Role"
 msgstr "Ruolo"

@@ -44,14 +44,14 @@ local mmpbxd_filter = function(data)
     if data.callState then
         if ( data.callState == "MMPBX_CALLSTATE_IDLE" ) then
             data.callState =  "Idle"
-        end
-
-        if ( data.callState == "MMPBX_CALLSTATE_DIALING" ) then
+        elseif ( data.callState == "MMPBX_CALLSTATE_DIALING" ) then
             data.callState =  "Dialing"
-        end
-
-        if ( data.callState == "MMPBX_CALLSTATE_CALL_DELIVERED" ) then
+        elseif ( data.callState == "MMPBX_CALLSTATE_CALL_DELIVERED" ) then
             data.callState =  "Delivered/In Progress"
+        elseif ( data.callState == "MMPBX_CALLSTATE_CONNECTED" ) then
+            data.callState =  "In Call"
+        elseif ( data.callState == "MMPBX_CALLSTATE_ALERTING" ) then
+            data.callState =  "Ringing"
         end
 
         data.callState = ui_helper.createSimpleLight(data.callState=="Idle" and "0" or "1", T(data.callState), nil, "fa fa-phone")
