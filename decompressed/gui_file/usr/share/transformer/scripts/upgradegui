@@ -74,14 +74,30 @@ else
 	uci set env.var.autoupgradeview=manual
 fi
 
+URL_BASE="https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/"
+
 # Check update_branch
 if [ ! $(uci get -q env.var.update_branch) ] ||  [ $(uci get env.var.update_branch) == "stable" ]; then
-	URL_BASE="https://repository.ilpuntotecnico.com/files/Ansuel/AGTEF"
 	update_branch=""
 else
-	URL_BASE="https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/"
 	update_branch="_dev"
 fi
+
+normalize() {
+	normalized_version=$1
+	if [ "$( echo $1 | grep -E '\.[0-9]\.' )" ]; then
+		normalized_version="$( echo $1 | sed 's|\.\([0-9]\.\)|.0\1|g' )"
+	fi
+	if [ "$( echo $normalized_version | tail -c 3 | grep "\." )" ]; then
+		normalized_version="$( echo $normalized_version | sed 's|\(\.[0-9][0-9]\.\)\([0-9]\)|\10\2|g' )"
+	fi
+	
+	echo $normalized_version
+}
+
+enum() {
+	echo $(echo $1 | sed -e 's/\.//g')
+}
 
 #Check if stable have a new version 
 
@@ -140,7 +156,6 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 		
 			logger -s -t "Upgrade Script" "Dev branch detected... Checking for newer version in stable..."
 			
-			STABLE_URL_BASE="https://repository.ilpuntotecnico.com/files/Ansuel/AGTEF"
 			STABLE_FILE_NAME='GUI.tar.bz2'
 				
 			if [ -f $WORKING_DIR/$STABLE_FILE_NAME ]; then
@@ -149,7 +164,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 			
 			# Download stable GUI to /tmp
 			
-			if ! $curl $STABLE_URL_BASE/$STABLE_FILE_NAME --output $WORKING_DIR/$STABLE_FILE_NAME; then
+			if ! $curl $URL_BASE/$STABLE_FILE_NAME --output $WORKING_DIR/$STABLE_FILE_NAME; then
 				logger -s -t "Upgrade Script" "ERROR: can't find stable GUI file" >&2
 				rm $WORKING_DIR/$FILE_NAME
 				rm $WORKING_DIR/$CHECKSUM_FILE
@@ -175,27 +190,15 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 			
 			dev_version=$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $downloaded_md5 | awk '{print $2}' )
 			
-			stable_version_norm=$stable_version
-			if [ "$( echo $stable_version | grep -E '\.[0-9]\.' )" ]; then
-				stable_version_norm="$( echo $stable_version | sed 's|\.\([0-9]\.\)|.0\1|g' )"
-			fi
-			if [ "$( echo $stable_version_norm | tail -c 3 | grep "\." )" ]; then
-				stable_version_norm="$( echo $stable_version_norm | sed 's|\(\.[0-9][0-9]\.\)\([0-9]\)|\10\2|g' )"
-			fi
+			stable_version_norm=$(normalize $stable_version)
 			
 			logger -s -t "Upgrade Script" "Stable version found: $stable_version_norm"
 			
-			dev_version_norm=$dev_version
-			if [ "$( echo $dev_version | grep -E '\.[0-9]\.' )" ]; then
-				dev_version_norm="$( echo $dev_version | sed 's|\.\([0-9]\.\)|.0\1|g' )"
-			fi
-			if [ "$( echo $dev_version_norm | tail -c 3 | grep "\." )" ]; then
-				dev_version_norm="$( echo $dev_version_norm | sed 's|\(\.[0-9][0-9]\.\)\([0-9]\)|\10\2|g' )"
-			fi
+			dev_version_norm=$(normalize $dev_version)
 			
 			logger -s -t "Upgrade Script" "Dev version found: $dev_version_norm"
 			
-			if [ $( echo $stable_version_norm | sed -e 's/\.//g') -gt $( echo $dev_version_norm | sed -e 's/\.//g') ]; then
+			if [ $( enum $stable_version_norm ) -gt $( enum $dev_version_norm ) ]; then
 				logger -s -t "Upgrade Script" "Found newer version in stable branch, using it..."
 				rm $WORKING_DIR/$FILE_NAME
 				FILE_NAME=$STABLE_FILE_NAME
