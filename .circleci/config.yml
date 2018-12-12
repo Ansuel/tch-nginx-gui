@@ -2,9 +2,6 @@ version: 2
 jobs:
   build:
     working_directory: ~/gui_build
-    branches:
-      only:
-        - dev
     docker:
       - image: ubuntu:cosmic
     steps:
