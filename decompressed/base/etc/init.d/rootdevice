@@ -33,7 +33,7 @@ EXTRA_HELP="\
 "
 #Gui version is now autocompleted base on latest dev, this variable will be replaced by the automatic script
 version_gui=TO_AUTO_COMPLETE
-led_eventing_version="1.5"
+led_eventing_version="1.6"
 
 logo_project() {
 cat << EOF > /dev/console
