@@ -81,7 +81,7 @@ if success then
         local result = proxy.get(wanintf_path)
         if type(result) == "table" then
 --          wanintfs[index] = {v,format("%s-VLAN%s", wanintfs_name[v], result[1]["value"])}
-          wanintfs[index] = {v,format("%s", wanintfs_name[v] or "")}
+          wanintfs[index] = {v,format("%s", wanintfs_name[v] or getContent[v.."ifname"])}
         end
       end
    end
