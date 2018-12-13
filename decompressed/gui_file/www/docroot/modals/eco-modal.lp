@@ -69,7 +69,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 
 		html[#html + 1] = ui_helper.createAlertBlock(T"Turning on Ethernet power saving features can cause extra latency", info_box)
 		html[#html + 1] = ui_helper.createSwitch(T"Ethernet EEE", "eee", content["eee"])
-	    html[#html + 1] = ui_helper.createSwitch(T"Ethernet AutoGreen", "autogreeen", content["autogreeen"])
+	    html[#html + 1] = ui_helper.createSwitch(T"Ethernet AutoGrEEEn", "autogreeen", content["autogreeen"])
 	    html[#html + 1] = ui_helper.createSwitch(T"Ethernet Ethapd", "ethapd", content["ethapd"])
 	    html[#html + 1] = ui_helper.createSwitch(T"Cpu Wait", "wait", content["wait"])
 	    html[#html + 1] = ui_helper.createInputSelect(T"Cpu Speed", "cpuspeed", cpu_step , content["cpuspeed"])

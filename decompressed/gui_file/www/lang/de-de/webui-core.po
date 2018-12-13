@@ -1333,8 +1333,8 @@ msgstr "Fehler"
 msgid "Ethernet"
 msgstr "Ethernet"
 
-msgid "Ethernet AutoGreen"
-msgstr "Ethernet AutoGreen"
+msgid "Ethernet AutoGrEEEn"
+msgstr "Ethernet AutoGrEEEn"
 
 msgid "Ethernet EEE"
 msgstr "Ethernet EEE"
