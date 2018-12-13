@@ -33,7 +33,7 @@ EXTRA_HELP="\
 "
 #Gui version is now autocompleted base on latest dev, this variable will be replaced by the automatic script
 version_gui=TO_AUTO_COMPLETE
-led_eventing_version="1.6"
+led_eventing_version="1.7"
 
 logo_project() {
 cat << EOF > /dev/console
@@ -899,10 +899,9 @@ led_integration() {
 	#Restart statusledeventing if old version
 	if [ -f /tmp/status-led-eventing.lua_new ]; then
 		if [ ! "$(cat /sbin/status-led-eventing.lua | grep 'Version: $led_eventing_version')" ]; then
-			killall status-led-eventing.lua
 			rm /sbin/status-led-eventing.lua
 			mv /tmp/status-led-eventing.lua_new /sbin/status-led-eventing.lua
-			/sbin/status-led-eventing.lua &
+			/usr/share/transformer/scripts/restart_leds.sh
 		else
 			rm /tmp/status-led-eventing.lua_new
 		fi
@@ -1386,6 +1385,7 @@ rootchecks() {
 
 ledfw_rework_TG799() {
 	if [ ! $(uci get -q button.info) ]; then
+		logger_command "Extracting ledfw_support-specificTG799.tar.bz2 and setting up status button..."
 		uci del button.easy_reset
 		uci set button.info=button
 		uci set button.info.button='BTN_3'
@@ -1395,8 +1395,7 @@ ledfw_rework_TG799() {
 		uci set button.info.max='2'
 		uci set ledfw.iptv.check='0'
 		uci commit ledfw
-		/etc/init.d/ledfw restart
-		logger_command "Extracting ledfw_support-specificTG799.tar.bz2 ..."
+		/usr/share/transformer/scripts/restart_leds.sh
 		if [ -f /tmp/ledfw_support-specificTG799.tar.bz2 ]; then
 			bzcat /tmp/ledfw_support-specificTG799.tar.bz2 | tar -C / -xf -
 		fi
@@ -1405,6 +1404,7 @@ ledfw_rework_TG799() {
 
 ledfw_rework_TG800() {
 	if [ ! $(uci get -q button.info) ]; then
+		logger_command "Extracting ledfw_support-specificTG800.bz2 and setting up wifi button..."
 		uci del button.easy_reset
 		uci set button.info=button
 		uci set button.info.button='BTN_1'
@@ -1416,8 +1416,7 @@ ledfw_rework_TG800() {
 		uci set button.wifi_on_off_toggle.max='8'
 		uci set ledfw.iptv.check='0'
 		uci commit ledfw
-		/etc/init.d/ledfw restart
-		logger_command "Extracting ledfw_support-specificTG800.bz2 ..."
+		/usr/share/transformer/scripts/restart_leds.sh
 		if [ -f /tmp/ledfw_support-specificTG800.tar.bz2 ]; then
 			bzcat /tmp/ledfw_support-specificTG800.tar.bz2 | tar -C / -xf -
 		fi
@@ -1426,8 +1425,8 @@ ledfw_rework_TG800() {
 
 ledfw_rework_TG789() {
 	if [ ! "$(cat /etc/ledfw/stateMachines.lua | grep fw_upgrade)" ]; then
-		/etc/init.d/ledfw restart
 		logger_command "Extracting ledfw_support-specificTG789.bz2 ..."
+		/usr/share/transformer/scripts/restart_leds.sh
 		if [ -f /tmp/ledfw_support-specificTG789.tar.bz2 ]; then
 			bzcat /tmp/ledfw_support-specificTG789.tar.bz2 | tar -C / -xf -
 		fi
@@ -1442,7 +1441,7 @@ ledfw_rework_DGA() {
 		sed -i 'N;/events\['\''fwupgrade'\''\] = function(msg)/a\\t\tcb("fwupgrade_state_" .. msg.state)' /usr/lib/lua/ledframework/ubus.lua
 	fi
 	if [ ! "$(cat /etc/ledfw/stateMachines.lua | grep fw_upgrade)" ]; then
-		/etc/init.d/ledfw restart
+		/usr/share/transformer/scripts/restart_leds.sh
 		logger_command "Extracting ledfw_support-specificDGA.bz2 ..."
 		if [ -f /tmp/ledfw_support-specificDGA.tar.bz2 ]; then
 			bzcat /tmp/ledfw_support-specificDGA.tar.bz2 | tar -C / -xf -

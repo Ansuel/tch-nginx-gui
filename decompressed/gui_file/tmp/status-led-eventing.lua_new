@@ -1,6 +1,6 @@
 #!/usr/bin/lua
 
---Version: 1.6
+--Version: 1.7
 
 -- local dbg = io.open("/tmp/sle.txt", "w") -- "a" for full logging
 
