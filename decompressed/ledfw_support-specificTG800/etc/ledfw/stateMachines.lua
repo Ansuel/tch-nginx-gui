@@ -75,6 +75,12 @@ stateMachines = {
                 fwupgrade_state_failed = "power_started",
                 thermalProtection_operational = "power_started",
             },
+            service_ok_fullpower = {
+                power_service_notok = "service_notok"
+            },
+            service_notok = {
+                power_service_fullpower = "service_ok_fullpower"
+            }
         },
         actions = {
             power_started = {
@@ -95,11 +101,25 @@ stateMachines = {
                 staticLed("power:blue", false),
                 staticLed("power:green", false)
             },
+            service_ok_fullpower = {
+                staticLed("power:orange", false),
+                staticLed("power:red", false),
+                staticLed("power:blue", false),
+                staticLed("power:green", true)
+            },
+            service_notok = {
+                staticLed("power:orange", false),
+                staticLed("power:red", true),
+                staticLed("power:blue", false),
+                staticLed("power:green", false)
+            }
         }
 		,
         patterns_depend_on = {
             power_started = { "fw_upgrade" },
             power_overheated = { "fw_upgrade" },
+            service_ok_fullpower = { "fw_upgrade" },
+            service_notok = { "fw_upgrade" }
         }
     },
     broadband = {
