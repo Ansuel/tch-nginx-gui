@@ -19,6 +19,10 @@ local mapValid = {
 	cpuspeed = post_helper.validateNonEmptyString,
 	eco_led = vB,
 	eco_led_timeout = post_helper.validatePositiveNum,
+    ledfw_internet = vB,
+    ledfw_voip = vB,
+    ledfw_iptv = vB,
+    ledfw_wifinsc = vB
 }
 
 local mapParams = {
