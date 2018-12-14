@@ -65,7 +65,7 @@ for index in "${modular_dir[@]}"; do
 	
 	#Creating md5sum file for status led eventing
 	if [[ $index == "gui_file" ]]; then
-		md5sum sbin/status-led-eventing.lua > tmp/status-led-eventing.md5sum
+		md5sum tmp/status-led-eventing.lua_new > tmp/status-led-eventing.md5sum
 	fi
 	
 	#Creating md5sum for every ledfw_support modular dir
