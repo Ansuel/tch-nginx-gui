@@ -63,6 +63,12 @@ for index in "${modular_dir[@]}"; do
 	
 	cd decompressed/$index
 	
+	#Creating md5sum file for status led eventing
+	if [[ $index == "gui_file" ]]; then
+		md5sum sbin/status-led-eventing.lua > tmp/status-led-eventing.md5sum
+	fi
+	
+	#Creating md5sum for every ledfw_support modular dir
 	if [[ $index == *"ledfw_support"* ]]; then
 		md5sum etc/ledfw/stateMachines.lua > stateMachines.md5sum 
 	fi

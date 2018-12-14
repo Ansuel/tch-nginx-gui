@@ -33,7 +33,6 @@ EXTRA_HELP="\
 "
 #Gui version is now autocompleted base on latest dev, this variable will be replaced by the automatic script
 version_gui=TO_AUTO_COMPLETE
-led_eventing_version="1.8"
 
 logo_project() {
 cat << EOF > /dev/console
@@ -900,14 +899,20 @@ led_integration() {
         uci set ledfw.wifi=service
         uci set ledfw.wifi.nsc_on='1'
     fi
+	
 	#Restart statusledeventing if old version
 	if [ -f /tmp/status-led-eventing.lua_new ]; then
-		if [ ! "$(cat /sbin/status-led-eventing.lua | grep 'Version: $led_eventing_version')" ]; then
+		ledeventing_new_md5=$(cat /tmp/status-led-eventing.md5sum | awk '{ print $1 }')
+		ledeventing_md5=$(md5sum /sbin/status-led-eventing.lua | awk '{ print $1 }' )
+		logger_command "LedEventing new md5sum: $ledeventing_new_md5"
+		logger_command "LedEventing md5sum: $ledeventing_md5"
+		if [ $ledeventing_new_md5 != $ledeventing_md5 ]; then
 			rm /sbin/status-led-eventing.lua
 			mv /tmp/status-led-eventing.lua_new /sbin/status-led-eventing.lua
+			rm /tmp/status-led-eventing.md5sum
 			/usr/share/transformer/scripts/restart_leds.sh
 		else
-			rm /tmp/status-led-eventing.lua_new
+			rm /tmp/status-led-eventing.lua_new /tmp/status-led-eventing.md5sum
 		fi
 	fi
 }
@@ -1402,7 +1407,7 @@ ledfw_rework_TG799() {
 	fi
 	
 	if [ -f /tmp/ledfw_support-specificTG799.tar.bz2 ]; then
-		stateMachine_tar_md5=$(bzcat /tmp/ledfw_support-specificTG799.tar.bz2 | tar xvf - stateMachines.md5sum -O | awk '{ print $1 }')
+		stateMachine_tar_md5=$(bzcat /tmp/ledfw_support-specificTG799.tar.bz2 | tar xf - stateMachines.md5sum -O | awk '{ print $1 }')
 		stateMachine_md5=$(md5sum /etc/ledfw/stateMachines.lua | awk '{ print $1 }' )
 		logger_command "StateMachine tar md5sum: $stateMachine_tar_md5"
 		logger_command "StateMachine md5sum: $stateMachine_md5"
@@ -1431,7 +1436,7 @@ ledfw_rework_TG800() {
 	fi
 	
 	if [ -f /tmp/ledfw_support-specificTG800.tar.bz2 ]; then
-		stateMachine_tar_md5=$(bzcat /tmp/ledfw_support-specificTG800.tar.bz2 | tar xvf - stateMachines.md5sum -O | awk '{ print $1 }')
+		stateMachine_tar_md5=$(bzcat /tmp/ledfw_support-specificTG800.tar.bz2 | tar xf - stateMachines.md5sum -O | awk '{ print $1 }')
 		stateMachine_md5=$(md5sum /etc/ledfw/stateMachines.lua | awk '{ print $1 }' )
 		logger_command "StateMachine tar md5sum: $stateMachine_tar_md5"
 		logger_command "StateMachine md5sum: $stateMachine_md5"
@@ -1445,7 +1450,7 @@ ledfw_rework_TG800() {
 
 ledfw_rework_TG789() {
 	if [ -f /tmp/ledfw_support-specificTG789.tar.bz2 ]; then
-		stateMachine_tar_md5=$(bzcat /tmp/ledfw_support-specificTG789.tar.bz2 | tar xvf - stateMachines.md5sum -O | awk '{ print $1 }')
+		stateMachine_tar_md5=$(bzcat /tmp/ledfw_support-specificTG789.tar.bz2 | tar xf - stateMachines.md5sum -O | awk '{ print $1 }')
 		stateMachine_md5=$(md5sum /etc/ledfw/stateMachines.lua | awk '{ print $1 }' )
 		logger_command "StateMachine tar md5sum: $stateMachine_tar_md5"
 		logger_command "StateMachine md5sum: $stateMachine_md5"
@@ -1466,7 +1471,7 @@ ledfw_rework_DGA() {
 	fi
 	
 	if [ -f /tmp/ledfw_support-specificDGA.tar.bz2 ]; then
-		stateMachine_tar_md5=$(bzcat /tmp/ledfw_support-specificDGA.tar.bz2 | tar xvf - stateMachines.md5sum -O | awk '{ print $1 }')
+		stateMachine_tar_md5=$(bzcat /tmp/ledfw_support-specificDGA.tar.bz2 | tar xf - stateMachines.md5sum -O | awk '{ print $1 }')
 		stateMachine_md5=$(md5sum /etc/ledfw/stateMachines.lua | awk '{ print $1 }' )
 		logger_command "StateMachine tar md5sum: $stateMachine_tar_md5"
 		logger_command "StateMachine md5sum: $stateMachine_md5"
