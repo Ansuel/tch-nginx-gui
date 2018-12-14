@@ -63,12 +63,18 @@ stateMachines = {
             power_started = {
                 power_service_fullpower = "service_ok_fullpower",
                 power_service_notok = "service_notok"
+                thermalProtection_overheat = "power_overheated",
+            },
+            power_overheated = {
+                thermalProtection_operational = "service_ok_fullpower",
             },
             service_ok_fullpower = {
-                power_service_notok = "service_notok",
+                power_service_notok = "service_notok"
+                thermalProtection_overheat = "power_overheated",
             },
             service_notok = {
-                power_service_fullpower = "service_ok_fullpower",
+                power_service_fullpower = "service_ok_fullpower"
+                thermalProtection_overheat = "power_overheated",
             }
         },
         actions = {
@@ -77,6 +83,12 @@ stateMachines = {
                 staticLed("power:red", false),
                 staticLed("power:blue", false),
                 staticLed("power:green", true)
+            }
+            power_overheated = {
+                staticLed("power:orange", false),
+                staticLed("power:red", true),
+                staticLed("power:blue", false),
+                staticLed("power:green", false)
             },
             service_ok_fullpower = {
                 staticLed("power:orange", false),
@@ -89,10 +101,11 @@ stateMachines = {
                 staticLed("power:red", true),
                 staticLed("power:blue", false),
                 staticLed("power:green", false)
-            },
+            }
         },
         patterns_depend_on = {
             power_started = { "fw_upgrade" },
+            power_overheated = { "fw_upgrade" },
             service_ok_fullpower = { "fw_upgrade" },
             service_notok = { "fw_upgrade" }
         }
