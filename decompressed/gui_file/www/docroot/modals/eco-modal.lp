@@ -29,6 +29,10 @@ local mapParams = {
 	cpuspeed = "uci.power.cpu.cpuspeed",
 	eco_led = "uci.ledfw.status_led.enable",
 	eco_led_timeout = "uci.ledfw.timeout.ms",
+    ledfw_internet = "uci.ledfw.internet.check",
+    ledfw_voip = "uci.ledfw.voip.check",
+    ledfw_iptv = "uci.ledfw.iptv.check",
+    ledfw_wifinsc = "uci.ledfw.wifi.nsc_on",
 }
 
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
@@ -78,10 +82,15 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	    
 	    local html = {}
 	    html[#html + 1] = '<legend>' .. T"Led Settings" .. '</legend>'
-        
+
+        html[#html + 1] = ui_helper.createSwitch(T"WiFi LED ON when no associated Clients", "ledfw_wifinsc", content["ledfw_wifinsc"])
 	    html[#html + 1] = ui_helper.createAlertBlock(T"Turn off all LEDs (except info/power) if all services are up and running. Press INFO button (could be button with power LED) to show LED status.", info_box)
 	    html[#html + 1] = ui_helper.createSwitch(T"Eco Led", "eco_led", content["eco_led"])
 	    html[#html + 1] = ui_helper.createInputText(T"Timeout", "eco_led_timeout", content["eco_led_timeout"], basic , helpmsg["eco_led_timeout"] )
+        html[#html + 1] = ui_helper.createAlertBlock(T"Services to check for the Eco led", info_box)
+        html[#html + 1] = ui_helper.createSwitch(T"VoIP", "ledfw_voip", content["ledfw_voip"])
+        html[#html + 1] = ui_helper.createSwitch(T"IPTV", "ledfw_iptv", content["ledfw_iptv"])
+        html[#html + 1] = ui_helper.createSwitch(T"Internet", "ledfw_internet", content["ledfw_internet"])
         ngx.print(html)
 
          ngx.print('\
