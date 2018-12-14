@@ -61,31 +61,14 @@ stateMachines = {
         initial = "power_started",
         transitions = {
             power_started = {
-                fwupgrade_state_upgrading = "upgrade",
-                thermalProtection_overheat = "power_overheated",
                 power_service_fullpower = "service_ok_fullpower",
                 power_service_notok = "service_notok"
             },
-            upgrade = {
-                fwupgrade_state_done = "power_started",
-                fwupgrade_state_failed = "power_started",
-                thermalProtection_overheat = "power_overheated",
-            },
-            power_overheated = {
-                fwupgrade_state_upgrading = "upgrade",
-                fwupgrade_state_done = "power_started",
-                fwupgrade_state_failed = "power_started",
-                thermalProtection_operational = "power_started",
-            },
             service_ok_fullpower = {
-                fwupgrade_state_upgrading = "upgrade",
-                thermalProtection_overheat = "power_overheated",
-                power_service_notok = "service_notok"
+                power_service_notok = "service_notok",
             },
             service_notok = {
-                fwupgrade_state_upgrading = "upgrade",
-                thermalProtection_overheat = "power_overheated",
-                power_service_fullpower = "service_ok_fullpower"
+                power_service_fullpower = "service_ok_fullpower",
             }
         },
         actions = {
@@ -95,18 +78,6 @@ stateMachines = {
                 staticLed("power:blue", false),
                 staticLed("power:green", true)
             },
-            upgrade = {
-                staticLed("power:red", false),
-                staticLed("power:green", false),
-                staticLed("power:orange", false),
-                staticLed("power:blue", true),
-            },
-            power_overheated = {
-                staticLed("power:orange", false),
-                staticLed("power:red", true),
-                staticLed("power:blue", false),
-                staticLed("power:green", false)
-            },
             service_ok_fullpower = {
                 staticLed("power:orange", false),
                 staticLed("power:red", false),
@@ -118,12 +89,10 @@ stateMachines = {
                 staticLed("power:red", true),
                 staticLed("power:blue", false),
                 staticLed("power:green", false)
-            }
-        }
-		,
+            },
+        },
         patterns_depend_on = {
             power_started = { "fw_upgrade" },
-            power_overheated = { "fw_upgrade" },
             service_ok_fullpower = { "fw_upgrade" },
             service_notok = { "fw_upgrade" }
         }
