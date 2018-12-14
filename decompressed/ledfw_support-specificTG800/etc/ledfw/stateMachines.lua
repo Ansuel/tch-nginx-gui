@@ -226,7 +226,7 @@ stateMachines = {
         actions = {
             internet_disconnected = {
                 staticLed("internet:green", false),
-                staticLed("internet:red", false),
+                staticLed("internet:red", true),
                 staticLed("internet:blue", false),
                 staticLed("internet:white", false),
             },
