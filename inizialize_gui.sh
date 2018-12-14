@@ -62,6 +62,11 @@ for index in "${modular_dir[@]}"; do
 	fi
 	
 	cd decompressed/$index
+	
+	if [[ $index == *"ledfw_support"* ]]; then
+		md5sum etc/ledfw/stateMachines.lua > stateMachines.md5sum 
+	fi
+	
 	BZIP2=-9 tar --mtime='2018-01-01' -cjf ../../tar_tmp/$index.tar.bz2 * --owner=0 --group=0
 	cd ../../
 	new_md5=$(md5sum <(bzcat tar_tmp/$index.tar.bz2) | awk '{print $1}')

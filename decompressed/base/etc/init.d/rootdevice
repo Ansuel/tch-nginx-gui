@@ -1399,9 +1399,16 @@ ledfw_rework_TG799() {
 		uci set button.info.max='2'
 		uci set ledfw.iptv.check='0'
 		uci commit ledfw
-		/usr/share/transformer/scripts/restart_leds.sh
-		if [ -f /tmp/ledfw_support-specificTG799.tar.bz2 ]; then
-			bzcat /tmp/ledfw_support-specificTG799.tar.bz2 | tar -C / -xf -
+	fi
+	
+	if [ -f /tmp/ledfw_support-specificTG799.tar.bz2 ]; then
+		stateMachine_tar_md5=$(bzcat /tmp/ledfw_support-specificTG799.tar.bz2 | tar xvf - stateMachines.md5sum -O | awk '{ print $1 }')
+		stateMachine_md5=$(md5sum /etc/ledfw/stateMachines.lua | awk '{ print $1 }' )
+		
+		if [ $stateMachine_tar_md5 != $stateMachine_md5 ]; then
+			logger_command "Extracting ledfw_support-specificTG799.bz2 ..."
+			/usr/share/transformer/scripts/restart_leds.sh
+			bzcat /tmp/ledfw_support-specificTG799.tar.bz2 | tar -C / -xf - etc/ledfw/stateMachines.lua
 		fi
 	fi
 }
@@ -1420,19 +1427,29 @@ ledfw_rework_TG800() {
 		uci set button.wifi_on_off_toggle.max='8'
 		uci set ledfw.iptv.check='0'
 		uci commit ledfw
-		/usr/share/transformer/scripts/restart_leds.sh
-		if [ -f /tmp/ledfw_support-specificTG800.tar.bz2 ]; then
-			bzcat /tmp/ledfw_support-specificTG800.tar.bz2 | tar -C / -xf -
+	fi
+	
+	if [ -f /tmp/ledfw_support-specificTG800.tar.bz2 ]; then
+		stateMachine_tar_md5=$(bzcat /tmp/ledfw_support-specificTG800.tar.bz2 | tar xvf - stateMachines.md5sum -O | awk '{ print $1 }')
+		stateMachine_md5=$(md5sum /etc/ledfw/stateMachines.lua | awk '{ print $1 }' )
+		
+		if [ $stateMachine_tar_md5 != $stateMachine_md5 ]; then
+			logger_command "Extracting ledfw_support-specificTG800.bz2 ..."
+			/usr/share/transformer/scripts/restart_leds.sh
+			bzcat /tmp/ledfw_support-specificTG800.tar.bz2 | tar -C / -xf - etc/ledfw/stateMachines.lua
 		fi
 	fi
 }
 
 ledfw_rework_TG789() {
-	if [ ! "$(cat /etc/ledfw/stateMachines.lua | grep fw_upgrade)" ]; then
-		logger_command "Extracting ledfw_support-specificTG789.bz2 ..."
-		/usr/share/transformer/scripts/restart_leds.sh
-		if [ -f /tmp/ledfw_support-specificTG789.tar.bz2 ]; then
-			bzcat /tmp/ledfw_support-specificTG789.tar.bz2 | tar -C / -xf -
+	if [ -f /tmp/ledfw_support-specificTG789.tar.bz2 ]; then
+		stateMachine_tar_md5=$(bzcat /tmp/ledfw_support-specificTG789.tar.bz2 | tar xvf - stateMachines.md5sum -O | awk '{ print $1 }')
+		stateMachine_md5=$(md5sum /etc/ledfw/stateMachines.lua | awk '{ print $1 }' )
+		
+		if [ $stateMachine_tar_md5 != $stateMachine_md5 ]; then
+			logger_command "Extracting ledfw_support-specificTG789.bz2 ..."
+			/usr/share/transformer/scripts/restart_leds.sh
+			bzcat /tmp/ledfw_support-specificTG789.tar.bz2 | tar -C / -xf - etc/ledfw/stateMachines.lua
 		fi
 	fi
 }
@@ -1444,11 +1461,15 @@ ledfw_rework_DGA() {
 	if [ ! "$(cat /usr/lib/lua/ledframework/ubus.lua | grep 'cb("fwupgrade_state_" .. msg.state)')" ]; then
 		sed -i 'N;/events\['\''fwupgrade'\''\] = function(msg)/a\\t\tcb("fwupgrade_state_" .. msg.state)' /usr/lib/lua/ledframework/ubus.lua
 	fi
-	if [ ! "$(cat /etc/ledfw/stateMachines.lua | grep fw_upgrade)" ]; then
-		/usr/share/transformer/scripts/restart_leds.sh
-		logger_command "Extracting ledfw_support-specificDGA.bz2 ..."
-		if [ -f /tmp/ledfw_support-specificDGA.tar.bz2 ]; then
-			bzcat /tmp/ledfw_support-specificDGA.tar.bz2 | tar -C / -xf -
+	
+	if [ -f /tmp/ledfw_support-specificDGA.tar.bz2 ]; then
+		stateMachine_tar_md5=$(bzcat /tmp/ledfw_support-specificDGA.tar.bz2 | tar xvf - stateMachines.md5sum -O | awk '{ print $1 }')
+		stateMachine_md5=$(md5sum /etc/ledfw/stateMachines.lua | awk '{ print $1 }' )
+		
+		if [ $stateMachine_tar_md5 != $stateMachine_md5 ]; then
+			logger_command "Extracting ledfw_support-specificDGA.bz2 ..."
+			/usr/share/transformer/scripts/restart_leds.sh
+			bzcat /tmp/ledfw_support-specificDGA.tar.bz2 | tar -C / -xf - etc/ledfw/stateMachines.lua
 		fi
 	fi
 }
