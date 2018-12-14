@@ -63,6 +63,8 @@ stateMachines = {
             power_started = {
                 fwupgrade_state_upgrading = "upgrade",
                 thermalProtection_overheat = "power_overheated",
+                power_service_fullpower = "service_ok_fullpower",
+                power_service_notok = "service_notok"
             },
             upgrade = {
                 fwupgrade_state_done = "power_started",
@@ -76,9 +78,13 @@ stateMachines = {
                 thermalProtection_operational = "power_started",
             },
             service_ok_fullpower = {
+                fwupgrade_state_upgrading = "upgrade",
+                thermalProtection_overheat = "power_overheated",
                 power_service_notok = "service_notok"
             },
             service_notok = {
+                fwupgrade_state_upgrading = "upgrade",
+                thermalProtection_overheat = "power_overheated",
                 power_service_fullpower = "service_ok_fullpower"
             }
         },
