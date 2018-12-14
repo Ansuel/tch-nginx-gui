@@ -1404,7 +1404,8 @@ ledfw_rework_TG799() {
 	if [ -f /tmp/ledfw_support-specificTG799.tar.bz2 ]; then
 		stateMachine_tar_md5=$(bzcat /tmp/ledfw_support-specificTG799.tar.bz2 | tar xvf - stateMachines.md5sum -O | awk '{ print $1 }')
 		stateMachine_md5=$(md5sum /etc/ledfw/stateMachines.lua | awk '{ print $1 }' )
-		
+		logger_command "StateMachine tar md5sum: $stateMachine_tar_md5"
+		logger_command "StateMachine md5sum: $stateMachine_md5"
 		if [ $stateMachine_tar_md5 != $stateMachine_md5 ]; then
 			logger_command "Extracting ledfw_support-specificTG799.bz2 ..."
 			/usr/share/transformer/scripts/restart_leds.sh
@@ -1432,7 +1433,8 @@ ledfw_rework_TG800() {
 	if [ -f /tmp/ledfw_support-specificTG800.tar.bz2 ]; then
 		stateMachine_tar_md5=$(bzcat /tmp/ledfw_support-specificTG800.tar.bz2 | tar xvf - stateMachines.md5sum -O | awk '{ print $1 }')
 		stateMachine_md5=$(md5sum /etc/ledfw/stateMachines.lua | awk '{ print $1 }' )
-		
+		logger_command "StateMachine tar md5sum: $stateMachine_tar_md5"
+		logger_command "StateMachine md5sum: $stateMachine_md5"
 		if [ $stateMachine_tar_md5 != $stateMachine_md5 ]; then
 			logger_command "Extracting ledfw_support-specificTG800.bz2 ..."
 			/usr/share/transformer/scripts/restart_leds.sh
@@ -1445,7 +1447,8 @@ ledfw_rework_TG789() {
 	if [ -f /tmp/ledfw_support-specificTG789.tar.bz2 ]; then
 		stateMachine_tar_md5=$(bzcat /tmp/ledfw_support-specificTG789.tar.bz2 | tar xvf - stateMachines.md5sum -O | awk '{ print $1 }')
 		stateMachine_md5=$(md5sum /etc/ledfw/stateMachines.lua | awk '{ print $1 }' )
-		
+		logger_command "StateMachine tar md5sum: $stateMachine_tar_md5"
+		logger_command "StateMachine md5sum: $stateMachine_md5"
 		if [ $stateMachine_tar_md5 != $stateMachine_md5 ]; then
 			logger_command "Extracting ledfw_support-specificTG789.bz2 ..."
 			/usr/share/transformer/scripts/restart_leds.sh
@@ -1465,7 +1468,8 @@ ledfw_rework_DGA() {
 	if [ -f /tmp/ledfw_support-specificDGA.tar.bz2 ]; then
 		stateMachine_tar_md5=$(bzcat /tmp/ledfw_support-specificDGA.tar.bz2 | tar xvf - stateMachines.md5sum -O | awk '{ print $1 }')
 		stateMachine_md5=$(md5sum /etc/ledfw/stateMachines.lua | awk '{ print $1 }' )
-		
+		logger_command "StateMachine tar md5sum: $stateMachine_tar_md5"
+		logger_command "StateMachine md5sum: $stateMachine_md5"
 		if [ $stateMachine_tar_md5 != $stateMachine_md5 ]; then
 			logger_command "Extracting ledfw_support-specificDGA.bz2 ..."
 			/usr/share/transformer/scripts/restart_leds.sh
