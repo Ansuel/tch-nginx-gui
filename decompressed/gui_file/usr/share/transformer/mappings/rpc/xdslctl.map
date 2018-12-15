@@ -57,7 +57,7 @@ for _ , type in pairs{ "Hlog" , "Bits", "SNR", "QLN" } do
 	end
 end
 
-for _, type in pairs{"Chipset","Version","VersionRaw"} do
+for _, type in pairs{"Chipset","Version","VersionRaw","DslamPort"} do
 	xdslctl_.objectType.parameters["Dslam"..type] = string_table
 end
 for _, type in pairs{"Mode","Profile"} do
@@ -341,6 +341,9 @@ local function xdslctlDslamInfo(itype)
 			end
 			break
 		end
+		if line:match("ChipSet SerialNumber") and ( itype == "port" ) and line:match("port:") then
+			result = (line:gsub(".*port:",""):gsub("oemid.*",""):gsub("%s*",""))
+		end
 	end
 	vendor_info:close()
 	
@@ -415,6 +418,8 @@ local function get(mapping, paramName, key)
 		return xdslctlDslamInfo("version")
 	elseif paramName == "DslamVersionRaw" then
 		return xdslctlDslamInfo("version_raw")
+	elseif paramName == "DslamPort" then
+		return xdslctlDslamInfo("port")
 	elseif paramName == "DslMode" then
 		return xdslmode("mode")
 	elseif paramName == "DslProfile" then
