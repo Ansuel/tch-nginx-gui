@@ -91,9 +91,10 @@ end
 	else
 		html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",format(T"Invalid version, can't convert. Raw value: %s", content.dslam_version_raw) , basic )
 	end
-	basic.span["data-bind"] = "text: dsl_profile"
 	if(content.dsl_profile ~= "Not Found") then
+		basic.span["data-bind"] = "text: dsl_profile"
 		html[#html + 1] = ui_helper.createLabel(T"VDSL Profile", content.dsl_profile, basic )
+		basic.span["data-bind"] = "text: dsl_port"
 		html[#html + 1] = ui_helper.createLabel(T"VDSL DSLAM Port", content.dsl_port, basic )
 	end
 
