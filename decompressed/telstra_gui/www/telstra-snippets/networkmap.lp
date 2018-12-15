@@ -118,7 +118,7 @@ for k,v in ipairs(devices) do
             iswireless = "0"
         end
 
-        local html = string.format('<div class="device"><a href=telstra-modals/device.lp?mac=%s&wireless=%s&ticked=%s><img src="/img/telstra/dev_laptop%s.gif"/></a><div class="deviceinfo right">%s</div><div><br /></div></div>', v[4], iswireless, ticked, ticked, tooltip)
+        local html = string.format('<div class="device"><a href="/telstra-modals/device.lp?mac=%s&wireless=%s&ticked=%s"><img src="/img/telstra/dev_laptop%s.gif"/></a><div class="deviceinfo right">%s</div><div><br /></div></div>', v[4], iswireless, ticked, ticked, tooltip)
 
         if v[5] == "wireless" then
             if uri == "telstra-modals/wifi.lp" then

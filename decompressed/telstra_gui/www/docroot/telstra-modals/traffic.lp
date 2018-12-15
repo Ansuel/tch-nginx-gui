@@ -20,7 +20,8 @@ local tonumber = tonumber
 local format, match = string.format, string.match
 local traffic_data_file = "/var/state/traffic_data_file"
 
-local quantenna_wifi = proxy.get("uci.env.var.qtn_eth_mac") and true or false
+local quantenna_wifi = proxy.get("uci.env.var.qtn_eth_mac")
+quantenna_wifi = ((quantenna_wifi and quantenna_wifi[1].value~="") and true or false)
 local getargs = ngx.req.get_uri_args()
 local getiface = getargs.iface
 

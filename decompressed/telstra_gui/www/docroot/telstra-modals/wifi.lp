@@ -29,7 +29,9 @@ local bandsteer_helper = require("bandsteer_helper")
 local isBaseIface = bandsteer_helper.isBaseIface
 local disableBandSteer = bandsteer_helper.disableBandSteer
 
-local quantenna_wifi = proxy.get("uci.env.var.qtn_eth_mac") and true or false
+local quantenna_wifi = proxy.get("uci.env.var.qtn_eth_mac")
+quantenna_wifi = ((quantenna_wifi and quantenna_wifi[1].value~="") and true or false)
+
 
 local getargs = ngx.req.get_uri_args()
 local radio, wl, ap, bspeerwl, bspeerap

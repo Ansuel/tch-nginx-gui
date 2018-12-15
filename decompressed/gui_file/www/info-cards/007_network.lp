@@ -7,7 +7,8 @@ local proxy = require("datamodel")
 local ui_helper = require("web.ui_helper")
 local content_helper = require("web.content_helper")
 
-local quantenna_wifi = proxy.get("uci.env.var.qtn_eth_mac") and true or false
+local quantenna_wifi = proxy.get("uci.env.var.qtn_eth_mac")
+quantenna_wifi = ((quantenna_wifi and quantenna_wifi[1].value~="") and true or false)
 
 local port_columns = {
   {--[1]
