@@ -82,6 +82,7 @@ local content = {
 	dsl0_status 					= "sys.class.xdsl.@line0.Status",
     dsl0_mode 					    = "rpc.xdslctl.DslMode",
     dsl0_profile 					= "rpc.xdslctl.DslProfile",
+    dsl0_port 					= "rpc.xdslctl.DslamPort",
     dsl0_enabled                    = "uci.xdsl.xdsl.@dsl0.enabled",
     dsl0_eoc_vendor_id              = "uci.xdsl.xdsl.@dsl0.eoc_vendor_id",
     dsl0_eoc_serial_number          = "uci.xdsl.xdsl.@dsl0.eoc_serial_number",
@@ -212,6 +213,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
         html[#html + 1] = ui_helper.createLabel(T"DSL Mode", content.dsl0_mode, span5 )
         if(content.dsl0_profile ~= "Not Found") then
             html[#html + 1] = ui_helper.createLabel(T"VDSL Profile", content.dsl0_profile, span5 )
+            html[#html + 1] = ui_helper.createLabel(T"VDSL DSLAM Port", content.dsl0_port, span5 )
         end
 		html[#html + 1] = ui_helper.createLabel(T"DSLAM Chipset",content.dslam_chipset, span5 )
 		if content.dslam_version_raw:sub(0,2) == "0x" then

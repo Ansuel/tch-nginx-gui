@@ -29,7 +29,8 @@ local content = {
   dslam_chipset = "rpc.xdslctl.DslamChipset",
   dslam_version = "rpc.xdslctl.DslamVersion",
   dslam_version_raw = "rpc.xdslctl.DslamVersionRaw",
-  dsl_profile = "rpc.xdslctl.DslProfile"
+  dsl_profile = "rpc.xdslctl.DslProfile",
+  dsl_port = "rpc.xdslctl.DslamPort"
 }
 
 content_helper.getExactContent(content)
@@ -93,6 +94,7 @@ end
 	basic.span["data-bind"] = "text: dsl_profile"
 	if(content.dsl_profile ~= "Not Found") then
 		html[#html + 1] = ui_helper.createLabel(T"VDSL Profile", content.dsl_profile, basic )
+		html[#html + 1] = ui_helper.createLabel(T"VDSL DSLAM Port", content.dsl_port, basic )
 	end
 
 	html[#html + 1] = '<div class="control-group">'
