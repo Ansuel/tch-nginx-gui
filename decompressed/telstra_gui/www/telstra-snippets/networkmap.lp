@@ -594,10 +594,6 @@ end
             name : "button_new_text",\
             value : button_new_text\
         });\
-        params.push({\
-            name : "action",\
-            value : "SAVE"\
-        });\
         params.push(tch.elementCSRFtoken());\
         var target = form.attr("action");\
         tch.postParams(target,params);\
