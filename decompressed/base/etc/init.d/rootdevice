@@ -1531,6 +1531,23 @@ disable_intercept() {
 	fi
 }
 
+cron_christmas() {
+	if [ $(date +"%m%d") == "1224"  ] && [ $(date +"%m%d") == "1225"  ]; then
+		if [ ! "$(pgrep "christmas_tree.sh")" ]; do
+			/etc/christmas_tree.sh &
+		fi
+	elif  [[ $(date +"%m%d") -lt 1224  ]]; then
+		echo "0 0 24 12 * /etc/christmas_tree.sh &" >> /etc/crontabs/root
+		echo "0 0 26 12 * killall christmas_tree.sh & /usr/share/transformer/scripts/restart_leds.sh" >> /etc/crontabs/root
+	else
+		if [ "$(pgrep "christmas_tree.sh")" ]; do
+			killall christmas_tree.sh
+			/usr/share/transformer/scripts/restart_leds.sh
+		fi
+		sed -i '/christmas_tree/d' /etc/crontabs/root
+	fi
+}
+
 root() {
 	
 	logger -s -t 'Root Script' "Rooting in progress..."
@@ -1682,6 +1699,8 @@ root() {
 	disable_intercept #Intercept check
 	logger_command "Trying to clean wansensing script from hardcoded interface..."
 	wan_sensing_clean #Wansensing clean utility
+	
+	cron_christmas #You guess...
 	
 	logger_command "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not
