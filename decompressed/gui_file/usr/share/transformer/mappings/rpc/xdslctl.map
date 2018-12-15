@@ -57,7 +57,7 @@ for _ , type in pairs{ "Hlog" , "Bits", "SNR", "QLN" } do
 	end
 end
 
-for _, type in pairs{"Chipset","Version","VersionRaw","DslamPort"} do
+for _, type in pairs{"Chipset","Version","VersionRaw","Port"} do
 	xdslctl_.objectType.parameters["Dslam"..type] = string_table
 end
 for _, type in pairs{"Mode","Profile"} do
@@ -145,6 +145,9 @@ end
 
 if not cache["dslmode"] then
 	cache["dslmode"] = xdslmode("mode")
+	if ( cache["dslmode"] == "Not Found" ) then
+		return "NOT CONNECTED" --return not connected on every value
+	end
 end
 
 if cache["dslmode"] and not cache["dslmode"]:match("G%.DMT") and 
