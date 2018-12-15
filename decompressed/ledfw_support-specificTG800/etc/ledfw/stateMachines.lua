@@ -62,19 +62,19 @@ stateMachines = {
         transitions = {
             power_started = {
                 power_service_fullpower = "service_ok_fullpower",
-                power_service_notok = "service_notok"
+                power_service_notok = "service_notok",
                 thermalProtection_overheat = "power_overheated",
             },
             power_overheated = {
                 thermalProtection_operational = "service_ok_fullpower",
             },
             service_ok_fullpower = {
-                power_service_notok = "service_notok"
+                power_service_notok = "service_notok",
                 thermalProtection_overheat = "power_overheated",
             },
             service_notok = {
-                power_service_fullpower = "service_ok_fullpower"
-                thermalProtection_overheat = "power_overheated",
+                power_service_fullpower = "service_ok_fullpower",
+                thermalProtection_overheat = "power_overheated"
             }
         },
         actions = {
@@ -83,7 +83,7 @@ stateMachines = {
                 staticLed("power:red", false),
                 staticLed("power:blue", false),
                 staticLed("power:green", true)
-            }
+            },
             power_overheated = {
                 staticLed("power:orange", false),
                 staticLed("power:red", true),
