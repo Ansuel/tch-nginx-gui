@@ -8,6 +8,6 @@
     <link href="/css/gw-telstra.css" rel="stylesheet">\
     <!--[if IE 7]><link rel="stylesheet" href="/css/font-awesome-ie7.css"><![endif]-->\
     <script src="/js/main-telstra-min.js" ></script>\
-    <title>');  ngx.print( T"Telstra Gateway" ); ngx.print('</title>\
+    <title>');  ngx.print( T"Gateway" ); ngx.print('</title>\
     </head>\
     <body>'); 
