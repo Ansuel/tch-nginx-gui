@@ -181,6 +181,7 @@ $(document).ready(function () {\
 		dslam_version: ko.observable(), \
 		dslam_chipset: ko.observable(), \
 		dsl_profile: ko.observable(), \
+		dsl_port: ko.observable(), \
 	};\
 	function InfoXdslCardRefresh() {\
 		$.post("/ajax/internet.lua?datatype=xdsl", [tch.elementCSRFtoken()], function(data) {\
@@ -202,6 +203,7 @@ $(document).ready(function () {\
 				InfoXdslCardBinding.dslam_version(data.dslam_version);\
 				InfoXdslCardBinding.dslam_chipset(data.dslam_chipset);\
 				InfoXdslCardBinding.dsl_profile(data.dsl_profile);\
+				InfoXdslCardBinding.dsl_port(data.dsl_port);\
 			}\
 		}, "json");\
 	};\

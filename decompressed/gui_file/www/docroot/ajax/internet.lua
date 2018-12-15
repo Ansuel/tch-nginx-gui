@@ -34,7 +34,8 @@ if datatype and datatype== "xdsl" then
 		dsl_margin_SNRM_down = "sys.class.xdsl.@line0.DownstreamSNRMpb",
 		dslam_chipset = "rpc.xdslctl.DslamChipset",
 		dslam_version = "rpc.xdslctl.DslamVersion",
-		dsl_profile = "rpc.xdslctl.DslProfile"
+		dsl_profile = "rpc.xdslctl.DslProfile",
+		dsl_port = "rpc.xdslctl.DslamPort"
 	}
 	
 	content = {
