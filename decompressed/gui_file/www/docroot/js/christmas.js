@@ -15,6 +15,7 @@ mX = -100,
 mY = -100
 
 canvas.style.position = "fixed";
+canvas.style.zIndex = -1;
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
