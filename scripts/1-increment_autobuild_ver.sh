@@ -2,6 +2,22 @@ rootdevice_file="decompressed/base/etc/init.d/rootdevice"
 latest_version_link="https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/latest.version"
 version=$(curl -s $latest_version_link)
 
+if [ -f $HOME/gui-dev-build-auto/latest.version ]; then
+	echo "Detected cached latest.version file... Checking it..."
+	cached_version=$(cat $HOME/gui-dev-build-auto/latest.version | awk ' { print $1 } ' )
+	echo "Cached version detected: $cached_version"
+	rm $HOME/gui-dev-build-auto/latest.version
+	seconds=1
+	if [ $cached_version == $version ]; then
+		echo "Same version detected..."
+	fi
+	while [ $cached_version == $version ]; do
+		seconds=$[$seconds +1]
+		echo -ne 'Waiting new version to publish for '$seconds'\r'
+		sleep 1
+	done
+fi
+
 echo "Increment version as this is an autobuild"
 
 major=$(echo $version | grep -Eo "^[0-9]+")

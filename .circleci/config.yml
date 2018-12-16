@@ -14,6 +14,8 @@ jobs:
       - run:
           name: Check built type from last git log
           command: bash ./scripts/0-detect-build-type.sh
+      - restore_cache:
+          keys: latest-file-key
       - run:
           name: Increment version from latest build
           command: bash ./scripts/1-increment_autobuild_ver.sh
@@ -28,3 +30,7 @@ jobs:
           command: |
             source ~/.bashrc
             bash ./scripts/3-update_autobuild_ver.sh
+      - save_cache:
+          key: latest-file-key
+          paths:
+            - ~/gui-dev-build-auto/latest.version
