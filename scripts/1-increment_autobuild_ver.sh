@@ -6,14 +6,20 @@ if [ -f $HOME/gui-dev-build-auto/latest.version ]; then
 	echo "Detected cached latest.version file... Checking it..."
 	cached_version=$(cat $HOME/gui-dev-build-auto/latest.version | awk ' { print $1 } ' )
 	echo "Cached version detected: $cached_version"
+	echo "Remote version detected: $version"
 	rm $HOME/gui-dev-build-auto/latest.version
-	seconds=1
+	seconds=0
 	if [ $cached_version == $version ]; then
 		echo "Same version detected..."
 	fi
 	while [ $cached_version == $version ]; do
+		if [[ seconds -gt 120 ]]; then 
+			echo "Race-condition dectedted... Continuing anyway..."
+			break
+		fi
 		seconds=$[$seconds +1]
-		echo -ne 'Waiting new version to publish for '$seconds'\r'
+		echo -ne 'Waiting new version to publish for '$seconds' seconds \r'
+		version=$(curl -s $latest_version_link)
 		sleep 1
 	done
 fi
