@@ -94,9 +94,7 @@ if session:hasAccess("/modals/system-modal.lp") then
       <div class="divtable">');
 			ngx.print(
 				ui_helper.createSimpleLight(syslog_light_map[syslog_present], syslog_state_map[syslog_present], nil,"fas fa-align-left"),
-				'<br/>',
-				ui_helper.createSimpleLight(SSH_light_map[ssh_enable], SSH_state_map[ssh_enable], nil,"fas fa-keyboard"),
-				'<br/>');
+				ui_helper.createSimpleLight(SSH_light_map[ssh_enable], SSH_state_map[ssh_enable], nil,"fas fa-keyboard"));
 			if telnet_available then
 				ngx.print(
 					ui_helper.createSimpleLight(TELNET_light_map[telnet_state], TELNET_state_map[telnet_state], nil,"fas fa-terminal")
