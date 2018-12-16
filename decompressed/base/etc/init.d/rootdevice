@@ -1534,7 +1534,7 @@ disable_intercept() {
 cron_christmas() {
 	if [ $(cat /etc/crontabs/root | grep -c "christmas_tree") -lt 1 ]; then
 		echo "*/30 * 24-26 12 * /etc/christmas_tree.sh &" >> /etc/crontabs/root
-	else
+	fi
 }
 
 root() {
