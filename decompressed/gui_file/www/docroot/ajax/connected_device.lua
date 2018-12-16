@@ -44,9 +44,9 @@ local devices_filter = function(data)
   end
 
   if match(data["L2Interface"], "^wl0") then
-    data["InterfaceType"] = "wireless - 2.4GHz"
+    data["InterfaceType"] = "Wireless - 2.4GHz"
   elseif match(data["L2Interface"], "^wl1") then
-    data["InterfaceType"] = "wireless - 5GHz"
+    data["InterfaceType"] = "Wireless - 5GHz"
   elseif match(data["L2Interface"], "eth*") then
     data["InterfaceType"] = "Ethernet - " .. data.Port
   elseif match(data["L2Interface"], "moca*") then

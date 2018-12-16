@@ -2519,6 +2519,9 @@ msgstr "Servizio"
 msgid "Service Name"
 msgstr "Nome servizio"
 
+msgid "Services to check for the Eco LED"
+msgstr "Servizi da controllare per l'attivazione di Eco LED"
+
 msgid "Sessions"
 msgstr "Sessioni"
 
@@ -3318,6 +3321,9 @@ msgstr "Assistente Wi-Fi"
 
 msgid "Wifi Analyzer"
 msgstr "Analizzatore Wifi"
+
+msgid "WiFi NSC when turned off will turn OFF WiFi LED(s) if there is no associated station (no wifi client connected)"
+msgstr "WiFi NSC quando spento disattiva il LED WiFi se non ci sono stazioni associate (nessun client wifi collegato)"
 
 msgid "Wireless Client Monitor"
 msgstr "Wireless Client Monitor"

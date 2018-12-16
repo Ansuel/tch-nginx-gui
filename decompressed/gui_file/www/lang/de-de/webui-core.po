@@ -2989,6 +2989,9 @@ msgstr "Server Name"
 msgid "Service Name"
 msgstr "Dienstname"
 
+msgid "Services to check for the Eco LED"
+msgstr "Dienstleistungen für die Eco-LED zu überprüfen"
+
 msgid "Set 4th Ethernet Port as WAN or as LAN"
 msgstr "Setze vierten Ethernet-Port als WAN oder LAN"
 
@@ -3874,6 +3877,9 @@ msgstr "WiFi Schwester"
 
 msgid "Wifi Analyzer"
 msgstr "WiFi Analysator"
+
+msgid "WiFi NSC when turned off will turn OFF WiFi LED(s) if there is no associated station (no wifi client connected)"
+msgstr "WiFi NSC schaltet sich nach dem Ausschalten aus, WiFi-LED (s) AUS, wenn keine zugehörige Station vorhanden ist (kein WiFi-Client angeschlossen)"
 
 msgid "Wireless"
 msgstr "Drahtlos"

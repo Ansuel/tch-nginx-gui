@@ -9,7 +9,9 @@ local message_helper = require("web.uimessage_helper")
 local post_helper = require("web.post_helper")
 local content_helper = require("web.content_helper")
 
+local prod_friendly_name = proxy.get("uci.env.var.prod_friendly_name")
 local vB = post_helper.validateBoolean
+
 
 local mapValid = {
     eee = vB,
@@ -86,12 +88,14 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	    
 	    local html = {}
 	    html[#html + 1] = '<legend>' .. T"Led Settings" .. '</legend>'
-
-        html[#html + 1] = ui_helper.createSwitch(T"WiFi LED ON when no associated Clients", "ledfw_wifinsc", content["ledfw_wifinsc"])
+		if prod_friendly_name[1].value:match("DGA") or prod_friendly_name[1].value:match("TG789") then
+			html[#html + 1] = ui_helper.createAlertBlock(T"WiFi NSC when turned off will turn OFF WiFi LED(s) if there is no associated station (no wifi client connected)", info_box)
+			html[#html + 1] = ui_helper.createSwitch(T"WiFi NSC", "ledfw_wifinsc", content["ledfw_wifinsc"])
+		end
 	    html[#html + 1] = ui_helper.createAlertBlock(T"Turn off all LEDs (except info/power) if all services are up and running. Press INFO button (could be button with power LED) to show LED status.", info_box)
 	    html[#html + 1] = ui_helper.createSwitch(T"Eco Led", "eco_led", content["eco_led"])
 	    html[#html + 1] = ui_helper.createInputText(T"Timeout", "eco_led_timeout", content["eco_led_timeout"], basic , helpmsg["eco_led_timeout"] )
-        html[#html + 1] = ui_helper.createAlertBlock(T"Services to check for the Eco led", info_box)
+        html[#html + 1] = ui_helper.createAlertBlock(T"Services to check for the Eco LED", info_box)
         html[#html + 1] = ui_helper.createSwitch(T"VoIP", "ledfw_voip", content["ledfw_voip"])
         html[#html + 1] = ui_helper.createSwitch(T"IPTV", "ledfw_iptv", content["ledfw_iptv"])
         html[#html + 1] = ui_helper.createSwitch(T"Internet", "ledfw_internet", content["ledfw_internet"])
