@@ -3,14 +3,9 @@ jobs:
   build:
     working_directory: ~/gui_build
     docker:
-      - image: ubuntu:cosmic
+      - image: ansuel/gui-autobuild-image:1
     steps:
       - checkout
-      - run:
-          name: Install docker need app
-          command: |
-            echo Start autobuild of dev gui...
-            apt-get update && apt-get install dos2unix git curl -y
       - run:
           name: Check built type from last git log
           command: bash ./scripts/0-detect-build-type.sh
