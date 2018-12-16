@@ -1,5 +1,18 @@
 #!/bin/sh
 
+if [ "$(date +'%m%d')" != "1224" ] && [ "$(date +'%m%d')" != "1225" ]; then
+    echo "Date not correct cleaning and exiting..."
+	sed -i '/christmas_tree/d' /etc/crontabs/root
+	sh -c "sleep 2 && /usr/share/transformer/scripts/restart_leds.sh &"
+    killall christmas_tree.sh
+    exit
+fi
+
+if [ "$( ps | grep -c 'christmas_tree.sh')" -gt "3" ]; then
+    echo "Already running, exiting..."
+    exit
+fi
+
 randd(){
 	local random=
 	while [ "${#random}" -lt 1 ]
