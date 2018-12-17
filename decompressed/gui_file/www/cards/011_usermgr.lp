@@ -16,12 +16,12 @@ if session:hasAccess("/modals/usermgr-modal.lp") then
         ');  ngx.print( ui_helper.createCardHeader(T"Management", "modals/usermgr-modal.lp") ); ngx.print('\
         <div class="content card_bg" data-bg-text="&#xf0c0;">\
 		<div class="divtable">\
-            <p class="subinfos">\
+            <span class="simple-desc">\
             <i " class="fas fa-user-alt" aria-hidden="true" href="#">&nbsp</i>\
 		<strong>\
-		   ');  ngx.print(T"User management and log viewer"); ngx.print('<br>\
+		   ');  ngx.print(T"User Management and Log Viewer"); ngx.print('<br>\
 		</strong>\
-            </p>\
+            </span>\
         </div>\
 		</div>\
     </div>\

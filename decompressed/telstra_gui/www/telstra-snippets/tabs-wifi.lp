@@ -24,13 +24,13 @@ end
 --check whether the guest1 exists. 
 guest1=proxy.get("uci.wireless.wifi-iface.@wl0_1.")
 if guest1 ~= nil then
-    table.insert(items, {"wifiguest.lp?guest=2g_1", T"Guest1"})
+    table.insert(items, {"wifiguest.lp?guest=2g_1", T"Guest 2.4GHz"})
 end
 
 --check whether the 5G guest1 exists. 
 guest1_5g=proxy.get("uci.wireless.wifi-iface.@wl1_1.")
 if guest1_5g ~= nil then
-    table.insert(items, {"wifiguest.lp?guest=5g_1", T"Guest1_5G"})
+    table.insert(items, {"wifiguest.lp?guest=5g_1", T"Guest 5GHz"})
 end
 
 local html = {}

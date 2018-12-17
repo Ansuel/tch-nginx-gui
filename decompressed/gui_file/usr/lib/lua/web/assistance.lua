@@ -454,15 +454,17 @@ end
 
 --- Notify assistant of user activity in order to prevent a timeout
 function Assistant:activity()
-    -- in case the timer is not running we now have the opportunity to check
-    -- the timer
-    assistant_checkTimeout(self)
-
-    -- if still active reset activity timer
-    if self._psw then
-        self.timestamp = clock_gettime(CLOCK_MONOTONIC)
-        assistant_startTimer(self)
-    end
+	if not untaint(ngx.var.request_uri):match("/ajax/") then -- Disable check activity for ajax request
+		-- in case the timer is not running we now have the opportunity to check
+		-- the timer
+		assistant_checkTimeout(self)
+	
+		-- if still active reset activity timer
+		if self._psw then
+			self.timestamp = clock_gettime(CLOCK_MONOTONIC)
+			assistant_startTimer(self)
+		end
+	end
 end
 
 --- check the timeout

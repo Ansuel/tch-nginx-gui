@@ -1,6 +1,27 @@
-
 echo "Fixing file..."
-find decompressed/ -type f -print0 | xargs -0 -n 4 -P 4 dos2unix -q > /dev/null
+
+nfile=0
+
+check_file_ending() {
+	for file in $1/*; do
+		if [ -d $file ]; then
+			check_file_ending $file
+		else
+			if [ -f $file ]; then
+				nfile=$[$nfile +1]
+				echo -ne 'File scanned: '$nfile'\r'
+				if [ $( dos2unix -ic $file ) ]; then
+					dos2unix $file
+					echo "Detected bad line-ending here: $file"
+				fi
+			fi
+		fi
+	done
+	
+}
+
+check_file_ending decompressed
+echo ""
 echo "File fixed!"
 
 declare -a modular_dir=(
@@ -8,12 +29,17 @@ declare -a modular_dir=(
 	"gui_file"
 	"traffic_mon"
 	"telnet_support-specificDGA"
+	"telnet_support-specificTG789"
 	"upnpfix-specificDGA"
 	"upgrade-pack-specificDGA"
 	"custom-ripdrv-specificDGA"
 	"dlnad_supprto-specificDGA"
 	"wgetfix-specificDGA"
 	"telstra_gui"
+	"ledfw_support-specificTG789"
+	"ledfw_support-specificTG799"
+	"ledfw_support-specificTG800"
+	"ledfw_support-specificDGA"
 )
 
 if [ "$1" == "dev" ]; then
@@ -21,46 +47,69 @@ if [ "$1" == "dev" ]; then
 	type="_dev"
 fi
 
+if [ $CI == "true" ]; then
+	if [ -f ~/.dev ]; then
+		type="_dev"
+	fi
+fi
+
+mkdir tar_tmp
+
 for index in "${modular_dir[@]}"; do
-	echo "Creating modular package $index"
+	
+	if [ $CI == "true" ] && [ -f $HOME/gui-dev-build-auto/modular/$index.tar.bz2 ]; then
+		old_md5=$(md5sum <(bzcat $HOME/gui-dev-build-auto/modular/$index.tar.bz2) | awk '{print $1}')
+	fi
+	
 	cd decompressed/$index
-	BZIP2=-9 tar -cjf ../../compressed/$index.tar.bz2 * --owner=0 --group=0
+	
+	#Creating md5sum file for status led eventing
+	if [[ $index == "gui_file" ]]; then
+		md5sum tmp/status-led-eventing.lua_new > tmp/status-led-eventing.md5sum
+	fi
+	
+	#Creating md5sum for every ledfw_support modular dir
+	if [[ $index == *"ledfw_support"* ]]; then
+		md5sum etc/ledfw/stateMachines.lua > stateMachines.md5sum 
+	fi
+	
+	BZIP2=-9 tar --mtime='2018-01-01' -cjf ../../tar_tmp/$index.tar.bz2 * --owner=0 --group=0
 	cd ../../
-	cp compressed/$index.tar.bz2 modular/
+	new_md5=$(md5sum <(bzcat tar_tmp/$index.tar.bz2) | awk '{print $1}')
+	if [ -z "$old_md5" ] || [ "$old_md5" != "$new_md5" ]; then
+		echo "Changes detected in modular package $index, updating..."
+		cp tar_tmp/$index.tar.bz2 $HOME/gui-dev-build-auto/modular/
+	fi
 done
 
+rm -r tar_tmp
+
 echo "Creating GUI dir"
+
 if [ -d total ]; then
 	rm -r total
 fi
-mkdir total
 
-echo "Copying file to GUI dir"
-cp -dr decompressed/base/* total 
-cp -dr decompressed/gui_file/* total 
-cp -dr decompressed/traffic_mon/* total
-
-echo "Adding specific file to root dir"
-
-if [ ! -d total/root ]; then
-	mkdir total/root
+if [ ! -d compressed ]; then
+	mkdir compressed
 fi
 
-cp compressed/telnet_support-specificDGA.tar.bz2 total/root
-cp compressed/upnpfix-specificDGA.tar.bz2 total/root
-cp compressed/upgrade-pack-specificDGA.tar.bz2 total/root 
-cp compressed/custom-ripdrv-specificDGA.tar.bz2 total/root 
-cp compressed/dlnad_supprto-specificDGA.tar.bz2 total/root
-cp compressed/wgetfix-specificDGA.tar.bz2 total/root
-cp compressed/telstra_gui.tar.bz2 total/root
+mkdir total
+
+if [ ! -d total/tmp ]; then
+	mkdir total/tmp
+fi
+
+for index in "${modular_dir[@]}"; do
+	
+	if [ $index == "base" ] || [ $index == "gui_file" ] || [ $index == "traffic_mon" ]; then
+		echo "Copying file from "$index" to GUI dir"
+		cp -dr decompressed/$index/* total 
+	else
+		cp $HOME/gui-dev-build-auto/modular/$index.tar.bz2 total/tmp
+		echo "Adding specific file from "$index" to tmp virtual dir"
+	fi
+done
 
 cd total && BZIP2=-9 tar -cjf ../compressed/GUI$type.tar.bz2 * --owner=0 --group=0
 cd ../
-
-echo "Adding md5sum of new GUI to version file"
-md5sum=$(md5sum compressed/GUI$type.tar.bz2 | awk '{print $1}')
-version=$(cat total/etc/init.d/rootdevice | grep -m1 version_gui | cut -d'=' -f 2)
-version_file=$(cat compressed/version)
-if ! grep -w -q "$version" compressed/version ; then
-	echo $md5sum $version >> compressed/version
-fi

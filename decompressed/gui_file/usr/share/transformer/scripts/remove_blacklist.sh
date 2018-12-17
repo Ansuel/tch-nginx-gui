@@ -1,4 +1,4 @@
-
+#!/bin/sh
 wget -P /tmp http://blacklist.satellitar.it/repository/blacklist.latest.tar.gz
 tar -zxvf /tmp/blacklist.latest.tar.gz -C /tmp
 cd /tmp/blacklist.latest

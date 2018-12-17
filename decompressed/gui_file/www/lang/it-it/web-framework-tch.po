@@ -1,0 +1,325 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: web-framework-tch\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-06-21 15:33+0200\n"
+"PO-Revision-Date: 2017-10-20 21:53+0200\n"
+"Last-Translator: Piergiorgio Bellezza\n"
+"Language-Team: none\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language-Name: Italiano\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.0.4\n"
+
+msgid "%d day"
+msgid_plural "%d days"
+msgstr[0] "%d giorno"
+msgstr[1] "%d giorni"
+
+msgid "%d hour"
+msgid_plural "%d hours"
+msgstr[0] "%d ora"
+msgstr[1] "%d ore"
+
+msgid "%d minute"
+msgid_plural "%d minutes"
+msgstr[0] "%d minuto"
+msgstr[1] "%d minuti"
+
+msgid "%d second"
+msgid_plural "%d seconds"
+msgstr[0] "%d secondo"
+msgstr[1] "%d secondi"
+
+msgid "0 or 1 expected."
+msgstr "Inserire 0 o 1."
+
+msgid "A WEP key of length 10 or 26 can only contain the hexadecimal digits."
+msgstr ""
+"Una chiave WEP di lunghezza 10 o 26 caratteri può contenere solo cifre "
+"esadecimali."
+
+msgid "Add"
+msgstr "Aggiungi"
+
+msgid "An error occured while applying your changes."
+msgstr "Si è verificato un errore durante l'applicazione delle modifiche."
+
+msgid "An error occured while saving your changes."
+msgstr "Si è verificato un errore durante il salvataggio delle modifiche."
+
+msgid "Apply"
+msgstr "Applica"
+
+msgid "Back"
+msgstr "Indietro"
+
+msgid "Cancel"
+msgstr "Annulla"
+
+msgid "Cannot assign, %s in use by system."
+msgstr "Impossibile assegnare, %s è utilizzato dal sistema."
+
+msgid "Cannot use IPv4 loopback address range."
+msgstr "Impossibile utilizzare un intervallo di indirizzi IPv4 di loopback."
+
+msgid "Cannot use a multicast address."
+msgstr "Impossibile utilizzare un indirizzo multicast."
+
+msgid "Cannot use an address in this address range."
+msgstr "Impossibile utilizzare un indirizzo in questo intervallo di indirizzi."
+
+msgid "Cannot use the GW IP."
+msgstr "Impossibile utilizzare l'IP di Gateway."
+
+msgid "Cannot use the broadcast address."
+msgstr "Impossibile utilizzare l'indirizzo di broadcast."
+
+msgid "Cannot use the limited broadcast destination address."
+msgstr ""
+"Impossibile utilizzare l´indirizzo di destinazione di broadcast limitato."
+
+msgid "Cannot use the network address."
+msgstr "Impossibile utilizzare l'indirizzo di rete."
+
+msgid "Changes not allowed."
+msgstr "Modifiche non consentite."
+
+msgid "Changes saved successfully"
+msgstr "Modifiche salvate correttamente"
+
+msgid "Changes were made to this table which require you to start again."
+msgstr ""
+"Le modifiche che sono state effettuate su questa tabella richiedono di "
+"iniziare nuovamente."
+
+msgid "Close"
+msgstr "Chiudi"
+
+msgid "Create new"
+msgstr "Crea nuovo"
+
+msgid "Delete"
+msgstr "Cancella"
+
+msgid "Domain name cannot be empty."
+msgstr "Il nome del dominio non può essere vuoto."
+
+msgid "Domain name contains a label that is longer than 63 characters."
+msgstr ""
+"Il nome del dominio contiene un'etichetta che è più lunga di 63 caratteri."
+
+msgid "Edit"
+msgstr "Modifica"
+
+msgid "Empty label not allowed."
+msgstr "Etichetta vuota non consentita."
+
+msgid "Error while applying changes"
+msgstr "Errore durante l´applicazione delle modifiche"
+
+msgid "Error while saving changes"
+msgstr "Errore durante il salvataggio delle modifiche"
+
+msgid "Exit"
+msgstr "Esci"
+
+msgid ""
+"Expire Time is invalid. It should be a whole number, between 60 and 86400."
+msgstr ""
+"Tempo di Scadenza non valido. Deve essere un numero intero, compreso tra 60 "
+"e 86400."
+
+msgid "Finish"
+msgstr "Termina"
+
+msgid "IP Address does not belong to Class A, B or C."
+msgstr "Indirizzo IP non appartenente alla Classe A, B o C."
+
+msgid "IP is not in the same network as the gateway %s."
+msgstr "L´IP non appartiene alla stessa rete del gateway %s."
+
+msgid "Input must be a number between %d and %d included."
+msgstr ""
+"Il valore immesso deve essere un numero compreso tra %d and %d incluso."
+
+msgid "Input must be a number greater than %d included."
+msgstr "Il valore immesso deve essere un numero più grande di %d incluso."
+
+msgid "Input must be a number smaller than %d included."
+msgstr "Il valore immesso deve essere un numero più piccolo di %d incluso."
+
+msgid "Input must be a number."
+msgstr "Il valore immesso deve essere un numero."
+
+msgid "Input must be a whole number."
+msgstr "Il valore immesso deve essere un numero intero."
+
+msgid "Invalid CIDR number."
+msgstr "Numero CIDR non valido."
+
+msgid "Invalid IP Address"
+msgstr "Indirizzo IP non valido"
+
+msgid "Invalid IP Address."
+msgstr "Indirizzo IP non valido."
+
+msgid "Invalid IP address."
+msgstr "Indirizzo IP non valido."
+
+msgid "Invalid IPv6 Address, address group is invalid."
+msgstr "Indirizzo IPv6 non valido, gruppo indirizzi non valido."
+
+msgid "Invalid MAC address"
+msgstr "Indirizzo MAC non valido"
+
+msgid ""
+"Invalid MAC address, it must be of the form 00:11:22:33:44:55 or "
+"00-11-22-33-44-55"
+msgstr ""
+"Indirizzo MAC non valido, deve essere della forma 00:11:22:33:44:55 oppure "
+"00-11-22-33-44-55"
+
+msgid "Invalid Network Address."
+msgstr "Indirizzo di Rete non valido."
+
+msgid "Invalid Pin."
+msgstr "Pin non valido."
+
+msgid "Invalid URL"
+msgstr "URL non valido"
+
+msgid "Invalid data format detected"
+msgstr "Rilevato formato dati non valido"
+
+msgid "Invalid input"
+msgstr "Inserimento non valido"
+
+msgid "Invalid input."
+msgstr "Inserimento non valido."
+
+msgid "Invalid length, a WEP key must be 5, 10, 13 or 26 characters long."
+msgstr ""
+"Lunghezza non valida, una chiave WEP deve essere lunga 5, 10, 13 o 26 "
+"caratteri."
+
+msgid "Invalid port range."
+msgstr "Intervallo di porte non valido."
+
+msgid "Invalid subnet."
+msgstr "Sottorete non valida."
+
+msgid "Invalid value."
+msgstr "Valore non valido."
+
+msgid ""
+"Invalid value; enter a number greater than 0, followed by 's' for seconds or "
+"'m' for minutes or 'h' for hours or 'd' for days or 'w' for weeks. No spaces."
+msgstr ""
+"Valore non valido; inserire un numero maggiore di 0, seguito da 's' per i "
+"secondi oppure 'm' per i minuti o 'h' per le ore o 'd' per i giorni o 'w' "
+"per le settimane. Senza spazi."
+
+msgid "Label within domain name has invalid syntax."
+msgstr ""
+"L'etichetta all'interno del nome del dominio ha una sintassi non valida."
+
+msgid "Next"
+msgstr "Avanti"
+
+msgid "Not a Public Address"
+msgstr "Non un Indirizzo Pubblico"
+
+msgid ""
+"PIN code must composed of 4 or 8 digits with potentially a dash or space in "
+"the middle."
+msgstr ""
+"Il codice PIN deve essere composto da 4 o 8 cifre separate potenzialmente da "
+"un trattino o uno spazio al centro."
+
+msgid "Please enter valid IPv"
+msgstr "Si prega di inserire un IPv valido"
+
+msgid ""
+"Port is invalid. It should be between 1 and 65535 or it must be of format "
+"port1:port2 with port1 <= port2."
+msgstr ""
+"La porta non è valida. Deve essere tra 1 e 65535 oppure deve essere nel "
+"formato porta1:porta2 con porta1 <= porta2."
+
+msgid ""
+"Port range is invalid, it must be of format port1:port2 with port1 <= port2."
+msgstr ""
+"Intervallo di porte non valido, deve essere nel formato porta1:porta2 con "
+"porta1 <= porta2."
+
+msgid "Positive number expected."
+msgstr "Digitare un numero positivo."
+
+msgid "Received a non string value."
+msgstr "Ricevuto un valore non di stringa."
+
+msgid "Received domain name is too long."
+msgstr "Il nome del dominio ricevuto è troppo lungo."
+
+msgid "Reserved MAC address"
+msgstr "Indirizzo MAC riservato"
+
+msgid "Save"
+msgstr "Salva"
+
+msgid "Some parameters failed validation"
+msgstr "Alcuni parametri hanno fallito la convalida"
+
+msgid "String cannot be empty."
+msgstr "La stringa non può essere vuota."
+
+msgid "String is not an IPv4 address."
+msgstr "La stringa non è un indirizzo IPv4."
+
+msgid "String must be at least %d characters long."
+msgstr "La stringa deve essere lunga almeno %d caratteri."
+
+msgid "String must be between %1$d and %2$d characters long."
+msgstr "La stringa deve essere lunga tra %1$d e %2$d caratteri."
+
+msgid "Subnet must be between %d and %d (inclusive)"
+msgstr "La sottorete deve essere compresa tra %d e %d (inclusi)"
+
+msgid ""
+"The Maximum leasetime must be 3 weeks or 21 days or 504 hours or 30240 "
+"minutes or 1814400 seconds."
+msgstr ""
+"Il Massimo tempo di lease deve essere 3 settimane oppure 21 giorni o 504 ore "
+"o 30240 minuti o 1814400 secondi."
+
+msgid "The minimum leasetime must be 120 seconds or 2 minutes."
+msgstr "Il minimo tempo di lease deve essere di 120 secondi oppure 2 minuti."
+
+msgid ""
+"The wireless key contains invalid characters, only space, letters, numbers "
+"and the following characters !\"#$%&()*+,-./:;<=>?@[\\]^_{|}~ are allowed."
+msgstr ""
+"La chiave wireless contiene caratteri non validi, sono consentiti solo lo "
+"spazio, le lettere ed i seguenti caratteri !\"#$%&()*+,-./:;<=>?@[\\]^_{|}~."
+
+msgid "You tried to access an invalid line."
+msgstr "Hai tentato di accedere ad una linea non valida."
+
+msgid "duplicate value"
+msgstr "duplica valore"
+
+msgid "help"
+msgstr "aiuto"
+
+msgid "hide advanced"
+msgstr "nascondi opzioni avanzate"
+
+msgid "refresh data"
+msgstr "aggiorna dati"
+
+msgid "show advanced"
+msgstr "mostra opzioni avanzate"

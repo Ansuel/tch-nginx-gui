@@ -357,7 +357,7 @@ text-decoration: none;
 }
 
 .header-title {
-	max-width: 175px;
+	width: 72%;
 }
 
 .header-title > p {
@@ -470,4 +470,4 @@ text-decoration: none;
 .copyright {
 	text-shadow: unset;
 }
-
+.copyright>p>font {color: var(--first-color-accent);}

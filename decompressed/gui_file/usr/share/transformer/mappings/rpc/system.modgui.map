@@ -1,0 +1,220 @@
+local logger = require("transformer.logger")
+local log = logger.new("rpc.system.config.")
+local lfs = require("lfs")
+local commitapply = commitapply
+
+local SYSTEM_MODGUI_ = {
+  objectType = {
+    name = 'rpc.system.modgui.',
+    access = 'readOnly',
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {}
+  }
+}
+
+register(SYSTEM_MODGUI_)
+
+local SYSTEM_MODGUI_UPGRADEGUI_ = {
+  objectType = {
+    name = 'rpc.system.modgui.upgradegui.',
+    access = 'readOnly',
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      state = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "In Progress",
+          "Not started",
+        },
+      },
+      start = {
+        access = "readWrite",
+        type = "boolean",
+      }
+    }
+  }
+}
+
+SYSTEM_MODGUI_UPGRADEGUI_.get = {
+  start = "0",
+  state = function(mapping, param)
+	local progress_status = io.open("/root/.check_process","r")
+	if progress_status then
+		progress_status:close()
+		return "In Progress"
+	else
+		return "Not started"
+	end
+  end,
+}
+
+SYSTEM_MODGUI_UPGRADEGUI_.set = {
+	start = function(mapping, paramName, paramValue)  
+	if paramValue == "1" then
+        commitapply:newset("rpc.system.modgui.upgradegui." .. paramName)
+    end
+  end,
+}
+
+register(SYSTEM_MODGUI_UPGRADEGUI_)
+
+local SYSTEM_MODGUI_DEBUGLOG_ = {
+  objectType = {
+    name = 'rpc.system.modgui.debuglog.',
+    access = 'readOnly',
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      state = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "None",
+          "Requested",
+          "Complete",
+        },
+      },
+      filename = {
+        access = "readOnly",
+        type = "string",
+        max = "256",
+      },
+      location = {
+        access = "readOnly",
+        type = "string",
+      },
+	  start = {
+		access = "readWrite",
+		type = "boolean",
+	  }
+    }
+  }
+}
+
+SYSTEM_MODGUI_DEBUGLOG_.get = {
+  filename = function(mapping, param)
+	local filename = "DebugHelper"..os.date("%Y-%m-%d")..".tar.gz"
+	local filedir = os.date("%Y-%m-%d").."-DebugHelper"
+	local file = io.open("/tmp/"..filedir.."/"..filename,"r")
+	if file then
+		file:close()
+		return filename
+	end
+	return ""
+  end,
+  state = function(mapping, param)
+	local filename = "DebugHelper"..os.date("%Y-%m-%d")..".tar.gz"
+	local filedir = os.date("%Y-%m-%d").."-DebugHelper"
+	local file = io.open("/tmp/"..filedir.."/"..filename,"r")
+	if file then
+		file:close()
+		return "Complete"
+	end
+	if lfs.chdir("/tmp/"..filedir) then
+		return "Requested"
+	end
+	return "None"
+  end,
+  location = "/tmp/"..os.date("%Y-%m-%d").."-DebugHelper/",
+  start = "0",
+}
+
+SYSTEM_MODGUI_DEBUGLOG_.set = {
+  start = function(mapping, paramName, paramValue)  
+	if paramValue == "1" then
+        commitapply:newset("rpc.system.modgui.debuglog." .. paramName)
+    end
+  end,
+}
+
+register(SYSTEM_MODGUI_DEBUGLOG_)
+
+local SYSTEM_MODGUI_APP_ = {
+  objectType = {
+    name = 'rpc.system.modgui.app.',
+    access = 'readOnly',
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      install_luci = {
+                access = "readWrite",
+                type = "boolean",
+            },
+	  remove_luci = {
+                access = "readWrite",
+                type = "boolean",
+            },
+	  install_aria2 = {
+                access = "readWrite",
+                type = "boolean",
+            },
+	  remove_aria2 = {
+                access = "readWrite",
+                type = "boolean",
+            },
+	  install_transmission = {
+                access = "readWrite",
+                type = "boolean",
+            },
+	  remove_transmission = {
+                access = "readWrite",
+                type = "boolean",
+            },
+	  install_blacklist = {
+                access = "readWrite",
+                type = "boolean",
+            },
+	  install_emptyblacklist = {
+                access = "readWrite",
+                type = "boolean",
+            },
+	  remove_blacklist = {
+                access = "readWrite",
+                type = "boolean",
+            },
+	  install_xupnp = {
+                access = "readWrite",
+                type = "boolean",
+            },
+	  remove_xupnp = {
+                access = "readWrite",
+                type = "boolean",
+            },
+	  install_telstra = {
+                access = "readWrite",
+                type = "boolean",
+            },
+	  remove_telstra = {
+                access = "readWrite",
+                type = "boolean",
+            },
+    }
+  }
+}
+
+SYSTEM_MODGUI_APP_.get = {
+		install_luci = "0",
+		remove_luci = "0",
+		install_aria2 = "0",
+		remove_aria2 = "0",
+		install_transmission = "0",
+		remove_transmission = "0",	
+		install_blacklist = "0",
+		install_emptyblacklist = "0",
+		remove_blacklist = "0",	
+		install_xupnp = "0",
+		remove_xupnp = "0",
+		install_telstra = "0",
+		remove_telstra = "0",	
+}
+
+SYSTEM_MODGUI_APP_.set = function(mapping, paramName, paramValue) 
+	if paramValue == "1" then
+        commitapply:newset("rpc.system.modgui.app." .. paramName)
+    end
+end
+
+register(SYSTEM_MODGUI_APP_)

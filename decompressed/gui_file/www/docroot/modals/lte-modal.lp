@@ -949,7 +949,7 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
 		};\
 	};\
 \
-	$("select[name=\'radio_pref\']").change(function() {\
+	$("select[name=\'radio_pref\']").on("change",function() {\
 		if(/\\blte\\b/.test($(this).val())) {\
 			$(\'#lte_bands_pref\').parent().parent().show();\
 			if(document.getElementById("input[name=\'earfcn\']") == true) {\
@@ -964,7 +964,7 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
 		}\
 	});\
 \
-	$("#lte_bands_pref").change(function() {\
+	$("#lte_bands_pref").on("change",function() {\
 		updateBandPref();\
 	});\
 \
@@ -994,7 +994,7 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
 		lteModal.getScanResults();\
 	}\
 \
-	$("select[name=\'network_selection\']").change(function() {\
+	$("select[name=\'network_selection\']").on("change",function() {\
 		if($(this).val() == \'manual\') {\
 			lteModal.manualPlmnSelection(true);\
 			var params = [ { name: \'action\', value: "getcurrentplmn" }, tch.elementCSRFtoken() ];\
@@ -1016,7 +1016,7 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
 		lteModal.startDatausageMonitor();\
 	}\
 \
-	$("#datausage_limit_enabled").change(function() {\
+	$("#datausage_limit_enabled").on("change",function() {\
 		if($(this).val() == \'1\') {\
 			lteModal.dataUsageLimitEnabled(true);\
 		} else {\
@@ -1024,7 +1024,7 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
 		}\
 	});\
 \
-	$("#datausage_monitor_enabled").change(function() {\
+	$("#datausage_monitor_enabled").on("change",function() {\
 		if($(this).val() == \'1\') {\
 			lteModal.dataUsageEnabled(true);\
 			lteModal.startDatausageMonitor();\

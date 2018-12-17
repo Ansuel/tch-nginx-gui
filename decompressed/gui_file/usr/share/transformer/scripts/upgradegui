@@ -74,6 +74,8 @@ else
 	uci set env.var.autoupgradeview=manual
 fi
 
+URL_BASE="https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/"
+
 # Check update_branch
 if [ ! $(uci get -q env.var.update_branch) ] ||  [ $(uci get env.var.update_branch) == "stable" ]; then
 	update_branch=""
@@ -81,14 +83,30 @@ else
 	update_branch="_dev"
 fi
 
+normalize() {
+	normalized_version=$1
+	if [ "$( echo $1 | grep -E '\.[0-9]\.' )" ]; then
+		normalized_version="$( echo $1 | sed 's|\.\([0-9]\.\)|.0\1|g' )"
+	fi
+	if [ "$( echo $normalized_version | tail -c 3 | grep "\." )" ]; then
+		normalized_version="$( echo $normalized_version | sed 's|\(\.[0-9][0-9]\.\)\([0-9]\)|\10\2|g' )"
+	fi
+	
+	echo $normalized_version
+}
+
+enum() {
+	echo $(echo $1 | sed -e 's/\.//g')
+}
+
 #Check if stable have a new version 
 
+ubus send fwupgrade '{"state":"upgrading"}'
 
 WORKING_DIR="/tmp"
 PERMANENT_STORE_DIR="/root"
 TARGET_DIR="/"
 FILE_NAME='GUI'$update_branch'.tar.bz2'
-URL_BASE="https://repository.ilpuntotecnico.com/files/Ansuel/AGTEF"
 CHECKSUM_FILE="version"
 UPGRADE_FROM_STABLE=0
 
@@ -98,6 +116,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 	# Enter /tmp folder
 	if ! cd "$WORKING_DIR"; then
 	logger -s -t "Upgrade Script" "ERROR: can't access $WORKING_DIR" >&2
+	ubus send fwupgrade '{"state":"done"}'
 	exit 1
 	fi
 	
@@ -109,6 +128,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 	# Download new GUI to /tmp
 	if ! $curl $URL_BASE/$FILE_NAME --output $WORKING_DIR/$FILE_NAME; then
 	logger -s -t "Upgrade Script" "ERROR: can't find new GUI file" >&2
+	ubus send fwupgrade '{"state":"done"}'
 	exit 1
 	fi
 	
@@ -125,6 +145,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 		rm $WORKING_DIR/$CHECKSUM_FILE
 		logger -s -t "Upgrade Script" "ERROR: File corrupted!!!" >&2
 		logger -s -t "Upgrade Script" "ERROR: Removing upgrade file and aborting." >&2
+		ubus send fwupgrade '{"state":"done"}'
 		exit 1
 	fi
 	
@@ -147,6 +168,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 				logger -s -t "Upgrade Script" "ERROR: can't find stable GUI file" >&2
 				rm $WORKING_DIR/$FILE_NAME
 				rm $WORKING_DIR/$CHECKSUM_FILE
+				ubus send fwupgrade '{"state":"done"}'
 				exit 1
 			fi
 			
@@ -158,6 +180,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 				rm $WORKING_DIR/$CHECKSUM_FILE
 				logger -s -t "Upgrade Script" "ERROR: Stable file corrupted!!!" >&2
 				logger -s -t "Upgrade Script" "ERROR: Removing upgrade file and aborting." >&2
+				ubus send fwupgrade '{"state":"done"}'
 				exit 1
 			fi
 			
@@ -167,27 +190,15 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 			
 			dev_version=$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $downloaded_md5 | awk '{print $2}' )
 			
-			stable_version_norm=$stable_version
-			if [ "$( echo $stable_version | grep -E '\.[0-9]\.' )" ]; then
-				stable_version_norm="$( echo $stable_version | sed 's|\.\([0-9]\.\)|.0\1|g' )"
-			fi
-			if [ "$( echo $stable_version_norm | tail -c 3 | grep "\." )" ]; then
-				stable_version_norm="$( echo $stable_version_norm | sed 's|\(\.[0-9][0-9]\.\)\([0-9]\)|\10\2|g' )"
-			fi
+			stable_version_norm=$(normalize $stable_version)
 			
 			logger -s -t "Upgrade Script" "Stable version found: $stable_version_norm"
 			
-			dev_version_norm=$dev_version
-			if [ "$( echo $dev_version | grep -E '\.[0-9]\.' )" ]; then
-				dev_version_norm="$( echo $dev_version | sed 's|\.\([0-9]\.\)|.0\1|g' )"
-			fi
-			if [ "$( echo $dev_version_norm | tail -c 3 | grep "\." )" ]; then
-				dev_version_norm="$( echo $dev_version_norm | sed 's|\(\.[0-9][0-9]\.\)\([0-9]\)|\10\2|g' )"
-			fi
+			dev_version_norm=$(normalize $dev_version)
 			
 			logger -s -t "Upgrade Script" "Dev version found: $dev_version_norm"
 			
-			if [ $( echo $stable_version_norm | sed -e 's/\.//g') -gt $( echo $dev_version_norm | sed -e 's/\.//g') ]; then
+			if [ $( enum $stable_version_norm ) -gt $( enum $dev_version_norm ) ]; then
 				logger -s -t "Upgrade Script" "Found newer version in stable branch, using it..."
 				rm $WORKING_DIR/$FILE_NAME
 				FILE_NAME=$STABLE_FILE_NAME
@@ -254,4 +265,5 @@ fi
 logger -s -t "Upgrade Script" "Running rootdevice script"
 # Run init.d script
 /etc/init.d/rootdevice force
+ubus send fwupgrade '{"state":"done"}'
 logger -s -t "Upgrade Script" "Upgrade Done"

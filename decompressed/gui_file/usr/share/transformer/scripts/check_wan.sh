@@ -1,3 +1,4 @@
+#!/bin/sh
 eth4_mode=$(uci get ethernet.eth4.wan)
 sfp_presence=$(uci get env.rip.sfp)
 sfp_wanlan_mode=$(uci get -q ethernet.globals.eth4lanwanmode)

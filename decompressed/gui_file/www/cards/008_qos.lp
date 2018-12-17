@@ -30,14 +30,14 @@ ngx.print('\
 		<div class="divtable">\
 			');
                 local html = {}
-				html[#html + 1] = "<p class='subinfos'>"
+				html[#html + 1] = "<span class=\"simple-desc\">"
                 html[#html + 1] = '<i " class="fas fa-list-ul" aria-hidden="true" href="#">&nbsp</i>'
                 html[#html + 1] = format(N("<strong>%s queue(s)</strong> active"), dataQoS.numQueues)
-				html[#html + 1] = "</p>"
-				html[#html + 1] = "<p class='subinfos'>"
+				html[#html + 1] = "</span>"
+				html[#html + 1] = "<span class=\"simple-desc\">"
                 html[#html + 1] = '<i " class="fas fa-list-ul" aria-hidden="true" href="#">&nbsp</i>'
                 html[#html + 1] = format(N("<strong>%s classify rule(s)</strong> active"), dataQoS.numClassify)
-				html[#html + 1] = "</p>"
+				html[#html + 1] = "</span>"
                 ngx.print (html)
             ngx.print('\
         </div>\

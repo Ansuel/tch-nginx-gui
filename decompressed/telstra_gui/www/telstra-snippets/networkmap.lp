@@ -118,16 +118,16 @@ for k,v in ipairs(devices) do
             iswireless = "0"
         end
 
-        local html = string.format('<div class="device"><a href=/device.lp?mac=%s&wireless=%s&ticked=%s><img src="/img/telstra/dev_laptop%s.gif"/></a><div class="deviceinfo right">%s</div><div><br /></div></div>', v[4], iswireless, ticked, ticked, tooltip)
+        local html = string.format('<div class="device"><a href="/telstra-modals/device.lp?mac=%s&wireless=%s&ticked=%s"><img src="/img/telstra/dev_laptop%s.gif"/></a><div class="deviceinfo right">%s</div><div><br /></div></div>', v[4], iswireless, ticked, ticked, tooltip)
 
         if v[5] == "wireless" then
-            if uri == "/wifi.lp" then
+            if uri == "telstra-modals/wifi.lp" then
                 if (getargs.radio=="2.4") and (v[8]=="wl0") then
                     wireless[#wireless+1] = html
                 elseif (getargs.radio=="5") and (v[8]=="wl1") then
                     wireless[#wireless+1] = html
                 end
-            elseif uri == "/wifiguest.lp" then
+            elseif uri == "telstra-modals/wifiguest.lp" then
                 if (getargs.guest=="2g_1") and (v[8]=="wl0_1") then
                     wireless[#wireless+1] = html
                 elseif (getargs.guest=="5g_1") and (v[8]=="wl1_1") then
@@ -139,7 +139,7 @@ for k,v in ipairs(devices) do
                 end
             end
         else
-            if uri ~= "/wifiguest.lp" then
+            if uri ~= "telstra-modals/wifiguest.lp" then
                 if(v[14]=="br-lan") then
                     wired[#wired+1] = html
                 end
@@ -285,21 +285,37 @@ if uri == "/wifi.lp" then
     if getargs.radio == "2.4" then
         radio = "radio_2G"
         wl = "wl0"
-        ap = "ap0"
+		for _,tap in ipairs(proxy.getPN("uci.wireless.wifi-ap.", true)) do
+			if ( proxy.get(tap.path.."iface")[1].value == wl ) then
+				ap = (tap.path:gsub("uci%.wireless%.wifi%-ap%.@",""):gsub("%.",""))
+			end
+		end
     else
         radio = "radio_5G"
         wl = "wl1"
-        ap = "ap2"
+        for _,tap in ipairs(proxy.getPN("uci.wireless.wifi-ap.", true)) do
+			if ( proxy.get(tap.path.."iface")[1].value == wl ) then
+				ap = (tap.path:gsub("uci%.wireless%.wifi%-ap%.@",""):gsub("%.",""))
+			end
+		end
     end
 elseif uri == "/wifiguest.lp" then
     if getargs.guest == "2g_1" then
         radio = "radio_2G"
         wl = "wl0_1"
-        ap = "ap1"
+        for _,tap in ipairs(proxy.getPN("uci.wireless.wifi-ap.", true)) do
+			if ( proxy.get(tap.path.."iface")[1].value == wl ) then
+				ap = (tap.path:gsub("uci%.wireless%.wifi%-ap%.@",""):gsub("%.",""))
+			end
+		end
     elseif getargs.guest == "5g_1" then
         radio = "radio_5G"
         wl = "wl1_1"
-        ap = "ap3"
+        for _,tap in ipairs(proxy.getPN("uci.wireless.wifi-ap.", true)) do
+			if ( proxy.get(tap.path.."iface")[1].value == wl ) then
+				ap = (tap.path:gsub("uci%.wireless%.wifi%-ap%.@",""):gsub("%.",""))
+			end
+		end
     end
 end
 
@@ -344,13 +360,21 @@ if ((uri == "/wifi.lp") or (uri == "/wifiguest.lp")) then
 
     wifihtml[#wifihtml+1] = string.format('<div class="deviceinfo left">%s%s%s</div>', wifibase, wifisec, wifistate)
 else --in other pages, display both 2.4G and 5G info
-    local wifibase, wifisec, wifistate,wifibase_5g, wifisec_5g, wifistate_5g
+    local wifibase, wifisec, wifistate,wifibase_5g, wifisec_5g, wifistate_5g, ap_5, ap_24
+	for _,tap in ipairs(proxy.getPN("uci.wireless.wifi-ap.", true)) do
+		if ( proxy.get(tap.path.."iface")[1].value == "wl0" ) then
+			ap_24 = (tap.path:gsub("uci%.wireless%.wifi%-ap%.@",""):gsub("%.",""))
+		end
+		if ( proxy.get(tap.path.."iface")[1].value == "wl1" ) then
+			ap_5 = (tap.path:gsub("uci%.wireless%.wifi%-ap%.@",""):gsub("%.",""))
+		end
+	end
     local content_wifi = {
-        wifistate = "uci.wireless.wifi-ap.@ap0.state",
+        wifistate = "uci.wireless.wifi-ap.@"..(ap_24 or "ap0")..".state",
         wifissid = "uci.wireless.wifi-iface.@wl0.ssid",
-        wifipsk = "uci.wireless.wifi-ap.@ap0.wpa_psk_key",
-        wifiwep = "uci.wireless.wifi-ap.@ap0.wep_key",
-        wifisecmode = "uci.wireless.wifi-ap.@ap0.security_mode",
+        wifipsk = "uci.wireless.wifi-ap.@"..(ap_24 or "ap0")..".wpa_psk_key",
+        wifiwep = "uci.wireless.wifi-ap.@"..(ap_24 or "ap0")..".wep_key",
+        wifisecmode = "uci.wireless.wifi-ap.@"..(ap_24 or "ap0")..".security_mode",
         wifispeed = "rpc.wireless.radio.@radio_2G.phy_rate",
         radiostate = "uci.wireless.wifi-device.@radio_2G.state",
     }
@@ -359,11 +383,11 @@ else --in other pages, display both 2.4G and 5G info
     local dev_5g = proxy.get("uci.wireless.wifi-device.@radio_5G.")
 
     if dev_5g ~= nil then
-       content_wifi.wifistate_5g = "uci.wireless.wifi-ap.@ap2.state"
+       content_wifi.wifistate_5g = "uci.wireless.wifi-ap.@"..(ap_5 or "ap2")..".state"
        content_wifi.wifissid_5g = "uci.wireless.wifi-iface.@wl1.ssid"
-       content_wifi.wifipsk_5g = "uci.wireless.wifi-ap.@ap2.wpa_psk_key"
-       content_wifi.wifiwep_5g = "uci.wireless.wifi-ap.@ap2.wep_key"
-       content_wifi.wifisecmode_5g = "uci.wireless.wifi-ap.@ap2.security_mode"
+       content_wifi.wifipsk_5g = "uci.wireless.wifi-ap.@"..(ap_5 or "ap2")..".wpa_psk_key"
+       content_wifi.wifiwep_5g = "uci.wireless.wifi-ap.@"..(ap_5 or "ap2")..".wep_key"
+       content_wifi.wifisecmode_5g = "uci.wireless.wifi-ap.@"..(ap_5 or "ap2")..".security_mode"
        content_wifi.wifispeed_5g = "rpc.wireless.radio.@radio_5G.phy_rate"
        content_wifi.radiostate_5g = "uci.wireless.wifi-device.@radio_5G.state"
     end
@@ -569,10 +593,6 @@ end
         params.push({\
             name : "button_new_text",\
             value : button_new_text\
-        });\
-        params.push({\
-            name : "action",\
-            value : "SAVE"\
         });\
         params.push(tch.elementCSRFtoken());\
         var target = form.attr("action");\

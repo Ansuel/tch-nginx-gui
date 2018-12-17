@@ -1,3 +1,4 @@
+#!/bin/sh
 device_type="$(uci get -q env.var.prod_friendly_name)"
 
 if [ "$device_type" == "DGA4132" ] || [ "$device_type" == "DGA4130" ]; then 
@@ -32,7 +33,7 @@ luci_install_DGA() {
 		uci set uhttpd.main.home='/www_luci'
 	fi
 	
-	uci commit
+	uci commit uhttpd
 	/etc/init.d/uhttpd restart
 }
 

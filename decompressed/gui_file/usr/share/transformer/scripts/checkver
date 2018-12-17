@@ -1,3 +1,4 @@
+#!/bin/sh
 #
 #
 #	 Custom Gui for Technicolor Modem: utility script and modified gui for the Technicolor Modem
@@ -22,6 +23,11 @@
 #
 #
 
+STABLE_VERSION="stable.version"
+DEV_VERSION="latest.version"
+CURRENT_VERSION="$(uci get env.var.gui_version)"
+BASE_DIR="https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master"
+
 wanmode=$(uci get -q network.config.wan_mode)
 connectivity="yes"
 if ping -q -c 1 -W 1 8.8.8.8 >/dev/null; then
@@ -29,7 +35,6 @@ if ping -q -c 1 -W 1 8.8.8.8 >/dev/null; then
 else
   connectivity="no"
 fi
-base_dir=https://repository.ilpuntotecnico.com/files/Ansuel/AGTEF
 
 if [ $1 ]; then
 	if [ $1 == "Schedule" ]; then
@@ -38,66 +43,62 @@ if [ $1 ]; then
 	fi
 fi
 
+normalize() {
+	normalized_version=$1
+	if [ "$( echo $1 | grep -E '\.[0-9]\.' )" ]; then
+		normalized_version="$( echo $1 | sed 's|\.\([0-9]\.\)|.0\1|g' )"
+	fi
+	if [ "$( echo $normalized_version | tail -c 3 | grep "\." )" ]; then
+		normalized_version="$( echo $normalized_version | sed 's|\(\.[0-9][0-9]\.\)\([0-9]\)|\10\2|g' )"
+	fi
+	
+	echo $normalized_version
+}
+
+enum() {
+	echo $(echo $1 | sed -e 's/\.//g')
+}
+
 if [ "$wanmode" != "bridge" ] && [ $connectivity == "yes" ]; then
 	if [ ! $(uci get -q env.var.update_branch) ] ||  [ $(uci get env.var.update_branch) == "stable" ]; then
 		update_branch=""
+		version_link=$BASE_DIR/$STABLE_VERSION
 	else
 		update_branch="_dev"
+		version_link=$BASE_DIR/$DEV_VERSION
 	fi
 	newer_stable=0
-	remote_link=$base_dir'/GUI'$update_branch'.tar.bz2'
-	version_link=$base_dir'/version'
-	online_md5=$(curl -k -s $remote_link | md5sum | awk '{print $1}')
-	local_md5=$(uci get env.var.gui_hash)
-	version_file=$(curl -k -s $version_link)
+
+	new_version=$(curl -k -s $version_link)
 	
-	new_version=$(echo "$version_file" | grep $online_md5 | awk '{print $2}' )
-	
-	new_version_norm=$new_version
-	if [ "$( echo $new_version | grep -E '\.[0-9]\.' )" ]; then
-		new_version_norm="$( echo $new_version | sed 's|\.\([0-9]\.\)|.0\1|g' )"
-	fi
-	if [ "$( echo $new_version_norm | tail -c 3 | grep "\." )" ]; then
-		new_version_norm="$( echo $new_version_norm | sed 's|\(\.[0-9][0-9]\.\)\([0-9]\)|\10\2|g' )"
-	fi
+	new_version_norm=$(normalize $new_version)
 	
 	logger -s -t "CheckVer Script" "Checking for new version..."
 	
 	if [ "$new_version" != "" ] ; then #cool way to test if we have internet connection
-		logger -s -t "CheckVer Script" "Installed version md5: $local_md5"
+		logger -s -t "CheckVer Script" "Installed version: $CURRENT_VERSION"
+		logger -s -t "CheckVer Script" "Online dev version: $new_version"
 		
-		if [ $update_branch ]; then
-			if [ $update_branch == "_dev" ]; then
-				logger -s -t "CheckVer Script" "Detected dev branch!"
-				logger -s -t "CheckVer Script" "Online dev version md5: $online_md5"
-				stable_link=$base_dir'/GUI.tar.bz2'
-				stable_md5=$(curl -k -s $stable_link | md5sum | awk '{print $1}')
-				stable_version=$(echo "$version_file" | grep $stable_md5 | awk '{print $2}' )
-				logger -s -t "CheckVer Script" "Online stable version md5: $stable_md5"
-				logger -s -t "CheckVer Script" "Online dev version: $new_version_norm"
-				stable_version_norm=$stable_version
-				if [ "$( echo $stable_version | grep -E '\.[0-9]\.' )" ]; then
-					stable_version_norm="$( echo $stable_version | sed 's|\.\([0-9]\.\)|.0\1|g' )"
-				fi
-				if [ "$( echo $stable_version_norm | tail -c 3 | grep "\." )" ]; then
-					stable_version_norm="$( echo $stable_version_norm | sed 's|\(\.[0-9][0-9]\.\)\([0-9]\)|\10\2|g' )"
-				fi
-				logger -s -t "CheckVer Script" "Online stable version: $stable_version_norm"
-				if [ $( echo $stable_version_norm | sed -e 's/\.//g') -gt $( echo $new_version_norm | sed -e 's/\.//g') ]; then
-					logger -s -t "CheckVer Script" "Selecting stable version as it's newer than dev!"
-					new_version=$stable_version" STABLE"
-					online_md5="$stable_md5"
-					
-					if [ $local_md5 != $stable_md5 ]; then #This make sure that the new version is not already installed
-						newer_stable=1 #This could happen if the branch is dev and a stable version is installed.
-					fi
-					
-				fi
-			fi
-		else
-			logger -s -t "CheckVer Script" "Online version md5: $online_md5"
+		if [ $update_branch ] && [ $update_branch == "_dev" ]; then
+			logger -s -t "CheckVer Script" "Detected dev branch!"
+
+			stable_version_link=$BASE_DIR/$STABLE_VERSION
+			stable_version=$(curl -k -s $stable_version_link)
+			
+			stable_version_norm=$(normalize $stable_version)
+			
+			logger -s -t "CheckVer Script" "Online stable version: $stable_version_norm"
 		fi
-		if [ "$online_md5" != "$local_md5" ] || [ $newer_stable -eq 1 ]; then
+		
+		if [ $( enum $stable_version_norm ) -gt $( enum $new_version_norm ) ]; then
+			logger -s -t "CheckVer Script" "Selecting stable version as it's newer than dev!"
+			new_version=$stable_version" STABLE"
+			newer_stable=1 #This could happen if the branch is dev and a stable version is installed.
+		fi
+		
+		current_version_norm=$(normalize $CURRENT_VERSION)
+		
+		if [ $( enum $new_version_norm ) -gt $( enum $current_version_norm ) ] || [ $newer_stable -eq 1 ]; then
 			logger -s -t "CheckVer Script" "Online version selected: $new_version"
 			logger -s -t "CheckVer Script" "Setting outdate version bit!"
 			uci set env.var.outdated_ver=1
@@ -111,7 +112,7 @@ if [ "$wanmode" != "bridge" ] && [ $connectivity == "yes" ]; then
 		logger -s -t "CheckVer Script" "No connection detected!"
 	fi
 	
-	uci commit
+	uci commit env
 	
 	/etc/init.d/transformer reload
 fi

@@ -1,7 +1,6 @@
-<ul class="nav nav-tabs">
+--pretranslated: do not change this file
 
-<%
-
+-- Enable localization
 gettext.textdomain('webui-voice')
 local content_helper = require("web.content_helper")
 local ipairs, string = ipairs, string
@@ -56,54 +55,23 @@ elseif session:hasAccess("/modals/mmpbx-global-modal.lp") then
     tabs[#tabs+1] = {"mmpbx-global-modal.lp", T"Global"}
 end
 
-local html = {}
 
 local uri = ngx.var.uri
 if ngx.var.args and string.len(ngx.var.args) > 0 then
     uri = uri .. "?" .. ngx.var.args
 end
 
-html[#html+1] = '<div class="loading-wrapper hide"><img src="/img/spinner.gif" /></div>'
+local html = {}
 
-for _,v in ipairs(tabs) do
-    local active = ""
-    if uri == ("/modals/" .. v[1]) then
-        active = "active"
-    end
+	html[#html+1] = '<ul class="nav nav-tabs">'
+	for _,v in ipairs(tabs) do
+		local active = ""
+		if uri == ("/modals/" .. v[1]) then
+			active = "active"
+		end
+	
+		html[#html+1] = string.format('<li class="%s"><a id ="%s" href="#" class="open-modal" data-remote="/modals/%s">%s</a></li>', active, v[2], v[1], v[2])
+	end
+	html[#html+1] = '</ul>'
 
-    html[#html+1] = string.format('<li class="%s"><a id ="%s" href="#" class="open-modal" data-remote="/modals/%s">%s</a></li>', active, v[2], v[1], v[2])
-end
 ngx.print(html)
-
-%>
-
-</ul>
-
-<script>
-  $(function(){
-    function waiting_action(self) {
-        var msg_dst = $(self);
-        var busy_msg = $(".loading-wrapper");
-
-        msg_dst.after(busy_msg);
-        busy_msg.removeClass("hide");
-        busy_msg[0].scrollIntoView();
-        $(".modal-body").scrollLeft(0);
-    };
-    $(document).on("click", "#save-config", function () {
-        waiting_action(this);
-    });
-
-    $(document).on("click", "table [class*='btn-table-']:not(.disabled)", function () {
-        waiting_action(this);
-    });
-
-    $(document).on("change", 'table .switch input[type="hidden"]', function (e) {
-        var table = $(this).closest("table");
-        // Check that we're not editing a line, this is only for when the line is displayed
-        if (table.find(".btn-table-cancel").length === 0) {
-            waiting_action(this);
-        }
-    });
-  });
-</script>

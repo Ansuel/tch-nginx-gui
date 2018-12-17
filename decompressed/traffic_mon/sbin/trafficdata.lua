@@ -143,7 +143,8 @@ for i,v in ipairs(fonifaces) do
     ssidMap[iface] = true
 end
 
-local quantenna_wifi = proxy.get("uci.env.var.qtn_eth_mac") and true or false
+local quantenna_wifi = proxy.get("uci.env.var.qtn_eth_mac")
+quantenna_wifi = ((quantenna_wifi and quantenna_wifi[1].value~="") and true or false)
 
 local piface = "uci.wireless.wifi-iface."
 local awls = content_helper.convertResultToObject(piface .. "@.", proxy.get(piface))

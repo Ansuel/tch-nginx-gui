@@ -21,7 +21,7 @@ else
 end
 
 local function appapply(action)
-	proxy.set("rpc.system." .. action, "1")
+	proxy.set("rpc.system.modgui.app." .. action, "1")
 	lp.flush()
 	if ( action == "install_emptyblacklist" ) then
 		action = "install_blacklist"
@@ -95,9 +95,9 @@ local mapParams = {
 	local_ip_modem = "uci.network.interface.@lan.ipaddr",
 }
 if prod_friendly_name and prod_friendly_name[1].value then
-	if prod_friendly_name[1].value:match("DGA413") or 
-		prod_friendly_name[1].value:match("TG799") or 
-		prod_friendly_name[1].value:match("TG789") then
+	if prod_friendly_name[1].value:match("DGA413") or
+			prod_friendly_name[1].value:match("TG799") or
+			prod_friendly_name[1].value:match("TG789") then
 		mapParams.luci_webui = "uci.env.var.luci_webui"
 	end
 	if prod_friendly_name[1].value:match("DGA413") then
@@ -161,14 +161,10 @@ if StateParams["luci_webui"] ~= nil then
 	html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. luci_link .. '">' .. luci_link .. "</a>"
 	html[#html + 1] = "</br>"
 	html[#html + 1] = "</br>"
-	if prod_friendly_name[1].value:match("DGA413") then
-		if mapParams["luci_webui"] and mapParams["luci_webui"] == "1" then
-			html[#html + 1] = ui_helper.createSimpleButton(T"Remove Luci", "icon-refresh", remove_luci)
-		else
-			html[#html + 1] = ui_helper.createSimpleButton(T"Install Luci", "icon-refresh", install_luci)
-		end
+	if mapParams["luci_webui"] and mapParams["luci_webui"] == "1" then
+		html[#html + 1] = ui_helper.createSimpleButton(T"Remove Luci", "fa fa-times-circle", remove_luci)
 	else
-		html[#html + 1] = ui_helper.createAlertBlock(T"BROKEN WILL COME SOON. A custom library is needed", info_box)
+		html[#html + 1] = ui_helper.createSimpleButton(T"Install Luci", "fa fa-download", install_luci)
 	end
 	html[#html + 1] = "</br>"
 	html[#html+1] = "</fieldset>"
@@ -192,14 +188,14 @@ if StateParams["aria2_webui"] ~= nil then
 	html[#html + 1] = ui_helper.createAlertBlock(T"This will install aria2 and ariang webui", info_box)
 	html[#html + 1] = T"State: "
 	html[#html + 1] = "<strong>" .. T"Aria2 is " .. StateParams["aria2_webui"] .. T" installed" .. "</strong></br>"
-	local aria_link = format("http://%s/aria",mapParams.local_ip_modem)
+	local aria_link =  '/aria'
 	html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. aria_link .. '">' .. aria_link .."</a>"
 	html[#html + 1] = "</br>"
 	html[#html + 1] = "</br>"
 	if mapParams["aria2_webui"] and mapParams["aria2_webui"] == "1" then
-		html[#html + 1] = ui_helper.createSimpleButton(T"Remove Aria2", "icon-refresh", remove_aria2)
+		html[#html + 1] = ui_helper.createSimpleButton(T"Remove Aria2", "fa fa-times-circle", remove_aria2)
 	else
-		html[#html + 1] = ui_helper.createSimpleButton(T"Install Aria2", "icon-refresh", install_aria2)
+		html[#html + 1] = ui_helper.createSimpleButton(T"Install Aria2", "fa fa-download", install_aria2)
 	end
 	html[#html+1] = "</fieldset>"
 	html[#html+1] = "</div>"
@@ -222,7 +218,7 @@ if StateParams["transmission_webui"] ~= nil then
 	html[#html + 1] = ui_helper.createAlertBlock(T"This will install transmission and transmission-webui", info_box)
 	html[#html + 1] = T"State: "
 	html[#html + 1] = "<strong>" .. T"Transmission is " .. StateParams["transmission_webui"] .. T" installed" .. "</strong></br>"
-	local transmission_link = format("http://%s/transmission/web/",mapParams.local_ip_modem)
+	local transmission_link = '/transmission/web/'
 	html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. transmission_link .. '">' .. transmission_link .."</a>"
 	html[#html + 1] = "</br>"
 	local transmission_direct_link = format("http://%s:9091/transmission",mapParams.local_ip_modem)
@@ -230,9 +226,9 @@ if StateParams["transmission_webui"] ~= nil then
 	html[#html + 1] = "</br>"
 	html[#html + 1] = "</br>"
 	if mapParams["transmission_webui"] and mapParams["transmission_webui"] == "1" then
-		html[#html + 1] = ui_helper.createSimpleButton(T"Remove Transmission", "icon-refresh", remove_transmission)
+		html[#html + 1] = ui_helper.createSimpleButton(T"Remove Transmission", "fa fa-times-circle", remove_transmission)
 	else
-		html[#html + 1] = ui_helper.createSimpleButton(T"Install Transmission", "icon-refresh", install_transmission)
+		html[#html + 1] = ui_helper.createSimpleButton(T"Install Transmission", "fa fa-download", install_transmission)
 	end
 	html[#html+1] = "</fieldset>"
 	html[#html+1] = "</div>"
@@ -265,11 +261,11 @@ if StateParams["blacklist_application"] ~= nil then
 	html[#html + 1] = "</br>"
 	html[#html + 1] = "</br>"
 	if mapParams["blacklist_application"] and mapParams["blacklist_application"] == "1" then
-		html[#html + 1] = ui_helper.createSimpleButton(T"Remove Blacklist", "icon-refresh", remove_blacklist)
-		html[#html + 1] = ui_helper.createSimpleButton(T"Update blacklist app", "icon-refresh", install_empty_blacklist)
+		html[#html + 1] = ui_helper.createSimpleButton(T"Remove Blacklist", "fa fa-times-circle", remove_blacklist)
+		html[#html + 1] = ui_helper.createSimpleButton(T"Update blacklist app", "fa fa-download", install_empty_blacklist)
 	else
-		html[#html + 1] = ui_helper.createSimpleButton(T"Install Blacklist", "icon-refresh", install_blacklist)
-		html[#html + 1] = ui_helper.createSimpleButton(T"Install empty blacklist", "icon-refresh", install_empty_blacklist)
+		html[#html + 1] = ui_helper.createSimpleButton(T"Install Blacklist", "fa fa-download", install_blacklist)
+		html[#html + 1] = ui_helper.createSimpleButton(T"Install empty blacklist", "fa fa-download", install_empty_blacklist)
 	end
 
 	html[#html+1] = "</fieldset>"
@@ -298,9 +294,9 @@ if StateParams["xupnp_application"] ~= nil then
 	html[#html + 1] = "</br>"
 	html[#html + 1] = "</br>"
 	if mapParams["xupnp_application"] and mapParams["xupnp_application"] == "1" then
-		html[#html + 1] = ui_helper.createSimpleButton(T"Remove XUPnP", "icon-refresh", remove_xupnp)
+		html[#html + 1] = ui_helper.createSimpleButton(T"Remove XUPnP", "fa fa-times-circle", remove_xupnp)
 	else
-		html[#html + 1] = ui_helper.createSimpleButton(T"Install XUPnP", "icon-refresh", install_xupnp)
+		html[#html + 1] = ui_helper.createSimpleButton(T"Install XUPnP", "fa fa-download", install_xupnp)
 	end
 	html[#html+1] = "</fieldset>"
 	html[#html + 1] = "</br>"
@@ -330,9 +326,9 @@ if StateParams["telstra_webui"] ~= nil then
 	html[#html + 1] = T"Change the default page in system-extra to set this gui as default"
 	html[#html + 1] = "</br>"
 	if mapParams["telstra_webui"] and mapParams["telstra_webui"] == "1" then
-		html[#html + 1] = ui_helper.createSimpleButton(T"Remove Telstra GUI", "icon-refresh", remove_telstra)
+		html[#html + 1] = ui_helper.createSimpleButton(T"Remove Telstra GUI", "fa fa-times-circle", remove_telstra)
 	else
-		html[#html + 1] = ui_helper.createSimpleButton(T"Install Telstra GUI", "icon-refresh", install_telstra)
+		html[#html + 1] = ui_helper.createSimpleButton(T"Install Telstra GUI", "fa fa-download", install_telstra)
 	end
 	html[#html+1] = "</fieldset>"
 	html[#html+1] = "</div>"

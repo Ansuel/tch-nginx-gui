@@ -24,7 +24,8 @@
          setmetatable({ ["/telstra-modals/dyndns.lp"] = true, ["/telstra-modals/portforwarding.lp"] = true, ["/telstra-modals/remoteaccess.lp"] = true, ["/telstra-modals/traffic.lp"] = true }, untaint_mt) },
         {"/telstra-modals/user.lp", "admin", T"USER SETTINGS",
          setmetatable({ ["/telstra-modals/user.lp"] = true }, untaint_mt)},
-        {"/cards.lp", "gateway", T"ADVANCED", { }}
+        {"/cards.lp", "gateway", T"ADVANCED CARDS", { }},
+		{"/stats.lp", "gateway", T"STATS", { }}
     }
     local html = {}
     local uri = ngx.var.uri
