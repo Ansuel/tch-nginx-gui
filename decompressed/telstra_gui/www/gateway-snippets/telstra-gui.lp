@@ -1,9 +1,5 @@
 --pretranslated: do not change this file
  
-    local bridged = require("bridgedmode_helper")
-    if bridged.isBridgedMode() then
-        ngx.redirect("/gateway.lp")
-    end
     --NG-8926:After Signing in on the advaned user page you should be redirected to the Advance GUI
     --user clicked the signin in advanced ui,
     --so need to redirect to to "/gateway.lp" previously stored in lasturi

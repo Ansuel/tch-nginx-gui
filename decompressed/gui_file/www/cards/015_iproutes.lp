@@ -49,9 +49,9 @@ local flowcache = proxy.get("uci.fcctlsettings.state.enabled") and proxy.get("uc
 local flowcache_status , dosprotect_status
 
 if dosprotect and dosprotect == "1" then
-    dosprotect_status = T"Dos Protect enabled"
+    dosprotect_status = T"DoS Protect enabled"
 else
-    dosprotect_status = T"Dos Protect disabled"
+    dosprotect_status = T"DoS Protect disabled"
 end
 
 if flowcache and flowcache == "1" then
@@ -67,7 +67,7 @@ end
         ');  ngx.print( ui_helper.createCardHeader(T"IP Extras", "modals/iproutes-modal.lp") ); ngx.print('\
         <div class="content card_bg" data-bg-text="&#xf018;">\
 		<div class="divtable">\
-            <p class="subinfos">\
+            <span class="simple-desc">\
             <i class="fas fa-exchange-alt" aria-hidden="true" href="#">&nbsp</i>\
               ');  
             local modal_link=format('class="modal-link" data-toggle="modal" data-remote="%s" data-id="device-modal"',modalPath)
@@ -76,19 +76,19 @@ end
                       '<strong id="iproutescard_noofroutes" %1$s>%2$d Routes</strong> ', dyn_count),
                       modal_link, dyn_count))
               ngx.print('\
-            </p>\
-            <p class="subinfos">\
+            </span>\
+            <span class="simple-desc">\
             ');  
             ngx.print(
-           '<i " class="fas fa-server" aria-hidden="true" href="#">&nbsp</i>' .. format( N('<strong %1$s>%2$d DNS Server</strong>',
+           '<i class="fas fa-server" aria-hidden="true" href="#">&nbsp</i>' .. format( N('<strong %1$s>%2$d DNS Server</strong>',
                       '<strong id="iproutescard_dnsservers" %1$s>%2$d DNS Servers</strong>', dns_count),
                       modal_link, dns_count))
               ngx.print('\
-            </p>\
+            </span>\
 			')
 			local subinfo_light = {
 				span = {
-					style = "margin-left: 20px; font-weight: bold;"
+					style = "font-weight: bold;"
 				}
 			}
 			ngx.print( ui_helper.createSimpleLight(dosprotect, dosprotect_status, subinfo_light,"fa fas fa-exchange-alt") )

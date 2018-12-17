@@ -1,5 +1,6 @@
+#!/bin/sh
 opkg update
-opkg install transmission-web
+opkg install transmission-web transmission-daemon-openssl
 
 uci set transmission.@transmission[0].enabled=1
 uci set transmission.@transmission[0].rpc_whitelist='127.0.0.1,192.168.*'

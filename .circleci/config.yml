@@ -1,0 +1,29 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/gui_build
+    docker:
+      - image: ansuel/gui-autobuild-image:1
+    steps:
+      - checkout
+      - run:
+          name: Check built type from last git log
+          command: bash ./scripts/0-detect-build-type.sh
+      #- restore_cache:
+      #    keys: latest-file-key
+      - run:
+          name: Increment version from latest build
+          command: bash ./scripts/1-increment_autobuild_ver.sh
+      - run:
+          name: Clone autobuild repo
+          command: bash ./scripts/2-clone_autobuild_dir.sh
+      - run:
+          name: Inizialize Gui
+          command: bash ./inizialize_gui.sh
+      - run:
+          name: Upload new build, build and latest.version
+          command: bash ./scripts/3-update_autobuild_ver.sh
+      #- save_cache:
+      #    key: latest-file-key
+      #    paths:
+      #      - ~/gui-dev-build-auto/latest.version

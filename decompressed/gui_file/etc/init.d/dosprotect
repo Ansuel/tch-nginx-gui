@@ -1,0 +1,155 @@
+#!/bin/sh /etc/rc.common
+
+START=22
+USE_PROCD=1
+
+TABLE_NAME=raw
+CHAIN_NAME=dosprotect
+RPFILTER_DROP_CHAIN_NAME=rpfilter_DROP
+
+validate_ratelimit_section()
+{
+	uci_validate_section dosprotect ratelimit "${1}" \
+		'enabled:bool' \
+		'family:string' \
+		'proto:string' \
+		'extra:string' \
+		'per_srcip_limit:uinteger' \
+		'per_srcip_burst:uinteger' \
+		'per_srcip_mask:uinteger' \
+		'per_srcip_buckets:uinteger' \
+		'global_limit:uinteger' \
+		'global_burst:uinteger'
+}
+
+stop_service()
+{
+	local cmd
+	for cmd in iptables ip6tables ; do
+		$cmd -t $TABLE_NAME -D PREROUTING -j $CHAIN_NAME 2>/dev/null
+		$cmd -t $TABLE_NAME -F $CHAIN_NAME 2>/dev/null
+		$cmd -t $TABLE_NAME -X $CHAIN_NAME 2>/dev/null
+		$cmd -t $TABLE_NAME -F $RPFILTER_DROP_CHAIN_NAME 2>/dev/null
+		$cmd -t $TABLE_NAME -X $RPFILTER_DROP_CHAIN_NAME 2>/dev/null
+	done
+}
+
+setup_rate_limit()
+{
+	local section="$1"
+	local enabled proto family extra per_srcip_limit per_srcip_burst per_srcip_mask per_srcip_buckets global_limit global_burst
+
+        validate_ratelimit_section "$section" || {
+		echo "validation failed"
+		return 1
+	}
+
+	config_get_bool enabled $section enabled 1
+	[ "$enabled" = "0" ] && return 0
+
+
+	local cmd cmds
+	config_get family $section family "any"
+	case $family in
+	any)
+		cmds="iptables ip6tables"
+		;;
+	ipv4)
+		cmds="iptables"
+		;;
+	ipv6)
+		cmds="ip6tables"
+		;;
+	*)
+		return
+		;;
+	esac
+
+	config_get proto $section proto
+	config_get extra $section extra
+	config_get per_srcip_limit $section per_srcip_limit 0
+	config_get per_srcip_burst $section per_srcip_burst
+	config_get per_srcip_mask $section per_srcip_mask
+	config_get per_srcip_buckets $section per_srcip_buckets
+	config_get global_limit $section global_limit 0
+	config_get global_burst $section global_burst
+
+	local fixed_part="-t $TABLE_NAME -A $CHAIN_NAME"
+	[ -n "$proto" ] && fixed_part="$fixed_part -p $proto"
+	[ -n "$extra" ] && fixed_part="$fixed_part $extra"
+
+	if [ "$per_srcip_limit" -gt 0 ] ; then
+		local params="-m hashlimit
+			--hashlimit-mode srcip
+			--hashlimit-name ${section}
+			--hashlimit-above $per_srcip_limit/sec"
+		[ -n "$per_srcip_burst" ] &&
+			params="$params --hashlimit-burst $per_srcip_burst"
+		[ -n "$per_srcip_mask" ] &&
+			params="$params --hashlimit-srcmask $per_srcip_mask"
+		[ -n "$per_srcip_buckets" ] &&
+			params="$params --hashlimit-htable-size $per_srcip_buckets"
+		for cmd in $cmds ; do
+			$cmd $fixed_part $params -j DROP
+		done
+	fi
+	if [ "$global_limit" -gt 0 ] ; then
+		local params="-m limit --limit $global_limit/sec"
+		[ -n "$global_burst" ] && params="$params --limit-burst $global_burst"
+		for cmd in $cmds ; do
+			$cmd $fixed_part $params -j RETURN
+			$cmd $fixed_part -j DROP
+		done
+	else
+		for cmd in $cmds ; do
+			$cmd $fixed_part -j RETURN
+		done
+	fi
+}
+
+start_service()
+{
+	stop_service
+
+	config_load dosprotect
+	local enabled block_tcpsyn_withdata
+	config_get_bool enabled globals enabled 0
+	config_get_bool rpfilter globals rpfilter 0
+	config_get rpfilter_log_limit globals rpfilter_log_limit
+	config_get_bool block_tcpsyn_withdata globals block_tcpsyn_withdata 0
+
+	[ "$enabled" = "0" ] && return
+
+	local cmd
+	for cmd in iptables ip6tables ; do
+		$cmd -t $TABLE_NAME -N $CHAIN_NAME &&
+			$cmd -t $TABLE_NAME -I PREROUTING -j $CHAIN_NAME ||
+			return
+		[ "$rpfilter"  = "0" ] || (
+			local unspec_address
+			[ "$cmd" = "iptables" ] && unspec_address="0.0.0.0" || unspec_address="::"
+			[ -n "$rpfilter_log_limit" ] &&
+			$cmd -t $TABLE_NAME -N $RPFILTER_DROP_CHAIN_NAME &&
+			$cmd -t $TABLE_NAME -A $RPFILTER_DROP_CHAIN_NAME -m limit --limit "$rpfilter_log_limit" -j LOG \
+				--log-prefix "dosprotect rpfilter drop " &&
+			$cmd -t $TABLE_NAME -A $RPFILTER_DROP_CHAIN_NAME -j DROP &&
+			$cmd -t $TABLE_NAME -A $CHAIN_NAME ! -s $unspec_address -m rpfilter --invert -j $RPFILTER_DROP_CHAIN_NAME ||
+			$cmd -t $TABLE_NAME -A $CHAIN_NAME ! -s $unspec_address -m rpfilter --invert -j DROP )
+		[ "$block_tcpsyn_withdata"  = "0" ] ||
+			$cmd -t $TABLE_NAME -A $CHAIN_NAME -p tcp --tcp-flags SYN SYN -m length2 --layer5 ! --length 0 -j DROP
+	done
+
+	config_foreach setup_rate_limit ratelimit
+}
+
+reload_service()
+{
+	start_service
+}
+
+service_triggers()
+{
+	procd_add_reload_trigger "dosprotect"
+	procd_add_validation validate_ratelimit_section
+}
+

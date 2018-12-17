@@ -1,81 +1,37 @@
 --pretranslated: do not change this file
  
 -- Enable localization
--- NG-92675 implement changes required from the customer
 gettext.textdomain('webui-core')
 
-local proxy = require("datamodel")
-local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
-local post_helper = require("web.post_helper")
-local string, ngx, os = string, ngx, os
-local tonumber = tonumber
-local format, match = string.format, string.match
-local gOrV = post_helper.getOrValidation
-local vSIDN = post_helper.validateStringIsDomainName
-local pattern = "^Unknown%-%x%x:%x%x:%x%x:%x%x:%x%x:%x%x$"
+local content_helper = require("web.content_helper")
+local match = string.match
 
-local function validateUnknownHostname(value)
-   return value:match(pattern)
-end
-
--- devices forwarding rules
-local devicetypes = {
-    { "Generic", T"Generic" },
-    { "DesktopComputer", T"DesktopComputer" },
-    { "Laptop", T"Laptop" },
-    { "STB", T"STB" },
-    { "PDA", T"PDA" },
-    { "GS", T"GS" },
-    { "Phone", T"Phone" },
-    { "GSM", T"GSM" },
-    { "Printer", T"Printer" },
-    { "Storage", T"Storage" },
-    { "None", T"None" },
-}
 local devices_columns = {
   {--[2]
     header = T"Hostname",
     name = "FriendlyName",
     param = "FriendlyName",
     type = "text",
-    attr = { td = { ["data-bind"] = "text: device_hostname"}, input = { class="span2" } },
   },
   {--[3]
     header = T"IPv4",
     name = "ipv4",
     param = "IPAddress",
     type = "text",
-    readonly = true,
-    attr = { td = { ["data-bind"] = "text: device_ipv4"},input = {  class="span1" } },
   },
   {--[6]
     header = T"InterfaceType",
     name = "interfacetype",
     param = "InterfaceType",
-    type = "text",
-    readonly = true,
-    attr = { td = { ["data-bind"] = "text: device_ipv4" },input = { class="span1" } },
+	type = "text",
   },
   {--[11]
     header = T"SSID",
     name = "ssid",
     param = "SSID",
     type = "text",
-    readonly = true,
-    attr = { td = { ["data-bind"] = "text: device_ipv4" },input = { class="span2" } },
   },
-}
-
-local device_valid = {
-    FriendlyName = gOrV(vSIDN, validateUnknownHostname),
-}
-local devices_options = {
-    canEdit = false,
-    canAdd = false,
-    canDelete = false,
-    tableid = "devices",
-    basepath = "rpc.hosts.host.",
 }
 
 --Construct the device type based on value of L2Interface
@@ -99,33 +55,58 @@ local devices_filter = function(data)
   return true
 end
 
-local devices_data, devices_helpmsg = post_helper.handleTableQuery(devices_columns, devices_options, devices_filter , nil, device_valid)
+local devices_options = {
+    canEdit = false,
+    canAdd = false,
+    canDelete = false,
+    tableid = "devices",
+    basepath = "rpc.hosts.host.",
+}
+
+local devices_data = content_helper.loadTableData(devices_options.basepath, devices_columns, devices_filter , nil)
 
   ngx.print('\
 \
-<div class="infocard" id="devicetab">\
-  <div class="smallcard">\
+<div class="infocard" id="infodevicetab">\
+    <div class="smallcard">\
     ');  ngx.print( ui_helper.createCardHeader(T"Connected Devices", nil, nil, nil, nil) ); ngx.print('\
-    <div class="content card_bg" data-bg-text="&#xf1e6;">\
-	<div class="divtable">\
-	<form class="form-horizontal">\
-	<fieldset>');
+      <div class="content card_bg" data-bg-text="&#xf1e6;">\
+		<div class="divtable">\
+		  <form class="form-horizontal">\
+			<fieldset>');
 	
 	local html = {}
 	
-	local ajaxbasic = {
-      table = {},
-    }
-	
-	ajaxbasic.table["data-bind"] = "text: device_connected"
-    html[#html + 1] = ui_helper.createTable(devices_columns, devices_data, devices_options, ajaxbasic, devices_helpmsg)
+	html[#html + 1] = '<span data-bind="html: device_table">'
+    html[#html + 1] = ui_helper.createTable(devices_columns, devices_data, devices_options, nil, nil)
+	html[#html + 1] = '</span>'
 	
 	ngx.print(html)
 ngx.print('\
-	  </fieldset>\
-	  </form>\
-	  </div>\
+    	    </fieldset>\
+    	  </form>\
+    	</div>\
+      </div>\
     </div>\
-  </div>\
 </div>\
+<script>\
+var InfoDeviceCardInterval;\
+$(document).ready(function () {\
+	var InfoDeviceCardBinding = {\
+		device_table: ko.observable(),\
+	};\
+	function InfoDeviceCardRefresh() {\
+		$.post("/ajax/connected_device.lua", [tch.elementCSRFtoken()], function(data) {\
+			if(data.device_table != undefined) {\
+				InfoDeviceCardBinding.device_table(data.device_table);\
+			}\
+		}, "json");\
+	};\
+\
+	InfoDeviceCardRefresh();\
+	ko.applyBindings(InfoDeviceCardBinding, document.getElementById("infodevicetab"));\
+	InfoDeviceCardInterval = setInterval(InfoDeviceCardRefresh, 10000);\
+	KoRequest.push(InfoDeviceCardInterval);\
+})\
+</script>\
 '); 

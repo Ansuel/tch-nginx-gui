@@ -64,37 +64,18 @@ local mapParams = {
     uci_wan_username = "uci.network.interface.@" .. ppp_intf .. ".username",
     uci_wan_password = "uci.network.interface.@" .. ppp_intf .. ".password",
     uci_wan_password2 = "uci.network.interface.@" .. ppp_intf .. ".password",
-    uci_ppp_username = "uci.network.interface.@ppp.username",
-    uci_ppp_password = "uci.network.interface.@ppp.password",
 }
 
 -- Shortcuts to validation helpers to make lines shorter
 local vNES = post_helper.validateNonEmptyString
 local gVP = post_helper.getValidationPassword
 
-local function validatePassword(value, object, key)
-    if object.uci_wan_password == object.uci_wan_password2 then
-        local verify = gVP(vNES)
-        return verify(value, object, key)
-    end
-    return nil, "Passwords do not match."
-end
-
 -- We ensure that the PPP connection always contain the correct username/password by setting it whatever happens
 -- So if the current wan interface is not ppp, we set the user/pass in both wan and ppp. If ppp is the current wan
 -- interface, then we'll set it twice (but it is not a big deal)
 local mapValid = {
     uci_wan_username = vNES,
-    uci_wan_password = validatePassword,
-    uci_wan_password2 = validatePassword,
-    uci_ppp_username = function(val, object)
-        object.uci_ppp_username = object.uci_wan_username
-        return true
-    end,
-    uci_ppp_password = function(val, object)
-        object.uci_ppp_password = object.uci_wan_password
-        return true
-    end,
+    uci_wan_password = vNES,
 }
 
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
@@ -286,13 +267,7 @@ ngx.print(html)
   html[#html + 1] = "</div></div>"
 
   -- PPP password
-  local class_password = {
-      input = {
-        maxlength= "80",
-      }
-  }
-  html[#html + 1] = ui_helper.createInputPassword(T"Password", "uci_wan_password", content["uci_wan_password"], class_password, helpmsg["uci_wan_password"])
-  html[#html + 1] = ui_helper.createInputPassword(T"Confirm Password", "uci_wan_password2", content["uci_wan_password2"], class_password, helpmsg["uci_wan_password2"])
+  html[#html + 1] = ui_helper.createInputText(T"Password", "uci_wan_password", content["uci_wan_password"], nil, helpmsg["uci_wan_password"])
   html[#html + 1] = ui_helper.createLabel(T"Mode","Always On")
   html[#html + 1] = "</fieldset>"
   ngx.print(html)

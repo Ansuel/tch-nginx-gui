@@ -1,5 +1,5 @@
 --pretranslated: do not change this file
- 
+
 -- Enable localization
 -- NG-92675 implement changes required from the customer
 gettext.textdomain('webui-core')
@@ -27,22 +27,23 @@ local variant = proxy.get("uci.env.var.prod_friendly_name")[1].value or ""
 local model = nil
 
 if  ( variant == "DGA4130" ) then
-	model = "_AGTEF"
+	model = "AGTEF"
 elseif ( variant == "DGA4132" ) then
-	model = "_AGTHP"
-elseif ( variant == "MediaAccess TG789vac v2" ) then
-	model = "_TG789vac"
+	model = "AGTHP"
+elseif ( variant == "MediaAccess TG789vac v2" or variant == "MediaAccess TG789MYRvac v2 HP") then
+	model = "TG789vac"
 elseif ( variant == "Technicolor TG799vac" ) then
-	model = "_TG799vac"
+	model = "TG799vac"
 elseif ( variant == "Technicolor TG800vac" ) then
-	model = "_TG800vac"
+	model = "TG800vac"
 end
-	
+
 if session:hasAccess("/modals/gateway-modal.lp") then
    modalPath = "/modals/gateway-modal.lp"
    switchName = nil
 end
-  ngx.print('\
+
+ngx.print('\
 \
 <div class="span3" id="gateway-card">\
   <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
@@ -52,14 +53,14 @@ end
 	  <p>\
       <i class="fa fa-info" id="Gateway_=LED_Id"></i>\
       <strong id = "Version_Id">');  ngx.print(string.format(T"Version %s (%s)", name, version)); ngx.print('</strong></br>');
-	  ngx.print('<span class="subinfos">' ..  T"Cpu Load"..":" ); ngx.print('\
+	  ngx.print('<span class="subinfos">' ..  T"CPU Load"..":" ); ngx.print('\
 					<strong data-bind="text: cpuload">\
 					</strong></span>\
       <div data-remote="modals/gateway-modal.lp" data-id="gateway-modal">\
 	    <picture>\
-		    <source srcset="/img/gateway'); ngx.print(model); ngx.print('.webp" type="image/webp">\
-		    <source srcset="/img/gateway'); ngx.print(model); ngx.print('.png" type="image/png">\
-        <img class="someInfos" href="#" rel="tooltip" data-placement="top" data-original-title="');  ngx.print( T"your gateway" ); ngx.print('" src="/img/gateway'); ngx.print(model); ngx.print('.png" alt="gateway">\
+		    <source srcset="/img/gateway_'); ngx.print(model); ngx.print('.webp" type="image/webp">\
+		    <source srcset="/img/gateway_'); ngx.print(model); ngx.print('.png" type="image/png">\
+        <img class="someInfos" href="#" rel="tooltip" data-placement="top" data-original-title="');  ngx.print( T"Your Gateway" ); ngx.print('" src="/img/gateway_'); ngx.print(model); ngx.print('.png" alt="gateway">\
 		</picture>\
 		</div>\
       </div>\
@@ -84,4 +85,4 @@ $(document).ready(function () {\
 	KoRequest.push(GatewayCardInterval);\
 })\
 </script>\
-'); 
+');

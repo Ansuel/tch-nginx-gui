@@ -25,6 +25,7 @@ local function file_check(file_name)
   if file_found==nil then
     return false
   else
+	file_found:close()
     return true
   end
 end
@@ -67,16 +68,35 @@ if samba_available then
     content_helper.getExactContent(content_info)
 end
 
+local function check_dlna(dtype)
+	local available = false
+	local binname
+	if file_check("/usr/bin/dlnad") then
+		binname = "dlnad"
+		available = true
+	elseif file_check("/usr/sbin/minidlnad") then
+		binname = "minidlna"
+		available = true
+	end
+	
+	if dtype:match("available") then
+		return available
+	elseif dtype:match("type") then
+		return binname or ""
+	end
+	
+	return ""
+end
 
-local dlna_available = file_check("/etc/init.d/dlnad")
-if dlna_available then
-    local dlnaMapParams = {
-        dlna_enabled       = "uci.dlnad.config.enabled",
-        dlna_friendly_name = "uci.dlnad.config.friendly_name",
-    }
-    for k,v in pairs(dlnaMapParams) do
-        mapParams[k] = v
-    end
+if check_dlna("available") then
+	local type = check_dlna("type")
+	local dlnaMapParams = {
+		dlna_enabled       = "uci."..type..".config.enabled",
+		dlna_friendly_name = "uci."..type..".config.friendly_name",
+	}
+	for k,v in pairs(dlnaMapParams) do
+		mapParams[k] = v
+	end
 end
 
 mapParams["usb3_enabled"] = "uci.system.config.enable_usb3_support"
@@ -437,7 +457,7 @@ convertReceivedData(content_info)
 				tinsert(html, ui_helper.createInputText(T"Samba workgroup: ", "samba_workgroup", content["samba_workgroup"], advanced, helpmsg["samba_workgroup"]))
 				tinsert(html, ui_helper.createInputText(T"Samba description: ", "samba_description", content["samba_description"], advanced, helpmsg["samba_description"]))
 			end
-			if dlna_available then
+			if check_dlna("available") then
 				tinsert(html, ui_helper.createSwitch(T"DLNA Enabled", "dlna_enabled", content["dlna_enabled"],attributes))
 				tinsert(html, ui_helper.createLabel(T"DLNA name: ", content["dlna_friendly_name"], advancedhide))
 				tinsert(html, ui_helper.createInputText(T"DLNA name: ", "dlna_friendly_name", content["dlna_friendly_name"], advanced, helpmsg["dlna_friendly_name"]))

@@ -20,3 +20,39 @@ local ledfw_timeout = {
 }
 
 mapper("uci_1to1").registerSimpleMap(ledfw_timeout)
+
+-- uci.ledfw.internet
+local ledfw_internet = {
+  config =  config_ledfw,
+  section = "internet",
+  options = { "check" }
+}
+
+mapper("uci_1to1").registerSimpleMap(ledfw_internet)
+
+-- uci.ledfw.iptv
+local ledfw_iptv = {
+  config =  config_ledfw,
+  section = "iptv",
+  options = { "check" }
+}
+
+mapper("uci_1to1").registerSimpleMap(ledfw_iptv)
+
+-- uci.ledfw.voip
+local ledfw_voip = {
+  config =  config_ledfw,
+  section = "voip",
+  options = { "check" }
+}
+
+mapper("uci_1to1").registerSimpleMap(ledfw_voip)
+
+-- uci.ledfw.wifi
+local ledfw_wifi = {
+  config =  config_ledfw,
+  section = "wifi",
+  options = { "nsc_on" }
+}
+
+mapper("uci_1to1").registerSimpleMap(ledfw_wifi)

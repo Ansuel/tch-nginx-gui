@@ -11,8 +11,9 @@ local content_helper = require("web.content_helper")
 local post_helper = require("web.post_helper")
 local tinsert,format,sub,match,untaint = table.insert,string.format, string.sub, string.match, string.untaint
 
-local bridgedmode = require("bridgedmode_helper")
-local voicemode = require("voicemode_helper")
+local dyntab_helper = require("web.dyntab_helper")
+local bmh = require("broadbandmode_helper")
+local tabdata = dyntab_helper.process(bmh)
 
 local all_modes = {"adsl2", "adsl2annexl", "adsl2annexm", "adsl2plus", "gdmt", "glite", "t1413", "vdsl2" }
 
@@ -78,6 +79,10 @@ if ngx.var.request_method == "POST" then
 end
 
 local content = {
+	dsl0_status 					= "sys.class.xdsl.@line0.Status",
+    dsl0_mode 					    = "rpc.xdslctl.DslMode",
+    dsl0_profile 					= "rpc.xdslctl.DslProfile",
+    dsl0_port 					= "rpc.xdslctl.DslamPort",
     dsl0_enabled                    = "uci.xdsl.xdsl.@dsl0.enabled",
     dsl0_eoc_vendor_id              = "uci.xdsl.xdsl.@dsl0.eoc_vendor_id",
     dsl0_eoc_serial_number          = "uci.xdsl.xdsl.@dsl0.eoc_serial_number",
@@ -96,7 +101,7 @@ local content = {
 	marketing_version				= "uci.version.version.@version[0].marketing_version",
 	dslam_chipset 					= "rpc.xdslctl.DslamChipset",
 	dslam_version 					= "rpc.xdslctl.DslamVersion",
-	dslam_version_raw				= "rpc.xdslctl.DslamVersionRaw"
+    dslam_version_raw				= "rpc.xdslctl.DslamVersionRaw"
 }
 
 content_helper.getExactContent(content)
@@ -158,25 +163,25 @@ local driver_valid = {
 
 if content.dsl0_xdsl_FirmwareVersion:match(".*H043") or content.dsl0_xdsl_FirmwareVersion:match(".*H042") then
 
-	tinsert(driver_option, { "B2pvbH042l.d26r", 'B2pvbH042l.d26r (DSL-AC87VG v1.00.10)'})
-	tinsert(driver_option, { "A2pvbH042n.d26r", 'A2pvbH042n.d26r (Netgear D7000)'})
-	tinsert(driver_option, { "A2pvbH042j2.d26r", 'A2pvbH042j2.d26r (Asus DSL-AC88U) ' .. 'Best value'})
-	tinsert(driver_option, { "A2pvbH042o.d26r", 'A2pvbH042o.d26r (TG799VAC Xtream Fastweb)'})
-	tinsert(driver_option, { "A2pvbH042r.d26r", 'A2pvbH042r.d26r (AGTEF_1.0.3)'})
-	tinsert(driver_option, { "B2pvbH042s.d26r", 'B2pvbH042s.d26r (Archer_VR2800v V1 1.2.0_0.9.1)'})
-	tinsert(driver_option, { "A2pvbH042u.d26r", 'A2pvbH042u.d26r (AGTEF_1.0.4)'})
+	tinsert(driver_option, { "B2pvbH042l", 'B2pvbH042l (DSL-AC87VG v1.00.10)'})
+	tinsert(driver_option, { "A2pvbH042n", 'A2pvbH042n (Netgear D7000)'})
+	tinsert(driver_option, { "A2pvbH042j2", 'A2pvbH042j2 (Asus DSL-AC88U) ' .. 'Best value'})
+	tinsert(driver_option, { "A2pvbH042o", 'A2pvbH042o (TG799VAC Xtream Fastweb)'})
+	tinsert(driver_option, { "A2pvbH042r", 'A2pvbH042r (AGTEF_1.0.3)'})
+	tinsert(driver_option, { "B2pvbH042s", 'B2pvbH042s (Archer_VR2800v V1 1.2.0_0.9.1)'})
+	tinsert(driver_option, { "A2pvbH042u", 'A2pvbH042u (AGTEF_1.0.4)'})
 	
 	if tonumber(content.marketing_version:sub(1,4)) >= 17.3 then
-		tinsert(driver_option, { "A2pvfbH043b.d26r", 'A2pvfbH043b.d26r (New FastGate Fastweb)'})
-		tinsert(driver_option, { "B2pvfbH043e.d26r", 'B2pvfbH043e.d26r (DSL-AC87VG_v1.00.13)'})
-		--table.insert(driver_option,{ "A2pvfbH043e.d26r", 'A2pvfbH043e.d26r (Zyxel 8823)'}) --Annex b???
-		--table.insert(driver_option,{ "A2pvfbH043f.d26r", 'A2pvfbH043f.d26r (DSL AC88U) ' .. T'Less Ping'}) --Missing
-		tinsert(driver_option, { "B2pvfbH043g.d26r", 'B2pvfbH043g.d26r (DSL-AC68VG v5.00.04)'})
-		tinsert(driver_option, { "A2pvfbH043g.d26r", 'A2pvfbH043g.d26r (TG800 Vbant-s)'})
-		tinsert(driver_option, { "B2pvfbH043i1.d26r", 'B2pvfbH043i1.d26r (VMG8823-B60B 5.13)'})
-		tinsert(driver_option, { "A2pvfbH043k.d26r", 'A2pvfbH043k.d26r (AGTEF_1.1.0)'})
-		tinsert(driver_option, { "B2pvfbH043k.d26r", 'B2pvfbH043k.d26r (DSL-AC88U-B v1.10.05)'})
-		tinsert(driver_option, { "A2pvfbH043o.d26r", 'A2pvfbH043o.d26r (DSL88U) ' .. T'Beta Firmware'})
+		tinsert(driver_option, { "A2pvfbH043b", 'A2pvfbH043b (New FastGate Fastweb)'})
+		tinsert(driver_option, { "B2pvfbH043e", 'B2pvfbH043e (DSL-AC87VG_v1.00.13)'})
+		--table.insert(driver_option,{ "A2pvfbH043e", 'A2pvfbH043e (Zyxel 8823)'}) --Annex b???
+		--table.insert(driver_option,{ "A2pvfbH043f", 'A2pvfbH043f (DSL AC88U) ' .. T'Less Ping'}) --Missing
+		tinsert(driver_option, { "B2pvfbH043g", 'B2pvfbH043g (DSL-AC68VG v5.00.04)'})
+		tinsert(driver_option, { "A2pvfbH043g", 'A2pvfbH043g (TG800 Vbant-s)'})
+		tinsert(driver_option, { "B2pvfbH043i1", 'B2pvfbH043i1 (VMG8823-B60B 5.13)'})
+		tinsert(driver_option, { "A2pvfbH043k", 'A2pvfbH043k (AGTEF_1.1.0)'})
+		tinsert(driver_option, { "B2pvfbH043k", 'B2pvfbH043k (DSL-AC88U-B v1.10.05)'})
+		tinsert(driver_option, { "A2pvfbH043o", 'A2pvfbH043o (DSL88U) ' .. T'Beta Firmware'})
 	end
 	
 	driver_Params.driver_ver = "uci.env.var.driver_version"
@@ -203,19 +208,27 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  local alertinfo = { alert = { class = "alert-info" } }
       local html = {}
       html[#html + 1] = ui_helper.createLight(T"Status", nil, state_map[untaint(content.dsl0_enabled)], { light = { class = light_map[untaint(content.dsl0_enabled)] } })
-      html[#html + 1] = ui_helper.createLabel(T"Dslam Chipset",content.dslam_chipset, span5 )
-	  if content.dslam_version_raw:sub(0,2) == "0x" then
-		html[#html + 1] = ui_helper.createLabel(T"Dslam Firmware",format("%s ( %s )", content.dslam_version , content.dslam_version_raw) , span5 )
-	  elseif content.dslam_version_raw == "" then
-		html[#html + 1] = ui_helper.createLabel(T"Dslam Firmware",T"Can't recover dslam version." , span5 )
-	  else
-		html[#html + 1] = ui_helper.createLabel(T"Dslam Firmware",format(T"Invalid version, can't convert. Raw value: %s", content.dslam_version_raw) , span5 )
+	  html[#html + 1] = ui_helper.createLabel(T"DSL Connection Status", content.dsl0_status, span5 )
+	  if ( content.dsl0_status == "Up" ) then
+        html[#html + 1] = ui_helper.createLabel(T"DSL Mode", content.dsl0_mode, span5 )
+        if(content.dsl0_profile ~= "Not Found") then
+            html[#html + 1] = ui_helper.createLabel(T"VDSL Profile", content.dsl0_profile, span5 )
+            html[#html + 1] = ui_helper.createLabel(T"VDSL DSLAM Port", content.dsl0_port, span5 )
+        end
+		html[#html + 1] = ui_helper.createLabel(T"DSLAM Chipset",content.dslam_chipset, span5 )
+		if content.dslam_version_raw:sub(0,2) == "0x" then
+			html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",format("%s ( %s )", content.dslam_version , content.dslam_version_raw) , span5 )
+		elseif content.dslam_version_raw == "" then
+			html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",T"Can't recover DSLAM version." , span5 )
+		else
+			html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",format(T"Invalid version, can't convert. Raw value: %s", content.dslam_version_raw) , span5 )
+		end
 	  end
 	  html[#html + 1] = ui_helper.createLabel(T"Firmware Version",content.dsl0_xdsl_FirmwareVersion, span5 )
 	  if not driver_Params.driver_ver then
 		html[#html + 1] = ui_helper.createLabel(T"Driver Version",T"We don't have any firmware for this modem, please report them to the github page. ", span5 )
 	  else
-	    if bridgedmode.isBridgedMode() or voicemode.isVoiceMode() then
+	    if ( tabdata.current.name == "bridge" ) or ( tabdata.current.name == "voice" )  then
 		  html[#html + 1] = ui_helper.createAlertBlock(T"In this mode, your modem may not have internet connection. The script may fail to download the new firmware. \
 														It is advised to download and apply it manually. Look in the forum repository for more info. ", alertinfo)
 		end

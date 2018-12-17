@@ -369,3 +369,4 @@ text-decoration: none;
 	display: inline-block;
 	margin-left: 5px;
 }
+.copyright>p>font {color: rgb(30, 116, 30);}

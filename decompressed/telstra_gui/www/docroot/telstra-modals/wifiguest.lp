@@ -35,7 +35,7 @@ local radio, wl, ap, bspeerwl, bspeerap
 if getargs.guest == "2g_1" then
     radio = "radio_2G"
     wl = "wl0_1"
-    ap = "ap1"
+    ap = "ap2"
 elseif getargs.guest == "5g_1" then
     radio = "radio_5G"
     wl = "wl1_1"

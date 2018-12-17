@@ -32,7 +32,6 @@ end
 -- Loading the advanced content by using ajax call, we are able to save around 2 seconds from total page loading time.
 if getargs.action == "GET_ADVANCED_DATA" then
 local content = {
-    firmware_version = "sys.class.xdsl.@line0.FirmwareVersion",
     xdsl_ginp_rxqueue_ds = "sys.class.xdsl.@line0.DownstreamGINPRxQueue",
     xdsl_ginp_rxqueue_us = "sys.class.xdsl.@line0.UpstreamGINPRxQueue",
     xdsl_ginp_txqueue_ds = "sys.class.xdsl.@line0.DownstreamGINPTxQueue",
@@ -84,8 +83,8 @@ local content = {
 content_helper.getExactContent(content)
 
 local content1 = {
+    dsl_uptime = "sys.class.xdsl.@line1.ShowtimeStart",
     dsl_bonding_support = "sys.class.xdsl.@line1.BondingSupport",
-    firmware_version = "sys.class.xdsl.@line1.FirmwareVersion",
     xdsl_ginp_rxqueue_ds = "sys.class.xdsl.@line1.DownstreamGINPRxQueue",
     xdsl_ginp_rxqueue_us = "sys.class.xdsl.@line1.UpstreamGINPRxQueue",
     xdsl_ginp_txqueue_ds = "sys.class.xdsl.@line1.DownstreamGINPTxQueue",
@@ -351,11 +350,10 @@ end
 
 local content ={
    showBondingStats = "sys.class.xdsl.@line0.BondingSupport",
-   firmware_version="sys.class.xdsl.@line0.FirmwareVersion"
+   dsl_uptime = "sys.class.xdsl.@line0.ShowtimeStart",
 }
 content_helper.getExactContent(content)
 if content["showBondingStats"] == 1 then
-  showBondingStats = true
   columns1[1][1] = T"Upstream FEC"
   columns1[2][1] = T"Downstream FEC"
   columns1[3][1] = T"Upstream CRC"
@@ -494,8 +492,6 @@ if content["showBondingStats"] == 1 then
     end
   end
   xdsl_BitLoading1 = temp1[xdsl_BitLoading1]
-else
-  showBondingStats = false
 end
 
 -- Datarows Names
@@ -530,11 +526,14 @@ datarows[7]["header"] = T"Since Sync"
     </form>\
 \
     <fieldset id="diagnostics-xdsl-tab">\
-      <legend>');  ngx.print( T"DSL stats" ); ngx.print('</legend>\
+      <legend>');  ngx.print( T"DSL stats" ); ngx.print('</legend><form class="form-horizontal">\
       ');  
         local options = { tableid = "xdslstats", canEdit = false, editing = false, minEntries =7 , maxEntries =17, createMsg = "Create new", canAdd = false, canDelete = false, newList = true, errmsg = nil}
         local options1 = { tableid = "xdslstats1", canEdit = false, editing = false, minEntries =7 , maxEntries =17, createMsg = "Create new", canAdd = false, canDelete = false, newList = true, errmsg = nil}
         -- table that shows the Statistics data
+
+        ngx.print(ui_helper.createLabel(T"DSL Uptime", post_helper.secondsToTime(content["dsl_uptime"])))
+        ngx.print("</form>")
         ngx.print(ui_helper.createTable(datarows, columns, options))
         if content["showBondingStats"] == "1" then
           ngx.print(format('<legend>%s</legend>', T"DSL Bit Loading (Line 1)"))

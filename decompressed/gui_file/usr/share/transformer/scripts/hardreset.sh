@@ -1,3 +1,4 @@
+#!/bin/sh
 get_alive_processes(){
 	if [[ $1 != "PID" && $1 != "NAME" ]]; then echo; exit; fi
 	alive_processes=""

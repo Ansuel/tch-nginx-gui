@@ -130,7 +130,7 @@ end
 	  <picture>');
 		if cui.gui_skin == "TIM" then
 			ngx.print('<img width="168px" height="39px" src="/img/TIM.png">');
-		elseif cui.gui_skin == "Fritz" then
+		elseif cui.gui_skin == "Fritz" or string.match(cui.gui_skin, "[dD][aA][rR][kK]") then
 			ngx.print('<source srcset="/img/logo_white.webp" type="image/webp">\
 				<source srcset="/img/logo_white.png" type="image/png">\
 				<img width="131px" height="50px" src="/img/logo_white.png">');

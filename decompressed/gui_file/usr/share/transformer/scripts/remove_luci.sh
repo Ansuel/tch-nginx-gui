@@ -1,4 +1,4 @@
-
+#!/bin/sh
 device_type="$(uci get -q env.var.prod_friendly_name)"
 
 if [ "$device_type" == "DGA4132" ] || [ "$device_type" == "DGA4130" ]; then 

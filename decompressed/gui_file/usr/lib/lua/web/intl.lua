@@ -32,7 +32,7 @@ local trcache = setmetatable({}, {__mode='v'})
 -- @param language string the language code
 -- @returns the filename taking into account the language path
 local function translationFilename(domain, language)
-    return format('%s/%s/%s.mo', langPath, language, domain)
+    return format('%s/%s/%s.po', langPath, language, domain)
 end
 
 --- set the domain

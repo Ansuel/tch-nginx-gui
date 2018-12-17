@@ -20,9 +20,6 @@ local gOV = post_helper.getOrValidation
 local gAV = post_helper.getAndValidation
 local session = ngx.ctx.session
 
-local bridgedmode = require("bridgedmode_helper")
-local voicemode = require("voicemode_helper")
-
 local tech = false
 if session:getrole() == "engineer" then
 	tech = true
@@ -264,7 +261,7 @@ local function upgradeguifile()
 
   local rcv_ok, rcv_errno, rcv_errmsg = receive_file(dl, 'name="upgradefile"')
 
-  proxy.set("rpc.system.upgradegui", "1")
+  proxy.set("rpc.system.modgui.upgradegui.start", "1")
   proxy.apply()
 
   ngx.print('{ "success":"true" }')
@@ -329,7 +326,7 @@ if ngx.req.get_method() == "POST" then
     return resetreboot("rpc.system.resetgui", "1")
   end
   if action == "system_upgrade_gui" then
-	return resetreboot("rpc.system.upgradegui", "1")
+	return resetreboot("rpc.system.modgui.upgradegui.start", "1")
   end
   if action == "system_remove_root" then
 	return resetreboot("rpc.system.removeroot", "1")
@@ -983,10 +980,15 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
           id = "updating-msg"
         }
       }
+	  html[#html + 1] = '<span id="GUI-upgrade-option">'
 	  html[#html + 1] = ui_helper.createAlertBlock(T"This upgrade the GUI to the latest available version on the site", info_box)
 	  html[#html + 1] = ui_helper.createInputSelect(T"Update Branch", "update_branch", update_branch_option, update_content["update_branch"])
 	  
-	  if not bridgedmode.isBridgedMode() and not voicemode.isVoiceMode() then
+	  local dyntab_helper = require("web.dyntab_helper")
+	  local bmh = require("broadbandmode_helper")
+	  local tabdata = dyntab_helper.process(bmh)
+	  
+	  if not ( tabdata.current.name == "bridge" ) and not ( tabdata.current.name == "voice" )  then
 		html[#html + 1] = ui_helper.createSwitch(T"AutoUpgrade", "update_autoupgrade", update_content["update_autoupgrade"])
 		html[#html + 1] = ui_helper.createInputSelect(T"Update Hours", "update_autoupgrade_hour", update_hour_option, update_content["update_autoupgrade_hour"])
 		if content["outdated_ver"] == "1" then
@@ -998,6 +1000,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 			html[#html + 1] = ui_helper.createButton(T"Upgrade Gui", T"Force Upgrade", "icon-refresh", upgrade_gui)
 		end
 	  end
+	  html[#html + 1] = '</span>'
 	  
 	  html[#html + 1] = '</form><form class="form-horizontal" id="form-import-gui" method="post" action="modals/gateway-modal.lp?action=upgradeguifile" enctype="multipart/form-data">'
 	  html[#html + 1] = '<div id="offline-upgrade-gui-div" class="control-group">'
@@ -1093,9 +1096,11 @@ ngx.print('\
 	$(".modal").css("pointer-events", "none");\
     $("#btn-upgrade-gui").addClass("hide");\
 	$("#offline-upgrade-gui-div").addClass("hide");\
-    resetreboot($("#updating-msg"), $(this), "system_upgrade_gui");\
+	$("#GUI-upgrade-option").addClass("hide");\
 	$("#upgrade-gui-bar").removeClass("hide");\
+	$("#upgrade-gui-bar")[0].scrollIntoView();\
 	$(".bar").css("width", valeur+"%").attr("aria-valuenow", valeur);\
+    resetreboot($("#updating-msg"), $(this), "system_upgrade_gui");\
     wait_for_webserver_down();\
   });\
 \

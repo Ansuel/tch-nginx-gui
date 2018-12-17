@@ -9,7 +9,9 @@ local message_helper = require("web.uimessage_helper")
 local post_helper = require("web.post_helper")
 local content_helper = require("web.content_helper")
 
+local prod_friendly_name = proxy.get("uci.env.var.prod_friendly_name")
 local vB = post_helper.validateBoolean
+
 
 local mapValid = {
     eee = vB,
@@ -19,6 +21,10 @@ local mapValid = {
 	cpuspeed = post_helper.validateNonEmptyString,
 	eco_led = vB,
 	eco_led_timeout = post_helper.validatePositiveNum,
+    ledfw_internet = vB,
+    ledfw_voip = vB,
+    ledfw_iptv = vB,
+    ledfw_wifinsc = vB
 }
 
 local mapParams = {
@@ -29,6 +35,10 @@ local mapParams = {
 	cpuspeed = "uci.power.cpu.cpuspeed",
 	eco_led = "uci.ledfw.status_led.enable",
 	eco_led_timeout = "uci.ledfw.timeout.ms",
+    ledfw_internet = "uci.ledfw.internet.check",
+    ledfw_voip = "uci.ledfw.voip.check",
+    ledfw_iptv = "uci.ledfw.iptv.check",
+    ledfw_wifinsc = "uci.ledfw.wifi.nsc_on",
 }
 
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
@@ -66,9 +76,10 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 		  }
         }
 	    html[#html + 1] = '<legend>' .. T"Eco Settings" .. '</legend>'
-	    
-	    html[#html + 1] = ui_helper.createSwitch(T"Ethernet EEE", "eee", content["eee"])
-	    html[#html + 1] = ui_helper.createSwitch(T"Ethernet AutoGreen", "autogreeen", content["autogreeen"])
+
+		html[#html + 1] = ui_helper.createAlertBlock(T"Turning on Ethernet power saving features can cause extra latency", info_box)
+		html[#html + 1] = ui_helper.createSwitch(T"Ethernet EEE", "eee", content["eee"])
+	    html[#html + 1] = ui_helper.createSwitch(T"Ethernet AutoGrEEEn", "autogreeen", content["autogreeen"])
 	    html[#html + 1] = ui_helper.createSwitch(T"Ethernet Ethapd", "ethapd", content["ethapd"])
 	    html[#html + 1] = ui_helper.createSwitch(T"Cpu Wait", "wait", content["wait"])
 	    html[#html + 1] = ui_helper.createInputSelect(T"Cpu Speed", "cpuspeed", cpu_step , content["cpuspeed"])
@@ -77,10 +88,17 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	    
 	    local html = {}
 	    html[#html + 1] = '<legend>' .. T"Led Settings" .. '</legend>'
-        
-	    html[#html + 1] = ui_helper.createAlertBlock(T"Turn off all led if all service are up and running. You can press the INFO button (button on the power led) to show the led status.", info_box)
+		if prod_friendly_name[1].value:match("DGA") or prod_friendly_name[1].value:match("TG789") then
+			html[#html + 1] = ui_helper.createAlertBlock(T"WiFi NSC when turned off will turn OFF WiFi LED(s) if there is no associated station (no wifi client connected)", info_box)
+			html[#html + 1] = ui_helper.createSwitch(T"WiFi NSC", "ledfw_wifinsc", content["ledfw_wifinsc"])
+		end
+	    html[#html + 1] = ui_helper.createAlertBlock(T"Turn off all LEDs (except info/power) if all services are up and running. Press INFO button (could be button with power LED) to show LED status.", info_box)
 	    html[#html + 1] = ui_helper.createSwitch(T"Eco Led", "eco_led", content["eco_led"])
 	    html[#html + 1] = ui_helper.createInputText(T"Timeout", "eco_led_timeout", content["eco_led_timeout"], basic , helpmsg["eco_led_timeout"] )
+        html[#html + 1] = ui_helper.createAlertBlock(T"Services to check for the Eco LED", info_box)
+        html[#html + 1] = ui_helper.createSwitch(T"VoIP", "ledfw_voip", content["ledfw_voip"])
+        html[#html + 1] = ui_helper.createSwitch(T"IPTV", "ledfw_iptv", content["ledfw_iptv"])
+        html[#html + 1] = ui_helper.createSwitch(T"Internet", "ledfw_internet", content["ledfw_internet"])
         ngx.print(html)
 
          ngx.print('\
