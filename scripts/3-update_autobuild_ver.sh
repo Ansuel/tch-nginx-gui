@@ -34,7 +34,7 @@ if [ $CI == "true" ]; then
 	fi
 	commit_link=https://github.com/Ansuel/tch-nginx-gui/commit/$CIRCLE_SHA1
 fi
-#
+
 echo $version > latest.version
 
 git add -A;
