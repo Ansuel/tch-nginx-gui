@@ -1,7 +1,23 @@
 -- The only available function is helper (ledhelper)
-local timerLed, staticLed, netdevLed, netdevLedOWRT, runFunc, uci, ubus, print, get_depending_led, xdsl_status = timerLed, staticLed, netdevLed, netdevLedOWRT, runFunc, uci, ubus, print, get_depending_led, xdsl_status
+local timerLed, staticLed, netdevLed, netdevLedOWRT, runFunc, uci, get_depending_led, xdsl_status = timerLed, staticLed, netdevLed, netdevLedOWRT, runFunc, uci, get_depending_led, xdsl_status
 local wl1_ifname = get_wl1_ifname()
 local itf_depending_led
+
+local function is_WiFi_LED_on_if_NSC()
+   local cursor = uci.cursor()
+   local enabled = cursor:get('ledfw', 'wifi', 'nsc_on')
+
+   cursor:close()
+   if not enabled then
+      -- Ensure that always a value is returned
+      return false
+   end
+   if enabled == '1' then
+      return true
+   else
+      return false
+   end
+end
 
 local function find_itf_depending_led(parms)
    local led=get_depending_led(parms.itf)
