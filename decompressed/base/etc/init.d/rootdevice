@@ -1787,12 +1787,13 @@ root() {
 	logger_command "Restarting transformer"
 	/etc/init.d/transformer restart
 	
-	logger_command "Restarting nginx"
-	if [ "$(pgrep "nginx")" ] ; then
-		/etc/init.d/nginx restart
-	else
-		/etc/init.d/nginx start
-	fi
+    nginx_count=0
+    while [ "$(curl 127.0.0.1 --max-time 20 -I -s | head -n 1 | cut -d$' ' -f2)" != "200" ] && [ $nginx_count -lt 3 ]; do
+        echo "Restarting nginx..."
+        /etc/init.d/nginx restart 2>/dev/null
+        sleep 2
+        nginx_count=$((nginx_count+1))
+    done
 	
 	#This file is present only in newer build that don't suffer this strange bug
 	if [ ! -f /usr/lib/lua/tch/logger.lua ]; then
