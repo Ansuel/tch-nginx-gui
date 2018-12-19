@@ -1789,7 +1789,7 @@ root() {
 	
     nginx_count=0
     while [ "$(curl 127.0.0.1 --max-time 20 -I -s | head -n 1 | cut -d$' ' -f2)" != "200" ] && [ $nginx_count -lt 3 ]; do
-        echo "Restarting nginx..."
+        logger_command "Restarting nginx..."
         /etc/init.d/nginx restart 2>/dev/null
         sleep 2
         nginx_count=$((nginx_count+1))
