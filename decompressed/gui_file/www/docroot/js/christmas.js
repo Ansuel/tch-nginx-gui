@@ -8,19 +8,19 @@
 
 
 var flakes = [],
-canvas = document.getElementById("christmas-canvas"),
-ctx = canvas.getContext("2d"),
+christmas_canvas = document.getElementById("christmas-canvas"),
+christmas_ctx = christmas_canvas.getContext("2d"),
 flakeCount = 400,
 mX = -100,
 mY = -100
 
-canvas.style.position = "fixed";
-canvas.style.zIndex = -1;
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+christmas_canvas.style.position = "fixed";
+christmas_canvas.style.zIndex = -1;
+christmas_canvas.width = window.innerWidth;
+christmas_canvas.height = window.innerHeight;
 
 function snow() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    christmas_ctx.clearRect(0, 0, christmas_canvas.width, christmas_canvas.height);
 
     for (var i = 0; i < flakeCount; i++) {
         var flake = flakes[i],
@@ -51,28 +51,28 @@ function snow() {
             flake.velX += Math.cos(flake.step += .05) * flake.stepSize;
         }
 
-        ctx.fillStyle = "rgba(255,255,255," + flake.opacity + ")";
+        christmas_ctx.fillStyle = "rgba(255,255,255," + flake.opacity + ")";
         flake.y += flake.velY;
         flake.x += flake.velX;
             
-        if (flake.y >= canvas.height || flake.y <= 0) {
+        if (flake.y >= christmas_canvas.height || flake.y <= 0) {
             reset(flake);
         }
 
 
-        if (flake.x >= canvas.width || flake.x <= 0) {
+        if (flake.x >= christmas_canvas.width || flake.x <= 0) {
             reset(flake);
         }
 
-        ctx.beginPath();
-        ctx.arc(flake.x, flake.y, flake.size, 0, Math.PI * 2);
-        ctx.fill();
+        christmas_ctx.beginPath();
+        christmas_ctx.arc(flake.x, flake.y, flake.size, 0, Math.PI * 2);
+        christmas_ctx.fill();
     }
     requestAnimationFrame(snow);
 };
 
 function reset(flake) {
-    flake.x = Math.floor(Math.random() * canvas.width);
+    flake.x = Math.floor(Math.random() * christmas_canvas.width);
     flake.y = 0;
     flake.size = (Math.random() * 3) + 2;
     flake.speed = (Math.random() * 1) + 0.5;
@@ -83,8 +83,8 @@ function reset(flake) {
 
 function init() {
     for (var i = 0; i < flakeCount; i++) {
-        var x = Math.floor(Math.random() * canvas.width),
-            y = Math.floor(Math.random() * canvas.height),
+        var x = Math.floor(Math.random() * christmas_canvas.width),
+            y = Math.floor(Math.random() * christmas_canvas.height),
             size = (Math.random() * 3) + 2,
             speed = (Math.random() * 1) + 0.5,
             opacity = (Math.random() * 0.5) + 0.3;
@@ -105,14 +105,14 @@ function init() {
     snow();
 };
 
-canvas.addEventListener("mousemove", function(e) {
+christmas_canvas.addEventListener("mousemove", function(e) {
     mX = e.clientX,
     mY = e.clientY
 });
 
 window.addEventListener("resize",function(){
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    christmas_canvas.width = window.innerWidth;
+    christmas_canvas.height = window.innerHeight;
 })
 
 init();
