@@ -92,9 +92,6 @@ msgstr "Produktname"
 msgid "Profiler status: "
 msgstr "Analysestatus "
 
-msgid "Rebooting..."
-msgstr "Neustarten..."
-
 msgid "Restarting, please wait..."
 msgstr "Neustart, bitte warten..."
 
@@ -131,6 +128,10 @@ msgstr "Gesamter Platz"
 msgid "USB 3.1 Enabled"
 msgstr "USB 3.1 eingeschaltet"
 
+#, fuzzy
+msgid "USB Port"
+msgstr "Port"
+
 msgid "Used Space"
 msgstr "Platz genutzt"
 
@@ -139,6 +140,3 @@ msgstr "Version"
 
 msgid "Volume"
 msgstr "Volume"
-
-msgid "no"
-msgstr "keine"

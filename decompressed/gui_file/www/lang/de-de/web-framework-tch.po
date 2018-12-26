@@ -41,12 +41,6 @@ msgid "A WEP key of length 10 or 26 can only contain the hexadecimal digits."
 msgstr ""
 "Ein WEP-Schlüssel der Länge 10 oder 26 kann nur Hexadezimalzeichen enthalten."
 
-msgid ""
-"A WEP key of length 10 or 26 can only contain the letters A to F or digits"
-msgstr ""
-"Ein WEP-Schlüssel der Länge 10 oder 26 darf nur Ziffern und die Buchstaben A "
-"bis F enthalten"
-
 msgid "Add"
 msgstr "Hinzufügen"
 
@@ -202,14 +196,6 @@ msgstr "Ungültige Eingabe"
 msgid "Invalid input."
 msgstr "Ungültige Eingabe."
 
-msgid ""
-"Invalid length, a WEP key must be 5, 10, 13 or 26 characters long, length of "
-"10 and 26 can only contain the letters A to F or digits"
-msgstr ""
-"Ungültige Länge, ein WEP-Schlüssel muss 5, 10, 13 oder 26 Zeichen lang sein. "
-"Bei 10 oder 26 Zeichen dürfen nur Ziffern und Buchstaben von A bis F "
-"vorkommen"
-
 msgid "Invalid length, a WEP key must be 5, 10, 13 or 26 characters long."
 msgstr ""
 "Ungültige Länge, ein WEP-Schlüssel muss 5, 10, 13 oder 26 Zeichen lang sein."
@@ -222,15 +208,6 @@ msgstr "Ungültiges Subnetz."
 
 msgid "Invalid value."
 msgstr "Ungültiger Wert."
-
-msgid ""
-"Invalid value; enter 'infinite' for infinite time or a number greater than "
-"0, followed by 's' for seconds or 'm' for minutes or 'h' for hours or 'd' "
-"for days or 'w' for weeks. No spaces."
-msgstr ""
-"Ungültiger Wert, geben Sie 'infinite' für unendliche Zeit oder eine Zahl "
-"größer als 0, gefolgt von 's' für Sekunden, 'm' für Minuten, 'h' für "
-"Stunden, 'd' für Tage oder 'w' für Wochen ein. Keine Leerzeichen."
 
 msgid ""
 "Invalid value; enter a number greater than 0, followed by 's' for seconds or "
@@ -248,12 +225,6 @@ msgstr "Weiter"
 
 msgid "Not a Public Address"
 msgstr "Keine öffentliche Adresse"
-
-msgid "OFF"
-msgstr "AUS"
-
-msgid "ON"
-msgstr "AN"
 
 msgid ""
 "PIN code must composed of 4 or 8 digits with potentially a dash or space in "
@@ -290,17 +261,6 @@ msgstr "Erhaltener Domain-Name ist zu lang."
 msgid "Reserved MAC address"
 msgstr "Reservierte MAC-Adresse"
 
-msgid "SSID should not be empty"
-msgstr "Die SSID darf nicht leer sein"
-
-msgid "SSID should not contain ?, \", $, [, \\, ],and + special characters"
-msgstr ""
-"Die SSID darf die Zeichen ?, \", $, [, \\, ], + und Sonderzeichen nicht "
-"enthalten"
-
-msgid "SSID should not start with ; # !"
-msgstr "Die SSID sollte nicht mit ; # ! beginnen"
-
 msgid "Save"
 msgstr "Speichern"
 
@@ -335,14 +295,6 @@ msgstr "Die minimale Lease-Dauer beträgt 120 Sekunden oder 2 Minuten."
 msgid ""
 "The wireless key contains invalid characters, only space, letters, numbers "
 "and the following characters !\"#$%&()*+,-./:;<=>?@[\\]^_{|}~ are allowed."
-msgstr ""
-"Der Wireless-Schlüssel enthält ungültige Zeichen, nur Leerzeichen, "
-"Buchstaben, Ziffern und die folgenden Zeichen: !\"#$%&()*+,-./:;<=>?"
-"@[\\]^_{|}~ sind erlaubt."
-
-msgid ""
-"The wireless key contains invalid characters, only space, letters, numbers "
-"and the following characters !\"'`#$%&()*+,-./:;<=>?@[\\]^_{|}~ are allowed."
 msgstr ""
 "Der Wireless-Schlüssel enthält ungültige Zeichen, nur Leerzeichen, "
 "Buchstaben, Ziffern und die folgenden Zeichen: !\"#$%&()*+,-./:;<=>?"

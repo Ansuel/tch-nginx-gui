@@ -42,9 +42,6 @@ msgstr ""
 "Verschlüsselungstyp wechseln. Um sich mit dem Router über WLAN zu verbinden, "
 "benötigen Sie den Sicherheitsschlüssel."
 
-msgid "ADSL"
-msgstr "ADSL"
-
 msgid "Desired Password:"
 msgstr "Gewünschtes Kennwort:"
 
@@ -59,9 +56,6 @@ msgstr "Dynamische IP-Adresse"
 
 msgid "Enabled"
 msgstr "Aktiviert"
-
-msgid "Ethernet"
-msgstr "Ethernet"
 
 msgid "I don't have VoIP"
 msgstr "Ich habe kein VoIP"
@@ -84,19 +78,7 @@ msgstr "Die VLAN ID ist ungültig, es muss eine Zahl zwischen 2 und 4094 sein"
 msgid "Invalid value, space not allowed"
 msgstr "Ungültige Eingabe, Leerzeichen nicht erlaubt"
 
-msgid "Nessuna"
-msgstr "Keiner"
-
-msgid "PPP over ATM"
-msgstr "PPP over ATM"
-
-msgid "PPP over Ethernet"
-msgstr "PPP over Ethernet"
-
 msgid "Password:"
-msgstr "Kennwort:"
-
-msgid "Password: "
 msgstr "Kennwort:"
 
 msgid ""
@@ -163,31 +145,23 @@ msgstr "Statische Subnetzmaske:"
 msgid "Step "
 msgstr "Schritt "
 
-msgid "Step 5 of 8"
-msgstr "Schritt 5 von 8"
-
-msgid "Step 6 of 8"
-msgstr "Schritt 6 von 8"
-
-msgid "Username: "
+#, fuzzy
+msgid "Username:"
 msgstr "Benutzername: "
 
-msgid "VCI Number: "
+#, fuzzy
+msgid "VCI Number:"
 msgstr "VCI Nummer: "
-
-msgid "VDSL"
-msgstr "VDSL"
 
 msgid "VLAN Enabled"
 msgstr "VLAN eingeschaltet"
 
-msgid "VLAN ID"
-msgstr "VLAN ID"
-
-msgid "VLAN ID: "
+#, fuzzy
+msgid "VLAN ID:"
 msgstr "VLAN ID: "
 
-msgid "VPI Number: "
+#, fuzzy
+msgid "VPI Number:"
 msgstr "VPI Nummer: "
 
 msgid ""
@@ -226,8 +200,21 @@ msgstr "VoIP Realm:"
 msgid "VoIP Registar:"
 msgstr "VoIP Registar:"
 
+msgid "VoIP Setup"
+msgstr ""
+
 msgid "VoIP Username:"
 msgstr "VoIP Benutzername::"
+
+#, fuzzy
+msgid ""
+"VoIP is an optional phone service that runs over the internet. If you have "
+"purchased this service, enter your VoIP settings here. You'll find your "
+"settings in your VoIP activation email."
+msgstr ""
+"VoIP ist ein optionaler Telefoniedienst, der über das Internetläuft. Wenn "
+"Sie diesen Dienst gebucht haben, geben Sie hier Ihre VoIP Angaben sein. "
+"Diese finden sich in der VoIP Aktivierungs-Mail."
 
 msgid "WAN Interfaces"
 msgstr "WAN Schnittstellen"
@@ -238,32 +225,8 @@ msgstr "WAN-Schnittstellen:"
 msgid "WAN Type:"
 msgstr "WAN-Typ:"
 
-msgid "WPA+WPA2 PSK"
-msgstr "WPA+WPA2 PSK"
-
-msgid "WPA2-PSK"
-msgstr "WPA2-PSK"
-
 msgid "Wansensing Enabled"
 msgstr "Wansensing eingeschaltet"
-
-msgid "WiFi Setup (2.4GHz)"
-msgstr "WiFi Setup (2.4GHz)"
-
-msgid "WiFi Setup (5GHz)"
-msgstr "WiFi Setup (5GHz)"
-
-msgid "Wireless 2.4GHz (WiFi):"
-msgstr "Wireless 2.4GHz (WiFi):"
-
-msgid "Wireless 2.4GHz (WiFi): "
-msgstr "Wireless 2.4GHz (WiFi): "
-
-msgid "Wireless 5GHz (WiFi):"
-msgstr "Wireless 5GHz (WiFi):"
-
-msgid "Wireless 5GHz (WiFi): "
-msgstr "Wireless 5GHz (WiFi): "
 
 msgid ""
 "Your modem already has a unique WiFi network set up by default. You can "

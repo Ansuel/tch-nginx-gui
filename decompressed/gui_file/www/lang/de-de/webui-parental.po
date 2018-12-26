@@ -44,7 +44,8 @@ msgid "Exclude Mode"
 msgstr "Ausschluss-Modus"
 
 msgid "Invalid device, entry must be either a valid IP or \"All\""
-msgstr "Ungültiges Gerät, Eintrag muss entweder eine gültige IP oder \"Alle\" sein"
+msgstr ""
+"Ungültiges Gerät, Eintrag muss entweder eine gültige IP oder \"Alle\" sein"
 
 msgid "Keyword Filter"
 msgstr "Schlüsselwort-Filter"
@@ -55,14 +56,11 @@ msgstr "Schlüsselworte"
 msgid "MAC Address"
 msgstr "MAC-Adresse"
 
-msgid "MAC address"
-msgstr "MAC-Adresse"
-
-msgid "Note:Parental control url filter not supported for https sites."
+#, fuzzy
+msgid ""
+"Note:Parental control url filter not supported for https sites and will "
+"block all the webpages related to the given domain name."
 msgstr "Hinweis: Elterliche Kontrolle wird für HTTPS-Seiten nicht unterstützt."
-
-msgid "Parental Blocked"
-msgstr "Elterlich gesperrt"
 
 msgid "Parental Controls"
 msgstr "Elterliche Kontrolle"
