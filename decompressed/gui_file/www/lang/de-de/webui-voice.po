@@ -77,9 +77,6 @@ msgstr "Anrufprotokoll leeren"
 msgid "Clear historical logs"
 msgstr "Historische Protokolle löschen"
 
-msgid "Codec"
-msgstr "Codec"
-
 msgid "Codec Assignment on FXS1"
 msgstr "Codec Zuweisung auf FXS1"
 
@@ -94,9 +91,6 @@ msgstr "Kontakte"
 
 msgid "Create new"
 msgstr "Hinzufügen"
-
-msgid "DECT"
-msgstr "DECT"
 
 msgid "DECT Emission"
 msgstr "DECT Emission"
@@ -320,9 +314,6 @@ msgstr "Profilnummer"
 msgid "Quality Log"
 msgstr "Qualitätsprotokoll"
 
-msgid "Realm"
-msgstr "Bereich"
-
 msgid "ReceiveInterarrivalJitter"
 msgstr "ReceiveInterarrivalJitter"
 
@@ -377,9 +368,6 @@ msgstr "Start"
 msgid "State"
 msgstr "Staat"
 
-msgid "Stop"
-msgstr "Stop"
-
 msgid "Telephone Numbers"
 msgstr "Telefonnummern"
 
@@ -420,6 +408,18 @@ msgid "UserName"
 msgstr "Benutzername"
 
 msgid "Voip Password"
+msgstr "VoIP Passwort"
+
+#, fuzzy
+msgid "Voip Password Profile 1"
+msgstr "VoIP Passwort"
+
+#, fuzzy
+msgid "Voip Password Profile 2"
+msgstr "VoIP Passwort"
+
+#, fuzzy
+msgid "Voip Password Profile 3"
 msgstr "VoIP Passwort"
 
 msgid "sipindex"
