@@ -14,16 +14,15 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 2.2\n"
 
-msgid "<p class='subinfos'><strong>%s classify rule(s)</strong> active</p>"
-msgid_plural ""
-"<p class='subinfos'><strong>%s classify rule(s)</strong> active</p>"
-msgstr[0] ""
-"<p class='subinfos'><strong>%s Klassifizierungsregel</strong> aktiv</p>"
-msgstr[1] ""
-"<p class='subinfos'><strong>%s Klassifizierungsregeln</strong> aktiv</p>"
+#, fuzzy
+msgid "<strong>%s classify rule(s)</strong> active"
+msgid_plural "<strong>%s classify rule(s)</strong> active"
+msgstr[0] "<p class='subinfos'><strong>%s Klassifizierungsregel</strong> aktiv</p>"
+msgstr[1] "<p class='subinfos'><strong>%s Klassifizierungsregeln</strong> aktiv</p>"
 
-msgid "<p class='subinfos'><strong>%s queue(s)</strong> active</p>"
-msgid_plural "<p class='subinfos'><strong>%s queue(s)</strong> active</p>"
+#, fuzzy
+msgid "<strong>%s queue(s)</strong> active"
+msgid_plural "<strong>%s queue(s)</strong> active"
 msgstr[0] "<p class='subinfos'><strong>%s Warteschlange</strong> aktiv</p>"
 msgstr[1] "<p class='subinfos'><strong>%s Warteschlangen</strong> aktiv</p>"
 
@@ -41,9 +40,6 @@ msgstr "Algorithmus"
 
 msgid "Classification"
 msgstr "Klassifikation"
-
-msgid "DSCP"
-msgstr "DSCP"
 
 msgid "Default"
 msgstr "Standard"
@@ -77,9 +73,6 @@ msgstr "Priorität"
 
 msgid "Protocol"
 msgstr "Protokoll"
-
-msgid "QoS"
-msgstr "QoS"
 
 msgid "QoS Classification Table"
 msgstr "QoS Klassifikationstabelle"
