@@ -86,10 +86,18 @@ msgstr "QoS Warteschlangenplanung für LAN Schnittstelle"
 msgid "QoS Queue Scheduling on Interface WAN"
 msgstr "QoS Warteschlangenplanung für WAN Schnittstelle"
 
+#, fuzzy
+msgid "QoS Queue Scheduling on Interface WLAN"
+msgstr "QoS Warteschlangenplanung für WAN Schnittstelle"
+
 msgid "QoS Queue Table on Interface LAN"
 msgstr "QoS Warteschlangentabelle für LAN Schnittstelle"
 
 msgid "QoS Queue Table on Interface WAN"
+msgstr "QoS Warteschlangentabelle für WAN Schnittstelle"
+
+#, fuzzy
+msgid "QoS Queue Table on Interface WLAN"
 msgstr "QoS Warteschlangentabelle für WAN Schnittstelle"
 
 msgid "Queue"
@@ -115,3 +123,6 @@ msgstr "Gewicht"
 
 msgid "Weighted Round Robin"
 msgstr "Gewichtetes Round Robin"
+
+msgid "Yes"
+msgstr ""

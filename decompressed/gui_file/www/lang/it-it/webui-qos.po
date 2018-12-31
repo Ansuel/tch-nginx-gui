@@ -84,11 +84,17 @@ msgstr "Pianificazione coda QoS interfaccia LAN"
 msgid "QoS Queue Scheduling on Interface WAN"
 msgstr "Pianificazione coda QoS interfaccia WAN"
 
+msgid "QoS Queue Scheduling on Interface WLAN"
+msgstr "Pianificazione coda QoS interfaccia WLAN"
+
 msgid "QoS Queue Table on Interface LAN"
 msgstr "Tabella coda QoS interfaccia LAN"
 
 msgid "QoS Queue Table on Interface WAN"
 msgstr "Tabella coda QoS interfaccia WAN"
+
+msgid "QoS Queue Table on Interface WLAN"
+msgstr "Tabella coda QoS interfaccia WLAN"
 
 msgid "Queue"
 msgstr "Coda"
@@ -113,3 +119,6 @@ msgstr "Peso"
 
 msgid "Weighted Round Robin"
 msgstr "Round robin pesato"
+
+msgid "Yes"
+msgstr "Sì"
