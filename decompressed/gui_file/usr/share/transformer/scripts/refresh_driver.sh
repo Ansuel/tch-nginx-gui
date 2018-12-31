@@ -73,7 +73,7 @@ apply_driver() {
 
 download_Driver() {
 	logger "Downloading driver "$driver_set
-	remote_driver_dir=https://raw.githubusercontent.com/Ansuel/tch-nginx-gui/dev/xdsl_driver/$arch/
+	remote_driver_dir=https://raw.githubusercontent.com/Ansuel/tch-nginx-gui/master/xdsl_driver/$arch/
 	$curl $remote_driver_dir/$driver_set --output /tmp/$driver_set
 }
 
