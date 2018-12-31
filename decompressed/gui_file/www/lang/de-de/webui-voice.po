@@ -424,3 +424,11 @@ msgstr "VoIP Passwort"
 
 msgid "sipindex"
 msgstr "sipindex"
+
+#, fuzzy
+msgid "Status"
+msgstr "Staat"
+
+#, fuzzy
+msgid "Local Port"
+msgstr "Lokale Nummer"

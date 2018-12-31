@@ -421,3 +421,9 @@ msgstr "Password profilo 3 VoIP"
 
 msgid "sipindex"
 msgstr "indice sip"
+
+msgid "Status"
+msgstr "Stato"
+
+msgid "Local Port"
+msgstr "Porta locale"

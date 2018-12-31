@@ -3247,3 +3247,10 @@ msgstr "Neustart..."
 
 msgid "The latest added/modified static lease is set to an IP that is already in use, please perform a reboot to apply the changes"
 msgstr ""
+
+#, fuzzy
+msgid "Internet VPC"
+msgstr "Internet-Zugriff"
+
+msgid "The time displayed on the graph are based on the time set on this modem!"
+msgstr ""

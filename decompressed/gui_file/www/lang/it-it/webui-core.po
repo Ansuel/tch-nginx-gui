@@ -1861,7 +1861,7 @@ msgid "Outgoing default policy"
 msgstr "Regola uscita predefinita"
 
 msgid "Output Power"
-msgstr "Uscita alimentazione"
+msgstr "Potenza uscita"
 
 msgid "PPP authentication failed"
 msgstr "Autenticazione PPP fallita"
@@ -2629,10 +2629,10 @@ msgid "This is the internal IP of the SFP interface used for fiber connection. T
 msgstr "Questo è l'indirizzo IP interno dell'interfaccia SFP usata per la connessione in fibra.<br/>Questo indirizzo e l'IP del gateway locale devono essere diversi."
 
 msgid "This resets the custom gui. No custom configuration will be removed in the process. The Gui will stay unlocked with all the functions available for the stock firmware file. Remember to clean cache browser after this."
-msgstr "Questa funzione ripristina la GUI personalizzata.<br/>Nessuna configurazione personalizzata verrà rimossa durante il processo.<br/>L'interfaccia GUI rimarrà sbloccata con tutte le funzioni disponibili per il file firmware stock.<br/>Ricordati dopo di svuotare la cache del browser."
+msgstr "Questa funzione ripristina la GUI personalizzata.<br/>Nessuna configurazione personalizzata verrà rimossa durante il processo.<br/>L'interfaccia GUI rimarrà sbloccata con tutte le funzioni disponibili nel firmware stock.<br/>Ricordati dopo di svuotare la cache del browser."
 
 msgid "This resets the router and removes the root file. After the reboot the modem will be as it was when you bought it."
-msgstr "Questa funzione ripristinail router e rimuove il file di root.<br/>Dopo il riavvio il modem ritornerà come era quando lo hai acquistato."
+msgstr "Questa funzione ripristina il router e rimuove il file di root.<br/>Dopo il riavvio il modem ritornerà come era quando lo hai acquistato."
 
 msgid "This switch disable the check to force the firmware to be on bank_1"
 msgstr "Questo pulsante disabilita il controllo per forzare il firmware ad essere caricato nel banco 1"
@@ -2779,7 +2779,7 @@ msgid "Update Branch"
 msgstr "Canale aggiornamento"
 
 msgid "Update Hours"
-msgstr "Orari aggiornamento"
+msgstr "Orario aggiornamento"
 
 msgid "Updating"
 msgstr "Aggiornamento"
@@ -3007,7 +3007,7 @@ msgid "Wifi Analyzer"
 msgstr "Analizzatore Wi-Fi"
 
 msgid "WiFi NSC when turned off will turn OFF WiFi LED(s) if there is no associated station (no wifi client connected)"
-msgstr "Se WiFi NSC e ad OFF spegne il LED Wi-Fi se non ci sono stazioni associate (nessun client Wi-Fi collegato)"
+msgstr "Se WiFi NSC è ad OFF spegne il LED Wi-Fi se non ci sono stazioni associate (nessun client Wi-Fi collegato)"
 
 msgid "Wireless Client Monitor"
 msgstr "Monitor client wireless"
@@ -3186,3 +3186,9 @@ msgid "The latest added/modified static lease is set to an IP that is already in
 msgstr ""
 "L'ultimo lease statico aggiunto/modificato è impostato con un IP già in uso.\n"
 "Effettua un riavvio per applicare le modifiche."
+
+msgid "Internet VPC"
+msgstr "Impostazioni VP/VC"
+
+msgid "The time displayed on the graph are based on the time set on this modem!"
+msgstr "Gli orari visualizzati nel grafico sono basati sull'orario impostato nel modem!"
