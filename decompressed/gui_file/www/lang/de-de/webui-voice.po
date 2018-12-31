@@ -410,25 +410,23 @@ msgstr "Benutzername"
 msgid "Voip Password"
 msgstr "VoIP Passwort"
 
-#, fuzzy
 msgid "Voip Password Profile 1"
-msgstr "VoIP Passwort"
+msgstr ""
 
-#, fuzzy
 msgid "Voip Password Profile 2"
-msgstr "VoIP Passwort"
+msgstr ""
 
-#, fuzzy
 msgid "Voip Password Profile 3"
-msgstr "VoIP Passwort"
+msgstr ""
 
 msgid "sipindex"
 msgstr "sipindex"
 
-#, fuzzy
 msgid "Status"
-msgstr "Staat"
+msgstr ""
 
-#, fuzzy
 msgid "Local Port"
-msgstr "Lokale Nummer"
+msgstr ""
+
+msgid "Can be used"
+msgstr ""

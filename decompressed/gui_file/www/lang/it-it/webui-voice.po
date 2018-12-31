@@ -427,3 +427,6 @@ msgstr "Stato"
 
 msgid "Local Port"
 msgstr "Porta locale"
+
+msgid "Can be used"
+msgstr "Possono essere usati"
