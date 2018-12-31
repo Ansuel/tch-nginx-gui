@@ -67,9 +67,9 @@ end
         ');
 --		ngx.print(ui_helper.createSimpleLight(nil, dhcp_state_map[dhcprelay_state] , { light = { class = dhcp_light_map[dhcprelay_state], id = "relaysetupcard_dhcprelaystatusled" },  span = { id = "relaysetupcard_dhcprelaystatus" }}))
 --          if server_addr and not server_addr[1].value == "" then
---		    ngx.print(format('<p class = "subinfos" > Server IP : <strong id="relaysetupcard_relayip_server_ip">%s</strong></p>',relay_Params["uci_relay_server_ip"] ))
---            ngx.print(format('<p class = "subinfos" > Local IP : <strong id="relaysetupcard_relayip_local_ip">%s</strong></p>',relay_Params["uci_relay_local_ip"] ))
---            ngx.print(format('<p class = "subinfos" > Interface : <strong id="relaysetupcard_relay_interface">%s</strong></p>',relay_Params["interface"] ))
+--		    ngx.print(format('<p class = "subinfos" >'..T'Server IP'..': <strong id="relaysetupcard_relayip_server_ip">%s</strong></p>',relay_Params["uci_relay_server_ip"] ))
+--            ngx.print(format('<p class = "subinfos" > '..T'Local IP'..': <strong id="relaysetupcard_relayip_local_ip">%s</strong></p>',relay_Params["uci_relay_local_ip"] ))
+--            ngx.print(format('<p class = "subinfos" >'..T'Interface'..': <strong id="relaysetupcard_relay_interface">%s</strong></p>',relay_Params["interface"] ))
 --          end
 		ngx.print(ui_helper.createSimpleLight(nil, ppp_state_map[pppoerelay_state] , { light = { class = ppp_light_map[pppoerelay_state], id = "relaysetupcard_pppoerelaystatusled" },  span = { id = "relaysetupcard_pppoerelaystatusled" }}))
 		  if pppoerelay_state == "connected" then
