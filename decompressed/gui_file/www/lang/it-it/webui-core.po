@@ -2629,7 +2629,7 @@ msgid "This is the internal IP of the SFP interface used for fiber connection. T
 msgstr "Questo è l'indirizzo IP interno dell'interfaccia SFP usata per la connessione in fibra.<br/>Questo indirizzo e l'IP del gateway locale devono essere diversi."
 
 msgid "This resets the custom gui. No custom configuration will be removed in the process. The Gui will stay unlocked with all the functions available for the stock firmware file. Remember to clean cache browser after this."
-msgstr "Questa funzione ripristina la GUI personalizzata.<br/>Nessuna configurazione personalizzata verrà rimossa durante il processo.<br/>L'interfaccia GUI rimarrà sbloccata con tutte le funzioni disponibili nel firmware stock.<br/>Ricordati dopo di svuotare la cache del browser."
+msgstr "Questa funzione ripristina l'interfaccia grafica (GUI) originale.<br/>Durante il processo  non verrà eliminata nessuna configurazione personalizzata.<br/>L'interfaccia grafica (GUI) rimarrà sbloccata con tutte le funzioni disponibili nel firmware stock.<br/>Ricordati dopo di svuotare la cache del browser."
 
 msgid "This resets the router and removes the root file. After the reboot the modem will be as it was when you bought it."
 msgstr "Questa funzione ripristina il router e rimuove il file di root.<br/>Dopo il riavvio il modem ritornerà come era quando lo hai acquistato."
@@ -2737,7 +2737,7 @@ msgid "Turning on Ethernet power saving features can cause extra latency"
 msgstr "L'attivazione delle funzionalità di risparmio energetico ethernet può causare una latenza aggiuntiva"
 
 msgid "Turn off all LEDs (except info/power) if all services are up and running. Press INFO button (could be button with power LED) to show LED status."
-msgstr "Se tutti i servizio sono attivo ed in funzione spegne tutti i led (eccetto INFO/POWER).<br/>Per visualizzare lo stato dei led puoi selezionare il pulsante INFO (può essere il pulsante con il led POWER) ."
+msgstr "Se tutti i servizi sono attivi ed in funzione spegne tutti i led (eccetto INFO/POWER).<br/>Per visualizzare lo stato dei led puoi selezionare il pulsante INFO (può essere il pulsante con il led POWER) ."
 
 msgid "Tx Errors"
 msgstr "Errori Tx"
