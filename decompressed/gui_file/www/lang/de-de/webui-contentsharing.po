@@ -122,9 +122,8 @@ msgstr "Gesamter Platz"
 msgid "USB 3.1 Enabled"
 msgstr "USB 3.1 eingeschaltet"
 
-#, fuzzy
 msgid "USB Port"
-msgstr "Port"
+msgstr ""
 
 msgid "Used Space"
 msgstr "Platz genutzt"

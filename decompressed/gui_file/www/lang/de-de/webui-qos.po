@@ -14,17 +14,15 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 2.2\n"
 
-#, fuzzy
 msgid "<strong>%s classify rule(s)</strong> active"
 msgid_plural "<strong>%s classify rule(s)</strong> active"
-msgstr[0] "<p class='subinfos'><strong>%s Klassifizierungsregel</strong> aktiv</p>"
-msgstr[1] "<p class='subinfos'><strong>%s Klassifizierungsregeln</strong> aktiv</p>"
+msgstr[0] ""
+msgstr[1] ""
 
-#, fuzzy
 msgid "<strong>%s queue(s)</strong> active"
 msgid_plural "<strong>%s queue(s)</strong> active"
-msgstr[0] "<p class='subinfos'><strong>%s Warteschlange</strong> aktiv</p>"
-msgstr[1] "<p class='subinfos'><strong>%s Warteschlangen</strong> aktiv</p>"
+msgstr[0] ""
+msgstr[1] ""
 
 msgid "Add New Label"
 msgstr "Hinzufügen Neuen Titel"
@@ -86,9 +84,8 @@ msgstr "QoS Warteschlangenplanung für LAN Schnittstelle"
 msgid "QoS Queue Scheduling on Interface WAN"
 msgstr "QoS Warteschlangenplanung für WAN Schnittstelle"
 
-#, fuzzy
 msgid "QoS Queue Scheduling on Interface WLAN"
-msgstr "QoS Warteschlangenplanung für WAN Schnittstelle"
+msgstr ""
 
 msgid "QoS Queue Table on Interface LAN"
 msgstr "QoS Warteschlangentabelle für LAN Schnittstelle"
@@ -96,9 +93,8 @@ msgstr "QoS Warteschlangentabelle für LAN Schnittstelle"
 msgid "QoS Queue Table on Interface WAN"
 msgstr "QoS Warteschlangentabelle für WAN Schnittstelle"
 
-#, fuzzy
 msgid "QoS Queue Table on Interface WLAN"
-msgstr "QoS Warteschlangentabelle für WAN Schnittstelle"
+msgstr ""
 
 msgid "Queue"
 msgstr "Warteschlange"

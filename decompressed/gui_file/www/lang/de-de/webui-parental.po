@@ -55,9 +55,8 @@ msgstr "Schlüsselworte"
 msgid "MAC Address"
 msgstr "MAC-Adresse"
 
-#, fuzzy
 msgid "Note:Parental control url filter not supported for https sites and will block all the webpages related to the given domain name."
-msgstr "Hinweis: Elterliche Kontrolle wird für HTTPS-Seiten nicht unterstützt."
+msgstr ""
 
 msgid "Parental Controls"
 msgstr "Elterliche Kontrolle"

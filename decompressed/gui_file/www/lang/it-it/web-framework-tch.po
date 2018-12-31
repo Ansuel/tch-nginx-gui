@@ -278,7 +278,7 @@ msgid "hide advanced"
 msgstr "nascondi opzioni avanzate"
 
 msgid "refresh data"
-msgstr "aggiorna dati"
+msgstr "Aggiorna dati"
 
 msgid "show advanced"
-msgstr "visualizza opzioni avanzate"
+msgstr "Visualizza opzioni avanzate"

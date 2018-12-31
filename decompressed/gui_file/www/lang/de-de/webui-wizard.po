@@ -116,24 +116,20 @@ msgstr "Statische Subnetzmaske:"
 msgid "Step "
 msgstr "Schritt "
 
-#, fuzzy
 msgid "Username:"
-msgstr "Benutzername: "
+msgstr ""
 
-#, fuzzy
 msgid "VCI Number:"
-msgstr "VCI Nummer: "
+msgstr ""
 
 msgid "VLAN Enabled"
 msgstr "VLAN eingeschaltet"
 
-#, fuzzy
 msgid "VLAN ID:"
-msgstr "VLAN ID: "
+msgstr ""
 
-#, fuzzy
 msgid "VPI Number:"
-msgstr "VPI Nummer: "
+msgstr ""
 
 msgid "VoIP (Netphone) is an optional phone service that runs over the internet. If you have purchased this service, enter your VoIP settings here. You'll find your settings in your VoIP activation email."
 msgstr "VoIP ist ein optionaler Telefoniedienst, der über das Internetläuft. Wenn Sie diesen Dienst gebucht haben, geben Sie hier Ihre VoIP Angaben sein. Diese finden sich in der VoIP Aktivierungs-Mail."
@@ -171,9 +167,8 @@ msgstr ""
 msgid "VoIP Username:"
 msgstr "VoIP Benutzername::"
 
-#, fuzzy
 msgid "VoIP is an optional phone service that runs over the internet. If you have purchased this service, enter your VoIP settings here. You'll find your settings in your VoIP activation email."
-msgstr "VoIP ist ein optionaler Telefoniedienst, der über das Internetläuft. Wenn Sie diesen Dienst gebucht haben, geben Sie hier Ihre VoIP Angaben sein. Diese finden sich in der VoIP Aktivierungs-Mail."
+msgstr ""
 
 msgid "WAN Interfaces"
 msgstr "WAN Schnittstellen"

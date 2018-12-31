@@ -180,9 +180,8 @@ msgstr "Ein Benutzer mit diesem Benutzernamen existiert bereits"
 msgid "ACCEPT"
 msgstr "AKZEPTIEREN"
 
-#, fuzzy
 msgid "ACL Mode"
-msgstr "ACL Modus"
+msgstr ""
 
 msgid "ACL mode"
 msgstr "ACL Modus"
@@ -208,9 +207,8 @@ msgstr "AP Status"
 msgid "ATM Ping Test"
 msgstr "ATM Ping Test"
 
-#, fuzzy
 msgid "Accept"
-msgstr "Access Point"
+msgstr ""
 
 msgid "Access Control"
 msgstr "Zugriffskontrolle"
@@ -242,9 +240,8 @@ msgstr "Neuen DNS hinzufügen"
 msgid "Add New Rule"
 msgstr "Neue Regel hinzufügen"
 
-#, fuzzy
 msgid "Add new"
-msgstr "Neue Regel hinzufügen"
+msgstr ""
 
 msgid "Add new IPv4 Ping WhiteList rule"
 msgstr "Neue IPv4 Ping WhiteList Regel hinzufügen"
@@ -363,9 +360,8 @@ msgstr "Aria2 ist "
 msgid "Assistance"
 msgstr "Assistenz"
 
-#, fuzzy
 msgid "Attenuation"
-msgstr "Leitungspegel"
+msgstr ""
 
 msgid "Authentication failed"
 msgstr "Authentifizierung fehlgeschlagen"
@@ -376,9 +372,8 @@ msgstr ""
 msgid "AutoUpgrade"
 msgstr "AUtoUpgrade"
 
-#, fuzzy
 msgid "AutoUpgrade Status"
-msgstr "AUtoUpgrade"
+msgstr ""
 
 msgid "Aux Features Mask"
 msgstr "Aux Features Maske"
@@ -410,13 +405,11 @@ msgstr "Bankprüfung"
 msgid "Bank Info"
 msgstr "Bank Information"
 
-#, fuzzy
 msgid "Base Code"
-msgstr "QR-Code"
+msgstr ""
 
-#, fuzzy
 msgid "Base Name"
-msgstr "Benutzername"
+msgstr ""
 
 msgid "Blacklist"
 msgstr "Schwarze Liste"
@@ -445,9 +438,8 @@ msgstr "Urlader Version"
 msgid "Bridge Grouping"
 msgstr "Brückengruppierung"
 
-#, fuzzy
 msgid "Bridge Mode Active"
-msgstr "Brücken-Modus"
+msgstr ""
 
 msgid "Bridge connected"
 msgstr "Brücke verbunden"
@@ -467,9 +459,8 @@ msgstr "Gebrückte Verbindung"
 msgid "Broadband"
 msgstr "Breitband"
 
-#, fuzzy
 msgid "Broadband Connection"
-msgstr "Gebrückte Verbindung"
+msgstr ""
 
 msgid "Broadband type"
 msgstr "Breitband Typ"
@@ -483,9 +474,8 @@ msgstr "Broadcast Pakete"
 msgid "Broadcast SSID"
 msgstr "Broadcast SSID"
 
-#, fuzzy
 msgid "CPU Frequency Auto Scaling"
-msgstr "Frequenzband"
+msgstr ""
 
 msgid "CPU Usage"
 msgstr ""
@@ -538,9 +528,8 @@ msgstr "Kanalbreite"
 msgid "Check Upgrade"
 msgstr "Prüfe auf Aktualisierung"
 
-#, fuzzy
 msgid "Checking..."
-msgstr "Verbinden..."
+msgstr ""
 
 msgid "Choose Device"
 msgstr "Wähle Gerät"
@@ -548,9 +537,8 @@ msgstr "Wähle Gerät"
 msgid "Clean"
 msgstr "Leeren"
 
-#, fuzzy
 msgid "Client Interface"
-msgstr "Schnittstelle"
+msgstr ""
 
 msgid "Client Monitoring"
 msgstr "Überwachung Endgerät"
@@ -576,9 +564,8 @@ msgstr "Bestätigen"
 msgid "Connected"
 msgstr "Verbunden"
 
-#, fuzzy
 msgid "Connected Devices"
-msgstr "Verbunden"
+msgstr ""
 
 msgid "Connecting"
 msgstr "Verbinden"
@@ -604,9 +591,8 @@ msgstr "Verbindung Benutzernamenanforderung"
 msgid "Connection Time"
 msgstr "Verbindungszeit"
 
-#, fuzzy
 msgid "Connection Type"
-msgstr "Verbindungszeit"
+msgstr ""
 
 msgid "Connection mode"
 msgstr "Verbindungsmodus"
@@ -644,9 +630,8 @@ msgstr "Der angemeldete Benutzer kann seine Rolle nicht ändern"
 msgid "Cyclic-Delay Diversity"
 msgstr "Cyclic-Delay Diversity"
 
-#, fuzzy
 msgid "DECT Emission Mode "
-msgstr "Richtungsmodus"
+msgstr ""
 
 msgid "DHCP End Address is Invalid"
 msgstr "DHCP Endadresse ist ungültig"
@@ -882,9 +867,8 @@ msgstr "Richtung:"
 msgid "Disable VN Mode"
 msgstr "Abschalten VN Modus"
 
-#, fuzzy
 msgid "Disabled"
-msgstr "abgeschaltet"
+msgstr ""
 
 msgid "Discard Packets"
 msgstr "Verwerfe Pakete"
@@ -919,13 +903,11 @@ msgstr "Melden Sie keinen Fehler, dies ist eine angepasste Oberfläche! Einige F
 msgid "Dos Protect Option"
 msgstr ""
 
-#, fuzzy
 msgid "DoS Protect disabled"
-msgstr "Statisch abgeschaltet"
+msgstr ""
 
-#, fuzzy
 msgid "DoS Protect enabled"
-msgstr "DHCP aktiviert"
+msgstr ""
 
 msgid "Download"
 msgstr "Herunterladen"
@@ -960,9 +942,8 @@ msgstr "Ziel-IP"
 msgid "Dst IP/Subnet"
 msgstr "Ziel-IP/-Subnet"
 
-#, fuzzy
 msgid "Dst Port"
-msgstr "Ziel-Port"
+msgstr ""
 
 msgid "Dst port"
 msgstr "Ziel-Port"
@@ -994,13 +975,11 @@ msgstr "FEHLER"
 msgid "Eco Led"
 msgstr "Öko-LED"
 
-#, fuzzy
 msgid "Eco LED disabled"
-msgstr "DMZ deaktiviert"
+msgstr ""
 
-#, fuzzy
 msgid "Eco LED enabled"
-msgstr "DMZ aktiviert"
+msgstr ""
 
 msgid "Eco Settings"
 msgstr "Öko-Einstellungen"
@@ -1020,9 +999,8 @@ msgstr "Aktiviert"
 msgid "Encapsulation"
 msgstr "Verkapselung"
 
-#, fuzzy
 msgid "Energy Efficent Ethernet disabled"
-msgstr "Ethernet abgeschaltet"
+msgstr ""
 
 msgid "Energy Efficent Ethernet enabled"
 msgstr ""
@@ -1186,13 +1164,11 @@ msgstr "Erster DNS Server Ping"
 msgid "Flow Cache Option"
 msgstr "Flow Cache Option"
 
-#, fuzzy
 msgid "Flow Cache disabled"
-msgstr "Flow Cache Option"
+msgstr ""
 
-#, fuzzy
 msgid "Flow Cache enabled"
-msgstr "Flow Cache Option"
+msgstr ""
 
 msgid "Force Upgrade"
 msgstr "Upgrade erzwingen"
@@ -1224,9 +1200,8 @@ msgstr "GPON Status"
 msgid "GRE without PassThru"
 msgstr "GRE ohne Durchleitung"
 
-#, fuzzy
 msgid "GUI Version"
-msgstr "GUI Version"
+msgstr ""
 
 msgid "Gateway IP is <strong id=\"Gateway_Ip\">%s</strong> and netmask is <strong id=\"Netmask_Ip\">%s</strong>"
 msgstr "Die Gateway IP ist <strong id=\"Gateway_Ip\">%s</strong> und die Netzmaske ist <strong id=\"Netmask_Ip\">%s</strong>"
@@ -1270,9 +1245,8 @@ msgstr "Grün"
 msgid "Guest"
 msgstr "Gast"
 
-#, fuzzy
 msgid "Gui FirstPage"
-msgstr "GUI Status"
+msgstr ""
 
 msgid "Gui Skin"
 msgstr "GUI Stil"
@@ -1589,9 +1563,8 @@ msgstr "Leitungspegel"
 msgid "Line Rate"
 msgstr "Leitungssgeschwindigkeit"
 
-#, fuzzy
 msgid "Line State"
-msgstr "Leitungssgeschwindigkeit"
+msgstr ""
 
 msgid "Link Down"
 msgstr "Gegenstelle nicht erreichbar"
@@ -1671,9 +1644,8 @@ msgstr "Maximaler Hop Count:"
 msgid "Max Packet Number Recommended:"
 msgstr "Maximal empfohlene Anzahl Pakete:"
 
-#, fuzzy
 msgid "Max Rate"
-msgstr "Datenrate"
+msgstr ""
 
 msgid "Max Resp Time:"
 msgstr "Maximale Antwortzeit:"
@@ -1720,9 +1692,8 @@ msgstr "Überwachte Schnittstelle:"
 msgid "Multicast Packets"
 msgstr "Multicast-Pakete"
 
-#, fuzzy
 msgid "NA"
-msgstr "NAT"
+msgstr ""
 
 msgid "NAT Helpers (ALG's)"
 msgstr "NAT Helfer (ALGs)"
@@ -1841,9 +1812,8 @@ msgstr "Hinweis: HTTPS Modus schaltet Verschlüsselung, aber keine zertifikatsba
 msgid "Note: You need to inser an unused ip on the local LAN to make the WakeOnWAN work."
 msgstr "Hinweis: Sie müssen eine ungenutzte IP im lokalen Netz eintragen, um WakeOnWAN zu nutzen."
 
-#, fuzzy
 msgid "Number"
-msgstr "Seriennummer"
+msgstr ""
 
 msgid "Number of pings:"
 msgstr "Anzahl Pings:"
@@ -1926,17 +1896,14 @@ msgstr "PPP Statistik"
 msgid "PPP status"
 msgstr "PPP Status"
 
-#, fuzzy
 msgid "PPPoE Relay"
-msgstr "DHCP Relais"
+msgstr ""
 
-#, fuzzy
 msgid "PPPoE Relay disabled"
-msgstr "DHCP Relais abgeschaltet"
+msgstr ""
 
-#, fuzzy
 msgid "PPPoE Relay enabled"
-msgstr "DHCP Relais eingeschaltet"
+msgstr ""
 
 msgid "Packet Number:"
 msgstr "Anzahl Pakete:"
@@ -2049,9 +2016,8 @@ msgstr "Port 4"
 msgid "Port Speed"
 msgstr "Port-Geschwindigkeit"
 
-#, fuzzy
 msgid "Ports"
-msgstr "Port"
+msgstr ""
 
 msgid "Ports State"
 msgstr "Status der Ports"
@@ -2137,9 +2103,8 @@ msgstr "Radius Authentifizierung Server Geheimnis"
 msgid "Random Color"
 msgstr ""
 
-#, fuzzy
 msgid "Rate"
-msgstr "PHY Rate"
+msgstr ""
 
 msgid "Rebooting"
 msgstr "Neustart"
@@ -2165,9 +2130,8 @@ msgstr "Region"
 msgid "Register"
 msgstr "Registrieren"
 
-#, fuzzy
 msgid "Registered"
-msgstr "Registrieren"
+msgstr ""
 
 msgid "Relay Setup"
 msgstr "Relais aufsetzen"
@@ -2271,9 +2235,8 @@ msgstr "Routing Tabelle"
 msgid "Routing table"
 msgstr "Routing Tabelle"
 
-#, fuzzy
 msgid "RpFilter"
-msgstr "Filter"
+msgstr ""
 
 msgid "RUNNING"
 msgstr ""
@@ -2290,9 +2253,8 @@ msgstr "Rx Pakete"
 msgid "RxQueue"
 msgstr "RxSchlange"
 
-#, fuzzy
 msgid "SFP IP address"
-msgstr "IP Adresse"
+msgstr ""
 
 msgid "SRP Salt"
 msgstr "SRP Salt"
@@ -2303,13 +2265,11 @@ msgstr "SRP Verifizierer"
 msgid "SSH Access"
 msgstr "SSH Zugang"
 
-#, fuzzy
 msgid "SSH disabled"
-msgstr "SSH deaktiviert"
+msgstr ""
 
-#, fuzzy
 msgid "SSH enabled"
-msgstr "SSH aktiviert"
+msgstr ""
 
 msgid "SSID name"
 msgstr "SSID Name"
@@ -2341,9 +2301,8 @@ msgstr "Auswahl"
 msgid "Send Ping Request"
 msgstr "Ping-Anforderung senden"
 
-#, fuzzy
 msgid "Sent chart line"
-msgstr "Startzeit"
+msgstr ""
 
 msgid "Serial Number"
 msgstr "Seriennummer"
@@ -2351,16 +2310,14 @@ msgstr "Seriennummer"
 msgid "Server IP"
 msgstr "Server IP"
 
-#, fuzzy
 msgid "Server Interface"
-msgstr "Quell-Schnittstelle"
+msgstr ""
 
 msgid "Server name"
 msgstr "Server Name"
 
-#, fuzzy
 msgid "Service"
-msgstr "Dienstname"
+msgstr ""
 
 msgid "Service Name"
 msgstr "Dienstname"
@@ -2368,9 +2325,8 @@ msgstr "Dienstname"
 msgid "Services to check for the Eco LED"
 msgstr "Dienstleistungen für die Eco-LED zu überprüfen"
 
-#, fuzzy
 msgid "Sessions"
-msgstr "Neuübertragungen"
+msgstr ""
 
 msgid "Set 4th Ethernet Port as WAN or as LAN"
 msgstr "Setze vierten Ethernet-Port als WAN oder LAN"
@@ -2378,9 +2334,8 @@ msgstr "Setze vierten Ethernet-Port als WAN oder LAN"
 msgid "Set PIN code"
 msgstr "Setzen PIN-Code"
 
-#, fuzzy
 msgid "Settings"
-msgstr "Öko-Einstellungen"
+msgstr ""
 
 msgid "Setup Wizard"
 msgstr "Einrichtungshilfe"
@@ -2436,9 +2391,8 @@ msgstr "Quell-IP/-Subnetz"
 msgid "Src Interface"
 msgstr "Quell-Schnittstelle"
 
-#, fuzzy
 msgid "Src Port"
-msgstr "Quell-Port"
+msgstr ""
 
 msgid "Src port"
 msgstr "Quell-Port"
@@ -2476,9 +2430,8 @@ msgstr "Statische Leases"
 msgid "Static on"
 msgstr "Statisch an"
 
-#, fuzzy
 msgid "Stats"
-msgstr "Status"
+msgstr ""
 
 msgid "Status"
 msgstr "Status"
@@ -2549,13 +2502,11 @@ msgstr "Umschalten auf <strong>Voice Modus</strong> und Neustart, bitte warten..
 msgid "Switchover"
 msgstr "Switchover"
 
-#, fuzzy
 msgid "Syslog disabled"
-msgstr "Syslog deaktiviert"
+msgstr ""
 
-#, fuzzy
 msgid "Syslog enabled"
-msgstr "Syslog aktiv"
+msgstr ""
 
 msgid "Syslog filters"
 msgstr "Syslog Filter"
@@ -2851,9 +2802,8 @@ msgstr "Aktualisiere GUI"
 msgid "Upgrade Gui"
 msgstr "Aktualisiere GUI"
 
-#, fuzzy
 msgid "Upgrade available! Version: <strong>%s</strong>"
-msgstr "Treiber Version: <strong>%s</strong>"
+msgstr ""
 
 msgid "Upgrade failed; please try again."
 msgstr "Aktualisierung fehlgeschlagen, bitte versuchen Sie es erneut."
@@ -2885,9 +2835,8 @@ msgstr "Verwende"
 msgid "Use Random Password"
 msgstr "Verwende Zufallskennwort"
 
-#, fuzzy
 msgid "Use Random Port"
-msgstr "Verwende Zufallskennwort"
+msgstr ""
 
 msgid "User Manager"
 msgstr "Benutzerverwaltung"
@@ -2958,9 +2907,8 @@ msgstr "Violett"
 msgid "Voice Mode"
 msgstr "Voice Modus"
 
-#, fuzzy
 msgid "Voice Mode Active"
-msgstr "Voice Modus"
+msgstr ""
 
 msgid "WAN Available"
 msgstr "WAN verfügbar"
@@ -2980,13 +2928,11 @@ msgstr "WAN IP ist <strong>%s</strong>"
 msgid "WAN Services"
 msgstr "WAN Dienste"
 
-#, fuzzy
 msgid "WAN Stats"
-msgstr "AP Status"
+msgstr ""
 
-#, fuzzy
 msgid "WAN Traffic"
-msgstr "WiFi Netzwerkverkehr"
+msgstr ""
 
 msgid "WAN interface"
 msgstr "WAN Schnittstelle"
@@ -3024,9 +2970,8 @@ msgstr ""
 msgid "WPS Device PIN code"
 msgstr "WPS Geräte PIN-Code"
 
-#, fuzzy
 msgid "WPS Mode"
-msgstr "DSL Betriebsart"
+msgstr ""
 
 msgid "WPS is automatically disabled if you choose WEP or WPA-only security or disable broadcast of the SSID"
 msgstr "WPS ist automatisch abgeschaltet, wenn Sie WEP oder Nur-WPA Sicherheitseinstellungen verwenden oder wenn Sie den Broadcast der SSID abschalten"
@@ -3196,17 +3141,14 @@ msgstr "xDSL eingeschaltet"
 msgid "xDSL Graphics"
 msgstr "xDSL Grafiken"
 
-#, fuzzy
 msgid "xDSL Info"
-msgstr "xDSL Konfiguration"
+msgstr ""
 
-#, fuzzy
 msgid "xDSL Version"
-msgstr "GUI Version"
+msgstr ""
 
-#, fuzzy
 msgid "VDSL Profile"
-msgstr "Profile"
+msgstr ""
 
 msgid "Your Gateway"
 msgstr "Ihr Gateway"
@@ -3214,43 +3156,35 @@ msgstr "Ihr Gateway"
 msgid "The AP can be selected only once, to modify it you need to remove the rule."
 msgstr ""
 
-#, fuzzy
 msgid "This will install Telstra webui"
-msgstr "Dies wird aria2 und ariang webui installieren"
+msgstr ""
 
-#, fuzzy
 msgid "Install Telstra GUI"
-msgstr "Installiere Aria2"
+msgstr ""
 
-#, fuzzy
 msgid "Telstra is "
-msgstr "Die Blacklist App ist "
+msgstr ""
 
-#, fuzzy
 msgid "Remove Telstra GUI"
-msgstr "Entferne Aria2"
+msgstr ""
 
 msgid "Change the default page in system-extra to set this gui as default"
 msgstr ""
 
-#, fuzzy
 msgid "Update blacklist app"
-msgstr "Die Blacklist App ist "
+msgstr ""
 
-#, fuzzy
 msgid "Installing..."
-msgstr "Installiere Luci"
+msgstr ""
 
-#, fuzzy
 msgid "Removing..."
-msgstr "Neustart..."
+msgstr ""
 
 msgid "The latest added/modified static lease is set to an IP that is already in use, please perform a reboot to apply the changes"
 msgstr ""
 
-#, fuzzy
 msgid "Internet VPC"
-msgstr "Internet-Zugriff"
+msgstr ""
 
 msgid "The time displayed on the graph are based on the time set on this modem!"
 msgstr ""
