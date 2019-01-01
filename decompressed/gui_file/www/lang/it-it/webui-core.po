@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: webui-core\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-06-21 15:33+0200\n"
-"PO-Revision-Date: 2018-12-29 09:20+0100\n"
+"PO-Revision-Date: 2019-01-01 10:59+0100\n"
 "Last-Translator: bovirus <bovirus@gmail.com>\n"
 "Language-Team: none\n"
 "Language: it\n"
@@ -21,13 +21,13 @@ msgid " installed"
 msgstr " installata"
 
 msgid " is installed"
-msgstr " è installata"
+msgstr " installata"
 
 msgid " is not installed"
-msgstr " non è installata"
+msgstr " non installata"
 
 msgid "%2$d Routes"
-msgstr "%2$d Instradamenti"
+msgstr "%2$d instradamenti"
 
 msgid "%d days %d hours %d minutes %d seconds"
 msgstr "%d giorni %d ore %d minuti %d secondi"
@@ -2404,7 +2404,7 @@ msgid "Start"
 msgstr "Avvia"
 
 msgid "STARTING"
-msgstr "IN AVVIO"
+msgstr "AVVIO..."
 
 msgid "Start Time"
 msgstr "Orario inizio"
@@ -2608,7 +2608,7 @@ msgid "The scan will interrupt the ongoing wifi traffic"
 msgstr "Durante la scansione il traffico Wi-Fi sarà interrotto"
 
 msgid "The server is currently unavailable, Please try again after some time"
-msgstr "I server non è al momento disponibile. Riprova più tardi"
+msgstr "Il server non è al momento disponibile. Riprova più tardi"
 
 msgid "The server timed out waiting for the request"
 msgstr "Connessione scaduta in attesa della richiesta"
@@ -2737,7 +2737,7 @@ msgid "Turning on Ethernet power saving features can cause extra latency"
 msgstr "L'attivazione delle funzionalità di risparmio energetico ethernet può causare una latenza aggiuntiva"
 
 msgid "Turn off all LEDs (except info/power) if all services are up and running. Press INFO button (could be button with power LED) to show LED status."
-msgstr "Se tutti i servizi sono attivi ed in funzione spegne tutti i led (eccetto INFO/POWER).<br/>Per visualizzare lo stato dei led puoi selezionare il pulsante INFO (può essere il pulsante con il led POWER) ."
+msgstr "Se tutti i servizi sono attivi ed in funzione spegne tutti i led (eccetto i led INFO/POWER).<br/>Per visualizzare lo stato dei led puoi selezionare il pulsante INFO (può essere il pulsante con il led POWER) ."
 
 msgid "Tx Errors"
 msgstr "Errori Tx"
@@ -3171,7 +3171,7 @@ msgid "Remove Telstra GUI"
 msgstr "Rimuovi GUI Telstra"
 
 msgid "Change the default page in system-extra to set this gui as default"
-msgstr "Modifica la pagina predefinita in system->extra per impostare questa GUI come predefinita."
+msgstr "Modifica la pagina predefinita in system->extra per impostare questa GUI come predefinita"
 
 msgid "Update blacklist app"
 msgstr "Aggiorna app 'Elenco non autorizzati'"
