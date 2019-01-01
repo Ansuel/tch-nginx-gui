@@ -11,7 +11,7 @@ local ui_helper = require("web.ui_helper")
 local find, sub, format, floor = string.find, string.sub, string.format, math.floor
 
 local content = {
-  status = "Device.DSL.Line.1.Status",
+  status = "sys.class.xdsl.@line0.LinkStatus",
   version = "rpc.xdsl.dslversion",
   max_upstream = "Device.DSL.Line.1.UpstreamMaxBitRate",
   max_downstream = "Device.DSL.Line.1.DownstreamMaxBitRate",
@@ -53,10 +53,12 @@ elseif content.dslam_chipset:match("IFTN") then
 	content.dslam_chipset = "Infineon" .. " ( " .. content.dslam_chipset .. " )"
 end
 
-if content.status == "Up" then
+if content.status == "Showtime" then
 	content.status = T"Connected"
-else
+elseif content.status == "" then
 	content.status = T"Disconnected"
+else
+	content.status = T(content.status)
 end
 
   ngx.print('\

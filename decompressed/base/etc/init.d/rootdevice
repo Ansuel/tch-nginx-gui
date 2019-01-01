@@ -1796,12 +1796,12 @@ root() {
     done
 	
 	#This file is present only in newer build that don't suffer this strange bug
-	if [ ! -f /usr/lib/lua/tch/logger.lua ]; then
-		#Wait this command better way to check if transformer is fully initialized
-		transformer-cli get uci.env.var.oui > /dev/null
+	#if [ ! -f /usr/lib/lua/tch/logger.lua ]; then
+	#	#Wait this command better way to check if transformer is fully initialized
+	#	transformer-cli get uci.env.var.oui > /dev/null
 		logger_command "Restarting transformer a second time cause it's just shit..."
 		/etc/init.d/transformer restart
-	fi
+	#fi
 	
 	logger_command "Trafficmon inizialization"
 	trafficmon_support #support trafficmon
