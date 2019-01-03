@@ -1,5 +1,10 @@
 #!/bin/sh
 
+#Forcely turn off all LEDs (ledfw restart does not turn of all LEDs on some devices)
+for filename in /sys/class/leds/*; do
+    echo 0 > "$filename/brightness"
+done
+
 #Call default restart script (that will break LEDs)
 /etc/init.d/ledfw restart
 
@@ -29,8 +34,7 @@ connected_wl0=0
 connected_wl1=0
 num_dev=$(seq $(transformer-cli get rpc.hosts.HostNumberOfEntries | cut -d= -f 2))
 i=0
-while [ $num_dev -gt 0 ]; do
-
+while [ ! -z "$num_dev" ] && [ $num_dev -gt 0 ]; do
     if [ ! -z "$(transformer-cli get rpc.hosts.host.$i. | grep 'ERROR')" ]; then
         i=$((i+1))
     else
