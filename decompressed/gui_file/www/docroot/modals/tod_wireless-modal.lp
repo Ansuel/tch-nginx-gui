@@ -131,15 +131,6 @@ local function validate_wifitod(postcontent, timer_data)
   if postcontent.start_time >= postcontent.stop_time then
     return nil, T"Stop time should be greater Start time."
   end
-  for i, v in ipairs(timer_data) do
-    if i ~= postcontent.index then
-      if daysOverlap(postcontent.weekdays, v.days) and -- days overlap
-              postcontent.start_time <= v.stop_time and
-              postcontent.stop_time >= v.start_time then -- time overlaps
-        return nil, T"Overlapping times are not allowed."
-      end
-    end
-  end
 
   return true
 end
@@ -370,7 +361,7 @@ ngx.print('\
             mode: \'scroller\',\
             headerText: false,\
             timeFormat: \'HH:ii\',\
-            stepMinute: 15\
+            stepMinute: 1\
         };\
         $("#starttime").mobiscroll().time(opt);\
         $("#stoptime").mobiscroll().time(opt);\
