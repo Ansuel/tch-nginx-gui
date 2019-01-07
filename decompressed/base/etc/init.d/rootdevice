@@ -499,32 +499,21 @@ trafficmon_support() {
 }
 
 checkver_cron() {
+    if [ -f /etc/crontabs/root ]; then #remove from cron old checkver.sh script
+        sed -i '/checkver.sh/d' /etc/crontabs/root
+    fi
 	if [ $(ls -l /etc/crontabs/root | awk '{print $3}') != "root" ]; then
 		rm /etc/crontabs/root #THIS CHECK A VALID ROOT CRON... we remove it as it's useless if the owner is not root.
-	fi							#so someone should check it anyway
-	if [ -f /etc/crontabs/root ]; then
-		if [ ! "$(cat /etc/crontabs/root | grep checkver)" ] ; then
-			echo "0 5 * * * /usr/share/transformer/scripts/checkver Schedule >/dev/null 2>&1" >> /etc/crontabs/root
-			/etc/init.d/cron restart
-		fi
-		if [ -f /etc/crontabs/root_gui ]; then
-			rm /etc/crontabs/root_gui
-		fi
-		if [ ! "$(cat /etc/crontabs/root | grep Schedule)" ] && [ "$(cat /etc/crontabs/root | grep checkver)" ]; then
-			sed -e /scripts/d -i /etc/crontabs/root
-			echo "0 5 * * * /usr/share/transformer/scripts/checkver Schedule >/dev/null 2>&1" >> /etc/crontabs/root
-			/etc/init.d/cron restart
-		fi
-	else
-		if [ -f /etc/crontabs/root_gui ]; then
-			mv /etc/crontabs/root_gui /etc/crontabs/root
-			/etc/init.d/cron restart
-		fi
+	fi
+	if [ ! -f /etc/crontabs/root ] or [ ! "$(cat /etc/crontabs/root | grep checkver)" ]; then
+        rand_h=$(awk -v min=1 -v max=6 'BEGIN{srand(); print int(min+rand()*(max-min+1))}')
+        rand_m=$(awk -v min=1 -v max=59 'BEGIN{srand(); print int(min+rand()*(max-min+1))}')
+        echo "$rand_m $rand_h * * * /usr/share/transformer/scripts/checkver >/dev/null 2>&1" >> /etc/crontabs/root
+        /etc/init.d/cron restart
 	fi	
 }
 
 restore_original_mapper() {
-	
 	local orig_dir=/rom/usr/share/transformer/mappings
 	local target=/usr/share/transformer/mappings
 	
