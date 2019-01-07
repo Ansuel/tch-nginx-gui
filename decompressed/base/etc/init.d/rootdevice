@@ -1736,7 +1736,7 @@ root() {
 	
 	logger_command "Checking if ISP is detected..."
 	if [ $(uci -q get env.var.isp) ]; then
-		if [ $(uci -q get env.var.isp) == "Other" ]; then #this disable cwmpd if it's not tim...
+		if [ $(uci -q get env.var.isp) == "Other" ]; then #this disable cwmpd if it's not known ISP...
 			uci set cwmpd.cwmpd_config.state='0'
 			if [ $(uci get -q cwmpd.cwmpd_config.state) = "1" ]; then
 				if [ -f /var/run/cwmpd.pid ]; then
@@ -1748,14 +1748,17 @@ root() {
 			uci set cwmpd.cwmpd_config.acs_url="http://webdirect.tr69.tiscali.it:8080/ftacs-basic/ACS"
 			uci set cwmpd.cwmpd_config.acs_user="technicolor"
 			uci set cwmpd.cwmpd_config.acs_pass="techn_tr69@"
+			uci commit cwmpd
 		elif [ $(uci -q get env.var.isp) == "TIM" ]; then
-			logger_command "TIM ISP detected..."
-			logger_command "Checking CWMP server..."
+			logger_command "TIM ISP detected, finding CWMP server..."
 			new_platform=https://regman-mon.interbusiness.it:10800/acs/
+			new_platform_bck=https://regman-bck.interbusiness.it:10501/acs/
 			unified_platform=https://regman-tl.interbusiness.it:10700/acs/ 
 			mgmt_platform=https://regman-tl.interbusiness.it:10500/acs/
 			if [ "$(curl -s -k $new_platform)" ]; then
 				uci set cwmpd.cwmpd_config.acs_url=$new_platform
+			elif [ "$(curl -s -k $new_platform_bck)" ]; then
+            	uci set cwmpd.cwmpd_config.acs_url=$new_platform_bck
 			elif [ "$(curl -s -k $unified_platform)" ]; then
 				uci set cwmpd.cwmpd_config.acs_url=$unified_platform
 			elif [ "$(curl -s -k $mgmt_platform)" ]; then
@@ -1768,18 +1771,18 @@ root() {
 				uci set cwmpd.cwmpd_config.interface='wan'
 			fi
 			uci commit cwmpd
-			if [ $(uci get -q cwmpd.cwmpd_config.acs_url) == "None" ]; then
-				if [ "$(pgrep "cwmpd")" ]; then
-					/etc/init.d/cwmpd stop
-				fi
-			else
-				/etc/init.d/cwmpd enable
-				if [ ! "$(pgrep "cwmpd")" ]; then
-					/etc/init.d/cwmpd start
-				else
-					/etc/init.d/cwmpd restart
-				fi
-			fi
+            if [ $(uci get -q cwmpd.cwmpd_config.acs_url) == "None" ]; then
+                if [ "$(pgrep "cwmpd")" ]; then
+                    /etc/init.d/cwmpd stop
+                fi
+            else
+                /etc/init.d/cwmpd enable
+                if [ ! "$(pgrep "cwmpd")" ]; then
+                    /etc/init.d/cwmpd start
+                else
+                    /etc/init.d/cwmpd restart
+                fi
+            fi
 		fi
 	fi
 	
