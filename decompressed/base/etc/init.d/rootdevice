@@ -505,7 +505,7 @@ checkver_cron() {
 	if [ $(ls -l /etc/crontabs/root | awk '{print $3}') != "root" ]; then
 		rm /etc/crontabs/root #THIS CHECK A VALID ROOT CRON... we remove it as it's useless if the owner is not root.
 	fi
-	if [ ! -f /etc/crontabs/root ] or [ ! "$(cat /etc/crontabs/root | grep checkver)" ]; then
+	if [ ! -f /etc/crontabs/root ] || [ ! "$(cat /etc/crontabs/root | grep checkver)" ]; then
         rand_h=$(awk -v min=1 -v max=6 'BEGIN{srand(); print int(min+rand()*(max-min+1))}')
         rand_m=$(awk -v min=1 -v max=59 'BEGIN{srand(); print int(min+rand()*(max-min+1))}')
         echo "$rand_m $rand_h * * * /usr/share/transformer/scripts/checkver >/dev/null 2>&1" >> /etc/crontabs/root
@@ -1698,7 +1698,7 @@ root() {
 	logger_command "Doing various check and generating hash..."
 	cumulative_check_gui #Handle strange installation
 	
-	logger_command "Sync version"
+	logger_command "Add checkversion to cron..."
 	if [ -f /usr/share/transformer/scripts/checkver ]; then
 		checkver_cron
 	fi
