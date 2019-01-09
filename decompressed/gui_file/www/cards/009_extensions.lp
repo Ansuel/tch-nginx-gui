@@ -25,9 +25,13 @@ if prod_friendly_name and prod_friendly_name[1].value then
 		prod_friendly_name[1].value:match("TG789") then
 		mapParams.luci_webui = "uci.env.var.luci_webui"
 	end
+	if prod_friendly_name[1].value:match("TG799") or
+			prod_friendly_name[1].value:match("TG789") then
+		mapParams.amule_webui = "uci.env.var.amule_webui"
+	end
+	mapParams.aria2_webui = "uci.env.var.aria2_webui"
+	mapParams.transmission_webui = "uci.env.var.transmission_webui"
 	if prod_friendly_name[1].value:match("DGA413") then
-		mapParams.aria2_webui = "uci.env.var.aria2_webui"
-		mapParams.transmission_webui = "uci.env.var.transmission_webui"
 		mapParams.blacklist_application = "uci.env.var.blacklist_app"
 		if tonumber(marketing_version) >= 17.3 then
 			mapParams.xupnp_application = "uci.env.var.xupnp_app"

@@ -194,13 +194,15 @@ if StateParams["amule_webui"] ~= nil then
 	}
 	html[#html+1] = '<div class="span3">'
 	html[#html+1] = "<fieldset>"
-	html[#html + 1] = '<legend>' .. T"aMule GUI" .. '</legend>'
-	html[#html + 1] = ui_helper.createAlertBlock(T"This will install amule and ariang webui", info_box)
+	html[#html + 1] = '<legend>' .. T"aMule" .. '</legend>'
+	html[#html + 1] = ui_helper.createAlertBlock(T"This will install aMule webui", info_box)
 	html[#html + 1] = T"State: "
 	html[#html + 1] = "<strong>" .. T"aMule is " .. StateParams["amule_webui"] .. T" installed" .. "</strong></br>"
 	local amule_link =  '/amule'
 	html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. amule_link .. '">' .. amule_link .."</a>"
 	html[#html + 1] = "</br>"
+	local amule_direct_link = format("http://%s:4711/",mapParams.local_ip_modem)
+	html[#html + 1] = T" (or " .. '<a target="_blank" href="' .. amule_direct_link .. '">' .. amule_direct_link .. "</a>" .. " )"
 	html[#html + 1] = "</br>"
 	if mapParams["amule_webui"] and mapParams["amule_webui"] == "1" then
 		html[#html + 1] = ui_helper.createSimpleButton(T"Remove aMule", "fa fa-times-circle", remove_amule)
