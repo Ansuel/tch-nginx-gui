@@ -158,6 +158,7 @@ local app_list = {
 	"blacklist",
 	"xupnp",
 	"telstra",
+	"amule",
 }
 
 for app in pairs(app_list) do
