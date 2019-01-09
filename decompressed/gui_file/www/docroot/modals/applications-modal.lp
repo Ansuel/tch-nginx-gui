@@ -188,7 +188,7 @@ if StateParams["aria2_webui"] ~= nil then
 end
 
 if StateParams["transmission_webui"] ~= nil then
-	html[#html+1] = '<div class="span4">'
+	html[#html+1] = '<div class="span3">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. T"Transmission GUI" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install transmission and transmission-webui", info_box)
