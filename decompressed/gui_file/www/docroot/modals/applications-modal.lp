@@ -58,6 +58,25 @@ if ngx.req.get_method() == "POST" then
 	if action:match("install") or action:match("remove") then
 		return appapply(action)
 	end
+    if action:match("start_amule") then
+        os.execute("amule-start")
+        return 1
+    elseif action:match("stop_amule") then
+        os.execute("amule-stop")
+        return 1
+    elseif action:match("start_transmission") then
+        os.execute("transmission-start")
+        return 1
+    elseif action:match("stop_transmission") then
+        os.execute("transmission-stop")
+        return 1
+    elseif action:match("start_aria2") then
+        os.execute("aria2-start")
+        return 1
+    elseif action:match("stop_aria2") then
+        os.execute("aria2-stop")
+        return 1
+    end
 end
 
 local mapParams = {
@@ -114,7 +133,7 @@ local btn_table = {}
 
 for _, app in ipairs(app_list) do
 	btn_table[app] = {}
-	for _, action in ipairs({"install","remove"}) do
+	for _, action in ipairs({"install","remove","start","stop"}) do
 		btn_table[app][action] =
 		{
 			button = {
@@ -159,6 +178,10 @@ if StateParams["amule_webui"] ~= nil then
 	html[#html+1] = T" (or " .. '<a target="_blank" href="' .. amule_direct_link .. '">' .. amule_direct_link .. "</a>" .. " )"
 	html[#html+1] = "</br>"
 	if mapParams["amule_webui"] and mapParams["amule_webui"] == "1" then
+        if prod_friendly_name[1].value:match("TG799") or prod_friendly_name[1].value:match("TG789") then
+            html[#html+1] = ui_helper.createSimpleButton(T"Start aMule", "fa fa-play", btn_table.amule.start)
+            html[#html+1] = ui_helper.createSimpleButton(T"Stop aMule", "fa fa-stop", btn_table.amule.stop)
+        end
 		html[#html+1] = ui_helper.createSimpleButton(T"Remove aMule", "fa fa-times-circle", btn_table.amule.remove)
 	else
 		html[#html+1] = ui_helper.createSimpleButton(T"Install aMule", "fa fa-download", btn_table.amule.install)
@@ -179,6 +202,10 @@ if StateParams["aria2_webui"] ~= nil then
 	html[#html+1] = "</br>"
 	html[#html+1] = "</br>"
 	if mapParams["aria2_webui"] and mapParams["aria2_webui"] == "1" then
+        if prod_friendly_name[1].value:match("TG799") or prod_friendly_name[1].value:match("TG789") then
+            html[#html+1] = ui_helper.createSimpleButton(T"Start aMule", "fa fa-play", btn_table.aria2.start)
+            html[#html+1] = ui_helper.createSimpleButton(T"Stop aMule", "fa fa-stop", btn_table.aria2.stop)
+        end
 		html[#html+1] = ui_helper.createSimpleButton(T"Remove Aria2", "fa fa-times-circle", btn_table.aria2.remove)
 	else
 		html[#html+1] = ui_helper.createSimpleButton(T"Install Aria2", "fa fa-download", btn_table.aria2.install)
@@ -202,6 +229,10 @@ if StateParams["transmission_webui"] ~= nil then
 	html[#html+1] = "</br>"
 	html[#html+1] = "</br>"
 	if mapParams["transmission_webui"] and mapParams["transmission_webui"] == "1" then
+        if prod_friendly_name[1].value:match("TG799") or prod_friendly_name[1].value:match("TG789") then
+            html[#html+1] = ui_helper.createSimpleButton(T"Start aMule", "fa fa-play", btn_table.transmission.start)
+            html[#html+1] = ui_helper.createSimpleButton(T"Stop aMule", "fa fa-stop", btn_table.transmission.stop)
+        end
 		html[#html+1] = ui_helper.createSimpleButton(T"Remove Transmission", "fa fa-times-circle", btn_table.transmission.remove)
 	else
 		html[#html+1] = ui_helper.createSimpleButton(T"Install Transmission", "fa fa-download", btn_table.transmission.install)
@@ -304,7 +335,7 @@ ngx.print('\
     return false;\
   }');
 for _ , app in ipairs(app_list) do
-	for _ , action in ipairs({"install","remove"}) do
+	for _ , action in ipairs({"install","remove","start","stop"}) do
 		ngx.print('\
 			$("#btn-'); ngx.print(action.."-"..app); ngx.print('").on("click", function() {\
 			  post("'); ngx.print(action.."_"..app); ngx.print('",installMsg);\
