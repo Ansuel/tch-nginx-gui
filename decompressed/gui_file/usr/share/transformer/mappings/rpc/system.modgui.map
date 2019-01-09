@@ -139,77 +139,37 @@ local SYSTEM_MODGUI_APP_ = {
     minEntries = 1,
     maxEntries = 1,
     parameters = {
-      install_luci = {
-                access = "readWrite",
-                type = "boolean",
-            },
-	  remove_luci = {
-                access = "readWrite",
-                type = "boolean",
-            },
-	  install_aria2 = {
-                access = "readWrite",
-                type = "boolean",
-            },
-	  remove_aria2 = {
-                access = "readWrite",
-                type = "boolean",
-            },
-	  install_transmission = {
-                access = "readWrite",
-                type = "boolean",
-            },
-	  remove_transmission = {
-                access = "readWrite",
-                type = "boolean",
-            },
-	  install_blacklist = {
-                access = "readWrite",
-                type = "boolean",
-            },
 	  install_emptyblacklist = {
                 access = "readWrite",
                 type = "boolean",
-            },
-	  remove_blacklist = {
-                access = "readWrite",
-                type = "boolean",
-            },
-	  install_xupnp = {
-                access = "readWrite",
-                type = "boolean",
-            },
-	  remove_xupnp = {
-                access = "readWrite",
-                type = "boolean",
-            },
-	  install_telstra = {
-                access = "readWrite",
-                type = "boolean",
-            },
-	  remove_telstra = {
-                access = "readWrite",
-                type = "boolean",
-            },
+            }
     }
   }
 }
 
 SYSTEM_MODGUI_APP_.get = {
-		install_luci = "0",
-		remove_luci = "0",
-		install_aria2 = "0",
-		remove_aria2 = "0",
-		install_transmission = "0",
-		remove_transmission = "0",	
-		install_blacklist = "0",
-		install_emptyblacklist = "0",
-		remove_blacklist = "0",	
-		install_xupnp = "0",
-		remove_xupnp = "0",
-		install_telstra = "0",
-		remove_telstra = "0",	
+		install_emptyblacklist = "0"
 }
+
+local app_list = {
+	"luci",
+	"aria2",
+	"transmission",
+	"blacklist",
+	"xupnp",
+	"telstra",
+}
+
+for app in pairs(app_list) do
+	for action in pairs({"install","remove"}) do
+		SYSTEM_MODGUI_APP_.objectType.parameters[action.."_"..app] = 
+		{
+			access = "readWrite",
+			type = "boolean",
+		}
+		SYSTEM_MODGUI_APP_.get[action.."_"..app] = "0"
+	end
+end
 
 SYSTEM_MODGUI_APP_.set = function(mapping, paramName, paramValue) 
 	if paramValue == "1" then
