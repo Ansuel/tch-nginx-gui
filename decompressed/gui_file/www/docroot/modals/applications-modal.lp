@@ -3,12 +3,20 @@
 -- Enable localization
 gettext.textdomain('webui-core')
 
-local lp = require("web.lp")
 local proxy = require("datamodel")
 local ui_helper = require("web.ui_helper")
-local message_helper = require("web.uimessage_helper")
 local content_helper = require("web.content_helper")
-local format,sub,match,untaint = string.format, string.sub, string.match, string.untaint
+local format,sub,match = string.format, string.sub, string.match
+
+local app_list = {
+	"luci",
+	"aria2",
+	"transmission",
+	"blacklist",
+	"xupnp",
+	"telstra",
+	"amule",
+}
 
 local marketing_version = proxy.get("uci.version.version.@version[0].marketing_version")
 
@@ -22,7 +30,6 @@ end
 
 local function appapply(action)
 	proxy.set("rpc.system.modgui.app." .. action, "1")
-	lp.flush()
 	if ( action == "install_emptyblacklist" ) then
 		action = "install_blacklist"
 	end
@@ -47,52 +54,9 @@ local function appapply(action)
 end
 
 if ngx.req.get_method() == "POST" then
-	local action = ngx.req.get_post_args().action
-	-- do not call get_post_args before we know that we don't have a file sent otherwise it will fail
-	if action == "install_luci" then
-		return appapply("install_luci")
-	end
-	if action == "remove_luci" then
-		return appapply("remove_luci")
-	end
-	if action == "install_amule" then
-		return appapply("install_amule")
-	end
-	if action == "remove_amule" then
-		return appapply("remove_amule")
-	end
-	if action == "install_aria2" then
-		return appapply("install_aria2")
-	end
-	if action == "remove_aria2" then
-		return appapply("remove_aria2")
-	end
-	if action == "install_telstra" then
-		return appapply("install_telstra")
-	end
-	if action == "remove_telstra" then
-		return appapply("remove_telstra")
-	end
-	if action == "install_transmission" then
-		return appapply("install_transmission")
-	end
-	if action == "remove_transmission" then
-		return appapply("remove_transmission")
-	end
-	if action == "install_blacklist" then
-		return appapply("install_blacklist")
-	end
-	if action == "install_emptyblacklist" then
-		return appapply("install_emptyblacklist")
-	end
-	if action == "remove_blacklist" then
-		return appapply("remove_blacklist")
-	end
-	if action == "install_xupnp" then
-		return appapply("install_xupnp")
-	end
-	if action == "remove_xupnp" then
-		return appapply("remove_xupnp")
+	local action = string.untaint(ngx.req.get_post_args().action)
+	if action:match("install") or action:match("remove") then
+		return appapply(action)
 	end
 end
 
@@ -136,10 +100,6 @@ ngx.print('\
 \
 ');  ngx.print(ui_helper.createHeader(T"Application List", false, false))   ngx.print('\
 <div class="modal-body update">\
-');
-ngx.print(ui_helper.createMessages(message_helper.popMessages()))
-
-ngx.print('\
 <fieldset>\
     <form class="form-horizontal" method="post" action="modals/applications-modal.lp">\
     ');
@@ -150,227 +110,173 @@ local info_box = {
 }
 local html = {}
 
+local btn_table = {}
+
+for _, app in ipairs(app_list) do
+	btn_table[app] = {}
+	for _, action in ipairs({"install","remove"}) do
+		btn_table[app][action] =
+		{
+			button = {
+				id = "btn-"..action.."-"..app
+			}
+		}
+	end
+end
+
 if StateParams["luci_webui"] ~= nil then
-	local install_luci = {
-		button = {
-			id = "btn-install-luci"
-		}
-	}
-	local remove_luci = {
-		button = {
-			id = "btn-remove-luci"
-		}
-	}
 	html[#html+1] = '<div class="span3">'
 	html[#html+1] = "<fieldset>"
-	html[#html + 1] = '<legend>' .. T"Luci GUI" .. '</legend>'
-	html[#html + 1] = ui_helper.createAlertBlock(T"This will install uhttpd and luci", info_box)
-	html[#html + 1] = T"State: "
-	html[#html + 1] = "<strong>" .. T"Luci is " .. StateParams["luci_webui"] .. T" installed" .. "</strong></br>"
+	html[#html+1] = '<legend>' .. T"Luci GUI" .. '</legend>'
+	html[#html+1] = ui_helper.createAlertBlock(T"This will install uhttpd and luci", info_box)
+	html[#html+1] = T"State: "
+	html[#html+1] = "<strong>" .. T"Luci is " .. StateParams["luci_webui"] .. T" installed" .. "</strong></br>"
 	local luci_link = format("http://%s:9080",mapParams.local_ip_modem)
-	html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. luci_link .. '">' .. luci_link .. "</a>"
-	html[#html + 1] = "</br>"
-	html[#html + 1] = "</br>"
+	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. luci_link .. '">' .. luci_link .. "</a>"
+	html[#html+1] = "</br>"
+	html[#html+1] = "</br>"
 	if mapParams["luci_webui"] and mapParams["luci_webui"] == "1" then
-		html[#html + 1] = ui_helper.createSimpleButton(T"Remove Luci", "fa fa-times-circle", remove_luci)
+		html[#html+1] = ui_helper.createSimpleButton(T"Remove Luci", "fa fa-times-circle", btn_table.luci.remove)
 	else
-		html[#html + 1] = ui_helper.createSimpleButton(T"Install Luci", "fa fa-download", install_luci)
+		html[#html+1] = ui_helper.createSimpleButton(T"Install Luci", "fa fa-download", btn_table.luci.install)
 	end
-	html[#html + 1] = "</br>"
+	html[#html+1] = "</br>"
 	html[#html+1] = "</fieldset>"
 	html[#html+1] = "</div>"
 end
 
 if StateParams["amule_webui"] ~= nil then
-	local install_amule = {
-		button = {
-			id = "btn-install-amule"
-		}
-	}
-	local remove_amule = {
-		button = {
-			id = "btn-remove-amule"
-		}
-	}
 	html[#html+1] = '<div class="span3">'
 	html[#html+1] = "<fieldset>"
-	html[#html + 1] = '<legend>' .. T"aMule" .. '</legend>'
-	html[#html + 1] = ui_helper.createAlertBlock(T"This will install aMule webui", info_box)
-	html[#html + 1] = T"State: "
-	html[#html + 1] = "<strong>" .. T"aMule is " .. StateParams["amule_webui"] .. T" installed" .. "</strong></br>"
+	html[#html+1] = '<legend>' .. T"aMule" .. '</legend>'
+	html[#html+1] = ui_helper.createAlertBlock(T"This will install aMule webui", info_box)
+	html[#html+1] = T"State: "
+	html[#html+1] = "<strong>" .. T"aMule is " .. StateParams["amule_webui"] .. T" installed" .. "</strong></br>"
 	local amule_link =  '/amule'
-	html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. amule_link .. '">' .. amule_link .."</a>"
-	html[#html + 1] = "</br>"
+	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. amule_link .. '">' .. amule_link .."</a>"
+	html[#html+1] = "</br>"
 	local amule_direct_link = format("http://%s:4711/",mapParams.local_ip_modem)
-	html[#html + 1] = T" (or " .. '<a target="_blank" href="' .. amule_direct_link .. '">' .. amule_direct_link .. "</a>" .. " )"
-	html[#html + 1] = "</br>"
+	html[#html+1] = T" (or " .. '<a target="_blank" href="' .. amule_direct_link .. '">' .. amule_direct_link .. "</a>" .. " )"
+	html[#html+1] = "</br>"
 	if mapParams["amule_webui"] and mapParams["amule_webui"] == "1" then
-		html[#html + 1] = ui_helper.createSimpleButton(T"Remove aMule", "fa fa-times-circle", remove_amule)
+		html[#html+1] = ui_helper.createSimpleButton(T"Remove aMule", "fa fa-times-circle", btn_table.amule.remove)
 	else
-		html[#html + 1] = ui_helper.createSimpleButton(T"Install aMule", "fa fa-download", install_amule)
+		html[#html+1] = ui_helper.createSimpleButton(T"Install aMule", "fa fa-download", btn_table.amule.install)
 	end
 	html[#html+1] = "</fieldset>"
 	html[#html+1] = "</div>"
 end
 
 if StateParams["aria2_webui"] ~= nil then
-	local install_aria2 = {
-		button = {
-			id = "btn-install-aria2"
-		}
-	}
-	local remove_aria2 = {
-		button = {
-			id = "btn-remove-aria2"
-		}
-	}
 	html[#html+1] = '<div class="span3">'
 	html[#html+1] = "<fieldset>"
-	html[#html + 1] = '<legend>' .. T"Aria2 GUI" .. '</legend>'
-	html[#html + 1] = ui_helper.createAlertBlock(T"This will install aria2 and ariang webui", info_box)
-	html[#html + 1] = T"State: "
-	html[#html + 1] = "<strong>" .. T"Aria2 is " .. StateParams["aria2_webui"] .. T" installed" .. "</strong></br>"
+	html[#html+1] = '<legend>' .. T"Aria2 GUI" .. '</legend>'
+	html[#html+1] = ui_helper.createAlertBlock(T"This will install aria2 and ariang webui", info_box)
+	html[#html+1] = T"State: "
+	html[#html+1] = "<strong>" .. T"Aria2 is " .. StateParams["aria2_webui"] .. T" installed" .. "</strong></br>"
 	local aria_link =  '/aria'
-	html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. aria_link .. '">' .. aria_link .."</a>"
-	html[#html + 1] = "</br>"
-	html[#html + 1] = "</br>"
+	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. aria_link .. '">' .. aria_link .."</a>"
+	html[#html+1] = "</br>"
+	html[#html+1] = "</br>"
 	if mapParams["aria2_webui"] and mapParams["aria2_webui"] == "1" then
-		html[#html + 1] = ui_helper.createSimpleButton(T"Remove Aria2", "fa fa-times-circle", remove_aria2)
+		html[#html+1] = ui_helper.createSimpleButton(T"Remove Aria2", "fa fa-times-circle", btn_table.aria2.remove)
 	else
-		html[#html + 1] = ui_helper.createSimpleButton(T"Install Aria2", "fa fa-download", install_aria2)
+		html[#html+1] = ui_helper.createSimpleButton(T"Install Aria2", "fa fa-download", btn_table.aria2.install)
 	end
 	html[#html+1] = "</fieldset>"
 	html[#html+1] = "</div>"
 end
 
 if StateParams["transmission_webui"] ~= nil then
-	local install_transmission = {
-		button = {
-			id = "btn-install-transmission"
-		}
-	}
-	local remove_transmission = {
-		button = {
-			id = "btn-remove-transmission"
-		}
-	}
 	html[#html+1] = '<div class="span4">'
 	html[#html+1] = "<fieldset>"
-	html[#html + 1] = '<legend>' .. T"Transmission GUI" .. '</legend>'
-	html[#html + 1] = ui_helper.createAlertBlock(T"This will install transmission and transmission-webui", info_box)
-	html[#html + 1] = T"State: "
-	html[#html + 1] = "<strong>" .. T"Transmission is " .. StateParams["transmission_webui"] .. T" installed" .. "</strong></br>"
+	html[#html+1] = '<legend>' .. T"Transmission GUI" .. '</legend>'
+	html[#html+1] = ui_helper.createAlertBlock(T"This will install transmission and transmission-webui", info_box)
+	html[#html+1] = T"State: "
+	html[#html+1] = "<strong>" .. T"Transmission is " .. StateParams["transmission_webui"] .. T" installed" .. "</strong></br>"
 	local transmission_link = '/transmission/web/'
-	html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. transmission_link .. '">' .. transmission_link .."</a>"
-	html[#html + 1] = "</br>"
+	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. transmission_link .. '">' .. transmission_link .."</a>"
+	html[#html+1] = "</br>"
 	local transmission_direct_link = format("http://%s:9091/transmission",mapParams.local_ip_modem)
-	html[#html + 1] = T" (or " .. '<a target="_blank" href="' .. transmission_direct_link .. '">' .. transmission_direct_link .. "</a>" .. " )"
-	html[#html + 1] = "</br>"
-	html[#html + 1] = "</br>"
+	html[#html+1] = T" (or " .. '<a target="_blank" href="' .. transmission_direct_link .. '">' .. transmission_direct_link .. "</a>" .. " )"
+	html[#html+1] = "</br>"
+	html[#html+1] = "</br>"
 	if mapParams["transmission_webui"] and mapParams["transmission_webui"] == "1" then
-		html[#html + 1] = ui_helper.createSimpleButton(T"Remove Transmission", "fa fa-times-circle", remove_transmission)
+		html[#html+1] = ui_helper.createSimpleButton(T"Remove Transmission", "fa fa-times-circle", btn_table.transmission.remove)
 	else
-		html[#html + 1] = ui_helper.createSimpleButton(T"Install Transmission", "fa fa-download", install_transmission)
+		html[#html+1] = ui_helper.createSimpleButton(T"Install Transmission", "fa fa-download", btn_table.transmission.install)
 	end
 	html[#html+1] = "</fieldset>"
 	html[#html+1] = "</div>"
 end
 
 if StateParams["blacklist_application"] ~= nil then
-	local install_blacklist = {
+	btn_table.blacklist.installempty = {
 		button = {
-			id = "btn-install-blacklist"
-		}
-	}
-	local install_empty_blacklist = {
-		button = {
-			id = "btn-install-empty-blacklist"
-		}
-	}
-	local remove_blacklist = {
-		button = {
-			id = "btn-remove-blacklist"
+			id = "btn-installempty-blacklist"
 		}
 	}
 	html[#html+1] = '<div class="span3">'
 	html[#html+1] = "<fieldset>"
-	html[#html + 1] = '<legend>' .. T"Blacklist App" .. '</legend>'
-	html[#html + 1] = ui_helper.createAlertBlock(T"This will install the blacklist application", info_box)
-	html[#html + 1] = T"State: "
-	html[#html + 1] = "<strong>" .. T"The Blacklist app is " .. StateParams["blacklist_application"] .. T" installed" .. "</strong></br>"
+	html[#html+1] = '<legend>' .. T"Blacklist App" .. '</legend>'
+	html[#html+1] = ui_helper.createAlertBlock(T"This will install the blacklist application", info_box)
+	html[#html+1] = T"State: "
+	html[#html+1] = "<strong>" .. T"The Blacklist app is " .. StateParams["blacklist_application"] .. T" installed" .. "</strong></br>"
 	local blacklist_link = "http://blacklist.satellitar.it/"
-	html[#html + 1] = T"Support site: " .. '<a  target="_blank" href="' .. blacklist_link .. '">' .. blacklist_link .."</a>"
-	html[#html + 1] = "</br>"
-	html[#html + 1] = "</br>"
+	html[#html+1] = T"Support site: " .. '<a  target="_blank" href="' .. blacklist_link .. '">' .. blacklist_link .."</a>"
+	html[#html+1] = "</br>"
+	html[#html+1] = "</br>"
+	local empty_blacklist_msg = ""
 	if mapParams["blacklist_application"] and mapParams["blacklist_application"] == "1" then
-		html[#html + 1] = ui_helper.createSimpleButton(T"Remove Blacklist", "fa fa-times-circle", remove_blacklist)
-		html[#html + 1] = ui_helper.createSimpleButton(T"Update blacklist app", "fa fa-download", install_empty_blacklist)
+		html[#html+1] = ui_helper.createSimpleButton(T"Remove Blacklist", "fa fa-times-circle", btn_table.blacklist.remove)
+		empty_blacklist_msg = T"Update blacklist app"
 	else
-		html[#html + 1] = ui_helper.createSimpleButton(T"Install Blacklist", "fa fa-download", install_blacklist)
-		html[#html + 1] = ui_helper.createSimpleButton(T"Install empty blacklist", "fa fa-download", install_empty_blacklist)
+		html[#html+1] = ui_helper.createSimpleButton(T"Install Blacklist", "fa fa-download", btn_table.blacklist.install)
+		empty_blacklist_msg = T"Install empty blacklist"
 	end
+	html[#html+1] = ui_helper.createSimpleButton(empty_blacklist_msg, "fa fa-download", btn_table.blacklist.installempty)
 
 	html[#html+1] = "</fieldset>"
 	html[#html+1] = "</div>"
 end
 
 if StateParams["xupnp_application"] ~= nil then
-	local install_xupnp = {
-		button = {
-			id = "btn-install-xupnp"
-		}
-	}
-	local remove_xupnp = {
-		button = {
-			id = "btn-remove-xupnp"
-		}
-	}
 	html[#html+1] = '<div class="span3">'
 	html[#html+1] = "<fieldset>"
-	html[#html + 1] = '<legend>' .. T"XUPnP App" .. '</legend>'
-	html[#html + 1] = ui_helper.createAlertBlock(T"This will install the XUPnP application", info_box)
-	html[#html + 1] = T"State: "
-	html[#html + 1] = "<strong>" .. T"The XUPnP app is " .. StateParams["xupnp_application"] .. T" installed" .. "</strong></br>"
+	html[#html+1] = '<legend>' .. T"XUPnP App" .. '</legend>'
+	html[#html+1] = ui_helper.createAlertBlock(T"This will install the XUPnP application", info_box)
+	html[#html+1] = T"State: "
+	html[#html+1] = "<strong>" .. T"The XUPnP app is " .. StateParams["xupnp_application"] .. T" installed" .. "</strong></br>"
 	local xupnp_link = format("http://%s:4044/ui/",mapParams.local_ip_modem)
-	html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. xupnp_link .. '">' .. xupnp_link .."</a>"
-	html[#html + 1] = "</br>"
-	html[#html + 1] = "</br>"
+	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. xupnp_link .. '">' .. xupnp_link .."</a>"
+	html[#html+1] = "</br>"
+	html[#html+1] = "</br>"
 	if mapParams["xupnp_application"] and mapParams["xupnp_application"] == "1" then
-		html[#html + 1] = ui_helper.createSimpleButton(T"Remove XUPnP", "fa fa-times-circle", remove_xupnp)
+		html[#html+1] = ui_helper.createSimpleButton(T"Remove XUPnP", "fa fa-times-circle", btn_table.xupnp.remove)
 	else
-		html[#html + 1] = ui_helper.createSimpleButton(T"Install XUPnP", "fa fa-download", install_xupnp)
+		html[#html+1] = ui_helper.createSimpleButton(T"Install XUPnP", "fa fa-download", btn_table.xupnp.install)
 	end
 	html[#html+1] = "</fieldset>"
-	html[#html + 1] = "</br>"
+	html[#html+1] = "</br>"
 	html[#html+1] = "</div>"
 end
 
 if StateParams["telstra_webui"] ~= nil then
-	local install_telstra = {
-		button = {
-			id = "btn-install-telstra"
-		}
-	}
-	local remove_telstra = {
-		button = {
-			id = "btn-remove-telstra"
-		}
-	}
 	html[#html+1] = '<div class="span3">'
 	html[#html+1] = "<fieldset>"
-	html[#html + 1] = '<legend>' .. T"Telstra GUI" .. '</legend>'
-	html[#html + 1] = ui_helper.createAlertBlock(T"This will install Telstra webui", info_box)
-	html[#html + 1] = T"State: "
-	html[#html + 1] = "<strong>" .. T"Telstra is " .. StateParams["telstra_webui"] .. T" installed" .. "</strong></br>"
+	html[#html+1] = '<legend>' .. T"Telstra GUI" .. '</legend>'
+	html[#html+1] = ui_helper.createAlertBlock(T"This will install Telstra webui", info_box)
+	html[#html+1] = T"State: "
+	html[#html+1] = "<strong>" .. T"Telstra is " .. StateParams["telstra_webui"] .. T" installed" .. "</strong></br>"
 	local telstra_gui = "/telstra-gui.lp"
-	html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. telstra_gui .. '">' .. telstra_gui .."</a>"
-	html[#html + 1] = "</br>"
-	html[#html + 1] = T"Change the default page in system-extra to set this gui as default"
-	html[#html + 1] = "</br>"
+	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. telstra_gui .. '">' .. telstra_gui .."</a>"
+	html[#html+1] = "</br>"
+	html[#html+1] = T"Change the default page in system-extra to set this gui as default"
+	html[#html+1] = "</br>"
 	if mapParams["telstra_webui"] and mapParams["telstra_webui"] == "1" then
-		html[#html + 1] = ui_helper.createSimpleButton(T"Remove Telstra GUI", "fa fa-times-circle", remove_telstra)
+		html[#html+1] = ui_helper.createSimpleButton(T"Remove Telstra GUI", "fa fa-times-circle", btn_table.telstra.remove)
 	else
-		html[#html + 1] = ui_helper.createSimpleButton(T"Install Telstra GUI", "fa fa-download", install_telstra)
+		html[#html+1] = ui_helper.createSimpleButton(T"Install Telstra GUI", "fa fa-download", btn_table.telstra.install)
 	end
 	html[#html+1] = "</fieldset>"
 	html[#html+1] = "</div>"
@@ -396,68 +302,23 @@ ngx.print('\
     );\
 	tch.showProgress(processMsg);\
     return false;\
-  }\
-  $("#btn-install-luci").on("click", function() {\
-     post("install_luci",installMsg);\
-	 setTimeout(function(){location.reload();}, 2000);\
-     });\
-  $("#btn-remove-luci").on("click", function() {\
-     post("remove_luci",removeMsg);\
-	 setTimeout(function(){location.reload();}, 2000);\
-     });\
-  $("#btn-install-amule").on("click", function() {\
-     post("install_amule",installMsg);\
-	 setTimeout(function(){location.reload();}, 2000);\
-     });\
-  $("#btn-remove-amule").on("click", function() {\
-     post("amule",removeMsg);\
-	 setTimeout(function(){location.reload();}, 2000);\
-     });\
-  $("#btn-install-aria2").on("click", function() {\
-     post("install_aria2",removeMsg);\
-	 setTimeout(function(){location.reload();}, 2000);\
-     });\
-  $("#btn-remove-aria2").on("click", function() {\
-     post("remove_aria2",removeMsg);\
-	 setTimeout(function(){location.reload();}, 2000);\
-     });\
-  $("#btn-install-telstra").on("click", function() {\
-     post("install_telstra",installMsg);\
-	 setTimeout(function(){location.reload();}, 2000);\
-     });\
-  $("#btn-remove-telstra").on("click", function() {\
-     post("remove_telstra",removeMsg);\
-	 setTimeout(function(){location.reload();}, 2000);\
-     });\
-  $("#btn-install-transmission").on("click", function() {\
-     post("install_transmission",installMsg);\
-	 setTimeout(function(){location.reload();}, 2000);\
-     });\
-  $("#btn-remove-transmission").on("click", function() {\
-     post("remove_transmission",removeMsg);\
-	 setTimeout(function(){location.reload();}, 2000);\
-     });\
-  $("#btn-install-blacklist").on("click", function() {\
-     post("install_blacklist",installMsg);\
-	 setTimeout(function(){location.reload();}, 2000);\
-     });\
-  $("#btn-install-empty-blacklist").on("click", function() {\
+  }');
+for _ , app in ipairs(app_list) do
+	for _ , action in ipairs({"install","remove"}) do
+		ngx.print('\
+			$("#btn-'); ngx.print(action.."-"..app); ngx.print('").on("click", function() {\
+			  post("'); ngx.print(action.."_"..app); ngx.print('",installMsg);\
+			  setTimeout(function(){location.reload();}, 2000);\
+			});\
+		');
+	end
+end
+ngx.print('\
+  $("#btn-installempty-blacklist").on("click", function() {\
      post("install_emptyblacklist",installMsg);\
-	 setTimeout(function(){location.reload();}, 2000);\
-     });\
-  $("#btn-remove-blacklist").on("click", function() {\
-     post("remove_blacklist",removeMsg);\
-	 setTimeout(function(){location.reload();}, 2000);\
-     });\
-  $("#btn-install-xupnp").on("click", function() {\
-     post("install_xupnp",installMsg);\
-	 setTimeout(function(){location.reload();}, 2000);\
-     });\
-  $("#btn-remove-xupnp").on("click", function() {\
-     post("remove_xupnp",removeMsg);\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
 }());\
 </script>\
-');  ngx.print(ui_helper.createFooter())   ngx.print('\
-');
+');  
+ngx.print(ui_helper.createFooter())

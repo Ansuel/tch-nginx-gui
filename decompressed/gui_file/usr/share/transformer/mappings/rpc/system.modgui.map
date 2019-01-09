@@ -161,8 +161,8 @@ local app_list = {
 	"amule",
 }
 
-for app in pairs(app_list) do
-	for action in pairs({"install","remove"}) do
+for _, app in ipairs(app_list) do
+	for _, action in ipairs({"install","remove"}) do
 		SYSTEM_MODGUI_APP_.objectType.parameters[action.."_"..app] = 
 		{
 			access = "readWrite",
