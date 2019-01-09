@@ -680,6 +680,13 @@ create_gui_type() {
 			uci set env.var.luci_webui="0"
 		fi
 	fi
+	if [ ! $( uci get -q env.var.amule_webui) ]; then
+		if [ -d /www/docroot/amule ]; then
+			uci set env.var.amule_webui="1"
+		else
+			uci set env.var.amule_webui="0"
+		fi
+	fi
 	if [ ! $( uci get -q env.var.transmission_webui) ]; then
 		if [ -d /www/docroot/transmission ]; then
 			uci set env.var.transmission_webui="1"

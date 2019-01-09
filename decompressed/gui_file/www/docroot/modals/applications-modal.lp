@@ -55,6 +55,12 @@ if ngx.req.get_method() == "POST" then
 	if action == "remove_luci" then
 		return appapply("remove_luci")
 	end
+	if action == "install_amule" then
+		return appapply("install_amule")
+	end
+	if action == "remove_amule" then
+		return appapply("remove_amule")
+	end
 	if action == "install_aria2" then
 		return appapply("install_aria2")
 	end
@@ -100,9 +106,13 @@ if prod_friendly_name and prod_friendly_name[1].value then
 			prod_friendly_name[1].value:match("TG789") then
 		mapParams.luci_webui = "uci.env.var.luci_webui"
 	end
+	if prod_friendly_name[1].value:match("TG799") or
+			prod_friendly_name[1].value:match("TG789") then
+		mapParams.amule_webui = "uci.env.var.amule_webui"
+	end
+	mapParams.aria2_webui = "uci.env.var.aria2_webui"
+	mapParams.transmission_webui = "uci.env.var.transmission_webui"
 	if prod_friendly_name[1].value:match("DGA413") then
-		mapParams.aria2_webui = "uci.env.var.aria2_webui"
-		mapParams.transmission_webui = "uci.env.var.transmission_webui"
 		mapParams.blacklist_application = "uci.env.var.blacklist_app"
 		if tonumber(marketing_version) >= 17.3 then
 			mapParams.xupnp_application = "uci.env.var.xupnp_app"
@@ -167,6 +177,36 @@ if StateParams["luci_webui"] ~= nil then
 		html[#html + 1] = ui_helper.createSimpleButton(T"Install Luci", "fa fa-download", install_luci)
 	end
 	html[#html + 1] = "</br>"
+	html[#html+1] = "</fieldset>"
+	html[#html+1] = "</div>"
+end
+
+if StateParams["amule_webui"] ~= nil then
+	local install_amule = {
+		button = {
+			id = "btn-install-amule"
+		}
+	}
+	local remove_amule = {
+		button = {
+			id = "btn-remove-amule"
+		}
+	}
+	html[#html+1] = '<div class="span3">'
+	html[#html+1] = "<fieldset>"
+	html[#html + 1] = '<legend>' .. T"aMule GUI" .. '</legend>'
+	html[#html + 1] = ui_helper.createAlertBlock(T"This will install amule and ariang webui", info_box)
+	html[#html + 1] = T"State: "
+	html[#html + 1] = "<strong>" .. T"aMule is " .. StateParams["amule_webui"] .. T" installed" .. "</strong></br>"
+	local amule_link =  '/amule'
+	html[#html + 1] = T"Webui on: " .. '<a target="_blank" href="' .. amule_link .. '">' .. amule_link .."</a>"
+	html[#html + 1] = "</br>"
+	html[#html + 1] = "</br>"
+	if mapParams["amule_webui"] and mapParams["amule_webui"] == "1" then
+		html[#html + 1] = ui_helper.createSimpleButton(T"Remove aMule", "fa fa-times-circle", remove_amule)
+	else
+		html[#html + 1] = ui_helper.createSimpleButton(T"Install aMule", "fa fa-download", install_amule)
+	end
 	html[#html+1] = "</fieldset>"
 	html[#html+1] = "</div>"
 end
@@ -363,8 +403,12 @@ ngx.print('\
      post("remove_luci",removeMsg);\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
-  $("#btn-install-aria2").on("click", function() {\
-     post("install_aria2",installMsg);\
+  $("#btn-install-amule").on("click", function() {\
+     post("install_amule",installMsg);\
+	 setTimeout(function(){location.reload();}, 2000);\
+     });\
+  $("#btn-remove-amule").on("click", function() {\
+     post("amule",removeMsg);\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
   $("#btn-remove-aria2").on("click", function() {\
