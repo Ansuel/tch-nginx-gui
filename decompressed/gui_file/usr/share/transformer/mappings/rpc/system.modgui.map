@@ -82,10 +82,6 @@ local SYSTEM_MODGUI_DEBUGLOG_ = {
         type = "string",
         max = "256",
       },
-      location = {
-        access = "readOnly",
-        type = "string",
-      },
 	  start = {
 		access = "readWrite",
 		type = "boolean",
@@ -96,29 +92,29 @@ local SYSTEM_MODGUI_DEBUGLOG_ = {
 
 SYSTEM_MODGUI_DEBUGLOG_.get = {
   filename = function(mapping, param)
-	local filename = "DebugHelper"..os.date("%Y-%m-%d")..".tar.gz"
-	local filedir = os.date("%Y-%m-%d").."-DebugHelper"
-	local file = io.open("/tmp/"..filedir.."/"..filename,"r")
-	if file then
-		file:close()
-		return filename
-	end
-	return ""
+    local handle = io.popen('find /tmp -type f -name "DebugHelper*"')
+    local filename = handle:read("*a")
+    filename = string.gsub(filename, '[\n\r]+', ' ')
+    handle:close()
+	return filename
   end,
   state = function(mapping, param)
-	local filename = "DebugHelper"..os.date("%Y-%m-%d")..".tar.gz"
-	local filedir = os.date("%Y-%m-%d").."-DebugHelper"
-	local file = io.open("/tmp/"..filedir.."/"..filename,"r")
-	if file then
-		file:close()
+    local handle = io.popen('find /tmp -type f -name "DebugHelper*"')
+    local filename = handle:read("*a")
+    filename = string.gsub(filename, '[\n\r]+', ' ')
+    handle:close()
+	if filename ~= "" then
 		return "Complete"
 	end
-	if lfs.chdir("/tmp/"..filedir) then
+    handle = io.popen('find /tmp -type d -name "DebugHelper*"')
+    local filedir = handle:read("*a")
+    filedir = string.gsub(filedir, '[\n\r]+', ' ')
+    handle:close()
+	if filedir ~= "" then
 		return "Requested"
 	end
 	return "None"
   end,
-  location = "/tmp/"..os.date("%Y-%m-%d").."-DebugHelper/",
   start = "0",
 }
 

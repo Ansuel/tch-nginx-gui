@@ -318,7 +318,6 @@ if ngx.req.get_method() == "POST" then
 	wait_for_completion(debuglog_path)
   
 	local content = {
-		location = debuglog_path.."location",
 		filename = debuglog_path.."filename",
 	}
 	
@@ -330,7 +329,7 @@ if ngx.req.get_method() == "POST" then
 		ngx.header.content_disposition = "attachment; filename="..untaint(content.filename)
 		ngx.header.content_type = "application/octet-stream"
 		ngx.header.set_cookie = "fileDownload=true; Path=/"  -- the JS download code requires this cookie
-		local export_path = untaint(content.location .. content.filename)
+		local export_path = untaint(content.filename)
 		local f = io.open(export_path, "r")
 		ngx.print(f:read("*all"))
 		f:close()
