@@ -59,7 +59,6 @@ html[#html+1] =		'</div>'
 ngx.print(html)
 
 ngx.print('\
-<script src="/js/christmas.js?version='); ngx.print(cui.gui_version); ngx.print('" ></script>\
 <script>\
 var processMsg=\'');  ngx.print(T"Processing"); ngx.print('\';\
 var openMsg = \'');  ngx.print(T"Loading..."); ngx.print('\';\

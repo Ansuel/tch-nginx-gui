@@ -83,7 +83,6 @@ if ngx.req.get_method() == "POST" then
 end
 
 ngx.print('\
-<canvas id="christmas-canvas"></canvas>\
 <div class="gateway_bg" data-bg-text="&#xf0ac;"></div>\
 	<div class="header" id="headertab">\
 	<div class="row" style="z-index : 3;  position: relative;" >\

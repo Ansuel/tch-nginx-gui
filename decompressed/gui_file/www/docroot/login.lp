@@ -91,7 +91,6 @@ end
 </head>'); 
 ngx.print('\
 <body>\
-<canvas id="christmas-canvas"></canvas>\
   <div class="container">\
     <div class="logo-technicolor">\
 	  <a href="'); ngx.print(cui.nsplink); ngx.print('" target="_blank">\
@@ -221,7 +220,6 @@ if script_file_presence then
 	ngx.print('<script src="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/script.js?version='); ngx.print(cui.gui_version); ngx.print('"></script>');
 end
 ngx.print('\
-<script src="/js/christmas.js?version='); ngx.print(cui.gui_version); ngx.print('" ></script>\
 <script language="JavaScript" type="text/javascript">\
 AOS.init();\
 $(document).ready(\
