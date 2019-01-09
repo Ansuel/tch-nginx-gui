@@ -411,6 +411,10 @@ ngx.print('\
      post("amule",removeMsg);\
 	 setTimeout(function(){location.reload();}, 2000);\
      });\
+  $("#btn-install-aria2").on("click", function() {\
+     post("install_aria2",removeMsg);\
+	 setTimeout(function(){location.reload();}, 2000);\
+     });\
   $("#btn-remove-aria2").on("click", function() {\
      post("remove_aria2",removeMsg);\
 	 setTimeout(function(){location.reload();}, 2000);\
