@@ -13,13 +13,23 @@ local format = string.format
 
 local mapParams = {
   printersharing_enabled = "uci.printersharing.config.enabled",
+  printersharing_webui = "uci.printersharing.config.webui",
 }
 
 local mapValid = {
   printersharing_enabled = post_helper.validateBoolean,
+  printersharing_webui = post_helper.validateBoolean,
 }
 
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
+if ngx.req.get_method() == "POST" then
+    local webui = string.untaint(ngx.req.get_post_args().printersharing_webui)
+    if webui == "1" then
+        os.execute("sed -i.save 's/no/yes/' /etc/init.d/cupsd & cupsctl WebInterface=yes")
+    else
+        os.execute("sed -i.save 's/yes/no/' /etc/init.d/cupsd & cupsctl WebInterface=no")
+    end
+end
 
 local content_samba = {
   samba_enabled   = "uci.samba.samba.enabled",
@@ -122,6 +132,12 @@ local function removeDuplicateEntry(usbpart_data)
     return usbpart_data
 end
 
+local info_box = {
+    alert = {
+        class = "alert alert-info",
+    }
+}
+
 removeDuplicateEntry(usbpart_data)
 
   ngx.print('\
@@ -133,6 +149,8 @@ removeDuplicateEntry(usbpart_data)
     ');  
       html = {}
       html[#html+1] = ui_helper.createSwitch(T"Enabled", "printersharing_enabled", content["printersharing_enabled"], attributes)
+      html[#html+1] = ui_helper.createSwitch(T"Web Interface", "printersharing_webui", content["printersharing_webui"], attributes)
+      html[#html+1] = ui_helper.createAlertBlock(format(T'CUPS Web Interface at <a href="http:\\\\%s:631">http:\\\\%s:631</a> or <a href="http:\\\\%s:631">http:\\\\%s:631</a>',content_samba.localdevIP,content_samba.localdevIP,content_samba.hostname,content_samba.hostname), info_box)
       html[#html+1] = "<fieldset><legend>" .. T"Printer Information" .. "</legend>"
       if content.printersharing_enabled == '1' then
         if content_samba.samba_enabled == '1' then
