@@ -55,28 +55,9 @@ end
 
 if ngx.req.get_method() == "POST" then
 	local action = string.untaint(ngx.req.get_post_args().action)
-	if action:match("install") or action:match("remove") then
+	if action:match("install") or action:match("remove") or action:match("start") or action:match("stop") then
 		return appapply(action)
 	end
-    if action:match("start_amule") then
-        os.execute("amule-start")
-        return 1
-    elseif action:match("stop_amule") then
-        os.execute("amule-stop")
-        return 1
-    elseif action:match("start_transmission") then
-        os.execute("transmission-start")
-        return 1
-    elseif action:match("stop_transmission") then
-        os.execute("transmission-stop")
-        return 1
-    elseif action:match("start_aria2") then
-        os.execute("aria2-start")
-        return 1
-    elseif action:match("stop_aria2") then
-        os.execute("aria2-stop")
-        return 1
-    end
 end
 
 local mapParams = {
@@ -171,11 +152,8 @@ if StateParams["amule_webui"] ~= nil then
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install aMule webui", info_box)
 	html[#html+1] = T"State: "
 	html[#html+1] = "<strong>" .. T"aMule is " .. StateParams["amule_webui"] .. T" installed" .. "</strong></br>"
-	local amule_link =  '/amule'
-	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. amule_link .. '">' .. amule_link .."</a>"
-	html[#html+1] = "</br>"
 	local amule_direct_link = format("http://%s:4711/",mapParams.local_ip_modem)
-	html[#html+1] = T" (or " .. '<a target="_blank" href="' .. amule_direct_link .. '">' .. amule_direct_link .. "</a>" .. " )"
+	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. amule_direct_link .. '">' .. amule_direct_link .. "</a>"
 	html[#html+1] = "</br>"
 	if mapParams["amule_webui"] and mapParams["amule_webui"] == "1" then
         if prod_friendly_name[1].value:match("TG799") or prod_friendly_name[1].value:match("TG789") then
@@ -221,11 +199,8 @@ if StateParams["transmission_webui"] ~= nil then
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install transmission and transmission-webui", info_box)
 	html[#html+1] = T"State: "
 	html[#html+1] = "<strong>" .. T"Transmission is " .. StateParams["transmission_webui"] .. T" installed" .. "</strong></br>"
-	local transmission_link = '/transmission/web/'
-	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. transmission_link .. '">' .. transmission_link .."</a>"
-	html[#html+1] = "</br>"
 	local transmission_direct_link = format("http://%s:9091/transmission",mapParams.local_ip_modem)
-	html[#html+1] = T" (or " .. '<a target="_blank" href="' .. transmission_direct_link .. '">' .. transmission_direct_link .. "</a>" .. " )"
+	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. transmission_direct_link .. '">' .. transmission_direct_link .. "</a>"
 	html[#html+1] = "</br>"
 	html[#html+1] = "</br>"
 	if mapParams["transmission_webui"] and mapParams["transmission_webui"] == "1" then
