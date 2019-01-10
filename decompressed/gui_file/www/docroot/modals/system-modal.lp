@@ -325,12 +325,14 @@ if ngx.req.get_method() == "POST" then
 	content_helper.getExactContent(content)
 	
 	-- return exported data
-	if not ( content.filename == "" ) then
-		ngx.header.content_disposition = "attachment; filename="..untaint(content.filename)
+      local fname = untaint(content.filename)
+      ngx.log(1, "ciao")
+      ngx.log(1, fname:match("([^/]+)$"))
+	if fname ~= "" then
+		ngx.header.content_disposition = "attachment; filename="..fname:match("([^/]+)$")
 		ngx.header.content_type = "application/octet-stream"
 		ngx.header.set_cookie = "fileDownload=true; Path=/"  -- the JS download code requires this cookie
-		local export_path = untaint(content.filename)
-		local f = io.open(export_path, "r")
+		local f = io.open(fname, "r")
 		ngx.print(f:read("*all"))
 		f:close()
 		

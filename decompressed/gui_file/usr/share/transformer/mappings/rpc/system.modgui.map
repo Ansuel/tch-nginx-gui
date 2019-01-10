@@ -94,6 +94,8 @@ SYSTEM_MODGUI_DEBUGLOG_.get = {
   filename = function(mapping, param)
     local handle = io.popen('find /tmp -type f -name "DebugHelper*"')
     local filename = handle:read("*a")
+    filename = string.gsub(filename, '^%s+', '')
+    filename = string.gsub(filename, '%s+$', '')
     filename = string.gsub(filename, '[\n\r]+', ' ')
     handle:close()
 	return filename
@@ -101,6 +103,8 @@ SYSTEM_MODGUI_DEBUGLOG_.get = {
   state = function(mapping, param)
     local handle = io.popen('find /tmp -type f -name "DebugHelper*"')
     local filename = handle:read("*a")
+    filename = string.gsub(filename, '^%s+', '')
+    filename = string.gsub(filename, '%s+$', '')
     filename = string.gsub(filename, '[\n\r]+', ' ')
     handle:close()
 	if filename ~= "" then
@@ -108,6 +112,8 @@ SYSTEM_MODGUI_DEBUGLOG_.get = {
 	end
     handle = io.popen('find /tmp -type d -name "DebugHelper*"')
     local filedir = handle:read("*a")
+    filename = string.gsub(filename, '^%s+', '')
+    filename = string.gsub(filename, '%s+$', '')
     filedir = string.gsub(filedir, '[\n\r]+', ' ')
     handle:close()
 	if filedir ~= "" then

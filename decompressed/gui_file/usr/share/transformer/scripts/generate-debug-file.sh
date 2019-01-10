@@ -32,7 +32,7 @@ logger -s -t "DebugHelper" "$1"
 log "DebugHelper Started!"
 
 log "Removing directory /tmp/DebugHelper-* to prevent duplicates"
-rm -R /tmp/DebugHelper-* > /dev/null 2>&1
+rm -R /tmp/DebugHelper* > /dev/null 2>&1
 
 log "Creating dir"
 mkdir /tmp/DebugHelper-$DATE/ > /dev/null 2>&1
