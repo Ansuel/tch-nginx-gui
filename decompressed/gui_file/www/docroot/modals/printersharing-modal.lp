@@ -22,14 +22,6 @@ local mapValid = {
 }
 
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
-if ngx.req.get_method() == "POST" then
-    local webui = string.untaint(ngx.req.get_post_args().printersharing_webui)
-    if webui == "1" then
-        os.execute("sed -i.save 's/no/yes/' /etc/init.d/cupsd & cupsctl WebInterface=yes")
-    else
-        os.execute("sed -i.save 's/yes/no/' /etc/init.d/cupsd & cupsctl WebInterface=no")
-    end
-end
 
 local content_samba = {
   samba_enabled   = "uci.samba.samba.enabled",

@@ -155,9 +155,9 @@ if StateParams["luci_webui"] ~= nil then
 	html[#html+1] = "</br>"
 	html[#html+1] = "</br>"
 	if mapParams["luci_webui"] and mapParams["luci_webui"] == "1" then
-		html[#html+1] = ui_helper.createSimpleButton(T"Remove Luci", "fa fa-times-circle", btn_table.luci.remove)
+		html[#html+1] = ui_helper.createSimpleButton(T"Remove".." Luci", "fa fa-times-circle", btn_table.luci.remove)
 	else
-		html[#html+1] = ui_helper.createSimpleButton(T"Install Luci", "fa fa-download", btn_table.luci.install)
+		html[#html+1] = ui_helper.createSimpleButton(T"Install".." Luci", "fa fa-download", btn_table.luci.install)
 	end
 	html[#html+1] = "</br>"
 	html[#html+1] = "</fieldset>"
@@ -179,12 +179,12 @@ if StateParams["amule_webui"] ~= nil then
 	html[#html+1] = "</br>"
 	if mapParams["amule_webui"] and mapParams["amule_webui"] == "1" then
         if prod_friendly_name[1].value:match("TG799") or prod_friendly_name[1].value:match("TG789") then
-            html[#html+1] = ui_helper.createSimpleButton(T"Start aMule", "fa fa-play", btn_table.amule.start)
-            html[#html+1] = ui_helper.createSimpleButton(T"Stop aMule", "fa fa-stop", btn_table.amule.stop)
+            html[#html+1] = ui_helper.createSimpleButton(T"Start".." aMule", "fa fa-play", btn_table.amule.start)
+            html[#html+1] = ui_helper.createSimpleButton(T"Stop".." aMule", "fa fa-stop", btn_table.amule.stop)
         end
-		html[#html+1] = ui_helper.createSimpleButton(T"Remove aMule", "fa fa-times-circle", btn_table.amule.remove)
+		html[#html+1] = ui_helper.createSimpleButton(T"Remove".." aMule", "fa fa-times-circle", btn_table.amule.remove)
 	else
-		html[#html+1] = ui_helper.createSimpleButton(T"Install aMule", "fa fa-download", btn_table.amule.install)
+		html[#html+1] = ui_helper.createSimpleButton(T"Install".." aMule", "fa fa-download", btn_table.amule.install)
 	end
 	html[#html+1] = "</fieldset>"
 	html[#html+1] = "</div>"
@@ -203,12 +203,12 @@ if StateParams["aria2_webui"] ~= nil then
 	html[#html+1] = "</br>"
 	if mapParams["aria2_webui"] and mapParams["aria2_webui"] == "1" then
         if prod_friendly_name[1].value:match("TG799") or prod_friendly_name[1].value:match("TG789") then
-            html[#html+1] = ui_helper.createSimpleButton(T"Start aMule", "fa fa-play", btn_table.aria2.start)
-            html[#html+1] = ui_helper.createSimpleButton(T"Stop aMule", "fa fa-stop", btn_table.aria2.stop)
+            html[#html+1] = ui_helper.createSimpleButton(T"Start".." Aria2", "fa fa-play", btn_table.aria2.start)
+            html[#html+1] = ui_helper.createSimpleButton(T"Stop".." Aria2", "fa fa-stop", btn_table.aria2.stop)
         end
-		html[#html+1] = ui_helper.createSimpleButton(T"Remove Aria2", "fa fa-times-circle", btn_table.aria2.remove)
+		html[#html+1] = ui_helper.createSimpleButton(T"Remove".." Aria2", "fa fa-times-circle", btn_table.aria2.remove)
 	else
-		html[#html+1] = ui_helper.createSimpleButton(T"Install Aria2", "fa fa-download", btn_table.aria2.install)
+		html[#html+1] = ui_helper.createSimpleButton(T"Install".." Aria2", "fa fa-download", btn_table.aria2.install)
 	end
 	html[#html+1] = "</fieldset>"
 	html[#html+1] = "</div>"
@@ -230,12 +230,12 @@ if StateParams["transmission_webui"] ~= nil then
 	html[#html+1] = "</br>"
 	if mapParams["transmission_webui"] and mapParams["transmission_webui"] == "1" then
         if prod_friendly_name[1].value:match("TG799") or prod_friendly_name[1].value:match("TG789") then
-            html[#html+1] = ui_helper.createSimpleButton(T"Start aMule", "fa fa-play", btn_table.transmission.start)
-            html[#html+1] = ui_helper.createSimpleButton(T"Stop aMule", "fa fa-stop", btn_table.transmission.stop)
+            html[#html+1] = ui_helper.createSimpleButton(T"Start".." Tansmission", "fa fa-play", btn_table.transmission.start)
+            html[#html+1] = ui_helper.createSimpleButton(T"Stop".." Transmission", "fa fa-stop", btn_table.transmission.stop)
         end
-		html[#html+1] = ui_helper.createSimpleButton(T"Remove Transmission", "fa fa-times-circle", btn_table.transmission.remove)
+		html[#html+1] = ui_helper.createSimpleButton(T"Remove".." Transmission", "fa fa-times-circle", btn_table.transmission.remove)
 	else
-		html[#html+1] = ui_helper.createSimpleButton(T"Install Transmission", "fa fa-download", btn_table.transmission.install)
+		html[#html+1] = ui_helper.createSimpleButton(T"Install".." Transmission", "fa fa-download", btn_table.transmission.install)
 	end
 	html[#html+1] = "</fieldset>"
 	html[#html+1] = "</div>"
@@ -259,10 +259,10 @@ if StateParams["blacklist_application"] ~= nil then
 	html[#html+1] = "</br>"
 	local empty_blacklist_msg = ""
 	if mapParams["blacklist_application"] and mapParams["blacklist_application"] == "1" then
-		html[#html+1] = ui_helper.createSimpleButton(T"Remove Blacklist", "fa fa-times-circle", btn_table.blacklist.remove)
+		html[#html+1] = ui_helper.createSimpleButton(T"Remove".." Blacklist", "fa fa-times-circle", btn_table.blacklist.remove)
 		empty_blacklist_msg = T"Update blacklist app"
 	else
-		html[#html+1] = ui_helper.createSimpleButton(T"Install Blacklist", "fa fa-download", btn_table.blacklist.install)
+		html[#html+1] = ui_helper.createSimpleButton(T"Install".." Blacklist", "fa fa-download", btn_table.blacklist.install)
 		empty_blacklist_msg = T"Install empty blacklist"
 	end
 	html[#html+1] = ui_helper.createSimpleButton(empty_blacklist_msg, "fa fa-download", btn_table.blacklist.installempty)
@@ -283,9 +283,9 @@ if StateParams["xupnp_application"] ~= nil then
 	html[#html+1] = "</br>"
 	html[#html+1] = "</br>"
 	if mapParams["xupnp_application"] and mapParams["xupnp_application"] == "1" then
-		html[#html+1] = ui_helper.createSimpleButton(T"Remove XUPnP", "fa fa-times-circle", btn_table.xupnp.remove)
+		html[#html+1] = ui_helper.createSimpleButton(T"Remove".." XUPnP", "fa fa-times-circle", btn_table.xupnp.remove)
 	else
-		html[#html+1] = ui_helper.createSimpleButton(T"Install XUPnP", "fa fa-download", btn_table.xupnp.install)
+		html[#html+1] = ui_helper.createSimpleButton(T"Install".." XUPnP", "fa fa-download", btn_table.xupnp.install)
 	end
 	html[#html+1] = "</fieldset>"
 	html[#html+1] = "</br>"
@@ -305,9 +305,9 @@ if StateParams["telstra_webui"] ~= nil then
 	html[#html+1] = T"Change the default page in system-extra to set this gui as default"
 	html[#html+1] = "</br>"
 	if mapParams["telstra_webui"] and mapParams["telstra_webui"] == "1" then
-		html[#html+1] = ui_helper.createSimpleButton(T"Remove Telstra GUI", "fa fa-times-circle", btn_table.telstra.remove)
+		html[#html+1] = ui_helper.createSimpleButton(T"Remove".." Telstra GUI", "fa fa-times-circle", btn_table.telstra.remove)
 	else
-		html[#html+1] = ui_helper.createSimpleButton(T"Install Telstra GUI", "fa fa-download", btn_table.telstra.install)
+		html[#html+1] = ui_helper.createSimpleButton(T"Install".." Telstra GUI", "fa fa-download", btn_table.telstra.install)
 	end
 	html[#html+1] = "</fieldset>"
 	html[#html+1] = "</div>"
