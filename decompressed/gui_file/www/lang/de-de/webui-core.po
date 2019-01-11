@@ -2322,7 +2322,7 @@ msgstr ""
 msgid "Service Name"
 msgstr "Dienstname"
 
-msgid "Select the services to check on before turning the "Info" LED green and turning the services LEDs off (if ECO LED has been enabled)."
+msgid "Select the services to check on before turning the “Info” LED green and turning the services LEDs off (if ECO LED has been enabled)."
 msgstr "Dienstleistungen für die Eco-LED zu überprüfen"
 
 msgid "Sessions"
