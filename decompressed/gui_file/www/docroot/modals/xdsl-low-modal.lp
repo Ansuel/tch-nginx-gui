@@ -229,14 +229,13 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 		html[#html + 1] = ui_helper.createLabel(T"Driver Version",T"We don't have any firmware for this modem, please report them to the github page. ", span5 )
 	  else
 	    if ( tabdata.current.name == "bridge" ) or ( tabdata.current.name == "voice" )  then
-		  html[#html + 1] = ui_helper.createAlertBlock(T"In this mode, your modem may not have internet connection. The script may fail to download the new firmware. \
-														It is advised to download and apply it manually. Look in the forum repository for more info. ", alertinfo)
+		  html[#html + 1] = ui_helper.createAlertBlock(T"The currently selected connection mode prevents the device from downloading updates. Please download and apply updates manually.", alertinfo)
 		end
 		html[#html + 1] = ui_helper.createInputSelect(T"Driver Version", "driver_ver", driver_option, driver_content["driver_ver"])
 	  end
 	  html[#html + 1] = ui_helper.createSwitch(T"SRA", "ds10_sra", driver_content["ds10_sra"])
 	  html[#html + 1] = ui_helper.createSwitch(T"Bitswap", "ds10_bitswap", driver_content["ds10_bitswap"])
-	  html[#html + 1] = ui_helper.createAlertBlock(T"Modify the SNR will take effect on only ADSL connection, VDSL connection won't make any effect by this value!", alertinfo)
+	  html[#html + 1] = ui_helper.createAlertBlock(T"Change the SNR margin to increase stability or performance when in “ADSL Mode”. Changing this value in “VDSL Mode” won’t have any effect.", alertinfo)
 	  html[#html + 1] = ui_helper.createInputText(T"SNR", "ds10_snr", driver_content["ds10_snr"])
       html[#html + 1] = ui_helper.createLabel(T"EOC Vendor ID",content.dsl0_eoc_vendor_id, span5 )
       html[#html + 1] = ui_helper.createLabel(T"EOC Serial Number",content.dsl0_eoc_serial_number, span5 )

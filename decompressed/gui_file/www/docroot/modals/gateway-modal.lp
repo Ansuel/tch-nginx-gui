@@ -904,9 +904,9 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       }
 	  
 	  
-	  html[#html + 1] = ui_helper.createAlertBlock(T"This resets the custom gui. No custom configuration will be removed in the process. The Gui will stay unlocked with all the functions available for the stock firmware file. Remember to clean cache browser after this.", info_box)
+	  html[#html + 1] = ui_helper.createAlertBlock(T"Reset the custom GUI settings. No custom firmware file will be removed. All custom GUI functions will still be available.", info_box)
 	  html[#html + 1] = ui_helper.createButton(T"Restore Gui", T"Restore", "icon-refresh", reset_gui)
-	  html[#html + 1] = ui_helper.createAlertBlock(T"This resets the router and removes the root file. After the reboot the modem will be as it was when you bought it.", info_box)
+	  html[#html + 1] = ui_helper.createAlertBlock(T"Reset the router to factory settings and remove the custom firmware files.", info_box)
 	  html[#html + 1] = ui_helper.createButton(T"Reset to Factory", T"Remove Root", "icon-refresh", remove_root)
 	  html[#html + 1] = string.format('<div class="control-group controls">')
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Are you sure you want to remove root from this modem? </br><strong> This could be permanent, so it's not recommended.</strong>", confirming_msg_remove_root)
@@ -981,7 +981,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
         }
       }
 	  html[#html + 1] = '<span id="GUI-upgrade-option">'
-	  html[#html + 1] = ui_helper.createAlertBlock(T"This upgrade the GUI to the latest available version on the site", info_box)
+	  html[#html + 1] = ui_helper.createAlertBlock(T"Update the GUI to the latest version available", info_box)
 	  html[#html + 1] = ui_helper.createInputSelect(T"Update Branch", "update_branch", update_branch_option, update_content["update_branch"])
 	  
 	  local dyntab_helper = require("web.dyntab_helper")

@@ -1344,7 +1344,7 @@ msgstr "IPv6 Status"
 msgid "Idle"
 msgstr ""
 
-msgid "If a newer version is present in the acs server, cwmpd will try to upgrade the modem and will not send any info. This breaks some remote app like MyTIMFisso. Change the version here to fake it."
+msgid "Input the latest stock firmware version in this field to spoof it. This is necessary because if a newer version of the firmware is available on the ACS server, CWMPD will try to update the device and break remote monitoring from the “MyTIM” mobile app."
 msgstr "Wenn auf dem ACS Server eine neuere Version vorliegt, wird cwmpd versuchen, das Modem zu aktualisieren und dabei keine Informationen darüber geben. Das funktioniert mit einigen Apps (wie MyTIMFisso) nicht. Hier können sie eine andere Version vortäuschen."
 
 msgid "If a wireless device reports this gateway's 2.4GHz signal strength is above this threshold, the gateway will ask the device to test the 5GHz band . Please see 5GHz section for additional parameter."
@@ -1353,7 +1353,7 @@ msgstr "Wenn ein Drahtlosgerät meldet, dass die 2.4 GHz Signalstärke dieses Ga
 msgid "If you haven't changed it, the default password can be found on the sticker under your gateway (it's called <strong>\"access code\"</strong>)"
 msgstr "Wenn Sie es nicht geändert haben, findet sich das Standard-Kennwort auf dem Aufkleber unter Ihrem Gateway (unter <strong>\"access code\"</strong>)"
 
-msgid "If you use this tool, devices connected will be disconnected and will be able to connect after 1 minute."
+msgid "Warning: starting the Wireless Analyzer will disconnect all wireless clients until the analysis has been completed."
 msgstr ""
 
 msgid "Import"
@@ -1674,7 +1674,7 @@ msgstr "Modus"
 msgid "Modes"
 msgstr "Modi"
 
-msgid "Modify the SNR will take effect on only ADSL connection, VDSL connection won't make any effect by this value!"
+msgid "Change the SNR margin to increase stability or performance when in “ADSL Mode”. Changing this value in “VDSL Mode” won’t have any effect."
 msgstr ""
 
 msgid "Modify this option will restart the wan connection (to sync the led with the new config)"
@@ -2322,7 +2322,7 @@ msgstr ""
 msgid "Service Name"
 msgstr "Dienstname"
 
-msgid "Services to check for the Eco LED"
+msgid "Select the services to check on before turning the "Info" LED green and turning the services LEDs off (if ECO LED has been enabled)."
 msgstr "Dienstleistungen für die Eco-LED zu überprüfen"
 
 msgid "Sessions"
@@ -2577,6 +2577,9 @@ msgstr "Die XUPnP App ist "
 msgid "The below chart shows the results of the latest scan of your local area from your gateway."
 msgstr "Die untenstehende Grafik zeigt das Ergebnis der letzten Suche der lokalen Umgebung Ihres Gateways."
 
+msgid "The currently selected connection mode prevents the device from downloading updates. Please download and apply updates manually."
+msgstr ""
+
 msgid "The modem has been upgraded automatically at <strong>%s:00</strong> to version <strong>%s</strong> successfully"
 msgstr ""
 
@@ -2619,28 +2622,28 @@ msgstr "Der Zeitbereich ist fehlerhaft"
 msgid "There is no connection to the Internet."
 msgstr "Es gibt keine Verbindung ins Internet."
 
-msgid "This check if the config file is provided from the same firmware versione."
+msgid "An imported configuration file will only be applied if its firmware version matches the currently installed one.’"
 msgstr "Dies prüft, ob die Konfigurationsdatei von der selben Firmware-Version erzeugt wurde."
 
-msgid "This control the type of config exported and the type of config can be imported."
+msgid "Enable what type of configuration you want to import and export."
 msgstr "Dies setzt den Typ der exportierten Konfigurationsdatei und welche Version importiert werden kann."
 
 msgid "This is the internal IP of the SFP interface used for fiber connection. This and the local Gateway IP must be different."
 msgstr ""
 
-msgid "This resets the custom gui. No custom configuration will be removed in the process. The Gui will stay unlocked with all the functions available for the stock firmware file. Remember to clean cache browser after this."
+msgid "Reset the custom GUI settings. No custom firmware file will be removed. All custom GUI functions will still be available."
 msgstr "Dies setzt das angepasste GUI. Die angepasste Konfiguration wird hierdurch nicht entfernt. Das GUI wird entsperrt bleiben mit allen Funktionen der herstellerseitigen Firmware. Denken Sie daran, den Browsercache zu löschen."
 
-msgid "This resets the router and removes the root file. After the reboot the modem will be as it was when you bought it."
+msgid "Reset the router to factory settings and remove the custom firmware files."
 msgstr "Dies setzt den Router zurück und entfernt die Root-Datei. Nach dem Reboot wird das Modem in dem Zustand sein, wie Sie es gekauft haben."
 
-msgid "This switch disable the check to force the firmware to be on bank_1"
+msgid "Force the device to always use “Bank_1” as the main bank."
 msgstr "Dieser Schalter wird die Prüfung abschalten, welche die Firmware in bank_1 erzwingt"
 
-msgid "This upgrade the GUI to the latest available version on the site"
+msgid "Update the GUI to the latest version available"
 msgstr "Dies aktualisiert das GUI auf den neuesten verfügbaren Stand auf der Webseite"
 
-msgid "This will clone firmware and config from the running bank to the inactive one. The content of the bank_2 overlay and config will be deleted!"
+msgid "Clone the content of the running bank to the inactive one. Warning: this will delete all data and configuration settings on the inactive bank!"
 msgstr ""
 
 msgid "This will install aria2 and ariang webui"
@@ -2736,7 +2739,7 @@ msgstr "Die."
 msgid "Turning on Ethernet power saving features can cause extra latency"
 msgstr "Wenn Sie die Energiesparfunktionen des Ethernet aktivieren, kann sich zusätzliche Latenzzeit ergeben"
 
-msgid "Turn off all LEDs (except info/power) if all services are up and running. Press INFO button (could be button with power LED) to show LED status."
+msgid "Turn off all LEDs except “Info” if all services are up and running. Press the “Info” / “WiFi” button to show the current LEDs status."
 msgstr "Schalte alle LEDs aus, wenn alle Dienste laufen. Sie können den INFO-Knopf drücken (auf der Power-LED), um den LED-Status anzuzeigen."
 
 msgid "Tx Errors"
@@ -3006,7 +3009,7 @@ msgstr "WiFi Schwester"
 msgid "Wifi Analyzer"
 msgstr "WiFi Analysator"
 
-msgid "WiFi NSC when turned off will turn OFF WiFi LED(s) if there is no associated station (no wifi client connected)"
+msgid "Turn the WiFi LEDs on if at least one client is connected to the corresponding radio."
 msgstr "WiFi NSC schaltet sich nach dem Ausschalten aus, WiFi-LED (s) AUS, wenn keine zugehörige Station vorhanden ist (kein WiFi-Client angeschlossen)"
 
 msgid "Wireless Client Monitor"
