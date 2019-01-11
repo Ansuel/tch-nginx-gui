@@ -35,15 +35,17 @@ local function appapply(action)
 	end
 	local uci_set = action:gsub("(.*)_","")
 	local action_type = action:gsub("_(.*)","")
-	if action_type == "install" then
-		state = "1"
-	else
-		state = "0"
-	end
-	if not ( uci_set == "blacklist" ) and not ( uci_set == "xupnp" ) then
-		proxy.set("uci.env.var." .. uci_set .. "_webui",state)
-	else
-		proxy.set("uci.env.var." .. uci_set .. "_app",state)
+	if action_type == "install" or action_type == "remove" then
+		if action_type == "install" then
+			state = "1"
+		else
+			state = "0"
+		end
+		if not ( uci_set == "blacklist" ) and not ( uci_set == "xupnp" ) then
+			proxy.set("uci.env.var." .. uci_set .. "_webui",state)
+		else
+			proxy.set("uci.env.var." .. uci_set .. "_app",state)
+		end
 	end
 	ngx.header.content_type = "application/json"
 	ngx.print('{ "success":"true" }')
@@ -118,7 +120,7 @@ for _, app in ipairs(app_list) do
 		btn_table[app][action] =
 		{
 			button = {
-				id = "btn-"..action.."-"..app
+				id = "btn-"..action.."_"..app
 			}
 		}
 	end
@@ -219,7 +221,7 @@ end
 if StateParams["blacklist_application"] ~= nil then
 	btn_table.blacklist.installempty = {
 		button = {
-			id = "btn-installempty-blacklist"
+			id = "btn-installempty_blacklist"
 		}
 	}
 	html[#html+1] = '<div class="span3">'
@@ -296,8 +298,6 @@ ngx.print('\
 <script>\
 (function() {\
   var target = $(".modal form").attr("action");\
-  var installMsg = "');  ngx.print(T'Installing...'); ngx.print('";\
-  var removeMsg = "');  ngx.print(T'Removing...'); ngx.print('";\
 \
   function post(action,processMsg) {\
     $.post(\
@@ -309,21 +309,23 @@ ngx.print('\
 	tch.showProgress(processMsg);\
     return false;\
   }');
-for _ , app in ipairs(app_list) do
-	for _ , action in ipairs({"install","remove","start","stop"}) do
-		ngx.print('\
-			$("#btn-'); ngx.print(action.."-"..app); ngx.print('").on("click", function() {\
-			  post("'); ngx.print(action.."_"..app); ngx.print('",installMsg);\
-			  setTimeout(function(){location.reload();}, 2000);\
-			});\
-		');
-	end
-end
 ngx.print('\
-  $("#btn-installempty-blacklist").on("click", function() {\
-     post("install_emptyblacklist",installMsg);\
-	 setTimeout(function(){location.reload();}, 2000);\
-     });\
+    $("div[id^=\'btn-\']").on("click", function() {\
+      var btnact = $(this).attr("id").replace("btn-", "");\
+      if(btnact.startsWith("start")){\
+      	post(btnact,"');  ngx.print(T'Starting...'); ngx.print('");\
+      	setTimeout(function(){tch.removeProgress();}, 2000);\
+      } else if(btnact.startsWith("stop")){\
+      	post(btnact,"');  ngx.print(T'Stopping...'); ngx.print('");\
+      	setTimeout(function(){tch.removeProgress();}, 2000);\
+      } else if(btnact.startsWith("remove")){\
+      	post(btnact,"');  ngx.print(T'Removing...'); ngx.print('");\
+      	setTimeout(function(){location.reload();}, 2000);\
+      } else if(btnact.startsWith("install")) {\
+      	post(btnact,"');  ngx.print(T'Installing...'); ngx.print('");\
+      	setTimeout(function(){location.reload();}, 2000);\
+      }\
+    });\
 }());\
 </script>\
 ');  

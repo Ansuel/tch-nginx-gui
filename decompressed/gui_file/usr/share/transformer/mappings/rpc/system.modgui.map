@@ -164,7 +164,7 @@ local app_list = {
 }
 
 for _, app in ipairs(app_list) do
-	for _, action in ipairs({"install","remove"}) do
+	for _, action in ipairs({"install","remove","start","stop"}) do
 		SYSTEM_MODGUI_APP_.objectType.parameters[action.."_"..app] = 
 		{
 			access = "readWrite",
