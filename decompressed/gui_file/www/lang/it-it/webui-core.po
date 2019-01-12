@@ -13,6 +13,7 @@ msgstr ""
 "Language-Name: Italiano\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 2.2\n"
+"X-Poedit-SourceCharset: UTF-8\n"
 
 msgid " (or "
 msgstr " (o "
@@ -1345,7 +1346,7 @@ msgid "Idle"
 msgstr "Non attivo"
 
 msgid "Input the latest stock firmware version in this field to spoof it. This is necessary because if a newer version of the firmware is available on the ACS server, CWMPD will try to update the device and break remote monitoring from the “MyTIM” mobile app."
-msgstr "Se una versione più nuova è presente nel server ACS, cwmpd proverà ad aggiornare il modem e non invierà alcuna informazione.<br/>Ciò renderà non operative alcune app remote come MyTIMFisso.<br/>Cambia qui la versione per ingannarlo."
+msgstr "Inserisci in questo campo la versione più recente del firmeare stock.<br/>Questo è necessario poichè se è disponibile una versione più recente del firmware stock nel server ACS, CWMPD proverà ad aggiornare il modem e questo interromperà il monitoraggio con l'app  mobile 'My TIM'<br/>Modifica qui la versione per evitare ciò."
 
 msgid "If a wireless device reports this gateway's 2.4GHz signal strength is above this threshold, the gateway will ask the device to test the 5GHz band . Please see 5GHz section for additional parameter."
 msgstr "Se un dispositivo wireless riporta questa potenza di segnale del gateway della rete 2.4 GHz sopra questa soglia, il gateway chiederà al dispositivo di verificare la banda a 5 GHz.<br/>Vedi la sezione rete 5 GHz per i parametri aggiuntivi."
@@ -1354,7 +1355,7 @@ msgid "If you haven't changed it, the default password can be found on the stick
 msgstr "Se non l´hai cambiata, puoi trovare la password predefinita sotto il gateway (è quella chiamata <strong>\"codice accesso\"</strong>)"
 
 msgid "Warning: starting the Wireless Analyzer will disconnect all wireless clients until the analysis has been completed."
-msgstr "Se usi questo strumento, i dispositivi connessi verranno disconnessi e saranno in grado di connettersi dopo 1 minuto."
+msgstr "Attenzione: avviando l'analizzatore wireless verranno disconenssi tutti i client wireelss fino alla fine dell'analisi."
 
 msgid "Import"
 msgstr "Importa"
@@ -1675,7 +1676,7 @@ msgid "Modes"
 msgstr "Modalità"
 
 msgid "Change the SNR margin to increase stability or performance when in “ADSL Mode”. Changing this value in “VDSL Mode” won’t have any effect."
-msgstr "La modifica del valore SNR avrà effetto solo con connessione ADSL.<br/>Con una connessione VDSL non ci sarà alcun effetto sulla modifica di questo valore!"
+msgstr "La modifica del valore SNR avrà effetto solo con connessioni ADSL.<br/>Con una connessione VDSL non ci sarà alcun effetto sulla modifica di questo valore!"
 
 msgid "Modify this option will restart the wan connection (to sync the led with the new config)"
 msgstr "La modifica di questa opzione comporterà il riavvio della connessione WAN (per sincronizzare i led con la nuova configurazione)"
@@ -2323,7 +2324,7 @@ msgid "Service Name"
 msgstr "Nome servizio"
 
 msgid "Select the services to check on before turning the “Info” LED green and turning the services LEDs off (if ECO LED has been enabled)."
-msgstr "Servizi da controllare per l'attivazione del led Eco"
+msgstr "Seleziona i servizi da controllare prima di attivare il led  verde 'Info' e spegnere i led dei servzi (se il led 'Eco' è stato abilitato)."
 
 msgid "Sessions"
 msgstr "Sessioni"
@@ -2578,7 +2579,7 @@ msgid "The below chart shows the results of the latest scan of your local area f
 msgstr "Il grafico seguente visualizza i risultati dell´ultimo controllo nella LAN del gateway."
 
 msgid "The currently selected connection mode prevents the device from downloading updates. Please download and apply updates manually."
-msgstr ""
+msgstr "Il modo connessione attualmente selezionato evita che il dispositivo possa scaricare aggiornamenti.<br/>Scarica ed applica gli aggiornamenti in modo manuale."
 
 msgid "The modem has been upgraded automatically at <strong>%s:00</strong> to version <strong>%s</strong> successfully"
 msgstr "Il modem è stato corretamente aggiornato automaticamente alle <strong>%s:00</strong> alla versione <strong>%s</strong>"
@@ -2623,52 +2624,52 @@ msgid "There is no connection to the Internet."
 msgstr "Nessuna connessione ad Internet."
 
 msgid "An imported configuration file will only be applied if its firmware version matches the currently installed one.’"
-msgstr "Questa opzione verifica se il file di configurazione proviene dalla stessa versione firmware."
+msgstr "La configurazione importata verrà applicata solo se il file di configurazione proviene dalla stessa versione firmware."
 
 msgid "Enable what type of configuration you want to import and export."
-msgstr "Questa opzione controlla il tipo di configurazione esportata e il tipo di configurazione che può essere importata."
+msgstr "Controlla il tipo di configurazione che può essere esportata e importata."
 
 msgid "This is the internal IP of the SFP interface used for fiber connection. This and the local Gateway IP must be different."
-msgstr "Questo è l'indirizzo IP interno dell'interfaccia SFP usata per la connessione in fibra.<br/>Questo indirizzo e l'IP del gateway locale devono essere diversi."
+msgstr "È l'indirizzo IP interno dell'interfaccia SFP usata per la connessione in fibra.<br/>Questo indirizzo e l'IP del gateway locale devono essere diversi."
 
 msgid "Reset the custom GUI settings. No custom firmware file will be removed. All custom GUI functions will still be available."
-msgstr "Questa funzione ripristina l'interfaccia grafica (GUI) originale.<br/>Durante il processo  non verrà eliminata nessuna configurazione personalizzata.<br/>L'interfaccia grafica (GUI) rimarrà sbloccata con tutte le funzioni disponibili nel firmware stock.<br/>Ricordati dopo di svuotare la cache del browser."
+msgstr "Ripristina l'interfaccia grafica (GUI) originale.<br/>Non verrà eliminata nessun firmware personalizzato.<br/>Tutte le funzioni dell'interfaccia grafica (GUI) personalizzata sarano disponibili."
 
 msgid "Reset the router to factory settings and remove the custom firmware files."
-msgstr "Questa funzione ripristina il router e rimuove il file di root.<br/>Dopo il riavvio il modem ritornerà come era quando lo hai acquistato."
+msgstr "Ripristina il router e rimuove i file del root.<br/>Dopo il riavvio il modem ritornerà come era quando è stato acquistato."
 
 msgid "Force the device to always use “Bank_1” as the main bank."
-msgstr "Questo pulsante disabilita il controllo per forzare il firmware ad essere caricato nel banco 1"
+msgstr "Forza il dispositivo ad usare semrpe il 'Banco 1' come 'Banco principale'."
 
 msgid "Update the GUI to the latest version available"
-msgstr "Questa operazione aggiornerà la GUI alla versione più recente disponibile nel sito"
+msgstr "Aggiorna la GUI alla versione più recente disponibile"
 
 msgid "Clone the content of the running bank to the inactive one. Warning: this will delete all data and configuration settings on the inactive bank!"
-msgstr "Questa operazione clonerà il firmware e la configurazione dal banco attivo in quello non attivo.<br/>Il contenuto della overlay del banco 2 e la configurazione verranno eliminate!"
+msgstr "Clona il contenuto del banco attivo in quello non attivo.<br/>Attenzione: questo comporterà l'eliminazione dei dati e delle configurazioni nel banco non attivo!"
 
 msgid "This will install aria2 and ariang webui"
-msgstr "Questa operazione installerà Aria2 e la WebUI Ariang"
+msgstr "Installa Aria2 e la WebUI Ariang"
 
 msgid "This will install the XUPnP application"
-msgstr "Questa operazione installerà l'applicazione XUPnP"
+msgstr "Installa l'applicazione XUPnP"
 
 msgid "This will install the blacklist application"
-msgstr "Questa operazione installerà l'applicazione 'Elenco non autorizzati'"
+msgstr "Installa l'applicazione 'Elenco non autorizzati'"
 
 msgid "This will install transmission and transmission-webui"
-msgstr "Questa operazione installerà transmission e la relativa WebUI"
+msgstr "Installa transmission e la relativa WebUI"
 
 msgid "This will install uhttpd and luci"
-msgstr "Questa operazione installerà uhttpd e luci"
+msgstr "Installa uhttpd e luci"
 
 msgid "This will put your gateway into LAN Upgrade"
-msgstr "Questa operazione avvierà l´aggiornamento del gateway"
+msgstr "Avvia l´aggiornamento del modem"
 
 msgid "This will transfer the active firmware and config to the bank 1"
-msgstr "Questa operazione trasferirà il firmware attivo e la configurazione nel banco 1"
+msgstr "Trasferisce il firmware attivo e la configurazione nel banco 1"
 
 msgid "This will transfer your configuration and firmware to the bank_1 and it will erase bank_2"
-msgstr "Questa operazione trasferirà la configurazione e il firmware nel banco 1 e cancellerà il banco 2"
+msgstr "Trasferisce la configurazione e il firmware nel banco 1 e cancellerà il banco 2"
 
 msgid "Thu."
 msgstr "Gio."
@@ -2740,7 +2741,7 @@ msgid "Turning on Ethernet power saving features can cause extra latency"
 msgstr "L'attivazione delle funzionalità di risparmio energetico ethernet può causare una latenza aggiuntiva"
 
 msgid "Turn off all LEDs except “Info” if all services are up and running. Press the “Info” / “WiFi” button to show the current LEDs status."
-msgstr "Se tutti i servizi sono attivi ed in funzione spegne tutti i led (eccetto i led INFO/POWER).<br/>Per visualizzare lo stato dei led puoi selezionare il pulsante INFO (può essere il pulsante con il led POWER) ."
+msgstr "Se tutti i servizi sono attivi e funzionanti spegne tutti led eccetto 'Info' / 'WiFi'.<br/>Premi il pulsante 'Info' per visualizzare lo stato attuale dei led."
 
 msgid "Tx Errors"
 msgstr "Errori Tx"
@@ -3010,7 +3011,7 @@ msgid "Wifi Analyzer"
 msgstr "Analizzatore Wi-Fi"
 
 msgid "Turn the WiFi LEDs on if at least one client is connected to the corresponding radio."
-msgstr "Se WiFi NSC è ad OFF spegne il LED Wi-Fi se non ci sono stazioni associate (nessun client Wi-Fi collegato)"
+msgstr "Accende i led Wi-Fi se almeno un client è connesso al corrispondente modulo radio."
 
 msgid "Wireless Client Monitor"
 msgstr "Monitor client wireless"
@@ -3162,7 +3163,7 @@ msgstr ""
 "Per modificarlo devi rimuovere la regola."
 
 msgid "This will install Telstra webui"
-msgstr "Questa operazione installerà la GUI Telstra"
+msgstr "Installa la GUI Telstra"
 
 msgid "Install Telstra GUI"
 msgstr "Installa GUI Telstra"
@@ -3174,7 +3175,7 @@ msgid "Remove Telstra GUI"
 msgstr "Rimuovi GUI Telstra"
 
 msgid "Change the default page in system-extra to set this gui as default"
-msgstr "Modifica la pagina predefinita in system->extra per impostare questa GUI come predefinita"
+msgstr "Modifica la pagina predefinita in 'Sistema' -> 'Extra' per impostare questa GUI come predefinita"
 
 msgid "Update blacklist app"
 msgstr "Aggiorna app 'Elenco non autorizzati'"
