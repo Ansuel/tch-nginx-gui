@@ -1799,8 +1799,8 @@ root() {
 	#if [ ! -f /usr/lib/lua/tch/logger.lua ]; then
 	#	#Wait this command better way to check if transformer is fully initialized
 	#	transformer-cli get uci.env.var.oui > /dev/null
-		logger_command "Restarting transformer a second time cause it's just shit..."
-		/etc/init.d/transformer restart
+	#	logger_command "Restarting transformer a second time cause it's just shit..."
+	#	/etc/init.d/transformer restart
 	#fi
 	
 	logger_command "Trafficmon inizialization"
