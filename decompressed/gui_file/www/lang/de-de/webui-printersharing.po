@@ -13,6 +13,7 @@ msgstr ""
 "Language-Name: Deutsch\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 2.2\n"
+"X-Poedit-SourceCharset: UTF-8\n"
 
 msgid "<div class=\" simple-desc span4\">Samba is disabled</div>"
 msgstr "<div class=\" simple-desc span4\">Samba ist deaktiviert</div>"

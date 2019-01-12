@@ -13,6 +13,7 @@ msgstr ""
 "Language-Name: Deutsch\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 2.2\n"
+"X-Poedit-SourceCharset: UTF-8\n"
 
 msgid " (or "
 msgstr " (oder "
@@ -1345,7 +1346,7 @@ msgid "Idle"
 msgstr ""
 
 msgid "Input the latest stock firmware version in this field to spoof it. This is necessary because if a newer version of the firmware is available on the ACS server, CWMPD will try to update the device and break remote monitoring from the “MyTIM” mobile app."
-msgstr "Wenn auf dem ACS Server eine neuere Version vorliegt, wird cwmpd versuchen, das Modem zu aktualisieren und dabei keine Informationen darüber geben. Das funktioniert mit einigen Apps (wie MyTIMFisso) nicht. Hier können sie eine andere Version vortäuschen."
+msgstr ""
 
 msgid "If a wireless device reports this gateway's 2.4GHz signal strength is above this threshold, the gateway will ask the device to test the 5GHz band . Please see 5GHz section for additional parameter."
 msgstr "Wenn ein Drahtlosgerät meldet, dass die 2.4 GHz Signalstärke dieses Gateways diesen Schwellwert übersteigt, wird diese das Gerät auffordern, das 5-GHz-Band auszuprobieren. Bitte sehen Sie in die Abschnitt für 5 GHz für weitere Parameter."
@@ -2323,7 +2324,7 @@ msgid "Service Name"
 msgstr "Dienstname"
 
 msgid "Select the services to check on before turning the “Info” LED green and turning the services LEDs off (if ECO LED has been enabled)."
-msgstr "Dienstleistungen für die Eco-LED zu überprüfen"
+msgstr ""
 
 msgid "Sessions"
 msgstr ""
@@ -2623,25 +2624,25 @@ msgid "There is no connection to the Internet."
 msgstr "Es gibt keine Verbindung ins Internet."
 
 msgid "An imported configuration file will only be applied if its firmware version matches the currently installed one.’"
-msgstr "Dies prüft, ob die Konfigurationsdatei von der selben Firmware-Version erzeugt wurde."
+msgstr ""
 
 msgid "Enable what type of configuration you want to import and export."
-msgstr "Dies setzt den Typ der exportierten Konfigurationsdatei und welche Version importiert werden kann."
+msgstr ""
 
 msgid "This is the internal IP of the SFP interface used for fiber connection. This and the local Gateway IP must be different."
 msgstr ""
 
 msgid "Reset the custom GUI settings. No custom firmware file will be removed. All custom GUI functions will still be available."
-msgstr "Dies setzt das angepasste GUI. Die angepasste Konfiguration wird hierdurch nicht entfernt. Das GUI wird entsperrt bleiben mit allen Funktionen der herstellerseitigen Firmware. Denken Sie daran, den Browsercache zu löschen."
+msgstr ""
 
 msgid "Reset the router to factory settings and remove the custom firmware files."
-msgstr "Dies setzt den Router zurück und entfernt die Root-Datei. Nach dem Reboot wird das Modem in dem Zustand sein, wie Sie es gekauft haben."
+msgstr ""
 
 msgid "Force the device to always use “Bank_1” as the main bank."
-msgstr "Dieser Schalter wird die Prüfung abschalten, welche die Firmware in bank_1 erzwingt"
+msgstr ""
 
 msgid "Update the GUI to the latest version available"
-msgstr "Dies aktualisiert das GUI auf den neuesten verfügbaren Stand auf der Webseite"
+msgstr ""
 
 msgid "Clone the content of the running bank to the inactive one. Warning: this will delete all data and configuration settings on the inactive bank!"
 msgstr ""
@@ -2740,7 +2741,7 @@ msgid "Turning on Ethernet power saving features can cause extra latency"
 msgstr "Wenn Sie die Energiesparfunktionen des Ethernet aktivieren, kann sich zusätzliche Latenzzeit ergeben"
 
 msgid "Turn off all LEDs except “Info” if all services are up and running. Press the “Info” / “WiFi” button to show the current LEDs status."
-msgstr "Schalte alle LEDs aus, wenn alle Dienste laufen. Sie können den INFO-Knopf drücken (auf der Power-LED), um den LED-Status anzuzeigen."
+msgstr ""
 
 msgid "Tx Errors"
 msgstr "Tx Fehler"
@@ -3010,7 +3011,7 @@ msgid "Wifi Analyzer"
 msgstr "WiFi Analysator"
 
 msgid "Turn the WiFi LEDs on if at least one client is connected to the corresponding radio."
-msgstr "WiFi NSC schaltet sich nach dem Ausschalten aus, WiFi-LED (s) AUS, wenn keine zugehörige Station vorhanden ist (kein WiFi-Client angeschlossen)"
+msgstr ""
 
 msgid "Wireless Client Monitor"
 msgstr "Drahtlosgeräteüberwachung"

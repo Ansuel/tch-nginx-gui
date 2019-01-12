@@ -13,6 +13,7 @@ msgstr ""
 "Language-Name: Italiano\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 2.2\n"
+"X-Poedit-SourceCharset: UTF-8\n"
 
 msgid "<strong>%s classify rule(s)</strong> active"
 msgid_plural "<strong>%s classify rule(s)</strong> active"
