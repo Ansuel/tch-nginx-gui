@@ -2579,7 +2579,7 @@ msgid "The below chart shows the results of the latest scan of your local area f
 msgstr "Il grafico seguente visualizza i risultati dell´ultimo controllo nella LAN del gateway."
 
 msgid "The currently selected connection mode prevents the device from downloading updates. Please download and apply updates manually."
-msgstr "Il modo connessione attualmente selezionato evita che il dispositivo possa scaricare aggiornamenti.<br/>Scarica ed applica gli aggiornamenti in modo manuale."
+msgstr "Il tipo di connessione attualmente selezionato impedisce che il dispositivo possa scaricare aggiornamenti.<br/>Scarica ed applica gli aggiornamenti in modo manuale."
 
 msgid "The modem has been upgraded automatically at <strong>%s:00</strong> to version <strong>%s</strong> successfully"
 msgstr "Il modem è stato corretamente aggiornato automaticamente alle <strong>%s:00</strong> alla versione <strong>%s</strong>"
@@ -2639,7 +2639,7 @@ msgid "Reset the router to factory settings and remove the custom firmware files
 msgstr "Ripristina il router e rimuove i file del root.<br/>Dopo il riavvio il modem ritornerà come era quando è stato acquistato."
 
 msgid "Force the device to always use “Bank_1” as the main bank."
-msgstr "Forza il dispositivo ad usare semrpe il 'Banco 1' come 'Banco principale'."
+msgstr "Forza il dispositivo ad usare sempre il 'Banco 1' come 'Banco principale'."
 
 msgid "Update the GUI to the latest version available"
 msgstr "Aggiorna la GUI alla versione più recente disponibile"
@@ -2741,7 +2741,7 @@ msgid "Turning on Ethernet power saving features can cause extra latency"
 msgstr "L'attivazione delle funzionalità di risparmio energetico ethernet può causare una latenza aggiuntiva"
 
 msgid "Turn off all LEDs except “Info” if all services are up and running. Press the “Info” / “WiFi” button to show the current LEDs status."
-msgstr "Se tutti i servizi sono attivi e funzionanti spegne tutti led eccetto 'Info' / 'WiFi'.<br/>Premi il pulsante 'Info' per visualizzare lo stato attuale dei led."
+msgstr "Se tutti i servizi sono attivi e funzionanti spegne tutti led eccetto 'Info'.<br/>Premi il pulsante 'Info' / 'Wifi' per visualizzare lo stato attuale dei led."
 
 msgid "Tx Errors"
 msgstr "Errori Tx"
@@ -3011,7 +3011,7 @@ msgid "Wifi Analyzer"
 msgstr "Analizzatore Wi-Fi"
 
 msgid "Turn the WiFi LEDs on if at least one client is connected to the corresponding radio."
-msgstr "Accende i led Wi-Fi se almeno un client è connesso al corrispondente modulo radio."
+msgstr "Accende i led Wi-Fi se almeno un client è connesso alla radio corrispondente."
 
 msgid "Wireless Client Monitor"
 msgstr "Monitor client wireless"
