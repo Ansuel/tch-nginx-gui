@@ -359,27 +359,18 @@ check_bank() {
 	bootedbank=$( cat /proc/banktable/booted )
 	activebank=$( cat /proc/banktable/active )
 	env_config_bank1="/overlay/bank_1/etc/config/env"
-	get_config_bank1=$(cat /etc/config/env | grep bank_check | awk '{print $3}' | sed "s/'//g")
+	get_config_bank1=$(cat $env_config_bank1 | grep bank_check | awk '{print $3}' | sed "s/'//g")
 	if [ $bootedbank != $activebank ]; then
 		echo "  Detected corrupted active bank... Restoring..." > /dev/console
 		restore_bank
 	fi
 		
 	if [ $bootedbank == "bank_2" ]; then
-		if [ ! $( uci -q get env.var.bank_check ) ]; then
-			if [ -f $env_config_bank1 ] && [ $get_config_bank1 == "0" ]; then
-				echo "  Firmware in Bank_2 but check_bank set to 0... Not transferring" > /dev/console
-			else
-				echo "  Firmware in Bank_2... Transferring" > /dev/console
-				transfer_bank
-			fi
-		elif [ $bank_check == "1" ]; then
-			if [ -f $env_config_bank1 ] && [ $get_config_bank1 == "0" ]; then
-				echo "  Firmware in Bank_2 but check_bank set to 0... Not transferring" > /dev/console
-			else
-				echo "  Firmware in Bank_2... Transferring" > /dev/console
-				transfer_bank
-			fi
+		if [ -f $env_config_bank1 ] && [ $get_config_bank1 == "0" ]; then
+			echo "  Firmware in Bank_2 but check_bank set to 0... Not transferring" > /dev/console
+		else
+			echo "  Firmware in Bank_2... Transferring" > /dev/console
+			transfer_bank
 		fi
 	else
 		echo "  Firmware in Bank_1... Not transferring..." > /dev/console
