@@ -3175,7 +3175,7 @@ msgid "Remove Telstra GUI"
 msgstr "Rimuovi GUI Telstra"
 
 msgid "Change the default page in system-extra to set this gui as default"
-msgstr "Modifica la pagina predefinita in 'Sistema' -> 'Extra' per impostare questa GUI come predefinita"
+msgstr "Per impostare questa GUI come predefinita modifica la pagina predefinita in<br/>'Sistema' -> 'Extra'"
 
 msgid "Update blacklist app"
 msgstr "Aggiorna app 'Elenco non autorizzati'"
@@ -3196,3 +3196,18 @@ msgstr "Impostazioni VP/VC"
 
 msgid "The time displayed on the graph are based on the time set on this modem!"
 msgstr "Gli orari visualizzati nel grafico sono basati sull'orario impostato nel modem!"
+
+msgid "Arial2 GUI"
+msgstr "GUI Arial2"
+
+msgid "Transmission GUI"
+msgstr "GUI Transmission"
+
+msgid "Telstra GUI"
+msgstr "GUI Telstra"
+
+msgid "Install"
+msgstr "Installa"
+
+msgid "Remove"
+msgstr "Rimuovi"
