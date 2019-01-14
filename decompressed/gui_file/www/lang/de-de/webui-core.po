@@ -3192,3 +3192,18 @@ msgstr ""
 
 msgid "The time displayed on the graph are based on the time set on this modem!"
 msgstr ""
+
+msgid "Arial2 GUI"
+msgstr ""
+
+msgid "Transmission GUI"
+msgstr ""
+
+msgid "Telstra GUI"
+msgstr ""
+
+msgid "Install"
+msgstr ""
+
+msgid "Remove"
+msgstr ""
