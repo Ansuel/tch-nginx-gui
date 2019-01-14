@@ -186,6 +186,13 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H043") or content.dsl0_xdsl_Firmwa
 	
 	driver_Params.driver_ver = "uci.env.var.driver_version"
 	driver_valid.driver_ver = post_helper.getValidateInEnumSelect(driver_option)
+elseif content.dsl0_xdsl_FirmwareVersion:match(".*F039") then
+    tinsert(driver_option, { "B2pv6F039v", 'B2pv6F039v (789vacV2 UNO.uk 17.1/Tiscali 16.3 Backup)'})
+    tinsert(driver_option, { "A2pv6F039v2", 'A2pv6F039v2 (789vacV2 UNO.uk 17.1/Tiscali 16.3)'})
+    tinsert(driver_option, { "A2pv6F039x5", 'A2pv6F039x5 (SmartRG SR505N/SR515AC 2.6.1.9)'})
+
+    driver_Params.driver_ver = "uci.env.var.driver_version"
+    driver_valid.driver_ver = post_helper.getValidateInEnumSelect(driver_option)
 end
 
 
