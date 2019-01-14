@@ -354,29 +354,6 @@ restore_bank() {
 	fi
 }
 
-check_bank() {
-	bank_check=$( uci get -q env.var.bank_check )
-	bootedbank=$( cat /proc/banktable/booted )
-	activebank=$( cat /proc/banktable/active )
-	env_config_bank1="/overlay/bank_1/etc/config/env"
-	get_config_bank1=$(cat $env_config_bank1 | grep bank_check | awk '{print $3}' | sed "s/'//g")
-	if [ $bootedbank != $activebank ]; then
-		echo "  Detected corrupted active bank... Restoring..." > /dev/console
-		restore_bank
-	fi
-		
-	if [ $bootedbank == "bank_2" ]; then
-		if [ -f $env_config_bank1 ] && [ $get_config_bank1 == "0" ]; then
-			echo "  Firmware in Bank_2 but check_bank set to 0... Not transferring" > /dev/console
-		else
-			echo "  Firmware in Bank_2... Transferring" > /dev/console
-			transfer_bank
-		fi
-	else
-		echo "  Firmware in Bank_1... Not transferring..." > /dev/console
-	fi
-}
-
 check_gui_ver() {
 	if [ "$(uci -q get env.var.gui_version)" != $version_gui ]; then
 		uci set env.var.gui_version=$version_gui
@@ -1687,7 +1664,8 @@ root() {
 	rootchecks #This check root availability
 	
 	
-	if [ ! $(uci get -q env.var.bank_check) ]; then #this set bank_check bit if not present
+	if [ $(cat /proc/banktable/booted) == "bank_1" ] && [ ! $(uci get -q env.var.bank_check) ]; then 
+		#this set bank_check bit if not present ONLY IN BANK_1, bank_2 value is set based on bank_1 value
 		uci set env.var.bank_check="1"
 	fi
 	
@@ -1800,6 +1778,33 @@ root() {
 	/etc/init.d/watchdog-tch start
 	
 	logger_command "Resetting cwmp and watchdog"
+}
+
+check_bank() {
+	bank_check=$( uci get -q env.var.bank_check )
+	bootedbank=$( cat /proc/banktable/booted )
+	activebank=$( cat /proc/banktable/active )
+	env_config_bank1="/overlay/bank_1/etc/config/env"
+	get_config_bank1=$(cat $env_config_bank1 | grep bank_check | awk '{print $3}' | sed "s/'//g")
+	if [ $bootedbank != $activebank ]; then
+		echo "  Detected corrupted active bank... Restoring..." > /dev/console
+		restore_bank
+	fi
+		
+	if [ $bootedbank == "bank_2" ]; then
+		if [ -f $env_config_bank1 ] && [ -n $get_config_bank1 ] && [ ! $(uci -q get env.var.bank_check) ]; then
+			uci set env.var.bank_check=$get_config_bank1
+			uci commit env
+		fi
+		if [ $(uci -q get env.var.bank_check) == "0" ]; then
+			echo "  Firmware in Bank_2 but check_bank set to 0... Not transferring" > /dev/console
+		else
+			echo "  Firmware in Bank_2... Transferring" > /dev/console
+			transfer_bank
+		fi
+	else
+		echo "  Firmware in Bank_1... Not transferring..." > /dev/console
+	fi
 }
 
 ###########################################################################################
