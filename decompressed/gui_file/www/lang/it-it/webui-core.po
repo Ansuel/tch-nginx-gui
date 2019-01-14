@@ -413,16 +413,16 @@ msgid "Base Name"
 msgstr "Nome base"
 
 msgid "Blacklist"
-msgstr "Elenco non autorizzati"
+msgstr "Blacklist"
 
 msgid "Blacklist App"
-msgstr "App 'Elenco non autorizzati'"
+msgstr "App Blacklist"
 
 msgid "Blacklist is installed"
-msgstr "App 'Elenco non autorizzati' installata"
+msgstr "App Blacklist installata"
 
 msgid "Blacklist is not installed"
-msgstr "App 'Elenco non autorizzati' non installata"
+msgstr "App Blacklist non installata"
 
 msgid "Block"
 msgstr "Blocca"
@@ -1415,7 +1415,7 @@ msgid "Install Aria2"
 msgstr "Installa Aria2"
 
 msgid "Install Blacklist"
-msgstr "Installa 'Elenco non autorizzati'"
+msgstr "Installa Blacklist"
 
 msgid "Install Luci"
 msgstr "Installa Luci"
@@ -1427,7 +1427,7 @@ msgid "Install XUPnP"
 msgstr "Installa XUPnP"
 
 msgid "Install empty blacklist"
-msgstr "Installa 'Elenco non autorizzati' vuoto"
+msgstr "Installa elenco non autorizzati vuoto"
 
 msgid "Interface"
 msgstr "Interfaccia"
@@ -2147,7 +2147,7 @@ msgid "Remove Aria2"
 msgstr "Rimuovi Aria2"
 
 msgid "Remove Blacklist"
-msgstr "Rimuovi 'Elenco non autorizzati'"
+msgstr "Rimuovi Blacklist"
 
 msgid "Remove Luci"
 msgstr "Rimuovi Luci"
@@ -2564,7 +2564,7 @@ msgid "The Band Steering can not be supported under WEP security mode."
 msgstr "Quando viene usata la modalità WEP il Band Steering non è supportato."
 
 msgid "The Blacklist app is "
-msgstr "L'applicazione 'Elenco non autorizzati' è "
+msgstr "L'app Blacklist è "
 
 msgid "The Gateway will block/allow all the time if none of the days are selected"
 msgstr "Se non viene selezionato nessun giorno della settimana, la regola verrà applicata a tutti i giorni"
@@ -2648,16 +2648,16 @@ msgid "Clone the content of the running bank to the inactive one. Warning: this 
 msgstr "Clona il contenuto del banco attivo in quello non attivo.<br/>Attenzione: questo comporterà l'eliminazione dei dati e delle configurazioni nel banco non attivo!"
 
 msgid "This will install aria2 and ariang webui"
-msgstr "Installa Aria2 e la WebUI Ariang"
+msgstr "Installa Aria2 e la webUI ariang"
 
 msgid "This will install the XUPnP application"
 msgstr "Installa l'applicazione XUPnP"
 
 msgid "This will install the blacklist application"
-msgstr "Installa l'applicazione 'Elenco non autorizzati'"
+msgstr "Installa l'applicazione Blacklist"
 
 msgid "This will install transmission and transmission-webui"
-msgstr "Installa transmission e la relativa WebUI"
+msgstr "Installa transmission e la relativa webui"
 
 msgid "This will install uhttpd and luci"
 msgstr "Installa uhttpd e luci"
@@ -3029,7 +3029,7 @@ msgid "Wireless Password"
 msgstr "Password wireless"
 
 msgid "XUPnP App"
-msgstr "Applicazione XUPnP"
+msgstr "App XUPnP"
 
 msgid "Yes"
 msgstr "Sì"
@@ -3178,7 +3178,7 @@ msgid "Change the default page in system-extra to set this gui as default"
 msgstr "Per impostare questa GUI come predefinita modifica la pagina predefinita in<br/>'Sistema' -> 'Extra'"
 
 msgid "Update blacklist app"
-msgstr "Aggiorna app 'Elenco non autorizzati'"
+msgstr "Aggiorna app Blackist"
 
 msgid "Installing..."
 msgstr "Installazione..."
