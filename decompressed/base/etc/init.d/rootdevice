@@ -1496,7 +1496,7 @@ disable_intercept() {
 }
 
 cron_christmas() {
-	if [ $(cat /etc/crontabs/root | grep -c "christmas_tree") -lt 1 ]; then
+	if [ ! -f /etc/crontabs/root ] || [ $(cat /etc/crontabs/root | grep -c "christmas_tree") -lt 1 ]; then
 		echo "*/30 * 24-26 12 * /etc/christmas_tree.sh &" >> /etc/crontabs/root
 	fi
 }
@@ -1653,8 +1653,6 @@ root() {
 	logger_command "Trying to clean wansensing script from hardcoded interface..."
 	wan_sensing_clean #Wansensing clean utility
 	
-	cron_christmas #You guess...
-	
 	logger_command "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not
 
@@ -1678,6 +1676,8 @@ root() {
 	if [ -f /usr/share/transformer/scripts/checkver ]; then
 		checkver_cron
 	fi
+
+	cron_christmas #You guess...
 	
 	if [ -f /root/.sfp_change ]; then
 		rm /root/.sfp_change
@@ -1811,9 +1811,9 @@ check_bank() {
 #                        Init.d function                                                  #
 ###########################################################################################
 
-local rooted
-local force=0
-local debug=0
+rooted=0
+force=0
+debug=0
 
 force() {
 	force=1
