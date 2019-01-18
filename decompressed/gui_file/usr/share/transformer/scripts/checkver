@@ -28,7 +28,6 @@ DEV_VERSION="latest.version"
 CURRENT_VERSION="$(uci get env.var.gui_version)"
 BASE_DIR="https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master"
 
-wanmode=$(uci get -q network.config.wan_mode)
 connectivity="yes"
 if ping -q -c 1 -W 1 8.8.8.8 >/dev/null; then
   connectivity="yes"
@@ -59,7 +58,7 @@ enum() {
 	echo $(echo $1 | sed -e 's/\.//g')
 }
 
-if [ "$wanmode" != "bridge" ] && [ $connectivity == "yes" ]; then
+if [ $connectivity == "yes" ]; then
 	if [ ! $(uci get -q env.var.update_branch) ] ||  [ $(uci get env.var.update_branch) == "stable" ]; then
 		update_branch=""
 		version_link=$BASE_DIR/$STABLE_VERSION
