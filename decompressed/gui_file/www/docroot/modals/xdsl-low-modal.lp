@@ -11,10 +11,6 @@ local content_helper = require("web.content_helper")
 local post_helper = require("web.post_helper")
 local tinsert,format,sub,match,untaint = table.insert,string.format, string.sub, string.match, string.untaint
 
-local dyntab_helper = require("web.dyntab_helper")
-local bmh = require("broadbandmode_helper")
-local tabdata = dyntab_helper.process(bmh)
-
 local all_modes = {"adsl2", "adsl2annexl", "adsl2annexm", "adsl2plus", "gdmt", "glite", "t1413", "vdsl2" }
 
 table.sort(all_modes, function(a,b)
@@ -240,9 +236,6 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  if not driver_Params.driver_ver then
 		html[#html + 1] = ui_helper.createLabel(T"Driver Version",T"We don't have any firmware for this modem, please report them to the github page. ", span5 )
 	  else
-	    if ( tabdata.current.name == "bridge" ) or ( tabdata.current.name == "voice" )  then
-		  html[#html + 1] = ui_helper.createAlertBlock(T"The currently selected connection mode prevents the device from downloading updates. Please download and apply updates manually.", alertinfo)
-		end
 		html[#html + 1] = ui_helper.createInputSelect(T"Driver Version", "driver_ver", driver_option, driver_content["driver_ver"])
 	  end
 	  html[#html + 1] = ui_helper.createSwitch(T"SRA", "ds10_sra", driver_content["ds10_sra"])

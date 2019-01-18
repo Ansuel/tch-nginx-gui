@@ -983,23 +983,17 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = '<span id="GUI-upgrade-option">'
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Update the GUI to the latest version available", info_box)
 	  html[#html + 1] = ui_helper.createInputSelect(T"Update Branch", "update_branch", update_branch_option, update_content["update_branch"])
-	  
-	  local dyntab_helper = require("web.dyntab_helper")
-	  local bmh = require("broadbandmode_helper")
-	  local tabdata = dyntab_helper.process(bmh)
-	  
-	  if not ( tabdata.current.name == "bridge" ) and not ( tabdata.current.name == "voice" )  then
-		html[#html + 1] = ui_helper.createSwitch(T"AutoUpgrade", "update_autoupgrade", update_content["update_autoupgrade"])
-		html[#html + 1] = ui_helper.createInputSelect(T"Update Hours", "update_autoupgrade_hour", update_hour_option, update_content["update_autoupgrade_hour"])
-		if content["outdated_ver"] == "1" then
-			html[#html + 1] = ui_helper.createLabel(T"State", T"Upgrade Found", basic)
-			html[#html + 1] = ui_helper.createLabel(T"New Version", content["new_ver"], basic)
-			html[#html + 1] = ui_helper.createButton(T"Upgrade Gui", T"Upgrade", "icon-refresh", upgrade_gui)
-		else 
-			html[#html + 1] = ui_helper.createLabel(T"State", T"No Upgrade found", basic)
-			html[#html + 1] = ui_helper.createButton(T"Upgrade Gui", T"Force Upgrade", "icon-refresh", upgrade_gui)
-		end
-	  end
+
+      html[#html + 1] = ui_helper.createSwitch(T"AutoUpgrade", "update_autoupgrade", update_content["update_autoupgrade"])
+      html[#html + 1] = ui_helper.createInputSelect(T"Update Hours", "update_autoupgrade_hour", update_hour_option, update_content["update_autoupgrade_hour"])
+      if content["outdated_ver"] == "1" then
+          html[#html + 1] = ui_helper.createLabel(T"State", T"Upgrade Found", basic)
+          html[#html + 1] = ui_helper.createLabel(T"New Version", content["new_ver"], basic)
+          html[#html + 1] = ui_helper.createButton(T"Upgrade Gui", T"Upgrade", "icon-refresh", upgrade_gui)
+      else
+          html[#html + 1] = ui_helper.createLabel(T"State", T"No Upgrade found", basic)
+          html[#html + 1] = ui_helper.createButton(T"Upgrade Gui", T"Force Upgrade", "icon-refresh", upgrade_gui)
+      end
 	  html[#html + 1] = '</span>'
 	  
 	  html[#html + 1] = '</form><form class="form-horizontal" id="form-import-gui" method="post" action="modals/gateway-modal.lp?action=upgradeguifile" enctype="multipart/form-data">'

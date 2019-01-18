@@ -24,7 +24,6 @@
 
 curl="/usr/bin/curl -k -s"
 
-wanmode=$(uci get -q network.config.wan_mode)
 connectivity="yes"
 if ping -q -c 1 -W 1 8.8.8.8 >/dev/null; then
   connectivity="yes"
@@ -89,7 +88,7 @@ test_apply() {
 	if [ -f /tmp/$driver_set ]; then
 		rm /tmp/$driver_set
 	fi
-	if [ "$wanmode" != "bridge" ] && [ $connectivity == "yes" ]; then
+	if [ $connectivity == "yes" ]; then
 		if [ $installed_driver != $driver_set ]; then
 			download_Driver
 			if [ "$(echo $checksums | grep $( md5sum /tmp/$driver_set | awk '{print $1}' ) )" ]; then
