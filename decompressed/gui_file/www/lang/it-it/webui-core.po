@@ -46,7 +46,7 @@ msgid "%s Mbps"
 msgstr "%s Mbps"
 
 msgid "1. Max Packet Number Recommened is dynamic and not accurate value (assume to use half of free memory).<br/>2. Acceleration disabled during tcpdump on platforms which supports flow cache!<br/>3. 'Download' invalid if nothing captured.<br/>4. 'Clean' captured file to reduce memory consumption."
-msgstr "1. Numero max raccomandato di pacchetti rappresenta un valore dinamico e non accurato (supponiamo di usare metà della memoria libera).<br/>2. L'accelerazione è disabilitata durante il Dump TCP nelle piattaforme che supportano la cache del flusso!<br/>3. 'Download\" non valido se non viene catturato nulla.<br/>4. 'Pulisci\" il file catturato per ridurre il consumo di memoria."
+msgstr "1. Numero max raccomandato di pacchetti rappresenta un valore dinamico e non accurato (supponiamo di usare metà della memoria libera).<br/>2. L'accelerazione è disabilitata durante il Dump TCP nelle piattaforme che supportano la cache del flusso!<br/>3. 'Download' non valido se non viene catturato nulla.<br/>4. 'Pulisci\" il file catturato per ridurre il consumo di memoria."
 
 msgid "10% of max Frequency in ASYNC mode"
 msgstr "10% della frequenza massima in modalità ASYNC"
@@ -2633,7 +2633,7 @@ msgid "This is the internal IP of the SFP interface used for fiber connection. T
 msgstr "È l'indirizzo IP interno dell'interfaccia SFP usata per la connessione in fibra.<br/>Questo indirizzo e l'IP del gateway locale devono essere diversi."
 
 msgid "Reset the custom GUI settings. No custom firmware file will be removed. All custom GUI functions will still be available."
-msgstr "Ripristina l'interfaccia grafica (GUI) originale.<br/>Non verrà eliminata nessun firmware personalizzato.<br/>Tutte le funzioni dell'interfaccia grafica (GUI) personalizzata sarano disponibili."
+msgstr "Ripristina l'interfaccia grafica (GUI) originale.<br/>Non verrà eliminato nessun firmware personalizzato.<br/>Tutte le funzioni dell'interfaccia grafica (GUI) personalizzata sarano disponibili."
 
 msgid "Reset the router to factory settings and remove the custom firmware files."
 msgstr "Ripristina il router e rimuove i file del root.<br/>Dopo il riavvio il modem ritornerà come era quando è stato acquistato."
@@ -3158,9 +3158,7 @@ msgid "Your Gateway"
 msgstr "Gateway attuale"
 
 msgid "The AP can be selected only once, to modify it you need to remove the rule."
-msgstr ""
-"L'AP può essere slezionato una volta sola.\n"
-"Per modificarlo devi rimuovere la regola."
+msgstr "L'AP può essere slezionato una volta sola.\nPer modificarlo devi rimuovere la regola."
 
 msgid "This will install Telstra webui"
 msgstr "Installa la GUI Telstra"
@@ -3187,9 +3185,7 @@ msgid "Removing..."
 msgstr "Rimozione..."
 
 msgid "The latest added/modified static lease is set to an IP that is already in use, please perform a reboot to apply the changes"
-msgstr ""
-"L'ultimo lease statico aggiunto/modificato è impostato con un IP già in uso.\n"
-"Effettua un riavvio per applicare le modifiche."
+msgstr "L'ultimo lease statico aggiunto/modificato è impostato con un IP già in uso.\nEffettua un riavvio per applicare le modifiche."
 
 msgid "Internet VPC"
 msgstr "Impostazioni VP/VC"
