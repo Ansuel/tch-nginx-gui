@@ -185,11 +185,15 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H043") or content.dsl0_xdsl_Firmwa
 	driver_Params.driver_ver = "uci.env.var.driver_version"
 	driver_valid.driver_ver = post_helper.getValidateInEnumSelect(driver_option)
 elseif content.dsl0_xdsl_FirmwareVersion:match(".*F039") then
+    tinsert(driver_option, { "B2pv6F039k", 'B2pv6F039k (TP-Link Archer VR900vV1)'})
     tinsert(driver_option, { "B2pv6F039v", 'B2pv6F039v (789vacV2 UNO.uk 17.1/Tiscali 16.3 Backup)'})
     tinsert(driver_option, { "A2pv6F038f2", 'A2pv6F038f2 (Comtrend VR-3032u)'})
+    tinsert(driver_option, { "A2pv6F039e", 'A2pv6F039e (Huawei HG635)'})
+    tinsert(driver_option, { "A2pv6F039f1", 'A2pv6F039f1 (Indeno D301)'})
     tinsert(driver_option, { "A2pv6F039m1", 'A2pv6F039m1 (Sky NR701-NR801)'})
     tinsert(driver_option, { "A2pv6F039o1", 'A2pv6F039o1 (Telsra TG799vac)'})
     tinsert(driver_option, { "A2pv6F039u", 'A2pv6F039u (Netgear D6220 v1.0.0.48/Sercomm VD625)'})
+    tinsert(driver_option, { "A2pv6F039v", 'A2pv6F039v (SmartRG sr516ac/Tp-link Archer VR600V1)'})
     tinsert(driver_option, { "A2pv6F039v2", 'A2pv6F039v2 (789vacV2 UNO.uk 17.1/Tiscali 16.3)'})
     tinsert(driver_option, { "A2pv6F039v4", 'A2pv6F039v4 (Inteno D301)'})
     tinsert(driver_option, { "A2pv6F039x5", 'A2pv6F039x5 (SmartRG SR505N/SR515AC 2.6.1.9)'})
