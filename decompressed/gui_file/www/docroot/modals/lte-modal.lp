@@ -38,7 +38,7 @@ local function validate_bands(value)
 end
 
 local function validate_earfcn(value)
-	local errmsg = T"The EARFCN needs to be a number between 0 and 65535\nUse commas to separate multiple EARFCN values."
+	local errmsg = T"The EARFCN needs to be a number between 0 and 65535.<br/>Use commas to separate multiple EARFCN values."
 	for part in gmatch(value, '([^,]+)') do
 		part = part:gsub("^%s*(.-)%s*$", "%1")
 		local num = tonumber(part, 10)
