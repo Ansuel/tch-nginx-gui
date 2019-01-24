@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: webui-core\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-06-21 15:33+0200\n"
-"PO-Revision-Date: 2019-01-08 11:58+0100\n"
+"PO-Revision-Date: 2019-01-21 14:38+0100\n"
 "Last-Translator: bovirus <bovirus@gmail.com>\n"
 "Language-Team: none\n"
 "Language: it\n"
@@ -46,7 +46,7 @@ msgid "%s Mbps"
 msgstr "%s Mbps"
 
 msgid "1. Max Packet Number Recommened is dynamic and not accurate value (assume to use half of free memory).<br/>2. Acceleration disabled during tcpdump on platforms which supports flow cache!<br/>3. 'Download' invalid if nothing captured.<br/>4. 'Clean' captured file to reduce memory consumption."
-msgstr "1. Numero max raccomandato di pacchetti rappresenta un valore dinamico e non accurato (supponiamo di usare metà della memoria libera).<br/>2. L'accelerazione è disabilitata durante il Dump TCP nelle piattaforme che supportano la cache del flusso!<br/>3. 'Download' non valido se non viene catturato nulla.<br/>4. 'Pulisci\" il file catturato per ridurre il consumo di memoria."
+msgstr "1. Numero max raccomandato di pacchetti rappresenta un valore dinamico e non accurato (supponiamo di usare metà della memoria libera).<br/>2. L'accelerazione è disabilitata durante il Dump TCP nelle piattaforme che supportano la cache del flusso!<br/>3. 'Download' non valido se non viene catturato nulla.<br/>4. 'Pulisci' il file catturato per ridurre il consumo di memoria."
 
 msgid "10% of max Frequency in ASYNC mode"
 msgstr "10% della frequenza massima in modalità ASYNC"
@@ -79,7 +79,7 @@ msgid "<p>Remote assistance is currently disabled.</p><p> By clicking on the 'Ap
 msgstr "<p>L'assistenza remota è attualmente disabilitata.</p><p>Facendo clic sul pulsante 'Applica' con la casella 'Abilitata' spuntata il gateway sarà accessibile dalla tua connessione a banda larga.<br/>Dopo %s minuti di inattività, oppure al riavvio, l'assistenza remota verrà automaticamente disabilitata in modalità 'Temporanea'. </p><p><br/>Fornisci i seguenti parametri all'ISP:</p>"
 
 msgid "<p>Remote assistance is currently enabled. </p><p>Click 'Apply' button with the 'Enabled' checkbox disabled to disable remote assistance on your gateway </p>"
-msgstr "<p>L'assistenza remota è attualmente abilitata. </p><p><br/>Fai clic sul pulsante 'Applica\" con la casella 'Abilitata' disattivata per disabilitare l'assistenza remota nel gateway </p>"
+msgstr "<p>L'assistenza remota è attualmente abilitata. </p><p><br/>Fai clic sul pulsante 'Applica' con la casella 'Abilitata' disattivata per disabilitare l'assistenza remota nel gateway </p>"
 
 msgid "<strong %1$s>%2$d DNS Server</strong>"
 msgid_plural "<strong %1$s>%2$d DNS Servers</strong>"
@@ -689,7 +689,7 @@ msgid "DHCP on"
 msgstr "DHCP attivo"
 
 msgid "DHCP routed mode"
-msgstr "Modalita' DHCP routed"
+msgstr "Modalità DHCP routed"
 
 msgid "DMZ"
 msgstr "DMZ"
@@ -1352,7 +1352,7 @@ msgid "If a wireless device reports this gateway's 2.4GHz signal strength is abo
 msgstr "Se un dispositivo wireless riporta questa potenza di segnale del gateway della rete 2.4 GHz sopra questa soglia, il gateway chiederà al dispositivo di verificare la banda a 5 GHz.<br/>Vedi la sezione rete 5 GHz per i parametri aggiuntivi."
 
 msgid "If you haven't changed it, the default password can be found on the sticker under your gateway (it's called <strong>\"access code\"</strong>)"
-msgstr "Se non l´hai cambiata, puoi trovare la password predefinita sotto il gateway (è quella chiamata <strong>\"codice accesso\"</strong>)"
+msgstr "Se non l´hai cambiata, puoi trovare la password predefinita sotto il gateway (è quella chiamata <strong>'codice accesso'</strong>)"
 
 msgid "Warning: starting the Wireless Analyzer will disconnect all wireless clients until the analysis has been completed."
 msgstr "Attenzione: avviando l'analizzatore wireless verranno disconenssi tutti i client wireelss fino alla fine dell'analisi."
@@ -2288,13 +2288,13 @@ msgid "Secure Mode Enabled"
 msgstr "Modalità sicurezza attivata"
 
 msgid "Security Mode"
-msgstr "Mdoo sicurezza"
+msgstr "Modo sicurezza"
 
 msgid "Security for this wireless network is disabled, anybody can connect or listen to it"
 msgstr "La sicurezza per questa rete wireless è disabilitata; chiunque può connetersi"
 
 msgid "Select the <strong>\"Reset\"</strong> button to confirm resetting the password to the default value."
-msgstr "Fai clic sul pulsante <strong>\"Ripristina\"</strong> per confermare il ripristino della password al valore predefinito."
+msgstr "Fai clic sul pulsante <strong>'Ripristina'</strong> per confermare il ripristino della password al valore predefinito."
 
 msgid "Selection"
 msgstr "Selezione"
@@ -3158,7 +3158,7 @@ msgid "Your Gateway"
 msgstr "Gateway attuale"
 
 msgid "The AP can be selected only once, to modify it you need to remove the rule."
-msgstr "L'AP può essere slezionato una volta sola.\nPer modificarlo devi rimuovere la regola."
+msgstr "L'AP può essere selezionato una volta sola.<br/>Per modificarlo devi rimuovere la regola."
 
 msgid "This will install Telstra webui"
 msgstr "Installa la GUI Telstra"
@@ -3185,7 +3185,7 @@ msgid "Removing..."
 msgstr "Rimozione..."
 
 msgid "The latest added/modified static lease is set to an IP that is already in use, please perform a reboot to apply the changes"
-msgstr "L'ultimo lease statico aggiunto/modificato è impostato con un IP già in uso.\nEffettua un riavvio per applicare le modifiche."
+msgstr "L'ultimo lease statico aggiunto/modificato è impostato con un IP già in uso.<br/>Effettua un riavvio per applicare le modifiche."
 
 msgid "Internet VPC"
 msgstr "Impostazioni VP/VC"

@@ -46,7 +46,7 @@ msgid "I don't have VoIP"
 msgstr "Non ho il VoIP"
 
 msgid "In the next pages you will use the quick set-up guide to personalise your Router. Please enter a username and password to be used to gain access to your Router Management Console. It is recommended that you choose a unique password for added security."
-msgstr "Nelle pagine seguenti userai la guida veloce di configurazione per personalizzare il router. Inserisci un nome utente e password da usare per ottenere l'accesso alla console di gestione del router. Ti suggeriamo di scegliere una password unica per aumentare la sicurezza."
+msgstr "Nelle pagine seguenti userai la guida veloce di configurazione per personalizzare il router.<br/>Inserisci un nome utente e password da usare per ottenere l'accesso alla console di gestione del router.<br/>Ti suggeriamo di scegliere una password unica per aumentare la sicurezza."
 
 msgid "Invalid VLAN ID, it must be a number on the range 2-4094"
 msgstr "VLAN ID non valido - deve essere un numero nell'intervallo 2-4094"
