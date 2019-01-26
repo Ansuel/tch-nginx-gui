@@ -23,8 +23,8 @@ local cui = {
   defaultuser = "uci.web.uiconfig.@uidefault.defaultuser",
   nsplink = "uci.web.uiconfig.@uidefault.nsplink",
   timestamp = "uci.version.version.@version[0].timestamp",
-  gui_version = "uci.env.var.gui_version",
-  gui_skin = "uci.env.var.gui_skin",
+  gui_version = "uci.modgui.gui.gui_version",
+  gui_skin = "uci.modgui.gui.gui_skin",
 }
 content_helper.getExactContent(cui)
 local year = cui.timestamp

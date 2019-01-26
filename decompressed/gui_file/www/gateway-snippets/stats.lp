@@ -9,7 +9,7 @@ local lp = require("web.lp")
 
 local cui = {
     advanced = "uci.web.uiconfig.@uidefault.alwaysadvanced",
-	gui_skin = "uci.env.var.gui_skin",
+	gui_skin = "uci.modgui.gui.gui_skin",
 }
 content_helper.getExactContent(cui)
 

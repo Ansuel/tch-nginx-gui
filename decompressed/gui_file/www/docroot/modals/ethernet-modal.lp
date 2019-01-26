@@ -227,9 +227,9 @@ local mapParam = {
 local function validateIPv6(value, object, key)
     local valid, msg = post_helper.validateBoolean(value, object, key)
     if valid and value ~= proxy.get("uci.network.interface.@" .. curintf .. ".ipv6")[1].value then
-        local envIPv6 = proxy.get("uci.env.var.ppp_realm_ipv6")[1].value or nil
-        local envIPv4 = proxy.get("uci.env.var.ppp_realm_ipv4")[1].value or nil
-        local isp = proxy.get("uci.env.var.isp")[1].value or nil
+        local envIPv6 = proxy.get("uci.modgui.var.ppp_realm_ipv6")[1].value or nil
+        local envIPv4 = proxy.get("uci.modgui.var.ppp_realm_ipv4")[1].value or nil
+        local isp = proxy.get("uci.modgui.var.isp")[1].value or nil
         local pppuser = "uci.network.interface.@wan.username"
         local device = proxy.get("uci.network.device.")
         local devifn = content_helper.convertResultToObject("uci.network.device.",device)

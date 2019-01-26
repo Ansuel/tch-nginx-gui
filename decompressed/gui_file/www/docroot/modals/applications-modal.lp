@@ -42,9 +42,9 @@ local function appapply(action)
 			state = "0"
 		end
 		if not ( uci_set == "blacklist" ) and not ( uci_set == "xupnp" ) then
-			proxy.set("uci.env.var." .. uci_set .. "_webui",state)
+			proxy.set("uci.modgui.app." .. uci_set .. "_webui",state)
 		else
-			proxy.set("uci.env.var." .. uci_set .. "_app",state)
+			proxy.set("uci.modgui.app." .. uci_set .. "_app",state)
 		end
 	end
 	ngx.header.content_type = "application/json"
@@ -70,21 +70,21 @@ if prod_friendly_name and prod_friendly_name[1].value then
 	if prod_friendly_name[1].value:match("DGA413") or
 			prod_friendly_name[1].value:match("TG799") or
 			prod_friendly_name[1].value:match("TG789") then
-		mapParams.luci_webui = "uci.env.var.luci_webui"
+		mapParams.luci_webui = "uci.modgui.app.luci_webui"
 	end
 	if prod_friendly_name[1].value:match("TG799") or
 			prod_friendly_name[1].value:match("TG789") then
-		mapParams.amule_webui = "uci.env.var.amule_webui"
+		mapParams.amule_webui = "uci.modgui.app.amule_webui"
 	end
-	mapParams.aria2_webui = "uci.env.var.aria2_webui"
-	mapParams.transmission_webui = "uci.env.var.transmission_webui"
+	mapParams.aria2_webui = "uci.modgui.app.aria2_webui"
+	mapParams.transmission_webui = "uci.modgui.app.transmission_webui"
 	if prod_friendly_name[1].value:match("DGA413") then
-		mapParams.blacklist_application = "uci.env.var.blacklist_app"
+		mapParams.blacklist_application = "uci.modgui.app.blacklist_app"
 		if tonumber(marketing_version) >= 17.3 then
-			mapParams.xupnp_application = "uci.env.var.xupnp_app"
+			mapParams.xupnp_application = "uci.modgui.app.xupnp_app"
 		end
 	end
-	mapParams.telstra_webui = "uci.env.var.telstra_webui"
+	mapParams.telstra_webui = "uci.modgui.app.telstra_webui"
 end
 content_helper.getExactContent(mapParams)
 

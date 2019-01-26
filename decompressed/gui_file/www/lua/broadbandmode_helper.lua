@@ -26,7 +26,7 @@ local function get_wan_mode()
 end
 
 local function isVoiceMode()
-	local ppp_mgmt = proxy.get("uci.env.var.ppp_mgmt")
+	local ppp_mgmt = proxy.get("uci.modgui.var.ppp_mgmt")
 	local wan_username = proxy.get("uci.network.interface.@wan.username")
     if wan_username and ppp_mgmt and ( wan_username[1].value == ppp_mgmt[1].value ) and not ( wan_username[1].value == "" )then
         return true
@@ -109,8 +109,8 @@ end
 local function voice(mode) --voice mode is only for TIM for now...
     local ifnames = proxy.get("uci.network.interface.@lan.ifname")[1].value
 	local tim_data_ptm = "ptm0.835"
-	local ppp_mgmt = proxy.get("uci.env.var.ppp_mgmt")
-	local ppp_original = proxy.get("uci.env.var.ppp_realm_ipv4")
+	local ppp_mgmt = proxy.get("uci.modgui.var.ppp_mgmt")
+	local ppp_original = proxy.get("uci.modgui.var.ppp_realm_ipv4")
 	if mode == "enable" then
 	
 		proxy.set({

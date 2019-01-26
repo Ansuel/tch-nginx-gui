@@ -31,16 +31,16 @@ local gui_skin_firstpage_page = {
 	{ "cards", T"Cards" },
 }
 
-local telstra_gui = proxy.get("uci.env.var.telstra_webui")
+local telstra_gui = proxy.get("uci.modgui.app.telstra_webui")
 
 if telstra_gui and ( telstra_gui[1].value == "1" ) then
 	table.insert(gui_skin_firstpage_page, { "telstra", T"Telstra" })
 end
 
 local gui_skin_Params = {
-  gui_skin = "uci.env.var.gui_skin",
-  gui_skin_firstpage = "uci.env.var.firstpage",
-  gui_randomcolor = "uci.env.var.randomcolor",
+  gui_skin = "uci.modgui.gui.gui_skin",
+  gui_skin_firstpage = "uci.modgui.gui.firstpage",
+  gui_randomcolor = "uci.modgui.gui.randomcolor",
 }
 
 local gui_skin_valid = {
@@ -240,7 +240,7 @@ if telnet_available then
 	telnet_content, helpmsg = post_helper.handleQuery(telnet_Params, telnet_valid)
 end
 
-local bank_check_Params = { bank_check = "uci.env.var.bank_check" }
+local bank_check_Params = { bank_check = "uci.modgui.var.bank_check" }
 
 local bank_check_valid = { bank_check = vB }
 

@@ -181,7 +181,7 @@ check_variant_friendly_name() {
 }
 
 add_ppp_mgmt() {
-	uci set env.var.ppp_mgmt=$(uci -q get env.var.serial)-$(uci -q get env.var.oui)@00000.aliceres.mgmt
+	uci set modgui.var.ppp_mgmt=$(uci -q get env.var.serial)-$(uci -q get env.var.oui)@00000.aliceres.mgmt
 }
 
 puryfy_wan_interface() { #creano problemi di dns per chissa'  quale diavolo di motivo... Ma l'utilitÃ  di sta roba eh telecom ? 
@@ -204,27 +204,27 @@ fix_dns_dhcp_bug() {
 }
 
 purify_from_tim() {
-	uci -q del env.var.ppp_mgmt
+	uci -q del modgui.var.ppp_mgmt
 	uci -q del network.wan_ipv6
 	uci -q del dhcp.dnsmasq.server
 }
 
 encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
 default_encrypted_pass='$5liEJpfo7NYE'
-saved_encrypted_pass=$(uci -q get env.var.encrypted_pass)
+saved_encrypted_pass=$(uci -q get modgui.var.encrypted_pass)
 
 save_root_encrypt_pass() {
 	echo "  Storing encrypted password..." > /dev/console
-	uci set env.var.encrypted_pass=$encrypted_pass
+	uci set modgui.var.encrypted_pass=$encrypted_pass
 }
 
 cumulative_check_gui() {
 	#This create update_branch entities
-	if [ ! $(uci get -q env.var.update_branch) ]; then
-		uci set env.var.update_branch="stable"
+	if [ ! $(uci get -q modgui.gui.update_branch) ]; then
+		uci set modgui.gui.update_branch="stable"
 		update_branch=""
 		logger_command "Setting update branch to STABLE"
-	elif [ $(uci get -q env.var.update_branch) == "stable" ]; then
+	elif [ $(uci get -q modgui.gui.update_branch) == "stable" ]; then
 		update_branch=""
 		logger_command "Update branch detected: STABLE"
 	else
@@ -273,7 +273,7 @@ cumulative_check_gui() {
 
 	#This generate new hash
 	if [ -f /root/GUI$update_branch.tar.bz2 ]; then
-		old_gui_hash=$(uci get -q env.var.gui_hash)
+		old_gui_hash=$(uci get -q modgui.gui.gui_hash)
 		gui_hash=$(md5sum /root/GUI$update_branch.tar.bz2 | awk '{ print $1}' )
 		if [ "$old_gui_hash" != "gui_hash" ]; then
 			logger_command "Detected upgrade!"
@@ -289,27 +289,27 @@ cumulative_check_gui() {
 
 	logger_command "Resetting version info..."
 
-	if [ ! $(uci get -q env.var.gui_hash) ]; then
-		uci set env.var.new_ver="Unknown"
-		uci set env.var.gui_hash=$gui_hash
-		uci set env.var.outdated_ver='0'
-	elif [ $(uci get -q env.var.gui_hash) != $gui_hash ]; then
-		uci set env.var.new_ver="Unknown"
-		uci set env.var.gui_hash=$gui_hash
-		uci set env.var.outdated_ver='0'
+	if [ ! $(uci get -q modgui.gui.gui_hash) ]; then
+		uci set modgui.gui.new_ver="Unknown"
+		uci set modgui.gui.gui_hash=$gui_hash
+		uci set modgui.gui.outdated_ver='0'
+	elif [ $(uci get -q modgui.gui.gui_hash) != $gui_hash ]; then
+		uci set modgui.gui.new_ver="Unknown"
+		uci set modgui.gui.gui_hash=$gui_hash
+		uci set modgui.gui.outdated_ver='0'
 	fi
-	if [ ! $(uci get -q env.var.autoupgrade) ]; then
-		uci set env.var.autoupgrade_hour=0
-		uci set env.var.autoupgrade=0
+	if [ ! $(uci get -q modgui.gui.autoupgrade) ]; then
+		uci set modgui.gui.autoupgrade_hour=0
+		uci set modgui.gui.autoupgrade=0
 	fi
-	if [ ! $(uci get -q env.var.autoupgradeview) ]; then
-		uci set env.var.autoupgradeview="none"
+	if [ ! $(uci get -q modgui.gui.autoupgradeview) ]; then
+		uci set modgui.gui.autoupgradeview="none"
 	fi
-	if [ ! $(uci get -q env.var.firstpage) ]; then
-		uci set env.var.firstpage="stats"
+	if [ ! $(uci get -q modgui.gui.firstpage) ]; then
+		uci set modgui.gui.firstpage="stats"
 	fi
-	if [ ! $(uci get -q env.var.randomcolor) ]; then
-		uci set env.var.randomcolor="0"
+	if [ ! $(uci get -q modgui.gui.randomcolor) ]; then
+		uci set modgui.gui.randomcolor="0"
 	fi
 }
 
@@ -355,8 +355,8 @@ restore_bank() {
 }
 
 check_gui_ver() {
-	if [ "$(uci -q get env.var.gui_version)" != $version_gui ]; then
-		uci set env.var.gui_version=$version_gui
+	if [ "$(uci -q get modgui.gui.gui_version)" != $version_gui ]; then
+		uci set modgui.gui.gui_version=$version_gui
 	fi
 }
 
@@ -398,7 +398,7 @@ check_isp_config() {
 	ppp_user=$(uci -q get network.wan.username)
 	cwmp_url=$(uci -q get cwmpd.cwmpd_config.acs_url)
 	if  [ ! "$ppp_user" ]; then
-		uci set env.var.isp="Other"
+		uci set modgui.var.isp="Other"
 		purify_from_tim
 	else
 		if echo "$ppp_user" | grep -q "alice" || 
@@ -407,12 +407,12 @@ check_isp_config() {
 		   echo "$ppp_user" | grep -q "aliceres" ||
 		   echo "$ppp_user" | grep -q "@00000." ; 
 		then
-			uci set env.var.isp="TIM"
+			uci set modgui.var.isp="TIM"
 		elif echo "$ppp_user" | grep -q "tiscali.it" || #acs tiscali is preconfigured 
 			echo "$cwmp_url" | grep -q "tiscali.it" ; then #on tiscali firmware only
-			uci set env.var.isp="Tiscali"
+			uci set modgui.var.isp="Tiscali"
 		else
-			uci set env.var.isp="Other"
+			uci set modgui.var.isp="Other"
 			purify_from_tim
 		fi
 	fi
@@ -546,8 +546,8 @@ transformer_lib_check() {
 }
 
 check_uci_gui_skin() {
-	if [ ! $( uci get -q env.var.gui_skin ) ]; then
-		uci set env.var.gui_skin="green"
+	if [ ! $( uci get -q modgui.gui.gui_skin ) ]; then
+		uci set modgui.gui.gui_skin="green"
 	fi
 }
 
@@ -567,11 +567,11 @@ check_dnsmasq_name() {
 }
 
 create_driver_setting() {
-	if [ ! $( uci get -q env.var.driver_version ) ]; then
-		uci set env.var.driver_version=$(xdslctl --version 2>&1 >/dev/null | grep "version -" | awk '{print $6}' | sed "s/\..*//")
+	if [ ! $( uci get -q modgui.var.driver_version ) ]; then
+		uci set modgui.var.driver_version=$(xdslctl --version 2>&1 >/dev/null | grep "version -" | awk '{print $6}' | sed "s/\..*//")
 	else 
-		if [ "$( uci get -q env.var.driver_version | grep -F . )" ]; then
-			uci set env.var.driver_version=$(xdslctl --version 2>&1 >/dev/null | grep "version -" | awk '{print $6}' | sed "s/\..*//")
+		if [ "$( uci get -q modgui.var.driver_version | grep -F . )" ]; then
+			uci set modgui.var.driver_version=$(xdslctl --version 2>&1 >/dev/null | grep "version -" | awk '{print $6}' | sed "s/\..*//")
 		fi
 	fi
 }
@@ -629,53 +629,53 @@ wifi_fix_24g() {
 }
 
 create_gui_type() {
-	if [ ! $( uci get -q env.var.aria2_webui) ]; then
+	if [ ! $( uci get -q modgui.app.aria2_webui) ]; then
 		if [ -d /www/docroot/aria ]; then
-			uci set env.var.aria2_webui="1"
+			uci set modgui.app.aria2_webui="1"
 		else
-			uci set env.var.aria2_webui="0"
+			uci set modgui.app.aria2_webui="0"
 		fi
-	elif [ $( uci get -q env.var.aria2_webui) == "1" ] &&
+	elif [ $( uci get -q modgui.app.aria2_webui) == "1" ] &&
 	[ ! -d /www/docroot/aria ] && 
 	[ -f /usr/share/transformer/scripts/install_aria2.sh ]; then 
 		#this restore aria... my bad for this bug...
 		/usr/share/transformer/scripts/install_aria2.sh
 	fi
-	if [ ! $( uci get -q env.var.luci_webui) ]; then
+	if [ ! $( uci get -q modgui.app.luci_webui) ]; then
 		if [ -d /www_luci ]; then
-			uci set env.var.luci_webui="1"
+			uci set modgui.app.luci_webui="1"
 		else
-			uci set env.var.luci_webui="0"
+			uci set modgui.app.luci_webui="0"
 		fi
 	fi
-	if [ ! $( uci get -q env.var.amule_webui) ]; then
+	if [ ! $( uci get -q modgui.app.amule_webui) ]; then
 		if [ -d /www/docroot/amule ]; then
-			uci set env.var.amule_webui="1"
+			uci set modgui.app.amule_webui="1"
 		else
-			uci set env.var.amule_webui="0"
+			uci set modgui.app.amule_webui="0"
 		fi
 	fi
-	if [ ! $( uci get -q env.var.transmission_webui) ]; then
+	if [ ! $( uci get -q modgui.app.transmission_webui) ]; then
 		if [ -d /www/docroot/transmission ]; then
-			uci set env.var.transmission_webui="1"
+			uci set modgui.app.transmission_webui="1"
 		else
-			uci set env.var.transmission_webui="0"
+			uci set modgui.app.transmission_webui="0"
 		fi
 	fi
-	if [ ! $( uci get -q env.var.xupnp_app) ]; then
+	if [ ! $( uci get -q modgui.app.xupnp_app) ]; then
 		if [ -d /usr/share/xupnpd ]; then
-			uci set env.var.xupnp_app="1"
+			uci set modgui.app.xupnp_app="1"
 		else
-			uci set env.var.xupnp_app="0"
+			uci set modgui.app.xupnp_app="0"
 		fi
 	fi
-	if [ ! $( uci get -q env.var.blacklist_app) ]; then
+	if [ ! $( uci get -q modgui.app.blacklist_app) ]; then
 		if [ -d /etc/asterisk ]; then
-			uci set env.var.blacklist_app="1"
+			uci set modgui.app.blacklist_app="1"
 		else
-			uci set env.var.blacklist_app="0"
+			uci set modgui.app.blacklist_app="0"
 		fi
-	elif [ $( uci get -q env.var.blacklist_app) == "1" ] && 
+	elif [ $( uci get -q modgui.app.blacklist_app) == "1" ] && 
 	[ ! -f /www/docroot/modals/mmpbx-contacts-modal.lp.orig ] &&
 	[ -f /usr/share/transformer/scripts/install_blacklist.sh ]; then
 		/usr/share/transformer/scripts/install_blacklist.sh
@@ -1273,11 +1273,11 @@ telstra_support_check() {
 	fi
 
 	############# end telstra gui support ################################
-	if [ ! $( uci get -q env.var.telstra_webui) ]; then
-		uci set env.var.telstra_webui="0"
+	if [ ! $( uci get -q modgui.app.telstra_webui) ]; then
+		uci set modgui.app.telstra_webui="0"
 	fi
 	if [ -f /tmp/telstra_gui.tar.bz2 ]; then
-		if [ "$(uci get -q env.var.telstra_webui)" == "1" ]; then
+		if [ "$(uci get -q modgui.app.telstra_webui)" == "1" ]; then
 			bzcat /tmp/telstra_gui.tar.bz2 | tar -C / -xf - 
 		fi
 		rm /tmp/telstra_gui.tar.bz2
@@ -1501,10 +1501,38 @@ cron_christmas() {
 	fi
 }
 
+move_env_var() {
+	if [ ! -f /etc/config/modgui ]; then
+		subpart="gui app var"
+
+		gui_entities="autoupgrade randomcolor autoupgrade_hour firstpage gui_skin new_ver outdated_ver gui_version autoupgradeview gui_hash update_branch"
+		app_entities="xupnp_app blacklist_app telstra_webui transmission_webui aria2_webui amule_webui luci_webui"
+		var_entities="isp ppp_mgmt ppp_realm_ipv6 ppp_realm_ipv4 encrypted_pass driver_version bank_check"
+
+		touch /etc/config/modgui
+
+		for part in $subpart; do
+			uci set modgui.$part=$part
+			for value in $(eval 'echo $'"$part"_entities); do
+				uci_val="$(uci get -q env.var.$value)"
+				if [ -n "$uci_val" ]; then
+					uci set modgui.$part.$value=$uci_val
+					uci delete env.var.$value
+				fi
+			done
+		done
+
+		uci commit modgui
+	fi
+}
+
 root() {
 
 	logger -s -t 'Root Script' "Rooting in progress..."
 
+	#This moves every garbage created before 8.11.49 in env to modgui config file
+	move_env_var
+	
 	#THIS CHECK DEVICE TYPE AND INSTALL SPECIFIC FILE
 	device_type="$(uci get -q env.var.prod_friendly_name)"
 
@@ -1548,8 +1576,8 @@ root() {
 	done
 
 	logger_command "Checking if we are on TIM configuration"
-	if [ $(uci -q get env.var.isp) ]; then
-		if [ $(uci get -q env.var.isp) == "TIM" ]; then #this add specific config for TIM
+	if [ $(uci -q get modgui.var.isp) ]; then
+		if [ $(uci get -q modgui.var.isp) == "TIM" ]; then #this add specific config for TIM
 			add_ipv6
 			add_ppp_mgmt
 			add_telecom_stock_dns
@@ -1662,9 +1690,9 @@ root() {
 	rootchecks #This check root availability
 
 
-	if [ $(cat /proc/banktable/booted) == "bank_1" ] && [ ! $(uci get -q env.var.bank_check) ]; then 
+	if [ $(cat /proc/banktable/booted) == "bank_1" ] && [ ! $(uci get -q modgui.var.bank_check) ]; then 
 		#this set bank_check bit if not present ONLY IN BANK_1, bank_2 value is set based on bank_1 value
-		uci set env.var.bank_check="1"
+		uci set modgui.var.bank_check="1"
 	fi
 
 	[ -z "${device_type##*DGA413*}" ] && uci set wireless.global.wifi_analyzer_disable='0' #AGTEF specific
@@ -1700,8 +1728,8 @@ root() {
 	echo "  Process done. Your modem is now rooted!" > /dev/console
 
 	logger_command "Checking if ISP is detected..."
-	if [ $(uci -q get env.var.isp) ]; then
-		if [ $(uci -q get env.var.isp) == "Other" ]; then #this disable cwmpd if it's not known ISP...
+	if [ $(uci -q get modgui.var.isp) ]; then
+		if [ $(uci -q get modgui.var.isp) == "Other" ]; then #this disable cwmpd if it's not known ISP...
 			uci set cwmpd.cwmpd_config.state='0'
 			if [ $(uci get -q cwmpd.cwmpd_config.state) = "1" ]; then
 				if [ -f /var/run/cwmpd.pid ]; then
@@ -1709,12 +1737,12 @@ root() {
 				fi
 				/etc/init.d/cwmpd disable
 			fi
-		elif [ $(uci -q get env.var.isp) == "Tiscali" ]; then
+		elif [ $(uci -q get modgui.var.isp) == "Tiscali" ]; then
 			uci set cwmpd.cwmpd_config.acs_url="http://webdirect.tr69.tiscali.it:8080/ftacs-basic/ACS"
 			uci set cwmpd.cwmpd_config.acs_user="technicolor"
 			uci set cwmpd.cwmpd_config.acs_pass="techn_tr69@"
 			uci commit cwmpd
-		elif [ $(uci -q get env.var.isp) == "TIM" ]; then
+		elif [ $(uci -q get modgui.var.isp) == "TIM" ]; then
 			logger_command "TIM ISP detected, finding CWMP server..."
 			new_platform=https://regman-mon.interbusiness.it:10800/acs/
 			new_platform_bck=https://regman-bck.interbusiness.it:10501/acs/
@@ -1781,7 +1809,7 @@ root() {
 }
 
 check_bank() {
-	bank_check=$( uci get -q env.var.bank_check )
+	bank_check=$( uci get -q modgui.var.bank_check )
 	bootedbank=$( cat /proc/banktable/booted )
 	activebank=$( cat /proc/banktable/active )
 	env_config_bank1="/overlay/bank_1/etc/config/env"
@@ -1793,15 +1821,15 @@ check_bank() {
 	if [ $bootedbank == "bank_2" ]; then
 		if [ -f $env_config_bank1 ]; then
 			get_config_bank1=$(cat $env_config_bank1 | grep bank_check | awk '{print $3}' | sed "s/'//g")
-			if [ -n $get_config_bank1 ] && [ ! $(uci -q get env.var.bank_check) ]; then
-				uci set env.var.bank_check=$get_config_bank1
-				uci commit env
+			if [ -n $get_config_bank1 ] && [ ! $(uci -q get modgui.var.bank_check) ]; then
+				uci set modgui.var.bank_check=$get_config_bank1
+				uci commit modgui
 			fi
 		else
-			uci set env.var.bank_check="1"
-			uci commit env
+			uci set modgui.var.bank_check="1"
+			uci commit modgui
 		fi
-		if [ $(uci -q get env.var.bank_check) == "0" ]; then
+		if [ $(uci -q get modgui.var.bank_check) == "0" ]; then
 			logger_command "Firmware in Bank_2 but check_bank set to 0... Not transferring"
 			echo "  Firmware in Bank_2 but check_bank set to 0... Not transferring" > /dev/console
 		else

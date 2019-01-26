@@ -10,8 +10,8 @@ local firstpage
 
 local cui = {
     advanced = "uci.web.uiconfig.@uidefault.alwaysadvanced",
-	gui_skin = "uci.env.var.gui_skin",
-	firstpage = "uci.env.var.firstpage",
+	gui_skin = "uci.modgui.var.gui_skin",
+	firstpage = "uci.modgui.var.firstpage",
 }
 content_helper.getExactContent(cui)
 

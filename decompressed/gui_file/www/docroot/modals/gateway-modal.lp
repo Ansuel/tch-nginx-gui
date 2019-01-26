@@ -243,7 +243,7 @@ end
 
 local function upgradeguifile()
 
-  local update_branch = proxy.get("uci.env.var.update_branch")
+  local update_branch = proxy.get("uci.modgui.gui.update_branch")
   local filename
   if update_branch and ( update_branch[1].value == "dev" ) then
 	filename = "GUI_dev.tar.bz2"
@@ -370,9 +370,9 @@ local content = {
   fwversion_prefix = "uci.versioncusto.override.fwversion_prefix",
   fwversion_suffix = "uci.versioncusto.override.fwversion_suffix",
   fwversion_override = "uci.versioncusto.override.fwversion_override_real",
-  gui_version = "uci.env.var.gui_version",
-  outdated_ver = "uci.env.var.outdated_ver",
-  new_ver = "uci.env.var.new_ver",
+  gui_version = "uci.modgui.gui.gui_version",
+  outdated_ver = "uci.modgui.gui.outdated_ver",
+  new_ver = "uci.modgui.gui.new_ver",
 }
 
 content_helper.getExactContent(content)
@@ -595,9 +595,9 @@ for i=0,23 do
 end
 
 local update_Params = {
-  update_branch = "uci.env.var.update_branch",
-  update_autoupgrade = "uci.env.var.autoupgrade",
-  update_autoupgrade_hour = "uci.env.var.autoupgrade_hour",
+  update_branch = "uci.modgui.gui.update_branch",
+  update_autoupgrade = "uci.modgui.gui.autoupgrade",
+  update_autoupgrade_hour = "uci.modgui.gui.autoupgrade_hour",
 }
 
 local update_valid = {

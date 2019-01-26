@@ -45,8 +45,8 @@ tar=/bin/tar
 
 if [ "$1" ]; then
 	if [ $1 == "SetTime" ]; then
-		hour=$(uci get env.var.autoupgrade_hour)
-		autoupgrade=$(uci get env.var.autoupgrade)
+		hour=$(uci get modgui.gui.autoupgrade_hour)
+		autoupgrade=$(uci get modgui.gui.autoupgrade)
 		if [ $autoupgrade == "1" ]; then
 			if [ "$(cat /etc/crontabs/root | grep upgradegui )" ]; then
 				sed -i '/upgradegui/d' /etc/crontabs/root
@@ -62,22 +62,22 @@ if [ "$1" ]; then
 	
 	if [ $1 == "AutoUpgrade" ]; then
 		/usr/share/transformer/scripts/checkver
-		if [ $(uci get env.var.outdated_ver) == "0" ]; then
+		if [ $(uci get modgui.gui.outdated_ver) == "0" ]; then
 			logger -s -t "Upgrade Script" "Already at latest version. Abort upgrade."
 			exit 0
 			# Enabling alert for the gui about the autoupgrade
-			uci set env.var.autoupgradeview=auto
+			uci set modgui.gui.autoupgradeview=auto
 		fi
 	fi
 else
 	# Enabling alert for the gui about the manual upgrade
-	uci set env.var.autoupgradeview=manual
+	uci set modgui.gui.autoupgradeview=manual
 fi
 
 URL_BASE="https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/"
 
 # Check update_branch
-if [ ! $(uci get -q env.var.update_branch) ] ||  [ $(uci get env.var.update_branch) == "stable" ]; then
+if [ ! $(uci get -q modgui.gui.update_branch) ] ||  [ $(uci get modgui.gui.update_branch) == "stable" ]; then
 	update_branch=""
 else
 	update_branch="_dev"
@@ -239,7 +239,7 @@ bzcat "$WORKING_DIR/$FILE_NAME" | tar -C "$TARGET_DIR" -xf -
 
 # Restore blacklist contacts
 blacklist_restore="http://blacklist.satellitar.it/repository/install_blacklist.sh"
-if [ $( uci get -q env.var.blacklist_app) ] && [ $( uci get env.var.blacklist_app) == "1" ]; then
+if [ $( uci get -q modgui.app.blacklist_app) ] && [ $( uci get modgui.app.blacklist_app) == "1" ]; then
 	if $curl $blacklist_restore --output $WORKING_DIR/install_blacklist.sh; then
 		$WORKING_DIR/update_blacklist.sh update
 		rm $WORKING_DIR/update_blacklist.sh

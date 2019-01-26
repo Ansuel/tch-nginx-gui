@@ -70,7 +70,7 @@ b75a96fef8010f0f728d77368aa776ce  A2pv6F039x1
 "
 
 installed_driver=$(transformer-cli get rpc.xdsl.dslversion | awk '{print $4}'  | cut -d. -f1)
-driver_set=$(uci get env.var.driver_version)
+driver_set=$(uci get modgui.var.driver_version)
 
 if [ "$(cat /proc/cpuinfo | grep Processor | grep ARM)" ]; then
 	arch=arm

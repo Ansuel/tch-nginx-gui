@@ -9,7 +9,7 @@ local content_helper = require("web.content_helper")
 local cui = {
   defaultuser = "uci.web.uiconfig.@uidefault.defaultuser",
   nsplink = "uci.web.uiconfig.@uidefault.nsplink",
-  gui_version = "uci.env.var.gui_version",
+  gui_version = "uci.modgui.gui.gui_version",
 }
 content_helper.getExactContent(cui)
 

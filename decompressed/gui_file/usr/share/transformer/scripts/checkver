@@ -25,7 +25,7 @@
 
 STABLE_VERSION="stable.version"
 DEV_VERSION="latest.version"
-CURRENT_VERSION="$(uci get env.var.gui_version)"
+CURRENT_VERSION="$(uci get modgui.gui.gui_version)"
 BASE_DIR="https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master"
 
 connectivity="yes"
@@ -59,7 +59,7 @@ enum() {
 }
 
 if [ $connectivity == "yes" ]; then
-	if [ ! $(uci get -q env.var.update_branch) ] ||  [ $(uci get env.var.update_branch) == "stable" ]; then
+	if [ ! $(uci get -q modgui.gui.update_branch) ] ||  [ $(uci get modgui.gui.update_branch) == "stable" ]; then
 		update_branch=""
 		version_link=$BASE_DIR/$STABLE_VERSION
 	else
@@ -100,12 +100,12 @@ if [ $connectivity == "yes" ]; then
 		if [ $( enum $new_version_norm ) -gt $( enum $current_version_norm ) ] || [ $newer_stable -eq 1 ]; then
 			logger -s -t "CheckVer Script" "Online version selected: $new_version"
 			logger -s -t "CheckVer Script" "Setting outdate version bit!"
-			uci set env.var.outdated_ver=1
-			uci set env.var.new_ver="$new_version"
+			uci set modgui.gui.outdated_ver=1
+			uci set modgui.gui.new_ver="$new_version"
 		else
 			logger -s -t "CheckVer Script" "No new version detected."
-			uci set env.var.outdated_ver=0
-			uci set env.var.new_ver="Unknown"
+			uci set modgui.gui.outdated_ver=0
+			uci set modgui.gui.new_ver="Unknown"
 		fi
 	else
 		logger -s -t "CheckVer Script" "No connection detected!"

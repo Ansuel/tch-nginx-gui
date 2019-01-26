@@ -182,7 +182,7 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H043") or content.dsl0_xdsl_Firmwa
 		tinsert(driver_option, { "A2pvfbH043o", 'A2pvfbH043o (DSL88U)'})
 	end
 	
-	driver_Params.driver_ver = "uci.env.var.driver_version"
+	driver_Params.driver_ver = "uci.modgui.var.driver_version"
 	driver_valid.driver_ver = post_helper.getValidateInEnumSelect(driver_option)
 elseif content.dsl0_xdsl_FirmwareVersion:match(".*F039") then
     tinsert(driver_option, { "B2pv6F039k", 'B2pv6F039k (TP-Link Archer VR900vV1)'})
@@ -199,7 +199,7 @@ elseif content.dsl0_xdsl_FirmwareVersion:match(".*F039") then
     tinsert(driver_option, { "A2pv6F039x1", 'A2pv6F039x1 (Zyxel VMG3926)'})
     tinsert(driver_option, { "A2pv6F039x5", 'A2pv6F039x5 (SmartRG SR505N/SR515AC 2.6.1.9)'})
 
-    driver_Params.driver_ver = "uci.env.var.driver_version"
+    driver_Params.driver_ver = "uci.modgui.var.driver_version"
     driver_valid.driver_ver = post_helper.getValidateInEnumSelect(driver_option)
 end
 

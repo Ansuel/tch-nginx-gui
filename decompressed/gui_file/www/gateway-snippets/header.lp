@@ -15,19 +15,19 @@ local web = require("web.web")
 
 local cui = {
 	nsplink = "uci.web.uiconfig.@uidefault.nsplink",
-	gui_skin = "uci.env.var.gui_skin",
-	gui_version = "uci.env.var.gui_version",
-	outdated_ver = "uci.env.var.outdated_ver",
-	amule_webui = "uci.env.var.amule_webui",
-	aria2_webui = "uci.env.var.aria2_webui",
-	luci_webui = "uci.env.var.luci_webui",
-    transmission_webui = "uci.env.var.transmission_webui",
-	blacklist_application = "uci.env.var.blacklist_app",
-	new_ver = "uci.env.var.new_ver",
-	autoupgrade_hour= "uci.env.var.autoupgrade_hour",
-	autoupgrade_view = "uci.env.var.autoupgradeview",
-	firstpage = "uci.env.var.firstpage",
-	randomcolor = "uci.env.var.randomcolor",
+	gui_skin = "uci.modgui.gui.gui_skin",
+	gui_version = "uci.modgui.gui.gui_version",
+	outdated_ver = "uci.modgui.gui.outdated_ver",
+	amule_webui = "uci.modgui.app.amule_webui",
+	aria2_webui = "uci.modgui.app.aria2_webui",
+	luci_webui = "uci.modgui.app.luci_webui",
+    transmission_webui = "uci.modgui.app.transmission_webui",
+	blacklist_application = "uci.modgui.app.blacklist_app",
+	new_ver = "uci.modgui.gui.new_ver",
+	autoupgrade_hour= "uci.modgui.gui.autoupgrade_hour",
+	autoupgrade_view = "uci.modgui.gui.autoupgradeview",
+	firstpage = "uci.modgui.gui.firstpage",
+	randomcolor = "uci.modgui.gui.randomcolor",
 }
 
 content_helper.getExactContent(cui)
@@ -62,7 +62,7 @@ if ngx.req.get_method() == "POST" then
 	return apply("checkver")
   end
   if post_args.action == "autoupgrade_view" then
-	proxy.set("uci.env.var.autoupgradeview", "none")
+	proxy.set("uci.modgui.gui.autoupgradeview", "none")
 	proxy.apply()
   end
   if post_args.do_signout then
