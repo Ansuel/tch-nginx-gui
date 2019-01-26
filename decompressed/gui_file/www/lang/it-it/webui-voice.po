@@ -253,7 +253,7 @@ msgid "Pairing Window Time in Sec"
 msgstr "Intervallo temporale accoppiamento (sec)"
 
 msgid "Pairing in progress, Please press Cancel button for stop pairing."
-msgstr "Accoppiamento in corso. Seleziona \"Annulla\" per interrompere l'accoppiamento."
+msgstr "Accoppiamento in corso. Seleziona 'Annulla' per interrompere l'accoppiamento."
 
 msgid "Pairing in progress, please wait..."
 msgstr "Accoppiamento..."
