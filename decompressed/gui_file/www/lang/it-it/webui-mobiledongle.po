@@ -42,4 +42,4 @@ msgid "Time is invalid. It should be between 5 and 3600."
 msgstr "Il valore tempo inserito non è corretto.<br/>Inserisci un valore compreso tra 5 e 3600."
 
 msgid "Yes"
-msgstr "SI"
+msgstr "Sì"
