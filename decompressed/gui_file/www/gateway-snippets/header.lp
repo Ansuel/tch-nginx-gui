@@ -18,8 +18,9 @@ local cui = {
 	gui_skin = "uci.env.var.gui_skin",
 	gui_version = "uci.env.var.gui_version",
 	outdated_ver = "uci.env.var.outdated_ver",
-	luci_webui = "uci.env.var.luci_webui",										 
-    aria2_webui = "uci.env.var.aria2_webui",
+	amule_webui = "uci.env.var.amule_webui",
+	aria2_webui = "uci.env.var.aria2_webui",
+	luci_webui = "uci.env.var.luci_webui",
     transmission_webui = "uci.env.var.transmission_webui",
 	blacklist_application = "uci.env.var.blacklist_app",
 	new_ver = "uci.env.var.new_ver",
@@ -83,7 +84,6 @@ if ngx.req.get_method() == "POST" then
 end
 
 ngx.print('\
-<canvas id="christmas-canvas"></canvas>\
 <div class="gateway_bg" data-bg-text="&#xf0ac;"></div>\
 	<div class="header" id="headertab">\
 	<div class="row" style="z-index : 3;  position: relative;" >\
@@ -177,19 +177,26 @@ ngx.print('\
 				html[#html + 1] = [[ <li><a style="cursor: pointer;" tabindex="-1" id="update"> ]]
 				html[#html + 1] = T"Check Upgrade" 
 				html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
+				if cui.luci_webui == "1" then
+					html[#html + 1] = [[ <li><a tabindex="-1" target="_blank" href="/"
+									onclick="javascript:event.target.port=9080;event.target.protocol='http'"> ]]
+					html[#html + 1] = T"Luci WebUI"
+					html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
+				end
+				if cui.amule_webui == "1" then
+				html[#html + 1] = [[ <li><a tabindex="-1" target="_blank" href="/"
+								onclick="javascript:event.target.port=4711;event.target.protocol='http'"> ]]
+				html[#html + 1] = T"aMule Webui"
+				html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
+				end
 				if cui.aria2_webui == "1" then
 				html[#html + 1] = [[ <li><a tabindex="-1" target="_blank" href="/aria"> ]]
 				html[#html + 1] = T"Aria2 Webui"
 				html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
 				end
-				if cui.luci_webui == "1" then
-				html[#html + 1] = [[ <li><a tabindex="-1" target="_blank" href="/" 
-									onclick="javascript:event.target.port=9080;event.target.protocol='http'"> ]]
-				html[#html + 1] = T"Luci Webui"
-				html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
-				end
 				if cui.transmission_webui == "1" then
-				html[#html + 1] = [[ <li><a tabindex="-1" target="_blank" href="/transmission/web/"> ]]
+					html[#html + 1] = [[ <li><a tabindex="-1" target="_blank" href="/"
+								onclick="javascript:event.target.port=9091;event.target.protocol='http'"> ]]
 				html[#html + 1] = T"Transmission Webui"
 				html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
 				end

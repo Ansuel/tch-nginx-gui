@@ -330,7 +330,8 @@ ajax_helper.handleAjaxQuery(content_rpc, function(c)
         c.dns = dnsv4
 
     end
-    if proxy.get("uci.network.interface.@wan.ipv6")[1].value == "1" then
+    local ipv6_enabled = proxy.get("uci.network.interface.@wan.ipv6")
+    if ipv6_enabled and ipv6_enabled[1].value == "1" then
         c.dnsv6 = content_helper.getMergedList(c.dnsv6, dnsv6)
     end
     c.uptime = post_helper.secondsToTime(mapPPPstats.uptime)
@@ -350,7 +351,8 @@ local dnstab = split(content_rpc.dns_loopback, "[^%,]+")
 local dnsv4, dnsv6 = dns_filter(dnstab), dns_filter(dnstab)
 content_rpc.dns = content_helper.getMergedList(content_rpc.dns_wan, dnsv4)
 
-if proxy.get("uci.network.interface.@wan.ipv6")[1].value == "1" then
+local ipv6_enabled = proxy.get("uci.network.interface.@wan.ipv6")
+if ipv6_enabled and ipv6_enabled[1].value == "1" then
     content_rpc.dnsv6 = content_helper.getMergedList(content_rpc.dnsv6, dnsv6)
 end
 
@@ -471,13 +473,13 @@ html[#html+1] = ui_helper.createSwitch(T"Auto Discover DNS", "uci_wan_peerdns", 
 html[#html+1] = format('<label class="control-label">%s</label><div class="controls">', T"DNS servers")
 html[#html+1] = ui_helper.createTable(dns_columns, dns_data, dns_options, nil, dns_helpmsg)
 html[#html+1] = '</div>'
-if proxy.get("uci.network.interface.@wan.ipv6")[1].value == "1" then
+if ipv6_enabled and ipv6_enabled[1].value == "1" then
     if content_rpc["ip6addr"] and content_rpc["ip6addr"]:len() > 0 then
-        jax_attr.span.id = "ip6addr"
+        ajax_attr.span.id = "ip6addr"
         html[#html+1] = ui_helper.createLabel(T"IPv6 Address", content_rpc["ip6addr"], ajax_attr)
     end
     if content_rpc["ip6prefix"] and content_rpc["ip6prefix"]:len() > 0 then
-        jax_attr.span.id = "ip6prefix"
+        ajax_attr.span.id = "ip6prefix"
         html[#html+1] = ui_helper.createLabel(T"IPv6 Prefix", content_rpc["ip6prefix"], ajax_attr)
     end
     if content_rpc["dnsv6"] and content_rpc["dnsv6"]:len() > 0 then

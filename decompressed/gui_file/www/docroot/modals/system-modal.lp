@@ -318,7 +318,6 @@ if ngx.req.get_method() == "POST" then
 	wait_for_completion(debuglog_path)
   
 	local content = {
-		location = debuglog_path.."location",
 		filename = debuglog_path.."filename",
 	}
 	
@@ -326,12 +325,14 @@ if ngx.req.get_method() == "POST" then
 	content_helper.getExactContent(content)
 	
 	-- return exported data
-	if not ( content.filename == "" ) then
-		ngx.header.content_disposition = "attachment; filename="..untaint(content.filename)
+      local fname = untaint(content.filename)
+      ngx.log(1, "ciao")
+      ngx.log(1, fname:match("([^/]+)$"))
+	if fname ~= "" then
+		ngx.header.content_disposition = "attachment; filename="..fname:match("([^/]+)$")
 		ngx.header.content_type = "application/octet-stream"
 		ngx.header.set_cookie = "fileDownload=true; Path=/"  -- the JS download code requires this cookie
-		local export_path = untaint(content.location .. content.filename)
-		local f = io.open(export_path, "r")
+		local f = io.open(fname, "r")
 		ngx.print(f:read("*all"))
 		f:close()
 		
@@ -471,10 +472,10 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 		html[#html + 1] = ui_helper.createButton(T"Transfer to", T"Bank 1", "icon-exchange", transfer_bank1)
 		html[#html + 1] = ui_helper.createAlertBlock(T"Transfering bank, please wait...", transfer_bank1_alert)
 	  end
-	  html[#html + 1] = ui_helper.createAlertBlock(T"This will clone firmware and config from the running bank to the inactive one. The content of the bank_2 overlay and config will be deleted!", warn_box)
+	  html[#html + 1] = ui_helper.createAlertBlock(T"Clone the content of the running bank to the inactive one. Warning: this will delete all data and configuration settings on the inactive bank!", warn_box)
 	  html[#html + 1] = ui_helper.createButton(T"Clone bank", T"Clone", "icon-exchange", copy_bank)
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Cloning bank, please wait...", copy_bank_alert)
-	  html[#html + 1] = ui_helper.createAlertBlock(T"This switch disable the check to force the firmware to be on bank_1", info_box)
+	  html[#html + 1] = ui_helper.createAlertBlock(T"Force the device to always use “Bank_1” as the main bank.", info_box)
 	  html[#html + 1] = ui_helper.createSwitch(T"Bank Check", "bank_check", bank_check_content["bank_check"])
       ngx.print(html)
       ngx.print('\
@@ -490,7 +491,7 @@ if not ( fwversion_override_content["fwversion_override"] == "" ) then
 			}
 		}
 		local html = {}
-		html[#html + 1] = ui_helper.createAlertBlock(T"If a newer version is present in the acs server, cwmpd will try to upgrade the modem and will not send any info. This breaks some remote app like MyTIMFisso. Change the version here to fake it.", info_box)
+		html[#html + 1] = ui_helper.createAlertBlock(T"Input the latest stock firmware version in this field to spoof it. This is necessary because if a newer version of the firmware is available on the ACS server, CWMPD will try to update the device and break remote monitoring from the “MyTIM” mobile app.", info_box)
 		html[#html + 1] = ui_helper.createInputText(T"Version Set", "fwversion_override", fwversion_override_content["fwversion_override"], nil , fwversion_override_helpmsg["fwversion_override"])
 		ngx.print(html)
 		ngx.print('\
@@ -506,12 +507,12 @@ ngx.print('\
 		}
       }
       local html = {}
-	  html[#html + 1] = ui_helper.createAlertBlock(T"This control the type of config exported and the type of config can be imported.", info_box)
+	  html[#html + 1] = ui_helper.createAlertBlock(T"Enable what type of configuration you want to import and export.", info_box)
 	  html[#html + 1] = ui_helper.createSwitch(T"Export PlainText", "export_plaintext", config_content["export_plaintext"])
 	  html[#html + 1] = ui_helper.createSwitch(T"Export UnSigned", "export_unsigned", config_content["export_unsigned"])
 	  html[#html + 1] = ui_helper.createSwitch(T"Import PlainText", "import_plaintext", config_content["import_plaintext"])
 	  html[#html + 1] = ui_helper.createSwitch(T"Import UnSigned", "import_unsigned", config_content["import_unsigned"])
-	  html[#html + 1] = ui_helper.createAlertBlock(T"This check if the config file is provided from the same firmware versione.", info_box)
+	  html[#html + 1] = ui_helper.createAlertBlock(T"An imported configuration file will only be applied if its firmware version matches the currently installed one.’", info_box)
 	  html[#html + 1] = ui_helper.createSwitch(T"Import Restricted", "import_restricted", config_content["import_restricted"])
       ngx.print(html)
       ngx.print('\

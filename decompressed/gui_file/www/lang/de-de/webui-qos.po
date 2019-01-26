@@ -13,19 +13,17 @@ msgstr ""
 "Language-Name: Deutsch\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 2.2\n"
+"X-Poedit-SourceCharset: UTF-8\n"
 
-msgid "<p class='subinfos'><strong>%s classify rule(s)</strong> active</p>"
-msgid_plural ""
-"<p class='subinfos'><strong>%s classify rule(s)</strong> active</p>"
+msgid "<strong>%s classify rule(s)</strong> active"
+msgid_plural "<strong>%s classify rule(s)</strong> active"
 msgstr[0] ""
-"<p class='subinfos'><strong>%s Klassifizierungsregel</strong> aktiv</p>"
 msgstr[1] ""
-"<p class='subinfos'><strong>%s Klassifizierungsregeln</strong> aktiv</p>"
 
-msgid "<p class='subinfos'><strong>%s queue(s)</strong> active</p>"
-msgid_plural "<p class='subinfos'><strong>%s queue(s)</strong> active</p>"
-msgstr[0] "<p class='subinfos'><strong>%s Warteschlange</strong> aktiv</p>"
-msgstr[1] "<p class='subinfos'><strong>%s Warteschlangen</strong> aktiv</p>"
+msgid "<strong>%s queue(s)</strong> active"
+msgid_plural "<strong>%s queue(s)</strong> active"
+msgstr[0] ""
+msgstr[1] ""
 
 msgid "Add New Label"
 msgstr "Hinzufügen Neuen Titel"
@@ -41,9 +39,6 @@ msgstr "Algorithmus"
 
 msgid "Classification"
 msgstr "Klassifikation"
-
-msgid "DSCP"
-msgstr "DSCP"
 
 msgid "Default"
 msgstr "Standard"
@@ -78,9 +73,6 @@ msgstr "Priorität"
 msgid "Protocol"
 msgstr "Protokoll"
 
-msgid "QoS"
-msgstr "QoS"
-
 msgid "QoS Classification Table"
 msgstr "QoS Klassifikationstabelle"
 
@@ -93,11 +85,17 @@ msgstr "QoS Warteschlangenplanung für LAN Schnittstelle"
 msgid "QoS Queue Scheduling on Interface WAN"
 msgstr "QoS Warteschlangenplanung für WAN Schnittstelle"
 
+msgid "QoS Queue Scheduling on Interface WLAN"
+msgstr ""
+
 msgid "QoS Queue Table on Interface LAN"
 msgstr "QoS Warteschlangentabelle für LAN Schnittstelle"
 
 msgid "QoS Queue Table on Interface WAN"
 msgstr "QoS Warteschlangentabelle für WAN Schnittstelle"
+
+msgid "QoS Queue Table on Interface WLAN"
+msgstr ""
 
 msgid "Queue"
 msgstr "Warteschlange"
@@ -122,3 +120,6 @@ msgstr "Gewicht"
 
 msgid "Weighted Round Robin"
 msgstr "Gewichtetes Round Robin"
+
+msgid "Yes"
+msgstr ""

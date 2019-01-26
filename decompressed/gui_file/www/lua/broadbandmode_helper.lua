@@ -60,7 +60,7 @@ local function restartNetwork()
 end
 
 local function bridge(mode) 
-	local ifnames = 'eth0 eth1 eth2 eth3 eth5 '
+	local ifnames = proxy.get("uci.network.interface.@lan.ifname")[1].value
 	local wan_ifname = proxy.get("uci.network.interface.@wan.ifname")[1].value
 	local state = proxy.get("uci.network.config.wan_mode")
 	if mode == "enable" then
@@ -76,7 +76,7 @@ local function bridge(mode)
 			["uci.dhcp.dhcp.@lan.ignore"] = '1',
 			["uci.cwmpd.cwmpd_config.state"] = '0',
 			["uci.mobiled.device_defaults.enabled"] = '0',
-			["uci.network.interface.@lan.ifname"] = ifnames .. wan_ifname,
+			["uci.network.interface.@lan.ifname"] = ifnames ..' '.. wan_ifname,
 			["uci.network.config.wan_mode"] = 'bridge',
 		})
 	elseif not ( state and state[1].value == "bridge" ) then
@@ -96,7 +96,7 @@ local function bridge(mode)
 			["uci.dhcp.dhcp.@lan.ignore"] = '0',
 			["uci.cwmpd.cwmpd_config.state"] = '1',
 			["uci.mobiled.device_defaults.enabled"] = '1',
-			["uci.network.interface.@lan.ifname"] = ifnames,
+			["uci.network.interface.@lan.ifname"] = string.gsub(string.gsub(ifnames, wan_ifname, ""), "%s$", ""),
 			["uci.network.config.wan_mode"] = wan_proto and wan_proto[1].value or "dhcp",
 		})
 	end
@@ -107,7 +107,7 @@ local function bridge(mode)
 end
 
 local function voice(mode) --voice mode is only for TIM for now...
-	local ifnames = 'eth0 eth1 eth2 eth3 eth5 '
+    local ifnames = proxy.get("uci.network.interface.@lan.ifname")[1].value
 	local tim_data_ptm = "ptm0.835"
 	local ppp_mgmt = proxy.get("uci.env.var.ppp_mgmt")
 	local ppp_original = proxy.get("uci.env.var.ppp_realm_ipv4")
@@ -118,7 +118,7 @@ local function voice(mode) --voice mode is only for TIM for now...
 			["uci.dhcp.dhcp.@lan.ignore"] = '1',
 			["uci.wireless.wifi-device.@radio_2G.state"] = '0',
 			["uci.wireless.wifi-device.@radio_5G.state"] = '0',
-			["uci.network.interface.@lan.ifname"] = ifnames .. tim_data_ptm,
+			["uci.network.interface.@lan.ifname"] = ifnames .. ' ' .. tim_data_ptm,
 			["uci.network.interface.@wan.ifname"] = 'ptm0.837',
 			["uci.network.interface.@wan.password"] = 'alicenewag',
 		})
@@ -131,7 +131,7 @@ local function voice(mode) --voice mode is only for TIM for now...
 			["uci.wireless.wifi-device.@radio_2G.state"] = '1',
 			["uci.wireless.wifi-device.@radio_5G.state"] = '1',
 			["uci.dhcp.dhcp.@lan.ignore"] = '0',
-			["uci.network.interface.@lan.ifname"] = ifnames,
+			["uci.network.interface.@lan.ifname"] = string.gsub(string.gsub(ifnames, tim_data_ptm, ""), "%s$", ""),
 			["uci.network.interface.@wan.ifname"] = 'wanptm0',
 			["uci.network.interface.@wan.password"] = 'alicenewag',
 		})

@@ -11,10 +11,6 @@ local content_helper = require("web.content_helper")
 local post_helper = require("web.post_helper")
 local tinsert,format,sub,match,untaint = table.insert,string.format, string.sub, string.match, string.untaint
 
-local dyntab_helper = require("web.dyntab_helper")
-local bmh = require("broadbandmode_helper")
-local tabdata = dyntab_helper.process(bmh)
-
 local all_modes = {"adsl2", "adsl2annexl", "adsl2annexm", "adsl2plus", "gdmt", "glite", "t1413", "vdsl2" }
 
 table.sort(all_modes, function(a,b)
@@ -162,30 +158,49 @@ local driver_valid = {
 }
 
 if content.dsl0_xdsl_FirmwareVersion:match(".*H043") or content.dsl0_xdsl_FirmwareVersion:match(".*H042") then
-
 	tinsert(driver_option, { "B2pvbH042l", 'B2pvbH042l (DSL-AC87VG v1.00.10)'})
-	tinsert(driver_option, { "A2pvbH042n", 'A2pvbH042n (Netgear D7000)'})
-	tinsert(driver_option, { "A2pvbH042j2", 'A2pvbH042j2 (Asus DSL-AC88U) ' .. 'Best value'})
+    tinsert(driver_option, { "B2pvbH042j2", 'B2pvbH042j2 (Inteno)'})
+    tinsert(driver_option, { "B2pvbH042s", 'B2pvbH042s (Archer_VR2800v V1 1.2.0_0.9.1)'})
+	tinsert(driver_option, { "A2pvbH042j2", 'A2pvbH042j2 (Asus DSL-AC88U)'})
+    tinsert(driver_option, { "A2pvbH042n", 'A2pvbH042n (Netgear D7000)'})
 	tinsert(driver_option, { "A2pvbH042o", 'A2pvbH042o (TG799VAC Xtream Fastweb)'})
 	tinsert(driver_option, { "A2pvbH042r", 'A2pvbH042r (AGTEF_1.0.3)'})
-	tinsert(driver_option, { "B2pvbH042s", 'B2pvbH042s (Archer_VR2800v V1 1.2.0_0.9.1)'})
 	tinsert(driver_option, { "A2pvbH042u", 'A2pvbH042u (AGTEF_1.0.4)'})
 	
 	if tonumber(content.marketing_version:sub(1,4)) >= 17.3 then
-		tinsert(driver_option, { "A2pvfbH043b", 'A2pvfbH043b (New FastGate Fastweb)'})
 		tinsert(driver_option, { "B2pvfbH043e", 'B2pvfbH043e (DSL-AC87VG_v1.00.13)'})
-		--table.insert(driver_option,{ "A2pvfbH043e", 'A2pvfbH043e (Zyxel 8823)'}) --Annex b???
-		--table.insert(driver_option,{ "A2pvfbH043f", 'A2pvfbH043f (DSL AC88U) ' .. T'Less Ping'}) --Missing
 		tinsert(driver_option, { "B2pvfbH043g", 'B2pvfbH043g (DSL-AC68VG v5.00.04)'})
-		tinsert(driver_option, { "A2pvfbH043g", 'A2pvfbH043g (TG800 Vbant-s)'})
-		tinsert(driver_option, { "B2pvfbH043i1", 'B2pvfbH043i1 (VMG8823-B60B 5.13)'})
+        tinsert(driver_option, { "B2pvfbH043i1", 'B2pvfbH043i1 (VMG8823-B60B 5.13)'})
+        tinsert(driver_option, { "B2pvfbH043k", 'B2pvfbH043k (DSL-AC88U-B v1.10.05)'})
+        tinsert(driver_option, { "A2pvfbH043b", 'A2pvfbH043b (New FastGate Fastweb)'})
+        --table.insert(driver_option,{ "A2pvfbH043e", 'A2pvfbH043e (Zyxel 8823)'}) --Annex b???
+        --table.insert(driver_option,{ "A2pvfbH043f", 'A2pvfbH043f (DSL AC88U) ' .. T'Less Ping'}) --Missing
+		tinsert(driver_option, { "A2pvfbH043g", 'A2pvfbH043g (TG800 VBANT-S)'})
+        tinsert(driver_option, { "A2pvfbH043h", 'A2pvfbH043h (Inteno DG400PRIME)'})
+        tinsert(driver_option, { "A2pvfbH043i", 'A2pvfbH043i (Inteno)'})
 		tinsert(driver_option, { "A2pvfbH043k", 'A2pvfbH043k (AGTEF_1.1.0)'})
-		tinsert(driver_option, { "B2pvfbH043k", 'B2pvfbH043k (DSL-AC88U-B v1.10.05)'})
-		tinsert(driver_option, { "A2pvfbH043o", 'A2pvfbH043o (DSL88U) ' .. T'Beta Firmware'})
+		tinsert(driver_option, { "A2pvfbH043o", 'A2pvfbH043o (DSL88U)'})
 	end
 	
 	driver_Params.driver_ver = "uci.env.var.driver_version"
 	driver_valid.driver_ver = post_helper.getValidateInEnumSelect(driver_option)
+elseif content.dsl0_xdsl_FirmwareVersion:match(".*F039") then
+    tinsert(driver_option, { "B2pv6F039k", 'B2pv6F039k (TP-Link Archer VR900vV1)'})
+    tinsert(driver_option, { "B2pv6F039v", 'B2pv6F039v (789vacV2 UNO.uk 17.1/Tiscali 16.3 Backup)'})
+    tinsert(driver_option, { "A2pv6F038f2", 'A2pv6F038f2 (Comtrend VR-3032u)'})
+    tinsert(driver_option, { "A2pv6F039e", 'A2pv6F039e (Huawei HG635)'})
+    tinsert(driver_option, { "A2pv6F039f1", 'A2pv6F039f1 (Indeno D301)'})
+    tinsert(driver_option, { "A2pv6F039m1", 'A2pv6F039m1 (Sky NR701-NR801)'})
+    tinsert(driver_option, { "A2pv6F039o1", 'A2pv6F039o1 (Telsra TG799vac)'})
+    tinsert(driver_option, { "A2pv6F039u", 'A2pv6F039u (Netgear D6220 v1.0.0.48/Sercomm VD625)'})
+    tinsert(driver_option, { "A2pv6F039v", 'A2pv6F039v (SmartRG sr516ac/Tp-link Archer VR600V1)'})
+    tinsert(driver_option, { "A2pv6F039v2", 'A2pv6F039v2 (789vacV2 UNO.uk 17.1/Tiscali 16.3)'})
+    tinsert(driver_option, { "A2pv6F039v4", 'A2pv6F039v4 (Inteno D301)'})
+    tinsert(driver_option, { "A2pv6F039x1", 'A2pv6F039x1 (Zyxel VMG3926)'})
+    tinsert(driver_option, { "A2pv6F039x5", 'A2pv6F039x5 (SmartRG SR505N/SR515AC 2.6.1.9)'})
+
+    driver_Params.driver_ver = "uci.env.var.driver_version"
+    driver_valid.driver_ver = post_helper.getValidateInEnumSelect(driver_option)
 end
 
 
@@ -228,15 +243,11 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  if not driver_Params.driver_ver then
 		html[#html + 1] = ui_helper.createLabel(T"Driver Version",T"We don't have any firmware for this modem, please report them to the github page. ", span5 )
 	  else
-	    if ( tabdata.current.name == "bridge" ) or ( tabdata.current.name == "voice" )  then
-		  html[#html + 1] = ui_helper.createAlertBlock(T"In this mode, your modem may not have internet connection. The script may fail to download the new firmware. \
-														It is advised to download and apply it manually. Look in the forum repository for more info. ", alertinfo)
-		end
 		html[#html + 1] = ui_helper.createInputSelect(T"Driver Version", "driver_ver", driver_option, driver_content["driver_ver"])
 	  end
 	  html[#html + 1] = ui_helper.createSwitch(T"SRA", "ds10_sra", driver_content["ds10_sra"])
 	  html[#html + 1] = ui_helper.createSwitch(T"Bitswap", "ds10_bitswap", driver_content["ds10_bitswap"])
-	  html[#html + 1] = ui_helper.createAlertBlock(T"Modify the SNR will take effect on only ADSL connection, VDSL connection won't make any effect by this value!", alertinfo)
+	  html[#html + 1] = ui_helper.createAlertBlock(T"Change the SNR margin to increase stability or performance when in “ADSL Mode”. Changing this value in “VDSL Mode” won’t have any effect.", alertinfo)
 	  html[#html + 1] = ui_helper.createInputText(T"SNR", "ds10_snr", driver_content["ds10_snr"])
       html[#html + 1] = ui_helper.createLabel(T"EOC Vendor ID",content.dsl0_eoc_vendor_id, span5 )
       html[#html + 1] = ui_helper.createLabel(T"EOC Serial Number",content.dsl0_eoc_serial_number, span5 )

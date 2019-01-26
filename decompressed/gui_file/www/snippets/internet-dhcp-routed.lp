@@ -232,7 +232,8 @@ ajax_helper.handleAjaxQuery(cs, function(c)
 	else
 		c.dns = dnsv4
 	end
-	if proxy.get("uci.network.interface.@wan.ipv6")[1].value == "1" then
+    local ipv6_enabled = proxy.get("uci.network.interface.@wan.ipv6")
+    if ipv6_enabled and ipv6_enabled[1].value == "1" then
 		c.dnsv6 = content_helper.getMergedList(c.dnsv6, dnsv6)
 	end
 end)

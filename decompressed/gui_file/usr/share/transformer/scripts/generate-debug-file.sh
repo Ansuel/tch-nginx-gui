@@ -4,10 +4,10 @@
 
 #!/bin/sh
 ######################################################################
-DATE=$(date +%Y-%m-%d)
+DATE=$(date +%Y-%m-%d-%H%M)
 prod=$(uci get env.var.prod_name)
 friend=$(uci get env.var.prod_friendly_name)
-isp=$(uci get env.var._provisioning_code)
+isp=$(uci get env.var.isp)
 version=$(uci get env.var.friendly_sw_version_activebank)
 guiver=$(uci get env.var.gui_version)
 dsl=$(uci get env.var.driver_version)
@@ -29,23 +29,14 @@ logger -s -t "DebugHelper" "$1"
 }
 #####################################################################
 
-if [ $1 == "help" ]
-then
-log "debug <command>"
-log "Commands Avaliable:"
-log "dev -run this tool without running rootdevice"
-log "help -show this"
-exit 1
-fi
+log "DebugHelper Started!"
 
-log "DebugHelper Started! Run debug help for commands."
-
-log "Removing directory /tmp/$DATE-DebugHelper/* to prevent duplicates"
-rm -R /tmp/$DATE-DebugHelper/* > /dev/null 2>&1
+log "Removing directory /tmp/DebugHelper-* to prevent duplicates"
+rm -R /tmp/DebugHelper* > /dev/null 2>&1
 
 log "Creating dir"
-mkdir /tmp/$DATE-DebugHelper/ > /dev/null 2>&1
-cd /tmp/$DATE-DebugHelper/
+mkdir /tmp/DebugHelper-$DATE/ > /dev/null 2>&1
+cd /tmp/DebugHelper-$DATE/
 
 touch ./error.log
 touch ./deviceinfo.txt
@@ -53,11 +44,9 @@ touch ./processes.txt
 touch ./configlist.txt
 touch ./gui-install.log
 
-
 #################################################################################################################################################################
 log "Gathering device info..."
 echo "___________________________________DEVICE INFO_________________________________________" >> ./deviceinfo.txt
-
 
 echo "Product Name: $prod" >> ./deviceinfo.txt
 echo "Friendly Name: $friend" >> ./deviceinfo.txt
@@ -80,40 +69,34 @@ echo "GUI First Page: $guifirst" >> ./deviceinfo.txt
 
 echo "-----List of Installed Extensions-----" >> ./deviceinfo.txt
 
-
-if [ $aria -eq 1 ] 
+if [ $aria -eq 1 ]
 then
-echo "Aria Installed" >> ./deviceinfo.txt
-fi
-if [ $luci -eq 1 ] 
-then
-	if [ uci get env.var.prod_number == "799vac" ] or [ uci get env.var.prod_number == "800vac" ] or [ uci get env.var.prod_number == "789vac" ]
-	then
-	  echo "tg-luci Installed" >> ./deviceinfo.txt
-	else
-          echo "LuCI Installed" >> ./deviceinfo.txt
-  	fi
+ echo "Aria Installed" >> ./deviceinfo.txt
 fi
 
-
-if [ $xupnp -eq 1 ] 
+if [ $luci -eq 1 ]
 then
-echo "xUPNP Installed" >> ./deviceinfo.txt
+ echo "LuCI Installed" >> ./deviceinfo.txt
 fi
 
-if [ $blk -eq 1 ] 
+if [ $xupnp -eq 1 ]
 then
-echo "Blacklist Installed" >> ./deviceinfo.txt
+ echo "xUPNP Installed" >> ./deviceinfo.txt
 fi
 
-if [ $telstra -eq 1 ] 
+if [ $blk -eq 1 ]
 then
-echo "Telstra GUI Installed" >> ./deviceinfo.txt
+ echo "Blacklist Installed" >> ./deviceinfo.txt
 fi
 
-if [ $trans -eq 1 ] 
+if [ $telstra -eq 1 ]
 then
-echo "Transmission Installed" >> ./deviceinfo.txt
+ echo "Telstra GUI Installed" >> ./deviceinfo.txt
+fi
+
+if [ $trans -eq 1 ]
+then
+ echo "Transmission Installed" >> ./deviceinfo.txt
 fi
 echo "--------------------------------------" >> ./deviceinfo.txt
 
@@ -129,7 +112,7 @@ echo " " >> ./error.log
 
 log "Listing processes..."
 echo "__________________________________PROCESSES_________________________________________" >> ./processes.txt
-ps >> ./processes.txt 
+ps >> ./processes.txt
 echo " " >> ./processes.txt
 
 ###########################################################################################################################################################
@@ -141,15 +124,17 @@ echo " " >> ./configlist.txt
 
 ###########################################################################################################################################################
 echo "__________________________________GUI INSTALL LOG_________________________________________" >> ./gui-install.log
-if [ $1 == "dev" ] 
-then
-log "Dev Mode. Not running rootdevice"
-else
-log "Running rootdevice script in debug mode. This will take ~35sec..."
-/etc/init.d/rootdevice debug > ./gui-install.log 2>&1
-echo " " >> ./gui-install.log
+
+if [ ! -z $1 ] && [ $1 == "dev" ]; then
+ log "Dev Mode. Not running rootdevice"
+ else
+ log "Running rootdevice script in debug mode. This will take ~35sec..."
+ /etc/init.d/rootdevice debug > ./gui-install.log 2>&1
+ echo " " >> ./gui-install.log
 fi
+
 ###########################################################################################################################################################
 log "Tarring File..."
-tar -czvf ./DebugHelper$DATE.tar.gz /tmp/$DATE-DebugHelper > /dev/null 2>&1
-log "All Done! Zipped file can be found in /tmp/$DATE-DebugHelper/. The name of it is DebugHelper$DATE.tar.gz."
+tar -czvf /tmp/DebugHelper$DATE.tar.gz /tmp/DebugHelper-$DATE > /dev/null 2>&1
+rm -R /tmp/DebugHelper-$DATE
+log "All Done! Zipped file can be found in /tmp/DebugHelper$DATE.tar.gz"

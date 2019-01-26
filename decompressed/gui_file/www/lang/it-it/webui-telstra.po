@@ -1,0 +1,550 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: webui-wizard\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-06-21 15:33+0200\n"
+"PO-Revision-Date: 2019-01-08 11:58+0100\n"
+"Last-Translator: bovirus <bovirus@gmail.com>\n"
+"Language-Team: none\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language-Name: Italiano\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.2\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+
+msgid "%d day(s), %02d:%02d:%02d"
+msgstr "%d giorno(i), %02d:%02d:%02d"
+
+msgid "Connection Information"
+msgstr "Informazione connessione"
+
+msgid "Status"
+msgstr "Stato"
+
+msgid "Uptime"
+msgstr "Tempo attività"
+
+msgid "Data Transfered"
+msgstr "Dati trasferiti"
+
+msgid "IPv4 Address"
+msgstr "Indirizzo IPv4"
+
+msgid "Primary DNS"
+msgstr "DNS Primario"
+
+msgid "Secondary DNS"
+msgstr "DNS secondario"
+
+msgid "IPv6 Address"
+msgstr "Indirizzo IPv6"
+
+msgid "IPv6 DNS server"
+msgstr "Server DNS IPv6"
+
+msgid "Connection Settings"
+msgstr "Impostazioni connessione"
+
+msgid "PVC Info (VPI.VCI)"
+msgstr "Info PVC (VPI/VCI)"
+
+msgid "Type"
+msgstr "Tipo"
+
+msgid "PPPoE Settings"
+msgstr "Impostazioni PPPOE"
+
+msgid "Username"
+msgstr "Nome utente"
+
+msgid "Password"
+msgstr "Password"
+
+msgid "Mode"
+msgstr "Modo"
+
+msgid "Always On"
+msgstr "Sempre ON"
+
+msgid "Content Sharing"
+msgstr "Condivisione contenuti"
+
+msgid "Enable DLNA Server"
+msgstr "Abilita server DLNA"
+
+msgid "Media Server Name"
+msgstr "Nome server media"
+
+msgid "Media Server IP"
+msgstr "IP server media"
+
+msgid "FTP Server State"
+msgstr "Stato server FTP"
+
+msgid "Network Folder Name"
+msgstr "Nome cartella rete"
+
+msgid "Generic"
+msgstr "Generico"
+
+msgid "Desktop"
+msgstr "Desktop"
+
+msgid "GS"
+msgstr "GS"
+
+msgid "IPDECT"
+msgstr "IP DECT"
+
+msgid "Laptop"
+msgstr "Laptop"
+
+msgid "PDA"
+msgstr "PDA"
+
+msgid "Phone"
+msgstr "Telefono"
+
+msgid "STB"
+msgstr "STB"
+
+msgid "Tablet"
+msgstr "Tablet"
+
+msgid "Mass Storage"
+msgstr "Mass storage"
+
+msgid "Add new port mapping"
+msgstr "Aggiungi nuova mappatura porta"
+
+msgid "Device Name"
+msgstr "Nome dispositivo"
+
+msgid "Device Type"
+msgstr "Tipo dispositivo"
+
+msgid "LAN IP"
+msgstr "IP LAN"
+
+msgid "Services"
+msgstr "Servizi"
+
+msgid "Port Forwarding"
+msgstr "Inoltro porta"
+
+msgid "Enabled"
+msgstr "Abilitato"
+
+msgid "Service Name"
+msgstr "Nome servizio"
+
+msgid "Domain"
+msgstr "Dominio"
+
+msgid "User Name"
+msgstr "Nome utente"
+
+msgid "An existing mapping overlaps with the ports range"
+msgstr "Una mappatura ha un intervallo porte sovrapposto"
+
+msgid "Name"
+msgstr "Nome"
+
+msgid "Protocol"
+msgstr "Protocollo"
+
+msgid "WAN port"
+msgstr "Porta WAN"
+
+msgid "LAN port"
+msgstr "Porta LAN"
+
+msgid "Destination IP"
+msgstr "IP destinazione"
+
+msgid "Some parameters failed validation"
+msgstr "Validazione fallita per alcuni parametri"
+
+msgid "Before being able to allow your technical support to connect to your Technicolor Gateway you must make sure WAN connection is up."
+msgstr "Prima di poter consentire al supporto tecnico di connettersi al modem Technicolor assicurati che la connessione WAN sia attiva."
+
+msgid "URL"
+msgstr "URL"
+
+msgid "Use Random Password"
+msgstr "Usa password casuale"
+
+msgid "Add New Rule"
+msgstr "Aggiungi nuova regola"
+
+msgid "Internet Traffic"
+msgstr "Traffico internet"
+
+msgid "Total Mixed (in MB)"
+msgstr "Totale misto (in MB)"
+
+msgid "Ethernet Network Traffic"
+msgstr "Traffico rete ethernet"
+
+msgid "Total Send (in MB)"
+msgstr "Totale inviati (in MB)"
+
+msgid "Total Receive (in MB)"
+msgstr "Totale ricevuti (in MB)"
+
+msgid "Wi-Fi Network Traffic"
+msgstr "Traffico rete Wi-Fi"
+
+msgid "Graph"
+msgstr "Grafico"
+
+msgid "The time displayed on the graph are based on the time set on this modem!"
+msgstr "L'orario visualizzato nel grafico e basato su quello impostato nel modem!"
+
+msgid "Sent chart line"
+msgstr "Grafico dati inviati"
+
+msgid "Received chart line"
+msgstr "Grafico dati ricevuti"
+
+msgid "WAN Graph"
+msgstr "Grafico WAN"
+
+msgid "LAN Graph"
+msgstr "Grafico LAN"
+
+msgid "Changes saved successfully"
+msgstr "Salvataggio modifiche completato"
+
+msgid "Something went wrong; please try again"
+msgstr "Qualcosa non ha funzionato. Riprova."
+
+msgid "User Settings"
+msgstr "Impostazioni utente"
+
+msgid "Current User"
+msgstr "Utente attuale"
+
+msgid "When Default User is on, there is no login required to access the Web Interface. This is not recommended."
+msgstr "Quando è attivo l'utente predfinito, non e richiesto l'accesso all'interfaccia web.<br>Questa modlita non e consigliata."
+
+msgid "Default User"
+msgstr "Utente predefinito"
+
+msgid "Confirm Password"
+msgstr "Conferma password"
+
+msgid "None"
+msgstr "Nessuno"
+
+msgid "WPA2 PSK"
+msgstr "WPA2 PSK"
+
+msgid "WPA+WPA2 PSK"
+msgstr "WPA/WPA2 PSK"
+
+msgid "WEP"
+msgstr "WEP"
+
+msgid "Disabled"
+msgstr "Disabilitato"
+
+msgid "Blacklist"
+msgstr "Non autorizzati"
+
+msgid "Whitelist"
+msgstr "Autorizzati"
+
+msgid "Register"
+msgstr "Registra"
+
+msgid "20MHz"
+msgstr "20 MHZ"
+
+msgid "Auto (20/40MHz)"
+msgstr "Automatico (20/40 MHz)"
+
+msgid "20/40MHz"
+msgstr "20/40 MHz"
+
+msgid "Auto (20/40/80MHz)"
+msgstr "Automatico (20/40/80 MHz)"
+
+msgid "Auto"
+msgstr "Automatico"
+
+msgid "52(DFS)"
+msgstr "52 (DFS)"
+
+msgid "56(DFS)"
+msgstr "56 (DFS)"
+
+msgid "60(DFS)"
+msgstr "60 (DFS)"
+
+msgid "64(DFS)"
+msgstr "64 (DFS)"
+
+msgid "100(DFS)"
+msgstr "100 (DFS)"
+
+msgid "104(DFS)"
+msgstr "104 (DFS)"
+
+msgid "108(DFS)"
+msgstr "108 (DFS)"
+
+msgid "112(DFS)"
+msgstr "112 (DFS)"
+
+msgid "116(DFS)"
+msgstr "116 (DFS)"
+
+msgid "132(DFS)"
+msgstr "132 (DFS)"
+
+msgid "136(DFS)"
+msgstr "136 (DFS)"
+
+msgid "The Band Steering can not be supported under WEP security mode."
+msgstr "Il Band steering non e supportato nel modo sicurezza WEP."
+
+msgid "Please configure wifi-bandsteer "
+msgstr "Configura il Band Steering "
+
+msgid " first!"
+msgstr " !"
+
+msgid "Device PIN code entered"
+msgstr "Codice PIN dispositivo inserito"
+
+msgid "Started WPS PBC mode"
+msgstr "Modo WPS PBC avviato"
+
+msgid "MAC Address"
+msgstr "Indirizzo MAC"
+
+msgid "Add new MAC address"
+msgstr "Aggiungi nuovo indirizzo MAC"
+
+msgid "Wi-Fi Radio"
+msgstr "Radio Wi-Fi"
+
+msgid "Wi-Fi Channel"
+msgstr "Canale Wi-Fi"
+
+msgid "Speed"
+msgstr "Velocità"
+
+msgid "Channel"
+msgstr "Canale"
+
+msgid "Region"
+msgstr "Regione"
+
+msgid "Current Channel"
+msgstr "Canale attuale"
+
+msgid "Channel Width"
+msgstr "Larghezza canale"
+
+msgid "Wi-Fi Network"
+msgstr "Rete Wi-Fi"
+
+msgid "Network Name"
+msgstr "Nome rete"
+
+msgid "Broadcast SSID"
+msgstr "SSID broadcast"
+
+msgid "Security Mode"
+msgstr "Modo protezione"
+
+msgid "Security for this Wi-Fi network is disabled, anybody can connect or listen to it"
+msgstr "Questa rete ha la protezione disabilitata.<br>Chiunque puo collegarsi a questa rete."
+
+msgid "WEP Key"
+msgstr "Chiave WEP"
+
+msgid "Network Key"
+msgstr "Chaive rete"
+
+msgid "Radius Authentication Server's IP"
+msgstr "IP server autentificazione Radius"
+
+msgid "Radius Authentication Server's port"
+msgstr "Porta server autentificazione Radius"
+
+msgid "Radius Authentication Server's secret"
+msgstr "Password server autentificazione Radius"
+
+msgid "Radius Accounting Server's IP"
+msgstr "IP server Radius gestione account"
+
+msgid "Radius Accounting Server's port"
+msgstr "Porta server Radius gestione account"
+
+msgid "WPS is automatically disabled if you choose WEP or WPA-only security or disable broadcast of the SSID"
+msgstr "Se si sceglie la protezione WEP o solo-WPS o di disabilita il broadcast dell'SSID, il WPS verra automaticamente disabilitato"
+
+msgid "WPS"
+msgstr "WPS"
+
+msgid "WPS AP PIN Enabled"
+msgstr "PIN AP WPS abilitato"
+
+msgid "WPS AP PIN Code"
+msgstr "Codice PIN AP WPS"
+
+msgid "WPS Device PIN Code"
+msgstr "Codice PIN dispositivo WPS"
+
+msgid "Connect using WPS"
+msgstr "Connetti usando WPS"
+
+msgid "Band Steering Enabled"
+msgstr "Band steering abilitato"
+
+msgid "The Band Steering actively guides the client to the most suitable Wi-Fi band, by detecting the client's capabilities and monitoring the interfaces."
+msgstr "Il Band Steering aiuta a selezionare la miglior banda Wi-Fi, verificando la compatibilita del client e monitorando l'interfaccia."
+
+msgid "Access Control List"
+msgstr "Elenco controllo accessi (ACL)"
+
+msgid "ACL mode"
+msgstr "Modo ACL"
+
+msgid "Near Field Communication (NFC)"
+msgstr "NFC (Near Field Communication)"
+
+msgid "Near Field Communication (NFC) allows you to tap an Android smartphone or tablet against the front of your Gateway to automatically configure Wi-Fi credentials on your device, so that you can connect over Wi-Fi. This feature is not supported on Apple iOS devices.<br><br><a href=/gateway.lp?openmodal=nfc-modal.lp ><u>Click here</u></a> to configure NFC."
+msgstr "Near Field Communication (NFC) permette posizionando uno smartphone/tablet Android molto vicino al modem di configurare automaticamente le credenziali Wi-Fi nel dispositivo, in modo da poter connettersi via Wi-Fi.<br>Questa funzione non e supportata nei dispositivi iOS Apple.<br><br><a href=/gateway.lp?openmodal=nfc-modal.lp ><u>Fai clic qui</u></a> per configurare NFC."
+
+msgid "Standard"
+msgstr "Standard"
+
+msgid "Telstra Gateway"
+msgstr "Modem Telstra"
+
+msgid "HOME"
+msgstr "GENERALE"
+
+msgid "BROADBAND"
+msgstr "CONNESSIONE"
+
+msgid "WI-FI"
+msgstr "WI-FI"
+
+msgid "CONTENT SHARING"
+msgstr "CONDIVISIONE CONTENUTI"
+
+msgid "PARENTAL CONTROL"
+msgstr "CONTROLLO GENITORI"
+
+msgid "SERVICES"
+msgstr "SERVIZI"
+
+msgid "USER SETTINGS"
+msgstr "IMPOSTAZIONI UTENTE"
+
+msgid "disabled"
+msgstr "disabilitato"
+
+msgid "disconnecting"
+msgstr "disconnessione"
+
+msgid "connected"
+msgstr "connesso"
+
+msgid "connecting"
+msgstr "connessione"
+
+msgid "disconnected"
+msgstr "disconnesso"
+
+msgid "error"
+msgstr "errore"
+
+msgid "authentication failed"
+msgstr "autentificazione fallita"
+
+msgid "negotiation failed"
+msgstr "negoziazione fallita"
+
+msgid "PPP connection"
+msgstr "Connessione PPP"
+
+msgid "IP address"
+msgstr "Indirizzo IP"
+
+msgid "IPv6 address"
+msgstr "Indirizzo IPv6"
+
+msgid "Gateway"
+msgstr "Gateway"
+
+msgid "DNS servers"
+msgstr "Server DNS"
+
+msgid "ATM VP / VC"
+msgstr "VP / VC ATM"
+
+msgid "Encapsulation"
+msgstr "Incapsulamento"
+
+msgid "ADVANCED CARDS"
+msgstr "SCHEDE AVANZATE"
+
+msgid "STATS"
+msgstr "STATISTICHE"
+
+msgid "Your Broadband service is working normally. You are connected online."
+msgstr "La connessione funziona corretamente.<br>Sei connesso e online."
+
+msgid "Your Broadband service is working in backup mode. You are connected and online."
+msgstr "La connessione funziona in modo backup.<br>Sei connesso e online."
+
+msgid "Time of Day Access Control"
+msgstr "Orario del giorno controllo accessi"
+
+msgid "URL Filter"
+msgstr "Filtro URL"
+
+msgid "Dynamic DNS"
+msgstr "DNS dinamico"
+
+msgid "Remote Web Access"
+msgstr "Accesso web remoto"
+
+msgid "Traffic Monitor"
+msgstr "Monitor traffico"
+
+msgid "2.4GHz"
+msgstr "2.4 GHz"
+
+msgid "5GHz"
+msgstr "5.0 GHz"
+
+msgid "Guest 2.4GHz"
+msgstr "2.4 GHz (ospiti)"
+
+msgid "Guest 5GHz"
+msgstr "5.0 GHz (ospiti)"
+
+msgid "Your Internet connection is currently down. You can try the following: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Telephone or Ethernet cable is firmly connected to the correct port on your Gateway, the Filter on the Telephone<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;socket or the Ethernet socket on the wall.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Check that your username is correct and re-enter your password <a href=/broadband.lp> here </a> .<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Restart my gateway."
+msgstr "La connessione internet e attualmente non attiva. Prova i seguenti passaggi: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Verifica che il cavo ethernet e telefonico siano correttamente collegati alla porta corretta nel modem, il filtro al connettore telefono<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; nella presa a muro.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Verifica che il nome utente sia corretto e re-inserisci la password <a href=/broadband.lp> qui </a> .<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Riavvia il modem."
+
+msgid "Your Internet connection is currently down. You can try the following: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Telephone cable is firmly connected to the correct port on your Gateway or the Filter on the telephone socket <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;on the wall.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Check that your username is correct and re-enter your password <a href=/broadband.lp> here </a> . <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Restart my gateway."
+msgstr "La connessione internet e attualmente non attiva. Prova i seguenti passaggi: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Verifica che il cavo telefonico sia collegato alla corretta porta del modem o il filtro alla presa telefono <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nel muro.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Verifica che il nome utente sia corretto e re-inserisci la password <a href=/broadband.lp> qui </a> . <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Riavvia il modem."
+
+msgid "Your Internet connection is currently down. You can try the following: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Ethernet cable is firmly connected to the correct port on your Gateway or the Ethernet socket on the wall.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Check that your username is correct and re-enter your password <a href=/broadband.lp> here </a> . <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Restart my gateway."
+msgstr "La connessione internet e attualmente non attiva. Prova i seguenti passaggi: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Verifica la connessione del cavo ethernet alla corretta porta nel modem o alla presa ethernet a muro.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Verifica che il nome utente sia corretto e re-inserisci la password <a href=/broadband.lp> qui </a> . <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Riavvia il modem."
+
+msgid "Your Internet connection is currently down. You can try the following: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Telephone cable is firmly connected to the correct port on your Gateway or the Filter on the telephone socket <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;on the wall. <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Restart my gateway."
+msgstr "La connessione internet e attualmente non attiva. Prova i seguenti passaggi: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Verifica che il cavo telefonico sia collegato alla corretta porta del modem o il filtro alla presa telefono <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a muro. <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Riavvia il modem."
+
+msgid "Your Internet connection is currently down. You can try the following: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Ethernet cable is firmly connected to the correct port on your Gateway or the Ethernet socket on the wall. <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Restart my gateway."
+msgstr "La connessione internet e attualmente non attiva. Prova i seguenti passaggi: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Verifica la connessione del cavo ethernet alla corretta porta nel modem o alla presa ethernet a muro. <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Riavvia il modem."

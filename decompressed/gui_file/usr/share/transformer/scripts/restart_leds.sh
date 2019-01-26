@@ -1,17 +1,40 @@
 #!/bin/sh
 
+#Forcely turn off all LEDs (ledfw restart does not turn of all LEDs on some devices)
+for filename in /sys/class/leds/*; do
+    echo 0 > "$filename/brightness"
+done
+
 #Call default restart script (that will break LEDs)
 /etc/init.d/ledfw restart
 
 #than check services and simulate ubus actions to get all LEDs back in normal status...
+
+#Restore Broadband LED status (only if on xDSL on ETH ledfw restart seems enough)
+xdsl_status=$(transformer-cli get sys.class.xdsl.@line0.LinkStatus | cut -d= -f 2 | awk '{$1=$1};1')
+xdsl_statuscode=0
+
+if [ "$(echo $xdsl_status | grep Showtime)" ]; then
+    xdsl_statuscode=5
+elif [ "$(echo $xdsl_status | grep Training)" ]; then
+    xdsl_statuscode=1
+elif [ "$(echo $xdsl_status | grep Started)" ]; then
+    xdsl_statuscode=6
+fi
+
+if [ $xdsl_statuscode -gt 0 ]; then
+    if [ $xdsl_statuscode==5 ]; then #cause we cannot go directly in showtime send a fake "Started"
+        ubus send xdsl "{\"status\":\"G.993 Started\",\"statuscode\":6,\"line1\":{\"status\":\"G.993 Started\",\"statuscode\":6}}"
+    fi
+    ubus send xdsl "{\"status\":\"$xdsl_status\",\"statuscode\":$xdsl_statuscode,\"line1\":{\"status\":\"$xdsl_status\",\"statuscode\":$xdsl_statuscode}}"
+fi
 
 #Restore Wifi LED(s) status
 connected_wl0=0
 connected_wl1=0
 num_dev=$(seq $(transformer-cli get rpc.hosts.HostNumberOfEntries | cut -d= -f 2))
 i=0
-while [ $num_dev -gt 0 ]; do
-
+while [ ! -z "$num_dev" ] && [ $num_dev -gt 0 ]; do
     if [ ! -z "$(transformer-cli get rpc.hosts.host.$i. | grep 'ERROR')" ]; then
         i=$((i+1))
     else

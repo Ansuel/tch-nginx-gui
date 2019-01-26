@@ -10,24 +10,17 @@ local tonumber = tonumber
 local ui_helper = require("web.ui_helper")
 local content_helper = require("web.content_helper")
 local dyntab_helper = require("web.dyntab_helper")
+local proxy = require("datamodel")
 
 local bmh = require("broadbandmode_helper")
 local tabdata = dyntab_helper.process(bmh)
 
-local content = {
-    wansensing_state = "uci.wansensing.global.l2type",
-}
-content_helper.getExactContent(content)
+local wan_bridge = proxy.get("uci.network.interface.@wan.ifname")[1].value
 
-local wan_bridge = ""
-
-if content.wansensing_state == "VDSL" then
-	wan_bridge = "ptm0" 
-elseif content.wansensing_state == "ETH" then
-	wan_bridge = "eth4"
-elseif content.wansensing_state == "ADSL" then
-	wan_bridge = "atmwan"
-end
+--local wan_vlan_bridge = proxy.get("uci.network.device.@"..wan_bridge..".ifname")
+--if wan_vlan_bridge then
+--	wan_bridge = wan_vlan_bridge[1].value
+--end
 
 -- Figure out interface state
 local intf_state_map = {
@@ -45,15 +38,8 @@ local intf_light_map = {
 }
 
 local intf_state = "disabled"
-
-local stats = {
-    operstate = "sys.class.net.@"..wan_bridge..".operstate",
-    carrier = "sys.class.net.@"..wan_bridge..".carrier",
-}
-content_helper.getExactContent(stats)
-
-if stats.operstate == "up" then
-    if stats.carrier ~= "0" then
+if proxy.get("sys.class.net.@"..wan_bridge..".operstate")[1].value == "up" then
+    if proxy.get("sys.class.net.@"..wan_bridge..".carrier")[1].value ~= "0" then
         intf_state = "connected"
     else
         intf_state = "connecting"
@@ -61,7 +47,6 @@ if stats.operstate == "up" then
 else
 	intf_state = "disconnected"
 end
-
 
 -- xdsl data
 local xdsl_data = {
@@ -102,7 +87,7 @@ end
       '<p class="subinfos">',
       "",
       '</p>')
-	if content.wansensing_state:match("DSL") and xdsl_data["dsl_enable"] == "1" then
+	if wan_bridge:match("tm") and xdsl_data["dsl_enable"] == "1" then
 		local iconUp = '<i class="icon-upload icon-small gray"></i> '
 		local iconDown = '<i class="icon-download icon-small gray"></i> '
 		

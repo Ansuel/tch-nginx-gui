@@ -1,0 +1,550 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: webui-wizard\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-06-21 15:33+0200\n"
+"PO-Revision-Date: 2019-01-06 17:25+0100\n"
+"Last-Translator: Dr. Uwe Meyer-Gruhl\n"
+"Language-Team: none\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language-Name: Deutsch\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.2\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+
+msgid "%d day(s), %02d:%02d:%02d"
+msgstr ""
+
+msgid "Connection Information"
+msgstr ""
+
+msgid "Status"
+msgstr ""
+
+msgid "Uptime"
+msgstr ""
+
+msgid "Data Transfered"
+msgstr ""
+
+msgid "IPv4 Address"
+msgstr ""
+
+msgid "Primary DNS"
+msgstr ""
+
+msgid "Secondary DNS"
+msgstr ""
+
+msgid "IPv6 Address"
+msgstr ""
+
+msgid "IPv6 DNS server"
+msgstr ""
+
+msgid "Connection Settings"
+msgstr ""
+
+msgid "PVC Info (VPI.VCI)"
+msgstr ""
+
+msgid "Type"
+msgstr ""
+
+msgid "PPPoE Settings"
+msgstr ""
+
+msgid "Username"
+msgstr ""
+
+msgid "Password"
+msgstr ""
+
+msgid "Mode"
+msgstr ""
+
+msgid "Always On"
+msgstr ""
+
+msgid "Content Sharing"
+msgstr ""
+
+msgid "Enable DLNA Server"
+msgstr ""
+
+msgid "Media Server Name"
+msgstr ""
+
+msgid "Media Server IP"
+msgstr ""
+
+msgid "FTP Server State"
+msgstr ""
+
+msgid "Network Folder Name"
+msgstr ""
+
+msgid "Generic"
+msgstr ""
+
+msgid "Desktop"
+msgstr ""
+
+msgid "GS"
+msgstr ""
+
+msgid "IPDECT"
+msgstr ""
+
+msgid "Laptop"
+msgstr ""
+
+msgid "PDA"
+msgstr ""
+
+msgid "Phone"
+msgstr ""
+
+msgid "STB"
+msgstr ""
+
+msgid "Tablet"
+msgstr ""
+
+msgid "Mass Storage"
+msgstr ""
+
+msgid "Add new port mapping"
+msgstr ""
+
+msgid "Device Name"
+msgstr ""
+
+msgid "Device Type"
+msgstr ""
+
+msgid "LAN IP"
+msgstr ""
+
+msgid "Services"
+msgstr ""
+
+msgid "Port Forwarding"
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
+msgid "Service Name"
+msgstr ""
+
+msgid "Domain"
+msgstr ""
+
+msgid "User Name"
+msgstr ""
+
+msgid "An existing mapping overlaps with the ports range"
+msgstr ""
+
+msgid "Name"
+msgstr ""
+
+msgid "Protocol"
+msgstr ""
+
+msgid "WAN port"
+msgstr ""
+
+msgid "LAN port"
+msgstr ""
+
+msgid "Destination IP"
+msgstr ""
+
+msgid "Some parameters failed validation"
+msgstr ""
+
+msgid "Before being able to allow your technical support to connect to your Technicolor Gateway you must make sure WAN connection is up."
+msgstr ""
+
+msgid "URL"
+msgstr ""
+
+msgid "Use Random Password"
+msgstr ""
+
+msgid "Add New Rule"
+msgstr ""
+
+msgid "Internet Traffic"
+msgstr ""
+
+msgid "Total Mixed (in MB)"
+msgstr ""
+
+msgid "Ethernet Network Traffic"
+msgstr ""
+
+msgid "Total Send (in MB)"
+msgstr ""
+
+msgid "Total Receive (in MB)"
+msgstr ""
+
+msgid "Wi-Fi Network Traffic"
+msgstr ""
+
+msgid "Graph"
+msgstr ""
+
+msgid "The time displayed on the graph are based on the time set on this modem!"
+msgstr ""
+
+msgid "Sent chart line"
+msgstr ""
+
+msgid "Received chart line"
+msgstr ""
+
+msgid "WAN Graph"
+msgstr ""
+
+msgid "LAN Graph"
+msgstr ""
+
+msgid "Changes saved successfully"
+msgstr ""
+
+msgid "Something went wrong; please try again"
+msgstr ""
+
+msgid "User Settings"
+msgstr ""
+
+msgid "Current User"
+msgstr ""
+
+msgid "When Default User is on, there is no login required to access the Web Interface. This is not recommended."
+msgstr ""
+
+msgid "Default User"
+msgstr ""
+
+msgid "Confirm Password"
+msgstr ""
+
+msgid "None"
+msgstr ""
+
+msgid "WPA2 PSK"
+msgstr ""
+
+msgid "WPA+WPA2 PSK"
+msgstr ""
+
+msgid "WEP"
+msgstr ""
+
+msgid "Disabled"
+msgstr ""
+
+msgid "Blacklist"
+msgstr ""
+
+msgid "Whitelist"
+msgstr ""
+
+msgid "Register"
+msgstr ""
+
+msgid "20MHz"
+msgstr ""
+
+msgid "Auto (20/40MHz)"
+msgstr ""
+
+msgid "20/40MHz"
+msgstr ""
+
+msgid "Auto (20/40/80MHz)"
+msgstr ""
+
+msgid "Auto"
+msgstr ""
+
+msgid "52(DFS)"
+msgstr ""
+
+msgid "56(DFS)"
+msgstr ""
+
+msgid "60(DFS)"
+msgstr ""
+
+msgid "64(DFS)"
+msgstr ""
+
+msgid "100(DFS)"
+msgstr ""
+
+msgid "104(DFS)"
+msgstr ""
+
+msgid "108(DFS)"
+msgstr ""
+
+msgid "112(DFS)"
+msgstr ""
+
+msgid "116(DFS)"
+msgstr ""
+
+msgid "132(DFS)"
+msgstr ""
+
+msgid "136(DFS)"
+msgstr ""
+
+msgid "The Band Steering can not be supported under WEP security mode."
+msgstr ""
+
+msgid "Please configure wifi-bandsteer "
+msgstr ""
+
+msgid " first!"
+msgstr ""
+
+msgid "Device PIN code entered"
+msgstr ""
+
+msgid "Started WPS PBC mode"
+msgstr ""
+
+msgid "MAC Address"
+msgstr ""
+
+msgid "Add new MAC address"
+msgstr ""
+
+msgid "Wi-Fi Radio"
+msgstr ""
+
+msgid "Wi-Fi Channel"
+msgstr ""
+
+msgid "Speed"
+msgstr ""
+
+msgid "Channel"
+msgstr ""
+
+msgid "Region"
+msgstr ""
+
+msgid "Current Channel"
+msgstr ""
+
+msgid "Channel Width"
+msgstr ""
+
+msgid "Wi-Fi Network"
+msgstr ""
+
+msgid "Network Name"
+msgstr ""
+
+msgid "Broadcast SSID"
+msgstr ""
+
+msgid "Security Mode"
+msgstr ""
+
+msgid "Security for this Wi-Fi network is disabled, anybody can connect or listen to it"
+msgstr ""
+
+msgid "WEP Key"
+msgstr ""
+
+msgid "Network Key"
+msgstr ""
+
+msgid "Radius Authentication Server's IP"
+msgstr ""
+
+msgid "Radius Authentication Server's port"
+msgstr ""
+
+msgid "Radius Authentication Server's secret"
+msgstr ""
+
+msgid "Radius Accounting Server's IP"
+msgstr ""
+
+msgid "Radius Accounting Server's port"
+msgstr ""
+
+msgid "WPS is automatically disabled if you choose WEP or WPA-only security or disable broadcast of the SSID"
+msgstr ""
+
+msgid "WPS"
+msgstr ""
+
+msgid "WPS AP PIN Enabled"
+msgstr ""
+
+msgid "WPS AP PIN Code"
+msgstr ""
+
+msgid "WPS Device PIN Code"
+msgstr ""
+
+msgid "Connect using WPS"
+msgstr ""
+
+msgid "Band Steering Enabled"
+msgstr ""
+
+msgid "The Band Steering actively guides the client to the most suitable Wi-Fi band, by detecting the client's capabilities and monitoring the interfaces."
+msgstr ""
+
+msgid "Access Control List"
+msgstr ""
+
+msgid "ACL mode"
+msgstr ""
+
+msgid "Near Field Communication (NFC)"
+msgstr ""
+
+msgid "Near Field Communication (NFC) allows you to tap an Android smartphone or tablet against the front of your Gateway to automatically configure Wi-Fi credentials on your device, so that you can connect over Wi-Fi. This feature is not supported on Apple iOS devices.<br><br><a href=/gateway.lp?openmodal=nfc-modal.lp ><u>Click here</u></a> to configure NFC."
+msgstr ""
+
+msgid "Standard"
+msgstr ""
+
+msgid "Telstra Gateway"
+msgstr ""
+
+msgid "HOME"
+msgstr ""
+
+msgid "BROADBAND"
+msgstr ""
+
+msgid "WI-FI"
+msgstr ""
+
+msgid "CONTENT SHARING"
+msgstr ""
+
+msgid "PARENTAL CONTROL"
+msgstr ""
+
+msgid "SERVICES"
+msgstr ""
+
+msgid "USER SETTINGS"
+msgstr ""
+
+msgid "disabled"
+msgstr ""
+
+msgid "disconnecting"
+msgstr ""
+
+msgid "connected"
+msgstr ""
+
+msgid "connecting"
+msgstr ""
+
+msgid "disconnected"
+msgstr ""
+
+msgid "error"
+msgstr ""
+
+msgid "authentication failed"
+msgstr ""
+
+msgid "negotiation failed"
+msgstr ""
+
+msgid "PPP connection"
+msgstr ""
+
+msgid "IP address"
+msgstr ""
+
+msgid "IPv6 address"
+msgstr ""
+
+msgid "Gateway"
+msgstr ""
+
+msgid "DNS servers"
+msgstr ""
+
+msgid "ATM VP / VC"
+msgstr ""
+
+msgid "Encapsulation"
+msgstr ""
+
+msgid "ADVANCED CARDS"
+msgstr ""
+
+msgid "STATS"
+msgstr ""
+
+msgid "Your Broadband service is working normally. You are connected online."
+msgstr ""
+
+msgid "Your Broadband service is working in backup mode. You are connected and online."
+msgstr ""
+
+msgid "Time of Day Access Control"
+msgstr ""
+
+msgid "URL Filter"
+msgstr ""
+
+msgid "Dynamic DNS"
+msgstr ""
+
+msgid "Remote Web Access"
+msgstr ""
+
+msgid "Traffic Monitor"
+msgstr ""
+
+msgid "2.4GHz"
+msgstr ""
+
+msgid "5GHz"
+msgstr ""
+
+msgid "Guest 2.4GHz"
+msgstr ""
+
+msgid "Guest 5GHz"
+msgstr ""
+
+msgid "Your Internet connection is currently down. You can try the following: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Telephone or Ethernet cable is firmly connected to the correct port on your Gateway, the Filter on the Telephone<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;socket or the Ethernet socket on the wall.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Check that your username is correct and re-enter your password <a href=/broadband.lp> here </a> .<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Restart my gateway."
+msgstr ""
+
+msgid "Your Internet connection is currently down. You can try the following: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Telephone cable is firmly connected to the correct port on your Gateway or the Filter on the telephone socket <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;on the wall.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Check that your username is correct and re-enter your password <a href=/broadband.lp> here </a> . <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Restart my gateway."
+msgstr ""
+
+msgid "Your Internet connection is currently down. You can try the following: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Ethernet cable is firmly connected to the correct port on your Gateway or the Ethernet socket on the wall.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Check that your username is correct and re-enter your password <a href=/broadband.lp> here </a> . <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Restart my gateway."
+msgstr ""
+
+msgid "Your Internet connection is currently down. You can try the following: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Telephone cable is firmly connected to the correct port on your Gateway or the Filter on the telephone socket <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;on the wall. <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Restart my gateway."
+msgstr ""
+
+msgid "Your Internet connection is currently down. You can try the following: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Ethernet cable is firmly connected to the correct port on your Gateway or the Ethernet socket on the wall. <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Restart my gateway."
+msgstr ""

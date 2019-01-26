@@ -7,64 +7,6 @@ local ui_helper = require("web.ui_helper")
 local content_helper = require("web.content_helper")
 local match = string.match
 
-local devices_columns = {
-  {--[2]
-    header = T"Hostname",
-    name = "FriendlyName",
-    param = "FriendlyName",
-    type = "text",
-  },
-  {--[3]
-    header = T"IPv4",
-    name = "ipv4",
-    param = "IPAddress",
-    type = "text",
-  },
-  {--[6]
-    header = T"InterfaceType",
-    name = "interfacetype",
-    param = "InterfaceType",
-	type = "text",
-  },
-  {--[11]
-    header = T"SSID",
-    name = "ssid",
-    param = "SSID",
-    type = "text",
-  },
-}
-
---Construct the device type based on value of L2Interface
-local devices_filter = function(data)
-
-  --Display only the IP Address of physically connected devices
-  if data["State"] and data["State"] == "0" then
-     return false
-  end
-
-  if match(data["L2Interface"], "^wl0") then
-    data["InterfaceType"] = "wireless - 2.4GHz"
-  elseif match(data["L2Interface"], "^wl1") then
-    data["InterfaceType"] = "wireless - 5GHz"
-  elseif match(data["L2Interface"], "eth*") then
-    data["InterfaceType"] = "Ethernet - " .. data.Port
-  elseif match(data["L2Interface"], "moca*") then
-    data["InterfaceType"] = "MoCA"
-  end
-
-  return true
-end
-
-local devices_options = {
-    canEdit = false,
-    canAdd = false,
-    canDelete = false,
-    tableid = "devices",
-    basepath = "rpc.hosts.host.",
-}
-
-local devices_data = content_helper.loadTableData(devices_options.basepath, devices_columns, devices_filter , nil)
-
   ngx.print('\
 \
 <div class="infocard" id="infodevicetab">\
@@ -78,7 +20,7 @@ local devices_data = content_helper.loadTableData(devices_options.basepath, devi
 	local html = {}
 	
 	html[#html + 1] = '<span data-bind="html: device_table">'
-    html[#html + 1] = ui_helper.createTable(devices_columns, devices_data, devices_options, nil, nil)
+    html[#html + 1] = '<div class="spinner3"><div class="rect1"></div><div class="rect2"></div><div class="rect3"></div><div class="rect4"></div><div class="rect5"></div></div>'
 	html[#html + 1] = '</span>'
 	
 	ngx.print(html)

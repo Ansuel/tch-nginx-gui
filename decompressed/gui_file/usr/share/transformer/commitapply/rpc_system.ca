@@ -6,11 +6,19 @@
 ^rpc%.system%.modgui%.upgradegui%.start /usr/share/transformer/scripts/upgradegui
 ^rpc%.system%.checkver /usr/share/transformer/scripts/checkver
 ^rpc%.system%.transfer_bank1 /usr/share/transformer/scripts/transfer_bank1.sh
-^rpc%.system%.modgui%.debuglog%.start /usr/share/transformer/scripts/generate_debug_file.sh dev
+^rpc%.system%.modgui%.debuglog%.start /usr/share/transformer/scripts/generate-debug-file.sh dev
 ^rpc%.system%.modgui%.app%.install_luci /usr/share/transformer/scripts/install_luci.sh
 ^rpc%.system%.modgui%.app%.remove_luci /usr/share/transformer/scripts/remove_luci.sh
+^rpc%.system%.modgui%.app%.start_amule /etc/init.d/amule start
+^rpc%.system%.modgui%.app%.stop_amule /etc/init.d/amule stop
+^rpc%.system%.modgui%.app%.install_amule /usr/share/transformer/scripts/install_amule.sh
+^rpc%.system%.modgui%.app%.remove_amule /usr/share/transformer/scripts/remove_amule.sh
+^rpc%.system%.modgui%.app%.start_aria2 /etc/init.d/aria2 start
+^rpc%.system%.modgui%.app%.stop_aria2 /etc/init.d/aria2 stop
 ^rpc%.system%.modgui%.app%.install_aria2 /usr/share/transformer/scripts/install_aria2.sh
 ^rpc%.system%.modgui%.app%.remove_aria2 /usr/share/transformer/scripts/remove_aria2.sh
+^rpc%.system%.modgui%.app%.start_transmission /etc/init.d/transmission start
+^rpc%.system%.modgui%.app%.stop_transmission /etc/init.d/transmission stop
 ^rpc%.system%.modgui%.app%.install_transmission /usr/share/transformer/scripts/install_transmission.sh
 ^rpc%.system%.modgui%.app%.remove_transmission /usr/share/transformer/scripts/remove_transmission.sh
 ^rpc%.system%.modgui%.app%.install_blacklist /usr/share/transformer/scripts/install_blacklist.sh

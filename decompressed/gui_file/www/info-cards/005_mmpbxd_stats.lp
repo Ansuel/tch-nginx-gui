@@ -7,69 +7,6 @@ gettext.textdomain('webui-core')
 local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
 
-local mmpbxd_columns = {
-  {--[2]
-    header = T"Status",
-    name = "sipRegisterState",
-    param = "sipRegisterState",
-    type = "text",
-  },
-  {--[3]
-    header = T"Number",
-    name = "uri",
-    param = "uri",
-    type = "text",
-  },
-  {--[4]
-    header = T"Line State",
-    name = "callState",
-    param = "callState",
-    type = "text",
-  },
-}
-
-local mmpbxd_filter = function(data)
-  if ( data.enable == "false" ) or ( data.sipRegisterState == "" ) then
-	return false
-  end
-  if data.uri and data.uri:match("+") then
-    data.uri = data.uri:sub(4)
-  end
-
-  if data.sipRegisterState then
-    data.sipRegisterState =  data.sipRegisterState
-    data.sipRegisterState = ui_helper.createSimpleLight(data.sipRegisterState=="Registered" and "1" or "0", T(data.sipRegisterState), nil)
-  end
-
-  if data.callState then
-    if ( data.callState == "MMPBX_CALLSTATE_IDLE" ) then
-      data.callState =  "Idle"
-    elseif ( data.callState == "MMPBX_CALLSTATE_DIALING" ) then
-      data.callState =  "Dialing"
-    elseif ( data.callState == "MMPBX_CALLSTATE_CALL_DELIVERED" ) then
-      data.callState =  "Delivered/In Progress"
-    elseif ( data.callState == "MMPBX_CALLSTATE_CONNECTED" ) then
-      data.callState =  "In Call"
-    elseif ( data.callState == "MMPBX_CALLSTATE_ALERTING" ) then
-      data.callState =  "Ringing"
-    end
-
-    data.callState = ui_helper.createSimpleLight(data.callState=="Idle" and "0" or "1", T(data.callState), nil, "fa fa-phone")
-  end
-  
-  return true
-end
-
-local  mmpbxd_options = {
-    canEdit = false,
-    canAdd = false,
-    canDelete = false,
-    tableid = "mmpbxd",
-    basepath = "rpc.mmpbx.profile.",
-}
-
-local  mmpbxd_data = content_helper.loadTableData(mmpbxd_options.basepath, mmpbxd_columns ,  mmpbxd_filter , nil)
-
 local content = {
   status = "rpc.mmpbx.state",
 
@@ -110,8 +47,8 @@ if not ( content.max_upstream == "0" ) then
 	end
 	
 	html[#html + 1] = '<span data-bind="html: mmpbx_table">'
-	html[#html + 1] = ui_helper.createTable(mmpbxd_columns, mmpbxd_data, mmpbxd_options, nil, nil)
-	html[#html + 1] = '</span>'
+    html[#html + 1] = '<div class="spinner3"><div class="rect1"></div><div class="rect2"></div><div class="rect3"></div><div class="rect4"></div><div class="rect5"></div></div>'
+    html[#html + 1] = '</span>'
 	
 	ngx.print(html)
 ngx.print('\

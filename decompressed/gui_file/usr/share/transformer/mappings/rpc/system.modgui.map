@@ -82,10 +82,6 @@ local SYSTEM_MODGUI_DEBUGLOG_ = {
         type = "string",
         max = "256",
       },
-      location = {
-        access = "readOnly",
-        type = "string",
-      },
 	  start = {
 		access = "readWrite",
 		type = "boolean",
@@ -96,29 +92,35 @@ local SYSTEM_MODGUI_DEBUGLOG_ = {
 
 SYSTEM_MODGUI_DEBUGLOG_.get = {
   filename = function(mapping, param)
-	local filename = "DebugHelper"..os.date("%Y-%m-%d")..".tar.gz"
-	local filedir = os.date("%Y-%m-%d").."-DebugHelper"
-	local file = io.open("/tmp/"..filedir.."/"..filename,"r")
-	if file then
-		file:close()
-		return filename
-	end
-	return ""
+    local handle = io.popen('find /tmp -type f -name "DebugHelper*"')
+    local filename = handle:read("*a")
+    filename = string.gsub(filename, '^%s+', '')
+    filename = string.gsub(filename, '%s+$', '')
+    filename = string.gsub(filename, '[\n\r]+', ' ')
+    handle:close()
+	return filename
   end,
   state = function(mapping, param)
-	local filename = "DebugHelper"..os.date("%Y-%m-%d")..".tar.gz"
-	local filedir = os.date("%Y-%m-%d").."-DebugHelper"
-	local file = io.open("/tmp/"..filedir.."/"..filename,"r")
-	if file then
-		file:close()
+    local handle = io.popen('find /tmp -type f -name "DebugHelper*"')
+    local filename = handle:read("*a")
+    filename = string.gsub(filename, '^%s+', '')
+    filename = string.gsub(filename, '%s+$', '')
+    filename = string.gsub(filename, '[\n\r]+', ' ')
+    handle:close()
+	if filename ~= "" then
 		return "Complete"
 	end
-	if lfs.chdir("/tmp/"..filedir) then
+    handle = io.popen('find /tmp -type d -name "DebugHelper*"')
+    local filedir = handle:read("*a")
+    filename = string.gsub(filename, '^%s+', '')
+    filename = string.gsub(filename, '%s+$', '')
+    filedir = string.gsub(filedir, '[\n\r]+', ' ')
+    handle:close()
+	if filedir ~= "" then
 		return "Requested"
 	end
 	return "None"
   end,
-  location = "/tmp/"..os.date("%Y-%m-%d").."-DebugHelper/",
   start = "0",
 }
 
@@ -139,77 +141,38 @@ local SYSTEM_MODGUI_APP_ = {
     minEntries = 1,
     maxEntries = 1,
     parameters = {
-      install_luci = {
-                access = "readWrite",
-                type = "boolean",
-            },
-	  remove_luci = {
-                access = "readWrite",
-                type = "boolean",
-            },
-	  install_aria2 = {
-                access = "readWrite",
-                type = "boolean",
-            },
-	  remove_aria2 = {
-                access = "readWrite",
-                type = "boolean",
-            },
-	  install_transmission = {
-                access = "readWrite",
-                type = "boolean",
-            },
-	  remove_transmission = {
-                access = "readWrite",
-                type = "boolean",
-            },
-	  install_blacklist = {
-                access = "readWrite",
-                type = "boolean",
-            },
 	  install_emptyblacklist = {
                 access = "readWrite",
                 type = "boolean",
-            },
-	  remove_blacklist = {
-                access = "readWrite",
-                type = "boolean",
-            },
-	  install_xupnp = {
-                access = "readWrite",
-                type = "boolean",
-            },
-	  remove_xupnp = {
-                access = "readWrite",
-                type = "boolean",
-            },
-	  install_telstra = {
-                access = "readWrite",
-                type = "boolean",
-            },
-	  remove_telstra = {
-                access = "readWrite",
-                type = "boolean",
-            },
+            }
     }
   }
 }
 
 SYSTEM_MODGUI_APP_.get = {
-		install_luci = "0",
-		remove_luci = "0",
-		install_aria2 = "0",
-		remove_aria2 = "0",
-		install_transmission = "0",
-		remove_transmission = "0",	
-		install_blacklist = "0",
-		install_emptyblacklist = "0",
-		remove_blacklist = "0",	
-		install_xupnp = "0",
-		remove_xupnp = "0",
-		install_telstra = "0",
-		remove_telstra = "0",	
+		install_emptyblacklist = "0"
 }
+
+local app_list = {
+	"luci",
+	"aria2",
+	"transmission",
+	"blacklist",
+	"xupnp",
+	"telstra",
+	"amule",
+}
+
+for _, app in ipairs(app_list) do
+	for _, action in ipairs({"install","remove","start","stop"}) do
+		SYSTEM_MODGUI_APP_.objectType.parameters[action.."_"..app] = 
+		{
+			access = "readWrite",
+			type = "boolean",
+		}
+		SYSTEM_MODGUI_APP_.get[action.."_"..app] = "0"
+	end
+end
 
 SYSTEM_MODGUI_APP_.set = function(mapping, paramName, paramValue) 
 	if paramValue == "1" then

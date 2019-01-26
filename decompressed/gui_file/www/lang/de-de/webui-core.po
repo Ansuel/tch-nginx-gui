@@ -13,12 +13,10 @@ msgstr ""
 "Language-Name: Deutsch\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 2.2\n"
+"X-Poedit-SourceCharset: UTF-8\n"
 
 msgid " (or "
 msgstr " (oder "
-
-msgid " IP Range"
-msgstr " IP-Bereich"
 
 msgid " installed"
 msgstr " installiert"
@@ -47,51 +45,23 @@ msgstr "%d Sekunden"
 msgid "%s Mbps"
 msgstr "%s Mbps"
 
-msgid "1"
-msgstr "1"
+msgid "1. Max Packet Number Recommened is dynamic and not accurate value (assume to use half of free memory).<br/>2. Acceleration disabled during tcpdump on platforms which supports flow cache!<br/>3. 'Download' invalid if nothing captured.<br/>4. 'Clean' captured file to reduce memory consumption."
+msgstr "1. Maximal empfohlende Anzahl Pakete ist dynamisch und kein akkurater Wert (sie soll etwa den halben freien Speicher nutzen).<br/>2. Beschleunigung wird während tcpdump deaktiviert auf Plattformen, die 'flow cache' unterstützen!<br/>3. 'Download' funktioniert nicht, wenn nichts protokolliert wurde.<br/>4. 'Leeren' benutzen, um die Speichernutzung zu reduzieren."
 
-msgid ""
-"1. Max Packet Number Recommened is dynamic and not accurate value (assume to "
-"use half of free memory).<br/>2. Acceleration disabled during tcpdump on "
-"platforms which supports flow cache!<br/>3. 'Download' invalid if nothing "
-"captured.<br/>4. 'Clean' captured file to reduce memory consumption."
+msgid "10% of max Frequency in ASYNC mode"
 msgstr ""
-"1. Maximal empfohlende Anzahl Pakete ist dynamisch und kein akkurater Wert "
-"(sie soll etwa den halben freien Speicher nutzen).<br/>2. Beschleunigung "
-"wird während tcpdump deaktiviert auf Plattformen, die 'flow cache' "
-"unterstützen!<br/>3. 'Download' funktioniert nicht, wenn nichts "
-"protokolliert wurde.<br/>4. 'Leeren' benutzen, um die Speichernutzung zu "
-"reduzieren."
 
-msgid "10%"
-msgstr "10%"
+msgid "100% of max Frequency in ASYNC mode"
+msgstr ""
 
-msgid "100%"
-msgstr "100%"
-
-msgid "125%"
-msgstr "125%"
-
-msgid "160%"
-msgstr "160%"
-
-msgid "2"
-msgstr "2"
+msgid "100% of max Frequency in SYNC mode"
+msgstr ""
 
 msgid "2.4GHz Band Steering Threshold"
 msgstr "2.4GHz Band Steuerungs-Schwellwert"
 
-msgid "20%"
-msgstr "20%"
-
-msgid "20/40MHz"
-msgstr "20/40MHz"
-
-msgid "200%"
-msgstr "200%"
-
-msgid "20MHz"
-msgstr "20MHz"
+msgid "25% of max Frequency in ASYNC mode"
+msgstr ""
 
 msgid "2nd Demod Cap Mask"
 msgstr "2te Demod Fähigkeitsmaske"
@@ -99,70 +69,17 @@ msgstr "2te Demod Fähigkeitsmaske"
 msgid "2nd Demod Cap Value"
 msgstr "2ter Demod Fähigkeitswert"
 
-msgid "30%"
-msgstr "30%"
-
-msgid "40%"
-msgstr "40%"
-
-msgid "40MHz"
-msgstr "40MHz"
-
-msgid "50%"
-msgstr "50%"
+msgid "50% of max Frequency in ASYNC mode"
+msgstr ""
 
 msgid "5GHz Band Steering Threshold"
 msgstr "5GHz Band Steuerungs-Schwellwert"
 
-msgid "60%"
-msgstr "60%"
+msgid "<p>Remote assistance is currently disabled.</p><p> By clicking on the 'Apply' button with the 'Enabled' checkbox enabled your gateway will be accessible from your broadband connection. After %s minutes of inactivity, or on reboot, remote assistance will be automatically disabled for 'Temporary' mode. </p><p> Please provide the following parameters to your ISP:</p>"
+msgstr "<p>Fernwartung ist aktuell deaktiviert.</p><p> Durch Drücken des 'Anwenden'-Knopfs mit eingeschalteter Checkbox wird Ihr Gateway von der Breitbandseite aus zugreifbar sein. Nach %d Minuten Inaktivität oder beim Neustart wird die Fernwartung im 'Temporären' Modus automatisch wieder deaktiviert. </p><p> Bitte teilen Sie Ihrem Internet Service Provider folgende Parameter mit:</p>"
 
-msgid "70%"
-msgstr "70%"
-
-msgid "80%"
-msgstr "80%"
-
-msgid "802.11a/n"
-msgstr "802.11a/n"
-
-msgid "802.11a/n/ac"
-msgstr "802.11a/n/ac"
-
-msgid "802.11b/g"
-msgstr "802.11b/g"
-
-msgid "802.11b/g/n"
-msgstr "802.11b/g/n"
-
-msgid "80MHz"
-msgstr "80MHz"
-
-msgid "90%"
-msgstr "90%"
-
-msgid ""
-"<p>Remote assistance is currently disabled.</p><p> By clicking on the "
-"'Apply' button with the 'Enabled' checkbox enabled your gateway will be "
-"accessible from your broadband connection. After %s minutes of inactivity, "
-"or on reboot, remote assistance will be automatically disabled for "
-"'Temporary' mode. </p><p> Please provide the following parameters to your "
-"ISP:</p>"
-msgstr ""
-"<p>Fernwartung ist aktuell deaktiviert.</p><p> Durch Drücken des 'Anwenden'-"
-"Knopfs mit eingeschalteter Checkbox wird Ihr Gateway von der Breitbandseite "
-"aus zugreifbar sein. Nach %d Minuten Inaktivität oder beim Neustart wird die "
-"Fernwartung im 'Temporären' Modus automatisch wieder deaktiviert. </p><p> "
-"Bitte teilen Sie Ihrem Internet Service Provider folgende Parameter mit:</p>"
-
-msgid ""
-"<p>Remote assistance is currently enabled. </p><p>Click 'Apply' button with "
-"the 'Enabled' checkbox disabled to disable remote assistance on your gateway "
-"</p>"
-msgstr ""
-"<p>Fernwartung ist aktuell aktiviert.</p><p> Durch Drücken des 'Anwenden'-"
-"Knopfs mit ausgeschalteter Checkbox wird Ihr Gateway von der Breitbandseite "
-"nicht mehr zugreifbar sein.</p>"
+msgid "<p>Remote assistance is currently enabled. </p><p>Click 'Apply' button with the 'Enabled' checkbox disabled to disable remote assistance on your gateway </p>"
+msgstr "<p>Fernwartung ist aktuell aktiviert.</p><p> Durch Drücken des 'Anwenden'-Knopfs mit ausgeschalteter Checkbox wird Ihr Gateway von der Breitbandseite nicht mehr zugreifbar sein.</p>"
 
 msgid "<strong %1$s>%2$d DNS Server</strong>"
 msgid_plural "<strong %1$s>%2$d DNS Servers</strong>"
@@ -204,33 +121,20 @@ msgid_plural "<strong %s>%d port forwarding</strong> rules are defined"
 msgstr[0] "<strong %s>%d Port-Weiterleitungsregel</strong> definiert"
 msgstr[1] "<strong %s>%d Port-Weiterleitungsregeln</strong> definiert"
 
-msgid ""
-"<strong id = \"Ethernet_Devices\" %1$s>%2$d Ethernet device</strong> "
-"connected"
-msgid_plural ""
-"<strong id = \"Ethernet_Devices\" %1$s>%2$d Ethernet devices</strong> "
-"connected"
-msgstr[0] ""
-"<strong id = \"Ethernet_Devices\" %1$s>%2$d Ethernet Gerät</strong> verbunden"
-msgstr[1] ""
-"<strong id = \"Ethernet_Devices\" %1$s>%2$d Ethernet Geräte</strong> "
-"verbunden"
+msgid "<strong id = \"Ethernet_Devices\" %1$s>%2$d Ethernet device</strong> connected"
+msgid_plural "<strong id = \"Ethernet_Devices\" %1$s>%2$d Ethernet devices</strong> connected"
+msgstr[0] "<strong id = \"Ethernet_Devices\" %1$s>%2$d Ethernet Gerät</strong> verbunden"
+msgstr[1] "<strong id = \"Ethernet_Devices\" %1$s>%2$d Ethernet Geräte</strong> verbunden"
 
 msgid "<strong id = \"Wifi_Devices\" %1$s>%2$d Wi-Fi device</strong> connected"
-msgid_plural ""
-"<strong id = \"Wifi_Devices\" %1$s>%2$d Wi-Fi devices</strong> connected"
-msgstr[0] ""
-"<strong id = \"Wifi_Devices\" %1$s>%2$d Wi-Fi Gerät</strong> verbunden"
-msgstr[1] ""
-"<strong id = \"Wifi_Devices\" %1$s>%2$d Wi-Fi Geräte</strong> verbunden"
+msgid_plural "<strong id = \"Wifi_Devices\" %1$s>%2$d Wi-Fi devices</strong> connected"
+msgstr[0] "<strong id = \"Wifi_Devices\" %1$s>%2$d Wi-Fi Gerät</strong> verbunden"
+msgstr[1] "<strong id = \"Wifi_Devices\" %1$s>%2$d Wi-Fi Geräte</strong> verbunden"
 
 msgid "<strong id = \"Wifi_Devices\" %1$s>%2$d WiFi device</strong> connected"
-msgid_plural ""
-"<strong id = \"Wifi_Devices\" %1$s>%2$d WiFi devices</strong> connected"
-msgstr[0] ""
-"<strong id = \"Wifi_Devices\" %1$s>%2$d WiFi Gerät</strong> verbunden"
-msgstr[1] ""
-"<strong id = \"Wifi_Devices\" %1$s>%2$d WiFi Geräte</strong> verbunden"
+msgid_plural "<strong id = \"Wifi_Devices\" %1$s>%2$d WiFi devices</strong> connected"
+msgstr[0] "<strong id = \"Wifi_Devices\" %1$s>%2$d WiFi Gerät</strong> verbunden"
+msgstr[1] "<strong id = \"Wifi_Devices\" %1$s>%2$d WiFi Geräte</strong> verbunden"
 
 msgid "<strong>%d</strong> IPv4 rule(s) defined<br>"
 msgstr "<strong>%d</strong> IPv4 Regel(n) definiert<br>"
@@ -254,16 +158,13 @@ msgid "<strong>User</strong>"
 msgstr "<strong>Nutzer</strong>"
 
 msgid "<strong>You must reboot modem to apply host rules!</strong>"
-msgstr ""
-"<strong>Sie müssen das Modem neustarten, um die Host-Regeln anzuwenden!</"
-"strong>"
+msgstr "<strong>Sie müssen das Modem neustarten, um die Host-Regeln anzuwenden!</strong>"
 
 msgid "A hostname must be between 1 and 63 characters"
 msgstr "Ein Hostname darf zwischen 1 und 63 Zeichen lang sein"
 
 msgid "A hostname must contain only alphanumeric characters with/without dash"
-msgstr ""
-"Ein Hostname darf nur aus alphanumerischen Zeichen und Strichen bestehen"
+msgstr "Ein Hostname darf nur aus alphanumerischen Zeichen und Strichen bestehen"
 
 msgid "A hostname must not contain only digits"
 msgstr "Ein Hostname darf nicht nur aus Ziffern bestehen"
@@ -277,32 +178,11 @@ msgstr "Ein Name darf nur aus alphanumerischen Zeichen und Strichen bestehen"
 msgid "A user with this username already exists"
 msgstr "Ein Benutzer mit diesem Benutzernamen existiert bereits"
 
-msgid "A2pvbH042j2.d26r (Asus DSL-AC88U)"
-msgstr "A2pvbH042j2.d26r (Asus DSL-AC88U)"
-
-msgid "A2pvbH042n.d26r (Netgear D7000)"
-msgstr "A2pvbH042n.d26r (Netgear D7000)"
-
-msgid "A2pvbH042o.d26r (TG799VAC Xtream Fastweb)"
-msgstr "A2pvbH042o.d26r (TG799VAC Xtream Fastweb)"
-
-msgid "A2pvbH042r.d26r (AGTEF_1.0.3)"
-msgstr "A2pvbH042r.d26r (AGTEF_1.0.3)"
-
-msgid "A2pvbH042u.d26r (AGTEF_1.0.4)"
-msgstr "A2pvbH042u.d26r (AGTEF_1.0.4)"
-
-msgid "A2pvfbH043g.d26r !! DA TESTARE !! (TG800 Vbant-s)"
-msgstr "A2pvfbH043g.d26r !! DA TESTARE !! (TG800 Vbant-s)"
-
-msgid "A2pvfbH043k.d26r (AGTEF_1.1.0)"
-msgstr "A2pvfbH043k.d26r (AGTEF_1.1.0)"
-
 msgid "ACCEPT"
 msgstr "AKZEPTIEREN"
 
-msgid "ACL Reg"
-msgstr "ACL Reg"
+msgid "ACL Mode"
+msgstr ""
 
 msgid "ACL mode"
 msgstr "ACL Modus"
@@ -319,45 +199,6 @@ msgstr "ACS URL: <strong id=\"cwmpconfcard_acsurl\">%s</strong>"
 msgid "ACS Username"
 msgstr "ACS Benutzername"
 
-msgid "AF11"
-msgstr "AF11"
-
-msgid "AF12"
-msgstr "AF12"
-
-msgid "AF13"
-msgstr "AF13"
-
-msgid "AF21"
-msgstr "AF21"
-
-msgid "AF22"
-msgstr "AF22"
-
-msgid "AF23"
-msgstr "AF23"
-
-msgid "AF31"
-msgstr "AF31"
-
-msgid "AF32"
-msgstr "AF32"
-
-msgid "AF33"
-msgstr "AF33"
-
-msgid "AF41"
-msgstr "AF41"
-
-msgid "AF42"
-msgstr "AF42"
-
-msgid "AF43"
-msgstr "AF43"
-
-msgid "AH"
-msgstr "AH"
-
 msgid "ALL"
 msgstr "ALLE"
 
@@ -367,8 +208,8 @@ msgstr "AP Status"
 msgid "ATM Ping Test"
 msgstr "ATM Ping Test"
 
-msgid "ATM VP / VC"
-msgstr "ATM VP/VC"
+msgid "Accept"
+msgstr ""
 
 msgid "Access Control"
 msgstr "Zugriffskontrolle"
@@ -377,9 +218,6 @@ msgid "Access Control List"
 msgstr "Zugriffskontroll-Liste"
 
 msgid "Access Point"
-msgstr "Access Point"
-
-msgid "Access point"
 msgstr "Access Point"
 
 msgid "Access points"
@@ -402,6 +240,9 @@ msgstr "Neuen DNS hinzufügen"
 
 msgid "Add New Rule"
 msgstr "Neue Regel hinzufügen"
+
+msgid "Add new"
+msgstr ""
 
 msgid "Add new IPv4 Ping WhiteList rule"
 msgstr "Neue IPv4 Ping WhiteList Regel hinzufügen"
@@ -499,30 +340,14 @@ msgstr "Anwendungsliste"
 msgid "Apply"
 msgstr "Anwenden"
 
-msgid "Applying anyway..."
-msgstr "Wird trotzdem angewendet..."
-
-msgid ""
-"Are you sure to switch the modem to <strong>Bridged Mode</strong>? <br />"
-msgstr ""
-"Sind Sie sicher, dass Sie das Modem in den <strong>Brücken Modus</"
-"strong>schalten wollen? <br />"
+msgid "Are you sure to switch the modem to <strong>Bridged Mode</strong>? <br />"
+msgstr "Sind Sie sicher, dass Sie das Modem in den <strong>Brücken Modus</strong>schalten wollen? <br />"
 
 msgid "Are you sure to switch the modem to <strong>Voice Mode</strong>? <br />"
-msgstr ""
-"Sind Sie sicher, dass Sie das Modem in den <strong>Voice Modus</"
-"strong>schalten wollen? <br />"
+msgstr "Sind Sie sicher, dass Sie das Modem in den <strong>Voice Modus</strong>schalten wollen? <br />"
 
-msgid ""
-"Are you sure you want to remove root from this modem? </br><strong> This "
-"could be permanent, so it's not recommended.</strong>"
-msgstr ""
-"Sind Sie sicher, dass Sie den root-Modus von diesem Modem entfernen wollen?"
-"<br/><strong> Das könnte unumkehrbar sein, deshalb wird es nicht empfohlen.</"
-"strong>"
-
-msgid "Aria2 GUI"
-msgstr "Aria2 GUI"
+msgid "Are you sure you want to remove root from this modem? </br><strong> This could be permanent, so it's not recommended.</strong>"
+msgstr "Sind Sie sicher, dass Sie den root-Modus von diesem Modem entfernen wollen?<br/><strong> Das könnte unumkehrbar sein, deshalb wird es nicht empfohlen.</strong>"
 
 msgid "Aria2 WebUi installed"
 msgstr "Aria2 Web-Oberfläche installiert"
@@ -530,32 +355,26 @@ msgstr "Aria2 Web-Oberfläche installiert"
 msgid "Aria2 WebUi not installed"
 msgstr "Aria2 Web-Oberfläche nicht installiert"
 
-msgid "Aria2 Webui"
-msgstr "Aria2 Webui"
-
 msgid "Aria2 is "
 msgstr "Aria2 ist "
 
 msgid "Assistance"
 msgstr "Assistenz"
 
-msgid "Assistant"
-msgstr "Assitent"
+msgid "Attenuation"
+msgstr ""
 
 msgid "Authentication failed"
 msgstr "Authentifizierung fehlgeschlagen"
 
-msgid "Auto"
-msgstr "Auto"
-
-msgid "Auto (20/40/80MHz)"
-msgstr "Auto (20/40/80MHz)"
-
-msgid "Auto (20/40MHz)"
-msgstr "Auto (20/40MHz)"
+msgid "Auto Discover DNS"
+msgstr ""
 
 msgid "AutoUpgrade"
 msgstr "AUtoUpgrade"
+
+msgid "AutoUpgrade Status"
+msgstr ""
 
 msgid "Aux Features Mask"
 msgstr "Aux Features Maske"
@@ -587,14 +406,11 @@ msgstr "Bankprüfung"
 msgid "Bank Info"
 msgstr "Bank Information"
 
-msgid "Basic"
-msgstr "Basis"
+msgid "Base Code"
+msgstr ""
 
-msgid "Beta Firmware"
-msgstr "Beta Firmware"
-
-msgid "Bitswap"
-msgstr "Bitswap"
+msgid "Base Name"
+msgstr ""
 
 msgid "Blacklist"
 msgstr "Schwarze Liste"
@@ -623,6 +439,9 @@ msgstr "Urlader Version"
 msgid "Bridge Grouping"
 msgstr "Brückengruppierung"
 
+msgid "Bridge Mode Active"
+msgstr ""
+
 msgid "Bridge connected"
 msgstr "Brücke verbunden"
 
@@ -638,11 +457,11 @@ msgstr "Brücken-Modus"
 msgid "Bridged connection"
 msgstr "Gebrückte Verbindung"
 
-msgid "Bridges"
-msgstr "Brücken"
-
 msgid "Broadband"
 msgstr "Breitband"
+
+msgid "Broadband Connection"
+msgstr ""
 
 msgid "Broadband type"
 msgstr "Breitband Typ"
@@ -656,29 +475,11 @@ msgstr "Broadcast Pakete"
 msgid "Broadcast SSID"
 msgstr "Broadcast SSID"
 
-msgid "Bytes"
-msgstr "Bytes"
+msgid "CPU Frequency Auto Scaling"
+msgstr ""
 
-msgid "CS1"
-msgstr "CS1"
-
-msgid "CS2"
-msgstr "CS2"
-
-msgid "CS3"
-msgstr "CS3"
-
-msgid "CS4"
-msgstr "CS4"
-
-msgid "CS5"
-msgstr "CS5"
-
-msgid "CS6"
-msgstr "CS6"
-
-msgid "CS7"
-msgstr "CS7"
+msgid "CPU Usage"
+msgstr ""
 
 msgid "CWMP"
 msgstr "CWMP"
@@ -698,9 +499,6 @@ msgstr "IPv4 Subnetzmaske nicht verwendbar."
 msgid "Cannot use loopback IPv4 address range."
 msgstr "IPv4 Adressbereich für Loopback nicht verwendbar."
 
-msgid "Cannot use reserved names as static lease name"
-msgstr "Kann keinen reservierten Namen als statischen Lease-Namen verwenden"
-
 msgid "Cannot use the gateway IP address."
 msgstr "Gateway IP Adresse nicht verwendbar."
 
@@ -710,8 +508,8 @@ msgstr "Gateway WAN IP Adresse nicht verwendbar."
 msgid "Capabilities"
 msgstr "Fähigkeiten"
 
-msgid "Change Password"
-msgstr "Kennwort ändern"
+msgid "Cards"
+msgstr ""
 
 msgid "Change password"
 msgstr "Kennwort ändern"
@@ -722,9 +520,6 @@ msgstr "Änderungen wurden erfolgreich gespeichert"
 msgid "Channel"
 msgstr "Kanal"
 
-msgid "Channel ID"
-msgstr "Kanal ID"
-
 msgid "Channel Width"
 msgstr "Kanalbreite"
 
@@ -734,14 +529,26 @@ msgstr "Kanalbreite"
 msgid "Check Upgrade"
 msgstr "Prüfe auf Aktualisierung"
 
+msgid "Checking..."
+msgstr ""
+
 msgid "Choose Device"
 msgstr "Wähle Gerät"
 
 msgid "Clean"
 msgstr "Leeren"
 
+msgid "Client Interface"
+msgstr ""
+
 msgid "Client Monitoring"
 msgstr "Überwachung Endgerät"
+
+msgid "Clone"
+msgstr ""
+
+msgid "Clone bank"
+msgstr ""
 
 msgid "Close"
 msgstr "Schließen"
@@ -758,14 +565,11 @@ msgstr "Bestätigen"
 msgid "Connected"
 msgstr "Verbunden"
 
-msgid "Connected-SFP"
-msgstr "SFP verbunden"
+msgid "Connected Devices"
+msgstr ""
 
 msgid "Connecting"
 msgstr "Verbinden"
-
-msgid "Connecting..."
-msgstr "Verbinden..."
 
 msgid "Connecting...</p>"
 msgstr "Verbinden...</p>"
@@ -788,23 +592,17 @@ msgstr "Verbindung Benutzernamenanforderung"
 msgid "Connection Time"
 msgstr "Verbindungszeit"
 
+msgid "Connection Type"
+msgstr ""
+
 msgid "Connection mode"
 msgstr "Verbindungsmodus"
 
 msgid "Connections"
 msgstr "Verbindungen"
 
-msgid "Continuare comunque?"
-msgstr "Trotzdem weitermachen?"
-
-msgid "Continue anyway?"
-msgstr "Trotzdem weitermachen?"
-
 msgid "Core Settings"
 msgstr "Basiseinstellungen"
-
-msgid "Correctables"
-msgstr "Korrigierbare"
 
 msgid "CPU Load"
 msgstr "Prozessorlast"
@@ -821,9 +619,6 @@ msgstr "Aktueller Tag"
 msgid "Current Quarter"
 msgstr "Aktuelles Quartal"
 
-msgid "Current Time"
-msgstr "Aktuelle Uhrzeit"
-
 msgid "Current Timezone"
 msgstr "Aktuelle Zeitzone"
 
@@ -836,8 +631,8 @@ msgstr "Der angemeldete Benutzer kann seine Rolle nicht ändern"
 msgid "Cyclic-Delay Diversity"
 msgstr "Cyclic-Delay Diversity"
 
-msgid "D"
-msgstr "D"
+msgid "DECT Emission Mode "
+msgstr ""
 
 msgid "DHCP End Address is Invalid"
 msgstr "DHCP Endadresse ist ungültig"
@@ -847,9 +642,6 @@ msgstr "DHCP Endadresse ist im Subnetzbereich ungültig"
 
 msgid "DHCP End address"
 msgstr "DHCP Endadresse"
-
-msgid "DHCP Relay"
-msgstr "DHCP Relais"
 
 msgid "DHCP Relay Setup"
 msgstr "DHCP Relais Einstellungen"
@@ -873,14 +665,10 @@ msgid "DHCP Start Address is not valid in Subnet Range"
 msgstr "DHCP Startadresse ist im Subnetzbereich ungültig"
 
 msgid "DHCP Start Address should not be Local Device IP Address"
-msgstr ""
-"DHCP Startadresse darf nicht mit der lokalen Geräteadresse übereinstimmen"
+msgstr "DHCP Startadresse darf nicht mit der lokalen Geräteadresse übereinstimmen"
 
 msgid "DHCP Start Address should not be a Network Address"
 msgstr "DHCP Startadresse darf keine Netzwerkadresse sein"
-
-msgid "DHCP Start Address should not be greater than End Address"
-msgstr "Die DHCP Anfangsadresse sollte nicht größer als die Endadresse sein"
 
 msgid "DHCP Start address"
 msgstr "DHCP Startadresse"
@@ -915,23 +703,8 @@ msgstr "DMZ deaktiviert"
 msgid "DMZ enabled"
 msgstr "DMZ aktiviert"
 
-msgid "DNS"
-msgstr "DNS"
-
 msgid "DNS IP Address"
 msgstr "DNS IP Adresse"
-
-msgid "DNS Server 1"
-msgstr "DNS Server 1"
-
-msgid "DNS Server 2"
-msgstr "DNS Server 2"
-
-msgid "DNS Server 3"
-msgstr "DNS Server 3"
-
-msgid "DNS Servers"
-msgstr "DNS Server"
 
 msgid "DNS Set"
 msgstr "DNS Setzen"
@@ -945,12 +718,6 @@ msgstr "DNS Server"
 msgid "DNS servers"
 msgstr "DNS Server"
 
-msgid "DOCSIS IP address"
-msgstr "DOCSIS IP Adresse"
-
-msgid "DOCSIS Status"
-msgstr "DOCSIS Status"
-
 msgid "DOCSIS WAN Available"
 msgstr "DOCSIS WAN verfügbar"
 
@@ -960,17 +727,8 @@ msgstr "DOCSIS WAN einschalten"
 msgid "DROP"
 msgstr "VERWERFEN"
 
-msgid "DSCP"
-msgstr "DSCP"
-
-msgid "DSL"
-msgstr "DSL"
-
 msgid "DSL Bit Loading"
 msgstr "DSL Bit-Nutzung"
-
-msgid "DSL Bit Loading (Line 1)"
-msgstr "DSL Bit-Nutzung (Leitung 1)"
 
 msgid "DSL Bits"
 msgstr "DSL Bits"
@@ -1002,15 +760,6 @@ msgstr "DSL Betriebsdauer"
 msgid "DSL stats"
 msgstr "DSL Statistik"
 
-msgid "Dark/Midnight"
-msgstr "Dunkel/Mitternacht"
-
-msgid "Dark/White"
-msgstr "Dunkel/Weiß"
-
-msgid "Data Rate"
-msgstr "Datenrate"
-
 msgid "Data Transferred"
 msgstr "Daten übertragen"
 
@@ -1028,6 +777,9 @@ msgstr "Wochentag"
 
 msgid "Delay"
 msgstr "Verzögerung"
+
+msgid "Delivered/In Progress"
+msgstr ""
 
 msgid "Demod Cap Mask"
 msgstr "Demod Fähigkeitsmaske"
@@ -1062,13 +814,8 @@ msgstr "Ziel MAC (fügen Sie die lokale IP ein, um die MAC zu suchen)"
 msgid "Destination port"
 msgstr "Ziel-Port"
 
-msgid ""
-"Detecting a Wi-Fi client's capabilities and monitoring its interfaces, Band "
-"Steering actively guides the client to the more suitable Wi-Fi band."
-msgstr ""
-"Bandsteuerung nutzt die Fähigkeiten des Endgeräts und überwacht seine "
-"Schnittstellen, um ihn ggf. aktiv zu einem geeigneteren Wi-Fi Band zu "
-"geleiten."
+msgid "Detecting a Wi-Fi client's capabilities and monitoring its interfaces, Band Steering actively guides the client to the more suitable Wi-Fi band."
+msgstr "Bandsteuerung nutzt die Fähigkeiten des Endgeräts und überwacht seine Schnittstellen, um ihn ggf. aktiv zu einem geeigneteren Wi-Fi Band zu geleiten."
 
 msgid "Dev"
 msgstr "Entwicklung"
@@ -1109,8 +856,8 @@ msgstr "Diagnose Port-Spiegelung"
 msgid "Diagnostics tcpdump"
 msgstr "Diagnose tcpdump"
 
-msgid "Digest"
-msgstr "Digest"
+msgid "Dialing"
+msgstr ""
 
 msgid "Direction Mode"
 msgstr "Richtungsmodus"
@@ -1121,8 +868,8 @@ msgstr "Richtung:"
 msgid "Disable VN Mode"
 msgstr "Abschalten VN Modus"
 
-msgid "disabled"
-msgstr "Abgeschaltet"
+msgid "Disabled"
+msgstr ""
 
 msgid "Discard Packets"
 msgstr "Verwerfe Pakete"
@@ -1132,9 +879,6 @@ msgstr "Getrennt"
 
 msgid "Disconnecting"
 msgstr "Trennen"
-
-msgid "Do not remind me again"
-msgstr "Nicht mehr erinnern"
 
 msgid "Do you want to continue?"
 msgstr "Wollen Sie weitermachen?"
@@ -1154,15 +898,17 @@ msgstr "Domain Name Server Konfiguration"
 msgid "Domain's IP updated"
 msgstr "IP Adresse der Donain aktualisiert"
 
-msgid ""
-"Don't report any bug, this is a custom gui! Some bugs could not be related "
-"to the current beta firmware."
-msgstr ""
-"Melden Sie keinen Fehler, dies ist eine angepasste Oberfläche! Einige Fehler "
-"könnten mit der aktuellen Beta-Firmware zu tun haben."
+msgid "Don't report any bug, this is a custom gui! Some bugs could not be related to the current beta firmware."
+msgstr "Melden Sie keinen Fehler, dies ist eine angepasste Oberfläche! Einige Fehler könnten mit der aktuellen Beta-Firmware zu tun haben."
 
-msgid "Down"
-msgstr "Unten"
+msgid "Dos Protect Option"
+msgstr ""
+
+msgid "DoS Protect disabled"
+msgstr ""
+
+msgid "DoS Protect enabled"
+msgstr ""
 
 msgid "Download"
 msgstr "Herunterladen"
@@ -1173,38 +919,8 @@ msgstr "Herunterladen fehlgeschlagen, bitte versuchen Sie es erneut."
 msgid "Downloading tcpdump file, please wait..."
 msgstr "Herunterladen der tcpdump Datei, bitte warten..."
 
-msgid "Downstream Bonded Channels"
-msgstr "Downstream verknüpfte Kanäle"
-
-msgid "Downstream CRC"
-msgstr "Downstream CRC"
-
-msgid "Downstream ES"
-msgstr "Downstream ES"
-
-msgid "Downstream FEC"
-msgstr "Downstream FEC"
-
-msgid "Downstream LOF"
-msgstr "Downstream LOF"
-
-msgid "Downstream LOM"
-msgstr "Downstream LOM"
-
-msgid "Downstream LOS"
-msgstr "Downstream LOS"
-
-msgid "Downstream SES"
-msgstr "Downstream SES"
-
-msgid "Downstream UAS"
-msgstr "Downstream UAS"
-
 msgid "Driver Version"
 msgstr "Treiberversion"
-
-msgid "Driver Version: </br><strong id=\"cwmpconfcard_acsurl\">%s</strong>"
-msgstr "Treiberversion: </br><strong id=\"cwmpconfcard_acsurl\">%s</strong>"
 
 msgid "Driver Version: <strong>%s</strong>"
 msgstr "Treiber Version: <strong>%s</strong>"
@@ -1227,6 +943,9 @@ msgstr "Ziel-IP"
 msgid "Dst IP/Subnet"
 msgstr "Ziel-IP/-Subnet"
 
+msgid "Dst Port"
+msgstr ""
+
 msgid "Dst port"
 msgstr "Ziel-Port"
 
@@ -1235,9 +954,6 @@ msgstr "Doppelter Inhalt ist nicht zugelassen"
 
 msgid "Duplicate entry is not allowed"
 msgstr "Doppelte Einträge sind nicht zugelassen"
-
-msgid "DynDNS"
-msgstr "DynDNS"
 
 msgid "DynDNS Information"
 msgstr "DynDNS Information"
@@ -1248,9 +964,6 @@ msgstr "DynDNS abgeschaltet"
 msgid "DynDNS enabled"
 msgstr "DynDNS eingeschaltet"
 
-msgid "EF"
-msgstr "EF"
-
 msgid "EOC Serial Number"
 msgstr "EOC Seriennummer"
 
@@ -1260,11 +973,14 @@ msgstr "EOC Hersteller ID"
 msgid "ERROR"
 msgstr "FEHLER"
 
-msgid "ESP"
-msgstr "ESP"
-
 msgid "Eco Led"
 msgstr "Öko-LED"
+
+msgid "Eco LED disabled"
+msgstr ""
+
+msgid "Eco LED enabled"
+msgstr ""
 
 msgid "Eco Settings"
 msgstr "Öko-Einstellungen"
@@ -1284,24 +1000,20 @@ msgstr "Aktiviert"
 msgid "Encapsulation"
 msgstr "Verkapselung"
 
+msgid "Energy Efficent Ethernet disabled"
+msgstr ""
+
+msgid "Energy Efficent Ethernet enabled"
+msgstr ""
+
 msgid "Engineer"
 msgstr "Ingenieur"
 
 msgid "Enhanced Tim"
 msgstr "Verbessertes TIM"
 
-msgid ""
-"Enter the default <strong>\"access code\"</strong>. This code is located on "
-"the label underneath your gateway."
-msgstr ""
-"Geben Sie den Standard <strong>\"Zugriffscode\"</strong>ein. Dieser Code "
-"befindet sich auf dem Aufkleber an der Unterseite Ihres Gateways."
-
 msgid "Entering BOOTP, please wait..."
 msgstr "Beginne BOOTP, bitte warten..."
-
-msgid "ErrFreeBits"
-msgstr "Fehlerfreie Bits"
 
 msgid "ErrS Packet Drop"
 msgstr "Fehler Paketverlust"
@@ -1330,18 +1042,6 @@ msgstr "Fehlercode "
 msgid "Errors"
 msgstr "Fehler"
 
-msgid "Ethernet"
-msgstr "Ethernet"
-
-msgid "Ethernet AutoGrEEEn"
-msgstr "Ethernet AutoGrEEEn"
-
-msgid "Ethernet EEE"
-msgstr "Ethernet EEE"
-
-msgid "Ethernet Ethapd"
-msgstr "Ethernet Ethapd"
-
 msgid "Ethernet Network Traffic"
 msgstr "Ethernet Netzwerkverkehr"
 
@@ -1360,12 +1060,8 @@ msgstr "Ethernet abgeschaltet"
 msgid "Ethernet not connected"
 msgstr "Ethernet nicht verbunden"
 
-msgid ""
-"Every filter is a regular expression string; Start with '!' to invert "
-"selection"
-msgstr ""
-"Jeder Filter ist ein regulärer Ausdruck; starten Sie mit '!', um die Auswahl "
-"umzukehren"
+msgid "Every filter is a regular expression string; Start with '!' to invert selection"
+msgstr "Jeder Filter ist ein regulärer Ausdruck; starten Sie mit '!', um die Auswahl umzukehren"
 
 msgid "Everything"
 msgstr "Alles"
@@ -1397,6 +1093,9 @@ msgstr "Exportieren fehlgeschlagen, bitte erneut versuchen."
 msgid "Exporting log, please wait ..."
 msgstr "Exportiere Protokoll, bitte warten..."
 
+msgid "Extensions"
+msgstr ""
+
 msgid "External access points"
 msgstr "Externe Access Points"
 
@@ -1412,9 +1111,6 @@ msgstr "Fehlgeschlagen"
 msgid "Failure Count:"
 msgstr "Fehlerzähler:"
 
-msgid "Fast Cache Option"
-msgstr "Flow Cache Option"
-
 msgid "Filter"
 msgstr "Filter"
 
@@ -1423,9 +1119,6 @@ msgstr "Filter IP"
 
 msgid "Finished"
 msgstr "Abgeschlossen"
-
-msgid "Firewall"
-msgstr "Firewall"
 
 msgid "Firewall default behavior"
 msgstr "Firewall Standardverhalten"
@@ -1436,9 +1129,6 @@ msgstr "Firewall Stufe"
 msgid "Firewall level: <strong id=\"Firewall_Level_ID\">%s</strong><br>"
 msgstr "Firewall Stufe: <strong id=\"Firewall_Level_ID\">%s</strong><br>"
 
-msgid "Firmware OID"
-msgstr "Firmware OID"
-
 msgid "Firmware Version"
 msgstr "Firmware Version"
 
@@ -1448,36 +1138,20 @@ msgstr "Firmware in dieser Bank nicht vorhanden"
 msgid "Firmware upgrade failed."
 msgstr "Firmware-Aktualisierung fehlgeschlagen."
 
-msgid ""
-"Firmware upgrade failed.  Insufficient free memory available. Please reboot "
-"and try again."
-msgstr ""
-"Firmware-Aktualisierung fehlgeschlagen. Zu wenig freier Speicher. Bitte neu "
-"starten und erneut versuchen."
+msgid "Firmware upgrade failed.  Insufficient free memory available. Please reboot and try again."
+msgstr "Firmware-Aktualisierung fehlgeschlagen. Zu wenig freier Speicher. Bitte neu starten und erneut versuchen."
 
-msgid ""
-"Firmware upgrade failed.  Invalid file used: expected file with extension "
-"rbi.  Please use correct firmware."
-msgstr ""
-"Firmware-Aktualisierung fehlgeschlagen. Ungültige Datei: Datei mit "
-"Erweiterung 'rbi' erwartet. Bitte verwenden Sie die richtige Firmware."
+msgid "Firmware upgrade failed.  Invalid file used: expected file with extension rbi.  Please use correct firmware."
+msgstr "Firmware-Aktualisierung fehlgeschlagen. Ungültige Datei: Datei mit Erweiterung 'rbi' erwartet. Bitte verwenden Sie die richtige Firmware."
 
-msgid ""
-"Firmware upgrade failed.  Invalid file used: file too large.  Please use "
-"correct firmware."
-msgstr ""
-"Firmware-Aktualisierung fehlgeschlagen. Ungültige Datei: Datei zu groß. "
-"Bitte verwenden Sie die richtige Firmware."
+msgid "Firmware upgrade failed.  Invalid file used: file too large.  Please use correct firmware."
+msgstr "Firmware-Aktualisierung fehlgeschlagen. Ungültige Datei: Datei zu groß. Bitte verwenden Sie die richtige Firmware."
 
 msgid "Firmware upgrade failed; build signed with wrong key"
-msgstr ""
-"Firmware-Aktualisierung fehlgeschlagen. Die Firmware wurde mit dem falschen "
-"Schlüssel signiert"
+msgstr "Firmware-Aktualisierung fehlgeschlagen. Die Firmware wurde mit dem falschen Schlüssel signiert"
 
 msgid "Firmware upgrade failed; please use the correct firmware."
-msgstr ""
-"Firmware-Aktualisierung fehlgeschlagen. Bitte verwenden Sie die richtige "
-"Firmware."
+msgstr "Firmware-Aktualisierung fehlgeschlagen. Bitte verwenden Sie die richtige Firmware."
 
 msgid "Firmware upgrade in progress, please wait..."
 msgstr "Firmware-Aktualisierung wird durchgeführt, bitte warten..."
@@ -1488,23 +1162,26 @@ msgstr "Erster DNS Server IPv6 PIng"
 msgid "First DNS Server Ping"
 msgstr "Erster DNS Server Ping"
 
-msgid "Flags"
-msgstr "Schalter"
-
 msgid "Flow Cache Option"
 msgstr "Flow Cache Option"
 
+msgid "Flow Cache disabled"
+msgstr ""
+
+msgid "Flow Cache enabled"
+msgstr ""
+
 msgid "Force Upgrade"
 msgstr "Upgrade erzwingen"
-
-msgid "Forgot Login Password"
-msgstr "Anmeldekennwort vergessen"
 
 msgid "Frame Bursting"
 msgstr "Frame Bursting"
 
 msgid "Framing parameters"
 msgstr "Framing Parameter"
+
+msgid "Free Memory"
+msgstr ""
 
 msgid "Frequency"
 msgstr "Frequenz"
@@ -1515,42 +1192,26 @@ msgstr "Frequenzband"
 msgid "Fri."
 msgstr "Fri."
 
-msgid "Fritz!Box"
-msgstr "Fritz!Box"
-
-msgid "Function input param is missing"
-msgstr "Eingabeparameter für Funktion fehlt"
-
 msgid "G.INP stats"
 msgstr "G.INP Statistik"
 
 msgid "GPON Status"
 msgstr "GPON Status"
 
-msgid "GRE"
-msgstr "GRE"
-
 msgid "GRE without PassThru"
 msgstr "GRE ohne Durchleitung"
 
-msgid "GS"
-msgstr "GS"
-
-msgid "GSM"
-msgstr "GSM"
-
-msgid "Gateway"
-msgstr "Gateway"
-
-msgid ""
-"Gateway IP is <strong id=\"Gateway_Ip\">%s</strong> and netmask is <strong "
-"id=\"Netmask_Ip\">%s</strong>"
+msgid "GUI Version"
 msgstr ""
-"Die Gateway IP ist <strong id=\"Gateway_Ip\">%s</strong> und die Netzmaske "
-"ist <strong id=\"Netmask_Ip\">%s</strong>"
+
+msgid "Gateway IP is <strong id=\"Gateway_Ip\">%s</strong> and netmask is <strong id=\"Netmask_Ip\">%s</strong>"
+msgstr "Die Gateway IP ist <strong id=\"Gateway_Ip\">%s</strong> und die Netzmaske ist <strong id=\"Netmask_Ip\">%s</strong>"
 
 msgid "Gateway IP should not be in "
 msgstr "Die Gateway IP sollte nicht in "
+
+msgid "Gateway IP should not be in SFP interface IP Range, change that first"
+msgstr ""
 
 msgid "Gateway in bridge mode"
 msgstr "Gateway im Brückenmodus"
@@ -1561,9 +1222,6 @@ msgstr "Erzeuge QR-Code"
 msgid "Generic"
 msgstr "Generisch"
 
-msgid "Genmask"
-msgstr "Generische Maske"
-
 msgid "Github Gui"
 msgstr "Github GUI"
 
@@ -1573,19 +1231,8 @@ msgstr "Global"
 msgid "Global Information"
 msgstr "Allgemeine Information"
 
-msgid ""
-"Go to the gateway tab and click on the Upgrade buttom, to autoupgrade to the "
-"new GUI."
-msgstr ""
-"Gehen Sie auf den Gateway Reiter und drücken die den Aktualisieren-Knopf, um "
-"auf das neue GUI zu aktualisieren."
-
-msgid ""
-"Go to the gateway tab and click on the Upgrade button, to autoupgrade to the "
-"new GUI."
-msgstr ""
-"Gehen Sie auf den Gateway Reiter und drücken Sie den Upgrade-Knopf, um die "
-"neueste Version der Oberfläche zu installieren."
+msgid "Go to the gateway tab and click on the Upgrade button, to autoupgrade to the new GUI."
+msgstr "Gehen Sie auf den Gateway Reiter und drücken Sie den Upgrade-Knopf, um die neueste Version der Oberfläche zu installieren."
 
 msgid "Good"
 msgstr "Gut"
@@ -1599,6 +1246,9 @@ msgstr "Grün"
 msgid "Guest"
 msgstr "Gast"
 
+msgid "Gui FirstPage"
+msgstr ""
+
 msgid "Gui Skin"
 msgstr "GUI Stil"
 
@@ -1610,12 +1260,6 @@ msgstr "GUI Version"
 
 msgid "Gui Version: "
 msgstr "GUI Version: "
-
-msgid "HS Switch Timeout"
-msgstr "HS Switch Timeout"
-
-msgid "HTTPS"
-msgstr "HTTPS"
 
 msgid "Hardware Version"
 msgstr "Hardware-Version"
@@ -1635,18 +1279,6 @@ msgstr "Hostname"
 msgid "Hostname:"
 msgstr "Hostname:"
 
-msgid "ICMP"
-msgstr "ICMP"
-
-msgid "ICMPv6"
-msgstr "ICMPv6"
-
-msgid "INP"
-msgstr "INP"
-
-msgid "IP"
-msgstr "IP"
-
 msgid "IP Address"
 msgstr "IP Adresse"
 
@@ -1662,14 +1294,8 @@ msgstr "IPv6 Adresse"
 msgid "IP address"
 msgstr "IP Adresse"
 
-msgid "IPv4"
-msgstr "IPv4"
-
 msgid "IPv4 Firewall Rules"
 msgstr "IPv4 Firewall Regeln"
-
-msgid "IPv4 Only"
-msgstr "Nur IPv4"
 
 msgid "IPv4 Port forwarding table"
 msgstr "IPv4 Port-Weiterleitungstabelle"
@@ -1679,9 +1305,6 @@ msgstr "IPv4 Routen"
 
 msgid "IPv4 Static Routes Configuration"
 msgstr "Konfiguration statische IPv4-Routen"
-
-msgid "IPv6"
-msgstr "IPv6"
 
 msgid "IPv6 Address"
 msgstr "IPv6 Adresse"
@@ -1701,17 +1324,11 @@ msgstr "IPv6 DNS"
 msgid "IPv6 Disabled"
 msgstr "IPv6 abgeschaltet"
 
-msgid "IPv6 Firewall"
-msgstr "IPv6 Firewall"
-
 msgid "IPv6 Firewall Rules"
 msgstr "IPv6 Firewall-Regeln"
 
 msgid "IPv6 Not Assigned"
 msgstr "IPv6 nicht zugewiesen"
-
-msgid "IPv6 Only"
-msgstr "Nur IPv6"
 
 msgid "IPv6 Prefix"
 msgstr "IPv6 Präfix"
@@ -1719,57 +1336,26 @@ msgstr "IPv6 Präfix"
 msgid "IPv6 address"
 msgstr "IPv6 Adresse"
 
-msgid "IPv6 forwarding table"
-msgstr "IPv6 Weiterleitungstabelle"
-
 msgid "IPv6 not assigned"
 msgstr "IPv6 nicht zugewiesen"
 
 msgid "IPv6 state"
 msgstr "IPv6 Status"
 
-msgid ""
-"If a newer version is present in the acs server, cwmpd will try to upgrade "
-"the modem and will not send any info. This brake some remote app like "
-"MyTIMFisso. Change the version here to fake it."
+msgid "Idle"
 msgstr ""
-"Wenn eine neuere Version auf dem ACS Server vorliegt, wird cwmpd versuchen, "
-"das Modem zu aktualisieren und keine Information darüber geben. Das bremst "
-"einige Apps, wie MyTIMFisso. Geben Sie hier eine Version an, um dies ggf. zu "
-"verhindern."
 
-msgid ""
-"If a newer version is present in the acs server, cwmpd will try to upgrade "
-"the modem and will not send any info. This breaks some remote app like "
-"MyTIMFisso. Change the version here to fake it."
+msgid "Input the latest stock firmware version in this field to spoof it. This is necessary because if a newer version of the firmware is available on the ACS server, CWMPD will try to update the device and break remote monitoring from the “MyTIM” mobile app."
 msgstr ""
-"Wenn auf dem ACS Server eine neuere Version vorliegt, wird cwmpd versuchen, "
-"das Modem zu aktualisieren und dabei keine Informationen darüber geben. Das "
-"funktioniert mit einigen Apps (wie MyTIMFisso) nicht. Hier können sie eine "
-"andere Version vortäuschen."
 
-msgid ""
-"If a wireless device reports this gateway's 2.4GHz signal strength is above "
-"this threshold, the gateway will ask the device to test the 5GHz band . "
-"Please see 5GHz section for additional parameter."
+msgid "If a wireless device reports this gateway's 2.4GHz signal strength is above this threshold, the gateway will ask the device to test the 5GHz band . Please see 5GHz section for additional parameter."
+msgstr "Wenn ein Drahtlosgerät meldet, dass die 2.4 GHz Signalstärke dieses Gateways diesen Schwellwert übersteigt, wird diese das Gerät auffordern, das 5-GHz-Band auszuprobieren. Bitte sehen Sie in die Abschnitt für 5 GHz für weitere Parameter."
+
+msgid "If you haven't changed it, the default password can be found on the sticker under your gateway (it's called <strong>\"access code\"</strong>)"
+msgstr "Wenn Sie es nicht geändert haben, findet sich das Standard-Kennwort auf dem Aufkleber unter Ihrem Gateway (unter <strong>\"access code\"</strong>)"
+
+msgid "Warning: starting the Wireless Analyzer will disconnect all wireless clients until the analysis has been completed."
 msgstr ""
-"Wenn ein Drahtlosgerät meldet, dass die 2.4 GHz Signalstärke dieses Gateways "
-"diesen Schwellwert übersteigt, wird diese das Gerät auffordern, das 5-GHz-"
-"Band auszuprobieren. Bitte sehen Sie in die Abschnitt für 5 GHz für weitere "
-"Parameter."
-
-msgid ""
-"If you haven't changed it, the default password can be found on the sticker "
-"under your gateway (it's called <strong>\"access code\"</strong>)"
-msgstr ""
-"Wenn Sie es nicht geändert haben, findet sich das Standard-Kennwort auf dem "
-"Aufkleber unter Ihrem Gateway (unter <strong>\"access code\"</strong>)"
-
-msgid "Iface"
-msgstr "Schnittstelle"
-
-msgid "Igmpproxy"
-msgstr "IGMP-Proxy"
 
 msgid "Import"
 msgstr "Importieren"
@@ -1789,82 +1375,29 @@ msgstr "Importiere unsignierte Version"
 msgid "Importing configuration, please wait..."
 msgstr "Importieren der Konfiguration, bitte warten..."
 
-msgid ""
-"Importing failed; Invalid file used: expected file with extension bin.  "
-"Please use correct file."
-msgstr ""
-"Importieren fehlgeschlagen, ungültige Datei: Dateiendung bin erwartet. Bitte "
-"nutzen Sie die korrekte Datei."
+msgid "Importing failed; Invalid file used: expected file with extension bin.  Please use correct file."
+msgstr "Importieren fehlgeschlagen, ungültige Datei: Dateiendung bin erwartet. Bitte nutzen Sie die korrekte Datei."
 
-msgid ""
-"Importing failed; Invalid file used: file too large.  Please use correct.  "
-"Please use correct file.."
-msgstr ""
-"Importieren fehlgeschlagen, ungültige Datei: Datei zu groß. Bitte nutzen Sie "
-"die korrekte Datei."
+msgid "Importing failed; Invalid file used: file too large.  Please use correct.  Please use correct file.."
+msgstr "Importieren fehlgeschlagen, ungültige Datei: Datei zu groß. Bitte nutzen Sie die korrekte Datei."
 
 msgid "Importing failed; please try again."
 msgstr "Importieren fehlgeschlagen. Bitte nutzen Sie die korrekte Datei."
 
-msgid ""
-"In <strong>high mode</strong>, firewall allows outgoing connections to HTTP, "
-"HTTPS, SMTP, POP3, IMAP, SSH services and silently drops unknown incoming "
-"connections. This may impact on web services like Internet Speed Test."
-msgstr ""
-"Im Modus <strong>Hoch</strong>, erlaubt die Firewall ausgehende Verbindungen "
-"für HTTP, HTTPS, SMTP, POP3, IMAP, SSH Dienste und verwirft eingehende "
-"Verbindungsanforderungen. Dies kann Auswirkungen auf Internet-Dienste haben, "
-"z.B. auf Geschwindigkeitstests."
+msgid "In <strong>high mode</strong>, firewall allows outgoing connections to HTTP, HTTPS, SMTP, POP3, IMAP, SSH services and silently drops unknown incoming connections. This may impact on web services like Internet Speed Test."
+msgstr "Im Modus <strong>Hoch</strong>, erlaubt die Firewall ausgehende Verbindungen für HTTP, HTTPS, SMTP, POP3, IMAP, SSH Dienste und verwirft eingehende Verbindungsanforderungen. Dies kann Auswirkungen auf Internet-Dienste haben, z.B. auf Geschwindigkeitstests."
 
-msgid ""
-"In <strong>low mode</strong>, firewall allows all outbound connections and "
-"rejects unknown incoming connections but acknowledges presence of the "
-"gateway."
-msgstr ""
-"Im Modus <strong>Niedrig</strong>, erlaubt die Firewall ausgehende "
-"Verbindungen und verwirft eingehende Verbindungsanforderungen, verbirgt aber "
-"die Anwesenheit des Gateways nicht."
+msgid "In <strong>low mode</strong>, firewall allows all outbound connections and rejects unknown incoming connections but acknowledges presence of the gateway."
+msgstr "Im Modus <strong>Niedrig</strong>, erlaubt die Firewall ausgehende Verbindungen und verwirft eingehende Verbindungsanforderungen, verbirgt aber die Anwesenheit des Gateways nicht."
 
-msgid ""
-"In <strong>medium mode</strong>, firewall allows all outbound connections "
-"and silently drops unknown incoming connections."
-msgstr ""
-"Im Modus <strong>Mittel</strong>, erlaubt die Firewall alle ausgehenden "
-"Verbindungen und verwirft eingehende Verbindungsanforderungen."
+msgid "In <strong>medium mode</strong>, firewall allows all outbound connections and silently drops unknown incoming connections."
+msgstr "Im Modus <strong>Mittel</strong>, erlaubt die Firewall alle ausgehenden Verbindungen und verwirft eingehende Verbindungsanforderungen."
 
-msgid ""
-"In <strong>user mode</strong>, individual firewall rules may be configured "
-"as well as the default behavior."
-msgstr ""
-"Im Modus <strong>Benutzer</strong> können individuelle Firewall-Regeln und "
-"das Standardverhalten konfiguriert werden."
-
-msgid ""
-"In this mode, your modem may not have internet connection. The script may "
-"fail to download the new firmware. \t\t\t\t\t\t\t\t\t\t\t\t\t\tIt is advised "
-"to download and apply it manually. Look in the forum repository for more "
-"info. "
-msgstr ""
-"In diesem Modus hat Ihr Modem eventuell keine Internet-Verbindung. Der "
-"Download der neuen Firmware könnte fehlschlagen.\t\t\t\t\t\t\t\t\t\t\t\t\t"
-"\tEs wird geraten, die Firmware manuell herunterzuladen und anzuwenden. "
-"Schauen Sie für mehr Informationen ins Forum."
-
-msgid ""
-"In this mode, your modem may not have internet connection. The script may "
-"fail to download the new firmware. It is advised to download and apply it "
-"manually. Look in the forum repository for more info."
-msgstr ""
-"In diesem Modus hat Ihr Modem eventuell keine Internet-Verbindung. Das "
-"Skript zum Herunterladen der neuen Firmware kann fehlschlagen. In diesem "
-"Fall laden Sie die Version direkt herunter und installieren Sie die Firmware "
-"manuell. Für mehr Informationen konsultieren Sie das Forum."
+msgid "In <strong>user mode</strong>, individual firewall rules may be configured as well as the default behavior."
+msgstr "Im Modus <strong>Benutzer</strong> können individuelle Firewall-Regeln und das Standardverhalten konfiguriert werden."
 
 msgid "Incoming default policy"
 msgstr "Eingehendes Standardverhalten"
-
-msgid "Infinite"
-msgstr "Unendlich"
 
 msgid "Input must be a number"
 msgstr "Eingabe muss eine Zahl sein"
@@ -1935,9 +1468,6 @@ msgstr "Internet IP Adresse"
 msgid "Internet Traffic"
 msgstr "Internet Verkehr"
 
-msgid "Internet VPC"
-msgstr "Internet VPC"
-
 msgid "Internet channel"
 msgstr "Internet Kanal"
 
@@ -1947,17 +1477,11 @@ msgstr "Ungültige IP-Adresse"
 msgid "Invalid IPv4 Address"
 msgstr "Ungültige IPv4-Adresse"
 
-msgid "Invalid Password"
-msgstr "Ungültiges Kennwort"
-
 msgid "Invalid Username or Password"
 msgstr "Ungültiger Benutzername oder Kennwort"
 
 msgid "Invalid configuration"
 msgstr "Ungültige Konfiguration"
-
-msgid "Invalid day"
-msgstr "Ungültiger Tag"
 
 msgid "Invalid hour, must be between 0 and 23"
 msgstr "Ungültige Stunde, sie muss zwischen 0 und 23 liegen"
@@ -1974,14 +1498,14 @@ msgstr "Ungültiger Benutzername, Domain gesperrt"
 msgid "Invalid version, can't convert. Raw value: %s"
 msgstr "Ungültige Version, sie kann nicht konvertiert werden. Rohwert: %s"
 
+msgid "In Call"
+msgstr "In Anruf"
+
 msgid "Ip Extras"
 msgstr "IP Extras"
 
 msgid "Ipv4/Ipv6"
 msgstr "IPv4/IPv6"
-
-msgid "L"
-msgstr "L"
 
 msgid "L2TP with UDP-Checksum check"
 msgstr "L2TP mit Prüfsumme"
@@ -1992,14 +1516,8 @@ msgstr "L2TP ohne UDP Prüfsumme"
 msgid "L2tp"
 msgstr "L2TP"
 
-msgid "LAN"
-msgstr "LAN"
-
 msgid "LAN Graph"
 msgstr "LAN Grafik"
-
-msgid "LAN IPv6"
-msgstr "LAN IPv6"
 
 msgid "LAN Interfaces"
 msgstr "LAN Schnittstellen"
@@ -2012,15 +1530,6 @@ msgstr "LAN Schnittstelle"
 
 msgid "LAN port"
 msgstr "LAN Port"
-
-msgid "LEFTRS"
-msgstr "LEFTRS"
-
-msgid "LOG"
-msgstr "LOG"
-
-msgid "Laptop"
-msgstr "Laptop"
 
 msgid "Last"
 msgstr "Letzter"
@@ -2046,9 +1555,6 @@ msgstr "Lease-Zeit"
 msgid "Led Settings"
 msgstr "LED Einstellungen"
 
-msgid "Less Ping"
-msgstr "Weniger Ping-Zeit"
-
 msgid "Level"
 msgstr "Stufe"
 
@@ -2057,6 +1563,9 @@ msgstr "Leitungspegel"
 
 msgid "Line Rate"
 msgstr "Leitungssgeschwindigkeit"
+
+msgid "Line State"
+msgstr ""
 
 msgid "Link Down"
 msgstr "Gegenstelle nicht erreichbar"
@@ -2091,17 +1600,8 @@ msgstr "Protokolltyp:"
 msgid "Log Viewer"
 msgstr "Protokollanzeige"
 
-msgid "Login"
-msgstr "Anmelden"
-
 msgid "Login Expired. Reloading."
 msgstr "Anmeldung abgelaufen. Neu laden."
-
-msgid "LookBack"
-msgstr "Zurückblicken"
-
-msgid "Luci GUI"
-msgstr "Luci GUI"
 
 msgid "Luci GUI !! BROKEN !!"
 msgstr "Luci GUI !! Defekt !!"
@@ -2111,9 +1611,6 @@ msgstr "Luci WebUi installiert"
 
 msgid "Luci WebUi not installed"
 msgstr "Luci WebUi nicht installiert"
-
-msgid "Luci Webui"
-msgstr "Luci Webui"
 
 msgid "Luci is "
 msgstr "Luci ist "
@@ -2133,14 +1630,6 @@ msgstr "MCast"
 msgid "MCast-Learn"
 msgstr "MCast-Lernen"
 
-msgid "MSE"
-msgstr "MSE"
-
-msgid ""
-"Mac address duplicate with either current whitelist or current blacklist"
-msgstr ""
-"Die MAC-Adresse kommt in der aktuellen Blacklist oder Whitelist bereits vor"
-
 msgid "Management"
 msgstr "Verwaltung"
 
@@ -2155,6 +1644,9 @@ msgstr "Maximaler Hop Count:"
 
 msgid "Max Packet Number Recommended:"
 msgstr "Maximal empfohlene Anzahl Pakete:"
+
+msgid "Max Rate"
+msgstr ""
 
 msgid "Max Resp Time:"
 msgstr "Maximale Antwortzeit:"
@@ -2183,12 +1675,11 @@ msgstr "Modus"
 msgid "Modes"
 msgstr "Modi"
 
-msgid ""
-"Modify this option will restart the wan connection (to sync the led with the "
-"new config)"
+msgid "Change the SNR margin to increase stability or performance when in “ADSL Mode”. Changing this value in “VDSL Mode” won’t have any effect."
 msgstr ""
-"Modifikation dieser Option wird die WAN-Verbindung neu starten (um die LED-"
-"Anzeige mit der neuen Konfiguration zu synchronisieren)"
+
+msgid "Modify this option will restart the wan connection (to sync the led with the new config)"
+msgstr "Modifikation dieser Option wird die WAN-Verbindung neu starten (um die LED-Anzeige mit der neuen Konfiguration zu synchronisieren)"
 
 msgid "Modulation"
 msgstr "Modulierung"
@@ -2202,29 +1693,14 @@ msgstr "Überwachte Schnittstelle:"
 msgid "Multicast Packets"
 msgstr "Multicast-Pakete"
 
-msgid "N"
-msgstr "N"
-
-msgid "NAT"
-msgstr "NAT"
-
-msgid "NAT Helpers"
-msgstr "NAT Helfer"
+msgid "NA"
+msgstr ""
 
 msgid "NAT Helpers (ALG's)"
 msgstr "NAT Helfer (ALGs)"
 
 msgid "NAT-PMP Enabled"
 msgstr "NAT-PMP eingeschaltet"
-
-msgid "NO"
-msgstr "NEIN"
-
-msgid "NTP Servers"
-msgstr "NTP Server"
-
-msgid "NTP servers"
-msgstr "NTP Server"
 
 msgid "NULL"
 msgstr "NULL"
@@ -2262,19 +1738,14 @@ msgstr "Next Hop Ping"
 msgid "Next Hop Ping IPV6"
 msgstr "Next Hop Ping IPv6"
 
-msgid "No"
-msgstr "Nein"
-
 msgid "No Address Assigned"
 msgstr "Keine Adresse zugewiesen"
 
 msgid "No Upgrade found"
 msgstr "Keine Aktualisierung gefunden"
 
-msgid ""
-"No configuration available for internet connectivity when in bridge mode."
-msgstr ""
-"Im Brückenmodus gibt es keine Konfiguration für die Internetverbindung."
+msgid "No configuration available for internet connectivity when in bridge mode."
+msgstr "Im Brückenmodus gibt es keine Konfiguration für die Internetverbindung."
 
 msgid "No error received from server"
 msgstr "Kein Fehler vom Server empfangen"
@@ -2333,49 +1804,29 @@ msgstr "Wird bislang auf dem AGTEF nicht unterstützt"
 msgid "Notation"
 msgstr "Schreibweise"
 
-msgid ""
-"Note: Datamodel version <b>1</b> may be required for older applications."
-msgstr ""
-"Hinweis: Datenmodell Version <b>1</b> könnte für ältere Anwendungen benötigt "
-"werden."
+msgid "Note: Datamodel version <b>1</b> may be required for older applications."
+msgstr "Hinweis: Datenmodell Version <b>1</b> könnte für ältere Anwendungen benötigt werden."
 
-msgid ""
-"Note: HTTPS mode will enable encryption but not certificate-based "
-"authentication of DynDNS service"
-msgstr ""
-"Hinweis: HTTPS Modus schaltet Verschlüsselung, aber keine "
-"zertifikatsbasierte Authentifizierung für den DynDNS-Dienst ein"
+msgid "Note: HTTPS mode will enable encryption but not certificate-based authentication of DynDNS service"
+msgstr "Hinweis: HTTPS Modus schaltet Verschlüsselung, aber keine zertifikatsbasierte Authentifizierung für den DynDNS-Dienst ein"
 
-msgid ""
-"Note: You need to inser an unused ip on the local LAN to make the WakeOnWAN "
-"work."
-msgstr ""
-"Hinweis: Sie müssen eine ungenutzte IP im lokalen Netz eintragen, um "
-"WakeOnWAN zu nutzen."
+msgid "Note: You need to inser an unused ip on the local LAN to make the WakeOnWAN work."
+msgstr "Hinweis: Sie müssen eine ungenutzte IP im lokalen Netz eintragen, um WakeOnWAN zu nutzen."
 
-msgid "Now"
-msgstr "Jetzt"
+msgid "Number"
+msgstr ""
 
 msgid "Number of pings:"
 msgstr "Anzahl Pings:"
 
-msgid "OR"
-msgstr "ODER"
-
 msgid "Off"
 msgstr "Aus"
-
-msgid "Offline"
-msgstr "Offline"
 
 msgid "Offline GUI upgrade"
 msgstr "Offline GUI Aktualisierung"
 
 msgid "Offline Upgrade"
 msgstr "Offline Aktualisierung"
-
-msgid "Ok"
-msgstr "O.K."
 
 msgid "Old Password"
 msgstr "Altes Kennwort"
@@ -2392,9 +1843,6 @@ msgstr "An"
 msgid "Ongoing"
 msgstr "Laufend"
 
-msgid "Online"
-msgstr "Online"
-
 msgid "Only Ipv4"
 msgstr "Nur IPv4"
 
@@ -2404,15 +1852,8 @@ msgstr "Nur IPv6"
 msgid "Only PassThru"
 msgstr "Nur Durchleitung"
 
-msgid ""
-"Only alphanumeric characters, commas (,), full spots(.), underscores(_) and "
-"hiphens(-) are allowed, no spaces"
-msgstr ""
-"Nur alphanumerische Zeichen, Kommas, Punkte, Unterstriche und Striche sind "
-"zugelassen, keine Leerzeichen"
-
-msgid "OpticalSignalLevel"
-msgstr "OptischerSignalpegel"
+msgid "Only alphanumeric characters, commas (,), full spots(.), underscores(_) and hiphens(-) are allowed, no spaces"
+msgstr "Nur alphanumerische Zeichen, Kommas, Punkte, Unterstriche und Striche sind zugelassen, keine Leerzeichen"
 
 msgid "Out Policy"
 msgstr "Ausgehendes Verhalten"
@@ -2422,21 +1863,6 @@ msgstr "Ausgehendes Standardverhalten"
 
 msgid "Output Power"
 msgstr "Ausgangsleistung"
-
-msgid "Overlap contents are not allowed"
-msgstr "Überlappende Inhalte sind nicht erlaubt"
-
-msgid "Overlapping times are not allowed."
-msgstr "Überlappende Zeiten sind nicht erlaubt."
-
-msgid "PCAP"
-msgstr "PCAP"
-
-msgid "PDA"
-msgstr "PDA"
-
-msgid "PHY Rate"
-msgstr "PHY Rate"
 
 msgid "PPP authentication failed"
 msgstr "PPP Authentifizierung fehlgeschlagen"
@@ -2471,6 +1897,15 @@ msgstr "PPP Statistik"
 msgid "PPP status"
 msgstr "PPP Status"
 
+msgid "PPPoE Relay"
+msgstr ""
+
+msgid "PPPoE Relay disabled"
+msgstr ""
+
+msgid "PPPoE Relay enabled"
+msgstr ""
+
 msgid "Packet Number:"
 msgstr "Anzahl Pakete:"
 
@@ -2498,27 +1933,11 @@ msgstr "Passive Version"
 msgid "Password"
 msgstr "Kennwort"
 
-msgid ""
-"Password must contain at least 12 alphanumeric characters including both "
-"upper and lower case letters,"
-msgstr ""
-"Kennwort muss aus mindestens 12 alphanumerische Zeichen, inklusive Klein- "
-"und Großbuchstaben, bestehen,"
+msgid "Password must contain at least 12 alphanumeric characters including both upper and lower case letters,"
+msgstr "Kennwort muss aus mindestens 12 alphanumerische Zeichen, inklusive Klein- und Großbuchstaben, bestehen,"
 
-msgid ""
-"Password must contain at least 12 alphanumeric characters including both "
-"upper and lower case letters, at least one number and at least one special "
-"character"
-msgstr ""
-"Kennwort muss aus mindestens 12 alphanumerische Zeichen, inklusive Klein- "
-"und Großbuchstaben, mindestens einer Ziffer und einem Sonderzeichen bestehen"
-
-msgid ""
-"Password should contain at least 12 alphanumeric characters including both "
-"upper and lower case letters,"
-msgstr ""
-"Passwort sollte mindestens 12 alphanumerische Zeichen, darunter sowohl groß- "
-"und Kleinbuchstaben enthalten,"
+msgid "Password must contain at least 12 alphanumeric characters including both upper and lower case letters, at least one number and at least one special character"
+msgstr "Kennwort muss aus mindestens 12 alphanumerische Zeichen, inklusive Klein- und Großbuchstaben, mindestens einer Ziffer und einem Sonderzeichen bestehen"
 
 msgid "Password:"
 msgstr "Kennwort:"
@@ -2550,9 +1969,6 @@ msgstr "Phy Extra Wert"
 msgid "Physical link status"
 msgstr "Status physikalische Verbindung"
 
-msgid "Ping & Traceroute"
-msgstr "Ping & Traceroute"
-
 msgid "Ping Statistics"
 msgstr "Ping Statistik"
 
@@ -2560,28 +1976,16 @@ msgid "Please configure wifi-bandsteer "
 msgstr "Bitte konfigurieren Sie die WiFi-Bandsteuerung "
 
 msgid "Please press Rescan button to view the updated wifi list"
-msgstr ""
-"Bitte drücken Sie den \"Neu scannen\"-Knopf, um die aktualisierte WiFi-Liste "
-"zu sehen"
+msgstr "Bitte drücken Sie den \"Neu scannen\"-Knopf, um die aktualisierte WiFi-Liste zu sehen"
 
-msgid ""
-"Please see 2.4GHz section for initial parameter. If a wireless device tests "
-"the 5GHz band and reports the 5GHz signal strength is above this threshold, "
-"the gateway will direct the device to switch to the 5GHz band."
-msgstr ""
-"Bitte sehen Sie in den Abschnitt für 2.4GHz für anfängliche Parameter. Wenn "
-"ein Drahtlosgerät meldet, dass die 2.4 GHz Signalstärke dieses Gateways "
-"diesen Schwellwert übersteigt, wird diese das Gerät auffordern, das 5-GHz-"
-"Band auszuprobieren."
+msgid "Please see 2.4GHz section for initial parameter. If a wireless device tests the 5GHz band and reports the 5GHz signal strength is above this threshold, the gateway will direct the device to switch to the 5GHz band."
+msgstr "Bitte sehen Sie in den Abschnitt für 2.4GHz für anfängliche Parameter. Wenn ein Drahtlosgerät meldet, dass die 2.4 GHz Signalstärke dieses Gateways diesen Schwellwert übersteigt, wird diese das Gerät auffordern, das 5-GHz-Band auszuprobieren."
 
 msgid "Please set the new password for new user."
 msgstr "Bitte setzen Sie das neue Kennwort für den neuen Benutzer."
 
 msgid "Please update your browser to use this page."
 msgstr "Bitte aktualisieren Sie Ihren Browser, um diese Seite zu benutzen."
-
-msgid "Please wait %s seconds to enter new password"
-msgstr "Bitte warten Sie %s Sekunden, bevor Sie ein neues Passwort eingeben"
 
 msgid "Please wait..."
 msgstr "Bitte warten…"
@@ -2610,11 +2014,11 @@ msgstr "Port 3"
 msgid "Port 4"
 msgstr "Port 4"
 
-msgid "Port Mirror"
-msgstr "Port-Spiegelung"
-
 msgid "Port Speed"
 msgstr "Port-Geschwindigkeit"
+
+msgid "Ports"
+msgstr ""
 
 msgid "Ports State"
 msgstr "Status der Ports"
@@ -2627,12 +2031,6 @@ msgstr "Leistung"
 
 msgid "Power Transitions"
 msgstr "Leistungsübergänge"
-
-msgid "Prefer IPv4"
-msgstr "Bevorzuge IPv4"
-
-msgid "Prefer IPv6"
-msgstr "Bevorzuge IPv6"
 
 msgid "Previous Day"
 msgstr "Vorangehender Tag"
@@ -2668,14 +2066,10 @@ msgid "Protocol"
 msgstr "Protokoll"
 
 msgid "Provide a password to prevent unauthorized access to the gateway"
-msgstr ""
-"Geben Sie ein Kennwort an, um unautorisierten Zugang zum Gateway zu "
-"verhindern"
+msgstr "Geben Sie ein Kennwort an, um unautorisierten Zugang zum Gateway zu verhindern"
 
 msgid "Provide a password to prevent unauthorized access to the gateway."
-msgstr ""
-"Geben Sie ein Kennwort an, um unautorisierten Zugang zum Gateway zu "
-"verhindern."
+msgstr "Geben Sie ein Kennwort an, um unautorisierten Zugang zum Gateway zu verhindern."
 
 msgid "Public IP Range should not be used"
 msgstr "Der öffentlicher IP-Bereich sollte nicht benutzt werden"
@@ -2686,29 +2080,8 @@ msgstr "QR-Code"
 msgid "Quick Links"
 msgstr "Schnellzugriff"
 
-msgid "R"
-msgstr "R"
-
 msgid "REJECT"
 msgstr "ABLEHNEN"
-
-msgid "RRCBits"
-msgstr "RRCBits"
-
-msgid "RSSI"
-msgstr "RSSI"
-
-msgid "RTT1 (ms)"
-msgstr "RTT1 (ms)"
-
-msgid "RTT2 (ms)"
-msgstr "RTT2 (ms)"
-
-msgid "RTT3 (ms)"
-msgstr "RTT3 (ms)"
-
-msgid "Radio"
-msgstr "Radio"
 
 msgid "Radius Accounting Server's IP"
 msgstr "Radius Verwaltung Server-IP"
@@ -2728,17 +2101,11 @@ msgstr "Radius Authentifizierung Server Port"
 msgid "Radius Authentication Server's secret"
 msgstr "Radius Authentifizierung Server Geheimnis"
 
-msgid "Re-scanning"
-msgstr "Erneut suchen"
+msgid "Random Color"
+msgstr ""
 
-msgid "ReXmt"
-msgstr "ReXmt"
-
-msgid "ReXmtCor"
-msgstr "ReXmtCor"
-
-msgid "ReXmtUnc"
-msgstr "ReXmtUnc"
+msgid "Rate"
+msgstr ""
 
 msgid "Rebooting"
 msgstr "Neustart"
@@ -2749,8 +2116,8 @@ msgstr "Neustart. Bitte warten..."
 msgid "Rebooting..."
 msgstr "Neustart..."
 
-msgid "Ref"
-msgstr "Ref"
+msgid "Received chart line"
+msgstr ""
 
 msgid "Refresh"
 msgstr "Aktualisieren"
@@ -2764,14 +2131,14 @@ msgstr "Region"
 msgid "Register"
 msgstr "Registrieren"
 
+msgid "Registered"
+msgstr ""
+
 msgid "Relay Setup"
 msgstr "Relais aufsetzen"
 
 msgid "Release %s"
 msgstr "Ausgabe %s"
-
-msgid "Remind me later"
-msgstr "Mich später erinnern"
 
 msgid "Remote Assistance"
 msgstr "Fernwartung"
@@ -2802,19 +2169,6 @@ msgstr "Neues Kennwort wiederholen"
 
 msgid "Requested"
 msgstr "Angefordert"
-
-msgid "Reserved name cannot be given as rule name"
-msgstr ""
-"Ein reservierter Name darf nicht als Name für eine Regel verwendet werden"
-
-msgid "Reset"
-msgstr "Zurücksetzen"
-
-msgid "Reset Configuration"
-msgstr "Konfiguration zurücksetzen"
-
-msgid "Reset Password"
-msgstr "Kennwort zurücksetzen"
 
 msgid "Reset Stats"
 msgstr "Statistik zurücksetzen"
@@ -2849,9 +2203,6 @@ msgstr "Neustarten, bitte warten…"
 msgid "Restore"
 msgstr "Wiederherstellen"
 
-msgid "Restore Default Configuration"
-msgstr "Werkseinstellungen wiederherstellen"
-
 msgid "Restore Gui"
 msgstr "GUI wiederherstellen"
 
@@ -2885,11 +2236,14 @@ msgstr "Routing Tabelle"
 msgid "Routing table"
 msgstr "Routing Tabelle"
 
+msgid "RpFilter"
+msgstr ""
+
+msgid "RUNNING"
+msgstr ""
+
 msgid "Rx BitSwap Mode"
 msgstr "Rx BitSwap Modus"
-
-msgid "Rx Bytes"
-msgstr "Rx Bytes"
 
 msgid "Rx Errors"
 msgstr "Rx Fehler"
@@ -2900,23 +2254,11 @@ msgstr "Rx Pakete"
 msgid "RxQueue"
 msgstr "RxSchlange"
 
-msgid "S"
-msgstr "S"
-
-msgid "SCTP"
-msgstr "SCTP"
-
-msgid "SI"
-msgstr "JA"
-
-msgid "SRA"
-msgstr "SRA"
+msgid "SFP IP address"
+msgstr ""
 
 msgid "SRP Salt"
 msgstr "SRP Salt"
-
-msgid "SRP salt"
-msgstr "SRP salt"
 
 msgid "SRP verifier"
 msgstr "SRP Verifizierer"
@@ -2924,20 +2266,14 @@ msgstr "SRP Verifizierer"
 msgid "SSH Access"
 msgstr "SSH Zugang"
 
-msgid "SSH Disabled"
-msgstr "SSH deaktiviert"
+msgid "SSH disabled"
+msgstr ""
 
-msgid "SSH Enabled"
-msgstr "SSH aktiviert"
-
-msgid "SSID"
-msgstr "SSID"
+msgid "SSH enabled"
+msgstr ""
 
 msgid "SSID name"
 msgstr "SSID Name"
-
-msgid "STB"
-msgstr "STB"
 
 msgid "Sat."
 msgstr "Sam."
@@ -2954,19 +2290,11 @@ msgstr "Sicherer Modus eingeschaltet"
 msgid "Security Mode"
 msgstr "Sicherheits-Modus"
 
-msgid ""
-"Security for this wireless network is disabled, anybody can connect or "
-"listen to it"
-msgstr ""
-"Sicherheit für dieses drahtlose Netzwerk is abgeschaltet, jeder kann es "
-"sehen und sich damit verbinden"
+msgid "Security for this wireless network is disabled, anybody can connect or listen to it"
+msgstr "Sicherheit für dieses drahtlose Netzwerk is abgeschaltet, jeder kann es sehen und sich damit verbinden"
 
-msgid ""
-"Select the <strong>\"Reset\"</strong> button to confirm resetting the "
-"password to the default value."
-msgstr ""
-"Drücken Sie den <strong>\"Rücksetzen\"</strong> Knopf, um das Kennwort auf "
-"den Vorgabewert zurückzusetzen."
+msgid "Select the <strong>\"Reset\"</strong> button to confirm resetting the password to the default value."
+msgstr "Drücken Sie den <strong>\"Rücksetzen\"</strong> Knopf, um das Kennwort auf den Vorgabewert zurückzusetzen."
 
 msgid "Selection"
 msgstr "Auswahl"
@@ -2974,8 +2302,8 @@ msgstr "Auswahl"
 msgid "Send Ping Request"
 msgstr "Ping-Anforderung senden"
 
-msgid "Seq"
-msgstr "Seq"
+msgid "Sent chart line"
+msgstr ""
 
 msgid "Serial Number"
 msgstr "Seriennummer"
@@ -2983,20 +2311,32 @@ msgstr "Seriennummer"
 msgid "Server IP"
 msgstr "Server IP"
 
+msgid "Server Interface"
+msgstr ""
+
 msgid "Server name"
 msgstr "Server Name"
+
+msgid "Service"
+msgstr ""
 
 msgid "Service Name"
 msgstr "Dienstname"
 
-msgid "Services to check for the Eco LED"
-msgstr "Dienstleistungen für die Eco-LED zu überprüfen"
+msgid "Select the services to check on before turning the “Info” LED green and turning the services LEDs off (if ECO LED has been enabled)."
+msgstr ""
+
+msgid "Sessions"
+msgstr ""
 
 msgid "Set 4th Ethernet Port as WAN or as LAN"
 msgstr "Setze vierten Ethernet-Port als WAN oder LAN"
 
 msgid "Set PIN code"
 msgstr "Setzen PIN-Code"
+
+msgid "Settings"
+msgstr ""
 
 msgid "Setup Wizard"
 msgstr "Einrichtungshilfe"
@@ -3052,17 +2392,20 @@ msgstr "Quell-IP/-Subnetz"
 msgid "Src Interface"
 msgstr "Quell-Schnittstelle"
 
+msgid "Src Port"
+msgstr ""
+
 msgid "Src port"
 msgstr "Quell-Port"
 
 msgid "Stable"
 msgstr "Stabil"
 
-msgid "Standard"
-msgstr "Standard"
-
 msgid "Start"
 msgstr "Start"
+
+msgid "STARTING"
+msgstr ""
 
 msgid "Start Time"
 msgstr "Startzeit"
@@ -3088,6 +2431,9 @@ msgstr "Statische Leases"
 msgid "Static on"
 msgstr "Statisch an"
 
+msgid "Stats"
+msgstr ""
+
 msgid "Status"
 msgstr "Status"
 
@@ -3096,6 +2442,9 @@ msgstr "Status:"
 
 msgid "Stop"
 msgstr "Stopp"
+
+msgid "STOPPING"
+msgstr ""
 
 msgid "Stop Ping Request"
 msgstr "Stoppe Ping-Anforderung"
@@ -3109,14 +2458,8 @@ msgstr "Stoppe Trace Route"
 msgid "Stop portmirror successfully"
 msgstr "Erfolgreicher Stopp der Portspiegelung"
 
-msgid "Stop time should be greater Start time."
-msgstr "Endzeit sollte größer als Anfangszeit sein."
-
 msgid "Storage"
 msgstr "Speicher"
-
-msgid "String must be empty or a port."
-msgstr "Zeichenkette muss leer oder ein Port sein."
 
 msgid "Subnet Mask"
 msgstr "Subnetzmaske"
@@ -3148,32 +2491,23 @@ msgstr "SwitchBank"
 msgid "Switching bank, please wait..."
 msgstr "Umschalten der Bank, bitte warten…"
 
-msgid ""
-"Switching to <strong>Bridged Mode</strong> and restarting, please wait..."
-msgstr ""
-"Umschalten auf <strong>Brückenmodus</strong> und Neustart, bitte warten..."
+msgid "Switching to <strong>Bridged Mode</strong> and restarting, please wait..."
+msgstr "Umschalten auf <strong>Brückenmodus</strong> und Neustart, bitte warten..."
 
-msgid ""
-"Switching to <strong>Routed Mode</strong> and restarting, please wait..."
-msgstr ""
-"Umschalten auf <strong>gerouteten  Modus</strong> und Neustart, bitte "
-"warten..."
+msgid "Switching to <strong>Routed Mode</strong> and restarting, please wait..."
+msgstr "Umschalten auf <strong>gerouteten  Modus</strong> und Neustart, bitte warten..."
 
 msgid "Switching to <strong>Voice Mode</strong> and restarting, please wait..."
-msgstr ""
-"Umschalten auf <strong>Voice Modus</strong> und Neustart, bitte warten..."
+msgstr "Umschalten auf <strong>Voice Modus</strong> und Neustart, bitte warten..."
 
 msgid "Switchover"
 msgstr "Switchover"
 
-msgid "Symbol Rate"
-msgstr "Symbolrate"
+msgid "Syslog disabled"
+msgstr ""
 
-msgid "Syslog Disabled"
-msgstr "Syslog deaktiviert"
-
-msgid "Syslog Enabled"
-msgstr "Syslog aktiv"
+msgid "Syslog enabled"
+msgstr ""
 
 msgid "Syslog filters"
 msgstr "Syslog Filter"
@@ -3193,20 +2527,11 @@ msgstr "Systemprotokoll - Routentabelle"
 msgid "System Time"
 msgstr "Systemzeit"
 
-msgid "TCP"
-msgstr "TCP"
-
-msgid "TCP/UDP"
-msgstr "TCP/UDP"
-
-msgid "TTL"
-msgstr "TTL"
-
-msgid "TCPDump"
-msgstr "TCPDump"
-
 msgid "Tcpdump Log:"
 msgstr "Tcpdump Protokoll:"
+
+msgid "Telephony Info"
+msgstr ""
 
 msgid "Telnet Access"
 msgstr "Telnet Zugriff"
@@ -3220,51 +2545,20 @@ msgstr "Telnet aktiviert"
 msgid "Temporary"
 msgstr "Temporär"
 
-msgid ""
-"The <strong>Bridged Mode</strong> disables CWMP, Voip service and doesn't "
-"create any type of connection. It just connects to the DSLAM and bridges the "
-"traffic between a router and the DSLAM itself."
-msgstr ""
-"Der <strong>Brückenmodus</strong> schaltet CWMP und VoIP Dienste ab. Er "
-"stellt selbst keine Verbindung her, sondern verbindet sich lediglich mit dem "
-"DSLAM und brückt den Verkehr zwischen einem Router und dem DSLAM."
+msgid "The <strong>Bridged Mode</strong> disables CWMP, Voip service and doesn't create any type of connection. It just connects to the DSLAM and bridges the traffic between a router and the DSLAM itself."
+msgstr "Der <strong>Brückenmodus</strong> schaltet CWMP und VoIP Dienste ab. Er stellt selbst keine Verbindung her, sondern verbindet sich lediglich mit dem DSLAM und brückt den Verkehr zwischen einem Router und dem DSLAM."
 
-msgid ""
-"The <strong>Voice Mode</strong> disables CWMP and creates a special "
-"connection that only permits to use NTP and VOIP services. You need to use a "
-"separate router and make a separate PPPoE connection."
-msgstr ""
-"Der <strong>Voice Modus</strong> schaltet den CWMP Dienst ab. Er stellt eine "
-"spezielle Verbindung nur für NTP und VoIP Dienste her. Sie benötigen einen "
-"separaten Router, um eine PPPoE-Verbindung herzustellen."
+msgid "The <strong>Voice Mode</strong> disables CWMP and creates a special connection that only permits to use NTP and VOIP services. You need to use a separate router and make a separate PPPoE connection."
+msgstr "Der <strong>Voice Modus</strong> schaltet den CWMP Dienst ab. Er stellt eine spezielle Verbindung nur für NTP und VoIP Dienste her. Sie benötigen einen separaten Router, um eine PPPoE-Verbindung herzustellen."
 
-msgid ""
-"The <strong>incoming policy</strong> defines what is done with packets "
-"destined to the gateway. They can be either REJECTED (the gateway will "
-"notify the sender they were rejected) or DROPPED (the gateway will silently "
-"discard those packets)."
-msgstr ""
-"Das <strong>Eingehende Standardverhalten</strong> definiert, was mit Paketen "
-"geschieht, die an das Gateway adressiert sind. Diese können entweder "
-"ABGELEHNT oder VERWORFEN werden."
+msgid "The <strong>incoming policy</strong> defines what is done with packets destined to the gateway. They can be either REJECTED (the gateway will notify the sender they were rejected) or DROPPED (the gateway will silently discard those packets)."
+msgstr "Das <strong>Eingehende Standardverhalten</strong> definiert, was mit Paketen geschieht, die an das Gateway adressiert sind. Diese können entweder ABGELEHNT oder VERWORFEN werden."
 
-msgid ""
-"The <strong>outgoing policy</strong> defines what is done with packets "
-"coming from the LAN devices toward the internet. Setting it to REJECT or "
-"DROP will forbid any internet traffic from the LAN unless explicitly allowed "
-"by a firewall rule."
-msgstr ""
-"Das <strong>Ausgehende Standardverhalten</strong> definiert, was mit Paketen "
-"geschieht, die vom LAN ins Internet gerichtet sind. Bei ABGELEHNEN oder "
-"VERWERFEN wird standardmäßig jeder Verkehr verboten, es sei denn, eine "
-"explizite Regel erlaubt dies."
+msgid "The <strong>outgoing policy</strong> defines what is done with packets coming from the LAN devices toward the internet. Setting it to REJECT or DROP will forbid any internet traffic from the LAN unless explicitly allowed by a firewall rule."
+msgstr "Das <strong>Ausgehende Standardverhalten</strong> definiert, was mit Paketen geschieht, die vom LAN ins Internet gerichtet sind. Bei ABGELEHNEN oder VERWERFEN wird standardmäßig jeder Verkehr verboten, es sei denn, eine explizite Regel erlaubt dies."
 
-msgid ""
-"The Backup file you try to load has not been taken from the actual SW-"
-"Release, please use correct Backup File"
-msgstr ""
-"Die Sicherungsdatei, die Sie zu laden versuchen, passt nicht zum aktuellen "
-"Software-Stand, bitte nutzen Sie die korrekte Sicherungsdatei"
+msgid "The Backup file you try to load has not been taken from the actual SW-Release, please use correct Backup File"
+msgstr "Die Sicherungsdatei, die Sie zu laden versuchen, passt nicht zum aktuellen Software-Stand, bitte nutzen Sie die korrekte Sicherungsdatei"
 
 msgid "The Band Steering can not be supported under WEP security mode."
 msgstr "Die Bandsteuerung kann nicht im WEP Sicherheitsmodus verwendet werden."
@@ -3272,11 +2566,8 @@ msgstr "Die Bandsteuerung kann nicht im WEP Sicherheitsmodus verwendet werden."
 msgid "The Blacklist app is "
 msgstr "Die Blacklist App ist "
 
-msgid ""
-"The Gateway will block/allow all the time if none of the days are selected"
-msgstr ""
-"Das Gateway wird alles blockieren bzw. erlauben, wenn keiner der Tage "
-"ausgewählt ist"
+msgid "The Gateway will block/allow all the time if none of the days are selected"
+msgstr "Das Gateway wird alles blockieren bzw. erlauben, wenn keiner der Tage ausgewählt ist"
 
 msgid "The IP address is part of the "
 msgstr "Die IP-Adresse ist Teil der "
@@ -3284,20 +2575,17 @@ msgstr "Die IP-Adresse ist Teil der "
 msgid "The XUPnP app is "
 msgstr "Die XUPnP App ist "
 
-msgid ""
-"The below chart shows the results of the latest scan of your local area from "
-"your gateway."
-msgstr ""
-"Die untenstehende Grafik zeigt das Ergebnis der letzten Suche der lokalen "
-"Umgebung Ihres Gateways."
+msgid "The below chart shows the results of the latest scan of your local area from your gateway."
+msgstr "Die untenstehende Grafik zeigt das Ergebnis der letzten Suche der lokalen Umgebung Ihres Gateways."
 
-msgid ""
-"The latest added/modified static lease is set to an IP that is already in "
-"use, please perform a reboot to apply the changes"
+msgid "The currently selected connection mode prevents the device from downloading updates. Please download and apply updates manually."
 msgstr ""
-"Das letzte hinzugefügte bzw. geänderte statische Lease ist auf eine IP "
-"gesetzt, die schon in Verwendung ist, bitte starten Sie neu, um die "
-"Änderungen anzuwenden"
+
+msgid "The modem has been upgraded automatically at <strong>%s:00</strong> to version <strong>%s</strong> successfully"
+msgstr ""
+
+msgid "The modem has been upgraded to version <strong>%s</strong> successfully"
+msgstr ""
 
 msgid "The request could not be performed due to some error"
 msgstr "Die Anforderung konnte aufgrund eines Fehlers nicht erfüllt werden"
@@ -3318,16 +2606,13 @@ msgid "The requested MAC address can't be the broadcast MAC"
 msgstr "Die angerforderte MAC darf nicht die Broadcast MAC sein"
 
 msgid "The requested file is not found! Please try again after some time"
-msgstr ""
-"Die angerforderte Datei wurde nicht gefunden! Bitte versuchen Sie es später "
-"erneut"
+msgstr "Die angerforderte Datei wurde nicht gefunden! Bitte versuchen Sie es später erneut"
 
 msgid "The scan will interrupt the ongoing wifi traffic"
 msgstr "Die Suche wird den laufenden WiFi-Verkehr unterbrechen"
 
 msgid "The server is currently unavailable, Please try again after some time"
-msgstr ""
-"Der Server is gerade nicht verfügbar. Bitte versuchen Sie es später erneut"
+msgstr "Der Server is gerade nicht verfügbar. Bitte versuchen Sie es später erneut"
 
 msgid "The server timed out waiting for the request"
 msgstr "Der Server wartete zu lange auf die Anforderung"
@@ -3338,51 +2623,29 @@ msgstr "Der Zeitbereich ist fehlerhaft"
 msgid "There is no connection to the Internet."
 msgstr "Es gibt keine Verbindung ins Internet."
 
-msgid ""
-"This check if the config file is provided from the same firmware versione."
+msgid "An imported configuration file will only be applied if its firmware version matches the currently installed one.’"
 msgstr ""
-"Dies prüft, ob die Konfigurationsdatei von der selben Firmware-Version "
-"erzeugt wurde."
 
-msgid ""
-"This control the type of config exported and the type of config can be "
-"imported."
+msgid "Enable what type of configuration you want to import and export."
 msgstr ""
-"Dies setzt den Typ der exportierten Konfigurationsdatei und welche Version "
-"importiert werden kann."
 
-msgid "This could cause security risk, take care of this."
+msgid "This is the internal IP of the SFP interface used for fiber connection. This and the local Gateway IP must be different."
 msgstr ""
-"Dies könnte ein Sicherheitsrisiko darstellen, bitte kümmern Sie sich darum."
 
-msgid "This is a guest network. The guest network has no local network access."
+msgid "Reset the custom GUI settings. No custom firmware file will be removed. All custom GUI functions will still be available."
 msgstr ""
-"Dies ist ein Gastnetzwerk, es hat keinen Zugriff auf das lokale Netzwerk."
 
-msgid ""
-"This resets the custom gui. No custom configuration will be removed in the "
-"process. The Gui will stay unlocked with all the functions available for the "
-"stock firmware file. Remember to clean cache browser after this."
+msgid "Reset the router to factory settings and remove the custom firmware files."
 msgstr ""
-"Dies setzt das angepasste GUI. Die angepasste Konfiguration wird hierdurch "
-"nicht entfernt. Das GUI wird entsperrt bleiben mit allen Funktionen der "
-"herstellerseitigen Firmware. Denken Sie daran, den Browsercache zu löschen."
 
-msgid ""
-"This resets the router and removes the root file. After the reboot the modem "
-"will be as it was when you bought it."
+msgid "Force the device to always use “Bank_1” as the main bank."
 msgstr ""
-"Dies setzt den Router zurück und entfernt die Root-Datei. Nach dem Reboot "
-"wird das Modem in dem Zustand sein, wie Sie es gekauft haben."
 
-msgid "This switch disable the check to force the firmware to be on bank_1"
+msgid "Update the GUI to the latest version available"
 msgstr ""
-"Dieser Schalter wird die Prüfung abschalten, welche die Firmware in bank_1 "
-"erzwingt"
 
-msgid "This upgrade the GUI to the latest available version on the site"
+msgid "Clone the content of the running bank to the inactive one. Warning: this will delete all data and configuration settings on the inactive bank!"
 msgstr ""
-"Dies aktualisiert das GUI auf den neuesten verfügbaren Stand auf der Webseite"
 
 msgid "This will install aria2 and ariang webui"
 msgstr "Dies wird aria2 und ariang webui installieren"
@@ -3402,18 +2665,11 @@ msgstr "Dies wird uhttpd und luci installieren"
 msgid "This will put your gateway into LAN Upgrade"
 msgstr "Dies wird Ihr Gateway in den LAN-Aktualisierungsmodus versetzen"
 
-msgid "This will switch the active bank with the passive one"
-msgstr "Dies tauscht die aktive mit der passiven Bank"
-
 msgid "This will transfer the active firmware and config to the bank 1"
 msgstr "Dies wird die aktive Firmware und Konfiguration auf bank_1 verschieben"
 
-msgid ""
-"This will transfer your configuration and firmware to the bank_1 and it will "
-"erase bank_2"
-msgstr ""
-"Dies wird Ihre Konfiguration und Firmware in bank_1 übertragen und bank_2 "
-"löschen"
+msgid "This will transfer your configuration and firmware to the bank_1 and it will erase bank_2"
+msgstr "Dies wird Ihre Konfiguration und Firmware in bank_1 übertragen und bank_2 löschen"
 
 msgid "Thu."
 msgstr "Don."
@@ -3436,18 +2692,11 @@ msgstr "Zeitabhängige Drahtloskontrolle"
 msgid "Timeout"
 msgstr "Zeitbeschränkung"
 
-msgid "Timeout:"
-msgstr "Zeitbeschränkung:"
-
 msgid "Timezone"
 msgstr "Zeitzone"
 
-msgid ""
-"To disable Port Forward Rules, edit the rule on the right and then switch "
-"the button on the left."
-msgstr ""
-"Um Port-Weiterleitungsregeln abzuschalten, bearbeiten Sie die Regel rechts "
-"und schalten Sie dann den Knopf links um."
+msgid "To disable Port Forward Rules, edit the rule on the right and then switch the button on the left."
+msgstr "Um Port-Weiterleitungsregeln abzuschalten, bearbeiten Sie die Regel rechts und schalten Sie dann den Knopf links um."
 
 msgid "To use port ranges use"
 msgstr "Um Port-Bereiche zu verwenden, verwenden Sie"
@@ -3476,32 +2725,14 @@ msgstr "Übertragen zu"
 msgid "Transfering bank, please wait..."
 msgstr "Übertrage Bank, bitte warten..."
 
-msgid "Transmission GUI"
-msgstr "Transmission GUI"
-
 msgid "Transmission WebUi installed"
 msgstr "Transmission WebUI installiert"
 
 msgid "Transmission WebUi not installed"
 msgstr "Transmission WebUI nicht installiert"
 
-msgid "Transmission Webui"
-msgstr "Transmission Webui"
-
 msgid "Transmission is "
 msgstr "Transmission ist "
-
-msgid "TransmitOpticalLevel"
-msgstr "TransmitOpticalLevel"
-
-msgid "Trellis"
-msgstr "Trellis"
-
-msgid "Tries:"
-msgstr "Versuche:"
-
-msgid "Trigger"
-msgstr "Auslöser"
 
 msgid "Tue."
 msgstr "Die."
@@ -3509,15 +2740,8 @@ msgstr "Die."
 msgid "Turning on Ethernet power saving features can cause extra latency"
 msgstr "Wenn Sie die Energiesparfunktionen des Ethernet aktivieren, kann sich zusätzliche Latenzzeit ergeben"
 
-msgid ""
-"Turn off all LEDs (except info/power) if all services are up and running. Press INFO button "
-"(could be button with power LED) to show LED status."
+msgid "Turn off all LEDs except “Info” if all services are up and running. Press the “Info” / “WiFi” button to show the current LEDs status."
 msgstr ""
-"Schalte alle LEDs aus, wenn alle Dienste laufen. Sie können den INFO-Knopf "
-"drücken (auf der Power-LED), um den LED-Status anzuzeigen."
-
-msgid "Tx Bytes"
-msgstr "Tx Bytes"
 
 msgid "Tx Errors"
 msgstr "Tx Fehler"
@@ -3534,29 +2758,11 @@ msgstr "Typ"
 msgid "Type supported"
 msgstr "Unterstützter Typ"
 
-msgid "UDP"
-msgstr "UDP"
-
-msgid "UDPLite"
-msgstr "UDPLite"
-
-msgid "UPnP"
-msgstr "UPnP"
-
 msgid "UPnP IGD Enabled"
 msgstr "UPnP IGD eingeschaltet"
 
 msgid "UPnP disabled"
 msgstr "UPnP abgeschaltet"
-
-msgid "URL"
-msgstr "URL"
-
-msgid "URL:"
-msgstr "URL:"
-
-msgid "Uncorrectables"
-msgstr "Unkorrigierbare"
 
 msgid "Unicast Packets"
 msgstr "Unicast Pakete"
@@ -3573,17 +2779,11 @@ msgstr "Unbekannter Zustand"
 msgid "Unused IP"
 msgstr "Ungenutzte IP"
 
-msgid "Up"
-msgstr "Oben"
-
 msgid "Update Branch"
 msgstr "Aktualisierungszweig"
 
 msgid "Update Hours"
 msgstr "Aktualisierungszeit"
-
-msgid "Update blacklist app"
-msgstr "Aktualisieren der Blacklist App"
 
 msgid "Updating"
 msgstr "Aktualisieren"
@@ -3606,6 +2806,9 @@ msgstr "Aktualisiere GUI"
 msgid "Upgrade Gui"
 msgstr "Aktualisiere GUI"
 
+msgid "Upgrade available! Version: <strong>%s</strong>"
+msgstr ""
+
 msgid "Upgrade failed; please try again."
 msgstr "Aktualisierung fehlgeschlagen, bitte versuchen Sie es erneut."
 
@@ -3624,33 +2827,6 @@ msgstr "Datei wird hochgeladen. Bitte warten…"
 msgid "Uploading firmware, please wait..."
 msgstr "Firmware wird hochgeladen. Bitte warten…"
 
-msgid "Upstream Bonded Channels"
-msgstr "Upstream Bonded Channels"
-
-msgid "Upstream CRC"
-msgstr "Upstream CRC"
-
-msgid "Upstream ES"
-msgstr "Upstream ES"
-
-msgid "Upstream FEC"
-msgstr "Upstream FEC"
-
-msgid "Upstream LOF"
-msgstr "Upstream LOF"
-
-msgid "Upstream LOM"
-msgstr "Upstream LOM"
-
-msgid "Upstream LOS"
-msgstr "Upstream LOS"
-
-msgid "Upstream SES"
-msgstr "Upstream SES"
-
-msgid "Upstream UAS"
-msgstr "Upstream UAS"
-
 msgid "Uptime"
 msgstr "Betriebszeit"
 
@@ -3662,6 +2838,9 @@ msgstr "Verwende"
 
 msgid "Use Random Password"
 msgstr "Verwende Zufallskennwort"
+
+msgid "Use Random Port"
+msgstr ""
 
 msgid "User Manager"
 msgstr "Benutzerverwaltung"
@@ -3687,9 +2866,6 @@ msgstr "Benutzerleiste"
 msgid "Using VLAN"
 msgstr "Benutzer VLAN"
 
-msgid "VC"
-msgstr "VC"
-
 msgid "VCE Address"
 msgstr "VCE-Adresse"
 
@@ -3698,9 +2874,6 @@ msgstr "VDSL Flags Maske"
 
 msgid "VDSL Flags Value"
 msgstr "VDSL Flags Wert"
-
-msgid "VLAN ID"
-msgstr "VLAN ID"
 
 msgid "VLAN disabled"
 msgstr "VLAN deaktiviert"
@@ -3711,17 +2884,11 @@ msgstr "VLAN aktiviert"
 msgid "VLAN not connected"
 msgstr "VLAN nicht verbunden"
 
-msgid "VP"
-msgstr "VP"
-
 msgid "VP/VC is not configured"
 msgstr "VP/VC ist nicht konfiguriert"
 
 msgid "Vectoring stats"
 msgstr "Vectoring Statistik"
-
-msgid "Verify"
-msgstr "Verifiziere"
 
 msgid "Verifying"
 msgstr "Verifizieren"
@@ -3744,8 +2911,8 @@ msgstr "Violett"
 msgid "Voice Mode"
 msgstr "Voice Modus"
 
-msgid "WAN"
-msgstr "WAN"
+msgid "Voice Mode Active"
+msgstr ""
 
 msgid "WAN Available"
 msgstr "WAN verfügbar"
@@ -3765,6 +2932,12 @@ msgstr "WAN IP ist <strong>%s</strong>"
 msgid "WAN Services"
 msgstr "WAN Dienste"
 
+msgid "WAN Stats"
+msgstr ""
+
+msgid "WAN Traffic"
+msgstr ""
+
 msgid "WAN interface"
 msgstr "WAN Schnittstelle"
 
@@ -3777,78 +2950,41 @@ msgstr "WAN Dienste"
 msgid "WAN(default)"
 msgstr "WAN(Standard)"
 
-msgid "WAN(voip)"
-msgstr "WAN(VoIP)"
-
 msgid "WAN-Mode"
 msgstr "WAN Modus"
 
 msgid "WAN-Port LAN Mode"
 msgstr "WAN-Port LAN-Modus"
 
-msgid "WAN1"
-msgstr "WAN1"
-
-msgid "WAN2"
-msgstr "WAN2"
-
-msgid "WAN3"
-msgstr "WAN3"
-
-msgid "WAN4"
-msgstr "WAN4"
-
-msgid ""
-"WARNING: If you would like to connect to the GuestSSID, please activate your "
-"Main SSID"
-msgstr ""
-"Warnung: Wenn Sie die Gast-SSID verwenden wollen, aktiveren Sie bitte Ihre "
-"Haupt-SSID"
+msgid "WARNING: If you would like to connect to the GuestSSID, please activate your Main SSID"
+msgstr "Warnung: Wenn Sie die Gast-SSID verwenden wollen, aktiveren Sie bitte Ihre Haupt-SSID"
 
 msgid "WEP Key"
 msgstr "WEP Schlüssel"
 
-msgid ""
-"WEP is known to be flawed as a wireless security mode, usage of a more "
-"secure mode based on WPA2 is recommended."
-msgstr ""
-"WEP ist als unsicher bekannt, ein sicherer Modus, der auf WPA2 basiert, wird "
-"empfohlen."
-
 msgid "WEP key"
 msgstr "WEP Schlüssel"
-
-msgid "WPA+WPA2"
-msgstr "WPA+WPA2"
-
-msgid "WPA+WPA2 PSK"
-msgstr "WPA+WPA2 PSK"
-
-msgid "WPA2 PSK"
-msgstr "WPA2 PSK"
-
-msgid "WPS"
-msgstr "WPS"
 
 msgid "WPS AP PIN code"
 msgstr "WPS AP PIN-Code"
 
+msgid "WPS Buttom Mode"
+msgstr ""
+
 msgid "WPS Device PIN code"
 msgstr "WPS Geräte PIN-Code"
 
-msgid "WPS PBC"
-msgstr "WPS PBC"
-
-msgid ""
-"WPS is automatically disabled if you choose WEP or WPA-only security or "
-"disable broadcast of the SSID"
+msgid "WPS Mode"
 msgstr ""
-"WPS ist automatisch abgeschaltet, wenn Sie WEP oder Nur-WPA "
-"Sicherheitseinstellungen verwenden oder wenn Sie den Broadcast der SSID "
-"abschalten"
+
+msgid "WPS is automatically disabled if you choose WEP or WPA-only security or disable broadcast of the SSID"
+msgstr "WPS ist automatisch abgeschaltet, wenn Sie WEP oder Nur-WPA Sicherheitseinstellungen verwenden oder wenn Sie den Broadcast der SSID abschalten"
 
 msgid "Wake on LAN over the Internet"
 msgstr "Wake-On-LAN über das Internet"
+
+msgid "We don't have any firmware for this modem, please report them to the github page. "
+msgstr ""
 
 msgid "Webui on: "
 msgstr "Webui on: "
@@ -3856,12 +2992,8 @@ msgstr "Webui on: "
 msgid "Wed."
 msgstr "Mit."
 
-msgid ""
-"When changing any parameters in this section you will need to reboot the "
-"Router to make the changes take effect"
-msgstr ""
-"Wenn Sie Einstellungen in diesem Abschnitt verändern, müssen Sie den Router "
-"neu starten, um die Anwendungen wirksam werden zu lassen"
+msgid "When changing any parameters in this section you will need to reboot the Router to make the changes take effect"
+msgstr "Wenn Sie Einstellungen in diesem Abschnitt verändern, müssen Sie den Router neu starten, um die Anwendungen wirksam werden zu lassen"
 
 msgid "Whitelist"
 msgstr "Whitelist"
@@ -3878,11 +3010,8 @@ msgstr "WiFi Schwester"
 msgid "Wifi Analyzer"
 msgstr "WiFi Analysator"
 
-msgid "WiFi NSC when turned off will turn OFF WiFi LED(s) if there is no associated station (no wifi client connected)"
-msgstr "WiFi NSC schaltet sich nach dem Ausschalten aus, WiFi-LED (s) AUS, wenn keine zugehörige Station vorhanden ist (kein WiFi-Client angeschlossen)"
-
-msgid "Wireless"
-msgstr "Drahtlos"
+msgid "Turn the WiFi LEDs on if at least one client is connected to the corresponding radio."
+msgstr ""
 
 msgid "Wireless Client Monitor"
 msgstr "Drahtlosgeräteüberwachung"
@@ -3905,20 +3034,14 @@ msgstr "XUPnP App"
 msgid "Yes"
 msgstr "Ja"
 
-msgid "You are trying to login with wrong password for %s times"
-msgstr ""
-"Sie versuchen sich zum %sten Mal mit einem falschen Kennwort anzumelden"
-
 msgid "You don't have internet access at this time"
 msgstr "Sie haben gerade keinen Internet-Zugriff"
 
 msgid "Your Username"
 msgstr "Ihr Benutzername"
 
-msgid ""
-"Your modem is in bridge mode. It only connect to DSLAM and nothings else."
-msgstr ""
-"Ihr Modem ist im Brückenmodus. Es verbindet sich lediglich mit dem DSLAM ."
+msgid "Your modem is in bridge mode. It only connect to DSLAM and nothings else."
+msgstr "Ihr Modem ist im Brückenmodus. Es verbindet sich lediglich mit dem DSLAM ."
 
 msgid "Your new password"
 msgstr "Ihr neues Kennwort"
@@ -3956,18 +3079,6 @@ msgstr "eingeschaltet"
 msgid "error"
 msgstr "Fehler"
 
-msgid "eth0"
-msgstr "eth0"
-
-msgid "eth1"
-msgstr "eth1"
-
-msgid "eth2"
-msgstr "eth2"
-
-msgid "eth3"
-msgstr "eth3"
-
 msgid "for example 500:505."
 msgstr "zum Beispiel 500:505."
 
@@ -3986,17 +3097,11 @@ msgstr "ungültige Gateway IP"
 msgid "invalid netmask"
 msgstr "ungültige Netzmaske"
 
-msgid "In Call"
-msgstr "In Anruf"
-
 msgid "low"
 msgstr "niedrig"
 
 msgid "medium"
 msgstr "mittel"
-
-msgid "minEFTR"
-msgstr "minEFTR"
 
 msgid "not"
 msgstr "nicht"
@@ -4025,15 +3130,6 @@ msgstr "aktualisieren"
 msgid "user"
 msgstr "Benutzer"
 
-msgid "wl0"
-msgstr "wl0"
-
-msgid "wl1"
-msgstr "wl1"
-
-msgid "xDSL"
-msgstr "xDSL"
-
 msgid "xDSL Config"
 msgstr "xDSL Konfiguration"
 
@@ -4049,5 +3145,65 @@ msgstr "xDSL eingeschaltet"
 msgid "xDSL Graphics"
 msgstr "xDSL Grafiken"
 
+msgid "xDSL Info"
+msgstr ""
+
+msgid "xDSL Version"
+msgstr ""
+
+msgid "VDSL Profile"
+msgstr ""
+
 msgid "Your Gateway"
 msgstr "Ihr Gateway"
+
+msgid "The AP can be selected only once, to modify it you need to remove the rule."
+msgstr ""
+
+msgid "This will install Telstra webui"
+msgstr ""
+
+msgid "Install Telstra GUI"
+msgstr ""
+
+msgid "Telstra is "
+msgstr ""
+
+msgid "Remove Telstra GUI"
+msgstr ""
+
+msgid "Change the default page in system-extra to set this gui as default"
+msgstr ""
+
+msgid "Update blacklist app"
+msgstr ""
+
+msgid "Installing..."
+msgstr ""
+
+msgid "Removing..."
+msgstr ""
+
+msgid "The latest added/modified static lease is set to an IP that is already in use, please perform a reboot to apply the changes"
+msgstr ""
+
+msgid "Internet VPC"
+msgstr ""
+
+msgid "The time displayed on the graph are based on the time set on this modem!"
+msgstr ""
+
+msgid "Arial2 GUI"
+msgstr ""
+
+msgid "Transmission GUI"
+msgstr ""
+
+msgid "Telstra GUI"
+msgstr ""
+
+msgid "Install"
+msgstr ""
+
+msgid "Remove"
+msgstr ""

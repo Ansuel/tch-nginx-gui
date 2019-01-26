@@ -3,8 +3,8 @@ msgstr ""
 "Project-Id-Version: webui-contentsharing\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-10-27 13:44+0200\n"
-"PO-Revision-Date: 2017-12-06 09:12+0100\n"
-"Last-Translator: Piergiorgio Bellezza\n"
+"PO-Revision-Date: 2019-01-08 11:58+0100\n"
+"Last-Translator: bovirus <bovirus@gmail.com>\n"
 "Language-Team: none\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
@@ -12,19 +12,20 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language-Name: Italiano\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.0.5\n"
+"X-Generator: Poedit 2.2\n"
+"X-Poedit-SourceCharset: UTF-8\n"
 
 msgid "Cancel"
 msgstr "Annulla"
 
 msgid "Changes saved successfully"
-msgstr "Modifiche salvate con successo"
+msgstr "Salvtaggio modifiche completato"
 
 msgid "Close"
 msgstr "Chiudi"
 
 msgid "Content Sharing"
-msgstr "Condivisione dei Contenuti"
+msgstr "Condivisione contenuti"
 
 msgid "Currently there are <strong>%d</strong> connected devices"
 msgstr "Ci sono <strong>%d</strong> dispositivi connessi"
@@ -33,10 +34,10 @@ msgid "Currently there are <strong>%s</strong> connected devices"
 msgstr "Ci sono <strong>%s</strong> dispositivi connessi"
 
 msgid "Currently there is <strong>%d</strong> connected device"
-msgstr "<strong>%d</strong> solo dispositivo connesso"
+msgstr "C'è solo un <strong>%d</strong> dispositivo connesso"
 
 msgid "DLNA Enabled"
-msgstr "DLNA Attivato"
+msgstr "DLNA attivato"
 
 msgid "DLNA disabled"
 msgstr "DLNA disattivato"
@@ -54,32 +55,25 @@ msgid "Error while ejecting USB disk"
 msgstr "Errore durante la rimozione del dispositivo USB"
 
 msgid "File System"
-msgstr "Sistema di file"
+msgstr "File system"
 
 msgid "Free Space"
 msgstr "Spazio disponibile"
 
 msgid "General status"
-msgstr "Stato globale"
+msgstr "Stato generale"
 
 msgid "Hard Disk Information"
-msgstr "Informazioni Hard Disk"
+msgstr "Informazioni disco fisso"
 
-msgid ""
-"It is recommended to use the USB in the 2.0 standard. The use of USB in 3.1 "
-"standard can remarkably affect the Wi-Fi performance at 2.4 Ghz band."
-msgstr ""
-"Si raccomanda di utilizzare USB nella versione 2.0. L'uso di USB nella "
-"versione 3.1 può influenzare negativamente le prestazioni Wi-Fi nella banda "
-"2.4GHz."
+msgid "It is recommended to use the USB in the 2.0 standard. The use of USB in 3.1 standard can remarkably affect the Wi-Fi performance at 2.4 Ghz band."
+msgstr "Usa un dispositivo USB 2.0.<br/>L'uso di dispositiivi USB 3.1 può influenzare negativamente le prestazioni Wi-Fi nella banda 2.4GHz."
 
 msgid "Manufacturer"
 msgstr "Produttore"
 
 msgid "Only alphanumeric, space, underscore and dash characters allowed"
-msgstr ""
-"Sono permessi esclusivamente caratteri alfanumerici, spazi, trattini e "
-"trattini bassi"
+msgstr "Sono permessi esclusivamente caratteri alfanumerici, spazi, trattini e trattini bassi"
 
 msgid "Port"
 msgstr "Porta"
@@ -91,19 +85,19 @@ msgid "Product Name"
 msgstr "Nome prodotto"
 
 msgid "Profiler status: "
-msgstr "Stato Profiler: "
+msgstr "Stato profilazione: "
 
 msgid "Restarting, please wait..."
-msgstr "Riavvio in corso, attendere prego"
+msgstr "Riavvio in corso..."
 
 msgid "Samba Filesharing"
 msgstr "Condivisione file Samba"
 
 msgid "Samba Filesharing disabled"
-msgstr "Samba Filesharing disattivato"
+msgstr "Condivisione file Samba disabilitata"
 
 msgid "Samba Filesharing enabled"
-msgstr "Samba Filesharing attivato"
+msgstr "Condivisione file Samba abilitata"
 
 msgid "Samba description: "
 msgstr "Descrizione Samba "
@@ -112,18 +106,16 @@ msgid "Samba name: "
 msgstr "Nome Samba "
 
 msgid "Samba workgroup: "
-msgstr "Workgroup Samba: "
+msgstr "Gruppo lavoro Samba: "
 
 msgid "Save"
 msgstr "Salva"
 
 msgid "Share"
-msgstr "Condividere"
+msgstr "Condividi"
 
 msgid "Toggling USB3.1 support will reboot the Gateway"
-msgstr ""
-"L'abilitazione o la disabilitazione del supporto USB3.1 richiederà il "
-"riavvio del Gateway"
+msgstr "L'abilitazione/disabilitazione del supporto USB3.1 richiederà il riavvio del gateway"
 
 msgid "Total Space"
 msgstr "Spazio totale"
@@ -135,7 +127,7 @@ msgid "USB Port"
 msgstr "Porta USB"
 
 msgid "Used Space"
-msgstr "Spazio utilizzato"
+msgstr "Spazio usato"
 
 msgid "Version"
 msgstr "Versione"

@@ -73,7 +73,7 @@ end
 --          end
 		ngx.print(ui_helper.createSimpleLight(nil, ppp_state_map[pppoerelay_state] , { light = { class = ppp_light_map[pppoerelay_state], id = "relaysetupcard_pppoerelaystatusled" },  span = { id = "relaysetupcard_pppoerelaystatusled" }}))
 		  if pppoerelay_state == "connected" then
-		    ngx.print(format('<p class = "subinfos" > Interface : <strong id="relaysetupcard_pppoerelay_interface">%s</strong></p>',relay_Params["uci_pppoerelay_interface"] ))
+		    ngx.print(format('<p class = "subinfos">'..T'Interface'..': <strong id="relaysetupcard_pppoerelay_interface">%s</strong></p>', relay_Params["uci_pppoerelay_interface"]))
           end
 		  ngx.print('\
      </div>\

@@ -3,21 +3,22 @@ msgstr ""
 "Project-Id-Version: webui-qos\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-02-09 08:45+0100\n"
-"PO-Revision-Date: 2018-07-16 18:29+0200\n"
-"Last-Translator: Piergiorgio Bellezza\n"
+"PO-Revision-Date: 2019-01-08 11:58+0100\n"
+"Last-Translator: bovirus <bovirus@gmail.com>\n"
 "Language-Team: none\n"
 "Language: it\n"
-"Language-Name: Italiano\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language-Name: Italiano\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.0.9\n"
+"X-Generator: Poedit 2.2\n"
+"X-Poedit-SourceCharset: UTF-8\n"
 
 msgid "<strong>%s classify rule(s)</strong> active"
 msgid_plural "<strong>%s classify rule(s)</strong> active"
-msgstr[0] "<strong>%s regola di classificazione</strong> attiva"
-msgstr[1] "<strong>%s regole di classificazione</strong> attive"
+msgstr[0] "<strong>%s regola classificazione</strong> attiva"
+msgstr[1] "<strong>%s regole classificazione</strong> attive"
 
 msgid "<strong>%s queue(s)</strong> active"
 msgid_plural "<strong>%s queue(s)</strong> active"
@@ -25,10 +26,10 @@ msgstr[0] "<strong>%s coda</strong> attiva"
 msgstr[1] "<strong>%s code</strong> attive"
 
 msgid "Add New Label"
-msgstr "Aggiungi Nuova Etichetta"
+msgstr "Aggiungi nuova etichetta"
 
 msgid "Add New Rule"
-msgstr "Aggiungi Nuova Regola"
+msgstr "Aggiungi nuova regola"
 
 msgid "Add new queue"
 msgstr "Aggiungi nuova coda"
@@ -43,73 +44,82 @@ msgid "Default"
 msgstr "Predefinito"
 
 msgid "Default Queue"
-msgstr "Coda Predefinita"
+msgstr "Coda predefinita"
 
 msgid "Dest Host/IP"
-msgstr "Host/IP Destinazione"
+msgstr "Host/IP destinazione"
 
 msgid "Dest Port(s)"
-msgstr "Porta(e) Destinazione"
+msgstr "Porta/e destinazione"
 
 msgid "Enabled"
 msgstr "Abilitato"
 
 msgid "Label Name"
-msgstr "Nome Etichetta"
+msgstr "Nome etichetta"
 
 msgid "Label Target"
-msgstr "Etichetta Destinazione"
+msgstr "Etichetta destinazione"
 
 msgid "Name"
 msgstr "Nome"
 
 msgid "Port(s)"
-msgstr "Porta(e)"
+msgstr "Porta/e"
 
 msgid "Priority"
-msgstr "Priorita'"
+msgstr "Priorità"
 
 msgid "Protocol"
 msgstr "Protocollo"
 
 msgid "QoS Classification Table"
-msgstr "Tabella Classificazione QoS"
+msgstr "Tabella classificazione QoS"
 
 msgid "QoS Label Table"
-msgstr "Tabella Etichette QoS"
+msgstr "Tabella etichette QoS"
 
 msgid "QoS Queue Scheduling on Interface LAN"
-msgstr "Pianificazione Coda QoS su Interfaccia LAN"
+msgstr "Pianificazione coda QoS interfaccia LAN"
 
 msgid "QoS Queue Scheduling on Interface WAN"
-msgstr "Pianificazione Coda QoS su Interfaccia WAN"
+msgstr "Pianificazione coda QoS interfaccia WAN"
+
+msgid "QoS Queue Scheduling on Interface WLAN"
+msgstr "Pianificazione coda QoS interfaccia WLAN"
 
 msgid "QoS Queue Table on Interface LAN"
-msgstr "Tabella Coda QoS su Interfaccia LAN"
+msgstr "Tabella coda QoS interfaccia LAN"
 
 msgid "QoS Queue Table on Interface WAN"
-msgstr "Tabella Coda QoS su Interfaccia WAN"
+msgstr "Tabella coda QoS interfaccia WAN"
+
+msgid "QoS Queue Table on Interface WLAN"
+msgstr "Tabella coda QoS interfaccia WLAN"
 
 msgid "Queue"
 msgstr "Coda"
 
 msgid "Source Host/IP"
-msgstr "Host/IP Sorgente"
+msgstr "Host/IP sorgente"
 
 msgid "Source Port(s)"
-msgstr "Porta(e) Sorgente(i)"
+msgstr "Porta/e sorgente"
 
 msgid "Strict Priority"
-msgstr "Priorita' Rigorosa"
+msgstr "Priorità rigorosa"
 
 msgid "Strict Priority and Weighted Round Robin"
-msgstr "Priorita' Rigorosa e Round Robin Pesato"
+msgstr "Priorità rigorosa e round robin pesato"
 
 msgid "Traffic ID"
-msgstr "ID Traffico"
+msgstr "ID traffico"
 
 msgid "Weight"
 msgstr "Peso"
 
 msgid "Weighted Round Robin"
-msgstr "Round Robin Pesato"
+msgstr "Round robin pesato"
+
+msgid "Yes"
+msgstr "Sì"

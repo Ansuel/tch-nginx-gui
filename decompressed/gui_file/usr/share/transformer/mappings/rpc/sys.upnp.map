@@ -116,10 +116,10 @@ sys_upnp_redirect_i_.entries = function(mapping)
 	if line:match("&gt;") then
 		line = string.gsub(line,"-&gt;"," => ")
 	end
-    local proto, interface, src_dport, dest_ip, dest_port, stop_time, descr = string.match(line, '([UDTCP]+):(%S+):(%d+):%S+:([%d%s%.]+):(%d+):(%d+):([^\r^\n]*)')
+    local proto, interface, src_dport, dest_ip, dest_port, stop_time, descr = string.match(line, '([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^\n]+)')
     -- If it fails try with the miniupnp v2 format ("interface" is missing)
     if interface == nil then 
-    	proto, src_dport, dest_ip, dest_port, stop_time, descr = string.match(line, '([UDTCP]+):(%d+):([%d%s%.]+):(%d+):(%d+):([^\r^\n]*)')
+    	proto, src_dport, dest_ip, dest_port, stop_time, descr = string.match(line, '([^:]+):([^:]+):([^:]+):([^:]+):([^:]+):([^\n]+)')
         -- Not a clean solution, since the interface name is wired. Not that the ifname seems to matter..
         -- TODO: to get the name dynamically. Maybe by use of.. ?
 	-- local cmd = "netstat -nr | grep '^0.0.0.0' | grep -o '[^ ]*$'"

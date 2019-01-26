@@ -13,6 +13,7 @@ msgstr ""
 "Language-Name: Deutsch\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 2.2\n"
+"X-Poedit-SourceCharset: UTF-8\n"
 
 msgid "Cancel"
 msgstr "Abbrechen"
@@ -65,20 +66,14 @@ msgstr "Allgemeiner Status"
 msgid "Hard Disk Information"
 msgstr "Festplatteninformation"
 
-msgid ""
-"It is recommended to use the USB in the 2.0 standard. The use of USB in 3.1 "
-"standard can remarkably affect the Wi-Fi performance at 2.4 Ghz band."
-msgstr ""
-"Es wird empfohlen, den USB-2.0-Standard zu verwenden. Die Verwendung von USB "
-"3.1 kann die WiFi-Leistungsfähigkeit im 2,4-GHz-Band stark beeinträchtigen."
+msgid "It is recommended to use the USB in the 2.0 standard. The use of USB in 3.1 standard can remarkably affect the Wi-Fi performance at 2.4 Ghz band."
+msgstr "Es wird empfohlen, den USB-2.0-Standard zu verwenden. Die Verwendung von USB 3.1 kann die WiFi-Leistungsfähigkeit im 2,4-GHz-Band stark beeinträchtigen."
 
 msgid "Manufacturer"
 msgstr "Hersteller"
 
 msgid "Only alphanumeric, space, underscore and dash characters allowed"
-msgstr ""
-"Nur alphanumerische Zeichen, Leerzeichen, Unterstrich und Minuszeichen "
-"erlaubt"
+msgstr "Nur alphanumerische Zeichen, Leerzeichen, Unterstrich und Minuszeichen erlaubt"
 
 msgid "Port"
 msgstr "Port"
@@ -91,9 +86,6 @@ msgstr "Produktname"
 
 msgid "Profiler status: "
 msgstr "Analysestatus "
-
-msgid "Rebooting..."
-msgstr "Neustarten..."
 
 msgid "Restarting, please wait..."
 msgstr "Neustart, bitte warten..."
@@ -131,6 +123,9 @@ msgstr "Gesamter Platz"
 msgid "USB 3.1 Enabled"
 msgstr "USB 3.1 eingeschaltet"
 
+msgid "USB Port"
+msgstr ""
+
 msgid "Used Space"
 msgstr "Platz genutzt"
 
@@ -139,6 +134,3 @@ msgstr "Version"
 
 msgid "Volume"
 msgstr "Volume"
-
-msgid "no"
-msgstr "keine"

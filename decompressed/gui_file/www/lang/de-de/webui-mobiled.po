@@ -13,28 +13,16 @@ msgstr ""
 "Language-Name: Deutsch\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 2.2\n"
-
-msgid ""
-"* Data usage is only an approximation. For actual usage, please refer to "
-"your network operator"
-msgstr ""
-"* Datennutzung ist nur eine grobe Näherung. Für die tatsächliche Nutzung "
-"wenden Sie sich an Ihren Netzwerbetreiber"
+"X-Poedit-SourceCharset: UTF-8\n"
 
 msgid "0 device connected"
 msgstr "0 Geräte verbunden"
-
-msgid "APN"
-msgstr "APN"
 
 msgid "Access Technology"
 msgstr "Zugriffstechnologie"
 
 msgid "Access Technology:"
 msgstr "Zugriffstechnologie:"
-
-msgid "Active Band:"
-msgstr "Aktives Band:"
 
 msgid "Add new profile"
 msgstr "Neues Profil hinzufügen"
@@ -57,26 +45,11 @@ msgstr "Authentifizieren"
 msgid "Authentication Type"
 msgstr "Athentifizerungstyp"
 
-msgid "Auto"
-msgstr "Auto"
-
 msgid "Blocked"
 msgstr "Gesperrt"
 
-msgid "CDMA"
-msgstr "CDMA"
-
-msgid "CHAP"
-msgstr "CHAP"
-
-msgid "CINR:"
-msgstr "CINR:"
-
 msgid "Cancel"
 msgstr "Abbruch"
-
-msgid "Cell ID:"
-msgstr "Cell ID:"
 
 msgid "Change"
 msgstr "Ändern"
@@ -111,21 +84,6 @@ msgstr "Verbunden"
 msgid "Connecting"
 msgstr "Verbinden"
 
-msgid "Current"
-msgstr "Aktuell"
-
-msgid "Data Usage"
-msgstr "Datennutzung"
-
-msgid "Data Usage Limit"
-msgstr "Datennutzungslimit"
-
-msgid "Data Usage Monitoring"
-msgstr "Datennutzungsüberwachung"
-
-msgid "Data usage limit reached"
-msgstr "Datennutzungsgrenze erreicht"
-
 msgid "Description"
 msgstr "Beschreibung"
 
@@ -134,9 +92,6 @@ msgstr "Geräteinformation"
 
 msgid "Device Status"
 msgstr "Gerätezustand"
-
-msgid "Device Status And Settings"
-msgstr "Gerätezustand und Einstellungen"
 
 msgid "Device Status:"
 msgstr "Gerätezustand:"
@@ -156,35 +111,8 @@ msgstr "Getrennt"
 msgid "Disconnecting"
 msgstr "Trennen"
 
-msgid "Downlink"
-msgstr "Downlink"
-
-msgid "Downlink ARFCN:"
-msgstr "Downlink ARFCN:"
-
-msgid "Downlink Bandwidth:"
-msgstr "Downlink Bandbreite:"
-
-msgid "Downlink EARFCN:"
-msgstr "Downlink EARFCN:"
-
-msgid "Downlink Frequency:"
-msgstr "Downlink Frequenz:"
-
-msgid "Downlink UARFCN:"
-msgstr "Downlink UARFCN:"
-
-msgid "EARFCN"
-msgstr "EARFCN"
-
-msgid "ECIO:"
-msgstr "ECIO:"
-
 msgid "Enable"
 msgstr "Einschalten"
-
-msgid "Enable Limit"
-msgstr "Limit einschalten"
 
 msgid "Enable PIN"
 msgstr "PIN einschalten"
@@ -198,70 +126,30 @@ msgstr "Fehler"
 msgid "External"
 msgstr "Extern"
 
-msgid ""
-"Failed to change the PIN code. ( %d retry left ) Please make sure you "
-"entered the correct PIN."
-msgid_plural ""
-"Failed to change the PIN code. ( %d retries left ) Please make sure you "
-"entered the correct PIN."
-msgstr[0] ""
-"Fehler beim Ändern der PIN (%d Versuch verbleibend). Bitte stellen Sie "
-"sicher, dass Sie die richtige PIN eingegeben haben."
-msgstr[1] ""
-"Fehler beim Ändern der PIN (%d Versuche verbleibend). Bitte stellen Sie "
-"sicher, dass Sie die richtige PIN eingegeben haben."
+msgid "Failed to change the PIN code. ( %d retry left ) Please make sure you entered the correct PIN."
+msgid_plural "Failed to change the PIN code. ( %d retries left ) Please make sure you entered the correct PIN."
+msgstr[0] "Fehler beim Ändern der PIN (%d Versuch verbleibend). Bitte stellen Sie sicher, dass Sie die richtige PIN eingegeben haben."
+msgstr[1] "Fehler beim Ändern der PIN (%d Versuche verbleibend). Bitte stellen Sie sicher, dass Sie die richtige PIN eingegeben haben."
 
-msgid ""
-"Failed to disable the PIN code. ( %d retry left ) Please make sure you "
-"entered the correct PIN."
-msgid_plural ""
-"Failed to disable the PIN code. ( %d retries left ) Please make sure you "
-"entered the correct PIN."
-msgstr[0] ""
-"Fehler beim Abschalten der PIN (%d Versuch verbleibend). Bitte stellen Sie "
-"sicher, dass Sie die richtige PIN eingegeben haben."
-msgstr[1] ""
-"Fehler beim Abschalten der PIN (%d Versuche verbleibend). Bitte stellen Sie "
-"sicher, dass Sie die richtige PIN eingegeben haben."
+msgid "Failed to disable the PIN code. ( %d retry left ) Please make sure you entered the correct PIN."
+msgid_plural "Failed to disable the PIN code. ( %d retries left ) Please make sure you entered the correct PIN."
+msgstr[0] "Fehler beim Abschalten der PIN (%d Versuch verbleibend). Bitte stellen Sie sicher, dass Sie die richtige PIN eingegeben haben."
+msgstr[1] "Fehler beim Abschalten der PIN (%d Versuche verbleibend). Bitte stellen Sie sicher, dass Sie die richtige PIN eingegeben haben."
 
-msgid ""
-"Failed to enable the PIN code. ( %d retry left ) Please make sure you "
-"entered the correct PIN."
-msgid_plural ""
-"Failed to enable the PIN code. ( %d retries left ) Please make sure you "
-"entered the correct PIN."
-msgstr[0] ""
-"Fehler beim Einschalten der PIN (%d Versuch verbleibend). Bitte stellen Sie "
-"sicher, dass Sie die richtige PIN eingegeben haben."
-msgstr[1] ""
-"Fehler beim Einschalten der PIN (%d Versuche verbleibend). Bitte stellen Sie "
-"sicher, dass Sie die richtige PIN eingegeben haben."
+msgid "Failed to enable the PIN code. ( %d retry left ) Please make sure you entered the correct PIN."
+msgid_plural "Failed to enable the PIN code. ( %d retries left ) Please make sure you entered the correct PIN."
+msgstr[0] "Fehler beim Einschalten der PIN (%d Versuch verbleibend). Bitte stellen Sie sicher, dass Sie die richtige PIN eingegeben haben."
+msgstr[1] "Fehler beim Einschalten der PIN (%d Versuche verbleibend). Bitte stellen Sie sicher, dass Sie die richtige PIN eingegeben haben."
 
-msgid ""
-"Failed to verify the PIN code. ( %d retry left ) Please make sure you "
-"entered the correct PIN."
-msgid_plural ""
-"Failed to verify the PIN code. ( %d retries left ) Please make sure you "
-"entered the correct PIN."
-msgstr[0] ""
-"Fehler beim Verifizieren der PIN (%d Versuch verbleibend). Bitte stellen Sie "
-"sicher, dass Sie die richtige PIN eingegeben haben."
-msgstr[1] ""
-"Fehler beim Verifizieren der PIN (%d Versuche verbleibend). Bitte stellen "
-"Sie sicher, dass Sie die richtige PIN eingegeben haben."
+msgid "Failed to verify the PIN code. ( %d retry left ) Please make sure you entered the correct PIN."
+msgid_plural "Failed to verify the PIN code. ( %d retries left ) Please make sure you entered the correct PIN."
+msgstr[0] "Fehler beim Verifizieren der PIN (%d Versuch verbleibend). Bitte stellen Sie sicher, dass Sie die richtige PIN eingegeben haben."
+msgstr[1] "Fehler beim Verifizieren der PIN (%d Versuche verbleibend). Bitte stellen Sie sicher, dass Sie die richtige PIN eingegeben haben."
 
-msgid ""
-"Failed to verify the PUK code. ( %d retry left ) Please make sure you "
-"entered the correct PUK."
-msgid_plural ""
-"Failed to verify the PUK code. ( %d retries left ) Please make sure you "
-"entered the correct PUK."
-msgstr[0] ""
-"Fehler beim Verifizieren der PUK (%d Versuch verbleibend). Bitte stellen Sie "
-"sicher, dass Sie den richtige PUK eingegeben haben."
-msgstr[1] ""
-"Fehler beim Verifizieren der PUK (%d Versuche verbleibend). Bitte stellen "
-"Sie sicher, dass Sie den richtige PUK eingegeben haben."
+msgid "Failed to verify the PUK code. ( %d retry left ) Please make sure you entered the correct PUK."
+msgid_plural "Failed to verify the PUK code. ( %d retries left ) Please make sure you entered the correct PUK."
+msgstr[0] "Fehler beim Verifizieren der PUK (%d Versuch verbleibend). Bitte stellen Sie sicher, dass Sie den richtige PUK eingegeben haben."
+msgstr[1] "Fehler beim Verifizieren der PUK (%d Versuche verbleibend). Bitte stellen Sie sicher, dass Sie den richtige PUK eingegeben haben."
 
 msgid "Fair"
 msgstr "Ausreichend"
@@ -275,18 +163,6 @@ msgstr "Verboten"
 msgid "From"
 msgstr "Von"
 
-msgid "GB"
-msgstr "GB"
-
-msgid "GSM"
-msgstr "GSM"
-
-msgid "GSM Only"
-msgstr "Nur GSM"
-
-msgid "GSM Preferred"
-msgstr "GSM bevorzugt"
-
 msgid "General Status And Settings"
 msgstr "Allgemeiner Status und Einstellungen"
 
@@ -296,18 +172,6 @@ msgstr "Gut"
 msgid "Hardware version"
 msgstr "Hardware-Version"
 
-msgid "ICCID"
-msgstr "ICCID"
-
-msgid "IMEI"
-msgstr "IMEI"
-
-msgid "IMSI"
-msgstr "IMSI"
-
-msgid "IPv4"
-msgstr "IPv4"
-
 msgid "IPv4 Address"
 msgstr "IPv4-Adresse"
 
@@ -316,12 +180,6 @@ msgstr "IPv4 Primärer DNS"
 
 msgid "IPv4 Secondary DNS"
 msgstr "IPv4 Sekundärer DNS"
-
-msgid "IPv4v6"
-msgstr "IPv4v6"
-
-msgid "IPv6"
-msgstr "IPv6"
 
 msgid "IPv6 Address"
 msgstr "IPv6-Adresse"
@@ -356,23 +214,8 @@ msgstr "Schnittstellen"
 msgid "Internal"
 msgstr "Intern"
 
-msgid "International"
-msgstr "International"
-
 msgid "Invalid value"
 msgstr "Ungültiger Wert"
-
-msgid "LTE"
-msgstr "LTE"
-
-msgid "LTE Doctor"
-msgstr "LTE Doktor"
-
-msgid "LTE Only"
-msgstr "Nur LTE"
-
-msgid "LTE Preferred"
-msgstr "LTE bevorzugt"
 
 msgid "Last five minutes"
 msgstr "Letzte fünf Minuten"
@@ -395,24 +238,6 @@ msgstr "Verknüpftes Profil"
 msgid "Low-power mode"
 msgstr "Niedrigenergiemodus"
 
-msgid "MB"
-msgstr "MB"
-
-msgid "MCC"
-msgstr "MCC"
-
-msgid "MCC:"
-msgstr "MCC:"
-
-msgid "MNC"
-msgstr "MNC"
-
-msgid "MNC:"
-msgstr "MNC:"
-
-msgid "MSISDN"
-msgstr "MSISDN"
-
 msgid "Manual"
 msgstr "Manuell"
 
@@ -428,17 +253,11 @@ msgstr "Mobil"
 msgid "Model"
 msgstr "Modell"
 
-msgid "Monthly Reset Day"
-msgstr "Tag zum monatlichen Zurücksetzen"
-
 msgid "Most recent values"
 msgstr "Aktuellste Werte"
 
 msgid "Name"
 msgstr "Name"
-
-msgid "National"
-msgstr "National"
 
 msgid "Network Scan"
 msgstr "Netzwerksuche"
@@ -454,9 +273,6 @@ msgstr "Neue PIN"
 
 msgid "New PIN code and confirmed PIN code don't match."
 msgstr "Neue PIN und bestätigte PIN stimmen nicht überein."
-
-msgid "No"
-msgstr "Kein"
 
 msgid "No network scan results"
 msgstr "Keine Ergebnisse bei der Netzwerksuche"
@@ -485,14 +301,8 @@ msgstr "Online"
 msgid "Operator:"
 msgstr "Operator:"
 
-msgid "PAP"
-msgstr "PAP"
-
 msgid "PDP Type"
 msgstr "PDP Typ"
-
-msgid "PIN"
-msgstr "PIN"
 
 msgid "PIN Protection"
 msgstr "PIN Schutz"
@@ -521,20 +331,8 @@ msgstr "PPP Fehler"
 msgid "PPP negotiation failed"
 msgstr "PPP Aushandlung fehlgeschlagen"
 
-msgid "PUK"
-msgstr "PUK"
-
-msgid "Password"
-msgstr "Kennwort"
-
-msgid "Path loss:"
-msgstr "Pfadverlust:"
-
 msgid "Permanently blocked"
 msgstr "Permanent gesperrt"
-
-msgid "Physical Cell ID:"
-msgstr "ID der physikalischen Zelle:"
 
 msgid "Please enter PIN"
 msgstr "Bitte geben Sie die PIN ein"
@@ -572,24 +370,6 @@ msgstr "Qualifikationstest"
 msgid "Quality"
 msgstr "Qualität"
 
-msgid "RRC State:"
-msgstr "RRC State:"
-
-msgid "RSCP:"
-msgstr "RSCP:"
-
-msgid "RSRP:"
-msgstr "RSRP:"
-
-msgid "RSRQ:"
-msgstr "RSRQ:"
-
-msgid "RSSI:"
-msgstr "RSSI:"
-
-msgid "Radio Bearer:"
-msgstr "Funkträger:"
-
 msgid "Radio Technology"
 msgstr "Funktechnologie"
 
@@ -614,30 +394,6 @@ msgstr "Registrierung abgelehnt"
 msgid "Remove"
 msgstr "Entfernen"
 
-msgid "Reset"
-msgstr "Zurücksetzen"
-
-msgid "Reset Data Usage"
-msgstr "Zurücksetzen Datennutzung"
-
-msgid "Rx Bytes"
-msgstr "Rx Bytes"
-
-msgid "Rx Packet Errors"
-msgstr "Rx Paketfehler"
-
-msgid "Rx Packets"
-msgstr "Rx Pakete"
-
-msgid "SET"
-msgstr "SETZE"
-
-msgid "SIM"
-msgstr "SIM"
-
-msgid "SIM Card"
-msgstr "SIM-Karte"
-
 msgid "SIM Not Present"
 msgstr "SIM nicht vorhanden"
 
@@ -659,15 +415,6 @@ msgstr "SIM dauerhaft gesperrt"
 msgid "SIM ready"
 msgstr "SIM bereit"
 
-msgid "SINR:"
-msgstr "SINR:"
-
-msgid "SMS"
-msgstr "SMS"
-
-msgid "SNR:"
-msgstr "SNR:"
-
 msgid "Scan Networks"
 msgstr "Durchsuche Netzwerke"
 
@@ -675,8 +422,7 @@ msgid "Scan completed after"
 msgstr "Suche beendet nach"
 
 msgid "Scanning for networks, please wait. This can take a few minutes..."
-msgstr ""
-"Suche nach Netzwerken, bitte warten Sie, dies kann ein paar Minuten dauern..."
+msgstr "Suche nach Netzwerken, bitte warten Sie, dies kann ein paar Minuten dauern..."
 
 msgid "Scanning networks"
 msgstr "Durchsuche Netzwerke"
@@ -720,18 +466,11 @@ msgstr "Exzellent"
 msgid "Suspended"
 msgstr "Schwebend"
 
-msgid "TX Power:"
-msgstr "Sendestärke:"
-
 msgid "Temperature"
 msgstr "Temperatur"
 
-msgid ""
-"The EARFCN needs to be a number between 0 and 65535\n"
-"Use commas to separate multiple EARFCN values."
-msgstr ""
-"Die EARFCN muss eine Zahl zwischen 0 und 65535 sein\n"
-"Benutzen Sie Kommas, um mehrere EARFCN-Werte zu trennen."
+msgid "The EARFCN needs to be a number between 0 and 65535.<br/>Use commas to separate multiple EARFCN values."
+msgstr "Die EARFCN muss eine Zahl zwischen 0 und 65535 sein.<br/>Benutzen Sie Kommas, um mehrere EARFCN-Werte zu trennen."
 
 msgid "The PIN code must be composed of 4 to 8 digits."
 msgstr "Die PIN muss aus 4 bis 8 Ziffern bestehen."
@@ -742,53 +481,17 @@ msgstr "Die PUK muss aus 8 bis 16 Ziffern bestehen."
 msgid "The maximum APN size is %d characters"
 msgstr "Die maximale Länge des APN-Namens beträgt %d Zeichen"
 
-msgid "Total"
-msgstr "Summe"
-
-msgid "Total Volume"
-msgstr "Gesamtvolumen"
-
-msgid "Tracking Area Code:"
-msgstr "Tracking Gebietscode:"
-
-msgid "Tx Bytes"
-msgstr "Tx Bytes"
-
-msgid "Tx Packet Errors"
-msgstr "Tx Paketfehler"
-
-msgid "Tx Packets"
-msgstr "Tx Pakete"
-
-msgid "UMTS"
-msgstr "UMTS"
-
-msgid "UMTS Only"
-msgstr "Nur UMTS"
-
-msgid "UMTS Preferred"
-msgstr "UMTS bevorzugt"
-
 msgid "Unblock"
 msgstr "Entsperren"
 
 msgid "Unblock PIN"
 msgstr "PIN entsperren"
 
-msgid "Unblock Retries Left"
-msgstr "Übrige Entsperrversuche"
-
-msgid "Unknown PIN action"
-msgstr "Unbekannte PIN-Aktion"
-
 msgid "Unlock"
 msgstr "Entsperren"
 
 msgid "Unlock PIN"
 msgstr "PIN entsperren"
-
-msgid "Unlock Retries Left"
-msgstr "Übrige Entsperrversuche"
 
 msgid "Unplugged"
 msgstr "Ausgesteckt"
@@ -798,24 +501,6 @@ msgstr "Ungelesene Meldungen"
 
 msgid "Upgrading firmware"
 msgstr "Aktualisiere Firmware"
-
-msgid "Uplink"
-msgstr "Uplink"
-
-msgid "Uplink ARFCN:"
-msgstr "Uplink ARFCN:"
-
-msgid "Uplink Bandwidth:"
-msgstr "Uplink Bandbreite:"
-
-msgid "Uplink EARFCN:"
-msgstr "Uplink EARFCN:"
-
-msgid "Uplink Frequency:"
-msgstr "Uplink Frequenz:"
-
-msgid "Uplink UARFCN:"
-msgstr "Uplink UARFCN:"
 
 msgid "Username"
 msgstr "Benutzername"

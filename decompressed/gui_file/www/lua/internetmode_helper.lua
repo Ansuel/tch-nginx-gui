@@ -1,3 +1,7 @@
+local proxy = require("datamodel")
+local ifnames = proxy.get("uci.network.interface.@lan.ifname")[1].value
+local wan_ifname = proxy.get("uci.network.interface.@wan.ifname")[1].value
+
 return {
     {
         name = "dhcp",
@@ -7,11 +11,11 @@ return {
         card = "003_internet_dhcp_routed.lp",
         check = {
             { "uci.network.interface.@wan.proto", "^dhcp$"},
-			{ "uci.wansensing.global.enable", "^1$"},
         },
         operations = {
             { "uci.network.interface.@wan.proto", "dhcp"},
             { "uci.network.config.wan_mode", "dhcp"},
+            { "uci.network.interface.@lan.ifname", string.gsub(string.gsub(ifnames, wan_ifname, ""), "%s$", "")},
         },
     },
     {
@@ -22,11 +26,11 @@ return {
         card = "003_internet_pppoe_routed.lp",
         check = {
             { "uci.network.interface.@wan.proto", "^pppoe$"},
-			{ "uci.wansensing.global.enable", "^1$"},
         },
         operations = {
             { "uci.network.interface.@wan.proto", "pppoe"},
             { "uci.network.config.wan_mode", "pppoe"},
+            { "uci.network.interface.@lan.ifname", string.gsub(string.gsub(ifnames, wan_ifname, ""), "%s$", "")},
         },
     },
     {
@@ -37,11 +41,11 @@ return {
         card = "003_internet_pppoe_routed.lp",
         check = {
             { "uci.network.interface.@wan.proto", "^pppoa$"},
-			{ "uci.wansensing.global.enable", "^1$"},
         },
         operations = {
             { "uci.network.interface.@wan.proto", "pppoa"},
             { "uci.network.config.wan_mode", "pppoa"},
+            { "uci.network.interface.@lan.ifname", string.gsub(string.gsub(ifnames, wan_ifname, ""), "%s$", "")},
         },
     },
     {
@@ -52,14 +56,14 @@ return {
         card = "003_internet_static_routed.lp",
         check = {
             { "uci.network.interface.@wan.proto", "^static$"},
-			{ "uci.wansensing.global.enable", "^1$"},
         },
         operations = {
             { "uci.network.interface.@wan.proto", "static"},
             { "uci.network.config.wan_mode", "static"},
+            { "uci.network.interface.@lan.ifname", string.gsub(string.gsub(ifnames, wan_ifname, ""), "%s$", "")},
         },
     },
-	{
+    {
         name = "bridge",
         default = false,
         description = "Bridge mode",
@@ -68,6 +72,10 @@ return {
         check = {
             { "uci.network.config.wan_mode", "^bridge$"}
         },
-        operations = nil,
+        operations = {
+            { "uci.network.interface.@wan.proto", "bridge"},
+            { "uci.network.config.wan_mode", "bridge"},
+            { "uci.network.interface.@lan.ifname", ifnames ..' '.. wan_ifname},
+        },
     },
 }

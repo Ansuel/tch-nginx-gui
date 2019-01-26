@@ -13,6 +13,7 @@ msgstr ""
 "Language-Name: Deutsch\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 2.2\n"
+"X-Poedit-SourceCharset: UTF-8\n"
 
 msgid " of "
 msgstr " von "
@@ -20,30 +21,11 @@ msgstr " von "
 msgid "<h4>Router Installation is Complete</h4>"
 msgstr "<h4>Die Router-Einrichtung is abgeschlossen</h4>"
 
-msgid ""
-"A <b>WiFi 2.4GHz</b> Security Key is already set-up with your Router, "
-"however you can change that key here if desired. You can also change the "
-"security type below. To connect to the Router via WiFi you will need to "
-"enter the Security Key into your device."
-msgstr ""
-"Ein <b>WiFi 2.4GHz</b> Sicherheitsschlüssel ist bereit in Ihrem Router "
-"aufgesetzt. Sie können diesen hier auch verändern. Sie können auch den "
-"Verschlüsselungstyp wechseln. Um sich mit dem Router über WLAN zu verbinden, "
-"benötigen Sie den Sicherheitsschlüssel."
+msgid "A <b>WiFi 2.4GHz</b> Security Key is already set-up with your Router, however you can change that key here if desired. You can also change the security type below. To connect to the Router via WiFi you will need to enter the Security Key into your device."
+msgstr "Ein <b>WiFi 2.4GHz</b> Sicherheitsschlüssel ist bereit in Ihrem Router aufgesetzt. Sie können diesen hier auch verändern. Sie können auch den Verschlüsselungstyp wechseln. Um sich mit dem Router über WLAN zu verbinden, benötigen Sie den Sicherheitsschlüssel."
 
-msgid ""
-"A <b>WiFi 5GHz</b> Security Key is already set-up with your Router, however "
-"you can change that key here if desired. You can also change the security "
-"type below. To connect to the Router via WiFi you will need to enter the "
-"Security Key into your device."
-msgstr ""
-"Ein <b>WiFi 5GHz</b> Sicherheitsschlüssel ist bereit in Ihrem Router "
-"aufgesetzt. Sie können diesen hier auch verändern. Sie können auch den "
-"Verschlüsselungstyp wechseln. Um sich mit dem Router über WLAN zu verbinden, "
-"benötigen Sie den Sicherheitsschlüssel."
-
-msgid "ADSL"
-msgstr "ADSL"
+msgid "A <b>WiFi 5GHz</b> Security Key is already set-up with your Router, however you can change that key here if desired. You can also change the security type below. To connect to the Router via WiFi you will need to enter the Security Key into your device."
+msgstr "Ein <b>WiFi 5GHz</b> Sicherheitsschlüssel ist bereit in Ihrem Router aufgesetzt. Sie können diesen hier auch verändern. Sie können auch den Verschlüsselungstyp wechseln. Um sich mit dem Router über WLAN zu verbinden, benötigen Sie den Sicherheitsschlüssel."
 
 msgid "Desired Password:"
 msgstr "Gewünschtes Kennwort:"
@@ -60,23 +42,11 @@ msgstr "Dynamische IP-Adresse"
 msgid "Enabled"
 msgstr "Aktiviert"
 
-msgid "Ethernet"
-msgstr "Ethernet"
-
 msgid "I don't have VoIP"
 msgstr "Ich habe kein VoIP"
 
-msgid ""
-"In the next pages you will use the quick set-up guide to personalise your "
-"Router. Please enter a username and password to be used to gain access to "
-"your Router Management Console. It is recommended that you choose a unique "
-"password for added security."
-msgstr ""
-"Auf den nächsten Seiten werden Sie die Schnellstartanleitung, um Ihren "
-"Router zu personalisieren. Bitte geben Sie einen Benutzernamen und ein "
-"Kennwort ein, das für die Router-Verwaltungskonsole benötigt wird. Aus "
-"Sicherheitsgründen wird empfohlen, dass Sie dafür ein eigenes Passwort "
-"verwenden."
+msgid "In the next pages you will use the quick set-up guide to personalise your Router. Please enter a username and password to be used to gain access to your Router Management Console. It is recommended that you choose a unique password for added security."
+msgstr "Auf den nächsten Seiten werden Sie die Schnellstartanleitung, um Ihren Router zu personalisieren. Bitte geben Sie einen Benutzernamen und ein Kennwort ein, das für die Router-Verwaltungskonsole benötigt wird. Aus Sicherheitsgründen wird empfohlen, dass Sie dafür ein eigenes Passwort verwenden."
 
 msgid "Invalid VLAN ID, it must be a number on the range 2-4094"
 msgstr "Die VLAN ID ist ungültig, es muss eine Zahl zwischen 2 und 4094 sein"
@@ -84,27 +54,11 @@ msgstr "Die VLAN ID ist ungültig, es muss eine Zahl zwischen 2 und 4094 sein"
 msgid "Invalid value, space not allowed"
 msgstr "Ungültige Eingabe, Leerzeichen nicht erlaubt"
 
-msgid "Nessuna"
-msgstr "Keiner"
-
-msgid "PPP over ATM"
-msgstr "PPP over ATM"
-
-msgid "PPP over Ethernet"
-msgstr "PPP over Ethernet"
-
 msgid "Password:"
 msgstr "Kennwort:"
 
-msgid "Password: "
-msgstr "Kennwort:"
-
-msgid ""
-"Please review your settings and click finish.<br/>Your Router will reset and "
-"settings will be saved."
-msgstr ""
-"Bitte überprüfen Sie Ihre Einstellungen und drücken Sie auf Beenden.<br/>Ihr "
-"Router wird zurückgesetzt und die Einstellungen werden gespeichert."
+msgid "Please review your settings and click finish.<br/>Your Router will reset and settings will be saved."
+msgstr "Bitte überprüfen Sie Ihre Einstellungen und drücken Sie auf Beenden.<br/>Ihr Router wird zurückgesetzt und die Einstellungen werden gespeichert."
 
 msgid "Please set the new password for new user."
 msgstr "Bitte setzen Sie ein neues Kennwort für den neuen Benutzer."
@@ -163,41 +117,23 @@ msgstr "Statische Subnetzmaske:"
 msgid "Step "
 msgstr "Schritt "
 
-msgid "Step 5 of 8"
-msgstr "Schritt 5 von 8"
+msgid "Username:"
+msgstr ""
 
-msgid "Step 6 of 8"
-msgstr "Schritt 6 von 8"
-
-msgid "Username: "
-msgstr "Benutzername: "
-
-msgid "VCI Number: "
-msgstr "VCI Nummer: "
-
-msgid "VDSL"
-msgstr "VDSL"
+msgid "VCI Number:"
+msgstr ""
 
 msgid "VLAN Enabled"
 msgstr "VLAN eingeschaltet"
 
-msgid "VLAN ID"
-msgstr "VLAN ID"
-
-msgid "VLAN ID: "
-msgstr "VLAN ID: "
-
-msgid "VPI Number: "
-msgstr "VPI Nummer: "
-
-msgid ""
-"VoIP (Netphone) is an optional phone service that runs over the internet. If "
-"you have purchased this service, enter your VoIP settings here. You'll find "
-"your settings in your VoIP activation email."
+msgid "VLAN ID:"
 msgstr ""
-"VoIP ist ein optionaler Telefoniedienst, der über das Internetläuft. Wenn "
-"Sie diesen Dienst gebucht haben, geben Sie hier Ihre VoIP Angaben sein. "
-"Diese finden sich in der VoIP Aktivierungs-Mail."
+
+msgid "VPI Number:"
+msgstr ""
+
+msgid "VoIP (Netphone) is an optional phone service that runs over the internet. If you have purchased this service, enter your VoIP settings here. You'll find your settings in your VoIP activation email."
+msgstr "VoIP ist ein optionaler Telefoniedienst, der über das Internetläuft. Wenn Sie diesen Dienst gebucht haben, geben Sie hier Ihre VoIP Angaben sein. Diese finden sich in der VoIP Aktivierungs-Mail."
 
 msgid "VoIP Domain Name:"
 msgstr "VoIP Domain Name:"
@@ -226,8 +162,14 @@ msgstr "VoIP Realm:"
 msgid "VoIP Registar:"
 msgstr "VoIP Registar:"
 
+msgid "VoIP Setup"
+msgstr ""
+
 msgid "VoIP Username:"
 msgstr "VoIP Benutzername::"
+
+msgid "VoIP is an optional phone service that runs over the internet. If you have purchased this service, enter your VoIP settings here. You'll find your settings in your VoIP activation email."
+msgstr ""
 
 msgid "WAN Interfaces"
 msgstr "WAN Schnittstellen"
@@ -238,39 +180,8 @@ msgstr "WAN-Schnittstellen:"
 msgid "WAN Type:"
 msgstr "WAN-Typ:"
 
-msgid "WPA+WPA2 PSK"
-msgstr "WPA+WPA2 PSK"
-
-msgid "WPA2-PSK"
-msgstr "WPA2-PSK"
-
 msgid "Wansensing Enabled"
 msgstr "Wansensing eingeschaltet"
 
-msgid "WiFi Setup (2.4GHz)"
-msgstr "WiFi Setup (2.4GHz)"
-
-msgid "WiFi Setup (5GHz)"
-msgstr "WiFi Setup (5GHz)"
-
-msgid "Wireless 2.4GHz (WiFi):"
-msgstr "Wireless 2.4GHz (WiFi):"
-
-msgid "Wireless 2.4GHz (WiFi): "
-msgstr "Wireless 2.4GHz (WiFi): "
-
-msgid "Wireless 5GHz (WiFi):"
-msgstr "Wireless 5GHz (WiFi):"
-
-msgid "Wireless 5GHz (WiFi): "
-msgstr "Wireless 5GHz (WiFi): "
-
-msgid ""
-"Your modem already has a unique WiFi network set up by default. You can "
-"change the broadcast name here if desired, or turn off WiFi completely. You "
-"can also hide your WiFi network name from other devices by turning off SSID "
-"broadcast."
-msgstr ""
-"Ihr Modem hat bereits ab Werk eine eigene WLAN-Einrichtung. Sie können den "
-"sichtbaren Namen hier ändern oder das WLAN ganz abschalten. Sie können den "
-"WLAN-Namen auch verbergen, indem Sie den SSID-Broadcast abschalten."
+msgid "Your modem already has a unique WiFi network set up by default. You can change the broadcast name here if desired, or turn off WiFi completely. You can also hide your WiFi network name from other devices by turning off SSID broadcast."
+msgstr "Ihr Modem hat bereits ab Werk eine eigene WLAN-Einrichtung. Sie können den sichtbaren Namen hier ändern oder das WLAN ganz abschalten. Sie können den WLAN-Namen auch verbergen, indem Sie den SSID-Broadcast abschalten."

@@ -3,88 +3,89 @@ msgstr ""
 "Project-Id-Version: webui-voice\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-06-21 15:33+0200\n"
-"PO-Revision-Date: 2018-09-03 17:26+0200\n"
-"Last-Translator: Piergiorgio Bellezza\n"
+"PO-Revision-Date: 2019-01-08 11:59+0100\n"
+"Last-Translator: bovirus <bovirus@gmail.com>\n"
 "Language-Team: none\n"
 "Language: it\n"
-"Language-Name: Italiano\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language-Name: Italiano\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 2.2\n"
+"X-Poedit-SourceCharset: UTF-8\n"
 
 msgid "<strong %s>%d </strong> Registered Account"
 msgid_plural "<strong %s>%d </strong> Registered Accounts"
-msgstr[0] "<strong %s>%d </strong> Account Registrato"
-msgstr[1] "<strong %s>%d </strong> Accounts Registrati"
+msgstr[0] "<strong %s>%d </strong> account registrato"
+msgstr[1] "<strong %s>%d </strong> account registrati"
 
 msgid "<strong %s>%d </strong> Registering Account"
 msgid_plural "<strong %s>%d </strong> Registering Accounts"
-msgstr[0] "<strong %s>%d </strong> Account In Registrazione"
-msgstr[1] "<strong %s>%d </strong> Accounts In Registrazione"
+msgstr[0] "<strong %s>%d </strong> account in registrazione"
+msgstr[1] "<strong %s>%d </strong> account in registrazione"
 
 msgid "<strong %s>%d </strong> Unregistered Account"
 msgid_plural "<strong %s>%d </strong> Unregistered Accounts"
-msgstr[0] "<strong %s>%d </strong> Account Non Registrato"
-msgstr[1] "<strong %s>%d </strong> Accounts Non Registrati"
+msgstr[0] "<strong %s>%d </strong> account non registrato"
+msgstr[1] "<strong %s>%d </strong> account non registrati"
 
 msgid "ALL"
 msgstr "TUTTI"
 
 msgid "Access Code"
-msgstr "Codice d´Accesso"
+msgstr "Codice accesso"
 
 msgid "Access code must composed of 4 digits"
 msgstr "Il codice d´accesso deve essere composto da 4 cifre"
 
 msgid "Activate"
-msgstr "Attiva"
+msgstr "Attivato"
 
 msgid "Add new contact"
 msgstr "Aggiungi nuovo contatto"
 
 msgid "Base Name"
-msgstr "Nome Base"
+msgstr "Nome base"
 
 msgid "Bit Rate"
-msgstr "Bit Rate"
+msgstr "Bitrate"
 
 msgid "CW Reject Persistency"
-msgstr "Persistenza Rifiuto CW"
+msgstr "Persistenza rifiuto CW"
 
 msgid "Call Log"
-msgstr "Registro Chiamate"
+msgstr "Registro chiamate"
 
 msgid "Call Statistics"
-msgstr "Statistiche Chiamate"
+msgstr "Statistiche chiamate"
 
 msgid "Call Status"
-msgstr "Stato Chiamate"
+msgstr "Stato chiamate"
 
 msgid "Call Type"
-msgstr "Tipo Chiamate"
+msgstr "Tipo chiamate"
 
 msgid "Cancel"
-msgstr "Cancella"
+msgstr "Annulla"
 
 msgid "Changes saved successfully"
-msgstr "Modifiche salvate correttamente"
+msgstr "Salvataggio modifiche completato"
 
 msgid "Clear call logs"
-msgstr "Cancella registri chiamate"
+msgstr "Azzera registri chiamate"
 
 msgid "Clear historical logs"
-msgstr "Cancellare cronologia dei log"
+msgstr "Azzera registri cronologia"
 
 msgid "Codec Assignment on FXS1"
-msgstr "Assegnazione Codec su FXS1"
+msgstr "Assegnazione codec a FXS1"
 
 msgid "Codec Assignment on FXS2"
-msgstr "Assegnazione Codec su FXS2"
+msgstr "Assegnazione codec a FXS2"
 
 msgid "Config VOIP Services"
-msgstr "Configura Servizi VOIP"
+msgstr "Configura servizi VOIP"
 
 msgid "Contacts"
 msgstr "Contatti"
@@ -99,37 +100,37 @@ msgid "Deactivate"
 msgstr "Disattiva"
 
 msgid "Deactivate & Erase"
-msgstr "Disattiva e Cancella"
+msgstr "Disattiva e elimina"
 
 msgid "Delete"
 msgstr "Elimina"
 
 msgid "Destination No."
-msgstr "Numero di Destinazione."
+msgstr "Numero destinazione."
 
 msgid "Device"
 msgstr "Dispositivo"
 
 msgid "Device List"
-msgstr "Elenco Dispositivi"
+msgstr "Elenco dispositivi"
 
 msgid "Device Name"
-msgstr "Nome Dispositivo"
+msgstr "Nome dispositivo"
 
 msgid "Disabled"
 msgstr "Disabilitato"
 
 msgid "DisplayName"
-msgstr "Visualizza Nome"
+msgstr "Visualizza nome"
 
 msgid "Domain Name"
-msgstr "Nome Dominio"
+msgstr "Nome dominio"
 
 msgid "Duration"
 msgstr "Durata"
 
 msgid "Emission Mode"
-msgstr "Modalità di Emissione"
+msgstr "Modalità emissione"
 
 msgid "Enable Pos"
 msgstr "Abilita Pos"
@@ -156,37 +157,37 @@ msgid "Global"
 msgstr "Globale"
 
 msgid "Global Information"
-msgstr "Informazioni Globali"
+msgstr "Informazioni globali"
 
 msgid "Handset ID"
-msgstr "ID Portatile"
+msgstr "ID portatile"
 
 msgid "Handset Name"
-msgstr "Nome Portatile"
+msgstr "Nome portatile"
 
 msgid "Historical Statistics"
-msgstr "Cronologia Statistiche"
+msgstr "Cronologia statistiche"
 
 msgid "Home Number"
-msgstr "Numero di Casa"
+msgstr "Numero di casa"
 
 msgid "In/Out Mapping"
-msgstr "Mappatura Ingresso/Uscita"
+msgstr "Mappatura ingresso/uscita"
 
 msgid "Incoming Maps"
-msgstr "Mappature in Entrata"
+msgstr "Mappature in entrata"
 
 msgid "Incoming Missed"
-msgstr "Chiamate Non Risposte"
+msgstr "Chiamate non risposte"
 
 msgid "Incoming Successful"
-msgstr "Chiamate Ricevute"
+msgstr "Chiamate ricevute"
 
 msgid "Internal Profile"
-msgstr "Profilo Interno"
+msgstr "Profilo interno"
 
 msgid "Internal Telephone Numbers"
-msgstr "Numeri di Telefono Interni"
+msgstr "Numeri di telefono interni"
 
 msgid "Interrogate"
 msgstr "Interroga"
@@ -198,13 +199,13 @@ msgid "Last Name"
 msgstr "Cognome"
 
 msgid "Local Number"
-msgstr "Numero Locale"
+msgstr "Numero locale"
 
 msgid "Mapping Status"
-msgstr "Mappatura Stato"
+msgstr "Stato mappatura"
 
 msgid "Mobile Number"
-msgstr "Numero Mobile"
+msgstr "Numero cellulare"
 
 msgid "Name"
 msgstr "Nome"
@@ -213,75 +214,73 @@ msgid "Number"
 msgstr "Numero"
 
 msgid "Off"
-msgstr "Spento"
+msgstr "Off"
 
 msgid "Office Number"
-msgstr "Numero Ufficio"
+msgstr "Numero ufficio"
 
 msgid "On"
-msgstr "Attivo"
+msgstr "On"
 
 msgid "Ongoing Statistics"
-msgstr "Statistiche In Corso"
+msgstr "Statistiche in uscita"
 
 msgid "Outgoing Failed"
-msgstr "Chiamate in Uscita Fallite"
+msgstr "Chiamate in uscita fallite"
 
 msgid "Outgoing Maps"
-msgstr "Mappature In Uscita"
+msgstr "Mappe in uscita"
 
 msgid "Outgoing Successful"
-msgstr "Chiamate Effettuate"
+msgstr "Chiamate effettuate"
 
 msgid "Packetization Period"
-msgstr "Intervallo Pacchettizzazione"
+msgstr "Intervallo pacchettizzazione"
 
 msgid "Paging"
-msgstr "Impaginazione"
+msgstr "Chiamata"
 
 msgid "Paging Handset"
-msgstr "Impaginazione Portatile"
+msgstr "Chiamata portatile"
 
 msgid "Pairing"
 msgstr "Accoppiamento"
 
 msgid "Pairing Handset"
-msgstr "Accoppiamento Portatile"
+msgstr "Accoppiamento portatile"
 
 msgid "Pairing Window Time in Sec"
-msgstr "Finestra Temporale di Accoppiamento in Sec"
+msgstr "Intervallo temporale accoppiamento (sec)"
 
 msgid "Pairing in progress, Please press Cancel button for stop pairing."
-msgstr ""
-"Accoppiamento in corso, Si prega di premere il tasto Cancella per "
-"interrompere l'accoppiamento."
+msgstr "Accoppiamento in corso. Seleziona 'Annulla' per interrompere l'accoppiamento."
 
 msgid "Pairing in progress, please wait..."
-msgstr "Accoppiamento in corso, si prega di attendere..."
+msgstr "Accoppiamento..."
 
 msgid "Pairing window value is invalid"
-msgstr "Il valore della finestra di accoppiamento non è valido"
+msgstr "Valore non valido intervallo accoppiamento"
 
 msgid "Password"
 msgstr "Password"
 
 msgid "Phone Book"
-msgstr "Rubrica Telefonica"
+msgstr "Rubrica telefonica"
 
 msgid "Phone Number"
-msgstr "Numero di Telefono"
+msgstr "Numero di telefono"
 
 msgid "Phone Numbers"
-msgstr "Numeri di Telefono"
+msgstr "Numeri di telefono"
 
 msgid "Please set URI."
-msgstr "Si prega di impostare URI."
+msgstr "Imposta URI."
 
 msgid "Please set password."
-msgstr "Si prega di impostare una password."
+msgstr "Imposta una password."
 
 msgid "Please set value."
-msgstr "Si prega di impostare un valore."
+msgstr "Imposta un valore."
 
 msgid "Port"
 msgstr "Porta"
@@ -293,16 +292,16 @@ msgid "Pos on FXS2"
 msgstr "Pos su FXS2"
 
 msgid "Primary Proxy"
-msgstr "Proxy Primario"
+msgstr "Proxy primario"
 
 msgid "Primary ProxyPort"
-msgstr "Porta Proxy Primario"
+msgstr "Porta proxy primario"
 
 msgid "Primary Registrar"
-msgstr "Registrar Primario"
+msgstr "Registrar primario"
 
 msgid "Primary RegistrarPort"
-msgstr "Porta Registrar Primaria"
+msgstr "Porta registrar primario"
 
 msgid "Priority"
 msgstr "Priorità"
@@ -311,31 +310,31 @@ msgid "Profile"
 msgstr "Profilo"
 
 msgid "Profile Number"
-msgstr "Numero Profilo"
+msgstr "Numero profilo"
 
 msgid "Quality Log"
-msgstr "Registro Qualità"
+msgstr "Registro qualità"
 
 msgid "ReceiveInterarrivalJitter"
-msgstr "Jitter Ricezione"
+msgstr "Jitter ricezione"
 
 msgid "Register"
 msgstr "Registra"
 
 msgid "Register & Activate"
-msgstr "Registra e Attiva"
+msgstr "Registra e attiva"
 
 msgid "Registered"
 msgstr "Registrato"
 
 msgid "Remote Number"
-msgstr "Numero Remoto"
+msgstr "Numero remoto"
 
 msgid "Remoteparty"
-msgstr "Numero Remoto"
+msgstr "Numero remoto"
 
 msgid "RoundTripDelay"
-msgstr "Ritardo Andata e Ritorno"
+msgstr "Ritardo andata e ritorno"
 
 msgid "SIP Network"
 msgstr "Rete SIP"
@@ -347,16 +346,16 @@ msgid "Service"
 msgstr "Servizio"
 
 msgid "Service Code Command"
-msgstr "Comando Codice di Servizio"
+msgstr "Comando codice servizio"
 
 msgid "Service Name"
-msgstr "Nome Servizio"
+msgstr "Nome servizio"
 
 msgid "Services"
 msgstr "Servizi"
 
 msgid "Silence Suppression"
-msgstr "Soppressione Silenzio"
+msgstr "Soppressione silenzio"
 
 msgid "Sip Device"
 msgstr "Dispositivo SIP"
@@ -365,13 +364,13 @@ msgid "Some parameters failed validation"
 msgstr "Alcuni parametri hanno fallito la convalida"
 
 msgid "Start"
-msgstr "Avvio"
+msgstr "Avvia"
 
 msgid "State"
 msgstr "Stato"
 
 msgid "Telephone Numbers"
-msgstr "Numeri di Telefono"
+msgstr "Numeri di telefono"
 
 msgid "Telephony"
 msgstr "Telefonia"
@@ -383,7 +382,7 @@ msgid "Telephony enabled"
 msgstr "Telefonia abilitata"
 
 msgid "This URI has already existed, please input one not existed."
-msgstr "Questa URI esisteva già, si prega di inserirne una non esistente."
+msgstr "Questa URI esisteva già.<br/>Inserisci una URI non esistente."
 
 msgid "Time"
 msgstr "Orario"
@@ -398,28 +397,37 @@ msgid "URI"
 msgstr "URI"
 
 msgid "Unregister"
-msgstr "Annulla Registrazione"
+msgstr "Annulla registrazione"
 
 msgid "Uri"
 msgstr "Uri"
 
 msgid "User Name"
-msgstr "Nome Utente"
+msgstr "Nome utente"
 
 msgid "UserName"
-msgstr "Nome Utente"
+msgstr "Nome utente"
 
 msgid "Voip Password"
 msgstr "Password VoIP"
 
 msgid "Voip Password Profile 1"
-msgstr "Password Profilo 1 VoIP"
+msgstr "Password profilo 1 VoIP"
 
 msgid "Voip Password Profile 2"
-msgstr "Password Profilo 2 VoIP"
+msgstr "Password profilo 2 VoIP"
 
 msgid "Voip Password Profile 3"
-msgstr "Password Profilo 3 VoIP"
+msgstr "Password profilo 3 VoIP"
 
 msgid "sipindex"
 msgstr "indice sip"
+
+msgid "Status"
+msgstr "Stato"
+
+msgid "Local Port"
+msgstr "Porta locale"
+
+msgid "Can be used"
+msgstr "Possono essere usati"

@@ -5,31 +5,31 @@
 #	 Custom Gui for Technicolor Modem: utility script and modified gui for the 
 #	 								   Technicolor Modem interface based on OpenWrt
 #
-#    Copyright (C) 2018  Christian Marangi <ansuelsmth@gmail.com>
+#	Copyright (C) 2018  Christian Marangi <ansuelsmth@gmail.com>
 #
-#    This file is part of Custom Gui for Technicolor Modem.
-#    
-#    Custom Gui for Technicolor Modem is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#    
-#    Custom Gui for Technicolor Modem is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#    
-#    You should have received a copy of the GNU General Public License
-#    along with Custom Gui for Technicolor Modem.  If not, see <http://www.gnu.org/licenses/>.
+#	This file is part of Custom Gui for Technicolor Modem.
+#
+#	Custom Gui for Technicolor Modem is free software: you can redistribute it and/or modify
+#	it under the terms of the GNU General Public License as published by
+#	the Free Software Foundation, either version 3 of the License, or
+#	(at your option) any later version.
+#
+#	Custom Gui for Technicolor Modem is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#	GNU General Public License for more details.
+#
+#	You should have received a copy of the GNU General Public License
+#	along with Custom Gui for Technicolor Modem.  If not, see <http://www.gnu.org/licenses/>.
 #
 #
 
 START=94
 EXTRA_COMMANDS="force debug"
 EXTRA_HELP="\
-        force   Force root process even when root flag is already set
-        debug   force command with debug log
-        install    This root the device for the initial installation
+		force   Force root process even when root flag is already set
+		debug   force command with debug log
+		install	This root the device for the initial installation
 "
 #Gui version is now autocompleted base on latest dev, this variable will be replaced by the automatic script
 version_gui=TO_AUTO_COMPLETE
@@ -37,35 +37,35 @@ version_gui=TO_AUTO_COMPLETE
 logo_project() {
 cat << EOF > /dev/console
 
- █████╗ ███╗   ██╗███████╗██╗   ██╗███████╗██╗     
-██╔══██╗████╗  ██║██╔════╝██║   ██║██╔════╝██║     
-███████║██╔██╗ ██║███████╗██║   ██║█████╗  ██║     
-██╔══██║██║╚██╗██║╚════██║██║   ██║██╔══╝  ██║     
+ █████╗ ███╗   ██╗███████╗██╗   ██╗███████╗██╗	 
+██╔══██╗████╗  ██║██╔════╝██║   ██║██╔════╝██║	 
+███████║██╔██╗ ██║███████╗██║   ██║█████╗  ██║	 
+██╔══██║██║╚██╗██║╚════██║██║   ██║██╔══╝  ██║	 
 ██║  ██║██║ ╚████║███████║╚██████╔╝███████╗███████╗
 ╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝ ╚═════╝ ╚══════╝╚══════╝
-(Modified Gui RootScript)                  (Christo)
+(Modified Gui RootScript)				  (Christo)
 
 EOF
 
 logger << EOF
 
-                                     _ 
-     /\  (Modified Gui RootScript)  | |
-    /  \    _ __   ___  _   _   ___ | |
+									 _ 
+	 /\  (Modified Gui RootScript)  | |
+	/  \	_ __   ___  _   _   ___ | |
    / /\ \  | '_ \ / __|| | | | / _ \| |
   / ____ \ | | | |\__ \| |_| ||  __/| |
- /_/    \_\|_| |_||___/ \__,_| \___||_|
-                                       
-                             (Christo) 
+ /_/	\_\|_| |_||___/ \__,_| \___||_|
+									   
+							 (Christo) 
 EOF
 }
 
 check_root() {
-	
+
 	config_load "system"
-	
+
 	config_get_bool rooted config rooted 0
-	
+
 cat << EOF > /dev/console
  === IMPORTANT =======================================
   Checking root...
@@ -116,7 +116,7 @@ setup_network() {
 	if [ ! "$(uci show network.lan | grep "network.lan.pppoerelay")" ]; then
 		uci -q add_list network.lan.pppoerelay=''
 	fi
-	
+
 	#Set a waneth4 interface if not found (fix wizard on UNO)
 	if [ ! "$(uci -q get network.waneth4)" ]; then
 		uci -q add network device > /dev/null
@@ -129,20 +129,20 @@ setup_network() {
 	if [ ! "$(uci -q get network.waneth4.vid)" ]; then
 		uci -q set network.waneth4.vid=835
 	fi
-    
-    #Set a wanptm0 interface if not found (fix wizard on UNO)
-    if [ ! "$(uci -q get network.wanptm0)" ]; then
-        uci -q add network device > /dev/null
-        uci -q rename network.@device[-1]=wanptm0
-        uci -q set network.wanptm0.enabled=1
-        uci -q set network.wanptm0.type=8021q
-        uci -q set network.wanptm0.name=wanptm0
-        uci -q set network.wanptm0.vid=835
-    fi
+
+	#Set a wanptm0 interface if not found (fix wizard on UNO)
+	if [ ! "$(uci -q get network.wanptm0)" ]; then
+		uci -q add network device > /dev/null
+		uci -q rename network.@device[-1]=wanptm0
+		uci -q set network.wanptm0.enabled=1
+		uci -q set network.wanptm0.type=8021q
+		uci -q set network.wanptm0.name=wanptm0
+		uci -q set network.wanptm0.vid=835
+	fi
 	if [ ! "$(uci -q get network.wanptm0.vid)" ]; then
 		uci -q set network.wanptm0.vid=835
 	fi
-    
+
 	#Set a SSH_wan firewall rule if not found (fix SSH Wan not working)
 	if [ ! "$(uci -q get firewall.SSH_wan)" ]; then
 		uci -q add firewall rule > /dev/null
@@ -154,7 +154,7 @@ setup_network() {
 		uci -q set firewall.SSH_wan.dest_port=22
 		uci -q set firewall.SSH_wan.family=ipv4
 	fi
-	
+
 	#Rename ppp interface to wan to fix problem with TG800 strange Telstra configuration
 	if [ ! "$(uci -q get network.wan.proto)" ] && [ "$(uci -q get network.ppp)" ]; then
 		uci del network.wan
@@ -231,8 +231,8 @@ cumulative_check_gui() {
 		update_branch="_dev"
 		logger_command "Update branch detected: DEV"
 	fi
-	
-	
+
+
 	#This make sure we have stable GUI in /root
 	if [ ! -f /root/GUI.tar.bz2 ]; then
 		logger_command "Stable GUI not found in /root"
@@ -244,7 +244,7 @@ cumulative_check_gui() {
 				cp /tmp/GUI_dev.tar.bz2 /root/GUI.tar.bz2
 			elif ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then
 				logger_command "Downloading stable..."
-			    curl -k -s https://repository.ilpuntotecnico.com//files/Ansuel/AGTEF/GUI.tar.bz2 --output /root/GUI.tar.bz2
+				curl -k -s https://repository.ilpuntotecnico.com//files/Ansuel/AGTEF/GUI.tar.bz2 --output /root/GUI.tar.bz2
 			else
 				logger_command "Can't download stable GUI!"
 			fi
@@ -258,9 +258,9 @@ cumulative_check_gui() {
 			bzcat /root/GUI.tar.bz2 | tar -C / -xf - www
 		fi
 	fi
-	
+
 	logger_command "Updating GUI in /root folder from /tmp"
-	
+
 	#This move tmp gui in /root
 	if [ -f /tmp/GUI$update_branch.tar.bz2 ]; then
 		if [ -f /root/GUI$update_branch.tar.bz2 ]; then
@@ -268,9 +268,9 @@ cumulative_check_gui() {
 		fi
 		mv /tmp/GUI$update_branch.tar.bz2 /root/GUI$update_branch.tar.bz2
 	fi
-	
-	
-	
+
+
+
 	#This generate new hash
 	if [ -f /root/GUI$update_branch.tar.bz2 ]; then
 		old_gui_hash=$(uci get -q env.var.gui_hash)
@@ -286,9 +286,9 @@ cumulative_check_gui() {
 		logger_command "Can't generate GUI hash, file not found!"
 		gui_hash="0"
 	fi
-	
+
 	logger_command "Resetting version info..."
-	
+
 	if [ ! $(uci get -q env.var.gui_hash) ]; then
 		uci set env.var.new_ver="Unknown"
 		uci set env.var.gui_hash=$gui_hash
@@ -325,7 +325,7 @@ transfer_bank() {
 	fi
 	activeversion=$( cat /proc/banktable/activeversion )
 	passiveversion=$( cat /proc/banktable/passiveversion )
-	
+
 	if [ "$activeversion" == "$passiveversion" ]; then
 		echo bank_1 > /proc/banktable/active
 		reboot
@@ -347,42 +347,10 @@ restore_bank() {
 			mtd write /dev/mtd4 /dev/mtd3
 		fi
 	fi
-	
+
 	if [ "$activeversion" == "$passiveversion" ]; then
 		echo $bootedbank > /proc/banktable/active
 		reboot
-	fi
-}
-
-check_bank() {
-	bank_check=$( uci get -q env.var.bank_check )
-	bootedbank=$( cat /proc/banktable/booted )
-	activebank=$( cat /proc/banktable/active )
-	env_config_bank1="/overlay/bank_1/etc/config/env"
-	get_config_bank1=$(cat /etc/config/env | grep bank_check | awk '{print $3}' | sed "s/'//g")
-	if [ $bootedbank != $activebank ]; then
-		echo "  Detected corrupted active bank... Restoring..." > /dev/console
-		restore_bank
-	fi
-		
-	if [ $bootedbank == "bank_2" ]; then
-		if [ ! $( uci -q get env.var.bank_check ) ]; then
-			if [ -f $env_config_bank1 ] && [ $get_config_bank1 == "0" ]; then
-				echo "  Firmware in Bank_2 but check_bank set to 0... Not transferring" > /dev/console
-			else
-				echo "  Firmware in Bank_2... Transferring" > /dev/console
-				transfer_bank
-			fi
-		elif [ $bank_check == "1" ]; then
-			if [ -f $env_config_bank1 ] && [ $get_config_bank1 == "0" ]; then
-				echo "  Firmware in Bank_2 but check_bank set to 0... Not transferring" > /dev/console
-			else
-				echo "  Firmware in Bank_2... Transferring" > /dev/console
-				transfer_bank
-			fi
-		fi
-	else
-		echo "  Firmware in Bank_1... Not transferring..." > /dev/console
 	fi
 }
 
@@ -495,39 +463,28 @@ trafficmon_support() {
 			/etc/init.d/trafficmon start
 		fi
 	fi
-	
+
 }
 
 checkver_cron() {
-	if [ $(ls -l /etc/crontabs/root | awk '{print $3}') != "root" ]; then
-		rm /etc/crontabs/root #THIS CHECK A VALID ROOT CRON... we remove it as it's useless if the owner is not root.
-	fi							#so someone should check it anyway
-	if [ -f /etc/crontabs/root ]; then
-		if [ ! "$(cat /etc/crontabs/root | grep checkver)" ] ; then
-			echo "0 5 * * * /usr/share/transformer/scripts/checkver Schedule >/dev/null 2>&1" >> /etc/crontabs/root
-			/etc/init.d/cron restart
+	if [ -f /etc/crontabs/root ]; then #remove from cron old checkver.sh script
+		sed -i '/checkver.sh/d' /etc/crontabs/root
+		if [ $(ls -l /etc/crontabs/root | awk '{print $3}') != "root" ]; then
+			rm /etc/crontabs/root #THIS CHECK A VALID ROOT CRON... we remove it as it's useless if the owner is not root.
 		fi
-		if [ -f /etc/crontabs/root_gui ]; then
-			rm /etc/crontabs/root_gui
-		fi
-		if [ ! "$(cat /etc/crontabs/root | grep Schedule)" ] && [ "$(cat /etc/crontabs/root | grep checkver)" ]; then
-			sed -e /scripts/d -i /etc/crontabs/root
-			echo "0 5 * * * /usr/share/transformer/scripts/checkver Schedule >/dev/null 2>&1" >> /etc/crontabs/root
-			/etc/init.d/cron restart
-		fi
-	else
-		if [ -f /etc/crontabs/root_gui ]; then
-			mv /etc/crontabs/root_gui /etc/crontabs/root
-			/etc/init.d/cron restart
-		fi
-	fi	
+	fi
+	if [ ! -f /etc/crontabs/root ] || [ ! "$(cat /etc/crontabs/root | grep checkver)" ]; then
+		rand_h=$(awk -v min=1 -v max=6 'BEGIN{srand(); print int(min+rand()*(max-min+1))}')
+		rand_m=$(awk -v min=1 -v max=59 'BEGIN{srand(); print int(min+rand()*(max-min+1))}')
+		echo "$rand_m $rand_h * * * /usr/share/transformer/scripts/checkver >/dev/null 2>&1" >> /etc/crontabs/root
+		/etc/init.d/cron restart
+	fi
 }
 
 restore_original_mapper() {
-	
 	local orig_dir=/rom/usr/share/transformer/mappings
 	local target=/usr/share/transformer/mappings
-	
+
 	if [ $(md5sum $orig_dir/device2/Device.map | awk '{print $1}') != $(md5sum $target/device2/Device.map | awk '{print $1}') ]; then
 		mkdir /tmp/tmp_bff_file
 		cp $target/bbf/VoiceService* /tmp/tmp_bff_file/
@@ -549,7 +506,7 @@ restore_original_mapper() {
 		rm $target$mapper/bbf/VoiceService.VoiceProfile.Line.map
 		cp $orig_dir$mapper/bbf/VoiceService.VoiceProfile.Line.map $orig_dir$mapper/bbf/
 	fi #Solve some problems with cwmp AGTEF_1.0.3
-	
+
 	#Remove ignored Root device naming from transformer
 	uci del_list transformer.@main[0].ignore_patterns='^Device%.'
 	uci del_list transformer.@main[0].ignore_patterns='^InternetGatewayDevice%.'
@@ -558,7 +515,7 @@ restore_original_mapper() {
 transformer_lib_check() {
 	local orig_dir=/rom/usr
 	local target=/usr
-	
+
 	if [ $(md5sum $orig_dir/lib/lua/transformer/commitapply.lua | awk '{print $1}') != $(md5sum $target/lib/lua/transformer/commitapply.lua | awk '{print $1}') ]; then
 		rm $target/share/transformer/mappings/rpc/*
 		rm $target/share/transformer/mappings/uci/*
@@ -668,7 +625,7 @@ wifi_fix_24g() {
 	wl obss_prot set 0
 	wl -i wl0 gmode Performance
 	wl -i wl0 up
-	
+
 }
 
 create_gui_type() {
@@ -689,6 +646,13 @@ create_gui_type() {
 			uci set env.var.luci_webui="1"
 		else
 			uci set env.var.luci_webui="0"
+		fi
+	fi
+	if [ ! $( uci get -q env.var.amule_webui) ]; then
+		if [ -d /www/docroot/amule ]; then
+			uci set env.var.amule_webui="1"
+		else
+			uci set env.var.amule_webui="0"
 		fi
 	fi
 	if [ ! $( uci get -q env.var.transmission_webui) ]; then
@@ -895,11 +859,11 @@ led_integration() {
 		uci set ledfw.status_led=status_led
 		uci set ledfw.status_led.enable='0'
 	fi
-    if [ ! "$(uci get -q ledfw.wifi.nsc_on)" ] ; then
-        uci set ledfw.wifi=service
-        uci set ledfw.wifi.nsc_on='1'
-    fi
-	
+	if [ ! "$(uci get -q ledfw.wifi.nsc_on)" ] ; then
+		uci set ledfw.wifi=service
+		uci set ledfw.wifi.nsc_on='1'
+	fi
+
 	#Restart statusledeventing if old version
 	if [ -f /tmp/status-led-eventing.lua_new ]; then
 		ledeventing_new_md5=$(cat /tmp/status-led-eventing.md5sum | awk '{ print $1 }')
@@ -1138,7 +1102,7 @@ unlock_ssh_wan_tiscali() {
 telstra_support_check() {
 	################# telstra gui support ###################
 	# We add rule anyway as if not present nginx gves 404 ###
-	
+
 	if [ ! $(uci get -q web.telstra_broadband.target) ]; then
 		uci set web.telstra_broadband=rule
 		uci set web.telstra_broadband.target='/telstra-modals/broadband.lp'
@@ -1378,16 +1342,16 @@ rootchecks() {
 			fi
 		fi
 	fi
-	
+
 	logger_command "Setting dropbear settings"
 	uci set dropbear.@dropbear[0].Interface='lan'
 	uci set dropbear.@dropbear[0].RootLogin='1'
 	uci set dropbear.@dropbear[0].RootPasswordAuth='on' #dropbear root related
 	uci set dropbear.@dropbear[0].PasswordAuth='on'
 	uci set dropbear.@dropbear[0].enable='1'
-	
+
 	uci commit dropbear
-	
+
 	logger_command "Restarting dropbear"
 	/etc/init.d/dropbear restart > /dev/null
 }
@@ -1405,7 +1369,7 @@ ledfw_rework_TG799() {
 		uci set ledfw.iptv.check='0'
 		uci commit ledfw
 	fi
-	
+
 	if [ -f /tmp/ledfw_support-specificTG799.tar.bz2 ]; then
 		stateMachine_tar_md5=$(bzcat /tmp/ledfw_support-specificTG799.tar.bz2 | tar xf - stateMachines.md5sum -O | awk '{ print $1 }')
 		stateMachine_md5=$(md5sum /etc/ledfw/stateMachines.lua | awk '{ print $1 }' )
@@ -1434,7 +1398,7 @@ ledfw_rework_TG800() {
 		uci set ledfw.iptv.check='0'
 		uci commit ledfw
 	fi
-	
+
 	if [ -f /tmp/ledfw_support-specificTG800.tar.bz2 ]; then
 		stateMachine_tar_md5=$(bzcat /tmp/ledfw_support-specificTG800.tar.bz2 | tar xf - stateMachines.md5sum -O | awk '{ print $1 }')
 		stateMachine_md5=$(md5sum /etc/ledfw/stateMachines.lua | awk '{ print $1 }' )
@@ -1469,7 +1433,7 @@ ledfw_rework_DGA() {
 	if [ ! "$(cat /usr/lib/lua/ledframework/ubus.lua | grep 'cb("fwupgrade_state_" .. msg.state)')" ]; then
 		sed -i 'N;/events\['\''fwupgrade'\''\] = function(msg)/a\\t\tcb("fwupgrade_state_" .. msg.state)' /usr/lib/lua/ledframework/ubus.lua
 	fi
-	
+
 	if [ -f /tmp/ledfw_support-specificDGA.tar.bz2 ]; then
 		stateMachine_tar_md5=$(bzcat /tmp/ledfw_support-specificDGA.tar.bz2 | tar xf - stateMachines.md5sum -O | awk '{ print $1 }')
 		stateMachine_md5=$(md5sum /etc/ledfw/stateMachines.lua | awk '{ print $1 }' )
@@ -1532,15 +1496,15 @@ disable_intercept() {
 }
 
 cron_christmas() {
-	if [ $(cat /etc/crontabs/root | grep -c "christmas_tree") -lt 1 ]; then
+	if [ ! -f /etc/crontabs/root ] || [ $(cat /etc/crontabs/root | grep -c "christmas_tree") -lt 1 ]; then
 		echo "*/30 * 24-26 12 * /etc/christmas_tree.sh &" >> /etc/crontabs/root
 	fi
 }
 
 root() {
-	
+
 	logger -s -t 'Root Script' "Rooting in progress..."
-	
+
 	#THIS CHECK DEVICE TYPE AND INSTALL SPECIFIC FILE
 	device_type="$(uci get -q env.var.prod_friendly_name)"
 
@@ -1553,20 +1517,20 @@ root() {
 	[ -z "${device_type##*TG789*}" ] && ledfw_rework_TG789
 	[ -z "${device_type##*TG799*}" ] && ledfw_rework_TG799
 	[ -z "${device_type##*TG800*}" ] && ledfw_rework_TG800
-	
+
 	if [ -f /tmp/custom-ripdrv-specificDGA.tar.bz2 ]; then
 		clean_specific_file
 		logger_command "Removing specific file and resuming root process..."
 	fi
-	
+
 	/etc/init.d/watchdog-tch stop
 	logger_command "Disable watchdog"
-	
+
 	logger_command "Start rooting"
 	if [ ! -f /root/.check_process ]; then #this check if the placeholder exist
 		touch /root/.check_process #this is a placeholder to know if the process ends correctly
 	fi
-	
+
 	if [ -f /root/.reapply_due_to_upgrade ]; then
 		if [ -f /root/GUI.tar.bz2 ] && [ -s /root/GUI.tar.bz2 ]; then
 			logger_command "Resetting /www dir due to firmware upgrade..."
@@ -1575,14 +1539,14 @@ root() {
 			rm /root/.reapply_due_to_upgrade
 		fi
 	fi
-	
+
 	logger_command "Stopping nginx"
 	while [ "$(pgrep "nginx")" ]; do
 		if [ "$(pgrep "nginx")" ]; then
 			/etc/init.d/nginx stop 2>/dev/null
 		fi
 	done
-		
+
 	logger_command "Checking if we are on TIM configuration"
 	if [ $(uci -q get env.var.isp) ]; then
 		if [ $(uci get -q env.var.isp) == "TIM" ]; then #this add specific config for TIM
@@ -1593,7 +1557,7 @@ root() {
 			purify_from_tim
 		fi
 	fi
-	
+
 	logger_command "Unlocking web interface if needed"
 	if [ -f /etc/config/web_unlock ]; then
 		if [ ! $(uci get -q web.changelog) ] || [ ! $(uci get -q web.mmpbxstatisticsmodal) ] ; then
@@ -1603,7 +1567,7 @@ root() {
 			rm /etc/config/web_unlock
 		fi
 	fi
-	
+
 	logger_command "Check variant_friendly_name set"
 	check_variant_friendly_name
 	logger_command "Check and cleanup"
@@ -1688,55 +1652,56 @@ root() {
 	disable_intercept #Intercept check
 	logger_command "Trying to clean wansensing script from hardcoded interface..."
 	wan_sensing_clean #Wansensing clean utility
-	
-	cron_christmas #You guess...
-	
+
 	logger_command "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not
 
 	logger_command "Disable reboot after crash, this gives race condition..."
 	uci set system.@coredump[0].reboot='0'
-	
+
 	rootchecks #This check root availability
-	
-	
-	if [ ! $(uci get -q env.var.bank_check) ]; then #this set bank_check bit if not present
+
+
+	if [ $(cat /proc/banktable/booted) == "bank_1" ] && [ ! $(uci get -q env.var.bank_check) ]; then 
+		#this set bank_check bit if not present ONLY IN BANK_1, bank_2 value is set based on bank_1 value
 		uci set env.var.bank_check="1"
 	fi
-	
+
 	[ -z "${device_type##*DGA413*}" ] && uci set wireless.global.wifi_analyzer_disable='0' #AGTEF specific
-	
+
 	logger_command "Doing various check and generating hash..."
 	cumulative_check_gui #Handle strange installation
-	
-	logger_command "Sync version"
+
+	logger_command "Add checkversion to cron..."
 	if [ -f /usr/share/transformer/scripts/checkver ]; then
 		checkver_cron
 	fi
-	
+
+	cron_christmas #You guess...
+
 	if [ -f /root/.sfp_change ]; then
 		rm /root/.sfp_change
 		/etc/init.d/network restart
 		ifup wan
 	fi
-	
+
 	logger_command "Apply modification"
 	uci commit
-	
+
 	logger_command "Restart power init"
 	/etc/init.d/power restart
-	
+
 	logger_command "Restarting dnsmasq"
 	killall dnsmasq
 	/etc/init.d/dnsmasq restart
-	
+
 	rm /root/.check_process #we remove the placeholder as the process is complete
 	logger_command "Process done."
 	echo "  Process done. Your modem is now rooted!" > /dev/console
-	
+
 	logger_command "Checking if ISP is detected..."
 	if [ $(uci -q get env.var.isp) ]; then
-		if [ $(uci -q get env.var.isp) == "Other" ]; then #this disable cwmpd if it's not tim...
+		if [ $(uci -q get env.var.isp) == "Other" ]; then #this disable cwmpd if it's not known ISP...
 			uci set cwmpd.cwmpd_config.state='0'
 			if [ $(uci get -q cwmpd.cwmpd_config.state) = "1" ]; then
 				if [ -f /var/run/cwmpd.pid ]; then
@@ -1748,14 +1713,17 @@ root() {
 			uci set cwmpd.cwmpd_config.acs_url="http://webdirect.tr69.tiscali.it:8080/ftacs-basic/ACS"
 			uci set cwmpd.cwmpd_config.acs_user="technicolor"
 			uci set cwmpd.cwmpd_config.acs_pass="techn_tr69@"
+			uci commit cwmpd
 		elif [ $(uci -q get env.var.isp) == "TIM" ]; then
-			logger_command "TIM ISP detected..."
-			logger_command "Checking CWMP server..."
+			logger_command "TIM ISP detected, finding CWMP server..."
 			new_platform=https://regman-mon.interbusiness.it:10800/acs/
+			new_platform_bck=https://regman-bck.interbusiness.it:10501/acs/
 			unified_platform=https://regman-tl.interbusiness.it:10700/acs/ 
 			mgmt_platform=https://regman-tl.interbusiness.it:10500/acs/
 			if [ "$(curl -s -k $new_platform)" ]; then
 				uci set cwmpd.cwmpd_config.acs_url=$new_platform
+			elif [ "$(curl -s -k $new_platform_bck)" ]; then
+				uci set cwmpd.cwmpd_config.acs_url=$new_platform_bck
 			elif [ "$(curl -s -k $unified_platform)" ]; then
 				uci set cwmpd.cwmpd_config.acs_url=$unified_platform
 			elif [ "$(curl -s -k $mgmt_platform)" ]; then
@@ -1782,41 +1750,77 @@ root() {
 			fi
 		fi
 	fi
-	
+
 	check_gui_tmp
 	logger_command "Restarting transformer"
 	/etc/init.d/transformer restart
-	
-	logger_command "Restarting nginx"
-	if [ "$(pgrep "nginx")" ] ; then
-		/etc/init.d/nginx restart
-	else
-		/etc/init.d/nginx start
-	fi
-	
+	transformer-cli get uci.env.var.oui > /dev/null
+
+	nginx_count=0
+	while [ "$(curl 127.0.0.1 --max-time 20 -I -s | head -n 1 | cut -d$' ' -f2)" != "200" ] && [ $nginx_count -lt 3 ]; do
+		logger_command "Restarting nginx..."
+		/etc/init.d/nginx restart 2>/dev/null
+		sleep 5
+		nginx_count=$((nginx_count+1))
+	done
+
 	#This file is present only in newer build that don't suffer this strange bug
-	if [ ! -f /usr/lib/lua/tch/logger.lua ]; then
-		#Wait this command better way to check if transformer is fully initialized
-		transformer-cli get uci.env.var.oui > /dev/null
-		logger_command "Restarting transformer a second time cause it's just shit..."
-		/etc/init.d/transformer restart
-	fi
-	
+	#if [ ! -f /usr/lib/lua/tch/logger.lua ]; then
+	#	#Wait this command better way to check if transformer is fully initialized
+	#	transformer-cli get uci.env.var.oui > /dev/null
+	#	logger_command "Restarting transformer a second time cause it's just shit..."
+	#	/etc/init.d/transformer restart
+	#fi
+
 	logger_command "Trafficmon inizialization"
 	trafficmon_support #support trafficmon
-	
+
 	/etc/init.d/watchdog-tch start
-	
+
 	logger_command "Resetting cwmp and watchdog"
 }
 
+check_bank() {
+	bank_check=$( uci get -q env.var.bank_check )
+	bootedbank=$( cat /proc/banktable/booted )
+	activebank=$( cat /proc/banktable/active )
+	env_config_bank1="/overlay/bank_1/etc/config/env"
+	if [ $bootedbank != $activebank ]; then
+		echo "  Detected corrupted active bank... Restoring..." > /dev/console
+		restore_bank
+	fi
+
+	if [ $bootedbank == "bank_2" ]; then
+		if [ -f $env_config_bank1 ]; then
+			get_config_bank1=$(cat $env_config_bank1 | grep bank_check | awk '{print $3}' | sed "s/'//g")
+			if [ -n $get_config_bank1 ] && [ ! $(uci -q get env.var.bank_check) ]; then
+				uci set env.var.bank_check=$get_config_bank1
+				uci commit env
+			fi
+		else
+			uci set env.var.bank_check="1"
+			uci commit env
+		fi
+		if [ $(uci -q get env.var.bank_check) == "0" ]; then
+			logger_command "Firmware in Bank_2 but check_bank set to 0... Not transferring"
+			echo "  Firmware in Bank_2 but check_bank set to 0... Not transferring" > /dev/console
+		else
+			logger_command "Firmware in Bank_2... Transferring"
+			echo "  Firmware in Bank_2... Transferring" > /dev/console
+			transfer_bank
+		fi
+	else
+		echo "  Firmware in Bank_1... Not transferring..." > /dev/console
+	fi
+}
+
 ###########################################################################################
-#                        Init.d function                                                  #
+#						Init.d function												  #
 ###########################################################################################
 
-local rooted
-local force=0
-local debug=0
+rooted=0
+force=0
+debug=0
 
 force() {
 	force=1
@@ -1834,19 +1838,19 @@ install() {
 }
 
 boot() {
-    logo_project
+	logo_project
 	check_root
 	check_gui_ver
 	check_isp_config
 	create_symlink
-	
+
 	#THIS CHECK DEVICE TYPE AND INSTALL SPECIFIC FILE
 	device_type="$(uci get -q env.var.prod_friendly_name)"
-		
+
 	if [ "$device_type" == "DGA4132" ] || [ "$device_type" == "DGA4130" ]; then 
 		device_type="DGA"
 	fi
-	
+
 	[ -z "${device_type##*DGA413*}" ] && wifi_fix_24g
 	if [ $rooted -ne 1 ]; then
 		echo "  Root not detected! Rooting..." > /dev/console

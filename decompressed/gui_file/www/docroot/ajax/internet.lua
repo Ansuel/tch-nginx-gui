@@ -18,7 +18,7 @@ if datatype and datatype== "xdsl" then
 	local sub, format, floor = string.sub, string.format, math.floor
 	
 	data = {
-		status = "Device.DSL.Line.1.Status",
+		status = "sys.class.xdsl.@line0.LinkStatus",
 		max_upstream = "Device.DSL.Line.1.UpstreamMaxBitRate",
 		max_downstream = "Device.DSL.Line.1.DownstreamMaxBitRate",
 		dsl_linerate_up = "sys.class.xdsl.@line0.UpstreamCurrRate",
@@ -71,10 +71,12 @@ if datatype and datatype== "xdsl" then
 			end
 		end
 		
-		if data.status == "Up" then
+		if data.status == "Showtime" then
 			data.status = T"Connected"
-		else
+		elseif data.status == "" then
 			data.status = T"Disconnected"
+		else
+			data.status = T(data.status)
 		end
 	else
 		for index in pairs(data) do

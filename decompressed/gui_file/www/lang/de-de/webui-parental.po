@@ -13,6 +13,7 @@ msgstr ""
 "Language-Name: Deutsch\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 2.2\n"
+"X-Poedit-SourceCharset: UTF-8\n"
 
 msgid "<strong %s>%d site blocking</strong> rule is defined"
 msgid_plural "<strong %s>%d site blocking</strong> rules are defined"
@@ -55,14 +56,8 @@ msgstr "Schlüsselworte"
 msgid "MAC Address"
 msgstr "MAC-Adresse"
 
-msgid "MAC address"
-msgstr "MAC-Adresse"
-
-msgid "Note:Parental control url filter not supported for https sites."
-msgstr "Hinweis: Elterliche Kontrolle wird für HTTPS-Seiten nicht unterstützt."
-
-msgid "Parental Blocked"
-msgstr "Elterlich gesperrt"
+msgid "Note:Parental control url filter not supported for https sites and will block all the webpages related to the given domain name."
+msgstr ""
 
 msgid "Parental Controls"
 msgstr "Elterliche Kontrolle"

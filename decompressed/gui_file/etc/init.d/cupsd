@@ -1,0 +1,50 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2006-2011 OpenWrt.org
+
+START=50
+STOP=36
+
+start() {
+	mkdir -m 0755 -p /var/cache/cups
+	mkdir -m 0755 -p /var/cups
+	mkdir -m 0755 -p /var/spool/cups/tmp
+	chmod 700 /usr/lib/cups/backend/usb
+
+	local enabled
+	local webui
+	config_load printersharing
+	config_get_bool enabled config enabled 0
+	config_get_bool webui config webui 0
+	if [ $enabled -eq 1 ]; then
+	    service_start /usr/sbin/cupsd
+	    if [ $webui -eq 1 ]; then
+	        cupsctl WebInterface=yes
+	    else
+	        cupsctl WebInterface=no
+	    fi
+	else
+	    service_stop /usr/sbin/cupsd
+	fi
+}
+
+stop() {
+	service_stop /usr/sbin/cupsd
+}
+
+reload() {
+	local enabled
+	local webui
+	config_load printersharing
+	config_get_bool enabled config enabled 0
+	config_get_bool webui config webui 0
+	if [ $enabled -eq 1 ]; then
+	    service_reload /usr/sbin/cupsd
+	    if [ $webui -eq 1 ]; then
+	        cupsctl WebInterface=yes
+	    else
+	        cupsctl WebInterface=no
+	    fi
+	else
+	    service_stop /usr/sbin/cupsd
+	fi
+}

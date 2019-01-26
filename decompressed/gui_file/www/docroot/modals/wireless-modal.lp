@@ -967,7 +967,7 @@ if #wls > 1 then
           if freq == "5" then link_id = "5" end
           html[#html + 1] = format([[
              <div><div id = linkconfirming-msg_%s class= "alert hide"> %s </div> ]],
-             link_id,T"If you use this tool, devices connected will be disconnected and will be able to connect after 1 minute.")
+             link_id,T"Warning: starting the Wireless Analyzer will disconnect all wireless clients until the analysis has been completed.")
           html[#html + 1] = format([[
              <div id="linkrescan-changes_%s" class="hide">
              <div id="linkrescan-cancel_%s" class="btn">%s</div>
@@ -1460,7 +1460,7 @@ else
 
     html[#html + 1] = format([[
       <div id = confirming-msg_%s class= "alert hide"> %s </div> ]],
-      freq,T"If you use this tool, devices connected will be disconnected and will be able to connect after 1 minute.")
+      freq,T"Warning: starting the Wireless Analyzer will disconnect all wireless clients until the analysis has been completed.")
     html[#html + 1] = format([[
       <div id="rescan-changes_%s" class="hide">
       <div id="rescan-cancel_%s" class="btn">%s</div>

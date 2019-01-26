@@ -13,6 +13,7 @@ msgstr ""
 "Language-Name: Deutsch\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 2.2\n"
+"X-Poedit-SourceCharset: UTF-8\n"
 
 msgid "<strong %s>%d </strong> Registered Account"
 msgid_plural "<strong %s>%d </strong> Registered Accounts"
@@ -77,9 +78,6 @@ msgstr "Anrufprotokoll leeren"
 msgid "Clear historical logs"
 msgstr "Historische Protokolle löschen"
 
-msgid "Codec"
-msgstr "Codec"
-
 msgid "Codec Assignment on FXS1"
 msgstr "Codec Zuweisung auf FXS1"
 
@@ -94,9 +92,6 @@ msgstr "Kontakte"
 
 msgid "Create new"
 msgstr "Hinzufügen"
-
-msgid "DECT"
-msgstr "DECT"
 
 msgid "DECT Emission"
 msgstr "DECT Emission"
@@ -320,9 +315,6 @@ msgstr "Profilnummer"
 msgid "Quality Log"
 msgstr "Qualitätsprotokoll"
 
-msgid "Realm"
-msgstr "Bereich"
-
 msgid "ReceiveInterarrivalJitter"
 msgstr "ReceiveInterarrivalJitter"
 
@@ -377,9 +369,6 @@ msgstr "Start"
 msgid "State"
 msgstr "Staat"
 
-msgid "Stop"
-msgstr "Stop"
-
 msgid "Telephone Numbers"
 msgstr "Telefonnummern"
 
@@ -422,5 +411,23 @@ msgstr "Benutzername"
 msgid "Voip Password"
 msgstr "VoIP Passwort"
 
+msgid "Voip Password Profile 1"
+msgstr ""
+
+msgid "Voip Password Profile 2"
+msgstr ""
+
+msgid "Voip Password Profile 3"
+msgstr ""
+
 msgid "sipindex"
 msgstr "sipindex"
+
+msgid "Status"
+msgstr ""
+
+msgid "Local Port"
+msgstr ""
+
+msgid "Can be used"
+msgstr ""

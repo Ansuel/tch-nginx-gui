@@ -294,7 +294,8 @@ ajax_helper.handleAjaxQuery(content_rpc, function(c)
         c.dns = dnsv4
 
     end
-    if proxy.get("uci.network.interface.@wan.ipv6")[1].value == "1" then
+    local ipv6_enabled = proxy.get("uci.network.interface.@wan.ipv6")
+    if ipv6_enabled and ipv6_enabled[1].value == "1" then
         c.dnsv6 = content_helper.getMergedList(c.dnsv6, dnsv6)
     end
 end)
@@ -411,7 +412,8 @@ html[#html+1] = ui_helper.createSwitch(T"Auto Discover DNS", "uci_wan_peerdns", 
 html[#html+1] = format('<label class="control-label">%s</label><div class="controls">', T"DNS servers")
 html[#html+1] = ui_helper.createTable(dns_columns, dns_data, dns_options, nil, dns_helpmsg)
 html[#html+1] = '</div>'
-if proxy.get("uci.network.interface.@wan_ipv6.auto")[1].value == "1" then
+local ipv6_enabled = proxy.get("uci.network.interface.@wan.ipv6")
+if ipv6_enabled and ipv6_enabled[1].value == "1" then
     --if content_rpc["ip6addr"] and content_rpc["ip6addr"]:len() > 0 then
     ajax_attr.span.id = "ip6addr"
     html[#html+1] = ui_helper.createLabel(T"IPv6 Address", content_rpc["ip6addr"],ajax_attr)
