@@ -78,23 +78,6 @@ logger_command() {
 	fi
 }
 
-add_ipv6() {
-	uci set network.wan_ipv6=interface
-	uci set network.wan_ipv6.auto='0'
-	uci set network.wan_ipv6.proto='pppoe'
-	uci set network.wan_ipv6.demand='0'
-	uci set network.wan_ipv6.password='IPV6@alice6'
-	uci set network.wan_ipv6.macaddr=$(uci -q get network.wan.macaddr)
-	uci set network.wan_ipv6.ipv6='1'
-	uci set network.wan_ipv6.peerdns='1'
-	uci set network.wan_ipv6.keepalive_adaptive='0'
-	uci set network.wan_ipv6.dns_metric='0'
-	uci set network.wan_ipv6.ifname='wanptm0'
-	uci set network.wan_ipv6.username=$(uci -q get env.var.serial)-$(uci -q get env.var.oui)@alice6.it
-	uci set network.wan_ipv6.metric='10'
-	uci set network.wan6.ifname='@wan_ipv6'
-}
-
 add_ipoe() {
 	uci set network.ipoe=interface
 	uci set network.ipoe.proto='dhcp'
@@ -180,8 +163,9 @@ check_variant_friendly_name() {
 	fi
 }
 
-add_ppp_mgmt() {
+add_TIM_ppp_specific() {
 	uci set modgui.var.ppp_mgmt=$(uci -q get env.var.serial)-$(uci -q get env.var.oui)@00000.aliceres.mgmt
+	uci set modgui.var.ppp_realm_ipv6=$(uci -q get env.var.serial)-$(uci -q get env.var.oui)@alice6.it
 }
 
 puryfy_wan_interface() { #creano problemi di dns per chissa'  quale diavolo di motivo... Ma l'utilitÃ  di sta roba eh telecom ? 
@@ -192,14 +176,17 @@ puryfy_wan_interface() { #creano problemi di dns per chissa'  quale diavolo di 
 }
 
 fix_dns_dhcp_bug() {
-	uci set dhcp.odhcpd.maindhcp="0"
-	if [ $(pgrep "odhcpd") ]; then
-		/etc/init.d/odhcpd stop
-		killall dnsmasq
-		/etc/init.d/dnsmasq restart
+	#SET odhcpd MAINDHCP to 0 to use dnsmasq for ipv4 
+	if [ $(uci get -q dhcp.odhcpd.maindhcp) == "1" ]; then
+		uci set dhcp.odhcpd.maindhcp="0"
+		/etc/init.d/odhcpd restart
 	fi
-	if [ "$(ls /etc/rc.d/ | grep odhcpd)" ]; then
-		/etc/init.d/odhcpd disable
+	if [ ! $(pgrep "odhcpd") ]; then
+		/etc/init.d/odhcpd start
+	fi
+	#reenable it to make ipv6 works
+	if [ ! "$(ls /etc/rc.d/ | grep odhcpd)" ]; then
+		/etc/init.d/odhcpd enable
 	fi
 }
 
@@ -684,14 +671,9 @@ create_gui_type() {
 
 update_dhcp_config() {
 	if [ $(uci get -q dhcp.lan.dhcpv4) ]; then
-		if [ $(uci get -q dhcp.lan.dhcpv4)  == "1" ]; then
-			uci set dhcp.lan.dhcpv4='server'
-		fi
-		if [ $(uci get -q dhcp.lan.dhcpv4) == "0" ]; then
-			uci set dhcp.lan.dhcpv4='disabled'
-		fi
-	else
-		uci set dhcp.lan.dhcpv4='server'
+		#REMOVE DHCPV4 this is for odhcpd daemon to tell him to run also for ipv4 dhcp...
+		#by removing the entities we solve the problem
+		uci del dhcp.lan.dhcpv4
 	fi
 	if [ ! $(uci get -q dhcp.lan.ignore) ]; then
 		uci set dhcp.lan.ignore='0'
@@ -1578,8 +1560,7 @@ root() {
 	logger_command "Checking if we are on TIM configuration"
 	if [ $(uci -q get modgui.var.isp) ]; then
 		if [ $(uci get -q modgui.var.isp) == "TIM" ]; then #this add specific config for TIM
-			add_ipv6
-			add_ppp_mgmt
+			add_TIM_ppp_specific
 			add_telecom_stock_dns
 		else
 			purify_from_tim
