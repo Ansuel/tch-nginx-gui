@@ -21,9 +21,9 @@ local fco_Params = {
 
 local mcast_option = {
 	{ "0", T'Disabled'},
-    { "1", T'Only Ipv4'},
-    { "2", T'Only Ipv6'},
-	{ "3", T'Ipv4/Ipv6'},
+    { "1", T'Only IPv4'},
+    { "2", T'Only IPv6'},
+	{ "3", T'IPv4/IPv6'},
 }
 
 local gre_option = {
@@ -51,7 +51,7 @@ local fco_content, fco_helpmessage = post_helper.handleQuery(fco_Params, fco_val
 
   ngx.print('\
 \
-');  ngx.print(ui_helper.createHeader(T"Flow Cache Option", false, false))   ngx.print('\
+');  ngx.print(ui_helper.createHeader(T"Flow Cache", false, false))   ngx.print('\
 <div class="modal-body update">\
 ');  
     local lp = require("web.lp")
@@ -67,11 +67,11 @@ local fco_content, fco_helpmessage = post_helper.handleQuery(fco_Params, fco_val
 			local html = {}
 			html[#html + 1] = '<legend>' .. T"Settings" .. '</legend>'
 			html[#html + 1] = ui_helper.createSwitch(T"Enabled", "fco_enable", fco_content["fco_enable"])
-			html[#html + 1] = ui_helper.createInputSelect(T"L2tp", "fco_l2tp", l2tp_option, fco_content["fco_l2tp"])
+			html[#html + 1] = ui_helper.createInputSelect(T"L2TP", "fco_l2tp", l2tp_option, fco_content["fco_l2tp"])
 			html[#html + 1] = ui_helper.createInputSelect(T"GRE", "fco_gre", gre_option, fco_content["fco_gre"])
 			html[#html + 1] = ui_helper.createSwitch(T"IPv6", "fco_ipv6", fco_content["fco_ipv6"])
-			html[#html + 1] = ui_helper.createInputSelect(T"MCast", "fco_mcast", mcast_option, fco_content["fco_mcast"])
-			html[#html + 1] = ui_helper.createSwitch(T"MCast-Learn", "fco_mcast_learn", fco_content["fco_mcast_learn"])
+			html[#html + 1] = ui_helper.createInputSelect(T"Multicast", "fco_mcast", mcast_option, fco_content["fco_mcast"])
+			html[#html + 1] = ui_helper.createSwitch(T"Muticast-Learn", "fco_mcast_learn", fco_content["fco_mcast_learn"])
 			ngx.print(html)
         ngx.print('\
     </fieldset>\

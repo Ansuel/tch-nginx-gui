@@ -137,7 +137,7 @@ local function EditGuiPortmirror(add_args)
             if not ok then
               message_helper.pushMessage(T"Error while applying changes", "error")
             else
-              message_helper.pushMessage(T"Stop portmirror successfully", "success")
+              message_helper.pushMessage(T"Portmirror successfully stopped.", "success")
             end
           else
             message_helper.pushMessage(T"Error while applying changes", "error")

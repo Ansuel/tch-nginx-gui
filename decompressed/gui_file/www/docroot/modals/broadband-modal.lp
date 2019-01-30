@@ -69,9 +69,9 @@ if not tabdata.current.ajax then
 		}
 	}
 	
-	html[#html + 1] = ui_helper.createAlertBlock(T"Wansensing set the connection mode automatically. " .. 
-		"Disable this to set the connection mode manually. After saving the changes the connection option will be shown.", info_box)
-	html[#html+1] = ui_helper.createSwitch(T"Wansensing State", "wsens", content["wsens"],nil)
+	html[#html + 1] = ui_helper.createAlertBlock(T"WanSensing sets the connection mode automatically. " .. 
+		"Disable this to set the connection mode manually. After saving the changes the connection options will be shown.", info_box)
+	html[#html+1] = ui_helper.createSwitch(T"WanSensing State", "wsens", content["wsens"],nil)
 	
 	if content["wsens"] == 0 then
 		html[#html+1] = ui_helper.createInputRadio(T"Mode", "newmode", mode_options, mode_current, mode_attributes)

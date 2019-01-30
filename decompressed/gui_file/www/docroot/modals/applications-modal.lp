@@ -129,18 +129,18 @@ end
 if StateParams["luci_webui"] ~= nil then
 	html[#html+1] = '<div class="span3">'
 	html[#html+1] = "<fieldset>"
-	html[#html+1] = '<legend>' .. T"Luci GUI" .. '</legend>'
+	html[#html+1] = '<legend>' .. T"LuCI GUI" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install uhttpd and luci", info_box)
 	html[#html+1] = T"State: "
-	html[#html+1] = "<strong>" .. T"Luci is " .. StateParams["luci_webui"] .. T" installed" .. "</strong></br>"
+	html[#html+1] = "<strong>" .. T"LuCI is " .. StateParams["luci_webui"] .. T" installed" .. "</strong></br>"
 	local luci_link = format("http://%s:9080",mapParams.local_ip_modem)
 	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. luci_link .. '">' .. luci_link .. "</a>"
 	html[#html+1] = "</br>"
 	html[#html+1] = "</br>"
 	if mapParams["luci_webui"] and mapParams["luci_webui"] == "1" then
-		html[#html+1] = ui_helper.createSimpleButton(T"Remove".." Luci", "fa fa-times-circle", btn_table.luci.remove)
+		html[#html+1] = ui_helper.createSimpleButton(T"Remove".." LuCI", "fa fa-times-circle", btn_table.luci.remove)
 	else
-		html[#html+1] = ui_helper.createSimpleButton(T"Install".." Luci", "fa fa-download", btn_table.luci.install)
+		html[#html+1] = ui_helper.createSimpleButton(T"Install".." LuCI", "fa fa-download", btn_table.luci.install)
 	end
 	html[#html+1] = "</br>"
 	html[#html+1] = "</fieldset>"
@@ -275,7 +275,7 @@ if StateParams["telstra_webui"] ~= nil then
 	html[#html+1] = '<legend>' .. T"Telstra GUI" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install Telstra webui", info_box)
 	html[#html+1] = T"State: "
-	html[#html+1] = "<strong>" .. T"Telstra is " .. StateParams["telstra_webui"] .. T" installed" .. "</strong></br>"
+	html[#html+1] = "<strong>" .. T"Telstra GUI is " .. StateParams["telstra_webui"] .. T" installed" .. "</strong></br>"
 	local telstra_gui = "/telstra-gui.lp"
 	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. telstra_gui .. '">' .. telstra_gui .."</a>"
 	html[#html+1] = "</br>"

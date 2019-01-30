@@ -540,7 +540,7 @@ local function getValidateBandSteerPeerFields(value, object, key)
             return disableBandSteer(object)
         elseif "" ~= object.bsid and "off" ~= object.bsid then
             if object.security == "wep" then
-                return nil, T"The Band Steering can not be supported under WEP security mode."
+                return nil, T"Band Steering is not supported when using WEP security mode."
             end
 
             if isBaseIface(curiface) then
@@ -559,7 +559,7 @@ local function getValidateBandSteerPeerFields(value, object, key)
                 return nil, T"Please configure wifi-bandsteer " .. bsid .. " first!"
             else
                 if object.security == "wep" then
-                    return nil, T"The Band Steering can not be supported under WEP security mode."
+                    return nil, T"Band Steering is not supported when using WEP security mode."
                 end
 
                 if isBaseIface(curiface) then
@@ -1204,7 +1204,7 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
                 class = "alert-error monitor-security monitor-none"
             },
         }
-        html[#html + 1] = ui_helper.createAlertBlock(T"Security for this wireless network is disabled, anybody can connect or listen to it", security_warning)
+        html[#html + 1] = ui_helper.createAlertBlock(T"Security for this wireless network is disabled, anybody can connect to it", security_warning)
 
         local wep_warning = {
             alert = {
@@ -1244,7 +1244,7 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
         end
     else
         html[#html + 1] = ui_helper.createInputText(T"Wireless Password", "wpa_psk", content["wpa_psk"], pskclass, helpmsg["wpa_psk"])
-        html[#html + 1] = ui_helper.createInputText(T"WEP key", "wep_key", content["wep_key"], wepclass, helpmsg["wep_key"])
+        html[#html + 1] = ui_helper.createInputText(T"WEP Key", "wep_key", content["wep_key"], wepclass, helpmsg["wep_key"])
     end
 
     if ( isguest ~= "1" and isExtRemman  ~= "1" and isIntRemman ~= "1") then
@@ -1264,26 +1264,26 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
         if "1" == band_steer_enabled and not isBaseIface(curiface) then
             if "wpa" == content["security"] or "wpa2" == content["security"] or "wpa-wpa2" == content["security"] then
                 if radius_authent then
-                    html[#html + 1] = ui_helper.createInputText(T"Radius Authentication Server's IP", "radius_authent_ip", content["radius_authent_ip"], serverclass, helpmsg["radius_authent_ip"])
-                    html[#html + 1] = ui_helper.createInputText(T"Radius Authentication Server's port", "radius_authent_port", content["radius_authent_port"],basicclass, helpmsg["radius_authent_port"])
-                    html[#html + 1] = ui_helper.createInputText(T"Radius Authentication Server's secret", "radius_authent_secret", content["radius_authent_secret"],basicclass, helpmsg["radius_authent_secret"])
+                    html[#html + 1] = ui_helper.createInputText(T"Radius Authentication Server IP", "radius_authent_ip", content["radius_authent_ip"], serverclass, helpmsg["radius_authent_ip"])
+                    html[#html + 1] = ui_helper.createInputText(T"Radius Authentication Server port", "radius_authent_port", content["radius_authent_port"],basicclass, helpmsg["radius_authent_port"])
+                    html[#html + 1] = ui_helper.createInputText(T"Radius Authentication Server secret", "radius_authent_secret", content["radius_authent_secret"],basicclass, helpmsg["radius_authent_secret"])
                 end
                 if radius_account then
-                    html[#html + 1] = ui_helper.createInputText(T"Radius Accounting Server's IP", "radius_account_ip", content["radius_account_ip"], serverclass, helpmsg["radius_account_ip"])
-                    html[#html + 1] = ui_helper.createInputText(T"Radius Accounting Server's port", "radius_account_port", content["radius_account_port"],basicclass, helpmsg["radius_account_port"])
-                    html[#html + 1] = ui_helper.createInputText(T"Radius Accounting Server's secret", "radius_account_secret", content["radius_account_secret"],basicclass, helpmsg["radius_account_secret"])
+                    html[#html + 1] = ui_helper.createInputText(T"Radius Accounting Server IP", "radius_account_ip", content["radius_account_ip"], serverclass, helpmsg["radius_account_ip"])
+                    html[#html + 1] = ui_helper.createInputText(T"Radius Accounting Server port", "radius_account_port", content["radius_account_port"],basicclass, helpmsg["radius_account_port"])
+                    html[#html + 1] = ui_helper.createInputText(T"Radius Accounting Server secret", "radius_account_secret", content["radius_account_secret"],basicclass, helpmsg["radius_account_secret"])
                 end
             end
         else
             if radius_authent then
-                html[#html + 1] = ui_helper.createInputText(T"Radius Authentication Server's IP", "radius_authent_ip", content["radius_authent_ip"], serverclass, helpmsg["radius_authent_ip"])
-                html[#html + 1] = ui_helper.createInputText(T"Radius Authentication Server's port", "radius_authent_port", content["radius_authent_port"],basicclass, helpmsg["radius_authent_port"])
-                html[#html + 1] = ui_helper.createInputText(T"Radius Authentication Server's secret", "radius_authent_secret", content["radius_authent_secret"],basicclass, helpmsg["radius_authent_secret"])
+                html[#html + 1] = ui_helper.createInputText(T"Radius Authentication Server IP", "radius_authent_ip", content["radius_authent_ip"], serverclass, helpmsg["radius_authent_ip"])
+                html[#html + 1] = ui_helper.createInputText(T"Radius Authentication Server port", "radius_authent_port", content["radius_authent_port"],basicclass, helpmsg["radius_authent_port"])
+                html[#html + 1] = ui_helper.createInputText(T"Radius Authentication Server secret", "radius_authent_secret", content["radius_authent_secret"],basicclass, helpmsg["radius_authent_secret"])
             end
             if radius_account then
-                html[#html + 1] = ui_helper.createInputText(T"Radius Accounting Server's IP", "radius_account_ip", content["radius_account_ip"], serverclass, helpmsg["radius_account_ip"])
-                html[#html + 1] = ui_helper.createInputText(T"Radius Accounting Server's port", "radius_account_port", content["radius_account_port"],basicclass, helpmsg["radius_account_port"])
-                html[#html + 1] = ui_helper.createInputText(T"Radius Accounting Server's secret", "radius_account_secret", content["radius_account_secret"],basicclass, helpmsg["radius_account_secret"])
+                html[#html + 1] = ui_helper.createInputText(T"Radius Accounting Server IP", "radius_account_ip", content["radius_account_ip"], serverclass, helpmsg["radius_account_ip"])
+                html[#html + 1] = ui_helper.createInputText(T"Radius Accounting Server port", "radius_account_port", content["radius_account_port"],basicclass, helpmsg["radius_account_port"])
+                html[#html + 1] = ui_helper.createInputText(T"Radius Accounting Server secret", "radius_account_secret", content["radius_account_secret"],basicclass, helpmsg["radius_account_secret"])
             end
     	end
     end
@@ -1298,7 +1298,7 @@ if isguest ~= "1"  then
         },
     }
 
-    html[#html + 1] = ui_helper.createAlertBlock(T"WPS is automatically disabled if you choose WEP or WPA-only security or disable broadcast of the SSID", wps_warning)
+    html[#html + 1] = ui_helper.createAlertBlock(T"WPS is automatically disabled if you choose WEP, WPA-only security or disable broadcast of the SSID", wps_warning)
 
     local wps_class = {
         group = {
@@ -1382,11 +1382,11 @@ end
                 elseif tableid == "acl_register" then
                     content["acl_mode"] = "register"
                 end
-                    html[#html + 1] = ui_helper.createInputSelect(T"ACL mode", "acl_mode", acl_modes, content["acl_mode"], aclmodeclass)
+                    html[#html + 1] = ui_helper.createInputSelect(T"ACL Mode", "acl_mode", acl_modes, content["acl_mode"], aclmodeclass)
                     html[#html + 1] = loadAclList(content["acl_mode"], "POST")
                     isTableLoaded =  true
             else
-              html[#html + 1] = ui_helper.createInputSelect(T"ACL mode", "acl_mode", acl_modes, content["acl_mode"], aclmodeclass)
+              html[#html + 1] = ui_helper.createInputSelect(T"ACL Mode", "acl_mode", acl_modes, content["acl_mode"], aclmodeclass)
               local acl_attribute = {
                 label = {
                   class = "monitor-acl_mode monitor-register"
@@ -1413,7 +1413,7 @@ end
                             %s
                         </div>
                     </center>&nbsp
-                 ]], curiface, curap, T"Generate QRCode")
+                 ]], curiface, curap, T"Generate QR code")
 ); ngx.print('\
 ');  end  ngx.print('\
 </fieldset>\
@@ -1437,7 +1437,7 @@ else
 ');  end   ngx.print('\
 <fieldset>\
 <legend>');  ngx.print( T"Wifi Analyzer" ); ngx.print('</legend>\
-<div style = "display:block;" class = "alert-info hide">');  ngx.print(T"Please press Rescan button to view the updated wifi list"); ngx.print('</div></br>\
+<div style = "display:block;" class = "alert-info hide">');  ngx.print(T"Press Rescan button to view the updated WiFi Network list"); ngx.print('</div></br>\
 <div id ="analyzerloader" style="height:100px"><img src = "/img/loading.gif"></img></div>\
 <div id = "analyzerGraph" class="hide">\
 ');  ngx.print( T"The below chart shows the results of the latest scan of your local area from your gateway." ); ngx.print('\

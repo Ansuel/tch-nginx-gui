@@ -129,7 +129,7 @@ local function validate_wifitod(postcontent, timer_data)
 
   -- day/time overlap validation
   if postcontent.start_time >= postcontent.stop_time then
-    return nil, T"Stop time should be greater Start time."
+    return nil, T"Stop time should be greater then start time."
   end
 
   return true

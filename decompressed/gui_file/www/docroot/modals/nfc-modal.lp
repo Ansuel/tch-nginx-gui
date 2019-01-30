@@ -26,7 +26,7 @@ local booleanMap = {
 
 local nfc_columns = {
     {--[1]
-        header = T"WIFI Interface",
+        header = T"WiFi Interface",
         name = "wifi_iface",
         param = "wifi_iface",
         type = "text",

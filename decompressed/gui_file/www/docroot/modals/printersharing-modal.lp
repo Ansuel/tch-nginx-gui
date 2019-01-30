@@ -148,7 +148,7 @@ removeDuplicateEntry(usbpart_data)
         if content_samba.samba_enabled == '1' then
           html[#html+1] = format(T'<div class=\" simple-desc span4\">To connect: \\\\%s\\ or \\\\%s\\</div>',content_samba.localdevIP,content_samba.hostname)
         else
-          html[#html+1] = format(T'<div class=\" simple-desc span4\">Samba is disabled</div>')
+          html[#html+1] = format(T'<div class=\" simple-desc span4\">SMB/CIFS is disabled</div>')
         end
       end
       html[#html+1] = ui_helper.createTable(usbdev_columms, usbpart_data, usbdev_options, nil, usbdev_helpmsg)
