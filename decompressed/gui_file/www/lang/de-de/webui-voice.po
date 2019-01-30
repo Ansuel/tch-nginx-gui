@@ -270,7 +270,7 @@ msgstr "Telefonbuch"
 msgid "Phone Number"
 msgstr "Telefonnummer"
 
-msgid "Phone Numbers"
+msgid "Phone Lines"
 msgstr "Teelefonnnummern"
 
 msgid "Please set URI."
@@ -357,7 +357,7 @@ msgstr "Dienste"
 msgid "Silence Suppression"
 msgstr "Stille Unterdrückung"
 
-msgid "Sip Device"
+msgid "SIP Device"
 msgstr "SIP Gerät"
 
 msgid "Some parameters failed validation"

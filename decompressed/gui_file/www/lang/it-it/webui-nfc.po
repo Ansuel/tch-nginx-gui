@@ -27,10 +27,10 @@ msgstr "NFC disabilitato"
 msgid "NFC Enabled"
 msgstr "NFC abilitato"
 
-msgid "WIFI Interface"
+msgid "WiFi Interface"
 msgstr "Interfaccia Wi-Fi"
 
-msgid "WIFI Status"
+msgid "WiFi Status"
 msgstr "Stato Wi-Fi"
 
 msgid "Wi-Fi Interface Status"
