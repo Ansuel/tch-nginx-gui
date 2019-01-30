@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: webui-wizard\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-06-21 15:33+0200\n"
-"PO-Revision-Date: 2018-10-26 12:27+0200\n"
+"PO-Revision-Date: 2019-01-27 01:08+0100\n"
 "Last-Translator: Dr. Uwe Meyer-Gruhl\n"
 "Language-Team: none\n"
 "Language: de\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language-Name: Deutsch\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.2\n"
+"X-Generator: Poedit 2.2.1\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
 msgid " of "
@@ -118,19 +118,19 @@ msgid "Step "
 msgstr "Schritt "
 
 msgid "Username:"
-msgstr ""
+msgstr "Benutzername:"
 
 msgid "VCI Number:"
-msgstr ""
+msgstr "VCI Nummer: "
 
 msgid "VLAN Enabled"
 msgstr "VLAN eingeschaltet"
 
 msgid "VLAN ID:"
-msgstr ""
+msgstr "VLAN ID: "
 
 msgid "VPI Number:"
-msgstr ""
+msgstr "VPI Nummer: "
 
 msgid "VoIP (Netphone) is an optional phone service that runs over the internet. If you have purchased this service, enter your VoIP settings here. You'll find your settings in your VoIP activation email."
 msgstr "VoIP ist ein optionaler Telefoniedienst, der über das Internetläuft. Wenn Sie diesen Dienst gebucht haben, geben Sie hier Ihre VoIP Angaben sein. Diese finden sich in der VoIP Aktivierungs-Mail."
@@ -163,13 +163,13 @@ msgid "VoIP Registar:"
 msgstr "VoIP Registar:"
 
 msgid "VoIP Setup"
-msgstr ""
+msgstr "VoIP-Einrichtung"
 
 msgid "VoIP Username:"
 msgstr "VoIP Benutzername::"
 
 msgid "VoIP is an optional phone service that runs over the internet. If you have purchased this service, enter your VoIP settings here. You'll find your settings in your VoIP activation email."
-msgstr ""
+msgstr "VoIP ist ein optionaler Telefondienst, der über das Internet läuft. Wenn Sie diesen Service gekauft haben, geben Sie hier Ihre VoIP-Einstellungen ein. Ihre Einstellungen finden Sie in Ihrer VoIP-Aktivierungs-Mail."
 
 msgid "WAN Interfaces"
 msgstr "WAN Schnittstellen"
