@@ -124,12 +124,12 @@ ngx.print('\
 				html[#html + 1] = '<div id="upgradebtn" class="btn someInfos"'
 				if not ( cui.gui_skin == "Fritz" ) then
 					html[#html + 1] = 'rel="tooltip" data-placement="bottom" data-original-title="'
-					html[#html + 1] = T"Go to the gateway tab and click on the Upgrade button, to autoupgrade to the new GUI."
+					html[#html + 1] = T"Go to the gateway tab and click on the Update button, to autoupgrade to the new GUI."
 					html[#html + 1] = '" '
 				end
 				html[#html + 1] = 'data-toggle="modal" data-remote="modals/gateway-modal.lp?action=manualguiupgrade">'
 				html[#html + 1] = '<span>'
-				html[#html + 1] = T"Upgrade"
+				html[#html + 1] = T"Update"
 				html[#html + 1] = '</span>'
 				html[#html + 1] = '</div>'
 				html[#html + 1] = '</div>'
@@ -171,11 +171,11 @@ ngx.print('\
 				html[#html + 1] = T"Support Forum"
 				html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
 				html[#html + 1] = [[ <li><a tabindex="-1" href="https://github.com/Ansuel/tch-nginx-gui" target="_blank"> ]]
-				html[#html + 1] = T"Github Gui"
+				html[#html + 1] = T"Github GUI"
 				html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
 			if not ( session:getusername() == "guest" ) then
 				html[#html + 1] = [[ <li><a style="cursor: pointer;" tabindex="-1" id="update"> ]]
-				html[#html + 1] = T"Check Upgrade" 
+				html[#html + 1] = T"Check Update" 
 				html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
 				if cui.luci_webui == "1" then
 					html[#html + 1] = [[ <li><a tabindex="-1" target="_blank" href="/"
@@ -216,7 +216,7 @@ ngx.print('\
 					id = "upgrade-alert"
 				},
 			}
-			html[#html + 1] = ui_helper.createAlertBlock(string.format(T"Upgrade available! Version: <strong>%s</strong>",cui.new_ver),alert_success)
+			html[#html + 1] = ui_helper.createAlertBlock(string.format(T"Update available! Version: <strong>%s</strong>",cui.new_ver),alert_success)
 		end
 		local autoupgrade_view = cui.autoupgrade_view
 		if not ( autoupgrade_view == "none" ) and not ( autoupgrade_view == "" ) then
