@@ -8,12 +8,12 @@ local items = {
     {"mmpbx-global-modal.lp", T"Global"},
     {"mmpbx-dect-modal.lp", T"DECT"},
     {"mmpbx-contacts-modal.lp", T"Phone Book"},
-    {"mmpbx-profile-modal.lp", T"Phone Numbers"},
+    {"mmpbx-profile-modal.lp", T"Phone Lines"},
     {"mmpbx-inoutgoingmap-modal.lp", T"In/Out Mapping"},
     {"mmpbx-service-modal.lp", T"Service"},
     {"mmpbx-log-modal.lp", T"Call Log"},
     {"mmpbx-statistics-modal.lp", T"Quality Log"},
-    {"mmpbx-sipdevice-modal.lp", T"Sip Device"},
+    {"mmpbx-sipdevice-modal.lp", T"SIP Device"},
 	{"mmpbx-codec-modal.lp", T"Codec"},
 }
 

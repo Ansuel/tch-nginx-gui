@@ -21,8 +21,8 @@ local gui_skin_option = {
       { "green", T'Green'},
 	  { "TIM" , T'Enhanced Tim'},
 	  { "Fritz", T'Fritz!Box'},
-	  { "dark-white", T'Dark/White (Fritz Based)'},
-	  { "dark-midnight", T'Dark/Midnight (Fritz Based)'},
+	  { "dark-white", T'Dark/White (Fritz!Box Based)'},
+	  { "dark-midnight", T'Dark/Midnight (Fritz!Box Based)'},
 	  { "dark-red", T'Red Dark'},
 }
 
@@ -468,7 +468,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       html[#html + 1] = ui_helper.createAlertBlock(T"Switching bank, please wait...", switchover_alert)
 	  if env["activebank"] == "bank_2"
 		then
-		html[#html + 1] = ui_helper.createAlertBlock(T"This will transfer your configuration and firmware to the bank_1 and it will erase bank_2", warn_box)
+		html[#html + 1] = ui_helper.createAlertBlock(T"This will transfer your configuration and firmware to bank_1 and it will erase bank_2", warn_box)
 		html[#html + 1] = ui_helper.createButton(T"Transfer to", T"Bank 1", "icon-exchange", transfer_bank1)
 		html[#html + 1] = ui_helper.createAlertBlock(T"Transfering bank, please wait...", transfer_bank1_alert)
 	  end
@@ -521,8 +521,8 @@ ngx.print('\
 	<legend>');  ngx.print( T"Gui Skin" ); ngx.print('</legend>\
 		');  
 		local html = {}
-		html[#html + 1] = ui_helper.createInputSelect(T"Gui Skin", "gui_skin", gui_skin_option, gui_skin_content["gui_skin"])
-		html[#html + 1] = ui_helper.createInputSelect(T"Gui FirstPage", "gui_skin_firstpage", gui_skin_firstpage_page, gui_skin_content["gui_skin_firstpage"])
+		html[#html + 1] = ui_helper.createInputSelect(T"GUI Skin", "gui_skin", gui_skin_option, gui_skin_content["gui_skin"])
+		html[#html + 1] = ui_helper.createInputSelect(T"GUI First Page", "gui_skin_firstpage", gui_skin_firstpage_page, gui_skin_content["gui_skin_firstpage"])
 		html[#html + 1] = ui_helper.createSwitch(T"Random Color", "gui_randomcolor", gui_skin_content["gui_randomcolor"])
 		ngx.print(html)
 		ngx.print('\

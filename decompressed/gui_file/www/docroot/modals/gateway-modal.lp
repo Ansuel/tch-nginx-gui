@@ -984,15 +984,15 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Update the GUI to the latest version available", info_box)
 	  html[#html + 1] = ui_helper.createInputSelect(T"Update Branch", "update_branch", update_branch_option, update_content["update_branch"])
 
-      html[#html + 1] = ui_helper.createSwitch(T"AutoUpgrade", "update_autoupgrade", update_content["update_autoupgrade"])
+      html[#html + 1] = ui_helper.createSwitch(T"GUI Auto Update", "update_autoupgrade", update_content["update_autoupgrade"])
       html[#html + 1] = ui_helper.createInputSelect(T"Update Hours", "update_autoupgrade_hour", update_hour_option, update_content["update_autoupgrade_hour"])
       if content["outdated_ver"] == "1" then
-          html[#html + 1] = ui_helper.createLabel(T"State", T"Upgrade Found", basic)
+          html[#html + 1] = ui_helper.createLabel(T"State", T"Update Found", basic)
           html[#html + 1] = ui_helper.createLabel(T"New Version", content["new_ver"], basic)
-          html[#html + 1] = ui_helper.createButton(T"Upgrade Gui", T"Upgrade", "icon-refresh", upgrade_gui)
+          html[#html + 1] = ui_helper.createButton(T"Update GUI", T"Update", "icon-refresh", upgrade_gui)
       else
-          html[#html + 1] = ui_helper.createLabel(T"State", T"No Upgrade found", basic)
-          html[#html + 1] = ui_helper.createButton(T"Upgrade Gui", T"Force Upgrade", "icon-refresh", upgrade_gui)
+          html[#html + 1] = ui_helper.createLabel(T"State", T"No Update found", basic)
+          html[#html + 1] = ui_helper.createButton(T"Update GUI", T"Force Update", "icon-refresh", upgrade_gui)
       end
 	  html[#html + 1] = '</span>'
 	  
@@ -1001,7 +1001,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       html[#html + 1] = format('<label class="control-label">%s</label>', T"Offline GUI upgrade")
       html[#html + 1] = '<div class="controls">'
       html[#html + 1] = '<input type="file" name="upgradefile" id="file-upgradegui">&nbsp;'
-      html[#html + 1] = ui_helper.createSimpleButton(T"Upgrade", "icon-shield", upload_gui_file)
+      html[#html + 1] = ui_helper.createSimpleButton(T"Update", "icon-shield", upload_gui_file)
 	  html[#html + 1] = '</div></div>'
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Upgrade failed; please try again.", upload_gui_fail)
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Uploading file. Please wait...", upload_gui_alert)

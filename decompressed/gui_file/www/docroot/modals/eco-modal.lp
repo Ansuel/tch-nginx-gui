@@ -77,17 +77,17 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
         }
 	    html[#html + 1] = '<legend>' .. T"Eco Settings" .. '</legend>'
 
-		html[#html + 1] = ui_helper.createAlertBlock(T"Turning on Ethernet power saving features can cause extra latency", info_box)
+		html[#html + 1] = ui_helper.createAlertBlock(T"Turning on Eco features can cause major latency.", info_box)
 		html[#html + 1] = ui_helper.createSwitch(T"Ethernet EEE", "eee", content["eee"])
 	    html[#html + 1] = ui_helper.createSwitch(T"Ethernet AutoGrEEEn", "autogreeen", content["autogreeen"])
 	    html[#html + 1] = ui_helper.createSwitch(T"Ethernet Ethapd", "ethapd", content["ethapd"])
-	    html[#html + 1] = ui_helper.createSwitch(T"Cpu Wait", "wait", content["wait"])
-	    html[#html + 1] = ui_helper.createInputSelect(T"Cpu Speed", "cpuspeed", cpu_step , content["cpuspeed"])
+	    html[#html + 1] = ui_helper.createSwitch(T"CPU Wait", "wait", content["wait"])
+	    html[#html + 1] = ui_helper.createInputSelect(T"CPU Speed", "cpuspeed", cpu_step , content["cpuspeed"])
 	    
 	    ngx.print(html)
 	    
 	    local html = {}
-	    html[#html + 1] = '<legend>' .. T"Led Settings" .. '</legend>'
+	    html[#html + 1] = '<legend>' .. T"LED Settings" .. '</legend>'
 		if prod_friendly_name[1].value:match("DGA") or prod_friendly_name[1].value:match("TG789") then
 			html[#html + 1] = ui_helper.createAlertBlock(T"Turn the WiFi LEDs on if at least one client is connected to the corresponding radio.", info_box)
 			html[#html + 1] = ui_helper.createSwitch(T"WiFi NSC", "ledfw_wifinsc", content["ledfw_wifinsc"])

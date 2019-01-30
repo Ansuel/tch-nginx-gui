@@ -23,7 +23,7 @@ end
 -- devices forwarding rules
 local devicetypes = {
     { "Generic", T"Generic" },
-    { "DesktopComputer", T"DesktopComputer" },
+    { "DesktopComputer", T"Desktop Computer" },
     { "Laptop", T"Laptop" },
     { "STB", T"STB" },
     { "PDA", T"PDA" },
@@ -75,7 +75,7 @@ local devices_columns = {
     attr = { input = { class="span2" } },
   },
   {--[6]
-    header = T"InterfaceType",
+    header = T"Type",
     name = "interfacetype",
     param = "InterfaceType",
     type = "text",

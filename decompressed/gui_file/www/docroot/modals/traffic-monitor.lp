@@ -266,7 +266,7 @@ end
 	  html[#html+1] = "</div>"
 	  html[#html+1] = '<div>'
 	  html[#html+1] = "<fieldset><legend>" .. T"Graph" .. "</legend>"
-	  html[#html+1] = ui_helper.createAlertBlock(T"The time displayed on the graph are based on the time set on this modem!", info_box)
+	  html[#html+1] = ui_helper.createAlertBlock(T"The time displayed on the graph is the modem time.", info_box)
 	  html[#html+1] =	'<table>'
 	  html[#html+1] =	'<tr>'
 	  html[#html+1] =		'<td style="background-color:#90cd8a" >&nbsp;&nbsp;&nbsp;&nbsp;</td>'

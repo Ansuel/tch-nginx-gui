@@ -80,22 +80,22 @@ for x = 1, #hosts, 1 do
 					local lastRSSI = tonumber(stationConf["last_rssi"])
 					if stationConf["state"] ~= "Disconnected" then
 						if lastRSSI > -41 then
-							datarows[index][5] = T"Exceptional"
+							datarows[index][5] = T"Excellent"
 							datarows[index][4] = "1"
 						else
 							if lastRSSI > -55 then
-								datarows[index][5] = T"Very Good"
+								datarows[index][5] = T"Good"
 								datarows[index][4] = "1"
 							else
 								if lastRSSI > - 71 then
-									datarows[index][5] = T"Good"
+									datarows[index][5] = T"Ok"
 									datarows[index][4] = "1"
 								else
 									if lastRSSI > - 81 then
-										datarows[index][5] = T"Marginal"
+										datarows[index][5] = T"Satisfactoy"
 										datarows[index][4] = "3"
 									else
-										datarows[index][5] = T"Intermittent to No Operation"
+										datarows[index][5] = T"Limited. Expect dropouts."
 										datarows[index][4] = "4"
 									end
 								end
@@ -127,22 +127,22 @@ for x = 1, #hosts, 1 do
 					local lastRSSI = tonumber(stationConf["last_rssi"])
 					if stationConf["state"] ~= "Disconnected" then
 						if lastRSSI > -41 then
-							datarows[index][5] = T"Exceptional"
+							datarows[index][5] = T"Excellent"
 							datarows[index][4] = "1"
 						else
 							if lastRSSI > -55 then
-								datarows[index][5] = T"Very Good"
+								datarows[index][5] = T"Good"
 								datarows[index][4] = "1"
 							else
 								if lastRSSI > - 71 then
-									datarows[index][5] = T"Good"
+									datarows[index][5] = T"Ok"
 									datarows[index][4] = "1"
 								else
 									if lastRSSI > - 81 then
-										datarows[index][5] = T"Marginal"
+										datarows[index][5] = T"Satisfactory"
 										datarows[index][4] = "3"
 									else
-										datarows[index][5] = T"Intermittent to No Operation"
+										datarows[index][5] = T"Limited. Expect dropouts."
 										datarows[index][4] = "4"
 									end
 								end
@@ -179,7 +179,7 @@ columns[4]["readonly"] = "true"
 
 columns[5]["header"] = T"Signal Quality"
 columns[6]["header"] = T"Last RSSI"
-columns[7]["header"] = T"Av RSSI"
+columns[7]["header"] = T"Avg RSSI"
 columns[8]["header"] = T"RSSI"
 columns[9]["header"] = T"Tx Bytes"
 columns[10]["header"] = T"Rx Bytes"
