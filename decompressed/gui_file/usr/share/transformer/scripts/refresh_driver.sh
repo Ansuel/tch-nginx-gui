@@ -67,6 +67,7 @@ f8b79ad11f3089ff301fa81e5c5f7cb7  A2pv6F039f1
 e770d5a89ce9fd29cc6f2a63c3ffc351  A2pv6F039e
 dc8f33f59901a4a38cbb292ae6fcb390  B2pv6F039k
 b75a96fef8010f0f728d77368aa776ce  A2pv6F039x1
+3b1be04587a2df4aa56c179a711cec79  A2pv6F039x6
 "
 
 installed_driver=$(transformer-cli get rpc.xdsl.dslversion | awk '{print $4}'  | cut -d. -f1)

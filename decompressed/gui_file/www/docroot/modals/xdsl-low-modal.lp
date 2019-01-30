@@ -198,6 +198,7 @@ elseif content.dsl0_xdsl_FirmwareVersion:match(".*F039") then
     tinsert(driver_option, { "A2pv6F039v4", 'A2pv6F039v4 (Inteno D301)'})
     tinsert(driver_option, { "A2pv6F039x1", 'A2pv6F039x1 (Zyxel VMG3926)'})
     tinsert(driver_option, { "A2pv6F039x5", 'A2pv6F039x5 (SmartRG SR505N/SR515AC 2.6.1.9)'})
+    tinsert(driver_option, { "A2pv6F039x6", 'A2pv6F039x6 (Zyxel VMG3926-B10B)'})
 
     driver_Params.driver_ver = "uci.modgui.var.driver_version"
     driver_valid.driver_ver = post_helper.getValidateInEnumSelect(driver_option)
