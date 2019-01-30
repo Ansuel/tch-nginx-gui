@@ -7,11 +7,11 @@ gettext.textdomain('webui-core')
 local content_helper = require("web.content_helper")
 local ipairs, string = ipairs, string
 local items = {
-    {"iproutes-modal.lp", T"Ip Extras"},
+    {"iproutes-modal.lp", T"IP Extras"},
     {"mwan-modal.lp", T"Routing Policy"},
 	{"bridge-grouping-modal.lp", T"Bridge Grouping"},
-	{"fast-cache-option-modal.lp", T"Flow Cache Option"},
-	{"dosprotect-modal.lp", T"Dos Protect Option"},
+	{"fast-cache-option-modal.lp", T"Flow Cache"},
+	{"dosprotect-modal.lp", T"DoS Protect"},
 }
 
 
