@@ -45,8 +45,8 @@ msgstr "%d secondi"
 msgid "%s Mbps"
 msgstr "%s Mbps"
 
-msgid "1. Max Packet Number Recommened is dynamic and not accurate value (assume to use half of free memory).<br/>2. Acceleration disabled during tcpdump on platforms which supports flow cache!<br/>3. 'Download' invalid if nothing captured.<br/>4. 'Clean' captured file to reduce memory consumption."
-msgstr "1. Numero max raccomandato di pacchetti rappresenta un valore dinamico e non accurato (supponiamo di usare metà della memoria libera).<br/>2. L'accelerazione è disabilitata durante il Dump TCP nelle piattaforme che supportano la cache del flusso!<br/>3. 'Download' non valido se non viene catturato nulla.<br/>4. 'Pulisci' il file catturato per ridurre il consumo di memoria."
+msgid "1. Max Packet Number Recommened is dynamic and not accurate value (assume to use half of free memory).<br/>2. Acceleration disabled during TCPDump on platforms which supports flow cache!<br/>3. 'Download' will be invalid if nothing captured.<br/>4. 'Clean' will clean captured file to reduce memory consumption."
+msgstr "1. Numero max raccomandato di pacchetti rappresenta un valore dinamico e non accurato (supponiamo di usare metà della memoria libera).<br/>2. L'accelerazione è disabilitata durante il Dump TCP nelle piattaforme che supportano la cache del flusso!<br/>3. 'Download' non sarà  valido se non viene catturato nulla.<br/>4. 'Pulisci' azzererà il file catturato per ridurre il consumo di memoria."
 
 msgid "10% of max Frequency in ASYNC mode"
 msgstr "10% della frequenza massima in modalità ASYNC"
@@ -111,10 +111,10 @@ msgid_plural "<strong %s>%d UPnP</strong> rules are active"
 msgstr[0] "<strong %s>%d regola UPnP</strong> attiva"
 msgstr[1] "<strong %s>%d regole UPnP</strong> attive"
 
-msgid "<strong %s>%d Wireless Control</strong> rule defined"
-msgid_plural "<strong %s>%d Wireless Control</strong> rule defined"
-msgstr[0] "<strong %s>%d regola controllo wireless</strong> definita"
-msgstr[1] "<strong %s>%d regole controllo wireless</strong> definite"
+msgid "<strong %s>%d Wireless Time Control</strong> rule defined"
+msgid_plural "<strong %s>%d Wireless Time Control</strong> rule defined"
+msgstr[0] "<strong %s>%d regola pianificazione wireless</strong> definita"
+msgstr[1] "<strong %s>%d regole pianificazione wireless</strong> definite"
 
 msgid "<strong %s>%d port forwarding</strong> rule is defined"
 msgid_plural "<strong %s>%d port forwarding</strong> rules are defined"
@@ -169,10 +169,10 @@ msgstr "Il nome host deve contenere soltanto caratteri alfanumerici con/senza tr
 msgid "A hostname must not contain only digits"
 msgstr "Il nome host non deve contenere solo cifre"
 
-msgid "A name must be between 1 and 63 characters"
+msgid "Name must be between 1 and 63 characters"
 msgstr "La lunghezza del nome deve essere compresa tra 1 e 63 caratteri"
 
-msgid "A name must contain only alphanumeric characters and dash"
+msgid "Name must contain only alphanumeric characters and/or dashes"
 msgstr "Il nome deve essere formato esclusivamente da caratteri alfa numerici e trattini"
 
 msgid "A user with this username already exists"
@@ -182,9 +182,6 @@ msgid "ACCEPT"
 msgstr "ACCETTO"
 
 msgid "ACL Mode"
-msgstr "Modalità ACL"
-
-msgid "ACL mode"
 msgstr "Modalità ACL"
 
 msgid "ACS Password"
@@ -316,7 +313,7 @@ msgstr "Le informazioni fornite si intendono dal punto di vista del client"
 msgid "Allow"
 msgstr "Consenti"
 
-msgid "An existing mapping overlaps with the ports range"
+msgid "An existing port forward rule overlaps with the ports range specifed."
 msgstr "Una mappatura esistente si sovrappone con l'intervallo delle porte"
 
 msgid "Analyzer"
@@ -370,11 +367,11 @@ msgstr "Autenticazione fallita"
 msgid "Auto Discover DNS"
 msgstr "Trova automaticamente DNS"
 
-msgid "AutoUpgrade"
-msgstr "Aggiornamento automatico"
+msgid "GUI Auto Update"
+msgstr "Aggiornamento GUI automatico"
 
-msgid "AutoUpgrade Status"
-msgstr "Stato aggiornamento atomatico"
+msgid "GUI Auto Update Status"
+msgstr "Stato aggiornamento GUI atomatico"
 
 msgid "Aux Features Mask"
 msgstr "Maschera funzionalità Aux"
@@ -382,7 +379,7 @@ msgstr "Maschera funzionalità Aux"
 msgid "Aux Features Value"
 msgstr "Valore funzionalità Aux"
 
-msgid "Av RSSI"
+msgid "Avg RSSI"
 msgstr "RSSI Medio"
 
 msgid "Avg Resp Time:"
@@ -526,7 +523,7 @@ msgstr "Ampiezza canale"
 msgid "Channel width"
 msgstr "Ampiezza canale"
 
-msgid "Check Upgrade"
+msgid "Check Update"
 msgstr "Controlla aggiornamenti"
 
 msgid "Checking..."
@@ -607,10 +604,10 @@ msgstr "Impostazioni principali"
 msgid "CPU Load"
 msgstr "Carico CPU"
 
-msgid "Cpu Speed"
+msgid "CPU Speed"
 msgstr "Velocità CPU"
 
-msgid "Cpu Wait"
+msgid "CPU Wait"
 msgstr "CPU in attesa"
 
 msgid "Current Day"
@@ -790,7 +787,7 @@ msgstr "Valore Cap Demod"
 msgid "Description"
 msgstr "Descrizione"
 
-msgid "DesktopComputer"
+msgid "Desktop Computer"
 msgstr "Computer desktop"
 
 msgid "Dest Port"
@@ -808,10 +805,10 @@ msgstr "Indirizzo IP remoto"
 msgid "Destination MAC"
 msgstr "MAC remoto"
 
-msgid "Destination MAC (Insert Local Ip to search Mac)"
+msgid "Destination MAC (Insert Local IP to search for MAC)"
 msgstr "MAC destinazione (inserisci IP locale per cercare il MAC)"
 
-msgid "Destination port"
+msgid "Destination Port"
 msgstr "Porta destinazione"
 
 msgid "Detecting a Wi-Fi client's capabilities and monitoring its interfaces, Band Steering actively guides the client to the more suitable Wi-Fi band."
@@ -853,7 +850,7 @@ msgstr "Diagnostica ping e trace"
 msgid "Diagnostics Port Mirror"
 msgstr "Diagnostica port mirror"
 
-msgid "Diagnostics tcpdump"
+msgid "Diagnostics TCPDump"
 msgstr "Diagnostica Dump TCP"
 
 msgid "Dialing"
@@ -901,8 +898,8 @@ msgstr "IP Dominio aggiornato"
 msgid "Don't report any bug, this is a custom gui! Some bugs could not be related to the current beta firmware."
 msgstr "Non segnalare nessun bug.<br/>Questa è una interfaccia grafica utente (GUI) personalizzata!<br/>Alcuni bug potrebbero non dipendere dal firmware beta attuale."
 
-msgid "Dos Protect Option"
-msgstr "Opzione protezione DoS"
+msgid "DoS Protect"
+msgstr "Protezione DoS"
 
 msgid "DoS Protect disabled"
 msgstr "Protezione DoS disabilitata"
@@ -913,10 +910,10 @@ msgstr "Protezione DoS abilitata"
 msgid "Download"
 msgstr "Download"
 
-msgid "Download failed; please try again."
+msgid "Download failed. Please try again."
 msgstr "Download fallito. Riprova."
 
-msgid "Downloading tcpdump file, please wait..."
+msgid "Downloading TCPDump file, please wait..."
 msgstr "Caricamento file dump TCP..."
 
 msgid "Driver Version"
@@ -1066,7 +1063,7 @@ msgstr "Ogni filtro è una stringa espressione regolare.<br/>Inizia la stringa c
 msgid "Everything"
 msgstr "Qualunque cosa"
 
-msgid "Exceptional"
+msgid "Excellent"
 msgstr "Eccellente"
 
 msgid "Export"
@@ -1135,25 +1132,25 @@ msgstr "Versione firmware"
 msgid "Firmware not present in this bank"
 msgstr "Firmware non presente in questo banco"
 
-msgid "Firmware upgrade failed."
+msgid "Firmware update failed."
 msgstr "Aggiornamento firmware fallito."
 
-msgid "Firmware upgrade failed.  Insufficient free memory available. Please reboot and try again."
+msgid "Firmware update failed.  Insufficient free memory available. Please reboot and try again."
 msgstr "Aggiornamento firmware fallito.<br/> Memoria libera disponibile insufficiente.<br/>Riavvia e riprova."
 
-msgid "Firmware upgrade failed.  Invalid file used: expected file with extension rbi.  Please use correct firmware."
+msgid "Firmware update failed.  Invalid file used: expected file with extension rbi.  Please use correct firmware."
 msgstr "Aggiornamento firmware fallito.<br/>File non valido. Era atteso file con estensione .RBI.<br/>Usa il firmware corretto."
 
-msgid "Firmware upgrade failed.  Invalid file used: file too large.  Please use correct firmware."
+msgid "Firmware update failed.  Invalid file used: file too large.  Please use correct firmware."
 msgstr "Aggiornamento firmware fallito.<br/>File non valido. File troppo grande.<br/>Usa il firmware corretto."
 
-msgid "Firmware upgrade failed; build signed with wrong key"
+msgid "Firmware update failed; build signed with wrong key"
 msgstr "Aggiornamento firmware fallito.<br/>Versione firmata con chiave errata"
 
-msgid "Firmware upgrade failed; please use the correct firmware."
+msgid "Firmware update failed; please use the correct firmware."
 msgstr "Aggiornamento firmware fallito.<br/>Usa il firmware corretto."
 
-msgid "Firmware upgrade in progress, please wait..."
+msgid "Firmware update in progress, please wait..."
 msgstr "Aggiornamento firmware..."
 
 msgid "First DNS Server IPV6 Ping"
@@ -1162,8 +1159,8 @@ msgstr "Primo ping server DNS IPV6"
 msgid "First DNS Server Ping"
 msgstr "Primo ping server DNS"
 
-msgid "Flow Cache Option"
-msgstr "Opzione cache flusso"
+msgid "Flow Cache"
+msgstr "Cache flusso"
 
 msgid "Flow Cache disabled"
 msgstr "Cache flusso disabilitata"
@@ -1171,7 +1168,7 @@ msgstr "Cache flusso disabilitata"
 msgid "Flow Cache enabled"
 msgstr "Cache Flusso abilitata"
 
-msgid "Force Upgrade"
+msgid "Force Update"
 msgstr "Forza aggiornamento"
 
 msgid "Frame Bursting"
@@ -1216,7 +1213,7 @@ msgstr "L'IP del gateway non dovrebbe essere nell'intervallo di indirizzi IP del
 msgid "Gateway in bridge mode"
 msgstr "Gateway in modalità bridge"
 
-msgid "Generate QRCode"
+msgid "Generate QR code"
 msgstr "Genera codice QR"
 
 msgid "Generic"
@@ -1231,11 +1228,11 @@ msgstr "Globale"
 msgid "Global Information"
 msgstr "Informazioni globali"
 
-msgid "Go to the gateway tab and click on the Upgrade button, to autoupgrade to the new GUI."
+msgid "Go to the gateway tab and click on the Update button, to autoupdate to the new GUI."
 msgstr "Per aggiornare automaticamente alla nuova GUI vai nella scheda 'Gateway' e fai clic sul pulsante 'Aggiorna'."
 
-msgid "Good"
-msgstr "Buono"
+msgid "OK"
+msgstr "OK"
 
 msgid "Graph"
 msgstr "Grafico"
@@ -1246,19 +1243,16 @@ msgstr "Verde"
 msgid "Guest"
 msgstr "Ospite"
 
-msgid "Gui FirstPage"
+msgid "GUI First Page"
 msgstr "Pagina iniziale GUI"
 
-msgid "Gui Skin"
+msgid "GUI Skin"
 msgstr "Aspetto GUI"
 
-msgid "Gui State"
+msgid "GUI State"
 msgstr "Stato GUI"
 
-msgid "Gui Version"
-msgstr "Versione GUI"
-
-msgid "Gui Version: "
+msgid "GUI Version: "
 msgstr "Versione GUI: "
 
 msgid "Hardware Version"
@@ -1285,10 +1279,10 @@ msgstr "Indirizzo IP"
 msgid "IP Extras"
 msgstr "IP extra"
 
-msgid "IP Version 4 Address"
+msgid "IPv4 Address"
 msgstr "Indirizzo IPv4"
 
-msgid "IP Version 6 Address"
+msgid "IPv6 Address"
 msgstr "Indirizzo IPv6"
 
 msgid "IP address"
@@ -1297,7 +1291,7 @@ msgstr "Indirizzo IP"
 msgid "IPv4 Firewall Rules"
 msgstr "Regole firewall IPv4"
 
-msgid "IPv4 Port forwarding table"
+msgid "IPv4 Port Forwarding Table"
 msgstr "Tabella mappatura porte IPv4"
 
 msgid "IPv4 Routes"
@@ -1305,9 +1299,6 @@ msgstr "Instradamenti IPv4"
 
 msgid "IPv4 Static Routes Configuration"
 msgstr "Configurazione instradamenti statici IPv4"
-
-msgid "IPv6 Address"
-msgstr "Indirizzo IPv6"
 
 msgid "IPv6 Assigned"
 msgstr "IPv6 assegnato"
@@ -1417,8 +1408,8 @@ msgstr "Installa Aria2"
 msgid "Install Blacklist"
 msgstr "Installa Blacklist"
 
-msgid "Install Luci"
-msgstr "Installa Luci"
+msgid "Install LuCI"
+msgstr "Installa LuCI"
 
 msgid "Install Transmission"
 msgstr "Installa Transmission"
@@ -1447,14 +1438,14 @@ msgstr "Interfaccia abilitata"
 msgid "Interface:"
 msgstr "Interfaccia:"
 
-msgid "InterfaceType"
+msgid "Interface Type"
 msgstr "Tipo interfaccia"
 
 msgid "Interfaces:<strong>%s</strong>"
 msgstr "Interfacce:<strong>%s</strong>"
 
-msgid "Intermittent to No Operation"
-msgstr "Intermittente a Nessuna operazione"
+msgid "Limited. Expect dropouts."
+msgstr "Limitato. Attese perdite."
 
 msgid "Internal Server Error occured, please contact administrator"
 msgstr "Si è verificato un errore interno del server.<br/>Contatta l´amministratore"
@@ -1501,10 +1492,7 @@ msgstr "Versione non valida.<br/>Impossibile convertire.<br/>Valore grezzo: %s"
 msgid "In Call"
 msgstr "In chiamata"
 
-msgid "Ip Extras"
-msgstr "IP extra"
-
-msgid "Ipv4/Ipv6"
+msgid "IPv4/IPv6"
 msgstr "IPv4/IPv6"
 
 msgid "L2TP with UDP-Checksum check"
@@ -1513,7 +1501,7 @@ msgstr "L2TP con controllo checksum UDP"
 msgid "L2TP without UDP-Checksum check"
 msgstr "L2TP senza controllo checksum UDP"
 
-msgid "L2tp"
+msgid "L2TP"
 msgstr "L2TP"
 
 msgid "LAN Graph"
@@ -1522,7 +1510,7 @@ msgstr "Grafico LAN"
 msgid "LAN Interfaces"
 msgstr "Interfaccia LAN"
 
-msgid "LAN Upgrade"
+msgid "LAN Update"
 msgstr "Aggiornamento LAN"
 
 msgid "LAN interface"
@@ -1552,8 +1540,8 @@ msgstr "Lease ottenuto"
 msgid "Lease time"
 msgstr "Tempo lease"
 
-msgid "Led Settings"
-msgstr "Impostazioni led"
+msgid "LED Settings"
+msgstr "Impostazioni LED"
 
 msgid "Level"
 msgstr "Livello"
@@ -1588,8 +1576,8 @@ msgstr "Rete locale"
 msgid "Local Network subnet"
 msgstr "Sottorete rete locale"
 
-msgid "Local Port"
-msgstr "Porta locale"
+msgid "Local/LAN Port"
+msgstr "Porta locale/LAN"
 
 msgid "Lock Status"
 msgstr "Stato blocco"
@@ -1603,17 +1591,17 @@ msgstr "Visualizzatore eventi"
 msgid "Login Expired. Reloading."
 msgstr "Accesso scaduto. Ricaricamento."
 
-msgid "Luci GUI !! BROKEN !!"
-msgstr "GUI Luci!! CORROTTA!!"
+msgid "LuCI GUI !! BROKEN !!"
+msgstr "GUI LuCI!! CORROTTA!!"
 
-msgid "Luci WebUi installed"
-msgstr "WebUI Luci installata"
+msgid "LuCI WebUi installed"
+msgstr "WebUI LuCI installata"
 
-msgid "Luci WebUi not installed"
-msgstr "WebUI Luci non installata"
+msgid "LuCI WebUi not installed"
+msgstr "WebUI LuCI non installata"
 
-msgid "Luci is "
-msgstr "Luci "
+msgid "LuCI is "
+msgstr "LuCI "
 
 msgid "MAC Address"
 msgstr "Indirizzo MAC"
@@ -1624,17 +1612,17 @@ msgstr "L´elenco indirizzi MAC è vuoto"
 msgid "MAC address"
 msgstr "Indirizzo MAC"
 
-msgid "MCast"
+msgid "Multicast"
 msgstr "MultiCast"
 
-msgid "MCast-Learn"
+msgid "Multicast-Learn"
 msgstr "Interprete MultiCast"
 
 msgid "Management"
 msgstr "Gestione modem"
 
-msgid "Marginal"
-msgstr "Marginale"
+msgid "Satisfactory"
+msgstr "Soddisfacente"
 
 msgid "Mask"
 msgstr "Maschera"
@@ -1741,7 +1729,7 @@ msgstr "Hop Ping IPV6 successivo"
 msgid "No Address Assigned"
 msgstr "Nessun indirizzo assegnato"
 
-msgid "No Upgrade found"
+msgid "No Update found"
 msgstr "Nessun aggiornamento trovato"
 
 msgid "No configuration available for internet connectivity when in bridge mode."
@@ -1753,7 +1741,7 @@ msgstr "Nessun errore ricevuto dal server"
 msgid "No file selected."
 msgstr "Nessun file selezionato."
 
-msgid "No upgrade Available"
+msgid "No update available"
 msgstr "La versione installata è aggiornata"
 
 msgid "No-IP"
@@ -1810,8 +1798,8 @@ msgstr "Nota: la versione Datamodel <b>1</b> può essere richiesta per applicazi
 msgid "Note: HTTPS mode will enable encryption but not certificate-based authentication of DynDNS service"
 msgstr "Nota: HTTPS abilita la criptazione, ma non l’autenticazione basata sul certificato del servizio DynDNS"
 
-msgid "Note: You need to inser an unused ip on the local LAN to make the WakeOnWAN work."
-msgstr "Nota: per permettere a WakeOnWAN di funzionare devi inserire un IP non usato nella rete locale LAN."
+msgid "You need to enter an unused LAN IP to make Wake on LAN/WAN work."
+msgstr "Per rendere operativo Wake On LAN/WAN devi inserire un IP LAN non usato."
 
 msgid "Number"
 msgstr "Numero"
@@ -1822,10 +1810,10 @@ msgstr "Numero ping:"
 msgid "Off"
 msgstr "Off"
 
-msgid "Offline GUI upgrade"
+msgid "Offline GUI Update"
 msgstr "Aggiornamento offline GUI"
 
-msgid "Offline Upgrade"
+msgid "Offline Update"
 msgstr "Aggiornamento offline"
 
 msgid "Old Password"
@@ -1843,10 +1831,10 @@ msgstr "Attivo"
 msgid "Ongoing"
 msgstr "In corso"
 
-msgid "Only Ipv4"
+msgid "Only IPv4"
 msgstr "Solo IPv4"
 
-msgid "Only Ipv6"
+msgid "Only IPv6"
 msgstr "Solo IPv6"
 
 msgid "Only PassThru"
@@ -1975,8 +1963,8 @@ msgstr "Statistiche ping"
 msgid "Please configure wifi-bandsteer "
 msgstr "Configura Band Steering Wi-Fi "
 
-msgid "Please press Rescan button to view the updated wifi list"
-msgstr "Seleziona il pulsante 'Ri-scansiona' per visualizzare l'elenco Wi-Fi aggiornato"
+msgid "Press Rescan button to view the updated WiFi Network list"
+msgstr "Seleziona il pulsante 'Ri-scansiona' per visualizzare l'elenco WiFi aggiornato"
 
 msgid "Please see 2.4GHz section for initial parameter. If a wireless device tests the 5GHz band and reports the 5GHz signal strength is above this threshold, the gateway will direct the device to switch to the 5GHz band."
 msgstr "Vedi la sezione 2.4GHz per i parametri iniziali.<br/>Se un dispositivo wireless testa la banda a 5GHz e riporta una potenza di segnale a 5GHz superiore a questa soglia, il gateway reindirizzerà il dispositivo a passare alla banda a 5GHz."
@@ -2083,22 +2071,22 @@ msgstr "Collegamento rapido"
 msgid "REJECT"
 msgstr "RIFIUTA"
 
-msgid "Radius Accounting Server's IP"
+msgid "Radius Accounting Server IP"
 msgstr "IP server gestione accessi Radius"
 
-msgid "Radius Accounting Server's port"
+msgid "Radius Accounting Server port"
 msgstr "Porta server gestione accessi Radius"
 
-msgid "Radius Accounting Server's secret"
+msgid "Radius Accounting Server secret"
 msgstr "Password server gestione accessi Radius"
 
-msgid "Radius Authentication Server's IP"
+msgid "Radius Authentication Server IP"
 msgstr "IP server autentificazione Radius"
 
-msgid "Radius Authentication Server's port"
+msgid "Radius Authentication Server port"
 msgstr "Porta server autentificazione Radius"
 
-msgid "Radius Authentication Server's secret"
+msgid "Radius Authentication Server secret"
 msgstr "Password server autentificazione Radius"
 
 msgid "Random Color"
@@ -2149,8 +2137,8 @@ msgstr "Rimuovi Aria2"
 msgid "Remove Blacklist"
 msgstr "Rimuovi Blacklist"
 
-msgid "Remove Luci"
-msgstr "Rimuovi Luci"
+msgid "Remove LuCI"
+msgstr "Rimuovi LuCI"
 
 msgid "Remove Root"
 msgstr "Rimuovi root"
@@ -2290,8 +2278,8 @@ msgstr "Modalità sicurezza attivata"
 msgid "Security Mode"
 msgstr "Modo sicurezza"
 
-msgid "Security for this wireless network is disabled, anybody can connect or listen to it"
-msgstr "La sicurezza per questa rete wireless è disabilitata; chiunque può connetersi"
+msgid "Security for this wireless network is disabled, anybody can connect to it."
+msgstr "La sicurezza per questa rete wireless è disabilitata; chiunque può connetersi."
 
 msgid "Select the <strong>\"Reset\"</strong> button to confirm resetting the password to the default value."
 msgstr "Fai clic sul pulsante <strong>'Ripristina'</strong> per confermare il ripristino della password al valore predefinito."
@@ -2455,7 +2443,7 @@ msgstr "Orario fine"
 msgid "Stop Trace Route"
 msgstr "Ferma trace route"
 
-msgid "Stop portmirror successfully"
+msgid "Portmirror successfully stopped."
 msgstr "Arresto portmirror completato"
 
 msgid "Storage"
@@ -2482,7 +2470,7 @@ msgstr "Sito supporto: "
 msgid "Switch connection mode"
 msgstr "Modifica modalità connessione"
 
-msgid "Switch the WAN port to a normal LAN port"
+msgid "Switch the Remote/WAN port to a normal LAN port"
 msgstr "Commuta la porta WAN in una porta normale LAN"
 
 msgid "SwitchBank"
@@ -2560,8 +2548,8 @@ msgstr "La <strong>regola in uscita</strong> definisce come vengono trattati i p
 msgid "The Backup file you try to load has not been taken from the actual SW-Release, please use correct Backup File"
 msgstr "Il file di backup che stai cercando di caricare non è stato creato dalla versione software attuale.<br/>Usa un file di backup valido"
 
-msgid "The Band Steering can not be supported under WEP security mode."
-msgstr "Quando viene usata la modalità WEP il Band Steering non è supportato."
+msgid "Band Steering is not supported when using WEP security mode."
+msgstr "Band steering non è supportato usando il modo sicurezza WEP."
 
 msgid "The Blacklist app is "
 msgstr "L'app Blacklist è "
@@ -2581,10 +2569,10 @@ msgstr "Il grafico seguente visualizza i risultati dell´ultimo controllo nella 
 msgid "The currently selected connection mode prevents the device from downloading updates. Please download and apply updates manually."
 msgstr "Il tipo di connessione attualmente selezionato impedisce che il dispositivo possa scaricare aggiornamenti.<br/>Scarica ed applica gli aggiornamenti in modo manuale."
 
-msgid "The modem has been upgraded automatically at <strong>%s:00</strong> to version <strong>%s</strong> successfully"
+msgid "The modem has been updated automatically at <strong>%s:00</strong> to version <strong>%s</strong> successfully"
 msgstr "Il modem è stato corretamente aggiornato automaticamente alle <strong>%s:00</strong> alla versione <strong>%s</strong>"
 
-msgid "The modem has been upgraded to version <strong>%s</strong> successfully"
+msgid "The modem has been updated to version <strong>%s</strong> successfully"
 msgstr "Il modem è stato correttamente aggiornato alla versione <strong>%s</strong>"
 
 msgid "The request could not be performed due to some error"
@@ -2662,13 +2650,13 @@ msgstr "Installa transmission e la relativa webui"
 msgid "This will install uhttpd and luci"
 msgstr "Installa uhttpd e luci"
 
-msgid "This will put your gateway into LAN Upgrade"
+msgid "This will put your gateway into LAN Update"
 msgstr "Avvia l´aggiornamento del modem"
 
 msgid "This will transfer the active firmware and config to the bank 1"
 msgstr "Trasferisce il firmware attivo e la configurazione nel banco 1"
 
-msgid "This will transfer your configuration and firmware to the bank_1 and it will erase bank_2"
+msgid "This will transfer your configuration and firmware to bank_1 and it will erase bank_2"
 msgstr "Trasferisce la configurazione e il firmware nel banco 1 e cancellerà il banco 2"
 
 msgid "Thu."
@@ -2695,7 +2683,7 @@ msgstr "Timeout"
 msgid "Timezone"
 msgstr "Fuso orario"
 
-msgid "To disable Port Forward Rules, edit the rule on the right and then switch the button on the left."
+msgid "To disable Port Forward Rules, you can turn it off using the switch or delete using cross."
 msgstr "Per disabilitare le regole della mappatura porte, modifica la regola sulla destra e poi usa l'interruttore sulla sinistra."
 
 msgid "To use port ranges use"
@@ -2737,7 +2725,7 @@ msgstr "Transmission "
 msgid "Tue."
 msgstr "Mar."
 
-msgid "Turning on Ethernet power saving features can cause extra latency"
+msgid "Turning on Eco features can cause major latency."
 msgstr "L'attivazione delle funzionalità di risparmio energetico ethernet può causare una latenza aggiuntiva"
 
 msgid "Turn off all LEDs except “Info” if all services are up and running. Press the “Info” / “WiFi” button to show the current LEDs status."
@@ -2791,34 +2779,31 @@ msgstr "Aggiornamento"
 msgid "Updating file. Please wait..."
 msgstr "Aggiornamento file..."
 
-msgid "Upgrade"
+msgid "Update"
 msgstr "Aggiorna"
 
-msgid "Upgrade Available"
+msgid "Update Available"
 msgstr "Aggiornamento disponibile"
 
-msgid "Upgrade Found"
+msgid "Update Found"
 msgstr "Aggiornamento disponibile"
 
-msgid "Upgrade GUI"
+msgid "Update GUI"
 msgstr "Aggiorna GUI"
 
-msgid "Upgrade Gui"
-msgstr "Aggiorna GUI"
-
-msgid "Upgrade available! Version: <strong>%s</strong>"
+msgid "Update available! Version: <strong>%s</strong>"
 msgstr "Aggiornamento disponibile! Versione: <strong>%s</strong>"
 
-msgid "Upgrade failed; please try again."
+msgid "Update failed; please try again."
 msgstr "Aggiornamento fallito. Riprova."
 
-msgid "Upgrade firmware"
+msgid "Update firmware"
 msgstr "Aggiornamento firmware"
 
-msgid "Upgrade in progress..."
+msgid "Update in progress..."
 msgstr "Aggiornamento..."
 
-msgid "Upgrading..."
+msgid "Updating..."
 msgstr "Aggiornamento..."
 
 msgid "Uploading file. Please wait..."
@@ -2902,8 +2887,8 @@ msgstr "Versione impostata"
 msgid "Version Spoof"
 msgstr "Versione spoofing"
 
-msgid "Very Good"
-msgstr "Molto buono"
+msgid "Good"
+msgstr "Buono"
 
 msgid "Violet"
 msgstr "Viola"
@@ -2962,9 +2947,6 @@ msgstr "ATTENZIONE: per potersi connettere alla rete Guest occorre attivare la r
 msgid "WEP Key"
 msgstr "Chiave WEP"
 
-msgid "WEP key"
-msgstr "Chiave WEP"
-
 msgid "WPS AP PIN code"
 msgstr "Codice PIN WPS AP"
 
@@ -2977,11 +2959,11 @@ msgstr "Codice PIN dispositivo WPS"
 msgid "WPS Mode"
 msgstr "Modalità WPS"
 
-msgid "WPS is automatically disabled if you choose WEP or WPA-only security or disable broadcast of the SSID"
+msgid "WPS is automatically disabled if you choose WEP, WPA-only security or disable broadcast of the SSID"
 msgstr "Se si sceglie solo la protezione WEP o WPA o si disabilita la trasmissione broadcast dell'SSID, il WPS viene automaticamente disattivato"
 
-msgid "Wake on LAN over the Internet"
-msgstr "Wakeup LAN su internet"
+msgid "WoL (Wake on LAN) & WoW (Wake on WAN)"
+msgstr "WoL (Wake on LAN) & WoW (Wake on WAN)"
 
 msgid "We don't have any firmware for this modem, please report them to the github page. "
 msgstr "Non è disponibile alcun firmware per questo modem.<br/>Segnalalo nella pagina di github. "
@@ -3001,7 +2983,7 @@ msgstr "Elenco autorizzati"
 msgid "Wi-Fi Network Traffic"
 msgstr "Traffico rete Wi-Fi"
 
-msgid "Wi-Fi QR Code"
+msgid "WiFi QR Code"
 msgstr "Codice QR Wi-Fi"
 
 msgid "WiFi Nurse"
@@ -3016,8 +2998,8 @@ msgstr "Accende i led Wi-Fi se almeno un client è connesso alla radio corrispon
 msgid "Wireless Client Monitor"
 msgstr "Monitor client wireless"
 
-msgid "Wireless Control"
-msgstr "Controllo wireless"
+msgid "Wireless Time Control"
+msgstr "Pianificazione wireless"
 
 msgid "Wireless Data"
 msgstr "Dati wireless"
@@ -3091,11 +3073,11 @@ msgstr "Tipo ICMP"
 msgid "in"
 msgstr "ingresso"
 
-msgid "invalid gateway IP"
+msgid "Invalid Gateway IP"
 msgstr "IP gateway non valido"
 
-msgid "invalid netmask"
-msgstr "maschera di rete non valida"
+msgid "Invalid Mask"
+msgstr "Maschera rete non valida"
 
 msgid "low"
 msgstr "Basso"
@@ -3166,8 +3148,8 @@ msgstr "Installa la GUI Telstra"
 msgid "Install Telstra GUI"
 msgstr "Installa GUI Telstra"
 
-msgid "Telstra is "
-msgstr "Telstra è "
+msgid "Telstra GUI is "
+msgstr "GUI Telstra "
 
 msgid "Remove Telstra GUI"
 msgstr "Rimuovi GUI Telstra"
@@ -3190,8 +3172,8 @@ msgstr "L'ultimo lease statico aggiunto/modificato è impostato con un IP già i
 msgid "Internet VPC"
 msgstr "Impostazioni VP/VC"
 
-msgid "The time displayed on the graph are based on the time set on this modem!"
-msgstr "Gli orari visualizzati nel grafico sono basati sull'orario impostato nel modem!"
+msgid "The time displayed on the graph is the modem time"
+msgstr "Gli orari visualizzati nel grafico sono basati sull'orario impostato nel modem"
 
 msgid "Arial2 GUI"
 msgstr "GUI Arial2"

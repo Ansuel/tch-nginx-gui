@@ -70,7 +70,7 @@ nf_conntrack_count:close()
 	html[#html + 1] =   '<label class="control-label">' .. T("GUI Version") .. '</label>'
 	html[#html + 1] =   '<div class="controls">'
 	html[#html + 1] =     '<span id="GUI Version" class=" simple-desc span3">'
-	html[#html + 1] = 		format('%s <a id="updateinfocard" class="">%s</a>',content["gui_version"],T"Check Upgrade")
+	html[#html + 1] = 		format('%s <a id="updateinfocard" class="">%s</a>',content["gui_version"],T"Check Update")
 	html[#html + 1] =	  '</span>'
 	html[#html + 1] =   '</div>'
 	html[#html + 1] = '</div>'

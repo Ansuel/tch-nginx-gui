@@ -462,7 +462,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 		}
       }
       local html = {}
-      html[#html + 1] = ui_helper.createButton(T"LAN Upgrade", T"BOOTP", "icon-exchange", bootp)
+      html[#html + 1] = ui_helper.createButton(T"LAN Update", T"BOOTP", "icon-exchange", bootp)
       html[#html + 1] = ui_helper.createAlertBlock(T"Entering BOOTP, please wait...", bootp_alert)
 	  html[#html + 1] = ui_helper.createButton(T"SwitchBank", T"Switchover", "icon-exchange", switchover)
       html[#html + 1] = ui_helper.createAlertBlock(T"Switching bank, please wait...", switchover_alert)
@@ -518,7 +518,7 @@ ngx.print('\
       ngx.print('\
 </fieldset>\
 	<fieldset>\
-	<legend>');  ngx.print( T"Gui Skin" ); ngx.print('</legend>\
+	<legend>');  ngx.print( T"GUI Skin" ); ngx.print('</legend>\
 		');  
 		local html = {}
 		html[#html + 1] = ui_helper.createInputSelect(T"GUI Skin", "gui_skin", gui_skin_option, gui_skin_content["gui_skin"])
@@ -669,7 +669,7 @@ ngx.print('\
   }\
 \
   $("#btn-system-bootp").on("click", function() {\
-     if (confirm("');  ngx.print(T"This will put your gateway into LAN Upgrade"); ngx.print('")){\
+     if (confirm("');  ngx.print(T"This will put your gateway into LAN Update"); ngx.print('")){\
        tch.showProgress(\'');  ngx.print(T"Rebooting..."); ngx.print('\');\
        return resetreboot($("#bootp-msg"), $(this), "system_bootp");\
      }\

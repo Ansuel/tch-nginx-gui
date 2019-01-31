@@ -36,9 +36,6 @@ msgstr "Aktuell gibt es <strong>%s</strong> verbundene Geräte"
 msgid "Currently there is <strong>%d</strong> connected device"
 msgstr "Aktuell gibt es <strong>%d</strong> verbundenes Gerät"
 
-msgid "DLNA Enabled"
-msgstr "DLNA eingeschaltet"
-
 msgid "DLNA disabled"
 msgstr "DLNA ausgeschaltet"
 
@@ -63,10 +60,10 @@ msgstr "Freier Platz"
 msgid "General status"
 msgstr "Allgemeiner Status"
 
-msgid "Hard Disk Information"
+msgid "Attached Drive Info"
 msgstr "Festplatteninformation"
 
-msgid "It is recommended to use the USB in the 2.0 standard. The use of USB in 3.1 standard can remarkably affect the Wi-Fi performance at 2.4 Ghz band."
+msgid "It is recommended to use USB2.0 standard. The use of USB3.1 standard can badly affect the Wi-Fi performance of the 2.4 Ghz band."
 msgstr "Es wird empfohlen, den USB-2.0-Standard zu verwenden. Die Verwendung von USB 3.1 kann die WiFi-Leistungsfähigkeit im 2,4-GHz-Band stark beeinträchtigen."
 
 msgid "Manufacturer"
@@ -90,22 +87,22 @@ msgstr "Analysestatus "
 msgid "Restarting, please wait..."
 msgstr "Neustart, bitte warten..."
 
-msgid "Samba Filesharing"
+msgid "SMB/CIFS Filesharing"
 msgstr "Samba Dateiserver"
 
-msgid "Samba Filesharing disabled"
+msgid "SMB/CIFS Filesharing disabled"
 msgstr "Samba Dateiserver nicht aktiv"
 
-msgid "Samba Filesharing enabled"
+msgid "SMB/CIFS Filesharing enabled"
 msgstr "Samba Dateiserver aktiv"
 
-msgid "Samba description: "
+msgid "SMB/CIFS description: "
 msgstr "Samba Beschreibung "
 
-msgid "Samba name: "
+msgid "SMB/CIFS name: "
 msgstr "Samba Name "
 
-msgid "Samba workgroup: "
+msgid "SMB/CIFS workgroup: "
 msgstr "Samba Arbeitsgruppe "
 
 msgid "Save"
@@ -120,7 +117,7 @@ msgstr "Umschalten der USB-3.1-Unterstützung startet das Gateway neu"
 msgid "Total Space"
 msgstr "Gesamter Platz"
 
-msgid "USB 3.1 Enabled"
+msgid "USB3.1 enabled"
 msgstr "USB 3.1 eingeschaltet"
 
 msgid "USB Port"

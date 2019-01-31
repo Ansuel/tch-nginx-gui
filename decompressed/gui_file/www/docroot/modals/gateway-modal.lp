@@ -785,7 +785,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       html[#html + 1] = ui_helper.createLabel(T"Product Vendor", content["vendor"], basic)
       html[#html + 1] = ui_helper.createLabel(T"Product Name", content["product_name"], basic)
       html[#html + 1] = ui_helper.createLabel(T"Software Version", content["firmware_version"], basic)
-	  html[#html + 1] = ui_helper.createLabel(T"Gui Version", content["gui_version"], basic)
+	  html[#html + 1] = ui_helper.createLabel(T"GUI Version", content["gui_version"], basic)
 	  html[#html + 1] = ui_helper.createLabel(T"Hostname", system_data["system_hostname"], advancedshow )
 	  html[#html + 1] = ui_helper.createInputText(T"Hostname", "system_hostname", system_data["system_hostname"], advanced , system_helpmsg["system_hostname"] )
       --html[#html + 1] = ui_helper.createLabel(T"Firmware Version", content["firmware_version"], basic)
@@ -843,17 +843,17 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
         if cui.upgradefw == "1" then
           html[#html + 1] = '</form><form class="form-horizontal" id="form-upgradefw" method="post" action="modals/gateway-modal.lp?action=upgradefw" enctype="multipart/form-data">'
           html[#html + 1] = '<div class="control-group">'
-          html[#html + 1] = format('<label class="control-label">%s</label>', T"Upgrade firmware")
+          html[#html + 1] = format('<label class="control-label">%s</label>', T"Update firmware")
           html[#html + 1] = '<div class="controls">'
           html[#html + 1] = '<input type="file" name="upgradefile" id="file-upgradefw">&nbsp;'
-          html[#html + 1] = ui_helper.createSimpleButton(T"Upgrade", "icon-shield", upgradefw)
+          html[#html + 1] = ui_helper.createSimpleButton(T"Update", "icon-shield", upgradefw)
           html[#html + 1] = '</div></div>'
           html[#html + 1] = ui_helper.createAlertBlock(T"No file selected.", upgrading_nofile)
           html[#html + 1] = ui_helper.createAlertBlock(T"Uploading firmware, please wait...", upgrading_transfer)
-          html[#html + 1] = ui_helper.createAlertBlock(T"Firmware upgrade in progress, please wait...", upgrading_busy)
+          html[#html + 1] = ui_helper.createAlertBlock(T"Firmware update in progress, please wait...", upgrading_busy)
           html[#html + 1] = ui_helper.createAlertBlock("", upgrading_fail)
-          html[#html + 1] = ui_helper.createAlertBlock(T"Firmware upgrade failed.  Invalid file used: expected file with extension rbi.  Please use correct firmware.", upgrading_wrong_ext_fail)
-          html[#html + 1] = ui_helper.createAlertBlock(T"Firmware upgrade failed.  Invalid file used: file too large.  Please use correct firmware.", upgrading_too_big_fail)
+          html[#html + 1] = ui_helper.createAlertBlock(T"Firmware update failed.  Invalid file used: expected file with extension rbi.  Please use correct firmware.", upgrading_wrong_ext_fail)
+          html[#html + 1] = ui_helper.createAlertBlock(T"Firmware update failed.  Invalid file used: file too large.  Please use correct firmware.", upgrading_too_big_fail)
         end
 	  end
       html[#html + 1] = ui_helper.createLabel(T"ACS URL", content["acs_url"], basic)
@@ -905,7 +905,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  
 	  
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Reset the custom GUI settings. No custom firmware file will be removed. All custom GUI functions will still be available.", info_box)
-	  html[#html + 1] = ui_helper.createButton(T"Restore Gui", T"Restore", "icon-refresh", reset_gui)
+	  html[#html + 1] = ui_helper.createButton(T"Restore GUI", T"Restore", "icon-refresh", reset_gui)
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Reset the router to factory settings and remove the custom firmware files.", info_box)
 	  html[#html + 1] = ui_helper.createButton(T"Reset to Factory", T"Remove Root", "icon-refresh", remove_root)
 	  html[#html + 1] = string.format('<div class="control-group controls">')
@@ -921,7 +921,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  ngx.print(html)
 	  
 	  local html = {}
-	  html[#html + 1] = '<legend id="GUI_Upgrade_Legend">' .. T"Upgrade GUI" .. '</legend>'
+	  html[#html + 1] = '<legend id="GUI_Upgrade_Legend">' .. T"Update GUI" .. '</legend>'
 	  local basic = {
         span = {
           class = "span5"
@@ -1003,10 +1003,10 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       html[#html + 1] = '<input type="file" name="upgradefile" id="file-upgradegui">&nbsp;'
       html[#html + 1] = ui_helper.createSimpleButton(T"Update", "icon-shield", upload_gui_file)
 	  html[#html + 1] = '</div></div>'
-	  html[#html + 1] = ui_helper.createAlertBlock(T"Upgrade failed; please try again.", upload_gui_fail)
+	  html[#html + 1] = ui_helper.createAlertBlock(T"Update failed. Please try again.", upload_gui_fail)
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Uploading file. Please wait...", upload_gui_alert)
 	  html[#html + 1] = '<div class="alert alert-info hide" id="upgrade-gui-bar">'
-	  html[#html + 1] = T"Upgrade in progress..."
+	  html[#html + 1] = T"Update in progress..."
 	  html[#html + 1] = '  <div id="upgrade-gui-bar" class="progress progress-striped active">'
       html[#html + 1] = '    <div class="bar bar-warning" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" >'
       html[#html + 1] = '</div></div></div>'

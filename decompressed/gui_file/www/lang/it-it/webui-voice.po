@@ -253,7 +253,7 @@ msgid "Pairing Window Time in Sec"
 msgstr "Intervallo temporale accoppiamento (sec)"
 
 msgid "Pairing in progress, Please press Cancel button for stop pairing."
-msgstr "Accoppiamento in corso. Seleziona 'Annulla' per interrompere l'accoppiamento."
+msgstr "Accoppiamento in corso.<br/>Seleziona 'Annulla' per interrompere l'accoppiamento."
 
 msgid "Pairing in progress, please wait..."
 msgstr "Accoppiamento..."
@@ -270,8 +270,8 @@ msgstr "Rubrica telefonica"
 msgid "Phone Number"
 msgstr "Numero di telefono"
 
-msgid "Phone Numbers"
-msgstr "Numeri di telefono"
+msgid "Phone Lines"
+msgstr "Linee telefoniche"
 
 msgid "Please set URI."
 msgstr "Imposta URI."
@@ -357,7 +357,7 @@ msgstr "Servizi"
 msgid "Silence Suppression"
 msgstr "Soppressione silenzio"
 
-msgid "Sip Device"
+msgid "SIP Device"
 msgstr "Dispositivo SIP"
 
 msgid "Some parameters failed validation"
