@@ -23,7 +23,7 @@ with many fixes and new features like:
 <li>Ability to install LuCI GUI or sharing service like transmission.</li>
 <li>Spoofing of firmware version to bypass CWMP controls.</li>
 <li>Select many skins for the GUI, like the Fritz!Box one.</li>
-<li>Install Telstra Basic GUI</li>
+<li>Install extensions like: Telstra Basic GUI, LuCI, Transmission, Aria2</li>
 <li>And many others...</li>
 </ul>
 <p><strong>You can help the development of this GUI by reporting issues or suggesting improvements.</strong><br /><strong>All the infomation can be found here and on the ilpuntotecnico forum (https://www.ilpuntotecnico.com/forum) (To write on this forum you need to write in the presentation section after the first login).</strong></p>
@@ -42,17 +42,17 @@ Some Topics to help you get root access:
 General GUI Topic: https://www.ilpuntotecnico.com/forum/index.php/topic,78585.0.html
 
 <h3>Then execute these commands (Active WAN/Internet connection required):</h3><br />
-<strong>curl -k https://repository.ilpuntotecnico.com/files/Ansuel/AGTEF/GUI.tar.bz2 --output /tmp/GUI.tar.bz2<br />
-bzcat /tmp/GUI.tar.bz2 | tar -C / -xvf -<br />
-/etc/init.d/rootdevice force<br /><br /></strong>
+
+```
+curl -k curl -k https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/GUI.tar.bz2 --output /tmp/GUI.tar.bz2
+bzcat /tmp/GUI.tar.bz2 | tar -C / -xvf -
+/etc/init.d/rootdevice force
+```
 
 If you get an error during the download process or you have no Internet/WAN connection on the device, just manually download the GUI.tar.bz2 file and put in /tmp folder via SCP then execute the other (non curl) commands listed above.
 
 Preview:
 <img src="https://i.imgur.com/ZcSANgW.png">
-
-<p>If you would like to install LuCI on your modem, you can find the instructions and install script here: https://github.com/nutterpc/tg-luci
-<p> or use the Extensions card to install.
   
 If you find a bug, please report it using GitHub's Issue feature making sure you attach a photo and the log (Run: logread).
 If you upload config files, please remove your personal details including your public IP.
