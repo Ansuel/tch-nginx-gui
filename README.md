@@ -44,7 +44,7 @@ General GUI Topic: https://www.ilpuntotecnico.com/forum/index.php/topic,78585.0.
 <h3>Then execute these commands (Active WAN/Internet connection required):</h3><br />
 
 ```
-curl -k curl -k https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/GUI.tar.bz2 --output /tmp/GUI.tar.bz2
+curl -k https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/GUI.tar.bz2 --output /tmp/GUI.tar.bz2
 bzcat /tmp/GUI.tar.bz2 | tar -C / -xvf -
 /etc/init.d/rootdevice force
 ```
