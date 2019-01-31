@@ -158,7 +158,7 @@ local driver_valid = {
 }
 
 if content.dsl0_xdsl_FirmwareVersion:match(".*H043") or content.dsl0_xdsl_FirmwareVersion:match(".*H042") then
-	tinsert(driver_option, { "B2pvbH042l", 'B2pvbH042l (DSL-AC87VG v1.00.10)'})
+	tinsert(driver_option, { "B2pvbH042l", 'B2pvbH042l (Asus DSL-AC87VG v1.00.10)'})
     tinsert(driver_option, { "B2pvbH042j2", 'B2pvbH042j2 (Inteno)'})
     tinsert(driver_option, { "B2pvbH042s", 'B2pvbH042s (Archer_VR2800v V1 1.2.0_0.9.1)'})
 	tinsert(driver_option, { "A2pvbH042j2", 'A2pvbH042j2 (Asus DSL-AC88U)'})
@@ -168,18 +168,21 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H043") or content.dsl0_xdsl_Firmwa
 	tinsert(driver_option, { "A2pvbH042u", 'A2pvbH042u (AGTEF_1.0.4)'})
 	
 	if tonumber(content.marketing_version:sub(1,4)) >= 17.3 then
-		tinsert(driver_option, { "B2pvfbH043e", 'B2pvfbH043e (DSL-AC87VG_v1.00.13)'})
-		tinsert(driver_option, { "B2pvfbH043g", 'B2pvfbH043g (DSL-AC68VG v5.00.04)'})
+		tinsert(driver_option, { "B2pvfbH043e", 'B2pvfbH043e (Asus DSL-AC87VG_v1.00.13)'})
+		tinsert(driver_option, { "B2pvfbH043g", 'B2pvfbH043g (Asus DSL-AC68VG v5.00.04)'})
         tinsert(driver_option, { "B2pvfbH043i1", 'B2pvfbH043i1 (VMG8823-B60B 5.13)'})
-        tinsert(driver_option, { "B2pvfbH043k", 'B2pvfbH043k (DSL-AC88U-B v1.10.05)'})
+        tinsert(driver_option, { "B2pvfbH043k", 'B2pvfbH043k (Asus DSL-AC88U-B v1.10.05)'})
+        tinsert(driver_option, { "B2pvfbH043q", 'B2pvfbH043q (FRITZ!Box 7582 7.01/Asus DSL-AC88U-B v1.10.06_591)'})
         tinsert(driver_option, { "A2pvfbH043b", 'A2pvfbH043b (New FastGate Fastweb)'})
         --table.insert(driver_option,{ "A2pvfbH043e", 'A2pvfbH043e (Zyxel 8823)'}) --Annex b???
         --table.insert(driver_option,{ "A2pvfbH043f", 'A2pvfbH043f (DSL AC88U) ' .. T'Less Ping'}) --Missing
 		tinsert(driver_option, { "A2pvfbH043g", 'A2pvfbH043g (TG800 VBANT-S)'})
         tinsert(driver_option, { "A2pvfbH043h", 'A2pvfbH043h (Inteno DG400PRIME)'})
         tinsert(driver_option, { "A2pvfbH043i", 'A2pvfbH043i (Inteno)'})
+        tinsert(driver_option, { "A2pvfbH043j2", 'A2pvfbH043j2 (FRITZ!Box 7582 7.01 Backup)'})
 		tinsert(driver_option, { "A2pvfbH043k", 'A2pvfbH043k (AGTEF_1.1.0)'})
-		tinsert(driver_option, { "A2pvfbH043o", 'A2pvfbH043o (DSL88U)'})
+		tinsert(driver_option, { "A2pvfbH043o", 'A2pvfbH043o (Asus DSL-AC88U v1.10.06_561)'})
+        tinsert(driver_option, { "A2pvfbH043q", 'A2pvfbH043q (FRITZ!Box 7582 7.01/Asus DSL-AC88U v1.10.06_585)'})
 	end
 	
 	driver_Params.driver_ver = "uci.modgui.var.driver_version"
