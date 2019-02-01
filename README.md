@@ -57,10 +57,10 @@ If you get an error during the download process or you have no Internet/WAN conn
 
 Preview:
 Stats:
-<img src="https://ibb.co/gz6LbZC">
+<img src="https://i.ibb.co/2g5103B/modem-stats.jpg">
 
 Cards:
-<img src="https://ibb.co/Brpx9ZR">
+<img src="https://i.ibb.co/3M3qnNH/modem-cards.jpg">
   
 If you find a bug, please report it using GitHub's Issue feature making sure you attach a photo and the log (Run: logread).
 If you upload config files, please remove your personal details including your public IP and MAC.
