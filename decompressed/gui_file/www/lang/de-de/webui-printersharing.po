@@ -15,12 +15,6 @@ msgstr ""
 "X-Generator: Poedit 2.2\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
-msgid "<div class=\" simple-desc span4\">SMB/CIFS is disabled</div>"
-msgstr "<div class=\" simple-desc span4\">SMB/CIFS ist deaktiviert</div>"
-
-msgid "<div class=\" simple-desc span4\">To connect: \\\\%s\\ or \\\\%s\\</div>"
-msgstr "<div class=\" simple-desc span4\">Zum Verbinden: \\\\%s\\ oder \\\\%s\\</div>"
-
 msgid "Enabled"
 msgstr "Aktiviert"
 
@@ -47,3 +41,9 @@ msgstr "Produktname"
 
 msgid "Version"
 msgstr "Version"
+
+msgid "Web Interface"
+msgstr ""
+
+msgid "<div class=\" simple-desc span4\">SMB/CIFS is disabled</div>"
+msgstr ""

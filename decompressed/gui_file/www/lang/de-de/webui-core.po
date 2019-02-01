@@ -1081,13 +1081,13 @@ msgstr "Exportiere Textversion"
 msgid "Export UnSigned"
 msgstr "Exportiere Unsignierte Version"
 
-msgid "Exporting configuration, please wait..."
+msgid "Exporting configuration..."
 msgstr "Exportiere Konfiguration, bitte warten..."
 
-msgid "Exporting failed; please try again."
+msgid "Exporting failed. Please try again."
 msgstr "Exportieren fehlgeschlagen, bitte erneut versuchen."
 
-msgid "Exporting log, please wait ..."
+msgid "Exporting log..."
 msgstr "Exportiere Protokoll, bitte warten..."
 
 msgid "Extensions"
@@ -1135,22 +1135,22 @@ msgstr "Firmware in dieser Bank nicht vorhanden"
 msgid "Firmware update failed."
 msgstr "Firmware-Aktualisierung fehlgeschlagen."
 
-msgid "Firmware update failed.  Insufficient free memory available. Please reboot and try again."
+msgid "Firmware update failed. Insufficient free memory available. Please reboot and try again."
 msgstr "Firmware-Aktualisierung fehlgeschlagen. Zu wenig freier Speicher. Bitte neu starten und erneut versuchen."
 
-msgid "Firmware update failed.  Invalid file used: expected file with extension rbi.  Please use correct firmware."
+msgid "Firmware update failed. Invalid file used: expected file with extension rbi.  Please use correct firmware."
 msgstr "Firmware-Aktualisierung fehlgeschlagen. Ungültige Datei: Datei mit Erweiterung 'rbi' erwartet. Bitte verwenden Sie die richtige Firmware."
 
-msgid "Firmware update failed.  Invalid file used: file too large.  Please use correct firmware."
+msgid "Firmware update failed. Invalid file used: file too large.  Please use correct firmware."
 msgstr "Firmware-Aktualisierung fehlgeschlagen. Ungültige Datei: Datei zu groß. Bitte verwenden Sie die richtige Firmware."
 
-msgid "Firmware update failed; build signed with wrong key"
+msgid "Firmware update failed. Build signed with wrong key"
 msgstr "Firmware-Aktualisierung fehlgeschlagen. Die Firmware wurde mit dem falschen Schlüssel signiert"
 
-msgid "Firmware update failed; please use the correct firmware."
+msgid "Firmware update failed. Please use the correct firmware."
 msgstr "Firmware-Aktualisierung fehlgeschlagen. Bitte verwenden Sie die richtige Firmware."
 
-msgid "Firmware update in progress, please wait..."
+msgid "Firmware update..."
 msgstr "Firmware-Aktualisierung wird durchgeführt, bitte warten..."
 
 msgid "First DNS Server IPV6 Ping"
@@ -1201,8 +1201,8 @@ msgstr "GRE ohne Durchleitung"
 msgid "GUI Version"
 msgstr "GUI Version"
 
-msgid "Gateway IP is <strong id=\"Gateway_Ip\">%s</strong> and netmask is <strong id=\"Netmask_Ip\">%s</strong>"
-msgstr "Die Gateway IP ist <strong id=\"Gateway_Ip\">%s</strong> und die Netzmaske ist <strong id=\"Netmask_Ip\">%s</strong>"
+msgid "Gateway IP is <strong id=\"Gateway_Ip\">%s</strong> and Mask is <strong id=\"Netmask_Ip\">%s</strong>"
+msgstr ""
 
 msgid "Gateway IP should not be in "
 msgstr "Die Gateway IP sollte nicht in "
@@ -1366,13 +1366,13 @@ msgstr "Importiere unsignierte Version"
 msgid "Importing configuration, please wait..."
 msgstr "Importieren der Konfiguration, bitte warten..."
 
-msgid "Importing failed; Invalid file used: expected file with extension bin.  Please use correct file."
+msgid "Importing failed. Invalid file used: expected file with extension bin.  Please use correct file."
 msgstr "Importieren fehlgeschlagen, ungültige Datei: Dateiendung bin erwartet. Bitte nutzen Sie die korrekte Datei."
 
-msgid "Importing failed; Invalid file used: file too large.  Please use correct.  Please use correct file.."
+msgid "Importing failed. Invalid file used: file too large.  Please use correct.  Please use correct file.."
 msgstr "Importieren fehlgeschlagen, ungültige Datei: Datei zu groß. Bitte nutzen Sie die korrekte Datei."
 
-msgid "Importing failed; please try again."
+msgid "Importing failed. Please try again."
 msgstr "Importieren fehlgeschlagen. Bitte nutzen Sie die korrekte Datei."
 
 msgid "In <strong>high mode</strong>, firewall allows outgoing connections to HTTP, HTTPS, SMTP, POP3, IMAP, SSH services and silently drops unknown incoming connections. This may impact on web services like Internet Speed Test."
@@ -2794,7 +2794,7 @@ msgstr "Aktualisiere GUI"
 msgid "Update available! Version: <strong>%s</strong>"
 msgstr "Aktualisierung verfügbar! Version: <strong>%s</strong>"
 
-msgid "Update failed; please try again."
+msgid "Update failed. Please try again."
 msgstr "Aktualisierung fehlgeschlagen, bitte versuchen Sie es erneut."
 
 msgid "Update firmware"
@@ -3172,8 +3172,8 @@ msgstr "Die zuletzt hinzugefügte/veränderte Lease nutzt eine IP-Adresse, die b
 msgid "Internet VPC"
 msgstr "Internet VPC"
 
-msgid "The time displayed on the graph is the modem time"
-msgstr "Die Zeit, die in der Grafik angezeigt wird, basiert auf der im Modem eingestellten Zeit"
+msgid "The time displayed on the graph is the modem time."
+msgstr ""
 
 msgid "Arial2 GUI"
 msgstr "Arial2 GUI"
@@ -3189,3 +3189,42 @@ msgstr "Installiere"
 
 msgid "Remove"
 msgstr "Entferne"
+
+msgid "Restore GUI"
+msgstr ""
+
+msgid "VDSL DSLAM Port"
+msgstr ""
+
+msgid "Line Up"
+msgstr ""
+
+msgid "Line Down"
+msgstr ""
+
+msgid "Switch the WAN port to a normal LAN port"
+msgstr ""
+
+msgid "WanSensing State"
+msgstr ""
+
+msgid "To Port Forward ranges use ':'. For example 500:505."
+msgstr ""
+
+msgid "DSL Connection Status"
+msgstr ""
+
+msgid "1. Max recommened Packet Number is dynamic (uses half of free memory) and may not be accurate.<br/>2. Hardware offload disabled during capture on platforms with flow cache!<br/>3. 'Download' will be invalid if nothing was captured.<br/>4. 'Clean' will clean captured file to reduce memory consumption."
+msgstr ""
+
+msgid "DSLAM Firmware"
+msgstr ""
+
+msgid "<strong %s>%d Wireless Control</strong> rule defined"
+msgstr ""
+
+msgid "<strong id=\"todcard_timeofday\" %s>%d Wireless Control</strong> rules defined"
+msgstr ""
+
+msgid "WanSensing sets the connection mode automatically. Disable this to set the connection mode manually. After saving the changes the connection options will be shown."
+msgstr ""
