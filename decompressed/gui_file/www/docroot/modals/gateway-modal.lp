@@ -823,8 +823,8 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       html[#html + 1] = ui_helper.createAlertBlock(T"Resetting to factory defaults, please wait...", resetting)
       html[#html + 1] = ui_helper.createButton(T"Factory Defaults", T"Reset", "icon-bolt", wait_for_reset)
       html[#html + 1] = ui_helper.createButton(T"Export Configuration", T"Export", "icon-download-alt", export_config)
-      html[#html + 1] = ui_helper.createAlertBlock(T"Exporting configuration, please wait...", exporting_alert)
-      html[#html + 1] = ui_helper.createAlertBlock(T"Exporting failed; please try again.", exporting_fail)
+      html[#html + 1] = ui_helper.createAlertBlock(T"Exporting configuration...", exporting_alert)
+      html[#html + 1] = ui_helper.createAlertBlock(T"Exporting failed. Please try again.", exporting_fail)
       html[#html + 1] = '</form><form class="form-horizontal" id="form-import" method="post" action="modals/gateway-modal.lp?action=import_config" enctype="multipart/form-data">'
       html[#html + 1] = '<div class="control-group">'
       html[#html + 1] = format('<label class="control-label">%s</label>', T"Import Configuration")
@@ -834,9 +834,9 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       html[#html + 1] = '</div></div>'
       html[#html + 1] = ui_helper.createAlertBlock(T"No file selected.", importing_nofile)
       html[#html + 1] = ui_helper.createAlertBlock(T"Importing configuration, please wait...", importing_alert)
-      html[#html + 1] = ui_helper.createAlertBlock(T"Importing failed; please try again.", importing_fail)
-      html[#html + 1] = ui_helper.createAlertBlock(T"Importing failed; Invalid file used: expected file with extension bin.  Please use correct file.", importing_wrong_ext_fail)
-      html[#html + 1] = ui_helper.createAlertBlock(T"Importing failed; Invalid file used: file too large.  Please use correct.  Please use correct file..", importing_too_big_fail)
+      html[#html + 1] = ui_helper.createAlertBlock(T"Importing failed. Please try again.", importing_fail)
+      html[#html + 1] = ui_helper.createAlertBlock(T"Importing failed. Invalid file used: expected file with extension bin.  Please use correct file.", importing_wrong_ext_fail)
+      html[#html + 1] = ui_helper.createAlertBlock(T"Importing failed. Invalid file used: file too large.  Please use correct.  Please use correct file..", importing_too_big_fail)
 
 	if tech then		 
       if cui.upgradefw == "1" then
@@ -850,7 +850,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
           html[#html + 1] = '</div></div>'
           html[#html + 1] = ui_helper.createAlertBlock(T"No file selected.", upgrading_nofile)
           html[#html + 1] = ui_helper.createAlertBlock(T"Uploading firmware, please wait...", upgrading_transfer)
-          html[#html + 1] = ui_helper.createAlertBlock(T"Firmware update in progress, please wait...", upgrading_busy)
+          html[#html + 1] = ui_helper.createAlertBlock(T"Firmware update...", upgrading_busy)
           html[#html + 1] = ui_helper.createAlertBlock("", upgrading_fail)
           html[#html + 1] = ui_helper.createAlertBlock(T"Firmware update failed.  Invalid file used: expected file with extension rbi.  Please use correct firmware.", upgrading_wrong_ext_fail)
           html[#html + 1] = ui_helper.createAlertBlock(T"Firmware update failed.  Invalid file used: file too large.  Please use correct firmware.", upgrading_too_big_fail)
@@ -998,7 +998,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  
 	  html[#html + 1] = '</form><form class="form-horizontal" id="form-import-gui" method="post" action="modals/gateway-modal.lp?action=upgradeguifile" enctype="multipart/form-data">'
 	  html[#html + 1] = '<div id="offline-upgrade-gui-div" class="control-group">'
-      html[#html + 1] = format('<label class="control-label">%s</label>', T"Offline GUI upgrade")
+      html[#html + 1] = format('<label class="control-label">%s</label>', T"Offline GUI update")
       html[#html + 1] = '<div class="controls">'
       html[#html + 1] = '<input type="file" name="upgradefile" id="file-upgradegui">&nbsp;'
       html[#html + 1] = ui_helper.createSimpleButton(T"Update", "icon-shield", upload_gui_file)
@@ -1266,17 +1266,17 @@ ngx.print('\
           var failure_msg = $("#upgrade-failed-msg");\
           switch (data.errorcode) {\
           case "1":\
-            failure_msg.text("');  ngx.print( T'Firmware upgrade failed.  Insufficient free memory available. Please reboot and try again.' ); ngx.print('");\
+            failure_msg.text("');  ngx.print( T'Firmware update failed.  Insufficient free memory available. Please reboot and try again.' ); ngx.print('");\
             break;\
           case "10":\
           case "255":\
-            failure_msg.text("');  ngx.print( T'Firmware upgrade failed; please use the correct firmware.' ); ngx.print('");\
+            failure_msg.text("');  ngx.print( T'Firmware update failed. Please use the correct firmware.' ); ngx.print('");\
             break;\
           case "15":\
-            failure_msg.text("');  ngx.print( T'Firmware upgrade failed; build signed with wrong key' ); ngx.print('");\
+            failure_msg.text("');  ngx.print( T'Firmware update failed. Build signed with wrong key' ); ngx.print('");\
             break;\
           default:\
-            failure_msg.text("');  ngx.print( T'Firmware upgrade failed.' ); ngx.print('");\
+            failure_msg.text("');  ngx.print( T'Firmware update failed.' ); ngx.print('");\
             break;\
           }\
           failure_msg.text(failure_msg.text() + " (');  ngx.print( T'Errorcode: ' ); ngx.print('" + data.errorcode + ")")\
