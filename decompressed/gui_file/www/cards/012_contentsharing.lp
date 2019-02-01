@@ -56,9 +56,9 @@ end
 local sambastate, dlnastate
 if samba_available then
 	if content["samba_enabled"] == "1" then
-		sambastate = T"SMB/CIFS Filesharing enabled"
+		sambastate = T"Samba Filesharing enabled"
 	else
-		sambastate = T"SMB/CIFS Filesharing disabled"
+		sambastate = T"Samba Filesharing disabled"
 	end
 end
 if dlna_available then

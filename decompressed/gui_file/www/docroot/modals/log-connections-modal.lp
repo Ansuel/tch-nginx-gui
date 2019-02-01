@@ -1,5 +1,4 @@
 --pretranslated: do not change this file
---pretranslated: do not change this file
  
 -- Enable localization
 -- NG-105177 [Workaround] TI [GUI] - Some of the tabs throws Internal server error
@@ -227,11 +226,11 @@ ngx.print('<legend>');  ngx.print( T"System Log - Active Connections" ); ngx.pri
     local html = {}
     html[#html + 1] = "<div class='control-group'><label class='control-label'>Filter</label><div class='controls'>"
     html[#html +1] = "<input data-type='search' name='Filter' class='edit-input span3' placeholder='Search For connections...' id='searchInput' type='text'>"
-    html[#html +1] = "<div id='Export' class='btn export-conntracklog custom-handler'><i class='icon-download-alt'></i>T"Export All"</div>"
+    html[#html +1] = "<div id='Export' class='btn export-conntracklog custom-handler'><i class='icon-download-alt'></i>Export All</div>"
     html[#html +1] ="</div></div>"
     ngx.print(html)
-    ngx.print(ui_helper.createAlertBlock(T"Exporting configuration...", exporting_alert))
-    ngx.print( ui_helper.createAlertBlock(T"Exporting failed. Please try again.", exporting_fail))
+    ngx.print(ui_helper.createAlertBlock(T"Exporting configuration, please wait...", exporting_alert))
+    ngx.print( ui_helper.createAlertBlock(T"Exporting failed; please try again.", exporting_fail))
     ngx.print(ui_helper.createTable(log_columns, log_array, log_options, nil, nil))
     -- cleanup the temp file
     proxy.set("rpc.system.log.conntrack.state", "None")

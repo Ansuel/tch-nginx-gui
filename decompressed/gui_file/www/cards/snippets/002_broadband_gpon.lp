@@ -25,8 +25,8 @@ local mapValid = {
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
 
 local gpon_state_map = {
-    connected = T"Line Up",
-    connecting = T"Line Down",
+    connected = T"Up",
+    connecting = T"Down",
 }
 
 local gpon_status = "connecting"
