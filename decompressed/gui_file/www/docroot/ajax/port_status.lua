@@ -55,7 +55,7 @@ local port_filter = function(data)
 	data.status = ui_helper.createSimpleLight(data.status == "Up" and "1" or "0", "", {}) --status
 	
 	if data.speed == "1000" then
-		data.speed = "1 Gpbs"
+		data.speed = "1 Gbps"
 	elseif data.speed == "100" then
 		data.speed = "100 Mbps"
 	elseif data.speed == "10" then
