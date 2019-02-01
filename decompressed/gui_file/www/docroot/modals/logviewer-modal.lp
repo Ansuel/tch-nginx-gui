@@ -143,8 +143,8 @@ end
 	  html[#html + 1] = format('<div id="Export" class="btn export-conntracklog custom-handler" style="margin-bottom:8px;"><i class="icon-download-alt"></i> %s</div>', T"Export All")
       html[#html + 1] = "</td></tr></table>"
       ngx.print(html)
-      ngx.print(ui_helper.createAlertBlock(T"Exporting log, please wait ...", exporting_alert))
-      ngx.print(ui_helper.createAlertBlock(T"Exporting failed; please try again.", exporting_fail))
+      ngx.print(ui_helper.createAlertBlock(T"Exporting log...", exporting_alert))
+      ngx.print(ui_helper.createAlertBlock(T"Exporting failed. Please try again.", exporting_fail))
       ngx.print(ui_helper.createMessages(message_helper.popMessages()))
   ngx.print('\
 \

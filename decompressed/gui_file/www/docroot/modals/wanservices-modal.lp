@@ -872,7 +872,7 @@ local upnp_data, upnp_helpmsg = post_helper.handleTableQuery(upnp_columns, upnp_
 	    ngx.print(T"To disable Port Forward Rules, you can turn it off using the switch or delete using cross.");
 	    ngx.print('</div>');			 
         ngx.print(ui_helper.createTable(pfw_columns, pfw_data, pfw_options, nil, pfw_helpmsg))
-        ngx.print(ui_helper.createAlertBlock(format("%s <strong>\":\"</strong> %s",T"To Port Forward ranges use", T". For example 500:505."), range_warning))
+        ngx.print(ui_helper.createAlertBlock(format("%s <strong>\":\"</strong> %s",T"To Port Forward ranges use ':'. For example 500:505."), range_warning))
         ngx.print('\
     </fieldset>\
 \

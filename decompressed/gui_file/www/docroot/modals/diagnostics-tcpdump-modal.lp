@@ -249,7 +249,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     if size ~= 0 then
       html[#html + 1] = ui_helper.createButton(T"", T"Download", "icon-download-alt", tcpdump_download)
       html[#html + 1] = ui_helper.createAlertBlock(T"Downloading TCPDump file, please wait...", downloading_alert)
-      html[#html + 1] = ui_helper.createAlertBlock(T"Download failed; please try again.", downloading_fail)
+      html[#html + 1] = ui_helper.createAlertBlock(T"Download failed. Please try again.", downloading_fail)
     end
   end
   html[#html + 1] = ui_helper.createLabel(T"Status:", format("%s %s", statusIcon, statusText), attributes)
