@@ -55,7 +55,6 @@ bzcat /tmp/GUI.tar.bz2 | tar -C / -xvf -
 
 If you get an error during the download process or you have no Internet/WAN connection on the device, just manually download the GUI.tar.bz2 file and put in /tmp folder via SCP then execute the other (non curl) commands listed above.
 
-Preview:
 Stats:
 <img src="https://i.ibb.co/2g5103B/modem-stats.jpg">
 
