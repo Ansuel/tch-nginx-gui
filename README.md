@@ -17,8 +17,12 @@ with many fixes and new features like:
 <li>Ability to select two channels for the update (DEV or Stable).</li>
 <li>Eco settings for the CPU and LEDs.</li>
 <li>Easy set up for Bridge or Voice Mode.</li>
+<li>Ability to revert from brige/voice to normal without factory reset.</li>
 <li>Traffic monitoring with Interactive Charts.</li>
 <li>Fast Cache Options.</li>
+<li>DoS Protect Options.</li>
+<li>Improved Traffic Graph</li>
+<li>Dosens of xDSL Stats</li>
 <li>Ability to Select many compatable xDSL drivers.</li>
 <li>Ability to install LuCI GUI or sharing service like transmission.</li>
 <li>Spoofing of firmware version to bypass CWMP controls.</li>
@@ -37,7 +41,7 @@ Some Topics to help you get root access:
 <li>DGA4132 TIM: https://www.ilpuntotecnico.com/forum/index.php/topic,78162.html</li>
 <li>789vac v2 TIM: https://www.ilpuntotecnico.com/forum/index.php/topic,77071.html</li>
 <li>789vac v2 Tiscali: https://www.ilpuntotecnico.com/forum/index.php/topic,77988.html</li>
-<li>799vac, 800vac and 797n v3 Any ISP: https://www.crc.id.au/hacking-the-technicolor-tg799vac-and-unlocking-features/</li>
+<li>799vac, 800vac and 797n v3 Any ISP: https://whirlpool.net.au/wiki/hack_technicolor</li>
 </ul>
 General GUI Topic: https://www.ilpuntotecnico.com/forum/index.php/topic,78585.0.html
 
@@ -52,9 +56,15 @@ bzcat /tmp/GUI.tar.bz2 | tar -C / -xvf -
 If you get an error during the download process or you have no Internet/WAN connection on the device, just manually download the GUI.tar.bz2 file and put in /tmp folder via SCP then execute the other (non curl) commands listed above.
 
 Preview:
-<img src="https://i.imgur.com/ZcSANgW.png">
+Stats:
+<img src="https://ibb.co/Brpx9ZR">
+
+Cards:
+<img src="https://ibb.co/gz6LbZC">
   
 If you find a bug, please report it using GitHub's Issue feature making sure you attach a photo and the log (Run: logread).
-If you upload config files, please remove your personal details including your public IP.
+If you upload config files, please remove your personal details including your public IP and MAC.
 In the future there will be a button/command in the GUI to generate a debug file.
 
+Old version
+<img src="https://i.imgur.com/ZcSANgW.png">
