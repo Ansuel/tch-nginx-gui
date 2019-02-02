@@ -3220,11 +3220,5 @@ msgstr ""
 msgid "DSLAM Firmware"
 msgstr ""
 
-msgid "<strong %s>%d Wireless Control</strong> rule defined"
-msgstr ""
-
-msgid "<strong id=\"todcard_timeofday\" %s>%d Wireless Control</strong> rules defined"
-msgstr ""
-
 msgid "WanSensing sets the connection mode automatically. Disable this to set the connection mode manually. After saving the changes the connection options will be shown."
 msgstr ""

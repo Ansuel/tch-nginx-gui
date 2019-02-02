@@ -142,7 +142,7 @@ removeDuplicateEntry(usbpart_data)
       html = {}
       html[#html+1] = ui_helper.createSwitch(T"Enabled", "printersharing_enabled", content["printersharing_enabled"], attributes)
       html[#html+1] = ui_helper.createSwitch(T"Web Interface", "printersharing_webui", content["printersharing_webui"], attributes)
-      html[#html+1] = ui_helper.createAlertBlock(format(T'CUPS Web Interface at <a href="http:\\\\%s:631">http:\\\\%s:631</a> or <a href="http:\\\\%s:631">http:\\\\%s:631</a>',content_samba.localdevIP,content_samba.localdevIP,content_samba.hostname,content_samba.hostname), info_box)
+      html[#html+1] = ui_helper.createAlertBlock(format(T'CUPS Web Interface at <a href="http://%s:631">http://%s:631</a> or <a href="http://%s:631">http://%s:631</a>',content_samba.localdevIP,content_samba.localdevIP,content_samba.hostname,content_samba.hostname), info_box)
       html[#html+1] = "<fieldset><legend>" .. T"Printer Information" .. "</legend>"
       if content.printersharing_enabled == '1' then
         if content_samba.samba_enabled == '1' then
