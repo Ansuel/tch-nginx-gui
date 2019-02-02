@@ -998,7 +998,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  
 	  html[#html + 1] = '</form><form class="form-horizontal" id="form-import-gui" method="post" action="modals/gateway-modal.lp?action=upgradeguifile" enctype="multipart/form-data">'
 	  html[#html + 1] = '<div id="offline-upgrade-gui-div" class="control-group">'
-      html[#html + 1] = format('<label class="control-label">%s</label>', T"Offline GUI upgrade")
+      html[#html + 1] = format('<label class="control-label">%s</label>', T"Offline GUI Update")
       html[#html + 1] = '<div class="controls">'
       html[#html + 1] = '<input type="file" name="upgradefile" id="file-upgradegui">&nbsp;'
       html[#html + 1] = ui_helper.createSimpleButton(T"Update", "icon-shield", upload_gui_file)

@@ -227,10 +227,10 @@ ngx.print('\
 				},
 			}
 			if autoupgrade_view == "auto" then
-				html[#html + 1] = ui_helper.createAlertBlock(string.format(T("The modem has been upgraded automatically at <strong>%s:00</strong>" .. 
+				html[#html + 1] = ui_helper.createAlertBlock(string.format(T("The modem has been updated automatically at <strong>%s:00</strong>" ..
 							" to version <strong>%s</strong> successfully"),cui.autoupgrade_hour, cui.gui_version),alert_success)
 			else
-				html[#html + 1] = ui_helper.createAlertBlock(string.format(T"The modem has been upgraded to version <strong>%s</strong> successfully",cui.gui_version),alert_success)
+				html[#html + 1] = ui_helper.createAlertBlock(string.format(T"The modem has been updated to version <strong>%s</strong> successfully",cui.gui_version),alert_success)
 			end
 		end
 		if not session:isdefaultuser() and not session:retrieve("password_reminder_shown") and session:getusername() ~= assistant:username() then
