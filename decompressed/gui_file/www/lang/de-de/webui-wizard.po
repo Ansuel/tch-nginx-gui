@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: webui-wizard\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-06-21 15:33+0200\n"
-"PO-Revision-Date: 2019-01-27 01:08+0100\n"
+"PO-Revision-Date: 2019-02-02 14:58+0100\n"
 "Last-Translator: Dr. Uwe Meyer-Gruhl\n"
 "Language-Team: none\n"
 "Language: de\n"
@@ -121,16 +121,16 @@ msgid "Username:"
 msgstr "Benutzername:"
 
 msgid "VCI Number:"
-msgstr "VCI Nummer: "
+msgstr "VCI Nummer:"
 
 msgid "VLAN Enabled"
 msgstr "VLAN eingeschaltet"
 
 msgid "VLAN ID:"
-msgstr "VLAN ID: "
+msgstr "VLAN ID:"
 
 msgid "VPI Number:"
-msgstr "VPI Nummer: "
+msgstr "VPI Nummer:"
 
 msgid "VoIP (Netphone) is an optional phone service that runs over the internet. If you have purchased this service, enter your VoIP settings here. You'll find your settings in your VoIP activation email."
 msgstr "VoIP ist ein optionaler Telefoniedienst, der über das Internetläuft. Wenn Sie diesen Dienst gebucht haben, geben Sie hier Ihre VoIP Angaben sein. Diese finden sich in der VoIP Aktivierungs-Mail."
