@@ -103,44 +103,44 @@ msgstr[1] "<strong %1$s>%2$d instradamenti</strong>"
 
 msgid "<strong %s>%d Access Control</strong> rule defined"
 msgid_plural "<strong %s>%d Access Control</strong> rule defined"
-msgstr[0] "<strong %s>%d regola controllo accessi</strong> definita"
-msgstr[1] "<strong %s>%d regole controllo accessi</strong> definite"
+msgstr[0] "<strong %s>%d regola controllo accessi</strong>"
+msgstr[1] "<strong %s>%d regole controllo accessi</strong>"
 
 msgid "<strong %s>%d UPnP</strong> rule is active"
 msgid_plural "<strong %s>%d UPnP</strong> rules are active"
-msgstr[0] "<strong %s>%d regola UPnP</strong> attiva"
-msgstr[1] "<strong %s>%d regole UPnP</strong> attive"
+msgstr[0] "<strong %s>%d regola UPnP attiva</strong>"
+msgstr[1] "<strong %s>%d regole UPnP attive</strong>"
 
 msgid "<strong %s>%d Wireless Time Control</strong> rule defined"
 msgid_plural "<strong %s>%d Wireless Time Control</strong> rule defined"
-msgstr[0] "<strong %s>%d regola pianificazione wireless</strong> definita"
-msgstr[1] "<strong %s>%d regole pianificazione wireless</strong> definite"
+msgstr[0] "<strong %s>%d regola pianificazione wireless</strong>"
+msgstr[1] "<strong %s>%d regole pianificazione wireless</strong>"
 
 msgid "<strong %s>%d port forwarding</strong> rule is defined"
 msgid_plural "<strong %s>%d port forwarding</strong> rules are defined"
-msgstr[0] "<strong %s>%d regola mappatura porte</strong> definita"
-msgstr[1] "<strong %s>%d regole mappatura porte</strong> definite"
+msgstr[0] "<strong %s>%d regola mappatura porte</strong>"
+msgstr[1] "<strong %s>%d regole mappatura porte</strong>"
 
 msgid "<strong id = \"Ethernet_Devices\" %1$s>%2$d Ethernet device</strong> connected"
 msgid_plural "<strong id = \"Ethernet_Devices\" %1$s>%2$d Ethernet devices</strong> connected"
-msgstr[0] "<strong id = \"Ethernet_Devices\" %1$s>%2$d dispositivo ethernet</strong><br>connesso</br>"
-msgstr[1] "<strong id = \"Ethernet_Devices\" %1$s>%2$d dispositivi ethernet</strong><br>connessi</br>"
+msgstr[0] "<strong id = \"Ethernet_Devices\" %1$s>%2$d dispositivo ethernet connesso</strong>"
+msgstr[1] "<strong id = \"Ethernet_Devices\" %1$s>%2$d dispositivi ethernet connessi</strong>"
 
 msgid "<strong id = \"Wifi_Devices\" %1$s>%2$d Wi-Fi device</strong> connected"
 msgid_plural "<strong id = \"Wifi_Devices\" %1$s>%2$d Wi-Fi devices</strong> connected"
-msgstr[0] "<strong id = \"Wifi_Devices\" %1$s>%2$d dispositivo Wi-Fi</strong> connesso"
-msgstr[1] "<strong id = \"Wifi_Devices\" %1$s>%2$d dispositivi Wi-Fi</strong> connessi"
+msgstr[0] "<strong id = \"Wifi_Devices\" %1$s>%2$d dispositivo Wi-Fi connesso</strong>"
+msgstr[1] "<strong id = \"Wifi_Devices\" %1$s>%2$d dispositivi Wi-Fi connessi</strong>"
 
 msgid "<strong id = \"Wifi_Devices\" %1$s>%2$d WiFi device</strong> connected"
 msgid_plural "<strong id = \"Wifi_Devices\" %1$s>%2$d WiFi devices</strong> connected"
-msgstr[0] "<strong id = \"Wifi_Devices\" %1$s>%2$d dispositivo Wi-Fi</strong> connesso"
-msgstr[1] "<strong id = \"Wifi_Devices\" %1$s>%2$d dispositivi Wi-Fi</strong> connessi"
+msgstr[0] "<strong id = \"Wifi_Devices\" %1$s>%2$d dispositivo Wi-Fi connesso</strong>"
+msgstr[1] "<strong id = \"Wifi_Devices\" %1$s>%2$d dispositivi Wi-Fi connessi</strong>"
 
 msgid "<strong>%d</strong> IPv4 rule(s) defined<br>"
-msgstr "<strong>%d</strong> regole IPv4 definite"
+msgstr "<strong>%d regole IPv4</strong>"
 
 msgid "<strong>%d</strong> IPv6 rule(s) defined"
-msgstr "<strong>%d</strong> regole IPv6  definite"
+msgstr "<strong>%d regole IPv6</strong>"
 
 msgid "<strong>Disabled for now... need to wait @Roleo</strong>"
 msgstr "<strong>Disabilitata per ora. Occorre attendere @Roleo</strong>"
@@ -1088,7 +1088,7 @@ msgid "Exporting failed; please try again."
 msgstr "Esportazione fallita. Riprova."
 
 msgid "Exporting log, please wait ..."
-msgstr "Esportazione registro..."
+msgstr "Esportazione registro eventi..."
 
 msgid "Extensions"
 msgstr "Estensioni"
@@ -1132,22 +1132,22 @@ msgstr "Versione firmware"
 msgid "Firmware not present in this bank"
 msgstr "Firmware non presente in questo banco"
 
-msgid "Firmware update failed."
+msgid "Firmware upgrade failed."
 msgstr "Aggiornamento firmware fallito."
 
-msgid "Firmware update failed.  Insufficient free memory available. Please reboot and try again."
+msgid "Firmware upgrade failed.  Insufficient free memory available. Please reboot and try again."
 msgstr "Aggiornamento firmware fallito.<br/> Memoria libera disponibile insufficiente.<br/>Riavvia e riprova."
 
 msgid "Firmware update failed.  Invalid file used: expected file with extension rbi.  Please use correct firmware."
 msgstr "Aggiornamento firmware fallito.<br/>File non valido. Era atteso file con estensione .RBI.<br/>Usa il firmware corretto."
 
 msgid "Firmware update failed.  Invalid file used: file too large.  Please use correct firmware."
-msgstr "Aggiornamento firmware fallito.<br/>File non valido. File troppo grande.<br/>Usa il firmware corretto."
+msgstr "Aggiornamento firmware fallito. File non valido: file troppo grande. Usa il firmware corretto."
 
-msgid "Firmware update failed; build signed with wrong key"
+msgid "Firmware upgrade failed; build signed with wrong key"
 msgstr "Aggiornamento firmware fallito.<br/>Versione firmata con chiave errata"
 
-msgid "Firmware update failed; please use the correct firmware."
+msgid "Firmware upgrade failed; please use the correct firmware."
 msgstr "Aggiornamento firmware fallito.<br/>Usa il firmware corretto."
 
 msgid "Firmware update in progress, please wait..."
@@ -1201,8 +1201,8 @@ msgstr "GRE senza PassThru"
 msgid "GUI Version"
 msgstr "Versione GUI"
 
-msgid "Gateway IP is <strong id=\"Gateway_Ip\">%s</strong> and netmask is <strong id=\"Netmask_Ip\">%s</strong>"
-msgstr "L'IP del gateway è <strong id=\"Gateway_Ip\">%s</strong><br/>La maschera di rete è <strong id=\"Netmask_Ip\">%s</strong></br>"
+msgid "Gateway IP is <strong id=\"Gateway_Ip\">%s</strong> and Mask is <strong id=\"Netmask_Ip\">%s</strong>"
+msgstr "IP gateway <strong id=\"Gateway_Ip\">%s</strong><br/> e maschera rete <strong id=\"Netmask_Ip\">%s</strong></br>"
 
 msgid "Gateway IP should not be in "
 msgstr "L'IP del gateway non deve essere in "
@@ -1574,7 +1574,7 @@ msgid "Local Network"
 msgstr "Rete locale"
 
 msgid "Local Network subnet"
-msgstr "Sottorete rete locale"
+msgstr "Sottorete locale"
 
 msgid "Local/LAN Port"
 msgstr "Porta locale/LAN"
@@ -2105,7 +2105,7 @@ msgid "Rebooting..."
 msgstr "Riavvio..."
 
 msgid "Received chart line"
-msgstr "Linea grafico dati ricevuti"
+msgstr "Grafico dati ricevuti linea"
 
 msgid "Refresh"
 msgstr "Aggiorna"
@@ -2291,7 +2291,7 @@ msgid "Send Ping Request"
 msgstr "Invia ping"
 
 msgid "Sent chart line"
-msgstr "Linea grafico dati inviati"
+msgstr "Grafico dati inviati linea"
 
 msgid "Serial Number"
 msgstr "Numero di serie"
@@ -3172,8 +3172,8 @@ msgstr "L'ultimo lease statico aggiunto/modificato è impostato con un IP già i
 msgid "Internet VPC"
 msgstr "Impostazioni VP/VC"
 
-msgid "The time displayed on the graph is the modem time"
-msgstr "Gli orari visualizzati nel grafico sono basati sull'orario impostato nel modem"
+msgid "The time displayed on the graph is the modem time."
+msgstr "Gli orari visualizzati nel grafico sono basati sull'orario impostato nel modem."
 
 msgid "Arial2 GUI"
 msgstr "GUI Arial2"
@@ -3189,3 +3189,42 @@ msgstr "Installa"
 
 msgid "Remove"
 msgstr "Rimuovi"
+
+msgid "Restore GUI"
+msgstr "Ripristina GUI"
+
+msgid "VDSL DSLAM Port"
+msgstr "Porta DSLAM VDSL"
+
+msgid "Line Up"
+msgstr "Linea attiva"
+
+msgid "Line Down"
+msgstr "Linea non attiva"
+
+msgid "Switch the WAN port to a normal LAN port"
+msgstr "Commuta porta WAN in normale porta LAN"
+
+msgid "WanSensing State"
+msgstr "Stato rilevazione WAN"
+
+msgid "To Port Forward ranges use ':'. For example 500:505."
+msgstr "Per la mappatura porta usa ':'. Esempio 500:505."
+
+msgid "DSL Connection Status"
+msgstr "Stato connessione DSL"
+
+msgid "1. Max recommened Packet Number is dynamic (uses half of free memory) and may not be accurate.<br/>2. Hardware offload disabled during capture on platforms with flow cache!<br/>3. 'Download' will be invalid if nothing was captured.<br/>4. 'Clean' will clean captured file to reduce memory consumption."
+msgstr "1. Il numero massimo di pacchetti è dinamico (usa la metà della memoria libera) e potrebbe non essere accurato.<br/>2. L'offload hardware è disabilitato durante la cattura nelle pittaforme con cache di flusso!<br/>3. Il 'Download' non sarà valido se non è stato catturato nulla.<br/>4. 'Azzera' azzererà il file catturato per ridurre l'uso della memoria."
+
+msgid "DSLAM Firmware"
+msgstr "Firmware DSLAM"
+
+msgid "<strong %s>%d Wireless Control</strong> rule defined"
+msgstr "<strong %s>%d</strong> regola/e pianificazione wireless"
+
+msgid "<strong id=\"todcard_timeofday\" %s>%d Wireless Control</strong> rules defined"
+msgstr "<strong id=\"todcard_timeofday\" %s>%d</strong> regole pianificazione wireless"
+
+msgid "WanSensing sets the connection mode automatically. Disable this to set the connection mode manually. After saving the changes the connection options will be shown."
+msgstr "La rilevazione WAN imposta la connessione in modo automatico.<br/>Disabilita questa opzione per impostare la connessione in modo manuale.<br/>Dopo il salvataggio verranno visualizzate le opzioni di connessione."
