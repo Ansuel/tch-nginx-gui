@@ -17,10 +17,10 @@ local tabdata = dyntab_helper.process(bmh)
 
 local wan_bridge = proxy.get("uci.network.interface.@wan.ifname")[1].value
 
---local wan_vlan_bridge = proxy.get("uci.network.device.@"..wan_bridge..".ifname")
---if wan_vlan_bridge then
---	wan_bridge = wan_vlan_bridge[1].value
---end
+local wan_vlan_bridge = proxy.get("uci.network.device.@"..wan_bridge..".ifname")
+if wan_vlan_bridge then
+	wan_bridge = wan_vlan_bridge[1].value
+end
 
 -- Figure out interface state
 local intf_state_map = {
