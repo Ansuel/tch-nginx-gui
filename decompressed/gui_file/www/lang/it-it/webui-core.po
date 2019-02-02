@@ -3222,3 +3222,9 @@ msgstr "Firmware DSLAM"
 
 msgid "WanSensing sets the connection mode automatically. Disable this to set the connection mode manually. After saving the changes the connection options will be shown."
 msgstr "La rilevazione WAN imposta la connessione in modo automatico.<br/>Disabilita questa opzione per impostare la connessione in modo manuale.<br/>Dopo il salvataggio verranno visualizzate le opzioni di connessione."
+
+msgid "NotPresent"
+msgstr "Non Presente"
+
+msgid "Search For connections..."
+msgstr "Cerca connessioni..."

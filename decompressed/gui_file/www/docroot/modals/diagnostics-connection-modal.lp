@@ -406,7 +406,7 @@ if is_gpon then
     else
         statusIconGpon = "<i class=\"icon-ban-circle icon-large red\"></i> "
     end
-html[#html+1] = ui_helper.createLabel(T"GPON Status",format("%s %s",statusIconGpon,content_rpc_gpon["gpon_status"]), attributes)
+html[#html+1] = ui_helper.createLabel(T"GPON Status",format("%s %s",statusIconGpon,T(content_rpc_gpon["gpon_status"])), attributes)
 end
 -- Show PPP status if relevant
 if find(content_uci["wan_proto"], "ppp") == 1 then

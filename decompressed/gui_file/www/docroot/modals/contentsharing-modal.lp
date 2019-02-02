@@ -461,7 +461,7 @@ convertReceivedData(content_info)
 				tinsert(html, ui_helper.createSwitch(T"DLNA enabled", "dlna_enabled", content["dlna_enabled"],attributes))
 				tinsert(html, ui_helper.createLabel(T"DLNA name: ", content["dlna_friendly_name"], advancedhide))
 				tinsert(html, ui_helper.createInputText(T"DLNA name: ", "dlna_friendly_name", content["dlna_friendly_name"], advanced, helpmsg["dlna_friendly_name"]))
-				tinsert(html, ui_helper.createLabel(T"Profiler status: ", getProfileStatus()))
+				tinsert(html, ui_helper.createLabel(T"Profiler status: ", T(getProfileStatus())))
 			end
 
 			tinsert(html, ui_helper.createSwitch(T"USB3.1 enabled", "usb3_enabled", (content["usb3_enabled"] ~= "" and content["usb3_enabled"] or "1"), toggle))

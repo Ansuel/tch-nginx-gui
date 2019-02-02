@@ -3222,3 +3222,9 @@ msgstr ""
 
 msgid "WanSensing sets the connection mode automatically. Disable this to set the connection mode manually. After saving the changes the connection options will be shown."
 msgstr ""
+
+msgid "NotPresent"
+msgstr ""
+
+msgid "Search For connections..."
+msgstr ""
