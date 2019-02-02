@@ -3022,8 +3022,8 @@ msgstr "Sie haben gerade keinen Internet-Zugriff"
 msgid "Your Username"
 msgstr "Ihr Benutzername"
 
-msgid "Your modem is in bridge mode. It only connect to DSLAM and nothings else."
-msgstr "Ihr Modem ist im Brückenmodus. Es verbindet sich lediglich mit dem DSLAM ."
+msgid "Your modem is in bridge mode. It only connects to DSLAM and nothing else."
+msgstr "Ihr Modem ist im Brückenmodus. Es verbindet sich lediglich mit dem DSLAM."
 
 msgid "Your new password"
 msgstr "Ihr neues Kennwort"
@@ -3041,7 +3041,7 @@ msgid "any"
 msgstr "jede"
 
 msgid "at least one number and at least one special character"
-msgstr "mindestens eine Zahl und mindestens ein spezielles Zeichen"
+msgstr "mindestens eine Zahl und mindestens ein Sonderzeichen"
 
 msgid "connected"
 msgstr "verbunden"
