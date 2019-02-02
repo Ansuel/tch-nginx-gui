@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: webui-core\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-06-21 15:33+0200\n"
-"PO-Revision-Date: 2019-01-27 01:52+0100\n"
+"PO-Revision-Date: 2019-02-02 14:56+0100\n"
 "Last-Translator: Dr. Uwe Meyer-Gruhl\n"
 "Language-Team: none\n"
 "Language: de\n"
@@ -314,7 +314,7 @@ msgid "Allow"
 msgstr "Erlauben"
 
 msgid "An existing port forward rule overlaps with the ports range specifed."
-msgstr "Ein existierendes Mapping überlappt sich mit dem Port-Bereich"
+msgstr "Ein existierendes Mapping überlappt sich mit dem Port-Bereich."
 
 msgid "Analyzer"
 msgstr "Analysator"
@@ -629,7 +629,7 @@ msgid "Cyclic-Delay Diversity"
 msgstr "Cyclic-Delay Diversity"
 
 msgid "DECT Emission Mode "
-msgstr "DECT Emissionsmodus"
+msgstr "DECT Emissionsmodus "
 
 msgid "DHCP End Address is Invalid"
 msgstr "DHCP Endadresse ist ungültig"
@@ -1445,7 +1445,7 @@ msgid "Interfaces:<strong>%s</strong>"
 msgstr "Schnittstellen:<strong>%s</strong>"
 
 msgid "Limited. Expect dropouts."
-msgstr "Intermittierend zu keiner Operation"
+msgstr "Begrenzt. Erwarten Sie Ausfälle."
 
 msgid "Internal Server Error occured, please contact administrator"
 msgstr "Interner Server-Fehler aufgetreten, bitte Administrator kontaktieren"
@@ -2279,7 +2279,7 @@ msgid "Security Mode"
 msgstr "Sicherheits-Modus"
 
 msgid "Security for this wireless network is disabled, anybody can connect to it."
-msgstr "Sicherheit für dieses drahtlose Netzwerk is abgeschaltet, jeder kann es sehen und sich damit verbinden"
+msgstr "Sicherheit für dieses drahtlose Netzwerk is abgeschaltet, jeder kann es sehen und sich damit verbinden."
 
 msgid "Select the <strong>\"Reset\"</strong> button to confirm resetting the password to the default value."
 msgstr "Drücken Sie den <strong>\"Rücksetzen\"</strong> Knopf, um das Kennwort auf den Vorgabewert zurückzusetzen."
@@ -2444,7 +2444,7 @@ msgid "Stop Trace Route"
 msgstr "Stoppe Trace Route"
 
 msgid "Portmirror successfully stopped."
-msgstr "Erfolgreicher Stopp der Portspiegelung"
+msgstr "Erfolgreicher Stopp der Portspiegelung."
 
 msgid "Storage"
 msgstr "Speicher"
@@ -2726,7 +2726,7 @@ msgid "Tue."
 msgstr "Die."
 
 msgid "Turning on Eco features can cause major latency."
-msgstr "Wenn Sie die Energiesparfunktionen des Ethernet aktivieren, kann sich zusätzliche Latenzzeit ergeben"
+msgstr "Wenn Sie die Energiesparfunktionen aktivieren, kann es zu großen Latenzzeit kommen."
 
 msgid "Turn off all LEDs except “Info” if all services are up and running. Press the “Info” / “WiFi” button to show the current LEDs status."
 msgstr "Alle LEDs außer \"Info\" abschalten, wenn alle Dienste laufen. Drücken Sie den \"Infor\" / \"WiFi\"-Knopf um den aktuellen LED-Status anzuzeigen."
@@ -3022,8 +3022,8 @@ msgstr "Sie haben gerade keinen Internet-Zugriff"
 msgid "Your Username"
 msgstr "Ihr Benutzername"
 
-msgid "Your modem is in bridge mode. It only connect to DSLAM and nothings else."
-msgstr "Ihr Modem ist im Brückenmodus. Es verbindet sich lediglich mit dem DSLAM ."
+msgid "Your modem is in bridge mode. It only connects to DSLAM and nothing else."
+msgstr "Ihr Modem ist im Brückenmodus. Es verbindet sich lediglich mit dem DSLAM."
 
 msgid "Your new password"
 msgstr "Ihr neues Kennwort"
@@ -3041,7 +3041,7 @@ msgid "any"
 msgstr "jede"
 
 msgid "at least one number and at least one special character"
-msgstr "mindestens eine Zahl und mindestens ein spezielles Zeichen"
+msgstr "mindestens eine Zahl und mindestens ein Sonderzeichen"
 
 msgid "connected"
 msgstr "verbunden"
@@ -3074,7 +3074,7 @@ msgid "in"
 msgstr "eingehend"
 
 msgid "Invalid Gateway IP"
-msgstr "ungültige Gateway IP"
+msgstr "Ungültige Gateway IP"
 
 msgid "Invalid Mask"
 msgstr "Ungültige Netzmaske"

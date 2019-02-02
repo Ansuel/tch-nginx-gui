@@ -3022,7 +3022,7 @@ msgstr "In questo momento non è disponibile una connessione internet"
 msgid "Your Username"
 msgstr "Nome utente"
 
-msgid "Your modem is in bridge mode. It only connect to DSLAM and nothings else."
+msgid "Your modem is in bridge mode. It only connects to DSLAM and nothing else."
 msgstr "Il modem è in modalità bridge.<br/>Si connette solamente al DSLAM e nient'altro."
 
 msgid "Your new password"

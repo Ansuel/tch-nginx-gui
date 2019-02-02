@@ -123,7 +123,7 @@ ngx.print('\
 		    	  			ngx.print('<strong>'); ngx.print( T"You don't have internet access at this time" ); ngx.print('</strong>');
 		    	  		end
 		    	  		if httpi=="0" and httpi_wwan=="0" and wan_sensing=="0" then
-		    	  			ngx.print('<strong>'); ngx.print( T"Your modem is in bridge mode. It only connect to DSLAM and nothings else." ); ngx.print('</strong>')
+		    	  			ngx.print('<strong>'); ngx.print( T"Your modem is in bridge mode. It only connects to DSLAM and nothing else." ); ngx.print('</strong>')
 		    	  		end
                       ngx.print('</div>')
                       end
