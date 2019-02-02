@@ -16,13 +16,13 @@ msgstr ""
 "X-Poedit-SourceCharset: UTF-8\n"
 
 msgid "<div class=\" simple-desc span4\">SMB/CIFS is disabled</div>"
-msgstr "<div class=\" simple-desc span4\">SMB/CUIFS disabilitata</div>"
+msgstr "<div class=\" simple-desc span4\">SMB/CIFS disabilitato</div>"
 
 msgid "<div class=\" simple-desc span4\">To connect: \\\\%s\\ or \\\\%s\\</div>"
 msgstr "<div class=\" simple-desc span4\">Per connettersi: \\\\%s\\ oppure \\\\%s\\</div>"
 
 msgid "Enabled"
-msgstr "Abilitato"
+msgstr "Abilitata"
 
 msgid "Manufacturer"
 msgstr "Produttore"
@@ -47,3 +47,6 @@ msgstr "Nome prodotto"
 
 msgid "Version"
 msgstr "Versione"
+
+msgid "Web Interface"
+msgstr "Interfaccia web"

@@ -47,3 +47,6 @@ msgstr "Produktname"
 
 msgid "Version"
 msgstr "Version"
+
+msgid "Web Interface"
+msgstr ""
