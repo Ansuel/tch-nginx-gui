@@ -45,7 +45,7 @@ Some Topics to help you get root access:
 </ul>
 General GUI Topic: https://www.ilpuntotecnico.com/forum/index.php/topic,78585.0.html
 
-<h3>Then execute these commands (Active WAN/Internet connection required):</h3><br />
+<h3>Then execute these commands (Active WAN/Internet connection required):</h3>
 
 ```
 curl -k https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/GUI.tar.bz2 --output /tmp/GUI.tar.bz2
@@ -55,15 +55,12 @@ bzcat /tmp/GUI.tar.bz2 | tar -C / -xvf -
 
 If you get an error during the download process or you have no Internet/WAN connection on the device, just manually download the GUI.tar.bz2 file and put in /tmp folder via SCP then execute the other (non curl) commands listed above.
 
+If you find a bug, please report it using GitHub's Issue feature making sure you attach a photo and the log (Run: logread).
+If you upload config files, please remove your personal details including your public IP and MAC.
+In the future there will be a button/command in the GUI to generate a debug file.
+
 Stats:
 <img src="https://i.ibb.co/2g5103B/modem-stats.jpg">
 
 Cards:
 <img src="https://i.ibb.co/3M3qnNH/modem-cards.jpg">
-  
-If you find a bug, please report it using GitHub's Issue feature making sure you attach a photo and the log (Run: logread).
-If you upload config files, please remove your personal details including your public IP and MAC.
-In the future there will be a button/command in the GUI to generate a debug file.
-
-Old version
-<img src="https://i.imgur.com/ZcSANgW.png">
