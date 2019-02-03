@@ -1521,6 +1521,15 @@ disable_upload_coredump() {
 	done
 }
 
+remove_nginx_conf() {
+	#Some default config in nginx.conf search for some file
+	#This file most of the times are missing or empty...
+	#remove the check of this files.
+	if [ $( cat /etc/nginx/nginx.conf | grep "ui_server.conf" ) ]; then
+		sed -i '/ui_server.conf/d' /etc/nginx/nginx.conf
+	fi
+}
+
 root() {
 
 	logger -s -t 'Root Script' "Rooting in progress..."
@@ -1674,7 +1683,10 @@ root() {
 	disable_intercept #Intercept check
 	logger_command "Trying to clean wansensing script from hardcoded interface..."
 	wan_sensing_clean #Wansensing clean utility
+	logger_command "Disabling coredump function..."
 	disable_upload_coredump
+	logger_command "Cleaning nginx from deadlock config..."
+	remove_nginx_conf
 
 	logger_command "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not
