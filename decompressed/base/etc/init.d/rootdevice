@@ -1508,6 +1508,14 @@ move_env_var() {
 	fi
 }
 
+disable_upload_coredump() {
+	#disable upload to tim server for coredump...
+	#This is a modified build so let's not full server with false coredump.
+	if [ $(uci get -q system.@coredump[0].action) != "ignore" ]; then
+		uci set system.@coredump[0].action="ignore"
+	fi
+}
+
 root() {
 
 	logger -s -t 'Root Script' "Rooting in progress..."
@@ -1661,6 +1669,7 @@ root() {
 	disable_intercept #Intercept check
 	logger_command "Trying to clean wansensing script from hardcoded interface..."
 	wan_sensing_clean #Wansensing clean utility
+	disable_upload_coredump
 
 	logger_command "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not
