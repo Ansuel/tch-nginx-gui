@@ -15,42 +15,6 @@ local untaint = string.untaint
 
 local gOV = post_helper.getOptionalValidation
 
-local gui_skin_option = {
-      { "blue", T'Blue'},
-      { "violet", T'Violet'},
-      { "green", T'Green'},
-	  { "TIM" , T'Enhanced Tim'},
-	  { "Fritz", T'Fritz!Box'},
-	  { "dark-white", T'Dark/White (Fritz!Box Based)'},
-	  { "dark-midnight", T'Dark/Midnight (Fritz!Box Based)'},
-	  { "dark-red", T'Red Dark'},
-}
-
-local gui_skin_firstpage_page = {
-	{ "stats", T"Stats" },
-	{ "cards", T"Cards" },
-}
-
-local telstra_gui = proxy.get("uci.modgui.app.telstra_webui")
-
-if telstra_gui and ( telstra_gui[1].value == "1" ) then
-	table.insert(gui_skin_firstpage_page, { "telstra", T"Telstra" })
-end
-
-local gui_skin_Params = {
-  gui_skin = "uci.modgui.gui.gui_skin",
-  gui_skin_firstpage = "uci.modgui.gui.firstpage",
-  gui_randomcolor = "uci.modgui.gui.randomcolor",
-}
-
-local gui_skin_valid = {
-  gui_skin = post_helper.getValidateInEnumSelect(gui_skin_option),
-  gui_skin_firstpage = post_helper.getValidateInEnumSelect(gui_skin_firstpage_page),
-  gui_randomcolor = post_helper.validateBoolean,
-}
-
-local gui_skin_content, helpmsg = post_helper.handleQuery(gui_skin_Params, gui_skin_valid)
-
 local fwversion_override_Params = { fwversion_override = "uci.versioncusto.override.fwversion_override", }
 
 local fwversion_override_valid = { fwversion_override = gOV(post_helper.validateNonEmptyString), }
@@ -60,11 +24,6 @@ local fwversion_override_content, fwversion_override_helpmsg = post_helper.handl
 local env = {
   factory = "uci.env.rip.factory_id",
   serial = "uci.env.rip.serial",
-  activebank = "sys.banktable.activebank",
-  passivebank = "sys.banktable.passivebank",
-  activeversion = "sys.banktable.activeversion",
-  passiveversion = "sys.banktable.passiveversion",
-  rip_key_B = "rpc.system.rip_key_B",
 }
 content_helper.getExactContent(env)
 
@@ -354,41 +313,6 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
   ngx.print('\
 <form class="form-horizontal" method="post" action="modals/system-modal.lp">\
 <fieldset>\
-  <legend>');  ngx.print( T"Bank Info" ); ngx.print('</legend>\
-    ');  
-	  local basic = {
-        span = {
-          class = "span8"
-        },
-      }
-      local html = {}
-      html[#html + 1] = ui_helper.createLabel(T"Active Bank", env["activebank"] , basic)
-	  html[#html + 1] = ui_helper.createLabel(T"Active Version", env["activeversion"] , basic)
-	  html[#html + 1] = ui_helper.createLabel(T"Passive Bank", env["passivebank"] , basic)
-	  if env["passiveversion"] == "Unknown" 
-		then
-		html[#html + 1] = ui_helper.createLabel(T"Passive Version", T"Firmware not present in this bank" , basic)
-	  else
-		html[#html + 1] = ui_helper.createLabel(T"Passive Version", env["passiveversion"] , basic)
-	  end
-      ngx.print(html)
-      ngx.print('\
-</fieldset>\
-<fieldset>\
-  <legend>');  ngx.print( T"Key Info" ); ngx.print('</legend>\
-    ');  
-	  local basic = {
-        span = {
-          class = "span8"
-        },
-      }
-      local html = {}
-      html[#html + 1] = ui_helper.createLabel(T"Config decrypt key", env["rip_key_B"] , basic)
-
-      ngx.print(html)
-      ngx.print('\
-</fieldset>\
-<fieldset>\
   <legend>');  ngx.print( T"Advanced Reboot" ); ngx.print('</legend>\
     ');
       local bootp_alert = {
@@ -517,16 +441,6 @@ ngx.print('\
       ngx.print(html)
       ngx.print('\
 </fieldset>\
-	<fieldset>\
-	<legend>');  ngx.print( T"GUI Skin" ); ngx.print('</legend>\
-		');  
-		local html = {}
-		html[#html + 1] = ui_helper.createInputSelect(T"GUI Skin", "gui_skin", gui_skin_option, gui_skin_content["gui_skin"])
-		html[#html + 1] = ui_helper.createInputSelect(T"GUI First Page", "gui_skin_firstpage", gui_skin_firstpage_page, gui_skin_content["gui_skin_firstpage"])
-		html[#html + 1] = ui_helper.createSwitch(T"Random Color", "gui_randomcolor", gui_skin_content["gui_randomcolor"])
-		ngx.print(html)
-		ngx.print('\
-	</fieldset>\
 <fieldset>\
   <legend>');  ngx.print( T"Debug Report" ); ngx.print('</legend>\
     ');  

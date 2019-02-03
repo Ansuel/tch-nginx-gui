@@ -775,6 +775,13 @@ add_new_web_rule() {
 		uci add_list web.ecomodal.roles='engineer'
 		uci add_list web.ruleset_main.rules='ecomodal'
 	fi
+	if [ ! $(uci get -q web.modguimodal) ]; then
+		uci set web.modguimodal=rule
+		uci set web.modguimodal.target='/modals/modgui-modal.lp'
+		uci add_list web.modguimodal.roles='admin' 
+		uci add_list web.modguimodal.roles='engineer'
+		uci add_list web.ruleset_main.rules='modguimodal'
+	fi
 	if [ ! $(uci get -q web.ajaxinfoconndevicecard) ]; then
 		uci set web.ajaxinfoconndevicecard=rule
 		uci set web.ajaxinfoconndevicecard.target='/ajax/connected_device.lua'

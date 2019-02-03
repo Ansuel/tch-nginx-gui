@@ -241,34 +241,6 @@ local function upgradefw()
   ngx.exit(ngx.HTTP_OK)
 end
 
-local function upgradeguifile()
-
-  local update_branch = proxy.get("uci.modgui.gui.update_branch")
-  local filename
-  if update_branch and ( update_branch[1].value == "dev" ) then
-	filename = "GUI_dev.tar.bz2"
-  else
-	filename = "GUI.tar.bz2"
-  end
-
-  local fwupgrade_location = "/tmp/"
-
-
-  -- flush the web template cache
-  lp.flush()
-
-  local dl = untaint(fwupgrade_location) .. filename
-
-  local rcv_ok, rcv_errno, rcv_errmsg = receive_file(dl, 'name="upgradefile"')
-
-  proxy.set("rpc.system.modgui.upgradegui.start", "1")
-  proxy.apply()
-
-  ngx.print('{ "success":"true" }')
-  ngx.exit(ngx.HTTP_OK)
-
-end
-
 local function upgradefwstatus()
   local fwupgrade_rpc_path = "rpc.system.fwupgrade."
 
@@ -322,15 +294,6 @@ if ngx.req.get_method() == "POST" then
   if action == "system_reset" then
     return resetreboot("rpc.system.reset", "1")
   end
-  if action == "system_reset_gui" then
-    return resetreboot("rpc.system.resetgui", "1")
-  end
-  if action == "system_upgrade_gui" then
-	return resetreboot("rpc.system.modgui.upgradegui.start", "1")
-  end
-  if action == "system_remove_root" then
-	return resetreboot("rpc.system.removeroot", "1")
-  end
   if action == "system_reboot" then
     return resetreboot("rpc.system.reboot", "GUI")
   end
@@ -370,9 +333,11 @@ local content = {
   fwversion_prefix = "uci.versioncusto.override.fwversion_prefix",
   fwversion_suffix = "uci.versioncusto.override.fwversion_suffix",
   fwversion_override = "uci.versioncusto.override.fwversion_override_real",
-  gui_version = "uci.modgui.gui.gui_version",
-  outdated_ver = "uci.modgui.gui.outdated_ver",
-  new_ver = "uci.modgui.gui.new_ver",
+  activebank = "sys.banktable.activebank",
+  passivebank = "sys.banktable.passivebank",
+  activeversion = "sys.banktable.activeversion",
+  passiveversion = "sys.banktable.passiveversion",
+  rip_key_B = "rpc.system.rip_key_B",
 }
 
 content_helper.getExactContent(content)
@@ -785,7 +750,6 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       html[#html + 1] = ui_helper.createLabel(T"Product Vendor", content["vendor"], basic)
       html[#html + 1] = ui_helper.createLabel(T"Product Name", content["product_name"], basic)
       html[#html + 1] = ui_helper.createLabel(T"Software Version", content["firmware_version"], basic)
-	  html[#html + 1] = ui_helper.createLabel(T"GUI Version", content["gui_version"], basic)
 	  html[#html + 1] = ui_helper.createLabel(T"Hostname", system_data["system_hostname"], advancedshow )
 	  html[#html + 1] = ui_helper.createInputText(T"Hostname", "system_hostname", system_data["system_hostname"], advanced , system_helpmsg["system_hostname"] )
       --html[#html + 1] = ui_helper.createLabel(T"Firmware Version", content["firmware_version"], basic)
@@ -854,169 +818,33 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
           html[#html + 1] = ui_helper.createAlertBlock("", upgrading_fail)
           html[#html + 1] = ui_helper.createAlertBlock(T"Firmware update failed.  Invalid file used: expected file with extension rbi.  Please use correct firmware.", upgrading_wrong_ext_fail)
           html[#html + 1] = ui_helper.createAlertBlock(T"Firmware update failed.  Invalid file used: file too large.  Please use correct firmware.", upgrading_too_big_fail)
+		  html[#html + 1] = '</form>'
+		  html[#html + 1] = '<form class="form-horizontal">'
         end
 	  end
       html[#html + 1] = ui_helper.createLabel(T"ACS URL", content["acs_url"], basic)
     end  
 	ngx.print(html)
+
+    local html = {}
+	html[#html + 1] = '<legend>'.. T"Bank Info" ..'</legend>'
+    html[#html + 1] = ui_helper.createLabel(T"Active Bank", content["activebank"] , basic)
+	html[#html + 1] = ui_helper.createLabel(T"Active Version", content["activeversion"] , basic)
+	html[#html + 1] = ui_helper.createLabel(T"Passive Bank", content["passivebank"] , basic)
+	if content["passiveversion"] == "Unknown" then
+		html[#html + 1] = ui_helper.createLabel(T"Passive Version", T"Firmware not present in this bank" , basic)
+	else
+		html[#html + 1] = ui_helper.createLabel(T"Passive Version", content["passiveversion"] , basic)
+	end
+    ngx.print(html)
 	
-	local html = {}
-	html[#html + 1] = '<legend>' .. T"Advanced Reset" .. '</legend>'
-	  local reset_gui = {
-        group = {
-          class = "wait-for-reset"
-        },
-        button = {
-          id = "btn-reset-gui",
-          class = "custom-handler"
-        }
-      }
-	  local remove_root = {
-        group = {
-          class = "wait-for-reset"
-        },
-        button = {
-          id = "btn-remove-root",
-          class = "custom-handler"
-        }
-      }
-	  local confirming_msg_remove_root = {
-	   alert = {
-	   	class = "alert hide",
-	   	id = "confirming-msg-remove-root"
-	   }
-	  } 
-	  local info_box = {
-        alert = {
-			class = "alert alert-info",
-		}
-      }
-	  local warn_box = {
-        alert = {
-			class = "alert alert-range",
-		}
-      }
-	  local resetting = {
-        alert = {
-          class = "alert hide",
-          id = "resetting-msg"
-        }
-      }
-	  
-	  
-	  html[#html + 1] = ui_helper.createAlertBlock(T"Reset the custom GUI settings. No custom firmware file will be removed. All custom GUI functions will still be available.", info_box)
-	  html[#html + 1] = ui_helper.createButton(T"Restore GUI", T"Restore", "icon-refresh", reset_gui)
-	  html[#html + 1] = ui_helper.createAlertBlock(T"Reset the router to factory settings and remove the custom firmware files.", info_box)
-	  html[#html + 1] = ui_helper.createButton(T"Reset to Factory", T"Remove Root", "icon-refresh", remove_root)
-	  html[#html + 1] = string.format('<div class="control-group controls">')
-	  html[#html + 1] = ui_helper.createAlertBlock(T"Are you sure you want to remove root from this modem? </br><strong> This could be permanent, so it's not recommended.</strong>", confirming_msg_remove_root)
-	  html[#html + 1] = string.format([[
-	  <div id="remove-root-changes" class="hide">
-		<div id="remove-root-confirm" class="btn btn-primary" data-dismiss="modal">%s</div>
-			<div id="remove-root-cancel" class="btn">%s</div>
-		</div>
-	  </div>
-	  ]], T"Confirm", T"Cancel")
-	  
-	  ngx.print(html)
-	  
-	  local html = {}
-	  html[#html + 1] = '<legend id="GUI_Upgrade_Legend">' .. T"Update GUI" .. '</legend>'
-	  local basic = {
-        span = {
-          class = "span5"
-        },
-      }
-	  local upgrade_gui = {
-        group = {
-          class = "wait-for-reset"
-        },
-        button = {
-          id = "btn-upgrade-gui",
-          class = "custom-handler"
-        }
-      }
-	  local offline_upgrade_gui = {
-        group = {
-          class = "wait-for-reset"
-        },
-        button = {
-          id = "btn-offline-upgrade-gui",
-          class = "custom-handler"
-        }
-      }
-	  local info_box = {
-        alert = {
-			class = "alert alert-info",
-		}
-      }
-	  local upgrade = {
-        alert = {
-          class = "alert hide",
-          id = "upgrade-msg"
-        }
-      }
-	  local upload_gui_file = {
-        button = {
-          class = "import-gui custom-handler",
-          id = "btn-import-gui"
-        }
-      }
-	  local upload_gui_fail = {
-        alert = {
-          class = "alert-error hide",
-          id = "upgrade-gui-fail"
-        }
-      }
-	  local upload_gui_alert = {
-        alert = {
-          class = "alert-info hide",
-          id = "upload-gui-alert"
-        }
-      }
-	  local updating = {
-        alert = {
-          class = "alert hide",
-          id = "updating-msg"
-        }
-      }
-	  html[#html + 1] = '<span id="GUI-upgrade-option">'
-	  html[#html + 1] = ui_helper.createAlertBlock(T"Update the GUI to the latest version available", info_box)
-	  html[#html + 1] = ui_helper.createInputSelect(T"Update Branch", "update_branch", update_branch_option, update_content["update_branch"])
+    local html = {}
+	html[#html + 1] = '<legend>'.. T"Key Info" ..'</legend>'
+    html[#html + 1] = ui_helper.createLabel(T"Config decrypt key", content["rip_key_B"] , basic)
 
-      html[#html + 1] = ui_helper.createSwitch(T"GUI Auto Update", "update_autoupgrade", update_content["update_autoupgrade"])
-      html[#html + 1] = ui_helper.createInputSelect(T"Update Hours", "update_autoupgrade_hour", update_hour_option, update_content["update_autoupgrade_hour"])
-      if content["outdated_ver"] == "1" then
-          html[#html + 1] = ui_helper.createLabel(T"State", T"Update Found", basic)
-          html[#html + 1] = ui_helper.createLabel(T"New Version", content["new_ver"], basic)
-          html[#html + 1] = ui_helper.createButton(T"Update GUI", T"Update", "icon-refresh", upgrade_gui)
-      else
-          html[#html + 1] = ui_helper.createLabel(T"State", T"No Update found", basic)
-          html[#html + 1] = ui_helper.createButton(T"Update GUI", T"Force Update", "icon-refresh", upgrade_gui)
-      end
-	  html[#html + 1] = '</span>'
-	  
-	  html[#html + 1] = '</form><form class="form-horizontal" id="form-import-gui" method="post" action="modals/gateway-modal.lp?action=upgradeguifile" enctype="multipart/form-data">'
-	  html[#html + 1] = '<div id="offline-upgrade-gui-div" class="control-group">'
-      html[#html + 1] = format('<label class="control-label">%s</label>', T"Offline GUI Update")
-      html[#html + 1] = '<div class="controls">'
-      html[#html + 1] = '<input type="file" name="upgradefile" id="file-upgradegui">&nbsp;'
-      html[#html + 1] = ui_helper.createSimpleButton(T"Update", "icon-shield", upload_gui_file)
-	  html[#html + 1] = '</div></div>'
-	  html[#html + 1] = ui_helper.createAlertBlock(T"Update failed. Please try again.", upload_gui_fail)
-	  html[#html + 1] = ui_helper.createAlertBlock(T"Uploading file. Please wait...", upload_gui_alert)
-	  html[#html + 1] = '<div class="alert alert-info hide" id="upgrade-gui-bar">'
-	  html[#html + 1] = T"Update in progress..."
-	  html[#html + 1] = '  <div id="upgrade-gui-bar" class="progress progress-striped active">'
-      html[#html + 1] = '    <div class="bar bar-warning" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" >'
-      html[#html + 1] = '</div></div></div>'
-	  html[#html + 1] = ui_helper.createAlertBlock(T"Updating file. Please wait...", updating)
-	  
-	  ngx.print(html)
-
-ngx.print('\
-    </form>\
-  </fieldset>\
+    ngx.print(html)
+    ngx.print('\
+  </form>\
 </div>\
 ');
 ngx.print('\
@@ -1077,42 +905,6 @@ ngx.print('\
           tch.removeProgress();\
           tch.showProgress(processMsg);\
           return resetreboot($("#resetting-msg"), $(this), "system_reset");\
-  });\
-\
-  $("#btn-reset-gui").on("click", function() {\
-    tch.showProgress("'); ngx.print('Resetting...'); ngx.print('");\
-    return resetreboot($("#resetting-msg"), $(this), "system_reset_gui");\
-  });\
-\
-  $("#btn-upgrade-gui").on("click", function() {\
-    $(".modal-backdrop").css("pointer-events", "none");\
-	$(".container").css("pointer-events", "none");\
-	$(".modal").css("pointer-events", "none");\
-    $("#btn-upgrade-gui").addClass("hide");\
-	$("#offline-upgrade-gui-div").addClass("hide");\
-	$("#GUI-upgrade-option").addClass("hide");\
-	$("#upgrade-gui-bar").removeClass("hide");\
-	$("#upgrade-gui-bar")[0].scrollIntoView();\
-	$(".bar").css("width", valeur+"%").attr("aria-valuenow", valeur);\
-    resetreboot($("#updating-msg"), $(this), "system_upgrade_gui");\
-    wait_for_webserver_down();\
-  });\
-\
-  $("#btn-remove-root").on("click", function() {\
-    $("#confirming-msg-remove-root").removeClass("hide");\
-	$("#remove-root-changes").removeClass("hide");\
-  });\
-\
-  $("#remove-root-confirm").on("click", function() {\
-  	$("#confirming-msg-remove-root").addClass("hide");\
-  	$("#remove-root-changes").addClass("hide");\
-  	tch.showProgress("'); ngx.print( T'Resetting...' ); ngx.print('");\
-  	return resetreboot($("#resetting-msg"), $(this), "system_remove_root");\
-  });\
-\
-  $("#remove-root-cancel").on("click", function() {\
-  	$("#confirming-msg-remove-root").addClass("hide");\
-  	$("#remove-root-changes").addClass("hide");\
   });\
 \
   $(document).on("click", "#cancel", function() {\
@@ -1192,49 +984,6 @@ ngx.print('\
 		  $("#import-failed-msg").text("'); ngx.print(T'The Backup file you try to load has not been taken from the actual SW-Release, please use correct Backup File'); ngx.print('");\
 		  }\
         }\
-      }\
-    });\
-    return false;\
-  });\
-\
-  $(".import-gui").on("click", function() {\
-    var nofile_msg = $("#upgrade-gui-fail");\
-    var wrongext_msg = $("#upgrade-gui-fail");\
-	nofile_msg.addClass("hide");\
-    if ($("#file-upgradegui").val() == "") {\
-      nofile_msg.removeClass("hide");\
-      nofile_msg[0].scrollIntoView();\
-      return false;\
-    }\
-\
-    var validExtensions = [\'bz2\'];\
-    var fileName = $("#file-upgradegui").val();\
-\
-    var fileNameExt = fileName.substr(fileName.lastIndexOf(".") + 1);\
-    if ($.inArray(fileNameExt, validExtensions) == -1){\
-        wrongext_msg.removeClass("hide");\
-		wrongext_msg[0].scrollIntoView();\
-		return false;\
-    }\
-    var fileSize = $("#file-upgradegui")[0].files[0].size;\
-	var importing_msg = $("#upload-gui-alert");\
-    var _this = $(this).parents(".control-group");\
-	importing_msg.removeClass("hide");\
-	importing_msg[0].scrollIntoView();\
-    $.fileUpload($("#form-import-gui"), {\
-      params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
-      completeCallback: function(form, response) {\
-        if (response.success) {\
-		  importing_msg.addClass("hide");\
-		  $("#offline-upgrade-gui-div").addClass("hide");\
-		  $("#upgrade-gui-bar").removeClass("hide");\
-		  $(".bar").css("width", valeur+"%").attr("aria-valuenow", valeur);\
-          wait_for_webserver_down();\
-        }\
-        else {\
-		  importing_msg.addClass("hide");\
-          $("#upgrade-gui-fail").removeClass("hide");\
-		  }\
       }\
     });\
     return false;\
@@ -1347,13 +1096,6 @@ ngx.print('\
     });\
     return false;\
   });\
-');
-if ngx.req.get_uri_args().action and ngx.req.get_uri_args().action == "manualguiupgrade" then
-  ngx.print('\
-       $("#GUI_Upgrade_Legend")[0].scrollIntoView();\
-  ');
-end
-ngx.print('\
 })();\
 </script>\
 ');  ngx.print(ui_helper.createFooter())   ngx.print('\

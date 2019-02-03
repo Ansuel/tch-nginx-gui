@@ -127,7 +127,7 @@ ngx.print('\
 					html[#html + 1] = T"Go to the gateway tab and click on the Update button, to autoupgrade to the new GUI."
 					html[#html + 1] = '" '
 				end
-				html[#html + 1] = 'data-toggle="modal" data-remote="modals/gateway-modal.lp?action=manualguiupgrade">'
+				html[#html + 1] = 'data-toggle="modal" data-remote="modals/modgui-modal.lp?action=manualguiupgrade">'
 				html[#html + 1] = '<span>'
 				html[#html + 1] = T"Update"
 				html[#html + 1] = '</span>'
