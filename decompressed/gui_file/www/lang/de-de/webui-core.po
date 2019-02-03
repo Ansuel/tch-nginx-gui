@@ -3228,3 +3228,9 @@ msgstr ""
 
 msgid "Search For connections..."
 msgstr ""
+
+msgid "Up"
+msgstr ""
+
+msgid "Down"
+msgstr ""

@@ -15,11 +15,11 @@ msgstr ""
 "X-Generator: Poedit 2.2\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
-msgid "SMB/CIFS is disabled</div>"
-msgstr "SMB/CIFS disabilitato</div>"
+msgid "SMB/CIFS is disabled"
+msgstr "SMB/CIFS disabilitato"
 
 msgid "To connect: \\%s\ or \\%s\"
-msgstr "Per connettersi: \\%s\ oppure \\%s\"
+msgstr "Per collegarsi: \\%s\ o \\%s\"
 
 msgid "Enabled"
 msgstr "Abilitata"
@@ -52,4 +52,4 @@ msgid "Web Interface"
 msgstr "Interfaccia web"
 
 msgid "CUPS Web Interface at <a href=\"http://%s:631\">http://%s:631</a> or <a href=\"http://%s:631\">http://%s:631</a>"
-msgstr "Interfaccia Web CUPS a <a href=\"http://%s:631\">http://%s:631</a> o <a href=\"http://%s:631\">http://%s:631</a>"
+msgstr "Interfaccia web CUPS <a href=\"http://%s:631\">http://%s:631</a> o <a href=\"http://%s:631\">http://%s:631</a>"
