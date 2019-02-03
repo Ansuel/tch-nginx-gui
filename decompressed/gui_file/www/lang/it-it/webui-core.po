@@ -3224,7 +3224,13 @@ msgid "WanSensing sets the connection mode automatically. Disable this to set th
 msgstr "La rilevazione WAN imposta la connessione in modo automatico.<br/>Disabilita questa opzione per impostare la connessione in modo manuale.<br/>Dopo il salvataggio verranno visualizzate le opzioni di connessione."
 
 msgid "NotPresent"
-msgstr "Non Presente"
+msgstr "Non presente"
 
 msgid "Search For connections..."
 msgstr "Cerca connessioni..."
+
+msgid "Up"
+msgstr "Attiva"
+
+msgid "Down"
+msgstr "Non attiva"
