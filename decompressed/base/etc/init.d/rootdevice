@@ -1514,6 +1514,11 @@ disable_upload_coredump() {
 	if [ $(uci get -q system.@coredump[0].action) != "ignore" ]; then
 		uci set system.@coredump[0].action="ignore"
 	fi
+	#Clean coredump
+	for coredump in /root/*.core.* ; do
+		logger_command "Removing coredump $coredump from /root..."
+		rm $coredump
+	done
 }
 
 root() {
