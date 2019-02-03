@@ -1515,17 +1515,19 @@ disable_upload_coredump() {
 		uci set system.@coredump[0].action="ignore"
 	fi
 	#Clean coredump
-	for coredump in /root/*.core.* ; do
-		logger_command "Removing coredump $coredump from /root..."
-		rm $coredump
-	done
+	if [ "$(find /root -type f -name "*.core.*")" ]; then
+		for coredump in /root/*.core.* ; do
+			logger_command "Removing coredump $coredump from /root..."
+			rm $coredump
+		done
+	fi
 }
 
 remove_nginx_conf() {
 	#Some default config in nginx.conf search for some file
 	#This file most of the times are missing or empty...
 	#remove the check of this files.
-	if [ $( cat /etc/nginx/nginx.conf | grep "ui_server.conf" ) ]; then
+	if [ "$( cat /etc/nginx/nginx.conf | grep "ui_server.conf" )" ]; then
 		sed -i '/ui_server.conf/d' /etc/nginx/nginx.conf
 	fi
 }
@@ -1690,6 +1692,8 @@ root() {
 
 	logger_command "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not
+	logger_command "Reset unlock bit"
+	uci set env.var.unlockedstatus='0'
 
 	logger_command "Disable reboot after crash, this gives race condition..."
 	uci set system.@coredump[0].reboot='0'
