@@ -3220,6 +3220,16 @@ msgstr "1. Il numero massimo di pacchetti è dinamico (usa la metà della memori
 msgid "DSLAM Firmware"
 msgstr "Firmware DSLAM"
 
+msgid "<strong %1$s>%2$d Route</strong>"
+msgid_plural "<strong %1$s>%2$d Routes</strong>"
+msgstr[0] "<strong %1$s>%2$d instradamento</strong>"
+msgstr[1] "<strong %1$s>%2$d instradamenti</strong>"
+
+msgid "<strong %s>%d Wireless Control</strong> rule defined"
+msgid_plural "<strong %s>%d Wireless Control</strong> rules defined"
+msgstr[0] "<strong %s>%d regola pianificazione wireless </strong>"
+msgstr[1] "<strong %s>%d regole pianificazione wireless </strong>"
+
 msgid "WanSensing sets the connection mode automatically. Disable this to set the connection mode manually. After saving the changes the connection options will be shown."
 msgstr "La rilevazione WAN imposta la connessione in modo automatico.<br/>Disabilita questa opzione per impostare la connessione in modo manuale.<br/>Dopo il salvataggio verranno visualizzate le opzioni di connessione."
 
