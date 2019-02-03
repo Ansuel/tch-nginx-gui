@@ -18,8 +18,8 @@ msgstr ""
 msgid "SMB/CIFS is disabled"
 msgstr "SMB/CIFS ist deaktiviert"
 
-msgid "To connect: \\\\%s\\ or \\\\%s\\"
-msgstr "Zum Verbinden: \\\\%s\\ oder \\\\%s\\"
+msgid "To connect: \\%s\ or \\%s\"
+msgstr "Zum Verbinden: \\%s\ oder \\%s\"
 
 msgid "Enabled"
 msgstr "Aktiviert"
