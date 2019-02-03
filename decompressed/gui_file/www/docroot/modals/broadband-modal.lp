@@ -73,7 +73,7 @@ if not tabdata.current.ajax then
 		"Disable this to set the connection mode manually. After saving the changes the connection options will be shown.", info_box)
 	html[#html+1] = ui_helper.createSwitch(T"WanSensing State", "wsens", content["wsens"],nil)
 	
-	if content["wsens"] == 0 then
+	if ( content["wsens"] == "0" ) then
 		html[#html+1] = ui_helper.createInputRadio(T"Mode", "newmode", mode_options, mode_current, mode_attributes)
 		html[#html+1] = ui_helper.createButton("", T"Switch connection mode", "icon-cog", mode_button)
 	end
