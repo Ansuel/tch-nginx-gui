@@ -318,11 +318,11 @@ restore_config_File() {
 	local config_tmp=/tmp/config_tmp
 	if [ -d $config_tmp ]; then
 		echo "Found Config file in ram!"
-		if [ ! -d /overlay/$running_bank/etc/config ]; then
-			mkdir /overlay/$running_bank/etc/config
+		if [ ! -d /overlay/homeware_conversion ]; then
+			mkdir /overlay/homeware_conversion
 		fi
-		cp $config_tmp/* /overlay/$running_bank/etc/config/
-		echo "Config file restored!"
+		cp $config_tmp/* /overlay/homeware_conversion/
+		echo "Config file restored to homeware conversion dir! File will be updated on next boot."
 	fi
 }
 
