@@ -184,7 +184,7 @@ local mapValid = {
   gui_randomcolor = post_helper.validateBoolean,
 }
 
-local update_content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
+local modgui_settings, helpmsg = post_helper.handleQuery(mapParams, mapValid)
 
   ngx.print('\
 \
@@ -198,9 +198,9 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	
 	  local html = {}
 	  html[#html + 1] = '<legend>'.. T"GUI Skin" ..'</legend>'
-	  html[#html + 1] = ui_helper.createInputSelect(T"GUI Skin", "gui_skin", gui_skin_option, content["gui_skin"])
-	  html[#html + 1] = ui_helper.createInputSelect(T"GUI First Page", "gui_skin_firstpage", gui_skin_firstpage_page, content["gui_skin_firstpage"])
-	  html[#html + 1] = ui_helper.createSwitch(T"Random Color", "gui_randomcolor", content["gui_randomcolor"])
+	  html[#html + 1] = ui_helper.createInputSelect(T"GUI Skin", "gui_skin", gui_skin_option, modgui_settings["gui_skin"])
+	  html[#html + 1] = ui_helper.createInputSelect(T"GUI First Page", "gui_skin_firstpage", gui_skin_firstpage_page, modgui_settings["gui_skin_firstpage"])
+	  html[#html + 1] = ui_helper.createSwitch(T"Random Color", "gui_randomcolor", modgui_settings["gui_randomcolor"])
 	  ngx.print(html)
 
 	  local html = {}
@@ -265,10 +265,10 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       }
 	  html[#html + 1] = '<span id="GUI-upgrade-option">'
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Update the GUI to the latest version available", info_box)
-	  html[#html + 1] = ui_helper.createInputSelect(T"Update Branch", "update_branch", update_branch_option, update_content["update_branch"])
+	  html[#html + 1] = ui_helper.createInputSelect(T"Update Branch", "update_branch", update_branch_option, modgui_settings["update_branch"])
 
-      html[#html + 1] = ui_helper.createSwitch(T"GUI Auto Update", "update_autoupgrade", update_content["update_autoupgrade"])
-      html[#html + 1] = ui_helper.createInputSelect(T"Update Hours", "update_autoupgrade_hour", update_hour_option, update_content["update_autoupgrade_hour"])
+      html[#html + 1] = ui_helper.createSwitch(T"GUI Auto Update", "update_autoupgrade", modgui_settings["update_autoupgrade"])
+      html[#html + 1] = ui_helper.createInputSelect(T"Update Hours", "update_autoupgrade_hour", update_hour_option, modgui_settings["update_autoupgrade_hour"])
       if content["outdated_ver"] == "1" then
           html[#html + 1] = ui_helper.createLabel(T"State", T"Update Found", basic)
           html[#html + 1] = ui_helper.createLabel(T"New Version", content["new_ver"], basic)

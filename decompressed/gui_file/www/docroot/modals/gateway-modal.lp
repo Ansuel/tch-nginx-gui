@@ -280,9 +280,6 @@ if ngx.req.get_method() == "POST" then
   if action == "import_config" then
     return import_config()
   end
-  if action == "upgradeguifile" then
-    return upgradeguifile()
-  end
   if action == "upgradefw" then
     return upgradefw()
   end
@@ -546,32 +543,6 @@ local function getTimeZoneName(list, isRemote)
   end
   return default_tztable[isRemote]
 end
-
-
-local update_branch_option = {
-      { "stable", T'Stable'},
-      { "dev", T'Dev'},
-}
-
-local update_hour_option = {}
-
-for i=0,23 do
-	update_hour_option[#update_hour_option+1] = { tostring(i) , tostring(i) .. ":00"}
-end
-
-local update_Params = {
-  update_branch = "uci.modgui.gui.update_branch",
-  update_autoupgrade = "uci.modgui.gui.autoupgrade",
-  update_autoupgrade_hour = "uci.modgui.gui.autoupgrade_hour",
-}
-
-local update_valid = {
-  update_branch = post_helper.getValidateInEnumSelect(update_branch_option),
-  update_autoupgrade = vB,
-  update_autoupgrade_hour = post_helper.getValidateInEnumSelect(update_hour_option),
-}
-
-local update_content, helpmsg = post_helper.handleQuery(update_Params, update_valid)
 
   ngx.print('\
 \
