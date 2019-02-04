@@ -114,6 +114,7 @@ if ngx.req.get_method() == "POST" then
   if action == "upgradeguifile" then
     return upgradeguifile()
   end
+  local action = ngx.req.get_post_args().action
   if action == "system_reset_gui" then
     return resetreboot("rpc.system.resetgui", "1")
   end
