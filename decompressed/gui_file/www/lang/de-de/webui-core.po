@@ -3208,7 +3208,7 @@ msgstr ""
 msgid "WanSensing State"
 msgstr ""
 
-msgid "To Port Forward ranges use ':'. For example 500:505."
+msgid "To Port Forward ranges use <b>':'</b>. For example 500:505."
 msgstr ""
 
 msgid "DSL Connection Status"

@@ -3208,8 +3208,8 @@ msgstr "Commuta porta WAN in normale porta LAN"
 msgid "WanSensing State"
 msgstr "Stato rilevazione WAN"
 
-msgid "To Port Forward ranges use ':'. For example 500:505."
-msgstr "Per la mappatura porta usa ':'. Esempio 500:505."
+msgid "To Port Forward ranges use <b>':'</b>. For example 500:505."
+msgstr "Per la mappatura porta usa <b>':'</b>. Esempio 500:505."
 
 msgid "DSL Connection Status"
 msgstr "Stato connessione DSL"
