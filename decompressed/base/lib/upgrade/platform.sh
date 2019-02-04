@@ -314,6 +314,18 @@ root_device() {
 	echo "Device Rooted"
 }
 
+restore_config_File() {
+	local config_tmp=/tmp/config_tmp
+	if [ -d $config_tmp ]; then
+		echo "Found Config file in ram!"
+		if [ ! -d /overlay/$running_bank/etc/config ]; then
+			mkdir /overlay/$running_bank/etc/config
+		fi
+		cp $config_tmp/* /overlay/$running_bank/etc/config/
+		echo "Config file restored!"
+	fi
+}
+
 preserve_root() {
 	local root_tmp_dirt=/tmp/rootfile
 	local emergencydir=/tmp/rootfile/emergency
@@ -344,6 +356,18 @@ preserve_root() {
 	fi
 }
 
+preserve_config_file() {
+	local config_tmp=/tmp/config_tmp
+	echo "Copying config file to ram..."
+	mkdir /tmp/config_tmp
+	cp /overlay/$running_bank/etc/config/* $config_tmp/
+	if [ -f $config_tmp/network ]; then
+		echo "Config file preserved!"
+	else
+		echo "Config file not copied to ram!"
+	fi
+}
+
 emergency_restore_root() {
 	local emergencydir=/tmp/rootfile/emergency
 	echo "Rooting file not found! Using emergency method."
@@ -363,6 +387,7 @@ platform_do_upgrade() {
 	if [ -f $root_tmp_dirt/GUI.tar.bz2 ] || [ -f /overlay/$(cat /proc/banktable/booted)/etc/init.d/rootdevice ]; then
 		
 		preserve_root
+		preserve_config_file
 		
 		rm -r /overlay/bank_1
 		if [ -d /overlay/bank_2 ]; then
@@ -375,6 +400,7 @@ platform_do_upgrade() {
 			else
 				emergency_restore_root
 			fi
+			restore_config_File
 			
 			if [ "$SWITCHBANK" -eq 1 ]; then
 				echo $target_bank > /proc/banktable/active
