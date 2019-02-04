@@ -22,6 +22,10 @@ if wan_vlan_bridge then
 	wan_bridge = wan_vlan_bridge[1].value
 end
 
+if string.find(wan_bridge, "%.") then
+	wan_bridge = string.match(wan_bridge, "([^.]*).")
+end
+
 -- Figure out interface state
 local intf_state_map = {
     disabled = T"Bridge "..wan_bridge.. " disabled",
