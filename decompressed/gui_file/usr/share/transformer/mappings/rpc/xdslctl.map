@@ -351,8 +351,9 @@ local function xdslctlDslamInfo(itype)
 end
 
 local function get(mapping, paramName, key)
-	if cache["dslmode"] and ( cache["dslmode"] == "Not Found" ) then
-		return "NOT CONNECTED" --return not connected on every value
+	if not paramName:match("DslMode") and 
+	  cache["dslmode"] and ( cache["dslmode"] == "Not Found" ) then
+		return "" --return empty on every value
 	end
 	if paramName == "HlogScanBand" then
 		return xdslctlget("scanband","Hlog",0,"Ds")
