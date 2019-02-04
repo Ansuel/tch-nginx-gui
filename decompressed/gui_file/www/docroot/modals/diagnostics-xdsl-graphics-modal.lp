@@ -29,8 +29,6 @@ gettext.textdomain('webui-core')
 
 local proxy = require("datamodel")
 local ui_helper = require("web.ui_helper")
-local content_helper = require("web.content_helper")
-local format = string.format
 
 local band = {
 	Ds1Band = tonumber(proxy.get("rpc.xdslctl.Ds1ScannedBand")[1].value) or -1,
@@ -123,14 +121,12 @@ local function xdslctlget(request,bandtype)
 end
 
 local scanband = proxy.get("rpc.xdslctl.HlogScanBand")
-
 if scanband then
-	scanband = scanband[1].value
+	scanband = tonumber(scanband[1].value) or 0
+	scanband = scanband +1
 else
-	scanband = "0"
+	scanband = "1"
 end
-
-local profile = proxy.get("sys.class.xdsl.@line0.ProfileName")
 
 local _, HlogUs = pcall(xdslctlget, "Hlog","Us")
 local _, BitsUs = pcall(xdslctlget, "Bits","Us")
@@ -140,8 +136,6 @@ local _, HlogDs = pcall(xdslctlget, "Hlog","Ds")
 local _, BitsDs = pcall(xdslctlget, "Bits","Ds")
 local _, QLNDs = pcall(xdslctlget, "QLN","Ds")
 local _, SNRDs = pcall(xdslctlget, "SNR","Ds")
-
-local UsBandNumber = proxy.get("rpc.xdslctl.UsBandNumber")
 
   ngx.print('\
 \
@@ -356,7 +350,7 @@ var bits_ctx = document.getElementById("BitsChart").getContext("2d");\
         responsiveAnimationDuration: 0,\
     }\
 });\
-var scanband = '); ngx.print(tonumber(scanband)+1); ngx.print('\
+var scanband = '); ngx.print(scanband); ngx.print('\
 setTimeout(function(){\
 	for (i = 1; i < scanband; i++) { \
 		labelLegend.push(i);\
