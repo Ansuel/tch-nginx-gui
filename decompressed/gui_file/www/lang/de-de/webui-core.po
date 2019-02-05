@@ -1132,10 +1132,10 @@ msgstr "Firmware Version"
 msgid "Firmware not present in this bank"
 msgstr "Firmware in dieser Bank nicht vorhanden"
 
-msgid "Firmware upgrade failed."
+msgid "Firmware update failed."
 msgstr "Firmware-Aktualisierung fehlgeschlagen."
 
-msgid "Firmware upgrade failed.  Insufficient free memory available. Please reboot and try again."
+msgid "Firmware update failed.  Insufficient free memory available. Please reboot and try again."
 msgstr "Firmware-Aktualisierung fehlgeschlagen. Zu wenig freier Speicher. Bitte neu starten und erneut versuchen."
 
 msgid "Firmware update failed.  Invalid file used: expected file with extension rbi.  Please use correct firmware."
@@ -1144,10 +1144,10 @@ msgstr "Firmware-Aktualisierung fehlgeschlagen. Ungültige Datei: Datei mit Erwe
 msgid "Firmware update failed.  Invalid file used: file too large.  Please use correct firmware."
 msgstr "Firmware-Aktualisierung fehlgeschlagen. Ungültige Datei: Datei zu groß. Bitte verwenden Sie die richtige Firmware."
 
-msgid "Firmware upgrade failed; build signed with wrong key"
+msgid "Firmware update failed; build signed with wrong key"
 msgstr "Firmware-Aktualisierung fehlgeschlagen. Die Firmware wurde mit dem falschen Schlüssel signiert"
 
-msgid "Firmware upgrade failed; please use the correct firmware."
+msgid "Firmware update failed; please use the correct firmware."
 msgstr "Firmware-Aktualisierung fehlgeschlagen. Bitte verwenden Sie die richtige Firmware."
 
 msgid "Firmware update in progress, please wait..."
@@ -3220,6 +3220,16 @@ msgstr ""
 msgid "DSLAM Firmware"
 msgstr ""
 
+msgid "<strong %1$s>%2$d Route</strong>"
+msgid_plural "<strong %1$s>%2$d Routes</strong>"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "<strong %s>%d Wireless Control</strong> rule defined"
+msgid_plural "<strong %s>%d Wireless Control</strong> rules defined"
+msgstr[0] ""
+msgstr[1] ""
+
 msgid "WanSensing sets the connection mode automatically. Disable this to set the connection mode manually. After saving the changes the connection options will be shown."
 msgstr ""
 
@@ -3233,4 +3243,19 @@ msgid "Up"
 msgstr ""
 
 msgid "Down"
+msgstr ""
+
+msgid "GUI is outdated"
+msgstr ""
+
+msgid "GUI is updated"
+msgstr ""
+
+msgid "GUI Settings"
+msgstr ""
+
+msgid "GUI Version %s"
+msgstr ""
+
+msgid "GUI Settings & Utility"
 msgstr ""

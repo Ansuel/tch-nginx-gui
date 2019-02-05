@@ -16,10 +16,10 @@ content_helper.getExactContent(content)
 
 if content.outdated_ver == "1" then
 	content.outdated_ver = "5"
-	content.outdated_ver_text = T"Gui is outdated"
+	content.outdated_ver_text = T"GUI is outdated"
 else
 	content.outdated_ver = "1"
-	content.outdated_ver_text = T"Gui is updated"
+	content.outdated_ver_text = T"GUI is updated"
 end
 
 local modalPath = nil
@@ -37,14 +37,14 @@ ngx.print('\
 <div class="span3">\
   <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
 \
-    ');  ngx.print( ui_helper.createCardHeader(T"Gui Settings", modalPath, switchName, nil) ); ngx.print('\
+    ');  ngx.print( ui_helper.createCardHeader(T"GUI Settings", modalPath, switchName, nil) ); ngx.print('\
 \
     <div class="content card_bg" data-bg-text="&#xf06c;">\
 	  <div class="divtable">\
 \
       ');
 	local html = {}
-	html[#html + 1] = string.format(T"Gui Version %s", content.gui_version)
+	html[#html + 1] = string.format(T"GUI Version %s", content.gui_version)
 	html[#html + 1] = ui_helper.createSimpleLight(content.outdated_ver, content.outdated_ver_text, nil, "fas fa-cog" )
 
 ngx.print(html)

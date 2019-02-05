@@ -1132,10 +1132,10 @@ msgstr "Versione firmware"
 msgid "Firmware not present in this bank"
 msgstr "Firmware non presente in questo banco"
 
-msgid "Firmware upgrade failed."
+msgid "Firmware update failed."
 msgstr "Aggiornamento firmware fallito."
 
-msgid "Firmware upgrade failed.  Insufficient free memory available. Please reboot and try again."
+msgid "Firmware update failed.  Insufficient free memory available. Please reboot and try again."
 msgstr "Aggiornamento firmware fallito.<br/> Memoria libera disponibile insufficiente.<br/>Riavvia e riprova."
 
 msgid "Firmware update failed.  Invalid file used: expected file with extension rbi.  Please use correct firmware."
@@ -1144,10 +1144,10 @@ msgstr "Aggiornamento firmware fallito.<br/>File non valido. Era atteso file con
 msgid "Firmware update failed.  Invalid file used: file too large.  Please use correct firmware."
 msgstr "Aggiornamento firmware fallito. File non valido: file troppo grande. Usa il firmware corretto."
 
-msgid "Firmware upgrade failed; build signed with wrong key"
+msgid "Firmware update failed; build signed with wrong key"
 msgstr "Aggiornamento firmware fallito.<br/>Versione firmata con chiave errata"
 
-msgid "Firmware upgrade failed; please use the correct firmware."
+msgid "Firmware update failed; please use the correct firmware."
 msgstr "Aggiornamento firmware fallito.<br/>Usa il firmware corretto."
 
 msgid "Firmware update in progress, please wait..."
@@ -3209,7 +3209,7 @@ msgid "WanSensing State"
 msgstr "Stato rilevazione WAN"
 
 msgid "To Port Forward ranges use <b>':'</b>. For example 500:505."
-msgstr "Per la mappatura porta usa <b>':'</b>. Esempio 500:505."
+msgstr "Per un intervallo mappatura porte usa <b>':'</b>. Esempio 500:505."
 
 msgid "DSL Connection Status"
 msgstr "Stato connessione DSL"
@@ -3244,3 +3244,18 @@ msgstr "Attiva"
 
 msgid "Down"
 msgstr "Non attiva"
+
+msgid "GUI is outdated"
+msgstr "GUI non aggiornata"
+
+msgid "GUI is updated"
+msgstr "GUI aggiornata"
+
+msgid "GUI Settings"
+msgstr "Impostazioni GUI"
+
+msgid "GUI Version %s"
+msgstr "Versione GUI %s"
+
+msgid "GUI Settings & Utility"
+msgstr "Opzioni e utility GUI"

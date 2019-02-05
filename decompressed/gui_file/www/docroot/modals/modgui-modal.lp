@@ -189,7 +189,7 @@ local modgui_settings, helpmsg = post_helper.handleQuery(mapParams, mapValid)
 
   ngx.print('\
 \
-');  ngx.print(ui_helper.createHeader(T"Gui Option & Utility", false, false))   ngx.print('\
+');  ngx.print(ui_helper.createHeader(T"GUI Settings & Utility", false, false))   ngx.print('\
 <div class="modal-body update">\
 ');
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))

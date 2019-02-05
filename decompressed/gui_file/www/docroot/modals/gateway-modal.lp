@@ -994,17 +994,17 @@ ngx.print('\
           var failure_msg = $("#upgrade-failed-msg");\
           switch (data.errorcode) {\
           case "1":\
-            failure_msg.text("');  ngx.print( T'Firmware upgrade failed.  Insufficient free memory available. Please reboot and try again.' ); ngx.print('");\
+            failure_msg.text("');  ngx.print( T'Firmware update failed.  Insufficient free memory available. Please reboot and try again.' ); ngx.print('");\
             break;\
           case "10":\
           case "255":\
-            failure_msg.text("');  ngx.print( T'Firmware upgrade failed; please use the correct firmware.' ); ngx.print('");\
+            failure_msg.text("');  ngx.print( T'Firmware update failed; please use the correct firmware.' ); ngx.print('");\
             break;\
           case "15":\
-            failure_msg.text("');  ngx.print( T'Firmware upgrade failed; build signed with wrong key' ); ngx.print('");\
+            failure_msg.text("');  ngx.print( T'Firmware update failed; build signed with wrong key' ); ngx.print('");\
             break;\
           default:\
-            failure_msg.text("');  ngx.print( T'Firmware upgrade failed.' ); ngx.print('");\
+            failure_msg.text("');  ngx.print( T'Firmware update failed.' ); ngx.print('");\
             break;\
           }\
           failure_msg.text(failure_msg.text() + " (');  ngx.print( T'Errorcode: ' ); ngx.print('" + data.errorcode + ")")\
