@@ -200,7 +200,7 @@ local function import_config()
   ngx.exit(ngx.HTTP_OK)
 end
 
-local function upgradefw()
+local function upgradefw(upgradetype)
   local fwupgrade_rpc_path = "rpc.system.fwupgrade."
   local filename = "fwupgrade.bin"
 
@@ -225,6 +225,9 @@ local function upgradefw()
   -- sysupgrade will create the pipe
   -- separate requests as the order is important
   proxy.set({[fwupgrade_rpc_path .. "filename"] = filename})
+  if ( upgradetype == "Reset" ) then
+	proxy.set({[fwupgrade_rpc_path .. "upgradetype"] = upgradetype})
+  end
   proxy.set({[fwupgrade_rpc_path .. "state"] = "Requested"})
 
 
@@ -281,7 +284,10 @@ if ngx.req.get_method() == "POST" then
     return import_config()
   end
   if action == "upgradefw" then
-    return upgradefw()
+    return upgradefw("Normal")
+  end
+  if action == "upgradefw_reset" then
+	return upgradefw("Reset")
   end
   -- now process non-file POSTs
   local action = ngx.req.get_post_args().action
@@ -776,7 +782,9 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	if tech then		 
       if cui.upgradefw == "1" then
         if cui.upgradefw == "1" then
-          html[#html + 1] = '</form><form class="form-horizontal" id="form-upgradefw" method="post" action="modals/gateway-modal.lp?action=upgradefw" enctype="multipart/form-data">'
+		  html[#html + 1] = ui_helper.createAlertBlock(T"Check this to remove config after firmware update. This won't remove root. It si advertised to check this if you are downgrading the firmware", basic)
+		  html[#html + 1] = ui_helper.createInputCheckbox(T"Remove config file with upgrade","remove_conf","0",nil)
+          html[#html + 1] = '</form><form class="form-horizontal" id="form-upgradefw" method="post" enctype="multipart/form-data">'
           html[#html + 1] = '<div class="control-group">'
           html[#html + 1] = format('<label class="control-label">%s</label>', T"Update firmware")
           html[#html + 1] = '<div class="controls">'
@@ -1053,7 +1061,11 @@ ngx.print('\
     upgrading_msg.removeClass("hide");\
     upgrading_msg[0].scrollIntoView();\
     tch.showProgress("');  ngx.print(T'Upgrading...'); ngx.print('");\
-    $.fileUpload($("#form-upgradefw"), {\
+	if ($("input[name=\'remove_conf\']").is(":checked")) {\
+		$("#form-upgradefw").attr("action", "modals/gateway-modal.lp?action=upgradefw_reset"); } \
+	else {\
+		$("#form-upgradefw").attr("action", "modals/gateway-modal.lp?action=upgradefw"); }\
+    $.fileUpload($("#form-upgradefw"), { \
       params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
       completeCallback: function(form, response) {\
         $("#upgrade-transfer-msg").addClass("hide");\
