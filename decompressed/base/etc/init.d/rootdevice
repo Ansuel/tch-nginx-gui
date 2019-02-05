@@ -196,15 +196,6 @@ purify_from_tim() {
 	uci -q del dhcp.dnsmasq.server
 }
 
-encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
-default_encrypted_pass='$5liEJpfo7NYE'
-saved_encrypted_pass=$(uci -q get modgui.var.encrypted_pass)
-
-save_root_encrypt_pass() {
-	echo "  Storing encrypted password..." > /dev/console
-	uci set modgui.var.encrypted_pass=$encrypted_pass
-}
-
 cumulative_check_gui() {
 	#This create update_branch entities
 	if [ ! $(uci get -q modgui.gui.update_branch) ]; then
@@ -1307,12 +1298,22 @@ wan_sensing_clean() {
 	fi
 }
 
+encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
+default_encrypted_pass='$5liEJpfo7NYE'
+saved_encrypted_pass=$(uci -q get modgui.var.encrypted_pass)
+
+save_root_encrypt_pass() {
+	echo "  Storing encrypted password..." > /dev/console
+	uci set modgui.var.encrypted_pass=$encrypted_pass
+}
+
 rootchecks() {
 	logger_command "Save root password if modified"
 	if [ ! $(awk -F: '/root/ {print $7 }' /etc/passwd) = "/bin/ash" ]; then #this enable root access from login
 		sed -i '1croot:x:0:0:root:/root:/bin/ash' /etc/passwd
 	fi
-	if ! [ $encrypted_pass == $default_encrypted_pass ] && [ -z $saved_encrypted_pass ]; then #all of this is to check the root 
+	if ! [ $encrypted_pass == $default_encrypted_pass ] && [ -z $saved_encrypted_pass ] || 
+	  [ -f /root/.reapply_due_to_upgrade ]; then #all of this is to check the root 
 		echo -e "root\nroot" | passwd > /dev/null
 		if ! [ $encrypted_pass == $default_encrypted_pass ]; then
 			sed -i -e 's|"${encrypted_pass}"|"${default_encrypted_pass}"|' /etc/shadow
@@ -1577,7 +1578,6 @@ root() {
 			logger_command "Resetting /www dir due to firmware upgrade..."
 			rm -r /www
 			bzcat /root/GUI.tar.bz2 | tar -C / -xf - www
-			rm /root/.reapply_due_to_upgrade
 		fi
 	fi
 
@@ -1824,6 +1824,9 @@ root() {
 	/etc/init.d/watchdog-tch start
 
 	logger_command "Resetting cwmp and watchdog"
+	
+	#Remove reapply file as the root process after upgrade has finished.
+	rm /root/.reapply_due_to_upgrade
 }
 
 check_bank() {
