@@ -3220,11 +3220,6 @@ msgstr ""
 msgid "DSLAM Firmware"
 msgstr ""
 
-msgid "<strong %1$s>%2$d Route</strong>"
-msgid_plural "<strong %1$s>%2$d Routes</strong>"
-msgstr[0] ""
-msgstr[1] ""
-
 msgid "<strong %s>%d Wireless Control</strong> rule defined"
 msgid_plural "<strong %s>%d Wireless Control</strong> rules defined"
 msgstr[0] ""
