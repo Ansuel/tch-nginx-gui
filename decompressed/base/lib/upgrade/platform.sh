@@ -322,6 +322,7 @@ restore_config_File() {
 			mkdir /overlay/homeware_conversion
 		fi
 		cp $config_tmp/* /overlay/homeware_conversion/
+		cp /tmp/shadow_file/shadow /overlay/$target_bank/shadow_old
 		echo "Config file restored to homeware conversion dir! File will be updated on next boot."
 	fi
 }
@@ -360,7 +361,9 @@ preserve_config_file() {
 	local config_tmp=/tmp/config_tmp
 	echo "Copying config file to ram..."
 	mkdir /tmp/config_tmp
+	mkdir /tmp/shadow_file
 	cp /overlay/$running_bank/etc/config/* $config_tmp/
+	cp /overlay/$running_bank/etc/shadow /tmp/shadow_file
 	if [ -f $config_tmp/network ]; then
 		echo "Config file preserved!"
 	else

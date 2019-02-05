@@ -1298,21 +1298,22 @@ wan_sensing_clean() {
 	fi
 }
 
-encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
-default_encrypted_pass='$5liEJpfo7NYE'
-saved_encrypted_pass=$(uci -q get modgui.var.encrypted_pass)
-
-save_root_encrypt_pass() {
-	echo "  Storing encrypted password..." > /dev/console
-	uci set modgui.var.encrypted_pass=$encrypted_pass
-}
-
 rootchecks() {
+	
+	encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
+	default_encrypted_pass='$5liEJpfo7NYE'
+	saved_encrypted_pass=$(uci -q get modgui.var.encrypted_pass)
+	
 	logger_command "Save root password if modified"
 	if [ ! $(awk -F: '/root/ {print $7 }' /etc/passwd) = "/bin/ash" ]; then #this enable root access from login
 		sed -i '1croot:x:0:0:root:/root:/bin/ash' /etc/passwd
 	fi
-	if [ -n $saved_encrypted_pass ] && [ $encrypted_pass != $saved_encrypted_pass ] && 
+	if [ -f /etc/shadow_old ] && [ -f /root/.reapply_due_to_upgrade ]; then
+		old_encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow_old)
+		sed -i -e 's|"${encrypted_pass}"|"${old_encrypted_pass}"|' /etc/shadow
+		rm /etc/shadow_old
+		echo "  Restoring old root password as this is a firmware upgrade!" > /dev/console
+	elif [ -n $saved_encrypted_pass ] && [ $encrypted_pass != $saved_encrypted_pass ] && 
 	  [ -f /root/.reapply_due_to_upgrade ]; then
 		echo "  Setting root password from password saved in config" > /dev/console
 		sed -i -e 's|"${encrypted_pass}"|"${saved_encrypted_pass}"|' /etc/shadow
@@ -1328,9 +1329,11 @@ rootchecks() {
 		echo "  Root password detected" > /dev/console
 	elif [ $encrypted_pass == $saved_encrypted_pass ]; then
 		echo "  Changed root password detected!" > /dev/console
-	elif [ $encrypted_pass != $saved_encrypted_pass ]; then
+	fi
+	if [ $encrypted_pass != $saved_encrypted_pass ]; then
 		echo "  New password detected!" > /dev/console
-		save_root_encrypt_pass
+		echo "  Storing encrypted password..." > /dev/console
+		uci set modgui.var.encrypted_pass=$encrypted_pass
 	fi
 
 	logger_command "Setting dropbear settings"
