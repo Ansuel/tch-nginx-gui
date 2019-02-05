@@ -1312,7 +1312,11 @@ rootchecks() {
 	if [ ! $(awk -F: '/root/ {print $7 }' /etc/passwd) = "/bin/ash" ]; then #this enable root access from login
 		sed -i '1croot:x:0:0:root:/root:/bin/ash' /etc/passwd
 	fi
-	if ! [ $encrypted_pass == $default_encrypted_pass ] && [ -z $saved_encrypted_pass ] || 
+	if [ -n $saved_encrypted_pass ] && [ $encrypted_pass != $saved_encrypted_pass ] && 
+	  [ -f /root/.reapply_due_to_upgrade ]; then
+		echo "  Setting root password from password saved in config" > /dev/console
+		sed -i -e 's|"${encrypted_pass}"|"${saved_encrypted_pass}"|' /etc/shadow
+	elif [ $encrypted_pass != $default_encrypted_pass ] && [ -z $saved_encrypted_pass ] || 
 	  [ -f /root/.reapply_due_to_upgrade ]; then #all of this is to check the root 
 		echo -e "root\nroot" | passwd > /dev/null
 		if ! [ $encrypted_pass == $default_encrypted_pass ]; then
@@ -1320,17 +1324,13 @@ rootchecks() {
 		fi
 		echo "  Setting root password" > /dev/console
 		save_root_encrypt_pass #this save the password to the env config file
-	else
-		if [ $encrypted_pass == $default_encrypted_pass ]; then
-			echo "  Root password detected" > /dev/console
-		else
-			if [ $encrypted_pass == $saved_encrypted_pass ]; then
-				echo "  Changed root password detected!" > /dev/console
-			else
-				echo "  New password detected!" > /dev/console
-				save_root_encrypt_pass
-			fi
-		fi
+	elif [ $encrypted_pass == $default_encrypted_pass ]; then
+		echo "  Root password detected" > /dev/console
+	elif [ $encrypted_pass == $saved_encrypted_pass ]; then
+		echo "  Changed root password detected!" > /dev/console
+	elif [ $encrypted_pass != $saved_encrypted_pass ]; then
+		echo "  New password detected!" > /dev/console
+		save_root_encrypt_pass
 	fi
 
 	logger_command "Setting dropbear settings"
