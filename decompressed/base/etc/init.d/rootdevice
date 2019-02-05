@@ -1330,6 +1330,8 @@ rootchecks() {
 	elif [ $encrypted_pass == $saved_encrypted_pass ]; then
 		echo "  Changed root password detected!" > /dev/console
 	fi
+	#Redefine encrypted_pass as this can change after the shadow check
+	encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
 	if [ $encrypted_pass != $saved_encrypted_pass ]; then
 		echo "  New password detected!" > /dev/console
 		echo "  Storing encrypted password..." > /dev/console
