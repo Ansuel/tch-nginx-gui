@@ -28,21 +28,35 @@ function M.load(filename)
 	local orig, trans, multi, multistring = {}, {}, {}, {}
 	local plural_String = false
 	local nstrings = 0
+	local empty_trans = false
 	for line in f_in:lines() do
 		if line == "" or line:match("^msg[A-Z]+%s") then
 			if orig[1] then
 				nstrings = nstrings + 1
 			end
 			if trans[1] then
-				moStrings[concat(orig)] = concat(trans)
+				if not ( concat(trans) == "" ) then
+					moStrings[concat(orig)] = concat(trans)
+				else
+					empty_trans = true
+				end
 			end
 			if multi[1] then
 				if multistring[1] then
-					multi[#multi+1] = concat(multistring)
-					multistring = {}
+					if not ( concat(multistring) == "" ) then
+						multi[#multi+1] = concat(multistring)
+						multistring = {}
+					else
+						empty_trans = true
+					end
 				end
-				moStrings[concat(orig)] = multi
-				multi = {}
+				if ( empty_trans == false ) then
+					moStrings[concat(orig)] = multi
+					multi = {}
+				end
+			end
+			if ( empty_trans == true ) then
+				nstrings = nstrings - 1
 			end
 			plural_String = false
 			check_multiline = ""
