@@ -146,7 +146,7 @@ removeDuplicateEntry(usbpart_data)
       html[#html+1] = "<fieldset><legend>" .. T"Printer Information" .. "</legend>"
       if content.printersharing_enabled == '1' then
         if content_samba.samba_enabled == '1' then
-          html[#html+1] = format("<div class=\"simple-desc span4\">"..T"To connect: \\\\%s\\ or \\\\%s\\".."</div>",content_samba.localdevIP,content_samba.hostname)
+          html[#html+1] = format("<div class=\"simple-desc span4\">"..T"To connect: \\\\%s\\ or \\\\%s\\ ".."</div>",content_samba.localdevIP,content_samba.hostname)
         else
           html[#html+1] = format("<div class=\"simple-desc span4\">"..T"SMB/CIFS is disabled".."</div>")
         end
