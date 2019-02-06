@@ -1304,6 +1304,14 @@ rootchecks() {
 	default_encrypted_pass='$5liEJpfo7NYE'
 	saved_encrypted_pass=$(uci -q get modgui.var.encrypted_pass)
 	
+	store_pass_in_uci() {
+		#Redefine encrypted_pass as this can change after the shadow check
+		encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
+		echo "  New password detected!" > /dev/console
+		echo "  Storing encrypted password..." > /dev/console
+		uci set modgui.var.encrypted_pass=$encrypted_pass
+	}
+	
 	logger_command "Save root password if modified"
 	if [ ! $(awk -F: '/root/ {print $7 }' /etc/passwd) = "/bin/ash" ]; then #this enable root access from login
 		sed -i '1croot:x:0:0:root:/root:/bin/ash' /etc/passwd
@@ -1313,18 +1321,21 @@ rootchecks() {
 		sed -i -e 's|"${encrypted_pass}"|"${old_encrypted_pass}"|' /etc/shadow
 		rm /etc/shadow_old
 		echo "  Restoring old root password as this is a firmware upgrade!" > /dev/console
-	elif [ -n $saved_encrypted_pass ] && [ $encrypted_pass != $saved_encrypted_pass ] && 
-	  [ -f /root/.reapply_due_to_upgrade ]; then
+	elif [ -n $saved_encrypted_pass ] && [ -f /root/.reapply_due_to_upgrade ]; then
+	  if [ $encrypted_pass != $saved_encrypted_pass ]; then
 		echo "  Setting root password from password saved in config" > /dev/console
 		sed -i -e 's|"${encrypted_pass}"|"${saved_encrypted_pass}"|' /etc/shadow
-	elif [ $encrypted_pass != $default_encrypted_pass ] && [ -z $saved_encrypted_pass ] || 
+	  fi
+	elif [ $encrypted_pass != $default_encrypted_pass ] || 
 	  [ -f /root/.reapply_due_to_upgrade ]; then #all of this is to check the root 
 		echo -e "root\nroot" | passwd > /dev/null
-		if ! [ $encrypted_pass == $default_encrypted_pass ]; then
+		#Redefine encrypted_pass as this can change after the shadow check
+		encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
+		if [ $encrypted_pass != $default_encrypted_pass ]; then
 			sed -i -e 's|"${encrypted_pass}"|"${default_encrypted_pass}"|' /etc/shadow
 		fi
 		echo "  Setting root password" > /dev/console
-		save_root_encrypt_pass #this save the password to the env config file
+		store_pass_in_uci
 	elif [ $encrypted_pass == $default_encrypted_pass ]; then
 		echo "  Root password detected" > /dev/console
 	elif [ $encrypted_pass == $saved_encrypted_pass ]; then
@@ -1332,10 +1343,10 @@ rootchecks() {
 	fi
 	#Redefine encrypted_pass as this can change after the shadow check
 	encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
-	if [ $encrypted_pass != $saved_encrypted_pass ]; then
-		echo "  New password detected!" > /dev/console
-		echo "  Storing encrypted password..." > /dev/console
-		uci set modgui.var.encrypted_pass=$encrypted_pass
+	if [ -z $saved_encrypted_pass ]; then
+		store_pass_in_uci
+	elif [ $encrypted_pass != $saved_encrypted_pass ]; then
+		store_pass_in_uci
 	fi
 
 	logger_command "Setting dropbear settings"
@@ -1346,6 +1357,7 @@ rootchecks() {
 	uci set dropbear.@dropbear[0].enable='1'
 
 	uci commit dropbear
+	uci commit modgui
 
 	logger_command "Restarting dropbear"
 	/etc/init.d/dropbear restart > /dev/null
@@ -1831,7 +1843,9 @@ root() {
 	logger_command "Resetting cwmp and watchdog"
 	
 	#Remove reapply file as the root process after upgrade has finished.
-	rm /root/.reapply_due_to_upgrade
+	if [ -f /root/.reapply_due_to_upgrade ]; then
+		rm /root/.reapply_due_to_upgrade
+	fi
 }
 
 check_bank() {
