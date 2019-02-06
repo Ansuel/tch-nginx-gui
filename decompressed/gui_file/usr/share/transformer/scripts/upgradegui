@@ -42,6 +42,7 @@ ${NC}
 curl="/usr/bin/curl -k -s"
 bzcat=/usr/bin/bzcat
 tar=/bin/tar
+rootdevice_call="debug"
 
 if [ "$1" ]; then
 	if [ $1 == "SetTime" ]; then
@@ -68,6 +69,11 @@ if [ "$1" ]; then
 			# Enabling alert for the gui about the autoupgrade
 			uci set modgui.gui.autoupgradeview=auto
 		fi
+	fi
+	
+	if [ $1 == "GuiRequest" ]; then
+		#upgradegui requested by gui button... Call reduced rootdevice
+		rootdevice_call="force"
 	fi
 else
 	# Enabling alert for the gui about the manual upgrade
@@ -264,6 +270,6 @@ fi
 
 logger -s -t "Upgrade Script" "Running rootdevice script"
 # Run init.d script
-/etc/init.d/rootdevice force
+/etc/init.d/rootdevice $rootdevice_call
 ubus send fwupgrade '{"state":"done"}'
 logger -s -t "Upgrade Script" "Upgrade Done"

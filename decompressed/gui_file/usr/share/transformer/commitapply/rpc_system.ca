@@ -3,7 +3,7 @@
 ^rpc%.system%.switchover cat /proc/banktable/notbooted > /proc/banktable/active; reboot
 ^rpc%.system%.resetgui /usr/share/transformer/scripts/resetgui.sh
 ^rpc%.system%.removeroot /usr/share/transformer/scripts/hardreset.sh
-^rpc%.system%.modgui%.upgradegui%.start /usr/share/transformer/scripts/upgradegui
+^rpc%.system%.modgui%.upgradegui%.start /usr/share/transformer/scripts/upgradegui GuiRequest
 ^rpc%.system%.checkver /usr/share/transformer/scripts/checkver
 ^rpc%.system%.transfer_bank1 /usr/share/transformer/scripts/transfer_bank1.sh
 ^rpc%.system%.modgui%.debuglog%.start /usr/share/transformer/scripts/generate-debug-file.sh dev
