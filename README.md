@@ -53,6 +53,8 @@ bzcat /tmp/GUI.tar.bz2 | tar -C / -xvf -
 /etc/init.d/rootdevice force
 ```
 
+You can find all of the autobuilt GUI versions at this link: https://github.com/Ansuel/gui-dev-build-auto
+
 If you get an error during the download process or you have no Internet/WAN connection on the device, just manually download the GUI.tar.bz2 file and put in /tmp folder via SCP then execute the other (non curl) commands listed above.
 
 If you find a bug, please report it using GitHub's Issue feature making sure you attach a photo and the log (Run: logread).
