@@ -1321,10 +1321,15 @@ rootchecks() {
 		sed -i -e 's|"${encrypted_pass}"|"${old_encrypted_pass}"|' /etc/shadow
 		rm /etc/shadow_old
 		echo "  Restoring old root password as this is a firmware upgrade!" > /dev/console
-	elif [ -n $saved_encrypted_pass ] && [ -f /root/.reapply_due_to_upgrade ]; then
+	elif [ -n $saved_encrypted_pass ]; then
 	  if [ $encrypted_pass != $saved_encrypted_pass ]; then
-		echo "  Setting root password from password saved in config" > /dev/console
-		sed -i -e 's|"${encrypted_pass}"|"${saved_encrypted_pass}"|' /etc/shadow
+		if [ -f /root/.reapply_due_to_upgrade ]; then
+			echo "  Setting root password from password saved in config" > /dev/console
+			sed -i -e 's|"${encrypted_pass}"|"${saved_encrypted_pass}"|' /etc/shadow
+		else
+			echo "  Shadow contains different pass than saved one. Save it!" > /dev/console
+			store_pass_in_uci
+		fi
 	  fi
 	elif [ $encrypted_pass != $default_encrypted_pass ] || 
 	  [ -f /root/.reapply_due_to_upgrade ]; then #all of this is to check the root 
@@ -1341,11 +1346,8 @@ rootchecks() {
 	elif [ $encrypted_pass == $saved_encrypted_pass ]; then
 		echo "  Changed root password detected!" > /dev/console
 	fi
-	#Redefine encrypted_pass as this can change after the shadow check
-	encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
+
 	if [ -z $saved_encrypted_pass ]; then
-		store_pass_in_uci
-	elif [ $encrypted_pass != $saved_encrypted_pass ]; then
 		store_pass_in_uci
 	fi
 
