@@ -824,6 +824,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     ngx.print(html)
     ngx.print('\
   </form>\
+ </fieldset>\
 </div>\
 ');
 ngx.print('\
@@ -832,18 +833,13 @@ ngx.print('\
   var refreshTimeOut = 5000;\
   var refreshDelay = 3000;\
   var target = $(".modal form").attr("action");\
-  var valeur = 2;\
 \
   function wait_for_webserver_running() {\
     $.ajax({ url: "/", timeout: refreshTimeOut })\
     .done(function(data) {\
-	  valeur = 100;\
-	  $(".bar").css("width", valeur+"%").attr("aria-valuenow", valeur);\
       window.location.href = "/";\
     })\
     .fail(function() {\
-	  valeur += 5.5;\
-      $(".bar").css("width", valeur+"%").attr("aria-valuenow", valeur);\
       window.setTimeout(wait_for_webserver_running, refreshDelay);\
     });\
   }\
@@ -1079,7 +1075,7 @@ ngx.print('\
     });\
     return false;\
   });\
-})();\
+}());\
 </script>\
 ');  ngx.print(ui_helper.createFooter())   ngx.print('\
 ');

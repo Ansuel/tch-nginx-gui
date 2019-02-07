@@ -1548,12 +1548,13 @@ disable_upload_coredump() {
 	fi
 }
 
-remove_nginx_conf() {
-	#Some default config in nginx.conf search for some file
-	#This file most of the times are missing or empty...
-	#remove the check of this files.
-	if [ "$( cat /etc/nginx/nginx.conf | grep "ui_server.conf" )" ]; then
-		sed -i '/ui_server.conf/d' /etc/nginx/nginx.conf
+restore_nginx() {
+	#This file contain settings specific for gui
+	#For example
+	#client_max_body_size
+	if [ ! -f /etc/nginx/ui_server.conf ]; then
+		#Execute defualt script to set this value
+		/rom/etc/uci-defaults/tch_0080-nginx
 	fi
 }
 
@@ -1711,8 +1712,8 @@ root() {
 	wan_sensing_clean #Wansensing clean utility
 	logger_command "Disabling coredump function..."
 	disable_upload_coredump
-	logger_command "Cleaning nginx from deadlock config..."
-	remove_nginx_conf
+	logger_command "Restoring nginx additional option if needed..."
+	restore_nginx
 
 	logger_command "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not

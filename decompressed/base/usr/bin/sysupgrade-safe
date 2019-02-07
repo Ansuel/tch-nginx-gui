@@ -10,6 +10,7 @@ while [ -n "$1" ]; do
                 -S|--skip-signature) SKIP_SIGNATURE=1;;
                 -o) REBOOT_OPTION="-o";;
                 --gui) GUI_OPTION=--gui;;
+				--reset) RESET_CONFIG="-n";;
                 -*)
                         echo "Invalid option: $1"
                         exit 1
@@ -29,6 +30,7 @@ if [ -z $UPGRADE_URL ]; then
 	echo "  [-S|--skip-signature] Disables signature checking"
 	echo "  [-o] Only program inactive bank, do not activate, no reboot"
 	echo "  [--gui] signal an upgrade form the web UI. This will prevent nginx form being killed."
+	echo "  [--reset] Reset config file on upgrade."
 	exit 1
 fi
 
@@ -37,7 +39,7 @@ if [ $SKIP_SIGNATURE -eq 1 ]; then
 	SIGNATURE_OPTION=--nosig
 fi
 
-sysupgrade --safe ${REBOOT_OPTION} ${GUI_OPTION} ${SIGNATURE_OPTION} "${UPGRADE_URL}"
+sysupgrade --safe ${REBOOT_OPTION} ${GUI_OPTION} ${SIGNATURE_OPTION} ${RESET_CONFIG} "${UPGRADE_URL}"
 
 if [ $? -ne 0 ]                          
 then                           
