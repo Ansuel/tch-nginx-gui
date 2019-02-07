@@ -1558,12 +1558,26 @@ restore_nginx() {
 	fi
 }
 
+check_tmp_permission() {
+	#Tmp MUST be always with permission 777
+	#This is ram and is used by all process to write file so everyone should be able to write here
+	#Or at leat is whay ngix needs to permit a stream between gui and the sysupgrade
+	#The gui has a virtual tmp dir in it and this caused the overwrite of the permission.
+	#On the gui zip che tmp dir is now with 777 permission but let's make sure this is actually applied.
+	#drwxrwxrwx is how ls display 777 permission
+	if [ $(ls -ld /tmp | awk '{ print $1 }') != "drwxrwxrwx" ]; then
+		chmod 777 /tmp
+	fi
+}
+
 root() {
 
 	logger -s -t 'Root Script' "Rooting in progress..."
 
 	#This moves every garbage created before 8.11.49 in env to modgui config file
 	move_env_var
+	
+	check_tmp_permission
 	
 	#THIS CHECK DEVICE TYPE AND INSTALL SPECIFIC FILE
 	device_type="$(uci get -q env.var.prod_friendly_name)"
