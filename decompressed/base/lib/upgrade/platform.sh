@@ -320,9 +320,16 @@ restore_config_File() {
 		echo "Found Config file in ram!"
 		if [ ! -d /overlay/homeware_conversion ]; then
 			mkdir /overlay/homeware_conversion
+			mkdir /overlay/homeware_conversion/etc
+			mkdir /overlay/homeware_conversion/etc/config
 		fi
-		cp $config_tmp/* /overlay/homeware_conversion/
-		cp /tmp/shadow_file/shadow /overlay/$target_bank/shadow_old
+		cp $config_tmp/* /overlay/homeware_conversion/etc/config/
+		cp /tmp/shadow_file/shadow /overlay/homeware_conversion/etc/
+		if [ "$SWITCHBANK" -eq 1 ]; then
+			cp /tmp/shadow_file/shadow /overlay/$target_bank/shadow_old
+		else
+			cp /tmp/shadow_file/shadow /overlay/$running_bank/shadow_old
+		fi
 		echo "Config file restored to homeware conversion dir! File will be updated on next boot."
 	fi
 }
