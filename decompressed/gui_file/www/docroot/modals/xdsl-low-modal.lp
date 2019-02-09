@@ -69,7 +69,7 @@ if ngx.var.request_method == "POST" then
                local clean = proxy.del(v.found)
          end
       end
-	  proxy.set("rpc.system.refreshdriver", "1")
+	  proxy.set("rpc.system.modgui.utility.refreshdriver", "1")
       proxy.apply()
     end
 end

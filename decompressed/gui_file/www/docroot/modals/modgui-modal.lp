@@ -116,13 +116,13 @@ if ngx.req.get_method() == "POST" then
   end
   local action = ngx.req.get_post_args().action
   if action == "system_reset_gui" then
-    return resetreboot("rpc.system.resetgui", "1")
+    return resetreboot("rpc.system.modgui.utility.resetgui", "1")
   end
   if action == "system_upgrade_gui" then
 	return resetreboot("rpc.system.modgui.upgradegui.start", "1")
   end
   if action == "system_remove_root" then
-	return resetreboot("rpc.system.removeroot", "1")
+	return resetreboot("rpc.system.modgui.utility.removeroot", "1")
   end
 end
 

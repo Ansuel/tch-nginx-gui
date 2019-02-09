@@ -61,6 +61,61 @@ SYSTEM_MODGUI_UPGRADEGUI_.set = {
 
 register(SYSTEM_MODGUI_UPGRADEGUI_)
 
+local SYSTEM_MODGUI_UTILITY_ = {
+  objectType = {
+    name = 'rpc.system.modgui.utility.',
+    access = 'readOnly',
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      resetgui = {
+	    access = "readWrite",
+	    type = "boolean",
+	  },   
+	  upgradegui = {
+	    access = "readWrite",
+	    type = "boolean",
+	  },       
+	  checkver = {
+	    access = "readWrite",
+	    type = "boolean",
+	  },       
+	  removeroot = {
+	    access = "readWrite",
+	    type = "boolean",
+	  },   
+	  refreshdriver = {
+	    access = "readWrite",
+	    type = "boolean",
+	  },   
+	  transfer_bank1 = {
+	    access = "readWrite",
+	    type = "boolean",
+	  },
+	  copy_bank = {
+	    access = "readWrite",
+	    type = "boolean",
+	  },
+    }
+  },
+  get = {
+	resetgui = "0",
+	upgradegui = "0",
+	checkver = "0",
+	removeroot = "0",
+	transfer_bank1 = "0",
+	refreshdriver = "0",
+	copy_bank = "0",
+  },
+  set = function(mapping, paramName, paramValue)
+		  if paramValue == "1" then
+		  	commitapply:newset("rpc.system.modgui.upgradegui." .. paramName)
+		  end
+		end
+}
+
+register(SYSTEM_MODGUI_UTILITY_)
+
 local SYSTEM_MODGUI_DEBUGLOG_ = {
   objectType = {
     name = 'rpc.system.modgui.debuglog.',
