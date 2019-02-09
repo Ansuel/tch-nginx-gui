@@ -847,6 +847,9 @@ msgstr "Diagnose DSL"
 msgid "Diagnostics Ping&Trace"
 msgstr "Diagnose Ping&Trace"
 
+msgid "Port Mirror"
+msgstr "Port-Spiegelung"
+
 msgid "Diagnostics Port Mirror"
 msgstr "Diagnose Port-Spiegelung"
 
