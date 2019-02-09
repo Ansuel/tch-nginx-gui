@@ -3256,6 +3256,9 @@ msgstr "GUI Version %s"
 msgid "GUI Settings & Utility"
 msgstr "GUI Einstellungen & Hilfsfunktionen"
 
+msgid "Check this to remove config after firmware update. This won't remove root. It is advertised to check this if you are downgrading the firmware"
+msgstr "Kreuzen Sie dies an, um die Konfiguration nach der Firmware-Aktualisierung  zu entfernen. Dies wird root erhalten. Dies dient dazu, die Firmware auf eine niedrigere Version zu aktualisieren"
+
 msgid "<strong %s>%d Wireless Control</strong> rule defined"
 msgid_plural "<strong %s>%d Wireless Control</strong> rules defined"
 msgstr[0] "<strong %s>%d Wireless Steuerungs</strong> Regel definiert"
