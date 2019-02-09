@@ -3209,7 +3209,7 @@ msgid "WanSensing State"
 msgstr "WanSensing Zustand"
 
 msgid "To Port Forward ranges use <b>':'</b>. For example 500:505."
-msgstr "Benutzen Sie <b>\":\"</b> für Bereiche zur Port-Weiterleitung, z.B. 500:505."
+msgstr "Benutzen Sie <b>':'</b> für Bereiche zur Port-Weiterleitung, z.B. 500:505."
 
 msgid "DSL Connection Status"
 msgstr "DSL-Verbindungsstatus"
@@ -3218,12 +3218,7 @@ msgid "1. Max recommened Packet Number is dynamic (uses half of free memory) and
 msgstr "1. Die maximal empfohlene Packet-Anzahl ist dynamisch (verwendet die Hälfte des freien Speichers) und kann ungenau sein.<br/>2. Hardware-Offload wird während der Aufnahme auf Plattformen mit Flow-Cache deaktiviert!<br/>3. 'Download' ist nicht verfügbar, wenn nichts erfasst wurde.<br/>4. 'Clean' wird die empfangene Datei löschen, um den Speicherverbrauch zu reduzieren."
 
 msgid "DSLAM Firmware"
-msgstr "DSLAM Firmware Version"
-
-msgid "<strong %s>%d Wireless Control</strong> rule defined"
-msgid_plural "<strong %s>%d Wireless Control</strong> rules defined"
-msgstr[0] "<strong %s>%d Wireless Regel</strong> definiert"
-msgstr[1] "<strong %s>%d Wireless Regeln</strong> definiert"
+msgstr "DSLAM Firmware"
 
 msgid "WanSensing sets the connection mode automatically. Disable this to set the connection mode manually. After saving the changes the connection options will be shown."
 msgstr "WanSensing setzt den Verbindungsmodus automatisch. Deaktivieren Sie dies, wenn Sie den Verbindungsmodus manuell wählen wollen. Nachdem die Einstellung gespeichert wurde, werden die möglichen Modi angezeigt."
@@ -3254,3 +3249,9 @@ msgstr "GUI Version %s"
 
 msgid "GUI Settings & Utility"
 msgstr "GUI Einstellungen & Hilfsfunktionen"
+
+msgid "<strong %s>%d Wireless Control</strong> rule defined"
+msgid_plural "<strong %s>%d Wireless Control</strong> rules defined"
+msgstr[0] "<strong %s>%d Wireless Steuerungs</strong> Regel definiert"
+msgstr[1] "<strong %s>%d Wireless Steuerungs</strong> Regeln definiert"
+
