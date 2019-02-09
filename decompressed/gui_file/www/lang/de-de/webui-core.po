@@ -1690,6 +1690,9 @@ msgstr "NA"
 msgid "NAT Helpers (ALG's)"
 msgstr "NAT Helfer (ALGs)"
 
+msgid "NAT Helpers"
+msgstr "NAT Helfer"
+
 msgid "NAT-PMP Enabled"
 msgstr "NAT-PMP eingeschaltet"
 
