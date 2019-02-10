@@ -73,13 +73,15 @@ EOF
 }
 
 set_transformer() {
-	lua -e 'require("datamodel").set("rpc.system.modgui.upgradegui.log",$1)'
+	lua -e 'require("datamodel").set($2,$1)'
 }
 
 logger_command() {
 	if [ $debug  -eq 1 ]; then
-		set_transformer "$1"
 		logger -s -t "Root Script" "$1"
+	fi
+	if [ -z $2 ]; then
+		set_transformer "$1" "rpc.system.modgui.upgradegui.log"
 	fi
 }
 
@@ -1620,12 +1622,13 @@ root() {
 		fi
 	fi
 
-	logger_command "Stopping nginx"
-	while [ "$(pgrep "nginx")" ]; do
-		if [ "$(pgrep "nginx")" ]; then
-			/etc/init.d/nginx stop 2>/dev/null
-		fi
-	done
+	#Not needed anymore.. the gui now show the log on the gui side
+	#logger_command "Stopping nginx"
+	#while [ "$(pgrep "nginx")" ]; do
+	#	if [ "$(pgrep "nginx")" ]; then
+	#		/etc/init.d/nginx stop 2>/dev/null
+	#	fi
+	#done
 
 	logger_command "Checking if we are on TIM configuration"
 	if [ $(uci -q get modgui.var.isp) ]; then
@@ -1838,17 +1841,21 @@ root() {
 	fi
 
 	check_gui_tmp
-	logger_command "Restarting transformer"
+
+	logger_command "Trafficmon inizialization"
+	trafficmon_support #support trafficmon
+
+	/etc/init.d/watchdog-tch start
+
+	logger_command "Resetting cwmp and watchdog"
+	
+	
+	#This should comunicate the gui that the upgrade has finished.
+	set_transformer("rpc.system.modgui.upgradegui.log","Finished")
+	
+	logger_command "Restarting transformer" ConsoleOnly
 	/etc/init.d/transformer restart
 	transformer-cli get uci.env.var.oui > /dev/null
-
-	nginx_count=0
-	while [ "$(curl 127.0.0.1 --max-time 20 -I -s | head -n 1 | cut -d$' ' -f2)" != "200" ] && [ $nginx_count -lt 3 ]; do
-		logger_command "Restarting nginx..."
-		/etc/init.d/nginx restart 2>/dev/null
-		sleep 5
-		nginx_count=$((nginx_count+1))
-	done
 
 	#This file is present only in newer build that don't suffer this strange bug
 	#if [ ! -f /usr/lib/lua/tch/logger.lua ]; then
@@ -1857,13 +1864,15 @@ root() {
 	#	logger_command "Restarting transformer a second time cause it's just shit..."
 	#	/etc/init.d/transformer restart
 	#fi
-
-	logger_command "Trafficmon inizialization"
-	trafficmon_support #support trafficmon
-
-	/etc/init.d/watchdog-tch start
-
-	logger_command "Resetting cwmp and watchdog"
+	
+	nginx_count=0
+	while [ "$(curl 127.0.0.1 --max-time 20 -I -s | head -n 1 | cut -d$' ' -f2)" != "200" ] && [ $nginx_count -lt 3 ]; do
+		logger_command "Restarting nginx..." ConsoleOnly
+		/etc/init.d/nginx restart 2>/dev/null
+		sleep 5
+		nginx_count=$((nginx_count+1))
+	done
+	
 	
 	#Remove reapply file as the root process after upgrade has finished.
 	if [ -f /root/.reapply_due_to_upgrade ]; then
