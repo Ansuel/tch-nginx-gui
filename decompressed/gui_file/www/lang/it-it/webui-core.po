@@ -3256,7 +3256,13 @@ msgid "GUI Settings & Utility"
 msgstr "Opzioni e utility GUI"
 
 msgid "Check this to remove config after firmware update.<br/>This won't remove root.<br/>It is advertised to check this if you are downgrading the firmware."
-msgstr "Selezionando questa opzione verrà rimosso la configurazione dopo l'aggiornamento firmware.<br/>Questo non rimuoverà il root.<br/>Seleziona questa opzione nel caso di downgrade del firmware."
+msgstr "Selezionando questa opzione verrà azzerata la configurazione dopo l'aggiornamento firmware.<br/>Questo non rimuoverà il root.<br/>Seleziona questa opzione nel caso di downgrade del firmware."
 
 msgid "Remove config file with upgrade"
-msgstr "Rimuovi configurazione con l'aggiornamento"
+msgstr "Rimuovi file configurazione dopo l'aggiornamento"
+
+msgid "Port Mirror"
+msgstr "Mirror porte"
+
+msgid "NAT Helpers"
+msgstr "Helper NAT"
