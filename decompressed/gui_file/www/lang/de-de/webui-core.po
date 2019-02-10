@@ -3254,3 +3254,9 @@ msgstr ""
 
 msgid "GUI Settings & Utility"
 msgstr ""
+
+msgid "Check this to remove config after firmware update.<br/>This won't remove root.<br/>It is advertised to check this if you are downgrading the firmware."
+msgstr ""
+
+msgid "Remove config file with upgrade"
+msgstr ""

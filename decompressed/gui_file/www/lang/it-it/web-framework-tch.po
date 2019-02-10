@@ -36,7 +36,7 @@ msgstr[0] "%d secondo"
 msgstr[1] "%d secondi"
 
 msgid "0 or 1 expected."
-msgstr "Inserire 0 o 1."
+msgstr "Inserisci 0 o 1."
 
 msgid "A WEP key of length 10 or 26 can only contain the hexadecimal digits."
 msgstr "Una chiave WEP di lunghezza 10 o 26 caratteri può contenere solo cifre esadecimali."
@@ -270,13 +270,13 @@ msgid "You tried to access an invalid line."
 msgstr "Tentativo di accesso ad una linea non valida."
 
 msgid "duplicate value"
-msgstr "duplica valore"
+msgstr "Duplica valore"
 
 msgid "help"
-msgstr "aiuto"
+msgstr "Aiuto"
 
 msgid "hide advanced"
-msgstr "nascondi opzioni avanzate"
+msgstr "Nascondi opzioni avanzate"
 
 msgid "refresh data"
 msgstr "Aggiorna dati"
