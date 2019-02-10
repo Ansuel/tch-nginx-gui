@@ -46,7 +46,7 @@ msgid "%s Mbps"
 msgstr "%s Mbps"
 
 msgid "1. Max Packet Number Recommened is dynamic and not accurate value (assume to use half of free memory).<br/>2. Acceleration disabled during TCPDump on platforms which supports flow cache!<br/>3. 'Download' will be invalid if nothing captured.<br/>4. 'Clean' will clean captured file to reduce memory consumption."
-msgstr "1. Maximal empfohlende Anzahl Pakete ist dynamisch und kein akkurater Wert (sie soll etwa den halben freien Speicher nutzen).<br/>2. Beschleunigung wird während TCPDump deaktiviert auf Plattformen, die 'flow cache' unterstützen!<br/>3. 'Download' funktioniert nicht, wenn nichts protokolliert wurde.<br/>4. 'Leeren' benutzen, um die Speichernutzung zu reduzieren."
+msgstr "1. Maximal empfohlende Anzahl Pakete ist dynamisch und kein fester Wert (dies nutzt etwa den halben freien Speicher).<br/>2. Beschleunigung wird während TCPDump deaktiviert auf Plattformen, die 'flow cache' unterstützen!<br/>3. 'Download' funktioniert nicht, wenn nichts protokolliert wurde.<br/>4. 'Leeren' benutzen, um die Speichernutzung zu reduzieren."
 
 msgid "10% of max Frequency in ASYNC mode"
 msgstr "10% der maximalen Frequenz im ASYNC-Modus"
@@ -2078,7 +2078,7 @@ msgid "Radius Accounting Server port"
 msgstr "Radius Verwaltung Server Port"
 
 msgid "Radius Accounting Server secret"
-msgstr ""
+msgstr "Radius Verwaltung Server Geheimnis"
 
 msgid "Radius Authentication Server IP"
 msgstr "Radius Authentifizierung Server IP"
@@ -3259,7 +3259,7 @@ msgid "Check this to remove config after firmware update.<br/>This won't remove 
 msgstr "Kreuzen Sie dies an, um die Konfiguration nach der Firmware-Aktualisierung zu entfernen.<br/>Dies wird root erhalten.<br/>Dies dient dazu, die Firmware auf eine niedrigere Version zu aktualisieren."
 
 msgid "Remove config file with upgrade"
-msgstr ""
+msgstr "Konfiguration nach Akualisierung entfernen"
 
 msgid "Port Mirror"
 msgstr "Port-Spiegelung"
