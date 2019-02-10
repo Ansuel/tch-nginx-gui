@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: webui-core\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-06-21 15:33+0200\n"
-"PO-Revision-Date: 2019-02-02 14:56+0100\n"
+"PO-Revision-Date: 2019-02-09 17:40+0100\n"
 "Last-Translator: Dr. Uwe Meyer-Gruhl\n"
 "Language-Team: none\n"
 "Language: de\n"
@@ -847,6 +847,9 @@ msgstr "Diagnose DSL"
 msgid "Diagnostics Ping&Trace"
 msgstr "Diagnose Ping&Trace"
 
+msgid "Port Mirror"
+msgstr "Port-Spiegelung"
+
 msgid "Diagnostics Port Mirror"
 msgstr "Diagnose Port-Spiegelung"
 
@@ -1687,6 +1690,9 @@ msgstr "NA"
 msgid "NAT Helpers (ALG's)"
 msgstr "NAT Helfer (ALGs)"
 
+msgid "NAT Helpers"
+msgstr "NAT Helfer"
+
 msgid "NAT-PMP Enabled"
 msgstr "NAT-PMP eingeschaltet"
 
@@ -2468,7 +2474,7 @@ msgid "Support site: "
 msgstr "Unterstützungs-Webseite "
 
 msgid "Switch connection mode"
-msgstr "Umschalten der Verbindungs-Modus"
+msgstr "Umschalten des Verbindungs-Modus"
 
 msgid "Switch the Remote/WAN port to a normal LAN port"
 msgstr "Umschalten des WAN-Ports auf einen normalen LAN Port"
@@ -3191,72 +3197,72 @@ msgid "Remove"
 msgstr "Entferne"
 
 msgid "Restore GUI"
-msgstr ""
+msgstr "GUI wiederherstellen"
 
 msgid "VDSL DSLAM Port"
-msgstr ""
+msgstr "VDSL DSLAM Port"
 
 msgid "Line Up"
-msgstr ""
+msgstr "Leitung aktiv"
 
 msgid "Line Down"
-msgstr ""
+msgstr "Leitung inaktiv"
 
 msgid "Switch the WAN port to a normal LAN port"
-msgstr ""
+msgstr "Umschalten des WAN-Ports auf einen normalen LAN Port"
 
 msgid "WanSensing State"
-msgstr ""
+msgstr "WanSensing Zustand"
 
 msgid "To Port Forward ranges use <b>':'</b>. For example 500:505."
-msgstr ""
+msgstr "Benutzen Sie <b>':'</b> für Bereiche zur Port-Weiterleitung, z.B. 500:505."
 
 msgid "DSL Connection Status"
-msgstr ""
+msgstr "DSL-Verbindungsstatus"
 
 msgid "1. Max recommened Packet Number is dynamic (uses half of free memory) and may not be accurate.<br/>2. Hardware offload disabled during capture on platforms with flow cache!<br/>3. 'Download' will be invalid if nothing was captured.<br/>4. 'Clean' will clean captured file to reduce memory consumption."
-msgstr ""
+msgstr "1. Die maximal empfohlene Packet-Anzahl ist dynamisch (verwendet die Hälfte des freien Speichers) und kann ungenau sein.<br/>2. Hardware-Offload wird während der Aufnahme auf Plattformen mit Flow-Cache deaktiviert!<br/>3. 'Download' ist nicht verfügbar, wenn nichts erfasst wurde.<br/>4. 'Clean' wird die empfangene Datei löschen, um den Speicherverbrauch zu reduzieren."
 
 msgid "DSLAM Firmware"
-msgstr ""
+msgstr "DSLAM Firmware"
+
+msgid "WanSensing sets the connection mode automatically. Disable this to set the connection mode manually. After saving the changes the connection options will be shown."
+msgstr "WanSensing setzt den Verbindungsmodus automatisch. Deaktivieren Sie dies, wenn Sie den Verbindungsmodus manuell wählen wollen. Nachdem die Einstellung gespeichert wurde, werden die möglichen Modi angezeigt."
+
+msgid "NotPresent"
+msgstr "Nicht verfügbar"
+
+msgid "Search For connections..."
+msgstr "Suche nach Verbindungen..."
+
+msgid "Up"
+msgstr "Aktiv"
+
+msgid "Down"
+msgstr "Inaktiv"
+
+msgid "GUI is outdated"
+msgstr "GUI ist veraltet"
+
+msgid "GUI is updated"
+msgstr "GUI ist aktuell"
+
+msgid "GUI Settings"
+msgstr "GUI Einstellungen"
+
+msgid "GUI Version %s"
+msgstr "GUI Version %s"
+
+msgid "GUI Settings & Utility"
+msgstr "GUI Einstellungen & Hilfsfunktionen"
+
+msgid "Check this to remove config after firmware update.<br/>This won't remove root.<br/>It is advertised to check this if you are downgrading the firmware."
+msgstr "Kreuzen Sie dies an, um die Konfiguration nach der Firmware-Aktualisierung  zu entfernen. Dies wird root erhalten. Dies dient dazu, die Firmware auf eine niedrigere Version zu aktualisieren"
 
 msgid "<strong %s>%d Wireless Control</strong> rule defined"
 msgid_plural "<strong %s>%d Wireless Control</strong> rules defined"
-msgstr[0] ""
-msgstr[1] ""
-
-msgid "WanSensing sets the connection mode automatically. Disable this to set the connection mode manually. After saving the changes the connection options will be shown."
-msgstr ""
-
-msgid "NotPresent"
-msgstr ""
-
-msgid "Search For connections..."
-msgstr ""
-
-msgid "Up"
-msgstr ""
-
-msgid "Down"
-msgstr ""
-
-msgid "GUI is outdated"
-msgstr ""
-
-msgid "GUI is updated"
-msgstr ""
-
-msgid "GUI Settings"
-msgstr ""
-
-msgid "GUI Version %s"
-msgstr ""
-
-msgid "GUI Settings & Utility"
-msgstr ""
-
-msgid "Check this to remove config after firmware update.<br/>This won't remove root.<br/>It is advertised to check this if you are downgrading the firmware."
-msgstr ""
+msgstr[0] "<strong %s>%d Wireless Steuerungs</strong> Regel definiert"
+msgstr[1] "<strong %s>%d Wireless Steuerungs</strong> Regeln definiert"
 
 msgid "Remove config file with upgrade"
 msgstr ""
