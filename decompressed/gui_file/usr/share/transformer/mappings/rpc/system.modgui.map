@@ -1,6 +1,4 @@
 local logger = require("transformer.logger")
-local log = logger.new("rpc.system.config.")
-local lfs = require("lfs")
 local commitapply = commitapply
 
 local SYSTEM_MODGUI_ = {
@@ -23,39 +21,59 @@ local SYSTEM_MODGUI_UPGRADEGUI_ = {
     maxEntries = 1,
     parameters = {
       state = {
-        access = "readOnly",
+        access = "readWrite",
         type = "string",
         enumeration = {
           "In Progress",
           "Not started",
+		  "Finished",
         },
       },
       start = {
         access = "readWrite",
         type = "boolean",
-      }
+      },
+	  log = {
+        access = "readWrite",
+        type = "string",
+      },
     }
   }
 }
+
+local upgradegui = {}
 
 SYSTEM_MODGUI_UPGRADEGUI_.get = {
   start = "0",
   state = function(mapping, param)
 	local progress_status = io.open("/root/.check_process","r")
-	if progress_status then
+	if upgradegui.state then
+		return upgradegui.state
+	elseif progress_status then
 		progress_status:close()
 		return "In Progress"
-	else
-		return "Not started"
 	end
+	
+	return "Not started"
+  end,
+  log = function(mapping, param)
+	return upgradegui.log or ""
   end,
 }
 
 SYSTEM_MODGUI_UPGRADEGUI_.set = {
+	state = function(mapping, paramName, paramValue)  
+	if paramValue == "Finished" then
+        upgradegui.state = paramValue
+    end
+  end,
 	start = function(mapping, paramName, paramValue)  
 	if paramValue == "1" then
         commitapply:newset("rpc.system.modgui.upgradegui." .. paramName)
     end
+  end,
+	log = function(mapping, paramName, paramValue)
+	  upgradegui.log = paramValue
   end,
 }
 
