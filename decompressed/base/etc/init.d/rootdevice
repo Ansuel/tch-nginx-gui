@@ -72,8 +72,13 @@ cat << EOF > /dev/console
 EOF
 }
 
+set_transformer() {
+	lua -e 'require("datamodel").set("rpc.system.modgui.upgradegui.log",$1)'
+}
+
 logger_command() {
 	if [ $debug  -eq 1 ]; then
+		set_transformer "$1"
 		logger -s -t "Root Script" "$1"
 	fi
 }
