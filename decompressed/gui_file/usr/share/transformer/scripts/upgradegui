@@ -218,8 +218,9 @@ else
 	logger -s -t "Upgrade Script" "Found file in /tmp dir... Except offline upgrade!"
 fi
 
-logger -s -t "Upgrade Script" "Stopping nginx..."
-/etc/init.d/nginx stop
+#NOT NEEDED ANYMORE
+#logger -s -t "Upgrade Script" "Stopping nginx..."
+#/etc/init.d/nginx stop
 
 logger -s -t "Upgrade Script" "Cleaning www dir"
 #clean old www dir
