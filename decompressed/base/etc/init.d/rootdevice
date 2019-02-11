@@ -72,12 +72,22 @@ cat << EOF > /dev/console
 EOF
 }
 
+
+############TRANSFORMER UTILITY##################
 set_transformer() {
 	cmd="require('datamodel').set('"$1"','"$2"')"
 	lua -e "$cmd"
 }
 
+get_transformer() {
+	cmd="require('datamodel').get('"$1"')"
+	lua -e "$cmd"
+}
+#################################################
+
 log_progress=0
+restart_dnsmasq=0
+
 logger_command() {
 	if [ $debug  -eq 1 ]; then
 		logger -s -t "Root Script" "$1"
@@ -191,6 +201,7 @@ fix_dns_dhcp_bug() {
 	if [ $(uci get -q dhcp.odhcpd.maindhcp) == "1" ]; then
 		uci set dhcp.odhcpd.maindhcp="0"
 		/etc/init.d/odhcpd restart
+		restart_dnsmasq=1
 	fi
 	if [ ! $(pgrep "odhcpd") ]; then
 		/etc/init.d/odhcpd start
@@ -205,6 +216,7 @@ purify_from_tim() {
 	uci -q del modgui.var.ppp_mgmt
 	uci -q del network.wan_ipv6
 	uci -q del dhcp.dnsmasq.server
+	restart_dnsmasq=1
 }
 
 cumulative_check_gui() {
@@ -546,12 +558,26 @@ remove_https_check_cwmpd() {
 }
 
 add_telecom_stock_dns() {
-	uci set dhcp.dnsmasq.server='151.99.125.1'
+	if [ ! "$(uci get -q dhcp.dnsmasq.server)" ]; then
+		uci set dhcp.dnsmasq.server='151.99.125.1'
+		restart_dnsmasq=1
+	fi
 }
 
 check_dnsmasq_name() {
+	if [ "$(uci get -q dhcp.dnsmasq)" ]; then
+		if [ "$(uci get -q dhcp.dnsmasq)" != "dnsmasq" ]; then
+			uci set dhcp.dnsmasq=dnsmasq
+			restart_dnsmasq=1
+		fi
+	else
+		uci set dhcp.dnsmasq=dnsmasq
+		restart_dnsmasq=1
+	fi
 	if [ "$( uci show dhcp | grep dhcp.@dnsmasq )" ]; then
+		
 		uci rename dhcp.@dnsmasq[0]=dnsmasq
+		restart_dnsmasq=1
 	fi
 }
 
@@ -591,6 +617,8 @@ eco_param() {
 		uci set power.cpu=cpu
 		uci set power.cpu.cpuspeed='256'
 		uci set power.cpu.wait='1'
+		logger_command "Restart power init"
+		/etc/init.d/power restart
 	fi
 }
 
@@ -1310,6 +1338,11 @@ wan_sensing_clean() {
 }
 
 rootchecks() {
+
+	logger_command "Setting root flag"
+	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not
+	logger_command "Reset unlock bit"
+	uci set env.var.unlockedstatus='0'
 	
 	encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
 	default_encrypted_pass='$5liEJpfo7NYE'
@@ -1546,11 +1579,15 @@ move_env_var() {
 	fi
 }
 
-disable_upload_coredump() {
+disable_upload_coredump_and_reboot() {
 	#disable upload to tim server for coredump...
 	#This is a modified build so let's not full server with false coredump.
 	if [ $(uci get -q system.@coredump[0].action) != "ignore" ]; then
 		uci set system.@coredump[0].action="ignore"
+	fi
+	if [ $(uci get -q system.@coredump[0].reboot) != "0" ]; then
+		logger_command "Disable reboot after crash, this gives race condition..."
+		uci set system.@coredump[0].reboot='0'
 	fi
 	#Clean coredump
 	if [ "$(find /root -type f -name "*.core.*")" ]; then
@@ -1583,6 +1620,120 @@ check_tmp_permission() {
 	fi
 }
 
+check_isp_and_cwmp() {
+	if [ $(uci -q get modgui.var.isp) ]; then
+		curl_option="-m 5 -s -k"
+		if [ $(uci -q get modgui.var.isp) == "Other" ]; then #this disable cwmpd if it's not known ISP...
+			uci set cwmpd.cwmpd_config.state='0'
+			if [ $(uci get -q cwmpd.cwmpd_config.state) = "1" ]; then
+				if [ -f /var/run/cwmpd.pid ]; then
+					/etc/init.d/cwmpd stop
+				fi
+				/etc/init.d/cwmpd disable
+			fi
+		elif [ $(uci -q get modgui.var.isp) == "Tiscali" ]; then
+			uci set cwmpd.cwmpd_config.acs_url="http://webdirect.tr69.tiscali.it:8080/ftacs-basic/ACS"
+			uci set cwmpd.cwmpd_config.acs_user="technicolor"
+			uci set cwmpd.cwmpd_config.acs_pass="techn_tr69@"
+			uci commit cwmpd
+		elif [ $(uci -q get modgui.var.isp) == "TIM" ]; then
+			logger_command "TIM ISP detected, finding CWMP server..."
+			new_platform=https://regman-mon.interbusiness.it:10800/acs/
+			new_platform_bck=https://regman-bck.interbusiness.it:10501/acs/
+			unified_platform=https://regman-tl.interbusiness.it:10700/acs/ 
+			mgmt_platform=https://regman-tl.interbusiness.it:10500/acs/
+			if [ "$(curl "$curl_option" $new_platform)" ]; then
+				uci set cwmpd.cwmpd_config.acs_url=$new_platform
+			elif [ "$(curl "$curl_option" $new_platform_bck)" ]; then
+				uci set cwmpd.cwmpd_config.acs_url=$new_platform_bck
+			elif [ "$(curl "$curl_option" $unified_platform)" ]; then
+				uci set cwmpd.cwmpd_config.acs_url=$unified_platform
+			elif [ "$(curl "$curl_option" $mgmt_platform)" ]; then
+				uci set cwmpd.cwmpd_config.acs_url=$mgmt_platform
+			else
+				uci set cwmpd.cwmpd_config.acs_url="None"
+			fi
+			logger_command "CWMP Server detected: "$(uci get cwmpd.cwmpd_config.acs_url)
+			if [ $(uci get -q cwmpd.cwmpd_config.interface) != "wan" ]; then
+				uci set cwmpd.cwmpd_config.interface='wan'
+			fi
+			uci commit cwmpd
+			if [ $(uci get -q cwmpd.cwmpd_config.acs_url) == "None" ]; then
+				if [ "$(pgrep "cwmpd")" ]; then
+					/etc/init.d/cwmpd stop
+				fi
+			else
+				/etc/init.d/cwmpd enable
+				if [ ! "$(pgrep "cwmpd")" ]; then
+					/etc/init.d/cwmpd start
+				else
+					/etc/init.d/cwmpd restart
+				fi
+			fi
+		fi
+		if [ $(uci get -q modgui.var.isp) == "TIM" ]; then #this add specific config for TIM
+			add_TIM_ppp_specific
+			add_telecom_stock_dns
+		else
+			purify_from_tim
+		fi
+	fi
+}
+
+check_webui_config() {
+	if [ -f /etc/config/web_unlock ]; then
+		if [ ! $(uci get -q web.changelog) ] || [ ! $(uci get -q web.mmpbxstatisticsmodal) ] ; then
+			mv /etc/config/web /etc/config/web_back #backup of the stock web config
+			mv /etc/config/web_unlock /etc/config/web #apply unlocked universal config
+		else
+			rm /etc/config/web_unlock
+		fi
+	fi
+	if [ ! "$(uci get -q wireless.global.wifi_analyzer_disable)" ]; then
+		 if [ "$(uci get -q wireless.global.wifi_analyzer_disable)" != "0" ]; then
+			uci set wireless.global.wifi_analyzer_disable='0'
+		fi
+	fi
+}
+
+reapply_gui_after_reset() {
+	if [ -f /root/GUI.tar.bz2 ] && [ -s /root/GUI.tar.bz2 ]; then
+		logger_command "Resetting /www dir due to firmware upgrade..."
+		rm -r /www
+		bzcat /root/GUI.tar.bz2 | tar -C / -xf - www
+	fi
+}
+
+start_stop_nginx() {
+	while [ "$(pgrep "nginx")" ]; do
+		if [ -f /var/run/nginx.pid ]; then
+			kill -KILL $(cat /var/run/nginx.pid)
+			rm /var/run/nginx.pid
+		fi
+		for pid in $(pgrep nginx); do 
+			kill -KILL $pid
+		done
+		/etc/init.d/nginx stop 2>/dev/null
+	done
+	
+	nginx_count=0
+	while [ "$(curl 127.0.0.1 --max-time 20 -I -s | head -n 1 | cut -d$' ' -f2)" != "200" ] && [ $nginx_count -lt 5 ]; do
+		if [ $nginx_count -gt 3 ]; then
+			if [ -f /var/run/nginx.pid ]; then
+				kill -KILL $(cat /var/run/nginx.pid)
+				rm /var/run/nginx.pid
+			fi
+			for pid in $(pgrep nginx); do 
+				kill -KILL $pid
+			done
+		fi
+		logger_command "Restarting nginx..." ConsoleOnly
+		/etc/init.d/nginx restart 2>/dev/null
+		sleep 5
+		nginx_count=$((nginx_count+1))
+	done
+}
+
 root() {
 
 	logger -s -t 'Root Script' "Rooting in progress..."
@@ -1610,8 +1761,8 @@ root() {
 		logger_command "Removing specific file and resuming root process..."
 	fi
 
-	/etc/init.d/watchdog-tch stop
 	logger_command "Disable watchdog"
+	/etc/init.d/watchdog-tch stop
 
 	logger_command "Start rooting"
 	if [ ! -f /root/.check_process ]; then #this check if the placeholder exist
@@ -1619,41 +1770,11 @@ root() {
 	fi
 
 	if [ -f /root/.reapply_due_to_upgrade ]; then
-		if [ -f /root/GUI.tar.bz2 ] && [ -s /root/GUI.tar.bz2 ]; then
-			logger_command "Resetting /www dir due to firmware upgrade..."
-			rm -r /www
-			bzcat /root/GUI.tar.bz2 | tar -C / -xf - www
-		fi
-	fi
-
-	#Not needed anymore.. the gui now show the log on the gui side
-	#logger_command "Stopping nginx"
-	#while [ "$(pgrep "nginx")" ]; do
-	#	if [ "$(pgrep "nginx")" ]; then
-	#		/etc/init.d/nginx stop 2>/dev/null
-	#	fi
-	#done
-
-	logger_command "Checking if we are on TIM configuration"
-	if [ $(uci -q get modgui.var.isp) ]; then
-		if [ $(uci get -q modgui.var.isp) == "TIM" ]; then #this add specific config for TIM
-			add_TIM_ppp_specific
-			add_telecom_stock_dns
-		else
-			purify_from_tim
-		fi
+		reapply_gui_after_reset
 	fi
 
 	logger_command "Unlocking web interface if needed"
-	if [ -f /etc/config/web_unlock ]; then
-		if [ ! $(uci get -q web.changelog) ] || [ ! $(uci get -q web.mmpbxstatisticsmodal) ] ; then
-			mv /etc/config/web /etc/config/web_back #backup of the stock web config
-			mv /etc/config/web_unlock /etc/config/web #apply unlocked universal config
-		else
-			rm /etc/config/web_unlock
-		fi
-	fi
-
+	check_webui_config
 	logger_command "Check variant_friendly_name set"
 	check_variant_friendly_name
 	logger_command "Check and cleanup"
@@ -1681,7 +1802,6 @@ root() {
 	check_uci_gui_skin #check css
 	logger_command "Check if dnsmasq is names as we need it for the webui"
 	check_dnsmasq_name #check dnsmasq name in uci
-	uci set dhcp.dnsmasq=dnsmasq
 	logger_command "Check driver setting"
 	create_driver_setting #create diver setting if not present
 	logger_command "Check Dropbear config file"
@@ -1739,27 +1859,16 @@ root() {
 	logger_command "Trying to clean wansensing script from hardcoded interface..."
 	wan_sensing_clean #Wansensing clean utility
 	logger_command "Disabling coredump function..."
-	disable_upload_coredump
+	disable_upload_coredump_and_reboot
 	logger_command "Restoring nginx additional option if needed..."
 	restore_nginx
 
-	logger_command "Setting root flag"
-	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not
-	logger_command "Reset unlock bit"
-	uci set env.var.unlockedstatus='0'
-
-	logger_command "Disable reboot after crash, this gives race condition..."
-	uci set system.@coredump[0].reboot='0'
-
 	rootchecks #This check root availability
-
 
 	if [ $(cat /proc/banktable/booted) == "bank_1" ] && [ ! $(uci get -q modgui.var.bank_check) ]; then 
 		#this set bank_check bit if not present ONLY IN BANK_1, bank_2 value is set based on bank_1 value
 		uci set modgui.var.bank_check="1"
 	fi
-
-	[ -z "${device_type##*DGA413*}" ] && uci set wireless.global.wifi_analyzer_disable='0' #AGTEF specific
 
 	logger_command "Doing various check and generating hash..."
 	cumulative_check_gui #Handle strange installation
@@ -1779,87 +1888,35 @@ root() {
 
 	logger_command "Apply modification"
 	uci commit
+	
+	logger_command "Restarting dnsmasq if needed..."
+	if [ $restart_dnsmasq -eq 1 ]; then
+		killall dnsmasq
+		/etc/init.d/dnsmasq restart
+	fi
 
-	logger_command "Restart power init"
-	/etc/init.d/power restart
-
-	logger_command "Restarting dnsmasq"
-	killall dnsmasq
-	/etc/init.d/dnsmasq restart
-
-	rm /root/.check_process #we remove the placeholder as the process is complete
-	logger_command "Process done."
 	echo "  Process done. Your modem is now rooted!" > /dev/console
 
 	logger_command "Checking if ISP is detected..."
-	if [ $(uci -q get modgui.var.isp) ]; then
-		curl_option = "-m 5 -s -k"
-		if [ $(uci -q get modgui.var.isp) == "Other" ]; then #this disable cwmpd if it's not known ISP...
-			uci set cwmpd.cwmpd_config.state='0'
-			if [ $(uci get -q cwmpd.cwmpd_config.state) = "1" ]; then
-				if [ -f /var/run/cwmpd.pid ]; then
-					/etc/init.d/cwmpd stop
-				fi
-				/etc/init.d/cwmpd disable
-			fi
-		elif [ $(uci -q get modgui.var.isp) == "Tiscali" ]; then
-			uci set cwmpd.cwmpd_config.acs_url="http://webdirect.tr69.tiscali.it:8080/ftacs-basic/ACS"
-			uci set cwmpd.cwmpd_config.acs_user="technicolor"
-			uci set cwmpd.cwmpd_config.acs_pass="techn_tr69@"
-			uci commit cwmpd
-		elif [ $(uci -q get modgui.var.isp) == "TIM" ]; then
-			logger_command "TIM ISP detected, finding CWMP server..."
-			new_platform=https://regman-mon.interbusiness.it:10800/acs/
-			new_platform_bck=https://regman-bck.interbusiness.it:10501/acs/
-			unified_platform=https://regman-tl.interbusiness.it:10700/acs/ 
-			mgmt_platform=https://regman-tl.interbusiness.it:10500/acs/
-			if [ "$(curl "$curl_option" $new_platform)" ]; then
-				uci set cwmpd.cwmpd_config.acs_url=$new_platform
-			elif [ "$(curl "$curl_option" $new_platform_bck)" ]; then
-				uci set cwmpd.cwmpd_config.acs_url=$new_platform_bck
-			elif [ "$(curl "$curl_option" $unified_platform)" ]; then
-				uci set cwmpd.cwmpd_config.acs_url=$unified_platform
-			elif [ "$(curl "$curl_option" $mgmt_platform)" ]; then
-				uci set cwmpd.cwmpd_config.acs_url=$mgmt_platform
-			else
-				uci set cwmpd.cwmpd_config.acs_url="None"
-			fi
-			logger_command "CWMP Server detected: "$(uci get cwmpd.cwmpd_config.acs_url)
-			if [ $(uci get -q cwmpd.cwmpd_config.interface) != "wan" ]; then
-				uci set cwmpd.cwmpd_config.interface='wan'
-			fi
-			uci commit cwmpd
-			if [ $(uci get -q cwmpd.cwmpd_config.acs_url) == "None" ]; then
-				if [ "$(pgrep "cwmpd")" ]; then
-					/etc/init.d/cwmpd stop
-				fi
-			else
-				/etc/init.d/cwmpd enable
-				if [ ! "$(pgrep "cwmpd")" ]; then
-					/etc/init.d/cwmpd start
-				else
-					/etc/init.d/cwmpd restart
-				fi
-			fi
-		fi
-	fi
+	check_isp_and_cwmp
 
 	check_gui_tmp
 
 	logger_command "Trafficmon inizialization"
 	trafficmon_support #support trafficmon
 
-	/etc/init.d/watchdog-tch start
-
 	logger_command "Resetting cwmp and watchdog"
-	
+	/etc/init.d/watchdog-tch start
 	
 	#This should comunicate the gui that the upgrade has finished.
+	rm /root/.check_process #we remove the placeholder as the process is complete
+	logger_command "Process done."
 	set_transformer "rpc.system.modgui.upgradegui.log" "Finished"
 	
 	logger_command "Restarting transformer" ConsoleOnly
 	/etc/init.d/transformer restart
-	transformer-cli get uci.env.var.oui > /dev/null
+	#Call a random value to check start of transformer
+	get_transformer "uci.env.var.oui" > /dev/null
 
 	#This file is present only in newer build that don't suffer this strange bug
 	#if [ ! -f /usr/lib/lua/tch/logger.lua ]; then
@@ -1870,34 +1927,7 @@ root() {
 	#fi
 	
 	logger_command "Stopping nginx" ConsoleOnly
-	while [ "$(pgrep "nginx")" ]; do
-		if [ -f /var/run/nginx.pid ]; then
-			kill -KILL $(cat /var/run/nginx.pid)
-			rm /var/run/nginx.pid
-		fi
-		for pid in $(pgrep nginx); do 
-			kill -KILL $pid
-		done
-		/etc/init.d/nginx stop 2>/dev/null
-	done
-	
-	nginx_count=0
-	while [ "$(curl 127.0.0.1 --max-time 20 -I -s | head -n 1 | cut -d$' ' -f2)" != "200" ] && [ $nginx_count -lt 5 ]; do
-		if [ $nginx_count -gt 3 ]; then
-			if [ -f /var/run/nginx.pid ]; then
-				kill -KILL $(cat /var/run/nginx.pid)
-				rm /var/run/nginx.pid
-			fi
-			for pid in $(pgrep nginx); do 
-				kill -KILL $pid
-			done
-		fi
-		logger_command "Restarting nginx..." ConsoleOnly
-		/etc/init.d/nginx restart 2>/dev/null
-		sleep 5
-		nginx_count=$((nginx_count+1))
-	done
-	
+	start_stop_nginx
 	
 	#Remove reapply file as the root process after upgrade has finished.
 	if [ -f /root/.reapply_due_to_upgrade ]; then
