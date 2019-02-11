@@ -1622,7 +1622,6 @@ check_tmp_permission() {
 
 check_isp_and_cwmp() {
 	if [ $(uci -q get modgui.var.isp) ]; then
-		curl_option="-m 5 -s -k"
 		if [ $(uci -q get modgui.var.isp) == "Other" ]; then #this disable cwmpd if it's not known ISP...
 			uci set cwmpd.cwmpd_config.state='0'
 			if [ $(uci get -q cwmpd.cwmpd_config.state) = "1" ]; then
@@ -1642,13 +1641,13 @@ check_isp_and_cwmp() {
 			new_platform_bck=https://regman-bck.interbusiness.it:10501/acs/
 			unified_platform=https://regman-tl.interbusiness.it:10700/acs/ 
 			mgmt_platform=https://regman-tl.interbusiness.it:10500/acs/
-			if [ "$(curl "$curl_option" $new_platform)" ]; then
+			if [ "$(curl -s -k $new_platform --max-time 5 )" ]; then
 				uci set cwmpd.cwmpd_config.acs_url=$new_platform
-			elif [ "$(curl "$curl_option" $new_platform_bck)" ]; then
+			elif [ "$(curl -s -k $new_platform_bck --max-time 5 )" ]; then
 				uci set cwmpd.cwmpd_config.acs_url=$new_platform_bck
-			elif [ "$(curl "$curl_option" $unified_platform)" ]; then
+			elif [ "$(curl -s -k $unified_platform --max-time 5 )" ]; then
 				uci set cwmpd.cwmpd_config.acs_url=$unified_platform
-			elif [ "$(curl "$curl_option" $mgmt_platform)" ]; then
+			elif [ "$(curl -s -k $mgmt_platform --max-time 5 )" ]; then
 				uci set cwmpd.cwmpd_config.acs_url=$mgmt_platform
 			else
 				uci set cwmpd.cwmpd_config.acs_url="None"
