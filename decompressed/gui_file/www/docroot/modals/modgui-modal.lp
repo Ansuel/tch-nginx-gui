@@ -104,11 +104,12 @@ local function upgradeguistatus()
   local upgradegui_path = "rpc.system.modgui.upgradegui."
 
   local log = proxy.get(upgradegui_path.."log")[1].value
+  local log_prog = proxy.get(upgradegui_path.."log_prog")[1].value
   local state = proxy.get(upgradegui_path.."state")[1].value
 
   ngx.header.content_type = "application/json"
   if state == "In Progress" then
-    ngx.print(format('{ "log_msg":"%s" , "state":"In Progress" }',log))
+    ngx.print(format('{ "log_msg":"%s" , "state":"In Progress", "log_prog":%s }',log,log_prog))
   else
 	ngx.print(format('{ "state":"%s" }',state))
   end
@@ -152,6 +153,7 @@ local content = {
   gui_version = "uci.modgui.gui.gui_version",
   outdated_ver = "uci.modgui.gui.outdated_ver",
   new_ver = "uci.modgui.gui.new_ver",
+  upgradegui_logstep = "rpc.system.modgui.upgradegui.log_step",
 }
 
 content_helper.getExactContent(content)
@@ -211,7 +213,15 @@ local modgui_settings, helpmsg = post_helper.handleQuery(mapParams, mapValid)
 
   ngx.print('\
 \
-');  ngx.print(ui_helper.createHeader(T"GUI Settings & Utility", false, false))   ngx.print('\
+');  ngx.print(ui_helper.createHeader(T"GUI Settings & Utility", false, false))   
+	local html = {}
+	  html[#html + 1] = '<div class="alert alert-info hide" id="upgrade-gui-bar">'
+	  html[#html + 1] = T"Update in progress..."
+	  html[#html + 1] = '  <div id="upgrade-gui-bar" class="progress progress-striped active">'
+      html[#html + 1] = '    <div class="bar bar-warning" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" >'
+      html[#html + 1] = '</div></div></div>'
+	ngx.print(html)
+ngx.print('\
 <div class="modal-body update">\
 ');
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
@@ -220,6 +230,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     <form class="form-horizontal" method="post" action="modals/modgui-modal.lp">')
 	
 	  local html = {}
+	  html[#html + 1] = '<div class="RemoveOnUpgrade">'
 	  html[#html + 1] = '<legend>'.. T"GUI Skin" ..'</legend>'
 	  html[#html + 1] = ui_helper.createInputSelect(T"GUI Skin", "gui_skin", gui_skin_option, modgui_settings["gui_skin"])
 	  html[#html + 1] = ui_helper.createInputSelect(T"GUI First Page", "gui_skin_firstpage", gui_skin_firstpage_page, modgui_settings["gui_skin_firstpage"])
@@ -301,7 +312,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
           html[#html + 1] = ui_helper.createButton(T"Update GUI", T"Force Update", "icon-refresh", upgrade_gui)
       end
 	  html[#html + 1] = '</span>'
-	  
+	  html[#html + 1] = '</div>'
 	  html[#html + 1] = '</form><form class="form-horizontal" id="form-import-gui" method="post" action="modals/modgui-modal.lp?action=upgradeguifile" enctype="multipart/form-data">'
 	  html[#html + 1] = '<div id="offline-upgrade-gui-div" class="control-group">'
       html[#html + 1] = format('<label class="control-label">%s</label>', T"Offline GUI Update")
@@ -309,18 +320,15 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       html[#html + 1] = '<input type="file" name="upgradefile" id="file-upgradegui">&nbsp;'
       html[#html + 1] = ui_helper.createSimpleButton(T"Update", "icon-shield", upload_gui_file)
 	  html[#html + 1] = '</div></div>'
+	  html[#html + 1] = '<div class="alert alert-info hide" id="upgrade-log"></div>'
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Update failed. Please try again.", upload_gui_fail)
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Uploading file. Please wait...", upload_gui_alert)
-	  html[#html + 1] = '<div class="alert alert-info hide" id="upgrade-gui-bar">'
-	  html[#html + 1] = T"Update in progress..."
-	  html[#html + 1] = '  <div id="upgrade-gui-bar" class="progress progress-striped active">'
-      html[#html + 1] = '    <div class="bar bar-warning" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" >'
-      html[#html + 1] = '</div></div></div>'
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Updating file. Please wait...", updating)
 	  
 	  ngx.print(html)
 
 	  local html = {}
+	  html[#html + 1] = '<div class="RemoveOnUpgrade">'
 	html[#html + 1] = '<legend>' .. T"Advanced Reset" .. '</legend>'
 	  local reset_gui = {
         group = {
@@ -377,7 +385,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 		</div>
 	  </div>
 	  ]], T"Confirm", T"Cancel")
-	  
+	  html[#html + 1] = '</div>'
 	  ngx.print(html)
 	  
 ngx.print('\
@@ -391,18 +399,13 @@ ngx.print('\
   var refreshTimeOut = 5000;\
   var refreshDelay = 3000;\
   var target = $(".modal form").attr("action");\
-  var valeur = 2;\
 \
   function wait_for_webserver_running() {\
     $.ajax({ url: "/", timeout: refreshTimeOut })\
     .done(function(data) {\
-	  valeur = 100;\
-	  $(".bar").css("width", valeur+"%").attr("aria-valuenow", valeur);\
       window.location.href = "/";\
     })\
     .fail(function() {\
-	  valeur += 5.5;\
-      $(".bar").css("width", valeur+"%").attr("aria-valuenow", valeur);\
       window.setTimeout(wait_for_webserver_running, refreshDelay);\
     });\
   }\
@@ -470,6 +473,9 @@ ngx.print('\
       tch.removeProgress();\
   });\
 \
+  var bar_val = 2;\
+  var max_val = '); ngx.print( content.upgradegui_logstep ); ngx.print('\
+  var increment = 100/max_val;\
   function wait_for_upgradegui() {\
 \
 	var oldlog = "";\
@@ -482,11 +488,13 @@ ngx.print('\
 		  window.setTimeout(waitForShutdown, upgrfw_refreshDelay);\
 		} else if (data.state == "In Progress") {\
 		  if (oldlog != data.log_msg) {\
-			$("#upgrade-gui-bar").append(data.log_msg+"<br>");}\
+			bar_val = (increment*data.log_prog)+2;\
+			$(".bar").css("width", bar_val+"%").attr("aria-valuenow", bar_val);\
+			$("#upgrade-log").append(data.log_msg+"<br>");}\
 		  oldlog = data.log_msg;\
           window.setTimeout(waitForShutdown, upgrfw_refreshDelay);\
         } else if (data.state == "Finished") {\
-		  wait_for_webserver_running();\
+		  console.log(wait_for_webserver_running);\
 		}\
       })\
       .fail(wait_for_webserver_running)\
@@ -525,8 +533,10 @@ ngx.print('\
         if (response.success) {\
 		  importing_msg.addClass("hide");\
 		  $("#offline-upgrade-gui-div").addClass("hide");\
+		  $(".RemoveOnUpgrade").each(function() {$(this).addClass("hide")});\
 		  $("#upgrade-gui-bar").removeClass("hide");\
-		  $(".bar").css("width", valeur+"%").attr("aria-valuenow", valeur);\
+		  $("#upgrade-log").removeClass("hide");\
+		  $(".bar").css("width", bar_val+"%").attr("aria-valuenow", bar_val);\
           wait_for_upgradegui();\
         }\
         else {\

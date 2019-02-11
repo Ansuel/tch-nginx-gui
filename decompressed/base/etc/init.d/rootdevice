@@ -73,16 +73,19 @@ EOF
 }
 
 set_transformer() {
-	cmd="require('datamodel').set('"$2"','"$1"')"
+	cmd="require('datamodel').set('"$1"','"$2"')"
 	lua -e "$cmd"
 }
 
+log_progress=0
 logger_command() {
 	if [ $debug  -eq 1 ]; then
 		logger -s -t "Root Script" "$1"
 	fi
 	if [ -z $2 ]; then
-		set_transformer "$1" "rpc.system.modgui.upgradegui.log"
+	log_progress=$((log_progress+1))
+		set_transformer "rpc.system.modgui.upgradegui.log_prog" $log_progress
+		set_transformer "rpc.system.modgui.upgradegui.log" "$1"
 	fi
 }
 
@@ -1592,7 +1595,7 @@ root() {
 	#THIS CHECK DEVICE TYPE AND INSTALL SPECIFIC FILE
 	device_type="$(uci get -q env.var.prod_friendly_name)"
 
-	[ -z "${device_type##*DGA413*}" ] && logger_command "Apply specific device file..."
+	logger_command "Apply specific device file..."
 	[ -z "${device_type##*DGA413*}" ] && apply_specific_DGA_package
 	[ -z "${device_type##*TG789*}" ] && apply_specific_TG789_package
 	[ -z "${device_type##*TG799*}" ] && apply_specific_TG799_package
@@ -1865,6 +1868,13 @@ root() {
 	#	logger_command "Restarting transformer a second time cause it's just shit..."
 	#	/etc/init.d/transformer restart
 	#fi
+	
+	logger_command "Stopping nginx" ConsoleOnly
+	while [ "$(pgrep "nginx")" ]; do
+		if [ "$(pgrep "nginx")" ]; then
+			/etc/init.d/nginx stop 2>/dev/null
+		fi
+	done
 	
 	nginx_count=0
 	while [ "$(curl 127.0.0.1 --max-time 20 -I -s | head -n 1 | cut -d$' ' -f2)" != "200" ] && [ $nginx_count -lt 3 ]; do

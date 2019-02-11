@@ -1,6 +1,29 @@
 local logger = require("transformer.logger")
 local commitapply = commitapply
 
+local function countStepInRootdevice() 
+	--idiot function to count how much loger we have in rootdevice
+	local rootdevicefile = "/etc/init.d/rootdevice"
+	local start_count = false
+	local log_num = 0
+	for line in io.lines(rootdevicefile) do
+		if start_count == true then
+			if line:match("logger_command \"") and not line:match("\" ConsoleOnly") then
+				log_num = log_num+1
+			end
+		end
+		if line:match("check_bank%(%) {") then
+			io.close()
+			break
+		end
+		if line == "root() {" then
+			start_count = true
+		end
+	end
+	
+	return tostring(log_num)
+end
+
 local SYSTEM_MODGUI_ = {
   objectType = {
     name = 'rpc.system.modgui.',
@@ -38,11 +61,21 @@ local SYSTEM_MODGUI_UPGRADEGUI_ = {
         access = "readWrite",
         type = "string",
       },
+	  log_step = {
+		access = "readOnly",
+		type = "int",
+	  },
+	  log_prog = {
+		access = "readWrite",
+		type = "int",
+	  }
     }
   }
 }
 
 local upgradegui = {}
+
+upgradegui.log_step = countStepInRootdevice()
 
 SYSTEM_MODGUI_UPGRADEGUI_.get = {
   start = "0",
@@ -60,6 +93,16 @@ SYSTEM_MODGUI_UPGRADEGUI_.get = {
   log = function(mapping, param)
 	return upgradegui.log or ""
   end,
+  log_step = function(mapping, param)
+	if upgradegui.logstep then
+		return upgradegui.logstep
+	else
+	  return countStepInRootdevice()
+	end
+  end,
+  log_prog = function(mapping, param)
+	return upgradegui.log_prog or "0"
+  end
 }
 
 SYSTEM_MODGUI_UPGRADEGUI_.set = {
@@ -76,6 +119,9 @@ SYSTEM_MODGUI_UPGRADEGUI_.set = {
 	log = function(mapping, paramName, paramValue)
 	  upgradegui.log = paramValue
   end,
+	log_prog = function(mapping, paramName, paramValue)
+	  upgradegui.log_prog = paramValue
+	end
 }
 
 register(SYSTEM_MODGUI_UPGRADEGUI_)
@@ -90,23 +136,23 @@ local SYSTEM_MODGUI_UTILITY_ = {
       resetgui = {
 	    access = "readWrite",
 	    type = "boolean",
-	  },   
+	  },
 	  upgradegui = {
 	    access = "readWrite",
 	    type = "boolean",
-	  },       
+	  },
 	  checkver = {
 	    access = "readWrite",
 	    type = "boolean",
-	  },       
+	  },
 	  removeroot = {
 	    access = "readWrite",
 	    type = "boolean",
-	  },   
+	  },
 	  refreshdriver = {
 	    access = "readWrite",
 	    type = "boolean",
-	  },   
+	  },
 	  transfer_bank1 = {
 	    access = "readWrite",
 	    type = "boolean",
