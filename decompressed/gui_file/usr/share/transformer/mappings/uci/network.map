@@ -17,10 +17,18 @@ local network_config = {
     options = { "wan_mode" }
 }
 
--- now, we need to make sure the section exists. Create it if it does not
-local uh = mapper("ucihelper")
-uh.set_on_uci({ config = "network", sectionname = "config"}, "config")
-uh.commit({config = "network"})
+
+local function ensureNetworkConfigExists()
+    local uh = mapper("ucihelper")
+    local check = { config = "network", sectionname = "config"}
+    local value = uci_helper.get_from_uci(check)
+    if value ~= "config" then
+        uh.set_on_uci({ config = "network", sectionname = "config"}, "config")
+        uh.commit({config = "network"})
+    end
+end
+
+ensureNetworkConfigExists()
 
 uci_1to1.registerSimpleMap(network_config)
 
@@ -29,7 +37,7 @@ local network_interface = {
     config = config_network,
     type = "interface",
     options = { "proto", "ifname", "type", "stp", "macaddr", "mtu", "auto", "accept_ra", "send_rs", "ipaddr",
-        "netmask", "gateway", "broadcast", "ip6addr", "ip6gw", "ip6assign", "ip6hint", "ip6prefix", "metric",
+        "netmask", "gateway", "broadcast", "ip6addr", "ip6gw", "ip6assign", "tch_ip6assign", "ip6hint", "ip6prefix", "metric",
         "hostname", "clientid", "vendorclass", "peerdns", "reqaddress", "reqprefix", "noslaaconly",
         "norelease", "device", "username", "connect", "disconnect", "keepalive", "demand", "defaultroute",
         "ipv6", "pppd_options", "ac", "service", "vci", "vpi", "atmdev", "encaps", "apn", "pincode", "maxwait",
@@ -39,7 +47,7 @@ local network_interface = {
         "oseqno", "weakif", "network", "server", "buffering", "df", "sourcerouting", "iface", "updatekey", "profile", "pdnid",
         "session_id", "force_link", "srcintf", "connect_time", "lease", "lease_expires", "neighreachabletime", "neighgcstaletime",
         "delegate", "igmpversion", "enabled", "graceful_restart", "unnumbered", "dadtransmits", "sendopts", "authfail", "vendorid","name",
-        "bridge_flag", "host_uniq", 
+        "bridge_flag", "host_uniq", "customroutes","ip6ifaceid",
     },
     passwords = {
         "password"

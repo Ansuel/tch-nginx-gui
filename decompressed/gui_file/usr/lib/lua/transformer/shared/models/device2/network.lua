@@ -944,23 +944,57 @@ local function createIntfLowerLayer(model, s, cfg, ifname)
 	return lower
 end
 
+local function fixup_gre_phys(intf, phys)
+  if phys and intf and (intf.proto or ""):match("^gre") then
+    return "gre-"..phys
+  end
+end
+
 local function replaceAliasInterface(phys, cfg)
 	local alias = phys:match("^@(.*)")
 	if alias then
 		local intf = cfg.interface[alias]
 		if intf then
 			-- in general just take the ifname of the referred to interface
-			phys = intf.ifname
-			-- gre tunnels are an exception
-			if intf.proto and intf.proto:match("^gre") then
-				phys = "gre-"..alias
-			end
+			-- but gre tunnels are an exception
+			phys = fixup_gre_phys(intf, alias) or phys
 		else
 			--referred to interface does not exist
 			phys = ""
 		end
+	else
+	  phys = fixup_gre_phys(cfg.interface[phys], phys) or phys
 	end
 	return phys
+end
+
+local function ifname_to_device(ifname, cfg)
+  if not ifname then
+    return
+  end
+  local devices = cfg.device or {}
+  if devices[ifname] then
+    -- name refers to a device
+    return ifname
+  end
+  if ifname:match("^@") then
+    -- refers to interface
+    local intfname = ifname:match("^@([^.]+)")
+    local intf = cfg.interface[intfname]
+    if intf then
+      if intf.proto == "gretap" then
+        return ifname:gsub("^@", "gre4t-")
+      elseif intf.proto == "grev6tap" then
+        return ifname:gsub("^@", "gre6t-")
+      elseif intf.proto:match("^gre") then
+        return ifname:gsub("^@", "")
+      else
+        return ifname_to_device(intf.ifname, cfg)
+      end
+    end
+    return
+  end
+  return ifname:match("^([^.]+)")
 end
 
 local function createBridgeMembersLowerLayers(model, s, cfg)
@@ -970,8 +1004,9 @@ local function createBridgeMembersLowerLayers(model, s, cfg)
 		if phys then
 			phys = replaceAliasInterface(phys, cfg)
 			local name = 'br-'..s['.name']..':@'..tostring(i)
-			local lower = createIntfLink(model, name, mbr, phys)
-			createIntfVlan(model, name, mbr, vid, lower)
+			local device = ifname_to_device(mbr, cfg) or mbr
+			local lower = createIntfLink(model, name, device, phys)
+			createIntfVlan(model, name, device, vid, lower)
 			members[i]=name
 		end
 	end

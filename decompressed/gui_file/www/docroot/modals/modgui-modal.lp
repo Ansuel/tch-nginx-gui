@@ -99,6 +99,22 @@ local function upgradeguifile()
 
 end
 
+local function upgradeguistatus()
+  local upgradegui_path = "rpc.system.modgui.upgradegui."
+
+  local log = proxy.get(upgradegui_log_path.."log")[1].value
+  local state = proxy.get(upgradegui_log_path.."state")[1].value
+
+  ngx.header.content_type = "application/json"
+  if state == "In Progress" then
+    ngx.print(format('{ "log_msg":"%s" , "state":"In Progress" }',log))
+  else
+	ngx.print(format('{ "state":"%s" }',state))
+  end
+
+  ngx.exit(ngx.HTTP_OK)
+end
+
 local function resetreboot(path, value)
   proxy.set(path, value)
   ngx.header.content_type = "application/json"
@@ -123,6 +139,10 @@ if ngx.req.get_method() == "POST" then
   end
   if action == "system_remove_root" then
 	return resetreboot("rpc.system.modgui.utility.removeroot", "1")
+  end
+elseif ngx.req.get_method() == "GET" then
+  if action == "upgradeguistatus" then
+	return upgradeguistatus()
   end
 end
 
@@ -447,6 +467,26 @@ ngx.print('\
   $(document).on("click", "#cancel", function() {\
       tch.removeProgress();\
   });\
+\
+  function wait_for_upgradegui() {\
+\
+    var upgrfw_refreshTimeOut = 100;\
+    var upgrfw_refreshDelay = 1000;\
+    function waitForShutdownOrError() {\
+      $.ajax({ url: target, data: "action=upgradeguistatus", timeout: upgrfw_refreshTimeOut, dataType: "json" })\
+      .done(function(data) {\
+        if (data.success == "true") {\
+          window.setTimeout(waitForShutdownOrError, upgrfw_refreshDelay);\
+        }\
+        else {\
+          
+        }\
+      })\
+      .fail(wait_for_webserver_running)\
+    }\
+    window.setTimeout(waitForShutdownOrError, upgrfw_refreshDelay);\
+    return false;\
+  }\
 \
   $(".import-gui").on("click", function() {\
     var nofile_msg = $("#upgrade-gui-fail");\

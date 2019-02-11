@@ -73,7 +73,8 @@ EOF
 }
 
 set_transformer() {
-	lua -e 'require("datamodel").set($2,$1)'
+	cmd="require('datamodel').set('"$2"','"$1"')"
+	lua -e "$cmd"
 }
 
 logger_command() {
@@ -1851,7 +1852,7 @@ root() {
 	
 	
 	#This should comunicate the gui that the upgrade has finished.
-	set_transformer("rpc.system.modgui.upgradegui.log","Finished")
+	set_transformer "rpc.system.modgui.upgradegui.log" "Finished"
 	
 	logger_command "Restarting transformer" ConsoleOnly
 	/etc/init.d/transformer restart

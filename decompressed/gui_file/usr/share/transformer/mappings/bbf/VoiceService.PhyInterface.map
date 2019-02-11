@@ -558,7 +558,7 @@ objectType = {
             PacketizationPeriod = {
                 access = "readWrite",
                 activeNotify = "canDeny",
-                type = "string",
+                type = "unsignedInt",
                 enumeration = {
                     "10",
                     "20",

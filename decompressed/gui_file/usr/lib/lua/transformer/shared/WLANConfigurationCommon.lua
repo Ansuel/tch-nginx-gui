@@ -8,6 +8,7 @@ local conn = ubus.connect()
 local wirelessBinding = { config = "wireless" }
 local wirelessDefaultsBinding = { config = "wireless-defaults" }
 local pairs, string, table, tonumber, tostring = pairs, string, table, tonumber, tostring
+local envBinding = { config = "env", sectionname = "var" }
 local floor = math.floor
 local transactions = {}
 
@@ -306,7 +307,9 @@ local function setBandSteerPeerIfaceSSID(baseIface, relatedIface, enable, commit
     ssid = getFromUci(baseIface, "ssid")
   else
     ssid = getFromUci(relatedIface, "ssid")
-    ssid = ssid ~= "" and ssid .. "-5G" or ""
+    envBinding.option = "commonssid_suffix"
+    local suffix = uciHelper.get_from_uci(envBinding)
+    ssid = ssid ~= "" and ssid .. suffix or ""
   end
   setOnUci(relatedIface, "ssid", ssid, commitapply)
 end
@@ -1211,9 +1214,6 @@ M.getMappings = function(commitapply)
     Enable = function(mapping, param, value, key)
       local ap = getAPFromIface(key)
       setOnUci(ap, "state", value, commitapply)
-      if value == "0" and bandSteerHelper.isBandSteerEnabledByIface(key) then
-        return disableBandSteer(key, commitapply)
-      end
     end,
     Channel = function(mapping, param, value, key)
       local radio = getRadioFromIface(key)

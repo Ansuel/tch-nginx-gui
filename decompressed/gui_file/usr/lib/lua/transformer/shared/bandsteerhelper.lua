@@ -5,6 +5,8 @@ local ubus = require("ubus")
 local binding_wireless = {config = "wireless"}
 local conn = ubus.connect()
 local strmatch, format = string.match, string.format
+local envBinding = { config = "env", sectionname = "var" }
+local network = require("transformer.shared.common.network")
 
 function M.isBaseIface(iface)
   return "0" == strmatch(iface, "%d+")
@@ -36,6 +38,12 @@ local function getSecurityMode(ap)
   binding_wireless.sectionname = ap
   binding_wireless.option = "security_mode"
   return uci_helper.get_from_uci(binding_wireless)
+end
+
+local function setWirelessUciValue(value, sectionName, option, commitapply)
+  binding_wireless.sectionname = sectionName
+  binding_wireless.option = option
+  uci_helper.set_on_uci(binding_wireless, value, commitapply)
 end
 
 function M.getBandSteerPeerIface(key)
@@ -206,7 +214,9 @@ function M.setBandSteerPeerIfaceSSIDByLocalIface(baseiface, needsetiface, oper)
   else
     binding_wireless.sectionname = needsetiface
     binding_wireless.option = "ssid"
-    uci_helper.set_on_uci(binding_wireless, uci_helper.get_from_uci(binding_wireless) .. "-5G", commitapply)
+    envBinding.option = "commonssid_suffix"
+    local suffix = uci_helper.get_from_uci(envBinding)
+    uci_helper.set_on_uci(binding_wireless, uci_helper.get_from_uci(binding_wireless) .. suffix, commitapply)
   end
 
   return
@@ -218,6 +228,85 @@ function M.setBandSteerPeerIfaceSSIDValue(needsetiface, value)
   uci_helper.set_on_uci(binding_wireless, value, commitapply)
 
   return
+end
+
+local function getBandSteerRelatedNode(apKey, apNode)
+  local peerIface, errmsg = M.getBandSteerPeerIface(apNode.ssid)
+  if not peerIface then
+    return nil, errmsg
+  end
+
+  local bspeerap = M.getBsAp(peerIface)
+  if not bspeerap then
+    return nil, "Band steering switching node does not exist"
+  end
+
+  if M.isBaseIface(apNode.ssid) then
+    return apKey, bspeerap, apNode.ssid, peerIface
+  else
+    return bspeerap, apKey, peerIface, apNode.ssid
+  end
+end
+
+local function setBandSteerID(ap, bspeerap, bsid, commitapply)
+  setWirelessUciValue(bsid, ap, "bandsteer_id", commitapply)
+  setWirelessUciValue(bsid, bspeerap, "bandsteer_id", commitapply)
+end
+
+local function disableBandSteer(key, commitapply)
+  local apData = network.getAccessPointInfo(key)
+  if not apData or not next(apData) then
+    return nil, "The related AP node cannot be found."
+  end
+
+  local ret, errmsg = M.canDisableBandSteer(key, apData.ssid)
+  if not ret then
+    return nil, errmsg
+  end
+
+  local baseap, needsetap, baseiface, needsetiface = getBandSteerRelatedNode(key, apData)
+  setBandSteerID(baseap, needsetap, "off", commitapply)
+
+  --to reset the ssid
+  M.setBandSteerPeerIfaceSSIDByLocalIface(baseiface, needsetiface, "0", commitapply)
+  return true
+end
+
+--1\Only the admin_state enabled, then enable bandsteering
+--2\2.4G related ap will act as based node
+local function enableBandSteer(key, commitapply)
+  local apNode = network.getAccessPointInfo(key)
+  if not apNode then
+    return nil, "AP node is invalid."
+  end
+
+  local ret, errmsg = M.canEnableBandSteer(key, apNode, apNode.ssid)
+  if not ret then
+    return nil, errmsg
+  end
+  --to set the bandsteer ids
+  local baseap, needsetap, baseiface, needsetiface = getBandSteerRelatedNode(key, apNode)
+  local bsid, errorMsg = M.getBandSteerId(apNode.ssid)
+  if not bsid then
+    return nil, errorMsg
+  end
+  setBandSteerID(baseap, needsetap, bsid)
+  M.setBandSteerPeerIfaceSSIDByLocalIface(baseiface, needsetiface, "1", commitapply)
+  setBandSteerPeerApAuthentication(baseap, needsetap)
+  return true
+end
+
+function M.setBandSteerValue(value, key, commitapply)
+  local bandSteer, errMsg
+  if value == "1" then
+    bandSteer, errMsg = enableBandSteer(key, commitapply)
+  else
+    bandSteer, errMsg = disableBandSteer(key, commitapply)
+  end
+  if not bandSteer then
+    return nil, errMsg
+  end
+  return bandSteer
 end
 
 return M
