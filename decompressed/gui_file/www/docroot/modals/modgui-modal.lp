@@ -92,6 +92,7 @@ local function upgradeguifile()
   local rcv_ok, rcv_errno, rcv_errmsg = receive_file(dl, 'name="upgradefile"')
 
   proxy.set("rpc.system.modgui.upgradegui.start", "1")
+  proxy.set("rpc.system.modgui.upgradegui.state", "Requested")
   proxy.apply()
 
   ngx.print('{ "success":"true" }')
@@ -102,8 +103,8 @@ end
 local function upgradeguistatus()
   local upgradegui_path = "rpc.system.modgui.upgradegui."
 
-  local log = proxy.get(upgradegui_log_path.."log")[1].value
-  local state = proxy.get(upgradegui_log_path.."state")[1].value
+  local log = proxy.get(upgradegui_path.."log")[1].value
+  local state = proxy.get(upgradegui_path.."state")[1].value
 
   ngx.header.content_type = "application/json"
   if state == "In Progress" then
@@ -141,6 +142,7 @@ if ngx.req.get_method() == "POST" then
 	return resetreboot("rpc.system.modgui.utility.removeroot", "1")
   end
 elseif ngx.req.get_method() == "GET" then
+  local action = ngx.req.get_uri_args().action
   if action == "upgradeguistatus" then
 	return upgradeguistatus()
   end
@@ -470,21 +472,26 @@ ngx.print('\
 \
   function wait_for_upgradegui() {\
 \
+	var oldlog = "";\
     var upgrfw_refreshTimeOut = 100;\
-    var upgrfw_refreshDelay = 1000;\
-    function waitForShutdownOrError() {\
+    var upgrfw_refreshDelay = 100;\
+    function waitForShutdown() {\
       $.ajax({ url: target, data: "action=upgradeguistatus", timeout: upgrfw_refreshTimeOut, dataType: "json" })\
       .done(function(data) {\
-        if (data.success == "true") {\
-          window.setTimeout(waitForShutdownOrError, upgrfw_refreshDelay);\
-        }\
-        else {\
-          
-        }\
+		if (data.state == "Requested") {\
+		  window.setTimeout(waitForShutdown, upgrfw_refreshDelay);\
+		} else if (data.state == "In Progress") {\
+		  if (oldlog != data.log_msg) {\
+			$("#upgrade-gui-bar").append(data.log_msg+"<br>");}\
+		  oldlog = data.log_msg;\
+          window.setTimeout(waitForShutdown, upgrfw_refreshDelay);\
+        } else if (data.state == "Finished") {\
+		  wait_for_webserver_running();\
+		}\
       })\
       .fail(wait_for_webserver_running)\
     }\
-    window.setTimeout(waitForShutdownOrError, upgrfw_refreshDelay);\
+    window.setTimeout(waitForShutdown, upgrfw_refreshDelay);\
     return false;\
   }\
 \
@@ -520,7 +527,7 @@ ngx.print('\
 		  $("#offline-upgrade-gui-div").addClass("hide");\
 		  $("#upgrade-gui-bar").removeClass("hide");\
 		  $(".bar").css("width", valeur+"%").attr("aria-valuenow", valeur);\
-          wait_for_webserver_down();\
+          wait_for_upgradegui();\
         }\
         else {\
 		  importing_msg.addClass("hide");\
