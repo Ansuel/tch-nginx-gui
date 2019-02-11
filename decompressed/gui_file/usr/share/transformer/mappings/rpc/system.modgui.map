@@ -24,8 +24,9 @@ local SYSTEM_MODGUI_UPGRADEGUI_ = {
         access = "readWrite",
         type = "string",
         enumeration = {
-          "In Progress",
           "Not started",
+		  "Requested",
+          "In Progress",
 		  "Finished",
         },
       },
@@ -47,11 +48,11 @@ SYSTEM_MODGUI_UPGRADEGUI_.get = {
   start = "0",
   state = function(mapping, param)
 	local progress_status = io.open("/root/.check_process","r")
-	if upgradegui.state then
-		return upgradegui.state
-	elseif progress_status then
+	if progress_status then
 		progress_status:close()
 		return "In Progress"
+	elseif upgradegui.state then
+		return upgradegui.state
 	end
 	
 	return "Not started"
@@ -63,7 +64,7 @@ SYSTEM_MODGUI_UPGRADEGUI_.get = {
 
 SYSTEM_MODGUI_UPGRADEGUI_.set = {
 	state = function(mapping, paramName, paramValue)  
-	if paramValue == "Finished" then
+	if paramValue == "Finished" or paramValue == "Requested" then
         upgradegui.state = paramValue
     end
   end,
