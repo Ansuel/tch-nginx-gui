@@ -551,7 +551,7 @@ msgid "Close"
 msgstr "Chiudi"
 
 msgid "Config creation option"
-msgstr "Opzione creazione configurazione"
+msgstr "Creazione configurazione"
 
 msgid "Configuration of VP/VC not available"
 msgstr "Configurazione VP/VC non disponibile"
@@ -608,7 +608,7 @@ msgid "CPU Speed"
 msgstr "Velocità CPU"
 
 msgid "CPU Wait"
-msgstr "CPU in attesa"
+msgstr "Attesa CPU"
 
 msgid "Current Day"
 msgstr "Giorno attuale"
@@ -989,7 +989,7 @@ msgid "Enable Filter"
 msgstr "Abilita filtro"
 
 msgid "Enable Syslog"
-msgstr "Abilitare  Syslog"
+msgstr "Syslog abilitato"
 
 msgid "Enabled"
 msgstr "Attivato"
@@ -1004,7 +1004,7 @@ msgid "Energy Efficent Ethernet enabled"
 msgstr "Ottimizzazione energetica ethernet abilitata"
 
 msgid "Engineer"
-msgstr "Ingegnere"
+msgstr "Utente avanzato"
 
 msgid "Enhanced Tim"
 msgstr "TIM avanzata"
@@ -1106,7 +1106,7 @@ msgid "Failed"
 msgstr "Fallito"
 
 msgid "Failure Count:"
-msgstr "Conteggio falliti:"
+msgstr "Falliti:"
 
 msgid "Filter"
 msgstr "Filtro"
@@ -1418,7 +1418,7 @@ msgid "Install XUPnP"
 msgstr "Installa XUPnP"
 
 msgid "Install empty blacklist"
-msgstr "Installa elenco non autorizzati vuoto"
+msgstr "Installa Blacklist vuota"
 
 msgid "Interface"
 msgstr "Interfaccia"
@@ -1628,7 +1628,7 @@ msgid "Mask"
 msgstr "Maschera"
 
 msgid "Max Hop Count:"
-msgstr "Conteggio max Hop:"
+msgstr "Hop max:"
 
 msgid "Max Packet Number Recommended:"
 msgstr "Numero max raccomandato pacchetti:"
@@ -2036,10 +2036,10 @@ msgid "Processing"
 msgstr "Elaborazione"
 
 msgid "Product Name"
-msgstr "Nome prodotto"
+msgstr "Nome stampante"
 
 msgid "Product Vendor"
-msgstr "Fornitore prodotto"
+msgstr "Produttore stampante"
 
 msgid "Profile Settings"
 msgstr "Impostazioni profilo"
@@ -2456,7 +2456,7 @@ msgid "Success"
 msgstr "Completato"
 
 msgid "Success Count:"
-msgstr "Conteggi completati:"
+msgstr "Completati:"
 
 msgid "Sun."
 msgstr "Dom."
@@ -2636,28 +2636,28 @@ msgid "Clone the content of the running bank to the inactive one. Warning: this 
 msgstr "Clona il contenuto del banco attivo in quello non attivo.<br/>Attenzione: questo comporterà l'eliminazione dei dati e delle configurazioni nel banco non attivo!"
 
 msgid "This will install aria2 and ariang webui"
-msgstr "Installa Aria2 e la webUI ariang"
+msgstr "Installa Aria2 e webUI ariang"
 
 msgid "This will install the XUPnP application"
-msgstr "Installa l'applicazione XUPnP"
+msgstr "Installa applicazione XUPnP"
 
 msgid "This will install the blacklist application"
-msgstr "Installa l'applicazione Blacklist"
+msgstr "Installa applicazione Blacklist"
 
 msgid "This will install transmission and transmission-webui"
-msgstr "Installa transmission e la relativa webui"
+msgstr "Installa transmission e relativa webui"
 
 msgid "This will install uhttpd and luci"
 msgstr "Installa uhttpd e luci"
 
 msgid "This will put your gateway into LAN Update"
-msgstr "Avvia l´aggiornamento del modem"
+msgstr "Verrà avviato l'aggiornamento del modem"
 
 msgid "This will transfer the active firmware and config to the bank 1"
-msgstr "Trasferisce il firmware attivo e la configurazione nel banco 1"
+msgstr "Verrò trasferito il firmware attivo e la configurazione nel banco 1"
 
 msgid "This will transfer your configuration and firmware to bank_1 and it will erase bank_2"
-msgstr "Trasferisce la configurazione e il firmware nel banco 1 e cancellerà il banco 2"
+msgstr "Verrà trasferita la configurazione e il firmware nel banco 1 e azzerato il banco 2"
 
 msgid "Thu."
 msgstr "Gio."
@@ -3038,7 +3038,7 @@ msgid "Your username"
 msgstr "Nome utente"
 
 msgid "any"
-msgstr "qualsiasi"
+msgstr "Qualsiasi"
 
 msgid "at least one number and at least one special character"
 msgstr "e almeno un carattere numerico e un carattere speciale"
@@ -3071,7 +3071,7 @@ msgid "icmp-type"
 msgstr "Tipo ICMP"
 
 msgid "in"
-msgstr "ingresso"
+msgstr "Ingresso"
 
 msgid "Invalid Gateway IP"
 msgstr "IP gateway non valido"
@@ -3092,7 +3092,7 @@ msgid "not connected"
 msgstr "non connesso"
 
 msgid "out"
-msgstr "uscita"
+msgstr "Uscita"
 
 msgid "syslog Disabled"
 msgstr "syslog disabilitato"
@@ -3266,3 +3266,63 @@ msgstr "Mirror porte"
 
 msgid "NAT Helpers"
 msgstr "Helper NAT"
+
+msgid "Key Info"
+msgstr "Info chiave"
+
+msgid "Config decrypt key"
+msgstr "Chiave decodifica configurazione"
+
+msgid "Fritz!Box"
+msgstr "Fritz!Box"
+
+msgid "Dark/White (Fritz!Box Based)"
+msgstr "Scura/bianca (basata su Fritz!Box)"
+
+msgid "Dark/Midnight (Fritz!Box Based)"
+msgstr "Scura/mnezzanotte (basata su Fritz!Box)"
+
+msgid "Red Dark"
+msgstr "Rosso scuro"
+
+msgid "Device"
+msgstr "Dispositvo"
+
+msgid "VLAN ID"
+msgstr "ID VLAN"
+
+msgid "Host Uniq Tag"
+msgstr "Tag Host univoco"
+
+msgid "Bytes"
+msgstr "Byte"
+
+msgid "PPPoE routed mode"
+msgstr "Modo PPOE routed"
+
+msgid "PPPoA routed mode"
+msgstr "Modo PPPOA routed"
+
+msgid "Fixed IP mode"
+msgstr "Modo IP fisso"
+
+msgid "Bridge mode"
+msgstr "Modo bridge"
+
+msgid "Reset"
+msgstr "Ripristina"
+
+msgid "Rx Bytes"
+msgstr "Byte Rx"
+
+msgid "Tx Bytes"
+msgstr "Byte Tx"
+
+msgid "MAC Spoof (Wan MAC)"
+msgstr "Spoof MAC (MAC WAN)"
+
+msgid "Generate"
+msgstr "Genera"
+
+msgid "Debug Report"
+msgstr "Rapporto debug"

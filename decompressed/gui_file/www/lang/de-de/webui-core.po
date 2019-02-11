@@ -3266,3 +3266,63 @@ msgstr "Port-Spiegelung"
 
 msgid "NAT Helpers"
 msgstr "NAT Helfer"
+
+msgid "Key Info"
+msgstr ""
+
+msgid "Config decrypt key"
+msgstr ""
+
+msgid "Fritz!Box"
+msgstr ""
+
+msgid "Dark/White (Fritz!Box Based)"
+msgstr ""
+
+msgid "Dark/Midnight (Fritz!Box Based)"
+msgstr ""
+
+msgid "Red Dark"
+msgstr ""
+
+msgid "Device"
+msgstr ""
+
+msgid "VLAN ID"
+msgstr ""
+
+msgid "Host Uniq Tag"
+msgstr ""
+
+msgid "Bytes"
+msgstr ""
+
+msgid "PPPoE routed mode"
+msgstr ""
+
+msgid "PPPoA routed mode"
+msgstr ""
+
+msgid "Fixed IP mode"
+msgstr ""
+
+msgid "Bridge mode"
+msgstr ""
+
+msgid "Reset"
+msgstr ""
+
+msgid "Rx Bytes"
+msgstr ""
+
+msgid "Tx Bytes"
+msgstr ""
+
+msgid "MAC Spoof (Wan MAC)"
+msgstr ""
+
+msgid "Generate"
+msgstr ""
+
+msgid "Debug Report"
+msgstr ""

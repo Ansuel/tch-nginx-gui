@@ -519,3 +519,6 @@ msgstr "Sie haben aktuell keine Meldungen"
 
 msgid "seconds"
 msgstr "Sekunden"
+
+msgid "LTE Doctor"
+msgstr ""

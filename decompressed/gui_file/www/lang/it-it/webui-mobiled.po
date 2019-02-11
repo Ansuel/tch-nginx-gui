@@ -519,3 +519,6 @@ msgstr "Al momento non c'è nessun messaggio"
 
 msgid "seconds"
 msgstr "secondi"
+
+msgid "LTE Doctor"
+msgstr "Diagnostica LTE"
