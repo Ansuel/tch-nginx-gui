@@ -1169,9 +1169,9 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
         }
         --Only baseiface can modify ssid when bandsteer enabled
         if "1" == band_steer_enabled and not isBaseIface(curiface) then
-            html[#html + 1] = ui_helper.createLabel(T"SSID name", content["ssid"], ssidclass)
+            html[#html + 1] = ui_helper.createLabel(T"Network Name (SSID)", content["ssid"], ssidclass)
         else
-            html[#html + 1] = ui_helper.createInputText(T"SSID name", "ssid", content["ssid"], ssidclass, helpmsg["ssid"])
+            html[#html + 1] = ui_helper.createInputText(T"Network Name (SSID)", "ssid", content["ssid"], ssidclass, helpmsg["ssid"])
         end
 
         local broadcastclass = {
