@@ -14,9 +14,9 @@ local format, find, sub, untaint, match  = string.format, string.find, string.su
 local gVIES = post_helper.getValidateInEnumSelect
 
 local dir_list = {
-  {"any", T"any"},
-  {"in", T"in"},
-  {"out", T"out"},
+  {"any", T"Input/Output"},
+  {"in", T"Input"},
+  {"out", T"Output"},
 }
 
 
