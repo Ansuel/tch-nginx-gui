@@ -522,3 +522,9 @@ msgstr "secondi"
 
 msgid "LTE Doctor"
 msgstr "Diagnostica LTE"
+
+msgid "Unlock Retries Left:"
+msgstr "Tentativi sblocco rimanenti:"
+
+msgid "Unblock Retries Left:"
+msgstr "Tentativi blocco rimanenti:"

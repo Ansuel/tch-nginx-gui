@@ -522,3 +522,9 @@ msgstr "Sekunden"
 
 msgid "LTE Doctor"
 msgstr ""
+
+msgid "Unlock Retries Left:"
+msgstr ""
+
+msgid "Unblock Retries Left:"
+msgstr ""
