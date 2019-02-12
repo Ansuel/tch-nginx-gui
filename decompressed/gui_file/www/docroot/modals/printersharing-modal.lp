@@ -38,7 +38,7 @@ local usbdev_columms = {
      readonly = true,
   },
   {
-     header = T"Product Name",
+     header = T"Printer Name",
      type = "text",
      readonly = true,
   },

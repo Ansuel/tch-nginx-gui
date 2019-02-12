@@ -239,7 +239,7 @@ local dns_options = {
     </fieldset>\
 \
     <fieldset>\
-      <legend>');  ngx.print( T"IPv4 Static Routes Configuration" ); ngx.print('</legend>\
+      <legend>');  ngx.print( T"IPv4 Static Routes" ); ngx.print('</legend>\
       ');  
         ngx.print(
           ui_helper.createTable(static_route_columns, static_route_data, static_route_options, nil, static_route_helpmsg)

@@ -1,6 +1,7 @@
 --pretranslated: do not change this file
 
 -- Enable localization
+gettext.textdomain('webui-core')
 
 local proxy = require("datamodel")
 local content_helper = require("web.content_helper")

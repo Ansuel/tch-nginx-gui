@@ -373,11 +373,11 @@ createUsbPartitionTable()
 function convertReceivedData(content)
 	if content["connecteddevices"] then
 		if usb_disk_number == 0 then
-			content["connecteddevices"] = format(T'Currently there are <strong>%s</strong> connected devices', T"no")
+			content["connecteddevices"] = format(T'<strong>%s</strong> connected devices', T"no")
 		elseif usb_disk_number == 1 then
-			content["connecteddevices"] = format(T'Currently there is <strong>%d</strong> connected device', usb_disk_number)
+			content["connecteddevices"] = format(T'<strong>%d</strong> connected device', usb_disk_number)
 		else
-			content["connecteddevices"] = format(T'Currently there are <strong>%d</strong> connected devices', usb_disk_number)
+			content["connecteddevices"] = format(T'<strong>%d</strong> connected devices', usb_disk_number)
 		end
 	end
 end

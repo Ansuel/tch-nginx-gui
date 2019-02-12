@@ -1193,7 +1193,7 @@ local info_box = {
 local html = {}
 
 html[#html + 1] = ui_helper.createInputText(T"Domain Name", "domainName", content["domainName"], {} , helpmsg["domainName"] )
-html[#html + 1] = ui_helper.createInputText(T"Local Device IP address", "localdevIP", content["localdevIP"],{},helpmsg["localdevIP"])
+html[#html + 1] = ui_helper.createInputText(T"Modem IP address", "localdevIP", content["localdevIP"],{},helpmsg["localdevIP"])
 html[#html + 1] = ui_helper.createInputText(T"Local Network subnet", "localdevmask", content["localdevmask"], advanced, helpmsg["localdevmask"])
 html[#html + 1] =ui_helper.createButton(T"Reset to default", T"Reset", "icon-bolt", clear_network_stats)
 if curintf == "lan" then
