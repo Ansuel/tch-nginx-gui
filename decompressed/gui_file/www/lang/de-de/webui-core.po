@@ -3326,3 +3326,60 @@ msgstr ""
 
 msgid "Debug Report"
 msgstr ""
+
+msgid "Assistant"
+msgstr ""
+
+msgid "Burst frame"
+msgstr ""
+
+msgid "Remote/WAN port"
+msgstr ""
+
+msgid "Trace route"
+msgstr ""
+
+msgid "DNS Server 1"
+msgstr ""
+
+msgid "DNS Server 2"
+msgstr ""
+
+msgid "DNS Server 3"
+msgstr ""
+
+msgid "PPoE Relay"
+msgstr ""
+
+msgid "Debug Zip"
+msgstr ""
+
+msgid "HS Switch Timeout"
+msgstr ""
+
+msgid "PPP over Ethernet"
+msgstr ""
+
+msgid "PPP over ATM"
+msgstr ""
+
+msgid "VoIP Registar:"
+msgstr ""
+
+msgid "VoIP Realm:"
+msgstr ""
+
+msgid "WiFi Setup"
+msgstr ""
+
+msgid "Firmware OID"
+msgstr ""
+
+msgid "Tries:"
+msgstr ""
+
+msgid "auto"
+msgstr ""
+
+msgid "NoSignal"
+msgstr ""

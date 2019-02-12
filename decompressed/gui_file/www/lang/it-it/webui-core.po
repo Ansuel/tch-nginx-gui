@@ -212,7 +212,7 @@ msgid "Access Control"
 msgstr "Controllo accessi"
 
 msgid "Access Control List"
-msgstr "Elenco controllo accessi"
+msgstr "Elenco controllo accessi (ACL)"
 
 msgid "Access Point"
 msgstr "Punto di accesso"
@@ -284,7 +284,7 @@ msgid "Add new rule"
 msgstr "Aggiungi nuova regola"
 
 msgid "Add new static IPv4 route"
-msgstr "Aggiungi nuovo instradamento statico IPv4"
+msgstr "Aggiungi nuovo instradamento IPv4 statico"
 
 msgid "Add new static lease"
 msgstr "Aggiungi nuovo indirizzo IP statico"
@@ -353,7 +353,7 @@ msgid "Aria2 WebUi not installed"
 msgstr "WebUI Aria2 non installata"
 
 msgid "Aria2 is "
-msgstr "Aria2 è "
+msgstr "Aria2 "
 
 msgid "Assistance"
 msgstr "Assistenza"
@@ -428,7 +428,7 @@ msgid "Blue"
 msgstr "Blu"
 
 msgid "Bootloader OID"
-msgstr "Bootloader OID"
+msgstr "OID bootloader"
 
 msgid "Bootloader Version"
 msgstr "Versione bootloader"
@@ -575,7 +575,7 @@ msgid "Connection"
 msgstr "Connessione"
 
 msgid "Connection Check"
-msgstr "Controlla collegamento"
+msgstr "Test connessione"
 
 msgid "Connection Request Auth"
 msgstr "Autentificazione connessione"
@@ -668,7 +668,7 @@ msgid "DHCP Start Address should not be a Network Address"
 msgstr "L'indirizzo iniziale DHCP non può essere un indirizzo di rete"
 
 msgid "DHCP Start address"
-msgstr "Inizio iniziale DHCP"
+msgstr "Indirizzo iniziale DHCP"
 
 msgid "DHCP connecting"
 msgstr "Connessione DHCP"
@@ -1154,10 +1154,10 @@ msgid "Firmware update in progress, please wait..."
 msgstr "Aggiornamento firmware..."
 
 msgid "First DNS Server IPV6 Ping"
-msgstr "Primo ping server DNS IPV6"
+msgstr "Ping primo server DNS IPV6"
 
 msgid "First DNS Server Ping"
-msgstr "Primo ping server DNS"
+msgstr "Ping primo server DNS"
 
 msgid "Flow Cache"
 msgstr "Cache flusso"
@@ -1298,7 +1298,7 @@ msgid "IPv4 Routes"
 msgstr "Instradamenti IPv4"
 
 msgid "IPv4 Static Routes Configuration"
-msgstr "Configurazione instradamenti statici IPv4"
+msgstr "Instradamenti statici IPv4"
 
 msgid "IPv6 Assigned"
 msgstr "IPv6 assegnato"
@@ -1337,7 +1337,7 @@ msgid "Idle"
 msgstr "Non attivo"
 
 msgid "Input the latest stock firmware version in this field to spoof it. This is necessary because if a newer version of the firmware is available on the ACS server, CWMPD will try to update the device and break remote monitoring from the “MyTIM” mobile app."
-msgstr "Inserisci in questo campo la versione più recente del firmeare stock.<br/>Questo è necessario poichè se è disponibile una versione più recente del firmware stock nel server ACS, CWMPD proverà ad aggiornare il modem e questo interromperà il monitoraggio con l'app  mobile 'My TIM'<br/>Modifica qui la versione per evitare ciò."
+msgstr "Inserisci in questo campo la versione più recente del firmware stock.<br/>Questo è necessario poichè se è disponibile una versione più recente del firmware stock nel server ACS, CWMPD proverà ad aggiornare il modem e questo interromperà il monitoraggio con l'app  mobile 'My TIM'<br/>Modifica qui la versione per evitare ciò."
 
 msgid "If a wireless device reports this gateway's 2.4GHz signal strength is above this threshold, the gateway will ask the device to test the 5GHz band . Please see 5GHz section for additional parameter."
 msgstr "Se un dispositivo wireless riporta questa potenza di segnale del gateway della rete 2.4 GHz sopra questa soglia, il gateway chiederà al dispositivo di verificare la banda a 5 GHz.<br/>Vedi la sezione rete 5 GHz per i parametri aggiuntivi."
@@ -1376,16 +1376,16 @@ msgid "Importing failed; please try again."
 msgstr "Importazione fallita. Riprova."
 
 msgid "In <strong>high mode</strong>, firewall allows outgoing connections to HTTP, HTTPS, SMTP, POP3, IMAP, SSH services and silently drops unknown incoming connections. This may impact on web services like Internet Speed Test."
-msgstr "In <strong>modalità alto</strong>, il firewall consentirà le connessioni in uscita ai servizi HTTP, HTTPS, SMTP, POP3, IMAP, SSH e scarterà silenziosamente le connessioni sconosciute in ingresso.<br/>Questo può avere impatto su servizi web quali il test di velocità internet."
+msgstr "Impostando il <strong>livello alto</strong>, il firewall consentirà le connessioni in uscita ai servizi HTTP, HTTPS, SMTP, POP3, IMAP, SSH e scarterà silenziosamente le connessioni sconosciute in ingresso.<br/>Questo può avere impatto su servizi web quali il test di velocità internet."
 
 msgid "In <strong>low mode</strong>, firewall allows all outbound connections and rejects unknown incoming connections but acknowledges presence of the gateway."
-msgstr "In <strong>modalità basso</strong>, il firewall consentirà ogni connessione in uscita.<br/>Rifiuterà connessioni sconosciute in ingresso, ma il router sarà raggiungibile dall’esterno."
+msgstr "Impostando il <strong>livello basso</strong>, il firewall consentirà ogni connessione in uscita.<br/>Rifiuterà connessioni sconosciute in ingresso, ma il router sarà raggiungibile dall’esterno."
 
 msgid "In <strong>medium mode</strong>, firewall allows all outbound connections and silently drops unknown incoming connections."
-msgstr "In <strong>modalità medio</strong>, il firewall consentirà ogni connessione in uscita.<br/>Scarterà silenziosamente le connessioni sconosciute in entrata."
+msgstr "Impostando il <strong>livello medio</strong>, il firewall consentirà ogni connessione in uscita.<br/>Scarterà silenziosamente le connessioni sconosciute in entrata."
 
 msgid "In <strong>user mode</strong>, individual firewall rules may be configured as well as the default behavior."
-msgstr "Con la  <strong>modalità utente</strong>, è possibile configurare ogni singola regola del firewall o ricaricare l´impostazione predefinita."
+msgstr "Impostando il <strong>livello utente</strong>, è possibile configurare ogni singola regola del firewall o ricaricare l´impostazione predefinita."
 
 msgid "Incoming default policy"
 msgstr "Regola predefinita ingresso"
@@ -1565,7 +1565,7 @@ msgid "Loading..."
 msgstr "Caricamento..."
 
 msgid "Local Device IP address"
-msgstr "Indirizzi IP dispositivi locali"
+msgstr "Indirizzo IP modem"
 
 msgid "Local IP"
 msgstr "IP Locale"
@@ -1712,7 +1712,7 @@ msgid "Network Timezone"
 msgstr "Fuso orario rete"
 
 msgid "Network address"
-msgstr "Indirizzi di rete"
+msgstr "Indirizzo di rete"
 
 msgid "Network mode"
 msgstr "Modalità rete"
@@ -2261,7 +2261,7 @@ msgid "SSH enabled"
 msgstr "SSH abilitato"
 
 msgid "SSID name"
-msgstr "Nome SSID"
+msgstr "Nome rete (SSID)"
 
 msgid "Sat."
 msgstr "Sab."
@@ -2489,7 +2489,7 @@ msgid "Switching to <strong>Voice Mode</strong> and restarting, please wait..."
 msgstr "Applicazione della <strong>Modalità voce</strong> e riavvio..."
 
 msgid "Switchover"
-msgstr "Commutazione"
+msgstr "Commuta"
 
 msgid "Syslog disabled"
 msgstr "Syslog disabilitato"
@@ -2531,7 +2531,7 @@ msgid "Telnet enabled"
 msgstr "Telnet abilitato"
 
 msgid "Temporary"
-msgstr "Temporaneo"
+msgstr "Temporanea"
 
 msgid "The <strong>Bridged Mode</strong> disables CWMP, Voip service and doesn't create any type of connection. It just connects to the DSLAM and bridges the traffic between a router and the DSLAM itself."
 msgstr "La <strong>Modalità bridged</strong> disabilita CWMP, il servizio VoIP e non crea alcun tipo di connessione.<br/>Si connette solamente al DSLAM e collega il traffico tra un router e il DSLAM stesso."
@@ -2543,7 +2543,7 @@ msgid "The <strong>incoming policy</strong> defines what is done with packets de
 msgstr "La <strong>regola in entrata</strong> definisce come vengono trattati i pacchetti destinati al gateway.<br/>Questi possono o essere respinti (il gateway notificherà al mittente che sono stati respinti) o scartati (il gateway rifiuterà senza avvisare questi pacchetti)."
 
 msgid "The <strong>outgoing policy</strong> defines what is done with packets coming from the LAN devices toward the internet. Setting it to REJECT or DROP will forbid any internet traffic from the LAN unless explicitly allowed by a firewall rule."
-msgstr "La <strong>regola in uscita</strong> definisce come vengono trattati i pacchetti dal gateway verso internet.<br/>Impostando RIFIUTA o SCARTA inibisci qualsiasi traffico dalla LAN verso internet e mano che sia esplicitamnte permesso da una regola del firewall."
+msgstr "La <strong>regola in uscita</strong> definisce come vengono trattati i pacchetti dal gateway verso internet.<br/>Impostando RIFIUTA o SCARTA inibisci qualsiasi traffico dalla LAN verso internet e mano che sia esplicitamente permesso da una regola del firewall."
 
 msgid "The Backup file you try to load has not been taken from the actual SW-Release, please use correct Backup File"
 msgstr "Il file di backup che stai cercando di caricare non è stato creato dalla versione software attuale.<br/>Usa un file di backup valido"
@@ -2552,7 +2552,7 @@ msgid "Band Steering is not supported when using WEP security mode."
 msgstr "Band steering non è supportato usando il modo sicurezza WEP."
 
 msgid "The Blacklist app is "
-msgstr "L'app Blacklist è "
+msgstr "app Blacklist "
 
 msgid "The Gateway will block/allow all the time if none of the days are selected"
 msgstr "Se non viene selezionato nessun giorno della settimana, la regola verrà applicata a tutti i giorni"
@@ -2561,7 +2561,7 @@ msgid "The IP address is part of the "
 msgstr "L'indirizzo IP è parte di "
 
 msgid "The XUPnP app is "
-msgstr "L'applicazione XUPnP è "
+msgstr "app XUPnP "
 
 msgid "The below chart shows the results of the latest scan of your local area from your gateway."
 msgstr "Il grafico seguente visualizza i risultati dell´ultimo controllo nella LAN del gateway."
@@ -2654,10 +2654,10 @@ msgid "This will put your gateway into LAN Update"
 msgstr "Verrà avviato l'aggiornamento del modem"
 
 msgid "This will transfer the active firmware and config to the bank 1"
-msgstr "Verrò trasferito il firmware attivo e la configurazione nel banco 1"
+msgstr "Verrà trasferito nel banco 1 firmware e configurazione attiva"
 
 msgid "This will transfer your configuration and firmware to bank_1 and it will erase bank_2"
-msgstr "Verrà trasferita la configurazione e il firmware nel banco 1 e azzerato il banco 2"
+msgstr "Verrà trasferito nel banco 1 firmware e configurazione e verrà azzerato il banco 2"
 
 msgid "Thu."
 msgstr "Gio."
@@ -2672,10 +2672,10 @@ msgid "Time of Day"
 msgstr "Pianificazione"
 
 msgid "Time of day access control"
-msgstr "Pianificazione - accesso client"
+msgstr "Pianificazione controllo accessi"
 
 msgid "Time of day wireless control"
-msgstr "Pianificazione - accesso wireless"
+msgstr "Pianificazione controllo accessi wireless"
 
 msgid "Timeout"
 msgstr "Timeout"
@@ -2726,7 +2726,7 @@ msgid "Tue."
 msgstr "Mar."
 
 msgid "Turning on Eco features can cause major latency."
-msgstr "L'attivazione delle funzionalità di risparmio energetico ethernet può causare una latenza aggiuntiva"
+msgstr "L'attivazione delle funzionalità di risparmio energetico ethernet può causare una latenza aggiuntiva."
 
 msgid "Turn off all LEDs except “Info” if all services are up and running. Press the “Info” / “WiFi” button to show the current LEDs status."
 msgstr "Se tutti i servizi sono attivi e funzionanti spegne tutti led eccetto 'Info'.<br/>Premi il pulsante 'Info' / 'Wifi' per visualizzare lo stato attuale dei led."
@@ -2885,7 +2885,7 @@ msgid "Version Set"
 msgstr "Versione impostata"
 
 msgid "Version Spoof"
-msgstr "Versione spoofing"
+msgstr "Impostazione spoofing"
 
 msgid "Good"
 msgstr "Buono"
@@ -2948,13 +2948,13 @@ msgid "WEP Key"
 msgstr "Chiave WEP"
 
 msgid "WPS AP PIN code"
-msgstr "Codice PIN WPS AP"
+msgstr "PIN WPS AP"
 
 msgid "WPS Buttom Mode"
 msgstr "Modalità pulsante WPS"
 
 msgid "WPS Device PIN code"
-msgstr "Codice PIN dispositivo WPS"
+msgstr "PIN dispositivo WPS"
 
 msgid "WPS Mode"
 msgstr "Modalità WPS"
@@ -3038,7 +3038,7 @@ msgid "Your username"
 msgstr "Nome utente"
 
 msgid "any"
-msgstr "Qualsiasi"
+msgstr "Ingresso e uscita"
 
 msgid "at least one number and at least one special character"
 msgstr "e almeno un carattere numerico e un carattere speciale"
@@ -3280,7 +3280,7 @@ msgid "Dark/White (Fritz!Box Based)"
 msgstr "Scura/bianca (basata su Fritz!Box)"
 
 msgid "Dark/Midnight (Fritz!Box Based)"
-msgstr "Scura/mnezzanotte (basata su Fritz!Box)"
+msgstr "Scura/mezzanotte (basata su Fritz!Box)"
 
 msgid "Red Dark"
 msgstr "Rosso scuro"
@@ -3326,3 +3326,60 @@ msgstr "Genera"
 
 msgid "Debug Report"
 msgstr "Rapporto debug"
+
+msgid "Assistant"
+msgstr "Asssistente"
+
+msgid "Burst frame"
+msgstr "Frame burst"
+
+msgid "Remote/WAN port"
+msgstr "Porta remota/WAN"
+
+msgid "Trace route"
+msgstr "Traccia instradamento"
+
+msgid "DNS Server 1"
+msgstr "Server DNS 1"
+
+msgid "DNS Server 2"
+msgstr "Server DNS 2"
+
+msgid "DNS Server 3"
+msgstr "Server DNS 3"
+
+msgid "PPoE Relay"
+msgstr "PPoE relay"
+
+msgid "Debug Zip"
+msgstr "Crea ZIP debug"
+
+msgid "HS Switch Timeout"
+msgstr "Timeout switch HS"
+
+msgid "PPP over Ethernet"
+msgstr "PPPoE (PPP over Ethernet)"
+
+msgid "PPP over ATM"
+msgstr "PPPoA (PPP overt ATM)"
+
+msgid "VoIP Registar:"
+msgstr "Server VoIP:"
+
+msgid "VoIP Realm:"
+msgstr "Realm VoIP:"
+
+msgid "WiFi Setup"
+msgstr "Impostazione WiFi"
+
+msgid "Firmware OID"
+msgstr "OID firmware"
+
+msgid "Tries:"
+msgstr "Tentativi:"
+
+msgid "auto"
+msgstr "Automatica"
+
+msgid "NoSignal"
+msgstr "Nessun segnale"
