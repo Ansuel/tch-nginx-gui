@@ -3225,8 +3225,8 @@ msgid_plural "<strong %s>%d Wireless Control</strong> rules defined"
 msgstr[0] "<strong %s>%d Wireless Steuerungs</strong> Regel definiert"
 msgstr[1] "<strong %s>%d Wireless Steuerungs</strong> Regeln definiert"
 
-msgid "WanSensing sets the connection mode automatically. Disable this to set the connection mode manually. After saving the changes the connection options will be shown."
-msgstr "WanSensing setzt den Verbindungsmodus automatisch. Deaktivieren Sie dies, wenn Sie den Verbindungsmodus manuell wählen wollen. Nachdem die Einstellung gespeichert wurde, werden die möglichen Modi angezeigt."
+msgid "WanSensing sets the connection mode automatically.<br/>Disable this to set the connection mode manually.<br/>After saving the changes the connection options will be shown."
+msgstr "WanSensing setzt den Verbindungsmodus automatisch.<br/>Deaktivieren Sie dies, wenn Sie den Verbindungsmodus manuell wählen wollen.<br/>Nachdem die Einstellung gespeichert wurde, werden die möglichen Modi angezeigt."
 
 msgid "NotPresent"
 msgstr "Nicht verfügbar"
