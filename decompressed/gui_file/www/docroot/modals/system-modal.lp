@@ -407,7 +407,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 if not ( fwversion_override_content["fwversion_override"] == "" ) then
 	ngx.print('\
 	<fieldset>\
-	<legend>');  ngx.print( T"Version Spoof" ); ngx.print('</legend>\
+	<legend>');  ngx.print( T"Spoof Settings" ); ngx.print('</legend>\
 		');
 		local info_box = {
 			alert = {

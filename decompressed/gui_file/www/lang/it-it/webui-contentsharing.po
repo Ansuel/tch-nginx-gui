@@ -27,13 +27,13 @@ msgstr "Chiudi"
 msgid "Content Sharing"
 msgstr "Condivisione contenuti"
 
-msgid "Currently there are <strong>%d</strong> connected devices"
+msgid "<strong>%d</strong> connected devices"
 msgstr "<strong>%d</strong> dispositivi connessi"
 
-msgid "Currently there are <strong>%s</strong> connected devices"
+msgid "<strong>%s</strong> connected devices"
 msgstr "<strong>%s</strong> dispositivi connessi"
 
-msgid "Currently there is <strong>%d</strong> connected device"
+msgid "<strong>%d</strong> connected device"
 msgstr "<strong>%d</strong> dispositivo connesso"
 
 msgid "DLNA disabled"

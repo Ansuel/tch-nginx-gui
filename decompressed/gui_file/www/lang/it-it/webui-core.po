@@ -661,7 +661,7 @@ msgstr "Indirizzo iniziale DHCP non valido"
 msgid "DHCP Start Address is not valid in Subnet Range"
 msgstr "Indirizzo iniziale DHCP non valido in questo intervallo sottorete"
 
-msgid "DHCP Start Address should not be Local Device IP Address"
+msgid "DHCP Start Address should not be Modem IP Address"
 msgstr "L'indirizzo iniziale DHCP non può essere uguale all'indirizzo IP locale del dispositivo"
 
 msgid "DHCP Start Address should not be a Network Address"
@@ -752,7 +752,7 @@ msgid "DSL Type"
 msgstr "Tipologia DSL"
 
 msgid "DSL Uptime"
-msgstr "Attività DSL"
+msgstr "Tempo attività DSL"
 
 msgid "DSL stats"
 msgstr "Statistiche DSL"
@@ -1297,7 +1297,7 @@ msgstr "Tabella mappatura porte IPv4"
 msgid "IPv4 Routes"
 msgstr "Instradamenti IPv4"
 
-msgid "IPv4 Static Routes Configuration"
+msgid "IPv4 Static Routes"
 msgstr "Instradamenti statici IPv4"
 
 msgid "IPv6 Assigned"
@@ -1564,7 +1564,7 @@ msgstr "Linea attiva"
 msgid "Loading..."
 msgstr "Caricamento..."
 
-msgid "Local Device IP address"
+msgid "Modem IP address"
 msgstr "Indirizzo IP modem"
 
 msgid "Local IP"
@@ -2260,7 +2260,7 @@ msgstr "SSH disabilitato"
 msgid "SSH enabled"
 msgstr "SSH abilitato"
 
-msgid "SSID name"
+msgid "Newtork Name (SSID)"
 msgstr "Nome rete (SSID)"
 
 msgid "Sat."
@@ -2884,8 +2884,8 @@ msgstr "Versione %s (%s)"
 msgid "Version Set"
 msgstr "Versione impostata"
 
-msgid "Version Spoof"
-msgstr "Impostazione spoofing"
+msgid "Spoof Setttings"
+msgstr "Impostazioni Spoof"
 
 msgid "Good"
 msgstr "Buono"
@@ -3037,8 +3037,8 @@ msgstr "Password"
 msgid "Your username"
 msgstr "Nome utente"
 
-msgid "any"
-msgstr "Ingresso e uscita"
+msgid "Input/Output"
+msgstr "Ingresso/uscita"
 
 msgid "at least one number and at least one special character"
 msgstr "e almeno un carattere numerico e un carattere speciale"
@@ -3056,7 +3056,7 @@ msgid "duplicate value"
 msgstr "valore duplicato"
 
 msgid "enabled"
-msgstr "abilitato"
+msgstr "Abilitato"
 
 msgid "error"
 msgstr "errore"
@@ -3070,7 +3070,7 @@ msgstr "Alto"
 msgid "icmp-type"
 msgstr "Tipo ICMP"
 
-msgid "in"
+msgid "Input"
 msgstr "Ingresso"
 
 msgid "Invalid Gateway IP"
@@ -3091,7 +3091,7 @@ msgstr "non"
 msgid "not connected"
 msgstr "non connesso"
 
-msgid "out"
+msgid "Output"
 msgstr "Uscita"
 
 msgid "syslog Disabled"

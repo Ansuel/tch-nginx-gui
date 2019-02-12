@@ -661,7 +661,7 @@ msgstr "DHCP Startadresse ist ungültig"
 msgid "DHCP Start Address is not valid in Subnet Range"
 msgstr "DHCP Startadresse ist im Subnetzbereich ungültig"
 
-msgid "DHCP Start Address should not be Local Device IP Address"
+msgid "DHCP Start Address should not be Modem IP Address"
 msgstr "DHCP Startadresse darf nicht mit der lokalen Geräteadresse übereinstimmen"
 
 msgid "DHCP Start Address should not be a Network Address"
@@ -1297,8 +1297,8 @@ msgstr "IPv4 Port-Weiterleitungstabelle"
 msgid "IPv4 Routes"
 msgstr "IPv4 Routen"
 
-msgid "IPv4 Static Routes Configuration"
-msgstr "Konfiguration statische IPv4-Routen"
+msgid "IPv4 Static Routes"
+msgstr "Statische IPv4-Routen"
 
 msgid "IPv6 Assigned"
 msgstr "IPv6 zugewiesen"
@@ -1564,7 +1564,7 @@ msgstr "Gegenstelle erreichbar"
 msgid "Loading..."
 msgstr "Laden..."
 
-msgid "Local Device IP address"
+msgid "Modem IP address"
 msgstr "Lokale Geräte-IP-Adresse"
 
 msgid "Local IP"
@@ -2260,8 +2260,8 @@ msgstr "SSH abgeschaltet"
 msgid "SSH enabled"
 msgstr "SSH eingeschaltet"
 
-msgid "SSID name"
-msgstr "SSID Name"
+msgid "Newtork Name (SSID)"
+msgstr ""
 
 msgid "Sat."
 msgstr "Sam."
@@ -2884,8 +2884,8 @@ msgstr "Version %s (%s)"
 msgid "Version Set"
 msgstr "Gesetzte Version"
 
-msgid "Version Spoof"
-msgstr "Vorgetäuschte Version"
+msgid "Spoof Setttings"
+msgstr ""
 
 msgid "Good"
 msgstr "Sehr gut"
@@ -3037,8 +3037,8 @@ msgstr "Ihr Kennwort"
 msgid "Your username"
 msgstr "Ihr Benutzername"
 
-msgid "any"
-msgstr "jede"
+msgid "Input/Output"
+msgstr "Eingehend/ausgehend"
 
 msgid "at least one number and at least one special character"
 msgstr "mindestens eine Zahl und mindestens ein Sonderzeichen"
@@ -3070,7 +3070,7 @@ msgstr "Hoch"
 msgid "icmp-type"
 msgstr "ICMP-Typ"
 
-msgid "in"
+msgid "Input"
 msgstr "eingehend"
 
 msgid "Invalid Gateway IP"
@@ -3091,7 +3091,7 @@ msgstr "nicht"
 msgid "not connected"
 msgstr "nicht verbunden"
 
-msgid "out"
+msgid "Output"
 msgstr "ausgehend"
 
 msgid "syslog Disabled"
