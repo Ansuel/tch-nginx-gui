@@ -3225,8 +3225,8 @@ msgid_plural "<strong %s>%d Wireless Control</strong> rules defined"
 msgstr[0] "<strong %s>%d Wireless Steuerungs</strong> Regel definiert"
 msgstr[1] "<strong %s>%d Wireless Steuerungs</strong> Regeln definiert"
 
-msgid "WanSensing sets the connection mode automatically. Disable this to set the connection mode manually. After saving the changes the connection options will be shown."
-msgstr "WanSensing setzt den Verbindungsmodus automatisch. Deaktivieren Sie dies, wenn Sie den Verbindungsmodus manuell wählen wollen. Nachdem die Einstellung gespeichert wurde, werden die möglichen Modi angezeigt."
+msgid "WanSensing sets the connection mode automatically.<br/>Disable this to set the connection mode manually.<br/>After saving the changes the connection options will be shown."
+msgstr "WanSensing setzt den Verbindungsmodus automatisch.<br/>Deaktivieren Sie dies, wenn Sie den Verbindungsmodus manuell wählen wollen.<br/>Nachdem die Einstellung gespeichert wurde, werden die möglichen Modi angezeigt."
 
 msgid "NotPresent"
 msgstr "Nicht verfügbar"
@@ -3268,118 +3268,118 @@ msgid "NAT Helpers"
 msgstr "NAT Helfer"
 
 msgid "Key Info"
-msgstr ""
+msgstr "Schlüssel Info"
 
 msgid "Config decrypt key"
-msgstr ""
+msgstr "Konfigurationsschlüssel"
 
 msgid "Fritz!Box"
-msgstr ""
+msgstr "Fritz!Box"
 
 msgid "Dark/White (Fritz!Box Based)"
-msgstr ""
+msgstr "Dunkel/Weiß (Fritz!Box basiert)"
 
 msgid "Dark/Midnight (Fritz!Box Based)"
-msgstr ""
+msgstr "Dunkel/Mitternacht (Fritz!Box basiert)"
 
 msgid "Red Dark"
-msgstr ""
+msgstr "Dunkelrot"
 
 msgid "Device"
-msgstr ""
+msgstr "Gerät"
 
 msgid "VLAN ID"
-msgstr ""
+msgstr "VLAN ID"
 
 msgid "Host Uniq Tag"
-msgstr ""
+msgstr "Geräteindividuelles Kennzeichen"
 
 msgid "Bytes"
-msgstr ""
+msgstr "Bytes"
 
 msgid "PPPoE routed mode"
-msgstr ""
+msgstr "Gerouteter PPPoE Modus"
 
 msgid "PPPoA routed mode"
-msgstr ""
+msgstr "Gerouteter PPPoA Modus"
 
 msgid "Fixed IP mode"
-msgstr ""
+msgstr "Feste IP Modus"
 
 msgid "Bridge mode"
-msgstr ""
+msgstr "Brückenmodus"
 
 msgid "Reset"
-msgstr ""
+msgstr "Zurück"
 
 msgid "Rx Bytes"
-msgstr ""
+msgstr "Empfangene Bytes"
 
 msgid "Tx Bytes"
-msgstr ""
+msgstr "Gesendete Bytes"
 
 msgid "MAC Spoof (Wan MAC)"
-msgstr ""
+msgstr "MAC Fälschung (WAN MAC)"
 
 msgid "Generate"
-msgstr ""
+msgstr "Erzeuge"
 
 msgid "Debug Report"
-msgstr ""
+msgstr "Debug Bericht"
 
 msgid "Assistant"
-msgstr ""
+msgstr "Assistent"
 
 msgid "Burst frame"
-msgstr ""
+msgstr "Burst Rahmen"
 
 msgid "Remote/WAN port"
-msgstr ""
+msgstr "Entfernter/WAN Anschluss"
 
 msgid "Trace route"
-msgstr ""
+msgstr "Routenverfolgung"
 
 msgid "DNS Server 1"
-msgstr ""
+msgstr "DNS Server 1"
 
 msgid "DNS Server 2"
-msgstr ""
+msgstr "DNS Server 2"
 
 msgid "DNS Server 3"
-msgstr ""
+msgstr "DNS Server 3"
 
 msgid "PPoE Relay"
-msgstr ""
+msgstr "PPPoE Relais"
 
 msgid "Debug Zip"
-msgstr ""
+msgstr "Debug ZIP"
 
 msgid "HS Switch Timeout"
-msgstr ""
+msgstr "HS Switch Zeitschranke"
 
 msgid "PPP over Ethernet"
-msgstr ""
+msgstr "PPP über Ethernet"
 
 msgid "PPP over ATM"
-msgstr ""
+msgstr "PPP über ATM"
 
 msgid "VoIP Registar:"
-msgstr ""
+msgstr "VoIP Registrar:"
 
 msgid "VoIP Realm:"
-msgstr ""
+msgstr "VoIP Bereich:"
 
 msgid "WiFi Setup"
-msgstr ""
+msgstr "WiFi Einstellungen"
 
 msgid "Firmware OID"
-msgstr ""
+msgstr "Firmware OID"
 
 msgid "Tries:"
-msgstr ""
+msgstr "Versuche:"
 
 msgid "auto"
-msgstr ""
+msgstr "auto"
 
 msgid "NoSignal"
-msgstr ""
+msgstr "KeinSignal"

@@ -521,10 +521,10 @@ msgid "seconds"
 msgstr "Sekunden"
 
 msgid "LTE Doctor"
-msgstr ""
+msgstr "LTE Doktor"
 
 msgid "Unlock Retries Left:"
-msgstr ""
+msgstr "Übrige Entsperrversuche:"
 
 msgid "Unblock Retries Left:"
-msgstr ""
+msgstr "Übrige Entblockierungsversuche:"
