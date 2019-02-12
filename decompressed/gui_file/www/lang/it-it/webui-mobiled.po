@@ -524,7 +524,7 @@ msgid "LTE Doctor"
 msgstr "Diagnostica LTE"
 
 msgid "Unlock Retries Left:"
-msgstr "Tentativi sblocco rimanenti:"
+msgstr "Tentativi rimanenti sblocco:"
 
 msgid "Unblock Retries Left:"
-msgstr "Tentativi blocco rimanenti:"
+msgstr "Tentativi rimanenti blocco:"
