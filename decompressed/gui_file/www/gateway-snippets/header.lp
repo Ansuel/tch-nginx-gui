@@ -47,7 +47,7 @@ else
 end
 
 local function apply(action)
-  proxy.set("rpc.system." .. action, "1")
+  proxy.set("rpc.system.modgui.utility." .. action, "1")
   ngx.header.content_type = "application/json"
   ngx.print('{ "success":"true" }')
   ngx.timer.at(0, function()
