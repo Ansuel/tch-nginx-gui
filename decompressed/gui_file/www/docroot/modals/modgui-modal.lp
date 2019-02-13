@@ -137,6 +137,7 @@ if ngx.req.get_method() == "POST" then
     return resetreboot("rpc.system.modgui.utility.resetgui", "1")
   end
   if action == "system_upgrade_gui" then
+	proxy.set("rpc.system.modgui.upgradegui.state", "Requested")
 	return resetreboot("rpc.system.modgui.upgradegui.start", "1")
   end
   if action == "system_remove_root" then
@@ -498,7 +499,12 @@ ngx.print('\
 	$("#upgrade-gui-bar").removeClass("hide");\
 	$("#upgrade-log").removeClass("hide");\
 	$(".bar").css("width", bar_val+"%").attr("aria-valuenow", bar_val);\
-    resetreboot($("#updating-msg"), $(this), "system_upgrade_gui");\
+	$.post(\
+      target,\
+      { action: "system_upgrade_gui", CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
+      "",\
+      "json"\
+    );\
     wait_for_upgradegui();\
   });\
 \
