@@ -231,6 +231,13 @@ for dir in /www/* ; do
 			if [ "$subdir" = "/www/docroot/aria" ] || 
 			   [ "$subdir" = "/www/docroot/transmission" ]; then
 				continue
+			elif [ "$subdir" = "/www/docroot/modals" ]; then
+				for file in /www/docroot/modals/* ; do
+					#We need this file to handle rootdevice log in gui
+					if [ "$file" != "/www/docroot/modals/modgui-modal.lp" ]; then
+						rm "$file"
+					fi
+				done
 			else
 				rm -rf "$subdir"
 			fi
