@@ -438,20 +438,6 @@ ngx.print('\
     return resetreboot($("#resetting-msg"), $(this), "system_reset_gui");\
   });\
 \
-  $("#btn-upgrade-gui").on("click", function() {\
-    $(".modal-backdrop").css("pointer-events", "none");\
-	$(".container").css("pointer-events", "none");\
-	$(".modal").css("pointer-events", "none");\
-    $("#btn-upgrade-gui").addClass("hide");\
-	$("#offline-upgrade-gui-div").addClass("hide");\
-	$("#GUI-upgrade-option").addClass("hide");\
-	$("#upgrade-gui-bar").removeClass("hide");\
-	$("#upgrade-gui-bar")[0].scrollIntoView();\
-	$(".bar").css("width", valeur+"%").attr("aria-valuenow", valeur);\
-    resetreboot($("#updating-msg"), $(this), "system_upgrade_gui");\
-    wait_for_webserver_down();\
-  });\
-\
   $("#btn-remove-root").on("click", function() {\
     $("#confirming-msg-remove-root").removeClass("hide");\
 	$("#remove-root-changes").removeClass("hide");\
@@ -503,6 +489,19 @@ ngx.print('\
     return false;\
   }\
 \
+  $("#btn-upgrade-gui").on("click", function() {\
+    $(".modal-backdrop").css("pointer-events", "none");\
+	$(".container").css("pointer-events", "none");\
+	$(".modal").css("pointer-events", "none");\
+	$("#offline-upgrade-gui-div").addClass("hide");\
+	$(".RemoveOnUpgrade").each(function() {$(this).addClass("hide")});\
+	$("#upgrade-gui-bar").removeClass("hide");\
+	$("#upgrade-log").removeClass("hide");\
+	$(".bar").css("width", bar_val+"%").attr("aria-valuenow", bar_val);\
+    resetreboot($("#updating-msg"), $(this), "system_upgrade_gui");\
+    wait_for_upgradegui();\
+  });\
+\
   $(".import-gui").on("click", function() {\
     var nofile_msg = $("#upgrade-gui-fail");\
     var wrongext_msg = $("#upgrade-gui-fail");\
@@ -531,6 +530,9 @@ ngx.print('\
       params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
       completeCallback: function(form, response) {\
         if (response.success) {\
+		  $(".modal-backdrop").css("pointer-events", "none");\
+		  $(".container").css("pointer-events", "none");\
+		  $(".modal").css("pointer-events", "none");\
 		  importing_msg.addClass("hide");\
 		  $("#offline-upgrade-gui-div").addClass("hide");\
 		  $(".RemoveOnUpgrade").each(function() {$(this).addClass("hide")});\
