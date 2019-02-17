@@ -62,7 +62,7 @@ If you upload config files, please remove your personal details including your p
 In the future there will be a button/command in the GUI to generate a debug file.
 
 Stats:
-<img src="https://i.ibb.co/2g5103B/modem-stats.jpg">
+<img src="https://i.ibb.co/XjhF629/modemstats.jpg">
 
 Cards:
-<img src="https://i.ibb.co/3M3qnNH/modem-cards.jpg">
+<img src="https://i.ibb.co/5BDrRnx/odemcards.jpg">
