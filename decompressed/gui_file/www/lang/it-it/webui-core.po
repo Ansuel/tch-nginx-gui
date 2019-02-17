@@ -182,7 +182,7 @@ msgid "ACCEPT"
 msgstr "ACCETTO"
 
 msgid "ACL Mode"
-msgstr "Modalità ACL"
+msgstr "ACL"
 
 msgid "ACS Password"
 msgstr "Password ACS"
@@ -257,7 +257,7 @@ msgid "Add new IPv6 firewall rule"
 msgstr "Aggiungi nuova regola firewall IPv6"
 
 msgid "Add new IPv6 forwarding rule"
-msgstr "Aggiungere nuova regola mappatura IPv6"
+msgstr "Aggiungi nuova regola mappatura IPv6"
 
 msgid "Add new MAC address"
 msgstr "Aggiungi nuovo indirizzo MAC"
@@ -275,7 +275,7 @@ msgid "Add new dns rule"
 msgstr "Aggiungi nuova regola DNS"
 
 msgid "Add new host rule"
-msgstr "Aggiungere nuova regola host"
+msgstr "Aggiungi nuova regola host"
 
 msgid "Add new policy"
 msgstr "Aggiungi nuova regola"
@@ -356,7 +356,7 @@ msgid "Aria2 is "
 msgstr "Aria2 "
 
 msgid "Assistance"
-msgstr "Assistenza"
+msgstr "Assistenza remota"
 
 msgid "Attenuation"
 msgstr "Attenuazione"
@@ -551,7 +551,7 @@ msgid "Close"
 msgstr "Chiudi"
 
 msgid "Config creation option"
-msgstr "Creazione configurazione"
+msgstr "Gestione configurazione"
 
 msgid "Configuration of VP/VC not available"
 msgstr "Configurazione VP/VC non disponibile"
@@ -1460,7 +1460,7 @@ msgid "Internet Traffic"
 msgstr "Traffico internet"
 
 msgid "Internet channel"
-msgstr "Canale internet"
+msgstr "Connessione internet"
 
 msgid "Invalid IP Address"
 msgstr "Indirizzo IP non valido"
@@ -1688,7 +1688,7 @@ msgid "NAT Helpers (ALG's)"
 msgstr "Helper NAT (ALG)"
 
 msgid "NAT-PMP Enabled"
-msgstr "NAT-PMP attivato"
+msgstr "NAT-PMP"
 
 msgid "NULL"
 msgstr "NESSUNO"
@@ -1799,7 +1799,7 @@ msgid "Note: HTTPS mode will enable encryption but not certificate-based authent
 msgstr "Nota: HTTPS abilita la criptazione, ma non l’autenticazione basata sul certificato del servizio DynDNS"
 
 msgid "You need to enter an unused LAN IP to make Wake on LAN/WAN work."
-msgstr "Per rendere operativo Wake On LAN/WAN devi inserire un IP LAN non usato."
+msgstr "Per rendere operativo Wake On LAN/WAN inserisci un IP LAN non usato."
 
 msgid "Number"
 msgstr "Numero"
@@ -2054,10 +2054,10 @@ msgid "Protocol"
 msgstr "Protocollo"
 
 msgid "Provide a password to prevent unauthorized access to the gateway"
-msgstr "Inserisci una password per evitare l´accesso non autorizzato al gateway"
+msgstr "Inserisci una password per evitare l´accesso non autorizzato al modem"
 
 msgid "Provide a password to prevent unauthorized access to the gateway."
-msgstr "Imposta una password per evitare accessi non autorizzati al gateway."
+msgstr "Imposta una password per evitare un accesso non autorizzato al modem."
 
 msgid "Public IP Range should not be used"
 msgstr "Non può essere usato un IP appartenente all'intervallo degli IP pubblici"
@@ -2276,7 +2276,7 @@ msgid "Secure Mode Enabled"
 msgstr "Modalità sicurezza attivata"
 
 msgid "Security Mode"
-msgstr "Modo sicurezza"
+msgstr "Criptazione rete WiFi"
 
 msgid "Security for this wireless network is disabled, anybody can connect to it."
 msgstr "La sicurezza per questa rete wireless è disabilitata; chiunque può connetersi."
@@ -2540,10 +2540,10 @@ msgid "The <strong>Voice Mode</strong> disables CWMP and creates a special conne
 msgstr "La <strong>Modalità voce</strong> disabilita CWMP e crea una connessione speciale che permette di usare solamente i servizi NTP e VOIP.<br/>È necessario usare un router separato e creare una connessione PPPoE a parte."
 
 msgid "The <strong>incoming policy</strong> defines what is done with packets destined to the gateway. They can be either REJECTED (the gateway will notify the sender they were rejected) or DROPPED (the gateway will silently discard those packets)."
-msgstr "La <strong>regola in entrata</strong> definisce come vengono trattati i pacchetti destinati al gateway.<br/>Questi possono o essere respinti (il gateway notificherà al mittente che sono stati respinti) o scartati (il gateway rifiuterà senza avvisare questi pacchetti)."
+msgstr "La <strong>regola in entrata</strong> definisce come vengono trattati i pacchetti destinati al modem.<br/>Questi possono o essere respinti (il gateway notificherà al mittente che sono stati respinti) o scartati (il gateway rifiuterà senza avvisare questi pacchetti)."
 
 msgid "The <strong>outgoing policy</strong> defines what is done with packets coming from the LAN devices toward the internet. Setting it to REJECT or DROP will forbid any internet traffic from the LAN unless explicitly allowed by a firewall rule."
-msgstr "La <strong>regola in uscita</strong> definisce come vengono trattati i pacchetti dal gateway verso internet.<br/>Impostando RIFIUTA o SCARTA inibisci qualsiasi traffico dalla LAN verso internet e mano che sia esplicitamente permesso da una regola del firewall."
+msgstr "La <strong>regola in uscita</strong> definisce come vengono trattati i pacchetti dal modem verso internet.<br/>Impostando RIFIUTA o SCARTA inibisci qualsiasi traffico dalla LAN verso internet e mano che sia esplicitamente permesso da una regola del firewall."
 
 msgid "The Backup file you try to load has not been taken from the actual SW-Release, please use correct Backup File"
 msgstr "Il file di backup che stai cercando di caricare non è stato creato dalla versione software attuale.<br/>Usa un file di backup valido"
@@ -2585,7 +2585,7 @@ msgid "The requested IP can't be the broadcast IP"
 msgstr "L´indirizzo IP selezionato non può essere utilizzato come indirizzo broadcast"
 
 msgid "The requested IP can't be the same as the gateway IP"
-msgstr "L´indirizzo IP richiesto non può essere identico al gateway IP"
+msgstr "L´indirizzo IP richiesto non può essere identico all'IP del modem"
 
 msgid "The requested IP is not in the same subnet as the gateway"
 msgstr "L´indirizzo IP selezionato non si trova nella stessa sotto rete del gateway"
@@ -2747,7 +2747,7 @@ msgid "Type supported"
 msgstr "Tipologia supportata"
 
 msgid "UPnP IGD Enabled"
-msgstr "UPnP IGD Attivato"
+msgstr "UPnP IGD"
 
 msgid "UPnP disabled"
 msgstr "UPnP disabilitato"
@@ -2789,7 +2789,7 @@ msgid "Update Found"
 msgstr "Aggiornamento disponibile"
 
 msgid "Update GUI"
-msgstr "Aggiorna GUI"
+msgstr "Aggiornamento GUI"
 
 msgid "Update available! Version: <strong>%s</strong>"
 msgstr "Aggiornamento disponibile! Versione: <strong>%s</strong>"
@@ -2957,7 +2957,7 @@ msgid "WPS Device PIN code"
 msgstr "PIN dispositivo WPS"
 
 msgid "WPS Mode"
-msgstr "Modalità WPS"
+msgstr "WPS"
 
 msgid "WPS is automatically disabled if you choose WEP, WPA-only security or disable broadcast of the SSID"
 msgstr "Se si sceglie solo la protezione WEP o WPA o si disabilita la trasmissione broadcast dell'SSID, il WPS viene automaticamente disattivato"
@@ -3095,22 +3095,22 @@ msgid "Output"
 msgstr "Uscita"
 
 msgid "syslog Disabled"
-msgstr "syslog disabilitato"
+msgstr "Syslog disabilitato"
 
 msgid "syslog Enabled"
-msgstr "syslog Abilitato"
+msgstr "Syslog abilitato"
 
 msgid "TCPDump"
 msgstr "TCPDump"
 
 msgid "updated"
-msgstr "aggiornato"
+msgstr "Aggiornato"
 
 msgid "updating"
-msgstr "aggiornamento"
+msgstr "Aggiornamento"
 
 msgid "user"
-msgstr "utente"
+msgstr "Utente"
 
 msgid "xDSL Config"
 msgstr "Configurazione xDSL"
@@ -3361,7 +3361,7 @@ msgid "PPP over Ethernet"
 msgstr "PPPoE (PPP over Ethernet)"
 
 msgid "PPP over ATM"
-msgstr "PPPoA (PPP overt ATM)"
+msgstr "PPPoA (PPP over ATM)"
 
 msgid "VoIP Registar:"
 msgstr "Server VoIP:"
@@ -3379,7 +3379,7 @@ msgid "Tries:"
 msgstr "Tentativi:"
 
 msgid "auto"
-msgstr "Automatica"
+msgstr "Automatico/a"
 
 msgid "NoSignal"
 msgstr "Nessun segnale"
