@@ -44,6 +44,20 @@ bzcat=/usr/bin/bzcat
 tar=/bin/tar
 rootdevice_call="debug"
 
+############TRANSFORMER UTILITY##################
+set_transformer() {
+	cmd="require('datamodel').set('"$1"','"$2"')"
+	lua -e "$cmd"
+}
+#################################################
+
+logger_command() {
+	logger -s -t "Upgrade Script" "$1"
+	if [ -z $2 ]; then
+		set_transformer "rpc.system.modgui.upgradegui.log" "$1"
+	fi
+}
+
 if [ "$1" ]; then
 	if [ $1 == "SetTime" ]; then
 		hour=$(uci get modgui.gui.autoupgrade_hour)
@@ -64,7 +78,7 @@ if [ "$1" ]; then
 	if [ $1 == "AutoUpgrade" ]; then
 		/usr/share/transformer/scripts/checkver
 		if [ $(uci get modgui.gui.outdated_ver) == "0" ]; then
-			logger -s -t "Upgrade Script" "Already at latest version. Abort upgrade."
+			logger_command "Already at latest version. Abort upgrade."
 			exit 0
 			# Enabling alert for the gui about the autoupgrade
 			uci set modgui.gui.autoupgradeview=auto
@@ -118,10 +132,12 @@ UPGRADE_FROM_STABLE=0
 
 if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload is now present
 	
-	logger -s -t "Upgrade Script" "Downloading GUI file..."
+	set_transformer "rpc.system.modgui.upgradegui.state" "Downloading"
+	
+	logger_command "Downloading GUI file..."
 	# Enter /tmp folder
 	if ! cd "$WORKING_DIR"; then
-	logger -s -t "Upgrade Script" "ERROR: can't access $WORKING_DIR" >&2
+	logger_command "ERROR: can't access $WORKING_DIR" >&2
 	ubus send fwupgrade '{"state":"done"}'
 	exit 1
 	fi
@@ -133,7 +149,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 	
 	# Download new GUI to /tmp
 	if ! $curl $URL_BASE/$FILE_NAME --output $WORKING_DIR/$FILE_NAME; then
-	logger -s -t "Upgrade Script" "ERROR: can't find new GUI file" >&2
+	logger_command "ERROR: can't find new GUI file" >&2
 	ubus send fwupgrade '{"state":"done"}'
 	exit 1
 	fi
@@ -149,18 +165,18 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 	if ! grep -q $downloaded_md5 $WORKING_DIR/$CHECKSUM_FILE ; then
 		rm $WORKING_DIR/$FILE_NAME
 		rm $WORKING_DIR/$CHECKSUM_FILE
-		logger -s -t "Upgrade Script" "ERROR: File corrupted!!!" >&2
-		logger -s -t "Upgrade Script" "ERROR: Removing upgrade file and aborting." >&2
+		logger_command "ERROR: File corrupted!!!" >&2
+		logger_command "ERROR: Removing upgrade file and aborting." >&2
 		ubus send fwupgrade '{"state":"done"}'
 		exit 1
 	fi
 	
-	logger -s -t "Upgrade Script" "Downloaded gui with hash: $downloaded_md5"
+	logger_command "Downloaded gui with hash: $downloaded_md5"
 	
 	if [ "$update_branch" ]; then
 		if [ "$update_branch" == "_dev" ]; then
 		
-			logger -s -t "Upgrade Script" "Dev branch detected... Checking for newer version in stable..."
+			logger_command "Dev branch detected... Checking for newer version in stable..."
 			
 			STABLE_FILE_NAME='GUI.tar.bz2'
 				
@@ -171,7 +187,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 			# Download stable GUI to /tmp
 			
 			if ! $curl $URL_BASE/$STABLE_FILE_NAME --output $WORKING_DIR/$STABLE_FILE_NAME; then
-				logger -s -t "Upgrade Script" "ERROR: can't find stable GUI file" >&2
+				logger_command "ERROR: can't find stable GUI file" >&2
 				rm $WORKING_DIR/$FILE_NAME
 				rm $WORKING_DIR/$CHECKSUM_FILE
 				ubus send fwupgrade '{"state":"done"}'
@@ -184,13 +200,13 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 				rm $WORKING_DIR/$FILE_NAME
 				rm $WORKING_DIR/$STABLE_FILE_NAME
 				rm $WORKING_DIR/$CHECKSUM_FILE
-				logger -s -t "Upgrade Script" "ERROR: Stable file corrupted!!!" >&2
-				logger -s -t "Upgrade Script" "ERROR: Removing upgrade file and aborting." >&2
+				logger_command "ERROR: Stable file corrupted!!!" >&2
+				logger_command "ERROR: Removing upgrade file and aborting." >&2
 				ubus send fwupgrade '{"state":"done"}'
 				exit 1
 			fi
 			
-			logger -s -t "Upgrade Script" "Downloaded stable gui with hash: $stable_md5"
+			logger_command "Downloaded stable gui with hash: $stable_md5"
 			
 			stable_version=$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $stable_md5 | awk '{print $2}' )
 			
@@ -198,14 +214,14 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 			
 			stable_version_norm=$(normalize $stable_version)
 			
-			logger -s -t "Upgrade Script" "Stable version found: $stable_version_norm"
+			logger_command "Stable version found: $stable_version_norm"
 			
 			dev_version_norm=$(normalize $dev_version)
 			
-			logger -s -t "Upgrade Script" "Dev version found: $dev_version_norm"
+			logger_command "Dev version found: $dev_version_norm"
 			
 			if [ $( enum $stable_version_norm ) -gt $( enum $dev_version_norm ) ]; then
-				logger -s -t "Upgrade Script" "Found newer version in stable branch, using it..."
+				logger_command "Found newer version in stable branch, using it..."
 				rm $WORKING_DIR/$FILE_NAME
 				FILE_NAME=$STABLE_FILE_NAME
 				UPGRADE_FROM_STABLE=1
@@ -215,14 +231,16 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 		fi
 	fi
 else
-	logger -s -t "Upgrade Script" "Found file in /tmp dir... Except offline upgrade!"
+	logger_command "Found file in /tmp dir... Except offline upgrade!"
 fi
 
+set_transformer "rpc.system.modgui.upgradegui.state" "Extracting"
+
 #NOT NEEDED ANYMORE
-#logger -s -t "Upgrade Script" "Stopping nginx..."
+#logger_command "Stopping nginx..."
 #/etc/init.d/nginx stop
 
-logger -s -t "Upgrade Script" "Cleaning www dir"
+logger_command "Cleaning www dir"
 #clean old www dir
 
 for dir in /www/* ; do
@@ -247,7 +265,7 @@ for dir in /www/* ; do
 	fi
 done
 
-logger -s -t "Upgrade Script" "Extracting file..."
+logger_command "Extracting file..."
 # Extract new GUI to /
 bzcat "$WORKING_DIR/$FILE_NAME" | tar -C "$TARGET_DIR" -xf -
 
@@ -260,7 +278,7 @@ if [ $( uci get -q modgui.app.blacklist_app) ] && [ $( uci get modgui.app.blackl
 	fi
 fi
 
-logger -s -t "Upgrade Script" "Copying file to permanent dir..."
+logger_command "Copying file to permanent dir..."
 #Copy GUI file to permanent dir
 if [ -f $PERMANENT_STORE_DIR/$FILE_NAME ]; then
 	rm $PERMANENT_STORE_DIR/$FILE_NAME
@@ -268,7 +286,7 @@ fi
 cp $WORKING_DIR/$FILE_NAME $PERMANENT_STORE_DIR/
 if [ $UPGRADE_FROM_STABLE == 1 ]; then
 	DEV_FILE_NAME="GUI_dev.tar.bz2"
-	logger -s -t "Upgrade Script" "Upgrading from stable, copying to both archive..."
+	logger_command "Upgrading from stable, copying to both archive..."
 	cp $WORKING_DIR/$FILE_NAME $PERMANENT_STORE_DIR/$DEV_FILE_NAME
 fi
 rm $WORKING_DIR/$FILE_NAME
@@ -276,8 +294,8 @@ if [ -f $WORKING_DIR/$CHECKSUM_FILE ]; then
 	rm $WORKING_DIR/$CHECKSUM_FILE
 fi
 
-logger -s -t "Upgrade Script" "Running rootdevice script"
+logger_command "Running rootdevice script"
 # Run init.d script
 /etc/init.d/rootdevice $rootdevice_call
 ubus send fwupgrade '{"state":"done"}'
-logger -s -t "Upgrade Script" "Upgrade Done"
+logger_command "Upgrade Done" ConsoleOnly

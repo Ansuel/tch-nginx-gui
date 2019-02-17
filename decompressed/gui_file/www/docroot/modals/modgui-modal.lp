@@ -217,7 +217,7 @@ local modgui_settings, helpmsg = post_helper.handleQuery(mapParams, mapValid)
 ');  ngx.print(ui_helper.createHeader(T"GUI Settings & Utility", false, false))   
 	local html = {}
 	  html[#html + 1] = '<div class="alert alert-info hide" id="upgrade-gui-bar">'
-	  html[#html + 1] = T"Update in progress..."
+	  html[#html + 1] = '<div id="update-text">'..T"Update in progress..."..'</div>'
 	  html[#html + 1] = '  <div id="upgrade-gui-bar" class="progress progress-striped active">'
       html[#html + 1] = '    <div class="bar bar-warning" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" >'
       html[#html + 1] = '</div></div></div>'
@@ -460,6 +460,8 @@ ngx.print('\
       tch.removeProgress();\
   });\
 \
+  var checkFail = 0;\
+  var parseError = 0;\
   var bar_val = 2;\
   var max_val = '); ngx.print( content.upgradegui_logstep ); ngx.print('\
   var increment = 100/max_val;\
@@ -468,11 +470,20 @@ ngx.print('\
 	var oldlog = "";\
     var upgrfw_refreshTimeOut = 100;\
     var upgrfw_refreshDelay = 100;\
+	var upgrfw_waitDelay = 500;\
     function waitForShutdown() {\
       $.ajax({ url: target, data: "action=upgradeguistatus", timeout: upgrfw_refreshTimeOut, dataType: "json" })\
-      .done(function(data) {\
+      .done(function(data, status, xhr) {\
+		if (data.state+"..." != $("#update-text").text()) {\
+			$("#update-text").text(data.state+"...");}\
 		if (data.state == "Requested") {\
-		  window.setTimeout(waitForShutdown, upgrfw_refreshDelay);\
+		  window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
+		} else if (data.state == "Downloading") {\
+		  $(".bar").css("width", "100%").css("background-color","#4caf50");\
+		  window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
+		} else if (data.state == "Extracting") {\
+		  $(".bar").css("width", bar_val+"%").css("background-color","").attr("aria-valuenow", bar_val);\
+		  window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
 		} else if (data.state == "In Progress") {\
 		  if (oldlog != data.log_msg) {\
 			bar_val = (increment*data.log_prog)+2;\
@@ -480,11 +491,19 @@ ngx.print('\
 			$("#upgrade-log").append(data.log_msg+"<br>");}\
 		  oldlog = data.log_msg;\
           window.setTimeout(waitForShutdown, upgrfw_refreshDelay);\
-        } else if (data.state == "Finished") {\
-		  console.log(wait_for_webserver_running);\
+        } else if ((data.state == "Finished") || (ct.indexOf("html") > -1 )) {\
+		  wait_for_webserver_down;\
 		}\
       })\
-      .fail(wait_for_webserver_running)\
+      .fail(function(data, status) {\
+		if (status == "parsererror") { parseError++; }\
+		if (parseError>4) { window.location.href = "/"; \
+		} else if (checkFail<35) {\
+		  checkFail++;\
+		  window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
+		} else {\
+		  wait_for_webserver_down; }\
+	  })\
     }\
     window.setTimeout(waitForShutdown, upgrfw_refreshDelay);\
     return false;\
@@ -493,12 +512,16 @@ ngx.print('\
   $("#btn-upgrade-gui").on("click", function() {\
     $(".modal-backdrop").css("pointer-events", "none");\
 	$(".container").css("pointer-events", "none");\
-	$(".modal").css("pointer-events", "none");\
+	$(".modal-header").css("pointer-events", "none");\
+	$(".modal-footer").css("pointer-events", "none");\
 	$("#offline-upgrade-gui-div").addClass("hide");\
 	$(".RemoveOnUpgrade").each(function() {$(this).addClass("hide")});\
 	$("#upgrade-gui-bar").removeClass("hide");\
 	$("#upgrade-log").removeClass("hide");\
 	$(".bar").css("width", bar_val+"%").attr("aria-valuenow", bar_val);\
+	KoRequest.forEach(function(element) {\
+		clearInterval(element);\
+	});\
 	$.post(\
       target,\
       { action: "system_upgrade_gui", CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
@@ -532,13 +555,17 @@ ngx.print('\
     var _this = $(this).parents(".control-group");\
 	importing_msg.removeClass("hide");\
 	importing_msg[0].scrollIntoView();\
+	KoRequest.forEach(function(element) {\
+		clearInterval(element);\
+	});\
     $.fileUpload($("#form-import-gui"), {\
       params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
       completeCallback: function(form, response) {\
         if (response.success) {\
 		  $(".modal-backdrop").css("pointer-events", "none");\
 		  $(".container").css("pointer-events", "none");\
-		  $(".modal").css("pointer-events", "none");\
+		  $(".modal-header").css("pointer-events", "none");\
+		  $(".modal-footer").css("pointer-events", "none");\
 		  importing_msg.addClass("hide");\
 		  $("#offline-upgrade-gui-div").addClass("hide");\
 		  $(".RemoveOnUpgrade").each(function() {$(this).addClass("hide")});\
