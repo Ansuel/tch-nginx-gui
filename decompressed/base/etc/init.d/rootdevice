@@ -1733,8 +1733,6 @@ start_stop_nginx() {
 	done
 }
 prevent_total_brick() {
-	#Stop reboot on coredump to prevent bootloops
-	uci set system.@coredump[0].reboot='0'
 	#Enable hardware serial console to intercept bootloops
 	sed 's/#//' /etc/inittab
 }
