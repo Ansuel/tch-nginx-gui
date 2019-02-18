@@ -89,6 +89,7 @@ SYSTEM_MODGUI_UPGRADEGUI_.get = {
 	local progress_status = io.open("/root/.check_process","r")
 	if progress_status then
 		progress_status:close()
+		upgradegui.state = nil --reset state as we are in root progress...
 		return "In Progress"
 	elseif upgradegui.state then
 		return upgradegui.state

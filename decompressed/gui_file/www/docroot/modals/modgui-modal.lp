@@ -482,7 +482,7 @@ ngx.print('\
     function waitForShutdown() {\
       $.ajax({ url: target, data: "action=upgradeguistatus", timeout: upgrfw_refreshTimeOut, cache: false, dataType: "json" })\
       .done(function(data, status, xhr) {\
-		$(".modal-body").animate({ scrollTop: $(document).height() }, 1000);
+		$(".modal-body").animate({ scrollTop: $(document).height() }, 1000);\
 		if (data.state+"..." != $("#update-text").text()) {\
 			$("#update-text").text(data.state+"...");}\
 		if (data.state == "Requested") {\
