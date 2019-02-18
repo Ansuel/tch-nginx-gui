@@ -164,7 +164,7 @@ msgid "From"
 msgstr "Da"
 
 msgid "General Status And Settings"
-msgstr "Stato generale e impostazioni"
+msgstr "Informazioni principali e impostazioni"
 
 msgid "Good"
 msgstr "Buono"

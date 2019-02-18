@@ -3358,10 +3358,10 @@ msgid "HS Switch Timeout"
 msgstr "HS Switch Zeitschranke"
 
 msgid "PPP over Ethernet"
-msgstr "PPP über Ethernet"
+msgstr "PPPoE (PPP über Ethernet)"
 
 msgid "PPP over ATM"
-msgstr "PPP über ATM"
+msgstr "PPPoA (PPP über ATM)"
 
 msgid "VoIP Registar:"
 msgstr "VoIP Registrar:"

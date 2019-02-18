@@ -58,7 +58,7 @@ msgid "Free Space"
 msgstr "Spazio disponibile"
 
 msgid "General status"
-msgstr "Stato generale"
+msgstr "Informazioni principali"
 
 msgid "Attached Drive Info"
 msgstr "Informazioni disco collegato"

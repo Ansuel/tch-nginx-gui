@@ -172,10 +172,10 @@ msgid "VoIP is an optional phone service that runs over the internet. If you hav
 msgstr "VoIP è un servizio telefonico aggiuntivo che funziona su internet.<br/>Se hai acquistato questo servizio, inserisci qui le impostazioni VoIP.<br/>Troverai le impostazioni nella email di attivazione VoIP."
 
 msgid "WAN Interfaces"
-msgstr "Interfacce WAN"
+msgstr "Interfaccia WAN"
 
 msgid "WAN Interfaces:"
-msgstr "Interfacce WAN:"
+msgstr "Interfaccia WAN:"
 
 msgid "WAN Type:"
 msgstr "Tipo WAN:"
