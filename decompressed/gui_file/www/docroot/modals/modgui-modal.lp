@@ -212,9 +212,14 @@ local mapValid = {
 
 local modgui_settings, helpmsg = post_helper.handleQuery(mapParams, mapValid)
 
+ngx.print(ui_helper.createHeader(T"GUI Settings & Utility", false, false))   
+ngx.print('\
+<div class="modal-body update">\
+');
+ngx.print(ui_helper.createMessages(message_helper.popMessages()))
   ngx.print('\
-\
-');  ngx.print(ui_helper.createHeader(T"GUI Settings & Utility", false, false))   
+<fieldset>\
+');
 	local html = {}
 	  html[#html + 1] = '<div class="alert alert-info hide" id="upgrade-gui-bar">'
 	  html[#html + 1] = '<div id="update-text">'..T"Update in progress..."..'</div>'
@@ -223,11 +228,6 @@ local modgui_settings, helpmsg = post_helper.handleQuery(mapParams, mapValid)
       html[#html + 1] = '</div></div></div>'
 	ngx.print(html)
 ngx.print('\
-<div class="modal-body update">\
-');
-ngx.print(ui_helper.createMessages(message_helper.popMessages()))
-  ngx.print('\
-<fieldset>\
     <form class="form-horizontal" method="post" action="modals/modgui-modal.lp">')
 	
 	  local html = {}
@@ -510,10 +510,8 @@ ngx.print('\
   }\
 \
   $("#btn-upgrade-gui").on("click", function() {\
-    $(".modal-backdrop").css("pointer-events", "none");\
-	$(".container").css("pointer-events", "none");\
-	$(".modal-header").css("pointer-events", "none");\
-	$(".modal-footer").css("pointer-events", "none");\
+    $("*").off("click");\
+	$("html").css("overflow","hidden");\
 	$("#offline-upgrade-gui-div").addClass("hide");\
 	$(".RemoveOnUpgrade").each(function() {$(this).addClass("hide")});\
 	$("#upgrade-gui-bar").removeClass("hide");\
@@ -562,10 +560,8 @@ ngx.print('\
       params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
       completeCallback: function(form, response) {\
         if (response.success) {\
-		  $(".modal-backdrop").css("pointer-events", "none");\
-		  $(".container").css("pointer-events", "none");\
-		  $(".modal-header").css("pointer-events", "none");\
-		  $(".modal-footer").css("pointer-events", "none");\
+		  $("*").off("click");\
+		  $("html").css("overflow","hidden");\
 		  importing_msg.addClass("hide");\
 		  $("#offline-upgrade-gui-div").addClass("hide");\
 		  $(".RemoveOnUpgrade").each(function() {$(this).addClass("hide")});\
