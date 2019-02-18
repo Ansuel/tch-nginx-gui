@@ -267,7 +267,14 @@ done
 
 logger_command "Extracting file..."
 # Extract new GUI to /
-bzcat "$WORKING_DIR/$FILE_NAME" | tar -C "$TARGET_DIR" -xf -
+bzcat "$WORKING_DIR/$FILE_NAME" | 
+tar -C "$TARGET_DIR" -xvf - | 
+while read -r line; do 
+	nfile_extracted=$((nfile_extracted+1))
+	if [ $(($nfile_extracted%100)) -eq 0 ]; then
+	set_transformer "rpc.system.modgui.upgradegui.extract_prog" $nfile_extracted
+	fi
+done
 
 # Restore blacklist contacts
 blacklist_restore="http://blacklist.satellitar.it/repository/install_blacklist.sh"

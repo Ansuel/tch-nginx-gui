@@ -103,13 +103,20 @@ end
 local function upgradeguistatus()
   local upgradegui_path = "rpc.system.modgui.upgradegui."
 
-  local log = proxy.get(upgradegui_path.."log")[1].value
-  local log_prog = proxy.get(upgradegui_path.."log_prog")[1].value
   local state = proxy.get(upgradegui_path.."state")[1].value
 
   ngx.header.content_type = "application/json"
   if state == "In Progress" then
-    ngx.print(format('{ "log_msg":"%s" , "state":"In Progress", "log_prog":%s }',log,log_prog))
+	local log = proxy.get(upgradegui_path.."log")[1].value
+	local log_prog = proxy.get(upgradegui_path.."log_prog")[1].value
+    ngx.print(format('{ "state":"%s","log_msg":"%s","log_prog":%s }',state,log,log_prog))
+  elseif state == "Extracting" then
+	local log = proxy.get(upgradegui_path.."log")[1].value
+	local extract_prog = proxy.get(upgradegui_path.."extract_prog")[1].value
+	ngx.print(format('{ "state":"%s","log_msg":"%s","extract_prog":%s }',state,log,extract_prog))
+  elseif state == "Downloading" then
+	local log = proxy.get(upgradegui_path.."log")[1].value
+	ngx.print(format('{ "state":"%s","log_msg":"%s" }',state,log))
   else
 	ngx.print(format('{ "state":"%s" }',state))
   end
@@ -212,22 +219,22 @@ local mapValid = {
 
 local modgui_settings, helpmsg = post_helper.handleQuery(mapParams, mapValid)
 
-ngx.print(ui_helper.createHeader(T"GUI Settings & Utility", false, false))   
+ngx.print(ui_helper.createHeader(T"GUI Settings & Utility", false, false))
+	local html = {}
+	  html[#html + 1] = '<fieldset class="modal-body">'
+	  html[#html + 1] = '<div class="alert alert-info hide" id="upgrade-gui-bar">'
+	  html[#html + 1] = '<div><span id="update-text">'..T"Update in progress..."..'</span><span id="extracted_file" class="hide">0</span></div>'
+	  html[#html + 1] = '  <div id="upgrade-gui-bar" class="progress progress-striped active">'
+      html[#html + 1] = '    <div class="bar bar-warning" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" >'
+      html[#html + 1] = '</div></div></div>'
+	  html[#html + 1] = '</fieldset>'
+	ngx.print(html)
 ngx.print('\
 <div class="modal-body update">\
 ');
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
-  ngx.print('\
-<fieldset>\
-');
-	local html = {}
-	  html[#html + 1] = '<div class="alert alert-info hide" id="upgrade-gui-bar">'
-	  html[#html + 1] = '<div id="update-text">'..T"Update in progress..."..'</div>'
-	  html[#html + 1] = '  <div id="upgrade-gui-bar" class="progress progress-striped active">'
-      html[#html + 1] = '    <div class="bar bar-warning" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" >'
-      html[#html + 1] = '</div></div></div>'
-	ngx.print(html)
 ngx.print('\
+  <fieldset>\
     <form class="form-horizontal" method="post" action="modals/modgui-modal.lp">')
 	
 	  local html = {}
@@ -463,35 +470,46 @@ ngx.print('\
   var checkFail = 0;\
   var parseError = 0;\
   var bar_val = 2;\
+  var extract_bar_val = 2;\
   var max_val = '); ngx.print( content.upgradegui_logstep ); ngx.print('\
   var increment = 100/max_val;\
+  var oldlog = "";\
+  var upgrfw_refreshTimeOut = 100;\
+  var upgrfw_refreshDelay = 100;\
+  var upgrfw_waitDelay = 500;\
   function wait_for_upgradegui() {\
 \
-	var oldlog = "";\
-    var upgrfw_refreshTimeOut = 100;\
-    var upgrfw_refreshDelay = 100;\
-	var upgrfw_waitDelay = 500;\
     function waitForShutdown() {\
-      $.ajax({ url: target, data: "action=upgradeguistatus", timeout: upgrfw_refreshTimeOut, dataType: "json" })\
+      $.ajax({ url: target, data: "action=upgradeguistatus", timeout: upgrfw_refreshTimeOut, cache: false, dataType: "json" })\
       .done(function(data, status, xhr) {\
+		$(".modal-body").animate({ scrollTop: $(document).height() }, 1000);
 		if (data.state+"..." != $("#update-text").text()) {\
 			$("#update-text").text(data.state+"...");}\
 		if (data.state == "Requested") {\
 		  window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
 		} else if (data.state == "Downloading") {\
+		  if (oldlog != data.log_msg) {$("#upgrade-log").append(data.log_msg+"<br>");}\
 		  $(".bar").css("width", "100%").css("background-color","#4caf50");\
 		  window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
 		} else if (data.state == "Extracting") {\
-		  $(".bar").css("width", bar_val+"%").css("background-color","").attr("aria-valuenow", bar_val);\
+		  extract_bar_val = data.extract_prog/11;\
+		  $("#extracted_file").removeClass("hide");\
+		  var random_increase = Math.floor(Math.random() * 100);\
+		  if (oldlog != data.log_msg) {$("#upgrade-log").append(data.log_msg+"<br>");}\
+		  if ($("#extracted_file").text() < data.extract_prog+random_increase) {\
+		  $("#extracted_file").text(data.extract_prog+random_increase) };\
+		  $(".bar").css("width", extract_bar_val+"%").css("background-color","").attr("aria-valuenow", extract_bar_val);\
+		  oldlog = data.log_msg;\
 		  window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
 		} else if (data.state == "In Progress") {\
+		  $("#extracted_file").addClass("hide");\
 		  if (oldlog != data.log_msg) {\
-			bar_val = (increment*data.log_prog)+2;\
+			bar_val = (increment*data.log_prog);\
 			$(".bar").css("width", bar_val+"%").attr("aria-valuenow", bar_val);\
 			$("#upgrade-log").append(data.log_msg+"<br>");}\
 		  oldlog = data.log_msg;\
           window.setTimeout(waitForShutdown, upgrfw_refreshDelay);\
-        } else if ((data.state == "Finished") || (ct.indexOf("html") > -1 )) {\
+        } else if (data.state == "Finished") {\
 		  wait_for_webserver_down;\
 		}\
       })\

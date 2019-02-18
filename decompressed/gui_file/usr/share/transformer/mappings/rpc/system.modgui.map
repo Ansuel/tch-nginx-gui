@@ -70,6 +70,10 @@ local SYSTEM_MODGUI_UPGRADEGUI_ = {
 	  log_prog = {
 		access = "readWrite",
 		type = "int",
+	  },
+	  extract_prog = {
+		access = "readWrite",
+		type = "int",
 	  }
     }
   }
@@ -104,11 +108,14 @@ SYSTEM_MODGUI_UPGRADEGUI_.get = {
   end,
   log_prog = function(mapping, param)
 	return upgradegui.log_prog or "0"
-  end
+  end,
+  extract_prog = function(mapping, param)
+	return upgradegui.extract_prog or "Not Extracting"
+  end,
 }
 
 SYSTEM_MODGUI_UPGRADEGUI_.set = {
-	state = function(mapping, paramName, paramValue)  
+  state = function(mapping, paramName, paramValue)  
 	if paramValue == "Finished" or 
 	   paramValue == "Extracting" or
 	   paramValue == "Requested" or 
@@ -116,17 +123,20 @@ SYSTEM_MODGUI_UPGRADEGUI_.set = {
         upgradegui.state = paramValue
     end
   end,
-	start = function(mapping, paramName, paramValue)  
+  start = function(mapping, paramName, paramValue)  
 	if paramValue == "1" then
         commitapply:newset("rpc.system.modgui.upgradegui." .. paramName)
     end
   end,
-	log = function(mapping, paramName, paramValue)
+  log = function(mapping, paramName, paramValue)
 	  upgradegui.log = paramValue
   end,
-	log_prog = function(mapping, paramName, paramValue)
+  log_prog = function(mapping, paramName, paramValue)
 	  upgradegui.log_prog = paramValue
-	end
+  end,
+  extract_prog = function(mapping, paramName, paramValue)
+	  upgradegui.extract_prog = paramValue
+  end,
 }
 
 register(SYSTEM_MODGUI_UPGRADEGUI_)
