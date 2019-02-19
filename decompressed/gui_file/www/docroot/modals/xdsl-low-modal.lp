@@ -181,6 +181,7 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H045") or content.dsl0_xdsl_Firmwa
 		tinsert(driver_option, { "A2pvfbH043g", 'A2pvfbH043g (TG800 VBANT-S)'})
         tinsert(driver_option, { "A2pvfbH043h", 'A2pvfbH043h (Inteno DG400PRIME)'})
         tinsert(driver_option, { "A2pvfbH043i", 'A2pvfbH043i (Inteno)'})
+        tinsert(driver_option, { "A2pvfbH043i2", 'A2pvfbH043i2 (Zyxel C3000Z)'})
         tinsert(driver_option, { "A2pvfbH043j2", 'A2pvfbH043j2 (FRITZ!Box 7582 7.01 Backup)'})
 		tinsert(driver_option, { "A2pvfbH043k", 'A2pvfbH043k (AGTEF_1.1.0)'})
 		tinsert(driver_option, { "A2pvfbH043o", 'A2pvfbH043o (Asus DSL-AC88U v1.10.06_561)'})
