@@ -221,16 +221,50 @@ end
 
 local IP6assign = "uci.network.interface.@" .. curintf .. ".ip6assign"
 
+local function setupIpv6TIM(active)
+	local envIPv6 = proxy.get("uci.modgui.var.ppp_realm_ipv6")[1].value or nil
+    local envIPv4 = proxy.get("uci.modgui.var.ppp_realm_ipv4")[1].value or nil
+	local pppuser = "uci.network.interface.@wan.username"
+	local wan_voip_path = "uci.network.interface.@wan_voip."
+	local wan_path = "uci.network.interface.@wan."
+	local function getFromWan(param)
+		local value = proxy.get(wan_path..param)
+		return value and value[1].value or ""
+	end
+	if (active == true) then
+		proxy.add("uci.network.interface.","wan_voip")
+		for _,param in pairs({ "proto" , "username","device","peerdns","password","ifname","macaddr"}) do
+			proxy.set(wan_voip_path..param,getFromWan(param))
+		end
+		proxy.set(wan_voip_path.."metric","1000")
+		for i,v in ipairs(proxy.getPN("uci.mmpbxrvsipnet.network.", true)) do
+			proxy.set(v.path.."interface", "wan_voip")
+		end
+		local index = proxy.add("uci.firewall.zone.@wan.network.")
+		proxy.set("uci.firewall.zone.@wan.network.".."@".."index.value","wan_voip")
+		proxy.set(pppuser, envIPv6)
+	else
+		for i,v in ipairs(proxy.getPN("uci.firewall.zone.@wan.network.", true)) do
+			local value = proxy.get(v.path.."value")
+			if value and value[1].value == "wan_voip" then
+				proxy.del(v.path)
+			end
+		end
+		for i,v in ipairs(proxy.getPN("uci.mmpbxrvsipnet.network.", true)) do
+			proxy.set(v.path.."interface", "wan")
+		end
+		proxy.set(pppuser, envIPv4)
+		proxy.del(wan_voip_path)
+	end
+end
+
 local mapParam = {
     localIPv6 = "uci.network.interface.@" .. curintf .. ".ipv6"
 }
 local function validateIPv6(value, object, key)
     local valid, msg = post_helper.validateBoolean(value, object, key)
     if valid and value ~= proxy.get("uci.network.interface.@" .. curintf .. ".ipv6")[1].value then
-        local envIPv6 = proxy.get("uci.modgui.var.ppp_realm_ipv6")[1].value or nil
-        local envIPv4 = proxy.get("uci.modgui.var.ppp_realm_ipv4")[1].value or nil
-        local isp = proxy.get("uci.modgui.var.isp")[1].value or nil
-        local pppuser = "uci.network.interface.@wan.username"
+        local isp = proxy.get("uci.modgui.var.isp")
         local device = proxy.get("uci.network.device.")
         local devifn = content_helper.convertResultToObject("uci.network.device.",device)
         local devindex = {}
@@ -238,15 +272,15 @@ local function validateIPv6(value, object, key)
             devindex[#devindex+1] = v.paramindex
         end
         if value == "0" then
-            if isp and isp == "Tim" then
-                proxy.set(pppuser, envIPv4)
+            if isp and ( isp[1].value == "TIM" ) then
+                setupIpv6TIM(false)
             end
             proxy.set("uci.network.interface.@wan.ipv6", value)
             proxy.set("uci.network.interface.@wan6.auto", value)
             proxy.apply()
-            for i, v in ipairs(devindex) do
-                proxy.set("uci.network.device."..v..".ipv6", value)
-            end
+            --for i, v in ipairs(devindex) do
+            --    proxy.set("uci.network.device."..v..".ipv6", value)
+            --end
             for i,v in pairs(lan_intfs) do
                 if curintf ~= v.index then
                     proxy.set("uci.network.interface.@"..v.index..".ipv6", value)
@@ -261,14 +295,14 @@ local function validateIPv6(value, object, key)
                 ngx.sleep(3) -- ugly but need to give it the time to complete
             end
         elseif value == "1" then
-            if isp and isp == "Tim" then
-                proxy.set(pppuser, envIPv6)
+            if isp and ( isp[1].value == "TIM" ) then
+                setupIpv6TIM(true)
             end
             proxy.set("uci.network.interface.@wan.ipv6", value)
             proxy.set("uci.network.interface.@wan6.auto", value)
-            for i, v in ipairs(devindex) do
-                proxy.set("uci.network.device."..v..".ipv6", value)
-            end
+            --for i, v in ipairs(devindex) do
+            --    proxy.set("uci.network.device."..v..".ipv6", value)
+            --end
             for i,v in pairs(lan_intfs) do
                 if curintf ~= v.index then
                     proxy.set("uci.network.interface.@"..v.index..".ipv6", value)
