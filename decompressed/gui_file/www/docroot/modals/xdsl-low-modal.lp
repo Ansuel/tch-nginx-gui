@@ -157,7 +157,7 @@ local driver_valid = {
   ds10_snr = post_helper.getValidateNumberInRange(0,65535),
 }
 
-if content.dsl0_xdsl_FirmwareVersion:match(".*H043") or content.dsl0_xdsl_FirmwareVersion:match(".*H042") then
+if content.dsl0_xdsl_FirmwareVersion:match(".*H045") or content.dsl0_xdsl_FirmwareVersion:match(".*H043") or content.dsl0_xdsl_FirmwareVersion:match(".*H042") then
 	tinsert(driver_option, { "B2pvbH042l", 'B2pvbH042l (Asus DSL-AC87VG v1.00.10)'})
     tinsert(driver_option, { "B2pvbH042j2", 'B2pvbH042j2 (Inteno)'})
     tinsert(driver_option, { "B2pvbH042s", 'B2pvbH042s (Archer_VR2800v V1 1.2.0_0.9.1)'})
@@ -183,6 +183,7 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H043") or content.dsl0_xdsl_Firmwa
 		tinsert(driver_option, { "A2pvfbH043k", 'A2pvfbH043k (AGTEF_1.1.0)'})
 		tinsert(driver_option, { "A2pvfbH043o", 'A2pvfbH043o (Asus DSL-AC88U v1.10.06_561)'})
         tinsert(driver_option, { "A2pvfbH043q", 'A2pvfbH043q (FRITZ!Box 7582 7.01/Asus DSL-AC88U v1.10.06_585)'})
+        tinsert(driver_option, { "A2pvfbH045k", 'A2pvfbH045k (Inteno)'})
 	end
 	
 	driver_Params.driver_ver = "uci.modgui.var.driver_version"
