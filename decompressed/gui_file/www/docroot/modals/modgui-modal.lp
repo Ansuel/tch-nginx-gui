@@ -488,7 +488,9 @@ ngx.print('\
 		if (data.state == "Requested") {\
 		  window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
 		} else if (data.state == "Downloading") {\
-		  if (oldlog != data.log_msg) {$("#upgrade-log").append(data.log_msg+"<br>");}\
+		  if (oldlog != data.log_msg) {\
+		    $("#upgrade-log").append(data.log_msg+"<br>");\
+		    oldlog = data.log_msg;}\
 		  $(".bar").css("width", "100%").css("background-color","#4caf50");\
 		  window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
 		} else if (data.state == "Extracting") {\
@@ -506,9 +508,16 @@ ngx.print('\
 		  if (oldlog != data.log_msg) {\
 			bar_val = (increment*data.log_prog);\
 			$(".bar").css("width", bar_val+"%").attr("aria-valuenow", bar_val);\
-			$("#upgrade-log").append(data.log_msg+"<br>");}\
-		  oldlog = data.log_msg;\
+			$("#upgrade-log").append(data.log_msg+"<br>");\
+		    oldlog = data.log_msg;}\
           window.setTimeout(waitForShutdown, upgrfw_refreshDelay);\
+		} else if (data.state == "Not Started") {\
+		  if (checkFail<35) {\
+			checkFail++;\
+			window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
+		  } else {\
+			wait_for_webserver_down;\
+		  }\
         } else if (data.state == "Finished") {\
 		  wait_for_webserver_down;\
 		}\
