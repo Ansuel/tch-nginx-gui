@@ -168,12 +168,14 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H045") or content.dsl0_xdsl_Firmwa
 	tinsert(driver_option, { "A2pvbH042u", 'A2pvbH042u (AGTEF_1.0.4)'})
 	
 	if tonumber(content.marketing_version:sub(1,4)) >= 17.3 then
+        tinsert(driver_option, { "B2pvfbH043d1", 'B2pvfbH043d1 (FRITZ!Box 7581 6.54)'})
 		tinsert(driver_option, { "B2pvfbH043e", 'B2pvfbH043e (Asus DSL-AC87VG_v1.00.13)'})
 		tinsert(driver_option, { "B2pvfbH043g", 'B2pvfbH043g (Asus DSL-AC68VG v5.00.04)'})
         tinsert(driver_option, { "B2pvfbH043i1", 'B2pvfbH043i1 (VMG8823-B60B 5.13)'})
         tinsert(driver_option, { "B2pvfbH043k", 'B2pvfbH043k (Asus DSL-AC88U-B v1.10.05)'})
         tinsert(driver_option, { "B2pvfbH043q", 'B2pvfbH043q (FRITZ!Box 7582 7.01/Asus DSL-AC88U-B v1.10.06_591)'})
         tinsert(driver_option, { "A2pvfbH043b", 'A2pvfbH043b (New FastGate Fastweb)'})
+        tinsert(driver_option, { "A2pvfbH043d1", 'A2pvfbH043d1 (FRITZ!Box 7581 6.54)'})
         --table.insert(driver_option,{ "A2pvfbH043e", 'A2pvfbH043e (Zyxel 8823)'}) --Annex b???
         --table.insert(driver_option,{ "A2pvfbH043f", 'A2pvfbH043f (DSL AC88U) ' .. T'Less Ping'}) --Missing
 		tinsert(driver_option, { "A2pvfbH043g", 'A2pvfbH043g (TG800 VBANT-S)'})
