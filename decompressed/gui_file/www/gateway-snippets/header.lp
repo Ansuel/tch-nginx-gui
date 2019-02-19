@@ -47,6 +47,7 @@ else
 end
 
 local function apply(action)
+  proxy.set("rpc.system.modgui.scriptRequest.state","Requested")
   proxy.set("rpc.system.modgui.utility." .. action, "1")
   ngx.header.content_type = "application/json"
   ngx.print('{ "success":"true" }')
@@ -285,11 +286,30 @@ function post(action) {\
   );\
   return false;\
 }\
+function scriptRequestStatusAjax() {\
+	var scriptRequestTimeout = 1000;\
+	function waitScriptCompletition() {\
+      $.ajax({ url: "modals/modgui-modal.lp", data: "action=scriptRequestStatus",\
+		timeout: scriptRequestTimeout, cache: false, dataType: "json" })\
+      .done(function(data) {\
+		if (data.state == "Complete") {\
+		  window.location.href = "/";\
+		} else {\
+		  window.setTimeout(waitScriptCompletition, scriptRequestTimeout);\
+		}\
+      })\
+	  .fail(function() {\
+	    window.setTimeout(waitScriptCompletition, scriptRequestTimeout);\
+	  });\
+    }\
+	window.setTimeout(waitScriptCompletition, scriptRequestTimeout);\
+}\
+\
 function checkupdate() {\
 	post("checkver");\
 	 var processMsg = "');  ngx.print(T'Checking...'); ngx.print('";\
 	 tch.showProgress(processMsg);\
-	 setTimeout(function(){location.reload();}, 4000);\
+	 scriptRequestStatusAjax();\
 }\
 var KoRequest = [];\
 $(function() {\

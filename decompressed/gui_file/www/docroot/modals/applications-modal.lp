@@ -29,6 +29,7 @@ else
 end
 
 local function appapply(action)
+	proxy.set("rpc.system.modgui.scriptRequest.state","Requested")
 	proxy.set("rpc.system.modgui.app." .. action, "1")
 	if ( action == "install_emptyblacklist" ) then
 		action = "install_blacklist"
@@ -320,10 +321,10 @@ ngx.print('\
       	setTimeout(function(){tch.removeProgress();}, 2000);\
       } else if(btnact.startsWith("remove")){\
       	post(btnact,"');  ngx.print(T'Removing...'); ngx.print('");\
-      	setTimeout(function(){location.reload();}, 2000);\
+      	scriptRequestStatusAjax();\;\
       } else if(btnact.startsWith("install")) {\
       	post(btnact,"');  ngx.print(T'Installing...'); ngx.print('");\
-      	setTimeout(function(){location.reload();}, 2000);\
+      	scriptRequestStatusAjax();\;\
       }\
     });\
 }());\

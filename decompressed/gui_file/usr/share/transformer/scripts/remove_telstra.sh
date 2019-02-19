@@ -10,3 +10,12 @@ if [ -d /www/telstra-snippets ]; then
 	rm /www/docroot/css/gw-telstra.css/gw-telstra.css
 	/etc/init.d/nginx restart
 fi
+
+############TRANSFORMER UTILITY##################
+set_transformer() {
+	cmd="require('datamodel').set('"$1"','"$2"')"
+	lua -e "$cmd"
+}
+#################################################
+
+set_transformer "rpc.system.modgui.scriptRequest.state" "Complete"

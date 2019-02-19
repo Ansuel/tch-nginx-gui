@@ -154,6 +154,13 @@ elseif ngx.req.get_method() == "GET" then
   local action = ngx.req.get_uri_args().action
   if action == "upgradeguistatus" then
 	return upgradeguistatus()
+  elseif action == "scriptRequestStatus" then
+    local upgradegui_path = "rpc.system.modgui.scriptRequest."
+    local state = proxy.get(upgradegui_path.."state")[1].value
+
+    ngx.header.content_type = "application/json"
+    ngx.print(format('{ "state":"%s" }',state))
+    ngx.exit(ngx.HTTP_OK)
   end
 end
 
@@ -516,10 +523,10 @@ ngx.print('\
 			checkFail++;\
 			window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
 		  } else {\
-			wait_for_webserver_down;\
+			window.location.href = "/";\
 		  }\
         } else if (data.state == "Finished") {\
-		  wait_for_webserver_down;\
+		  window.location.href = "/";\
 		}\
       })\
       .fail(function(data, status) {\
@@ -529,7 +536,7 @@ ngx.print('\
 		  checkFail++;\
 		  window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
 		} else {\
-		  wait_for_webserver_down; }\
+		  window.location.href = "/"; }\
 	  })\
     }\
     window.setTimeout(waitForShutdown, upgrfw_refreshDelay);\

@@ -1910,6 +1910,12 @@ root() {
 	#This should comunicate the gui that the upgrade has finished.
 	rm /root/.check_process #we remove the placeholder as the process is complete
 	logger_command "Process done."
+	
+	#Remove reapply file as the root process after upgrade has finished.
+	if [ -f /root/.reapply_due_to_upgrade ]; then
+		rm /root/.reapply_due_to_upgrade
+	fi
+	
 	set_transformer "rpc.system.modgui.upgradegui.log" "Finished"
 	
 	logger_command "Restarting transformer" ConsoleOnly
@@ -1927,11 +1933,6 @@ root() {
 	
 	logger_command "Stopping nginx" ConsoleOnly
 	start_stop_nginx
-	
-	#Remove reapply file as the root process after upgrade has finished.
-	if [ -f /root/.reapply_due_to_upgrade ]; then
-		rm /root/.reapply_due_to_upgrade
-	fi
 }
 
 check_bank() {

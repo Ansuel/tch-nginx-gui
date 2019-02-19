@@ -270,6 +270,52 @@ SYSTEM_MODGUI_DEBUGLOG_.set = {
 
 register(SYSTEM_MODGUI_DEBUGLOG_)
 
+local SYSTEM_MODGUI_SCRIPTREQUEST_ = {
+  objectType = {
+    name = 'rpc.system.modgui.scriptRequest.',
+    access = 'readOnly',
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      state = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "Not Requested",
+          "Requested",
+          "Complete",
+        },
+      }
+    }
+  }
+}
+
+upgradegui.scriptRequest = {}
+
+SYSTEM_MODGUI_SCRIPTREQUEST_.get = {
+  state = function(mapping, param)
+	local result = upgradegui.scriptRequest.state
+	if ( upgradegui.scriptRequest.resetOnNextRequest == 1 ) then
+	  upgradegui.scriptRequest.state = nil
+	end
+	return result or "Not Requested"
+  end
+}
+
+SYSTEM_MODGUI_SCRIPTREQUEST_.set = {
+  state = function(mapping, paramName, paramValue)  
+	if ( paramValue == "Requested" ) then
+	  upgradegui.scriptRequest.resetOnNextRequest = 0
+	  upgradegui.scriptRequest.state = paramValue
+	elseif ( paramValue == "Complete" ) then
+	  upgradegui.scriptRequest.resetOnNextRequest = 1
+	  upgradegui.scriptRequest.state = paramValue
+	end
+  end,
+}
+
+register(SYSTEM_MODGUI_SCRIPTREQUEST_)
+
 local SYSTEM_MODGUI_APP_ = {
   objectType = {
     name = 'rpc.system.modgui.app.',

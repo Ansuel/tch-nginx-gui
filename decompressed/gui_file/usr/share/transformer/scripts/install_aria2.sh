@@ -47,3 +47,12 @@ device_type="$(uci get -q env.var.prod_friendly_name)"
 [ "$(echo $device_type | grep DGA)" ] && install_DGA
 
 [ "$(echo $device_type | grep TG789)" ] && install_from_github FrancYescO/sharing_tg789 aria2
+
+############TRANSFORMER UTILITY##################
+set_transformer() {
+	cmd="require('datamodel').set('"$1"','"$2"')"
+	lua -e "$cmd"
+}
+#################################################
+
+set_transformer "rpc.system.modgui.scriptRequest.state" "Complete"
