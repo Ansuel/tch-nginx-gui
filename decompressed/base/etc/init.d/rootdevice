@@ -1734,7 +1734,7 @@ start_stop_nginx() {
 }
 prevent_total_brick() {
 	#Enable hardware serial console to intercept bootloops
-	sed 's/#//' /etc/inittab
+	sed -i 's/#//' /etc/inittab
 }
 
 root() {
