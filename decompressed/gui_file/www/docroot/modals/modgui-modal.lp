@@ -500,7 +500,8 @@ ngx.print('\
       $.ajax({ url: target, data: "action=upgradeguistatus", timeout: upgrfw_refreshTimeOut, cache: false, dataType: "json" })\
       .done(function(data, status, xhr) {\
 		$(".modal-body").animate({ scrollTop: $(document).height() }, 1000);\
-		if (data.state+"..." != $("#update-text").text()) {\
+		if ((data.state+"..." != $("#update-text").text()) && \
+			(data.state != "Not started")) {\
 			$("#update-text").text(data.state+"...");}\
 		if (data.state == "Requested") {\
 		  window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
@@ -528,7 +529,7 @@ ngx.print('\
 			$("#upgrade-log").append(data.log_msg+"<br>");\
 		    oldlog = data.log_msg;}\
           window.setTimeout(waitForShutdown, upgrfw_refreshDelay);\
-		} else if (data.state == "Not Started") {\
+		} else if (data.state == "Not started") {\
 		  if (checkFail<35) {\
 			checkFail++;\
 			window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
