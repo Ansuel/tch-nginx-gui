@@ -2441,7 +2441,7 @@ msgid "Stop Time"
 msgstr "Orario fine"
 
 msgid "Stop Trace Route"
-msgstr "Ferma trace route"
+msgstr "Ferma traceroute"
 
 msgid "Portmirror successfully stopped."
 msgstr "Arresto portmirror completato"
@@ -2702,7 +2702,7 @@ msgid "Total Send (in MB)"
 msgstr "Totale inviati (MB)"
 
 msgid "Trace Route"
-msgstr "Trace route"
+msgstr "Traceroute"
 
 msgid "Traffic Monitor"
 msgstr "Monitoraggio traffico"
@@ -3337,7 +3337,7 @@ msgid "Remote/WAN port"
 msgstr "Porta remota/WAN"
 
 msgid "Trace route"
-msgstr "Traccia instradamento"
+msgstr "Traceroute"
 
 msgid "DNS Server 1"
 msgstr "Server DNS 1"
