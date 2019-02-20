@@ -160,14 +160,14 @@ local function validateMask(value)
     if value == "" or vSII(value) then
         return true
     end
-    return nil,T"Invalid Mask"
+    return nil,T"invalid netmask"
 end
 
 local function validateGw(value)
     if value == "" or vSII(value) then
         return true
     end
-    return nil,T"Invalid Gateway IP"
+    return nil,T"invalid gateway IP"
 end
 
 local static_route_valid = {

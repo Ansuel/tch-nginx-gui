@@ -154,10 +154,10 @@ if ngx.req.get_method() == "POST" then
 
     for i in ipairs(outgoing_map_allowed_indexes) do
         for _,w in ipairs(incoming_outgoing_map_columns) do
-			if w.type == "checkboxswitch" then
-				incoming_outgoing_map_valid["outg_"..w.name.."."..i] = vB
-			end
-		end
+	    if w.type == "checkboxswitch" then
+	        incoming_outgoing_map_valid["outg_"..w.name.."."..i] = vB
+	    end
+	end
     end
     success = content_helper.validateObject(post_args, incoming_outgoing_map_valid)
 
@@ -165,30 +165,29 @@ if ngx.req.get_method() == "POST" then
         local rpcpath = "rpc.mmpbx.sip_incomingmap.@"
 	local path = ""
 	local content_set = {}
-    for i,v in ipairs(incoming_map_allowed_indexes) do
-	 path = rpcpath..v.paramindex
-		for j,w in ipairs(incoming_outgoing_map_columns) do
-			if w.type == "checkboxswitch" then
-				if post_args["inc_"..w.name.."."..i] and  post_args["inc_"..w.name.."."..i] ~= incoming_map_data[i][j] then
-					content_set[path.."."..w.param] = post_args["inc_"..w.name.."."..i]
-				end
-			end
+        for i,v in ipairs(incoming_map_allowed_indexes) do
+	    path = rpcpath..v.paramindex
+            for j,w in ipairs(incoming_outgoing_map_columns) do
+		if w.type == "checkboxswitch" then
+		    if post_args["inc_"..w.name.."."..i] and  post_args["inc_"..w.name.."."..i] ~= incoming_map_data[i][j] then
+		        content_set[path.."."..w.param] = post_args["inc_"..w.name.."."..i]
+		    end
+		end
 	    end
-    end
+        end
 
 	rpcpath = "rpc.mmpbx.sip_outgoingmap.@"
 
 	for i,v in ipairs(outgoing_map_allowed_indexes) do
 	    path = rpcpath..v.paramindex
-        for j,w in ipairs(incoming_outgoing_map_columns) do
-			if w.type == "checkboxswitch" then
-				if post_args["outg_"..w.name.."."..i] and post_args["outg_"..w.name.."."..i] ~= outgoing_map_data[i][j] then
-					content_set[path.."."..w.param] = post_args["outg_"..w.name.."."..i]
-				end
-			end
+            for j,w in ipairs(incoming_outgoing_map_columns) do
+		if w.type == "checkboxswitch" then
+		    if post_args["outg_"..w.name.."."..i] == "1" and post_args["outg_"..w.name.."."..i] ~= outgoing_map_data[i][j] then
+		        content_set[path.."."..w.param] = post_args["outg_"..w.name.."."..i]
+		    end
+		end
 	    end
-    end
-	
+        end
 	-- if content_set is not empty then only set.
 	if next(content_set) then
 	    local ok, msg = proxy.set(content_set)

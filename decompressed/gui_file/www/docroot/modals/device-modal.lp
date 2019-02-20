@@ -23,7 +23,7 @@ end
 -- devices forwarding rules
 local devicetypes = {
     { "Generic", T"Generic" },
-    { "DesktopComputer", T"Desktop Computer" },
+    { "DesktopComputer", T"DesktopComputer" },
     { "Laptop", T"Laptop" },
     { "STB", T"STB" },
     { "PDA", T"PDA" },
@@ -53,7 +53,7 @@ local devices_columns = {
   {--[3]
     header = T"IPv4",
     name = "ipv4",
-    param = "IPAddress",
+    param = "IPv4",
     type = "text",
     readonly = true,
     attr = { input = { class="span1" } },
@@ -75,7 +75,7 @@ local devices_columns = {
     attr = { input = { class="span2" } },
   },
   {--[6]
-    header = T"Type",
+    header = T"InterfaceType",
     name = "interfacetype",
     param = "InterfaceType",
     type = "text",
@@ -242,5 +242,5 @@ end
   </form>\
 </div>\
 \
-');  ngx.print( ui_helper.createFooter() ); ngx.print('\
+'); ngx.print( ui_helper.createFooter() ); ngx.print('\
 '); 

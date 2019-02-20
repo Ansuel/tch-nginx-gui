@@ -419,16 +419,16 @@ end
 
 -- Show current IPv4 address
 if (content_rpc_wan["wan_ipaddr"] and content_rpc_wan["wan_ipaddr"] ~= "") then
-    html[#html+1] = ui_helper.createLabel(T"IPv4 Address", format("%s %s", "<i class=\"icon-ok icon-large green\"></i> ", content_rpc_wan["wan_ipaddr"]), attributes)
+    html[#html+1] = ui_helper.createLabel(T"IP Version 4 Address", format("%s %s", "<i class=\"icon-ok icon-large green\"></i> ", content_rpc_wan["wan_ipaddr"]), attributes)
 else
-    html[#html+1] = ui_helper.createLabel(T"IPv6 Address", format("%s %s", "<i class=\"icon-ban-circle icon-large red\"></i> ",T"No Address Assigned"), attributes)
+    html[#html+1] = ui_helper.createLabel(T"IP Version 4 Address", format("%s %s", "<i class=\"icon-ban-circle icon-large red\"></i> ",T"No Address Assigned"), attributes)
 end
 
 -- Show current IPv6 address
 if (content_rpc_wan6["wan6_ip6addr"] and content_rpc_wan6["wan6_ip6addr"] ~= "") then
-    html[#html+1] = ui_helper.createLabel(T"IPv6 Address", format("%s %s","<i class=\"icon-ok icon-large green\"></i> ", content_rpc_wan6["wan6_ip6addr"]), attributes)
+    html[#html+1] = ui_helper.createLabel(T"IP Version 6 Address", format("%s %s","<i class=\"icon-ok icon-large green\"></i> ", content_rpc_wan6["wan6_ip6addr"]), attributes)
 else
-    html[#html+1] = ui_helper.createLabel(T"IPv6 Address", format("%s %s","<i class=\"icon-ban-circle icon-large red\"></i> ",T"No Address Assigned"), attributes)
+    html[#html+1] = ui_helper.createLabel(T"IP Version 6 Address", format("%s %s","<i class=\"icon-ban-circle icon-large red\"></i> ",T"No Address Assigned"), attributes)
 end
 
 local function getStatus(param)
