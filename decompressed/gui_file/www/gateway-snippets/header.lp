@@ -300,14 +300,15 @@ function scriptRequestStatusAjax(type) {\
 			  $(".gui_version_status").removeClass("yellow");\
 			  $(".gui_version_status").addClass("green");\
 			  $(".gui_version_status_text").text(no_new);\
+			  $("#upgrade-alert").addClass("hide");\
 			} else {\
 			  $(".gui_version_status").removeClass("green");\
 			  $(".gui_version_status").addClass("yellow");\
 			  $("#upgradebtn").removeClass("hide");\
 			  $(".gui_version_status_text").text(outdated_ver);\
+			  $("#upgrade-alert").removeClass("hide");\
+			  $("#new-version-text").text(data.new_version_text);\
 			}\
-			$("#upgrade-alert").removeClass("hide");\
-			$("#new-version-text").text(data.new_version_text);\
 			$(".check_update_spinner").removeClass("fa-spin");\
 		  } else {\
 		  window.location.href = "/";\

@@ -86,14 +86,25 @@ upgradegui.log_step = countStepInRootdevice()
 SYSTEM_MODGUI_UPGRADEGUI_.get = {
   start = "0",
   state = function(mapping, param)
+	
+	if ( upgradegui.resetOnNextRequest == 1 ) then
+	  upgradegui.resetOnNextRequest = 0
+	  upgradegui.state = nil
+	end
+	
 	local progress_status = io.open("/root/.check_process","r")
+	
 	if progress_status then
 		progress_status:close()
 		upgradegui.state = nil --reset state as we are in root progress...
 		return "In Progress"
 	elseif upgradegui.state then
+		if ( upgradegui.state == "Complete" ) then
+			upgradegui.resetOnNextRequest = 1
+		end
 		return upgradegui.state
 	end
+	
 	
 	return "Not started"
   end,
