@@ -13,7 +13,6 @@ local format,find,sub, match, untaint = string.format, string.find, string.sub, 
 local vB = post_helper.validateBoolean
 local gOV = post_helper.getOrValidation
 local gAV = post_helper.getAndValidation
-local session = ngx.ctx.session
 
 local function receive_file(filename, match)
   function do_receive(outfile, match)
@@ -124,6 +123,22 @@ local function upgradeguistatus()
   ngx.exit(ngx.HTTP_OK)
 end
 
+local function scriptRequestStatus()
+    local upgradegui_path = "rpc.system.modgui.scriptRequest."
+    local state = proxy.get(upgradegui_path.."state")[1].value
+	local new_ver = proxy.get("uci.modgui.gui.new_ver")
+	
+    ngx.header.content_type = "application/json"
+	
+	if new_ver and not ( new_ver[1].value == "" ) then
+	  ngx.print(format('{ "state":"%s","new_version_text":"%s" }',state,new_ver[1].value))
+	else
+      ngx.print(format('{ "state":"%s" }',state))
+	end
+
+    ngx.exit(ngx.HTTP_OK)
+end
+
 local function resetreboot(path, value)
   proxy.set(path, value)
   ngx.header.content_type = "application/json"
@@ -155,12 +170,7 @@ elseif ngx.req.get_method() == "GET" then
   if action == "upgradeguistatus" then
 	return upgradeguistatus()
   elseif action == "scriptRequestStatus" then
-    local upgradegui_path = "rpc.system.modgui.scriptRequest."
-    local state = proxy.get(upgradegui_path.."state")[1].value
-
-    ngx.header.content_type = "application/json"
-    ngx.print(format('{ "state":"%s" }',state))
-    ngx.exit(ngx.HTTP_OK)
+	return scriptRequestStatus()
   end
 end
 

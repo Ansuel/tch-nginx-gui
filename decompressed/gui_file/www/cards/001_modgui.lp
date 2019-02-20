@@ -6,6 +6,8 @@ local proxy = require("datamodel")
 local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
 
+local format = string.format
+
 -- Non-configurable data
 local content = {
   gui_version = "uci.modgui.gui.gui_version",
@@ -15,10 +17,10 @@ local content = {
 content_helper.getExactContent(content)
 
 if content.outdated_ver == "1" then
-	content.outdated_ver = "5"
+	content.outdated_ver = "yellow"
 	content.outdated_ver_text = T"GUI is outdated"
 else
-	content.outdated_ver = "1"
+	content.outdated_ver = "green"
 	content.outdated_ver_text = T"GUI is updated"
 end
 
@@ -43,9 +45,17 @@ ngx.print('\
 	  <div class="divtable">\
 \
       ');
+
 	local html = {}
-	html[#html + 1] = string.format(T"GUI Version %s", content.gui_version)
-	html[#html + 1] = ui_helper.createSimpleLight(content.outdated_ver, content.outdated_ver_text, nil, "fas fa-cog" )
+	html[#html + 1] = format(T"GUI Version %s", content.gui_version)
+	html[#html + 1] = '<span class="simple-desc">'
+	html[#html + 1] = '  <div class="light_icon fas fa-cog gui_version_status '..content.outdated_ver..'"></div>'
+	html[#html + 1] = '<span class="gui_version_status_text">'..content.outdated_ver_text..'</span>'
+	html[#html + 1] = '</span>'
+	html[#html + 1] = '<span class="simple-desc">'
+	html[#html + 1] =   '<div class="light_icon fas fa-sync check_update_spinner"></div>'
+	html[#html + 1] =   format('<strong><a style="cursor: pointer;" class="check_update">%s</a></strong>',T"Check Update")
+	html[#html + 1] = "</span>"
 
 ngx.print(html)
 ngx.print('\

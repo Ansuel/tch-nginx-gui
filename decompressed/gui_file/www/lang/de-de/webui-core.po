@@ -2791,8 +2791,8 @@ msgstr "Aktualisierung gefunden"
 msgid "Update GUI"
 msgstr "Aktualisiere GUI"
 
-msgid "Update available! Version: <strong>%s</strong>"
-msgstr "Aktualisierung verfügbar! Version: <strong>%s</strong>"
+msgid "Update available! Version: <strong id="new-version-text">%s</strong>"
+msgstr "Aktualisierung verfügbar! Version: <strong id="new-version-text">%s</strong>"
 
 msgid "Update failed; please try again."
 msgstr "Aktualisierung fehlgeschlagen, bitte versuchen Sie es erneut."

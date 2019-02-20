@@ -175,9 +175,6 @@ ngx.print('\
 				html[#html + 1] = T"Github GUI"
 				html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
 			if not ( session:getusername() == "guest" ) then
-				html[#html + 1] = [[ <li><a style="cursor: pointer;" tabindex="-1" id="update"> ]]
-				html[#html + 1] = T"Check Update" 
-				html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
 				if cui.luci_webui == "1" then
 					html[#html + 1] = [[ <li><a tabindex="-1" target="_blank" href="/"
 									onclick="javascript:event.target.port=9080;event.target.protocol='http'"> ]]
@@ -210,15 +207,18 @@ ngx.print('\
 		html[#html + 1] =   "</div>"
         html[#html + 1] =  "</div>"
 		html[#html + 1] = "</div>"
+		
+		local alert_success = {
+			alert = {
+				class = "alert hide",
+				id = "upgrade-alert"
+			},
+		}
 		if cui.outdated_ver == "1" then
-			local alert_success = {
-				alert = {
-					class = "alert",
-					id = "upgrade-alert"
-				},
-			}
-			html[#html + 1] = ui_helper.createAlertBlock(string.format(T"Update available! Version: <strong>%s</strong>",cui.new_ver),alert_success)
+			alert_success.alert.class = "alert"
 		end
+		html[#html + 1] = ui_helper.createAlertBlock(format(T'Update available! Version: <strong id="new-version-text">%s</strong>',cui.new_ver),alert_success)
+		
 		local autoupgrade_view = cui.autoupgrade_view
 		if not ( autoupgrade_view == "none" ) and not ( autoupgrade_view == "" ) then
 			local alert_success = {
@@ -228,10 +228,10 @@ ngx.print('\
 				},
 			}
 			if autoupgrade_view == "auto" then
-				html[#html + 1] = ui_helper.createAlertBlock(string.format(T("The modem has been updated automatically at <strong>%s:00</strong>" ..
+				html[#html + 1] = ui_helper.createAlertBlock(format(T("The modem has been updated automatically at <strong>%s:00</strong>" ..
 							" to version <strong>%s</strong> successfully"),cui.autoupgrade_hour, cui.gui_version),alert_success)
 			else
-				html[#html + 1] = ui_helper.createAlertBlock(string.format(T"The modem has been updated to version <strong>%s</strong> successfully",cui.gui_version),alert_success)
+				html[#html + 1] = ui_helper.createAlertBlock(format(T"The modem has been updated to version <strong>%s</strong> successfully",cui.gui_version),alert_success)
 			end
 		end
 		if not session:isdefaultuser() and not session:retrieve("password_reminder_shown") and session:getusername() ~= assistant:username() then
@@ -286,14 +286,32 @@ function post(action) {\
   );\
   return false;\
 }\
-function scriptRequestStatusAjax() {\
+function scriptRequestStatusAjax(type) {\
 	var scriptRequestTimeout = 1000;\
 	function waitScriptCompletition() {\
       $.ajax({ url: "modals/modgui-modal.lp", data: "action=scriptRequestStatus",\
 		timeout: scriptRequestTimeout, cache: false, dataType: "json" })\
       .done(function(data) {\
 		if (data.state == "Complete") {\
+		  if ((type == "checkver" ) && (data.new_version_text)) {\
+			var outdated_ver = "'); ngx.print(T"GUI is outdated"); ngx.print('";\
+			var no_new = "'); ngx.print(T"GUI is updated"); ngx.print('";\
+			if (data.new_version_text == "Unknown") {\
+			  $(".gui_version_status").removeClass("yellow");\
+			  $(".gui_version_status").addClass("green");\
+			  $(".gui_version_status_text").text(no_new);\
+			} else {\
+			  $(".gui_version_status").removeClass("green");\
+			  $(".gui_version_status").addClass("yellow");\
+			  $("#upgradebtn").removeClass("hide");\
+			  $(".gui_version_status_text").text(outdated_ver);\
+			}\
+			$("#upgrade-alert").removeClass("hide");\
+			$("#new-version-text").text(data.new_version_text);\
+			$(".check_update_spinner").removeClass("fa-spin");\
+		  } else {\
 		  window.location.href = "/";\
+		  }\
 		} else {\
 		  window.setTimeout(waitScriptCompletition, scriptRequestTimeout);\
 		}\
@@ -307,9 +325,7 @@ function scriptRequestStatusAjax() {\
 \
 function checkupdate() {\
 	post("checkver");\
-	 var processMsg = "');  ngx.print(T'Checking...'); ngx.print('";\
-	 tch.showProgress(processMsg);\
-	 scriptRequestStatusAjax();\
+	scriptRequestStatusAjax("checkver");\
 }\
 var KoRequest = [];\
 $(function() {\
@@ -352,7 +368,9 @@ end ngx.print('\
   });\
 \
 \
-  $("#update").on("click", function() {\
+  $(".check_update").on("click", function(e) {\
+	 e.stopPropagation();\
+	 $(".check_update_spinner").addClass("fa-spin");\
      checkupdate();\
      });\
   $("#upgradebtn").on("hover",\

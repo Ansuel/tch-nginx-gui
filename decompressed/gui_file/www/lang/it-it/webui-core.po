@@ -2791,8 +2791,8 @@ msgstr "Aggiornamento disponibile"
 msgid "Update GUI"
 msgstr "Aggiornamento GUI"
 
-msgid "Update available! Version: <strong>%s</strong>"
-msgstr "Aggiornamento disponibile! Versione: <strong>%s</strong>"
+msgid "Update available! Version: <strong id="new-version-text">%s</strong>"
+msgstr "Aggiornamento disponibile! Versione: <strong id="new-version-text">%s</strong>"
 
 msgid "Update failed; please try again."
 msgstr "Aggiornamento fallito. Riprova."
