@@ -373,12 +373,6 @@ ngx.print('\
           class = "custom-handler"
         }
       }
-	  local confirming_msg_remove_root = {
-	   alert = {
-	   	class = "alert hide",
-	   	id = "confirming-msg-remove-root"
-	   }
-	  } 
 	  local info_box = {
         alert = {
 			class = "alert alert-info",
@@ -395,24 +389,14 @@ ngx.print('\
           id = "resetting-msg"
         }
       }
-	  
-	  
+
+
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Reset the custom GUI settings. No custom firmware file will be removed. All custom GUI functions will still be available.", info_box)
 	  html[#html + 1] = ui_helper.createButton(T"Restore GUI", T"Restore", "icon-refresh", reset_gui)
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Reset the router to factory settings and remove the custom firmware files.", info_box)
 	  html[#html + 1] = ui_helper.createButton(T"Reset to Factory", T"Remove Root", "icon-refresh", remove_root)
-	  html[#html + 1] = string.format('<div class="control-group controls">')
-	  html[#html + 1] = ui_helper.createAlertBlock(T"Are you sure you want to remove root from this modem? </br><strong> This could be permanent, so it's not recommended.</strong>", confirming_msg_remove_root)
-	  html[#html + 1] = string.format([[
-	  <div id="remove-root-changes" class="hide">
-		<div id="remove-root-confirm" class="btn btn-primary" data-dismiss="modal">%s</div>
-			<div id="remove-root-cancel" class="btn">%s</div>
-		</div>
-	  </div>
-	  ]], T"Confirm", T"Cancel")
-	  html[#html + 1] = '</div>'
 	  ngx.print(html)
-	  
+
 ngx.print('\
     </form>\
   </fieldset>\
@@ -459,25 +443,25 @@ ngx.print('\
   }\
 \
   $("#btn-reset-gui").on("click", function() {\
-    tch.showProgress("'); ngx.print('Resetting...'); ngx.print('");\
-    return resetreboot($("#resetting-msg"), $(this), "system_reset_gui");\
+	var heading = "');  ngx.print(T'Restore Gui'); ngx.print('";\
+    var processMsg = "');  ngx.print(T'Restoring...'); ngx.print('";\
+    confirmationDialogue(\'');  ngx.print(T"Do you want to continue?"); ngx.print('\',heading);\
+    $(document).on("click", ".Restore", function() {\
+         tch.removeProgress();\
+         tch.showProgress(processMsg);\
+         return resetreboot($("#rebooting-msg"), $(this), "system_reset_gui" );\
+	});\
   });\
 \
   $("#btn-remove-root").on("click", function() {\
-    $("#confirming-msg-remove-root").removeClass("hide");\
-	$("#remove-root-changes").removeClass("hide");\
-  });\
-\
-  $("#remove-root-confirm").on("click", function() {\
-  	$("#confirming-msg-remove-root").addClass("hide");\
-  	$("#remove-root-changes").addClass("hide");\
-  	tch.showProgress("'); ngx.print( T'Resetting...' ); ngx.print('");\
-  	return resetreboot($("#resetting-msg"), $(this), "system_remove_root");\
-  });\
-\
-  $("#remove-root-cancel").on("click", function() {\
-  	$("#confirming-msg-remove-root").addClass("hide");\
-  	$("#remove-root-changes").addClass("hide");\
+	var heading = "');  ngx.print(T'Remove root'); ngx.print('";\
+    var processMsg = "');  ngx.print(T'Resetting...'); ngx.print('";\
+    confirmationDialogue(\'');  ngx.print(T"Are you sure you want to remove root from this modem? </br><strong> This could be permanent, so it's not recommended.</strong>"); ngx.print('\',heading);\
+    $(document).on("click", ".Remove", function() {\
+         tch.removeProgress();\
+         tch.showProgress(processMsg);\
+         return resetreboot($("#rebooting-msg"), $(this), "system_remove_root" );\
+	});\
   });\
 \
   $(document).on("click", "#cancel", function() {\
