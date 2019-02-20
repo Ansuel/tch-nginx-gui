@@ -76,22 +76,22 @@ msgid "Router Security"
 msgstr "Sicurezza router"
 
 msgid "SSID Broadcast Name (Max 32 characters):"
-msgstr "Nome SSID broadcast (max 32 caratteri):"
+msgstr "Nome rete (SSID) max 32 caratteri:"
 
 msgid "SSID Broadcast Name: "
-msgstr "Nome SSID broadcast: "
+msgstr "Nome rete (SSID): "
 
 msgid "Security Key Type:"
-msgstr "Tipo chiave sicurezza:"
+msgstr "Modo sicurezza:"
 
 msgid "Security Key Type: "
-msgstr "Tipo chiave sicurezza: "
+msgstr "Modo sicurezza: "
 
 msgid "Security Key(Minimum of 8 characters):"
-msgstr "Chiave sicurezza (minimo 8 caratteri):"
+msgstr "Password (minimo 8 caratteri):"
 
 msgid "Security Key: "
-msgstr "Chiave sicurezza: "
+msgstr "Password: "
 
 msgid "Setup Wizard"
 msgstr "Configurazione guidata"
@@ -121,7 +121,7 @@ msgid "Username:"
 msgstr "Nome utente:"
 
 msgid "VCI Number:"
-msgstr "Numero VCI:"
+msgstr "Valore VCI:"
 
 msgid "VLAN Enabled"
 msgstr "VLAN abilitata"
@@ -130,7 +130,7 @@ msgid "VLAN ID:"
 msgstr "ID VLAN:"
 
 msgid "VPI Number:"
-msgstr "Numero VPI:"
+msgstr "Valore VPI:"
 
 msgid "VoIP (Netphone) is an optional phone service that runs over the internet. If you have purchased this service, enter your VoIP settings here. You'll find your settings in your VoIP activation email."
 msgstr "VoIP (Netphone) è un servizio telefonico opzionale che funziona su internet.<br/>Se hai acquistato questo servizio, inserisci qui le impostazioni VoIP.<br/>Troverai le impostazioni nella email di attivazione VoIP."
@@ -185,3 +185,21 @@ msgstr "Wansensing abilitato"
 
 msgid "Your modem already has a unique WiFi network set up by default. You can change the broadcast name here if desired, or turn off WiFi completely. You can also hide your WiFi network name from other devices by turning off SSID broadcast."
 msgstr "Il modem possiede già una rete Wi-Fi unica impostata in modo predefinito.<br/>Puoi cambiare qui il nome broadcast se lo desideri, oppure disabilitare completamente il Wi-Fi.<br/>Puoi anche nascondere il nome della rete Wi-Fi da altri dispositivi disabilitando il broadcast SSID."
+
+msgid "WiFi Setup (2.4GHz)"
+msgstr "Impostazioni WiFi (2.4 GHz)"
+
+msgid "WiFi Setup (5GHz)"
+msgstr "Impostazioni WiFi (5 GHz)"
+
+msgid "PPP over Ethernet"
+msgstr "PPPoE (PPP over Ethernet)"
+
+msgid "PPP over ATM"
+msgstr "PPPoA (PPP over ATM)"
+
+msgid "Wireless 2.4GHz (WiFi):"
+msgstr "Wireless 2.4 Ghz (WiFi):"
+
+msgid "Wireless 5GHz (WiFi):"
+msgstr "Wireless 5 GHz (Wifi):"
