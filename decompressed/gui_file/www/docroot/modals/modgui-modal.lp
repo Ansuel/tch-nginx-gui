@@ -163,7 +163,7 @@ if ngx.req.get_method() == "POST" then
 	return resetreboot("rpc.system.modgui.upgradegui.start", "1")
   end
   if action == "system_remove_root" then
-	return resetreboot("rpc.system.modgui.utility.removeroot", "1")
+	--return resetreboot("rpc.system.modgui.utility.removeroot", "1")
   end
 elseif ngx.req.get_method() == "GET" then
   local action = ngx.req.get_uri_args().action
@@ -389,14 +389,14 @@ ngx.print('\
           id = "resetting-msg"
         }
       }
-
-
+	  
+	  
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Reset the custom GUI settings. No custom firmware file will be removed. All custom GUI functions will still be available.", info_box)
 	  html[#html + 1] = ui_helper.createButton(T"Restore GUI", T"Restore", "icon-refresh", reset_gui)
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Reset the router to factory settings and remove the custom firmware files.", info_box)
 	  html[#html + 1] = ui_helper.createButton(T"Reset to Factory", T"Remove Root", "icon-refresh", remove_root)
 	  ngx.print(html)
-
+	  
 ngx.print('\
     </form>\
   </fieldset>\
@@ -446,7 +446,8 @@ ngx.print('\
 	var heading = "');  ngx.print(T'Restore Gui'); ngx.print('";\
     var processMsg = "');  ngx.print(T'Restoring...'); ngx.print('";\
     confirmationDialogue(\'');  ngx.print(T"Do you want to continue?"); ngx.print('\',heading);\
-    $(document).on("click", ".Restore", function() {\
+	var PopUpHeaderText = "."+$(".popUp>.header>.header-title>p").text().split(" ")[0];\
+    $(document).on("click", PopUpHeaderText, function() {\
          tch.removeProgress();\
          tch.showProgress(processMsg);\
          return resetreboot($("#rebooting-msg"), $(this), "system_reset_gui" );\
@@ -457,7 +458,8 @@ ngx.print('\
 	var heading = "');  ngx.print(T'Remove root'); ngx.print('";\
     var processMsg = "');  ngx.print(T'Resetting...'); ngx.print('";\
     confirmationDialogue(\'');  ngx.print(T"Are you sure you want to remove root from this modem? </br><strong> This could be permanent, so it's not recommended.</strong>"); ngx.print('\',heading);\
-    $(document).on("click", ".Remove", function() {\
+	var PopUpHeaderText = "."+$(".popUp>.header>.header-title>p").text().split(" ")[0];\
+    $(document).on("click", PopUpHeaderText, function() {\
          tch.removeProgress();\
          tch.showProgress(processMsg);\
          return resetreboot($("#rebooting-msg"), $(this), "system_remove_root" );\

@@ -120,21 +120,23 @@ ngx.print('\
 		end
 		
 		if not ( session:getusername() == "guest" ) then
-			if cui.outdated_ver == "1" then
-				html[#html + 1] = '<div class="header-sub-button">'
-				html[#html + 1] = '<div id="upgradebtn" class="btn someInfos '..( cui.outdated_ver == "0" ) and "hide"..' hide"'
-				if not ( cui.gui_skin == "Fritz" ) then
-					html[#html + 1] = 'rel="tooltip" data-placement="bottom" data-original-title="'
-					html[#html + 1] = T"Go to the gateway tab and click on the Update button, to autoupgrade to the new GUI."
-					html[#html + 1] = '" '
-				end
-				html[#html + 1] = 'data-toggle="modal" data-remote="modals/modgui-modal.lp?action=manualguiupgrade">'
-				html[#html + 1] = '<span>'
-				html[#html + 1] = T"Update"
-				html[#html + 1] = '</span>'
-				html[#html + 1] = '</div>'
-				html[#html + 1] = '</div>'
+			html[#html + 1] = '<div class="header-sub-button">'
+			local hideUpdateButton = ""
+			if cui.outdated_ver == "0" then
+				hideUpdateButton = "hide"
 			end
+			html[#html + 1] = '<div id="upgradebtn" class="btn someInfos '.. hideUpdateButton  ..'"'
+			if not ( cui.gui_skin == "Fritz" ) then
+				html[#html + 1] = ' rel="tooltip" data-placement="bottom" data-original-title="'
+				html[#html + 1] = T"Go to the gateway tab and click on the Update button, to autoupgrade to the new GUI."
+				html[#html + 1] = '" '
+			end
+			html[#html + 1] = 'data-toggle="modal" data-remote="modals/modgui-modal.lp?action=manualguiupgrade">'
+			html[#html + 1] = '<span>'
+			html[#html + 1] = T"Update"
+			html[#html + 1] = '</span>'
+			html[#html + 1] = '</div>'
+			html[#html + 1] = '</div>'
 			html[#html + 1] = '<div class="header-sub-button">'
 			html[#html + 1] = '<div class="btn" id="wizard-btn" data-toggle="modal" data-remote="modals/wizard-modal.lp">' .. T"Setup Wizard" .. '</div>'
 			html[#html + 1] = '</div>'
@@ -210,7 +212,7 @@ ngx.print('\
 		
 		local alert_outdated_ver = {
 			alert = {
-				class = "alert",
+				class = "alert alert-warn",
 				id = "upgrade-alert"
 			},
 		}
