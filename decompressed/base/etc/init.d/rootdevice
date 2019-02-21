@@ -1925,8 +1925,6 @@ root() {
 	
 	logger_command "Restarting transformer" ConsoleOnly
 	/etc/init.d/transformer restart
-	
-	set_transformer "rpc.system.modgui.upgradegui.log" "Finished"
 	#Call a random value to check start of transformer
 	get_transformer "uci.env.var.oui" > /dev/null
 
