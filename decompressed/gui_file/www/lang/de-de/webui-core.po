@@ -2440,8 +2440,8 @@ msgstr "Stoppe Ping-Anforderung"
 msgid "Stop Time"
 msgstr "Stoppzeit"
 
-msgid "Stop Trace Route"
-msgstr "Stoppe Trace Route"
+msgid "Stop Traceroute"
+msgstr "Stoppe Traceroute"
 
 msgid "Portmirror successfully stopped."
 msgstr "Erfolgreicher Stopp der Portspiegelung."
@@ -2701,7 +2701,7 @@ msgstr "Summe Empfangen (in MB)"
 msgid "Total Send (in MB)"
 msgstr "Summe Gesendet (in MB)"
 
-msgid "Trace Route"
+msgid "Traceroute"
 msgstr "Routenverfolgung"
 
 msgid "Traffic Monitor"
@@ -3336,7 +3336,7 @@ msgstr "Burst Rahmen"
 msgid "Remote/WAN port"
 msgstr "Entfernter/WAN Anschluss"
 
-msgid "Trace route"
+msgid "Traceroute"
 msgstr "Routenverfolgung"
 
 msgid "DNS Server 1"

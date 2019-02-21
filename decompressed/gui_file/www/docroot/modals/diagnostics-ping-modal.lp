@@ -387,15 +387,15 @@ local ping_trace_data, ping_trace_helpmsg = post_helper.handleTableQuery(ping_tr
 </fieldset>
 
 <fieldset id="diagnostics-tracert-tab">
-        <legend><%= T"Trace Route" %></legend>
+        <legend><%= T"Traceroute" %></legend>
 
         <div class="control-group">
         <label class="control-label"></label>
         <div class="controls">
         <% if(ctracert.tracert_state ~= "Requested" ) then %>
-            <div id="send-config_TRACE" class="btn" data-name="action" data-value="TRACE"><%= T"Trace Route" %></div>
+            <div id="send-config_TRACE" class="btn" data-name="action" data-value="TRACE"><%= T"Traceroute" %></div>
         <% else%>
-            <div id="stop-config_TRACE" class="btn" data-name="action" data-value="TRACESTOP"><%= T"Stop Trace Route" %></div>
+            <div id="stop-config_TRACE" class="btn" data-name="action" data-value="TRACESTOP"><%= T"Stop Traceroute" %></div>
         <% end%>
         </div>
     </div>

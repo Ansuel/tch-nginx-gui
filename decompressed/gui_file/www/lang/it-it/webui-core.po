@@ -2440,7 +2440,7 @@ msgstr "Interrompi ping"
 msgid "Stop Time"
 msgstr "Orario fine"
 
-msgid "Stop Trace Route"
+msgid "Stop Traceroute"
 msgstr "Ferma traceroute"
 
 msgid "Portmirror successfully stopped."
@@ -2701,7 +2701,7 @@ msgstr "Totale ricevuti (MB)"
 msgid "Total Send (in MB)"
 msgstr "Totale inviati (MB)"
 
-msgid "Trace Route"
+msgid "Traceroute"
 msgstr "Traceroute"
 
 msgid "Traffic Monitor"
@@ -3336,7 +3336,7 @@ msgstr "Frame burst"
 msgid "Remote/WAN port"
 msgstr "Porta remota/WAN"
 
-msgid "Trace route"
+msgid "Traceroute"
 msgstr "Traceroute"
 
 msgid "DNS Server 1"

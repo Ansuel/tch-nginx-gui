@@ -457,7 +457,7 @@ ngx.print('\
   $("#btn-remove-root").on("click", function() {\
 	var heading = "');  ngx.print(T'Remove root'); ngx.print('";\
     var processMsg = "');  ngx.print(T'Resetting...'); ngx.print('";\
-    confirmationDialogue(\'');  ngx.print(T"Are you sure you want to remove root from this modem? </br><strong> This could be permanent, so it's not recommended.</strong>"); ngx.print('\',heading);\
+    confirmationDialogue(\'');  ngx.print(T"Are you sure you want to remove root from this modem? </br><strong> This could be permanent, so it\\'s not recommended.</strong>"); ngx.print('\',heading);\
 	var PopUpHeaderText = "."+$(".popUp>.header>.header-title>p").text().split(" ")[0];\
     $(document).on("click", PopUpHeaderText, function() {\
          tch.removeProgress();\
