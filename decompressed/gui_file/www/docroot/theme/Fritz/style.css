@@ -68,7 +68,8 @@
 }
 
 .header-logo {
-    margin-left: 2rem
+    margin-left: 2rem;
+	flex-basis: unset;
 }
 
 .header-button {
@@ -128,14 +129,6 @@ body {
 
 .header {
     background-color: var(--bg-color1)
-}
-
-.header-logo {
-    margin-left: 2rem
-}
-
-.header-button {
-    margin-right: 2rem
 }
 
 #footer {
