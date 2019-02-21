@@ -360,23 +360,24 @@ end ngx.print('\
 	var text = "'); ngx.print(pageselector.othertext); ngx.print ('";\
 	if (pathname == "/stats.lp") {\
 		page = "cards.lp";\
+		text = "'); ngx.print(T"Stats"); ngx.print ('";\
 	} else if (pathname == "/cards.lp") {\
 		page = "stats.lp";\
+		text = "'); ngx.print(T"Cards"); ngx.print ('";\
 	}\
-	window.location.replace(page);\
-	$("#refresh-cards").show().css("margin-right","5px").addClass("fa fa-sync fa-spin");\
+	$("#dynamic-content").load(page + "?contentonly=true");\
+	$(this).trigger("switchcard");\
+	window.history.pushState("gateway", "Gateway - Cards", page);\
+	$("#cards-text").text(text);\
+	$("#refresh-cards").show();\
+	$("#refresh-cards").css("margin-right","5px");\
+	$("#refresh-cards").addClass("fa fa-sync fa-spin");\
 	KoRequest.forEach(function(element) {\
 		clearInterval(element);\
 	});\
 	KoRequest = [];\
   });\
 \
-\
-  $(".check_update").on("click", function(e) {\
-	 e.stopPropagation();\
-	 $(".check_update_spinner").addClass("fa-spin");\
-     checkupdate();\
-     });\
   $("#upgradebtn").on("hover",\
 	function() {\
 		$("#upgradebtn").css("color","white");\
@@ -392,40 +393,6 @@ end ngx.print('\
     ');
   end
   ngx.print('\
-  ko.bindingHandlers.text = {\
-		init: function(element, valueAccessor) {\
-        $(element).text(ko.unwrap(valueAccessor()));\
-    },\
-    update: function(element, valueAccessor) {\
-        var value = ko.unwrap(valueAccessor());\
-        if (value != $(element).text() ) {\
-			if ( ! $(element).hasClass("hide") ) {\
-				$(element).fadeOut(function() {\
-					$(this).text(value).fadeIn();\
-				});\
-			} else {\
-				$(element).text(value);\
-			}\
-		}\
-    }\
-  };\
-  ko.bindingHandlers.html = {\
-		init: function(element, valueAccessor) {\
-        $(element).html(ko.unwrap(valueAccessor()));\
-    },\
-    update: function(element, valueAccessor) {\
-        var value = ko.unwrap(valueAccessor());\
-        if (value != $(element).html() ) {\
-			if ( ! $(element).hasClass("hide") ) {\
-				$(element).fadeOut(function() {\
-					$(this).html(value).fadeIn();\
-				});\
-			} else {\
-				$(element).html(value);\
-			}\
-		}\
-    }\
-  };\
 });\
 window.onscroll = function() {scrollFunction()};\
 \
