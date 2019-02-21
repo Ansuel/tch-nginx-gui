@@ -203,3 +203,6 @@ msgstr ""
 
 msgid "Wireless 5GHz (WiFi):"
 msgstr ""
+
+msgid "Username: "
+msgstr "Benutzername: "
