@@ -120,21 +120,23 @@ ngx.print('\
 		end
 		
 		if not ( session:getusername() == "guest" ) then
-			if cui.outdated_ver == "1" then
-				html[#html + 1] = '<div class="header-sub-button">'
-				html[#html + 1] = '<div id="upgradebtn" class="btn someInfos"'
-				if not ( cui.gui_skin == "Fritz" ) then
-					html[#html + 1] = 'rel="tooltip" data-placement="bottom" data-original-title="'
-					html[#html + 1] = T"Go to the gateway tab and click on the Update button, to autoupgrade to the new GUI."
-					html[#html + 1] = '" '
-				end
-				html[#html + 1] = 'data-toggle="modal" data-remote="modals/modgui-modal.lp?action=manualguiupgrade">'
-				html[#html + 1] = '<span>'
-				html[#html + 1] = T"Update"
-				html[#html + 1] = '</span>'
-				html[#html + 1] = '</div>'
-				html[#html + 1] = '</div>'
+			html[#html + 1] = '<div class="header-sub-button">'
+			local hideUpdateButton = ""
+			if cui.outdated_ver == "0" then
+				hideUpdateButton = "hide"
 			end
+			html[#html + 1] = '<div id="upgradebtn" class="btn someInfos '.. hideUpdateButton  ..'"'
+			if not ( cui.gui_skin == "Fritz" ) then
+				html[#html + 1] = ' rel="tooltip" data-placement="bottom" data-original-title="'
+				html[#html + 1] = T"Go to the gateway tab and click on the Update button, to autoupgrade to the new GUI."
+				html[#html + 1] = '" '
+			end
+			html[#html + 1] = 'data-toggle="modal" data-remote="modals/modgui-modal.lp?action=manualguiupgrade">'
+			html[#html + 1] = '<span>'
+			html[#html + 1] = T"Update"
+			html[#html + 1] = '</span>'
+			html[#html + 1] = '</div>'
+			html[#html + 1] = '</div>'
 			html[#html + 1] = '<div class="header-sub-button">'
 			html[#html + 1] = '<div class="btn" id="wizard-btn" data-toggle="modal" data-remote="modals/wizard-modal.lp">' .. T"Setup Wizard" .. '</div>'
 			html[#html + 1] = '</div>'
@@ -208,31 +210,32 @@ ngx.print('\
         html[#html + 1] =  "</div>"
 		html[#html + 1] = "</div>"
 		
-		local alert_success = {
+		local alert_outdated_ver = {
 			alert = {
-				class = "alert hide",
+				class = "alert alert-warn",
 				id = "upgrade-alert"
 			},
 		}
-		if cui.outdated_ver == "1" then
-			alert_success.alert.class = "alert"
+		if cui.outdated_ver == "0" then
+			alert_outdated_ver.alert.class = "hide"
 		end
-		html[#html + 1] = ui_helper.createAlertBlock(format(T'Update available! Version: <strong id="new-version-text">%s</strong>',cui.new_ver),alert_success)
+		html[#html + 1] = ui_helper.createAlertBlock(format(T'Update available! Version: <strong id="new-version-text">%s</strong>',cui.new_ver),alert_outdated_ver)
 		
 		local autoupgrade_view = cui.autoupgrade_view
 		if not ( autoupgrade_view == "none" ) and not ( autoupgrade_view == "" ) then
-			local alert_success = {
+			local alert_upgrade_success = {
 				alert = {
 					class = "alert-success",
 					id = "upgrade-alert"
 				},
 			}
+			local upgrade_text = format(T"The modem has been updated to version <strong>%s</strong> successfully",cui.gui_version)
 			if autoupgrade_view == "auto" then
-				html[#html + 1] = ui_helper.createAlertBlock(format(T("The modem has been updated automatically at <strong>%s:00</strong>" ..
-							" to version <strong>%s</strong> successfully"),cui.autoupgrade_hour, cui.gui_version),alert_success)
-			else
-				html[#html + 1] = ui_helper.createAlertBlock(format(T"The modem has been updated to version <strong>%s</strong> successfully",cui.gui_version),alert_success)
+				upgrade_text = format(T("The modem has been updated automatically at <strong>%s:00</strong>" ..
+							" to version <strong>%s</strong> successfully"),cui.autoupgrade_hour, cui.gui_version)
 			end
+			
+			html[#html + 1] = ui_helper.createAlertBlock(upgrade_text,alert_upgrade_success)
 		end
 		if not session:isdefaultuser() and not session:retrieve("password_reminder_shown") and session:getusername() ~= assistant:username() then
 			local result = content_helper.getMatchedContent("uci.web.user.", {name = session.getusername()})
@@ -357,23 +360,24 @@ end ngx.print('\
 	var text = "'); ngx.print(pageselector.othertext); ngx.print ('";\
 	if (pathname == "/stats.lp") {\
 		page = "cards.lp";\
+		text = "'); ngx.print(T"Stats"); ngx.print ('";\
 	} else if (pathname == "/cards.lp") {\
 		page = "stats.lp";\
+		text = "'); ngx.print(T"Cards"); ngx.print ('";\
 	}\
-	window.location.replace(page);\
-	$("#refresh-cards").show().css("margin-right","5px").addClass("fa fa-sync fa-spin");\
+	$("#dynamic-content").load(page + "?contentonly=true");\
+	$(this).trigger("switchcard");\
+	window.history.pushState("gateway", "Gateway - Cards", page);\
+	$("#cards-text").text(text);\
+	$("#refresh-cards").show();\
+	$("#refresh-cards").css("margin-right","5px");\
+	$("#refresh-cards").addClass("fa fa-sync fa-spin");\
 	KoRequest.forEach(function(element) {\
 		clearInterval(element);\
 	});\
 	KoRequest = [];\
   });\
 \
-\
-  $(".check_update").on("click", function(e) {\
-	 e.stopPropagation();\
-	 $(".check_update_spinner").addClass("fa-spin");\
-     checkupdate();\
-     });\
   $("#upgradebtn").on("hover",\
 	function() {\
 		$("#upgradebtn").css("color","white");\
@@ -389,40 +393,6 @@ end ngx.print('\
     ');
   end
   ngx.print('\
-  ko.bindingHandlers.text = {\
-		init: function(element, valueAccessor) {\
-        $(element).text(ko.unwrap(valueAccessor()));\
-    },\
-    update: function(element, valueAccessor) {\
-        var value = ko.unwrap(valueAccessor());\
-        if (value != $(element).text() ) {\
-			if ( ! $(element).hasClass("hide") ) {\
-				$(element).fadeOut(function() {\
-					$(this).text(value).fadeIn();\
-				});\
-			} else {\
-				$(element).text(value);\
-			}\
-		}\
-    }\
-  };\
-  ko.bindingHandlers.html = {\
-		init: function(element, valueAccessor) {\
-        $(element).html(ko.unwrap(valueAccessor()));\
-    },\
-    update: function(element, valueAccessor) {\
-        var value = ko.unwrap(valueAccessor());\
-        if (value != $(element).html() ) {\
-			if ( ! $(element).hasClass("hide") ) {\
-				$(element).fadeOut(function() {\
-					$(this).html(value).fadeIn();\
-				});\
-			} else {\
-				$(element).html(value);\
-			}\
-		}\
-    }\
-  };\
 });\
 window.onscroll = function() {scrollFunction()};\
 \

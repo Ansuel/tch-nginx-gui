@@ -103,28 +103,29 @@ for _, v in ipairs(firewall_forwarding_path) do
     break
   end
 end
-local firewall_value = {["uci.firewall.forwarding."..forwdnum..".src"] = "wan",
-                        ["uci.firewall.forwarding."..forwdnum..".dest"] = "lan",
-                        ["uci.firewall.forwarding."..forwdnum..".name"] = "for_w2l"}
+local firewall_value = {["uci.firewall.forwarding.@"..forwdnum..".src"] = "wan",
+                        ["uci.firewall.forwarding.@"..forwdnum..".dest"] = "lan",
+                        ["uci.firewall.forwarding.@"..forwdnum..".name"] = "for_w2l"}
 local function validateNat(value, object, key)
   local valid, msg = post_helper.validateBoolean(value, object, key)
   if valid and zonenum ~= "" and value ~= proxy.get("uci.firewall.zone."..zonenum..".masq")[1].value then
     proxy.set("uci.firewall.zone."..zonenum..".conntrack", "1")
+    local key = "forwarding"..post_helper.getRandomKey()
     if value == "1" then
       if forwdnum == "" then
-        forwdnum = proxy.add("uci.firewall.forwarding.")
+        forwdnum = proxy.add("uci.firewall.forwarding.", key)
         proxy.set(firewall_value)
-        proxy.set("uci.firewall.forwarding."..forwdnum..".enabled", "0")
+        proxy.set("uci.firewall.forwarding.@"..forwdnum..".enabled", "0")
       else
-        proxy.set("uci.firewall.forwarding."..forwdnum..".enabled", "0")
+        proxy.set("uci.firewall.forwarding.@"..forwdnum..".enabled", "0")
       end
     else
       if forwdnum == "" then
-        forwdnum = proxy.add("uci.firewall.forwarding.")
+        forwdnum = proxy.add("uci.firewall.forwarding.", key)
         proxy.set(firewall_value)
-        proxy.set("uci.firewall.forwarding."..forwdnum..".enabled", "1")
+        proxy.set("uci.firewall.forwarding.@"..forwdnum..".enabled", "1")
       else
-        proxy.set("uci.firewall.forwarding."..forwdnum..".enabled", "1")
+        proxy.set("uci.firewall.forwarding.@"..forwdnum..".enabled", "1")
       end
     end
     proxy.apply()
@@ -136,14 +137,40 @@ end
 local mapParams = {
     uci_wan_auto = "uci.network.interface.@wan.auto",
     uci_wan_masq = "uci.firewall.zone."..zonenum..".masq",
+	uci_wan_ipv6 = "uci.network.interface.@wan.ipv6", --custo TCOMITAGW-2157
 }
 
 -- Shortcuts to validation helpers to make lines shorter
 local vB = post_helper.validateBoolean
 
+------------------custo start TCOMITAGW-2157
+local function IPv6andUsername(value, object, key)
+	local valid, msg = vB(value)
+	
+	if valid then
+	local ipv6_realm = proxy.get("uci.env.var.ppp_realm_ipv6")[1].value
+	local ipv4_realm = proxy.get("uci.env.var.ppp_realm_ipv4")[1].value
+		if value == "1" then
+			proxy.set("uci.network.interface.@wan6.auto", "1")
+			proxy.set("uci.network.interface.@wan.username", ipv6_realm)
+			proxy.set("uci.network.device.@waneth4.ipv6", "1")
+			proxy.set("uci.network.device.@wanptm0.ipv6", "1")			
+		else
+			proxy.set("uci.network.interface.@wan6.auto", "0")
+			proxy.set("uci.network.interface.@wan.username", ipv4_realm)
+			proxy.set("uci.network.device.@waneth4.ipv6", "0")
+			proxy.set("uci.network.device.@wanptm0.ipv6", "0")
+		end
+	proxy.apply()
+	end
+	return valid, msg
+end
+-----------------custo end TCOMITAGW-2157
+
 local mapValid = {
     uci_wan_auto = vB,
     uci_wan_masq = validateNat,
+	uci_wan_ipv6 = IPv6andUsername,--custo TCOMITAGW-2157
 }
 
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
@@ -220,6 +247,18 @@ for i,v in ipairs(proxy.getPN("rpc.network.interface.", true)) do
     end
 end
 
+local dhcp_lease = {
+        uptime = "rpc.system.uptime",
+        connect_time = "uci.network.interface.@wan.connect_time",
+        lease = "uci.network.interface.@wan.lease",
+        lease_expires = "uci.network.interface.@wan.lease_expires",
+}
+
+function getLeaseTime(uptime, lease, expires)
+    local leaseobtained = os.date("%F %T", os.time() - (tonumber(uptime) - (tonumber(expires ~="" and expires or 0) - tonumber(lease ~="" and lease or 0))))
+    local leaseexpires = os.date("%F %T", os.time() + (tonumber(expires ~="" and expires or 0) - tonumber(uptime)))
+    return leaseobtained, leaseexpires
+end
 ajax_helper.handleAjaxQuery(cs, function(c)
     -- this will add the HTML for the light
     local ds = get_dhcp_state(content["uci_wan_auto"], c["ipaddr"])
@@ -236,6 +275,10 @@ ajax_helper.handleAjaxQuery(cs, function(c)
     if ipv6_enabled and ipv6_enabled[1].value == "1" then
 		c.dnsv6 = content_helper.getMergedList(c.dnsv6, dnsv6)
 	end
+	if ds == "connected" then
+        content_helper.getExactContent(dhcp_lease)
+        c["leaseobtained"], c["leaseexpires"] = getLeaseTime(dhcp_lease["uptime"],  dhcp_lease["lease"], dhcp_lease["lease_expires"])
+    end
 end)
 -- will stop in handleAjaxQuery if it is an actual AJAX query
 content_helper.getExactContent(cs)
@@ -261,17 +304,9 @@ dhcp_state = get_dhcp_state(content["uci_wan_auto"], cs["ipaddr"])
 cs["leaseobtained"] = ""
 cs["leaseexpires"] = ""
 if dhcp_state == "connected" then
-    local dhcp_lease = {
-        uptime = "rpc.system.uptime",
-        connect_time = "uci.network.interface.@wan.connect_time",
-        lease = "uci.network.interface.@wan.lease",
-        lease_expires = "uci.network.interface.@wan.lease_expires",
-    }
 
     content_helper.getExactContent(dhcp_lease)
-
-    cs["leaseobtained"] = os.date("%F %T", os.time() - (tonumber(dhcp_lease["uptime"]) - (tonumber(dhcp_lease["lease_expires"] ~="" and dhcp_lease["lease_expires"] or 0) - tonumber(dhcp_lease["lease"] ~="" and dhcp_lease["lease"] or 0))))
-    cs["leaseexpires"] = os.date("%F %T", os.time() + (tonumber(dhcp_lease["lease_expires"] ~="" and dhcp_lease["lease_expires"] or 0) - tonumber(dhcp_lease["uptime"])))
+	cs["leaseobtained"],  cs["leaseexpires"] = getLeaseTime(dhcp_lease["uptime"],  dhcp_lease["lease"], dhcp_lease["lease_expires"]) 
 end
 
   ngx.print('\
@@ -310,8 +345,10 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 			html[#html+1] = ui_helper.createLabel(T"IPv6 DNS", cs["dnsv6"], ajax_attr)
 		end
 	end
-    html[#html+1] = ui_helper.createLabel(T"Lease obtained", cs["leaseobtained"])
-    html[#html+1] = ui_helper.createLabel(T"Lease expires", cs["leaseexpires"])
+	ajax_attr.span.id = "leaseobtained"
+    html[#html+1] = ui_helper.createLabel(T"Lease obtained", cs["leaseobtained"], ajax_attr)
+	ajax_attr.span.id = "leaseexpires"
+    html[#html+1] = ui_helper.createLabel(T"Lease expires", cs["leaseexpires"], ajax_attr)
 
     ngx.print(html)
   ngx.print('\

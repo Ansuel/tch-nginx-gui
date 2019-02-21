@@ -14,16 +14,10 @@ else
 	local dev_idx = 1
 	local rpc_path = string.format("rpc.mobiled.device.@%d.", dev_idx)
 
-	result = utils.getContent(rpc_path .. "status")
+	result = utils.getContent(rpc_path .. "display_status")
 	if result then
-		if result.status ~= "Disabled" then
-			status = utils.mobiled_state_map[result.status]
-			if result.status == "Idle" then
-				result = utils.getContent(rpc_path .. "network.sessions.@1.session_state")
-				if result.session_state == "disconnected" then
-					status = T"Registered"
-				end
-			end
+		if result.display_status ~= "disabled" then
+			status = utils.mobiled_state_map[result.display_status]
 			result = utils.getContent(rpc_path .. "radio.signal_quality.radio_interface")
 			radio_interface = utils.radio_interface_map[result.radio_interface]
 

@@ -55,14 +55,14 @@ end
 
 local clear_network_stats = {
     controls = {
-        class = "clear_network_stats"
+      class = "clear_network_stats"
     },
-    group = {
-        class = "advanced hide"
+	group = {
+       class = "advanced hide"
     },
     button = {
-        ["data-name"] = "action",
-        ["data-value"] = "RESET"
+      ["data-name"] = "action",
+      ["data-value"] = "RESET"
     }
 }
 local pIPV = post_helper.isPublicIP
@@ -76,7 +76,7 @@ end
 hosts_mac[#hosts_mac+1] = {"custom",T"custom"}
 
 if lfs.attributes("/www/lua/dhcpreset_helper.lua", "mode") == "file" then
-    dhcpDefaultExist = require("dhcpreset_helper")
+   dhcpDefaultExist = require("dhcpreset_helper")
 end
 
 local function num2ipv4(ip)
@@ -98,10 +98,10 @@ local net_intfs_path = "rpc.network.interface."
 local all_intfs = content_helper.convertResultToObject(net_intfs_path .. "@.", proxy.get(net_intfs_path))
 local wireless_radio = {}
 for i,v in ipairs(proxy.getPN("rpc.wireless.ssid.", true)) do
-    local radios = match(v.path, "rpc%.wireless%.ssid%.@([^%.]+)%.")
-    if radios then
-        wireless_radio[radios] = true
-    end
+  local radios = match(v.path, "rpc%.wireless%.ssid%.@([^%.]+)%.")
+  if radios then
+    wireless_radio[radios] = true
+  end
 end
 local lan_intfs = {}
 local pppIntf, pppDev
@@ -135,87 +135,88 @@ for k,v in ipairs(all_intfs) do
     end
 end
 
+
 ----------------------------------reset function-------------------------------------
 local function restdhcp()
-    local file = io.open("/rom/etc/uci-defaults/tch_0035-network-lan","r")
-    io.input(file)
-    local lanip = ""
-    local lanmask = ""
-    local checkup = 0
-    while checkup == 0 do
-        local line = io.read()
-        if line ~= nil and (lanip == "" or lanip == nil) then
-            lanip=match(line,"uci set network%."..curintf.."%.ipaddr%=([%d]+%.[%d]+%.[%d]+%.[%d]+)")
-        end
-        if line ~= nil and (lanmask == "" or lanmask == nil) then
-            lanmask=match(line,"uci set network%."..curintf.."%.netmask%=([%d]+%.[%d]+%.[%d]+%.[%d]+)")
-        end
-        if lanip ~= "" and lanip ~= nil and lanmask ~= "" and lanmask ~= nil  then
-            checkup=1
-            io.close(file)
-        elseif line == nil then
-            checkup=2
-            io.close(file)
-        end
-    end
-    if checkup == 2 then
-        local file2 = io.open("/lib/functions/uci-defaults.sh","r")
-        io.input(file2)
-        while checkup == 2 do
-            local line = io.read()
-            if line ~= nil and (lanip == "" or lanip == nil) then
-                lanip=match(line,"set network%."..curintf.."%.ipaddr%=%'([%d]+%.[%d]+%.[%d]+%.[%d]+)%'")
-            end
-            if line ~= nil and (lanmask == "" or lanmask == nil) then
-                lanmask=match(line,"set network%."..curintf.."%.netmask%=%'([%d]+%.[%d]+%.[%d]+%.[%d]+)%'")
-            end
-            if lanip and lanip ~= "" and lanmask and lanmask ~= "" or line == nil then
-                checkup=5
-                io.close(file2)
-            end
-        end
-    end
+local file = io.open("/rom/etc/uci-defaults/tch_0035-network-lan","r")
+io.input(file)
+local lanip = ""
+local lanmask = ""
+local checkup = 0
+	while checkup == 0 do
+	local line = io.read()
+		if line ~= nil and (lanip == "" or lanip == nil) then
+			lanip=match(line,"uci set network%."..curintf.."%.ipaddr%=([%d]+%.[%d]+%.[%d]+%.[%d]+)")
+		end
+		if line ~= nil and (lanmask == "" or lanmask == nil) then
+			lanmask=match(line,"uci set network%."..curintf.."%.netmask%=([%d]+%.[%d]+%.[%d]+%.[%d]+)")
+		end
+		if lanip ~= "" and lanip ~= nil and lanmask ~= "" and lanmask ~= nil  then
+			checkup=1
+			io.close(file)
+		elseif line == nil then
+			checkup=2
+			io.close(file)
+		end
+	end
+	if checkup == 2 then
+	local file2 = io.open("/lib/functions/uci-defaults.sh","r")
+	io.input(file2)
+		while checkup == 2 do
+			local line = io.read()
+			if line ~= nil and (lanip == "" or lanip == nil) then
+				lanip=match(line,"set network%."..curintf.."%.ipaddr%=%'([%d]+%.[%d]+%.[%d]+%.[%d]+)%'")
+			end
+			if line ~= nil and (lanmask == "" or lanmask == nil) then
+				lanmask=match(line,"set network%."..curintf.."%.netmask%=%'([%d]+%.[%d]+%.[%d]+%.[%d]+)%'")
+			end
+			if lanip and lanip ~= "" and lanmask and lanmask ~= "" or line == nil then
+				checkup=5
+				io.close(file2)
+			end
+		end
+	end
 
-    local founddev = 0
-    local ipstart = ""
-    local ipend = ""
-    local ltime = ""
-    local dhcpign = ""
-    local fp = io.open("/rom/etc/config/dhcp", "r")
-    local pattern = format("config dhcp %s",curintf)
-    io.input(fp)
-    while founddev == 0 do
-        local line =io.read()
-        if match(line,pattern) then
-            while founddev == 0 do
-                line =io.read()
-                if line ~= nil and (ipstart == "" or ipstart == nil) then
-                    ipstart= match(line,"option start[%s]+'([%d]+)'")
-                end
-                if line ~= nil and (ipend == "" or ipend == nil) then
-                    ipend= match(line,"option limit[%s]+'([%d]+)'")
-                end
-                if line ~= nil and (ltime == "" or ltime == nil) then
-                    ltime= match(line,"option leasetime[%s]+'([%w]+)'")
-                end
-                if line ~= nil and (dhcpign == "" or dhcpign == nil) then
-                    dhcpign= match(line,"option ignore[%s]+'([%d]+)'")
-                end
-                if line == nil or match(line, "config dhcp") or ipstart~= nil and ipstart~="" and ipend ~= nil and ipend ~="" and ltime ~= nil and ltime ~="" and dhcpign ~= nil and dhcpign ~="" then
-                    founddev = 1
-                end
-            end
-        end
-        if line == nil then
-            founddev = 1
+	local founddev = 0
+	local ipstart = ""
+	local ipend = ""
+	local ltime = ""
+	local dhcpign = ""
+	local fp = io.open("/rom/etc/config/dhcp", "r")
+	local pattern = format("config dhcp %s",curintf)
+	io.input(fp)
+		while founddev == 0 do
+			local line =io.read()
+			if match(line,pattern) then
+				while founddev == 0 do
+				line =io.read()
+					if line ~= nil and (ipstart == "" or ipstart == nil) then
+						ipstart= match(line,"option start[%s]+'([%d]+)'")
+					end
+					if line ~= nil and (ipend == "" or ipend == nil) then
+						ipend= match(line,"option limit[%s]+'([%d]+)'")
+					end
+					if line ~= nil and (ltime == "" or ltime == nil) then
+						ltime= match(line,"option leasetime[%s]+'([%w]+)'")
+					end
+					if line ~= nil and (dhcpign == "" or dhcpign == nil) then
+						dhcpign= match(line,"option ignore[%s]+'([%d]+)'")
+					end
+					if line == nil or match(line, "config dhcp") or ipstart~= nil and ipstart~="" and ipend ~= nil and ipend ~="" and ltime ~= nil and ltime ~="" and dhcpign ~= nil and dhcpign ~="" then
+						founddev = 1
+					end
+				end
+			end
+			if line == nil then
+				founddev = 1
 
-        end
-    end
-    io.close(fp)
-    if dhcpign == nil or dhcpign == "" then
-        dhcpign = "0"
-    end
-    return lanip, lanmask, ipstart, ipend, ltime, dhcpign
+			end
+		end
+		io.close(fp)
+		if dhcpign == nil or dhcpign == "" then
+			dhcpign = "0"
+		end
+	return lanip, lanmask, ipstart, ipend, ltime, dhcpign
 end
 ------------------------------------reset end-----------------------------------------------------------------
 
@@ -335,58 +336,58 @@ if ngx.var.request_method == "POST" and ngx.req.get_post_args().iPv6StateOnlyCha
 end
 -- Static leases
 local sleases_columns = {
-    {
-        header = T"Hostname",
-        name = "sleases_name",
-        param = "name",
-        type = "text",
-        attr = { input = { class="span2" } },
-    },
-    {
-        header = T"MAC address",
-        name = "sleases_mac",
-        param = "mac",
-        type = "select",
-        values = hosts_mac,
-        attr = { input = { class="span2", maxlength="17", id= "lease_mac" }, autocomplete=hosts_mac },
-        unique = true,
-    },
-    {
-        header = T"IP",
-        name = "sleases_ip",
-        param = "ip",
-        type = "text",
-        attr = { input = { class="span2", maxlength="15"}, autocomplete=hosts_ac },
-        unique = true,
-    },
-    {
-        header = "",
-        name = "sleases_owner",
-        param = "owner",
-        type = "hidden",
-        readonly = true,
-        attr = { },
-    },
+  {
+    header = T"Hostname",
+    name = "sleases_name",
+    param = "name",
+    type = "text",
+    attr = { input = { class="span2" } },
+  },
+  {
+    header = T"MAC address",
+    name = "sleases_mac",
+    param = "mac",
+    type = "select",
+    values = hosts_mac,
+    attr = { input = { class="span2", maxlength="17", id= "lease_mac" }, autocomplete=hosts_mac },
+    unique = true,
+  },
+  {
+    header = T"IP",
+    name = "sleases_ip",
+    param = "ip",
+    type = "text",
+    attr = { input = { class="span2", maxlength="15"}, autocomplete=hosts_ac },
+    unique = true,
+  },
+  {
+    header = "",
+    name = "sleases_owner",
+    param = "owner",
+    type = "hidden",
+    readonly = true,
+    attr = { },
+  },
 }
 
 -- Function to avoid users to enter ReservedStatic name as custom static lease name
 local function sleases_name_validation(value)
-    if (value:find("^ReservedStatic") ~= nil) then
-        return nil, T"Cannot use reserved names as static lease name"
-    end
-    return true
+  if (value:find("^ReservedStatic") ~= nil) then
+    return nil, T"Cannot use reserved names as static lease name"
+  end
+  return true
 end
 
 local function sleases_mac_validation(value, object, key)
-    local r1, r2 = post_helper.validateStringIsMAC(value)
-    if r1 then
-        if string.lower(value) == "ff:ff:ff:ff:ff:ff" then
-            return nil, T"The requested MAC address can't be the broadcast MAC"
-        else
-            object[key] = string.lower(value)
-        end
+  local r1, r2 = post_helper.validateStringIsMAC(value)
+  if r1 then
+    if string.lower(value) == "ff:ff:ff:ff:ff:ff" then
+        return nil, T"The requested MAC address can't be the broadcast MAC"
+    else
+        object[key] = string.lower(value)
     end
-    return r1, r2
+  end
+  return r1, r2
 end
 
 -- Function to check the input IP is in Reserved IP list
@@ -409,8 +410,8 @@ end
 
 local function sleases_ip_validation(value, object, key)
     local contentdata = {
-        localdevIP = "uci.network.interface.@" .. curintf .. ".ipaddr",
-        localdevmask = "uci.network.interface.@" .. curintf .. ".netmask",
+      localdevIP = "uci.network.interface.@" .. curintf .. ".ipaddr",
+      localdevmask = "uci.network.interface.@" .. curintf .. ".netmask",
     }
     content_helper.getExactContent(contentdata)
     return post_helper.staticLeaseIPValidation(value, contentdata)
@@ -452,7 +453,7 @@ local sleases_filter = function(data)
         return { canEdit = false, canDelete = false }
     end
     if (data['name']:find("^ReservedStatic") == 1) then
-        return false
+       return false
     end
     return true
 end
@@ -461,45 +462,45 @@ local sleases_data, sleases_helpmsg = post_helper.handleTableQuery(sleases_colum
 
 local inUseFlag = false
 if ngx.var.request_method == "POST" then
-    local post_data = ngx.req.get_post_args()
-    if ( post_data.action == "TABLE-MODIFY" or  post_data.action == "TABLE-EDIT"  or  post_data.action == "TABLE-ADD") then
-        local text_mac_index = tonumber(post_data.index)
-        local text_mac
-        if  post_data.action == "TABLE-ADD" then
-            text_mac = post_data["sleases_mac"]
-        else
-            text_mac = sleases_data[text_mac_index][2]
-        end
-        local flag = true
-        for _,j in ipairs(hosts_mac) do
-            if text_mac == j[1] then
-                flag = false
-                break
-            end
-        end
-        if flag   then
-            sleases_columns[2] = {
-                header = T"MAC address",
-                name = "sleases_mac",
-                param = "mac",
-                type = "text",
-                attr = { input = { class="span2", maxlength="17", id= "lease_mac", value = text_mac }},
-                unique = true,
-            }
-        end
-        if post_data.action == "TABLE-MODIFY" or  post_data.action == "TABLE-ADD" then
-            local slease_ip = post_data.sleases_ip
-            local arranged_data = content_helper.convertResultToObject("sys.hosts.host.", syshosts_data)
-            if arranged_data then
-                for _, v in pairs(arranged_data) do
-                    if v.DhcpLeaseTime ~= "" and v.IPAddress == slease_ip then
-                        inUseFlag = true
-                        break
-                    end
-                end
-            end
-        end
+  local post_data = ngx.req.get_post_args()
+  if ( post_data.action == "TABLE-MODIFY" or  post_data.action == "TABLE-EDIT"  or  post_data.action == "TABLE-ADD") then
+    local text_mac_index = tonumber(post_data.index)
+    local text_mac
+    if  post_data.action == "TABLE-ADD" then
+      text_mac = post_data["sleases_mac"]
+    else
+      text_mac = sleases_data[text_mac_index][2]
     end
+    local flag = true
+    for _,j in ipairs(hosts_mac) do
+      if text_mac == j[1] then
+        flag = false
+        break
+      end
+    end
+    if flag   then
+      sleases_columns[2] = {
+        header = T"MAC address",
+        name = "sleases_mac",
+        param = "mac",
+        type = "text",
+        attr = { input = { class="span2", maxlength="17", id= "lease_mac", value = text_mac }},
+        unique = true,
+      }
+    end
+    if post_data.action == "TABLE-MODIFY" or  post_data.action == "TABLE-ADD" then
+      local slease_ip = post_data.sleases_ip
+      local arranged_data = content_helper.convertResultToObject("sys.hosts.host.", syshosts_data)
+      if arranged_data then
+        for _, v in pairs(arranged_data) do
+            if v.DhcpLeaseTime ~= "" and v.IPAddress == slease_ip then
+                inUseFlag = true
+                break
+           end
+        end
+      end
+    end
+  end
 end
 
 local cur_dhcp_intf = "lan"
@@ -587,11 +588,11 @@ end
 
 local function isNonPublicIPRange(ip)
     if ip >= ipv42num("10.0.0.0") and ip <= ipv42num("10.255.255.255") or
-            ip >= ipv42num("172.16.0.0") and ip <= ipv42num("172.31.255.255") or
-            ip >= ipv42num("192.168.0.0") and ip <= ipv42num("192.168.255.255") then
-        return true
+       ip >= ipv42num("172.16.0.0") and ip <= ipv42num("172.31.255.255") or
+       ip >= ipv42num("192.168.0.0") and ip <= ipv42num("192.168.255.255") then
+      return true
     end
-    return nil
+      return nil
 end
 
 local function validateDNS(value, object, key)
@@ -607,23 +608,23 @@ local function validateDNS(value, object, key)
     else
         local dns = {}
         for ip_Address in string.gmatch(value, '([^,]+)') do
-            dns[#dns + 1] = ip_Address
-            local valid, helpmsg_validip = post_helper.validateStringIsIP(ip_Address, object, key)
-            if valid then
-                if pIPV(value) then
-                    return nil, T"Public IP Range should not be used"
-                end
-                -- Check for Limited Broadcast IP Address and "0.0.0.0" IP Address
-                local ipAddr = ipv42num(ip_Address)
-                if ipAddr == broadcast_ip or ipAddr == 0 then
-                    return nil, T"Invalid IP Address"
-                end
-                --if not isNonPublicIPRange(ipAddr) then
-                --   return nil, T"Public IP Range should not be used"
-                --end
-            else
-                return nil, helpmsg_validip
-            end
+          dns[#dns + 1] = ip_Address
+	  local valid, helpmsg_validip = post_helper.validateStringIsIP(ip_Address, object, key)
+	  if valid then
+             if pIPV(value) then
+                return nil, T"Public IP Range should not be used"
+             end
+	     -- Check for Limited Broadcast IP Address and "0.0.0.0" IP Address
+             local ipAddr = ipv42num(ip_Address)
+	     if ipAddr == broadcast_ip or ipAddr == 0 then
+		return nil, T"Invalid IP Address"
+             end
+             --if not isNonPublicIPRange(ipAddr) then
+             --   return nil, T"Public IP Range should not be used"
+             --end
+          else
+	    return nil, helpmsg_validip
+          end
         end
         if #dns > 3 then
             return nil, nil
@@ -649,18 +650,18 @@ function isQtnGuestWiFi(intf)
 end
 
 local function validateLeaseTime(value, postdata, key)
-    if value == '-1' or value == timhelper.ethtrans().eth_infinit or value == 'infinite' then -- included '-1' as a feasible set value as specified in TR 181
-        postdata[key] = "infinite" -- included to ensure uci parameter is set as infinite
-        return true
-    else
-        local success, msg = post_helper.validateStringIsLeaseTime(value)
-        if success then
-            postdata["leaseTime"] = match(untaint(value), "^0*([1-9]%d*[smhdw]?)$")
-            return true
-        else
-            return nil, msg
-        end
-    end
+   if value == '-1' or value == timhelper.ethtrans().eth_infinit then -- included '-1' as a feasible set value as specified in TR 181
+      postdata[key] = "infinite" -- included to ensure uci parameter is set as infinite
+      return true
+   else
+      local success, msg = post_helper.validateStringIsLeaseTime(value)
+      if success then
+         postdata["leaseTime"] = match(untaint(value), "^0*([1-9]%d*[smhdw]?)$")
+         return true
+      else
+         return nil, msg
+      end
+   end
 end
 --[[
 Function calculateDHCPStartAddress, Calculating DHCPStartaddress using localdeviceip, netmask, newstart and newlimit value. function returns DHCPStartAddress, DHCPEndAddress  and NetworkAddress
@@ -672,37 +673,37 @@ local function calculateDHCPStartAddress (baseip, netmask, start, numips)
     local ipend = ipstart+numips-1
     ipstart = num2ipv4(ipstart)
     if ipend > ipmax then
-        ipend = ipmax
+      ipend = ipmax
     end
     ipend = num2ipv4(ipend)
     network = num2ipv4(network)
-    return ipstart,ipend,network
+  return ipstart,ipend,network
 end
 
 local function getDHCPData(object)
-    -- Check the entered IP is valid IP and convert it to number
-    local baseip = post_helper.validateStringIsIP(object["localdevIP"]) and ipv42num(object["localdevIP"])
-    local netmask = post_helper.validateStringIsIP(object["localdevmask"]) and ipv42num(object["localdevmask"])
-    local dhcpstart = post_helper.validateStringIsIP(object["dhcpStartAddress"]) and ipv42num(object["dhcpStartAddress"])
-    local dhcpend = post_helper.validateStringIsIP(object["dhcpEndAddress"]) and ipv42num(object["dhcpEndAddress"])
+  -- Check the entered IP is valid IP and convert it to number
+  local baseip = post_helper.validateStringIsIP(object["localdevIP"]) and ipv42num(object["localdevIP"])
+  local netmask = post_helper.validateStringIsIP(object["localdevmask"]) and ipv42num(object["localdevmask"])
+  local dhcpstart = post_helper.validateStringIsIP(object["dhcpStartAddress"]) and ipv42num(object["dhcpStartAddress"])
+  local dhcpend = post_helper.validateStringIsIP(object["dhcpEndAddress"]) and ipv42num(object["dhcpEndAddress"])
 
-    return baseip, netmask, dhcpstart, dhcpend
+  return baseip, netmask, dhcpstart, dhcpend
 end
 
 local STB_IP = {
-    start = "uci.dhcp.dhcp.@STB.start",
-    limit = "uci.dhcp.dhcp.@STB.limit"
+  start = "uci.dhcp.dhcp.@STB.start",
+  limit = "uci.dhcp.dhcp.@STB.limit"
 }
 content_helper.getExactContent(STB_IP)
 
 local function calculateSTBRange(object)
-    local stbstart = STB_IP.start
-    local stblimit = STB_IP.limit
-    local baseip, netmask = getDHCPData(object)
-    local ipstart,ipend = calculateDHCPStartAddress(baseip,netmask,tonumber(stbstart),tonumber(stblimit))
-    ipstart = ipv42num(ipstart)
-    ipend = ipv42num(ipend)
-    return ipstart, ipend
+  local stbstart = STB_IP.start
+  local stblimit = STB_IP.limit
+  local baseip, netmask = getDHCPData(object)
+  local ipstart,ipend = calculateDHCPStartAddress(baseip,netmask,tonumber(stbstart),tonumber(stblimit))
+  ipstart = ipv42num(ipstart)
+  ipend = ipv42num(ipend)
+  return ipstart, ipend
 end
 
 local function STBCheck(object, stbrange)
@@ -1038,31 +1039,31 @@ if (dnsIndex == #dhcp.options + 1) and (ngx.var.request_method == "POST") and (n
 end
 
 if ngx.var.request_method == "POST" then
-    local post_data = ngx.req.get_post_args()
-    if post_data["action"] == "RESET" then
-        local lanip, lanmask, ipstart, iplimit, ltime, dhcpig = restdhcp()
-        proxy.set("uci.network.interface.@"..curintf..".ipaddr",lanip)
-        proxy.set("uci.network.interface.@"..curintf..".netmask",lanmask)
-        proxy.set("uci.dhcp.dhcp.@"..curintf..".start", ipstart)
-        proxy.set("uci.dhcp.dhcp.@"..curintf..".limit", iplimit)
-        proxy.set("uci.dhcp.dhcp.@"..curintf..".leasetime", ltime)
-        proxy.set("uci.dhcp.dhcp.@"..curintf..".ignore", dhcpig)
-        if (dnsIndex < #dhcp.options +1) then
-            proxy.set(baseDHCPOptions .. "@" .. dnsIndex .. ".value", "6,"..lanip)
-        end
-        proxy.apply()
-    end
+local post_data = ngx.req.get_post_args()
+	if post_data["action"] == "RESET" then
+	local lanip, lanmask, ipstart, iplimit, ltime, dhcpig = restdhcp()
+		proxy.set("uci.network.interface.@"..curintf..".ipaddr",lanip)
+		proxy.set("uci.network.interface.@"..curintf..".netmask",lanmask)
+		proxy.set("uci.dhcp.dhcp.@"..curintf..".start", ipstart)
+		proxy.set("uci.dhcp.dhcp.@"..curintf..".limit", iplimit)
+		proxy.set("uci.dhcp.dhcp.@"..curintf..".leasetime", ltime)
+		proxy.set("uci.dhcp.dhcp.@"..curintf..".ignore", dhcpig)
+		if (dnsIndex < #dhcp.options +1) then
+			proxy.set(baseDHCPOptions .. "@" .. dnsIndex .. ".value", "6,"..lanip)
+		end
+	proxy.apply()
+	end
 end
 
 content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
 
 if (ngx.var.request_method == "POST")  and not next(helpmsg) then
-    local dhcp_options_path = "uci.dhcp.dhcp.@"..cur_dhcp_intf..".dhcp_option."
-    local dhcp_options = content_helper.convertResultToObject(dhcp_options_path,proxy.get(dhcp_options_path))
+   local dhcp_options_path = "uci.dhcp.dhcp.@"..cur_dhcp_intf..".dhcp_option."
+   local dhcp_options = content_helper.convertResultToObject(dhcp_options_path,proxy.get(dhcp_options_path))
     for _,v in ipairs(dhcp_options) do
-        if v.value:match("^3,") then
-            proxy.del(dhcp_options_path..v.paramindex..".")
-        end
+      if v.value:match("^3,") then
+        proxy.del(dhcp_options_path..v.paramindex..".")
+      end
     end
 end
 
@@ -1073,11 +1074,11 @@ end
 -- because we do the localdevmask validation in localdevIP validation, we check if local ip starts with error msg "[netmask]".
 -- If so move it to localdevmask
 if helpmsg["localdevIP"] then
-    local msg = match(helpmsg["localdevIP"], '^%[netmask%] (.*)')
-    if msg then
-        helpmsg["localdevIP"] = nil
-        helpmsg["localdevmask"] = msg
-    end
+  local msg = match(helpmsg["localdevIP"], '^%[netmask%] (.*)')
+  if msg then
+    helpmsg["localdevIP"] = nil
+    helpmsg["localdevmask"] = msg
+  end
 end
 
 if helpmsg["dhcpLimit"] then
@@ -1099,8 +1100,8 @@ if content["dnsServer"] == nil then
     content["dnsServer"] = localIP
 else
     if content["dnsServer"]:find("^6,") == 1 then
-        content["dnsServer"] = (content["dnsServer"] or ""):sub(3) -- the dhcp option will contain "6," at the start
-    end
+      content["dnsServer"] = (content["dnsServer"] or ""):sub(3) -- the dhcp option will contain "6," at the start
+   end
 end
 
 if content["localIPv6"] == "" then
@@ -1108,9 +1109,9 @@ if content["localIPv6"] == "" then
 end
 
 if content["leaseTime"] == "infinite" then
-    content["leaseTime"] = timhelper.ethtrans().eth_infinit
+	content["leaseTime"] = timhelper.ethtrans().eth_infinit
 elseif not match(content["leaseTime"],"^0*([1-9]%d*[smhdw])$")then
-    content["leaseTime"] = content["leaseTime"] .. "s"
+  content["leaseTime"] = content["leaseTime"] .. "s"
 end
 
 local baseip = ipv42num(content["localdevIP"])

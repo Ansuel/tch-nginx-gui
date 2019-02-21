@@ -615,4 +615,12 @@ function M.validateTodRule(value, object, key, todRequest)
   end
   return M.compareTodRule(oldTODRules, newTODRule)
 end
+
+-- function that can be used to get the current day(Ex: Mon, Tue) and current time(HH:MM)
+-- @return #string current day and current time
+function M.getCurrentDayAndTime()
+  local currDate = os.date("%a %H:%M")
+  return currDate:match("(%S+)%s(%S+)")
+end
+
 return M

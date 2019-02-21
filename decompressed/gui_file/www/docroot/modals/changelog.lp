@@ -16,8 +16,10 @@ ngx.print('\
 		  style = "border-bottom: 1px solid #e5e5e5;padding-bottom: 10px"
         },
       }
+	html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_2.0.1_001 )" .. '</legend>'
+	html[#html + 1] = ui_helper.createLabel(T"8.12", "TO DO<br>"
 	html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_1.1.1_002 )" .. '</legend>'
-	html[#html + 1] = ui_helper.createLabel(T"8.10", "Migliorate traduzioni<br>" ..
+	html[#html + 1] = ui_helper.createLabel(T"8.11", "Migliorate traduzioni<br>" ..
 		"Miglioramenti modalità bridge e modalità connessione<br>" ..
 		"Fixato visualizzazione upnp su tg789<br>" ..
 		"Aggiunta possibilità di usare cups come gestore stampante<br>" ..

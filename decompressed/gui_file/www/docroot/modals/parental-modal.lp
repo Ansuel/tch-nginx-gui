@@ -11,11 +11,12 @@ local post_helper = require("web.post_helper")
 local table, ipairs = table, ipairs
 local uinetwork = require("web.uinetwork_helper")
 local hosts_ac, hosts_ac_v6 = uinetwork.getAutocompleteHostsList()
-local match, format  = string.match, string.format
+local match, format, gsub  = string.match, string.format, string.gsub
 local tonumber, tostring = tonumber, tostring
 local validateURL = post_helper.validateURL
 local session = ngx.ctx.session
 local uniqueKey = post_helper.getRandomKey()
+local proxy = require("datamodel")
 
 -- Shortcuts to validation helpers to make lines shorter
 local vB = post_helper.validateBoolean
@@ -25,28 +26,43 @@ local gVSLIR = post_helper.getValidateStringLengthInRange
 
 local site = ""
 
-local function validateSiteAndDuplicateCheck(value,data,key)
-  -- http is added with given site name for duplicate validation if the site name doesn't start with http:// or https://
-  -- The reason http added in duplicate check is because for existing rules, http is appended at function parental_filter if the rule added via GUI doesn't contain http.
-  if not value:match("^http[s]?://") then
-    value = "http://".. value
+function siteFilter(site)
+  --removes white space after the url
+  site = site and gsub(site, " ", "")
+  site = site and string.lower(site)
+  --extract only domain part in URL
+  if site and site:match("://") then
+    site = site:match("//([^/]+)")
   end
-  value = string.gsub(value, "/+$", "")
+  -- check the site has www then remove trailing path information from URL.
+  if site and site:match("www") then
+    site = site:match("%.(%S+)")
+  end
+  -- if site contains '/' then remove trailing path information from URL.
+  site = site and site:match("([^/]+)")
+  return site
+end
+
+local function validateSiteAndDuplicateCheck(value,data,key)
+  local url = string.match(value,"([^%s]+)")
+  local success, err = validateURL(url,"http")
+  value = siteFilter(value)
+  local mac_value = data.devices_mac
+  mac_value = gsub(mac_value, "[:-]", "")
   local siteName = session:retrieve("parental_site")
   -- session variable duplicateCheck is used as a flag to check if Rules are duplicate
   session:store("duplicateCheck", "")
   if siteName then
     for i, v in ipairs(siteName) do
       if tonumber(data.index) ~= i then
-        if v[2] == value and data.devices_mac == v[1] then
+        v[1] = gsub(v[1], "[:-]", "")
+        if v[2] == value and mac_value == v[1] then
           session:store("duplicateCheck", "true")
           return nil, T"Cannot add the same site for a MAC multiple time"
         end
       end
     end
   end
-  local url = string.match(value,"([^%s]+)")
-  local success, err = validateURL(url,"http")
   if success then
     return true
   end
@@ -155,9 +171,20 @@ local entries_valid = {
 }
 
 local parental_filter = function(data)
-  if not string.match(data["site"], "^http://") then
-    data["site"] = "http://".. data["site"]
+  local site = data["site"]
+  --removes extra space
+  site = gsub(site, " ", "")
+  --extract only domain part in URL
+  if site:match("://") then
+    site = site:match("//([^/]+)")
   end
+  -- check the site has www then remove trailing path information from URL.
+  if site:match("www") then
+    site = site:match("%.(%S+)")
+  end
+  -- if site contains '/' then remove trailing path information from URL. 
+  site = site:match("([^/]+)")
+  data["site"] = site
   return true
 end
 
@@ -193,12 +220,17 @@ local parental_data, parental_helpmsg = post_helper.handleTableQuery(parental_co
 -- session variable parental_site contains all the Rules
 session:store("parental_site", parental_data)
 local keywords_data, keywords_helpmsg = post_helper.handleTableQuery(keywords_columns, keywords_options, nil, nil, keywords_valid)
-
+local exporting_alert = {
+        alert = {
+          class = "alert-info",
+          id = "exporting-msg"
+        }
+      }
+local text_mac
 if ngx.var.request_method == "POST" then
   post_data = ngx.req.get_post_args()
   if (post_data.tableid == "URLfilter") and ( post_data.action == "TABLE-MODIFY" or  post_data.action == "TABLE-EDIT"  or  post_data.action == "TABLE-ADD") then
     local text_mac_index = tonumber(post_data.index)
-    local text_mac
     if  post_data.action == "TABLE-ADD" then
       text_mac = post_data["devices_mac"]
     else
@@ -241,6 +273,23 @@ if ngx.var.request_method == "POST" then
       proxy.set({ ["uci.parental.URLfilter.@" .. get_content_name(parental_options) .. ".site"] = url})
       proxy.apply()
     end
+  end
+  local function get_content_name(parental_options)
+    local objectname = parental_options.objectName
+    if post_data.action == "TABLE-MODIFY" then
+       objectname = parental_options.changesessionindex
+    end
+    return objectname
+  end
+  if post_data.device == "all" then
+    proxy.set({ ["uci.parental.URLfilter.@" .. get_content_name(parental_options) .. ".mac"] = ""})
+    proxy.apply()
+  end
+  if post_data.site and post_data.site ~= "" then
+    local url = post_data.site:match("^(.*)/$") or post_data.site
+    url = siteFilter(url)
+    proxy.set({ ["uci.parental.URLfilter.@" .. get_content_name(parental_options) .. ".site"] = url})
+    proxy.apply()
   end
 end
 
@@ -287,6 +336,15 @@ $("[name =\'device\']").on("change",function () {\
     else\
            $(\'#devices_mac\').attr(\'disabled\', false);\
 });\
+var text_mac = "');  ngx.print( text_mac ); ngx.print('";\
+$(".btn-table-edit").on("click",function() {\
+  setTimeout(function() {\
+    $("[name =\'devices_mac\']").prepend(new Option(text_mac, text_mac, true, true));\
+  },200);\
+});\
+if ($("[name =\'devices_mac\']").hasClass("error")){\
+ $("[name =\'devices_mac\']").prepend(new Option(text_mac, text_mac, true, true));\
+};\
 </script>\
 \
 ');  ngx.print( ui_helper.createFooter() ); ngx.print('\

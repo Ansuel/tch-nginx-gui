@@ -1732,6 +1732,10 @@ start_stop_nginx() {
 		nginx_count=$((nginx_count+1))
 	done
 }
+prevent_total_brick() {
+	#Enable hardware serial console to intercept bootloops
+	sed -i 's/#//' /etc/inittab
+}
 
 root() {
 
@@ -1861,6 +1865,7 @@ root() {
 	disable_upload_coredump_and_reboot
 	logger_command "Restoring nginx additional option if needed..."
 	restore_nginx
+	prevent_total_brick
 
 	rootchecks #This check root availability
 
@@ -1915,6 +1920,8 @@ root() {
 	if [ -f /root/.reapply_due_to_upgrade ]; then
 		rm /root/.reapply_due_to_upgrade
 	fi
+
+	set_transformer "rpc.system.modgui.upgradegui.state" "Finished"
 	
 	logger_command "Restarting transformer" ConsoleOnly
 	/etc/init.d/transformer restart

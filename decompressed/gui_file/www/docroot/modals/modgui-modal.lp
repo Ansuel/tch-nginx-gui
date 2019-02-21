@@ -163,7 +163,7 @@ if ngx.req.get_method() == "POST" then
 	return resetreboot("rpc.system.modgui.upgradegui.start", "1")
   end
   if action == "system_remove_root" then
-	return resetreboot("rpc.system.modgui.utility.removeroot", "1")
+	--return resetreboot("rpc.system.modgui.utility.removeroot", "1")
   end
 elseif ngx.req.get_method() == "GET" then
   local action = ngx.req.get_uri_args().action
@@ -373,12 +373,6 @@ ngx.print('\
           class = "custom-handler"
         }
       }
-	  local confirming_msg_remove_root = {
-	   alert = {
-	   	class = "alert hide",
-	   	id = "confirming-msg-remove-root"
-	   }
-	  } 
 	  local info_box = {
         alert = {
 			class = "alert alert-info",
@@ -401,16 +395,6 @@ ngx.print('\
 	  html[#html + 1] = ui_helper.createButton(T"Restore GUI", T"Restore", "icon-refresh", reset_gui)
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Reset the router to factory settings and remove the custom firmware files.", info_box)
 	  html[#html + 1] = ui_helper.createButton(T"Reset to Factory", T"Remove Root", "icon-refresh", remove_root)
-	  html[#html + 1] = string.format('<div class="control-group controls">')
-	  html[#html + 1] = ui_helper.createAlertBlock(T"Are you sure you want to remove root from this modem? </br><strong> This could be permanent, so it's not recommended.</strong>", confirming_msg_remove_root)
-	  html[#html + 1] = string.format([[
-	  <div id="remove-root-changes" class="hide">
-		<div id="remove-root-confirm" class="btn btn-primary" data-dismiss="modal">%s</div>
-			<div id="remove-root-cancel" class="btn">%s</div>
-		</div>
-	  </div>
-	  ]], T"Confirm", T"Cancel")
-	  html[#html + 1] = '</div>'
 	  ngx.print(html)
 	  
 ngx.print('\
@@ -459,25 +443,27 @@ ngx.print('\
   }\
 \
   $("#btn-reset-gui").on("click", function() {\
-    tch.showProgress("'); ngx.print('Resetting...'); ngx.print('");\
-    return resetreboot($("#resetting-msg"), $(this), "system_reset_gui");\
+	var heading = "');  ngx.print(T'Restore Gui'); ngx.print('";\
+    var processMsg = "');  ngx.print(T'Restoring...'); ngx.print('";\
+    confirmationDialogue(\'');  ngx.print(T"Do you want to continue?"); ngx.print('\',heading);\
+	var PopUpHeaderText = "."+$(".popUp>.header>.header-title>p").text().split(" ")[0];\
+    $(document).on("click", PopUpHeaderText, function() {\
+         tch.removeProgress();\
+         tch.showProgress(processMsg);\
+         return resetreboot($("#rebooting-msg"), $(this), "system_reset_gui" );\
+	});\
   });\
 \
   $("#btn-remove-root").on("click", function() {\
-    $("#confirming-msg-remove-root").removeClass("hide");\
-	$("#remove-root-changes").removeClass("hide");\
-  });\
-\
-  $("#remove-root-confirm").on("click", function() {\
-  	$("#confirming-msg-remove-root").addClass("hide");\
-  	$("#remove-root-changes").addClass("hide");\
-  	tch.showProgress("'); ngx.print( T'Resetting...' ); ngx.print('");\
-  	return resetreboot($("#resetting-msg"), $(this), "system_remove_root");\
-  });\
-\
-  $("#remove-root-cancel").on("click", function() {\
-  	$("#confirming-msg-remove-root").addClass("hide");\
-  	$("#remove-root-changes").addClass("hide");\
+	var heading = "');  ngx.print(T'Remove root'); ngx.print('";\
+    var processMsg = "');  ngx.print(T'Resetting...'); ngx.print('";\
+    confirmationDialogue(\'');  ngx.print(T"Are you sure you want to remove root from this modem? </br><strong> This could be permanent, so it's not recommended.</strong>"); ngx.print('\',heading);\
+	var PopUpHeaderText = "."+$(".popUp>.header>.header-title>p").text().split(" ")[0];\
+    $(document).on("click", PopUpHeaderText, function() {\
+         tch.removeProgress();\
+         tch.showProgress(processMsg);\
+         return resetreboot($("#rebooting-msg"), $(this), "system_remove_root" );\
+	});\
   });\
 \
   $(document).on("click", "#cancel", function() {\
@@ -500,7 +486,8 @@ ngx.print('\
       $.ajax({ url: target, data: "action=upgradeguistatus", timeout: upgrfw_refreshTimeOut, cache: false, dataType: "json" })\
       .done(function(data, status, xhr) {\
 		$(".modal-body").animate({ scrollTop: $(document).height() }, 1000);\
-		if (data.state+"..." != $("#update-text").text()) {\
+		if ((data.state+"..." != $("#update-text").text()) && \
+			(data.state != "Not started")) {\
 			$("#update-text").text(data.state+"...");}\
 		if (data.state == "Requested") {\
 		  window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
@@ -528,7 +515,7 @@ ngx.print('\
 			$("#upgrade-log").append(data.log_msg+"<br>");\
 		    oldlog = data.log_msg;}\
           window.setTimeout(waitForShutdown, upgrfw_refreshDelay);\
-		} else if (data.state == "Not Started") {\
+		} else if (data.state == "Not started") {\
 		  if (checkFail<35) {\
 			checkFail++;\
 			window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
