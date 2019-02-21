@@ -123,3 +123,6 @@ msgstr "Gewichtetes Round Robin"
 
 msgid "Yes"
 msgstr "Ja"
+
+msgid "Qos Wireless Status"
+msgstr ""

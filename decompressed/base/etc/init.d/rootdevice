@@ -1920,7 +1920,7 @@ root() {
 	if [ -f /root/.reapply_due_to_upgrade ]; then
 		rm /root/.reapply_due_to_upgrade
 	fi
-	
+
 	set_transformer "rpc.system.modgui.upgradegui.state" "Finished"
 	
 	logger_command "Restarting transformer" ConsoleOnly

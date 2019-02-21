@@ -185,3 +185,21 @@ msgstr "Wansensing eingeschaltet"
 
 msgid "Your modem already has a unique WiFi network set up by default. You can change the broadcast name here if desired, or turn off WiFi completely. You can also hide your WiFi network name from other devices by turning off SSID broadcast."
 msgstr "Ihr Modem hat bereits ab Werk eine eigene WLAN-Einrichtung. Sie können den sichtbaren Namen hier ändern oder das WLAN ganz abschalten. Sie können den WLAN-Namen auch verbergen, indem Sie den SSID-Broadcast abschalten."
+
+msgid "WiFi Setup (2.4GHz)"
+msgstr ""
+
+msgid "WiFi Setup (5GHz)"
+msgstr ""
+
+msgid "PPP over Ethernet"
+msgstr "PPPoE (PPP über Ethernet)"
+
+msgid "PPP over ATM"
+msgstr "PPPoA (PPP über ATM)"
+
+msgid "Wireless 2.4GHz (WiFi):"
+msgstr ""
+
+msgid "Wireless 5GHz (WiFi):"
+msgstr ""

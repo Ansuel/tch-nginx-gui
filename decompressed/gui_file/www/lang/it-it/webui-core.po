@@ -2441,7 +2441,7 @@ msgid "Stop Time"
 msgstr "Orario fine"
 
 msgid "Stop Trace Route"
-msgstr "Ferma trace route"
+msgstr "Ferma traceroute"
 
 msgid "Portmirror successfully stopped."
 msgstr "Arresto portmirror completato"
@@ -2702,7 +2702,7 @@ msgid "Total Send (in MB)"
 msgstr "Totale inviati (MB)"
 
 msgid "Trace Route"
-msgstr "Trace route"
+msgstr "Traceroute"
 
 msgid "Traffic Monitor"
 msgstr "Monitoraggio traffico"
@@ -2791,8 +2791,8 @@ msgstr "Aggiornamento disponibile"
 msgid "Update GUI"
 msgstr "Aggiornamento GUI"
 
-msgid "Update available! Version: <strong id="new-version-text">%s</strong>"
-msgstr "Aggiornamento disponibile! Versione: <strong id="new-version-text">%s</strong>"
+msgid "Update available! Version: <strong>%s</strong>"
+msgstr "Aggiornamento disponibile! Versione: <strong>%s</strong>"
 
 msgid "Update failed; please try again."
 msgstr "Aggiornamento fallito. Riprova."
@@ -3225,7 +3225,7 @@ msgid_plural "<strong %s>%d Wireless Control</strong> rules defined"
 msgstr[0] "<strong %s>%d regola pianificazione wireless</strong>"
 msgstr[1] "<strong %s>%d regole pianificazione wireless</strong>"
 
-msgid "WanSensing sets the connection mode automatically. Disable this to set the connection mode manually. After saving the changes the connection options will be shown."
+msgid "WanSensing sets the connection mode automatically.<br/>Disable this to set the connection mode manually.<br/>After saving the changes the connection options will be shown."
 msgstr "La rilevazione WAN imposta la connessione in modo automatico.<br/>Disabilita questa opzione per impostare la connessione in modo manuale.<br/>Dopo il salvataggio verranno visualizzate le opzioni di connessione."
 
 msgid "NotPresent"
@@ -3337,7 +3337,7 @@ msgid "Remote/WAN port"
 msgstr "Porta remota/WAN"
 
 msgid "Trace route"
-msgstr "Traccia instradamento"
+msgstr "Traceroute"
 
 msgid "DNS Server 1"
 msgstr "Server DNS 1"
@@ -3383,3 +3383,21 @@ msgstr "Automatico/a"
 
 msgid "NoSignal"
 msgstr "Nessun segnale"
+
+msgid "Flags"
+msgstr "Flag"
+
+msgid "Ref"
+msgstr "Rif"
+
+msgid "Genmask"
+msgstr "Maschera"
+
+msgid "Iface"
+msgstr "Interf."
+
+msgid "Spoof Settings"
+msgstr "Impostazioni Spoof"
+
+msgid "Update failed. Please try again."
+msgstr "Aggiornamento fallito. Ripocva."

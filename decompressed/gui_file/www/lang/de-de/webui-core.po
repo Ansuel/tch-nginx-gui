@@ -2791,8 +2791,8 @@ msgstr "Aktualisierung gefunden"
 msgid "Update GUI"
 msgstr "Aktualisiere GUI"
 
-msgid "Update available! Version: <strong id="new-version-text">%s</strong>"
-msgstr "Aktualisierung verfügbar! Version: <strong id="new-version-text">%s</strong>"
+msgid "Update available! Version: <strong>%s</strong>"
+msgstr "Aktualisierung verfügbar! Version: <strong>%s</strong>"
 
 msgid "Update failed; please try again."
 msgstr "Aktualisierung fehlgeschlagen, bitte versuchen Sie es erneut."
@@ -3383,3 +3383,21 @@ msgstr "auto"
 
 msgid "NoSignal"
 msgstr "KeinSignal"
+
+msgid "Flags"
+msgstr ""
+
+msgid "Ref"
+msgstr ""
+
+msgid "Genmask"
+msgstr ""
+
+msgid "Iface"
+msgstr ""
+
+msgid "Spoof Settings"
+msgstr ""
+
+msgid "Update failed. Please try again."
+msgstr ""
