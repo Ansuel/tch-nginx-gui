@@ -1115,7 +1115,7 @@ msgid "Filter IP"
 msgstr "Filtro IP"
 
 msgid "Finished"
-msgstr "Completato"
+msgstr "Fine"
 
 msgid "Firewall default behavior"
 msgstr "Impostazione predefinita firewall"
@@ -2440,7 +2440,7 @@ msgstr "Interrompi ping"
 msgid "Stop Time"
 msgstr "Orario fine"
 
-msgid "Stop Traceroute"
+msgid "Stop Tracetoute"
 msgstr "Ferma traceroute"
 
 msgid "Portmirror successfully stopped."
@@ -3401,3 +3401,9 @@ msgstr "Impostazioni Spoof"
 
 msgid "Update failed. Please try again."
 msgstr "Aggiornamento fallito. Ripocva."
+
+msgid "Aria2 GUI"
+msgstr "GUI Aria2"
+
+msgid "LuCI GUI"
+msgstr "GUI LuCI"

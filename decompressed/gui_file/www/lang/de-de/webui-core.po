@@ -3401,3 +3401,9 @@ msgstr ""
 
 msgid "Update failed. Please try again."
 msgstr ""
+
+msgid "Aria2 GUI"
+msgstr ""
+
+msgid "LuCI GUI"
+msgstr ""
