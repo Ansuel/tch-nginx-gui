@@ -2019,8 +2019,7 @@ check_full_rootfs() {
 		echo "  ERASING ROOTFS" > /dev/console
 		logger_command "THIS WILL RESTORE THE MODEM TO THE FACTORY SETTINGS. DO NOT POWERCYCLE THE MODEM!"
 		echo "  THIS WILL RESTORE THE MODEM TO THE FACTORY SETTINGS. DO NOT POWERCYCLE THE MODEM!" > /dev/console
-		mtd erase -r $overlay_mtdblock
-		mtd erase rootfs_data
+		mtd erase $overlay_mtdblock
                 jffs2reset & firstboot
 	fi
 }
