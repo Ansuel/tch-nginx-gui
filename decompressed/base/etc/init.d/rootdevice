@@ -2013,23 +2013,15 @@ check_full_rootfs() {
 	bootedbank=$( cat /proc/banktable/booted )
 	#Reset if rootfs more than 97% full
 	if [ $rootfx_percet -gt 96 ]; then
-		logger_command "DETECTED FULL ROOTFS... TRYING RESTORING..."
-		echo "  DETECTED FULL ROOTFS... TRYING RESTORING..." > /dev/console
-		for dir in /overlay/$bootedbank/* ; do
-			if [ ! $dir == /overlay/$bootedbank/etc ]; then
-				logger_command "TRYING SAVING ROOT BY REMOVING EVERY DIR EXCEPT /etc"
-				echo "  TRYING SAVING ROOT BY REMOVING EVERY DIR EXCEPT /etc" > /dev/console
-				rm -r -f $dir
-			fi
-		done
-		#Verify if rm did actually remove the file...
-		if [ -d /overlay/$bootedbank/root ]; then
-			logger_command "CAN'T REMOVE FILE... TRYING ERASING ROOTFS"
-			echo "  CAN'T REMOVE FILE... TRYING ERASING ROOTFS" > /dev/console
-			logger_command "THIS WILL RESTORE THE MODEM TO THE FACTORY SETTINGS"
-			echo "  THIS WILL RESTORE THE MODEM TO THE FACTORY SETTINGS" > /dev/console
-			mtd erase -r $overlay_mtdblock
-		fi
+		logger_command "DETECTED FULL ROOTFS..."
+		echo "  DETECTED FULL ROOTFS... " > /dev/console
+		logger_command "ERASING ROOTFS"
+		echo "  ERASING ROOTFS" > /dev/console
+		logger_command "THIS WILL RESTORE THE MODEM TO THE FACTORY SETTINGS. DO NOT POWERCYCLE THE MODEM!"
+		echo "  THIS WILL RESTORE THE MODEM TO THE FACTORY SETTINGS. DO NOT POWERCYCLE THE MODEM!" > /dev/console
+		mtd erase -r $overlay_mtdblock
+		mtd erase rootfs_data
+                jffs2reset & firstboot
 	fi
 }
 
