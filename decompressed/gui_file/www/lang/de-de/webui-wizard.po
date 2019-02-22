@@ -187,10 +187,10 @@ msgid "Your modem already has a unique WiFi network set up by default. You can c
 msgstr "Ihr Modem hat bereits ab Werk eine eigene WLAN-Einrichtung. Sie können den sichtbaren Namen hier ändern oder das WLAN ganz abschalten. Sie können den WLAN-Namen auch verbergen, indem Sie den SSID-Broadcast abschalten."
 
 msgid "WiFi Setup (2.4GHz)"
-msgstr ""
+msgstr "WiFi Einstellungen (2,4 GHz)"
 
 msgid "WiFi Setup (5GHz)"
-msgstr ""
+msgstr "WiFi Einstellungen (5 GHz)"
 
 msgid "PPP over Ethernet"
 msgstr "PPPoE (PPP über Ethernet)"
@@ -199,10 +199,10 @@ msgid "PPP over ATM"
 msgstr "PPPoA (PPP über ATM)"
 
 msgid "Wireless 2.4GHz (WiFi):"
-msgstr ""
+msgstr "Drahtlos 2,4 GHz (WiFi)"
 
 msgid "Wireless 5GHz (WiFi):"
-msgstr ""
+msgstr "Drahtlos 5Ghz (WiFi)"
 
 msgid "Username: "
 msgstr "Benutzername: "
