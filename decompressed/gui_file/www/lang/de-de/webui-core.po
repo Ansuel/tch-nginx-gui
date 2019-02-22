@@ -58,7 +58,7 @@ msgid "100% of max Frequency in SYNC mode"
 msgstr "100% der maximalen Frequenz im SYNC-Modus"
 
 msgid "2.4GHz Band Steering Threshold"
-msgstr "2.4GHz Band Steuerungs-Schwellwert"
+msgstr "2,4GHz Band Steuerungs-Schwellwert"
 
 msgid "25% of max Frequency in ASYNC mode"
 msgstr "25% der maximalen Frequenz im ASYNC-Modus"
@@ -1340,7 +1340,7 @@ msgid "Input the latest stock firmware version in this field to spoof it. This i
 msgstr "Geben SIe die neueste Firmware-Version in dieses Feld ein, um sie vorzutäuschen. Das ist notwendig, weil eine neuere Firmware auf dem ACS Server zu einem Update führt, der die Fernüberwachung durch die \"MyTIM\" Mobil-App verhindert."
 
 msgid "If a wireless device reports this gateway's 2.4GHz signal strength is above this threshold, the gateway will ask the device to test the 5GHz band . Please see 5GHz section for additional parameter."
-msgstr "Wenn ein Drahtlosgerät meldet, dass die 2.4 GHz Signalstärke dieses Gateways diesen Schwellwert übersteigt, wird diese das Gerät auffordern, das 5-GHz-Band auszuprobieren. Bitte sehen Sie in die Abschnitt für 5 GHz für weitere Parameter."
+msgstr "Wenn ein Drahtlosgerät meldet, dass die 2,4 GHz Signalstärke dieses Gateways diesen Schwellwert übersteigt, wird diese das Gerät auffordern, das 5-GHz-Band auszuprobieren. Bitte sehen Sie in die Abschnitt für 5 GHz für weitere Parameter."
 
 msgid "If you haven't changed it, the default password can be found on the sticker under your gateway (it's called <strong>\"access code\"</strong>)"
 msgstr "Wenn Sie es nicht geändert haben, findet sich das Standard-Kennwort auf dem Aufkleber unter Ihrem Gateway (unter <strong>\"access code\"</strong>)"
@@ -1967,7 +1967,7 @@ msgid "Press Rescan button to view the updated WiFi Network list"
 msgstr "Bitte drücken Sie den \"Neu scannen\"-Knopf, um die aktualisierte WiFi-Liste zu sehen"
 
 msgid "Please see 2.4GHz section for initial parameter. If a wireless device tests the 5GHz band and reports the 5GHz signal strength is above this threshold, the gateway will direct the device to switch to the 5GHz band."
-msgstr "Bitte sehen Sie in den Abschnitt für 2.4GHz für anfängliche Parameter. Wenn ein Drahtlosgerät meldet, dass die 2.4 GHz Signalstärke dieses Gateways diesen Schwellwert übersteigt, wird diese das Gerät auffordern, das 5-GHz-Band auszuprobieren."
+msgstr "Bitte sehen Sie in den Abschnitt für 2,4GHz für anfängliche Parameter. Wenn ein Drahtlosgerät meldet, dass die 2,4 GHz Signalstärke dieses Gateways diesen Schwellwert übersteigt, wird diese das Gerät auffordern, das 5-GHz-Band auszuprobieren."
 
 msgid "Please set the new password for new user."
 msgstr "Bitte setzen Sie das neue Kennwort für den neuen Benutzer."
