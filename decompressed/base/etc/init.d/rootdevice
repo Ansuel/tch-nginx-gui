@@ -33,6 +33,8 @@ EXTRA_HELP="\
 "
 #Gui version is now autocompleted base on latest dev, this variable will be replaced by the automatic script
 version_gui=TO_AUTO_COMPLETE
+#Latest version on TIM cwmp for version sppof
+latest_version_on_TIM_cwmp="2.0.0"
 
 logo_project() {
 cat << EOF > /dev/console
@@ -956,6 +958,7 @@ real_ver_entitied() {
 	if [ -f /rom/etc/uci-defaults/tch_5000_versioncusto ] && [ -f /etc/config/versioncusto ]; then
 		local short_ver=$(cat /proc/banktable/activeversion | grep -Eo ".*\..*\.[0-9]*-[0-9]*" )
 		local real_ver=$(cat /rom/etc/uci-defaults/tch_5000_versioncusto  | grep "$short_ver" | awk '{print $2}')
+		uci set versioncusto.override.fwversion_override_latest="$latest_version_on_TIM_cwmp"
 		if [ "$real_ver" == "" ]; then
 			real_ver="Not Found"
 		fi
@@ -973,11 +976,11 @@ real_ver_entitied() {
 		else
 			if [ $(uci get -q modgui.var.skip_version_spoof) ]; then
 				if [ $(uci get -q modgui.var.skip_version_spoof == "0") ]; then
-					uci set versioncusto.override.fwversion_override="2.0.0"
+					uci set versioncusto.override.fwversion_override="$latest_version_on_TIM_cwmp"
 				fi
 			else
 				uci set modgui.var.skip_version_spoof="0"
-				uci set versioncusto.override.fwversion_override="2.0.0"
+				uci set versioncusto.override.fwversion_override="$latest_version_on_TIM_cwmp"
 			fi
 		fi
 	fi

@@ -15,9 +15,34 @@ local untaint = string.untaint
 
 local gOV = post_helper.getOptionalValidation
 
-local fwversion_override_Params = { fwversion_override = "uci.versioncusto.override.fwversion_override", }
+local function validateSkipVersionSpoof(value, object, key)
 
-local fwversion_override_valid = { fwversion_override = gOV(post_helper.validateNonEmptyString), }
+	local valid, msg = post_helper.validateBoolean(value, object, key)
+	
+	if valid then
+		local version_path="uci.versioncusto.override.fwversion_override"
+		local version_real=proxy.get(version_path.."_real")[1].value
+		local version_latest=proxy.get(version_path.."_latest")[1].value
+		if value == "1" then
+			proxy.set(version_path, version_real)
+		else
+			proxy.set(version_path,version_latest)
+		end
+		proxy.apply()
+	end
+	
+	return valid, msg
+end
+
+local fwversion_override_Params = { 
+	fwversion_override = "uci.versioncusto.override.fwversion_override", 
+	skip_version_spoof = "uci.modgui.var.skip_version_spoof",
+}
+
+local fwversion_override_valid = { 
+	fwversion_override = gOV(post_helper.validateNonEmptyString),
+	skip_version_spoof = validateSkipVersionSpoof,
+}
 
 local fwversion_override_content, fwversion_override_helpmsg = post_helper.handleQuery(fwversion_override_Params, fwversion_override_valid)
 
@@ -417,6 +442,8 @@ if not ( fwversion_override_content["fwversion_override"] == "" ) then
 		local html = {}
 		html[#html + 1] = ui_helper.createAlertBlock(T"Input the latest stock firmware version in this field to spoof it. This is necessary because if a newer version of the firmware is available on the ACS server, CWMPD will try to update the device and break remote monitoring from the “MyTIM” mobile app.", info_box)
 		html[#html + 1] = ui_helper.createInputText(T"Version Set", "fwversion_override", fwversion_override_content["fwversion_override"], nil , fwversion_override_helpmsg["fwversion_override"])
+		html[#html + 1] = ui_helper.createAlertBlock(T"Disable override of Version Spoof at every GUI update. This is also usefull to permit cwmp to autoupdate the modem", info_box)
+		html[#html + 1] = ui_helper.createSwitch(T"Skip Spoof Version Check", "skip_version_spoof", fwversion_override_content["skip_version_spoof"])
 		ngx.print(html)
 		ngx.print('\
 	</fieldset>');
