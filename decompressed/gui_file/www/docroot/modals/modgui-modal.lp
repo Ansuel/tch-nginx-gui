@@ -238,8 +238,8 @@ local modgui_settings, helpmsg = post_helper.handleQuery(mapParams, mapValid)
 
 ngx.print(ui_helper.createHeader(T"GUI Settings & Utility", false, false))
 	local html = {}
-	  html[#html + 1] = '<fieldset class="modal-body">'
-	  html[#html + 1] = '<div class="alert alert-info hide" id="upgrade-gui-bar">'
+	  html[#html + 1] = '<fieldset class="modal-body hide" id="upgrade-gui-bar" style="min-height: unset;">'
+	  html[#html + 1] = '<div class="alert alert-info">'
 	  html[#html + 1] = '<div><span id="update-text">'..T"Update in progress..."..'</span><span id="extracted_file" class="hide">0</span></div>'
 	  html[#html + 1] = '  <div id="upgrade-gui-bar" class="progress progress-striped active">'
       html[#html + 1] = '    <div class="bar bar-warning" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" >'
