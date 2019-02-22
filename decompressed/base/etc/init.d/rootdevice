@@ -965,7 +965,7 @@ real_ver_entitied() {
 			uci set versioncusto.override.fwversion_override_real="$real_ver"
 		fi
 		#Set version to latest stable...
-		uci set versioncusto.override.fwversion_override="1.1.2"
+		uci set versioncusto.override.fwversion_override="2.0.0"
 	fi
 }
 
