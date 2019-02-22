@@ -295,17 +295,26 @@ root_device() {
 	echo "GUI File found! Good Job!"
 	local root_tmp_dirt=/tmp/rootfile
 	local gui_file=$root_tmp_dirt/GUI.tar.bz2
+	local gz_gui_file=$root_tmp_dirt/GUI.tar.gz
 	
 	if [ "$SWITCHBANK" -eq 1 ]; then
 		mkdir /overlay/$target_bank
-		bzcat $gui_file | tar -C /overlay/$target_bank -xf -
+		if [ -f $gui_file ]; then
+			bzcat $gui_file | tar -C /overlay/$target_bank -xf -
+		else
+			tar -C /overlay/$target_bank -zxf $gz_gui_file
+		fi
 		echo "Restoring GUI file in flash"
 		mkdir -p /overlay/$target_bank/root
 		cp $gui_file /overlay/$target_bank/root/
 		echo 1 > /overlay/$target_bank/root/.reapply_due_to_upgrade
 	else
 		mkdir /overlay/$running_bank
-		bzcat $gui_file | tar -C /overlay/$running_bank -xf -
+		if [ -f $gui_file ]; then
+			bzcat $gui_file | tar -C /overlay/$running_bank -xf -
+		else
+			tar -C /overlay/$running_bank -zxf $gz_gui_file
+		fi
 		echo "Restoring GUI file in flash"
 		mkdir -p /overlay/$running_bank/root
 		cp $gui_file /overlay/$running_bank/root/
@@ -342,6 +351,9 @@ preserve_root() {
 	mkdir $emergencydir
 	if [ -f /overlay/$running_bank/root/GUI.tar.bz2 ]; then
 		cp /overlay/$running_bank/root/GUI.tar.bz2 $root_tmp_dirt/
+	fi
+	if [ -f /overlay/$running_bank/root/GUI.tar.gz ]; then
+		cp /overlay/$running_bank/root/GUI.tar.gz $root_tmp_dirt/
 	fi
 	mkdir $emergencydir/etc
 	mkdir $emergencydir/etc/init.d 
@@ -405,7 +417,7 @@ platform_do_upgrade() {
 		fi
 		
 		if [ ! -d /overlay/bank_1 ] && [ ! -d /overlay/bank_2 ]; then
-			if [ -f /$root_tmp_dirt/GUI.tar.bz2 ]; then
+			if [ -f $root_tmp_dirt/GUI.tar.bz2 ] || [ -f $root_tmp_dirt/GUI.tar.gz ]; then
 				root_device
 			else
 				emergency_restore_root

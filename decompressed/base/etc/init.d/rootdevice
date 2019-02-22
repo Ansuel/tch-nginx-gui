@@ -235,7 +235,7 @@ cumulative_check_gui() {
 
 
 	#This make sure we have stable GUI in /root
-	if [ ! -f /root/GUI.tar.bz2 ]; then
+	if [ ! -f /root/GUI.tar.bz2 ] && [ ! -f /root/GUI.tar.gz ]; then
 		logger_command "Stable GUI not found in /root"
 		if [ ! -f /tmp/GUI.tar.bz2 ]; then
 			logger_command "Stable GUI not found in /tmp..."
@@ -270,12 +270,14 @@ cumulative_check_gui() {
 		mv /tmp/GUI$update_branch.tar.bz2 /root/GUI$update_branch.tar.bz2
 	fi
 
-
-
 	#This generate new hash
-	if [ -f /root/GUI$update_branch.tar.bz2 ]; then
+	if [ -f /root/GUI$update_branch.tar.bz2 ] || [ -f /root/GUI.tar.gz ]; then
 		old_gui_hash=$(uci get -q modgui.gui.gui_hash)
-		gui_hash=$(md5sum /root/GUI$update_branch.tar.bz2 | awk '{ print $1}' )
+		if [ -f /root/GUI.tar.gz ]; then
+			gui_hash=$(cat /root/md5.gui_orig)
+		else
+			gui_hash=$(md5sum /root/GUI$update_branch.tar.bz2 | awk '{ print $1}' )
+		fi
 		if [ "$old_gui_hash" != "gui_hash" ]; then
 			logger_command "Detected upgrade!"
 			logger_command "Old GUI hash: $old_gui_hash"
@@ -1700,6 +1702,10 @@ reapply_gui_after_reset() {
 		logger_command "Resetting /www dir due to firmware upgrade..."
 		rm -r /www
 		bzcat /root/GUI.tar.bz2 | tar -C / -xf - www
+	elif [ -f /root/GUI.tar.gz ]; then
+		logger_command "Resetting /www dir due to firmware upgrade..."
+		rm -r /www
+		tar -C / -zxf /root/GUI.tar.gz www
 	fi
 }
 
@@ -1732,9 +1738,36 @@ start_stop_nginx() {
 		nginx_count=$((nginx_count+1))
 	done
 }
+
 prevent_total_brick() {
 	#Enable hardware serial console to intercept bootloops
 	sed -i 's/#//' /etc/inittab
+}
+
+check_low_space_device() {
+	overlay_space=$(df /overlay | sed -n 2p | awk {'{print $2}'})
+	if [ $overlay_space -lt 33000 ]; then
+		logger -s -t 'Root Script' "Detected low mem device..."
+		if [ -f /root/GUI_dev.tar.bz2 ]; then
+			logger -s -t 'Root Script' "Removing stabe gui and renaming dev as stable"
+			if [ -f /root/GUI.tar.bz2 ]; then
+				rm /root/GUI.tar.bz2
+			fi
+			mv /root/GUI_dev.tar.bz2 /root/GUI.tar.bz2
+		fi
+		if [ -f /root/GUI.tar.bz2 ]; then
+			mkdir /tmp/extractemp
+			bzcat /root/GUI.tar.bz2 | tar -C /tmp/extractemp -xf -
+			rm -r /tmp/extractemp/tmp
+			cd  /tmp/extractemp/
+			tar -zcf ../GUI.tar.gz *
+			cd ../../
+			md5sum /root/GUI.tar.bz2 | awk '{ print $1}' > /root/md5.gui_orig
+			rm /root/GUI.tar.bz2
+			mv /tmp/GUI.tar.gz /root/
+			rm -r /tmp/extractemp
+		fi
+	fi
 }
 
 root() {
@@ -1975,10 +2008,11 @@ check_bank() {
 }
 
 check_full_rootfs() {
-	rootfx_percet=$(df /overlay | sed -n 2p | awk {'{print $5}'})
+	rootfx_percet=$(df /overlay | sed -n 2p | awk {'{print $5}'} | sed 's|%||')
 	overlay_mtdblock=$(df /overlay | sed -n 2p | awk {'{print $1}'})
 	bootedbank=$( cat /proc/banktable/booted )
-	if [ $rootfx_percet == "100%" ]; then
+	#Reset if rootfs more than 97% full
+	if [ $rootfx_percet -gt 96 ]; then
 		logger_command "DETECTED FULL ROOTFS... TRYING RESTORING..."
 		echo "  DETECTED FULL ROOTFS... TRYING RESTORING..." > /dev/console
 		for dir in /overlay/$bootedbank/* ; do

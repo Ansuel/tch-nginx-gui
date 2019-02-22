@@ -130,6 +130,13 @@ FILE_NAME='GUI'$update_branch'.tar.bz2'
 CHECKSUM_FILE="version"
 UPGRADE_FROM_STABLE=0
 
+overlay_available_space=$(df /overlay | sed -n 2p | awk {'{print $3}'})
+if [ $overlay_available_space -lt 3000 ]; then
+	logger_command "ERROR: not enough space to complete operation" >&2
+	ubus send fwupgrade '{"state":"done"}'
+	exit 1
+fi
+
 if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload is now present
 	
 	set_transformer "rpc.system.modgui.upgradegui.state" "Downloading"
@@ -285,16 +292,38 @@ if [ $( uci get -q modgui.app.blacklist_app) ] && [ $( uci get modgui.app.blackl
 	fi
 fi
 
-logger_command "Copying file to permanent dir..."
-#Copy GUI file to permanent dir
-if [ -f $PERMANENT_STORE_DIR/$FILE_NAME ]; then
-	rm $PERMANENT_STORE_DIR/$FILE_NAME
-fi
-cp $WORKING_DIR/$FILE_NAME $PERMANENT_STORE_DIR/
-if [ $UPGRADE_FROM_STABLE == 1 ]; then
-	DEV_FILE_NAME="GUI_dev.tar.bz2"
-	logger_command "Upgrading from stable, copying to both archive..."
-	cp $WORKING_DIR/$FILE_NAME $PERMANENT_STORE_DIR/$DEV_FILE_NAME
+overlay_space=$(df /overlay | sed -n 2p | awk {'{print $2}'})
+if [ $overlay_space -lt 33000 ]; then
+	logger -s -t "Detected low mem device..."
+	if [ -f /root/GUI_dev.tar.bz2 ]; then
+		rm /root/GUI_dev.tar.bz2
+	fi
+	logger_command "Rezipping gui with no additiona module..."
+	mkdir /tmp/extractemp
+	bzcat $WORKING_DIR/$FILE_NAME | tar -C /tmp/extractemp -xf -
+	rm -r /tmp/extractemp/tmp
+	cd  /tmp/extractemp/
+	tar -zcf ../GUI.tar.gz *
+	cd ../../
+	md5sum $WORKING_DIR/$FILE_NAME | awk '{ print $1}' > /root/md5.gui_orig
+	mv /tmp/GUI.tar.gz /root/
+	rm -r /tmp/extractemp
+	logger_command "Gui is now in /root/GUI.tar.gz"
+	if [ -f /root/GUI.tar.bz2 ]; then
+		rm /root/GUI.tar.bz2
+	fi
+else
+	logger_command "Copying file to permanent dir..."
+	#Copy GUI file to permanent dir
+	if [ -f $PERMANENT_STORE_DIR/$FILE_NAME ]; then
+		rm $PERMANENT_STORE_DIR/$FILE_NAME
+	fi
+	cp $WORKING_DIR/$FILE_NAME $PERMANENT_STORE_DIR/
+	if [ $UPGRADE_FROM_STABLE == 1 ]; then
+		DEV_FILE_NAME="GUI_dev.tar.bz2"
+		logger_command "Upgrading from stable, copying to both archive..."
+		cp $WORKING_DIR/$FILE_NAME $PERMANENT_STORE_DIR/$DEV_FILE_NAME
+	fi
 fi
 rm $WORKING_DIR/$FILE_NAME
 if [ -f $WORKING_DIR/$CHECKSUM_FILE ]; then
