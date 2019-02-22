@@ -3385,25 +3385,25 @@ msgid "NoSignal"
 msgstr "KeinSignal"
 
 msgid "Flags"
-msgstr ""
+msgstr "Schalter"
 
 msgid "Ref"
-msgstr ""
+msgstr "Ref"
 
 msgid "Genmask"
-msgstr ""
+msgstr "Gen. Maske"
 
 msgid "Iface"
-msgstr ""
+msgstr "Schnittstelle"
 
 msgid "Spoof Settings"
-msgstr ""
+msgstr "Spoof Einstellung"
 
 msgid "Update failed. Please try again."
-msgstr ""
+msgstr "Aktualisierung fehlgeschlagen. Bitte versuchen Sie es erneut."
 
 msgid "Aria2 GUI"
-msgstr ""
+msgstr "Aria2 GUI"
 
 msgid "LuCI GUI"
-msgstr ""
+msgstr "LuCI GUI"
