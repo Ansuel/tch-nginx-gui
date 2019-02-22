@@ -722,6 +722,11 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
           class = "monitor-system_network_timezone monitor-0"
         }
       }
+	  local reset_on_update = {
+        input = {
+            class = "no-save",
+        }
+    }
 
       local html = {}
       html[#html + 1] = ui_helper.createLabel(T"Product Vendor", content["vendor"], basic)
@@ -783,7 +788,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       if cui.upgradefw == "1" then
         if cui.upgradefw == "1" then
 		  html[#html + 1] = ui_helper.createAlertBlock(T"Check this to remove config after firmware update.<br/>This won't remove root.<br/>It is advertised to check this if you are downgrading the firmware.", basic)
-		  html[#html + 1] = ui_helper.createInputCheckbox(T"Remove config file with upgrade","remove_conf","0",nil)
+		  html[#html + 1] = ui_helper.createInputCheckbox(T"Remove config file with upgrade","remove_conf","0",reset_on_update)
           html[#html + 1] = '</form><form class="form-horizontal" id="form-upgradefw" method="post" enctype="multipart/form-data">'
           html[#html + 1] = '<div class="control-group">'
           html[#html + 1] = format('<label class="control-label">%s</label>', T"Update firmware")

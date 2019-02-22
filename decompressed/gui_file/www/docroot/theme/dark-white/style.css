@@ -50,28 +50,19 @@ a {
     overflow-y: scroll
 }
 
-#swtichbuttom {
-    position: fixed;
-    top: 3.25rem;
-    width: calc(100% - 19rem);
-    left: 16.5rem;
-    background: var(--bg-color2);
-    pointer-events: none;
-    height: 2rem;
-    font-size: 14pt;
-    vertical-align: middle;
-    line-height: 2rem;
-    text-align: left
-}
-
-#statsFrame > #dynamic-content > #infocardrow {
-    flex-wrap: nowrap;
+#infocardrow {
+	margin-left: 16.5rem;
+	top: 6rem;
+	background-color: #fff;
+	flex-wrap: nowrap;
     display: flex !important
 }
 
 @media only screen and (max-width: 89rem) {
-    #statsFrame > #dynamic-content > #infocardrow {
-        display: block !important
+    #infocardrow {
+        display: block !important;
+		margin-left: unset;
+		z-index: 0;
     }
 }
 
@@ -81,10 +72,6 @@ a {
 
 .infocard {
     width: auto
-}
-
-#cardrow {
-    display: none
 }
 
 .span12 {
@@ -110,17 +97,13 @@ a {
 }
 
 #headerbox {
-    top: 6.3rem;
+    top: 4.8rem;
     background-color: #fff;
     box-shadow: 0 .1875rem .375rem rgba(0, 0, 0, 0.25);
     font-size: 1.125rem;
     position: fixed;
-    max-height: calc(100% - 18rem);
+    max-height: calc(100% - 16rem);
     overflow: auto
-}
-
-#headerbox > .header {
-    cursor: pointer
 }
 
 #headertab {
@@ -246,7 +229,7 @@ body {
     width: 100%;
     background-color: rgba(255, 255, 255, 0.8);
     margin: 0;
-    top: 0
+    bottom: 0
 }
 
 div.login input.span3, div.login input.span3:focus {
@@ -419,7 +402,7 @@ div.logo-technicolor a {
     overflow: visible;
     margin: 0;
     left: 16.5rem;
-    top: 3.25rem !important;
+    top: 2.5rem !important;
     border: 0;
     border-radius: 0;
     margin-top: 3.8rem;
@@ -699,7 +682,8 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
     border-bottom: none;
     white-space: nowrap;
     overflow: hidden;
-    padding: 0
+    padding: 0;
+    cursor: pointer
 }
 
 #headerbox > .header > .header-title > p {
@@ -772,6 +756,19 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
         margin: 1.5rem .5rem 0 0 !important;
         height: auto !important
     }
+	
+	#swtichbuttom {
+		position: fixed;
+		top: 3.25rem;
+		width: calc(100% - 19rem);
+		left: 16.5rem;
+		background: var(--bg-color2);
+		height: 2rem;
+		font-size: 14pt;
+		vertical-align: middle;
+		line-height: 2rem;
+		text-align: left
+	}
 
     .header-button {
         margin-top: -2rem
@@ -860,14 +857,6 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
         padding: 0 !important
     }
 
-    #statsFrame {
-        height: calc(100% - 60px);
-        width: 100%;
-        top: 60px;
-        left: 0;
-        position: fixed
-    }
-
     #cardrow {
         margin-top: 4rem;
         position: absolute;
@@ -875,8 +864,12 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
     }
 
     .header-logo {
-        margin: 0
+        display: none;
     }
+	
+	.header-button {
+		margin-top: 0.5rem;
+	}
 
     #headertab {
         height: 3.75rem;
@@ -1071,6 +1064,14 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
     .row[style="z-index : 3;  position: relative;"] .btn:not(.dropdown-toggle), #webui_language {
         display: none
     }
+	
+	#swtichbuttom {
+		display: unset;
+	}
+	
+	.btn-group > .btn + .dropdown-toggle {
+		top: unset;
+	}
 
     .modal:before {
         content: '';
