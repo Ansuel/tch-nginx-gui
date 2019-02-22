@@ -965,7 +965,21 @@ real_ver_entitied() {
 			uci set versioncusto.override.fwversion_override_real="$real_ver"
 		fi
 		#Set version to latest stable...
-		uci set versioncusto.override.fwversion_override="2.0.0"
+		if [ -f /overlay/.skip_version_spoof ]; then
+			uci set modgui.var.skip_version_spoof="1"
+			uci commit modgui
+			uci set versioncusto.override.fwversion_override="$real_ver"
+			rm /overlay/.skip_version_spoof
+		else
+			if [ $(uci get -q modgui.var.skip_version_spoof) ]; then
+				if [ $(uci get -q modgui.var.skip_version_spoof == "0") ]; then
+					uci set versioncusto.override.fwversion_override="2.0.0"
+				fi
+			else
+				uci set modgui.var.skip_version_spoof="0"
+				uci set versioncusto.override.fwversion_override="2.0.0"
+			fi
+		fi
 	fi
 }
 

@@ -12,6 +12,7 @@ do_upgrade()
   WAIT_FOR_SWITCHOVER_FILE="/usr/lib/cwmpd/transfers/cwmp_waitforswitchover"
   rm -f $WAIT_FOR_SWITCHOVER_FILE
   if [ -x /usr/bin/sysupgrade-safe ]; then
+    echo 1 > /overlay/.skip_version_spoof
     if ! [ -z "$(grep bank_2 /proc/mtd)" ]; then
       $SCRIPT_DIR/rollback.sh record
       if [ "$(uci get cwmpd.cwmpd_config.upgrade_switchovertype)" = "1" ]; then
