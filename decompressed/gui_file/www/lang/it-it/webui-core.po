@@ -76,7 +76,7 @@ msgid "5GHz Band Steering Threshold"
 msgstr "Soglia Band Steering 5 GHz"
 
 msgid "<p>Remote assistance is currently disabled.</p><p> By clicking on the 'Apply' button with the 'Enabled' checkbox enabled your gateway will be accessible from your broadband connection. After %s minutes of inactivity, or on reboot, remote assistance will be automatically disabled for 'Temporary' mode. </p><p> Please provide the following parameters to your ISP:</p>"
-msgstr "<p>L'assistenza remota è attualmente disabilitata.</p><p>Facendo clic sul pulsante 'Applica' con la casella 'Abilitata' spuntata il gateway sarà accessibile dalla tua connessione a banda larga.<br/>Dopo %s minuti di inattività, oppure al riavvio, l'assistenza remota verrà automaticamente disabilitata in modalità 'Temporanea'. </p><p><br/>Fornisci i seguenti parametri all'ISP:</p>"
+msgstr "<p>L'assistenza remota è attualmente disabilitata.</p><p>Facendo clic sul pulsante 'Applica' con la casella 'Abilitata' spuntata il gateway sarà accessibile dalla tua connessione a banda larga.<br/>Dopo %s minuti di inattività, oppure al riavvio, l'assistenza remota verrà automaticamente disabilitata in modalità 'Temporanea'. </p><p>Fornisci i seguenti parametri all'ISP:</p>"
 
 msgid "<p>Remote assistance is currently enabled. </p><p>Click 'Apply' button with the 'Enabled' checkbox disabled to disable remote assistance on your gateway </p>"
 msgstr "<p>L'assistenza remota è attualmente abilitata. </p><p><br/>Fai clic sul pulsante 'Applica' con la casella 'Abilitata' disattivata per disabilitare l'assistenza remota nel gateway </p>"
@@ -236,7 +236,7 @@ msgid "Add New DNS"
 msgstr "Aggiungi nuovo DNS"
 
 msgid "Add New Rule"
-msgstr "Aggiungi una nuova regola"
+msgstr "Aggiungi nuova regola"
 
 msgid "Add new"
 msgstr "Aggiungi nuovo"
@@ -368,7 +368,7 @@ msgid "Auto Discover DNS"
 msgstr "Trova automaticamente DNS"
 
 msgid "GUI Auto Update"
-msgstr "Aggiornamento GUI automatico"
+msgstr "Aggiornamento automatico GUI"
 
 msgid "GUI Auto Update Status"
 msgstr "Stato aggiornamento GUI atomatico"
@@ -1247,7 +1247,7 @@ msgid "GUI First Page"
 msgstr "Pagina iniziale GUI"
 
 msgid "GUI Skin"
-msgstr "Aspetto GUI"
+msgstr "Tema GUI"
 
 msgid "GUI State"
 msgstr "Stato GUI"
@@ -1811,7 +1811,7 @@ msgid "Off"
 msgstr "Off"
 
 msgid "Offline GUI Update"
-msgstr "Aggiornamento offline GUI"
+msgstr "Aggiornamento offline"
 
 msgid "Offline Update"
 msgstr "Aggiornamento offline"
@@ -2036,7 +2036,7 @@ msgid "Processing"
 msgstr "Elaborazione"
 
 msgid "Product Name"
-msgstr "Nome stampante"
+msgstr "Nome prodotto"
 
 msgid "Product Vendor"
 msgstr "Produttore stampante"
@@ -2440,8 +2440,8 @@ msgstr "Interrompi ping"
 msgid "Stop Time"
 msgstr "Orario fine"
 
-msgid "Stop Tracetoute"
-msgstr "Ferma traceroute"
+msgid "Stop Traceroute"
+msgstr "Stop traceroute"
 
 msgid "Portmirror successfully stopped."
 msgstr "Arresto portmirror completato"
@@ -2791,8 +2791,8 @@ msgstr "Aggiornamento disponibile"
 msgid "Update GUI"
 msgstr "Aggiornamento GUI"
 
-msgid "Update available! Version: <strong>%s</strong>"
-msgstr "Aggiornamento disponibile! Versione: <strong>%s</strong>"
+msgid "Update available! Version: <strong id=\"new-version-text\">%s</strong>"
+msgstr "Aggiornamento disponibile! Versione: <strong id=\"new-version-text\">%s</strong>"
 
 msgid "Update failed; please try again."
 msgstr "Aggiornamento fallito. Riprova."
@@ -2813,10 +2813,10 @@ msgid "Uploading firmware, please wait..."
 msgstr "Caricamento firmware..."
 
 msgid "Uptime"
-msgstr "Attivo da"
+msgstr "Tempo attività"
 
 msgid "Uptime: <strong>%s</strong>"
-msgstr "Attivo da: <strong>%s</strong>"
+msgstr "Tempo attività: <strong>%s</strong>"
 
 msgid "Use"
 msgstr "Uso"
@@ -3191,7 +3191,7 @@ msgid "Remove"
 msgstr "Rimuovi"
 
 msgid "Restore GUI"
-msgstr "Ripristina GUI"
+msgstr "Ripristina GUI originale"
 
 msgid "VDSL DSLAM Port"
 msgstr "Porta DSLAM VDSL"
@@ -3259,7 +3259,7 @@ msgid "Check this to remove config after firmware update.<br/>This won't remove 
 msgstr "Selezionando questa opzione verrà azzerata la configurazione dopo l'aggiornamento firmware.<br/>Questo non rimuoverà il root.<br/>Seleziona questa opzione nel caso di downgrade del firmware."
 
 msgid "Remove config file with upgrade"
-msgstr "Rimuovi file configurazione dopo l'aggiornamento"
+msgstr "Rimuovi file configurazione dopo aggiornamento"
 
 msgid "Port Mirror"
 msgstr "Mirror porte"
@@ -3335,9 +3335,6 @@ msgstr "Frame burst"
 
 msgid "Remote/WAN port"
 msgstr "Porta remota/WAN"
-
-msgid "Traceroute"
-msgstr "Traceroute"
 
 msgid "DNS Server 1"
 msgstr "Server DNS 1"
