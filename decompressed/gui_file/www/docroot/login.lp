@@ -68,7 +68,7 @@ end
 
 
 for _, v in ipairs(users) do
-  if v.legacy_salt ~= "" then
+  if v.legacy_salt and v.legacy_salt ~= "" then
     userNames = userNames .. v.name ..","
     legacySalts = legacySalts .. v.legacy_salt .. ","
   end
