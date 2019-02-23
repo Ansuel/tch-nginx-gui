@@ -3404,3 +3404,12 @@ msgstr "Aria2 GUI"
 
 msgid "LuCI GUI"
 msgstr "LuCI GUI"
+
+msgid "Skip Spoof Version Check"
+msgstr ""
+
+msgid "Disable override of Version Spoof at every GUI update. This is also usefull to permit cwmp to autoupdate the modem"
+msgstr ""
+
+msgid "Spoof Version Mode"
+msgstr ""
