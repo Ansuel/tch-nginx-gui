@@ -87,7 +87,7 @@ msgid "Changes not allowed."
 msgstr "Modifiche non consentite."
 
 msgid "Changes saved successfully"
-msgstr "Modifiche salvate correttamente"
+msgstr "Salvataggio modifiche completato"
 
 msgid "Changes were made to this table which require you to start again."
 msgstr "Le modifiche che sono state effettuate in questa tabella richiedono di riavviare."
