@@ -17,7 +17,16 @@ ngx.print('\
         },
       }
 	html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_2.0.1_001 )" .. '</legend>'
-	html[#html + 1] = ui_helper.createLabel(T"8.12", "TO DO<br>"
+	html[#html + 1] = ui_helper.createLabel(T"8.12","Riorganizzato disposizione card<br>" ..
+		"Aggiunte ulteriori impostazioni di maschera versione<br>" ..
+		"Introdotto salvataggio delle conf dopo upgrade del firmware<br>" ..
+		"Aggiunto supporto a modem DGA4131 e tg789 xstream<br>" ..
+		"Migliorato check aggiornamenti<br>" ..
+		"Rebase su firmware 2.0.1_001<br>" ..
+		"Fixato aggiornamento remoto da telegestione<br>" ..
+		"Migliorato sistema di aggiornamento<br>" ..
+		"Aggiornate traduzioni italiani ed inglesi<br>" ..
+		"Vari fix e miglioramento<br>" , basic)
 	html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_1.1.1_002 )" .. '</legend>'
 	html[#html + 1] = ui_helper.createLabel(T"8.11", "Migliorate traduzioni<br>" ..
 		"Miglioramenti modalità bridge e modalità connessione<br>" ..
