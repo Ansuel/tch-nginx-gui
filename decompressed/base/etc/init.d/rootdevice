@@ -967,22 +967,27 @@ real_ver_entitied() {
 		elif [ "$(uci get -q versioncusto.override.fwversion_override_real)" != "$real_ver" ]; then
 			uci set versioncusto.override.fwversion_override_real="$real_ver"
 		fi
+		if [ $(uci get -q modgui.var.skip_version_spoof) ]; then
+			uci del modgui.var.skip_version_spoof
+		fi
 		#Set version to latest stable...
 		if [ -f /overlay/.skip_version_spoof ]; then
-			uci set modgui.var.skip_version_spoof="1"
-			uci commit modgui
+			uci set modgui.var.version_spoof_mode="disabled"
 			uci set versioncusto.override.fwversion_override="$real_ver"
 			rm /overlay/.skip_version_spoof
 		else
-			if [ $(uci get -q modgui.var.skip_version_spoof) ]; then
-				if [ $(uci get -q modgui.var.skip_version_spoof == "0") ]; then
+			if [ $(uci get -q modgui.var.version_spoof_mode) ]; then
+				if [ $(uci get -q modgui.var.version_spoof_mode == "enabled") ]; then
 					uci set versioncusto.override.fwversion_override="$latest_version_on_TIM_cwmp"
+				elif [ $(uci get -q modgui.var.version_spoof_mode == "disabled") ]; then
+					uci set versioncusto.override.fwversion_override="$real_ver"
 				fi
 			else
-				uci set modgui.var.skip_version_spoof="0"
+				uci set modgui.var.version_spoof_mode="enabled"
 				uci set versioncusto.override.fwversion_override="$latest_version_on_TIM_cwmp"
 			fi
 		fi
+		uci commit modgui
 	fi
 }
 

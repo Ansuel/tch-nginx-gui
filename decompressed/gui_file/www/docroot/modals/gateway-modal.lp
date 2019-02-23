@@ -565,6 +565,11 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
           class = "span5"
         },
       }
+	  local long_basic = {
+        span = {
+          class = "span6"
+        },
+      }
       local advanced = {
         group = {
           class = "advanced hide",
@@ -737,7 +742,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       --html[#html + 1] = ui_helper.createLabel(T"Firmware Version", content["firmware_version"], basic)
 	  html[#html + 1] = ui_helper.createLabel(T"Datapump Version", content["dsl_firmware"], basic)
       html[#html + 1] = ui_helper.createLabel(T"Firmware OID", content["firmware_oid"], basic)
-      html[#html + 1] = ui_helper.createLabel(T"Bootloader Version", content["bootloader_version"], basic)
+      html[#html + 1] = ui_helper.createLabel(T"Bootloader Version", content["bootloader_version"], long_basic)
       html[#html + 1] = ui_helper.createLabel(T"Bootloader OID", content["bootloader_oid"], basic)
       html[#html + 1] = ui_helper.createLabel(T"Hardware Version", content["hardware_version"], basic)
       html[#html + 1] = ui_helper.createLabel(T"Serial Number", content["serial_number"], basic)
@@ -813,12 +818,12 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     local html = {}
 	html[#html + 1] = '<legend>'.. T"Bank Info" ..'</legend>'
     html[#html + 1] = ui_helper.createLabel(T"Active Bank", content["activebank"] , basic)
-	html[#html + 1] = ui_helper.createLabel(T"Active Version", content["activeversion"] , basic)
+	html[#html + 1] = ui_helper.createLabel(T"Active Version", content["activeversion"] , long_basic)
 	html[#html + 1] = ui_helper.createLabel(T"Passive Bank", content["passivebank"] , basic)
 	if content["passiveversion"] == "Unknown" then
-		html[#html + 1] = ui_helper.createLabel(T"Passive Version", T"Firmware not present in this bank" , basic)
+		html[#html + 1] = ui_helper.createLabel(T"Passive Version", T"Firmware not present in this bank" , long_basic)
 	else
-		html[#html + 1] = ui_helper.createLabel(T"Passive Version", content["passiveversion"] , basic)
+		html[#html + 1] = ui_helper.createLabel(T"Passive Version", content["passiveversion"] , long_basic)
 	end
     ngx.print(html)
 	
