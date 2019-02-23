@@ -17,23 +17,26 @@ ngx.print('\
         },
       }
 	html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_2.0.1_001 )" .. '</legend>'
-	html[#html + 1] = ui_helper.createLabel(T"8.12","Riorganizzato disposizione card<br>" ..
+	html[#html + 1] = ui_helper.createLabel(T"8.12","Riorganizzata disposizione card<br>" ..
 		"Aggiunte ulteriori impostazioni di maschera versione<br>" ..
+		"Aggiunti vari driver xDSL<br>" ..
 		"Introdotto salvataggio delle conf dopo upgrade del firmware<br>" ..
-		"Aggiunto supporto a modem DGA4131 e tg789 xstream<br>" ..
+		"Introdotto ripristino di emergenza automatico in caso di rilevazione flash piena<br>" ..
+		"Forzata abilitazione porta console<br>" ..
+		"Aggiunto supporto a modem DGA4131 e TG789VAC XTREAM 35B<br>" ..
 		"Migliorato check aggiornamenti<br>" ..
 		"Rebase su firmware 2.0.1_001<br>" ..
 		"Fixato aggiornamento remoto da telegestione<br>" ..
 		"Migliorato sistema di aggiornamento<br>" ..
-		"Aggiornate traduzioni italiani ed inglesi<br>" ..
-		"Vari fix e miglioramento<br>" , basic)
+		"Aggiornate traduzioni/stringhe inglesi italiane e tedesche<br>" ..
+		"Vari fix e miglioramenti<br>" , basic)
 	html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_1.1.1_002 )" .. '</legend>'
 	html[#html + 1] = ui_helper.createLabel(T"8.11", "Migliorate traduzioni<br>" ..
 		"Miglioramenti modalità bridge e modalità connessione<br>" ..
-		"Fixato visualizzazione upnp su tg789<br>" ..
+		"Fixato visualizzazione UPnP su TG789<br>" ..
 		"Aggiunta possibilità di usare cups come gestore stampante<br>" ..
-		"Aggiunto applicazione amule su tg789<br>" , basic)
-	html[#html + 1] = ui_helper.createLabel(T"8.10", "Aggiunte e fix per la gestione di ECO Led<br>" ..
+		"Aggiunto applicazione aMule su TG789<br>" , basic)
+	html[#html + 1] = ui_helper.createLabel(T"8.10", "Aggiunte e fix per la gestione di ECO LED<br>" ..
 		"Miglioramenti Trauduzioni<br>" ..
 		"Miglioramenti di compatibilita' con l'interfaccia Telstra<br>" ..
 		"Fix problemi vari con la configurazione account SIP<br>" ..
