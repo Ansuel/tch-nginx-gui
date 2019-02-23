@@ -5380,17 +5380,16 @@ form .switch {
 }
 .header-logo {
 	display: inline-block;
-	flex-basis: 70rem;
+	flex-basis: 60rem;
 }
 .header-button {
-	margin-left: auto;
 	display: flex;
 	flex-wrap: wrap;
+	justify-content: flex-end;
 }
 .header-sub-button {
 	display: inline-block;
 	padding: 2.5px;
-	margin-left:auto;
 }
 
 #webui_language {

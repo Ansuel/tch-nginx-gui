@@ -212,12 +212,12 @@ ngx.print('\
 		
 		local alert_outdated_ver = {
 			alert = {
-				class = "alert alert-warn",
+				class = "alert",
 				id = "upgrade-alert"
 			},
 		}
 		if cui.outdated_ver == "0" then
-			alert_outdated_ver.alert.class = "hide"
+			alert_outdated_ver.alert.class = "alert hide"
 		end
 		html[#html + 1] = ui_helper.createAlertBlock(format(T'Update available! Version: <strong id="new-version-text">%s</strong>',cui.new_ver),alert_outdated_ver)
 		
@@ -299,6 +299,10 @@ function scriptRequestStatusAjax(type) {\
 		  if ((type == "checkver" ) && (data.new_version_text)) {\
 			var outdated_ver = "'); ngx.print(T"GUI is outdated"); ngx.print('";\
 			var no_new = "'); ngx.print(T"GUI is updated"); ngx.print('";\
+			$(".check_update").fadeOut().text("');ngx.print(T"Check Complete"); ngx.print('").fadeIn();\
+			setTimeout(function() {\
+			  $(".check_update").fadeOut().text("');ngx.print(T"Check Update"); ngx.print('").fadeIn();\
+			},3000);\
 			if (data.new_version_text == "Unknown") {\
 			  $(".gui_version_status").removeClass("yellow");\
 			  $(".gui_version_status").addClass("green");\
@@ -317,6 +321,9 @@ function scriptRequestStatusAjax(type) {\
 		  window.location.href = "/";\
 		  }\
 		} else {\
+		  if (type == "checkver" ) {\
+			$(".check_update").text("');ngx.print(T"Checking..."); ngx.print('");\
+		  }\
 		  window.setTimeout(waitScriptCompletition, scriptRequestTimeout);\
 		}\
       })\
