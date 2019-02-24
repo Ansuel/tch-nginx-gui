@@ -47,8 +47,8 @@ content_helper.getExactContent(cui)
     </div>
     <div class="copyright span12">
 			<p>&copy; Technicolor 2015</p>
-			<p>Modified Ver. [ <%= cui.gui_version %> ]</p>
-			<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> && Unlock Utility by <font style="color:#0088cc;">ADeltaX</font> && Translated by <font style="color:#0088cc;">DarkNiko</font></p>
+			T'<p>Modified Ver. [ <%= cui.gui_version %> ]</p>'
+			T'<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> && Unlock Utility by <font style="color:#0088cc;">ADeltaX</font> && Translated by <font style="color:#0088cc;">DarkNiko</font></p>'
 		</div>
   </div>
 </body>
