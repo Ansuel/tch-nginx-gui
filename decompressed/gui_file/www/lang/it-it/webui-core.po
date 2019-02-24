@@ -3413,3 +3413,15 @@ msgstr "Disabilita sovrascrittura versione spoof ad ogni aggiornamento della GUI
 
 msgid "Spoof Version Mode"
 msgstr "Modo versione spoof"
+
+msgid "Check Complete"
+msgstr "Controllo completato"
+
+msgid "Comunicate real version to cwmp"
+msgstr "Comunica a cwmp la versione reale"
+
+msgid "Comunicate latest stable version set from rootscript to cwmp"
+msgstr "Comunica a cwmp l'ultima versione stabile impostata dallo script root"
+
+msgid "Set the version to comunicate to cwmp manually"
+msgstr "Imposta manualmente la versione da comunicare a cwmp"
