@@ -28,10 +28,10 @@ end
 
 -- Figure out interface state
 local intf_state_map = {
-    disabled = T"Bridge "..wan_bridge.. " disabled",
-    connected = T"Bridge "..wan_bridge.. " connected",
-    disconnected = T"Bridge "..wan_bridge.. " not connected",
-	connecting = T"Connecting "..wan_bridge.. " ...",
+    disabled = T"Bridge disabled",
+    connected = T"Bridge connected",
+    disconnected = T"Bridge not connected",
+	connecting = T"Connecting...",
 }
 
 local intf_light_map = {
