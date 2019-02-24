@@ -23,18 +23,19 @@ local modalPath = nil
 local switchName = nil
 local session = ngx.ctx.session
 
-local variant = proxy.get("uci.env.var.prod_friendly_name")[1].value or ""
-local model = nil
+local model = proxy.get("uci.env.var.prod_friendly_name")[1].value or ""
 
-if  ( variant == "DGA4130" ) then
+if  ( model == "DGA4130" ) then
 	model = "AGTEF"
-elseif ( variant == "DGA4132" ) then
+elseif ( model == "DGA4132" ) then
 	model = "AGTHP"
-elseif ( variant == "MediaAccess TG789vac v2" or variant == "MediaAccess TG789MYRvac v2 HP") then
+elseif ( model == "MediaAccess DGA4131FWB" ) then
+	model = "DGA4131FWB"
+elseif ( model == "MediaAccess TG789vac v2" or variant == "MediaAccess TG789MYRvac v2 HP") then
 	model = "TG789vac"
-elseif ( variant == "Technicolor TG799vac" ) then
+elseif ( model == "Technicolor TG799vac" ) then
 	model = "TG799vac"
-elseif ( variant == "Technicolor TG800vac" ) then
+elseif ( model == "Technicolor TG800vac" ) then
 	model = "TG800vac"
 end
 
