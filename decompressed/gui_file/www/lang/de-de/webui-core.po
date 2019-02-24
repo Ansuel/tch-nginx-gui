@@ -3413,3 +3413,15 @@ msgstr "Abschalten des Spoof der Version bei der GUI AKtualisierung. Das ist nü
 
 msgid "Spoof Version Mode"
 msgstr "Spoof Versionsmodus"
+
+msgid "Bridge connected"
+msgstr "Brücke verbunden"
+
+msgid "Bridge not connected"
+msgstr "Brücke nicht verbunden"
+
+msgid "Bridge disabled"
+msgstr "Brücke deaktiviert"
+
+msgid "Connecting..."
+msgstr "Verbinde..."
