@@ -416,6 +416,8 @@ check_isp_config() {
 		elif echo "$ppp_user" | grep -q "tiscali.it" || #acs tiscali is preconfigured 
 			echo "$cwmp_url" | grep -q "tiscali.it" ; then #on tiscali firmware only
 			uci set modgui.var.isp="Tiscali"
+		elif echo "$cwmp_url" | grep -q "59.0.121.191" ; then #on fastweb firmware only
+			uci set modgui.var.isp="Fastweb"
 		else
 			uci set modgui.var.isp="Other"
 			purify_from_tim
@@ -578,7 +580,7 @@ check_dnsmasq_name() {
 		uci set dhcp.dnsmasq=dnsmasq
 		restart_dnsmasq=1
 	fi
-	if [ "$(uci show dhcp | grep dhcp.@dnsmasq)" ]; then
+	if uci show dhcp | grep -q "dhcp.@dnsmasq" ; then
 		uci rename dhcp.@dnsmasq[0]=dnsmasq
 		restart_dnsmasq=1
 	fi
@@ -586,10 +588,10 @@ check_dnsmasq_name() {
 
 create_driver_setting() {
 	if [ ! "$(uci get -q modgui.var.driver_version)" ]; then
-		uci set modgui.var.driver_version=$(xdslctl --version 2>&1 >/dev/null | grep "version -" | awk '{print $6}' | sed "s/\..*//")
+		uci set modgui.var.driver_version="$(xdslctl --version 2>&1 >/dev/null | grep 'version -' | awk '{print $6}' | sed 's/\..*//')"
 	else 
 		if [ "$(uci get -q modgui.var.driver_version | grep -F .)" ]; then
-			uci set modgui.var.driver_version=$(xdslctl --version 2>&1 >/dev/null | grep "version -" | awk '{print $6}' | sed "s/\..*//")
+			uci set modgui.var.driver_version="$(xdslctl --version 2>&1 >/dev/null | grep 'version -' | awk '{print $6}' | sed 's/\..*//')"
 		fi
 	fi
 }
@@ -934,9 +936,9 @@ remove_downgrade_bit() {
 
 apply_right_opkg_repo() {
 	if [ -f /etc/opkg.conf_17.3 ]; then
-		local marketing_version=$(uci get -q version.@version[0].marketing_version)
+		local marketing_version="$(uci get -q version.@version[0].marketing_version)"
 		if [ "$marketing_version" ]; then
-			if [ $( echo $marketing_version | grep "17.3" ) ]; then
+			if echo "$marketing_version" | grep -q "17.3" ; then
 				if [ -f /etc/okpg.conf ]; then
 					rm /etc/okpg.conf
 				fi
@@ -955,7 +957,7 @@ apply_right_opkg_repo() {
 
 real_ver_entitied() {
 	if [ -f /rom/etc/uci-defaults/tch_5000_versioncusto ] && [ -f /etc/config/versioncusto ]; then
-		local short_ver=$(< /proc/banktable/activeversion grep -Eo ".*\..*\.[0-9]*-[0-9]*" )
+		local short_ver="$(< /proc/banktable/activeversion grep -Eo '.*\..*\.[0-9]*-[0-9]*' )"
 		local real_ver=$(< /rom/etc/uci-defaults/tch_5000_versioncusto grep "$short_ver" | awk '{print $2}')
 		uci set versioncusto.override.fwversion_override_latest="$latest_version_on_TIM_cwmp"
 		if [ "$real_ver" == "" ]; then
