@@ -3412,4 +3412,4 @@ msgid "Disable override of Version Spoof at every GUI update. This is also usefu
 msgstr "Abschalten des Spoof der Version bei der GUI AKtualisierung. Das ist nützlich, um cwmp die automatische Aktualisierung des Modems zu erlauben."
 
 msgid "Spoof Version Mode"
-msgstr ""
+msgstr "Spoof Versionsmodus"
