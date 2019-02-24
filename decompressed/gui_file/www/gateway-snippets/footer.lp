@@ -41,17 +41,17 @@ local html = {}
 html[#html+1] =		'<div id="footer" class="row">'
 html[#html+1] =			'<div class="copyright">'
 html[#html+1] =				format('<p>&copy; Technicolor %s </p>', current_year)
-html[#html+1] =				format('<p>%s GUI Version ', cui.friendly_product_name)
+html[#html+1] =				format(T'<p>%s GUI Version ', cui.friendly_product_name)
 if session:hasAccess("/modals/changelog.lp") then
 	html[#html+1] =					format('<a href data-toggle="modal" data-remote="modals/changelog.lp">%s</a>', cui.gui_version)
 else
 	html[#html+1] =					format(' %s', cui.gui_version)
 end
 html[#html+1] =				format(' %s</p>', "2018")  -- gui_version_year
-html[#html+1] =				'<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel </font>and <a href="https://github.com/Ansuel/tch-nginx-gui/graphs/contributors">these GitHub users.</a><br> Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>'
+html[#html+1] =				T'<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel </font>and <a href="https://github.com/Ansuel/tch-nginx-gui/graphs/contributors">these GitHub users.</a><br> Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>'
 
 if not ( tostring(gettext.language()) == "en-us" ) then
-	html[#html+1] =					' && Translated by <font style="color:#0088cc;">' .. lang_credit .. '</font>'
+	html[#html+1] =					T' && Translated by <font style="color:#0088cc;">' .. lang_credit .. '</font>'
 end
 html[#html+1] =				'</p>'
 html[#html+1] =			'</div>'
