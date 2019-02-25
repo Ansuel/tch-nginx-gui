@@ -124,6 +124,7 @@ setup_network() {
 	if [ ! "$(uci -q get network.lan.pppoerelay)" ]; then
 		uci -q add_list network.lan.pppoerelay=''
 	fi
+	sed -i -e 's/option pppoerelay/list pppoerelay/g' /etc/config/network
 
 	#Set a waneth4 interface if not found (fix wizard on UNO)
 	if [ ! "$(uci -q get network.waneth4)" ]; then
