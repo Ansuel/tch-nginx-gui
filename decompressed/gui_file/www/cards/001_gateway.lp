@@ -48,7 +48,7 @@ ngx.print('\
 \
 <div class="span3" id="gateway-card">\
   <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
-    ');  ngx.print( ui_helper.createCardHeader(T"Gateway", modalPath, switchName, nil, nil) ); ngx.print('\
+    ');  ngx.print( ui_helper.createCardHeader(T"Modem", modalPath, switchName, nil, nil) ); ngx.print('\
     <div class="content card_bg" data-bg-text="&#xf129;">\
 	<div class="divtable">\
 	  <p>\
