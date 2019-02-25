@@ -1337,7 +1337,7 @@ msgid "Idle"
 msgstr "Non attivo"
 
 msgid "Input the latest stock firmware version in this field to spoof it. This is necessary because if a newer version of the firmware is available on the ACS server, CWMPD will try to update the device and break remote monitoring from the “MyTIM” mobile app."
-msgstr "Inserisci in questo campo la versione più recente del firmware stock.<br/>Questo è necessario poichè se è disponibile una versione più recente del firmware stock nel server ACS, CWMPD proverà ad aggiornare il modem e questo interromperà il monitoraggio con l'app  mobile 'My TIM'<br/>Modifica qui la versione per evitare ciò."
+msgstr "Inserisci in questo campo la versione più recente del firmware stock.<br/>Questo è necessario poichè se è disponibile una versione più recente del firmware stock nel server ACS, CWMPD proverà ad aggiornare il firmware e questo interromperà il monitoraggio con l'app  mobile 'My TIM'<br/>Modifica qui la versione per evitare l'aggiornamento del firmware."
 
 msgid "If a wireless device reports this gateway's 2.4GHz signal strength is above this threshold, the gateway will ask the device to test the 5GHz band . Please see 5GHz section for additional parameter."
 msgstr "Se un dispositivo wireless riporta questa potenza di segnale del gateway della rete 2.4 GHz sopra questa soglia, il gateway chiederà al dispositivo di verificare la banda a 5 GHz.<br/>Vedi la sezione rete 5 GHz per i parametri aggiuntivi."
@@ -2885,7 +2885,7 @@ msgid "Version Set"
 msgstr "Versione impostata"
 
 msgid "Spoof Setttings"
-msgstr "Impostazioni Spoof"
+msgstr "Impostazioni spoof"
 
 msgid "Good"
 msgstr "Buono"
@@ -3414,6 +3414,9 @@ msgstr "Disabilita sovrascrittura versione spoof ad ogni aggiornamento della GUI
 msgid "Spoof Version Mode"
 msgstr "Modo versione spoof"
 
+msgid "Connecting..."
+msgstr "Connessione..."
+
 msgid "Check Complete"
 msgstr "Controllo completato"
 
@@ -3426,14 +3429,14 @@ msgstr "Comunica a cwmp l'ultima versione stabile impostata dallo script root"
 msgid "Set the version to comunicate to cwmp manually"
 msgstr "Imposta manualmente la versione da comunicare a cwmp"
 
-msgid "Bridge connected"
-msgstr ""
+msgid "Dot"
+msgstr "Punto"
 
-msgid "Bridge not connected"
-msgstr ""
+msgid "<p>%s GUI Version "
+msgstr "<p>Versione GUI %s "
 
-msgid "Bridge disabled"
-msgstr ""
+msgid "<p>Coded & Expanded by <font style=\"color:#0088cc;\">Ansuel</font> and <a href=\"https://github.com/Ansuel/tch-nginx-gui/graphs/contributors\">these GitHub users.</a><br>Unlock Utility by <font style=\"color:#0088cc;\">ADeltaX</font>"
+msgstr "<p>Codice ed espansione di <font style=\"color:#0088cc;\">Ansuel</font> e <a href=\"https://github.com/Ansuel/tch-nginx-gui/graphs/contributors\">questi utenti GitHub.</a><br>Utiliy di sblocco di <font style=\"color:#0088cc;\">ADeltaX</font>"
 
-msgid "Connecting..."
-msgstr ""
+msgid " && Translated by <font style=\"color:#0088cc;\">%s</font>"
+msgstr " && tradotto da <font style=\"color:#0088cc;\">%s</font>"
