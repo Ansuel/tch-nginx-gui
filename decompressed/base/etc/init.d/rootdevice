@@ -90,6 +90,7 @@ get_transformer() {
 log_progress=0
 restart_dnsmasq=0
 
+####################LOG FUNCTION#################
 logger_command() {
 	if [ "$debug"  -eq 1 ]; then
 		logger -s -t "Root Script" "$1"
@@ -100,6 +101,7 @@ logger_command() {
 		set_transformer "rpc.system.modgui.upgradegui.log" "$1"
 	fi
 }
+#################################################
 
 add_ipoe() {
 	uci set network.ipoe=interface
@@ -169,6 +171,7 @@ setup_network() {
 }
 
 check_variant_friendly_name() {
+	#Get variant friendly name and save
 	if [ ! "$(uci get -q env.var.variant_friendly_name)" ]; then
 		variant=$(uci get env.var.prod_friendly_name)
 		case "$variant"
@@ -205,6 +208,7 @@ fix_dns_dhcp_bug() {
 		/etc/init.d/odhcpd restart
 		restart_dnsmasq=1
 	fi
+	#Check to see if odhcpd is running
 	if [ ! "$(pgrep "odhcpd")" ]; then
 		/etc/init.d/odhcpd start
 	fi
@@ -236,7 +240,7 @@ cumulative_check_gui() {
 	fi
 
 
-	#This make sure we have stable GUI in /root
+	#This makes sure we have stable GUI in /root
 	if [ ! -f /root/GUI.tar.bz2 ] && [ ! -f /root/GUI.tar.gz ]; then
 		logger_command "Stable GUI not found in /root"
 		if [ ! -f /tmp/GUI.tar.bz2 ]; then
@@ -264,7 +268,7 @@ cumulative_check_gui() {
 
 	logger_command "Updating GUI in /root folder from /tmp"
 
-	#This move tmp gui in /root
+	#This move the gui found in tmp to /root
 	if [ -f /tmp/GUI$update_branch.tar.bz2 ]; then
 		if [ -f /root/GUI$update_branch.tar.bz2 ]; then
 			rm /root/GUI$update_branch.tar.bz2
@@ -272,7 +276,7 @@ cumulative_check_gui() {
 		mv /tmp/GUI$update_branch.tar.bz2 /root/GUI$update_branch.tar.bz2
 	fi
 
-	#This generate new hash
+	#This generates new hash
 	if [ -f /root/GUI$update_branch.tar.bz2 ] || [ -f /root/GUI.tar.gz ]; then
 		old_gui_hash=$(uci get -q modgui.gui.gui_hash)
 		if [ -f /root/GUI.tar.gz ]; then
@@ -319,6 +323,7 @@ cumulative_check_gui() {
 }
 
 transfer_bank() {
+	#This function will clone and switch banks
 	if [ -d /overlay/bank_1 ]; then
 		rm -r /overlay/bank_1
 	fi
@@ -338,6 +343,7 @@ transfer_bank() {
 }
 
 restore_bank() {
+	#This function will clone bank1 to bank2 or vice-versa
 	bootedbank=$( cat /proc/banktable/booted )
 	activebank=$( cat /proc/banktable/active )
 	if [ -f "/overlay/$activebank" ]; then
@@ -366,6 +372,7 @@ check_gui_ver() {
 }
 
 check_new_dlnad() {
+	#This function will check to see which dlna server daemon is installed
 	if [ -f /etc/init.d/dland ] && [ ! -k /etc/rc.d/S98dlnad ] && [ -f /etc/init.d/minidlna ]; then
 		if [ "$(pgrep "minidlna")" ] ; then
 			/etc/init.d/minidlna stop
@@ -400,6 +407,7 @@ check_upgrade_shit() {
 }
 
 check_isp_config() {
+	#Detect ISP based on cwmp settings (Italian only)
 	ppp_user=$(uci -q get network.wan.username)
 	cwmp_url=$(uci -q get cwmpd.cwmpd_config.acs_url)
 	if  [ ! "$ppp_user" ]; then
@@ -426,6 +434,7 @@ check_isp_config() {
 }
 
 create_symlink() {
+	#Links the pached binaries to their correct paths
 	if [ -f /bin/busybox_telnet ]; then
 		ln -sf ../../bin/busybox_telnet /usr/sbin/telnetd
 		/etc/init.d/telnet enable
@@ -571,6 +580,7 @@ add_telecom_stock_dns() {
 }
 
 check_dnsmasq_name() {
+	#Checks what the dnsmasq daemon is referred to in the config file
 	if [ "$(uci get -q dhcp.dnsmasq)" ]; then
 		if [ "$(uci get -q dhcp.dnsmasq)" != "dnsmasq" ]; then
 			uci set dhcp.dnsmasq=dnsmasq
@@ -587,6 +597,7 @@ check_dnsmasq_name() {
 }
 
 create_driver_setting() {
+	#Get xdsl driver(s) version and save to GUI config file
 	if [ ! "$(uci get -q modgui.var.driver_version)" ]; then
 		uci set modgui.var.driver_version="$(xdslctl --version 2>&1 >/dev/null | grep 'version -' | awk '{print $6}' | sed 's/\..*//')"
 	else 
@@ -597,6 +608,7 @@ create_driver_setting() {
 }
 
 dropbear_file_check() {
+	#Check to see if the dropbear_new config file is present in /etc/config, if so then move it to /etc/config/dropbear
 	if [ -f /etc/config/dropbear_new ]; then
 		if [ "$(uci get -q dropbear.wan.enable)" ]; then
 			rm /etc/config/dropbear_new
@@ -608,6 +620,7 @@ dropbear_file_check() {
 }
 
 check_noip_file() {
+	#Check to see if DDNS scripts config is present
 	if [ -d /etc/ddns_new ]; then
 		if [ -d /etc/ddns ]; then
 				rm -r /etc/ddns_new
@@ -618,6 +631,7 @@ check_noip_file() {
 }
 
 eco_param() {
+	#Set CPU to full power (full clock)
 	if [ ! "$(uci get -q power.cpu)" ]; then
 		uci set power.cpu=cpu
 		uci set power.cpu.cpuspeed='256'
@@ -643,6 +657,7 @@ enable_new_upnp() {
 }
 
 wifi_fix_24g() {
+	#Set wifi to perf mode
 	wl down
 	wl obss_prot set 0
 	wl -i wl0 gmode Performance
@@ -651,6 +666,7 @@ wifi_fix_24g() {
 }
 
 create_gui_type() {
+	#Gathers various infomation about what programs are installed and saves it in the modgui config file
 	if [ ! "$( uci get -q modgui.app.aria2_webui)" ]; then
 		if [ -d /www/docroot/aria ]; then
 			uci set modgui.app.aria2_webui="1"
@@ -716,6 +732,7 @@ update_dhcp_config() {
 }
 
 add_new_web_rule() {
+	#Adds all of the needed UCI rules to enable the web interface into /etc/config/web
 	if [ ! "$(uci get -q web.applicationsmodal)" ]; then
 		uci set web.applicationsmodal=rule
 		uci set web.applicationsmodal.target='/modals/applications-modal.lp'
@@ -841,12 +858,14 @@ add_new_web_rule() {
 }
 
 check_relay_dhcp() {
+	#Check if dhcp relay is enabled
 	if [ ! "$(uci get -q dhcp.relay)" ]; then
 		uci set dhcp.relay=relay
 	fi
 }
 
 suppress_excessive_logging() {
+	#Lowers the log level of daemons to suppress excessive logging to /root/messages.log
 	if [ "$(uci get -q igmpproxy.globals.trace)" == "1" ]; then
 		uci set igmpproxy.globals.trace='0'
 	fi
@@ -879,6 +898,7 @@ check_aria_dir() {
 }
 
 led_integration() {
+	#Fix led issues
 	if [ ! "$(uci get -q ledfw.status_led.enable)" ] ; then
 		uci set ledfw.status_led=status_led
 		uci set ledfw.status_led.enable='0'
@@ -906,6 +926,7 @@ led_integration() {
 }
 
 check_wansensing() {
+	#Make sure that wansensing is under the correct dir
 	if [ -d /usr/lib/lua/wansensing ] && [ ! -d /usr/lib/lua/wansensingfw ] ; then
 		rm /usr/lib/lua/wansensing/scripthelpers.lua
 		mv /usr/lib/lua/wansensingfw/scripthelpers.lua /usr/lib/lua/wansensing/scripthelpers.lua
@@ -993,6 +1014,7 @@ real_ver_entitied() {
 }
 
 new_wol_implementation() {
+	#Enable WoL
 	if [ -f /lib/functions/firewall-wol.sh ]; then
 		rm /lib/functions/firewall-wol.sh
 		uci set wol.config.dest_port=9
