@@ -426,6 +426,12 @@ msgstr "indice sip"
 msgid "Status"
 msgstr "Stato"
 
+msgid "Line Status"
+msgstr "Stato della linea"
+
+msgid "Call State"
+msgstr "Stato di chiamata"
+
 msgid "Local Port"
 msgstr "Porta locale"
 
