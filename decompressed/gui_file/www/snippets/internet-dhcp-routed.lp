@@ -12,6 +12,8 @@ local message_helper = require("web.uimessage_helper")
 local ajax_helper = require("web.ajax_helper")
 local tonumber = tonumber
 local match, format = string.match, string.format
+local post_helper = require("web.post_helper")
+local session = ngx.ctx.session
 -- State data
 local dhcp_state = "connecting"
 local dhcp_state_map = {
@@ -41,6 +43,33 @@ local ajax_attr_light = {
         ["data-ajaxrefresh"] = "5",
     }
 }
+
+local vSII = post_helper.validateStringIsIP
+local gOV = post_helper.getOptionalValidation
+
+local dns_options = {
+    tableid = "dns_servers",
+    basepath = "uci.network.interface.@wan.dns.@.",
+    createMsg = T"Add new" .. " " .. T"DNS server",
+    minEntries = 0,
+    maxEntries = 3,
+}
+
+local dns_columns = {
+    {
+        header = T"DNS IP",
+        name = "dns_server",
+        param = "value",
+        type = "text",
+    }
+}
+
+local dns_valid = {
+    dns_server = gOV(vSII)
+}
+
+local dns_data, dns_helpmsg = post_helper.handleTableQuery(dns_columns, dns_options, nil, nil, dns_valid)
+session:store("dns_data",dns_data)
 
 local function get_dhcp_state(wan_auto, ipaddr)
     -- Figure out interface state
@@ -138,6 +167,7 @@ local mapParams = {
     uci_wan_auto = "uci.network.interface.@wan.auto",
     uci_wan_masq = "uci.firewall.zone."..zonenum..".masq",
 	uci_wan_ipv6 = "uci.network.interface.@wan.ipv6", --custo TCOMITAGW-2157
+    uci_wan_peerdns = "uci.network.interface.@wan.peerdns",
 }
 
 -- Shortcuts to validation helpers to make lines shorter
@@ -323,6 +353,10 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     html[#html + 1] = ui_helper.createLight(T"Status", nil, dhcp_state_map[dhcp_state], ajax_attr_light)
     html[#html+1] = ui_helper.createSwitch(T"Enabled", "uci_wan_auto", content["uci_wan_auto"])
     html[#html + 1] = ui_helper.createSwitch(T"NAT", "uci_wan_masq", content.uci_wan_masq)
+    ajax_attr.span.id = "leaseobtained"
+    html[#html+1] = ui_helper.createLabel(T"Lease obtained", cs["leaseobtained"], ajax_attr)
+    ajax_attr.span.id = "leaseexpires"
+    html[#html+1] = ui_helper.createLabel(T"Lease expires", cs["leaseexpires"], ajax_attr)
     ajax_attr.span.id = "ipaddr"
     html[#html+1] = ui_helper.createLabel(T"IP address", cs["ipaddr"], ajax_attr)
     ajax_attr.span.id = "nexthop"
@@ -345,10 +379,12 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 			html[#html+1] = ui_helper.createLabel(T"IPv6 DNS", cs["dnsv6"], ajax_attr)
 		end
 	end
-	ajax_attr.span.id = "leaseobtained"
-    html[#html+1] = ui_helper.createLabel(T"Lease obtained", cs["leaseobtained"], ajax_attr)
-	ajax_attr.span.id = "leaseexpires"
-    html[#html+1] = ui_helper.createLabel(T"Lease expires", cs["leaseexpires"], ajax_attr)
+    if content["uci_wan_peerdns"] == "" then
+        content["uci_wan_peerdns"] = "1"
+    end
+    html[#html+1] = ui_helper.createSwitch(T"Auto Discover DNS", "uci_wan_peerdns", content["uci_wan_peerdns"])
+    html[#html+1] = format('<label class="control-label">%s</label><div class="controls">', T"DNS servers")
+    html[#html+1] = ui_helper.createTable(dns_columns, dns_data, dns_options, nil, dns_helpmsg)
 
     ngx.print(html)
   ngx.print('\
