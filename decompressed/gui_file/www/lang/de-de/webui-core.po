@@ -3418,40 +3418,40 @@ msgid "Connecting..."
 msgstr "Verbinde..."
 
 msgid "Check Complete"
-msgstr ""
+msgstr "Überprüfung beendet"
 
 msgid "Comunicate real version to cwmp"
-msgstr ""
+msgstr "Übermittle wirkliche Version an cwmp"
 
 msgid "Comunicate latest stable version set from rootscript to cwmp"
-msgstr ""
+msgstr "Übermittle aktuellste stabile Version, die im root-Skript gesetzt wurde, an cwmp"
 
 msgid "Set the version to comunicate to cwmp manually"
-msgstr ""
+msgstr "Setze die an cmwp übermittelte Version manuell"
 
 msgid "Dot"
-msgstr ""
+msgstr "Punkt"
 
 msgid "<p>%s GUI Version "
-msgstr ""
+msgstr "<p>%s GUI Version "
 
 msgid "<p>Coded & Expanded by <font style=\"color:#0088cc;\">Ansuel</font> and <a href=\"https://github.com/Ansuel/tch-nginx-gui/graphs/contributors\">these GitHub users.</a><br>Unlock Utility by <font style=\"color:#0088cc;\">ADeltaX</font>"
-msgstr ""
+msgstr "<p>Geschrieben und erweitert von <font style=\"color:#0088cc;\">Ansuel</font> und <a href=\"https://github.com/Ansuel/tch-nginx-gui/graphs/contributors\">diesen GitHub Nutzern.</a><br>Entsperrwerkzeug von <font style=\"color:#0088cc;\">ADeltaX</font>"
 
 msgid " && Translated by <font style=\"color:#0088cc;\">%s</font>"
-msgstr ""
+msgstr " && Übersetzt von <font style=\"color:#0088cc;\">%s</font>"
 
 msgid "IPv4 Only"
-msgstr ""
+msgstr "Nur IPv4"
 
 msgid "IPv6 Only"
-msgstr ""
+msgstr "Nur IPv6"
 
 msgid "Prefer IPv4"
-msgstr ""
+msgstr "Bevorzuge IPv4"
 
 msgid "Prefer IPv6"
-msgstr ""
+msgstr "Bevorzuge IPv6"
 
 msgid "Add new DNS server"
-msgstr ""
+msgstr "Füge neuen DNS Server hinzu"
