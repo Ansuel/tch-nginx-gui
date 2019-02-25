@@ -60,9 +60,6 @@ msgstr "Anrufprotokoll"
 msgid "Call Statistics"
 msgstr "Anrufstatistik"
 
-msgid "Status"
-msgstr "Status"
-
 msgid "Line Status"
 msgstr "Leitungsstatus"
 
