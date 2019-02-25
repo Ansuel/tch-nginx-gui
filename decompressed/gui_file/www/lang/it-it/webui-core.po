@@ -83,64 +83,64 @@ msgstr "<p>L'assistenza remota è attualmente abilitata. </p><p><br/>Fai clic su
 
 msgid "<strong %1$s>%2$d DNS Server</strong>"
 msgid_plural "<strong %1$s>%2$d DNS Servers</strong>"
-msgstr[0] "<strong %1$s>%2$d Server DNS</strong>"
-msgstr[1] "<strong %1$s>%2$d Servers DNS</strong>"
+msgstr[0] "<strong %1$s>%2$d</strong> server DNS"
+msgstr[1] "<strong %1$s>%2$d</strong> servers DNS"
 
 msgid "<strong %1$s>%2$d Disabled Helper</strong>"
 msgid_plural "<strong %1$s>%2$d Disabled Helpers</strong>"
-msgstr[0] "<strong %1$s>%2$d Helper disabilitato</strong>"
-msgstr[1] "<strong %1$s>%2$d Helper disabilitati</strong>"
+msgstr[0] "<strong %1$s>%2$d</strong> helper disabilitato"
+msgstr[1] "<strong %1$s>%2$d</strong> helper disabilitati"
 
 msgid "<strong %1$s>%2$d Enabled Helper</strong>"
 msgid_plural "<strong %1$s>%2$d Enabled Helpers</strong>"
-msgstr[0] "<strong %1$s>%2$d Helper abilitato</strong>"
-msgstr[1] "<strong %1$s>%2$d Helper abilitati</strong>"
+msgstr[0] "<strong %1$s>%2$d</strong> helper abilitato"
+msgstr[1] "<strong %1$s>%2$d</strong> helper abilitati"
 
 msgid "<strong %1$s>%2$d Route</strong>"
 msgid_plural "<strong %1$s>%2$d Routes</strong>"
-msgstr[0] "<strong %1$s>%2$d instradamento</strong>"
-msgstr[1] "<strong %1$s>%2$d instradamenti</strong>"
+msgstr[0] "<strong %1$s>%2$d</strong> instradamento"
+msgstr[1] "<strong %1$s>%2$d</strong> instradamenti"
 
 msgid "<strong %s>%d Access Control</strong> rule defined"
 msgid_plural "<strong %s>%d Access Control</strong> rule defined"
-msgstr[0] "<strong %s>%d regola controllo accessi</strong>"
-msgstr[1] "<strong %s>%d regole controllo accessi</strong>"
+msgstr[0] "<strong %s>%d</strong> regola controllo accessi"
+msgstr[1] "<strong %s>%d</strong> regole controllo accessi"
 
 msgid "<strong %s>%d UPnP</strong> rule is active"
 msgid_plural "<strong %s>%d UPnP</strong> rules are active"
-msgstr[0] "<strong %s>%d regola UPnP attiva</strong>"
-msgstr[1] "<strong %s>%d regole UPnP attive</strong>"
+msgstr[0] "<strong %s>%d</strong> regola UPnP attiva"
+msgstr[1] "<strong %s>%d</strong> regole UPnP attive"
 
 msgid "<strong %s>%d Wireless Time Control</strong> rule defined"
 msgid_plural "<strong %s>%d Wireless Time Control</strong> rule defined"
-msgstr[0] "<strong %s>%d regola pianificazione wireless</strong>"
-msgstr[1] "<strong %s>%d regole pianificazione wireless</strong>"
+msgstr[0] "<strong %s>%d</strong> regola pianificazione wireless"
+msgstr[1] "<strong %s>%d</strong> regole pianificazione wireless"
 
 msgid "<strong %s>%d port forwarding</strong> rule is defined"
 msgid_plural "<strong %s>%d port forwarding</strong> rules are defined"
-msgstr[0] "<strong %s>%d regola mappatura porte</strong>"
-msgstr[1] "<strong %s>%d regole mappatura porte</strong>"
+msgstr[0] "<strong %s>%d</strong> regola mappatura porte"
+msgstr[1] "<strong %s>%d</strong> regole mappatura porte"
 
 msgid "<strong id = \"Ethernet_Devices\" %1$s>%2$d Ethernet device</strong> connected"
 msgid_plural "<strong id = \"Ethernet_Devices\" %1$s>%2$d Ethernet devices</strong> connected"
-msgstr[0] "<strong id = \"Ethernet_Devices\" %1$s>%2$d dispositivo ethernet connesso</strong>"
-msgstr[1] "<strong id = \"Ethernet_Devices\" %1$s>%2$d dispositivi ethernet connessi</strong>"
+msgstr[0] "<strong id = \"Ethernet_Devices\" %1$s>%2$d</strong> dispositivo ethernet connesso"
+msgstr[1] "<strong id = \"Ethernet_Devices\" %1$s>%2$d</strong> dispositivi ethernet connessi"
 
 msgid "<strong id = \"Wifi_Devices\" %1$s>%2$d Wi-Fi device</strong> connected"
 msgid_plural "<strong id = \"Wifi_Devices\" %1$s>%2$d Wi-Fi devices</strong> connected"
-msgstr[0] "<strong id = \"Wifi_Devices\" %1$s>%2$d dispositivo Wi-Fi connesso</strong>"
-msgstr[1] "<strong id = \"Wifi_Devices\" %1$s>%2$d dispositivi Wi-Fi connessi</strong>"
+msgstr[0] "<strong id = \"Wifi_Devices\" %1$s>%2$d</strong> dispositivo Wi-Fi connesso"
+msgstr[1] "<strong id = \"Wifi_Devices\" %1$s>%2$d</strong> dispositivi Wi-Fi connessi"
 
 msgid "<strong id = \"Wifi_Devices\" %1$s>%2$d WiFi device</strong> connected"
 msgid_plural "<strong id = \"Wifi_Devices\" %1$s>%2$d WiFi devices</strong> connected"
-msgstr[0] "<strong id = \"Wifi_Devices\" %1$s>%2$d dispositivo Wi-Fi connesso</strong>"
-msgstr[1] "<strong id = \"Wifi_Devices\" %1$s>%2$d dispositivi Wi-Fi connessi</strong>"
+msgstr[0] "<strong id = \"Wifi_Devices\" %1$s>%2$d</strong> dispositivo Wi-Fi connesso"
+msgstr[1] "<strong id = \"Wifi_Devices\" %1$s>%2$d</strong> dispositivi Wi-Fi connessi"
 
 msgid "<strong>%d</strong> IPv4 rule(s) defined<br>"
-msgstr "<strong>%d regole IPv4</strong>"
+msgstr "<strong>%d</strong> regole IPv4 definite"
 
 msgid "<strong>%d</strong> IPv6 rule(s) defined"
-msgstr "<strong>%d regole IPv6</strong>"
+msgstr "<strong>%d</strong> regole IPv6 definite"
 
 msgid "<strong>Disabled for now... need to wait @Roleo</strong>"
 msgstr "<strong>Disabilitata per ora. Occorre attendere @Roleo</strong>"
@@ -401,7 +401,7 @@ msgid "Bank Check"
 msgstr "Verifica banco"
 
 msgid "Bank Info"
-msgstr "Informazioni banco"
+msgstr "Banco di memoria"
 
 msgid "Base Code"
 msgstr "Codice base"
@@ -455,7 +455,7 @@ msgid "Bridged connection"
 msgstr "Connessione bridge"
 
 msgid "Broadband"
-msgstr "Banda Larga"
+msgstr "Banda larga"
 
 msgid "Broadband Connection"
 msgstr "Connessione a banda larga"
@@ -482,7 +482,7 @@ msgid "CWMP"
 msgstr "Telegestione (CWMP)"
 
 msgid "CWMP Settings"
-msgstr "Impostazioni telegestione (CWMP)"
+msgstr "Telegestione (CWMP)"
 
 msgid "Can't recover dslam version."
 msgstr "Impossibile rilevare la versione del DSLAM."
@@ -1202,13 +1202,13 @@ msgid "GUI Version"
 msgstr "Versione GUI"
 
 msgid "Gateway IP is <strong id=\"Gateway_Ip\">%s</strong> and Mask is <strong id=\"Netmask_Ip\">%s</strong>"
-msgstr "IP gateway <strong id=\"Gateway_Ip\">%s</strong><br/> e maschera rete <strong id=\"Netmask_Ip\">%s</strong></br>"
+msgstr "IP modem <strong id=\"Gateway_Ip\">%s</strong><br/> e maschera rete <strong id=\"Netmask_Ip\">%s</strong></br>"
 
 msgid "Gateway IP should not be in "
-msgstr "L'IP del gateway non deve essere in "
+msgstr "L'IP del modem non deve essere in "
 
 msgid "Gateway IP should not be in SFP interface IP Range, change that first"
-msgstr "L'IP del gateway non dovrebbe essere nell'intervallo di indirizzi IP dell'interfaccia SFP.<br/>Cambialo prima"
+msgstr "L'IP del modem non dovrebbe essere nell'intervallo di indirizzi IP dell'interfaccia SFP.<br/>Cambialo prima"
 
 msgid "Gateway in bridge mode"
 msgstr "Gateway in modalità bridge"
@@ -1427,7 +1427,7 @@ msgid "Interfaces"
 msgstr "Interfacce"
 
 msgid "Interface <strong>%s</strong> status"
-msgstr "Stato Interfaccia <strong>%s</strong>"
+msgstr "Stato interfaccia <strong>%s</strong>"
 
 msgid "Interface Disabled"
 msgstr "Interfaccia disabilitata"
@@ -1442,7 +1442,7 @@ msgid "Interface Type"
 msgstr "Tipo interfaccia"
 
 msgid "Interfaces:<strong>%s</strong>"
-msgstr "Interfacce:<strong>%s</strong>"
+msgstr "Interfacce: <strong>%s</strong>"
 
 msgid "Limited. Expect dropouts."
 msgstr "Limitato. Attese perdite."
@@ -1940,7 +1940,7 @@ msgid "Periodic Interval"
 msgstr "Intervallo periodico"
 
 msgid "Periodic: <strong id=\"cwmpconfcard_periodicinterval\">%s</strong>"
-msgstr "Periodicità: <strong id=\"cwmpconfcard_periodicinterval\">%s</strong>"
+msgstr "Intervallo: <strong id=\"cwmpconfcard_periodicinterval\">%s</strong>"
 
 msgid "Permanent"
 msgstr "Permanente"
@@ -2282,7 +2282,7 @@ msgid "Security for this wireless network is disabled, anybody can connect to it
 msgstr "La sicurezza per questa rete wireless è disabilitata; chiunque può connetersi."
 
 msgid "Select the <strong>\"Reset\"</strong> button to confirm resetting the password to the default value."
-msgstr "Fai clic sul pulsante <strong>'Ripristina'</strong> per confermare il ripristino della password al valore predefinito."
+msgstr "Fai clic sul pulsante <strong>Ripristina</strong> per confermare il ripristino della password al valore predefinito."
 
 msgid "Selection"
 msgstr "Selezione"
@@ -2570,7 +2570,7 @@ msgid "The currently selected connection mode prevents the device from downloadi
 msgstr "Il tipo di connessione attualmente selezionato impedisce che il dispositivo possa scaricare aggiornamenti.<br/>Scarica ed applica gli aggiornamenti in modo manuale."
 
 msgid "The modem has been updated automatically at <strong>%s:00</strong> to version <strong>%s</strong> successfully"
-msgstr "Il modem è stato corretamente aggiornato automaticamente alle <strong>%s:00</strong> alla versione <strong>%s</strong>"
+msgstr "Il modem è stato corretamente aggiornato automaticamente alla versione <strong>%s</strong> alle <strong>%s:00</strong>"
 
 msgid "The modem has been updated to version <strong>%s</strong> successfully"
 msgstr "Il modem è stato correttamente aggiornato alla versione <strong>%s</strong>"
@@ -2792,7 +2792,7 @@ msgid "Update GUI"
 msgstr "Aggiornamento GUI"
 
 msgid "Update available! Version: <strong id=\"new-version-text\">%s</strong>"
-msgstr "Aggiornamento disponibile! Versione: <strong id=\"new-version-text\">%s</strong>"
+msgstr "Aggiornamento disponibile!<br/>Versione: <strong id=\"new-version-text\">%s</strong>"
 
 msgid "Update failed; please try again."
 msgstr "Aggiornamento fallito. Riprova."
@@ -2909,10 +2909,10 @@ msgid "WAN Graph"
 msgstr "Grafico WAN"
 
 msgid "WAN IP is <strong id =\"wan_ip\">%s</strong>"
-msgstr "L´indirizzo WAN è <strong id =\"wan_ip\">%s</strong>"
+msgstr "Indirizzo IP WAN <strong id =\"wan_ip\">%s</strong>"
 
 msgid "WAN IP is <strong>%s</strong>"
-msgstr "L'IP WAN è <strong>%s</strong>"
+msgstr "Indirizzo IP WAN <strong>%s</strong>"
 
 msgid "WAN Services"
 msgstr "Servizi WAN"
@@ -3222,8 +3222,8 @@ msgstr "Firmware DSLAM"
 
 msgid "<strong %s>%d Wireless Control</strong> rule defined"
 msgid_plural "<strong %s>%d Wireless Control</strong> rules defined"
-msgstr[0] "<strong %s>%d regola pianificazione wireless</strong>"
-msgstr[1] "<strong %s>%d regole pianificazione wireless</strong>"
+msgstr[0] "<strong %s>%d</strong> regola pianificazione wireless"
+msgstr[1] "<strong %s>%d</strong> regole pianificazione wireless"
 
 msgid "WanSensing sets the connection mode automatically.<br/>Disable this to set the connection mode manually.<br/>After saving the changes the connection options will be shown."
 msgstr "La rilevazione WAN imposta la connessione in modo automatico.<br/>Disabilita questa opzione per impostare la connessione in modo manuale.<br/>Dopo il salvataggio verranno visualizzate le opzioni di connessione."
@@ -3268,7 +3268,7 @@ msgid "NAT Helpers"
 msgstr "Helper NAT"
 
 msgid "Key Info"
-msgstr "Info chiave"
+msgstr "Chiave decodifica"
 
 msgid "Config decrypt key"
 msgstr "Chiave decodifica configurazione"
@@ -3433,10 +3433,25 @@ msgid "Dot"
 msgstr "Punto"
 
 msgid "<p>%s GUI Version "
-msgstr "<p>Versione GUI %s "
+msgstr "<p>GUI %s "
 
 msgid "<p>Coded & Expanded by <font style=\"color:#0088cc;\">Ansuel</font> and <a href=\"https://github.com/Ansuel/tch-nginx-gui/graphs/contributors\">these GitHub users.</a><br>Unlock Utility by <font style=\"color:#0088cc;\">ADeltaX</font>"
 msgstr "<p>Codice ed espansione di <font style=\"color:#0088cc;\">Ansuel</font> e <a href=\"https://github.com/Ansuel/tch-nginx-gui/graphs/contributors\">questi utenti GitHub.</a><br>Utiliy di sblocco di <font style=\"color:#0088cc;\">ADeltaX</font>"
 
 msgid " && Translated by <font style=\"color:#0088cc;\">%s</font>"
-msgstr " && tradotto da <font style=\"color:#0088cc;\">%s</font>"
+msgstr " - Traduzione GUI di <font style=\"color:#0088cc;\">%s</font>"
+
+msgid "IPv4 Only"
+msgstr "Solo IPv4"
+
+msgid "IPv6 Only"
+msgstr "Solo IPv6"
+
+msgid "Prefer IPv4"
+msgstr "Preferibilmente iPv4"
+
+msgid "Prefer IPv6"
+msgstr "Preferibilmente iPv6"
+
+msgid "Add new DNS server"
+msgstr "Aggiungi nuovo server DNS"

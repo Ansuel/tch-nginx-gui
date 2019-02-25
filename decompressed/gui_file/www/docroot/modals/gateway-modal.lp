@@ -552,7 +552,7 @@ end
 
   ngx.print('\
 \
-');  ngx.print(ui_helper.createHeader(T"Gateway", true, true))   ngx.print('\
+');  ngx.print(ui_helper.createHeader(T"Modem", true, true))   ngx.print('\
 <div class="modal-body update">\
 ');
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
