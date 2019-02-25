@@ -3425,3 +3425,15 @@ msgstr "Comunica a cwmp l'ultima versione stabile impostata dallo script root"
 
 msgid "Set the version to comunicate to cwmp manually"
 msgstr "Imposta manualmente la versione da comunicare a cwmp"
+
+msgid "Bridge connected"
+msgstr ""
+
+msgid "Bridge not connected"
+msgstr ""
+
+msgid "Bridge disabled"
+msgstr ""
+
+msgid "Connecting..."
+msgstr ""
