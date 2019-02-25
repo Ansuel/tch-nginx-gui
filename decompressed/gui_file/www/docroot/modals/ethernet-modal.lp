@@ -524,7 +524,13 @@ local sfp_presence = proxy.get("uci.env.rip.sfp")
 local mapParSFP = {}
 local mapValSFP = {}
 
+local sfpintf = "sfptag"
+
 if sfp_presence and  (sfp_presence[1].value == "1") then
+    --if sfptag interface not found change name to sfp (fastweb naming)
+    if not proxy.get("uci.network.interface.@"..sfpintf..".ipaddr")  then
+        sfpintf = "sfp"
+    end
     mapParSFP.ethsfp = "uci.ethernet.globals.eth4lanwanmode"
     mapValSFP.ethsfp = vB
 else
@@ -549,7 +555,7 @@ local mapParams = {
 }
 
 if sfp_presence and  (sfp_presence[1].value == "1") then
-    mapParams["sfplocalip"] = "uci.network.interface.@sfptag.ipaddr"
+    mapParams["sfplocalip"] = "uci.network.interface.@"..sfpintf..".ipaddr"
 end
 
 local ethports = {
@@ -850,7 +856,7 @@ local function validateGWIP(value, object, key)
                 local mask = proxy.get("uci.network.interface.@" .. intf.paramindex .. ".netmask")[1].value
                 local baseip = post_helper.validateStringIsIP(ipaddr) and ipv42num(ipaddr)
                 local netmask = post_helper.validateStringIsIP(mask) and ipv42num(mask)
-                local sfplocalip = proxy.get("uci.network.interface.@sfptag.ipaddr")
+                local sfplocalip = proxy.get("uci.network.interface.@"..sfpintf..".ipaddr")
 
                 if sfplocalip and sfplocalip[1].value then
                     sfplocalip = sfplocalip[1].value
@@ -904,7 +910,6 @@ local function validateSFPIP(value, object, key)
         local ipvalue = post_helper.validateStringIsIP(value) and ipv42num(value)
         local ipmask = post_data["localdevmask"]
         local ipnetmask = post_helper.validateStringIsIP(ipmask) and ipv42num(ipmask)
-        local sfpintf = "sfptag"
 
         local ipnetwork, ipmaxvalue
         if ipvalue and ipnetmask then
