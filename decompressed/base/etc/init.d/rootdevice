@@ -284,7 +284,7 @@ cumulative_check_gui() {
 		else
 			gui_hash=$(md5sum /root/GUI$update_branch.tar.bz2 | awk '{ print $1}' )
 		fi
-		if [ "$old_gui_hash" != "gui_hash" ]; then
+		if [ "$old_gui_hash" != "$gui_hash" ]; then
 			logger_command "Detected upgrade!"
 			logger_command "Old GUI hash: $old_gui_hash"
 			logger_command "New GUI hash: $gui_hash"
