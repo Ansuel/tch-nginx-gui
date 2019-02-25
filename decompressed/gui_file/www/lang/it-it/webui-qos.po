@@ -17,13 +17,13 @@ msgstr ""
 
 msgid "<strong>%s classify rule(s)</strong> active"
 msgid_plural "<strong>%s classify rule(s)</strong> active"
-msgstr[0] "<strong>%s regola classificazione</strong> attiva"
-msgstr[1] "<strong>%s regole classificazione</strong> attive"
+msgstr[0] "<strong>%s</strong> regola classificazione attiva"
+msgstr[1] "<strong>%s</strong> regole classificazione attive"
 
 msgid "<strong>%s queue(s)</strong> active"
 msgid_plural "<strong>%s queue(s)</strong> active"
-msgstr[0] "<strong>%s coda</strong> attiva"
-msgstr[1] "<strong>%s code</strong> attive"
+msgstr[0] "<strong>%s</strong> coda attiva"
+msgstr[1] "<strong>%s</strong> code attive"
 
 msgid "Add New Label"
 msgstr "Aggiungi nuova etichetta"

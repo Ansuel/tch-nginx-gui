@@ -3440,3 +3440,18 @@ msgstr ""
 
 msgid " && Translated by <font style=\"color:#0088cc;\">%s</font>"
 msgstr ""
+
+msgid "IPv4 Only"
+msgstr ""
+
+msgid "IPv6 Only"
+msgstr ""
+
+msgid "Prefer IPv4"
+msgstr ""
+
+msgid "Prefer IPv6"
+msgstr ""
+
+msgid "Add new DNS server"
+msgstr ""
