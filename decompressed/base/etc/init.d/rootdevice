@@ -122,7 +122,6 @@ setup_network() {
 	if [ ! "$(uci -q get network.lan.pppoerelay)" ]; then
 		uci -q add_list network.lan.pppoerelay=''
 	fi
-	sed -i -e 's/option pppoerelay/list pppoerelay/g' /etc/config/network
 
 	#Set a waneth4 interface if not found (fix wizard on UNO)
 	if [ ! "$(uci -q get network.waneth4)" ]; then
@@ -244,7 +243,7 @@ cumulative_check_gui() {
 			logger_command "Stable GUI not found in /tmp..."
 			logger_command "Checking if GUI_dev is present in /tmp"
 			if [ -f /tmp/GUI_dev.tar.bz2 ]; then
-				logger_command "Found GUI_dev in /tmp, copying it as stable to generate a valid hash"
+				logger_command "Found GUI_dev in /tmp, copying to stable to generate a valid hash"
 				cp /tmp/GUI_dev.tar.bz2 /root/GUI.tar.bz2
 			elif ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then
 				logger_command "Downloading stable..."
@@ -257,7 +256,7 @@ cumulative_check_gui() {
 			cp /tmp/GUI.tar.bz2 /root
 		fi
 		if [ -f /root/GUI.tar.bz2 ] && [ -s /root/GUI.tar.bz2 ]; then
-			logger_command "Assume first times install, cleaning /www dir and reinstall"
+			logger_command "Assuming first time install, cleaning /www dir and reinstalling"
 			rm -r /www/*
 			bzcat /root/GUI.tar.bz2 | tar -C / -xf - www
 		fi
@@ -547,7 +546,7 @@ transformer_lib_check() {
 		logger_command "Found gui here: "$gui_pos
 		if [ $gui_pos != "" ] && [ -s $gui_pos ]; then
 			bzcat $gui_pos | tar -C / -xf - usr #reapply the upgrade as in the gui we store some of this file that we restored
-			logger_command "Restoring transformer lib"
+			logger_command "Restoring transformer lib" #What is going on here? Doesn't even restart transformer???
 		fi
 		#/etc/init.d/transformer restart
 	fi
@@ -623,7 +622,7 @@ eco_param() {
 		uci set power.cpu=cpu
 		uci set power.cpu.cpuspeed='256'
 		uci set power.cpu.wait='1'
-		logger_command "Restart power init"
+		logger_command "Restarting power management"
 		/etc/init.d/power restart
 	fi
 }
@@ -1147,7 +1146,8 @@ unlock_ssh_wan_tiscali() {
 telstra_support_check() {
 	################# telstra gui support ###################
 	# We add rule anyway as if not present nginx gves 404 ###
-
+        logger_command "Checking to see if the Telstra Basic GUI is supported"
+	
 	if [ ! "$(uci get -q web.telstra_broadband.target)" ]; then
 		uci set web.telstra_broadband=rule
 		uci set web.telstra_broadband.target='/telstra-modals/broadband.lp'
@@ -1331,6 +1331,7 @@ telstra_support_check() {
 
 wan_sensing_clean() {
 	#This will try to clean every hardcoded setting from isp config
+	logger_command "Cleaning WanSensing"
 	if [ -f /etc/wansensing/L2EntryExit.lua ]; then
 		sed -i '/[cC][wW][mM][pP][dD]/d' /etc/wansensing/L2EntryExit.lua
 		sed -i '/mtu= "1500"/{N;d}' /etc/wansensing/L2EntryExit.lua
@@ -1421,7 +1422,7 @@ rootchecks() {
 		store_pass_in_uci
 	fi
 
-	logger_command "Setting dropbear settings"
+	logger_command "Setting & Enabling Dropbear SSH Server"
 	uci set dropbear.@dropbear[0].Interface='lan'
 	uci set dropbear.@dropbear[0].RootLogin='1'
 	uci set dropbear.@dropbear[0].RootPasswordAuth='on' #dropbear root related
@@ -1431,13 +1432,13 @@ rootchecks() {
 	uci commit dropbear
 	uci commit modgui
 
-	logger_command "Restarting dropbear"
+	logger_command "Restarting Dropbear SSH Server"
 	/etc/init.d/dropbear restart > /dev/null
 }
 
 ledfw_rework_TG799() {
 	if [ ! "$(uci get -q button.info)" ]; then
-		logger_command "Extracting ledfw_support-specificTG799.tar.bz2 and setting up status button..."
+		logger_command "Extracting ledfw_support-specificTG799.tar.bz2 and setting up status (power) button..."
 		uci del button.easy_reset
 		uci set button.info=button
 		uci set button.info.button='BTN_3'
@@ -1464,7 +1465,7 @@ ledfw_rework_TG799() {
 
 ledfw_rework_TG800() {
 	if [ ! "$(uci get -q button.info)" ]; then
-		logger_command "Extracting ledfw_support-specificTG800.bz2 and setting up wifi button..."
+		logger_command "Extracting ledfw_support-specificTG800.bz2 and setting up status (wifi) button..."
 		uci del button.easy_reset
 		uci set button.info=button
 		uci set button.info.button='BTN_1'
@@ -1771,9 +1772,9 @@ prevent_total_brick() {
 check_low_space_device() {
 	overlay_space=$(df /overlay | sed -n 2p | awk {'{print $2}'})
 	if [ "$overlay_space" -lt 33000 ]; then
-		logger -s -t 'Root Script' "Detected low mem device..."
+		logger -s -t 'Root Script' "Detected low flash space device..."
 		if [ -f /root/GUI_dev.tar.bz2 ]; then
-			logger -s -t 'Root Script' "Removing stabe gui and renaming dev as stable"
+			logger -s -t 'Root Script' "Removing stable GUI and renaming dev to stable"
 			if [ -f /root/GUI.tar.bz2 ]; then
 				rm /root/GUI.tar.bz2
 			fi
@@ -1806,7 +1807,7 @@ root() {
 	#THIS CHECK DEVICE TYPE AND INSTALL SPECIFIC FILE
 	device_type="$(uci get -q env.var.prod_friendly_name)"
 
-	logger_command "Apply specific device file..."
+	logger_command "Applying specific model fixes..."
 	[ -z "${device_type##*DGA413*}" ] && apply_specific_DGA_package
 	[ -z "${device_type##*TG789*}" ] && apply_specific_TG789_package
 	[ -z "${device_type##*TG799*}" ] && apply_specific_TG799_package
@@ -1818,7 +1819,7 @@ root() {
 
 	if [ -f /tmp/custom-ripdrv-specificDGA.tar.bz2 ]; then
 		clean_specific_file
-		logger_command "Removing specific file and resuming root process..."
+		logger_command "Removing fixes and resuming root process..."
 	fi
 
 	logger_command "Disable watchdog"
@@ -1835,22 +1836,22 @@ root() {
 
 	logger_command "Unlocking web interface if needed"
 	check_webui_config
-	logger_command "Check variant_friendly_name set"
+	logger_command "Check if variant_friendly_name set"
 	check_variant_friendly_name
 	logger_command "Check and cleanup"
 	add_ipoe #this need to stay to make the wizard work correctly
-	logger_command "Remove default dns"
+	logger_command "Remove default DNS Servers"
 	remove_default_dns #tim sets his dns on to of the loopback interface
 	setup_network #Fix some missing network value
-	logger_command "Purify wan"
+	logger_command "Purify WAN"
 	puryfy_wan_interface #remove gracefull restart, could give problem
-	logger_command "Fix dns bug"
+	logger_command "Fix DNS bug"
 	fix_dns_dhcp_bug #disable odhcpd as ipv6 is currently broken 
-	[ -z "${device_type##*DGA413*}" ] && logger_command "Enable dlnad"
+	[ -z "${device_type##*DGA413*}" ] && logger_command "Enable DLNAd"
 	[ -z "${device_type##*DGA413*}" ] && check_new_dlnad #this enable a new dlna deamon introduced with 17.1, the old one is keep
 	logger_command "Fix Sysupgrade"
 	check_upgrade_shit #this if old script are present to fix sysupgrade
-	logger_command "Check orig config"
+	logger_command "Check original config"
 	orig_config_gen #this check if new config are already present
 	logger_command "Restore original mapper"
 	restore_original_mapper #this restore the original file autogenerated as they are specific to the build version.
@@ -1858,70 +1859,71 @@ root() {
 	[ -z "${device_type##*DGA413*}" ] && transformer_lib_check #another cleanup
 	logger_command "Remove https check"
 	remove_https_check_cwmpd #cleanup
-	logger_command "Check css presence"
+	logger_command "Check for CSS themes"
 	check_uci_gui_skin #check css
-	logger_command "Check if dnsmasq is names as we need it for the webui"
+	logger_command "Check if dnsmasq daemon name is as we need it for the GUI"
 	check_dnsmasq_name #check dnsmasq name in uci
 	logger_command "Check driver setting"
 	create_driver_setting #create diver setting if not present
 	logger_command "Check Dropbear config file"
 	dropbear_file_check  #check dropbear config
-	logger_command "Check ddns directory"
+	logger_command "Check DDNS directory"
 	check_noip_file #check ddns directory in /etc
-	logger_command "Check eco param"
+	logger_command "Check eco paramaters"
 	eco_param #This disable eco param as they introduce some latency
 	[ -z "${device_type##*DGA413*}" ] && logger_command "Enable new upnp"
 	[ -z "${device_type##*DGA413*}" ] && enable_new_upnp #New upnp fix
-	logger_command "Sync dhcp configuration for new webui"
+	logger_command "Sync DHCP configuration for new GUI"
 	update_dhcp_config #Dhcp sync
-	logger_command "Create gui type in config"
+	logger_command "Create GUI type in config"
 	create_gui_type #Gui Type
-	logger_command "Add new web option"
+	logger_command "Add new web options"
 	add_new_web_rule #This check new option so that we don't replace the one present
 	logger_command "New DHCPRelay Option"
 	check_relay_dhcp #Sync option
 	logger_command "Disable trace from igmpproxy"
 	suppress_excessive_logging #Suppress logging
-	logger_command "Moving aria2 dir"
+	logger_command "Move Aria2 dir"
 	check_aria_dir #Fix config function
-	logger_command "Creating new option for led definition"
+	logger_command "Create new option for led definitions"
 	led_integration #New option led
 	[ -z "${device_type##*DGA413*}" ] && logger_command "Old build detected, moving wansensing file"
 	[ -z "${device_type##*DGA413*}" ] && check_wansensing # Move wansensing file to old directory
 	[ -z "${device_type##*DGA413*}" ] && logger_command "Checking downgrade limitation bit"
 	[ -z "${device_type##*DGA413*}" ] && remove_downgrade_bit #Use custom driver to remove this... thx @Roleo
-	[ -z "${device_type##*DGA413*}" ] && logger_command "Checking opkg conf"
+	[ -z "${device_type##*DGA413*}" ] && logger_command "Checking opkg feeds config"
 	[ -z "${device_type##*DGA413*}" ] && apply_right_opkg_repo #Check opkg conf based on version
 	logger_command "Creating and checking real version"
 	real_ver_entitied #Support for spoofing firm
-	logger_command "Creating new wol implementation"
+	logger_command "Implementing WoL"
 	new_wol_implementation #New Wol
-	logger_command "Sync new xdsl option"
+	logger_command "Apply new xDSL options"
 	add_xdsl_option #New xdsl option
-	logger_command "Creating utility simbolic link"
-	create_simbolic_utility #This create simbolic link
-	logger_command "Clean old script"
+	logger_command "Creating utility symbolic link"
+	create_simbolic_utility #This create symbolic link
+	logger_command "Remove old update script"
 	update_checkver_upgrade_script #This clean old script
 	logger_command "Adding fast cache options"
 	fcctlsettings_daemon #Adds fast cache options
-	[ "$device_type" == "DGA4132" ] && logger_command "Reworking sfp interface in network..."
+	[ "$device_type" == "DGA4132" ] && logger_command "Reworking sfp interface in network config..."
 	[ "$device_type" == "DGA4132" ] && sfp_rework #sfp to sfptag, to solve local ip problem
-	[ "$device_type" == "MediaAccess TG789vac v2" ] && logger_command "Unlocking ssh for tiscali firmware"
+	[ "$device_type" == "MediaAccess TG789vac v2" ] && logger_command "Unlocking SSH for Tiscali firmware"
 	[ "$device_type" == "MediaAccess TG789vac v2" ] && unlock_ssh_wan_tiscali
-	logger_command "Reinstalling telstra gui if needed..."
+	logger_command "Reinstalling Telstra GUI if needed..."
 	telstra_support_check #telstra support check
-	logger_command "Checking if wan_mode option exist..."
+	logger_command "Checking if wan_mode option exists..."
 	check_wan_mode # wan_mode check
-	logger_command "Inizialize and start dosprotect..."
+	logger_command "Inizialize and start DoSprotect..."
 	dosprotect_inizialize #dosprotected inizialize function
-	logger_command "Checking if intercept is enabled and disabling it if on..."
+	logger_command "Checking if intercept is enabled and disabling if it is..."
 	disable_intercept #Intercept check
-	logger_command "Trying to clean wansensing script from hardcoded interface..."
+	logger_command "Attempt to clean the wansensing script from hardcoded interfaces..."
 	wan_sensing_clean #Wansensing clean utility
-	logger_command "Disabling coredump function..."
+	logger_command "Disabling coredump reboot..."
 	disable_upload_coredump_and_reboot
-	logger_command "Restoring nginx additional option if needed..."
+	logger_command "Restoring nginx additional options if needed..."
 	restore_nginx
+	logger_command "Enabling hardware serial console..."
 	prevent_total_brick
 
 	rootchecks #This check root availability
@@ -1931,7 +1933,7 @@ root() {
 		uci set modgui.var.bank_check="1"
 	fi
 
-	logger_command "Doing various check and generating hash..."
+	logger_command "Doing various checks and generating hashes..."
 	cumulative_check_gui #Handle strange installation
 	check_low_space_device
 
@@ -1948,7 +1950,7 @@ root() {
 		ifup wan
 	fi
 
-	logger_command "Apply modification"
+	logger_command "Applying modifications"
 	uci commit
 	
 	logger_command "Restarting dnsmasq if needed..."
@@ -2038,21 +2040,21 @@ check_full_rootfs() {
 	bootedbank=$( cat /proc/banktable/booted )
 	#Reset if rootfs more than 97% full
 	if [ "$rootfx_percet" -gt 96 ]; then
-		logger_command "DETECTED FULL ROOTFS... TRYING RESTORING..."
-		echo "  DETECTED FULL ROOTFS... TRYING RESTORING..." > /dev/console
+		logger_command "DETECTED FULL ROOTFS... TRYING TO RESTORE..."
+		echo "  DETECTED FULL ROOTFS... TRYING TO RESTORE..." > /dev/console
 		for dir in /overlay/"$bootedbank"/* ; do
 			if [ ! "$dir" == "/overlay/$bootedbank/etc" ]; then
-				logger_command "TRYING SAVING ROOT BY REMOVING EVERY DIR EXCEPT /etc"
-				echo "  TRYING SAVING ROOT BY REMOVING EVERY DIR EXCEPT /etc" > /dev/console
+				logger_command "TRYING TO SAVE ROOT BY REMOVING EVERY DIR EXCEPT /etc"
+				echo "  TRYING TO SAVE ROOT BY REMOVING EVERY DIR EXCEPT /etc" > /dev/console
 				rm -r -f "$dir"
 			fi
 		done
 		#Verify if rm did actually remove the file...
 		if [ -d "/overlay/$bootedbank/root" ]; then
-			logger_command "CAN'T REMOVE FILE... TRYING ERASING ROOTFS"
-			echo "  CAN'T REMOVE FILE... TRYING ERASING ROOTFS" > /dev/console
-			logger_command "THIS WILL RESTORE THE MODEM TO THE FACTORY SETTINGS"
-			echo "  THIS WILL RESTORE THE MODEM TO THE FACTORY SETTINGS" > /dev/console
+			logger_command "CAN'T REMOVE FILES... INITIALISING FULL ROOTFS ERASE"
+			echo "  CAN'T REMOVE FILES... INITIALISING FULL ROOTFS ERASE" > /dev/console
+			logger_command "THIS WILL RESTORE THE MODEM TO FACTORY SETTINGS"
+			echo "  THIS WILL RESTORE THE MODEM TO FACTORY SETTINGS" > /dev/console
 			mtd erase -r "$overlay_mtdblock"
 		fi
 	fi
