@@ -9,7 +9,7 @@ local ui_helper = require("web.ui_helper")
 
 local mmpbxd_columns = {
     {--[2]
-        header = T"Status",
+        header = T"Line Status",
         name = "sipRegisterState",
         param = "sipRegisterState",
         type = "text",
@@ -21,7 +21,7 @@ local mmpbxd_columns = {
         type = "text",
     },
     {--[4]
-        header = T"Line State",
+        header = T"Call State",
         name = "callState",
         param = "callState",
         type = "text",
@@ -49,7 +49,7 @@ local mmpbxd_filter = function(data)
         elseif ( data.callState == "MMPBX_CALLSTATE_CALL_DELIVERED" ) then
             data.callState =  "Delivered/In Progress"
         elseif ( data.callState == "MMPBX_CALLSTATE_CONNECTED" ) then
-            data.callState =  "In Call"
+            data.callState =  "In Progress/Connected"
         elseif ( data.callState == "MMPBX_CALLSTATE_ALERTING" ) then
             data.callState =  "Ringing"
         end
