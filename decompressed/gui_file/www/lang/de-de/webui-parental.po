@@ -78,7 +78,7 @@ msgid "custom"
 msgstr "Individuell"
 
 msgid "<p>%s GUI Version "
-msgstr ""
+msgstr "<p>%s GUI Version "
 
 msgid "<p>Coded & Expanded by <font style=\"color:#0088cc;\">Ansuel</font> and <a href=\"https://github.com/Ansuel/tch-nginx-gui/graphs/contributors\">these GitHub users.</a><br>Unlock Utility by <font style=\"color:#0088cc;\">ADeltaX</font>"
-msgstr ""
+msgstr "<p>Geschrieben und erweitert von <font style=\"color:#0088cc;\">Ansuel</font> und <a href=\"https://github.com/Ansuel/tch-nginx-gui/graphs/contributors\">diesen GitHub Nutzern.</a><br>Entsperrwerkzeug von <font style=\"color:#0088cc;\">ADeltaX</font>"
