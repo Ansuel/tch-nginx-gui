@@ -4442,3 +4442,231 @@ msgstr ""
 
 msgid "PHY Rate"
 msgstr ""
+
+msgid 'Removing...'
+msgstr ""
+
+msgid 'Restoring...'
+msgstr ""
+
+msgid 'Assistant'
+msgstr ""
+
+msgid 'Prefer IPv6'
+msgstr ""
+
+msgid 'Rebooting'
+msgstr ""
+
+msgid 'Starting...'
+msgstr ""
+
+msgid 'IPv4 Only'
+msgstr ""
+
+msgid 'Enter the default <strong>"access code"</strong>. This code is located on the label underneath your gateway.'
+msgstr ""
+
+msgid 'WAN IP is <strong id ="wan_ip">%s</strong>'
+msgstr ""
+
+msgid 'Gateway IP is <strong id="Gateway_Ip">%s</strong> and Mask is <strong id="Netmask_Ip">%s</strong>'
+msgstr ""
+
+msgid 'Resetting...'
+msgstr ""
+
+msgid 'Prefer IPv4'
+msgstr ""
+
+msgid 'None'
+msgstr ""
+
+msgid 'Stable'
+msgstr ""
+
+msgid '<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> and <a href="https://github.com/Ansuel/tch-nginx-gui/graphs/contributors">these GitHub users.</a><br>Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>'
+msgstr ""
+
+msgid 'L2TP without UDP-Checksum check'
+msgstr ""
+
+msgid "<p>Remote assistance is currently enabled. </p><p>Click 'Apply'
+msgstr ""
+
+msgid 'Installing...'
+msgstr ""
+
+msgid '802.11b/g'
+msgstr ""
+
+msgid 'Fritz!Box'
+msgstr ""
+
+msgid '802.11b/g/n'
+msgstr ""
+
+msgid 'Red Dark'
+msgstr ""
+
+msgid 'Only IPv4'
+msgstr ""
+
+msgid 'Select the <strong>"Reset"</strong> button to confirm resetting the password to the default value.'
+msgstr ""
+
+msgid 'Resetting'
+msgstr ""
+
+msgid 'Stopping...'
+msgstr ""
+
+msgid 'Firmware update failed; please use the correct firmware.'
+msgstr ""
+
+msgid 'The Backup file you try to load has not been taken from the actual SW-Release, please use correct Backup File'
+msgstr ""
+
+msgid 'Less Ping'
+msgstr ""
+
+msgid 'Upgrading...'
+msgstr ""
+
+msgid '1'
+msgstr ""
+
+msgid '2'
+msgstr ""
+
+msgid '802.11a/n/ac'
+msgstr ""
+
+msgid 'Only PassThru'
+msgstr ""
+
+msgid "1. Max recommened Packet Number is dynamic (uses half of free memory) and may not be accurate.<br/>2. Hardware offload disabled during capture on platforms with flow cache!<br/>3. 'Download'
+msgstr ""
+
+msgid 'Dev'
+msgstr ""
+
+msgid 'Temporary'
+msgstr ""
+
+msgid 'Permanent'
+msgstr ""
+
+msgid 'Green'
+msgstr ""
+
+msgid 'Errorcode: '
+msgstr ""
+
+msgid 'Enhanced Tim'
+msgstr ""
+
+msgid 'Dark/Midnight (Fritz!Box Based)'
+msgstr ""
+
+msgid 'Update available! Version: <strong id="new-version-text">%s</strong>'
+msgstr ""
+
+msgid 'Admin'
+msgstr ""
+
+msgid 'Factory Defaults'
+msgstr ""
+
+msgid 'Restore Gui'
+msgstr ""
+
+msgid 'Only IPv6'
+msgstr ""
+
+msgid 'Guest'
+msgstr ""
+
+msgid 'Basic'
+msgstr ""
+
+msgid 'Remove root'
+msgstr ""
+
+msgid '802.11a/n'
+msgstr ""
+
+msgid 'IPv6 Only'
+msgstr ""
+
+msgid 'WAN IP is <strong>%s<\strong>'
+msgstr ""
+
+msgid ' && Translated by <font style="color:#0088cc;">%s</font>'
+msgstr ""
+
+msgid '<strong>You must reboot modem to apply host rules!</strong>'
+msgstr ""
+
+msgid 'Network Name (SSID)'
+msgstr ""
+
+msgid 'WAN IP is <strong>%s</strong>'
+msgstr ""
+
+msgid 'Blue'
+msgstr ""
+
+msgid "Every filter is a regular expression string; Start with '!'
+msgstr ""
+
+msgid 'Restart Device'
+msgstr ""
+
+msgid 'Channel'
+msgstr ""
+
+msgid 'Disabled'
+msgstr ""
+
+msgid 'Digest'
+msgstr ""
+
+msgid 'IPv4/IPv6'
+msgstr ""
+
+msgid 'Firmware update failed.  Insufficient free memory available. Please reboot and try again.'
+msgstr ""
+
+msgid 'GRE without PassThru'
+msgstr ""
+
+msgid "<p>Remote assistance is currently disabled.</p><p> By clicking on the 'Apply'
+msgstr ""
+
+msgid 'L2TP with UDP-Checksum check'
+msgstr ""
+
+msgid '40MHz'
+msgstr ""
+
+msgid 'Dark/White (Fritz!Box Based)'
+msgstr ""
+
+msgid '<p>%s GUI Version '
+msgstr ""
+
+msgid 'Firmware update failed; build signed with wrong key'
+msgstr ""
+
+msgid 'Violet'
+msgstr ""
+
+msgid 'Firmware update failed.'
+msgstr ""
+
+msgid 'Signal Strength (RSSI)'
+msgstr ""
+
+msgid '80MHz'
+msgstr ""

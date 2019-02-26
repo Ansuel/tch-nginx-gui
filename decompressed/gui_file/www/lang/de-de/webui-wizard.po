@@ -245,3 +245,9 @@ msgstr ""
 
 msgid "WPA+WPA2 PSK"
 msgstr ""
+
+msgid 'Step '
+msgstr ""
+
+msgid ' of '
+msgstr ""

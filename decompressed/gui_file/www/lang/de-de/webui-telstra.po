@@ -590,3 +590,15 @@ msgstr ""
 
 msgid "44"
 msgstr ""
+
+msgid 'No'
+msgstr ""
+
+msgid 'Yes'
+msgstr ""
+
+msgid 'Permanent'
+msgstr ""
+
+msgid 'Temporary'
+msgstr ""

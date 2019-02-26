@@ -351,3 +351,12 @@ msgid "%ds"
 msgid_plural "%ds"
 msgstr[0] ""
 msgstr[1] ""
+
+msgid "The wireless key contains invalid characters, only space, letters, numbers and the following characters !\"#$%&()*+,-./:;<=>?@[\\]^_{|
+msgstr ""
+
+msgid "The wireless key contains invalid characters, only space, letters, numbers and the following characters !\"'`#$%&()*+,-./:;<=>?@[\\]^_{|
+msgstr ""
+
+msgid "Invalid value; enter 'infinite'
+msgstr ""

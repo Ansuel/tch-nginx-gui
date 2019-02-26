@@ -789,3 +789,12 @@ msgstr ""
 
 msgid "Rx Packet Errors"
 msgstr ""
+
+msgid 'MB'
+msgstr ""
+
+msgid 'Interface'
+msgstr ""
+
+msgid 'GB'
+msgstr ""
