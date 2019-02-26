@@ -126,3 +126,18 @@ msgstr "Ja"
 
 msgid "Qos Wireless Status"
 msgstr "QoS Drahtlos Status"
+
+msgid "Port"
+msgstr ""
+
+msgid "DSCP"
+msgstr ""
+
+msgid "Virtual Port"
+msgstr ""
+
+msgid "Qos Port Status"
+msgstr ""
+
+msgid "QoS"
+msgstr ""

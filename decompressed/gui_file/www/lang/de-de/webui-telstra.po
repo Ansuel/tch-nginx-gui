@@ -548,3 +548,45 @@ msgstr "Ihre Internetverbindung ist gerade inaktiv. Sie können folgendes versuc
 
 msgid "Your Internet connection is currently down. You can try the following: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Ethernet cable is firmly connected to the correct port on your Gateway or the Ethernet socket on the wall. <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Restart my gateway."
 msgstr "Ihre Internetverbindung ist gerade inaktiv. Sie können folgendes versuchen: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Prüfen Sie, ob Ihr Ethernet-Kabel mit dem richtigen Eingang Ihres Gateway verbunden ist.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Prüfen Sie, on Ihr Benutzername korrekt ist und geben Sie Ihr Kennwort <a ahref=\"/broadband.lp>hier</a neu ein.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Starten Sie Ihr Gateway neu."
+
+msgid "36"
+msgstr ""
+
+msgid "149"
+msgstr ""
+
+msgid 'No'
+msgstr ""
+
+msgid "48"
+msgstr ""
+
+msgid "Set PIN code"
+msgstr ""
+
+msgid 'Permanent'
+msgstr ""
+
+msgid "153"
+msgstr ""
+
+msgid "40"
+msgstr ""
+
+msgid 'Yes'
+msgstr ""
+
+msgid "157"
+msgstr ""
+
+msgid 'Temporary'
+msgstr ""
+
+msgid "161"
+msgstr ""
+
+msgid "Start"
+msgstr ""
+
+msgid "44"
+msgstr ""

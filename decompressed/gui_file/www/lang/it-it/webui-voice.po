@@ -431,3 +431,21 @@ msgstr "Porta locale"
 
 msgid "Can be used"
 msgstr "Possono essere usati"
+
+msgid "DECT"
+msgstr ""
+
+msgid "Invoke"
+msgstr ""
+
+msgid "Stop"
+msgstr ""
+
+msgid "Realm"
+msgstr ""
+
+msgid "Sip Device"
+msgstr ""
+
+msgid "Codec"
+msgstr ""

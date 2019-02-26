@@ -131,3 +131,18 @@ msgstr "Versione"
 
 msgid "Volume"
 msgstr "Volume"
+
+msgid "no"
+msgstr ""
+
+msgid '<strong>%s</strong> connected devices'
+msgstr ""
+
+msgid '<strong>%d</strong> connected devices'
+msgstr ""
+
+msgid 'Rebooting...'
+msgstr ""
+
+msgid '<strong>%d</strong> connected device'
+msgstr ""
