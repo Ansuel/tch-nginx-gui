@@ -2,8 +2,11 @@
   <ul>
   <li>DGA4132</li>
   <li>DGA4130</li>
+  <li>TG789vac v3</li>
   <li>TG789vac v2</li>
   <li>TG799vac</li>
+  <li>TG799vac XTREAM</li>
+  <li>TG799vac XTREAM 35b</li>
   <li>TG800vac</li>
   </ul>
 with many fixes and new features like:
