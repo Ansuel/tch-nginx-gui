@@ -5380,12 +5380,16 @@ form .switch {
 }
 .header-logo {
 	display: inline-block;
+	margin-right: auto;
+	margin-left: 0;
 	flex-basis: 60rem;
 }
 .header-button {
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: flex-end;
+	margin-right: 0;
+	margin-left: auto;
 }
 .header-sub-button {
 	display: inline-block;
