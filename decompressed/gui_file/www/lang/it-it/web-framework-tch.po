@@ -360,3 +360,135 @@ msgstr ""
 
 msgid "Invalid value; enter 'infinite'
 msgstr ""
+
+msgid '4'
+msgstr ""
+
+msgid '<pre style="letter-spacing:1px;color:gray;line-height:normal">'
+msgstr ""
+
+msgid '<div class="alert alert-%s">'
+msgstr ""
+
+msgid "Invalid value; enter 'infinite' for infinite time or a number greater than 0, followed by 's' for seconds or 'm' for minutes or 'h' for hours or 'd' for days or 'w' for weeks. No spaces."
+msgstr ""
+
+msgid '<div class="%s" data-toggle="dropdown" tabindex="-1" ><span class="caret"></span></div>'
+msgstr ""
+
+msgid '<li><a href="#" class="btn-table-new-list" data-listid="%d" >%s</a></li>'
+msgstr ""
+
+msgid '<ul class="dropdown-menu">'
+msgstr ""
+
+msgid 'web.post_helper'
+msgstr ""
+
+msgid '}'
+msgstr ""
+
+msgid 'radio'
+msgstr ""
+
+msgid 'tch.posix'
+msgstr ""
+
+msgid 'mode'
+msgstr ""
+
+msgid 'directory'
+msgstr ""
+
+msgid '<td colspan="%d">'
+msgstr ""
+
+msgid '<span id="help" class="modal-action" %s><i class="icon-question-sign"></i> %s</span>'
+msgstr ""
+
+msgid '([^,%s]+)'
+msgstr ""
+
+msgid 'web-framework-tch'
+msgstr ""
+
+msgid 'value'
+msgstr ""
+
+msgid '<tr class="line-edit">'
+msgstr ""
+
+msgid '</ul>'
+msgstr ""
+
+msgid 'disabled'
+msgstr ""
+
+msgid '<label class="hide checkbox"><input type="checkbox" name="%s" value="" checked></label>'
+msgstr ""
+
+msgid '<center><div class="btn-group">'
+msgstr ""
+
+msgid '%s="%s"'
+msgstr ""
+
+msgid '<label %s>'
+msgstr ""
+
+msgid '<input %s value="%s" %s> %s</label>'
+msgstr ""
+
+msgid '{'
+msgstr ""
+
+msgid 'cidr'
+msgstr ""
+
+msgid '": "'
+msgstr ""
+
+msgid ','
+msgstr ""
+
+msgid 'selected="selected"'
+msgstr ""
+
+msgid '<div %s><div %s textON="%s" textOFF="%s" valOn="%s" valOff="%s"></div><input %s></div>'
+msgstr ""
+
+msgid 'readonly'
+msgstr ""
+
+msgid '"'
+msgstr ""
+
+msgid '" .. autorefresh .. "'
+msgstr ""
+
+msgid 'web.ui_helper'
+msgstr ""
+
+msgid '\"'
+msgstr ""
+
+msgid ''
+msgstr ""
+
+msgid '<label class="hide checkbox"><input type="checkbox" name="%s" value="_DUMMY_" checked></label>'
+msgstr ""
+
+msgid '<span class="modal-action"><span class="modal-action-refresh" id="Refresh_id"><i class="icon-refresh"></i> %s</span></span>'
+msgstr ""
+
+msgid '<div %s>%s</div>'
+msgstr ""
+
+msgid '6'
+msgstr ""
+
+msgid "The wireless key contains invalid characters, only space, letters, numbers and the following characters !\"'`#$%&()*+,-./:;<=>?@[\\]^_{|}~ are allowed."
+msgstr ""
+
+msgid '<tr> <td class="btn-col-OK" colspan="%d">'
+msgstr ""

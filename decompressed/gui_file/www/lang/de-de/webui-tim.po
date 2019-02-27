@@ -17,3 +17,6 @@ msgstr ""
 
 msgid "infinite"
 msgstr "unendlich"
+
+msgid 'webui-tim'
+msgstr ""

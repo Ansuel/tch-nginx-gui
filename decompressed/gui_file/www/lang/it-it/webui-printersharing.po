@@ -53,3 +53,9 @@ msgstr "Interfaccia web"
 
 msgid "CUPS Web Interface at <a href=\"http://%s:631\">http://%s:631</a> or <a href=\"http://%s:631\">http://%s:631</a>"
 msgstr "Interfaccia web CUPS <a href=\"http://%s:631\">http://%s:631</a> o <a href=\"http://%s:631\">http://%s:631</a>"
+
+msgid 'webui-printersharing'
+msgstr ""
+
+msgid '1'
+msgstr ""
