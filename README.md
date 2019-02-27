@@ -2,12 +2,13 @@
   <ul>
   <li>DGA4132</li>
   <li>DGA4130</li>
-  <li>TG789vac v3</li>
-  <li>TG789vac v2</li>
-  <li>TG799vac</li>
+  <li>TG789vac v2 HP / VBNT-L</li>
+  <li>TG789vac v2 / VANT-6</li>
+  <li>TG789vac (v1) / VANT-D</li>
+  <li>TG789vac XTREAM 35B</li>
+  <li>TG799vac / VANT-F</li>
   <li>TG799vac XTREAM</li>
-  <li>TG799vac XTREAM 35b</li>
-  <li>TG800vac</li>
+  <li>TG800vac / VANT-Y</li>
   </ul>
 with many fixes and new features like:
 <ul>
