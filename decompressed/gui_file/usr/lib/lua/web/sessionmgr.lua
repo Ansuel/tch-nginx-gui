@@ -310,6 +310,7 @@ local function newSession(mgr, address)
   local sessionID
   if sessionLimitReached(mgr, address.remote) then
     -- the maximum number of sessions has been exceeded.
+	ngx.log(ngx.ERR, "Session limit reached")
     return
   end
   -- Loop should only occur once and is here to avoid session ID clashes.
@@ -332,6 +333,7 @@ end
 
 local function redirectIfServiceNotAvailable(session)
   if not session then
+	ngx.log(ngx.ERR, "Service not available")
     ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE)
   end
 end
