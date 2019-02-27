@@ -492,3 +492,129 @@ msgstr ""
 
 msgid '<tr> <td class="btn-col-OK" colspan="%d">'
 msgstr ""
+
+msgid '<li><a href="#" class="btn-table-new-list" data-listid="%d" >%s</a></li>'
+msgstr ""
+
+msgid '<ul class="dropdown-menu">'
+msgstr ""
+
+msgid '<pre style="letter-spacing:1px;color:gray;line-height:normal">'
+msgstr ""
+
+msgid '<tr class="line-edit">'
+msgstr ""
+
+msgid 'web-framework-tch'
+msgstr ""
+
+msgid '<tr> <td class="btn-col-OK" colspan="%d">'
+msgstr ""
+
+msgid 'web.ui_helper'
+msgstr ""
+
+msgid '<div class="%s" data-toggle="dropdown" tabindex="-1" ><span class="caret"></span></div>'
+msgstr ""
+
+msgid '<div %s><div %s textON="%s" textOFF="%s" valOn="%s" valOff="%s"></div><input %s></div>'
+msgstr ""
+
+msgid ','
+msgstr ""
+
+msgid '\"'
+msgstr ""
+
+msgid '<td colspan="%d">'
+msgstr ""
+
+msgid '{'
+msgstr ""
+
+msgid '([^,%s]+)'
+msgstr ""
+
+msgid '<center><div class="btn-group">'
+msgstr ""
+
+msgid '<div %s>%s</div>'
+msgstr ""
+
+msgid '<label class="hide checkbox"><input type="checkbox" name="%s" value="" checked></label>'
+msgstr ""
+
+msgid 'disabled'
+msgstr ""
+
+msgid 'cidr'
+msgstr ""
+
+msgid '</ul>'
+msgstr ""
+
+msgid '"'
+msgstr ""
+
+msgid '<label %s>'
+msgstr ""
+
+msgid 'mode'
+msgstr ""
+
+msgid 'selected="selected"'
+msgstr ""
+
+msgid '<label class="hide checkbox"><input type="checkbox" name="%s" value="_DUMMY_" checked></label>'
+msgstr ""
+
+msgid 'directory'
+msgstr ""
+
+msgid '" .. autorefresh .. "'
+msgstr ""
+
+msgid '<span class="modal-action"><span class="modal-action-refresh" id="Refresh_id"><i class="icon-refresh"></i> %s</span></span>'
+msgstr ""
+
+msgid '6'
+msgstr ""
+
+msgid 'value'
+msgstr ""
+
+msgid '4'
+msgstr ""
+
+msgid 'web.post_helper'
+msgstr ""
+
+msgid ''
+msgstr ""
+
+msgid '%s="%s"'
+msgstr ""
+
+msgid '": "'
+msgstr ""
+
+msgid '<input %s value="%s" %s> %s</label>'
+msgstr ""
+
+msgid 'tch.posix'
+msgstr ""
+
+msgid '}'
+msgstr ""
+
+msgid 'radio'
+msgstr ""
+
+msgid '<span id="help" class="modal-action" %s><i class="icon-question-sign"></i> %s</span>'
+msgstr ""
+
+msgid '<div class="alert alert-%s">'
+msgstr ""
+
+msgid 'readonly'
+msgstr ""
