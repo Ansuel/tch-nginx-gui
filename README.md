@@ -1,6 +1,7 @@
 <h3><strong>This is a highly modified and universal version of the GUI installed on all Technicolor Modem/Routers compatibile with (and probably not only):</strong></h3>
   <ul>
   <li>DGA4132</li>
+  <li>DGA4131 / VBNT-O</li>
   <li>DGA4130</li>
   <li>TG789vac v2 HP / VBNT-L</li>
   <li>TG789vac v2 / VANT-6</li>
