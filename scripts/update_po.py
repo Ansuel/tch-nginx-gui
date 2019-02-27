@@ -10,7 +10,7 @@ lang_path="decompressed/gui_file/www/lang"
 normal_po_regex = re.compile(r"(?<=msgid\s)\".*?(?<!\\)\"(?=\s+msgstr)")
 plural_po_regex = re.compile(r"(?<=msgid\s)\".*?(?<!\\)\"(?=\s+msgid_plural)")
 po_find_regex = re.compile(r'(?<=gettext\.textdomain\(\')[a-z]+-[a-z]*-*[a-z]+(?=\'\))')
-normal_trans_regex = re.compile(r"(?<=\(T|\{T|\sT|\[T)[\"|\'].*?(?<!\\)[\"|\'](?=,|\s|\s\.\.|\.\.|\)|\}|\")")
+normal_trans_regex = re.compile(r"(?<=\(T|\{T|\sT|\[T)\".*?(?<!\\)\"|\'.*?(?<!\\)\'(?=,|\s|\s\.\.|\.\.|\)|\}|\")")
 plural_trans_regex = re.compile(r"(?<=\(N\(|\[N\(|\{N\(|\sN\()\".*?\\*?\",\W*\".*?(?<!\\)\"(?=,|\s|\s\.\.|\.\.|\))")
 first_plur_regex = re.compile(r'\".*?(?<!\\)\"(?=,|\s+,)')
 second_plur_regex = re.compile(r'(?<=\s|,)\".*?(?<!\\)\"')
