@@ -806,3 +806,120 @@ msgstr ""
 
 msgid '<input %s value="%s" %s> %s</label>'
 msgstr ""
+
+msgid '</legend>'
+msgstr ""
+
+msgid ');ngx.print(uri); ngx.print('
+msgstr ""
+
+msgid '.popUpBG'
+msgstr ""
+
+msgid '); ngx.print( uri ); ngx.print('
+msgstr ""
+
+msgid '{ "success":"true" }'
+msgstr ""
+
+msgid '</fieldset>'
+msgstr ""
+
+msgid '</div><div class="rect3"></div><div class="rect4"></div><div class="rect5"></div></div><div id="cancel_pairing" class="btn btn-large"'
+msgstr ""
+
+msgid '.modal-body'
+msgstr ""
+
+msgid '<li class="%s"><a id ="%s" href="#" class="open-modal" data-remote="/modals/%s">%s</a></li>'
+msgstr ""
+
+msgid 'span2'
+msgstr ""
+
+msgid '<fieldset id ="mmpbx-incomingmap-tab">'
+msgstr ""
+
+msgid '0'
+msgstr ""
+
+msgid '<table class="table table-striped"><thead><tr>'
+msgstr ""
+
+msgid '<fieldset>'
+msgstr ""
+
+msgid '<ul class="nav nav-tabs">'
+msgstr ""
+
+msgid '">'
+msgstr ""
+
+msgid '<div class="popUpBG"></div>'
+msgstr ""
+
+msgid '<fieldset id="mmpbx-global-tab">'
+msgstr ""
+
+msgid 'webui-voice'
+msgstr ""
+
+msgid '); ngx.print( T"Config VOIP Services" ); ngx.print('</legend>'
+msgstr ""
+
+msgid '%s="%s"'
+msgstr ""
+
+msgid '<div id="popUp"  class="popUp smallcard">'+header+'<div id="Poptxt" class="content"></div>'
+msgstr ""
+
+msgid '<fieldset id ="mmpbx-outgoingmap-tab">'
+msgstr ""
+
+msgid '<label %s>'
+msgstr ""
+
+msgid '<td style="vertical-align:middle">'
+msgstr ""
+
+msgid '<legend>'
+msgstr ""
+
+msgid '<div class="header"><div data-toggle="modal" class="header-title pull-left"><p>'+processMsg+'</p></div></div>'
+msgstr ""
+
+msgid '<%=T"Pairing in progress, Please press Cancel button for stop pairing."%>'
+msgstr ""
+
+msgid '<div class="popUpBG" style="top:53px;"></div>'
+msgstr ""
+
+msgid '</ul>'
+msgstr ""
+
+msgid '<form class="form-horizontal" method="post" action="%s">'
+msgstr ""
+
+msgid '{ "success":"false" }'
+msgstr ""
+
+msgid '<div class="control-group monitor-service_name monitor-'
+msgstr ""
+
+msgid '<input %s value="%s" %s> %s</label>'
+msgstr ""
+
+msgid 'hidden'
+msgstr ""
+
+msgid '<br/><div id="spinner" class="spinner" align="center"><div class="spinner3"><div class="rect1"></div><div class="rect2">'
+msgstr ""
+
+msgid 'overflow'
+msgstr ""
+
+msgid 'table'
+msgstr ""
+
+msgid '#popUp'
+msgstr ""

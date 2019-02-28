@@ -8990,3 +8990,1476 @@ msgstr ""
 
 msgid 'class="modal-link" data-toggle="modal" data-remote="modals/traffic-monitor.lp" data-id="device-modal"'
 msgstr ""
+
+msgid 'class="modal-link" data-toggle="modal" data-remote="modals/tod_wireless-modal.lp" data-id="tod-modal"'
+msgstr ""
+
+msgid '<div id="upgradebtn" class="btn someInfos '
+msgstr ""
+
+msgid '<input type="checkbox" id="received" name="received" checked style="margin-left:10px;"></td>'
+msgstr ""
+
+msgid '<strong id = "Wifi_Devices" %1$s>%2$d Wi-Fi device</strong> connected'
+msgstr ""
+
+msgid 'dest_port'
+msgstr ""
+
+msgid 'A2pv6F039e (Huawei HG635)'
+msgstr ""
+
+msgid 'class="modal-link" data-toggle="modal" data-remote="modals/device-modal.lp" data-id="device-modal"'
+msgstr ""
+
+msgid 's/\t/ /g'
+msgstr ""
+
+msgid ');  ngx.print( T"Sign in" ); ngx.print('</h2>'
+msgstr ""
+
+msgid 'A2pvfbH043g (TG800 VBANT-S)'
+msgstr ""
+
+msgid '<span data-bind="html: port_table">'
+msgstr ""
+
+msgid ');  ngx.print(T"This will transfer the active firmware and config to the bank 1"); ngx.print('
+msgstr ""
+
+msgid 'Green'
+msgstr ""
+
+msgid '([^,]+)'
+msgstr ""
+
+msgid '<form class="form-horizontal">'
+msgstr ""
+
+msgid '<fieldset>'
+msgstr ""
+
+msgid '</form><form class="form-horizontal" id="form-import" method="post" action="modals/gateway-modal.lp?action=import_config" enctype="multipart/form-data">'
+msgstr ""
+
+msgid 'Dev'
+msgstr ""
+
+msgid ');  ngx.print( T'Firmware update failed.  Insufficient free memory available. Please reboot and try again.'
+msgstr ""
+
+msgid '<span class="help-inline">'
+msgstr ""
+
+msgid '<span data-bind="html: uptime_text"></span>'
+msgstr ""
+
+msgid ');  ngx.print(T'Enter the default <strong>"access code"</strong>. This code is located on the label underneath your gateway.'
+msgstr ""
+
+msgid '<p>&copy; Technicolor %s</p>'
+msgstr ""
+
+msgid '{ "success":"false" , "errorcode":"'
+msgstr ""
+
+msgid 'A2pv6F039x1 (Zyxel VMG3926)'
+msgstr ""
+
+msgid '); ngx.print(T"xDSL"); ngx.print('
+msgstr ""
+
+msgid '<legend>'
+msgstr ""
+
+msgid '<i class="icon-download icon-small gray"></i> <span data-bind="text: dsl_margin_down">%s</span> dB'
+msgstr ""
+
+msgid 'edit-input span3'
+msgstr ""
+
+msgid '<div class="spinner3"><div class="rect1"></div><div class="rect2"></div><div class="rect3"></div><div class="rect4"></div><div class="rect5"></div></div>'
+msgstr ""
+
+msgid '<img width="168px" height="39px" src="/img/TIM.png">'
+msgstr ""
+
+msgid 'B2pvfbH043i1 (VMG8823-B60B 5.13)'
+msgstr ""
+
+msgid '); ngx.print( T"Physical link status" ); ngx.print('</legend>'
+msgstr ""
+
+msgid 'Only PassThru'
+msgstr ""
+
+msgid '); ngx.print(T"Ping & Traceroute"); ngx.print('
+msgstr ""
+
+msgid '<legend>%s</legend>'
+msgstr ""
+
+msgid ');  ngx.print(output_details["ap"]); ngx.print('
+msgstr ""
+
+msgid '<span>'
+msgstr ""
+
+msgid '<div data-toggle="modal" data-remote="modals/diagnostics-xdsl-graphics-modal.lp" data-id="iagnostics-xdsl-graphics-modal">'
+msgstr ""
+
+msgid 'name="upgradefile"'
+msgstr ""
+
+msgid '); ngx.print(env.fwversion_real); ngx.print('
+msgstr ""
+
+msgid '<span class="simple-desc">'
+msgstr ""
+
+msgid 'remote'
+msgstr ""
+
+msgid '1/1'
+msgstr ""
+
+msgid '<table>'
+msgstr ""
+
+msgid '<span data-bind="html: device_table">'
+msgstr ""
+
+msgid 'class="modal-link" id="upnp_Id" data-toggle="modal" data-remote="modals/wanservices-modal.lp" data-id="wanservices-modal"'
+msgstr ""
+
+msgid ');  ngx.print(v); ngx.print('
+msgstr ""
+
+msgid 'src'
+msgstr ""
+
+msgid '([%d]+%.[%d]+%.[%d]+%.[%d]+)%'
+msgstr ""
+
+msgid '" }'
+msgstr ""
+
+msgid '/modals/assistance-modal.lp'
+msgstr ""
+
+msgid 'Only IPv4'
+msgstr ""
+
+msgid ');  ngx.print(uri); ngx.print('
+msgstr ""
+
+msgid '<strong style="margin-left:26px;font-size:30px;">...</strong>'
+msgstr ""
+
+msgid '</table>'
+msgstr ""
+
+msgid 'WAN IP is <strong id ="wan_ip">%s</strong>'
+msgstr ""
+
+msgid 'A2pv6F039f1 (Indeno D301)'
+msgstr ""
+
+msgid '%s'
+msgstr ""
+
+msgid ');  ngx.print(T'Rebooting'
+msgstr ""
+
+msgid 'A2pvfbH043h (Inteno DG400PRIME)'
+msgstr ""
+
+msgid '{ "state":"%s","log_msg":"%s","log_prog":"%s" }'
+msgstr ""
+
+msgid '-1'
+msgstr ""
+
+msgid ');  ngx.print(ui_helper.createAlertBlock(T"1. Max recommened Packet Number is dynamic (uses half of free memory) and may not be accurate.<br/>2. Hardware offload disabled during capture on platforms with flow cache!<br/>3. 'Download'
+msgstr ""
+
+msgid '<div style="height: 400px;width:1130px;">'
+msgstr ""
+
+msgid 'A2pv6F039v4 (Inteno D301)'
+msgstr ""
+
+msgid '</form></fieldset><fieldset id="diagnostics-xdsl-vectoring" class="advanced hide">'
+msgstr ""
+
+msgid '</form></fieldset><fieldset id="diagnostics-xdsl-ginp" class="advanced hide">'
+msgstr ""
+
+msgid '<div style="height:400px"><canvas id="WANChart"></canvas></div>'
+msgstr ""
+
+msgid '<strong id = "Ethernet_Devices" %1$s>%2$d Ethernet device</strong> connected'
+msgstr ""
+
+msgid ');  ngx.print( T"User name cannot be empty" ); ngx.print('
+msgstr ""
+
+msgid 'WAN IP is <strong>%s<\strong>'
+msgstr ""
+
+msgid '<div class="span3">'
+msgstr ""
+
+msgid ');  ngx.print(T'Upgrading...'
+msgstr ""
+
+msgid '<div id="rx_traffic_complete" class="hide" data-bind="text: rx_traffic_complete">'
+msgstr ""
+
+msgid ');  ngx.print(T'Stopping...'
+msgstr ""
+
+msgid 'Permanent'
+msgstr ""
+
+msgid '<i class="icon-download icon-small gray"></i> '
+msgstr ""
+
+msgid '<div class="alert alert-info hide" id="upgrade-log"></div>'
+msgstr ""
+
+msgid 'Interface'
+msgstr ""
+
+msgid '); ngx.print( T"Network address" ); ngx.print('
+msgstr ""
+
+msgid ');  ngx.print(T'Installing...'
+msgstr ""
+
+msgid 'web.ui_helper'
+msgstr ""
+
+msgid ': <strong id="relaysetupcard_pppoerelay_interface">%s</strong></p>'
+msgstr ""
+
+msgid 'B2pvbH042l (Asus DSL-AC87VG v1.00.10)'
+msgstr ""
+
+msgid 'auto'
+msgstr ""
+
+msgid '192.168.1.100'
+msgstr ""
+
+msgid ');  ngx.print( T"Passwords do not match" ); ngx.print('
+msgstr ""
+
+msgid '<i class="icon-upload icon-small gray"></i> <span data-bind="text: max_upstream">%s</span>'
+msgstr ""
+
+msgid 'src_dport'
+msgstr ""
+
+msgid '<strong>%s</strong>(%s)'
+msgstr ""
+
+msgid ');  ngx.print(T'Resetting'
+msgstr ""
+
+msgid '<input type="file" name="configfile" id="file-import">&nbsp;'
+msgstr ""
+
+msgid '9'
+msgstr ""
+
+msgid ' && Translated by <font style="color:#0088cc;">%s</font>'
+msgstr ""
+
+msgid '<p class="socket-legend" id = "<%=v%>">'
+msgstr ""
+
+msgid 'Export'
+msgstr ""
+
+msgid '" : "'
+msgstr ""
+
+msgid 'Prefer IPv4'
+msgstr ""
+
+msgid '<span data-bind="html: WAN_IP_text"></span>'
+msgstr ""
+
+msgid 'A2pvfbH045k (Inteno)'
+msgstr ""
+
+msgid '<i class="icon-upload icon-small gray"></i> <span data-bind="text: dsl_margin_up">%s</span> dB'
+msgstr ""
+
+msgid '{ "error":"'
+msgstr ""
+
+msgid '<strong id = "Traffic_Monitor" %1$s>%s</strong>'
+msgstr ""
+
+msgid 'Guest'
+msgstr ""
+
+msgid ');  ngx.print(T"Your password")  ngx.print('
+msgstr ""
+
+msgid '</form><form class="form-horizontal" id="form-import-gui" method="post" action="modals/modgui-modal.lp?action=upgradeguifile" enctype="multipart/form-data">'
+msgstr ""
+
+msgid '<span id="cards-text">'
+msgstr ""
+
+msgid '<a target="_blank" href="'
+msgstr ""
+
+msgid ');  ngx.print(T'Remove root'
+msgstr ""
+
+msgid 'ptm0.837'
+msgstr ""
+
+msgid ');  ngx.print(v[1]); ngx.print('
+msgstr ""
+
+msgid 'userredirect'
+msgstr ""
+
+msgid '<p class = "subinfos" > Interface : <strong id="relaysetupcard_relay_interface">%s</strong></p>'
+msgstr ""
+
+msgid '<strong %1$s>%2$d DNS Server</strong>'
+msgstr ""
+
+msgid '<span id="Connection" class=" simple-desc span3">'
+msgstr ""
+
+msgid 'Dark/Midnight (Fritz!Box Based)'
+msgstr ""
+
+msgid ');  ngx.print(content["showBondingStats"]); ngx.print('
+msgstr ""
+
+msgid '<i style="margin-left:-20px;" class="fa fa-link" aria-hidden="true" href="#">&nbsp</i>'
+msgstr ""
+
+msgid '</legend><form class="form-horizontal">'
+msgstr ""
+
+msgid ');  ngx.print( ngx.ctx.session:getCSRFtoken() ); ngx.print('
+msgstr ""
+
+msgid '<div id="tx_traffic_complete" class="hide" data-bind="text: tx_traffic_complete">'
+msgstr ""
+
+msgid '<li class="%s"><a id ="%s" href="#" data-remote="/modals/%s">%s</a></li>'
+msgstr ""
+
+msgid '); ngx.print(T"xDSL Graphics"); ngx.print('
+msgstr ""
+
+msgid 'proto'
+msgstr ""
+
+msgid ');  ngx.print( T'Firmware update failed; please use the correct firmware.'
+msgstr ""
+
+msgid ');ngx.print(T"Broadband type");ngx.print('</legend>'
+msgstr ""
+
+msgid 'A2pv6F039x5 (SmartRG SR505N/SR515AC 2.6.1.9)'
+msgstr ""
+
+msgid 'Admin'
+msgstr ""
+
+msgid 'rpc.wireless.ap.@%s.acl.mode'
+msgstr ""
+
+msgid '</br>'
+msgstr ""
+
+msgid ');  ngx.print(T"This will put your gateway into LAN Update"); ngx.print('
+msgstr ""
+
+msgid '<i class="icon-upload icon-small gray"></i> <span data-bind="text: dsl_attenuation_up">%s</span> dB'
+msgstr ""
+
+msgid 'data-toggle="modal" data-remote="modals/modgui-modal.lp?action=manualguiupgrade">'
+msgstr ""
+
+msgid ');  ngx.print( ngx.var.request_uri ); ngx.print('
+msgstr ""
+
+msgid 'L2TP without UDP-Checksum check'
+msgstr ""
+
+msgid 'B2pvfbH043g (Asus DSL-AC68VG v5.00.04)'
+msgstr ""
+
+msgid '<div><span id="update-text">'
+msgstr ""
+
+msgid 'DNAT'
+msgstr ""
+
+msgid '"></span></label>'
+msgstr ""
+
+msgid '2'
+msgstr ""
+
+msgid 'ssh'
+msgstr ""
+
+msgid '<br/>'
+msgstr ""
+
+msgid ');  ngx.print( legacySalts ); ngx.print('
+msgstr ""
+
+msgid '802.11b/g'
+msgstr ""
+
+msgid 'A2pvbH042o (TG799VAC Xtream Fastweb)'
+msgstr ""
+
+msgid '<a href="#footer" id="scroll-down" class="scroll-down" address="true"></a>'
+msgstr ""
+
+msgid '{ "error":"buildversion" }'
+msgstr ""
+
+msgid '<div id="Export" class="btn export-conntracklog custom-handler" style="margin-bottom:8px;"><i class="icon-download-alt"></i> %s</div>'
+msgstr ""
+
+msgid '"..T"Search For connections...".."'
+msgstr ""
+
+msgid '<span id="timerSec"></span>'
+msgstr ""
+
+msgid '{ "state":"%s","new_version_text":"%s" }'
+msgstr ""
+
+msgid '<p class="socket-legend">'
+msgstr ""
+
+msgid '<li class="%s"><a id = "%s" href="#" data-remote="%s">%s</a></li>'
+msgstr ""
+
+msgid '</p>'
+msgstr ""
+
+msgid '<div class="control-group"><label class="control-label monitor-syslog_present monitor-1 monitor-syslog_filter_sw monitor-1">%s</label><div class="controls">'
+msgstr ""
+
+msgid ');  ngx.print( T"Provide a password to prevent unauthorized access to the gateway" ); ngx.print('
+msgstr ""
+
+msgid '([%d]+)'
+msgstr ""
+
+msgid 'popMessages'
+msgstr ""
+
+msgid '{ "success":"true" }'
+msgstr ""
+
+msgid '<center>'
+msgstr ""
+
+msgid 'Basic'
+msgstr ""
+
+msgid 'Stable'
+msgstr ""
+
+msgid '<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> and <a href="https://github.com/Ansuel/tch-nginx-gui/graphs/contributors">these GitHub users.</a><br>Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>'
+msgstr ""
+
+msgid '); ngx.print(T"Port Mirror"); ngx.print('
+msgstr ""
+
+msgid '<div>'
+msgstr ""
+
+msgid 'A2pvfbH043k (AGTEF_1.1.0)'
+msgstr ""
+
+msgid '<label class="control-label">%s</label><div class="controls">'
+msgstr ""
+
+msgid '{ "error":"10" }'
+msgstr ""
+
+msgid ');ngx.print(T"Check Update"); ngx.print('
+msgstr ""
+
+msgid 'Red Dark'
+msgstr ""
+
+msgid ');  ngx.print(T"This will clone the running bank firmware. The process will continue in the background but this could take a while. Continue?"); ngx.print('
+msgstr ""
+
+msgid ');  ngx.print( T"Your password" ); ngx.print('
+msgstr ""
+
+msgid 'A2pvfbH043i2 (Zyxel C3000Z)'
+msgstr ""
+
+msgid '<a href="login.lp" class="btn" id="signin">'
+msgstr ""
+
+msgid '<div style="max-width:880px;overflow-x:auto"><small>'
+msgstr ""
+
+msgid 'wan_mode'
+msgstr ""
+
+msgid '<legend id="GUI_Upgrade_Legend">'
+msgstr ""
+
+msgid 'lan'
+msgstr ""
+
+msgid 'class="modal-link" id="PortForwarding_Id" data-toggle="modal" data-remote="modals/wanservices-modal.lp" data-id="wanservices-modal"'
+msgstr ""
+
+msgid 'alicenewag'
+msgstr ""
+
+msgid ');  ngx.print(T'Starting...'
+msgstr ""
+
+msgid 'A2pvfbH043j2 (FRITZ!Box 7582 7.01 Backup)'
+msgstr ""
+
+msgid 'Mbps</strong></p>'
+msgstr ""
+
+msgid ');  ngx.print( T"Your username" ); ngx.print('
+msgstr ""
+
+msgid ' <strong id="port">%s</strong>'
+msgstr ""
+
+msgid '/aria'
+msgstr ""
+
+msgid '<strong id = "Wifi_Devices" %1$s>%2$d Wi-Fi devices</strong> connected'
+msgstr ""
+
+msgid ');  ngx.print( T'80MHz'
+msgstr ""
+
+msgid 'class="modal-link" data-toggle="modal" data-remote="modals/tod-modal.lp" data-id="tod-modal"'
+msgstr ""
+
+msgid '802.11b/g/n'
+msgstr ""
+
+msgid 'rpc.wireless.radio.@%s.acs.rescan'
+msgstr ""
+
+msgid '<li class="%s"><a href="#" data-remote="%s" id ="wifianalyzer_%s">%s %sGHz</a></li>'
+msgstr ""
+
+msgid 'A2pv6F039v2 (789vacV2 UNO.uk 17.1/Tiscali 16.3)'
+msgstr ""
+
+msgid '<div class="btn" id="wizard-btn" data-toggle="modal" data-remote="modals/wizard-modal.lp">'
+msgstr ""
+
+msgid 'L2TP with UDP-Checksum check'
+msgstr ""
+
+msgid '<div class="RemoveOnUpgrade">'
+msgstr ""
+
+msgid 'Digest'
+msgstr ""
+
+msgid 'A2pv6F039v (SmartRG sr516ac/Tp-link Archer VR600V1)'
+msgstr ""
+
+msgid 'Error on %s (state="%s", info="%s")'
+msgstr ""
+
+msgid '<label class="control-label"><span class="gui_version_status fas fa-cog '
+msgstr ""
+
+msgid 'A2pv6F039x6 (Zyxel VMG3926-B10B)'
+msgstr ""
+
+msgid 'A2pvbH042r (AGTEF_1.0.3)'
+msgstr ""
+
+msgid '  <div id="upgrade-gui-bar" class="progress progress-striped active">'
+msgstr ""
+
+msgid 'table'
+msgstr ""
+
+msgid '22'
+msgstr ""
+
+msgid '<i class="fas fa-server" aria-hidden="true" href="#">&nbsp</i>'
+msgstr ""
+
+msgid '<div class ="advanced hide">'
+msgstr ""
+
+msgid '<label class="control-label">'
+msgstr ""
+
+msgid '); ngx.print(T"Network"); ngx.print('
+msgstr ""
+
+msgid 'A2pv6F039o1 (Telsra TG799vac)'
+msgstr ""
+
+msgid 'web.assistance'
+msgstr ""
+
+msgid '<i style="margin-left:-20px;" class="fa fa-wifi" aria-hidden="true" href="#">&nbsp</i>'
+msgstr ""
+
+msgid '{ "s":"%s", "B":"%s" }'
+msgstr ""
+
+msgid '<p class = "subinfos" > Server IP : <strong id="relaysetupcard_relayip_server_ip">%s</strong></p>'
+msgstr ""
+
+msgid '); ngx.print( T"This could cause security risk, take care of this." .. "<b>" .. T"Applying anyway..." ); ngx.print('
+msgstr ""
+
+msgid '{ "state":"%s","log_msg":"%s" }'
+msgstr ""
+
+msgid '<td style="background-color:#f58368">&nbsp;&nbsp;&nbsp;&nbsp;</td>'
+msgstr ""
+
+msgid 'A2pvbH042u (AGTEF_1.0.4)'
+msgstr ""
+
+msgid '</div></div></div>'
+msgstr ""
+
+msgid '9c:97:26:c5:9b:28'
+msgstr ""
+
+msgid ' / %s MB'
+msgstr ""
+
+msgid ''
+msgstr ""
+
+msgid '<span class="subinfos">'
+msgstr ""
+
+msgid 'A2pvfbH043o (Asus DSL-AC88U v1.10.06_561)'
+msgstr ""
+
+msgid '<a class="check_update" style="cursor: pointer;">%s</a>'
+msgstr ""
+
+msgid 'Less Ping'
+msgstr ""
+
+msgid ');  ngx.print(T'Restore Gui'
+msgstr ""
+
+msgid 'Violet'
+msgstr ""
+
+msgid '</label>'
+msgstr ""
+
+msgid '<span id="Ram" class=" simple-desc span3">'
+msgstr ""
+
+msgid '<div id="offline-upgrade-gui-div" class="control-group">'
+msgstr ""
+
+msgid 'WAN IP is <strong>%s</strong>'
+msgstr ""
+
+msgid ');  ngx.print( userNames ); ngx.print('
+msgstr ""
+
+msgid ');  ngx.print( T'Errorcode: '
+msgstr ""
+
+msgid '</fieldset>'
+msgstr ""
+
+msgid '<form class="form-horizontal" method="post" action="gateway.lp">'
+msgstr ""
+
+msgid '^%[dhcpStart%] (.*)'
+msgstr ""
+
+msgid '<i class="icon-download icon-small gray"></i> <span data-bind="text: dsl_power_down">%s</span> dBm'
+msgstr ""
+
+msgid 'A2pv6F039m1 (Sky NR701-NR801)'
+msgstr ""
+
+msgid ');  ngx.print(T'Factory Defaults'
+msgstr ""
+
+msgid ');  ngx.print( T'Channel'
+msgstr ""
+
+msgid '5555'
+msgstr ""
+
+msgid '<a  target="_blank" href="'
+msgstr ""
+
+msgid '); ngx.print(pageselector.page); ngx.print ('
+msgstr ""
+
+msgid 'Dark/White (Fritz!Box Based)'
+msgstr ""
+
+msgid 'data-state\') == "1" ? "'
+msgstr ""
+
+msgid '<strong %1$s>%2$d Disabled Helper</strong>'
+msgstr ""
+
+msgid ');  ngx.print( cui.nsplink ); ngx.print('
+msgstr ""
+
+msgid '); ngx.print(T"Network Statistics"); ngx.print('</legend>'
+msgstr ""
+
+msgid '<input type="file" name="upgradefile" id="file-upgradegui">&nbsp;'
+msgstr ""
+
+msgid '"'
+msgstr ""
+
+msgid '{ "success":"true" , "banksize":"'
+msgstr ""
+
+msgid '<p  id="Line_Rate_Down" class="subinfos">&emsp; '
+msgstr ""
+
+msgid '<strong id = "Ethernet_Devices" %1$s>%2$d Hotspot devices</strong> connected'
+msgstr ""
+
+msgid 'data-state\') == "1" ? $(this).attr(\'data-speed\')+" Mbs" : "'
+msgstr ""
+
+msgid 'searchInput'
+msgstr ""
+
+msgid 'IPv4 Only'
+msgstr ""
+
+msgid '<p></p>'
+msgstr ""
+
+msgid 'B2pvbH042j2 (Inteno)'
+msgstr ""
+
+msgid '<li class="nav-header">%s %s</li>'
+msgstr ""
+
+msgid 'dest_mac'
+msgstr ""
+
+msgid 'IPv4/IPv6'
+msgstr ""
+
+msgid ');ngx.print(T"Check Complete"); ngx.print('
+msgstr ""
+
+msgid '</tr>'
+msgstr ""
+
+msgid 'B2pvfbH043k (Asus DSL-AC88U-B v1.10.05)'
+msgstr ""
+
+msgid ');  ngx.print(fwallmsg_visible_status["user"]); ngx.print('
+msgstr ""
+
+msgid '<input type="file" name="upgradefile" id="file-upgradefw">&nbsp;'
+msgstr ""
+
+msgid '); ngx.print(cui.gui_version); ngx.print('
+msgstr ""
+
+msgid '<i class="icon-download icon-small gray"></i> <span data-bind="text: max_downstream">%s</span>'
+msgstr ""
+
+msgid 'class="modal-link" data-toggle="modal" data-remote="modals/wifi-nurse-modal.lp" data-id="device-modal"'
+msgstr ""
+
+msgid 'B2pvbH042s (Archer_VR2800v V1 1.2.0_0.9.1)'
+msgstr ""
+
+msgid ');  ngx.print(k); ngx.print('
+msgstr ""
+
+msgid '4'
+msgstr ""
+
+msgid '/script.js?version='
+msgstr ""
+
+msgid ');  ngx.print(getWifiAnalyzer); ngx.print('&getAcsData=true&radio='
+msgstr ""
+
+msgid ');  ngx.print(content["localdevIP"]); ngx.print('
+msgstr ""
+
+msgid ');  ngx.print( content["localdevIP"] ); ngx.print('
+msgstr ""
+
+msgid '); ngx.print(graph_interface); ngx.print('
+msgstr ""
+
+msgid '<span data-bind="html: WAN_IP_text">'
+msgstr ""
+
+msgid '<a href data-toggle="modal" data-remote="modals/changelog.lp">%s</a>'
+msgstr ""
+
+msgid '); ngx.print( T"Internet channel" ); ngx.print('</legend>'
+msgstr ""
+
+msgid ');  ngx.print(session:retrieve("editedUserName")); ngx.print('
+msgstr ""
+
+msgid ' '
+msgstr ""
+
+msgid '<div class="controls">'
+msgstr ""
+
+msgid '<p>%s GUI Version '
+msgstr ""
+
+msgid ');  ngx.print(radio); ngx.print('
+msgstr ""
+
+msgid ');  ngx.print(T'Select the <strong>"Reset"</strong> button to confirm resetting the password to the default value.'
+msgstr ""
+
+msgid 'Error on %s (state="%s")'
+msgstr ""
+
+msgid '1/8'
+msgstr ""
+
+msgid ');  ngx.print(output_details["mac"]); ngx.print('
+msgstr ""
+
+msgid ');  ngx.print(curradio); ngx.print('&iface='
+msgstr ""
+
+msgid '<li class="nav-header">%s</li>'
+msgstr ""
+
+msgid '<a href="#headertab" id="scroll-up"class="scroll-up hide" address="true"></a>'
+msgstr ""
+
+msgid '<label class="control-label"><span class="fa fa-sync check_update_spinner"></span></label>'
+msgstr ""
+
+msgid '<i class="icon-download icon-small gray"></i> <span data-bind="text: dsl_attenuation_down">%s</span> dB'
+msgstr ""
+
+msgid ');  ngx.print( T'40MHz'
+msgstr ""
+
+msgid '); ngx.print(T"GUI is updated"); ngx.print('
+msgstr ""
+
+msgid '<div class="modal-body update">'
+msgstr ""
+
+msgid '<td style="background-color:#90cd8a" >&nbsp;&nbsp;&nbsp;&nbsp;</td>'
+msgstr ""
+
+msgid '<fieldset id="diagnostics-xdsl-framing" class="advanced hide">'
+msgstr ""
+
+msgid 'B2pv6F039k (TP-Link Archer VR900vV1)'
+msgstr ""
+
+msgid '<i style="margin-left:-20px;" class="fas fa-chart-line" href="#">&nbsp</i>'
+msgstr ""
+
+msgid '<strong id = "Ethernet_Devices" %1$s>%2$d Ethernet devices</strong> connected'
+msgstr ""
+
+msgid '<i class="icon-upload icon-small gray"></i> <span data-bind="text: dsl_power_up">%s</span> dBm'
+msgstr ""
+
+msgid '<div id="httpi" class="alert alert-error "><strong>'
+msgstr ""
+
+msgid ' / %s'
+msgstr ""
+
+msgid 'Prefer IPv6'
+msgstr ""
+
+msgid '<strong %1$s>%2$d Enabled Helper</strong>'
+msgstr ""
+
+msgid ');  ngx.print( T'Firmware update failed; build signed with wrong key'
+msgstr ""
+
+msgid 'dest'
+msgstr ""
+
+msgid '<span id="Rate" class=" simple-desc span3">'
+msgstr ""
+
+msgid '{ "M":"%s" }'
+msgstr ""
+
+msgid 'rpc.wireless.ap.@%s.acl.reg'
+msgstr ""
+
+msgid '</span>'
+msgstr ""
+
+msgid '%s@%s'
+msgstr ""
+
+msgid '[\\\'".:,;]'
+msgstr ""
+
+msgid ');  ngx.print(string.format(T"Version %s (%s)", name, version)); ngx.print('</strong></br>'
+msgstr ""
+
+msgid '{ "error":"0" }'
+msgstr ""
+
+msgid '<span data-bind="text: connection">%s</span>'
+msgstr ""
+
+msgid '" '
+msgstr ""
+
+msgid '); ngx.print(T"TCPDump"); ngx.print('
+msgstr ""
+
+msgid 'Assistant'
+msgstr ""
+
+msgid '<li class="%s"><a id ="%s" a href="%s" target="_self">%s</a></li>'
+msgstr ""
+
+msgid '<span id="GUI-upgrade-option">'
+msgstr ""
+
+msgid '<\p>'
+msgstr ""
+
+msgid '<div class="control-group advanced hide"><label class="control-label">%s</label><div class="controls">'
+msgstr ""
+
+msgid 'B2pv6F039v (789vacV2 UNO.uk 17.1/Tiscali 16.3 Backup)'
+msgstr ""
+
+msgid '</legend>'
+msgstr ""
+
+msgid '</strong></div>'
+msgstr ""
+
+msgid 'Only IPv6'
+msgstr ""
+
+msgid '); ngx.print(assistance_port); ngx.print('
+msgstr ""
+
+msgid '$(".modal-backdrop").remove();'
+msgstr ""
+
+msgid '<span class="simple-desc span3 gui_version_status_text">'
+msgstr ""
+
+msgid '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
+msgstr ""
+
+msgid ' <strong id="username">%s</strong>'
+msgstr ""
+
+msgid 'None'
+msgstr ""
+
+msgid '<div class="control-group">'
+msgstr ""
+
+msgid '&action=GET_ACL_MAC_LIST&acl_mode='
+msgstr ""
+
+msgid '    <div class="bar bar-warning" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" >'
+msgstr ""
+
+msgid '"></script>'
+msgstr ""
+
+msgid '<tr>'
+msgstr ""
+
+msgid 'Blue'
+msgstr ""
+
+msgid '<div class="modal fade in" id="password_reminder">'
+msgstr ""
+
+msgid '8'
+msgstr ""
+
+msgid '); ngx.print(T'The Backup file you try to load has not been taken from the actual SW-Release, please use correct Backup File'
+msgstr ""
+
+msgid ');  ngx.print(T'Removing...'
+msgstr ""
+
+msgid '<i style="margin-left:-20px;" class="fas fa-shield-alt" aria-hidden="true" href="#">&nbsp</i>'
+msgstr ""
+
+msgid '<div class="copyright">'
+msgstr ""
+
+msgid '/style.css?version='
+msgstr ""
+
+msgid '<i class="icon-upload icon-small gray"></i> '
+msgstr ""
+
+msgid '{ "state":"%s","log_msg":"%s","extract_prog":"%s" }'
+msgstr ""
+
+msgid '256'
+msgstr ""
+
+msgid '7'
+msgstr ""
+
+msgid ');  ngx.print(serial_num); ngx.print('
+msgstr ""
+
+msgid '<div id="footer" class="row">'
+msgstr ""
+
+msgid '1/2'
+msgstr ""
+
+msgid 'wanptm0'
+msgstr ""
+
+msgid '<div class="span2 simple-desc">'
+msgstr ""
+
+msgid '^%b""'
+msgstr ""
+
+msgid '); ngx.print(cui.nsplink); ngx.print('
+msgstr ""
+
+msgid '<div style="height:400px"><canvas id="LANChart"></canvas></div>'
+msgstr ""
+
+msgid '<div class="span11">'
+msgstr ""
+
+msgid '<span data-bind="html: uptime_text">'
+msgstr ""
+
+msgid '<i class="icon-upload icon-small gray"></i> <span data-bind="text: dsl_linerate_up">%s</span>'
+msgstr ""
+
+msgid ');  ngx.print( T'Signal Strength (RSSI)'
+msgstr ""
+
+msgid '<span id="pwdCount"></span>'
+msgstr ""
+
+msgid ');  ngx.print(T'Resetting...'
+msgstr ""
+
+msgid '<i class="icon-download icon-small gray"></i> <span data-bind="text: dsl_linerate_down">%s</span>'
+msgstr ""
+
+msgid '</span><span id="extracted_file" class="hide">0</span></div>'
+msgstr ""
+
+msgid 'dest_ip'
+msgstr ""
+
+msgid '.modal-backdrop'
+msgstr ""
+
+msgid '<p  id="Line_Rate_Up" class="subinfos">&emsp; '
+msgstr ""
+
+msgid 'http'
+msgstr ""
+
+msgid '<div style="height:400px"><canvas id="WiFiChart"></canvas></div>'
+msgstr ""
+
+msgid 'Temporary'
+msgstr ""
+
+msgid '<strong %1$s>%2$d Disabled Helpers</strong>'
+msgstr ""
+
+msgid 'B2pvfbH043q (FRITZ!Box 7582 7.01/Asus DSL-AC88U-B v1.10.06_591)'
+msgstr ""
+
+msgid 'search'
+msgstr ""
+
+msgid 'Update available! Version: <strong id="new-version-text">%s</strong>'
+msgstr ""
+
+msgid '<span data-bind="text: ram_free">%s</span>'
+msgstr ""
+
+msgid 'A2pvfbH043d1 (FRITZ!Box 7581 6.54)'
+msgstr ""
+
+msgid '"] = "\\'", ['
+msgstr ""
+
+msgid '<form class="form-horizontal" >'
+msgstr ""
+
+msgid '); ngx.print(env.fwversion_latest); ngx.print('
+msgstr ""
+
+msgid ');  ngx.print( string.format('<html lang="%s">'
+msgstr ""
+
+msgid '); ngx.print(pageselector.text); ngx.print ('
+msgstr ""
+
+msgid '<ul class="nav nav-tabs">'
+msgstr ""
+
+msgid 'Fritz!Box'
+msgstr ""
+
+msgid '<div class="row">'
+msgstr ""
+
+msgid 'enabled'
+msgstr ""
+
+msgid '">'
+msgstr ""
+
+msgid '<fieldset class="modal-body hide" id="upgrade-gui-bar" style="min-height: unset;">'
+msgstr ""
+
+msgid 'GRE without PassThru'
+msgstr ""
+
+msgid '<i " class="far fa-eye" aria-hidden="true" href="#">&nbsp</i>'
+msgstr ""
+
+msgid '([%w]+)'
+msgstr ""
+
+msgid '<td nowrap style="padding-right: 20px;padding-left: 10px;">'
+msgstr ""
+
+msgid '<li class="%s"><a  id = "Wireless_Tab_%s" href="#" data-remote="%s">%s</a></li>'
+msgstr ""
+
+msgid '</ul>'
+msgstr ""
+
+msgid '1/4'
+msgstr ""
+
+msgid ');  ngx.print(wlanconfstr); ngx.print('
+msgstr ""
+
+msgid 'class="modal-link" data-toggle="modal" data-remote="modals/traffic-monitor.lp" data-id="device-modal"'
+msgstr ""
+
+msgid 'name'
+msgstr ""
+
+msgid '<span id="refresh-cards"></span>'
+msgstr ""
+
+msgid ');  ngx.print( cui.defaultuser ); ngx.print('
+msgstr ""
+
+msgid 'bridge'
+msgstr ""
+
+msgid '</form>'
+msgstr ""
+
+msgid '(.*)_timezone_(.*)'
+msgstr ""
+
+msgid 'A2pvfbH043b (New FastGate Fastweb)'
+msgstr ""
+
+msgid 'Enhanced Tim'
+msgstr ""
+
+msgid '<li class="%s"><a id ="%s" href="#" class="open-modal" data-remote="/modals/%s">%s</a></li>'
+msgstr ""
+
+msgid 'A2pv6F039u (Netgear D6220 v1.0.0.48/Sercomm VD625)'
+msgstr ""
+
+msgid '[\\\'"]'
+msgstr ""
+
+msgid ');  ngx.print(passwd_count_msg); ngx.print('<br/>'
+msgstr ""
+
+msgid '802.11a/n/ac'
+msgstr ""
+
+msgid '<div class="btn" id="swtichbuttom">'
+msgstr ""
+
+msgid '); ngx.print( assistant:username() ); ngx.print('
+msgstr ""
+
+msgid 'IPv6 Only'
+msgstr ""
+
+msgid 'A2pvbH042n (Netgear D7000)'
+msgstr ""
+
+msgid '<script src="/theme/'
+msgstr ""
+
+msgid 'A2pvfbH043i (Inteno)'
+msgstr ""
+
+msgid '); ngx.print(T"Connection"); ngx.print('
+msgstr ""
+
+msgid '</form><form class="form-horizontal" id="form-upgradefw" method="post" enctype="multipart/form-data">'
+msgstr ""
+
+msgid '</form></fieldset>'
+msgstr ""
+
+msgid 'A2pvfbH043q (FRITZ!Box 7582 7.01/Asus DSL-AC88U v1.10.06_585)'
+msgstr ""
+
+msgid '</a>'
+msgstr ""
+
+msgid ');ngx.print(T"Checking..."); ngx.print('
+msgstr ""
+
+msgid 'B2pvfbH043d1 (FRITZ!Box 7581 6.54)'
+msgstr ""
+
+msgid 'Gateway IP is <strong id="Gateway_Ip">%s</strong> and Mask is <strong id="Netmask_Ip">%s</strong>'
+msgstr ""
+
+msgid ');  ngx.print( T"Your Gateway" ); ngx.print('
+msgstr ""
+
+msgid ');  ngx.print(path); ngx.print('
+msgstr ""
+
+msgid '<p class = "subinfos">'
+msgstr ""
+
+msgid '<strong>You must reboot modem to apply host rules!</strong>'
+msgstr ""
+
+msgid '^%[netmask%] (.*)'
+msgstr ""
+
+msgid '%s@%s.rssi_5g_threshold'
+msgstr ""
+
+msgid 'target'
+msgstr ""
+
+msgid '<p class="socket-legend grayLight" id = "<%=v%>">'
+msgstr ""
+
+msgid 'A2pv6F038f2 (Comtrend VR-3032u)'
+msgstr ""
+
+msgid '{ "error":"%s" }'
+msgstr ""
+
+msgid '<li class="%s"><a id ="%s" href="#" data-remote="%s">%s</a></li>'
+msgstr ""
+
+msgid '<div class="alert alert-info">'
+msgstr ""
+
+msgid '<p class = "subinfos" > Local IP : <strong id="relaysetupcard_relayip_local_ip">%s</strong></p>'
+msgstr ""
+
+msgid ');  ngx.print(T"Re-scanning"); ngx.print('
+msgstr ""
+
+msgid ' <strong id="password">%s</strong>'
+msgstr ""
+
+msgid '%s@%s.rssi_threshold'
+msgstr ""
+
+msgid ');  ngx.print(T"This will switch the active bank with the passive one"); ngx.print('
+msgstr ""
+
+msgid 'wan'
+msgstr ""
+
+msgid '<strong id="iproutescard_dnsservers" %1$s>%2$d DNS Servers</strong>'
+msgstr ""
+
+msgid '<label class="control-label">%s</label>'
+msgstr ""
+
+msgid '{ "state":"%s" }'
+msgstr ""
+
+msgid 'name="configfile"'
+msgstr ""
+
+msgid '); ngx.print(T"Cards"); ngx.print ('
+msgstr ""
+
+msgid '</div></div>'
+msgstr ""
+
+msgid '</div>'
+msgstr ""
+
+msgid 'class="modal-link" data-toggle="modal" data-remote="%s" data-id="device-modal"'
+msgstr ""
+
+msgid 'tcp'
+msgstr ""
+
+msgid ');  ngx.print(curap); ngx.print('
+msgstr ""
+
+msgid 'Clean'
+msgstr ""
+
+msgid '<link rel="stylesheet" href="/theme/'
+msgstr ""
+
+msgid '<strong %1$s>%2$d Route</strong>'
+msgstr ""
+
+msgid 'Filter'
+msgstr ""
+
+msgid '<div class="header-sub-button">'
+msgstr ""
+
+msgid ');  ngx.print( T'Network Name (SSID)'
+msgstr ""
+
+msgid 'B2pvfbH043e (Asus DSL-AC87VG_v1.00.13)'
+msgstr ""
+
+msgid '%.2f Mbps'
+msgstr ""
+
+msgid '<strong %1$s>%2$d Enabled Helpers</strong>'
+msgstr ""
+
+msgid '<p class="subinfos">'
+msgstr ""
+
+msgid '<span class=" simple-desc span3">'
+msgstr ""
+
+msgid 'webui-core'
+msgstr ""
+
+msgid '<span data-bind="html: mmpbx_table">'
+msgstr ""
+
+msgid '0'
+msgstr ""
+
+msgid 'Disabled'
+msgstr ""
+
+msgid '<input type="checkbox" id="sent" name="sent" checked style="margin-left:10px;"></td>'
+msgstr ""
+
+msgid '<strong id="iproutescard_noofroutes" %1$s>%2$d Routes</strong> '
+msgstr ""
+
+msgid '] = '\\"'
+msgstr ""
+
+msgid ' rel="tooltip" data-placement="bottom" data-original-title="'
+msgstr ""
+
+msgid ');  ngx.print( T'Firmware update failed.'
+msgstr ""
+
+msgid 'A2pvbH042j2 (Asus DSL-AC88U)'
+msgstr ""
+
+msgid ');  ngx.print(T'Restart Device'
+msgstr ""
+
+msgid 'A2pvfbH043e (Zyxel 8823)'
+msgstr ""
+
+msgid '); ngx.print(T"Stats"); ngx.print ('
+msgstr ""
+
+msgid '); ngx.print(T"GUI is outdated"); ngx.print('
+msgstr ""
+
+msgid '<strong id = "Ethernet_Devices" %1$s>%2$d Hotspot device</strong> connected'
+msgstr ""
+
+msgid 'data-ip\') != "" ? $(this).attr(\'data-ip\') : "'
+msgstr ""
+
+msgid 'A2pvfbH043f (DSL AC88U) '
+msgstr ""
+
+msgid '); ngx.print(pageselector.othertext); ngx.print ('
+msgstr ""
+
+msgid ');  ngx.print(T'Restoring...'
+msgstr ""
+
+msgid '1'
+msgstr ""
+
+msgid '802.11a/n'
+msgstr ""
+
+msgid '<div class="container toplevel">'
+msgstr ""
+
+msgid '<div id="canvas_container" style="height:400px;margin-right:20px;"><canvas id="WANChart"></canvas></div>'
+msgstr ""

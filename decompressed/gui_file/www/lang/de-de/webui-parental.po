@@ -187,3 +187,33 @@ msgstr ""
 
 msgid '</p>'
 msgstr ""
+
+msgid 'class="modal-link" id = "Site_Blocking_Count" data-toggle="modal" data-remote="modals/parental-modal.lp" data-id="parental-modal"'
+msgstr ""
+
+msgid '<html lang="%s">'
+msgstr ""
+
+msgid '</p>'
+msgstr ""
+
+msgid '1'
+msgstr ""
+
+msgid '<p>%s GUI Version '
+msgstr ""
+
+msgid '<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> and <a href="https://github.com/Ansuel/tch-nginx-gui/graphs/contributors">these GitHub users.</a><br>Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>'
+msgstr ""
+
+msgid 'webui-parental'
+msgstr ""
+
+msgid '<p></p>'
+msgstr ""
+
+msgid '%s'
+msgstr ""
+
+msgid '<p class="subinfos">'
+msgstr ""

@@ -71,3 +71,9 @@ msgstr ""
 
 msgid '1'
 msgstr ""
+
+msgid 'webui-printersharing'
+msgstr ""
+
+msgid '1'
+msgstr ""
