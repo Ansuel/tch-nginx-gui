@@ -3729,6 +3729,10 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	-moz-box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.2);
 	box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.2)
 }
+.smallcard .header .header-items {
+	display: flex;
+    justify-content: flex-end;
+}
 .smallcard .header .settings {
 	-webkit-transition: margin .5s, opacity .5s, color .5s;
 	-moz-transition: margin .5s, opacity .5s, color .5s;
@@ -3858,7 +3862,7 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	overflow: hidden;
-	width: 140px;
+	width: 130px;
 	-webkit-transition: width .5s;
 	-moz-transition: width .5s;
 	-o-transition: width .5s;
@@ -4174,7 +4178,6 @@ a {
 	transition: opacity .5s
 }
 .switch {
-	float: right;
 	display: block;
 	width: 40px;
 	height: 17px;
@@ -5495,6 +5498,14 @@ form .switch {
 	left: -400px;
 	font-size: 1000px;
 	z-index: -1;
+}
+#error-card {
+	display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 100vh;
 }
 .hand {
 	cursor: pointer

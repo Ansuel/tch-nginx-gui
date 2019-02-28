@@ -856,6 +856,13 @@ add_new_web_rule() {
 		uci add_list web.ajaxinfommpbxstatuscard.roles='engineer'
 		uci add_list web.ruleset_main.rules='ajaxinfommpbxstatuscard'
 	fi
+	if [ ! "$(uci get -q web.error)" ]; then
+		uci set web.error=rule
+		uci set web.error.target='/error.lua'
+		uci add_list web.error.roles='admin' 
+		uci add_list web.error.roles='engineer'
+		uci add_list web.ruleset_main.rules='error'
+	fi
 }
 
 check_relay_dhcp() {
