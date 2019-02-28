@@ -1238,3 +1238,162 @@ msgstr ""
 
 msgid '<div id="ap_info" class="apinfo longleft">%s%s%s%s%s%s%s</div>'
 msgstr ""
+
+msgid '</ul></div>'
+msgstr ""
+
+msgid 'proto'
+msgstr ""
+
+msgid '<div tabindex="-1" data-toggle="dropdown" class="btn dropdown-toggle">'
+msgstr ""
+
+msgid '<img src="/img/telstra/dev_laptop%s.gif">'
+msgstr ""
+
+msgid 'webui-telstra'
+msgstr ""
+
+msgid 'src_dport'
+msgstr ""
+
+msgid 'src'
+msgstr ""
+
+msgid 'redirect'
+msgstr ""
+
+msgid '<ul class="dropdown-menu">'
+msgstr ""
+
+msgid '<li class="%s"><a href="%s" target="_self">%s</a></li>'
+msgstr ""
+
+msgid 'dest_port'
+msgstr ""
+
+msgid '<div class="btn-group" style="margin:0px 0px 0px 120px;"><div class="btn btn-table"><i class="icon-plus-sign"></i> Add new port mapping</div>'
+msgstr ""
+
+msgid '5555'
+msgstr ""
+
+msgid 'dest'
+msgstr ""
+
+msgid '<span class="caret"></span></div>'
+msgstr ""
+
+msgid 'Yes'
+msgstr ""
+
+msgid 'ssh'
+msgstr ""
+
+msgid 'wan'
+msgstr ""
+
+msgid 'lan'
+msgstr ""
+
+msgid '192.168.1.100'
+msgstr ""
+
+msgid 'tcp'
+msgstr ""
+
+msgid ');  ngx.print( uri ); ngx.print('
+msgstr ""
+
+msgid '<input id="delete-non-connected-device" class="btn"" value="Delete non-connected Device"/>'
+msgstr ""
+
+msgid '"'
+msgstr ""
+
+msgid '<div class="device"><img src="/img/telstra/dev_usb.png"/><div class="deviceinfo right">%s</div><div><br /></div></div>'
+msgstr ""
+
+msgid '<div style="text-decoration:line-through">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br /></div>'
+msgstr ""
+
+msgid 'Router IP: %s<br />Hostname: %s<br />FW Version: %s'
+msgstr ""
+
+msgid '^%b""'
+msgstr ""
+
+msgid '<input id="hide-unhide-non-connected-device" class="btn"" value="%s"/>'
+msgstr ""
+
+msgid 'target'
+msgstr ""
+
+msgid ''
+msgstr ""
+
+msgid '<div class="device"><img src="/img/telstra/dev_dectphone.png"/><div class="deviceinfo right">%s</div><div><br /></div></div>'
+msgstr ""
+
+msgid ');  ngx.print(assistant:username()); ngx.print('
+msgstr ""
+
+msgid 'Apply'
+msgstr ""
+
+msgid 'dest_ip'
+msgstr ""
+
+msgid 'No'
+msgstr ""
+
+msgid 'Temporary'
+msgstr ""
+
+msgid ');  ngx.print( username ); ngx.print('
+msgstr ""
+
+msgid '<div class="message"><img class="%s" src="/img/telstra/status.png"/>%s</div>'
+msgstr ""
+
+msgid 'Permanent'
+msgstr ""
+
+msgid 'WAN IP: <font color="green"><strong>%s</strong></font><br />Conn. type: %s'
+msgstr ""
+
+msgid '|'
+msgstr ""
+
+msgid '<div class="menu-item"><a href="%s" target="_self"><div class="menu-icon %s %s"></div><div class="menu-text">%s</div></a></div>'
+msgstr ""
+
+msgid '<li><a data-listid=%d class="btnaddservice" href="#">%s</a></li>'
+msgstr ""
+
+msgid 'DNAT'
+msgstr ""
+
+msgid '<div class="deviceinfo left">%s%s%s</div>'
+msgstr ""
+
+msgid 'name'
+msgstr ""
+
+msgid 'Enabled'
+msgstr ""
+
+msgid '<div class="device"><a href="/telstra-modals/device.lp?mac=%s&wireless=%s&ticked=%s"><img src="/img/telstra/dev_laptop%s.gif"/></a><div class="deviceinfo right">%s</div><div><br /></div></div>'
+msgstr ""
+
+msgid '<div id="ap_info" class="apinfo longleft">%s%s%s%s%s%s%s</div>'
+msgstr ""
+
+msgid '%.'
+msgstr ""
+
+msgid '[%a%w]*%.'
+msgstr ""
+
+msgid '22'
+msgstr ""

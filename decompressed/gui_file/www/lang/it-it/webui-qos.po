@@ -201,3 +201,18 @@ msgstr ""
 
 msgid 'classes_columns'
 msgstr ""
+
+msgid 'classes_columns'
+msgstr ""
+
+msgid '@'
+msgstr ""
+
+msgid 'webui-qos'
+msgstr ""
+
+msgid '<i " class="fas fa-list-ul" aria-hidden="true" href="#">&nbsp</i>'
+msgstr ""
+
+msgid '); ngx.print(uri); ngx.print('
+msgstr ""
