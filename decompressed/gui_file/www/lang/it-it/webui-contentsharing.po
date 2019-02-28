@@ -200,3 +200,24 @@ msgstr ""
 
 msgid '<strong>%d</strong> connected devices'
 msgstr ""
+
+msgid '<strong>%s</strong> connected devices'
+msgstr ""
+
+msgid ');  ngx.print(T'Rebooting...'
+msgstr ""
+
+msgid '{ "success":"true" }'
+msgstr ""
+
+msgid '<strong>%d</strong> connected device'
+msgstr ""
+
+msgid '<strong>%d</strong> connected devices'
+msgstr ""
+
+msgid '0'
+msgstr ""
+
+msgid 'webui-contentsharing'
+msgstr ""

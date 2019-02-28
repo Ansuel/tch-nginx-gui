@@ -44,3 +44,6 @@ msgstr ""
 
 msgid 'webui-nfc'
 msgstr ""
+
+msgid 'webui-nfc'
+msgstr ""

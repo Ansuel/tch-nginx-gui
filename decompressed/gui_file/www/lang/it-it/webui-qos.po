@@ -171,3 +171,18 @@ msgstr ""
 
 msgid '); ngx.print(uri); ngx.print('
 msgstr ""
+
+msgid '); ngx.print(uri); ngx.print('
+msgstr ""
+
+msgid 'webui-qos'
+msgstr ""
+
+msgid '<i " class="fas fa-list-ul" aria-hidden="true" href="#">&nbsp</i>'
+msgstr ""
+
+msgid '@'
+msgstr ""
+
+msgid 'classes_columns'
+msgstr ""

@@ -1344,3 +1344,276 @@ msgstr ""
 
 msgid '</option>'
 msgstr ""
+
+msgid ');  ngx.print( T"No network scan results" ); ngx.print('
+msgstr ""
+
+msgid ');  ngx.print( utils.rrc_state_map["idle"] ); ngx.print('
+msgstr ""
+
+msgid '<div data-bind="visible: simViewState() == \'default\'">'
+msgstr ""
+
+msgid '<div class="alert alert-info">'
+msgstr ""
+
+msgid '" class="span3" id="lte_bands_pref" multiple>'
+msgstr ""
+
+msgid '<div class="control-group controls">'
+msgstr ""
+
+msgid '<div data-bind="visible: pinStateReadable().length > 0">'
+msgstr ""
+
+msgid '<div class="control-group"><label class="control-label">'
+msgstr ""
+
+msgid '<div data-bind="visible: dataUsageEnabled() == true">'
+msgstr ""
+
+msgid ');  ngx.print( utils.radio_interface_map["gsm"] ); ngx.print('
+msgstr ""
+
+msgid ');  ngx.print( utils.radio_interface_map["lte"] ); ngx.print('
+msgstr ""
+
+msgid ');  ngx.print( T"The PIN code must be composed of 4 to 8 digits." ); ngx.print('
+msgstr ""
+
+msgid ');  ngx.print( T"No" ); ngx.print('
+msgstr ""
+
+msgid '<input type="text" name="lte_bands" style="display: none;"/>'
+msgstr ""
+
+msgid 'MB'
+msgstr ""
+
+msgid 'delete'
+msgstr ""
+
+msgid ');  ngx.print( T"Read messages" ); ngx.print('
+msgstr ""
+
+msgid '<table id="datausage"><tr><th></th><th>'
+msgstr ""
+
+msgid 'default'
+msgstr ""
+
+msgid '{ error = "Invalid period" }'
+msgstr ""
+
+msgid 'webui-mobiled'
+msgstr ""
+
+msgid ');  ngx.print( utils.radio_interface_map["umts"] ); ngx.print('
+msgstr ""
+
+msgid ');  ngx.print( T"Please enter a valid PIN." ); ngx.print('
+msgstr ""
+
+msgid '<div class="modal-body update" id="lte-sim-body">'
+msgstr ""
+
+msgid '<option value=""></option>'
+msgstr ""
+
+msgid '</div></fieldset>'
+msgstr ""
+
+msgid '<form class="form-horizontal" method="post" action="modals/lte-sim.lp">'
+msgstr ""
+
+msgid ');  ngx.print( utils.nas_state_map["not_registered_searching"] ); ngx.print('
+msgstr ""
+
+msgid '<div data-bind="visible: pinState() == \'disabled\'">'
+msgstr ""
+
+msgid ','
+msgstr ""
+
+msgid 'Interface'
+msgstr ""
+
+msgid '</select></div></div>'
+msgstr ""
+
+msgid '<select data-placeholder="'
+msgstr ""
+
+msgid ':'
+msgstr ""
+
+msgid ': </label><div class="controls"><span class= "span2 simple-desc" data-bind="text: volumeTotal"></span></div></div>'
+msgstr ""
+
+msgid ');  ngx.print( T"SET" ); ngx.print('
+msgstr ""
+
+msgid 'SELECT * FROM log WHERE uptime > '
+msgstr ""
+
+msgid '{ error : "Failed to open log table" }'
+msgstr ""
+
+msgid '<div data-bind="visible: dataUsageLimitEnabled() == true">'
+msgstr ""
+
+msgid '<option selected value="'
+msgstr ""
+
+msgid ');  ngx.print( utils.nas_state_map["registered"] ); ngx.print('
+msgstr ""
+
+msgid '">'
+msgstr ""
+
+msgid ');  ngx.print( T"Yes" ); ngx.print('
+msgstr ""
+
+msgid ' ORDER BY uptime;'
+msgstr ""
+
+msgid '([^,]+)'
+msgstr ""
+
+msgid ');  ngx.print( utils.service_state_map["normal_service"] ); ngx.print('
+msgstr ""
+
+msgid '.@(.-).$'
+msgstr ""
+
+msgid ');  ngx.print( utils.service_state_map["limited_regional_service"] ); ngx.print('
+msgstr ""
+
+msgid '<div data-bind="visible: simViewState() != \'permanently_blocked\'">'
+msgstr ""
+
+msgid ');  ngx.print( T"Scanning for networks, please wait. This can take a few minutes..." ); ngx.print('
+msgstr ""
+
+msgid '</form></div>'
+msgstr ""
+
+msgid '</legend>'
+msgstr ""
+
+msgid '<div data-bind="visible: imsi().length > 0">'
+msgstr ""
+
+msgid ');  ngx.print( utils.nas_state_map["registration_denied"] ); ngx.print('
+msgstr ""
+
+msgid '</td><td data-bind="text: txVolumeTotal" class="datausage"></td><td data-bind="text: rxVolumeTotal" class="datausage"></td></tr></table>'
+msgstr ""
+
+msgid ' '
+msgstr ""
+
+msgid ');  ngx.print( utils.nas_state_map["not_registered"] ); ngx.print('
+msgstr ""
+
+msgid ');  ngx.print( page.content["datausage_cycle_reset_day"] or "1" ); ngx.print('
+msgstr ""
+
+msgid ');  ngx.print( utils.service_state_map["no_service"] ); ngx.print('
+msgstr ""
+
+msgid ');  ngx.print( T"New PIN code and confirmed PIN code don't match." ); ngx.print('
+msgstr ""
+
+msgid ');  ngx.print( utils.radio_interface_map["no_service"] ); ngx.print('
+msgstr ""
+
+msgid '<div style="height: 40px;" data-bind="visible: pinState() != \'blocked\'">'
+msgstr ""
+
+msgid '</div>'
+msgstr ""
+
+msgid '<tr><td class="control-label datausage_header" style="width:60px;">'
+msgstr ""
+
+msgid '</th></tr>'
+msgstr ""
+
+msgid ');  ngx.print( utils.radio_interface_map["cdma"] ); ngx.print('
+msgstr ""
+
+msgid 'permanently_blocked'
+msgstr ""
+
+msgid 'read'
+msgstr ""
+
+msgid '{ error : "Failed to encode data" }'
+msgstr ""
+
+msgid '<div data-bind="visible: pinState() == \'unlocked\'">'
+msgstr ""
+
+msgid 'Choose A Band'
+msgstr ""
+
+msgid '<fieldset class="profileinfo"><legend>'
+msgstr ""
+
+msgid 'GB'
+msgstr ""
+
+msgid '<option value="'
+msgstr ""
+
+msgid ');  ngx.print( utils.rrc_state_map["connected"] ); ngx.print('
+msgstr ""
+
+msgid '</option>'
+msgstr ""
+
+msgid 'unread'
+msgstr ""
+
+msgid '</th><td rowspan="3" style="background-repeat: no-repeat;" class="datausage_image"></td><th>'
+msgstr ""
+
+msgid 'interface\', value: "'
+msgstr ""
+
+msgid '<div data-bind="visible: pinState() == \'locked\'">'
+msgstr ""
+
+msgid ');  ngx.print( utils.service_state_map["sleeping"] ); ngx.print('
+msgstr ""
+
+msgid '1'
+msgstr ""
+
+msgid ');  ngx.print( utils.service_state_map["limited_service"] ); ngx.print('
+msgstr ""
+
+msgid '<div data-bind="visible: pinState() == \'blocked\'">'
+msgstr ""
+
+msgid ');  ngx.print( T"Unread messages" ); ngx.print('
+msgstr ""
+
+msgid '{ error : "Failed to open database" }'
+msgstr ""
+
+msgid ':</label><div class="controls">'
+msgstr ""
+
+msgid '</td><td data-bind="text: txBitRate" class="datausage"></td><td data-bind="text: rxBitRate" class="datausage"></td></tr>'
+msgstr ""
+
+msgid 'blocked'
+msgstr ""
+
+msgid '<div style="clear: both;" data-bind="visible: simViewState() == \'default\'">'
+msgstr ""
+
+msgid '<div data-bind="visible: simViewState() == \'permanently_blocked\'">'
+msgstr ""

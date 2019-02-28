@@ -618,3 +618,129 @@ msgstr ""
 
 msgid 'readonly'
 msgstr ""
+
+msgid 'readonly'
+msgstr ""
+
+msgid '" .. autorefresh .. "'
+msgstr ""
+
+msgid '<tr class="line-edit">'
+msgstr ""
+
+msgid '\"'
+msgstr ""
+
+msgid '<div class="%s" data-toggle="dropdown" tabindex="-1" ><span class="caret"></span></div>'
+msgstr ""
+
+msgid '": "'
+msgstr ""
+
+msgid '<label %s>'
+msgstr ""
+
+msgid 'disabled'
+msgstr ""
+
+msgid 'tch.posix'
+msgstr ""
+
+msgid '<div %s>%s</div>'
+msgstr ""
+
+msgid '<li><a href="#" class="btn-table-new-list" data-listid="%d" >%s</a></li>'
+msgstr ""
+
+msgid 'mode'
+msgstr ""
+
+msgid '<tr> <td class="btn-col-OK" colspan="%d">'
+msgstr ""
+
+msgid '<ul class="dropdown-menu">'
+msgstr ""
+
+msgid '<div class="alert alert-%s">'
+msgstr ""
+
+msgid '<span id="help" class="modal-action" %s><i class="icon-question-sign"></i> %s</span>'
+msgstr ""
+
+msgid '<span class="modal-action"><span class="modal-action-refresh" id="Refresh_id"><i class="icon-refresh"></i> %s</span></span>'
+msgstr ""
+
+msgid ''
+msgstr ""
+
+msgid '</ul>'
+msgstr ""
+
+msgid 'cidr'
+msgstr ""
+
+msgid '<label class="hide checkbox"><input type="checkbox" name="%s" value="" checked></label>'
+msgstr ""
+
+msgid 'web-framework-tch'
+msgstr ""
+
+msgid ','
+msgstr ""
+
+msgid '6'
+msgstr ""
+
+msgid '}'
+msgstr ""
+
+msgid '<td colspan="%d">'
+msgstr ""
+
+msgid '([^,%s]+)'
+msgstr ""
+
+msgid '<div %s><div %s textON="%s" textOFF="%s" valOn="%s" valOff="%s"></div><input %s></div>'
+msgstr ""
+
+msgid 'web.ui_helper'
+msgstr ""
+
+msgid '<label class="hide checkbox"><input type="checkbox" name="%s" value="_DUMMY_" checked></label>'
+msgstr ""
+
+msgid 'directory'
+msgstr ""
+
+msgid 'radio'
+msgstr ""
+
+msgid '<pre style="letter-spacing:1px;color:gray;line-height:normal">'
+msgstr ""
+
+msgid '4'
+msgstr ""
+
+msgid 'web.post_helper'
+msgstr ""
+
+msgid '"'
+msgstr ""
+
+msgid 'selected="selected"'
+msgstr ""
+
+msgid '<center><div class="btn-group">'
+msgstr ""
+
+msgid 'value'
+msgstr ""
+
+msgid '{'
+msgstr ""
+
+msgid '%s="%s"'
+msgstr ""
+
+msgid '<input %s value="%s" %s> %s</label>'
+msgstr ""

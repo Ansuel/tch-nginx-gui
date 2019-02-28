@@ -389,3 +389,72 @@ msgstr ""
 
 msgid 'option[value="pppoa"]'
 msgstr ""
+
+msgid 'input[name="sip_enabled"]'
+msgstr ""
+
+msgid '<span class="help-inline">'
+msgstr ""
+
+msgid '<h4>'
+msgstr ""
+
+msgid 'legend'
+msgstr ""
+
+msgid '.modal input[name='+id+']'
+msgstr ""
+
+msgid '.wizard-card'
+msgstr ""
+
+msgid 'select[name="wan_type"]'
+msgstr ""
+
+msgid 'Step '
+msgstr ""
+
+msgid 'input[name="srp_salt"]'
+msgstr ""
+
+msgid 'wizard'
+msgstr ""
+
+msgid ''
+msgstr ""
+
+msgid 'input[name="web_password2"]'
+msgstr ""
+
+msgid 'input[name="srp_verifier"]'
+msgstr ""
+
+msgid 'webui-wizard'
+msgstr ""
+
+msgid '<div class="alert alert-error">Some parameters failed validation</div>'
+msgstr ""
+
+msgid '.modal input[name="web_username"]'
+msgstr ""
+
+msgid ' of '
+msgstr ""
+
+msgid 'option[value="pppoa"]'
+msgstr ""
+
+msgid '</span>'
+msgstr ""
+
+msgid 'input[name="web_password"]'
+msgstr ""
+
+msgid '.wizard-confirm'
+msgstr ""
+
+msgid 'input[name="web_username"]'
+msgstr ""
+
+msgid '.alert-error'
+msgstr ""
