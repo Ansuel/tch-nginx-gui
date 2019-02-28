@@ -24,7 +24,7 @@ $(document).ready(function(){\
     $(".check_update").on("click", function(e) {\
 	 e.stopPropagation();\
 	 $(".check_update_spinner").addClass("fa-spin");\
-     checkupdate();\
+     scriptRequestStatusAjax("checkver");\
      });\
   ko.bindingHandlers.text = {\
 		init: function(element, valueAccessor) {\
