@@ -485,13 +485,20 @@ ngx.print('\
       $(".modal-body").animate({ scrollTop: $(document).height() }, 1000);\
     }\
     if (data.state == "Requested") {\
+      $(".bar").css("width", "10%").css("background-color","#4caf50");\
       window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
     } else if (data.state == "Downloading") {\
       $(".bar").css("width", "100%").css("background-color","#4caf50");\
       window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
     } else if (data.state == "Extracting") {\
-      $("#extracted_file").text(data.extract_prog);\
-      $(".bar").css("width", data.extract_bar_val+"%").css("background-color","").attr("aria-valuenow", data.extract_bar_val);\
+      var extract_bar_val = isNaN(data.extract_prog)?1:(data.extract_prog/12);\
+      $("#extracted_file").removeClass("hide");\
+      var old_text = $("#extracted_file").text();\
+      if(old_text.replace(/\\+/g, "") == data.extract_prog)\
+        $("#extracted_file").append("+");\
+      else\
+        $("#extracted_file").text(data.extract_prog);\
+      $(".bar").css("width", extract_bar_val+"%").css("background-color","").attr("aria-valuenow", extract_bar_val);\
       window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
     } else if (data.state == "In Progress") {\
       $("#extracted_file").addClass("hide");\
@@ -499,14 +506,12 @@ ngx.print('\
       $(".bar").css("width", bar_val+"%").attr("aria-valuenow", bar_val);\
       window.setTimeout(waitForShutdown, upgrfw_refreshDelay);\
     } else if (data.state == "Not started") {\
-      console.log(data.state);\
       window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
     } else if (data.state == "Finished") {\
       window.location.href = "/";\
     }\
       })\
       .fail(function(data) {\
-          console.log(data);\
         if(data.status==200 && data.responseText.includes("sign-me-in")){\
           window.location.href = "/";\
         } else {\
