@@ -14,9 +14,11 @@ local assistant = assistance.getAssistant('remote')
 local function apply(action)
   proxy.set("rpc.system.modgui.scriptRequest.state","Requested")
   proxy.set("rpc.system.modgui.utility." .. action, "1")
-  proxy.apply()
   ngx.header.content_type = "application/json"
   ngx.print('{ "success":"true" }')
+  ngx.timer.at(0, function()
+      proxy.apply()
+  end)
   ngx.exit(ngx.HTTP_OK)
 end
 
