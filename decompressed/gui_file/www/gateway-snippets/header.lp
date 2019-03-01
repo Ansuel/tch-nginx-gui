@@ -279,8 +279,8 @@ function post(action) {\
   );\
   return false;\
 }\
-var intervalAjaxScript;
-var scriptRequestTimeout=1000;\
+var intervalAjaxScript;\
+var scriptRequestTimeout = 1000;\
 function scriptRequestStatusAjax(type) {\
   if(intervalAjaxScript) return;\
   if(type == "checkver") post("checkver");\

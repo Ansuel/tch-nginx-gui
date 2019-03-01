@@ -74,7 +74,8 @@ local function compile (template, chunkname)
   local f, err = loadstring(translated_string, chunkname)
 
   if not f then
-    ngx.exit(500, err)
+    ngx.log(ngx.CRIT,"COMPILATION ERROR: "..err)
+	ngx.exit(500, err)
   end
 
   return f
