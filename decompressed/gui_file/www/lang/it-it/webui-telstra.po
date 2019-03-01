@@ -1409,3 +1409,15 @@ msgstr ""
 
 msgid 'No'
 msgstr ""
+
+msgid 'Temporary'
+msgstr ""
+
+msgid 'No'
+msgstr ""
+
+msgid 'Yes'
+msgstr ""
+
+msgid 'Permanent'
+msgstr ""

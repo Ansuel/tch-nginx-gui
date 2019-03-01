@@ -2172,3 +2172,12 @@ msgstr ""
 
 msgid 'MB'
 msgstr ""
+
+msgid 'Interface'
+msgstr ""
+
+msgid 'GB'
+msgstr ""
+
+msgid 'MB'
+msgstr ""
