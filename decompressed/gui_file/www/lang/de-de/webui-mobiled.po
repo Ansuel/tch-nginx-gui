@@ -2181,3 +2181,12 @@ msgstr ""
 
 msgid 'MB'
 msgstr ""
+
+msgid 'MB'
+msgstr ""
+
+msgid 'GB'
+msgstr ""
+
+msgid 'Interface'
+msgstr ""

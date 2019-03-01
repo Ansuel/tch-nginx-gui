@@ -608,3 +608,9 @@ msgstr ""
 
 msgid 'Step '
 msgstr ""
+
+msgid 'Step '
+msgstr ""
+
+msgid ' of '
+msgstr ""

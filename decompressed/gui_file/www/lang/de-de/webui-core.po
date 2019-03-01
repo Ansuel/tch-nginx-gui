@@ -12368,3 +12368,219 @@ msgstr ""
 
 msgid 'WAN IP is <strong>%s<\strong>'
 msgstr ""
+
+msgid 'Resetting...'
+msgstr ""
+
+msgid 'GRE without PassThru'
+msgstr ""
+
+msgid 'Only PassThru'
+msgstr ""
+
+msgid 'Select the <strong>"Reset"</strong> button to confirm resetting the password to the default value.'
+msgstr ""
+
+msgid 'Prefer IPv4'
+msgstr ""
+
+msgid 'Factory Defaults'
+msgstr ""
+
+msgid 'Permanent'
+msgstr ""
+
+msgid 'Enhanced Tim'
+msgstr ""
+
+msgid 'Only IPv6'
+msgstr ""
+
+msgid '802.11a/n'
+msgstr ""
+
+msgid 'WAN IP is <strong id ="wan_ip">%s</strong>'
+msgstr ""
+
+msgid 'L2TP without UDP-Checksum check'
+msgstr ""
+
+msgid 'Rebooting'
+msgstr ""
+
+msgid 'Admin'
+msgstr ""
+
+msgid 'The Backup file you try to load has not been taken from the actual SW-Release, please use correct Backup File'
+msgstr ""
+
+msgid 'Dev'
+msgstr ""
+
+msgid 'Starting...'
+msgstr ""
+
+msgid 'IPv6 Only'
+msgstr ""
+
+msgid 'Dark/Midnight (Fritz!Box Based)'
+msgstr ""
+
+msgid 'Gateway IP is <strong id="Gateway_Ip">%s</strong> and Mask is <strong id="Netmask_Ip">%s</strong>'
+msgstr ""
+
+msgid '802.11b/g'
+msgstr ""
+
+msgid 'Network Name (SSID)'
+msgstr ""
+
+msgid 'Only IPv4'
+msgstr ""
+
+msgid 'Temporary'
+msgstr ""
+
+msgid '1'
+msgstr ""
+
+msgid 'Stable'
+msgstr ""
+
+msgid 'Guest'
+msgstr ""
+
+msgid 'Update available! Version: <strong id="new-version-text">%s</strong>'
+msgstr ""
+
+msgid 'Blue'
+msgstr ""
+
+msgid 'Restore Gui'
+msgstr ""
+
+msgid 'None'
+msgstr ""
+
+msgid 'Less Ping'
+msgstr ""
+
+msgid 'Firmware update failed.'
+msgstr ""
+
+msgid '40MHz'
+msgstr ""
+
+msgid 'WAN IP is <strong>%s</strong>'
+msgstr ""
+
+msgid '2'
+msgstr ""
+
+msgid 'Restart Device'
+msgstr ""
+
+msgid 'Dark/White (Fritz!Box Based)'
+msgstr ""
+
+msgid 'Remove root'
+msgstr ""
+
+msgid 'Restoring...'
+msgstr ""
+
+msgid 'Prefer IPv6'
+msgstr ""
+
+msgid 'Fritz!Box'
+msgstr ""
+
+msgid '80MHz'
+msgstr ""
+
+msgid 'Digest'
+msgstr ""
+
+msgid '802.11b/g/n'
+msgstr ""
+
+msgid 'WAN IP is <strong>%s<\strong>'
+msgstr ""
+
+msgid '<p>%s GUI Version '
+msgstr ""
+
+msgid '<strong>You must reboot modem to apply host rules!</strong>'
+msgstr ""
+
+msgid 'Firmware update failed.  Insufficient free memory available. Please reboot and try again.'
+msgstr ""
+
+msgid 'Firmware update failed; please use the correct firmware.'
+msgstr ""
+
+msgid 'Assistant'
+msgstr ""
+
+msgid 'IPv4 Only'
+msgstr ""
+
+msgid 'Firmware update failed; build signed with wrong key'
+msgstr ""
+
+msgid 'Signal Strength (RSSI)'
+msgstr ""
+
+msgid 'Basic'
+msgstr ""
+
+msgid 'Upgrading...'
+msgstr ""
+
+msgid '<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> and <a href="https://github.com/Ansuel/tch-nginx-gui/graphs/contributors">these GitHub users.</a><br>Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>'
+msgstr ""
+
+msgid ' && Translated by <font style="color:#0088cc;">%s</font>'
+msgstr ""
+
+msgid 'Red Dark'
+msgstr ""
+
+msgid 'Channel'
+msgstr ""
+
+msgid 'Removing...'
+msgstr ""
+
+msgid 'Stopping...'
+msgstr ""
+
+msgid 'Enter the default <strong>"access code"</strong>. This code is located on the label underneath your gateway.'
+msgstr ""
+
+msgid 'Resetting'
+msgstr ""
+
+msgid 'Green'
+msgstr ""
+
+msgid 'Disabled'
+msgstr ""
+
+msgid 'IPv4/IPv6'
+msgstr ""
+
+msgid 'Installing...'
+msgstr ""
+
+msgid '802.11a/n/ac'
+msgstr ""
+
+msgid 'L2TP with UDP-Checksum check'
+msgstr ""
+
+msgid 'Errorcode: '
+msgstr ""
+
+msgid 'Violet'
+msgstr ""
