@@ -279,7 +279,8 @@ function post(action) {\
   );\
   return false;\
 }\
-var intervalAjaxScript;\
+var intervalAjaxScript;
+var scriptRequestTimeout=1000;\
 function scriptRequestStatusAjax(type) {\
   if(intervalAjaxScript) return;\
   if(type == "checkver") post("checkver");\
@@ -313,7 +314,7 @@ function scriptRequestStatusAjax(type) {\
       }\
     }\
       });\
-      }, 1000);\
+      }, scriptRequestTimeout);\
 }\
 \
 var KoRequest = [];\
