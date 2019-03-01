@@ -1397,3 +1397,15 @@ msgstr ""
 
 msgid '22'
 msgstr ""
+
+msgid 'Yes'
+msgstr ""
+
+msgid 'Temporary'
+msgstr ""
+
+msgid 'Permanent'
+msgstr ""
+
+msgid 'No'
+msgstr ""

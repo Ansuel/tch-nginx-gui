@@ -247,3 +247,9 @@ msgstr ""
 
 msgid '%s'
 msgstr ""
+
+msgid '<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> and <a href="https://github.com/Ansuel/tch-nginx-gui/graphs/contributors">these GitHub users.</a><br>Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>'
+msgstr ""
+
+msgid '<p>%s GUI Version '
+msgstr ""

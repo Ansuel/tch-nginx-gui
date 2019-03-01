@@ -596,3 +596,9 @@ msgstr ""
 
 msgid '<div class="alert alert-error">Some parameters failed validation</div>'
 msgstr ""
+
+msgid ' of '
+msgstr ""
+
+msgid 'Step '
+msgstr ""
