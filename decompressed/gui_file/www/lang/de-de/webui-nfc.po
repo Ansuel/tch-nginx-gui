@@ -35,21 +35,3 @@ msgstr "Wifi Status"
 
 msgid "Wi-Fi Interface Status"
 msgstr "WiFi Schnittstellen Status"
-
-msgid "NFC Status"
-msgstr ""
-
-msgid 'webui-nfc'
-msgstr ""
-
-msgid 'webui-nfc'
-msgstr ""
-
-msgid 'webui-nfc'
-msgstr ""
-
-msgid 'webui-nfc'
-msgstr ""
-
-msgid 'webui-nfc'
-msgstr ""

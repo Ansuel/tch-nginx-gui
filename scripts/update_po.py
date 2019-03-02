@@ -35,7 +35,7 @@ for root, dirs, files in os.walk(lang_path):
         po_table[dir].append(os.path.join(root, file))
         po_file = open(os.path.join(root, file), 'r',encoding='UTF8')
         string_file = po_file.read()
-        po_string_table[dir][file.replace(".po","")] = tuple(normal_po_regex.findall(string_file))
+        po_string_table[dir][file.replace(".po","")] = tuple([s.replace(s[0], '').replace(s[-1], '') for s in normal_po_regex.findall(string_file)])
         plur_po_string_table[dir][file.replace(".po","")] = tuple(plural_po_regex.findall(string_file))
         po_file.close()
 
@@ -46,14 +46,15 @@ for root, dirs, files in os.walk("decompressed"):
           string_file = search_file.read()
           po_file = po_find_regex.findall(string_file)
           if len(po_file) == 1:
-            translate_table[po_file[0]] += tuple(normal_trans_regex.findall(string_file))
-            translate_table[po_file[0]] += tuple(accent_trans_regex.findall(string_file))
+            translate_table[po_file[0]] += tuple([s.replace(s[0], '').replace(s[-1], '') for s in normal_trans_regex.findall(string_file)])
+            translate_table[po_file[0]] += tuple([s.replace(s[0], '').replace(s[-1], '') for s in accent_trans_regex.findall(string_file)])
             plural_string = plural_trans_regex.findall(string_file)
             for string in plural_string:
               plur_table[po_file[0]] += tuple(first_plur_regex.findall(string))
               plurs_table[po_file[0]][first_plur_regex.findall(string)[0]] = second_plur_regex.findall(string)[0]
           search_file.close()
 
+  
 for lang in po_string_table:
   for file in po_string_table[lang]:
     if file in translate_table and file in po_string_table[lang]:
@@ -61,7 +62,7 @@ for lang in po_string_table:
       po_file = open(lang_path+"/"+lang+"/"+file+".po", 'a',encoding='UTF8')
       for string in diff_table:
         print("Found missing "+string+" in "+file+" for "+lang)
-        po_file.write("\nmsgid "+string+"\nmsgstr \"\"\n")
+        po_file.write("\nmsgid "+"\""+string+"\""+"\nmsgstr \"\"\n")
       po_file.close()
       diff_table = set(plur_table[file]) - set(plur_po_string_table[lang][file])
       po_file = open(lang_path+"/"+lang+"/"+file+".po", 'a',encoding='UTF8')

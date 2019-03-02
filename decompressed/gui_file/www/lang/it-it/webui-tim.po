@@ -17,18 +17,3 @@ msgstr ""
 
 msgid "infinite"
 msgstr "Infinito"
-
-msgid 'webui-tim'
-msgstr ""
-
-msgid 'webui-tim'
-msgstr ""
-
-msgid 'webui-tim'
-msgstr ""
-
-msgid 'webui-tim'
-msgstr ""
-
-msgid 'webui-tim'
-msgstr ""

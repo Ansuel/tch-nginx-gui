@@ -3,6 +3,10 @@
 local content_helper = require("web.content_helper")
 local error
 
+local session =  ngx.ctx.session
+
+local status , err
+
 if ngx.req.get_method() == "GET" then
 	err = ngx.req.get_uri_args().err
 	status = tonumber(ngx.req.get_uri_args().status)
@@ -14,12 +18,19 @@ local cui = {
 	gui_version = "uci.modgui.gui.gui_version",
 }
 
+content_helper.getExactContent(cui)
+
 local error_code = {
 	[403] = "FORBIDDEN",
 	[500] = "INTERNAL_SERVER_ERROR",
 	[200] = "HTTP_OK",
 	[404] = "NOT_FOUND",
 }
+
+if session and not err then
+	status = 500
+	err = session:retrieve("lasterr")
+end
 
 if not err then
 	err = ngx.header.error_msg or ""
@@ -34,9 +45,6 @@ local status_detail = error_code[status]
 if not status_detail then
 	status_detail = "UNKNOWN"
 end
-	
-
-content_helper.getExactContent(cui)
 
 ngx.print('\
 <!DOCTYPE HTML>\
