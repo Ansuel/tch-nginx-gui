@@ -398,5 +398,32 @@ $(function() {\
     $("html, body").animate({ scrollTop: $($(this).attr("href")).offset().top}, 500, "linear");\
   });\
 });\
+function createAjaxUpdateCard(CardIdRefresh, ajaxLink, IntervalVar, RefreshTime) {\
+	var ElementBinding = {};\
+	var ElementBindingList = [];\
+	var ObserveElement;\
+	$("#"+CardIdRefresh).find("[data-bind]").each(function() {\
+		ObserveElement = $(this).data("bind").split(":")[1].trim();\
+		ElementBindingList.push(ObserveElement);\
+		ElementBinding[ObserveElement] = ko.observable();\
+	});\
+\
+	var arrayLength = ElementBindingList.length;\
+	\
+	function AjaxRefresh() {\
+		$.post(ajaxLink+"?auto_update=true", [tch.elementCSRFtoken()], function(data) {\
+			for (var i = 0; i < arrayLength; i++) {\
+				if(data[ElementBindingList[i]] != undefined) {\
+					ElementBinding[ElementBindingList[i]](data[ElementBindingList[i]]);\
+				}\
+			}\
+		}, "json");\
+	};\
+\
+	AjaxRefresh();\
+	ko.applyBindings(ElementBinding, document.getElementById(CardIdRefresh));\
+	IntervalVar = setInterval(AjaxRefresh, RefreshTime);\
+	KoRequest.push(IntervalVar);\
+}\
 </script>\
 ');

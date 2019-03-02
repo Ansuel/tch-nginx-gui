@@ -71,19 +71,7 @@ ngx.print('\
 <script>\
 var GatewayCardInterval;\
 $(document).ready(function () {\
-	var GatewayCardBinding = { cpuload: ko.observable(), };\
-	function GatewayCardRefresh() {\
-		$.post("/ajax/cpuload.lua", [tch.elementCSRFtoken()], function(data) {\
-			if(data.cpuload != undefined) {\
-				GatewayCardBinding.cpuload(data.cpuload);\
-			}\
-		}, "json");\
-	};\
-\
-	GatewayCardRefresh();\
-	ko.applyBindings(GatewayCardBinding, document.getElementById("gateway-card"));\
-	GatewayCardInterval = setInterval(GatewayCardRefresh, 5000);\
-	KoRequest.push(GatewayCardInterval);\
+	new createAjaxUpdateCard("gateway-card","/ajax/cpuload.lua",GatewayCardInterval,5000);\
 })\
 </script>\
 ');

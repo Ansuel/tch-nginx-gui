@@ -65,25 +65,7 @@ ngx.print('\
 <script>\
 var StaticCardInterval;\
 $(document).ready(function () {\
-	var StaticCardBinding = {\
-		status_light: ko.observable(),\
-		uptime_text: ko.observable(),\
-		WAN_IP_text: ko.observable(),\
-	};\
-	function StaticCardRefresh() {\
-		$.post("/ajax/internet.lua", [tch.elementCSRFtoken()], function(data) {\
-			if(data.uptime_text != undefined) {\
-				StaticCardBinding.status_light(data.status_light);\
-				StaticCardBinding.uptime_text(data.uptime_text);\
-				StaticCardBinding.WAN_IP_text(data.WAN_IP_text);\
-			}\
-		}, "json");\
-	};\
-\
-	StaticCardRefresh();\
-	ko.applyBindings(StaticCardBinding, document.getElementById("static-internet-tab"));\
-	StaticCardInterval = setInterval(StaticCardRefresh, 3000);\
-	KoRequest.push(StaticCardInterval);\
+	new createAjaxUpdateCard("static-internet-tab","/ajax/internet.lua",StaticCardInterval,3000);\
 })\
 </script>\
 ');

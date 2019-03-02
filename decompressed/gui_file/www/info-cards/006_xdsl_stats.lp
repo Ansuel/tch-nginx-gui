@@ -166,55 +166,7 @@ ngx.print('\
 <script>\
 var InfoXdslCardInterval;\
 $(document).ready(function () {\
-	var InfoXdslCardBinding = { \
-		status: ko.observable(), \
-		max_upstream: ko.observable(), \
-		max_downstream: ko.observable(), \
-		dsl_linerate_up: ko.observable(), \
-		dsl_linerate_down: ko.observable(), \
-		dsl_margin_up: ko.observable(), \
-		dsl_margin_down: ko.observable(), \
-		dsl_attenuation_up: ko.observable(), \
-		dsl_attenuation_down: ko.observable(), \
-		dsl_power_up: ko.observable(), \
-		dsl_power_down: ko.observable(), \
-		dsl_type: ko.observable(), \
-		dsl_margin_SNRM_up: ko.observable(), \
-		dsl_margin_SNRM_down: ko.observable(), \
-		dslam_version: ko.observable(), \
-		dslam_chipset: ko.observable(), \
-		dsl_profile: ko.observable(), \
-		dsl_port: ko.observable(), \
-	};\
-	function InfoXdslCardRefresh() {\
-		$.post("/ajax/internet.lua?datatype=xdsl", [tch.elementCSRFtoken()], function(data) {\
-			if(data.status != undefined) {\
-				InfoXdslCardBinding.status(data.status);\
-				InfoXdslCardBinding.max_upstream(data.max_upstream);\
-				InfoXdslCardBinding.max_downstream(data.max_downstream);\
-				InfoXdslCardBinding.dsl_linerate_up(data.dsl_linerate_up);\
-				InfoXdslCardBinding.dsl_linerate_down(data.dsl_linerate_down);\
-				InfoXdslCardBinding.dsl_margin_up(data.dsl_margin_up);\
-				InfoXdslCardBinding.dsl_margin_down(data.dsl_margin_down);\
-				InfoXdslCardBinding.dsl_attenuation_up(data.dsl_attenuation_up);\
-				InfoXdslCardBinding.dsl_attenuation_down(data.dsl_attenuation_down);\
-				InfoXdslCardBinding.dsl_power_up(data.dsl_power_up);\
-				InfoXdslCardBinding.dsl_power_down(data.dsl_power_down);\
-				InfoXdslCardBinding.dsl_type(data.dsl_type);\
-				InfoXdslCardBinding.dsl_margin_SNRM_up(data.dsl_margin_SNRM_up);\
-				InfoXdslCardBinding.dsl_margin_SNRM_down(data.dsl_margin_SNRM_down);\
-				InfoXdslCardBinding.dslam_version(data.dslam_version);\
-				InfoXdslCardBinding.dslam_chipset(data.dslam_chipset);\
-				InfoXdslCardBinding.dsl_profile(data.dsl_profile);\
-				InfoXdslCardBinding.dsl_port(data.dsl_port);\
-			}\
-		}, "json");\
-	};\
-\
-	InfoXdslCardRefresh();\
-	ko.applyBindings(InfoXdslCardBinding, document.getElementById("xdsltab"));\
-	InfoXdslCardInterval = setInterval(InfoXdslCardRefresh, 5000);\
-	KoRequest.push(InfoXdslCardInterval);\
+	new createAjaxUpdateCard("xdsltab","/ajax/internet.lua?datatype=xdsl",InfoXdslCardInterval,5000);\
 })\
 </script>\
 '); 

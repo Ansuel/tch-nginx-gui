@@ -107,29 +107,7 @@ ngx.print('\
 <script>\
 var InfoWanStatsCardInterval;\
 $(document).ready(function () {\
-	var InfoWanStatsCardBinding = { \
-		status: ko.observable(), \
-		wanip: ko.observable(), \
-		wangateway: ko.observable(), \
-		wandns: ko.observable(), \
-		wanuptime: ko.observable(), \
-	};\
-	function InfoWanStatsCardRefresh() {\
-		$.post("/ajax/internet.lua", [tch.elementCSRFtoken()], function(data) {\
-			if(data.status != undefined) {\
-				InfoWanStatsCardBinding.status(data.status);\
-				InfoWanStatsCardBinding.wanip(data.WAN_IP);\
-				InfoWanStatsCardBinding.wangateway(data.wangateway);\
-				InfoWanStatsCardBinding.wandns(data.wandns);\
-				InfoWanStatsCardBinding.wanuptime(data.pppoe_uptime_extended);\
-			}\
-		}, "json");\
-	};\
-\
-	InfoWanStatsCardRefresh();\
-	ko.applyBindings(InfoWanStatsCardBinding, document.getElementById("wanstatsinfotab"));\
-	InfoWanStatsCardInterval = setInterval(InfoWanStatsCardRefresh, 5000);\
-	KoRequest.push(InfoWanStatsCardInterval);\
+	new createAjaxUpdateCard("wanstatsinfotab","/ajax/internet.lua",InfoWanStatsCardInterval,5000);\
 })\
 </script>\
 '); 

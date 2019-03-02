@@ -34,21 +34,7 @@ ngx.print('\
 <script>\
 var InfoDeviceCardInterval;\
 $(document).ready(function () {\
-	var InfoDeviceCardBinding = {\
-		device_table: ko.observable(),\
-	};\
-	function InfoDeviceCardRefresh() {\
-		$.post("/ajax/connected_device.lua", [tch.elementCSRFtoken()], function(data) {\
-			if(data.device_table != undefined) {\
-				InfoDeviceCardBinding.device_table(data.device_table);\
-			}\
-		}, "json");\
-	};\
-\
-	InfoDeviceCardRefresh();\
-	ko.applyBindings(InfoDeviceCardBinding, document.getElementById("infodevicetab"));\
-	InfoDeviceCardInterval = setInterval(InfoDeviceCardRefresh, 10000);\
-	KoRequest.push(InfoDeviceCardInterval);\
+	new createAjaxUpdateCard("infodevicetab","/ajax/connected_device.lua",InfoDeviceCardInterval,10000);\
 })\
 </script>\
 '); 
