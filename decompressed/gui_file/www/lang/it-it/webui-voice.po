@@ -17,18 +17,18 @@ msgstr ""
 
 msgid "<strong %s>%d </strong> Registered Account"
 msgid_plural "<strong %s>%d </strong> Registered Accounts"
-msgstr[0] "<strong %s>%d </strong> account registrato"
-msgstr[1] "<strong %s>%d </strong> account registrati"
+msgstr[0] "<strong %s>%d</strong> account registrato"
+msgstr[1] "<strong %s>%d</strong> account registrati"
 
 msgid "<strong %s>%d </strong> Registering Account"
 msgid_plural "<strong %s>%d </strong> Registering Accounts"
-msgstr[0] "<strong %s>%d </strong> account in registrazione"
-msgstr[1] "<strong %s>%d </strong> account in registrazione"
+msgstr[0] "<strong %s>%d</strong> account in registrazione"
+msgstr[1] "<strong %s>%d</strong> account in registrazione"
 
 msgid "<strong %s>%d </strong> Unregistered Account"
 msgid_plural "<strong %s>%d </strong> Unregistered Accounts"
-msgstr[0] "<strong %s>%d </strong> account non registrato"
-msgstr[1] "<strong %s>%d </strong> account non registrati"
+msgstr[0] "<strong %s>%d</strong> account non registrato"
+msgstr[1] "<strong %s>%d</strong> account non registrati"
 
 msgid "ALL"
 msgstr "TUTTI"
@@ -431,3 +431,21 @@ msgstr "Porta locale"
 
 msgid "Can be used"
 msgstr "Possono essere usati"
+
+msgid "Stop"
+msgstr ""
+
+msgid "Realm"
+msgstr ""
+
+msgid "Invoke"
+msgstr ""
+
+msgid "DECT"
+msgstr ""
+
+msgid "Sip Device"
+msgstr ""
+
+msgid "Codec"
+msgstr ""

@@ -528,3 +528,261 @@ msgstr "Tentativi rimanenti sblocco:"
 
 msgid "Unblock Retries Left:"
 msgstr "Tentativi rimanenti blocco:"
+
+msgid "Uplink"
+msgstr ""
+
+msgid "* Data usage is only an approximation. For actual usage, please refer to your network operator"
+msgstr ""
+
+msgid "Uplink ARFCN:"
+msgstr ""
+
+msgid "CDMA"
+msgstr ""
+
+msgid "Rx Bytes"
+msgstr ""
+
+msgid "SIM"
+msgstr ""
+
+msgid "No"
+msgstr ""
+
+msgid "RSSI:"
+msgstr ""
+
+msgid "GB"
+msgstr ""
+
+msgid "GSM"
+msgstr ""
+
+msgid "Physical Cell ID:"
+msgstr ""
+
+msgid "SET"
+msgstr ""
+
+msgid "SIM Card"
+msgstr ""
+
+msgid "Current"
+msgstr ""
+
+msgid "MCC"
+msgstr ""
+
+msgid "Device Status And Settings"
+msgstr ""
+
+msgid "Downlink EARFCN:"
+msgstr ""
+
+msgid "Enable Limit"
+msgstr ""
+
+msgid "IPv4v6"
+msgstr ""
+
+msgid "RSCP:"
+msgstr ""
+
+msgid "Tracking Area Code:"
+msgstr ""
+
+msgid "Data Usage"
+msgstr ""
+
+msgid "IPv4"
+msgstr ""
+
+msgid "MB"
+msgstr ""
+
+msgid "MNC"
+msgstr ""
+
+msgid "Rx Packets"
+msgstr ""
+
+msgid "PAP"
+msgstr ""
+
+msgid "Downlink Bandwidth:"
+msgstr ""
+
+msgid "Radio Bearer:"
+msgstr ""
+
+msgid "ECIO:"
+msgstr ""
+
+msgid "Uplink Frequency:"
+msgstr ""
+
+msgid "MCC:"
+msgstr ""
+
+msgid "RRC State:"
+msgstr ""
+
+msgid "Tx Packets"
+msgstr ""
+
+msgid "Tx Packet Errors"
+msgstr ""
+
+msgid "Password"
+msgstr ""
+
+msgid "Unknown PIN action"
+msgstr ""
+
+msgid "UMTS Only"
+msgstr ""
+
+msgid "Total"
+msgstr ""
+
+msgid "GSM Only"
+msgstr ""
+
+msgid "RSRP:"
+msgstr ""
+
+msgid "PIN"
+msgstr ""
+
+msgid "IMEI"
+msgstr ""
+
+msgid "UMTS Preferred"
+msgstr ""
+
+msgid "PUK"
+msgstr ""
+
+msgid "CHAP"
+msgstr ""
+
+msgid "EARFCN"
+msgstr ""
+
+msgid "National"
+msgstr ""
+
+msgid "UMTS"
+msgstr ""
+
+msgid "LTE Preferred"
+msgstr ""
+
+msgid "SNR:"
+msgstr ""
+
+msgid "Data usage limit reached"
+msgstr ""
+
+msgid "Downlink Frequency:"
+msgstr ""
+
+msgid "IMSI"
+msgstr ""
+
+msgid "RSRQ:"
+msgstr ""
+
+msgid "Total Volume"
+msgstr ""
+
+msgid "MNC:"
+msgstr ""
+
+msgid "Uplink Bandwidth:"
+msgstr ""
+
+msgid "LTE"
+msgstr ""
+
+msgid "Uplink EARFCN:"
+msgstr ""
+
+msgid "Data Usage Monitoring"
+msgstr ""
+
+msgid "Uplink UARFCN:"
+msgstr ""
+
+msgid "IPv6"
+msgstr ""
+
+msgid "Downlink"
+msgstr ""
+
+msgid "CINR:"
+msgstr ""
+
+msgid "ICCID"
+msgstr ""
+
+msgid "Reset"
+msgstr ""
+
+msgid "International"
+msgstr ""
+
+msgid "TX Power:"
+msgstr ""
+
+msgid "LTE Only"
+msgstr ""
+
+msgid "SINR:"
+msgstr ""
+
+msgid "Downlink UARFCN:"
+msgstr ""
+
+msgid "APN"
+msgstr ""
+
+msgid "Path loss:"
+msgstr ""
+
+msgid "Auto"
+msgstr ""
+
+msgid "Downlink ARFCN:"
+msgstr ""
+
+msgid "Active Band:"
+msgstr ""
+
+msgid "Reset Data Usage"
+msgstr ""
+
+msgid "MSISDN"
+msgstr ""
+
+msgid "Rx Packet Errors"
+msgstr ""
+
+msgid "Data Usage Limit"
+msgstr ""
+
+msgid "Monthly Reset Day"
+msgstr ""
+
+msgid "Cell ID:"
+msgstr ""
+
+msgid "SMS"
+msgstr ""
+
+msgid "GSM Preferred"
+msgstr ""
+
+msgid "Tx Bytes"
+msgstr ""

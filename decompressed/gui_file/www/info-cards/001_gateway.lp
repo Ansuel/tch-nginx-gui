@@ -128,29 +128,7 @@ ngx.print('\
 <script>\
 var InfoGatewayCardInterval;\
 $(document).ready(function () {\
-	var InfoGatewayCardBinding = { \
-		cpuusage: ko.observable(), \
-		uptime: ko.observable(), \
-		ram_free: ko.observable(), \
-		connection: ko.observable(), \
-		system_time: ko.observable(), \
-	};\
-	function InfoGatewayCardRefresh() {\
-		$.post("/ajax/cpuload.lua", [tch.elementCSRFtoken()], function(data) {\
-			if(data.cpuload != undefined) {\
-				InfoGatewayCardBinding.cpuusage(data.cpuusage);\
-				InfoGatewayCardBinding.uptime(data.uptime);\
-				InfoGatewayCardBinding.ram_free(data.ram_free);\
-				InfoGatewayCardBinding.connection(data.connection);\
-				InfoGatewayCardBinding.system_time(data.system_time);\
-			}\
-		}, "json");\
-	};\
-\
-	InfoGatewayCardRefresh();\
-	ko.applyBindings(InfoGatewayCardBinding, document.getElementById("gatewaytab"));\
-	InfoGatewayCardInterval = setInterval(InfoGatewayCardRefresh, 5000);\
-	KoRequest.push(InfoGatewayCardInterval);\
+	new createAjaxUpdateCard("gatewaytab","/ajax/cpuload.lua",InfoGatewayCardInterval,5000);\
 })\
 </script>\
 '); 

@@ -1,17 +1,6 @@
 --pretranslated: do not change this file
- 
--- Enable localization
-
-local content_helper = require("web.content_helper")
-local session = ngx.ctx.session
 
 local lp = require("web.lp")
-
-local cui = {
-    advanced = "uci.web.uiconfig.@uidefault.alwaysadvanced",
-	gui_skin = "uci.modgui.gui.gui_skin",
-}
-content_helper.getExactContent(cui)
 
 local rightcard = {}
 
@@ -21,6 +10,8 @@ ngx.print('\
 <div id="dynamic-content">\
   <div id ="infocardrow" class="row">\
 ')
+lp.setpath("/www/gateway-snippets/")
+lp.include("js-after-header.lp")
 lp.setpath("/www/info-cards/")
        local cards = require("cards")
 	cards.setpath("/www/info-cards/")

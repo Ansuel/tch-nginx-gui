@@ -103,7 +103,7 @@ ngx.print('\
 \
 ');  ngx.print(ui_helper.createHeader(T"Application List", false, false))   ngx.print('\
 <div class="modal-body update">\
-<fieldset>\
+<fieldset style="display:flex;">\
     <form class="form-horizontal" method="post" action="modals/applications-modal.lp">\
     ');
 local info_box = {
@@ -128,7 +128,7 @@ for _, app in ipairs(app_list) do
 end
 
 if StateParams["luci_webui"] ~= nil then
-	html[#html+1] = '<div class="span3">'
+	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. T"LuCI GUI" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install uhttpd and luci", info_box)
@@ -149,7 +149,7 @@ if StateParams["luci_webui"] ~= nil then
 end
 
 if StateParams["amule_webui"] ~= nil then
-	html[#html+1] = '<div class="span3">'
+	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. T"aMule" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install aMule webui", info_box)
@@ -172,7 +172,7 @@ if StateParams["amule_webui"] ~= nil then
 end
 
 if StateParams["aria2_webui"] ~= nil then
-	html[#html+1] = '<div class="span3">'
+	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. T"Aria2 GUI" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install aria2 and ariang webui", info_box)
@@ -196,7 +196,7 @@ if StateParams["aria2_webui"] ~= nil then
 end
 
 if StateParams["transmission_webui"] ~= nil then
-	html[#html+1] = '<div class="span3">'
+	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. T"Transmission GUI" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install transmission and transmission-webui", info_box)
@@ -225,7 +225,7 @@ if StateParams["blacklist_application"] ~= nil then
 			id = "btn-installempty_blacklist"
 		}
 	}
-	html[#html+1] = '<div class="span3">'
+	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. T"Blacklist App" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install the blacklist application", info_box)
@@ -250,7 +250,7 @@ if StateParams["blacklist_application"] ~= nil then
 end
 
 if StateParams["xupnp_application"] ~= nil then
-	html[#html+1] = '<div class="span3">'
+	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. T"XUPnP App" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install the XUPnP application", info_box)
@@ -271,7 +271,7 @@ if StateParams["xupnp_application"] ~= nil then
 end
 
 if StateParams["telstra_webui"] ~= nil then
-	html[#html+1] = '<div class="span3">'
+	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. T"Telstra GUI" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install Telstra webui", info_box)

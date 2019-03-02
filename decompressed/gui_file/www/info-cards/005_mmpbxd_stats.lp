@@ -61,21 +61,7 @@ ngx.print('\
 <script>\
 var InfoMmpbxCardInterval;\
 $(document).ready(function () {\
-	var InfoMmpbxCardBinding = {\
-		mmpbx_table: ko.observable(),\
-	};\
-	function InfoMmpbxCardRefresh() {\
-		$.post("/ajax/mmpbx_status.lua", [tch.elementCSRFtoken()], function(data) {\
-			if(data.mmpbx_table != undefined) {\
-				InfoMmpbxCardBinding.mmpbx_table(data.mmpbx_table);\
-			}\
-		}, "json");\
-	};\
-\
-	InfoMmpbxCardRefresh();\
-	ko.applyBindings(InfoMmpbxCardBinding, document.getElementById("infommpbxdtab"));\
-	InfoMmpbxCardInterval = setInterval(InfoMmpbxCardRefresh, 10000);\
-	KoRequest.push(InfoMmpbxCardInterval);\
+	new createAjaxUpdateCard("infommpbxdtab","/ajax/mmpbx_status.lua",InfoMmpbxCardInterval,10000);\
 })\
 </script>\
 '); 

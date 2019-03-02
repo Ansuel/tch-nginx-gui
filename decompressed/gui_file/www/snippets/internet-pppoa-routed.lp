@@ -160,7 +160,7 @@ local gOV = post_helper.getOptionalValidation
 local dns_options = {
     tableid = "dns_servers",
     basepath = "uci.network.interface.@wan.dns.@.",
-    createMsg = T"Add new" .. " " .. T"DNS server",
+    createMsg = T"Add new DNS server",
     minEntries = 0,
     maxEntries = 3,
 }

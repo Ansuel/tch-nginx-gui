@@ -552,7 +552,7 @@ end
 
   ngx.print('\
 \
-');  ngx.print(ui_helper.createHeader(T"Gateway", true, true))   ngx.print('\
+');  ngx.print(ui_helper.createHeader(T"Modem", true, true))   ngx.print('\
 <div class="modal-body update">\
 ');
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
@@ -563,6 +563,11 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       local basic = {
         span = {
           class = "span5"
+        },
+      }
+	  local long_basic = {
+        span = {
+          class = "span6"
         },
       }
       local advanced = {
@@ -722,6 +727,11 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
           class = "monitor-system_network_timezone monitor-0"
         }
       }
+	  local reset_on_update = {
+        input = {
+            class = "no-save",
+        }
+    }
 
       local html = {}
       html[#html + 1] = ui_helper.createLabel(T"Product Vendor", content["vendor"], basic)
@@ -732,7 +742,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       --html[#html + 1] = ui_helper.createLabel(T"Firmware Version", content["firmware_version"], basic)
 	  html[#html + 1] = ui_helper.createLabel(T"Datapump Version", content["dsl_firmware"], basic)
       html[#html + 1] = ui_helper.createLabel(T"Firmware OID", content["firmware_oid"], basic)
-      html[#html + 1] = ui_helper.createLabel(T"Bootloader Version", content["bootloader_version"], basic)
+      html[#html + 1] = ui_helper.createLabel(T"Bootloader Version", content["bootloader_version"], long_basic)
       html[#html + 1] = ui_helper.createLabel(T"Bootloader OID", content["bootloader_oid"], basic)
       html[#html + 1] = ui_helper.createLabel(T"Hardware Version", content["hardware_version"], basic)
       html[#html + 1] = ui_helper.createLabel(T"Serial Number", content["serial_number"], basic)
@@ -783,7 +793,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       if cui.upgradefw == "1" then
         if cui.upgradefw == "1" then
 		  html[#html + 1] = ui_helper.createAlertBlock(T"Check this to remove config after firmware update.<br/>This won't remove root.<br/>It is advertised to check this if you are downgrading the firmware.", basic)
-		  html[#html + 1] = ui_helper.createInputCheckbox(T"Remove config file with upgrade","remove_conf","0",nil)
+		  html[#html + 1] = ui_helper.createInputCheckbox(T"Remove config file with upgrade","remove_conf","0",reset_on_update)
           html[#html + 1] = '</form><form class="form-horizontal" id="form-upgradefw" method="post" enctype="multipart/form-data">'
           html[#html + 1] = '<div class="control-group">'
           html[#html + 1] = format('<label class="control-label">%s</label>', T"Update firmware")
@@ -808,12 +818,12 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     local html = {}
 	html[#html + 1] = '<legend>'.. T"Bank Info" ..'</legend>'
     html[#html + 1] = ui_helper.createLabel(T"Active Bank", content["activebank"] , basic)
-	html[#html + 1] = ui_helper.createLabel(T"Active Version", content["activeversion"] , basic)
+	html[#html + 1] = ui_helper.createLabel(T"Active Version", content["activeversion"] , long_basic)
 	html[#html + 1] = ui_helper.createLabel(T"Passive Bank", content["passivebank"] , basic)
 	if content["passiveversion"] == "Unknown" then
-		html[#html + 1] = ui_helper.createLabel(T"Passive Version", T"Firmware not present in this bank" , basic)
+		html[#html + 1] = ui_helper.createLabel(T"Passive Version", T"Firmware not present in this bank" , long_basic)
 	else
-		html[#html + 1] = ui_helper.createLabel(T"Passive Version", content["passiveversion"] , basic)
+		html[#html + 1] = ui_helper.createLabel(T"Passive Version", content["passiveversion"] , long_basic)
 	end
     ngx.print(html)
 	

@@ -163,25 +163,7 @@ ngx.print('\
 <script>\
 var PPPoECardInterval;\
 $(document).ready(function () {\
-	var PPPoECardBinding = {\
-		status_light: ko.observable(),\
-		uptime_text: ko.observable(),\
-		WAN_IP_text: ko.observable(),\
-	};\
-	function PPPoECardRefresh() {\
-		$.post("/ajax/internet.lua", [tch.elementCSRFtoken()], function(data) {\
-			if(data.pppoe_uptime != undefined) {\
-				PPPoECardBinding.status_light(data.status_light);\
-				PPPoECardBinding.uptime_text(data.uptime_text);\
-				PPPoECardBinding.WAN_IP_text(data.WAN_IP_text);\
-			}\
-		}, "json");\
-	};\
-\
-	PPPoECardRefresh();\
-	ko.applyBindings(PPPoECardBinding, document.getElementById("pppoe-internet-tab"));\
-	PPPoECardInterval = setInterval(PPPoECardRefresh, 3000);\
-	KoRequest.push(PPPoECardInterval);\
+	new createAjaxUpdateCard("pppoe-internet-tab","/ajax/internet.lua",PPPoECardInterval,3000);\
 })\
 </script>\
 ');

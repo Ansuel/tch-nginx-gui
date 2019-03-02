@@ -39,7 +39,7 @@ then
       ngx.print('\
 		  <td>\
 		    <div data-toggle="modal" data-remote="modals/diagnostics-xdsl-modal.lp" data-id="diagnostics-xdsl-modal">\
-				<i class="smallsomeInfos modal-link fas fa-list-ul" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="'); ngx.print(T"xDSL"); ngx.print('" src="/img/bandwidth-px-png.png" alt="dsl"></i>\
+				<i class="smallsomeInfos modal-link fas fa-list-ul" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="'); ngx.print(T"xDSL"); ngx.print('" alt="dsl"></i>\
 			</div>\
 		  </td>\
 		   <td>\
@@ -52,7 +52,7 @@ then
   ngx.print('\
           <td>\
 			<div data-toggle="modal" data-remote="modals/diagnostics-ping-modal.lp" data-id="diagnostics-ping-modal">\
-			    <i class="smallsomeInfos modal-link fas fa-upload" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="'); ngx.print(T"Ping & Traceroute"); ngx.print('" src="/img/pocket-32-black.png" alt="ping/trace"></i>\
+			    <i class="smallsomeInfos modal-link fas fa-upload" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="'); ngx.print(T"Ping & Traceroute"); ngx.print('" alt="ping/trace"></i>\
 			</div>\
 	      </td>\
 		  <td>\
@@ -64,7 +64,7 @@ then
         <tr>\
 		  <td>\
 			<div data-toggle="modal" data-remote="modals/diagnostics-connection-modal.lp" data-id="diagnostics-connection-modal">\
-				<i class="smallsomeInfos modal-link far fa-lightbulb" style="font-size:32px;" href="#" rel="tooltip" data-placement="top" data-original-title="'); ngx.print(T"Connection"); ngx.print('" src="/img/connection-established.png" alt="connection"></i>\
+				<i class="smallsomeInfos modal-link far fa-lightbulb" style="font-size:32px;" href="#" rel="tooltip" data-placement="top" data-original-title="'); ngx.print(T"Connection"); ngx.print('" alt="connection"></i>\
 		    </div>\
 	      </td>\
 		  <td>\

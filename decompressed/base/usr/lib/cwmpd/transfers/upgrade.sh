@@ -12,6 +12,7 @@ do_upgrade()
   WAIT_FOR_SWITCHOVER_FILE="/usr/lib/cwmpd/transfers/cwmp_waitforswitchover"
   rm -f $WAIT_FOR_SWITCHOVER_FILE
   if [ -x /usr/bin/sysupgrade-safe ]; then
+    echo 1 > /overlay/.skip_version_spoof
     if ! [ -z "$(grep bank_2 /proc/mtd)" ]; then
       $SCRIPT_DIR/rollback.sh record
       if [ "$(uci get cwmpd.cwmpd_config.upgrade_switchovertype)" = "1" ]; then
@@ -44,6 +45,10 @@ do_upgrade()
 
 CONFIG=cwmp_transfer
 
+char_encoding()
+{
+  echo "$1" | sed -e 's/:/%3A/g' -e 's/\//%2F/g'  -e 's/?/%3F/g' -e 's/#/%23/g' -e 's/\[/%5B/g'  -e 's/\]/%5D/g'  -e 's/@/%40/g'  -e 's/!/%21/g'  -e 's/\$/%24/g'  -e 's/&/%26/g' -e 's/'\''/%27/g' -e 's/(/%28/g' -e 's/)/%29/g' -e 's/*/%2A/g' -e 's/+/%2B/g' -e 's/,/%2C/g' -e 's/;/%3B/g' -e 's/=/%3D/g'
+}
 get_url()
 {
   local URL=$1
@@ -53,10 +58,11 @@ get_url()
   local usrinfo=
 
   if [ ! -z $username ]; then
-    usrinfo=$username
+    usrinfo=$(char_encoding "$username")
   fi
 
   if [ ! -z $password ]; then
+    password=$(char_encoding "$password") 
     usrinfo="$usrinfo:$password"
   fi
 
@@ -196,6 +202,7 @@ fi
 
 if [ -z $TRANSFER_URL ]; then
   echo "no URL specified"
+  ubus send FaultMgmt.Event '{ "Source":"cwmpd", "EventType":"ACS provisioning", "ProbableCause":"Firmware upgrade error", "SpecificProblem":"no URL specified" }'
   exit 1
 fi
 
@@ -222,6 +229,7 @@ if [ "$TRANSFER_ACTION" = "start" ]; then
     set_started "$TRANSFER_ID" yes "$URL"
     uci show $CONFIG
 
+	ubus send cwmpd.transfer '{ "session": "begins", "type": "upgrade" }'
     do_upgrade "$URL"
     #if do_upgrade returns, the upgrade failed, remember that
     if [ $? -eq 1 ]; then
@@ -230,6 +238,8 @@ if [ "$TRANSFER_ACTION" = "start" ]; then
       E="1,upgrade failed (not a valid signed rbi?)"
     fi
     set_error "$TRANSFER_ID" "$E"
+	ubus send cwmpd.transfer '{ "session": "ends", "type": "upgrade" }'
+
     # In case of single bank, reboot the board
     platform_is_dualbank
     SINGLE_BANK=$?
@@ -249,8 +259,10 @@ if [ "$TRANSFER_ACTION" = "start" ]; then
     if [ ! -z $ERROR_FILE ]; then
       echo $msg >$ERROR_FILE
     fi
+    ubus send FaultMgmt.Event '{ "Source":"cwmpd", "EventType":"ACS provisioning", "ProbableCause":"Firmware upgrade error", "SpecificProblem":"'"$(echo $E | cut -d, -f2)"'", "AdditionalText":"URL='"$TRANSFER_URL"'"}'
     exit 1
   fi
+  ubus send FaultMgmt.Event '{ "Source":"cwmpd", "EventType":"ACS provisioning", "ProbableCause":"Firmware upgrade success", "SpecificProblem":"", "AdditionalText":"URL='"$TRANSFER_URL"'"}'
   exit 0
 fi
 
