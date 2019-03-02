@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: webui-wizard\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-06-21 15:33+0200\n"
-"PO-Revision-Date: 2019-01-08 11:58+0100\n"
+"PO-Revision-Date: 2019-03-02 15:15+0100\n"
 "Last-Translator: bovirus <bovirus@gmail.com>\n"
 "Language-Team: none\n"
 "Language: it\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language-Name: Italiano\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.2\n"
+"X-Generator: Poedit 2.2.1\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
 msgid "%d day(s), %02d:%02d:%02d"
@@ -316,7 +316,7 @@ msgid "Please configure wifi-bandsteer "
 msgstr "Configura il Band Steering "
 
 msgid " first!"
-msgstr " !"
+msgstr "!"
 
 msgid "Device PIN code entered"
 msgstr "Codice PIN dispositivo inserito"
@@ -550,43 +550,43 @@ msgid "Your Internet connection is currently down. You can try the following: <b
 msgstr "La connessione internet e attualmente non attiva. Prova i seguenti passaggi: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Verifica la connessione del cavo ethernet alla corretta porta nel modem o alla presa ethernet a muro. <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Riavvia il modem."
 
 msgid "No"
-msgstr ""
+msgstr "No"
 
 msgid "Yes"
-msgstr ""
+msgstr "Sì"
 
 msgid "149"
-msgstr ""
+msgstr "149"
 
 msgid "161"
-msgstr ""
+msgstr "161"
 
 msgid "44"
-msgstr ""
+msgstr "44"
 
 msgid "Set PIN code"
-msgstr ""
+msgstr "Imposta codice PIN"
 
 msgid "40"
-msgstr ""
+msgstr "40"
 
 msgid "157"
-msgstr ""
+msgstr "157"
 
 msgid "153"
-msgstr ""
+msgstr "153"
 
 msgid "48"
-msgstr ""
+msgstr "48"
 
 msgid "Permanent"
-msgstr ""
+msgstr "Permanente"
 
 msgid "Temporary"
-msgstr ""
+msgstr "Temporaneo"
 
 msgid "Start"
-msgstr ""
+msgstr "Avvio"
 
 msgid "36"
-msgstr ""
+msgstr "36"
