@@ -47,7 +47,7 @@ for root, dirs, files in os.walk("decompressed"):
           po_file = po_find_regex.findall(string_file)
           if len(po_file) == 1:
             translate_table[po_file[0]] += tuple([s.replace(s[0], '').replace(s[-1], '') for s in normal_trans_regex.findall(string_file)])
-            translate_table[po_file[0]] += tuple([s.replace(s[0], '').replace(s[-1], '') for s in accent_trans_regex.findall(string_file)])
+            translate_table[po_file[0]] += tuple([s.replace(s[0], '').replace(s[-1], '').replace('"','\"') for s in accent_trans_regex.findall(string_file)])
             plural_string = plural_trans_regex.findall(string_file)
             for string in plural_string:
               plur_table[po_file[0]] += tuple(first_plur_regex.findall(string))
