@@ -4307,3 +4307,24 @@ msgstr ""
 
 msgid " && Translated by <font style="color:#0088cc;">%s</font>"
 msgstr ""
+
+msgid "Enter the default <strong>"access code"</strong>. This code is located on the label underneath your gateway."
+msgstr ""
+
+msgid "WAN IP is <strong id ="wan_ip">%s</strong>"
+msgstr ""
+
+msgid "Update available! Version: <strong id="new-version-text">%s</strong>"
+msgstr ""
+
+msgid " && Translated by <font style="color:#0088cc;">%s</font>"
+msgstr ""
+
+msgid "Gateway IP is <strong id="Gateway_Ip">%s</strong> and Mask is <strong id="Netmask_Ip">%s</strong>"
+msgstr ""
+
+msgid "<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> and <a href="https://github.com/Ansuel/tch-nginx-gui/graphs/contributors">these GitHub users.</a><br>Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>"
+msgstr ""
+
+msgid "Select the <strong>"Reset"</strong> button to confirm resetting the password to the default value."
+msgstr ""
