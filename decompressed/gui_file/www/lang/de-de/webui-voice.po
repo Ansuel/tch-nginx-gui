@@ -437,3 +437,21 @@ msgstr "Lokaler Port"
 
 msgid "Can be used"
 msgstr "Kann genutzt werden"
+
+msgid "Stop"
+msgstr ""
+
+msgid "Realm"
+msgstr ""
+
+msgid "Invoke"
+msgstr ""
+
+msgid "DECT"
+msgstr ""
+
+msgid "Sip Device"
+msgstr ""
+
+msgid "Codec"
+msgstr ""

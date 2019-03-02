@@ -82,3 +82,9 @@ msgstr "<p>Versione GUI %s "
 
 msgid "<p>Coded & Expanded by <font style=\"color:#0088cc;\">Ansuel</font> and <a href=\"https://github.com/Ansuel/tch-nginx-gui/graphs/contributors\">these GitHub users.</a><br>Unlock Utility by <font style=\"color:#0088cc;\">ADeltaX</font>"
 msgstr "<p>Codice e espansione di <font style=\"color:#0088cc;\">Ansuel</font> e <a href=\"https://github.com/Ansuel/tch-nginx-gui/graphs/contributors\">di questi utenti GitHub.</a><br>Utility di sblocco di <font style=\"color:#0088cc;\">ADeltaX</font>"
+
+msgid "<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> and <a href="https://github.com/Ansuel/tch-nginx-gui/graphs/contributors">these GitHub users.</a><br>Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>"
+msgstr ""
+
+msgid "Parental Blocked"
+msgstr ""

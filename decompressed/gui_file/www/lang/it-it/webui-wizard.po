@@ -206,3 +206,36 @@ msgstr "Wireless 5 GHz (Wifi):"
 
 msgid "Username: "
 msgstr "Utente: "
+
+msgid "Nessuna"
+msgstr ""
+
+msgid "Step 5 of 8"
+msgstr ""
+
+msgid "Ethernet"
+msgstr ""
+
+msgid "Step 6 of 8"
+msgstr ""
+
+msgid "Wireless 2.4GHz (WiFi): "
+msgstr ""
+
+msgid "VDSL"
+msgstr ""
+
+msgid "ADSL"
+msgstr ""
+
+msgid "WPA+WPA2 PSK"
+msgstr ""
+
+msgid "Wireless 5GHz (WiFi): "
+msgstr ""
+
+msgid "VLAN ID"
+msgstr ""
+
+msgid "WPA2-PSK"
+msgstr ""

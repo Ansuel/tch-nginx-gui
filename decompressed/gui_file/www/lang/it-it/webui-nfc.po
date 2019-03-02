@@ -35,3 +35,6 @@ msgstr "Stato Wi-Fi"
 
 msgid "Wi-Fi Interface Status"
 msgstr "Stato interfaccia Wi-Fi"
+
+msgid "NFC Status"
+msgstr ""
