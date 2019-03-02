@@ -102,6 +102,19 @@ logger_command() {
 	fi
 }
 #################################################
+convert_gui_to_light_gz() {
+	mkdir /tmp/extractemp
+	bzcat /tmp/$1.tar.bz2 | tar -C /tmp/extractemp -xf -
+	rm -r /tmp/extractemp/tmp
+	cd  /tmp/extractemp/
+	tar -zcf ../$1.tar.gz *
+	cd ../../
+	md5sum /tmp/$1.tar.bz2 | awk '{ print $1}' > /root/md5.gui_orig
+	mv /tmp/$1.tar.gz /root/
+	rm -r /tmp/extractemp
+	rm /tmp/$1.tar.bz2
+}
+#################################################
 
 add_ipoe() {
 	uci set network.ipoe=interface
@@ -267,14 +280,19 @@ cumulative_check_gui() {
 		fi
 	fi
 
-	logger_command "Updating GUI in /root folder from /tmp"
-
-	#This move the gui found in tmp to /root
 	if [ -f /tmp/GUI$update_branch.tar.bz2 ]; then
-		if [ -f /root/GUI$update_branch.tar.bz2 ]; then
-			rm /root/GUI$update_branch.tar.bz2
+		overlay_space=$(df /overlay | sed -n 2p | awk {'{print $2}'})
+		if [ "$overlay_space" -lt 33000 ]; then
+			convert_gui_to_light_gz "GUI"$update_branch
+		else
+			logger_command "Updating GUI in /root folder from /tmp"
+			#This move the gui found in tmp to /root
+			
+			if [ -f /root/GUI$update_branch.tar.bz2 ]; then
+				rm /root/GUI$update_branch.tar.bz2
+			fi
+			mv /tmp/GUI$update_branch.tar.bz2 /root/GUI$update_branch.tar.bz2
 		fi
-		mv /tmp/GUI$update_branch.tar.bz2 /root/GUI$update_branch.tar.bz2
 	fi
 
 	#This generates new hash
@@ -1811,16 +1829,9 @@ check_low_space_device() {
 			mv /root/GUI_dev.tar.bz2 /root/GUI.tar.bz2
 		fi
 		if [ -f /root/GUI.tar.bz2 ]; then
-			mkdir /tmp/extractemp
-			bzcat /root/GUI.tar.bz2 | tar -C /tmp/extractemp -xf -
-			rm -r /tmp/extractemp/tmp
-			cd  /tmp/extractemp/
-			tar -zcf ../GUI.tar.gz *
-			cd ../../
-			md5sum /root/GUI.tar.bz2 | awk '{ print $1}' > /root/md5.gui_orig
+			cp /root/GUI.tar.bz2 /tmp
 			rm /root/GUI.tar.bz2
-			mv /tmp/GUI.tar.gz /root/
-			rm -r /tmp/extractemp
+			convert_gui_to_light_gz "GUI"
 		fi
 	fi
 }
