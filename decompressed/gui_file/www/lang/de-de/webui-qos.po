@@ -127,17 +127,17 @@ msgstr "Ja"
 msgid "Qos Wireless Status"
 msgstr "QoS Drahtlos Status"
 
-msgid "QoS"
+msgid "DSCP"
 msgstr ""
 
 msgid "Qos Port Status"
 msgstr ""
 
-msgid "Virtual Port"
-msgstr ""
-
 msgid "Port"
 msgstr ""
 
-msgid "DSCP"
+msgid "Virtual Port"
+msgstr ""
+
+msgid "QoS"
 msgstr ""

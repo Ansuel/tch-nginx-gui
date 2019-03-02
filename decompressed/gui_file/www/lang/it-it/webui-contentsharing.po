@@ -132,8 +132,8 @@ msgstr "Versione"
 msgid "Volume"
 msgstr "Volume"
 
-msgid "no"
+msgid "Rebooting..."
 msgstr ""
 
-msgid "Rebooting..."
+msgid "no"
 msgstr ""

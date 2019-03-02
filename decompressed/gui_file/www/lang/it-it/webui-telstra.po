@@ -549,44 +549,44 @@ msgstr "La connessione internet e attualmente non attiva. Prova i seguenti passa
 msgid "Your Internet connection is currently down. You can try the following: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Ethernet cable is firmly connected to the correct port on your Gateway or the Ethernet socket on the wall. <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Restart my gateway."
 msgstr "La connessione internet e attualmente non attiva. Prova i seguenti passaggi: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Verifica la connessione del cavo ethernet alla corretta porta nel modem o alla presa ethernet a muro. <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Riavvia il modem."
 
-msgid "No"
-msgstr ""
-
-msgid "Yes"
-msgstr ""
-
-msgid "149"
-msgstr ""
-
-msgid "161"
-msgstr ""
-
-msgid "44"
-msgstr ""
-
-msgid "Set PIN code"
-msgstr ""
-
-msgid "40"
-msgstr ""
-
-msgid "157"
-msgstr ""
-
 msgid "153"
 msgstr ""
 
 msgid "48"
 msgstr ""
 
-msgid "Permanent"
+msgid "44"
+msgstr ""
+
+msgid "Yes"
 msgstr ""
 
 msgid "Temporary"
+msgstr ""
+
+msgid "Permanent"
+msgstr ""
+
+msgid "149"
+msgstr ""
+
+msgid "No"
+msgstr ""
+
+msgid "157"
 msgstr ""
 
 msgid "Start"
 msgstr ""
 
 msgid "36"
+msgstr ""
+
+msgid "Set PIN code"
+msgstr ""
+
+msgid "161"
+msgstr ""
+
+msgid "40"
 msgstr ""

@@ -3456,896 +3456,815 @@ msgstr "Preferibilmente iPv6"
 msgid "Add new DNS server"
 msgstr "Aggiungi nuovo server DNS"
 
-msgid "L"
-msgstr ""
-
-msgid "Aria2 Webui"
-msgstr ""
-
-msgid "GS"
-msgstr ""
-
-msgid "50%"
-msgstr ""
-
-msgid "Line Status"
-msgstr ""
-
-msgid "Auto (20/40MHz)"
-msgstr ""
-
-msgid "Downstream Bonded Channels"
-msgstr ""
-
-msgid "Upstream LOM"
-msgstr ""
-
-msgid "Trellis"
-msgstr ""
-
-msgid "DNS"
-msgstr ""
-
-msgid "90%"
-msgstr ""
-
-msgid "R"
-msgstr ""
-
-msgid "Cloning started in background..."
-msgstr ""
-
-msgid "SRP salt"
-msgstr ""
-
-msgid "Data Rate"
-msgstr ""
-
-msgid "Reset Configuration"
-msgstr ""
-
-msgid "ReXmtCor"
-msgstr ""
-
-msgid "D"
-msgstr ""
-
-msgid "Verify"
-msgstr ""
-
-msgid "Downstream ES"
-msgstr ""
-
-msgid "Downstream LOF"
-msgstr ""
-
-msgid "No"
-msgstr ""
-
-msgid "Go to the gateway tab and click on the Update button, to autoupgrade to the new GUI."
-msgstr ""
-
-msgid "Overlap contents are not allowed"
-msgstr ""
-
-msgid "Telnet Not Available"
-msgstr ""
-
-msgid "VP"
-msgstr ""
-
-msgid "WPA2 PSK"
-msgstr ""
-
-msgid "20MHz"
-msgstr ""
-
-msgid "VoIP"
-msgstr ""
-
-msgid "Laptop"
-msgstr ""
-
-msgid "GSM"
-msgstr ""
-
-msgid "CS4"
-msgstr ""
-
-msgid "Correctables"
-msgstr ""
-
-msgid "Infinite"
-msgstr ""
-
-msgid "WAN IP is <strong>%s<\strong>"
-msgstr ""
-
-msgid "LookBack"
-msgstr ""
-
-msgid "xDSL"
-msgstr ""
-
-msgid "ReXmt"
-msgstr ""
-
-msgid "Tcpdump"
-msgstr ""
-
-msgid "LAN IPv6"
-msgstr ""
-
-msgid "InterfaceType"
-msgstr ""
-
-msgid "Telstra"
-msgstr ""
-
-msgid "AF13"
-msgstr ""
-
-msgid "Upstream LOF"
-msgstr ""
-
-msgid "SNR"
-msgstr ""
-
-msgid "SFP IP should not be in "
-msgstr ""
-
-msgid "WAN IP is <strong id ="wan_ip">%s</strong>"
-msgstr ""
-
-msgid "Cloning bank, please wait..."
-msgstr ""
-
-msgid "Restoring..."
-msgstr ""
-
-msgid "Wireless"
-msgstr ""
-
-msgid "80%"
-msgstr ""
-
-msgid "SSID"
-msgstr ""
-
-msgid "wl0"
-msgstr ""
-
-msgid "AF23"
-msgstr ""
-
-msgid "UPnP"
-msgstr ""
-
-msgid "Upstream ES"
-msgstr ""
-
-msgid "Security for this wireless network is disabled, anybody can connect to it"
-msgstr ""
-
-msgid "Now"
-msgstr ""
-
-msgid "Upstream CRC"
-msgstr ""
-
-msgid "Upstream Bonded Channels"
-msgstr ""
-
-msgid "eth3"
-msgstr ""
-
-msgid "Satisfactoy"
-msgstr ""
-
-msgid "NAT"
-msgstr ""
-
-msgid "DSCP"
-msgstr ""
-
-msgid "DOCSIS Status"
-msgstr ""
-
-msgid "Select the <strong>"Reset"</strong> button to confirm resetting the password to the default value."
-msgstr ""
-
-msgid "TCP/UDP"
-msgstr ""
-
-msgid "WAN"
-msgstr ""
-
-msgid "Luci WebUI"
-msgstr ""
-
-msgid "Upgrading..."
-msgstr ""
-
-msgid "Update available! Version: <strong id="new-version-text">%s</strong>"
-msgstr ""
-
-msgid "WPS"
-msgstr ""
-
-msgid "IPv4"
-msgstr ""
-
-msgid "Re-scanning"
-msgstr ""
-
-msgid "Offline"
-msgstr ""
-
-msgid "TCPDump Log:"
-msgstr ""
-
-msgid "Function input param is missing"
-msgstr ""
-
-msgid "Continue anyway?"
-msgstr ""
-
-msgid "AH"
-msgstr ""
-
-msgid "Dos Protect Option"
-msgstr ""
-
-msgid "SFP IP should not be in Gateway interface IP Range, change that first"
-msgstr ""
-
-msgid "802.11a/n/ac"
-msgstr ""
-
-msgid "DynDNS"
-msgstr ""
-
-msgid "IP Version 6 Address"
-msgstr ""
-
-msgid "ACL Reg"
-msgstr ""
-
-msgid "Remove root"
-msgstr ""
-
-msgid "IPv6 Firewall"
-msgstr ""
-
-msgid "Upstream UAS"
-msgstr ""
-
-msgid "HTTPS"
-msgstr ""
-
-msgid "Downstream SES"
-msgstr ""
-
-msgid "DesktopComputer"
-msgstr ""
-
-msgid "SRA"
-msgstr ""
-
-msgid "Please wait %s seconds to enter new password"
-msgstr ""
-
-msgid "TransmitOpticalLevel"
-msgstr ""
-
-msgid "CS6"
-msgstr ""
-
-msgid "WPA+WPA2"
-msgstr ""
-
-msgid "PCAP"
-msgstr ""
-
-msgid "Remind me later"
-msgstr ""
-
-msgid "Device &nbsp;"
-msgstr ""
-
-msgid "aMule Webui"
-msgstr ""
-
-msgid "RRCBits"
-msgstr ""
-
-msgid "ESP"
-msgstr ""
-
-msgid "Less Ping"
-msgstr ""
-
-msgid "ErrFreeBits"
-msgstr ""
-
-msgid "LEFTRS"
-msgstr ""
-
-msgid "IP Version 4 Address"
-msgstr ""
-
-msgid "Timeout:"
-msgstr ""
-
-msgid "LAN"
-msgstr ""
-
-msgid "S"
-msgstr ""
-
-msgid "Symbol Rate"
-msgstr ""
-
-msgid "Digest"
-msgstr ""
-
-msgid "SCTP"
-msgstr ""
-
-msgid "GRE"
-msgstr ""
-
-msgid "DHCP Start Address should not be Local Device IP Address"
-msgstr ""
-
-msgid "20/40MHz"
-msgstr ""
-
-msgid "AF31"
-msgstr ""
-
-msgid "minEFTR"
-msgstr ""
-
-msgid "200%"
-msgstr ""
-
-msgid "Connected-SFP"
-msgstr ""
-
-msgid "UDP"
-msgstr ""
-
-msgid "Trigger"
-msgstr ""
-
-msgid "Login"
-msgstr ""
-
-msgid "Uncorrectables"
-msgstr ""
-
-msgid "Online"
-msgstr ""
-
-msgid "negotiation failed"
-msgstr ""
-
-msgid "eth1"
-msgstr ""
-
-msgid "160%"
-msgstr ""
-
-msgid "Standard"
-msgstr ""
-
-msgid "ICMPv6"
-msgstr ""
-
-msgid "<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> and <a href="https://github.com/Ansuel/tch-nginx-gui/graphs/contributors">these GitHub users.</a><br>Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>"
-msgstr ""
-
-msgid "802.11a/n"
-msgstr ""
-
-msgid "Radio"
-msgstr ""
-
-msgid "EF"
-msgstr ""
-
-msgid "Downstream CRC"
-msgstr ""
-
-msgid "ICMP"
-msgstr ""
-
-msgid "AF41"
-msgstr ""
-
-msgid "ReXmtUnc"
-msgstr ""
-
-msgid "WAN3"
-msgstr ""
-
-msgid "802.11b/g"
-msgstr ""
-
-msgid "Internet"
-msgstr ""
-
-msgid "Downstream LOS"
-msgstr ""
-
-msgid "Uptime : <strong>%s</strong>"
-msgstr ""
-
-msgid "aMule is "
-msgstr ""
-
-msgid "Stopping..."
-msgstr ""
-
-msgid "Mac address duplicate with either current whitelist or current blacklist"
-msgstr ""
-
-msgid "Basic"
-msgstr ""
-
-msgid "Channel ID"
-msgstr ""
-
-msgid "connecting"
-msgstr ""
-
-msgid "Ethernet AutoGrEEEn"
-msgstr ""
-
-msgid "Downstream UAS"
-msgstr ""
-
-msgid "This could cause security risk, take care of this."
-msgstr ""
-
-msgid "Current Time"
-msgstr ""
-
-msgid "802.11b/g/n"
-msgstr ""
-
-msgid "Call State"
-msgstr ""
-
-msgid "DHCP Start Address should not be greater than End Address"
-msgstr ""
-
-msgid "Upstream FEC"
-msgstr ""
-
-msgid "DOCSIS IP address"
-msgstr ""
-
-msgid "Ethernet"
-msgstr ""
-
-msgid "Applying anyway..."
-msgstr ""
-
-msgid "WiFi NSC"
-msgstr ""
-
-msgid "WAN1"
-msgstr ""
-
-msgid "eth0"
-msgstr ""
-
-msgid "Ok"
-msgstr ""
-
-msgid "WEP is known to be flawed as a wireless security mode, usage of a more secure mode based on WPA2 is recommended."
-msgstr ""
-
-msgid "wl1"
-msgstr ""
-
-msgid "RSSI"
-msgstr ""
-
-msgid "Igmpproxy"
-msgstr ""
-
-msgid "Gateway"
-msgstr ""
-
-msgid "disconnecting"
-msgstr ""
-
-msgid "Downstream FEC"
-msgstr ""
-
-msgid "20%"
-msgstr ""
-
 msgid "Invalid Password"
-msgstr ""
-
-msgid "Firewall"
-msgstr ""
-
-msgid "IP"
-msgstr ""
-
-msgid "INP"
-msgstr ""
-
-msgid "CS1"
-msgstr ""
-
-msgid "This will switch the active bank with the passive one"
-msgstr ""
-
-msgid "Auto (20/40/80MHz)"
-msgstr ""
-
-msgid "WAN2"
-msgstr ""
-
-msgid "Reset Password"
-msgstr ""
-
-msgid "DNS Servers"
-msgstr ""
-
-msgid "2"
-msgstr ""
-
-msgid "125%"
-msgstr ""
-
-msgid "IPTV"
-msgstr ""
-
-msgid "WPS PBC"
-msgstr ""
-
-msgid "80MHz"
-msgstr ""
-
-msgid "NTP servers"
-msgstr ""
-
-msgid "10%"
-msgstr ""
-
-msgid "Starting..."
-msgstr ""
-
-msgid "Invalid host-uniqe tag, should be alphanumeric"
-msgstr ""
-
-msgid "Muticast-Learn"
-msgstr ""
-
-msgid "Upstream SES"
-msgstr ""
-
-msgid "WAN(voip)"
-msgstr ""
-
-msgid "AF21"
-msgstr ""
-
-msgid " && Translated by <font style="color:#0088cc;">%s</font>"
 msgstr ""
 
 msgid "IPv6"
 msgstr ""
 
-msgid "AF22"
-msgstr ""
-
-msgid "aMule"
-msgstr ""
-
-msgid "Forgot Login Password"
-msgstr ""
-
-msgid "String must be empty or a port."
-msgstr ""
-
-msgid "Name you have chosen is reserved"
-msgstr ""
-
-msgid "60%"
-msgstr ""
-
-msgid "40%"
-msgstr ""
-
-msgid "LOG"
-msgstr ""
-
-msgid "Stop time should be greater then start time."
-msgstr ""
-
-msgid "30%"
-msgstr ""
-
-msgid "Do not remind me again"
-msgstr ""
-
-msgid "DSL Bit Loading (Line 1)"
-msgstr ""
-
-msgid "Bridges"
-msgstr ""
-
-msgid "DSL"
-msgstr ""
-
-msgid "Cannot use reserved names as static lease name"
-msgstr ""
-
-msgid "Password should contain at least 12 alphanumeric characters including both upper and lower case letters,"
-msgstr ""
-
-msgid "Access point"
-msgstr ""
-
-msgid "Generating report in background..."
-msgstr ""
-
-msgid "1"
-msgstr ""
-
-msgid "AF33"
-msgstr ""
-
-msgid "VC"
-msgstr ""
-
-msgid "TTL"
-msgstr ""
-
-msgid "OpticalSignalLevel"
-msgstr ""
-
-msgid "DNS IP"
-msgstr ""
-
-msgid "The time displayed on the graph are based on the time set on this modem!"
-msgstr ""
-
-msgid "You need to specify a MAC or an IP address"
-msgstr ""
-
-msgid "Enter the default <strong>"access code"</strong>. This code is located on the label underneath your gateway."
-msgstr ""
-
-msgid "RTT1 (ms)"
-msgstr ""
-
-msgid "Downstream LOM"
-msgstr ""
-
-msgid "TCP"
-msgstr ""
-
-msgid "PHY Rate"
-msgstr ""
-
-msgid "URL:"
-msgstr ""
-
 msgid "100%"
 msgstr ""
 
-msgid "AF12"
+msgid "Correctables"
 msgstr ""
 
-msgid "Ethernet Ethapd"
+msgid "eth3"
 msgstr ""
 
-msgid "Gateway IP is <strong id="Gateway_Ip">%s</strong> and Mask is <strong id="Netmask_Ip">%s</strong>"
+msgid "AF41"
 msgstr ""
 
-msgid "Github GUI"
+msgid "SFP IP should not be in "
 msgstr ""
 
-msgid " IP Range"
+msgid "WPS"
 msgstr ""
 
-msgid "This will install aMule webui"
+msgid "Cloning started in background..."
 msgstr ""
 
-msgid "RTT3 (ms)"
+msgid "EF"
 msgstr ""
 
-msgid "Change Password"
+msgid "DNS Servers"
+msgstr ""
+
+msgid "Device &nbsp;"
+msgstr ""
+
+msgid "Now"
+msgstr ""
+
+msgid "WAN(voip)"
+msgstr ""
+
+msgid "Security for this wireless network is disabled, anybody can connect to it"
+msgstr ""
+
+msgid "Line Status"
+msgstr ""
+
+msgid "ACL Reg"
+msgstr ""
+
+msgid "Laptop"
+msgstr ""
+
+msgid "AF23"
+msgstr ""
+
+msgid "NTP servers"
+msgstr ""
+
+msgid "SRP salt"
+msgstr ""
+
+msgid "IPTV"
+msgstr ""
+
+msgid "minEFTR"
 msgstr ""
 
 msgid "IPv6 forwarding table"
 msgstr ""
 
-msgid "40MHz"
+msgid "GS"
 msgstr ""
 
-msgid "Upstream LOS"
+msgid "Current Time"
 msgstr ""
 
-msgid "Transmission Webui"
+msgid "Downstream LOF"
 msgstr ""
 
-msgid "disconnected"
+msgid "Stop time should be greater then start time."
 msgstr ""
 
-msgid "Auto"
+msgid "Digest"
 msgstr ""
 
-msgid "OR"
+msgid "Upgrading..."
 msgstr ""
 
-msgid "authentication failed"
+msgid "Please wait %s seconds to enter new password"
 msgstr ""
 
-msgid "You are trying to login with wrong password for %s times"
+msgid "DHCP Start Address should not be Local Device IP Address"
 msgstr ""
 
-msgid "Seq"
+msgid "Upstream CRC"
 msgstr ""
 
-msgid "AF11"
-msgstr ""
-
-msgid "Ping & Traceroute"
-msgstr ""
-
-msgid "Restore Default Configuration"
-msgstr ""
-
-msgid "ATM VP / VC"
-msgstr ""
-
-msgid "RTT2 (ms)"
-msgstr ""
-
-msgid "WAN4"
-msgstr ""
-
-msgid "N"
-msgstr ""
-
-msgid "WPA+WPA2 PSK"
-msgstr ""
-
-msgid "PDA"
-msgstr ""
-
-msgid "CS5"
-msgstr ""
-
-msgid "Ethernet EEE"
-msgstr ""
-
-msgid "Are you sure you want to remove root from this modem? </br><strong> This could be permanent, so it\\'s not recommended.</strong>"
-msgstr ""
-
-msgid "CS3"
-msgstr ""
-
-msgid "CS7"
-msgstr ""
-
-msgid "MSE"
-msgstr ""
-
-msgid "AF42"
-msgstr ""
-
-msgid "AF43"
-msgstr ""
-
-msgid "DHCP Relay"
-msgstr ""
-
-msgid "Modem"
-msgstr ""
-
-msgid "This is a guest network. The guest network has no local network access."
+msgid "Go to the gateway tab and click on the Update button, to autoupgrade to the new GUI."
 msgstr ""
 
 msgid "70%"
 msgstr ""
 
-msgid "CS2"
+msgid "200%"
 msgstr ""
 
-msgid "Invalid day"
+msgid "ErrFreeBits"
 msgstr ""
 
-msgid "Bitswap"
+msgid "disconnected"
 msgstr ""
 
-msgid "STB"
+msgid "NAT"
 msgstr ""
 
-msgid "UDPLite"
+msgid "Downstream SES"
 msgstr ""
 
-msgid "AF32"
+msgid "UPnP"
 msgstr ""
 
-msgid "This will clone the running bank firmware. The process will continue in the background but this could take a while. Continue?"
+msgid "Aria2 Webui"
 msgstr ""
 
-msgid "Download failed; please try again."
+msgid "Radio"
+msgstr ""
+
+msgid "Remove root"
+msgstr ""
+
+msgid "aMule Webui"
+msgstr ""
+
+msgid "LEFTRS"
 msgstr ""
 
 msgid "eth2"
 msgstr ""
 
-msgid "Select the <strong>"Reset"</strong> button to confirm resetting the password to the default value."
+msgid "Downstream LOM"
 msgstr ""
 
-msgid "Enter the default <strong>"access code"</strong>. This code is located on the label underneath your gateway."
+msgid "Reset Configuration"
 msgstr ""
 
-msgid "<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> and <a href="https://github.com/Ansuel/tch-nginx-gui/graphs/contributors">these GitHub users.</a><br>Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>"
+msgid "PCAP"
 msgstr ""
 
-msgid "Gateway IP is <strong id="Gateway_Ip">%s</strong> and Mask is <strong id="Netmask_Ip">%s</strong>"
+msgid "90%"
 msgstr ""
 
-msgid "Update available! Version: <strong id="new-version-text">%s</strong>"
+msgid "Firewall"
 msgstr ""
 
-msgid "WAN IP is <strong id ="wan_ip">%s</strong>"
+msgid "UDPLite"
 msgstr ""
 
-msgid " && Translated by <font style="color:#0088cc;">%s</font>"
+msgid "Downstream Bonded Channels"
 msgstr ""
 
-msgid "Enter the default <strong>"access code"</strong>. This code is located on the label underneath your gateway."
+msgid "ReXmt"
 msgstr ""
 
-msgid "WAN IP is <strong id ="wan_ip">%s</strong>"
+msgid "ATM VP / VC"
 msgstr ""
 
-msgid "Update available! Version: <strong id="new-version-text">%s</strong>"
+msgid "Downstream UAS"
 msgstr ""
 
-msgid " && Translated by <font style="color:#0088cc;">%s</font>"
+msgid "Generating report in background..."
 msgstr ""
 
-msgid "Gateway IP is <strong id="Gateway_Ip">%s</strong> and Mask is <strong id="Netmask_Ip">%s</strong>"
+msgid "L"
 msgstr ""
 
-msgid "<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> and <a href="https://github.com/Ansuel/tch-nginx-gui/graphs/contributors">these GitHub users.</a><br>Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>"
+msgid "Upstream UAS"
 msgstr ""
 
-msgid "Select the <strong>"Reset"</strong> button to confirm resetting the password to the default value."
+msgid "Downstream CRC"
 msgstr ""
 
-msgid "Enter the default <strong>"access code"</strong>. This code is located on the label underneath your gateway."
+msgid "Muticast-Learn"
 msgstr ""
 
-msgid "Select the <strong>"Reset"</strong> button to confirm resetting the password to the default value."
+msgid "Igmpproxy"
 msgstr ""
 
-msgid "WAN IP is <strong id ="wan_ip">%s</strong>"
+msgid "STB"
 msgstr ""
 
-msgid " && Translated by <font style="color:#0088cc;">%s</font>"
+msgid "Ethernet"
 msgstr ""
 
-msgid "<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> and <a href="https://github.com/Ansuel/tch-nginx-gui/graphs/contributors">these GitHub users.</a><br>Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>"
+msgid "Timeout:"
 msgstr ""
 
-msgid "Update available! Version: <strong id="new-version-text">%s</strong>"
+msgid "WPA+WPA2"
 msgstr ""
 
-msgid "Gateway IP is <strong id="Gateway_Ip">%s</strong> and Mask is <strong id="Netmask_Ip">%s</strong>"
+msgid "R"
+msgstr ""
+
+msgid "802.11b/g/n"
+msgstr ""
+
+msgid "80MHz"
+msgstr ""
+
+msgid "SNR"
+msgstr ""
+
+msgid "TransmitOpticalLevel"
+msgstr ""
+
+msgid "negotiation failed"
+msgstr ""
+
+msgid "N"
+msgstr ""
+
+msgid "authentication failed"
+msgstr ""
+
+msgid "Dos Protect Option"
+msgstr ""
+
+msgid "WAN IP is <strong>%s<\strong>"
+msgstr ""
+
+msgid "Ethernet Ethapd"
+msgstr ""
+
+msgid "AF13"
+msgstr ""
+
+msgid "DSL Bit Loading (Line 1)"
+msgstr ""
+
+msgid "RTT3 (ms)"
+msgstr ""
+
+msgid "HTTPS"
+msgstr ""
+
+msgid "Satisfactoy"
+msgstr ""
+
+msgid "Seq"
+msgstr ""
+
+msgid "DOCSIS Status"
+msgstr ""
+
+msgid "160%"
+msgstr ""
+
+msgid "RSSI"
+msgstr ""
+
+msgid "LookBack"
+msgstr ""
+
+msgid "WAN1"
+msgstr ""
+
+msgid "ReXmtUnc"
+msgstr ""
+
+msgid "MSE"
+msgstr ""
+
+msgid "Change Password"
+msgstr ""
+
+msgid "LOG"
+msgstr ""
+
+msgid "AF43"
+msgstr ""
+
+msgid "disconnecting"
+msgstr ""
+
+msgid "IPv4"
+msgstr ""
+
+msgid "Restoring..."
+msgstr ""
+
+msgid "RRCBits"
+msgstr ""
+
+msgid "Reset Password"
+msgstr ""
+
+msgid "Ethernet AutoGrEEEn"
+msgstr ""
+
+msgid "Auto"
+msgstr ""
+
+msgid "GSM"
+msgstr ""
+
+msgid "Downstream LOS"
+msgstr ""
+
+msgid "LAN"
+msgstr ""
+
+msgid "Upstream Bonded Channels"
+msgstr ""
+
+msgid "AF32"
+msgstr ""
+
+msgid "50%"
+msgstr ""
+
+msgid "DOCSIS IP address"
+msgstr ""
+
+msgid "TCP"
+msgstr ""
+
+msgid "Login"
+msgstr ""
+
+msgid "String must be empty or a port."
+msgstr ""
+
+msgid "Bitswap"
+msgstr ""
+
+msgid "Infinite"
+msgstr ""
+
+msgid "eth1"
+msgstr ""
+
+msgid "Cloning bank, please wait..."
+msgstr ""
+
+msgid "AF21"
+msgstr ""
+
+msgid "Luci WebUI"
+msgstr ""
+
+msgid "PDA"
+msgstr ""
+
+msgid "WAN"
+msgstr ""
+
+msgid "Offline"
+msgstr ""
+
+msgid "WAN3"
+msgstr ""
+
+msgid "IP"
+msgstr ""
+
+msgid "InterfaceType"
+msgstr ""
+
+msgid "Applying anyway..."
+msgstr ""
+
+msgid "Remind me later"
+msgstr ""
+
+msgid "ICMP"
+msgstr ""
+
+msgid "Overlap contents are not allowed"
+msgstr ""
+
+msgid "CS4"
+msgstr ""
+
+msgid "TTL"
+msgstr ""
+
+msgid "RTT2 (ms)"
+msgstr ""
+
+msgid "aMule"
+msgstr ""
+
+msgid "DNS IP"
+msgstr ""
+
+msgid "ICMPv6"
+msgstr ""
+
+msgid "WEP is known to be flawed as a wireless security mode, usage of a more secure mode based on WPA2 is recommended."
+msgstr ""
+
+msgid "WiFi NSC"
+msgstr ""
+
+msgid "VC"
+msgstr ""
+
+msgid "Restore Default Configuration"
+msgstr ""
+
+msgid "WAN4"
+msgstr ""
+
+msgid "Trellis"
+msgstr ""
+
+msgid "The time displayed on the graph are based on the time set on this modem!"
+msgstr ""
+
+msgid "Channel ID"
+msgstr ""
+
+msgid "DSCP"
+msgstr ""
+
+msgid "eth0"
+msgstr ""
+
+msgid "SSID"
+msgstr ""
+
+msgid "OpticalSignalLevel"
+msgstr ""
+
+msgid "CS2"
+msgstr ""
+
+msgid "You need to specify a MAC or an IP address"
+msgstr ""
+
+msgid "SFP IP should not be in Gateway interface IP Range, change that first"
+msgstr ""
+
+msgid "Connected-SFP"
+msgstr ""
+
+msgid "SCTP"
+msgstr ""
+
+msgid "Cannot use reserved names as static lease name"
+msgstr ""
+
+msgid "CS6"
+msgstr ""
+
+msgid "Invalid host-uniqe tag, should be alphanumeric"
+msgstr ""
+
+msgid "Basic"
+msgstr ""
+
+msgid "Continue anyway?"
+msgstr ""
+
+msgid "Symbol Rate"
+msgstr ""
+
+msgid "Auto (20/40MHz)"
+msgstr ""
+
+msgid "URL:"
+msgstr ""
+
+msgid "AF42"
+msgstr ""
+
+msgid "This will switch the active bank with the passive one"
+msgstr ""
+
+msgid "Upstream FEC"
+msgstr ""
+
+msgid "Re-scanning"
+msgstr ""
+
+msgid "Password should contain at least 12 alphanumeric characters including both upper and lower case letters,"
+msgstr ""
+
+msgid "ReXmtCor"
+msgstr ""
+
+msgid "DynDNS"
+msgstr ""
+
+msgid "wl0"
+msgstr ""
+
+msgid "TCPDump Log:"
+msgstr ""
+
+msgid "Standard"
+msgstr ""
+
+msgid "CS7"
+msgstr ""
+
+msgid "VoIP"
+msgstr ""
+
+msgid "Function input param is missing"
+msgstr ""
+
+msgid "Tcpdump"
+msgstr ""
+
+msgid "OR"
+msgstr ""
+
+msgid "IPv6 Firewall"
+msgstr ""
+
+msgid "D"
+msgstr ""
+
+msgid "Upstream LOF"
+msgstr ""
+
+msgid "RTT1 (ms)"
+msgstr ""
+
+msgid "AF31"
+msgstr ""
+
+msgid "Online"
+msgstr ""
+
+msgid "Gateway"
+msgstr ""
+
+msgid "IP Version 4 Address"
+msgstr ""
+
+msgid "60%"
+msgstr ""
+
+msgid "aMule is "
+msgstr ""
+
+msgid "Ok"
+msgstr ""
+
+msgid "Stopping..."
+msgstr ""
+
+msgid "Less Ping"
+msgstr ""
+
+msgid "AF12"
+msgstr ""
+
+msgid "SRA"
+msgstr ""
+
+msgid "connecting"
+msgstr ""
+
+msgid "802.11a/n"
+msgstr ""
+
+msgid "CS1"
+msgstr ""
+
+msgid " IP Range"
+msgstr ""
+
+msgid "AF11"
+msgstr ""
+
+msgid "Call State"
+msgstr ""
+
+msgid "WPA2 PSK"
+msgstr ""
+
+msgid "Ethernet EEE"
+msgstr ""
+
+msgid "DHCP Start Address should not be greater than End Address"
+msgstr ""
+
+msgid "GRE"
+msgstr ""
+
+msgid "xDSL"
+msgstr ""
+
+msgid "AF22"
+msgstr ""
+
+msgid "INP"
+msgstr ""
+
+msgid "DHCP Relay"
+msgstr ""
+
+msgid "Wireless"
+msgstr ""
+
+msgid "40%"
+msgstr ""
+
+msgid "Auto (20/40/80MHz)"
+msgstr ""
+
+msgid "wl1"
+msgstr ""
+
+msgid "AF33"
+msgstr ""
+
+msgid "Are you sure you want to remove root from this modem? </br><strong> This could be permanent, so it\\'s not recommended.</strong>"
+msgstr ""
+
+msgid "802.11b/g"
+msgstr ""
+
+msgid "Upstream SES"
+msgstr ""
+
+msgid "Downstream ES"
+msgstr ""
+
+msgid "10%"
+msgstr ""
+
+msgid "WAN2"
+msgstr ""
+
+msgid "30%"
+msgstr ""
+
+msgid "Download failed; please try again."
+msgstr ""
+
+msgid "Transmission Webui"
+msgstr ""
+
+msgid "125%"
+msgstr ""
+
+msgid "Name you have chosen is reserved"
+msgstr ""
+
+msgid "20%"
+msgstr ""
+
+msgid "CS5"
+msgstr ""
+
+msgid "20/40MHz"
+msgstr ""
+
+msgid "You are trying to login with wrong password for %s times"
+msgstr ""
+
+msgid "Upstream ES"
+msgstr ""
+
+msgid "This could cause security risk, take care of this."
+msgstr ""
+
+msgid "DNS"
+msgstr ""
+
+msgid "This will clone the running bank firmware. The process will continue in the background but this could take a while. Continue?"
+msgstr ""
+
+msgid "Verify"
+msgstr ""
+
+msgid "Forgot Login Password"
+msgstr ""
+
+msgid "DSL"
+msgstr ""
+
+msgid "Access point"
+msgstr ""
+
+msgid "Telnet Not Available"
+msgstr ""
+
+msgid "Do not remind me again"
+msgstr ""
+
+msgid "VP"
+msgstr ""
+
+msgid "TCP/UDP"
+msgstr ""
+
+msgid "Upstream LOM"
+msgstr ""
+
+msgid "UDP"
+msgstr ""
+
+msgid "1"
+msgstr ""
+
+msgid "LAN IPv6"
+msgstr ""
+
+msgid "Mac address duplicate with either current whitelist or current blacklist"
+msgstr ""
+
+msgid "Starting..."
+msgstr ""
+
+msgid "Uncorrectables"
+msgstr ""
+
+msgid "IP Version 6 Address"
+msgstr ""
+
+msgid "WPS PBC"
+msgstr ""
+
+msgid "Data Rate"
+msgstr ""
+
+msgid "40MHz"
+msgstr ""
+
+msgid "DesktopComputer"
+msgstr ""
+
+msgid "Telstra"
+msgstr ""
+
+msgid "AH"
+msgstr ""
+
+msgid "Upstream LOS"
+msgstr ""
+
+msgid "Ping & Traceroute"
+msgstr ""
+
+msgid "Bridges"
+msgstr ""
+
+msgid "This is a guest network. The guest network has no local network access."
+msgstr ""
+
+msgid "80%"
+msgstr ""
+
+msgid "This will install aMule webui"
+msgstr ""
+
+msgid "Invalid day"
+msgstr ""
+
+msgid "CS3"
+msgstr ""
+
+msgid "Github GUI"
+msgstr ""
+
+msgid "Enter the default <strong>\"access code\"</strong>. This code is located on the label underneath your gateway."
+msgstr ""
+
+msgid "802.11a/n/ac"
+msgstr ""
+
+msgid "Uptime : <strong>%s</strong>"
+msgstr ""
+
+msgid "2"
+msgstr ""
+
+msgid "Trigger"
+msgstr ""
+
+msgid "WPA+WPA2 PSK"
+msgstr ""
+
+msgid "No"
+msgstr ""
+
+msgid "Downstream FEC"
+msgstr ""
+
+msgid "ESP"
+msgstr ""
+
+msgid "S"
+msgstr ""
+
+msgid "Internet"
+msgstr ""
+
+msgid "PHY Rate"
+msgstr ""
+
+msgid "Modem"
+msgstr ""
+
+msgid "20MHz"
 msgstr ""

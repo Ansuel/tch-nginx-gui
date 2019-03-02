@@ -432,10 +432,10 @@ msgstr "Porta locale"
 msgid "Can be used"
 msgstr "Possono essere usati"
 
-msgid "Stop"
+msgid "Codec"
 msgstr ""
 
-msgid "Realm"
+msgid "Stop"
 msgstr ""
 
 msgid "Invoke"
@@ -444,8 +444,8 @@ msgstr ""
 msgid "DECT"
 msgstr ""
 
-msgid "Sip Device"
+msgid "Realm"
 msgstr ""
 
-msgid "Codec"
+msgid "Sip Device"
 msgstr ""

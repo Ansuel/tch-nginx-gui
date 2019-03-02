@@ -207,22 +207,25 @@ msgstr "Drahtlos 5Ghz (WiFi)"
 msgid "Username: "
 msgstr "Benutzername: "
 
-msgid "Nessuna"
+msgid "Wireless 2.4GHz (WiFi): "
 msgstr ""
 
-msgid "Step 5 of 8"
-msgstr ""
-
-msgid "Ethernet"
+msgid "VLAN ID"
 msgstr ""
 
 msgid "Step 6 of 8"
 msgstr ""
 
-msgid "Wireless 2.4GHz (WiFi): "
+msgid "Wireless 5GHz (WiFi): "
 msgstr ""
 
-msgid "VDSL"
+msgid "Nessuna"
+msgstr ""
+
+msgid "WPA2-PSK"
+msgstr ""
+
+msgid "Step 5 of 8"
 msgstr ""
 
 msgid "ADSL"
@@ -231,11 +234,8 @@ msgstr ""
 msgid "WPA+WPA2 PSK"
 msgstr ""
 
-msgid "Wireless 5GHz (WiFi): "
+msgid "Ethernet"
 msgstr ""
 
-msgid "VLAN ID"
-msgstr ""
-
-msgid "WPA2-PSK"
+msgid "VDSL"
 msgstr ""
