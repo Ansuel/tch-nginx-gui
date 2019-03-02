@@ -98,15 +98,26 @@ function M.load(filename)
 	
 	-- This make sure the lad line is added to the moStrings
 	if trans[1] then
-		moStrings[concat(orig)] = concat(trans)
+		if not ( concat(trans) == "" ) then
+			moStrings[concat(orig)] = concat(trans)
+		else
+			nstrings = nstrings - 1
+		end
 	end
 	if plural[1] then
 		if pluralstring[1] then
-			plural[#plural+1] = concat(pluralstring)
+			if not ( concat(pluralstring) == "" ) then
+				plural[#plural+1] = concat(pluralstring)
+			else
+				empty_trans = true
+			end
 			pluralstring = {}
 		end
-		moStrings[concat(orig)] = plural
-		plural = {}
+		if ( empty_trans == false ) then
+			moStrings[concat(orig)] = plural
+		else
+			nstrings = nstrings - 1
+		end
 	end
 	
 	return moStrings, nstrings
