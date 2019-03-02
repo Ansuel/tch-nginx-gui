@@ -24,7 +24,7 @@ then
   <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
     ');
 
-  ngx.print(ui_helper.createCardHeader(T"Diagnostics", "modals/diagnostics-ping-modal.lp"))
+  ngx.print(ui_helper.createCardHeader(T"Diagnostics", "/modals/diagnostics-ping-modal.lp"))
   ngx.print('\
     <div class="content card_bg" data-bg-text="&#xf085;">\
 	<div class="divtable">\

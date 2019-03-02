@@ -9,7 +9,7 @@ local modal_link = nil
 
 local session = ngx.ctx.session
 if session:hasAccess("/modals/qos-queue-modal.lp") and session:hasAccess("/modals/qos-classify-modal.lp") then
- modal_link = "modals/qos-queue-modal.lp"
+ modal_link = "/modals/qos-queue-modal.lp"
 end
 
 local ui_helper = require("web.ui_helper")

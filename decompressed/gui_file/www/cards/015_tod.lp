@@ -53,7 +53,7 @@ if session:hasAccess("/modals/tod-modal.lp") then
 <div class="span3">
   <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">
 
-    <%= ui_helper.createCardHeader(T"Time of Day", "modals/tod-modal.lp") %>
+    <%= ui_helper.createCardHeader(T"Time of Day", "/modals/tod-modal.lp") %>
 
     <div class="content card_bg" data-bg-text="&#xf017;">
 	<div class="divtable">

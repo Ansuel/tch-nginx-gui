@@ -48,7 +48,7 @@ local modalPath
 
 if session:hasAccess("/modals/broadband-modal.lp") then
   switchName = "dsl_enable"
-  modalPath = "modals/broadband-modal.lp"
+  modalPath = "/modals/broadband-modal.lp"
 end
 
 local xdslstate = nil

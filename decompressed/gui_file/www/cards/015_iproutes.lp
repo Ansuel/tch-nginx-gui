@@ -64,7 +64,7 @@ end
 \
 <div class="span3">\
     <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
-        ');  ngx.print( ui_helper.createCardHeader(T"IP Extras", "modals/iproutes-modal.lp") ); ngx.print('\
+        ');  ngx.print( ui_helper.createCardHeader(T"IP Extras", "/modals/iproutes-modal.lp") ); ngx.print('\
         <div class="content card_bg" data-bg-text="&#xf018;">\
 		<div class="divtable">\
             <span class="simple-desc">\

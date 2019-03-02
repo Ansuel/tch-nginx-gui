@@ -225,7 +225,7 @@ local dns_options = {
     lp.setpath("/www/snippets/")
     lp.include("tabs-internet.lp")
   ngx.print('\
-  <form class="form-horizontal" method="post" action="modals/iproutes-modal.lp">\
+  <form class="form-horizontal" method="post" action="/modals/iproutes-modal.lp">\
     ');  
         ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       ngx.print('\

@@ -38,7 +38,7 @@ if not tabdata.current.ajax then
 
 	ngx.print('\
 <div class="modal-body update">\
-<form class="form-horizontal" method="post" action="modals/broadband-modal.lp">\
+<form class="form-horizontal" method="post" action="/modals/broadband-modal.lp">\
 ')
 	ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	ngx.print('\

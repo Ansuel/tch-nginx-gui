@@ -24,6 +24,7 @@ local modalPath = nil
 local switchName = nil
 local modal_link = ""
 local wireless_modal_link = ""
+local traffic_monitor_link = ""
 local session = ngx.ctx.session
 if session:hasAccess("/modals/device-modal.lp") then
   modalPath = "/modals/device-modal.lp"
