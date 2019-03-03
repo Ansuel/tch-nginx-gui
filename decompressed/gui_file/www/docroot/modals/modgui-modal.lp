@@ -232,7 +232,8 @@ local mapValid = {
   update_autoupgrade_hour = post_helper.getValidateInEnumSelect(update_hour_option),
   gui_skin = post_helper.getValidateInEnumSelect(gui_skin_option),
   gui_skin_firstpage = post_helper.getValidateInEnumSelect(gui_skin_firstpage_page),
-  gui_randomcolor = post_helper.validateBoolean,
+  gui_randomcolor = vB,
+  gui_alwaysadvanced = vB,
 }
 
 local modgui_settings, helpmsg = post_helper.handleQuery(mapParams, mapValid)
