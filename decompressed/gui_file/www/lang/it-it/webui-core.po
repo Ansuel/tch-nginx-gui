@@ -4280,3 +4280,6 @@ msgstr ""
 
 msgid "WPS is automatically disabled if you choose WEP or disable broadcast of the SSID"
 msgstr ""
+
+msgid "Always show advanced options"
+msgstr ""
