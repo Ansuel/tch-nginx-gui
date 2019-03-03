@@ -510,11 +510,15 @@ ngx.print('\
     } else if (data.state == "Not started") {\
       window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
     } else if (data.state == "Finished") {\
-      window.location.href = "/";\
+        if(!$("#popUp").is(":visible"))\
+            tch.showProgress(waitMsg);\
+      window.setTimeout(waitForShutdown, 500);\
     }\
       })\
       .fail(function(data) {\
         if(data.status==200 && data.responseText.includes("sign-me-in")){\
+            if(!$("#popUp").is(":visible"))\
+                tch.showProgress(waitMsg);\
           window.location.href = "/";\
         } else {\
           window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
