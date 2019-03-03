@@ -85,7 +85,7 @@ local telstra_check_rule = {
 
 --Check every element in table
 for _ , elem in pairs(check_rule) do
-	if contains(elem.name, ruleset) then
+	if not contains(elem.name, ruleset) then
 		uci:set('web', elem.name ,'rule')
 		uci:set('web', elem.name , 'target', elem.target)
 		uci:set('web', elem.name , 'roles', {'admin','engineer'})
