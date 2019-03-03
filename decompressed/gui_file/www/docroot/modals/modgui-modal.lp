@@ -471,9 +471,8 @@ ngx.print('\
   var max_val = '); ngx.print( content.upgradegui_logstep ); ngx.print('\
   var increment = 100/max_val;\
   var oldlog = "";\
-  var upgrfw_refreshTimeOut = 100;\
-  var upgrfw_refreshDelay = 100;\
-  var upgrfw_waitDelay = 500;\
+  var upgrfw_refreshTimeOut = 2500;\
+  var upgrfw_waitDelay = 100;\
   function wait_for_upgradegui() {\
 \
     function waitForShutdown() {\
@@ -507,7 +506,7 @@ ngx.print('\
       $("#extracted_file").addClass("hide");\
       var bar_val = (increment*data.log_prog);\
       $(".bar").css("width", bar_val+"%").attr("aria-valuenow", bar_val);\
-      window.setTimeout(waitForShutdown, upgrfw_refreshDelay);\
+      window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
     } else if (data.state == "Not started") {\
       window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
     } else if (data.state == "Finished") {\
@@ -522,7 +521,7 @@ ngx.print('\
         }\
     })\
     }\
-    window.setTimeout(waitForShutdown, upgrfw_refreshDelay);\
+    window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
     return false;\
   }\
 \
