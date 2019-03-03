@@ -932,13 +932,9 @@
     }
 
     .tooLongTitle p {
-        width: 190px;
+        width: auto;
     }
-
-    .smallcard:hover .tooLongTitle p {
-        width: 160px;
-    }
-
+	
     .simple-desc {
         margin-left: 0px;
     }

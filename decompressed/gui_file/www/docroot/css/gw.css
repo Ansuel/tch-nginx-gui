@@ -3862,7 +3862,7 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	overflow: hidden;
-	width: 130px;
+	width: auto;
 	-webkit-transition: width .5s;
 	-moz-transition: width .5s;
 	-o-transition: width .5s;
