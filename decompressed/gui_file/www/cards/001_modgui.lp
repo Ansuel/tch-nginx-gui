@@ -41,7 +41,7 @@ ngx.print('\
 \
     ');  ngx.print( ui_helper.createCardHeader(T"GUI Settings", modalPath, switchName, nil) ); ngx.print('\
 \
-    <div class="content card_bg" data-bg-text="&#xf06c;">\
+    <div class="content card_bg" data-bg-text="&#xf55f;">\
 	  <div class="divtable">\
 \
       ');
