@@ -15,6 +15,9 @@ jobs:
           name: Increment version from latest build
           command: bash ./scripts/1-increment_autobuild_ver.sh
       - run:
+          name: Minify css and javascript
+          command: bash ./scripts/1-compress_css_javascript.sh
+      - run:
           name: Clone autobuild repo
           command: bash ./scripts/2-clone_autobuild_dir.sh
       - run:
