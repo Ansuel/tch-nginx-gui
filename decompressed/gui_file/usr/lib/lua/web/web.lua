@@ -179,15 +179,16 @@ do
   end
   
   local ngx_exit = ngx.exit
-  ngx.exit = function(status,error)
+  ngx.exit = function(status,err)
 	if status >= 400 then
 	   ngx.status = status
 	   ngx.header.content_type = "text/html"
-	   ngx.header.error_msg = error
+	   ngx.header.error_msg = err
 	   lp.setpath("/www/docroot/")
 	   lp.include("error.lp")
 	   return ngx_exit(ngx.HTTP_OK)
 	end
+	
 	return ngx_exit(status)
   end
   
