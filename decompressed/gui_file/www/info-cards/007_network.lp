@@ -34,21 +34,7 @@ ngx.print('\
 <script>\
 var InfoPortCardInterval;\
 $(document).ready(function () {\
-	var InfoPortCardBinding = {\
-		port_table: ko.observable(),\
-	};\
-	function InfoPortCardRefresh() {\
-		$.post("/ajax/port_status.lua", [tch.elementCSRFtoken()], function(data) {\
-			if(data.port_table != undefined) {\
-				InfoPortCardBinding.port_table(data.port_table);\
-			}\
-		}, "json");\
-	};\
-\
-	InfoPortCardRefresh();\
-	ko.applyBindings(InfoPortCardBinding, document.getElementById("infoporttab"));\
-	InfoPortCardInterval = setInterval(InfoPortCardRefresh, 10000);\
-	KoRequest.push(InfoPortCardInterval);\
+	new createAjaxUpdateCard("infoporttab","/ajax/port_status.lua",InfoPortCardInterval,10000);\
 })\
 </script>\
 '); 
