@@ -223,6 +223,7 @@ local mapParams = {
   gui_skin = "uci.modgui.gui.gui_skin",
   gui_skin_firstpage = "uci.modgui.gui.firstpage",
   gui_randomcolor = "uci.modgui.gui.randomcolor",
+  gui_alwaysadvanced = "uci.web.uiconfig.@uidefault.alwaysadvanced",
 }
 
 local mapValid = {
@@ -260,6 +261,7 @@ ngx.print('\
     html[#html + 1] = ui_helper.createInputSelect(T"GUI Skin", "gui_skin", gui_skin_option, modgui_settings["gui_skin"])
     html[#html + 1] = ui_helper.createInputSelect(T"GUI First Page", "gui_skin_firstpage", gui_skin_firstpage_page, modgui_settings["gui_skin_firstpage"])
     html[#html + 1] = ui_helper.createSwitch(T"Random Color", "gui_randomcolor", modgui_settings["gui_randomcolor"])
+    html[#html + 1] = ui_helper.createSwitch(T"Always show advanced options", "gui_alwaysadvanced", modgui_settings["gui_alwaysadvanced"])
     ngx.print(html)
 
     local html = {}
