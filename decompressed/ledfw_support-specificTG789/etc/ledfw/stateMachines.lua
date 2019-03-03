@@ -164,7 +164,7 @@ stateMachines = {
                 netdevLed("broadband:green", 'eth4', 'link'),
             },
             training = {
-                staticLed("broadband:green", false)
+                timerLed("broadband:green", 250, 250)
             },
             synchronizing = {
                 timerLed("broadband:green", 125, 125)
@@ -195,7 +195,7 @@ stateMachines = {
             internet_connecting = {
                 network_interface_broadband_ifdown = "internet_disconnected",
                 xdsl_0 = "internet_disconnected",
-                network_device_eth4_down = internet_nextState,
+                network_device_eth4_down = "internet_disconnected",
 --                network_interface_wan_ifdown = "internet_disconnected",
 --                network_interface_wan6_ifdown = "internet_disconnected",
                 network_interface_wan_ifup = "internet_connected_ipv4_or_v6",
@@ -206,7 +206,7 @@ stateMachines = {
             },
             internet_connected_ipv4_or_v6 = {
                 xdsl_0 = "internet_disconnected",
-                network_device_eth4_down = internet_nextState,
+                network_device_eth4_down = "internet_disconnected",
                 xdsl_1 = "internet_connected_ipv4_or_v6_ddbdd",
                 xdsl_2 = "internet_connected_ipv4_or_v6_ddbdd",
                 network_interface_wan_ifdown = "internet_connecting",
@@ -219,7 +219,7 @@ stateMachines = {
             },
             internet_connected_ipv4_and_v6 = {
                 xdsl_0 = "internet_disconnected",
-                network_device_eth4_down = internet_nextState,
+                network_device_eth4_down = "internet_disconnected",
                 xdsl_1 = "internet_connected_ipv4_and_v6_ddbdd",
                 xdsl_2 = "internet_connected_ipv4_and_v6_ddbdd",
                 network_interface_wan_ifdown = "internet_connected_ipv4_or_v6",
