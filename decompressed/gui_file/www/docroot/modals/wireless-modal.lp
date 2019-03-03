@@ -1874,7 +1874,7 @@ $(document).ready(function() {\
     }\
 });\
 \
-	$("#save-config").click(function(){\
+$("#save-config").click(function(){\
 	var params = [];\
 	params.push({\
 	name : "ssidName",\
@@ -1896,8 +1896,6 @@ $(document).ready(function() {\
 	value: "bs_check"\
 	});\
 	$.post("modals/wireless-modal.lp",params);\
-    });\
-\
 });\
 \
 $(\'input[id="band_steer_enabled"]\').on("click", function(){\
