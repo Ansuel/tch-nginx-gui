@@ -84,7 +84,7 @@ end
     if mobile_ip then
         ngx.print(ui_helper.createSimpleLight(content_mode["wwan_up"], "Mobile Internet connected"),
          '<p class="subinfos">',
-           format(T'WAN IP is <strong>%s<\strong>', mobile_ip),
+           format(T'WAN IP is <strong>%s</strong>', mobile_ip),
          '</p>'
         )
     end
