@@ -348,3 +348,6 @@ msgid "%dh"
 msgid_plural "%dh"
 msgstr[0] "%do"
 msgstr[1] "%do"
+
+msgid "The wireless key contains invalid characters, only space, letters, numbers and the following characters !\"'`#$%&()*+,-./:;<=>?@[\\]^_{|}~ are allowed."
+msgstr ""
