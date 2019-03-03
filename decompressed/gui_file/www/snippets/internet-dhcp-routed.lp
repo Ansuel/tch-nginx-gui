@@ -167,6 +167,7 @@ local mapParams = {
     uci_wan_auto = "uci.network.interface.@wan.auto",
     uci_wan_masq = "uci.firewall.zone."..zonenum..".masq",
 	uci_wan_ipv6 = "uci.network.interface.@wan.ipv6", --custo TCOMITAGW-2157
+    uci_wan_mac = "uci.network.interface.@wan.macaddr",
     uci_wan_peerdns = "uci.network.interface.@wan.peerdns",
 }
 
@@ -201,6 +202,7 @@ local mapValid = {
     uci_wan_auto = vB,
     uci_wan_masq = validateNat,
 	uci_wan_ipv6 = IPv6andUsername,--custo TCOMITAGW-2157
+    uci_wan_mac = gOV(post_helper.validateStringIsMAC),
 }
 
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
@@ -353,6 +355,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     html[#html + 1] = ui_helper.createLight(T"Status", nil, dhcp_state_map[dhcp_state], ajax_attr_light)
     html[#html+1] = ui_helper.createSwitch(T"Enabled", "uci_wan_auto", content["uci_wan_auto"])
     html[#html + 1] = ui_helper.createSwitch(T"NAT", "uci_wan_masq", content.uci_wan_masq)
+    html[#html + 1] = ui_helper.createInputText(T"MAC Spoof (Wan MAC)","uci_wan_mac", content["uci_wan_mac"], nil, helpmsg["uci_wan_mac"])
     ajax_attr.span.id = "leaseobtained"
     html[#html+1] = ui_helper.createLabel(T"Lease obtained", cs["leaseobtained"], ajax_attr)
     ajax_attr.span.id = "leaseexpires"

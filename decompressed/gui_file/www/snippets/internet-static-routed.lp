@@ -125,17 +125,20 @@ local mapParams = {
     wanNetmaskParam   = wanNetmaskPath_uci,
     wanGatewayParam   = wanGatewayPath_uci,
     uci_wan_masq      = "uci.firewall.zone."..zonenum..".masq",
+    uci_wan_mac = "uci.network.interface.@wan.macaddr",
 }
 
 ---
 --- FIELD VALUE INTEGRITY FUNCTIONS
 ---
 local nEIPV = post_helper.getAndValidation(post_helper.validateNonEmptyString,post_helper.advancedIPValidation)
+local gOV = post_helper.getOptionalValidation
 local mapValid = {
     wanIpAddrParam    = nEIPV,
     wanNetmaskParam   = post_helper.validateIPv4Netmask,
     wanGatewayParam   = nEIPV,
     uci_wan_masq      = validateNat,
+    uci_wan_mac = gOV(post_helper.validateStringIsMAC),
 }
 
 --- GRAB CURRENT DATA AND HELP MESSAGES FROM POST HANDLER
@@ -261,6 +264,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
         -- UI CONTROLS LIST
         -- ARGUMENT 2 MUST MUST MATCH PARAMETER NAME FROM mapParams OR ERRORS WILL OCCUR DURING INTERFACE UPDATES
         html[#html + 1] = ui_helper.createSwitch(T"NAT", "uci_wan_masq", content.uci_wan_masq)
+        html[#html + 1] = ui_helper.createInputText(T"MAC Spoof (Wan MAC)","uci_wan_mac", content["uci_wan_mac"], nil, helpmsg["uci_wan_mac"])
         html[#html+1] = ui_helper.createInputText(T"IP Address", "wanIpAddrParam", content["wanIpAddrParam"], wanIPClass, helpmsg["wanIpAddrParam"])
         html[#html+1] = ui_helper.createInputText(T"Subnet Mask", "wanNetmaskParam", content["wanNetmaskParam"], wanNetmaskClass, helpmsg["wanNetmaskParam"])
         html[#html+1] = ui_helper.createInputText(T"Gateway", "wanGatewayParam", content["wanGatewayParam"], wanGatewayClass, helpmsg["wanGatewayParam"])
