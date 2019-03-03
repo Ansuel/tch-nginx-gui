@@ -167,7 +167,7 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H045") or content.dsl0_xdsl_Firmwa
 	tinsert(driver_option, { "A2pvbH042r", 'A2pvbH042r (AGTEF_1.0.3)'})
 	tinsert(driver_option, { "A2pvbH042u", 'A2pvbH042u (AGTEF_1.0.4)'})
 	
-	if tonumber(content.marketing_version:sub(1,4)) >= 17.3 then
+	if tonumber(content.marketing_version:sub(1,4)) >= 17.2 then
         tinsert(driver_option, { "B2pvfbH043d1", 'B2pvfbH043d1 (FRITZ!Box 7581 6.54)'})
 		tinsert(driver_option, { "B2pvfbH043e", 'B2pvfbH043e (Asus DSL-AC87VG_v1.00.13)'})
 		tinsert(driver_option, { "B2pvfbH043g", 'B2pvfbH043g (Asus DSL-AC68VG v5.00.04)'})
