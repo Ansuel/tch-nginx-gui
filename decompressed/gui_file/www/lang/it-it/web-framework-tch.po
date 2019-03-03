@@ -263,8 +263,8 @@ msgstr "Il tempo massimo di lease deve essere 3 settimane oppure 21 giorni o 504
 msgid "The minimum leasetime must be 120 seconds or 2 minutes."
 msgstr "Il tempo minimo di lease deve essere 120 secondi oppure 2 minuti."
 
-msgid "The wireless key contains invalid characters, only space, letters, numbers and the following characters !\"#$%&()*+,-./:;<=>?@[\\]^_{|}~ are allowed."
-msgstr "La chiave wireless contiene caratteri non validi. Sono consentiti solo lo spazio, le lettere ed i seguenti caratteri !\"#$%&()*+,-./:;<=>?@[\\]^_{|}~."
+msgid "The wireless key contains invalid characters, only space, letters, numbers and the following characters !\"'`#$%&()*+,-./:;<=>?@[\\]^_{|}~ are allowed."
+msgstr "La chiave wireless contiene caratteri non validi. Sono consentiti solo lo spazio, le lettere ed i seguenti caratteri !\"'`#$%&()*+,-./:;<=>?@[\\]^_{|}~."
 
 msgid "You tried to access an invalid line."
 msgstr "Tentativo di accesso ad una linea non valida."
@@ -348,6 +348,3 @@ msgid "%dh"
 msgid_plural "%dh"
 msgstr[0] "%do"
 msgstr[1] "%do"
-
-msgid "The wireless key contains invalid characters, only space, letters, numbers and the following characters !\"'`#$%&()*+,-./:;<=>?@[\\]^_{|}~ are allowed."
-msgstr ""
