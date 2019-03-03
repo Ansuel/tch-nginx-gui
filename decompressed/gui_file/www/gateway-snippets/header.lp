@@ -285,7 +285,7 @@ function scriptRequestStatusAjax(type) {\
   if(intervalAjaxScript) return;\
   if(type == "checkver") post("checkver");\
   intervalAjaxScript = setInterval(function() {\
-      $.ajax({ url: "modals/modgui-modal.lp", data: "action=scriptRequestStatus"+"?auto_update=true",\
+      $.ajax({ url: "modals/modgui-modal.lp", data: "action=scriptRequestStatus"+"&auto_update=true",\
     timeout: scriptRequestTimeout, cache: false, dataType: "json" })\
       .done(function(data) {\
     if (data.state == "Complete") {\
@@ -411,7 +411,7 @@ function createAjaxUpdateCard(CardIdRefresh, ajaxLink, IntervalVar, RefreshTime)
 	var arrayLength = ElementBindingList.length;\
 	\
 	function AjaxRefresh() {\
-		$.post(ajaxLink+"?auto_update=true", [tch.elementCSRFtoken()], function(data) {\
+		$.post(ajaxLink+"&auto_update=true", [tch.elementCSRFtoken()], function(data) {\
 			for (var i = 0; i < arrayLength; i++) {\
 				if(data[ElementBindingList[i]] != undefined) {\
 					ElementBinding[ElementBindingList[i]](data[ElementBindingList[i]]);\
