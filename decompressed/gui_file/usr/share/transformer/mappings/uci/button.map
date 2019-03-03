@@ -8,8 +8,7 @@ mapper("uci_1to1").registerConfigMap(config_button)
 local button_button = {
   config = config_button,
   type = "button",
-  options = { "button", "action", "min", "max", "state", "lastdate"},
-  readOnlyOptions = { "handler" }
+  options = { "button", "action", "handler", ""min", "max", "state", "lastdate"}
 }
 
 mapper("uci_1to1").registerNamedMultiMap(button_button)
