@@ -581,7 +581,7 @@ ngx.print('\
       $(".RemoveOnUpgrade").each(function() {$(this).addClass("hide")});\
       $("#upgrade-gui-bar").removeClass("hide");\
       $("#upgrade-log").removeClass("hide");\
-      $(".bar").css("width", bar_val+"%").attr("aria-valuenow", bar_val);\
+      $(".bar").css("width", "0%").attr("aria-valuenow", 0);\
           wait_for_upgradegui();\
         }\
         else {\
