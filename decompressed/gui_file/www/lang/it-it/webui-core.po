@@ -4268,3 +4268,15 @@ msgstr ""
 
 msgid "20MHz"
 msgstr ""
+
+msgid "The Band Steering can not be supported under WEP security mode."
+msgstr ""
+
+msgid "Band Steering works only if 2.4 GHz and 5 GHz have the same configuration. By enabling the Band Steering, the 2.4 GHz network settings will be propagated on 5GHz settings"
+msgstr ""
+
+msgid "Security for this wireless network is disabled, anybody can connect or listen to it"
+msgstr ""
+
+msgid "WPS is automatically disabled if you choose WEP or disable broadcast of the SSID"
+msgstr ""
