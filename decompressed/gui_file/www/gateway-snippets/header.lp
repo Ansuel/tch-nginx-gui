@@ -285,7 +285,7 @@ function scriptRequestStatusAjax(type) {\
   if(intervalAjaxScript) return;\
   if(type == "checkver") post("checkver");\
   intervalAjaxScript = setInterval(function() {\
-      $.ajax({ url: "modals/modgui-modal.lp", data: "action=scriptRequestStatus",\
+      $.ajax({ url: "modals/modgui-modal.lp", data: "action=scriptRequestStatus"+"?auto_update=true",\
     timeout: scriptRequestTimeout, cache: false, dataType: "json" })\
       .done(function(data) {\
     if (data.state == "Complete") {\

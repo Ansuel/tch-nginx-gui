@@ -474,7 +474,7 @@ ngx.print('\
   function wait_for_upgradegui() {\
 \
     function waitForShutdown() {\
-      $.ajax({ url: target, data: "action=upgradeguistatus", timeout: upgrfw_refreshTimeOut, cache: false, dataType: "json" })\
+      $.ajax({ url: target, data: "action=upgradeguistatus"+"&auto_update=true", timeout: upgrfw_refreshTimeOut, cache: false, dataType: "json" })\
       .done(function(data, status, xhr) {\
     if ((data.state+"..." != $("#update-text").text()) && (data.state != "Not started")) {\
         $("#update-text").text(data.state+"...");\

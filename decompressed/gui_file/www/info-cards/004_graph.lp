@@ -128,7 +128,7 @@ $(document).ready(function () {\
 			var rx_traffic_old = rx_traffic_complete.textContent;\
 			var interface = "'); ngx.print(graph_interface); ngx.print('";\
 			$.post("/ajax/traffic_graph.lua?interface=" + interface + \
-				"&oldrx=" + rx_traffic_old + "&oldtx=" + tx_traffic_old,\
+				"&oldrx=" + rx_traffic_old + "&oldtx=" + tx_traffic_old +"&auto_update=true" ,\
 				[tch.elementCSRFtoken()], function(data) {\
 					var rx_traffic = data.rx_traffic-data.old_rx_traffic;\
 					var tx_traffic = data.tx_traffic-data.old_tx_traffic;\
