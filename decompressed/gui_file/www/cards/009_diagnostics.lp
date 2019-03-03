@@ -82,6 +82,15 @@ then
     </div>\
 	</div>\
   </div>\
+  <script>\
+  $(document).ready(function(){\
+  var tsmall = $(".smallsomeInfos");\
+	tsmall.on("click", function () {\
+		tsmall.tooltip("hide");\
+	});\
+	tsmall.tooltip();\
+  });\
+  </script>\
 </div>\
 ');
 end

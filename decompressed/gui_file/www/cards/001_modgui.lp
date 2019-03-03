@@ -1,6 +1,7 @@
 --pretranslated: do not change this file
 
 -- Enable localization
+gettext.textdomain('webui-core')
 
 local proxy = require("datamodel")
 local content_helper = require("web.content_helper")
@@ -63,5 +64,14 @@ ngx.print('\
 	  </div>\
     </div>\
   </div>\
+  <script>\
+  $(document).ready(function(){\
+  $(".check_update").on("click", function(e) {\
+	 e.stopPropagation();\
+	 $(".check_update_spinner").addClass("fa-spin");\
+     scriptRequestStatusAjax("checkver");\
+     });\
+  });\
+  </script>\
 </div>\
 '); 

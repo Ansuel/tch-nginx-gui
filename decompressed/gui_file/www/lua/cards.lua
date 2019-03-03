@@ -77,7 +77,7 @@ function M.setpath(path)
 end
 
 --Returns card from modal provided or nil
-function M.get_card_from_modal(modal)
+function M.get_card_from_modal(ModalSearch)
 
 	local config = get_cards_config()
 
@@ -93,8 +93,35 @@ function M.get_card_from_modal(modal)
 		local rule = rules[card.modal]
 
 		if rule and not card['.anonymous'] then
-			if rule.target == modal then
+			if rule.target == ModalSearch then
 				result = card.card
+			end
+		end
+	end)
+
+	uci:unload('web')
+	return result
+end
+
+--Returns card from modal provided or nil
+function M.get_modal_from_card(CardSearch)
+
+	local config = get_cards_config()
+
+	local rules = {}
+	uci:foreach('web', 'rule', function(s)
+		rules[s['.name']] = s
+	end)
+
+	local result
+
+	uci:foreach('web', 'card', function(card)
+
+		local rule = rules[card.modal]
+
+		if rule and not card['.anonymous'] then
+			if card.card == CardSearch then
+				result = rule.target
 			end
 		end
 	end)

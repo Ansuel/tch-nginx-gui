@@ -211,8 +211,8 @@ local gui_skin_option = {
       { "green", T'Green'},
     { "TIM" , T'Enhanced Tim'},
     { "Fritz", T'Fritz!Box'},
-    { "dark-white", T'Dark/White (Fritz!Box Based)'},
-    { "dark-midnight", T'Dark/Midnight (Fritz!Box Based)'},
+    { "dark-white_Fritz", T'Dark/White (Fritz!Box Based)'},
+    { "dark-midnight_Fritz", T'Dark/Midnight (Fritz!Box Based)'},
     { "dark-red", T'Red Dark'},
 }
 

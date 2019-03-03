@@ -11,21 +11,6 @@ content_helper.getExactContent(cui)
 ngx.print('\
 <script>\
 $(document).ready(function(){\
-	var t = $(".someInfos");\
-	t.on("click", function () {\
-		t.tooltip("hide");\
-	});\
-	t.tooltip();\
-	var tsmall = $(".smallsomeInfos");\
-	tsmall.on("click", function () {\
-		tsmall.tooltip("hide");\
-	});\
-	tsmall.tooltip();\
-    $(".check_update").on("click", function(e) {\
-	 e.stopPropagation();\
-	 $(".check_update_spinner").addClass("fa-spin");\
-     scriptRequestStatusAjax("checkver");\
-     });\
   ko.bindingHandlers.text = {\
 		init: function(element, valueAccessor) {\
         $(element).text(ko.unwrap(valueAccessor()));\
