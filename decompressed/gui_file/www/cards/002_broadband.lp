@@ -13,7 +13,7 @@ if tabdata and tabdata.current.card then
   ngx.print('\
 \
 <div class="span3">\
-  <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
+  <div class="smallcard" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
 ');  
     lp.setpath("/www/cards/snippets/")
     lp.include(tabdata.current.card)

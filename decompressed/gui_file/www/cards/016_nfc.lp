@@ -31,7 +31,7 @@ if ( variant == "DJN2130" ) or ( variant == "Technicolor TG800vac" ) then
     ngx.print('\
   \
   <div class="span3">\
-    <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
+    <div class="smallcard" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
       ');  ngx.print(ui_helper.createCardHeader(T"NFC", modalPath, nil, nil) ); ngx.print('\
       <div class="content card_bg" data-bg-text="&#xf09e;">\
   	  <div class="divtable">\

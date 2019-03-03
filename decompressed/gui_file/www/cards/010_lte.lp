@@ -52,7 +52,7 @@ end
 \
 <link href="/css/mobiled.css" rel="stylesheet">\
 <div class="span3" id="mobiletab">\
-	<div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
+	<div class="smallcard" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
 		');  ngx.print( ui_helper.createCardHeader(params.card_title, modalPath, switchName, lte_state) ); ngx.print('\
 		<div class="content card_bg" data-bg-text="&#xf012;">\
 		<div class="divtable">\
