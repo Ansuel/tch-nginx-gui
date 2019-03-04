@@ -3839,10 +3839,7 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	position: relative
 }
 .smallcard .content img.someInfos {
-	position: absolute;
-	width: 150px;
-	left: 50%;
-	margin: 0 0 0 -75px
+	height: 75px;
 }
 .smallcard .content img.smallsomeInfos {
 	width: 32px;

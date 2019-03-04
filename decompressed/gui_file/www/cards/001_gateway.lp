@@ -57,7 +57,7 @@ ngx.print('\
 	  ngx.print('<span class="subinfos">' ..  T"CPU Load"..":" ); ngx.print('\
 					<strong data-bind="text: cpuload">\
 					</strong></span>\
-      <div data-remote="modals/gateway-modal.lp" data-id="gateway-modal">\
+      <div data-remote="modals/gateway-modal.lp" data-id="gateway-modal" style="text-align: center;">\
 	    <picture>\
 		    <source srcset="/img/gateway_'); ngx.print(model); ngx.print('.webp" type="image/webp">\
 		    <source srcset="/img/gateway_'); ngx.print(model); ngx.print('.png" type="image/png">\
