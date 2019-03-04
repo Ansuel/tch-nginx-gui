@@ -38,7 +38,7 @@ local function gen_dummy_card(modalPath)
 					      $("#'..counter..'_card").replaceWith(data);\
 					    }).fail(function (data) {\
 					    console.log(data);\
-					      $("#'..counter..'_card").find(".divtable").html(\'<a href"\'+data.url+\'">Load Failed</a>\');\
+					      $("#'..counter..'_card").find(".divtable").html(\'Error \'+data.status+$(data.responseText).find(".control-group").html());\
 					    });\
 					  });\
 				   </script>'
