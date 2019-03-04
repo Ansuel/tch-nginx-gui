@@ -37,7 +37,6 @@ local function gen_dummy_card(modalPath)
 					    $.get("/ajax/get_card.lua?modal='..modalPath..'").done(function (data) {\
 					      $("#'..counter..'_card").replaceWith(data);\
 					    }).fail(function (data) {\
-					    console.log(data);\
 					      $("#'..counter..'_card").find(".divtable").html(\'Error \'+data.status+$(data.responseText).find(".control-group").html());\
 					    });\
 					  });\
