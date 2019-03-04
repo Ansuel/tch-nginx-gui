@@ -19,21 +19,26 @@ local function gen_dummy_card(modalPath)
 	counter = counter+1
 	
 	dch[#dch+1] = '<div class="span3" id="'..counter..'_card">'
-	dch[#dch+1] =   '<div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">'
+	dch[#dch+1] =   '<div class="smallcard">'
 	dch[#dch+1] =     '<div class="header">'
 	dch[#dch+1] =		'<div data-toggle="modal" class="header-title pull-left" data-remote="'..modalPath..'">'
 	dch[#dch+1] =		  '<p id="Load_tab">Loading...</p>'
 	dch[#dch+1] =		'</div>'
-	dch[#dch+1] =		'<div class="header-items">'
-	dch[#dch+1] =			'<i class="fa fa-sync fa-spin"></i>'
-	dch[#dch+1] =		'</div>'
+	dch[#dch+1] =	  '</div>'
+	dch[#dch+1] =	  '<div class="content card_bg" data-bg-text="&#xf021">'
+  	dch[#dch+1] =	  	'<div class="divtable">'
+    dch[#dch+1] =	  		'<div class="spinner3"><div class="rect1"></div><div class="rect2"></div><div class="rect3"></div><div class="rect4"></div><div class="rect5"></div></div>'
+  	dch[#dch+1] =	  	'</div>'
 	dch[#dch+1] =	  '</div>'
 	dch[#dch+1] =   '</div>'
 	dch[#dch+1] = '</div>'
 	dch[#dch+1] = '<script>\
 					$("document").ready(function() { \
-					    $.get("/ajax/get_card.lua?modal='..modalPath..'", function (data) {\
+					    $.get("/ajax/get_card.lua?modal='..modalPath..'").done(function (data) {\
 					      $("#'..counter..'_card").replaceWith(data);\
+					    }).fail(function (data) {\
+					    console.log(data);\
+					      $("#'..counter..'_card").find(".divtable").html(\'<a href"\'+data.url+\'">Load Failed</a>\');\
 					    });\
 					  });\
 				   </script>'
