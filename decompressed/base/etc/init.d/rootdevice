@@ -1171,11 +1171,15 @@ rootchecks() {
 	fi
 
 	logger_command "Setting & Enabling Dropbear SSH Server"
-	uci set dropbear.@dropbear[0].Interface='lan'
-	uci set dropbear.@dropbear[0].RootLogin='1'
-	uci set dropbear.@dropbear[0].RootPasswordAuth='on' #dropbear root related
-	uci set dropbear.@dropbear[0].PasswordAuth='on'
-	uci set dropbear.@dropbear[0].enable='1'
+	dropbear_path="dropbear.@dropbear[0]"
+	if [ "$(uci get -q dropbear.lan)" ]; then
+	    dropbear_path="dropbear.lan"
+	fi
+	uci set "$dropbear_path".Interface='lan'
+	uci set "$dropbear_path".RootLogin='1'
+	uci set "$dropbear_path".RootPasswordAuth='on' #dropbear root related
+	uci set dropbear.lan.PasswordAuth='on'
+	uci set "$dropbear_path".enable='1'
 
 	uci commit dropbear
 	uci commit modgui
