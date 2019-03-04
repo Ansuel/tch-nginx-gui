@@ -4283,3 +4283,6 @@ msgstr ""
 
 msgid "Always show advanced options"
 msgstr ""
+
+msgid "Gui animation"
+msgstr ""
