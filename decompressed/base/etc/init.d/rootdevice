@@ -265,7 +265,7 @@ cumulative_check_gui() {
 				cp /tmp/GUI_dev.tar.bz2 /root/GUI.tar.bz2
 			elif ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then
 				logger_command "Downloading stable..."
-				curl -k -s https://repository.ilpuntotecnico.com//files/Ansuel/AGTEF/GUI.tar.bz2 --output /root/GUI.tar.bz2
+				curl -k -s https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/GUI_dev.tar.bz2 --output /root/GUI.tar.bz2
 			else
 				logger_command "Can't download stable GUI!"
 			fi
@@ -278,20 +278,20 @@ cumulative_check_gui() {
 			rm -r /www/*
 			bzcat /root/GUI.tar.bz2 | tar -C / -xf - www
 		fi
-	fi
 
-	if [ -f /tmp/GUI$update_branch.tar.bz2 ]; then
-		overlay_space=$(df /overlay | sed -n 2p | awk {'{print $2}'})
-		if [ "$overlay_space" -lt 33000 ]; then
-			convert_gui_to_light_gz "GUI"$update_branch
-		else
-			logger_command "Updating GUI in /root folder from /tmp"
-			#This move the gui found in tmp to /root
-			
-			if [ -f /root/GUI$update_branch.tar.bz2 ]; then
-				rm /root/GUI$update_branch.tar.bz2
+		if [ -f /tmp/GUI$update_branch.tar.bz2 ]; then
+			overlay_space=$(df /overlay | sed -n 2p | awk {'{print $2}'})
+			if [ "$overlay_space" -lt 33000 ]; then
+				convert_gui_to_light_gz "GUI"$update_branch
+			else
+				logger_command "Updating GUI in /root folder from /tmp"
+				#This move the gui found in tmp to /root
+				
+				if [ -f /root/GUI$update_branch.tar.bz2 ]; then
+					rm /root/GUI$update_branch.tar.bz2
+				fi
+				mv /tmp/GUI$update_branch.tar.bz2 /root/GUI$update_branch.tar.bz2
 			fi
-			mv /tmp/GUI$update_branch.tar.bz2 /root/GUI$update_branch.tar.bz2
 		fi
 	fi
 
@@ -338,6 +338,9 @@ cumulative_check_gui() {
 	fi
 	if [ ! "$(uci get -q modgui.gui.randomcolor)" ]; then
 		uci set modgui.gui.randomcolor="0"
+	fi
+	if [ ! "$(uci get -q modgui.gui.gui_animation)" ]; then
+		uci set modgui.gui.gui_animation="1"
 	fi
 }
 

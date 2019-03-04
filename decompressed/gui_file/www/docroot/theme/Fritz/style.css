@@ -55,7 +55,7 @@
 }
 
 .header-logo {
-    margin-left: 2rem;
+    margin-left: 5rem;
 	flex-basis: unset;
 }
 
@@ -122,7 +122,8 @@ body {
     position: fixed;
     bottom: .5rem;
     left: .5rem;
-    width: 14rem
+    width: 14rem;
+	margin: unset;
 }
 
 .container > #footer {

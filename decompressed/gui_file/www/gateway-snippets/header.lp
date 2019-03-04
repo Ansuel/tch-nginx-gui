@@ -317,6 +317,10 @@ function scriptRequestStatusAjax(type) {\
       }, scriptRequestTimeout);\
 }\
 \
+function freshStyle(stylesheet){\
+   $("#theme_skin").attr("href","/theme/"+stylesheet);\
+}\
+\
 var KoRequest = [];\
 $(function() {\
 '); if cui.randomcolor == "1" then ngx.print('\

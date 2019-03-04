@@ -224,6 +224,7 @@ local mapParams = {
   gui_skin_firstpage = "uci.modgui.gui.firstpage",
   gui_randomcolor = "uci.modgui.gui.randomcolor",
   gui_alwaysadvanced = "uci.web.uiconfig.@uidefault.alwaysadvanced",
+  gui_animation = "uci.modgui.gui.gui_animation"
 }
 
 local mapValid = {
@@ -234,6 +235,7 @@ local mapValid = {
   gui_skin_firstpage = post_helper.getValidateInEnumSelect(gui_skin_firstpage_page),
   gui_randomcolor = vB,
   gui_alwaysadvanced = vB,
+  gui_animation = vB,
 }
 
 local modgui_settings, helpmsg = post_helper.handleQuery(mapParams, mapValid)
@@ -263,6 +265,7 @@ ngx.print('\
     html[#html + 1] = ui_helper.createInputSelect(T"GUI First Page", "gui_skin_firstpage", gui_skin_firstpage_page, modgui_settings["gui_skin_firstpage"])
     html[#html + 1] = ui_helper.createSwitch(T"Random Color", "gui_randomcolor", modgui_settings["gui_randomcolor"])
     html[#html + 1] = ui_helper.createSwitch(T"Always show advanced options", "gui_alwaysadvanced", modgui_settings["gui_alwaysadvanced"])
+	html[#html + 1] = ui_helper.createSwitch(T"Gui animation", "gui_animation", modgui_settings["gui_animation"])
     ngx.print(html)
 
     local html = {}
@@ -450,6 +453,25 @@ ngx.print('\
          tch.showProgress(processMsg);\
          return resetreboot($("#rebooting-msg"), $(this), "system_reset_gui" );\
   });\
+  });\
+\
+  var schedulReload = false;\
+\
+  $("#gui_skin").on("change", function() {\
+	var theme = $(this).val();\
+	if ( theme.indexOf("Fritz") === -1 ) {\
+		event.preventDefault();\
+		var restyled = theme+"/style.css";\
+		freshStyle(restyled);\
+	} else {\
+		schedulReload = true;\
+	}\
+  });\
+\
+  $("#save-config").on("click", function() {\
+	if ( schedulReload ) {\
+		schedulReload = true;\setTimeout(function() {window.location.reload(!0);},2000);\
+	}\
   });\
 \
   $("#btn-remove-root").on("click", function() {\
