@@ -110,18 +110,31 @@ stateMachines = {
         initial = "power_started",
         transitions = {
             power_started = {
+                power_service_eco = "service_ok_eco",
+                power_service_fullpower = "service_ok_fullpower",
+                power_service_notok = "service_notok"
+            },
+            service_ok_eco = {
                 power_service_fullpower = "service_ok_fullpower",
                 power_service_notok = "service_notok"
             },
             service_ok_fullpower = {
-                power_service_notok = "service_notok",
+                power_service_eco = "service_ok_eco",
+                power_service_notok = "service_notok"
             },
             service_notok = {
                 power_service_fullpower = "service_ok_fullpower",
+                power_service_eco = "service_ok_eco"
             }
         },
         actions = {
             power_started = {
+                staticLed("power:orange", false),
+                staticLed("power:red", false),
+                staticLed("power:blue", false),
+                staticLed("power:green", true)
+            },
+            service_ok_eco = {
                 staticLed("power:orange", false),
                 staticLed("power:red", false),
                 staticLed("power:blue", false),
@@ -138,11 +151,12 @@ stateMachines = {
                 staticLed("power:red", true),
                 staticLed("power:blue", false),
                 staticLed("power:green", false)
-            },
+            }
         },
         patterns_depend_on = {
             power_started = { "remote_mgmt" , "fw_upgrade" },
             service_ok_fullpower = { "remote_mgmt", "fw_upgrade" },
+            service_ok_eco = { "remote_mgmt", "fw_upgrade" },
             service_notok = { "remote_mgmt", "fw_upgrade" }
         }
     },

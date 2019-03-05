@@ -129,12 +129,11 @@ local function ledaction()
             packet["state"] = "active"
             conn:send("statusled", packet)
         end
-        --Activating this part will cause red status led when WIFI off
-        --if eco_mode == true then
-        --    packet["state"] = "service_eco"
-        --else
+        if eco_mode == true then
+            packet["state"] = "service_eco"
+        else
             packet["state"] = "service_fullpower"
-        --end
+        end
         conn:send("power", packet)
     end
 end
@@ -144,11 +143,11 @@ local function info_timeout()
     if is_service_ok() == true then
         packet["state"] = "active"
         conn:send("statusled", packet)
-        --if eco_mode == true then
-        --    packet["state"] = "service_eco"
-        --else
+        if eco_mode == true then
+            packet["state"] = "service_eco"
+        else
             packet["state"] = "service_fullpower"
-        --end
+        end
         conn:send("power", packet)
     else
         packet["state"] = "inactive"
