@@ -3466,7 +3466,7 @@ msgid "100%"
 msgstr "100%"
 
 msgid "Correctables"
-msgstr "Corregibile"
+msgstr "Correggibili"
 
 msgid "eth3"
 msgstr "eth3"
@@ -3490,10 +3490,10 @@ msgid "DNS Servers"
 msgstr "Server DNS"
 
 msgid "Device &nbsp;"
-msgstr "Dispositivo &nbsp;"
+msgstr "Device &nbsp;"
 
 msgid "Now"
-msgstr "Ora"
+msgstr "Adesso"
 
 msgid "WAN(voip)"
 msgstr "WAN (voip)"
@@ -3535,7 +3535,7 @@ msgid "Current Time"
 msgstr "Ora attuale"
 
 msgid "Downstream LOF"
-msgstr "LOF download"
+msgstr "LOF downstream"
 
 msgid "Stop time should be greater then start time."
 msgstr "L'ora finale deve essere maggiore dell'ora inziale."
@@ -3547,7 +3547,7 @@ msgid "Upgrading..."
 msgstr "Aggiornamento..."
 
 msgid "Please wait %s seconds to enter new password"
-msgstr "Attendi %s secondi per inserire la nuova passowrd"
+msgstr "Attendi %s secondi per inserire la nuova password"
 
 msgid "DHCP Start Address should not be Local Device IP Address"
 msgstr "L'indirizzo iniziale DHCP non deve essere l'IP del modem."
@@ -3622,10 +3622,10 @@ msgid "ReXmt"
 msgstr "ReXmt"
 
 msgid "ATM VP / VC"
-msgstr "VP/VCI ATM"
+msgstr "VP/VC ATM"
 
 msgid "Downstream UAS"
-msgstr "UAS download"
+msgstr "UAS downstream"
 
 msgid "Generating report in background..."
 msgstr "Generazione rapporto in background..."
@@ -3634,10 +3634,10 @@ msgid "L"
 msgstr "L"
 
 msgid "Upstream UAS"
-msgstr "UAS upload"
+msgstr "UAS upstream"
 
 msgid "Downstream CRC"
-msgstr "CRC download"
+msgstr "CRC downstream"
 
 msgid "Muticast-Learn"
 msgstr "Muticast-Learn"
@@ -3751,7 +3751,7 @@ msgid "Reset Password"
 msgstr "Azzera password"
 
 msgid "Ethernet AutoGrEEEn"
-msgstr "Ethernet auto green"
+msgstr "Ethernet AutoGrEEEn"
 
 msgid "Auto"
 msgstr "Automatico"
@@ -3760,13 +3760,13 @@ msgid "GSM"
 msgstr "GSM"
 
 msgid "Downstream LOS"
-msgstr "LOS download"
+msgstr "LOS downstream"
 
 msgid "LAN"
 msgstr "LAN"
 
 msgid "Upstream Bonded Channels"
-msgstr "Canali abbinati upload"
+msgstr "Canali abbinati upstream"
 
 msgid "AF32"
 msgstr "AF32"
@@ -3841,7 +3841,7 @@ msgid "TTL"
 msgstr "TTL"
 
 msgid "RTT2 (ms)"
-msgstr "RTt2 (ms)"
+msgstr "RTT2 (ms)"
 
 msgid "aMule"
 msgstr "aMule"
@@ -3853,7 +3853,7 @@ msgid "ICMPv6"
 msgstr "ICMPv6"
 
 msgid "WEP is known to be flawed as a wireless security mode, usage of a more secure mode based on WPA2 is recommended."
-msgstr "WEP è un modo sicurezza wireless poco sicuro.<br/>È consigliato l'uso del modo sicurezza basato su WPA2."
+msgstr "WEP è un metodo di sicurezza wireless poco sicuro.<br/>È consigliato l'uso del metodo di sicurezza basato su WPA2."
 
 msgid "WiFi NSC"
 msgstr "NSC WiFi"
@@ -3880,7 +3880,7 @@ msgid "DSCP"
 msgstr "DSCP"
 
 msgid "eth0"
-msgstr "etho"
+msgstr "eth0"
 
 msgid "SSID"
 msgstr "SSID"
@@ -3910,7 +3910,7 @@ msgid "CS6"
 msgstr "CS6"
 
 msgid "Invalid host-uniqe tag, should be alphanumeric"
-msgstr "Tag host unico non valido. Deve essere alfanumerico."
+msgstr "Tag host-uniqe non valido. Deve essere alfanumerico."
 
 msgid "Basic"
 msgstr "Base"
@@ -3946,7 +3946,7 @@ msgid "ReXmtCor"
 msgstr "ReXmtCor"
 
 msgid "DynDNS"
-msgstr "ReXmtCor"
+msgstr "DynDNS"
 
 msgid "wl0"
 msgstr "wl0"
@@ -3964,7 +3964,7 @@ msgid "VoIP"
 msgstr "VoIP"
 
 msgid "Function input param is missing"
-msgstr "Parametro mancante funzione sorgente"
+msgstr "Parametro di input della funzione mancante"
 
 msgid "Tcpdump"
 msgstr "TCPDump"
@@ -3979,7 +3979,7 @@ msgid "D"
 msgstr "D"
 
 msgid "Upstream LOF"
-msgstr "LOF download"
+msgstr "LOF upstream"
 
 msgid "RTT1 (ms)"
 msgstr "RTT1 (ms)"
@@ -4081,10 +4081,10 @@ msgid "802.11b/g"
 msgstr "802.11 b/g"
 
 msgid "Upstream SES"
-msgstr "SES upload"
+msgstr "SES upstream"
 
 msgid "Downstream ES"
-msgstr "ES download"
+msgstr "ES downstream"
 
 msgid "10%"
 msgstr "10%"
@@ -4120,7 +4120,7 @@ msgid "You are trying to login with wrong password for %s times"
 msgstr "Hai cercato di accedere per %s volte con una password errata"
 
 msgid "Upstream ES"
-msgstr "ES upload"
+msgstr "ES upstream"
 
 msgid "This could cause security risk, take care of this."
 msgstr "Questo può causare rischi per al sicurezza. Spero che ne sei conscio."
@@ -4156,7 +4156,7 @@ msgid "TCP/UDP"
 msgstr "TCP/UDP"
 
 msgid "Upstream LOM"
-msgstr "LOM upload"
+msgstr "LOM upstream"
 
 msgid "UDP"
 msgstr "UDP"
@@ -4174,7 +4174,7 @@ msgid "Starting..."
 msgstr "Avvio..."
 
 msgid "Uncorrectables"
-msgstr "Non correggibile"
+msgstr "Non correggibili"
 
 msgid "IP Version 6 Address"
 msgstr "Indirizzo IP versione 6"
@@ -4198,7 +4198,7 @@ msgid "AH"
 msgstr "AH"
 
 msgid "Upstream LOS"
-msgstr "LOS upload"
+msgstr "LOS upstream"
 
 msgid "Ping & Traceroute"
 msgstr "Ping e traceroute"
@@ -4264,7 +4264,7 @@ msgid "Modem"
 msgstr "Modem"
 
 msgid "20MHz"
-msgstr "20 MHz"
+msgstr "20MHz"
 
 msgid "The Band Steering can not be supported under WEP security mode."
 msgstr "Il band steering non è supportato nel modo sicurezza WEP."
@@ -4282,4 +4282,4 @@ msgid "Always show advanced options"
 msgstr "Visualizza sempre opzioni avanzate"
 
 msgid "Gui animation"
-msgstr "Animazione GUI"
+msgstr "Animazioni GUI"
