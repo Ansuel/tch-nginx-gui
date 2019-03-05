@@ -334,7 +334,23 @@ end
 local function redirectIfServiceNotAvailable(session)
   if not session then
 	ngx.log(ngx.ERR, "Service not available")
-    ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE)
+    ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE, "Service not available. Probably too much session open. Wait 20 seconds and retry.")
+  end
+end
+
+
+local function cleanupIfNoSession(self , session)
+
+  if not session then
+	
+	--Remove every session inactive for 20 second
+	for sid, session in pairs(self.sessions) do
+		local expired = sessionExpired(self, session, sid, now, timeout)
+		if expired then
+			ngx.log(ngx.ERR,"Removed session "..sid)
+		end
+	end
+	
   end
 end
 
@@ -361,6 +377,7 @@ end
 --     for the session won't be updated.
 function SessionMgr:checkrequest(noActivityUpdate)
   local session, sessionID = getSessionForRequest(self, noActivityUpdate)
+  cleanupIfNoSession(self,session)
   redirectIfServiceNotAvailable(session)
   preventDNSRebind()
   redirectIfNotAuthorized(self, session, sessionID)
@@ -482,6 +499,7 @@ function SessionMgr:handleAuth()
   if uri ~= self.authpath and uri ~= self.passpath then
     return
   end
+
   -- only POST is allowed
   if ngx.req.get_method() ~= "POST" then
     ngx.exit(ngx.HTTP_FORBIDDEN)  -- doesn't return
