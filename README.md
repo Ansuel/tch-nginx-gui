@@ -1,10 +1,15 @@
 <h3><strong>This is a highly modified and universal version of the GUI installed on all Technicolor Modem/Routers compatibile with (and probably not only):</strong></h3>
   <ul>
-  <li>DGA4132</li>
-  <li>DGA4130</li>
-  <li>TG789vac v2</li>
-  <li>TG799vac</li>
-  <li>TG800vac</li>
+  <li>DGA4132 / VBNT-S</li>
+  <li>DGA4131 / VBNT-O</li>
+  <li>DGA4130 / VBNT-K</li>
+  <li>TG789vac v2 HP / VBNT-L</li>
+  <li>TG789vac v2 / VANT-6</li>
+  <li>TG789vac (v1) / VANT-D</li>
+  <li>TG789vac XTREAM 35B / VBNT-F</li>
+  <li>TG799vac / VANT-F</li>
+  <li>TG799vac XTREAM / VBNT-H</li>
+  <li>TG800vac / VANT-Y</li>
   </ul>
 with many fixes and new features like:
 <ul>
