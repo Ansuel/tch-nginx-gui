@@ -548,7 +548,7 @@ msgid "GB"
 msgstr "GB"
 
 msgid "Downlink Bandwidth:"
-msgstr "Banda download:"
+msgstr "Banda downlink:"
 
 msgid "Total"
 msgstr "Totale"
@@ -575,7 +575,7 @@ msgid "MSISDN"
 msgstr "MSISDN"
 
 msgid "Physical Cell ID:"
-msgstr "ID fisico cellulare:"
+msgstr "ID fisico cella:"
 
 msgid "RSSI:"
 msgstr "RSSI:"
@@ -596,19 +596,19 @@ msgid "Reset"
 msgstr "Ripristina"
 
 msgid "UMTS Preferred"
-msgstr "Preferenziale UMTS"
+msgstr "Preferisci UMTS"
 
 msgid "Uplink EARFCN:"
-msgstr "EARFCN upload:"
+msgstr "EARFCN uplink:"
 
 msgid "Uplink Frequency:"
-msgstr "Frequenza upload"
+msgstr "Frequenza uplink"
 
 msgid "CINR:"
 msgstr "CINR:"
 
 msgid "Monthly Reset Day"
-msgstr "Giorno ripristino mese"
+msgstr "Giorno ripristino mensile"
 
 msgid "Tx Packets"
 msgstr "Pacchetti Tx"
@@ -632,7 +632,7 @@ msgid "Reset Data Usage"
 msgstr "Azzera uso dati"
 
 msgid "Uplink ARFCN:"
-msgstr "ARFCN upload:"
+msgstr "ARFCN uplink:"
 
 msgid "Radio Bearer:"
 msgstr "Bearer radio:"
@@ -641,13 +641,13 @@ msgid "EARFCN"
 msgstr "EARFCN"
 
 msgid "Downlink UARFCN:"
-msgstr "UARFCN download:"
+msgstr "UARFCN downlink:"
 
 msgid "RSRP:"
 msgstr "RSRP:"
 
 msgid "Total Volume"
-msgstr "Violume totale"
+msgstr "Volume totale"
 
 msgid "Data Usage"
 msgstr "Uso dati"
@@ -665,13 +665,13 @@ msgid "ECIO:"
 msgstr "ECIO:"
 
 msgid "Downlink ARFCN:"
-msgstr "ARFCN download:"
+msgstr "ARFCN downlink:"
 
 msgid "Downlink"
-msgstr "Download"
+msgstr "Downlink"
 
 msgid "GSM Preferred"
-msgstr "Preferenziale GSM"
+msgstr "Preferisci GSM"
 
 msgid "IPv4v6"
 msgstr "IPv4/v6"
@@ -701,16 +701,16 @@ msgid "UMTS Only"
 msgstr "Solo UMTS"
 
 msgid "Downlink Frequency:"
-msgstr "Frequenza download:"
+msgstr "Frequenza downlink:"
 
 msgid "LTE Preferred"
-msgstr "Preferenziale LTE"
+msgstr "Preferisci LTE"
 
 msgid "UMTS"
 msgstr "UMTS"
 
 msgid "Uplink"
-msgstr "Upload"
+msgstr "Uplink"
 
 msgid "RSRQ:"
 msgstr "RSRQ:"
@@ -752,7 +752,7 @@ msgid "MCC"
 msgstr "MCC"
 
 msgid "Uplink UARFCN:"
-msgstr "UARFCN upload:"
+msgstr "UARFCN uplink:"
 
 msgid "PUK"
 msgstr "PUK"
@@ -761,7 +761,7 @@ msgid "Password"
 msgstr "Password"
 
 msgid "Cell ID:"
-msgstr "ID cellulare:"
+msgstr "ID cella:"
 
 msgid "SINR:"
 msgstr "SINR:"
@@ -785,4 +785,4 @@ msgid "No"
 msgstr "No"
 
 msgid "Downlink EARFCN:"
-msgstr "EARFCN download:"
+msgstr "EARFCN downlink:"
