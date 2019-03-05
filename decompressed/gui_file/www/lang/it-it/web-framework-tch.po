@@ -350,4 +350,4 @@ msgstr[0] "%do"
 msgstr[1] "%do"
 
 msgid "The wireless key contains invalid characters, only space, letters, numbers and the following characters !\"#$%&()*+,-./:;<=>?@[\\]^_{|}~ are allowed."
-msgstr ""
+msgstr "La chiave wireless contiene caratteri non validi. Sono consentiti solo lo spazio, le lettere ed i seguenti caratteri !\"#$%&()*+,-./:;<=>?@[\\]^_{|}~."
