@@ -10,8 +10,6 @@ ngx.print('\
 <div id="dynamic-content">\
   <div id ="infocardrow" class="row">\
 ')
-lp.setpath("/www/gateway-snippets/")
-lp.include("js-after-header.lp")
 lp.setpath("/www/info-cards/")
        local cards = require("cards")
 	cards.setpath("/www/info-cards/")

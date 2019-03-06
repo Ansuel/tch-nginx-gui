@@ -53,8 +53,6 @@ ngx.print('\
 	<div id="dynamic-content">\
       <div id="cardrow" class="row">\
 	  ');
-		lp.setpath("/www/gateway-snippets/")
-		lp.include("js-after-header.lp")
 	  	lp.setpath("/www/cards/")
           local cards = require("cards")
           for _,v in pairs(cards.cards()) do

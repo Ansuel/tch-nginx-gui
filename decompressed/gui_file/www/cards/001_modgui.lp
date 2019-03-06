@@ -66,11 +66,7 @@ ngx.print('\
   </div>\
   <script>\
   $(document).ready(function(){\
-  $(".check_update").on("click", function(e) {\
-	 e.stopPropagation();\
-	 $(".check_update_spinner").addClass("fa-spin");\
-     scriptRequestStatusAjax("checkver");\
-     });\
+	new linkCheckUpdate();\
   });\
   </script>\
 </div>\

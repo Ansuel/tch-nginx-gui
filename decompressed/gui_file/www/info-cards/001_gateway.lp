@@ -128,6 +128,7 @@ ngx.print('\
 <script>\
 var InfoGatewayCardInterval;\
 $(document).ready(function () {\
+	new linkCheckUpdate();\
 	new createAjaxUpdateCard("gatewaytab","/ajax/cpuload.lua",InfoGatewayCardInterval,5000);\
 })\
 </script>\
