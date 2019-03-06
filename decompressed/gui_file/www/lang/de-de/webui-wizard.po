@@ -239,3 +239,6 @@ msgstr ""
 
 msgid "VDSL"
 msgstr ""
+
+msgid "None"
+msgstr ""
