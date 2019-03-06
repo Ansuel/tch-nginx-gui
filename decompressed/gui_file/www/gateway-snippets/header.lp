@@ -268,166 +268,19 @@ ngx.print(html)
 ngx.print('\
 </div>\
 <script>\
-var target = $(".modal form").attr("action");\
 \
-function post(action) {\
-  $.post(\
-    target,\
-    { action: action, CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
-    null,\
-    "json"\
-  );\
-  return false;\
-}\
-var intervalAjaxScript;\
-var scriptRequestTimeout = 1000;\
-function scriptRequestStatusAjax(type) {\
-  if(intervalAjaxScript) return;\
-  if(type == "checkver") post("checkver");\
-  intervalAjaxScript = setInterval(function() {\
-      $.ajax({ url: "modals/modgui-modal.lp", data: "action=scriptRequestStatus"+"&auto_update=true",\
-    timeout: scriptRequestTimeout, cache: false, dataType: "json" })\
-      .done(function(data) {\
-    if (data.state == "Complete") {\
-      if ((type == "checkver" ) && (data.new_version_text)) {\
-      var outdated_ver = "'); ngx.print(T"GUI is outdated"); ngx.print('";\
-      var no_new = "'); ngx.print(T"GUI is updated"); ngx.print('";\
-      $(".gui_version_status_text").parent().fadeOut().fadeIn();\
-      if (data.new_version_text == "Unknown") {\
-        $(".gui_version_status").removeClass("yellow");\
-        $(".gui_version_status").addClass("green");\
-        $(".gui_version_status_text").text(no_new);\
-        $("#upgrade-alert").addClass("hide");\
-      } else {\
-        $(".gui_version_status").removeClass("green");\
-        $(".gui_version_status").addClass("yellow");\
-        $("#upgradebtn").removeClass("hide");\
-        $(".gui_version_status_text").text(outdated_ver);\
-        $("#upgrade-alert").removeClass("hide");\
-        $("#new-version-text").text(data.new_version_text);\
-      }\
-      $(".check_update_spinner").removeClass("fa-spin");\
-      clearInterval(intervalAjaxScript);\
-      intervalAjaxScript=null;\
-      } else {\
-        window.location.href = "/";\
-      }\
-    }\
-      });\
-      }, scriptRequestTimeout);\
-}\
+  var gui_var = {\
+	randomcolor : "'); ngx.print(cui.randomcolor or "0"); ngx.print ('",\
+	stats_text : "'); ngx.print(T"Stats"); ngx.print ('",\
+	cards_text : "'); ngx.print(T"Cards"); ngx.print ('",\
+	pageselector_page : "'); ngx.print(pageselector.page); ngx.print ('",\
+	pageselector_text : "'); ngx.print(pageselector.text); ngx.print ('",\
+	pageselector_othertext : "'); ngx.print(pageselector.othertext); ngx.print ('",\
+	autoupgradeview : "'); ngx.print(autoupgrade_view or "none"); ngx.print ('",\
+	gui_outdated : "'); ngx.print(T"GUI is outdated"); ngx.print('",\
+	gui_updated : "'); ngx.print(T"GUI is updated"); ngx.print('",\
+  };\
 \
-function freshStyle(stylesheet){\
-   $("#theme_skin").attr("href","/theme/"+stylesheet);\
-}\
-\
-var KoRequest = [];\
-$(function() {\
-'); if cui.randomcolor == "1" then ngx.print('\
-   setInterval(function() {\
-      var colorR = Math.floor((Math.random() * 256));\
-      var colorG = Math.floor((Math.random() * 256));\
-      var colorB = Math.floor((Math.random() * 256));\
-    $(":root").get(0).style.setProperty("--first-color-accent", "rgb(" + colorR + "," + colorG + "," + colorB + ")");\
-    $(":root").get(0).style.setProperty("--first-color-accent-50", "rgba(" + colorR + "," + colorG + "," + colorB + ", 0.5)");\
-    $(":root").get(0).style.setProperty("--first-color-accent-80", "rgba(" + colorR + "," + colorG + "," + colorB + ", 0.8)");\
-  }, 750);')
-end ngx.print('\
-  var pathname = document.location.pathname;\
-  var page = "'); ngx.print(pageselector.page); ngx.print ('";\
-  var text = "'); ngx.print(pageselector.text); ngx.print ('";\
-  if (pathname == "/stats.lp") {\
-    page = "cards.lp";\
-    text = "'); ngx.print(T"Cards"); ngx.print ('";\
-  $("#cards-text").text(text);\
-  } else if (pathname == "/cards.lp") {\
-    page = "stats.lp";\
-    text = "'); ngx.print(T"Stats"); ngx.print ('";\
-  $("#cards-text").text(text);\
-  }\
-  $("#swtichbuttom").on("click", function() {\
-    var pathname = document.location.pathname;\
-  var text = "'); ngx.print(pageselector.othertext); ngx.print ('";\
-  if (pathname == "/stats.lp") {\
-    page = "cards.lp";\
-    text = "'); ngx.print(T"Stats"); ngx.print ('";\
-  } else if (pathname == "/cards.lp") {\
-    page = "stats.lp";\
-    text = "'); ngx.print(T"Cards"); ngx.print ('";\
-  }\
-  $("#dynamic-content").load(page + "?contentonly=true");\
-  $(this).trigger("switchcard");\
-  window.history.pushState("gateway", "Gateway - Cards", page);\
-  $("#cards-text").text(text);\
-  $("#refresh-cards").show();\
-  $("#refresh-cards").css("margin-right","5px");\
-  $("#refresh-cards").addClass("fa fa-sync fa-spin");\
-  KoRequest.forEach(function(element) {\
-    clearInterval(element);\
-  });\
-  KoRequest = [];\
-  });\
-\
-  $("#upgradebtn").on("hover",\
-  function() {\
-    $("#upgradebtn").css("color","white");\
-  },\
-  function() {\
-    $("#upgradebtn").css("color","orangered");\
-  }\
-  );\
-  ');
-  if not ( autoupgrade_view == "none" ) and not ( autoupgrade_view == "" ) then
-    ngx.print('\
-  post("autoupgrade_view");\
-    ');
-  end
-  ngx.print('\
-});\
-window.onscroll = function() {scrollFunction()};\
-\
-function scrollFunction() {\
-if (document.body.scrollTop > 60 || document.documentElement.scrollTop > 60) {\
-        $("#scroll-up").removeClass("hide");\
-    $("#scroll-down").addClass("hide");\
-    } else {\
-        $("#scroll-up").addClass("hide");\
-    $("#scroll-down").removeClass("hide");\
-    }\
-}\
-\
-$(function() {\
-  $("a[href*=\'#\']").on("click", function(e) {\
-    e.preventDefault();\
-    $("html, body").animate({ scrollTop: $($(this).attr("href")).offset().top}, 500, "linear");\
-  });\
-});\
-function createAjaxUpdateCard(CardIdRefresh, ajaxLink, IntervalVar, RefreshTime) {\
-	var ElementBinding = {};\
-	var ElementBindingList = [];\
-	var ObserveElement;\
-	$("#"+CardIdRefresh).find("[data-bind]").each(function() {\
-		ObserveElement = $(this).data("bind").split(":")[1].trim();\
-		ElementBindingList.push(ObserveElement);\
-		ElementBinding[ObserveElement] = ko.observable();\
-	});\
-\
-	var arrayLength = ElementBindingList.length;\
-	\
-	function AjaxRefresh() {\
-		$.post(ajaxLink+"?auto_update=true", [tch.elementCSRFtoken()], function(data) {\
-			for (var i = 0; i < arrayLength; i++) {\
-				if(data[ElementBindingList[i]] != undefined) {\
-					ElementBinding[ElementBindingList[i]](data[ElementBindingList[i]]);\
-				}\
-			}\
-		}, "json");\
-	};\
-\
-	AjaxRefresh();\
-	ko.applyBindings(ElementBinding, document.getElementById(CardIdRefresh));\
-	IntervalVar = setInterval(AjaxRefresh, RefreshTime);\
-	KoRequest.push(IntervalVar);\
-}\
 </script>\
+<script src="/js/shared-script.js?version='); ngx.print(cui.gui_version); ngx.print('" ></script>\
 ');

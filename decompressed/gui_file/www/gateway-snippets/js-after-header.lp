@@ -1,15 +1,14 @@
 --pretranslated: do not change this file
 
-local content_helper = require("web.content_helper")
-
-local cui = {
-	randomcolor = "uci.modgui.gui.randomcolor",
-}
-
-content_helper.getExactContent(cui)
-
 ngx.print('\
 <script>\
+$(document).ready(function(){\
+  $(".check_update").on("click", function(e) {\
+	 e.stopPropagation();\
+	 $(".check_update_spinner").addClass("fa-spin");\
+     scriptRequestStatusAjax("checkver");\
+     });\
+  });\
 $(document).ready(function(){\
   ko.bindingHandlers.text = {\
 		init: function(element, valueAccessor) {\
