@@ -208,34 +208,34 @@ msgid "Username: "
 msgstr "Benutzername: "
 
 msgid "Wireless 2.4GHz (WiFi): "
-msgstr ""
+msgstr "Drahtlos 2,4GHz (WiFi): "
 
 msgid "VLAN ID"
-msgstr ""
+msgstr "VLAN ID"
 
 msgid "Step 6 of 8"
-msgstr ""
+msgstr "Schritt 6 von 8"
 
 msgid "Wireless 5GHz (WiFi): "
-msgstr ""
+msgstr "Drahtlos 5GHz (WiFi): "
 
 msgid "Nessuna"
-msgstr ""
+msgstr "Kein"
 
 msgid "WPA2-PSK"
-msgstr ""
+msgstr "WPA2-PSK"
 
 msgid "Step 5 of 8"
-msgstr ""
+msgstr "Schritt 5 von 8"
 
 msgid "ADSL"
-msgstr ""
+msgstr "ADSL"
 
 msgid "WPA+WPA2 PSK"
-msgstr ""
+msgstr "WPA+WPA2 PSK"
 
 msgid "Ethernet"
-msgstr ""
+msgstr "Ethernet"
 
 msgid "VDSL"
-msgstr ""
+msgstr "VDSL"
