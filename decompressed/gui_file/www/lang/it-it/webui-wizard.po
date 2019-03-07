@@ -219,8 +219,8 @@ msgstr "Passaggio 6 di 8"
 msgid "Wireless 5GHz (WiFi): "
 msgstr "Wireless 5GHz (WiFi): "
 
-msgid "Nessuna"
-msgstr ""
+msgid "None"
+msgstr "Nessuno"
 
 msgid "WPA2-PSK"
 msgstr "WPA2-PSK"

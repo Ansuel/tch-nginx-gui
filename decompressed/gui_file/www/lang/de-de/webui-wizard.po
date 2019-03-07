@@ -239,3 +239,6 @@ msgstr "Ethernet"
 
 msgid "VDSL"
 msgstr "VDSL"
+
+msgid "None"
+msgstr "Kein"
