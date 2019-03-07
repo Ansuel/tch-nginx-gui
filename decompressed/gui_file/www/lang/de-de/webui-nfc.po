@@ -31,10 +31,10 @@ msgid "WiFi Interface"
 msgstr "WiFi Schnittstelle"
 
 msgid "WiFi Status"
-msgstr "Wifi Status"
+msgstr "Wifi Zustand"
 
 msgid "Wi-Fi Interface Status"
-msgstr "WiFi Schnittstellen Status"
+msgstr "WiFi Schnittstellen Zustand"
 
 msgid "NFC Status"
-msgstr ""
+msgstr "NFC Zustand"
