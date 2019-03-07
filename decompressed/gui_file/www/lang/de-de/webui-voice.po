@@ -439,19 +439,19 @@ msgid "Can be used"
 msgstr "Kann genutzt werden"
 
 msgid "Codec"
-msgstr ""
+msgstr "Codec"
 
 msgid "Stop"
-msgstr ""
+msgstr "Stop"
 
 msgid "Invoke"
-msgstr ""
+msgstr "Aufruf"
 
 msgid "DECT"
-msgstr ""
+msgstr "DECT"
 
 msgid "Realm"
-msgstr ""
+msgstr "Bereich"
 
 msgid "Sip Device"
-msgstr ""
+msgstr "SIP Gerät"
