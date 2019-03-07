@@ -133,7 +133,7 @@ msgid "Volume"
 msgstr "Volume"
 
 msgid "Rebooting..."
-msgstr ""
+msgstr "Neu starten..."
 
 msgid "no"
-msgstr ""
+msgstr "kein"

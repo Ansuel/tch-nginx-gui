@@ -128,16 +128,16 @@ msgid "Qos Wireless Status"
 msgstr "QoS Drahtlos Status"
 
 msgid "DSCP"
-msgstr ""
+msgstr "DSCP"
 
 msgid "Qos Port Status"
-msgstr ""
+msgstr "QoS Port Zustand"
 
 msgid "Port"
-msgstr ""
+msgstr "Port"
 
 msgid "Virtual Port"
-msgstr ""
+msgstr "Virtueller Port"
 
 msgid "QoS"
-msgstr ""
+msgstr "QoS"

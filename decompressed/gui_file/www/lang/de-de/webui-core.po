@@ -3457,832 +3457,832 @@ msgid "Add new DNS server"
 msgstr "Füge neuen DNS Server hinzu"
 
 msgid "Invalid Password"
-msgstr ""
+msgstr "Ungültiges Kennwort"
 
 msgid "IPv6"
-msgstr ""
+msgstr "IPv6"
 
 msgid "100%"
 msgstr ""
 
 msgid "Correctables"
-msgstr ""
+msgstr "Korrigierbare"
 
 msgid "eth3"
-msgstr ""
+msgstr "eth3"
 
 msgid "AF41"
-msgstr ""
+msgstr "AF41"
 
 msgid "SFP IP should not be in "
-msgstr ""
+msgstr "SFP IP sollte nicht in "
 
 msgid "WPS"
-msgstr ""
+msgstr "WPS"
 
 msgid "Cloning started in background..."
-msgstr ""
+msgstr "Klonen startet im Hintergrund..."
 
 msgid "EF"
-msgstr ""
+msgstr "EF"
 
 msgid "DNS Servers"
-msgstr ""
+msgstr "DNS Server"
 
 msgid "Device &nbsp;"
-msgstr ""
+msgstr "Gerät &nbsp;"
 
 msgid "Now"
-msgstr ""
+msgstr "Jetzt"
 
 msgid "WAN(voip)"
-msgstr ""
+msgstr "WAN(VoIP)"
 
 msgid "Security for this wireless network is disabled, anybody can connect to it"
-msgstr ""
+msgstr "Sicherheit ist für dieses Drahtlosnetzwerk abgeschaltet, jeder kann sich damit verbinden"
 
 msgid "Line Status"
-msgstr ""
+msgstr "Leitungszustand"
 
 msgid "ACL Reg"
-msgstr ""
+msgstr "ACL Reg"
 
 msgid "Laptop"
-msgstr ""
+msgstr "Laptop"
 
 msgid "AF23"
-msgstr ""
+msgstr "AF23"
 
 msgid "NTP servers"
-msgstr ""
+msgstr "NTP Server"
 
 msgid "SRP salt"
-msgstr ""
+msgstr "SRP Salt"
 
 msgid "IPTV"
-msgstr ""
+msgstr "IPTV"
 
 msgid "minEFTR"
-msgstr ""
+msgstr "minEFTR"
 
 msgid "IPv6 forwarding table"
-msgstr ""
+msgstr "IPv6 Weiterleitungstabelle"
 
 msgid "GS"
-msgstr ""
+msgstr "GS"
 
 msgid "Current Time"
-msgstr ""
+msgstr "Aktuelle Zeit"
 
 msgid "Downstream LOF"
-msgstr ""
+msgstr "Downstream LOF"
 
 msgid "Stop time should be greater then start time."
-msgstr ""
+msgstr "Endzeit sollte größer als Startzeit sein."
 
 msgid "Digest"
-msgstr ""
+msgstr "Zusammenfassung"
 
 msgid "Upgrading..."
-msgstr ""
+msgstr "Aktualisieren..."
 
 msgid "Please wait %s seconds to enter new password"
-msgstr ""
+msgstr "Bitte warten Sie %s Sekunden, um ein neues Kennwort einzugeben"
 
 msgid "DHCP Start Address should not be Local Device IP Address"
-msgstr ""
+msgstr "DHCP Startadresse sollte nicht die lokale Geräteadresse sein"
 
 msgid "Upstream CRC"
-msgstr ""
+msgstr "Upstream CRC"
 
 msgid "Go to the gateway tab and click on the Update button, to autoupgrade to the new GUI."
-msgstr ""
+msgstr "Gehen Sie auf den Gateway-Reiter und drücken Sie den Aktualisieren-Knopf, um auf die neue GUI zu aktualisieren."
 
 msgid "70%"
-msgstr ""
+msgstr "70%"
 
 msgid "200%"
-msgstr ""
+msgstr "200%"
 
 msgid "ErrFreeBits"
-msgstr ""
+msgstr "FehlerfreieBits"
 
 msgid "disconnected"
-msgstr ""
+msgstr "getrennt"
 
 msgid "NAT"
-msgstr ""
+msgstr "NAT"
 
 msgid "Downstream SES"
-msgstr ""
+msgstr "Downstream SES"
 
 msgid "UPnP"
-msgstr ""
+msgstr "UPnP"
 
 msgid "Aria2 Webui"
-msgstr ""
+msgstr "Aria2 WebUI"
 
 msgid "Radio"
-msgstr ""
+msgstr "Radio"
 
 msgid "Remove root"
-msgstr ""
+msgstr "Entferne Root"
 
 msgid "aMule Webui"
-msgstr ""
+msgstr "aMule WebUI"
 
 msgid "LEFTRS"
-msgstr ""
+msgstr "LEFTRS"
 
 msgid "eth2"
-msgstr ""
+msgstr "eth2"
 
 msgid "Downstream LOM"
-msgstr ""
+msgstr "Downstream LOM"
 
 msgid "Reset Configuration"
-msgstr ""
+msgstr "Konfiguration zurücksetzen"
 
 msgid "PCAP"
-msgstr ""
+msgstr "PCAP"
 
 msgid "90%"
-msgstr ""
+msgstr "90%"
 
 msgid "Firewall"
-msgstr ""
+msgstr "Firewall"
 
 msgid "UDPLite"
-msgstr ""
+msgstr "UDPLite"
 
 msgid "Downstream Bonded Channels"
-msgstr ""
+msgstr "Downstream Verknüpfte Kanäle"
 
 msgid "ReXmt"
-msgstr ""
+msgstr "ReXmt"
 
 msgid "ATM VP / VC"
-msgstr ""
+msgstr "ATM VP / VC"
 
 msgid "Downstream UAS"
-msgstr ""
+msgstr "Downstream UAS"
 
 msgid "Generating report in background..."
-msgstr ""
+msgstr "Erzeuge Bericht im Hintergrund..."
 
 msgid "L"
-msgstr ""
+msgstr "L"
 
 msgid "Upstream UAS"
-msgstr ""
+msgstr "Upstream UAS"
 
 msgid "Downstream CRC"
-msgstr ""
+msgstr "Downstream CRC"
 
 msgid "Muticast-Learn"
-msgstr ""
+msgstr "Multicast-Lernen"
 
 msgid "Igmpproxy"
-msgstr ""
+msgstr "IGMP Proxy"
 
 msgid "STB"
-msgstr ""
+msgstr "STB"
 
 msgid "Ethernet"
-msgstr ""
+msgstr "Ethernet"
 
 msgid "Timeout:"
-msgstr ""
+msgstr "Zeitschranke:"
 
 msgid "WPA+WPA2"
-msgstr ""
+msgstr "WPA+WPA2"
 
 msgid "R"
-msgstr ""
+msgstr "R"
 
 msgid "802.11b/g/n"
-msgstr ""
+msgstr "802.11b/g/n"
 
 msgid "80MHz"
-msgstr ""
+msgstr "80MHz"
 
 msgid "SNR"
-msgstr ""
+msgstr "SNR"
 
 msgid "TransmitOpticalLevel"
-msgstr ""
+msgstr "ÜbertragungOptischerPegel"
 
 msgid "negotiation failed"
-msgstr ""
+msgstr "Aushandlung fehlgeschlagen"
 
 msgid "N"
-msgstr ""
+msgstr "N"
 
 msgid "authentication failed"
-msgstr ""
+msgstr "Authentifizierung fehlgeschlagen"
 
 msgid "Dos Protect Option"
-msgstr ""
+msgstr "DOS Schutz Option"
 
 msgid "WAN IP is <strong>%s<\strong>"
-msgstr ""
+msgstr "WAP IP ist <strong>%s</strong>"
 
 msgid "Ethernet Ethapd"
-msgstr ""
+msgstr "Ethernet Ethapd"
 
 msgid "AF13"
-msgstr ""
+msgstr "AF13"
 
 msgid "DSL Bit Loading (Line 1)"
-msgstr ""
+msgstr "DSL Bit Loading (Leitung 1)"
 
 msgid "RTT3 (ms)"
-msgstr ""
+msgstr "RTT3 (ms)"
 
 msgid "HTTPS"
-msgstr ""
+msgstr "HTTPS"
 
 msgid "Satisfactoy"
-msgstr ""
+msgstr "Befriedigend"
 
 msgid "Seq"
-msgstr ""
+msgstr "Seq"
 
 msgid "DOCSIS Status"
-msgstr ""
+msgstr "DOCSIS Zustand"
 
 msgid "160%"
-msgstr ""
+msgstr "160%"
 
 msgid "RSSI"
-msgstr ""
+msgstr "RSSI"
 
 msgid "LookBack"
-msgstr ""
+msgstr "Rückschau"
 
 msgid "WAN1"
-msgstr ""
+msgstr "WAN1"
 
 msgid "ReXmtUnc"
-msgstr ""
+msgstr "ReXmtUnc"
 
 msgid "MSE"
-msgstr ""
+msgstr "MSE"
 
 msgid "Change Password"
-msgstr ""
+msgstr "Kennwort ändern"
 
 msgid "LOG"
-msgstr ""
+msgstr "LOG"
 
 msgid "AF43"
-msgstr ""
+msgstr "AF43"
 
 msgid "disconnecting"
-msgstr ""
+msgstr "trennen"
 
 msgid "IPv4"
-msgstr ""
+msgstr "IPv4"
 
 msgid "Restoring..."
-msgstr ""
+msgstr "Wiederherstellen..."
 
 msgid "RRCBits"
-msgstr ""
+msgstr "RRCBits"
 
 msgid "Reset Password"
-msgstr ""
+msgstr "Kennwort zurücksetzen"
 
 msgid "Ethernet AutoGrEEEn"
-msgstr ""
+msgstr "Ethernet AutoGrEEEn"
 
 msgid "Auto"
-msgstr ""
+msgstr "Auto"
 
 msgid "GSM"
-msgstr ""
+msgstr "GSM"
 
 msgid "Downstream LOS"
-msgstr ""
+msgstr "Downstream LOS"
 
 msgid "LAN"
-msgstr ""
+msgstr "LAN"
 
 msgid "Upstream Bonded Channels"
-msgstr ""
+msgstr "Upstream Verknüpfte Kanäle"
 
 msgid "AF32"
-msgstr ""
+msgstr "AF32"
 
 msgid "50%"
-msgstr ""
+msgstr "50%"
 
 msgid "DOCSIS IP address"
-msgstr ""
+msgstr "DOCSIS IP-Adresse"
 
 msgid "TCP"
-msgstr ""
+msgstr "TCP"
 
 msgid "Login"
-msgstr ""
+msgstr "Anmeldung"
 
 msgid "String must be empty or a port."
-msgstr ""
+msgstr "Zeichenkette muss ein Port oder leer sein."
 
 msgid "Bitswap"
-msgstr ""
+msgstr "Bit-Vertauschung"
 
 msgid "Infinite"
-msgstr ""
+msgstr "Unendlich"
 
 msgid "eth1"
-msgstr ""
+msgstr "eth1"
 
 msgid "Cloning bank, please wait..."
-msgstr ""
+msgstr "Klonen Bank, bitte warten..."
 
 msgid "AF21"
-msgstr ""
+msgstr "AF21"
 
 msgid "Luci WebUI"
-msgstr ""
+msgstr "Luci WebUI"
 
 msgid "PDA"
-msgstr ""
+msgstr "PDA"
 
 msgid "WAN"
-msgstr ""
+msgstr "WAN"
 
 msgid "Offline"
-msgstr ""
+msgstr "Offline"
 
 msgid "WAN3"
-msgstr ""
+msgstr "WAN3"
 
 msgid "IP"
-msgstr ""
+msgstr "IP"
 
 msgid "InterfaceType"
-msgstr ""
+msgstr "Schnittstellentyp"
 
 msgid "Applying anyway..."
-msgstr ""
+msgstr "Wende trotzdem an..."
 
 msgid "Remind me later"
-msgstr ""
+msgstr "Erinnere mich später"
 
 msgid "ICMP"
-msgstr ""
+msgstr "ICMP"
 
 msgid "Overlap contents are not allowed"
-msgstr ""
+msgstr "Überlappender Inhalt ist nicht erlaubt"
 
 msgid "CS4"
-msgstr ""
+msgstr "CS4"
 
 msgid "TTL"
-msgstr ""
+msgstr "TTL"
 
 msgid "RTT2 (ms)"
-msgstr ""
+msgstr "RTT2 (ms)"
 
 msgid "aMule"
-msgstr ""
+msgstr "aMule"
 
 msgid "DNS IP"
-msgstr ""
+msgstr "DNS IP"
 
 msgid "ICMPv6"
-msgstr ""
+msgstr "ICMPv6"
 
 msgid "WEP is known to be flawed as a wireless security mode, usage of a more secure mode based on WPA2 is recommended."
-msgstr ""
+msgstr "WEP ist bekanntermaßen fehlerhaft, es wird ein sicherer, aus WPA2 basierender Modus empfohlen."
 
 msgid "WiFi NSC"
-msgstr ""
+msgstr "WiFi NSC"
 
 msgid "VC"
-msgstr ""
+msgstr "VC"
 
 msgid "Restore Default Configuration"
-msgstr ""
+msgstr "Wiederherstellen der Vorgabekonfiguration"
 
 msgid "WAN4"
-msgstr ""
+msgstr "WAN4"
 
 msgid "Trellis"
-msgstr ""
+msgstr "Trellis"
 
 msgid "The time displayed on the graph are based on the time set on this modem!"
-msgstr ""
+msgstr "Die Zeitangaben in der Grafik basieren auf der Zeit des Modems!"
 
 msgid "Channel ID"
-msgstr ""
+msgstr "Kanal ID"
 
 msgid "DSCP"
-msgstr ""
+msgstr "DSCP"
 
 msgid "eth0"
-msgstr ""
+msgstr "eth0"
 
 msgid "SSID"
-msgstr ""
+msgstr "SSID"
 
 msgid "OpticalSignalLevel"
-msgstr ""
+msgstr "OptischerSignalPegel"
 
 msgid "CS2"
-msgstr ""
+msgstr "CS2"
 
 msgid "You need to specify a MAC or an IP address"
-msgstr ""
+msgstr "Sie müssen eine MAC oder eine IP-Adresse angeben"
 
 msgid "SFP IP should not be in Gateway interface IP Range, change that first"
-msgstr ""
+msgstr "SFP IP-Adresse sollte nicht im Gateway IP-Bereich liegen - ändern Sie diesen zuerst"
 
 msgid "Connected-SFP"
-msgstr ""
+msgstr "Verbunden-SFP"
 
 msgid "SCTP"
-msgstr ""
+msgstr "SCTP"
 
 msgid "Cannot use reserved names as static lease name"
-msgstr ""
+msgstr "Kann keine reservierten Namen als statische Lease-Namen verwenden"
 
 msgid "CS6"
-msgstr ""
+msgstr "CS6"
 
 msgid "Invalid host-uniqe tag, should be alphanumeric"
-msgstr ""
+msgstr "Ungültiges host-unique Kennzeichen, sollte alphanumerisch sein"
 
 msgid "Basic"
-msgstr ""
+msgstr "Grundlegend"
 
 msgid "Continue anyway?"
-msgstr ""
+msgstr "Trotzdem fortfahren?"
 
 msgid "Symbol Rate"
-msgstr ""
+msgstr "Symbolrate"
 
 msgid "Auto (20/40MHz)"
-msgstr ""
+msgstr "Auto (20/40MHz)"
 
 msgid "URL:"
-msgstr ""
+msgstr "URL:"
 
 msgid "AF42"
-msgstr ""
+msgstr "AF42"
 
 msgid "This will switch the active bank with the passive one"
-msgstr ""
+msgstr "Dies wird die aktive mit der passiven Bank vertauschen"
 
 msgid "Upstream FEC"
-msgstr ""
+msgstr "Upstream FEC"
 
 msgid "Re-scanning"
-msgstr ""
+msgstr "Erneut Scannen"
 
 msgid "Password should contain at least 12 alphanumeric characters including both upper and lower case letters,"
-msgstr ""
+msgstr "Das Kennwort sollte aus mindestens 12 alphanumerischen Zeichen bestehen und Groß- und Kleinbuchstaben enthalten,"
 
 msgid "ReXmtCor"
-msgstr ""
+msgstr "ReXmtCor"
 
 msgid "DynDNS"
-msgstr ""
+msgstr "DynDNS"
 
 msgid "wl0"
-msgstr ""
+msgstr "wl0"
 
 msgid "TCPDump Log:"
-msgstr ""
+msgstr "TCPDump Log:"
 
 msgid "Standard"
-msgstr ""
+msgstr "Standard"
 
 msgid "CS7"
-msgstr ""
+msgstr "CS7"
 
 msgid "VoIP"
-msgstr ""
+msgstr "VoIP"
 
 msgid "Function input param is missing"
-msgstr ""
+msgstr "Funktionseingabeparameter fehlt"
 
 msgid "Tcpdump"
-msgstr ""
+msgstr "Tcpdump"
 
 msgid "OR"
-msgstr ""
+msgstr "OR"
 
 msgid "IPv6 Firewall"
-msgstr ""
+msgstr "IPv6 Firewall"
 
 msgid "D"
-msgstr ""
+msgstr "D"
 
 msgid "Upstream LOF"
-msgstr ""
+msgstr "Upstream LOF"
 
 msgid "RTT1 (ms)"
-msgstr ""
+msgstr "RTT1 (ms)"
 
 msgid "AF31"
-msgstr ""
+msgstr "AF31"
 
 msgid "Online"
-msgstr ""
+msgstr "Online"
 
 msgid "Gateway"
-msgstr ""
+msgstr "Gateway"
 
 msgid "IP Version 4 Address"
-msgstr ""
+msgstr "IP Version 4 Adresse"
 
 msgid "60%"
-msgstr ""
+msgstr "60%"
 
 msgid "aMule is "
-msgstr ""
+msgstr "aMule ist "
 
 msgid "Ok"
-msgstr ""
+msgstr "Ok"
 
 msgid "Stopping..."
-msgstr ""
+msgstr "Beende..."
 
 msgid "Less Ping"
-msgstr ""
+msgstr "Weniger Ping"
 
 msgid "AF12"
-msgstr ""
+msgstr "AF12"
 
 msgid "SRA"
-msgstr ""
+msgstr "SRA"
 
 msgid "connecting"
-msgstr ""
+msgstr "verbinden"
 
 msgid "802.11a/n"
-msgstr ""
+msgstr "802.11a/n"
 
 msgid "CS1"
-msgstr ""
+msgstr "CS1"
 
 msgid " IP Range"
-msgstr ""
+msgstr " IP-Bereich"
 
 msgid "AF11"
-msgstr ""
+msgstr "AF11"
 
 msgid "Call State"
-msgstr ""
+msgstr "Rufzustand"
 
 msgid "WPA2 PSK"
-msgstr ""
+msgstr "WPA2 PSK"
 
 msgid "Ethernet EEE"
-msgstr ""
+msgstr "Ethernet EEE"
 
 msgid "DHCP Start Address should not be greater than End Address"
-msgstr ""
+msgstr "Die DHCP Startadresse sollte nicht grö0er als die Endadresse sein"
 
 msgid "GRE"
-msgstr ""
+msgstr "GRE"
 
 msgid "xDSL"
-msgstr ""
+msgstr "xDSL"
 
 msgid "AF22"
-msgstr ""
+msgstr "AF22"
 
 msgid "INP"
-msgstr ""
+msgstr "INP"
 
 msgid "DHCP Relay"
-msgstr ""
+msgstr "DHCP Relais"
 
 msgid "Wireless"
-msgstr ""
+msgstr "Drahtlos"
 
 msgid "40%"
-msgstr ""
+msgstr "40%"
 
 msgid "Auto (20/40/80MHz)"
-msgstr ""
+msgstr "Auto (20/40/80MHz)"
 
 msgid "wl1"
-msgstr ""
+msgstr "wl1"
 
 msgid "AF33"
-msgstr ""
+msgstr "AF33"
 
 msgid "Are you sure you want to remove root from this modem? </br><strong> This could be permanent, so it\\'s not recommended.</strong>"
-msgstr ""
+msgstr "Sind Sie sicher, dass Sie Root von diesem Modem entfernen wollen? </br><strong>Dies könnte permanent sein, deshlab wird es nicht empfohlen.</strong>"
 
 msgid "802.11b/g"
-msgstr ""
+msgstr "802.11b/g"
 
 msgid "Upstream SES"
-msgstr ""
+msgstr "Upstream SES"
 
 msgid "Downstream ES"
-msgstr ""
+msgstr "Downstream ES"
 
 msgid "10%"
-msgstr ""
+msgstr "10%"
 
 msgid "WAN2"
-msgstr ""
+msgstr "WAN2"
 
 msgid "30%"
-msgstr ""
+msgstr "30%"
 
 msgid "Download failed; please try again."
-msgstr ""
+msgstr "Herunterladen fehlgeschlagen; bitte versuchen Sie es erneut."
 
 msgid "Transmission Webui"
-msgstr ""
+msgstr "Transmission WebUI"
 
 msgid "125%"
-msgstr ""
+msgstr "125%"
 
 msgid "Name you have chosen is reserved"
-msgstr ""
+msgstr "Der Namen, den Sie gewählt haben, ist reserviert"
 
 msgid "20%"
-msgstr ""
+msgstr "20%"
 
 msgid "CS5"
-msgstr ""
+msgstr "CS5"
 
 msgid "20/40MHz"
-msgstr ""
+msgstr "20/40MHz"
 
 msgid "You are trying to login with wrong password for %s times"
-msgstr ""
+msgstr "Sie versuchen sich zum %s. Mal mit dem falschen Kennwort anzumelden"
 
 msgid "Upstream ES"
-msgstr ""
+msgstr "Upstream ES"
 
 msgid "This could cause security risk, take care of this."
-msgstr ""
+msgstr "Das könnte ein Sicherheitsrisiko verursachen, kümmern Sie sich darum."
 
 msgid "DNS"
-msgstr ""
+msgstr "DNS"
 
 msgid "This will clone the running bank firmware. The process will continue in the background but this could take a while. Continue?"
-msgstr ""
+msgstr "Dies wird die Firmware der laufenden Bank klonen. Das wird im Hintergrund erfolgen, könnte aber eine Weile dauern. Fortfahren?"
 
 msgid "Verify"
-msgstr ""
+msgstr "Überprüfen"
 
 msgid "Forgot Login Password"
-msgstr ""
+msgstr "Anmeldekennwort vergessen"
 
 msgid "DSL"
-msgstr ""
+msgstr "DSL"
 
 msgid "Access point"
-msgstr ""
+msgstr "Zugriffspunkt"
 
 msgid "Telnet Not Available"
-msgstr ""
+msgstr "Telnet nicht verfügbar"
 
 msgid "Do not remind me again"
-msgstr ""
+msgstr "Erinnere mich nicht wieder"
 
 msgid "VP"
-msgstr ""
+msgstr "VP"
 
 msgid "TCP/UDP"
-msgstr ""
+msgstr "TCP/UDP"
 
 msgid "Upstream LOM"
-msgstr ""
+msgstr "Upstream LOM"
 
 msgid "UDP"
-msgstr ""
+msgstr "UDP"
 
 msgid "1"
-msgstr ""
+msgstr "1"
 
 msgid "LAN IPv6"
-msgstr ""
+msgstr "LAN IPv6"
 
 msgid "Mac address duplicate with either current whitelist or current blacklist"
-msgstr ""
+msgstr "MAC Adresse kommt in Whitelist oder Blacklist bereits vor"
 
 msgid "Starting..."
-msgstr ""
+msgstr "Starten..."
 
 msgid "Uncorrectables"
-msgstr ""
+msgstr "Unkorrigierbare"
 
 msgid "IP Version 6 Address"
-msgstr ""
+msgstr "IP Version 6 Adresse"
 
 msgid "WPS PBC"
-msgstr ""
+msgstr "WPS PBC"
 
 msgid "Data Rate"
-msgstr ""
+msgstr "Datenrate"
 
 msgid "40MHz"
-msgstr ""
+msgstr "40MHz"
 
 msgid "DesktopComputer"
-msgstr ""
+msgstr "DesktopComputer"
 
 msgid "Telstra"
-msgstr ""
+msgstr "Telstra"
 
 msgid "AH"
-msgstr ""
+msgstr "AH"
 
 msgid "Upstream LOS"
-msgstr ""
+msgstr "Upstream LOS"
 
 msgid "Ping & Traceroute"
-msgstr ""
+msgstr "Ping & Traceroute"
 
 msgid "Bridges"
-msgstr ""
+msgstr "Brücken"
 
 msgid "This is a guest network. The guest network has no local network access."
-msgstr ""
+msgstr "Dies ist ein Gastnetzwerk. Das Gastnetzwerk hat keinen lokalen Netzwerkzugriff."
 
 msgid "80%"
-msgstr ""
+msgstr "80%"
 
 msgid "This will install aMule webui"
-msgstr ""
+msgstr "Dies wird das aMule WebUI installieren"
 
 msgid "Invalid day"
-msgstr ""
+msgstr "Ungültiger Tag"
 
 msgid "CS3"
-msgstr ""
+msgstr "CS3"
 
 msgid "Github GUI"
-msgstr ""
+msgstr "GitHub GUI"
 
 msgid "Enter the default <strong>\"access code\"</strong>. This code is located on the label underneath your gateway."
-msgstr ""
+msgstr "Geben Sie den <strong>\"access code\"</strong> ein. Dieser befindet sich auf dem Aufkleber unter Ihrem Gateway."
 
 msgid "802.11a/n/ac"
-msgstr ""
+msgstr "802.11a/n/ac"
 
 msgid "Uptime : <strong>%s</strong>"
-msgstr ""
+msgstr "Einschaltzeit : <strong>%s</strong>"
 
 msgid "2"
-msgstr ""
+msgstr "2"
 
 msgid "Trigger"
-msgstr ""
+msgstr "Trigger"
 
 msgid "WPA+WPA2 PSK"
-msgstr ""
+msgstr "WPA+WPA2 PSK"
 
 msgid "No"
-msgstr ""
+msgstr "Kein"
 
 msgid "Downstream FEC"
-msgstr ""
+msgstr "Downstream FEC"
 
 msgid "ESP"
-msgstr ""
+msgstr "ESP"
 
 msgid "S"
-msgstr ""
+msgstr "S"
 
 msgid "Internet"
-msgstr ""
+msgstr "Internet"
 
 msgid "PHY Rate"
-msgstr ""
+msgstr "PHY Rate"
 
 msgid "Modem"
-msgstr ""
+msgstr "Modem"
 
 msgid "20MHz"
-msgstr ""
+msgstr "20Mhz"
 
 msgid "The Band Steering can not be supported under WEP security mode."
-msgstr ""
+msgstr "Bandsteuerung kann im WEP Sicherheitsmodus nicht verwendet werden."
 
 msgid "Band Steering works only if 2.4 GHz and 5 GHz have the same configuration. By enabling the Band Steering, the 2.4 GHz network settings will be propagated on 5GHz settings"
-msgstr ""
+msgstr "Bandsteuerung funktioniert nur, wenn 2,4 Ghz und 5 Ghz die selbe Konfiguration haben. Durch das Einschalten der Bandsteuerung werden die 2,4 GHz Einstellungen übernommen"
 
 msgid "Security for this wireless network is disabled, anybody can connect or listen to it"
-msgstr ""
+msgstr "Sicherheit für dieses Drahtlosnetzwerk ist abgeschaltet, jeder kann sich damit verbinden oder es abhören"
 
 msgid "WPS is automatically disabled if you choose WEP or disable broadcast of the SSID"
-msgstr ""
+msgstr "WPS wird automatisch abgeschaltet, wenn WEP ausgewählt oder der Broadcast der SSID abgeschaltet wurde"
 
 msgid "Always show advanced options"
-msgstr ""
+msgstr "Zeige immer erweiterte Optionen an"
 
 msgid "Gui animation"
-msgstr ""
+msgstr "GUI Animation"

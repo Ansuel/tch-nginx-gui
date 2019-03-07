@@ -550,43 +550,43 @@ msgid "Your Internet connection is currently down. You can try the following: <b
 msgstr "Ihre Internetverbindung ist gerade inaktiv. Sie können folgendes versuchen: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Prüfen Sie, ob Ihr Ethernet-Kabel mit dem richtigen Eingang Ihres Gateway verbunden ist.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Prüfen Sie, on Ihr Benutzername korrekt ist und geben Sie Ihr Kennwort <a ahref=\"/broadband.lp>hier</a neu ein.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Starten Sie Ihr Gateway neu."
 
 msgid "153"
-msgstr ""
+msgstr "153"
 
 msgid "48"
-msgstr ""
+msgstr "48"
 
 msgid "44"
-msgstr ""
+msgstr "44"
 
 msgid "Yes"
-msgstr ""
+msgstr "Ja"
 
 msgid "Temporary"
-msgstr ""
+msgstr "Temporär"
 
 msgid "Permanent"
-msgstr ""
+msgstr "Permanent"
 
 msgid "149"
-msgstr ""
+msgstr "149"
 
 msgid "No"
-msgstr ""
+msgstr "Kein"
 
 msgid "157"
-msgstr ""
+msgstr "157"
 
 msgid "Start"
-msgstr ""
+msgstr "Start"
 
 msgid "36"
-msgstr ""
+msgstr "36"
 
 msgid "Set PIN code"
-msgstr ""
+msgstr "Setze PIN-Kode"
 
 msgid "161"
-msgstr ""
+msgstr "161"
 
 msgid "40"
-msgstr ""
+msgstr "40"
