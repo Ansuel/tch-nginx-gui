@@ -84,4 +84,4 @@ msgid "<p>Coded & Expanded by <font style=\"color:#0088cc;\">Ansuel</font> and <
 msgstr "<p>Geschrieben und erweitert von <font style=\"color:#0088cc;\">Ansuel</font> und <a href=\"https://github.com/Ansuel/tch-nginx-gui/graphs/contributors\">diesen GitHub Nutzern.</a><br>Entsperrwerkzeug von <font style=\"color:#0088cc;\">ADeltaX</font>"
 
 msgid "Parental Blocked"
-msgstr ""
+msgstr "Elterlich gesperrt"
