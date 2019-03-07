@@ -530,259 +530,259 @@ msgid "Unblock Retries Left:"
 msgstr "Übrige Entblockierungsversuche:"
 
 msgid "IPv6"
-msgstr ""
+msgstr "IPv6"
 
 msgid "MNC:"
-msgstr ""
+msgstr "MNC:"
 
 msgid "Rx Packet Errors"
-msgstr ""
+msgstr "Rx Paket Fehler"
 
 msgid "National"
-msgstr ""
+msgstr "National"
 
 msgid "Rx Packets"
-msgstr ""
+msgstr "Rx Pakete"
 
 msgid "GB"
-msgstr ""
+msgstr "GB"
 
 msgid "Downlink Bandwidth:"
-msgstr ""
+msgstr "Downlink Bandbreite:"
 
 msgid "Total"
-msgstr ""
+msgstr "Summe"
 
 msgid "Tx Packet Errors"
-msgstr ""
+msgstr "Tx Paket Fehler"
 
 msgid "Path loss:"
-msgstr ""
+msgstr "Pfadverluste:"
 
 msgid "GSM Only"
-msgstr ""
+msgstr "Nur GSM"
 
 msgid "RSCP:"
-msgstr ""
+msgstr "RSCP:"
 
 msgid "Active Band:"
-msgstr ""
+msgstr "Aktives Band:"
 
 msgid "LTE"
-msgstr ""
+msgstr "LTE"
 
 msgid "MSISDN"
-msgstr ""
+msgstr "MSISDN"
 
 msgid "Physical Cell ID:"
-msgstr ""
+msgstr "Physische Zellen-ID:"
 
 msgid "RSSI:"
-msgstr ""
+msgstr "RSSI:"
 
 msgid "Data Usage Limit"
-msgstr ""
+msgstr "Datennutzungsgrenze"
 
 msgid "LTE Only"
-msgstr ""
+msgstr "Nur LTE"
 
 msgid "Uplink Bandwidth:"
-msgstr ""
+msgstr "Uplink Bandbreite:"
 
 msgid "SMS"
-msgstr ""
+msgstr "SMS"
 
 msgid "Reset"
-msgstr ""
+msgstr "Zurücksetzen"
 
 msgid "UMTS Preferred"
-msgstr ""
+msgstr "Bevorzugt UMTS"
 
 msgid "Uplink EARFCN:"
-msgstr ""
+msgstr "Uplink EARFCN:"
 
 msgid "Uplink Frequency:"
-msgstr ""
+msgstr "Uplink Frequenz:"
 
 msgid "CINR:"
-msgstr ""
+msgstr "CINR:"
 
 msgid "Monthly Reset Day"
-msgstr ""
+msgstr "Monatlicher Zurücksetzungstag"
 
 msgid "Tx Packets"
-msgstr ""
+msgstr "Tx Pakete"
 
 msgid "* Data usage is only an approximation. For actual usage, please refer to your network operator"
-msgstr ""
+msgstr "* Datennutzung ist nur eine Näherung. Bitte wenden Sie sich an Ihren Netzwerkbetreiber für die tatsächlichen Werte"
 
 msgid "PIN"
-msgstr ""
+msgstr "PIN"
 
 msgid "IPv4"
-msgstr ""
+msgstr "IPv4"
 
 msgid "Auto"
-msgstr ""
+msgstr "Auto"
 
 msgid "GSM"
-msgstr ""
+msgstr "GSM"
 
 msgid "Reset Data Usage"
-msgstr ""
+msgstr "Zurücksetzen der Datennutzung"
 
 msgid "Uplink ARFCN:"
-msgstr ""
+msgstr "Uplink ARFCN:"
 
 msgid "Radio Bearer:"
-msgstr ""
+msgstr "Radio Bearer:"
 
 msgid "EARFCN"
-msgstr ""
+msgstr "EARFCN"
 
 msgid "Downlink UARFCN:"
-msgstr ""
+msgstr "Downlink UARFCN:"
 
 msgid "RSRP:"
-msgstr ""
+msgstr "RSRP:"
 
 msgid "Total Volume"
-msgstr ""
+msgstr "Gesamtvolumen"
 
 msgid "Data Usage"
-msgstr ""
+msgstr "Datennutzung"
 
 msgid "MB"
-msgstr ""
+msgstr "MB"
 
 msgid "International"
-msgstr ""
+msgstr "International"
 
 msgid "Device Status And Settings"
-msgstr ""
+msgstr "Gerätezustand und -einstellungen"
 
 msgid "ECIO:"
-msgstr ""
+msgstr "ECIO:"
 
 msgid "Downlink ARFCN:"
-msgstr ""
+msgstr "Downlink ARFCN:"
 
 msgid "Downlink"
-msgstr ""
+msgstr "Downlink"
 
 msgid "GSM Preferred"
-msgstr ""
+msgstr "Bevorzugt GSM"
 
 msgid "IPv4v6"
-msgstr ""
+msgstr "IPv4v6"
 
 msgid "IMSI"
-msgstr ""
+msgstr "IMSI"
 
 msgid "Tracking Area Code:"
-msgstr ""
+msgstr "Verfolgungsbereichscode:"
 
 msgid "IMEI"
-msgstr ""
+msgstr "IMEI"
 
 msgid "Data Usage Monitoring"
-msgstr ""
+msgstr "Datennutzungsüberwachung"
 
 msgid "MCC:"
-msgstr ""
+msgstr "MCC:"
 
 msgid "PAP"
-msgstr ""
+msgstr "PAP"
 
 msgid "MNC"
-msgstr ""
+msgstr "MNC"
 
 msgid "UMTS Only"
-msgstr ""
+msgstr "Nur UMTS"
 
 msgid "Downlink Frequency:"
-msgstr ""
+msgstr "Downlink Frequenz:"
 
 msgid "LTE Preferred"
-msgstr ""
+msgstr "Bevorzugt LTE"
 
 msgid "UMTS"
-msgstr ""
+msgstr "UMTS"
 
 msgid "Uplink"
-msgstr ""
+msgstr "Uplink"
 
 msgid "RSRQ:"
-msgstr ""
+msgstr "RSRQ:"
 
 msgid "Rx Bytes"
-msgstr ""
+msgstr "Rx Bytes"
 
 msgid "Current"
-msgstr ""
+msgstr "Aktuell"
 
 msgid "CHAP"
-msgstr ""
+msgstr "CHAP"
 
 msgid "TX Power:"
-msgstr ""
+msgstr "TX Leistung:"
 
 msgid "RRC State:"
-msgstr ""
+msgstr "RRC Zustand:"
 
 msgid "ICCID"
-msgstr ""
+msgstr "ICCID"
 
 msgid "SNR:"
-msgstr ""
+msgstr "SNR:"
 
 msgid "Data usage limit reached"
-msgstr ""
+msgstr "Datenutzungslimit erreicht"
 
 msgid "Enable Limit"
-msgstr ""
+msgstr "Schalte Limit ein"
 
 msgid "CDMA"
-msgstr ""
+msgstr "CDMA"
 
 msgid "SET"
-msgstr ""
+msgstr "SET"
 
 msgid "MCC"
-msgstr ""
+msgstr "MCC"
 
 msgid "Uplink UARFCN:"
-msgstr ""
+msgstr "Uplink UARFCN:"
 
 msgid "PUK"
-msgstr ""
+msgstr "PUK"
 
 msgid "Password"
-msgstr ""
+msgstr "Kennwort"
 
 msgid "Cell ID:"
-msgstr ""
+msgstr "Zellen-ID:"
 
 msgid "SINR:"
-msgstr ""
+msgstr "SINR:"
 
 msgid "Unknown PIN action"
-msgstr ""
+msgstr "Unbekannte PIN-Aktion"
 
 msgid "Tx Bytes"
-msgstr ""
+msgstr "Tx Bytes"
 
 msgid "SIM"
-msgstr ""
+msgstr "SIM"
 
 msgid "APN"
-msgstr ""
+msgstr "APN"
 
 msgid "SIM Card"
-msgstr ""
+msgstr "SIM-Karte"
 
 msgid "No"
-msgstr ""
+msgstr "Kein"
 
 msgid "Downlink EARFCN:"
-msgstr ""
+msgstr "Downlink EARFCN:"
