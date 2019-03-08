@@ -203,6 +203,7 @@ local mapValid = {
     uci_wan_masq = validateNat,
 	uci_wan_ipv6 = IPv6andUsername,--custo TCOMITAGW-2157
     uci_wan_mac = gOV(post_helper.validateStringIsMAC),
+    uci_wan_peerdns = vB,
 }
 
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
