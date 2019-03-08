@@ -451,7 +451,7 @@ convertReceivedData(content_info)
 			}
 
 			if samba_available then
-				tinsert(html, ui_helper.createSwitch(T"SMB/CIFS Filesharing", "samba_enabled", (content["samba_enabled"] ~= connected devices and "1" or "0"), attributes))
+				tinsert(html, ui_helper.createSwitch(T"SMB/CIFS Filesharing", "samba_enabled", (content["samba_enabled"] ~= "0" and "1" or "0"), attributes))
 				tinsert(html, ui_helper.createLabel(T"SMB/CIFS name: ", content["samba_name"], advancedhide))
 				tinsert(html, ui_helper.createInputText(T"SMB/CIFS name: ", "samba_name", content["samba_name"], advanced, helpmsg["samba_name"]))
 				tinsert(html, ui_helper.createInputText(T"SMB/CIFS workgroup: ", "samba_workgroup", content["samba_workgroup"], advanced, helpmsg["samba_workgroup"]))
