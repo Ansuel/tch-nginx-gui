@@ -3684,9 +3684,6 @@ msgstr "Authentifizierung fehlgeschlagen"
 msgid "Dos Protect Option"
 msgstr "DOS Schutz Option"
 
-msgid "WAN IP is <strong>%s<\strong>"
-msgstr "WAP IP ist <strong>%s</strong>"
-
 msgid "Ethernet Ethapd"
 msgstr "Ethernet Ethapd"
 
