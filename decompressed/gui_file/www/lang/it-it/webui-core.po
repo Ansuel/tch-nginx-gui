@@ -3298,10 +3298,10 @@ msgid "Bytes"
 msgstr "Byte"
 
 msgid "PPPoE routed mode"
-msgstr "Modo PPOE routed"
+msgstr "PPPoE routed"
 
 msgid "PPPoA routed mode"
-msgstr "Modo PPPOA routed"
+msgstr "PPPoA routed"
 
 msgid "Fixed IP mode"
 msgstr "Modo IP fisso"
@@ -3344,9 +3344,6 @@ msgstr "Server DNS 2"
 
 msgid "DNS Server 3"
 msgstr "Server DNS 3"
-
-msgid "PPoE Relay"
-msgstr "PPoE relay"
 
 msgid "Debug Zip"
 msgstr "Crea ZIP debug"
