@@ -157,7 +157,7 @@ msgid "Global"
 msgstr "Globale"
 
 msgid "Global Information"
-msgstr "Informazioni globali"
+msgstr "Informazioni generali"
 
 msgid "Handset ID"
 msgstr "ID portatile"
@@ -229,7 +229,7 @@ msgid "Outgoing Failed"
 msgstr "Chiamate in uscita fallite"
 
 msgid "Outgoing Maps"
-msgstr "Mappe in uscita"
+msgstr "Mappature in uscita"
 
 msgid "Outgoing Successful"
 msgstr "Chiamate effettuate"

@@ -599,7 +599,7 @@ msgid "Connections"
 msgstr "Connessioni"
 
 msgid "Core Settings"
-msgstr "Impostazioni principali"
+msgstr "Impostazioni generali"
 
 msgid "CPU Load"
 msgstr "Carico CPU"
@@ -1226,10 +1226,10 @@ msgid "Global"
 msgstr "Globale"
 
 msgid "Global Information"
-msgstr "Informazioni globali"
+msgstr "Informazioni generali"
 
 msgid "Go to the gateway tab and click on the Update button, to autoupdate to the new GUI."
-msgstr "Per aggiornare automaticamente alla nuova GUI vai nella scheda 'Gateway' e fai clic sul pulsante 'Aggiorna'."
+msgstr "Per aggiornare automaticamente alla nuova GUI vai nella scheda 'Modem' e fai clic sul pulsante 'Aggiorna'."
 
 msgid "OK"
 msgstr "OK"
@@ -1730,7 +1730,7 @@ msgid "No Address Assigned"
 msgstr "Nessun indirizzo assegnato"
 
 msgid "No Update found"
-msgstr "Nessun aggiornamento trovato"
+msgstr "Nessun aggiornamento disponibile"
 
 msgid "No configuration available for internet connectivity when in bridge mode."
 msgstr "Nessuna configurazione disponibile per la connettività internet nella modalità bridge."
@@ -2039,7 +2039,7 @@ msgid "Product Name"
 msgstr "Nome prodotto"
 
 msgid "Product Vendor"
-msgstr "Produttore stampante"
+msgstr "Produttore"
 
 msgid "Profile Settings"
 msgstr "Impostazioni profilo"
@@ -2612,10 +2612,10 @@ msgid "There is no connection to the Internet."
 msgstr "Nessuna connessione ad Internet."
 
 msgid "An imported configuration file will only be applied if its firmware version matches the currently installed one.’"
-msgstr "La configurazione importata verrà applicata solo se il file di configurazione proviene dalla stessa versione firmware."
+msgstr "Abilitando 'Importa con restrizioni' la configurazione importata verrà applicata solo se il file di configurazione proviene dalla stessa versione firmware."
 
 msgid "Enable what type of configuration you want to import and export."
-msgstr "Controlla il tipo di configurazione che può essere esportata e importata."
+msgstr "Le opzioni controllano il tipo di configurazione che può essere esportata e importata."
 
 msgid "This is the internal IP of the SFP interface used for fiber connection. This and the local Gateway IP must be different."
 msgstr "È l'indirizzo IP interno dell'interfaccia SFP usata per la connessione in fibra.<br/>Questo indirizzo e l'IP del gateway locale devono essere diversi."
@@ -3155,7 +3155,7 @@ msgid "Remove Telstra GUI"
 msgstr "Rimuovi GUI Telstra"
 
 msgid "Change the default page in system-extra to set this gui as default"
-msgstr "Per impostare questa GUI come predefinita modifica la pagina predefinita in<br/>'Sistema' -> 'Extra'"
+msgstr "Per impostare questa GUI come predefinita modifica la pagina predefinita in 'Sistema' -> 'Extra'"
 
 msgid "Update blacklist app"
 msgstr "Aggiorna app Blackist"
@@ -3430,7 +3430,7 @@ msgid "Set the version to comunicate to cwmp manually"
 msgstr "Imposta manualmente la versione da comunicare a cwmp"
 
 msgid "Dot"
-msgstr "Punto"
+msgstr "Dot"
 
 msgid "<p>%s GUI Version "
 msgstr "<p>GUI %s "
@@ -3556,7 +3556,7 @@ msgid "Upstream CRC"
 msgstr "CRC upstream"
 
 msgid "Go to the gateway tab and click on the Update button, to autoupgrade to the new GUI."
-msgstr "Per aggiornare la GUI vai nella scheda <string>Modem</strong> e fai clic sul pulsante <strong>Aggiorna</strong>."
+msgstr "Per aggiornare la GUI vai nella scheda 'Modem' e fai clic sul pulsante 'Aggiorna'."
 
 msgid "70%"
 msgstr "70%"
@@ -4270,7 +4270,7 @@ msgid "The Band Steering can not be supported under WEP security mode."
 msgstr "Il band steering non è supportato nel modo sicurezza WEP."
 
 msgid "Band Steering works only if 2.4 GHz and 5 GHz have the same configuration. By enabling the Band Steering, the 2.4 GHz network settings will be propagated on 5GHz settings"
-msgstr "Il band steering funziona solo se la rete 2.4 GHz e 5 GGz hanno la stessa configurazione.<br/>Abilitando il band steering, le impostazioni della rete 2.4 GHz saranno copiate nella rete 5 GHz."
+msgstr "Il band steering funziona solo se la rete 2.4 GHz e 5 GHz hanno la stessa configurazione.<br/>Abilitando il band steering, le impostazioni della rete 2.4 GHz saranno copiate nella rete 5 GHz."
 
 msgid "Security for this wireless network is disabled, anybody can connect or listen to it"
 msgstr "La sicurezza per questa rete è disabilitata quindi chiunque potrà collegarsi."
