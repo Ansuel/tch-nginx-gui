@@ -16,7 +16,7 @@ msgstr ""
 "X-Poedit-SourceCharset: UTF-8\n"
 
 msgid "Global Information"
-msgstr "Informazioni globali"
+msgstr "Informazioni generali"
 
 msgid "NFC"
 msgstr "NFC"

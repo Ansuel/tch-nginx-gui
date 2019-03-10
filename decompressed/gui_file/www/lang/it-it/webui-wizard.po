@@ -58,7 +58,7 @@ msgid "Password:"
 msgstr "Password:"
 
 msgid "Please review your settings and click finish.<br/>Your Router will reset and settings will be saved."
-msgstr "Verifica le impostazioni e se sono corrette fai clic su <strong>Fine</strong>.<br/>Le impostazioni verranno salvate e il router si riavvierà."
+msgstr "Verifica le impostazioni e se sono corrette fai clic su <strong>Completata</strong>.<br/>Le impostazioni verranno salvate e il router si riavvierà.<br/>Seleziona <strong>Indietro</strong> per rivedere le impostazioni.<br/>Seleziona <strong>Esci</strong> per uscire dalla configurazione senza salvare le impostazioni."
 
 msgid "Please set the new password for new user."
 msgstr "Imposta la nuova password per il nuovo utente."
