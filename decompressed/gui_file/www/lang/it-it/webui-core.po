@@ -1721,10 +1721,10 @@ msgid "New Version"
 msgstr "Nuova versione"
 
 msgid "Next Hop Ping"
-msgstr "Hop ping successivo"
+msgstr "Ping hop successivo"
 
 msgid "Next Hop Ping IPV6"
-msgstr "Hop Ping IPV6 successivo"
+msgstr "Ping hop IPV6 successivo"
 
 msgid "No Address Assigned"
 msgstr "Nessun indirizzo assegnato"
@@ -3391,7 +3391,7 @@ msgid "Genmask"
 msgstr "Maschera"
 
 msgid "Iface"
-msgstr "Interf."
+msgstr "Interfaccia"
 
 msgid "Spoof Settings"
 msgstr "Impostazioni Spoof"
