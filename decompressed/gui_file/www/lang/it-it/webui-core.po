@@ -3304,7 +3304,7 @@ msgid "PPPoA routed mode"
 msgstr "PPPoA routed"
 
 msgid "Fixed IP mode"
-msgstr "Modo IP fisso"
+msgstr "IP Statico"
 
 msgid "Bridge mode"
 msgstr "Modo bridge"
