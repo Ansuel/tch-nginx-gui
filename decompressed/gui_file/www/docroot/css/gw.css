@@ -5546,6 +5546,16 @@ form .switch {
 td th {
 	display: table-cell
 }
+
+td[data-title]::before {
+    font-weight: 700;
+    content: attr(data-title) ":\20";
+    text-align: left;
+    white-space: nowrap;
+    padding: .25rem 0;
+	display: none;
+}
+
 .center {
 	display: block;
 	margin-left: auto;
