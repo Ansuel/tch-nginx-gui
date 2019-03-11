@@ -3345,9 +3345,6 @@ msgstr "DNS Server 2"
 msgid "DNS Server 3"
 msgstr "DNS Server 3"
 
-msgid "PPoE Relay"
-msgstr "PPPoE Relais"
-
 msgid "Debug Zip"
 msgstr "Debug ZIP"
 
