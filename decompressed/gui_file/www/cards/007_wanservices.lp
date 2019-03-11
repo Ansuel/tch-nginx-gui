@@ -81,8 +81,8 @@ local modal_link_upnp = ""
 local session = ngx.ctx.session
 if session:hasAccess("/modals/wanservices-modal.lp") then
   modalPath = "/modals/wanservices-modal.lp"
-  modal_link_port = 'class="modal-link" id="PortForwarding_Id" data-toggle="modal" data-remote="modals/wanservices-modal.lp" data-id="wanservices-modal"'
-  modal_link_upnp = 'class="modal-link" id="upnp_Id" data-toggle="modal" data-remote="modals/wanservices-modal.lp" data-id="wanservices-modal"'
+  modal_link_port = 'class="modal-link" id="PortForwarding_Id" data-toggle="modal" data-remote="/modals/wanservices-modal.lp" data-id="wanservices-modal"'
+  modal_link_upnp = 'class="modal-link" id="upnp_Id" data-toggle="modal" data-remote="/modals/wanservices-modal.lp" data-id="wanservices-modal"'
 end
 
 local upnpstate_text

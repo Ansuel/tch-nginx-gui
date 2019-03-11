@@ -81,7 +81,7 @@ local modal_link = ""
 local session = ngx.ctx.session
 if session:hasAccess("/modals/parental-modal.lp") then
     modalPath = "/modals/parental-modal.lp"
-	modal_link = 'class="modal-link" id = "Site_Blocking_Count" data-toggle="modal" data-remote="modals/parental-modal.lp" data-id="parental-modal"'																																				
+	modal_link = 'class="modal-link" id = "Site_Blocking_Count" data-toggle="modal" data-remote="/modals/parental-modal.lp" data-id="parental-modal"'																																				
 end
 %>
  

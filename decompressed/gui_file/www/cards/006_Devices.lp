@@ -28,9 +28,9 @@ local traffic_monitor_link = ""
 local session = ngx.ctx.session
 if session:hasAccess("/modals/device-modal.lp") then
   modalPath = "/modals/device-modal.lp"
-  modal_link='class="modal-link" data-toggle="modal" data-remote="modals/device-modal.lp" data-id="device-modal"'
-  wireless_modal_link='class="modal-link" data-toggle="modal" data-remote="modals/wifi-nurse-modal.lp" data-id="device-modal"'
-  traffic_monitor_link='class="modal-link" data-toggle="modal" data-remote="modals/traffic-monitor.lp" data-id="device-modal"'
+  modal_link='class="modal-link" data-toggle="modal" data-remote="/modals/device-modal.lp" data-id="device-modal"'
+  wireless_modal_link='class="modal-link" data-toggle="modal" data-remote="/modals/wifi-nurse-modal.lp" data-id="device-modal"'
+  traffic_monitor_link='class="modal-link" data-toggle="modal" data-remote="/modals/traffic-monitor.lp" data-id="device-modal"'
 end
   ngx.print('\
 \
@@ -73,7 +73,7 @@ end
 			'<p class="subinfos">',
 				'<i style="margin-left:-20px;" class="fas fa-chart-line" href="#">&nbsp</i>',
 				format( '<strong id = "Traffic_Monitor" %1$s>%s</strong>', traffic_monitor_link, T"Traffic Monitor"),
-				--'<div data-toggle="modal" data-remote="modals/diagnostics-xdsl-graphics-modal.lp" data-id="iagnostics-xdsl-graphics-modal">',
+				--'<div data-toggle="modal" data-remote="/modals/diagnostics-xdsl-graphics-modal.lp" data-id="iagnostics-xdsl-graphics-modal">',
 				--	,T("Traffic Monitor"),
 				--'</div>',
             '</p>'
