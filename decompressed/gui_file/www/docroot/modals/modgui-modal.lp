@@ -265,7 +265,7 @@ ngx.print('\
     html[#html + 1] = ui_helper.createInputSelect(T"GUI First Page", "gui_skin_firstpage", gui_skin_firstpage_page, modgui_settings["gui_skin_firstpage"])
     html[#html + 1] = ui_helper.createSwitch(T"Random Color", "gui_randomcolor", modgui_settings["gui_randomcolor"])
     html[#html + 1] = ui_helper.createSwitch(T"Always show advanced options", "gui_alwaysadvanced", modgui_settings["gui_alwaysadvanced"])
-	html[#html + 1] = ui_helper.createSwitch(T"Gui animation", "gui_animation", modgui_settings["gui_animation"])
+	html[#html + 1] = ui_helper.createSwitch(T"GUI animations", "gui_animation", modgui_settings["gui_animation"])
     ngx.print(html)
 
     local html = {}
@@ -444,7 +444,7 @@ ngx.print('\
   }\
 \
   $("#btn-reset-gui").on("click", function() {\
-  var heading = "');  ngx.print(T'Restore Gui'); ngx.print('";\
+  var heading = "');  ngx.print(T'Restore GUI'); ngx.print('";\
     var processMsg = "');  ngx.print(T'Restoring...'); ngx.print('";\
     confirmationDialogue(\'');  ngx.print(T"Do you want to continue?"); ngx.print('\',heading);\
   var PopUpHeaderText = "."+$(".popUp>.header>.header-title>p").text().split(" ")[0];\

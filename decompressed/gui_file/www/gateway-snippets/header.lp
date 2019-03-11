@@ -64,6 +64,7 @@ local cui = {
   autoupgrade_view = "uci.modgui.gui.autoupgradeview",
   firstpage = "uci.modgui.gui.firstpage",
   randomcolor = "uci.modgui.gui.randomcolor",
+  gui_animation = "uci.modgui.gui.gui_animation",
 }
 
 content_helper.getExactContent(cui)
@@ -271,6 +272,7 @@ ngx.print('\
 \
   var gui_var = {\
 	randomcolor : "'); ngx.print(cui.randomcolor or "0"); ngx.print ('",\
+    gui_animation : "'); ngx.print(cui.gui_animation or "1"); ngx.print ('",\
 	stats_text : "'); ngx.print(T"Stats"); ngx.print ('",\
 	cards_text : "'); ngx.print(T"Cards"); ngx.print ('",\
 	pageselector_page : "'); ngx.print(pageselector.page); ngx.print ('",\

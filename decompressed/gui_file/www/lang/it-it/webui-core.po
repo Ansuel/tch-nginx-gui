@@ -1219,9 +1219,6 @@ msgstr "Genera codice QR"
 msgid "Generic"
 msgstr "Generico"
 
-msgid "Github Gui"
-msgstr "GUI Github"
-
 msgid "Global"
 msgstr "Globale"
 
@@ -2191,7 +2188,7 @@ msgstr "Riavvio..."
 msgid "Restore"
 msgstr "Ripristina"
 
-msgid "Restore Gui"
+msgid "Restore GUI"
 msgstr "Ripristina GUI"
 
 msgid "Retransmissions"
@@ -4278,5 +4275,5 @@ msgstr "Il WPS è automaticamente disabilitato se scegli il modo sicurezza WEP o
 msgid "Always show advanced options"
 msgstr "Visualizza sempre opzioni avanzate"
 
-msgid "Gui animation"
+msgid "GUI animations"
 msgstr "Animazioni GUI"

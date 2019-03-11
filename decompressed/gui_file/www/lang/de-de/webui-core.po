@@ -1219,9 +1219,6 @@ msgstr "Erzeuge QR-Code"
 msgid "Generic"
 msgstr "Generisch"
 
-msgid "Github Gui"
-msgstr "Github GUI"
-
 msgid "Global"
 msgstr "Global"
 
@@ -2191,7 +2188,7 @@ msgstr "Neustarten, bitte warten…"
 msgid "Restore"
 msgstr "Wiederherstellen"
 
-msgid "Restore Gui"
+msgid "Restore GUI"
 msgstr "GUI wiederherstellen"
 
 msgid "Retransmissions"
@@ -3345,9 +3342,6 @@ msgstr "DNS Server 2"
 msgid "DNS Server 3"
 msgstr "DNS Server 3"
 
-msgid "PPoE Relay"
-msgstr "PPPoE Relais"
-
 msgid "Debug Zip"
 msgstr "Debug ZIP"
 
@@ -4281,5 +4275,5 @@ msgstr "WPS wird automatisch abgeschaltet, wenn WEP ausgewählt oder der Broadca
 msgid "Always show advanced options"
 msgstr "Zeige immer erweiterte Optionen an"
 
-msgid "Gui animation"
+msgid "GUI animations"
 msgstr "GUI Animation"

@@ -187,7 +187,7 @@ $(document).ready(function () {
 		update: function (element, valueAccessor) {
 			var value = ko.unwrap(valueAccessor());
 			if (value != $(element).text()) {
-				if (!$(element).hasClass("hide")) {
+				if (!$(element).hasClass("hide") && gui_var.gui_animation == "1") {
 					$(element).fadeOut(function () {
 						$(this).text(value).fadeIn();
 					});
@@ -204,7 +204,7 @@ $(document).ready(function () {
 		update: function (element, valueAccessor) {
 			var value = ko.unwrap(valueAccessor());
 			if (value != $(element).html()) {
-				if (!$(element).hasClass("hide")) {
+				if (!$(element).hasClass("hide") && gui_var.gui_animation == "1") {
 					$(element).fadeOut(function () {
 						$(this).html(value).fadeIn();
 					});
