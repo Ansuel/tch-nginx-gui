@@ -406,10 +406,21 @@ platform_do_upgrade() {
 	
 	local root_tmp_dirt=/tmp/rootfile
 	
+	local RESTORE_CONFIG=1
+	
+	if [ -n $SAVE_CONFIG ]; then
+		if [ $SAVE_CONFIG -eq 0 ]; then
+			RESTORE_CONFIG=0
+		fi
+	fi
+	
 	if [ -f $root_tmp_dirt/GUI.tar.bz2 ] || [ -f /overlay/$(cat /proc/banktable/booted)/etc/init.d/rootdevice ]; then
 		
 		preserve_root
-		preserve_config_file
+		
+		if [ $RESTORE_CONFIG -eq 1 ]; then
+			preserve_config_file
+		fi
 		
 		rm -r /overlay/bank_1
 		if [ -d /overlay/bank_2 ]; then
@@ -422,7 +433,10 @@ platform_do_upgrade() {
 			else
 				emergency_restore_root
 			fi
-			restore_config_File
+			
+			if [ $RESTORE_CONFIG -eq 1 ]; then
+				restore_config_File
+			fi
 			
 			if [ "$SWITCHBANK" -eq 1 ]; then
 				echo $target_bank > /proc/banktable/active
