@@ -518,9 +518,10 @@ ngx.print('\
       var extract_bar_val = isNaN(data.extract_prog)?1:(data.extract_prog/12);\
       $("#extracted_file").removeClass("hide");\
       var old_text = $("#extracted_file").text();\
-      if(old_text.replace(/\\+/g, "") == data.extract_prog)\
+      if(old_text.replace(/\\+/g, "") == data.extract_prog){\
+        $("#extracted_file").text($("#extracted_file").text().replace(/[\\+]{10}/g, ""));\
         $("#extracted_file").append("+");\
-      else\
+      } else\
         $("#extracted_file").text(data.extract_prog);\
       $(".bar").css("width", extract_bar_val+"%").css("background-color","").attr("aria-valuenow", extract_bar_val);\
       window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
