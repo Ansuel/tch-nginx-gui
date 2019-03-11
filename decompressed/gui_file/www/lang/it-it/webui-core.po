@@ -49,19 +49,19 @@ msgid "1. Max Packet Number Recommened is dynamic and not accurate value (assume
 msgstr "1. Numero max raccomandato di pacchetti rappresenta un valore dinamico e non accurato (supponiamo di usare metà della memoria libera).<br/>2. L'accelerazione è disabilitata durante il Dump TCP nelle piattaforme che supportano la cache del flusso!<br/>3. 'Download' non sarà  valido se non viene catturato nulla.<br/>4. 'Pulisci' azzererà il file catturato per ridurre il consumo di memoria."
 
 msgid "10% of max Frequency in ASYNC mode"
-msgstr "10% della frequenza massima in modalità ASYNC"
+msgstr "10% della frequenza massima in ASYNC"
 
 msgid "100% of max Frequency in ASYNC mode"
-msgstr "100% della frequenza massima in modalità ASYNC"
+msgstr "100% della frequenza massima in ASYNC"
 
 msgid "100% of max Frequency in SYNC mode"
-msgstr "100% della Frequenza massima in modalità SYNC"
+msgstr "100% della Frequenza massima in ASYNC"
 
 msgid "2.4GHz Band Steering Threshold"
 msgstr "Soglia Band Steering 2.4 GHz"
 
 msgid "25% of max Frequency in ASYNC mode"
-msgstr "25% della frequenza massima in modalità ASYNC"
+msgstr "25% della frequenza massima in ASYNC"
 
 msgid "2nd Demod Cap Mask"
 msgstr "Seconda maschera Cap Demod"
@@ -70,7 +70,7 @@ msgid "2nd Demod Cap Value"
 msgstr "Secondo valore Cap Demod"
 
 msgid "50% of max Frequency in ASYNC mode"
-msgstr "50% della frequenza massima in modalità ASYNC"
+msgstr "50% della frequenza massima in ASYNC"
 
 msgid "5GHz Band Steering Threshold"
 msgstr "Soglia Band Steering 5 GHz"
@@ -338,7 +338,7 @@ msgid "Apply"
 msgstr "Applica"
 
 msgid "Are you sure to switch the modem to <strong>Bridged Mode</strong>? <br />"
-msgstr "Sei sicuro di voler impostare il modem in <strong>Modalità bridged</strong>? <br />"
+msgstr "Sei sicuro di voler impostare il modem in <strong>bridged</strong>? <br />"
 
 msgid "Are you sure to switch the modem to <strong>Voice Mode</strong>? <br />"
 msgstr "Sei sicuro di voler impostare il modem in <strong>Modalità voce</strong>?<br/>"
@@ -437,7 +437,7 @@ msgid "Bridge Grouping"
 msgstr "Raggruppamento bridge"
 
 msgid "Bridge Mode Active"
-msgstr "Modalità bridge attiva"
+msgstr "Bridge attivo"
 
 msgid "Bridge connected"
 msgstr "Bridge connesso"
@@ -449,7 +449,7 @@ msgid "Bridge not connected"
 msgstr "Bridge non connesso"
 
 msgid "Bridged Mode"
-msgstr "Modalità bridged"
+msgstr "Modo bridged"
 
 msgid "Bridged connection"
 msgstr "Connessione bridge"
@@ -593,7 +593,7 @@ msgid "Connection Type"
 msgstr "Tipo connessione"
 
 msgid "Connection mode"
-msgstr "Modalità connessione"
+msgstr "Modo connessione"
 
 msgid "Connections"
 msgstr "Connessioni"
@@ -629,7 +629,7 @@ msgid "Cyclic-Delay Diversity"
 msgstr "Diversità ritardo-ciclico"
 
 msgid "DECT Emission Mode "
-msgstr "Modalità emissione DECT "
+msgstr "Modo emissione DECT "
 
 msgid "DHCP End Address is Invalid"
 msgstr "Indirizzo finale DHCP non valido"
@@ -686,7 +686,7 @@ msgid "DHCP on"
 msgstr "DHCP attivo"
 
 msgid "DHCP routed mode"
-msgstr "Modalità DHCP routed"
+msgstr "DHCP routed"
 
 msgid "DMZ"
 msgstr "DMZ"
@@ -737,7 +737,7 @@ msgid "DSL Hlog"
 msgstr "Hlog DSL"
 
 msgid "DSL Mode"
-msgstr "Modalità DSL"
+msgstr "Modo DSL"
 
 msgid "DSL QLN"
 msgstr "QLN DSL"
@@ -857,13 +857,13 @@ msgid "Dialing"
 msgstr "Composizione"
 
 msgid "Direction Mode"
-msgstr "Modalità direzione"
+msgstr "Modo direzione"
 
 msgid "Direction:"
 msgstr "Direzione:"
 
 msgid "Disable VN Mode"
-msgstr "Disabilita modalità VN"
+msgstr "Disabilita modo VN"
 
 msgid "Disabled"
 msgstr "Disabilitato"
@@ -1010,7 +1010,7 @@ msgid "Enhanced Tim"
 msgstr "TIM avanzata"
 
 msgid "Entering BOOTP, please wait..."
-msgstr "Avvio modalità BOOTP..."
+msgstr "Avvio BOOTP..."
 
 msgid "ErrS Packet Drop"
 msgstr "Pacchetto ErrS scartato"
@@ -1211,7 +1211,7 @@ msgid "Gateway IP should not be in SFP interface IP Range, change that first"
 msgstr "L'IP del modem non dovrebbe essere nell'intervallo di indirizzi IP dell'interfaccia SFP.<br/>Cambialo prima"
 
 msgid "Gateway in bridge mode"
-msgstr "Gateway in modalità bridge"
+msgstr "Modem in modo bridge"
 
 msgid "Generate QR code"
 msgstr "Genera codice QR"
@@ -1658,10 +1658,10 @@ msgid "Mirror Interface:"
 msgstr "Interfaccia Mirror:"
 
 msgid "Mode"
-msgstr "Modalità"
+msgstr "Modo"
 
 msgid "Modes"
-msgstr "Modalità"
+msgstr "Modi"
 
 msgid "Change the SNR margin to increase stability or performance when in “ADSL Mode”. Changing this value in “VDSL Mode” won’t have any effect."
 msgstr "La modifica del valore SNR avrà effetto solo con connessioni ADSL.<br/>Con una connessione VDSL non ci sarà alcun effetto sulla modifica di questo valore!"
@@ -1715,7 +1715,7 @@ msgid "Network address"
 msgstr "Indirizzo di rete"
 
 msgid "Network mode"
-msgstr "Modalità rete"
+msgstr "Modo rete"
 
 msgid "New Version"
 msgstr "Nuova versione"
@@ -1733,7 +1733,7 @@ msgid "No Update found"
 msgstr "Nessun aggiornamento disponibile"
 
 msgid "No configuration available for internet connectivity when in bridge mode."
-msgstr "Nessuna configurazione disponibile per la connettività internet nella modalità bridge."
+msgstr "Nessuna configurazione disponibile per la connettività internet nel modo bridge."
 
 msgid "No error received from server"
 msgstr "Nessun errore ricevuto dal server"
@@ -2201,10 +2201,10 @@ msgid "Return"
 msgstr "Indietro"
 
 msgid "Revert Bridge Mode"
-msgstr "Disabilita modalità bridge"
+msgstr "Disabilita modo bridge"
 
 msgid "Revert Voice Mode"
-msgstr "Torna alla modalità voce"
+msgstr "Torna in modo voce"
 
 msgid "Ringing"
 msgstr "Squillo"
@@ -2231,7 +2231,7 @@ msgid "RUNNING"
 msgstr "AVVIATO"
 
 msgid "Rx BitSwap Mode"
-msgstr "Modalità BitSwap Rx"
+msgstr "Modo BitSwap Rx"
 
 msgid "Rx Errors"
 msgstr "Errori Rx"
@@ -2273,7 +2273,7 @@ msgid "Second DNS Server Ping"
 msgstr "Ping secondo server DNS"
 
 msgid "Secure Mode Enabled"
-msgstr "Modalità sicurezza attivata"
+msgstr "Sicurezza attivata"
 
 msgid "Security Mode"
 msgstr "Criptazione rete WiFi"
@@ -2468,7 +2468,7 @@ msgid "Support site: "
 msgstr "Sito supporto: "
 
 msgid "Switch connection mode"
-msgstr "Modifica modalità connessione"
+msgstr "Modifica modo connessione"
 
 msgid "Switch the Remote/WAN port to a normal LAN port"
 msgstr "Commuta la porta WAN in una porta normale LAN"
@@ -2480,13 +2480,13 @@ msgid "Switching bank, please wait..."
 msgstr "Commutazione banco..."
 
 msgid "Switching to <strong>Bridged Mode</strong> and restarting, please wait..."
-msgstr "Applicazione della <strong>Modalità bridged</strong> e riavvio..."
+msgstr "Applicazione del <strong>Modo bridged</strong> e riavvio..."
 
 msgid "Switching to <strong>Routed Mode</strong> and restarting, please wait..."
-msgstr "Applicazione della <strong>Modalità routed</strong> e riavvio..."
+msgstr "Applicazione del <strong>Modo routed</strong> e riavvio..."
 
 msgid "Switching to <strong>Voice Mode</strong> and restarting, please wait..."
-msgstr "Applicazione della <strong>Modalità voce</strong> e riavvio..."
+msgstr "Applicazione del <strong>Modo voce</strong> e riavvio..."
 
 msgid "Switchover"
 msgstr "Commuta"
@@ -2534,10 +2534,10 @@ msgid "Temporary"
 msgstr "Temporanea"
 
 msgid "The <strong>Bridged Mode</strong> disables CWMP, Voip service and doesn't create any type of connection. It just connects to the DSLAM and bridges the traffic between a router and the DSLAM itself."
-msgstr "La <strong>Modalità bridged</strong> disabilita CWMP, il servizio VoIP e non crea alcun tipo di connessione.<br/>Si connette solamente al DSLAM e collega il traffico tra un router e il DSLAM stesso."
+msgstr "Il <strong>Modo bridged</strong> disabilita CWMP, il servizio VoIP e non crea alcun tipo di connessione.<br/>Si connette solamente al DSLAM e collega il traffico tra un router e il DSLAM stesso."
 
 msgid "The <strong>Voice Mode</strong> disables CWMP and creates a special connection that only permits to use NTP and VOIP services. You need to use a separate router and make a separate PPPoE connection."
-msgstr "La <strong>Modalità voce</strong> disabilita CWMP e crea una connessione speciale che permette di usare solamente i servizi NTP e VOIP.<br/>È necessario usare un router separato e creare una connessione PPPoE a parte."
+msgstr "Il <strong>Modo voce</strong> disabilita CWMP e crea una connessione speciale che permette di usare solamente i servizi NTP e VOIP.<br/>È necessario usare un router separato e creare una connessione PPPoE a parte."
 
 msgid "The <strong>incoming policy</strong> defines what is done with packets destined to the gateway. They can be either REJECTED (the gateway will notify the sender they were rejected) or DROPPED (the gateway will silently discard those packets)."
 msgstr "La <strong>regola in entrata</strong> definisce come vengono trattati i pacchetti destinati al modem.<br/>Questi possono o essere respinti (il gateway notificherà al mittente che sono stati respinti) o scartati (il gateway rifiuterà senza avvisare questi pacchetti)."
@@ -2894,10 +2894,10 @@ msgid "Violet"
 msgstr "Viola"
 
 msgid "Voice Mode"
-msgstr "Modalità voce"
+msgstr "Modo voce"
 
 msgid "Voice Mode Active"
-msgstr "Modalità voce attiva"
+msgstr "Modo voce attiva"
 
 msgid "WAN Available"
 msgstr "WAN disponibile"
@@ -2936,10 +2936,10 @@ msgid "WAN(default)"
 msgstr "WAN (predefinito)"
 
 msgid "WAN-Mode"
-msgstr "Modalità WAN"
+msgstr "Modo WAN"
 
 msgid "WAN-Port LAN Mode"
-msgstr "Modalità LAN Porta WAN"
+msgstr "Porta WAN in modo LAN"
 
 msgid "WARNING: If you would like to connect to the GuestSSID, please activate your Main SSID"
 msgstr "ATTENZIONE: per potersi connettere alla rete Guest occorre attivare la rete principale"
@@ -2951,7 +2951,7 @@ msgid "WPS AP PIN code"
 msgstr "PIN WPS AP"
 
 msgid "WPS Buttom Mode"
-msgstr "Modalità pulsante WPS"
+msgstr "Modo pulsante WPS"
 
 msgid "WPS Device PIN code"
 msgstr "PIN dispositivo WPS"
@@ -3023,7 +3023,7 @@ msgid "Your Username"
 msgstr "Nome utente"
 
 msgid "Your modem is in bridge mode. It only connects to DSLAM and nothing else."
-msgstr "Il modem è in modalità bridge.<br/>Si connette solamente al DSLAM e nient'altro."
+msgstr "Il modem è in bridge.<br/>Si connette solamente al DSLAM e nient'altro."
 
 msgid "Your new password"
 msgstr "Nuova password"
