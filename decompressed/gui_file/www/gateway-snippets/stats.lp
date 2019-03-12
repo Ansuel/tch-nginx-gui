@@ -35,11 +35,4 @@ lp.setpath("/www/info-cards/")
 ngx.print('\
   </div>\
 </div>\
-<script>\
-AOS.init();\
-\
-$(document).ready(function () {\
-	$("#refresh-cards").hide();\
-});\
-</script>\
 ')

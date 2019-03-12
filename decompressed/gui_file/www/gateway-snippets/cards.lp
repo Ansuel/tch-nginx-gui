@@ -5,7 +5,6 @@ local content_helper = require("web.content_helper")
 
 local cui = {
 	gui_skin = "uci.modgui.gui.gui_skin",
-	gui_animation = "uci.modgui.gui.gui_animation",
 }
 
 content_helper.getExactContent(cui)
@@ -65,14 +64,4 @@ ngx.print('\
           ngx.print('\
       </div>\
 	</div>\
-<script>\
-'); 
-if cui.gui_animation == "1" then
-	ngx.print("AOS.init();"); 
-end
-ngx.print('\
-$(document).ready(function () {\
-	$("#refresh-cards").hide();\
-});\
-</script>\
 ');

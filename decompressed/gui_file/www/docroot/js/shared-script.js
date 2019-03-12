@@ -83,9 +83,7 @@ $(function () {
 			scrollTop: $($(this).attr("href")).offset().top
 		}, 500, "linear");
 	});
-});
 
-$(function () {
 	if (gui_var.randomcolor == "1") {
 		setInterval(function () {
 			var colorR = Math.floor((Math.random() * 256));
@@ -99,6 +97,7 @@ $(function () {
 	var pathname = document.location.pathname;
 	var page = gui_var.pageselector_page;
 	var text = gui_var.pageselector_text;
+	document.title = "Gateway - "+text;
 	if (pathname == "/stats.lp") {
 		page = "cards.lp";
 		text = gui_var.cards_text;
@@ -111,16 +110,28 @@ $(function () {
 	$("#swtichbuttom").on("click", function () {
 		var pathname = document.location.pathname;
 		var text = gui_var.pageselector_othertext;
+		var view = gui_var.pageselector_text;
+		
 		if (pathname == "/stats.lp") {
 			page = "cards.lp";
 			text = gui_var.stats_text;
+			view = gui_var.cards_text;
 		} else if (pathname == "/cards.lp") {
 			page = "stats.lp";
 			text = gui_var.cards_text;
+			view = gui_var.stats_text;
 		}
-		$("#dynamic-content").load(page + "?contentonly=true");
+		
+		$("#dynamic-content").load( page + "?contentonly=true", 
+			function( response , status ) {
+				if ( status != "error" ) {
+					$("#refresh-cards").hide(); }
+		});
+		
+		window.history.pushState("gateway", "Gateway - "+view, page);
+		document.title = "Gateway - "+view;
+		
 		$(this).trigger("switchcard");
-		window.history.pushState("gateway", "Gateway - Cards", page);
 		$("#cards-text").text(text);
 		$("#refresh-cards").show();
 		$("#refresh-cards").css("margin-right", "5px");
@@ -138,9 +149,14 @@ $(function () {
 			$("#upgradebtn").css("color", "orangered");
 		}
 	);
+	
 	if ((gui_var.autoupgradeview != "") && (gui_var.autoupgradeview != "none")) {
 		post("autoupgrade_view");
-	}
+	};
+	
+	if ( gui_var.gui_animation == "1" ) {
+		AOS.init();
+	};
 });
 
 function createAjaxUpdateCard(CardIdRefresh, ajaxLink, IntervalVar, RefreshTime) {
