@@ -319,7 +319,7 @@ cumulative_check_gui() {
 	fi
 
 	#This generates new hash
-	if [ -f /root/GUI.tar.gz ]; then
+	if [ -f /root/GUI.tar.bz2 ] || [ -f /root/GUI.tar.gz ]; then
 		old_gui_hash=$(uci get -q modgui.gui.gui_hash)
 		if [ -f /root/GUI.tar.gz ]; then
 			gui_hash=$(cat /root/md5.gui_orig)
