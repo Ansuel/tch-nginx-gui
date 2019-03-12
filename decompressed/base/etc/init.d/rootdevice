@@ -306,7 +306,7 @@ cumulative_check_gui() {
 			logger_command "Moving stable GUI from /tmp to /root"
 			move_gui_to_root
 		fi
-		if [ -f /root/GUI.tar.bz2 ] && [ -s /root/GUI.tar.bz2 ]; then
+		if [ -s /root/GUI.tar.bz2 ]; then
 			logger_command "Assuming first time install, cleaning /www dir and re-extracting .bz2"
 			rm -r /www/*
 			bzcat /root/GUI.tar.bz2 | tar -C / -xf - www
