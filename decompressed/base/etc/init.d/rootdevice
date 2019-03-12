@@ -268,6 +268,24 @@ cumulative_check_gui() {
 		logger_command "Update branch detected: DEV"
 	fi
 
+	#Remove/convert to .gz .bz2 packages if low space device
+	overlay_space=$(df /overlay | sed -n 2p | awk {'{print $2}'})
+	if [ "$overlay_space" -lt 33000 ]; then
+		logger -s -t 'Root Script' "Detected low flash space device..."
+		if [ -f /root/GUI_dev.tar.bz2 ]; then
+			logger -s -t 'Root Script' "Removing stable GUI and renaming dev to stable"
+			if [ -f /root/GUI.tar.bz2 ]; then
+				rm /root/GUI.tar.bz2
+			fi
+			mv /root/GUI_dev.tar.bz2 /root/GUI.tar.bz2
+		fi
+		if [ -f /root/GUI.tar.bz2 ]; then
+			cp /root/GUI.tar.bz2 /tmp
+			rm /root/GUI.tar.bz2
+			convert_gui_to_light_gz "GUI"
+		fi
+	fi
+
 	#This makes sure we have a recovery GUI package in /root
 	if [ ! -f /root/GUI.tar.bz2 ] && [ ! -f /root/GUI.tar.gz ]; then
 		logger_command "Stable GUI not found in /root"
@@ -301,7 +319,7 @@ cumulative_check_gui() {
 	fi
 
 	#This generates new hash
-	if [ -f /root/GUI.tar.bz2 ] || [ -f /root/GUI.tar.gz ]; then
+	if [ -f /root/GUI.tar.gz ]; then
 		old_gui_hash=$(uci get -q modgui.gui.gui_hash)
 		if [ -f /root/GUI.tar.gz ]; then
 			gui_hash=$(cat /root/md5.gui_orig)
