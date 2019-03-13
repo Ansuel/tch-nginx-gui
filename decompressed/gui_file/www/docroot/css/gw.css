@@ -3666,7 +3666,7 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 .container>#footer {
 	margin: auto;
 }
-#infocardrow {
+#infocardrow,#cardrow {
 	z-index: 2;
 	position: relative;
 	display: flex;
@@ -3674,22 +3674,12 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	flex-wrap: wrap;
 	justify-content: center;
 }
-#cardrow {
-	z-index: 2;
-	position: relative;
-	display: flex;
-	flex-wrap: wrap;
-	margin-left: 0px;
-	justify-content: center;
-}
-#leftinfocard {
-	flex: 50%;
-}
-#rightinfocard {
-	flex: 50%;
+#leftinfocard,#rightinfocard {
+    flex: calc( 50% - 20px );
+    padding: 0 10px 0 10px;
 }
 .infocard {
-	padding: 10px;
+	padding: 10px 0 10px 0;
 }
 .infocard>.smallcard {
 	margin: 0px;
