@@ -163,7 +163,7 @@ if ngx.req.get_method() == "POST" then
   return resetreboot("rpc.system.modgui.upgradegui.start", "1")
   end
   if action == "system_remove_root" then
-  --return resetreboot("rpc.system.modgui.utility.removeroot", "1")
+  	return resetreboot("rpc.system.modgui.utility.removeroot", "1")
   end
 elseif ngx.req.get_method() == "GET" then
   local action = ngx.req.get_uri_args().action
@@ -390,13 +390,20 @@ ngx.print('\
     }
       }
     local resetting = {
-        alert = {
-          class = "alert hide",
-          id = "resetting-msg"
-        }
-      }
+		alert = {
+			class = "alert hide",
+			id = "resetting-msg"
+		}
+    }
+	local unrooting = {
+		alert = {
+			class = "alert hide",
+			id = "unrooting-msg"
+		}
+    }
 
-
+	html[#html + 1] = ui_helper.createAlertBlock(T"Resetting to default gui, please wait...", resetting)
+	html[#html + 1] = ui_helper.createAlertBlock(T"Unrooting and reverting to factory defaults, please wait...", unrooting)
     html[#html + 1] = ui_helper.createAlertBlock(T"Reset the custom GUI settings. No custom firmware file will be removed. All custom GUI functions will still be available.", info_box)
     html[#html + 1] = ui_helper.createButton(T"Restore GUI", T"Restore", "icon-refresh", reset_gui)
     html[#html + 1] = ui_helper.createAlertBlock(T"Reset the router to factory settings and remove the custom firmware files.", info_box)
@@ -436,23 +443,23 @@ ngx.print('\
   }\
 \
   function resetreboot(msg, msg_dst, action) {\
-    msg_dst.after(msg);\
+    msg_dst.replaceWith(msg);\
     msg.removeClass("hide");\
-    msg[0].scrollIntoView();\
+	msg[0].scrollIntoView();\
     $.post(target,{action: action, CSRFtoken: $("meta[name=CSRFtoken]").attr("content")}, wait_for_webserver_down,"json");\
     return false;\
   }\
 \
   $("#btn-reset-gui").on("click", function() {\
-  var heading = "');  ngx.print(T'Restore GUI'); ngx.print('";\
+    var heading = "');  ngx.print(T'Restore GUI'); ngx.print('";\
     var processMsg = "');  ngx.print(T'Restoring...'); ngx.print('";\
     confirmationDialogue(\'');  ngx.print(T"Do you want to continue?"); ngx.print('\',heading);\
-  var PopUpHeaderText = "."+$(".popUp>.header>.header-title>p").text().split(" ")[0];\
+    var PopUpHeaderText = "."+$(".popUp>.header>.header-title>p").text().split(" ")[0];\
     $(document).on("click", PopUpHeaderText, function() {\
-         tch.removeProgress();\
-         tch.showProgress(processMsg);\
-         return resetreboot($("#rebooting-msg"), $(this), "system_reset_gui" );\
-  });\
+           tch.removeProgress();\
+           tch.showProgress(processMsg);\
+           return resetreboot($("#resetting-msg"), $("#btn-reset-gui"), "system_reset_gui" );\
+    });\
   });\
 \
   var schedulReload = false;\
@@ -475,15 +482,15 @@ ngx.print('\
   });\
 \
   $("#btn-remove-root").on("click", function() {\
-  var heading = "');  ngx.print(T'Remove root'); ngx.print('";\
+	var heading = "');  ngx.print(T'Remove root'); ngx.print('";\
     var processMsg = "');  ngx.print(T'Resetting...'); ngx.print('";\
     confirmationDialogue(\'');  ngx.print(T"Are you sure you want to remove root from this modem? </br><strong> This could be permanent, so it\\'s not recommended.</strong>"); ngx.print('\',heading);\
-  var PopUpHeaderText = "."+$(".popUp>.header>.header-title>p").text().split(" ")[0];\
+	var PopUpHeaderText = "."+$(".popUp>.header>.header-title>p").text().split(" ")[0];\
     $(document).on("click", PopUpHeaderText, function() {\
          tch.removeProgress();\
          tch.showProgress(processMsg);\
-         return resetreboot($("#rebooting-msg"), $(this), "system_remove_root" );\
-  });\
+         return resetreboot($("#unrooting-msg"), $("#btn-remove-root"), "system_remove_root" );\
+	});\
   });\
 \
   $(document).on("click", "#cancel", function() {\
