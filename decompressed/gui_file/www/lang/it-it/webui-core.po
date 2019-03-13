@@ -4277,3 +4277,9 @@ msgstr "Visualizza sempre opzioni avanzate"
 
 msgid "GUI animations"
 msgstr "Animazioni GUI"
+
+msgid "Resetting to default gui, please wait..."
+msgstr ""
+
+msgid "Unrooting and reverting to factory defaults, please wait..."
+msgstr ""
