@@ -31,7 +31,6 @@ local function gen_dummy_card(modalPath)
   	dch[#dch+1] =	  	'</div>'
 	dch[#dch+1] =	  '</div>'
 	dch[#dch+1] =   '</div>'
-	dch[#dch+1] = '</div>'
 	dch[#dch+1] = '<script>\
 					$("document").ready(function() { \
 					    $.get("/ajax/get_card.lua?modal='..modalPath..'").done(function (data) {\
@@ -41,27 +40,23 @@ local function gen_dummy_card(modalPath)
 					    });\
 					  });\
 				   </script>'
+	dch[#dch+1] = '</div>'
 	return dch 
 
 end
 
 ngx.print('\
- <div class="feedback">\
-\
-  </div>\
-	<div id="dynamic-content">\
-      <div id="cardrow" class="row">\
+	<div class="row dynamic-content" id="cardrow" >\
 	  ');
 	  	lp.setpath("/www/cards/")
-          local cards = require("cards")
-          for _,v in pairs(cards.cards()) do
+        local cards = require("cards")
+        for _,v in pairs(cards.cards()) do
 			if not string.untaint(cui.gui_skin):match("Fritz") then
 				ngx.print(gen_dummy_card(cards.get_modal_from_card(v)))
 			else
 				lp.include(v)
 			end
-		  end
-          ngx.print('\
-      </div>\
-	</div>\
+		end
+        ngx.print('\
+    </div>\
 ');

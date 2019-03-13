@@ -121,11 +121,10 @@ $(function () {
 			text = gui_var.cards_text;
 			view = gui_var.stats_text;
 		}
-		
-		$("#dynamic-content").load( page + "?contentonly=true", 
-			function( response , status ) {
-				if ( status != "error" ) {
-					$("#refresh-cards").hide(); }
+
+		$.get(page + "?contentonly=true").done(function (data) {
+			$(".dynamic-content").replaceWith(data);
+			$("#refresh-cards").hide();
 		});
 		
 		window.history.pushState("gateway", "Gateway - "+view, page);
