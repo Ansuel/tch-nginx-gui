@@ -242,3 +242,12 @@ msgstr "VDSL"
 
 msgid "None"
 msgstr "Kein"
+
+msgid "Username can not be empty"
+msgstr ""
+
+msgid "Passwords do not match"
+msgstr ""
+
+msgid "You must fill your password"
+msgstr ""
