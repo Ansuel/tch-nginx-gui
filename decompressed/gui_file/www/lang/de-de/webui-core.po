@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: webui-core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-06-21 15:33+0200\n"
+"POT-Creation-Date: \n"
 "PO-Revision-Date: 2019-02-09 17:40+0100\n"
 "Last-Translator: Dr. Uwe Meyer-Gruhl\n"
 "Language-Team: none\n"
@@ -1219,6 +1219,9 @@ msgstr "Erzeuge QR-Code"
 msgid "Generic"
 msgstr "Generisch"
 
+msgid "Github GUI"
+msgstr "Github GUI"
+
 msgid "Global"
 msgstr "Global"
 
@@ -2187,9 +2190,6 @@ msgstr "Neustarten, bitte warten…"
 
 msgid "Restore"
 msgstr "Wiederherstellen"
-
-msgid "Restore GUI"
-msgstr "GUI wiederherstellen"
 
 msgid "Retransmissions"
 msgstr "Neuübertragungen"
@@ -4215,9 +4215,6 @@ msgstr "Ungültiger Tag"
 msgid "CS3"
 msgstr "CS3"
 
-msgid "Github GUI"
-msgstr "GitHub GUI"
-
 msgid "Enter the default <strong>\"access code\"</strong>. This code is located on the label underneath your gateway."
 msgstr "Geben Sie den <strong>\"access code\"</strong> ein. Dieser befindet sich auf dem Aufkleber unter Ihrem Gateway."
 
@@ -4277,3 +4274,6 @@ msgstr "Zeige immer erweiterte Optionen an"
 
 msgid "GUI animations"
 msgstr "GUI Animation"
+
+msgid "In Progress/Connected"
+msgstr ""

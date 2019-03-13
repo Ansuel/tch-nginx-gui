@@ -263,8 +263,8 @@ msgstr "Die maximale Lease-Dauer beträgt 3 Wochen, 21 Tage, 504 Stunden, 30240 
 msgid "The minimum leasetime must be 120 seconds or 2 minutes."
 msgstr "Die minimale Lease-Dauer beträgt 120 Sekunden oder 2 Minuten."
 
-msgid "The wireless key contains invalid characters, only space, letters, numbers and the following characters !\"#$%&()*+,-./:;<=>?@[\\]^_{|}~ are allowed."
-msgstr "Der Wireless-Schlüssel enthält ungültige Zeichen, nur Leerzeichen, Buchstaben, Ziffern und die folgenden Zeichen: !\"#$%&()*+,-./:;<=>?@[\\]^_{|}~ sind erlaubt."
+msgid "The wireless key contains invalid characters, only space, letters, numbers and the following characters !\"'`#$%&()*+,-./:;<=>?@[\\]^_{|}~ are allowed."
+msgstr "Der Drahtlos-Schlüssel enthält ungültige Zeichen. Nur Leerzeichen, Buchstaben, Ziffern und die folgenden Zeichen sind erlaubt: !\"'`#$%&()*+,-./:;<=>?@[\\]^_{|}~"
 
 msgid "You tried to access an invalid line."
 msgstr "Sie versuchten, auf eine ungültige Zeile zuzugreifen."
@@ -314,8 +314,8 @@ msgstr "Kann die Broadcast-Adresse nicht verwenden"
 msgid "ON"
 msgstr "AN"
 
-msgid "The wireless key contains invalid characters, only space, letters, numbers and the following characters !\"'`#$%&()*+,-./:;<=>?@[\\]^_{|}~ are allowed."
-msgstr "Der Drahtlos-Schlüssel enthält ungültige Zeichen. Nur Leerzeichen, Buchstaben, Ziffern und die folgenden Zeichen sind erlaubt: !\"'`#$%&()*+,-./:;<=>?@[\\]^_{|}~"
+msgid "The wireless key contains invalid characters, only space, letters, numbers and the following characters !'`#$%&()*+,-./:;<=>?@[\\]^_{|}~ are allowed."
+msgstr ""
 
 msgid "Cannot use the network address"
 msgstr "Kann die Netzwerk-Adresse nicht verwenden"
@@ -348,3 +348,6 @@ msgid "%dh"
 msgid_plural "%dh"
 msgstr[0] ""
 msgstr[1] ""
+
+msgid "The wireless key contains invalid characters, only space, letters, numbers and the following characters !\"#$%&()*+,-./:;<=>?@[\\]^_{|}~ are allowed."
+msgstr "Der Wireless-Schlüssel enthält ungültige Zeichen, nur Leerzeichen, Buchstaben, Ziffern und die folgenden Zeichen: !\"#$%&()*+,-./:;<=>?@[\\]^_{|}~ sind erlaubt."
