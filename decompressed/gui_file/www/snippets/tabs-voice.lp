@@ -1,22 +1,48 @@
 --pretranslated: do not change this file
-
+--www\snippets\tabs-voice.lp
 -- Enable localization
 gettext.textdomain('webui-voice')
 local content_helper = require("web.content_helper")
 local ipairs, string = ipairs, string
-local items = {
-    {"mmpbx-global-modal.lp", T"Global"},
-    {"mmpbx-dect-modal.lp", T"DECT"},
-    {"mmpbx-contacts-modal.lp", T"Phone Book"},
-    {"mmpbx-profile-modal.lp", T"Phone Lines"},
-    {"mmpbx-inoutgoingmap-modal.lp", T"In/Out Mapping"},
-    {"mmpbx-service-modal.lp", T"Service"},
-    {"mmpbx-log-modal.lp", T"Call Log"},
-    {"mmpbx-statistics-modal.lp", T"Quality Log"},
-    {"mmpbx-sipdevice-modal.lp", T"SIP Device"},
-	{"mmpbx-codec-modal.lp", T"Codec"},
-}
-
+-- Check availability of file, return true if found, else false
+local function file_check(file_name)
+  local file_found=io.open(file_name, "r")
+  if file_found==nil then
+    return false
+  else
+    return true
+  end
+end
+-- Check asterisk presence
+local asterisk_available = file_check("/etc/init.d/asterisk")
+if asterisk_available then
+	local items = {
+		{"mmpbx-global-modal.lp", T"Global"},
+		{"mmpbx-dect-modal.lp", T"DECT"},
+		{"mmpbx-contacts-modal.lp", T"Phone Book"},
+		{"asterisk-profile-modal.lp", T"Asterisk Basic Manager"},
+		{"mmpbx-profile-modal.lp", T"Phone Numbers"},
+		{"mmpbx-inoutgoingmap-modal.lp", T"In/Out Mapping"},
+		{"mmpbx-service-modal.lp", T"Service"},
+		{"mmpbx-log-modal.lp", T"Call Log"},
+		{"mmpbx-statistics-modal.lp", T"Quality Log"},
+		{"mmpbx-sipdevice-modal.lp", T"Sip Device"},
+		{"mmpbx-codec-modal.lp", T"Codec"},
+	}
+else
+	local items = {
+		{"mmpbx-global-modal.lp", T"Global"},
+		{"mmpbx-dect-modal.lp", T"DECT"},
+		{"mmpbx-contacts-modal.lp", T"Phone Book"},
+		{"mmpbx-profile-modal.lp", T"Phone Numbers"},
+		{"mmpbx-inoutgoingmap-modal.lp", T"In/Out Mapping"},
+		{"mmpbx-service-modal.lp", T"Service"},
+		{"mmpbx-log-modal.lp", T"Call Log"},
+		{"mmpbx-statistics-modal.lp", T"Quality Log"},
+		{"mmpbx-sipdevice-modal.lp", T"Sip Device"},
+		{"mmpbx-codec-modal.lp", T"Codec"},
+	}
+end
 local format = string.format
 local datamodel = require ("datamodel")
 local mmpbx_state, error = datamodel.get("uci.mmpbx.mmpbx.@global.enabled")
