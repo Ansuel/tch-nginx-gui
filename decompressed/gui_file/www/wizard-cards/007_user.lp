@@ -125,19 +125,19 @@ end
             var verifier = $('input[name="srp_verifier"]').val();
             var validated = true;
             if(password !== password2) {
-                display_error("web_password2",T"Passwords do not match");
+                display_error("web_password2","<%= T'Passwords do not match' %>");
                 validated = false;
             }
 
             if(user == "") {
-                display_error("web_username",T"Username can not be empty");
+                display_error("web_username","<%= T'Username can not be empty' %>");
                 validated = false;
             }
 
             if (password == "") {
                 if (verifier.length != 512 || salt.length != 8) {
-                    display_error("web_password",T"You must fill your password");
-                    display_error("web_password2",T"You must fill your password");
+                    display_error("web_password","<%= T'You must fill your password' %>");
+                    display_error("web_password2","<%= T'You must fill your password' %>");
                     validated = false
                 }
             }
