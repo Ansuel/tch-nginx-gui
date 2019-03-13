@@ -87,8 +87,11 @@ end
       %>
     </fieldset>
 </div>
-<script src="/js/srp-min.js" ></script>
 <script type="text/javascript">
+(function() {
+	
+	$.getScript("/js/srp-min.js");
+	
     function clear_error(id)
     {
         var upass = $('.modal input[name='+id+']');
@@ -112,7 +115,7 @@ end
         upass.closest(".control-group").before('<div class="alert alert-error">T"Some parameters failed validation"</div>');
     }
 
-    $("#wizard-next").click(function(){
+    $("#wizard-next").on("click", function(){
         if ($('input[name="web_username"]').is(":visible")) {
             clear_error("web_username");
             clear_error("web_password");
@@ -164,7 +167,7 @@ end
         return
     });
 
-    $("#wizard-previous").click(function(){
+    $("#wizard-previous").on("click", function(){
         if ($('input[name="web_username"]').is(":visible")) {
             $('input[name="web_password"]').val('');
             $('input[name="web_password2"]').val('');
@@ -172,5 +175,5 @@ end
             return false;
         }
     });
-
+});
 </script>
