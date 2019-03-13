@@ -2,7 +2,8 @@
     --bg-color1: #000;
     --bg-color2: #333;
     --bg-color3: #000;
-    --body-bg-color: #191919
+    --body-bg-color: #191919;
+	--body-text-color: #fff;
 }
 
 .alert-info {
@@ -40,7 +41,7 @@ legend, .popUp {
 }
 
 body {
-    color: #fff;
+    color: var(--body-text-color);
     background-color: var(--body-bg-color) !important;
     text-shadow: none !important
 }
@@ -127,7 +128,7 @@ input.span3, input.span3:focus, textarea, input[type="text"], input[type="passwo
 }
 
 #headerbox {
-    top: 4.8rem;
+    top: 4.7rem;
     background-color: #fff;
     box-shadow: 0 .1875rem .375rem rgba(0, 0, 0, 0.25);
     font-size: 1.125rem;
