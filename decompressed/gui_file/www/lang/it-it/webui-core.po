@@ -4277,3 +4277,9 @@ msgstr "Animazioni GUI"
 
 msgid "In Progress/Connected"
 msgstr "In corso/connessa"
+
+msgid "Unrooting and reverting to factory defaults, please wait..."
+msgstr ""
+
+msgid "Resetting to default gui, please wait..."
+msgstr ""
