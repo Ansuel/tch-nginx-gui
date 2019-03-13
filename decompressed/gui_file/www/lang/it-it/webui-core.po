@@ -1211,13 +1211,16 @@ msgid "Gateway IP should not be in SFP interface IP Range, change that first"
 msgstr "L'IP del modem non dovrebbe essere nell'intervallo di indirizzi IP dell'interfaccia SFP.<br/>Cambialo prima"
 
 msgid "Gateway in bridge mode"
-msgstr "Gateway in modalità bridge"
+msgstr "Modem in modalità bridge"
 
 msgid "Generate QR code"
 msgstr "Genera codice QR"
 
 msgid "Generic"
 msgstr "Generico"
+
+msgid "Github GUI"
+msgstr "GUI Github"
 
 msgid "Global"
 msgstr "Globale"
@@ -1721,7 +1724,7 @@ msgid "Next Hop Ping"
 msgstr "Ping hop successivo"
 
 msgid "Next Hop Ping IPV6"
-msgstr "Ping hop IPV6 successivo"
+msgstr "Ping IPV6 hop successivo"
 
 msgid "No Address Assigned"
 msgstr "Nessun indirizzo assegnato"
@@ -2612,7 +2615,7 @@ msgid "An imported configuration file will only be applied if its firmware versi
 msgstr "Abilitando 'Importa con restrizioni' la configurazione importata verrà applicata solo se il file di configurazione proviene dalla stessa versione firmware."
 
 msgid "Enable what type of configuration you want to import and export."
-msgstr "Le opzioni controllano il tipo di configurazione che può essere esportata e importata."
+msgstr "Queste opzioni controllano il tipo di configurazione che può essere esportata e importata."
 
 msgid "This is the internal IP of the SFP interface used for fiber connection. This and the local Gateway IP must be different."
 msgstr "È l'indirizzo IP interno dell'interfaccia SFP usata per la connessione in fibra.<br/>Questo indirizzo e l'IP del gateway locale devono essere diversi."
@@ -2936,7 +2939,7 @@ msgid "WAN-Mode"
 msgstr "Modalità WAN"
 
 msgid "WAN-Port LAN Mode"
-msgstr "Modalità LAN Porta WAN"
+msgstr "Porta WAN in modo LAN"
 
 msgid "WARNING: If you would like to connect to the GuestSSID, please activate your Main SSID"
 msgstr "ATTENZIONE: per potersi connettere alla rete Guest occorre attivare la rete principale"
@@ -3301,10 +3304,10 @@ msgid "PPPoA routed mode"
 msgstr "PPPoA routed"
 
 msgid "Fixed IP mode"
-msgstr "IP Statico"
+msgstr "IP statico"
 
 msgid "Bridge mode"
-msgstr "Modo bridge"
+msgstr "Bridge"
 
 msgid "Reset"
 msgstr "Ripristina"
