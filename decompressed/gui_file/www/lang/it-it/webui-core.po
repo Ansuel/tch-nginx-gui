@@ -4276,4 +4276,4 @@ msgid "GUI animations"
 msgstr "Animazioni GUI"
 
 msgid "In Progress/Connected"
-msgstr "In progresso/connesso"
+msgstr "In corso/connessa"

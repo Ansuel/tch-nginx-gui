@@ -94,19 +94,21 @@ $(function () {
 			$(":root").get(0).style.setProperty("--first-color-accent-80", "rgba(" + colorR + "," + colorG + "," + colorB + ", 0.8)");
 		}, 750);
 	}
+	
 	var pathname = document.location.pathname;
 	var page = gui_var.pageselector_page;
 	var text = gui_var.pageselector_text;
-	document.title = "Gateway - "+text;
+	
 	if (pathname == "/stats.lp") {
-		page = "cards.lp";
-		text = gui_var.cards_text;
-		$("#cards-text").text(text);
+		$("#cards-text").text(gui_var.cards_text);
+		document.title = "Gateway - "+gui_var.stats_text;
 	} else if (pathname == "/cards.lp") {
-		page = "stats.lp";
-		text = gui_var.stats_text;
-		$("#cards-text").text(text);
+		$("#cards-text").text(gui_var.stats_text);
+		document.title = "Gateway - "+gui_var.cards_text;
+	} else if (pathname == "/" ) {
+		document.title = "Gateway - "+gui_var.pageselector_othertext;
 	}
+	
 	$("#swtichbuttom").on("click", function () {
 		var pathname = document.location.pathname;
 		var text = gui_var.pageselector_othertext;
@@ -121,17 +123,8 @@ $(function () {
 			text = gui_var.cards_text;
 			view = gui_var.stats_text;
 		}
-
-		$.get(page + "?contentonly=true").done(function (data) {
-			$(".dynamic-content").replaceWith(data);
-			$("#refresh-cards").hide();
-		});
 		
-		window.history.pushState("gateway", "Gateway - "+view, page);
-		document.title = "Gateway - "+view;
-		
-		$(this).trigger("switchcard");
-		$("#cards-text").text(text);
+		$("#cards-text").text(openMsg);
 		$("#refresh-cards").show();
 		$("#refresh-cards").css("margin-right", "5px");
 		$("#refresh-cards").addClass("fa fa-sync fa-spin");
@@ -139,6 +132,15 @@ $(function () {
 			clearInterval(element);
 		});
 		KoRequest = [];
+
+		$.get(page + "?contentonly=true").done(function (data) {
+			$(".dynamic-content").replaceWith(data);
+			$("#cards-text").text(text);
+			$("#refresh-cards").hide();
+			window.history.pushState("gateway", "Gateway - "+view, page);
+			document.title = "Gateway - "+view;
+			$(this).trigger("switchcard");
+		});
 	});
 	$("#upgradebtn").on("hover",
 		function () {
