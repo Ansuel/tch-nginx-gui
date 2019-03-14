@@ -309,7 +309,7 @@ if [ $overlay_space -lt 33000 ]; then
 	cd  /tmp/extractemp/
 	tar -zcf ../GUI.tar.gz *
 	cd ../../
-	md5sum $WORKING_DIR/$FILE_NAME | awk '{ print $1}' > /root/md5.gui_orig
+	md5sum $WORKING_DIR/$FILE_NAME | awk '{ print $1}' > /root/gui_orig.md5sum
 	mv /tmp/GUI.tar.gz /root/
 	rm -r /tmp/extractemp
 	logger_command "Gui is now in /root/GUI.tar.gz"
@@ -317,16 +317,18 @@ if [ $overlay_space -lt 33000 ]; then
 		rm /root/GUI.tar.bz2
 	fi
 else
-	logger_command "Copying file to permanent dir..."
-	#Copy GUI file to permanent dir
-	if [ -f $PERMANENT_STORE_DIR/$FILE_NAME ]; then
-		rm $PERMANENT_STORE_DIR/$FILE_NAME
-	fi
-	cp $WORKING_DIR/$FILE_NAME $PERMANENT_STORE_DIR/
-	if [ $UPGRADE_FROM_STABLE == 1 ]; then
-		DEV_FILE_NAME="GUI_dev.tar.bz2"
-		logger_command "Upgrading from stable, copying to both archive..."
-		cp $WORKING_DIR/$FILE_NAME $PERMANENT_STORE_DIR/$DEV_FILE_NAME
+	if [ -z "$update_branch" ] || [ $UPGRADE_FROM_STABLE == 1 ]; then
+		logger_command "Copying file to permanent dir..."
+		#Copy GUI file to permanent dir
+		if [ -f $PERMANENT_STORE_DIR/$FILE_NAME ]; then
+			rm $PERMANENT_STORE_DIR/$FILE_NAME
+		fi
+		cp $WORKING_DIR/$FILE_NAME $PERMANENT_STORE_DIR/
+	else
+		if [ "$update_branch" == "_dev" ]; then
+			logger_command "Saving md5sum of dev gui to /root ..."
+			md5sum $WORKING_DIR/$FILE_NAME | awk '{ print $1}' > /root/gui_dev.md5sum
+		fi
 	fi
 fi
 rm $WORKING_DIR/$FILE_NAME

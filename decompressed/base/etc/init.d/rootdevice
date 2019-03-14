@@ -109,7 +109,7 @@ convert_gui_to_light_gz() {
 	cd  /tmp/extractemp/
 	tar -zcf ../$1.tar.gz *
 	cd ../../
-	md5sum /tmp/$1.tar.bz2 | awk '{ print $1}' > /root/md5.gui_orig
+	md5sum /tmp/$1.tar.bz2 | awk '{ print $1}' > /root/gui_orig.md5sum
 	mv /tmp/$1.tar.gz /root/
 	rm -r /tmp/extractemp
 	rm /tmp/$1.tar.bz2
@@ -322,9 +322,11 @@ cumulative_check_gui() {
 	if [ -f /root/GUI.tar.bz2 ] || [ -f /root/GUI.tar.gz ]; then
 		old_gui_hash=$(uci get -q modgui.gui.gui_hash)
 		if [ -f /root/GUI.tar.gz ]; then
-			gui_hash=$(cat /root/md5.gui_orig)
+			gui_hash=$(cat /root/gui_orig.md5sum)
+		elif [ -f /root/gui_dev.md5sum ]; then
+			gui_hash=$(cat /root/gui_dev.md5sum)
 		else
-			gui_hash=$(md5sum /root/GUI$update_branch.tar.bz2 | awk '{ print $1}' )
+			gui_hash=$(md5sum /root/GUI.tar.bz2 | awk '{ print $1}' )
 		fi
 		if [ "$old_gui_hash" != "$gui_hash" ]; then
 			logger_command "Detected upgrade!"
