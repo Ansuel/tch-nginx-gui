@@ -240,9 +240,6 @@ msgstr "Ethernet"
 msgid "VDSL"
 msgstr "VDSL"
 
-msgid "None"
-msgstr "Kein"
-
 msgid "Username can not be empty"
 msgstr ""
 
