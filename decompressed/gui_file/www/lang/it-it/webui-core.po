@@ -4279,7 +4279,7 @@ msgid "In Progress/Connected"
 msgstr "In corso/connessa"
 
 msgid "Unrooting and reverting to factory defaults, please wait..."
-msgstr ""
+msgstr "Rimozione root e ritorno ai valori predefiniti..."
 
 msgid "Resetting to default gui, please wait..."
-msgstr ""
+msgstr "Ripristino GUI originale..."
