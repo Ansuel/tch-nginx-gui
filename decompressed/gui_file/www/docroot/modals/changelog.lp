@@ -17,7 +17,7 @@ ngx.print('\
         },
       }
 	html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_2.0.1_001 )" .. '</legend>'
-	html[#html + 1] = ui_helper.createLabel(T"8.12","Riorganizzata disposizione card<br>" ..
+	html[#html + 1] = ui_helper.createLabel(T"9.0","Riorganizzata disposizione card<br>" ..
 		"Aggiunte ulteriori impostazioni di maschera versione<br>" ..
 		"Aggiunti vari driver xDSL<br>" ..
 		"Introdotto salvataggio delle conf dopo upgrade del firmware<br>" ..
