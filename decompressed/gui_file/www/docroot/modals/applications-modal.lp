@@ -283,9 +283,9 @@ if StateParams["telstra_webui"] ~= nil then
 	html[#html+1] = T"Change the default page in system-extra to set this gui as default"
 	html[#html+1] = "</br>"
 	if mapParams["telstra_webui"] and mapParams["telstra_webui"] == "1" then
-		html[#html+1] = ui_helper.createSimpleButton(T"Remove".." Telstra GUI", "fa fa-times-circle", btn_table.telstra.remove)
+		html[#html+1] = ui_helper.createSimpleButton(T"Remove" .. " " .. T"Telstra GUI", "fa fa-times-circle", btn_table.telstra.remove)
 	else
-		html[#html+1] = ui_helper.createSimpleButton(T"Install".." Telstra GUI", "fa fa-download", btn_table.telstra.install)
+		html[#html+1] = ui_helper.createSimpleButton(T"Install" .. " " .. T"Telstra GUI", "fa fa-download", btn_table.telstra.install)
 	end
 	html[#html+1] = "</fieldset>"
 	html[#html+1] = "</div>"
