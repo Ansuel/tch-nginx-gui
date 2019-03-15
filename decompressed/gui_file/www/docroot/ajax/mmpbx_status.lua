@@ -54,7 +54,7 @@ local mmpbxd_filter = function(data)
             data.callState =  T"Ringing"
         end
 
-        data.callState = ui_helper.createSimpleLight(data.callState=="Idle" and "0" or "1", T(data.callState), nil, "fa fa-phone")
+        data.callState = ui_helper.createSimpleLight(data.callState==T"Idle" and "0" or "1", T(data.callState), nil, "fa fa-phone")
     end
 
     return true
