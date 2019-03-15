@@ -15,7 +15,7 @@ local data = {
 }
 
 if not session:hasAccess(modal) then
-	ngx.print('{ "card_html" : "FORBIDDEN" }')
+	ngx.status = 403
 else
 	lp.include(cards.get_card_from_modal(modal))
 end
