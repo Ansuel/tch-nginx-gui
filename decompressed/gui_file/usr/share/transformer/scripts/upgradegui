@@ -298,7 +298,7 @@ fi
 
 overlay_space=$(df /overlay | sed -n 2p | awk {'{print $2}'})
 if [ $overlay_space -lt 33000 ]; then
-	logger -s -t "Detected low mem device..."
+	logger_command "Detected low mem device..."
 	if [ -f /root/GUI_dev.tar.bz2 ]; then
 		rm /root/GUI_dev.tar.bz2
 	fi
