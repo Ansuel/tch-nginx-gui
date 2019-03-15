@@ -243,6 +243,7 @@ move_gui_to_root() {
     if [ -f /tmp/GUI.tar.bz2 ]; then
         overlay_space=$(df /overlay | sed -n 2p | awk {'{print $2}'})
         if [ "$overlay_space" -lt 33000 ]; then
+            logger_command "Creating stripped GUI gz in /root folder from /tmp"
             convert_gui_to_light_gz "GUI"
         else
             logger_command "Updating GUI in /root folder from /tmp"
@@ -273,16 +274,21 @@ cumulative_check_gui() {
 	if [ "$overlay_space" -lt 33000 ]; then
 		logger -s -t 'Root Script' "Detected low flash space device..."
 		if [ -f /root/GUI_dev.tar.bz2 ]; then
-			logger -s -t 'Root Script' "Removing stable GUI and renaming dev to stable"
-			if [ -f /root/GUI.tar.bz2 ]; then
-				rm /root/GUI.tar.bz2
+			if [ ! -f /root/GUI.tar.bz2 ] && [ ! -f /root/GUI.tar.gz ]; then
+			    logger -s -t 'Root Script' "Stable GUI not found, renaming dev bz2 to stable"
+			    mv /root/GUI_dev.tar.bz2 /root/GUI.tar.bz2
+			else
+			    logger -s -t 'Root Script' "Removing unneeded dev bz2 GUI from /root"
+			    rm /root/GUI_dev.tar.bz2
 			fi
-			mv /root/GUI_dev.tar.bz2 /root/GUI.tar.bz2
 		fi
-		if [ -f /root/GUI.tar.bz2 ]; then
-			cp /root/GUI.tar.bz2 /tmp
-			rm /root/GUI.tar.bz2
+		if [ -f /root/GUI.tar.bz2 ] && [ ! -f /root/GUI.tar.gz ]; then
+		    logger -s -t 'Root Script' "Creating stripped gz of bz2 GUI"
+			mv /root/GUI.tar.bz2 /tmp/GUI.tar.bz2
 			convert_gui_to_light_gz "GUI"
+		elif [ -f /root/GUI.tar.bz2 ]; then
+		    logger -s -t 'Root Script' "Removing unneeded bz2 of Stable GUI"
+		    rm /root/GUI.tar.bz2
 		fi
 	fi
 
