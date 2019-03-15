@@ -32,13 +32,11 @@ local function gen_dummy_card(modalPath)
 	dch[#dch+1] =	  '</div>'
 	dch[#dch+1] =   '</div>'
 	dch[#dch+1] = '<script>\
-					$("document").ready(function() { \
 					    $.get("/ajax/get_card.lua?modal='..modalPath..'").done(function (data) {\
 					      $("#'..counter..'_card").replaceWith(data);\
 					    }).fail(function (data) {\
 					      $("#'..counter..'_card").find(".divtable").html(\'Error \'+data.status+$(data.responseText).find(".control-group").html());\
 					    });\
-					  });\
 				   </script>'
 	dch[#dch+1] = '</div>'
 	return dch 
