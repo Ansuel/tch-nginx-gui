@@ -192,6 +192,7 @@ end
 -- @param #number time
 -- @return #string number of seconds
 function M.secondsToTime(time)
+  setlanguage()
   local time_no = tonumber(time)
   if (time_no and time_no >= 0) then
     local durations = {
@@ -227,6 +228,7 @@ end
 -- @param #number time
 -- @return #string number of seconds
 function M.secondsToTimeShort(time)
+  setlanguage()
   local time_no = tonumber(time)
   if (time_no and time_no >= 0) then
     local durations = {
