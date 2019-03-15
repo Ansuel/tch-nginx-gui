@@ -65,6 +65,7 @@ var processMsg=\'');  ngx.print(T"Processing"); ngx.print('\';\
 var openMsg = \'');  ngx.print(T"Loading..."); ngx.print('\';\
 var waitMsg = \'');  ngx.print(T"Please wait..."); ngx.print('\';\
 var loginMsg =\'');  ngx.print(T"Login Expired. Reloading."); ngx.print('\';\
+var connectionLost = \'');  ngx.print(T"Connection issue: "); ngx.print('\';\
 var okButton = \'');  ngx.print(T"Ok"); ngx.print('\';\
 var cancelButton = \'');  ngx.print(T"Cancel"); ngx.print('\';\
 function httpErrorMessage(err){\

@@ -160,6 +160,7 @@ $(function () {
 	};
 });
 
+var connectionissue = 0;
 function createAjaxUpdateCard(CardIdRefresh, ajaxLink, IntervalVar, RefreshTime) {
 	var ElementBinding = {};
 	var ElementBindingList = [];
@@ -179,7 +180,24 @@ function createAjaxUpdateCard(CardIdRefresh, ajaxLink, IntervalVar, RefreshTime)
 					ElementBinding[ElementBindingList[i]](data[ElementBindingList[i]]);
 				}
 			}
-		}, "json");
+		}, "json")
+			.done(function(data) {
+				if(connectionissue==1) {
+					if ($("#popUp").is(":visible"))
+						tch.removeProgress();
+					connectionissue = 0;
+				}
+			})
+			.fail(function(data) {
+				connectionissue = 1;
+				if(data.status==200 && data.responseText.includes("sign-me-in")){
+					if(!$("#popUp").is(":visible"))
+						tch.showProgress(loginMsg);
+					window.location.href = "/";
+				}
+				if(!$("#popUp").is(":visible"))
+					tch.showProgress(connectionLost + " " + data.statusText);
+			});
 	};
 
 	AjaxRefresh();
