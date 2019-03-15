@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~/gui_build
     docker:
-      - image: ansuel/gui-autobuild-image:1
+      - image: ansuel/gui-autobuild-image:2
     steps:
       - checkout
       - run:
@@ -15,14 +15,23 @@ jobs:
           name: Increment version from latest build
           command: bash ./scripts/1-increment_autobuild_ver.sh
       - run:
+          name: Minify css and javascript
+          command: bash ./scripts/1-compress_css_javascript.sh
+      - run:
           name: Clone autobuild repo
           command: bash ./scripts/2-clone_autobuild_dir.sh
+      - run:
+          name: Update po
+          command: python3 ./scripts/update_po.py
       - run:
           name: Inizialize Gui
           command: bash ./inizialize_gui.sh
       - run:
           name: Upload new build, build and latest.version
           command: bash ./scripts/3-update_autobuild_ver.sh
+      - run:
+          name: Committing updated po to master
+          command: bash ./scripts/6-commit_po.sh
       #- save_cache:
       #    key: latest-file-key
       #    paths:

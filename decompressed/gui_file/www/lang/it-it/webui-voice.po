@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: webui-voice\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-06-21 15:33+0200\n"
-"PO-Revision-Date: 2019-01-08 11:59+0100\n"
+"PO-Revision-Date: 2019-03-02 15:16+0100\n"
 "Last-Translator: bovirus <bovirus@gmail.com>\n"
 "Language-Team: none\n"
 "Language: it\n"
@@ -12,23 +12,23 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language-Name: Italiano\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.2\n"
+"X-Generator: Poedit 2.2.1\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
 msgid "<strong %s>%d </strong> Registered Account"
 msgid_plural "<strong %s>%d </strong> Registered Accounts"
-msgstr[0] "<strong %s>%d </strong> account registrato"
-msgstr[1] "<strong %s>%d </strong> account registrati"
+msgstr[0] "<strong %s>%d</strong> account registrato"
+msgstr[1] "<strong %s>%d</strong> account registrati"
 
 msgid "<strong %s>%d </strong> Registering Account"
 msgid_plural "<strong %s>%d </strong> Registering Accounts"
-msgstr[0] "<strong %s>%d </strong> account in registrazione"
-msgstr[1] "<strong %s>%d </strong> account in registrazione"
+msgstr[0] "<strong %s>%d</strong> account in registrazione"
+msgstr[1] "<strong %s>%d</strong> account in registrazione"
 
 msgid "<strong %s>%d </strong> Unregistered Account"
 msgid_plural "<strong %s>%d </strong> Unregistered Accounts"
-msgstr[0] "<strong %s>%d </strong> account non registrato"
-msgstr[1] "<strong %s>%d </strong> account non registrati"
+msgstr[0] "<strong %s>%d</strong> account non registrato"
+msgstr[1] "<strong %s>%d</strong> account non registrati"
 
 msgid "ALL"
 msgstr "TUTTI"
@@ -60,8 +60,14 @@ msgstr "Registro chiamate"
 msgid "Call Statistics"
 msgstr "Statistiche chiamate"
 
+msgid "Line Status"
+msgstr "Stato linea"
+
+msgid "Call State"
+msgstr "Stato chiamata"
+
 msgid "Call Status"
-msgstr "Stato chiamate"
+msgstr "Stati chiamate"
 
 msgid "Call Type"
 msgstr "Tipo chiamate"
@@ -157,7 +163,7 @@ msgid "Global"
 msgstr "Globale"
 
 msgid "Global Information"
-msgstr "Informazioni globali"
+msgstr "Informazioni generali"
 
 msgid "Handset ID"
 msgstr "ID portatile"
@@ -229,7 +235,7 @@ msgid "Outgoing Failed"
 msgstr "Chiamate in uscita fallite"
 
 msgid "Outgoing Maps"
-msgstr "Mappe in uscita"
+msgstr "Mappature in uscita"
 
 msgid "Outgoing Successful"
 msgstr "Chiamate effettuate"
@@ -253,7 +259,7 @@ msgid "Pairing Window Time in Sec"
 msgstr "Intervallo temporale accoppiamento (sec)"
 
 msgid "Pairing in progress, Please press Cancel button for stop pairing."
-msgstr "Accoppiamento in corso. Seleziona 'Annulla' per interrompere l'accoppiamento."
+msgstr "Accoppiamento in corso.<br/>Seleziona 'Annulla' per interrompere l'accoppiamento."
 
 msgid "Pairing in progress, please wait..."
 msgstr "Accoppiamento..."
@@ -270,8 +276,8 @@ msgstr "Rubrica telefonica"
 msgid "Phone Number"
 msgstr "Numero di telefono"
 
-msgid "Phone Numbers"
-msgstr "Numeri di telefono"
+msgid "Phone Lines"
+msgstr "Linee telefoniche"
 
 msgid "Please set URI."
 msgstr "Imposta URI."
@@ -357,7 +363,7 @@ msgstr "Servizi"
 msgid "Silence Suppression"
 msgstr "Soppressione silenzio"
 
-msgid "Sip Device"
+msgid "SIP Device"
 msgstr "Dispositivo SIP"
 
 msgid "Some parameters failed validation"
@@ -431,3 +437,21 @@ msgstr "Porta locale"
 
 msgid "Can be used"
 msgstr "Possono essere usati"
+
+msgid "Codec"
+msgstr "Codec"
+
+msgid "Stop"
+msgstr "Stop"
+
+msgid "Invoke"
+msgstr "Invoca"
+
+msgid "DECT"
+msgstr "DECT"
+
+msgid "Realm"
+msgstr "Realm"
+
+msgid "Sip Device"
+msgstr "Dispositivo SIP"

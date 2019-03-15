@@ -72,7 +72,7 @@ end
   ngx.print('\
 \
 <div class="span3">\
-  <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
+  <div class="smallcard" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
     ');  ngx.print( ui_helper.createCardHeader(T"Internet Access", modalPath) ); ngx.print('\
     <div class="content card_bg" data-bg-text="&#xf0ac;">\
       <div class="divtable">\
@@ -84,7 +84,7 @@ end
     if mobile_ip then
         ngx.print(ui_helper.createSimpleLight(content_mode["wwan_up"], "Mobile Internet connected"),
          '<p class="subinfos">',
-           format(T'WAN IP is <strong>%s<\strong>', mobile_ip),
+           format(T'WAN IP is <strong>%s</strong>', mobile_ip),
          '</p>'
         )
     end

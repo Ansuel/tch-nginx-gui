@@ -13,7 +13,6 @@ local params = utils.get_params()
   ngx.print('\
 \
 <link href="/css/mobiled.css" rel="stylesheet">\
-<script language="javascript" type="text/javascript" src="js/flot-min.js"></script>\
 \
 ');  ngx.print( ui_helper.createHeader(params.modal_title, false, true, nil)); ngx.print('\
 <div class="modal-body update" id="lte-doctor-body">\
@@ -132,6 +131,9 @@ local params = utils.get_params()
 </div>\
 ');  ngx.print( ui_helper.createFooter() ); ngx.print('\
 <script>\
+\
+	$.getScript("/js/flot-min.js");\
+\
 	var lteDoctor = new function() {\
 		this.refreshRate = 6;\
 		this.minValue = -150;\

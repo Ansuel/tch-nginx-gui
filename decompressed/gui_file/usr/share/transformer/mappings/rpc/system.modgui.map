@@ -1,7 +1,28 @@
 local logger = require("transformer.logger")
-local log = logger.new("rpc.system.config.")
-local lfs = require("lfs")
 local commitapply = commitapply
+
+local function countStepInRootdevice() 
+	--idiot function to count how much loger we have in rootdevice
+	local rootdevicefile = "/etc/init.d/rootdevice"
+	local start_count = false
+	local log_num = 0
+	for line in io.lines(rootdevicefile) do
+		if start_count == true then
+			if line:match("logger_command \"") and not line:match("\" ConsoleOnly") then
+				log_num = log_num+1
+			end
+		end
+		if line:match("check_bank%(%) {") then
+			io.close()
+			break
+		end
+		if line == "root() {" then
+			start_count = true
+		end
+	end
+	
+	return tostring(log_num)
+end
 
 local SYSTEM_MODGUI_ = {
   objectType = {
@@ -23,43 +44,169 @@ local SYSTEM_MODGUI_UPGRADEGUI_ = {
     maxEntries = 1,
     parameters = {
       state = {
-        access = "readOnly",
+        access = "readWrite",
         type = "string",
         enumeration = {
-          "In Progress",
           "Not started",
+		  "Downloading",
+		  "Extracting",
+		  "Requested",
+          "In Progress",
+		  "Finished",
         },
       },
       start = {
         access = "readWrite",
         type = "boolean",
-      }
+      },
+	  log = {
+        access = "readWrite",
+        type = "string",
+      },
+	  log_step = {
+		access = "readOnly",
+		type = "int",
+	  },
+	  log_prog = {
+		access = "readWrite",
+		type = "int",
+	  },
+	  extract_prog = {
+		access = "readWrite",
+		type = "int",
+	  }
     }
   }
 }
 
+local upgradegui = {}
+
+upgradegui.log_step = countStepInRootdevice()
+
 SYSTEM_MODGUI_UPGRADEGUI_.get = {
   start = "0",
   state = function(mapping, param)
+	
+	if ( upgradegui.resetOnNextRequest == 1 ) then
+	  upgradegui.resetOnNextRequest = 0
+	  upgradegui.state = nil
+	end
+	
 	local progress_status = io.open("/root/.check_process","r")
+	
 	if progress_status then
 		progress_status:close()
+		upgradegui.state = nil --reset state as we are in root progress...
 		return "In Progress"
-	else
-		return "Not started"
+	elseif upgradegui.state then
+		if ( upgradegui.state == "Complete" ) then
+			upgradegui.resetOnNextRequest = 1
+		end
+		return upgradegui.state
 	end
+	
+	
+	return "Not started"
+  end,
+  log = function(mapping, param)
+	return upgradegui.log or ""
+  end,
+  log_step = function(mapping, param)
+	if upgradegui.logstep then
+		return upgradegui.logstep
+	else
+	  return countStepInRootdevice()
+	end
+  end,
+  log_prog = function(mapping, param)
+	return upgradegui.log_prog or "0"
+  end,
+  extract_prog = function(mapping, param)
+	return upgradegui.extract_prog or "Not Extracting"
   end,
 }
 
 SYSTEM_MODGUI_UPGRADEGUI_.set = {
-	start = function(mapping, paramName, paramValue)  
+  state = function(mapping, paramName, paramValue)  
+	if paramValue == "Finished" or 
+	   paramValue == "Extracting" or
+	   paramValue == "Requested" or 
+	   paramValue == "Downloading" then
+        upgradegui.state = paramValue
+    end
+  end,
+  start = function(mapping, paramName, paramValue)  
 	if paramValue == "1" then
         commitapply:newset("rpc.system.modgui.upgradegui." .. paramName)
     end
   end,
+  log = function(mapping, paramName, paramValue)
+	  upgradegui.log = paramValue
+  end,
+  log_prog = function(mapping, paramName, paramValue)
+	  upgradegui.log_prog = paramValue
+  end,
+  extract_prog = function(mapping, paramName, paramValue)
+	  upgradegui.extract_prog = paramValue
+  end,
 }
 
 register(SYSTEM_MODGUI_UPGRADEGUI_)
+
+local SYSTEM_MODGUI_UTILITY_ = {
+  objectType = {
+    name = 'rpc.system.modgui.utility.',
+    access = 'readOnly',
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      resetgui = {
+	    access = "readWrite",
+	    type = "boolean",
+	  },
+	  upgradegui = {
+	    access = "readWrite",
+	    type = "boolean",
+	  },
+	  checkver = {
+	    access = "readWrite",
+	    type = "boolean",
+	  },
+	  removeroot = {
+	    access = "readWrite",
+	    type = "boolean",
+	  },
+	  refreshdriver = {
+	    access = "readWrite",
+	    type = "boolean",
+	  },
+	  transfer_bank1 = {
+	    access = "readWrite",
+	    type = "boolean",
+	  },
+	  copy_bank = {
+	    access = "readWrite",
+	    type = "boolean",
+	  },
+    }
+  },
+  get = {
+	resetgui = "0",
+	upgradegui = "0",
+	checkver = "0",
+	removeroot = "0",
+	transfer_bank1 = "0",
+	refreshdriver = "0",
+	copy_bank = "0",
+  },
+  set = function(mapping, paramName, paramValue)
+		  if paramValue == "1" then
+		  	commitapply:newset("rpc.system.modgui.utility." .. paramName)
+		  end
+		end
+}
+
+register(SYSTEM_MODGUI_UTILITY_)
 
 local SYSTEM_MODGUI_DEBUGLOG_ = {
   objectType = {
@@ -133,6 +280,52 @@ SYSTEM_MODGUI_DEBUGLOG_.set = {
 }
 
 register(SYSTEM_MODGUI_DEBUGLOG_)
+
+local SYSTEM_MODGUI_SCRIPTREQUEST_ = {
+  objectType = {
+    name = 'rpc.system.modgui.scriptRequest.',
+    access = 'readOnly',
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      state = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "Not Requested",
+          "Requested",
+          "Complete",
+        },
+      }
+    }
+  }
+}
+
+upgradegui.scriptRequest = {}
+
+SYSTEM_MODGUI_SCRIPTREQUEST_.get = {
+  state = function(mapping, param)
+	local result = upgradegui.scriptRequest.state
+	if ( upgradegui.scriptRequest.resetOnNextRequest == 1 ) then
+	  upgradegui.scriptRequest.state = nil
+	end
+	return result or "Not Requested"
+  end
+}
+
+SYSTEM_MODGUI_SCRIPTREQUEST_.set = {
+  state = function(mapping, paramName, paramValue)  
+	if ( paramValue == "Requested" ) then
+	  upgradegui.scriptRequest.resetOnNextRequest = 0
+	  upgradegui.scriptRequest.state = paramValue
+	elseif ( paramValue == "Complete" ) then
+	  upgradegui.scriptRequest.resetOnNextRequest = 1
+	  upgradegui.scriptRequest.state = paramValue
+	end
+  end,
+}
+
+register(SYSTEM_MODGUI_SCRIPTREQUEST_)
 
 local SYSTEM_MODGUI_APP_ = {
   objectType = {

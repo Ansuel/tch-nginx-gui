@@ -24,8 +24,8 @@ local cui = {
   defaultuser = "uci.web.uiconfig.@uidefault.defaultuser",
   nsplink = "uci.web.uiconfig.@uidefault.nsplink",
   timestamp = "uci.version.version.@version[0].timestamp",
-  gui_version = "uci.env.var.gui_version",
-  gui_skin = "uci.env.var.gui_skin",
+  gui_version = "uci.modgui.gui.gui_version",
+  gui_skin = "uci.modgui.gui.gui_skin",
 }
 content_helper.getExactContent(cui)
 local year= cui.timestamp
@@ -50,12 +50,12 @@ else
 	httpi_wwan = ""
 end
 
-local wan_sensing = proxy.get("uci.wansensing.global.enable")
+local wan_mode = proxy.get("uci.network.config.wan_mode")
 
-if wan_sensing and wan_sensing[1].value then
-	wan_sensing = wan_sensing[1].value
+if wan_mode and wan_mode[1].value then
+	wan_mode = wan_mode[1].value
 else
-	wan_sensing = ""
+	wan_mode = ""
 end
 
 local assistance_port = proxy.get("uci.web.assist_state.@state_remote.port")
@@ -68,7 +68,7 @@ end
 
 
 for _, v in ipairs(users) do
-  if v.legacy_salt ~= "" then
+  if v.legacy_salt and v.legacy_salt ~= "" then
     userNames = userNames .. v.name ..","
     legacySalts = legacySalts .. v.legacy_salt .. ","
   end
@@ -81,7 +81,7 @@ end
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">\
     <meta charset="UTF-8">\
     <meta name="CSRFtoken" content="');  ngx.print( ngx.ctx.session:getCSRFtoken() ); ngx.print('">\
-	<link href="/css/font-awesome-all-5.1.0.css?version='); ngx.print(cui.gui_version); ngx.print('" rel="stylesheet">\
+	<link href="/css/font-awesome-all-5.7.2.css?version='); ngx.print(cui.gui_version); ngx.print('" rel="stylesheet">\
     <link href="/css/gw.css?version='); ngx.print(cui.gui_version); ngx.print('" rel="stylesheet">\
     <link href="/css/responsive.css?version='); ngx.print(cui.gui_version); ngx.print('" rel="stylesheet">\
 	<link rel="shortcut icon"    type="image/x-icon"   href="/img/favicon.ico"/>');
@@ -117,15 +117,8 @@ ngx.print('\
 		      <div style="z-index : 2;  position: relative;">\
                 <fieldset>\
                       <h2>');  ngx.print( T"Sign in" ); ngx.print('</h2>');
-                      if httpi=="0" and httpi_wwan=="0" then
-                      ngx.print('<div id="httpi" class="alert alert-error ">');
-		    	  		if httpi=="0" and httpi_wwan=="0" and wan_sensing=="1" then
-		    	  			ngx.print('<strong>'); ngx.print( T"You don't have internet access at this time" ); ngx.print('</strong>');
-		    	  		end
-		    	  		if httpi=="0" and httpi_wwan=="0" and wan_sensing=="0" then
-		    	  			ngx.print('<strong>'); ngx.print( T"Your modem is in bridge mode. It only connect to DSLAM and nothings else." ); ngx.print('</strong>')
-		    	  		end
-                      ngx.print('</div>')
+                      if httpi=="0" and httpi_wwan=="0" and wan_mode~="bridge" then
+		    	  			ngx.print('<div id="httpi" class="alert alert-error "><strong>'); ngx.print( T"You don't have internet access at this time" ); ngx.print('</strong></div>');
                       end
                   ngx.print('<div id="erroruserpass" class="alert alert-error hide">\
                      <strong>');  ngx.print( T"Invalid Username or Password" ); ngx.print('</strong>\

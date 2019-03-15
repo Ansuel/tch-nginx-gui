@@ -24,17 +24,18 @@ local modalPath = nil
 local switchName = nil
 local modal_link = ""
 local wireless_modal_link = ""
+local traffic_monitor_link = ""
 local session = ngx.ctx.session
 if session:hasAccess("/modals/device-modal.lp") then
   modalPath = "/modals/device-modal.lp"
-  modal_link='class="modal-link" data-toggle="modal" data-remote="modals/device-modal.lp" data-id="device-modal"'
-  wireless_modal_link='class="modal-link" data-toggle="modal" data-remote="modals/wifi-nurse-modal.lp" data-id="device-modal"'
-  traffic_monitor_link='class="modal-link" data-toggle="modal" data-remote="modals/traffic-monitor.lp" data-id="device-modal"'
+  modal_link='class="modal-link" data-toggle="modal" data-remote="/modals/device-modal.lp" data-id="device-modal"'
+  wireless_modal_link='class="modal-link" data-toggle="modal" data-remote="/modals/wifi-nurse-modal.lp" data-id="device-modal"'
+  traffic_monitor_link='class="modal-link" data-toggle="modal" data-remote="/modals/traffic-monitor.lp" data-id="device-modal"'
 end
   ngx.print('\
 \
 <div class="span3">\
-  <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
+  <div class="smallcard" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
     ');  ngx.print( ui_helper.createCardHeader(T"Devices", modalPath, switchName, nil)  ); ngx.print('\
     <div class="content card_bg" data-bg-text="&#xf1e6;">\
 	<div class="divtable">\
@@ -72,7 +73,7 @@ end
 			'<p class="subinfos">',
 				'<i style="margin-left:-20px;" class="fas fa-chart-line" href="#">&nbsp</i>',
 				format( '<strong id = "Traffic_Monitor" %1$s>%s</strong>', traffic_monitor_link, T"Traffic Monitor"),
-				--'<div data-toggle="modal" data-remote="modals/diagnostics-xdsl-graphics-modal.lp" data-id="iagnostics-xdsl-graphics-modal">',
+				--'<div data-toggle="modal" data-remote="/modals/diagnostics-xdsl-graphics-modal.lp" data-id="iagnostics-xdsl-graphics-modal">',
 				--	,T("Traffic Monitor"),
 				--'</div>',
             '</p>'

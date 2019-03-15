@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: webui-contentsharing\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-10-27 13:44+0200\n"
-"PO-Revision-Date: 2019-01-08 11:58+0100\n"
+"PO-Revision-Date: 2019-03-02 15:13+0100\n"
 "Last-Translator: bovirus <bovirus@gmail.com>\n"
 "Language-Team: none\n"
 "Language: it\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language-Name: Italiano\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.2\n"
+"X-Generator: Poedit 2.2.1\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
 msgid "Cancel"
@@ -27,17 +27,14 @@ msgstr "Chiudi"
 msgid "Content Sharing"
 msgstr "Condivisione contenuti"
 
-msgid "Currently there are <strong>%d</strong> connected devices"
-msgstr "Ci sono <strong>%d</strong> dispositivi connessi"
+msgid "<strong>%d</strong> connected devices"
+msgstr "<strong>%d</strong> dispositivi connessi"
 
-msgid "Currently there are <strong>%s</strong> connected devices"
-msgstr "Ci sono <strong>%s</strong> dispositivi connessi"
+msgid "<strong>%s</strong> connected devices"
+msgstr "<strong>%s</strong> dispositivi connessi"
 
-msgid "Currently there is <strong>%d</strong> connected device"
-msgstr "C'è solo un <strong>%d</strong> dispositivo connesso"
-
-msgid "DLNA Enabled"
-msgstr "DLNA attivato"
+msgid "<strong>%d</strong> connected device"
+msgstr "<strong>%d</strong> dispositivo connesso"
 
 msgid "DLNA disabled"
 msgstr "DLNA disattivato"
@@ -46,7 +43,7 @@ msgid "DLNA enabled"
 msgstr "DLNA attivato"
 
 msgid "DLNA name: "
-msgstr "Nome DLNA "
+msgstr "Nome DLNA: "
 
 msgid "Eject"
 msgstr "Espelli"
@@ -61,12 +58,12 @@ msgid "Free Space"
 msgstr "Spazio disponibile"
 
 msgid "General status"
-msgstr "Stato generale"
+msgstr "Informazioni principali"
 
-msgid "Hard Disk Information"
-msgstr "Informazioni disco fisso"
+msgid "Attached Drive Info"
+msgstr "Informazioni unità collegata"
 
-msgid "It is recommended to use the USB in the 2.0 standard. The use of USB in 3.1 standard can remarkably affect the Wi-Fi performance at 2.4 Ghz band."
+msgid "It is recommended to use USB2.0 standard. The use of USB3.1 standard can badly affect the Wi-Fi performance of the 2.4 Ghz band."
 msgstr "Usa un dispositivo USB 2.0.<br/>L'uso di dispositiivi USB 3.1 può influenzare negativamente le prestazioni Wi-Fi nella banda 2.4GHz."
 
 msgid "Manufacturer"
@@ -90,22 +87,22 @@ msgstr "Stato profilazione: "
 msgid "Restarting, please wait..."
 msgstr "Riavvio in corso..."
 
-msgid "Samba Filesharing"
+msgid "SMB/CIFS Filesharing"
 msgstr "Condivisione file Samba"
 
-msgid "Samba Filesharing disabled"
+msgid "SMB/CIFS Filesharing disabled"
 msgstr "Condivisione file Samba disabilitata"
 
-msgid "Samba Filesharing enabled"
+msgid "SMB/CIFS Filesharing enabled"
 msgstr "Condivisione file Samba abilitata"
 
-msgid "Samba description: "
+msgid "SMB/CIFS description: "
 msgstr "Descrizione Samba "
 
-msgid "Samba name: "
+msgid "SMB/CIFS name: "
 msgstr "Nome Samba "
 
-msgid "Samba workgroup: "
+msgid "SMB/CIFS workgroup: "
 msgstr "Gruppo lavoro Samba: "
 
 msgid "Save"
@@ -120,7 +117,7 @@ msgstr "L'abilitazione/disabilitazione del supporto USB3.1 richiederà il riavvi
 msgid "Total Space"
 msgstr "Spazio totale"
 
-msgid "USB 3.1 Enabled"
+msgid "USB3.1 enabled"
 msgstr "USB 3.1 abilitato"
 
 msgid "USB Port"
@@ -134,3 +131,9 @@ msgstr "Versione"
 
 msgid "Volume"
 msgstr "Volume"
+
+msgid "Rebooting..."
+msgstr "Riavvio..."
+
+msgid "no"
+msgstr "no"

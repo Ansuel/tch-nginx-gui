@@ -532,11 +532,7 @@ local function getDnsServers(key)
   elseif type(inactive) == "table" and #inactive ~= 0 then
     v = inactive
   end
-  if type(staticDns) == "string" then
-	servers = staticDns ~= "" and staticDns or ""
-  else
-    servers = staticDns ~= "" and table.concat(staticDns, ",") or ""
-  end
+  servers = staticDns ~= "" and table.concat(staticDns, ",") or ""
   for i, server in ipairs(v) do
     if string.find(servers,server) == nil then
       if (i > 1) then

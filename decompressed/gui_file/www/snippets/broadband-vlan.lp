@@ -235,8 +235,8 @@ ngx.print('\
 \
   <legend>'); ngx.print( T"Internet channel" ); ngx.print('</legend>');
 
-	liste = {	{"devnot", "Device &nbsp;"},
-				{"dotnot", "Dot"},
+	liste = {	{"devnot", T"Device &nbsp;"},
+				{"dotnot", T"Dot"},
 			}
 	
     local html = {}

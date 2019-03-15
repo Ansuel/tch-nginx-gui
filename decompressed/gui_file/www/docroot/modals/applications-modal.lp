@@ -29,6 +29,7 @@ else
 end
 
 local function appapply(action)
+	proxy.set("rpc.system.modgui.scriptRequest.state","Requested")
 	proxy.set("rpc.system.modgui.app." .. action, "1")
 	if ( action == "install_emptyblacklist" ) then
 		action = "install_blacklist"
@@ -42,9 +43,9 @@ local function appapply(action)
 			state = "0"
 		end
 		if not ( uci_set == "blacklist" ) and not ( uci_set == "xupnp" ) then
-			proxy.set("uci.env.var." .. uci_set .. "_webui",state)
+			proxy.set("uci.modgui.app." .. uci_set .. "_webui",state)
 		else
-			proxy.set("uci.env.var." .. uci_set .. "_app",state)
+			proxy.set("uci.modgui.app." .. uci_set .. "_app",state)
 		end
 	end
 	ngx.header.content_type = "application/json"
@@ -70,21 +71,21 @@ if prod_friendly_name and prod_friendly_name[1].value then
 	if prod_friendly_name[1].value:match("DGA413") or
 			prod_friendly_name[1].value:match("TG799") or
 			prod_friendly_name[1].value:match("TG789") then
-		mapParams.luci_webui = "uci.env.var.luci_webui"
+		mapParams.luci_webui = "uci.modgui.app.luci_webui"
 	end
 	if prod_friendly_name[1].value:match("TG799") or
 			prod_friendly_name[1].value:match("TG789") then
-		mapParams.amule_webui = "uci.env.var.amule_webui"
+		mapParams.amule_webui = "uci.modgui.app.amule_webui"
 	end
-	mapParams.aria2_webui = "uci.env.var.aria2_webui"
-	mapParams.transmission_webui = "uci.env.var.transmission_webui"
+	mapParams.aria2_webui = "uci.modgui.app.aria2_webui"
+	mapParams.transmission_webui = "uci.modgui.app.transmission_webui"
 	if prod_friendly_name[1].value:match("DGA413") then
-		mapParams.blacklist_application = "uci.env.var.blacklist_app"
+		mapParams.blacklist_application = "uci.modgui.app.blacklist_app"
 		if tonumber(marketing_version) >= 17.3 then
-			mapParams.xupnp_application = "uci.env.var.xupnp_app"
+			mapParams.xupnp_application = "uci.modgui.app.xupnp_app"
 		end
 	end
-	mapParams.telstra_webui = "uci.env.var.telstra_webui"
+	mapParams.telstra_webui = "uci.modgui.app.telstra_webui"
 end
 content_helper.getExactContent(mapParams)
 
@@ -102,7 +103,7 @@ ngx.print('\
 \
 ');  ngx.print(ui_helper.createHeader(T"Application List", false, false))   ngx.print('\
 <div class="modal-body update">\
-<fieldset>\
+<fieldset style="display:flex;">\
     <form class="form-horizontal" method="post" action="modals/applications-modal.lp">\
     ');
 local info_box = {
@@ -127,20 +128,20 @@ for _, app in ipairs(app_list) do
 end
 
 if StateParams["luci_webui"] ~= nil then
-	html[#html+1] = '<div class="span3">'
+	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
 	html[#html+1] = "<fieldset>"
-	html[#html+1] = '<legend>' .. T"Luci GUI" .. '</legend>'
+	html[#html+1] = '<legend>' .. T"LuCI GUI" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install uhttpd and luci", info_box)
 	html[#html+1] = T"State: "
-	html[#html+1] = "<strong>" .. T"Luci is " .. StateParams["luci_webui"] .. T" installed" .. "</strong></br>"
+	html[#html+1] = "<strong>" .. T"LuCI is " .. StateParams["luci_webui"] .. T" installed" .. "</strong></br>"
 	local luci_link = format("http://%s:9080",mapParams.local_ip_modem)
 	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. luci_link .. '">' .. luci_link .. "</a>"
 	html[#html+1] = "</br>"
 	html[#html+1] = "</br>"
 	if mapParams["luci_webui"] and mapParams["luci_webui"] == "1" then
-		html[#html+1] = ui_helper.createSimpleButton(T"Remove".." Luci", "fa fa-times-circle", btn_table.luci.remove)
+		html[#html+1] = ui_helper.createSimpleButton(T"Remove".." LuCI", "fa fa-times-circle", btn_table.luci.remove)
 	else
-		html[#html+1] = ui_helper.createSimpleButton(T"Install".." Luci", "fa fa-download", btn_table.luci.install)
+		html[#html+1] = ui_helper.createSimpleButton(T"Install".." LuCI", "fa fa-download", btn_table.luci.install)
 	end
 	html[#html+1] = "</br>"
 	html[#html+1] = "</fieldset>"
@@ -148,7 +149,7 @@ if StateParams["luci_webui"] ~= nil then
 end
 
 if StateParams["amule_webui"] ~= nil then
-	html[#html+1] = '<div class="span3">'
+	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. T"aMule" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install aMule webui", info_box)
@@ -171,7 +172,7 @@ if StateParams["amule_webui"] ~= nil then
 end
 
 if StateParams["aria2_webui"] ~= nil then
-	html[#html+1] = '<div class="span3">'
+	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. T"Aria2 GUI" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install aria2 and ariang webui", info_box)
@@ -195,7 +196,7 @@ if StateParams["aria2_webui"] ~= nil then
 end
 
 if StateParams["transmission_webui"] ~= nil then
-	html[#html+1] = '<div class="span3">'
+	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. T"Transmission GUI" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install transmission and transmission-webui", info_box)
@@ -224,7 +225,7 @@ if StateParams["blacklist_application"] ~= nil then
 			id = "btn-installempty_blacklist"
 		}
 	}
-	html[#html+1] = '<div class="span3">'
+	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. T"Blacklist App" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install the blacklist application", info_box)
@@ -249,7 +250,7 @@ if StateParams["blacklist_application"] ~= nil then
 end
 
 if StateParams["xupnp_application"] ~= nil then
-	html[#html+1] = '<div class="span3">'
+	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. T"XUPnP App" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install the XUPnP application", info_box)
@@ -270,21 +271,21 @@ if StateParams["xupnp_application"] ~= nil then
 end
 
 if StateParams["telstra_webui"] ~= nil then
-	html[#html+1] = '<div class="span3">'
+	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. T"Telstra GUI" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install Telstra webui", info_box)
 	html[#html+1] = T"State: "
-	html[#html+1] = "<strong>" .. T"Telstra is " .. StateParams["telstra_webui"] .. T" installed" .. "</strong></br>"
+	html[#html+1] = "<strong>" .. T"Telstra GUI is " .. StateParams["telstra_webui"] .. T" installed" .. "</strong></br>"
 	local telstra_gui = "/telstra-gui.lp"
 	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. telstra_gui .. '">' .. telstra_gui .."</a>"
 	html[#html+1] = "</br>"
 	html[#html+1] = T"Change the default page in system-extra to set this gui as default"
 	html[#html+1] = "</br>"
 	if mapParams["telstra_webui"] and mapParams["telstra_webui"] == "1" then
-		html[#html+1] = ui_helper.createSimpleButton(T"Remove".." Telstra GUI", "fa fa-times-circle", btn_table.telstra.remove)
+		html[#html+1] = ui_helper.createSimpleButton(T"Remove" .. " " .. T"Telstra GUI", "fa fa-times-circle", btn_table.telstra.remove)
 	else
-		html[#html+1] = ui_helper.createSimpleButton(T"Install".." Telstra GUI", "fa fa-download", btn_table.telstra.install)
+		html[#html+1] = ui_helper.createSimpleButton(T"Install" .. " " .. T"Telstra GUI", "fa fa-download", btn_table.telstra.install)
 	end
 	html[#html+1] = "</fieldset>"
 	html[#html+1] = "</div>"
@@ -320,10 +321,10 @@ ngx.print('\
       	setTimeout(function(){tch.removeProgress();}, 2000);\
       } else if(btnact.startsWith("remove")){\
       	post(btnact,"');  ngx.print(T'Removing...'); ngx.print('");\
-      	setTimeout(function(){location.reload();}, 2000);\
+      	scriptRequestStatusAjax();\;\
       } else if(btnact.startsWith("install")) {\
       	post(btnact,"');  ngx.print(T'Installing...'); ngx.print('");\
-      	setTimeout(function(){location.reload();}, 2000);\
+      	scriptRequestStatusAjax();\;\
       }\
     });\
 }());\

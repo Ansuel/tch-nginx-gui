@@ -33,6 +33,8 @@ EXTRA_HELP="\
 "
 #Gui version is now autocompleted base on latest dev, this variable will be replaced by the automatic script
 version_gui=TO_AUTO_COMPLETE
+#Latest version on TIM cwmp for version spoof
+latest_version_on_TIM_cwmp="2.0.0"
 
 logo_project() {
 cat << EOF > /dev/console
@@ -72,28 +74,47 @@ cat << EOF > /dev/console
 EOF
 }
 
-logger_command() {
-	if [ $debug  -eq 1 ]; then
-		logger -s -t "Root Script" "$1"
-	fi
+
+############TRANSFORMER UTILITY##################
+set_transformer() {
+	cmd="require('datamodel').set('$1','$2')"
+	lua -e "$cmd"
 }
 
-add_ipv6() {
-	uci set network.wan_ipv6=interface
-	uci set network.wan_ipv6.auto='0'
-	uci set network.wan_ipv6.proto='pppoe'
-	uci set network.wan_ipv6.demand='0'
-	uci set network.wan_ipv6.password='IPV6@alice6'
-	uci set network.wan_ipv6.macaddr=$(uci -q get network.wan.macaddr)
-	uci set network.wan_ipv6.ipv6='1'
-	uci set network.wan_ipv6.peerdns='1'
-	uci set network.wan_ipv6.keepalive_adaptive='0'
-	uci set network.wan_ipv6.dns_metric='0'
-	uci set network.wan_ipv6.ifname='wanptm0'
-	uci set network.wan_ipv6.username=$(uci -q get env.var.serial)-$(uci -q get env.var.oui)@alice6.it
-	uci set network.wan_ipv6.metric='10'
-	uci set network.wan6.ifname='@wan_ipv6'
+get_transformer() {
+	cmd="require('datamodel').get('$1')"
+	lua -e "$cmd"
 }
+#################################################
+
+log_progress=0
+restart_dnsmasq=0
+
+####################LOG FUNCTION#################
+logger_command() {
+	if [ "$debug"  -eq 1 ]; then
+		logger -s -t "Root Script" "$1"
+	fi
+	if [ -z "$2" ]; then
+	log_progress=$((log_progress+1))
+		set_transformer "rpc.system.modgui.upgradegui.log_prog" $log_progress
+		set_transformer "rpc.system.modgui.upgradegui.log" "$1"
+	fi
+}
+#################################################
+convert_gui_to_light_gz() {
+	mkdir /tmp/extractemp
+	bzcat /tmp/$1.tar.bz2 | tar -C /tmp/extractemp -xf -
+	rm -r /tmp/extractemp/tmp
+	cd  /tmp/extractemp/
+	tar -zcf ../$1.tar.gz *
+	cd ../../
+	md5sum /tmp/$1.tar.bz2 | awk '{ print $1}' > /root/gui_orig.md5sum
+	mv /tmp/$1.tar.gz /root/
+	rm -r /tmp/extractemp
+	rm /tmp/$1.tar.bz2
+}
+#################################################
 
 add_ipoe() {
 	uci set network.ipoe=interface
@@ -113,9 +134,10 @@ remove_default_dns() {
 
 setup_network() {
 	#Set a pppoerelay empty interface if list is not present (UNO)
-	if [ ! "$(uci show network.lan | grep "network.lan.pppoerelay")" ]; then
+	if [ ! "$(uci -q get network.lan.pppoerelay)" ]; then
 		uci -q add_list network.lan.pppoerelay=''
 	fi
+	sed -i -e 's/option pppoerelay/list pppoerelay/g' /etc/config/network
 
 	#Set a waneth4 interface if not found (fix wizard on UNO)
 	if [ ! "$(uci -q get network.waneth4)" ]; then
@@ -163,6 +185,7 @@ setup_network() {
 }
 
 check_variant_friendly_name() {
+	#Get variant friendly name and save
 	if [ ! "$(uci get -q env.var.variant_friendly_name)" ]; then
 		variant=$(uci get env.var.prod_friendly_name)
 		case "$variant"
@@ -180,8 +203,9 @@ check_variant_friendly_name() {
 	fi
 }
 
-add_ppp_mgmt() {
-	uci set env.var.ppp_mgmt=$(uci -q get env.var.serial)-$(uci -q get env.var.oui)@00000.aliceres.mgmt
+add_TIM_ppp_specific() {
+	uci set modgui.var.ppp_mgmt="$(uci -q get env.var.serial)-$(uci -q get env.var.oui)@00000.aliceres.mgmt"
+	uci set modgui.var.ppp_realm_ipv6="$(uci -q get env.var.serial)-$(uci -q get env.var.oui)@alice6.it"
 }
 
 puryfy_wan_interface() { #creano problemi di dns per chissa'  quale diavolo di motivo... Ma l'utilitÃ  di sta roba eh telecom ? 
@@ -192,39 +216,52 @@ puryfy_wan_interface() { #creano problemi di dns per chissa'  quale diavolo di 
 }
 
 fix_dns_dhcp_bug() {
-	uci set dhcp.odhcpd.maindhcp="0"
-	if [ $(pgrep "odhcpd") ]; then
-		/etc/init.d/odhcpd stop
-		killall dnsmasq
-		/etc/init.d/dnsmasq restart
+	#SET odhcpd MAINDHCP to 0 to use dnsmasq for ipv4 
+	if [ "$(uci get -q dhcp.odhcpd.maindhcp)" == "1" ]; then
+		uci set dhcp.odhcpd.maindhcp="0"
+		/etc/init.d/odhcpd restart
+		restart_dnsmasq=1
 	fi
-	if [ "$(ls /etc/rc.d/ | grep odhcpd)" ]; then
-		/etc/init.d/odhcpd disable
+	#Check to see if odhcpd is running
+	if [ ! "$(pgrep "odhcpd")" ]; then
+		/etc/init.d/odhcpd start
+	fi
+	#reenable it to make ipv6 works
+	if [ ! "$(echo /etc/rc.d/*odhcpd*)" ]; then
+		/etc/init.d/odhcpd enable
 	fi
 }
 
 purify_from_tim() {
-	uci -q del env.var.ppp_mgmt
+	uci -q del modgui.var.ppp_mgmt
 	uci -q del network.wan_ipv6
 	uci -q del dhcp.dnsmasq.server
+	restart_dnsmasq=1
 }
 
-encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
-default_encrypted_pass='$5liEJpfo7NYE'
-saved_encrypted_pass=$(uci -q get env.var.encrypted_pass)
-
-save_root_encrypt_pass() {
-	echo "  Storing encrypted password..." > /dev/console
-	uci set env.var.encrypted_pass=$encrypted_pass
+move_gui_to_root() {
+    if [ -f /tmp/GUI.tar.bz2 ]; then
+        overlay_space=$(df /overlay | sed -n 2p | awk {'{print $2}'})
+        if [ "$overlay_space" -lt 33000 ]; then
+            logger_command "Creating stripped GUI gz in /root folder from /tmp"
+            convert_gui_to_light_gz "GUI"
+        else
+            logger_command "Updating GUI in /root folder from /tmp"
+            if [ -f /root/GUI.tar.bz2 ]; then
+                rm /root/GUI.tar.bz2
+            fi
+            mv /tmp/GUI.tar.bz2 /root/GUI.tar.bz2
+        fi
+    fi
 }
 
 cumulative_check_gui() {
 	#This create update_branch entities
-	if [ ! $(uci get -q env.var.update_branch) ]; then
-		uci set env.var.update_branch="stable"
+	if [ ! "$(uci get -q modgui.gui.update_branch)" ]; then
+		uci set modgui.gui.update_branch="stable"
 		update_branch=""
 		logger_command "Setting update branch to STABLE"
-	elif [ $(uci get -q env.var.update_branch) == "stable" ]; then
+	elif [ "$(uci get -q modgui.gui.update_branch)" == "stable" ]; then
 		update_branch=""
 		logger_command "Update branch detected: STABLE"
 	else
@@ -232,50 +269,72 @@ cumulative_check_gui() {
 		logger_command "Update branch detected: DEV"
 	fi
 
+	#Remove/convert to .gz .bz2 packages if low space device
+	overlay_space=$(df /overlay | sed -n 2p | awk {'{print $2}'})
+	if [ "$overlay_space" -lt 33000 ]; then
+		logger -s -t 'Root Script' "Detected low flash space device..."
+		if [ -f /root/GUI_dev.tar.bz2 ]; then
+			if [ ! -f /root/GUI.tar.bz2 ] && [ ! -f /root/GUI.tar.gz ]; then
+			    logger -s -t 'Root Script' "Stable GUI not found, renaming dev bz2 to stable"
+			    mv /root/GUI_dev.tar.bz2 /root/GUI.tar.bz2
+			else
+			    logger -s -t 'Root Script' "Removing unneeded dev bz2 GUI from /root"
+			    rm /root/GUI_dev.tar.bz2
+			fi
+		fi
+		if [ -f /root/GUI.tar.bz2 ] && [ ! -f /root/GUI.tar.gz ]; then
+		    logger -s -t 'Root Script' "Creating stripped gz of bz2 GUI"
+			mv /root/GUI.tar.bz2 /tmp/GUI.tar.bz2
+			convert_gui_to_light_gz "GUI"
+		elif [ -f /root/GUI.tar.bz2 ]; then
+		    logger -s -t 'Root Script' "Removing unneeded bz2 of Stable GUI"
+		    rm /root/GUI.tar.bz2
+		fi
+	fi
 
-	#This make sure we have stable GUI in /root
-	if [ ! -f /root/GUI.tar.bz2 ]; then
+	#This makes sure we have a recovery GUI package in /root
+	if [ ! -f /root/GUI.tar.bz2 ] && [ ! -f /root/GUI.tar.gz ]; then
 		logger_command "Stable GUI not found in /root"
 		if [ ! -f /tmp/GUI.tar.bz2 ]; then
-			logger_command "Stable GUI not found in /tmp..."
-			logger_command "Checking if GUI_dev is present in /tmp"
+			logger_command "Stable GUI not found in /tmp, checking for GUI_dev..."
 			if [ -f /tmp/GUI_dev.tar.bz2 ]; then
-				logger_command "Found GUI_dev in /tmp, copying it as stable to generate a valid hash"
-				cp /tmp/GUI_dev.tar.bz2 /root/GUI.tar.bz2
+				logger_command "Found GUI_dev in /tmp, copying in /root to generate a valid hash"
+				mv /tmp/GUI_dev.tar.bz2 /tmp/GUI.tar.bz2
+				move_gui_to_root
 			elif ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then
 				logger_command "Downloading stable..."
-				curl -k -s https://repository.ilpuntotecnico.com//files/Ansuel/AGTEF/GUI.tar.bz2 --output /root/GUI.tar.bz2
+				curl -k -s https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/GUI.tar.bz2 --output /tmp/GUI.tar.bz2
+				move_gui_to_root
 			else
 				logger_command "Can't download stable GUI!"
 			fi
 		else
 			logger_command "Moving stable GUI from /tmp to /root"
-			cp /tmp/GUI.tar.bz2 /root
+			move_gui_to_root
 		fi
-		if [ -f /root/GUI.tar.bz2 ] && [ -s /root/GUI.tar.bz2 ]; then
-			logger_command "Assume first times install, cleaning /www dir and reinstall"
+		if [ -s /root/GUI.tar.bz2 ]; then
+			logger_command "Assuming first time install, cleaning /www dir and re-extracting .bz2"
 			rm -r /www/*
 			bzcat /root/GUI.tar.bz2 | tar -C / -xf - www
+		elif [ -f /root/GUI.tar.gz ] && [ -s /root/GUI.tar.gz ]; then
+			logger_command "Assuming first time install, cleaning /www dir and re-extracting .gz"
+            rm -r /www
+            tar -C / -zxf /root/GUI.tar.gz www
 		fi
+
 	fi
 
-	logger_command "Updating GUI in /root folder from /tmp"
-
-	#This move tmp gui in /root
-	if [ -f /tmp/GUI$update_branch.tar.bz2 ]; then
-		if [ -f /root/GUI$update_branch.tar.bz2 ]; then
-			rm /root/GUI$update_branch.tar.bz2
+	#This generates new hash
+	if [ -f /root/GUI.tar.bz2 ] || [ -f /root/GUI.tar.gz ]; then
+		old_gui_hash=$(uci get -q modgui.gui.gui_hash)
+		if [ -f /root/GUI.tar.gz ]; then
+			gui_hash=$(cat /root/gui_orig.md5sum)
+		elif [ -f /root/gui_dev.md5sum ]; then
+			gui_hash=$(cat /root/gui_dev.md5sum)
+		else
+			gui_hash=$(md5sum /root/GUI.tar.bz2 | awk '{ print $1}' )
 		fi
-		mv /tmp/GUI$update_branch.tar.bz2 /root/GUI$update_branch.tar.bz2
-	fi
-
-
-
-	#This generate new hash
-	if [ -f /root/GUI$update_branch.tar.bz2 ]; then
-		old_gui_hash=$(uci get -q env.var.gui_hash)
-		gui_hash=$(md5sum /root/GUI$update_branch.tar.bz2 | awk '{ print $1}' )
-		if [ "$old_gui_hash" != "gui_hash" ]; then
+		if [ "$old_gui_hash" != "$gui_hash" ]; then
 			logger_command "Detected upgrade!"
 			logger_command "Old GUI hash: $old_gui_hash"
 			logger_command "New GUI hash: $gui_hash"
@@ -289,31 +348,35 @@ cumulative_check_gui() {
 
 	logger_command "Resetting version info..."
 
-	if [ ! $(uci get -q env.var.gui_hash) ]; then
-		uci set env.var.new_ver="Unknown"
-		uci set env.var.gui_hash=$gui_hash
-		uci set env.var.outdated_ver='0'
-	elif [ $(uci get -q env.var.gui_hash) != $gui_hash ]; then
-		uci set env.var.new_ver="Unknown"
-		uci set env.var.gui_hash=$gui_hash
-		uci set env.var.outdated_ver='0'
+	if [ ! "$(uci get -q modgui.gui.gui_hash)" ]; then
+		uci set modgui.gui.new_ver="Unknown"
+		uci set modgui.gui.gui_hash=$gui_hash
+		uci set modgui.gui.outdated_ver='0'
+	elif [ "$(uci get -q modgui.gui.gui_hash)" != $gui_hash ]; then
+		uci set modgui.gui.new_ver="Unknown"
+		uci set modgui.gui.gui_hash=$gui_hash
+		uci set modgui.gui.outdated_ver='0'
 	fi
-	if [ ! $(uci get -q env.var.autoupgrade) ]; then
-		uci set env.var.autoupgrade_hour=0
-		uci set env.var.autoupgrade=0
+	if [ ! "$(uci get -q modgui.gui.autoupgrade)" ]; then
+		uci set modgui.gui.autoupgrade_hour=0
+		uci set modgui.gui.autoupgrade=0
 	fi
-	if [ ! $(uci get -q env.var.autoupgradeview) ]; then
-		uci set env.var.autoupgradeview="none"
+	if [ ! "$(uci get -q modgui.gui.autoupgradeview)" ]; then
+		uci set modgui.gui.autoupgradeview="none"
 	fi
-	if [ ! $(uci get -q env.var.firstpage) ]; then
-		uci set env.var.firstpage="stats"
+	if [ ! "$(uci get -q modgui.gui.firstpage)" ]; then
+		uci set modgui.gui.firstpage="stats"
 	fi
-	if [ ! $(uci get -q env.var.randomcolor) ]; then
-		uci set env.var.randomcolor="0"
+	if [ ! "$(uci get -q modgui.gui.randomcolor)" ]; then
+		uci set modgui.gui.randomcolor="0"
+	fi
+	if [ ! "$(uci get -q modgui.gui.gui_animation)" ]; then
+		uci set modgui.gui.gui_animation="1"
 	fi
 }
 
 transfer_bank() {
+	#This function will clone and switch banks
 	if [ -d /overlay/bank_1 ]; then
 		rm -r /overlay/bank_1
 	fi
@@ -333,15 +396,16 @@ transfer_bank() {
 }
 
 restore_bank() {
+	#This function will clone bank1 to bank2 or vice-versa
 	bootedbank=$( cat /proc/banktable/booted )
 	activebank=$( cat /proc/banktable/active )
-	if [ -f /overlay/$activebank ]; then
-		rm -r /overlay/$activebank
+	if [ -f "/overlay/$activebank" ]; then
+		rm -r "/overlay/$activebank"
 	fi
-	mkdir /overlay/$activebank
-	cp -a /overlay/$bootedbank/* /overlay/$activebank
-	if [ -f /overlay/$activebank/etc/init.d/rootdevice ]; then
-		if [ $bootedbank == "bank_1" ]; then
+	mkdir "/overlay/$activebank"
+	cp -a "/overlay/$bootedbank/*" "/overlay/$activebank"
+	if [ -f "/overlay/$activebank/etc/init.d/rootdevice" ]; then
+		if [ "$bootedbank" == "bank_1" ]; then
 			mtd write /dev/mtd3 /dev/mtd4
 		else
 			mtd write /dev/mtd4 /dev/mtd3
@@ -349,18 +413,19 @@ restore_bank() {
 	fi
 
 	if [ "$activeversion" == "$passiveversion" ]; then
-		echo $bootedbank > /proc/banktable/active
+		echo "$bootedbank" > /proc/banktable/active
 		reboot
 	fi
 }
 
 check_gui_ver() {
-	if [ "$(uci -q get env.var.gui_version)" != $version_gui ]; then
-		uci set env.var.gui_version=$version_gui
+	if [ "$(uci -q get modgui.gui.gui_version)" != $version_gui ]; then
+		uci set modgui.gui.gui_version=$version_gui
 	fi
 }
 
 check_new_dlnad() {
+	#This function will check to see which dlna server daemon is installed
 	if [ -f /etc/init.d/dland ] && [ ! -k /etc/rc.d/S98dlnad ] && [ -f /etc/init.d/minidlna ]; then
 		if [ "$(pgrep "minidlna")" ] ; then
 			/etc/init.d/minidlna stop
@@ -395,10 +460,11 @@ check_upgrade_shit() {
 }
 
 check_isp_config() {
+	#Detect ISP based on cwmp settings (Italian only)
 	ppp_user=$(uci -q get network.wan.username)
 	cwmp_url=$(uci -q get cwmpd.cwmpd_config.acs_url)
 	if  [ ! "$ppp_user" ]; then
-		uci set env.var.isp="Other"
+		uci set modgui.var.isp="Other"
 		purify_from_tim
 	else
 		if echo "$ppp_user" | grep -q "alice" || 
@@ -407,18 +473,21 @@ check_isp_config() {
 		   echo "$ppp_user" | grep -q "aliceres" ||
 		   echo "$ppp_user" | grep -q "@00000." ; 
 		then
-			uci set env.var.isp="TIM"
+			uci set modgui.var.isp="TIM"
 		elif echo "$ppp_user" | grep -q "tiscali.it" || #acs tiscali is preconfigured 
 			echo "$cwmp_url" | grep -q "tiscali.it" ; then #on tiscali firmware only
-			uci set env.var.isp="Tiscali"
+			uci set modgui.var.isp="Tiscali"
+		elif echo "$cwmp_url" | grep -q "59.0.121.191" ; then #on fastweb firmware only
+			uci set modgui.var.isp="Fastweb"
 		else
-			uci set env.var.isp="Other"
+			uci set modgui.var.isp="Other"
 			purify_from_tim
 		fi
 	fi
 }
 
 create_symlink() {
+	#Links the pached binaries to their correct paths
 	if [ -f /bin/busybox_telnet ]; then
 		ln -sf ../../bin/busybox_telnet /usr/sbin/telnetd
 		/etc/init.d/telnet enable
@@ -473,7 +542,7 @@ checkver_cron() {
 			rm /etc/crontabs/root #THIS CHECK A VALID ROOT CRON... we remove it as it's useless if the owner is not root.
 		fi
 	fi
-	if [ ! -f /etc/crontabs/root ] || [ ! "$(cat /etc/crontabs/root | grep checkver)" ]; then
+	if [ ! -f /etc/crontabs/root ] || [ ! "$(< /etc/crontabs/root grep checkver)" ]; then
 		rand_h=$(awk -v min=1 -v max=6 'BEGIN{srand(); print int(min+rand()*(max-min+1))}')
 		rand_m=$(awk -v min=1 -v max=59 'BEGIN{srand(); print int(min+rand()*(max-min+1))}')
 		echo "$rand_m $rand_h * * * /usr/share/transformer/scripts/checkver >/dev/null 2>&1" >> /etc/crontabs/root
@@ -485,7 +554,7 @@ restore_original_mapper() {
 	local orig_dir=/rom/usr/share/transformer/mappings
 	local target=/usr/share/transformer/mappings
 
-	if [ $(md5sum $orig_dir/device2/Device.map | awk '{print $1}') != $(md5sum $target/device2/Device.map | awk '{print $1}') ]; then
+	if [ "$(md5sum $orig_dir/device2/Device.map | awk '{print $1}')" != "$(md5sum $target/device2/Device.map | awk '{print $1}')" ]; then
 		mkdir /tmp/tmp_bff_file
 		cp $target/bbf/VoiceService* /tmp/tmp_bff_file/
 		rm -r $target/bbf/*
@@ -501,10 +570,10 @@ restore_original_mapper() {
 		logger_command "Restoring mapper device file"
 	fi
 	if [ ! -f $target/bbf/VoiceService.VoiceProfile.Line.map ]; then
-		cp $orig_dir$mapper/bbf/VoiceService.VoiceProfile.Line.map $orig_dir$mapper/bbf/
-	elif [ $(md5sum $orig_dir/bbf/VoiceService.VoiceProfile.Line.map | awk '{print $1}') != $(md5sum $target/bbf/VoiceService.VoiceProfile.Line.map | awk '{print $1}') ]; then
-		rm $target$mapper/bbf/VoiceService.VoiceProfile.Line.map
-		cp $orig_dir$mapper/bbf/VoiceService.VoiceProfile.Line.map $orig_dir$mapper/bbf/
+		cp $orig_dir/bbf/VoiceService.VoiceProfile.Line.map $orig_dir/bbf/
+	elif [ "$(md5sum $orig_dir/bbf/VoiceService.VoiceProfile.Line.map | awk '{print $1}')" != "$(md5sum $target/bbf/VoiceService.VoiceProfile.Line.map | awk '{print $1}')" ]; then
+		rm "$target/bbf/VoiceService.VoiceProfile.Line.map"
+		cp "$orig_dir/bbf/VoiceService.VoiceProfile.Line.map" "$orig_dir/bbf/"
 	fi #Solve some problems with cwmp AGTEF_1.0.3
 
 	#Remove ignored Root device naming from transformer
@@ -516,7 +585,7 @@ transformer_lib_check() {
 	local orig_dir=/rom/usr
 	local target=/usr
 
-	if [ $(md5sum $orig_dir/lib/lua/transformer/commitapply.lua | awk '{print $1}') != $(md5sum $target/lib/lua/transformer/commitapply.lua | awk '{print $1}') ]; then
+	if [ "$(md5sum $orig_dir/lib/lua/transformer/commitapply.lua | awk '{print $1}')" != "$(md5sum $target/lib/lua/transformer/commitapply.lua | awk '{print $1}')" ]; then
 		rm $target/share/transformer/mappings/rpc/*
 		rm $target/share/transformer/mappings/uci/*
 		rm -r $target/lib/lua/tch/*
@@ -539,15 +608,15 @@ transformer_lib_check() {
 		logger_command "Found gui here: "$gui_pos
 		if [ $gui_pos != "" ] && [ -s $gui_pos ]; then
 			bzcat $gui_pos | tar -C / -xf - usr #reapply the upgrade as in the gui we store some of this file that we restored
-			logger_command "Restoring transformer lib"
+			logger_command "Restoring transformer lib" #What is going on here? Doesn't even restart transformer???
 		fi
 		#/etc/init.d/transformer restart
 	fi
 }
 
 check_uci_gui_skin() {
-	if [ ! $( uci get -q env.var.gui_skin ) ]; then
-		uci set env.var.gui_skin="green"
+	if [ ! "$(uci get -q modgui.gui.gui_skin)" ]; then
+		uci set modgui.gui.gui_skin="green"
 	fi
 }
 
@@ -557,28 +626,44 @@ remove_https_check_cwmpd() {
 }
 
 add_telecom_stock_dns() {
-	uci set dhcp.dnsmasq.server='151.99.125.1'
+	if [ ! "$(uci get -q dhcp.dnsmasq.server)" ]; then
+		uci set dhcp.dnsmasq.server='151.99.125.1'
+		restart_dnsmasq=1
+	fi
 }
 
 check_dnsmasq_name() {
-	if [ "$( uci show dhcp | grep dhcp.@dnsmasq )" ]; then
+	#Checks what the dnsmasq daemon is referred to in the config file
+	if [ "$(uci get -q dhcp.dnsmasq)" ]; then
+		if [ "$(uci get -q dhcp.dnsmasq)" != "dnsmasq" ]; then
+			uci set dhcp.dnsmasq=dnsmasq
+			restart_dnsmasq=1
+		fi
+	else
+		uci set dhcp.dnsmasq=dnsmasq
+		restart_dnsmasq=1
+	fi
+	if uci show dhcp | grep -q "dhcp.@dnsmasq" ; then
 		uci rename dhcp.@dnsmasq[0]=dnsmasq
+		restart_dnsmasq=1
 	fi
 }
 
 create_driver_setting() {
-	if [ ! $( uci get -q env.var.driver_version ) ]; then
-		uci set env.var.driver_version=$(xdslctl --version 2>&1 >/dev/null | grep "version -" | awk '{print $6}' | sed "s/\..*//")
+	#Get xdsl driver(s) version and save to GUI config file
+	if [ ! "$(uci get -q modgui.var.driver_version)" ]; then
+		uci set modgui.var.driver_version="$(xdslctl --version 2>&1 >/dev/null | grep 'version -' | awk '{print $6}' | sed 's/\..*//')"
 	else 
-		if [ "$( uci get -q env.var.driver_version | grep -F . )" ]; then
-			uci set env.var.driver_version=$(xdslctl --version 2>&1 >/dev/null | grep "version -" | awk '{print $6}' | sed "s/\..*//")
+		if [ "$(uci get -q modgui.var.driver_version | grep -F .)" ]; then
+			uci set modgui.var.driver_version="$(xdslctl --version 2>&1 >/dev/null | grep 'version -' | awk '{print $6}' | sed 's/\..*//')"
 		fi
 	fi
 }
 
 dropbear_file_check() {
+	#Check to see if the dropbear_new config file is present in /etc/config, if so then move it to /etc/config/dropbear
 	if [ -f /etc/config/dropbear_new ]; then
-		if [ $(uci get -q dropbear.wan.enable) ]; then
+		if [ "$(uci get -q dropbear.wan.enable)" ]; then
 			rm /etc/config/dropbear_new
 		else
 			rm /etc/config/dropbear
@@ -588,6 +673,7 @@ dropbear_file_check() {
 }
 
 check_noip_file() {
+	#Check to see if DDNS scripts config is present
 	if [ -d /etc/ddns_new ]; then
 		if [ -d /etc/ddns ]; then
 				rm -r /etc/ddns_new
@@ -598,17 +684,20 @@ check_noip_file() {
 }
 
 eco_param() {
-	if [ ! $(uci get -q power.cpu) ]; then
+	#Set CPU to full power (full clock)
+	if [ ! "$(uci get -q power.cpu)" ]; then
 		uci set power.cpu=cpu
 		uci set power.cpu.cpuspeed='256'
 		uci set power.cpu.wait='1'
+		logger_command "Restarting power management"
+		/etc/init.d/power restart
 	fi
 }
 
 enable_new_upnp() {
 	if [ -f /etc/init.d/miniupnpd ]; then
-		if [ $(uci get -q upnpd.config.enable_upnp) ]; then
-			if [ $(uci get -q upnpd.config.enable_upnp) == "1" ]; then
+		if [ "$(uci get -q upnpd.config.enable_upnp)" ]; then
+			if [ "$(uci get -q upnpd.config.enable_upnp)" == "1" ]; then
 				/etc/init.d/miniupnpd-tch stop
 				/etc/init.d/miniupnpd-tch disable
 				/etc/init.d/miniupnpd enable
@@ -621,6 +710,7 @@ enable_new_upnp() {
 }
 
 wifi_fix_24g() {
+	#Set wifi to perf mode
 	wl down
 	wl obss_prot set 0
 	wl -i wl0 gmode Performance
@@ -629,53 +719,54 @@ wifi_fix_24g() {
 }
 
 create_gui_type() {
-	if [ ! $( uci get -q env.var.aria2_webui) ]; then
+	#Gathers various infomation about what programs are installed and saves it in the modgui config file
+	if [ ! "$( uci get -q modgui.app.aria2_webui)" ]; then
 		if [ -d /www/docroot/aria ]; then
-			uci set env.var.aria2_webui="1"
+			uci set modgui.app.aria2_webui="1"
 		else
-			uci set env.var.aria2_webui="0"
+			uci set modgui.app.aria2_webui="0"
 		fi
-	elif [ $( uci get -q env.var.aria2_webui) == "1" ] &&
+	elif [ "$( uci get -q modgui.app.aria2_webui)" == "1" ] &&
 	[ ! -d /www/docroot/aria ] && 
 	[ -f /usr/share/transformer/scripts/install_aria2.sh ]; then 
 		#this restore aria... my bad for this bug...
 		/usr/share/transformer/scripts/install_aria2.sh
 	fi
-	if [ ! $( uci get -q env.var.luci_webui) ]; then
+	if [ ! "$( uci get -q modgui.app.luci_webui)" ]; then
 		if [ -d /www_luci ]; then
-			uci set env.var.luci_webui="1"
+			uci set modgui.app.luci_webui="1"
 		else
-			uci set env.var.luci_webui="0"
+			uci set modgui.app.luci_webui="0"
 		fi
 	fi
-	if [ ! $( uci get -q env.var.amule_webui) ]; then
+	if [ ! "$( uci get -q modgui.app.amule_webui)" ]; then
 		if [ -d /www/docroot/amule ]; then
-			uci set env.var.amule_webui="1"
+			uci set modgui.app.amule_webui="1"
 		else
-			uci set env.var.amule_webui="0"
+			uci set modgui.app.amule_webui="0"
 		fi
 	fi
-	if [ ! $( uci get -q env.var.transmission_webui) ]; then
+	if [ ! "$( uci get -q modgui.app.transmission_webui)" ]; then
 		if [ -d /www/docroot/transmission ]; then
-			uci set env.var.transmission_webui="1"
+			uci set modgui.app.transmission_webui="1"
 		else
-			uci set env.var.transmission_webui="0"
+			uci set modgui.app.transmission_webui="0"
 		fi
 	fi
-	if [ ! $( uci get -q env.var.xupnp_app) ]; then
+	if [ ! "$( uci get -q modgui.app.xupnp_app)" ]; then
 		if [ -d /usr/share/xupnpd ]; then
-			uci set env.var.xupnp_app="1"
+			uci set modgui.app.xupnp_app="1"
 		else
-			uci set env.var.xupnp_app="0"
+			uci set modgui.app.xupnp_app="0"
 		fi
 	fi
-	if [ ! $( uci get -q env.var.blacklist_app) ]; then
+	if [ ! "$( uci get -q modgui.app.blacklist_app)" ]; then
 		if [ -d /etc/asterisk ]; then
-			uci set env.var.blacklist_app="1"
+			uci set modgui.app.blacklist_app="1"
 		else
-			uci set env.var.blacklist_app="0"
+			uci set modgui.app.blacklist_app="0"
 		fi
-	elif [ $( uci get -q env.var.blacklist_app) == "1" ] && 
+	elif [ "$( uci get -q modgui.app.blacklist_app)" == "1" ] &&
 	[ ! -f /www/docroot/modals/mmpbx-contacts-modal.lp.orig ] &&
 	[ -f /usr/share/transformer/scripts/install_blacklist.sh ]; then
 		/usr/share/transformer/scripts/install_blacklist.sh
@@ -683,159 +774,42 @@ create_gui_type() {
 }
 
 update_dhcp_config() {
-	if [ $(uci get -q dhcp.lan.dhcpv4) ]; then
-		if [ $(uci get -q dhcp.lan.dhcpv4)  == "1" ]; then
-			uci set dhcp.lan.dhcpv4='server'
-		fi
-		if [ $(uci get -q dhcp.lan.dhcpv4) == "0" ]; then
-			uci set dhcp.lan.dhcpv4='disabled'
-		fi
-	else
-		uci set dhcp.lan.dhcpv4='server'
+	if [ "$(uci get -q dhcp.lan.dhcpv4)" ]; then
+		#REMOVE DHCPV4 this is for odhcpd daemon to tell him to run also for ipv4 dhcp...
+		#by removing the entities we solve the problem
+		uci del dhcp.lan.dhcpv4
 	fi
-	if [ ! $(uci get -q dhcp.lan.ignore) ]; then
+	if [ ! "$(uci get -q dhcp.lan.ignore)" ]; then
 		uci set dhcp.lan.ignore='0'
 	fi
 }
 
 add_new_web_rule() {
-	if [ ! $(uci get -q web.applicationsmodal) ]; then
-		uci set web.applicationsmodal=rule
-		uci set web.applicationsmodal.target='/modals/applications-modal.lp'
-		uci add_list web.applicationsmodal.roles='admin' 
-		uci add_list web.applicationsmodal.roles='engineer'
-		uci add_list web.ruleset_main.rules='applicationsmodal'
-	fi
-	if [ ! $(uci get -q web.ajaxgatewaytab) ]; then
-		uci set web.ajaxgatewaytab=rule
-		uci set web.ajaxgatewaytab.target='/ajax/cpuload.lua'
-		uci add_list web.ajaxgatewaytab.roles='admin' 
-		uci add_list web.ajaxgatewaytab.roles='engineer'
-		uci add_list web.ajaxgatewaytab.roles='guest'
-		uci add_list web.ruleset_main.rules='ajaxgatewaytab'
-	fi
-	if [ ! $(uci get -q web.ajaxinternet) ]; then
-		uci set web.ajaxinternet=rule
-		uci set web.ajaxinternet.target='/ajax/internet.lua'
-		uci add_list web.ajaxinternet.roles='admin' 
-		uci add_list web.ajaxinternet.roles='engineer'
-		uci add_list web.ajaxinternet.roles='guest'
-		uci add_list web.ruleset_main.rules='ajaxinternet'
-	fi
-	if [ ! $(uci get -q web.diagnosticsxdslgraphicsmodal) ]; then
-		uci set web.diagnosticsxdslgraphicsmodal=rule
-		uci set web.diagnosticsxdslgraphicsmodal.target='/modals/diagnostics-xdsl-graphics-modal.lp'
-		uci add_list web.diagnosticsxdslgraphicsmodal.roles='admin' 
-		uci add_list web.diagnosticsxdslgraphicsmodal.roles='engineer'
-		uci add_list web.diagnosticsxdslgraphicsmodal.roles='guest'
-		uci add_list web.ruleset_main.rules='diagnosticsxdslgraphicsmodal'
-	fi
-	if [ ! $(uci get -q web.mwanmodal) ]; then
-		uci set web.mwanmodal=rule
-		uci set web.mwanmodal.target='/modals/mwan-modal.lp'
-		uci add_list web.mwanmodal.roles='admin' 
-		uci add_list web.mwanmodal.roles='engineer'
-		uci add_list web.ruleset_main.rules='mwanmodal'
-	fi
-	if [ ! $(uci get -q web.fastcacheoptionmodal) ]; then
-		uci set web.fastcacheoptionmodal=rule
-		uci set web.fastcacheoptionmodal.target='/modals/fast-cache-option-modal.lp'
-		uci add_list web.fastcacheoptionmodal.roles='admin' 
-		uci add_list web.fastcacheoptionmodal.roles='engineer'
-		uci add_list web.ruleset_main.rules='fastcacheoptionmodal'
-	fi
-	if [ ! $(uci get -q web.dosprotectmodal) ]; then
-		uci set web.dosprotectmodal=rule
-		uci set web.dosprotectmodal.target='/modals/dosprotect-modal.lp'
-		uci add_list web.dosprotectmodal.roles='admin' 
-		uci add_list web.dosprotectmodal.roles='engineer'
-		uci add_list web.ruleset_main.rules='dosprotectmodal'
-	fi
-	if [ ! $(uci get -q web.mmpbxdectmodal) ]; then
-		uci set web.mmpbxdectmodal=rule
-		uci set web.mmpbxdectmodal.target='/modals/mmpbx-dect-modal.lp'
-		uci add_list web.mmpbxdectmodal.roles='admin' 
-		uci add_list web.mmpbxdectmodal.roles='engineer'
-		uci add_list web.ruleset_main.rules='mmpbxdectmodal'
-	fi
-	if [ ! $(uci get -q web.nfcmodal) ]; then
-		uci set web.nfcmodal=rule
-		uci set web.nfcmodal.target='/modals/nfc-modal.lp'
-		uci add_list web.nfcmodal.roles='admin' 
-		uci add_list web.nfcmodal.roles='engineer'
-		uci add_list web.ruleset_main.rules='nfcmodal'
-	fi
-	if [ ! $(uci get -q web.stats) ]; then
-		uci set web.stats=rule
-		uci set web.stats.target='/stats.lp'
-		uci add_list web.stats.roles='admin' 
-		uci add_list web.stats.roles='engineer'
-		uci add_list web.ruleset_main.rules='stats'
-	fi
-	if [ ! $(uci get -q web.cards) ]; then
-		uci set web.cards=rule
-		uci set web.cards.target='/cards.lp'
-		uci add_list web.cards.roles='admin' 
-		uci add_list web.cards.roles='engineer'
-		uci add_list web.ruleset_main.rules='cards'
-	fi
-	if [ ! $(uci get -q web.ajaxinfotrafficcard) ]; then
-		uci set web.ajaxinfotrafficcard=rule
-		uci set web.ajaxinfotrafficcard.target='/ajax/traffic_graph.lua'
-		uci add_list web.ajaxinfotrafficcard.roles='admin' 
-		uci add_list web.ajaxinfotrafficcard.roles='engineer'
-		uci add_list web.ruleset_main.rules='ajaxinfotrafficcard'
-	fi
-	if [ ! $(uci get -q web.ecomodal) ]; then
-		uci set web.ecomodal=rule
-		uci set web.ecomodal.target='/modals/eco-modal.lp'
-		uci add_list web.ecomodal.roles='admin' 
-		uci add_list web.ecomodal.roles='engineer'
-		uci add_list web.ruleset_main.rules='ecomodal'
-	fi
-	if [ ! $(uci get -q web.ajaxinfoconndevicecard) ]; then
-		uci set web.ajaxinfoconndevicecard=rule
-		uci set web.ajaxinfoconndevicecard.target='/ajax/connected_device.lua'
-		uci add_list web.ajaxinfoconndevicecard.roles='admin' 
-		uci add_list web.ajaxinfoconndevicecard.roles='engineer'
-		uci add_list web.ruleset_main.rules='ajaxinfoconndevicecard'
-	fi
-	if [ ! $(uci get -q web.ajaxinfoportscard) ]; then
-		uci set web.ajaxinfoportscard=rule
-		uci set web.ajaxinfoportscard.target='/ajax/port_status.lua'
-		uci add_list web.ajaxinfoportscard.roles='admin' 
-		uci add_list web.ajaxinfoportscard.roles='engineer'
-		uci add_list web.ruleset_main.rules='ajaxinfoportscard'
-	fi
-	if [ ! $(uci get -q web.ajaxinfommpbxstatuscard) ]; then
-		uci set web.ajaxinfommpbxstatuscard=rule
-		uci set web.ajaxinfommpbxstatuscard.target='/ajax/mmpbx_status.lua'
-		uci add_list web.ajaxinfommpbxstatuscard.roles='admin' 
-		uci add_list web.ajaxinfommpbxstatuscard.roles='engineer'
-		uci add_list web.ruleset_main.rules='ajaxinfommpbxstatuscard'
-	fi
+	/usr/share/transformer/scripts/unlock_and_refresh_web_config.lua
 }
 
 check_relay_dhcp() {
-	if [ ! $(uci get -q dhcp.relay) ]; then
+	#Check if dhcp relay is enabled
+	if [ ! "$(uci get -q dhcp.relay)" ]; then
 		uci set dhcp.relay=relay
 	fi
 }
 
 suppress_excessive_logging() {
+	#Lowers the log level of daemons to suppress excessive logging to /root/messages.log
 	if [ "$(uci get -q igmpproxy.globals.trace)" == "1" ]; then
 		uci set igmpproxy.globals.trace='0'
 	fi
 	/etc/init.d/mobiled restart #Restart this to actually disable it... (broken and shitt init.d)
 	uci set wansensing.global.tracelevel='3' #we don't need that we are still connected to vdsl -.-
-	if [ ! $(uci get -q transformer.@main[0].log_level) ]; then #shutup no description warn
+	if [ ! "$(uci get -q transformer.@main[0].log_level)" ]; then #shutup no description warn
 		uci set transformer.@main[0].log_level='2'
 	fi
-	if [ ! $(uci get -q system.@system[0].cronloglevel) ] || [ "$(uci get -q system.@system[0].cronloglevel)" == '0' ]; then #resolve spamlog of trafficdata
+	if [ ! "$(uci get -q system.@system[0].cronloglevel)" ] || [ "$(uci get -q system.@system[0].cronloglevel)" == '0' ]; then #resolve spamlog of trafficdata
 		uci set system.@system[0].cronloglevel="5"
 		/etc/init.d/cron restart
 	fi
-	if [ ! $(uci get -q ledfw.syslog) ]; then #suppress loggin of ledfw... we don't need it...
+	if [ ! "$(uci get -q ledfw.syslog)" ]; then #suppress loggin of ledfw... we don't need it...
 		uci set ledfw.syslog=syslog
 		uci set ledfw.syslog.trace='0'
 	fi
@@ -855,6 +829,7 @@ check_aria_dir() {
 }
 
 led_integration() {
+	#Fix led issues
 	if [ ! "$(uci get -q ledfw.status_led.enable)" ] ; then
 		uci set ledfw.status_led=status_led
 		uci set ledfw.status_led.enable='0'
@@ -866,11 +841,11 @@ led_integration() {
 
 	#Restart statusledeventing if old version
 	if [ -f /tmp/status-led-eventing.lua_new ]; then
-		ledeventing_new_md5=$(cat /tmp/status-led-eventing.md5sum | awk '{ print $1 }')
+		ledeventing_new_md5=$(< /tmp/status-led-eventing.md5sum awk '{ print $1 }')
 		ledeventing_md5=$(md5sum /sbin/status-led-eventing.lua | awk '{ print $1 }' )
 		logger_command "LedEventing new md5sum: $ledeventing_new_md5"
 		logger_command "LedEventing md5sum: $ledeventing_md5"
-		if [ $ledeventing_new_md5 ] && [ $ledeventing_new_md5 != $ledeventing_md5 ]; then
+		if [ "$ledeventing_new_md5" ] && [ "$ledeventing_new_md5" != "$ledeventing_md5" ]; then
 			rm /sbin/status-led-eventing.lua
 			mv /tmp/status-led-eventing.lua_new /sbin/status-led-eventing.lua
 			rm /tmp/status-led-eventing.md5sum
@@ -882,6 +857,7 @@ led_integration() {
 }
 
 check_wansensing() {
+	#Make sure that wansensing is under the correct dir
 	if [ -d /usr/lib/lua/wansensing ] && [ ! -d /usr/lib/lua/wansensingfw ] ; then
 		rm /usr/lib/lua/wansensing/scripthelpers.lua
 		mv /usr/lib/lua/wansensingfw/scripthelpers.lua /usr/lib/lua/wansensing/scripthelpers.lua
@@ -890,7 +866,7 @@ check_wansensing() {
 }
 
 remove_downgrade_bit() {
-	if [ $(uci get -q env.rip.board_mnemonic) == "VBNT-S" ] && [ $(uci get -q env.var.prod_number) == "4132" ] && [ -f /proc/rip/0123 ]; then
+	if [ "$(uci get -q env.rip.board_mnemonic)" == "VBNT-S" ] && [ "$(uci get -q env.var.prod_number)" == "4132" ] && [ -f /proc/rip/0123 ]; then
 		logger_command "Downgrade limitation bit detected... Removing..."
 		rmmod keymanager
 		rmmod ripdrv
@@ -912,9 +888,9 @@ remove_downgrade_bit() {
 
 apply_right_opkg_repo() {
 	if [ -f /etc/opkg.conf_17.3 ]; then
-		local marketing_version=$(uci get -q version.@version[0].marketing_version)
-		if [ $marketing_version ]; then
-			if [ $( echo $marketing_version | grep "17.3" ) ]; then
+		local marketing_version="$(uci get -q version.@version[0].marketing_version)"
+		if [ "$marketing_version" ]; then
+			if echo "$marketing_version" | grep -q "17.3" ; then
 				if [ -f /etc/okpg.conf ]; then
 					rm /etc/okpg.conf
 				fi
@@ -933,8 +909,9 @@ apply_right_opkg_repo() {
 
 real_ver_entitied() {
 	if [ -f /rom/etc/uci-defaults/tch_5000_versioncusto ] && [ -f /etc/config/versioncusto ]; then
-		local short_ver=$(cat /proc/banktable/activeversion | grep -Eo ".*\..*\.[0-9]*-[0-9]*" )
-		local real_ver=$(cat /rom/etc/uci-defaults/tch_5000_versioncusto  | grep "$short_ver" | awk '{print $2}')
+		local short_ver="$(< /proc/banktable/activeversion grep -Eo '.*\..*\.[0-9]*-[0-9]*' )"
+		local real_ver=$(< /rom/etc/uci-defaults/tch_5000_versioncusto grep "$short_ver" | awk '{print $2}')
+		uci set versioncusto.override.fwversion_override_latest="$latest_version_on_TIM_cwmp"
 		if [ "$real_ver" == "" ]; then
 			real_ver="Not Found"
 		fi
@@ -943,12 +920,32 @@ real_ver_entitied() {
 		elif [ "$(uci get -q versioncusto.override.fwversion_override_real)" != "$real_ver" ]; then
 			uci set versioncusto.override.fwversion_override_real="$real_ver"
 		fi
+		if [ "$(uci get -q modgui.var.skip_version_spoof)" ]; then
+			uci del modgui.var.skip_version_spoof
+		fi
 		#Set version to latest stable...
-		uci set versioncusto.override.fwversion_override="1.1.2"
+		if [ -f /overlay/.skip_version_spoof ]; then
+			uci set modgui.var.version_spoof_mode="disabled"
+			uci set versioncusto.override.fwversion_override="$real_ver"
+			rm /overlay/.skip_version_spoof
+		else
+			if [ "$(uci get -q modgui.var.version_spoof_mode)" ]; then
+				if [ "$(uci get -q modgui.var.version_spoof_mode)" == "enabled" ]; then
+					uci set versioncusto.override.fwversion_override="$latest_version_on_TIM_cwmp"
+				elif [ "$(uci get -q modgui.var.version_spoof_mode)" == "disabled" ]; then
+					uci set versioncusto.override.fwversion_override="$real_ver"
+				fi
+			else
+				uci set modgui.var.version_spoof_mode="enabled"
+				uci set versioncusto.override.fwversion_override="$latest_version_on_TIM_cwmp"
+			fi
+		fi
+		uci commit modgui
 	fi
 }
 
 new_wol_implementation() {
+	#Enable WoL
 	if [ -f /lib/functions/firewall-wol.sh ]; then
 		rm /lib/functions/firewall-wol.sh
 		uci set wol.config.dest_port=9
@@ -957,13 +954,13 @@ new_wol_implementation() {
 }
 
 add_xdsl_option() {
-	if [ ! $(uci get -q xdsl.dsl0.sra) ]; then
+	if [ ! "$(uci get -q xdsl.dsl0.sra)" ]; then
 		uci set xdsl.dsl0.sra=1
 	fi
-	if [ ! $(uci get -q xdsl.dsl0.bitswap) ]; then
+	if [ ! "$(uci get -q xdsl.dsl0.bitswap)" ]; then
 		uci set xdsl.dsl0.bitswap=1
 	fi
-	if [ ! $(uci get -q xdsl.dsl0.snr) ]; then
+	if [ ! "$(uci get -q xdsl.dsl0.snr)" ]; then
 		uci set xdsl.dsl0.snr=0
 	fi
 	# Trying to understanding why this option were not applied i found that this option was the culprit
@@ -1057,7 +1054,7 @@ clean_specific_file() {
 
 fcctlsettings_daemon() {
 	if [ -f /etc/config/fcctlsettings ]; then
-		if [ "$(cat /etc/config/fcctlsettings | grep 'mcast-learn')" ]; then
+		if [ "$(< /etc/config/fcctlsettings grep 'mcast-learn')" ]; then
 			rm /etc/config/fcctlsettings #NEVER EVER WRITE - IN CONFIG FILE... 
 		fi
 	fi
@@ -1082,7 +1079,7 @@ sfp_rework() {
 		logger_command "Moving sfp to sfptag..."
 		uci rename network.sfp=sfptag
 		class_target=10
-		if [ $(uci get network.lan.ipaddr) == "192.168.$class_target.1" ]; then
+		if [ "$(uci get network.lan.ipaddr)" == "192.168.$class_target.1" ]; then
 			class_target=$class_target+10
 		fi
 		uci set network.sfptag.ipaddr=192.168.$class_target.1
@@ -1100,184 +1097,11 @@ unlock_ssh_wan_tiscali() {
 }
 
 telstra_support_check() {
-	################# telstra gui support ###################
-	# We add rule anyway as if not present nginx gves 404 ###
-
-	if [ ! $(uci get -q web.telstra_broadband.target) ]; then
-		uci set web.telstra_broadband=rule
-		uci set web.telstra_broadband.target='/telstra-modals/broadband.lp'
-		uci add_list web.telstra_broadband.roles='admin' 
-		uci add_list web.telstra_broadband.roles='engineer'
-		uci add_list web.ruleset_main.rules='telstra_broadband'
-	fi
-	if [ ! $(uci get -q web.telstra_contentsharing_refresh) ]; then
-		uci set web.telstra_contentsharing_refresh=rule
-		uci set web.telstra_contentsharing_refresh.target='/telstra-modals/contentsharing.lp'
-		uci add_list web.telstra_contentsharing_refresh.roles='admin' 
-		uci add_list web.telstra_contentsharing_refresh.roles='engineer'
-		uci add_list web.ruleset_main.rules='telstra_contentsharing_refresh'
-	fi
-	if [ ! $(uci get -q web.telstra_device) ]; then
-		uci set web.telstra_device=rule
-		uci set web.telstra_device.target='/telstra-modals/device.lp'
-		uci add_list web.telstra_device.roles='admin' 
-		uci add_list web.telstra_device.roles='engineer'
-		uci add_list web.ruleset_main.rules='telstra_device'
-	fi
-	if [ ! $(uci get -q web.telstra_dyndns) ]; then
-		uci set web.telstra_dyndns=rule
-		uci set web.telstra_dyndns.target='/telstra-modals/dyndns.lp'
-		uci add_list web.telstra_dyndns.roles='admin' 
-		uci add_list web.telstra_dyndns.roles='engineer'
-		uci add_list web.ruleset_main.rules='telstra_dyndns'
-	fi
-	if [ ! $(uci get -q web.telstra_home) ]; then
-		uci set web.telstra_home=rule
-		uci set web.telstra_home.target='/telstra-gui.lp'
-		uci add_list web.telstra_home.roles='admin' 
-		uci add_list web.telstra_home.roles='engineer'
-		uci add_list web.ruleset_main.rules='telstra_home'
-	fi
-	if [ ! $(uci get -q web.telstra_parental) ]; then
-		uci set web.telstra_parental=rule
-		uci set web.telstra_parental.target='/telstra-modals/parental-modal.lp'
-		uci add_list web.telstra_parental.roles='admin' 
-		uci add_list web.telstra_parental.roles='engineer'
-		uci add_list web.ruleset_main.rules='telstra_parental'
-	fi
-	if [ ! $(uci get -q web.telstra_portforwarding) ]; then
-		uci set web.telstra_portforwarding=rule
-		uci set web.telstra_portforwarding.target='/telstra-modals/portforwarding.lp'
-		uci add_list web.telstra_portforwarding.roles='admin' 
-		uci add_list web.telstra_portforwarding.roles='engineer'
-		uci add_list web.ruleset_main.rules='telstra_portforwarding'
-	fi
-	if [ ! $(uci get -q web.telstra_remoteaccess) ]; then
-		uci set web.telstra_remoteaccess=rule
-		uci set web.telstra_remoteaccess.target='/telstra-modals/remoteaccess.lp'
-		uci add_list web.telstra_remoteaccess.roles='admin' 
-		uci add_list web.telstra_remoteaccess.roles='engineer'
-		uci add_list web.ruleset_main.rules='telstra_remoteaccess'
-	fi
-	if [ ! $(uci get -q web.telstra_tod) ]; then
-		uci set web.telstra_tod=rule
-		uci set web.telstra_tod.target='/telstra-modals/tod.lp'
-		uci add_list web.telstra_tod.roles='admin' 
-		uci add_list web.telstra_tod.roles='engineer'
-		uci add_list web.ruleset_main.rules='telstra_tod'
-	fi
-	if [ ! $(uci get -q web.telstra_traffic) ]; then
-		uci set web.telstra_traffic=rule
-		uci set web.telstra_traffic.target='/telstra-modals/traffic.lp'
-		uci add_list web.telstra_traffic.roles='admin' 
-		uci add_list web.telstra_traffic.roles='engineer'
-		uci add_list web.ruleset_main.rules='telstra_traffic'
-	fi
-	if [ ! $(uci get -q web.telstra_user) ]; then
-		uci set web.telstra_user=rule
-		uci set web.telstra_user.target='/telstra-modals/user.lp'
-		uci add_list web.telstra_user.roles='admin' 
-		uci add_list web.telstra_user.roles='engineer'
-		uci add_list web.ruleset_main.rules='telstra_user'
-	fi
-	if [ ! $(uci get -q web.telstra_wifi) ]; then
-		uci set web.telstra_wifi=rule
-		uci set web.telstra_wifi.target='/telstra-modals/wifi.lp'
-		uci add_list web.telstra_wifi.roles='admin' 
-		uci add_list web.telstra_wifi.roles='engineer'
-		uci add_list web.ruleset_main.rules='telstra_wifi'
-	fi
-	if [ ! $(uci get -q web.telstra_wifiguest) ]; then
-		uci set web.telstra_wifiguest=rule
-		uci set web.telstra_wifiguest.target='/telstra-modals/wifiguest.lp'
-		uci add_list web.telstra_wifiguest.roles='admin' 
-		uci add_list web.telstra_wifiguest.roles='engineer'
-		uci add_list web.ruleset_main.rules='telstra_wifiguest'
-	fi
-	if [ ! $(uci get -q web.telstra_helpbroadband) ]; then
-		uci set web.telstra_helpbroadband=rule
-		uci set web.telstra_helpbroadband.target='/telstra-helpfiles/help_broadband.lp'
-		uci add_list web.telstra_helpbroadband.roles='admin' 
-		uci add_list web.telstra_helpbroadband.roles='engineer'
-		uci add_list web.ruleset_main.rules='telstra_helpbroadband'
-	fi
-	if [ ! $(uci get -q web.telstra_helpcontentsharing) ]; then
-		uci set web.telstra_helpcontentsharing=rule
-		uci set web.telstra_helpcontentsharing.target='/telstra-helpfiles/help_contentsharing.lp'
-		uci add_list web.telstra_helpcontentsharing.roles='admin' 
-		uci add_list web.telstra_helpcontentsharing.roles='engineer'
-		uci add_list web.ruleset_main.rules='telstra_helpcontentsharing'
-	fi
-	if [ ! $(uci get -q web.telstra_helpdyndns) ]; then
-		uci set web.telstra_helpdyndns=rule
-		uci set web.telstra_helpdyndns.target='/telstra-helpfiles/help_dyndns.lp'
-		uci add_list web.telstra_helpdyndns.roles='admin' 
-		uci add_list web.telstra_helpdyndns.roles='engineer'
-		uci add_list web.ruleset_main.rules='telstra_helpdyndns'
-	fi
-	if [ ! $(uci get -q web.telstra_helphome) ]; then
-		uci set web.telstra_helphome=rule
-		uci set web.telstra_helphome.target='/telstra-helpfiles/help_home.lp'
-		uci add_list web.telstra_helphome.roles='admin' 
-		uci add_list web.telstra_helphome.roles='engineer'
-		uci add_list web.ruleset_main.rules='telstra_helphome'
-	fi
-	if [ ! $(uci get -q web.telstra_helpportforwarding) ]; then
-		uci set web.telstra_helpportforwarding=rule
-		uci set web.telstra_helpportforwarding.target='/telstra-helpfiles/help_portforwarding.lp'
-		uci add_list web.telstra_helpportforwarding.roles='admin' 
-		uci add_list web.telstra_helpportforwarding.roles='engineer'
-		uci add_list web.ruleset_main.rules='telstra_helpportforwarding'
-	fi
-	if [ ! $(uci get -q web.telstra_helpremoteaccess) ]; then
-		uci set web.telstra_helpremoteaccess=rule
-		uci set web.telstra_helpremoteaccess.target='/telstra-helpfiles/help_remoteaccess.lp'
-		uci add_list web.telstra_helpremoteaccess.roles='admin' 
-		uci add_list web.telstra_helpremoteaccess.roles='engineer'
-		uci add_list web.ruleset_main.rules='telstra_helpremoteaccess'
-	fi
-	if [ ! $(uci get -q web.telstra_helpservices) ]; then
-		uci set web.telstra_helpservices=rule
-		uci set web.telstra_helpservices.target='/telstra-helpfiles/help_services.lp'
-		uci add_list web.telstra_helpservices.roles='admin' 
-		uci add_list web.telstra_helpservices.roles='engineer'
-		uci add_list web.ruleset_main.rules='telstra_helpservices'
-	fi
-	if [ ! $(uci get -q web.telstra_helptod) ]; then
-		uci set web.telstra_helptod=rule
-		uci set web.telstra_helptod.target='/telstra-helpfiles/help_tod.lp'
-		uci add_list web.telstra_helptod.roles='admin' 
-		uci add_list web.telstra_helptod.roles='engineer'
-		uci add_list web.ruleset_main.rules='telstra_helptod'
-	fi
-	if [ ! $(uci get -q web.telstra_helptraffic) ]; then
-		uci set web.telstra_helptraffic=rule
-		uci set web.telstra_helptraffic.target='/telstra-helpfiles/help_traffic.lp'
-		uci add_list web.telstra_helptraffic.roles='admin' 
-		uci add_list web.telstra_helptraffic.roles='engineer'
-		uci add_list web.ruleset_main.rules='telstra_helptraffic'
-	fi
-	if [ ! $(uci get -q web.telstra_helpusersetting) ]; then
-		uci set web.telstra_helpusersetting=rule
-		uci set web.telstra_helpusersetting.target='/telstra-helpfiles/help_usersetting.lp'
-		uci add_list web.telstra_helpusersetting.roles='admin' 
-		uci add_list web.telstra_helpusersetting.roles='engineer'
-		uci add_list web.ruleset_main.rules='telstra_helpusersetting'
-	fi
-	if [ ! $(uci get -q web.telstra_helpwifi) ]; then
-		uci set web.telstra_helpwifi=rule
-		uci set web.telstra_helpwifi.target='/telstra-helpfiles/help_wifi.lp'
-		uci add_list web.telstra_helpwifi.roles='admin' 
-		uci add_list web.telstra_helpwifi.roles='engineer'
-		uci add_list web.ruleset_main.rules='telstra_helpwifi'
-	fi
-
-	############# end telstra gui support ################################
-	if [ ! $( uci get -q env.var.telstra_webui) ]; then
-		uci set env.var.telstra_webui="0"
+	if [ ! "$(uci get -q modgui.app.telstra_webui)" ]; then
+		uci set modgui.app.telstra_webui="0"
 	fi
 	if [ -f /tmp/telstra_gui.tar.bz2 ]; then
-		if [ "$(uci get -q env.var.telstra_webui)" == "1" ]; then
+		if [ "$(uci get -q modgui.app.telstra_webui)" == "1" ]; then
 			bzcat /tmp/telstra_gui.tar.bz2 | tar -C / -xf - 
 		fi
 		rm /tmp/telstra_gui.tar.bz2
@@ -1286,6 +1110,7 @@ telstra_support_check() {
 
 wan_sensing_clean() {
 	#This will try to clean every hardcoded setting from isp config
+	logger_command "Cleaning WanSensing"
 	if [ -f /etc/wansensing/L2EntryExit.lua ]; then
 		sed -i '/[cC][wW][mM][pP][dD]/d' /etc/wansensing/L2EntryExit.lua
 		sed -i '/mtu= "1500"/{N;d}' /etc/wansensing/L2EntryExit.lua
@@ -1319,46 +1144,84 @@ wan_sensing_clean() {
 }
 
 rootchecks() {
+
+	logger_command "Setting root flag"
+	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not
+	logger_command "Reset unlock bit"
+	uci set env.var.unlockedstatus='0'
+	
+	encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
+	default_encrypted_pass='$5liEJpfo7NYE'
+	saved_encrypted_pass=$(uci -q get modgui.var.encrypted_pass)
+	
+	store_pass_in_uci() {
+		#Redefine encrypted_pass as this can change after the shadow check
+		encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
+		echo "  New password detected!" > /dev/console
+		echo "  Storing encrypted password..." > /dev/console
+		uci set modgui.var.encrypted_pass="$encrypted_pass"
+	}
+	
 	logger_command "Save root password if modified"
-	if [ ! $(awk -F: '/root/ {print $7 }' /etc/passwd) = "/bin/ash" ]; then #this enable root access from login
+	if [ "$(awk -F: '/root/ {print $7 }' /etc/passwd)" != "/bin/ash" ]; then #this enable root access from login
 		sed -i '1croot:x:0:0:root:/root:/bin/ash' /etc/passwd
 	fi
-	if ! [ $encrypted_pass == $default_encrypted_pass ] && [ -z $saved_encrypted_pass ]; then #all of this is to check the root 
+	if [ -f /etc/shadow_old ] && [ -f /root/.reapply_due_to_upgrade ]; then
+		old_encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow_old)
+		sed -i -e 's|"${encrypted_pass}"|"${old_encrypted_pass}"|' /etc/shadow
+		rm /etc/shadow_old
+		echo "  Restoring old root password as this is a firmware upgrade!" > /dev/console
+	elif [ -n "$saved_encrypted_pass" ]; then
+	  if [ "$encrypted_pass" != "$saved_encrypted_pass" ]; then
+		if [ -f /root/.reapply_due_to_upgrade ]; then
+			echo "  Setting root password from password saved in config" > /dev/console
+			sed -i -e 's|"${encrypted_pass}"|"${saved_encrypted_pass}"|' /etc/shadow
+		else
+			echo "  Shadow contains different pass than saved one. Save it!" > /dev/console
+			store_pass_in_uci
+		fi
+	  fi
+	elif [ "$encrypted_pass" != "$default_encrypted_pass" ] ||
+	  [ -f /root/.reapply_due_to_upgrade ]; then #all of this is to check the root
 		echo -e "root\nroot" | passwd > /dev/null
-		if ! [ $encrypted_pass == $default_encrypted_pass ]; then
+		#Redefine encrypted_pass as this can change after the shadow check
+		encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
+		if [ "$encrypted_pass" != "$default_encrypted_pass" ]; then
 			sed -i -e 's|"${encrypted_pass}"|"${default_encrypted_pass}"|' /etc/shadow
 		fi
 		echo "  Setting root password" > /dev/console
-		save_root_encrypt_pass #this save the password to the env config file
-	else
-		if [ $encrypted_pass == $default_encrypted_pass ]; then
-			echo "  Root password detected" > /dev/console
-		else
-			if [ $encrypted_pass == $saved_encrypted_pass ]; then
-				echo "  Changed root password detected!" > /dev/console
-			else
-				echo "  New password detected!" > /dev/console
-				save_root_encrypt_pass
-			fi
-		fi
+		store_pass_in_uci
+	elif [ "$encrypted_pass" == "$default_encrypted_pass" ]; then
+		echo "  Root password detected" > /dev/console
+	elif [ "$encrypted_pass" == "$saved_encrypted_pass" ]; then
+		echo "  Changed root password detected!" > /dev/console
 	fi
 
-	logger_command "Setting dropbear settings"
-	uci set dropbear.@dropbear[0].Interface='lan'
-	uci set dropbear.@dropbear[0].RootLogin='1'
-	uci set dropbear.@dropbear[0].RootPasswordAuth='on' #dropbear root related
-	uci set dropbear.@dropbear[0].PasswordAuth='on'
-	uci set dropbear.@dropbear[0].enable='1'
+	if [ -z "$saved_encrypted_pass" ]; then
+		store_pass_in_uci
+	fi
+
+	logger_command "Setting & Enabling Dropbear SSH Server"
+	dropbear_path="dropbear.@dropbear[0]"
+	if [ "$(uci get -q dropbear.lan)" ]; then
+	    dropbear_path="dropbear.lan"
+	fi
+	uci set "$dropbear_path".Interface='lan'
+	uci set "$dropbear_path".RootLogin='1'
+	uci set "$dropbear_path".RootPasswordAuth='on' #dropbear root related
+	uci set dropbear.lan.PasswordAuth='on'
+	uci set "$dropbear_path".enable='1'
 
 	uci commit dropbear
+	uci commit modgui
 
-	logger_command "Restarting dropbear"
+	logger_command "Restarting Dropbear SSH Server"
 	/etc/init.d/dropbear restart > /dev/null
 }
 
 ledfw_rework_TG799() {
-	if [ ! $(uci get -q button.info) ]; then
-		logger_command "Extracting ledfw_support-specificTG799.tar.bz2 and setting up status button..."
+	if [ ! "$(uci get -q button.info)" ]; then
+		logger_command "Extracting ledfw_support-specificTG799.tar.bz2 and setting up status (power) button..."
 		uci del button.easy_reset
 		uci set button.info=button
 		uci set button.info.button='BTN_3'
@@ -1375,7 +1238,7 @@ ledfw_rework_TG799() {
 		stateMachine_md5=$(md5sum /etc/ledfw/stateMachines.lua | awk '{ print $1 }' )
 		logger_command "StateMachine tar md5sum: $stateMachine_tar_md5"
 		logger_command "StateMachine md5sum: $stateMachine_md5"
-		if [ $stateMachine_tar_md5 ] && [ $stateMachine_tar_md5 != $stateMachine_md5 ]; then
+		if [ "$stateMachine_tar_md5" ] && [ "$stateMachine_tar_md5" != "$stateMachine_md5" ]; then
 			logger_command "Extracting ledfw_support-specificTG799.bz2 ..."
 			/usr/share/transformer/scripts/restart_leds.sh
 			bzcat /tmp/ledfw_support-specificTG799.tar.bz2 | tar -C / -xf - etc/ledfw/stateMachines.lua
@@ -1384,8 +1247,8 @@ ledfw_rework_TG799() {
 }
 
 ledfw_rework_TG800() {
-	if [ ! $(uci get -q button.info) ]; then
-		logger_command "Extracting ledfw_support-specificTG800.bz2 and setting up wifi button..."
+	if [ ! "$(uci get -q button.info)" ]; then
+		logger_command "Extracting ledfw_support-specificTG800.bz2 and setting up status (wifi) button..."
 		uci del button.easy_reset
 		uci set button.info=button
 		uci set button.info.button='BTN_1'
@@ -1404,7 +1267,7 @@ ledfw_rework_TG800() {
 		stateMachine_md5=$(md5sum /etc/ledfw/stateMachines.lua | awk '{ print $1 }' )
 		logger_command "StateMachine tar md5sum: $stateMachine_tar_md5"
 		logger_command "StateMachine md5sum: $stateMachine_md5"
-		if [ $stateMachine_tar_md5 ] && [ $stateMachine_tar_md5 != $stateMachine_md5 ]; then
+		if [ "$stateMachine_tar_md5" ] && [ "$stateMachine_tar_md5" != "$stateMachine_md5" ]; then
 			logger_command "Extracting ledfw_support-specificTG800.bz2 ..."
 			/usr/share/transformer/scripts/restart_leds.sh
 			bzcat /tmp/ledfw_support-specificTG800.tar.bz2 | tar -C / -xf - etc/ledfw/stateMachines.lua
@@ -1418,7 +1281,7 @@ ledfw_rework_TG789() {
 		stateMachine_md5=$(md5sum /etc/ledfw/stateMachines.lua | awk '{ print $1 }' )
 		logger_command "StateMachine tar md5sum: $stateMachine_tar_md5"
 		logger_command "StateMachine md5sum: $stateMachine_md5"
-		if [ $stateMachine_tar_md5 ] && [ $stateMachine_tar_md5 != $stateMachine_md5 ]; then
+		if [ "$stateMachine_tar_md5" ] && [ "$stateMachine_tar_md5" != "$stateMachine_md5" ]; then
 			logger_command "Extracting ledfw_support-specificTG789.bz2 ..."
 			/usr/share/transformer/scripts/restart_leds.sh
 			bzcat /tmp/ledfw_support-specificTG789.tar.bz2 | tar -C / -xf - etc/ledfw/stateMachines.lua
@@ -1427,10 +1290,10 @@ ledfw_rework_TG789() {
 }
 
 ledfw_rework_DGA() {
-	if [ "$(cat /usr/lib/lua/ledframework/ubus.lua | grep '\--restore default function of this')" ]; then
+	if [ "$(< /usr/lib/lua/ledframework/ubus.lua grep '\--restore default function of this')" ]; then
 		cp /rom/usr/lib/lua/ledframework/ubus.lua /usr/lib/lua/ledframework/
 	fi
-	if [ ! "$(cat /usr/lib/lua/ledframework/ubus.lua | grep 'cb("fwupgrade_state_" .. msg.state)')" ]; then
+	if [ ! "$(< /usr/lib/lua/ledframework/ubus.lua grep 'cb("fwupgrade_state_" .. msg.state)')" ]; then
 		sed -i 'N;/events\['\''fwupgrade'\''\] = function(msg)/a\\t\tcb("fwupgrade_state_" .. msg.state)' /usr/lib/lua/ledframework/ubus.lua
 	fi
 
@@ -1439,7 +1302,7 @@ ledfw_rework_DGA() {
 		stateMachine_md5=$(md5sum /etc/ledfw/stateMachines.lua | awk '{ print $1 }' )
 		logger_command "StateMachine tar md5sum: $stateMachine_tar_md5"
 		logger_command "StateMachine md5sum: $stateMachine_md5"
-		if [ $stateMachine_tar_md5 ] && [ $stateMachine_tar_md5 != $stateMachine_md5 ]; then
+		if [ "$stateMachine_tar_md5" ] && [ "$stateMachine_tar_md5" != "$stateMachine_md5" ]; then
 			logger_command "Extracting ledfw_support-specificDGA.bz2 ..."
 			/usr/share/transformer/scripts/restart_leds.sh
 			bzcat /tmp/ledfw_support-specificDGA.tar.bz2 | tar -C / -xf - etc/ledfw/stateMachines.lua
@@ -1462,9 +1325,9 @@ check_gui_tmp() {
 }
 
 check_wan_mode() {
-	if [ ! $(uci get -q network.config.wan_mode) ]; then
+	if [ ! "$(uci get -q network.config.wan_mode)" ]; then
 		uci set network.config="config"
-		uci set network.config.wan_mode=$(uci get -q network.wan.proto)
+		uci set network.config.wan_mode="$(uci get -q network.wan.proto)"
 	fi
 }
 
@@ -1478,7 +1341,7 @@ dosprotect_inizialize() {
 		if [ -f /etc/config/dosprotect_orig ]; then
 			rm /etc/config/dosprotect_orig
 		fi
-		if [ ! -f  /etc/rc.d/S*dosprotect ]; then
+		if [ "$(echo /etc/rc.d/S*dosprotect)" ]; then
 			/etc/init.d/dosprotect enable
 			/etc/init.d/dosprotect start
 		fi
@@ -1496,19 +1359,214 @@ disable_intercept() {
 }
 
 cron_christmas() {
-	if [ ! -f /etc/crontabs/root ] || [ $(cat /etc/crontabs/root | grep -c "christmas_tree") -lt 1 ]; then
+	if [ ! -f /etc/crontabs/root ] || [ "$(< /etc/crontabs/root grep -c "christmas_tree")" -lt 1 ]; then
 		echo "*/30 * 24-26 12 * /etc/christmas_tree.sh &" >> /etc/crontabs/root
 	fi
+}
+
+move_env_var() {
+	if [ ! -f /etc/config/modgui ]; then
+		subpart="gui app var"
+
+		gui_entities="autoupgrade randomcolor autoupgrade_hour firstpage gui_skin new_ver outdated_ver gui_version autoupgradeview gui_hash update_branch"
+		app_entities="xupnp_app blacklist_app telstra_webui transmission_webui aria2_webui amule_webui luci_webui"
+		var_entities="isp ppp_mgmt ppp_realm_ipv6 ppp_realm_ipv4 encrypted_pass driver_version bank_check"
+
+		touch /etc/config/modgui
+
+		for part in $subpart; do
+			uci set modgui.$part=$part
+			for value in $(eval 'echo $'"$part"_entities); do
+				uci_val="$(uci get -q env.var.$value)"
+				if [ -n "$uci_val" ]; then
+					uci set modgui.$part.$value=$uci_val
+					uci delete env.var.$value
+				fi
+			done
+		done
+
+		uci commit env
+		uci commit modgui
+	fi
+}
+
+disable_upload_coredump_and_reboot() {
+	#disable upload to tim server for coredump...
+	#This is a modified build so let's not full server with false coredump.
+	if [ "$(uci get -q system.@coredump[0].action)" != "ignore" ]; then
+		uci set system.@coredump[0].action="ignore"
+	fi
+	if [ "$(uci get -q system.@coredump[0].reboot)" != "0" ]; then
+		logger_command "Disable reboot after crash, this gives race condition..."
+		uci set system.@coredump[0].reboot='0'
+	fi
+	#Clean coredump
+	if [ "$(find /root -type f -name "*.core.*")" ]; then
+		for coredump in /root/*.core.* ; do
+			logger_command "Removing coredump $coredump from /root..."
+			rm "$coredump"
+		done
+	fi
+}
+
+restore_nginx() {
+	#This file contain settings specific for gui
+	#For example
+	#client_max_body_size
+	if [ ! -f /etc/nginx/ui_server.conf ]; then
+		#Execute defualt script to set this value
+		/rom/etc/uci-defaults/tch_0080-nginx
+	fi
+}
+
+check_tmp_permission() {
+	#Tmp MUST be always with permission 777
+	#This is ram and is used by all process to write file so everyone should be able to write here
+	#Or at leat is whay ngix needs to permit a stream between gui and the sysupgrade
+	#The gui has a virtual tmp dir in it and this caused the overwrite of the permission.
+	#On the gui zip che tmp dir is now with 777 permission but let's make sure this is actually applied.
+	#drwxrwxrwx is how ls display 777 permission
+	if [ "$(ls -ld /tmp | awk '{ print $1 }')" != "drwxrwxrwx" ]; then
+		chmod 777 /tmp
+	fi
+}
+
+check_isp_and_cwmp() {
+	if [ "$(uci -q get modgui.var.isp)" ]; then
+		if [ "$(uci -q get modgui.var.isp)" == "Other" ]; then #this disable cwmpd if it's not known ISP...
+			uci set cwmpd.cwmpd_config.state='0'
+			if [ "$(uci get -q cwmpd.cwmpd_config.state)" = "1" ]; then
+				if [ -f /var/run/cwmpd.pid ]; then
+					/etc/init.d/cwmpd stop
+				fi
+				/etc/init.d/cwmpd disable
+			fi
+		elif [ "$(uci -q get modgui.var.isp)" == "Tiscali" ]; then
+			uci set cwmpd.cwmpd_config.acs_url="http://webdirect.tr69.tiscali.it:8080/ftacs-basic/ACS"
+			uci set cwmpd.cwmpd_config.acs_user="technicolor"
+			uci set cwmpd.cwmpd_config.acs_pass="techn_tr69@"
+			uci commit cwmpd
+		elif [ "$(uci -q get modgui.var.isp)" == "TIM" ]; then
+			logger_command "TIM ISP detected, finding CWMP server..."
+			new_platform=https://regman-mon.interbusiness.it:10800/acs/
+			new_platform_bck=https://regman-bck.interbusiness.it:10501/acs/
+			unified_platform=https://regman-tl.interbusiness.it:10700/acs/ 
+			mgmt_platform=https://regman-tl.interbusiness.it:10500/acs/
+			if [ "$(curl -s -k $new_platform --max-time 5 )" ]; then
+				uci set cwmpd.cwmpd_config.acs_url=$new_platform
+			elif [ "$(curl -s -k $new_platform_bck --max-time 5 )" ]; then
+				uci set cwmpd.cwmpd_config.acs_url=$new_platform_bck
+			elif [ "$(curl -s -k $unified_platform --max-time 5 )" ]; then
+				uci set cwmpd.cwmpd_config.acs_url=$unified_platform
+			elif [ "$(curl -s -k $mgmt_platform --max-time 5 )" ]; then
+				uci set cwmpd.cwmpd_config.acs_url=$mgmt_platform
+			else
+				uci set cwmpd.cwmpd_config.acs_url="None"
+			fi
+			logger_command "CWMP Server detected: $(uci get cwmpd.cwmpd_config.acs_url)"
+			if [ "$(uci get -q cwmpd.cwmpd_config.interface)" != "wan" ]; then
+				uci set cwmpd.cwmpd_config.interface='wan'
+			fi
+			uci commit cwmpd
+			if [ "$(uci get -q cwmpd.cwmpd_config.acs_url)" == "None" ]; then
+				if [ "$(pgrep "cwmpd")" ]; then
+					/etc/init.d/cwmpd stop
+				fi
+			else
+				/etc/init.d/cwmpd enable
+				if [ ! "$(pgrep "cwmpd")" ]; then
+					/etc/init.d/cwmpd start
+				else
+					/etc/init.d/cwmpd restart
+				fi
+			fi
+		fi
+		if [ "$(uci get -q modgui.var.isp)" == "TIM" ]; then #this add specific config for TIM
+			add_TIM_ppp_specific
+			add_telecom_stock_dns
+		else
+			purify_from_tim
+		fi
+	fi
+}
+
+check_webui_config() {
+	if [ -f /etc/config/web_unlock ]; then
+		if [ ! "$(uci get -q web.changelog)" ] || [ ! "$(uci get -q web.mmpbxstatisticsmodal)" ] ; then
+			mv /etc/config/web /etc/config/web_back #backup of the stock web config
+			mv /etc/config/web_unlock /etc/config/web #apply unlocked universal config
+		else
+			rm /etc/config/web_unlock
+		fi
+	fi
+	if [ ! "$(uci get -q wireless.global.wifi_analyzer_disable)" ]; then
+		 if [ "$(uci get -q wireless.global.wifi_analyzer_disable)" != "0" ]; then
+			uci set wireless.global.wifi_analyzer_disable='0'
+		fi
+	fi
+	if [ "$(uci get -q web.usr_admin.role)" != "engineer" ]; then
+		uci set web.usr_admin.role='engineer'
+		uci commit web
+	fi
+}
+
+reapply_gui_after_reset() {
+	if [ -f /root/GUI.tar.bz2 ] && [ -s /root/GUI.tar.bz2 ]; then
+		logger_command "Resetting /www dir due to firmware upgrade..."
+		rm -r /www
+		bzcat /root/GUI.tar.bz2 | tar -C / -xf - www
+	elif [ -f /root/GUI.tar.gz ]; then
+		logger_command "Resetting /www dir due to firmware upgrade..."
+		rm -r /www
+		tar -C / -zxf /root/GUI.tar.gz www
+	fi
+}
+
+start_stop_nginx() {
+	while [ "$(pgrep "nginx")" ]; do
+		if [ -f /var/run/nginx.pid ]; then
+			kill -KILL "$(cat /var/run/nginx.pid)"
+			rm /var/run/nginx.pid
+		fi
+		for pid in $(pgrep nginx); do 
+			kill -KILL "$pid"
+		done
+		/etc/init.d/nginx stop 2>/dev/null
+	done
+	
+	nginx_count=0
+	while [ "$(curl 127.0.0.1 --max-time 20 -I -s | head -n 1 | cut -d$' ' -f2)" != "200" ] && [ $nginx_count -lt 5 ]; do
+		if [ $nginx_count -gt 3 ]; then
+			if [ -f /var/run/nginx.pid ]; then
+				kill -KILL "$(cat /var/run/nginx.pid)"
+				rm /var/run/nginx.pid
+			fi
+			for pid in $(pgrep nginx); do 
+				kill -KILL "$pid"
+			done
+		fi
+		logger_command "Restarting nginx..." ConsoleOnly
+		/etc/init.d/nginx restart 2>/dev/null
+		sleep 5
+		nginx_count=$((nginx_count+1))
+	done
+}
+
+prevent_total_brick() {
+	#Enable hardware serial console to intercept bootloops
+	sed -i 's/#//' /etc/inittab
 }
 
 root() {
 
 	logger -s -t 'Root Script' "Rooting in progress..."
-
+	
+	check_tmp_permission
+	
 	#THIS CHECK DEVICE TYPE AND INSTALL SPECIFIC FILE
 	device_type="$(uci get -q env.var.prod_friendly_name)"
 
-	[ -z "${device_type##*DGA413*}" ] && logger_command "Apply specific device file..."
+	logger_command "Applying specific model fixes..."
 	[ -z "${device_type##*DGA413*}" ] && apply_specific_DGA_package
 	[ -z "${device_type##*TG789*}" ] && apply_specific_TG789_package
 	[ -z "${device_type##*TG799*}" ] && apply_specific_TG799_package
@@ -1520,11 +1578,11 @@ root() {
 
 	if [ -f /tmp/custom-ripdrv-specificDGA.tar.bz2 ]; then
 		clean_specific_file
-		logger_command "Removing specific file and resuming root process..."
+		logger_command "Removing fixes and resuming root process..."
 	fi
 
-	/etc/init.d/watchdog-tch stop
 	logger_command "Disable watchdog"
+	/etc/init.d/watchdog-tch stop
 
 	logger_command "Start rooting"
 	if [ ! -f /root/.check_process ]; then #this check if the placeholder exist
@@ -1532,58 +1590,27 @@ root() {
 	fi
 
 	if [ -f /root/.reapply_due_to_upgrade ]; then
-		if [ -f /root/GUI.tar.bz2 ] && [ -s /root/GUI.tar.bz2 ]; then
-			logger_command "Resetting /www dir due to firmware upgrade..."
-			rm -r /www
-			bzcat /root/GUI.tar.bz2 | tar -C / -xf - www
-			rm /root/.reapply_due_to_upgrade
-		fi
-	fi
-
-	logger_command "Stopping nginx"
-	while [ "$(pgrep "nginx")" ]; do
-		if [ "$(pgrep "nginx")" ]; then
-			/etc/init.d/nginx stop 2>/dev/null
-		fi
-	done
-
-	logger_command "Checking if we are on TIM configuration"
-	if [ $(uci -q get env.var.isp) ]; then
-		if [ $(uci get -q env.var.isp) == "TIM" ]; then #this add specific config for TIM
-			add_ipv6
-			add_ppp_mgmt
-			add_telecom_stock_dns
-		else
-			purify_from_tim
-		fi
+		reapply_gui_after_reset
 	fi
 
 	logger_command "Unlocking web interface if needed"
-	if [ -f /etc/config/web_unlock ]; then
-		if [ ! $(uci get -q web.changelog) ] || [ ! $(uci get -q web.mmpbxstatisticsmodal) ] ; then
-			mv /etc/config/web /etc/config/web_back #backup of the stock web config
-			mv /etc/config/web_unlock /etc/config/web #apply unlocked universal config
-		else
-			rm /etc/config/web_unlock
-		fi
-	fi
-
-	logger_command "Check variant_friendly_name set"
+	check_webui_config
+	logger_command "Check if variant_friendly_name set"
 	check_variant_friendly_name
 	logger_command "Check and cleanup"
 	add_ipoe #this need to stay to make the wizard work correctly
-	logger_command "Remove default dns"
+	logger_command "Remove default DNS Servers"
 	remove_default_dns #tim sets his dns on to of the loopback interface
 	setup_network #Fix some missing network value
-	logger_command "Purify wan"
+	logger_command "Purify WAN"
 	puryfy_wan_interface #remove gracefull restart, could give problem
-	logger_command "Fix dns bug"
+	logger_command "Fix DNS bug"
 	fix_dns_dhcp_bug #disable odhcpd as ipv6 is currently broken 
-	[ -z "${device_type##*DGA413*}" ] && logger_command "Enable dlnad"
+	[ -z "${device_type##*DGA413*}" ] && logger_command "Enable DLNAd"
 	[ -z "${device_type##*DGA413*}" ] && check_new_dlnad #this enable a new dlna deamon introduced with 17.1, the old one is keep
 	logger_command "Fix Sysupgrade"
 	check_upgrade_shit #this if old script are present to fix sysupgrade
-	logger_command "Check orig config"
+	logger_command "Check original config"
 	orig_config_gen #this check if new config are already present
 	logger_command "Restore original mapper"
 	restore_original_mapper #this restore the original file autogenerated as they are specific to the build version.
@@ -1591,85 +1618,81 @@ root() {
 	[ -z "${device_type##*DGA413*}" ] && transformer_lib_check #another cleanup
 	logger_command "Remove https check"
 	remove_https_check_cwmpd #cleanup
-	logger_command "Check css presence"
+	logger_command "Check for CSS themes"
 	check_uci_gui_skin #check css
-	logger_command "Check if dnsmasq is names as we need it for the webui"
+	logger_command "Check if dnsmasq daemon name is as we need it for the GUI"
 	check_dnsmasq_name #check dnsmasq name in uci
-	uci set dhcp.dnsmasq=dnsmasq
 	logger_command "Check driver setting"
 	create_driver_setting #create diver setting if not present
 	logger_command "Check Dropbear config file"
 	dropbear_file_check  #check dropbear config
-	logger_command "Check ddns directory"
+	logger_command "Check DDNS directory"
 	check_noip_file #check ddns directory in /etc
-	logger_command "Check eco param"
+	logger_command "Check eco paramaters"
 	eco_param #This disable eco param as they introduce some latency
 	[ -z "${device_type##*DGA413*}" ] && logger_command "Enable new upnp"
 	[ -z "${device_type##*DGA413*}" ] && enable_new_upnp #New upnp fix
-	logger_command "Sync dhcp configuration for new webui"
+	logger_command "Sync DHCP configuration for new GUI"
 	update_dhcp_config #Dhcp sync
-	logger_command "Create gui type in config"
+	logger_command "Create GUI type in config"
 	create_gui_type #Gui Type
-	logger_command "Add new web option"
+	logger_command "Add new web options"
 	add_new_web_rule #This check new option so that we don't replace the one present
 	logger_command "New DHCPRelay Option"
 	check_relay_dhcp #Sync option
 	logger_command "Disable trace from igmpproxy"
 	suppress_excessive_logging #Suppress logging
-	logger_command "Moving aria2 dir"
+	logger_command "Move Aria2 dir"
 	check_aria_dir #Fix config function
-	logger_command "Creating new option for led definition"
+	logger_command "Create new option for led definitions"
 	led_integration #New option led
 	[ -z "${device_type##*DGA413*}" ] && logger_command "Old build detected, moving wansensing file"
 	[ -z "${device_type##*DGA413*}" ] && check_wansensing # Move wansensing file to old directory
 	[ -z "${device_type##*DGA413*}" ] && logger_command "Checking downgrade limitation bit"
 	[ -z "${device_type##*DGA413*}" ] && remove_downgrade_bit #Use custom driver to remove this... thx @Roleo
-	[ -z "${device_type##*DGA413*}" ] && logger_command "Checking opkg conf"
+	[ -z "${device_type##*DGA413*}" ] && logger_command "Checking opkg feeds config"
 	[ -z "${device_type##*DGA413*}" ] && apply_right_opkg_repo #Check opkg conf based on version
 	logger_command "Creating and checking real version"
 	real_ver_entitied #Support for spoofing firm
-	logger_command "Creating new wol implementation"
+	logger_command "Implementing WoL"
 	new_wol_implementation #New Wol
-	logger_command "Sync new xdsl option"
+	logger_command "Apply new xDSL options"
 	add_xdsl_option #New xdsl option
-	logger_command "Creating utility simbolic link"
-	create_simbolic_utility #This create simbolic link
-	logger_command "Clean old script"
+	logger_command "Creating utility symbolic link"
+	create_simbolic_utility #This create symbolic link
+	logger_command "Remove old update script"
 	update_checkver_upgrade_script #This clean old script
 	logger_command "Adding fast cache options"
 	fcctlsettings_daemon #Adds fast cache options
-	[ "$device_type" == "DGA4132" ] && logger_command "Reworking sfp interface in network..."
+	[ "$device_type" == "DGA4132" ] && logger_command "Reworking sfp interface in network config..."
 	[ "$device_type" == "DGA4132" ] && sfp_rework #sfp to sfptag, to solve local ip problem
-	[ "$device_type" == "MediaAccess TG789vac v2" ] && logger_command "Unlocking ssh for tiscali firmware"
+	[ "$device_type" == "MediaAccess TG789vac v2" ] && logger_command "Unlocking SSH for Tiscali firmware"
 	[ "$device_type" == "MediaAccess TG789vac v2" ] && unlock_ssh_wan_tiscali
-	logger_command "Reinstalling telstra gui if needed..."
+	logger_command "Reinstalling Telstra GUI if needed..."
 	telstra_support_check #telstra support check
-	logger_command "Checking if wan_mode option exist..."
+	logger_command "Checking if wan_mode option exists..."
 	check_wan_mode # wan_mode check
-	logger_command "Inizialize and start dosprotect..."
+	logger_command "Inizialize and start DoSprotect..."
 	dosprotect_inizialize #dosprotected inizialize function
-	logger_command "Checking if intercept is enabled and disabling it if on..."
+	logger_command "Checking if intercept is enabled and disabling if it is..."
 	disable_intercept #Intercept check
-	logger_command "Trying to clean wansensing script from hardcoded interface..."
+	logger_command "Attempt to clean the wansensing script from hardcoded interfaces..."
 	wan_sensing_clean #Wansensing clean utility
-
-	logger_command "Setting root flag"
-	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not
-
-	logger_command "Disable reboot after crash, this gives race condition..."
-	uci set system.@coredump[0].reboot='0'
+	logger_command "Disabling coredump reboot..."
+	disable_upload_coredump_and_reboot
+	logger_command "Restoring nginx additional options if needed..."
+	restore_nginx
+	logger_command "Enabling hardware serial console..."
+	prevent_total_brick
 
 	rootchecks #This check root availability
 
-
-	if [ $(cat /proc/banktable/booted) == "bank_1" ] && [ ! $(uci get -q env.var.bank_check) ]; then 
+	if [ "$(cat /proc/banktable/booted)" == "bank_1" ] && [ ! "$(uci get -q modgui.var.bank_check)" ]; then
 		#this set bank_check bit if not present ONLY IN BANK_1, bank_2 value is set based on bank_1 value
-		uci set env.var.bank_check="1"
+		uci set modgui.var.bank_check="1"
 	fi
 
-	[ -z "${device_type##*DGA413*}" ] && uci set wireless.global.wifi_analyzer_disable='0' #AGTEF specific
-
-	logger_command "Doing various check and generating hash..."
+	logger_command "Doing various checks and generating hashes..."
 	cumulative_check_gui #Handle strange installation
 
 	logger_command "Add checkversion to cron..."
@@ -1685,84 +1708,43 @@ root() {
 		ifup wan
 	fi
 
-	logger_command "Apply modification"
+	logger_command "Applying modifications"
 	uci commit
+	
+	logger_command "Restarting dnsmasq if needed..."
+	if [ $restart_dnsmasq -eq 1 ]; then
+		killall dnsmasq
+		/etc/init.d/dnsmasq restart
+	fi
 
-	logger_command "Restart power init"
-	/etc/init.d/power restart
-
-	logger_command "Restarting dnsmasq"
-	killall dnsmasq
-	/etc/init.d/dnsmasq restart
-
-	rm /root/.check_process #we remove the placeholder as the process is complete
-	logger_command "Process done."
 	echo "  Process done. Your modem is now rooted!" > /dev/console
 
 	logger_command "Checking if ISP is detected..."
-	if [ $(uci -q get env.var.isp) ]; then
-		if [ $(uci -q get env.var.isp) == "Other" ]; then #this disable cwmpd if it's not known ISP...
-			uci set cwmpd.cwmpd_config.state='0'
-			if [ $(uci get -q cwmpd.cwmpd_config.state) = "1" ]; then
-				if [ -f /var/run/cwmpd.pid ]; then
-					/etc/init.d/cwmpd stop
-				fi
-				/etc/init.d/cwmpd disable
-			fi
-		elif [ $(uci -q get env.var.isp) == "Tiscali" ]; then
-			uci set cwmpd.cwmpd_config.acs_url="http://webdirect.tr69.tiscali.it:8080/ftacs-basic/ACS"
-			uci set cwmpd.cwmpd_config.acs_user="technicolor"
-			uci set cwmpd.cwmpd_config.acs_pass="techn_tr69@"
-			uci commit cwmpd
-		elif [ $(uci -q get env.var.isp) == "TIM" ]; then
-			logger_command "TIM ISP detected, finding CWMP server..."
-			new_platform=https://regman-mon.interbusiness.it:10800/acs/
-			new_platform_bck=https://regman-bck.interbusiness.it:10501/acs/
-			unified_platform=https://regman-tl.interbusiness.it:10700/acs/ 
-			mgmt_platform=https://regman-tl.interbusiness.it:10500/acs/
-			if [ "$(curl -s -k $new_platform)" ]; then
-				uci set cwmpd.cwmpd_config.acs_url=$new_platform
-			elif [ "$(curl -s -k $new_platform_bck)" ]; then
-				uci set cwmpd.cwmpd_config.acs_url=$new_platform_bck
-			elif [ "$(curl -s -k $unified_platform)" ]; then
-				uci set cwmpd.cwmpd_config.acs_url=$unified_platform
-			elif [ "$(curl -s -k $mgmt_platform)" ]; then
-				uci set cwmpd.cwmpd_config.acs_url=$mgmt_platform
-			else
-				uci set cwmpd.cwmpd_config.acs_url="None"
-			fi
-			logger_command "CWMP Server detected: "$(uci get cwmpd.cwmpd_config.acs_url)
-			if [ $(uci get -q cwmpd.cwmpd_config.interface) != "wan" ]; then
-				uci set cwmpd.cwmpd_config.interface='wan'
-			fi
-			uci commit cwmpd
-			if [ $(uci get -q cwmpd.cwmpd_config.acs_url) == "None" ]; then
-				if [ "$(pgrep "cwmpd")" ]; then
-					/etc/init.d/cwmpd stop
-				fi
-			else
-				/etc/init.d/cwmpd enable
-				if [ ! "$(pgrep "cwmpd")" ]; then
-					/etc/init.d/cwmpd start
-				else
-					/etc/init.d/cwmpd restart
-				fi
-			fi
-		fi
-	fi
+	check_isp_and_cwmp
 
 	check_gui_tmp
-	logger_command "Restarting transformer"
-	/etc/init.d/transformer restart
-	transformer-cli get uci.env.var.oui > /dev/null
 
-	nginx_count=0
-	while [ "$(curl 127.0.0.1 --max-time 20 -I -s | head -n 1 | cut -d$' ' -f2)" != "200" ] && [ $nginx_count -lt 3 ]; do
-		logger_command "Restarting nginx..."
-		/etc/init.d/nginx restart 2>/dev/null
-		sleep 5
-		nginx_count=$((nginx_count+1))
-	done
+	logger_command "Trafficmon inizialization"
+	trafficmon_support #support trafficmon
+
+	logger_command "Resetting cwmp and watchdog"
+	/etc/init.d/watchdog-tch start
+	
+	#This should comunicate the gui that the upgrade has finished.
+	rm /root/.check_process #we remove the placeholder as the process is complete
+	logger_command "Process done."
+	
+	#Remove reapply file as the root process after upgrade has finished.
+	if [ -f /root/.reapply_due_to_upgrade ]; then
+		rm /root/.reapply_due_to_upgrade
+	fi
+
+	set_transformer "rpc.system.modgui.upgradegui.state" "Finished"
+	
+	logger_command "Restarting transformer" ConsoleOnly
+	/etc/init.d/transformer restart
+	#Call a random value to check start of transformer
+	get_transformer "uci.env.var.oui" > /dev/null
 
 	#This file is present only in newer build that don't suffer this strange bug
 	#if [ ! -f /usr/lib/lua/tch/logger.lua ]; then
@@ -1771,37 +1753,33 @@ root() {
 	#	logger_command "Restarting transformer a second time cause it's just shit..."
 	#	/etc/init.d/transformer restart
 	#fi
-
-	logger_command "Trafficmon inizialization"
-	trafficmon_support #support trafficmon
-
-	/etc/init.d/watchdog-tch start
-
-	logger_command "Resetting cwmp and watchdog"
+	
+	logger_command "Stopping nginx" ConsoleOnly
+	start_stop_nginx
 }
 
 check_bank() {
-	bank_check=$( uci get -q env.var.bank_check )
-	bootedbank=$( cat /proc/banktable/booted )
-	activebank=$( cat /proc/banktable/active )
+	bank_check=$(uci get -q modgui.var.bank_check)
+	bootedbank=$(cat /proc/banktable/booted)
+	activebank=$(cat /proc/banktable/active)
 	env_config_bank1="/overlay/bank_1/etc/config/env"
-	if [ $bootedbank != $activebank ]; then
+	if [ "$bootedbank" != "$activebank" ]; then
 		echo "  Detected corrupted active bank... Restoring..." > /dev/console
 		restore_bank
 	fi
 
-	if [ $bootedbank == "bank_2" ]; then
+	if [ "$bootedbank" == "bank_2" ]; then
 		if [ -f $env_config_bank1 ]; then
-			get_config_bank1=$(cat $env_config_bank1 | grep bank_check | awk '{print $3}' | sed "s/'//g")
-			if [ -n $get_config_bank1 ] && [ ! $(uci -q get env.var.bank_check) ]; then
-				uci set env.var.bank_check=$get_config_bank1
-				uci commit env
+			get_config_bank1=$(< $env_config_bank1 grep bank_check | awk '{print $3}' | sed "s/'//g")
+			if [ -n "$get_config_bank1" ] && [ ! "$(uci -q get modgui.var.bank_check)" ]; then
+				uci set modgui.var.bank_check="$get_config_bank1"
+				uci commit modgui
 			fi
 		else
-			uci set env.var.bank_check="1"
-			uci commit env
+			uci set modgui.var.bank_check="1"
+			uci commit modgui
 		fi
-		if [ $(uci -q get env.var.bank_check) == "0" ]; then
+		if [ "$(uci -q get modgui.var.bank_check)" == "0" ]; then
 			logger_command "Firmware in Bank_2 but check_bank set to 0... Not transferring"
 			echo "  Firmware in Bank_2 but check_bank set to 0... Not transferring" > /dev/console
 		else
@@ -1811,6 +1789,32 @@ check_bank() {
 		fi
 	else
 		echo "  Firmware in Bank_1... Not transferring..." > /dev/console
+	fi
+}
+
+check_full_rootfs() {
+	rootfx_percet=$(df /overlay | sed -n 2p | awk {'{print $5}'} | sed 's|%||')
+	overlay_mtdblock=$(df /overlay | sed -n 2p | awk {'{print $1}'})
+	bootedbank=$( cat /proc/banktable/booted )
+	#Reset if rootfs more than 97% full
+	if [ "$rootfx_percet" -gt 96 ]; then
+		logger_command "DETECTED FULL ROOTFS... TRYING TO RESTORE..."
+		echo "  DETECTED FULL ROOTFS... TRYING TO RESTORE..." > /dev/console
+		for dir in /overlay/"$bootedbank"/* ; do
+			if [ ! "$dir" == "/overlay/$bootedbank/etc" ]; then
+				logger_command "TRYING TO SAVE ROOT BY REMOVING EVERY DIR EXCEPT /etc"
+				echo "  TRYING TO SAVE ROOT BY REMOVING EVERY DIR EXCEPT /etc" > /dev/console
+				rm -r -f "$dir"
+			fi
+		done
+		#Verify if rm did actually remove the file...
+		if [ -d "/overlay/$bootedbank/root" ]; then
+			logger_command "CAN'T REMOVE FILES... INITIALISING FULL ROOTFS ERASE"
+			echo "  CAN'T REMOVE FILES... INITIALISING FULL ROOTFS ERASE" > /dev/console
+			logger_command "THIS WILL RESTORE THE MODEM TO FACTORY SETTINGS"
+			echo "  THIS WILL RESTORE THE MODEM TO FACTORY SETTINGS" > /dev/console
+			mtd erase -r "$overlay_mtdblock"
+		fi
 	fi
 }
 
@@ -1839,7 +1843,9 @@ install() {
 
 boot() {
 	logo_project
+	check_full_rootfs
 	check_root
+	move_env_var #This moves every garbage created before 8.11.49 in env to modgui config file
 	check_gui_ver
 	check_isp_config
 	create_symlink

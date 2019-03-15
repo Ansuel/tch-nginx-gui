@@ -253,8 +253,10 @@ ngx.print('\
 \
 '); ngx.print(ui_helper.createFooter()) ngx.print('\
 \
-<script src="/js/srp-min.js" ></script>\
 <script type="text/javascript" >\
+\
+	$.getScript("/js/srp-min.js");\
+\
 	var oldhandler;\
 	$.each($._data(document, "events"), function(i, event){\
 		$.each(event, function(i, handler){\

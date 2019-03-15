@@ -9,7 +9,8 @@ local content_helper = require("web.content_helper")
 local cui = {
   defaultuser = "uci.web.uiconfig.@uidefault.defaultuser",
   nsplink = "uci.web.uiconfig.@uidefault.nsplink",
-  gui_version = "uci.env.var.gui_version",
+  friendly_product_name = "uci.env.var.prod_friendly_name",
+  gui_version = "uci.modgui.gui.gui_version",
 }
 content_helper.getExactContent(cui)
 
@@ -46,10 +47,10 @@ content_helper.getExactContent(cui)
       </div>
     </div>
     <div class="copyright span12">
-			<p>&copy; Technicolor 2015</p>
-			<p>Modified Ver. [ <%= cui.gui_version %> ]</p>
-			<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> && Unlock Utility by <font style="color:#0088cc;">ADeltaX</font> && Translated by <font style="color:#0088cc;">DarkNiko</font></p>
-		</div>
+        <p>&copy; Technicolor 2019</p>
+        <%= string.format(T'<p>%s GUI Version ', cui.friendly_product_name) %> <%=format('%s', cui.gui_version) %> </p>
+        <%= T'<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> and <a href="https://github.com/Ansuel/tch-nginx-gui/graphs/contributors">these GitHub users.</a><br>Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>' %>
+    </div>
   </div>
 </body>
 </html>

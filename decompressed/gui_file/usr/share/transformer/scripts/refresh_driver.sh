@@ -67,10 +67,18 @@ f8b79ad11f3089ff301fa81e5c5f7cb7  A2pv6F039f1
 e770d5a89ce9fd29cc6f2a63c3ffc351  A2pv6F039e
 dc8f33f59901a4a38cbb292ae6fcb390  B2pv6F039k
 b75a96fef8010f0f728d77368aa776ce  A2pv6F039x1
+3b1be04587a2df4aa56c179a711cec79  A2pv6F039x6
+8fd81e22b9e7e5fa6b6ee6d7d3fc5353  A2pvfbH043j2
+648e9ca169cd73be4bdf99bf862e9e8d  A2pvfbH043q
+70e51c7948c01583963cad39174ed2c0  B2pvfbH043q
+033ddd744ae3e82c84314db84f9e062b  A2pvfbH045k
+49bf76755cb9bd9f8b09e4b79a0496ef  A2pvfbH043d1
+462fd33eb2e02b263f36ff11427f2aa8  B2pvfbH043d1
+0a5c3cbbe500de3fe6949e08d3e07331  A2pvfbH043i2
 "
 
 installed_driver=$(transformer-cli get rpc.xdsl.dslversion | awk '{print $4}'  | cut -d. -f1)
-driver_set=$(uci get env.var.driver_version)
+driver_set=$(uci get modgui.var.driver_version)
 
 if [ "$(cat /proc/cpuinfo | grep Processor | grep ARM)" ]; then
 	arch=arm

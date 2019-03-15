@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: web-framework-tch\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-06-21 15:33+0200\n"
-"PO-Revision-Date: 2019-01-08 11:58+0100\n"
+"PO-Revision-Date: 2019-03-02 15:13+0100\n"
 "Last-Translator: bovirus <bovirus@gmail.com>\n"
 "Language-Team: none\n"
 "Language: it\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language-Name: Italiano\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.2\n"
+"X-Generator: Poedit 2.2.1\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
 msgid "%d day"
@@ -36,7 +36,7 @@ msgstr[0] "%d secondo"
 msgstr[1] "%d secondi"
 
 msgid "0 or 1 expected."
-msgstr "Inserire 0 o 1."
+msgstr "Inserisci 0 o 1."
 
 msgid "A WEP key of length 10 or 26 can only contain the hexadecimal digits."
 msgstr "Una chiave WEP di lunghezza 10 o 26 caratteri può contenere solo cifre esadecimali."
@@ -87,7 +87,7 @@ msgid "Changes not allowed."
 msgstr "Modifiche non consentite."
 
 msgid "Changes saved successfully"
-msgstr "Modifiche salvate correttamente"
+msgstr "Salvataggio modifiche completato"
 
 msgid "Changes were made to this table which require you to start again."
 msgstr "Le modifiche che sono state effettuate in questa tabella richiedono di riavviare."
@@ -270,16 +270,81 @@ msgid "You tried to access an invalid line."
 msgstr "Tentativo di accesso ad una linea non valida."
 
 msgid "duplicate value"
-msgstr "duplica valore"
+msgstr "Duplica valore"
 
 msgid "help"
-msgstr "aiuto"
+msgstr "Aiuto"
 
 msgid "hide advanced"
-msgstr "nascondi opzioni avanzate"
+msgstr "Nascondi opzioni avanzate"
 
 msgid "refresh data"
 msgstr "Aggiorna dati"
 
 msgid "show advanced"
 msgstr "Visualizza opzioni avanzate"
+
+msgid "A WEP key of length 10 or 26 can only contain the letters A to F or digits"
+msgstr "Una chiave WEP di lunghezza 10 or 26 caratteri può contenere solo lettere dalla A alla F o numeri"
+
+msgid "Invalid netmask"
+msgstr "Maschera di rete non valida"
+
+msgid "OFF"
+msgstr "OFF"
+
+msgid "Cannot use a multicast address"
+msgstr "Impossibile usare un indirizzo multicast"
+
+msgid "Invalid length, a WEP key must be 5, 10, 13 or 26 characters long, length of 10 and 26 can only contain the letters A to F or digits"
+msgstr "Lunghezza chiave non valida.<br>Una chiave WEP dever avere una lunghezza di 5 o 10 o 13 o 26 caratteri.<br>Una chiave di lungehzza 10 o 26 caratteri può contenere solo le lettere dalla A alla F o numeri."
+
+msgid "SSID should not be empty"
+msgstr "L'SSID non può essere vuoto"
+
+msgid "SSID should not contain ?, \", $, [, \\, ],and + special characters"
+msgstr "Il valore SSID non può contenere i caratteri ?, \\, $, [, \\, ], o caratteri speciali"
+
+msgid "Invalid value; enter 'infinite' for infinite time or a number greater than 0, followed by 's' for seconds or 'm' for minutes or 'h' for hours or 'd' for days or 'w' for weeks. No spaces."
+msgstr "Valore non valido.<br>Inserisci 'infinite' per un tempo infinito, o un numero maggiore di 0, seguito da 's' per i secondi, 'm' per i minuti, 'h' per le ore, 'd' per i giorni o W per le settimane. Senza spazi."
+
+msgid "Cannot use the broadcast address"
+msgstr "Impossibile usare un indirizzo broadcast"
+
+msgid "ON"
+msgstr "ON"
+
+msgid "The wireless key contains invalid characters, only space, letters, numbers and the following characters !\"'`#$%&()*+,-./:;<=>?@[\\]^_{|}~ are allowed."
+msgstr "La chiave wireless contiene caratteri non validi. Sono consentiti solo lo spazio, le lettere ed i seguenti caratteri !\"'`#$%&()*+,-./:;<=>?@[\\]^_{|}~."
+
+msgid "Cannot use the network address"
+msgstr "Impossibile usare l'indirizzo di rete"
+
+msgid "space is not allowed"
+msgstr "spazio non permesso"
+
+msgid "Cannot use the limited broadcast destination address"
+msgstr "Impossibile usare l'indirizzo destinazione broadcast limitato"
+
+msgid "SSID should not start with ; # !"
+msgstr "L'SSID non può iniziare con ; # !"
+
+msgid "%dd"
+msgid_plural "%dd"
+msgstr[0] "%dg"
+msgstr[1] "%dg"
+
+msgid "%dm"
+msgid_plural "%dm"
+msgstr[0] "%dm"
+msgstr[1] "%dm"
+
+msgid "%ds"
+msgid_plural "%ds"
+msgstr[0] "%ds"
+msgstr[1] "%ds"
+
+msgid "%dh"
+msgid_plural "%dh"
+msgstr[0] "%do"
+msgstr[1] "%do"

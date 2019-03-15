@@ -1,12 +1,14 @@
 ^rpc%.system%.reset rtfd $(test "$(uci get env.var.rtfds)" = "1" && echo '--soft')
 ^rpc%.system%.reboot /usr/share/transformer/scripts/reboot_with_reason.sh
 ^rpc%.system%.switchover cat /proc/banktable/notbooted > /proc/banktable/active; reboot
-^rpc%.system%.resetgui /usr/share/transformer/scripts/resetgui.sh
-^rpc%.system%.removeroot /usr/share/transformer/scripts/hardreset.sh
-^rpc%.system%.modgui%.upgradegui%.start /usr/share/transformer/scripts/upgradegui
-^rpc%.system%.checkver /usr/share/transformer/scripts/checkver
-^rpc%.system%.transfer_bank1 /usr/share/transformer/scripts/transfer_bank1.sh
-^rpc%.system%.modgui%.debuglog%.start /usr/share/transformer/scripts/generate-debug-file.sh dev
+^sys%.bootp%.enable /usr/bin/bootp
+^rpc%.system%.modgui%.upgradegui%.start start-stop-daemon -S -b -x /usr/share/transformer/scripts/upgradegui GuiRequest
+^rpc%.system%.modgui%.utility%.resetgui /usr/share/transformer/scripts/resetgui.sh
+^rpc%.system%.modgui%.utility%.removeroot /usr/share/transformer/scripts/hardreset.sh
+^rpc%.system%.modgui%.utility%.checkver start-stop-daemon -S -b -x /usr/share/transformer/scripts/checkver
+^rpc%.system%.modgui%.utility%.transfer_bank1 /usr/share/transformer/scripts/transfer_bank1.sh
+^rpc%.system%.modgui%.utility%.refreshdriver start-stop-daemon -S -b -x /usr/share/transformer/scripts/refresh_driver.sh
+^rpc%.system%.modgui%.utility%.copy_bank /usr/share/transformer/scripts/copy_bank.sh
 ^rpc%.system%.modgui%.app%.install_luci /usr/share/transformer/scripts/install_luci.sh
 ^rpc%.system%.modgui%.app%.remove_luci /usr/share/transformer/scripts/remove_luci.sh
 ^rpc%.system%.modgui%.app%.start_amule /etc/init.d/amule start
@@ -28,6 +30,4 @@
 ^rpc%.system%.modgui%.app%.remove_xupnp /usr/share/transformer/scripts/remove_xupnp.sh
 ^rpc%.system%.modgui%.app%.install_telstra /usr/share/transformer/scripts/install_telstra.sh
 ^rpc%.system%.modgui%.app%.remove_telstra /usr/share/transformer/scripts/remove_telstra.sh
-^rpc%.system%.refreshdriver /usr/share/transformer/scripts/refresh_driver.sh
-^rpc%.system%.copy_bank /usr/share/transformer/scripts/copy_bank.sh
-^sys%.bootp%.enable /usr/bin/bootp
+^rpc%.system%.modgui%.debuglog%.start /usr/share/transformer/scripts/generate-debug-file.sh dev

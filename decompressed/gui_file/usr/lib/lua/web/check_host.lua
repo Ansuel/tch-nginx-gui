@@ -5,15 +5,15 @@ local format = string.format
 
 local dm = require "datamodel"
 
-local function append_dhcp_paths(paths)
-  local intf = dm.get({"uci.dhcp.dhcp."}, false) or {}
-  for _, v in ipairs(intf) do
-    if v.path:match("^uci%.dhcp%.dhcp%.") then
-       if v.param == "interface" and v.value ~= "" then
-           paths[#paths + 1] = format('rpc.network.interface.@%s.ipaddr', v.value)
-           paths[#paths + 1] = format('rpc.network.interface.@%s.ip6addr', v.value)
-       end
-    end
+local function append_interface_paths(paths)
+  local entries = dm.getPN("uci.network.interface.", true)
+  local intf
+  for _, entry in pairs(entries or {}) do
+    intf = entry.path:match("@(%S+)%.")
+    paths[#paths + 1] = format('rpc.network.interface.@%s.ipaddr', intf)
+    paths[#paths + 1] = format('rpc.network.interface.@%s.ip6addr', intf)
+	paths[#paths + 1] = format('rpc.network.interface.@%s.ipv6uniquelocaladdr', intf)
+	paths[#paths + 1] = format('rpc.network.interface.@%s.ipv6uniqueglobaladdr', intf)
   end
 end
 
@@ -36,7 +36,7 @@ end
 local function validHostDMPaths()
   local paths = {"uci.system.system.@system[0].hostname"}
   append_dnsmasq_paths(paths)
-  append_dhcp_paths(paths)
+  append_interface_paths(paths)
   append_ddns_domains(paths)
   return paths
 end
@@ -71,10 +71,11 @@ local function hostRefersToUs(host)
          end
        end
     elseif v.path:match("^rpc%.network%.interface%.") then
-       if (v.param == "ipaddr" or v.param == "ip6addr") then
+       if (v.param == "ipaddr" or v.param == "ip6addr" or ((v.param == "ipv6uniquelocaladdr" or v.param == "ipv6uniqueglobaladdr") and v.path:match("@lan%."))) then
          -- yes, also ip addresss need to be normalize as IPv6 addresses
          -- contain hex digits and (a~=A)
-         if v.value ~= "" and host == normalize_hostname(v.value) then
+         -- for ip6addr, perhaps an IPv6 list, always get the first one here.
+         if v.value ~= "" and host == normalize_hostname(v.value:match("[%w%:%.]+")) then
            return true
          end
        end

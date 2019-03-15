@@ -22,8 +22,8 @@ elif [ "$(echo $xdsl_status | grep Started)" ]; then
     xdsl_statuscode=6
 fi
 
-if [ $xdsl_statuscode -gt 0 ]; then
-    if [ $xdsl_statuscode==5 ]; then #cause we cannot go directly in showtime send a fake "Started"
+if [ "$xdsl_statuscode" -gt 0 ]; then
+    if [ "$xdsl_statuscode" == 5 ]; then #cause we cannot go directly in showtime send a fake "Started"
         ubus send xdsl "{\"status\":\"G.993 Started\",\"statuscode\":6,\"line1\":{\"status\":\"G.993 Started\",\"statuscode\":6}}"
     fi
     ubus send xdsl "{\"status\":\"$xdsl_status\",\"statuscode\":$xdsl_statuscode,\"line1\":{\"status\":\"$xdsl_status\",\"statuscode\":$xdsl_statuscode}}"
@@ -32,17 +32,17 @@ fi
 #Restore Wifi LED(s) status
 connected_wl0=0
 connected_wl1=0
-num_dev=$(seq $(transformer-cli get rpc.hosts.HostNumberOfEntries | cut -d= -f 2))
+num_dev=$(transformer-cli get rpc.hosts.HostNumberOfEntries | cut -d= -f 2)
 i=0
-while [ ! -z "$num_dev" ] && [ $num_dev -gt 0 ]; do
-    if [ ! -z "$(transformer-cli get rpc.hosts.host.$i. | grep 'ERROR')" ]; then
+while [ "$num_dev" ] && [ "$num_dev" -gt 0 ]; do
+    if [ "$(transformer-cli get rpc.hosts.host.$i. | grep 'ERROR')" ]; then
         i=$((i+1))
     else
         num_dev=$((num_dev-1))
-        if [ ! -z "$(transformer-cli get rpc.hosts.host.$i.State | grep '= 1')" ]; then
-            if [ ! -z "$(transformer-cli get rpc.hosts.host.$i.L2Interface | grep '= wl0')" ]; then
+        if [ "$(transformer-cli get rpc.hosts.host.$i.State | grep '= 1')" ]; then
+            if [ "$(transformer-cli get rpc.hosts.host.$i.L2Interface | grep '= wl0')" ]; then
                 connected_wl0=$((connected_wl0+1))
-            elif [ ! -z "$(transformer-cli get rpc.hosts.host.$i.L2Interface | grep '= wl1')" ]; then
+            elif [ "$(transformer-cli get rpc.hosts.host.$i.L2Interface | grep '= wl1')" ]; then
                 connected_wl1=$((connected_wl1+1))
             fi
         fi

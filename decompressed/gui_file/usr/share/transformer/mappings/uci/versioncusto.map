@@ -10,6 +10,7 @@ local versioncusto_envvars = {
     type = "override",
     options = {
         "fwversion_prefix", "fwversion_suffix", "fwversion_override", "fwversion_override_real",
+		"fwversion_override_latest",
     }
 }
 

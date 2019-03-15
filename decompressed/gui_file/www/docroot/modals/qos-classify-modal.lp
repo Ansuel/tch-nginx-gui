@@ -7,13 +7,16 @@ gettext.textdomain('webui-qos')
 ----------------------------------------------------------------------------------
 -- Dependencies
 ----------------------------------------------------------------------------------
-tinsert, smatch, sformat = table.insert, string.match, string.format
+local tinsert, smatch, sformat = table.insert, string.match, string.format
 remove = table.remove
+local untaint = string.untaint
 
 local proxy             = require("datamodel")
 local ui_helper         = require("web.ui_helper")
 local post_helper       = require("web.post_helper")
 local session = ngx.ctx.session
+
+local uniqueKey = post_helper.getRandomKey()
 
 ----------------------------------------------------------------------------------
 -- UCI Paths (Do not add '@', arrays taken care of later)
@@ -56,6 +59,7 @@ local gVIES = post_helper.getValidateInEnumSelect
 local vSII  = post_helper.validateStringIsIP
 local vSIP  = post_helper.validateStringIsPort
 local gOV   = post_helper.getOrValidation
+local vNES = post_helper.validateNonEmptyString
 
 ---------------------------------------------------------------------------------
 -- handle qos labels
@@ -68,16 +72,6 @@ for i=1,15,1 do
 end
 
 local label_columns = {
-    { -- add dummy column here.
-      -- if paramindex is used as first column, adding label will fail
-      -- this column needs to be removed after handle table query
-        header  = T"Traffic ID",
-        name    = 'dummy',
-        param   = uci_param_trafficid,
-        type    = "select",
-        values  = options_trafficid,
-        attr    = { select = { class="span1"} },
-    },
     {
         header  = T"Label Name",
         name    = labelName,
@@ -95,6 +89,16 @@ local label_columns = {
     },
 }
 
+local function onAddLablel(current_section_index,content)
+	
+	local trafficid = untaint(content[trafficidLabelName])
+	local trafficid_path = uci_label_path.."@"..current_section_index.."."..uci_param_trafficid
+	
+	proxy.add(uci_label_path,current_section_index)
+	proxy.set(trafficid_path,trafficid)
+
+end
+
 local label_options = {
     tableid     = "label",
     basepath    = uci_label_path .. "@.",
@@ -105,6 +109,7 @@ local label_options = {
     createMsg   = T"Add New Label",
     addNamedObject = true,
     sorted      = uci_param_trafficid,
+	onAdd = onAddLablel,
 }
 
 local label_filter = function(data)
@@ -115,20 +120,10 @@ local label_filter = function(data)
 end
 
 local label_valid = {
-    [labelName] = function(value, object, key)
-        label_options.objectName = string.format("%s",value)
-        object[key] = nil
-        return true
-    end,
-    [trafficidLabelName] = gVIES(options_trafficid),
+    labelName = vNES,
+    trafficidLabelName = gVIES(options_trafficid)
 }
 local label_data, label_helpMsg = post_helper.handleTableQuery(label_columns, label_options, label_filter, nil, label_valid)
-
--- remove dummy column
-for _,v in ipairs(label_data) do
-    remove(v, 1)
-end
-remove(label_columns, 1)
 
 ----------------------------------------------------------------------------------
 -- Function:  Setup mapped label keys to be handled whenever the label is
@@ -136,16 +131,12 @@ remove(label_columns, 1)
 ----------------------------------------------------------------------------------
 local options_labeltarget = {}
 
-local function initLabelOptions()
-    for i,v in ipairs(proxy.getPN(uci_label_path, true)) do
-        local label = smatch(v.path, "uci%.qos%.label%.@([^%.]+)%.")
-        if label then
-            options_labeltarget[#options_labeltarget+1] = { label, label }
-        end
+for i,v in ipairs(proxy.getPN(uci_label_path, true)) do
+    local label = smatch(v.path, "uci%.qos%.label%.@([^%.]+)%.")
+    if label then
+        options_labeltarget[#options_labeltarget+1] = { label, label }
     end
 end
-
-initLabelOptions()
 
 local options_proto = {
     {"all", "all"},
@@ -194,8 +185,8 @@ end
 local classify_columns = {
     {
         header  = T"Label Target",
-        name    = labelTargetName,
-        param   = uci_param_target,
+        name    = "target",
+        param   = "target",
         type    = "select",
         values  = options_labeltarget,
         attr    = { select = { class="span2"} },
@@ -260,13 +251,15 @@ local classify_columns = {
 ----------------------------------------------------------------------------------
 local classify_options = {
     tableid     = "classify",
-    basepath    = uci_classify_path,
+    basepath    = uci_classify_path.."@.",
     canEdit     = true,
     canApply    = true,
     canAdd      = true,
     canDelete   = true,
     createMsg   = T"Add New Rule",
-    sorted      = "target"
+    sorted      = "target",
+	objectName  = "classify"..uniqueKey,
+	addNamedObject  = true,
 }
 
 ----------------------------------------------------------------------------------
@@ -303,7 +296,7 @@ local function getQosClassifyDSCP(value, object, key)
 end
 
 local classify_valid = {
-    qosClassifyLabelTarget = gVIES(options_labeltarget),
+    target = gVIES(options_labeltarget),
     qosClassifyProto = gVIES(options_proto),
 	qosClassifyDSCP = getQosClassifyDSCP,
     qosClassifySrcHost = gOV(vSII, validateEmptyString),
@@ -378,58 +371,5 @@ ngx.print( ui_helper.createHeader(T"QoS", false, true) ); ngx.print('\
 		ngx.print('\
     </form>\
 </div>\
-\
-<script type="text/javascript">\
-    // Columns are ZERO indexed (make sure they match up with values above)\
-    var column_label_target = 0;\
-    var column_srcip = 1, column_dstip = 2;\
-    var column_proto = 3;\
-    var column_port = 4, column_srcport = 5, column_dstport = 6;\
-\
-    function findControlBox (index, type) {\
-        return $("tr").last().children("td").eq(index).find(type);\
-    }\
-\
-    function disableControlBox (obj) {\
-        obj.val("").attr ("disabled", "disabled");\
-    }\
-\
-    function enableControlBox (obj) {\
-        obj.val("").removeAttr ("disabled");\
-    }\
-\
-    // Retrieve control box information\
-    var target_obj = findControlBox (column_label_target, "select");\
-    var proto_obj = findControlBox (column_proto, "select");\
-    var port_obj = findControlBox (column_port, "input");\
-    var srcport_obj = findControlBox (column_srcport, "input");\
-    var dstport_obj = findControlBox (column_dstport, "input");\
-\
-    function handle_port (proto) {\
-        if (proto == "tcp" || proto == "udp")\
-        {\
-            enableControlBox (port_obj);\
-            enableControlBox (srcport_obj);\
-            enableControlBox (dstport_obj);\
-        }\
-        else\
-        {\
-            disableControlBox (port_obj);\
-            disableControlBox (srcport_obj);\
-            disableControlBox (dstport_obj);\
-        }\
-    };\
-\
-    $(document).ready(function () {\
-        var proto = proto_obj.val();\
-        handle_port(proto);\
-    });\
-\
-    // Value change handler of protocol (*** ADD MORE ITEMS AS SUPPORTED ***)\
-    proto_obj.change (function() {\
-        var value = $(this).val();\
-        handle_port(value);\
-    });\
-</script>\
 ')
 ngx.print( ui_helper.createFooter() )

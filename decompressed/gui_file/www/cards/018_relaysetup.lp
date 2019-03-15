@@ -60,8 +60,8 @@ end
 
   ngx.print('\
 <div class="span3">\
-    <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
-      ');  ngx.print( ui_helper.createCardHeader(T"Relay Setup", "modals/relay-modal.lp") ); ngx.print('\
+    <div class="smallcard" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
+      ');  ngx.print( ui_helper.createCardHeader(T"Relay Setup", "/modals/relay-modal.lp") ); ngx.print('\
       <div class="content card_bg" data-bg-text="&#xf079;">\
 	  <div class="divtable">\
         ');

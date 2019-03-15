@@ -3,30 +3,10 @@
 -- local dbg = io.open("/tmp/sle.txt", "w") -- "a" for full logging
 
 local ubus, uloop, uci = require('ubus'), require('uloop'), require('uci')
-local posix = require("tch.posix")
-local openlog = posix.openlog
-local syslog = posix.syslog
 
 local lcur=uci.cursor()
 local ledcfg='ledfw'
 lcur:load(ledcfg)
-local syslog_trace, err = lcur:get(ledcfg,'syslog','trace')
-lcur:close()
-
-if syslog_trace == nil then
-    syslog_trace = true
-elseif syslog_trace == '0' then
-    syslog_trace = false
-else
-    syslog_trace = true
-end
-
-if not syslog_trace then
-    syslog=function() end
-end
-openlog("ledfw", posix.LOG_PID, posix.LOG_DAEMON)
-
-syslog(posix.LOG_NOTICE,'Status led eventing started')
 
 local wifi_on = {}
 local eco_mode = false
@@ -51,16 +31,16 @@ end
 local events = {}
 
 local function get_infoled_config(dtype)
-	
+
 	local lcur=uci.cursor()
-	
+
 	lcur:load(ledcfg)
-	
+
 	local result, err
-	
+
 	if dtype == "timeout" then
 		result,err=lcur:get(ledcfg,'timeout','ms')
-		
+
 		if result == nil then
 			result=3000
 		else
@@ -68,7 +48,7 @@ local function get_infoled_config(dtype)
 		end
 	elseif dtype == "enable" then
 		result,err=lcur:get(ledcfg,'status_led','enable')
-		
+
 		if result == nil then
 			result = false
 		elseif result == "0" then
@@ -77,9 +57,9 @@ local function get_infoled_config(dtype)
 			result = true
 		end
 	end
-	
+
 	lcur:close()
-		
+
 	return result
 end
 
@@ -131,10 +111,8 @@ local function is_service_ok()
     	   end
     	end
     end
-	
+
 	lcur:close()
-	
-	syslog(posix.LOG_NOTICE,'Detected service are '..((service_ok == false) and "NOT" or "")..' ok')
     return service_ok
 end
 
@@ -151,12 +129,11 @@ local function ledaction()
             packet["state"] = "active"
             conn:send("statusled", packet)
         end
-        --Activating this part will cause red status led when WIFI off
-        --if eco_mode == true then
-        --    packet["state"] = "service_eco"
-        --else
+        if eco_mode == true then
+            packet["state"] = "service_eco"
+        else
             packet["state"] = "service_fullpower"
-        --end
+        end
         conn:send("power", packet)
     end
 end
@@ -166,11 +143,11 @@ local function info_timeout()
     if is_service_ok() == true then
         packet["state"] = "active"
         conn:send("statusled", packet)
-        --if eco_mode == true then
-        --    packet["state"] = "service_eco"
-        --else
+        if eco_mode == true then
+            packet["state"] = "service_eco"
+        else
             packet["state"] = "service_fullpower"
-        --end
+        end
         conn:send("power", packet)
     else
         packet["state"] = "inactive"

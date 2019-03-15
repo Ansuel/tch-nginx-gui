@@ -23,8 +23,8 @@ local cui = {
   defaultuser = "uci.web.uiconfig.@uidefault.defaultuser",
   nsplink = "uci.web.uiconfig.@uidefault.nsplink",
   timestamp = "uci.version.version.@version[0].timestamp",
-  gui_version = "uci.env.var.gui_version",
-  gui_skin = "uci.env.var.gui_skin",
+  gui_version = "uci.modgui.gui.gui_version",
+  gui_skin = "uci.modgui.gui.gui_skin",
 }
 content_helper.getExactContent(cui)
 local year = cui.timestamp
@@ -79,7 +79,7 @@ end
     <meta charset="UTF-8">\
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">\
     <meta name="CSRFtoken" content="');  ngx.print( ngx.ctx.session:getCSRFtoken() ); ngx.print('">\
-	<link href="/css/font-awesome-all-5.1.0.css?version='); ngx.print(cui.gui_version); ngx.print('" rel="stylesheet">\
+	<link href="/css/font-awesome-all-5.7.2.css?version='); ngx.print(cui.gui_version); ngx.print('" rel="stylesheet">\
     <link href="/css/gw.css?version='); ngx.print(cui.gui_version); ngx.print('" rel="stylesheet">\
 	<link href="/css/responsive.css?version='); ngx.print(cui.gui_version); ngx.print('" rel="stylesheet">\
 	<link rel="shortcut icon"    type="image/x-icon"   href="/img/favicon.ico"    />');

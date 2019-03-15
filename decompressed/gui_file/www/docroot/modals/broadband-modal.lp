@@ -21,18 +21,16 @@ local mode_current = tabdata.current.name
 local mode_options = tabdata.options
 
 local vB = post_helper.validateBoolean
-local gOV = post_helper.getOptionalValidation
-
-local variant = proxy.get("uci.env.var.prod_friendly_name")[1].value or ""
 
 mapParam = {
-	wsens = "uci.wansensing.global.enable",
-	iface = "uci.network.interface.@wan.ifname",
-	dsl_status = "sys.class.xdsl.@line0.Status",
-	sfp = "uci.env.rip.sfp",
+	wsens = "uci.wansensing.global.enable"
 }
 
-content_helper.getExactContent(mapParam)
+mapValid = {
+	wsens = vB,
+}
+
+content, helpmsg = post_helper.handleQuery(mapParam, mapValid)
 
 if not tabdata.current.ajax then
 	-- only display if not doing an ajax request
@@ -40,7 +38,7 @@ if not tabdata.current.ajax then
 
 	ngx.print('\
 <div class="modal-body update">\
-<form class="form-horizontal" method="post" action="modals/broadband-modal.lp">\
+<form class="form-horizontal" method="post" action="/modals/broadband-modal.lp">\
 ')
 	ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	ngx.print('\
@@ -65,8 +63,19 @@ if not tabdata.current.ajax then
 		}
 	}
 
-	html[#html+1] = ui_helper.createInputRadio(T"Mode", "newmode", mode_options, mode_current, mode_attributes)
-	html[#html+1] = ui_helper.createButton("", T"Switch connection mode", "icon-cog", mode_button)
+	local info_box = {
+		alert = {
+			class = "alert alert-info",
+		}
+	}
+	
+	html[#html + 1] = ui_helper.createAlertBlock(T"WanSensing sets the connection mode automatically.<br/>Disable this to set the connection mode manually.<br/>After saving the changes the connection options will be shown.", info_box)
+	html[#html+1] = ui_helper.createSwitch(T"WanSensing State", "wsens", content["wsens"],nil)
+	
+	if ( content["wsens"] == "0" ) then
+		html[#html+1] = ui_helper.createInputRadio(T"Mode", "newmode", mode_options, mode_current, mode_attributes)
+		html[#html+1] = ui_helper.createButton("", T"Switch connection mode", "icon-cog", mode_button)
+	end
 
 	ngx.print(html)
 	ngx.print('\

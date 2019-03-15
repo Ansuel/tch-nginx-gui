@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: web-framework-tch\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-06-21 15:33+0200\n"
-"PO-Revision-Date: 2018-10-26 11:54+0200\n"
+"PO-Revision-Date: 2019-02-02 14:54+0100\n"
 "Last-Translator: Dr. Uwe Meyer-Gruhl\n"
 "Language-Team: none\n"
 "Language: de\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language-Name: Deutsch\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.2\n"
+"X-Generator: Poedit 2.2.1\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
 msgid "%d day"
@@ -283,3 +283,68 @@ msgstr "Daten neu laden"
 
 msgid "show advanced"
 msgstr "Zeige Erweitert"
+
+msgid "A WEP key of length 10 or 26 can only contain the letters A to F or digits"
+msgstr "Ein WEP Schlüssel der Länge 10 oder 26 darf nur die Buchstaben A bis F und Ziffern enthalten"
+
+msgid "Invalid netmask"
+msgstr "Ungültige Netzmaske"
+
+msgid "OFF"
+msgstr "AUS"
+
+msgid "Cannot use a multicast address"
+msgstr "Kann keine Multicast-Adresse verwenden"
+
+msgid "Invalid length, a WEP key must be 5, 10, 13 or 26 characters long, length of 10 and 26 can only contain the letters A to F or digits"
+msgstr "Ungültige Länge, ein WEP Schlüssel muss 5, 10, 13 oder 26 Zeichen lang sein, Schlüssel der Länge 10 oder 26 dürfen nur die Buchstaben A bis F und Ziffern enthalten"
+
+msgid "SSID should not be empty"
+msgstr "Die SSID sollte nicht leer sein"
+
+msgid "SSID should not contain ?, \", $, [, \\, ],and + special characters"
+msgstr "Die SSI sollte nicht die Sonderzeichen ?, \", $, [, \\, ], oder + enthalten"
+
+msgid "Invalid value; enter 'infinite' for infinite time or a number greater than 0, followed by 's' for seconds or 'm' for minutes or 'h' for hours or 'd' for days or 'w' for weeks. No spaces."
+msgstr "Ungültiger Wert, geben Sie 'infinite' für unendlich oder eine Zahl größer 0, gefolgt von 's' für Sekunden, 'm' für Minuten, 'h' für Stunden, 'd' für Tage oder 'w' für Wochen - ohne Leerzeichen - ein."
+
+msgid "Cannot use the broadcast address"
+msgstr "Kann die Broadcast-Adresse nicht verwenden"
+
+msgid "ON"
+msgstr "AN"
+
+msgid "The wireless key contains invalid characters, only space, letters, numbers and the following characters !\"'`#$%&()*+,-./:;<=>?@[\\]^_{|}~ are allowed."
+msgstr "Der Drahtlos-Schlüssel enthält ungültige Zeichen. Nur Leerzeichen, Buchstaben, Ziffern und die folgenden Zeichen sind erlaubt: !\"'`#$%&()*+,-./:;<=>?@[\\]^_{|}~"
+
+msgid "Cannot use the network address"
+msgstr "Kann die Netzwerk-Adresse nicht verwenden"
+
+msgid "space is not allowed"
+msgstr "Leerzeichen sind nicht erlaubt"
+
+msgid "Cannot use the limited broadcast destination address"
+msgstr "Kann die beschränkte Broadcast-Zieladresse nicht verwenden"
+
+msgid "SSID should not start with ; # !"
+msgstr "Die SSID sollte nicht mit ; # ! beginnen"
+
+msgid "%dd"
+msgid_plural "%dd"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%dm"
+msgid_plural "%dm"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%ds"
+msgid_plural "%ds"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "%dh"
+msgid_plural "%dh"
+msgstr[0] ""
+msgstr[1] ""

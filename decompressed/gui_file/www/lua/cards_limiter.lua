@@ -3,6 +3,7 @@ local M = {}
 
 local bridge_limit_list = {
   ["gateway.lp"] = true,
+  ["modgui.lp"] = true,
   ["broadband.lp"] = true,
   ["internet.lp"] = true,
   ["wireless.lp"] = true,
@@ -18,6 +19,7 @@ local bridge_limit_list = {
 
 local voice_limit_list = {
   ["gateway.lp"] = true,
+  ["modgui.lp"] = true,
   ["broadband.lp"] = true,
   ["internet.lp"] = true,
   ["wireless.lp"] = true,

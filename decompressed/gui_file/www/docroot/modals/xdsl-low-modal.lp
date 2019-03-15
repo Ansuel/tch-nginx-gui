@@ -69,7 +69,7 @@ if ngx.var.request_method == "POST" then
                local clean = proxy.del(v.found)
          end
       end
-	  proxy.set("rpc.system.refreshdriver", "1")
+	  proxy.set("rpc.system.modgui.utility.refreshdriver", "1")
       proxy.apply()
     end
 end
@@ -157,8 +157,8 @@ local driver_valid = {
   ds10_snr = post_helper.getValidateNumberInRange(0,65535),
 }
 
-if content.dsl0_xdsl_FirmwareVersion:match(".*H043") or content.dsl0_xdsl_FirmwareVersion:match(".*H042") then
-	tinsert(driver_option, { "B2pvbH042l", 'B2pvbH042l (DSL-AC87VG v1.00.10)'})
+if content.dsl0_xdsl_FirmwareVersion:match(".*H045") or content.dsl0_xdsl_FirmwareVersion:match(".*H043") or content.dsl0_xdsl_FirmwareVersion:match(".*H042") then
+	tinsert(driver_option, { "B2pvbH042l", 'B2pvbH042l (Asus DSL-AC87VG v1.00.10)'})
     tinsert(driver_option, { "B2pvbH042j2", 'B2pvbH042j2 (Inteno)'})
     tinsert(driver_option, { "B2pvbH042s", 'B2pvbH042s (Archer_VR2800v V1 1.2.0_0.9.1)'})
 	tinsert(driver_option, { "A2pvbH042j2", 'A2pvbH042j2 (Asus DSL-AC88U)'})
@@ -167,22 +167,29 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H043") or content.dsl0_xdsl_Firmwa
 	tinsert(driver_option, { "A2pvbH042r", 'A2pvbH042r (AGTEF_1.0.3)'})
 	tinsert(driver_option, { "A2pvbH042u", 'A2pvbH042u (AGTEF_1.0.4)'})
 	
-	if tonumber(content.marketing_version:sub(1,4)) >= 17.3 then
-		tinsert(driver_option, { "B2pvfbH043e", 'B2pvfbH043e (DSL-AC87VG_v1.00.13)'})
-		tinsert(driver_option, { "B2pvfbH043g", 'B2pvfbH043g (DSL-AC68VG v5.00.04)'})
+	if tonumber(content.marketing_version:sub(1,4)) >= 17.2 then
+        tinsert(driver_option, { "B2pvfbH043d1", 'B2pvfbH043d1 (FRITZ!Box 7581 6.54)'})
+		tinsert(driver_option, { "B2pvfbH043e", 'B2pvfbH043e (Asus DSL-AC87VG_v1.00.13)'})
+		tinsert(driver_option, { "B2pvfbH043g", 'B2pvfbH043g (Asus DSL-AC68VG v5.00.04)'})
         tinsert(driver_option, { "B2pvfbH043i1", 'B2pvfbH043i1 (VMG8823-B60B 5.13)'})
-        tinsert(driver_option, { "B2pvfbH043k", 'B2pvfbH043k (DSL-AC88U-B v1.10.05)'})
+        tinsert(driver_option, { "B2pvfbH043k", 'B2pvfbH043k (Asus DSL-AC88U-B v1.10.05)'})
+        tinsert(driver_option, { "B2pvfbH043q", 'B2pvfbH043q (FRITZ!Box 7582 7.01/Asus DSL-AC88U-B v1.10.06_591)'})
         tinsert(driver_option, { "A2pvfbH043b", 'A2pvfbH043b (New FastGate Fastweb)'})
+        tinsert(driver_option, { "A2pvfbH043d1", 'A2pvfbH043d1 (FRITZ!Box 7581 6.54)'})
         --table.insert(driver_option,{ "A2pvfbH043e", 'A2pvfbH043e (Zyxel 8823)'}) --Annex b???
         --table.insert(driver_option,{ "A2pvfbH043f", 'A2pvfbH043f (DSL AC88U) ' .. T'Less Ping'}) --Missing
 		tinsert(driver_option, { "A2pvfbH043g", 'A2pvfbH043g (TG800 VBANT-S)'})
         tinsert(driver_option, { "A2pvfbH043h", 'A2pvfbH043h (Inteno DG400PRIME)'})
         tinsert(driver_option, { "A2pvfbH043i", 'A2pvfbH043i (Inteno)'})
+        tinsert(driver_option, { "A2pvfbH043i2", 'A2pvfbH043i2 (Zyxel C3000Z)'})
+        tinsert(driver_option, { "A2pvfbH043j2", 'A2pvfbH043j2 (FRITZ!Box 7582 7.01 Backup)'})
 		tinsert(driver_option, { "A2pvfbH043k", 'A2pvfbH043k (AGTEF_1.1.0)'})
-		tinsert(driver_option, { "A2pvfbH043o", 'A2pvfbH043o (DSL88U)'})
+		tinsert(driver_option, { "A2pvfbH043o", 'A2pvfbH043o (Asus DSL-AC88U v1.10.06_561)'})
+        tinsert(driver_option, { "A2pvfbH043q", 'A2pvfbH043q (FRITZ!Box 7582 7.01/Asus DSL-AC88U v1.10.06_585)'})
+        tinsert(driver_option, { "A2pvfbH045k", 'A2pvfbH045k (Inteno)'})
 	end
 	
-	driver_Params.driver_ver = "uci.env.var.driver_version"
+	driver_Params.driver_ver = "uci.modgui.var.driver_version"
 	driver_valid.driver_ver = post_helper.getValidateInEnumSelect(driver_option)
 elseif content.dsl0_xdsl_FirmwareVersion:match(".*F039") then
     tinsert(driver_option, { "B2pv6F039k", 'B2pv6F039k (TP-Link Archer VR900vV1)'})
@@ -198,8 +205,9 @@ elseif content.dsl0_xdsl_FirmwareVersion:match(".*F039") then
     tinsert(driver_option, { "A2pv6F039v4", 'A2pv6F039v4 (Inteno D301)'})
     tinsert(driver_option, { "A2pv6F039x1", 'A2pv6F039x1 (Zyxel VMG3926)'})
     tinsert(driver_option, { "A2pv6F039x5", 'A2pv6F039x5 (SmartRG SR505N/SR515AC 2.6.1.9)'})
+    tinsert(driver_option, { "A2pv6F039x6", 'A2pv6F039x6 (Zyxel VMG3926-B10B)'})
 
-    driver_Params.driver_ver = "uci.env.var.driver_version"
+    driver_Params.driver_ver = "uci.modgui.var.driver_version"
     driver_valid.driver_ver = post_helper.getValidateInEnumSelect(driver_option)
 end
 

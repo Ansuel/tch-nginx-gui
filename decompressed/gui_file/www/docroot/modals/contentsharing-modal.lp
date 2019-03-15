@@ -373,11 +373,11 @@ createUsbPartitionTable()
 function convertReceivedData(content)
 	if content["connecteddevices"] then
 		if usb_disk_number == 0 then
-			content["connecteddevices"] = format(T'Currently there are <strong>%s</strong> connected devices', T"no")
+			content["connecteddevices"] = format(T'<strong>%d</strong> connected devices', usb_disk_number)
 		elseif usb_disk_number == 1 then
-			content["connecteddevices"] = format(T'Currently there is <strong>%d</strong> connected device', usb_disk_number)
+			content["connecteddevices"] = format(T'<strong>%d</strong> connected device', usb_disk_number)
 		else
-			content["connecteddevices"] = format(T'Currently there are <strong>%d</strong> connected devices', usb_disk_number)
+			content["connecteddevices"] = format(T'<strong>%d</strong> connected devices', usb_disk_number)
 		end
 	end
 end
@@ -451,21 +451,21 @@ convertReceivedData(content_info)
 			}
 
 			if samba_available then
-				tinsert(html, ui_helper.createSwitch(T"Samba Filesharing", "samba_enabled", (content["samba_enabled"] ~= "0" and "1" or "0"), attributes))
-				tinsert(html, ui_helper.createLabel(T"Samba name: ", content["samba_name"], advancedhide))
-				tinsert(html, ui_helper.createInputText(T"Samba name: ", "samba_name", content["samba_name"], advanced, helpmsg["samba_name"]))
-				tinsert(html, ui_helper.createInputText(T"Samba workgroup: ", "samba_workgroup", content["samba_workgroup"], advanced, helpmsg["samba_workgroup"]))
-				tinsert(html, ui_helper.createInputText(T"Samba description: ", "samba_description", content["samba_description"], advanced, helpmsg["samba_description"]))
+				tinsert(html, ui_helper.createSwitch(T"SMB/CIFS Filesharing", "samba_enabled", (content["samba_enabled"] ~= "0" and "1" or "0"), attributes))
+				tinsert(html, ui_helper.createLabel(T"SMB/CIFS name: ", content["samba_name"], advancedhide))
+				tinsert(html, ui_helper.createInputText(T"SMB/CIFS name: ", "samba_name", content["samba_name"], advanced, helpmsg["samba_name"]))
+				tinsert(html, ui_helper.createInputText(T"SMB/CIFS workgroup: ", "samba_workgroup", content["samba_workgroup"], advanced, helpmsg["samba_workgroup"]))
+				tinsert(html, ui_helper.createInputText(T"SMB/CIFS description: ", "samba_description", content["samba_description"], advanced, helpmsg["samba_description"]))
 			end
 			if check_dlna("available") then
-				tinsert(html, ui_helper.createSwitch(T"DLNA Enabled", "dlna_enabled", content["dlna_enabled"],attributes))
+				tinsert(html, ui_helper.createSwitch(T"DLNA enabled", "dlna_enabled", content["dlna_enabled"],attributes))
 				tinsert(html, ui_helper.createLabel(T"DLNA name: ", content["dlna_friendly_name"], advancedhide))
 				tinsert(html, ui_helper.createInputText(T"DLNA name: ", "dlna_friendly_name", content["dlna_friendly_name"], advanced, helpmsg["dlna_friendly_name"]))
-				tinsert(html, ui_helper.createLabel(T"Profiler status: ", getProfileStatus()))
+				tinsert(html, ui_helper.createLabel(T"Profiler status: ", T(getProfileStatus())))
 			end
 
-			tinsert(html, ui_helper.createSwitch(T"USB 3.1 Enabled", "usb3_enabled", (content["usb3_enabled"] ~= "" and content["usb3_enabled"] or "1"), toggle))
-			tinsert(html, ui_helper.createAlertBlock(T"It is recommended to use the USB in the 2.0 standard. The use of USB in 3.1 standard can remarkably affect the Wi-Fi performance at 2.4 Ghz band.", warning))
+			tinsert(html, ui_helper.createSwitch(T"USB3.1 enabled", "usb3_enabled", (content["usb3_enabled"] ~= "" and content["usb3_enabled"] or "1"), toggle))
+			tinsert(html, ui_helper.createAlertBlock(T"It is recommended to use USB2.0 standard. The use of USB3.1 standard can badly affect the Wi-Fi performance of the 2.4 Ghz band.", warning))
 			tinsert(html, ui_helper.createAlertBlock(T"Toggling USB3.1 support will reboot the Gateway", reboot_warning))
 			tinsert(html, ui_helper.createAlertBlock(T"Restarting, please wait...", rebooting))
 			tinsert(html, ui_helper.createSimpleInputText("cs_flag", "0", flagattr))
@@ -473,7 +473,7 @@ convertReceivedData(content_info)
 			tinsert(html, "</fieldset>")
 
 			if samba_available then
-				tinsert(html, "<fieldset><legend>" .. T"Hard Disk Information" .. "</legend>")
+				tinsert(html, "<fieldset><legend>" .. T"Attached Drive Info" .. "</legend>")
 				tinsert(html, format("<div><div id=\"connecteddevices\" class=\" simple-desc span3 monitor-changes\" data-ajaxrefresh=\"5\">%s</div>", content_info["connecteddevices"]))
 				tinsert(html, ui_helper.createTable(usbdev_columms, usbpart_data, usbdev_options, nil, usbdev_helpmsg))
 				tinsert(html, "</fieldset>")

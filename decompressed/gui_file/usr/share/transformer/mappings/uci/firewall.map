@@ -154,8 +154,9 @@ local firewall_include = {
     config = config_firewall,
     type = "include",
     options = {
-        "enabled", "type", "path", "family", "reload",
-    }
+        "enabled", "type", "family", "reload",
+    },
+    readOnlyOptions = { "path" }
 }
 
 mapper("uci_1to1").registerNamedMultiMap(firewall_include)

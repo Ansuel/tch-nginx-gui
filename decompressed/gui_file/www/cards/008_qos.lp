@@ -9,7 +9,7 @@ local modal_link = nil
 
 local session = ngx.ctx.session
 if session:hasAccess("/modals/qos-queue-modal.lp") and session:hasAccess("/modals/qos-classify-modal.lp") then
- modal_link = "modals/qos-queue-modal.lp"
+ modal_link = "/modals/qos-queue-modal.lp"
 end
 
 local ui_helper = require("web.ui_helper")
@@ -24,7 +24,7 @@ content_helper.getExactContent(dataQoS)
 
 ngx.print('\
 <div class="span3">\
-    <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
+    <div class="smallcard" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
         '); ngx.print( ui_helper.createCardHeader(T"QoS", modal_link) ); ngx.print('\
         <div class="content card_bg" data-bg-text="&#xf362;">\
 		<div class="divtable">\

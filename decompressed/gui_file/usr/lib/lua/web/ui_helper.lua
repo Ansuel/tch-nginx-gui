@@ -1401,7 +1401,7 @@ local function createTableData(columns, data, canEdit, canDelete, editing, helpm
             -- If we're just displaying the current line
             content[#content + 1] = "<tr>"
             for j,v in ipairs(l) do
-                content[#content + 1] = "<td>"
+                content[#content + 1] = '<td data-title="'..columns[j]["header"]..'">'
                 content[#content + 1] = createTableDataColumn(columns[j], v)
                 content[#content + 1] = "</td>"
             end
@@ -1939,15 +1939,17 @@ function M.createCardHeader(title, modalPath, switchName, switchValue, attribute
       [[<div class="header">]],
       format("<div %s><p id=%s_tab>%s</p></div>", header, title, title)
     }
+	html[#html + 1] = [[<div class="header-items">]]
+	if modalPath and modalPath ~= "" then
+        html[#html + 1] = format("<div %s><i %s ></i></div>", div, icon)
+    end
     if switchName and switchName ~= "" then
         html[#html + 1] = M.createSimpleSwitch(switchName,switchValue, attributes)
-    end
-    if modalPath and modalPath ~= "" then
-        html[#html + 1] = format("<div %s><i %s ></i></div>", div, icon)
     end
 	if mobile == 1 then
 		html[#html + 1] = [[<div id="signal-strength-indicator-small-card"><div><div class="bar-small bar-small1"></div><div class="bar-small bar-small2"></div><div class="bar-small bar-small3"></div><div class="bar-small bar-small4"></div><div class="bar-small bar-small5"></div></div></div>]]
     end
+	html[#html + 1] = [[  </div>]]
     html[#html + 1] = [[</div>]]
     return html
 end

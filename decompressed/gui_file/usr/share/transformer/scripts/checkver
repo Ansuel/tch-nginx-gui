@@ -25,8 +25,15 @@
 
 STABLE_VERSION="stable.version"
 DEV_VERSION="latest.version"
-CURRENT_VERSION="$(uci get env.var.gui_version)"
+CURRENT_VERSION="$(uci get modgui.gui.gui_version)"
 BASE_DIR="https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master"
+
+############TRANSFORMER UTILITY##################
+set_transformer() {
+	cmd="require('datamodel').set('$1','$2')"
+	lua -e "$cmd"
+}
+#################################################
 
 connectivity="yes"
 if ping -q -c 1 -W 1 8.8.8.8 >/dev/null; then
@@ -35,83 +42,76 @@ else
   connectivity="no"
 fi
 
-if [ $1 ]; then
-	if [ $1 == "Schedule" ]; then
+if [ "$1" ]; then
+	if [ "$1" == "Schedule" ]; then
 		RANDOM=$(awk -v min=1 -v max=3600 'BEGIN{srand(); print int(min+rand()*(max-min+1))}')
-		sleep $RANDOM
+		sleep "$RANDOM"
 	fi
 fi
 
 normalize() {
 	normalized_version=$1
-	if [ "$( echo $1 | grep -E '\.[0-9]\.' )" ]; then
-		normalized_version="$( echo $1 | sed 's|\.\([0-9]\.\)|.0\1|g' )"
+	if [ "$( echo "$1" | grep -E '\.[0-9]\.' )" ]; then
+		normalized_version="$( echo "$1" | sed 's|\.\([0-9]\.\)|.0\1|g' )"
 	fi
-	if [ "$( echo $normalized_version | tail -c 3 | grep "\." )" ]; then
-		normalized_version="$( echo $normalized_version | sed 's|\(\.[0-9][0-9]\.\)\([0-9]\)|\10\2|g' )"
+	if [ "$( echo "$normalized_version" | tail -c 3 | grep "\." )" ]; then
+		normalized_version="$( echo "$normalized_version" | sed 's|\(\.[0-9][0-9]\.\)\([0-9]\)|\10\2|g' )"
 	fi
 	
-	echo $normalized_version
+	echo "$normalized_version"
 }
 
 enum() {
-	echo $(echo $1 | sed -e 's/\.//g')
+	echo "$(echo "$1" | sed -e 's/\.//g')"
 }
 
 if [ $connectivity == "yes" ]; then
-	if [ ! $(uci get -q env.var.update_branch) ] ||  [ $(uci get env.var.update_branch) == "stable" ]; then
-		update_branch=""
+	if [ ! "$(uci get -q modgui.gui.update_branch)" ] || [ "$(uci get modgui.gui.update_branch)" == "stable" ]; then
+		update_branch="stable"
 		version_link=$BASE_DIR/$STABLE_VERSION
 	else
-		update_branch="_dev"
+		update_branch="dev"
 		version_link=$BASE_DIR/$DEV_VERSION
 	fi
 	newer_stable=0
 
-	new_version=$(curl -k -s $version_link)
-	
-	new_version_norm=$(normalize $new_version)
-	
-	logger -s -t "CheckVer Script" "Checking for new version..."
-	
-	if [ "$new_version" != "" ] ; then #cool way to test if we have internet connection
-		logger -s -t "CheckVer Script" "Installed version: $CURRENT_VERSION"
-		logger -s -t "CheckVer Script" "Online dev version: $new_version"
-		
-		if [ $update_branch ] && [ $update_branch == "_dev" ]; then
-			logger -s -t "CheckVer Script" "Detected dev branch!"
+    logger -s -t "CheckVer Script" "Installed version: $CURRENT_VERSION checking update on $update_branch branch..."
+	new_version="$(curl -k -s "$version_link")"
+	new_version_norm="$(normalize "$new_version")"
 
-			stable_version_link=$BASE_DIR/$STABLE_VERSION
-			stable_version=$(curl -k -s $stable_version_link)
-			
-			stable_version_norm=$(normalize $stable_version)
-			
-			logger -s -t "CheckVer Script" "Online stable version: $stable_version_norm"
-		fi
-		
-		if [ $( enum $stable_version_norm ) -gt $( enum $new_version_norm ) ]; then
-			logger -s -t "CheckVer Script" "Selecting stable version as it's newer than dev!"
-			new_version=$stable_version" STABLE"
-			newer_stable=1 #This could happen if the branch is dev and a stable version is installed.
-		fi
-		
-		current_version_norm=$(normalize $CURRENT_VERSION)
-		
-		if [ $( enum $new_version_norm ) -gt $( enum $current_version_norm ) ] || [ $newer_stable -eq 1 ]; then
-			logger -s -t "CheckVer Script" "Online version selected: $new_version"
-			logger -s -t "CheckVer Script" "Setting outdate version bit!"
-			uci set env.var.outdated_ver=1
-			uci set env.var.new_ver="$new_version"
-		else
-			logger -s -t "CheckVer Script" "No new version detected."
-			uci set env.var.outdated_ver=0
-			uci set env.var.new_ver="Unknown"
-		fi
-	else
-		logger -s -t "CheckVer Script" "No connection detected!"
-	fi
+    logger -s -t "CheckVer Script" "Online version: $new_version"
+
+    if [ "$update_branch" == "dev" ]; then #just makes sure there is no newer stable
+        stable_version_link=$BASE_DIR/$STABLE_VERSION
+        stable_version="$(curl -k -s "$stable_version_link")"
+
+        stable_version_norm="$(normalize "$stable_version")"
+
+        logger -s -t "CheckVer Script" "Online stable version: $stable_version_norm"
+
+        if [ "$( enum "$stable_version_norm" )" -gt "$( enum "$new_version_norm" )" ]; then
+            logger -s -t "CheckVer Script" "Selecting stable version as it's newer than dev!"
+            new_version="$stable_version STABLE"
+            newer_stable=1 #This could happen if the branch is dev and a stable version is installed.
+        fi
+    fi
+
+    current_version_norm="$(normalize "$CURRENT_VERSION")"
+
+    if [ "$( enum "$new_version_norm" )" -gt "$( enum "$current_version_norm" )" ] || [ "$newer_stable" -eq 1 ]; then
+        logger -s -t "CheckVer Script" "Online version selected: $new_version"
+        logger -s -t "CheckVer Script" "Setting outdate version bit!"
+        uci set modgui.gui.outdated_ver=1
+        uci set modgui.gui.new_ver="$new_version"
+    else
+        logger -s -t "CheckVer Script" "No new version detected."
+        uci set modgui.gui.outdated_ver=0
+        uci set modgui.gui.new_ver="Unknown"
+    fi
+	
+	set_transformer "rpc.system.modgui.scriptRequest.state" "Complete"
 	
 	uci commit env
-	
-	/etc/init.d/transformer reload
+else
+    logger -s -t "CheckVer Script" "No connection detected!"
 fi

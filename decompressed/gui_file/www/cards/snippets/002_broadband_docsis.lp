@@ -18,7 +18,7 @@ local session = ngx.ctx.session
 local modalPath
 
 if session:hasAccess("/modals/broadband-modal.lp") then
-    modalPath = "modals/broadband-modal.lp"
+    modalPath = "/modals/broadband-modal.lp"
 end
   ngx.print('\
 \

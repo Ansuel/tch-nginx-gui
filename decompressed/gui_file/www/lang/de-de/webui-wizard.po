@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: webui-wizard\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-06-21 15:33+0200\n"
-"PO-Revision-Date: 2018-10-26 12:27+0200\n"
+"PO-Revision-Date: 2019-02-02 14:58+0100\n"
 "Last-Translator: Dr. Uwe Meyer-Gruhl\n"
 "Language-Team: none\n"
 "Language: de\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language-Name: Deutsch\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.2\n"
+"X-Generator: Poedit 2.2.1\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
 msgid " of "
@@ -118,19 +118,19 @@ msgid "Step "
 msgstr "Schritt "
 
 msgid "Username:"
-msgstr ""
+msgstr "Benutzername:"
 
 msgid "VCI Number:"
-msgstr ""
+msgstr "VCI Nummer:"
 
 msgid "VLAN Enabled"
 msgstr "VLAN eingeschaltet"
 
 msgid "VLAN ID:"
-msgstr ""
+msgstr "VLAN ID:"
 
 msgid "VPI Number:"
-msgstr ""
+msgstr "VPI Nummer:"
 
 msgid "VoIP (Netphone) is an optional phone service that runs over the internet. If you have purchased this service, enter your VoIP settings here. You'll find your settings in your VoIP activation email."
 msgstr "VoIP ist ein optionaler Telefoniedienst, der über das Internetläuft. Wenn Sie diesen Dienst gebucht haben, geben Sie hier Ihre VoIP Angaben sein. Diese finden sich in der VoIP Aktivierungs-Mail."
@@ -163,13 +163,13 @@ msgid "VoIP Registar:"
 msgstr "VoIP Registar:"
 
 msgid "VoIP Setup"
-msgstr ""
+msgstr "VoIP-Einrichtung"
 
 msgid "VoIP Username:"
 msgstr "VoIP Benutzername::"
 
 msgid "VoIP is an optional phone service that runs over the internet. If you have purchased this service, enter your VoIP settings here. You'll find your settings in your VoIP activation email."
-msgstr ""
+msgstr "VoIP ist ein optionaler Telefondienst, der über das Internet läuft. Wenn Sie diesen Service gekauft haben, geben Sie hier Ihre VoIP-Einstellungen ein. Ihre Einstellungen finden Sie in Ihrer VoIP-Aktivierungs-Mail."
 
 msgid "WAN Interfaces"
 msgstr "WAN Schnittstellen"
@@ -185,3 +185,66 @@ msgstr "Wansensing eingeschaltet"
 
 msgid "Your modem already has a unique WiFi network set up by default. You can change the broadcast name here if desired, or turn off WiFi completely. You can also hide your WiFi network name from other devices by turning off SSID broadcast."
 msgstr "Ihr Modem hat bereits ab Werk eine eigene WLAN-Einrichtung. Sie können den sichtbaren Namen hier ändern oder das WLAN ganz abschalten. Sie können den WLAN-Namen auch verbergen, indem Sie den SSID-Broadcast abschalten."
+
+msgid "WiFi Setup (2.4GHz)"
+msgstr "WiFi Einstellungen (2,4 GHz)"
+
+msgid "WiFi Setup (5GHz)"
+msgstr "WiFi Einstellungen (5 GHz)"
+
+msgid "PPP over Ethernet"
+msgstr "PPPoE (PPP über Ethernet)"
+
+msgid "PPP over ATM"
+msgstr "PPPoA (PPP über ATM)"
+
+msgid "Wireless 2.4GHz (WiFi):"
+msgstr "Drahtlos 2,4 GHz (WiFi)"
+
+msgid "Wireless 5GHz (WiFi):"
+msgstr "Drahtlos 5Ghz (WiFi)"
+
+msgid "Username: "
+msgstr "Benutzername: "
+
+msgid "Wireless 2.4GHz (WiFi): "
+msgstr "Drahtlos 2,4GHz (WiFi): "
+
+msgid "VLAN ID"
+msgstr "VLAN ID"
+
+msgid "Step 6 of 8"
+msgstr "Schritt 6 von 8"
+
+msgid "Wireless 5GHz (WiFi): "
+msgstr "Drahtlos 5GHz (WiFi): "
+
+msgid "None"
+msgstr "Kein"
+
+msgid "WPA2-PSK"
+msgstr "WPA2-PSK"
+
+msgid "Step 5 of 8"
+msgstr "Schritt 5 von 8"
+
+msgid "ADSL"
+msgstr "ADSL"
+
+msgid "WPA+WPA2 PSK"
+msgstr "WPA+WPA2 PSK"
+
+msgid "Ethernet"
+msgstr "Ethernet"
+
+msgid "VDSL"
+msgstr "VDSL"
+
+msgid "Username can not be empty"
+msgstr ""
+
+msgid "Passwords do not match"
+msgstr ""
+
+msgid "You must fill your password"
+msgstr ""

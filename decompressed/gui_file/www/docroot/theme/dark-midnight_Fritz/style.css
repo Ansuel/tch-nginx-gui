@@ -1,7 +1,9 @@
 :root {
     --bg-color1: #000;
     --bg-color2: #333;
-    --bg-color3: #000
+    --bg-color3: #000;
+    --body-bg-color: #191919;
+	--body-text-color: #fff;
 }
 
 .alert-info {
@@ -18,18 +20,9 @@
     box-shadow: inset 0 1px 3px rgba(255, 255, 255, .5), 0 0 4px #0bf
 }
 
-#headerbox > .header {
+.modal-body, .modal-footer {
+    background-color: #000 !important;
     color: #fff
-}
-
-.switch {
-    box-shadow: none;
-    border-radius: 7px;
-    margin: 0
-}
-
-.switchOn {
-    background-color: var(--bg-color1)
 }
 
 a {
@@ -38,40 +31,69 @@ a {
 }
 
 /*ALL ABOVE IS COPIED FROM THE MAIN SKIN CSS*/
+#headerbox > .header {
+    background-color: #000 !important;
+    color: #fff !important
+}
+
+legend, .popUp {
+    color: #fff
+}
+
+body {
+    color: var(--body-text-color);
+    background-color: var(--body-bg-color) !important;
+    text-shadow: none !important
+}
+
+.copyright {
+    text-shadow: none !important
+}
+
+input.span3, input.span3:focus, textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"], .uneditable-input, select, select.span3, input, input[type="text"]:focus {
+    color: #fff;
+    border: 1px solid #fff;
+    background-color: var(--body-bg-color)
+}
+
+.switch {
+    background-color: #75000c !important
+}
+
+.switchOn {
+    background-color: #008609 !important
+}
+
+.switcher:after {
+    color: #fff;
+    text-shadow: none
+}
+
 #statsFrame {
     height: calc(100% - 7.3rem);
     width: calc(100% - 17rem);
     top: 6.3rem;
     left: 16.5rem;
     position: fixed;
-    background: #fff;
     box-shadow: 0 .1875rem .375rem rgba(0, 0, 0, 0.25);
     overflow: auto;
-    overflow-y: scroll
+    overflow-y: scroll;
+    background-color: var(--menu-bg-color)
 }
 
-#swtichbuttom {
-    position: fixed;
-    top: 3.25rem;
-    width: calc(100% - 19rem);
-    left: 16.5rem;
-    background: var(--bg-color2);
-    pointer-events: none;
-    height: 2rem;
-    font-size: 14pt;
-    vertical-align: middle;
-    line-height: 2rem;
-    text-align: left
-}
-
-#statsFrame > #dynamic-content > #infocardrow {
-    flex-wrap: nowrap;
+#infocardrow {
+	margin-left: 16.5rem;
+	top: 6rem;
+	background-color: #fff;
+	flex-wrap: nowrap;
     display: flex !important
 }
 
 @media only screen and (max-width: 89rem) {
-    #statsFrame > #dynamic-content > #infocardrow {
-        display: block !important
+    #infocardrow {
+        display: block !important;
+		margin-left: unset;
+		z-index: 0;
     }
 }
 
@@ -81,10 +103,6 @@ a {
 
 .infocard {
     width: auto
-}
-
-#cardrow {
-    display: none
 }
 
 .span12 {
@@ -100,7 +118,8 @@ a {
 }
 
 .header-logo {
-    margin-left: 2rem
+    margin-left: 5rem;
+	flex-basis: unset;
 }
 
 .header-button {
@@ -109,17 +128,13 @@ a {
 }
 
 #headerbox {
-    top: 6.3rem;
+    top: 4.7rem;
     background-color: #fff;
     box-shadow: 0 .1875rem .375rem rgba(0, 0, 0, 0.25);
     font-size: 1.125rem;
     position: fixed;
-    max-height: calc(100% - 18rem);
+    max-height: calc(100% - 16rem);
     overflow: auto
-}
-
-#headerbox > .header {
-    cursor: pointer
 }
 
 #headertab {
@@ -166,19 +181,12 @@ body {
     background-color: var(--bg-color1)
 }
 
-.header-logo {
-    margin-left: 2rem
-}
-
-.header-button {
-    margin-right: 2rem
-}
-
 #footer {
     position: fixed;
     bottom: .5rem;
     left: .5rem;
-    width: 14rem
+    width: 14rem;
+	margin: unset;
 }
 
 .container > #footer {
@@ -211,6 +219,7 @@ body {
     transition-duration: .0001s;
     transition-timing-function: step-start;
     transform: initial;
+    background: var(--bg-color1);
     opacity: 1
 }
 
@@ -251,9 +260,9 @@ body {
     border: 0;
     border-radius: 0;
     width: 100%;
-    background-color: rgba(255, 255, 255, 0.8);
+    background-color: var(--menu-bg-color);
     margin: 0;
-    top: 0
+    bottom: 0
 }
 
 div.login input.span3, div.login input.span3:focus {
@@ -297,6 +306,7 @@ h2 {
 }
 
 .btn, .btn:hover, .btn:hover:hover, .header .btn, .btn-group > .btn:first-child, .btn-group > .btn + .dropdown-toggle, .modal-footer .btn + .btn {
+    min-width: 4.5rem;
     margin: 0;
     background-image: none;
     background-color: var(--bg-color2);
@@ -348,7 +358,6 @@ h2 {
 
 input.span3, input.span3:focus, textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"], .uneditable-input {
     margin-right: 1rem;
-    color: #3F464C;
     vertical-align: middle;
     display: inline-block;
     border: 1px solid #d5d5d5;
@@ -426,13 +435,14 @@ div.logo-technicolor a {
     overflow: visible;
     margin: 0;
     left: 16.5rem;
-    top: 3.25rem !important;
+    top: 2.5rem !important;
     border: 0;
     border-radius: 0;
     margin-top: 3.8rem;
     padding-bottom: 0;
     box-shadow: none;
-    cursor: default
+    cursor: default;
+    background: var(--bg-color1)
 }
 
 .popUp:after {
@@ -443,7 +453,6 @@ div.logo-technicolor a {
     margin: 0;
     left: 0;
     top: calc(100% - 2px);
-    background-color: transparent;
     box-shadow: 0 .1875rem .375rem rgba(0, 0, 0, 0.65);
     pointer-events: none
 }
@@ -456,8 +465,7 @@ div.logo-technicolor a {
     width: calc(100% + 1rem);
     height: 100rem;
     top: 100%;
-    left: 0;
-    background-color: #f0eee6
+    left: 0
 }
 
 .popUp .header {
@@ -591,9 +599,7 @@ input::placeholder {
 .nav-list > li > a, .nav-list, .nav-list > li > a:hover {
     border: 0;
     padding-top: .15rem;
-    border-radius: 0;
-    background-color: #fff;
-    color: var(--bg-color1)
+    border-radius: 0
 }
 
 .nav-tabs > li > a:hover {
@@ -651,7 +657,7 @@ ul.nav-tabs::-webkit-scrollbar-thumb, ul.nav-tabs::-webkit-scrollbar-thumb:hover
     background-image: none
 }
 
-textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[type="datetime"]:focus, input[type="datetime-local"]:focus, input[type="date"]:focus, input[type="month"]:focus, input[type="time"]:focus, input[type="week"]:focus, input[type="number"]:focus, input[type="email"]:focus, input[type="url"]:focus, input[type="search"]:focus, input[type="tel"]:focus, input[type="color"]:focus, .uneditable-input:focus {
+textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[type="datetime"]:focus, input[type="datetime-local"]:focus, input[type="date"]:focus, input[type="month"]:focus, input[type="time"]:focus, input[type="week"]:focus, input[type="number"]:focus, input[type="email"]:focus, input[type="url"]:focus, input[type="search"]:focus, input[type="tel"]:focus, input[type="color"]:focus, .uneditable-input:focus, select, select.span3, input, input[type="text"]:focus {
     border: 1px solid #d5d5d5;
     box-shadow: unset
 }
@@ -691,12 +697,12 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 }
 
 .smallcard {
-    margin: 0;
-    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+    box-shadow: 0 .1875rem .375rem rgba(0, 0, 0, 0.25);
     opacity: 1 !important;
     transform: initial !important;
     transition: initial !important;
-    overflow: visible !important
+    overflow: visible !important;
+    background: inherit
 }
 
 #headerbox > .header {
@@ -706,7 +712,8 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
     border-bottom: none;
     white-space: nowrap;
     overflow: hidden;
-    padding: 0
+    padding: 0;
+    cursor: pointer
 }
 
 #headerbox > .header > .header-title > p {
@@ -719,8 +726,6 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 }
 
 .smallcard > .header {
-    background-color: #fff;
-    color: #fff;
     background-image: unset;
     border: unset;
     height: .6rem;
@@ -729,6 +734,8 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
     vertical-align: middle;
     line-height: .6rem;
     text-shadow: none;
+    background-color: inherit;
+    box-shadow: none;
     border-bottom: medium solid var(--bg-color3)
 }
 
@@ -779,6 +786,19 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
         margin: 1.5rem .5rem 0 0 !important;
         height: auto !important
     }
+	
+	#swtichbuttom {
+		position: fixed;
+		top: 3.25rem;
+		width: calc(100% - 19rem);
+		left: 16.5rem;
+		background: var(--bg-color2);
+		height: 2rem;
+		font-size: 14pt;
+		vertical-align: middle;
+		line-height: 2rem;
+		text-align: left
+	}
 
     .header-button {
         margin-top: -2rem
@@ -867,14 +887,6 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
         padding: 0 !important
     }
 
-    #statsFrame {
-        height: calc(100% - 60px);
-        width: 100%;
-        top: 60px;
-        left: 0;
-        position: fixed
-    }
-
     #cardrow {
         margin-top: 4rem;
         position: absolute;
@@ -882,8 +894,12 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
     }
 
     .header-logo {
-        margin: 0
+        display: none;
     }
+	
+	.header-button {
+		margin-top: 0.5rem;
+	}
 
     #headertab {
         height: 3.75rem;
@@ -1021,7 +1037,6 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
     #Poptxt {
         position: absolute;
         display: initial !important;
-        color: #000;
         width: 100%;
         top: 2rem;
         left: 0;
@@ -1078,6 +1093,14 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
     .row[style="z-index : 3;  position: relative;"] .btn:not(.dropdown-toggle), #webui_language {
         display: none
     }
+	
+	#swtichbuttom {
+		display: unset;
+	}
+	
+	.btn-group > .btn + .dropdown-toggle {
+		top: unset;
+	}
 
     .modal:before {
         content: '';

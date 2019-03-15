@@ -52,15 +52,22 @@ local  port_options = {
 
 local port_filter = function(data)
 
-	data.status = ui_helper.createSimpleLight(data.status == "Up" and "1" or "0", "", {}) --status
+	data.status_light = "1"
 	
 	if data.speed == "1000" then
-		data.speed = "1 Gpbs"
+		data.status_light = "1"
+		data.speed = "1 Gbps"
 	elseif data.speed == "100" then
+		data.status_light = "2"
 		data.speed = "100 Mbps"
 	elseif data.speed == "10" then
+		data.status_light = "3"
 		data.speed = "10 Mbps"
+	elseif data.speed == "" then
+		data.status_light = "0"
 	end
+	
+	data.status = ui_helper.createSimpleLight(data.status_light, "", {}, "fas fa-ethernet") --status
 	
 	if quantenna_wifi and data.paramindex:match("eth5") then
 		return false

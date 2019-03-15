@@ -430,8 +430,10 @@ end
 \
 ');  ngx.print( ui_helper.createFooter() ); ngx.print('\
 \
-<script src="/js/srp-min.js" ></script>\
 <script type="text/javascript" >\
+\
+	$.getScript("/js/srp-min.js");\
+\
     var oldusername = $(\'input[name="name"]\').val();\
     ');  -- In case user name modifed, the old user name has to be fetched from session during error case.
     if session:retrieve("editedUserName") then  ngx.print('\

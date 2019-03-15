@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: webui-wizard\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-06-21 15:33+0200\n"
-"PO-Revision-Date: 2019-01-08 11:58+0100\n"
+"PO-Revision-Date: 2019-03-02 15:15+0100\n"
 "Last-Translator: bovirus <bovirus@gmail.com>\n"
 "Language-Team: none\n"
 "Language: it\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language-Name: Italiano\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.2\n"
+"X-Generator: Poedit 2.2.1\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
 msgid "%d day(s), %02d:%02d:%02d"
@@ -316,7 +316,7 @@ msgid "Please configure wifi-bandsteer "
 msgstr "Configura il Band Steering "
 
 msgid " first!"
-msgstr " !"
+msgstr "!"
 
 msgid "Device PIN code entered"
 msgstr "Codice PIN dispositivo inserito"
@@ -548,3 +548,45 @@ msgstr "La connessione internet e attualmente non attiva. Prova i seguenti passa
 
 msgid "Your Internet connection is currently down. You can try the following: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Ethernet cable is firmly connected to the correct port on your Gateway or the Ethernet socket on the wall. <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Restart my gateway."
 msgstr "La connessione internet e attualmente non attiva. Prova i seguenti passaggi: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Verifica la connessione del cavo ethernet alla corretta porta nel modem o alla presa ethernet a muro. <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Riavvia il modem."
+
+msgid "153"
+msgstr "153"
+
+msgid "48"
+msgstr "48"
+
+msgid "44"
+msgstr "44"
+
+msgid "Yes"
+msgstr "Sì"
+
+msgid "Temporary"
+msgstr "Temporaneo"
+
+msgid "Permanent"
+msgstr "Permanente"
+
+msgid "149"
+msgstr "149"
+
+msgid "No"
+msgstr "No"
+
+msgid "157"
+msgstr "157"
+
+msgid "Start"
+msgstr "Avvio"
+
+msgid "36"
+msgstr "36"
+
+msgid "Set PIN code"
+msgstr "Imposta codice PIN"
+
+msgid "161"
+msgstr "161"
+
+msgid "40"
+msgstr "40"

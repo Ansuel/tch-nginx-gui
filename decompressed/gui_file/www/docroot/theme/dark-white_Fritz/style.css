@@ -2,7 +2,7 @@
     --bg-color1: #000;
     --bg-color2: #333;
     --bg-color3: #000;
-    --body-bg-color: #191919
+	--body-text-color: #000;
 }
 
 .alert-info {
@@ -19,9 +19,18 @@
     box-shadow: inset 0 1px 3px rgba(255, 255, 255, .5), 0 0 4px #0bf
 }
 
-.modal-body, .modal-footer {
-    background-color: #000 !important;
+#headerbox > .header {
     color: #fff
+}
+
+.switch {
+    box-shadow: none;
+    border-radius: 7px;
+    margin: 0
+}
+
+.switchOn {
+    background-color: var(--bg-color1)
 }
 
 a {
@@ -40,7 +49,7 @@ legend, .popUp {
 }
 
 body {
-    color: #fff;
+    color: var(--body-text-color);
     background-color: var(--body-bg-color) !important;
     text-shadow: none !important
 }
@@ -76,31 +85,23 @@ input.span3, input.span3:focus, textarea, input[type="text"], input[type="passwo
     position: fixed;
     box-shadow: 0 .1875rem .375rem rgba(0, 0, 0, 0.25);
     overflow: auto;
-    overflow-y: scroll
+    overflow-y: scroll;
+	background-color: var(--menu-bg-color)
 }
 
-#swtichbuttom {
-    position: fixed;
-    top: 3.25rem;
-    width: calc(100% - 19rem);
-    left: 16.5rem;
-    background: var(--bg-color2);
-    pointer-events: none;
-    height: 2rem;
-    font-size: 14pt;
-    vertical-align: middle;
-    line-height: 2rem;
-    text-align: left
-}
-
-#statsFrame > #dynamic-content > #infocardrow {
-    flex-wrap: nowrap;
+#infocardrow {
+	margin-left: 16.5rem;
+	top: 6rem;
+	background-color: #fff;
+	flex-wrap: nowrap;
     display: flex !important
 }
 
 @media only screen and (max-width: 89rem) {
-    #statsFrame > #dynamic-content > #infocardrow {
-        display: block !important
+    #infocardrow {
+        display: block !important;
+		margin-left: unset;
+		z-index: 0;
     }
 }
 
@@ -110,10 +111,6 @@ input.span3, input.span3:focus, textarea, input[type="text"], input[type="passwo
 
 .infocard {
     width: auto
-}
-
-#cardrow {
-    display: none
 }
 
 .span12 {
@@ -129,7 +126,8 @@ input.span3, input.span3:focus, textarea, input[type="text"], input[type="passwo
 }
 
 .header-logo {
-    margin-left: 2rem
+    margin-left: 5rem;
+	flex-basis: unset;
 }
 
 .header-button {
@@ -138,17 +136,13 @@ input.span3, input.span3:focus, textarea, input[type="text"], input[type="passwo
 }
 
 #headerbox {
-    top: 6.3rem;
+    top: 4.7rem;
     background-color: #fff;
     box-shadow: 0 .1875rem .375rem rgba(0, 0, 0, 0.25);
     font-size: 1.125rem;
     position: fixed;
-    max-height: calc(100% - 18rem);
+    max-height: calc(100% - 16rem);
     overflow: auto
-}
-
-#headerbox > .header {
-    cursor: pointer
 }
 
 #headertab {
@@ -195,19 +189,12 @@ body {
     background-color: var(--bg-color1)
 }
 
-.header-logo {
-    margin-left: 2rem
-}
-
-.header-button {
-    margin-right: 2rem
-}
-
 #footer {
     position: fixed;
     bottom: .5rem;
     left: .5rem;
-    width: 14rem
+    width: 14rem;
+	margin: unset;
 }
 
 .container > #footer {
@@ -283,7 +270,7 @@ body {
     width: 100%;
     background-color: var(--menu-bg-color);
     margin: 0;
-    top: 0
+    bottom: 0
 }
 
 div.login input.span3, div.login input.span3:focus {
@@ -456,14 +443,14 @@ div.logo-technicolor a {
     overflow: visible;
     margin: 0;
     left: 16.5rem;
-    top: 3.25rem !important;
+    top: 2.5rem !important;
     border: 0;
     border-radius: 0;
     margin-top: 3.8rem;
     padding-bottom: 0;
     box-shadow: none;
     cursor: default;
-    background: var(--bg-color1)
+	background: var(--bg-color1)
 }
 
 .popUp:after {
@@ -718,8 +705,8 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 }
 
 .smallcard {
-    margin: 0;
-    box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+			  
+    box-shadow: 0 .1875rem .375rem rgba(0, 0, 0, 0.25);
     opacity: 1 !important;
     transform: initial !important;
     transition: initial !important;
@@ -734,7 +721,8 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
     border-bottom: none;
     white-space: nowrap;
     overflow: hidden;
-    padding: 0
+    padding: 0;
+    cursor: pointer
 }
 
 #headerbox > .header > .header-title > p {
@@ -746,7 +734,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
     opacity: .25
 }
 
-.infocard > .smallcard > .header {
+.smallcard > .header {
     background-image: unset;
     border: unset;
     height: .6rem;
@@ -807,6 +795,19 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
         margin: 1.5rem .5rem 0 0 !important;
         height: auto !important
     }
+	
+	#swtichbuttom {
+		position: fixed;
+		top: 3.25rem;
+		width: calc(100% - 19rem);
+		left: 16.5rem;
+		background: var(--bg-color2);
+		height: 2rem;
+		font-size: 14pt;
+		vertical-align: middle;
+		line-height: 2rem;
+		text-align: left
+	}
 
     .header-button {
         margin-top: -2rem
@@ -895,14 +896,6 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
         padding: 0 !important
     }
 
-    #statsFrame {
-        height: calc(100% - 60px);
-        width: 100%;
-        top: 60px;
-        left: 0;
-        position: fixed
-    }
-
     #cardrow {
         margin-top: 4rem;
         position: absolute;
@@ -910,8 +903,12 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
     }
 
     .header-logo {
-        margin: 0
+        display: none;
     }
+	
+	.header-button {
+		margin-top: 0.5rem;
+	}
 
     #headertab {
         height: 3.75rem;
@@ -1105,6 +1102,14 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
     .row[style="z-index : 3;  position: relative;"] .btn:not(.dropdown-toggle), #webui_language {
         display: none
     }
+	
+	#swtichbuttom {
+		display: unset;
+	}
+	
+	.btn-group > .btn + .dropdown-toggle {
+		top: unset;
+	}
 
     .modal:before {
         content: '';

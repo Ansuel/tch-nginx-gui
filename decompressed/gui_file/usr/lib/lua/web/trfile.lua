@@ -25,24 +25,40 @@ function M.load(filename)
     local line
 	local check_multiline = ""
 	local moStrings = {}
-	local orig, trans, multi, multistring = {}, {}, {}, {}
+	local orig, trans, plural, pluralstring = {}, {}, {}, {}
 	local plural_String = false
 	local nstrings = 0
+	local empty_trans = false
 	for line in f_in:lines() do
 		if line == "" or line:match("^msg[A-Z]+%s") then
 			if orig[1] then
 				nstrings = nstrings + 1
 			end
 			if trans[1] then
-				moStrings[concat(orig)] = concat(trans)
-			end
-			if multi[1] then
-				if multistring[1] then
-					multi[#multi+1] = concat(multistring)
-					multistring = {}
+				if not ( concat(trans) == "" ) then
+					moStrings[concat(orig)] = concat(trans)
+				else
+					nstrings = nstrings - 1
 				end
-				moStrings[concat(orig)] = multi
-				multi = {}
+				trans = {}
+				orig = {}
+			end
+			if plural[1] then
+				if pluralstring[1] then
+					if not ( concat(pluralstring) == "" ) then
+						plural[#plural+1] = concat(pluralstring)
+					else
+						empty_trans = true
+					end
+					pluralstring = {}
+				end
+				if ( empty_trans == false ) then
+					moStrings[concat(orig)] = plural
+				else
+					nstrings = nstrings - 1
+				end
+				orig = {}
+				plural = {}
 			end
 			plural_String = false
 			check_multiline = ""
@@ -54,7 +70,7 @@ function M.load(filename)
 			trans[#trans+1] = line:gsub("\"","",1):sub(0,-2):gsub("\\\"","\"")
 		end
 		if ( check_multiline == "msgstr_plural" ) and not ( line:match("^msgstr%[") ) then
-			multistring[#multistring+1] = line:gsub("\"","",1):sub(0,-2):gsub("\\\"","\"")
+			pluralstring[#pluralstring+1] = line:gsub("\"","",1):sub(0,-2):gsub("\\\"","\"")
 		end
 		if line:match("^msgid%s") then
 			orig = {}
@@ -70,11 +86,11 @@ function M.load(filename)
 			check_multiline = "msgstr"
 		end
 		if line:match("^msgstr%[") then
-			if multistring[1] then
-				multi[#multi+1] = concat(multistring)
-				multistring = {}
+			if pluralstring[1] then
+				plural[#plural+1] = concat(pluralstring)
+				pluralstring = {}
 			end
-			multistring[#multistring+1] = line:gsub("msgstr%[.*%] \"",""):sub(0,-2):gsub("\\\"","\"")
+			pluralstring[#pluralstring+1] = line:gsub("msgstr%[.*%] \"",""):sub(0,-2):gsub("\\\"","\"")
 			check_multiline = "msgstr_plural"
 		end
 	end
@@ -82,15 +98,26 @@ function M.load(filename)
 	
 	-- This make sure the lad line is added to the moStrings
 	if trans[1] then
-		moStrings[concat(orig)] = concat(trans)
-	end
-	if multi[1] then
-		if multistring[1] then
-			multi[#multi+1] = concat(multistring)
-			multistring = {}
+		if not ( concat(trans) == "" ) then
+			moStrings[concat(orig)] = concat(trans)
+		else
+			nstrings = nstrings - 1
 		end
-		moStrings[concat(orig)] = multi
-		multi = {}
+	end
+	if plural[1] then
+		if pluralstring[1] then
+			if not ( concat(pluralstring) == "" ) then
+				plural[#plural+1] = concat(pluralstring)
+			else
+				empty_trans = true
+			end
+			pluralstring = {}
+		end
+		if ( empty_trans == false ) then
+			moStrings[concat(orig)] = plural
+		else
+			nstrings = nstrings - 1
+		end
 	end
 	
 	return moStrings, nstrings

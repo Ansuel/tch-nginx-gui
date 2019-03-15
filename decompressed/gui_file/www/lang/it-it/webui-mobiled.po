@@ -164,7 +164,7 @@ msgid "From"
 msgstr "Da"
 
 msgid "General Status And Settings"
-msgstr "Stato generale e impostazioni"
+msgstr "Informazioni principali e impostazioni"
 
 msgid "Good"
 msgstr "Buono"
@@ -519,3 +519,270 @@ msgstr "Al momento non c'è nessun messaggio"
 
 msgid "seconds"
 msgstr "secondi"
+
+msgid "LTE Doctor"
+msgstr "Diagnostica LTE"
+
+msgid "Unlock Retries Left:"
+msgstr "Tentativi rimanenti sblocco:"
+
+msgid "Unblock Retries Left:"
+msgstr "Tentativi rimanenti blocco:"
+
+msgid "IPv6"
+msgstr "IPv6"
+
+msgid "MNC:"
+msgstr "MNC:"
+
+msgid "Rx Packet Errors"
+msgstr "Errori pacchetti Rx"
+
+msgid "National"
+msgstr "Nazionale"
+
+msgid "Rx Packets"
+msgstr "Pacchetti RX"
+
+msgid "GB"
+msgstr "GB"
+
+msgid "Downlink Bandwidth:"
+msgstr "Banda downlink:"
+
+msgid "Total"
+msgstr "Totale"
+
+msgid "Tx Packet Errors"
+msgstr "Errori pachetti Tx"
+
+msgid "Path loss:"
+msgstr "Percorso perso:"
+
+msgid "GSM Only"
+msgstr "Solo GSM"
+
+msgid "RSCP:"
+msgstr "RSCP:"
+
+msgid "Active Band:"
+msgstr "Banda attiva:"
+
+msgid "LTE"
+msgstr "LTE"
+
+msgid "MSISDN"
+msgstr "MSISDN"
+
+msgid "Physical Cell ID:"
+msgstr "ID fisico cella:"
+
+msgid "RSSI:"
+msgstr "RSSI:"
+
+msgid "Data Usage Limit"
+msgstr "Limite uso dati"
+
+msgid "LTE Only"
+msgstr "Solo LTE"
+
+msgid "Uplink Bandwidth:"
+msgstr "Banda upload:"
+
+msgid "SMS"
+msgstr "SMS"
+
+msgid "Reset"
+msgstr "Ripristina"
+
+msgid "UMTS Preferred"
+msgstr "Preferisci UMTS"
+
+msgid "Uplink EARFCN:"
+msgstr "EARFCN uplink:"
+
+msgid "Uplink Frequency:"
+msgstr "Frequenza uplink"
+
+msgid "CINR:"
+msgstr "CINR:"
+
+msgid "Monthly Reset Day"
+msgstr "Giorno ripristino mensile"
+
+msgid "Tx Packets"
+msgstr "Pacchetti Tx"
+
+msgid "* Data usage is only an approximation. For actual usage, please refer to your network operator"
+msgstr "* L'uso dati è solo un'approssimazione.<br/>Per l'uso attuale chiedi al tuo operatore di rete."
+
+msgid "PIN"
+msgstr "PIN"
+
+msgid "IPv4"
+msgstr "IPv4"
+
+msgid "Auto"
+msgstr "Automatico"
+
+msgid "GSM"
+msgstr "GSM"
+
+msgid "Reset Data Usage"
+msgstr "Azzera uso dati"
+
+msgid "Uplink ARFCN:"
+msgstr "ARFCN uplink:"
+
+msgid "Radio Bearer:"
+msgstr "Bearer radio:"
+
+msgid "EARFCN"
+msgstr "EARFCN"
+
+msgid "Downlink UARFCN:"
+msgstr "UARFCN downlink:"
+
+msgid "RSRP:"
+msgstr "RSRP:"
+
+msgid "Total Volume"
+msgstr "Volume totale"
+
+msgid "Data Usage"
+msgstr "Uso dati"
+
+msgid "MB"
+msgstr "MB"
+
+msgid "International"
+msgstr "Internazionale"
+
+msgid "Device Status And Settings"
+msgstr "Stato dispositivo ed impostazioni"
+
+msgid "ECIO:"
+msgstr "ECIO:"
+
+msgid "Downlink ARFCN:"
+msgstr "ARFCN downlink:"
+
+msgid "Downlink"
+msgstr "Downlink"
+
+msgid "GSM Preferred"
+msgstr "Preferisci GSM"
+
+msgid "IPv4v6"
+msgstr "IPv4/v6"
+
+msgid "IMSI"
+msgstr "IMSI"
+
+msgid "Tracking Area Code:"
+msgstr "Codice area tracking:"
+
+msgid "IMEI"
+msgstr "IMEI"
+
+msgid "Data Usage Monitoring"
+msgstr "Monitoraggio uso dati"
+
+msgid "MCC:"
+msgstr "MCC:"
+
+msgid "PAP"
+msgstr "PAP"
+
+msgid "MNC"
+msgstr "MNC"
+
+msgid "UMTS Only"
+msgstr "Solo UMTS"
+
+msgid "Downlink Frequency:"
+msgstr "Frequenza downlink:"
+
+msgid "LTE Preferred"
+msgstr "Preferisci LTE"
+
+msgid "UMTS"
+msgstr "UMTS"
+
+msgid "Uplink"
+msgstr "Uplink"
+
+msgid "RSRQ:"
+msgstr "RSRQ:"
+
+msgid "Rx Bytes"
+msgstr "Byte Rx"
+
+msgid "Current"
+msgstr "Attuale"
+
+msgid "CHAP"
+msgstr "CHAP"
+
+msgid "TX Power:"
+msgstr "Potenza TX:"
+
+msgid "RRC State:"
+msgstr "Stato RCC:"
+
+msgid "ICCID"
+msgstr "ICCID"
+
+msgid "SNR:"
+msgstr "SNR:"
+
+msgid "Data usage limit reached"
+msgstr "Raggiunto limite uso dati"
+
+msgid "Enable Limit"
+msgstr "Abilita limite"
+
+msgid "CDMA"
+msgstr "CDMA"
+
+msgid "SET"
+msgstr "IMPOSTA"
+
+msgid "MCC"
+msgstr "MCC"
+
+msgid "Uplink UARFCN:"
+msgstr "UARFCN uplink:"
+
+msgid "PUK"
+msgstr "PUK"
+
+msgid "Password"
+msgstr "Password"
+
+msgid "Cell ID:"
+msgstr "ID cella:"
+
+msgid "SINR:"
+msgstr "SINR:"
+
+msgid "Unknown PIN action"
+msgstr "Azione PIN sconosciuta"
+
+msgid "Tx Bytes"
+msgstr "Byte Tx"
+
+msgid "SIM"
+msgstr "SIM"
+
+msgid "APN"
+msgstr "APN"
+
+msgid "SIM Card"
+msgstr "Scheda SIM"
+
+msgid "No"
+msgstr "No"
+
+msgid "Downlink EARFCN:"
+msgstr "EARFCN downlink:"

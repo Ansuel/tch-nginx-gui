@@ -74,9 +74,14 @@ local function compile (template, chunkname)
   local f, err = loadstring(translated_string, chunkname)
 
   if not f then
-    error(err, 0)
+	ngx.log(ngx.CRIT, err)
+	if not ngx.status then
+		return ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR,err)
+	else
+		ngx.ctx.session:store("lasterr",err)
+		return ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR,err)
+	end
   end
-
   return f
 end
 

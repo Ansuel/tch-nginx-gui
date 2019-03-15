@@ -323,6 +323,11 @@ color: var(--first-color-accent);
 text-decoration: none;
 }
 
+a:hover {
+color: var(--text-general-color);
+text-decoration: none;
+}
+
 .dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus, .dropdown-submenu:hover>a, .dropdown-submenu:focus>a {
   color: var(--text-general-color);
 }
@@ -412,7 +417,7 @@ text-decoration: none;
 
 @media screen and (min-width: 767px) {
 	#headertab {
-		background-image: linear-gradient(45deg, transparent 55%, var(--forth-color-accent-50, var(--forth-color-accent, #535353)80) 45%);
+		background-image: linear-gradient(45deg, transparent 45vw, var(--forth-color-accent-50, var(--forth-color-accent, #535353)80) 1vw);
 	}
 }
 

@@ -135,7 +135,7 @@ local title = T"Relay Setup"
 ');
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
   ngx.print('\
-<form class="form-horizontal" method="post" action="modals/relay-modal.lp">');
+<form class="form-horizontal" method="post" action="/modals/relay-modal.lp">');
 --ngx.print('\
 --<fieldset>\
 --  <legend>');  ngx.print( T"DHCP Relay" ); ngx.print('</legend>\

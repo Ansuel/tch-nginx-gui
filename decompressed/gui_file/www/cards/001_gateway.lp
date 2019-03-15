@@ -23,18 +23,19 @@ local modalPath = nil
 local switchName = nil
 local session = ngx.ctx.session
 
-local variant = proxy.get("uci.env.var.prod_friendly_name")[1].value or ""
-local model = nil
+local model = proxy.get("uci.env.var.prod_friendly_name")[1].value or ""
 
-if  ( variant == "DGA4130" ) then
+if  ( model == "DGA4130" ) then
 	model = "AGTEF"
-elseif ( variant == "DGA4132" ) then
+elseif ( model == "DGA4132" ) then
 	model = "AGTHP"
-elseif ( variant == "MediaAccess TG789vac v2" or variant == "MediaAccess TG789MYRvac v2 HP") then
+elseif ( model == "MediaAccess DGA4131FWB" ) then
+	model = "DGA4131FWB"
+elseif ( model == "MediaAccess TG789vac v2" or model == "MediaAccess TG789MYRvac v2 HP") then
 	model = "TG789vac"
-elseif ( variant == "Technicolor TG799vac" ) then
+elseif ( model == "Technicolor TG799vac" ) then
 	model = "TG799vac"
-elseif ( variant == "Technicolor TG800vac" ) then
+elseif ( model == "Technicolor TG800vac" ) then
 	model = "TG800vac"
 end
 
@@ -46,8 +47,8 @@ end
 ngx.print('\
 \
 <div class="span3" id="gateway-card">\
-  <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
-    ');  ngx.print( ui_helper.createCardHeader(T"Gateway", modalPath, switchName, nil, nil) ); ngx.print('\
+  <div class="smallcard" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
+    ');  ngx.print( ui_helper.createCardHeader(T"Modem", modalPath, switchName, nil, nil) ); ngx.print('\
     <div class="content card_bg" data-bg-text="&#xf129;">\
 	<div class="divtable">\
 	  <p>\
@@ -56,7 +57,7 @@ ngx.print('\
 	  ngx.print('<span class="subinfos">' ..  T"CPU Load"..":" ); ngx.print('\
 					<strong data-bind="text: cpuload">\
 					</strong></span>\
-      <div data-remote="modals/gateway-modal.lp" data-id="gateway-modal">\
+      <div data-remote="/modals/gateway-modal.lp" data-id="gateway-modal" style="text-align: center;">\
 	    <picture>\
 		    <source srcset="/img/gateway_'); ngx.print(model); ngx.print('.webp" type="image/webp">\
 		    <source srcset="/img/gateway_'); ngx.print(model); ngx.print('.png" type="image/png">\
@@ -70,19 +71,7 @@ ngx.print('\
 <script>\
 var GatewayCardInterval;\
 $(document).ready(function () {\
-	var GatewayCardBinding = { cpuload: ko.observable(), };\
-	function GatewayCardRefresh() {\
-		$.post("/ajax/cpuload.lua", [tch.elementCSRFtoken()], function(data) {\
-			if(data.cpuload != undefined) {\
-				GatewayCardBinding.cpuload(data.cpuload);\
-			}\
-		}, "json");\
-	};\
-\
-	GatewayCardRefresh();\
-	ko.applyBindings(GatewayCardBinding, document.getElementById("gateway-card"));\
-	GatewayCardInterval = setInterval(GatewayCardRefresh, 5000);\
-	KoRequest.push(GatewayCardInterval);\
+	new createAjaxUpdateCard("gateway-card","/ajax/cpuload.lua",GatewayCardInterval,5000);\
 })\
 </script>\
 ');

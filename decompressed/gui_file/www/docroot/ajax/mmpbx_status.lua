@@ -9,7 +9,7 @@ local ui_helper = require("web.ui_helper")
 
 local mmpbxd_columns = {
     {--[2]
-        header = T"Status",
+        header = T"Line Status",
         name = "sipRegisterState",
         param = "sipRegisterState",
         type = "text",
@@ -21,7 +21,7 @@ local mmpbxd_columns = {
         type = "text",
     },
     {--[4]
-        header = T"Line State",
+        header = T"Call State",
         name = "callState",
         param = "callState",
         type = "text",
@@ -43,18 +43,18 @@ local mmpbxd_filter = function(data)
 
     if data.callState then
         if ( data.callState == "MMPBX_CALLSTATE_IDLE" ) then
-            data.callState =  "Idle"
+            data.callState =  T"Idle"
         elseif ( data.callState == "MMPBX_CALLSTATE_DIALING" ) then
-            data.callState =  "Dialing"
+            data.callState =  T"Dialing"
         elseif ( data.callState == "MMPBX_CALLSTATE_CALL_DELIVERED" ) then
-            data.callState =  "Delivered/In Progress"
+            data.callState =  T"Delivered/In Progress"
         elseif ( data.callState == "MMPBX_CALLSTATE_CONNECTED" ) then
-            data.callState =  "In Call"
+            data.callState =  T"In Progress/Connected"
         elseif ( data.callState == "MMPBX_CALLSTATE_ALERTING" ) then
-            data.callState =  "Ringing"
+            data.callState =  T"Ringing"
         end
 
-        data.callState = ui_helper.createSimpleLight(data.callState=="Idle" and "0" or "1", T(data.callState), nil, "fa fa-phone")
+        data.callState = ui_helper.createSimpleLight(data.callState==T"Idle" and "0" or "1", T(data.callState), nil, "fa fa-phone")
     end
 
     return true

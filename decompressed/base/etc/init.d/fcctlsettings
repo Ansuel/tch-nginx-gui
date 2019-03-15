@@ -6,40 +6,40 @@ setup_state() {
     config_get enabled state enabled 1
 	if [ $enabled == 1 ]; then
 		fcctl enable > /dev/null
-		logger -t "Flow Cache Setting" "Starting service..."
+		logger -t "Flow Cache" "Starting service..."
 	else
-		logger -t "Flow Cache Setting" "Stopping service..."
+		logger -t "Flow Cache" "Stopping service..."
 		fcctl disable > /dev/null
 	fi
 }
 
 config_l2tp() {
     config_get l2tp option l2tp 1
-	logger -t "Flow Cache Setting" "Setting l2tp options to "$l2tp
+	logger -t "Flow Cache" "Setting L2TP options to $l2tp"
     fcctl config --l2tp $l2tp > /dev/null
 }
 
 config_gre() {
     config_get gre option gre 1
-	logger -t "Flow Cache Setting" "Setting gre options to "$gre
+	logger -t "Flow Cache" "Setting GRE options to $gre"
     fcctl config --gre $gre > /dev/null
 }
 
 config_ipv6() {
     config_get ipv6 option ipv6 1
-	logger -t "Flow Cache Setting" "Setting ipv6 options to "$ipv6
+	logger -t "Flow Cache" "Setting IPv6 options to $ipv6"
     fcctl config --ipv6 $ipv6 > /dev/null
 }
 
 config_mcast() {
     config_get mcast option mcast 1
-	logger -t "Flow Cache Setting" "Setting mcast options to "$mcast
+	logger -t "Flow Cache" "Setting MCast options to $mcast"
     fcctl config --mcast $mcast > /dev/null
 }
 
 config_mcast_learn() {
     config_get 'mcast_learn' option 'mcast_learn' 1
-	logger -t "Flow Cache Setting" "Setting mcast-learn options to "$mcast_learn
+	logger -t "Flow Cache" "Setting MCast-Learn options to $mcast_learn"
     fcctl config --mcast-learn $mcast_learn > /dev/null
 }
 

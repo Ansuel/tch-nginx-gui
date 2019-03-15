@@ -192,6 +192,7 @@ end
 -- @param #number time
 -- @return #string number of seconds
 function M.secondsToTime(time)
+  setlanguage()
   local time_no = tonumber(time)
   if (time_no and time_no >= 0) then
     local durations = {
@@ -227,6 +228,7 @@ end
 -- @param #number time
 -- @return #string number of seconds
 function M.secondsToTimeShort(time)
+  setlanguage()
   local time_no = tonumber(time)
   if (time_no and time_no >= 0) then
     local durations = {
@@ -1389,7 +1391,8 @@ end
 local function ipv42num(ipstr)
     if ipstr then
       ipstr = string.untaint(ipstr)
-      local ip = inet_pton(posix.AF_INET, ipstr)
+	  --Handle EXTREME OLD INSTALLATION with no posix lib at all...
+      local ip = inet_pton and inet_pton(posix.AF_INET, ipstr) or nil
       if not ip then
         return nil
       end

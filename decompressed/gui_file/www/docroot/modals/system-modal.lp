@@ -15,56 +15,48 @@ local untaint = string.untaint
 
 local gOV = post_helper.getOptionalValidation
 
-local gui_skin_option = {
-      { "blue", T'Blue'},
-      { "violet", T'Violet'},
-      { "green", T'Green'},
-	  { "TIM" , T'Enhanced Tim'},
-	  { "Fritz", T'Fritz!Box'},
-	  { "dark-white", T'Dark/White (Fritz Based)'},
-	  { "dark-midnight", T'Dark/Midnight (Fritz Based)'},
-	  { "dark-red", T'Red Dark'},
+local spoof_mode_enum = {
+	{ "disabled" , T"Comunicate real version to cwmp"},
+	{ "enabled" , T"Comunicate latest stable version set from rootscript to cwmp"},
+	{ "manual" , T"Set the version to comunicate to cwmp manually"},
 }
 
-local gui_skin_firstpage_page = {
-	{ "stats", T"Stats" },
-	{ "cards", T"Cards" },
-}
+local function validateVersionSpoofMode(value, object, key)
 
-local telstra_gui = proxy.get("uci.env.var.telstra_webui")
+	local valid, msg = post_helper.getValidateInEnumSelect(spoof_mode_enum)
 
-if telstra_gui and ( telstra_gui[1].value == "1" ) then
-	table.insert(gui_skin_firstpage_page, { "telstra", T"Telstra" })
+	if valid then
+		local version_path="uci.versioncusto.override.fwversion_override"
+		local version_real=proxy.get(version_path.."_real")[1].value
+		local version_latest=proxy.get(version_path.."_latest")[1].value
+		if value == "disabled" then
+			proxy.set(version_path, version_real)
+		elseif value == "enabled" then
+			proxy.set(version_path,version_latest)
+		end
+		proxy.apply()
+	end
+	
+	return valid, msg
 end
 
-local gui_skin_Params = {
-  gui_skin = "uci.env.var.gui_skin",
-  gui_skin_firstpage = "uci.env.var.firstpage",
-  gui_randomcolor = "uci.env.var.randomcolor",
+local fwversion_override_Params = { 
+	fwversion_override = "uci.versioncusto.override.fwversion_override", 
+	version_spoof_mode = "uci.modgui.var.version_spoof_mode",
 }
 
-local gui_skin_valid = {
-  gui_skin = post_helper.getValidateInEnumSelect(gui_skin_option),
-  gui_skin_firstpage = post_helper.getValidateInEnumSelect(gui_skin_firstpage_page),
-  gui_randomcolor = post_helper.validateBoolean,
+local fwversion_override_valid = { 
+	fwversion_override = gOV(post_helper.validateNonEmptyString),
+	version_spoof_mode = validateVersionSpoofMode,
 }
-
-local gui_skin_content, helpmsg = post_helper.handleQuery(gui_skin_Params, gui_skin_valid)
-
-local fwversion_override_Params = { fwversion_override = "uci.versioncusto.override.fwversion_override", }
-
-local fwversion_override_valid = { fwversion_override = gOV(post_helper.validateNonEmptyString), }
 
 local fwversion_override_content, fwversion_override_helpmsg = post_helper.handleQuery(fwversion_override_Params, fwversion_override_valid)
 
 local env = {
   factory = "uci.env.rip.factory_id",
   serial = "uci.env.rip.serial",
-  activebank = "sys.banktable.activebank",
-  passivebank = "sys.banktable.passivebank",
-  activeversion = "sys.banktable.activeversion",
-  passiveversion = "sys.banktable.passiveversion",
-  rip_key_B = "rpc.system.rip_key_B",
+  fwversion_latest = "uci.versioncusto.override.fwversion_override_latest",
+  fwversion_real = "uci.versioncusto.override.fwversion_override_real",
 }
 content_helper.getExactContent(env)
 
@@ -240,7 +232,7 @@ if telnet_available then
 	telnet_content, helpmsg = post_helper.handleQuery(telnet_Params, telnet_valid)
 end
 
-local bank_check_Params = { bank_check = "uci.env.var.bank_check" }
+local bank_check_Params = { bank_check = "uci.modgui.var.bank_check" }
 
 local bank_check_valid = { bank_check = vB }
 
@@ -303,10 +295,10 @@ if ngx.req.get_method() == "POST" then
     return resetreboot("rpc.system.switchover")
   end
   if action == "system_trasnfer_bank_1" then
-    return resetreboot("rpc.system.transfer_bank1")
+    return resetreboot("rpc.system.modgui.utility.transfer_bank1")
   end
   if action == "system_copy_bank" then
-    return resetreboot("rpc.system.copy_bank")
+    return resetreboot("rpc.system.modgui.utility.copy_bank")
   end
   if action == "debug_report" then
 	
@@ -353,41 +345,6 @@ local title = T"System Extras"
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
   ngx.print('\
 <form class="form-horizontal" method="post" action="modals/system-modal.lp">\
-<fieldset>\
-  <legend>');  ngx.print( T"Bank Info" ); ngx.print('</legend>\
-    ');  
-	  local basic = {
-        span = {
-          class = "span8"
-        },
-      }
-      local html = {}
-      html[#html + 1] = ui_helper.createLabel(T"Active Bank", env["activebank"] , basic)
-	  html[#html + 1] = ui_helper.createLabel(T"Active Version", env["activeversion"] , basic)
-	  html[#html + 1] = ui_helper.createLabel(T"Passive Bank", env["passivebank"] , basic)
-	  if env["passiveversion"] == "Unknown" 
-		then
-		html[#html + 1] = ui_helper.createLabel(T"Passive Version", T"Firmware not present in this bank" , basic)
-	  else
-		html[#html + 1] = ui_helper.createLabel(T"Passive Version", env["passiveversion"] , basic)
-	  end
-      ngx.print(html)
-      ngx.print('\
-</fieldset>\
-<fieldset>\
-  <legend>');  ngx.print( T"Key Info" ); ngx.print('</legend>\
-    ');  
-	  local basic = {
-        span = {
-          class = "span8"
-        },
-      }
-      local html = {}
-      html[#html + 1] = ui_helper.createLabel(T"Config decrypt key", env["rip_key_B"] , basic)
-
-      ngx.print(html)
-      ngx.print('\
-</fieldset>\
 <fieldset>\
   <legend>');  ngx.print( T"Advanced Reboot" ); ngx.print('</legend>\
     ');
@@ -462,13 +419,13 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 		}
       }
       local html = {}
-      html[#html + 1] = ui_helper.createButton(T"LAN Upgrade", T"BOOTP", "icon-exchange", bootp)
+      html[#html + 1] = ui_helper.createButton(T"LAN Update", T"BOOTP", "icon-exchange", bootp)
       html[#html + 1] = ui_helper.createAlertBlock(T"Entering BOOTP, please wait...", bootp_alert)
 	  html[#html + 1] = ui_helper.createButton(T"SwitchBank", T"Switchover", "icon-exchange", switchover)
       html[#html + 1] = ui_helper.createAlertBlock(T"Switching bank, please wait...", switchover_alert)
 	  if env["activebank"] == "bank_2"
 		then
-		html[#html + 1] = ui_helper.createAlertBlock(T"This will transfer your configuration and firmware to the bank_1 and it will erase bank_2", warn_box)
+		html[#html + 1] = ui_helper.createAlertBlock(T"This will transfer your configuration and firmware to bank_1 and it will erase bank_2", warn_box)
 		html[#html + 1] = ui_helper.createButton(T"Transfer to", T"Bank 1", "icon-exchange", transfer_bank1)
 		html[#html + 1] = ui_helper.createAlertBlock(T"Transfering bank, please wait...", transfer_bank1_alert)
 	  end
@@ -483,14 +440,21 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 if not ( fwversion_override_content["fwversion_override"] == "" ) then
 	ngx.print('\
 	<fieldset>\
-	<legend>');  ngx.print( T"Version Spoof" ); ngx.print('</legend>\
+	<legend>');  ngx.print( T"Spoof Settings" ); ngx.print('</legend>\
 		');
+		local html = {}
 		local info_box = {
 			alert = {
 				class = "alert alert-info",
 			}
 		}
-		local html = {}
+		local long_input = {
+			select = {
+				class = "span5",
+			}
+		}
+		html[#html + 1] = ui_helper.createAlertBlock(T"Disable override of Version Spoof at every GUI update. This is also usefull to permit cwmp to autoupdate the modem", info_box)
+		html[#html + 1] = ui_helper.createInputSelect(T"Spoof Version Mode", "version_spoof_mode", spoof_mode_enum ,fwversion_override_content["version_spoof_mode"],long_input)
 		html[#html + 1] = ui_helper.createAlertBlock(T"Input the latest stock firmware version in this field to spoof it. This is necessary because if a newer version of the firmware is available on the ACS server, CWMPD will try to update the device and break remote monitoring from the “MyTIM” mobile app.", info_box)
 		html[#html + 1] = ui_helper.createInputText(T"Version Set", "fwversion_override", fwversion_override_content["fwversion_override"], nil , fwversion_override_helpmsg["fwversion_override"])
 		ngx.print(html)
@@ -517,16 +481,6 @@ ngx.print('\
       ngx.print(html)
       ngx.print('\
 </fieldset>\
-	<fieldset>\
-	<legend>');  ngx.print( T"Gui Skin" ); ngx.print('</legend>\
-		');  
-		local html = {}
-		html[#html + 1] = ui_helper.createInputSelect(T"Gui Skin", "gui_skin", gui_skin_option, gui_skin_content["gui_skin"])
-		html[#html + 1] = ui_helper.createInputSelect(T"Gui FirstPage", "gui_skin_firstpage", gui_skin_firstpage_page, gui_skin_content["gui_skin_firstpage"])
-		html[#html + 1] = ui_helper.createSwitch(T"Random Color", "gui_randomcolor", gui_skin_content["gui_randomcolor"])
-		ngx.print(html)
-		ngx.print('\
-	</fieldset>\
 <fieldset>\
   <legend>');  ngx.print( T"Debug Report" ); ngx.print('</legend>\
     ');  
@@ -669,7 +623,7 @@ ngx.print('\
   }\
 \
   $("#btn-system-bootp").on("click", function() {\
-     if (confirm("');  ngx.print(T"This will put your gateway into LAN Upgrade"); ngx.print('")){\
+     if (confirm("');  ngx.print(T"This will put your gateway into LAN Update"); ngx.print('")){\
        tch.showProgress(\'');  ngx.print(T"Rebooting..."); ngx.print('\');\
        return resetreboot($("#bootp-msg"), $(this), "system_bootp");\
      }\
@@ -710,6 +664,25 @@ $("#btn-system-copy-bank").on("click", function() {\
     });\
     return false;\
   });\
+  var fwversion_latest = "'); ngx.print(env.fwversion_latest); ngx.print('";\
+  var fwversion_real = "'); ngx.print(env.fwversion_real); ngx.print('";\
+  $("#version_spoof_mode").on("change", function() {\
+	if ( $(this).val() == "manual" ) {\
+	  $("#fwversion_override").prop("disabled", false);\
+	} else {\
+	  if ( $(this).val() == "enabled" ) {\
+		$("#fwversion_override").val(fwversion_latest);\
+	  } else if ( $(this).val() == "disabled" ) {\
+		$("#fwversion_override").val(fwversion_real);\
+	  }\
+	  $("#fwversion_override").prop("disabled", true);\
+	}\
+  });\
+  if ( $("#version_spoof_mode").val() == "manual" ) {\
+    $("#fwversion_override").prop("disabled", false);\
+  } else {\
+    $("#fwversion_override").prop("disabled", true);\
+  }\
   $("[name=syslog_present]").on("change", function(){\
     $("[name=syslog_ip]").val("");\
     $("[name=syslog_filter_ip]").val("");\

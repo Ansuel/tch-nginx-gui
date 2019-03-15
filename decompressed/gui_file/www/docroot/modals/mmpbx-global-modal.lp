@@ -14,6 +14,8 @@ local format, untaint = string.format, string.untaint
 local session = ngx.ctx.session
 local content_helper = require("web.content_helper")
 
+local uniqueKey = post_helper.getRandomKey()
+
 local mapValid = {
     mmpbx_enabled = post_helper.validateBoolean,
 }
@@ -271,7 +273,7 @@ local sipnet_options = {
     tableid = "sipnet",
     basepath = "uci.mmpbxrvsipnet.network.@.",
     sorted = "user_friendly_name", --DO NO ACTIVATE SORTING OR WILL BREAK DELETE
-    objectName  = "voice"..post_helper.getRandomKey(),
+    objectName  = "voice"..uniqueKey,
     addNamedObject = true,
 	onAdd = onAddVoice,
     onDelete = onDeleteVoice,

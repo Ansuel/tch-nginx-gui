@@ -525,19 +525,21 @@ end
 local bandsteerpathap = bspeerap and format("rpc.wireless.ap.@" .. "%s.", bspeerap) or ""
 
 local function getValidateBandSteerPeerFields(value, object, key)
-    if not object.band_steer_enabled then
-        if "table" ~= type(object.ap_enabled) and "1" ~= object.ap_enabled then --bandsteer enabled, network disable
-            if not isBaseIface(curiface) then --for 5G disable network
-                return disableBandSteer(object)
-            end
-        end
-
-        return true
+    local state = object.ap_enabled
+    local bandsteer_enabled
+    if isguest ~= "1" then
+        state  = object.admin_state
+    end
+    if session:retrieve("bs_check_action") == "TRUE" then
+        session:store("bs_check_action", "")
+        bandsteer_enabled = proxy.get("uci.wireless.wifi-ap.@ap0.bandsteer_id")[1].value
+    else
+        bandsteer_enabled = object.band_steer_enabled
     end
 
-    if "1" == object.band_steer_enabled then
-        if "table" ~= type(object.ap_enabled) and "1" ~= object.ap_enabled then --bandsteer enabled, network disabled
-            return disableBandSteer(object)
+    if "bs0" == bandsteer_enabled or bandsteer_enabled == "1" then
+        if "table" ~= type(state) and "1" ~= state then --bandsteer enabled, network disabled
+            return true
         elseif "" ~= object.bsid and "off" ~= object.bsid then
             if object.security == "wep" then
                 return nil, T"The Band Steering can not be supported under WEP security mode."
@@ -574,7 +576,7 @@ local function getValidateBandSteerPeerFields(value, object, key)
                 end
             end
         end
-    else --to disable bandsteer
+    elseif object.band_steer_enabled then --to disable bandsteer
         return disableBandSteer(object)
     end
 
@@ -644,8 +646,10 @@ local function getParamsAndValidation()
     standard = pathradio .. "standard",
     requested_channel = pathradio .. "requested_channel",
     requested_channel_width = pathradio .. "requested_channel_width",
-	ap_enabled = pathap .. "admin_state"
     }
+    if isguest=="1" then
+        mapParams.ap_enabled = pathap .. "admin_state"
+    end
 
   if isguest ~= "1" then
         mapParams.admin_state = pathradio .. "admin_state"
@@ -764,6 +768,18 @@ local bandsteerhelpmsg = {}
 local content_rssi = {}
 local mapParams, mapValid = getParamsAndValidation()
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
+
+if ngx.req.get_method() == "POST" and ngx.req.get_post_args().action == "bs_check" then
+    local postargs = ngx.req.get_post_args()
+	if content["ssid"] ~= postargs.ssidName or content["security"] ~= postargs.security or content["wep_key"] ~= postargs.wep_key or content["wpa_psk"] ~= postargs.wpa_psk then
+	session:store("bs_check_action", "TRUE")
+    proxy.set("uci.wireless.wifi-ap.@ap0.bandsteer_id", "off")
+	proxy.set("uci.wireless.wifi-ap.@ap1.bandsteer_id", "off")
+	proxy.apply()
+	end
+	ngx.print('{ "success":"true" }')
+	ngx.exit(ngx.HTTP_OK)
+end
 
 -- Process POST query
 if ngx.req.get_method() == "POST" then
@@ -1167,12 +1183,8 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
                 class= "span4",
                 }
         }
-        --Only baseiface can modify ssid when bandsteer enabled
-        if "1" == band_steer_enabled and not isBaseIface(curiface) then
-            html[#html + 1] = ui_helper.createLabel(T"SSID name", content["ssid"], ssidclass)
-        else
-            html[#html + 1] = ui_helper.createInputText(T"SSID name", "ssid", content["ssid"], ssidclass, helpmsg["ssid"])
-        end
+
+        html[#html + 1] = ui_helper.createInputText(T"Network Name (SSID)", "ssid", content["ssid"], ssidclass, helpmsg["ssid"])
 
         local broadcastclass = {
             group = {
@@ -1196,9 +1208,6 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
             }
         }
 
-        if "1" == band_steer_enabled and not isBaseIface(curiface) then
-            html[#html + 1] = ui_helper.createLabel(T"Security Mode", content["security"], secattributes)
-        else
         local security_warning = {
             alert = {
                 class = "alert-error monitor-security monitor-none"
@@ -1214,7 +1223,6 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
         html[#html + 1] = ui_helper.createAlertBlock(T"WEP is known to be flawed as a wireless security mode, usage of a more secure mode based on WPA2 is recommended.",wep_warning)
 
         html[#html + 1] = ui_helper.createInputSelect(T"Security Mode", "security", secmodes, content["security"], secattributes)
-        end
 
     local pskclass = {
         group = {
@@ -1234,18 +1242,8 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
         }
     }
 
-    if "1" == band_steer_enabled and not isBaseIface(curiface) then
-        if "wep" == content["security"] then
-            html[#html + 1] = ui_helper.createLabel(T"WEP Key", content["wep_key"], wepclass)
-        end
-
-        if "wpa-psk" == content["security"] or "wpa2-psk" == content["security"] or "wpa-wpa2-psk" == content["security"] then
-            html[#html + 1] = ui_helper.createLabel(T"Wireless Password", content["wpa_psk"], pskclass)
-        end
-    else
-        html[#html + 1] = ui_helper.createInputText(T"Wireless Password", "wpa_psk", content["wpa_psk"], pskclass, helpmsg["wpa_psk"])
-        html[#html + 1] = ui_helper.createInputText(T"WEP key", "wep_key", content["wep_key"], wepclass, helpmsg["wep_key"])
-    end
+    html[#html + 1] = ui_helper.createInputText(T"Wireless Password", "wpa_psk", content["wpa_psk"], pskclass, helpmsg["wpa_psk"])
+    html[#html + 1] = ui_helper.createInputText(T"WEP Key", "wep_key", content["wep_key"], wepclass, helpmsg["wep_key"])
 
     if ( isguest ~= "1" and isExtRemman  ~= "1" and isIntRemman ~= "1") then
         local monitorradius = {
@@ -1264,26 +1262,26 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
         if "1" == band_steer_enabled and not isBaseIface(curiface) then
             if "wpa" == content["security"] or "wpa2" == content["security"] or "wpa-wpa2" == content["security"] then
                 if radius_authent then
-                    html[#html + 1] = ui_helper.createInputText(T"Radius Authentication Server's IP", "radius_authent_ip", content["radius_authent_ip"], serverclass, helpmsg["radius_authent_ip"])
-                    html[#html + 1] = ui_helper.createInputText(T"Radius Authentication Server's port", "radius_authent_port", content["radius_authent_port"],basicclass, helpmsg["radius_authent_port"])
-                    html[#html + 1] = ui_helper.createInputText(T"Radius Authentication Server's secret", "radius_authent_secret", content["radius_authent_secret"],basicclass, helpmsg["radius_authent_secret"])
+                    html[#html + 1] = ui_helper.createInputText(T"Radius Authentication Server IP", "radius_authent_ip", content["radius_authent_ip"], serverclass, helpmsg["radius_authent_ip"])
+                    html[#html + 1] = ui_helper.createInputText(T"Radius Authentication Server port", "radius_authent_port", content["radius_authent_port"],basicclass, helpmsg["radius_authent_port"])
+                    html[#html + 1] = ui_helper.createInputText(T"Radius Authentication Server secret", "radius_authent_secret", content["radius_authent_secret"],basicclass, helpmsg["radius_authent_secret"])
                 end
                 if radius_account then
-                    html[#html + 1] = ui_helper.createInputText(T"Radius Accounting Server's IP", "radius_account_ip", content["radius_account_ip"], serverclass, helpmsg["radius_account_ip"])
-                    html[#html + 1] = ui_helper.createInputText(T"Radius Accounting Server's port", "radius_account_port", content["radius_account_port"],basicclass, helpmsg["radius_account_port"])
-                    html[#html + 1] = ui_helper.createInputText(T"Radius Accounting Server's secret", "radius_account_secret", content["radius_account_secret"],basicclass, helpmsg["radius_account_secret"])
+                    html[#html + 1] = ui_helper.createInputText(T"Radius Accounting Server IP", "radius_account_ip", content["radius_account_ip"], serverclass, helpmsg["radius_account_ip"])
+                    html[#html + 1] = ui_helper.createInputText(T"Radius Accounting Server port", "radius_account_port", content["radius_account_port"],basicclass, helpmsg["radius_account_port"])
+                    html[#html + 1] = ui_helper.createInputText(T"Radius Accounting Server secret", "radius_account_secret", content["radius_account_secret"],basicclass, helpmsg["radius_account_secret"])
                 end
             end
         else
             if radius_authent then
-                html[#html + 1] = ui_helper.createInputText(T"Radius Authentication Server's IP", "radius_authent_ip", content["radius_authent_ip"], serverclass, helpmsg["radius_authent_ip"])
-                html[#html + 1] = ui_helper.createInputText(T"Radius Authentication Server's port", "radius_authent_port", content["radius_authent_port"],basicclass, helpmsg["radius_authent_port"])
-                html[#html + 1] = ui_helper.createInputText(T"Radius Authentication Server's secret", "radius_authent_secret", content["radius_authent_secret"],basicclass, helpmsg["radius_authent_secret"])
+                html[#html + 1] = ui_helper.createInputText(T"Radius Authentication Server IP", "radius_authent_ip", content["radius_authent_ip"], serverclass, helpmsg["radius_authent_ip"])
+                html[#html + 1] = ui_helper.createInputText(T"Radius Authentication Server port", "radius_authent_port", content["radius_authent_port"],basicclass, helpmsg["radius_authent_port"])
+                html[#html + 1] = ui_helper.createInputText(T"Radius Authentication Server secret", "radius_authent_secret", content["radius_authent_secret"],basicclass, helpmsg["radius_authent_secret"])
             end
             if radius_account then
-                html[#html + 1] = ui_helper.createInputText(T"Radius Accounting Server's IP", "radius_account_ip", content["radius_account_ip"], serverclass, helpmsg["radius_account_ip"])
-                html[#html + 1] = ui_helper.createInputText(T"Radius Accounting Server's port", "radius_account_port", content["radius_account_port"],basicclass, helpmsg["radius_account_port"])
-                html[#html + 1] = ui_helper.createInputText(T"Radius Accounting Server's secret", "radius_account_secret", content["radius_account_secret"],basicclass, helpmsg["radius_account_secret"])
+                html[#html + 1] = ui_helper.createInputText(T"Radius Accounting Server IP", "radius_account_ip", content["radius_account_ip"], serverclass, helpmsg["radius_account_ip"])
+                html[#html + 1] = ui_helper.createInputText(T"Radius Accounting Server port", "radius_account_port", content["radius_account_port"],basicclass, helpmsg["radius_account_port"])
+                html[#html + 1] = ui_helper.createInputText(T"Radius Accounting Server secret", "radius_account_secret", content["radius_account_secret"],basicclass, helpmsg["radius_account_secret"])
             end
     	end
     end
@@ -1298,7 +1296,7 @@ if isguest ~= "1"  then
         },
     }
 
-    html[#html + 1] = ui_helper.createAlertBlock(T"WPS is automatically disabled if you choose WEP or WPA-only security or disable broadcast of the SSID", wps_warning)
+    html[#html + 1] = ui_helper.createAlertBlock(T"WPS is automatically disabled if you choose WEP or disable broadcast of the SSID", wps_warning)
 
     local wps_class = {
         group = {
@@ -1330,7 +1328,7 @@ if isguest ~= "1"  then
 	 html[#html + 1] = ui_helper.createInputRadio(T"WPS Buttom Mode", "wps_button_handler" , wps_button_mode , content["wps_button_handler"] , nil)
     end
 end
-    if "1" == content["ap_enabled"] and "1" == bs_peer_network_enable and 1 == band_steer_supported then
+   if 1 == band_steer_supported then
         local bssecclass = {
             group = {
                 class ="monitor-security monitor-wpa-psk monitor-wpa2-psk monitor-wpa-wpa2-psk monitor-none",
@@ -1340,13 +1338,15 @@ end
         if isBaseIface(curiface) then
             html[#html + 1] = ui_helper.createAlertBlock(T"Detecting a Wi-Fi client's capabilities and monitoring its interfaces, Band Steering actively guides the client to the more suitable Wi-Fi band.", bssecclass)
             html[#html + 1] = ui_helper.createSwitch(T"Band Steering Enabled", "band_steer_enabled", tostring(band_steer_enabled), bssecclass)
-            html[#html + 1] = ui_helper.createAlertBlock(T"If a wireless device reports this gateway's 2.4GHz signal strength is above this threshold, the gateway will ask the device to test the 5GHz band . Please see 5GHz section for additional parameter.", bssecclass)
+            html[#html + 1] = ui_helper.createAlertBlock(T"Band Steering works only if 2.4 GHz and 5 GHz have the same configuration. By enabling the Band Steering, the 2.4 GHz network settings will be propagated on 5GHz settings", bssecclass)
             html[#html + 1] = ui_helper.createSliderSelect(T"2.4GHz Band Steering Threshold", "rssi_threshold", bandsteer_rssi_threshold, content_rssi["rssi_threshold"], bssecclass)
+            html[#html + 1] = ui_helper.createAlertBlock(T"If a wireless device reports this gateway's 2.4GHz signal strength is above this threshold, the gateway will ask the device to test the 5GHz band . Please see 5GHz section for additional parameter.", bssecclass)
         else
             html[#html + 1] = ui_helper.createAlertBlock(T"Detecting a Wi-Fi client's capabilities and monitoring its interfaces, Band Steering actively guides the client to the more suitable Wi-Fi band.", ssidclass)
             html[#html + 1] = ui_helper.createLabel(T"Band Steering Enabled", tostring(band_steer_enabled) == "1" and "On" or "Off", ssidclass)
-            html[#html + 1] = ui_helper.createAlertBlock(T"Please see 2.4GHz section for initial parameter. If a wireless device tests the 5GHz band and reports the 5GHz signal strength is above this threshold, the gateway will direct the device to switch to the 5GHz band.", ssidclass)
+            html[#html + 1] = ui_helper.createAlertBlock(T"Band Steering works only if 2.4 GHz and 5 GHz have the same configuration. By enabling the Band Steering, the 2.4 GHz network settings will be propagated on 5GHz settings", bssecclass)
             html[#html + 1] = ui_helper.createSliderSelect(T"5GHz Band Steering Threshold", "rssi_5g_threshold", bandsteer_rssi_threshold, content_rssi["rssi_5g_threshold"], ssidclass)
+            html[#html + 1] = ui_helper.createAlertBlock(T"Please see 2.4GHz section for initial parameter. If a wireless device tests the 5GHz band and reports the 5GHz signal strength is above this threshold, the gateway will direct the device to switch to the 5GHz band.", bssecclass)
         end
     end
 end
@@ -1382,11 +1382,11 @@ end
                 elseif tableid == "acl_register" then
                     content["acl_mode"] = "register"
                 end
-                    html[#html + 1] = ui_helper.createInputSelect(T"ACL mode", "acl_mode", acl_modes, content["acl_mode"], aclmodeclass)
+                    html[#html + 1] = ui_helper.createInputSelect(T"ACL Mode", "acl_mode", acl_modes, content["acl_mode"], aclmodeclass)
                     html[#html + 1] = loadAclList(content["acl_mode"], "POST")
                     isTableLoaded =  true
             else
-              html[#html + 1] = ui_helper.createInputSelect(T"ACL mode", "acl_mode", acl_modes, content["acl_mode"], aclmodeclass)
+              html[#html + 1] = ui_helper.createInputSelect(T"ACL Mode", "acl_mode", acl_modes, content["acl_mode"], aclmodeclass)
               local acl_attribute = {
                 label = {
                   class = "monitor-acl_mode monitor-register"
@@ -1413,7 +1413,7 @@ end
                             %s
                         </div>
                     </center>&nbsp
-                 ]], curiface, curap, T"Generate QRCode")
+                 ]], curiface, curap, T"Generate QR code")
 ); ngx.print('\
 ');  end  ngx.print('\
 </fieldset>\
@@ -1437,7 +1437,7 @@ else
 ');  end   ngx.print('\
 <fieldset>\
 <legend>');  ngx.print( T"Wifi Analyzer" ); ngx.print('</legend>\
-<div style = "display:block;" class = "alert-info hide">');  ngx.print(T"Please press Rescan button to view the updated wifi list"); ngx.print('</div></br>\
+<div style = "display:block;" class = "alert-info hide">');  ngx.print(T"Press Rescan button to view the updated WiFi Network list"); ngx.print('</div></br>\
 <div id ="analyzerloader" style="height:100px"><img src = "/img/loading.gif"></img></div>\
 <div id = "analyzerGraph" class="hide">\
 ');  ngx.print( T"The below chart shows the results of the latest scan of your local area from your gateway." ); ngx.print('\
@@ -1872,6 +1872,30 @@ $(document).ready(function() {\
         $(\'option[value="wpa2"]\').hide();\
         $(\'option[value="wpa"]\').hide();\
     }\
+});\
+\
+$("#save-config").click(function(){\
+	var params = [];\
+	params.push({\
+	name : "ssidName",\
+	value : $("#ssid").val()\
+	},{\
+	name : "wep_key",\
+	value : $("#wep_key").val()\
+	},{\
+	name : "wpa_psk",\
+	value : $("#wpa_psk").val()\
+	},{\
+	name : "security",\
+	value : $("#security").val()\
+	},{\
+	name : "CSRFtoken",\
+	value :$("meta[name=CSRFtoken]").attr("content")\
+	},{\
+	name : "action",\
+	value: "bs_check"\
+	});\
+	$.post("modals/wireless-modal.lp",params);\
 });\
 \
 $(\'input[id="band_steer_enabled"]\').on("click", function(){\

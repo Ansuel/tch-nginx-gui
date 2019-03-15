@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: webui-voice\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-06-21 15:33+0200\n"
-"PO-Revision-Date: 2018-10-26 12:05+0200\n"
+"PO-Revision-Date: 2019-02-02 14:58+0100\n"
 "Last-Translator: Dr. Uwe Meyer-Gruhl\n"
 "Language-Team: none\n"
 "Language: de\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language-Name: Deutsch\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.2\n"
+"X-Generator: Poedit 2.2.1\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
 msgid "<strong %s>%d </strong> Registered Account"
@@ -59,6 +59,12 @@ msgstr "Anrufprotokoll"
 
 msgid "Call Statistics"
 msgstr "Anrufstatistik"
+
+msgid "Line Status"
+msgstr "Leitungsstatus"
+
+msgid "Call State"
+msgstr "Anrufstatus"
 
 msgid "Call Status"
 msgstr "Anrufstatus"
@@ -270,7 +276,7 @@ msgstr "Telefonbuch"
 msgid "Phone Number"
 msgstr "Telefonnummer"
 
-msgid "Phone Numbers"
+msgid "Phone Lines"
 msgstr "Teelefonnnummern"
 
 msgid "Please set URI."
@@ -357,7 +363,7 @@ msgstr "Dienste"
 msgid "Silence Suppression"
 msgstr "Stille Unterdrückung"
 
-msgid "Sip Device"
+msgid "SIP Device"
 msgstr "SIP Gerät"
 
 msgid "Some parameters failed validation"
@@ -412,22 +418,40 @@ msgid "Voip Password"
 msgstr "VoIP Passwort"
 
 msgid "Voip Password Profile 1"
-msgstr ""
+msgstr "Voip Password Profil 1"
 
 msgid "Voip Password Profile 2"
-msgstr ""
+msgstr "Voip Password Profil 2"
 
 msgid "Voip Password Profile 3"
-msgstr ""
+msgstr "Voip Password Profil 3"
 
 msgid "sipindex"
 msgstr "sipindex"
 
 msgid "Status"
-msgstr ""
+msgstr "Status"
 
 msgid "Local Port"
-msgstr ""
+msgstr "Lokaler Port"
 
 msgid "Can be used"
-msgstr ""
+msgstr "Kann genutzt werden"
+
+msgid "Codec"
+msgstr "Codec"
+
+msgid "Stop"
+msgstr "Stop"
+
+msgid "Invoke"
+msgstr "Aufruf"
+
+msgid "DECT"
+msgstr "DECT"
+
+msgid "Realm"
+msgstr "Bereich"
+
+msgid "Sip Device"
+msgstr "SIP Gerät"

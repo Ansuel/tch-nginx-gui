@@ -296,7 +296,7 @@ local function validPorts(ports)
 
     for _,v in ipairs(ports) do
         if v.start <= curend then
-            return nil, { wanport = T"An existing mapping overlaps with the ports range" }
+            return nil, { wanport = T"An existing port forward rule overlaps with the ports range specifed." }
         else
             curend = v["end"]
         end
@@ -350,7 +350,7 @@ local pfw_columns = {
     attr = { input = { class="span1", maxlength="11" }, autocomplete=portslist },
   },
   {
-    header = T"Destination MAC (Insert Local Ip to search Mac)",
+    header = T"Destination MAC (Insert Local IP to search for MAC)",
     name = "destinationmac",
     param = "dest_mac",
     type = "text",
@@ -397,8 +397,8 @@ local function globalValid(data)
         end
 		if ( v[6] == "" and v[7] == "" ) then
 			local mac_ip_err = {
-				destinationip = T"Yon need to insert at least a MAC or an IP",
-				destinationmac = T"Yon need to insert at least a MAC or an IP",
+				destinationip = T"You need to specify a MAC or an IP address",
+				destinationmac = T"You need to specify a MAC or an IP address",
 			}
 			return nil, mac_ip_err
 		end
@@ -418,14 +418,14 @@ end
 
 local function getValidateName(value)
   if #value == 0 or #value > 63 then
-    return nil, T"A name must be between 1 and 63 characters"
+    return nil, T"Name must be between 1 and 63 characters"
   end
   -- "DMZ rule" is the name reserved for DMZ portmap rule
   if value == "DMZ rule" then
-    return nil, T"Reserved name cannot be given as rule name"
+    return nil, T"Name you have chosen is reserved"
   end
   if match(value, "[^%w%-%s]") then
-    return nil, T"A name must contain only alphanumeric characters and dash"
+    return nil, T"Name must contain only alphanumeric characters and/or dashes"
   end
   return true
 end
@@ -608,7 +608,7 @@ local pfw_v6_columns = {
     attr = { select = { class="span2" } },
   },
   {
-    header = T"Destination port",
+    header = T"Destination Port",
     name = "wanport",
     param = "dest_port",
     type = "text",
@@ -867,12 +867,12 @@ local upnp_data, upnp_helpmsg = post_helper.handleTableQuery(upnp_columns, upnp_
     </fieldset>\
 \
     <fieldset>\
-      <legend>');  ngx.print( T"IPv4 Port forwarding table" ); ngx.print('</legend>\
+      <legend>');  ngx.print( T"IPv4 Port Forwarding Table" ); ngx.print('</legend>\
       <div class="alert alert-info">'); 
-	    ngx.print(T"To disable Port Forward Rules, edit the rule on the right and then switch the button on the left.");
+	    ngx.print(T"To disable Port Forward Rules, you can turn it off using the switch or delete using cross.");
 	    ngx.print('</div>');			 
         ngx.print(ui_helper.createTable(pfw_columns, pfw_data, pfw_options, nil, pfw_helpmsg))
-        ngx.print(ui_helper.createAlertBlock(format("%s <strong>\":\"</strong> %s",T"To use port ranges use", T"for example 500:505."), range_warning))
+        ngx.print(ui_helper.createAlertBlock(T"To Port Forward ranges use <b>':'</b>. For example 500:505.", range_warning))
         ngx.print('\
     </fieldset>\
 \
@@ -944,13 +944,13 @@ local upnp_data, upnp_helpmsg = post_helper.handleTableQuery(upnp_columns, upnp_
 \
     ');  if wol then  ngx.print('\
       <fieldset>\
-        <legend>');  ngx.print( T"Wake on LAN over the Internet" ); ngx.print('</legend>\
+        <legend>');  ngx.print( T"WoL (Wake on LAN) & WoW (Wake on WAN)" ); ngx.print('</legend>\
         ');  
           ngx.print(ui_helper.createSwitch(T"Enabled", "WOL_enabled", qry_data["WOL_enabled"], nil, qry_helpmsg["WOL_enabled"]),
-                    ui_helper.createInputText(T"WAN port", "WOL_port", qry_data["WOL_port"], nil, qry_helpmsg["WOL_port"]),
-					ui_helper.createLabel(T"", T"Note: You need to inser an unused ip on the local LAN to make the WakeOnWAN work.", {span = {class = "span6"},}),
+                    ui_helper.createInputText(T"Remote/WAN port", "WOL_port", qry_data["WOL_port"], nil, qry_helpmsg["WOL_port"]),
+					ui_helper.createLabel(T"", T"You need to enter an unused LAN IP to make Wake on LAN/WAN work.", {span = {class = "span6"},}),
 					ui_helper.createInputText(T"Unused IP", "WOL_ip", qry_data["WOL_ip"], nil, qry_helpmsg["WOL_ip"]),
-					ui_helper.createInputSelect(T"Local Port", "WOL_dest_port", wol_dest_port_select, qry_data["WOL_dest_port"],nil)
+					ui_helper.createInputSelect(T"Local/LAN Port", "WOL_dest_port", wol_dest_port_select, qry_data["WOL_dest_port"],nil)
 					)
           ngx.print('\
       </fieldset>\

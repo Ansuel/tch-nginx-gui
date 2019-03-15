@@ -19,7 +19,7 @@ local supported_modes_data  = proxy.get(path_ap_security .. "supported_modes")
 local supported_modes = format("%s", supported_modes_data and supported_modes_data[1] and supported_modes_data[1].value or "")
 local secmodes = {}
 local secmodes_matched = {
-  ["none"] = T"Nessuna",
+  ["none"] = T"None",
   ["wpa2-psk"] = T"WPA2-PSK",
   ["wpa-wpa2-psk"] =  T"WPA+WPA2 PSK",
 }

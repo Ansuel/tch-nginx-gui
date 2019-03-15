@@ -46,20 +46,17 @@ local Multi_DeviceInfo_VendorConfigFile_i_ = {
 local uci = require("uci")
 local lfs = require("lfs")
 local bt = require("transformer.shared.banktable")
-local entries = {}
 local activeBank = bt.getCurrentBank()
 local passiveBank = bt.getOtherBank()
 
-do
+Multi_DeviceInfo_VendorConfigFile_i_.entries = function()
+   local entries = {}
   -- Two Keys used : active and passive for activeBank and passiveBank
   -- Use the passive key only for the dual bank scenario
   entries[#entries + 1] = "active"
   if lfs.attributes("/overlay/" .. passiveBank, "mode") == "directory" then
      entries[#entries + 1] = "passive"
   end
-end
-
-Multi_DeviceInfo_VendorConfigFile_i_.entries = function()
   return entries
 end
 
@@ -102,15 +99,11 @@ end
 local getVersion = function(mapping, param, key)
   local bankname = getBankName(key)
   local value = getOptionFromBank(bankname, "version.@version[0].version")
-  if value then
-	value = value:match("([^%-]+)%-")
-  end
-  if value then
+  value = value and value:match("([^%-]+)%-") or ""
+  if value ~= "" then
     local fwp = getOptionFromBank(bankname, "versioncusto.override.fwversion_prefix") or ""
     local fws = getOptionFromBank(bankname, "versioncusto.override.fwversion_suffix") or ""
     value = fwp .. value .. fws
-  else
-    value = ""
   end
   return value
 end

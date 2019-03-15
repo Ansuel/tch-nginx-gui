@@ -60,7 +60,7 @@ if session:hasAccess("/modals/ethernet-modal.lp") then
 end
   ngx.print('\
 <div class="span3">\
-  <div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
+  <div class="smallcard" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
 \
     ');  ngx.print( ui_helper.createCardHeader(T"Local Network", modalPath, switchName, nil) ); ngx.print('\
 \
@@ -71,7 +71,7 @@ end
         ngx.print(
             ui_helper.createSimpleLight(dhcpState, dhcpState_text, { light = { id =  "LAN_DHCP_LEDStatus" }, span = { id =  "LAN_DHCP_Status" } },"fa fa-home" ),
             '<p class="subinfos">',
-            format(T'Gateway IP is <strong id="Gateway_Ip">%s</strong> and netmask is <strong id="Netmask_Ip">%s</strong>', mapParams["localdevIP"], mapParams["localdevmask"]),
+            format(T'Gateway IP is <strong id="Gateway_Ip">%s</strong> and Mask is <strong id="Netmask_Ip">%s</strong>', mapParams["localdevIP"], mapParams["localdevmask"]),
             '</p>',
             ui_helper.createSimpleLight(nil, ipv6_state_map[LANv6] or T"Unknown", { light = { class = ipv6_light_map[LANv6] or "red" } })
         )

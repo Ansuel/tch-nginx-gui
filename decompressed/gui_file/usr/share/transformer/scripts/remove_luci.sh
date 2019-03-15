@@ -26,3 +26,12 @@ luci_remove_tg799() {
 [ "$(echo $device_type | grep TG789)" ] && luci_remove_tg799
 
 [ "$(echo $device_type | grep TG799)" ] && luci_remove_tg799
+
+############TRANSFORMER UTILITY##################
+set_transformer() {
+	cmd="require('datamodel').set('"$1"','"$2"')"
+	lua -e "$cmd"
+}
+#################################################
+
+set_transformer "rpc.system.modgui.scriptRequest.state" "Complete"

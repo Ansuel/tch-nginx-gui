@@ -17,17 +17,21 @@ local tabdata = dyntab_helper.process(bmh)
 
 local wan_bridge = proxy.get("uci.network.interface.@wan.ifname")[1].value
 
---local wan_vlan_bridge = proxy.get("uci.network.device.@"..wan_bridge..".ifname")
---if wan_vlan_bridge then
---	wan_bridge = wan_vlan_bridge[1].value
---end
+local wan_vlan_bridge = proxy.get("uci.network.device.@"..wan_bridge..".ifname")
+if wan_vlan_bridge then
+	wan_bridge = wan_vlan_bridge[1].value
+end
+
+if string.find(wan_bridge, "%.") then
+	wan_bridge = string.match(wan_bridge, "([^.]*).")
+end
 
 -- Figure out interface state
 local intf_state_map = {
-    disabled = T"Bridge "..wan_bridge.. " disabled",
-    connected = T"Bridge "..wan_bridge.. " connected",
-    disconnected = T"Bridge "..wan_bridge.. " not connected",
-	connecting = T"Connecting "..wan_bridge.. " ...",
+    disabled = T"Bridge disabled",
+    connected = T"Bridge connected",
+    disconnected = T"Bridge not connected",
+	connecting = T"Connecting...",
 }
 
 local intf_light_map = {
@@ -69,7 +73,7 @@ local session = ngx.ctx.session
 local modalPath
 
 if session:hasAccess("/modals/broadband-modal.lp") then
-    modalPath = "modals/broadband-modal.lp"
+    modalPath = "/modals/broadband-modal.lp"
 end
   ngx.print('\
 \

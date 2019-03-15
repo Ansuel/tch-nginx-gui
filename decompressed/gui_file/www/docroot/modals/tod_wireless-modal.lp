@@ -28,6 +28,8 @@ local validateBoolean = post_helper.validateBoolean
 local validMode = post_helper.getValidateInEnumSelect({{"on"}, {"off"}})
 local optionallyValidate = post_helper.getOptionalValidation
 
+local uniqueKey = post_helper.getRandomKey()
+
 local ap_status_map = setmetatable({
   ["0"] = T"Off",
   ["1"] = T"On"
@@ -39,17 +41,6 @@ local tod_timer_path = "uci.tod.timer."
 local tod_action_path = "uci.tod.action."
 local tod_wifitod_path = "uci.tod.wifitod."
 local tod_ap_path = "uci.tod.ap."
-
-local function getRandomKey()
-  local bytes
-  local key = ("%02X"):rep(16)
-  local fd = io.open("/dev/urandom", "r")
-  if fd then
-    bytes = fd:read(16)
-    fd:close()
-  end
-  return key:format(bytes:byte(1, 16))
-end
 
 local function validateTime(value, object, key)
   local timepattern = "^(%d+):(%d+)$"
@@ -92,7 +83,7 @@ local tod_options = {
   canDelete   = true,
   canApply    = true,
   canEdit     = true,
-  objectName  = "action"..getRandomKey(),
+  objectName  = "action"..uniqueKey,
   addNamedObject  = true
 }
 
@@ -129,7 +120,7 @@ local function validate_wifitod(postcontent, timer_data)
 
   -- day/time overlap validation
   if postcontent.start_time >= postcontent.stop_time then
-    return nil, T"Stop time should be greater Start time."
+    return nil, T"Stop time should be greater then start time."
   end
 
   return true

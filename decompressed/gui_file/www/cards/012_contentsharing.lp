@@ -56,9 +56,9 @@ end
 local sambastate, dlnastate
 if samba_available then
 	if content["samba_enabled"] == "1" then
-		sambastate = T"Samba Filesharing enabled"
+		sambastate = T"SMB/CIFS Filesharing enabled"
 	else
-		sambastate = T"Samba Filesharing disabled"
+		sambastate = T"SMB/CIFS Filesharing disabled"
 	end
 end
 if dlna_available then
@@ -91,7 +91,7 @@ end
 \
 \
 <div class="span3">\
-	<div class="smallcard" data-aos="fade-up" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
+	<div class="smallcard" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
 		');  ngx.print(ui_helper.createCardHeader(T"Content Sharing", modalPath, nil, nil) ); ngx.print('\
 		<div class="content card_bg" data-bg-text="&#xf07c;">\
 		<div class="divtable">\

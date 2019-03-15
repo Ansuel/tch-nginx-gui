@@ -13,7 +13,7 @@ local ipairs = ipairs
 local match, format = string.match, string.format
 
 local ports = {"eth0", "eth1", "eth2", "eth3"}
-local first_column_txt = {"Port 1", "Port 2", "Port 3", "Port 4"}
+local first_column_txt = {T"Port 1", T"Port 2", T"Port 3", T"Port 4"}
 
 -- resetting traffic counters button
 local clear_network_stats = {

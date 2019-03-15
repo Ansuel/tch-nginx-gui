@@ -15,14 +15,14 @@ msgstr ""
 "X-Generator: Poedit 2.2\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
-msgid "<div class=\" simple-desc span4\">Samba is disabled</div>"
-msgstr "<div class=\" simple-desc span4\">Samba è disabilitato</div>"
+msgid "SMB/CIFS is disabled"
+msgstr "SMB/CIFS disabilitato"
 
-msgid "<div class=\" simple-desc span4\">To connect: \\\\%s\\ or \\\\%s\\</div>"
-msgstr "<div class=\" simple-desc span4\">Per connettersi: \\\\%s\\ oppure \\\\%s\\</div>"
+msgid "To connect: \\%s\ or \\%s\ "
+msgstr "Per collegarsi: \\%s\ o \\%s\ "
 
 msgid "Enabled"
-msgstr "Abilitato"
+msgstr "Abilitata"
 
 msgid "Manufacturer"
 msgstr "Produttore"
@@ -42,8 +42,14 @@ msgstr "Condivisione stampante<br>disabilitata"
 msgid "Printer Sharing enabled"
 msgstr "Condivisione stampante<br>abilitata"
 
-msgid "Product Name"
+msgid "Printer Name"
 msgstr "Nome prodotto"
 
 msgid "Version"
 msgstr "Versione"
+
+msgid "Web Interface"
+msgstr "Interfaccia web"
+
+msgid "CUPS Web Interface at <a href=\"http://%s:631\">http://%s:631</a> or <a href=\"http://%s:631\">http://%s:631</a>"
+msgstr "Interfaccia web CUPS <a href=\"http://%s:631\">http://%s:631</a> o <a href=\"http://%s:631\">http://%s:631</a>"

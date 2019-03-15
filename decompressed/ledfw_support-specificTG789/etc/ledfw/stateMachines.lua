@@ -4,32 +4,32 @@ local wl1_ifname = get_wl1_ifname()
 local itf_depending_led
 
 local function is_WiFi_LED_on_if_NSC()
-   local cursor = uci.cursor()
-   local enabled = cursor:get('ledfw', 'wifi', 'nsc_on')
+    local cursor = uci.cursor()
+    local enabled = cursor:get('ledfw', 'wifi', 'nsc_on')
 
-   cursor:close()
-   if not enabled then
-      -- Ensure that always a value is returned
-      return false
-   end
-   if enabled == '1' then
-      return true
-   else
-      return false
-   end
+    cursor:close()
+    if not enabled then
+        -- Ensure that always a value is returned
+        return false
+    end
+    if enabled == '1' then
+        return true
+    else
+        return false
+    end
 end
 
 local function find_itf_depending_led(parms)
-   local led=get_depending_led(parms.itf)
-   if led then
-      itf_depending_led=(led..":"..parms.color or "green")
-   else
-      itf_depending_led=nil
-   end
+    local led=get_depending_led(parms.itf)
+    if led then
+        itf_depending_led=(led..":"..parms.color or "green")
+    else
+        itf_depending_led=nil
+    end
 end
 
 local function get_itf_depending_led()
-   return itf_depending_led
+    return itf_depending_led
 end
 
 -- When both xdsl and ethwan is connected and when eth4 is unplugged
@@ -38,7 +38,7 @@ end
 -- this is exceptional to few scenarios where eth4 is used as LAN/WAN port
 -- hence always check the xdsl status before acting on the eth4_down event
 local function internet_nextState()
-   return ((xdsl_status() ~= 5) and "internet_disconnected" or nil)
+    return ((xdsl_status() ~= 5) and "internet_disconnected" or nil)
 end
 
 patterns = {
@@ -75,7 +75,7 @@ patterns = {
             },
         }
     },
-	fw_upgrade = {
+    fw_upgrade = {
         state = "fwupgrade_state_done",
         transitions = {
             fwupgrade_state_done = {
@@ -98,14 +98,21 @@ stateMachines = {
         initial = "power_started",
         transitions = {
             power_started = {
+                power_service_eco = "service_ok_eco",
+                power_service_fullpower = "service_ok_fullpower",
+                power_service_notok = "service_notok"
+            },
+            service_ok_eco = {
                 power_service_fullpower = "service_ok_fullpower",
                 power_service_notok = "service_notok"
             },
             service_ok_fullpower = {
-                power_service_notok = "service_notok",
+                power_service_eco = "service_ok_eco",
+                power_service_notok = "service_notok"
             },
             service_notok = {
                 power_service_fullpower = "service_ok_fullpower",
+                power_service_eco = "service_ok_eco"
             }
         },
         actions = {
@@ -115,7 +122,13 @@ stateMachines = {
                 staticLed("power:blue", false),
                 staticLed("power:green", true)
             },
-			service_ok_fullpower = {
+            service_ok_eco = {
+                staticLed("power:orange", false),
+                staticLed("power:red", false),
+                staticLed("power:blue", true),
+                staticLed("power:green", false)
+            },
+            service_ok_fullpower = {
                 staticLed("power:orange", false),
                 staticLed("power:red", false),
                 staticLed("power:blue", false),
@@ -126,12 +139,13 @@ stateMachines = {
                 staticLed("power:red", true),
                 staticLed("power:blue", false),
                 staticLed("power:green", false)
-            },
+            }
         },
-		patterns_depend_on = {
+        patterns_depend_on = {
             power_started = { "fw_upgrade" },
-			service_ok_fullpower = { "fw_upgrade" },
-			service_notok = { "fw_upgrade" }
+            service_ok_fullpower = { "fw_upgrade" },
+            service_ok_eco = { "fw_upgrade" },
+            service_notok = { "fw_upgrade" }
         }
     },
     broadband = {
@@ -164,7 +178,7 @@ stateMachines = {
                 netdevLed("broadband:green", 'eth4', 'link'),
             },
             training = {
-                staticLed("broadband:green", false)
+                timerLed("broadband:green", 250, 250)
             },
             synchronizing = {
                 timerLed("broadband:green", 125, 125)
@@ -195,9 +209,9 @@ stateMachines = {
             internet_connecting = {
                 network_interface_broadband_ifdown = "internet_disconnected",
                 xdsl_0 = "internet_disconnected",
-                network_device_eth4_down = internet_nextState,
---                network_interface_wan_ifdown = "internet_disconnected",
---                network_interface_wan6_ifdown = "internet_disconnected",
+                network_device_eth4_down = "internet_disconnected",
+                --                network_interface_wan_ifdown = "internet_disconnected",
+                --                network_interface_wan6_ifdown = "internet_disconnected",
                 network_interface_wan_ifup = "internet_connected_ipv4_or_v6",
                 network_interface_wan6_ifup = "internet_connected_ipv4_or_v6",
                 network_interface_wwan_ifup = "internet_connected_mobiledongle",
@@ -206,7 +220,7 @@ stateMachines = {
             },
             internet_connected_ipv4_or_v6 = {
                 xdsl_0 = "internet_disconnected",
-                network_device_eth4_down = internet_nextState,
+                network_device_eth4_down = "internet_disconnected",
                 xdsl_1 = "internet_connected_ipv4_or_v6_ddbdd",
                 xdsl_2 = "internet_connected_ipv4_or_v6_ddbdd",
                 network_interface_wan_ifdown = "internet_connecting",
@@ -219,7 +233,7 @@ stateMachines = {
             },
             internet_connected_ipv4_and_v6 = {
                 xdsl_0 = "internet_disconnected",
-                network_device_eth4_down = internet_nextState,
+                network_device_eth4_down = "internet_disconnected",
                 xdsl_1 = "internet_connected_ipv4_and_v6_ddbdd",
                 xdsl_2 = "internet_connected_ipv4_and_v6_ddbdd",
                 network_interface_wan_ifdown = "internet_connected_ipv4_or_v6",
@@ -228,11 +242,11 @@ stateMachines = {
                 network_interface_wan_no_ip = "internet_connected_ipv4_or_v6",
                 network_interface_wan6_no_ip = "internet_connected_ipv4_or_v6"
             },
--- Handle spurious DSL activations : do not switch to internet_disconnected state if a DSL idle (xdsl_0) is preceded by a DSL activation (xdsl_1 or xdsl_2)
--- (e.g Can happen in ETHWAN scenario with no DSL line connected)
--- Go back to original state when DSL idle (xdsl_0) received
--- In the DSL WAN scenario, when DSL is up, you cannot have an activation followed by and idle
--- 'ddbdd' stands for 'Don't Disconnect By DSL Down'
+            -- Handle spurious DSL activations : do not switch to internet_disconnected state if a DSL idle (xdsl_0) is preceded by a DSL activation (xdsl_1 or xdsl_2)
+            -- (e.g Can happen in ETHWAN scenario with no DSL line connected)
+            -- Go back to original state when DSL idle (xdsl_0) received
+            -- In the DSL WAN scenario, when DSL is up, you cannot have an activation followed by and idle
+            -- 'ddbdd' stands for 'Don't Disconnect By DSL Down'
             internet_connected_ipv4_or_v6_ddbdd = {
                 xdsl_0 = "internet_connected_ipv4_or_v6",
                 network_interface_wan_ifdown = "internet_connecting",
@@ -266,8 +280,8 @@ stateMachines = {
             },
             internet_connecting = {
                 staticLed("internet:green", false),
--- timerLed("internet:red", 500, 500), was not behaving as expected; using same values since last time when setting timerLed for same LED can cause LED *NOT* to blink at all;
--- Probably LED driver problem; workaround is setting twice with different values
+                -- timerLed("internet:red", 500, 500), was not behaving as expected; using same values since last time when setting timerLed for same LED can cause LED *NOT* to blink at all;
+                -- Probably LED driver problem; workaround is setting twice with different values
                 timerLed("internet:red", 498, 502),
                 timerLed("internet:red", 499, 501)
             },
@@ -616,58 +630,58 @@ stateMachines = {
         initial = "off",
         transitions = {
             fxs_profiles_usable = {
-			fxs_lines_error = "off",
-			fxs_lines_usable_off = "off",
-			fxs_active = "fxs_profiles_flash",
-			fxs_inactive = "fxs_profiles_solid",
-			fxs_lines_usable_idle = "off",
+                fxs_lines_error = "off",
+                fxs_lines_usable_off = "off",
+                fxs_active = "fxs_profiles_flash",
+                fxs_inactive = "fxs_profiles_solid",
+                fxs_lines_usable_idle = "off",
             },
             fxs_profiles_solid = {
-			fxs_active = "fxs_profiles_flash",
-			fxs_inactive = "fxs_profiles_usable",
-		    fxs_lines_error = "off",
-			fxs_lines_usable_off = "off",
-			fxs_lines_usable_idle = "off",
+                fxs_active = "fxs_profiles_flash",
+                fxs_inactive = "fxs_profiles_usable",
+                fxs_lines_error = "off",
+                fxs_lines_usable_off = "off",
+                fxs_lines_usable_idle = "off",
             },
             fxs_profiles_flash = {
-			fxs_inactive = "fxs_profiles_solid",
-			fxs_active  = "fxs_profiles_flash",
-			fxs_lines_error = "off",
-			fxs_lines_usable_idle = "off",
+                fxs_inactive = "fxs_profiles_solid",
+                fxs_active  = "fxs_profiles_flash",
+                fxs_lines_error = "off",
+                fxs_lines_usable_idle = "off",
             },
             off = {
-			fxs_lines_usable = "fxs_profiles_usable",
-			fxs_lines_error = "off",
-			fxs_lines_usable_off = "off",
-			fxs_lines_usable_idle = "off",
+                fxs_lines_usable = "fxs_profiles_usable",
+                fxs_lines_error = "off",
+                fxs_lines_usable_off = "off",
+                fxs_lines_usable_idle = "off",
             }
         },
         actions = {
             fxs_profiles_usable = {
-			staticLed("voip:green", true)
+                staticLed("voip:green", true)
             },
             fxs_profiles_solid = {
-			staticLed("voip:green", true)
+                staticLed("voip:green", true)
             },
             fxs_profiles_flash = {
-			timerLed("voip:green", 100, 100)
+                timerLed("voip:green", 100, 100)
             },
             off = {
-			staticLed("voip:green", false)
+                staticLed("voip:green", false)
             }
         },
         patterns_depend_on = {
             fxs_profiles_usable = {
-                 "status"
+                "status"
             },
             fxs_profiles_solid = {
-                 "status"
+                "status"
             },
             fxs_profiles_flash = {
-                 "status"
+                "status"
             },
             off = {
-                 "status"
+                "status"
             }
         }
     }

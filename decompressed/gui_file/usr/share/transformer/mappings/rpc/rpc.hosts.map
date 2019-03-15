@@ -467,7 +467,7 @@ rpc_hosts_host_i_.get = {
     return dhcpInfo[key][param]
   end,
   SSID = function(mapping, param, key)
-	local dev = key2dev(key)
+    local dev = key2dev(key)
     local iface = extractL2Interface(dev)
     return iface and uciHelper.get_from_uci({ config = "wireless", sectionname = iface , option = "ssid"}) or ""
   end,

@@ -38,7 +38,7 @@ local usbdev_columms = {
      readonly = true,
   },
   {
-     header = T"Product Name",
+     header = T"Printer Name",
      type = "text",
      readonly = true,
   },
@@ -142,13 +142,13 @@ removeDuplicateEntry(usbpart_data)
       html = {}
       html[#html+1] = ui_helper.createSwitch(T"Enabled", "printersharing_enabled", content["printersharing_enabled"], attributes)
       html[#html+1] = ui_helper.createSwitch(T"Web Interface", "printersharing_webui", content["printersharing_webui"], attributes)
-      html[#html+1] = ui_helper.createAlertBlock(format(T'CUPS Web Interface at <a href="http:\\\\%s:631">http:\\\\%s:631</a> or <a href="http:\\\\%s:631">http:\\\\%s:631</a>',content_samba.localdevIP,content_samba.localdevIP,content_samba.hostname,content_samba.hostname), info_box)
+      html[#html+1] = ui_helper.createAlertBlock(format(T"CUPS Web Interface at <a href=\"http://%s:631\">http://%s:631</a> or <a href=\"http://%s:631\">http://%s:631</a>",content_samba.localdevIP,content_samba.localdevIP,content_samba.hostname,content_samba.hostname), info_box)
       html[#html+1] = "<fieldset><legend>" .. T"Printer Information" .. "</legend>"
       if content.printersharing_enabled == '1' then
         if content_samba.samba_enabled == '1' then
-          html[#html+1] = format(T'<div class=\" simple-desc span4\">To connect: \\\\%s\\ or \\\\%s\\</div>',content_samba.localdevIP,content_samba.hostname)
+          html[#html+1] = format("<div class=\"simple-desc span4\">"..T"To connect: \\\\%s\\ or \\\\%s\\ ".."</div>",content_samba.localdevIP,content_samba.hostname)
         else
-          html[#html+1] = format(T'<div class=\" simple-desc span4\">Samba is disabled</div>')
+          html[#html+1] = format("<div class=\"simple-desc span4\">"..T"SMB/CIFS is disabled".."</div>")
         end
       end
       html[#html+1] = ui_helper.createTable(usbdev_columms, usbpart_data, usbdev_options, nil, usbdev_helpmsg)

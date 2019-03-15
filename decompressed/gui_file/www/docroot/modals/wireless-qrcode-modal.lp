@@ -74,7 +74,7 @@ if content.ssid then
 end
   ngx.print('\
 \
-');  ngx.print( ui_helper.createHeader(T"Wi-Fi QR Code", false, false) ); ngx.print('\
+');  ngx.print( ui_helper.createHeader(T"WiFi QR Code", false, false) ); ngx.print('\
 \
 <div class="modal-body update">\
   <form class="form-horizontal" method="post" action="modals/wireless-qrcode-modal.lp">\

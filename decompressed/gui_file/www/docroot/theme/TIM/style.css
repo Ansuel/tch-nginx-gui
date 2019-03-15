@@ -199,11 +199,6 @@
 	}
 }
 
-.header-sub-button {
-	display: inline-block;
-	margin-left: 5px;
-}
-
 .scroll-down {
   opacity: 1;
   -webkit-transition: all .5s ease-in 3s;

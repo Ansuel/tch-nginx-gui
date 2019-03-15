@@ -147,9 +147,9 @@ if sim.sim_state == "ready" or sim.sim_state == "locked" or sim.sim_state == "bl
 	tinsert(html, ui_helper.createLabel(T"Status"..":", "", options))
 	tinsert(html, '</div>')
 	option['data-bind'] = "text: pinRetriesLeft"
-	tinsert(html, ui_helper.createLabel(T"Unlock Retries Left"..":", "", options))
+	tinsert(html, ui_helper.createLabel(T"Unlock Retries Left:", "", options))
 	option['data-bind'] = "text: pukRetriesLeft"
-	tinsert(html, ui_helper.createLabel(T"Unblock Retries Left"..":", "", options))
+	tinsert(html, ui_helper.createLabel(T"Unblock Retries Left:", "", options))
 	tinsert(html, '</div>') -- simViewState() == 'default'
 
 	tinsert(html, "</fieldset>")

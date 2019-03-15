@@ -139,19 +139,22 @@ local uptime_text = '<span data-bind="html: uptime_text"></span>'
 
 if content_rpc["ipaddr"] and content_rpc["ipaddr"]:len() > 0 then
     WAN_IP_text = '<span data-bind="html: WAN_IP_text">' .. format(T 'WAN IP is <strong>%s</strong>' .. '<br/>', content_rpc["ipaddr"]) .. '</span>'
-    if content_rpc["uptime"] then
-        uptime_text = '<span data-bind="html: uptime_text">' .. format(T "Uptime : <strong>%s</strong>", (post_helper.secondsToTimeShort(content_rpc["uptime"]) or "")) .. '</span>'
-    end
 end
 
 ngx.print(WAN_IP_text)
 ngx.print(uptime_text)
 
 if content_rpc["ip6addr"] and content_rpc["ip6addr"]:len() > 0 then
-    ngx.print(format(T 'WAN IP is <strong>%s</strong>', content_rpc["ip6addr"]))
+    ngx.print(format(T 'WAN IP is <strong>%s</strong>'..'</br>', content_rpc["ip6addr"]))
 end
 if ppp_status == "connected" and IPv6State ~= "disabled" then
     ngx.print(ui_helper.createSimpleLight(ipv6_light_map[IPv6State] or "4" --[[ red ]], ipv6_state_map[IPv6State] or T "Unknown", attributes, "fa-at"))
+end
+
+if content_rpc["ipaddr"] and content_rpc["ipaddr"]:len() > 0 then
+    if content_rpc["uptime"] then
+        uptime_text = '<span data-bind="html: uptime_text">' .. format(T "Uptime : <strong>%s</strong>", (post_helper.secondsToTimeShort(content_rpc["uptime"]) or "")) .. '</span>'
+    end
 end
 
 ngx.print('\
@@ -160,25 +163,7 @@ ngx.print('\
 <script>\
 var PPPoECardInterval;\
 $(document).ready(function () {\
-	var PPPoECardBinding = {\
-		status_light: ko.observable(),\
-		uptime_text: ko.observable(),\
-		WAN_IP_text: ko.observable(),\
-	};\
-	function PPPoECardRefresh() {\
-		$.post("/ajax/internet.lua", [tch.elementCSRFtoken()], function(data) {\
-			if(data.pppoe_uptime != undefined) {\
-				PPPoECardBinding.status_light(data.status_light);\
-				PPPoECardBinding.uptime_text(data.uptime_text);\
-				PPPoECardBinding.WAN_IP_text(data.WAN_IP_text);\
-			}\
-		}, "json");\
-	};\
-\
-	PPPoECardRefresh();\
-	ko.applyBindings(PPPoECardBinding, document.getElementById("pppoe-internet-tab"));\
-	PPPoECardInterval = setInterval(PPPoECardRefresh, 3000);\
-	KoRequest.push(PPPoECardInterval);\
+	new createAjaxUpdateCard("pppoe-internet-tab","/ajax/internet.lua",PPPoECardInterval,3000);\
 })\
 </script>\
 ');

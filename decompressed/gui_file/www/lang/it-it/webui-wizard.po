@@ -19,19 +19,19 @@ msgid " of "
 msgstr " di "
 
 msgid "<h4>Router Installation is Complete</h4>"
-msgstr "<h4>Installazione router completata</h4>"
+msgstr "<h4>Configurazione router completata</h4>"
 
 msgid "A <b>WiFi 2.4GHz</b> Security Key is already set-up with your Router, however you can change that key here if desired. You can also change the security type below. To connect to the Router via WiFi you will need to enter the Security Key into your device."
-msgstr "Nel router è già impostata una chiave di sicurezza per la rete <b>Wi-Fi 2.4GHz</b>, tuttavia puoi cambiarla qui sotto se lo desideri.<br/>Puoi inoltre cambiare sotto il tipo di sicurezza.<br/>Per connetterti al router in Wi-Fi avrai bisogno di inserire la chiave di sicurezza nel dispositivo."
+msgstr "Nel router è già pre-impostata una password per la rete <b>Wi-Fi 2.4GHz</b>, ma puoi modificarla a tuo piacimento.<br/>Puoi inoltre cambiare il modo sicurezza.<br/>Per connetterti al router in Wi-Fi avrai bisogno di inserire nel dispositivo la password della rete."
 
 msgid "A <b>WiFi 5GHz</b> Security Key is already set-up with your Router, however you can change that key here if desired. You can also change the security type below. To connect to the Router via WiFi you will need to enter the Security Key into your device."
-msgstr "Nel router è già impostata una chiave di sicurezza per la rete <b>Wi-Fi 5 GHz</b>, tuttavia puoi cambiarla qui sotto se lo desideri.<br/>Puoi inoltre cambiare sotto il tipo di sicurezza.<br/>Per connetterti al router in Wi-Fi avrai bisogno di inserire la chiave di sicurezza nel dispositivo."
+msgstr "Nel router è già pre-impostata una password per la rete <b>Wi-Fi 5 GHz</b>, ma puoi modificarla a tuo piacimento.<br/>Puoi inoltre cambiare il modo sicurezza.<br/>Per connetterti al router in Wi-Fi avrai bisogno di inserire nel dispositivo la password della rete."
 
 msgid "Desired Password:"
-msgstr "Password desiderata:"
+msgstr "Password:"
 
 msgid "Desired Username:"
-msgstr "Nome utente desiderato:"
+msgstr "Nome utente:"
 
 msgid "Disabled"
 msgstr "Disabilitato"
@@ -46,19 +46,19 @@ msgid "I don't have VoIP"
 msgstr "Non ho il VoIP"
 
 msgid "In the next pages you will use the quick set-up guide to personalise your Router. Please enter a username and password to be used to gain access to your Router Management Console. It is recommended that you choose a unique password for added security."
-msgstr "Nelle pagine seguenti userai la guida veloce di configurazione per personalizzare il router.<br/>Inserisci un nome utente e password da usare per ottenere l'accesso alla console di gestione del router.<br/>Ti suggeriamo di scegliere una password unica per aumentare la sicurezza."
+msgstr "Nelle pagine seguenti potrai usare la configurazione guidata per personalizzare la configirazione del router.<br/>Inserisci un nome utente e una password da usare per l'accesso al router.<br/>Per aumentare la sicurezza ti suggeriamo di scegliere una password univoca."
 
 msgid "Invalid VLAN ID, it must be a number on the range 2-4094"
-msgstr "VLAN ID non valido - deve essere un numero nell'intervallo 2-4094"
+msgstr "ID VLAN non valido. Deve essere un numero nell'intervallo 2-4094"
 
 msgid "Invalid value, space not allowed"
-msgstr "Valore non valido - spazio non consentito"
+msgstr "Valore non valido. Spazio non consentito"
 
 msgid "Password:"
 msgstr "Password:"
 
 msgid "Please review your settings and click finish.<br/>Your Router will reset and settings will be saved."
-msgstr "Rivedi le impostazioni e fai clic su <strong>Completato</strong>.<br/>Il router si riavvierà e le impostazioni verranno salvate."
+msgstr "Verifica le impostazioni e se sono corrette fai clic su <strong>Completata</strong>.<br/>Le impostazioni verranno salvate e il router si riavvierà.<br/>Seleziona <strong>Indietro</strong> per rivedere le impostazioni.<br/>Seleziona <strong>Esci</strong> per uscire dalla configurazione senza salvare le impostazioni."
 
 msgid "Please set the new password for new user."
 msgstr "Imposta la nuova password per il nuovo utente."
@@ -67,31 +67,31 @@ msgid "Please set value."
 msgstr "Inserisci il valore."
 
 msgid "Remember to make a note of your username and password"
-msgstr "Ricordati di prendere nota del nome utente e password"
+msgstr "Ricordati di prendere nota del nome utente e della password"
 
 msgid "Retype Password:"
-msgstr "Reinserisci password:"
+msgstr "Re-inserisci password:"
 
 msgid "Router Security"
-msgstr "Sicurezza router"
+msgstr "Impostazioni sicurezza"
 
 msgid "SSID Broadcast Name (Max 32 characters):"
-msgstr "Nome SSID broadcast (max 32 caratteri):"
+msgstr "Nome rete (SSID) max 32 caratteri:"
 
 msgid "SSID Broadcast Name: "
-msgstr "Nome SSID broadcast: "
+msgstr "Nome rete (SSID): "
 
 msgid "Security Key Type:"
-msgstr "Tipo chiave sicurezza:"
+msgstr "Modo sicurezza:"
 
 msgid "Security Key Type: "
-msgstr "Tipo chiave sicurezza: "
+msgstr "Modo sicurezza: "
 
 msgid "Security Key(Minimum of 8 characters):"
-msgstr "Chiave sicurezza (minimo 8 caratteri):"
+msgstr "Password (minimo 8 caratteri):"
 
 msgid "Security Key: "
-msgstr "Chiave sicurezza: "
+msgstr "Password: "
 
 msgid "Setup Wizard"
 msgstr "Configurazione guidata"
@@ -121,7 +121,7 @@ msgid "Username:"
 msgstr "Nome utente:"
 
 msgid "VCI Number:"
-msgstr "Numero VCI:"
+msgstr "Valore VCI:"
 
 msgid "VLAN Enabled"
 msgstr "VLAN abilitata"
@@ -130,13 +130,13 @@ msgid "VLAN ID:"
 msgstr "ID VLAN:"
 
 msgid "VPI Number:"
-msgstr "Numero VPI:"
+msgstr "Valore VPI:"
 
 msgid "VoIP (Netphone) is an optional phone service that runs over the internet. If you have purchased this service, enter your VoIP settings here. You'll find your settings in your VoIP activation email."
 msgstr "VoIP (Netphone) è un servizio telefonico opzionale che funziona su internet.<br/>Se hai acquistato questo servizio, inserisci qui le impostazioni VoIP.<br/>Troverai le impostazioni nella email di attivazione VoIP."
 
 msgid "VoIP Domain Name:"
-msgstr "Nome Dominio VoIP:"
+msgstr "Nome dominio VoIP:"
 
 msgid "VoIP Password:"
 msgstr "Password VoIP:"
@@ -172,10 +172,10 @@ msgid "VoIP is an optional phone service that runs over the internet. If you hav
 msgstr "VoIP è un servizio telefonico aggiuntivo che funziona su internet.<br/>Se hai acquistato questo servizio, inserisci qui le impostazioni VoIP.<br/>Troverai le impostazioni nella email di attivazione VoIP."
 
 msgid "WAN Interfaces"
-msgstr "Interfacce WAN"
+msgstr "Interfaccia WAN"
 
 msgid "WAN Interfaces:"
-msgstr "Interfacce WAN:"
+msgstr "Interfaccia WAN:"
 
 msgid "WAN Type:"
 msgstr "Tipo WAN:"
@@ -184,4 +184,67 @@ msgid "Wansensing Enabled"
 msgstr "Wansensing abilitato"
 
 msgid "Your modem already has a unique WiFi network set up by default. You can change the broadcast name here if desired, or turn off WiFi completely. You can also hide your WiFi network name from other devices by turning off SSID broadcast."
-msgstr "Il modem possiede già una rete Wi-Fi unica impostata in modo predefinito.<br/>Puoi cambiare qui il nome broadcast se lo desideri, oppure disabilitare completamente il Wi-Fi.<br/>Puoi anche nascondere il nome della rete Wi-Fi da altri dispositivi disabilitando il broadcast SSID."
+msgstr "Il modem è pre-impostato per avere una rete Wi-Fi unica per le bande 2.4Ghz e 5.0 Ghz (bandsteering).<br/>Qui se vuoi puoi modificare il nome brodcast della rete (SSID), o disabilitare completamente il Wi-Fi.<br/>Puoi anche nascondere il nome della rete Wi-Fi da altri dispositivi disabilitando il broadcast dell'SSID."
+
+msgid "WiFi Setup (2.4GHz)"
+msgstr "Impostazioni WiFi (2.4 GHz)"
+
+msgid "WiFi Setup (5GHz)"
+msgstr "Impostazioni WiFi (5 GHz)"
+
+msgid "PPP over Ethernet"
+msgstr "PPPoE (PPP over Ethernet)"
+
+msgid "PPP over ATM"
+msgstr "PPPoA (PPP over ATM)"
+
+msgid "Wireless 2.4GHz (WiFi):"
+msgstr "Wireless 2.4 Ghz (WiFi):"
+
+msgid "Wireless 5GHz (WiFi):"
+msgstr "Wireless 5 GHz (Wifi):"
+
+msgid "Username: "
+msgstr "Utente: "
+
+msgid "Wireless 2.4GHz (WiFi): "
+msgstr "Wireless 2.4GHz (WiFi): "
+
+msgid "VLAN ID"
+msgstr "ID VLAN"
+
+msgid "Step 6 of 8"
+msgstr "Passaggio 6 di 8"
+
+msgid "Wireless 5GHz (WiFi): "
+msgstr "Wireless 5GHz (WiFi): "
+
+msgid "None"
+msgstr "Nessuno"
+
+msgid "WPA2-PSK"
+msgstr "WPA2-PSK"
+
+msgid "Step 5 of 8"
+msgstr "Passaggio 5 di 8"
+
+msgid "ADSL"
+msgstr "ADSL"
+
+msgid "WPA+WPA2 PSK"
+msgstr "WPA+WPA2 PSK"
+
+msgid "Ethernet"
+msgstr "Ethernet"
+
+msgid "VDSL"
+msgstr "VDSL"
+
+msgid "Username can not be empty"
+msgstr "Il nome utente non può essere vuoto"
+
+msgid "Passwords do not match"
+msgstr "Le password non coincidono"
+
+msgid "You must fill your password"
+msgstr "Devi inserire la password"

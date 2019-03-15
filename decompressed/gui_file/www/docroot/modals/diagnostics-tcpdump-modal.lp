@@ -171,7 +171,7 @@ local refresh = 2
 if tcpdump_data.state ~= "Requested" or not gsuccess then
   refresh = nil
 end
-ngx.print(ui_helper.createHeader(T"Diagnostics tcpdump", false, false, refresh))
+ngx.print(ui_helper.createHeader(T"Diagnostics TCPDump", false, false, refresh))
   ngx.print('\
 <div class="modal-body no-save update">\
 ');  
@@ -184,12 +184,12 @@ ngx.print(ui_helper.createHeader(T"Diagnostics tcpdump", false, false, refresh))
 ');  
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
   ngx.print('\
-<legend>');  ngx.print( T"tcpdump" ); ngx.print('</legend>\
+<legend>');  ngx.print( T"TCPDump" ); ngx.print('</legend>\
 \
 <div class="control-group">\
 <label class="control-label"></label>\
   <div class="controls">\
-    ');  ngx.print(ui_helper.createAlertBlock(T"1. Max Packet Number Recommened is dynamic and not accurate value (assume to use half of free memory).<br/>2. Acceleration disabled during tcpdump on platforms which supports flow cache!<br/>3. 'Download' invalid if nothing captured.<br/>4. 'Clean' captured file to reduce memory consumption."))   ngx.print('\
+    ');  ngx.print(ui_helper.createAlertBlock(T"1. Max recommened Packet Number is dynamic (uses half of free memory) and may not be accurate.<br/>2. Hardware offload disabled during capture on platforms with flow cache!<br/>3. 'Download' will be invalid if nothing was captured.<br/>4. 'Clean' will clean captured file to reduce memory consumption."))   ngx.print('\
     ');  if(tcpdump_data.state == "Requested") then   ngx.print('\
       <div id="stop-tcpdump" class="btn" data-name="action" data-value="STOP">');  ngx.print( T"Stop" ); ngx.print('</div>\
     ');  elseif(tcpdump_data.state == "None" or tcpdump_data.state == "Complete" or tcpdump_data.state == "Error") then   ngx.print('\
@@ -248,7 +248,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     local size = lfs.attributes (untaint(tcpdump_data.file), "size")
     if size ~= 0 then
       html[#html + 1] = ui_helper.createButton(T"", T"Download", "icon-download-alt", tcpdump_download)
-      html[#html + 1] = ui_helper.createAlertBlock(T"Downloading tcpdump file, please wait...", downloading_alert)
+      html[#html + 1] = ui_helper.createAlertBlock(T"Downloading TCPDump file, please wait...", downloading_alert)
       html[#html + 1] = ui_helper.createAlertBlock(T"Download failed; please try again.", downloading_fail)
     end
   end
@@ -263,7 +263,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
   if(tcpdump_data.state == "Complete" and tcpdump_data.type == "log") then
     local f = open(untaint(tcpdump_data.file), "r")
     if f then
-      ngx.print(ui_helper.createLabel(T"Tcpdump Log:", ""))
+      ngx.print(ui_helper.createLabel(T"TCPDump Log:", ""))
       ngx.print("<div class='control-group'><label class='control-label'></label><div class='controls'>")
       ngx.print("<span id='' class='span9 simple-desc'>")
       for line in f:lines() do

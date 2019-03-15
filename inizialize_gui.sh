@@ -98,6 +98,8 @@ mkdir total
 
 if [ ! -d total/tmp ]; then
 	mkdir total/tmp
+	#This is needed as on installation this will overwrite permission of /tmp dir
+	chmod 777 total/tmp
 fi
 
 for index in "${modular_dir[@]}"; do

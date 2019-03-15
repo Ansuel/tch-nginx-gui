@@ -1,3 +1,4 @@
+gettext.textdomain('webui-core')
 local proxy = require("datamodel")
 local ifnames = proxy.get("uci.network.interface.@lan.ifname")[1].value
 local wan_ifname = proxy.get("uci.network.interface.@wan.ifname")[1].value
@@ -6,7 +7,7 @@ return {
     {
         name = "dhcp",
         default = true,
-        description = "DHCP routed mode",
+        description = T"DHCP routed mode",
         view = "internet-dhcp-routed.lp",
         card = "003_internet_dhcp_routed.lp",
         check = {
@@ -21,7 +22,7 @@ return {
     {
         name = "pppoe",
         default = false,
-        description = "PPPoE routed mode",
+        description = T"PPPoE routed mode",
         view = "internet-pppoe-routed.lp",
         card = "003_internet_pppoe_routed.lp",
         check = {
@@ -36,7 +37,7 @@ return {
     {
         name = "pppoa",
         default = false,
-        description = "PPPoA routed mode",
+        description = T"PPPoA routed mode",
         view = "internet-pppoa-routed.lp",
         card = "003_internet_pppoe_routed.lp",
         check = {
@@ -51,7 +52,7 @@ return {
     {
         name = "static",
         default = false,
-        description = "Fixed IP mode",
+        description = T"Fixed IP mode",
         view = "internet-static-routed.lp",
         card = "003_internet_static_routed.lp",
         check = {
@@ -66,7 +67,7 @@ return {
     {
         name = "bridge",
         default = false,
-        description = "Bridge mode",
+        description = T"Bridge mode",
         view = "internet-bridged.lp",
         card = "003_internet_bridged.lp",
         check = {

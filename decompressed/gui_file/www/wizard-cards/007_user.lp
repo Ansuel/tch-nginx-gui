@@ -87,8 +87,11 @@ end
       %>
     </fieldset>
 </div>
-<script src="/js/srp-min.js" ></script>
 <script type="text/javascript">
+(function() {
+	
+	$.getScript("/js/srp-min.js");
+	
     function clear_error(id)
     {
         var upass = $('.modal input[name='+id+']');
@@ -109,10 +112,10 @@ end
     {
         $('.alert-error').detach();
         var upass = $('.modal input[name="web_username"]');
-        upass.closest(".control-group").before('<div class="alert alert-error">Some parameters failed validation</div>');
+        upass.closest(".control-group").before('<div class="alert alert-error">T"Some parameters failed validation"</div>');
     }
 
-    $("#wizard-next").click(function(){
+    $("#wizard-next").on("click", function(){
         if ($('input[name="web_username"]').is(":visible")) {
             clear_error("web_username");
             clear_error("web_password");
@@ -125,19 +128,19 @@ end
             var verifier = $('input[name="srp_verifier"]').val();
             var validated = true;
             if(password !== password2) {
-                display_error("web_password2","Passwords do not match");
+                display_error("web_password2","<%= T'Passwords do not match' %>");
                 validated = false;
             }
 
             if(user == "") {
-                display_error("web_username", "Usrname can not be empty");
+                display_error("web_username","<%= T'Username can not be empty' %>");
                 validated = false;
             }
 
             if (password == "") {
                 if (verifier.length != 512 || salt.length != 8) {
-                    display_error("web_password","You must fill your password");
-                    display_error("web_password2","You must fill your password");
+                    display_error("web_password","<%= T'You must fill your password' %>");
+                    display_error("web_password2","<%= T'You must fill your password' %>");
                     validated = false
                 }
             }
@@ -164,7 +167,7 @@ end
         return
     });
 
-    $("#wizard-previous").click(function(){
+    $("#wizard-previous").on("click", function(){
         if ($('input[name="web_username"]').is(":visible")) {
             $('input[name="web_password"]').val('');
             $('input[name="web_password2"]').val('');
@@ -172,5 +175,5 @@ end
             return false;
         }
     });
-
+});
 </script>
