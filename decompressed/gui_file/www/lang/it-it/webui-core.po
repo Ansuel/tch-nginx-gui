@@ -4283,3 +4283,6 @@ msgstr "Rimozione root e ritorno ai valori predefiniti..."
 
 msgid "Resetting to default gui, please wait..."
 msgstr "Ripristino GUI originale..."
+
+msgid "Connection issue: "
+msgstr ""

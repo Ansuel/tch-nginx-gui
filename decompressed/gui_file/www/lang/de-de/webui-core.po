@@ -4283,3 +4283,6 @@ msgstr ""
 
 msgid "Resetting to default gui, please wait..."
 msgstr ""
+
+msgid "Connection issue: "
+msgstr ""
