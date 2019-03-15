@@ -46,7 +46,7 @@ rootdevice_call="debug"
 
 ############TRANSFORMER UTILITY##################
 set_transformer() {
-	cmd="require('datamodel').set('"$1"','"$2"')"
+	cmd="require('datamodel').set('$1','$2')"
 	lua -e "$cmd"
 }
 #################################################
