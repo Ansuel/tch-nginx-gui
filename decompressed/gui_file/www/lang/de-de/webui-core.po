@@ -4286,3 +4286,6 @@ msgstr ""
 
 msgid "Connection issue: "
 msgstr ""
+
+msgid "Not up"
+msgstr ""
