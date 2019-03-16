@@ -231,9 +231,9 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  local alertinfo = { alert = { class = "alert-info" } }
       local html = {}
       html[#html + 1] = ui_helper.createLight(T"Status", nil, state_map[untaint(content.dsl0_enabled)], { light = { class = light_map[untaint(content.dsl0_enabled)] } })
-	  html[#html + 1] = ui_helper.createLabel(T"DSL Connection Status", content.dsl0_status, span5 )
+	  html[#html + 1] = ui_helper.createLabel(T"DSL Connection Status", T(content.dsl0_status), span5 )
 	  if ( content.dsl0_status == "Up" ) then
-        html[#html + 1] = ui_helper.createLabel(T"DSL Mode", content.dsl0_mode, span5 )
+	  html[#html + 1] = ui_helper.createLabel(T"DSL Mode", content.dsl0_mode, span5 )
         if(content.dsl0_profile ~= "Not Found") then
             html[#html + 1] = ui_helper.createLabel(T"VDSL Profile", content.dsl0_profile, span5 )
             html[#html + 1] = ui_helper.createLabel(T"VDSL DSLAM Port", content.dsl0_port, span5 )

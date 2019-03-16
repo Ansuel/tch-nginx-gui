@@ -3212,7 +3212,7 @@ msgid "DSL Connection Status"
 msgstr "Stato connessione DSL"
 
 msgid "1. Max recommened Packet Number is dynamic (uses half of free memory) and may not be accurate.<br/>2. Hardware offload disabled during capture on platforms with flow cache!<br/>3. 'Download' will be invalid if nothing was captured.<br/>4. 'Clean' will clean captured file to reduce memory consumption."
-msgstr "1. Il numero massimo di pacchetti è dinamico (usa la metà della memoria libera) e potrebbe non essere accurato.<br/>2. L'offload hardware è disabilitato durante la cattura nelle pittaforme con cache di flusso!<br/>3. Il 'Download' non sarà valido se non è stato catturato nulla.<br/>4. 'Azzera' azzererà il file catturato per ridurre l'uso della memoria."
+msgstr "1. Il numero massimo di pacchetti è dinamico (usa la metà della memoria libera) e potrebbe non essere accurato.<br/>2. L'offload hardware è disabilitato durante la cattura nelle piattaforme con cache di flusso!<br/>3. Il 'Download' non sarà valido se non è stato catturato nulla.<br/>4. 'Azzera' azzererà il file catturato per ridurre l'uso della memoria."
 
 msgid "DSLAM Firmware"
 msgstr "Firmware DSLAM"
@@ -4285,4 +4285,4 @@ msgid "Resetting to default gui, please wait..."
 msgstr "Ripristino GUI originale..."
 
 msgid "Connection issue: "
-msgstr ""
+msgstr "Problema connessione: "
