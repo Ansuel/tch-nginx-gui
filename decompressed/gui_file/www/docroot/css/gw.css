@@ -5326,7 +5326,6 @@ form .switch {
 .popUp {
 	z-index: 2500;
 	position: absolute;
-	color: #333;
 	top: 35%;
 	left: 40%;
 	margin-left: 20px;
@@ -5503,7 +5502,6 @@ form .switch {
 #device_popUp {
 	z-index: 6000;
 	position: absolute;
-	color: #333;
 	top: 35%
 }
 #upgrade-alert {
@@ -5524,7 +5522,6 @@ form .switch {
 	left: 0;
 	top: 0;
 	position: absolute;
-	color: #333;
 	width: 100%;
 	height: 100%;
 	opacity: .8;
