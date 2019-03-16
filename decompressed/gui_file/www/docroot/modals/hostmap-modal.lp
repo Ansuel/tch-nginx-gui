@@ -270,8 +270,6 @@ function getInfo(mac,path,wifi,ap)\
       $("#rssivalue").html(data.RSSI + "dBm");\
       bars(data.RSSI);\
    })\
-   .error(function() {\
-   });\
    timerajax = window.setTimeout(function () {getInfo(mac,path,wifi,ap);}, checktimer);\
 }\
 // Wifi chart scripts\
