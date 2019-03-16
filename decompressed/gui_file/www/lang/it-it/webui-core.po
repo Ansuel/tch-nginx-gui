@@ -4288,4 +4288,4 @@ msgid "Connection issue: "
 msgstr "Problema connessione: "
 
 msgid "Not up"
-msgstr "Not attiva"
+msgstr "Non attiva"
