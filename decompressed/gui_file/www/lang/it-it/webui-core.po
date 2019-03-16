@@ -4286,6 +4286,3 @@ msgstr "Ripristino GUI originale..."
 
 msgid "Connection issue: "
 msgstr "Problema connessione: "
-
-msgid "Not up"
-msgstr "Non attiva"
