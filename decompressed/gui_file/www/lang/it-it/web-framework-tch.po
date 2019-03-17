@@ -350,7 +350,7 @@ msgstr[0] "%do"
 msgstr[1] "%do"
 
 msgid "Exact path not found!"
-msgstr ""
+msgstr "Percorso corrispondente non trovato"
 
 msgid "Exact data not found in this paths: "
-msgstr ""
+msgstr "Dati corrispondenti non trovati in questo percorso: "
