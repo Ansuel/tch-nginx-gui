@@ -5,23 +5,6 @@ local pairs, ipairs, unpack, type, tonumber = pairs, ipairs, unpack, type, tonum
 local concat, sort = table.concat, table.sort
 local string = string
 
--- Translation initialization. Every function relying on translation MUST call setlanguage to ensure the current
--- language is correctly set (it will fetch the language set by web.web and use it)
--- We create a dedicated context for the web framework (since we cannot easily access the context of the current page)
-local intl = require("web.intl")
-local function log_gettext_error(msg)
-    ngx.log(ngx.NOTICE, msg)
-end
-local gettext = intl.load_gettext(log_gettext_error)
-local T = gettext.gettext
-local N = gettext.ngettext
-
-local function setlanguage()
-    gettext.language(ngx.header['Content-Language'])
-end
-
-gettext.textdomain('web-framework-tch')
-
 --- content_helper module
 --  @module content_helper
 --  @usage local content_helper = require('web.content_helper')
@@ -68,7 +51,6 @@ end
 --                table.
 -- @return #bool, #string returns true if successful otherwise returns nil + errmsg
 function M.getExactContent(content)
-	setlanguage()
     local paths = getValues(content)
     local result = proxy.get(unpack(paths))
 	local function PopulateValue()
@@ -99,7 +81,7 @@ function M.getExactContent(content)
 		result = proxy.get(unpack(paths))
 		PopulateValue()
 		for _,key in pairs(errkey) do
-			content[key] = T"Exact path not found!"
+			content[key] = "Exact path not found!"
 		end
         return nil, table.concat(errmsg)
     end
