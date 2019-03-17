@@ -50,7 +50,7 @@ local nf_conntrack_count = io.popen("sysctl -n -e net.nf_conntrack_max net.ipv4.
 content["uptime"] = content_helper.readfile("/proc/uptime","number",floor)
 content["connection"] = content_helper.readfile("/proc/sys/net/netfilter/nf_conntrack_count")
 content["total_connection"] = nf_conntrack_count:read()
-content["system_time"] = os.date("%F %T", os.time())
+content["system_time"] = os.date("%d/%m/%Y %Hh:%Mm:%Ss",os.time())
 
 nf_conntrack_count:close()
 
