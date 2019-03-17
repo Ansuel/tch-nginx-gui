@@ -41,6 +41,7 @@ local check_rule = {
 	{ name = 'fastcacheoptionmodal', target = '/modals/fast-cache-option-modal.lp' },
 	{ name = 'dosprotectmodal', target = '/modals/dosprotect-modal.lp' },
 	{ name = 'mmpbxdectmodal', target = '/modals/mmpbx-dect-modal.lp' },
+	{ name = 'modemstatsmodal', target = '/modals/modem-stats-modal.lp' },
 	{ name = 'nfcmodal', target = '/modals/nfc-modal.lp' },
 	{ name = 'stats', target = '/stats.lp' },
 	{ name = 'cards', target = '/cards.lp' },

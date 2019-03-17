@@ -207,28 +207,9 @@ end
 ');  ngx.print( ui_helper.createHeader(T"Devices", false, true) ); ngx.print('\
 <div class="modal-body update no-save">\
 ');  
-if ngx.ctx.session:hasAccess("/modals/hostmap-modal.lp") then
-    local tabs = {
-        {
-            desc = T"Devices List",
-            active = "active",
-            target = "modals/device-modal.lp",
-        },
-        {
-            desc = T"Devices Map",
-            target = "modals/hostmap-modal.lp",
-        },
-		{
-            desc = T"WiFi Nurse",
-            target = "modals/wifi-nurse-modal.lp",
-        },
-		{
-            desc = T"Traffic Monitor",
-            target = "modals/traffic-monitor.lp",
-        },
-    }
-    ngx.print(ui_helper.createModalTabs(tabs))
-end
+	local lp = require("web.lp")
+    lp.setpath("/www/snippets/")
+    lp.include("tabs-device.lp")
   ngx.print('\
   <form class="form-horizontal" method="post" action="modals/device-modal.lp">\
     ');  
