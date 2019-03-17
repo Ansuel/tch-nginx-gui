@@ -1,4 +1,4 @@
-# Getting started with this GUI
+# Getting started
 
 <h3><strong>This is a highly modified and universal version of the GUI installed on all Technicolor Modem/Routers compatibile with (and probably not only):</strong></h3>
   <ul>
@@ -14,8 +14,8 @@
   <li>TG800vac / VANT-Y</li>
   </ul>
 
-You can find all of the autobuilt GUI versions at this link: [Buld](https://github.com/Ansuel/gui-dev-build-auto)
+You can find all of the autobuilt GUI versions at this link: [Build](https://github.com/Ansuel/gui-dev-build-auto)
 
 If you get an error during the download process or you have no Internet/WAN connection on the device, just manually download the GUI.tar.bz2 file and put in /tmp folder via SCP then execute the other (non curl) commands listed into [[Installation](https://github.com/Ansuel/tch-nginx-gui/wiki/Installation)].
 
-Are You ready?
+Are you ready?
