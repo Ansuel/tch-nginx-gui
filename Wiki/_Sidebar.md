@@ -10,9 +10,9 @@
   * [[799vac, 800vac and 797n v3 Any ISP](https://whirlpool.net.au/wiki/hack_technicolor)]
   * [[The Ansuel Corner](https://www.ilpuntotecnico.com/forum/index.php/topic,78585.0.html)]
 
-* [[API](https://github.com/Ansuel/tch-nginx-gui/wiki/API)]
-  * [[ui_helper](https://github.com/Ansuel/tch-nginx-gui/wiki/ui_helper)]
-  * [[post_helper](https://github.com/Ansuel/tch-nginx-gui/wiki/post_helper)]
-  * [[Various export](https://github.com/Ansuel/tch-nginx-gui/wiki/Various_export)]
+* [[Nginx API](https://github.com/Ansuel/tch-nginx-gui/wiki/API)]
+  * [[UI_Helper](https://github.com/Ansuel/tch-nginx-gui/wiki/ui_helper)]
+  * [[Post_Helper](https://github.com/Ansuel/tch-nginx-gui/wiki/post_helper)]
+  * [[Various Functions](https://github.com/Ansuel/tch-nginx-gui/wiki/Various_export)]
 
 * [[Contribute](https://github.com/Ansuel/tch-nginx-gui/wiki/Contribute)]
