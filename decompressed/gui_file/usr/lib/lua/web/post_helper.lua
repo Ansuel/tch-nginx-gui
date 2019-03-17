@@ -2,6 +2,7 @@
 -- [NG-97949] Incorrect GUI indication
 --NG-70591 GUI : Unable to configure infinite lease time (-1) from GUI but data model allows
 -- NG-103912 GUI new generic post_helper.lua is taken
+gettext.textdomain('webui-core')
 local ngx, require = ngx, require
 local proxy = require("datamodel")
 local io = require("io")
