@@ -1,10 +1,8 @@
-# Various Export List
+# Various Functions List
 
-Here you see some Export that make your life easy
+Here you see some Functions that will make your life easier
 
->**Note:** Non complete Export list
-
->**Note:** Local need to be copied or maked public
+>**Note:** Non complete Function list
 
 ### /usr/lib/lua/tch/inet.lua
 
