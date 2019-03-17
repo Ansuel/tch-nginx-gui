@@ -23,6 +23,4 @@ bzcat /tmp/GUI.tar.bz2 | tar -C / -xvf -
 /etc/init.d/rootdevice force
 ```
 
-Wait WITHOUT TURNING OFF, even if error or freeze, until the word Success!
 
-Everything is AWESOME!!
