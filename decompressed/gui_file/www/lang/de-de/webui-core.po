@@ -4295,3 +4295,6 @@ msgstr ""
 
 msgid "Modem Stats Graph"
 msgstr ""
+
+msgid "Modem Stats"
+msgstr ""
