@@ -4286,3 +4286,12 @@ msgstr "Ripristino GUI originale..."
 
 msgid "Connection issue: "
 msgstr "Problema connessione: "
+
+msgid "Mem Free Graph"
+msgstr ""
+
+msgid "CPU Usage Graph"
+msgstr ""
+
+msgid "Modem Stats Graph"
+msgstr ""
