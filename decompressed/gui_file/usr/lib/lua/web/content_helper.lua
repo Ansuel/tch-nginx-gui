@@ -1,3 +1,4 @@
+gettext.textdomain('webui-core')
 local proxy = require("datamodel")
 
 local open = io.open
