@@ -2,6 +2,7 @@
 gettext.textdomain('webui-core')
 
 local json = require("dkjson")
+local proxy = require("datamodel")
 local ngx = ngx
 
 local content_helper = require("web.content_helper")
@@ -32,6 +33,7 @@ local mmpbxd_filter = function(data)
     if ( data.enable == "false" ) or ( data.sipRegisterState == "" ) then
         return false
     end
+    local originuri = data.uri
     if data.uri and data.uri:match("+") then
         data.uri = data.uri:sub(4)
     end
@@ -42,19 +44,34 @@ local mmpbxd_filter = function(data)
     end
 
     if data.callState then
+        local statestr = data.callState
         if ( data.callState == "MMPBX_CALLSTATE_IDLE" ) then
-            data.callState =  T"Idle"
+            statestr =  T"Idle"
         elseif ( data.callState == "MMPBX_CALLSTATE_DIALING" ) then
-            data.callState =  T"Dialing"
+            statestr =  T"Dialing"
         elseif ( data.callState == "MMPBX_CALLSTATE_CALL_DELIVERED" ) then
-            data.callState =  T"Delivered/In Progress"
+            statestr =  T"Delivered/In Progress"
         elseif ( data.callState == "MMPBX_CALLSTATE_CONNECTED" ) then
-            data.callState =  T"In Progress/Connected"
+            statestr =  T"In Progress/Connected"
         elseif ( data.callState == "MMPBX_CALLSTATE_ALERTING" ) then
-            data.callState =  T"Ringing"
+            statestr =  T"Ringing"
         end
 
-        data.callState = ui_helper.createSimpleLight(data.callState==T"Idle" and "0" or "1", T(data.callState), nil, "fa fa-phone")
+        if ( data.callState ~= "MMPBX_CALLSTATE_IDLE" ) then
+
+            local Remoteparty
+            local pf_path = proxy.get("rpc.mmpbx.calllog.info.")
+            local pf_data = content_helper.convertResultToObject("rpc.mmpbx.calllog.info.",pf_path)
+            for _,v in ipairs(pf_data) do
+                if v.Localparty  == originuri then
+                    Remoteparty = v.Remoteparty
+                end
+            end
+
+            statestr = statestr .. " " .. Remoteparty
+        end
+
+        data.callState = ui_helper.createSimpleLight(data.callState == "MMPBX_CALLSTATE_IDLE" and "0" or "1", statestr, nil, "fa fa-phone")
     end
 
     return true
