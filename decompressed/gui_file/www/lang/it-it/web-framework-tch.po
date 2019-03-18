@@ -348,9 +348,3 @@ msgid "%dh"
 msgid_plural "%dh"
 msgstr[0] "%do"
 msgstr[1] "%do"
-
-msgid "Exact path not found!"
-msgstr ""
-
-msgid "Exact data not found in this paths: "
-msgstr ""
