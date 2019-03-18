@@ -29,6 +29,13 @@ local mmpbxd_columns = {
     },
 }
 
+local content = {
+    status = "rpc.mmpbx.state",
+    emission = "rpc.mmpbx.dectemission.state",
+}
+
+content_helper.getExactContent(content)
+
 local mmpbxd_filter = function(data)
     if ( data.enable == "false" ) or ( data.sipRegisterState == "" ) then
         return false
@@ -38,9 +45,24 @@ local mmpbxd_filter = function(data)
         data.uri = data.uri:sub(4)
     end
 
+    local classlight
     if data.sipRegisterState then
-        data.sipRegisterState =  data.sipRegisterState
-        data.sipRegisterState = ui_helper.createSimpleLight(data.sipRegisterState=="Registered" and "1" or "0", T(data.sipRegisterState))
+        data.sipRegisterState = data.sipRegisterState
+        classlight="off"
+        if data.sipRegisterState=="Registered" then
+            classlight="green"
+        end
+        if data.failReason ~= "" then
+            classlight="red"
+            if data.failReason == "MMPBX_REG_CLIENT_REASON_RESPONSE_REQUEST_FAILURE_RECVD" then
+                data.sipRegisterState = T"Registration refused"
+            elseif data.failReason == "MMPBX_REG_CLIENT_REASON_NETWORK_ERROR" then
+                data.sipRegisterState = T"Network error"
+            else
+                data.sipRegisterState = data.failReason
+            end
+        end
+        data.sipRegisterState = ui_helper.createSimpleLight(nil, T(data.sipRegisterState), { light = { class = classlight } })
     end
 
     if data.callState then
@@ -106,6 +128,7 @@ end
 concat_table(mmpbx_table)
 
 local data = {
+    mmpbx_status = ui_helper.createLabel(T"Service", ui_helper.createSimpleLight(content["status"]=="NA" and "0" or "1", T(content["status"])), basic),
     mmpbx_table = table.concat(mmpbx_string) or ""
 }
 

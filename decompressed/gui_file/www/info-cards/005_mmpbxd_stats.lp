@@ -9,12 +9,9 @@ local ui_helper = require("web.ui_helper")
 
 local content = {
   status = "rpc.mmpbx.state",
-
   accCode = "uci.mmpbxbrcmdectdev.dect_base.access_code",
   baseName = "uci.mmpbxbrcmdectdev.dect_base.user_friendly_name",
-
-  emission = "rpc.mmpbx.dectemission.state", 
-
+  emission = "rpc.mmpbx.dectemission.state",
 }
 
 content_helper.getExactContent(content)
@@ -37,8 +34,10 @@ if not ( content.max_upstream == "0" ) then
     }
 	
 	local html = {}
-	
+
+    html[#html + 1] = '<span data-bind="html: mmpbx_status">'
 	html[#html + 1] = ui_helper.createLabel(T"Service", ui_helper.createSimpleLight(content["status"]=="NA" and "0" or "1", T(content["status"])), basic)
+    html[#html + 1] = '</span>'
 
 	if ( variant == "Technicolor TG799vac" ) or ( variant == "Technicolor TG800vac" )  then
         html[#html + 1] = ui_helper.createLabel(T"DECT Emission Mode ", ui_helper.createSimpleLight(content.emission, content.emission == "1" and T"Enabled" or T"Disabled"), basic)
@@ -61,7 +60,7 @@ ngx.print('\
 <script>\
 var InfoMmpbxCardInterval;\
 $(document).ready(function () {\
-	new createAjaxUpdateCard("infommpbxdtab","/ajax/mmpbx_status.lua",InfoMmpbxCardInterval,10000);\
+	new createAjaxUpdateCard("infommpbxdtab","/ajax/mmpbx_status.lua",InfoMmpbxCardInterval,4000);\
 })\
 </script>\
 '); 
