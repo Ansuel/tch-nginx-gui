@@ -4298,3 +4298,9 @@ msgstr ""
 
 msgid "Modem Stats"
 msgstr ""
+
+msgid "Registration refused"
+msgstr ""
+
+msgid "Network error"
+msgstr ""
