@@ -4288,19 +4288,19 @@ msgid "Connection issue: "
 msgstr "Problema connessione: "
 
 msgid "Mem Free Graph"
-msgstr ""
+msgstr "Grafico memoria libera"
 
 msgid "CPU Usage Graph"
-msgstr ""
+msgstr "Grafico uso CPU"
 
 msgid "Modem Stats Graph"
-msgstr ""
+msgstr "Grafico statistiche modem"
 
 msgid "Modem Stats"
-msgstr ""
+msgstr "Statistiche modem"
 
 msgid "Registration refused"
-msgstr ""
+msgstr "Registrazioni rifiutate"
 
 msgid "Network error"
-msgstr ""
+msgstr "Errore di rete"
