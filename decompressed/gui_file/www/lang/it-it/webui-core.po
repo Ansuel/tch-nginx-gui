@@ -4300,7 +4300,7 @@ msgid "Modem Stats"
 msgstr "Statistiche modem"
 
 msgid "Registration refused"
-msgstr "Registrazioni rifiutate"
+msgstr "Registrazione rifiutata"
 
 msgid "Network error"
 msgstr "Errore di rete"
