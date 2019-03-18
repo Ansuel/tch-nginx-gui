@@ -69,6 +69,7 @@ local mmpbx_scc = {
   config = config_mmpbx,
   type = "scc",
   options = {"eon", "seperator", "inter_digit_timer", "mode" },
+  lists = {"network"}
 }
 mapper("uci_1to1").registerNamedMultiMap(mmpbx_scc)
 
@@ -111,7 +112,7 @@ local mmpbx_audio_notification = {
    config = config_mmpbx,
    type = "audionotification",
    options = {"delay", "repeat_after"},
-   lists = {"play", "duration", "loop_from", "loop_to", "loop_iterations"}
+   lists = {"play", "duration", "loop_from", "loop_to", "loop_iterations", "network"}
 }
 mapper("uci_1to1").registerNamedMultiMap(mmpbx_audio_notification)
 
