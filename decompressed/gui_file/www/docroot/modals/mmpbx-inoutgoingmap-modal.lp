@@ -182,7 +182,7 @@ if ngx.req.get_method() == "POST" then
 	    path = rpcpath..v.paramindex
             for j,w in ipairs(incoming_outgoing_map_columns) do
 		if w.type == "checkboxswitch" then
-		    if post_args["outg_"..w.name.."."..i] == "1" and post_args["outg_"..w.name.."."..i] ~= outgoing_map_data[i][j] then
+		    if post_args["outg_"..w.name.."."..i] and post_args["outg_"..w.name.."."..i] ~= outgoing_map_data[i][j] then
 		        content_set[path.."."..w.param] = post_args["outg_"..w.name.."."..i]
 		    end
 		end
