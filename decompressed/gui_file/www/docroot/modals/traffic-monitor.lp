@@ -211,7 +211,6 @@ for Intf, IntfName in pairs (TrafficIntf) do
 	traffic[Intf] = {}
 	for _,TrafficType in pairs({"rx","tx"}) do
 		traffic[Intf][TrafficType] = getTrafficData(TrafficType.."_bytes",IntfName)
-		ngx.log(1,TrafficType)
 	end
 end
 
@@ -395,7 +394,7 @@ var wifi_ctx = document.getElementById("WiFiChart").getContext("2d");\
 var WiFiChart = new Chart(wifi_ctx, {\
     type: "line",\
     data: {labels: ['); ngx.print(traffic.wifi.tx.time); ngx.print('],\
-		"datasets":[{"data":['); ngx.print(traffic.lan.tx.data); ngx.print('],\
+		"datasets":[{"data":['); ngx.print(traffic.wifi.tx.data); ngx.print('],\
 			"pointBackgroundColor": "#90cd8a",\
 			"backgroundColor": "#90cd8a50",\
 		},\
