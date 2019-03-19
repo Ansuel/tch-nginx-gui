@@ -6,6 +6,7 @@ local proxy = require("datamodel")
 local ngx = ngx
 
 local content_helper = require("web.content_helper")
+local post_helper = require("web.post_helper")
 local ui_helper = require("web.ui_helper")
 
 local mmpbxd_columns = {
@@ -35,6 +36,16 @@ local content = {
 }
 
 content_helper.getExactContent(content)
+
+local time_t = {}
+local function convert2Sec(value)
+    value = string.untaint(value)
+    time_t.year, time_t.month, time_t.day, time_t.hour, time_t.min, time_t.sec = value:match("(%d+)-(%d+)-(%d+)%s+(%d+):(%d+):(%d+)")
+    if time_t.year then
+        return os.time(time_t)
+    end
+    return 0
+end
 
 local mmpbxd_filter = function(data)
     if ( data.enable == "false" ) or ( data.sipRegisterState == "" ) then
@@ -80,17 +91,28 @@ local mmpbxd_filter = function(data)
         end
 
         if ( data.callState ~= "MMPBX_CALLSTATE_IDLE" ) then
-
-            local Remoteparty
             local pf_path = proxy.get("rpc.mmpbx.calllog.info.")
             local pf_data = content_helper.convertResultToObject("rpc.mmpbx.calllog.info.",pf_path)
-            for _,v in ipairs(pf_data) do
+            for i = #pf_data, 1, -1 do
+                v = pf_data[i]
                 if v.Localparty  == originuri then
-                    Remoteparty = v.Remoteparty
+                    statestr = statestr .. "\n" .. v.Remoteparty
+                    if ( data.callState == "MMPBX_CALLSTATE_CONNECTED" ) then
+                        local Duration = ""
+                        if v.connectedTime ~= "0" then
+                            local connectedTime = convert2Sec(v.connectedTime)
+                            if v.endTime ~= '0' then
+                                local endTime = convert2Sec(v.endTime)
+                                Duration = post_helper.secondsToTimeShort(endTime - connectedTime)
+                            else
+                                Duration = post_helper.secondsToTimeShort(os.time() - connectedTime)
+                            end
+                        end
+                        statestr =  statestr .. " " .. Duration
+                    end
+                    break
                 end
             end
-
-            statestr = statestr .. " " .. Remoteparty
         end
 
         data.callState = ui_helper.createSimpleLight(data.callState == "MMPBX_CALLSTATE_IDLE" and "0" or "1", statestr, nil, "fa fa-phone")

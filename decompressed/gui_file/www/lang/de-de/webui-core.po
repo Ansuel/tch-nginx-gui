@@ -4304,6 +4304,3 @@ msgstr ""
 
 msgid "Network error"
 msgstr ""
-
-msgid "Firmware Version: <strong>%s</strong>"
-msgstr ""

@@ -4304,6 +4304,3 @@ msgstr "Registrazione rifiutata"
 
 msgid "Network error"
 msgstr "Errore di rete"
-
-msgid "Firmware Version: <strong>%s</strong>"
-msgstr ""
