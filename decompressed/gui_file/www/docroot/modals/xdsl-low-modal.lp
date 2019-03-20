@@ -76,6 +76,7 @@ end
 
 local content = {
 	dsl0_status 					= "sys.class.xdsl.@line0.Status",
+    dsl0_linkencapsulation 		    = "sys.class.xdsl.@line0.LinkEncapsulationUsed",
     dsl0_mode 					    = "rpc.xdslctl.DslMode",
     dsl0_profile 					= "rpc.xdslctl.DslProfile",
     dsl0_port 					    = "rpc.xdslctl.DslamPort",
@@ -233,7 +234,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       html[#html + 1] = ui_helper.createLight(T"Status", nil, state_map[untaint(content.dsl0_enabled)], { light = { class = light_map[untaint(content.dsl0_enabled)] } })
 	  html[#html + 1] = ui_helper.createLabel(T"DSL Connection Status", T(content.dsl0_status), span5 )
 	  if ( content.dsl0_status == "Up" ) then
-	  html[#html + 1] = ui_helper.createLabel(T"DSL Mode", content.dsl0_mode, span5 )
+	  html[#html + 1] = ui_helper.createLabel(T"DSL Mode", content.dsl0_mode .. " (" .. content.dsl0_linkencapsulation .. ")", span5 )
         if(content.dsl0_profile ~= "Not Found") then
             html[#html + 1] = ui_helper.createLabel(T"VDSL Profile", content.dsl0_profile, span5 )
             html[#html + 1] = ui_helper.createLabel(T"VDSL DSLAM Port", content.dsl0_port, span5 )
