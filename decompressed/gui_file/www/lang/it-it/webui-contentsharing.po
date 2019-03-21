@@ -137,3 +137,6 @@ msgstr "Riavvio..."
 
 msgid "no"
 msgstr "no"
+
+msgid "Profiling"
+msgstr "Profilazione"
