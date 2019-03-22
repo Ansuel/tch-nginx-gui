@@ -168,10 +168,10 @@ uci:foreach('web', 'rule', function(s)
 	elseif type(s.roles) == "string" then
 		rule_roles[#rule_roles+1]=s.roles
 	end
-	if not contains("engineer",roles) then
+	if not contains("engineer",rule_roles) then
 		rule_roles[#rule_roles+1]="engineer"
 	end
-	if not contains("admin",roles) then
+	if not contains("admin",rule_roles) then
 		rule_roles[#rule_roles+1]="admin"
 	end
 	uci:set('web',s['.name'],'roles',rule_roles)
