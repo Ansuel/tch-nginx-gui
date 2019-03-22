@@ -1548,6 +1548,18 @@ prevent_total_brick() {
 	sed -i 's/#//' /etc/inittab
 }
 
+clean_cups_block_rule() {
+	firewall_change=0
+	for ret in $(uci show firewall | grep CUPS-lan | sed 's|.name.*||'); do
+		uci del $ret
+		firewall_change=1
+	done
+	if [ $firewall_change -eq 1 ]; then
+		uci commit firewall
+		/etc/init.d/firewall restart
+	fi
+}
+
 root() {
 
 	logger -s -t 'Root Script' "Rooting in progress..."
@@ -1675,6 +1687,8 @@ root() {
 	restore_nginx
 	logger_command "Enabling hardware serial console..."
 	prevent_total_brick
+	logger_command "Cleaning cups firewall rule..."
+	clean_cups_block_rule
 
 	rootchecks #This check root availability
 
