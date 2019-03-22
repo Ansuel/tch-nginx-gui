@@ -9,6 +9,8 @@ local format, concat = string.format, table.concat
 
 local function getStatsData(dtype)
     local nline = 1
+	local total
+	local dataline
     local data = {}
 	local datatime = {}
     local filename = format("/tmp/trafficmon/stats_%s", dtype)
@@ -17,15 +19,26 @@ local function getStatsData(dtype)
         for line in f:lines() do
             if (nline < 2 ) then
                 nline = nline + 1 --skip first line
+				total = line
             elseif (nline == 2) then
+				if dtype:match("mem") then
+					dataline = tonumber(total)-tonumber((line:match(".*%s"):gsub("%s+", ""))) or "NaN"
+				else
+					dataline = line:match(".*%s"):gsub("%s+", "") or "NaN"
+				end
 				nline = nline +1
-				data[#data+1] = line:match(".*%s"):gsub("%s+", "") or "NaN"
+				data[#data+1] = dataline
 				datatime[#datatime+1] = '"'
 				datatime[#datatime+1] = line:match("%s.*"):gsub("%s+","") or "NaN"
 				datatime[#datatime+1] = '"'
             else
+				if dtype:match("mem") then
+					dataline = tonumber(total)-tonumber((line:match(".*%s"):gsub("%s+", ""))) or "NaN"
+				else
+					dataline = line:match(".*%s"):gsub("%s+", "") or "NaN"
+				end
 				data[#data+1] = ","
-				data[#data+1] = line:match(".*%s"):gsub("%s+", "") or "NaN"
+				data[#data+1] = dataline
 				datatime[#datatime+1] = ","
 				datatime[#datatime+1] = '"'
 				datatime[#datatime+1] = line:match("%s.*"):gsub("%s+","") or "NaN"
@@ -36,6 +49,7 @@ local function getStatsData(dtype)
     end
 	
 	local ret = {
+		total = total,
 		data = concat(data),
 		time = concat(datatime),
 	}
@@ -67,7 +81,7 @@ ngx.print(ui_helper.createHeader(T"Modem Stats Graph", false, true) ); ngx.print
 	  html[#html+1] = "<fieldset><legend>" .. T"CPU Usage Graph" .. "</legend>"
 	  html[#html+1] = '<div style="height:400px"><canvas id="CPUGraph"></canvas></div>'
 	  html[#html+1] = "</fieldset>"
-	  html[#html+1] = "<fieldset><legend>" .. T"Mem Free Graph" .. "</legend>"
+	  html[#html+1] = "<fieldset><legend>" .. T"Mem Used Graph" .. "</legend>"
 	  html[#html+1] = '<div style="height:400px"><canvas id="RAMGraph"></canvas></div>'
 	  html[#html+1] = "</fieldset>"
 	  ngx.print(html)
@@ -102,7 +116,7 @@ var CPUGraph = new Chart(cpu_ctx, {\
 					if (value %1 == 0 ) \
 						return value+"%"}, \
 				min: 0, \
-				max: 100, \
+				max:'); ngx.print(stats.cpu.total); ngx.print(',\
 				stepSize: 20,}}]},\
 		tooltips: {\
                 enabled: true,\
@@ -130,7 +144,9 @@ var RAMGraph = new Chart(ram_ctx, {\
 		yAxes: [{ticks: {\
 				callback: function(value) { \
 					return formatBytes(value,2) \
-				},}}]},\
+				},\
+				min: 0,\
+				max:'); ngx.print(stats.ram.total); ngx.print('}}]},\
 		tooltips: {\
                 enabled: true,\
                 mode: "single",\

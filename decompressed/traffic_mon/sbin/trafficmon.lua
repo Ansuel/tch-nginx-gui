@@ -17,6 +17,23 @@ if arg[1] == "-i" then
 	binit = true
 end
 
+local function getMemTotal()
+	local ret = "0"
+	
+	local f = io.open("/proc/meminfo","r")
+	if f then
+		for line in f:lines() do
+			if line:match("MemTotal") then
+				ret = line:gsub("MemTotal:%s*",""):gsub("[A-z]+%s*","")
+				break
+			end
+		end
+		f:close()
+	end
+	
+	return ret
+end
+
 local function getMemFree()
 	local ret = "0"
 	
@@ -36,9 +53,19 @@ end
 
 local function handleStatsFile(name, statsData,times)
 	local fname = datadir .. name
+	
+	local Total
+	
+	if name:match("mem") then
+		Total = getMemTotal()
+	else
+		Total = "100"
+	end
+	
 	if binit then
 		f = io.open(fname, "w")
 		if f then
+			f:write(Total .. "\n")
 			f:write(statsData .. " " .. times .. "\n")
 			f:close()
 		end
@@ -52,9 +79,10 @@ local function handleStatsFile(name, statsData,times)
 			f:close()
 			f = io.open(fname, "w")
 			if f then
+				f:write(Total .. "\n")
 				local insert = false
 				for index,value in ipairs(data) do
-					if index <= datanum then
+					if index > 1 and index <= datanum then
 						local oldtimes = tonumber((value:gsub("[0-9]+%s",""):gsub(":","")))--v:match(".*%s")--:gsub("%s+",""):gsub(":","")
 						local ntimes = tonumber((times:gsub(":","")))
 						if oldtimes == ntimes then
