@@ -13,7 +13,11 @@ local counter = 0
 
 -- dch = dummy_card_html VARIABLE TOO LONG... 
 local function gen_dummy_card(modalPath)
-
+	
+	if not modalPath then
+		return {}
+	end
+	
 	local dch = {}
 	
 	counter = counter+1
