@@ -1499,10 +1499,6 @@ check_webui_config() {
 			uci set wireless.global.wifi_analyzer_disable='0'
 		fi
 	fi
-	if [ "$(uci get -q web.usr_admin.role)" != "engineer" ]; then
-		uci set web.usr_admin.role='engineer'
-		uci commit web
-	fi
 }
 
 reapply_gui_after_reset() {
