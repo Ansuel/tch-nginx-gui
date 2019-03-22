@@ -1608,12 +1608,16 @@
 		border-top: 1px solid #ddd;
 	}
 	
-	td[data-title]::before {
+	.table td {
+		border-top: unset;
+		flex-grow: 1;
+	}
+	
+	.table td[data-title]::before {
 		display: block;
 	}
 	
-	td[data-title] {
-		border-top: unset;
+	.table td[data-title] {
 		flex-grow: 1;
 	}
 	
