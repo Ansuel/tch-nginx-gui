@@ -4322,3 +4322,6 @@ msgstr ""
 
 msgid "Are you sure you want to reset config of this modem? </br><strong> This is permanent, save any config before this action.</strong>"
 msgstr ""
+
+msgid "Mem Used Graph"
+msgstr ""
