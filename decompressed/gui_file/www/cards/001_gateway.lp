@@ -31,6 +31,8 @@ elseif ( model == "DGA4132" ) then
 	model = "AGTHP"
 elseif ( model == "MediaAccess DGA4131FWB" ) then
 	model = "DGA4131FWB"
+elseif ( model:match("TG788") ) then
+	model = "TG788vn"
 elseif ( model:match("TG789") ) then
 	model = "TG789vac"
 elseif ( model == "Technicolor TG799vac" ) then
