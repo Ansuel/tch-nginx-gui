@@ -726,11 +726,6 @@ create_gui_type() {
 		else
 			uci set modgui.app.aria2_webui="0"
 		fi
-	elif [ "$( uci get -q modgui.app.aria2_webui)" == "1" ] &&
-	[ ! -d /www/docroot/aria ] && 
-	[ -f /usr/share/transformer/scripts/install_aria2.sh ]; then 
-		#this restore aria... my bad for this bug...
-		/usr/share/transformer/scripts/install_aria2.sh
 	fi
 	if [ ! "$( uci get -q modgui.app.luci_webui)" ]; then
 		if [ -d /www_luci ]; then
@@ -768,8 +763,8 @@ create_gui_type() {
 		fi
 	elif [ "$( uci get -q modgui.app.blacklist_app)" == "1" ] &&
 	[ ! -f /www/docroot/modals/mmpbx-contacts-modal.lp.orig ] &&
-	[ -f /usr/share/transformer/scripts/install_blacklist.sh ]; then
-		/usr/share/transformer/scripts/install_blacklist.sh
+	[ -f /usr/share/transformer/scripts/appInstallRemoveUtility.sh ]; then
+		/usr/share/transformer/scripts/appInstallRemoveUtility.sh install blacklist
 	fi
 }
 
