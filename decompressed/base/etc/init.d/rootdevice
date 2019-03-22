@@ -1494,7 +1494,7 @@ check_webui_config() {
 			rm /etc/config/web_unlock
 		fi
 	fi
-	if [ ! "$(uci get -q wireless.global.wifi_analyzer_disable)" ]; then
+	if [ "$(uci get -q wireless.global.wifi_analyzer_disable)" ]; then
 		 if [ "$(uci get -q wireless.global.wifi_analyzer_disable)" != "0" ]; then
 			uci set wireless.global.wifi_analyzer_disable='0'
 		fi
