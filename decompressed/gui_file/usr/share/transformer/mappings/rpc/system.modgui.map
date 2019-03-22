@@ -176,6 +176,10 @@ local SYSTEM_MODGUI_UTILITY_ = {
 	    access = "readWrite",
 	    type = "boolean",
 	  },
+	  resetconfig = {
+	    access = "readWrite",
+	    type = "boolean",
+	  },
 	  refreshdriver = {
 	    access = "readWrite",
 	    type = "boolean",
@@ -198,6 +202,7 @@ local SYSTEM_MODGUI_UTILITY_ = {
 	transfer_bank1 = "0",
 	refreshdriver = "0",
 	copy_bank = "0",
+	resetconfig = "0",
   },
   set = function(mapping, paramName, paramValue)
 		  if paramValue == "1" then
