@@ -48,7 +48,9 @@ restoreOriginalGui() {
 }
 
 resetConfig() {
+	rm -r /overlay/$(cat /proc/banktable/booted)/etc/uci-defaults/*
 	rm -r /etc/config/*
+	cp -r /rom/etc/config/* /etc/config/
 	reboot
 }
 
@@ -69,7 +71,7 @@ case "$1" in
 			echo "resetUtility: provide an option. Use --help to show them." 1>&2
 			;;
 		*)
-			echo "resetUtility: unknown opzion '$1'" 1>&2
+			echo "resetUtility: unknown option '$1'" 1>&2
 			return 1
 esac
 
