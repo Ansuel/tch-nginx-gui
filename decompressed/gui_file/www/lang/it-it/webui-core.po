@@ -4306,22 +4306,22 @@ msgid "Network error"
 msgstr "Errore di rete"
 
 msgid "Resetting config to default, please wait..."
-msgstr ""
+msgstr "Ripristino configurazione ai valori predefiniti..."
 
 msgid "Reset config"
-msgstr ""
+msgstr "Ripristina configurazione"
 
 msgid "Reset the router to factory settings and mantain modded GUI."
-msgstr ""
+msgstr "Ripristina il modem ai valori di fabbrica e mantiene la GUI mod."
 
 msgid "Reset config to Factory"
-msgstr ""
+msgstr "Ripristina configurazione di fabbrica"
 
 msgid "Remove Config"
-msgstr ""
+msgstr "Rimuovi configurazione"
 
 msgid "Are you sure you want to reset config of this modem? </br><strong> This is permanent, save any config before this action.</strong>"
-msgstr ""
+msgstr "Sei sicuro di voler ripristinare la configurazione del modem?<br/>Questo azione è permanente.<br/>Salva qualsiasi configurazione prima di effettuare questa azione."
 
 msgid "Mem Used Graph"
-msgstr ""
+msgstr "Grafico memoria usata"
