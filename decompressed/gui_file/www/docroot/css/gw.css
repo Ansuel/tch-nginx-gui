@@ -3661,7 +3661,8 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	box-shadow: 0 2px 20px 0 rgba(203, 43, 190, 0.50);
 	overflow: hidden;
 	z-index: 2;
-	position: relative
+	position: relative;
+	font-size: 15px;
 }
 .container>#footer {
 	margin: auto;
@@ -3823,7 +3824,6 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 .smallcard .content {
 	overflow: hidden;
 	font-weight: 500;
-	font-size: 16px;
 	height: 110px;
 	padding: 10px;
 	position: relative
@@ -3836,7 +3836,6 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	height: 32px;
 }
 .smallcard .subinfos {
-	font-size: 16px;
 	line-height: 20px;
 	font-weight: 300;
 	margin-left: 20px;
@@ -3914,9 +3913,6 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	white-space: nowrap!important;
 	overflow: hidden;
 	text-overflow: ellipsis
-}
-.subinfos {
-	word-wrap: break-word!important
 }
 a {
 	text-decoration: none;
@@ -5326,7 +5322,6 @@ form .switch {
 .popUp {
 	z-index: 2500;
 	position: absolute;
-	color: #333;
 	top: 35%;
 	left: 40%;
 	margin-left: 20px;
@@ -5503,7 +5498,6 @@ form .switch {
 #device_popUp {
 	z-index: 6000;
 	position: absolute;
-	color: #333;
 	top: 35%
 }
 #upgrade-alert {
@@ -5524,7 +5518,6 @@ form .switch {
 	left: 0;
 	top: 0;
 	position: absolute;
-	color: #333;
 	width: 100%;
 	height: 100%;
 	opacity: .8;

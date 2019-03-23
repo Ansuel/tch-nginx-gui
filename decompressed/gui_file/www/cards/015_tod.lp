@@ -59,7 +59,6 @@ if session:hasAccess("/modals/tod-modal.lp") then
 	<div class="divtable">
 
     <% ngx.print(
-            '<p></p>',
             '<span class="simple-desc">',
            '<i " class="far fa-eye" aria-hidden="true" href="#">&nbsp</i>',
            format(N("<strong %s>%d Access Control</strong> rule defined",
@@ -71,7 +70,6 @@ if session:hasAccess("/modals/tod-modal.lp") then
 
     <% if session:hasAccess("/modals/tod_wireless-modal.lp") then
        ngx.print(
-            '<p></p>',
             '<span class="simple-desc">',
           '<i " class="far fa-eye" aria-hidden="true" href="#">&nbsp</i>',
           format(N("<strong %s>%d Wireless Control</strong> rule defined",

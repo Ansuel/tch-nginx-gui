@@ -34,7 +34,7 @@ ngx.print('\
 <script>\
 var InfoPortCardInterval;\
 $(document).ready(function () {\
-	new createAjaxUpdateCard("infoporttab","/ajax/port_status.lua",InfoPortCardInterval,10000);\
+	new createAjaxUpdateCard("infoporttab","/ajax/port_status.lua",InfoPortCardInterval,3000);\
 })\
 </script>\
 '); 

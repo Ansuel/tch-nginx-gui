@@ -189,26 +189,9 @@ columns[11]["header"] = T"Band"
 ');  ngx.print( ui_helper.createHeader(T"WiFi Nurse", false, true) ); ngx.print('\
 \
 <div class="modal-body update">');
-	local tabs = {
-        {
-            desc = T"Devices List",
-            target = "modals/device-modal.lp",
-        },
-        {
-            desc = T"Devices Map",
-            target = "modals/hostmap-modal.lp",
-        },
-		{
-            desc = T"WiFi Nurse",
-			active = "active",
-            target = "modals/wifi-nurse-modal.lp",
-        },
-		{
-            desc = T"Traffic Monitor",
-            target = "modals/traffic-monitor.lp",
-        },
-    }
-    ngx.print(ui_helper.createModalTabs(tabs))
+	local lp = require("web.lp")
+    lp.setpath("/www/snippets/")
+    lp.include("tabs-device.lp")
 	ngx.print('\
   <form class="form-horizontal" method="post" action="modals/wifi-nurse-modal.lp">\
     ');  

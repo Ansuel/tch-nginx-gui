@@ -726,11 +726,6 @@ create_gui_type() {
 		else
 			uci set modgui.app.aria2_webui="0"
 		fi
-	elif [ "$( uci get -q modgui.app.aria2_webui)" == "1" ] &&
-	[ ! -d /www/docroot/aria ] && 
-	[ -f /usr/share/transformer/scripts/install_aria2.sh ]; then 
-		#this restore aria... my bad for this bug...
-		/usr/share/transformer/scripts/install_aria2.sh
 	fi
 	if [ ! "$( uci get -q modgui.app.luci_webui)" ]; then
 		if [ -d /www_luci ]; then
@@ -768,8 +763,8 @@ create_gui_type() {
 		fi
 	elif [ "$( uci get -q modgui.app.blacklist_app)" == "1" ] &&
 	[ ! -f /www/docroot/modals/mmpbx-contacts-modal.lp.orig ] &&
-	[ -f /usr/share/transformer/scripts/install_blacklist.sh ]; then
-		/usr/share/transformer/scripts/install_blacklist.sh
+	[ -f /usr/share/transformer/scripts/appInstallRemoveUtility.sh ]; then
+		/usr/share/transformer/scripts/appInstallRemoveUtility.sh install blacklist
 	fi
 }
 
@@ -1499,14 +1494,10 @@ check_webui_config() {
 			rm /etc/config/web_unlock
 		fi
 	fi
-	if [ ! "$(uci get -q wireless.global.wifi_analyzer_disable)" ]; then
+	if [ "$(uci get -q wireless.global.wifi_analyzer_disable)" ]; then
 		 if [ "$(uci get -q wireless.global.wifi_analyzer_disable)" != "0" ]; then
 			uci set wireless.global.wifi_analyzer_disable='0'
 		fi
-	fi
-	if [ "$(uci get -q web.usr_admin.role)" != "engineer" ]; then
-		uci set web.usr_admin.role='engineer'
-		uci commit web
 	fi
 }
 
@@ -1555,6 +1546,18 @@ start_stop_nginx() {
 prevent_total_brick() {
 	#Enable hardware serial console to intercept bootloops
 	sed -i 's/#//' /etc/inittab
+}
+
+clean_cups_block_rule() {
+	firewall_change=0
+	for ret in $(uci show firewall | grep CUPS-lan | sed 's|.name.*||'); do
+		uci del $ret
+		firewall_change=1
+	done
+	if [ $firewall_change -eq 1 ]; then
+		uci commit firewall
+		/etc/init.d/firewall restart
+	fi
 }
 
 root() {
@@ -1684,6 +1687,8 @@ root() {
 	restore_nginx
 	logger_command "Enabling hardware serial console..."
 	prevent_total_brick
+	logger_command "Cleaning cups firewall rule..."
+	clean_cups_block_rule
 
 	rootchecks #This check root availability
 

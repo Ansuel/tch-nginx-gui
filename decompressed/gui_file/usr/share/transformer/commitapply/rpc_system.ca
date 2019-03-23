@@ -3,31 +3,37 @@
 ^rpc%.system%.switchover cat /proc/banktable/notbooted > /proc/banktable/active; reboot
 ^sys%.bootp%.enable /usr/bin/bootp
 ^rpc%.system%.modgui%.upgradegui%.start start-stop-daemon -S -b -x /usr/share/transformer/scripts/upgradegui GuiRequest
-^rpc%.system%.modgui%.utility%.resetgui /usr/share/transformer/scripts/resetgui.sh
-^rpc%.system%.modgui%.utility%.removeroot /usr/share/transformer/scripts/hardreset.sh
+^rpc%.system%.modgui%.utility%.resetgui /usr/share/transformer/scripts/resetUtility.sh --resetGui
+^rpc%.system%.modgui%.utility%.removeroot /usr/share/transformer/scripts/resetUtility.sh --removeRoot
+^rpc%.system%.modgui%.utility%.resetconfig /usr/share/transformer/scripts/resetUtility.sh --removeConfig
 ^rpc%.system%.modgui%.utility%.checkver start-stop-daemon -S -b -x /usr/share/transformer/scripts/checkver
 ^rpc%.system%.modgui%.utility%.transfer_bank1 /usr/share/transformer/scripts/transfer_bank1.sh
 ^rpc%.system%.modgui%.utility%.refreshdriver start-stop-daemon -S -b -x /usr/share/transformer/scripts/refresh_driver.sh
 ^rpc%.system%.modgui%.utility%.copy_bank /usr/share/transformer/scripts/copy_bank.sh
-^rpc%.system%.modgui%.app%.install_luci /usr/share/transformer/scripts/install_luci.sh
-^rpc%.system%.modgui%.app%.remove_luci /usr/share/transformer/scripts/remove_luci.sh
+
 ^rpc%.system%.modgui%.app%.start_amule /etc/init.d/amule start
 ^rpc%.system%.modgui%.app%.stop_amule /etc/init.d/amule stop
-^rpc%.system%.modgui%.app%.install_amule /usr/share/transformer/scripts/install_amule.sh
-^rpc%.system%.modgui%.app%.remove_amule /usr/share/transformer/scripts/remove_amule.sh
+
 ^rpc%.system%.modgui%.app%.start_aria2 /etc/init.d/aria2 start
 ^rpc%.system%.modgui%.app%.stop_aria2 /etc/init.d/aria2 stop
-^rpc%.system%.modgui%.app%.install_aria2 /usr/share/transformer/scripts/install_aria2.sh
-^rpc%.system%.modgui%.app%.remove_aria2 /usr/share/transformer/scripts/remove_aria2.sh
+
 ^rpc%.system%.modgui%.app%.start_transmission /etc/init.d/transmission start
 ^rpc%.system%.modgui%.app%.stop_transmission /etc/init.d/transmission stop
-^rpc%.system%.modgui%.app%.install_transmission /usr/share/transformer/scripts/install_transmission.sh
-^rpc%.system%.modgui%.app%.remove_transmission /usr/share/transformer/scripts/remove_transmission.sh
-^rpc%.system%.modgui%.app%.install_blacklist /usr/share/transformer/scripts/install_blacklist.sh
-^rpc%.system%.modgui%.app%.install_emptyblacklist /usr/share/transformer/scripts/install_blacklist.sh empty
-^rpc%.system%.modgui%.app%.remove_blacklist /usr/share/transformer/scripts/remove_blacklist.sh
-^rpc%.system%.modgui%.app%.install_xupnp /usr/share/transformer/scripts/install_xupnp.sh
-^rpc%.system%.modgui%.app%.remove_xupnp /usr/share/transformer/scripts/remove_xupnp.sh
-^rpc%.system%.modgui%.app%.install_telstra /usr/share/transformer/scripts/install_telstra.sh
-^rpc%.system%.modgui%.app%.remove_telstra /usr/share/transformer/scripts/remove_telstra.sh
+
+^rpc%.system%.modgui%.app%.install_luci /usr/share/transformer/scripts/appInstallRemoveUtility.sh install luci
+^rpc%.system%.modgui%.app%.remove_luci /usr/share/transformer/scripts/appInstallRemoveUtility.sh remove luci
+^rpc%.system%.modgui%.app%.install_amule /usr/share/transformer/scripts/appInstallRemoveUtility.sh install amule
+^rpc%.system%.modgui%.app%.remove_amule /usr/share/transformer/scripts/appInstallRemoveUtility.sh remove amule
+^rpc%.system%.modgui%.app%.install_aria2 /usr/share/transformer/scripts/appInstallRemoveUtility.sh install aria2
+^rpc%.system%.modgui%.app%.remove_aria2 /usr/share/transformer/scripts/appInstallRemoveUtility.sh remove aria2
+^rpc%.system%.modgui%.app%.install_transmission /usr/share/transformer/scripts/appInstallRemoveUtility.sh install transmission
+^rpc%.system%.modgui%.app%.remove_transmission /usr/share/transformer/scripts/appInstallRemoveUtility.sh remove transmission
+^rpc%.system%.modgui%.app%.install_blacklist /usr/share/transformer/scripts/appInstallRemoveUtility.sh install blacklist
+^rpc%.system%.modgui%.app%.install_emptyblacklist /usr/share/transformer/scripts/appInstallRemoveUtility.sh install blacklist empty
+^rpc%.system%.modgui%.app%.remove_blacklist /usr/share/transformer/scripts/appInstallRemoveUtility.sh remove blacklist
+^rpc%.system%.modgui%.app%.install_xupnp /usr/share/transformer/scripts/appInstallRemoveUtility.sh install xupnp
+^rpc%.system%.modgui%.app%.remove_xupnp /usr/share/transformer/scripts/appInstallRemoveUtility.sh remove xupnp
+^rpc%.system%.modgui%.app%.install_telstra /usr/share/transformer/scripts/appInstallRemoveUtility.sh install telstra
+^rpc%.system%.modgui%.app%.remove_telstra /usr/share/transformer/scripts/appInstallRemoveUtility.sh remove telstra
+
 ^rpc%.system%.modgui%.debuglog%.start /usr/share/transformer/scripts/generate-debug-file.sh dev

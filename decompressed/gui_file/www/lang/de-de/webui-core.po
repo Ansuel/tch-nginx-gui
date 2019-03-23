@@ -4286,3 +4286,42 @@ msgstr ""
 
 msgid "Connection issue: "
 msgstr ""
+
+msgid "Mem Free Graph"
+msgstr ""
+
+msgid "CPU Usage Graph"
+msgstr ""
+
+msgid "Modem Stats Graph"
+msgstr ""
+
+msgid "Modem Stats"
+msgstr ""
+
+msgid "Registration refused"
+msgstr ""
+
+msgid "Network error"
+msgstr ""
+
+msgid "Resetting config to default, please wait..."
+msgstr ""
+
+msgid "Reset config"
+msgstr ""
+
+msgid "Reset the router to factory settings and mantain modded GUI."
+msgstr ""
+
+msgid "Reset config to Factory"
+msgstr ""
+
+msgid "Remove Config"
+msgstr ""
+
+msgid "Are you sure you want to reset config of this modem? </br><strong> This is permanent, save any config before this action.</strong>"
+msgstr ""
+
+msgid "Mem Used Graph"
+msgstr ""

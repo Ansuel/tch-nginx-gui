@@ -82,7 +82,6 @@
     .popUp {
         z-index:2500;
         position: absolute;
-        color: #333;
         top: 35%;
         left: 3%;
         width: 93% !important;
@@ -1609,12 +1608,16 @@
 		border-top: 1px solid #ddd;
 	}
 	
-	td[data-title]::before {
+	.table td {
+		border-top: unset;
+		flex-grow: 1;
+	}
+	
+	.table td[data-title]::before {
 		display: block;
 	}
 	
-	td[data-title] {
-		border-top: unset;
+	.table td[data-title] {
 		flex-grow: 1;
 	}
 	

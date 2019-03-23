@@ -165,6 +165,9 @@ if ngx.req.get_method() == "POST" then
   if action == "system_remove_root" then
   	return resetreboot("rpc.system.modgui.utility.removeroot", "1")
   end
+  if action == "system_reset_config" then
+  	return resetreboot("rpc.system.modgui.utility.resetconfig", "1")
+  end
 elseif ngx.req.get_method() == "GET" then
   local action = ngx.req.get_uri_args().action
   if action == "upgradeguistatus" then
@@ -379,6 +382,15 @@ ngx.print('\
           class = "custom-handler"
         }
       }
+	local remove_config = {
+        group = {
+          class = "wait-for-reset"
+        },
+        button = {
+          id = "btn-remove-config",
+          class = "custom-handler"
+        }
+      }
     local info_box = {
         alert = {
       class = "alert alert-info",
@@ -401,13 +413,22 @@ ngx.print('\
 			id = "unrooting-msg"
 		}
     }
+	local resetting_config = {
+		alert = {
+			class = "alert hide",
+			id = "config-resetting-msg"
+		}
+    }
 
 	html[#html + 1] = ui_helper.createAlertBlock(T"Resetting to default gui, please wait...", resetting)
+	html[#html + 1] = ui_helper.createAlertBlock(T"Resetting config to default, please wait...", resetting_config)
 	html[#html + 1] = ui_helper.createAlertBlock(T"Unrooting and reverting to factory defaults, please wait...", unrooting)
     html[#html + 1] = ui_helper.createAlertBlock(T"Reset the custom GUI settings. No custom firmware file will be removed. All custom GUI functions will still be available.", info_box)
     html[#html + 1] = ui_helper.createButton(T"Restore GUI", T"Restore", "icon-refresh", reset_gui)
     html[#html + 1] = ui_helper.createAlertBlock(T"Reset the router to factory settings and remove the custom firmware files.", info_box)
     html[#html + 1] = ui_helper.createButton(T"Reset to Factory", T"Remove Root", "icon-refresh", remove_root)
+	html[#html + 1] = ui_helper.createAlertBlock(T"Reset the router to factory settings and mantain modded GUI.", info_box)
+    html[#html + 1] = ui_helper.createButton(T"Reset config to Factory", T"Remove Config", "icon-refresh", remove_config)
     ngx.print(html)
 
 ngx.print('\
@@ -490,6 +511,17 @@ ngx.print('\
          tch.removeProgress();\
          tch.showProgress(processMsg);\
          return resetreboot($("#unrooting-msg"), $("#btn-remove-root"), "system_remove_root" );\
+	});\
+  });\
+  $("#btn-remove-config").on("click", function() {\
+	var heading = "');  ngx.print(T'Reset config'); ngx.print('";\
+    var processMsg = "');  ngx.print(T'Resetting...'); ngx.print('";\
+    confirmationDialogue(\'');  ngx.print(T"Are you sure you want to reset config of this modem? </br><strong> This is permanent, save any config before this action.</strong>"); ngx.print('\',heading);\
+	var PopUpHeaderText = "."+$(".popUp>.header>.header-title>p").text().split(" ")[0];\
+    $(document).on("click", PopUpHeaderText, function() {\
+         tch.removeProgress();\
+         tch.showProgress(processMsg);\
+         return resetreboot($("#config-resetting-msg"), $("#btn-remove-config"), "system_reset_config" );\
 	});\
   });\
 \

@@ -11,6 +11,10 @@ local function contains(elem, tbl)
 
 	local v
 	
+	if not tbl then
+		return nil
+	end
+	
 	for _, v in ipairs(tbl) do
 		if v == elem then
 			return true
@@ -41,6 +45,7 @@ local check_rule = {
 	{ name = 'fastcacheoptionmodal', target = '/modals/fast-cache-option-modal.lp' },
 	{ name = 'dosprotectmodal', target = '/modals/dosprotect-modal.lp' },
 	{ name = 'mmpbxdectmodal', target = '/modals/mmpbx-dect-modal.lp' },
+	{ name = 'modemstatsmodal', target = '/modals/modem-stats-modal.lp' },
 	{ name = 'nfcmodal', target = '/modals/nfc-modal.lp' },
 	{ name = 'stats', target = '/stats.lp' },
 	{ name = 'cards', target = '/cards.lp' },
@@ -150,6 +155,29 @@ for _ , elem in pairs(card_check_rule) do
 		uci:set('web', elem.name , 'hide', '0')
 	end
 end
+
+local rule_roles
+
+--Check if rule contains engineer role and adds it
+uci:foreach('web', 'rule', function(s)
+	rule_roles={}
+	if type(s.roles) == "table" then
+		for _ , s in pairs(s.roles) do
+			rule_roles[#rule_roles+1]=s
+		end
+	elseif type(s.roles) == "string" then
+		rule_roles[#rule_roles+1]=s.roles
+	end
+	if not contains("engineer",rule_roles) then
+		rule_roles[#rule_roles+1]="engineer"
+	end
+	if not contains("admin",rule_roles) then
+		rule_roles[#rule_roles+1]="admin"
+	end
+	uci:set('web',s['.name'],'roles',rule_roles)
+  end)
+
+uci:set('web','usr_admin','role','engineer')
 
 --Commit only if new rules added
 if new_rule then

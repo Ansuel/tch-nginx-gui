@@ -59,26 +59,9 @@ print(ui_helper.createHeader(T"Devices", false, true))
   ngx.print('\
 <div class="modal-body update">\
 ');  
-local tabs = {
-    {
-        desc = T"Devices List",
-        target = "modals/device-modal.lp",
-    },
-    {
-        desc = T"Devices Map",
-        active = "active",
-        target = "modals/hostmap-modal.lp",
-    },
-	{
-            desc = T"WiFi Nurse",
-            target = "modals/wifi-nurse-modal.lp",
-    },
-	{
-        desc = T"Traffic Monitor",
-        target = "modals/traffic-monitor.lp",
-    },
-}
-ngx.print(ui_helper.createModalTabs(tabs))
+	local lp = require("web.lp")
+    lp.setpath("/www/snippets/")
+    lp.include("tabs-device.lp")
   ngx.print('\
 <form class="form-horizontal" method="post" action="modals/hostmap-modal.lp">\
 <fieldset>\
@@ -270,8 +253,6 @@ function getInfo(mac,path,wifi,ap)\
       $("#rssivalue").html(data.RSSI + "dBm");\
       bars(data.RSSI);\
    })\
-   .error(function() {\
-   });\
    timerajax = window.setTimeout(function () {getInfo(mac,path,wifi,ap);}, checktimer);\
 }\
 // Wifi chart scripts\

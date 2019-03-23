@@ -9,7 +9,7 @@ local data = {
 	ram_free = math.floor(tonumber(proxy.get("sys.mem.RAMFree")[1].value) / 1024) or "0",
 	uptime = post_helper.secondsToTime(readfile("/proc/uptime","number",floor)),
 	connection = readfile("/proc/sys/net/netfilter/nf_conntrack_count"),
-	system_time = os.date("%F %T", os.time()),
+	system_time = os.date("%d/%m/%Y %Hh:%Mm:%Ss",os.time()),
 	cpuload = readfile("/proc/loadavg","string"):sub(1,14),
 }
 

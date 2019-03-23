@@ -3,6 +3,7 @@
   <li>DGA4132 / VBNT-S</li>
   <li>DGA4131 / VBNT-O</li>
   <li>DGA4130 / VBNT-K</li>
+  <li>TG788vn v2 / VDNT-W</li>
   <li>TG789vac v2 HP / VBNT-L</li>
   <li>TG789vac v2 / VANT-6</li>
   <li>TG789vac (v1) / VANT-D</li>

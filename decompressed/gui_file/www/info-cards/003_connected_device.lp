@@ -34,7 +34,7 @@ ngx.print('\
 <script>\
 var InfoDeviceCardInterval;\
 $(document).ready(function () {\
-	new createAjaxUpdateCard("infodevicetab","/ajax/connected_device.lua",InfoDeviceCardInterval,10000);\
+	new createAjaxUpdateCard("infodevicetab","/ajax/connected_device.lua",InfoDeviceCardInterval,6000);\
 })\
 </script>\
 '); 
