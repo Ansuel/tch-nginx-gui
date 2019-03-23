@@ -51,6 +51,22 @@ local function getMemFree()
 	return ret
 end
 
+--Create file
+--fname = name of file to create
+--total = first line of the file to write
+--optional: statsData = write the second line in file.
+--optional: times = write the second line in file. 
+local function inizializeFile(fname,total,statsData,times)
+	local f = io.open(fname, "w")
+	if f then
+		f:write(total .. "\n")
+		if statsData then
+			f:write(statsData .. " " .. times .. "\n")
+		end
+		f:close()
+	end
+end
+
 local function handleStatsFile(name, statsData,times)
 	local fname = datadir .. name
 	
@@ -63,14 +79,13 @@ local function handleStatsFile(name, statsData,times)
 	end
 	
 	if binit then
-		f = io.open(fname, "w")
-		if f then
-			f:write(Total .. "\n")
-			f:write(statsData .. " " .. times .. "\n")
-			f:close()
-		end
+		inizializeFile(fname,Total,statsData,times)
 	else
 		f = io.open(fname, "r")
+		if not f then
+			inizializeFile(fname,Total,statsData,times)
+			f = io.open(fname, "r")
+		end
 		if f then
 			local data = {}
 			for line in f:lines() do
@@ -78,6 +93,7 @@ local function handleStatsFile(name, statsData,times)
 			end
 			f:close()
 			f = io.open(fname, "w")
+			
 			if f then
 				f:write(Total .. "\n")
 				local insert = false
@@ -134,13 +150,13 @@ local function DataCollector(datadir, binit)
 
 				fname = datadir .. name .. "_" .. dtype
 				if binit then
-					f = io.open(fname, "w")
-					if f then
-						f:write(ntotal .. "\n")
-						f:close()
-					end
+					inizializeFile(fname,ntotal)
 				else
 					f = io.open(fname, "r")
+					if not f then
+						inizializeFile(fname,ntotal)
+						f = io.open(fname, "r")
+					end
 					if f then
 						local data = {}
 						for line in f:lines() do
