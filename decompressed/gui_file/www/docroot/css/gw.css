@@ -12,7 +12,8 @@ audio:not([controls]) {
 html {
 	font-size: 100%;
 	-webkit-text-size-adjust: 100%;
-	-ms-text-size-adjust: 100%
+	-ms-text-size-adjust: 100%;
+	height: 100%;
 }
 a:focus {
 	outline: thin dotted #333;
@@ -151,7 +152,8 @@ body {
 	margin: 0;
 	color: #333;
 	background-color: #eee;
-	font: 14px/20px Helvetica, Arial, sans-serif
+	font: 14px/20px Helvetica, Arial, sans-serif;
+	height: inherit;
 }
 a {
 	color: #08c;
@@ -459,6 +461,7 @@ a:hover, a:focus {
 	flex-flow: column;
 	margin-right: auto;
 	margin-left: auto;
+	height: 100%;
 	*zoom: 1
 }
 .container:before, .container:after {
@@ -3665,7 +3668,7 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	font-size: 15px;
 }
 .container>#footer {
-	margin: auto;
+	margin: 0;
 }
 #infocardrow,#cardrow {
 	z-index: 2;
