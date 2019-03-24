@@ -4325,3 +4325,17 @@ msgstr ""
 
 msgid "Mem Used Graph"
 msgstr ""
+
+msgid "Updated"
+msgstr ""
+
+msgid "Add new DDns Rule"
+msgstr ""
+
+msgid "Update Info"
+msgstr ""
+
+msgid "<strong %s>%d DynDNS serivce </strong> is enabled"
+msgid_plural "<strong %s>%d DynDNS serivces </strong> are enabled"
+msgstr[0] ""
+msgstr[1] ""
