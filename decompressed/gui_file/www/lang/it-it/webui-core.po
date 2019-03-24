@@ -4306,36 +4306,36 @@ msgid "Network error"
 msgstr "Errore di rete"
 
 msgid "Resetting config to default, please wait..."
-msgstr ""
+msgstr "Ripristino configurazione ai valori predefiniti..."
 
 msgid "Reset config"
-msgstr ""
+msgstr "Ripristina configurazione"
 
 msgid "Reset the router to factory settings and mantain modded GUI."
-msgstr ""
+msgstr "Ripristina il modem ai valori di fabbrica e mantiene la GUI mod."
 
 msgid "Reset config to Factory"
-msgstr ""
+msgstr "Ripristina configurazione di fabbrica"
 
 msgid "Remove Config"
-msgstr ""
+msgstr "Rimuovi configurazione"
 
 msgid "Are you sure you want to reset config of this modem? </br><strong> This is permanent, save any config before this action.</strong>"
-msgstr ""
+msgstr "Sei sicuro di voler ripristinare la configurazione del modem?<br/><strong>Questa azione è permanente.<br/>Salva qualsiasi configurazione prima di effettuare questa azione.</strong>"
 
 msgid "Mem Used Graph"
-msgstr ""
+msgstr "Grafico memoria usata"
 
 msgid "Updated"
-msgstr ""
+msgstr "Aggiornato"
 
 msgid "Add new DDns Rule"
-msgstr ""
+msgstr "Aggiungi nuova regola DDNS"
 
 msgid "Update Info"
-msgstr ""
+msgstr "Aggiorna info"
 
 msgid "<strong %s>%d DynDNS serivce </strong> is enabled"
 msgid_plural "<strong %s>%d DynDNS serivces </strong> are enabled"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "<strong %s>%d Servizio DynDNS</strong> abilitato"
+msgstr[1] "<strong %s>%d Servizi DynDNS</strong> abilitati"
