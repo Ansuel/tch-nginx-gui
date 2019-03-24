@@ -4339,3 +4339,18 @@ msgid "<strong %s>%d DynDNS service</strong> is enabled"
 msgid_plural "<strong %s>%d DynDNS services</strong> are enabled"
 msgstr[0] ""
 msgstr[1] ""
+
+msgid "Wol / WoW"
+msgstr ""
+
+msgid "Custom DNS"
+msgstr ""
+
+msgid "DynDns"
+msgstr ""
+
+msgid "Upnp"
+msgstr ""
+
+msgid "Port Forward"
+msgstr ""
