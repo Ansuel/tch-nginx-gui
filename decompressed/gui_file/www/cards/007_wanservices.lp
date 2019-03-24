@@ -119,8 +119,8 @@ end
                       "<strong %s>%d port forwarding</strong> rules are defined", n_redir_rules),
                       modal_link_port, n_redir_rules),
 			'<br/>',
-			format( N("<strong %s>%d DynDNS serivce </strong> is enabled",
-					  "<strong %s>%d DynDNS serivces </strong> are enabled", n_ddns_rules),
+			format( N("<strong %s>%d DynDNS service</strong> is enabled",
+					  "<strong %s>%d DynDNS services</strong> are enabled", n_ddns_rules),
 					  modal_link_ddns, n_ddns_rules),
 			'<p></p>',
             '</p>'
