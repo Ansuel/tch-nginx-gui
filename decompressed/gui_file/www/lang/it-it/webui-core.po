@@ -4321,7 +4321,7 @@ msgid "Remove Config"
 msgstr "Rimuovi configurazione"
 
 msgid "Are you sure you want to reset config of this modem? </br><strong> This is permanent, save any config before this action.</strong>"
-msgstr "Sei sicuro di voler ripristinare la configurazione del modem?<br/>Questo azione è permanente.<br/>Salva qualsiasi configurazione prima di effettuare questa azione."
+msgstr "Sei sicuro di voler ripristinare la configurazione del modem?<br/><strong>Questa azione è permanente.<br/>Salva qualsiasi configurazione prima di effettuare questa azione.</strong>"
 
 msgid "Mem Used Graph"
 msgstr "Grafico memoria usata"
