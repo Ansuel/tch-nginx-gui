@@ -4337,5 +4337,5 @@ msgstr "Aggiorna info"
 
 msgid "<strong %s>%d DynDNS service</strong> is enabled"
 msgid_plural "<strong %s>%d DynDNS services</strong> are enabled"
-msgstr[0] "<strong %s>%d Servizio DynDNS</strong> abilitato"
-msgstr[1] "<strong %s>%d Servizi DynDNS</strong> abilitati"
+msgstr[0] "<strong %s>%d</strong> servizio DynDNS abilitato"
+msgstr[1] "<strong %s>%d</strong> servizi DynDNS abilitati"
