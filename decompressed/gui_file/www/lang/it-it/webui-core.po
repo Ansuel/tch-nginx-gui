@@ -4333,7 +4333,7 @@ msgid "Add new DDns Rule"
 msgstr "Aggiungi nuova regola DDNS"
 
 msgid "Update Info"
-msgstr "Aggiorna info"
+msgstr "Info aggiornamento"
 
 msgid "<strong %s>%d DynDNS service</strong> is enabled"
 msgid_plural "<strong %s>%d DynDNS services</strong> are enabled"
@@ -4341,16 +4341,16 @@ msgstr[0] "<strong %s>%d</strong> servizio DynDNS abilitato"
 msgstr[1] "<strong %s>%d</strong> servizi DynDNS abilitati"
 
 msgid "Wol / WoW"
-msgstr ""
+msgstr "WoL / WoW"
 
 msgid "Custom DNS"
-msgstr ""
+msgstr "DNS personalizzato"
 
 msgid "DynDns"
-msgstr ""
+msgstr "DynDNS"
 
 msgid "Upnp"
-msgstr ""
+msgstr "UPnP"
 
 msgid "Port Forward"
-msgstr ""
+msgstr "Inoltro porte"
