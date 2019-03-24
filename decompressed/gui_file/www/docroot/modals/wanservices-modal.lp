@@ -17,38 +17,10 @@ local hosts_ac, hosts_ac_v6 = uinetwork.getAutocompleteHostsList()
 local hosts_mac_ac = uinetwork.getAutocompleteHostsListMac()
 local io, pairs, string = io, pairs, string
 local table, ipairs, tonumber, format, match = table, ipairs, tonumber, string.format, string.match
+local untaint = string.untaint
 local session = ngx.ctx.session
 
-local tech = false
-if session:getrole() == "engineer" then
-	tech = true
-end
-
-local ddns_supported_services = {}
-
-local igd_select = {
-    { "igdv1", T'1'},
-    { "igdv2", T'2'},
-}
-
-local function generate_ddns_supported_services()
-    -- open the supported services file that come with the ddns package
-    local f = io.open("/etc/ddns/services", "r")
-    if f then
-        for line in f:lines() do
-            --a service in this file is  indicated as a url between quotes, we want a list with urls and name of service in capitals
-            local service = line:match('^%b""')
-            if service then
-                service = service:gsub('"','')
-                local serviceline = { service , service:upper() }
-                ddns_supported_services[#ddns_supported_services + 1] = serviceline
-            end
-        end
-        f:close()
-    end
-end
-
-generate_ddns_supported_services()
+local uniqueKey = post_helper.getRandomKey()
 
 -- Retrieve GW IP + netmask for use by validation function
 local ipdetails = {
@@ -56,29 +28,6 @@ local ipdetails = {
     netmask = "uci.network.interface.@lan.netmask"
 }
 content_helper.getExactContent(ipdetails)
-
-local ddns_status_data = {
-    ddns_status = "rpc.ddns.status",
-}
-content_helper.getExactContent(ddns_status_data)
-
--- DMZ / DynDNS / UPnP switches Only one handleQuery in a page
-local qry_params = {
-    DMZ_enable = "rpc.network.firewall.dmz.enable",
-    DMZ_destinationip = "rpc.network.firewall.dmz.redirect.dest_ip",
-    ddns_enabled = "uci.ddns.service.@myddns_ipv4.enabled",
-    ddns_service_name = "uci.ddns.service.@myddns_ipv4.service_name",
-    ddns_domain = "uci.ddns.service.@myddns_ipv4.domain",
-    ddns_lookup_host = "uci.ddns.service.@myddns_ipv4.lookup_host",
-    ddns_username = "uci.ddns.service.@myddns_ipv4.username",
-    ddns_password = "uci.ddns.service.@myddns_ipv4.password",
-    ddns_usehttps = "uci.ddns.service.@myddns_ipv4.use_https",
-    ddns_cacert = "uci.ddns.service.@myddns_ipv4.cacert",
-    upnp_status = "uci.upnpd.config.enable_upnp",
-    upnp_natpmp = "uci.upnpd.config.enable_natpmp",
-    upnp_secure_mode = "uci.upnpd.config.secure_mode",
-    upnp_igd_version = "uci.upnpd.config.datamodel_version",
-}
 
 -- Shortcuts to validation helpers to make lines shorter
 local gVIPIL = post_helper.getValidationIfPropInList
@@ -97,47 +46,35 @@ local vQTN = post_helper.validateQTN
 local gOV = post_helper.getOptionalValidation
 local vSIDN = post_helper.validateStringIsDomainName
 local vSIIP = post_helper.validateStringIsIP
-local vSIM = post_helper.validateStringIsMAC											
+local vSIM = post_helper.validateStringIsMAC	
 
-local function set_lookup_host(value, object, key)
-    object["ddns_lookup_host"] = object["ddns_domain"]
-    return true
+local tech = false
+if session:getrole() == "engineer" then
+	tech = true
 end
 
-local function set_cacert(_, object)
-    object["ddns_cacert"] = "IGNORE"
-    return true
-end
+local igd_select = {
+    { "igdv1", T'1'},
+    { "igdv2", T'2'},
+}
+
+-- DMZ / DynDNS / UPnP switches Only one handleQuery in a page
+local qry_params = {
+    DMZ_enable = "rpc.network.firewall.dmz.enable",
+    DMZ_destinationip = "rpc.network.firewall.dmz.redirect.dest_ip",
+    upnp_status = "uci.upnpd.config.enable_upnp",
+    upnp_natpmp = "uci.upnpd.config.enable_natpmp",
+    upnp_secure_mode = "uci.upnpd.config.secure_mode",
+    upnp_igd_version = "uci.upnpd.config.datamodel_version",
+}										
 
 local qry_valid = {
     DMZ_enable = vB,
     DMZ_destinationip = gAV(gVIPIL(vSIDIP,"DMZ_enable",{"1"}),gOV(vQTN)),
-    ddns_enabled = vB,
-    ddns_service_name = gAV(gOrV(vSIDN, vSIIP), gVIPIL(gVIES(ddns_supported_services), "ddns_enabled", {"1"})),
-    ddns_username = gAV(gVIPIL(vNES, "ddnsv4_enabled", {"1"}), post_helper.isSpaceInString),
-    ddns_password = gAV(gVP(gVIPIL(vNES, "ddnsv4_enabled", {"1"})), post_helper.isSpaceInString),
-    ddns_domain = gAV(gOrV(vSIDN, vSIIP), gVIPIL(vNES, "ddns_enabled", {"1"})),
-    ddns_lookup_host = set_lookup_host,
-    ddns_usehttps = vB,
-    ddns_cacert = set_cacert,
     upnp_status = vB,
     upnp_natpmp = vB,
     upnp_secure_mode = vB,
     upnp_igd_version = gVIES(igd_select),
-}
-
-local ddns_state_map = {
-  disabled = T"disabled",
-  updating = T"updating",
-  updated = T"updated",
-  error = T"error",
-}
-
-local ddns_light_map = {
-  disabled = "off",
-  updating = "orange",
-  updated = "green",
-  error = "red",
 }
 
 local del_pfw_index = nil
@@ -146,6 +83,186 @@ local wol_dest_port_select = {
     { "7", '7'},
     { "9", '9'},
 }
+
+local function generate_ddns_supported_services()
+
+	local ddns_supported_services = {}
+	
+    -- open the supported services file that come with the ddns package
+    local f = io.open("/etc/ddns/services", "r")
+    if f then
+        for line in f:lines() do
+            --a service in this file is  indicated as a url between quotes, we want a list with urls and name of service in capitals
+            local service = line:match('^%b""')
+            if service then
+                service = service:gsub('"','')
+                local serviceline = { service , service:upper() }
+                ddns_supported_services[#ddns_supported_services + 1] = serviceline
+            end
+        end
+        f:close()
+    end
+	
+	return ddns_supported_services 
+end
+
+local ddns_supported_services = generate_ddns_supported_services()
+
+local ddns_columns = {
+  {
+    header = T"State",
+    name = "State",
+    param = "ddns_light",
+    type = "text",
+	readonly = true,
+    attr = { input = { class="span2 centered" } },
+  },
+  {
+    header = T"Update Info",
+    name = "State",
+    param = "ddns_status",
+    type = "text",
+	readonly = true,
+    attr = { input = { class="span2 centered" } },
+  },
+  {
+    header = T"",
+    name = "State",
+    param = "enabled",
+    type = "switch",
+    attr = { input = { class="span2 centered" } },
+  },
+  {
+    header = T"Service",
+    name = "Service",
+    param = "service_name",
+    type = "select",
+	values = ddns_supported_services,
+    attr = { input = { class="span2 centered" } },
+  },
+  {
+    header = T"Domain",
+    name = "Domain",
+    param = "domain",
+    type = "text",
+    attr = { input = { class="span2 centered", id ="iproutesmodal_gateway" }},
+  },
+  {
+    header = T"Username",
+    name = "Username",
+    param = "username",
+    type = "text",
+    attr = { input = { class="span2 centered" } },
+  },
+  {
+    header = T"Password",
+    name = "Password",
+    param = "password",
+    type = "password",
+    attr = { input = { class="span2 centered" } },
+  },
+  {
+    header = T"HTTPS",
+    name = "HTTPS",
+    param = "use_https",
+    default = "1",
+    type = "switch",
+    attr = { select = { class="span2 centered" } },
+  }
+}
+
+local function onAddDDns(index, content)
+
+	local ddns_path = "uci.ddns.service.@"..index
+
+	proxy.set(ddns_path..".cacert","IGNORE")
+	proxy.set(ddns_path..".lookup_host",untaint(content.Domain))
+end
+
+local function onUpdateDDns(index, content)
+
+	local ddns_path = "uci.ddns.service.@"..index
+	local domain = untaint(content.Domain)
+
+	if not domain then
+		domain = proxy.get(ddns_path..".domain")[1].value
+	end
+	
+	local ddns_lookup_host_path = ddns_path..".lookup_host"
+	local ddns_lookup_host = proxy.get(ddns_lookup_host_path)
+	
+	if domain and ddns_lookup_host and domain ~= ddns_lookup_host[1].value then
+		proxy.set(ddns_lookup_host_path,untaint(content.Domain))
+	end
+end
+
+local ddns_options = {
+    tableid = "ddnsoptions",
+    basepath = "uci.ddns.service.@.",
+    createMsg = T"Add new DDns Rule",
+    objectName  = "ddns_"..uniqueKey,
+    addNamedObject = true,
+	canEdit = true,
+	canAdd = true,
+	canDelete = true,
+	onAdd = onAddDDns,
+	onModify = onUpdateDDns,
+}
+
+local ddns_valid = {
+    State = vB,
+	Service = gVIES(ddns_supported_services),
+	Domain = gOrV(vSIDN, vSIIP),
+	Username = vNES,
+	Password = gVP,
+	HTTPS = vB,
+}
+
+local ddns_state_map = {
+  disabled = T"Disabled",
+  updating = T"Updating",
+  updated = T"Updated",
+  error = T"ERROR",
+}
+
+local ddns_light_map = {
+  disabled = "0",--"off",
+  updating = "2",--"orange",
+  updated = "1",--"green",
+  error = "4",--"red",
+}
+
+local function ddns_filter(data)
+
+	local rpc_ddns_status = proxy.get("rpc.ddns.service.@"..data["paramindex"]..".status")
+	
+	local ddns_message = "No error"
+	local ddns_status = "disabled"
+	
+
+	if rpc_ddns_status then
+		
+		rpc_ddns_status = rpc_ddns_status[1].value
+	
+		if rpc_ddns_status == "Domain's IP updated" then
+			ddns_message = T"Domain's IP updated"
+			ddns_status = "updated"
+		elseif rpc_ddns_status == "No error received from server" then
+			ddns_message = T"No error received from server"
+			ddns_status = "updating"
+		else
+			ddns_message = rpc_ddns_status
+			ddns_status = "error"
+		end
+	end
+
+	data.ddns_light = ui_helper.createSimpleLight(ddns_light_map[ddns_status], "", {})
+    data.ddns_status = format("%s : %s", ddns_state_map[ddns_status] , ddns_message or rpc_ddns_status or "")
+	
+	return true
+end
+
+local ddns_data, ddns_helpmsg = post_helper.handleTableQuery(ddns_columns, ddns_options, ddns_filter, nil, ddns_valid)
 
 local wol = io.open("/etc/init.d/wol", "r") and proxy.get("uci.wol.config.")
 if wol then
@@ -189,7 +306,7 @@ else
 	  ddns_message = T"No error received from server"
       ddns_status = "updating"
     else
-	  ddns_message = format("%s : ", T"ERROR") .. ddns_status_data.ddns_status 
+	  ddns_message = format("%s : ", T"") .. ddns_status_data.ddns_status 
       ddns_status = "error"
     end
 
@@ -521,9 +638,9 @@ local function update_firewall_helper(index, content)
     -- the corresponding helper in firewall should be updated also
     if helper ~= nil then
         if content.enabled == "1" then
-            set_helper_port(helper, string.untaint(content.wanport))
+            set_helper_port(helper, untaint(content.wanport))
         else
-            set_helper_port(helper, pfw_helper_map[string.untaint(content.name)].wanport)
+            set_helper_port(helper, pfw_helper_map[untaint(content.name)].wanport)
         end
     end
 end
@@ -760,7 +877,7 @@ local dnsrule_options = {
     basepath = "uci.dhcp.dnsrule.@.",
     createMsg = T"Add new dns rule",
     sorted = dns_sort,
-    objectName  = post_helper.getRandomKey(),
+    objectName  = "dns_"..uniqueKey,
     addNamedObject = true
 }
 
@@ -837,6 +954,12 @@ local range_warning = {
     },
 }
 
+local info_box = {
+    alert = {
+      class = "alert-info"
+    },
+}
+
 local upnp_data, upnp_helpmsg = post_helper.handleTableQuery(upnp_columns, upnp_options, nil, nil, nil)
 
   ngx.print('\
@@ -844,7 +967,7 @@ local upnp_data, upnp_helpmsg = post_helper.handleTableQuery(upnp_columns, upnp_
 ');  ngx.print(ui_helper.createHeader(T"WAN services", true, true))   ngx.print('\
 \
 <div class="modal-body update">\
-  <form class="form-horizontal" method="post" action="modals/wanservices-modal.lp">\
+  <form class="form-horizontal" method="post" action="/modals/wanservices-modal.lp">\
     ');  
         ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       ngx.print('\
@@ -867,12 +990,10 @@ local upnp_data, upnp_helpmsg = post_helper.handleTableQuery(upnp_columns, upnp_
     </fieldset>\
 \
     <fieldset>\
-      <legend>');  ngx.print( T"IPv4 Port Forwarding Table" ); ngx.print('</legend>\
-      <div class="alert alert-info">'); 
-	    ngx.print(T"To disable Port Forward Rules, you can turn it off using the switch or delete using cross.");
-	    ngx.print('</div>');			 
-        ngx.print(ui_helper.createTable(pfw_columns, pfw_data, pfw_options, nil, pfw_helpmsg))
-        ngx.print(ui_helper.createAlertBlock(T"To Port Forward ranges use <b>':'</b>. For example 500:505.", range_warning))
+      <legend>');  ngx.print( T"IPv4 Port Forwarding Table" ); ngx.print('</legend>',
+		ui_helper.createAlertBlock(T"To disable Port Forward Rules, you can turn it off using the switch or delete using cross.", info_box),
+        ui_helper.createTable(pfw_columns, pfw_data, pfw_options, nil, pfw_helpmsg),
+        ui_helper.createAlertBlock(T"To Port Forward ranges use <b>':'</b>. For example 500:505.", range_warning))
         ngx.print('\
     </fieldset>\
 \
@@ -920,25 +1041,9 @@ local upnp_data, upnp_helpmsg = post_helper.handleTableQuery(upnp_columns, upnp_
       <legend>');  ngx.print( T"DynDNS" ); ngx.print('</legend>\
       ');  
          ngx.print(
-            ui_helper.createLight(T"Status", nil, ddns_state_map[ddns_status], { light = { class = ddns_light_map[ddns_status] } }),
-            ui_helper.createSwitch(T"Enabled", "ddns_enabled", qry_data["ddns_enabled"], nil, qry_helpmsg["ddns_enabled"]),
-            ui_helper.createInputSelect(T"Service Name", "ddns_service_name", ddns_supported_services, qry_data["ddns_service_name"], nil, qry_helpmsg["ddns_service_name"]),
-			ui_helper.createSwitch(T"HTTPS", "ddns_usehttps", qry_data["ddns_usehttps"], nil, qry_helpmsg["ddns_usehttps"]),
-            ui_helper.createLabel(T"", T"Note: HTTPS mode will enable encryption but not certificate-based authentication of DynDNS service", { span = {class = "span7"},}),
-            ui_helper.createInputText(T"Domain", "ddns_domain", qry_data["ddns_domain"], nil, qry_helpmsg["ddns_domain"]),
-            ui_helper.createInputText(T"User Name", "ddns_username", qry_data["ddns_username"], nil, qry_helpmsg["ddns_username"]),
-            ui_helper.createInputPassword(T"Password", "ddns_password", qry_data["ddns_password"], nil, qry_helpmsg["ddns_password"])
+			ui_helper.createAlertBlock(T"Note: HTTPS mode will enable encryption but not certificate-based authentication of DynDNS service",info_box),
+			ui_helper.createTable(ddns_columns, ddns_data, ddns_options, nil , ddns_helpmsg)
           )
-        if qry_data["ddns_enabled"] == "1" then
-          local basic = {
-            span = {
-            class = "span4"
-            },
-          }
-          ngx.print(
-            ui_helper.createLabel(T"DynDNS Information", ddns_update_info, basic)
-          )
-        end
         ngx.print('\
     </fieldset>\
 \
