@@ -62,7 +62,7 @@ local ipattr = {
     <fieldset>\
       ');  
         ngx.print(ui_helper.createSwitch(T"Enabled", "enable", data["enable"], nil, helpmsg["enable"]),
-                  ui_helper.createInputText(T"Destination IP", "DMZ_destinationip", data["destinationip"], ipattr, helpmsg["destinationip"]),
+                  ui_helper.createInputText(T"Destination IP", "destinationip", data["destinationip"], ipattr, helpmsg["destinationip"]),
                   ui_helper.createLabel(T"Destination MAC", content["dest_mac"]))
         ngx.print('\
     </fieldset>\

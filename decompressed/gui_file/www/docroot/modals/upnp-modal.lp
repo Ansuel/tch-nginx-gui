@@ -7,6 +7,15 @@ local ui_helper = require("web.ui_helper")
 local post_helper = require("web.post_helper")
 local message_helper = require("web.uimessage_helper")
 
+local upnp_tch = true
+
+local upnp_non_tch = io.open("/etc/init.d/miniupnpd","r")
+
+if upnp_non_tch then
+	upnp_tch = nil
+	upnp_non_tch:close()
+end
+
 local vB = post_helper.validateBoolean
 
 local igd_select = {
@@ -18,15 +27,18 @@ local  mapParams = {
 	status = "uci.upnpd.config.enable_upnp",
     natpmp = "uci.upnpd.config.enable_natpmp",
     secure_mode = "uci.upnpd.config.secure_mode",
-    igd_version = "uci.upnpd.config.datamodel_version",
 }
   
 local  mapValid = {
 	status = vB,
     natpmp = vB,
     secure_mode = vB,
-    igd_version = post_helper.getValidateInEnumSelect(igd_select),
 }
+
+if upnp_tch then
+	mapParams["igd_version"] = "uci.upnpd.config.datamodel_version"
+	mapValid["igd_version"] = post_helper.getValidateInEnumSelect(igd_select)
+end
 
 local data, helpmsg = post_helper.handleQuery(mapParams, mapValid)
 
@@ -101,16 +113,21 @@ local upnp_data, upnp_helpmsg = post_helper.handleTableQuery(upnp_columns, upnp_
       ngx.print('\
       <fieldset>\
       ');  
-        ngx.print(
-          ui_helper.createSwitch(T"UPnP IGD Enabled", "upnp_status", data["status"], nil, helpmsg["status"]),
-          ui_helper.createSwitch(T"NAT-PMP Enabled", "upnp_natpmp", data["natpmp"], nil, helpmsg["natpmp"]),
-          ui_helper.createSwitch(T"Secure Mode Enabled", "upnp_secure_mode", data["secure_mode"], nil, helpmsg["secure_mode"]),
-          ui_helper.createInputSelect(T"Datamodel Version", "upnp_igd_version", igd_select, data["upnp_igd_version"], nil),
-          ui_helper.createLabel(T"", T"Note: Datamodel version <b>1</b> may be required for older applications.", {span = {class = "span6 advanced hide"},}),
-          ui_helper.createTable(upnp_columns, upnp_data, upnp_options, nil, upnp_helpmsg)
-        )
+        local html = {}
+		
+        html[ #html + 1 ] = ui_helper.createSwitch(T"UPnP IGD Enabled", "status", data["status"], nil, helpmsg["status"])
+        html[ #html + 1 ] = ui_helper.createSwitch(T"NAT-PMP Enabled", "natpmp", data["natpmp"], nil, helpmsg["natpmp"])
+        html[ #html + 1 ] = ui_helper.createSwitch(T"Secure Mode Enabled", "secure_mode", data["secure_mode"], nil, helpmsg["secure_mode"])
+		if upnp_tch then
+			html[ #html + 1 ] = ui_helper.createInputSelect(T"Datamodel Version", "igd_version", igd_select, data["igd_version"], nil)
+			html[ #html + 1 ] = ui_helper.createLabel(T"", T"Note: Datamodel version <b>1</b> may be required for older applications.", {span = {class = "span6"},})
+		end
+        html[ #html + 1 ] = ui_helper.createTable(upnp_columns, upnp_data, upnp_options, nil, upnp_helpmsg)
+        
+		ngx.print(html)
+		
         ngx.print('\
-    </fieldset>\
+      </fieldset>\
 	</form>\
 </div>\
 ');  ngx.print( ui_helper.createFooter() ); ngx.print('\

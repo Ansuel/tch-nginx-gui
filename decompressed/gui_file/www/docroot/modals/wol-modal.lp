@@ -10,7 +10,7 @@ local message_helper = require("web.uimessage_helper")
 
 local mapParams, mapValid
 
-local wol_dest_port_select = {
+local dest_port_select = {
     { "7", '7'},
     { "9", '9'},
 }
@@ -29,7 +29,7 @@ if wol then
 	enabled = post_helper.validateBoolean,
 	port = post_helper.validateStringIsPort,
 	ip = post_helper.validateStringIsIP,
-	dest_port = post_helper.getValidateInEnumSelect(wol_dest_port_select),
+	dest_port = post_helper.getValidateInEnumSelect(dest_port_select),
   }
   
   local data, helpmsg = post_helper.handleQuery(mapParams, mapValid)
@@ -50,11 +50,11 @@ if wol then
       ngx.print('\
       <fieldset>\
         ');  
-          ngx.print(ui_helper.createSwitch(T"Enabled", "WOL_enabled", data["enabled"], nil, helpmsg["enabled"]),
-                    ui_helper.createInputText(T"Remote/WAN port", "WOL_port", data["port"], nil, helpmsg["port"]),
+          ngx.print(ui_helper.createSwitch(T"Enabled", "enabled", data["enabled"], nil, helpmsg["enabled"]),
+                    ui_helper.createInputText(T"Remote/WAN port", "port", data["port"], nil, helpmsg["port"]),
 					ui_helper.createLabel(T"", T"You need to enter an unused LAN IP to make Wake on LAN/WAN work.", {span = {class = "span6"},}),
-					ui_helper.createInputText(T"Unused IP", "WOL_ip", data["ip"], nil, helpmsg["ip"]),
-					ui_helper.createInputSelect(T"Local/LAN Port", "WOL_dest_port", wol_dest_port_select, data["dest_port"],nil)
+					ui_helper.createInputText(T"Unused IP", "ip", data["ip"], nil, helpmsg["ip"]),
+					ui_helper.createInputSelect(T"Local/LAN Port", "dest_port", dest_port_select, data["dest_port"],nil)
 					)
           ngx.print('\
       </fieldset>\
