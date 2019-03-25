@@ -6,6 +6,7 @@ gettext.textdomain('webui-core')
 local proxy = require("datamodel")
 local ui_helper = require("web.ui_helper")
 local post_helper = require("web.post_helper")
+local message_helper = require("web.uimessage_helper")
 
 local mapParams, mapValid
 
@@ -44,6 +45,9 @@ if wol then
     lp.include("tabs-wanservices.lp")
   ngx.print('\
   <form class="form-horizontal" method="post" action="/modals/wol-modal.lp">\
+    ');  
+        ngx.print(ui_helper.createMessages(message_helper.popMessages()))
+      ngx.print('\
       <fieldset>\
         ');  
           ngx.print(ui_helper.createSwitch(T"Enabled", "WOL_enabled", data["enabled"], nil, helpmsg["enabled"]),

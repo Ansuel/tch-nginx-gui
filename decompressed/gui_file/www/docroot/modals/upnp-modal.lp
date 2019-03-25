@@ -5,6 +5,7 @@ gettext.textdomain('webui-core')
 
 local ui_helper = require("web.ui_helper")
 local post_helper = require("web.post_helper")
+local message_helper = require("web.uimessage_helper")
 
 local vB = post_helper.validateBoolean
 
@@ -95,6 +96,9 @@ local upnp_data, upnp_helpmsg = post_helper.handleTableQuery(upnp_columns, upnp_
     lp.include("tabs-wanservices.lp")
   ngx.print('\
   <form class="form-horizontal" method="post" action="/modals/upnp-modal.lp">\
+    ');  
+        ngx.print(ui_helper.createMessages(message_helper.popMessages()))
+      ngx.print('\
       <fieldset>\
       ');  
         ngx.print(
