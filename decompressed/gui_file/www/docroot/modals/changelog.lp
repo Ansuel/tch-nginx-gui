@@ -17,6 +17,11 @@ ngx.print('\
         },
       }
 	html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_2.0.1_001 )" .. '</legend>'
+    html[#html + 1] = ui_helper.createLabel(T"9.x","Aggiunto grafico utilizzo CPU e Memoria<br>" ..
+        "Aggiunta opzione per ripristinare configurazioni senza perdere GUI<br>" ..
+        "Stato telefonia in visualizzazione statistiche ora mostra errori di registrazione<br>" ..
+        "Stato telefonia mostra il numero collegato durante una chiamata<br>" ..
+        "Riorganizzata modal Servizi WAN<br>" , basic)
 	html[#html + 1] = ui_helper.createLabel(T"9.0","Riorganizzata disposizione card<br>" ..
 		"Aggiunte ulteriori impostazioni di maschera versione<br>" ..
 		"Aggiunti vari driver xDSL<br>" ..
@@ -96,7 +101,7 @@ ngx.print('\
 	html[#html + 1] = ui_helper.createLabel(T"6.0", "Rebase con i nuovi cambiamenti", basic)
 	html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_1.1.0 )" .. '</legend>'
 	html[#html + 1] = ui_helper.createLabel(T"5.11", "Iniziale supporto per luci,ariang e transmission", basic)
-	html[#html + 1] = ui_helper.createLabel(T"5.10", "Upnp fix thx  Jecht_Sin", basic)
+	html[#html + 1] = ui_helper.createLabel(T"5.10", "UPnP fix thx  Jecht_Sin", basic)
 	html[#html + 1] = ui_helper.createLabel(T"5.9", "Test wifi fix, thx aezakmi123", basic)
 	html[#html + 1] = ui_helper.createLabel(T"5.8", "Latenza maggiorata fixata, (disabilitati risparmi energetici per le porte ed il traffico 5ghz", basic)
 	html[#html + 1] = ui_helper.createLabel(T"5.7", "Fixata finalmente tab assistenza e selettore porte. (questa volta per sempre...)", basic)

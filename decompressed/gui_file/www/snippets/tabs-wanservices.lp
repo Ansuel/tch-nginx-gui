@@ -8,8 +8,8 @@ local content_helper = require("web.content_helper")
 local ipairs, string = ipairs, string
 local items = {
     {"wanservices-modal.lp", T"Port Forward"},
-    {"upnp-modal.lp", T"Upnp"},
-    {"wol-modal.lp", T"Wol / WoW"},
+    {"upnp-modal.lp", T"UPnP"},
+    {"wol-modal.lp", T"WoL / WoW"},
 	{"customdns-modal.lp", T"Custom DNS"},
 	{"dyndns-modal.lp", T"DynDNS"},
 	{"dmz-modal.lp", T"DMZ"},
