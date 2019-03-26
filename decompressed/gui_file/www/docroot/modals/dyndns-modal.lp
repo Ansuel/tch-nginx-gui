@@ -15,6 +15,19 @@ local uniqueKey = post_helper.getRandomKey()
 -- Shortcuts to validation helpers to make lines shorter
 local vB = post_helper.validateBoolean
 
+local intfs_select = {}
+
+local intfs_pn = proxy.getPN("uci.network.interface.",true)
+if intfs_pn then
+    for _,v in ipairs(intfs_pn) do
+        local path = v["path"]
+        local intf_name = path:match("@([^@%.]-)%.")
+        if intf_name and intf_name ~= "loopback" and intf_name ~= "lan" then
+            intfs_select[#intfs_select + 1] = {intf_name,intf_name}
+        end
+    end
+end
+
 local function generate_ddns_supported_services()
 
 	local ddns_supported_services = {}
@@ -99,7 +112,16 @@ local ddns_columns = {
     default = "1",
     type = "switch",
     attr = { select = { class="span2 centered" } },
-  }
+  },
+  {
+    header = T"Interface",
+    name = "Interface",
+    param = "interface",
+    default = "wan",
+    type = "select",
+	values = intfs_select,
+    attr = { select = { class="span2 centered" } },
+  },
 }
 
 local function onAddDDns(index, content)
@@ -108,15 +130,21 @@ local function onAddDDns(index, content)
 
 	proxy.set(ddns_path..".cacert","IGNORE")
 	proxy.set(ddns_path..".lookup_host",untaint(content.Domain))
+	proxy.set(ddns_path..".ip_network",untaint(content.Interface))
 end
 
 local function onUpdateDDns(index, content)
 
 	local ddns_path = "uci.ddns.service.@"..index
 	local domain = untaint(content.Domain)
+	local interface = untaint(content.Domain)
 
 	if not domain then
 		domain = proxy.get(ddns_path..".domain")[1].value
+	end
+	
+	if not interface then
+		interface = proxy.get(ddns_path..".interface")[1].value
 	end
 	
 	local ddns_lookup_host_path = ddns_path..".lookup_host"
@@ -124,6 +152,13 @@ local function onUpdateDDns(index, content)
 	
 	if domain and ddns_lookup_host and domain ~= ddns_lookup_host[1].value then
 		proxy.set(ddns_lookup_host_path,untaint(content.Domain))
+	end
+	
+	local ddns_ip_network_path = ddns_path..".ip_network"
+	local ddns_ip_network = proxy.get(ddns_ip_network_path)
+	
+	if interface and ddns_ip_network and domain ~= ddns_ip_network[1].value then
+		proxy.set(ddns_ip_network_path,untaint(content.Interface))
 	end
 end
 
