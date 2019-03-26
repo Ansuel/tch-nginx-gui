@@ -140,3 +140,6 @@ msgstr "no"
 
 msgid "Profiling"
 msgstr "Profilazione"
+
+msgid "Ready"
+msgstr "Pronto"

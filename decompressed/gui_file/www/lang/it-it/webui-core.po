@@ -3134,7 +3134,7 @@ msgid "VDSL Profile"
 msgstr "Profilo VDSL"
 
 msgid "Your Gateway"
-msgstr "Gateway attuale"
+msgstr "Questo modem"
 
 msgid "The AP can be selected only once, to modify it you need to remove the rule."
 msgstr "L'AP può essere selezionato una volta sola.<br/>Per modificarlo devi rimuovere la regola."
@@ -4348,9 +4348,6 @@ msgstr "DNS personalizzato"
 
 msgid "DynDns"
 msgstr "DynDNS"
-
-msgid "UPnP"
-msgstr "UPnP"
 
 msgid "Port Forward"
 msgstr "Inoltro porte"

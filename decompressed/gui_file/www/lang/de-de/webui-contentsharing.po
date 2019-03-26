@@ -137,3 +137,9 @@ msgstr "Neu starten..."
 
 msgid "no"
 msgstr "kein"
+
+msgid "Profiling"
+msgstr ""
+
+msgid "Ready"
+msgstr ""

@@ -4349,8 +4349,5 @@ msgstr ""
 msgid "DynDns"
 msgstr ""
 
-msgid "UPnP"
-msgstr ""
-
 msgid "Port Forward"
 msgstr ""
