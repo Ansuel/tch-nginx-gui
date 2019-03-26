@@ -4351,3 +4351,9 @@ msgstr ""
 
 msgid "Port Forward"
 msgstr ""
+
+msgid "Server Port"
+msgstr ""
+
+msgid "Syslog Filters"
+msgstr ""

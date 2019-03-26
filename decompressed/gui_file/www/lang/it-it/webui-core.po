@@ -4351,3 +4351,9 @@ msgstr "DynDNS"
 
 msgid "Port Forward"
 msgstr "Inoltro porte"
+
+msgid "Server Port"
+msgstr ""
+
+msgid "Syslog Filters"
+msgstr ""
