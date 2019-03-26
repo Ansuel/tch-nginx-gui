@@ -291,8 +291,8 @@ done
 blacklist_restore="http://blacklist.satellitar.it/repository/install_blacklist.sh"
 if [ "$( uci get -q modgui.app.blacklist_app)" ] && [ "$(uci get modgui.app.blacklist_app)" == "1" ]; then
 	if $curl $blacklist_restore --output $WORKING_DIR/install_blacklist.sh; then
-		$WORKING_DIR/update_blacklist.sh update
-		rm $WORKING_DIR/update_blacklist.sh
+		$WORKING_DIR/install_blacklist.sh update
+		rm $WORKING_DIR/install_blacklist.sh
 	fi
 fi
 
