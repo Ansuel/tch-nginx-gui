@@ -238,7 +238,7 @@ local info_box = {
 
   ngx.print('\
 \
-');  ngx.print(ui_helper.createHeader(T"DynDns", false, false))   ngx.print('\
+');  ngx.print(ui_helper.createHeader(T"DDNS", false, false))   ngx.print('\
 \
 <div class="modal-body update">\
 ');
@@ -251,10 +251,10 @@ local info_box = {
         ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       ngx.print('\
     <fieldset>\
-      <legend>');  ngx.print( T"DynDNS" ); ngx.print('</legend>\
+      <legend>');  ngx.print( T"DDNS" ); ngx.print('</legend>\
       ');
          ngx.print(
-			ui_helper.createAlertBlock(T"Note: HTTPS mode will enable encryption but not certificate-based authentication of DynDNS service",info_box),
+			ui_helper.createAlertBlock(T"Note: HTTPS mode will enable encryption but not certificate-based authentication of DDNS service",info_box),
 			ui_helper.createTable(ddns_columns, ddns_data, ddns_options, nil , ddns_helpmsg)
           )
         ngx.print('\

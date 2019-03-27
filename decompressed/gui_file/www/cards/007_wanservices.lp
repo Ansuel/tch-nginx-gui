@@ -9,9 +9,9 @@ local proxy = require("datamodel")
 local ui_helper = require("web.ui_helper")
 local content_helper = require("web.content_helper")
 local dynDns_attributes = {
-	light = { id = "DynDNS_Status_Led" },
+	light = { id = "DDNS_Status_Led" },
 	span = { class = "span4",
-	id = "DynDNS_Status"}
+	id = "DDNS_Status"}
 }
 
 local dmz_attributes = {
@@ -38,9 +38,9 @@ local wan_services_data = {
 content_helper.getExactContent(wan_services_data)
 
 local ddns_enabled_map = {
-  ["0"] = T"DynDNS disabled",
-  ["1"] = T"DynDNS enabled",
-  [""] = T"DynDNS disabled",
+  ["0"] = T"DDNS disabled",
+  ["1"] = T"DDNS enabled",
+  [""] = T"DDNS disabled",
 }
 
 local ddns_light_map = {
@@ -119,8 +119,8 @@ end
                       "<strong %s>%d port forwarding</strong> rules are defined", n_redir_rules),
                       modal_link_port, n_redir_rules),
 			'<br/>',
-			format( N("<strong %s>%d DynDNS service</strong> is enabled",
-					  "<strong %s>%d DynDNS services</strong> are enabled", n_ddns_rules),
+			format( N("<strong %s>%d DDNS service</strong> is enabled",
+					  "<strong %s>%d DDNS services</strong> are enabled", n_ddns_rules),
 					  modal_link_ddns, n_ddns_rules),
 			'<p></p>',
             '</p>'

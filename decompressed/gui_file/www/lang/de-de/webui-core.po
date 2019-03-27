@@ -952,14 +952,14 @@ msgstr "Doppelter Inhalt ist nicht zugelassen"
 msgid "Duplicate entry is not allowed"
 msgstr "Doppelte Einträge sind nicht zugelassen"
 
-msgid "DynDNS Information"
-msgstr "DynDNS Information"
+msgid "DDNS Information"
+msgstr "DDNS Information"
 
-msgid "DynDNS disabled"
-msgstr "DynDNS abgeschaltet"
+msgid "DDNS disabled"
+msgstr "DDNS abgeschaltet"
 
-msgid "DynDNS enabled"
-msgstr "DynDNS eingeschaltet"
+msgid "DDNS enabled"
+msgstr "DDNS eingeschaltet"
 
 msgid "EOC Serial Number"
 msgstr "EOC Seriennummer"
@@ -1795,8 +1795,8 @@ msgstr "Schreibweise"
 msgid "Note: Datamodel version <b>1</b> may be required for older applications."
 msgstr "Hinweis: Datenmodell Version <b>1</b> könnte für ältere Anwendungen benötigt werden."
 
-msgid "Note: HTTPS mode will enable encryption but not certificate-based authentication of DynDNS service"
-msgstr "Hinweis: HTTPS Modus schaltet Verschlüsselung, aber keine zertifikatsbasierte Authentifizierung für den DynDNS-Dienst ein"
+msgid "Note: HTTPS mode will enable encryption but not certificate-based authentication of DDNS service"
+msgstr "Hinweis: HTTPS Modus schaltet Verschlüsselung, aber keine zertifikatsbasierte Authentifizierung für den DDDNS-Dienst ein"
 
 msgid "You need to enter an unused LAN IP to make Wake on LAN/WAN work."
 msgstr "Hinweis: Sie müssen eine ungenutzte IP im lokalen Netz eintragen, um WakeOnWAN zu nutzen."
@@ -2962,8 +2962,8 @@ msgstr "WPS ist automatisch abgeschaltet, wenn Sie WEP oder Nur-WPA Sicherheitse
 msgid "WoL (Wake on LAN) & WoW (Wake on WAN)"
 msgstr "Wake-On-LAN über das Internet"
 
-msgid "We don't have any firmware for this modem, please report them to the github page. "
-msgstr "Für dieses Modem haben wir keine Firmware, bitte melden Sie das auf der GitHub Seite "
+msgid "We don't have any driver for this modem, please report them to the github page. "
+msgstr "Für dieses Modem haben wir keine driver, bitte melden Sie das auf der GitHub Seite "
 
 msgid "Webui on: "
 msgstr "Webui on: "
@@ -3939,8 +3939,8 @@ msgstr "Das Kennwort sollte aus mindestens 12 alphanumerischen Zeichen bestehen 
 msgid "ReXmtCor"
 msgstr "ReXmtCor"
 
-msgid "DynDNS"
-msgstr "DynDNS"
+msgid "DDNS"
+msgstr "DDNS"
 
 msgid "wl0"
 msgstr "wl0"
@@ -4335,8 +4335,8 @@ msgstr ""
 msgid "Update Info"
 msgstr ""
 
-msgid "<strong %s>%d DynDNS service</strong> is enabled"
-msgid_plural "<strong %s>%d DynDNS services</strong> are enabled"
+msgid "<strong %s>%d DDNS service</strong> is enabled"
+msgid_plural "<strong %s>%d DDNS services</strong> are enabled"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -4346,7 +4346,7 @@ msgstr ""
 msgid "Custom DNS"
 msgstr ""
 
-msgid "DynDns"
+msgid "DDNS"
 msgstr ""
 
 msgid "Port Forward"

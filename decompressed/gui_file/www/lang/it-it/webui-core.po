@@ -952,14 +952,14 @@ msgstr "Non sono consentiti duplicati"
 msgid "Duplicate entry is not allowed"
 msgstr "Duplicazione voce non consentita"
 
-msgid "DynDNS Information"
-msgstr "Informazioni DynDNS"
+msgid "DDNS Information"
+msgstr "Informazioni DDNS"
 
-msgid "DynDNS disabled"
-msgstr "DynDNS  disabilitato"
+msgid "DDNS disabled"
+msgstr "DDNS  disabilitato"
 
-msgid "DynDNS enabled"
-msgstr "DynDNS abilitato"
+msgid "DDNS enabled"
+msgstr "DDNS abilitato"
 
 msgid "EOC Serial Number"
 msgstr "Numero seriale EOC"
@@ -1795,8 +1795,8 @@ msgstr "Notazione"
 msgid "Note: Datamodel version <b>1</b> may be required for older applications."
 msgstr "Nota: la versione Datamodel <b>1</b> può essere richiesta per applicazioni più vecchie."
 
-msgid "Note: HTTPS mode will enable encryption but not certificate-based authentication of DynDNS service"
-msgstr "Nota: HTTPS abilita la criptazione, ma non l’autenticazione basata sul certificato del servizio DynDNS"
+msgid "Note: HTTPS mode will enable encryption but not certificate-based authentication of DDNS service"
+msgstr "Nota: HTTPS abilita la criptazione, ma non l’autenticazione basata sul certificato del servizio DDNS"
 
 msgid "You need to enter an unused LAN IP to make Wake on LAN/WAN work."
 msgstr "Per rendere operativo Wake On LAN/WAN inserisci un IP LAN non usato."
@@ -2962,8 +2962,8 @@ msgstr "Se si sceglie solo la protezione WEP o WPA o si disabilita la trasmissio
 msgid "WoL (Wake on LAN) & WoW (Wake on WAN)"
 msgstr "WoL (Wake on LAN) & WoW (Wake on WAN)"
 
-msgid "We don't have any firmware for this modem, please report them to the github page. "
-msgstr "Non è disponibile alcun firmware per questo modem.<br/>Segnalalo nella pagina di github. "
+msgid "We don't have any driver for this modem, please report them to the github page. "
+msgstr "Non è disponibile alcun driver alternativo per questo modem.<br/>Segnalalo nella pagina di github. "
 
 msgid "Webui on: "
 msgstr "WebUI attiva: "
@@ -3939,8 +3939,8 @@ msgstr "La password deve contenere almeno 12 caratteri alfanumerici incluse lett
 msgid "ReXmtCor"
 msgstr "ReXmtCor"
 
-msgid "DynDNS"
-msgstr "DynDNS"
+msgid "DDNS"
+msgstr "DDNS"
 
 msgid "wl0"
 msgstr "wl0"
@@ -4335,10 +4335,10 @@ msgstr "Aggiungi nuova regola DDNS"
 msgid "Update Info"
 msgstr "Info aggiornamento"
 
-msgid "<strong %s>%d DynDNS service</strong> is enabled"
-msgid_plural "<strong %s>%d DynDNS services</strong> are enabled"
-msgstr[0] "<strong %s>%d</strong> servizio DynDNS abilitato"
-msgstr[1] "<strong %s>%d</strong> servizi DynDNS abilitati"
+msgid "<strong %s>%d DDNS service</strong> is enabled"
+msgid_plural "<strong %s>%d DDNS services</strong> are enabled"
+msgstr[0] "<strong %s>%d</strong> servizio DDNS abilitato"
+msgstr[1] "<strong %s>%d</strong> servizi DDNS abilitati"
 
 msgid "WoL / WoW"
 msgstr "WoL / WoW"
@@ -4346,14 +4346,14 @@ msgstr "WoL / WoW"
 msgid "Custom DNS"
 msgstr "DNS personalizzato"
 
-msgid "DynDns"
-msgstr "DynDNS"
+msgid "DDNS"
+msgstr "DDNS"
 
 msgid "Port Forward"
 msgstr "Inoltro porte"
 
 msgid "Server Port"
-msgstr ""
+msgstr "Porta server"
 
 msgid "Syslog Filters"
-msgstr ""
+msgstr "Filtri Syslog"

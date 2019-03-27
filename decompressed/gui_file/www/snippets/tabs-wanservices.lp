@@ -11,7 +11,7 @@ local items = {
     {"upnp-modal.lp", T"UPnP"},
     {"wol-modal.lp", T"WoL / WoW"},
 	{"customdns-modal.lp", T"Custom DNS"},
-	{"dyndns-modal.lp", T"DynDNS"},
+	{"dyndns-modal.lp", T"DDNS"},
 	{"dmz-modal.lp", T"DMZ"},
 }
 
