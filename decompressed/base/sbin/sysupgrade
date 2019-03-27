@@ -1,6 +1,11 @@
 #!/bin/sh
 . /lib/functions.sh
-. /lib/functions/system.sh
+
+#	Check if this script actually exist, it's not used anyway in the upgrade process. 
+#	If it's not present then it's not used and we can skip it.
+if [ -f /lib/functions/system.sh ]; then
+	. /lib/functions/system.sh
+fi
 
 # initialize defaults
 RAMFS_COPY_BIN=""	# extra programs for temporary ramfs root
