@@ -1549,6 +1549,10 @@ clean_cups_block_rule() {
 	fi
 }
 
+fix_sysupgrade_missing_script() {
+cp /rom/lib/functions/system.sh /lib/functions/ # Fix "/sbin/sysupgrade: .: line 3: can't open '/lib/functions/system.sh'"
+}
+
 root() {
 
 	logger -s -t 'Root Script' "Rooting in progress..."
@@ -1748,6 +1752,8 @@ root() {
 	
 	logger_command "Stopping nginx" ConsoleOnly
 	start_stop_nginx
+	logger_command "Fixing Sysupgrade bug"
+	fix_sysupgrade_missing_script
 }
 
 check_bank() {
