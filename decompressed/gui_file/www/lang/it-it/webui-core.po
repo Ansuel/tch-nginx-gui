@@ -4353,7 +4353,7 @@ msgid "Port Forward"
 msgstr "Inoltro porte"
 
 msgid "Server Port"
-msgstr ""
+msgstr "Porta server"
 
 msgid "Syslog Filters"
-msgstr ""
+msgstr "Filtri Syslog"
