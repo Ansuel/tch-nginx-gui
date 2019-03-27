@@ -459,6 +459,7 @@ check_upgrade_shit() {
 	fi
 	if not [ -f /lib/functions/system.sh ]; then
 		cp /rom/lib/functions/system.sh /lib/functions/ # Fix "/sbin/sysupgrade: .: line 3: can't open '/lib/functions/system.sh'"
+	fi
 }
 
 check_isp_config() {
@@ -1749,8 +1750,6 @@ root() {
 	
 	logger_command "Stopping nginx" ConsoleOnly
 	start_stop_nginx
-	logger_command "Fixing Sysupgrade bug"
-	fix_sysupgrade_missing_script
 }
 
 check_bank() {
