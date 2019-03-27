@@ -192,6 +192,7 @@ end
 -- @param #number time
 -- @return #string number of seconds
 function M.secondsToTime(time)
+  setlanguage()
   local time_no = tonumber(time)
   if (time_no and time_no >= 0) then
     local durations = {
@@ -227,6 +228,7 @@ end
 -- @param #number time
 -- @return #string number of seconds
 function M.secondsToTimeShort(time)
+  setlanguage()
   local time_no = tonumber(time)
   if (time_no and time_no >= 0) then
     local durations = {
@@ -295,11 +297,11 @@ local function checkStateId(server, client)
     return false
 end
 
-local changesNotAllowed = T"Changes not allowed."
-local changesconflictMsg = T"Changes were made to this table which require you to start again."
-local invalidIndexMsg = T"You tried to access an invalid line."
-local errorWhileSaving = T"An error occured while saving your changes."
-local errorWhileApplying = T"An error occured while applying your changes."
+local changesNotAllowed = "Changes not allowed."
+local changesconflictMsg = "Changes were made to this table which require you to start again."
+local invalidIndexMsg = "You tried to access an invalid line."
+local errorWhileSaving = "An error occured while saving your changes."
+local errorWhileApplying = "An error occured while applying your changes."
 
 --- apply changes if successful, other set error message in the options object
 -- @param #bool success result from the proxy call
@@ -311,7 +313,7 @@ local function applyOnSuccess(success, canApply, options)
             proxy.apply()
         end
     else
-        options.errmsg = errorWhileSaving
+      options.errmsg = T(errorWhileSaving)
     end
 end
 
@@ -518,13 +520,13 @@ function M.handleTableQuery(columns, options, filter, defaultObject, mapValidati
                                 session:store(tablesessionkey, generateStateId())
                             end
                         else
-                            options.errmsg = changesNotAllowed
+                            options.errmsg = T(changesNotAllowed)
                         end
                     else
-                        options.errmsg = invalidIndexMsg;
+                        options.errmsg = T(invalidIndexMsg);
                     end
                 else
-                    options.errmsg = changesconflictMsg
+                    options.errmsg = T(changesconflictMsg)
                 end
                 -- User wants to edit a line
             elseif action == "TABLE-EDIT" and canEdit then
@@ -535,13 +537,13 @@ function M.handleTableQuery(columns, options, filter, defaultObject, mapValidati
                         if allowedIndexes[index].canEdit then
                             options.editing = index
                         else
-                            options.errmsg = changesNotAllowed
+                            options.errmsg = T(changesNotAllowed)
                         end
                     else
-                        options.errmsg = invalidIndexMsg;
+                        options.errmsg = T(invalidIndexMsg);
                     end
                 else
-                    options.errmsg = changesconflictMsg
+                    options.errmsg = T(changesconflictMsg)
                 end
                 -- User wants to apply the changes to a line
             elseif action == "TABLE-MODIFY" and canEdit then
@@ -570,13 +572,13 @@ function M.handleTableQuery(columns, options, filter, defaultObject, mapValidati
                                 sendBackUserData = true
                             end
                         else
-                            options.errmsg = changesNotAllowed
+                            options.errmsg = T(changesNotAllowed)
                         end
                     else
-                        options.errmsg = invalidIndexMsg;
+                        options.errmsg = T(invalidIndexMsg);
                     end
                 else
-                    options.errmsg = changesconflictMsg
+                    options.errmsg = T(changesconflictMsg)
                 end
                 -- User wants to cancel the edition of the line without saving
             elseif action == "TABLE-CANCEL" then

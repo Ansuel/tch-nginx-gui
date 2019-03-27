@@ -109,7 +109,7 @@ convert_gui_to_light_gz() {
 	cd  /tmp/extractemp/
 	tar -zcf ../$1.tar.gz *
 	cd ../../
-	md5sum /tmp/$1.tar.bz2 | awk '{ print $1}' > /root/md5.gui_orig
+	md5sum /tmp/$1.tar.bz2 | awk '{ print $1}' > /root/gui_orig.md5sum
 	mv /tmp/$1.tar.gz /root/
 	rm -r /tmp/extractemp
 	rm /tmp/$1.tar.bz2
@@ -243,6 +243,7 @@ move_gui_to_root() {
     if [ -f /tmp/GUI.tar.bz2 ]; then
         overlay_space=$(df /overlay | sed -n 2p | awk {'{print $2}'})
         if [ "$overlay_space" -lt 33000 ]; then
+            logger_command "Creating stripped GUI gz in /root folder from /tmp"
             convert_gui_to_light_gz "GUI"
         else
             logger_command "Updating GUI in /root folder from /tmp"
@@ -273,16 +274,21 @@ cumulative_check_gui() {
 	if [ "$overlay_space" -lt 33000 ]; then
 		logger -s -t 'Root Script' "Detected low flash space device..."
 		if [ -f /root/GUI_dev.tar.bz2 ]; then
-			logger -s -t 'Root Script' "Removing stable GUI and renaming dev to stable"
-			if [ -f /root/GUI.tar.bz2 ]; then
-				rm /root/GUI.tar.bz2
+			if [ ! -f /root/GUI.tar.bz2 ] && [ ! -f /root/GUI.tar.gz ]; then
+			    logger -s -t 'Root Script' "Stable GUI not found, renaming dev bz2 to stable"
+			    mv /root/GUI_dev.tar.bz2 /root/GUI.tar.bz2
+			else
+			    logger -s -t 'Root Script' "Removing unneeded dev bz2 GUI from /root"
+			    rm /root/GUI_dev.tar.bz2
 			fi
-			mv /root/GUI_dev.tar.bz2 /root/GUI.tar.bz2
 		fi
-		if [ -f /root/GUI.tar.bz2 ]; then
-			cp /root/GUI.tar.bz2 /tmp
-			rm /root/GUI.tar.bz2
+		if [ -f /root/GUI.tar.bz2 ] && [ ! -f /root/GUI.tar.gz ]; then
+		    logger -s -t 'Root Script' "Creating stripped gz of bz2 GUI"
+			mv /root/GUI.tar.bz2 /tmp/GUI.tar.bz2
 			convert_gui_to_light_gz "GUI"
+		elif [ -f /root/GUI.tar.bz2 ]; then
+		    logger -s -t 'Root Script' "Removing unneeded bz2 of Stable GUI"
+		    rm /root/GUI.tar.bz2
 		fi
 	fi
 
@@ -322,9 +328,11 @@ cumulative_check_gui() {
 	if [ -f /root/GUI.tar.bz2 ] || [ -f /root/GUI.tar.gz ]; then
 		old_gui_hash=$(uci get -q modgui.gui.gui_hash)
 		if [ -f /root/GUI.tar.gz ]; then
-			gui_hash=$(cat /root/md5.gui_orig)
+			gui_hash=$(cat /root/gui_orig.md5sum)
+		elif [ -f /root/gui_dev.md5sum ]; then
+			gui_hash=$(cat /root/gui_dev.md5sum)
 		else
-			gui_hash=$(md5sum /root/GUI$update_branch.tar.bz2 | awk '{ print $1}' )
+			gui_hash=$(md5sum /root/GUI.tar.bz2 | awk '{ print $1}' )
 		fi
 		if [ "$old_gui_hash" != "$gui_hash" ]; then
 			logger_command "Detected upgrade!"
@@ -664,17 +672,6 @@ dropbear_file_check() {
 	fi
 }
 
-check_noip_file() {
-	#Check to see if DDNS scripts config is present
-	if [ -d /etc/ddns_new ]; then
-		if [ -d /etc/ddns ]; then
-				rm -r /etc/ddns_new
-		else
-			mv /etc/ddns_new /etc/ddns
-		fi
-	fi
-}
-
 eco_param() {
 	#Set CPU to full power (full clock)
 	if [ ! "$(uci get -q power.cpu)" ]; then
@@ -718,11 +715,6 @@ create_gui_type() {
 		else
 			uci set modgui.app.aria2_webui="0"
 		fi
-	elif [ "$( uci get -q modgui.app.aria2_webui)" == "1" ] &&
-	[ ! -d /www/docroot/aria ] && 
-	[ -f /usr/share/transformer/scripts/install_aria2.sh ]; then 
-		#this restore aria... my bad for this bug...
-		/usr/share/transformer/scripts/install_aria2.sh
 	fi
 	if [ ! "$( uci get -q modgui.app.luci_webui)" ]; then
 		if [ -d /www_luci ]; then
@@ -760,8 +752,8 @@ create_gui_type() {
 		fi
 	elif [ "$( uci get -q modgui.app.blacklist_app)" == "1" ] &&
 	[ ! -f /www/docroot/modals/mmpbx-contacts-modal.lp.orig ] &&
-	[ -f /usr/share/transformer/scripts/install_blacklist.sh ]; then
-		/usr/share/transformer/scripts/install_blacklist.sh
+	[ -f /usr/share/transformer/scripts/appInstallRemoveUtility.sh ]; then
+		/usr/share/transformer/scripts/appInstallRemoveUtility.sh install blacklist
 	fi
 }
 
@@ -1377,6 +1369,7 @@ move_env_var() {
 			done
 		done
 
+		uci commit env
 		uci commit modgui
 	fi
 }
@@ -1490,7 +1483,7 @@ check_webui_config() {
 			rm /etc/config/web_unlock
 		fi
 	fi
-	if [ ! "$(uci get -q wireless.global.wifi_analyzer_disable)" ]; then
+	if [ "$(uci get -q wireless.global.wifi_analyzer_disable)" ]; then
 		 if [ "$(uci get -q wireless.global.wifi_analyzer_disable)" != "0" ]; then
 			uci set wireless.global.wifi_analyzer_disable='0'
 		fi
@@ -1544,12 +1537,21 @@ prevent_total_brick() {
 	sed -i 's/#//' /etc/inittab
 }
 
+clean_cups_block_rule() {
+	firewall_change=0
+	for ret in $(uci show firewall | grep CUPS-lan | sed 's|.name.*||'); do
+		uci del $ret
+		firewall_change=1
+	done
+	if [ $firewall_change -eq 1 ]; then
+		uci commit firewall
+		/etc/init.d/firewall restart
+	fi
+}
+
 root() {
 
 	logger -s -t 'Root Script' "Rooting in progress..."
-
-	#This moves every garbage created before 8.11.49 in env to modgui config file
-	move_env_var
 	
 	check_tmp_permission
 	
@@ -1616,8 +1618,6 @@ root() {
 	create_driver_setting #create diver setting if not present
 	logger_command "Check Dropbear config file"
 	dropbear_file_check  #check dropbear config
-	logger_command "Check DDNS directory"
-	check_noip_file #check ddns directory in /etc
 	logger_command "Check eco paramaters"
 	eco_param #This disable eco param as they introduce some latency
 	[ -z "${device_type##*DGA413*}" ] && logger_command "Enable new upnp"
@@ -1674,6 +1674,8 @@ root() {
 	restore_nginx
 	logger_command "Enabling hardware serial console..."
 	prevent_total_brick
+	logger_command "Cleaning cups firewall rule..."
+	clean_cups_block_rule
 
 	rootchecks #This check root availability
 
@@ -1835,6 +1837,7 @@ boot() {
 	logo_project
 	check_full_rootfs
 	check_root
+	move_env_var #This moves every garbage created before 8.11.49 in env to modgui config file
 	check_gui_ver
 	check_isp_config
 	create_symlink

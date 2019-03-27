@@ -1401,7 +1401,7 @@ local function createTableData(columns, data, canEdit, canDelete, editing, helpm
             -- If we're just displaying the current line
             content[#content + 1] = "<tr>"
             for j,v in ipairs(l) do
-                content[#content + 1] = '<td data-title="'..columns[j]["header"]..'">'
+                content[#content + 1] = format('<td %s>', v ~= "" and (' data-title="'..columns[j]["header"]..'"') or "")
                 content[#content + 1] = createTableDataColumn(columns[j], v)
                 content[#content + 1] = "</td>"
             end

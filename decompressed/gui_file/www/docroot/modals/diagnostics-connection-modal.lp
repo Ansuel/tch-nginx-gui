@@ -357,7 +357,7 @@ else
     else
         statusIconDSL = "<i class=\"icon-ban-circle icon-large red\"></i> "
     end
-    html[#html+1] = ui_helper.createLabel(T"DSL Status",format("%s %s",statusIconDSL, xdsl_params["dsl_status"]), attributes)
+    html[#html+1] = ui_helper.createLabel(T"DSL Status",format("%s %s",statusIconDSL, T(xdsl_params["dsl_status"])), attributes)
 
     --Check ATM ping and display the results if relevant
     if is_adsl then

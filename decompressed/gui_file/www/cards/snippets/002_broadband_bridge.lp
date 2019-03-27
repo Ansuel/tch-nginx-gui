@@ -18,7 +18,7 @@ local tabdata = dyntab_helper.process(bmh)
 local wan_bridge = proxy.get("uci.network.interface.@wan.ifname")[1].value
 
 local wan_vlan_bridge = proxy.get("uci.network.device.@"..wan_bridge..".ifname")
-if wan_vlan_bridge then
+if wan_vlan_bridge and wan_vlan_bridge[1].value~= "" then
 	wan_bridge = wan_vlan_bridge[1].value
 end
 

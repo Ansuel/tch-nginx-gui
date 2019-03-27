@@ -554,8 +554,6 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
 \
 <link href="/css/chosen.css" rel="stylesheet">\
 <link href="/css/numberpicker.css" rel="stylesheet">\
-<script language="javascript" type="text/javascript" src="js/chosen-min.js"></script>\
-<script language="javascript" type="text/javascript" src="js/numberpicker-min.js"></script>\
 \
 <style>\
 	.uneven {\
@@ -738,6 +736,10 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
 </div>\
 ');  ngx.print(ui_helper.createFooter())   ngx.print('\
 <script>\
+\
+	$.getScript("/js/chosen-min.js");\
+	$.getScript("/js/numberpicker-min.js");\
+\
 	var id = window.setTimeout(function() {}, 0);\
 	while (id--) {\
 		window.clearTimeout(id);\

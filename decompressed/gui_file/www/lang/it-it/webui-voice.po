@@ -60,8 +60,14 @@ msgstr "Registro chiamate"
 msgid "Call Statistics"
 msgstr "Statistiche chiamate"
 
+msgid "Line Status"
+msgstr "Stato linea"
+
+msgid "Call State"
+msgstr "Stato chiamata"
+
 msgid "Call Status"
-msgstr "Stato chiamate"
+msgstr "Stati chiamate"
 
 msgid "Call Type"
 msgstr "Tipo chiamate"

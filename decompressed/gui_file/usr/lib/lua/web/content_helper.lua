@@ -68,7 +68,7 @@ function M.getExactContent(content)
     else
 		local errmsg = {}
 		local errkey = {}
-		errmsg[#errmsg+1] = T"Exact data not found in this paths: "
+		errmsg[#errmsg+1] = "Exact data not found in this paths: "
 		errmsg[#errmsg+1] = "</br>"
 		for key, path in pairs(content) do
 			if not (proxy.get(path)) then

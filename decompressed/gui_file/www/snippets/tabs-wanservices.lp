@@ -7,11 +7,12 @@ gettext.textdomain('webui-core')
 local content_helper = require("web.content_helper")
 local ipairs, string = ipairs, string
 local items = {
-    {"usermgr-modal.lp", T"User Manager"},
-    {"logviewer-modal.lp", T"Log Viewer"},
-    {"log-routingtable-modal.lp", T"Routing Table"},
-    {"log-connections-modal.lp", T"Connections"},
-	{"modem-stats-modal.lp", T"Modem Stats Graph"},
+    {"wanservices-modal.lp", T"Port Forward"},
+    {"upnp-modal.lp", T"UPnP"},
+    {"wol-modal.lp", T"WoL / WoW"},
+	{"customdns-modal.lp", T"Custom DNS"},
+	{"dyndns-modal.lp", T"DynDNS"},
+	{"dmz-modal.lp", T"DMZ"},
 }
 
 

@@ -260,8 +260,8 @@ local function onDeleteVoice(current_section_index)
 
 	proxy.del("uci.mmpbx.network.@"..current_section_index..".")
 
+    proxy.del(getIndex("uci.mmpbx.dial_plan.@dial_plan_generic.network.", current_section_index))
 	proxy.del(getIndex("uci.mmpbx.scc.@scc_generic.network.", current_section_index))
-	proxy.del(getIndex("uci.mmpbx.dial_plan.@dial_plan_generic.network.", current_section_index))
 	proxy.del(getIndex("uci.mmpbx.media_filter.@media_filter_audio_generic.network.", current_section_index))
 
 	for _ , key in pairs(proxy.getPN("uci.mmpbx.audionotification.",true)) do
@@ -277,6 +277,7 @@ local sipnet_options = {
     addNamedObject = true,
 	onAdd = onAddVoice,
     onDelete = onDeleteVoice,
+    maxEntries = 2,
 }
 
 local sipnet_data, sipnet_helpmsg = post_helper.handleTableQuery(sipnet_columns, sipnet_options, nil, sipnet_default, sipnet_valid)

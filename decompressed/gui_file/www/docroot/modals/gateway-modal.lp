@@ -865,7 +865,7 @@ ngx.print('\
   }\
 \
   function resetreboot(msg, msg_dst, action) {\
-    msg_dst.after(msg);\
+    msg_dst.replaceWith(msg);\
     msg.removeClass("hide");\
     msg[0].scrollIntoView();\
     $.post(\

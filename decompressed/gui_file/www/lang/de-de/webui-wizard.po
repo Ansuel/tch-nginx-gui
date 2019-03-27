@@ -219,7 +219,7 @@ msgstr "Schritt 6 von 8"
 msgid "Wireless 5GHz (WiFi): "
 msgstr "Drahtlos 5GHz (WiFi): "
 
-msgid "Nessuna"
+msgid "None"
 msgstr "Kein"
 
 msgid "WPA2-PSK"
@@ -239,9 +239,6 @@ msgstr "Ethernet"
 
 msgid "VDSL"
 msgstr "VDSL"
-
-msgid "None"
-msgstr "Kein"
 
 msgid "Username can not be empty"
 msgstr ""

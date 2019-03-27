@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: webui-core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-06-21 15:33+0200\n"
+"POT-Creation-Date: \n"
 "PO-Revision-Date: 2019-02-09 17:40+0100\n"
 "Last-Translator: Dr. Uwe Meyer-Gruhl\n"
 "Language-Team: none\n"
@@ -1219,6 +1219,9 @@ msgstr "Erzeuge QR-Code"
 msgid "Generic"
 msgstr "Generisch"
 
+msgid "Github GUI"
+msgstr "Github GUI"
+
 msgid "Global"
 msgstr "Global"
 
@@ -2187,9 +2190,6 @@ msgstr "Neustarten, bitte warten…"
 
 msgid "Restore"
 msgstr "Wiederherstellen"
-
-msgid "Restore GUI"
-msgstr "GUI wiederherstellen"
 
 msgid "Retransmissions"
 msgstr "Neuübertragungen"
@@ -4215,9 +4215,6 @@ msgstr "Ungültiger Tag"
 msgid "CS3"
 msgstr "CS3"
 
-msgid "Github GUI"
-msgstr "GitHub GUI"
-
 msgid "Enter the default <strong>\"access code\"</strong>. This code is located on the label underneath your gateway."
 msgstr "Geben Sie den <strong>\"access code\"</strong> ein. Dieser befindet sich auf dem Aufkleber unter Ihrem Gateway."
 
@@ -4277,3 +4274,86 @@ msgstr "Zeige immer erweiterte Optionen an"
 
 msgid "GUI animations"
 msgstr "GUI Animation"
+
+msgid "In Progress/Connected"
+msgstr ""
+
+msgid "Unrooting and reverting to factory defaults, please wait..."
+msgstr ""
+
+msgid "Resetting to default gui, please wait..."
+msgstr ""
+
+msgid "Connection issue: "
+msgstr ""
+
+msgid "Mem Free Graph"
+msgstr ""
+
+msgid "CPU Usage Graph"
+msgstr ""
+
+msgid "Modem Stats Graph"
+msgstr ""
+
+msgid "Modem Stats"
+msgstr ""
+
+msgid "Registration refused"
+msgstr ""
+
+msgid "Network error"
+msgstr ""
+
+msgid "Resetting config to default, please wait..."
+msgstr ""
+
+msgid "Reset config"
+msgstr ""
+
+msgid "Reset the router to factory settings and mantain modded GUI."
+msgstr ""
+
+msgid "Reset config to Factory"
+msgstr ""
+
+msgid "Remove Config"
+msgstr ""
+
+msgid "Are you sure you want to reset config of this modem? </br><strong> This is permanent, save any config before this action.</strong>"
+msgstr ""
+
+msgid "Mem Used Graph"
+msgstr ""
+
+msgid "Updated"
+msgstr ""
+
+msgid "Add new DDns Rule"
+msgstr ""
+
+msgid "Update Info"
+msgstr ""
+
+msgid "<strong %s>%d DynDNS service</strong> is enabled"
+msgid_plural "<strong %s>%d DynDNS services</strong> are enabled"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "WoL / WoW"
+msgstr ""
+
+msgid "Custom DNS"
+msgstr ""
+
+msgid "DynDns"
+msgstr ""
+
+msgid "Port Forward"
+msgstr ""
+
+msgid "Server Port"
+msgstr ""
+
+msgid "Syslog Filters"
+msgstr ""

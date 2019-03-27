@@ -241,10 +241,10 @@ msgid "VDSL"
 msgstr "VDSL"
 
 msgid "Username can not be empty"
-msgstr ""
+msgstr "Il nome utente non può essere vuoto"
 
 msgid "Passwords do not match"
-msgstr ""
+msgstr "Le password non coincidono"
 
 msgid "You must fill your password"
-msgstr ""
+msgstr "Devi inserire la password"

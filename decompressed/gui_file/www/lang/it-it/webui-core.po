@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: webui-core\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-06-21 15:33+0200\n"
+"POT-Creation-Date: \n"
 "PO-Revision-Date: 2019-01-21 14:38+0100\n"
 "Last-Translator: bovirus <bovirus@gmail.com>\n"
 "Language-Team: none\n"
@@ -1211,13 +1211,16 @@ msgid "Gateway IP should not be in SFP interface IP Range, change that first"
 msgstr "L'IP del modem non dovrebbe essere nell'intervallo di indirizzi IP dell'interfaccia SFP.<br/>Cambialo prima"
 
 msgid "Gateway in bridge mode"
-msgstr "Gateway in modalità bridge"
+msgstr "Modem in modalità bridge"
 
 msgid "Generate QR code"
 msgstr "Genera codice QR"
 
 msgid "Generic"
 msgstr "Generico"
+
+msgid "Github GUI"
+msgstr "GUI Github"
 
 msgid "Global"
 msgstr "Globale"
@@ -1721,7 +1724,7 @@ msgid "Next Hop Ping"
 msgstr "Ping hop successivo"
 
 msgid "Next Hop Ping IPV6"
-msgstr "Ping hop IPV6 successivo"
+msgstr "Ping IPV6 hop successivo"
 
 msgid "No Address Assigned"
 msgstr "Nessun indirizzo assegnato"
@@ -2188,9 +2191,6 @@ msgstr "Riavvio..."
 msgid "Restore"
 msgstr "Ripristina"
 
-msgid "Restore GUI"
-msgstr "Ripristina GUI"
-
 msgid "Retransmissions"
 msgstr "Ritrasmissioni"
 
@@ -2612,7 +2612,7 @@ msgid "An imported configuration file will only be applied if its firmware versi
 msgstr "Abilitando 'Importa con restrizioni' la configurazione importata verrà applicata solo se il file di configurazione proviene dalla stessa versione firmware."
 
 msgid "Enable what type of configuration you want to import and export."
-msgstr "Le opzioni controllano il tipo di configurazione che può essere esportata e importata."
+msgstr "Queste opzioni controllano il tipo di configurazione che può essere esportata e importata."
 
 msgid "This is the internal IP of the SFP interface used for fiber connection. This and the local Gateway IP must be different."
 msgstr "È l'indirizzo IP interno dell'interfaccia SFP usata per la connessione in fibra.<br/>Questo indirizzo e l'IP del gateway locale devono essere diversi."
@@ -2936,7 +2936,7 @@ msgid "WAN-Mode"
 msgstr "Modalità WAN"
 
 msgid "WAN-Port LAN Mode"
-msgstr "Modalità LAN Porta WAN"
+msgstr "Porta WAN in modo LAN"
 
 msgid "WARNING: If you would like to connect to the GuestSSID, please activate your Main SSID"
 msgstr "ATTENZIONE: per potersi connettere alla rete Guest occorre attivare la rete principale"
@@ -3134,7 +3134,7 @@ msgid "VDSL Profile"
 msgstr "Profilo VDSL"
 
 msgid "Your Gateway"
-msgstr "Gateway attuale"
+msgstr "Questo modem"
 
 msgid "The AP can be selected only once, to modify it you need to remove the rule."
 msgstr "L'AP può essere selezionato una volta sola.<br/>Per modificarlo devi rimuovere la regola."
@@ -3212,7 +3212,7 @@ msgid "DSL Connection Status"
 msgstr "Stato connessione DSL"
 
 msgid "1. Max recommened Packet Number is dynamic (uses half of free memory) and may not be accurate.<br/>2. Hardware offload disabled during capture on platforms with flow cache!<br/>3. 'Download' will be invalid if nothing was captured.<br/>4. 'Clean' will clean captured file to reduce memory consumption."
-msgstr "1. Il numero massimo di pacchetti è dinamico (usa la metà della memoria libera) e potrebbe non essere accurato.<br/>2. L'offload hardware è disabilitato durante la cattura nelle pittaforme con cache di flusso!<br/>3. Il 'Download' non sarà valido se non è stato catturato nulla.<br/>4. 'Azzera' azzererà il file catturato per ridurre l'uso della memoria."
+msgstr "1. Il numero massimo di pacchetti è dinamico (usa la metà della memoria libera) e potrebbe non essere accurato.<br/>2. L'offload hardware è disabilitato durante la cattura nelle piattaforme con cache di flusso!<br/>3. Il 'Download' non sarà valido se non è stato catturato nulla.<br/>4. 'Azzera' azzererà il file catturato per ridurre l'uso della memoria."
 
 msgid "DSLAM Firmware"
 msgstr "Firmware DSLAM"
@@ -3301,10 +3301,10 @@ msgid "PPPoA routed mode"
 msgstr "PPPoA routed"
 
 msgid "Fixed IP mode"
-msgstr "IP Statico"
+msgstr "IP statico"
 
 msgid "Bridge mode"
-msgstr "Modo bridge"
+msgstr "Bridge"
 
 msgid "Reset"
 msgstr "Ripristina"
@@ -4215,9 +4215,6 @@ msgstr "Giorno non valido"
 msgid "CS3"
 msgstr "CS3"
 
-msgid "Github GUI"
-msgstr "GUI Github"
-
 msgid "Enter the default <strong>\"access code\"</strong>. This code is located on the label underneath your gateway."
 msgstr "Inserisci il <strong>\"codice di accesso\"</strong> predefinito.<br/>Questo codice è stampato sull'etichetta sul fondo del modem."
 
@@ -4258,7 +4255,7 @@ msgid "Modem"
 msgstr "Modem"
 
 msgid "20MHz"
-msgstr "20MHz"
+msgstr "20 MHz"
 
 msgid "The Band Steering can not be supported under WEP security mode."
 msgstr "Il band steering non è supportato nel modo sicurezza WEP."
@@ -4277,3 +4274,86 @@ msgstr "Visualizza sempre opzioni avanzate"
 
 msgid "GUI animations"
 msgstr "Animazioni GUI"
+
+msgid "In Progress/Connected"
+msgstr "In corso/connessa"
+
+msgid "Unrooting and reverting to factory defaults, please wait..."
+msgstr "Rimozione root e ritorno ai valori predefiniti..."
+
+msgid "Resetting to default gui, please wait..."
+msgstr "Ripristino GUI originale..."
+
+msgid "Connection issue: "
+msgstr "Problema connessione: "
+
+msgid "Mem Free Graph"
+msgstr "Grafico memoria libera"
+
+msgid "CPU Usage Graph"
+msgstr "Grafico uso CPU"
+
+msgid "Modem Stats Graph"
+msgstr "Grafico statistiche modem"
+
+msgid "Modem Stats"
+msgstr "Statistiche modem"
+
+msgid "Registration refused"
+msgstr "Registrazione rifiutata"
+
+msgid "Network error"
+msgstr "Errore di rete"
+
+msgid "Resetting config to default, please wait..."
+msgstr "Ripristino configurazione ai valori predefiniti..."
+
+msgid "Reset config"
+msgstr "Ripristina configurazione"
+
+msgid "Reset the router to factory settings and mantain modded GUI."
+msgstr "Ripristina il modem ai valori di fabbrica e mantiene la GUI mod."
+
+msgid "Reset config to Factory"
+msgstr "Ripristina configurazione di fabbrica"
+
+msgid "Remove Config"
+msgstr "Rimuovi configurazione"
+
+msgid "Are you sure you want to reset config of this modem? </br><strong> This is permanent, save any config before this action.</strong>"
+msgstr "Sei sicuro di voler ripristinare la configurazione del modem?<br/><strong>Questa azione è permanente.<br/>Salva qualsiasi configurazione prima di effettuare questa azione.</strong>"
+
+msgid "Mem Used Graph"
+msgstr "Grafico memoria usata"
+
+msgid "Updated"
+msgstr "Aggiornato"
+
+msgid "Add new DDns Rule"
+msgstr "Aggiungi nuova regola DDNS"
+
+msgid "Update Info"
+msgstr "Info aggiornamento"
+
+msgid "<strong %s>%d DynDNS service</strong> is enabled"
+msgid_plural "<strong %s>%d DynDNS services</strong> are enabled"
+msgstr[0] "<strong %s>%d</strong> servizio DynDNS abilitato"
+msgstr[1] "<strong %s>%d</strong> servizi DynDNS abilitati"
+
+msgid "WoL / WoW"
+msgstr "WoL / WoW"
+
+msgid "Custom DNS"
+msgstr "DNS personalizzato"
+
+msgid "DynDns"
+msgstr "DynDNS"
+
+msgid "Port Forward"
+msgstr "Inoltro porte"
+
+msgid "Server Port"
+msgstr ""
+
+msgid "Syslog Filters"
+msgstr ""

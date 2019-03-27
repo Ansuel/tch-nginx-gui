@@ -190,7 +190,10 @@ body {
 }
 
 .container > #footer {
-    position: unset
+    position: unset;
+	width: unset;
+	left: unset;
+	bottom: unset;
 }
 
 .gateway_bg, .popUpBG {
