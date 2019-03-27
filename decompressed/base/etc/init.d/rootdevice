@@ -457,6 +457,8 @@ check_upgrade_shit() {
 		rm /lib/upgrade/checkver.sh 
 		rm /lib/upgrade/hardreset.sh
 	fi
+	if not [ -f /lib/functions/system.sh ]; then
+		cp /rom/lib/functions/system.sh /lib/functions/ # Fix "/sbin/sysupgrade: .: line 3: can't open '/lib/functions/system.sh'"
 }
 
 check_isp_config() {
@@ -1548,11 +1550,6 @@ clean_cups_block_rule() {
 		/etc/init.d/firewall restart
 	fi
 }
-
-fix_sysupgrade_missing_script() {
-cp /rom/lib/functions/system.sh /lib/functions/ # Fix "/sbin/sysupgrade: .: line 3: can't open '/lib/functions/system.sh'"
-}
-
 root() {
 
 	logger -s -t 'Root Script' "Rooting in progress..."
