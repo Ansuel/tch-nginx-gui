@@ -817,7 +817,7 @@ if ngx.req.get_method() == "POST" then
   content["wps_device_pin_code"] = ""
 
 -- triggered only on a POST with action set wps_device_pin_code (button next to field should trigger that)
-    if #wls > 1 then
+    if #wls > 0 then
       for _,v in ipairs(wls) do
         if v.iface == curiface then
           v.ssid = content["ssid"]
@@ -933,7 +933,7 @@ ngx.print(ui_helper.createHeader(T"Wireless", true, false))   ngx.print('\
 <form class="form-horizontal" method="post" action="');  ngx.print( ngx.var.request_uri ); ngx.print('">\
 ');  
 -- Do not display the navlist on the list if only 1 SSID
-if #wls > 1 then
+if #wls > 0 then
   ngx.print('\
 <div class="span2">\
     <ul class="nav nav-list">\
