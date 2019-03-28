@@ -223,14 +223,12 @@ local function onAdd(success, content, onModify)
   local ret = proxy.set(setObject)
   proxy.apply()
   
-  content = nil
-  
   return ret
 end
 
 local function onModify(index, content)
   local ret = onAdd(index, content, true)
-  return true
+  return ret
 end
 
 local function onDelete(success)
@@ -277,7 +275,10 @@ if ngx.var.request_method == "POST" then
       tod_options.editing = -1
     end
   elseif postargs.action == "TABLE-MODIFY" then
-    onModify(current_index, postargs)
+    local success = onModify(current_index, postargs)
+	if not success then
+	  tod_options.editing = -1
+	end
   elseif postargs.action == "TABLE-DELETE" then
     onDelete(current_index)
   end
@@ -373,11 +374,11 @@ ngx.print('\
     ');  if ngx.var.request_method == "POST" and (ngx.req.get_post_args().action == "TABLE-NEW" or ngx.req.get_post_args().action == "TABLE-EDIT") then  ngx.print('\
       <script type="text/javascript">\
         var warning = \'<div class="control-group"><div style="padding-top: 12px;" class="controls"><span class="alert">\'\
-                      +\'');  ngx.print( T"The Gateway will block/allow all the time if none of the days are selected" ); ngx.print('</span></div></div>\';\
+                      +"');  ngx.print( T"The Gateway will block/allow all the time if none of the days are selected" ); ngx.print('"+\'</span></div></div>\';\
 		var warning_ap = \'<div class="control-group"><div style="padding-top: 12px; padding-bottom: 12px;" class="controls"><span class="alert">\'\
-                      +\'');  ngx.print( T"The AP can be selected only once, to modify it you need to remove the rule." ); ngx.print('</span></div></div>\';\
-        $(\'#stoptime\').parent().parent().after(warning);\
-		$(\'#ap\').parent().parent().after(warning_ap);\
+                      +"');  ngx.print( T"The AP can be selected only once, to modify it you need to remove the rule." ); ngx.print('"+\'</span></div></div>\';\
+        $("#stoptime").parent().parent().after(warning);\
+		$("#ap").parent().parent().after(warning_ap);\
       </script>\
     ');  end  ngx.print('\
   </form>\
