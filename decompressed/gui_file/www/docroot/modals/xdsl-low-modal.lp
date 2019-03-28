@@ -250,9 +250,9 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  end
 	  html[#html + 1] = ui_helper.createLabel(T"Datapump Version",content.dsl0_xdsl_FirmwareVersion, span5 )
 	  if not driver_Params.driver_ver then
-		html[#html + 1] = ui_helper.createLabel(T"Driver Version",T"We don't have any driver for this modem, please report them to the github page. ", span5 )
+		html[#html + 1] = ui_helper.createLabel(T"xDSL Driver Version",T"We don't have any driver for this modem, please report them to the github page. ", span5 )
 	  else
-		html[#html + 1] = ui_helper.createInputSelect(T"Driver Version", "driver_ver", driver_option, driver_content["driver_ver"])
+		html[#html + 1] = ui_helper.createInputSelect(T"xDSL Driver Version", "driver_ver", driver_option, driver_content["driver_ver"])
 	  end
 	  html[#html + 1] = ui_helper.createSwitch(T"SRA", "ds10_sra", driver_content["ds10_sra"])
 	  html[#html + 1] = ui_helper.createSwitch(T"Bitswap", "ds10_bitswap", driver_content["ds10_bitswap"])
