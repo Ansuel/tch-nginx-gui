@@ -10,6 +10,13 @@ local content_helper = require("web.content_helper")
 
 local quantenna_wifi = proxy.get("uci.env.var.qtn_eth_mac")
 quantenna_wifi = ((quantenna_wifi and quantenna_wifi[1].value~="") and true or false)
+--Support ethernet mode for devices with no eth4 port
+local ethname = proxy.get("sys.eth.port.@eth4.status")
+if ethname and ethname[1].value then
+	ethname =  "eth4"
+else
+	ethname =  "eth3"
+end
 
 local port_columns = {
   {--[1]
@@ -71,7 +78,7 @@ local port_filter = function(data)
 	
 	if quantenna_wifi and data.paramindex:match("eth5") then
 		return false
-	elseif data.paramindex:match("eth4") and ( proxy.get("uci.ethernet.port.@eth4.wan")[1].value == "1" ) then
+	elseif data.paramindex:match(ethname) and ( proxy.get("uci.ethernet.port.@"..ethname..".wan")[1].value == "1" ) then
 		data.paramindex = "WAN"
 	else
 		port = data.paramindex:gsub("eth","")

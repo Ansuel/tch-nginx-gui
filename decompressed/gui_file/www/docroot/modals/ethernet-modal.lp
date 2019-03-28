@@ -521,6 +521,14 @@ end
 
 local sfp_presence = proxy.get("uci.env.rip.sfp")
 
+--Support ethernet mode for devices with no eth4 port
+local ethname = proxy.get("sys.eth.port.@eth4.status")
+if ethname and ethname[1].value then
+    ethname =  "eth4"
+else
+    ethname =  "eth3"
+end
+
 local mapParSFP = {}
 local mapValSFP = {}
 
@@ -534,7 +542,7 @@ if sfp_presence and  (sfp_presence[1].value == "1") then
     mapParSFP.ethsfp = "uci.ethernet.globals.eth4lanwanmode"
     mapValSFP.ethsfp = vB
 else
-    mapParSFP.eth4_wanmode = "uci.ethernet.port.@eth4.wan"
+    mapParSFP.eth4_wanmode = "uci.ethernet.port.@"..ethname..".wan"
     mapValSFP.eth4_wanmode = vB
 end
 

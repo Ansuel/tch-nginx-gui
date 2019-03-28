@@ -122,7 +122,14 @@ local function validateWanIfName(value, object, key)
         end
     end
     if (object["wan_type"] == "eth") then
-        object["wan_ifname"] = "eth4"
+        --Support ethernet mode for devices with no eth4 port
+        local ethname = proxy.get("sys.eth.port.@eth4.status")
+        if ethname and ethname[1].value then
+            ethname =  "eth4"
+        else
+            ethname =  "eth3"
+        end
+        object["wan_ifname"] = ethname
         if ("pppoe" == object["wan_proto"]) and (object["vlan_enabled"] == "1") then
             object["wan_ifname"] = "waneth4"
         end
