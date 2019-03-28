@@ -188,6 +188,7 @@ legend {
   border-color: @blue-color @blue-color @blue-color;
   border: 1px solid @blue-color;
   text-shadow: 0 1px 0px #000000;
+  border-radius: 2px;
 }
 
 .switchOn {
@@ -224,10 +225,8 @@ legend {
 }
 
 .btn:hover, .btn:focus, .btn:active, .btn.active, .btn.disabled, .btn[disabled] {
-  color: #48698f;
-  // box-shadow: outset 0 1px 0 rgba(255,255,255,.5);
   background-image: none;
-  background-color: lighten(@blue-color, 60%);
+  box-shadow: 0px 10px 15px -12px rgba(0,0,0,0.4);
 }
 
 .btn:hover:hover, .btn:hover:focus, .btn:hover:active, .btn:hover.active, .btn:hover.disabled, .btn:hover[disabled] {
@@ -272,12 +271,7 @@ legend {
   color: #ffffff;
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
   background-color: @blue-color;
-  background-image: -moz-linear-gradient(top, @blue-color 20%, rgb(29, 29, 36) 100%);
-  background-image: -webkit-gradient(linear, 0 0, 20% 100%, from(@blue-color), to(rgb(29, 29, 36)));
-  background-image: -webkit-linear-gradient(top, @blue-color 20%, rgb(29, 29, 36) 100%);
-  background-image: -o-linear-gradient(top, @blue-color 20%, rgb(29, 29, 36) 100%);
-  background-image: linear-gradient(to bottom, @blue-color 20%, rgb(29, 29, 36) 100%);
-  background-repeat: repeat-x;
+  background-image: none;
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff2b76cb', endColorstr='#ff032b59', GradientType=0);
   border-color: @blue-color @blue-color @blue-color;
   border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
