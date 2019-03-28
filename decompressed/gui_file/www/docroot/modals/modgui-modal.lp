@@ -209,14 +209,15 @@ if telstra_gui and ( telstra_gui[1].value == "1" ) then
 end
 
 local gui_skin_option = {
-      { "blue", T'Blue'},
-      { "violet", T'Violet'},
-      { "green", T'Green'},
-    { "TIM" , T'Enhanced Tim'},
-    { "Fritz", T'Fritz!Box'},
-    { "dark-white_Fritz", T'Dark/White (Fritz!Box Based)'},
-    { "dark-midnight_Fritz", T'Dark/Midnight (Fritz!Box Based)'},
-    { "dark-red", T'Red Dark'},
+  { "blue", T'Blue'},
+  { "violet", T'Violet'},
+  { "green", T'Green'},
+  { "TIM" , T'Enhanced Tim'},
+  { "Fritz", T'Fritz!Box'},
+  { "dark-white_Fritz", T'Dark/White (Fritz!Box Based)'},
+  { "dark-midnight_Fritz", T'Dark/Midnight (Fritz!Box Based)'},
+  { "dark-red", T'Red Dark'},
+  { "flat-blue", T'Flat Blue'}  
 }
 
 local mapParams = {
