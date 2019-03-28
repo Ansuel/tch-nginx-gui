@@ -916,8 +916,8 @@ msgstr "Herunterladen fehlgeschlagen. Bitte versuchen Sie es erneut."
 msgid "Downloading TCPDump file, please wait..."
 msgstr "Herunterladen der TCPDump Datei, bitte warten..."
 
-msgid "Driver Version"
-msgstr "Treiberversion"
+msgid "xDSL Driver Version"
+msgstr "xDSL Treiberversion"
 
 msgid "Driver Version: <strong>%s</strong>"
 msgstr "Treiber Version: <strong>%s</strong>"
