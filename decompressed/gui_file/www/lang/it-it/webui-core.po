@@ -4357,3 +4357,6 @@ msgstr "Porta server"
 
 msgid "Syslog Filters"
 msgstr "Filtri Syslog"
+
+msgid "You must select at leat one ap"
+msgstr ""

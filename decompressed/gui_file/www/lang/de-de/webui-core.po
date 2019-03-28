@@ -4357,3 +4357,6 @@ msgstr ""
 
 msgid "Syslog Filters"
 msgstr ""
+
+msgid "You must select at leat one ap"
+msgstr ""
