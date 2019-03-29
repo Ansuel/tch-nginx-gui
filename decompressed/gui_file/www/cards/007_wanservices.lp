@@ -82,6 +82,7 @@ local modalPath = nil
 local switchName = nil
 local modal_link_port  = ""
 local modal_link_upnp = ""
+local modal_link_ddns = ""
 local session = ngx.ctx.session
 if session:hasAccess("/modals/wanservices-modal.lp") then
   modalPath = "/modals/wanservices-modal.lp"
