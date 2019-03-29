@@ -9,12 +9,24 @@ local includepath
 
 local M = {}
 
-local function get_cards_config()
+local function get_rules_from_config()
+	
+	local rules = {}
+
+	uci:foreach('web', 'rule', function(s)
+		rules[s['.name']] = s
+	end)
+	
+	uci:unload('web')
+	
+	return rules
+end
+
+local rules = get_rules_from_config()
+
+local function get_cards_from_config()
   local config = {}
-  local rules = {}
-  uci:foreach('web', 'rule', function(s)
-    rules[s['.name']] = s
-  end)
+  
   uci:foreach('web', 'card', function(card)
     -- only include cards that refer to a valid modal
     -- and are not anonymous
@@ -33,6 +45,8 @@ local function get_cards_config()
   uci:unload('web')
   return config
 end
+
+local config = get_cards_from_config()
 
 local function card_visible(session, config, cardname)
   local card = config[cardname]
@@ -76,18 +90,35 @@ function M.setpath(path)
   includepath = path
 end
 
---Returns card from modal provided or nil
-function M.get_card_from_modal(ModalSearch)
+local dataReq = {
+	
+}
 
-	local config = get_cards_config()
+local function compareValueFromConfig(dataReq,val2)
+	
+	local result = nil
+	
+	uci:foreach('web', 'card', function(card)
 
-	local rules = {}
-	uci:foreach('web', 'rule', function(s)
-		rules[s['.name']] = s
+		local rule = rules[card.modal]
+
+		if rule and not card['.anonymous'] then
+			if val1 == val2 then
+				result = rule.target
+			end
+		end
 	end)
 
-	local result
+	uci:unload('web')
+	
+	return result
+end
 
+--Returns card from modal provided or nil
+function M.get_card_from_modal(ModalSearch)
+	local session = ngx.ctx.session
+	local result
+	
 	uci:foreach('web', 'card', function(card)
 
 		local rule = rules[card.modal]
@@ -100,21 +131,18 @@ function M.get_card_from_modal(ModalSearch)
 	end)
 
 	uci:unload('web')
-	return result
+	
+	if result and card_visible(session, config, (result:gsub("^%d+_", ""))) then
+	  return result
+	end
+	
+	return
 end
 
 --Returns card from modal provided or nil
 function M.get_modal_from_card(CardSearch)
-
-	local config = get_cards_config()
-
-	local rules = {}
-	uci:foreach('web', 'rule', function(s)
-		rules[s['.name']] = s
-	end)
-
 	local result
-
+	
 	uci:foreach('web', 'card', function(card)
 
 		local rule = rules[card.modal]
@@ -132,7 +160,6 @@ end
 
 function M.cards()
   local session = ngx.ctx.session
-  local config = get_cards_config()
   local limit_info = get_limit_info()
   local result = {}
   if includepath and lfs.attributes(includepath, 'mode') == 'directory' then

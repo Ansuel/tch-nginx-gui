@@ -163,6 +163,15 @@ end
 
 local rule_roles
 
+local function genRolesList()
+	local roles_list = {}
+	uci:foreach('web', 'user', function(s)
+		roles_list[#roles_list+1] = s.role
+	end)
+
+	return roles_list
+end
+
 --Check if rule contains engineer role and adds it
 uci:foreach('web', 'rule', function(s)
 	rule_roles={}
@@ -178,6 +187,9 @@ uci:foreach('web', 'rule', function(s)
 	end
 	if not contains("admin",rule_roles) then
 		rule_roles[#rule_roles+1]="admin"
+	end
+	if s['.name'] == "ajaxgetcard" then
+		rule_roles = genRolesList()
 	end
 	uci:set('web',s['.name'],'roles',rule_roles)
   end)
