@@ -59,7 +59,6 @@ local ddns_columns = {
     param = "ddns_light",
     type = "text",
 	readonly = true,
-    attr = { input = { class="span2 centered" } },
   },
   {
     header = T"Update Info",
@@ -67,14 +66,12 @@ local ddns_columns = {
     param = "ddns_status",
     type = "text",
 	readonly = true,
-    attr = { input = { class="span2 centered" } },
   },
   {
     header = T"",
     name = "State",
     param = "enabled",
     type = "switch",
-    attr = { input = { class="span2 centered" } },
   },
   {
     header = T"Service",
@@ -82,14 +79,14 @@ local ddns_columns = {
     param = "service_name",
     type = "select",
 	values = ddns_supported_services,
-    attr = { input = { class="span2 centered" } },
+    attr = { select = { class="span2 centered" } },
   },
   {
     header = T"Domain",
     name = "Domain",
     param = "domain",
     type = "text",
-    attr = { input = { class="span2 centered", id ="iproutesmodal_gateway" }},
+    attr = { input = { class="span2 centered"}},
   },
   {
     header = T"Username",
@@ -111,7 +108,6 @@ local ddns_columns = {
     param = "use_https",
     default = "1",
     type = "switch",
-    attr = { select = { class="span2 centered" } },
   },
   {
     header = T"Interface",
@@ -180,7 +176,7 @@ local ddns_valid = {
 	Service = post_helper.getValidateInEnumSelect(ddns_supported_services),
 	Domain = post_helper.getOrValidation(post_helper.validateStringIsDomainName, post_helper.validateStringIsIP),
 	Username = post_helper.validateNonEmptyString,
-	Password = post_helper.getValidationPassword,
+	Password = post_helper.getValidationPassword(post_helper.validateNonEmptyString),
 	HTTPS = vB,
 }
 
@@ -262,4 +258,4 @@ local info_box = {
   </form>\
 </div>\
 ');  ngx.print( ui_helper.createFooter() ); ngx.print('\
-');
+'); 

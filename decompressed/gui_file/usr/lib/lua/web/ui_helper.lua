@@ -1172,7 +1172,9 @@ local function createTableDataColumn(column, v)
         if type(column.synthesis) == "function" then
             content[#content + 1] = column.synthesis(v)
         end
-    elseif column.type ~= "hidden" then
+    elseif column.type == "password" then
+		content[#content + 1] = "********"
+	elseif column.type ~= "hidden" then
         content[#content + 1] = v
     end
     return content
