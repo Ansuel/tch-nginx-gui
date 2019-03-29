@@ -1,5 +1,9 @@
 @blue-color: rgb(54, 129, 221);
 
+.border-radius {
+  border-radius: 2px;
+}
+
 body::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -66,11 +70,11 @@ body::-webkit-scrollbar-corner {
 
 .modal-backdrop {
   background-color: #a1a5a8;
-  border-radius: 2px;
+  .border-radius;
 }
 
 .modal {
-  border-radius: 2px;
+  .border-radius;
 }
 
 legend {
@@ -188,7 +192,7 @@ legend {
   border-color: @blue-color @blue-color @blue-color;
   border: 1px solid @blue-color;
   text-shadow: 0 1px 0px #000000;
-  border-radius: 2px;
+  .border-radius;
 }
 
 .switchOn {
