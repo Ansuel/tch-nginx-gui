@@ -293,16 +293,27 @@ example:
 end
 function M.getTodwifi()
   setlanguage()
-
-  local wifi_list = {
-	{"",T"All"},
-  }
   
-  for i,v in ipairs(proxy.getPN("rpc.wireless.ap.", true)) do
-	local radio = string.match(v.path, "rpc%.wireless%.ap%.@([^%.]+)%.")
-	local ssid = proxy.get("rpc.wireless.ap.@"..radio..".ssid") and proxy.get("rpc.wireless.ap.@"..radio..".ssid")[1].value
-	local name = proxy.get("rpc.wireless.ssid.@"..ssid..".ssid") and proxy.get("rpc.wireless.ssid.@"..ssid..".ssid")[1].value
-	wifi_list[#wifi_list+1] = { radio , name }
+  local function genWifiList()
+  
+	local wifi_list = {}
+	
+	for i,v in ipairs(proxy.getPN("rpc.wireless.ap.", true)) do
+		local radio = string.match(v.path, "rpc%.wireless%.ap%.@([^%.]+)%.")
+		
+		local ssid = proxy.get("rpc.wireless.ap.@"..radio..".ssid")
+		ssid = ssid and ssid[1].value or nil
+		
+		local freq = proxy.get("rpc.wireless.ssid.@"..ssid..".radio")
+		freq = freq and freq[1].value
+		freq = string.match(freq,"radio_5G") and "5GHz" or "2.4GHz"
+		local name = proxy.get("rpc.wireless.ssid.@"..ssid..".ssid")
+		name = name and name[1].value
+		
+		wifi_list[#wifi_list+1] = { radio , name .. " (" .. freq .. ")" }
+	end
+  
+	return wifi_list
   end
   
   local wifimodes = {
@@ -388,8 +399,8 @@ function M.getTodwifi()
 				header = T"Access Point",
 				name = "ap",
 				param = "ap",
-				type = "select",
-                values = wifi_list,
+				type = "checkboxgroup",
+                values = genWifiList(),
 				attr = { input = { class="span2" } },
 			}, --[2]
             {

@@ -341,7 +341,7 @@ for i, v in ipairs(tod_data) do
 		[5] = v[4], -- stop_time
 		[6] = v[6] -- days
 	}
-	
+
 	for _, value in pairs(wifi_selected) do
 		insert(v[7][2],untaint(value))
 	end
@@ -396,6 +396,8 @@ ngx.print('\
         };\
         $("#starttime").mobiscroll().time(opt);\
         $("#stoptime").mobiscroll().time(opt);\
+		$("#starttime").removeAttr("readonly");\
+		$("#stoptime").removeAttr("readonly");\
     });\
     $(".btn-table-add, .btn-table-modify").click(function() {\
         // ui_helper adds dummy hidden checkbox if no checkboxes are checked. we don\'t need that.\
