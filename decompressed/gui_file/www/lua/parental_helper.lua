@@ -8,7 +8,8 @@ local content_helper = require("web.content_helper")
 local proxy = require("datamodel")
 local wifitod_path = "rpc.wifitod."
 local accesscontroltod_path = "uci.tod.host."
-local format = string.format
+local format, match = string.format, string.match
+local gsub, untaint = string.gsub, string.untaint
 local uinetwork = require("web.uinetwork_helper")
 local string = string
 local tonumber = tonumber
@@ -24,7 +25,7 @@ end
 local function hosts_ac_ip2mac(t)
   if not t then return nil end
   for k,v in pairs(t) do
-      local mac = string.match(k, "%[%s*([%x:]+)%s*%]")
+      local mac = match(k, "%[%s*([%x:]+)%s*%]")
       if mac then
          t[k] = mac
       end
@@ -48,7 +49,7 @@ end
 
 local function validateTime(value, object, key)
     local timepattern = "^(%d+):(%d+)$"
-    local time = { string.match(value, timepattern) }
+    local time = { match(value, timepattern) }
     if #time == 2 then
        if object["start_time"] == object["stop_time"] then
           return nil, T"Start and Stop time cannot be the same"
@@ -62,8 +63,8 @@ local function validateTime(value, object, key)
           return nil, T"Invalid minutes, must be between 0 and 59"
        end
        if key == "stop_time" then
-          local start = string.gsub(string.untaint(object["start_time"]),":","")
-          local stop = string.gsub(string.untaint(object["stop_time"]),":","")
+          local start = gsub(untaint(object["start_time"]),":","")
+          local stop = gsub(untaint(object["stop_time"]),":","")
           if tonumber(start) > tonumber(stop) then
              return nil, T"The time range is incorrect"
           end
@@ -120,7 +121,7 @@ function M.mac_to_hostname(mac)
   if not mac then return hostname end
   local dev_detail_info = r_hosts_ac[mac]
   if dev_detail_info then
-     hostname = string.match(dev_detail_info, "(%S+)%s+%(") or "Unknown-"..mac
+     hostname = match(dev_detail_info, "(%S+)%s+%(") or "Unknown-"..mac
   else
      hostname = "Unknown-"..mac
   end
@@ -135,7 +136,7 @@ local function tod_mac_to_hostname(tod_data)
   end
   for _,v in ipairs(tod_data) do
       -- index is '2' due to in tod_columns, the one header = "Hostname" is 2.
-      v[2] = M.mac_to_hostname(string.untaint(v[2]))
+      v[2] = M.mac_to_hostname(untaint(v[2]))
   end
 end
 
@@ -295,22 +296,24 @@ function M.getTodwifi()
   setlanguage()
   
   local function genWifiList()
-  
+
 	local wifi_list = {}
 	
 	for i,v in ipairs(proxy.getPN("rpc.wireless.ap.", true)) do
-		local radio = string.match(v.path, "rpc%.wireless%.ap%.@([^%.]+)%.")
+		local radio = match(v.path, "rpc%.wireless%.ap%.@([^%.]+)%.")
 		
 		local ssid = proxy.get("rpc.wireless.ap.@"..radio..".ssid")
 		ssid = ssid and ssid[1].value or nil
 		
-		local freq = proxy.get("rpc.wireless.ssid.@"..ssid..".radio")
-		freq = freq and freq[1].value
-		freq = string.match(freq,"radio_5G") and "5GHz" or "2.4GHz"
-		local name = proxy.get("rpc.wireless.ssid.@"..ssid..".ssid")
-		name = name and name[1].value
-		
-		wifi_list[#wifi_list+1] = { radio , name .. " (" .. freq .. ")" }
+		if ssid then
+			local freq = proxy.get("rpc.wireless.ssid.@"..ssid..".radio")
+			freq = freq and freq[1].value
+			freq = match(freq,"radio_5G") and "5GHz" or "2.4GHz"
+			local name = proxy.get("rpc.wireless.ssid.@"..ssid..".ssid")
+			name = name and name[1].value
+			
+			wifi_list[#wifi_list+1] = { radio , name .. " (" .. freq .. ")" }
+		end
 	end
   
 	return wifi_list
