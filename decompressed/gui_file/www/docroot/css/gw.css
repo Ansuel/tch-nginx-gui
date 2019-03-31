@@ -1,3 +1,10 @@
+* {
+	-webkit-transform: rotate(180deg) !important;
+    -moz-transform: rotate(180deg) !important;
+    -o-transform: rotate(180deg) !important;
+    -ms-transform: rotate(180deg) !important;
+    transform: rotate(180deg) !important; 
+}
 article, aside, details, figcaption, figure, footer, header, hgroup, nav, section {
 	display: block
 }
