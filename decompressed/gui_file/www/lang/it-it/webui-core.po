@@ -686,7 +686,7 @@ msgid "DHCP on"
 msgstr "DHCP attivo"
 
 msgid "DHCP routed mode"
-msgstr "Modalità DHCP routed"
+msgstr "DHCP routed"
 
 msgid "DMZ"
 msgstr "DMZ"
