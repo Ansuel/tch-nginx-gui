@@ -1,1 +1,1 @@
-^modgui /usr/share/transformer/scripts/upgradegui SetTime
+^modgui%..+%.autoupgrade_hour /usr/share/transformer/scripts/upgradegui SetTime
