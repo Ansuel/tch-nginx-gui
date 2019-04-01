@@ -686,7 +686,7 @@ msgid "DHCP on"
 msgstr "DHCP attivo"
 
 msgid "DHCP routed mode"
-msgstr "Modalità DHCP routed"
+msgstr "DHCP routed"
 
 msgid "DMZ"
 msgstr "DMZ"
@@ -4359,4 +4359,4 @@ msgid "Syslog Filters"
 msgstr "Filtri Syslog"
 
 msgid "You must select at leat one ap"
-msgstr ""
+msgstr "Devi scegliere almeno un punto di accesso"
