@@ -4346,9 +4346,6 @@ msgstr ""
 msgid "Custom DNS"
 msgstr ""
 
-msgid "DDNS"
-msgstr ""
-
 msgid "Port Forward"
 msgstr ""
 

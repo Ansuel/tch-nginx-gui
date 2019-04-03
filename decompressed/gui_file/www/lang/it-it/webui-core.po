@@ -4346,9 +4346,6 @@ msgstr "WoL / WoW"
 msgid "Custom DNS"
 msgstr "DNS personalizzato"
 
-msgid "DDNS"
-msgstr "DDNS"
-
 msgid "Port Forward"
 msgstr "Inoltro porte"
 
