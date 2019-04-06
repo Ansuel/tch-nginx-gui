@@ -53,12 +53,26 @@ elseif content.dslam_chipset:match("IFTN") then
 	content.dslam_chipset = "Infineon" .. " ( " .. content.dslam_chipset .. " )"
 end
 
-if content.status == "Showtime" then
-	content.status = T"Connected"
-elseif content.status == "" then
+if content.status == "Showtime" and not content.dsl_linerate_down == "0" then
+	
+	if content.dsl_linerate_down == "0" then
+		content.status = T"Error! Link Up but No Speed!"
+	else
+		content.status = T"Connected"
+	end
+
+elseif content.status == "NoSignal" then
+	content.status = T"No Signal/Disconnected"
+
+elseif content.status == "" and content.dsl_linerate_down == "0" then
 	content.status = T"Disconnected"
+	
+elseif content.dsl_linerate_down == "0" then
+	content.status = T"Error! Speed but Link not Up!"
+
 else
 	content.status = T(content.status)
+
 end
 
   ngx.print('\
