@@ -363,11 +363,13 @@ local bandsteer_rssi_threshold = {
 }
 -- Choose Wifi power
 local wifipower = {
-    {"-6", T"25%"},
-    {"-3", T"50%"},
-    {"-2", T"75%"},
-    {"-1", T"100%"},
-    {"0", T"125%"},
+    {"-6", T"-6 dBm"},
+    {"-5", T"-5 dBm"},
+    {"-4", T"-4 dBm"},
+    {"-3", T"-3 dBm"},
+    {"-2", T"-2 dBm"},
+    {"-1", T"-1 dBm"},
+    {"0", T"0 dBm"},
 }
 
 local cw_40 = {
