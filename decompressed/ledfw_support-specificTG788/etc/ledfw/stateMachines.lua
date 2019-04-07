@@ -117,24 +117,28 @@ stateMachines = {
                 staticLed("power:orange", false),
                 staticLed("power:red", false),
                 staticLed("eco:blue", false),
+                staticLed("upgrade:blue", false),
                 staticLed("power:green", true)
             },
             service_ok_eco = {
                 staticLed("power:orange", false),
                 staticLed("power:red", false),
                 staticLed("eco:blue", true),
+                staticLed("upgrade:blue", false),
                 staticLed("power:green", false)
             },
             service_ok_fullpower = {
                 staticLed("power:orange", false),
                 staticLed("power:red", false),
                 staticLed("eco:blue", false),
+                staticLed("upgrade:blue", false),
                 staticLed("power:green", true)
             },
             service_notok = {
                 staticLed("power:orange", false),
                 staticLed("power:red", true),
                 staticLed("eco:blue", false),
+                staticLed("upgrade:blue", false),
                 staticLed("power:green", false)
             },
         },
