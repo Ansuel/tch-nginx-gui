@@ -39,7 +39,7 @@ app_transmission() {
 	
 	install() {
 		[ "$(echo $device_type | grep DGA)" ] && install_DGA
-		[ "$(echo $device_type | grep TG789)" ] && install_from_github FrancYescO/sharing_tg789 transmission
+		[ "$(echo $device_type | grep TG7)" ] && install_from_github FrancYescO/sharing_tg789 transmission
 	}
 	
 	remove() {
@@ -129,8 +129,7 @@ app_luci() {
 		}
 		
 		[ "$(echo $device_type | grep DGA)" ] && luci_install_DGA
-		[ "$(echo $device_type | grep TG789)" ] && luci_install_tg799
-		[ "$(echo $device_type | grep TG799)" ] && luci_install_tg799
+		[ "$(echo $device_type | grep TG7)" ] && luci_install_tg799
 	}
 	remove() {
 		luci_remove_DGA() {
@@ -149,8 +148,7 @@ app_luci() {
 		}
 		
 		[ "$(echo $device_type | grep DGA)" ] && luci_remove_DGA
-		[ "$(echo $device_type | grep TG789)" ] && luci_remove_tg799
-		[ "$(echo $device_type | grep TG799)" ] && luci_remove_tg799
+		[ "$(echo $device_type | grep TG7)" ] && luci_remove_tg799
 	}
 
 	if [ $1 == "install" ]; then
@@ -170,7 +168,7 @@ app_amule() {
 		}
 
 		[ "$(echo $device_type | grep DGA)" ] && install_DGA
-		[ "$(echo $device_type | grep TG789)" ] && install_from_github FrancYescO/sharing_tg789 amule
+		[ "$(echo $device_type | grep TG7)" ] && install_from_github FrancYescO/sharing_tg789 amule
 	}
 	remove() {
 		#TODO
@@ -220,7 +218,7 @@ app_aria2() {
 		}
 
 		[ "$(echo $device_type | grep DGA)" ] && install_DGA
-		[ "$(echo $device_type | grep TG789)" ] && install_from_github FrancYescO/sharing_tg789 aria2
+		[ "$(echo $device_type | grep TG7)" ] && install_from_github FrancYescO/sharing_tg789 aria2
 	}
 	remove() {
 		killall aria2c

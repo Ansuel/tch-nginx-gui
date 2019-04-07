@@ -21,11 +21,10 @@ end
 local mapParams = {}
 if prod_friendly_name and prod_friendly_name[1].value then
 	if prod_friendly_name[1].value:match("DGA413") or 
-		prod_friendly_name[1].value:match("TG799") or 
-		prod_friendly_name[1].value:match("TG789") then
+		prod_friendly_name[1].value:match("TG7") then
 		mapParams.luci_webui = "uci.modgui.app.luci_webui"
 	end
-	if prod_friendly_name[1].value:match("TG799") or prod_friendly_name[1].value:match("TG789") then
+	if prod_friendly_name[1].value:match("TG7") then
 		mapParams.amule_webui = "uci.modgui.app.amule_webui"
 	end
 	mapParams.aria2_webui = "uci.modgui.app.aria2_webui"

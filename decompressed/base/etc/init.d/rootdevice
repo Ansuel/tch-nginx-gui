@@ -1204,9 +1204,43 @@ rootchecks() {
 	/etc/init.d/dropbear restart > /dev/null
 }
 
+ledfw_extract() {
+	if [ -f "/tmp/ledfw_support-specific$1.tar.bz2" ]; then
+		stateMachine_tar_md5=$(bzcat /tmp/ledfw_support-specific$1.tar.bz2 | tar xf - stateMachines.md5sum -O | awk '{ print $1 }')
+		stateMachine_md5=$(md5sum /etc/ledfw/stateMachines.lua | awk '{ print $1 }' )
+		logger_command "StateMachine tar md5sum: $stateMachine_tar_md5"
+		logger_command "StateMachine md5sum: $stateMachine_md5"
+		if [ "$stateMachine_tar_md5" ] && [ "$stateMachine_tar_md5" != "$stateMachine_md5" ]; then
+			logger_command "Extracting ledfw_support-specific$1.bz2 ..."
+			/usr/share/transformer/scripts/restart_leds.sh
+			bzcat "/tmp/ledfw_support-specific$1.tar.bz2" | tar -C / -xf - etc/ledfw/stateMachines.lua
+		fi
+	fi
+}
+
+ledfw_rework_TG788() {
+	if [ ! "$(uci get -q button.info)" ] || [ "$(uci get -q button.info)" == "BTN_3" ]; then
+		logger_command "Setting up status (wifi) button..."
+		uci del button.easy_reset
+		uci set button.info=button
+		uci set button.info.button='BTN_1'
+		uci set button.info.action='released'
+		uci set button.info.handler='logger INFO button pressed ; ubus send infobutton '\''{"state":"active"}'\'''
+		uci set button.info.min='0'
+		uci set button.info.max='2'
+		uci set button.eco.min='2'
+		uci set button.eco.max='5'
+		uci set button.acl.min='5'
+		uci set ledfw.iptv.check='0'
+		uci commit ledfw
+	fi
+
+    ledfw_extract "TG788"
+}
+
 ledfw_rework_TG799() {
 	if [ ! "$(uci get -q button.info)" ]; then
-		logger_command "Extracting ledfw_support-specificTG799.tar.bz2 and setting up status (power) button..."
+		logger_command "Setting up status (power) button..."
 		uci del button.easy_reset
 		uci set button.info=button
 		uci set button.info.button='BTN_3'
@@ -1218,22 +1252,12 @@ ledfw_rework_TG799() {
 		uci commit ledfw
 	fi
 
-	if [ -f /tmp/ledfw_support-specificTG799.tar.bz2 ]; then
-		stateMachine_tar_md5=$(bzcat /tmp/ledfw_support-specificTG799.tar.bz2 | tar xf - stateMachines.md5sum -O | awk '{ print $1 }')
-		stateMachine_md5=$(md5sum /etc/ledfw/stateMachines.lua | awk '{ print $1 }' )
-		logger_command "StateMachine tar md5sum: $stateMachine_tar_md5"
-		logger_command "StateMachine md5sum: $stateMachine_md5"
-		if [ "$stateMachine_tar_md5" ] && [ "$stateMachine_tar_md5" != "$stateMachine_md5" ]; then
-			logger_command "Extracting ledfw_support-specificTG799.bz2 ..."
-			/usr/share/transformer/scripts/restart_leds.sh
-			bzcat /tmp/ledfw_support-specificTG799.tar.bz2 | tar -C / -xf - etc/ledfw/stateMachines.lua
-		fi
-	fi
+	ledfw_extract "TG799"
 }
 
 ledfw_rework_TG800() {
 	if [ ! "$(uci get -q button.info)" ]; then
-		logger_command "Extracting ledfw_support-specificTG800.bz2 and setting up status (wifi) button..."
+		logger_command "Setting up status (wifi) button..."
 		uci del button.easy_reset
 		uci set button.info=button
 		uci set button.info.button='BTN_1'
@@ -1247,31 +1271,7 @@ ledfw_rework_TG800() {
 		uci commit ledfw
 	fi
 
-	if [ -f /tmp/ledfw_support-specificTG800.tar.bz2 ]; then
-		stateMachine_tar_md5=$(bzcat /tmp/ledfw_support-specificTG800.tar.bz2 | tar xf - stateMachines.md5sum -O | awk '{ print $1 }')
-		stateMachine_md5=$(md5sum /etc/ledfw/stateMachines.lua | awk '{ print $1 }' )
-		logger_command "StateMachine tar md5sum: $stateMachine_tar_md5"
-		logger_command "StateMachine md5sum: $stateMachine_md5"
-		if [ "$stateMachine_tar_md5" ] && [ "$stateMachine_tar_md5" != "$stateMachine_md5" ]; then
-			logger_command "Extracting ledfw_support-specificTG800.bz2 ..."
-			/usr/share/transformer/scripts/restart_leds.sh
-			bzcat /tmp/ledfw_support-specificTG800.tar.bz2 | tar -C / -xf - etc/ledfw/stateMachines.lua
-		fi
-	fi
-}
-
-ledfw_rework_TG789() {
-	if [ -f /tmp/ledfw_support-specificTG789.tar.bz2 ]; then
-		stateMachine_tar_md5=$(bzcat /tmp/ledfw_support-specificTG789.tar.bz2 | tar xf - stateMachines.md5sum -O | awk '{ print $1 }')
-		stateMachine_md5=$(md5sum /etc/ledfw/stateMachines.lua | awk '{ print $1 }' )
-		logger_command "StateMachine tar md5sum: $stateMachine_tar_md5"
-		logger_command "StateMachine md5sum: $stateMachine_md5"
-		if [ "$stateMachine_tar_md5" ] && [ "$stateMachine_tar_md5" != "$stateMachine_md5" ]; then
-			logger_command "Extracting ledfw_support-specificTG789.bz2 ..."
-			/usr/share/transformer/scripts/restart_leds.sh
-			bzcat /tmp/ledfw_support-specificTG789.tar.bz2 | tar -C / -xf - etc/ledfw/stateMachines.lua
-		fi
-	fi
+    ledfw_extract "TG800"
 }
 
 ledfw_rework_DGA() {
@@ -1282,17 +1282,7 @@ ledfw_rework_DGA() {
 		sed -i 'N;/events\['\''fwupgrade'\''\] = function(msg)/a\\t\tcb("fwupgrade_state_" .. msg.state)' /usr/lib/lua/ledframework/ubus.lua
 	fi
 
-	if [ -f /tmp/ledfw_support-specificDGA.tar.bz2 ]; then
-		stateMachine_tar_md5=$(bzcat /tmp/ledfw_support-specificDGA.tar.bz2 | tar xf - stateMachines.md5sum -O | awk '{ print $1 }')
-		stateMachine_md5=$(md5sum /etc/ledfw/stateMachines.lua | awk '{ print $1 }' )
-		logger_command "StateMachine tar md5sum: $stateMachine_tar_md5"
-		logger_command "StateMachine md5sum: $stateMachine_md5"
-		if [ "$stateMachine_tar_md5" ] && [ "$stateMachine_tar_md5" != "$stateMachine_md5" ]; then
-			logger_command "Extracting ledfw_support-specificDGA.bz2 ..."
-			/usr/share/transformer/scripts/restart_leds.sh
-			bzcat /tmp/ledfw_support-specificDGA.tar.bz2 | tar -C / -xf - etc/ledfw/stateMachines.lua
-		fi
-	fi
+    ledfw_extract "DGA"
 }
 
 check_gui_tmp() {
@@ -1564,8 +1554,10 @@ root() {
 	[ -z "${device_type##*TG789*}" ] && apply_specific_TG789_package
 	[ -z "${device_type##*TG799*}" ] && apply_specific_TG799_package
 	[ -z "${device_type##*TG800*}" ] && apply_specific_TG800_package
-	[ -z "${device_type##*DGA413*}" ] && ledfw_rework_DGA
-	[ -z "${device_type##*TG789*}" ] && ledfw_rework_TG789
+	[ -z "${device_type##*DGA4130*}" ] && ledfw_rework_DGA
+	[ -z "${device_type##*DGA4132*}" ] && ledfw_rework_DGA
+	[ -z "${device_type##*TG788*}" ] && ledfw_rework_TG788
+	[ -z "${device_type##*TG789*}" ] && ledfw_extract "TG789"
 	[ -z "${device_type##*TG799*}" ] && ledfw_rework_TG799
 	[ -z "${device_type##*TG800*}" ] && ledfw_rework_TG800
 
