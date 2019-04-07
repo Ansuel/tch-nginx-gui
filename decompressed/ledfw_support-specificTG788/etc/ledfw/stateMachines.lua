@@ -84,7 +84,7 @@ patterns = {
         },
         actions = {
             fwupgrade_state_upgrading = {
-                timerLed("power:blue", 50, 50)
+                timerLed("upgrade:blue", 50, 50)
             }
         }
     }
@@ -116,7 +116,7 @@ stateMachines = {
             power_started = {
                 staticLed("power:orange", false),
                 staticLed("power:red", false),
-                staticLed("power:blue", false),
+                staticLed("eco:blue", false),
                 staticLed("power:green", true)
             },
             service_ok_eco = {
@@ -128,13 +128,13 @@ stateMachines = {
             service_ok_fullpower = {
                 staticLed("power:orange", false),
                 staticLed("power:red", false),
-                staticLed("power:blue", false),
+                staticLed("eco:blue", false),
                 staticLed("power:green", true)
             },
             service_notok = {
                 staticLed("power:orange", false),
                 staticLed("power:red", true),
-                staticLed("power:blue", false),
+                staticLed("eco:blue", false),
                 staticLed("power:green", false)
             },
         },

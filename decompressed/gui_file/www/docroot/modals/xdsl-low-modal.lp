@@ -200,6 +200,7 @@ elseif content.dsl0_xdsl_FirmwareVersion:match(".*F039") then
     tinsert(driver_option, { "A2pv6F039f1", 'A2pv6F039f1 (Indeno D301)'})
     tinsert(driver_option, { "A2pv6F039m1", 'A2pv6F039m1 (Sky NR701-NR801)'})
     tinsert(driver_option, { "A2pv6F039o1", 'A2pv6F039o1 (Telsra TG799vac)'})
+    tinsert(driver_option, { "A2pv6F039t", 'A2pv6F039t (Netgear D6400)'})
     tinsert(driver_option, { "A2pv6F039u", 'A2pv6F039u (Netgear D6220 v1.0.0.48/Sercomm VD625)'})
     tinsert(driver_option, { "A2pv6F039v", 'A2pv6F039v (SmartRG sr516ac/Tp-link Archer VR600V1)'})
     tinsert(driver_option, { "A2pv6F039v2", 'A2pv6F039v2 (789vacV2 UNO.uk 17.1/Tiscali 16.3)'})
