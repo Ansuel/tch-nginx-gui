@@ -1435,8 +1435,6 @@ check_isp_and_cwmp() {
 				uci set cwmpd.cwmpd_config.acs_url=$unified_platform
 			elif [ "$(curl -s -k $mgmt_platform --max-time 5 )" ]; then
 				uci set cwmpd.cwmpd_config.acs_url=$mgmt_platform
-			else
-				uci set cwmpd.cwmpd_config.acs_url="None"
 			fi
 			logger_command "CWMP Server detected: $(uci get cwmpd.cwmpd_config.acs_url)"
 			if [ "$(uci get -q cwmpd.cwmpd_config.interface)" != "wan" ]; then
@@ -1541,8 +1539,12 @@ clean_cups_block_rule() {
 }
 
 root() {
-
 	logger -s -t 'Root Script' "Rooting in progress..."
+
+	move_env_var #This moves every garbage created before 8.11.49 in env to modgui config file
+	check_gui_ver
+	check_isp_config
+	create_symlink
 	
 	check_tmp_permission
 	
@@ -1560,6 +1562,8 @@ root() {
 	[ -z "${device_type##*TG789*}" ] && ledfw_extract "TG789"
 	[ -z "${device_type##*TG799*}" ] && ledfw_rework_TG799
 	[ -z "${device_type##*TG800*}" ] && ledfw_rework_TG800
+
+	[ -z "${device_type##*DGA413*}" ] && wifi_fix_24g
 
 	if [ -f /tmp/custom-ripdrv-specificDGA.tar.bz2 ]; then
 		clean_specific_file
@@ -1830,35 +1834,11 @@ boot() {
 	logo_project
 	check_full_rootfs
 	check_root
-	move_env_var #This moves every garbage created before 8.11.49 in env to modgui config file
-	check_gui_ver
-	check_isp_config
-	create_symlink
 
-	#THIS CHECK DEVICE TYPE AND INSTALL SPECIFIC FILE
-	device_type="$(uci get -q env.var.prod_friendly_name)"
-
-	if [ "$device_type" == "DGA4132" ] || [ "$device_type" == "DGA4130" ]; then 
-		device_type="DGA"
-	fi
-
-	[ -z "${device_type##*DGA413*}" ] && wifi_fix_24g
 	if [ $rooted -ne 1 ]; then
 		echo "  Root not detected! Rooting..." > /dev/console
-		root
-	else
-		if [ -f /root/.check_process ]; then
-			echo "  Root detected but process not terminated well! Rerooting..." > /dev/console
-			root
-		else
-			if [ $force -eq 1 ]; then
-				echo "  Root detected but force flag detected! Rerooting..." > /dev/console
-				root
-			else
-				echo "  Root detected! Doing nothing." > /dev/console
-			fi
-		fi
+	    rootchecks
 	fi
+
 	check_bank
-	echo " ----------------------------------------------------- " > /dev/console
 }
