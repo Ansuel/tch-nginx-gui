@@ -29,7 +29,6 @@ EXTRA_COMMANDS="force debug"
 EXTRA_HELP="\
 		force   Force root process even when root flag is already set
 		debug   force command with debug log
-		install	This root the device for the initial installation
 "
 #Gui version is now autocompleted base on latest dev, this variable will be replaced by the automatic script
 version_gui=TO_AUTO_COMPLETE
@@ -1128,8 +1127,7 @@ wan_sensing_clean() {
 	fi
 }
 
-rootchecks() {
-
+root() {
 	logger_command "Setting root flag"
 	uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not
 	logger_command "Reset unlock bit"
@@ -1538,8 +1536,8 @@ clean_cups_block_rule() {
 	fi
 }
 
-root() {
-	logger -s -t 'Root Script' "Rooting in progress..."
+install_gui() {
+	logger -s -t 'Root Script' "Installing in progress..."
 
 	move_env_var #This moves every garbage created before 8.11.49 in env to modgui config file
 	check_gui_ver
@@ -1674,7 +1672,7 @@ root() {
 	logger_command "Cleaning cups firewall rule..."
 	clean_cups_block_rule
 
-	rootchecks #This check root availability
+	root #This check root availability
 
 	if [ "$(cat /proc/banktable/booted)" == "bank_1" ] && [ ! "$(uci get -q modgui.var.bank_check)" ]; then
 		#this set bank_check bit if not present ONLY IN BANK_1, bank_2 value is set based on bank_1 value
@@ -1826,10 +1824,6 @@ debug() {
 	boot
 }
 
-install() {
-	rootchecks
-}
-
 boot() {
 	logo_project
 	check_full_rootfs
@@ -1837,8 +1831,20 @@ boot() {
 
 	if [ $rooted -ne 1 ]; then
 		echo "  Root not detected! Rooting..." > /dev/console
-	    rootchecks
+	    root
 	fi
+
+    if [ -f /root/.check_process ]; then
+        echo "  GUI install process not terminated well! Reinstalling..." > /dev/console
+        install_gui
+    else
+        if [ $force -eq 1 ]; then
+            echo "  force flag detected! Reinstalling..." > /dev/console
+            install_gui
+        else
+            echo "  No force flag detected! Doing nothing." > /dev/console
+        fi
+    fi
 
 	check_bank
 }
