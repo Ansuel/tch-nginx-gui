@@ -4357,3 +4357,6 @@ msgstr ""
 
 msgid "You must select at leat one ap"
 msgstr ""
+
+msgid "Speed Test"
+msgstr ""
