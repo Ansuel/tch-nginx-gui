@@ -4359,4 +4359,4 @@ msgid "You must select at leat one ap"
 msgstr "Devi scegliere almeno un punto di accesso"
 
 msgid "Speed Test"
-msgstr ""
+msgstr "Test velocità"
