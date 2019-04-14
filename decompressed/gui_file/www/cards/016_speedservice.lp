@@ -3,7 +3,7 @@
 local istainted = string.istainted
 
 -- Enable localization
-gettext.textdomain('webui-speedservice')
+gettext.textdomain('webui-core')
 
 local tinsert = table.insert
 local proxy = require("datamodel")
