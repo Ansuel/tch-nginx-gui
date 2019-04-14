@@ -114,17 +114,15 @@ end
     ');  ngx.print(
 			ui_helper.createSimpleLight(state, dmzstate, dmz_attributes,"fas fa-cogs"),
 			ui_helper.createSimpleLight(upnpstate, upnpstate_text, dmz_attributes,"fas fa-random"),
-            '<p></p>',
-            '<p class="subinfos">',
-            format( N("<strong %s>%d port forwarding</strong> rule is defined",
+            '<br/>',
+            '<i class="fas fa-door-open" aria-hidden="true" href="#">&nbsp</i>' .. format( N("<strong %s>%d port forwarding</strong> rule is defined",
                       "<strong %s>%d port forwarding</strong> rules are defined", n_redir_rules),
                       modal_link_port, n_redir_rules),
 			'<br/>',
-			format( N("<strong %s>%d DDNS service</strong> is enabled",
+			'<i class="fas fa-map-marked-alt" aria-hidden="true" href="#">&nbsp</i>' .. format( N("<strong %s>%d DDNS service</strong> is enabled",
 					  "<strong %s>%d DDNS services</strong> are enabled", n_ddns_rules),
 					  modal_link_ddns, n_ddns_rules),
-			'<p></p>',
-            '</p>'
+			'<br/>'
         )
       ngx.print('\
 	  </div>\

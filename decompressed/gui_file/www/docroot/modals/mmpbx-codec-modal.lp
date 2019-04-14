@@ -1,7 +1,7 @@
 <%
 -- Enable localization
 -- NG-49075 Version 001 160429
--- NG-73564; 
+-- NG-73564;
 
 gettext.textdomain('webui-voice')
 
@@ -9,7 +9,7 @@ local proxy = require ("datamodel")
 local ui_helper = require("web.ui_helper")
 local post_helper = require("web.post_helper")
 local content_helper = require ("web.content_helper")
-local message_helper = require("web.uimessage_helper")
+local uimessage_helper = require("web.uimessage_helper")
 local role = ngx.ctx.session:getrole()
 local vB = post_helper.validateBoolean
 local vNES = post_helper.validateNonEmptyString
@@ -23,13 +23,13 @@ local mapValid = {
 					posfxs1 = vNES,
 					posfxs2 = vNES,
 					}
-					
+
 local content, helpmsg = post_helper.handleQuery(mapParam, mapValid)
 
 local choice2 = {
 					{"0",T"Disabled"},
 					{"1",T"Enabled"},
-				
+
 				}
 
 local codec_columns = {
@@ -69,7 +69,7 @@ local codec_columns = {
         name = "BitRate",
         param = "BitRate",
         type = "text",
-		readonly = true,
+        readonly = true,
         attr = { input = { class="span2" } },
     },
     { --[6]
@@ -122,7 +122,7 @@ end
   lp.include("tabs-voice.lp")
   %>
   <form class="form-horizontal" method="post" action="<%= uri %>">
-  <%= ui_helper.createMessages(message_helper.popMessages()) %> 
+    <%=ui_helper.createMessages(uimessage_helper.popMessages())%>
     <fieldset>
       <legend><%= T"Enable Pos" %></legend>
 		<%
@@ -143,7 +143,7 @@ end
     </fieldset>
 	<fieldset>
       <legend><%= T"Codec Assignment on FXS2" %></legend>
-	    <%= ui_helper.createTable(codec_columns, codec_data_FXS2, codec_options[2], nil, codec_helpmsg_FXS2) %>
+		<%= ui_helper.createTable(codec_columns, codec_data_FXS2, codec_options[2], nil, codec_helpmsg_FXS2) %>
     </fieldset>
 	<% end %>
   </form>

@@ -36,10 +36,10 @@ msgstr "Informazioni stampante"
 msgid "Printer Sharing"
 msgstr "Condivisione stampante"
 
-msgid "Printer Sharing disabled"
+msgid "Printer sharing disabled"
 msgstr "Condivisione stampante<br>disabilitata"
 
-msgid "Printer Sharing enabled"
+msgid "Printer sharing enabled"
 msgstr "Condivisione stampante<br>abilitata"
 
 msgid "Printer Name"
@@ -53,9 +53,3 @@ msgstr "Interfaccia web"
 
 msgid "CUPS Web Interface at <a href=\"http://%s:631\">http://%s:631</a> or <a href=\"http://%s:631\">http://%s:631</a>"
 msgstr "Interfaccia web CUPS <a href=\"http://%s:631\">http://%s:631</a> o <a href=\"http://%s:631\">http://%s:631</a>"
-
-msgid "Printer sharing disabled"
-msgstr ""
-
-msgid "Printer sharing enabled"
-msgstr ""

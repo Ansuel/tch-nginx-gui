@@ -9,14 +9,15 @@ local untaint = string.untaint
 local proxy = require("datamodel")
 
 if ngx.req.get_method() == "POST" and ngx.req.get_post_args().action == "PasswordChanged" then
-   local result = content_helper.getMatchedContent("uci.web.user.", {name = ngx.ctx.session:getusername()})
-    if result and #result > 0 then
-      if proxy.set(result[1].path .. "password_reminder", "0") then
-        proxy.apply()
-      end
+  local result = content_helper.getMatchedContent("uci.web.user.", {name = ngx.ctx.session:getusername()})
+  if result and #result > 0 then
+    if proxy.set(result[1].path .. "password_reminder", "0") then
+      proxy.apply()
     end
-	ngx.ctx.session:logout()
-    ngx.exit(ngx.HTTP_OK)
+  end
+  ngx.ctx.session:logout()
+  ngx.redirect("/")
+  ngx.exit(ngx.HTTP_OK)
 end
 
 local cui = {
@@ -26,9 +27,10 @@ local cui = {
   gui_version = "uci.modgui.gui.gui_version",
   gui_skin = "uci.modgui.gui.gui_skin",
 }
+
 content_helper.getExactContent(cui)
 local year = cui.timestamp
-local current_year = (string.sub(year,1,4))								   
+local current_year = (string.sub(year,1,4))
 --Start for legacy migration: GUI username/password [NG-48489]
 local users = content_helper.getMatchedContent("uci.web.user.")
 local userNames = ""
@@ -42,16 +44,12 @@ for _, v in ipairs(users) do
 end
 
 if ngx.req.get_method() == "POST" and ngx.req.get_post_args().resetLegacySalt then
-										   
   --As the legacy user password has changed, to remove the legacy label,i.e., option legacy_salt.
-														  
-											
   local user = content_helper.getMatchedContent("uci.web.user.", {name = ngx.ctx.session:getusername()})
   if user and #user > 0 then
     user = user[1]
     proxy.set(user.path .. "legacy_salt", "")
     proxy.apply()
-	   
   end
 end
 --End for legacy migration: GUI username/password [NG-48489]
@@ -99,7 +97,7 @@ end
 			.span4 {width: 300px;}\
 		}\
 		@media screen and (max-width: 979px) and (min-width: 768px){\
-		input.span3, textarea.span3, .uneditable-input.span3 \
+		input.span3, textarea.span3, .uneditable-input.span3\
 			{width: 206px;}\
 		}\
 		@media screen and (max-width: 979px) and (min-width: 768px){\
@@ -164,20 +162,15 @@ end
                <strong>');  ngx.print( T"Old password is incorrect"); ngx.print('</strong>\
             </div>\
 \
-            ');  
-			ngx.print(createPwdLabel(T"Your Username")); ngx.print('\
+			');  ngx.print(createPwdLabel(T"Your Username"));   ngx.print('\
 				<div class="control-group">\
 					<label for="srp_username"><div style="margin-right:14px" class="label-icon">\
 						<i class="icon-user icon-large"></i>\
-			');
-			ngx.print('\</div>\
-						</label>');
-			ngx.print(ngx.ctx.session:getusername());
-			
-			ngx.print('\
-			</div>');
-			
-			ngx.print( createPwdLabel(T"Your old password") ); ngx.print('\
+				</div>\
+				</label>\
+			');  ngx.print(ngx.ctx.session:getusername());   ngx.print('\
+	    </div>\
+            ');  ngx.print( createPwdLabel(T"Your old password") ); ngx.print('\
             <div class="control-group">\
                 <label for="srp_password"><div class="label-icon">\
                     <i class="icon-lock icon-large"></i>\

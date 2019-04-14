@@ -32,6 +32,7 @@ end
 -- Loading the advanced content by using ajax call, we are able to save around 2 seconds from total page loading time.
 if getargs.action == "GET_ADVANCED_DATA" then
 local content = {
+    firmware_version = "sys.class.xdsl.@line0.FirmwareVersion",
     xdsl_ginp_rxqueue_ds = "sys.class.xdsl.@line0.DownstreamGINPRxQueue",
     xdsl_ginp_rxqueue_us = "sys.class.xdsl.@line0.UpstreamGINPRxQueue",
     xdsl_ginp_txqueue_ds = "sys.class.xdsl.@line0.DownstreamGINPTxQueue",
@@ -85,6 +86,7 @@ content_helper.getExactContent(content)
 local content1 = {
     dsl_uptime = "sys.class.xdsl.@line1.ShowtimeStart",
     dsl_bonding_support = "sys.class.xdsl.@line1.BondingSupport",
+    firmware_version = "sys.class.xdsl.@line1.FirmwareVersion",
     xdsl_ginp_rxqueue_ds = "sys.class.xdsl.@line1.DownstreamGINPRxQueue",
     xdsl_ginp_rxqueue_us = "sys.class.xdsl.@line1.UpstreamGINPRxQueue",
     xdsl_ginp_txqueue_ds = "sys.class.xdsl.@line1.DownstreamGINPTxQueue",
@@ -351,9 +353,11 @@ end
 local content ={
    showBondingStats = "sys.class.xdsl.@line0.BondingSupport",
    dsl_uptime = "sys.class.xdsl.@line0.ShowtimeStart",
+   firmware_version="sys.class.xdsl.@line0.FirmwareVersion"
 }
 content_helper.getExactContent(content)
 if content["showBondingStats"] == 1 then
+  showBondingStats = true
   columns1[1][1] = T"Upstream FEC"
   columns1[2][1] = T"Downstream FEC"
   columns1[3][1] = T"Upstream CRC"
@@ -492,6 +496,8 @@ if content["showBondingStats"] == 1 then
     end
   end
   xdsl_BitLoading1 = temp1[xdsl_BitLoading1]
+else
+  showBondingStats = false
 end
 
 -- Datarows Names
@@ -507,7 +513,6 @@ datarows[4]["header"] = T"Previous Quarter"
 datarows[5]["header"] = T"Current Day"
 datarows[6]["header"] = T"Previous Day"
 datarows[7]["header"] = T"Since Sync"
-
   ngx.print('\
 \
 ');  ngx.print(ui_helper.createHeader(T"Diagnostics DSL", true, true))   ngx.print('\
@@ -541,21 +546,16 @@ datarows[7]["header"] = T"Since Sync"
         end
         ngx.print('\
     </fieldset>\
-    <div id="xdsl_advanced_data" class="advanced hide"><img src="/img/loading.gif"/></div>');
-    --<fieldset>\
-    --  <legend>');  ngx.print( T"DSL Bit Loading" ); ngx.print('</legend>\
-    --  <div id="dsl_bit_chart" style="max-width:880px;overflow-x:auto"><img src="/img/loading.gif"/></div>\
-    --</fieldset>\
-	ngx.print('\
+    <div id="xdsl_advanced_data" class="advanced hide"><img src="/img/loading.gif"/></div>\
+    <font color="white">\
+      ');  
+        ngx.print(T(content["firmware_version"]))
+        ngx.print('\
+    </font>\
 </div>\
 \
 ');  ngx.print(ui_helper.createFooter())   ngx.print('\
-<script>');
---ngx.print('\
---$.get("/modals/diagnostics-xdsl-modal.lp?action=GET_BITS&show_line_one=');  ngx.print(content["showBondingStats"]); ngx.print('", function (data){\
---   $(\'#dsl_bit_chart\').replaceWith(data);\
---});');
-ngx.print('\
+<script>\
 $.get("/modals/diagnostics-xdsl-modal.lp?action=GET_ADVANCED_DATA", function (data){\
     $(\'#xdsl_advanced_data\').replaceWith(data);\
     $(\'.modal-action-advanced\').each(function(){\

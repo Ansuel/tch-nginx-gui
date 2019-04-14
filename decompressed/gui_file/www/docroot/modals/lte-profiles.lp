@@ -61,14 +61,15 @@ local pdptypes = {
 }
 
 local authtypes = {
-	{ "none", T"None" },
-	{ "pap",   T"PAP" },
-	{ "chap",   T"CHAP" }
+	{ "none",    T"None" },
+	{ "pap",     T"PAP" },
+	{ "chap",    T"CHAP" },
+	{ "papchap", T"PAP/CHAP" }
 }
 
 local profile_valid = {
 	["apn"] = isValidAPN,
-       	["name"] = gAV(post_helper.getValidateStringLengthInRange(1, maxFieldSize), post_helper.isSpaceInString),
+	["name"] = gAV(post_helper.getValidateStringLengthInRange(1, maxFieldSize), post_helper.isSpaceInString),
 	["username"] = gAV(post_helper.getValidateStringLengthInRange(0, maxFieldSize), post_helper.isSpaceInString),
 	["password"] = gAV(post_helper.getValidationPassword(post_helper.getValidateStringLengthInRange(0, maxFieldSize)), post_helper.isSpaceInString),
 	["pdptype"] = post_helper.getValidateInEnumSelect(pdptypes)
@@ -99,7 +100,7 @@ local profile_columns = {
 		name = "name",
 		param = "name",
 		type = "text",
-                unique = true,
+		unique = true,
 		attr = { input = { class="span2", maxlength="127" } }
 	},
 	{
@@ -174,13 +175,6 @@ if reuse_profiles == "1" then
 end
 
 local profile_data, profile_helpmsg = post_helper.handleTableQuery(profile_columns, profile_options, profile_filter, nil, profile_valid)
---[[
-for k,v in ipairs(profile_data) do
-	if v[5] ~= "" then
-		v[5] = "********"
-	end
-end
-]]
   ngx.print('\
 \
 ');  ngx.print( ui_helper.createHeader(params.modal_title, false, true, nil) ); ngx.print('\

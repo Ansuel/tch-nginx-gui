@@ -1,20 +1,19 @@
 --pretranslated: do not change this file
  
 -- Enable localization
---NG-102324 TI VBNT-S : Device card is NOT accessible via GUI
 gettext.textdomain('webui-core')
 
-local proxy = require("datamodel")								  
 local ui_helper = require("web.ui_helper")
 local message_helper = require("web.uimessage_helper")
 local post_helper = require("web.post_helper")
-local content_helper = require("web.content_helper")
 local string, ngx, os = string, ngx, os
 local tonumber = tonumber
 local format, match = string.format, string.match
 local gOrV = post_helper.getOrValidation
 local vSIDN = post_helper.validateStringIsDomainName
 local pattern = "^Unknown%-%x%x:%x%x:%x%x:%x%x:%x%x:%x%x$"
+local proxy = require("datamodel")
+local content_helper = require("web.content_helper")
 
 local function validateUnknownHostname(value)
    return value:match(pattern)
@@ -48,7 +47,7 @@ local devices_columns = {
     name = "FriendlyName",
     param = "FriendlyName",
     type = "text",
-    attr = { input = { class="span2" } },
+    attr = { input = { class="span3" } },
   },
   {--[3]
     header = T"IPv4",
@@ -72,7 +71,7 @@ local devices_columns = {
     param = "MACAddress",
     type = "text",
     readonly = true,
-    attr = { input = { class="span2" } },
+    attr = { input = { class="span1" } },
   },
   {--[6]
     header = T"InterfaceType",
@@ -80,7 +79,7 @@ local devices_columns = {
     param = "InterfaceType",
     type = "text",
     readonly = true,
-    attr = { input = { class="span2" } },
+    attr = { input = { class="span1" } },
   },
   {--[7]
     header = T"Port",
@@ -122,6 +121,7 @@ local devices_columns = {
     readonly = true,
     attr = { input = { class="span1" } },
   },
+
 }
 
 local device_valid = {
@@ -135,26 +135,18 @@ local devices_options = {
     basepath = "rpc.hosts.host.",
 }
 
-local uciwire = proxy.get("uci.wireless.wifi-ap.")
-uciwire = content_helper.convertResultToObject("uci.wireless.wifi-ap.",uciwire)
-
 
 --Construct the device type based on value of L2Interface
 local devices_filter = function(data)
-  --Disable this stupid filter... We are root arter all ;)
-	--for i,v in ipairs(uciwire) do
-	--	if data["L2Interface"] == v.iface then
-	--		if v.display_connected_devices and v.display_connected_devices ~= "1" then
-	--			return false
-	--		end
-	--	end
-	--end
   --Display only the IP Address of physically connected devices
   if data["State"] and data["State"] == "0" then
      data["IPAddress"] = ""
   end
 
-  if match(data["L2Interface"], "^wl0") then
+  --Display Interface Type to the user
+  if data["L2Interface"] == "" then
+    return false
+  elseif match(data["L2Interface"], "^wl0") then
     data["InterfaceType"] = "wireless - 2.4GHz"
   elseif match(data["L2Interface"], "^wl1") then
     data["InterfaceType"] = "wireless - 5GHz"
@@ -164,16 +156,6 @@ local devices_filter = function(data)
     data["InterfaceType"] = "MoCA"
   end
 
-  --Display some default device type, when DeviceType entry is empty
-  if data["DeviceType"] == "" then
-    if match(data["L2Interface"], "eth*") then
-      data["DeviceType"] = "DesktopComputer"
-    elseif match(data["L2Interface"], "^wl*") then
-      data["DeviceType"] = "Phone"
-    else
-      data["DeviceType"] = "unknown"
-    end
-  end
   return true
 end
 
@@ -181,7 +163,7 @@ local devices_data, devices_helpmsg = post_helper.handleTableQuery(devices_colum
 
 for k, v in pairs (devices_data) do
    devices_data[k][1] = format("%s",v[1])
-   devices_data[k][5] = format("%s",v[5]:gsub("^%l", string.upper))
+   devices_data[k][5] = format("%s",v[5])
 
     if v[1] == "1" then
       if v[9] ~= "" and v[8] ~= "" then
@@ -207,9 +189,24 @@ end
 ');  ngx.print( ui_helper.createHeader(T"Devices", false, true) ); ngx.print('\
 <div class="modal-body update no-save">\
 ');  
-	local lp = require("web.lp")
-    lp.setpath("/www/snippets/")
-    lp.include("tabs-device.lp")
+if ngx.ctx.session:hasAccess("/modals/hostmap-modal.lp") then
+    local tabs = {
+        {
+            desc = T"Devices List",
+            active = "active",
+            target = "modals/device-modal.lp",
+        },
+        {
+            desc = T"Devices Map",
+            target = "modals/hostmap-modal.lp",
+        },
+        {
+            desc = T"IPv6 Devices List",
+            target = "modals/ipv6devices-modal.lp",
+        },
+    }
+    ngx.print(ui_helper.createModalTabs(tabs))
+end
   ngx.print('\
   <form class="form-horizontal" method="post" action="modals/device-modal.lp">\
     ');  
@@ -222,6 +219,5 @@ end
     </fieldset>\
   </form>\
 </div>\
-\
-'); ngx.print( ui_helper.createFooter() ); ngx.print('\
+');  ngx.print( ui_helper.createFooter() ); ngx.print('\
 '); 
