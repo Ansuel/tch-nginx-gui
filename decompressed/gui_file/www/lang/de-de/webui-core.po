@@ -4360,3 +4360,129 @@ msgstr ""
 
 msgid "Speed Test"
 msgstr ""
+
+msgid "Downstream"
+msgstr ""
+
+msgid "Received Time"
+msgstr ""
+
+msgid "Duplicate Static Route Found"
+msgstr ""
+
+msgid "Server Port:"
+msgstr ""
+
+msgid "Loss Packets"
+msgstr ""
+
+msgid "Upstream"
+msgstr ""
+
+msgid "Step Duration(ms):"
+msgstr ""
+
+msgid "Good put(Kbps)"
+msgstr ""
+
+msgid "Result Count"
+msgstr ""
+
+msgid "IPv6 Link Local Addr"
+msgstr ""
+
+msgid "Runtime"
+msgstr ""
+
+msgid "IPv6 Devices List"
+msgstr ""
+
+msgid "IPv6 Default Gateway"
+msgstr ""
+
+msgid "IPv6 Global Addr"
+msgstr ""
+
+msgid "BW"
+msgstr ""
+
+msgid "Latency Tolerance Percentage"
+msgstr ""
+
+msgid "UDP Payload Length:"
+msgstr ""
+
+msgid "Send"
+msgstr ""
+
+msgid "Speed Diagonostics Result History"
+msgstr ""
+
+msgid "Max Steps"
+msgstr ""
+
+msgid "Max (kbps:)"
+msgstr ""
+
+msgid "Average Latency"
+msgstr ""
+
+msgid "RxRate"
+msgstr ""
+
+msgid "Invalid IP address."
+msgstr ""
+
+msgid "PayLoad Rate(Kbps)"
+msgstr ""
+
+msgid "IPv4 Static Routes Configuration"
+msgstr ""
+
+msgid "Direction"
+msgstr ""
+
+msgid "Overhead"
+msgstr ""
+
+msgid "Server Address:"
+msgstr ""
+
+msgid "Fast"
+msgstr ""
+
+msgid "MaxSteps should be greater than or equal to 1 when Algorithm is Binary/Ramp/Fast"
+msgstr ""
+
+msgid "Invalid gateway IP."
+msgstr ""
+
+msgid "Initiate A Speed Diagnostic"
+msgstr ""
+
+msgid "Changes not saved"
+msgstr ""
+
+msgid "Adjusted Received Rate"
+msgstr ""
+
+msgid "Speed Service"
+msgstr ""
+
+msgid "Mode:"
+msgstr ""
+
+msgid "Binary"
+msgstr ""
+
+msgid "Diagnostics Ping & Traceroute"
+msgstr ""
+
+msgid "Algorithm:"
+msgstr ""
+
+msgid "Ramp"
+msgstr ""
+
+msgid "Acceptable Percentage Loss"
+msgstr ""

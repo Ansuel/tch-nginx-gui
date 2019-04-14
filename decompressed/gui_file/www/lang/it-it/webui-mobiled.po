@@ -786,3 +786,6 @@ msgstr "No"
 
 msgid "Downlink EARFCN:"
 msgstr "EARFCN downlink:"
+
+msgid "PAP/CHAP"
+msgstr ""
