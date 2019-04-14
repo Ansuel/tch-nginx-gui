@@ -1,7 +1,7 @@
 --pretranslated: do not change this file
  
 -- Localization
-gettext.textdomain('webui-speedservice')
+gettext.textdomain('webui-core')
 
 local ngx = ngx
 local proxy = require("datamodel")
