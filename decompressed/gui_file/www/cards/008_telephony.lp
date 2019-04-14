@@ -47,24 +47,20 @@ for _, v in pairs (sipprofile_content) do
     end
 end
 
+switchName = "mmpbx_enabled"
 if mmpbx_state == "1" then
     if session:hasAccess("/modals/mmpbx-global-modal.lp") then
         modalPath = "/modals/mmpbx-global-modal.lp"
     elseif session:hasAccess("/modals/mmpbx-dect-modal.lp") then
         modalPath = "/modals/mmpbx-dect-modal.lp"
-    elseif session:hasAccess("mmpbx-contacts-modal.lp") then
+    elseif session:hasAccess("/modals/mmpbx-contacts-modal.lp") then
         modalPath = "/modals/mmpbx-contacts-modal.lp"
-    elseif session:hasAccess("/modals/mmpbx-inoutgoingmap-modal.lp") then
-        modalPath = "/modals/mmpbx-inoutgoingmap-modal.lp"		
+    elseif session:hasAccess("/modals/mmpbx-inoutgoingmap-modal.lp") then 	-- NG-78959/TCOMITAGW-2084
+        modalPath = "/modals/mmpbx-inoutgoingmap-modal.lp"
     end
 elseif session:hasAccess("/modals/mmpbx-global-modal.lp") then
     modalPath = "/modals/mmpbx-global-modal.lp"
 end
-
-if session:hasAccess("/modals/mmpbx-global-modal.lp") then
-	switchName = "mmpbx_enabled"
-end
-
 %>
 
 <div class="span3">

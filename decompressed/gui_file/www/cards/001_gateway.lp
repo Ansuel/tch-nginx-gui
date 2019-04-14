@@ -1,7 +1,7 @@
 --pretranslated: do not change this file
-
+ 
 -- Enable localization
--- NG-92675 implement changes required from the customer
+-- NG-92675/TCOMITAGW-2102 implement changes required from the customer
 gettext.textdomain('webui-core')
 
 local proxy = require("datamodel")

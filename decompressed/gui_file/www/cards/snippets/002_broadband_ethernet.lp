@@ -65,9 +65,9 @@ local intf_state_map = {
 }
 
 local intf_light_map = {
-    disabled = "0", --"off"
-    disconnected = "4",--"red"
-    connected = "1",--"green"
+  disabled = "off",
+  disconnected = "red",
+  connected = "green",
 }
 
 if stats.operstate == "up" then
@@ -91,7 +91,7 @@ ngx.print('\
 ');  ngx.print( ui_helper.createCardHeader(T"Broadband", modalPath) ); ngx.print('\
 <div class="content card_bg" data-bg-text="&#xf0b2;">\
   <div class="divtable">\
-    ');  ngx.print( ui_helper.createSimpleLight(intf_light_map[intf_state] , intf_state_map[intf_state], { light = {} },"fas fa-retweet") );
+    ');  ngx.print( ui_helper.createSimpleLight(nil, intf_state_map[intf_state], { light = { class = intf_light_map[intf_state] } },"fas fa-retweet") );
 if intf_state == "connected" then
     ngx.print('<p class="subinfos">'); ngx.print(T"Speed"); ngx.print(": <strong>"); ngx.print(stats.speed); ngx.print('Mbps</strong></p>');
 end

@@ -1,5 +1,5 @@
-<%
--- NG-82219
+--pretranslated: do not change this file
+ 
 -- Enable localization
 gettext.textdomain('webui-parental')
 
@@ -38,8 +38,8 @@ local parental_columns = {
 local parental_options = {
     tableid         = "urlfilter",
     basepath        = uci_parental_path,
-	objectName      = uniqueKey,
-    addNamedObject  = true,				   
+    objectName      = uniqueKey,
+    addNamedObject  = true,
 }
 
 -- get an initial read from UCI
@@ -77,7 +77,7 @@ n_block_rules = tonumber(rulecount)
 
 local modalPath = nil
 local switchName = nil
-local modal_link = ""				 
+local modal_link = ""
 local session = ngx.ctx.session
 if session:hasAccess("/modals/parental-modal.lp") then
     modalPath = "/modals/parental-modal.lp"

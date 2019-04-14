@@ -12,8 +12,10 @@ if session:hasAccess("/modals/internet-modal.lp") then
 end
   ngx.print('\
 \
-\
+');  ngx.print( ui_helper.createCardHeader(T"Internet Access", modalPath) ); ngx.print('\
+<div class="content">\
   <p class="subinfos">\
     ');  ngx.print( T("Gateway in bridge mode") ); ngx.print('\
   </p>\
+</div>\
 '); 

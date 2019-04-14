@@ -1,6 +1,7 @@
 --pretranslated: do not change this file
-
+ 
 -- Enable localization
+-- TCOMITAGW-2087; TCOMITAGW-2088
 gettext.textdomain('webui-core')
 
 local content_helper = require("web.content_helper")
@@ -8,8 +9,6 @@ local ui_helper = require("web.ui_helper")
 local proxy = require("datamodel")
 local format = string.format
 local match = string.match
-
-local attributes = { light = { } ,span = { class = "span4" } }
 
 local function getNetIntfPath(protocol)
 	local uciPath = "uci.network.interface.@wan."
@@ -71,9 +70,9 @@ local ipv6_state_map = {
 setmetatable(ipv6_state_map, untaint_mt)
 
 local ipv6_light_map = {
-     none = "0",--"off",
-     noprefix = "2",--"orange",
-     prefix = "1",--"green",
+     none = "off",
+     noprefix = "orange",
+     prefix = "green",
 }
 setmetatable(ipv6_light_map, untaint_mt)
 
@@ -99,9 +98,9 @@ local dhcp_state_map = {
 }
 
 local dhcp_light_map = {
-  disabled = "0",--"off",
-  connecting = "2",--"orange",
-  connected = "1",--"green",
+  disabled = "off",
+  connecting = "orange",
+  connected = "green",
 }
 
 if cs["uci_wan_auto"] ~= "0" then
@@ -124,22 +123,22 @@ if session:hasAccess("/modals/internet-modal.lp") then
     modalPath = "/modals/internet-modal.lp"
 end
 
-attributes.light.id = "Internet_DHCP_LED"
-attributes.span.id = "Internet_DHCP_Status"
-
-ngx.print( ui_helper.createSimpleLight(dhcp_light_map[dhcp_state], dhcp_state_map[dhcp_state], attributes, "fa-at") ); ngx.print('\
+  ngx.print('\
+\
+');  ngx.print( ui_helper.createCardHeader(T"Internet Access", modalPath) ); ngx.print('\
+<div class="content">\
+  ');  ngx.print( ui_helper.createSimpleLight(nil, dhcp_state_map[dhcp_state], { light = { class = dhcp_light_map[dhcp_state], id = "Internet_DHCP_LED" }, span = {id = "Internet_DHCP_Status"} }) ); ngx.print('\
   <p class="subinfos">\
-  ');
-    if dhcp_state == "connected" then
+     ');  if dhcp_state == "connected" then
         if cs["ipaddr"] and cs["ipaddr"]:len() > 0 then
-		  ngx.print(format(T'WAN IP is <strong id ="wan_ip">%s</strong>', cs["ipaddr"]))
-		elseif cs["ip6addr"] and cs["ip6addr"]:len() > 0 then
-		  ngx.print(format(T'WAN IP is <strong id ="wan_ip">%s</strong>', cs["ip6addr"]))
-	    end
-	    if dhcp_state == "connected" and IPv6State ~= "disabled" then
-          ngx.print(ui_helper.createSimpleLight(ipv6_light_map[IPv6State] or "4" --[[ red ]], ipv6_state_map[IPv6State] or T"Unknown", attributes, "fa-at" ))
-	    end
-    end
-	ngx.print('\
+	  ngx.print(format(T'WAN IP is <strong id ="wan_ip">%s</strong>', cs["ipaddr"]))
+	elseif cs["ip6addr"] and cs["ip6addr"]:len() > 0 then
+	  ngx.print(format(T'WAN IP is <strong id ="wan_ip">%s</strong>', cs["ip6addr"]))
+	end
+	if dhcp_state == "connected" and IPv6State ~= "disabled" then
+          ngx.print(ui_helper.createSimpleLight(nil, ipv6_state_map[IPv6State] or T"Unknown", { light = { class = ipv6_light_map[IPv6State] or "red" } }))
+	end
+      end  ngx.print('\
   </p>\
-');
+</div>\
+'); 

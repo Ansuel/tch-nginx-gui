@@ -31,7 +31,7 @@ end
 local samba_available = file_check("/etc/init.d/samba")
 if samba_available then
 	local sambaMapParams = {
-		samba_enabled	= "uci.samba.samba.enabled",
+		samba_filesharing	= "uci.samba.samba.filesharing",
 		samba_name			= "uci.samba.samba.name",
 	}
     for k,v in pairs(sambaMapParams) do
@@ -54,8 +54,9 @@ if samba_available or dlna_available then
 end
 
 local sambastate, dlnastate
+
 if samba_available then
-	if content["samba_enabled"] == "1" then
+	if content["samba_filesharing"] ~= "0" then
 		sambastate = T"SMB/CIFS Filesharing enabled"
 	else
 		sambastate = T"SMB/CIFS Filesharing disabled"

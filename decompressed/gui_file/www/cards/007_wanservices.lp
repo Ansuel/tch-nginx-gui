@@ -77,7 +77,7 @@ local ddns_data = content_helper.convertResultToObject("rpc.ddns.service.",ddns_
 
 local n_redir_rules = #pf_rule_len
 local n_ddns_rules = #ddns_data
-local n_upnp_rules = tonumber(wan_services_data["upnp_rules"])
+local n_upnp_rules = tonumber(wan_services_data["upnp_rules"]) or 0
 local modalPath = nil
 local switchName = nil
 local modal_link_port  = ""
