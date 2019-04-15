@@ -37,6 +37,11 @@ fi
 
 echo $version > latest.version
 
+mkdir ~/gui_build/data
+
+echo $version > ~/gui_build/data/version
+echo $build_type_name > ~/gui_build/data/type
+
 git add -A;
 git commit -a -m "[$build_type_name] Version: $version Commit: $commit_link";
 git push origin master;

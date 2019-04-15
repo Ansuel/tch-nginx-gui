@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 jobs:
   build:
     working_directory: ~/gui_build
@@ -36,3 +36,28 @@ jobs:
       #    key: latest-file-key
       #    paths:
       #      - ~/gui-dev-build-auto/latest.version
+      - persist_to_workspace:
+          root: ~/gui_build
+          paths: 
+            - compressed
+            - scripts
+            - data
+  
+  publish-github-release:
+    docker:
+      - image: cibuilds/github:0.10
+    steps:
+      - attach_workspace:
+          at: /tmp/gui_build
+      - run:
+          name: "Publish Release on GitHub"
+          command: bash /tmp/gui_build/scripts/7-push-release.sh
+
+workflows:
+  version: 2
+  build_and_deploy:
+    jobs: 
+      - build
+      - publish-github-release:
+          requires:
+            - build
