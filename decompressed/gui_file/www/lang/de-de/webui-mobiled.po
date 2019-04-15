@@ -789,3 +789,21 @@ msgstr "Downlink EARFCN:"
 
 msgid "PAP/CHAP"
 msgstr ""
+
+msgid "Last 24 Hours"
+msgstr ""
+
+msgid "Last Five Minutes"
+msgstr ""
+
+msgid "Last Twenty Minutes"
+msgstr ""
+
+msgid "Last Hour"
+msgstr ""
+
+msgid "Last Month"
+msgstr ""
+
+msgid "Last Week"
+msgstr ""
