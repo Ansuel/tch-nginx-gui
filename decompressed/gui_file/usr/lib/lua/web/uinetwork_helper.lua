@@ -93,8 +93,8 @@ function M.getAutocompleteHostsListMac()
             else
                 friendlyName = name
             end
-            friendlyName = friendlyName .. " [" .. ipv4 .. "]"
-            ipv4hosts[friendlyName] = macaddr
+            friendlyName = friendlyName .. " [" .. macaddr .. "]"
+            ipv4hostsMac[friendlyName] = macaddr
         end
 
         --Get the IPv6 hosts
@@ -105,13 +105,13 @@ function M.getAutocompleteHostsListMac()
                 else
                     friendlyName = name
                 end
-                friendlyName = friendlyName .. " [" .. ipv6 .. "]"
+                friendlyName = friendlyName .. " [" .. macaddr .. "]"
                 if skipIPv6LinkLocal then
                     if bit.band(ipv6:byte(1), 0xE0) == 0x20 then
-                        ipv6hosts[friendlyName] = macaddr
+                        ipv6hostsMac[friendlyName] = macaddr
                     end
                 else
-                    ipv6hosts[friendlyName] = macaddr
+                    ipv6hostsMac[friendlyName] = macaddr
                 end
             end
         end
