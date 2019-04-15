@@ -1,7 +1,3 @@
--- NG-85341; NG-85376; NG-85436; NG-91245
--- [NG-97949] Incorrect GUI indication
---NG-70591 GUI : Unable to configure infinite lease time (-1) from GUI but data model allows
--- NG-103912 GUI new generic post_helper.lua is taken
 local ngx, require = ngx, require
 local proxy = require("datamodel")
 local io = require("io")
@@ -37,6 +33,18 @@ local function setlanguage()
     gettext.language(ngx.header['Content-Language'])
 end
 
+local function errorsFound()
+    checkUiMessages = false
+    local session = ngx.ctx.session
+    local err = session:retrieve("uimessages")
+    for _, err in ipairs(err or {}) do
+        if err.level == "error" then
+            checkUiMessages = true
+        end
+    end
+    return checkUiMessages
+end
+
 gettext.textdomain('web-framework-tch')
 
 --- post_helper module
@@ -44,6 +52,25 @@ gettext.textdomain('web-framework-tch')
 --  @usage local post_helper = require('web.post_helper')
 --  @usage require('web.post_helper')
 local M = {}
+
+-- Method to get all the LAN interfaces
+-- @param #table allIntfs contains the available Interfaces(like wan, lan, loopback) and its details like ipv6uniquelocaladdr, paramindex, ipaddr
+-- @return #table it returns the only LAN interface name and index values.
+function M.getAllNonWirelessInterfaces(allIntfs)
+  local lanIntfs = {}
+  for _, intfs in ipairs(allIntfs) do
+    if intfs.type == "lan" then
+      local intfsName
+      if intfs.name and intfs.name ~= "" then
+        intfsName = intfs.name
+      else
+        intfsName = intfs.paramindex
+      end
+      lanIntfs[#lanIntfs + 1] = {name = intfsName, index = intfs.paramindex}
+    end
+  end
+  return lanIntfs
+end
 
 --- Method to store the POST parameters sent by the UI in UCI (SAVE action)
 -- @function [parent=#post_helper] handleQuery
@@ -96,7 +123,8 @@ function M.handleQuery(mapParams, mapValidation)
             validated, helpmsg = content_helper.validateObject(content, mapValidation)
 
             -- Now assuming that everything was validated, we can prepare to store the data
-            if validated then
+
+            if validated and not errorsFound() then
                 for index, postcontent in pairs(content) do
                   -- Save only the updated values
                     if postcontent == original_data[index] then
@@ -703,7 +731,7 @@ end
 -- @return #number 0 = error
 --                 4 = ipv4
 --                 6 = ipv6
-local function GetIPType(ip)
+function M.GetIPType(ip)
     ip = string.untaint(ip)
     if ip and inet.isValidIPv4(ip) then
        return 4
@@ -712,7 +740,7 @@ local function GetIPType(ip)
     end
     return 0
 end
-
+local GetIPType = M.GetIPType
 ---
 -- @function [parent=#post_helper] validateStringIsIP
 -- @param value
@@ -856,7 +884,14 @@ function M.validateStringIsPortRange(value,data,key)
     end
     local p1, p2 = match(value, portrange_pattern)
     if p1 then
-        if M.validateStringIsPort(p1) and M.validateStringIsPort(p2) and tonumber(p1) <= tonumber(p2) then
+        local isStart, errStart = M.validateStringIsPort(p1)
+        local isEnd, errEnd = M.validateStringIsPort(p2)
+        if errStart then
+          return nil, errStart
+        elseif errEnd then
+          return nil, errEnd
+        end
+        if isStart and isEnd and tonumber(p1) <= tonumber(p2) then
             data[key] = p1 .. ":" .. p2
             return true
         else
@@ -935,10 +970,10 @@ end
 -- --@return #boolean, #string
 function M.validateRegExpire (value)
     local num = tonumber (value)
-    if num and num >= 60 and num <= 86400 and M.getValidateWholeNumber(value) then
+    if num and num >= 60 and num <= 600000 and M.getValidateWholeNumber(value) then
         return true
     end
-    return nil, T"Expire Time is invalid. It should be a whole number, between 60 and 86400."
+    return nil, T"Expire Time is invalid. It should be a whole number, between 60 and 600000."
 end
 
 ---
@@ -1070,7 +1105,7 @@ function M.getValidateStringLengthInRange(minl, maxl)
 end
 
 ---
--- Return a validation function that will be enabled only if a given property is present and otherwise return true
+-- Return a validation function that will be enabled only if a given property is present otherwise remove the parameter from the object and return true
 -- @function [parent=#post_helper] getValidationIfPropInList
 -- @param validation function (prototype is of type (value, object)
 -- @param #string prop name of the property used as a trigger
@@ -1084,17 +1119,21 @@ function M.getValidationIfPropInList(func, prop, values)
         options[v] = true
     end
 
-    -- This function should apply the given validation function if the property is in the allowed values and return true otherwise
+    -- This function should apply the given validation function if the property is in the allowed values otherwise remove the parameter from the object and return true
     return function(value, object, key)
-        if object and object[prop] and options[object[prop]] then
+        if not object then
+            return true
+        end
+        if object[prop] and options[object[prop]] then
             return func(value, object, key)
         end
+        object[key] = nil
         return true
     end
 end
 
 ---
--- Return a validation function that will be enabled only if a given checkboxswitch property is present and otherwise return true
+-- Return a validation function that will be enabled only if a given checkboxswitch property is present otherwise remove the parameter from the object and return true
 -- @function [parent=#post_helper] getValidationIfPropInList
 -- @param validation function (prototype is of type (value, object)
 -- @param #string prop name of the property used as a trigger
@@ -1108,9 +1147,12 @@ function M.getValidationIfCheckboxSwitchPropInList(func, prop, values)
         options[v] = true
     end
 
-    -- This function should apply the given validation function if the property is in the allowed values and return true otherwise
+    -- This function should apply the given validation function if the property is in the allowed values otherwise remove the parameter from the object and return true
     return function(value, object, key)
-        if object and object[prop] then
+        if not object then
+            return true
+        end
+        if object[prop] then
             -- Before M.getValidateCheckboxSwitch is called,
             -- the post value of a switchcheck box is still {"_DUMMY_", "_TRUE_"} or "_DUMMY_"
             -- these values need to be converted to "1" or "0"
@@ -1129,6 +1171,7 @@ function M.getValidationIfCheckboxSwitchPropInList(func, prop, values)
                 return func(value, object, key)
             end
         end
+        object[key] = nil
         return true
     end
 end
@@ -1239,65 +1282,59 @@ function M.getConditionalValidation(condition, istrue, isfalse)
     end
 end
 
+local function onlyFunctions(validators)
+    local onlyFunc = {}
+    for _, v in pairs(validators) do
+      if type(v) == "function" then
+        onlyFunc[#onlyFunc + 1] = v
+      end
+    end
+    return onlyFunc
+end
+
 ---
--- This function uses 2 validation functions and will only return true
--- if both return true.
+-- This function does function(s) validations and will only return true
+-- if all the functions return's true, else return's nil, error message.
 -- @function [parent=#post_helper] getAndValidation
--- @param #function valid1
--- @param #function valid2
+-- @param #function ... validation functions
 -- @return #boolean, #string
-function M.getAndValidation(valid1, valid2)
-    local v1,v2 = valid1,valid2
-    if type(v1) ~= "function" then
-        v1 = alwaysTrue
-    end
-    if type(v2) ~= "function" then
-        v2 = alwaysTrue
-    end
-
+function M.getAndValidation(...)
+    local validators = onlyFunctions{...}
     return function(value, object, key)
-        local r1,h1 = v1(value, object, key)
-        local r2,h2 = v2(value, object, key)
         local help = {}
-        if not r1 then
-            help[#help+1] = h1 or ""
+        local result = true
+        for _, v in ipairs(validators) do
+            local r, h = v(value, object, key)
+            result = result and r
+            if not r then
+                help[#help+1] = h
+            end
         end
-        if not r2 then
-            help[#help+1] = h2 or ""
-        end
-
-        return r1 and r2, concat(help, " ")
+        return result, concat(help, " ")
     end
 end
 
 ---
--- This function uses 2 validation functions and will only return true
--- if one of them returns true.
--- @function [parent=#post_helper] getAndValidation
--- @param #function valid1
--- @param #function valid2
+-- This function does function(s) validations and will only return true
+-- if one of them returns true, else return's nil, error message.
+-- @function [parent=#post_helper] getOrValidation
+-- @param #function ... validation functions
 -- @return #boolean, #string
-function M.getOrValidation(valid1, valid2)
-    local v1,v2 = valid1,valid2
-    if type(v1) ~= "function" then
-        v1 = alwaysTrue
-    end
-    if type(v2) ~= "function" then
-        v2 = alwaysTrue
-    end
-
+function M.getOrValidation(...)
+    local validators = onlyFunctions{...}
     return function(value, object, key)
-        local r1,h1 = v1(value, object, key)
-        local r2,h2 = v2(value, object, key)
         local help = {}
-        if not r1 and not r2 then
-            help[#help+1] = h1 or ""
-            help[#help+1] = h2 or ""
+        local result
+        for _, v in ipairs(validators) do
+            local r, h = v(value, object, key)
+            result = result or r
+            if not r then
+                help[#help+1] = h
+            end
         end
-        return r1 or r2, concat(help, " ")
+        return result, concat(help, " ")
     end
 end
-
 
 local psklength = M.getValidateStringLengthInRange(8,63)
 local pskmatch = "^[ -~]+$"
@@ -1349,7 +1386,7 @@ end
 --- valide WPS pin code. Must be 4-8 digits (can have a space or - in the middle)
 -- @param #string value the PIN code that was entered
 function M.validateWPSPIN(value)
-    local errmsg = T"PIN code must composed of 4 or 8 digits with potentially a dash or space in the middle."
+    local errmsg = T"PIN code must be 4 or 8 digits with potentially a dash or space in the middle."
     if value == nil or #value == 0 then
         -- empty pin code just means that we don't want to set one
         return true
@@ -1400,6 +1437,19 @@ local function ipv42num(ipstr)
       return bit.tobit((b1*16777216) + (b2*65536) + (b3*256) + b4)
     end
 end
+
+-- Return broadcast address as number to calling function
+local function broadcastAddress(network, netmask)
+  local broadcast = bit.bor(network, bit.bnot(netmask))
+  return broadcast
+end
+
+-- Return network address as number to calling function
+local function networkAddress(ipAddr, netmask)
+  local network = bit.band(ipAddr,netmask)
+  return network
+end
+
 --- Return the number representing the given IPv4 address (or netmask) string.
 --  @function [parent=#post_helper] ipv42num
 --  @param #string ip
@@ -1415,55 +1465,67 @@ M.ipv42num = ipv42num
 -- @treturn number The number of bits in the host part of the subnet mask.
 -- @error Error message.
 function M.validateIPv4Netmask(value)
-  -- A valid subnet mask consists of (in binary) consecutive 1's
-  -- followed by consecutive 0's.
-  local netmask = ipv42num(value)
-  if not netmask then
-    return nil, T"String is not an IPv4 address."
+  setlanguage()
+  -- validateIPv4Netmask function uses inet_pton which requires string to be passed as an argument.
+  -- value when it comes from GUI, will be of type userdata so untainting it.
+  value = string.untaint(value)
+  local valid, result = inet.validateIPv4Netmask(value)
+  if not valid then
+    return valid, T"Invalid netmask."
   end
-  local ones = 0
-  local expecting = 0
-  for i = 0, 31 do
-    local bitmask = bit.lshift(1, i)
-    local result = bit.band(netmask, bitmask)
-    if result == 0 then
-      if expecting ~= 0 then
-        return nil, T"Invalid subnet."
-      end
-    else
-      if expecting == 0 then
-        expecting = 1
-      end
-      ones = ones + 1
-    end
+  return valid
+end
+
+-- Validates the Destination IP.
+-- In particular if the IPs are reserved/network/invalid IPs, then this function returns an error message.
+-- @param #string ipAddr The destination IP in dotted decimal notation.
+-- @tparam table object The table containing the IPv4 Static Routes Configuration userdata.
+-- @error Error message.
+function M.validateDestinationIP(ipAddr, object)
+  local resIP, errMsg = M.validateStringIsIP(ipAddr)
+  if not resIP then
+    return nil, errMsg
   end
-  if (ones < 8) or (ones > 30) then
-    return nil, T"Invalid subnet."
+
+  resIP, errMsg = M.reservedIPValidation(ipAddr)
+  if not resIP then
+    return nil, errMsg
   end
-  return true, 32 - ones
+
+  resIP, errMsg = M.getValidateStringIsIPv4InNetwork(object.Gateway, object.Mask)
+  if not resIP then
+    return nil, errMsg
+  end
+
+  resIP, errMsg = resIP(ipAddr)
+  if not resIP then
+    return nil,T"Destination is not in the Gateway network"
+  end
+  return resIP
 end
 
 --- This function returns a validator that will check that the provided value is an IPv4 in the same network
 -- as the network based on the GW IP + Netmask
 -- @param #string gw the gateway IP@ on the considered network
 -- @param #string nm the netmask to use
--- @return true or nil+error message
+-- @treturns a function or nil
 function M.getValidateStringIsIPv4InNetwork(gw, nm)
     local gwip = ipv42num(gw)
     local netmask = ipv42num(nm)
-    local network = bit.band(gwip, netmask)
-    local broadcast = bit.bor(network, bit.bnot(netmask))
+    if gwip and netmask then
+        local network = networkAddress(gwip, netmask)
 
-    return function(value)
-        if(GetIPType(value) ~= 4) then
-            return nil, T"String is not an IPv4 address."
-        end
-        local ip = ipv42num(value)
+        return function(value)
+            if(GetIPType(value) ~= 4) then
+                return nil, T"String is not an IPv4 address."
+            end
+            local ip = ipv42num(value)
 
-        if network ~= bit.band(ip, netmask) then
-            return nil, format(T"IP is not in the same network as the gateway %s.", gw)
+            if network ~= networkAddress(ip, netmask) then
+                return nil, format(T"IP is not in the same network as the gateway %s.", gw)
+            end
+            return true
         end
-        return true
     end
 end
 
@@ -1476,8 +1538,8 @@ function M.getValidateStringIsDeviceIPv4(gw, nm)
     local gwip = ipv42num(gw)
     local netmask = ipv42num(nm)
     if gwip and netmask then
-        local network = bit.band(gwip, netmask)
-        local broadcast = bit.bor(network, bit.bnot(netmask))
+        local network = networkAddress(gwip, netmask)
+        local broadcast = broadcastAddress(network, netmask)
         local mainValid = M.getValidateStringIsIPv4InNetwork(gw, nm)
 
         return function(value)
@@ -1522,57 +1584,68 @@ function M.validateStringIsIPv6(value)
     end
 end
 
+local startLoopback = ipv42num("127.0.0.0")
+local endLoopback = ipv42num("127.255.255.255")
+local startMulticastRange = ipv42num("224.0.0.0")
+local endMulticastRange = ipv42num("239.255.255.255")
+local limitedBroadcast = ipv42num("255.255.255.255")
+local classEStartIP = ipv42num("240.0.0.0")
+local classEEndIP = ipv42num("255.255.255.254")
+local softwareStartIP = ipv42num("0.0.0.1")
+local softwareEndIP = ipv42num("0.255.255.255")
 
--- Return broadcast address as number to calling function
-local function broadcastAddress(network, netmask)
-  local broadcast = bit.bor(network, bit.bnot(netmask))
-  return broadcast
+-- Check whether the given IPv4 address is a public IP address.
+-- @param @tstring value the IP Address$
+-- @param @ttable object has $localcpeip
+-- @param @tstring key the random key value$
+function M.publicIPValidation(value, object, key)
+  if value ~= "" then
+    if not M.isPublicIP(value) then
+      return nil, T"Not a Public address"
+    end
+    local ip = M.ipv42num(value)
+    if classEStartIP <= ip and classEEndIP >= ip then
+      return nil, T"Cannot use a reserved IP address."
+    end
+    if softwareStartIP <= ip and softwareEndIP >= ip then
+      return nil, T"Cannot use software address range."
+    end
+    if startLoopback <= ip and ip <= endLoopback  then
+      return nil, T"Cannot use IPv4 loopback address range."
+    end
+    if startMulticastRange <= ip and endMulticastRange >= ip then
+      return nil, T"Cannot use a multicast address."
+    end
+    if object.localpublicmask then
+      local success1 = M.isNetworkAddress(value, object.localpublicmask)
+      if success1 then
+        return nil, T"Cannot use the network address"
+      end
+      local success2 = M.isBroadcastAddress(ip, object.localpublicmask)
+      if success2 then
+        return nil, T"Cannot use the broadcast address"
+      end
+    end
+    return true
+  end
 end
 
--- Return network address as number to calling function
-local function networkAddress(ipAddr, netmask)
-  local network = bit.band(ipAddr,netmask)
-  return network
-end
-
--- validate the given ip/subnet is broadcast address or not
-function M.isBroadcastAddress(ip, subnetMask)
-  local netmask = ipv42num(subnetMask)
-  local network = networkAddress(ip, netmask)
-  local broadcast = broadcastAddress(network, netmask)
-
-  return broadcast == ip
-end
-
---- This function is used for Local Device IP validation and NTP server validation. It is validating that:
--- if object["localdevmask"] is a valid netmask
--- the [value] a valid IPv4 address,
--- the [value] is not the broadcast or network address based on the network mask
--- don't allow if ip is in the CLASS A IP range 0.0.0.0/2, except the private 10.0.0.0/24 range
--- the [value] is not in the multicast range 224.0.0.0/4
--- the [value] is not in the limited broadcast destination address 255.255.255.255/32
--- @return true or nil+error message
+--- is the given IP address valid as a Local Device IP and NTP server$
+-- @param @tstring value the IP Address$
+-- @param @ttable object has localdevmask$
+-- @param @tstring key the random key value$
+-- @return true or nil+error message$
 
 function M.advancedIPValidation(value, object, key)
     if not value then
         return nil, T"Invalid IP Address."
     end
-    --valid netmask?
-    if object["localdevmask"] then
-        local val, msg = M.validateIPv4Netmask(object["localdevmask"])
-        if not val then
-            return nil, "[netmask] " .. msg
-        end
-    end
-
     local ip = M.ipv42num(value)
     if not ip then
         return nil, T"Invalid IP Address."
     end
 
-    local startLoopback = "127.0.0.0"
-    local endLoopback = "127.255.255.255"
-    if ipv42num(startLoopback) <= ip and ip <= ipv42num(endLoopback)  then
+    if startLoopback <= ip and ip <= endLoopback  then
         return nil,T"Cannot use IPv4 loopback address range."
     end
 
@@ -1581,7 +1654,7 @@ function M.advancedIPValidation(value, object, key)
     local startClassAPrivRange = "10.0.0.0"
     local endClassAPrivRange = "10.255.255.255"
     -- ip 0.0.0.0/32 is not valid
-    if object["localdevmask"] then
+    if object.localdevmask then
         if 0 < ip and M.ipv42num(endClassARange) >= ip then
             if ipv42num(startClassAPrivRange) >= ip or ipv42num(endClassAPrivRange) <= ip then
                 return nil, T"Cannot use an address in this address range."
@@ -1592,18 +1665,14 @@ function M.advancedIPValidation(value, object, key)
         return nil, T"Cannot use an address in this address range."
     end
     --check if ip is not in the multicast range 224.0.0.0/4
-    local startMulticastRange = "224.0.0.0"
-    local endMulticastRange = "239.255.255.255"
-    if ipv42num(startMulticastRange) <= ip and ipv42num(endMulticastRange) >= ip   then
+    if startMulticastRange <= ip and endMulticastRange >= ip then
         return nil, T"Cannot use a multicast address."
     end
 
     --check if ip is not in the limited broadcast destination address 255.255.255.255/32
-    local limitedBroadcast = "255.255.255.255"
-    if ipv42num(limitedBroadcast) == ip then
+    if limitedBroadcast == ip then
         return nil, T"Cannot use the limited broadcast destination address."
     end
-
 
     --in case of valid ip is the broadcast or network adress based on the network mask
     if object.localdevmask then
@@ -1617,6 +1686,7 @@ function M.advancedIPValidation(value, object, key)
             return nil, T"Cannot use the broadcast address"
         end
     end
+
     return true
 end
 
@@ -1715,6 +1785,52 @@ function M.isWANIP(ipAddress, all_intfs)
   end
 end
 
+--- Check whether the given IP address is in any LAN interface subnet range
+-- @tstring ipAddress the IP address
+-- @ttable all_intfs the all interfaces
+-- @tstring curif the current interrface that will not be checked
+-- @treturn true and interface name if the given IP address is in any LAN subnet range otherwise nil
+
+function M.isLANIP(ipAddress, all_intfs, curif)
+  local ip = ipv42num(ipAddress)
+  if not ip then
+    return nil, T"Invalid input"
+  end
+  local wanInterface = {}
+  local firewall_zone = proxy.get("uci.firewall.zone.")
+  local firewall_zones = content_helper.convertResultToObject("uci.firewall.zone.", firewall_zone)
+  for _, zone in ipairs(firewall_zones) do
+    if zone.wan == "1" and zone.name == "wan" then
+      local wanInterfaceList = content_helper.convertResultToObject("uci.firewall.zone.@" .. zone.name .. ".network.", zone)
+      for _, v in ipairs(wanInterfaceList) do
+        wanInterface[untaint(v.value)] = true
+      end
+    end
+  end
+
+  for _, v in ipairs(all_intfs) do
+    if not wanInterface[v.paramindex] and v.ipaddr ~= "" and v.paramindex ~= curif then
+      local networkLan, lanIpMax
+      local baseip = ipv42num(v.ipaddr)
+      local netmask = inet.netmaskToNumber(tonumber(v.ipmask))
+      if not netmask then
+        return nil, T"Invalid netmask"
+      end
+
+      if baseip and netmask then
+        networkLan = networkAddress(baseip, netmask)
+        lanIpMax = broadcastAddress(networkLan, netmask)
+      end
+
+      if networkLan and lanIpMax then
+        if networkLan <= ip and ip <= lanIpMax then
+          return true, v.paramindex
+        end
+      end
+    end
+  end
+end
+
 ---This function converts a CIDR(Classless Inter-domain routing) notation to a subnet mask. Eg, convert 24 to 255.255.255.0
 -- @param #string 'cidr' The CIDR notation number. Eg: "24"
 -- @return #string network mask or nil+error message. Eg: "255.255.255.0"
@@ -1784,6 +1900,7 @@ function M.validateIPAndSubnet(ipTypeV4orV6)
         return true
     end
 end
+
 function M.validateURL(url,proto)
   if url then
     local protocol, domain = match(url,"([%w]+)://([^/]*)/?")
@@ -1806,6 +1923,7 @@ function M.validateURL(url,proto)
   end
   return nil, T"Invalid URL"
 end
+
 --Validate the given ip/mac is Quantenna.
 function M.validateQTN(value)
   local qtnMac = { mac = "uci.env.var.qtn_eth_mac" }
@@ -1813,6 +1931,9 @@ function M.validateQTN(value)
   -- No need to validate for non QTN board
   if not success then
     return true
+  end
+  if not value then
+    return nil, "Invalid input"
   end
   value = untaint(value)
   if M.validateStringIsMAC(value) then
@@ -1822,26 +1943,41 @@ function M.validateQTN(value)
     return true
   elseif inet.isValidIPv4(value) == true then
     local qtnIP = content_helper.getMatchedContent("sys.proc.net.arp.",{ hw_address = lower(qtnMac.mac)})
-    if #qtnIP > 0 and qtnIP[1].ip_address == value then
-      return nil, format(T"Cannot assign, %s in use by system.", value)
+    if #qtnIP > 0 then
+      for _,v in ipairs(qtnIP) do
+        if v.ip_address == value then
+          return nil, format(T"Cannot assign, %s in use by system.", value)
+        end
+      end
     end
     return true
   end
   return nil, T"Invalid input."
 end
 
+-- validate the given ip/subnet is broadcast address or not
+function M.isBroadcastAddress(ip, subnetMask)
+  local netmask = ipv42num(subnetMask)
+  if netmask then
+    local network = networkAddress(ip, netmask)
+    local broadcast = broadcastAddress(network, netmask)
+    return broadcast == ip
+  end
+end
+
 -- validate the given ip/subnet is network address or not
 function M.isNetworkAddress(ipAddress, subnetMask)
   local netMask = ipv42num(subnetMask)
-  local ip = M.ipv42num(ipAddress)
-  if not ip then
-    return nil, T"Invalid IP Address."
+  if netMask then
+    local ip = M.ipv42num(ipAddress)
+    if not ip then
+      return nil, T"Invalid IP Address."
+    end
+    if networkAddress(ip, netMask) == ip then
+      return true
+    end
+    return nil, T"Invalid Network Address."
   end
-  --if network == ip
-  if bit.band(ip, netMask) == ip then
-    return true
-  end
-  return nil, T"Invalid Network Address."
 end
 
 --- This function is used to get default subnet mask.
@@ -1879,11 +2015,15 @@ end
 -- @treturn number The number of effective hosts possible in the network with the given subnet mask.
 -- @error Error message.
 function M.getPossibleHostsInSubnet(subnetmask)
-  local valid, host_bits = M.validateIPv4Netmask(subnetmask)
-  if not valid then
-    return nil, host_bits
+  setlanguage()
+  -- getPossibleHostsInIPv4Subnet function will use inet_pton which requires string to be passed as an argument.
+  -- subnetmask when it comes from GUI, will be of type userdata so untainting it.
+  subnetmask = string.untaint(subnetmask)
+  local result = inet.getPossibleHostsInIPv4Subnet(subnetmask)
+  if not result then
+    return nil, T"Invalid subnet."
   end
-  return (2^host_bits) - 2
+  return result
 end
 
 -- Validate the given IP address is not in the broadcast, multicast, loopback, reserved, gatewayip, network.
@@ -1896,12 +2036,31 @@ function M.staticLeaseIPValidation(value, object)
   if not valid then
     return nil, errmsg
   end
-  local networkvalid  =  M.getValidateStringIsDeviceIPv4(object["localdevIP"], object["localdevmask"])
+  local networkvalid  =  M.getValidateStringIsDeviceIPv4(object.localdevIP, object.localdevmask)
   local isnetworkvaild, msg = networkvalid(value)
   if not isnetworkvaild then
      return isnetworkvaild, msg
   end
   return true
+end
+
+-- Validate the given IP address is not in the Reserved IP list.
+-- @string value The IPv4 address.
+-- @return true valid IP address not present in Reserved IP list, nil+error message.
+function M.reservedIPValidation(ip)
+  if inet.isValidIPv4(untaint(ip)) then
+    local reservedIPList = proxy.get("uci.dhcp.host.")
+    reservedIPList = content_helper.convertResultToObject("uci.dhcp.host.", reservedIPList) or {}
+    for _, v in ipairs(reservedIPList) do
+      if match(v.name, "^ReservedStatic") and v.mac == "" then
+        if ip == v.ip then
+          return nil, T"The IP is internally used for other services."
+        end
+      end
+    end
+    return true
+  end
+  return nil, T"Invalid input."
 end
 
 --Generate random key for new rule
@@ -1932,6 +2091,70 @@ function M.validateSSID(value)
   return true
 end
 
+--Validates if the 'dhcpIgnore' value is '1' or '0'
+--Changes the 'dhcpIgnore' to '0' if it is '1' and the 'dhcpv4State' is 'server'
+--@string value the 'dhcpIgnore' state
+--@table object the table containing 'dhcpv4State' and 'dhcpIgnore'
+--@return true if the 'dhcpIgnore' is valid
+--@return nil+error message if the 'dhcpIgnore' is not valid
+function M.validateDHCPIgnore(value, object)
+  if not M.getOptionalValidation(M.validateBoolean)(value) then
+    return nil, T"Invalid value."
+  end
+  --While board boot up, dhcpv4State will be "", in that case it needs to be enabled in GUI.
+  if object.dhcpv4State == "" or object.dhcpv4State == "server" then
+    if object.dhcpIgnore == "1" then
+      object.dhcpIgnore = "0"
+    end
+  end
+  return true
+end
+
+--- converts given number to IPv4 address.
+--  @function [parent=#post_helper] num2ipv4
+--  @param #number a number that needs to be converted
+--  @treturn #string IPv4 address
+--  @error Error message
+function M.num2ipv4(num)
+    if type(num)~="number" then
+        return nil, T"Invalid Number"
+    end
+    -- unbit
+    if num<0 then
+      num = (2^32)+num
+    end
+    local ip = inet.numberToIpv4(num)
+    if not ip then
+        return nil, T"Invalid Number"
+    end
+    return ip
+end
+
+-- Checks whether the received 'value' is in HH:MM format
+-- @function [parent=#post_helper] validateTime
+-- @param value
+-- @treturn #boolean true if valid nil+msg if invalid
+-- @error Error message
+function M.validateTime(value)
+    if not value then
+        return nil, T"Invalid input"
+    end
+    local time_pattern = "^(%d+):(%d+)$"
+    local hour, min = value:match(time_pattern)
+    if min then
+        hour = tonumber(hour)
+        min = tonumber(min)
+        if hour < 0 or 23 < hour then
+           return nil, T"Invalid hour, must be between 0 and 23"
+        end
+        if min < 0 or 59 < min then
+           return nil, T"Invalid minutes, must be between 0 and 59"
+        end
+        return true
+    end
+    return nil, T"Invalid time (must be hh:mm)"
+end
+
 local function formatAttenuation(attenuation, direction, index)
     return format("%s%s%s%s%s",
         direction or "",
@@ -1942,25 +2165,128 @@ local function formatAttenuation(attenuation, direction, index)
     )
 end
 
---- Formats the attenuation values for ADSL in the format "20.2 dB" (OR) "8.7 dB",
---- VDSL in the format "DS0 20.2 dB, DS1 53.6 dB, DS2 N/A (OR) US0 8.0 dB, US1 N/A, US2 41.6 dB"
+local function attenuationIndexOffset(direction)
+  local offset = 0
+  if direction == "DS" then
+    offset = 1
+  end
+  return offset
+end
+
+--- Formats the attenuation values for ADSL and Gfast in the format "20.2 dB" (OR) "8.7 dB",
+--- VDSL in the format "DS1 20.2 dB, DS2 53.6 dB, DS3 N/A (OR) US0 8.0 dB, US1 N/A, US2 41.6 dB"
 -- @string attenuation the attenuation value
 -- @string direction upstream or downstream direction
--- @treturn string the formatted string of attenuation values for VDSL/ADSL
+-- @treturn string the formatted string of attenuation values for VDSL/ADSL/Gfast
 function M.populateAttenuation(attenuation, direction)
     if not attenuation then
         return
     end
     if find(attenuation, "[,%s]") then
         local attenTable = {}
+        local offset = attenuationIndexOffset(direction)
         for atten in attenuation:gmatch('([^,%s]+)') do
             local n = #attenTable
-            attenTable[n + 1] = formatAttenuation(atten, direction, n)
+            attenTable[n + 1] = formatAttenuation(atten, direction, n + offset)
         end
         return table.concat(attenTable, ", ")
     else
         return formatAttenuation(attenuation)
     end
+end
+
+---Validator that will check whether the given value is valid IPv4 address
+-- @function [parent=#post_helper] validateStringIsIPv4
+-- @param ip
+-- @return true or nil+error message
+function M.validateStringIsIPv4(ip)
+    if not ip then
+        return nil, T"Invalid input"
+    end
+    ip = untaint(ip)
+    if inet.isValidIPv4(ip) then
+        return true
+    end
+    return nil, T"String is not an IPv4 address."
+end
+-- convert string value to table value
+-- @function [parent=#post_helper] stringToTable
+-- @string value, pattern
+-- @treturn table
+function M.stringToTable(value, pattern)
+  local table = {}
+  if value and pattern then
+    for v in value:gmatch(pattern) do
+      table[#table + 1] =  v
+    end
+  end
+  return table
+end
+
+---Compares two mac addresses and return true if
+-- they are same, nil otherwise.
+-- Comparator is case insensitive
+-- Delimiter can be : or -
+-- @param mac1 first mac address
+-- @param mac2 second mac address
+-- @return boolean true or nil
+function M.compareMACAddresses(mac1, mac2)
+  if not (M.validateStringIsMAC(mac1) or M.validateStringIsMAC(mac2)) then
+    return nil, T"Invalid MAC Address"
+  end
+  if lower(mac1:gsub("[:-]", "")) == lower(mac2:gsub("[:-]", "")) then
+    return true
+  end
+end
+
+---Validator that will check whether the given value
+-- is present in inputList table or not,
+-- it optionally accepts comparator.
+-- If no comparator is present, it just checks both values are equal.
+-- @function [parent=#post_helper] valueInList
+-- @param inputList table
+-- @param value value to be checked
+-- @param comparator function optional
+-- @return boolean true or nil
+function M.valueInList(inputList, value, comparator)
+  if inputList then
+    for _, v in pairs(inputList) do
+      if type(comparator) == "function" then
+        if comparator(v.value, value) then
+          return true
+        end
+      elseif v.value == value then
+        return true
+      end
+    end
+  end
+end
+
+--- Validator that will check whether the given IP address is in Network Range.
+--- Validate the given IP address is not in the Reserved IP list.
+-- @return true or nil+error message
+function M.validateDMZ(value, object)
+    local network = {
+        gateway_ip = "uci.network.interface.@lan.ipaddr",
+        netmask = "uci.network.interface.@lan.netmask",
+    }
+        content_helper.getExactContent(network)
+        if object.DMZ_enable ~= "1" and value == "" then
+           return true
+        end
+        local isDestIP, errormsg = M.getValidateStringIsDeviceIPv4(network.gateway_ip, network.netmask)(value)
+        if not isDestIP then
+            return nil, errormsg
+        end
+        isDestIP, errormsg = M.reservedIPValidation(value)
+        if not isDestIP then
+            return nil, errormsg
+        end
+        isDestIP, errormsg = M.validateQTN(value)
+        if not isDestIP then
+            return nil, errormsg
+        end
+        return true
 end
 
 --- Is upgrade allowed or not
@@ -1992,6 +2318,93 @@ function M.isSpaceInString(value)
     return nil, T"space is not allowed"
   end
   return true
+end
+
+-- Calculates DHCP start and end addresses
+-- @function calculateDHCPStartAndLimitAddress
+-- @param baseip gateway address
+-- @param netmask subnet mask
+-- @param start DHCP start address
+-- @param limit DHCP Limit address
+-- @return DHCP startAddress, DHCP endAddress, network address
+function M.DHCPStartAndLimitAddress(baseip, netmask, start, limit)
+  if start and limit and baseip and netmask then
+    baseip = ipv42num(baseip)
+    netmask  = ipv42num(netmask)
+    if not baseip or not netmask then
+      return nil, T"Invalid IP Address."
+    end
+    local network = bit.band(baseip, netmask)
+    local ipmax = bit.bor(network, bit.bnot(netmask)) - 1
+    local startAddress = bit.bor(network, bit.band(start, bit.bnot(netmask)))
+    local endAddress = startAddress+limit - 1
+    startAddress = M.num2ipv4(startAddress)
+    if endAddress > ipmax then
+      endAddress = ipmax
+    end
+    endAddress = M.num2ipv4(endAddress)
+    network = M.num2ipv4(network)
+    return startAddress, endAddress, network
+  end
+end
+
+--- Is feature enabled or not
+-- @param feature Specific feature
+-- @param userRole Role of the user
+-- @return true if feature is enabled
+-- @return nil if feature is disabled
+function M.isFeatureEnabled(feature, userRole)
+  local allowedRoles = proxy.get("uci.web.feature.@"..feature..".")
+  if not allowedRoles then
+     return true
+  end
+  for _, role in ipairs(allowedRoles) do
+    if role.value == userRole then
+      return true
+    end
+  end
+end
+
+-- Function to validate a UciName
+-- value must be between 1 and 63 characters long
+-- valid name must be non-empty string that consists of letters, digits or underscores
+-- @return true or nil+error message
+function M.validateUciName(value)
+  if not match(value, "^[%w_]+$") or #value > 63 then
+    return nil, T"Invalid input."
+  end
+  return true
+end
+
+--- Validate the given IP/MAC is LXC's IP/MAC
+-- @param value IP/MAC address
+-- @return true if the value is not an LXC's IP/MAC Address
+-- @return nil+error message if the given input is LXC's IP/MAC Address
+function M.validateLXC(value)
+  if not value then
+    return nil, "Invalid input"
+  end
+
+  local lxcMac = { mac = "uci.env.var.local_eth_mac_lxc" }
+  local lxcAvailable = content_helper.getExactContent(lxcMac)
+  if not lxcAvailable then
+    return true
+  end
+  if M.validateStringIsMAC(value) then
+    if lower(lxcMac.mac) == lower(value) then
+      return nil, format(T"Cannot assign, %s in use by system.", value)
+    end
+    return true
+  elseif inet.isValidIPv4(untaint(value)) then
+    local lxcIP = content_helper.getMatchedContent("sys.proc.net.arp.",{ hw_address = lower(lxcMac.mac)})
+    for _, v in ipairs(lxcIP) do
+      if v.ip_address == value then
+        return nil, format(T"Cannot assign, %s in use by system.", value)
+      end
+    end
+    return true
+  end
+  return nil, T"Invalid input."
 end
 
 return M

@@ -1,10 +1,3 @@
--- NG-78956; NG-91245
---NG-96253 GPON-Diagnostics/Network needs to be lifted to TI specific functionalities
---NG-94758 GUI: Mobile card and modal are not completely translated
---NG-102545 GUI broadband is showing SFP Broadband GUI page when Ethernet 4 is connected
---NG-103913 GUI new generic ui_helper.lua is taken
---NG-103998 GUI generic ui_helper.lua causes an issue in every modal head
---[NG-107029] GUI Diagnostics status NOK for sfp and LAN4
 local require, pairs, ipairs, type, tonumber, getfenv = require, pairs, ipairs, type, tonumber, getfenv
 local format, find, gsub, gmatch = string.format, string.find, string.gsub, string.gmatch
 local huge = math.huge
@@ -327,7 +320,7 @@ function  M.createSimpleInputPassword(name, value, attributes, helpmsg)
         input = {
             class = "edit-input span3",
             type = "password",
-            autocomplete = "off",
+            autocomplete = "new-password",
             name = name,
             value = "",
 	    id = name,
@@ -1264,6 +1257,28 @@ local function createTableDataEditAggregElem(v, data, helpmsg)
     return content
 end
 
+--- copy table data
+--  @param #table
+--  @return #table new table
+local function copy_table(value)
+    local copy = {}
+    for k, v in pairs(value) do
+        copy[k] = v
+    end
+    return copy
+end
+
+--- This function create the table of subColumnbutton attributes
+--  @param #table attributes
+--  @return #table subColumnbutton attributes
+local function attrSubColumnButton(attributes)
+    local attr = copy_table(attributes.button)
+    attr["data-original-title"] = nil
+    attr["class"] = gsub(attr["class"], "%s*tooltip%-on", "" )
+    attr["class"] = gsub(attr["class"], "btn%-mini", "btn-small")
+    return {button=attr}
+end
+
 --- Create a line of edit component to add a new element
 --  @param #table columns
 --  @param #table data array
@@ -1349,12 +1364,12 @@ local function createTableDataEdit(columns, data, add, helpmsg)
     if  #aggreg_lines > 0  then
         content[#content + 1] = format('<tr> <td class="btn-col-OK" colspan="%d">', numcolumns)
             if not add then
-               content[#content + 1] = M.createSimpleButton("","icon-ok", attrModify)
+               content[#content + 1] = M.createSimpleButton(T"Apply","", attrSubColumnButton(attrModify))
             else
-               content[#content + 1] = M.createSimpleButton("","icon-plus-sign", attrAdd)
+               content[#content + 1] = M.createSimpleButton(T"Save","", attrSubColumnButton(attrAdd))
             end
         content[#content + 1] = " "
-        content[#content + 1] = M.createSimpleButton("","icon-remove", attrCancel)
+        content[#content + 1] = M.createSimpleButton(T"Cancel","", attrSubColumnButton(attrCancel))
         content[#content + 1] = "</td></tr>"
     end
 
@@ -1811,7 +1826,7 @@ end
 -- @param #table helpLink      if defined, the header contains the help text which links to the help page indicated by link
 --          typical use: { data-toggle="modal", data-remote = "/help/index.lp"} or { href="/help/index.lp" }
   -- @return #table for ngx.print
-function M.createHeader(name, hasAdvanced, hasRefresh, autorefresh, helpLink)
+function M.createHeader(name, hasAdvanced, hasRefresh, autorefresh, helpLink, hasReload)
     setlanguage()
     local htmlautorefresh = ""
     if type(autorefresh) == "number" then
@@ -1838,12 +1853,19 @@ function M.createHeader(name, hasAdvanced, hasRefresh, autorefresh, helpLink)
     end
 
     -- Display the refresh button in the modal header if required
-    if hasRefresh == true then
+    if hasRefresh then
         html[#html + 1] = format('<span class="modal-action"><span class="modal-action-refresh" id="Refresh_id"><i class="icon-refresh"></i> %s</span></span>', T"refresh data")
     end
 
+    if hasReload then
+      html[#html + 1] = [[
+        <span id = "btn-dhcp-reset" class = "modal-action">
+          <img src = "../img/button-reload.png" alt = "Reload Icon" style = "width:25%"></img>
+        </span>
+      ]]
+    end
     -- Display the show advanced button in the modal header if required
-    if hasAdvanced == true then
+    if hasAdvanced then
         html[#html + 1] = format([[
         <span class="modal-action">
             <span class="modal-action-advanced hide" id="Hide_Advanced_id"><i class="icon-minus-sign"></i> %s</span>
@@ -1900,7 +1922,7 @@ end
 -- @param #string switchName if nil, then no switch will be added
 -- @param #string switchValue
 -- @return #string for ngx.print
-function M.createCardHeader(title, modalPath, switchName, switchValue, attributes, mobile)
+function M.createCardHeader(title, modalPath, switchName, switchValue, attributes)
     local dataId
     if modalPath then
       dataId = modalPath:match("^.*/([^.]*).lp$")
@@ -1941,17 +1963,12 @@ function M.createCardHeader(title, modalPath, switchName, switchValue, attribute
       [[<div class="header">]],
       format("<div %s><p id=%s_tab>%s</p></div>", header, title, title)
     }
-	html[#html + 1] = [[<div class="header-items">]]
-	if modalPath and modalPath ~= "" then
-        html[#html + 1] = format("<div %s><i %s ></i></div>", div, icon)
-    end
     if switchName and switchName ~= "" then
         html[#html + 1] = M.createSimpleSwitch(switchName,switchValue, attributes)
     end
-	if mobile == 1 then
-		html[#html + 1] = [[<div id="signal-strength-indicator-small-card"><div><div class="bar-small bar-small1"></div><div class="bar-small bar-small2"></div><div class="bar-small bar-small3"></div><div class="bar-small bar-small4"></div><div class="bar-small bar-small5"></div></div></div>]]
+    if modalPath and modalPath ~= "" then
+        html[#html + 1] = format("<div %s><i %s ></i></div>", div, icon)
     end
-	html[#html + 1] = [[  </div>]]
     html[#html + 1] = [[</div>]]
     return html
 end
@@ -2303,6 +2320,37 @@ function M.createLabelWithButton(desc, value, buttontext, icon, attributes, help
     return html
 end
 
+-- @function [parent=#ui_helper] createTab
+-- @param #table items: used as list items in nav tabs
+-- @param #string uri: used to update which page is active
+-- @return #string
+function M.createTab(items, uri)
+    local html = {}
+
+    for _, v in ipairs(items) do
+        local active = ""
+        if uri == ("/modals/" .. v[1]) then
+            active = "active"
+        end
+        html[#html+1] = string.format('<li class="%s"><a href="#" data-remote="/modals/%s">%s</a></li>', active, v[1], v[2])
+    end
+    return html
+end
+
+-- @function [parent=#ui_helper] alertAttributes
+-- @param #string message: to display in alert box
+-- @param #string className: used to define class for alert message
+-- @param #string elementId: used to define unique id for alert message
+-- @return #string for ngx.print
+function M.alertAttributes(message, elemClassName, elemId)
+    local alertBlock = {
+        alert = {
+            class = elemClassName,
+            id = elemId
+        }
+    }
+    return M.createAlertBlock(message, alertBlock)
+end
 
 return M
 

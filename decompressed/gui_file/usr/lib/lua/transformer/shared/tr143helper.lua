@@ -4,7 +4,7 @@ local pairs = pairs
 local uci = require 'transformer.mapper.ucihelper'
 local common = require 'transformer.mapper.nwcommon'
 local split_key = common.split_key
-local findLanWanInterfaces = common.findLanWanInterfaces
+local network = require("transformer.shared.common.network")
 local wanconn = require 'transformer.shared.wanconnection'
 local transactions = {}
 local resolve, tokey
@@ -18,21 +18,22 @@ local paramMap = {
   X_0876FF_TestBytesSentUnderFullLoading = "TestBytesSentUnderFullLoading",
 }
 
-local function resolveInterface(user, value)
-    local path
-    local lanInterfaces = findLanWanInterfaces(false)
-    local isLan = false
-    for _,j in pairs(lanInterfaces) do
-        if (value == j) then
-            isLan = true
-            break
+local function isLanInterface(value)
+  local lanInterfaces = network.getLanInterfaces()
+  for intf in pairs(lanInterfaces) do
+        if value == intf then
+            return true
         end
-    end
+   end
+   return false
+end
 
+local function resolveInterface(user, value)
+    local path = ""
     if user == "device2" then
         path = resolve("Device.IP.Interface.{i}.", value)
     else
-        if (isLan) then
+        if isLanInterface(value) then
             path = resolve('InternetGatewayDevice.LANDevice.{i}.LANHostConfigManagement.IPInterface.{i}.', value)
         else
             local key, status = wanconn.get_connection_key(value)
@@ -80,7 +81,7 @@ local function setInterface(user, param, value)
 end
 
 function M.tr143_get(config, user, pname)
-  local value
+  local value = ""
 
   if pname == "UploadTransports" or pname == "DownloadTransports" then
     return "HTTP,FTP"
@@ -121,7 +122,6 @@ function M.tr143_get(config, user, pname)
 
   tr143binding.option = paramMap[pname] or pname
   value = uci.get_from_uci(tr143binding)
-
   if pname == "Interface" and value ~= "" then
     value = resolveInterface(user, value)
   end

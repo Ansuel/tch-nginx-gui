@@ -33,6 +33,7 @@ Network object hierarchy:
 --]]
 
 local M = {}
+local mobile_interface_map = {}
 
 --[[
 wanconfig is a uci config file stating which connections should be considered
@@ -227,7 +228,7 @@ end
 local proto_list = {
 	ip = {"static", "dhcp", "dhcpv6", "mobiled"},
 	ppp = {"pppoe", "pppoa","dhcpv6"},
-	ipv6 = {"static", "dhcp", "dhcpv6", "mobiled","pppoe", "pppoa"}
+	ipv6 = {"static", "dhcp", "dhcpv6", "mobiled","pppoe", "pppoa", "6rd"}
 }
 
 -- check if the given proto matches the connection
@@ -250,35 +251,103 @@ local function make_key(interface, physical)
 	return format("%s|%s", interface, key)
 end
 
+----retrive mobile sectionname when interface different with it
+----@param interface [string], such as wwan_4 wwan_ppp
+----@return sectionname [string], such as wwan
+local function getMobileSectionName(interface)
+    local network_sectionname
+    if  mobile_interface_map[interface] then
+        network_sectionname = mobile_interface_map[interface]
+    else
+        network_sectionname = string.gsub(interface, "%_ppp$", "")
+        if network_sectionname == interface then
+            network_sectionname = string.gsub(interface, "%_4$", "")
+        end
+        ucinw.sectionname = network_sectionname
+        ucinw.option = "proto"
+        local proto = uci.get_from_uci(ucinw)
+        if proto ~= "mobiled" then
+            return
+        end
+    end
+    return network_sectionname
+end
+
+
+local wandevice = require "transformer.shared.mappings.wan.wandevice"
+local function allWanDevices()
+	local wans = {}
+	local devices = wandevice.listDevices()
+	for _, dev in ipairs(devices) do
+		wans[dev.name] = dev.type
+	end
+	return wans
+end
+
+local function lowerLayerForInterface(interface)
+	local ll_intfs, status = common.get_lower_layers_with_status(interface)
+	if #ll_intfs>1 then
+		local wans = allWanDevices()
+		local active
+		local ethernet
+		local first
+		for _, intf in ipairs(ll_intfs) do
+			local wanType = wans[intf]
+			if wanType then
+				if common.getIntfInfo(intf, "carrier")=="1" then
+					active = intf
+					break
+				elseif not ethernet and (wanType=="ETH") then
+					ethernet = intf
+				elseif not first then
+					first = intf
+				end
+			end
+		end
+		return active or ethernet or first, true, status
+	else
+		return ll_intfs[1], false, status
+	end
+end
+
 --- retrieve the correct key for the given wan interface connection
 -- @param interface [string] the logical name of the interface
--- @return key, status, vlaninfo. vlaninfo is optional and it is not returned for active interface
+-- @return key, status, bridge_key
+-- in case the interface is a bridged interface the key returned is nil
+-- and the bridge_key refers to the most likely device to reference in the bridge
 -- this function is meant to be used by other mapping that need to retrieve
 -- a key for a given wan connection. This function will properly handle
 -- the different vlan scenarios.
 local function get_connection_key(interface)
+	ucinw.sectionname = interface
+	ucinw.option = "proto"
+	local proto = uci.get_from_uci(ucinw)
 	if not activedevice.isActiveInterface(interface) then
-                local key, vlaninfo
-                local conn = {}
-                conn.vlans, conn.vlanmode = get_vlans()
-                local ll_intfs, status = common.get_lower_layers_with_status(interface)
-                if #ll_intfs>1 then
-                        -- ignore bridged devices
-                        return
-                end
-                local lower_intf = ll_intfs[1]
-                if lower_intf then
-                        vlaninfo = make_vlan_info(conn, lower_intf)
-                        key = make_key(interface, vlaninfo.devname)
-                end
-                return key, status, vlaninfo
-        else
-                local key = "ACTIVE|"..interface
-                ucinw.sectionname = interface
-                ucinw.option = "proto"
-                local proto = uci.get_from_uci(ucinw)
-                return key, {proto=proto}
-        end
+		local key, vlaninfo
+		local conn = {}
+		conn.vlans, conn.vlanmode = get_vlans()
+		local lower_intf, bridge, status = lowerLayerForInterface(interface)
+		local mobile_sectionname
+		if proto == "" then
+		    mobile_sectionname = getMobileSectionName(interface)
+		end
+		if lower_intf then
+			vlaninfo = make_vlan_info(conn, lower_intf)
+			if mobile_sectionname then
+			    key = make_key(interface, mobile_sectionname)
+			else
+			    key = make_key(interface, vlaninfo.devname)
+			end
+		end
+		if not bridge then
+			return key, status
+		else
+			return nil, status, key
+		end
+	else
+		local key = "ACTIVE|"..interface
+		return key, {proto=proto}
+	end
 end
 M.get_connection_key = get_connection_key
 
@@ -305,11 +374,24 @@ local function remove_entries(list, to_remove)
 	return list
 end
 
+--- Checks if the given interface is present in the wanInterfaces list
+-- @param intf interface name to be checked in the list
+-- @param wanInterfaces wan interfaces list
+-- @return true if the given interface is a wan interface, otherwise false.
+local function isWanInterface(intf, wanInterfaces)
+	for _, wanInterface in ipairs(wanInterfaces) do
+		if intf == wanInterface then
+			return true
+		end
+	end
+	return false
+end
+
 local function real_getKeys(self, devname)
 	-- add the fixed IP devices
 	local wan_intf = get_wanconfig(self.connType)
-        -- devname may be of format atm_wan|dsl1. This is due to two dsl configured and the 2nd key will have dslname appended. Split and take the first key
-        local dev = devname:match("^([^|]+)")
+	-- devname may be of format atm_wan|dsl1. This is due to two dsl configured and the 2nd key will have dslname appended. Split and take the first key
+	local dev = devname:match("^([^|]+)")
 	for _, s in ipairs(wan_intf) do
 		local vlaninfo = make_vlan_info(self, s.ifname)
 		if vlaninfo.devname==dev then
@@ -318,11 +400,32 @@ local function real_getKeys(self, devname)
 			add_entry(self, make_key(s.interface, devname), vlaninfo)
 		end
 	end
-
+	local wanInterfaces = common.findLanWanInterfaces(true)
 	foreach_interface(function(s)
-		if match_proto(self, s.proto) and not activedevice.isActiveInterface(s['.name']) then
+		if match_proto(self, s.proto) and not activedevice.isActiveInterface(s['.name']) and isWanInterface(s['.name'], wanInterfaces) then
 			local ref_intf = s.ifname and s.ifname:match("^@(.*)") or s.device and s.device:match("^@(.*)")
-			if ref_intf and s.proto == "dhcpv6" then
+			if s.proto == "mobiled" and s[".name"] == devname then
+				local extensions = {
+					{ v4 = "_4", v6 = "_6" },
+					{ v4 = "_ppp", v6 = "_ppp_6" }
+				}
+				for _, extension in pairs(extensions) do
+					local interface = s[".name"] .. extension.v4
+					local ll_intfs, status = common.get_lower_layers_with_status(interface)
+					-- Layer 3 interfaces get populated dynamically in mobile interfaces
+					if ll_intfs and next(ll_intfs) then
+						local entry = add_entry(self, make_key(interface, devname))
+						mobile_interface_map[interface] = devname
+						entry.active = true
+						entry.status = status
+						if not entry.interface then
+							entry.interface = interface
+						end
+						self.interfaces_dhcp6[entry.interface] = s[".name"] .. extension.v6
+					end
+				end
+			end
+			if ref_intf and (s.proto == "dhcpv6" or s.proto == "6rd") then
 				self.interfaces_dhcp6[ref_intf] = s[".name"]
 			else
 				local interface = s['.name']
@@ -408,10 +511,11 @@ end
 
 --- get a physical interface parameter (from /sys/class/net)
 -- @param key [string] the key for the entry
+-- @param default [] the default value
 -- @param req_value [string] the name of the info item (eg 'operstate')
 -- @param layer [string] "L2" for layer2 or "L3" for layer3, L2 is the default
 --    interface
-function ConnectionList:getPhysicalInfo(key, req_value, layer)
+function ConnectionList:getPhysicalInfo(key, req_value, layer, default)
 	layer = layer or "L2"
 	local entry = self.entries[key]
 	local devname
@@ -421,9 +525,9 @@ function ConnectionList:getPhysicalInfo(key, req_value, layer)
 		devname = entry.status.l3_device or entry.vlandevice
 	end
 	if devname then
-		return common.getIntfInfo(devname, req_value)
+		return common.getIntfInfo(devname, req_value, default)
 	end
-	return ""
+	return default or ""
 end
 
 --- is the logical interface active
@@ -459,7 +563,7 @@ end
 
 --- get the device name for the given key
 -- @param key [string] the transformer key
--- @returns the deivde name associated with the key or nil
+-- @returns the device name associated with the key or nil
 function ConnectionList:getDevice(key)
 	local entry = self.entries[key]
 	return entry.devname
@@ -497,7 +601,14 @@ function ConnectionList:getInterfaceOption(key, option, default, active)
 		intf_option.sectionname = interface
 		intf_option.option = option
 		intf_option.default = default
-		return uci.get_from_uci(intf_option)
+		local data = uci.get_from_uci(intf_option)
+		if data == "" then
+			local status = self:getInterfaceStatus(key)
+			if status and status.dynamic then
+				return status[option] or default or ""
+			end
+		end
+		return data
 	end
 	return active or default or ""
 end

@@ -120,25 +120,26 @@ local function log_error(switcher, msg)
 end
 
 local function initSwitcher(switcher, configname)
-	local map, err = loadConfig(configname)
+	local config_map, err = loadConfig(configname)
 	if err then
 		log_error(switcher, err)
 	end
-	map = map or {}
-	
-	local map_valid = true
-	for _, sectionDef in ipairs(map) do
+	config_map = config_map or {}
+
+	local map = {}
+	for _, sectionDef in ipairs(config_map) do
 		if type(sectionDef)~='table' then
 			-- the map is invalid, do not use it.
-			map_valid = false
 			log_error(switcher, "all entries in the config map must be tables")
 			break
 		end
 		sectionDef.switcher = switcher
-		
+    if sectionDef.execute~=false then
+		  map[#map+1] = sectionDef
+		end
 	end
 	
-	switcher._action_map = map_valid and map or {}
+	switcher._action_map = map
 end
 
 local function newSwitcher(configname, commitapply)

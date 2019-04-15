@@ -42,7 +42,8 @@ end
 -- \param bActive (bool) if true enable else disable
 -- \returns true if disable works, otherwise return false
 function M.enableXtmDevice(addr, bActive)
-  if execute("xtmctl operate conn --state " .. addr .. " " .. (bActive and "enable" or "disable")) ~= 0 then
+  local Active = bActive and "enable" or "disable"
+  if execute("xtmctl operate conn --state " .. addr .. " " .. Active) ~= 0 then
     log:error("enable/disable XTM Device failed")
     return false
   end

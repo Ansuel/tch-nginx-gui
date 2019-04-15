@@ -50,8 +50,16 @@ function M.set_firewall_mode(paramvalue, commitapply)
     end
     if paramvalue == "user" then
       uci_helper.set_on_uci({config= "firewall", sectionname="userrules_v6", option="enabled"}, "1", commitapply)
+      uci_helper.set_on_uci({config= "firewall", sectionname="userrules_pxsservices", option="enabled"}, "1", commitapply)
     else
       uci_helper.set_on_uci({config= "firewall", sectionname="userrules_v6", option="enabled"}, "0", commitapply)
+      uci_helper.set_on_uci({config= "firewall", sectionname="userrules_pxsservices", option="enabled"}, "0", commitapply)
+    end
+
+    if paramvalue == "user" or paramvalue == "high" then
+      uci_helper.set_on_uci({config= "firewall", sectionname="pinholerules", option="enabled"}, "0", commitapply)
+    else
+      uci_helper.set_on_uci({config= "firewall", sectionname="pinholerules", option="enabled"}, "1", commitapply)
     end
 
     local policy = getoutgoingpolicyformode(paramvalue)
@@ -63,6 +71,13 @@ function M.set_firewall_mode(paramvalue, commitapply)
     local dmz_enabled = blocked["dmzredirects"] and "0" or uci_helper.get_from_uci({config= "firewall", sectionname="fwconfig", option="dmz", default="0"})
     uci_helper.set_on_uci({config= "firewall", sectionname="dmzredirects", option="enabled"}, dmz_enabled, commitapply)
     uci_helper.set_on_uci({config= "firewall", sectionname="userredirects", option="enabled"}, blocked["userredirects"] and "0" or "1", commitapply)
+
+    local blocked_redirect = uci_helper.get_from_uci({config = "firewall", sectionname = "fwconfig", option = "blocked_redirects_user"})
+    if blocked_redirect ~= "" then
+      uci_helper.set_on_uci({config = "firewall", sectionname = "guiredirects", option = "enabled"}, blocked["guiredirects"] and "0" or "1", commitapply)
+      uci_helper.set_on_uci({config = "firewall", sectionname = "cliredirects", option = "enabled"}, blocked["cliredirects"] and "0" or "1", commitapply)
+      uci_helper.set_on_uci({config = "firewall", sectionname = "acsredirects", option = "enabled"}, blocked["acsredirects"] and "0" or "1", commitapply)
+    end
 
     uci_helper.set_on_uci({config= "firewall", sectionname="fwconfig", option="level"}, paramvalue, commitapply)
 
@@ -162,7 +177,7 @@ function M.ip2mac(ubus_connect, ipFamily, ipAddr, ipConfiguration)
         for _, dev in pairs(devices) do
             if type(dev[ipFamily]) == "table" then
                 for _, ip in pairs(dev[ipFamily]) do
-                    if ip["address"] == ipAddr and ip["state"] == "connected" then
+                    if ip["address"] == ipAddr and (ip["state"] == "connected" or ip["state"] == "stale") then
                         if ipConfiguration and ip["configuration"] ~= ipConfiguration then
                             return nil
                         end
