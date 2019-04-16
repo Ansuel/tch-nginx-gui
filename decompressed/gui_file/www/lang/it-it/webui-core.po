@@ -4359,163 +4359,163 @@ msgid "You must select at leat one ap"
 msgstr "Devi scegliere almeno un punto di accesso"
 
 msgid "Speed Test"
-msgstr ""
+msgstr "Test velocità"
 
 msgid "Downstream"
-msgstr ""
+msgstr "Downstream"
 
 msgid "Received Time"
-msgstr ""
+msgstr "Tempo ricezione"
 
 msgid "Duplicate Static Route Found"
-msgstr ""
+msgstr "Trovato instradamento statico duplicato"
 
 msgid "Server Port:"
-msgstr ""
+msgstr "Porta server:"
 
 msgid "Loss Packets"
-msgstr ""
+msgstr "Pacchetti persi"
 
 msgid "Upstream"
-msgstr ""
+msgstr "Upstream"
 
 msgid "Step Duration(ms):"
-msgstr ""
+msgstr "Durata step (ms):"
 
 msgid "Good put(Kbps)"
-msgstr ""
+msgstr "Buono (Kbps)"
 
 msgid "Result Count"
-msgstr ""
+msgstr "Contatore risultato"
 
 msgid "IPv6 Link Local Addr"
-msgstr ""
+msgstr "Collegamento indirizzo locale IPv6"
 
 msgid "Runtime"
-msgstr ""
+msgstr "Tempo esecuzione"
 
 msgid "IPv6 Devices List"
-msgstr ""
+msgstr "Elenco dispositivi IPv6"
 
 msgid "IPv6 Default Gateway"
-msgstr ""
+msgstr "Gateway predefinito IPv6"
 
 msgid "IPv6 Global Addr"
-msgstr ""
+msgstr "Indirizzo globale IPv6"
 
 msgid "BW"
-msgstr ""
+msgstr "BW"
 
 msgid "Latency Tolerance Percentage"
-msgstr ""
+msgstr "Percentuale tolleranza latenza"
 
 msgid "UDP Payload Length:"
-msgstr ""
+msgstr "Lunghezza payload UDP:"
 
 msgid "Send"
-msgstr ""
+msgstr "Invia"
 
 msgid "Speed Diagonostics Result History"
-msgstr ""
+msgstr "Cronologia risultati diagnostica velocità"
 
 msgid "Max Steps"
-msgstr ""
+msgstr "Step max"
 
 msgid "Max (kbps:)"
-msgstr ""
+msgstr "Max (Kbps):"
 
 msgid "Average Latency"
-msgstr ""
+msgstr "Latenza media"
 
 msgid "RxRate"
-msgstr ""
+msgstr "Rate RX"
 
 msgid "Invalid IP address."
-msgstr ""
+msgstr "Indirizzo IP non valido."
 
 msgid "PayLoad Rate(Kbps)"
-msgstr ""
+msgstr "Rate payload (Kbps)"
 
 msgid "IPv4 Static Routes Configuration"
-msgstr ""
+msgstr "Configurazione instradamento statico IPv4"
 
 msgid "Direction"
-msgstr ""
+msgstr "Direzione"
 
 msgid "Overhead"
-msgstr ""
+msgstr "Overhead"
 
 msgid "Server Address:"
-msgstr ""
+msgstr "Indirizzo server:"
 
 msgid "Fast"
-msgstr ""
+msgstr "Veloce"
 
 msgid "MaxSteps should be greater than or equal to 1 when Algorithm is Binary/Ramp/Fast"
-msgstr ""
+msgstr "Quando l'algoritmo è Binario/Rampa/Veloce step max deve essere maggiore o uguale a 1."
 
 msgid "Invalid gateway IP."
-msgstr ""
+msgstr "IP gateway non valido."
 
 msgid "Initiate A Speed Diagnostic"
-msgstr ""
+msgstr "Avvia diagnostica velocità"
 
 msgid "Changes not saved"
-msgstr ""
+msgstr "Modifiche non salvate"
 
 msgid "Adjusted Received Rate"
-msgstr ""
+msgstr "Valore ricevuti adattato"
 
 msgid "Speed Service"
-msgstr ""
+msgstr "Servizio velocità"
 
 msgid "Mode:"
-msgstr ""
+msgstr "Modo:"
 
 msgid "Binary"
-msgstr ""
+msgstr "Binario"
 
 msgid "Diagnostics Ping & Traceroute"
-msgstr ""
+msgstr "Diagonstica ping e traceroute"
 
 msgid "Algorithm:"
-msgstr ""
+msgstr "Algoritmo:"
 
 msgid "Ramp"
-msgstr ""
+msgstr "Rampa"
 
 msgid "Acceptable Percentage Loss"
-msgstr ""
+msgstr "Percentuale perdita accettata"
 
 msgid "infinite"
-msgstr ""
+msgstr "infinita"
 
 msgid "Invalid Pin."
-msgstr ""
+msgstr "PIN non valido."
 
 msgid "A WEP key of length 10 or 26 can only contain the letters A to F or digits"
-msgstr ""
+msgstr "Una chiave WEP di lunghezza 10 o 26 può contenere le lettere da A a F o i numeri"
 
 msgid "Input must be a whole number."
-msgstr ""
+msgstr "Il valore deve essere un numero intero."
 
 msgid "Invalid value."
-msgstr ""
+msgstr "Valore non valido."
 
 msgid "Expire Time is invalid. It should be a whole number, between 60 and 600000."
-msgstr ""
+msgstr "Intervallo scadenza non valido.\nDeve essere un numero intero compreso tra 60 e 600000."
 
 msgid "PIN code must be composed of 4 or 8 digits with potentially a dash or space in the middle."
-msgstr ""
+msgstr "Il PIN deve essere composto da 4 o 8 cifre con potenzialmente una lineetta o uno spazio in mezzo."
 
 msgid "The minimum leasetime must be 120 seconds or 2 minutes."
-msgstr ""
+msgstr "Il tempo minimo di lease è 120 secondi o 2 minuti."
 
 msgid "The Maximum leasetime must be 3551 weeks or 24855 days or 596523 hours or 35791394 minutes or 2147483647 seconds."
-msgstr ""
+msgstr "Il tempo max di lease è 3551 settimane o 24855 giorni o 596523 ore o 35791394 minuti o 2147483647 secondi."
 
 msgid "Invalid value; enter a number greater than 0, followed by 's' for seconds or 'm' for minutes or 'h' for hours or 'd' for days or 'w' for weeks. No spaces."
-msgstr ""
+msgstr "Valore non valido.\n Inserisci un numero maggiore di 0, seguito da 's' per i secondi o 'm' per i minuti o 'h' per le ore o 'd' per i giorni o 'w' per le settimane.\nNiente spazi."
 
 msgid "Invalid length, a WEP key must be 5, 10, 13 or 26 characters long, length of 10 and 26 can only contain the letters A to F or digits"
-msgstr ""
+msgstr "Lunghezza chiave non valida.\nUna chiave WEP deve essere lunga 5 o 10 o 13 o 26 caratteri, e la chiave di lunghezza 10 o 26 può contenere le lettere da A a F o i numeri."
