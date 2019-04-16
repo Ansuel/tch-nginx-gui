@@ -1,63 +1,136 @@
 version: 2.1
 jobs:
-  build:
+  prepare:
     working_directory: ~/gui_build
     docker:
       - image: ansuel/gui-autobuild-image:2
     steps:
       - checkout
       - run:
-          name: Check built type from last git log
-          command: bash ./scripts/0-detect-build-type.sh
-      #- restore_cache:
-      #    keys: latest-file-key
-      - run:
-          name: Increment version from latest build
-          command: bash ./scripts/1-increment_autobuild_ver.sh
+          name: Check file ending
+          command: bash ./scripts/1-check_file_ending.sh
+      - persist_to_workspace:
+          root: ~/gui_build
+          paths: 
+            - decompressed
+            - data
+            - scripts
+            - inizialize_gui.sh
+  update_file:
+    working_directory: ~/gui_build
+    docker:
+      - image: ansuel/gui-autobuild-image:2
+    parallelism: 2
+    steps:
+      - attach_workspace:
+          at: ~/gui_build
       - run:
           name: Minify css and javascript
           command: bash ./scripts/1-compress_css_javascript.sh
       - run:
-          name: Clone autobuild repo
-          command: bash ./scripts/2-clone_autobuild_dir.sh
-      - run:
           name: Update po
           command: python3 ./scripts/update_po.py
+      - persist_to_workspace:
+          root: ~/gui_build
+          paths: 
+            - decompressed
+  detect_build:
+    working_directory: ~/gui_build
+    docker:
+      - image: ansuel/gui-autobuild-image:2
+    steps:
+      - attach_workspace:
+          at: ~/gui_build
+      - run:
+          name: Check built type from last git log
+          command: bash ./scripts/0-detect-build-type.sh
+      - persist_to_workspace:
+          root: ~/gui_build
+          paths: 
+            - data
+  increment_version:
+    working_directory: ~/gui_build
+    docker:
+      - image: ansuel/gui-autobuild-image:2
+    steps:
+      - attach_workspace:
+          at: ~/gui_build
+      - run:
+          name: Increment version from latest build
+          command: bash ./scripts/1-increment_autobuild_ver.sh
+      - persist_to_workspace:
+          root: ~/gui_build
+          paths: 
+            - decompressed
+            - data
+  init_and_update:
+    working_directory: ~/gui_build
+    docker:
+      - image: ansuel/gui-autobuild-image:2
+    steps:
+      - attach_workspace:
+          at: ~/gui_build
+      - run:
+          name: Set new version in rootdevice
+          command: bash ./scripts/2-set_new_version.sh
+      - run:
+          name: Clone autobuild repo
+          command: bash ./scripts/2-clone_autobuild_dir.sh
       - run:
           name: Inizialize Gui
           command: bash ./inizialize_gui.sh
       - run:
           name: Upload new build, build and latest.version
           command: bash ./scripts/3-update_autobuild_ver.sh
-      - run:
-          name: Committing updated po to master
-          command: bash ./scripts/6-commit_po.sh
-      #- save_cache:
-      #    key: latest-file-key
-      #    paths:
-      #      - ~/gui-dev-build-auto/latest.version
       - persist_to_workspace:
           root: ~/gui_build
           paths: 
             - compressed
             - scripts
             - data
-  
-  publish-github-release:
+  commit_po_changes:
+    working_directory: ~/gui_build
+    docker:
+      - image: cibuilds/github:0.10
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/gui_build
+      - run:
+          name: Committing updated po to master
+          command: bash ./scripts/6-commit_po.sh
+  publish_github_release:
+    working_directory: ~/gui_build
     docker:
       - image: cibuilds/github:0.10
     steps:
       - attach_workspace:
-          at: /tmp/gui_build
+          at: ~/gui_build
       - run:
           name: "Publish Release on GitHub"
-          command: bash /tmp/gui_build/scripts/7-push-release.sh
+          command: bash ./scripts/7-push-release.sh
 
 workflows:
   version: 2
   build_and_deploy:
     jobs: 
-      - build
-      - publish-github-release:
+      - prepare
+      - update_file:
           requires:
-            - build
+            - prepare
+      - detect_build:
+          requires:
+            - update_file
+      - increment_version:
+          requires:
+            - update_file
+      - commit_po_changes:
+          requires:
+            - update_file
+      - init_and_update:
+          requires:
+            - detect_build
+            - increment_version
+      - publish_github_release:
+          requires:
+            - init_and_update

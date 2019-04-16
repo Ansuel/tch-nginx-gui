@@ -1,12 +1,13 @@
 if [ $CI == "true" ]; then
-	if [ -f ~/.dev ]; then
+	TYPE="$(cat ~/gui_build/data/type)"
+	if [ $TYPE == "DEV" ]; then
 		type="_dev"
-	elif [ -f ~/.stable ]; then
+	elif [ $TYPE == "STABLE" ]; then
 		stable_msg="STABLE"
 	fi
 fi
 md5sum=$(md5sum compressed/GUI$type.tar.bz2 | awk '{print $1}')
-version=$(cat total/etc/init.d/rootdevice | grep -m1 version_gui | cut -d'=' -f 2)
+version="$(cat ~/gui_build/data/version)"
 if ! grep -w -q "$version" $HOME/gui-dev-build-auto/version ; then
 	echo "Adding md5sum of new GUI to version file"
 	echo "Version: "$version" Md5sum: "$md5sum
@@ -26,21 +27,18 @@ cp compressed/GUI$type.tar.bz2 $HOME/gui-dev-build-auto/ -r;
 cd $HOME/gui-dev-build-auto/;
 
 if [ $CI == "true" ]; then
-	if [ -f ~/.stable ]; then
-		build_type_name="STABLE"
-		echo $version > stable.version
-	elif [ -f ~/.dev ]; then
+	if [ ~/gui_build/data/type ]; then
+		build_type_name=$(cat ~/gui_build/data/type)
+		if [ $build_type_name == "STABLE" ]; then
+			echo $version > stable.version
+		fi
+	else
 		build_type_name="DEV"
 	fi
 	commit_link=https://github.com/Ansuel/tch-nginx-gui/commit/$CIRCLE_SHA1
 fi
 
 echo $version > latest.version
-
-mkdir ~/gui_build/data
-
-echo $version > ~/gui_build/data/version
-echo $build_type_name > ~/gui_build/data/type
 
 git add -A;
 git commit -a -m "[$build_type_name] Version: $version Commit: $commit_link";
