@@ -162,7 +162,7 @@ local attrSpeedSelect = {select = { ["data-for"] = "Speed"}}
       html[#html+1] = ui_helper.createInputText(T"Server Address:", "ServerIPAddress",SpeedService.ServerIPAddress,attrSpeed)
       html[#html+1] = ui_helper.createInputText(T"Server Port:", "TCPPort", SpeedService.TCPPort,attrSpeed)
       html[#html+1] = ui_helper.createInputSelect(T"Direction:", "Direction" , direction,SpeedService.Direction,attrSpeedSelect)
-      html[#html+1] = ui_helper.createInputText(T"Step Duration(ms):", "StepDuration", SpeedService.StepDuration,attrSpeed)
+      html[#html+1] = ui_helper.createInputText(T"Step Duration (ms):", "StepDuration", SpeedService.StepDuration,attrSpeed)
       html[#html+1] = ui_helper.createInputText(T"UDP Payload Length:", "PacketLength", SpeedService.PacketLength,attrSpeed)
       html[#html+1] = ui_helper.createInputText(T"Max (Kbps):", "StartingBwKbps",SpeedService.StartingBwKbps,attrSpeed)
       html[#html+1] = ui_helper.createInputText(T"Result Count", "ResultCount",SpeedService.ResultCount,attrSpeed)
