@@ -1,7 +1,7 @@
 
-DIR="/tmp/gui_build/compressed"
-VERSION="$(cat /tmp/gui_build/data/version)"
-TYPE="$(cat /tmp/gui_build/data/type)"
+DIR="$HOME/gui_build/compressed"
+VERSION="$(cat $HOME/gui_build/data/version)"
+TYPE="$(cat $HOME/gui_build/data/type)"
 if [ $TYPE == "DEV" ]; then
 	PRERELEASE="-prerelease"
 fi

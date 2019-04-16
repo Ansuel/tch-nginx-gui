@@ -49,7 +49,8 @@ if [ "$1" == "dev" ]; then
 fi
 
 if [ $CI == "true" ]; then
-	if [ -f ~/.dev ]; then
+	TYPE="$(cat $HOME/gui_build/data/type)"
+	if [ $TYPE == "DEV" ]; then
 		type="_dev"
 	fi
 fi
