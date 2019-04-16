@@ -788,22 +788,22 @@ msgid "Downlink EARFCN:"
 msgstr "EARFCN downlink:"
 
 msgid "PAP/CHAP"
-msgstr ""
+msgstr "PAP/CHAP"
 
 msgid "Last 24 Hours"
-msgstr ""
+msgstr "Ultime 24 ore"
 
 msgid "Last Five Minutes"
-msgstr ""
+msgstr "Ultimi 5 minuti"
 
 msgid "Last Twenty Minutes"
-msgstr ""
+msgstr "Ultimi venti minuti"
 
 msgid "Last Hour"
-msgstr ""
+msgstr "Ultima ora"
 
 msgid "Last Month"
-msgstr ""
+msgstr "Ultimo mese"
 
 msgid "Last Week"
-msgstr ""
+msgstr "Ultima settimana"
