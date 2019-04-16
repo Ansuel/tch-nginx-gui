@@ -488,7 +488,7 @@ convertReceivedData(content_info)
 			end
                         if content_info.usb3_available == "1" then
 			        tinsert(html, ui_helper.createSwitch(T"USB 3.1 Enabled", "usb3_enabled", (content.usb3_enabled ~= "" and content.usb3_enabled or "1"), toggle))
-			        tinsert(html, ui_helper.createAlertBlock(T"It is recommended to use the USB in the 2.0 standard. The use of USB in 3.1 standard can remarkably affect the Wi-Fi performance at 2.4 Ghz band.", warning))
+			        tinsert(html, ui_helper.createAlertBlock(T"It is recommended to use the USB in the 2.0 standard. The use of USB in 3.1 standard can remarkably affect the Wi-Fi performance at 2.4 GHz band.", warning))
 			        tinsert(html, ui_helper.createAlertBlock(T"Toggling USB3.1 support will reboot the Gateway", reboot_warning))
 			        tinsert(html, ui_helper.createAlertBlock(T"Restarting, please wait...", rebooting))
 			        tinsert(html, ui_helper.createSimpleInputText("cs_flag", "0", flagattr))
