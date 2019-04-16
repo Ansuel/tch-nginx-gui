@@ -1,3 +1,7 @@
+git config --global user.name "CircleCI";
+git config --global user.email "CircleCI";
+
+ssh -o StrictHostKeyChecking=no git@github.com
 
 cd $HOME/gui_build
 
