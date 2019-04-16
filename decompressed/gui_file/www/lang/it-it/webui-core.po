@@ -4379,7 +4379,7 @@ msgstr "Pacchetti persi"
 msgid "Upstream"
 msgstr "Upstream"
 
-msgid "Step Duration(ms):"
+msgid "Step Duration (ms):"
 msgstr "Durata step (ms):"
 
 msgid "Good put(Kbps)"
@@ -4421,7 +4421,7 @@ msgstr "Cronologia risultati diagnostica velocità"
 msgid "Max Steps"
 msgstr "Step max"
 
-msgid "Max (kbps:)"
+msgid "Max (Kbps):"
 msgstr "Max (Kbps):"
 
 msgid "Average Latency"
