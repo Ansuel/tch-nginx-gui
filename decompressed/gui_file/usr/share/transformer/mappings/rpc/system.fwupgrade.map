@@ -79,6 +79,7 @@ local SYSTEM_FWUPGRADE_ = {
 }
 
 local banktable = require "transformer.shared.banktable"
+local network = require("transformer.shared.common.network")
 
 local fwupgrade_mapdata = {}
 local fwupgrade_location = "/tmp/"
@@ -106,19 +107,11 @@ local function fwupgrade_reset()
   end
 end
 
-local function read_first_line(filename)
-  local firstline
-  local f = open(filename, 'r')
-  if f then
-    firstline = f:read("*l")
-    f:close()
-  end
-  return firstline
-end
-
 local function get_upgrade_error(defaultErrCode)
-  local errcode = tonumber(read_first_line(fwupgrade_errfile)) or defaultErrCode
-  local errmsg = read_first_line(fwupgrade_errmsg) or "upgrade failed"
+  local errcode = network.getFirstLine(fwupgrade_errfile)
+  errcode = errcode ~= "" and tonumber(errcode) or defaultErrCode
+  local errmsg = network.getFirstLine(fwupgrade_errmsg)
+  errmsg = errmsg ~= "" and errmsg or "upgrade failed"
   return errcode, errmsg
 end
 
@@ -140,13 +133,13 @@ local function fwupgrade_check_for_completion()
       fwupgrade_set_error(errcode, errmsg)
     end
   end
-  
+
   if fwupgrade_mapdata.state == "Waitforswitch" then
     local errcode, errmsg = get_upgrade_error(0)
     if(errcode ~= 0) then
       fwupgrade_set_error(errcode, errmsg)
     end
-  end  
+  end
 end
 
 -- Perform the actual upgrade
@@ -216,7 +209,6 @@ SYSTEM_FWUPGRADE_.get = {
     fwupgrade_check_for_completion()
     return fwupgrade_mapdata.errorcode or "255"
   end,
-  
   activebank = function(mapping, param)
     return banktable.getCurrentBank()
   end,
@@ -242,6 +234,7 @@ SYSTEM_FWUPGRADE_.set = {
   manualswitchover = function(mapping, param, value)
   fwupgrade_mapdata.manualswitchover = value
   end,
+
   state = function(mapping, param, value)
     if value ~= "Requested" then
       return nil, "invalid value"

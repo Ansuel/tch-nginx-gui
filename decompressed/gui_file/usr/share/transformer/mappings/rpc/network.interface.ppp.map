@@ -102,8 +102,8 @@ end
 local function get_uptime(mapping, paramName, key)
   local intf_status = nw_common.get_ubus_interface_status(key)
 
-  if intf_status and intf_status.uptime ~= nil then
-    return tostring(intf_status.uptime)
+  if intf_status and intf_status.data and intf_status.data.pppinfo and intf_status.uptime then
+      return tostring(intf_status.uptime)
   end
   return ""
 end

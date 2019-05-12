@@ -12,6 +12,11 @@ local mt = { __index = function() return "" end }
 local common_default = setmetatable({}, mt)
 local get_from_uci = uci_helper.get_from_uci
 local dynamic_binding = {config = "mmpbx", sectionname = "codec_filter"}
+local preregdBinding = {config = "mmpbxpreregd", sectionname = "global", default = "0"}
+local firewallBinding  = {config = "firewall", sectionname = "siploopback", option = "dest_port"}
+local qosBinding = {config = "qos"}
+local countryBinding = {config = "mmpbxbrcmcountry", sectionname = "global", option = "rtcp", default = "1"}
+
 local function Commit()
     local binding = {}
     for config in pairs(transactions) do
@@ -122,6 +127,31 @@ local function setDSCPMark(binding, value, field_option, value_option)
     end
     binding.option = value_option
     uci_helper.set_on_uci(binding, value, commitapply)
+    transactions[binding.config] = true
+    value = string.upper(value)
+    local qos_binding
+    if (field_option == "control_qos_field") then
+        qos_binding = { config = "qos", sectionname = "Voice_Sig", option = "dscp"}
+    else
+        qos_binding = { config = "qos", sectionname = "Voice_Data", option = "dscp"}
+    end
+    uci_helper.set_on_uci(qos_binding, value, commitapply)
+    transactions[qos_binding.config] = true
+end
+
+local function getVLANIDMark(object)
+    local vid = ""
+    local mmpbxrvsipnetBinding = { config = "mmpbxrvsipnet", sectionname = "sip_net", option = "interface"}
+    local interface = get_from_uci(mmpbxrvsipnetBinding)
+    if interface ~= "" then
+        local networkBinding = { config = "network", sectionname = interface, option = "ifname"}
+        local ifname = get_from_uci(networkBinding)
+        if ifname ~= "" then
+            networkBinding = { config = "network", sectionname = ifname, option = "vid"}
+            vid = get_from_uci(networkBinding)
+        end
+    end
+    return vid ~= "" and vid or "-1"
 end
 
 local function getAllParams(maps, parameters)
@@ -169,6 +199,38 @@ local function getParam(maps)
     end
 end
 
+local function updateVoipSignalingRule(sectionName, value)
+    qosBinding.sectionname = sectionName
+    qosBinding.option = "dstports"
+    uci_helper.set_on_uci(qosBinding, value, commitapply)
+    transactions[qosBinding.config] = true
+end
+
+local function updateFirewallHelper(value)
+    uci_helper.set_on_uci(firewallBinding, value, commitapply)
+    transactions[firewallBinding.config] = true
+end
+
+local function searchVoipSignalingRule(value)
+    local sectionName
+    qosBinding.sectionname = "rule"
+    uci_helper.foreach_on_uci(qosBinding, function(s)
+        if s.voip_signaling == "1" then
+            sectionName = s[".name"]
+            return false
+        end
+    end)
+    return sectionName
+end
+
+local function updateVoipSignalingRuleIfPresent(value)
+    local sectionName = searchVoipSignalingRule(value)
+    if sectionName then
+        updateVoipSignalingRule(sectionName, value)
+        updateFirewallHelper(value)
+    end
+end
+
 local function setParam(maps, set_maps)
     return function(mapping, param, value, key)
         local config, sectionname = key:match("(.*)|(.*)")
@@ -190,6 +252,9 @@ local function setParam(maps, set_maps)
                 binding.option = map.value[param]
                 uci_helper.set_on_uci(binding, value, commitapply)
                 transactions[binding.config] = true
+                if param == "ProxyServerPort" or param == "OutboundProxyPort" then
+                    updateVoipSignalingRuleIfPresent(value)
+                end
                 return true
             end
         end
@@ -319,7 +384,8 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_SIP_ = {
                 type = "unsignedInt",
                 range = {
                     {
-                        min = "1",
+                        min = "60",
+                        max = "600000",
                     },
                 },
             },
@@ -473,7 +539,8 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_SIP_ = {
                 type = "unsignedInt",
                 range = {
                     {
-                        min = "1",
+                        min = "60",
+                        max = "600000",
                     },
                 },
             },
@@ -505,13 +572,13 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_SIP_ = {
                 default = "None",
             },
             InboundAuthUsername = {
-                access = "readWrite",
+                access = "readOnly",
                 type = "string",
                 max = "256",
                 default = "",
             },
             InboundAuthPassword = {
-                access = "readWrite",
+                access = "readOnly",
                 hidden = "true",
                 type = "string",
                 max = "256",
@@ -533,26 +600,26 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_SIP_ = {
                 },
                 default = "0",
             },
-            --      VLANIDMark = {
-            --        access = "readWrite",
-            --        type = "int",
-            --        range = {
-            --          {
-            --            min = "-1",
-            --          },
-            --        },
-            --        default = "-1",
-            --      },
-            --      EthernetPriorityMark = {
-            --        access = "readWrite",
-            --        type = "int",
-            --        range = {
-            --          {
-            --            min = "-1",
-            --          },
-            --        },
-            --        default = "-1",
-            --      },
+            VLANIDMark = {
+                access = "readOnly",
+                type = "int",
+                range = {
+                    {
+                        min = "-1",
+                    },
+                },
+                default = "-1",
+            },
+            EthernetPriorityMark = {
+                access = "readOnly",
+                type = "int",
+                range = {
+                    {
+                        min = "-1",
+                    },
+                },
+                default = "-1",
+            },
             X_000E50_401407Waiting = {
                 access = "readWrite",
                 type = "unsignedInt",
@@ -745,6 +812,27 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_SIP_ = {
                 },
                 default = "0",
              },
+             X_000E50_CallWaitingRejectResponse = {
+                access = "readWrite",
+                type = "string",
+                enumeration = {
+                    "480",
+                    "486",
+                },
+                default = "486",
+                description = "Modify/View Call Waiting Reject Reply",
+             },
+             X_000E50_NoAnswerResponse = {
+                access = "readWrite",
+                type = "string",
+                enumeration = {
+                    "480",
+                    "486",
+                    "487",
+                },
+                default = "480",
+                description = "Modify/View No Answer Reply",
+             },
              ConferenceCallDomainURI = {
                 access = "readWrite",
                 type = "string",
@@ -762,8 +850,40 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_SIP_ = {
                 },
                 default = "1800",
             },
+            X_0876FF_PreRegisterState = {
+                access = "readOnly",
+                type = "string",
+                enumeration = {
+                    "NOTSTARTED",
+                    "COMPLETE",
+                    "FAILED",
+                },
+                default = "NOTSTARTED",
+                description = "Displays the PreRegistration state",
+            },
+            X_0876FF_PreRegisterEnable = {
+                access = "readWrite",
+                type = "boolean",
+                default = "0",
+                description = "Enable/Disable the PreRegister functionality",
+            },
         }
     }
+}
+
+local EnableStatusMap = {
+    ['0'] = "Disabled",
+    ['1'] = "Enabled",
+    ['Enabled'] = "1",
+    ['Disabled'] = "0",
+}
+
+local stateMapping = {
+    ["Idle"] = "NOTSTARTED",
+    ["Pre-registering"] = "NOTSTARTED",
+    ["Completed"] = "COMPLETE",
+    ["Retrying"] = "FAILED",
+    ["Failed"] = "FAILED",
 }
 
 local sip_net_map = {
@@ -815,6 +935,8 @@ local sip_net_map = {
         X_000E50_StopRegisterOnTimerF = "stop_register_on_TimerF",
         X_000E50_StopRegisterOn408 = "stop_register_on_408",
         X_000E50_RegisterBackOffTimerMax = "reg_back_off_timeout_max",
+        X_000E50_CallWaitingRejectResponse = "call_waiting_reject_response",
+        X_000E50_NoAnswerResponse = "no_answer_response",
 	X_SessionExpires = "session_expires",
         TimerH = function(object)
             local timer = ""
@@ -887,6 +1009,38 @@ local sip_net_map = {
             end
             return ""
         end,
+        EthernetPriorityMark = function(object)
+            local dscpmark = getDSCPMark(object, "control_qos_field", "control_qos_value")
+            local pbit
+            local binding = { config = "qos", sectionname = "Voice_Sig", option = "dscp"}
+            local dscpValue = get_from_uci(binding)
+            if dscpValue == "" then
+                pbit = ""
+            elseif  (dscp[string.lower(dscpValue)] == dscpmark) then
+                binding = { config = "qos", sectionname = "Voice_Sig", option = "pcp"}
+                pbit = get_from_uci(binding)
+                if pbit == "" then
+                    pbit = "-1"
+                end
+            else
+                pbit = "-1"
+            end
+            return pbit
+        end,
+        VLANIDMark = function(object)
+            return getVLANIDMark(object)
+        end,
+        X_0876FF_PreRegisterEnable = function(object)
+            preregdBinding.option = "enabled"
+            local enableStatus = EnableStatusMap[uci_helper.get_from_uci(preregdBinding)]
+            preregdBinding.option = "mode"
+            local mode = uci_helper.get_from_uci(preregdBinding)
+            return enableStatus == "Enabled" and mode == "managed" and "Enabled" or "Disabled"
+        end,
+        X_0876FF_PreRegisterState = function(object)
+            local preRegisterState = conn:call("mmpbxpreregd.state", "get", {}) or {}
+            return preRegisterState.status and stateMapping[preRegisterState.status] or "Idle"
+        end,
     },
     default = setmetatable({
         ProxyServerTransport = "undefined",
@@ -904,7 +1058,11 @@ local sip_net_map = {
         X_000E50_RegisterBackOffTimer = "32",
         X_000E50_MaxRetransInvite = "-1",
         X_000E50_MaxRetransNonInvite = "-1",
+        X_000E50_CallWaitingRejectResponse = "486",
+        X_000E50_NoAnswerResponse = "480",
         ConferenceCallDomainURI = "",
+        EthernetPriorityMark = "-1",
+        VLANIDMark = "-1",
         X_SessionExpires = "",
     }, mt),
 }
@@ -920,6 +1078,11 @@ local sip_server_map = {
 local sip_maps = {
     mmpbxrvsipnet = sip_net_map,
     mmpbxrvsipdev = sip_server_map,
+}
+
+local modeMap = {
+  ["1"] = "managed",
+  ["0"] = "unmanaged"
 }
 
 local set_sip_net_map = {
@@ -963,6 +1126,8 @@ local set_sip_net_map = {
     X_000E50_StopRegisterOnTimerF = true,
     X_000E50_StopRegisterOn408 = true,
     X_000E50_RegisterBackOffTimerMax = true,
+    X_000E50_CallWaitingRejectResponse = true,
+    X_000E50_NoAnswerResponse = true,
     DSCPMark = function(binding, value)
         setDSCPMark(binding, value, "control_qos_field", "control_qos_value")
     end,
@@ -995,6 +1160,14 @@ local set_sip_net_map = {
         end
         binding.option = "session_expires"
         uci_helper.set_on_uci(binding,value,commitapply)
+    end,
+    X_0876FF_PreRegisterEnable = function(preregdBinding, value)
+        preregdBinding.config = "mmpbxpreregd"
+        preregdBinding.sectionname = "global"
+        preregdBinding.option = "enabled"
+        uci_helper.set_on_uci(preregdBinding, value, commitapply)
+        preregdBinding.option = "mode"
+        uci_helper.set_on_uci(preregdBinding, modeMap[value], commitapply)
     end,
 }
 
@@ -1222,26 +1395,26 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_RTP_ = {
                     },
                 },
             },
-            --      VLANIDMark = {
-            --        access = "readWrite",
-            --        type = "int",
-            --        range = {
-            --          {
-            --            min = "-1",
-            --          },
-            --        },
-            --        default = "-1",
-            --      },
-            --      EthernetPriorityMark = {
-            --        access = "readWrite",
-            --        type = "int",
-            --        range = {
-            --          {
-            --            min = "-1",
-            --          },
-            --        },
-            --        default = "-1",
-            --      },
+            VLANIDMark = {
+                access = "readOnly",
+                type = "int",
+                range = {
+                    {
+                        min = "-1",
+                    },
+                },
+                default = "-1",
+            },
+            EthernetPriorityMark = {
+                access = "readOnly",
+                type = "int",
+                range = {
+                    {
+                        min = "-1",
+                    },
+                },
+                default = "-1",
+            },
             TelephoneEventPayloadType = {
                 access = "readWrite",
                 type = "unsignedInt",
@@ -1275,7 +1448,28 @@ local rtp_net_map = {
                 end
             end)
             return tostring(id)
-        end
+        end,
+        EthernetPriorityMark = function(object)
+            local dscpmark = getDSCPMark(object, "realtime_qos_field", "realtime_qos_value")
+            local pbit
+            local binding = { config = "qos", sectionname = "Voice_Data", option = "dscp"}
+            local dscpValue = get_from_uci(binding)
+            if dscpValue == "" then
+                pbit = ""
+            elseif (dscp[string.lower(dscpValue)] == dscpmark) then
+                binding = { config = "qos", sectionname = "Voice_Data", option = "pcp"}
+                pbit = get_from_uci(binding)
+                if pbit == "" then
+                    pbit = "-1"
+                end
+            else
+                pbit = "-1"
+            end
+            return pbit
+        end,
+        VLANIDMark = function(object)
+            return getVLANIDMark(object)
+        end,
     },
     default = common_default,
 }
@@ -1362,7 +1556,7 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_RTP_RTCP = {
 local rtcp_net_map = {
     value = {
         Enable = function(object)
-            return "1"
+            return get_from_uci(countryBinding)
         end,
         TxRepeatInterval = function(binding, value)
             local res
@@ -1391,9 +1585,8 @@ local rtcp_maps = {
 
 local set_rtcp_net_map = {
         Enable = function(binding, value)
-            if paramvalue ~= "true" and paramvalue ~= "1" then
-                return nil, "can not disable RTCP"
-            end
+             uci_helper.set_on_uci(countryBinding, value, commitapply)
+             transactions[countryBinding.config] = true
         end,
         TxRepeatInterval = function(binding, value)
              binding.config = "mmpbxbrcmfxsdev"

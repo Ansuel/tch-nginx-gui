@@ -8,7 +8,6 @@ local nwCommon = mapper('nwcommon')
 local isMac = nwCommon.isMAC
 local netmask2mask = nwCommon.netmask2mask
 local mask2netmask = nwCommon.mask2netmask
-local hex2Decimal = nwCommon.hex2Decimal
 local configChanged
 local qosBinding = { config = "qos" }
 local inet = require "tch.inet"
@@ -226,7 +225,7 @@ local qos_rule_Multi_ = {
           },
         },
       },
-      EthernetPriorityCheck = {
+      EthernetPriorityMark = {
         access = "readWrite",
         type = "unsignedInt",
       },
@@ -295,6 +294,7 @@ local protocolMap = {
   udp  = "17",
   udplite = "136",
   icmp = "1",
+  gre  = "47",
   esp  = "50",
   ah   = "51",
   sctp = "132",
@@ -313,7 +313,8 @@ local paramMap = {
 
 -- set the MACAddress to the qos rule as follows
    -- check if rule is of type "l2classify" and validates for MACAddress format
-   -- validate the exclude pattern(!) in the option fetched from uci and if present concatenate the exclude pattern to the MACAddress to be set
+   -- validate the exclude pattern(!) in the option fetched from uci and
+   -- if present concatenate the exclude pattern to the MACAddress to be set
    -- match for the mask [i.e value after / from the format MAC address[/mask]]  value from the option fetched from uci
    -- if mask present concatenate the MACAddress to the mask and set on uci
 local function setMACAddress(mapping, param, value, key)
@@ -337,8 +338,10 @@ end
 
 -- set the MACMask to the qos rule as follows
    -- check if rule is of type "l2classify" and validates for MACAddress format
-   -- match for the MACAddress [i.e value before / from the format MAC address[/mask]]  value from the option fetched from uci
-   -- if MACAddress present concatenate the MACAddress with MACMask and set on uci else concatenate "/" with MACMask and set on uci
+   -- match for the MACAddress [i.e value before / from the format MAC address[/mask]]
+   -- value from the option fetched from uci
+   -- if MACAddress present concatenate the MACAddress
+   -- with MACMask and set on uci else concatenate "/" with MACMask and set on uci
 local function setMACMask(mapping, param, value, key)
   if isMac(value) then
     local macType = paramMap[param]
@@ -359,7 +362,8 @@ end
 
 -- set the Exclude pattern to the qos rule as follows
    -- check if rule is of type "l2classify"
-   -- if value is "1" and the option[srchost/dsthost] fetched from uci does not have any exclude pattern(!) concatenate exclude pattern to the value fetched and set on uci
+   -- if value is "1" and the option[srchost/dsthost] fetched from uci does not have any
+   -- exclude pattern(!) concatenate exclude pattern to the value fetched and set on uci
    -- if values is "0" remove the exclude pattern from the option and set on uci
 local function setMACExclude(mapping, param, value, key)
   local mac = getUciParam(keyToSectionName[key], paramMap[param])
@@ -377,7 +381,8 @@ local function setMACExclude(mapping, param, value, key)
 end
 
 -- set the Exclude pattern to the qos rule as follows
-  -- if value is "1" and the option[proto] fetched from uci does not have any exclude pattern(!) concatenate exclude pattern to the value fetched and set on
+  -- if value is "1" and the option[proto] fetched from uci does not have
+  -- any exclude pattern(!) concatenate exclude pattern to the value fetched and set on
   -- if values is "0" remove the exclude pattern from the option and set on uci
 local function iPExclude(mapping, param, value, key)
   local host = (param == "SourceIPExclude") and "srchost" or "dsthost"
@@ -399,17 +404,15 @@ local keyGenerated
 
 -- This function is used to get the classification type
 local function getClassification(mapping)
-  if mapping.objectType.name:match("^rpc.qos.classification.classify.") then
-    return "classify"
-  elseif mapping.objectType.name:match("^rpc.qos.classification.reclassify.") then
-    return "reclassify"
+  if mapping.objectType.name:match("^rpc.qos.classification.rule.") then
+    return "rule"
   else
     return "l2classify"
   end
 end
 
 -- This is the entries function to generate the keys for classify, reclassify and l2classify objects
--- If family is "ipv6" for classify/reclassify sections then we omit that in keys
+-- If family is "ipv6" for rule sections then we omit that in keys
 -- If proto is "IPv6" for l2classify sections then we omit that in keys
 qos_rule_Multi_.entries = function(mapping)
   local entries = {}
@@ -423,7 +426,7 @@ qos_rule_Multi_.entries = function(mapping)
       key = uciHelper.generate_key_on_uci(qosBinding)
       keyGenerated = true
     end
-    if (classification == "l2classify" and s.proto ~= "IPv6") or (classification == "classify" and s.family ~= "ipv6") or (classification == "reclassify" and s.family ~= "ipv6") then
+    if (classification == "l2classify" and s.proto ~= "IPv6") or (classification == "rule" and s.family ~= "ipv6") then
       keyToSectionName[key] = s[".name"]
       entries[#entries+1] = key
     end
@@ -457,7 +460,8 @@ qos_rule_Multi_.get = {
     return gsub(ip ,'!',"")
   end,
   SourceMask = function(mapping, param, key)
-    local srcMask = match(getUciParam(keyToSectionName[key], "srchost"), "/(%d+)$") or "32" -- if no mask is present, a mask of /32 (255.255.255.255) is assumed
+    -- if no mask is present, a mask of /32 (255.255.255.255) is assumed
+    local srcMask = match(getUciParam(keyToSectionName[key], "srchost"), "/(%d+)$") or "32"
     return netmask2mask(tonumber(srcMask))
   end,
   DestIP = function(mapping, param, key)
@@ -465,7 +469,8 @@ qos_rule_Multi_.get = {
     return gsub(ip ,'!',"")
   end,
   DestMask = function(mapping, param, key)
-    local destMask = match(getUciParam(keyToSectionName[key], "dsthost"), "/(%d+)$") or "32" -- if no mask is present, a mask of /32 (255.255.255.255) is assumed
+    -- if no mask is present, a mask of /32 (255.255.255.255) is assumed
+    local destMask = match(getUciParam(keyToSectionName[key], "dsthost"), "/(%d+)$") or "32"
     return netmask2mask(tonumber(destMask))
   end,
   DestPort = function(mapping, param, key)
@@ -474,7 +479,7 @@ qos_rule_Multi_.get = {
   end,
   DestPortRangeMax = function(mapping, param, key)
     local dstPort = getUciParam(keyToSectionName[key], "dstports")
-    return dstPort:match(":(%d+)$") or ""
+    return dstPort:match("(%d+)$") or ""
   end,
   SourcePort = function(mapping, param, key)
     local srcPort = getUciParam(keyToSectionName[key], "srcports")
@@ -482,7 +487,7 @@ qos_rule_Multi_.get = {
   end,
   SourcePortRangeMax = function(mapping, param, key)
     local srcPort = getUciParam(keyToSectionName[key], "srcports")
-    return srcPort:match(":(%d+)$") or ""
+    return srcPort:match("(%d+)$") or ""
   end,
   DSCPCheck = function(mapping, param, key)
     local dscpVal = getUciParam(keyToSectionName[key], "dscp")
@@ -500,8 +505,13 @@ qos_rule_Multi_.get = {
     local dscp = getUciParam(label, "dscp") or ""
     return qosHelper.mapDSCP(dscp, mapping.objectType.name)
   end,
-  EthernetPriorityCheck = function(mapping, param, key)
-    return getUciParam(keyToSectionName[key], "vlanprio") or "0"
+  EthernetPriorityMark = function(mapping, param, key)
+    local vlanprio = getUciParam(keyToSectionName[key], "vlanprio")
+    if vlanprio == "" then
+      local label = getUciParam(keyToSectionName[key], "target")
+      return getUciParam(label, "pcp", "0")
+    end
+    return vlanprio
   end,
   RuleType = function(mapping, param, key)
     return getClassification(mapping)
@@ -555,7 +565,8 @@ qos_rule_Multi_.set = {
   end,
 
   -- set the DestIP to the qos rule as follows
-    -- validate the exclude pattern(!) in the option fetched from uci and if present concatenate the exclude pattern to the DestIP to be set
+    -- validate the exclude pattern(!) in the option fetched from uci and
+    -- if present concatenate the exclude pattern to the DestIP to be set
     -- match for the mask [i.e value after / from the format IPAddress[/mask]]  value from the option fetched from uci
     -- if mask present concatenate the IPAddress to the mask and set on uci
   DestIP = function(mapping, param, value, key)
@@ -573,8 +584,10 @@ qos_rule_Multi_.set = {
   end,
 
   -- set the DestMask to the qos rule as follows
-    -- match for the IPAddress [i.e value before / from the format IPAddress[/mask]]  value from the option fetched from uci
-    -- if IPAddress present concatenate the IPAddress with Mask and set on uci else concatenate "/" with MACMask and set on uci
+    -- match for the IPAddress [i.e value before / from the format IPAddress[/mask]]
+    -- value from the option fetched from uci
+    -- if IPAddress present concatenate the IPAddress with Mask and
+    -- set on uci else concatenate "/" with MACMask and set on uci
   DestMask = function(mapping, param, value, key)
     if isValidIPv4Subnet(value) then
       local dstHost = getUciParam(keyToSectionName[key], "dsthost")
@@ -678,7 +691,7 @@ qos_rule_Multi_.set = {
     local label = getUciParam(keyToSectionName[key], "target")
     setUciParam(label, "dscp", value)
   end,
-  EthernetPriorityCheck = function(mapping, param, value, key)
+  EthernetPriorityMark = function(mapping, param, value, key)
     setUciParam(keyToSectionName[key], 'vlanprio', value)
   end,
   EthernetProtocol = function(mapping, param, value, key)
@@ -694,7 +707,8 @@ qos_rule_Multi_.set = {
 
   -- set the Exclude pattern to the qos rule as follows
     -- check if rule is of type "l2classify"
-    -- if value is "1" and the option[proto] fetched from uci does not have any exclude pattern(!) concatenate exclude pattern to the value fetched and set on
+    -- if value is "1" and the option[proto] fetched from uci does not have any
+    -- exclude pattern(!) concatenate exclude pattern to the value fetched and set on
     -- if values is "0" remove the exclude pattern from the option and set on uci
   ProtocolExclude = function(mapping, param, value, key)
     local proto = getUciParam(keyToSectionName[key], "proto")
@@ -725,6 +739,7 @@ qos_rule_Multi_.set = {
 -- This function is to add a new instance for classify, reclassify or l2classify section
 qos_rule_Multi_.add = function(mapping)
   local max_value = 0
+  -- TOD when l2classify is implemented. When MAC based implementation is configured. As of now IP based implementation is present.
   local value = getClassification(mapping)
   qosBinding.sectionname = value
   forEachOnUci(qosBinding, function(s)
@@ -780,18 +795,15 @@ qos_rule_Multi_.revert = function()
 end
 
 local duplicator = mapper("multiroot").duplicate
-local duplicates = duplicator(qos_rule_Multi_, "#ROOT", {"classify", "reclassify", "l2classify"})
+local duplicates = duplicator(qos_rule_Multi_, "#ROOT", {"rule", "l2classify"})
 for _, dupli in ipairs(duplicates) do
   if not dupli.objectType.name:match("^rpc.qos.classification.l2classify.") then
-    -- DSCP remarking is applicable only for reclassify, so we make this param as nil for classify rules
-    if dupli.objectType.name:match("^rpc.qos.classification.classify.") then
-      dupli.objectType.parameters.DSCPMark = nil
-    end
+    -- DSCP remarking is applicable only for rule
     for param in pairs(paramMap) do
       dupli.objectType.parameters[param] = nil
     end
   else
-    -- DSCP remarking is applicable only for reclassify, so we make this param as nil for l2classify rules
+    -- DSCP remarking is applicable only for rule
     dupli.objectType.parameters.DSCPMark = nil
   end
   register(dupli)

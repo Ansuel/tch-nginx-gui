@@ -1,3 +1,4 @@
+local mapper, pairs = mapper, pairs
 local uci_helper = mapper("ucihelper")
 local conn = mapper("ubus").connect()
 
@@ -26,6 +27,7 @@ local network_nat_i_ = {
 }
 
 local binding = {config="firewall",sectionname="userredirect"}
+local network = require("transformer.shared.common.network")
 
 --- get IP or MAC (destination) addresses which have NAT rules configured in firewall config
 -- @returns [table] the address info with following key-value pairs:
@@ -84,7 +86,7 @@ local function get_hostinfo(address, addr_type)
         if dev4 then
           local ctr=0
           while dev4["ip"..ctr] do
-            if dev4["ip"..ctr].state == "connected" then
+            if dev4["ip"..ctr].state == "connected" or dev4["ip"..ctr].state == "stale" then
               ip = dev4["ip"..ctr].address
               break
             end
@@ -99,24 +101,6 @@ local function get_hostinfo(address, addr_type)
         hostname = dev.hostname or "",
         ip = ip or "",
       }
-    end
-  end
-  return result
-end
-
---- get the number of active NAT connection for a given destination IP address
--- @param ip [string] the destination IP address for which to look up active connections
--- @returns  [string] the number of active NAT connections
-local function get_active_connections(ip)
-  local result
-  if ip then
-    -- List connections with `dst-nat` the specified IP address, and just count the number of lines
-    local cmd = "conntrack -L --dst-nat " .. ip .. " 2>/dev/null | wc -l"
-    local fd = io.popen(cmd)
-    if fd then
-      -- There should be only one line; the resulting count
-      result = fd:read("*l")
-      fd:close()
     end
   end
   return result
@@ -141,9 +125,11 @@ local function construct_nat_info()
     -- This means that MAC-address based port maps
     -- that do not belong to a connected host will be ignored
     if ip and ip ~= "" then
+      local cmd = "conntrack -L --dst-nat " .. ip .. " 2>/dev/null | wc -l"
+      local connections = network.executeCommand(cmd)
       result[ip] = {
         hostname = (hi and hi.hostname) or "",
-        number_of_connections =  get_active_connections(ip) or "0",
+        number_of_connections =  connections ~= "" and connections or "0",
       }
     end
   end

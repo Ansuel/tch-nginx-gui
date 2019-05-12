@@ -1,9 +1,9 @@
 local open, popen, string, register = io.open, io.popen, string, register
 --local log = require("transformer.logger")
-local sfp = require("transformer.shared.sfp")
 
-local flag = sfp.readSFPFlag()
-if flag == 0 then
+local optical = require("transformer.shared.optical")
+local flag = optical.getBoardtype()
+if flag ~= "sfp" then
   return
 end
 
@@ -36,25 +36,25 @@ local Optical_link_ = {
 
 Optical_link_.get = {
   GPHY4LanWanMode = function()
-    return sfp.getGPHY4Mode()
+    return optical.getGPHY4Mode()
   end,
   GPHY4LinkStatus = function()
-    return sfp.getGPHY4LinkStatus()
+    return optical.getGPHY4LinkStatus()
   end,
   SfpLinkStatus = function()
-    return sfp.getSfpLinkStatus()
+    return optical.getSfpLinkStatus()
   end,
   Eth4WanType = function()
-    return sfp.getWanType()
+    return optical.getWanType()
   end,
 }
 
 Optical_link_.getall = function()
   local linkValues = {}
-  linkValues["GPHY4LanWanMode"] = sfp.getGPHY4Mode()
-  linkValues["GPHY4LinkStatus"] = sfp.getGPHY4LinkStatus()
-  linkValues["SfpLinkStatus"] = sfp.getSfpLinkStatus()
-  linkValues["Eth4WanType"] = sfp.getWanType()
+  linkValues["GPHY4LanWanMode"] = optical.getGPHY4Mode()
+  linkValues["GPHY4LinkStatus"] = optical.getGPHY4LinkStatus()
+  linkValues["SfpLinkStatus"] = optical.getSfpLinkStatus()
+  linkValues["Eth4WanType"] = optical.getWanType()
   return linkValues
 end
 

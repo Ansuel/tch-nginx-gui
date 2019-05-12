@@ -1,52 +1,54 @@
 local register = register
-local popen = io.popen
+local lfs = require("lfs")
+local popen, iopen = io.popen, io.open
+local match, format = string.match, string.format
 
 local sys_mem_ = {
-    objectType = {
-        name = "sys.mem.",
+  objectType = {
+    name = "sys.mem.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      RAMTotal = {
         access = "readOnly",
-        minEntries = 1,
-        maxEntries = 1,
-        parameters = {
-            RAMTotal = {
-                access = "readOnly",
-                type = "string",
-            },
-            RAMUsed = {
-                access = "readOnly",
-                type = "string",
-            },
-            RAMFree = {
-                access = "readOnly",
-                type = "string",
-            },
-            flashTotal = {
-                access = "readOnly",
-                type = "string",
-            },
-            flashUsed = {
-                access = "readOnly",
-                type = "string",
-            },
-            flashFree = {
-                access = "readOnly",
-                type = "string",
-            },
-        }
+        type = "string",
+      },
+      RAMUsed = {
+        access = "readOnly",
+        type = "string",
+      },
+      RAMFree = {
+        access = "readOnly",
+        type = "string",
+      },
+      flashTotal = {
+        access = "readOnly",
+        type = "string",
+      },
+      flashUsed = {
+        access = "readOnly",
+        type = "string",
+      },
+      flashFree = {
+        access = "readOnly",
+        type = "string",
+      },
     }
+  }
 }
 
 --[[
 a) get free memory size (KB)
-root@OpenWrt:/# free
-             total         used         free       shared      buffers
-Mem:        247428       167436        79992            0        10576
--/+ buffers:             156860        90568
-Swap:            0            0            0
 
-==> RAMTotal = 247428
-==> RAMUsed  = 156860
-==> RAMFree  = 90568
+root@vodafone:~# cat /proc/meminfo
+MemTotal:         433252 kB
+MemFree:          130664 kB
+MemAvailable:     192548 kB
+
+==> RAMTotal = 433252
+==> RAMUsed  = 241280
+==> RAMFree  = 130664
 
 b) get free flash size (KB)
 
@@ -92,40 +94,108 @@ overlayfs:/overlay/bank_1
 ==> flashUsed  = $flashTotal - $flashFree
 --]]
 
-local function get(mapping, paramName)
-    local function getMemInfo(cmd)
-        local fp = popen(cmd)
-        if fp == nil then
-            return ""
-        end
-        local line = fp:read("*l")
-        if not line then
-            return ""
-        else
-            fp:close()
-            return line
-        end
+local function memInfo()
+  local mem = io.lines("/proc/meminfo")
+  if mem then
+    local line
+    local memory = {}
+    for i = 0, 2 do
+      line = mem()
+      memory[#memory+1] = line and match(line, "%d+")
     end
-
-    local cmd = ""
-    if paramName == "RAMTotal" then
-        cmd = "free | grep Mem | tr -s ' ' | cut -d' ' -f 2"
-    elseif paramName == "RAMUsed" then
-        cmd = "free | grep buffers: | tr -s ' ' | cut -d' ' -f 3"
-    elseif paramName == "RAMFree" then
-        cmd = "free | grep buffers: | tr -s ' ' | cut -d' ' -f 4"
-    elseif paramName == "flashTotal" then
-        cmd= "let userfs=0x$(grep rootfs_data /proc/mtd | cut -d ' ' -f 2)/1000;let bank1=0x$(grep bank_1 /proc/mtd | cut -d ' ' -f 2)/1000;grep bank_2 /proc/mtd >>/dev/null && let bank1=bank1*2;let total=userfs+bank1;echo $total"
-    elseif paramName == "flashUsed" then
-        cmd= "let userfs=0x$(grep rootfs_data /proc/mtd | cut -d ' ' -f 2)/1000;let bank1=0x$(grep bank_1 /proc/mtd | cut -d ' ' -f 2)/1000;grep bank_2 /proc/mtd >>/dev/null && let bank1=bank1*2;let total=userfs+bank1;free=$(df -k | grep rootfs | tr -s ' ' | cut -d ' ' -f 4); let used=total-free; echo $used"
-    elseif paramName == "flashFree" then
-        cmd = "df -k | grep rootfs | tr -s ' ' | cut -d' ' -f 4"
-    else
-        return ""
-    end
-
-    return getMemInfo(cmd)
+    return memory
+  end
+  return ""
 end
 
-sys_mem_.get = get
+local mtdMemory = {
+  ["rootfs_data"] = true,
+  ["userfs"] = true,
+  ["data_vol"] = true,
+  ["bank_1"] = true,
+  ["bank_2"] = true,
+}
+
+local function flashMemory()
+  local totalSize = 0
+  local sysPath = "/sys/class/mtd/"
+  if lfs.attributes(sysPath, "mode") == "directory" then
+    for file in lfs.dir(sysPath) do
+      local mtdIndex = match(file, "mtd([%d])$")
+      if mtdIndex then
+        local nameFile = iopen(sysPath.. "mtd" .. mtdIndex .."/name")
+        if nameFile then
+          local mtdName = nameFile:read()
+          nameFile:close()
+          if mtdName and mtdMemory[mtdName] then
+            local sizeFile = iopen(sysPath.. "mtd" .. mtdIndex .."/mtdblock" .. mtdIndex .."/size")
+            if sizeFile then
+              local mtdSize = sizeFile:read()
+              totalSize = mtdSize and totalSize + tonumber(mtdSize) or totalSize
+              sizeFile:close()
+            end
+          end
+        end
+      end
+    end
+  end
+  return totalSize and format("%0.0f", totalSize) or "0.0"
+end
+
+local function flashFreeMemory()
+  local free
+  local df = popen("df -k")
+  if df then
+    for line in df:lines() do
+      if match(line, "/overlay") then
+        free = match(line, "(%S+)%s+%S+%%")
+      end
+    end
+    df:close()
+  end
+  return free or "0"
+end
+
+sys_mem_.get = {
+  -- Nil check added to handle if memInfo() failed to load at the first time
+  RAMTotal = function(mapping)
+    local memStat = memInfo()
+    if #memStat > 0 then
+      mapping.get.RAMTotal = memStat[1]
+      return memStat[1]
+    end
+    return "0"
+  end,
+
+  RAMUsed = function()
+    local ramStat = memInfo()
+    local usedRAM = ""
+    if ramStat[1] and ramStat[3] then
+      usedRAM = tostring(tonumber(ramStat[1]) - tonumber(ramStat[3]))
+    end
+    return usedRAM
+  end,
+
+  RAMFree = function()
+    local freeRAM = memInfo()
+    return #freeRAM > 0 and freeRAM[2] or memInfo()
+  end,
+
+  -- Nil check added to handle if flashMemory() failed to load at the first time
+  flashTotal = function(mapping)
+    local totMemory = flashMemory()
+    if totMemory ~= "0.0" then
+      mapping.get.flashTotal = totMemory
+      return totMemory
+    end
+    return "0.0"
+  end,
+
+  flashUsed = function()
+    return tostring(tonumber(flashMemory()) - tonumber(flashFreeMemory()))
+  end,
+
+  flashFree = flashFreeMemory(),
+}
+
 register(sys_mem_)

@@ -3,13 +3,15 @@
 ------------------------------------------------------------------
 
 local mapper, register = mapper, register
-local table, pairs, ipairs, next, type = table, pairs, ipairs, next, type
+local table, pairs, ipairs, next, type, os = table, pairs, ipairs, next, type, os
 local string = string
+local match = string.match
 local uci_helper = mapper("ucihelper")
 local insert = table.insert
 local everyday =  {"Sun", "Sat", "Fri", "Thu", "Wed", "Tue", "Mon"}
 local commitapply = commitapply
 local tod_binding = {config="tod"}
+local button_binding = {config="button", sectionname="watcher", option="lastmodifiedbyuser"}
 local config_tmp = "tod"
 local math = math
 local tonumber = tonumber
@@ -22,7 +24,7 @@ local NEXT_DAYS = { Mon = 'Tue', Tue = 'Wed', Wed = 'Thu', Thu = 'Fri', Fri = 'S
 local mapinfo_wifitod_uci = {
     config = config_tmp,
     type = "tempdata",
-    options = { "ap", "enabled", "mode" , "start_time", "stop_time"},
+    options = { "ap", "enabled", "mode" , "start_time", "stop_time", "wifiScheduleAffected"},
     lists = { "weekdays" }
 }
 
@@ -324,6 +326,28 @@ local getter = {
     end
     return state
   end,
+  wifiScheduleAffected = function (mapping, paramName, key)
+    local current_date = os.date("!%Y-%m-%d")
+    local year,month,date = current_date:match("^(%d+)-(%d+)-(%d+)")
+    local wifibutton_lastmofied = uci_helper.get_from_uci(button_binding) or ""
+    local btnPressed_year,btnPressed_month,btnPressed_date,btnPressed_hour,btnPressed_minute = wifibutton_lastmofied:match("^(%d+)-(%d+)-(%d+)T(%d+):(%d+):%d+Z")
+    local scheduleAffected = "0"
+    tod_binding.sectionname = "action"
+    uci_helper.foreach_on_uci(tod_binding, function(ac)
+      if match(ac['.name'], "^WiFi*") then
+        if ac.activedaytime then
+          for _, tr_name in ipairs(ac.activedaytime) do
+            local hh,mt  = tr_name:match("^%S+:%S+:(%d+):(%d+)")
+            if year == btnPressed_year and month == btnPressed_month and date == btnPressed_date and ( btnPressed_hour > hh or ( btnPressed_hour == hh and btnPressed_minute >= mt )) then
+              scheduleAffected = "1"
+              break
+            end
+          end
+        end
+      end
+    end)
+    return scheduleAffected
+  end
 }
 
 local setter = {

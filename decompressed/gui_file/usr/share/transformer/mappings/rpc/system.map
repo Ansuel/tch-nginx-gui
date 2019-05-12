@@ -1,62 +1,26 @@
 local uci = require('uci')
+local uciHelper = mapper("ucihelper")
 local commitapply = commitapply
 local floor = math.floor
 local open = io.open
-local remove = os.remove
 local tostring = tostring
-local match = string.match
 local upload_ca_filename = ""
+local network = require("transformer.shared.common.network")
 local rebootHelper = require("transformer.shared.reboot_helper")
+local versionBinding = { config = "versioncusto", sectionname = "override" }
+local envBinding = { config = "env", sectionname = "var" }
+local sysBinding = { config = "system", sectionname = "warmboot" }
+local lfs = require("lfs")
 
-local rebootreasons = {}
-do
-    local path = "/lib/functions/reboot_reason.sh"
-    local file = open(path, "r")
-    if file then
-        for line in file:lines() do
-            -- Read until comment containing 'REASONS_END' is found
-            if match(line, "#.*REASONS_END") then break end
-            -- Known reboot reasons have format like 'PWR=0'
-            local reason = match(line, '(%w+)=%d+')
-            if reason then
-                -- Exclude future-use reserved reasons
-                if not match(reason, "RES") then
-                    rebootreasons[#rebootreasons + 1] = reason
-                end
-            end
-        end
-        file:close()
-    else
-        -- On platforms which are not reboot-reason enabled (LTE, Qualcomm):
-        -- Provide a default set of reasons which are called from the code,
-        -- since GUI and CWMP code is taken along on all platforms,
-        -- and hence set e.g. "rpc.system.reboot" to "GUI".
-        rebootreasons = {"GUI", "CWMP", "STS", "CLI"}
-    end
-end
+local rebootreasons = network.getRebootReasons()
 
---- Returns HEX representation of num
-local function num2hex(num)
-    local hexstr = '0123456789abcdef'
-    local s = ''
-    while num > 0 do
-        local mod = math.fmod(num, 16)
-        s = string.sub(hexstr, mod+1, mod+1) .. s
-        num = math.floor(num / 16)
-    end
-    if s == '' then s = '0' end
-    return s
-end
-
-local function str2hex(str)
-    local hex = ''
-    while #str > 0 do
-        local hb = num2hex(string.byte(str, 1, 1))
-        if #hb < 2 then hb = '0' .. hb end
-        hex = hex .. hb
-        str = string.sub(str, 2)
-    end
-    return hex
+local function getUciValue(uciBinding, option)
+  local binding = uciBinding
+  if option then
+    binding.option = option
+    return uciHelper.get_from_uci(binding)
+  end
+  return uciHelper.getall_from_uci(binding)
 end
 
 local system_ = {
@@ -83,16 +47,21 @@ local system_ = {
                 access = "readOnly",
                 type = "unsignedInt",
             },
-			rip_key_B = {
-               access = "readOnly",
-               type = "string",
-            },
             rebootreasons = {
                 access = "readOnly",
                 type = "string",
             },
             upload_ca_file = {
                access = "readWrite",
+               type = "string",
+            },
+            SoftwareVersion = {
+               access = "readOnly",
+               type = "string",
+               max = "64",
+            },
+            RebootCause = {
+               access = "readOnly",
                type = "string",
             },
             scheduledreboot = {
@@ -108,19 +77,16 @@ local system_ = {
                type = "string",
                enumeration = rebootreasons,
             },
+            usb3_available = {
+                access = "readOnly",
+                type = "boolean",
+            },
         }
     },
     get = {
         reboot = "",
         reset = "0",
         switchover = "0",
-		rip_key_B = function()
-			local content = io.open("/proc/rip/0108")
-			local result = content:read("*all")
-			content:close()
-			
-			return str2hex(result:sub(1,64))
-		end,
         uptime = function()
             local fd, msg = open("/proc/uptime")
             if not fd then
@@ -133,6 +99,31 @@ local system_ = {
         rebootreasons = table.concat(rebootreasons, ", "),
         upload_ca_file = function()
           return upload_ca_filename or ""
+        end,
+        SoftwareVersion = function(mapping)
+            local versionData = getUciValue(versionBinding)
+            local value = getUciValue(envBinding, "friendly_sw_version_activebank")
+            value = value:match("^([^-]+%-[^-]+)") or value
+            local fwp = versionData["fwversion_prefix"] or ""
+            local fws = versionData["fwversion_suffix"] or ""
+            local fwover = versionData["fwversion_override"] or ""
+            if fwover ~= "" and fwover ~= "override1" then
+                value = fwover
+            end
+            value = fwp .. value .. fws
+            local seperator = versionData["fwversion_seperator"] or ""
+            if seperator ~= "" then
+                value = value:gsub("%.", seperator)
+            end
+            mapping.get.SoftwareVersion = value
+            return value
+        end,
+        RebootCause = function()
+            local rebootCause = getUciValue(sysBinding, "reboot")
+            if tonumber(rebootCause) then
+              rebootCause = rebootreasons[rebootCause + 1] or ""
+            end
+            return rebootCause
         end,
         scheduledreboot = function()
             return rebootHelper.getRebootOptions("time", "0001-01-01T00:00:00Z")
@@ -149,6 +140,18 @@ local system_ = {
         end,
         scheduledrebootreason =  function()
             return rebootHelper.getRebootOptions("rebootreason", "CLI")
+        end,
+        usb3_available = function()
+          local p_uname = io.popen("uname -r")
+          if p_uname then
+            local uname = p_uname:read("*l")
+            p_uname:close()
+            local filename = "/lib/modules/" .. uname .. "/xhci-hcd.ko"
+            if lfs.attributes(filename, "mode") == "file" then
+              return "1"
+            end
+          end
+          return "0"
         end,
     },
     set = function(mapping, paramname, paramvalue)

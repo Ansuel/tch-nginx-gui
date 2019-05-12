@@ -43,7 +43,7 @@ end
 local helper = require("mobiled.scripthelpers")
 
 local function getall(mapping, key)
-    local data = helper.getUbusData(conn, "mobiled.network", "time", { dev_idx = tonumber(string.match(key, '%d')) })
+    local data = helper.getUbusData(conn, "mobiled.network", "time", { dev_idx = tonumber(string.match(key, '%d+')) })
     local timestamp = tonumber(data.localtime)
     if timestamp then
         data['localtimestr'] = os.date('%Y-%m-%d %H:%M:%S', timestamp)

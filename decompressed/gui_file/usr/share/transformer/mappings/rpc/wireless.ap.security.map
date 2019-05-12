@@ -2,8 +2,7 @@ local logger = require("transformer.logger")
 local log = logger.new("wireless.ap.security", 2)
 local register = register;
 
-local 
-wireless_ap_security_ = {
+local wireless_ap_security_ = {
   objectType = {
     name = "rpc.wireless.ap.@.security.",
     access = "readOnly",
@@ -68,6 +67,17 @@ local namemap = {   mode="security_mode",
                     wpa_psk_passphrase="wpa_psk_key"
                 }
 local set = function(mapping, param, value, key)
+  if param == "wpa_psk_passphrase" then
+    local pskmatch = "^[ -~]+$"
+    local preventXssAttack = "<[ -~]+>"
+    if #value < 8 or #value > 64 then
+      return nil, "The password must be between 8 and 63 characters"
+    elseif #value == 64 and not value:match("^[a-fA-F0-9]+$") then
+      return nil, "For a length of 64 characters, only numbers and letters from A to F are accepted"
+    elseif value:match(preventXssAttack) or not string.match(value, pskmatch) then
+      return nil, "The wireless key contains invalid characters, only space, letters, numbers and the following characters !\"#%&()*+,-./:;=?@[\\]^_{|}~'$` are allowed and the characters <> are not allowed to prevent XSS script execution."
+    end
+  end
     uci_helper.set_on_uci({ config = "wireless", sectionname = key , option = namemap[param] or param}, value, commitapply)
 end
 

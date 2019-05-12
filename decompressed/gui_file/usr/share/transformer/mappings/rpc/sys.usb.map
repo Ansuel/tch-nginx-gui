@@ -1,10 +1,10 @@
 local register, require, mapper, io, math, string = register, require, mapper, io, math, string
 local lfs = require("lfs")
 local uci = require('uci')
-local open = io.open
 local posix = require("tch.posix")
 local nwCommon = mapper("nwcommon")
 local splitKey = nwCommon.split_key
+local pairs = pairs
 
 local sys_usb_ = {
     objectType = {
@@ -88,6 +88,7 @@ local sys_usb_device_i_ = {
 }
 
 local syspath = "/sys/bus/usb/devices/"
+local network = require("transformer.shared.common.network")
 
 local function isDir(path)
     local mode = lfs.attributes(path, "mode")
@@ -96,23 +97,6 @@ local function isDir(path)
     end
     return false
 end
-
-local function firstline(filename)
-    local fd = open(filename)
-    if not fd then
-        -- you could return nil and and error message but that will abort
-        -- iterating over all parameters.
-        -- so here I opt to just return an empty string.
-        return ""
-    end
-    local result = fd:read("*l")
-    if result == nil then
-        result = ""
-    end
-    fd:close()
-    return result
-end
-
 
 local devicePattern = "^(%d+)-([%d%.]+)$" -- a USB device directory is of the form bus-port.port ...
 
@@ -150,7 +134,7 @@ local deviceClassMap = {
 }
 
 local function getClassText(path)
-    local class = string.upper(firstline(path))
+    local class = string.upper(network.getFirstLine(path))
     if deviceClassMap[class] then
         return deviceClassMap[class]
     end
@@ -169,7 +153,7 @@ local function get(mapping, paramName, key)
     elseif paramName == "path" then
         return key
     else
-        local result = firstline(syspath .. key .. "/" .. paramName)
+        local result = network.getFirstLine(syspath .. key .. "/" .. paramName)
         return result
     end
 end
@@ -273,7 +257,7 @@ local function getInterfaces(mapping, paramName, key, parentkey)
     elseif paramName == "path" then
         return key
     else
-        local result = firstline(syspath .. parentkey .. "/" .. key .. "/" .. paramName)
+        local result = network.getFirstLine(syspath .. parentkey .. "/" .. key .. "/" .. paramName)
         return result
     end
 end
@@ -347,10 +331,9 @@ function entriesSysBusUsbDevicespartitions(mapping, parentkey)
     local path = syspath .. parentkey .. "/"
     -- Entries for usb device partitions are formed only if the connected device is not an usb hub
     -- Checking whether the connected device is hub or storage device based on the maxchild value
-    local child = firstline(path .. "maxchild")
+    local child = network.getFirstLine(path .. "maxchild")
     if child == "0" then
-        local str = "/usr/bin/find " .. path .. " -name sd*"
-        local fp = io.popen(str)
+        local fp = io.popen(string.format("/usr/bin/find %s -name sd*", path))
         if fp == nil then
             return {}
         end

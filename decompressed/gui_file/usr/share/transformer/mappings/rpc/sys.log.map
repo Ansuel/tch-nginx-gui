@@ -1,3 +1,4 @@
+
 local popen = io.popen
 local string = string
 local register = register
@@ -33,21 +34,43 @@ devicelog = function()
     local log_binding = {config="system", sectionname="log"}
     uci_helper.foreach_on_uci(log_binding, function(s)
        if s.path and s.size and s.rotate then
-         persistenlog_enabled = true
+          if s.size ~= "0" and s.rotate ~= "0" then
+             persistenlog_enabled = true
+          end
          return false
        end
     end)
-    local log
+    local logString, logFile
+    local log = " "
     if persistenlog_enabled then
-      log = popen('cat `ls -r /root/log/message*`')
+      local log_directory_path = "/root/log/"
+      if lfs.attributes(log_directory_path, 'mode') == 'directory' then
+        for log_message_file in lfs.dir(log_directory_path) do
+          local mdevlog = string.match(log_message_file,"^message*")
+          if mdevlog then
+            local path = log_directory_path..log_message_file
+            local file = io.open(path,"rb")
+            if not file then
+              return ""
+            end
+            logFile = file:read ("*a")
+            log = log .. logFile
+            file:close()
+          end
+          logString = log
+        end
+      else
+        return ""
+      end
     else
       log = popen("/sbin/logread")
+      logString = log:read("*a")
     end
 
     if log == nil then
         return ""
     end
-    local logString = log:read("*a")
+
     if logString == nil then
         return ""
     end
@@ -67,7 +90,7 @@ routingtable = function()
 end,
 
 connections = function()
-    local log = popen("cat /proc/net/nf_conntrack")
+    local log = io.open("/proc/net/nf_conntrack")
     if log == nil then
         return ""
     end

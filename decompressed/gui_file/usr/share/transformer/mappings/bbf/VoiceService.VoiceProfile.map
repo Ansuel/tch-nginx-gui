@@ -1,4 +1,5 @@
 local lfs = require("lfs")
+local gsub, sub, match, len, find = string.gsub, string.sub, string.match, string.len, string.find
 
 if lfs.attributes("/etc/config/mmpbx", "mode") ~= "file" then
   return
@@ -6,7 +7,7 @@ end
 
 local Multi_Services_VoiceService_i_VoiceProfile_i_ = {
     objectType = {
-        name = "#ROOT.Services.VoiceService.{i}.VoiceProfile.{i}.",
+        name = "#ROOT",
         access = "readWrite",
         minEntries = 0,
         maxEntries = math.huge,
@@ -77,17 +78,17 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_ = {
                 access = "readWrite",
                 type = "string",
             },
-            --      DigitMap = {
-            --        access = "readWrite",
-            --        type = "string",
-            --        max = "256",
-            --        default = "",
-            --      },
-            --      DigitMapEnable = {
-            --        access = "readWrite",
-            --        type = "boolean",
-            --        default = "true",
-            --      },
+            DigitMap = {
+                access = "readWrite",
+                type = "string",
+                max = "256",
+                default = "",
+            },
+            DigitMapEnable = {
+                access = "readWrite",
+                type = "boolean",
+                default = "true",
+            },
             --      STUNEnable = {
             --        access = "readWrite",
             --        type = "boolean",
@@ -138,38 +139,49 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_ = {
                 access = "readWrite",
                 type = "string",
                 default = "",
+                description = "Choose SIP/PSTN network based on this value",
             },
             X_000E50_Interface = {
                 access = "readWrite",
                 type = "string",
+                description = "Allows to configure the network interface to be used for voice",
                 default = "",
             },
 	    X_000E50_ResetCode = {
 	       access = "readWrite",
 	       type = "string",
+               description = "Reset code to reset the sip network",
 	       default = "*#101",
 	    },
 
 	    X_000E50_InterDigitTimer = {
 	       access = "readWrite",
 	       type = "unsignedInt",
+               description = "open inter-digit timer value",
 	       default = "6",
 	    },
 
 	    X_000E50_ShortInterDigitTimer = {
 	       access = "readWrite",
 	       type = "unsignedInt",
+               description = "closed inter digit timer value",
 	       default = "0",
 	    },
             X_000E50_SubRegion = {
                access = "readWrite",
                type = "unsignedInt",
+               description = "To specify the country specific settings for SLIC(FXS), DAA(FXO), Voice drivers, and DSP",
                range = {
                   {
                      min = "0",
                      max = "10",
                   },
                },
+            },
+            X_FASTWEB_TimerT_RING = {
+                access = "readWrite",
+                type = "unsignedInt",
+                description = "Watchdog for maximum duration of ringing event when CPE is the called party",
             },
         }
     }
@@ -184,6 +196,8 @@ local conn = mapper("ubus").connect()
 local calls = {}
 local profile_helper = require("transformer.shared.profile_helper")
 local numOfFxs, numOfDect, numOfSipdev
+local regionBinding = { config = "mmpbxbrcmcountry", sectionname = "global", option = "region" }
+local regionExists = uci_helper.get_from_uci(regionBinding)
 
 local enablestatus = {
     ['0'] = "Disabled",
@@ -192,7 +206,30 @@ local enablestatus = {
     ['Disabled'] = "0",
 }
 
+local dialPlanDefaultOptionsMap = {
+    ['enabled'] = 1,
+    ['allow'] = 1,
+    ['priority'] = "low",
+    ['include_eon'] = 0,
+    ['apply_forced_profile'] = 0,
+    ['min_length'] = 1,
+    ['max_length'] = 1
+}
+
+local patternTable = {
+    ['('] = "%b()",
+    ['['] = "%b[]",
+    ['{'] = "%b{}"
+}
+
+local countryCode = {
+    ['SE'] = "sweden",
+    ['DK'] = "denmark",
+    ['LT'] = "etsi"
+}
+
 local binding = {}
+local dialplanbinding = { config = "mmpbx", sectionname = "dial_plan_generic", option = "digit_map", default = "0" }
 local transactions = {}
 local faxpassthrough = setmetatable({
     inband_renegotiation = "Auto",
@@ -223,11 +260,18 @@ local function countryTR104(val, countryType)
     end
 end
 
+local function mapCountryAndCode(val)
+    for code,country in pairs(countryCode) do
+        if val == country then
+            return code
+        elseif val == code then
+            return country
+        end
+    end
+end
+
 local function getCountry()
-    binding.config = "mmpbx"
-    binding.sectionname = "global"
-    binding.option = "country"
-    return uci_helper.get_from_uci(binding)
+    return uci_helper.get_from_uci({ config = "mmpbx", sectionname = "global", option = "country", default = "" })
 end
 
 local function subRegion(value)
@@ -246,6 +290,227 @@ local function subRegion(value)
     return ""
 end
 
+local function findPatternLength(pattern)
+    local pcount = 0
+    local pcount2 = 0
+    local pcount3 = 0
+    local j = 1
+    local k = 1
+    local i = 0
+    local subpattern = pattern:gsub("%b{}", "")    -- remove quantifiers
+    local subpattern1 = subpattern:gsub("%b()", "")
+    local subpattern2 = subpattern1:gsub("%b[]", "")
+    if subpattern1 then
+        for i = 1, len(subpattern1) do
+            if sub(subpattern1, i, i) == "[" then
+                pcount = pcount + 1
+            end
+        end
+        for i = 1, len(subpattern1) do
+            if sub(subpattern1 , i, i)  == "|" then
+                if pcount2 < (i - j) then
+                    pcount2 = i - j
+                end
+                j = i+1
+            end
+        end
+    end
+    if subpattern then
+        for i = 1, len(subpattern) do
+            if sub(subpattern , i, i ) == "(" then
+                local subpattern3 = ""
+                for k = i + 1, len(subpattern) do
+                    if sub(subpattern, k, k) == ")" then
+                        break
+                    else
+                        subpattern3 = subpattern3 .. sub(subpattern, k, k)   -- get sub-pattern inside ()
+                    end
+                end
+                if subpattern3 ~= "" then
+                    i = k + 1
+                    pcount3 = findPatternLength(subpattern3) - len(subpattern3)
+                end
+            end
+        end
+    end
+    return (subpattern2 and len(subpattern2) or 0) + pcount + pcount2 + pcount3
+end
+
+local set_binding = { config = "mmpbx" }
+
+-- The addPatternToUci function creates a new dial plan entry section for the input pattern, writes the pattern & related options to uci
+local function addPatternToUci(pattern, dialPlanName, index)
+    if not pattern or pattern == "" then
+        return
+    end
+    if dialPlanName == "dial_plan_generic" then
+        set_binding.sectionname = "dial_plan_entry_generic_" .. index
+    else
+        set_binding.sectionname = "dial_plan_entry_" .. index
+    end
+    set_binding.option = nil
+    uci_helper.set_on_uci(set_binding, "dial_plan_entry", commitapply)
+    set_binding.option = "dial_plan"
+    uci_helper.set_on_uci(set_binding, dialPlanName, commitapply)
+
+    local pattern1 = pattern:gsub(".T","")        -- remove .T; pattern1 will be used to calculate length
+    set_binding.option = "pattern"
+    uci_helper.set_on_uci(set_binding, "^" .. pattern1, commitapply)
+
+    set_binding.option = "index"
+    uci_helper.set_on_uci(set_binding, index, commitapply)
+
+    -- add the default options for the dial plan entry
+    for key, val in pairs(dialPlanDefaultOptionsMap) do
+        set_binding.option = key
+        uci_helper.set_on_uci(set_binding, val, commitapply)
+    end
+
+    --- overwirte default min & max lengths with actual values from pattern
+    local min_len = findPatternLength(pattern1)
+    set_binding.option = "min_length"
+    uci_helper.set_on_uci(set_binding, min_len, commitapply)
+
+    set_binding.option = "max_length"
+    if pattern:match(".*()T") then
+        uci_helper.set_on_uci(set_binding, min_len + 10, commitapply)
+    else
+        uci_helper.set_on_uci(set_binding, min_len, commitapply)
+    end
+    transactions[set_binding.config] = true
+end
+
+-- The parseSetPattern parses the input digitmap string (| de-limited) and identifies individual patterns.
+-- when each pattern identified, the remaining part of the digitmap string is parsed further
+local function parseSetPattern(dmstring, dialPlanName)
+    if not dmstring or dmstring == "" then
+        return
+    end
+    local pcount = 0  -- index to track identified patterns
+    local endIndex = 1       -- index to track end of brackets
+    local startIndex = 0
+    local dmIndex = 1       -- to track completion of dmstring parsing
+    local index = 1       -- index to parse each subpattern
+    local subpattern = ""
+    local remainingStr = ""
+    local parsestring = dmstring
+    local ch = ""
+    while parsestring and dmIndex < #dmstring do
+        while index and index < #parsestring do
+            subpattern = ""
+            remainingStr = ""
+            dmIndex = dmIndex + 1
+
+            -- check for any brackets & if found update the current index to end of the closing bracket
+            ch = sub(parsestring, index, index)
+	    if patternTable[ch] then
+                startIndex, endIndex = parsestring:find(patternTable[ch])
+                if not endIndex then
+                    return nil, "Invalid digitmap string"
+                end
+                index = index + endIndex
+            end
+
+            -- parse till the delimiter "|" to find the pattern
+            if sub(parsestring, index, index) == "|" then
+               subpattern = sub(parsestring, 1, index - 1)
+               remainingStr = sub(parsestring, index + 1, #parsestring)
+               pcount = pcount + 1
+               addPatternToUci(subpattern, dialPlanName, pcount)
+               parsestring = remainingStr
+               index = 1
+               break
+            end
+            index = index + 1
+            if index >= #parsestring then
+                pcount = pcount + 1
+                addPatternToUci(parsestring, dialPlanName, pcount)
+                dmIndex = #dmstring
+                break
+            end
+        end
+    end
+    return
+end
+
+local function getDigitMap()
+    local resPrioHigh = ""
+    local resPrioLow = ""
+    local planName = ""
+    local binding = { config = "mmpbx" , sectionname = "dial_plan"}
+
+    -- get the dial plan name for which sip_net is configured
+    uci_helper.foreach_on_uci(binding,function(s)
+        local network = s.network
+        if network and type(network) == "table" then
+            for _,v in pairs(network) do
+                if v == "sip_net" then
+                    planName = s[".name"]
+                end
+            end
+        end
+    end)
+
+    binding.sectionname = "dial_plan_entry"
+    uci_helper.foreach_on_uci(binding,function(s)
+        if s.dial_plan and s.dial_plan == planName and s.enabled and s.enabled == "1" and s.allow and s.allow == "1" then
+            local pattern = s.pattern and gsub(s.pattern, "%^", "") or ""
+            local length = findPatternLength(pattern)
+            local digitHolder = ""
+            local min_length = s.min_length and tonumber(s.min_length) or 0
+            local max_length = s.max_length and tonumber(s.max_length) or 0
+            if length < min_length then
+                for i = length + 1 , min_length do
+                    digitHolder = digitHolder .. "x"
+                end
+                pattern = pattern .. digitHolder
+            end
+            if min_length < max_length then
+                pattern = pattern .. ".T"
+            end
+            if s.priority and s.priority == "high" then
+                resPrioHigh  =  resPrioHigh ~= "" and string.format(resPrioHigh .. "|" .. pattern) or pattern
+            else
+                resPrioLow = resPrioLow ~= "" and string.format(resPrioLow .. "|" .. pattern) or pattern
+            end
+        end
+    end)
+    return resPrioHigh ~= "" and resPrioHigh .. "|" .. resPrioLow or resPrioLow
+end
+
+local function setDigitMap(paramname, paramvalue)
+    local resPrioHigh = ""
+    local resPrioLow = ""
+    local planName = ""
+    local binding = { config = "mmpbx" , sectionname = "dial_plan"}
+    local del_binding = { config = "mmpbx" }
+
+    -- get the dial plan name for which sip_net is configured
+    uci_helper.foreach_on_uci(binding,function(s)
+        local network = s.network
+        if type(network) == "table" then
+            for _, v in ipairs(network) do
+                if v == "sip_net" then
+                    planName = s[".name"]
+                end
+            end
+        end
+    end)
+
+    -- remove all the existing dial plan entries for the above dial plan (with sip_net network)
+    binding.sectionname = "dial_plan_entry"
+    uci_helper.foreach_on_uci(binding,function(s)
+        if s.dial_plan == planName then
+	    del_binding.sectionname = s[".name"]
+            del_binding.option = nil
+            uci_helper.delete_on_uci(del_binding, commitapply)
+            transactions[del_binding.config] = true
+        end
+    end)
+    -- parse the digitMap string, get unique patterns and create new list of dial plan entries
+    return parseSetPattern(paramvalue, planName)
+end
+
 local dtmf_setmap = setmetatable({
   RFC2833 = "rfc2833",
   SIPInfo = "sipinfo",
@@ -261,15 +526,18 @@ local dtmf_getmap = setmetatable({
 
 Multi_Services_VoiceService_i_VoiceProfile_i_.entries = function(mapping, parentkey)
     local entries = {}
-    calls = conn:call("mmbrcm.countries", "get", {})
-
-    for _,v in pairs(configs) do
-        if v[3] == parentkey then
-            binding.config = v[1]
-            binding.sectionname = v[2]
-            uci_helper.foreach_on_uci(binding, function(s)
-                entries[#entries + 1] = v[1] .. "|" .. s['.name']
-            end)
+    if mapping.objectType.name:match("^rpc.") then
+        entries = { "1" }
+    else
+        calls = conn:call("mmbrcm.countries", "get", {}) or {}
+        for _,v in pairs(configs) do
+            if v[3] == parentkey then
+                binding.config = v[1]
+                binding.sectionname = v[2]
+                uci_helper.foreach_on_uci(binding, function(s)
+                    entries[#entries + 1] = v[1] .. "|" .. s['.name']
+                end)
+            end
         end
     end
 
@@ -319,16 +587,32 @@ Multi_Services_VoiceService_i_VoiceProfile_i_.get = {
         end
     end,
     Region = function()
-        binding.config = "mmpbx"
-        binding.sectionname = "global"
-        binding.option = "country"
-        local country = uci_helper.get_from_uci(binding)
-        local tr104 = countryTR104(country, "tr104")
-        if tr104 then
-            return tr104
+        local country = getCountry()
+          if #regionExists > 0 then
+             local getCode = mapCountryAndCode(country)
+             if getCode then
+                return getCode
+             else
+                return ""
+             end
+          end
+          local tr104 = countryTR104(country, "tr104")
+          if tr104 then
+              return tr104
+          else
+              return ""
+          end
+    end,
+    DigitMap = function()
+        local digitMapState = uci_helper.get_from_uci(dialplanbinding)
+        if digitMapState == "1" then
+            return getDigitMap()
         else
             return ""
         end
+    end,
+    DigitMapEnable = function()
+        return uci_helper.get_from_uci(dialplanbinding)
     end,
     FaxPassThrough = function()
         local res
@@ -414,6 +698,12 @@ Multi_Services_VoiceService_i_VoiceProfile_i_.get = {
        binding.config = "mmpbx"
        binding.sectionname = "dial_plan_generic"
        binding.option = "closed_inter_digit_timer"
+       return uci_helper.get_from_uci(binding)
+    end,
+    X_FASTWEB_TimerT_RING = function (mapping, paramname, key)
+       binding.config = "mmpbx"
+       binding.sectionname = "global"
+       binding.option = "no_answer_timeout"
        return uci_helper.get_from_uci(binding)
     end,
     X_000E50_SubRegion = function()
@@ -549,8 +839,10 @@ Multi_Services_VoiceService_i_VoiceProfile_i_.set = {
             paramvalue = "Disabled"
         end
         val = enablestatus[paramvalue]
-        uci_helper.set_on_uci(binding, val, commitapply)
-        transactions[binding.config] = true
+        if uci_helper.get_from_uci(binding) ~= val then
+            uci_helper.set_on_uci(binding, val, commitapply)
+            transactions[binding.config] = true
+        end
     end,
     Name = function(mapping, paramname, paramvalue, key)
         local config, sectionname = key:match("(.*)|(.*)")
@@ -595,11 +887,22 @@ Multi_Services_VoiceService_i_VoiceProfile_i_.set = {
         end
     end,
     Region = function(mapping, paramname, paramvalue, key)
+         if #regionExists > 0 then
+           local region_helper = require("transformer.shared.regionhelper")
+           local countryFixed = getCountry()
+           local country = mapCountryAndCode(paramvalue)
+           if country and countryFixed == "" then
+	      region_helper.region_set(paramvalue, transactions, commitapply)
+           else
+              return nil, "the country code is invalid"
+           end
+           return true
+         end
          local country = countryTR104(paramvalue, "country")
          if country then
             paramvalue = country
          else
-            return nil, "the value is invalid"
+            return nil, "the country code is invalid"
          end
          binding.config = "mmpbx"
          binding.sectionname = "global"
@@ -607,6 +910,22 @@ Multi_Services_VoiceService_i_VoiceProfile_i_.set = {
          uci_helper.set_on_uci(binding, paramvalue, commitapply)
          transactions[binding.config] = true
          return true
+    end,
+    DigitMap = function(mapping, paramname, paramvalue, key)
+        local digitMapState = uci_helper.get_from_uci(dialplanbinding)
+        if digitMapState == "1" then
+            if profile_helper.validateDigitMapString(paramvalue) then
+                return setDigitMap(paramname, paramvalue)
+            else
+                return nil, "Invalid DigitMap String"
+            end
+        end
+        return nil, "DigitMap is not supported"
+    end,
+    DigitMapEnable = function(mapping, paramname, paramvalue, key)
+        uci_helper.set_on_uci(dialplanbinding, paramvalue, commitapply)
+        transactions[dialplanbinding.config] = true
+        return true
     end,
     FaxPassThrough = function (mapping, paramname, paramvalue, key)
         if paramvalue == "Force" then
@@ -756,6 +1075,14 @@ Multi_Services_VoiceService_i_VoiceProfile_i_.set = {
        uci_helper.get_from_uci(binding, paramvalue, commitapply)
        transactions[binding.config] = true
     end,
+    X_FASTWEB_TimerT_RING = function (mapping, paramname, paramvalue, key)
+       binding.config = "mmpbx"
+       binding.sectionname = "global"
+       binding.option = "no_answer_timeout"
+       uci_helper.set_on_uci(binding, paramvalue, commitapply)
+       transactions[binding.config] = true
+       return true
+    end,
     X_000E50_SubRegion = function(mapping, paramname, paramvalue, key)
        local subregion = subRegion(paramvalue)
        local country = getCountry()
@@ -805,8 +1132,15 @@ Multi_Services_VoiceService_i_VoiceProfile_i_.delete = function ()
 end
 
 local duplicator = mapper("multiroot").duplicate
-local duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_, "#ROOT", {"InternetGatewayDevice", "Device"})
+local duplicates = duplicator(Multi_Services_VoiceService_i_VoiceProfile_i_, "#ROOT", {"InternetGatewayDevice.Services.VoiceService.{i}.VoiceProfile.{i}.", "Device.Services.VoiceService.{i}.VoiceProfile.{i}.", "rpc.voiceprofile.{i}."})
 for _, dupli in ipairs(duplicates) do
+  if dupli.objectType.name:match("^rpc.voiceprofile.") then
+    for param in pairs(dupli.objectType.parameters) do
+      if param ~= "MaxSessions" and param ~= "DTMFMethod" then
+        dupli.objectType.parameters[param] = nil
+      end
+    end
+  end
   register(dupli)
 end
 
@@ -854,6 +1188,10 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_FaxT38_ = {
           },
           default = "",
         },
+        HighSpeedPacketRate = {
+          access = "readOnly",    -- ReadWrite not supported.
+          type = "unsignedInt",
+        },
       }
     }
 }
@@ -896,6 +1234,7 @@ Multi_Services_VoiceService_i_VoiceProfile_i_FaxT38_.get = {
     LowSpeedRedundancy = get_T38Redundancy,
     BitRate = "14400",  -- Hardcoded in sdp at mmpbxbrcmfxs
     TCFMethod = "Network",
+    HighSpeedPacketRate = "20", -- Hardcoded for IMAGE codec at mmbrcm
 }
 
 Multi_Services_VoiceService_i_VoiceProfile_i_FaxT38_.set = {

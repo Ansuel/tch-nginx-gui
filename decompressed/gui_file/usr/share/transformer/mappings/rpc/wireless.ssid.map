@@ -27,7 +27,7 @@ local wireless_ssid_ = {
             type = "string",
         },
         admin_state = {
-            access = "readOnly",
+            access = "readWrite",
             type = "boolean",
         },
         oper_state = {
@@ -62,6 +62,7 @@ local mapper = mapper
 local uci_helper = mapper("ucihelper")
 local nwcommon = mapper("nwcommon")
 local conn = mapper("ubus").connect()
+local network = require("transformer.shared.common.network")
 local ssidDataCache
 
 local function nilToEmptyString(st)
@@ -83,15 +84,6 @@ local function getDataForIface(iface)
     return result[iface]
 end
 
-local function getDataForRadio(radio)
-    local result = conn:call("wireless.radio", "get", { name = radio })
-    if result == nil then
-        log:error("Cannot retrieve radio info for " .. radio)
-        return {}
-    end
-    return result[radio]
-end
-
 local function entriesWirelessSSID()
     local entries = {}
     ssidDataCache = conn:call("wireless.ssid", "get", { })
@@ -105,7 +97,7 @@ end
 
 local function getLANStateForIface(ssidData, iface)
     local lan = nwcommon.findLanWanInterfaces(false)
-    local radioData = getDataForRadio(ssidData.radio)
+    local radioData = network.getRadioInfo(ssidData.radio)
     local lanmap = {}
     local intfmap = {}
 
@@ -121,8 +113,8 @@ local function getLANStateForIface(ssidData, iface)
     end
 
     if radioData.remotely_managed == 1 then
-        local network = uci_helper.get_from_uci({ config = "wireless", sectionname = iface, option = "network", extended = true})
-        if network and lanmap[network] then
+        local wirelessNetwork = uci_helper.get_from_uci({ config = "wireless", sectionname = iface, option = "network", extended = true})
+        if wirelessNetwork and lanmap[wirelessNetwork] then
             return "1"
         else
             return "0"
@@ -162,13 +154,22 @@ local function get(_, paramName, key)
     end
 end
 
+local namemap = {admin_state="state"}
 local set = {
     ssid = function(_, param, value, key)
          uci_helper.set_on_uci({
             config = "wireless", sectionname = key , option = param
         }, value, commitapply)
+        conn:send("wireless.ssid.event", { ssid_key = key, ssid_value = value })
+    end,
+    admin_state = function(_, param, value, key)
+         uci_helper.set_on_uci({
+            config = "wireless", sectionname = key , option = namemap[param]
+        }, value, commitapply)
+        conn:send("wireless.state.event", { state_key = key, state_value = value })
     end,
 }
+
 wireless_ssid_.entries = entriesWirelessSSID
 wireless_ssid_.getall = getall
 wireless_ssid_.get = get
