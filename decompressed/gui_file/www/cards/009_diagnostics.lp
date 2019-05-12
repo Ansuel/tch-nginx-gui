@@ -14,10 +14,15 @@ if session:hasAccess("/modals/diagnostics-xdsl-modal.lp") and
         session:hasAccess("/modals/diagnostics-network-modal.lp")
 then
 
-  local xdsl_exist = false
-  if lfs.attributes("/etc/config/xdsl", "mode") == "file" then
-    xdsl_exist = true
-  end
+local xdsl_exist = false
+if lfs.attributes("/etc/config/xdsl", "mode") == "file" then
+  xdsl_exist = true
+end
+
+local speedtest_exist = false
+if lfs.attributes("/etc/config/bcm_spdsvc", "mode") == "file" then
+  speedtest_exist = true
+end
 
   ngx.print('\
 <div class="span3">\
@@ -76,7 +81,17 @@ then
 	        <div data-toggle="modal" data-remote="/modals/diagnostics-tcpdump-modal.lp" data-id="diagnostics-network-tcpdump">\
 			  <i class="smallsomeInfos modal-link fa fa-download" style="font-size:32px;" href="#" rel="tooltip" data-placement="top" data-original-title="'); ngx.print(T"TCPDump"); ngx.print('" alt="tcpdump"></i>\
 			</div>\
+	      </td>');
+		  if speedtest_exist then
+		  ngx.print('\
+		  <td>\
+	        <div data-toggle="modal" data-remote="/modals/speedservice-modal.lp" data-id="diagnostics-network-tcpdump">\
+			  <i class="smallsomeInfos modal-link fas fa-tachometer-alt" style="font-size:32px;" href="#" rel="tooltip" data-placement="top" data-original-title="'); ngx.print(T"SpeedTest Service"); ngx.print('" alt="speedtest"></i>\
+			</div>\
 	      </td>\
+		  ');
+		  end
+		  ngx.print('\
 	    </tr>\
       </table>\
     </div>\
