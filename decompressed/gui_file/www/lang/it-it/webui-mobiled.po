@@ -807,3 +807,282 @@ msgstr "Ultimo mese"
 
 msgid "Last Week"
 msgstr "Ultima settimana"
+
+msgid "Session"
+msgstr ""
+
+msgid "RSCP"
+msgstr ""
+
+msgid "Event"
+msgstr ""
+
+msgid "Internet"
+msgstr ""
+
+msgid "Physical Cell ID"
+msgstr ""
+
+msgid "Uplink Frequency"
+msgstr ""
+
+msgid "Uplink EARFCN"
+msgstr ""
+
+msgid "csv"
+msgstr ""
+
+msgid "Exporting failed; please try again."
+msgstr ""
+
+msgid "New ECGI"
+msgstr ""
+
+msgid "Cell ID"
+msgstr ""
+
+msgid "Date"
+msgstr ""
+
+msgid "Network"
+msgstr ""
+
+msgid "SIM Ready"
+msgstr ""
+
+msgid "All"
+msgstr ""
+
+msgid "Info"
+msgstr ""
+
+msgid "Interface Down"
+msgstr ""
+
+msgid "Exporting configuration, please wait..."
+msgstr ""
+
+msgid "PDN"
+msgstr ""
+
+msgid "RSRP"
+msgstr ""
+
+msgid "ECIO"
+msgstr ""
+
+msgid "Active Band"
+msgstr ""
+
+msgid "Path Loss"
+msgstr ""
+
+msgid "Power Mode"
+msgstr ""
+
+msgid "Tracking Area Code Changed"
+msgstr ""
+
+msgid "Active Devices"
+msgstr ""
+
+msgid "No events for the selected period"
+msgstr ""
+
+msgid "The device does not support the authentication of the selected profile."
+msgstr ""
+
+msgid "Network Status"
+msgstr ""
+
+msgid "Carrier Aggregation"
+msgstr ""
+
+msgid "Signal Quality"
+msgstr ""
+
+msgid "Voice"
+msgstr ""
+
+msgid "Tracking Area Code Changes"
+msgstr ""
+
+msgid "Unlock Retries Left"
+msgstr ""
+
+msgid "Downlink Frequency"
+msgstr ""
+
+msgid "Downlink Bandwidth"
+msgstr ""
+
+msgid "Cell Global ID Changes"
+msgstr ""
+
+msgid "Cell Info"
+msgstr ""
+
+msgid "RSRQ"
+msgstr ""
+
+msgid "json"
+msgstr ""
+
+msgid "Major"
+msgstr ""
+
+msgid "Uplink Bandwidth"
+msgstr ""
+
+msgid "Remove Settings"
+msgstr ""
+
+msgid "Operator"
+msgstr ""
+
+msgid "Uplink ARFCN"
+msgstr ""
+
+msgid "Downlink EARFCN"
+msgstr ""
+
+msgid "Tracking Area Code"
+msgstr ""
+
+msgid "Service Status"
+msgstr ""
+
+msgid "RSSI"
+msgstr ""
+
+msgid "Radio Bearer"
+msgstr ""
+
+msgid "Network Deregistered"
+msgstr ""
+
+msgid "Radio Interface Changed"
+msgstr ""
+
+msgid "SNR"
+msgstr ""
+
+msgid "Interface Up"
+msgstr ""
+
+msgid "Session Activated"
+msgstr ""
+
+msgid "New CGI"
+msgstr ""
+
+msgid "Search"
+msgstr ""
+
+msgid "Deactivated"
+msgstr ""
+
+msgid "Firmware Version"
+msgstr ""
+
+msgid "Operator Info"
+msgstr ""
+
+msgid "Downlink ARFCN"
+msgstr ""
+
+msgid "Downlink UARFCN"
+msgstr ""
+
+msgid "Minor"
+msgstr ""
+
+msgid "TX Power"
+msgstr ""
+
+msgid "Success"
+msgstr ""
+
+msgid "Uplink UARFCN"
+msgstr ""
+
+msgid "Use Device Profiles"
+msgstr ""
+
+msgid "Session Deactivated"
+msgstr ""
+
+msgid "Location Area Code Changed"
+msgstr ""
+
+msgid "Location Area Code Changes"
+msgstr ""
+
+msgid "No signal quality history available for the selected period"
+msgstr ""
+
+msgid "Network Registered"
+msgstr ""
+
+msgid "Reject Cause"
+msgstr ""
+
+msgid "Radio Interface Changes"
+msgstr ""
+
+msgid "New TAC"
+msgstr ""
+
+msgid "SINR"
+msgstr ""
+
+msgid "Session Connected"
+msgstr ""
+
+msgid "Events"
+msgstr ""
+
+msgid "EUTRA Cell Global ID Changes"
+msgstr ""
+
+msgid "Network Deregistrations"
+msgstr ""
+
+msgid "Critical"
+msgstr ""
+
+msgid "Statistics"
+msgstr ""
+
+msgid "Unknown"
+msgstr ""
+
+msgid "Session Disconnected"
+msgstr ""
+
+msgid "Hardware Version"
+msgstr ""
+
+msgid "Editing not possible for inactive devices"
+msgstr ""
+
+msgid "New LAC"
+msgstr ""
+
+msgid "Cell Changed"
+msgstr ""
+
+msgid "Unblock Retries Left"
+msgstr ""
+
+msgid "RRC State"
+msgstr ""
+
+msgid "CINR"
+msgstr ""
+
+msgid "Inactive Devices"
+msgstr ""
+
+msgid "New Radio Interface"
+msgstr ""

@@ -4519,3 +4519,21 @@ msgstr ""
 
 msgid "Invalid length, a WEP key must be 5, 10, 13 or 26 characters long, length of 10 and 26 can only contain the letters A to F or digits"
 msgstr ""
+
+msgid "IPv4 Stealth Mode "
+msgstr ""
+
+msgid "Schedule Reboot"
+msgstr ""
+
+msgid "IPv6 Stealth Mode "
+msgstr ""
+
+msgid "<strong>Enabling this will overwrite InternetIPv4 ping selections</strong>,firewall will drop all ICMPv4 services for incoming connections"
+msgstr ""
+
+msgid "<strong>Enabling this will overwrite InternetIPv6 ping selections</strong>,firewall will drop all ICMPv6 services for incoming connections"
+msgstr ""
+
+msgid "Schedule failed :  please select correct Time and date."
+msgstr ""
