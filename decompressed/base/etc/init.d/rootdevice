@@ -1536,6 +1536,16 @@ clean_cups_block_rule() {
 	fi
 }
 
+adds_dnd_config() {
+	if [ -z "$(uci get -q tod.voicednd)" ]; then
+		uci set tod.voicednd=tod
+		uci set tod.voicednd.ringing='off'
+		uci set tod.voicednd.timerandactionmodified='0'
+		uci set tod.voicednd.enabled='1'
+		uci commit tod
+	fi
+}
+
 install_gui() {
 	logger -s -t 'Root Script' "Installing in progress..."
 
@@ -1672,6 +1682,8 @@ install_gui() {
 	prevent_total_brick
 	logger_command "Cleaning cups firewall rule..."
 	clean_cups_block_rule
+	logger_command "Adding missing voicednd rule if needed"
+	adds_dnd_config
 
 	root #This check root availability
 
