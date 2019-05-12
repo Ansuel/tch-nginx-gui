@@ -4537,3 +4537,32 @@ msgstr ""
 
 msgid "Schedule failed :  please select correct Time and date."
 msgstr ""
+
+msgid "Overlapping times are not allowed."
+msgstr ""
+
+msgid "%s"
+msgstr ""
+
+msgid "Ringing Schedule"
+msgstr ""
+
+msgid "During this time ringing is"
+msgstr ""
+
+msgid "Add a New Ringing Schedule"
+msgstr ""
+
+msgid "Start time should be less than Stop time."
+msgstr ""
+
+msgid "DoNotDisturb Control"
+msgstr ""
+
+msgid "SpeedTest Service"
+msgstr ""
+
+msgid "<strong %s>%d DoNotDisturb Control</strong> rule defined"
+msgid_plural "<strong id=\"todcard_timeofday\" %s>%d DoNotDisturb Control</strong> rules defined"
+msgstr[0] ""
+msgstr[1] ""
