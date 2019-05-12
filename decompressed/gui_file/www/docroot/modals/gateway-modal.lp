@@ -340,7 +340,7 @@ local content = {
   passivebank = "sys.banktable.passivebank",
   activeversion = "sys.banktable.activeversion",
   passiveversion = "sys.banktable.passiveversion",
-  rip_key_B = "rpc.system.rip_key_B",
+  rip_key_B = "rpc.system.modgui.utility.rip_key_B",
 }
 
 content_helper.getExactContent(content)
