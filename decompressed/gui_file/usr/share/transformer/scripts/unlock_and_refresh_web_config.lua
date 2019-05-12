@@ -51,6 +51,8 @@ local check_rule = {
 	{ name = 'wolsmodal', target = '/modals/wol-modal.lp' },
 	{ name = 'custodnssmodal', target = '/modals/custodns-modal.lp' },
 	{ name = 'dyndnssmodal', target = '/modals/dyndns-modal.lp' },
+	{ name = 'speedservicemodal', target = '/modals/speedservice-modal.lp' },
+	{ name = 'toddndmodal', target = '/modals/tod_dnd-modal.lp' },
 	{ name = 'nfcmodal', target = '/modals/nfc-modal.lp' },
 	{ name = 'stats', target = '/stats.lp' },
 	{ name = 'cards', target = '/cards.lp' },

@@ -10,6 +10,7 @@ local lfs = require("lfs")
 local items = {
     {"parental-modal.lp", T"Parental Control"},
     {"tod-modal.lp", T"Access Control"},
+	{"tod_dnd-modal.lp", T"DoNotDisturb Control"},
 }
 
 
