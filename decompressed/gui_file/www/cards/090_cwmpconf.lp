@@ -32,21 +32,21 @@ end
 local state, light
 if content.cwmp_state == "1" then
   state = T"Enabled"
-  light = "green"
+  light = "1"--"green"
 else
   state = T"Disabled"
-  light = "off"
+  light = "0"--"off"
 end
 
 ngx.print('\
 \
 <div class="span3">\
     <div class="smallcard" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
-        '); ngx.print( ui_helper.createCardHeader(T"CWMP", modalPath, switchName, content.cwmp_enabled) ); ngx.print('\
+        '); ngx.print( ui_helper.createCardHeader(T"CWMP", modalPath, switchName, content.cwmp_state) ); ngx.print('\
         <div class="content card_bg" data-bg-text="&#xf1c0;">\
 		<div class="divtable">\
                 '); ngx.print(ui_helper.createSimpleLight(light, state, { light = { class = light, id = "cwmpconfcard_cwmpstatusled"}, span = { id = "cwmpconfcard_cwmpstatus" } },"fas fa-wrench") );
-				if content.cwmp_enabled == "1" then
+				if content.cwmp_state == "1" then
 				ngx.print('\
             <p class="subinfos">\
                 '); ngx.print(format(T"ACS URL: <strong id=\"cwmpconfcard_acsurl\">%s</strong>",url )); ngx.print('\
