@@ -276,6 +276,22 @@ local function resetreboot(path, value)
   ngx.exit(ngx.HTTP_OK)
 end
 
+local function schedulerebootset(scheduledatetime)
+ proxy.set("rpc.system.scheduledreboot",scheduledatetime)
+ proxy.set("uci.system.scheduledreboot.enabled","1")
+ proxy.set("rpc.system.scheduledrebootreason","GUI")
+ ngx.header.content_type = "application/json"
+ ngx.print('{ "success":"true" }')
+ ngx.timer.at(0, function()
+    proxy.apply()
+ end)
+   ngx.exit(ngx.HTTP_OK)
+end
+local cui = {
+  upgradefw = "uci.web.uiconfig.@uidefault.upgradefw",
+}
+content_helper.getExactContent(cui)
+
 -- Handle fwupgrade/configimport/configexport specific GET/POSTs.
 if ngx.req.get_method() == "POST" then
   local action = ngx.req.get_uri_args().action
@@ -299,6 +315,9 @@ if ngx.req.get_method() == "POST" then
   end
   if action == "system_reboot" then
     return resetreboot("rpc.system.reboot", "GUI")
+  end
+  if action == "schedulerebootset" then
+    return schedulerebootset(ngx.req.get_post_args().paramvalue)
   end
 elseif ngx.req.get_method() == "GET" then
   local action = ngx.req.get_uri_args().action
@@ -387,50 +406,43 @@ local ntp_columns = {
     name = "ntp_server",
     param = "value",
     type = "text",
+    unique = true
   }
 }
 
--- Function to check the NTP server input and throws error if the entry/ip falls between IPv4 loopback range or it is a IPv4 subnet mask.
-local function checkNTP(ip)
-  if ip and inet.isValidIPv4(untaint(ip)) then
-    if post_helper.validateIPv4Netmask(ip) then
-      return nil,T"Cannot use IPv4 subnet mask."
-    end
-    local startLoopback = "127.0.0.0"
-    local endLoopback = "127.255.255.255"
-    if not (startLoopback <= ip and ip <= endLoopback) then
-      return true
-    else
-      return nil,T"Cannot use loopback IPv4 address range."
-    end
-  end
-end
-
 local function validateNTP(value, object, key)
 -- Adding localdevicemask in post to find the input is a network or broadcast IPv4 address in advancedIPValidation
-  object["localdevmask"] = proxy.get("uci.network.interface.@lan.netmask")[1].value
-  local ntp_servers = session:retrieve("ntp_data")
-  if ntp_servers then
-    for _,v in pairs(ntp_servers) do
-       if (v[1] == value) then
-         return nil, T"Duplicate entry is not allowed"
-       end
-    end
-  end
+  local content = {
+    localdevmask = "uci.network.interface.@lan.netmask",
+    ipaddr = "rpc.network.interface.@lan.ipaddr",
+    wan_ipaddr = "rpc.network.interface.@wan.ipaddr"
+  }
+  content_helper.getExactContent(content)
+  object.localdevmask = content.localdevmask
 
-  if post_helper.validateStringIsIP(value) then
-    local ipaddr = proxy.get("rpc.network.interface.@lan.ipaddr")[1].value
-    local wan_ipaddr = proxy.get("rpc.network.interface.@wan.ipaddr")[1].value
-    if ipaddr and ipaddr == value then
-       return nil, T"Cannot use the gateway IP address."
-    elseif wan_ipaddr and wan_ipaddr == value then
-       return nil, T"Cannot use the gateway WAN IP address."
+  local ok, errmsg, wholeNumber
+  wholeNumber = string.gsub(value,"%.","")
+  if post_helper.getValidateWholeNumber(wholeNumber) then
+    ok, errmsg = post_helper.validateStringIsIPv4(value)
+    if not ok then
+      return nil, errmsg
+    end
+    if post_helper.validateIPv4Netmask(value) then
+      return nil, T"Cannot use IPv4 subnet mask."
+    end
+    if content.ipaddr and content.ipaddr == value then
+      return nil, T"Cannot use the gateway IP address."
+    elseif content.wan_ipaddr and content.wan_ipaddr == value then
+      return nil, T"Cannot use the gateway WAN IP address."
     else
-       local IPValidation = gOV(gAV(checkNTP, post_helper.advancedIPValidation), post_helper.validateStringIsIPv6)
-       return IPValidation(value, object, key)
+      return gOV(gAV(post_helper.reservedIPValidation, post_helper.advancedIPValidation), post_helper.validateStringIsIPv6)(value, object, key)
     end
   else
-    return post_helper.validateStringIsDomainName(value)
+    if not post_helper.validateStringIsIPv6(value) then
+      return post_helper.validateStringIsDomainName(value)
+    else
+      return true
+    end
   end
 end
 
@@ -502,11 +514,6 @@ local system_valid = {
     return false
   end,
 }
-
-local cui = {
-  upgradefw = "uci.web.uiconfig.@uidefault.upgradefw",
-}
-content_helper.getExactContent(cui)
 
 local system_data,system_helpmsg = post_helper.handleQuery(system_params, system_valid)
 
@@ -771,6 +778,16 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 
       html[#html + 1] = ui_helper.createAlertBlock(T"Restarting, please wait...", rebooting)
       html[#html + 1] = ui_helper.createButton(T"Restart Device", T"Restart", "icon-refresh", wait_for_reboot)
+      if role == "engineer" then
+        html[#html + 1] = '<div class="control-group">'
+        html[#html + 1] = format('<label class="control-label">%s</label>', T"Schedule Reboot")
+        html[#html + 1] = '<div class="controls">'
+        html[#html + 1] = '<input type="date"  name="date_schedule" id="date_schedule" ><input type="time" value="00:00"  name="time_schedule" id="time_schedule">&nbsp;'
+        html[#html + 1] =  ui_helper.createSimpleButton(T"Schedule Reboot", "icon-time", schedule_reboot)
+        html[#html + 1] = ui_helper.createAlertBlock(T"Schedule failed :  please select correct Time and date.", schedule_fail)
+        html[#html + 1] = '<label class="schedule_message_get hide">A Reboot has been Scheduled</label>'
+        html[#html + 1] = '</div></div>'
+      end
       html[#html + 1] = ui_helper.createAlertBlock(T"Resetting to factory defaults, please wait...", resetting)
       html[#html + 1] = ui_helper.createButton(T"Factory Defaults", T"Reset", "icon-bolt", wait_for_reset)
       html[#html + 1] = ui_helper.createButton(T"Export Configuration", T"Export", "icon-download-alt", export_config)
@@ -884,10 +901,34 @@ ngx.print('\
       $(document).on("click", PopUpHeaderText, function() {\
            tch.removeProgress();\
            tch.showProgress(processMsg);\
-		   console.log("test");\
            return resetreboot($("#rebooting-msg"), $(this), "system_reboot" );\
 	  });\
   });\
+\
+  $("#btn-schedule-reboot").on("click", function() {\
+   var _date = $("#date_schedule").val();\
+   var _time = $("#time_schedule").val();\
+   schedule_time = $("#date_schedule").val()+"T"+$("#time_schedule").val()+":00Z" ;\
+   var temp =  $("#system_time").text();\
+   var timeformat = temp.split(" ");\
+   temp = timeformat[0]+"T"+timeformat[1]+"Z";\
+   if((( _date && _time) != "") &&( temp < schedule_time))\
+     {\
+      $("#schedule-failed-msg").addClass("hide");\
+      $("#date_schedule").addClass("hide");\
+      $("#time_schedule").addClass("hide");\
+      $("#btn-schedule-reboot").addClass("hide");\
+      $(".schedule_message_get").removeClass("hide");\
+\
+       $.post(\
+          target,\
+          { action: "schedulerebootset", CSRFtoken: $("meta[name=CSRFtoken]").attr("content"),paramvalue :schedule_time },wait_for_webserver_down,"json");\
+     }\
+    else\
+     {\
+       $("#schedule-failed-msg").removeClass("hide");\
+     }\
+ });\
 \
   $("#btn-system-reset").on("click", function() {\
       var heading = "');  ngx.print(T'Factory Defaults'); ngx.print('";\
@@ -900,6 +941,13 @@ ngx.print('\
           return resetreboot($("#resetting-msg"), $(this), "system_reset");\
 	  });\
   });\
+\
+  if ("');  ngx.print(content["schedule_reboot_get"]); ngx.print('" == "1") {\
+    $("#date_schedule").addClass("hide");\
+    $("#time_schedule").addClass("hide");\
+    $("#btn-schedule-reboot").addClass("hide");\
+    $(".schedule_message_get").removeClass("hide");\
+  }\
 \
   $(document).on("click", "#cancel", function() {\
       tch.removeProgress();\
