@@ -83,6 +83,14 @@ local uci_traceroute_ = {
         activeNotify = "canDeny",
         type = "unsignedInt",
       },
+      ProtocolVersion = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "IPv4",
+          "IPv6",
+        },
+      },
       -- RouteHopsNumberOfEntries
       -- automatically created when InternetGatewayDevice.TraceRouteDiagnostics.RouteHops.{i}. is loaded
     }
@@ -166,6 +174,7 @@ uci_traceroute_.add = function(mapping, name)
           DataBlockSize = { config = config, sectionname = section, option = "size" },
           DSCP = { config = config, sectionname = section, option = "dscp" },
           MaxHopCount = { config = config, sectionname = section, option = "hopcount" },
+          ProtocolVersion = { config = config, sectionname = section, option = "type" },
         }
         return helper.startup(name, uci_binding)
     else

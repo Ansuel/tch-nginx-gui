@@ -15,11 +15,11 @@ local intercept_config = {
 mapper("uci_1to1").registerSimpleMap(intercept_config)
 
 --uci.intercept.dns
-local intercept_config = {
+local intercept_dns_config = {
   config = config_intercept,
   section = "dns",
   type = "dns",
   options = { "spoofip" },
 }
-mapper("uci_1to1").registerSimpleMap(intercept_config)
+mapper("uci_1to1").registerSimpleMap(intercept_dns_config)
 

@@ -91,6 +91,14 @@ local uci_ipping_ = {
         activeNotify = "canDeny",
         type = "unsignedInt",
       },
+      ProtocolVersion = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "IPv4",
+          "IPv6",
+        },
+      },
     }
   }
 }
@@ -135,6 +143,7 @@ uci_ipping_.add = function(mapping,name)
        Timeout = { config = config, sectionname = section, option = "timeout" },
        DataBlockSize = { config = config, sectionname = section, option = "size" },
        DSCP = { config = config, sectionname = section, option = "dscp" },
+       ProtocolVersion = {config = config, sectionname = section, option = "iptype"},
      }
      return helper.startup(name, uci_binding)
   else
