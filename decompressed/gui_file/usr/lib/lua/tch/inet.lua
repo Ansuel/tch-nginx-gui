@@ -193,7 +193,17 @@ function M.ipv4ToNumber(ip)
   if ip then
     local ok, bin, num = pcall(inet_pton, AF_INET, ip)
     if ok and bin then
-      return num
+	  if num then
+		return num
+	  else --Check for old inet_pton that doesn't provide directly converted num
+		--Handle EXTREME OLD INSTALLATION with no posix lib at all...
+		local ip = inet_pton and inet_pton(posix.AF_INET, ip) or nil
+		if not ip then
+			return nil
+		end
+		local b1, b2, b3, b4 = ip:byte(1,4)
+		return bit.tobit((b1*16777216) + (b2*65536) + (b3*256) + b4)
+	  end
     else
       return nil, "invalid input data"
     end
@@ -207,8 +217,18 @@ local ipv4ToNumber = M.ipv4ToNumber
 -- @error Error Message
 function M.numberToIpv4(n)
 	local ok, ip = pcall(inet_ntop, AF_INET, n)
+	if not inet_ntop then
+		return nil, "bho"
+	end
 	if ok then
-		return ip
+		if ip then
+			return ip
+		else --Check for old inet that doesn't provide converted ip
+			local band = bit.band
+			local rshift = bit.rshift
+
+			return band(rshift(n,24),0xFF) .. "." .. band(rshift(n,16),0xFF) .. "." .. band(rshift(n,8),0xFF) .. "." .. band(n,0xFF)
+		end
 	end
 	return nil, "invalid data"
 end
