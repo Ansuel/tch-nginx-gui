@@ -4,6 +4,7 @@ local open = io.open
 local pairs, ipairs, unpack, type, tonumber = pairs, ipairs, unpack, type, tonumber
 local concat, sort = table.concat, table.sort
 local string = string
+local untaint = string.untaint
 
 --- content_helper module
 --  @module content_helper
@@ -72,7 +73,7 @@ function M.getExactContent(content)
 		errmsg[#errmsg+1] = "</br>"
 		for key, path in pairs(content) do
 			if not (proxy.get(path)) then
-				errmsg[#errmsg+1] = "Key <strong>" .. key .. "</strong>" .. " : " .. path .. "</br>"
+				errmsg[#errmsg+1] = "Key <strong>" .. untaint(key) .. "</strong>" .. " : " .. untaint(path) .. "</br>"
 				errkey[#errkey+1] = key
 				content[key] = nil
 			end
@@ -352,7 +353,7 @@ local function processCheckboxGroupData(c,v)
             if not key then
                 break
             end
-            cb_data[#cb_data + 1] = string.untaint(key)
+            cb_data[#cb_data + 1] = untaint(key)
         end
     end
     return cb_data
