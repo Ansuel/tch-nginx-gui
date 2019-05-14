@@ -84,23 +84,17 @@ get_transformer() {
 	cmd="require('datamodel').get('$1')"
 	lua -e "$cmd"
 }
-#################################################
-
-log_progress=0
-restart_dnsmasq=0
-
 ####################LOG FUNCTION#################
 logger_command() {
 	if [ "$debug"  -eq 1 ]; then
 		logger -s -t "Root Script" "$1"
 	fi
-	if [ -z "$2" ]; then
-	log_progress=$((log_progress+1))
+	if [ -z "$2" ] && [ -n "log_progress" ]; then
+		log_progress=$((log_progress+1))
 		set_transformer "rpc.system.modgui.upgradegui.log_prog" $log_progress
 		set_transformer "rpc.system.modgui.upgradegui.log" "$1"
 	fi
 }
-#################################################
 #################################################
 
 transfer_bank() {
@@ -241,6 +235,10 @@ root() {
 }
 
 install_gui() {
+	
+	[[ -z "$log_progress" ]] && log_progress=0
+	[[ -z "$restart_dnsmasq" ]] && restart_dnsmasq=0
+
 	logger -s -t 'Root Script' "Installing in progress..."
 
 	logger_command "Disable watchdog"

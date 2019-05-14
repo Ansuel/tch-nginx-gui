@@ -1,3 +1,5 @@
+. /etc/init.d/rootdevice
+
 check_isp_config() {
 	#Detect ISP based on cwmp settings (Italian only)
 	if [ -z "$(uci -q get modgui.var.isp_autodetect)" ]; then
@@ -321,8 +323,7 @@ logger_command "Attempt to clean the wansensing script from hardcoded interfaces
 wan_sensing_clean #Wansensing clean utility
 logger_command "Cleaning cups firewall rule..."
 clean_cups_block_rule
-	[ "$device_type" == "MediaAccess TG789vac v2" ] && logger_command "Unlocking SSH for Tiscali firmware"
-	[ "$device_type" == "MediaAccess TG789vac v2" ] && unlock_ssh_wan_tiscali
-
+[ "$device_type" == "MediaAccess TG789vac v2" ] && logger_command "Unlocking SSH for Tiscali firmware"
+[ "$device_type" == "MediaAccess TG789vac v2" ] && unlock_ssh_wan_tiscali
 logger_command "Checking if ISP is detected..."
 check_isp_and_cwmp
