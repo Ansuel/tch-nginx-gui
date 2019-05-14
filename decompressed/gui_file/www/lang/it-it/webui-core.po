@@ -4566,3 +4566,18 @@ msgid "<strong %s>%d DoNotDisturb Control</strong> rule defined"
 msgid_plural "<strong id=\"todcard_timeofday\" %s>%d DoNotDisturb Control</strong> rules defined"
 msgstr[0] ""
 msgstr[1] ""
+
+msgid "Isp Detected"
+msgstr ""
+
+msgid "ISP Detection option"
+msgstr ""
+
+msgid "Isp used"
+msgstr ""
+
+msgid "Disable ISP autodetect"
+msgstr ""
+
+msgid "TIM (Italy)"
+msgstr ""
