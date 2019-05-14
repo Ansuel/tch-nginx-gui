@@ -25,23 +25,41 @@ local function str2hex(str)
     return hex
 end
 
-local function countStepInRootdevice() 
-	--idiot function to count how much loger we have in rootdevice
+local function enumFileToCount()
 	local rootdevicefile = "/etc/init.d/rootdevice"
+	local additional_script = "/etc/modgui_scripts/"
+	local ret = { rootdevicefile }
+	
+	local p = io.popen('find "'..additional_script..'" -type f')
+	for file in p:lines() do                         
+        ret[ #ret + 1 ] = file
+	end
+	
+	return ret
+end
+
+--idiot function to count how much log output we have in rootdevice
+local function countStepInRootdevice()
 	local start_count = false
 	local log_num = 0
-	for line in io.lines(rootdevicefile) do
-		if start_count == true then
-			if line:match("logger_command \"") and not line:match("\" ConsoleOnly") then
-				log_num = log_num+1
+	
+	for _, file in ipairs(enumFileToCount()) do
+		for line in io.lines(file) do
+			if ( start_count == true ) or not ( file:match("rootdevice") ) then
+				if line:match("logger_command \"") and not line:match("\" ConsoleOnly") then
+					log_num = log_num+1
+				end
+			end
+			if line:match("check_bank%(%) {") and file:match("rootdevice") then
+				io.close()
+				break
+			end
+			if line == "root() {" and file:match("rootdevice") then
+				start_count = true
 			end
 		end
-		if line:match("check_bank%(%) {") then
+		if not ( file:match("rootdevice") ) then
 			io.close()
-			break
-		end
-		if line == "root() {" then
-			start_count = true
 		end
 	end
 	
