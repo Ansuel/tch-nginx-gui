@@ -92,7 +92,6 @@ input.span3, input.span3:focus, textarea, input[type="text"], input[type="passwo
 @media only screen and (max-width: 89rem) {
     #infocardrow {
         display: block !important;
-		margin-left: unset;
 		z-index: 0;
     }
 }
