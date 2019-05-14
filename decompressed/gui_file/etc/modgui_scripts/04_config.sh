@@ -1,3 +1,5 @@
+. /etc/init.d/rootdevice
+
 convert_gui_to_light_gz() {
 	mkdir /tmp/extractemp
 	bzcat /tmp/$1.tar.bz2 | tar -C /tmp/extractemp -xf -
@@ -302,25 +304,6 @@ disable_intercept() {
 	fi
 }
 
-disable_upload_coredump_and_reboot() {
-	#disable upload to tim server for coredump...
-	#This is a modified build so let's not full server with false coredump.
-	if [ "$(uci get -q system.@coredump[0].action)" != "ignore" ]; then
-		uci set system.@coredump[0].action="ignore"
-	fi
-	if [ "$(uci get -q system.@coredump[0].reboot)" != "0" ]; then
-		logger_command "Disable reboot after crash, this gives race condition..."
-		uci set system.@coredump[0].reboot='0'
-	fi
-	#Clean coredump
-	if [ "$(find /root -type f -name "*.core.*")" ]; then
-		for coredump in /root/*.core.* ; do
-			logger_command "Removing coredump $coredump from /root..."
-			rm "$coredump"
-		done
-	fi
-}
-
 restore_nginx() {
 	#This file contain settings specific for gui
 	#For example
@@ -528,55 +511,50 @@ led_integration() {
 }
 
 logger_command "Check original config"
-	orig_config_gen #this check if new config are already present
+orig_config_gen #this check if new config are already present
 logger_command "Unlocking web interface if needed"
-	check_webui_config
-	logger_command "Check if variant_friendly_name set"
-	check_variant_friendly_name
-	logger_command "Remove https check"
-	remove_https_check_cwmpd #cleanup
-	logger_command "Check for CSS themes"
-	check_uci_gui_skin #check css
-	logger_command "Check driver setting"
-	create_driver_setting #create diver setting if not present
-	logger_command "Check Dropbear config file"
-	dropbear_file_check  #check dropbear config
-	logger_command "Check eco paramaters"
-	eco_param #This disable eco param as they introduce some latency
-	logger_command "Create GUI type in config"
-	create_gui_type #Gui Type
-	logger_command "Add new web options"
-	add_new_web_rule #This check new option so that we don't replace the one present
-	logger_command "New DHCPRelay Option"
-	check_relay_dhcp #Sync option
-	logger_command "Disable trace from igmpproxy"
-	suppress_excessive_logging #Suppress logging
-	logger_command "Create new option for led definitions"
-	led_integration #New option led
-	
-	
-	logger_command "Creating and checking real version"
-	real_ver_entitied #Support for spoofing firm
-	logger_command "Implementing WoL"
-	new_wol_implementation #New Wol
-	logger_command "Apply new xDSL options"
-	add_xdsl_option #New xdsl option
-	logger_command "Adding fast cache options"
-	fcctlsettings_daemon #Adds fast cache options
-	
-
-	
-	logger_command "Checking if wan_mode option exists..."
-	check_wan_mode # wan_mode check
-	logger_command "Inizialize and start DoSprotect..."
-	dosprotect_inizialize #dosprotected inizialize function
-	logger_command "Checking if intercept is enabled and disabling if it is..."
-	disable_intercept #Intercept check
-	logger_command "Disabling coredump reboot..."
-	disable_upload_coredump_and_reboot
-	logger_command "Restoring nginx additional options if needed..."
-	restore_nginx
-	logger_command "Adding missing voicednd rule if needed"
-	adds_dnd_config
-	logger_command "Doing various checks and generating hashes..."
-	cumulative_check_gui #Handle strange installation
+check_webui_config
+logger_command "Check if variant_friendly_name set"
+check_variant_friendly_name
+logger_command "Remove https check"
+remove_https_check_cwmpd #cleanup
+logger_command "Check for CSS themes"
+check_uci_gui_skin #check css
+logger_command "Check driver setting"
+create_driver_setting #create diver setting if not present
+logger_command "Check Dropbear config file"
+dropbear_file_check  #check dropbear config
+logger_command "Check eco paramaters"
+eco_param #This disable eco param as they introduce some latency
+logger_command "Create GUI type in config"
+create_gui_type #Gui Type
+logger_command "Add new web options"
+add_new_web_rule #This check new option so that we don't replace the one present
+logger_command "New DHCPRelay Option"
+check_relay_dhcp #Sync option
+logger_command "Disable trace from igmpproxy"
+suppress_excessive_logging #Suppress logging
+logger_command "Create new option for led definitions"
+led_integration #New option led	
+logger_command "Creating and checking real version"
+real_ver_entitied #Support for spoofing firm
+logger_command "Implementing WoL"
+new_wol_implementation #New Wol
+logger_command "Apply new xDSL options"
+add_xdsl_option #New xdsl option
+logger_command "Adding fast cache options"
+fcctlsettings_daemon #Adds fast cache options
+logger_command "Checking if wan_mode option exists..."
+check_wan_mode # wan_mode check
+logger_command "Inizialize and start DoSprotect..."
+dosprotect_inizialize #dosprotected inizialize function
+logger_command "Checking if intercept is enabled and disabling if it is..."
+disable_intercept #Intercept check
+logger_command "Disabling coredump reboot..."
+disable_upload_coredump_and_reboot
+logger_command "Restoring nginx additional options if needed..."
+restore_nginx
+logger_command "Adding missing voicednd rule if needed"
+adds_dnd_config
+logger_command "Doing various checks and generating hashes..."
+cumulative_check_gui #Handle strange installation

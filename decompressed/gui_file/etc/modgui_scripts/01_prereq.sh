@@ -1,3 +1,5 @@
+. /etc/init.d/rootdevice
+
 move_env_var() {
 	if [ ! -f /etc/config/modgui ]; then
 		subpart="gui app var"
@@ -66,12 +68,10 @@ reapply_gui_after_reset() {
 }
 
 move_env_var #This moves every garbage created before 8.11.49 in env to modgui config file
-	check_gui_ver
-	
-	create_symlink
-	
-	check_tmp_permission
-	
-	if [ -f /root/.reapply_due_to_upgrade ]; then
-		reapply_gui_after_reset
-	fi
+check_gui_ver
+create_symlink
+check_tmp_permission
+
+if [ -f /root/.reapply_due_to_upgrade ]; then
+	reapply_gui_after_reset
+fi

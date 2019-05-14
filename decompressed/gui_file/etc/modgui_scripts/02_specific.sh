@@ -1,3 +1,5 @@
+. /etc/init.d/rootdevice
+
 apply_specific_DGA_package() {
 	logger_command "DGA device detected!"
 	logger_command "Extracting custom-ripdrv-specificDGA.tar.bz2 ..."
@@ -147,25 +149,23 @@ wifi_fix_24g() {
 }
 
 #THIS CHECK DEVICE TYPE AND INSTALL SPECIFIC FILE
-	device_type="$(uci get -q env.var.prod_friendly_name)"
-	kernel_ver="$(cat /proc/version | awk '{print $3}')"
+device_type="$(uci get -q env.var.prod_friendly_name)"
+kernel_ver="$(cat /proc/version | awk '{print $3}')"
 
-	logger_command "Applying specific model fixes..."
-	[ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*DGA413*}" ] && apply_specific_DGA_package
-	[ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG789*}" ] && apply_specific_TG789_package
-	[ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG799*}" ] && apply_specific_TG799_package
-	[ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG800*}" ] && apply_specific_TG800_package
-	[ -z "${device_type##*DGA4130*}" ] && ledfw_rework_DGA
-	[ -z "${device_type##*DGA4132*}" ] && ledfw_rework_DGA
-	[ -z "${device_type##*TG788*}" ] && ledfw_rework_TG788
-	[ -z "${device_type##*TG789*}" ] && ledfw_extract "TG789"
-	[ -z "${device_type##*TG799*}" ] && ledfw_rework_TG799
-	[ -z "${device_type##*TG800*}" ] && ledfw_rework_TG800
-
-	[ -z "${device_type##*DGA413*}" ] && wifi_fix_24g
-	
+logger_command "Applying specific model fixes..."
+[ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*DGA413*}" ] && apply_specific_DGA_package
+[ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG789*}" ] && apply_specific_TG789_package
+[ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG799*}" ] && apply_specific_TG799_package
+[ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG800*}" ] && apply_specific_TG800_package
+[ -z "${device_type##*DGA4130*}" ] && ledfw_rework_DGA
+[ -z "${device_type##*DGA4132*}" ] && ledfw_rework_DGA
+[ -z "${device_type##*TG788*}" ] && ledfw_rework_TG788
+[ -z "${device_type##*TG789*}" ] && ledfw_extract "TG789"
+[ -z "${device_type##*TG799*}" ] && ledfw_rework_TG799
+[ -z "${device_type##*TG800*}" ] && ledfw_rework_TG800
+[ -z "${device_type##*DGA413*}" ] && wifi_fix_24g
 	
 if [ -f /tmp/custom-ripdrv-specificDGA.tar.bz2 ]; then
-		clean_specific_file
-		logger_command "Removing fixes and resuming root process..."
-	fi
+	clean_specific_file
+	logger_command "Removing fixes and resuming root process..."
+fi

@@ -1,3 +1,5 @@
+. /etc/init.d/rootdevice
+
 check_new_dlnad() {
 	#This function will check to see which dlna server daemon is installed
 	if [ -f /etc/init.d/dland ] && [ ! -k /etc/rc.d/S98dlnad ] && [ -f /etc/init.d/minidlna ]; then
@@ -95,15 +97,19 @@ telstra_support_check() {
 	fi
 }
 
+#THIS CHECK DEVICE TYPE AND INSTALL SPECIFIC FILE
+device_type="$(uci get -q env.var.prod_friendly_name)"
+kernel_ver="$(cat /proc/version | awk '{print $3}')"
+
 logger_command "Trafficmon inizialization"
-	trafficmon_support #support trafficmon
+trafficmon_support #support trafficmon
 [ -z "${device_type##*DGA413*}" ] && logger_command "Enable DLNAd"
-	[ -z "${device_type##*DGA413*}" ] && check_new_dlnad #this enable a new dlna deamon introduced with 17.1, the old one is keep
-	[ -z "${device_type##*DGA413*}" ] && logger_command "Enable new upnp"
-	[ -z "${device_type##*DGA413*}" ] && enable_new_upnp #New upnp fix
-	logger_command "Move Aria2 dir"
-	check_aria_dir #Fix config function
-	[ -z "${device_type##*DGA413*}" ] && logger_command "Checking opkg feeds config"
-	[ -z "${device_type##*DGA413*}" ] && apply_right_opkg_repo #Check opkg conf based on version
-	logger_command "Reinstalling Telstra GUI if needed..."
-	telstra_support_check #telstra support check
+[ -z "${device_type##*DGA413*}" ] && check_new_dlnad #this enable a new dlna deamon introduced with 17.1, the old one is keep
+[ -z "${device_type##*DGA413*}" ] && logger_command "Enable new upnp"
+[ -z "${device_type##*DGA413*}" ] && enable_new_upnp #New upnp fix
+logger_command "Move Aria2 dir"
+check_aria_dir #Fix config function
+[ -z "${device_type##*DGA413*}" ] && logger_command "Checking opkg feeds config"
+[ -z "${device_type##*DGA413*}" ] && apply_right_opkg_repo #Check opkg conf based on version
+logger_command "Reinstalling Telstra GUI if needed..."
+telstra_support_check #telstra support check
