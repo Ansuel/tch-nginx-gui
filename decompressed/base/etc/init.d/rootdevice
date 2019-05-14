@@ -461,27 +461,38 @@ check_upgrade_shit() {
 
 check_isp_config() {
 	#Detect ISP based on cwmp settings (Italian only)
-	ppp_user=$(uci -q get network.wan.username)
-	cwmp_url=$(uci -q get cwmpd.cwmpd_config.acs_url)
-	if  [ ! "$ppp_user" ]; then
+	if [ -z "$(uci -q get modgui.var.isp_autodetect)" ]; then
+		uci set modgui.var.isp_autodetect="1"
+		uci commit modgui
+	fi
+	
+	if [ -z "$(uci -q get modgui.var.isp_autodetect)" ]; then
 		uci set modgui.var.isp="Other"
-		purify_from_tim
-	else
-		if echo "$ppp_user" | grep -q "alice" || 
-		   echo "$ppp_user" | grep -q "agcombo" || 
-		   echo "$ppp_user" | grep -q "unica" || 
-		   echo "$ppp_user" | grep -q "aliceres" ||
-		   echo "$ppp_user" | grep -q "@00000." ; 
-		then
-			uci set modgui.var.isp="TIM"
-		elif echo "$ppp_user" | grep -q "tiscali.it" || #acs tiscali is preconfigured 
-			echo "$cwmp_url" | grep -q "tiscali.it" ; then #on tiscali firmware only
-			uci set modgui.var.isp="Tiscali"
-		elif echo "$cwmp_url" | grep -q "59.0.121.191" ; then #on fastweb firmware only
-			uci set modgui.var.isp="Fastweb"
-		else
+	fi
+	
+	if [ "$(uci -q get modgui.var.isp_autodetect)" == "1" ]; then
+		ppp_user=$(uci -q get network.wan.username)
+		cwmp_url=$(uci -q get cwmpd.cwmpd_config.acs_url)
+		if  [ ! "$ppp_user" ]; then
 			uci set modgui.var.isp="Other"
 			purify_from_tim
+		else
+			if echo "$ppp_user" | grep -q "alice" || 
+			echo "$ppp_user" | grep -q "agcombo" || 
+			echo "$ppp_user" | grep -q "unica" || 
+			echo "$ppp_user" | grep -q "aliceres" ||
+			echo "$ppp_user" | grep -q "@00000." ; 
+			then
+				uci set modgui.var.isp="TIM"
+			elif echo "$ppp_user" | grep -q "tiscali.it" || #acs tiscali is preconfigured 
+				echo "$cwmp_url" | grep -q "tiscali.it" ; then #on tiscali firmware only
+				uci set modgui.var.isp="Tiscali"
+			elif echo "$cwmp_url" | grep -q "59.0.121.191" ; then #on fastweb firmware only
+				uci set modgui.var.isp="Fastweb"
+			else
+				uci set modgui.var.isp="Other"
+				purify_from_tim
+			fi
 		fi
 	fi
 }
