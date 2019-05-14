@@ -440,7 +440,7 @@ div.logo-technicolor a {
 
 .popUp {
     position: fixed;
-    width: calc(100% - 17rem);
+    width: calc(100% - 17rem) !important;
     max-width: calc(100% - 17rem);
     height: 22rem;
     overflow: visible;
