@@ -286,11 +286,14 @@ legend {
   outline: none;
 }
 
-
-.nav-list>.active>a, .nav-list>.active>a:hover, .nav-list>.active>a:focus {
-  color: #ffffff;
-  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.2);
-  background-color: @blue-color;
+.nav-list {
+   >.active {
+    >a, >a:hover, >a:focus {
+      color: #ffffff;
+      text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.2);
+      background-color: @blue-color;
+    }
+  }
 }
 
 .nav>li>a:hover, .nav>li>a:focus {
