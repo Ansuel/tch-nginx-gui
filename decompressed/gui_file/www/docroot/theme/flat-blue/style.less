@@ -224,9 +224,12 @@ legend {
   color: #1a4a7c;
 }
 
-.btn:hover, .btn:focus, .btn:active, .btn.active, .btn.disabled, .btn[disabled] {
-  background-image: none;
-  box-shadow: 0px 10px 15px -12px rgba(0,0,0,0.4);
+// generic style (not the HTML button item)
+.btn {
+  &:hover, &:focus, &:active, &.active, &.disabled, &[disabled]  {
+    background-image: none;
+    box-shadow: 0px 10px 15px -12px rgba(0,0,0,0.4);
+  }
 }
 
 .btn:hover:hover, .btn:hover:focus, .btn:hover:active, .btn:hover.active, .btn:hover.disabled, .btn:hover[disabled] {
