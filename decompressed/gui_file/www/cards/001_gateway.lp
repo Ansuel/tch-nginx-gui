@@ -16,6 +16,7 @@ local content = {
 }
 
 content_helper.getExactContent(content)
+content.model = model_helper[string.untaint(content.model)]
 
 local modalPath = nil
 local switchName = nil
@@ -41,9 +42,9 @@ ngx.print('\
 					</strong></span>\
       <div data-remote="/modals/gateway-modal.lp" data-id="gateway-modal" style="text-align: center;">\
 	    <picture>\
-		    <source srcset="/img/gateway_'); ngx.print(model); ngx.print('.webp" type="image/webp">\
-		    <source srcset="/img/gateway_'); ngx.print(model); ngx.print('.png" type="image/png">\
-        <img class="someInfos" href="#" rel="tooltip" data-placement="top" data-original-title="');  ngx.print( T"Your Gateway" ); ngx.print('" src="/img/gateway_'); ngx.print(model_helper.model); ngx.print('.png" alt="gateway">\
+		    <source srcset="/img/gateway_'); ngx.print(content.model); ngx.print('.webp" type="image/webp">\
+		    <source srcset="/img/gateway_'); ngx.print(content.model); ngx.print('.png" type="image/png">\
+        <img class="someInfos" href="#" rel="tooltip" data-placement="top" data-original-title="');  ngx.print( T"Your Gateway" ); ngx.print('" src="/img/gateway_'); ngx.print(content.model); ngx.print('.png" alt="gateway">\
 		</picture>\
 		</div>\
       </div>\
