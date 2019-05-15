@@ -189,16 +189,13 @@ legend {
   -moz-box-shadow: inset 0 1px 0 #6295c4;
   box-shadow: inset 0 1px 0 #6295c4;
 }
-.btn {
-  color: #3681dd;
-  text-shadow: none;
-}
 .btn-primary {
   color: #ededed;
   box-shadow: none;
 }
-.btn[disabled] {
-  color: #1a4a7c;
+.btn {
+  color: #3681dd;
+  text-shadow: none;
 }
 .btn:hover,
 .btn:focus,
@@ -217,6 +214,9 @@ legend {
 .btn:hover[disabled] {
   color: #ffffff;
   background-color: #3681dd;
+}
+.btn[disabled] {
+  color: #1a4a7c;
 }
 .btn:hover,
 .btn:focus {
