@@ -241,27 +241,30 @@ legend {
   }
 }
 
-.button:hover:hover, .button:hover:focus, .button:hover:active, .button:hover.active, .button:hover.disabled, .button:hover[disabled] {
-  color: #ffffff;
-  background-color: @blue-color;
+.button{
+  &:hover:hover, &:hover:focus, &:hover:active, &:hover.active, &:hover.disabled, &:hover[disabled] {
+    color: #ffffff;
+    background-color: @blue-color;
+  }
+
+  &:hover {
+    text-shadow: 0 -1px 0px rgba(0, 0, 0, 0.2);
+    color: #ffffff;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+    background-color: @blue-color;
+    background-image: none;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff2b76cb', endColorstr='#ff032b59', GradientType=0);
+    border-color: @blue-color @blue-color @blue-color;
+    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+    -webkit-box-shadow: inset 0px 1px 0px rgba(255,255,255,.5), 0px 0px 5px rgb(179, 224, 253);
+    -moz-box-shadow: inset 0px 1px 0px rgba(255,255,255,.5), 0px 0px 5px rgb(179, 224, 253);
+    box-shadow: inset 0px 1px 0px rgba(255,255,255,.5), 0px 0px 5px rgb(179, 224, 253);
+    border: 1px solid @blue-color;
+    outline: none;
+  }
 }
 
-.button:hover {
-  text-shadow: 0 -1px 0px rgba(0, 0, 0, 0.2);
-  color: #ffffff;
-  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
-  background-color: @blue-color;
-  background-image: none;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff2b76cb', endColorstr='#ff032b59', GradientType=0);
-  border-color: @blue-color @blue-color @blue-color;
-  border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
-  filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
-  -webkit-box-shadow: inset 0px 1px 0px rgba(255,255,255,.5), 0px 0px 5px rgb(179, 224, 253);
-  -moz-box-shadow: inset 0px 1px 0px rgba(255,255,255,.5), 0px 0px 5px rgb(179, 224, 253);
-  box-shadow: inset 0px 1px 0px rgba(255,255,255,.5), 0px 0px 5px rgb(179, 224, 253);
-  border: 1px solid @blue-color;
-  outline: none;
-}
 .smallcard .header .settings:hover:hover, .smallcard .header .settings:hover:focus, .smallcard .header .settings:hover:active, .smallcard .header .settings:hover.active, .smallcard .header .settings:hover.disabled, .smallcard .header .settings:hover[disabled] {
   color: #ffffff;
   background-color: @blue-color;
