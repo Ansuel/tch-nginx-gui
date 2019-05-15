@@ -39,6 +39,8 @@ elseif ( model == "Technicolor TG799vac" ) then
 	model = "TG799vac"
 elseif ( model == "Technicolor TG800vac" ) then
 	model = "TG800vac"
+elseif ( model == "Technicolor DJA0230TLS" ) then
+	model = "DJA0230"
 end
 
 if session:hasAccess("/modals/gateway-modal.lp") then
