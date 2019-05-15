@@ -9,6 +9,9 @@ apply_specific_DGA_package() {
 	logger_command "Extracting telnet_support-specificDGA/TG800.tar.bz2 ..."
 	if [ -f /tmp/telnet_support-specificDGA.tar.bz2 ]; then
 		bzcat /tmp/telnet_support-specificDGA.tar.bz2 | tar -C / -xf -
+		if [ -f /bin/busybox_telnet ] && [ ! -h /usr/sbin/telnetd ]; then
+			ln -s /bin/busybox_telnet /usr/sbin/telnetd
+		fi
 	fi
 	logger_command "Extracting upgrade-pack-specificDGA.tar.bz2 ..."
 	if [ -f /tmp/upgrade-pack-specificDGA.tar.bz2 ]; then
