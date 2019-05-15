@@ -107,7 +107,7 @@ if not tabdata.current.ajax then
 	html[#html+1] = '</fieldset>'
 	--Autodetect cwmp address
 	html[#html+1] = '<legend>' .. T"ISP Detection option" .. '</legend>'
-	html[#html+1] = ui_helper.createSwitch(T"Disable ISP autodetect", "isp_autodetect", content["isp_autodetect"], switch_mon_isp)
+	html[#html+1] = ui_helper.createSwitch(T"ISP Autodetect", "isp_autodetect", content["isp_autodetect"], switch_mon_isp)
 	html[#html+1] = ui_helper.createInputRadio(T"Isp used", "isp_detected", isp_cwmp_known, content["isp_detected"], isp_autodetect_mon_0)
 	html[#html+1] = ui_helper.createLabel(T"Isp Detected", content["isp_detected"],isp_autodetect_mon_1)
 	
