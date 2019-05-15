@@ -1,7 +1,9 @@
 #!/bin/sh
 # Copyright (C) 2018 kevdagoat (kevdawhirl@gmail.com)
 # Written by kevdagoat for tch-nginx-gui.
-# Last Updated: 15/5/19: Added new modgui support
+# Last Updated: 15/5/19 (by Kevdagoat)
+#	- Added new features
+#	- ModGUI config support (future proofing)
 
 
 ######################################################################
@@ -62,9 +64,24 @@ mkdir ./nginx-files > /dev/null 2>&1
 cp -R /etc/nginx/* ./nginx-files/ > /dev/null 2>&1
 
 log "Copying samba config..."
-cp /etc/config/samba ./samba.txt > /dev/null 2>&1
+cp /etc/config/samba ./samba.txt > /dev/null 2>&
 
-log "Copying dlna config..."
+log "Copying parental config..."
+cp /etc/config/parental ./parental-block.txt > /dev/null 2>&1
+
+log "Copying tod config..."
+cp /etc/config/tod ./tod.txt > /dev/null 2>&1
+
+log "Copying UPNP config..."
+if [ -f "/etc/config/upnpd" ]; then
+	cp /etc/config/dlnad ./upnp-upnpd.txt > /dev/null 2>&1
+	sed -i '/uuid/d' ./upnp-upnpd.txt
+else
+	log "UPNP daemon doesn't exist!!"
+	touch ./upnp-nonexistant.txt
+fi
+
+log "Copying DLNA config..."
 if [ -f "/etc/config/dlnad" ]; then
 	cp /etc/config/dlnad ./dlna-dlnad.txt > /dev/null 2>&1
 	sed -i '/uuid/d' ./dlna-dlnad.txt
