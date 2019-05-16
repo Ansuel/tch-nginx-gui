@@ -72,11 +72,6 @@ logger_command "Resetting cwmp and watchdog"
 rm /root/.check_process #we remove the placeholder as the process is complete
 logger_command "Process done."
 
-#Remove reapply file as the root process after upgrade has finished.
-if [ -f /root/.reapply_due_to_upgrade ]; then
-	rm /root/.reapply_due_to_upgrade
-fi
-
 set_transformer "rpc.system.modgui.upgradegui.state" "Finished"
 
 logger_command "Restarting transformer" ConsoleOnly

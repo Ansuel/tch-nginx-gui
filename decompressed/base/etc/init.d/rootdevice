@@ -236,13 +236,10 @@ root() {
 
 install_gui() {
 	
-	[[ -z "$log_progress" ]] && log_progress=0
-	[[ -z "$restart_dnsmasq" ]] && restart_dnsmasq=0
+	[[ -z "$log_progress" ]] && export log_progress=0
+	[[ -z "$restart_dnsmasq" ]] && export restart_dnsmasq=0
 
 	logger -s -t 'Root Script' "Installing in progress..."
-
-	logger_command "Disable watchdog"
-	/etc/init.d/watchdog-tch stop
 
 	logger_command "Start rooting"
 	if [ ! -f /root/.check_process ]; then #this check if the placeholder exist
@@ -251,11 +248,17 @@ install_gui() {
 	
 	root #This check root availability
 	
-	for file in /etc/modgui_scripts/*; do
-		logger_command "Executing $file"
-		$file
-	done
-
+	if [ -d /etc/modgui_scripts ] ; then
+		for file in /etc/modgui_scripts/*; do
+			logger_command "Executing $file"
+			$file
+		done
+	fi
+	
+	#Remove reapply file as the root process after upgrade has finished.
+	if [ -f /root/.reapply_due_to_upgrade ]; then
+		rm /root/.reapply_due_to_upgrade
+	fi
 
 	echo "  Process done. Your modem is now rooted!" > /dev/console
 }

@@ -67,6 +67,9 @@ reapply_gui_after_reset() {
 	fi
 }
 
+logger_command "Disable watchdog"
+/etc/init.d/watchdog-tch stop
+
 move_env_var #This moves every garbage created before 8.11.49 in env to modgui config file
 check_gui_ver
 create_symlink
