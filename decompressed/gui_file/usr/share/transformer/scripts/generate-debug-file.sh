@@ -7,10 +7,10 @@
 
 
 ######################################################################
-DATE=$(date +%Y-%m-%d)
+DATE=$(date +%Y-%m-%d-%H%M)
 prod=$(uci get env.var.prod_name)
 friend=$(uci get env.var.prod_friendly_name)
-isp=$(uci get env.var._provisioning_code)
+isp=$(uci get modgui.var.isp)
 version=$(uci get env.var.friendly_sw_version_activebank)
 
 log() {
@@ -28,9 +28,6 @@ exit 0
 fi
 
 log "DebugHelper Started! Run debug help for commands."
-
-log "Removing directory /tmp/$DATE-DebugHelper/* to prevent duplicates"
-rm -R /tmp/$DATE-DebugHelper > /dev/null 2>&1
 
 log "Creating dir"
 mkdir /tmp/$DATE-DebugHelper/ > /dev/null 2>&1
