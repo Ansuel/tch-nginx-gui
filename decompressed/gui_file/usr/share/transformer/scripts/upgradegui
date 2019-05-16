@@ -62,7 +62,7 @@ if [ "$1" ]; then
 	if [ "$1" == "SetTime" ]; then
 		hour="$(uci get modgui.gui.autoupgrade_hour)"
 		autoupgrade="$(uci get modgui.gui.autoupgrade)"
-		if [ "$(< /etc/crontabs/root | grep upgradegui )" ]; then
+		if [ "$(cat /etc/crontabs/root | grep upgradegui )" ]; then
             sed -i '/upgradegui/d' /etc/crontabs/root
         fi
 		if [ "$autoupgrade" == "1" ]; then
