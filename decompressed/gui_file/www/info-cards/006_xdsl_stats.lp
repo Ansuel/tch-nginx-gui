@@ -13,8 +13,8 @@ local find, sub, format, floor = string.find, string.sub, string.format, math.fl
 local content = {
   status = "sys.class.xdsl.@line0.LinkStatus",
   version = "rpc.xdsl.dslversion",
-  max_upstream = "Device.DSL.Line.1.UpstreamMaxBitRate",
-  max_downstream = "Device.DSL.Line.1.DownstreamMaxBitRate",
+  dsl_linerate_up_max = "sys.class.xdsl.@line0.UpstreamMaxRate",
+  dsl_linerate_down_max = "sys.class.xdsl.@line0.DownstreamMaxRate",
   dsl_linerate_up = "sys.class.xdsl.@line0.UpstreamCurrRate",
   dsl_linerate_down = "sys.class.xdsl.@line0.DownstreamCurrRate",
   dsl_margin_up = "sys.class.xdsl.@line0.UpstreamNoiseMargin",
@@ -36,11 +36,11 @@ local content = {
 content_helper.getExactContent(content)
 
 if not ( content.dsl_linerate_down == "0" ) then
-
+content.max_upstream = nil
 content.dsl_linerate_up = content.dsl_linerate_up and floor(tonumber(content.dsl_linerate_up) / 10) / 100 .. " Mbps"  or "Can't recover data"
 content.dsl_linerate_down = content.dsl_linerate_down and floor(tonumber(content.dsl_linerate_down) / 10) / 100 .. " Mbps"  or "Can't recover data"
-content.max_upstream = content.max_upstream and (floor(tonumber(content.max_upstream) / 10) / 100 .. " Mbps") or "Can't recover data"
-content.max_downstream = content.max_downstream and floor(tonumber(content.max_downstream) / 10) / 100 .. " Mbps"  or "Can't recover data"
+content.dsl_linerate_up_max = content.dsl_linerate_up_max and (floor(tonumber(content.dsl_linerate_up_max) / 10) / 100 .. " Mbps") or "Can't recover data"
+content.dsl_linerate_down_max = content.dsl_linerate_down_max and floor(tonumber(content.dsl_linerate_down_max) / 10) / 100 .. " Mbps"  or "Can't recover data"
 
 if not ( content.dsl_type:match("ADSL") ) then
 	content.dsl_margin_down = content.dsl_margin_SNRM_down
@@ -104,9 +104,9 @@ end
 	html[#html + 1] =   '<label class="control-label">' .. T("Max Rate") .. '</label>'
 	html[#html + 1] =   '<div class="controls">'
 	html[#html + 1] =     '<span id="Rate" class=" simple-desc span3">'
-	html[#html + 1] =		format('<i class="icon-download icon-small gray"></i> <span data-bind="text: max_downstream">%s</span>',content["max_downstream"])
+	html[#html + 1] =		format('<i class="icon-download icon-small gray"></i> <span data-bind="text: dsl_linerate_down_max">%s</span>',content["max_downstream"])
 	html[#html + 1] =		'</br>'
-	html[#html + 1] =		format('<i class="icon-upload icon-small gray"></i> <span data-bind="text: max_upstream">%s</span>', content["max_upstream"])
+	html[#html + 1] =		format('<i class="icon-upload icon-small gray"></i> <span data-bind="text: dsl_linerate_up_max">%s</span>', content["max_upstream"])
 	html[#html + 1] =	  '</span>'
 	html[#html + 1] =   '</div>'
 	html[#html + 1] = '</div>'

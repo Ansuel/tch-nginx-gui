@@ -19,8 +19,8 @@ if datatype and datatype== "xdsl" then
 	
 	data = {
 		status = "sys.class.xdsl.@line0.LinkStatus",
-		max_upstream = "Device.DSL.Line.1.UpstreamMaxBitRate",
-		max_downstream = "Device.DSL.Line.1.DownstreamMaxBitRate",
+		dsl_linerate_up_max = "sys.class.xdsl.@line0.UpstreamMaxRate",
+		dsl_linerate_down_max = "sys.class.xdsl.@line0.DownstreamMaxRate",
 		dsl_linerate_up = "sys.class.xdsl.@line0.UpstreamCurrRate",
 		dsl_linerate_down = "sys.class.xdsl.@line0.DownstreamCurrRate",
 		dsl_margin_up = "sys.class.xdsl.@line0.UpstreamNoiseMargin",
@@ -36,21 +36,24 @@ if datatype and datatype== "xdsl" then
 		dslam_version = "rpc.xdslctl.DslamVersion",
 		dsl_profile = "rpc.xdslctl.DslProfile",
 		dsl_port = "rpc.xdslctl.DslamPort"
-	}
-	
-	content = {
 		dslam_version_raw = "rpc.xdslctl.DslamVersionRaw"
 	}
-	
-	content_helper.getExactContent(content)
 	
 	content_helper.getExactContent(data)
 	
 	if not ( data.dsl_linerate_down == "0" ) then
-		data.dsl_linerate_up = floor(tonumber(data.dsl_linerate_up) / 10) / 100 .. " Mbps"
-		data.dsl_linerate_down = floor(tonumber(data.dsl_linerate_down) / 10) / 100 .. " Mbps"
-		data.max_upstream = floor(tonumber(data.max_upstream) / 10) / 100 .. " Mbps"
-		data.max_downstream = floor(tonumber(data.max_downstream) / 10) / 100 .. " Mbps"
+		data.dsl_linerate_up = data.dsl_linerate_up and 
+			(floor(tonumber(data.dsl_linerate_up) / 10) / 100 .. " Mbps") or
+			"Can't recover data"
+		data.dsl_linerate_down = data.dsl_linerate_down and 
+			(floor(tonumber(data.dsl_linerate_down) / 10) / 100 .. " Mbps") or
+			"Can't recover data"
+		data.dsl_linerate_up_max = data.dsl_linerate_up_max and 
+			(floor(tonumber(data.dsl_linerate_up_max) / 10) / 100 .. " Mbps") or
+			"Can't recover data"
+		data.dsl_linerate_down_max = data.dsl_linerate_down_max and 
+			(floor(tonumber(data.dsl_linerate_down_max) / 10) / 100 .. " Mbps") or 
+			"Can't recover data"
 		
 		if not ( data.dsl_type:match("ADSL") ) then
 			data.dsl_margin_down = data.dsl_margin_SNRM_down
@@ -63,13 +66,15 @@ if datatype and datatype== "xdsl" then
 			data.dslam_chipset = "Infineon" .. " ( " .. data.dslam_chipset .. " )"
 		end
 		
-		if not ( content.dslam_version_raw:sub(0,2) == "0x" ) then
+		if not ( data.dslam_version_raw:sub(0,2) == "0x" ) then
 			if content.dslam_version_raw == "" then
 				data.dslam_chipset = T"Can't recover dslam version."
 			else
-				data.dslam_chipset = format(T"Invalid version, can't convert. Raw value: %s", content.dslam_version_raw)
+				data.dslam_chipset = format(T"Invalid version, can't convert. Raw value: %s", data.dslam_version_raw)
 			end
 		end
+		
+		data.dslam_version_raw = nil
 		
 		if data.status == "Showtime" then
 			data.status = T"Connected"
