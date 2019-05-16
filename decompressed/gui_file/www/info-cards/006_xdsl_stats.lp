@@ -37,10 +37,10 @@ content_helper.getExactContent(content)
 
 if not ( content.dsl_linerate_down == "0" ) then
 
-content.dsl_linerate_up = floor(tonumber(content.dsl_linerate_up) / 10) / 100 .. " Mbps"
-content.dsl_linerate_down = floor(tonumber(content.dsl_linerate_down) / 10) / 100 .. " Mbps"
-content.max_upstream = floor(tonumber(content.max_upstream) / 10) / 100 .. " Mbps"
-content.max_downstream = floor(tonumber(content.max_downstream) / 10) / 100 .. " Mbps"
+content.dsl_linerate_up = content.dsl_linerate_up and floor(tonumber(content.dsl_linerate_up) / 10) / 100 .. " Mbps"  or "Can't recover data"
+content.dsl_linerate_down = content.dsl_linerate_down and floor(tonumber(content.dsl_linerate_down) / 10) / 100 .. " Mbps"  or "Can't recover data"
+content.max_upstream = content.max_upstream and (floor(tonumber(content.max_upstream) / 10) / 100 .. " Mbps") or "Can't recover data"
+content.max_downstream = content.max_downstream and floor(tonumber(content.max_downstream) / 10) / 100 .. " Mbps"  or "Can't recover data"
 
 if not ( content.dsl_type:match("ADSL") ) then
 	content.dsl_margin_down = content.dsl_margin_SNRM_down
