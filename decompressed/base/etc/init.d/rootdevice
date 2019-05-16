@@ -236,8 +236,8 @@ root() {
 
 install_gui() {
 	
-	[[ -z "$log_progress" ]] && export log_progress=0
-	[[ -z "$restart_dnsmasq" ]] && export restart_dnsmasq=0
+	[[ -z "$log_progress" ]] && log_progress=0
+	[[ -z "$restart_dnsmasq" ]] && restart_dnsmasq=0
 
 	logger -s -t 'Root Script' "Installing in progress..."
 
@@ -251,7 +251,7 @@ install_gui() {
 	if [ -d /etc/modgui_scripts ] ; then
 		for file in /etc/modgui_scripts/*; do
 			logger_command "Executing $file" ConsoleOnly
-			$file
+			. $file
 		done
 	fi
 	
