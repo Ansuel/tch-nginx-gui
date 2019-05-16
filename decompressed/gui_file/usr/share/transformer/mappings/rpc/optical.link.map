@@ -1,5 +1,4 @@
 local open, popen, string, register = io.open, io.popen, string, register
---local log = require("transformer.logger")
 
 local optical = require("transformer.shared.optical")
 local flag = optical.getBoardtype()

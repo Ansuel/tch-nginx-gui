@@ -29,7 +29,8 @@ local network_interface_ppp_ = {
   }
 }
 
-local logger = require("transformer.logger")
+local modgui = require("modgui")
+local logger = modgui.getRightLoggerModule()
 local log = logger.new("network.interface.ppp", 2)
 local uci_helper = mapper("ucihelper")
 local nw_common = mapper("nwcommon")

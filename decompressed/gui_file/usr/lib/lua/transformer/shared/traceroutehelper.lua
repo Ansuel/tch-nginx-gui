@@ -1,7 +1,8 @@
 local M = {}
 local io, string = io, string
 local open = io.open
-local logger = require("transformer.logger")
+local modgui = require("modgui")
+local logger = modgui.getRightLoggerModule()
 local uci = require("transformer.mapper.ucihelper")
 local config = "traceroute"
 local match, sub = string.match, string.sub

@@ -6,7 +6,9 @@ local tostring, commitApply = tostring, commitapply
 local uciHelper = require("transformer.mapper.ucihelper")
 local forEachOnUci = uciHelper.foreach_on_uci
 local setOnUci = uciHelper.set_on_uci
-local log = require("transformer.logger").new("mapper.xtmctl", 2)
+local modgui = require("modgui")
+local logger = modgui.getRightLoggerModule()
+local log = logger.new("mapper.xtmctl", 2)
 
 local luabcm = require("luabcm")
 

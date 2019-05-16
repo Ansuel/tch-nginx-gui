@@ -8,7 +8,8 @@ local uci = require("transformer.mapper.ucihelper")
 local getFromUci = uci.get_from_uci
 local forEachOnUci = uci.foreach_on_uci
 
-local log = require('tch.logger')
+local modgui = require("modgui")
+local log = modgui.getRightLoggerModule()
 
 local M = {}
 

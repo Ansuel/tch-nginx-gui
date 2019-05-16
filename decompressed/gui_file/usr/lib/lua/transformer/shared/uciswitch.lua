@@ -74,7 +74,8 @@ local concat = table.concat
 local io = require 'io'
 
 local ucihelper = require 'transformer.mapper.ucihelper'
-local logger = require 'transformer.logger'
+local modgui = require("modgui")
+local logger = modgui.getRightLoggerModule()
 
 local M = {}
 

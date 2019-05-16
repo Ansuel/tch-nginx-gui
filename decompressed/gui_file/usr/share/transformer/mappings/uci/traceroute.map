@@ -133,7 +133,8 @@ local uci_traceroute_RouteHops_i_ = {
 }
 
 local open = io.open
-local logger = require("transformer.logger")
+local modgui = require("modgui")
+local logger = modgui.getRightLoggerModule()
 local uci = mapper("ucihelper")
 local config = "traceroute"
 local function entries_users(mapping)

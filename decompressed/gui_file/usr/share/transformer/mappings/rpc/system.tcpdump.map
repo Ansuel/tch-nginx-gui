@@ -67,7 +67,10 @@ local match, gmatch = string.match, string.gmatch
 local lfs = require("lfs")
 local execute, exit, remove = os.execute, os.exit, os.remove
 local open = io.open
-local log = require("tch.logger").new("tcpdump",2)
+local modgui = require("modgui")
+local modgui = require("modgui")
+local logger = modgui.getRightLoggerModule()
+local log = logger.new("tcpdump",2)
 
 local MAX_COUNT = "16000"
 local TCPDUMP_PCAP = "/tmp/tcpdumpGUI.pcap"
