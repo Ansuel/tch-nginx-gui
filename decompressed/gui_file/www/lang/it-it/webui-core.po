@@ -4581,3 +4581,6 @@ msgstr ""
 
 msgid "TIM (Italy)"
 msgstr ""
+
+msgid "ISP Autodetect"
+msgstr ""
