@@ -219,7 +219,6 @@ legend {
 
 // generic style (not the HTML button item)
 .btn {
-  // color: @blue-color;
   text-shadow: none;
 
   &:hover, &:focus, &:active, &.active, &.disabled, &[disabled]  {
@@ -238,6 +237,10 @@ legend {
 
   &:hover, &:focus{
     background-position:0 0px;
+  }
+
+  &.custom-handler {
+    color: @blue-color;
   }
 }
 

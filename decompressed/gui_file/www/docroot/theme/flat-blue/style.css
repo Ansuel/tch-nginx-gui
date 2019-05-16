@@ -221,6 +221,9 @@ legend {
 .btn:focus {
   background-position: 0 0px;
 }
+.btn.custom-handler {
+  color: #3681dd;
+}
 .button:hover:hover,
 .button:hover:focus,
 .button:hover:active,
