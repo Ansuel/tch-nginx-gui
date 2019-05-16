@@ -553,6 +553,9 @@ ngx.print('\
     } else if (data.state == "Downloading") {\
       $(".bar").css("width", "100%").css("background-color","#4caf50");\
       window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
+	} else if (data.state == "Clearing") {\
+      $(".bar").css("width", "100%").css("background-color","#4caf50");\
+      window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
     } else if (data.state == "Extracting") {\
       var extract_bar_val = isNaN(data.extract_prog)?1:(data.extract_prog/12);\
       $("#extracted_file").removeClass("hide");\

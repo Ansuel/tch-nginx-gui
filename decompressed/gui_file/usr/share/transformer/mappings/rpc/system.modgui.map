@@ -91,6 +91,7 @@ local SYSTEM_MODGUI_UPGRADEGUI_ = {
         enumeration = {
           "Not started",
 		  "Downloading",
+		  "Clearing",
 		  "Extracting",
 		  "Requested",
           "In Progress",
@@ -171,11 +172,15 @@ SYSTEM_MODGUI_UPGRADEGUI_.get = {
 SYSTEM_MODGUI_UPGRADEGUI_.set = {
   state = function(mapping, paramName, paramValue)  
 	if paramValue == "Finished" or 
+	   paramValue == "Clearing" or
 	   paramValue == "Extracting" or
 	   paramValue == "Requested" or 
 	   paramValue == "Downloading" then
         upgradegui.state = paramValue
     end
+	if paramValue == "Finished" then
+		upgradegui.log = ""
+	end
   end,
   start = function(mapping, paramName, paramValue)  
 	if paramValue == "1" then

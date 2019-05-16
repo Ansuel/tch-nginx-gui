@@ -241,7 +241,7 @@ else
 	logger_command "Found file in /tmp dir... doing offline upgrade!"
 fi
 
-set_transformer "rpc.system.modgui.upgradegui.state" "Extracting"
+set_transformer "rpc.system.modgui.upgradegui.state" "Clearing"
 
 #NOT NEEDED ANYMORE
 #logger_command "Stopping nginx..."
@@ -271,6 +271,8 @@ for dir in /www/* ; do
 		rm -rf "$dir"
 	fi
 done
+
+set_transformer "rpc.system.modgui.upgradegui.state" "Extracting"
 
 logger_command "Extracting file..."
 # Extract new GUI to /
