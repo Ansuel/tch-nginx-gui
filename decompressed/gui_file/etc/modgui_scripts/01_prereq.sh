@@ -75,6 +75,10 @@ check_gui_ver
 create_symlink
 check_tmp_permission
 
+if [ -f /root/.install_gui ]; then
+	rm /root/.install_gui
+fi
+
 if [ -f /root/.reapply_due_to_upgrade ]; then
 	reapply_gui_after_reset
 fi

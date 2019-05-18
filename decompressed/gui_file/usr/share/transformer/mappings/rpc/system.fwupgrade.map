@@ -66,7 +66,15 @@ local SYSTEM_FWUPGRADE_ = {
           "DualBank",
         },
       },
-	  upgradetype = {
+	  upgrade_type = {
+		access = "readWrite",
+        type = "string",
+        enumeration = {
+          "Normal",
+          "Reset"
+        },
+	  },
+	  gui_install_type = {
 		access = "readWrite",
         type = "string",
         enumeration = {
@@ -101,7 +109,8 @@ end
 local function fwupgrade_reset()
   fwupgrade_mapdata.state = "None"
   fwupgrade_mapdata.info = ""
-  fwupgrade_mapdata.upgradetype = "Normal"
+  fwupgrade_mapdata.upgrade_type = "Normal"
+  fwupgrade_mapdata.gui_install_type = "Normal"
   fwupgrade_mapdata.errorcode = "0"
   if fwupgrade_mapdata.banktype == "DualBank" then
     fwupgrade_mapdata.manualswitchover= "0"
@@ -154,9 +163,13 @@ local function fwupgrade_start()
   end
 
   local filename = fwupgrade_location..fwupgrade_mapdata.filename
-  local resetcommand = ""
-  if ( fwupgrade_mapdata.upgradetype == "Reset" ) then
-	resetcommand = "--reset "
+  local ResetCommand = ""
+  local RootOnlyCommand = ""
+  if ( fwupgrade_mapdata.upgrade_type == "Reset" ) then
+	ResetCommand = "--reset "
+  end
+  if ( fwupgrade_mapdata.gui_install_type == "RootOnly" ) then
+	RootOnlyCommand = "--rootonly "
   end
   -- Start sysupgrade in the background; normally this will restart the box after several seconds
   -- force GC to run to try to prevent lua from taking more memory during
@@ -167,10 +180,10 @@ local function fwupgrade_start()
   collectgarbage()
   local cmd="/usr/lib/cwmpd/transfers/rollback.sh record GUI; start-stop-daemon -m -p"
   if (fwupgrade_mapdata.banktype == "DualBank") and (fwupgrade_mapdata.manualswitchover == "1") then
-    os.execute(cmd .. fwupgrade_pidfile .. " -b -x sysupgrade-safe -S  -- -o --gui ".. resetcommand .. filename)
+    os.execute(cmd .. fwupgrade_pidfile .. " -b -x sysupgrade-safe -S  -- -o --gui ".. ResetCommand .. RootOnlyCommand .. filename)
     fwupgrade_mapdata.state = "Waitforswitch"
   else
-    os.execute(cmd .. fwupgrade_pidfile .. " -b -x sysupgrade-safe -S  --  --gui ".. resetcommand  .. filename)
+    os.execute(cmd .. fwupgrade_pidfile .. " -b -x sysupgrade-safe -S  --  --gui ".. ResetCommand  .. RootOnlyCommand .. filename)
   end
 end
 
@@ -225,8 +238,11 @@ SYSTEM_FWUPGRADE_.get = {
   banktype = function(mapping, param)
     return fwupgrade_mapdata.banktype or ""
   end,
-  upgradetype = function(mapping, param)
-    return fwupgrade_mapdata.upgradetype or "Normal"
+  upgrade_type = function(mapping, param)
+    return fwupgrade_mapdata.upgrade_type or "Normal"
+  end,
+  gui_install_type = function(mapping, param)
+    return fwupgrade_mapdata.gui_install_type or "Normal"
   end,
 }
 
@@ -246,12 +262,14 @@ SYSTEM_FWUPGRADE_.set = {
        if (fwupgrade_mapdata.banktype == "DualBank") then
          switch = fwupgrade_mapdata.manualswitchover
        end
-       local upgradetype = fwupgrade_mapdata.upgradetype or "Normal"
+       local upgrade_type = fwupgrade_mapdata.upgrade_type or "Normal"
+	   local gui_install_type = fwupgrade_mapdata.gui_install_type or "Normal"
        fwupgrade_reset()
        if (fwupgrade_mapdata.banktype == "DualBank") then
          fwupgrade_mapdata.manualswitchover = switch
        end
-	   fwupgrade_mapdata.upgradetype = upgradetype
+	   fwupgrade_mapdata.upgrade_type = upgrade_type
+	   fwupgrade_mapdata.gui_install_type = gui_install_type
        fwupgrade_mapdata.state = "Requested"
        fwupgrade_start()
     end
@@ -270,11 +288,18 @@ SYSTEM_FWUPGRADE_.set = {
     fwupgrade_reset()
     fwupgrade_mapdata.filename = value
   end,
-  upgradetype = function(mapping, param, value)
+  upgrade_type = function(mapping, param, value)
     if value ~= "Reset" then
 	  return nil, "invalid value"
 	else
-	  fwupgrade_mapdata.upgradetype = value
+	  fwupgrade_mapdata.upgrade_type = value
+	end
+  end,
+  gui_install_type = function(mapping, param, value)
+    if value ~= "RootOnly" then
+	  return nil, "invalid value"
+	else
+	  fwupgrade_mapdata.gui_install_type = value
 	end
   end,
 }

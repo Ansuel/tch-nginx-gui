@@ -357,6 +357,9 @@ boot() {
     if [ -f /root/.check_process ]; then
         echo "  GUI install process not terminated well! Reinstalling..." > /dev/console
         install_gui
+	elif [ -f /root/.install_gui ]; then
+		echo "  detected reinstall GUI request! Installing..." > /dev/console
+        install_gui
     else
         if [ $force -eq 1 ]; then
             echo "  force flag detected! Reinstalling..." > /dev/console

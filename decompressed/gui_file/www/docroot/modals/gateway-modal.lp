@@ -200,10 +200,10 @@ local function import_config()
   ngx.exit(ngx.HTTP_OK)
 end
 
-local function upgradefw(upgradetype)
+local function upgradefw(reset,rootonly)
   local fwupgrade_rpc_path = "rpc.system.fwupgrade."
   local filename = "fwupgrade.bin"
-
+  
   local content = {
     fwupgrade_state = fwupgrade_rpc_path .. "state",
     fwupgrade_location = fwupgrade_rpc_path .. "location"
@@ -225,8 +225,11 @@ local function upgradefw(upgradetype)
   -- sysupgrade will create the pipe
   -- separate requests as the order is important
   proxy.set({[fwupgrade_rpc_path .. "filename"] = filename})
-  if ( upgradetype == "Reset" ) then
-	proxy.set({[fwupgrade_rpc_path .. "upgradetype"] = upgradetype})
+  if reset then
+	proxy.set({[fwupgrade_rpc_path .. "upgrade_type"] = "Reset"})
+  end
+  if rootonly then
+	proxy.set({[fwupgrade_rpc_path .. "gui_install_type"] = "Rootonly"})
   end
   proxy.set({[fwupgrade_rpc_path .. "state"] = "Requested"})
 
@@ -295,15 +298,14 @@ content_helper.getExactContent(cui)
 -- Handle fwupgrade/configimport/configexport specific GET/POSTs.
 if ngx.req.get_method() == "POST" then
   local action = ngx.req.get_uri_args().action
+  local upgrade_reset = ngx.req.get_uri_args().upgrade_reset  and true or nil
+  local upgrade_rootonly = ngx.req.get_uri_args().upgrade_rootonly and true or nil
   -- do not call get_post_args before we know that we don't have a file sent otherwise it will fail
   if action == "import_config" then
     return import_config()
   end
   if action == "upgradefw" then
-    return upgradefw("Normal")
-  end
-  if action == "upgradefw_reset" then
-	return upgradefw("Reset")
+    return upgradefw(upgrade_reset,upgrade_rootonly)
   end
   -- now process non-file POSTs
   local action = ngx.req.get_post_args().action
@@ -734,7 +736,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
           class = "monitor-system_network_timezone monitor-0"
         }
       }
-	  local reset_on_update = {
+	  local reset_on_upgrade = {
         input = {
             class = "no-save",
         }
@@ -810,7 +812,9 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       if cui.upgradefw == "1" then
         if cui.upgradefw == "1" then
 		  html[#html + 1] = ui_helper.createAlertBlock(T"Check this to remove config after firmware update.<br/>This won't remove root.<br/>It is advertised to check this if you are downgrading the firmware.", basic)
-		  html[#html + 1] = ui_helper.createInputCheckbox(T"Remove config file with upgrade","remove_conf","0",reset_on_update)
+		  html[#html + 1] = ui_helper.createInputCheckbox(T"Remove config file with upgrade","remove_conf_on_upgrade","0",reset_on_upgrade)
+		  html[#html + 1] = ui_helper.createAlertBlock(T"Check this to only root the modem after the firmware is installed.<br/>After this you had to reinstall the gui.<br/>Expect the web interface to be broken after the upgrade", basic)
+		  html[#html + 1] = ui_helper.createInputCheckbox(T"Root only modem after upgrade","rootonly_on_upgrade","0",reset_on_upgrade)
           html[#html + 1] = '</form><form class="form-horizontal" id="form-upgradefw" method="post" enctype="multipart/form-data">'
           html[#html + 1] = '<div class="control-group">'
           html[#html + 1] = format('<label class="control-label">%s</label>', T"Update firmware")
@@ -1124,10 +1128,13 @@ ngx.print('\
     upgrading_msg.removeClass("hide");\
     upgrading_msg[0].scrollIntoView();\
     tch.showProgress("');  ngx.print(T'Upgrading...'); ngx.print('");\
-	if ($("input[name=\'remove_conf\']").is(":checked")) {\
-		$("#form-upgradefw").attr("action", "modals/gateway-modal.lp?action=upgradefw_reset"); } \
-	else {\
-		$("#form-upgradefw").attr("action", "modals/gateway-modal.lp?action=upgradefw"); }\
+	var action = "modals/gateway-modal.lp?action=upgradefw";\
+	if ($("input[name=\'remove_conf_on_upgrade\']").is(":checked"))\
+		action+="&reset=1";\
+	if ($("input[name=\'rootonly_on_upgrade\']").is(":checked"))\
+		action+="&rootonly=1";\
+\
+	$("#form-upgradefw").attr("action", action); }\
     $.fileUpload($("#form-upgradefw"), { \
       params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
       completeCallback: function(form, response) {\

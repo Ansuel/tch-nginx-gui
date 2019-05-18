@@ -413,6 +413,12 @@ platform_do_upgrade() {
 			RESTORE_CONFIG=0
 		fi
 	fi
+	local INSTALL_GUI=1
+	if [ -n $ROOT_ONLY ]; then
+		if [ $ROOT_ONLY -eq 1 ]; then
+			INSTALL_GUI=0
+		fi
+	fi
 	
 	if [ -f $root_tmp_dirt/GUI.tar.bz2 ] || [ -f /overlay/$(cat /proc/banktable/booted)/etc/init.d/rootdevice ]; then
 		
@@ -436,6 +442,10 @@ platform_do_upgrade() {
 			
 			if [ $RESTORE_CONFIG -eq 1 ]; then
 				restore_config_File
+			fi
+			
+			if [ $INSTALL_GUI -eq 1 ]; then
+				echo 1 > /overlay/$target_bank/root/.install_gui
 			fi
 			
 			if [ "$SWITCHBANK" -eq 1 ]; then
