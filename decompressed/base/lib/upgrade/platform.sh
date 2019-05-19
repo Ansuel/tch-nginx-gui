@@ -297,29 +297,20 @@ root_device() {
 	local gui_file=$root_tmp_dirt/GUI.tar.bz2
 	local gz_gui_file=$root_tmp_dirt/GUI.tar.gz
 	
-	if [ "$SWITCHBANK" -eq 1 ]; then
-		mkdir /overlay/$target_bank
-		if [ -f $gui_file ]; then
-			bzcat $gui_file | tar -C /overlay/$target_bank -xf -
-		else
-			tar -C /overlay/$target_bank -zxf $gz_gui_file
-		fi
-		echo "Restoring GUI file in flash"
-		mkdir -p /overlay/$target_bank/root
-		cp $gui_file /overlay/$target_bank/root/
-		echo 1 > /overlay/$target_bank/root/.reapply_due_to_upgrade
+	local bank=$running_bank
+	[ "$SWITCHBANK" -eq 1 ] && bank=$target_bank
+	
+	mkdir /overlay/$bank
+	if [ -f $gui_file ]; then
+		bzcat $gui_file | tar -C /overlay/$bank -xf -
 	else
-		mkdir /overlay/$running_bank
-		if [ -f $gui_file ]; then
-			bzcat $gui_file | tar -C /overlay/$running_bank -xf -
-		else
-			tar -C /overlay/$running_bank -zxf $gz_gui_file
-		fi
-		echo "Restoring GUI file in flash"
-		mkdir -p /overlay/$running_bank/root
-		cp $gui_file /overlay/$running_bank/root/
-		echo 1 > /overlay/$running_bank/root/.reapply_due_to_upgrade
+		tar -C /overlay/$bank -zxf $gz_gui_file
 	fi
+	echo "Restoring GUI file in flash"
+	mkdir -p /overlay/$bank/root
+	cp $gui_file /overlay/$bank/root/
+	echo 1 > /overlay/$bank/root/.reapply_due_to_upgrade
+	
 	echo "Device Rooted"
 }
 
@@ -444,24 +435,22 @@ platform_do_upgrade() {
 				restore_config_File
 			fi
 			
-			if [ $INSTALL_GUI -eq 1 ]; then
-				echo 1 > /overlay/$target_bank/root/.install_gui
-			fi
+			local bank = $running_bank
 			
 			if [ "$SWITCHBANK" -eq 1 ]; then
+				bank = $target_bank
 				echo $target_bank > /proc/banktable/active
 			fi
+			
 			if platform_is_dualbank; then
-				if [ "$SWITCHBANK" -eq 1 ] && [ -f /overlay/$target_bank/etc/init.d/rootdevice ]; then
+				if [ -f /overlay/$bank/etc/init.d/rootdevice ]; then
+					if [ $INSTALL_GUI -eq 1 ]; then
+						echo 1 > /overlay/$bank/root/.install_gui
+					fi
 					if [ ! -z $device ]; then
 						umount $device
 					fi
-					platform_do_upgrade_bank $1 $target_bank || exit 1
-				elif [ -f /overlay/$running_bank/etc/init.d/rootdevice ]; then
-					if [ ! -z $device ]; then
-						umount $device
-					fi
-					platform_do_upgrade_bank $1 $running_bank || exit 1
+					platform_do_upgrade_bank $1 $bank || exit 1
 				else
 					echo "Rooting file not present in new config! Aborting... "
 					emergency_restore_root
