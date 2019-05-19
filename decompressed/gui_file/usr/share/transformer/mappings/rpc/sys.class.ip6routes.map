@@ -62,8 +62,9 @@ end
 -- unreachable 2001:470:ec9c:2080::/60 dev lo  proto static  metric 2147483647  error -128
 -- fe80::/64 dev br-hotspot0  proto kernel  metric 256
 sys_class_ip6routes_.entries = function()
+  local popen = require("modgui").popen
   local entries = {}
-  local routes = io.popen("ip -6 route show")
+  local routes = popen("ip -6 route show")
   if routes then
     for line in routes:lines() do
       local start, routeInfo = line:match("^(%S+)%s+(.*)")

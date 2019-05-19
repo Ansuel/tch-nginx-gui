@@ -55,7 +55,7 @@ local ATMStats = {
 }
 
 local register = register
-local popen = io.popen
+local popen = require("modgui").popen
 
 -- mapping all params in a lookup table with the parsed arguments
 local accessAtmStatsmap = {

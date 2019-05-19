@@ -1,5 +1,4 @@
-
-local popen = io.popen
+local popen = require("modgui").popen
 local string = string
 local register = register
 local uci_helper = mapper("ucihelper")

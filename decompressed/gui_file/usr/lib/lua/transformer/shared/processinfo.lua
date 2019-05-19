@@ -1,7 +1,8 @@
 local M = {}
 local io, math = io, math
 local floor = math.floor
-local open, popen = io.open, io.popen
+local popen = require("modgui").popen
+local open = io.open
 local tostring = tostring
 
 -- Calculates CPU usage since boot from the /proc/stat file. This value is a ratio of the non-idle time to the total usage in "USER_HZ".

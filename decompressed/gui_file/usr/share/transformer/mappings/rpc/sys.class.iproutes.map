@@ -97,13 +97,14 @@ local notallowed = {
 }
 
 local function generate_data(tableref)
+  local popen = require("modgui").popen
   local data = cache[tableref]
   if data then
     return data
   end
   data = {}
   cache[tableref] = data
-  local readtable = io.popen(format("ip route show table %s", tableref))
+  local readtable = popen(format("ip route show table %s", tableref))
   for line in readtable:lines() do
     if line ~= "" and find(line, "Error:") == nil then
       local words = {}

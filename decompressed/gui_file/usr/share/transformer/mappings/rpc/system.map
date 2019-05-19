@@ -11,6 +11,7 @@ local versionBinding = { config = "versioncusto", sectionname = "override" }
 local envBinding = { config = "env", sectionname = "var" }
 local sysBinding = { config = "system", sectionname = "warmboot" }
 local lfs = require("lfs")
+local popen = require("modgui").popen
 
 local rebootreasons = network.getRebootReasons()
 
@@ -142,7 +143,7 @@ local system_ = {
             return rebootHelper.getRebootOptions("rebootreason", "CLI")
         end,
         usb3_available = function()
-          local p_uname = io.popen("uname -r")
+          local p_uname = popen("uname -r")
           if p_uname then
             local uname = p_uname:read("*l")
             p_uname:close()

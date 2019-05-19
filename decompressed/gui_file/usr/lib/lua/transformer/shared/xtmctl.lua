@@ -1,6 +1,6 @@
 -- helper functions to wrap xtmctl utility from broadcom
-local popen = io.popen
-local execute = os.execute
+local popen = require("modgui").popen
+local execute = require("modgui").execute
 local match = string.match
 local tostring, commitApply = tostring, commitapply
 local uciHelper = require("transformer.mapper.ucihelper")

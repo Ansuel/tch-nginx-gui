@@ -1,6 +1,7 @@
 local register = register
 local lfs = require("lfs")
-local popen, iopen = io.popen, io.open
+local popen = require("modgui").popen
+local iopen = io.open
 local match, format = string.match, string.format
 
 local sys_mem_ = {

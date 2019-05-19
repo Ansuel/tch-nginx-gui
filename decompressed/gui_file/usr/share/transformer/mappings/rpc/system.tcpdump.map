@@ -68,7 +68,6 @@ local lfs = require("lfs")
 local execute, exit, remove = os.execute, os.exit, os.remove
 local open = io.open
 local modgui = require("modgui")
-local modgui = require("modgui")
 local logger = modgui.getRightLoggerModule()
 local log = logger.new("tcpdump",2)
 
@@ -151,7 +150,8 @@ end
 
 -- to get all valid tcpdump interfaces
 local function getlist()
-  local fd = io.popen("tcpdump -D")
+  local popen = require("modgui").popen
+  local fd = popen("tcpdump -D")
   local list = {}
   tcpdump_info.intflist = ""
   if fd then

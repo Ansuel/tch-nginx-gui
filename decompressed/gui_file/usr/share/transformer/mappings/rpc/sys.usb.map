@@ -313,6 +313,7 @@ local sys_usb_device_i_partition_i_ = {
 }
 
 function entriesSysBusUsbDevicespartitions(mapping, parentkey)
+	local popen = require("modgui").popen
     local cursor = uci.cursor(nil, "/var/state")
     local entries = {}
 
@@ -333,7 +334,7 @@ function entriesSysBusUsbDevicespartitions(mapping, parentkey)
     -- Checking whether the connected device is hub or storage device based on the maxchild value
     local child = network.getFirstLine(path .. "maxchild")
     if child == "0" then
-        local fp = io.popen(string.format("/usr/bin/find %s -name sd*", path))
+        local fp = popen(string.format("/usr/bin/find %s -name sd*", path))
         if fp == nil then
             return {}
         end

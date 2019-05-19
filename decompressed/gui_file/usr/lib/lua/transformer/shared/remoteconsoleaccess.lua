@@ -17,7 +17,7 @@ local ubus = require("transformer.mapper.ubus").connect()
 
 local open = io.open
 local remove = os.remove
-local execute = os.execute
+local execute = require("modgui").execute
 local configBinding = {}
 local transactions = {}
 
