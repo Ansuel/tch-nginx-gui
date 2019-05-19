@@ -63,7 +63,7 @@ function sms.get(mapping, paramName, key)
 end
 
 function sms.entries(mapping)
-	local data = helper.getUbusData(conn, "mobiled.sms", "get")
+	local data = helper.getUbusData(conn, "mobiled.sms", "get",{})
 	local messages = {}
 	if type(data.messages) == "table" then
 		message_cache = data.messages

@@ -33,7 +33,7 @@ end
 local helper = require("mobiled.scripthelpers")
 
 function sms.getall(mapping)
-	local data = helper.getUbusData(conn, "mobiled.sms", "info")
+	local data = helper.getUbusData(conn, "mobiled.sms", "info",{})
 	if data.read_messages ~= "" and data.unread_messages ~= "" then
 		data.total_messages = tostring(tonumber(data.read_messages) + tonumber(data.unread_messages))
 	end
