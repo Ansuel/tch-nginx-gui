@@ -1130,11 +1130,11 @@ ngx.print('\
     tch.showProgress("');  ngx.print(T'Upgrading...'); ngx.print('");\
 	var action = "modals/gateway-modal.lp?action=upgradefw";\
 	if ($("input[name=\'remove_conf_on_upgrade\']").is(":checked"))\
-		action+="&reset=1";\
+		action+="&upgrade_reset=1";\
 	if ($("input[name=\'rootonly_on_upgrade\']").is(":checked"))\
-		action+="&rootonly=1";\
+		action+="&upgrade_rootonly=1";\
 \
-	$("#form-upgradefw").attr("action", action); }\
+	$("#form-upgradefw").attr("action", action);\
     $.fileUpload($("#form-upgradefw"), { \
       params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
       completeCallback: function(form, response) {\
