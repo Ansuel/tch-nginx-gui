@@ -57,7 +57,7 @@ function M.popen(FullCommand)
 	if isModuleAvailable("tch.process") then
 		return require("tch.process").popen(parseCommandToTchLib(FullCommand))
 	end
-	return os.popen(FullCommand)
+	return io.popen(FullCommand)
 end
 
 return M
