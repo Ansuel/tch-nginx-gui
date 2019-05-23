@@ -799,7 +799,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       html[#html + 1] = '<div class="control-group">'
       html[#html + 1] = format('<label class="control-label">%s</label>', T"Import Configuration")
       html[#html + 1] = '<div class="controls">'
-      html[#html + 1] = '<input type="file" name="configfile" id="file-import">&nbsp;'
+      html[#html + 1] = '<input type="file" name="configfile" id="file-import" accept=".bin">&nbsp;'
       html[#html + 1] = ui_helper.createSimpleButton(T"Import", "icon-upload-alt", import_config)
       html[#html + 1] = '</div></div>'
       html[#html + 1] = ui_helper.createAlertBlock(T"No file selected.", importing_nofile)
@@ -819,7 +819,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
           html[#html + 1] = '<div class="control-group">'
           html[#html + 1] = format('<label class="control-label">%s</label>', T"Update firmware")
           html[#html + 1] = '<div class="controls">'
-          html[#html + 1] = '<input type="file" name="upgradefile" id="file-upgradefw">&nbsp;'
+          html[#html + 1] = '<input type="file" name="upgradefile" id="file-upgradefw" accept=".rbi, .fw">&nbsp;'
           html[#html + 1] = ui_helper.createSimpleButton(T"Update", "icon-shield", upgradefw)
           html[#html + 1] = '</div></div>'
           html[#html + 1] = ui_helper.createAlertBlock(T"No file selected.", upgrading_nofile)
