@@ -32,7 +32,8 @@ end
 
 local isp_cwmp_known = {
 	{"TIM", T"TIM (Italy)"},
-	{"Tiscal", "Tiscali(Italy)"}
+	{"Tiscal", T"Tiscali (Italy)"},
+	{"Other", T"Generic"},
 }
 
 local mapParams = {
