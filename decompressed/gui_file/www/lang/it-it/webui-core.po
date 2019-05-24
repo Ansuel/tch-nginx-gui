@@ -4590,3 +4590,6 @@ msgstr ""
 
 msgid "Root only modem after upgrade"
 msgstr ""
+
+msgid "Tiscali (Italy)"
+msgstr ""
