@@ -78,6 +78,7 @@ if [ "$1" ]; then
 			exit 0
 			# Enabling alert for the gui about the autoupgrade
 			uci set modgui.gui.autoupgradeview=auto
+			uci commit modgui
 		fi
 	fi
 	
