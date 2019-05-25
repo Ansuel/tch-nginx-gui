@@ -639,12 +639,12 @@ ngx.print('\
 	var _this = $(this).parents(".control-group");\
 	importing_msg.removeClass("hide");\
 	importing_msg[0].scrollIntoView();\
-	
+\
 	$.fileUpload($("#form-import-gui"), {\
 	  params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
 	  completeCallback: function(form, response) {\
 		if (response.success) {\
-		  inizialize_ui_for_update();
+		  inizialize_ui_for_update();\
 		  wait_for_upgradegui();\
 		} else {\
 		  importing_msg.addClass("hide");\
