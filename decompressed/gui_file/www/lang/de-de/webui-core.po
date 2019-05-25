@@ -4593,3 +4593,12 @@ msgstr ""
 
 msgid "Tiscali (Italy)"
 msgstr ""
+
+msgid "automatically at <strong>%s:00</strong>"
+msgstr ""
+
+msgid " to version <strong>%s</strong> successfully"
+msgstr ""
+
+msgid "The modem has been updated "
+msgstr ""
