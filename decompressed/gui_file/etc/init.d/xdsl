@@ -10,235 +10,238 @@ CONFIGURE_OPTIONS=
 ADVANCED_OPTIONS=
 
 ucimultimode2xdslctl () {
-    local modflags
+	local modflags
 
-    for mode in $1
-    do
+	for mode in $1
+	do
 	case "$mode" in
-	    gdmt) modflag="d";;
-	    glite) modflag="l";;
-	    t1413) modflag="t";;
-	    adsl2) modflag="2";;
-	    adsl2annexl) modflag="e";;
-	    adsl2annexm) modflag="m";;
-	    adsl2plus)modflag="p";;
-	    vdsl2) modflag="v";;
-	    gfast) modflag="f";;
-	    *) ;;
+		gdmt) modflag="d";;
+		glite) modflag="l";;
+		t1413) modflag="t";;
+		adsl2) modflag="2";;
+		adsl2annexl) modflag="e";;
+		adsl2annexm) modflag="m";;
+		adsl2plus)modflag="p";;
+		vdsl2) modflag="v";;
+		gfast) modflag="f";;
+		*) ;;
 	esac
 	modflags="$modflags$modflag"
 	modflag=""
-    done
-    echo "--mod $modflags"
+	done
+	echo "--mod $modflags"
 }
 
 uciprofile2xdslctl () {
-    local profiles
+	local profiles
 
-    for profile in $1
-    do
+	for profile in $1
+	do
 	if [ -n "$profiles" ]; then
-	    profiles="$profiles $profile"
+		profiles="$profiles $profile"
 	else
-	    profiles="$profile"
+		profiles="$profile"
 	fi
-    done
-    echo "--profile \"$profiles\""
+	done
+	echo "--profile \"$profiles\""
 }
 
 # Handle maximum bitrates ( Upstream, Downstream and Aggregated )
 ucimaxdatarate2xdslctl()
 {
-    local maxdsdatarate="$1"
-    local maxusdatarate="$2"
-    local maxaggrdatarate="$3"
+	local maxdsdatarate="$1"
+	local maxusdatarate="$2"
+	local maxaggrdatarate="$3"
 
-    # you have to provide all 3 data rates!
-    if [ -n "$maxdsdatarate" ] && [ -n "$maxusdatarate" ] && [ -n "$maxaggrdatarate" ]; then
-      echo "--maxDataRate $maxdsdatarate $maxusdatarate $maxaggrdatarate"
-    fi
+	# you have to provide all 3 data rates!
+	if [ -n "$maxdsdatarate" ] && [ -n "$maxusdatarate" ] && [ -n "$maxaggrdatarate" ]; then
+	  echo "--maxDataRate $maxdsdatarate $maxusdatarate $maxaggrdatarate"
+	fi
 }
 
 # Handle 'advanced' PHY configuration bitmaps
 uciadvancedconfig2xdslctl () {
-    local config="$1"
+	local config="$1"
 
-    local adsldemodcapmask adsldemodcapvalue
-    local adslhsmodeswitchtime
-    local adsldemodcap2mask adsldemodcap2value
-    local xdslauxfeaturesmask xdslauxfeaturesvalue
-    local vdslcfgflagsmask vdslcfgflagsvalue
-    local xdslcfg1mask xdslcfg1value
-    local xdslcfg2mask xdslcfg2value
-    local xdslcfg3mask xdslcfg3value
-    local xdslcfg4mask xdslcfg4value
-    local advconfigstring
+	local adsldemodcapmask adsldemodcapvalue
+	local adslhsmodeswitchtime
+	local adsldemodcap2mask adsldemodcap2value
+	local xdslauxfeaturesmask xdslauxfeaturesvalue
+	local vdslcfgflagsmask vdslcfgflagsvalue
+	local xdslcfg1mask xdslcfg1value
+	local xdslcfg2mask xdslcfg2value
+	local xdslcfg3mask xdslcfg3value
+	local xdslcfg4mask xdslcfg4value
+	local advconfigstring
 
-    config_get adsldemodcapmask "$config" demod_cap_mask
-    config_get adsldemodcapvalue "$config" demod_cap_value
-    config_get adslhsmodeswitchtime "$config" handshake_switch_timeout
-    config_get adsldemodcap2mask "$config" demod_cap2_mask
-    config_get adsldemodcap2value "$config" demod_cap2_value
-    config_get xdslauxfeaturesmask "$config" aux_features_mask
-    config_get xdslauxfeaturesvalue "$config" aux_features_value
-    config_get vdslcfgflagsmask "$config" vdsl_cfg_flags_mask
-    config_get vdslcfgflagsvalue "$config" vdsl_cfg_flags_value
-    config_get xdslcfg1mask "$config" xdsl_cfg1_mask
-    config_get xdslcfg1value "$config" xdsl_cfg1_value
-    config_get xdslcfg2mask "$config" xdsl_cfg2_mask
-    config_get xdslcfg2value "$config" xdsl_cfg2_value
-    config_get xdslcfg3mask "$config" xdsl_cfg3_mask
-    config_get xdslcfg3value "$config" xdsl_cfg3_value
-    config_get xdslcfg4mask "$config" xdsl_cfg4_mask
-    config_get xdslcfg4value "$config" xdsl_cfg4_value
+	config_get adsldemodcapmask "$config" demod_cap_mask
+	config_get adsldemodcapvalue "$config" demod_cap_value
+	config_get adslhsmodeswitchtime "$config" handshake_switch_timeout
+	config_get adsldemodcap2mask "$config" demod_cap2_mask
+	config_get adsldemodcap2value "$config" demod_cap2_value
+	config_get xdslauxfeaturesmask "$config" aux_features_mask
+	config_get xdslauxfeaturesvalue "$config" aux_features_value
+	config_get vdslcfgflagsmask "$config" vdsl_cfg_flags_mask
+	config_get vdslcfgflagsvalue "$config" vdsl_cfg_flags_value
+	config_get xdslcfg1mask "$config" xdsl_cfg1_mask
+	config_get xdslcfg1value "$config" xdsl_cfg1_value
+	config_get xdslcfg2mask "$config" xdsl_cfg2_mask
+	config_get xdslcfg2value "$config" xdsl_cfg2_value
+	config_get xdslcfg3mask "$config" xdsl_cfg3_mask
+	config_get xdslcfg3value "$config" xdsl_cfg3_value
+	config_get xdslcfg4mask "$config" xdsl_cfg4_mask
+	config_get xdslcfg4value "$config" xdsl_cfg4_value
 
-    # Parameters MUST be applied in correct order. If one is missing, the
-    # parameters after will not be applied. Maybe a LUA script can replace this
-    # by first parsing the BCM defaults, then applying our configured parameters....
-    if [ -n "$adsldemodcapmask" ] && [ -n "$adsldemodcapvalue" ]; then
-      advconfigstring="$adsldemodcapmask $adsldemodcapvalue"
-      if [ -n "$adslhsmodeswitchtime" ]; then
+	# Parameters MUST be applied in correct order. If one is missing, the
+	# parameters after will not be applied. Maybe a LUA script can replace this
+	# by first parsing the BCM defaults, then applying our configured parameters....
+	if [ -n "$adsldemodcapmask" ] && [ -n "$adsldemodcapvalue" ]; then
+	  advconfigstring="$adsldemodcapmask $adsldemodcapvalue"
+	  if [ -n "$adslhsmodeswitchtime" ]; then
 	advconfigstring="$advconfigstring $adslhsmodeswitchtime"
 	if [ -n "$adsldemodcap2mask" ] && [ -n "$adsldemodcap2value" ]; then
 	  advconfigstring="$advconfigstring $adsldemodcap2mask $adsldemodcap2value"
 	  if [ -n "$xdslauxfeaturesmask" ] && [ -n "$xdslauxfeaturesvalue" ]; then
-	    advconfigstring="$advconfigstring $xdslauxfeaturesmask $xdslauxfeaturesvalue"
-	    if [ -n "$vdslcfgflagsmask" ] && [ -n "$vdslcfgflagsvalue" ]; then
-	      advconfigstring="$advconfigstring $vdslcfgflagsmask $vdslcfgflagsvalue"
-	      if [ -n "$xdslcfg1mask" ] && [ -n "$xdslcfg1value" ]; then
+		advconfigstring="$advconfigstring $xdslauxfeaturesmask $xdslauxfeaturesvalue"
+		if [ -n "$vdslcfgflagsmask" ] && [ -n "$vdslcfgflagsvalue" ]; then
+		  advconfigstring="$advconfigstring $vdslcfgflagsmask $vdslcfgflagsvalue"
+		  if [ -n "$xdslcfg1mask" ] && [ -n "$xdslcfg1value" ]; then
 		advconfigstring="$advconfigstring $xdslcfg1mask $xdslcfg1value"
 		if [ -n "$xdslcfg2mask" ] && [ -n "$xdslcfg2value" ]; then
 		  advconfigstring="$advconfigstring $xdslcfg2mask $xdslcfg2value"
 		  if [ -n "$xdslcfg3mask" ] && [ -n "$xdslcfg3value" ]; then
-		    advconfigstring="$advconfigstring $xdslcfg3mask $xdslcfg3value"
-		    if [ -n "$xdslcfg4mask" ] && [ -n "$xdslcfg4value" ]; then
-		      advconfigstring="$advconfigstring $xdslcfg4mask $xdslcfg4value"
-		    fi
+			advconfigstring="$advconfigstring $xdslcfg3mask $xdslcfg3value"
+			if [ -n "$xdslcfg4mask" ] && [ -n "$xdslcfg4value" ]; then
+			  advconfigstring="$advconfigstring $xdslcfg4mask $xdslcfg4value"
+			fi
 		  fi
 		fi
-	      fi
-	    fi
+		  fi
+		fi
 	  fi
 	fi
-      fi
-    fi
+	  fi
+	fi
 
-    if [ -n "$advconfigstring" ]; then
-      # Hidden command is exposed here.  Nice!
-      echo "--phycfg $advconfigstring"
-    else
-      echo ""
-    fi
+	if [ -n "$advconfigstring" ]; then
+	  # Hidden command is exposed here.  Nice!
+	  echo "--phycfg $advconfigstring"
+	else
+	  echo ""
+	fi
 }
 
 xdsl_config() {
-    local cfg="$1"
-    local multimode profile status
-    local maxdsdatarate maxusdatarate maxaggrdatarate
-    local advanced
-    local tpstc
+	local cfg="$1"
+	local multimode profile status
+	local maxdsdatarate maxusdatarate maxaggrdatarate
+	local advanced
+	local tpstc
 	local sra
 	local bitswap
 
-    config_get CONNSTATUS "$cfg" enabled 1
-
-    config_get multimode "$cfg" multimode
-    if [ -n "$multimode" ]; then
+	config_get CONNSTATUS "$cfg" enabled 1
+	
+	config_get multimode "$cfg" multimode
+	if [ -n "$multimode" ]; then
 	modstring=$(ucimultimode2xdslctl "$multimode")
-    fi
+	fi
 
-    config_get profile "$cfg" profile
-    if [ -n "$profile" ]; then
+	config_get profile "$cfg" profile
+	if [ -n "$profile" ]; then
 	profilestring=$(uciprofile2xdslctl "$profile")
-    fi
+	fi
 
-    config_get tpstc "$cfg" tpstc
-    if [ -n "$tpstc" ]; then
+	config_get tpstc "$cfg" tpstc
+	if [ -n "$tpstc" ]; then
 	tpstcstring="--TpsTc $tpstc"
-    fi
+	fi
 	
 	config_get sra "$cfg" sra 1
-    if [ "$sra" == 0 ]; then
+	if [ "$sra" == 0 ]; then
 		srastring="--sra off"
 	else
 		srastring="--sra on"
-    fi
+	fi
 	
 	config_get bitswap "$cfg" bitswap 1
-    if [ "$bitswap" == 0 ]; then
+	if [ "$bitswap" == 0 ]; then
 		bitswapstring="--bitswap off"
 	else
 		bitswapstring="--bitswap on"
-    fi
+	fi
 	
 	config_get snr "$cfg" snr 0
-    if [ "$snr" != 0 ]; then
+	if [ "$snr" != 0 ]; then
 		snrstring="--snr "$snr
-    fi
+	fi
 
-    config_get maxdsdatarate "$cfg" maxdsdatarate
-    config_get maxusdatarate "$cfg" maxusdatarate
-    config_get maxaggrdatarate "$cfg" maxaggrdatarate
-    if [ -n "$maxdsdatarate" ] && [ -n "$maxusdatarate" ] && [ -n "$maxaggrdatarate" ]; then
-      maxdataratestring=$(ucimaxdatarate2xdslctl "$maxdsdatarate" "$maxusdatarate" "$maxaggrdatarate")
-    fi
+	config_get maxdsdatarate "$cfg" maxdsdatarate
+	config_get maxusdatarate "$cfg" maxusdatarate
+	config_get maxaggrdatarate "$cfg" maxaggrdatarate
+	if [ -n "$maxdsdatarate" ] && [ -n "$maxusdatarate" ] && [ -n "$maxaggrdatarate" ]; then
+	  maxdataratestring=$(ucimaxdatarate2xdslctl "$maxdsdatarate" "$maxusdatarate" "$maxaggrdatarate")
+	fi
 
-    CONFIGURE_OPTIONS="$modstring $snrstring $srastring $bitswapstring $profilestring $tpstcstring"
+	CONFIGURE_OPTIONS="$modstring $snrstring $srastring $bitswapstring $profilestring $tpstcstring"
 
-    ADVANCED_OPTIONS=$(uciadvancedconfig2xdslctl "$cfg")
-    if [ -n "$maxdataratestring" ]; then
-      ADVANCED_OPTIONS="$ADVANCED_OPTIONS $maxdataratestring"
-    fi
+	ADVANCED_OPTIONS=$(uciadvancedconfig2xdslctl "$cfg")
+	if [ -n "$maxdataratestring" ]; then
+	  ADVANCED_OPTIONS="$ADVANCED_OPTIONS $maxdataratestring"
+	fi
 
 }
 
 xdsl_read_config() {
-    config_load xdsl
-    config_foreach xdsl_config xdsl
+	config_load xdsl
+	config_foreach xdsl_config xdsl
 }
 
 start() {
-    xdsl_read_config
-    if [ "${CONNSTATUS:-1}" -gt 0 ]; then
+	xdsl_read_config
+	if [ "${CONNSTATUS:-1}" -gt 0 ]; then
+		if [ -n "$ADVANCED_OPTIONS" ]; then
+			eval "$APP start --up $CONFIGURE_OPTIONS $ADVANCED_OPTIONS"
+		else
+			eval "$APP start --up $CONFIGURE_OPTIONS"
+		fi
+		# configure xdsl OEM parameters, such as EOC version number
+		# should occur after dsl is started, as the oem data is cleared at startup
+		# EOC requests cannot be issued until DSL has synced so no problem if we do it
+		# only at this point
+		[ -e "/usr/bin/setxdsloemparam" ] && /usr/bin/setxdsloemparam
+		if [ -e "/usr/bin/xdslctl1" ]; then
+			if [ -n "$ADVANCED_OPTIONS" ]; then
+				eval "$APP1 start --up $CONFIGURE_OPTIONS $ADVANCED_OPTIONS"
+			else
+				eval "$APP1 start --up $CONFIGURE_OPTIONS"
+			fi
+		fi
 	
-	if [ -n "$ADVANCED_OPTIONS" ]; then
-	  eval "$APP start --up $CONFIGURE_OPTIONS $ADVANCED_OPTIONS"
-        else
-          eval "$APP start --up $CONFIGURE_OPTIONS"
+		# Increase priority of kthread dsl0
+		while [ -z `pidof dsl0` ]; do
+			echo "Waiting for dsl0 thread"
+			sleep 1
+		done
+		setrtprio dsl0 5
+
 	fi
-	# configure xdsl OEM parameters, such as EOC version number
-	# should occur after dsl is started, as the oem data is cleared at startup
-	# EOC requests cannot be issued until DSL has synced so no problem if we do it
-	# only at this point
-	[ -e "/usr/bin/setxdsloemparam" ] && /usr/bin/setxdsloemparam
-        if [ -e "/usr/bin/xdslctl1" ]; then
-	  if [ -n "$ADVANCED_OPTIONS" ]; then
-            eval "$APP1 start --up $CONFIGURE_OPTIONS $ADVANCED_OPTIONS"
-          else
-            eval "$APP1 start --up $CONFIGURE_OPTIONS"
-          fi
-        fi
-
-	# Increase priority of kthread dsl0
-	while [ -z `pidof dsl0` ]; do
-		echo "Waiting for dsl0 thread"
-		sleep 1
-	done
-	setrtprio dsl0 5
-
-    fi
 }
 
 stop() {
-    eval "$APP connection --down"
-    eval "$APP1 connection --down"
+	if [ -n "$(pidof dsl0)" ] && [ -n "$(which $APP)" ]; then
+		eval "$APP stop"
+	fi
+	if [ -n "$(pidof dsl1)" ] && [ -n "$(which $APP1)" ]; then
+		eval "$APP1 stop"
+	fi
 }
 
 restart() {
-    stop
-    start
+	stop
+	start
 }
 
 reload() {
-    restart
+	restart
 }
