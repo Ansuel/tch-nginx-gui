@@ -510,6 +510,12 @@ led_integration() {
 	fi
 }
 
+decrypt_config_pass() {
+	#With new base they started decrypting password stored in plaintext in config files...
+	#This decrypts them back to originals
+	lua /usr/share/transformer/scripts/decryptPasswordInUciConfig.lua
+}
+
 logger_command "Check original config"
 orig_config_gen #this check if new config are already present
 logger_command "Unlocking web interface if needed"
@@ -558,3 +564,5 @@ logger_command "Adding missing voicednd rule if needed"
 adds_dnd_config
 logger_command "Doing various checks and generating hashes..."
 cumulative_check_gui #Handle strange installation
+logger_command "Decrypting any encrypted password present in config"
+decrypt_config_pass

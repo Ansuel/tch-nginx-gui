@@ -15,6 +15,10 @@ local function parseCommandToTchLib(command)
 	return comm, args
 end
 
+function M.isEncrypted(data)
+  return data and #data >=72 and data:match("^$%d%d$%d%d%$") or nil
+end
+
 function M.isModuleAvailable(name)
   if package.loaded[name] then
     return true
@@ -58,6 +62,26 @@ function M.popen(FullCommand)
 		return require("tch.process").popen(parseCommandToTchLib(FullCommand))
 	end
 	return io.popen(FullCommand)
+end
+
+function M.decryptPassword(password)
+	
+	if isModuleAvailable("tch.simplecrypto") then
+	
+		if M.isEncrypted(password) then
+		
+			local value, errMsg = require("tch.simplecrypto").decrypt(password)
+			
+			if not value then
+				return nil, errMsg
+			end
+			
+			return value
+		end
+		
+	end
+	
+	return nil , "Can't decrypt"
 end
 
 return M
