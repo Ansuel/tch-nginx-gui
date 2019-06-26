@@ -79,9 +79,9 @@ local portAttr = {
   <form class="form-horizontal" method="post" action="modals/diagnostics-network-modal.lp">\
   </form>\
   <fieldset id="diagnostics-network-tab">\
-  <legend>');  ngx.print( T"Ports State" ); ngx.print('</legend>\
-  <div class="control-group">\
-    <label class="control-label">');  ngx.print( T"Type supported" ); ngx.print('</label>\
+	<fieldset>\
+	<legend>');  ngx.print( T"Ports State" ); ngx.print('</legend>\
+	<div class="control-group">\
       <div class="controls">\
       ');  for k, v in ipairs(ports) do  ngx.print('\
         <div class="span2 simple-desc">\
@@ -113,6 +113,8 @@ local portAttr = {
         ');  end   ngx.print('\
       </div>\
     </div>\
+	</fieldset>\
+	<fieldset>\
     <legend class="networkStat">');  ngx.print( T"Network Statistics" ); ngx.print('</legend>\
     ');  
       local wireless = proxy.get("rpc.wireless.ssid.")
@@ -229,6 +231,7 @@ end
   <center>\
     ');  ngx.print( ui_helper.createSimpleButton(T"Reset Stats", "icon-bolt", clear_network_stats)); ngx.print('\
   </center>\
+  </fieldset>\
   </fieldset>\
 </div>\
 ');  ngx.print(ui_helper.createFooter() ); ngx.print('\
