@@ -76,10 +76,10 @@ if [ "$1" ]; then
 		if [ "$(uci get modgui.gui.outdated_ver)" == "0" ]; then
 			logger_command "Already at latest version. Aborting upgrade."
 			exit 0
-			# Enabling alert for the gui about the autoupgrade
-			uci set modgui.gui.autoupgradeview=auto
-			uci commit modgui
 		fi
+		# Enabling alert for the gui about the autoupgrade
+		uci set modgui.gui.autoupgradeview=auto
+		uci commit modgui
 	fi
 	
 	if [ "$1" == "GuiRequest" ]; then
