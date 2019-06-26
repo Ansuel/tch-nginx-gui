@@ -5,9 +5,6 @@ local M = {}
 function M.createModalTab(items) 
 	
 	local uri = ngx.var.uri
-	if ngx.var.args and string.len(ngx.var.args) > 0 then
-		uri = uri .. "?" .. ngx.var.args
-	end
 	
 	local tabs = {}
 	local session = ngx.ctx.session
