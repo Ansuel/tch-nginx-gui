@@ -236,7 +236,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  local alertinfo = { alert = { class = "alert-info" } }
       local html = {}
       html[#html + 1] = ui_helper.createLight(T"Status", nil, state_map[untaint(content.dsl0_enabled)], { light = { class = light_map[untaint(content.dsl0_enabled)] } })
-	  html[#html + 1] = ui_helper.createSwitch(T"Enabled","dsl0_enabled",driver_content["ds10_enabled"])
+	  html[#html + 1] = ui_helper.createSwitch(T"Enabled","dsl0_enabled",driver_content["dsl0_enabled"])
 	  html[#html + 1] = ui_helper.createLabel(T"DSL Connection Status", T(content.dsl0_status), span5 )
 	  if ( content.dsl0_status == "Up" ) then
 	  html[#html + 1] = ui_helper.createLabel(T"DSL Mode", content.dsl0_mode .. " (" .. content.dsl0_linkencapsulation .. ")", span5 )
