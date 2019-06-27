@@ -5,23 +5,42 @@ gettext.textdomain('webui-core')
 
 local lfs = require("lfs")
 local ui_helper = require("web.ui_helper")
-local content_helper = require("web.content_helper")
-
+local proxy = require("datamodel")
+local format = string.format
+local tinsert = table.insert
 local session = ngx.ctx.session
-if session:hasAccess("/modals/diagnostics-xdsl-modal.lp") and
-        session:hasAccess("/modals/diagnostics-ping-modal.lp") and
-        session:hasAccess("/modals/diagnostics-connection-modal.lp") and
-        session:hasAccess("/modals/diagnostics-network-modal.lp")
-then
 
-local xdsl_exist = false
-if lfs.attributes("/etc/config/xdsl", "mode") == "file" then
-  xdsl_exist = true
+local dsl_enabled = proxy.get("uci.xdsl.xdsl.@dsl0.enabled")
+
+local function genIcon(id,text,icons,tooltip_pos)
+	
+	local html = {}
+
+	html[#html+1] = '<td>'
+	html[#html+1] = format('<div id="diagnosticIcons" data-toggle="modal" data-remote="/modals/%s.lp" data-id="%s">',id,id)
+	html[#html+1] = format('<i class="smallsomeInfos modal-link %s" style="font-size:32px;" href="#" \
+			rel="tooltip" data-placement="%s" data-original-title="%s" alt="%s"></i>',icons,tooltip_pos,T(text),T(text))
+	html[#html+1] = '</div>'
+	html[#html+1] = '</td>'
+	
+	return html
 end
 
-local speedtest_exist = false
+local icons = {
+	{"diagnostics-ping-modal","Ping & Traceroute","fas fa-upload"},
+	{"port-mirror-modal","Port Mirror","fas fa-exchange-alt"},
+	{"diagnostics-connection-modal","Connection","far fa-lightbulb"},
+	{"diagnostics-network-modal","Network","fas fa-plug"},
+	{"diagnostics-tcpdump-modal","TCPDump","fa fa-download"},
+}
+
+if lfs.attributes("/etc/config/xdsl", "mode") == "file" and dsl_enabled and dsl_enabled[1].value == "1" then
+  tinsert(icons,1,{"diagnostics-xdsl-modal","xDSL","fas fa-list-ul"})
+  tinsert(icons,2,{"diagnostics-xdsl-graphics-modal","xDSL Graphics","fas fa-chart-line"})
+end
+
 if lfs.attributes("/etc/config/bcm_spdsvc", "mode") == "file" then
-  speedtest_exist = true
+  tinsert(icons,{"speedservice-modal","SpeedTest Service","fas fa-tachometer-alt"})
 end
 
   ngx.print('\
@@ -32,68 +51,15 @@ end
   ngx.print(ui_helper.createCardHeader(T"Diagnostics", "/modals/diagnostics-ping-modal.lp"))
   ngx.print('\
     <div class="content card_bg" data-bg-text="&#xf085;">\
-	<div class="divtable">\
-     <table align="center" cellspacing="10%" cellpadding="10%" >\
-      <tr>');
-  if xdsl_exist then
-    local dsl_data = {
-      dsl_status = "sys.class.xdsl.@line0.Enable",
-    }
-    content_helper.getExactContent(dsl_data)
-    if ( dsl_data["dsl_status"] == "1") then
-      ngx.print('\
-		  <td>\
-		    <div data-toggle="modal" data-remote="/modals/diagnostics-xdsl-modal.lp" data-id="diagnostics-xdsl-modal">\
-				<i class="smallsomeInfos modal-link fas fa-list-ul" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="'); ngx.print(T"xDSL"); ngx.print('" alt="dsl"></i>\
-			</div>\
-		  </td>\
-		   <td>\
-		    <div data-toggle="modal" data-remote="/modals/diagnostics-xdsl-graphics-modal.lp" data-id="iagnostics-xdsl-graphics-modal">\
-			  <i class="smallsomeInfos modal-link fas fa-chart-line" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="'); ngx.print(T"xDSL Graphics"); ngx.print('" alt="dsl graph"></i>\
-			</div>\
-		  </td>');
-    end
-  end
-  ngx.print('\
-          <td>\
-			<div data-toggle="modal" data-remote="/modals/diagnostics-ping-modal.lp" data-id="diagnostics-ping-modal">\
-			    <i class="smallsomeInfos modal-link fas fa-upload" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="'); ngx.print(T"Ping & Traceroute"); ngx.print('" alt="ping/trace"></i>\
-			</div>\
-	      </td>\
-		  <td>\
-	        <div data-toggle="modal" data-remote="/modals/port-mirror-modal.lp" data-id="port-mirror-modal">\
-			    <i class="smallsomeInfos modal-link fas fa-exchange-alt" style="font-size:32px;" href="#" rel="tooltip" data-placement="bottom" data-original-title="'); ngx.print(T"Port Mirror"); ngx.print('" alt="port-mirror"></i>\
-			</div>\
-	      </td>\
-	    </tr>\
-        <tr>\
-		  <td>\
-			<div data-toggle="modal" data-remote="/modals/diagnostics-connection-modal.lp" data-id="diagnostics-connection-modal">\
-				<i class="smallsomeInfos modal-link far fa-lightbulb" style="font-size:32px;" href="#" rel="tooltip" data-placement="top" data-original-title="'); ngx.print(T"Connection"); ngx.print('" alt="connection"></i>\
-		    </div>\
-	      </td>\
-		  <td>\
-	        <div data-toggle="modal" data-remote="/modals/diagnostics-network-modal.lp" data-id="diagnostics-network-modal">\
-			  <i class="smallsomeInfos modal-link fas fa-plug" style="font-size:32px;" href="#" rel="tooltip" data-placement="top" data-original-title="'); ngx.print(T"Network"); ngx.print('" alt="network"></i>\
-			</div>\
-	      </td>\
-		  <td>\
-	        <div data-toggle="modal" data-remote="/modals/diagnostics-tcpdump-modal.lp" data-id="diagnostics-network-tcpdump">\
-			  <i class="smallsomeInfos modal-link fa fa-download" style="font-size:32px;" href="#" rel="tooltip" data-placement="top" data-original-title="'); ngx.print(T"TCPDump"); ngx.print('" alt="tcpdump"></i>\
-			</div>\
-	      </td>');
-		  if speedtest_exist then
-		  ngx.print('\
-		  <td>\
-	        <div data-toggle="modal" data-remote="/modals/speedservice-modal.lp" data-id="diagnostics-network-tcpdump">\
-			  <i class="smallsomeInfos modal-link fas fa-tachometer-alt" style="font-size:32px;" href="#" rel="tooltip" data-placement="top" data-original-title="'); ngx.print(T"SpeedTest Service"); ngx.print('" alt="speedtest"></i>\
-			</div>\
-	      </td>\
-		  ');
-		  end
-		  ngx.print('\
-	    </tr>\
-      </table>\
+	<div id="diagnosticCard">')
+	 
+		for i, v in pairs(icons) do
+			if session:hasAccess(format("/modals/%s.lp",v[1])) then
+				ngx.print(genIcon(v[1],v[2],v[3], i < 5 and "bottom" or "top"))
+			end
+		end
+
+	  ngx.print('\
     </div>\
 	</div>\
   </div>\
@@ -108,4 +74,3 @@ end
   </script>\
 </div>\
 ');
-end

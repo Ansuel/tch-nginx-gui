@@ -3847,6 +3847,16 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 .smallcard .header-title:hover[data-remote] {
 	cursor: pointer
 }
+#diagnosticCard {
+	display: flex;
+    justify-content: space-evenly;
+    flex-wrap: wrap;
+	z-index: 20;
+	position: relative;
+}
+#diagnosticIcons {
+	margin: 10px;
+}
 .tooLongTitle p {
 	white-space: nowrap;
 	text-overflow: ellipsis;
