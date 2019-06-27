@@ -419,4 +419,7 @@ return {
 {'TOT-13_timezone_Pacific/Tongatapu', 'Pacific/Tongatapu'},
 {'TRUT-10_timezone_Pacific/Truk', 'Pacific/Truk'},
 {'WAKT-12_timezone_Pacific/Wake', 'Pacific/Wake'},
-{'WFT-12_timezone_Pacific/Wallis', 'Pacific/Wallis'},}
+{'WFT-12_timezone_Pacific/Wallis', 'Pacific/Wallis'},
+{'WFT-12_timezone_Pacific/Wallis', 'Pacific/Wallis'},
+{'EST5EDT,M4.1.0/2,M10.5.0/2_timezone_EST5EDT','EST5EDT'},
+}

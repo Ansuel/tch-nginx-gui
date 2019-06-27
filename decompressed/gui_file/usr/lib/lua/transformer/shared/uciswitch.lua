@@ -303,6 +303,9 @@ end
 local function make_list(v)
 	local list
 	list = {}
+	if type(v)=='table' then
+		return v
+	end
 	for entry in v:gmatch("%S+") do
 		list[#list+1] = entry
 	end
