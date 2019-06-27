@@ -102,7 +102,7 @@ local function get_mode(_, _, key)
     if speed == "" then
       return ""
     end
-    return speed .. "BT"
+    return speed .. "BASE-T"
 end
 
 local function getEthernetPort()
