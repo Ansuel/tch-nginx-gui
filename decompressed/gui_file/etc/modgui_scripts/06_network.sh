@@ -303,6 +303,15 @@ unlock_ssh_wan_tiscali() {
 	fi
 }
 
+disable_tcp_Sack() {
+	if [ -n "$(cat /etc/sysctl.conf | grep 'tcp_sack = 0')" ]; then
+		echo -e "\n" >> /etc/sysctl.conf
+		echo "# disable tcp_sack for CVE 2019-11477" >> /etc/sysctl.conf
+		echo "net.ipv4.tcp_sack = 0" >> /etc/sysctl.conf
+		sysctl -p 2>/dev/null 1>/dev/null
+	fi
+}
+
 #THIS CHECK DEVICE TYPE AND INSTALL SPECIFIC FILE
 device_type="$(uci get -q env.var.prod_friendly_name)"
 kernel_ver="$(cat /proc/version | awk '{print $3}')"
@@ -331,3 +340,5 @@ clean_cups_block_rule
 [ "$device_type" == "MediaAccess TG789vac v2" ] && unlock_ssh_wan_tiscali
 logger_command "Checking if ISP is detected..."
 check_isp_and_cwmp
+logger_command "Apply CVE 2019-11477 workaround"
+disable_tcp_Sack
