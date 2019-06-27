@@ -304,10 +304,13 @@ unlock_ssh_wan_tiscali() {
 }
 
 disable_tcp_Sack() {
-	if [ -n "$(cat /etc/sysctl.conf | grep 'tcp_sack = 0')" ]; then
+	if [ "$(cat /etc/sysctl.conf | grep 'net.ipv4.tcp_sack')" ]; then
+		sed -i 's/\(net.ipv4.tcp_sack=\)1/\10/g' /etc/sysctl.conf
+		sysctl -p 2>/dev/null 1>/dev/null
+	elif [ -n "$(cat /etc/sysctl.conf | grep 'net.ipv4.tcp_sack=0')" ]; then
 		echo -e "\n" >> /etc/sysctl.conf
 		echo "# disable tcp_sack for CVE 2019-11477" >> /etc/sysctl.conf
-		echo "net.ipv4.tcp_sack = 0" >> /etc/sysctl.conf
+		echo "net.ipv4.tcp_sack=0" >> /etc/sysctl.conf
 		sysctl -p 2>/dev/null 1>/dev/null
 	fi
 }
