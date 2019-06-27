@@ -520,7 +520,7 @@ local system_valid = {
 local system_data,system_helpmsg = post_helper.handleQuery(system_params, system_valid)
 
 -- Get timezones
-local timezones = require("tz_helper")
+local timezones = require("transformer.shared.zonenames")
 
 local function getTimeZoneName(list, isRemote)
   local default_tztable = {
