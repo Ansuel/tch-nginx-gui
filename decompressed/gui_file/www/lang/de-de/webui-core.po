@@ -4605,3 +4605,27 @@ msgstr ""
 
 msgid "Step Duration (ms):"
 msgstr ""
+
+msgid "Save on USB"
+msgstr ""
+
+msgid "Please see 2.4 GHz section for initial parameter. If a wireless device tests the 5 GHz band and reports the 5 GHz signal strength is above this threshold, the gateway will direct the device to switch to the 5 GHz band."
+msgstr ""
+
+msgid "If a wireless device reports this gateway's 2.4 GHz signal strength is above this threshold, the gateway will ask the device to test the 5 GHz band . Please see 5 GHz section for additional parameter."
+msgstr ""
+
+msgid "ISP used"
+msgstr ""
+
+msgid "Band Steering works only if 2.4 GHz and 5 GHz have the same configuration. By enabling the Band Steering, the 2.4 GHz network settings will be propagated on 5 GHz settings"
+msgstr ""
+
+msgid "ISP Detected"
+msgstr ""
+
+msgid "5 GHz Band Steering Threshold"
+msgstr ""
+
+msgid "2.4 GHz Band Steering Threshold"
+msgstr ""
