@@ -2,7 +2,8 @@
     --bg-color1: #000;
     --bg-color2: #333;
     --bg-color3: #000;
-	--body-text-color: #000;
+	--body-bg-color: #fff;
+	--body-text-color: #fff;
 }
 
 .alert-info {
@@ -59,7 +60,7 @@ body {
 }
 
 input.span3, input.span3:focus, textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"], .uneditable-input, select, select.span3, input, input[type="text"]:focus {
-    color: #fff;
+    color: #000;
     border: 1px solid #fff;
     background-color: var(--body-bg-color)
 }
@@ -707,7 +708,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 }
 
 .smallcard {
-			  
+	color: var(--bg-color1);
     box-shadow: 0 .1875rem .375rem rgba(0, 0, 0, 0.25);
     opacity: 1 !important;
     transform: initial !important;
@@ -820,7 +821,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
     }
 
     #cardrow {
-        top: 8rem;
+        top: 6.5rem;
         margin-left: 15.5rem;
         overflow-y: auto !important
     }

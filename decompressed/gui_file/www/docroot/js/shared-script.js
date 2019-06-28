@@ -139,7 +139,7 @@ $(function () {
 			$("#refresh-cards").hide();
 			window.history.pushState("gateway", "Gateway - "+view, page);
 			document.title = "Gateway - "+view;
-			$(this).trigger("switchcard");
+			$("#swtichbuttom").trigger("switchcard");
 		});
 	});
 	$("#upgradebtn").on("hover",
