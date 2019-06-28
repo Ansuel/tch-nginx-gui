@@ -4602,3 +4602,6 @@ msgstr ""
 
 msgid "The modem has been updated "
 msgstr ""
+
+msgid "Step Duration (ms):"
+msgstr ""
