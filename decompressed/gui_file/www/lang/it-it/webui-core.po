@@ -4605,3 +4605,6 @@ msgstr "Il modem è stato aggiornato "
 
 msgid "Step Duration (ms):"
 msgstr "Durata step (ms):"
+
+msgid "Max (Kbps):"
+msgstr ""
