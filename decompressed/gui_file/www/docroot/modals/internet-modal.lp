@@ -109,8 +109,8 @@ if not tabdata.current.ajax then
 	--Autodetect cwmp address
 	html[#html+1] = '<legend>' .. T"ISP Detection option" .. '</legend>'
 	html[#html+1] = ui_helper.createSwitch(T"ISP Autodetect", "isp_autodetect", content["isp_autodetect"], switch_mon_isp)
-	html[#html+1] = ui_helper.createInputRadio(T"Isp used", "isp_detected", isp_cwmp_known, content["isp_detected"], isp_autodetect_mon_0)
-	html[#html+1] = ui_helper.createLabel(T"Isp Detected", content["isp_detected"],isp_autodetect_mon_1)
+	html[#html+1] = ui_helper.createInputRadio(T"ISP used", "isp_detected", isp_cwmp_known, content["isp_detected"], isp_autodetect_mon_0)
+	html[#html+1] = ui_helper.createLabel(T"ISP Detected", content["isp_detected"],isp_autodetect_mon_1)
 	
 	ngx.print(html)
 

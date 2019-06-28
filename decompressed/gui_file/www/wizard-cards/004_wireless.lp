@@ -53,7 +53,7 @@ local content, helpmsg = wizard_helper.handleQuery(mapParams, mapValid)
                 class = "alert-info"
             },
          }
-        html[#html+1] = ui_helper.createAlertBlock(T"A <b>WiFi 2.4GHz</b> Security Key is already set-up with your Router, however you can change that key here if desired. You can also change the security type below. To connect to the Router via WiFi you will need to enter the Security Key into your device.", info_attr)
+        html[#html+1] = ui_helper.createAlertBlock(T"A <b>WiFi 2.4 GHz</b> Security Key is already set-up with your Router, however you can change that key here if desired. You can also change the security type below. To connect to the Router via WiFi you will need to enter the Security Key into your device.", info_attr)
         html[#html+1] = ui_helper.createMessages(message_helper.popMessages())
         -- Select the security mode to use
         local secattributes = {

@@ -35,7 +35,7 @@ local bool2enable = {
 <div class='wizard-card'>
     <fieldset>
       <%="<legend></legend>"%>
-      <%= "<h4>" .. T"WiFi Setup (2.4GHz)" .. "</h4>"%>
+      <%= "<h4>" .. T"WiFi Setup (2.4 GHz)" .. "</h4>"%>
       <%
         local html = {}
         local info_attr = {
@@ -45,7 +45,7 @@ local bool2enable = {
          }
         html[#html+1] = ui_helper.createAlertBlock(T"Your modem already has a unique WiFi network set up by default. You can change the broadcast name here if desired, or turn off WiFi completely. You can also hide your WiFi network name from other devices by turning off SSID broadcast.", info_attr)
         html[#html+1] = ui_helper.createMessages(message_helper.popMessages())
-        html[#html+1] = ui_helper.createSwitch(T"Wireless 2.4GHz (WiFi):", "ap_enabled", content["ap_enabled"], nil, helpmsg["ap_enabled"])
+        html[#html+1] = ui_helper.createSwitch(T"Wireless 2.4 GHz (WiFi):", "ap_enabled", content["ap_enabled"], nil, helpmsg["ap_enabled"])
         html[#html+1] = ui_helper.createInputText(T"SSID Broadcast Name (Max 32 characters):", "ssid", content["ssid"], nil, helpmsg["ssid"])
         ngx.print(html)
       %>
@@ -55,7 +55,7 @@ local bool2enable = {
     <fieldset>
       <%
         local html = {}
-        html[#html+1] = ui_helper.createLabel(T"Wireless 2.4GHz (WiFi): ", bool2on[format("%s",content["ap_enabled"])])
+        html[#html+1] = ui_helper.createLabel(T"Wireless 2.4 GHz (WiFi): ", bool2on[format("%s",content["ap_enabled"])])
         html[#html+1] = ui_helper.createLabel(T"SSID Broadcast Name: ", content["ssid"])
         ngx.print(html)
       %>

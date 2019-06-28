@@ -265,7 +265,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       html[#html + 1] = ui_helper.createAlertBlock(T"Download failed; please try again.", downloading_fail)
     end
   end
-  html[#html + 1] = ui_helper.createInputCheckbox("Save on USB", "saveonusb", untaint(tcpdump_data.saveonusb), attrCheckbox)
+  html[#html + 1] = ui_helper.createInputCheckbox(T"Save on USB", "saveonusb", untaint(tcpdump_data.saveonusb), attrCheckbox)
   html[#html + 1] = ui_helper.createLabel(T"Status:", format("%s %s", statusIcon, statusText), attributes)
   html[#html + 1] = ui_helper.createLabel(T"Max Packet Number Recommended:", tcpdump_data.refcount, attributes)
   html[#html + 1] = ui_helper.createInputText(T"Packet Number:","count", tcpdump_data.count, attrText, helpmsg["count"])

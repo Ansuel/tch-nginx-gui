@@ -1338,15 +1338,15 @@ end
         if isBaseIface(curiface) then
             html[#html + 1] = ui_helper.createAlertBlock(T"Detecting a Wi-Fi client's capabilities and monitoring its interfaces, Band Steering actively guides the client to the more suitable Wi-Fi band.", bssecclass)
             html[#html + 1] = ui_helper.createSwitch(T"Band Steering Enabled", "band_steer_enabled", tostring(band_steer_enabled), bssecclass)
-            html[#html + 1] = ui_helper.createAlertBlock(T"Band Steering works only if 2.4 GHz and 5 GHz have the same configuration. By enabling the Band Steering, the 2.4 GHz network settings will be propagated on 5GHz settings", bssecclass)
-            html[#html + 1] = ui_helper.createSliderSelect(T"2.4GHz Band Steering Threshold", "rssi_threshold", bandsteer_rssi_threshold, content_rssi["rssi_threshold"], bssecclass)
-            html[#html + 1] = ui_helper.createAlertBlock(T"If a wireless device reports this gateway's 2.4GHz signal strength is above this threshold, the gateway will ask the device to test the 5GHz band . Please see 5GHz section for additional parameter.", bssecclass)
+            html[#html + 1] = ui_helper.createAlertBlock(T"Band Steering works only if 2.4 GHz and 5 GHz have the same configuration. By enabling the Band Steering, the 2.4 GHz network settings will be propagated on 5 GHz settings", bssecclass)
+            html[#html + 1] = ui_helper.createSliderSelect(T"2.4 GHz Band Steering Threshold", "rssi_threshold", bandsteer_rssi_threshold, content_rssi["rssi_threshold"], bssecclass)
+            html[#html + 1] = ui_helper.createAlertBlock(T"If a wireless device reports this gateway's 2.4 GHz signal strength is above this threshold, the gateway will ask the device to test the 5 GHz band . Please see 5 GHz section for additional parameter.", bssecclass)
         else
             html[#html + 1] = ui_helper.createAlertBlock(T"Detecting a Wi-Fi client's capabilities and monitoring its interfaces, Band Steering actively guides the client to the more suitable Wi-Fi band.", ssidclass)
             html[#html + 1] = ui_helper.createLabel(T"Band Steering Enabled", tostring(band_steer_enabled) == "1" and "On" or "Off", ssidclass)
-            html[#html + 1] = ui_helper.createAlertBlock(T"Band Steering works only if 2.4 GHz and 5 GHz have the same configuration. By enabling the Band Steering, the 2.4 GHz network settings will be propagated on 5GHz settings", bssecclass)
-            html[#html + 1] = ui_helper.createSliderSelect(T"5GHz Band Steering Threshold", "rssi_5g_threshold", bandsteer_rssi_threshold, content_rssi["rssi_5g_threshold"], ssidclass)
-            html[#html + 1] = ui_helper.createAlertBlock(T"Please see 2.4GHz section for initial parameter. If a wireless device tests the 5GHz band and reports the 5GHz signal strength is above this threshold, the gateway will direct the device to switch to the 5GHz band.", bssecclass)
+            html[#html + 1] = ui_helper.createAlertBlock(T"Band Steering works only if 2.4 GHz and 5 GHz have the same configuration. By enabling the Band Steering, the 2.4 GHz network settings will be propagated on 5 GHz settings", bssecclass)
+            html[#html + 1] = ui_helper.createSliderSelect(T"5 GHz Band Steering Threshold", "rssi_5g_threshold", bandsteer_rssi_threshold, content_rssi["rssi_5g_threshold"], ssidclass)
+            html[#html + 1] = ui_helper.createAlertBlock(T"Please see 2.4 GHz section for initial parameter. If a wireless device tests the 5 GHz band and reports the 5 GHz signal strength is above this threshold, the gateway will direct the device to switch to the 5 GHz band.", bssecclass)
         end
     end
 end
