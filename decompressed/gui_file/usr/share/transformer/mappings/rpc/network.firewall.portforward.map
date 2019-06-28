@@ -19,7 +19,7 @@ local mapinfo_userredirect_uci = {
     config = "firewall",
     type = "userredirect",
     options = { "enabled", "name", "family", "src", "dest", "src_dport", "dest_mac",
-                "dest_ip", "dest_port", "target", "tch_interface" },
+                "src_ip", "dest_ip", "dest_port", "target", "tch_interface" },
     lists = { "proto" }
 }
 
@@ -36,19 +36,43 @@ local mapping_portforward_rpc = {
     }
 }
 
+local function isIPUnknown(ip)
+    if ip == "0.0.0.0" or ip == "::" then
+        return true
+    end
+    return false
+end
+
+local function ipPresentation(ip)
+    return isIPUnknown(ip) and "unknown" or ip
+end
+
+local function samePortRange(destPort, key, mapping)
+  local lanStart, lanEnd = destPort:match("(%d+):(%d+)")
+  if lanStart then
+    local wanPort = mapping.uciMap.get(mapping.uciMap, "src_dport", key)
+    local wanStart, wanEnd = wanPort:match("(%d+):(%d+)")
+    if wanStart == lanStart and wanEnd == lanEnd then
+      return lanStart
+    end
+  end
+  return destPort
+end
+
 mapping_portforward_rpc.get = function(mapping, param, key)
     local result, errmsg = mapping.uciMap.get(mapping.uciMap, param, key)
-    if param == "dest_ip" and (result == "0.0.0.0" or result == "::") then
-        result = "unknown"
+    if param == "dest_port" then
+      result = samePortRange(result, key, mapping) or "0"
+    elseif param == "dest_ip" then
+      result = ipPresentation(result)
     end
     return result, errmsg
 end
 
 mapping_portforward_rpc.getall = function(mapping, key)
     local result, errmsg = mapping.uciMap.getall(mapping.uciMap, key)
-    if type(result) == "table" and (result.dest_ip == "0.0.0.0" or result.dest_ip == "::") then
-        result.dest_ip = "unknown"
-    end
+    result.dest_ip = ipPresentation(result.dest_ip)
+    result.dest_port = samePortRange(result.dest_port, key, mapping) or "0"
     return result, errmsg
 end
 
@@ -57,13 +81,10 @@ mapping_portforward_rpc.entries = function(mapping)
 end
 
 mapping_portforward_rpc.add = function(mapping, name)
-    local err     -- possible error message
-
     if (name == nil) then
         local binding = {config = mapping.uciMap.binding["config"], sectionname = mapping.uciMap.binding["type"]}
-        name, err = fw_helper.generate_unused_section(binding)
+        name = fw_helper.generate_unused_section(binding)
     end
-
     return mapping.uciMap.add(mapping.uciMap, name)
 end
 

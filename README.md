@@ -1,3 +1,5 @@
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/AnsuelS)
+
 <h3><strong>This is a highly modified and universal version of the GUI installed on all Technicolor Modem/Routers compatibile with (and probably not only):</strong></h3>
   <ul>
   <li>DGA4132 / VBNT-S</li>
@@ -72,3 +74,9 @@ Stats:
 
 Cards:
 <img src="https://i.ibb.co/5BDrRnx/odemcards.jpg">
+
+<h2><strong>Donation</strong></h2>
+
+If you want to donate to the developer of this modified gui use the button below
+
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.me/AnsuelS)

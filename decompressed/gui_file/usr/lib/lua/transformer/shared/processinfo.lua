@@ -1,9 +1,9 @@
 local M = {}
 local io, math = io, math
 local floor = math.floor
+local popen = require("modgui").popen
 local open = io.open
 local tostring = tostring
-local process = require("tch.process")
 
 -- Calculates CPU usage since boot from the /proc/stat file. This value is a ratio of the non-idle time to the total usage in "USER_HZ".
 -- @function M.getCPUUsage
@@ -31,7 +31,7 @@ end
 -- @return #string, returns the current CPU usage value.
 function M.getCurrentCPUUsage()
   local cpuUsage
-  local getData = process.popen("top", {"-b", "-n1"})
+  local getData = popen("top -b -n1")
   local usr,sys,nic
   for line in getData:lines() do
     usr, sys, nic = line:match("^CPU:%s*(%d+)%%%s*u.*%s*(%d+)%%%s*s.*%s*(%d+)%%%s*n.*")

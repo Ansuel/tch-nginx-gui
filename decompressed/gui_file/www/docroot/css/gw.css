@@ -3733,7 +3733,7 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	-o-transition: margin .5s, opacity .5s, color .5s;
 	transition: margin .5s, opacity .5s, color .5s;
 	float: right;
-	margin-right: -10px;
+	margin-right: -40px;
 	margin-left: 10px;
 	color: #ddd;
 	color: #fff;
@@ -3846,6 +3846,16 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 }
 .smallcard .header-title:hover[data-remote] {
 	cursor: pointer
+}
+#diagnosticCard {
+	display: flex;
+    justify-content: space-evenly;
+    flex-wrap: wrap;
+	z-index: 20;
+	position: relative;
+}
+#diagnosticIcons {
+	margin: 10px;
 }
 .tooLongTitle p {
 	white-space: nowrap;
@@ -5494,9 +5504,6 @@ form .switch {
 }
 .hand {
 	cursor: pointer
-}
-.smallcard .header .settings {
-	margin-left: 0
 }
 #device_popUp {
 	z-index: 6000;

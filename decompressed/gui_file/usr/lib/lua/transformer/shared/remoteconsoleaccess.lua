@@ -17,9 +17,9 @@ local ubus = require("transformer.mapper.ubus").connect()
 
 local open = io.open
 local remove = os.remove
+local execute = require("modgui").execute
 local configBinding = {}
 local transactions = {}
-local process = require("tch.process")
 
 local M = {}
 
@@ -250,12 +250,12 @@ local function change_remoteconsole_userdata(curruser, newuser, commitapply)
 
   local exitCode
   -- now update username
-  exitCode = process.execute("usermod", {"-l", newuser, curruser})
+  exitCode = execute(format("usermod -l %s %s", newuser, curruser))
   if exitCode ~= 0 then
     return nil, "could not change username"
   end
   -- now update group name
-  exitCode = process.execute("groupmod", {"-n", newuser, curruser})
+  exitCode = execute(format("groupmod -n %s %s", newuser, curruser))
   if exitCode ~= 0 then
     return nil, "could not change group name"
   end

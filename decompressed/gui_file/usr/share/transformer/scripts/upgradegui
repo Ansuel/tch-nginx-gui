@@ -62,7 +62,7 @@ if [ "$1" ]; then
 	if [ "$1" == "SetTime" ]; then
 		hour="$(uci get modgui.gui.autoupgrade_hour)"
 		autoupgrade="$(uci get modgui.gui.autoupgrade)"
-		if [ "$(< /etc/crontabs/root | grep upgradegui )" ]; then
+		if [ "$(cat /etc/crontabs/root | grep upgradegui )" ]; then
             sed -i '/upgradegui/d' /etc/crontabs/root
         fi
 		if [ "$autoupgrade" == "1" ]; then
@@ -76,9 +76,10 @@ if [ "$1" ]; then
 		if [ "$(uci get modgui.gui.outdated_ver)" == "0" ]; then
 			logger_command "Already at latest version. Aborting upgrade."
 			exit 0
-			# Enabling alert for the gui about the autoupgrade
-			uci set modgui.gui.autoupgradeview=auto
 		fi
+		# Enabling alert for the gui about the autoupgrade
+		uci set modgui.gui.autoupgradeview=auto
+		uci commit modgui
 	fi
 	
 	if [ "$1" == "GuiRequest" ]; then
@@ -241,7 +242,7 @@ else
 	logger_command "Found file in /tmp dir... doing offline upgrade!"
 fi
 
-set_transformer "rpc.system.modgui.upgradegui.state" "Extracting"
+set_transformer "rpc.system.modgui.upgradegui.state" "Clearing"
 
 #NOT NEEDED ANYMORE
 #logger_command "Stopping nginx..."
@@ -271,6 +272,8 @@ for dir in /www/* ; do
 		rm -rf "$dir"
 	fi
 done
+
+set_transformer "rpc.system.modgui.upgradegui.state" "Extracting"
 
 logger_command "Extracting file..."
 # Extract new GUI to /

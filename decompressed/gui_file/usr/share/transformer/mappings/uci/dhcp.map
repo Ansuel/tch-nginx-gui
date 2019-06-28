@@ -14,7 +14,7 @@ local dhcp_dnsmasq = {
         "domainneeded", "ednspacket_max", "enable_tftp", "expandhosts", "filterwin2k", "fqdn",
         "leasefile", "local", "localise_queries", "logqueries", "nodaemon", "nohosts", "nonegcache", "noresolv",
         "nonwildcard", "port", "queryport", "readethers", "resolvfile", "strictorder",
-        "tftp_root", "rebind_protection", "rebind_localhost"
+        "tftp_root", "rebind_protection", "rebind_localhost", "disabled", "addmac"
     },
     lists = {
         "addnhosts", "bogusnxdomain", "interface", "notinterface", "server","rebind_domain", "hostname"

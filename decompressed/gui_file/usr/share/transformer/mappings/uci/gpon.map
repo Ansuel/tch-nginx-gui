@@ -1,0 +1,56 @@
+local optical = require("transformer.shared.optical")
+local flag = optical.getBoardtype()
+if flag ~= "gpon" and flag ~= "gpon_sfp" then
+  return
+end
+
+local mapper = mapper
+local config_gpon = "gpon"
+local config_gponl3 = "gponl3"
+-- uci.gpon
+mapper("uci_1to1").registerConfigMap(config_gpon)
+
+-- uci.gpon.omci_eth.
+local gpon_omci_eth= {
+    config = config_gpon,
+    type = "omci_eth",
+    options = {
+        "max", "startid", "rgmode", "veipid",
+    },
+}
+
+mapper("uci_1to1").registerNamedMultiMap(gpon_omci_eth)
+
+-- uci.gpon.omci_eth_port.
+local gpon_omci_eth_port= {
+    config = config_gpon,
+    type = "omci_eth_port",
+    options = {
+        "port", "type", "bridge", "vlan_mapping",
+        "vid","pbit", "service",
+    },
+}
+
+mapper("uci_1to1").registerNamedMultiMap(gpon_omci_eth_port)
+-- uci.gpon.route_wan.
+local gpon_route_wan= {
+    config = config_gpon,
+    type = "route_wan",
+    options = {
+        "vid", "service",
+    },
+}
+
+mapper("uci_1to1").registerNamedMultiMap(gpon_route_wan)
+-- uci.gponl3
+mapper("uci_1to1").registerConfigMap(config_gponl3)
+-- uci.gponl3.veip.
+local gponl3_interface= {
+    config = config_gponl3,
+    type = "interface",
+    options = {
+        "ifname","univlan","pbit","defact","mode","bridge"
+    },
+}
+
+mapper("uci_1to1").registerNamedMultiMap(gponl3_interface)

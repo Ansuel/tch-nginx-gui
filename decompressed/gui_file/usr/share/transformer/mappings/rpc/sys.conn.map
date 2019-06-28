@@ -21,26 +21,66 @@ local sys_conn_ = {
   }
 }
 
-local mapper, register = mapper, register
-local string, tostring, pairs, ipairs = string, tostring, pairs, ipairs
-local io, os = io, os
+local io = io
+local os = os
+
+local tostring = tostring
+local pairs = pairs
+local ipairs = ipairs
+local conn = mapper("ubus").connect()
+local match = string.match
+local format = string.format
+
 local ipv4Conn = {}
 local ipv6Conn = {}
 local activeConn = "0"
+local ubusData = conn:call("hostmanager.device", "get", {})
+
+local function getConnectedDevices(data)
+  local ipList = {}
+  local ipv4 = ""
+  local ipv6 = ""
+  local ipv4Address = data and data.ipv4
+  for _, ipv4Data in pairs(ipv4Address) do
+    if (ipv4Data.state == "connected" or ipv4Data.state == "stale") and ipv4Data.address then
+      ipList[ipv4Data.address] = true
+      ipv4 = ipv4Data.address
+      break
+    end
+  end
+  local ipv6Address = data and data.ipv6
+  for _, ipv6Data in pairs(ipv6Address) do
+    if (ipv6Data.state == "connected" or ipv6Data.state == "stale") and ipv6Data.address then
+      ipList[ipv6Data.address] = true
+      ipv6 = ipv6Data.address
+      break
+    end
+  end
+  return ipList, ipv4, ipv6
+end
 
 sys_conn_.entries = function()
   local count = 0
+  local ipList = {}
   ipv4Conn = {}
   ipv6Conn = {}
-  local fd = io.popen("cat /proc/net/nf_conntrack")
+  for _, data in pairs(ubusData) do  
+    ipList[#ipList+1] = getConnectedDevices(data)
+  end
+  local fd = io.open("/proc/net/nf_conntrack")
   if fd then
     for line in fd:lines() do
-      if line:match("^.*tcp.*ESTABLISHED") then
-        count = count + 1
+      if (match(line, "tcp") and match(line, "ESTABLISHED")) or (match(line, "udp") and not match(line, "%[UNREPLIED%]")) then
+        local srcIP = line:match("src=(%S+)")
+        for _, ipCheck in pairs(ipList) do
+          if srcIP and ipCheck[srcIP] then
+            count = count + 1
+          end
+        end
       end
-      if line:match("^ipv4") then
+      if match(line, "^ipv4") then
         ipv4Conn[#ipv4Conn+1] = line
-      elseif line:match("^ipv6") then
+      elseif match(line, "^ipv6") then
         ipv6Conn[#ipv6Conn+1] = line
       end
     end
@@ -61,7 +101,7 @@ sys_conn_.get = {
 
 local function downloadNATTable(ipVersion, connList)
   local fd
-  local fileName = string.format("/tmp/%sSession.csv",ipVersion)
+  local fileName = format("/tmp/%sSession.csv",ipVersion)
   fd = io.open(fileName, "w")
   if fd then
     if #connList == 0 then
@@ -78,7 +118,7 @@ local function downloadNATTable(ipVersion, connList)
 end
 
 local function cleanNatTable(ipVersion)
-  local fileName = string.format("/tmp/%sSession.csv", ipVersion)
+  local fileName = format("/tmp/%sSession.csv", ipVersion)
   os.remove(fileName)
 end
 
@@ -146,25 +186,9 @@ local devInfo = {}
 local envBinding = { config = "env", sectionname = "var", option = "qtn_eth_mac" }
 
 sys_conn_host_i_.entries = function()
-  local ubusData = conn:call("hostmanager.device", "get", {})
   local entries = {}
   for _, data in pairs(ubusData) do
-    local ipv4 = ""
-    local ip4Address = data and data["ipv4"]
-    for _, v in pairs(ip4Address) do
-      if v["state"] == "connected" then
-        ipv4 = v["address"]
-        break
-      end
-    end
-    local ip6Address = data and data["ipv6"]
-    local ipv6 = ""
-    for _, v in pairs(ip6Address) do
-      if v["state"] == "connected" then
-        ipv6 = v["address"]
-        break
-      end
-    end
+    local _, ipv4, ipv6 = getConnectedDevices(data)
     local name
     if data["user-friendly-name"] and data["user-friendly-name"] ~= "" then
       name = data["user-friendly-name"]
@@ -184,18 +208,22 @@ sys_conn_host_i_.entries = function()
 end
 
 local function getNumberOfConnections(ip, key, connList)
+  local ipAddress = devInfo[key][ip]
+  if not ipAddress then
+    return "0"
+  end
+  if ip == "ipv6" then
+    ipAddress = ipAddress:gsub("([^%:]+)", function(value)
+      if string.len(value) < 4 then
+        value = string.rep("0", 4 - tonumber(string.len(value)) ) .. value
+        return value
+      end
+    end)
+  end
+  local ipMatch = "src="..ipAddress
   local connections = 0
     for _, line in ipairs(connList) do
-    local ipAddress = devInfo[key][ip]
-    if ipAddress and ip == "ipv6" then
-      ipAddress = ipAddress:gsub("([^%:]+)", function(value)
-        if string.len(value) < 4 then
-          value = string.rep("0", 4 - tonumber(string.len(value)) ) .. value
-          return value
-        end
-      end)
-    end
-    if ipAddress and line:match(".*src="..ipAddress) then
+    if match(line, ipMatch) then
       connections = connections + 1
     end
   end

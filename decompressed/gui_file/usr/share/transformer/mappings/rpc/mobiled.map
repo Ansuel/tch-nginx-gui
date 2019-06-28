@@ -1,35 +1,36 @@
 local mobiled_ = {
-    objectType = {
-        name = 'rpc.mobiled.',
-        access = 'readOnly',
-        minEntries = 1,
-        maxEntries = 1,
-        parameters = {
-            enabled = {
-                access = "readWrite",
-                type = "boolean"
-            },
-        }
-    },
+	objectType = {
+		name = 'rpc.mobiled.',
+		access = 'readOnly',
+		minEntries = 1,
+		maxEntries = 1,
+		parameters = {
+			enabled = {
+				access = "readWrite",
+				type = "boolean"
+			}
+		}
+	}
 }
 
 local uciHelper = mapper("ucihelper")
-local mobiledBinding = { config="mobiled", sectionname="globals", option="enabled" }
+local enable_binding = { config="mobiled", sectionname="globals", option="enabled" }
+
 mobiled_.get = function()
-  local enabled =  uciHelper.get_from_uci(mobiledBinding)
-  return enabled ~= "" and enabled or "1"
+	local enabled =  uciHelper.get_from_uci(enable_binding)
+	return enabled ~= "" and enabled or "1"
 end
 
-mobiled_.set = function( mapping, param, value )
-  uciHelper.set_on_uci(mobiledBinding, value, commitapply)
-  commitapply:newset("rpc.mobiled.enabled") -- to restart the mobiled daemon
+mobiled_.set = function(_, _, value)
+	uciHelper.set_on_uci(enable_binding, value, commitapply)
+	commitapply:newset("rpc.mobiled.enabled")
 end
 
 mobiled_.commit = function()
-    uciHelper.commit({config = "mobiled"})
+	uciHelper.commit({config = "mobiled"})
 end
 mobiled_.revert = function()
-    uciHelper.revert({config = "mobiled"})
+	uciHelper.revert({config = "mobiled"})
 end
 
 register(mobiled_)

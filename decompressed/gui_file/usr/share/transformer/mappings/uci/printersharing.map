@@ -14,3 +14,10 @@ local printersharing_config = {
 
 mapper("uci_1to1").registerSimpleMap(printersharing_config)
 
+local printersharing_printers = {
+  config = config_printersharing,
+  type = "printers",
+  options = { "name", "uri", "offline", "path", "enabled" }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(printersharing_printers)

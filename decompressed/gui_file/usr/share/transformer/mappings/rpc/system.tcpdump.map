@@ -27,12 +27,6 @@ local SYSTEM_TCPDUMP_ = {
           "log",
         },
       },
-      --[[
-      accelerate = {
-        access = "readWrite",
-        type = "boolean",
-      },
-      --]]
       refcount = {
         access = "readOnly",
         type = "string",
@@ -49,6 +43,18 @@ local SYSTEM_TCPDUMP_ = {
         access = "readOnly",
         type = "string",
       },
+      usbstatus = {
+        access = "readOnly",
+        type = "string",
+        enumeration = {
+          "Connected",
+          "Disconnected",
+        },
+      },
+      saveonusb = {
+        access = "readWrite",
+        type = "boolean",
+      },
     }
   }
 }
@@ -56,12 +62,14 @@ local SYSTEM_TCPDUMP_ = {
 ---------------------------------------------------------------------
 -- Local Variables
 ---------------------------------------------------------------------
-local logger = require("transformer.logger")
-local log = logger.new("tcpdump", 2)
 local posix = require("tch.posix")
 local match, gmatch = string.match, string.gmatch
+local lfs = require("lfs")
 local execute, exit, remove = os.execute, os.exit, os.remove
-local open, popen = io.open, io.popen
+local open = io.open
+local modgui = require("modgui")
+local logger = modgui.getRightLoggerModule()
+local log = logger.new("tcpdump",2)
 
 local MAX_COUNT = "16000"
 local TCPDUMP_PCAP = "/tmp/tcpdumpGUI.pcap"
@@ -70,24 +78,48 @@ local TCPDUMP_COMPL = "/tmp/.tcpdumpGUI.compl"
 local TCPDUMP_SH = "/tmp/.tcpdumpGUI.sh"
 local FC_ENABLED = "fcctl enable; fcctl config --mcast 3;"
 local FC_DISABLED = "fcctl disable;fcctl config --mcast 0;"
-local tcpdump_info = { state = "None", interface = "br-lan", acc = "1", refcount=MAX_COUNT, count = 0, type = "pcap" , file = TCPDUMP_PCAP, intflist = "", intftable = {}, pid = 0  }
+local tcpdump_info = { state = "None", interface = "br-lan", acc = "1", refcount=MAX_COUNT, count = 0, type = "pcap" , file = "", intflist = "", intftable = {}, pid = 0, saveonusb = "0" }
+
+local function isWritePermissionEnabled(dirPath)
+  local file1 = dirPath .. "/" .. "test.txt"
+  local file2 = open(file1, "w")
+  if file2 then
+    file2:close()
+    remove(file1)
+    return true
+  end
+  return false
+end
+
+local function getUSBSortedPath(path)
+  local usbPath = {}
+  for file in lfs.dir(path) do
+    usbPath[#usbPath+1] = file:match("[^%.]*")
+  end
+  table.sort(usbPath)
+  return usbPath
+end
+
+-- Function to return the dirctory name in the path specified(used to get the usb mount path) in case of reboot the mount path changes
+local function getDirName()
+  local path = "/mnt/usb"
+  local dirPath
+  local usbPath = getUSBSortedPath(path)
+  for _, file in ipairs(usbPath) do
+    -- file matches only USB-A1 or USB-B1 allowed
+    if file and file:match("^%u+-%u%d$") then
+      dirPath = path .. "/" .. file
+    end
+    if dirPath and (lfs.attributes(file, "mode") ~= "directory") and isWritePermissionEnabled(dirPath) then
+      return dirPath
+    end
+  end
+  return ""
+end
 
 ---------------------------------------------------------------------
 -- Local Functions
 ---------------------------------------------------------------------
--- to execute shell cmd and return the 1st line as result
-local function cmdlog(cmd)
-local fp = popen(cmd)
-  if fp == nil then
-    return ""
-  end
-  local line = fp:read("*l")
-  if not line then
-    line = ""
-  end
-  fp:close()
-  return line
-end
 
 local function readfile(path)
   local file = open(path, "rb")
@@ -99,9 +131,37 @@ local function readfile(path)
   return content
 end
 
+-- to return the lines present in the "tcpdump -D" command
+local function readlines(f)
+  local lines = {}
+  repeat
+    local line = f:read("*l")
+    if line then
+      if not line:match("Loopback") then
+        local intf = line:match("^%d+.(%S+)")
+        if not intf:match("lo$") and intf ~= "bcmsw" and intf ~= "any" then
+          lines[#lines+1] = intf
+        end
+      end
+    end
+  until not line
+  return lines
+end
+
 -- to get all valid tcpdump interfaces
 local function getlist()
-  tcpdump_info.intflist = cmdlog("tcpdump -D |grep -v lo$ | grep -v Loopback | grep -v bcmsw | grep -v any | cut -d . -f 2 | cut -d ' ' -f 1 | sort | xargs echo")
+  local popen = require("modgui").popen
+  local fd = popen("tcpdump -D")
+  local list = {}
+  tcpdump_info.intflist = ""
+  if fd then
+    list = readlines(fd)
+    fd:close()
+  end
+  table.sort(list)
+  for _,v in ipairs(list) do
+     tcpdump_info.intflist = tcpdump_info.intflist.." "..v
+  end
   return tcpdump_info.intflist
 end
 
@@ -199,8 +259,88 @@ local function killtcpdump()
   end
 end
 
+--- Function to get USB status
+local function getUSBStatus()
+  local usbDevicesPath = "/sys/bus/usb/devices/"
+  for file in lfs.dir(usbDevicesPath) do
+    if file:match("^%d+-[%d%.]+$") then
+      local fileName = usbDevicesPath .. file .. "/"
+      for usbpath in lfs.dir(fileName) do
+        if usbpath:match("^%d+-[%d%.]+:[%d]%.[%d]$") then
+          local fd = open(fileName .. usbpath .. "/bInterfaceClass")
+          if fd then
+            local value = fd:read("*l")
+            if value == "08" then
+              return "Connected"
+            end
+            fd:close()
+          end
+        end
+      end
+    end
+  end
+  return "Disconnected"
+end
+
+-- Function to get 'saveonusb' is enabled/disabled
+local function getSaveOnUSB()
+  return tcpdump_info.saveonusb
+end
+
+-- Function to create new directory when usb is connected
+local function createDir(dirName)
+  if lfs.attributes(dirName, "mode") ~= "directory" then
+    if not lfs.mkdir(dirName) then
+      return false
+    end
+  end
+  return true
+end
+
+-- Function to return the new file path for connected USB
+local function createUSBPath()
+  local type = tcpdump_info.type
+  local dirPath = getDirName()
+  local dirName = dirPath .. "/" .. "packetcapture"
+  local success = createDir(dirName)
+  if not success then
+    return nil
+  end
+  if type == "log" then
+    return dirName .. "/" .. "tcpdumpGUI.log"
+  end
+  return dirName .. "/" .. "tcpdumpGUI.pcap"
+end
+
+-- Function to return existing file path in USB
+local function getUSBFileName()
+  local type = tcpdump_info.type
+  local filePath = ""
+  local usbMountPath = getDirName() .. "/" .. "packetcapture"
+  if lfs.attributes(usbMountPath, "mode") == "directory" then
+    filePath = usbMountPath .. "/" .. "tcpdumpGUI.pcap"
+    if type == "log" then
+      filePath = usbMountPath .. "/" .. "tcpdumpGUI.log"
+    end
+  end
+  return filePath or ""
+end
+
+-- Function to return the File name
+local function getFileName()
+    local saveOnUsb = getSaveOnUSB()
+    local usbStatus = getUSBStatus()
+    if saveOnUsb == "1" and usbStatus == "Connected" then
+      local usbFileName = getUSBFileName()
+      return usbFileName or ""
+    end
+    return tcpdump_info.file
+end
+
 -- commit function
 local function statecommit()
+  local saveOnUsb = getSaveOnUSB()
+  local type = tcpdump_info.type
   if tcpdump_info.state == "Requested" then
     remove(TCPDUMP_PCAP)
     remove(TCPDUMP_LOG)
@@ -213,7 +353,13 @@ local function statecommit()
 
       --disable accelerate during tcpdump
       fc_disabled()
-
+      if saveOnUsb == "1" then
+        tcpdump_info.file = createUSBPath()
+      elseif type == "log" then
+        tcpdump_info.file = TCPDUMP_LOG
+      else
+        tcpdump_info.file = TCPDUMP_PCAP
+      end
       local args = { TCPDUMP_SH, tcpdump_info.type, tcpdump_info.interface, tcpdump_info.count, tcpdump_info.file }
       local _, err = posix.execv("/bin/sh", args)
       -- execv failed; exit the child process.
@@ -229,6 +375,10 @@ local function statecommit()
     remove(TCPDUMP_COMPL)
   elseif tcpdump_info.state == "None" then
     killtcpdump()
+    if saveOnUsb == "1" then
+      local filePath = getUSBFileName()
+      remove(filePath)
+    end
     remove(TCPDUMP_PCAP)
     remove(TCPDUMP_LOG)
   end
@@ -257,16 +407,6 @@ SYSTEM_TCPDUMP_.get = {
   interface = function(mapping, param, value)
     return tcpdump_info.interface
   end,
-  --[[
-  accelerate = function(mapping, param, value)
-    local acc = cmdlog("fcctl status |grep IP-Flow")
-    tcpdump_info.acc = "0"
-    if match(acc, "Enabled") ~= nil then
-      tcpdump_info.acc = "1"
-    end
-    return tcpdump_info.acc
-  end,
-  --]]
   refcount = getrefcount,
   count = function(mapping, param, value)
     return tcpdump_info.count
@@ -275,9 +415,9 @@ SYSTEM_TCPDUMP_.get = {
     return tcpdump_info.type
   end,
   intflist = getlist,
-  file = function(mapping, param, value)
-    return tcpdump_info.file
-  end,
+  file = getFileName,
+  usbstatus = getUSBStatus,
+  saveonusb = getSaveOnUSB,
 }
 
 --[[
@@ -329,16 +469,12 @@ SYSTEM_TCPDUMP_.set = {
       tcpdump_info.state = "None"
     end
   end,
-  --[[
-  accelerate = function(mapping, param, value)
-    if value == "1" then
-      execute("fcctl enable;fcctl config --mcast 3")
-    else
-      execute("fcctl disable;fcctl config --mcast 0")
+  saveonusb = function(mapping, param, value)
+    if getUSBStatus() == "Disconnected" then
+      return nil, "USB is not connected, save on usb will not be enabled/disabled"
     end
-    tcpdump_info.state = "None"
+    tcpdump_info.saveonusb = value
   end,
-  --]]
 }
 
 SYSTEM_TCPDUMP_.commit = function()

@@ -58,27 +58,14 @@ end
 print(ui_helper.createHeader(T"Devices", false, true))
   ngx.print('\
 <div class="modal-body update">\
-');  
-local tabs = {
-    {
-        desc = T"Devices List",
-        target = "modals/device-modal.lp",
-    },
-    {
-        desc = T"Devices Map",
-        active = "active",
-        target = "modals/hostmap-modal.lp",
-    },
-    {
-        desc = T"IPv6 Devices List",
-        target = "modals/ipv6devices-modal.lp",
-    },
-}
-ngx.print(ui_helper.createModalTabs(tabs))
+');
+	local lp = require("web.lp")
+    lp.setpath("/www/snippets/")
+    lp.include("tabs-device.lp")
   ngx.print('\
 <form class="form-horizontal" method="post" action="modals/hostmap-modal.lp">\
 <fieldset>\
-');  
+');
 local html = {}
 local eth_sys_path = "sys.eth.port."
 local eth_sys_content = proxy.get(eth_sys_path)

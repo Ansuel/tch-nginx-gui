@@ -19,3 +19,14 @@ local samba_sambashare = {
   options = { "device", "filesystem", "configpath", "path", "guest_ok", "create_mask", "dir_mask", "read_only", "enabled", "available", "name" }
 }
 mapper("uci_1to1").registerNamedMultiMap(samba_sambashare)
+
+-- uci.sambauseraccess.userauth
+local sambauseraccess_userauth = {
+  config =  config_samba,
+  section = "userauth",
+  type = "sambauseraccess",
+  options = { "wan_access", "authentication", "maxusers", "username1","username2","username3","username4" },
+  passwords = {"password1", "password2", "password3", "password4"}
+}
+mapper("uci_1to1").registerSimpleMap(sambauseraccess_userauth)
+

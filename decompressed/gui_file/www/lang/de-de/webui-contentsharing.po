@@ -151,3 +151,6 @@ msgstr ""
 
 msgid "If Samba is not accessible in Windows 10, Configure the settings as per the URL - https://support.microsoft.com/en-us/help/4046019/guest-access-smb2-disabled-by-default-in-windows-10-server-2016"
 msgstr ""
+
+msgid "It is recommended to use the USB in the 2.0 standard. The use of USB in 3.1 standard can remarkably affect the Wi-Fi performance at 2.4 GHz band."
+msgstr ""

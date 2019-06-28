@@ -74,7 +74,8 @@ local concat = table.concat
 local io = require 'io'
 
 local ucihelper = require 'transformer.mapper.ucihelper'
-local logger = require 'transformer.logger'
+local modgui = require("modgui")
+local logger = modgui.getRightLoggerModule()
 
 local M = {}
 
@@ -302,6 +303,9 @@ end
 local function make_list(v)
 	local list
 	list = {}
+	if type(v)=='table' then
+		return v
+	end
 	for entry in v:gmatch("%S+") do
 		list[#list+1] = entry
 	end

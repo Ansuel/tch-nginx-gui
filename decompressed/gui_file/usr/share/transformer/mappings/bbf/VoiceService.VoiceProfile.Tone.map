@@ -150,6 +150,7 @@ local tone_map = {
        return object[".name"]
     end,
     ToneFile = function(object)
+    if (object.play) and type(object.play) == "table" then
       for i=1 ,#object.play do
          if object.play[i] and (object.play[i]):match("^file_") then
              return object.play[i]
@@ -157,10 +158,13 @@ local tone_map = {
              return " "
          end
       end
+    end
+    return ""
     end,
     ToneRepetitions = function(object)
         local rep_flag = false
         local rep
+        if (object.duration) and type(object.duration) == "table" then
         for i=1 ,#object.duration do
            if (object.duration[i]== "-1" and not object.loop_iterations) then
                rep_flag = true
@@ -172,7 +176,7 @@ local tone_map = {
                end
            end
         end
-           if (object.loop_iterations) then
+           if (object.loop_iterations) and type(object.loop_iterations) == "table" then
                rep_flag = true
                if (tonumber(object.loop_iterations[1]) > 0 and tonumber(object.loop_iterations[1]) <= 255) then
                    rep = tostring(object.loop_iterations[1])
@@ -185,8 +189,11 @@ local tone_map = {
            else
                return "1"
            end
+        end
+        return ""
     end,
     TonePattern = function(object)
+    if (object.play) and type(object.play) == "table" then
        for i=1 ,#object.play do
            if object.play[i] and (object.play[i]):match("^file_") then
                return "0"
@@ -202,6 +209,8 @@ local tone_map = {
        else
            return " "
        end
+    end
+    return ""
     end,
 },
   default = {
@@ -876,11 +885,13 @@ Multi_Services_VoiceService_i_VoiceProfile_i_Tone_Pattern_i_.entries = function(
     end)
     local new_binding = { config = "mmpbx", sectionname = "audionotification" }
     foreach_on_uci(new_binding,function(section)
+    if (section.play) then
         for i=1, #section.play do
             if section.play[i] and (not ((section.play[i]):match("file"))) then
                entries1[#entries1+1]= string.format("%s|%d|%s@%s",section[".name"] ,i,(section.play[i]),parentkey)
             end
         end
+    end
     end)
 return entries1
 end

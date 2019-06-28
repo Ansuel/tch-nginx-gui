@@ -185,10 +185,11 @@ function M.tr143_revert()
 end
 
 function M.startup(_resolve, _tokey)
+  local execute = require("modgui").execute
   resolve, tokey = _resolve, _tokey
   if init_state == false then
       --initialize the tr143 default configuration
-      os.execute("cp /etc/tr143.default /etc/config/tr143")
+      execute("cp /etc/tr143.default /etc/config/tr143")
       init_state = true
   end
 end

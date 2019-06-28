@@ -1,6 +1,7 @@
 local M = {}
 local open = io.open
-local logger = require("transformer.logger")
+local modgui = require("modgui")
+local logger = modgui.getRightLoggerModule()
 local uci = require("transformer.mapper.ucihelper")
 local match = string.match
 local pairs, remove = pairs, os.remove

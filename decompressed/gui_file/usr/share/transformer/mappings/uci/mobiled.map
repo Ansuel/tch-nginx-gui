@@ -10,7 +10,10 @@ local mobiled_globals = {
   config = config_mobiled,
   section = "globals",
   type = "globals",
-  options = { "tracelevel", "detectors", "store_pin", "max_devices" }
+  options = { "enabled", "tracelevel", "detectors", "store_pin", "max_devices", "led_update_interval", "pdn_retry_timer", "initmode" },
+  lists = {
+    "allowed_imsi_ranges",
+  }
 }
 
 mapper("uci_1to1").registerSimpleMap(mobiled_globals)

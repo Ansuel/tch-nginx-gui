@@ -28,11 +28,11 @@ local helper = require("mobiled.scripthelpers")
 local function getall(mapping, key)
 	local result = {}
 	setmetatable(result, { __index = function() return "" end })
-	local id = string.match(key, "^antenna_control(.*)$")
+	local id = tonumber(string.match(key, "^antenna_control(%d+)$"))
 	local info = helper.getUbusData(conn, "mobiled.platform", "capabilities", {})
 	if type(info.antenna_controls) == "table" then
-		for _, control in pairs(info.antenna_controls) do
-			if control.id == id then
+		for i, control in pairs(info.antenna_controls) do
+			if i == id then
 				return control
 			end
 		end
@@ -48,8 +48,8 @@ local function antennaControlEntries(mapping)
 	local info = helper.getUbusData(conn, "mobiled.platform", "capabilities", {})
 	local antennaControls = {}
 	if type(info.antenna_controls) == "table" then
-		for i, control in pairs(info.antenna_controls) do
-			table.insert(antennaControls, { tostring(i), "antenna_control" .. control.id })
+		for i in pairs(info.antenna_controls) do
+			table.insert(antennaControls, { tostring(i), "antenna_control" .. i })
 		end
 	end
 	return antennaControls

@@ -1,5 +1,3 @@
-local logger = require("transformer.logger")
-local log = logger.new("wireless.radio", 2)
 local register = register;
 local pairs = pairs
 
@@ -175,6 +173,7 @@ local mapper = mapper
 local uci_helper = mapper("ucihelper")
 local conn = mapper("ubus").connect()
 local wirelessBinding = { config = "wireless" }
+local network = require("transformer.shared.common.network")
 local radioDataCache
 
 local function nilToEmptyString(st)
@@ -183,15 +182,6 @@ local function nilToEmptyString(st)
     else
         return tostring(st)
     end
-end
-
-local function getDataForRadio(radio)
-    local result = radioDataCache or conn:call("wireless.radio", "get", { name = radio })
-    if result == nil then
-        log:error("Cannot retrieve radio info for radio " .. radio)
-        return {}
-    end
-    return result[radio]
 end
 
 local function entriesWirelessRadio(mapping)
@@ -206,7 +196,8 @@ local function entriesWirelessRadio(mapping)
 end
 
 local function getRequestedChannel(key, radioData)
-	-- Fetching the value from uci in case the radio is remotely_managed = 1 and integrated_ap = 1 (integrated Quantenna via uci) for requested_channel
+	-- Fetching the value from uci in case the radio is remotely_managed = 1 and integrated_ap = 1 \
+        -- (integrated Quantenna via uci) for requested_channel
 	if (radioData.remotely_managed == 1 and radioData.integrated_ap == 1) then
 		wirelessBinding.sectionname = key
 		wirelessBinding.option = "channel"
@@ -222,28 +213,19 @@ local function getChannel(key, radioData)
         return channel ~= "" and channel ~= "auto" and channel or radioData.channel
 end
 
-local function getAllowedChannels(key, radioData)
-        wirelessBinding.sectionname = key
-        wirelessBinding.option = "allowed_channels"
-        local allowed_channels = uci_helper.get_from_uci(wirelessBinding)
-        return allowed_channels ~= "" and allowed_channels or radioData.allowed_channels or ""
-end
-
 local function getParameterValue(key, paramName, value, radioData)
-        radioData = radioData or getDataForRadio(key)
+        radioData = radioData or network.getRadioInfo(key)
         value = value or radioData[paramName]
         if paramName == "requested_channel" then
                 value = getRequestedChannel(key, radioData)
         elseif paramName == "channel" then
                 value = getChannel(key, radioData)
-        elseif paramName == "allowed_channels" then
-                value = getAllowedChannels(key, radioData)
         end
         return nilToEmptyString(value)
 end
 
 local function getall(mapping, key)
-        local radioData = getDataForRadio(key)
+        local radioData = network.getRadioInfo(key)
         local sanitizedData = {}
         for option, value in pairs(radioData) do
             sanitizedData[option] = getParameterValue(key, option, value, radioData)

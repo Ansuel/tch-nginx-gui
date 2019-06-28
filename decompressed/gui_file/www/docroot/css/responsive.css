@@ -1669,22 +1669,6 @@
     }
 }
 
-@media screen and (min-width: 768px) and (min-height:1025px) {
-    .modal.fade.in {
-        top:35%;
-    }
-
-    .modal-body {
-        max-height: 800px;
-    }
-}
-
-@media screen and (max-width: 767px) and (min-height:1025px) {
-    .modal-body {
-        max-height:800px;
-    }
-}
-
 @media screen and (max-height: 640px) {
     .modal {
         position:fixed;

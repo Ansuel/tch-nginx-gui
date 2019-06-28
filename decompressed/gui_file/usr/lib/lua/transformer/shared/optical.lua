@@ -8,7 +8,8 @@ local uci = require("transformer.mapper.ucihelper")
 local getFromUci = uci.get_from_uci
 local forEachOnUci = uci.foreach_on_uci
 
-local log = require('tch.logger')
+local modgui = require("modgui")
+local log = modgui.getRightLoggerModule()
 
 local M = {}
 
@@ -158,8 +159,8 @@ end
 function M.getLinkStatus()
   local value = M.getTrsvInfo("status", "DS_Rx_RSSI")
   local status = "unknown"
-  if value and value ~= "" then
-    value = tonumber(value)
+  value = tonumber(value)
+  if value then
     if value == -255.00000 then
       status = "unplug"
     elseif value >= -99.00000 and value <= -35.00000 then
@@ -322,7 +323,7 @@ function M.getStatus()
       return M.getSfpState()
     elseif wanType == "xepon_ae_p2p" then
       return M.getP2pState()
-    else --GPON XGPON XGS
+    elseif wanType ~= "unknown" then --GPON XGPON XGS
       return M.getGponstate()
     end
   end

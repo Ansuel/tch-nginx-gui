@@ -302,8 +302,9 @@ function M.getTodwifi()
 		
 		if ssid then
 			local freq = proxy.get("rpc.wireless.ssid.@"..ssid..".radio")
-			freq = freq and freq[1].value
-			freq = match(freq,"radio_5G") and "5GHz" or "2.4GHz"
+			if freq and freq[1].value then
+				freq = match(freq[1].value,"radio_5G") and "5GHz" or "2.4GHz"
+			end
 			local name = proxy.get("rpc.wireless.ssid.@"..ssid..".ssid")
 			name = name and name[1].value
 			

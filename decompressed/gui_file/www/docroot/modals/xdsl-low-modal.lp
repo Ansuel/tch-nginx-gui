@@ -147,12 +147,14 @@ end
 local driver_option = {}
 
 local driver_Params = {
+  dsl0_enabled = "uci.xdsl.xdsl.@dsl0.enabled",
   ds10_sra = "uci.xdsl.xdsl.@dsl0.sra",
   ds10_bitswap = "uci.xdsl.xdsl.@dsl0.bitswap",
   ds10_snr = "uci.xdsl.xdsl.@dsl0.snr",
 }
 
 local driver_valid = {
+  dsl0_enabled = post_helper.validateBoolean,
   ds10_sra = post_helper.validateBoolean,
   ds10_bitswap = post_helper.validateBoolean,
   ds10_snr = post_helper.getValidateNumberInRange(0,65535),
@@ -234,6 +236,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  local alertinfo = { alert = { class = "alert-info" } }
       local html = {}
       html[#html + 1] = ui_helper.createLight(T"Status", nil, state_map[untaint(content.dsl0_enabled)], { light = { class = light_map[untaint(content.dsl0_enabled)] } })
+	  html[#html + 1] = ui_helper.createSwitch(T"Enabled","dsl0_enabled",driver_content["dsl0_enabled"])
 	  html[#html + 1] = ui_helper.createLabel(T"DSL Connection Status", T(content.dsl0_status), span5 )
 	  if ( content.dsl0_status == "Up" ) then
 	  html[#html + 1] = ui_helper.createLabel(T"DSL Mode", content.dsl0_mode .. " (" .. content.dsl0_linkencapsulation .. ")", span5 )

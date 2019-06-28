@@ -66,9 +66,30 @@ end
 
 local cache = {}
 
+local function sleep(sec)
+	if require("modgui").isModuleAvailable("socket") then
+		require("socket").sleep(sec)
+	else
+		os.execute("sleep " .. tonumber(sec))
+	end
+end
+
+local function call_popen(cmd,mode)
+	
+	local output = popen(cmd,mode)
+	
+	while ( not output:read(0) == "" ) do
+		output:close()
+		sleep(5)
+		output = popen(cmd,mode)
+	end
+	
+	return output
+end
+
 local function xdslmode(dtype)
 	local showdatacmd = ("xdslctl info --show")
-	local showdata = popen(showdatacmd, 'r')
+	local showdata = call_popen(showdatacmd, 'r')
 	local showline
 	local result
 	for showline in showdata:lines() do
@@ -94,7 +115,7 @@ end
 
 local function pbParams_find(bandtype)
 	local cmd = ("xdslctl info --pbParams")
-	local pbfile = popen(cmd, 'r')
+	local pbfile = call_popen(cmd, 'r')
 	local pbstring = ""
 	for pbline in pbfile:lines() do
 		if pbline:match("Medley Phase %(Final%) Band Plan") then
@@ -254,7 +275,7 @@ local function xdslctlget(dtype,request,band,bandtype,split)
 	
 	local cmd = "xdslctl info --" .. request
 	
-	local infofile = popen(cmd,"r")
+	local infofile = call_popen(cmd,"r")
 	
 	for line in infofile:lines() do
 		if lineread>=(bandstart+8) and lineread<=(bandend+8) then
@@ -315,7 +336,7 @@ local function xdslctlDslamInfo(itype)
 	local result = ""
 	local chipset 
 
-	local vendor_info = popen(cmd)
+	local vendor_info = call_popen(cmd)
 	
 	for line in vendor_info:lines() do
 		if line:match("ChipSet Vendor Id") then

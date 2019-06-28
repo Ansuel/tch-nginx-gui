@@ -345,7 +345,7 @@ function formatBytes(bytes,decimals) {\
     dm = decimals || 2,\
     sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"],\
     i = Math.floor(Math.log(bytes) / Math.log(k));\
-   return (bytes / Math.pow(k, i)) > 0 ? parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i] : "0";\
+   return (bytes / Math.pow(k, i)) > 0 ? parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + ( i > -1 ? sizes[i] : "bits") : null;\
 }\
 var TrafficChartOption = {\
 		maintainAspectRatio: false,\
@@ -353,8 +353,8 @@ var TrafficChartOption = {\
         scales: {\
 		yAxes: [{ticks: {\
 				callback: function(value) { \
-					return formatBytes(value,2) \
-				},}}]},\
+					return formatBytes(value,2)},\
+				beginAtZero: true}}]},\
 		tooltips: {\
                 enabled: true,\
                 mode: "single",\
