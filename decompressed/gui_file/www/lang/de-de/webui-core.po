@@ -4379,7 +4379,7 @@ msgstr ""
 msgid "Upstream"
 msgstr ""
 
-msgid "Step Duration(ms):"
+msgid "Step Duration (ms):"
 msgstr ""
 
 msgid "Good put(Kbps)"
@@ -4421,7 +4421,7 @@ msgstr ""
 msgid "Max Steps"
 msgstr ""
 
-msgid "Max (kbps:)"
+msgid "Max (Kbps):"
 msgstr ""
 
 msgid "Average Latency"

@@ -164,7 +164,7 @@ local attrSpeedSelect = {select = { ["data-for"] = "Speed"}}
       html[#html+1] = ui_helper.createInputSelect(T"Direction:", "Direction" , direction,SpeedService.Direction,attrSpeedSelect)
       html[#html+1] = ui_helper.createInputText(T"Step Duration (ms):", "StepDuration", SpeedService.StepDuration,attrSpeed)
       html[#html+1] = ui_helper.createInputText(T"UDP Payload Length:", "PacketLength", SpeedService.PacketLength,attrSpeed)
-      html[#html+1] = ui_helper.createInputText(T"Max (kbps:)", "StartingBwKbps",SpeedService.StartingBwKbps,attrSpeed)
+      html[#html+1] = ui_helper.createInputText(T"Max (Kbps):", "StartingBwKbps",SpeedService.StartingBwKbps,attrSpeed)
       html[#html+1] = ui_helper.createInputText(T"Result Count", "ResultCount",SpeedService.ResultCount,attrSpeed)
       html[#html+1] = ui_helper.createInputSelect(T"Algorithm:","Algorithm", algorithm,SpeedService.Algorithm,attrSpeedSelect)
       html[#html+1] = "<div id='latencyTolerancePercentage-row'>"

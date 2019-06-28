@@ -76,7 +76,7 @@ msgid "Router Security"
 msgstr "Impostazioni sicurezza"
 
 msgid "SSID Broadcast Name (Max 32 characters):"
-msgstr "Nome rete (SSID) max 32 caratteri:"
+msgstr "Nome rete (SSID)\nmax 32 caratteri:"
 
 msgid "SSID Broadcast Name: "
 msgstr "Nome rete (SSID): "
@@ -88,7 +88,7 @@ msgid "Security Key Type: "
 msgstr "Modo sicurezza: "
 
 msgid "Security Key(Minimum of 8 characters):"
-msgstr "Password (minimo 8 caratteri):"
+msgstr "Password\n(minimo 8 caratteri):"
 
 msgid "Security Key: "
 msgstr "Password: "
