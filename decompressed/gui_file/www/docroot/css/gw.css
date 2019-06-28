@@ -190,14 +190,6 @@ a:hover, a:focus {
 .container>.row {
 	margin: auto;
 }
-.row:before, .row:after {
-	display: table;
-	content: "";
-	line-height: 0
-}
-.row:after {
-	clear: both
-}
 [class*="span"] {
 	float: left;
 	min-height: 1px;
@@ -3676,7 +3668,7 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	display: flex;
 	margin-left: 0px;
 	flex-wrap: wrap;
-	justify-content: center;
+	justify-content: space-evenly;
 }
 #leftinfocard,#rightinfocard {
     flex: calc( 50% - 20px );
