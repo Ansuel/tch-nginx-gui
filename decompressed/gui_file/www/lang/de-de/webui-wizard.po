@@ -241,34 +241,34 @@ msgid "VDSL"
 msgstr "VDSL"
 
 msgid "Username can not be empty"
-msgstr ""
+msgstr "Benutzername darf nicht leer sein"
 
 msgid "Passwords do not match"
-msgstr ""
+msgstr "Kennworte passen nicht zusammen"
 
 msgid "You must fill your password"
-msgstr ""
+msgstr "Sie müssen ein Kennwort eingeben"
 
 msgid "WiFi Setup (2.4 GHz)"
-msgstr ""
+msgstr "WiFi Einstellungen (2.4 Ghz)"
 
 msgid "Wireless 5 GHz (WiFi):"
-msgstr ""
+msgstr "Drahtlos 5 Ghz (WiFi):"
 
 msgid "WiFi Setup (5 GHz)"
-msgstr ""
+msgstr "WiFi Einstellungen (5 Ghz)"
 
 msgid "Wireless 5 GHz (WiFi): "
-msgstr ""
+msgstr "Drahtlos 5 Ghz (WiFi): "
 
 msgid "A <b>WiFi 2.4 GHz</b> Security Key is already set-up with your Router, however you can change that key here if desired. You can also change the security type below. To connect to the Router via WiFi you will need to enter the Security Key into your device."
-msgstr ""
+msgstr "Ein WiFi-Sicherheitsschlüssel für <b>2.4 Ghz</b> ist in Ihrem Router schon voreingestellt, Sie können ihn jedoch hier ändern. Sie können unten auch den Verschlüsselungstyp ändern. Um sich mit den Router per WiFi zu verbinden, müssen Sie in Ihrem Endgerät den Schlüssel eingeben."
 
 msgid "A <b>WiFi 5 GHz</b> Security Key is already set-up with your Router, however you can change that key here if desired. You can also change the security type below. To connect to the Router via WiFi you will need to enter the Security Key into your device."
-msgstr ""
+msgstr "Ein WiFi-Sicherheitsschlüssel für <b>5 Ghz</b> ist in Ihrem Router schon voreingestellt, Sie können ihn jedoch hier ändern. Sie können unten auch den Verschlüsselungstyp ändern. Um sich mit den Router per WiFi zu verbinden, müssen Sie in Ihrem Endgerät den Schlüssel eingeben."
 
 msgid "Wireless 2.4 GHz (WiFi):"
-msgstr ""
+msgstr "Drahtlos 2.4 Ghz (WiFi):"
 
 msgid "Wireless 2.4 GHz (WiFi): "
-msgstr ""
+msgstr "Drahtlos 2.4 Ghz (WiFi): "
