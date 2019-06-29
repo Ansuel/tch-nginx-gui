@@ -250,25 +250,25 @@ msgid "You must fill your password"
 msgstr "Devi inserire la password"
 
 msgid "WiFi Setup (2.4 GHz)"
-msgstr ""
+msgstr "Impostazioni WiFi (2.4 GHz)"
 
 msgid "Wireless 5 GHz (WiFi):"
-msgstr ""
+msgstr "Wireless 5 GHz (Wifi):"
 
 msgid "WiFi Setup (5 GHz)"
-msgstr ""
+msgstr "Impostazioni WiFi (5 GHz)"
 
 msgid "Wireless 5 GHz (WiFi): "
-msgstr ""
+msgstr "Wireless 5 GHz (Wifi): "
 
 msgid "A <b>WiFi 2.4 GHz</b> Security Key is already set-up with your Router, however you can change that key here if desired. You can also change the security type below. To connect to the Router via WiFi you will need to enter the Security Key into your device."
-msgstr ""
+msgstr "Nel router è già pre-impostata una password per la rete <b>Wi-Fi 2.4 GHz</b>, ma puoi modificarla a tuo piacimento.<br/>Puoi inoltre cambiare il modo sicurezza.<br/>Per connetterti al router in Wi-Fi avrai bisogno di inserire nel dispositivo la password della rete."
 
 msgid "A <b>WiFi 5 GHz</b> Security Key is already set-up with your Router, however you can change that key here if desired. You can also change the security type below. To connect to the Router via WiFi you will need to enter the Security Key into your device."
-msgstr ""
+msgstr "Nel router è già pre-impostata una password per la rete <b>Wi-Fi 5 GHz</b>, ma puoi modificarla a tuo piacimento.<br/>Puoi inoltre cambiare il modo sicurezza.<br/>Per connetterti al router in Wi-Fi avrai bisogno di inserire nel dispositivo la password della rete."
 
 msgid "Wireless 2.4 GHz (WiFi):"
-msgstr ""
+msgstr "Wireless 2.4 GHz (Wifi):"
 
 msgid "Wireless 2.4 GHz (WiFi): "
-msgstr ""
+msgstr "Wireless 2.4 GHz (Wifi): "
