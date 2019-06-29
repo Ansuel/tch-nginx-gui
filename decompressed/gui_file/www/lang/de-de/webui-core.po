@@ -4276,356 +4276,356 @@ msgid "GUI animations"
 msgstr "GUI Animation"
 
 msgid "In Progress/Connected"
-msgstr ""
+msgstr "Im Fortschritt/Verbunden"
 
 msgid "Unrooting and reverting to factory defaults, please wait..."
-msgstr ""
+msgstr "Entferne Root und setze auf Werkseinstellungen zurück, bitte warten..."
 
 msgid "Resetting to default gui, please wait..."
-msgstr ""
+msgstr "Zurücksetzen auf Standardoberfläche, bitte warten..."
 
 msgid "Connection issue: "
-msgstr ""
+msgstr "Verbindungsproblem:"
 
 msgid "Mem Free Graph"
-msgstr ""
+msgstr "Freier Speicher Grafik"
 
 msgid "CPU Usage Graph"
-msgstr ""
+msgstr "CPU Nutzung Grafik"
 
 msgid "Modem Stats Graph"
-msgstr ""
+msgstr "Modem Statistik Grafik"
 
 msgid "Modem Stats"
-msgstr ""
+msgstr "Modem Statistik"
 
 msgid "Registration refused"
-msgstr ""
+msgstr "Registrierung verweigert"
 
 msgid "Network error"
-msgstr ""
+msgstr "Netzwerkfehler"
 
 msgid "Resetting config to default, please wait..."
-msgstr ""
+msgstr "Zurücksetzen der Konfiguration, bitte warten..."
 
 msgid "Reset config"
-msgstr ""
+msgstr "Zurücksetzen der Konfiguration"
 
 msgid "Reset the router to factory settings and mantain modded GUI."
-msgstr ""
+msgstr "Setze den Router auf Werkseinstellungen zurück und behalte die modifizierte Oberfläche."
 
 msgid "Reset config to Factory"
-msgstr ""
+msgstr "Zurücksetzen der Konfiguration auf Werkseinstellungen"
 
 msgid "Remove Config"
-msgstr ""
+msgstr "Entferne Konfiguration"
 
 msgid "Are you sure you want to reset config of this modem? </br><strong> This is permanent, save any config before this action.</strong>"
-msgstr ""
+msgstr "Sind Sie sicher, dass Sie die Konfiguration des Modems zurücksetzen wollen? </br><strong> Dies ist dauerhaft, sichern Sie ggf. Ihre Einstellungen vor dieser Aktion.</strong>"
 
 msgid "Mem Used Graph"
-msgstr ""
+msgstr "Speichernutzung Grafik"
 
 msgid "Updated"
-msgstr ""
+msgstr "Aktualisiert"
 
 msgid "Add new DDns Rule"
-msgstr ""
+msgstr "Hinzufügen neue DDns Regel"
 
 msgid "Update Info"
-msgstr ""
+msgstr "Aktualisiere Info"
 
 msgid "<strong %s>%d DDNS service</strong> is enabled"
 msgid_plural "<strong %s>%d DDNS services</strong> are enabled"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "<strong %s>%d DDNS Dienst</strong> ist aktiv"
+msgstr[1] "<strong %s>%d DDNS Dienste</strong> sind aktiv"
 
 msgid "WoL / WoW"
-msgstr ""
+msgstr "WoL / WoW"
 
 msgid "Custom DNS"
-msgstr ""
+msgstr "Benutzerdefinierter DNS"
 
 msgid "Port Forward"
-msgstr ""
+msgstr "Port-Weiterleitung"
 
 msgid "Server Port"
-msgstr ""
+msgstr "Server Port"
 
 msgid "Syslog Filters"
-msgstr ""
+msgstr "Syslog Filter"
 
 msgid "You must select at leat one ap"
-msgstr ""
+msgstr "Sie müssen mindestens einen Access Point auswählen"
 
 msgid "Speed Test"
-msgstr ""
+msgstr "Geschwindigkeitstest"
 
 msgid "Downstream"
-msgstr ""
+msgstr "Downstream"
 
 msgid "Received Time"
-msgstr ""
+msgstr "Empfangszeit"
 
 msgid "Duplicate Static Route Found"
-msgstr ""
+msgstr "Doppelte statische Route gefunden"
 
 msgid "Server Port:"
-msgstr ""
+msgstr "Server Port:"
 
 msgid "Loss Packets"
-msgstr ""
+msgstr "Paketverluste"
 
 msgid "Upstream"
-msgstr ""
+msgstr "Upstream"
 
 msgid "Step Duration (ms):"
-msgstr ""
+msgstr "Schrittdauer (ms):"
 
 msgid "Good put(Kbps)"
-msgstr ""
+msgstr "Gute put(Kbps)"
 
 msgid "Result Count"
-msgstr ""
+msgstr "Ergebnis Zähler"
 
 msgid "IPv6 Link Local Addr"
-msgstr ""
+msgstr "IPv6 Link-lokale Adresse"
 
 msgid "Runtime"
-msgstr ""
+msgstr "Laufzeit"
 
 msgid "IPv6 Devices List"
-msgstr ""
+msgstr "IPv6 Geräteliste"
 
 msgid "IPv6 Default Gateway"
-msgstr ""
+msgstr "IPV6 Standard Gateway"
 
 msgid "IPv6 Global Addr"
-msgstr ""
+msgstr "IPv6 globale Adresse"
 
 msgid "BW"
-msgstr ""
+msgstr "BW"
 
 msgid "Latency Tolerance Percentage"
-msgstr ""
+msgstr "Latenztoleranz Prozentzahl"
 
 msgid "UDP Payload Length:"
-msgstr ""
+msgstr "UDP Payload Länge:"
 
 msgid "Send"
-msgstr ""
+msgstr "Sende"
 
 msgid "Speed Diagonostics Result History"
-msgstr ""
+msgstr "Geschwindigkeitsdiagnose Ergebnishistorie"
 
 msgid "Max Steps"
-msgstr ""
+msgstr "Maximale Schritte"
 
 msgid "Max (Kbps):"
-msgstr ""
+msgstr "Max (Kbps):"
 
 msgid "Average Latency"
-msgstr ""
+msgstr "Mittlere Latenz"
 
 msgid "RxRate"
-msgstr ""
+msgstr "EmpfRate"
 
 msgid "Invalid IP address."
-msgstr ""
+msgstr "Ungültige IP-Adresse."
 
 msgid "PayLoad Rate(Kbps)"
-msgstr ""
+msgstr "Payload Rate(Kbps)"
 
 msgid "IPv4 Static Routes Configuration"
-msgstr ""
+msgstr "Konfiguration statische IPv4-Routen"
 
 msgid "Direction"
-msgstr ""
+msgstr "Richtung"
 
 msgid "Overhead"
-msgstr ""
+msgstr "Overhead"
 
 msgid "Server Address:"
-msgstr ""
+msgstr "Server Adresse:"
 
 msgid "Fast"
-msgstr ""
+msgstr "Schnell"
 
 msgid "MaxSteps should be greater than or equal to 1 when Algorithm is Binary/Ramp/Fast"
-msgstr ""
+msgstr "MaxSteps sollte größer oder gleich 1 sein, wenn der Algorithmus Binär/Rampe/Schnell ist"
 
 msgid "Invalid gateway IP."
-msgstr ""
+msgstr "Ungültige Gateway IP."
 
 msgid "Initiate A Speed Diagnostic"
-msgstr ""
+msgstr "Starte Geschwindigkeitsdiagnose"
 
 msgid "Changes not saved"
-msgstr ""
+msgstr "Änderungen nicht gespeichert"
 
 msgid "Adjusted Received Rate"
-msgstr ""
+msgstr "Angepasste Empfangsrate"
 
 msgid "Speed Service"
-msgstr ""
+msgstr "Geschwindigkeit Dienst"
 
 msgid "Mode:"
-msgstr ""
+msgstr "Betriebsart:"
 
 msgid "Binary"
-msgstr ""
+msgstr "Binär"
 
 msgid "Diagnostics Ping & Traceroute"
-msgstr ""
+msgstr "Diagnose Ping & Routenverfolgung"
 
 msgid "Algorithm:"
-msgstr ""
+msgstr "Algorithmus:"
 
 msgid "Ramp"
-msgstr ""
+msgstr "Rampe"
 
 msgid "Acceptable Percentage Loss"
-msgstr ""
+msgstr "Akzeptable Verlustrate in Prozent"
 
 msgid "infinite"
-msgstr ""
+msgstr "unendlich"
 
 msgid "Invalid Pin."
-msgstr ""
+msgstr "Ungültige PIN."
 
 msgid "A WEP key of length 10 or 26 can only contain the letters A to F or digits"
-msgstr ""
+msgstr "Ein 10 oder 26 Zeichen langer WEP Schlüssel darf nur aus Buchstaben von A bis F und Ziffern bestehen"
 
 msgid "Input must be a whole number."
-msgstr ""
+msgstr "Die Eingabe muss eine ganze Zahl sein."
 
 msgid "Invalid value."
-msgstr ""
+msgstr "Ungültiger Wert."
 
 msgid "Expire Time is invalid. It should be a whole number, between 60 and 600000."
-msgstr ""
+msgstr "Ablaufzeit ungültig, es muss eine ganze Zahl zwischen 60 und 600000 sein."
 
 msgid "PIN code must be composed of 4 or 8 digits with potentially a dash or space in the middle."
-msgstr ""
+msgstr "Der PIN Kode muss aus 4 oder 8 Ziffern bestehen, eventuell mit einem Leerzeichen oder Bindestrich in der Mitte."
 
 msgid "The minimum leasetime must be 120 seconds or 2 minutes."
-msgstr ""
+msgstr "Die Lease-Dauer kann minimal 120 Sekunden bzw. 2 Minuten betragen."
 
 msgid "The Maximum leasetime must be 3551 weeks or 24855 days or 596523 hours or 35791394 minutes or 2147483647 seconds."
-msgstr ""
+msgstr "Die Lease-Dauer kann maximal 3551 Wochen, 24855 Tage, 596523 Stunden, 35791394 Minuten oder 2147483647 Sekunden betragen."
 
 msgid "Invalid value; enter a number greater than 0, followed by 's' for seconds or 'm' for minutes or 'h' for hours or 'd' for days or 'w' for weeks. No spaces."
-msgstr ""
+msgstr "Ungültiger Wert, geben Sie eine Zahl, gefolgt von 's' für Sekunden, 'm' für Minuten, 'h' für Stunden, 'd' für Tage oder 'w' für Wochen ein. Keine Leerzeichen."
 
 msgid "Invalid length, a WEP key must be 5, 10, 13 or 26 characters long, length of 10 and 26 can only contain the letters A to F or digits"
-msgstr ""
+msgstr "Ungültige Länge, ein WEP Schlüssel muss 5, 10, 13 oder 26 Zeichen lang sein. 10 und 26 Zeichen lange Schlüssel dürfen nur die Buchstaben A bis F und Ziffern enthalten"
 
 msgid "IPv4 Stealth Mode "
-msgstr ""
+msgstr "IPv4 Verborgener Modus"
 
 msgid "Schedule Reboot"
-msgstr ""
+msgstr "Plane Neustart"
 
 msgid "IPv6 Stealth Mode "
-msgstr ""
+msgstr "IPv6 Verborgener Modus"
 
 msgid "<strong>Enabling this will overwrite InternetIPv4 ping selections</strong>,firewall will drop all ICMPv4 services for incoming connections"
-msgstr ""
+msgstr "<strong>Dies einzuschalten wird die Internet IPv4 Ping Auswahl überschreiben</strong>. Die Firewall wird alle eingehenden ICMPv4 Verbindungen blockieren"
 
 msgid "<strong>Enabling this will overwrite InternetIPv6 ping selections</strong>,firewall will drop all ICMPv6 services for incoming connections"
-msgstr ""
+msgstr "<strong>Dies einzuschalten wird die Internet IPv6 Ping Auswahl überschreiben</strong>. Die Firewall wird alle eingehenden ICMPv6 Verbindungen blockieren"
 
 msgid "Schedule failed :  please select correct Time and date."
-msgstr ""
+msgstr "Planung gescheitert : bitte wählen Sie korrekte Uhrzeit und Datum aus."
 
 msgid "Overlapping times are not allowed."
-msgstr ""
+msgstr "Überlappende Zeiten sind nicht zulässig."
 
 msgid "%s"
-msgstr ""
+msgstr "%s"
 
 msgid "Ringing Schedule"
-msgstr ""
+msgstr "Klingelzeitplan"
 
 msgid "During this time ringing is"
-msgstr ""
+msgstr "Während dieser Zeit ist Klingeln"
 
 msgid "Add a New Ringing Schedule"
-msgstr ""
+msgstr "Hinzufügen eines neuen Klingelzeitplans"
 
 msgid "Start time should be less than Stop time."
-msgstr ""
+msgstr "Startzeit sollte kleiner als Stopzeit sein."
 
 msgid "DoNotDisturb Control"
-msgstr ""
+msgstr "BitteNichtStören Steuerung"
 
 msgid "SpeedTest Service"
-msgstr ""
+msgstr "Geschwindigkeitstest Dienst"
 
 msgid "<strong %s>%d DoNotDisturb Control</strong> rule defined"
 msgid_plural "<strong id=\"todcard_timeofday\" %s>%d DoNotDisturb Control</strong> rules defined"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "<strong %s>%d BitteNichtStören Steuerung</strong> Regel definiert"
+msgstr[1] "<strong %s>%d BitteNichtStören Steuerung</strong> Regeln definiert"
 
 msgid "Isp Detected"
-msgstr ""
+msgstr "ISP erkannt"
 
 msgid "ISP Detection option"
-msgstr ""
+msgstr "ISP Erkennungsoption"
 
 msgid "Isp used"
-msgstr ""
+msgstr "ISP genutzt"
 
 msgid "Disable ISP autodetect"
-msgstr ""
+msgstr "Deaktiviere automatische ISP-Erkennung"
 
 msgid "TIM (Italy)"
-msgstr ""
+msgstr "TIM (Italien)"
 
 msgid "ISP Autodetect"
-msgstr ""
+msgstr "Automatische ISP-Erkennung"
 
 msgid "Check this to only root the modem after the firmware is installed.<br/>After this you had to reinstall the gui.<br/>Expect the web interface to be broken after the upgrade"
-msgstr ""
+msgstr "Aktivieren Sie dies, um das Modem nur zu rooten, nachdem die Firmware installiert wurde.<br/>Danach müssen Sie die Oberfläche manuell neu installieren.<br/>Sei müssen damit rechnen, dass die Oberfläche nach der Aktualisierung defekt ist"
 
 msgid "Root only modem after upgrade"
-msgstr ""
+msgstr "Nach der Aktualisierung nur Rooten"
 
 msgid "Tiscali (Italy)"
-msgstr ""
+msgstr "Tiscali (Italien)"
 
 msgid "automatically at <strong>%s:00</strong>"
-msgstr ""
+msgstr "automatisch um <strong>%s:00</strong>"
 
 msgid " to version <strong>%s</strong> successfully"
-msgstr ""
+msgstr " auf Version <strong>%s</strong> erfolgreich aktualisiert"
 
 msgid "The modem has been updated "
-msgstr ""
+msgstr "Das Modem wurde "
 
 msgid "Step Duration (ms):"
-msgstr ""
+msgstr "Schrittdauer (ms):"
 
 msgid "Save on USB"
-msgstr ""
+msgstr "Sichern auf USB"
 
 msgid "Please see 2.4 GHz section for initial parameter. If a wireless device tests the 5 GHz band and reports the 5 GHz signal strength is above this threshold, the gateway will direct the device to switch to the 5 GHz band."
-msgstr ""
+msgstr "Bitte sehen Sie im 2.4 GHz Abschnitt für den Startwert nach. Wenn ein drahtloses Gerät meldet, dass die 5 GHz Signalstärke über diesem Schwellwert liegt, wird das Gateway das Gerät bitten, auf das 5 GHz Band umzuschalten."
 
 msgid "If a wireless device reports this gateway's 2.4 GHz signal strength is above this threshold, the gateway will ask the device to test the 5 GHz band . Please see 5 GHz section for additional parameter."
-msgstr ""
+msgstr "Wenn ein drahtloses Gerät meldet, dass die 2.4 GHz Signalstärke über diesem Schwellwert liegt, wird das Gateway das Gerät bitten, 5 GHz Band zu testen. Bitte sehen Sie im 5 GHz Abschnitt für weitere Parameter nach."
 
 msgid "ISP used"
-msgstr ""
+msgstr "Genutzter ISP"
 
 msgid "Band Steering works only if 2.4 GHz and 5 GHz have the same configuration. By enabling the Band Steering, the 2.4 GHz network settings will be propagated on 5 GHz settings"
-msgstr ""
+msgstr "Bandsteuerung funktioniert nur, wenn 2.4 und 5 Ghz Bänder die gleiche Konfiguration haben. Wenn Sie die Bandsteuerung einschalten, werden die 2.4 GHz Einstellungen auch für 5 Ghz angewendet"
 
 msgid "ISP Detected"
-msgstr ""
+msgstr "Erkannter ISP"
 
 msgid "5 GHz Band Steering Threshold"
-msgstr ""
+msgstr "5 GHz Bandsteuerung Schwellwert"
 
 msgid "2.4 GHz Band Steering Threshold"
-msgstr ""
+msgstr "2.4 GHz Bandsteuerung Schwellwert"

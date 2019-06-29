@@ -788,301 +788,301 @@ msgid "Downlink EARFCN:"
 msgstr "Downlink EARFCN:"
 
 msgid "PAP/CHAP"
-msgstr ""
+msgstr "PAP/CHAP"
 
 msgid "Last 24 Hours"
-msgstr ""
+msgstr "Letzte 24 Stunden"
 
 msgid "Last Five Minutes"
-msgstr ""
+msgstr "Letzte fünf Minuten"
 
 msgid "Last Twenty Minutes"
-msgstr ""
+msgstr "Letzte zwanzig Minuten"
 
 msgid "Last Hour"
-msgstr ""
+msgstr "Letzte Stunde"
 
 msgid "Last Month"
-msgstr ""
+msgstr "Letzter Monat"
 
 msgid "Last Week"
-msgstr ""
+msgstr "Letzte Woche"
 
 msgid "Session"
-msgstr ""
+msgstr "Sitzung"
 
 msgid "RSCP"
-msgstr ""
+msgstr "RSCP"
 
 msgid "Event"
-msgstr ""
+msgstr "Ereignis"
 
 msgid "Internet"
-msgstr ""
+msgstr "Internet"
 
 msgid "Physical Cell ID"
-msgstr ""
+msgstr "Physische Zellen-ID"
 
 msgid "Uplink Frequency"
-msgstr ""
+msgstr "Uplink Frequenz"
 
 msgid "Uplink EARFCN"
-msgstr ""
+msgstr "Uplink EARFCN"
 
 msgid "csv"
-msgstr ""
+msgstr "csv"
 
 msgid "Exporting failed; please try again."
-msgstr ""
+msgstr "Export gescheitert; bitte versuchen Sie es erneut."
 
 msgid "New ECGI"
-msgstr ""
+msgstr "Neuer ECGI"
 
 msgid "Cell ID"
-msgstr ""
+msgstr "Zellen-ID"
 
 msgid "Date"
-msgstr ""
+msgstr "Datum"
 
 msgid "Network"
-msgstr ""
+msgstr "Netzwerk"
 
 msgid "SIM Ready"
-msgstr ""
+msgstr "SIM Bereit"
 
 msgid "All"
-msgstr ""
+msgstr "Alle"
 
 msgid "Info"
-msgstr ""
+msgstr "Info"
 
 msgid "Interface Down"
-msgstr ""
+msgstr "Schnittstelle inaktiv"
 
 msgid "Exporting configuration, please wait..."
-msgstr ""
+msgstr "Exportiere Konfiguration, bitte warten..."
 
 msgid "PDN"
-msgstr ""
+msgstr "PDN"
 
 msgid "RSRP"
-msgstr ""
+msgstr "RSRP"
 
 msgid "ECIO"
-msgstr ""
+msgstr "ECIO"
 
 msgid "Active Band"
-msgstr ""
+msgstr "Aktives Band"
 
 msgid "Path Loss"
-msgstr ""
+msgstr "Pfadverlust"
 
 msgid "Power Mode"
-msgstr ""
+msgstr "Energiemodus"
 
 msgid "Tracking Area Code Changed"
-msgstr ""
+msgstr "Verfolgungsbereichskode geändert"
 
 msgid "Active Devices"
-msgstr ""
+msgstr "Aktive Geräte"
 
 msgid "No events for the selected period"
-msgstr ""
+msgstr "Keine Ereignisse im gewählten Zeitraum"
 
 msgid "The device does not support the authentication of the selected profile."
-msgstr ""
+msgstr "Das Gerät unterstützt die Autentifizierung des gewählten Profils nicht."
 
 msgid "Network Status"
-msgstr ""
+msgstr "Netzwerkstatus"
 
 msgid "Carrier Aggregation"
-msgstr ""
+msgstr "Trägerzusammenfassung"
 
 msgid "Signal Quality"
-msgstr ""
+msgstr "Signalqualität"
 
 msgid "Voice"
-msgstr ""
+msgstr "Stimme"
 
 msgid "Tracking Area Code Changes"
-msgstr ""
+msgstr "Verfolgungsbereichskode Änderungen"
 
 msgid "Unlock Retries Left"
-msgstr ""
+msgstr "Übrige Entsperrversuche"
 
 msgid "Downlink Frequency"
-msgstr ""
+msgstr "Downlink Frequenz"
 
 msgid "Downlink Bandwidth"
-msgstr ""
+msgstr "Downlink Bandbreite"
 
 msgid "Cell Global ID Changes"
-msgstr ""
+msgstr "Globale Zellen-ID Änderungen"
 
 msgid "Cell Info"
-msgstr ""
+msgstr "Zelleninfo"
 
 msgid "RSRQ"
-msgstr ""
+msgstr "RSRQ"
 
 msgid "json"
-msgstr ""
+msgstr "json"
 
 msgid "Major"
-msgstr ""
+msgstr "Haupt"
 
 msgid "Uplink Bandwidth"
-msgstr ""
+msgstr "Uplink Bandbreite"
 
 msgid "Remove Settings"
-msgstr ""
+msgstr "Entferne Einstellungen"
 
 msgid "Operator"
-msgstr ""
+msgstr "Betreiber"
 
 msgid "Uplink ARFCN"
-msgstr ""
+msgstr "Uplink ARFCN"
 
 msgid "Downlink EARFCN"
-msgstr ""
+msgstr "Downlink EARFCN"
 
 msgid "Tracking Area Code"
-msgstr ""
+msgstr "Verfolgungsbereichskode"
 
 msgid "Service Status"
-msgstr ""
+msgstr "Dienststatus"
 
 msgid "RSSI"
-msgstr ""
+msgstr "RSSI"
 
 msgid "Radio Bearer"
-msgstr ""
+msgstr "Radioträger"
 
 msgid "Network Deregistered"
-msgstr ""
+msgstr "Netzwerk deregistiert"
 
 msgid "Radio Interface Changed"
-msgstr ""
+msgstr "Radioschnittstelle geändert"
 
 msgid "SNR"
-msgstr ""
+msgstr "SNR"
 
 msgid "Interface Up"
-msgstr ""
+msgstr "Schnittstelle aktiv"
 
 msgid "Session Activated"
-msgstr ""
+msgstr "Sitzung aktiviert"
 
 msgid "New CGI"
-msgstr ""
+msgstr "Neues CGI"
 
 msgid "Search"
-msgstr ""
+msgstr "Suche"
 
 msgid "Deactivated"
-msgstr ""
+msgstr "Deaktiviert"
 
 msgid "Firmware Version"
-msgstr ""
+msgstr "Firmware Version"
 
 msgid "Operator Info"
-msgstr ""
+msgstr "Betreiberinfo"
 
 msgid "Downlink ARFCN"
-msgstr ""
+msgstr "Downlink ARFCN"
 
 msgid "Downlink UARFCN"
-msgstr ""
+msgstr "Downlink UARFCN"
 
 msgid "Minor"
-msgstr ""
+msgstr "Unter"
 
 msgid "TX Power"
-msgstr ""
+msgstr "TX Leistung"
 
 msgid "Success"
-msgstr ""
+msgstr "Erfolg"
 
 msgid "Uplink UARFCN"
-msgstr ""
+msgstr "Uplink UARFCN"
 
 msgid "Use Device Profiles"
-msgstr ""
+msgstr "Nutze Geräteprofile"
 
 msgid "Session Deactivated"
-msgstr ""
+msgstr "Sitzung deaktiviert"
 
 msgid "Location Area Code Changed"
-msgstr ""
+msgstr "Bereichskode geändert"
 
 msgid "Location Area Code Changes"
-msgstr ""
+msgstr "Bereichskodeänderungen"
 
 msgid "No signal quality history available for the selected period"
-msgstr ""
+msgstr "Keine Historie der Signalqualität für den gewählten Zeitraum vorhanden"
 
 msgid "Network Registered"
-msgstr ""
+msgstr "Netzwerk registriert"
 
 msgid "Reject Cause"
-msgstr ""
+msgstr "Ablehnungsgrund"
 
 msgid "Radio Interface Changes"
-msgstr ""
+msgstr "Radioschnittstelle Änderungen"
 
 msgid "New TAC"
-msgstr ""
+msgstr "Neuer TAC"
 
 msgid "SINR"
-msgstr ""
+msgstr "SINR"
 
 msgid "Session Connected"
-msgstr ""
+msgstr "Sitzung verbunden"
 
 msgid "Events"
-msgstr ""
+msgstr "Ereignisse"
 
 msgid "EUTRA Cell Global ID Changes"
-msgstr ""
+msgstr "EUTRA Zellen-ID Änderungen"
 
 msgid "Network Deregistrations"
-msgstr ""
+msgstr "Netzwerk Deregistrierungen"
 
 msgid "Critical"
-msgstr ""
+msgstr "Kritisch"
 
 msgid "Statistics"
-msgstr ""
+msgstr "Statistik"
 
 msgid "Unknown"
-msgstr ""
+msgstr "Unbekannt"
 
 msgid "Session Disconnected"
-msgstr ""
+msgstr "Sitzung getrennt"
 
 msgid "Hardware Version"
-msgstr ""
+msgstr "Hardware Version"
 
 msgid "Editing not possible for inactive devices"
-msgstr ""
+msgstr "Änderung für inaktive Geräte nicht möglich"
 
 msgid "New LAC"
-msgstr ""
+msgstr "Neuer LAC"
 
 msgid "Cell Changed"
-msgstr ""
+msgstr "Zelle geändert"
 
 msgid "Unblock Retries Left"
-msgstr ""
+msgstr "Übrige Entsperrversuche"
 
 msgid "RRC State"
-msgstr ""
+msgstr "RRC Zustand"
 
 msgid "CINR"
-msgstr ""
+msgstr "CINR"
 
 msgid "Inactive Devices"
-msgstr ""
+msgstr "Inaktive Geräte"
 
 msgid "New Radio Interface"
-msgstr ""
+msgstr "Neue Radioschnittstelle"
