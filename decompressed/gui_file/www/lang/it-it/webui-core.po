@@ -473,7 +473,7 @@ msgid "Broadcast SSID"
 msgstr "Trasmissione SSID"
 
 msgid "CPU Frequency Auto Scaling"
-msgstr "Adattamento auomatico clock CPU"
+msgstr "Adattamento automatico clock CPU"
 
 msgid "CPU Usage"
 msgstr "Uso CPU"
@@ -4564,8 +4564,8 @@ msgstr "Servizio test velocità"
 
 msgid "<strong %s>%d DoNotDisturb Control</strong> rule defined"
 msgid_plural "<strong id=\"todcard_timeofday\" %s>%d DoNotDisturb Control</strong> rules defined"
-msgstr[0] "<strong %s>%d regola controllo NoNDisturbare</strong>"
-msgstr[1] "<strong id=\"todcard_timeofday\" %s>%d regole controllo NoNDisturbare</strong>"
+msgstr[0] "<strong %s>%d regola controllo NonDisturbare</strong>"
+msgstr[1] "<strong id=\"todcard_timeofday\" %s>%d regole controllo NonDisturbare</strong>"
 
 msgid "Isp Detected"
 msgstr "ISP rilevato"

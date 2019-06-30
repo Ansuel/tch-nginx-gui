@@ -4379,9 +4379,6 @@ msgstr "Paketverluste"
 msgid "Upstream"
 msgstr "Upstream"
 
-msgid "Step Duration (ms):"
-msgstr "Schrittdauer (ms):"
-
 msgid "Good put(Kbps)"
 msgstr "Gute put(Kbps)"
 
