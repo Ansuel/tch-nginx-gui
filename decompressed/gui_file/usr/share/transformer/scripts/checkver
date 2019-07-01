@@ -28,6 +28,8 @@ DEV_VERSION="latest.version"
 CURRENT_VERSION="$(uci get modgui.gui.gui_version)"
 BASE_DIR="https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master"
 
+ADD_CURL_STRING="?$(date +%s)"
+
 ############TRANSFORMER UTILITY##################
 set_transformer() {
 	cmd="require('datamodel').set('$1','$2')"
@@ -76,15 +78,14 @@ if [ $connectivity == "yes" ]; then
 	newer_stable=0
 
     logger -s -t "CheckVer Script" "Installed version: $CURRENT_VERSION checking update on $update_branch branch..."
-	new_version="$(curl -k -s "$version_link")"
+	new_version="$(curl -k -s "$version_link"$ADD_CURL_STRING"")"
 	new_version_norm="$(normalize "$new_version")"
 
     logger -s -t "CheckVer Script" "Online version: $new_version"
 
     if [ "$update_branch" == "dev" ]; then #just makes sure there is no newer stable
         stable_version_link=$BASE_DIR/$STABLE_VERSION
-        stable_version="$(curl -k -s "$stable_version_link")"
-
+        stable_version="$(curl -k -s "$stable_version_link"$ADD_CURL_STRING"")"
         stable_version_norm="$(normalize "$stable_version")"
 
         logger -s -t "CheckVer Script" "Online stable version: $stable_version_norm"

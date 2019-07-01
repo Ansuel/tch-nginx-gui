@@ -92,6 +92,7 @@ else
 fi
 
 URL_BASE="https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/"
+ADD_CURL_STRING="?$(date +%s)"
 
 # Check update_branch
 if [ ! "$(uci get -q modgui.gui.update_branch)" ] ||  [ "$(uci get modgui.gui.update_branch)" == "stable" ]; then
@@ -153,7 +154,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 	done
 	
 	# Download new GUI to /tmp
-	if ! $curl $URL_BASE/$FILE_NAME --output $WORKING_DIR/$FILE_NAME; then
+	if ! $curl $URL_BASE/$FILE_NAME"$ADD_CURL_STRING" --output $WORKING_DIR/$FILE_NAME; then
 	logger_command "ERROR: Can't find new GUI file" >&2
 	ubus send fwupgrade '{"state":"done"}'
 	exit 1
@@ -163,7 +164,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 	if [ -f /tmp/$CHECKSUM_FILE ]; then
 		rm "$WORKING_DIR/$CHECKSUM_FILE"
 	fi
-	$curl "$URL_BASE/$CHECKSUM_FILE" --output "$WORKING_DIR/$CHECKSUM_FILE"
+	$curl $URL_BASE/$CHECKSUM_FILE"$ADD_CURL_STRING" --output "$WORKING_DIR/$CHECKSUM_FILE"
 	
 	downloaded_md5="$(md5sum "$WORKING_DIR/$FILE_NAME" | awk '{print $1}')"
 	
@@ -192,7 +193,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 			
 			# Download stable GUI to /tmp
 			
-			if ! $curl $URL_BASE/$STABLE_FILE_NAME --output $WORKING_DIR/$STABLE_FILE_NAME; then
+			if ! $curl $URL_BASE/$STABLE_FILE_NAME"$ADD_CURL_STRING" --output $WORKING_DIR/$STABLE_FILE_NAME; then
 				logger_command "ERROR: Can't find stable GUI file" >&2
 				rm "$WORKING_DIR/$FILE_NAME"
 				rm "$WORKING_DIR/$CHECKSUM_FILE"
