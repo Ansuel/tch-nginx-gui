@@ -98,7 +98,8 @@ local content = {
 	marketing_version				= "uci.version.version.@version[0].marketing_version",
 	dslam_chipset 					= "rpc.xdslctl.DslamChipset",
 	dslam_version 					= "rpc.xdslctl.DslamVersion",
-    dslam_version_raw				= "rpc.xdslctl.DslamVersionRaw"
+    dslam_version_raw				= "rpc.xdslctl.DslamVersionRaw",
+	dslam_serial 					= "rpc.xdslctl.DslamSerial",
 }
 
 content_helper.getExactContent(content)
@@ -242,8 +243,13 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = ui_helper.createLabel(T"DSL Mode", content.dsl0_mode .. " (" .. content.dsl0_linkencapsulation .. ")", span5 )
         if(content.dsl0_profile ~= "Not Found") then
             html[#html + 1] = ui_helper.createLabel(T"VDSL Profile", content.dsl0_profile, span5 )
-            html[#html + 1] = ui_helper.createLabel(T"VDSL DSLAM Port", content.dsl0_port, span5 )
         end
+		if ( content.dsl0_port ~= "" ) then
+			html[#html + 1] = ui_helper.createLabel(T"VDSL DSLAM Port", content.dsl0_port, span5 )
+		end
+		if ( content.dslam_serial ~= "" ) then
+			html[#html + 1] = ui_helper.createLabel(T"VDSL DSLAM Serial", content.dslam_serial, span5 )
+		end
 		html[#html + 1] = ui_helper.createLabel(T"DSLAM Chipset",content.dslam_chipset, span5 )
 		if content.dslam_version_raw:sub(0,2) == "0x" then
 			html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",format("%s ( %s )", content.dslam_version , content.dslam_version_raw) , span5 )

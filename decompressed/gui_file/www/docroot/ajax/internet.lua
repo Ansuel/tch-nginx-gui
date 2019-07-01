@@ -37,6 +37,7 @@ if datatype and datatype== "xdsl" then
 		dsl_profile = "rpc.xdslctl.DslProfile",
 		dsl_port = "rpc.xdslctl.DslamPort",
 		dslam_version_raw = "rpc.xdslctl.DslamVersionRaw",
+		dsl_serial = "rpc.xdslctl.DslamSerial",
 	}
 	
 	content_helper.getExactContent(data)

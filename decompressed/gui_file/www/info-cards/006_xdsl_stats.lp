@@ -30,7 +30,8 @@ local content = {
   dslam_version = "rpc.xdslctl.DslamVersion",
   dslam_version_raw = "rpc.xdslctl.DslamVersionRaw",
   dsl_profile = "rpc.xdslctl.DslProfile",
-  dsl_port = "rpc.xdslctl.DslamPort"
+  dsl_port = "rpc.xdslctl.DslamPort",
+  dsl_serial = "rpc.xdslctl.DslamSerial",
 }
 
 content_helper.getExactContent(content)
@@ -93,11 +94,17 @@ end
 	else
 		html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",format(T"Invalid version, can't convert. Raw value: %s", content.dslam_version_raw) , basic )
 	end
-	if(content.dsl_profile ~= "Not Found") then
+	if (content.dsl_profile ~= "Not Found") then
 		basic.span["data-bind"] = "text: dsl_profile"
 		html[#html + 1] = ui_helper.createLabel(T"VDSL Profile", content.dsl_profile, basic )
+	end
+	if ( content.dsl_port ~= "" ) then
 		basic.span["data-bind"] = "text: dsl_port"
 		html[#html + 1] = ui_helper.createLabel(T"VDSL DSLAM Port", content.dsl_port, basic )
+	end
+	if ( content.dsl_serial ~= "" ) then
+		basic.span["data-bind"] = "text: dsl_serial"
+		html[#html + 1] = ui_helper.createLabel(T"VDSL DSLAM Serial", content.dsl_serial, basic )
 	end
 
 	html[#html + 1] = '<div class="control-group">'
