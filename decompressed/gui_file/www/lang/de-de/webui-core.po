@@ -4635,3 +4635,6 @@ msgstr ""
 
 msgid "Polling every 10 seconds"
 msgstr ""
+
+msgid "Fastweb (Italy)"
+msgstr ""

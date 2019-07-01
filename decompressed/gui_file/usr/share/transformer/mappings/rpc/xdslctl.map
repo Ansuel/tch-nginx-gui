@@ -57,7 +57,7 @@ for _ , type in pairs{ "Hlog" , "Bits", "SNR", "QLN" } do
 	end
 end
 
-for _, type in pairs{"Chipset","Version","VersionRaw","Port"} do
+for _, type in pairs{"Chipset","Version","VersionRaw","Port","Serial"} do
 	xdslctl_.objectType.parameters["Dslam"..type] = string_table
 end
 for _, type in pairs{"Mode","Profile"} do

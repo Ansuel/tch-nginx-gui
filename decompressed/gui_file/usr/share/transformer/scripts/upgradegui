@@ -60,13 +60,15 @@ logger_command() {
 
 if [ "$1" ]; then
 	if [ "$1" == "SetTime" ]; then
-		hour="$(uci get modgui.gui.autoupgrade_hour)"
+		time="$(uci get modgui.gui.autoupgrade_hour)"
+		hour="$(echo $time | sed "s|:.*||")"
+		minute="$(echo $time | sed "s|.*:||")"
 		autoupgrade="$(uci get modgui.gui.autoupgrade)"
 		if [ "$(cat /etc/crontabs/root | grep upgradegui )" ]; then
             sed -i '/upgradegui/d' /etc/crontabs/root
         fi
 		if [ "$autoupgrade" == "1" ]; then
-			echo "0 $hour * * * /usr/share/transformer/scripts/upgradegui AutoUpgrade >/dev/null 2>&1" >> /etc/crontabs/root
+			echo "$minute $hour * * * /usr/share/transformer/scripts/upgradegui AutoUpgrade >/dev/null 2>&1" >> /etc/crontabs/root
 		fi
 		exit 0
 	fi	

@@ -41,7 +41,7 @@ profileNumber = content_helper.convertResultToObject("rpc.mmpbx.sip_profile.",pr
 for _,v in pairs(profileNumber) do
   profileCount = profileCount + 1
   local name = string.sub(v.paramindex, 2)
-  profileName[#profileName+1]= {format("%s", name), format(T"%s", v.uri)}
+  profileName[#profileName+1]= { name , v.uri }
 end
 
 --when timer data is not defined in config, then whole rule will be deleted
