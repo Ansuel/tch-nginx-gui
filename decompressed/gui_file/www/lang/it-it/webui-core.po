@@ -4598,7 +4598,7 @@ msgid "automatically at <strong>%s:00</strong>"
 msgstr "automaticamnte il <strong>%s:00</strong>"
 
 msgid " to version <strong>%s</strong> successfully"
-msgstr " alla versione <strong>%s</strong> completato"
+msgstr " alla versione <strong>%s</strong>"
 
 msgid "The modem has been updated "
 msgstr "Il modem è stato aggiornato "
@@ -4634,13 +4634,13 @@ msgid "2.4 GHz Band Steering Threshold"
 msgstr "Soglia band steering 2.4 GHz"
 
 msgid "VDSL DSLAM Serial"
-msgstr ""
+msgstr "Seriale DSLAM VDSL"
 
 msgid "Lan Bridge"
-msgstr ""
+msgstr "Bridge LAN"
 
 msgid "Polling every 10 seconds"
-msgstr ""
+msgstr "Aggiorna ogni 10 secondi"
 
 msgid "Fastweb (Italy)"
 msgstr ""
