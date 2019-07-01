@@ -33,6 +33,7 @@ end
 local isp_cwmp_known = {
 	{"TIM", T"TIM (Italy)"},
 	{"Tiscal", T"Tiscali (Italy)"},
+	{"Fastweb", T"Fastweb (Italy)"}
 	{"Other", T"Generic"},
 }
 
