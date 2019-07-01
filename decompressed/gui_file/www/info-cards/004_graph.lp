@@ -43,7 +43,7 @@ if interface and ( wan == "1" ) then
 	
 	local html = {}
 	html[#html + 1] = '<div id="canvas_container" style="height:400px;margin-right:20px;"><canvas id="WANChart"></canvas>'
-	html[#html + 1] = '<div style="float:right;">' .. T("Polling every 10 seconds") .. '</div>'
+	html[#html + 1] = '<div style="float:right;">' .. T"Polling every 10 seconds" .. '</div>'
 	html[#html + 1] = '</div>'
 	html[#html + 1] = '<div id="rx_traffic_complete" class="hide" data-bind="text: rx_traffic_complete">' .. rx_traffic .. '</div>'
 	html[#html + 1] = '<div id="tx_traffic_complete" class="hide" data-bind="text: tx_traffic_complete">' .. tx_traffic .. '</div>'
