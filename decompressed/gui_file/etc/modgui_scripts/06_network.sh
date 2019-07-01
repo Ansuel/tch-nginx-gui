@@ -237,9 +237,175 @@ clean_cups_block_rule() {
 	fi
 }
 
+cwmp_specific_TIM() {
+	logger_command "TIM ISP detected, finding CWMP server..."
+	new_platform=https://regman-mon.interbusiness.it:10800/acs/
+	new_platform_bck=https://regman-bck.interbusiness.it:10501/acs/
+	unified_platform=https://regman-tl.interbusiness.it:10700/acs/ 
+	mgmt_platform=https://regman-tl.interbusiness.it:10500/acs/
+	if [ "$(curl -s -k $new_platform --max-time 5 )" ]; then
+		uci set cwmpd.cwmpd_config.acs_url=$new_platform
+	elif [ "$(curl -s -k $new_platform_bck --max-time 5 )" ]; then
+		uci set cwmpd.cwmpd_config.acs_url=$new_platform_bck
+	elif [ "$(curl -s -k $unified_platform --max-time 5 )" ]; then
+		uci set cwmpd.cwmpd_config.acs_url=$unified_platform
+	elif [ "$(curl -s -k $mgmt_platform --max-time 5 )" ]; then
+		uci set cwmpd.cwmpd_config.acs_url=$mgmt_platform
+	fi
+	logger_command "CWMP Server detected: $(uci get cwmpd.cwmpd_config.acs_url)"
+	if [ "$(uci get -q cwmpd.cwmpd_config.interface)" != "wan" ]; then
+		uci set cwmpd.cwmpd_config.interface='wan'
+	fi
+	uci commit cwmpd
+	if [ "$(uci get -q cwmpd.cwmpd_config.acs_url)" == "None" ]; then
+		if [ "$(pgrep "cwmpd")" ]; then
+			/etc/init.d/cwmpd stop
+		fi
+	else
+		/etc/init.d/cwmpd enable
+		if [ ! "$(pgrep "cwmpd")" ]; then
+			/etc/init.d/cwmpd start
+		else
+			/etc/init.d/cwmpd restart
+		fi
+	fi
+}
+
+firewall_specific_sip_rules_FASTWEB() {
+	if [ -n "$(uci get -q firewall.Allow_restricted_sip_1.name)" ]; then
+		uci set firewall.Allow_restricted_sip_1.name='Allow-restricted-sip-from-wan-again-1'
+		uci set firewall.Allow_restricted_sip_1.src='wan'
+		uci set firewall.Allow_restricted_sip_1.src_ip='30.253.253.68/24'
+		uci set firewall.Allow_restricted_sip_1.target='ACCEPT'
+		uci set firewall.Allow_restricted_sip_1.family='ipv4'
+		uci set firewall.Allow_restricted_sip_2=rule
+		uci set firewall.Allow_restricted_sip_2.name='Allow-restricted-sip-from-wan-again-2'
+		uci set firewall.Allow_restricted_sip_2.src='wan'
+		uci set firewall.Allow_restricted_sip_2.src_ip='10.252.47.36/24'
+		uci set firewall.Allow_restricted_sip_2.target='ACCEPT'
+		uci set firewall.Allow_restricted_sip_2.family='ipv4'
+		uci set firewall.Allow_restricted_sip_3=rule
+		uci set firewall.Allow_restricted_sip_3.name='Allow-restricted-sip-from-wan-again-3'
+		uci set firewall.Allow_restricted_sip_3.src='wan'
+		uci set firewall.Allow_restricted_sip_3.src_ip='10.247.5.196/24'
+		uci set firewall.Allow_restricted_sip_3.target='ACCEPT'
+		uci set firewall.Allow_restricted_sip_3.family='ipv4'
+		uci set firewall.Allow_restricted_sip_4=rule
+		uci set firewall.Allow_restricted_sip_4.name='Allow-restricted-sip-from-wan-again-4'
+		uci set firewall.Allow_restricted_sip_4.src='wan'
+		uci set firewall.Allow_restricted_sip_4.src_ip='10.247.1.132/24'
+		uci set firewall.Allow_restricted_sip_4.target='ACCEPT'
+		uci set firewall.Allow_restricted_sip_4.family='ipv4'
+		uci set firewall.Allow_restricted_sip_5=rule
+		uci set firewall.Allow_restricted_sip_5.name='Allow-restricted-sip-from-wan-again-5'
+		uci set firewall.Allow_restricted_sip_5.src='wan'
+		uci set firewall.Allow_restricted_sip_5.src_ip='10.247.0.100/24'
+		uci set firewall.Allow_restricted_sip_5.target='ACCEPT'
+		uci set firewall.Allow_restricted_sip_5.family='ipv4'
+		uci set firewall.Allow_restricted_sip_6=rule
+		uci set firewall.Allow_restricted_sip_6.name='Allow-restricted-sip-from-wan-again-6'
+		uci set firewall.Allow_restricted_sip_6.src='wan'
+		uci set firewall.Allow_restricted_sip_6.src_ip='10.247.30.52/24'
+		uci set firewall.Allow_restricted_sip_6.target='ACCEPT'
+		uci set firewall.Allow_restricted_sip_6.family='ipv4'
+		uci set firewall.Allow_restricted_sip_7=rule
+		uci set firewall.Allow_restricted_sip_7.name='Allow-restricted-sip-from-wan-again-7'
+		uci set firewall.Allow_restricted_sip_7.src='wan'
+		uci set firewall.Allow_restricted_sip_7.src_ip='10.247.0.0/26'
+		uci set firewall.Allow_restricted_sip_7.target='ACCEPT'
+		uci set firewall.Allow_restricted_sip_7.family='ipv4'
+		uci set firewall.Allow_restricted_sip_8=rule
+		uci set firewall.Allow_restricted_sip_8.name='Allow-restricted-sip-from-wan-again-8'
+		uci set firewall.Allow_restricted_sip_8.src='wan'
+		uci set firewall.Allow_restricted_sip_8.src_ip='10.247.1.0/27'
+		uci set firewall.Allow_restricted_sip_8.target='ACCEPT'
+		uci set firewall.Allow_restricted_sip_8.family='ipv4'
+		uci set firewall.Allow_restricted_sip_9=rule
+		uci set firewall.Allow_restricted_sip_9.name='Allow-restricted-sip-from-wan-again-9'
+		uci set firewall.Allow_restricted_sip_9.src='wan'
+		uci set firewall.Allow_restricted_sip_9.src_ip='10.247.48.0/26'
+		uci set firewall.Allow_restricted_sip_9.target='ACCEPT'
+		uci set firewall.Allow_restricted_sip_9.family='ipv4'
+		uci set firewall.Allow_restricted_sip_10=rule
+		uci set firewall.Allow_restricted_sip_10.name='Allow-restricted-sip-from-wan-again-10'
+		uci set firewall.Allow_restricted_sip_10.src='wan'
+		uci set firewall.Allow_restricted_sip_10.src_ip='10.247.48.64/27'
+		uci set firewall.Allow_restricted_sip_10.target='ACCEPT'
+		uci set firewall.Allow_restricted_sip_10.family='ipv4'
+		uci set firewall.Allow_restricted_sip_11=rule
+		uci set firewall.Allow_restricted_sip_11.name='Allow-restricted-sip-from-wan-again-11'
+		uci set firewall.Allow_restricted_sip_11.src='wan'
+		uci set firewall.Allow_restricted_sip_11.src_ip='10.247.30.96/27'
+		uci set firewall.Allow_restricted_sip_11.target='ACCEPT'
+		uci set firewall.Allow_restricted_sip_11.family='ipv4'
+		uci set firewall.Allow_restricted_sip_12=rule
+		uci set firewall.Allow_restricted_sip_12.name='Allow-restricted-sip-from-wan-again-12'
+		uci set firewall.Allow_restricted_sip_12.src='wan'
+		uci set firewall.Allow_restricted_sip_12.src_ip='10.247.30.128/26'
+		uci set firewall.Allow_restricted_sip_12.target='ACCEPT'
+		uci set firewall.Allow_restricted_sip_12.family='ipv4'
+		uci set firewall.Allow_restricted_sip_13=rule
+		uci set firewall.Allow_restricted_sip_13.name='Allow-restricted-sip-from-wan-again-13'
+		uci set firewall.Allow_restricted_sip_13.src='wan'
+		uci set firewall.Allow_restricted_sip_13.src_ip='10.247.49.0/26'
+		uci set firewall.Allow_restricted_sip_13.target='ACCEPT'
+		uci set firewall.Allow_restricted_sip_13.family='ipv4'
+		uci set firewall.Allow_restricted_sip_14=rule
+		uci set firewall.Allow_restricted_sip_14.name='Allow-restricted-sip-from-wan-again-14'
+		uci set firewall.Allow_restricted_sip_14.src='wan'
+		uci set firewall.Allow_restricted_sip_14.src_ip='10.247.49.64/26'
+		uci set firewall.Allow_restricted_sip_14.target='ACCEPT'
+		uci set firewall.Allow_restricted_sip_14.family='ipv4'
+		uci set firewall.Allow_restricted_sip_15=rule
+		uci set firewall.Allow_restricted_sip_15.name='Allow-restricted-sip-from-wan-again-15'
+		uci set firewall.Allow_restricted_sip_15.src='wan'
+		uci set firewall.Allow_restricted_sip_15.src_ip='10.247.30.96/27'
+		uci set firewall.Allow_restricted_sip_15.target='ACCEPT'
+		uci set firewall.Allow_restricted_sip_15.family='ipv4'
+		uci set firewall.Allow_restricted_sip_16=rule
+		uci set firewall.Allow_restricted_sip_16.name='Allow-restricted-sip-from-wan-again-16'
+		uci set firewall.Allow_restricted_sip_16.src='wan'
+		uci set firewall.Allow_restricted_sip_16.src_ip='10.247.30.128/26'
+		uci set firewall.Allow_restricted_sip_16.target='ACCEPT'
+		uci set firewall.Allow_restricted_sip_16.family='ipv4'
+		uci set firewall.Allow_restricted_sip_17=rule
+		uci set firewall.Allow_restricted_sip_17.name='Allow-restricted-sip-from-wan-again-17'
+		uci set firewall.Allow_restricted_sip_17.src='wan'
+		uci set firewall.Allow_restricted_sip_17.src_ip='10.247.49.0/26'
+		uci set firewall.Allow_restricted_sip_17.target='ACCEPT'
+		uci set firewall.Allow_restricted_sip_17.family='ipv4'
+		uci set firewall.Allow_restricted_sip_18=rule
+		uci set firewall.Allow_restricted_sip_18.name='Allow-restricted-sip-from-wan-again-18'
+		uci set firewall.Allow_restricted_sip_18.src='wan'
+		uci set firewall.Allow_restricted_sip_18.src_ip='10.247.49.64/27'
+		uci set firewall.Allow_restricted_sip_18.target='ACCEPT'
+		uci set firewall.Allow_restricted_sip_18.family='ipv4'
+		uci commit firewall
+		/etc/init.d/firewall restart
+	fi
+}
+
+cwmp_specific_FASTWEB() {
+	logger_command "FASTWEB ISP detected, finding CWMP server..."
+	if [ ! -z "$(uci get -q cwmpd.cwmpd_config.acs_url)" ]; then
+		#Fastweb requires device registred in CWMP to make voip work in MAN voip registar
+		#Fastweb will autoconfigure acs username and password with empty acs_url
+		uci set cwmpd.cwmpd_config.acs_url=""
+		firewall_specific_sip_rules_FASTWEB
+		uci commit cwmpd
+		/etc/init.d/cwmpd enable
+		if [ ! "$(pgrep "cwmpd")" ]; then
+			/etc/init.d/cwmpd start
+		else
+			/etc/init.d/cwmpd restart
+		fi
+	fi
+}
+
 check_isp_and_cwmp() {
 	if [ "$(uci -q get modgui.var.isp)" ]; then
-		if [ "$(uci -q get modgui.var.isp)" == "Other" ]; then #this disable cwmpd if it's not known ISP...
+		if [ "$(uci -q get modgui.var.isp)" == "Other" ] && 
+			[ "$(uci -q get modgui.var.isp_autodetect)" == "1" ]; then #this disable cwmpd if it's not known ISP...
 			uci set cwmpd.cwmpd_config.state='0'
 			if [ "$(uci get -q cwmpd.cwmpd_config.state)" = "1" ]; then
 				if [ -f /var/run/cwmpd.pid ]; then
@@ -253,37 +419,9 @@ check_isp_and_cwmp() {
 			uci set cwmpd.cwmpd_config.acs_pass="techn_tr69@"
 			uci commit cwmpd
 		elif [ "$(uci -q get modgui.var.isp)" == "TIM" ]; then
-			logger_command "TIM ISP detected, finding CWMP server..."
-			new_platform=https://regman-mon.interbusiness.it:10800/acs/
-			new_platform_bck=https://regman-bck.interbusiness.it:10501/acs/
-			unified_platform=https://regman-tl.interbusiness.it:10700/acs/ 
-			mgmt_platform=https://regman-tl.interbusiness.it:10500/acs/
-			if [ "$(curl -s -k $new_platform --max-time 5 )" ]; then
-				uci set cwmpd.cwmpd_config.acs_url=$new_platform
-			elif [ "$(curl -s -k $new_platform_bck --max-time 5 )" ]; then
-				uci set cwmpd.cwmpd_config.acs_url=$new_platform_bck
-			elif [ "$(curl -s -k $unified_platform --max-time 5 )" ]; then
-				uci set cwmpd.cwmpd_config.acs_url=$unified_platform
-			elif [ "$(curl -s -k $mgmt_platform --max-time 5 )" ]; then
-				uci set cwmpd.cwmpd_config.acs_url=$mgmt_platform
-			fi
-			logger_command "CWMP Server detected: $(uci get cwmpd.cwmpd_config.acs_url)"
-			if [ "$(uci get -q cwmpd.cwmpd_config.interface)" != "wan" ]; then
-				uci set cwmpd.cwmpd_config.interface='wan'
-			fi
-			uci commit cwmpd
-			if [ "$(uci get -q cwmpd.cwmpd_config.acs_url)" == "None" ]; then
-				if [ "$(pgrep "cwmpd")" ]; then
-					/etc/init.d/cwmpd stop
-				fi
-			else
-				/etc/init.d/cwmpd enable
-				if [ ! "$(pgrep "cwmpd")" ]; then
-					/etc/init.d/cwmpd start
-				else
-					/etc/init.d/cwmpd restart
-				fi
-			fi
+			cwmp_specific_TIM
+		elif [ "$(uci -q get modgui.var.isp)" == "Fastweb" ]; then
+			cwmp_specific_FASTWEB
 		fi
 		if [ "$(uci get -q modgui.var.isp)" == "TIM" ]; then #this add specific config for TIM
 			add_TIM_ppp_specific
