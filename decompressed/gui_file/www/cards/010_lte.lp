@@ -55,43 +55,47 @@ end
 	<div class="smallcard" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
 		');  ngx.print( ui_helper.createCardHeader(params.card_title, modalPath, switchName, lte_state) ); ngx.print('\
 		<div class="content card_bg" data-bg-text="&#xf012;">\
-		<div class="divtable">\
-			');  ngx.print( ui_helper.createSimpleLight(light.status, light.desc)); ngx.print('\
-				<div id="signal-strength-indicator-small-card">\
-					<div>\
-						<div class="bar-small bar-small1"></div>\
-						<div class="bar-small bar-small2"></div>\
-						<div class="bar-small bar-small3"></div>\
-						<div class="bar-small bar-small4"></div>\
-						<div class="bar-small bar-small5"></div>\
+		  <div class="divtable">\
+		  	');  ngx.print( ui_helper.createSimpleLight(light.status, light.desc , nil,"fa fa-signal"));
+			if light.status == "1" then
+				ngx.print('\
+					<div id="signal-strength-indicator-small-card">\
+						<div>\
+							<div class="bar-small bar-small1"></div>\
+							<div class="bar-small bar-small2"></div>\
+							<div class="bar-small bar-small3"></div>\
+							<div class="bar-small bar-small4"></div>\
+							<div class="bar-small bar-small5"></div>\
+						</div>\
+					</div>'); ngx.print('\
+				<p class="subinfos">\
+					<div style="height: 25px; margin: 20px;" data-bind="visible: mobileStatus().length > 0">\
+						<label class="card-label">');  ngx.print( T"Status"..":" ); ngx.print('</label>\
+						<div class="controls">\
+							<strong data-bind="text: mobileStatus"></strong>\
+						</div>\
 					</div>\
-				</div>'); ngx.print('\
-			<p class="subinfos">\
-				<div style="height: 25px; margin: 20px;" data-bind="visible: mobileStatus().length > 0">\
-					<label class="card-label">');  ngx.print( T"Status"..":" ); ngx.print('</label>\
-					<div class="controls">\
-						<strong data-bind="text: mobileStatus"></strong>\
+					<div style="height: 25px;" data-bind="visible: radioType().length > 0">\
+						<label class="card-label">');  ngx.print( T"Radio Type"..":" ); ngx.print('</label>\
+						<div class="card-control">\
+							<strong data-bind="text: radioType"></strong>\
+						</div>\
 					</div>\
-				</div>\
-				<div style="height: 25px;" data-bind="visible: radioType().length > 0">\
-					<label class="card-label">');  ngx.print( T"Radio Type"..":" ); ngx.print('</label>\
-					<div class="card-control">\
-						<strong data-bind="text: radioType"></strong>\
+					<div style="height: 25px;" data-bind="visible: signalQuality().length > 0">\
+						<label class="card-label">');  ngx.print( T"Quality"..":" ); ngx.print('</label>\
+						<div class="controls">\
+							<strong data-bind="text: signalQuality"></strong>\
+						</div>\
 					</div>\
-				</div>\
-				<div style="height: 25px;" data-bind="visible: signalQuality().length > 0">\
-					<label class="card-label">');  ngx.print( T"Quality"..":" ); ngx.print('</label>\
-					<div class="controls">\
-						<strong data-bind="text: signalQuality"></strong>\
+					<div style="height: 25px; margin: 20px;" data-bind="visible: deviceStatus().length > 0">\
+						<div class="controls">\
+							<strong data-bind="text: deviceStatus"></strong>\
+						</div>\
 					</div>\
-				</div>\
-				<div style="height: 25px; margin: 20px;" data-bind="visible: deviceStatus().length > 0">\
-					<div class="controls">\
-						<strong data-bind="text: deviceStatus"></strong>\
-					</div>\
-				</div>\
-			</p>\
-		</div>\
+				</p>')
+		  	end
+		  	ngx.print('\
+		  </div>\
 		</div>\
 	</div>\
 </div>\
