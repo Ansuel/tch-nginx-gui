@@ -96,10 +96,14 @@ end
 	</div>\
 </div>\
 <script>\
-var LetCardInterval;\
+var LteCardInterval;\
 $(document).ready(function () {\
+\
+	var element = document.getElementById("mobiletab");\
+	if (!element) return ;\
+\
 	var allowSimRedirect = ');  ngx.print( allowSimRedirect ); ngx.print(';\
-	var LetCardBinding = {\
+	var LteCardBinding = {\
 		signalQuality: ko.observable(""),\
 		radioType: ko.observable(""),\
 		mobileStatus: ko.observable(""),\
@@ -114,22 +118,22 @@ $(document).ready(function () {\
 					}\
 				});\
 			};\
-	function LetCardRefresh() {\
+	function LteCardRefresh() {\
 		$.post("/ajax/mobiletab.lua?auto_update=true", [tch.elementCSRFtoken()], function(data) {\
 					if(data.bars != undefined) {\
 						updateBars(data.bars);\
 					}\
 					if(data.radio_interface != undefined) {\
-						LetCardBinding.radioType(data.radio_interface);\
+						LteCardBinding.radioType(data.radio_interface);\
 					}\
 					if(data.status != undefined) {\
-						LetCardBinding.mobileStatus(data.status);\
+						LteCardBinding.mobileStatus(data.status);\
 					}\
 					if(data.signal_quality != undefined) {\
-						LetCardBinding.signalQuality(data.signal_quality);\
+						LteCardBinding.signalQuality(data.signal_quality);\
 					}\
 					if(data.no_device != undefined) {\
-						LetCardBinding.deviceStatus(data.no_device);\
+						LteCardBinding.deviceStatus(data.no_device);\
 					}\
 					if(data.redirect_sim != undefined) {\
 						if(data.redirect_sim === true && allowSimRedirect) {\
@@ -147,10 +151,12 @@ $(document).ready(function () {\
 				}, "json");\
 	};\
 \
-	LetCardRefresh();\
-	ko.applyBindings(LetCardBinding, document.getElementById("mobiletab"));\
-	LetCardInterval = setInterval(LetCardRefresh, 50000);\
-	KoRequest.push(LetCardInterval);\
+	LteCardRefresh();\
+\
+	if (!ko.dataFor(element))\
+		ko.applyBindings(LteCardBinding, element);\
+	LteCardInterval = setInterval(LteCardRefresh, 50000);\
+	KoRequest.push(LteCardInterval);\
 })\
 </script>\
 '); 

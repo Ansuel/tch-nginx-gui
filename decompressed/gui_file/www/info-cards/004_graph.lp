@@ -118,6 +118,10 @@ var WANChart = new Chart(wan_ctx, {\
 });\
 var InfoGraphCardInterval;\
 $(document).ready(function () {\
+\
+	var element = document.getElementById("graphtab");\
+	if (!element) return ;\
+\
 	var InfoGraphCardBinding = { \
 		rx_traffic_complete: ko.observable(),\
 		tx_traffic_complete: ko.observable(),\
@@ -154,7 +158,9 @@ $(document).ready(function () {\
 	};\
 \
 	InfoGraphCardRefresh();\
-	ko.applyBindings(InfoGraphCardBinding, document.getElementById("graphtab"));\
+\
+	if (!ko.dataFor(element))\
+		ko.applyBindings(InfoGraphCardBinding, element);\
 	InfoGraphCardInterval = setInterval(InfoGraphCardRefresh, interval);\
 	KoRequest.push(InfoGraphCardInterval);\
 })\
