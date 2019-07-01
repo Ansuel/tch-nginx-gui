@@ -4635,3 +4635,9 @@ msgstr "Soglia band steering 2.4 GHz"
 
 msgid "VDSL DSLAM Serial"
 msgstr ""
+
+msgid "Lan Bridge"
+msgstr ""
+
+msgid "Polling every 10 seconds"
+msgstr ""
