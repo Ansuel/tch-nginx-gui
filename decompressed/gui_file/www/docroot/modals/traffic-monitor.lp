@@ -12,10 +12,43 @@ local tonumber = tonumber
 local format, concat = string.format, table.concat
 local traffic_data_file = "/var/state/traffic_data_file"
 
+local section_selected
+
 local quantenna_wifi = proxy.get("uci.env.var.qtn_eth_mac")
 quantenna_wifi = ((quantenna_wifi and quantenna_wifi[1].value~="") and true or false)
 local getargs = ngx.req.get_uri_args()
 local getiface = getargs.iface
+
+local sfp = require("transformer.shared.sfp").readSFPFlag()
+local eth4lanwanmode = proxy.get("uci.ethernet.globals.eth4lanwanmode")
+local lan_list = {
+	{iface = "br-lan", name = T"Lan Bridge"},
+	{iface = "eth0", name = T"Port 1"}, 
+	{iface = "eth1", name = T"Port 2"}, 
+	{iface = "eth2", name = T"Port 3"}, 
+}
+
+local lan_intf = "br-lan"
+local lan_name = T"Lan Bridge"
+
+if sfp == 1 then
+	if eth4lanwanmode and eth4lanwanmode[1].value == "1" then
+		lan_list[#lan_list+1] = { iface = "eth3", name = T"Port 4"}
+	end
+else
+	local ethname = proxy.get("sys.eth.port.@eth3.status")
+	if ethname and ethname[1].value then
+		lan_list[#lan_list+1] = { iface = "eth3", name = T"Port 4"}
+	end	
+end
+
+for _,v in pairs(lan_list) do
+	if v.iface == getiface then
+		lan_intf = v.iface
+		lan_name = v.name
+		section_selected = "lan"
+	end
+end
 
 local curiface = "wl0"
 local curssid = ""
@@ -34,9 +67,11 @@ for i,v in ipairs(awls) do
 			if quantenna_wifi and curiface == "wl1" then
 				curiface = "eth5"
 			end
+			section_selected = "wifi"
             curssid = v.ssid
         end
 end
+
 table.sort(wls, function(a,b)
     if a.radio == b.radio then
         return a.iface < b.iface
@@ -191,7 +226,8 @@ proxy.set("rpc.system.lock.datadir", "/tmp/trafficmon/")
 proxy.apply()
 
 local interface = proxy.get("rpc.network.interface.@wan.ifname")
-local wan = proxy.get("rpc.network.interface.@wan.up") and proxy.get("rpc.network.interface.@wan.up")[1].value or nil
+local wan = proxy.get("rpc.network.interface.@wan.up") 
+wan = wan and wan[1].value or nil
 
 local graph_interface = interface and interface[1].value or "br-lan"
 
@@ -206,7 +242,7 @@ local traffic = {}
 
 local TrafficIntf = {
 	wan = graph_interface,
-	lan = "br-lan",
+	lan = lan_intf,
 	wifi = curiface,
 }
 
@@ -277,14 +313,27 @@ ngx.print(ui_helper.createHeader(T"Traffic Monitor", false, true) ); ngx.print('
 	  html[#html+1] =	'</tr>'
 	  html[#html+1] =	'</table>'
 	  html[#html+1] = "</fieldset>"
+	  
+	  -- Traffic Graph
+	  
 	  html[#html+1] = "<fieldset><legend>" .. T"WAN Graph" .. "</legend>"
 	  html[#html+1] = '<div style="height:400px"><canvas id="WANChart"></canvas></div>'
 	  html[#html+1] = "</fieldset>"
-	  html[#html+1] = "<fieldset><legend>" .. T"LAN Graph" .. "</legend>"
+	  html[#html+1] = '<fieldset id="LANSection"><legend>' .. T"LAN Graph" .. "</legend>"
+	  html[#html+1] = '<ul class="nav nav-tabs">'
+      for _,v in ipairs(lan_list) do
+          local active = ""
+          if v.iface == lan_intf then
+              active = "active"
+          end
+          local url = "modals/traffic-monitor.lp?iface=" .. v.iface
+          html[#html+1] = format('<li class="%s"><a id ="%s" href="#" data-remote="%s">%s</a></li>', active, v.iface , url, v.name)
+      end
+      html[#html+1] =  "</ul>"
 	  html[#html+1] = '<div style="height:400px"><canvas id="LANChart"></canvas></div>'
 	  html[#html+1] = "</fieldset>"
 	  html[#html+1] = "&nbsp"
-	  html[#html+1] = "<fieldset>"
+	  html[#html+1] = '<fieldset id="WifiSection">'
       html[#html+1] = '<ul class="nav nav-tabs">'
       for i,v in ipairs(wls) do
           local active = ""
@@ -297,7 +346,6 @@ ngx.print(ui_helper.createHeader(T"Traffic Monitor", false, true) ); ngx.print('
       html[#html+1] =  "</ul>"
 	  html[#html+1] =  '<div style="height:400px"><canvas id="WiFiChart"></canvas></div>'
 	  html[#html+1] = "</fieldset>"
-	  html[#html+1] = "</fieldset>"
 	  html[#html+1] = "</div>"
 	  ngx.print(html)
 	  
@@ -305,7 +353,14 @@ ngx.print(ui_helper.createHeader(T"Traffic Monitor", false, true) ); ngx.print('
   </form>\
  </div>\
 \
-	<script language ="javascript">\
+<script language ="javascript">\
+')
+if section_selected == "wifi" then
+	ngx.print('$("#WifiSection")[0].scrollIntoView();');
+elseif section_selected == "lan" then
+	ngx.print('$("#LANSection")[0].scrollIntoView();');
+end
+ngx.print('\
 \
 $("#sent").on("click", function() {\
     if(this.checked) {\
@@ -407,6 +462,6 @@ var WiFiChart = new Chart(wifi_ctx, {\
 		}]},\
     options: TrafficChartOption, \
 });\
-	</script>\
+</script>\
 ');  ngx.print( ui_helper.createFooter() ); ngx.print('\
 '); 
