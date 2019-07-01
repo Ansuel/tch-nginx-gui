@@ -42,10 +42,12 @@ if interface and ( wan == "1" ) then
 	<fieldset>');
 	
 	local html = {}
-	html[#html + 1] = '<div id="canvas_container" style="height:400px;margin-right:20px;"><canvas id="WANChart"></canvas></div>'
+	html[#html + 1] = '<div id="canvas_container" style="height:400px;margin-right:20px;"><canvas id="WANChart"></canvas>'
+	html[#html + 1] = '<div style="float:right;">' .. T("Polling every 10 seconds") .. '</div>'
+	html[#html + 1] = '</div>'
 	html[#html + 1] = '<div id="rx_traffic_complete" class="hide" data-bind="text: rx_traffic_complete">' .. rx_traffic .. '</div>'
 	html[#html + 1] = '<div id="tx_traffic_complete" class="hide" data-bind="text: tx_traffic_complete">' .. tx_traffic .. '</div>'
-	
+
 	ngx.print(html)
 ngx.print('\
 	  </fieldset>\
@@ -55,7 +57,7 @@ ngx.print('\
   </div>\
 </div>\
 <script>\
-var interval = 5000;\
+var interval = 10000;\
 if ( $(document).width() > 831 )\
 	$("#canvas_container").width($(document).width()/2-60);\
 else\
@@ -66,13 +68,13 @@ window.onresize = function(event) {\
 	else\
 		$("#canvas_container").width($(document).width()-50);\
 };\
-function formatBytes(bytes,decimals) {\
-   if(bytes == 0) return "0 Bytes";\
-	var k = 1024,\
+function formatBit(bit,decimals) {\
+   if(bit == 0) return "0 bit";\
+	var k = 1000,\
     dm = decimals || 2,\
-    sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"],\
-    i = Math.floor(Math.log(bytes) / Math.log(k));\
-   return (bytes / Math.pow(k, i)) > 0 ? parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i] : "0";\
+    sizes = ["bits","Kb", "Mb", "Gb", "Tb", "Pb", "Eb", "Zb", "Yb"],\
+    i = Math.floor(Math.log(bit) / Math.log(k));\
+   return (bit / Math.pow(k, i)) > 0 ? parseFloat((bit / Math.pow(k, i)).toFixed(dm)) + " " + ( i > -1 ? sizes[i] : "bits") : null;\
 }\
 var TrafficChartOption = {\
 		responsive:true,\
@@ -85,14 +87,14 @@ var TrafficChartOption = {\
 		yAxes: [{ticks: {\
 				min: 0,\
 				callback: function(value) { \
-					return formatBytes(value*(10/(interval/1000)),2) \
+					return formatBit(value,2) \
 				},}}],},\
 		tooltips: {\
                 enabled: true,\
                 mode: "single",\
                 callbacks: {\
                     label: function(tooltipItems, data) { \
-                        return formatBytes(tooltipItems.yLabel*(10/(interval/1000)) , 2);},\
+                        return formatBit(tooltipItems.yLabel, 2);},\
 					title: function(tooltipItems, data) {\
 						return;}}},\
 		spanGaps:true,\
@@ -135,9 +137,12 @@ $(document).ready(function () {\
 					InfoGraphCardBinding.rx_traffic_complete(data.rx_traffic);\
 					InfoGraphCardBinding.tx_traffic_complete(data.tx_traffic);\
 					var date = new Date();\
+					var old_time = Date.parse("01 Jan 1970 "+Array.from(timelabel).pop()+" GMT");\
 					timelabel.push(date.getHours()+":"+date.getMinutes()+":"+date.getSeconds());\
-					wanRxdatasets.push(rx_traffic);\
-					wanTxdatasets.push(tx_traffic);\
+					var time = Date.parse("01 Jan 1970 "+Array.from(timelabel).pop()+" GMT");\
+					var time_diff = (time-old_time > 0) ? ((time-old_time)/1000) : 1;\
+					wanRxdatasets.push(((rx_traffic*8)/time_diff).toFixed(0));\
+					wanTxdatasets.push(((tx_traffic*8)/time_diff).toFixed(0));\
 					if (wanTxdatasets.length > 60) {\
 						wanTxdatasets.shift();\
 						wanRxdatasets.shift();\
