@@ -13,6 +13,7 @@ local format,find,sub, match, untaint = string.format, string.find, string.sub, 
 local vB = post_helper.validateBoolean
 local gOV = post_helper.getOrValidation
 local gAV = post_helper.getAndValidation
+local gOV = post_helper.getOptionalValidation
 
 local function receive_file(filename, match)
   function do_receive(outfile, match)
@@ -191,12 +192,6 @@ local update_branch_option = {
 	  { "dev", T'Dev'},
 }
 
-local update_hour_option = {}
-
-for i=0,23 do
-  update_hour_option[#update_hour_option+1] = { tostring(i) , tostring(i) .. ":00"}
-end
-
 local gui_skin_firstpage_page = {
   { "stats", T"Stats" },
   { "cards", T"Cards" },
@@ -233,7 +228,7 @@ local mapParams = {
 local mapValid = {
   update_branch = post_helper.getValidateInEnumSelect(update_branch_option),
   update_autoupgrade = vB,
-  update_autoupgrade_hour = post_helper.getValidateInEnumSelect(update_hour_option),
+  update_autoupgrade_hour = gOV(post_helper.validateNonEmptyString),
   gui_skin = post_helper.getValidateInEnumSelect(gui_skin_option),
   gui_skin_firstpage = post_helper.getValidateInEnumSelect(gui_skin_firstpage_page),
   gui_randomcolor = vB,
@@ -331,20 +326,37 @@ ngx.print('\
 		  id = "updating-msg"
 		}
 	  }
+	local autoupgrade = {
+		input = {
+            class = "monitor-changes",
+        }
+    }
+	local autoupgrade_mon_1 = {
+      group = {
+        class ="monitor-update_autoupgrade monitor-1",
+      },
+	  input = { 
+		class="span2", 
+		id = "update_autoupgrade_hour", 
+		style = "cursor:pointer;background-color:white;"
+	  }
+    }
 	html[#html + 1] = '<span id="GUI-upgrade-option">'
 	html[#html + 1] = ui_helper.createAlertBlock(T"Update the GUI to the latest version available", info_box)
 	html[#html + 1] = ui_helper.createInputSelect(T"Update Branch", "update_branch", update_branch_option, modgui_settings["update_branch"])
 
-	  html[#html + 1] = ui_helper.createSwitch(T"GUI Auto Update", "update_autoupgrade", modgui_settings["update_autoupgrade"])
-	  html[#html + 1] = ui_helper.createInputSelect(T"Update Hours", "update_autoupgrade_hour", update_hour_option, modgui_settings["update_autoupgrade_hour"])
-	  if content["outdated_ver"] == "1" then
-		  html[#html + 1] = ui_helper.createLabel(T"State", T"Update Found", basic)
-		  html[#html + 1] = ui_helper.createLabel(T"New Version", content["new_ver"], basic)
-		  html[#html + 1] = ui_helper.createButton(T"Update GUI", T"Update", "icon-refresh", upgrade_gui)
-	  else
-		  html[#html + 1] = ui_helper.createLabel(T"State", T"No Update found", basic)
-		  html[#html + 1] = ui_helper.createButton(T"Update GUI", T"Force Update", "icon-refresh", upgrade_gui)
-	  end
+	html[#html + 1] = ui_helper.createSwitch(T"GUI Auto Update", "update_autoupgrade", modgui_settings["update_autoupgrade"],autoupgrade)
+	html[#html + 1] = ui_helper.createInputText(T"Update Hours", "update_autoupgrade_hour", modgui_settings["update_autoupgrade_hour"],autoupgrade_mon_1)
+
+	if content["outdated_ver"] == "1" then
+		html[#html + 1] = ui_helper.createLabel(T"State", T"Update Found", basic)
+		html[#html + 1] = ui_helper.createLabel(T"New Version", content["new_ver"], basic)
+		html[#html + 1] = ui_helper.createButton(T"Update GUI", T"Update", "icon-refresh", upgrade_gui)
+	else
+		html[#html + 1] = ui_helper.createLabel(T"State", T"No Update found", basic)
+		html[#html + 1] = ui_helper.createButton(T"Update GUI", T"Force Update", "icon-refresh", upgrade_gui)
+	end
+	
 	html[#html + 1] = '</span>'
 	html[#html + 1] = '</div>'
 	html[#html + 1] = '</form><form class="form-horizontal" id="form-import-gui" method="post" action="modals/modgui-modal.lp?action=upgradeguifile" enctype="multipart/form-data">'
@@ -442,6 +454,22 @@ ngx.print('\
   var refreshTimeOut = 5000;\
   var refreshDelay = 3000;\
   var target = $(".modal form").attr("action");\
+\
+  var timescroll_opt = {\
+            theme: "android-ics light",\
+            display: "bubble",\
+            mode: "scroller",\
+            headerText: false,\
+            timeFormat: "hh:ii",\
+            stepMinute: 5\
+        };\
+\
+  $("#update_autoupgrade_hour").mobiscroll().time(timescroll_opt);\
+  $("#update_autoupgrade_hour").on("change", function() {\
+		$("#modal-no-change").fadeOut(300);\
+        $("#modal-changes").delay(350).fadeIn(300);\
+	}\
+  )\
 \
   function wait_for_webserver_running() {\
 	$.ajax({ url: "/", timeout: refreshTimeOut })\
