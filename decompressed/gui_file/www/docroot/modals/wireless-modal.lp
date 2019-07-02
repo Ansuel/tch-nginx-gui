@@ -29,6 +29,7 @@ local content_helper = require("web.content_helper")
 local ajax_helper = require("web.ajax_helper")
 local pairs = pairs
 local match, format, gsub, next = string.match, string.format, string.gsub, next
+local tinsert = table.insert
 local bandsteer_helper = require("bandsteer_helper")
 local isBaseIface = bandsteer_helper.isBaseIface
 local disableBandSteer = bandsteer_helper.disableBandSteer
@@ -350,27 +351,19 @@ else
     wifi_standard = wifi_standard_24GHz
 end
 
-local bandsteer_rssi_threshold = {
-    {"-10", T"10%".." (-10dBm)"},
-    {"-20", T"20%".." (-20dBm)"},
-    {"-30", T"30%".." (-30dBm)"},
-    {"-40", T"40%".." (-40dBm)"},
-    {"-50", T"50%".." (-50dBm)"},
-    {"-60", T"60%".." (-60dBm)"},
-    {"-70", T"70%".." (-70dBm)"},
-    {"-80", T"80%".." (-80dBm)"},
-    {"-90", T"90%".." (-90dBm)"},
-}
+local bandsteer_rssi_threshold = {}
+
+for i=10,90,10 do
+	tinsert(bandsteer_rssi_threshold , {format("-%s",i),format("%s%% (-%sdBm)",i,i)})
+end
+
 -- Choose Wifi power
-local wifipower = {
-    {"-6", T"-6 dBm"},
-    {"-5", T"-5 dBm"},
-    {"-4", T"-4 dBm"},
-    {"-3", T"-3 dBm"},
-    {"-2", T"-2 dBm"},
-    {"-1", T"-1 dBm"},
-    {"0", T"0 dBm"},
-}
+local wifipower = {}
+
+for i=-6,6 do
+	i = i < 0 and i or format("+%s",i)
+	tinsert(wifipower,{i,format("%s dBm",i)})
+end
 
 local cw_40 = {
     {"20MHz", T"20MHz"},
@@ -651,6 +644,8 @@ local function getParamsAndValidation()
     standard = pathradio .. "standard",
     requested_channel = pathradio .. "requested_channel",
     requested_channel_width = pathradio .. "requested_channel_width",
+	tx_power_adjust = pathradio .. "tx_power_adjust"
+	tx_power_overrule_reg = pathradio .. "tx_power_overrule_reg"
     }
     if isguest=="1" then
         mapParams.ap_enabled = pathap .. "admin_state"
@@ -727,7 +722,8 @@ local function getParamsAndValidation()
     sgi = gOV(vB),
     cdd = gVIES(cddList),
     stbc = gOV(vB),
-    outputpower = gVIES(wifipower), -- if the parameter is not included, it does not matter, this validation function will never be called
+    tx_power_adjust = gVIES(wifipower),
+	tx_power_overrule_reg = vB,
     channelwidth20 = getValidateChannelWidth(cw_40),
     channelwidth40 = getValidateChannelWidth(cw_40),
     channelwidth80 = getValidateChannelWidth(cw_80),
@@ -1143,7 +1139,8 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
 
             html[#html + 1] = ui_helper.createInputSelect(T"Channel Width", "channelwidth80", cw_80, content["requested_channel_width"], cw80attributes)
             html[#html + 1] = '</div>'
-	    html[#html + 1] = ui_helper.createSliderSelect(T"Output Power", "outputpower", wifipower, content["outputpower"], advanced)
+			html[#html + 1] = ui_helper.createSwitch(T"Bypass Reg Domain Power Rule", "tx_power_overrule_reg", content["tx_power_overrule_reg"], advanced)
+			html[#html + 1] = ui_helper.createSliderSelect(T"Output Power", "tx_power_adjust", wifipower, content["tx_power_adjust"], advanced)
 
             if isExtRemman ~= "1" and isIntRemman ~= "1" then
                 html[#html + 1] = ui_helper.createSwitch(T"Short Guard Interval", "sgi", content["sgi"], advanced)

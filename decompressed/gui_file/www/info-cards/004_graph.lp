@@ -58,16 +58,14 @@ ngx.print('\
 </div>\
 <script>\
 var interval = 10000;\
-if ( $(document).width() > 831 )\
+function checkGraphWidth() {\
+	if ( $(document).width() > 855 )\
 	$("#canvas_container").width($(document).width()/2-60);\
 else\
-	$("#canvas_container").width($(document).width()-50);\
-window.onresize = function(event) {\
-    if ( $(document).width() > 831 )\
-		$("#canvas_container").width($(document).width()/2-60);\
-	else\
-		$("#canvas_container").width($(document).width()-50);\
-};\
+	$("#canvas_container").width($(document).width()-80);\
+}\
+checkGraphWidth();\
+$(window).bind("resize", checkGraphWidth );\
 function formatBit(bit,decimals) {\
    if(bit == 0) return "0 bit";\
 	var k = 1000,\
