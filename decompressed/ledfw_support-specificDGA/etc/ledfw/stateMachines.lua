@@ -16,6 +16,8 @@ local function get_itf_depending_led()
    return itf_depending_led
 end
 
+local wifi_led_nsc = is_WiFi_LED_on_if_NSC()
+
 patterns = {
     status = {
         state = "status_inactive",
@@ -399,7 +401,7 @@ stateMachines = {
                 staticLed("wireless:green", false),
             },
             wifi_on_nsc = {
-                staticLed("wireless:green", is_WiFi_LED_on_if_NSC ),
+                staticLed("wireless:green", wifi_led_nsc ),
             },
             wifi_on_sc = {
                 netdevLed("wireless:green", 'wl0', 'link tx rx')
@@ -450,7 +452,7 @@ stateMachines = {
                 staticLed("wireless_5g:green", false),
             },
             wifi_on_nsc = {
-                staticLed("wireless_5g:green", is_WiFi_LED_on_if_NSC),
+                staticLed("wireless_5g:green", wifi_led_nsc),
             },
             wifi_on_sc = {
                 netdevLed("wireless_5g:green", wl1_ifname, 'link tx rx')
