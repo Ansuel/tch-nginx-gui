@@ -1106,7 +1106,7 @@ $(function () {
 		},
 		lookup: function (e) {
 			return this.query = this.$element.val(),
-			!this.query || this.query.length < this.options.minLength ? this.shown ? this.hide() : this : (e = t.isFunction(this.source) ? this.source(this.query, t.proxy(this.process, this)) : this.source) ? this.process(e) : this
+			!this.query || this.query.length < this.options.minLength ? this.shown ? this.hide() : this : (e = ((typeof this.source === "function") ? this.source(this.query, t.proxy(this.process, this)) : this.source) ? this.process(e) : this
 		},
 		process: function (e) {
 			var n = this;
@@ -2047,7 +2047,7 @@ function confirmationDialogue(t, e) {
 		g && (window.clearTimeout(g), g = void 0)
 	}
 	function n(t, n, o) {
-		$.isFunction(n) && (o = n, n = void 0),
+		(typeof n === "function") && (o = n, n = void 0),
 		(null == n || 1 > n.length || "REFRESH" != n[0].value) && ($(window).scrollTop(0), p(waitMsg));
 		var a = $(".modal-action-advanced:first").is(":visible");
 		e(),
@@ -2059,7 +2059,7 @@ function confirmationDialogue(t, e) {
 		$(".modal").load(t, n, function (t, e, n) {
 			$.xhrPool = [],
 			m(),
-			403 === n.status || 0 < $("#sign-me-in").length ? (p(loginMsg), window.location = "/login.lp") : (("error" === e || "timeout" === e) && httpErrorMessage(n), i(), a && r(), $.isFunction(o) && o(t, e, n))
+			403 === n.status || 0 < $("#sign-me-in").length ? (p(loginMsg), window.location = "/login.lp") : (("error" === e || "timeout" === e) && httpErrorMessage(n), i(), a && r(), (typeof o === "function") && o(t, e, n))
 		})
 	}
 	function i() {
