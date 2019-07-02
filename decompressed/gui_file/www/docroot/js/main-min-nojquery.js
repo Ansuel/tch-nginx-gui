@@ -1422,13 +1422,13 @@ $(function () {
 		t.xSteps[0] = e
 	}
 	function s(e, i) {
-		if ("object" != typeof i || t.isArray(i))
+		if ("object" != typeof i || Array.isArray(i))
 			throw Error("noUiSlider: 'range' is not an object.");
 		if (void 0 === i.min || void 0 === i.max)
 			throw Error("noUiSlider: Missing 'min' or 'max' in 'range'.");
 		t.each(i, function (i, o) {
 			var a;
-			if ("number" == typeof o && (o = [o]), !t.isArray(o))
+			if ("number" == typeof o && (o = [o]), !Array.isArray(o))
 				throw Error("noUiSlider: 'range' contains invalid value.");
 			if (!n(a = "min" === i ? 0 : "max" === i ? 100 : parseFloat(i)) || !n(o[0]))
 				throw Error("noUiSlider: 'range' value isn't numeric.");
@@ -1443,7 +1443,7 @@ $(function () {
 		})
 	}
 	function l(e, n) {
-		if ("number" == typeof n && (n = [n]), !t.isArray(n) || !n.length || 2 < n.length)
+		if ("number" == typeof n && (n = [n]), !Array.isArray(n) || !n.length || 2 < n.length)
 			throw Error("noUiSlider: 'start' option is incorrect.");
 		e.handles = n.length,
 		e.start = n
@@ -1516,7 +1516,7 @@ $(function () {
 		e.ser = [n.lower, n.upper],
 		e.formatting = n.format,
 		t.each(e.ser, function (e, o) {
-			if (!t.isArray(o))
+			if (!Array.isArray(o))
 				throw Error("noUiSlider: 'serialization." + (e ? "upper" : "lower") + "' must be an array.");
 			t.each(o, function () {
 				if (!(this instanceof t.Link))
@@ -1728,7 +1728,7 @@ $(function () {
 			c,
 			u,
 			h = Array.prototype.slice.call(arguments, 0),
-			f = t.isArray(h[0]) ? h[0] : [h[0]];
+			f = Array.isArray(h[0]) ? h[0] : [h[0]];
 			for ("object" == typeof h[1] ? (e = h[1].set, n = h[1].link, r = h[1].update, s = h[1].animate) : !0 === h[1] && (e = !0), o.dir && 1 < o.handles && f.reverse(), s && i(T, k[14], 300), h = 1 < b.length ? 3 : 1, 1 === f.length && (h = 1), c = 0; c < h; c++)
 				s = n || w[c % 2][0], s = s.getValue(f[c % 2]), !1 !== s && (s = a(o, s), o.dir && (s = 100 - s), !0 !== d(b[c % 2], s, !0) && t(w[c % 2]).each(function (t) {
 						if (!t)
@@ -3252,7 +3252,7 @@ var qrcode = function () {
 			}
 		}
 		function d(e) {
-			return t.isArray(ut.readonly) ? (e = t(".dwwl", j).index(e), ut.readonly[e]) : ut.readonly
+			return Array.isArray(ut.readonly) ? (e = t(".dwwl", j).index(e), ut.readonly[e]) : ut.readonly
 		}
 		function h(e) {
 			var n = '<div class="dw-bf">',
@@ -3491,7 +3491,7 @@ var qrcode = function () {
 			gt && ct.prop("disabled", !0)
 		},
 		st.setValue = function (e, n, i, o) {
-			st.temp = t.isArray(e) ? e.slice(0) : ut.parseValue.call(dt, e + "", st),
+			st.temp = Array.isArray(e) ? e.slice(0) : ut.parseValue.call(dt, e + "", st),
 			B(n, i, !1, o)
 		},
 		st.getValue = function () {
@@ -4544,7 +4544,7 @@ var qrcode = function () {
 		}).hide().closest(".ui-field-contain").trigger("create"),
 		n._setValue || (n._setValue = n.setValue),
 		n.setValue = function (e, a, r, s, m) {
-			var g = t.isArray(e) ? e[0] : e;
+			var g = Array.isArray(e) ? e[0] : e;
 			if (u = void 0 !== g ? g : t("option", d).attr("value"), c)
 				for (n._selectedValues = {}, g = 0; g < e.length; g++)
 					n._selectedValues[e[g]] = e[g];
