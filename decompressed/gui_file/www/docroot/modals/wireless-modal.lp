@@ -644,8 +644,8 @@ local function getParamsAndValidation()
     standard = pathradio .. "standard",
     requested_channel = pathradio .. "requested_channel",
     requested_channel_width = pathradio .. "requested_channel_width",
-	tx_power_adjust = pathradio .. "tx_power_adjust"
-	tx_power_overrule_reg = pathradio .. "tx_power_overrule_reg"
+	tx_power_adjust = pathradio .. "tx_power_adjust",
+	tx_power_overrule_reg = pathradio .. "tx_power_overrule_reg",
     }
     if isguest=="1" then
         mapParams.ap_enabled = pathap .. "admin_state"
