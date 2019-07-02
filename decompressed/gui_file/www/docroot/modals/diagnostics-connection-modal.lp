@@ -44,15 +44,15 @@ if find(xdsl_params["dsl_type"], "ADSL") == 1 or find(xdsl_params["dsl_type"], "
   is_adsl = true
 end
 local content_rpc_gpon = {}
+
 if is_gpon then
-content_rpc_gpon ={
-  gpon_status = "rpc.optical.Interface.1.Status",
-}
-content_helper.getExactContent(content_rpc_gpon)
+	content_rpc_gpon["gpon_status"] = "rpc.optical.Interface.1.Status"
 end
-if gponboard then
+
+if gponboard == "gpon" or gponboard == "gpon_sfp" then
 	content_rpc_gpon["gpon_status"] = "rpc.gpon.ploam.state"
 end
+
 content_helper.getExactContent(content_rpc_gpon)
 
 

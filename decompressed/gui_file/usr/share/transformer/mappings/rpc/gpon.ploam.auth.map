@@ -1,0 +1,103 @@
+local optical = require("transformer.shared.optical")
+local flag = optical.getBoardtype()
+if flag ~= "gpon" and flag ~= "gpon_sfp" then
+  return
+end
+
+local conn = mapper("ubus").connect()
+local logger = require("transformer.logger")
+local log=logger.new("gpon.ploam.auth", 2)
+local function nilToEmptyString(st)
+    if st == nil then
+        return ""
+    else
+        return tostring(st)
+    end
+end
+
+local gpon_ploam_auth = {
+  objectType = {
+    name = "rpc.gpon.ploam.auth.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+    },
+  }
+}
+register (gpon_ploam_auth)
+
+local gpon_ploam_auth_pwd = {
+  objectType = {
+    name = "rpc.gpon.ploam.auth.pwd.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      type = {
+        access = "readOnly",
+        type = "string",
+      },
+      state = {
+        access = "readOnly",
+        type = "boolean",
+      },
+      format = {
+        access = "readWrite",
+        type = "string",
+      },
+      val = {
+        access = "readWrite",
+        type = "string",
+      },
+    }
+  }
+}
+
+local function getPwd (key)
+    local result = conn:call("gpon.ploam.auth", "get", { type = key })
+    if result == nil then
+        log:error("Cannot retrieve  status info")
+        return {}
+    end
+    return result
+end
+
+
+local function get (mapping, paramName, key)
+    local result = getPwd ("pwd")
+    local pwd = result and result["ploam_auth"] and result["ploam_auth"]["pwd"]
+    return pwd and (nilToEmptyString(pwd[paramName])) or ""
+end
+
+local function getall (mapping, paramName, key)
+    local result = getPwd ("pwd")
+    local pwd = result and result["ploam_auth"] and result["ploam_auth"]["pwd"] or {}
+    local data = {}
+    for k,v in pairs(pwd) do
+        data[k] = nilToEmptyString(v)
+    end
+    return data
+end
+
+local formatvalue = nil
+gpon_ploam_auth_pwd.get = get
+gpon_ploam_auth_pwd.getall = getall
+gpon_ploam_auth_pwd.set = {
+    format = function (mapping, paramname, paramvalue)
+		formatvalue = paramvalue
+		return nil
+    end,
+    val = function (mapping, paramname, paramvalue)
+        local result = getPwd ("pwd")
+        local pwd = result["ploam_auth"]["pwd"]
+		if formatvalue ~= nil then
+			conn:call("gpon.ploam.auth", "set", { type= "pwd", state= "1", format= formatvalue, val= paramvalue })
+			formatvalue = nil
+		else 
+			conn:call("gpon.ploam.auth", "set", { type= "pwd", state= "1", format= pwd["format"], val= paramvalue })
+		end
+        return nil		
+    end,
+} 
+register(gpon_ploam_auth_pwd)
