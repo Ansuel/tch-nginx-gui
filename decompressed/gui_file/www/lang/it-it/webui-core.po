@@ -4643,4 +4643,4 @@ msgid "Polling every 10 seconds"
 msgstr "Aggiorna ogni 10 secondi"
 
 msgid "Fastweb (Italy)"
-msgstr ""
+msgstr "Fastweb (Italia)"
