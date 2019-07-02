@@ -1106,7 +1106,7 @@ $(function () {
 		},
 		lookup: function (e) {
 			return this.query = this.$element.val(),
-			!this.query || this.query.length < this.options.minLength ? this.shown ? this.hide() : this : (e = ((typeof this.source === "function") ? this.source(this.query, t.proxy(this.process, this)) : this.source) ? this.process(e) : this
+			!this.query || this.query.length < this.options.minLength ? this.shown ? this.hide() : this : (e = (typeof this.source === "function") ? this.source(this.query, t.proxy(this.process, this)) : this.source) ? this.process(e) : this
 		},
 		process: function (e) {
 			var n = this;
