@@ -49,7 +49,7 @@ Some Topics to help you get root access:
 <li>DGA4132 TIM: https://www.ilpuntotecnico.com/forum/index.php/topic,78162.html</li>
 <li>789vac v2 TIM: https://www.ilpuntotecnico.com/forum/index.php/topic,77071.html</li>
 <li>789vac v2 Tiscali: https://www.ilpuntotecnico.com/forum/index.php/topic,77988.html</li>
-<li>799vac, 800vac and 797n v3 Any ISP: https://whirlpool.net.au/wiki/hack_technicolor</li>
+<li>789vac v1/2/3, 799vac, 800vac and 797n v3 Any ISP: https://hack-technicolor.rtfd.io</li>
 </ul>
 General GUI Topic: https://www.ilpuntotecnico.com/forum/index.php/topic,78585.0.html
 
