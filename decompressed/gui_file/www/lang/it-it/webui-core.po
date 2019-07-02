@@ -4586,7 +4586,7 @@ msgid "ISP Autodetect"
 msgstr "Rilevamento automatico ISP"
 
 msgid "Check this to only root the modem after the firmware is installed.<br/>After this you had to reinstall the gui.<br/>Expect the web interface to be broken after the upgrade"
-msgstr "Spunta questo se vuoi solo fare il root dopo l'installazione del firmware.br/>Dopo aver fatto ciò devi reinstallare la GUI.<br/>L'interfaccia web verrà danneggiata dopo l'aggiotnamento."
+msgstr "Spunta questo se vuoi solo fare il root dopo l'installazione del firmware.br/>Dopo aver fatto ciò devi reinstallare la GUI.<br/>L'interfaccia web verrà danneggiata dopo l'aggiornamento."
 
 msgid "Root only modem after upgrade"
 msgstr "Solo root dopo aggiornamento firmware"
