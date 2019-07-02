@@ -4638,3 +4638,15 @@ msgstr ""
 
 msgid "Fastweb (Italy)"
 msgstr ""
+
+msgid "Color"
+msgstr ""
+
+msgid "Brightness"
+msgstr ""
+
+msgid "Leds State"
+msgstr ""
+
+msgid "Leds"
+msgstr ""
