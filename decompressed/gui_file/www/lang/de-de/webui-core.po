@@ -4671,3 +4671,6 @@ msgstr ""
 
 msgid "0 dBm"
 msgstr ""
+
+msgid "Bypass Reg Domain Power Rule"
+msgstr ""
