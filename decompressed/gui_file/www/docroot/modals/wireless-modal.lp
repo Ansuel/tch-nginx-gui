@@ -10,6 +10,8 @@
 --NG-100744 Custo-GUI: ubus call timeout when changing WiFi state and security settings
 --NG-136046 GUI-Wireless- WPS AP PIN code must appear disabled
 
+--Kevdagoat[06-04-19]: Fixed WiFi Signal Strength control
+
 local istainted = string.istainted
 local untaint_mt = require("web.taint").untaint_mt
 local setmetatable = setmetatable
@@ -361,10 +363,13 @@ local bandsteer_rssi_threshold = {
 }
 -- Choose Wifi power
 local wifipower = {
-    {"-3", T"100%"},
-    {"-2", T"125%"},
-    {"-1", T"160%"},
-    {"0", T"200%"},
+    {"-6", T"-6 dBm"},
+    {"-5", T"-5 dBm"},
+    {"-4", T"-4 dBm"},
+    {"-3", T"-3 dBm"},
+    {"-2", T"-2 dBm"},
+    {"-1", T"-1 dBm"},
+    {"0", T"0 dBm"},
 }
 
 local cw_40 = {
@@ -1138,6 +1143,7 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
 
             html[#html + 1] = ui_helper.createInputSelect(T"Channel Width", "channelwidth80", cw_80, content["requested_channel_width"], cw80attributes)
             html[#html + 1] = '</div>'
+	    html[#html + 1] = ui_helper.createSliderSelect(T"Output Power", "outputpower", wifipower, content["outputpower"], advanced)
 
             if isExtRemman ~= "1" and isIntRemman ~= "1" then
                 html[#html + 1] = ui_helper.createSwitch(T"Short Guard Interval", "sgi", content["sgi"], advanced)
