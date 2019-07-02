@@ -4650,3 +4650,24 @@ msgstr "LED Zustand"
 
 msgid "Leds"
 msgstr "LEDs"
+
+msgid "-4 dBm"
+msgstr "-4 dBm"
+
+msgid "-5 dBm"
+msgstr "-5 dBm"
+
+msgid "-6 dBm"
+msgstr "-6 dBm"
+
+msgid "-2 dBm"
+msgstr "-2 dBm"
+
+msgid "-1 dBm"
+msgstr "-1 dBm"
+
+msgid "-3 dBm"
+msgstr "-3 dB,"
+
+msgid "0 dBm"
+msgstr "0 dBm"

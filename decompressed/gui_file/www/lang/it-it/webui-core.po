@@ -4656,3 +4656,24 @@ msgstr ""
 
 msgid "Leds"
 msgstr ""
+
+msgid "-4 dBm"
+msgstr ""
+
+msgid "-5 dBm"
+msgstr ""
+
+msgid "-6 dBm"
+msgstr ""
+
+msgid "-2 dBm"
+msgstr ""
+
+msgid "-1 dBm"
+msgstr ""
+
+msgid "-3 dBm"
+msgstr ""
+
+msgid "0 dBm"
+msgstr ""
