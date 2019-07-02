@@ -29,6 +29,7 @@ local content_helper = require("web.content_helper")
 local ajax_helper = require("web.ajax_helper")
 local pairs = pairs
 local match, format, gsub, next = string.match, string.format, string.gsub, next
+local tinsert = table.insert
 local bandsteer_helper = require("bandsteer_helper")
 local isBaseIface = bandsteer_helper.isBaseIface
 local disableBandSteer = bandsteer_helper.disableBandSteer
@@ -350,27 +351,18 @@ else
     wifi_standard = wifi_standard_24GHz
 end
 
-local bandsteer_rssi_threshold = {
-    {"-10", T"10%".." (-10dBm)"},
-    {"-20", T"20%".." (-20dBm)"},
-    {"-30", T"30%".." (-30dBm)"},
-    {"-40", T"40%".." (-40dBm)"},
-    {"-50", T"50%".." (-50dBm)"},
-    {"-60", T"60%".." (-60dBm)"},
-    {"-70", T"70%".." (-70dBm)"},
-    {"-80", T"80%".." (-80dBm)"},
-    {"-90", T"90%".." (-90dBm)"},
-}
+local bandsteer_rssi_threshold = {}
+
+for i=10,90,10 do
+	tinsert(bandsteer_rssi_threshold , {format("-%s",i),format("%s%% (-%sdBm)",i,i)})
+end
+
 -- Choose Wifi power
-local wifipower = {
-    {"-6", T"-6 dBm"},
-    {"-5", T"-5 dBm"},
-    {"-4", T"-4 dBm"},
-    {"-3", T"-3 dBm"},
-    {"-2", T"-2 dBm"},
-    {"-1", T"-1 dBm"},
-    {"0", T"0 dBm"},
-}
+local wifipower = {}
+
+for i=-6,6 do
+	tinsert(wifipower,{i,format("%s dBm",i)})
+end
 
 local cw_40 = {
     {"20MHz", T"20MHz"},
