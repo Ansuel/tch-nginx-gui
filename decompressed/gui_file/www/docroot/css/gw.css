@@ -3847,6 +3847,7 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	position: relative;
 }
 #diagnosticIcons {
+	font-size:25px;
 	margin: 10px;
 }
 .tooLongTitle p {

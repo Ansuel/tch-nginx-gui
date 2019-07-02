@@ -9,6 +9,7 @@ local items = {
     {"diagnostics-ping-modal.lp", T"Ping & Traceroute"},
     {"diagnostics-connection-modal.lp", T"Connection"},
     {"diagnostics-network-modal.lp", T"Network"},
+	{"diagnostics-leds-modal.lp", T"Leds"},
     {"diagnostics-igmpproxy-modal.lp", T"Igmpproxy"},
     {"port-mirror-modal.lp", T"Port Mirror"},
     {"diagnostics-tcpdump-modal.lp", T"Tcpdump"},

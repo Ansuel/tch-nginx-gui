@@ -18,7 +18,7 @@ local function genIcon(id,text,icons,tooltip_pos)
 
 	html[#html+1] = '<td>'
 	html[#html+1] = format('<div id="diagnosticIcons" data-toggle="modal" data-remote="/modals/%s.lp" data-id="%s">',id,id)
-	html[#html+1] = format('<i class="smallsomeInfos modal-link %s" style="font-size:32px;" href="#" \
+	html[#html+1] = format('<i class="smallsomeInfos modal-link %s" href="#" \
 			rel="tooltip" data-placement="%s" data-original-title="%s" alt="%s"></i>',icons,tooltip_pos,T(text),T(text))
 	html[#html+1] = '</div>'
 	html[#html+1] = '</td>'
@@ -29,8 +29,9 @@ end
 local icons = {
 	{"diagnostics-ping-modal","Ping & Traceroute","fas fa-upload"},
 	{"port-mirror-modal","Port Mirror","fas fa-exchange-alt"},
-	{"diagnostics-connection-modal","Connection","far fa-lightbulb"},
-	{"diagnostics-network-modal","Network","fas fa-plug"},
+	{"diagnostics-connection-modal","Connection","fas fa-plug"},
+	{"diagnostics-network-modal","Network","fas fa-ethernet"},
+	{"diagnostics-leds-modal","Leds","far fa-lightbulb"},
 	{"diagnostics-tcpdump-modal","TCPDump","fa fa-download"},
 }
 
@@ -55,7 +56,7 @@ end
 	 
 		for i, v in pairs(icons) do
 			if session:hasAccess(format("/modals/%s.lp",v[1])) then
-				ngx.print(genIcon(v[1],v[2],v[3], i < 5 and "bottom" or "top"))
+				ngx.print(genIcon(v[1],v[2],v[3], i < 6 and "bottom" or "top"))
 			end
 		end
 
