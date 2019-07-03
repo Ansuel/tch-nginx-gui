@@ -3,10 +3,11 @@ if [ $TYPE == "DEV" ]; then
 	exit 0
 fi
 
-
+saved=0
 pretranslated_string="--pretranslated: do not change this file"
 
 minify_lua() {
+	compressed=0
 	append_pretraslate=0
 	if [ -n "$(grep $1 -e "$pretranslated_string")" ]; then
 		append_pretraslate=1
@@ -15,7 +16,11 @@ minify_lua() {
 	luasrcdiet --maximum --quiet $1 -o $1.min
 	if [ $append_pretraslate == 1 ]; then
 		sed -i '1s/^/'"$pretranslated_string"'\n/' $1.min
+		sed -i ':a;N;$!ba;s/\\\n\s*\t*//g' $1.min
 		chmod $(stat -c "%a" $1) $1.min
+		echo "File $1 minified for $compressed byte"
+		compressed=$(($(stat --printf="%s" $1)-$(stat --printf="%s" $1.min)))
+		saved=$((saved+compressed))
 	fi
 }
 
@@ -41,5 +46,5 @@ for file in `find . -name "*.lua" -o -name "*.lp" -o -name "*.map" -type f`; do
 	fi
 done
 
-
+echo "By compressing lua scripts we saved $saved byte"
 echo "Finished"
