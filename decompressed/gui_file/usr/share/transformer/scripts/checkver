@@ -70,7 +70,7 @@ if [ $connectivity == "yes" ]; then
 	if [ ! "$(uci get -q modgui.gui.update_branch)" ] || [ "$(uci get modgui.gui.update_branch)" == "stable" ]; then
 		update_branch="stable"
 		version_link=$BASE_DIR/$STABLE_VERSION
-	else if [ "$(uci get modgui.gui.update_branch)" == "preview" ]; then
+	elif [ "$(uci get modgui.gui.update_branch)" == "preview" ]; then
 		update_branch="preview"
 		version_link=$BASE_DIR/$PREVIEW_VERSION
 	fi

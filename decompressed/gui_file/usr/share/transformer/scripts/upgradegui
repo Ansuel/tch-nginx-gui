@@ -98,7 +98,7 @@ URL_BASE="https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/"
 # Check update_branch
 if [ ! "$(uci get -q modgui.gui.update_branch)" ] ||  [ "$(uci get modgui.gui.update_branch)" == "stable" ]; then
 	update_branch=""
-else if [ "$(uci get modgui.gui.update_branch)" == "preview" ]; then
+elif [ "$(uci get modgui.gui.update_branch)" == "preview" ]; then
 	update_branch="_preview"
 else
 	update_branch="_dev"
