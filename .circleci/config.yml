@@ -3,7 +3,7 @@ jobs:
   prepare:
     working_directory: ~/gui_build
     docker:
-      - image: ansuel/gui-autobuild-image:2
+      - image: ansuel/gui-autobuild-image:3
     steps:
       - checkout
       - run:
@@ -19,7 +19,7 @@ jobs:
   update_file:
     working_directory: ~/gui_build
     docker:
-      - image: ansuel/gui-autobuild-image:2
+      - image: ansuel/gui-autobuild-image:3
     steps:
       - attach_workspace:
           at: ~/gui_build
@@ -36,7 +36,7 @@ jobs:
   detect_build:
     working_directory: ~/gui_build
     docker:
-      - image: ansuel/gui-autobuild-image:2
+      - image: ansuel/gui-autobuild-image:3
     steps:
       - attach_workspace:
           at: ~/gui_build
@@ -50,7 +50,7 @@ jobs:
   increment_version:
     working_directory: ~/gui_build
     docker:
-      - image: ansuel/gui-autobuild-image:2
+      - image: ansuel/gui-autobuild-image:3
     steps:
       - attach_workspace:
           at: ~/gui_build
@@ -65,7 +65,7 @@ jobs:
   init_and_update:
     working_directory: ~/gui_build
     docker:
-      - image: ansuel/gui-autobuild-image:2
+      - image: ansuel/gui-autobuild-image:3
     steps:
       - attach_workspace:
           at: ~/gui_build
