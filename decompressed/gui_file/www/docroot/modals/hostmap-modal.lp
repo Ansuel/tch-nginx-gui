@@ -235,12 +235,11 @@ function Popupdevice(Title,txt,height){\
         $(\'html, body\').css({\'overflow\': \'auto\',\'height\': \'auto\'});\
   });\
 }\
-var timerajax = ""\
-function getInfo(mac,path,wifi,ap)\
-{\
+var timerajax = "";\
+function getInfo(mac,path,wifi,ap) {\
   var url = \'/modals/hostmap-modal.lp\';\
   var checktimer = 1000;\
-  var gets =  {}\
+  var gets = {};\
   gets.isAjax = "1";\
   //gets.wifi = wifi;\
   gets.path = path;\
@@ -253,17 +252,17 @@ function getInfo(mac,path,wifi,ap)\
       $("#rssivalue").html(data.RSSI + "dBm");\
       bars(data.RSSI);\
    })\
-   .error(function() {\
+   .fail(function() {\
    });\
    timerajax = window.setTimeout(function () {getInfo(mac,path,wifi,ap);}, checktimer);\
-}\
+};\
 // Wifi chart scripts\
-    var countwifi = 0;\
+   var countwifi = 0;\
    function bars(x){\
           var y = 100 + parseInt(x);\
-          var x = parseInt(x) * -1\
+          var x = parseInt(x) * -1;\
           $("#chartcontainerwifi").append(\'<div class=\\"barswifi\\" id=\\"bar-\'+countwifi+\'\\"></div>\');\
-          var $d = $("#bar-"+countwifi)\
+          var $d = $("#bar-"+countwifi);\
           var color = \'#FF0000\'; //default red\
           if (x <= 55){\
             color =  \'#00FF00\'; //green\
@@ -282,7 +281,7 @@ function getInfo(mac,path,wifi,ap)\
            });\
            countwifi++;\
            //window.setTimeout(function(){ bars(random(100));}, 1500);\
-   }\
+		  };\
    $(function(d) {\
       $( ".host" ).on("click", function(e) {\
         var height = "300";\
@@ -313,10 +312,10 @@ function getInfo(mac,path,wifi,ap)\
         }\
         txt = txt + "<div class=\\"ctsinfoline\\"><span class=\\"hostinfoleft\\">');  ngx.print(T"Status"); ngx.print('</span><span class=\\"hostinforight\\" id=\\"state\\">"+state+"</span></div>";\
         if (wifi == "1"){\
-          txt = txt + "<div id=\\"charttitalwifiwifi\\" class=\\"hostinfoleft\\">RSSI</div><div id=\\"chartcontainerwifi\\"><div id=\\"scale1wifi\\" class=\\"scalewifi\\">-0dBm</div><div id=\\"scale2wifi\\" class=\\"scalewifi\\">-100dBm</div><div id=\\"rssivalue\\" class=\\"scalewifi\\">-50dBm</div></div>"\
-          getInfo(mac,path,wifi,ap)\
+          txt = txt + "<div id=\\"charttitalwifiwifi\\" class=\\"hostinfoleft\\">RSSI</div><div id=\\"chartcontainerwifi\\"><div id=\\"scale1wifi\\" class=\\"scalewifi\\">-0dBm</div><div id=\\"scale2wifi\\" class=\\"scalewifi\\">-100dBm</div><div id=\\"rssivalue\\" class=\\"scalewifi\\">-50dBm</div></div>";\
+          getInfo(mac,path,wifi,ap);\
         }\
-        Popupdevice(host,txt,height)\
+        Popupdevice(host,txt,height);\
         });\
   });\
 </script>\

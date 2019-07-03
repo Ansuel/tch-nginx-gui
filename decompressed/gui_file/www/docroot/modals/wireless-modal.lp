@@ -1503,7 +1503,7 @@ function get_random_color() {\
     var range = 320;\
     var bittarget40 = 10;\
     var bittarget80 = 16;\
-    var ctx\
+    var ctx;\
   function initializeAnalyzer() {\
     var c=document.getElementById("wrapper");\
     ctx=c.getContext("2d");\

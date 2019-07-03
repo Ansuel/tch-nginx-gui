@@ -71,20 +71,20 @@ var cancelButton = \'');  ngx.print(T"Cancel"); ngx.print('\';\
 function httpErrorMessage(err){\
 	switch(err.status){\
 		case 500:\
-			erromsg=\'');  ngx.print(T"Internal Server Error occured, please contact administrator"); ngx.print('\'\
+			erromsg=\'');  ngx.print(T"Internal Server Error occured, please contact administrator"); ngx.print('\';\
 			break;\
 		case 404:\
-			erromsg=\'');  ngx.print(T"The requested file is not found! Please try again after some time"); ngx.print('\'\
+			erromsg=\'');  ngx.print(T"The requested file is not found! Please try again after some time"); ngx.print('\';\
 			break;\
 		case 503:\
-			erromsg=\'');  ngx.print(T"The server is currently unavailable, Please try again after some time"); ngx.print('\'\
+			erromsg=\'');  ngx.print(T"The server is currently unavailable, Please try again after some time"); ngx.print('\';\
 			break;\
 		case 408:\
-			erromsg=\'');  ngx.print(T"The server timed out waiting for the request"); ngx.print('\'\
+			erromsg=\'');  ngx.print(T"The server timed out waiting for the request"); ngx.print('\';\
 			break;\
 		default:\
-			erromsg=\'');  ngx.print(T"The request could not be performed due to some error"); ngx.print('\'\
-	}\
+			erromsg=\'');  ngx.print(T"The request could not be performed due to some error"); ngx.print('\';\
+	};\
 	window.setTimeout(function(){\
 		erromsg = \'<div style="margin-left:35%;margin-top:9%;"><span class="alert-error">\'+erromsg+\'</span></div>\';\
 		var ht = $(\'.modal-body\').height();\
@@ -95,6 +95,6 @@ function httpErrorMessage(err){\
 			erromsg = \'<ul class="nav nav-tabs">\' + tab + \'</ul>\' + erromsg;\
 		$(\'.modal-body\').html(erromsg);\
 	},400);\
-}\
+};\
 </script>\
 ');
