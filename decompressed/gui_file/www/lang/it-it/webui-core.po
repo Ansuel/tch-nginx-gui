@@ -4679,4 +4679,4 @@ msgid "0 dBm"
 msgstr "0 dBm"
 
 msgid "Bypass Reg Domain Power Rule"
-msgstr "Bypassa regola reg dominio"
+msgstr "Bypassa regole potenza del Reg Domain"
