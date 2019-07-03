@@ -25,6 +25,7 @@
 
 STABLE_VERSION="stable.version"
 DEV_VERSION="latest.version"
+PREVIEW_VERSION="preview.version"
 CURRENT_VERSION="$(uci get modgui.gui.gui_version)"
 BASE_DIR="https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master"
 
@@ -69,9 +70,9 @@ if [ $connectivity == "yes" ]; then
 	if [ ! "$(uci get -q modgui.gui.update_branch)" ] || [ "$(uci get modgui.gui.update_branch)" == "stable" ]; then
 		update_branch="stable"
 		version_link=$BASE_DIR/$STABLE_VERSION
-	else
-		update_branch="dev"
-		version_link=$BASE_DIR/$DEV_VERSION
+	else if [ "$(uci get modgui.gui.update_branch)" == "preview" ]; then
+		update_branch="preview"
+		version_link=$BASE_DIR/$PREVIEW_VERSION
 	fi
 	newer_stable=0
 
@@ -81,7 +82,7 @@ if [ $connectivity == "yes" ]; then
 
     logger -s -t "CheckVer Script" "Online version: $new_version"
 
-    if [ "$update_branch" == "dev" ]; then #just makes sure there is no newer stable
+    if [ "$update_branch" == "dev" ] || [ "$update_branch" == "preview" ]; then #just makes sure there is no newer stable
         stable_version_link=$BASE_DIR/$STABLE_VERSION
         stable_version="$(curl -k -s "$stable_version_link")"
 

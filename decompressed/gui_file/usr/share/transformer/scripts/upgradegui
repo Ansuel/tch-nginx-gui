@@ -98,6 +98,8 @@ URL_BASE="https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/"
 # Check update_branch
 if [ ! "$(uci get -q modgui.gui.update_branch)" ] ||  [ "$(uci get modgui.gui.update_branch)" == "stable" ]; then
 	update_branch=""
+else if [ "$(uci get modgui.gui.update_branch)" == "preview" ]; then
+	update_branch="_preview"
 else
 	update_branch="_dev"
 fi
@@ -182,7 +184,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 	logger_command "Downloaded GUI with hash: $downloaded_md5"
 	
 	if [ "$update_branch" ]; then
-		if [ "$update_branch" == "_dev" ]; then
+		if [ "$update_branch" == "_dev" ] || [ "$update_branch" == "_preview" ]; then
 		
 			logger_command "Dev branch detected... Checking for newer version in stable..."
 			
@@ -332,7 +334,7 @@ else
 	fi
 fi
 
-if [ "$update_branch" == "_dev" ]; then
+if [ "$update_branch" == "_dev" ] || [ "$update_branch" == "_preview" ]; then
     logger_command "Saving md5sum of dev gui to /root ..."
     md5sum "$WORKING_DIR/$FILE_NAME" | awk '{ print $1}' > /root/gui_dev.md5sum
 fi
