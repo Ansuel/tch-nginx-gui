@@ -13,9 +13,9 @@ local uinetwork = require("web.uinetwork_helper")
 local hosts_ac = uinetwork.getAutocompleteHostsList()
 
 local content = {
-  dest_mac = "rpc.network.firewall.dmz.redirect.dest_mac",
-  gw = "uci.network.interface.@lan.ipaddr",
-  netmask = "uci.network.interface.@lan.netmask"
+	dest_mac = "rpc.network.firewall.dmz.redirect.dest_mac",
+	gw = "uci.network.interface.@lan.ipaddr",
+	netmask = "uci.network.interface.@lan.netmask"
 }
 
 content_helper.getExactContent(content)
