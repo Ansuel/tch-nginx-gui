@@ -104,4 +104,3 @@ $(document).ready(\
 )\
 </script>\
 ');
-
