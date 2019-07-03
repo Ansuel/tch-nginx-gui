@@ -235,9 +235,8 @@ function Popupdevice(Title,txt,height){\
         $(\'html, body\').css({\'overflow\': \'auto\',\'height\': \'auto\'});\
   });\
 }\
-var timerajax = ""\
-function getInfo(mac,path,wifi,ap)\
-{\
+var timerajax = "";\
+function getInfo(mac,path,wifi,ap) {\
   var url = \'/modals/hostmap-modal.lp\';\
   var checktimer = 1000;\
   var gets =  {}\
@@ -256,9 +255,9 @@ function getInfo(mac,path,wifi,ap)\
    .error(function() {\
    });\
    timerajax = window.setTimeout(function () {getInfo(mac,path,wifi,ap);}, checktimer);\
-}\
+};\
 // Wifi chart scripts\
-    var countwifi = 0;\
+   var countwifi = 0;\
    function bars(x){\
           var y = 100 + parseInt(x);\
           var x = parseInt(x) * -1\
@@ -282,7 +281,7 @@ function getInfo(mac,path,wifi,ap)\
            });\
            countwifi++;\
            //window.setTimeout(function(){ bars(random(100));}, 1500);\
-   }\
+		  };\
    $(function(d) {\
       $( ".host" ).on("click", function(e) {\
         var height = "300";\

@@ -250,8 +250,8 @@ $(document).ready(\
       var userNames = "');  ngx.print( userNames ); ngx.print('";\
       var inputUsername = $("#srp_username")[0].value;\
       var index = -1;\
-      var userNameArray = userNames.split(",")\
-      var legacySaltArray = legacySalts.split(",")\
+      var userNameArray = userNames.split(",");\
+      var legacySaltArray = legacySalts.split(",");\
 	  var timesecond;\
 \
       for (var i = 0; i < userNameArray.length - 1; i ++)\
@@ -279,7 +279,7 @@ $(document).ready(\
           window.location.href = curl.substring(0,curl.indexOf("#"));\
         }else\
           window.location = "/";\
-      }\
+      };\
       srp.error_message = function(err) {\
       if(err == 403){\
         $.get("login.lp", {action:"getcsrf"}, function (data){\
@@ -308,7 +308,7 @@ $(document).ready(\
         if(triesbeforemsg > 0 && tries >= triesbeforemsg) {\
             $("#defaultpassword").show();\
         }\
-      }\
+      };\
       function updateWaitingTime() {\
         var timeInterval = setInterval(function() {\
           $("#timerSec").text(--timeSecond);\
@@ -318,7 +318,7 @@ $(document).ready(\
             $("#sign-me-in").removeAttr("disabled");\
           };\
         }, 1000);\
-      }\
+      };\
       if (!$("#loginfailure").is(":visible")) {\
         srp.identify("/authenticate", $("#srp_username")[0].value, password);\
       }\
@@ -333,16 +333,15 @@ $(document).ready(\
         window.location = "/password-reset.lp";\
         $("#login").hide();\
         $("#forgot-login").hide();\
-      }\
+      };\
       srp.error_message = function(err) {\
         $("#verify-password").text(\'');  ngx.print( T"Verify" ); ngx.print('\');\
         $("#erroruserpass1").show();\
         $(".control-group").addClass("error");\
-      }\
-      if (this.id == "verify-password")\
-     {\
-       password = $("#srp_password1").val();\
-     }\
+      };\
+      if (this.id == "verify-password") {\
+		password = $("#srp_password1").val();\
+	  }\
      srp.identify("/authenticate", "forgotpassword", password);\
     });\
   })\

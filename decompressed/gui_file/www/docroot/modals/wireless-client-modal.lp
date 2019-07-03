@@ -400,7 +400,7 @@ end
     <div id="btn-return" class="btn btn-primary btn-large" >');  ngx.print(T"Return"); ngx.print('</div>\
 </div>\
 <script>\
-var timerajax\
+var timerajax;\
 \
 var sentpctstart = ');  ngx.print(sentcountstart); ngx.print(';\
 var recvpctstart = ');  ngx.print(recvcountstart); ngx.print(';\

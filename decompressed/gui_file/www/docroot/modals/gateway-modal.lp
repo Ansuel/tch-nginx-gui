@@ -1074,7 +1074,7 @@ ngx.print('\
             failure_msg.text("');  ngx.print( T'Firmware update failed.' ); ngx.print('");\
             break;\
           }\
-          failure_msg.text(failure_msg.text() + " (');  ngx.print( T'Errorcode: ' ); ngx.print('" + data.errorcode + ")")\
+          failure_msg.text(failure_msg.text() + " (');  ngx.print( T'Errorcode: ' ); ngx.print('" + data.errorcode + ")");\
           failure_msg.removeClass("hide");\
           failure_msg[0].scrollIntoView();\
           tch.removeProgress()\
