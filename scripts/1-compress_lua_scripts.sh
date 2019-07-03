@@ -1,3 +1,9 @@
+TYPE="$(cat $HOME/gui_build/data/type)"
+if [ $TYPE == "DEV" ]; then
+	exit 0
+fi
+
+
 pretranslated_string="--pretranslated: do not change this file"
 
 minify_lua() {
@@ -9,6 +15,7 @@ minify_lua() {
 	luasrcdiet --maximum --quiet $1 -o $1.min
 	if [ $append_pretraslate == 1 ]; then
 		sed -i '1s/^/'"$pretranslated_string"'\n/' $1.min
+		chmod $(stat -c "%a" $1) $1.min
 	fi
 }
 

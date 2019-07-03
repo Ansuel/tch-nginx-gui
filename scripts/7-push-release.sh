@@ -2,7 +2,7 @@
 DIR="$HOME/gui_build/compressed"
 VERSION="$(cat $HOME/gui_build/data/version)"
 TYPE="$(cat $HOME/gui_build/data/type)"
-if [ $TYPE == "DEV" ]; then
+if [ $TYPE == "DEV" ] || [ $TYPE == "PREVIEW" ]; then
 	PRERELEASE="-prerelease"
 fi
 

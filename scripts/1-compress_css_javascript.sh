@@ -1,9 +1,16 @@
+TYPE="$(cat $HOME/gui_build/data/type)"
+if [ $TYPE == "DEV" ]; then
+	exit 0
+fi
+
 minify_css() {
-	curl -X POST -s --data-urlencode input@"$1" https://cssminifier.com/raw > "$1".min
+	curl -X POST -s --data-urlencode input@"$1" https://cssminifier.com/raw > $1.min
+	chmod $(stat -c "%a" $1) $1.min
 }
 
 minify_js() {
-	curl -X POST -s --data-urlencode input@"$1" https://javascript-minifier.com/raw > "$1".min
+	curl -X POST -s --data-urlencode input@"$1" https://javascript-minifier.com/raw > $1.min
+	chmod $(stat -c "%a" $1) $1.min
 }
 
 for file in `find . -name "*.css" -type f`; do

@@ -9,6 +9,9 @@ jobs:
       - run:
           name: Check file ending
           command: bash ./scripts/1-check_file_ending.sh
+      - run:
+          name: Check built type from last git log
+          command: bash ./scripts/0-detect-build-type.sh
       - persist_to_workspace:
           root: ~/gui_build
           paths: 
@@ -36,20 +39,6 @@ jobs:
           root: ~/gui_build
           paths: 
             - decompressed
-  detect_build:
-    working_directory: ~/gui_build
-    docker:
-      - image: ansuel/gui-autobuild-image:3
-    steps:
-      - attach_workspace:
-          at: ~/gui_build
-      - run:
-          name: Check built type from last git log
-          command: bash ./scripts/0-detect-build-type.sh
-      - persist_to_workspace:
-          root: ~/gui_build
-          paths: 
-            - data
   increment_version:
     working_directory: ~/gui_build
     docker:
@@ -120,9 +109,6 @@ workflows:
       - update_file:
           requires:
             - prepare
-      - detect_build:
-          requires:
-            - update_file
       - increment_version:
           requires:
             - update_file
@@ -131,7 +117,7 @@ workflows:
             - update_file
       - init_and_update:
           requires:
-            - detect_build
+            - prepare
             - increment_version
       - publish_github_release:
           requires:

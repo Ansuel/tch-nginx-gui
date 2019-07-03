@@ -1,9 +1,9 @@
 if [ $CI == "true" ]; then
-	TYPE="$(cat ~/gui_build/data/type)"
-	if [ $TYPE == "DEV" ]; then
+	TYPE="$(cat $HOME/gui_build/data/type)"
+	if [ $TYPE == "PREVIEW" ]; then
+		type="_preview"
+	elif [ $TYPE == "DEV" ]; then
 		type="_dev"
-	elif [ $TYPE == "STABLE" ]; then
-		stable_msg="STABLE"
 	fi
 fi
 md5sum=$(md5sum compressed/GUI$type.tar.bz2 | awk '{print $1}')
@@ -31,6 +31,8 @@ if [ $CI == "true" ]; then
 		build_type_name=$(cat ~/gui_build/data/type)
 		if [ $build_type_name == "STABLE" ]; then
 			echo $version > stable.version
+		elif  [ $build_type_name == "PREVIEW" ]; then
+			echo $version > preview.version
 		fi
 	else
 		build_type_name="DEV"

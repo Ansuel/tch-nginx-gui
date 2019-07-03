@@ -24,7 +24,9 @@ fi
 
 if [ $CI == "true" ]; then
 	TYPE="$(cat $HOME/gui_build/data/type)"
-	if [ $TYPE == "DEV" ]; then
+	if [ $TYPE == "PREVIEW" ]; then
+		type="_preview"
+	elif [ $TYPE == "DEV" ]; then
 		type="_dev"
 	fi
 fi
