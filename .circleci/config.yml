@@ -27,6 +27,9 @@ jobs:
           name: Minify css and javascript
           command: bash ./scripts/1-compress_css_javascript.sh
       - run:
+          name: Minify lua files
+          command: bash ./scripts/1-compress_lua_scripts.sh
+      - run:
           name: Update po
           command: python3 ./scripts/update_po.py
       - persist_to_workspace:
