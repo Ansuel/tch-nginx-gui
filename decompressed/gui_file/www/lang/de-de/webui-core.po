@@ -4686,3 +4686,6 @@ msgstr ""
 
 msgid "Connected"or T"Disconnected"
 msgstr ""
+
+msgid "Preview"
+msgstr ""
