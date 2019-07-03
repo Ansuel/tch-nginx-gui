@@ -4646,37 +4646,37 @@ msgid "Fastweb (Italy)"
 msgstr "Fastweb (Italia)"
 
 msgid "Color"
-msgstr ""
+msgstr "Colore"
 
 msgid "Brightness"
-msgstr ""
+msgstr "Luminosità"
 
 msgid "Leds State"
-msgstr ""
+msgstr "Stato led"
 
 msgid "Leds"
-msgstr ""
+msgstr "Led"
 
 msgid "-4 dBm"
-msgstr ""
+msgstr "-4 dBm"
 
 msgid "-5 dBm"
-msgstr ""
+msgstr "-5 dBm"
 
 msgid "-6 dBm"
-msgstr ""
+msgstr "-6 dBm"
 
 msgid "-2 dBm"
-msgstr ""
+msgstr "-2 dBm"
 
 msgid "-1 dBm"
-msgstr ""
+msgstr "-1 dBm"
 
 msgid "-3 dBm"
-msgstr ""
+msgstr "-3 dBm"
 
 msgid "0 dBm"
-msgstr ""
+msgstr "0 dBm"
 
 msgid "Bypass Reg Domain Power Rule"
-msgstr ""
+msgstr "Bypassa regola reg dominio"
