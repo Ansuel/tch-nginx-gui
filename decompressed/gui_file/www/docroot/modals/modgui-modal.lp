@@ -470,7 +470,7 @@ ngx.print('\
 		$("#modal-no-change").fadeOut(300);\
         $("#modal-changes").delay(350).fadeIn(300);\
 	}\
-  )\
+  );\
 \
   function wait_for_webserver_running() {\
 	$.ajax({ url: "/", timeout: refreshTimeOut })\
@@ -480,7 +480,7 @@ ngx.print('\
 	.fail(function() {\
 	  window.setTimeout(wait_for_webserver_running, refreshDelay);\
 	});\
-  }\
+  };\
 \
   function wait_for_webserver_down() {\
 	$.ajax({ url: target, timeout: refreshTimeOut })\
@@ -490,7 +490,7 @@ ngx.print('\
 	.fail(function() {\
 	  window.setTimeout(wait_for_webserver_running, refreshDelay);\
 	});\
-  }\
+  };\
 \
   function resetreboot(msg, msg_dst, action) {\
 	msg_dst.replaceWith(msg);\
@@ -498,7 +498,7 @@ ngx.print('\
 	msg[0].scrollIntoView();\
 	$.post(target,{action: action, CSRFtoken: $("meta[name=CSRFtoken]").attr("content")}, wait_for_webserver_down,"json");\
 	return false;\
-  }\
+  };\
 \
   $("#btn-reset-gui").on("click", function() {\
 	var heading = "');  ngx.print(T'Restore GUI'); ngx.print('";\
@@ -510,7 +510,7 @@ ngx.print('\
 		   tch.showProgress(processMsg);\
 		   return resetreboot($("#resetting-msg"), $("#btn-reset-gui"), "system_reset_gui" );\
 	});\
-  });\
+  });;\
 \
   var schedulReload = false;\
 \
@@ -558,7 +558,7 @@ ngx.print('\
 	  tch.removeProgress();\
   });\
 \
-  var max_val = '); ngx.print( content.upgradegui_logstep ); ngx.print('\
+  var max_val = '); ngx.print( content.upgradegui_logstep ); ngx.print(';\
   var increment = 100/max_val;\
   var oldlog = "";\
   var upgrfw_refreshTimeOut = 2500;\
@@ -621,7 +621,7 @@ ngx.print('\
 	}\
 	window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
 	return false;\
-  }\
+  };\
 \
   function inizialize_ui_for_update() {\
 	$("*").off("click");\
@@ -652,7 +652,7 @@ ngx.print('\
 	  nofile_msg.removeClass("hide");\
 	  nofile_msg[0].scrollIntoView();\
 	  return false;\
-	}\
+	};\
 \
 	var validExtensions = [\'bz2\'];\
 	var fileName = $("#file-upgradegui").val();\
@@ -662,7 +662,7 @@ ngx.print('\
 		wrongext_msg.removeClass("hide");\
 	wrongext_msg[0].scrollIntoView();\
 	return false;\
-	}\
+	};\
 	var fileSize = $("#file-upgradegui")[0].files[0].size;\
 	var importing_msg = $("#upload-gui-alert");\
 	var _this = $(this).parents(".control-group");\
