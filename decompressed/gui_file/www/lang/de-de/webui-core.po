@@ -3,8 +3,8 @@ msgstr ""
 "Project-Id-Version: webui-core\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2019-02-09 17:40+0100\n"
-"Last-Translator: Dr. Uwe Meyer-Gruhl\n"
+"PO-Revision-Date: 2019-07-03 07:15+0200\n"
+"Last-Translator: bovirus <bovirus@gmail.com>\n"
 "Language-Team: none\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language-Name: Deutsch\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.2.1\n"
+"X-Generator: Poedit 2.2.3\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
 msgid " (or "
@@ -2258,7 +2258,7 @@ msgid "SSH enabled"
 msgstr "SSH eingeschaltet"
 
 msgid "Newtork Name (SSID)"
-msgstr ""
+msgstr "Netzwerk Name (SSID)"
 
 msgid "Sat."
 msgstr "Sam."
@@ -2882,7 +2882,7 @@ msgid "Version Set"
 msgstr "Gesetzte Version"
 
 msgid "Spoof Setttings"
-msgstr ""
+msgstr "Spoof Einstellung"
 
 msgid "Good"
 msgstr "Sehr gut"
@@ -3457,7 +3457,7 @@ msgid "IPv6"
 msgstr "IPv6"
 
 msgid "100%"
-msgstr ""
+msgstr "100%"
 
 msgid "Correctables"
 msgstr "Korrigierbare"
@@ -4285,7 +4285,7 @@ msgid "Resetting to default gui, please wait..."
 msgstr "Zurücksetzen auf Standardoberfläche, bitte warten..."
 
 msgid "Connection issue: "
-msgstr "Verbindungsproblem:"
+msgstr "Verbindungsproblem: "
 
 msgid "Mem Free Graph"
 msgstr "Freier Speicher Grafik"
@@ -4379,6 +4379,9 @@ msgstr "Paketverluste"
 msgid "Upstream"
 msgstr "Upstream"
 
+msgid "Step Duration(ms):"
+msgstr "Schrittdauer(ms):"
+
 msgid "Good put(Kbps)"
 msgstr "Gute put(Kbps)"
 
@@ -4418,7 +4421,7 @@ msgstr "Geschwindigkeitsdiagnose Ergebnishistorie"
 msgid "Max Steps"
 msgstr "Maximale Schritte"
 
-msgid "Max (Kbps):"
+msgid "Max (kbps:)"
 msgstr "Max (Kbps):"
 
 msgid "Average Latency"
@@ -4518,13 +4521,13 @@ msgid "Invalid length, a WEP key must be 5, 10, 13 or 26 characters long, length
 msgstr "Ungültige Länge, ein WEP Schlüssel muss 5, 10, 13 oder 26 Zeichen lang sein. 10 und 26 Zeichen lange Schlüssel dürfen nur die Buchstaben A bis F und Ziffern enthalten"
 
 msgid "IPv4 Stealth Mode "
-msgstr "IPv4 Verborgener Modus"
+msgstr "IPv4 Verborgener Modus "
 
 msgid "Schedule Reboot"
 msgstr "Plane Neustart"
 
 msgid "IPv6 Stealth Mode "
-msgstr "IPv6 Verborgener Modus"
+msgstr "IPv6 Verborgener Modus "
 
 msgid "<strong>Enabling this will overwrite InternetIPv4 ping selections</strong>,firewall will drop all ICMPv4 services for incoming connections"
 msgstr "<strong>Dies einzuschalten wird die Internet IPv4 Ping Auswahl überschreiben</strong>. Die Firewall wird alle eingehenden ICMPv4 Verbindungen blockieren"
@@ -4603,6 +4606,9 @@ msgstr "Das Modem wurde "
 msgid "Step Duration (ms):"
 msgstr "Schrittdauer (ms):"
 
+msgid "Max (Kbps):"
+msgstr "Max (Kbps):"
+
 msgid "Save on USB"
 msgstr "Sichern auf USB"
 
@@ -4667,7 +4673,7 @@ msgid "-1 dBm"
 msgstr "-1 dBm"
 
 msgid "-3 dBm"
-msgstr "-3 dB,"
+msgstr "-3 dBm"
 
 msgid "0 dBm"
 msgstr "0 dBm"
