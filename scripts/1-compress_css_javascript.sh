@@ -19,9 +19,11 @@ done
 wait
 
 for file in `find . -name "*.css" -o -name "*.js" -type f`; do
-	echo "Moving $( echo $file.min | sed 's|.*/||' ) to $( echo $file | sed 's|.*/||' )"
-    rm $file
-	mv $file.min $file
+	if [ -f $file.min ]; then
+		echo "Moving $( echo $file.min | sed 's|.*/||' ) to $( echo $file | sed 's|.*/||' )"
+		rm $file
+		mv $file.min $file
+	fi
 done
 
 
