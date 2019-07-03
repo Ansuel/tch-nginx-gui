@@ -194,8 +194,8 @@ local update_branch_option = {
 }
 
 local gui_skin_firstpage_page = {
-  { "stats", T"Stats" },
-  { "cards", T"Cards" },
+	{ "stats", T"Stats" },
+	{ "cards", T"Cards" },
 }
 
 local telstra_gui = proxy.get("uci.modgui.app.telstra_webui")
