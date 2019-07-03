@@ -400,7 +400,7 @@ end
     <div id="btn-return" class="btn btn-primary btn-large" >');  ngx.print(T"Return"); ngx.print('</div>\
 </div>\
 <script>\
-var timerajax\
+var timerajax;\
 \
 var sentpctstart = ');  ngx.print(sentcountstart); ngx.print(';\
 var recvpctstart = ');  ngx.print(recvcountstart); ngx.print(';\
@@ -410,7 +410,7 @@ function getInfo(mac,ap,getpath)\
 {\
     var url = \'/modals/wireless-client-modal.lp\';\
     var checktimer = ');  ngx.print(TIMERJS); ngx.print(';\
-    var gets =  {}\
+    var gets =  {};\
     gets.ajaxreq = "1";\
     gets.mac = mac;\
     gets.path = getpath;\
@@ -463,7 +463,7 @@ function getInfo(mac,ap,getpath)\
 \
         bars(data.rssi);\
     })\
-    .error(function() {\
+    .fail(function() {\
     });\
    timerajax = window.setTimeout(function () {getInfo(mac,ap);}, checktimer);\
 }\
@@ -471,9 +471,9 @@ function getInfo(mac,ap,getpath)\
     var countwifi = 0;\
    function bars(x){\
           var y = 100 + parseInt(x);\
-          var x = parseInt(x) * -1\
+          var x = parseInt(x) * -1;\
           $("#chartcontainerwifi").append(\'<div class=\\"barswifi\\" id=\\"bar-\'+countwifi+\'\\"></div>\');\
-          var $d = $("#bar-"+countwifi)\
+          var $d = $("#bar-"+countwifi);\
           var color = \'#FF0000\'; //default red\
           if (x <= 55){\
             color =  \'#00FF00\'; //green\

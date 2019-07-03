@@ -59,10 +59,10 @@ ngx.print('\
 <script>\
 var interval = 10000;\
 function checkGraphWidth() {\
-	if ( $(document).width() > 855 )\
+	if ( $(document).width() > 855 ) {\
 	$("#canvas_container").width($(document).width()/2-60);\
-else\
-	$("#canvas_container").width($(document).width()-80);\
+} else {\
+	$("#canvas_container").width($(document).width()-80);}\
 }\
 checkGraphWidth();\
 $(window).bind("resize", checkGraphWidth );\

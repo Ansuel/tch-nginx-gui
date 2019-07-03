@@ -1003,8 +1003,8 @@ ngx.print('\
     var fileSize = $("#file-import")[0].files[0].size;\
     if (fileSize > 1048576) {\
         toobig_msg.removeClass("hide");\
-	toobig_msg[0].scrollIntoView();\
-	return false;\
+		toobig_msg[0].scrollIntoView();\
+		return false;\
     }\
 \
     var _this = $(this).parents(".control-group");\
@@ -1074,7 +1074,7 @@ ngx.print('\
             failure_msg.text("');  ngx.print( T'Firmware update failed.' ); ngx.print('");\
             break;\
           }\
-          failure_msg.text(failure_msg.text() + " (');  ngx.print( T'Errorcode: ' ); ngx.print('" + data.errorcode + ")")\
+          failure_msg.text(failure_msg.text() + " (');  ngx.print( T'Errorcode: ' ); ngx.print('" + data.errorcode + ")");\
           failure_msg.removeClass("hide");\
           failure_msg[0].scrollIntoView();\
           tch.removeProgress()\
@@ -1115,11 +1115,11 @@ ngx.print('\
 \
 	    if (fileSize > targetBankSize) {\
     		toobig_msg.removeClass("hide");\
-		toobig_msg[0].scrollIntoView();\
-		return false;\
+			toobig_msg[0].scrollIntoView();\
+			return false;\
 	    }\
 	  }\
-      })\
+      });\
     toobig_msg.addClass("hide");\
 \
     var _this = $(this).parents(".control-group");\

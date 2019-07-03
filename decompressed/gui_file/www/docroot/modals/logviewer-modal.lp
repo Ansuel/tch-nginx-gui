@@ -195,8 +195,8 @@ ngx.print('<div class="modal-footer">\
       return false;\
     });\
     $(\'select[name="process"]\').on("change", function() {\
-        var process = $(this).val()\
-        tch.loadModal("/modals/logviewer-modal.lp?process=" + process)\
+        var process = $(this).val();\
+        tch.loadModal("/modals/logviewer-modal.lp?process=" + process);\
     });\
 </script>\
 '); 
