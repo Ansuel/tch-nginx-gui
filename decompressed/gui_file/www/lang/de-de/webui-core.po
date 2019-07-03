@@ -4681,11 +4681,5 @@ msgstr "0 dBm"
 msgid "Bypass Reg Domain Power Rule"
 msgstr "Umgehe Reg Domain Power Regel"
 
-msgid "Enabled"or T"Disabled"
-msgstr ""
-
-msgid "Connected"or T"Disconnected"
-msgstr ""
-
 msgid "Preview"
 msgstr ""
