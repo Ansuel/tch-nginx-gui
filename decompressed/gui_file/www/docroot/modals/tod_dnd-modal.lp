@@ -1,4 +1,6 @@
-<%-- Localization
+--pretranslated: do not change this file
+
+-- Localization
 gettext.textdomain('webui-core')
 
 local ui_helper = require("web.ui_helper")
@@ -449,68 +451,78 @@ end
 
 session:store("timer_data", timer_data)
 
-%>
-
-<%=ui_helper.createHeader(T"Time of Day") %>
-<%=ui_helper.createMessages(message_helper.popMessages()) %>
-
-<div class="modal-body update">
-
-<%
+ngx.print( ui_helper.createHeader(T"Time of Day") )
+ngx.print( ui_helper.createMessages(message_helper.popMessages()) )
+ngx.print('\
+<div class="modal-body update">\
+\
+')
     local lp = require("web.lp")
     lp.setpath("/www/snippets/")
     lp.include("tabs-tod.lp")
-%>
 
-  <form class="form-horizontal" method="post" action="/modals/tod_dnd-modal.lp">
-    <legend><%= T"Ringing Schedule" %></legend>
-    <%=ui_helper.createSwitch(T"Ringing Schedule", "todStatus", ring_data["todStatus"], nil, ring_helpmsg["todStatus"])%>
-    <div id = "parent_switch""><%=ui_helper.createSwitch(T"During this time ringing is", "ringstate_enable", ring_data["profileStatus"]=="on" and '1' or'0', nil, ring_helpmsg["profileStatus"]) %></div>
-    <%=ui_helper.createTable(tod_columns, tod_data, tod_options, nil, nil)%>
-    <%if ngx.var.request_method == "POST" and (ngx.req.get_post_args().action == "TABLE-NEW" or ngx.req.get_post_args().action == "TABLE-EDIT") then%>
-      <script type="text/javascript">
-        var warning = '<div class="control-group"><div style="padding-top: 12px;" class="controls"><span class="alert">'
-                      +'<%= T"The Gateway will block/allow all the time if none of the days are selected" %></span></div></div>';
-        $('#stoptime').parent().parent().after(warning);
-      </script>
-    <%end%>
-    <input type="hidden" name="profileStatus" id="profileStatus" value= "<%=ring_data["profileStatus"] == 'off' and 'off' or 'on'%>">
-  </form>
-</div>
-
-<script type="text/javascript">
-
-    $(function () {
-        var opt = {
-            theme: 'android-ics light',
-            display: 'bubble',
-            mode: 'scroller',
-            headerText: false,
-            timeFormat: 'HH:ii',
-            stepMinute: 15
-        };
-        $("#starttime").mobiscroll().time(opt);
-        $("#stoptime").mobiscroll().time(opt);
-    });
-    $("#todStatus").val() == 0?$('#tod, #parent_switch, .btn-table-new').hide():$('#tod, #parent_switch, .btn-table-new').show();
-
-    $('.switch').change(function(){
-        $("#todStatus").val() == 0?$('#tod, #parent_switch, .btn-table-new').hide():$('#tod, #parent_switch, .btn-table-new').show();
-    });
-    $(".btn-table-add, .btn-table-modify").click(function() {
-        // ui_helper adds dummy hidden checkbox if no checkboxes are checked. we don't need that.
-        if ($("form .additional-edit input[name=weekdays]:visible:checked").length > 0) {
-          $("form input[name=weekdays]:hidden").removeAttr("name");
-        } else {
-          // we need one checkbox when no checkboxes are checked.
-          $("form input[name=weekdays]:hidden").removeAttr("name");
-          $("form input[type=checkbox]:hidden:last").attr("name", "weekdays");
-        }
-    });
-
-    // boolean value "0/1" is converted into "on/off" for matching uci params.
-    $("#ringstate_enable").change(function(){
-        $("#profileStatus").val(this.value==0?"off":"on");
-    });
-</script>
-<%= ui_helper.createFooter() %>
+ngx.print('\
+  <form class="form-horizontal" method="post" action="/modals/tod_dnd-modal.lp">\
+    <legend>'); ngx.print( T"Ringing Schedule" ); ngx.print('</legend>\
+	')
+	local html = {}
+	
+    html[#html+1] = ui_helper.createSwitch(T"Ringing Schedule", "todStatus", ring_data["todStatus"], nil, ring_helpmsg["todStatus"])
+    html[#html+1] = '<div id = "parent_switch"">'
+	html[#html+1] = ui_helper.createSwitch(T"During this time ringing is", "ringstate_enable", ring_data["profileStatus"]=="on" and '1' or'0', nil, ring_helpmsg["profileStatus"])
+	html[#html+1] = '</div>'
+    html[#html+1] = ui_helper.createTable(tod_columns, tod_data, tod_options, nil, nil)
+	
+	ngx.print(html)
+	
+    if ngx.var.request_method == "POST" and (ngx.req.get_post_args().action == "TABLE-NEW" or ngx.req.get_post_args().action == "TABLE-EDIT") then
+	  ngx.print('\
+      <script type="text/javascript">\
+        var warning = \'<div class="control-group"><div style="padding-top: 12px;" class="controls"><span class="alert">\'\
+                      +\''); ngx.print( T"The Gateway will block/allow all the time if none of the days are selected" ); ngx.print('</span></div></div>\';\
+        $("#stoptime").parent().parent().after(warning);\
+      </script>\
+	  ')
+    end
+	
+	ngx.print('\
+    <input type="hidden" name="profileStatus" id="profileStatus" value= "'); ngx.print( ring_data["profileStatus"] == 'off' and 'off' or 'on' ); ngx.print('">\
+  </form>\
+</div>\
+\
+<script type="text/javascript">\
+\
+    $(function () {\
+        var opt = {\
+            theme: \'android-ics light\',\
+            display: \'bubble\',\
+            mode: \'scroller\',\
+            headerText: false,\
+            timeFormat: \'HH:ii\',\
+            stepMinute: 15\
+        };\
+        $("#starttime").mobiscroll().time(opt);\
+        $("#stoptime").mobiscroll().time(opt);\
+    });\
+    $("#todStatus").val() == 0?$(\'#tod, #parent_switch, .btn-table-new\').hide():$(\'#tod, #parent_switch, .btn-table-new\').show();\
+\
+    $(".switch").change(function(){\
+        $("#todStatus").val() == 0?$(\'#tod, #parent_switch, .btn-table-new\').hide():$(\'#tod, #parent_switch, .btn-table-new\').show();\
+    });\
+    $(".btn-table-add, .btn-table-modify").click(function() {\
+        // ui_helper adds dummy hidden checkbox if no checkboxes are checked. we don\'t need that.\
+        if ($("form .additional-edit input[name=weekdays]:visible:checked").length > 0) {\
+          $("form input[name=weekdays]:hidden").removeAttr("name");\
+        } else {\
+          // we need one checkbox when no checkboxes are checked.\
+          $("form input[name=weekdays]:hidden").removeAttr("name");\
+          $("form input[type=checkbox]:hidden:last").attr("name", "weekdays");\
+        }\
+    });\
+\
+    // boolean value "0/1" is converted into "on/off" for matching uci params.\
+    $("#ringstate_enable").change(function(){\
+        $("#profileStatus").val(this.value==0?"off":"on");\
+    });\
+</script>\
+'); ngx.print( ui_helper.createFooter() )
