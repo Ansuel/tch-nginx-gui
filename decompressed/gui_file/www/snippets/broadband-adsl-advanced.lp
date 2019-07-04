@@ -1,4 +1,5 @@
-<%
+--pretranslated: do not change this file
+
 -- NG-59939
 -- Enable localization
 gettext.textdomain('webui-core')
@@ -48,15 +49,15 @@ if iface then
     }
     content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
 end
-%>
 
-
-<fieldset>
-  <%
+ngx.print('\
+<fieldset>\
+  ')
     ngx.print(ui_helper.createMessages(message_helper.popMessages()))
-  %>
-  <legend><%= T"Internet VPC" %></legend>
-  <%
+  
+  ngx.print('\
+  <legend>'); ngx.print( T"Internet VPC" ); ngx.print('</legend>\
+  ')
     local html = {}
 	if tech then
      if content and content.adsl_vp and content.adsl_vc then
@@ -76,5 +77,7 @@ end
 	end
 	
     ngx.print(html)
-  %>
-</fieldset>
+  
+  ngx.print('\
+</fieldset>\
+')

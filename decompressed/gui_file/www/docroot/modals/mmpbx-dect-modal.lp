@@ -1,4 +1,5 @@
-<%
+--pretranslated: do not change this file
+
 -- Enable localization
 gettext.textdomain('webui-voice')
 
@@ -190,20 +191,21 @@ local uri = ngx.var.uri
 if ngx.var.args and string.len(ngx.var.args) > 0 then
     uri = uri .. "?" .. ngx.var.args
 end
-%>
 
-<%= ui_helper.createHeader(T"Telephony", false, true, autorefresh) %>
-<div class="modal-body update">
-  <%
+ngx.print( ui_helper.createHeader(T"Telephony", false, true, autorefresh) ); ngx.print('\
+<div class="modal-body update">\
+  ')
     local lp = require("web.lp")
     lp.setpath("/www/snippets/")
     lp.include("tabs-voice.lp")
-  %>
-  <form class="form-horizontal" method="post" action="<%= uri %>">
-   <%=ui_helper.createMessages(message_helper.popMessages())%>
-    <fieldset id ="mmpbx-dect-tab">
-      <legend><%= T"Pairing" %></legend>
-      <%
+  
+  ngx.print('\
+  <form class="form-horizontal" method="post" action="'); ngx.print( uri ); ngx.print('">\
+   '); ngx.print( ui_helper.createMessages(message_helper.popMessages()) ); ngx.print('\
+    <fieldset id ="mmpbx-dect-tab">\
+      <legend>'); ngx.print( T"Pairing" ); ngx.print('</legend>\
+      ');
+	  
         local html = {}
         local base_name_class = {
             input = {
@@ -212,7 +214,6 @@ end
                 class= "span4",
             }
         }
-        tinsert (html, ui_helper.createInputText(T"Base Name", "baseName", content["baseName"], base_name_class, helpmsg["baseName"]))
 
         local access_code_class = {
             input = {
@@ -221,16 +222,14 @@ end
                 class= "span4",
             }
         }
-        tinsert (html, ui_helper.createInputText(T"Access Code", "accCode", content["accCode"], access_code_class, helpmsg["accCode"]))
 
         local pairing_window_class = {
-	    input = {
-		pattern= "^([0-9]{1,4})$",
-		maxlength= "4",
-		class= "span4",
-	    }
-	}
-	tinsert (html, ui_helper.createInputText(T"Pairing Window Time in Sec", "pairTime", content["pairTime"], pairing_window_class, helpmsg["pairTime"]))
+			input = {
+				pattern= "^([0-9]{1,4})$",
+				maxlength= "4",
+				class= "span4",
+			}
+		}
 
         local pairing_class = {
             group = {
@@ -241,7 +240,6 @@ end
                 class = "custom-handler"
             }
         }
-        tinsert (html, ui_helper.createButton (T"Pairing Handset", T"Start", "icon-refresh", pairing_class))
 
         local pairing = {
             alert = {
@@ -249,32 +247,42 @@ end
                 id = "pairing_msg"
             }
         }
-        tinsert (html, ui_helper.createAlertBlock(T"Pairing in progress, please wait...", pairing))
+		
+        html[#html+1] = ui_helper.createInputText(T"Base Name", "baseName", content["baseName"], base_name_class, helpmsg["baseName"])
+        html[#html+1] = ui_helper.createInputText(T"Access Code", "accCode", content["accCode"], access_code_class, helpmsg["accCode"])
+		html[#html+1] = ui_helper.createInputText(T"Pairing Window Time in Sec", "pairTime", content["pairTime"], pairing_window_class, helpmsg["pairTime"])
+        html[#html+1] = ui_helper.createButton (T"Pairing Handset", T"Start", "icon-refresh", pairing_class)
+        html[#html+1] = ui_helper.createAlertBlock(T"Pairing in progress, please wait...", pairing)
 
         ngx.print (html)
-      %>
-    </fieldset>
-    <fieldset>
-      <legend><%= T"Paging" %></legend>
-      <%
-        local html = {}
+		
+      ngx.print('\
+    </fieldset>\
+    <fieldset>\
+      <legend>'); ngx.print( T"Paging" ); ngx.print('</legend>\
+      ')
+	  
+        html = {}
         local page_class = {
             button = {
                 ["data-name"] = "action",
                 ["data-value"] = "paging_handset",
             }
         }
+		
         if paging_state == "0" then
-            tinsert (html, ui_helper.createButton (T"Paging Handset", T"Start", "icon-bolt", page_class))
+            html[#html+1] = ui_helper.createButton (T"Paging Handset", T"Start", "icon-bolt", page_class)
         else
-            tinsert (html, ui_helper.createButton (T"Paging Handset", T"Stop", "icon-ban-circle icon-large red", page_class))
+            html[#html+1] = ui_helper.createButton (T"Paging Handset", T"Stop", "icon-ban-circle icon-large red", page_class)
         end
         ngx.print (html)
-      %>
-    </fieldset>
-    <fieldset>
-      <legend><%= T"Device List" %></legend>
-      <%
+    
+	ngx.print('\
+    </fieldset>\
+    <fieldset>\
+      <legend>'); ngx.print( T"Device List" ); ngx.print('</legend>\
+      ')
+	  
         ngx.print(ui_helper.createTable(dectdev_columms, dectdev_data, dectdev_options, nil, dectdev_helpmsg))
         local handset_class = {
             group = {
@@ -290,137 +298,141 @@ end
             }
         }
         ngx.print(ui_helper.createInputSelectWithButton(T"Handset Name", "handset_id", dect_located_list, content["handset_id"], T"Unregister", "icon-trash large red", handset_class))
-      %>
-    </fieldset>
-  </form>
-</div>
-
-<div id="spinner" class="spinner hide">
-<img id="img-spinner" src="../img/spinner.gif" alt="Pairing" style="margin-left: 10px; margin-right: 10px; margin-top: 10px; margin-bottom: 10px; width:128px; height:128px"/>
-</div>
-
-<script>
-(function() {
-    var target = $(".modal form").attr("action");
-    var modalbody = $(".modal-body");
-    var scrolltop = $(".modal-body").scrollTop();
-    var checkDelay = 3000;
-    var refreshTimeOut = 5000;
-    var time_elapsed = 0;
-    var pairtime = parseInt(document.getElementsByName("pairTime")[0].value) * 1000;
-    var max_timer = pairtime + checkDelay + 1000;
-    var _this;
-
-    function wait_to_registered() {
-        $.ajax({ url: target, data: "action=pairing_state", timeout: refreshTimeOut, dataType: "json" })
-        .done(function(data) {
-            if (data.success == "true") {
-                time_elapsed = time_elapsed + checkDelay;
-                if (time_elapsed < max_timer) {
-                    window.setTimeout(wait_to_registered, checkDelay);
-                }
-            }
-            else {
-                tch.loadModal(target, function () {
-                    $(".modal-body").scrollTop(scrolltop);
-                });
-                $('.popUpBG').remove();
-                $('#popUp').remove();
-            }
-        });
-    }
-
-    $("#btn-pairing").on("click", function() {
-        pairProgress('<%=T"Pairing in progress, Please press Cancel button for stop pairing."%>');
-        $.post(
-            target,
-            { action: "pairing_handset", CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },
-            wait_to_registered,
-            "json"
-        );
-        return false;
-    });
-    function wait_to_unregisterd() {
-        tch.loadModal(target, function () {
-            $(".modal-body").scrollTop(scrolltop);
-        });
-    };
-    $("#btn-unreg").on("click", function() {
-        if (document.getElementById("handset_id").value == "all") {
-            var r = confirm("Are you sure you want to Unregister all the Dect Handset?");
-            if (r == false) {
-                return false
-            }
-        }
-        $.post(
-            target,
-            {
-                action: "unreg_handset",
-                handset_id: document.getElementById("handset_id").value,
-                CSRFtoken: $("meta[name=CSRFtoken]").attr("content")
-            },
-            wait_to_unregisterd,
-            "json"
-        );
-        return false;
-    });
-
-   //The function used to build and show the bubble progress bar on mini pop-up window.
-    function pairProgress(msg){
-        var header = '<div class="header"><div data-toggle="modal" class="header-title pull-left"><p>'+processMsg+'</p></div></div>'
-        $("body").append('<div class="popUpBG"></div>');
-        $("body").append('<div id="popUp"  class="popUp smallcard">'+header+'<div id="Poptxt" class="content"></div>');
-        var content = msg+'<br/><div id="spinner" class="spinner" align="center"><div class="spinner3"><div class="rect1"></div><div class="rect2">'
-                  +'</div><div class="rect3"></div><div class="rect4"></div><div class="rect5"></div></div><div id="cancel_pairing" class="btn btn-large"'
-                  +'>Cancel</div></div>';
-        var ht =$(document).height();
-        var wht = $(window).height();
-        var sp = $(window).scrollTop();
-        $("#Poptxt").html(content);
-        $('.popUpBG').css("height",ht);
-        var bgcolor = $(".header .settings").css("background-color");
-        //Setting progress bar color as the color of small card header.
-        $(".spinner3 div").css("background-color",bgcolor);
-        if(sp > 10){
-           wht= wht*(4/10)+sp;
-           $('#popUp').css("top",wht);
-        }
-        $("#cancel_pairing").on("click", function() {
-	    $.post(
-            target,
-            {
-		action: "cancel_pairing", CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },
-	        function(){
-		    tch.loadModal(target, function () {
-		        $(".modal-body").scrollTop(scrolltop);
-                    });
-                    $('.popUpBG').remove();
-                    $('#popUp').remove();
-		},
-		"json"
-            );
-        });
-    }
-
-}());
-</script>
-<%= ui_helper.createFooter() %>
-<%if content and content["mmpbx_enabled"] == "0" then %>
-  <style>
-    .disabled {
-       cursor:not-allowed !important;
-       color:#666;
-    }
-  </style>
-  <script>
-    $(".nav li a").addClass("disabled");
-    $('.modal-body').css('overflow', 'hidden');
-    $(".modal form").append('<div class="popUpBG" style="top:53px;"></div>');
-  </script>
-<%else%>
-  <script>
-    if($(".nav li a").hasClass("disabled")){
-      $(".nav li a").removeClass("disabled");
-    }
-  </script>
-<%end%>
+		
+      ngx.print('\
+    </fieldset>\
+  </form>\
+</div>\
+\
+<div id="spinner" class="spinner hide">\
+<img id="img-spinner" src="../img/spinner.gif" alt="Pairing" style="margin-left: 10px; margin-right: 10px; margin-top: 10px; margin-bottom: 10px; width:128px; height:128px"/>\
+</div>\
+<script>\
+(function() {\
+    var target = $(".modal form").attr("action");\
+    var modalbody = $(".modal-body");\
+    var scrolltop = $(".modal-body").scrollTop();\
+    var checkDelay = 3000;\
+    var refreshTimeOut = 5000;\
+    var time_elapsed = 0;\
+    var pairtime = parseInt(document.getElementsByName("pairTime")[0].value) * 1000;\
+    var max_timer = pairtime + checkDelay + 1000;\
+    var _this;\
+\
+    function wait_to_registered() {\
+        $.ajax({ url: target, data: "action=pairing_state", timeout: refreshTimeOut, dataType: "json" })\
+        .done(function(data) {\
+            if (data.success == "true") {\
+                time_elapsed = time_elapsed + checkDelay;\
+                if (time_elapsed < max_timer) {\
+                    window.setTimeout(wait_to_registered, checkDelay);\
+                }\
+            }\
+            else {\
+                tch.loadModal(target, function () {\
+                    $(".modal-body").scrollTop(scrolltop);\
+                });\
+                $(".popUpBG").remove();\
+                $("#popUp").remove();\
+            }\
+        });\
+    }\
+\
+    $("#btn-pairing").on("click", function() {\
+        pairProgress("'); ngx.print( T"Pairing in progress, Please press Cancel button for stop pairing." ); ngx.print('");\
+        $.post(\
+            target,\
+            { action: "pairing_handset", CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
+            wait_to_registered,\
+            "json"\
+        );\
+        return false;\
+    });\
+    function wait_to_unregisterd() {\
+        tch.loadModal(target, function () {\
+            $(".modal-body").scrollTop(scrolltop);\
+        });\
+    };\
+    $("#btn-unreg").on("click", function() {\
+        if (document.getElementById("handset_id").value == "all") {\
+            var r = confirm("Are you sure you want to Unregister all the Dect Handset?");\
+            if (r == false) {\
+                return false\
+            }\
+        }\
+        $.post(\
+            target,\
+            {\
+                action: "unreg_handset",\
+                handset_id: document.getElementById("handset_id").value,\
+                CSRFtoken: $("meta[name=CSRFtoken]").attr("content")\
+            },\
+            wait_to_unregisterd,\
+            "json"\
+        );\
+        return false;\
+    });\
+\
+   //The function used to build and show the bubble progress bar on mini pop-up window.\
+    function pairProgress(msg){\
+        var header = \'<div class="header"><div data-toggle="modal" class="header-title pull-left"><p>\'+processMsg+\'</p></div></div>\'\
+        $("body").append(\'<div class="popUpBG"></div>\');\
+        $("body").append(\'<div id="popUp"  class="popUp smallcard">\'+header+\'<div id="Poptxt" class="content"></div>\');\
+        var content = msg+\'<br/><div id="spinner" class="spinner" align="center"><div class="spinner3"><div class="rect1"></div><div class="rect2">\'\
+                  +\'</div><div class="rect3"></div><div class="rect4"></div><div class="rect5"></div></div><div id="cancel_pairing" class="btn btn-large"\'\
+                  +\'>Cancel</div></div>\';\
+        var ht =$(document).height();\
+        var wht = $(window).height();\
+        var sp = $(window).scrollTop();\
+        $("#Poptxt").html(content);\
+        $(".popUpBG").css("height",ht);\
+        var bgcolor = $(".header .settings").css("background-color");\
+        //Setting progress bar color as the color of small card header.\
+        $(".spinner3 div").css("background-color",bgcolor);\
+        if(sp > 10){\
+           wht= wht*(4/10)+sp;\
+           $("#popUp").css("top",wht);\
+        }\
+        $("#cancel_pairing").on("click", function() {\
+	    $.post(\
+            target,\
+            {\
+		action: "cancel_pairing", CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
+	        function(){\
+		    tch.loadModal(target, function () {\
+		        $(".modal-body").scrollTop(scrolltop);\
+                    });\
+                    $(".popUpBG").remove();\
+                    $("#popUp").remove();\
+		},\
+		"json"\
+            );\
+        });\
+    }\
+\
+}());\
+</script>\
+'); ngx.print( ui_helper.createFooter() )
+if content and content["mmpbx_enabled"] == "0" then
+  ngx.print('\
+  <style>\
+    .disabled {\
+       cursor:not-allowed !important;\
+       color:#666;\
+    }\
+  </style>\
+  <script>\
+    $(".nav li a").addClass("disabled");\
+    $(".modal-body").css("overflow", "hidden");\
+    $(".modal form").append(\'<div class="popUpBG" style="top:53px;"></div>\');\
+  </script>\
+  ')
+else
+ngx.print('\
+  <script>\
+    if($(".nav li a").hasClass("disabled")){\
+      $(".nav li a").removeClass("disabled");\
+    }\
+  </script>\
+  ')
+end

@@ -1,4 +1,5 @@
-<%
+--pretranslated: do not change this file
+
 -- Enable localization
 gettext.textdomain('webui-core')
 
@@ -164,27 +165,33 @@ local gui_pm_content = {
     direction	= "uci.portmirror.portmirror.@gui.direction",
 }
 content_helper.getExactContent(gui_pm_content)
-%>
 
-<% ngx.print(ui_helper.createHeader(T"Diagnostics Port Mirror", false, true)) %>
-<div class="modal-body update">
-<%
+ngx.print(ui_helper.createHeader(T"Diagnostics Port Mirror", false, true)); ngx.print('\
+<div class="modal-body update">\
+')
     local lp = require("web.lp")
     lp.setpath("/www/snippets/")
     lp.include("tabs-diagnostics.lp")
-%>
- <form class="form-horizontal" method="post" action="modals/port-mirror-modal.lp">
- <fieldset id="portmirror-configuration-tab">
 
-    <%
+ngx.print('\
+ <form class="form-horizontal" method="post" action="modals/port-mirror-modal.lp">\
+ <fieldset id="portmirror-configuration-tab">\
+\
+	');
+	
 	ngx.print(ui_helper.createMessages(message_helper.popMessages()))
+	
         local html = {}
-	tinsert(html, ui_helper.createInputSelect(T"Monitored Interface:", "src_intf", src_list, gui_pm_content["src_intf"]))
-	tinsert(html, ui_helper.createInputSelect(T"Mirror Interface:", "dst_intf", dst_list ,gui_pm_content["dst_intf"]))
-	tinsert(html, ui_helper.createInputSelect(T"Direction:", "direction", dir_list, gui_pm_content["direction"]))
-	ngx.print(html)
-    %>
-    </form>
-  </fieldset>
-</div>
-<% ngx.print(ui_helper.createFooter()) %>
+		
+		html[#html+1] = ui_helper.createInputSelect(T"Monitored Interface:", "src_intf", src_list, gui_pm_content["src_intf"])
+		html[#html+1] = ui_helper.createInputSelect(T"Mirror Interface:", "dst_intf", dst_list ,gui_pm_content["dst_intf"])
+		html[#html+1] = ui_helper.createInputSelect(T"Direction:", "direction", dir_list, gui_pm_content["direction"])
+		
+		ngx.print(html)
+    
+	ngx.print('\
+    </form>\
+  </fieldset>\
+</div>\
+\
+'); ngx.print(ui_helper.createFooter())

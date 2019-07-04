@@ -1,5 +1,5 @@
+--pretranslated: do not change this file
 
-<%
 -- Enable localization
 gettext.textdomain('webui-wizard')
 
@@ -41,12 +41,13 @@ local mapValid = {
 }
 
 local content, helpmsg = wizard_helper.handleQuery(mapParams, mapValid)
-%>
-<div class='wizard-card'>
-    <fieldset>
-      <%="<legend></legend>"%>
-      <%='<h4>' .. T"Router Security" .. '</h4>'%>
-      <%
+
+ngx.print('\
+<div class="wizard-card">\
+    <fieldset>\
+      <legend></legend>\
+      <h4>');ngx.print( T"Router Security" ); ngx.print('</h4>\
+      ')
         local html = {}
         local info_attr = {
             alert = {
@@ -69,16 +70,17 @@ local content, helpmsg = wizard_helper.handleQuery(mapParams, mapValid)
         }
         html[#html+1] = ui_helper.createInputText(T"Security Key(Minimum of 8 characters):", "wpa_psk", content["wpa_psk"], pskclass, helpmsg["wpa_psk"])
         ngx.print(html)
-      %>
-    </fieldset>
-</div>
-<div class='wizard-confirm'>
-    <fieldset>
-      <%
+      ngx.print('\
+    </fieldset>\
+</div>\
+<div class="wizard-confirm">\
+    <fieldset>\
+      ')
         local html = {}
 		html[#html+1] = ui_helper.createLabel(T"Security Key Type: ", secmodes_matched[format("%s",content["security"])])
         html[#html+1] = ui_helper.createLabel(T"Security Key: ", content["wpa_psk"])
         ngx.print(html)
-      %>
-    </fieldset>
-</div>
+      ngx.print('\
+    </fieldset>\
+</div>\
+')

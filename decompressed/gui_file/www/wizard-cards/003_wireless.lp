@@ -1,4 +1,5 @@
-<%
+--pretranslated: do not change this file
+
 -- Enable localization
 gettext.textdomain('webui-wizard')
 
@@ -31,12 +32,14 @@ local bool2enable = {
   ["1"] = "Enabled",
   ["0"] = "Disabled"
 }
-%>
-<div class='wizard-card'>
-    <fieldset>
-      <%="<legend></legend>"%>
-      <%= "<h4>" .. T"WiFi Setup (2.4 GHz)" .. "</h4>"%>
-      <%
+
+ngx.print('\
+<div class="wizard-card">\
+    <fieldset>\
+      <legend></legend>\
+      <h4>'); ngx.print( T"WiFi Setup (2.4 GHz)" ); ngx.print('</h4>\
+	  ')
+      
         local html = {}
         local info_attr = {
             alert = {
@@ -48,16 +51,17 @@ local bool2enable = {
         html[#html+1] = ui_helper.createSwitch(T"Wireless 2.4 GHz (WiFi):", "ap_enabled", content["ap_enabled"], nil, helpmsg["ap_enabled"])
         html[#html+1] = ui_helper.createInputText(T"SSID Broadcast Name (Max 32 characters):", "ssid", content["ssid"], nil, helpmsg["ssid"])
         ngx.print(html)
-      %>
-    </fieldset>
-</div>
-<div class='wizard-confirm'>
-    <fieldset>
-      <%
+      ngx.print('\
+    </fieldset>\
+</div>\
+<div class="wizard-confirm">\
+    <fieldset>\
+      ')
         local html = {}
         html[#html+1] = ui_helper.createLabel(T"Wireless 2.4 GHz (WiFi): ", bool2on[format("%s",content["ap_enabled"])])
         html[#html+1] = ui_helper.createLabel(T"SSID Broadcast Name: ", content["ssid"])
         ngx.print(html)
-      %>
-    </fieldset>
-</div>
+      ngx.print('\
+    </fieldset>\
+</div>\
+')
