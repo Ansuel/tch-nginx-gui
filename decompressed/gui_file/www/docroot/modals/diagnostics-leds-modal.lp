@@ -8,30 +8,30 @@ local ui_helper = require("web.ui_helper")
 local content_helper = require("web.content_helper")
 
 local leds_columns = {
-    { --[1]
-		header = T"Name",
-        name = "Name",
-        param = "Name",
-        type = "text",
-    },
-    { --[2]
-		header = T"Status",
-        name = "Status",
-        param = "Status",
-        type = "text",
-    },
-    { --[3]
+	{ --[1]
 		header = T"Color",
-        name = "Color",
-        param = "Color",
-        type = "text",
-    },
+		name = "Color",
+		param = "Color",
+		type = "text",
+	},
+	{ --[2]
+		header = T"Name",
+		name = "Name",
+		param = "Name",
+		type = "text",
+	},
+	{ --[3]
+		header = T"Status",
+		name = "Status",
+		param = "Status",
+		type = "text",
+	},
 	{ --[4]
 		header = T"Brightness",
-        name = "Brightness",
-        param = "Brightness",
-        type = "text",
-    }
+		name = "Brightness",
+		param = "Brightness",
+		type = "text",
+	}
 }
 
 local leds_options = {
@@ -42,7 +42,23 @@ local leds_options = {
 	basepath = "rpc.Leds.Led.",
 }
 
-local leds_data, leds_index = content_helper.loadTableData(leds_options.basepath, leds_columns)
+local leds_filter = function(data)
+	
+	local color
+	
+	if data.Color == "None" then
+		color = "grey"
+		data.Color = "Off"
+	else
+		color = data.Color:lower()
+	end
+	
+	data.Color = ui_helper.createSimpleLight(nil, T(data.Color), { light = { style = "background-color:"..color } })
+	
+	return true
+end
+
+local leds_data, leds_index = content_helper.loadTableData(leds_options.basepath, leds_columns,leds_filter)
 
   ngx.print('\
 ');  ngx.print(ui_helper.createHeader(T"Diagnostics", false, false, 1) ); ngx.print('\
