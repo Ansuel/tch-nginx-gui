@@ -272,3 +272,6 @@ msgstr "Wireless 2.4 GHz (Wifi):"
 
 msgid "Wireless 2.4 GHz (WiFi): "
 msgstr "Wireless 2.4 GHz (Wifi): "
+
+msgid "Some parameters failed validation"
+msgstr ""
