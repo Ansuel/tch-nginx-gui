@@ -4683,3 +4683,12 @@ msgstr "Umgehe Reg Domain Power Regel"
 
 msgid "Preview"
 msgstr ""
+
+msgid "Priorirty"
+msgstr ""
+
+msgid "Normal"
+msgstr ""
+
+msgid "Priority"
+msgstr ""

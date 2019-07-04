@@ -11,6 +11,7 @@ local tonumber = tonumber
 local format, match = string.format, string.match
 local gOrV = post_helper.getOrValidation
 local vSIDN = post_helper.validateStringIsDomainName
+local gVIES = post_helper.getValidateInEnumSelect
 local pattern = "^Unknown%-%x%x:%x%x:%x%x:%x%x:%x%x:%x%x$"
 local proxy = require("datamodel")
 local content_helper = require("web.content_helper")
@@ -32,6 +33,10 @@ local devicetypes = {
     { "Printer", T"Printer" },
     { "Storage", T"Storage" },
     { "None", T"None" },
+}
+local priorityvalues = {
+	{ "1", T"Priorirty"},
+	{ "0", T"Normal"},
 }
 local devices_columns = {
   {--[1]
@@ -82,12 +87,12 @@ local devices_columns = {
     attr = { input = { class="span1" } },
   },
   {--[7]
-    header = T"Port",
-    name = "port",
-    param = "Port",
-    type = "text",
-    readonly = true,
-    attr = { input = { class="span1" } },
+    header = T"Priority",
+    name = "priority",
+    param = "Priority",
+    type = "select",
+	values = priorityvalues,
+    attr = { select = { class="span2" } },
   },
   {--[8]
     header = T"Connection Time",
@@ -121,11 +126,12 @@ local devices_columns = {
     readonly = true,
     attr = { input = { class="span1" } },
   },
-
 }
 
 local device_valid = {
     FriendlyName = gOrV(vSIDN, validateUnknownHostname),
+	DeviceType = gVIES(devicetypes),
+	Priority = gVIES(priorityvalues),
 }
 local devices_options = {
     canEdit = true,
@@ -151,7 +157,7 @@ local devices_filter = function(data)
   elseif match(data["L2Interface"], "^wl1") then
     data["InterfaceType"] = "wireless - 5GHz"
   elseif match(data["L2Interface"], "eth*") then
-    data["InterfaceType"] = "Ethernet"
+    data["InterfaceType"] = format("Ethernet - %s",data["Port"])
   elseif match(data["L2Interface"], "moca*") then
     data["InterfaceType"] = "MoCA"
   end

@@ -4683,3 +4683,12 @@ msgstr "Bypassa regole potenza WiFi dominio normativo"
 
 msgid "Preview"
 msgstr "Anteprima"
+
+msgid "Priorirty"
+msgstr ""
+
+msgid "Normal"
+msgstr ""
+
+msgid "Priority"
+msgstr ""
