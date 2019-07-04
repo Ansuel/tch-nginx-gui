@@ -8,12 +8,19 @@ local conn = mapper("ubus").connect() -- Opens connection to UBUS to retrieve da
 local network = require("transformer.shared.common.network")
 local lanInterfacesCache = {} --These will cache the lan interfaces, based on the firewall config
 local hostsCache -- This cache will be used , instead of getting value from ubus call everytime.
-local match = string.match
+local match, gsub = string.match, string.gsub
 local tostring = tostring
 local uciHelper = mapper("ucihelper")
 local dhcpBinding = { config = "dhcp", sectionname = "host" }
+local qosBinding = { config = "qos" }
 local staticLeases = {}
+local transactions = {}
+local getFromUci = uciHelper.get_from_uci
+local setOnUci = uciHelper.set_on_uci
 local foreachOnUci = uciHelper.foreach_on_uci
+local deleteOnUci = uciHelper.delete_on_uci
+local commit = uciHelper.commit
+local revert = uciHelper.revert
 
 --rpc.hosts
 local rpc_host_ = {
@@ -123,6 +130,10 @@ local rpc_hosts_host_i_ = {
          access = "readOnly",
          type = "string",
       },
+	  Priority = {
+        access = "readWrite",
+        type = "boolean",
+      },
       LeaseTimeRemaining = {
         access = "readOnly",
         type = "int",
@@ -139,7 +150,7 @@ local rpc_hosts_host_i_ = {
 local dhcp = require("transformer.shared.dhcp")
 
 local function loadStaticLeases()
-  uciHelper.foreach_on_uci(dhcpBinding, function(s)
+  foreachOnUci(dhcpBinding, function(s)
     if s.mac then
       staticLeases[s.mac] = s.ip
     end
@@ -312,6 +323,13 @@ local function extractFriendlyName(dev)
   end
 end
 
+local function extractMacAddresses(dev)
+    if dev ~= nil and dev["mac-address"] ~= nil then
+        return dev["mac-address"]
+    end
+    return ""
+end
+
 local function extractPort(dev)
     -- [CL] Some platforms don't have l2interfaces that make sense (e.g. without switch driver)
     -- [CL] If the device in the hostmanager ubus call knows what port a device is attached to, let's trust it
@@ -367,6 +385,130 @@ local function getLeaseTimeRemaining(key, dev)
     leaseLeft = (tonumber(connectedTime) + tonumber(dhcpLeaseTime)) - time()
   end
   return tostring(leaseLeft)
+end
+
+local function haveStaticLease(mac)
+  local static_lease = false
+  -- Limitation: If static lease removed by GUI, then there will be issue when the Gaming device is rebooted and got different IP address.
+  foreachOnUci(dhcpBinding,function(s)
+    if s.mac == mac then  -- Not checking the owner, already user via gui or other applications might have added static lease
+      static_lease = true
+      return false
+    end
+  end)
+  return static_lease
+end
+
+local function getQosSectionName(mac)
+  local mac_without_colon = gsub(mac,"%W","")
+  return "mac" .. mac_without_colon
+end
+
+local function getPriority(key)
+  qosBinding.sectionname = getQosSectionName(key)
+  qosBinding.option = "target"
+  local priority = getFromUci(qosBinding)
+  return priority == "gamingpriority" and "1" or "0"
+end
+
+-- Add 'host' section under 'dhcp' configuration.
+-- Add 'mac' and 'owner' option under 'host' section.
+local function setGamingRule(mac)
+  local newSectionName = uciHelper.add_on_uci(dhcpBinding)
+  if newSectionName then
+    local dhcpBinding_set = { config = "dhcp", sectionname = newSectionName , option = "mac" }
+    setOnUci(dhcpBinding_set, mac, commitapply)
+    dhcpBinding_set.option = "owner"
+    setOnUci(dhcpBinding_set, "gamingdevice", commitapply)
+    transactions[dhcpBinding.config] = true
+  end
+end
+
+local function setDhcpGamingRule(mac)
+  if not haveStaticLease(mac) then
+    setGamingRule(mac)
+  end
+end
+
+local function setQosGamingLabel()
+  qosBinding.option = nil
+  qosBinding.sectionname = "gamingpriority"
+  local gaming_label = getFromUci(qosBinding)
+  -- If not available, create the new label
+  if gaming_label == "" then
+    setOnUci(qosBinding, "label", commitapply)
+    qosBinding.option = "trafficid"
+    setOnUci(qosBinding, "7", commitapply)
+  end
+end
+
+local function setQosReclassify(mac)
+  qosBinding.option = nil
+  qosBinding.sectionname = getQosSectionName(mac)
+  local reclassifySection = getFromUci(qosBinding)
+  if reclassifySection == "" then
+    qosBinding.sectionname = getQosSectionName(mac)
+    setOnUci(qosBinding, "reclassify", commitapply)
+    qosBinding.option="srcmac"
+    setOnUci(qosBinding, mac, commitapply)
+  end
+  qosBinding.option = "target"
+  setOnUci(qosBinding, "gamingpriority", commitapply)
+  transactions[qosBinding.config] = true
+end
+
+-- Function to Add Gaming Label Section and Reclassify Rule in QOS
+-- Add Gaming Rule Section in DHCP
+local function setGamingQos(mac)
+  setQosGamingLabel()
+  setQosReclassify(mac)
+  -- Add 'host' section under 'dhcp' configuration
+  setDhcpGamingRule(mac)
+end
+
+local function deleteGamingTarget(mac)
+  local section = getQosSectionName(mac)
+  if section then
+    local qosBinding_delete = { config="qos", sectionname = section }
+    deleteOnUci(qosBinding_delete, commitapply)
+    transactions[qosBinding.config] = true
+  end
+end
+
+local function gamingDeviceSection(mac)
+  local section
+  foreachOnUci(dhcpBinding, function(s)
+    if s["owner"] == "gamingdevice" and s["mac"] == mac then
+      section = s[".name"]
+      return false
+    end
+  end)
+  return section
+end
+
+local function deleteDhcpGamingRule(mac)
+  local section = gamingDeviceSection(mac)
+  if section then
+    local dhcpBinding_delete = { config="dhcp", sectionname = section }
+    deleteOnUci(dhcpBinding_delete, commitapply)
+    transactions[dhcpBinding.config] = true
+  end
+end
+
+-- Function to delete DHCP Gaming rule section and Qos 'target' option
+local function resetGamingQos(mac)
+  deleteGamingTarget(mac)
+  deleteDhcpGamingRule(mac)
+end
+
+local function setPriority(mapping, param, value, key)
+  local dev = key2dev(key)
+  local mac = extractMacAddresses(dev)
+  if value == "1" then
+    setGamingQos(mac)
+  else
+    resetGamingQos(mac)
+  end
 end
 
 rpc_hosts_host_i_.getall = function(mapping, key)
@@ -451,11 +593,17 @@ rpc_hosts_host_i_.get = {
   SSID = function(mapping, param, key)
     local dev = key2dev(key)
     local iface = getL2Interface(dev)
-    return iface and uciHelper.get_from_uci({ config = "wireless", sectionname = iface , option = "ssid"}) or ""
+    return iface and getFromUci({ config = "wireless", sectionname = iface , option = "ssid"}) or ""
+  end,
+  Priority = function(mapping, param, key)
+    local dev = key2dev(key)
+    local mac = extractMacAddresses(dev)
+    return getPriority(mac)
   end,
 }
 
 rpc_hosts_host_i_.set = {
+  Priority = setPriority,
   Delete = function(mapping, param, value, key)
     local ubusData = conn:call("hostmanager.device", "get", { ["mac-address"] = key })
     for _, v in pairs(ubusData) do
@@ -474,6 +622,20 @@ rpc_hosts_host_i_.set = {
     conn:call("hostmanager.device", "set", { ["mac-address"] = key, ["user-friendly-name"] = value })
   end
 }
+
+rpc_hosts_host_i_.commit = function()
+  for config,_ in pairs(transactions) do
+    commit({config = config})
+  end
+  transactions = {}
+end
+
+rpc_hosts_host_i_.revert = function()
+  for config,_ in pairs(transactions) do
+    revert({config = config})
+  end
+  transactions = {}
+end
 
 rpc_hosts_host_i_.add = function(mapping, key)
     return nil, "hostmanager device can't be added"
