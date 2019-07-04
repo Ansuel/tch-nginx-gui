@@ -461,7 +461,7 @@ ngx.print('\
             display: "bubble",\
             mode: "scroller",\
             headerText: false,\
-            timeFormat: "hh:ii",\
+            timeFormat: "HH:ii",\
             stepMinute: 5\
         };\
 \
