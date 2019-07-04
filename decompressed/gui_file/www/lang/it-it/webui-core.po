@@ -4679,7 +4679,7 @@ msgid "0 dBm"
 msgstr "0 dBm"
 
 msgid "Bypass Reg Domain Power Rule"
-msgstr "Bypassa regole Dominio Normativo"
+msgstr "Bypassa regole potenza WiFi dominio normativo"
 
 msgid "Preview"
 msgstr "Anteprima"
