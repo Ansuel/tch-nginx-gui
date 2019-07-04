@@ -1,13 +1,13 @@
-last_log="$(git log --oneline -n 1)"
+branch_name="$(git branch | grep \* | cut -d ' ' -f2)"
 
 if [ ! -f  $HOME/gui_build/data ]; then
 	mkdir $HOME/gui_build/data
 fi
 
-if [ "$( echo "$last_log" | grep "\[STABLE\]" )" ]; then
+if [ "$( echo "$branch_name" | grep "stable" )" ]; then
 	echo "Detected STABLE build."
 	echo STABLE > $HOME/gui_build/data/type
-elif [ "$( echo "$last_log" | grep "\[PREVIEW\]" )" ]; then
+elif [ "$( echo "$branch_name" | grep "preview" )" ]; then
 	echo "Detected PREVIEW build."
 	echo PREVIEW > $HOME/gui_build/data/type
 else
