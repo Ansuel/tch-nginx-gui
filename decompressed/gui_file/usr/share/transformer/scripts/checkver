@@ -73,6 +73,9 @@ if [ $connectivity == "yes" ]; then
 	elif [ "$(uci get modgui.gui.update_branch)" == "preview" ]; then
 		update_branch="preview"
 		version_link=$BASE_DIR/$PREVIEW_VERSION
+	else 
+		update_branch="dev"
+		version_link=$BASE_DIR/$DEV_VERSION
 	fi
 	newer_stable=0
 
