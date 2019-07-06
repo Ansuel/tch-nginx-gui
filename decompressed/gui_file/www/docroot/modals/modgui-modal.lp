@@ -575,6 +575,15 @@ ngx.print('\
 	  $("#upgrade-log").append(data.log_msg+"<br>");\
 	  oldlog = data.log_msg;\
 	  $(".modal-body").animate({ scrollTop: $(document).height() }, 1000);\
+	  if (data.log_msg.match("ERROR:")) {\
+		$(".bar").css("width", "100%").css("background-color","#f44336");\
+		$(".modal-footer").show();\
+		$(".btn-close").show();\
+		$(".btn").on("click", function() {\
+			location.reload();\
+		});\
+		return false;\
+	  }\
 	}\
 	if (data.state == "Requested") {\
 	  $(".bar").css("width", "10%").css("background-color","#4caf50");\
