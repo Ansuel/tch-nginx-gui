@@ -126,8 +126,23 @@ local tod_options = {
   addNamedObject  = true,
 }
 
+local function getWifiTodListFromIndex(index) 
+
+	local wifi_tod_path = "uci.tod.wifitod"
+	
+	if proxy.get(format("%s.@wifitod_%s.ap.", wifi_tod_path, index)) then
+		return proxy.getPN(format("%s.@wifitod_%s.ap.", wifi_tod_path, index), true)
+	end
+	
+	return nil
+end
+
 local function checkApInConfig(apInConfig,apToCheck)
 	local ap_list = {}
+  
+	if not apInConfig then
+		return false
+	end
   
 	for i,v in ipairs(apInConfig) do
 		local ap_index = proxy.get(v.path.."value")[1].value
@@ -237,8 +252,12 @@ local function onDelete(success)
   local delObject = {}
   local ret
   
-  for i,v in ipairs(proxy.getPN(format("uci.tod.wifitod.@wifitod_%s.ap.", index), true)) do
-	delObject[#delObject+1] = format("uci.tod.ap.@%s.",proxy.get(v.path.."value")[1].value)
+  local wifiTodList = getWifiTodListFromIndex(index)
+  
+  if wifiTodList then
+	for i,v in ipairs(wifiTodList) do
+		delObject[#delObject+1] = format("uci.tod.ap.@%s.",proxy.get(v.path.."value")[1].value)
+	end
   end
 
   delObject[#delObject+1] = format("uci.tod.action.@action%s.", index)
@@ -289,10 +308,17 @@ local timer_list = content_helper.convertResultToObject(tod_timer_path, proxy.ge
 local wifitod_list = content_helper.convertResultToObject(tod_wifitod_path, proxy.get(tod_wifitod_path))
 local ap_list = content_helper.convertResultToObject(tod_ap_path, proxy.get(tod_ap_path))
 local timer_data = {}
+
 local function getApSelected(index)
 	local wifi_list, wifi_selected = {}, {}
 	
-	for _,v in ipairs(proxy.getPN(format("uci.tod.wifitod.@wifitod_%s.ap.", index), true)) do
+	local wifiTodList = getWifiTodListFromIndex(index)
+	
+	if not wifiTodList then
+		return "", {}
+	end
+	
+	for _,v in ipairs(wifiTodList) do
 		local ap_index = proxy.get(v.path.."value")[1].value
 		local ap = ap_index:match("(.*)_")
 		local ssid_get = proxy.get("rpc.wireless.ap.@"..ap..".ssid")
