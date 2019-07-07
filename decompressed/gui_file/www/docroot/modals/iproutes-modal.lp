@@ -159,7 +159,7 @@ local static_route_options = {
     tableid = "staticroutes",
     basepath = "uci.network.route.@.",
     createMsg = T"Add new static IPv4 route",
-    objectName  = uniqueKey,
+    objectName  = "static_route_" .. uniqueKey,
     addNamedObject = true,
     valid = validateDuplicateRoute,
 }
@@ -172,25 +172,11 @@ local function validateGW(ipAddress, object)
     return nil, T"Invalid gateway IP."
 end
 
-local curintf = "lan"
-local function validateDEST(value, object)
-    local gwIP, ipErr = vSII(value)
-    local contentdata = {
-      localdevIP = "uci.network.interface.@" .. curintf .. ".ipaddr",
-      localdevmask = "uci.network.interface.@" .. curintf .. ".netmask",
-    }
-    content_helper.getExactContent(contentdata)
-    if gwIP then
-      return gAV(gAV(post_helper.staticLeaseIPValidation, post_helper.validateQTN, post_helper.validateLXC), post_helper.reservedIPValidation)(value, contentdata)
-    end
-    return nil, T"Invalid IP address."
-end
-
 local static_route_valid = {
-    Destination = validateDEST,
+    Destination = post_helper.validateIPAndSubnet,
     Mask = post_helper.validateIPv4Netmask,
     Gateway = validateGW,
-    Metric = post_helper.getValidateNumberInRange(1, 9999),
+    Metric = post_helper.getValidateNumberInRange(-9999, 9999),
     Interface = post_helper.getValidateInEnumSelect(wan_intfs),
 }
 
