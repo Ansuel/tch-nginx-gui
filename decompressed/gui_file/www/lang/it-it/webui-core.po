@@ -4684,14 +4684,11 @@ msgstr "Bypassa regole potenza WiFi dominio normativo"
 msgid "Preview"
 msgstr "Anteprima"
 
-msgid "Priorirty"
-msgstr ""
-
 msgid "Normal"
-msgstr ""
+msgstr "Normale"
 
 msgid "Priority"
-msgstr ""
+msgstr "Priorità"
 
 msgid "Driver Version"
-msgstr ""
+msgstr "Versione driver"
