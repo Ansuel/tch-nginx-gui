@@ -35,7 +35,7 @@ local devicetypes = {
     { "None", T"None" },
 }
 local priorityvalues = {
-	{ "1", T"Priorirty"},
+	{ "1", T"Priority"},
 	{ "0", T"Normal"},
 }
 local devices_columns = {
