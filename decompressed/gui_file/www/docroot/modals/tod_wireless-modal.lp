@@ -349,11 +349,17 @@ for i, v in ipairs(tod_data) do
 	local wifi_list, wifi_selected = getApSelected(index)
 	local days, start_time = timer_list[i].start_time:match("^(.-):(.+)$")
 	
+	local ap_state = "0"
+	
+	if ap_list[i] then
+		ap_state = ap_list[i].state
+	end
+	
 	v[1] = v[1] -- status
 	v[2] = wifi_list -- ap
 	v[3] = start_time -- start_time
 	v[4] = timer_list[i].stop_time:match("^.-:(.+)$") -- stop_time
-	v[5] = ap_status_map[ap_list[i].state] -- apState
+	v[5] = ap_status_map[ap_state] -- apState
 	v[6] = {} -- days
 	for day in gmatch(days, "[^,]+") do
 		insert(v[6], untaint(day))
@@ -362,7 +368,7 @@ for i, v in ipairs(tod_data) do
 	v[7] = {
 		[1] = v[1], -- status
 		[2] = {}, -- ap
-		[3] = ap_list[i].state == "1" and "on" or "off", -- apState
+		[3] = ap_state == "1" and "on" or "off", -- apState
 		[4] = v[3], -- start_time
 		[5] = v[4], -- stop_time
 		[6] = v[6] -- days
