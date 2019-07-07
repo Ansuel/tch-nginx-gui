@@ -872,7 +872,8 @@ end
   end
 
 param = {
-    allowed_channels = pathradio .. "allowed_channels"
+	driver_version = pathradio .. "driver_version",
+    allowed_channels = pathradio .. "allowed_channels",
 }
 content_helper.getExactContent(param)
 allowed_channels = { {"auto", T"Auto"} }
@@ -1070,6 +1071,7 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
             html[#html + 1] = ui_helper.createSwitch(T"Enabled", "admin_state", content["admin_state"])
         end]]
 		html[#html + 1] = ui_helper.createLabel(T"Radio", labelstate)
+		html[#html + 1] = ui_helper.createLabel(T"Driver Version", param["driver_version"])
         html[#html + 1] = ui_helper.createLabel(T"Frequency band", content["supported_frequency_bands"])
         -- Label that shows the MAC address of the Wifi interface
         html[#html + 1] = ui_helper.createLabel(T"MAC address", content["macaddress"])

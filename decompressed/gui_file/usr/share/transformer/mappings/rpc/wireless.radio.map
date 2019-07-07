@@ -154,7 +154,7 @@ local wireless_radio_ = {
 	        type = "string",
         },
 	        tx_power_overrule_reg = {
-                access = "readOnly",
+                access = "readWrite",
                 type = "string",
         },
                 tx_power_adjust = {
