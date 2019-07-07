@@ -4692,3 +4692,6 @@ msgstr ""
 
 msgid "Priority"
 msgstr ""
+
+msgid "Driver Version"
+msgstr ""
