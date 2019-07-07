@@ -101,7 +101,7 @@ end
 				if samba_available then
 					attributes.light.id = "Samba_Filesharing_Enabled_Led"
 					attributes.span.id = "Samba_Filesharing_Enabled"
-					tinsert(html, ui_helper.createSimpleLight((content["samba_enabled"]~= '0' and "1" or "0"), sambastate, attributes,"fas fa-hdd"))
+					tinsert(html, ui_helper.createSimpleLight(content["samba_filesharing"], sambastate, attributes,"fas fa-hdd"))
 				end
 				if dlna_available then
 					attributes.light.id = "Dlna_Enabled_Led"
