@@ -37,7 +37,7 @@ if ngx.req.get_method() == "POST" then
     -- Otherwise, the current page might be rendered while the default user is not allowed to see it
     -- since the access was checked for the user "before" logging out
     -- TODO: find a more elegant solution, in session module?
-    ngx.redirect("/");
+	ngx.print("<script>location.reload()</script>")
   end
   if post_args.passwordchange == "dontremind" then
     local result = content_helper.getMatchedContent("uci.web.user.", {name = session:getusername()})
@@ -227,41 +227,42 @@ ngx.print('\
 	  upgrade_text = upgrade_text .. format(T" to version <strong>%s</strong> successfully",cui.gui_version)
       html[#html + 1] = ui_helper.createAlertBlock(upgrade_text,alert_upgrade_success)
     end
-    if not session:isdefaultuser() and not session:retrieve("password_reminder_shown") and session:getusername() ~= assistant:username() then
-      local result = content_helper.getMatchedContent("uci.web.user.", {name = session.getusername()})
-        if result and result[1].password_reminder ~= "0" then
-          html[#html + 1] = '<div class="modal fade in" id="password_reminder">'
-          html[#html + 1] = ui_helper.createHeader(T"Change Password")
-          html[#html + 1] = '<div class="modal-body update">'
-          html[#html + 1] = '<form class="form-horizontal" method="post" action="gateway.lp">'
-          html[#html + 1] = ui_helper.createSimpleInputHidden("CSRFtoken", session:getCSRFtoken())
-          html[#html + 1] = '<fieldset>'
-          local attr = {radio = {style = "display: block"}}
-          html[#html + 1] = ui_helper.createInputRadio("", "passwordchange", {{"now", T"Now"},{"remindlater", T"Remind me later"},{"dontremind", T"Do not remind me again"}},nil,attr)
-          html[#html + 1] = '</fieldset>'
-          html[#html + 1] = '</form>'
-          html[#html + 1] = '</div>'
-          html[#html + 1] = ui_helper.createFooter()
-          html[#html + 1] = '</div>'
-          html[#html + 1] = '\
-          <script>\
-            $("#password_reminder").modal();\
-            $("#save-config").on("click", function(){\
-            var value = $("input[name=passwordchange]:checked").val();\
-            if(value == "now"){\
-              window.location = "/password.lp";\
-            }else if(value == "remindlater"){\
-              $("#password_reminder").modal(\'hide\');\
-            }else if(value == "dontremind"){\
-              $("#password_reminder form").submit();\
-            }\
-            return false;\
-            });\
-          </script>\
-          '
-        end
-      session:store("password_reminder_shown", true)
-    end
+	
+	if not session:isdefaultuser() and not session:retrieve("password_reminder_shown") and session:getusername() ~= assistant:username() then
+		local result = content_helper.getMatchedContent("uci.web.user.", {name = session.getusername()})
+		if result and result[1] and result[1].password_reminder ~= "0" then
+			html[#html + 1] = '<div class="modal fade in" id="password_reminder">'
+			html[#html + 1] = ui_helper.createHeader(T"Change Password")
+			html[#html + 1] = '<div class="modal-body update">'
+			html[#html + 1] = '<form class="form-horizontal" method="post" action="gateway.lp">'
+			html[#html + 1] = ui_helper.createSimpleInputHidden("CSRFtoken", session:getCSRFtoken())
+			html[#html + 1] = '<fieldset>'
+			local attr = {radio = {style = "display: block"}}
+			html[#html + 1] = ui_helper.createInputRadio("", "passwordchange", {{"now", T"Now"},{"remindlater", T"Remind me later"},{"dontremind", T"Do not remind me again"}},nil,attr)
+			html[#html + 1] = '</fieldset>'
+			html[#html + 1] = '</form>'
+			html[#html + 1] = '</div>'
+			html[#html + 1] = ui_helper.createFooter()
+			html[#html + 1] = '</div>'
+			html[#html + 1] = '\
+			<script>\
+				$("#password_reminder").modal();\
+				$("#save-config").on("click", function(){\
+				var value = $("input[name=passwordchange]:checked").val();\
+				if(value == "now"){\
+				window.location = "/password.lp";\
+				}else if(value == "remindlater"){\
+				$("#password_reminder").modal(\'hide\');\
+				}else if(value == "dontremind"){\
+				$("#password_reminder form").submit();\
+				}\
+				return false;\
+				});\
+			</script>\
+			'
+		end
+		session:store("password_reminder_shown", true)
+	end
     html[#html + 1] = '<a href="#footer" id="scroll-down" class="scroll-down" address="true"></a>'
     html[#html + 1] = '<a href="#headertab" id="scroll-up"class="scroll-up hide" address="true"></a>'
 ngx.print(html)

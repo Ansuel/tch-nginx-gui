@@ -22,7 +22,7 @@ ngx.print('\
 		"Vari fix ai bug presenti nelle versioni precedenti<br>"..
 		"E' ora possibile dare priorità ad un dispositivo specifico rispetto a tutta la rete (Tab Gestione Dispositiv)<br>"..
 		"Aggiunte nuove funzioni di aggiornamento e possibilità di selezionare l'isp manualmente"..
-		"Altri miglioramenti che sinceramente non ricordo"
+		"Altri miglioramenti che sinceramente non ricordo", basic)
 	html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_2.0.1_001 )" .. '</legend>'
     html[#html + 1] = ui_helper.createLabel("9.1","Aggiunto grafico utilizzo CPU e Memoria<br>" ..
         "Aggiunta opzione per ripristinare configurazioni senza perdere GUI<br>" ..
