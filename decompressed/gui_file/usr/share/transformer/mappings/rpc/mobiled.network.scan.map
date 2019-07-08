@@ -31,7 +31,7 @@ end
 local helper = require("mobiled.scripthelpers")
 
 local function getall(mapping, key)
-    local data = helper.getUbusData(conn, "mobiled.network", "scan", { dev_idx = tonumber(string.match(key, '%d')) })
+    local data = helper.getUbusData(conn, "mobiled.network", "scan", { dev_idx = tonumber(string.match(key, '%d+')) })
     local result = {}
     if helper.tablelength(data) > 0 then
         if data.scanning == "true" then
@@ -53,7 +53,7 @@ end
 
 local function set(mapping, paramName, paramValue, key)
     if paramName == "start" and (tostring(paramValue) == "true" or tostring(paramValue) == "1") then
-        return conn:call("mobiled.network", "scan", { start = true, dev_idx = tonumber(string.match(key, '%d')) })
+        return conn:call("mobiled.network", "scan", { start = true, dev_idx = tonumber(string.match(key, '%d+')) })
     end
 end
 

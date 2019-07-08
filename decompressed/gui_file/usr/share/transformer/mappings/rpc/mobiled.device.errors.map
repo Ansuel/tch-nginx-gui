@@ -48,9 +48,9 @@ local helper = require("mobiled.scripthelpers")
 
 local function getErrors(key, parentKey)
 	local result = {}
-	local data = helper.getUbusData(conn, "mobiled.device", "errors", { dev_idx = tonumber(string.match(parentKey, '%d')) })
+	local data = helper.getUbusData(conn, "mobiled.device", "errors", { dev_idx = tonumber(string.match(parentKey, '%d+')) })
 	if type(data.errors) == "table" then
-		for i, error in pairs(data.errors) do
+		for i in pairs(data.errors) do
 			local id = "error_" .. i
 			if id == key then
 				result = data.errors[i]
@@ -77,10 +77,10 @@ local function get(mapping, paramName, key, parentKey)
 end
 
 local function errorEntries(mapping, key)
-	local data = helper.getUbusData(conn, "mobiled.device", "errors", { dev_idx = tonumber(string.match(key, '%d')) })
+	local data = helper.getUbusData(conn, "mobiled.device", "errors", { dev_idx = tonumber(string.match(key, '%d+')) })
 	local errors = {}
 	if type(data.errors) == "table" then
-		for i, error in pairs(data.errors) do
+		for i in pairs(data.errors) do
 			table.insert(errors, {tostring(i), "error_" .. i })
 		end
 	end

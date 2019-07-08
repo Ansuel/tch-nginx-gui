@@ -1,6 +1,6 @@
 local M = {}
 local open = io.open
-local format, match, lower = string.format, string.match, string.lower
+local format, match, lower, sub = string.format, string.match, string.lower, string.sub
 local pairs = pairs
 local sort, concat = table.sort, table.concat
 
@@ -540,14 +540,10 @@ end
 
 function M.find_device_support(parentkey)
     local numOfFxs, numOfDect, numOfSipdev = 0, 0, 0
-    local entries = {}
 
     binding.config = "mmpbx"
     binding.sectionname = "device"
     uci_helper.foreach_on_uci(binding, function(s)
-    if parentkey:match(s.config) then
-        entries[#entries + 1] = s['.name']
-    end
         if s['.name']:sub(1,1) == "f" then
             numOfFxs = numOfFxs + 1
         end
@@ -560,6 +556,76 @@ function M.find_device_support(parentkey)
     end)
 
     return numOfFxs, numOfDect, numOfSipdev
+end
+
+function M.validateDigitMapString(dmstring)
+    if not dmstring or dmstring == "" then
+        return true
+    end
+    if #dmstring > 256 then
+        return  false
+    end
+    local endPattern = ""
+    local patternIndex = 1
+    local patternCount = 1
+    local index = 1
+    local character = ""
+    local endChar = ""
+    local patternTable = {
+       ['('] = ")",
+       ['['] = "]",
+       ['{'] = "}",
+    }
+    local ignorepatternTable = {
+       [')'] = true,
+       [']'] = true,
+       ['}'] = true,
+    }
+    while index <= #dmstring do
+        character = sub(dmstring, index, index)
+        if not match(character, '[-+|0-9TXx%[%]%.#%*(){}]') then
+            return  false
+        end
+        if ignorepatternTable[character] then
+            patternCount = patternCount-1
+        end
+        if patternTable[character] then
+            patternCount = patternCount+1
+            endPattern = patternTable[character]
+            endChar = sub(dmstring, #dmstring, #dmstring)
+            patternIndex = index
+            local char = ""
+            while patternIndex and patternIndex <= #dmstring do
+                char = sub(dmstring, patternIndex, patternIndex)
+                if ignorepatternTable[char] then
+                    break
+                end
+                if char == endPattern or patternIndex == #dmstring then
+                    endPatternIndex = patternIndex
+                    setString = string.sub(dmstring, index, endPatternIndex)
+                    local setIndex = 1
+                    local iserror = 0
+                    while setIndex and setIndex <= #setString do
+                        setChar = sub(setString, setIndex, setIndex)
+                        if setChar == endPattern or endChar == endPattern then
+                            iserror = 1
+                        end
+                        setIndex = setIndex + 1
+                    end
+                    if iserror == 0 then
+                        return false
+                    end
+                    break
+                end
+                patternIndex = patternIndex + 1
+            end
+        end
+        index = index + 1
+    end
+    if patternCount ~= 1 then
+        return false
+    end
+    return true
 end
 
 return M

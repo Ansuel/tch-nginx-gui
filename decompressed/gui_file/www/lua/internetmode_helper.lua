@@ -2,6 +2,7 @@ gettext.textdomain('webui-core')
 local proxy = require("datamodel")
 local ifnames = proxy.get("uci.network.interface.@lan.ifname")[1].value
 local wan_ifname = proxy.get("uci.network.interface.@wan.ifname")[1].value
+local gsub = string.gsub
 
 return {
     {
@@ -16,7 +17,7 @@ return {
         operations = {
             { "uci.network.interface.@wan.proto", "dhcp"},
             { "uci.network.config.wan_mode", "dhcp"},
-            { "uci.network.interface.@lan.ifname", string.gsub(string.gsub(ifnames, wan_ifname, ""), "%s$", "")},
+            { "uci.network.interface.@lan.ifname", gsub(gsub(ifnames, wan_ifname, ""), "%s$", "")},
         },
     },
     {
@@ -31,7 +32,7 @@ return {
         operations = {
             { "uci.network.interface.@wan.proto", "pppoe"},
             { "uci.network.config.wan_mode", "pppoe"},
-            { "uci.network.interface.@lan.ifname", string.gsub(string.gsub(ifnames, wan_ifname, ""), "%s$", "")},
+            { "uci.network.interface.@lan.ifname", gsub(gsub(ifnames, wan_ifname, ""), "%s$", "")},
         },
     },
     {
@@ -46,7 +47,7 @@ return {
         operations = {
             { "uci.network.interface.@wan.proto", "pppoa"},
             { "uci.network.config.wan_mode", "pppoa"},
-            { "uci.network.interface.@lan.ifname", string.gsub(string.gsub(ifnames, wan_ifname, ""), "%s$", "")},
+            { "uci.network.interface.@lan.ifname", gsub(gsub(ifnames, wan_ifname, ""), "%s$", "")},
         },
     },
     {
@@ -61,7 +62,7 @@ return {
         operations = {
             { "uci.network.interface.@wan.proto", "static"},
             { "uci.network.config.wan_mode", "static"},
-            { "uci.network.interface.@lan.ifname", string.gsub(string.gsub(ifnames, wan_ifname, ""), "%s$", "")},
+            { "uci.network.interface.@lan.ifname", gsub(gsub(ifnames, wan_ifname, ""), "%s$", "")},
         },
     },
     {

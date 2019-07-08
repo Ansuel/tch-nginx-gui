@@ -60,6 +60,11 @@ local add_cfg = {
         activated = "0",
         servicetype = "profile"
     },
+    DND = {
+        provisioned = "1",
+        activated = "0",
+        servicetype = "profile"
+    },
 }
 
 -- This talbe is all the default configuration for services
@@ -68,7 +73,7 @@ local add_cfg = {
 local services_default_cfg = {
     append = append_cfg,
     add = add_cfg,
-    named_service_section = false
+    named_service_section = true
 }
 
 -- Default configuration for a dial_plan_entry when added via TR-69 is defined here

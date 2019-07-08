@@ -51,7 +51,7 @@ if not conn then
 end
 
 local function getall(mapping, key)
-    return helper.getUbusData(conn, "mobiled.device", "firmware_upgrade", { dev_idx = tonumber(string.match(key, '%d')) })
+    return helper.getUbusData(conn, "mobiled.device", "firmware_upgrade", { dev_idx = tonumber(string.match(key, '%d+')) })
 end
 
 local function get(mapping, paramName, key)
@@ -60,7 +60,7 @@ end
 
 local function set(mapping, paramName, paramvalue, key)
     if(paramName == "path") then
-        conn:call("mobiled.device", "firmware_upgrade", { ["path"] = paramvalue, dev_idx = tonumber(string.match(key, '%d')) })
+        conn:call("mobiled.device", "firmware_upgrade", { ["path"] = paramvalue, dev_idx = tonumber(string.match(key, '%d+')) })
     end
 end
 

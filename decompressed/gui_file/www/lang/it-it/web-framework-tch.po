@@ -348,3 +348,39 @@ msgid "%dh"
 msgid_plural "%dh"
 msgstr[0] "%do"
 msgstr[1] "%do"
+
+msgid "Invalid netmask."
+msgstr "Maschera sottorete non valida."
+
+msgid "PIN code must be 4 or 8 digits with potentially a dash or space in the middle."
+msgstr "Il codice PIN deve avere 4 o 8 cifre con potenzialmente una lineetta o uno spazio in mezzo."
+
+msgid "Cannot use software address range."
+msgstr "Impossibile usare intervallo indirizzo software."
+
+msgid "The IP is internally used for other services."
+msgstr "L'indirizzo IP è usato internamente per altri servizi."
+
+msgid "Invalid time (must be hh:mm)"
+msgstr "Orario non valido (deve essere oo:mm)"
+
+msgid "Invalid Number"
+msgstr "Numero non valido"
+
+msgid "Cannot use a reserved IP address."
+msgstr "Impossibile usare un indirizzo IP riservato."
+
+msgid "Expire Time is invalid. It should be a whole number, between 60 and 600000."
+msgstr "Intervallo scadenza non valido\nDeve essere un numero intero compreso tra 60 e 600000."
+
+msgid "Invalid MAC Address"
+msgstr "Indirizzo MAC non valido"
+
+msgid "Invalid hour, must be between 0 and 23"
+msgstr "Valore ora non valido.\nDeve essere compreso tra 0 e 23."
+
+msgid "Not a Public address"
+msgstr "Non è un indirizzo pubblico"
+
+msgid "Invalid minutes, must be between 0 and 59"
+msgstr "Valore minuti non valido.\nDeve essere compreso tra 0 e 59."

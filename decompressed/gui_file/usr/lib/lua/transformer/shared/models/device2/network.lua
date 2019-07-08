@@ -25,6 +25,12 @@ local uciconfig = require("transformer.shared.models.uciconfig").Loader()
 local dmordering = require "transformer.shared.models.dmordering"
 local xdsl = require("transformer.shared.models.xdsl")
 
+local ucihelper = require("transformer.mapper.ucihelper")
+local get_from_uci = ucihelper.get_from_uci
+local set_on_uci = ucihelper.set_on_uci
+local delete_on_uci = ucihelper.delete_on_uci
+local ethBinding = { config = "ethernet", sectionname = "", option = "", default = "" }
+
 local M = {}
 
 local function errorf(fmt, ...)
@@ -124,6 +130,7 @@ local function newModel()
 		networks = {},
 		key_aliases = {},
 		key_ignore = {},
+		_explicit_links = {},
 	}
 	for _, tp in ipairs(allTypes) do
 		obj.typed[tp] = {}
@@ -162,7 +169,7 @@ function Model:add(objType, name, position)
 	list[name] = obj
 	all[#all+1] = obj
 	all[name] = obj
-	
+
 	return obj
 end
 
@@ -644,9 +651,9 @@ end
 
 local function getBridgeDevice(model, bridgeName, member)
 	return model:get(member)
-	       or model:get("vlan:"..member)
-	       or model:get("vlan:"..bridgeName..':'..member)
-	       or model:get("link:"..member)
+		 or model:get("vlan:"..member)
+		 or model:get("vlan:"..bridgeName..':'..member)
+		 or model:get("link:"..member)
 end
 
 local function getBridgeMembers(members)
@@ -728,14 +735,47 @@ local function create_bridge(model, name, members, placeholder)
 	return mgmt.name, bridge
 end
 
+local function map_explicit_link(model, linkedto, linkname)
+	model._explicit_links[linkedto] = linkname
+end
+
+local function create_explicit_link_objects(model, sections)
+	for _, link in ipairs(sections) do
+		local linkname = "link:"..link['.name']
+		local dev = model:add("EthLink", linkname)
+		if link.linkedto then
+			map_explicit_link(model, link.linkedto, linkname)
+		end
+		if link.ifname then
+			model.setLower(dev, link.ifname)
+			dev.device = link.ifname
+		end
+	end
+end
+
+local function explicit_link_for(model, section)
+	return model._explicit_links[section]
+end
+
+function Model:explicit_link_for(section)
+	return explicit_link_for(self, section)
+end
+
 local function create_device(model, s)
+	local linkname
 	-- add the link first
 	if not s['.placeholder'] then
-		local dev = model:add("EthLink", "link:"..s['.name'])
-		if s.ifname then
-			model.setLower(dev, s.ifname)
+		linkname = explicit_link_for(model, s['.name'])
+		if not linkname and (s.dev2_dynamic~="1") then
+			linkname = "link:"..s['.name']
+			local dev = model:add("EthLink", "link:"..s['.name'])
+			if s.ifname then
+				model.setLower(dev, s.ifname)
+			end
+			dev.device = s.name
 		end
-		dev.device = s.name
+	else
+		linkname = "link:"..s['.name']
 	end
 
 	local devtype = s.type or "8021q"
@@ -747,9 +787,9 @@ local function create_device(model, s)
 			vlan.device = s.name
 		end
 		if s.ifname then
-			model.setLower(vlan, "link:"..s['.name'])
+			model.setLower(vlan, linkname)
 		elseif s.type then
-			local lower = model:get("link:"..s['.name'])
+			local lower = model:get(linkname)
 			if lower then
 				model.setLower(vlan, lower.name)
 			end
@@ -886,6 +926,9 @@ local function interface_has_ip_layer(s)
 	if not s.proto then
 		return false
 	end
+	if s.proto == 'none' then
+		return false
+	end
 	if (s.proto=='static') and not s.ipaddr then
 		return false
 	end
@@ -914,9 +957,12 @@ end
 local function createIntfLowerLayer(model, s, cfg, ifname)
 	local lower
 	ifname = ifname or s.ifname
+	local linkname = explicit_link_for(model, s['.name'])
 	if getDevice(ifname, cfg) then
 		-- refers to device section, lower layer is from that device
 		lower = getIPLowerLayer(model, ifname)
+	elseif linkname then
+		lower = linkname
 	elseif ifname then
 		-- refers to physical device, possibly with a VLAN reference.
 		-- create the EthLink (and VLAN) ourselves
@@ -945,9 +991,9 @@ local function createIntfLowerLayer(model, s, cfg, ifname)
 end
 
 local function fixup_gre_phys(intf, phys)
-  if phys and intf and (intf.proto or ""):match("^gre") then
-    return "gre-"..phys
-  end
+	if phys and intf and (intf.proto or ""):match("^gre") then
+		return "gre-"..phys
+	end
 end
 
 local function replaceAliasInterface(phys, cfg)
@@ -963,38 +1009,38 @@ local function replaceAliasInterface(phys, cfg)
 			phys = ""
 		end
 	else
-	  phys = fixup_gre_phys(cfg.interface[phys], phys) or phys
+		phys = fixup_gre_phys(cfg.interface[phys], phys) or phys
 	end
 	return phys
 end
 
 local function ifname_to_device(ifname, cfg)
-  if not ifname then
-    return
-  end
-  local devices = cfg.device or {}
-  if devices[ifname] then
-    -- name refers to a device
-    return ifname
-  end
-  if ifname:match("^@") then
-    -- refers to interface
-    local intfname = ifname:match("^@([^.]+)")
-    local intf = cfg.interface[intfname]
-    if intf then
-      if intf.proto == "gretap" then
-        return ifname:gsub("^@", "gre4t-")
-      elseif intf.proto == "grev6tap" then
-        return ifname:gsub("^@", "gre6t-")
-      elseif intf.proto:match("^gre") then
-        return ifname:gsub("^@", "")
-      else
-        return ifname_to_device(intf.ifname, cfg)
-      end
-    end
-    return
-  end
-  return ifname:match("^([^.]+)")
+	if not ifname then
+		return
+	end
+	local devices = cfg.device or {}
+	if devices[ifname] then
+		-- name refers to a device
+		return ifname
+	end
+	if ifname:match("^@") then
+		-- refers to interface
+		local intfname = ifname:match("^@([^.]+)")
+		local intf = cfg.interface[intfname]
+		if intf then
+			if intf.proto == "gretap" then
+	return ifname:gsub("^@", "gre4t-")
+			elseif intf.proto == "grev6tap" then
+	return ifname:gsub("^@", "gre6t-")
+			elseif intf.proto:match("^gre") then
+	return ifname:gsub("^@", "")
+			else
+	return ifname_to_device(intf.ifname, cfg)
+			end
+		end
+		return
+	end
+	return ifname:match("^([^.]+)")
 end
 
 local function createBridgeMembersLowerLayers(model, s, cfg)
@@ -1089,14 +1135,16 @@ function create_interface(model, s, cfg)
 		end
 	end
 	if s.proto and s.proto:match('^ppp') then
-		lower = createPPPInterface(model, s, lower)
+					if not explicit_link_for(model, name) then
+			lower = createPPPInterface(model, s, lower)
+								end
 	end
 	intf = model:add("IPInterface", name)
 	intf.device = s.device or s.ifname
 	intf.refers_to = referend
 	intf.has_ip_layer = interface_has_ip_layer(s)
 	if not intf.has_ip_layer then
-		intf.hide_in_datamodel = true
+		intf.hide_in_datamodel = s.dev2_dynamic~="1"
 	end
 	local linkto = dmordering.linked("network.interface", name)
 	if linkto then
@@ -1125,9 +1173,28 @@ local function findNetworkBridge(model, network)
 	return intf
 end
 
+local function create_explicit_ppp_objects(model, all_ppp)
+	for _, pppcfg in ipairs(all_ppp) do
+		if not pppcfg['.placeholder'] then
+		-- a dynanmic one
+			local ppp = create_PPP_interface(model, pppcfg['.name'])
+			local lower = explicit_link_for(model, pppcfg['.name'])
+			if lower then
+				model.setLower(ppp, lower)
+			end
+			if pppcfg.linkedto then
+				map_explicit_link(model, pppcfg.linkedto, ppp.name)
+			end
+		end
+	end
+end
+
 local function loadNetwork(model)
 	local cfg = uciconfig:load("network")
-	
+
+	create_explicit_link_objects(model, cfg.dev2_link or {})
+				create_explicit_ppp_objects(model, cfg.ppp or {})
+
 	for _, dev in ipairs(cfg.device or {}) do
 		create_device(model, dev)
 	end
@@ -1142,15 +1209,18 @@ local function loadNetwork(model)
 
 	for _, pppcfg in ipairs(cfg.ppp or {}) do
 		local name = pppcfg.uciname or pppcfg['.name']
-		local ppp, placeholder_ignored = create_PPP_interface(model, name, pppcfg['.placeholder'])
-		if not placeholder_ignored then
-			ppp.ucikey = pppcfg['.name']
-			if pppcfg.interface then
-				ppp.interface = pppcfg.interface
-			else
-				ppp.interface = name:match("^[^-]+%-(.*)") or pppcfg['.name']
-			end
-			ppp.present = false
+								local placeholder = pppcfg['.placeholder']
+								if placeholder then
+			local ppp, placeholder_ignored = create_PPP_interface(model, name, placeholder)
+			if placeholder and not placeholder_ignored then
+				ppp.ucikey = pppcfg['.name']
+				if pppcfg.interface then
+					ppp.interface = pppcfg.interface
+				else
+					ppp.interface = name:match("^[^-]+%-(.*)") or pppcfg['.name']
+				end
+				ppp.present = false
+									end
 		end
 	end
 end
@@ -1248,13 +1318,13 @@ local function loadOrdering(model)
 	end
 	model.key_aliases = aliases
 	model.key_ignore = ignore
-	
+
 	local bridgeports = {}
 	for _, bridge in ipairs(cfg.bridgeports or {}) do
 		local name = bridge.name or bridge['.name']
 		bridgeports[name] = bridge.port
 	end
-	
+
 	return bridgeports
 end
 
@@ -1346,6 +1416,89 @@ load_model = function()
 		current_model = model
 	end
 	return current_model
+end
+
+function M.invalidate()
+	current_model = nil
+end
+
+-- Function to get the ShapingRate value from the ethernet config
+local function getEthUciValue(devName, option, default)
+	ethBinding.sectionname = devName
+	ethBinding.option = option
+	ethBinding.default = default
+	return get_from_uci(ethBinding) or ""
+end
+
+-- Function to set the ShapingRate value in the ethernet config
+local function setEthUciValue(value, sectionName, option)
+	ethBinding.sectionname = sectionName
+	ethBinding.option = option
+	set_on_uci(ethBinding, value, commitapply)
+end
+
+function M.getShapingRate(devName, key)
+	local trafficDesc = getEthUciValue(devName, "td", "")
+	if trafficDesc ~= "" then
+		local value = getEthUciValue(trafficDesc, "max_bit_rate", "")
+		return value ~= "" and tostring(tonumber(value) * 1000) or "-1"
+	end
+	return "-1"
+end
+
+local function remove_trafficdesc_section(devName, td_name)
+	ethBinding.sectionname = td_name
+	ethBinding.option = nil
+	delete_on_uci(ethBinding, commitapply)
+	setEthUciValue("", devName, "td")
+	return true
+end
+
+-- Function to set the ShapingRate value
+local function shaping_set(devName, shapingValue)
+	setEthUciValue(shapingValue.max_bit_rate, devName, "max_bit_rate")
+	setEthUciValue(shapingValue.max_burst_size, devName, "max_burst_size")
+	setEthUciValue(shapingValue.rate, devName, "rate")
+	setEthUciValue(shapingValue.ratio, devName, "ratio")
+	return true
+end
+
+function M.setShapingRate(value, key, devName)
+	value = tonumber(value)
+	local max_burst_size = "2000"
+	if value then
+		local trafficdesc = getEthUciValue(devName, "td", "")
+		local new_td_name = "td" .. devName
+		if trafficdesc ~= "" then
+			max_burst_size = getEthUciValue(trafficdesc, "max_burst_size", "2000")
+		end
+		if trafficdesc == "" and value == -1 then
+			return true
+		elseif value == 0 then
+			return nil, "Not supported"
+		elseif trafficdesc == "" and (value > -1) and (value <= 100) then
+			set_on_uci(ethBinding, new_td_name, commitapply)
+			setEthUciValue("trafficdesc", new_td_name)
+			return shaping_set(new_td_name, { max_bit_rate = value, max_burst_size = max_burst_size, rate = "", ratio = "enabled", })
+		elseif trafficdesc == "" and (value > 100) then
+			if value < 1000 then
+	return nil, "Absolute value should be at least 1000 bps"
+			end
+			set_on_uci(ethBinding, new_td_name, commitapply)
+			setEthUciValue("trafficdesc", new_td_name)
+			return shaping_set(new_td_name, { max_bit_rate = value/1000, max_burst_size = max_burst_size, rate = "enabled", ratio = "" })
+		elseif trafficdesc ~= "" and value == -1 then
+			return remove_trafficdesc_section(devName, trafficdesc)
+		elseif trafficdesc ~= "" and (value > -1) and (value <= 100) then
+			return shaping_set(new_td_name, { max_bit_rate = value, max_burst_size = max_burst_size, rate = "", ratio = "" })
+		elseif trafficdesc ~= "" and (value > 100) then
+			if value < 1000 then
+	return nil, "Absolute value should be at least 1000 bps"
+			end
+			return shaping_set(new_td_name, { max_bit_rate = value/1000, max_burst_size = max_burst_size, rate = "enabled", ratio = "" })
+		end
+	end
+	return nil,"Not supported"
 end
 
 return M

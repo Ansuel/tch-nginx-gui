@@ -1,7 +1,5 @@
 --Version1.1: NG-56166
 --NG-70800
-local logger = require("transformer.logger")
-local log = logger.new("wireless.ssid.stats", 2)
 local register = register;
 
 local wireless_ssid_stats_ = {
@@ -75,8 +73,10 @@ local wireless_ssid_stats_ = {
   }
 }
 
+local mapper = mapper
+local pairs, tostring, tonumber = pairs, tostring, tonumber
 local uci_helper = mapper("ucihelper")
-local conn = mapper("ubus").connect()
+local network = require("transformer.shared.common.network")
 
 local function nilToEmptyString(st)
   if st == nil then
@@ -86,17 +86,8 @@ local function nilToEmptyString(st)
   end
 end
 
-local function getDataForIface(iface)
-  local result = conn:call("wireless.ssid.stats", "get", { name = iface })
-  if result == nil then
-    log:error("Cannot retrieve ssid stats info for iface " .. iface)
-      return {}
-    end
-  return result[iface]
-end
-
 local function getall(mapping, key)
-  local ifaceData = getDataForIface(key)
+  local ifaceData = network.getSSIDStats(key)
   local sanitizedData = {}
   for k,v in pairs(ifaceData) do
     sanitizedData[k] = nilToEmptyString(v)
@@ -110,7 +101,7 @@ local function get(mapping, paramName, key, nocache)
   if paramName == "reset" then
     return "0"
   end
-  local ifaceData = getDataForIface(key)
+  local ifaceData = network.getSSIDStats(key)
   if nocache then
     return nilToEmptyString(ifaceData[paramName])
   end

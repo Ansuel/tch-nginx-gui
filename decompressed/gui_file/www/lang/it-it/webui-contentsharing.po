@@ -64,7 +64,7 @@ msgid "Attached Drive Info"
 msgstr "Informazioni unità collegata"
 
 msgid "It is recommended to use USB2.0 standard. The use of USB3.1 standard can badly affect the Wi-Fi performance of the 2.4 Ghz band."
-msgstr "Usa un dispositivo USB 2.0.<br/>L'uso di dispositiivi USB 3.1 può influenzare negativamente le prestazioni Wi-Fi nella banda 2.4GHz."
+msgstr "Usa un dispositivo USB 2.0.<br/>L'uso di dispositiivi USB 3.1 può influenzare negativamente le prestazioni Wi-Fi nella banda 2.4 GHz."
 
 msgid "Manufacturer"
 msgstr "Produttore"
@@ -140,3 +140,19 @@ msgstr "no"
 
 msgid "Profiling"
 msgstr "Profilazione"
+
+msgid "Ready"
+msgstr "Pronto"
+
+msgid "USB 3.1 Enabled"
+msgstr "USB 3.1 abilitato"
+
+msgid "It is recommended to use the USB in the 2.0 standard. The use of USB in 3.1 standard can remarkably affect the Wi-Fi performance at 2.4 Ghz band."
+msgstr "Ti suggeriamo di usare lo standard USB 2.0\nL'uso dello standard USB 3.1 potrebbe ridurre le prestazioni del WiFi nella banda 2.4 GHz."
+
+msgid "If Samba is not accessible in Windows 10, Configure the settings as per the URL - https://support.microsoft.com/en-us/help/4046019/guest-access-smb2-disabled-by-default-in-windows-10-server-2016"
+msgstr "Se Samba non è accessibile in Windows 10, configura le impostazioni come indicato nella pagina https://support.microsoft.com/en-us/help/4046019/guest-access-smb2-disabled-by-default-in-windows-10-server-2016"
+
+msgid "It is recommended to use the USB in the 2.0 standard. The use of USB in 3.1 standard can remarkably affect the Wi-Fi performance at 2.4 GHz band."
+msgstr "Ti suggeriamo di usare lo standard USB 2.0\nL'uso dello standard USB 3.1 potrebbe ridurre le prestazioni del WiFi nella banda 2.4 GHz."
+

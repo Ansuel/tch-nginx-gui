@@ -1,4 +1,5 @@
-<%
+--pretranslated: do not change this file
+
 -- Enable localization
 gettext.textdomain('webui-voice')
 
@@ -119,30 +120,31 @@ local uri = ngx.var.uri
 if ngx.var.args and string.len(ngx.var.args) > 0 then
     uri = uri .. "?" .. ngx.var.args
 end
-%>
 
-<%= ui_helper.createHeader(T"Telephony", false, true) %>
-<div class="modal-body update">
-  <%
+ngx.print( ui_helper.createHeader(T"Telephony", false, true)); ngx.print('\
+<div class="modal-body update">\
+')
   local lp = require("web.lp")
   lp.setpath("/www/snippets/")
   lp.include("tabs-voice.lp")
-  %>
-  <form class="form-horizontal" method="post" action="<%= uri %>">
-        <fieldset>
-            <legend><%= T"Historical Statistics" %></legend>
-            <%= ui_helper.createTable(historical_statistics_columns, historical_statistics_data, historical_statistics_options) %>
-        </fieldset>
-        <fieldset>
-            <center>
-                <%= ui_helper.createSimpleButton(T"Clear historical logs", "icon-bolt", clear_call_log)%>
-            </center>
-        </fiedset>
-        <fieldset>
-            <legend><%= T"Ongoing Statistics" %></legend>
-            <%= ui_helper.createTable(ongoing_statistics_columns, ongoing_statistics_data, ongoing_statistics_options) %>
-        </fieldset>
-   </form>
-</div>
-<%= ui_helper.createFooter() %>
+
+ngx.print('\
+  <form class="form-horizontal" method="post" action="'); ngx.print( uri ); ngx.print('">\
+        <fieldset>\
+            <legend>'); ngx.print( T"Historical Statistics" ) ngx.print('</legend>\
+            '); ngx.print( ui_helper.createTable(historical_statistics_columns, historical_statistics_data, historical_statistics_options)); ngx.print('\
+        </fieldset>\
+        <fieldset>\
+            <center>\
+                '); ngx.print( ui_helper.createSimpleButton(T"Clear historical logs", "icon-bolt", clear_call_log)); ngx.print('\
+            </center>\
+        </fiedset>\
+        <fieldset>\
+            <legend>'); ngx.print( T"Ongoing Statistics" ) ngx.print('></legend>\
+            '); ngx.print(ui_helper.createTable(ongoing_statistics_columns, ongoing_statistics_data, ongoing_statistics_options)); ngx.print('\
+        </fieldset>\
+   </form>\
+</div>\
+')
+ngx.print(ui_helper.createFooter())
 

@@ -1,0 +1,56 @@
+local lfs = require("lfs")
+if not lfs.attributes("/usr/bin/wifi-conductor", "ino") then
+  return
+end
+
+local uci_1to1 = mapper("uci_1to1")
+
+local config_wifi_conductor = "wifi_conductor"
+
+--uci.wifi_conductor
+uci_1to1.registerConfigMap(config_wifi_conductor)
+
+--uci.wifi_conductor.global
+local wifi_conductor_global = {
+  config = config_wifi_conductor,
+  section = "global",
+  type = "config",
+  options = { "enabled" }
+}
+mapper("uci_1to1").registerSimpleMap(wifi_conductor_global)
+
+--uci.wifi_conductor.controller
+local wifi_conductor_controller = {
+  config = config_wifi_conductor,
+  section = "controller",
+  type = "controller",
+  options = { "log" }
+}
+mapper("uci_1to1").registerSimpleMap(wifi_conductor_controller)
+
+--uci.wifi_conductor.algo
+local wifi_conductor_algo = {
+  config = config_wifi_conductor,
+  section = "algo",
+  type = "algo",
+  options = { "log" }
+}
+mapper("uci_1to1").registerSimpleMap(wifi_conductor_algo)
+
+--uci.wifi_conductor.roamer
+local wifi_conductor_roamer = {
+  config = config_wifi_conductor,
+  section = "roamer",
+  type = "roamer",
+  options = { "log" }
+}
+mapper("uci_1to1").registerSimpleMap(wifi_conductor_roamer)
+
+--uci.wifi_conductor.debug
+local wifi_conductor_debug = {
+  config = config_wifi_conductor,
+  section = "debug",
+  type = "debug",
+  options = { "trace_level", "cloud_enabled", "cloud_mqtt_broker_url", "cloud_mqtt_broker_port", "cloud_home_id", "cloud_log_level" }
+}
+mapper("uci_1to1").registerSimpleMap(wifi_conductor_debug)

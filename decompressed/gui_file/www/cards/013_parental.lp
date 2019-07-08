@@ -1,5 +1,5 @@
-<%
--- NG-82219
+--pretranslated: do not change this file
+ 
 -- Enable localization
 gettext.textdomain('webui-parental')
 
@@ -38,8 +38,8 @@ local parental_columns = {
 local parental_options = {
     tableid         = "urlfilter",
     basepath        = uci_parental_path,
-	objectName      = uniqueKey,
-    addNamedObject  = true,				   
+    objectName      = uniqueKey,
+    addNamedObject  = true,
 }
 
 -- get an initial read from UCI
@@ -77,22 +77,24 @@ n_block_rules = tonumber(rulecount)
 
 local modalPath = nil
 local switchName = nil
-local modal_link = ""				 
+local modal_link = ""
 local session = ngx.ctx.session
 if session:hasAccess("/modals/parental-modal.lp") then
     modalPath = "/modals/parental-modal.lp"
-	modal_link = 'class="modal-link" id = "Site_Blocking_Count" data-toggle="modal" data-remote="/modals/parental-modal.lp" data-id="parental-modal"'																																				
+    modal_link = 'class="modal-link" id = "Site_Blocking_Count" data-toggle="modal" data-remote="modals/parental-modal.lp" data-id="parental-modal"'
+elseif not session:isdefaultuser() then
+    return
 end
-%>
- 
-<div class="span3">
-  <div class="smallcard" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">
-
-    <%= ui_helper.createCardHeader(T"Parental Controls", modalPath, switchName, nil) %>
-
-    <div class="content card_bg" data-bg-text="&#xf023;">
-	<div class="divtable">
-    <% ngx.print(
+  ngx.print('\
+\
+<div class="span3">\
+  <div class="smallcard" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
+\
+    ');  ngx.print( ui_helper.createCardHeader(T"Parental Controls", modalPath, switchName, nil) ); ngx.print('\
+\
+    <div class="content card_bg" data-bg-text="&#xf023;">\
+	<div class="divtable">\
+    ');  ngx.print(
             ui_helper.createSimpleLight(blockenabled, switchtext, { light = { id =  "Site_BlockingStatus_Led" }, span = { id =  "Site_Blocking_Status" } },"fa-ban"),
             '<p></p>',
             '<p class="subinfos">',
@@ -102,8 +104,9 @@ end
             '</p>'
             )
 
-    %>
-    </div>
-	</div>
-  </div>
-</div>
+      ngx.print('\
+    </div>\
+    </div>\
+  </div>\
+</div>\
+'); 

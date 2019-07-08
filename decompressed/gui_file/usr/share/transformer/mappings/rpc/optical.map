@@ -1,8 +1,8 @@
 local mapper, register = mapper, register
-local sfp = require("transformer.shared.sfp")
+local optical = require("transformer.shared.optical")
 
-local flag = sfp.readSFPFlag()
-if flag == 0 then
+local flag = optical.getBoardtype()
+if flag == "none" then
   return
 end
 

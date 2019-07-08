@@ -24,6 +24,7 @@ mmpbx_calllog.set = {
     clear = function(mapping, param, value)
         if value == "1" then
             conn:call("mmdbd.calllog", "deleteCallLog", {})
+            conn:call("mmdbd.callnumber.statistics", "reset", {})
         end
     end,
 }
@@ -190,35 +191,35 @@ local mmpbx_profile_statistics = {
                 access = "readOnly",
                 type = "string",
             },
-            incomingCalls = {
+            IncomingCallsReceived = {
                 access = "readOnly",
                 type = "string",
             },
-            incomingCallsConnected = {
+            IncomingCallsConnected = {
                 access = "readOnly",
                 type = "string",
             },
-            incomingCallsFailed = {
+            IncomingCallsFailed = {
                 access = "readOnly",
                 type = "string",
             },
-            outgoingCalls = {
+            OutgoingCallsAttempted = {
                 access = "readOnly",
                 type = "string",
             },
-            outgoingCallsConnected = {
+            OutgoingCallsConnected = {
                 access = "readOnly",
                 type = "string",
             },
-            outgoingCallsFailed = {
+            OutgoingCallsFailed = {
                 access = "readOnly",
                 type = "string",
             },
-            droppedCalls = {
+            CallsDropped = {
                 access = "readOnly",
                 type = "string",
             },
-            totalCallDuration = {
+            callTime = {
                 access = "readOnly",
                 type = "string",
             },
@@ -226,34 +227,48 @@ local mmpbx_profile_statistics = {
     },
 }
 
+local profile_stats = {
+    profile = "",
+    IncomingCallsReceived = "",
+    IncomingCallsConnected = "",
+    IncomingCallsFailed = "",
+    OutgoingCallsAttempted = "",
+    OutgoingCallsConnected = "",
+    OutgoingCallsFailed = "",
+    CallsDropped = "",
+    callTime = "",
+}
+local uci_helper = mapper("ucihelper")
+local sipnet_binding = { config="mmpbxrvsipnet" }
+
 local function entriesProfileStats ()
     local entries = {}
-    local profile_stats = conn:call("mmdbd.profile.statistics", "get", {} )
-    if profile_stats then
-        for _,v in pairs (profile_stats) do
-            entries[#entries+1] = v.profile
-        end
-    end
+    sipnet_binding.sectionname = "profile"
+    uci_helper.foreach_on_uci(sipnet_binding, function(s)
+        entries[#entries+1] = s['.name']
+    end)
     return entries
 end
 
 local function getallProfileStats(mapping,key)
-   local content = conn:call("mmdbd.profile.statistics", "get", { profile = key } )
-   local profile_stats = {}
-   if content and content[1] then
-      for param,v in pairs (content[1]) do
-         profile_stats[param] = tostring(v) or ""
-      end
-   end
-   return profile_stats
+    sipnet_binding.sectionname = key
+    sipnet_binding.option = "uri"
+    local profile_number = uci_helper.get_from_uci(sipnet_binding)
+    local content = conn:call("mmdbd.callnumber.statistics", "get", { profile = profile_number } )
+    if content and content[1] then
+        for param in pairs (profile_stats) do
+            profile_stats[param] = tostring(content[1][param]) or ""
+        end
+    end
+    return profile_stats
 end
 
 local function getProfileStats(mapping, param, key)
-    local content = conn:call("mmdbd.profile.statistics", "get", { profile = key } )
-    if content and content[1] then
-        return tostring(content[1][param]) or ""
-    end
-    return ""
+    sipnet_binding.sectionname = key
+    sipnet_binding.option = "uri"
+    local profile_number = uci_helper.get_from_uci(sipnet_binding)
+    local content = conn:call("mmdbd.callnumber.statistics", "get", { profile = profile_number } ) or {}
+    return content[1] and tostring(content[1][param]) or ""
 end
 
 mmpbx_profile_statistics.entries = entriesProfileStats

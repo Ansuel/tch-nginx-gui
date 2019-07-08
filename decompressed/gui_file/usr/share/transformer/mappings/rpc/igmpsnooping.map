@@ -39,7 +39,7 @@ local function entries()
   local entries = {}
   if readtable ~= nil then
     for line in readtable:lines() do
-      local index = match(line, "(%x+)%s+%S+$")
+      local index = match(line, "(%S+/%S+)$")
       if index then
         entries[#entries + 1] = index
       end

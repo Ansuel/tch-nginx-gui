@@ -1,6 +1,7 @@
 -- rpc for nfc ubus call
 
-local logger = require("transformer.logger")
+local modgui = require("modgui")
+local logger = modgui.getRightLoggerModule()
 local log = logger.new("nfc", 2)
 local register = register;
 local nfc_ = {

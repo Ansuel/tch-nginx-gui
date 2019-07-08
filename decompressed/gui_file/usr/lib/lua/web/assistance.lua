@@ -60,6 +60,7 @@ local function loadState(name)
         password="";
         mode="0";
         ifname = "";
+        ifname6 = "";
     }
     local f = io.open(stateFile:format(name), 'r')
     if f then
@@ -98,6 +99,18 @@ local function getInterfaceIP(ifname)
     local info = dm.get(format('rpc.network.interface.@%s.ipaddr', ifname))
     if info and info[1] and (info[1].param=='ipaddr') then
         return info[1].value
+    end
+end
+
+--- Get the IPv6 address of the named interface
+-- \param ifname (string) the interface (wan6, lan, ...)
+-- \returns the ipv6 address string or nil if not found
+local function getInterfaceIPv6(ifname)
+    if ifname and ifname ~= "" then
+        local info = dm.get(format('rpc.network.interface.@%s.ip6addr', ifname))
+        if info and info[1] and (info[1].param=='ip6addr') then
+            return info[1].value and string.match(info[1].value, "^%S+")
+        end
     end
 end
 
@@ -144,6 +157,19 @@ function Assistant:URL()
     end
 end
 
+--- Get the full URL with IPv6 address for the remote assistance
+-- @return [string] the URL
+-- @return nil if not enabled or no IPv6 address on the interface.
+function Assistant:URL6()
+    if self:enabled() then
+        local ipv6 = getInterfaceIPv6(self._interface6)
+        local port = self._port
+        if ipv6 and port then
+            return format("https://[%s]:%d", ipv6, port)
+        end
+    end
+end
+
 --- Get the password for the assistant to use
 -- This is only relevant if the assistent is enabled
 -- There is no need to show password when random password is not enabled
@@ -167,10 +193,27 @@ end
 local function differentSrpPassword(pswcfg, password)
   if password.salt and pswcfg.salt~=password.salt then
     return true
-  end 
+  end
   if password.verifier and pswcfg.verifier~=password.verifier then
     return true
   end
+end
+
+local function updateConfig(assistant, new_config)
+    if new_config then
+        assistant._config_update = nil
+        if (assistant._fromPort~=new_config.fromPort) or (assistant._toPort~=new_config.toPort) then
+            assistant._fromPort = new_config.fromPort
+            assistant._toPort = new_config.toPort
+        end
+        if assistant._interface ~= new_config.interface then
+          assistant._interface = new_config.interface
+        end
+        if assistant._interface6 ~= new_config.interface6 then
+          assistant._interface6 = new_config.interface6
+        end
+    end
+    return changed
 end
 
 -- check if there is any change for _mode and _pswcfg
@@ -181,10 +224,18 @@ local function checkUpdate(assistant, permanent, password)
         if differentSrpPassword(pswcfg, password) then
             return true
         end
-    elseif pswcfg~=password then
+    elseif (password~=false) and (pswcfg~=password) then
          return true
     end
-    return assistant._permanent~=(permanent or false)
+    if assistant._permanent~=(permanent or false) then
+      return true
+    end
+    if assistant._wanip ~= (getInterfaceIP(assistant._interface) or '') then
+        return true
+    end
+    if assistant._wanipv6 ~= getInterfaceIPv6(assistant._interface6) then
+        return true
+    end
 end
 
 --- update assistant cfg
@@ -215,6 +266,7 @@ local function updatecfg(assistant, bPermanent, password)
         config.password='_DUMMY_PASSWORD_'
     end
     config.ifname = assistant._interface
+    config.ifname6 = assistant._interface6
     writeState(assistant._name, config, true)
     return true
 end
@@ -258,6 +310,8 @@ local function persist(assistant)
     dm.set(sets)
 end
 
+local load_config_update
+
 --- enable or disable the assistant
 -- \param bActive (bool) if true enable else disable
 -- \param bPermanent (bool) if true permanent mode else temporary mode
@@ -268,6 +322,10 @@ end
 --    otherwise, previous password cfg will be used
 -- \returns true if no error or nil, errmsg is case of error
 function Assistant:enable(bActive, bPermanent, password)
+  if self._reload_config and not self:enabled() then
+    updateConfig(self, load_config_update(self._name))
+    self._reload_config = nil
+  end
     local changed = false
     bPermanent = bPermanent or self._persistent
     -- disable assistance if its cfg needs update
@@ -304,6 +362,11 @@ function Assistant:enable(bActive, bPermanent, password)
     return r
 end
 
+function Assistant:enable_with_reload(bActive, bPermanent, password)
+  self._reload_config = true
+  return self:enable(bActive, bPermanent, password)
+end
+
 local function restore(assistant)
     if not assistant._persistent then
         return
@@ -313,13 +376,12 @@ local function restore(assistant)
     if (not state) or (state.enabled ~= '1') then
         return
     end
-	
-	local port = tonumber(untaint(state.port))
-	if not port then
-		return
-	end
-	
-	state.port = port
+
+    local port = tonumber(untaint(state.port))
+    if not port then
+        return
+    end
+    state.port = port
 
     assistant._restore_state = state
     assistant:enable(true)
@@ -378,6 +440,9 @@ function assistant_enable(self)
             --restore_state data comes from transformer, so they are tainted
             user.srp_salt = untaint(self._restore_state.salt)
             user.srp_verifier = untaint(self._restore_state.verifier)
+            if not self._pswcfg then
+                self._pswcfg = { salt = user.srp_salt, verifier = user.srp_verifier }
+            end
             -- here we explicitly opt to set the password to an empty string
             -- this way no password is shown (but the actual password is set)
             self._psw = ""
@@ -400,17 +465,19 @@ function assistant_enable(self)
         
 		self._port = port
         self._wanip = getInterfaceIP(self._interface) or ''
+        self._wanipv6 = getInterfaceIPv6(self._interface6)
         self:activity()
         writeState(self._name, {
             wanip=self._wanip;
-            wanport=port;
+            wanipv6=self._wanipv6;
+            wanport=tostring(port);
             lanport=self._lanport;
             enabled="1";
             password=pwd or '';
             mode = self._permanent and "1" or "0";
-            ifname = self._interface
+            ifname = self._interface;
+            ifname6 = self._interface6
         })
-		
         return true
     end
     return nil, "internal error: user disappeared"
@@ -471,15 +538,18 @@ end
 -- \returns true if expired, false if not
 -- if expired the assistant is disabled
 function assistant_checkTimeout(self)
-    local expired = not self._permanent and self.timestamp and (self.timestamp + self._timeout) < clock_gettime(CLOCK_MONOTONIC) or false
+    local expired = not self._permanent and
+                    self.timestamp and
+                    (self.timestamp + self._timeout) < clock_gettime(CLOCK_MONOTONIC) or
+                    false
     if expired then
         self:enable(false)
     end
     return expired
 end
 
-local function newAssistant(config, sessionmgr)
-    local persistent = false
+local function makeInternalConfig(config)
+    config.persistent = false
     local timeout = tonumber(config.timeout)
     if not timeout then
         ngx.log(ngx.ERR, format("invalid timeout value (%s) for assistant %s", tostring(config.timeout), config._name))
@@ -487,11 +557,14 @@ local function newAssistant(config, sessionmgr)
     end
     if timeout<1 then
         if timeout==-1 then
-            persistent = true
+            config.persistent = true
         else
             ngx.log(ngx.ERR, format("negative timeout value (%d) for assistant %s", timeout, config._name))
             ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
         end
+    else
+      -- convert minutes to seconds
+      config.timeout = timeout*60
     end
     local fromPort, toPort = config.port:match('^%s*(%d+)%s*-%s*(%d+)%s*$')
     if fromPort then
@@ -508,21 +581,30 @@ local function newAssistant(config, sessionmgr)
     if toPort<fromPort then
         fromPort, toPort = toPort, fromPort
     end
+    config.fromPort = fromPort
+    config.toPort = toPort
+    config.port = nil
 
+    return config
+end
+
+local function newAssistant(config, sessionmgr)
+    config = makeInternalConfig(config)
 
     local assistant = {
         _name = config._name;
         _mgr = sessionmgr;
         _user = config.user;
-        _timeout = timeout*60; --convert minutes to seconds
+        _timeout = config.timeout,
         _interface = config.interface;
+        _interface6 = config.interface6;
         _lanport = control.mgrport(config.sessionmgr);
-        _fromPort = fromPort;
-        _toPort = toPort;
+        _fromPort = config.fromPort;
+        _toPort = config.toPort;
         _port = nil; --only set if enabled
         _psw = nil; --only set if enabled
         _pswchars = config.passwordchars;
-        _persistent = persistent;
+        _persistent = config.persistent;
         _permanent = false;
         _pswcfg = nil;
     }
@@ -534,7 +616,7 @@ end
 -- \param defaults (table or nil) the default values
 -- \returns a table with configured values (possibly with default) or nil
 -- if there is no config for the assistant named
-local function loadAssistanceConfig(name, defaults)
+local function loadAssistanceConfigFromUci(name, defaults)
     local config
     local path=format("uci.web.assistance.@%s.", name)
     local cfg=dm.get(path)
@@ -553,8 +635,8 @@ local function loadAssistanceConfig(name, defaults)
     return config
 end
 
-local function loadAssistant(name)
-    local config = loadAssistanceConfig(name, {
+local function loadAssistanceConfig(name)
+    return loadAssistanceConfigFromUci(name, {
         interface="wan",
         timeout=30,
         port="55000-56000",
@@ -563,6 +645,20 @@ local function loadAssistant(name)
 -- 0 1 o O l I
         passwordchars="23456789abcdefghijkmnpqrstuvwxyz!@#$%*.ABCDEFGHJKLMNPQRSTUVWXYZ"
     })
+end
+
+load_config_update = function(name)
+  local config = makeInternalConfig(loadAssistanceConfig(name))
+  return {
+    fromPort = config.fromPort,
+    toPort = config.toPort,
+    interface = config.interface,
+    interface6 = config.interface6,
+  }
+end
+
+local function loadAssistant(name)
+    local config = loadAssistanceConfig(name)
 
     if not config then
         ngx.log(ngx.INFO, format("%s assistance not enabled", name))
@@ -618,6 +714,14 @@ function M.getAssistant(name)
         assistants_info[name] = info
     end
     return info.assistant
+end
+
+function M.assistantNames()
+  local names = {}
+  for name in pairs(assistants_info) do
+    names[#names+1] = name
+  end
+  return names
 end
 
 -- local module state variables

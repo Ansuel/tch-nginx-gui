@@ -351,6 +351,18 @@ local Multi_Services_VoiceService_i_VoiceProfile_i_NumberingPlan_PrefixInfo_i_ =
                 type = "boolean",
                 default = "false",
            },
+           X_000E50_Index = {
+                access = "readWrite",
+                type = "unsignedInt",
+                range = {
+                    {
+                        min = "1",
+                        max = "65535",
+                    },
+                },
+                default = "1",
+                description = "The index parameter is used for priority selection mode. The higher the index the lower the priority",
+           },
            X_BELGACOM_InterDigitTimerOpen = {
                 access = "readWrite",
                 type = "unsignedInt",
@@ -389,6 +401,11 @@ Multi_Services_VoiceService_i_VoiceProfile_i_NumberingPlan_PrefixInfo_i_.entries
     content_entries = {}
 
     if parentkey:match("mmpbxrvsipdev") then
+        return entries
+    end
+
+    local digitmap_binding = { config = "mmpbx", sectionname = "dial_plan_generic" , option = "digit_map" }
+    if uci_helper.get_from_uci(digitmap_binding) == "1" then
         return entries
     end
 
@@ -448,6 +465,7 @@ local number_common_default = setmetatable({
     X_000E50_Data = "0",
     X_000E50_InsertPoint = "0",
     X_000E50_Insert = "",
+    X_000E50_Index = "1",
     X_BELGACOM_InterDigitTimerOpen = "0",
     FacilityActionArgument = "",
     DialTone = "0",
@@ -471,6 +489,7 @@ local scc_entry_map = {
 }
 scc_entry_map.default["PrefixMaxNumberOfDigits"] = "30"
 
+local selectionmode_binding = { config = "mmpbx", sectionname = "dial_plan_generic", option = "selection_mode" }
 local dial_plan_entry_map = {
     value = {
         PrefixRange = function(object)
@@ -502,6 +521,14 @@ local dial_plan_entry_map = {
         return "ROUTE_excl_eon"
         end,
         X_000E50_Enabled = "enabled",
+        X_000E50_Index = function(object)
+            local selectionMode = uci_helper.get_from_uci(selectionmode_binding)
+            local index
+            if selectionMode == "priority" then
+                index = object.index
+            end
+            return index or number_common_default[X_000E50_Index]
+        end,
         X_BELGACOM_InterDigitTimerOpen = "open_inter_digit_timer",
         FacilityAction = function(object)
             if (object.include_eon) then
@@ -618,6 +645,15 @@ local set_dial_plan_entry_map = {
         set_on_uci(binding, incl_eon, commitapply)
     end,
     X_000E50_Enabled = "enabled",
+    X_000E50_Index = function(object, value)
+        local selectionMode = uci_helper.get_from_uci(selectionmode_binding)
+        if selectionMode == "priority" then
+            binding.option = "index"
+            set_on_uci(binding, value, commitapply)
+        else
+            return nil, "Index value can be set only if the selection mode is priority"
+        end
+    end,
     X_BELGACOM_InterDigitTimerOpen = "true",
     FacilityActionArgument = function(object, value)
     end,
@@ -665,20 +701,15 @@ Multi_Services_VoiceService_i_VoiceProfile_i_NumberingPlan_PrefixInfo_i_.get = f
     local ntype, keyid = getInfoFromKey(key)
     local object = content_entries[keyid]
     local map = number_maps[ntype]
+    local result
     if map.value[param] then
         if type(map.value[param]) == "function" then
-            return map.value[param](object, keyid)
+            result = map.value[param](object, keyid)
         else
-            local result = object[map.value[param]]
-            if result then
-                return result
-            else
-                return map.default[param]
-            end
+            result = object[map.value[param]]
         end
-    else
-        return map.default[param]
     end
+    return result or map.default[param]
 end
 
 Multi_Services_VoiceService_i_VoiceProfile_i_NumberingPlan_PrefixInfo_i_.set = function(mapping, param, value, key)

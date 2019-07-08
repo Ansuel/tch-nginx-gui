@@ -1,5 +1,3 @@
-local string, tonumber, type = string, tonumber, type
-
 local mobiled_device_radio_preferences = {
 	objectType = {
 		name = 'rpc.mobiled.device.@.radio_preference.@.',
@@ -28,41 +26,38 @@ end
 local helper = require("mobiled.scripthelpers")
 
 local function getRadioPreferenceData(key, parent_key)
-	local radio_preference_id = tonumber(string.match(key, "%d"))
+	local info = {}
+	local radio_preference_id = tonumber(string.match(key, "_radio_preference(%d+)"))
 	if radio_preference_id and radio_preference_id >= 1 then
-		local data = helper.getUbusData(conn, "mobiled.device", "radio_preferences", { dev_idx = tonumber(string.match(parent_key, "%d")) })
+		local data = helper.getUbusData(conn, "mobiled.device", "radio_preferences", { dev_idx = tonumber(string.match(parent_key, "%d+")) })
 		if type(data.radio_preferences) == "table" then
 			local radio_preference = data.radio_preferences[radio_preference_id]
 			if type(radio_preference) == "table" then
-				setmetatable(radio_preference, { __index = function() return "" end })
-				return radio_preference
+				info = radio_preference
 			end
 		end
 	end
-	return {}
+	setmetatable(info, { __index = function() return "" end })
+	return info
 end
 
-local function getall(mapping, key, parent_key)
+function mobiled_device_radio_preferences.getall(_, key, parent_key)
 	return getRadioPreferenceData(key, parent_key)
 end
 
-local function get(mapping, paramName, key, parent_key)
-	return getall(mapping, key, parent_key)[paramName]
+function mobiled_device_radio_preferences.get(_, paramName, key, parent_key)
+	return mobiled_device_radio_preferences.getall(_, key, parent_key)[paramName]
 end
 
-local function radioPreferenceEntries(mapping, key, parent_key)
-	local data = helper.getUbusData(conn, "mobiled.device", "radio_preferences", { dev_idx = tonumber(parent_key) })
+function mobiled_device_radio_preferences.entries(_, parentkey)
+	local data = helper.getUbusData(conn, "mobiled.device", "radio_preferences", { dev_idx = tonumber(string.match(parentkey, "%d+")) })
 	local radio_preferences = {}
 	if type(data.radio_preferences) == "table" then
 		for i=1, #data.radio_preferences do
-			table.insert(radio_preferences, { tostring(i), "radio_preference" .. i })
+			table.insert(radio_preferences, { tostring(i), parentkey.. "_radio_preference" .. i })
 		end
 	end
 	return radio_preferences
 end
-
-mobiled_device_radio_preferences.getall = getall
-mobiled_device_radio_preferences.get = get
-mobiled_device_radio_preferences.entries = radioPreferenceEntries
 
 register(mobiled_device_radio_preferences)

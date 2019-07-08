@@ -51,7 +51,7 @@ end
 local helper = require("mobiled.scripthelpers")
 
 local function getall(mapping, key)
-    return helper.getUbusData(conn, "mobiled.sim.pin", "get", { dev_idx = tonumber(string.match(key, '%d')) })
+    return helper.getUbusData(conn, "mobiled.sim.pin", "get", { dev_idx = tonumber(string.match(key, '%d+')) })
 end
 
 local function get(mapping, paramName, key)
@@ -59,9 +59,10 @@ local function get(mapping, paramName, key)
 end
 
 local function set(mapping, paramName, paramValue, key)
+    local dev_idx = tonumber(string.match(key, '%d+'))
     if paramName == "unlock" then
         if #paramValue >= 4 and #paramValue <= 8 then
-            local ret = conn:call("mobiled.sim.pin", "unlock", { dev_idx = tonumber(string.match(key, '%d')), pin = paramValue })
+            local ret = conn:call("mobiled.sim.pin", "unlock", { dev_idx = dev_idx, pin = paramValue })
             if type(ret) == "table" and ret.error then
               return nil, ret.error
             end
@@ -70,7 +71,7 @@ local function set(mapping, paramName, paramValue, key)
     elseif paramName == "unblock" then
         local pinCode, pukCode = paramValue:match("([^,]+),([^,]+)")
         if #pinCode >= 4 and #pinCode <= 8 and #pukCode >= 8 and #pukCode <= 16 then
-            local ret = conn:call("mobiled.sim.pin", "unblock", { dev_idx = tonumber(string.match(key, '%d')), puk = pukCode, newpin = pinCode })
+            local ret = conn:call("mobiled.sim.pin", "unblock", { dev_idx = dev_idx, puk = pukCode, newpin = pinCode })
             if type(ret) == "table" and ret.error then
               return nil, ret.error
             end
@@ -79,7 +80,7 @@ local function set(mapping, paramName, paramValue, key)
     elseif paramName == "change" then
         local oldPin, newPin = paramValue:match("([^,]+),([^,]+)")
         if #oldPin >= 4 and #oldPin <= 8 and #newPin >= 4 and #newPin <= 8 then
-            local ret = conn:call("mobiled.sim.pin", "change", { dev_idx = tonumber(string.match(key, '%d')), pin = oldPin, newpin = newPin })
+            local ret = conn:call("mobiled.sim.pin", "change", { dev_idx = dev_idx, pin = oldPin, newpin = newPin })
             if type(ret) == "table" and ret.error then
               return nil, ret.error
             end
@@ -87,7 +88,7 @@ local function set(mapping, paramName, paramValue, key)
         end
     elseif paramName == "disable" then
         if #paramValue >= 4 and #paramValue <= 8 then
-            local ret = conn:call("mobiled.sim.pin", "disable", { dev_idx = tonumber(string.match(key, '%d')), pin = paramValue })
+            local ret = conn:call("mobiled.sim.pin", "disable", { dev_idx = dev_idx, pin = paramValue })
             if type(ret) == "table" and ret.error then
               return nil, ret.error
             end
@@ -95,7 +96,7 @@ local function set(mapping, paramName, paramValue, key)
         end
     elseif paramName == "enable" then
         if #paramValue >= 4 and #paramValue <= 8 then
-            local ret = conn:call("mobiled.sim.pin", "enable", { dev_idx = tonumber(string.match(key, '%d')), pin = paramValue })
+            local ret = conn:call("mobiled.sim.pin", "enable", { dev_idx = dev_idx, pin = paramValue })
             if type(ret) == "table" and ret.error then
               return nil, ret.error
             end

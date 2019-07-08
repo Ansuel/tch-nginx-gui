@@ -29,7 +29,7 @@ end
 local helper = require("mobiled.scripthelpers")
 
 local function getall(mapping, key)
-    return helper.getUbusData(conn, "mobiled.leds", "get", { dev_idx = tonumber(string.match(key, '%d')) })
+    return helper.getUbusData(conn, "mobiled.leds", "get", { dev_idx = tonumber(string.match(key, '%d+')) })
 end
 
 local function get(mapping, paramName, key)
