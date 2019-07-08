@@ -181,10 +181,10 @@ root() {
 	if [ "$(awk -F: '/root/ {print $7 }' /etc/passwd)" != "/bin/ash" ]; then #this enable root access from login
 		sed -i '1croot:x:0:0:root:/root:/bin/ash' /etc/passwd
 	fi
-	if [ -f /etc/shadow_old ] && [ -f /root/.reapply_due_to_upgrade ]; then
+	if [ -f /shadow_old ] && [ -f /root/.reapply_due_to_upgrade ]; then
 		old_encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow_old)
 		sed -i -e 's|"${encrypted_pass}"|"${old_encrypted_pass}"|' /etc/shadow
-		rm /etc/shadow_old
+		rm /shadow_old
 		echo "  Restoring old root password as this is a firmware upgrade!" > /dev/console
 	elif [ -n "$saved_encrypted_pass" ]; then
 	  if [ "$encrypted_pass" != "$saved_encrypted_pass" ]; then
