@@ -323,6 +323,7 @@ local function createTableWithEmptyValues()
   addEmptyAdslMib( "StandardsSupported", " ")
   addEmptyAdslMib( "SuccessFailureCause", 0)
   addEmptyAdslMib( "UPBOKLE", 0)
+  addEmptyAdslMib( "UPBOKLER", 0)
   addEmptyAdslMib( "US0MASK", 0)
   addEmptyAdslMib( "VirtualNoisePSDds", " ", "VirtualNoisePSDus", " ")
   addEmptyAdslMib( "XTUCANSIRev", 0)
@@ -367,7 +368,7 @@ local function createTableWithEmptyValues()
   addEmptyAdslMib( "ShowtimeSRAStartedDs", 0 )
   addEmptyAdslMib( "ShowtimeSRAStartedUs", 0 )
   addEmptyAdslMib( "ShowtimeSRACompletedDs", 0 )
-  addEmptyAdslMib( "ShowtimeSRACOmpletedUs", 0 )
+  addEmptyAdslMib( "ShowtimeSRACompletedUs", 0 )
   addEmptyAdslMib( "ShowtimeFRAStartedDs", 0 )
   addEmptyAdslMib( "ShowtimeFRAStartedUs", 0 )
   addEmptyAdslMib( "ShowtimeFRACompletedDs", 0 )
@@ -509,7 +510,7 @@ end
 local function getAdslMibInfo(lineid)
   local line = getLineNum(lineid)
   local diff = os.time() - lastUpdateTime[line]
-  if diff > 5 then
+  if diff > 5 or diff < 0 then
     tmp = luabcm.getAdslMib(line)
     lastUpdateTime[line] = os.time()
     if tostring(tmp) == "-1" then
@@ -642,6 +643,7 @@ local paramMap = {
   ["StandardsSupported"] = {"StandardsSupported"},
   ["SuccessFailureCause"] = {"SuccessFailureCause"},
   ["UPBOKLE"] = {"UPBOKLE"},
+  ["UPBOKLER"] = {"UPBOKLER"},
   ["US0MASK"] = {"US0MASK"},
   ["VirtualNoisePSD"] = {"VirtualNoisePSDds", "VirtualNoisePSDus"},
   ["XTUCANSIRev"] = {"XTUCANSIRev"},

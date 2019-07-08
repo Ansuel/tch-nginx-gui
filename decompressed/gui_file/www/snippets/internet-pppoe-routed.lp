@@ -74,8 +74,8 @@ function get_dhcp_state(wan_auto, wan_ppp, wan_error, ipaddr)
 			return "connected"
 		elseif wan_ppp == "disconnecting" then
 			return "disconnecting"
-		elseif wan_ppp == "disconned" then
-			return "disconned"
+		elseif wan_ppp == "disconnected" then
+			return "disconnected"
 	  end
 
 	  if not (wan_error == "" or wan_error == "USER_REQUEST") then

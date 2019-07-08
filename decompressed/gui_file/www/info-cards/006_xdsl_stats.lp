@@ -13,8 +13,8 @@ local find, sub, format, floor = string.find, string.sub, string.format, math.fl
 local content = {
   status = "sys.class.xdsl.@line0.LinkStatus",
   version = "rpc.xdsl.dslversion",
-  max_upstream = "Device.DSL.Line.1.UpstreamMaxBitRate",
-  max_downstream = "Device.DSL.Line.1.DownstreamMaxBitRate",
+  dsl_linerate_up_max = "sys.class.xdsl.@line0.UpstreamMaxRate",
+  dsl_linerate_down_max = "sys.class.xdsl.@line0.DownstreamMaxRate",
   dsl_linerate_up = "sys.class.xdsl.@line0.UpstreamCurrRate",
   dsl_linerate_down = "sys.class.xdsl.@line0.DownstreamCurrRate",
   dsl_margin_up = "sys.class.xdsl.@line0.UpstreamNoiseMargin",
@@ -30,17 +30,18 @@ local content = {
   dslam_version = "rpc.xdslctl.DslamVersion",
   dslam_version_raw = "rpc.xdslctl.DslamVersionRaw",
   dsl_profile = "rpc.xdslctl.DslProfile",
-  dsl_port = "rpc.xdslctl.DslamPort"
+  dsl_port = "rpc.xdslctl.DslamPort",
+  dsl_serial = "rpc.xdslctl.DslamSerial",
 }
 
 content_helper.getExactContent(content)
 
 if not ( content.dsl_linerate_down == "0" ) then
-
-content.dsl_linerate_up = floor(tonumber(content.dsl_linerate_up) / 10) / 100 .. " Mbps"
-content.dsl_linerate_down = floor(tonumber(content.dsl_linerate_down) / 10) / 100 .. " Mbps"
-content.max_upstream = floor(tonumber(content.max_upstream) / 10) / 100 .. " Mbps"
-content.max_downstream = floor(tonumber(content.max_downstream) / 10) / 100 .. " Mbps"
+content.max_upstream = nil
+content.dsl_linerate_up = content.dsl_linerate_up and floor(tonumber(content.dsl_linerate_up) / 10) / 100 .. " Mbps"  or "Can't recover data"
+content.dsl_linerate_down = content.dsl_linerate_down and floor(tonumber(content.dsl_linerate_down) / 10) / 100 .. " Mbps"  or "Can't recover data"
+content.dsl_linerate_up_max = content.dsl_linerate_up_max and (floor(tonumber(content.dsl_linerate_up_max) / 10) / 100 .. " Mbps") or "Can't recover data"
+content.dsl_linerate_down_max = content.dsl_linerate_down_max and floor(tonumber(content.dsl_linerate_down_max) / 10) / 100 .. " Mbps"  or "Can't recover data"
 
 if not ( content.dsl_type:match("ADSL") ) then
 	content.dsl_margin_down = content.dsl_margin_SNRM_down
@@ -93,20 +94,26 @@ end
 	else
 		html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",format(T"Invalid version, can't convert. Raw value: %s", content.dslam_version_raw) , basic )
 	end
-	if(content.dsl_profile ~= "Not Found") then
+	if (content.dsl_profile ~= "Not Found") then
 		basic.span["data-bind"] = "text: dsl_profile"
 		html[#html + 1] = ui_helper.createLabel(T"VDSL Profile", content.dsl_profile, basic )
+	end
+	if ( content.dsl_port ~= "" ) then
 		basic.span["data-bind"] = "text: dsl_port"
 		html[#html + 1] = ui_helper.createLabel(T"VDSL DSLAM Port", content.dsl_port, basic )
+	end
+	if ( content.dsl_serial ~= "" ) then
+		basic.span["data-bind"] = "text: dsl_serial"
+		html[#html + 1] = ui_helper.createLabel(T"VDSL DSLAM Serial", content.dsl_serial, basic )
 	end
 
 	html[#html + 1] = '<div class="control-group">'
 	html[#html + 1] =   '<label class="control-label">' .. T("Max Rate") .. '</label>'
 	html[#html + 1] =   '<div class="controls">'
 	html[#html + 1] =     '<span id="Rate" class=" simple-desc span3">'
-	html[#html + 1] =		format('<i class="icon-download icon-small gray"></i> <span data-bind="text: max_downstream">%s</span>',content["max_downstream"])
+	html[#html + 1] =		format('<i class="icon-download icon-small gray"></i> <span data-bind="text: dsl_linerate_down_max">%s</span>',content["dsl_linerate_down_max"])
 	html[#html + 1] =		'</br>'
-	html[#html + 1] =		format('<i class="icon-upload icon-small gray"></i> <span data-bind="text: max_upstream">%s</span>', content["max_upstream"])
+	html[#html + 1] =		format('<i class="icon-upload icon-small gray"></i> <span data-bind="text: dsl_linerate_up_max">%s</span>', content["dsl_linerate_up_max"])
 	html[#html + 1] =	  '</span>'
 	html[#html + 1] =   '</div>'
 	html[#html + 1] = '</div>'

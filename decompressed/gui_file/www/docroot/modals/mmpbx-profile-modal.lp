@@ -621,7 +621,7 @@ $(document).ready(function() {\
         call_hint = "Can be used";\
       }\
       call.attr({"class": "someInfos " + call_class,"rel": "tooltip", "data-placement": "top", "data-original-title": call_hint});\
-    })\
+    });\
     $(".someInfos").tooltip();\
 });\
 </script>\

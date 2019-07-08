@@ -1,4 +1,5 @@
-<%
+--pretranslated: do not change this file
+
 -- Enable localization
 gettext.textdomain('webui-voice')
 
@@ -377,31 +378,41 @@ local uri = ngx.var.uri
 if ngx.var.args and string.len(ngx.var.args) > 0 then
     uri = uri .. "?" .. ngx.var.args
 end
-%>
 
-<%= ui_helper.createHeader(T"Telephony", false, true) %>
-<div class="modal-body update">
-  <%
+ngx.print('\
+');ngx.print( ui_helper.createHeader(T"Telephony", false, true) ); ngx.print('\
+<div class="modal-body update">\
+  ')
+  
   local lp = require("web.lp")
   lp.setpath("/www/snippets/")
   lp.include("tabs-voice.lp")
-  %>
-  <form class="form-horizontal" method="post" action="<%= uri %>">
-        <fieldset>
-            <legend><%= T"Call Log" %></legend>
-            <%= ui_helper.createTable(calllog_columns, calllog_data, calllog_options) %>
-        </fieldset>
-        <fieldset>
-            <center>
-                <%= ui_helper.createSimpleButton(T"Clear call logs", "icon-bolt", clear_call_log)%>
-            </center>
-        <fieldset>
-            <legend><%= T"Call Statistics" %></legend>
-            <%= ui_helper.createTable(stats_columns_device, device_stats_data, stats_options) %>
-            <%= ui_helper.createTable(stats_columns_profile, profile_stats_data, stats_options) %>
-        </fieldset>
-        </fiedset>
-   </form>
-</div>
-<%= ui_helper.createFooter() %>
+  
+  ngx.print('\
+  <form class="form-horizontal" method="post" action="'); ngx.print( uri ); ngx.print('">\
+        <fieldset>\
+		')
+		
+		local html = {}
+		
+        html[#html+1] = "<legend>" .. T"Call Log" .. "</legend>"
+        html[#html+1] =     ui_helper.createTable(calllog_columns, calllog_data, calllog_options)
+        html[#html+1] = "</fieldset>"
+        html[#html+1] = "<fieldset>"
+        html[#html+1] =     "<center>"
+        html[#html+1] =         ui_helper.createSimpleButton(T"Clear call logs", "icon-bolt", clear_call_log)
+        html[#html+1] =     "</center>"
+        html[#html+1] = "<fieldset>"
+        html[#html+1] =     "<legend>".. T"Call Statistics" .. "</legend>"
+        html[#html+1] =     ui_helper.createTable(stats_columns_device, device_stats_data, stats_options)
+        html[#html+1] =     ui_helper.createTable(stats_columns_profile, profile_stats_data, stats_options)
+        html[#html+1] = "</fieldset>"
+		
+		ngx.print(html)
+		
+		ngx.print('\
+        </fiedset>\
+   </form>\
+</div>\
+'); ngx.print( ui_helper.createFooter() )
 

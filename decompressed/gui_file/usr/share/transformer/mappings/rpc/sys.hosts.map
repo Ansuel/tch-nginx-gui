@@ -1,7 +1,5 @@
--- NG-60620
--- NG-102389 TI VBNT-K : Devices connected in WiFi is Listed under Ethernet Interface
 local require = require
-local table, pairs, tostring, error = table, pairs, tostring, error  
+local table, pairs, tostring, error = table, pairs, tostring, error
 local register, commitapply, mapper, io = register, commitapply, mapper, io
 local pairs, tostring, error = pairs, tostring, error
 local uciHelper = mapper("ucihelper")
@@ -77,77 +75,6 @@ local function getInterfaceZoneType(interface)
     return nil
 end
 
-local intfType, macAddr, keyValue
-local qtnMAC = string.lower(get_from_uci({ config = "env", sectionname = "var", option = "qtn_eth_mac" }))
-local modeCheck = false
-local function getExternalWifiIntfType(devices)
- local ssid
-  if intfType and macAddr then
-     return intfType, macAddr
-  end
-  if not keyValue and modeCheck == false then
-    local wirelessRadio = conn:call("wireless.radio", "get" , {}) or {}
-    modeCheck = true
-    for radioID, radio in pairs(wirelessRadio) do
-      if radio.remotely_managed == 1 and radio.integrated_ap == 1 then
-        keyValue = radioID
-        break
-      end
-    end
-  end
-  if (keyValue) then
-    if not macAddr then
-      ssid = conn:call("wireless.ssid", "get", {})
-    end
-    if not ssid then
-      return intfType, macAddr
-    end
-    --get radio-remote information
-    local radioremoteMAC, radioremoteIntf
-    local radioremote = conn:call("wireless.radio.remote", "get", { name = keyValue })
-    if radioremote then
-      local _, radio = next(radioremote)
-      if radio then
-        radioremoteMAC = radio.macaddr
-        radioremoteIntf = radio.ifname
-      end
-    end
-    for _, wlInterface in pairs(ssid) do
-      if wlInterface.radio == keyValue then
-        local lastByte = tonumber(wlInterface.mac_address:sub(-2), 16)
-        local obtMacAddr = string.format("%02x", ((lastByte -1) % 256))
-        local mac_prefix = string.sub(wlInterface.mac_address, 1, -3)
-        macAddr = string.format("%s%s", mac_prefix, obtMacAddr)
-        if qtnMAC == macAddr then
-          break
-        end
-      end
-      -- In case the ssid is remotely managed, integrated and disabled, the received macaddress via wireless.ssid  is 0,
-      -- then we need to get the mac via wireless.radio.remote
-      if ((macAddr == "ff:ff:ff:ff:ff:ff" ) and keyValue ) then
-        if not intfType or not macAddr then
-          macAddr = radioremoteMAC
-          intfType = radioremoteIntf
-        end
-      end
-    end
-    if not intfType  then
-      for _, device in pairs(hostsCache) do
-        if device["mac-address"] == macAddr then
-          intfType= device.l2interface
-        end
-      end
-    end
-    --Bridged to Routed mode change will not have host for Quantenna, intfType will not be available.
-    if not intfType and macAddr == radioremoteMAC then
-      intfType = radioremoteIntf
-    end
-  else
-    macAddr = qtnMAC
-  end
-  return intfType, macAddr
-end
-
 --Updates the host cache and LAN interface cache
 local function updateLanCache()
     --Update the hosts cache from hostmanager
@@ -165,7 +92,7 @@ local function getWirelessNumberOfEntries(mapping)
         updateLanCache()
     end
     local numberOfHosts = 0
-    local intfType, macAddr = getExternalWifiIntfType(hostsCache)
+    local intfType, macAddr = network.getExternalWifiIntfType(hostsCache)
     for _, v in pairs(hostsCache) do
       if ((v["technology"] == "wireless" and isLanInterface(v["interface"])) or
           (v["mac-address"] ~= macAddr and v["technology"] == "ethernet" and (v["l2interface"] == intfType or v["l2interface"] == match(v["l2interface"], "wl%d+_%d+")))) then
@@ -180,7 +107,7 @@ local function getEthernetNumberOfEntries(mapping)
         updateLanCache()
     end
     local numberOfHosts = 0
-    local intfType, macAddr = getExternalWifiIntfType(hostsCache)
+    local intfType, macAddr = network.getExternalWifiIntfType(hostsCache)
     for _, v in pairs(hostsCache) do
       if v["technology"] == "ethernet" and isLanInterface(v["interface"])  and  (v["l2interface"] ~= intfType and v["mac-address"] ~= macAddr and v["l2interface"] ~= match(v["l2interface"], "wl%d+_%d+")) then
         numberOfHosts = numberOfHosts + 1
@@ -194,7 +121,7 @@ local function getActiveWirelessNumberOfEntries(mapping)
         updateLanCache()
     end
     local numberOfHosts = 0
-    local intfType, macAddr = getExternalWifiIntfType(hostsCache)
+    local intfType, macAddr = network.getExternalWifiIntfType(hostsCache)
     for _, v in pairs(hostsCache) do
       if v["state"] == "connected" and ((v["technology"] == "wireless" and isLanInterface(v["interface"])) or (v["mac-address"] ~= macAddr and v["technology"] == "ethernet" and (v["l2interface"] == intfType or v["l2interface"] == match(v["l2interface"], "wl%d+_%d+")))) then
         numberOfHosts = numberOfHosts + 1
@@ -208,7 +135,7 @@ local function getActiveEthernetNumberOfEntries(mapping)
         updateLanCache()
     end
     local numberOfHosts = 0
-    local intfType, macAddr = getExternalWifiIntfType(hostsCache)
+    local intfType, macAddr = network.getExternalWifiIntfType(hostsCache)
     for _, v in pairs(hostsCache) do
       if v["technology"] == "ethernet" and  isLanInterface(v["interface"]) and (v["l2interface"] ~= intfType and v["l2interface"] ~= match(v["l2interface"], "wl%d+_%d+") and v["mac-address"] ~= macAddr) and v["state"] == "connected" then
         numberOfHosts = numberOfHosts + 1
@@ -342,18 +269,23 @@ local Sys_Hosts_Host_i_ = {
         access = "readOnly",
         type = "unsignedInt",
       },
-	  SSID = {
+      SSID = {
         access = "readOnly",
+        type = "string",
+      },
+      FriendlyName = {
+        access = "readWrite",
         type = "string",
       },
     }
   }
 }
 
+local dhcp = require("transformer.shared.dhcp")
 
 -- Extract an IP address from the given value and add it to the list
 local function extractAddress(value, addresses)
-  if value["state"] == "connected" then
+  if value["state"] == "connected" or value["state"] == "stale" then
     if addresses == "" then
       addresses = value["address"]
     else
@@ -361,6 +293,16 @@ local function extractAddress(value, addresses)
     end
   end
   return addresses
+end
+
+local function extractFriendlyName(dev)
+  if dev and dev["user-friendly-name"] and dev["user-friendly-name"] ~= "" then
+    return dev["user-friendly-name"]
+  elseif dev["hostname"] and dev["hostname"] ~= "" then
+    return dev["hostname"]
+  else
+    return "Unknown-" .. dev["mac-address"]
+  end
 end
 
 local hostExtraInfo
@@ -385,6 +327,7 @@ end
 Sys_Hosts_Host_i_.entries = function(mapping)
   --Update the interfaces and hosts cache - every time someone starts iteration on the hosts
   updateLanCache()
+  wanInterfacesCache = nwcommon.findLanWanInterfaces(true)
   local Hosts = network.getHostInfo(hostsCache)
   loadHostExtraInfo()
   return Hosts
@@ -431,7 +374,7 @@ local function extractIPv4(dev)
    end
    return addresses
  end
- 
+
  local function extractIPv6(dev)
    local addresses = ""
    if dev ~= nil then
@@ -485,22 +428,23 @@ local function extractStats(dev, param)
 end
 
 local function extractHostName(dev, extraInfo)
-    local HostName = extraInfo and extraInfo["HostName"]
-    if not HostName or HostName == "" then
-        if dev ~= nil and dev["hostname"] ~= nil then
-            return dev["hostname"]
-        end
-        return ""
+  local HostName = extraInfo and extraInfo["HostName"]
+  if not HostName or HostName == "" then
+    if dev ~= nil and dev["hostname"] ~= nil then
+      return dev["hostname"]
+    else
+      return "Unknown-" .. dev["mac-address"]
     end
-    return HostName
+  end
+  return HostName
 end
 
 local function extractInterfaceType(dev)
-   local intfType, macAddr = getExternalWifiIntfType()
+   local intfType, macAddr = network.getExternalWifiIntfType()
    if dev == nil then
        return ""
    end
-   if (dev["mac-address"] ~= macAddr and (dev["l2interface"] == intfType) or ( dev["l2interface"] and dev["l2interface"] == match(dev["l2interface"], "wl%d+_%d+")))  then
+   if dev["mac-address"] ~= macAddr and (dev["l2interface"] == intfType or dev["l2interface"] and match(dev["l2interface"], "wl%d+_%d+")) then
       return "wireless"
    else
         return dev["technology"]
@@ -529,25 +473,15 @@ local function extractConnectedTime(dev)
 end
 
 local function extractDhcpLeaseTime(dev)
-    if dev == nil or dev["mac-address"] == nil then
-        return ""
-    end
-    local path="/tmp/dhcp.leases"
-    local fd = io.open(path)
-    assert(fd)
-    local leasetable = fd:read("*all")
-    for leasetime,macaddr in gmatch(leasetable, "(%d+)%s+(%x%x:%x%x:%x%x:%x%x:%x%x:%x%x)%s+") do
-        if dev["mac-address"] == macaddr then
-            fd:close()
-            return leasetime or ""
-        end
-    end
-    fd:close()
+  if dev == nil or dev["mac-address"] == nil then
     return ""
+  end
+  local hostDetails = dhcp.getDhcpInfo(dev["mac-address"])
+  return hostDetails.leasetime or ""
 end
 
 local function extractL2Interface(dev)
-   local intfType, macAddr = getExternalWifiIntfType()
+   local intfType, macAddr = network.getExternalWifiIntfType()
    if dev == nil or dev["mac-address"] == nil or dev["l2interface"] == nil then
        return ""
    end
@@ -577,7 +511,7 @@ local function extractPort(dev)
     -- [CL] If the device in the hostmanager ubus call knows what port a device is attached to, let's trust it
     -- [CL] Hacking this into the generic sys.hosts.map file until someone can explain me how to properly customize this without
     -- [CL] copying the entire file and hence losing all future functionality/bugfixes since noone looks at our platforms anyway.
-    local intfType, macAddr = getExternalWifiIntfType()
+    local intfType, macAddr = network.getExternalWifiIntfType()
     if dev == nil then
         return ""
     end
@@ -633,14 +567,20 @@ local foreach_on_uci = uciHelper.foreach_on_uci
 local delete_on_uci = uciHelper.delete_on_uci
 local commit = uciHelper.commit
 local revert = uciHelper.revert
-
+local dhcp_binding = { config ="dhcp", sectionname = "host" }
+local qos_binding = { config = "qos" }
 local gsub = string.gsub
+
+local function getQosSectionName(mac)
+  local mac_without_colon = gsub(mac,"%W","")
+  return "mac" .. mac_without_colon
+end
+
 local function getPriority(key)
-  local qos_binding = { config = "qos"}
-  qos_binding.sectionname = "host" .. gsub(key,"%W","")
-  qos_binding.option = "priority"
-  qos_binding.default = "0"
-  return get_from_uci(qos_binding)
+  qos_binding.sectionname = getQosSectionName(key)
+  qos_binding.option = "target"
+  local priority = get_from_uci(qos_binding)
+  return priority == "gamingpriority" and "1" or "0"
 end
 
 Sys_Hosts_Host_i_.getall = function(mapping, key)
@@ -668,6 +608,7 @@ Sys_Hosts_Host_i_.getall = function(mapping, key)
         BytesReceived = extractStats(dev, "BytesReceived"),
         PktsSent = extractStats(dev, "PktsSent"),
         PktsReceived = extractStats(dev, "PktsReceived"),
+        FriendlyName = extractFriendlyName(dev),
     }
 end
 
@@ -704,107 +645,124 @@ local function setHostExtraInfo(mapping, param, value, key)
   end
 end
 
-Sys_Hosts_Host_i_.set = {
-  -- Set function for "Priority" param
-  Priority = function(mapping, param, value, key)
-    local qos_binding = {config = "qos"}
-    local dhcp_binding = {config ="dhcp", sectionname = "host"}
-    local dev = key2dev(key)
-    local mac = extractMacAddresses(dev)
-    local mac_without_colon = gsub(mac,"%W","")
-    local qossectionname = "mac" .. mac_without_colon
-    if value == "1" then
-
-      -- STEP FOLLOWED IN BELOW CODE
-      -- 1. Check whether "gaming" label available or not.
-      -- 2. If label not available, create "gaming" label with an higher trafficid(trafficid = 7) in order to be send out in a higher priority queue.
-      -- 3. Create the host entry, set the priority to 1
-      -- 4. Add the reclassify entry in the "qos" configuration with the source IP address
-
-      -- START --
-      -- Check the existing gaming label available or not
-      qos_binding.sectionname = "gamingpriority"
-      local qos_gaming_label_data = get_from_uci(qos_binding)
-      -- If not available, create the new label
-      if qos_gaming_label_data == "" then
-
-	set_on_uci(qos_binding,"label",commitapply)
-	qos_binding.option = "trafficid"
-	set_on_uci(qos_binding,"7",commitapply)
-      end
-      -- Set the "priority" to "1".
-      qos_binding={ config= "qos" }
-      qos_binding.sectionname = "host" .. mac_without_colon
-      set_on_uci(qos_binding,"host",commitapply)
-
-      qos_binding.option="priority"
-      set_on_uci(qos_binding,value,commitapply)
-
-      qos_binding.option="mac"
-      set_on_uci(qos_binding,mac,commitapply)
-
-      qos_binding={ config= "qos" }
-      qos_binding.sectionname = qossectionname
-      local qos_entry = get_from_uci(qos_binding)
-      if qos_entry == "" then
-        if mac then
-
-          qos_binding.sectionname = qossectionname
-          set_on_uci(qos_binding,"reclassify",commitapply)
-
-          qos_binding.option="srcmac"
-          set_on_uci(qos_binding,mac,commitapply)
-
-          -- Point this "reclassify" to the "gamingpriority" class which we created.
-          qos_binding.option="target"
-          set_on_uci(qos_binding,"gamingpriority",commitapply)
-        end
-      end
-      transactions[qos_binding.config] = true
-      local static_lease_binding_found = false
-      -- Limitation: If static lease removed by GUI, then there will be issue when the Gaming device is rebooted and got different IP address.
-      foreach_on_uci(dhcp_binding,function(s)
-        if s["mac"] == mac then  -- Not checking the owner, already user via gui or other applications might have added static lease
-          static_lease_binding_found = true
-        end
-      end)
-      if not static_lease_binding_found then
-        local result = uciHelper.add_on_uci(dhcp_binding)
-        if result then
-          local dhcp_binding_set = {config = "dhcp", sectionname=result , option = "mac"}
-          set_on_uci(dhcp_binding_set,mac,commitapply)
-
-          dhcp_binding_set.option = "owner"
-          set_on_uci(dhcp_binding_set,"gamingdevice", commitapply)
-
-          transactions[dhcp_binding.config] = true
-        end
-      end
-      -- END --
-    else
-      -- Delete the entries "qos" configuration.
-      -- Not deleting the "gamingpriority" class which may be used by another device.
-      local qos_delete_binding={ config = "qos" }
-      qos_delete_binding.sectionname="host" .. mac_without_colon
-      delete_on_uci(qos_delete_binding,commitapply)
-      qos_delete_binding.sectionname="mac" .. mac_without_colon
-      delete_on_uci(qos_delete_binding,commitapply)
-      transactions[qos_binding.config] = true
-      local dhcp_delete
-      foreach_on_uci(dhcp_binding, function(s)
-        if s["owner"] == "gamingdevice" and s["mac"] == mac then
-          dhcp_delete = s[".name"]
-        end
-      end)
-      if dhcp_delete then
-        local dhcp_binding_delete = {config="dhcp", sectionname = dhcp_delete}
-        delete_on_uci(dhcp_binding_delete,commitapply)
-        transactions[dhcp_binding.config] = true
-      end
+local function haveStaticLease(mac)
+  local static_lease = false
+  -- Limitation: If static lease removed by GUI, then there will be issue when the Gaming device is rebooted and got different IP address.
+  foreach_on_uci(dhcp_binding,function(s)
+    if s.mac == mac then  -- Not checking the owner, already user via gui or other applications might have added static lease
+      static_lease = true
+      return false
     end
-  end,
+  end)
+  return static_lease
+end
+
+-- Add 'host' section under 'dhcp' configuration.
+-- Add 'mac' and 'owner' option under 'host' section.
+local function setGamingRule(mac)
+  local newSectionName = uciHelper.add_on_uci(dhcp_binding)
+  if newSectionName then
+    local dhcp_binding_set = { config = "dhcp", sectionname = newSectionName , option = "mac" }
+    set_on_uci(dhcp_binding_set, mac, commitapply)
+    dhcp_binding_set.option = "owner"
+    set_on_uci(dhcp_binding_set, "gamingdevice", commitapply)
+    transactions[dhcp_binding.config] = true
+  end
+end
+
+local function setDhcpGamingRule(mac)
+  if not haveStaticLease(mac) then
+    setGamingRule(mac)
+  end
+end
+
+local function setQosGamingLabel()
+  qos_binding.option = nil
+  qos_binding.sectionname = "gamingpriority"
+  local gaming_label = get_from_uci(qos_binding)
+  -- If not available, create the new label
+  if gaming_label == "" then
+    set_on_uci(qos_binding, "label", commitapply)
+    qos_binding.option = "trafficid"
+    set_on_uci(qos_binding, "7", commitapply)
+  end
+end
+
+local function setQosReclassify(mac)
+  qos_binding.option = nil
+  qos_binding.sectionname = getQosSectionName(mac)
+  local reclassifySection = get_from_uci(qos_binding)
+  if reclassifySection == "" then
+    qos_binding.sectionname = getQosSectionName(mac)
+    set_on_uci(qos_binding, "reclassify", commitapply)
+    qos_binding.option="srcmac"
+    set_on_uci(qos_binding, mac, commitapply)
+  end
+  qos_binding.option = "target"
+  set_on_uci(qos_binding, "gamingpriority", commitapply)
+  transactions[qos_binding.config] = true
+end
+
+-- Function to Add Gaming Label Section and Reclassify Rule in QOS
+-- Add Gaming Rule Section in DHCP
+local function setGamingQos(mac)
+  setQosGamingLabel()
+  setQosReclassify(mac)
+  -- Add 'host' section under 'dhcp' configuration
+  setDhcpGamingRule(mac)
+end
+
+local function deleteGamingTarget(mac)
+  -- Delete "target" option under reclassify section.
+  qos_binding.sectionname = getQosSectionName(mac)
+  qos_binding.option = "target"
+  set_on_uci(qos_binding, "", commitapply)
+  transactions[qos_binding.config] = true
+end
+
+local function gamingDeviceSection(mac)
+  local section
+  foreach_on_uci(dhcp_binding, function(s)
+    if s["owner"] == "gamingdevice" and s["mac"] == mac then
+      section = s[".name"]
+      return false
+    end
+  end)
+  return section
+end
+
+local function deleteDhcpGamingRule(mac)
+  local section = gamingDeviceSection(mac)
+  if section then
+    local dhcp_binding_delete = { config="dhcp", sectionname = section }
+    delete_on_uci(dhcp_binding_delete, commitapply)
+    transactions[dhcp_binding.config] = true
+  end
+end
+
+-- Function to delete DHCP Gaming rule section and Qos 'target' option
+local function resetGamingQos(mac)
+  deleteGamingTarget(mac)
+  deleteDhcpGamingRule(mac)
+end
+
+local function setPriority(mapping, param, value, key)
+  local dev = key2dev(key)
+  local mac = extractMacAddresses(dev)
+  if value == "1" then
+    setGamingQos(mac)
+  else
+    resetGamingQos(mac)
+  end
+end
+
+Sys_Hosts_Host_i_.set = {
+  Priority = setPriority,
   HostName = setHostExtraInfo,
   HostType = setHostExtraInfo,
+  FriendlyName = function(mapping, param, value, key)
+    conn:call("hostmanager.device", "set", { ["mac-address"] = key, ["user-friendly-name"] = value })
+  end
 }
 
 Sys_Hosts_Host_i_.get = {
@@ -893,14 +851,17 @@ Sys_Hosts_Host_i_.get = {
     return extractStats(dev, param)
   end,
   SSID = function(mapping, param, key)
-	local dev = key2dev(key)
+    local dev = key2dev(key)
     local iface = extractL2Interface(dev)
-	local ssid = get_from_uci({ config = "wireless", sectionname = iface , option = "ssid"})
-	if ssid == nil then
-		return ""
-	end
-	return ssid
-  end
+    local ssid = get_from_uci({ config = "wireless", sectionname = iface , option = "ssid"})
+    if ssid == nil then
+      return ""
+    end
+    return ssid
+  end,
+  FriendlyName = function(mapping, param, key)
+    return extractFriendlyName(key2dev(key))
+  end,
 }
 Sys_Hosts_Host_i_.commit = function()
   for config,_ in pairs(transactions) do

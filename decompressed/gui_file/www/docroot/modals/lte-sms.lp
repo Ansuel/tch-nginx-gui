@@ -95,12 +95,12 @@ local params = utils.get_params()
 				</div>\
 			</div>\
 		</div>\
-		<div class="row-fluid messagestatus">\
+		<div data-bind="visible: messages().length > 0" class="row-fluid messagestatus">\
 			<div class="span5">\
 				<h5 style="float: left; margin-right: 10px;">');  ngx.print( T"Storage used" ); ngx.print('</h5><span id="storageused" class="progress progress-striped"></span>\
 			</div>\
-			<div class="span2"><h5 data-bind="text: readMessages"></h5></div>\
-			<div class="span2"><h5 data-bind="text: unreadMessages"></h5></div>\
+			<div class="span2"><h5 data-bind="text: readMessagesText"></h5></div>\
+			<div class="span2"><h5 data-bind="text: unreadMessagesText"></h5></div>\
 			<div class="span3"></div>\
 		</div>\
 	</form>\
@@ -114,8 +114,8 @@ local params = utils.get_params()
 \
 	function sortResults(obj, prop, asc) {\
 		obj = obj.sort(function(a, b) {\
-			if (asc) return (a[prop] > b[prop]) ? 1 : ((a[prop] < b[prop]) ? -1 : 0);\
-			else return (b[prop] > a[prop]) ? 1 : ((b[prop] < a[prop]) ? -1 : 0);\
+			if (asc) { return (a[prop] > b[prop]) ? 1 : ((a[prop] < b[prop]) ? -1 : 0); }\
+			else { return (b[prop] > a[prop]) ? 1 : ((b[prop] < a[prop]) ? -1 : 0); }\
 		});\
 		return obj;\
 	}\
@@ -123,66 +123,52 @@ local params = utils.get_params()
 	var SmsView = function () {\
 		var self = this;\
 		this.messages = ko.observableArray([]);\
-		this.readMessages = ko.computed(function() {\
-			var read = 0;\
+		this.readMessages = ko.observable(0);\
+		this.unreadMessages = ko.observable(0);\
+		this.readMessagesText = ko.computed(function() {\
 			var text="');  ngx.print( T"Read messages" ); ngx.print('";\
-			for (var i = 0; i< this.messages().length; i++) {\
-				if(this.messages()[i].status == \'read\') {\
-					read++;\
-				}\
-			}\
-			return text+\': \'+read;\
+			return text+\': \'+this.readMessages();\
 		}, this);\
-		this.unreadMessages = ko.computed(function() {\
-			var unread = 0;\
+		this.unreadMessagesText = ko.computed(function() {\
 			var text="');  ngx.print( T"Unread messages" ); ngx.print('";\
-			for (var i = 0; i< this.messages().length; i++) {\
-				if(this.messages()[i].status == \'unread\') {\
-					unread++;\
-				}\
-			}\
-			return text+\': \'+unread;\
+			return text+\': \'+this.unreadMessages();\
 		}, this);\
 		this.setMessageStatus = function() {\
 			var action = \'read\';\
 			if(this.status == \'read\') {\
 				action=\'unread\';\
 			}\
-\
 			var params = [ { name: \'id\', value: this.id },\
 						   { name: \'action\', value: action },\
 						   tch.elementCSRFtoken() ];\
-			self.getMessages(params);\
+			self.update(params);\
 		};\
 		this.removeMessage = function() {\
 			var params = [ { name: \'id\', value: this.id },\
 						   { name: \'action\', value: \'delete\' },\
 						   tch.elementCSRFtoken() ];\
-			self.getMessages(params);\
+			self.update(params);\
 		};\
-		this.updateMessages = function () {\
-			self.getMessages([tch.elementCSRFtoken()]);\
-		};\
-		this.getMessages = function(params) {\
+		this.update = function(params) {\
 			$.post("/ajax/sms.lua", params, function(data) {\
 				// First sort by ID in order to keep a consistent data set.\
-				data = sortResults(data, \'id\', false);\
-				data = sortResults(data, \'date\', false);\
-				self.messages(data);\
-			}, "json");\
-		};\
-		this.updateStorageInfo = function() {\
-			var params = [ { name: \'storageinfo\', value: "1" },\
-						   tch.elementCSRFtoken() ];\
-			$.post("/ajax/sms.lua", params, function(data) {\
-				var percent = 0;\
-				data.total_messages = parseInt(data.total_messages)\
-				data.max_message = parseInt(data.max_message)\
-				if(!isNaN(data.total_messages) && !isNaN(data.max_messages)) {\
-					percent = Math.round(((data.total_messages/data.max_messages)*100));\
+				if(data.messages != undefined) {\
+					data.messages = sortResults(data.messages, \'id\', false);\
+					data.messages = sortResults(data.messages, \'date\', false);\
+					self.messages(data.messages);\
 				}\
-				$(\'#storageused\').progressbar(\'setPosition\', percent);\
-				$(\'#storageused\').prop(\'title\', percent+\'%\');\
+				if(data.info != undefined) {\
+					var percent = 0;\
+					data.total_messages = parseInt(data.info.total_messages);\
+					data.max_message = parseInt(data.info.max_message);\
+					self.unreadMessages(parseInt(data.info.unread_messages));\
+					self.readMessages(parseInt(data.info.read_messages));\
+					if(!isNaN(data.info.total_messages) && !isNaN(data.info.max_messages)) {\
+						percent = Math.round(((data.info.total_messages/data.info.max_messages)*100));\
+					}\
+					$(\'#storageused\').progressbar(\'setPosition\', percent);\
+					$(\'#storageused\').prop(\'title\', percent+\'%\');\
+				}\
 			}, "json");\
 		};\
 		this.createStorageInfo = function() {\
@@ -193,8 +179,7 @@ local params = utils.get_params()
 			});\
 		};\
 		this.refresh = function() {\
-			self.updateMessages();\
-			self.updateStorageInfo();\
+			self.update([tch.elementCSRFtoken()]);\
 		};\
 		self.createStorageInfo();\
 		setInterval(self.refresh, (60*1000));\

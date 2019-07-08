@@ -83,6 +83,14 @@ local uci_traceroute_ = {
         activeNotify = "canDeny",
         type = "unsignedInt",
       },
+      ProtocolVersion = {
+        access = "readWrite",
+        type = "string",
+        enumeration = {
+          "IPv4",
+          "IPv6",
+        },
+      },
       -- RouteHopsNumberOfEntries
       -- automatically created when InternetGatewayDevice.TraceRouteDiagnostics.RouteHops.{i}. is loaded
     }
@@ -125,7 +133,8 @@ local uci_traceroute_RouteHops_i_ = {
 }
 
 local open = io.open
-local logger = require("transformer.logger")
+local modgui = require("modgui")
+local logger = modgui.getRightLoggerModule()
 local uci = mapper("ucihelper")
 local config = "traceroute"
 local function entries_users(mapping)
@@ -166,6 +175,7 @@ uci_traceroute_.add = function(mapping, name)
           DataBlockSize = { config = config, sectionname = section, option = "size" },
           DSCP = { config = config, sectionname = section, option = "dscp" },
           MaxHopCount = { config = config, sectionname = section, option = "hopcount" },
+          ProtocolVersion = { config = config, sectionname = section, option = "type" },
         }
         return helper.startup(name, uci_binding)
     else

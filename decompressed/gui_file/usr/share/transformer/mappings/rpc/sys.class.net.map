@@ -1,14 +1,11 @@
-local logger = require("transformer.logger")
-local log = logger.new("sys.class.net", 2)
 local lfs = require("lfs")
-local register, tostring, table = register, tostring, table;
-local open = io.open
+local register, table = register, table
 
 local sys_class_net_ = {
   objectType = {
     name = "sys.class.net.@.",
     access = "readOnly",
-    numEntriesParameter = "NetNumberOfEntries", 
+    numEntriesParameter = "NetNumberOfEntries",
     minEntries = 0,
     maxEntries = math.huge,
     parameters = {
@@ -20,27 +17,26 @@ local sys_class_net_ = {
 	        access = "readOnly",
 	        type = "string",
         },
-        
 		dormant = {
 	        access = "readOnly",
 	        type = "string",
-        },       
-		duplex	 = {
+        },
+		duplex = {
 	        access = "readOnly",
 	        type = "string",
         },
 		flags = {
 	        access = "readOnly",
 	        type = "string",
-        },    
+        },
 		link_mode = {
 	        access = "readOnly",
 	        type = "string",
-        },            
+        },
 		mtu = {
 	        access = "readOnly",
 	        type = "string",
-        },        
+        },
 		operstate = {
 	        access = "readOnly",
 	        type = "string",
@@ -53,46 +49,36 @@ local sys_class_net_ = {
 	        access = "readOnly",
 	        type = "string",
         },
-        
     },
   }
 }
 
 local syspath = "/sys/class/net/"
-
-local function firstline(filename)
-    local fd, msg = open(filename)
-    if not fd then
-        -- you could return nil and and error message but that will abort
-        -- iterating over all parameters.
-        -- so here I opt to just return an empty string.
-        return ""
-    end
-    local result = fd:read("*l")
-    if result == nil then
-   		result = ""
-	end
-    fd:close()
-    return result
-end
+local network = require("transformer.shared.common.network")
 
 local function entriesSysClassNet(mapping)
-	local entries = {}
-	for file in lfs.dir(syspath) do
-            -- Weird but the symlinks in /sys/class/net return nil for mode
-	    if lfs.attributes(file,"mode")== nil then
-	    	-- Filter out logic interface for TG-1600
-            	if file == "eth0.0" or file == "eth1.0" or file == "eth2.0" or file == "eth3.0" then
-		   break
-            	end			
-	    	table.insert(entries, file)
-	    end
-	end
-	return entries
+   local entries = {}
+   for file in lfs.dir(syspath) do
+      if lfs.attributes(syspath .. file,"mode") == "directory" then
+         -- Filter out logic interface for TG-1600
+         if not (file == "." or file == ".." or file == "eth0.0" or file == "eth1.0" or file == "eth2.0" or file == "eth3.0") then
+            table.insert(entries, file)
+         end
+      end
+   end
+   return entries
 end
 
 local function get(mapping, paramName, key)
-	return firstline(syspath .. key .. "/" .. paramName)
+   local result = network.getFirstLine(syspath .. key .. "/" .. paramName)
+   if result == "" then
+     if paramName == "speed" then
+       return "0"
+     elseif paramName == "duplex" then
+       return "N/A"
+     end
+   end
+   return result
 end
 
 

@@ -200,10 +200,10 @@ local function import_config()
   ngx.exit(ngx.HTTP_OK)
 end
 
-local function upgradefw(upgradetype)
+local function upgradefw(reset,rootonly)
   local fwupgrade_rpc_path = "rpc.system.fwupgrade."
   local filename = "fwupgrade.bin"
-
+  
   local content = {
     fwupgrade_state = fwupgrade_rpc_path .. "state",
     fwupgrade_location = fwupgrade_rpc_path .. "location"
@@ -225,8 +225,11 @@ local function upgradefw(upgradetype)
   -- sysupgrade will create the pipe
   -- separate requests as the order is important
   proxy.set({[fwupgrade_rpc_path .. "filename"] = filename})
-  if ( upgradetype == "Reset" ) then
-	proxy.set({[fwupgrade_rpc_path .. "upgradetype"] = upgradetype})
+  if reset then
+	proxy.set({[fwupgrade_rpc_path .. "upgrade_type"] = "Reset"})
+  end
+  if rootonly then
+	proxy.set({[fwupgrade_rpc_path .. "gui_install_type"] = "Rootonly"})
   end
   proxy.set({[fwupgrade_rpc_path .. "state"] = "Requested"})
 
@@ -276,18 +279,33 @@ local function resetreboot(path, value)
   ngx.exit(ngx.HTTP_OK)
 end
 
+local function schedulerebootset(scheduledatetime)
+ proxy.set("rpc.system.scheduledreboot",scheduledatetime)
+ proxy.set("uci.system.scheduledreboot.enabled","1")
+ proxy.set("rpc.system.scheduledrebootreason","GUI")
+ ngx.header.content_type = "application/json"
+ ngx.print('{ "success":"true" }')
+ ngx.timer.at(0, function()
+    proxy.apply()
+ end)
+   ngx.exit(ngx.HTTP_OK)
+end
+local cui = {
+  upgradefw = "uci.web.uiconfig.@uidefault.upgradefw",
+}
+content_helper.getExactContent(cui)
+
 -- Handle fwupgrade/configimport/configexport specific GET/POSTs.
 if ngx.req.get_method() == "POST" then
   local action = ngx.req.get_uri_args().action
+  local upgrade_reset = ngx.req.get_uri_args().upgrade_reset  and true or nil
+  local upgrade_rootonly = ngx.req.get_uri_args().upgrade_rootonly and true or nil
   -- do not call get_post_args before we know that we don't have a file sent otherwise it will fail
   if action == "import_config" then
     return import_config()
   end
   if action == "upgradefw" then
-    return upgradefw("Normal")
-  end
-  if action == "upgradefw_reset" then
-	return upgradefw("Reset")
+    return upgradefw(upgrade_reset,upgrade_rootonly)
   end
   -- now process non-file POSTs
   local action = ngx.req.get_post_args().action
@@ -299,6 +317,9 @@ if ngx.req.get_method() == "POST" then
   end
   if action == "system_reboot" then
     return resetreboot("rpc.system.reboot", "GUI")
+  end
+  if action == "schedulerebootset" then
+    return schedulerebootset(ngx.req.get_post_args().paramvalue)
   end
 elseif ngx.req.get_method() == "GET" then
   local action = ngx.req.get_uri_args().action
@@ -340,7 +361,7 @@ local content = {
   passivebank = "sys.banktable.passivebank",
   activeversion = "sys.banktable.activeversion",
   passiveversion = "sys.banktable.passiveversion",
-  rip_key_B = "rpc.system.rip_key_B",
+  rip_key_B = "rpc.system.modgui.utility.rip_key_B",
 }
 
 content_helper.getExactContent(content)
@@ -387,50 +408,43 @@ local ntp_columns = {
     name = "ntp_server",
     param = "value",
     type = "text",
+    unique = true
   }
 }
 
--- Function to check the NTP server input and throws error if the entry/ip falls between IPv4 loopback range or it is a IPv4 subnet mask.
-local function checkNTP(ip)
-  if ip and inet.isValidIPv4(untaint(ip)) then
-    if post_helper.validateIPv4Netmask(ip) then
-      return nil,T"Cannot use IPv4 subnet mask."
-    end
-    local startLoopback = "127.0.0.0"
-    local endLoopback = "127.255.255.255"
-    if not (startLoopback <= ip and ip <= endLoopback) then
-      return true
-    else
-      return nil,T"Cannot use loopback IPv4 address range."
-    end
-  end
-end
-
 local function validateNTP(value, object, key)
 -- Adding localdevicemask in post to find the input is a network or broadcast IPv4 address in advancedIPValidation
-  object["localdevmask"] = proxy.get("uci.network.interface.@lan.netmask")[1].value
-  local ntp_servers = session:retrieve("ntp_data")
-  if ntp_servers then
-    for _,v in pairs(ntp_servers) do
-       if (v[1] == value) then
-         return nil, T"Duplicate entry is not allowed"
-       end
-    end
-  end
+  local content = {
+    localdevmask = "uci.network.interface.@lan.netmask",
+    ipaddr = "rpc.network.interface.@lan.ipaddr",
+    wan_ipaddr = "rpc.network.interface.@wan.ipaddr"
+  }
+  content_helper.getExactContent(content)
+  object.localdevmask = content.localdevmask
 
-  if post_helper.validateStringIsIP(value) then
-    local ipaddr = proxy.get("rpc.network.interface.@lan.ipaddr")[1].value
-    local wan_ipaddr = proxy.get("rpc.network.interface.@wan.ipaddr")[1].value
-    if ipaddr and ipaddr == value then
-       return nil, T"Cannot use the gateway IP address."
-    elseif wan_ipaddr and wan_ipaddr == value then
-       return nil, T"Cannot use the gateway WAN IP address."
+  local ok, errmsg, wholeNumber
+  wholeNumber = string.gsub(value,"%.","")
+  if post_helper.getValidateWholeNumber(wholeNumber) then
+    ok, errmsg = post_helper.validateStringIsIPv4(value)
+    if not ok then
+      return nil, errmsg
+    end
+    if post_helper.validateIPv4Netmask(value) then
+      return nil, T"Cannot use IPv4 subnet mask."
+    end
+    if content.ipaddr and content.ipaddr == value then
+      return nil, T"Cannot use the gateway IP address."
+    elseif content.wan_ipaddr and content.wan_ipaddr == value then
+      return nil, T"Cannot use the gateway WAN IP address."
     else
-       local IPValidation = gOV(gAV(checkNTP, post_helper.advancedIPValidation), post_helper.validateStringIsIPv6)
-       return IPValidation(value, object, key)
+      return gOV(gAV(post_helper.reservedIPValidation, post_helper.advancedIPValidation), post_helper.validateStringIsIPv6)(value, object, key)
     end
   else
-    return post_helper.validateStringIsDomainName(value)
+    if not post_helper.validateStringIsIPv6(value) then
+      return post_helper.validateStringIsDomainName(value)
+    else
+      return true
+    end
   end
 end
 
@@ -503,15 +517,10 @@ local system_valid = {
   end,
 }
 
-local cui = {
-  upgradefw = "uci.web.uiconfig.@uidefault.upgradefw",
-}
-content_helper.getExactContent(cui)
-
 local system_data,system_helpmsg = post_helper.handleQuery(system_params, system_valid)
 
 -- Get timezones
-local timezones = require("tz_helper")
+local timezones = require("transformer.shared.zonenames")
 
 local function getTimeZoneName(list, isRemote)
   local default_tztable = {
@@ -727,7 +736,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
           class = "monitor-system_network_timezone monitor-0"
         }
       }
-	  local reset_on_update = {
+	  local reset_on_upgrade = {
         input = {
             class = "no-save",
         }
@@ -771,6 +780,16 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 
       html[#html + 1] = ui_helper.createAlertBlock(T"Restarting, please wait...", rebooting)
       html[#html + 1] = ui_helper.createButton(T"Restart Device", T"Restart", "icon-refresh", wait_for_reboot)
+      if role == "engineer" then
+        html[#html + 1] = '<div class="control-group">'
+        html[#html + 1] = format('<label class="control-label">%s</label>', T"Schedule Reboot")
+        html[#html + 1] = '<div class="controls">'
+        html[#html + 1] = '<input type="date"  name="date_schedule" id="date_schedule" ><input type="time" value="00:00"  name="time_schedule" id="time_schedule">&nbsp;'
+        html[#html + 1] =  ui_helper.createSimpleButton(T"Schedule Reboot", "icon-time", schedule_reboot)
+        html[#html + 1] = ui_helper.createAlertBlock(T"Schedule failed :  please select correct Time and date.", schedule_fail)
+        html[#html + 1] = '<label class="schedule_message_get hide">A Reboot has been Scheduled</label>'
+        html[#html + 1] = '</div></div>'
+      end
       html[#html + 1] = ui_helper.createAlertBlock(T"Resetting to factory defaults, please wait...", resetting)
       html[#html + 1] = ui_helper.createButton(T"Factory Defaults", T"Reset", "icon-bolt", wait_for_reset)
       html[#html + 1] = ui_helper.createButton(T"Export Configuration", T"Export", "icon-download-alt", export_config)
@@ -780,7 +799,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       html[#html + 1] = '<div class="control-group">'
       html[#html + 1] = format('<label class="control-label">%s</label>', T"Import Configuration")
       html[#html + 1] = '<div class="controls">'
-      html[#html + 1] = '<input type="file" name="configfile" id="file-import">&nbsp;'
+      html[#html + 1] = '<input type="file" name="configfile" id="file-import" accept=".bin">&nbsp;'
       html[#html + 1] = ui_helper.createSimpleButton(T"Import", "icon-upload-alt", import_config)
       html[#html + 1] = '</div></div>'
       html[#html + 1] = ui_helper.createAlertBlock(T"No file selected.", importing_nofile)
@@ -793,12 +812,14 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       if cui.upgradefw == "1" then
         if cui.upgradefw == "1" then
 		  html[#html + 1] = ui_helper.createAlertBlock(T"Check this to remove config after firmware update.<br/>This won't remove root.<br/>It is advertised to check this if you are downgrading the firmware.", basic)
-		  html[#html + 1] = ui_helper.createInputCheckbox(T"Remove config file with upgrade","remove_conf","0",reset_on_update)
+		  html[#html + 1] = ui_helper.createInputCheckbox(T"Remove config file with upgrade","remove_conf_on_upgrade","0",reset_on_upgrade)
+		  html[#html + 1] = ui_helper.createAlertBlock(T"Check this to only root the modem after the firmware is installed.<br/>After this you had to reinstall the gui.<br/>Expect the web interface to be broken after the upgrade", basic)
+		  html[#html + 1] = ui_helper.createInputCheckbox(T"Root only modem after upgrade","rootonly_on_upgrade","0",reset_on_upgrade)
           html[#html + 1] = '</form><form class="form-horizontal" id="form-upgradefw" method="post" enctype="multipart/form-data">'
           html[#html + 1] = '<div class="control-group">'
           html[#html + 1] = format('<label class="control-label">%s</label>', T"Update firmware")
           html[#html + 1] = '<div class="controls">'
-          html[#html + 1] = '<input type="file" name="upgradefile" id="file-upgradefw">&nbsp;'
+          html[#html + 1] = '<input type="file" name="upgradefile" id="file-upgradefw" accept=".rbi, .fw">&nbsp;'
           html[#html + 1] = ui_helper.createSimpleButton(T"Update", "icon-shield", upgradefw)
           html[#html + 1] = '</div></div>'
           html[#html + 1] = ui_helper.createAlertBlock(T"No file selected.", upgrading_nofile)
@@ -884,10 +905,34 @@ ngx.print('\
       $(document).on("click", PopUpHeaderText, function() {\
            tch.removeProgress();\
            tch.showProgress(processMsg);\
-		   console.log("test");\
            return resetreboot($("#rebooting-msg"), $(this), "system_reboot" );\
 	  });\
   });\
+\
+  $("#btn-schedule-reboot").on("click", function() {\
+   var _date = $("#date_schedule").val();\
+   var _time = $("#time_schedule").val();\
+   schedule_time = $("#date_schedule").val()+"T"+$("#time_schedule").val()+":00Z" ;\
+   var temp =  $("#system_time").text();\
+   var timeformat = temp.split(" ");\
+   temp = timeformat[0]+"T"+timeformat[1]+"Z";\
+   if((( _date && _time) != "") &&( temp < schedule_time))\
+     {\
+      $("#schedule-failed-msg").addClass("hide");\
+      $("#date_schedule").addClass("hide");\
+      $("#time_schedule").addClass("hide");\
+      $("#btn-schedule-reboot").addClass("hide");\
+      $(".schedule_message_get").removeClass("hide");\
+\
+       $.post(\
+          target,\
+          { action: "schedulerebootset", CSRFtoken: $("meta[name=CSRFtoken]").attr("content"),paramvalue :schedule_time },wait_for_webserver_down,"json");\
+     }\
+    else\
+     {\
+       $("#schedule-failed-msg").removeClass("hide");\
+     }\
+ });\
 \
   $("#btn-system-reset").on("click", function() {\
       var heading = "');  ngx.print(T'Factory Defaults'); ngx.print('";\
@@ -900,6 +945,13 @@ ngx.print('\
           return resetreboot($("#resetting-msg"), $(this), "system_reset");\
 	  });\
   });\
+\
+  if ("');  ngx.print(content["schedule_reboot_get"]); ngx.print('" == "1") {\
+    $("#date_schedule").addClass("hide");\
+    $("#time_schedule").addClass("hide");\
+    $("#btn-schedule-reboot").addClass("hide");\
+    $(".schedule_message_get").removeClass("hide");\
+  }\
 \
   $(document).on("click", "#cancel", function() {\
       tch.removeProgress();\
@@ -951,8 +1003,8 @@ ngx.print('\
     var fileSize = $("#file-import")[0].files[0].size;\
     if (fileSize > 1048576) {\
         toobig_msg.removeClass("hide");\
-	toobig_msg[0].scrollIntoView();\
-	return false;\
+		toobig_msg[0].scrollIntoView();\
+		return false;\
     }\
 \
     var _this = $(this).parents(".control-group");\
@@ -1022,7 +1074,7 @@ ngx.print('\
             failure_msg.text("');  ngx.print( T'Firmware update failed.' ); ngx.print('");\
             break;\
           }\
-          failure_msg.text(failure_msg.text() + " (');  ngx.print( T'Errorcode: ' ); ngx.print('" + data.errorcode + ")")\
+          failure_msg.text(failure_msg.text() + " (');  ngx.print( T'Errorcode: ' ); ngx.print('" + data.errorcode + ")");\
           failure_msg.removeClass("hide");\
           failure_msg[0].scrollIntoView();\
           tch.removeProgress()\
@@ -1063,11 +1115,11 @@ ngx.print('\
 \
 	    if (fileSize > targetBankSize) {\
     		toobig_msg.removeClass("hide");\
-		toobig_msg[0].scrollIntoView();\
-		return false;\
+			toobig_msg[0].scrollIntoView();\
+			return false;\
 	    }\
 	  }\
-      })\
+      });\
     toobig_msg.addClass("hide");\
 \
     var _this = $(this).parents(".control-group");\
@@ -1076,10 +1128,13 @@ ngx.print('\
     upgrading_msg.removeClass("hide");\
     upgrading_msg[0].scrollIntoView();\
     tch.showProgress("');  ngx.print(T'Upgrading...'); ngx.print('");\
-	if ($("input[name=\'remove_conf\']").is(":checked")) {\
-		$("#form-upgradefw").attr("action", "modals/gateway-modal.lp?action=upgradefw_reset"); } \
-	else {\
-		$("#form-upgradefw").attr("action", "modals/gateway-modal.lp?action=upgradefw"); }\
+	var action = "modals/gateway-modal.lp?action=upgradefw";\
+	if ($("input[name=\'remove_conf_on_upgrade\']").is(":checked"))\
+		action+="&upgrade_reset=1";\
+	if ($("input[name=\'rootonly_on_upgrade\']").is(":checked"))\
+		action+="&upgrade_rootonly=1";\
+\
+	$("#form-upgradefw").attr("action", action);\
     $.fileUpload($("#form-upgradefw"), { \
       params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
       completeCallback: function(form, response) {\

@@ -1,6 +1,8 @@
 local table = table
-local string = string
 local uci_helper = mapper("ucihelper")
+local commitapply = commitapply
+local io, register = io, register
+local binding = { config = "ethernet", sectionname = "", option = "", default = "" }
 
 local sys_eth_ = {
     objectType = {
@@ -8,9 +10,28 @@ local sys_eth_ = {
         access = "readOnly",
         minEntries = 1,
         maxEntries = 1,
-        parameters = {},
+        parameters = {
+          WANCapable = {
+            access = "readOnly",
+            type = "string",
+          },
+       }
     }
 }
+
+local function getWANCapable()
+  local port
+  binding.sectionname = "port"
+  uci_helper.foreach_on_uci(binding, function(s)
+    if s.wan == '1' then
+      local name = resolve("sys.eth.port.@.", s['.name'])
+      port = port and port .." ".. name or name
+    end
+  end)
+  return port or ""
+end
+
+sys_eth_.get = getWANCapable
 
 register(sys_eth_)
 
@@ -34,6 +55,10 @@ local sys_eth_port_i_ = {
       mode = {
         access = "readOnly",
         type = "string",
+      },
+      reconnect = {
+        access = "readWrite",
+        type = "boolean",
       }
     }
   }
@@ -52,9 +77,9 @@ local function get_status(_, _, key)
     local f = io.open("/sys/class/net/" .. key .. "/carrier")
     local status
     if f == nil or f:read("*number") ~= 1 then
-      status = "Down"
+      status = "down"
     else
-      status = "Up"
+      status = "up"
     end
     if f then
       f:close()
@@ -80,11 +105,33 @@ local function get_mode(_, _, key)
     return speed .. "BASE-T"
 end
 
+local function getEthernetPort()
+  local port = ""
+  binding.sectionname = "port"
+  binding.option = nil
+  uci_helper.foreach_on_uci(binding, function(s)
+    if s['wan'] == '1' then
+      port = s['.name']
+      return false
+    end
+  end)
+  return port
+end
+
 sys_eth_port_i_.get = {
     status = get_status,
     speed = get_speed,
     mode = get_mode,
+    reconnect = "0"
 }
+
+sys_eth_port_i_.set = function(mapping, param, value)
+    if param == "reconnect" then
+      if value == "1" then
+        commitapply:newset("sys.eth.port.@" ..getEthernetPort() ..".reconnect")
+      end
+    end
+end
 
 sys_eth_port_i_.entries = entriesEthPorts
 register(sys_eth_port_i_)

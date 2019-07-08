@@ -1,6 +1,7 @@
 local M = {}
 local open = io.open
-local logger = require("transformer.logger")
+local modgui = require("modgui")
+local logger = modgui.getRightLoggerModule()
 local uci = require("transformer.mapper.ucihelper")
 local match = string.match
 local pairs, remove = pairs, os.remove
@@ -102,8 +103,8 @@ function M.startup(user, binding)
     uci.set_on_uci(uci_binding[user]["Timeout"], 10000)
     uci.set_on_uci(uci_binding[user]["DataBlockSize"], 56)
     uci.set_on_uci(uci_binding[user]["DSCP"], 0)
+    uci.set_on_uci(uci_binding[user]["ProtocolVersion"], "IPv4")
     if user == "webui" then
-      uci.set_on_uci(uci_binding[user]["ipType"], "IPv4")
       uci.set_on_uci(uci_binding[user]["NumberOfRepetitions"], 4)
     else
       uci.set_on_uci(uci_binding[user]["NumberOfRepetitions"], 3)
@@ -115,8 +116,8 @@ function M.startup(user, binding)
       uci.set_on_uci(uci_binding[user]["Timeout"], 10000)
       uci.set_on_uci(uci_binding[user]["DataBlockSize"], 56)
       uci.set_on_uci(uci_binding[user]["DSCP"], 0)
+      uci.set_on_uci(uci_binding[user]["ProtocolVersion"], "IPv4")
       if user == "webui" then
-        uci.set_on_uci(uci_binding[user]["ipType"], "IPv4")
         uci.set_on_uci(uci_binding[user]["NumberOfRepetitions"], 4)
       else
         uci.set_on_uci(uci_binding[user]["NumberOfRepetitions"], 3)
@@ -141,6 +142,7 @@ function M.uci_ipping_get(user, pname)
        Timeout = { config = config, sectionname = user, option = "timeout" },
        DataBlockSize = { config = config, sectionname = user, option = "size" },
        DSCP = { config = config, sectionname = user, option = "dscp" },
+       ProtocolVersion = { config = config, sectionname = user, option = "iptype" },
      }
   end
   if uci_binding[user][pname] then

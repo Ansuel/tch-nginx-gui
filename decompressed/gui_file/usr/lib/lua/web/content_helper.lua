@@ -4,6 +4,7 @@ local open = io.open
 local pairs, ipairs, unpack, type, tonumber = pairs, ipairs, unpack, type, tonumber
 local concat, sort = table.concat, table.sort
 local string = string
+local untaint = string.untaint
 
 --- content_helper module
 --  @module content_helper
@@ -72,7 +73,7 @@ function M.getExactContent(content)
 		errmsg[#errmsg+1] = "</br>"
 		for key, path in pairs(content) do
 			if not (proxy.get(path)) then
-				errmsg[#errmsg+1] = "Key <strong>" .. key .. "</strong>" .. " : " .. path .. "</br>"
+				errmsg[#errmsg+1] = "Key <strong>" .. untaint(key) .. "</strong>" .. " : " .. untaint(path) .. "</br>"
 				errkey[#errkey+1] = key
 				content[key] = nil
 			end
@@ -266,11 +267,16 @@ local function convertResultToObject(basepath, results, sorted)
     local indexstart, indexmatch, subobjmatch
     local data = {}
     local output = {}
+    local find, gsub = string.find, string.gsub
 
     indexstart = #basepath
     if not basepath:find("%.@%.$") then
         indexstart = indexstart + 1
     end
+
+    basepath = gsub(basepath,"-", "%%-")
+    basepath = gsub(basepath,"%[", "%%[")
+    basepath = gsub(basepath,"%]", "%%]")
 
     if results then
         for _,v in ipairs(results) do
@@ -278,7 +284,7 @@ local function convertResultToObject(basepath, results, sorted)
             -- subobj can be nil (if the parameter is just under basepath) but if it is not, then we concatenate it with the param name
             -- so subobjects will be defined using their full "subpath"
             indexmatch, subobjmatch = v.path:match("^([^%.]+)%.(.*)$", indexstart)
-            if indexmatch ~= nil then
+            if indexmatch and find(v.path, basepath) == 1 then
                 if data[indexmatch] == nil then
                     -- Initializes 2 structures. One (data) is used to gather the data for a given "object"
                     -- The other (output) is used to create an array of those objects to be able to list data in order
@@ -347,7 +353,7 @@ local function processCheckboxGroupData(c,v)
             if not key then
                 break
             end
-            cb_data[#cb_data + 1] = string.untaint(key)
+            cb_data[#cb_data + 1] = untaint(key)
         end
     end
     return cb_data

@@ -1,5 +1,4 @@
 local register, tostring = register, tostring
-local open = io.open
 
 local sys_class_net_stats_ = {
   objectType = {
@@ -138,6 +137,7 @@ local sys_class_net_stats_ = {
 
 local nwCommon = mapper("nwcommon")
 local getIntfStats = nwCommon.getIntfStats
+local network = require("transformer.shared.common.network")
 
 local extStatsMap = {
   tx_broadcast = true,
@@ -149,22 +149,6 @@ local extStatsMap = {
   rxerr = true,
 }
 
-local function firstline(filename)
-  local fd, msg = open(filename)
-  if not fd then
-    -- you could return nil and error message but that will abort
-    -- iterating over all parameters.
-    -- So here I opt to just return "0" (default value).
-    return "0"
-  end
-  local result = fd:read("*l")
-  if not result then
-    result = "0"
-  end
-  fd:close()
-  return result
-end
-
 local stat_cache = {}
 
 local function get(mapping, paramName, key, nocache)
@@ -175,7 +159,8 @@ local function get(mapping, paramName, key, nocache)
   if extStatsMap[paramName] then
     real_stat = getIntfStats(key, paramName, "0")
   else
-    real_stat = firstline("/sys/class/net/" .. key .. "/statistics/" .. paramName)
+    local value = network.getFirstLine("/sys/class/net/" .. key .. "/statistics/" .. paramName)
+    real_stat = value ~= "" and value or "0"
   end
   if nocache then
     return real_stat

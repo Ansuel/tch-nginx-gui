@@ -1,4 +1,5 @@
-<%
+--pretranslated: do not change this file
+
 -- Localization
 gettext.textdomain('webui-voice')
 
@@ -92,22 +93,24 @@ local uri = ngx.var.uri
 if ngx.var.args and string.len(ngx.var.args) > 0 then
   uri = uri .. "?" .. ngx.var.args
 end
-%>
 
-<%= ui_helper.createHeader(T"Telephony", false, true) %>
-
-<div class="modal-body update">
-  <%
+ngx.print('\
+');ngx.print( ui_helper.createHeader(T"Telephony", false, true) ); ngx.print('\
+<div class="modal-body update">\
+  ')
+  
   local lp = require("web.lp")
   lp.setpath("/www/snippets/")
   lp.include("tabs-voice.lp")
-  %>
-  <form class="form-horizontal" method="post" action="<%= uri %>">
-    <fieldset>
-      <legend><%= T"Contacts" %></legend>
-      <%=ui_helper.createTable(contact_columns, contact_data, contact_options, nil, contact_helpmsg)%>
-    </fieldset>
-  </form>
-</div>
-
-<%= ui_helper.createFooter() %>
+  
+  ngx.print('\
+  <form class="form-horizontal" method="post" action="'); ngx.print( uri ); ngx.print('">\
+        <fieldset>\
+\
+      <legend>'); ngx.print( T"Contacts" ); ngx.print('</legend>\
+      '); ngx.print( ui_helper.createTable(contact_columns, contact_data, contact_options, nil, contact_helpmsg)); ngx.print('\
+    </fieldset>\
+  </form>\
+</div>\
+\
+'); ngx.print( ui_helper.createFooter() )
