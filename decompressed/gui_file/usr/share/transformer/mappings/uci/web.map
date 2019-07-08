@@ -11,6 +11,7 @@ local assistance_map = {
     "sessionmgr",
     "user",
     "interface",
+    "interface6",
     "timeout",
     "port",
     "active",
@@ -50,6 +51,8 @@ local sessionmgr_map = {
     "bruteforce",
     "relaxfirstattempt",
     "maxwrongattempt",
+    "backOffMethod",
+    "backOffRepeat",
   },
   lists = { "users" }
 }
@@ -68,6 +71,7 @@ local user_map = {
     "interface",
     "password_reminder",
     "language",
+    "selectedMode",
   },
   passwords = { "srp_salt", "srp_verifier", "legacy_salt" },
   lists = { "allowed_ip" }
@@ -106,8 +110,12 @@ local uiconfig_map = {
       -- options used by some custo's
       "nsplogo",
       "dnsserver_query",
-      "expert"
-    }
+      "expert",
+      "mainwifi_frequency",
+      "guestwifi_frequency",
+      "pageNavigationMode",
+    },
+    lists = { "upgradefw_role" },
 }
 uci.registerNamedMultiMap(uiconfig_map)
 
@@ -122,3 +130,15 @@ local card_map = {
     }
 }
 uci.registerNamedMultiMap(card_map)
+
+-- uci.web.log
+local log_map = {
+  config = "web",
+  section = "log",
+  type = "log",
+  options = {
+      "selected_logs",
+      "selected_events",
+    }
+}
+uci.registerSimpleMap(log_map)

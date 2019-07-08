@@ -337,14 +337,14 @@ end
                 class = "span6"
             }
           }
-         html[#html+1] = ui_helper.createLabel(T"PHY Rate", format("%s %.0f Mbs %s %.0f Mbs",iconUp,output_details["rx_phy_rate"]/1000,iconDown,output_details["rx_phy_rate"]/1000), PHY_style )
+         html[#html+1] = ui_helper.createLabel(T"PHY Rate", format("%s %.0f Mbps %s %.0f Mbps",iconUp,output_details["rx_phy_rate"]/1000,iconDown,output_details["rx_phy_rate"]/1000), PHY_style )
          local DATA_style = {
            span = {
                 id = "Data_Rate",
                 class = "span6"
             }
           }
-         html[#html+1] = ui_helper.createLabel(T"Data Rate", format("%s %.0f Mbs %s %.0f Mbs",iconUp,output_details["rx_data_rate"]/1000,iconDown,output_details["rx_data_rate"]/1000), DATA_style )
+         html[#html+1] = ui_helper.createLabel(T"Data Rate", format("%s %.0f Mbps %s %.0f Mbps",iconUp,output_details["rx_data_rate"]/1000,iconDown,output_details["rx_data_rate"]/1000), DATA_style )
 
          local Packets_Tx_style = {
            span = {
@@ -400,7 +400,7 @@ end
     <div id="btn-return" class="btn btn-primary btn-large" >');  ngx.print(T"Return"); ngx.print('</div>\
 </div>\
 <script>\
-var timerajax\
+var timerajax;\
 \
 var sentpctstart = ');  ngx.print(sentcountstart); ngx.print(';\
 var recvpctstart = ');  ngx.print(recvcountstart); ngx.print(';\
@@ -410,7 +410,7 @@ function getInfo(mac,ap,getpath)\
 {\
     var url = \'/modals/wireless-client-modal.lp\';\
     var checktimer = ');  ngx.print(TIMERJS); ngx.print(';\
-    var gets =  {}\
+    var gets =  {};\
     gets.ajaxreq = "1";\
     gets.mac = mac;\
     gets.path = getpath;\
@@ -419,18 +419,18 @@ function getInfo(mac,ap,getpath)\
     .done(function( data ) {\
         var phy_rate_up = (Math.floor(data.tx_phy_rate / 10)/100);\
         var phy_rate_down = (Math.floor(data.rx_phy_rate / 10)/100);\
-        $("#PHY_Rate").html("<i class=\\"icon-download icon-small gray\\"></i> " + phy_rate_up + " Mbs  <i class=\\"icon-upload icon-small gray\\"></i> " + phy_rate_down + " Mbs"); \
+        $("#PHY_Rate").html("<i class=\\"icon-download icon-small gray\\"></i> " + phy_rate_up + " Mbps  <i class=\\"icon-upload icon-small gray\\"></i> " + phy_rate_down + " Mbps");\
         var data_rate_up = data.tx_data_rate;\
         var data_rate_down = data.rx_data_rate;\
         var data_rate_up_txt = " Kbs";\
         var data_rate_down_txt = " Kbs";\
         if (data_rate_up > 5000){\
             data_rate_up = (Math.floor(data_rate_up / 10)/100);\
-            data_rate_up_txt = " Mbs";\
+            data_rate_up_txt = " Mbps";\
         }\
         if (data_rate_down > 5000){\
             data_rate_down = (Math.floor(data_rate_down / 10)/100);\
-            data_rate_down_txt = " Mbs";\
+            data_rate_down_txt = " Mbps";\
         }\
         $("#Data_Rate").html("<i class=\\"icon-download icon-small gray\\"></i> " + data_rate_up + data_rate_up_txt + " <i class=\\"icon-upload icon-small gray\\"></i> " + data_rate_down + data_rate_down_txt);\
         $("#Active").html(data.flags);\
@@ -471,9 +471,9 @@ function getInfo(mac,ap,getpath)\
     var countwifi = 0;\
    function bars(x){\
           var y = 100 + parseInt(x);\
-          var x = parseInt(x) * -1\
+          var x = parseInt(x) * -1;\
           $("#chartcontainerwifi").append(\'<div class=\\"barswifi\\" id=\\"bar-\'+countwifi+\'\\"></div>\');\
-          var $d = $("#bar-"+countwifi)\
+          var $d = $("#bar-"+countwifi);\
           var color = \'#FF0000\'; //default red\
           if (x <= 55){\
             color =  \'#00FF00\'; //green\

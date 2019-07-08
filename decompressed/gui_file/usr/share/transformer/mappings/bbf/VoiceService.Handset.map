@@ -47,7 +47,7 @@ local Multi_Services_VoiceService_i_X_000E50_Handset_i_ = {
 }
 
 local function getdevice(name)
-    local content = conn:call("mmpbxbrcmdect.devices", "list", {})
+    local content = conn:call("mmpbxbrcmdect.devices", "list", {}) or {}
     if type(content) == 'table' then
         for key, val in pairs(content) do
             if name == key then
@@ -61,7 +61,7 @@ end
 Multi_Services_VoiceService_i_X_000E50_Handset_i_.entries = function(mapping, parentkey)
     local entries = {}
     if parentkey == "SIPUA" then
-        local content = conn:call("mmpbxbrcmdect.devices", "list", {})
+        local content = conn:call("mmpbxbrcmdect.devices", "list", {}) or {}
         if type(content) == 'table' then
             for key, val in pairs(content) do
                 entries[#entries + 1] = key

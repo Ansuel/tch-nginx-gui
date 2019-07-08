@@ -11,11 +11,20 @@ local message_helper = require("web.uimessage_helper")
 local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
 local proxy = require("datamodel")
+local bmh = require("broadbandmode_helper")
 
 local session = ngx.ctx.session
 local tech = false
 if session:getrole() == "engineer" then
    tech = true
+end
+
+--Support ethernet mode for devices with no eth4 port
+local ethname = proxy.get("sys.eth.port.@eth4.status")
+if ethname and ethname[1].value then
+	ethname =  "eth4"
+else
+	ethname =  "eth3"
 end
 
 function getValidateNumberInRange(min, max, value)
@@ -60,11 +69,11 @@ else
 end
 
 if string.match(iface, "eth") then
-	connection = "eth4"
+	connection = ethname
 	path = "uci.network.device.@waneth4."
 	if string.match(iface, "%.") then
-		difname = string.match(iface, "eth4%.[%d]+")
-		vid = string.match(difname, "[^eth4%.]+")
+		difname = string.match(iface, ethname .. "%.[%d]+")
+		vid = string.match(difname, "[^"..ethname.."%.]+")
 	else
 		if proxy.get(path) then
 			vid = proxy.get(path.."vid")[1].value
@@ -141,11 +150,11 @@ if ngx.var.request_method == "POST" then
 			proxy.apply()
 		end
 		if string.match(iface, "eth") then
-			connection = "eth4"
+			connection = ethname
 			path = "uci.network.device.@waneth4."
 			if string.match(iface, "%.") then
-				difname = string.match(iface, "eth4%.[%d]+")
-				vid = string.match(difname, "[^eth4%.]+")
+				difname = string.match(iface, ethname.."%.[%d]+")
+				vid = string.match(difname, "[^"..ethname.."%.]+")
 			else
 				if proxy.get(path) then
 					vid = proxy.get(path.."vid")[1].value

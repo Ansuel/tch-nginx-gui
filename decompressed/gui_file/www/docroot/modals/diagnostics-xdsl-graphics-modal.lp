@@ -350,7 +350,7 @@ var bits_ctx = document.getElementById("BitsChart").getContext("2d");\
         responsiveAnimationDuration: 0,\
     }\
 });\
-var scanband = '); ngx.print(scanband); ngx.print('\
+var scanband = '); ngx.print(scanband); ngx.print(';\
 setTimeout(function(){\
 	for (i = 1; i < scanband; i++) { \
 		labelLegend.push(i);\

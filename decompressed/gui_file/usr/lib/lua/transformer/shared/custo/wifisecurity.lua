@@ -13,7 +13,8 @@ local function get_default_option_names(ap)
     return {
       wep_key = format("default_wep_key_%s_s0", rname),
       wpa_psk_key = format("default_key_%s_s0", rname),
-      wps_ap_pin = format("default_wps_ap_pin_%s_s0", rname)
+      wps_ap_pin = format("default_wps_ap_pin_%s_s0", rname),
+      security_mode = format("default_security_mode_%s_s0", rname)
     }
   end
 end
@@ -26,10 +27,7 @@ end
 local function load_default_values(ap)
   local options = get_default_option_names(ap)
   if options then
-    local defaults = {
-      -- these are static defaults, the same on all CPE's
-      security_mode = "none",
-    }
+    local defaults = {}
     local envvars = load_uci_env_vars()
     for option, varname in pairs(options) do
       local v = envvars[varname]

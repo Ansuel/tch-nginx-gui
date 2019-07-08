@@ -17,6 +17,11 @@ local wireless_radio_acs_ = {
         type = "boolean",
         default = "false",
       },
+      rescan_channel = {
+        access = "readWrite",
+        type = "boolean",
+        default = "false",
+      },
     },
   }
 }
@@ -41,7 +46,12 @@ end
 
 local set = {
   rescan = function(mapping, paramname, paramValue, key)
-    network.triggerACSRescan(key)
+    if paramValue == "1" then
+       commitapply:newset("ACSRescan." .. key)
+    end
+  end,
+  rescan_channel = function(mapping, paramname, paramValue, key)
+    network.triggerACSRescan(key, paramValue)
   end
 }
 

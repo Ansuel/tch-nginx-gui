@@ -54,6 +54,8 @@ local fw_params = {
     fw_level = "rpc.network.firewall.mode",
     fw_outgoing_policy = "rpc.network.firewall.useroutgoingdefault",
     fw_incoming_policy = "rpc.network.firewall.userincomingdefault",
+    fwv4_stealthmode = "rpc.network.firewall.stealthmode_ipv4",
+    fwv6_stealthmode = "rpc.network.firewall.stealthmode_ipv6"
 }
 
 if not proxy.get(fw_params.fw_ipv6) then
@@ -91,6 +93,8 @@ local fw_valid = {
     fw_level = gVIES(fw_levels),
     fw_outgoing_policy = gVIES(outgoingpolicy),
     fw_incoming_policy = gVIES(incomingpolicy),
+    fwv4_stealthmode = vB,
+    fwv6_stealthmode = vB,
 }
 
 local content = post_helper.handleQuery(fw_params, fw_valid)
@@ -172,7 +176,7 @@ local fwrule_columns = {
     name = "src_port",
     param = "src_port",
     type = "text",
-    attr = { input = { class="span1", maxlength="5" }, autocomplete = portslist },
+    attr = { input = { class="span1", maxlength="11" }, autocomplete = portslist },
   },
   {
     header = T"Dst IP/Subnet",
@@ -186,7 +190,7 @@ local fwrule_columns = {
     name = "dest_port",
     param = "dest_port",
     type = "text",
-    attr = { input = { class="span1", maxlength="5" }, autocomplete = portslist },
+    attr = { input = { class="span1", maxlength="11" }, autocomplete = portslist },
   },
   {
     header = T"DSCP",
@@ -346,8 +350,8 @@ local fwrule_valid = {
 }
 
 local fwrule_defaultObject = {
-    src = "lan",
-    dest = "wan"
+    src = "wan",
+    dest = "lan"
 }
 
 -- PING WHITELIST RULES START
@@ -419,6 +423,13 @@ local fwrulev4_ping_columns = {
     type = "hidden",
     default = "ipv4",
   },
+  {
+    header = "",
+    name = "proto",
+    param = "proto.@1.value",
+    default = "icmp",
+    type = "hidden",
+  },
 }
 
 local fwrulev6_ping_columns = {
@@ -453,6 +464,13 @@ local fwrulev6_ping_columns = {
      param = "family",
      type = "hidden",
      default = "ipv6",
+  },
+  {
+    header = "",
+    name = "proto",
+    param = "proto.@1.value",
+    default = "icmp",
+    type = "hidden",
   },
 }
 
@@ -701,6 +719,16 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
             class = "alert-info monitor-fw_level monitor-user " .. fwallmsg_visible_status["user"]
         },
     }
+    local ipv4_stealthmode_attr = {
+        alert = {
+            class = "alert-info monitor-fwv4_stealthmode monitor-1"
+        },
+    }
+    local ipv6_stealthmode_attr = {
+        alert = {
+            class = "alert-info monitor-fwv6_stealthmode monitor-1"
+        },
+    }
     ngx.print(
         ui_helper.createSliderSelect(T"Level", "fw_level", fw_levels, content["fw_level"], fwlevel_attr),
         ui_helper.createAlertBlock(T"In <strong>low mode</strong>, firewall allows all outbound connections and rejects unknown incoming connections but acknowledges presence of the gateway.", lax_attr),
@@ -708,6 +736,12 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
         ui_helper.createAlertBlock(T"In <strong>high mode</strong>, firewall allows outgoing connections to HTTP, HTTPS, SMTP, POP3, IMAP, SSH services and silently drops unknown incoming connections. This may impact on web services like Internet Speed Test.", high_attr),
         ui_helper.createAlertBlock(T"In <strong>user mode</strong>, individual firewall rules may be configured as well as the default behavior.", user_attr)
     )
+    if role == "engineer" then
+      ngx.print(ui_helper.createSwitch(T"IPv4 Stealth Mode ", "fwv4_stealthmode", content["fwv4_stealthmode"], switch_class_enable))
+      ngx.print(ui_helper.createAlertBlock(T"<strong>Enabling this will overwrite InternetIPv4 ping selections</strong>,firewall will drop all ICMPv4 services for incoming connections",ipv6_stealthmode_attr))
+      ngx.print(ui_helper.createSwitch(T"IPv6 Stealth Mode ", "fwv6_stealthmode", content["fwv6_stealthmode"], switch_class_enable))
+      ngx.print(ui_helper.createAlertBlock(T"<strong>Enabling this will overwrite InternetIPv6 ping selections</strong>,firewall will drop all ICMPv6 services for incoming connections",ipv4_stealthmode_attr))
+    end
   ngx.print('\
 </fieldset>\
 \

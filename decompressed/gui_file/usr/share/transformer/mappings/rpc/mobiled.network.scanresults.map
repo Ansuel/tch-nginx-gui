@@ -54,7 +54,7 @@ local function getScanResultsData(key, parentKey)
 	local result = {}
 	setmetatable(result, { __index = function() return "" end })
 
-	local data = helper.getUbusData(conn, "mobiled.network", "scan", { dev_idx = tonumber(string.match(parentKey, '%d')) })
+	local data = helper.getUbusData(conn, "mobiled.network", "scan", { dev_idx = tonumber(string.match(parentKey, '%d+')) })
 	if type(data.network_scan_list) == "table" then
 		for _, scanResult in pairs(data.network_scan_list) do
 			if type(scanResult.plmn_info) == "table" then
@@ -85,7 +85,7 @@ local function get(mapping, paramName, key, parentKey)
 end
 
 local function scanEntries(mapping, key)
-	local data = helper.getUbusData(conn, "mobiled.network", "scan", { dev_idx = tonumber(string.match(key, '%d')) })
+	local data = helper.getUbusData(conn, "mobiled.network", "scan", { dev_idx = tonumber(string.match(key, '%d+')) })
 	local scanResults = {}
 	if type(data.network_scan_list) == "table" then
 		for i, scanResult in pairs(data.network_scan_list) do

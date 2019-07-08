@@ -13,7 +13,6 @@ local function setlanguage()
 end
 
 -- Enable localization
--- NG-92675 implement changes required from the customer														
 gettext.textdomain('webui-mobiled')
 
 local lteParams = require("web.lte-params")
@@ -39,17 +38,28 @@ internal.radio_tech_map = {
 	["auto"]	= T"Auto"
 }
 
+internal.roaming_map = {
+	["none"]			= T"None",
+	["national"]		= T"National",
+	["international"]	= T"International"
+}
+
+internal.network_selection_map = {
+	["auto"]		= T"Auto",
+	["manual"]		= T"Manual"
+}
+
 internal.radio_preference_map = {
-	["auto"]           = T"Auto",
-	["lte_preferred"]  = T"LTE Preferred",
-	["lte_only"]       = T"LTE Only",
-	["lte"]            = T"LTE",
-	["umts_preferred"] = T"UMTS Preferred",
-	["umts_only"]      = T"UMTS Only",
-	["umts"]           = T"UMTS",
-	["gsm_preferred"]  = T"GSM Preferred",
-	["gsm_only"]       = T"GSM Only",
-	["gsm"]            = T"GSM"
+	["auto"]			= T"Auto",
+	["lte_preferred"]	= T"LTE Preferred",
+	["lte_only"]		= T"LTE Only",
+	["lte"]				= T"LTE",
+	["umts_preferred"]	= T"UMTS Preferred",
+	["umts_only"]		= T"UMTS Only",
+	["umts"]			= T"UMTS",
+	["gsm_preferred"]	= T"GSM Preferred",
+	["gsm_only"]		= T"GSM Only",
+	["gsm"]				= T"GSM"
 }
 
 internal.antenna_map = {
@@ -72,7 +82,6 @@ internal.mobiled_state_map = {
 	["disconnected"]		= T"Disconnected",
 	["scanning_network"]	= T"Scanning networks",
 	["upgrading_firmware"]	= T"Upgrading firmware",
-	["SelectAntenna"]		= T"Selecting antenna",
 	["disabled"]			= T"Disabled",
 	["error"]				= T"Error"
 }
@@ -134,11 +143,22 @@ internal.service_state_map = {
 	["sleeping"]					= T"Sleeping"
 }
 
+internal.time_period_map = {
+	["last_five_minutes"]		= T"Last Five Minutes",
+	["last_twenty_minutes"]		= T"Last Twenty Minutes",
+	["last_hour"]				= T"Last Hour",
+	["last_twentyfour_hours"]	= T"Last 24 Hours",
+	["last_week"]				= T"Last Week",
+	["last_month"]				= T"Last Month"
+}
+
 local M = setmetatable({}, {
-	__index = function(t, key)
+	__index = function(_, key)
 		setlanguage()
 		local requested_table = {}
-		for k,v in pairs(internal[key]) do requested_table[k] = T(v) end
+		if internal[key] then
+			for k,v in pairs(internal[key]) do requested_table[k] = T(v) end
+		end
 		setmetatable(requested_table, map_empty_string)
 		return requested_table
 	end

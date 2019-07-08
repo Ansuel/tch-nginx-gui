@@ -1,5 +1,5 @@
+--pretranslated: do not change this file
 
-<%
 -- Enable localization
 gettext.textdomain('webui-wizard')
 
@@ -41,19 +41,20 @@ local mapValid = {
 }
 
 local content, helpmsg = wizard_helper.handleQuery(mapParams, mapValid)
-%>
-<div class='wizard-card'>
-    <fieldset>
-      <%="<legend>" .. T"Step 6 of 8" .. "</legend>"%>
-      <%='<h4>' .. T"Router Security" .. '</h4>'%>
-      <%
+
+ngx.print('\
+<div class="wizard-card">\
+    <fieldset>\
+      <legend>') ngx.print( T"Step 6 of 8" ); ngx.print('</legend>\
+      <h4>'); ngx.print( T"Router Security" ); ngx.print('</h4>\
+      ')
         local html = {}
         local info_attr = {
             alert = {
                 class = "alert-info"
             },
          }
-        html[#html+1] = ui_helper.createAlertBlock(T"A <b>WiFi 5GHz</b> Security Key is already set-up with your Router, however you can change that key here if desired. You can also change the security type below. To connect to the Router via WiFi you will need to enter the Security Key into your device.", info_attr)
+        html[#html+1] = ui_helper.createAlertBlock(T"A <b>WiFi 5 GHz</b> Security Key is already set-up with your Router, however you can change that key here if desired. You can also change the security type below. To connect to the Router via WiFi you will need to enter the Security Key into your device.", info_attr)
         html[#html+1] = ui_helper.createMessages(message_helper.popMessages())
         -- Select the security mode to use
         local secattributes = {
@@ -69,16 +70,17 @@ local content, helpmsg = wizard_helper.handleQuery(mapParams, mapValid)
         }
         html[#html+1] = ui_helper.createInputText(T"Security Key(Minimum of 8 characters):", "wpa_psk_5G", content["wpa_psk_5G"], pskclass, helpmsg["wpa_psk_5G"])
         ngx.print(html)
-      %>
-    </fieldset>
-</div>
-<div class='wizard-confirm'>
-    <fieldset>
-      <%
+      ngx.print('\
+    </fieldset>\
+</div>\
+<div class="wizard-confirm">\
+    <fieldset>\
+      ')
         local html = {}
         html[#html+1] = ui_helper.createLabel(T"Security Key Type: ", secmodes_matched[format("%s",content["security_5G"])])
         html[#html+1] = ui_helper.createLabel(T"Security Key: ", content["wpa_psk_5G"])
         ngx.print(html)
-      %>
-    </fieldset>
-</div>
+      ngx.print('\
+    </fieldset>\
+</div>\
+')

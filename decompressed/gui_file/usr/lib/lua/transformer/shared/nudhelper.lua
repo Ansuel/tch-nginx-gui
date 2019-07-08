@@ -19,6 +19,7 @@ local valueMap = {
   enable = "0",
   result = "fail",
   rtt = "0",
+  payload = "0",
 }
 
 -- set the default values to the options in uci

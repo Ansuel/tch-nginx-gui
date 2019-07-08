@@ -98,29 +98,49 @@ local Multi_Services_VoiceService_i_Capabilities_SIP_ = {
 --        max = "256",
 --        type = "unsignedInt",
 --      },
---      TLSKeyExchangeProtocols = {
---        access = "readOnly",
---        activeNotify = "canDeny",
---        list = true,
---        max = "256",
---        type = "string",
---        enumeration = {
---          "RSA",
---          "DSS",
---        },
---      },
+      TLSKeyExchangeProtocols = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        list = true,
+        max = "256",
+        type = "string",
+        enumeration = {
+          "RSA",
+          "DSS",
+        },
+      },
     }
   }
 }
 
+local uci_helper = mapper("ucihelper")
+local get_from_uci = uci_helper.get_from_uci
+local binding = { config = "mmpbxrvsipnet", sectionname = "sip_net" }
+
 Multi_Services_VoiceService_i_Capabilities_SIP_.get = {
     Role = "UserAgent",
     Extensions = "INVITE, ACK, BYE, CANCEL, REFER, SUSBCRIBE, NOTIFY, INFO, PRACK, UPDATE; OPTIONS",
-    Transports = "UDP",
+    Transports = function()
+        binding.option = "transport_type"
+        return get_from_uci(binding)
+    end,
     URISchemes = "",
     EventSubscription = "0",
     ResponseMap = "0",
     TLSAuthenticationProtocols = "",
+    TLSKeyExchangeProtocols = function()
+        local supportedKeyType = ""
+        binding.option = "transport_type"
+        local transportType = get_from_uci(binding)
+        if transportType == "TLS" then
+            binding.option = "tls_key_type"
+            local keyType = get_from_uci(binding)
+            if keyType == "rsaprivatekey" then
+                supportedKeyType = "RSA"
+            end
+        end
+        return supportedKeyType
+    end,
 }
 
 local duplicator = mapper("multiroot").duplicate

@@ -1,4 +1,5 @@
-<%
+--pretranslated: do not change this file
+
 -- NG-78959
 local lfs = require("lfs")
 if lfs.attributes("/etc/config/mmpbx", "mode") ~= "file" then
@@ -47,34 +48,30 @@ for _, v in pairs (sipprofile_content) do
     end
 end
 
+switchName = "mmpbx_enabled"
 if mmpbx_state == "1" then
     if session:hasAccess("/modals/mmpbx-global-modal.lp") then
         modalPath = "/modals/mmpbx-global-modal.lp"
     elseif session:hasAccess("/modals/mmpbx-dect-modal.lp") then
         modalPath = "/modals/mmpbx-dect-modal.lp"
-    elseif session:hasAccess("mmpbx-contacts-modal.lp") then
+    elseif session:hasAccess("/modals/mmpbx-contacts-modal.lp") then
         modalPath = "/modals/mmpbx-contacts-modal.lp"
-    elseif session:hasAccess("/modals/mmpbx-inoutgoingmap-modal.lp") then
-        modalPath = "/modals/mmpbx-inoutgoingmap-modal.lp"		
+    elseif session:hasAccess("/modals/mmpbx-inoutgoingmap-modal.lp") then 	-- NG-78959/TCOMITAGW-2084
+        modalPath = "/modals/mmpbx-inoutgoingmap-modal.lp"
     end
 elseif session:hasAccess("/modals/mmpbx-global-modal.lp") then
     modalPath = "/modals/mmpbx-global-modal.lp"
 end
 
-if session:hasAccess("/modals/mmpbx-global-modal.lp") then
-	switchName = "mmpbx_enabled"
-end
-
-%>
-
-<div class="span3">
-  <div class="smallcard" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">
-    <%
+ngx.print('\
+<div class="span3">\
+  <div class="smallcard" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
+    ')
       ngx.print(ui_helper.createCardHeader(T"Telephony", modalPath, switchName, mmpbx_state))
-    %>
-    <div class="content card_bg" data-bg-text="&#xf095;">
-	  <div class="divtable">
-	  <%
+    ngx.print('\
+    <div class="content card_bg" data-bg-text="&#xf095;">\
+	  <div class="divtable">\
+	  ')
 	  local html = {}
 	  tinsert(html, ui_helper.createSimpleLight(mmpbx_state, mmpbx_info, { light = { id =  "Telephony_LEDStatus" }, span = { id =  "Telephony_Status" } },"fa fa-phone"))
 	  tinsert (html,[[<p class= "subinfos">]] )
@@ -113,8 +110,10 @@ end
 	  	tinsert (html, [[</p>]])
 	  end
 	  ngx.print (html)
-	  %>
-	  </div>
-    </div>
-  </div>
-</div>
+	  
+	  ngx.print('\
+	  </div>\
+    </div>\
+  </div>\
+</div>\
+')

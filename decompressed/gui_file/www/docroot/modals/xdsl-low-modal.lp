@@ -98,7 +98,8 @@ local content = {
 	marketing_version				= "uci.version.version.@version[0].marketing_version",
 	dslam_chipset 					= "rpc.xdslctl.DslamChipset",
 	dslam_version 					= "rpc.xdslctl.DslamVersion",
-    dslam_version_raw				= "rpc.xdslctl.DslamVersionRaw"
+    dslam_version_raw				= "rpc.xdslctl.DslamVersionRaw",
+	dslam_serial 					= "rpc.xdslctl.DslamSerial",
 }
 
 content_helper.getExactContent(content)
@@ -147,12 +148,14 @@ end
 local driver_option = {}
 
 local driver_Params = {
+  dsl0_enabled = "uci.xdsl.xdsl.@dsl0.enabled",
   ds10_sra = "uci.xdsl.xdsl.@dsl0.sra",
   ds10_bitswap = "uci.xdsl.xdsl.@dsl0.bitswap",
   ds10_snr = "uci.xdsl.xdsl.@dsl0.snr",
 }
 
 local driver_valid = {
+  dsl0_enabled = post_helper.validateBoolean,
   ds10_sra = post_helper.validateBoolean,
   ds10_bitswap = post_helper.validateBoolean,
   ds10_snr = post_helper.getValidateNumberInRange(0,65535),
@@ -175,6 +178,7 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H045") or content.dsl0_xdsl_Firmwa
         tinsert(driver_option, { "B2pvfbH043i1", 'B2pvfbH043i1 (VMG8823-B60B 5.13)'})
         tinsert(driver_option, { "B2pvfbH043k", 'B2pvfbH043k (Asus DSL-AC88U-B v1.10.05)'})
         tinsert(driver_option, { "B2pvfbH043q", 'B2pvfbH043q (FRITZ!Box 7582 7.01/Asus DSL-AC88U-B v1.10.06_591)'})
+        tinsert(driver_option, { "B2pvfbH045k", 'B2pvfbH045k (FRITZ!Box 7582 7.08)'})
         tinsert(driver_option, { "A2pvfbH043b", 'A2pvfbH043b (New FastGate Fastweb)'})
         tinsert(driver_option, { "A2pvfbH043d1", 'A2pvfbH043d1 (FRITZ!Box 7581 6.54)'})
         --table.insert(driver_option,{ "A2pvfbH043e", 'A2pvfbH043e (Zyxel 8823)'}) --Annex b???
@@ -187,7 +191,7 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H045") or content.dsl0_xdsl_Firmwa
 		tinsert(driver_option, { "A2pvfbH043k", 'A2pvfbH043k (AGTEF_1.1.0)'})
 		tinsert(driver_option, { "A2pvfbH043o", 'A2pvfbH043o (Asus DSL-AC88U v1.10.06_561)'})
         tinsert(driver_option, { "A2pvfbH043q", 'A2pvfbH043q (FRITZ!Box 7582 7.01/Asus DSL-AC88U v1.10.06_585)'})
-        tinsert(driver_option, { "A2pvfbH045k", 'A2pvfbH045k (Inteno)'})
+        tinsert(driver_option, { "A2pvfbH045k", 'A2pvfbH045k (Inteno/FRITZ!Box 7582 7.08)'})
 	end
 	
 	driver_Params.driver_ver = "uci.modgui.var.driver_version"
@@ -200,6 +204,7 @@ elseif content.dsl0_xdsl_FirmwareVersion:match(".*F039") then
     tinsert(driver_option, { "A2pv6F039f1", 'A2pv6F039f1 (Indeno D301)'})
     tinsert(driver_option, { "A2pv6F039m1", 'A2pv6F039m1 (Sky NR701-NR801)'})
     tinsert(driver_option, { "A2pv6F039o1", 'A2pv6F039o1 (Telsra TG799vac)'})
+    tinsert(driver_option, { "A2pv6F039t", 'A2pv6F039t (Netgear D6400)'})
     tinsert(driver_option, { "A2pv6F039u", 'A2pv6F039u (Netgear D6220 v1.0.0.48/Sercomm VD625)'})
     tinsert(driver_option, { "A2pv6F039v", 'A2pv6F039v (SmartRG sr516ac/Tp-link Archer VR600V1)'})
     tinsert(driver_option, { "A2pv6F039v2", 'A2pv6F039v2 (789vacV2 UNO.uk 17.1/Tiscali 16.3)'})
@@ -232,13 +237,19 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  local alertinfo = { alert = { class = "alert-info" } }
       local html = {}
       html[#html + 1] = ui_helper.createLight(T"Status", nil, state_map[untaint(content.dsl0_enabled)], { light = { class = light_map[untaint(content.dsl0_enabled)] } })
+	  html[#html + 1] = ui_helper.createSwitch(T"Enabled","dsl0_enabled",driver_content["dsl0_enabled"])
 	  html[#html + 1] = ui_helper.createLabel(T"DSL Connection Status", T(content.dsl0_status), span5 )
 	  if ( content.dsl0_status == "Up" ) then
 	  html[#html + 1] = ui_helper.createLabel(T"DSL Mode", content.dsl0_mode .. " (" .. content.dsl0_linkencapsulation .. ")", span5 )
         if(content.dsl0_profile ~= "Not Found") then
             html[#html + 1] = ui_helper.createLabel(T"VDSL Profile", content.dsl0_profile, span5 )
-            html[#html + 1] = ui_helper.createLabel(T"VDSL DSLAM Port", content.dsl0_port, span5 )
         end
+		if ( content.dsl0_port ~= "" ) then
+			html[#html + 1] = ui_helper.createLabel(T"VDSL DSLAM Port", content.dsl0_port, span5 )
+		end
+		if ( content.dslam_serial ~= "" ) then
+			html[#html + 1] = ui_helper.createLabel(T"VDSL DSLAM Serial", content.dslam_serial, span5 )
+		end
 		html[#html + 1] = ui_helper.createLabel(T"DSLAM Chipset",content.dslam_chipset, span5 )
 		if content.dslam_version_raw:sub(0,2) == "0x" then
 			html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",format("%s ( %s )", content.dslam_version , content.dslam_version_raw) , span5 )
@@ -248,11 +259,11 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 			html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",format(T"Invalid version, can't convert. Raw value: %s", content.dslam_version_raw) , span5 )
 		end
 	  end
-	  html[#html + 1] = ui_helper.createLabel(T"Firmware Version",content.dsl0_xdsl_FirmwareVersion, span5 )
+	  html[#html + 1] = ui_helper.createLabel(T"Datapump Version",content.dsl0_xdsl_FirmwareVersion, span5 )
 	  if not driver_Params.driver_ver then
-		html[#html + 1] = ui_helper.createLabel(T"Driver Version",T"We don't have any firmware for this modem, please report them to the github page. ", span5 )
+		html[#html + 1] = ui_helper.createLabel(T"xDSL Driver Version",T"We don't have any driver for this modem, please report them to the github page. ", span5 )
 	  else
-		html[#html + 1] = ui_helper.createInputSelect(T"Driver Version", "driver_ver", driver_option, driver_content["driver_ver"])
+		html[#html + 1] = ui_helper.createInputSelect(T"xDSL Driver Version", "driver_ver", driver_option, driver_content["driver_ver"])
 	  end
 	  html[#html + 1] = ui_helper.createSwitch(T"SRA", "ds10_sra", driver_content["ds10_sra"])
 	  html[#html + 1] = ui_helper.createSwitch(T"Bitswap", "ds10_bitswap", driver_content["ds10_bitswap"])

@@ -1,4 +1,5 @@
-<%
+--pretranslated: do not change this file
+
 -- Enable localization
 gettext.textdomain('webui-wizard')
 
@@ -94,12 +95,13 @@ local mapValid = {
 
 local content, helpmsg = wizard_helper.handleQuery(mapParams, mapValid)
 
-%>
-<div class='wizard-card'>
-    <fieldset>
-      <%="<legend></legend>"%>
-      <%='<h4>' .. T("VoIP Setup") .. '</h4>'%>
-      <%
+
+ngx.print('\
+<div class="wizard-card">\
+    <fieldset>\
+      '); ngx.print( "<legend></legend>" ); ngx.print('\
+		<h4>'); ngx.print( T( "VoIP Setup" ) ); ngx.print('</h4>\
+      ');
         local info_attr = {
             alert = {
                 class = "alert-info"
@@ -126,13 +128,15 @@ local content, helpmsg = wizard_helper.handleQuery(mapParams, mapValid)
 		html[#html+1] = ui_helper.createInputText(T"VoIP Realm:", "sip_realm", content["sip_realm"], nil, helpmsg["sip_realm"])
 		html[#html+1] = ui_helper.createInputText(T"VoIP Domain Name:", "sip_domain_name", content["sip_domain_name"], nil, helpmsg["sip_domain_name"])
         ngx.print(html)
-      %>
-    </fieldset>
-</div>
-<% if content["sip_enabled"] == "1" then %>
-<div class='wizard-confirm'>
-    <fieldset>
-      <%
+      ngx.print('\
+    </fieldset>\
+</div>\
+')
+if content["sip_enabled"] == "1" then
+ngx.print('\
+<div class="wizard-confirm">\
+    <fieldset>\
+      ')
         local html = {}
         html[#html+1] = ui_helper.createLabel(T"VoIP Phone number:", content["sip_number"])
         html[#html+1] = ui_helper.createLabel(T"VoIP Password:", content["sip_password"])
@@ -143,18 +147,21 @@ local content, helpmsg = wizard_helper.handleQuery(mapParams, mapValid)
 		html[#html+1] = ui_helper.createLabel(T"VoIP Realm:", content["sip_realm"])
 		html[#html+1] = ui_helper.createLabel(T"VoIP Domain Name:",content["sip_domain_name"])
         ngx.print(html)
-      %>
-    </fieldset>
-</div>
-<% end %>
-<script>
-  $("#no-voip").on("click", function(){
-     $('input[name="sip_enabled"]').val("0");
-     tch.nextWizardCard(1);
-  });
-  $("#wizard-next").on("click", function(){
-     if ($("#no-voip").is(":visible")) {
-        $('input[name="sip_enabled"]').val("1");
-     };
-  });
-</script>
+      ngx.print('\
+    </fieldset>\
+</div>\
+')
+end
+ngx.print('\
+<script>\
+  $("#no-voip").on("click", function(){\
+     $(\'input[name="sip_enabled"]\').val("0");\
+     tch.nextWizardCard(1);\
+  });\
+  $("#wizard-next").on("click", function(){\
+     if ($("#no-voip").is(":visible")) {\
+        $(\'input[name="sip_enabled"]\').val("1");\
+     };\
+  });\
+</script>\
+')

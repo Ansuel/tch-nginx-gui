@@ -63,6 +63,14 @@ local network_firewall_ = {
             "user",
         }
       },
+      stealthmode_ipv4 = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      stealthmode_ipv6 = {
+        access = "readWrite",
+        type = "boolean",
+      },
       internetping = {
         access = "readWrite",
         type = "boolean",
@@ -119,6 +127,7 @@ local fwBinding_admin_config = {config = "firewall", sectionname = "fwconfig", o
 local configChanged = false
 local fwBinding_actual_level = {config = "firewall", sectionname = "fwconfig", option = "level"}
 local string, commitapply, pairs  = string, commitapply, pairs
+local match = string.match
 
 -- @return #boolean whether firewall is `enabled` or not
 -- The firewall is reported as enabled if flag acs_admin_config is not set
@@ -226,6 +235,9 @@ local function setToDisabledConfig(mapping)
       configChanged = true
     end
   end
+  if configChanged then
+    uci_helper.commit({config="firewall"})
+  end
   return true
 end
 
@@ -243,12 +255,46 @@ local function restoreConfig()
       return nil, "Could not restore Firewall config to " .. restore
     end
   end
+  if configChanged then
+    uci_helper.commit({config="firewall"})
+  end
   return true
+end
+
+--Get function for the stealth mode ipv4 and ipv6
+local function getStealthMode(family)
+  local enabled = "0"
+  uci_helper.foreach_on_uci({config="firewall", sectionname="rule"}, function(s)
+    if match(s.name or "", "^stealth") and s.family == family then
+       if s.enabled == "1" then
+          enabled = s.enabled
+          return false
+       end
+    end
+  end)
+  return enabled
+end
+
+--Set function for the stealth mode ipv4 and ipv6
+local function setStealthMode(family, value)
+  uci_helper.foreach_on_uci({config="firewall", sectionname="rule"}, function(s)
+    if match(s.name, "^stealth") and s.family == family then
+       uci_helper.set_on_uci({config="firewall", sectionname=s[".name"], option="enabled"}, value, commitapply)
+       return true
+    end
+  end)
+  uci_helper.commit({config = "firewall"})
 end
 
 local get = {
     mode = function(mapping, param)
         return fw_helper.get_firewall_mode()
+    end,
+    stealthmode_ipv4 = function(mapping, param)
+        return getStealthMode("ipv4")
+    end,
+    stealthmode_ipv6 = function(mapping, param)
+        return getStealthMode("ipv6")
     end,
     internetping = function(mapping, param)
         -- Look for a rule named "Allow-Ping" or "Allow-Ping-wan" or "Allow-Ping6"and move it from enabled = 1 to 0
@@ -285,12 +331,12 @@ local get = {
         -- TODO use a named rule or rules group
         local enabled = "0"
         uci_helper.foreach_on_uci({config="firewall", sectionname="rule"}, function(s)
-            if (s["name"] == "Allow-Ping" or s["name"] == "Allow-Ping-wan" or s["name"] == "Allow-Ping6") and s["family"] == "ipv6" then
-                enabled = s["enabled"] or "1" -- by default, a rule is enabled
-               -- if enabled is 1 break from loop
-                if enabled == "1" then
-                  return false
-                end
+            if s["name"] == "Allow-Ping6" and s["family"] == "ipv6" then
+              enabled = s["enabled"] or "1" -- by default, a rule is enabled
+              -- if enabled is 1 break from loop
+              if enabled == "1" then
+                return false
+              end
             end
         end)
         return enabled
@@ -330,6 +376,12 @@ local set = {
         end)
         uci_helper.commit({config = "firewall"})
     end,
+    stealthmode_ipv4 = function(mapping, paramname, paramvalue)
+        return setStealthMode("ipv4", paramvalue)
+    end,
+    stealthmode_ipv6 = function(mapping, paramname, paramvalue)
+        return setStealthMode("ipv6", paramvalue)
+    end,
     internetping = function(mapping, paramname, paramvalue)
         -- Look for a rule named "Allow-Ping" or "Allow-Ping-wan" or "Allow-Ping6"and move it from enabled = 1 to 0
         uci_helper.foreach_on_uci({config="firewall", sectionname="rule"}, function(s)
@@ -349,16 +401,18 @@ local set = {
             end
         end)
         uci_helper.commit({config = "firewall"})
+        commitapply:newset("flushicmpv4")
     end,
     internetpingipv6 = function(mapping, paramname, paramvalue)
         -- Look for a rule named "Allow-Ping" or "Allow-Ping-wan" or "Allow-Ping6"and family is "ipv6" move it from enabled = 1 to 0
         uci_helper.foreach_on_uci({config="firewall", sectionname="rule"}, function(s)
-            if (s["name"] == "Allow-Ping" or s["name"] == "Allow-Ping-wan" or s["name"] == "Allow-Ping6") and s["family"] == "ipv6" then
-                uci_helper.set_on_uci({config="firewall", sectionname=s[".name"], option="enabled"}, paramvalue, commitapply)
-                return true
+            if s["name"] == "Allow-Ping6" and s["family"] == "ipv6" then
+              uci_helper.set_on_uci({config="firewall", sectionname=s[".name"], option="enabled"}, paramvalue, commitapply)
+              return true
             end
         end)
         uci_helper.commit({config = "firewall"})
+        commitapply:newset("flushicmpv6")
     end,
     useroutgoingdefault = function(mapping, paramname, paramvalue)
         uci_helper.set_on_uci({config= "firewall", sectionname="fwconfig", option="defaultoutgoing_user"}, paramvalue, commitapply)

@@ -36,10 +36,10 @@ msgstr "Druckerinformation"
 msgid "Printer Sharing"
 msgstr "Drucker teilen"
 
-msgid "Printer Sharing disabled"
+msgid "Printer sharing disabled"
 msgstr "Drucker teilen deaktiviert"
 
-msgid "Printer Sharing enabled"
+msgid "Printer sharing enabled"
 msgstr "Drucker teilen aktiv"
 
 msgid "Printer Name"

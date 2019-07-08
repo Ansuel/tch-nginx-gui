@@ -29,7 +29,8 @@ local network_interface_ppp_ = {
   }
 }
 
-local logger = require("transformer.logger")
+local modgui = require("modgui")
+local logger = modgui.getRightLoggerModule()
 local log = logger.new("network.interface.ppp", 2)
 local uci_helper = mapper("ucihelper")
 local nw_common = mapper("nwcommon")
@@ -102,8 +103,8 @@ end
 local function get_uptime(mapping, paramName, key)
   local intf_status = nw_common.get_ubus_interface_status(key)
 
-  if intf_status and intf_status.uptime ~= nil then
-    return tostring(intf_status.uptime)
+  if intf_status and intf_status.data and intf_status.data.pppinfo and intf_status.uptime then
+      return tostring(intf_status.uptime)
   end
   return ""
 end

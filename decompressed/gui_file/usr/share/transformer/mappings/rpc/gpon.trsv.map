@@ -1,0 +1,18 @@
+local optical = require("transformer.shared.optical")
+local flag = optical.getBoardtype()
+if flag ~= "gpon" and flag ~= "gpon_sfp" then
+  return
+end
+
+local gpon_trsv = {
+    objectType = {
+        name = "rpc.gpon.trsv.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+        }
+    }
+}
+
+register(gpon_trsv)

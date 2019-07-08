@@ -76,7 +76,7 @@ msgid "Router Security"
 msgstr "Impostazioni sicurezza"
 
 msgid "SSID Broadcast Name (Max 32 characters):"
-msgstr "Nome rete (SSID) max 32 caratteri:"
+msgstr "Nome rete (SSID)\nmax 32 caratteri:"
 
 msgid "SSID Broadcast Name: "
 msgstr "Nome rete (SSID): "
@@ -88,7 +88,7 @@ msgid "Security Key Type: "
 msgstr "Modo sicurezza: "
 
 msgid "Security Key(Minimum of 8 characters):"
-msgstr "Password (minimo 8 caratteri):"
+msgstr "Password\n(minimo 8 caratteri):"
 
 msgid "Security Key: "
 msgstr "Password: "
@@ -248,3 +248,30 @@ msgstr "Le password non coincidono"
 
 msgid "You must fill your password"
 msgstr "Devi inserire la password"
+
+msgid "WiFi Setup (2.4 GHz)"
+msgstr "Impostazioni WiFi (2.4 GHz)"
+
+msgid "Wireless 5 GHz (WiFi):"
+msgstr "Wireless 5 GHz (Wifi):"
+
+msgid "WiFi Setup (5 GHz)"
+msgstr "Impostazioni WiFi (5 GHz)"
+
+msgid "Wireless 5 GHz (WiFi): "
+msgstr "Wireless 5 GHz (Wifi): "
+
+msgid "A <b>WiFi 2.4 GHz</b> Security Key is already set-up with your Router, however you can change that key here if desired. You can also change the security type below. To connect to the Router via WiFi you will need to enter the Security Key into your device."
+msgstr "Nel router è già pre-impostata una password per la rete <b>Wi-Fi 2.4 GHz</b>, ma puoi modificarla a tuo piacimento.<br/>Puoi inoltre cambiare il modo sicurezza.<br/>Per connetterti al router in Wi-Fi avrai bisogno di inserire nel dispositivo la password della rete."
+
+msgid "A <b>WiFi 5 GHz</b> Security Key is already set-up with your Router, however you can change that key here if desired. You can also change the security type below. To connect to the Router via WiFi you will need to enter the Security Key into your device."
+msgstr "Nel router è già pre-impostata una password per la rete <b>Wi-Fi 5 GHz</b>, ma puoi modificarla a tuo piacimento.<br/>Puoi inoltre cambiare il modo sicurezza.<br/>Per connetterti al router in Wi-Fi avrai bisogno di inserire nel dispositivo la password della rete."
+
+msgid "Wireless 2.4 GHz (WiFi):"
+msgstr "Wireless 2.4 GHz (Wifi):"
+
+msgid "Wireless 2.4 GHz (WiFi): "
+msgstr "Wireless 2.4 GHz (Wifi): "
+
+msgid "Some parameters failed validation"
+msgstr ""

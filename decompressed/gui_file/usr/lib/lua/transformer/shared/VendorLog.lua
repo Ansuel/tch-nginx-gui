@@ -59,6 +59,11 @@ local function main(...)
     errmsg("Invalid index number!")
     return 1
   end
+  if name == "filter_file" then
+    name = uci_helper.get_from_uci({config="system", sectionname="@system[0]", option="log_filter_file", default="/var/log/filt_msg", extended=true})
+  elseif name == "logread" then
+      name = uci_helper.get_from_uci({config="system", sectionname="@system[0]", option="log_file", default="logread", extended=true})
+  end  
   if name == "logread" then
     execute("logread > " .. location .. filename)
   else
@@ -71,7 +76,7 @@ local function main(...)
     if persistenlog_enabled and rotate >= 1 then
       execute("cat `ls -r " .. name .."*` > " .. location .. filename)
     else
-      execute("cp " .. name .. " " .. location .. filename)
+      execute("ln -fs " .. name .. " " .. location .. filename)
     end
   end
   return 0

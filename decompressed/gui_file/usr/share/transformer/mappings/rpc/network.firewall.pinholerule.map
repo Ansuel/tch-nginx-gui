@@ -26,7 +26,7 @@ local mapinfo_rule_uci = {
         "target",
         "src_mac", "src_ip", "src_port",
         "dest_mac",    -- added, Used to recreate dest_ip.
-        "dest_ip", "dest_port",
+        "dest_ip", "dest_port", "user_friendly_name",
     },
 
     lists = { "proto", "icmp_type" },

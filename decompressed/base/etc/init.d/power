@@ -2,6 +2,8 @@
 #set -x
 START=20
 
+kernel_ver="$(cat /proc/version | awk '{print $3}')"
+
 uci2onoff() {
     case "$1" in
         0) echo "off";;
@@ -36,9 +38,12 @@ setup_cpuspeed() {
 }
 
 move_irq_interrupts_cpu1() {
-	echo 2 > /proc/irq/72/smp_affinity
-	echo 2 > /proc/irq/92/smp_affinity
-	echo 2 > /proc/irq/98/smp_affinity
+	#This cause crash on kernel 4.1 so only apply to kernel 3.4
+	if [ -z "${kernel_ver##3.4*}" ]; then
+		echo 2 > /proc/irq/72/smp_affinity
+		echo 2 > /proc/irq/92/smp_affinity
+		echo 2 > /proc/irq/98/smp_affinity
+	fi
 }
 
 setup() {

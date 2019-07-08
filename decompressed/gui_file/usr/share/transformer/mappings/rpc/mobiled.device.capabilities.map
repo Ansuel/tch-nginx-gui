@@ -9,6 +9,10 @@ local mobiled_device_capabilities_ = {
                 access = "readOnly",
                 type = "string"
             },
+            supported_auth_types = {
+                access = "readOnly",
+                type = "string"
+            },
             max_data_sessions = {
                 access = "readOnly",
                 type = "unsignedInt"
@@ -69,7 +73,7 @@ end
 local helper = require("mobiled.scripthelpers")
 
 local function getall(mapping, key)
-    return helper.getUbusData(conn, "mobiled.device", "capabilities", { dev_idx = tonumber(string.match(key, '%d')) })
+    return helper.getUbusData(conn, "mobiled.device", "capabilities", { dev_idx = tonumber(string.match(key, '%d+')) })
 end
 
 local function get(mapping, paramName, key)

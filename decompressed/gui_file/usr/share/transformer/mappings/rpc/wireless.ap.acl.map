@@ -1,4 +1,5 @@
-local logger = require("transformer.logger")
+local modgui = require("modgui")
+local logger = modgui.getRightLoggerModule()
 local log = logger.new("wireless.ap.acl", 2)
 local register = register;
 

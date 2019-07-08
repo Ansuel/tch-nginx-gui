@@ -9,9 +9,9 @@ local proxy = require("datamodel")
 local ui_helper = require("web.ui_helper")
 local content_helper = require("web.content_helper")
 local dynDns_attributes = {
-	light = { id = "DynDNS_Status_Led" },
+	light = { id = "DDNS_Status_Led" },
 	span = { class = "span4",
-	id = "DynDNS_Status"}
+	id = "DDNS_Status"}
 }
 
 local dmz_attributes = {
@@ -38,9 +38,9 @@ local wan_services_data = {
 content_helper.getExactContent(wan_services_data)
 
 local ddns_enabled_map = {
-  ["0"] = T"DynDNS disabled",
-  ["1"] = T"DynDNS enabled",
-  [""] = T"DynDNS disabled",
+  ["0"] = T"DDNS disabled",
+  ["1"] = T"DDNS enabled",
+  [""] = T"DDNS disabled",
 }
 
 local ddns_light_map = {
@@ -72,17 +72,23 @@ for _,v in ipairs(pf_data) do
   end
 end
 
+local ddns_path = proxy.get("rpc.ddns.service.")
+local ddns_data = content_helper.convertResultToObject("rpc.ddns.service.",ddns_path)
+
 local n_redir_rules = #pf_rule_len
-local n_upnp_rules = tonumber(wan_services_data["upnp_rules"])
+local n_ddns_rules = #ddns_data
+local n_upnp_rules = tonumber(wan_services_data["upnp_rules"]) or 0
 local modalPath = nil
 local switchName = nil
 local modal_link_port  = ""
 local modal_link_upnp = ""
+local modal_link_ddns = ""
 local session = ngx.ctx.session
 if session:hasAccess("/modals/wanservices-modal.lp") then
   modalPath = "/modals/wanservices-modal.lp"
   modal_link_port = 'class="modal-link" id="PortForwarding_Id" data-toggle="modal" data-remote="/modals/wanservices-modal.lp" data-id="wanservices-modal"'
-  modal_link_upnp = 'class="modal-link" id="upnp_Id" data-toggle="modal" data-remote="/modals/wanservices-modal.lp" data-id="wanservices-modal"'
+  modal_link_ddns = 'class="modal-link" id="ddns_Id" data-toggle="modal" data-remote="/modals/dyndns-modal.lp" data-id="dyndns-modal"'
+  modal_link_upnp = 'class="modal-link" id="upnp_Id" data-toggle="modal" data-remote="/modals/upnp-modal.lp" data-id="upnp-modal"'
 end
 
 local upnpstate_text
@@ -106,16 +112,17 @@ end
     <div class="content card_bg" data-bg-text="&#xf0c2;">\
 	<div class="divtable">\
     ');  ngx.print(
-	    ui_helper.createSimpleLight(state, dmzstate, dmz_attributes,"fas fa-cogs"),
-            ui_helper.createSimpleLight(ddns_light_map[format("%s", wan_services_data["ddns_enabled"])] or "0", ddns_enabled_map[format("%s", wan_services_data["ddns_enabled"])], dynDns_attributes,"fas fa-link"),
+			ui_helper.createSimpleLight(state, dmzstate, dmz_attributes,"fas fa-cogs"),
 			ui_helper.createSimpleLight(upnpstate, upnpstate_text, dmz_attributes,"fas fa-random"),
-            '<p></p>',
-            '<p class="subinfos">',
-            format( N("<strong %s>%d port forwarding</strong> rule is defined",
+            '<br/>',
+            '<i class="fas fa-door-open" aria-hidden="true" href="#">&nbsp</i>' .. format( N("<strong %s>%d port forwarding</strong> rule is defined",
                       "<strong %s>%d port forwarding</strong> rules are defined", n_redir_rules),
                       modal_link_port, n_redir_rules),
-	    '<br/>',
-            '</p>'
+			'<br/>',
+			'<i class="fas fa-map-marked-alt" aria-hidden="true" href="#">&nbsp</i>' .. format( N("<strong %s>%d DDNS service</strong> is enabled",
+					  "<strong %s>%d DDNS services</strong> are enabled", n_ddns_rules),
+					  modal_link_ddns, n_ddns_rules),
+			'<br/>'
         )
       ngx.print('\
 	  </div>\

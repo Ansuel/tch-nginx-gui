@@ -1,6 +1,5 @@
 local uh = mapper("ucihelper")
 local format, gmatch, find, match = string.format, string.gmatch, string.find, string.match
-local popen = io.popen
 local tonumber, ipairs, pairs = tonumber, ipairs, pairs
 local bit = require("bit")
 
@@ -79,7 +78,8 @@ end
 local function getIPIntf(x)
   local returnvar = ""
   uh.foreach_on_uci(binding, function(s)
-    if x == s["ifname"] then
+    -- To retrieve only the IPv4 Interface Name
+    if x == s["ifname"] and s.proto ~= "dhcpv6" then
       returnvar = s[".name"]
       return false
     end
@@ -97,13 +97,14 @@ local notallowed = {
 }
 
 local function generate_data(tableref)
+  local popen = require("modgui").popen
   local data = cache[tableref]
   if data then
     return data
   end
   data = {}
   cache[tableref] = data
-  local readtable = popen(format("ip route show table %s 2>&1", tableref))
+  local readtable = popen(format("ip route show table %s", tableref))
   for line in readtable:lines() do
     if line ~= "" and find(line, "Error:") == nil then
       local words = {}
@@ -162,12 +163,12 @@ local function getall(mapping, key)
     store["Gateway"] = data[offset+1]
   end
 
-  local offset = findoffset(data, "dev")
+  offset = findoffset(data, "dev")
   if offset then
     store["Iface"] = getIPIntf(data[offset+1])
   end
 
-  local offset = findoffset(data, "src")
+  offset = findoffset(data, "src")
   if offset then
     if data[offset+2] and data[offset+2] ~= "metric" then
       store["Source"] = data[offset+1] .. "/" .. data[offset+2]
@@ -176,7 +177,7 @@ local function getall(mapping, key)
     end
   end
 
-  local offset = findoffset(data, "metric")
+  offset = findoffset(data, "metric")
   if offset then
     store["Metric"] = data[offset+1]
   else

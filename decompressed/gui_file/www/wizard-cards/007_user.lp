@@ -1,4 +1,5 @@
-<%
+--pretranslated: do not change this file
+
 -- Enable localization
 gettext.textdomain('webui-wizard')
 
@@ -8,7 +9,7 @@ local wizard_helper = require("wizard")
 local post_helper = require("web.post_helper")
 local content_helper = require("web.content_helper")
 local user_path = "uci.web.user.@usr_admin."
-local vWEP = post_helper.validateWEP
+
 local gVSLIR = post_helper.getValidateStringLengthInRange
 local match = string.match
 
@@ -50,12 +51,13 @@ if ngx.var.request_method == "POST" and ngx.var.content_type and match(ngx.var.c
        ngx.ctx.session:reloadAllUsers()
     end
 end
-%>
-<div class='wizard-card'>
-    <fieldset>
-      <%="<legend></legend>"%>
-      <%='<h4>' .. T"Router Security" .. '</h4>'%>
-      <%
+
+ngx.print('\
+<div class="wizard-card">\
+    <fieldset>\
+      <legend></legend>\
+      <h4>'); ngx.print( T"Router Security" ); ngx.print('</h4>\
+      ')
         local html = {}
         local info_attr = {
             alert = {
@@ -74,106 +76,107 @@ end
         html[#html+1] = ui_helper.createInputText("", "srp_verifier", content["srp_verifier"], srp_class, helpmsg["srp_verifier"])
         html[#html+1] = ui_helper.createAlertBlock("<strong>" .. T"Remember to make a note of your username and password" .."</strong>", info_attr)
         ngx.print(html)
-      %>
-    </fieldset>
-</div>
-<div class='wizard-confirm'>
-    <fieldset>
-      <%
+      ngx.print('\
+    </fieldset>\
+</div>\
+<div class="wizard-confirm">\
+    <fieldset>\
+      ')
         local html = {}
         html[#html+1] = ui_helper.createLabel(T"Desired Username:", content["web_username"])
         html[#html+1] = ui_helper.createLabel(T"Desired Password:", "********")
         ngx.print(html)
-      %>
-    </fieldset>
-</div>
-<script type="text/javascript">
-(function() {
-	
-	$.getScript("/js/srp-min.js");
-	
-    function clear_error(id)
-    {
-        var upass = $('.modal input[name='+id+']');
-        upass.removeClass("tooltip-on error");
-        upass.closest(".control-group").removeClass("error");
-        upass.first().next().remove();
-    }
-
-    function display_error(id,msg)
-    {
-        var upass = $('.modal input[name='+id+']');
-        upass.addClass("error");
-        upass.closest(".control-group").addClass("error");
-        upass.first().after('<span class="help-inline">' + msg + '</span>');
-    }
-
-    function display_alert()
-    {
-        $('.alert-error').detach();
-        var upass = $('.modal input[name="web_username"]');
-        upass.closest(".control-group").before('<div class="alert alert-error">T"Some parameters failed validation"</div>');
-    }
-
-    $("#wizard-next").on("click", function(){
-        if ($('input[name="web_username"]').is(":visible")) {
-            clear_error("web_username");
-            clear_error("web_password");
-            clear_error("web_password2");
-
-            var user = $('input[name="web_username"]').val();
-            var password = $('input[name="web_password"]').val();
-            var password2 = $('input[name="web_password2"]').val();
-            var salt = $('input[name="srp_salt"]').val();
-            var verifier = $('input[name="srp_verifier"]').val();
-            var validated = true;
-            if(password !== password2) {
-                display_error("web_password2","<%= T'Passwords do not match' %>");
-                validated = false;
-            }
-
-            if(user == "") {
-                display_error("web_username","<%= T'Username can not be empty' %>");
-                validated = false;
-            }
-
-            if (password == "") {
-                if (verifier.length != 512 || salt.length != 8) {
-                    display_error("web_password","<%= T'You must fill your password' %>");
-                    display_error("web_password2","<%= T'You must fill your password' %>");
-                    validated = false
-                }
-            }
-
-            if (validated) {
-                if (password == "") {
-                    tch.nextWizardCard(1);
-                } else
-                {
-                    var srp = new SRP();
-                    srp.generateSaltAndVerifierTheCallback(user, password, function(salt, verifier) {
-                        $('input[name="srp_salt"]').val(salt);
-                        $('input[name="srp_verifier"]').val(verifier);
-                        $('input[name="web_password"]').val(""); // clean that up no need to send it over the air
-                        $('input[name="web_password2"]').val("");
-                        tch.nextWizardCard(1);
-                    });
-                }
-            } else {
-                display_alert();
-            }
-            return false;
-        }
-        return
-    });
-
-    $("#wizard-previous").on("click", function(){
-        if ($('input[name="web_username"]').is(":visible")) {
-            $('input[name="web_password"]').val('');
-            $('input[name="web_password2"]').val('');
-            tch.nextWizardCard(-1);
-            return false;
-        }
-    });
-});
-</script>
+      ngx.print('\
+    </fieldset>\
+</div>\
+<script type="text/javascript">\
+(function() {\
+\
+	$.getScript("/js/srp-min.js");\
+\
+    function clear_error(id)\
+    {\
+        var upass = $(\'.modal input[name=\'+id+\']\');\
+        upass.removeClass("tooltip-on error");\
+        upass.closest(".control-group").removeClass("error");\
+        upass.first().next().remove();\
+    }\
+\
+    function display_error(id,msg)\
+    {\
+        var upass = $(\'.modal input[name=\'+id+\']\');\
+        upass.addClass("error");\
+        upass.closest(".control-group").addClass("error");\
+        upass.first().after(\'<span class="help-inline">\' + msg + \'</span>\');\
+    }\
+\
+    function display_alert()\
+    {\
+        $(\'.alert-error\').detach();\
+        var upass = $(\'.modal input[name="web_username"]\');\
+        upass.closest(".control-group").before(\'<div class="alert alert-error">'); ngx.print ( T"Some parameters failed validation" ); ngx.print('</div>\');\
+    }\
+\
+    $("#wizard-next").on("click", function(){\
+        if ($(\'input[name="web_username"]\').is(":visible")) {\
+            clear_error("web_username");\
+            clear_error("web_password");\
+            clear_error("web_password2");\
+\
+            var user = $(\'input[name="web_username"]\').val();\
+            var password = $(\'input[name="web_password"]\').val();\
+            var password2 = $(\'input[name="web_password2"]\').val();\
+            var salt = $(\'input[name="srp_salt"]\').val();\
+            var verifier = $(\'input[name="srp_verifier"]\').val();\
+            var validated = true;\
+            if(password !== password2) {\
+                display_error("web_password2","'); ngx.print( T"Passwords do not match" ); ngx.print('");\
+                validated = false;\
+            }\
+\
+            if(user == "") {\
+                display_error("web_username","'); ngx.print( T"Username can not be empty" ); ngx.print('");\
+                validated = false;\
+            }\
+\
+            if (password == "") {\
+                if (verifier.length != 512 || salt.length != 8) {\
+                    display_error("web_password","'); ngx.print( T"You must fill your password" ); ngx.print('");\
+                    display_error("web_password2","'); ngx.print( T"You must fill your password" ); ngx.print('");\
+                    validated = false\
+                }\
+            }\
+\
+            if (validated) {\
+                if (password == "") {\
+                    tch.nextWizardCard(1);\
+                } else\
+                {\
+                    var srp = new SRP();\
+                    srp.generateSaltAndVerifierTheCallback(user, password, function(salt, verifier) {\
+                        $(\'input[name="srp_salt"]\').val(salt);\
+                        $(\'input[name="srp_verifier"]\').val(verifier);\
+                        $(\'input[name="web_password"]\').val(""); // clean that up no need to send it over the air\
+                        $(\'input[name="web_password2"]\').val("");\
+                        tch.nextWizardCard(1);\
+                    });\
+                }\
+            } else {\
+                display_alert();\
+            }\
+            return false;\
+        }\
+        return\
+    });\
+\
+    $("#wizard-previous").on("click", function(){\
+        if ($(\'input[name="web_username"]\').is(":visible")) {\
+            $(\'input[name="web_password"]\').val(\'\');\
+            $(\'input[name="web_password2"]\').val(\'\');\
+            tch.nextWizardCard(-1);\
+            return false;\
+        }\
+    });\
+});\
+</script>\
+')

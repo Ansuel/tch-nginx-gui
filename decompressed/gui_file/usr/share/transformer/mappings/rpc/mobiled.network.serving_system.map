@@ -1,5 +1,3 @@
-local tonumber, string = tonumber, string
-
 local mobiled_network_serving_system_ = {
     objectType = {
         name = 'rpc.mobiled.device.@.network.serving_system.',
@@ -55,17 +53,31 @@ local mobiled_network_serving_system_ = {
                 access = "readOnly",
                  type = "string"
             },
-            current_dl_speed = {
+            current_dl_bitrate = {
                 access = "readOnly",
                 type = "string"
             },
-            current_ul_speed = {
+            current_ul_bitrate = {
                 access = "readOnly",
                 type = "string"
             },
+            max_dl_bitrate = {
+                access = "readOnly",
+                type = "string"
+            },
+            max_ul_bitrate = {
+                access = "readOnly",
+                type = "string"
+            },
+            max_age = {
+                access = "readWrite",
+                type = "unsignedInt"
+            }
         }
     }
 }
+
+local max_age = {}
 
 local conn = mapper("ubus").connect()
 if not conn then
@@ -75,7 +87,8 @@ end
 local helper = require("mobiled.scripthelpers")
 
 local function getall(mapping, key)
-    local data = helper.getUbusData(conn, "mobiled.network", "serving_system", { dev_idx = tonumber(string.match(key, '%d')) })
+    local dev_idx = tonumber(string.match(key, '%d+'))
+    local data = helper.getUbusData(conn, "mobiled.network", "serving_system", { dev_idx = dev_idx, max_age = max_age[dev_idx] })
     local result = data
     if data.plmn_info and data.plmn_info ~= "" then
         result['network_desc'] = data.plmn_info.description
@@ -87,8 +100,13 @@ local function getall(mapping, key)
         result['cell_id_hex'] = string.format("%X", tonumber(data.cell_id))
     end
     if data.connection_rate then
-      result['current_dl_speed'] = data.connection_rate.current_dl_speed
-      result['current_ul_speed'] = data.connection_rate.current_ul_speed
+        result.current_dl_bitrate = data.connection_rate.rx_rate
+        result.current_ul_bitrate = data.connection_rate.tx_rate
+        result.max_dl_bitrate = data.connection_rate.max_rx_rate
+        result.max_ul_bitrate = data.connection_rate.max_tx_rate
+    end
+    if max_age[dev_idx] then
+        data.max_age = tostring(max_age[dev_idx])
     end
     return result
 end
@@ -97,7 +115,15 @@ local function get(mapping, paramName, key)
     return getall(mapping, key)[paramName]
 end
 
+local function set(mapping, paramName, paramVal, key)
+    if paramName == "max_age" then
+        local dev_idx = tonumber(string.match(key, '%d+'))
+        max_age[dev_idx] = tonumber(paramVal)
+    end
+end
+
 mobiled_network_serving_system_.getall = getall
 mobiled_network_serving_system_.get = get
+mobiled_network_serving_system_.set = set
 
 register(mobiled_network_serving_system_)

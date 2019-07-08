@@ -11,7 +11,7 @@ local system_system = {
   options = { "hostname", "timezone", "zonename", "network_timezone", "wizard_accessed",
               "log_ip", "log_port", "log_type",
               "log_file", "log_prefix", "log_size", "log_filter_ip",
-              "log_filter_file",
+              "log_filter_file", "conloglevel",
   },
   lists = { "log_filter" }
 }
@@ -88,3 +88,22 @@ local system_coredump = {
 }
 
 mapper("uci_1to1").registerNamedMultiMap(system_coredump)
+
+-- uci.system.kernel_crash
+local system_kernel_crash = {
+  config = config_system,
+  type = "kernel_crash",
+  options = {"action", "path", "url"}
+}
+
+mapper("uci_1to1").registerNamedMultiMap(system_kernel_crash)
+
+-- uci.system.scheduledreboot
+local system_scheduledreboot = {
+  config = config_system,
+  section = "scheduledreboot",
+  type = "scheduledreboot",
+  options = { "enabled", "time", "rebootreason" },
+}
+
+mapper("uci_1to1").registerSimpleMap(system_scheduledreboot)

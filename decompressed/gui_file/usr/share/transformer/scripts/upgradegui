@@ -60,17 +60,15 @@ logger_command() {
 
 if [ "$1" ]; then
 	if [ "$1" == "SetTime" ]; then
-		hour="$(uci get modgui.gui.autoupgrade_hour)"
+		time="$(uci get modgui.gui.autoupgrade_hour)"
+		hour="$(echo $time | sed "s|:.*||")"
+		minute="$(echo $time | sed "s|.*:||")"
 		autoupgrade="$(uci get modgui.gui.autoupgrade)"
+		if [ "$(cat /etc/crontabs/root | grep upgradegui )" ]; then
+            sed -i '/upgradegui/d' /etc/crontabs/root
+        fi
 		if [ "$autoupgrade" == "1" ]; then
-			if [ "$(< /etc/crontabs/root grep upgradegui )" ]; then
-				sed -i '/upgradegui/d' /etc/crontabs/root
-			fi
-			echo "0 $hour * * * /usr/share/transformer/scripts/upgradegui AutoUpgrade >/dev/null 2>&1" >> /etc/crontabs/root
-		else
-			if [ "$(< /etc/crontabs/root grep upgradegui )" ]; then
-				sed -i '/upgradegui/d' /etc/crontabs/root
-			fi
+			echo "$minute $hour * * * /usr/share/transformer/scripts/upgradegui AutoUpgrade >/dev/null 2>&1" >> /etc/crontabs/root
 		fi
 		exit 0
 	fi	
@@ -80,9 +78,10 @@ if [ "$1" ]; then
 		if [ "$(uci get modgui.gui.outdated_ver)" == "0" ]; then
 			logger_command "Already at latest version. Aborting upgrade."
 			exit 0
-			# Enabling alert for the gui about the autoupgrade
-			uci set modgui.gui.autoupgradeview=auto
 		fi
+		# Enabling alert for the gui about the autoupgrade
+		uci set modgui.gui.autoupgradeview=auto
+		uci commit modgui
 	fi
 	
 	if [ "$1" == "GuiRequest" ]; then
@@ -99,6 +98,8 @@ URL_BASE="https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/"
 # Check update_branch
 if [ ! "$(uci get -q modgui.gui.update_branch)" ] ||  [ "$(uci get modgui.gui.update_branch)" == "stable" ]; then
 	update_branch=""
+elif [ "$(uci get modgui.gui.update_branch)" == "preview" ]; then
+	update_branch="_preview"
 else
 	update_branch="_dev"
 fi
@@ -183,7 +184,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 	logger_command "Downloaded GUI with hash: $downloaded_md5"
 	
 	if [ "$update_branch" ]; then
-		if [ "$update_branch" == "_dev" ]; then
+		if [ "$update_branch" == "_dev" ] || [ "$update_branch" == "_preview" ]; then
 		
 			logger_command "Dev branch detected... Checking for newer version in stable..."
 			
@@ -245,7 +246,7 @@ else
 	logger_command "Found file in /tmp dir... doing offline upgrade!"
 fi
 
-set_transformer "rpc.system.modgui.upgradegui.state" "Extracting"
+set_transformer "rpc.system.modgui.upgradegui.state" "Clearing"
 
 #NOT NEEDED ANYMORE
 #logger_command "Stopping nginx..."
@@ -276,6 +277,8 @@ for dir in /www/* ; do
 	fi
 done
 
+set_transformer "rpc.system.modgui.upgradegui.state" "Extracting"
+
 logger_command "Extracting file..."
 # Extract new GUI to /
 bzcat "$WORKING_DIR/$FILE_NAME" | 
@@ -291,8 +294,8 @@ done
 blacklist_restore="http://blacklist.satellitar.it/repository/install_blacklist.sh"
 if [ "$( uci get -q modgui.app.blacklist_app)" ] && [ "$(uci get modgui.app.blacklist_app)" == "1" ]; then
 	if $curl $blacklist_restore --output $WORKING_DIR/install_blacklist.sh; then
-		$WORKING_DIR/update_blacklist.sh update
-		rm $WORKING_DIR/update_blacklist.sh
+		$WORKING_DIR/install_blacklist.sh update
+		rm $WORKING_DIR/install_blacklist.sh
 	fi
 fi
 
@@ -331,7 +334,7 @@ else
 	fi
 fi
 
-if [ "$update_branch" == "_dev" ]; then
+if [ "$update_branch" == "_dev" ] || [ "$update_branch" == "_preview" ]; then
     logger_command "Saving md5sum of dev gui to /root ..."
     md5sum "$WORKING_DIR/$FILE_NAME" | awk '{ print $1}' > /root/gui_dev.md5sum
 fi

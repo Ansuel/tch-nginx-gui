@@ -1,4 +1,5 @@
-local logger = require("transformer.logger")
+local modgui = require("modgui")
+local logger = modgui.getRightLoggerModule()
 local log = logger.new("rpc.system.config.")
 local cfg = require("transformer.shared.ConfigCommon")
 
@@ -50,6 +51,10 @@ local SYSTEM_CONFIG_EXPORT_ = {
         access = "readOnly",
         type = "string",
       },
+      password = {
+        access = "readWrite",
+        type = "string",
+      },
     }
   }
 }
@@ -68,6 +73,7 @@ SYSTEM_CONFIG_EXPORT_.get = {
     return export_mapdata.info or ""
   end,
   version = export_mapdata.version or "1.00",
+  password = "",
 }
 
 SYSTEM_CONFIG_EXPORT_.set = {
@@ -95,6 +101,9 @@ SYSTEM_CONFIG_EXPORT_.set = {
     end
     cfg.export_reset(export_mapdata)
     export_mapdata.filename = value
+  end,
+  password = function(mapping, param, value)
+    cfg.set_user_password(value)
   end,
 }
 
@@ -132,6 +141,10 @@ local SYSTEM_CONFIG_IMPORT_ = {
         access = "readOnly",
         type = "string",
       },
+      password = {
+        access = "readWrite",
+        type = "string",
+      },
     }
   }
 }
@@ -149,6 +162,7 @@ SYSTEM_CONFIG_IMPORT_.get = {
   info = function(mapping, param)
     return import_mapdata.info or ""
   end,
+  password = "",
 }
 
 SYSTEM_CONFIG_IMPORT_.set = {
@@ -172,6 +186,9 @@ SYSTEM_CONFIG_IMPORT_.set = {
     end
     cfg.import_reset(import_mapdata)
     import_mapdata.filename = value
+  end,
+  password = function(mapping, param, value)
+    cfg.set_user_password(value)
   end,
 }
 

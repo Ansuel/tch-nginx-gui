@@ -1,6 +1,11 @@
 #!/bin/sh
 . /lib/functions.sh
-. /lib/functions/system.sh
+
+#	Check if this script actually exist, it's not used anyway in the upgrade process. 
+#	If it's not present then it's not used and we can skip it.
+if [ -f /lib/functions/system.sh ]; then
+	. /lib/functions/system.sh
+fi
 
 # initialize defaults
 RAMFS_COPY_BIN=""	# extra programs for temporary ramfs root
@@ -25,6 +30,7 @@ export SWITCHBANK=0
 export UPGRADE_SAFELY=0
 export UPGRADE_MODE=NO-GUI
 export IGNORE_SIGNATURE=0
+export ROOT_ONLY=0
 
 # parse options
 while [ -n "$1" ]; do
@@ -46,6 +52,7 @@ while [ -n "$1" ]; do
 		-h|--help) export HELP=1; break;;
 		--safe) UPGRADE_SAFELY=1;;
 		--gui) UPGRADE_MODE=GUI;;
+		--rootonly) export ROOT_ONLY=1;;
 		--nosig) IGNORE_SIGNATURE=1;;
 		-*)
 			echo "Invalid option: $1"

@@ -1,5 +1,3 @@
-local string, tonumber, type = string, tonumber, type
-
 local mobiled_device_profiles = {
 	objectType = {
 		name = 'rpc.mobiled.device.@.profile.@.',
@@ -44,6 +42,16 @@ local mobiled_device_profiles = {
 			password = {
 				access = "readOnly",
 				type = "password"
+			},
+			authentication = {
+				access = "readOnly",
+				type = "string",
+				enumeration = {
+					"none",
+					"pap",
+					"chap",
+					"papchap"
+				}
 			}
 		}
 	}
@@ -55,45 +63,40 @@ if not conn then
 end
 
 local helper = require("mobiled.scripthelpers")
+local cache = {}
 
-local function getProfileData(key, parentkey)
-	local profile_id = tonumber(string.match(key, '%d'))
-	if profile_id and profile_id >= 1 then
-		local data = helper.getUbusData(conn, "mobiled.device", "profiles", { dev_idx = tonumber(string.match(parentkey, '%d')) })
-		if type(data.profiles) == "table" then
-			local profile = data.profiles[profile_id]
-			profile.visible = "1"
-			profile.editable = "0"
-			if type(profile) == "table" then
-				setmetatable(profile, { __index = function() return "" end })
-				return profile
+function mobiled_device_profiles.getall(mapping, key, parentkey)
+	local info = {}
+	if type(cache.profiles) == "table" then
+		local id = tonumber(string.match(key, 'deviceprofile(%d+)'))
+		if cache.profiles[id] then
+			info = cache.profiles[id]
+			info.visible = "1"
+			info.editable = "0"
+			if info.authentication == "PAP" or info.authentication == "CHAP" or info.authentication == "PAPCHAP" then
+				info.authentication = string.lower(info.authentication)
+			else
+				info.authentication = "none"
 			end
 		end
 	end
-	return {}
+	setmetatable(info, { __index = function() return "" end })
+	return info
 end
 
-local function getall(mapping, key, parentkey)
-	return getProfileData(key, parentkey)
+function mobiled_device_profiles.get(mapping, paramName, key, parentkey)
+	return mobiled_device_profiles.getall(mapping, key, parentkey)[paramName]
 end
 
-local function get(mapping, paramName, key, parentkey)
-	return getall(mapping, key, parentkey)[paramName]
-end
-
-local function profileEntries(mapping, key, parentkey)
-	local data = helper.getUbusData(conn, "mobiled.device", "profiles", { dev_idx = tonumber(parentkey) })
+function mobiled_device_profiles.entries(mapping, parentkey)
+	cache = helper.getUbusData(conn, "mobiled.device", "profiles", { dev_idx = tonumber(string.match(parentkey, '%d+')) })
 	local profiles = {}
-	if type(data.profiles) == "table" then
-		for i=1, #data.profiles do
-			table.insert(profiles, { tostring(i), "profile" .. i })
+	if type(cache.profiles) == "table" then
+		for i in pairs(cache.profiles) do
+			table.insert(profiles, { tostring(i), parentkey .. "_deviceprofile" .. i })
 		end
 	end
 	return profiles
 end
-
-mobiled_device_profiles.getall = getall
-mobiled_device_profiles.get = get
-mobiled_device_profiles.entries = profileEntries
 
 register(mobiled_device_profiles)

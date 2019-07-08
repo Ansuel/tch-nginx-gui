@@ -46,6 +46,13 @@ local check_rule = {
 	{ name = 'dosprotectmodal', target = '/modals/dosprotect-modal.lp' },
 	{ name = 'mmpbxdectmodal', target = '/modals/mmpbx-dect-modal.lp' },
 	{ name = 'modemstatsmodal', target = '/modals/modem-stats-modal.lp' },
+	{ name = 'upnpmodal', target = '/modals/upnp-modal.lp' },
+	{ name = 'dmzmodal', target = '/modals/dmz-modal.lp' },
+	{ name = 'wolsmodal', target = '/modals/wol-modal.lp' },
+	{ name = 'custodnssmodal', target = '/modals/custodns-modal.lp' },
+	{ name = 'dyndnssmodal', target = '/modals/dyndns-modal.lp' },
+	{ name = 'speedservicemodal', target = '/modals/speedservice-modal.lp' },
+	{ name = 'toddndmodal', target = '/modals/tod_dnd-modal.lp' },
 	{ name = 'nfcmodal', target = '/modals/nfc-modal.lp' },
 	{ name = 'stats', target = '/stats.lp' },
 	{ name = 'cards', target = '/cards.lp' },
@@ -58,6 +65,7 @@ local check_rule = {
 	{ name = 'ajaxinfoportscard', target = '/ajax/port_status.lua' },
 	{ name = 'ajaxinfommpbxstatuscard', target = '/ajax/mmpbx_status.lua' },
 	{ name = 'ajaxgetcard', target = '/ajax/get_card.lua' },
+	{ name = 'diagnosticsledsmodal', target = '/modals/diagnostics-leds-modal.lp' },
 }
 
 --We add telstra rules anyway as nginx will respond 404 if not found
@@ -158,6 +166,15 @@ end
 
 local rule_roles
 
+local function genRolesList()
+	local roles_list = {}
+	uci:foreach('web', 'user', function(s)
+		roles_list[#roles_list+1] = s.role
+	end)
+
+	return roles_list
+end
+
 --Check if rule contains engineer role and adds it
 uci:foreach('web', 'rule', function(s)
 	rule_roles={}
@@ -173,6 +190,9 @@ uci:foreach('web', 'rule', function(s)
 	end
 	if not contains("admin",rule_roles) then
 		rule_roles[#rule_roles+1]="admin"
+	end
+	if s['.name'] == "ajaxgetcard" then
+		rule_roles = genRolesList()
 	end
 	uci:set('web',s['.name'],'roles',rule_roles)
   end)
