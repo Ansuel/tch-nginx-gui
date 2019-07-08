@@ -29,7 +29,6 @@
 @media only screen and (max-width: 89rem) {
     #infocardrow {
         display: block !important;
-		margin-left: unset;
 		z-index: 0;
     }
 }
@@ -372,7 +371,7 @@ div.logo-technicolor a {
 
 .popUp {
     position: fixed;
-    width: calc(100% - 17rem);
+    width: calc(100% - 17rem) !important;
     max-width: calc(100% - 17rem);
     height: 22rem;
     overflow: visible;
@@ -755,7 +754,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
     }
 
     #cardrow {
-        top: 8rem;
+        top: 6.5rem;
         margin-left: 15.5rem;
         overflow-y: auto !important
     }

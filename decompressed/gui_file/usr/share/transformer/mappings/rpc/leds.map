@@ -1,0 +1,13 @@
+
+local leds = {
+    objectType = {
+        name = "rpc.Leds.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+        }
+    }
+}
+
+register(leds)

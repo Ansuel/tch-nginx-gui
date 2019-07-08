@@ -188,7 +188,7 @@ local Multi_Services_VoiceService_i_Capabilities_ = {
             },
             DigitMap = {
                 access = "readOnly",
-                activeNotify = "canDeny",
+                default = "0",
                 type = "boolean",
             },
             NumberingPlan = {
@@ -213,6 +213,8 @@ local Multi_Services_VoiceService_i_Capabilities_ = {
 local servicebinding = { config = "mmpbx", sectionname = "service" }
 local conn = mapper("ubus").connect()
 local binding = {}
+local transactions = {}
+local table = table
 
 Multi_Services_VoiceService_i_Capabilities_.get = {
     MaxProfileCount = "1",
@@ -231,7 +233,16 @@ Multi_Services_VoiceService_i_Capabilities_.get = {
     SignalingProtocols = "SIP",
     Regions = function()
         local reg = ""
-        local calls = conn:call("mmbrcm.countries", "get", {})
+        local regs
+        binding.config = "mmpbxbrcmcountry"
+        binding.sectionname = "global"
+        binding.option = "region"
+        regs = uci_helper.get_from_uci(binding)
+        if regs and type(regs) == "table" then
+            reg = table.concat(regs, ",")
+            return reg
+        end
+        local calls = conn:call("mmbrcm.countries", "get", {}) or {}
         if calls and type(calls) == "table" then
             for i,j in pairs(calls) do
                 reg = reg .. calls[i]["ISOStandard"] .. " "
@@ -293,7 +304,7 @@ Multi_Services_VoiceService_i_Capabilities_.get = {
     RingPatternEditable = "1",
     FileBasedRingGeneration = "1",
     RingFileFormats = "1",
-    DigitMap = "0",
+    DigitMap = "1",
     NumberingPlan = "1",
     ButtonMap = "0",
     VoicePortTests = "1"

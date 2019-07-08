@@ -139,7 +139,7 @@ $(function () {
 			$("#refresh-cards").hide();
 			window.history.pushState("gateway", "Gateway - "+view, page);
 			document.title = "Gateway - "+view;
-			$(this).trigger("switchcard");
+			$("#swtichbuttom").trigger("switchcard");
 		});
 	});
 	$("#upgradebtn").on("hover",
@@ -162,6 +162,10 @@ $(function () {
 
 var connectionissue = 0;
 function createAjaxUpdateCard(CardIdRefresh, ajaxLink, IntervalVar, RefreshTime) {
+	
+	var element = document.getElementById(CardIdRefresh);
+	if (!element) return ;
+	
 	var ElementBinding = {};
 	var ElementBindingList = [];
 	var ObserveElement;
@@ -201,7 +205,9 @@ function createAjaxUpdateCard(CardIdRefresh, ajaxLink, IntervalVar, RefreshTime)
 	};
 
 	AjaxRefresh();
-	ko.applyBindings(ElementBinding, document.getElementById(CardIdRefresh));
+	
+	if (!ko.dataFor(element))
+		ko.applyBindings(ElementBinding, element);
 	IntervalVar = setInterval(AjaxRefresh, RefreshTime);
 	KoRequest.push(IntervalVar);
 }

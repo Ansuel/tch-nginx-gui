@@ -34,16 +34,16 @@ local function getPcoData(key, parentkey, grandparentkey)
 	local result = {}
 	setmetatable(result, { __index = function() return "" end })
 
-	local session_id = tonumber(string.match(parentkey, 'device%d_session(%d)'))
+	local session_id = tonumber(string.match(parentkey, 'session(%d+)'))
 	if session_id and session_id > 0 then
 		session_id = session_id - 1
 	end
 
-	local data = helper.getUbusData(conn, "mobiled.network", "sessions", { dev_idx = tonumber(string.match(grandparentkey, '%d')), session_id = session_id })
+	local data = helper.getUbusData(conn, "mobiled.network", "sessions", { dev_idx = tonumber(string.match(grandparentkey, '%d+')), session_id = session_id })
 	if type(data.pco) == "table" then
 		for _, pco in pairs(data.pco) do
 			if type(pco) == "table" then
-				local id = tonumber(string.match(key, 'pco_(%d+)'))
+				local id = tonumber(string.match(key, 'pco(%d+)'))
 				if id == tonumber(pco.id) then
 					result.id = pco.id
 					result.length = pco.length
@@ -65,15 +65,15 @@ local function get(mapping, paramName, key, parentkey, grandparentkey)
 end
 
 local function pcoEntries(mapping, key, parentkey)
-	local session_id = tonumber(string.match(key, 'device%d_session(%d)'))
+	local session_id = tonumber(string.match(key, 'session(%d+)'))
 	if session_id and session_id > 0 then
 		session_id = session_id - 1
 	end
-	local data = helper.getUbusData(conn, "mobiled.network", "sessions", { dev_idx = tonumber(string.match(parentkey, '%d')), session_id = session_id })
+	local data = helper.getUbusData(conn, "mobiled.network", "sessions", { dev_idx = tonumber(string.match(parentkey, '%d+')), session_id = session_id })
 	local pcos = {}
 	if type(data.pco) == "table" then
 		for i, pco in pairs(data.pco) do
-			table.insert(pcos, {tostring(i), 'session_' .. session_id .. '_pco_' .. pco.id })
+			table.insert(pcos, {tostring(i), 'session' .. session_id .. '_pco' .. pco.id })
 		end
 	end
 	return pcos

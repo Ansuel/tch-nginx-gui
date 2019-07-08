@@ -1,7 +1,8 @@
-<%
+--pretranslated: do not change this file
+
 -- Enable localization
 -- NG-49075 Version 001 160429
--- NG-73564; 
+-- NG-73564;
 
 gettext.textdomain('webui-voice')
 
@@ -9,7 +10,7 @@ local proxy = require ("datamodel")
 local ui_helper = require("web.ui_helper")
 local post_helper = require("web.post_helper")
 local content_helper = require ("web.content_helper")
-local message_helper = require("web.uimessage_helper")
+local uimessage_helper = require("web.uimessage_helper")
 local role = ngx.ctx.session:getrole()
 local vB = post_helper.validateBoolean
 local vNES = post_helper.validateNonEmptyString
@@ -23,13 +24,13 @@ local mapValid = {
 					posfxs1 = vNES,
 					posfxs2 = vNES,
 					}
-					
+
 local content, helpmsg = post_helper.handleQuery(mapParam, mapValid)
 
 local choice2 = {
 					{"0",T"Disabled"},
 					{"1",T"Enabled"},
-				
+
 				}
 
 local codec_columns = {
@@ -69,7 +70,7 @@ local codec_columns = {
         name = "BitRate",
         param = "BitRate",
         type = "text",
-		readonly = true,
+        readonly = true,
         attr = { input = { class="span2" } },
     },
     { --[6]
@@ -112,20 +113,22 @@ local uri = ngx.var.uri
 if ngx.var.args and string.len(ngx.var.args) > 0 then
     uri = uri .. "?" .. ngx.var.args
 end
-%>
-<%= ui_helper.createHeader(T"Telephony", false, true) %>
 
-<div class="modal-body update">
-  <%
+
+ngx.print( ui_helper.createHeader(T"Telephony", false, true) )
+ngx.print('\
+<div class="modal-body update">\
+  ')
   local lp = require("web.lp")
   lp.setpath("/www/snippets/")
   lp.include("tabs-voice.lp")
-  %>
-  <form class="form-horizontal" method="post" action="<%= uri %>">
-  <%= ui_helper.createMessages(message_helper.popMessages()) %> 
-    <fieldset>
-      <legend><%= T"Enable Pos" %></legend>
-		<%
+  
+ngx.print('\
+  <form class="form-horizontal" method="post" action="'); ngx.print( uri ); ngx.print('">\
+    '); ngx.print ( ui_helper.createMessages(uimessage_helper.popMessages()) ); ngx.print('\
+    <fieldset>\
+      <legend>'); ngx.print( T"Enable Pos" ); ngx.print('</legend>\
+		')
 			local Posswitch = {
 									values = {on = "true", off = "false"},
 									}
@@ -134,19 +137,27 @@ end
 			html[#html+1] = ui_helper.createSwitch(T"Pos on FXS2", "posfxs2", content["posfxs2"],Posswitch)
 			
 			ngx.print(html)
-		%>
-    </fieldset>
-  <% if role == "engineer" then %>
-    <fieldset>
-      <legend><%= T"Codec Assignment on FXS1" %></legend>
-		<%= ui_helper.createTable(codec_columns, codec_data_FXS1, codec_options[1], nil, codec_helpmsg_FXS1) %>
-    </fieldset>
-	<fieldset>
-      <legend><%= T"Codec Assignment on FXS2" %></legend>
-	    <%= ui_helper.createTable(codec_columns, codec_data_FXS2, codec_options[2], nil, codec_helpmsg_FXS2) %>
-    </fieldset>
-	<% end %>
-  </form>
- </div>
-
-<%= ui_helper.createFooter() %>
+		
+		ngx.print('\
+    </fieldset>\
+	')
+  if role == "engineer" then
+  
+	html = {}
+	
+    html[#html+1] = '<fieldset>'
+    html[#html+1] =   '<legend>' .. T"Codec Assignment on FXS1" .. '</legend>'
+	html[#html+1] = 	ui_helper.createTable(codec_columns, codec_data_FXS1, codec_options[1], nil, codec_helpmsg_FXS1)
+    html[#html+1] = '</fieldset>'
+	html[#html+1] = '<fieldset>'
+    html[#html+1] =   '<legend>' .. T"Codec Assignment on FXS2" .. '</legend>'
+	html[#html+1] = 	ui_helper.createTable(codec_columns, codec_data_FXS2, codec_options[2], nil, codec_helpmsg_FXS2)
+    html[#html+1] = '</fieldset>'
+	
+	ngx.print(html)
+  end
+  ngx.print('\
+  </form>\
+ </div>\
+\
+'); ngx.print( ui_helper.createFooter() );

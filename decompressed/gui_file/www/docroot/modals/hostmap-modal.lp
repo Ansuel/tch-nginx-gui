@@ -30,7 +30,7 @@ local function AJAX(ap,path,mac)
     end
     local html = {}
     html[#html+1]="{"
-    html[#html+1]=format("\"Speed\":\"%s\"",(content["Speed"] or "0") .. " Mbs")
+    html[#html+1]=format("\"Speed\":\"%s\"",(content["Speed"] or "0") .. " Mbps")
     html[#html+1]=","
     html[#html+1]=format("\"State\":\"%s\"",state)
     html[#html+1]=","
@@ -58,14 +58,14 @@ end
 print(ui_helper.createHeader(T"Devices", false, true))
   ngx.print('\
 <div class="modal-body update">\
-');  
+');
 	local lp = require("web.lp")
     lp.setpath("/www/snippets/")
     lp.include("tabs-device.lp")
   ngx.print('\
 <form class="form-horizontal" method="post" action="modals/hostmap-modal.lp">\
 <fieldset>\
-');  
+');
 local html = {}
 local eth_sys_path = "sys.eth.port."
 local eth_sys_content = proxy.get(eth_sys_path)
@@ -92,16 +92,16 @@ end
   for _,f in ipairs(hosts) do
       local displayname = f.HostName
       if displayname == "" then
-         f.HostName = format("%s [ %s ]",T"Unknown",f.MACAddress)
+         f.HostName = format("%s%s",T"Unknown",string.upper(f.MACAddress):sub(-6))
       end
       local intf = f.L2Interface
-      if intf == "vlan_eth0" or intf == "eth0" then
+      if intf == "vlan_eth0" or intf == "eth0" or intf == "eth0_0" then
         eth0[#eth0+1] = f
-      elseif intf == "vlan_eth1" or intf == "eth1" then
+      elseif intf == "vlan_eth1" or intf == "eth1" or intf == "eth1_0" then
         eth1[#eth1+1] = f
-      elseif intf == "vlan_eth2" or intf == "eth2" then
+      elseif intf == "vlan_eth2" or intf == "eth2" or intf == "eth2_0" then
         eth2[#eth2+1] = f
-      elseif intf == "vlan_eth3" or intf == "eth3" then
+      elseif intf == "vlan_eth3" or intf == "eth3" or intf == "eth3_0" then
         eth3[#eth3+1] = f
       elseif intf == "moca0" then
         moca0[#moca0+1] = f
@@ -235,12 +235,11 @@ function Popupdevice(Title,txt,height){\
         $(\'html, body\').css({\'overflow\': \'auto\',\'height\': \'auto\'});\
   });\
 }\
-var timerajax = ""\
-function getInfo(mac,path,wifi,ap)\
-{\
+var timerajax = "";\
+function getInfo(mac,path,wifi,ap) {\
   var url = \'/modals/hostmap-modal.lp\';\
   var checktimer = 1000;\
-  var gets =  {}\
+  var gets = {};\
   gets.isAjax = "1";\
   //gets.wifi = wifi;\
   gets.path = path;\
@@ -253,15 +252,17 @@ function getInfo(mac,path,wifi,ap)\
       $("#rssivalue").html(data.RSSI + "dBm");\
       bars(data.RSSI);\
    })\
+   .fail(function() {\
+   });\
    timerajax = window.setTimeout(function () {getInfo(mac,path,wifi,ap);}, checktimer);\
-}\
+};\
 // Wifi chart scripts\
-    var countwifi = 0;\
+   var countwifi = 0;\
    function bars(x){\
           var y = 100 + parseInt(x);\
-          var x = parseInt(x) * -1\
+          var x = parseInt(x) * -1;\
           $("#chartcontainerwifi").append(\'<div class=\\"barswifi\\" id=\\"bar-\'+countwifi+\'\\"></div>\');\
-          var $d = $("#bar-"+countwifi)\
+          var $d = $("#bar-"+countwifi);\
           var color = \'#FF0000\'; //default red\
           if (x <= 55){\
             color =  \'#00FF00\'; //green\
@@ -280,7 +281,7 @@ function getInfo(mac,path,wifi,ap)\
            });\
            countwifi++;\
            //window.setTimeout(function(){ bars(random(100));}, 1500);\
-   }\
+		  };\
    $(function(d) {\
       $( ".host" ).on("click", function(e) {\
         var height = "300";\
@@ -290,7 +291,7 @@ function getInfo(mac,path,wifi,ap)\
         var host = $(this).html();\
         var ip = ($(this).attr(\'data-ip\') != "" ? $(this).attr(\'data-ip\') : "');  ngx.print(T"No-IP"); ngx.print('");\
         var mac = $(this).attr(\'data-mac\');\
-        var speed = ($(this).attr(\'data-state\') == "1" ? $(this).attr(\'data-speed\')+" Mbs" : "');  ngx.print(T"Last"); ngx.print('@ "+$(this).attr(\'data-speed\')+" Mbs");\
+        var speed = ($(this).attr(\'data-state\') == "1" ? $(this).attr(\'data-speed\')+" Mbps" : "');  ngx.print(T"Last"); ngx.print('@ "+$(this).attr(\'data-speed\')+" Mbps");\
         var state = ($(this).attr(\'data-state\') == "1" ? "');  ngx.print(T"Online"); ngx.print('" : "');  ngx.print(T"Offline"); ngx.print('");\
         var ips=ip.split(\' \');\
         var txt = "<div class=\\"ctsinfoline\\"><span class=\\"hostinfoleft\\">');  ngx.print(T"IP Address"); ngx.print('</span><span class=\\"hostinforight\\">"+ips[0]+"</span></div>";\
@@ -311,10 +312,10 @@ function getInfo(mac,path,wifi,ap)\
         }\
         txt = txt + "<div class=\\"ctsinfoline\\"><span class=\\"hostinfoleft\\">');  ngx.print(T"Status"); ngx.print('</span><span class=\\"hostinforight\\" id=\\"state\\">"+state+"</span></div>";\
         if (wifi == "1"){\
-          txt = txt + "<div id=\\"charttitalwifiwifi\\" class=\\"hostinfoleft\\">RSSI</div><div id=\\"chartcontainerwifi\\"><div id=\\"scale1wifi\\" class=\\"scalewifi\\">-0dBm</div><div id=\\"scale2wifi\\" class=\\"scalewifi\\">-100dBm</div><div id=\\"rssivalue\\" class=\\"scalewifi\\">-50dBm</div></div>"\
-          getInfo(mac,path,wifi,ap)\
+          txt = txt + "<div id=\\"charttitalwifiwifi\\" class=\\"hostinfoleft\\">RSSI</div><div id=\\"chartcontainerwifi\\"><div id=\\"scale1wifi\\" class=\\"scalewifi\\">-0dBm</div><div id=\\"scale2wifi\\" class=\\"scalewifi\\">-100dBm</div><div id=\\"rssivalue\\" class=\\"scalewifi\\">-50dBm</div></div>";\
+          getInfo(mac,path,wifi,ap);\
         }\
-        Popupdevice(host,txt,height)\
+        Popupdevice(host,txt,height);\
         });\
   });\
 </script>\

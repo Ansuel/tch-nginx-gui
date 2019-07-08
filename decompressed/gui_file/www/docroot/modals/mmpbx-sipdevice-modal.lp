@@ -1,4 +1,4 @@
-<%
+--pretranslated: do not change this file
 
 -- Enable localization
 gettext.textdomain('webui-voice')
@@ -78,23 +78,21 @@ if ngx.var.args and string.len(ngx.var.args) > 0 then
     uri = uri .. "?" .. ngx.var.args
 end
 
-%>
-
-
-<%= ui_helper.createHeader(T"Telephony", false, true) %>
-
-<div class="modal-body update">
-  <%
+ngx.print( ui_helper.createHeader(T"Telephony", false, true) )
+ngx.print('\
+<div class="modal-body update">\
+  ')
   local lp = require("web.lp")
   lp.setpath("/www/snippets/")
   lp.include("tabs-voice.lp")
-  %>
-  <form class="form-horizontal" method="post" action="<%= uri %>">
-	<fieldset id="mmpbx-sipdevice-tab">
-	    <legend><%= T"Sip Device" %></legend>
-	    <%=ui_helper.createTable(sipdev_columns, sipdev_data, sipdev_options, nil, sipdev_helpmsg)%>
-        </fieldset>
-    </form>
-</div>
-
-<%= ui_helper.createFooter() %>
+  
+  ngx.print('\
+  <form class="form-horizontal" method="post" action="'); ngx.print( uri ); ngx.print('">\
+	<fieldset id="mmpbx-sipdevice-tab">\
+	    <legend>'); ngx.print( T"Sip Device" ); ngx.print('</legend>\
+	    '); ngx.print( ui_helper.createTable(sipdev_columns, sipdev_data, sipdev_options, nil, sipdev_helpmsg) ); ngx.print('\
+        </fieldset>\
+    </form>\
+</div>\
+\
+'); ngx.print( ui_helper.createFooter() )

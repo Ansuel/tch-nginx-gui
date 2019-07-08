@@ -48,18 +48,16 @@ function M.handleAjaxQuery(mapParams, transform)
                     local buffer = {}
                     success = json.encode (content, { indent = false, buffer = buffer })
                     if success then
-                        ngx.say(buffer)
+                        ngx.header.content_type = "application/json"
+                        ngx.print(buffer)
                         ngx.exit(ngx.HTTP_OK )
                     else
-						ngx.say("{}")
                         ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
                     end
                 else
-					ngx.say("{}")
                     ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
                 end
             else
-				ngx.say("{}")
                 ngx.exit(ngx.HTTP_BAD_REQUEST)
             end
         end

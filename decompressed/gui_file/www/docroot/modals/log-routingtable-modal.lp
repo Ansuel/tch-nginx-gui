@@ -1,7 +1,6 @@
 --pretranslated: do not change this file
  
 -- Localization
--- NG-105177 [Workaround] TI [GUI] - Some of the tabs throws Internal server error
 gettext.textdomain('webui-core')
 
 local proxy = require("datamodel")

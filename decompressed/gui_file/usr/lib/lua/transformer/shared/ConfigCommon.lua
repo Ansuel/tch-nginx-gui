@@ -1,6 +1,7 @@
 -- NG-85826; NG-91245
 -- NG-103901 GUI gateway-modal has to modified in fact of generic changes			 
-local logger = require("transformer.logger")
+local modgui = require("modgui")
+local logger = modgui.getRightLoggerModule()
 local log = logger.new("ConfigCommon")
 
 local type, pairs, ipairs, next = type, pairs, ipairs, next

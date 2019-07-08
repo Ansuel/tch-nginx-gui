@@ -21,27 +21,31 @@ end
 local cui = {
     defaultuser = "uci.web.uiconfig.@uidefault.defaultuser",
     nsplink = "uci.web.uiconfig.@uidefault.nsplink",
+    timestamp = "uci.version.version.@version[0].timestamp",
   }
 
 content_helper.getExactContent(cui)
-  ngx.print('\r\
-<!DOCTYPE HTML>\r\
-');  ngx.print( string.format('<html lang="%s">', gettext.language()) ); ngx.print('\r\
-<head>\r\
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">\r\
-    <meta charset="UTF-8">\r\
-    <meta name="CSRFtoken" content="');  ngx.print( ngx.ctx.session:getCSRFtoken() ); ngx.print('">\r\
-    <link href="/css/gw.css" rel="stylesheet">\r\
-    <link href="/css/responsive.css" rel="stylesheet">\r\
-    <!--[if IE 7]><link rel="stylesheet" href="/css/font-awesome-ie7.css"><![endif]-->\r\
-    <script src="/js/main-min.js" ></script>\r\
-    <!--[if lt IE 9]> <script src="/js/media-min.js"></script> <![endif]-->\r\
-    <script src="/js/srp-min.js" ></script>\r\
-    <title>');  ngx.print( T"Login" ); ngx.print('</title>\r\
-</head>\r\
-<body>\r\
-  <div class="container">\r\
-            <div class="logo-technicolor">\
+local year= cui.timestamp
+local current_year = (string.sub(year,1,4))
+
+  ngx.print('\
+<!DOCTYPE HTML>\
+');  ngx.print( string.format('<html lang="%s">', gettext.language()) ); ngx.print('\
+<head>\
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">\
+    <meta charset="UTF-8">\
+    <meta name="CSRFtoken" content="');  ngx.print( ngx.ctx.session:getCSRFtoken() ); ngx.print('">\
+    <link href="/css/gw.css" rel="stylesheet">\
+    <link href="/css/responsive.css" rel="stylesheet">\
+    <!--[if IE 7]><link rel="stylesheet" href="/css/font-awesome-ie7.css"><![endif]-->\
+    <script src="/js/main-min.js" ></script>\
+    <!--[if lt IE 9]> <script src="/js/media-min.js"></script> <![endif]-->\
+    <script src="/js/srp-min.js" ></script>\
+    <title>');  ngx.print( T"Login" ); ngx.print('</title>\
+</head>\
+<body>\
+  <div class="container">\
+    <div class="logo-technicolor">\
 	<a href="'); ngx.print(cui.nsplink); ngx.print('" target="_blank">\
 	  <picture>');
 		if cui.gui_skin == "TIM" then
@@ -58,40 +62,40 @@ content_helper.getExactContent(cui)
 	  ngx.print('  </picture>\
 	</a>\
 	</div>\r\
-    <div class="row">\r\
-      <div class="offset4 span4">\r\
-	<div class="login">\r\
-        <form class="form-horizontal" id = "password_reset" method = "post" action = "/password-reset.lp">\r\
-          <input type = "hidden" name = "CSRFtoken" value = "');  ngx.print( ngx.ctx.session:getCSRFtoken() ); ngx.print('"/>\r\
-          <input type = "hidden" id = "action" name = "action" value = "reset"/>\r\
-          <fieldset>\r\
-                <h2>');  ngx.print(T"Reset Password" ); ngx.print('</h2>\r\
-            <div class="control-group">\r\
-			<label for="srp_password2" class="alert-info">');  ngx.print(T'Select the <strong>"Reset"</strong> button to confirm resetting the password to the default value.'); ngx.print('</label>\r\
-            </div>\r\
-            <div class="pull-right">\r\
-                <a href="#" class="btn btn-primary btn-large" id ="btn_cancel" >');  ngx.print( T"Cancel" ); ngx.print('</a>\r\
-                &nbsp;\r\
-                <div id="btn_reset" class="btn btn-primary btn-large">');  ngx.print(T"Reset" ); ngx.print('</div>\r\
-            </div>\r\
-          </fieldset>\r\
-        </form>\r\
-      </div>\r\
-      </div>\r\
-	  </div>\r\
-    <div class="row"><div class="copyright span12"><p>&copy; Technicolor 2015</p></div></div>\r\
-  </div>\r\
-<script>\r\
-  $(document).ready(function(){\r\
-    $("#btn_cancel").click(function(){\r\
-      $("#action").val("cancel");\r\
-      $("#password_reset").submit();\r\
-    });\r\
-     $("#btn_reset").click(function(){\r\
-       $("#password_reset").submit();\r\
-    });\r\
-  });\r\
-</script>\r\
-</body>\r\
-</html>\r\
+     <div class="row">\
+      <div class="offset4 span4">\
+	<div class="login">\
+        <form class="form-horizontal" id = "password_reset" method = "post" action = "/password-reset.lp">\
+          <input type = "hidden" name = "CSRFtoken" value = "');  ngx.print( ngx.ctx.session:getCSRFtoken() ); ngx.print('"/>\
+          <input type = "hidden" id = "action" name = "action" value = "reset"/>\
+          <fieldset>\
+                <h2>');  ngx.print(T"Reset Password" ); ngx.print('</h2>\
+            <div class="control-group">\
+			<label for="srp_password2" class="alert-info">');  ngx.print(T'Select the <strong>"Reset"</strong> button to confirm resetting the password to the default value.'); ngx.print('</label>\
+            </div>\
+            <div class="pull-right">\
+                <a href="#" class="btn btn-primary btn-large" id ="btn_cancel" >');  ngx.print( T"Cancel" ); ngx.print('</a>\
+                &nbsp;\
+                <div id="btn_reset" class="btn btn-primary btn-large">');  ngx.print(T"Reset" ); ngx.print('</div>\
+            </div>\
+          </fieldset>\
+        </form>\
+      </div>\
+      </div>\
+	  </div>\
+    <div class="row"><div class="copyright span12"><p>&copy; Technicolor ');  ngx.print(current_year); ngx.print('</p></div></div>\
+  </div>\
+<script>\
+  $(document).ready(function(){\
+    $("#btn_cancel").click(function(){\
+      $("#action").val("cancel");\
+      $("#password_reset").submit();\
+    });\
+     $("#btn_reset").click(function(){\
+       $("#password_reset").submit();\
+    });\
+  });\
+</script>\
+</body>\
+</html>\
 '); 

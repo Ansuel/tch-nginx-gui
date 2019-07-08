@@ -1,4 +1,5 @@
 local mapper = mapper
+local concat = table.concat
 local uh = mapper("ucihelper")
 local config_firewall = "firewall"
 
@@ -17,6 +18,19 @@ local firewall_defaults = {
 }
 
 mapper("uci_1to1").registerNamedMultiMap(firewall_defaults)
+
+-- uci.firewall.fwconfig.{i}
+local firewall_fwconfig = {
+    config = config_firewall,
+    type = "fwconfig",
+    options = {
+        "defaultoutgoing_lax", "defaultoutgoing_user", "defaultoutgoing_high", "defaultoutgoing_normal",
+        "defaultincoming_lax", "defaultincoming_user", "defaultincoming_high", "defaultincoming_normal",
+        "level"
+    }
+}
+
+mapper("uci_1to1").registerNamedMultiMap(firewall_fwconfig)
 
 -- uci.firewall.zone.{i}
 local firewall_zone = {
@@ -84,9 +98,9 @@ uh.foreach_on_uci({ config = "firewall", sectionname = "redirectsgroup"}, functi
             options = firewall_redirect_options,
             lists = firewall_redirect_list,
         }
-        if type ~= "dmzredirect" then 
+        if type ~= "dmzredirect" then
             mapper("uci_1to1").registerMultiMap(rg)
-        else 
+        else
             mapper("uci_1to1").registerNamedMultiMap(rg)
         end
     end
@@ -167,13 +181,60 @@ local firewall_ipset = {
     type = "ipset",
     options = {
         "enabled", "external", "name", "family", "storage", "iprange", "portrange", "netmask", "maxelem",
-        "hashsize", "timeout",
+        "hashsize", "timeout", "match",
     },
-    lists = {
-        "match",
-    }
 }
-mapper("uci_1to1").registerNamedMultiMap(firewall_ipset)
+
+-- In some scenarios the 'match' parameter is an option, in some
+-- other scenarios it is a list. The 1-to-1 helper doesn't support this.
+-- Hence the following implementation is done to handle this scenario.
+-- We use the helper as much as possible but wrap the get(), getall()
+-- set() functions in a version that handles 'match' in a custom way.
+local firewall_ipset_mapping = mapper("uci_1to1").createNamedMultiMap(firewall_ipset)
+
+local function get_from_config(key, paramname)
+    local binding = {
+        config = config_firewall,
+        sectionname = key,
+        option = paramname,
+        state = false,
+    }
+    local value = uh.get_from_uci(binding)
+    return type(value) == "table" and concat(value, " ") or value
+end
+
+local orig_get = firewall_ipset_mapping.get
+firewall_ipset_mapping.get = function(mapping, paramname, key, ...)
+    local value = orig_get(mapping, paramname, key, ...)
+    if paramname == "match" then
+        return get_from_config(key, paramname)
+    end
+    return value
+end
+
+local orig_getall = firewall_ipset_mapping.getall
+firewall_ipset_mapping.getall = function(mapping, key, ...)
+    local values = orig_getall(mapping, key, ...)
+    values.match = get_from_config(key, "match")
+    return values
+end
+
+local orig_set = firewall_ipset_mapping.set
+firewall_ipset_mapping.set = function(mapping, paramname, paramvalue, ...)
+    if paramname == "match" then
+        if paramvalue:match("%s+") then
+            local values = {}
+            for value in paramvalue:gmatch("[^%s]+") do
+                values[#values + 1] = value
+            end
+            return orig_set(mapping, paramname, concat(values, " "), ...)
+        end
+    end
+    return orig_set(mapping, paramname, paramvalue, ...)
+end
+register(firewall_ipset_mapping)
+
+mapper("uci_1to1").registerSubmaps(firewall_ipset_mapping.submappings)
 
 -- uci.firewall.dmz
 local firewall_dmz = {

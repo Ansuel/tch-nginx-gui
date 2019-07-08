@@ -1,5 +1,6 @@
 local conn = mapper("ubus").connect()
 local uci_helper = mapper("ucihelper")
+local gsub, sub, match, len, find = string.gsub, string.sub, string.match, string.len, string.find
 
 local mmpbx = {
     objectType = {
@@ -34,10 +35,283 @@ local mmpbx = {
                 },
                 default = "Unknown",
             },
+            DigitMap = {
+                access = "readWrite",
+                type = "string",
+                max = "256",
+                default = "",
+            },
+            DigitMapEnable = {
+                access = "readWrite",
+                type = "boolean",
+                default = "false",
+            },
         },
     }
 }
-local function set(mapping, paramName, paramValue, key)
+
+local dialPlanDefaultOptionsMap = {
+    ['enabled'] = 1,
+    ['allow'] = 1,
+    ['priority'] = "low",
+    ['include_eon'] = 0,
+    ['apply_forced_profile'] = 0,
+    ['min_length'] = 1,
+    ['max_length'] = 1
+}
+
+local patternTable = {
+    ['('] = "%b()",
+    ['['] = "%b[]",
+    ['{'] = "%b{}"
+}
+
+local mmpbxBinding = { config = "mmpbx" }
+local configChanged
+
+local function getFromUci(section, option, default)
+    mmpbxBinding.sectionname = section
+    mmpbxBinding.option = option
+    mmpbxBinding.default = default
+    return uci_helper.get_from_uci(mmpbxBinding)
+end
+
+local function setOnUci(section, option, value)
+    if value then
+        mmpbxBinding.sectionname = section
+        mmpbxBinding.option = option
+        uci_helper.set_on_uci(mmpbxBinding, value, commitapply)
+    else
+        mmpbxBinding.sectionname = section
+        mmpbxBinding.option = nil
+        uci_helper.set_on_uci(mmpbxBinding, option, commitapply)
+    end
+    configChanged = true
+end
+
+local function findPatternLength(pattern)
+    local pcount = 0
+    local pcount2 = 0
+    local pcount3 = 0
+    local patternindex = 1
+    local patternindex1 = 1
+    local index = 0
+    local subpattern = pattern:gsub("%b{}", "")    -- remove quantifiers
+    local subpattern1 = subpattern:gsub("%b()", "")
+    local subpattern2 = subpattern1:gsub("%b[]", "")
+    if subpattern1 then
+        for index = 1, len(subpattern1) do
+            if sub(subpattern1, index, index) == "[" then
+                pcount = pcount + 1
+            end
+        end
+        for index = 1, len(subpattern1) do
+            if sub(subpattern1 , index, index)  == "|" then
+                if pcount2 < (index - patternindex) then
+                    pcount2 = index - patternindex
+                end
+                patternindex = index+1
+            end
+        end
+    end
+    if subpattern then
+        for index = 1, len(subpattern) do
+            if sub(subpattern , index, index ) == "(" then
+                local subpattern3 = ""
+                for patternindex1 = index + 1, len(subpattern) do
+                    if sub(subpattern, patternindex1, patternindex1) == ")" then
+                        break
+                    else
+                        subpattern3 = subpattern3 .. sub(subpattern, patternindex1, patternindex1)   -- get sub-pattern inside ()
+                    end
+                end
+                if subpattern3 ~= "" then
+                    index = patternindex1 + 1
+                    pcount3 = findPatternLength(subpattern3) - len(subpattern3)
+                end
+            end
+        end
+    end
+    return (subpattern2 and len(subpattern2) or 0) + pcount + pcount2 + pcount3
+end
+
+-- The addPatternToUci function creates a new dial plan entry section for the input pattern, writes the pattern & related options to uci
+local function addPatternToUci(pattern, dialPlanName, index)
+    local sectionname
+    if not pattern or pattern == "" then
+        return
+    end
+    if dialPlanName == "dial_plan_generic" then
+        sectionname = "dial_plan_entry_generic_" .. index
+    else
+        sectionname = "dial_plan_entry_" .. index
+    end
+    setOnUci(sectionname, "dial_plan_entry")
+    setOnUci(sectionname, "dial_plan", dialPlanName)
+
+    local pattern1 = pattern:gsub(".T","")        -- remove .T; pattern1 will be used to calculate length
+    setOnUci(sectionname, "pattern", "^" .. pattern1)
+
+    setOnUci(sectionname, "index", index)
+
+    -- add the default options for the dial plan entry
+    for key, val in pairs(dialPlanDefaultOptionsMap) do
+        setOnUci(sectionname, key, val)
+    end
+
+    --- overwirte default min & max lengths with actual values from pattern
+    local min_len = findPatternLength(pattern1)
+    setOnUci(sectionname, "min_length", min_len)
+
+    if pattern:match(".*()T") then
+        setOnUci(sectionname, "max_length", min_len + 10)
+    else
+        setOnUci(sectionname, "max_length", min_len)
+    end
+end
+
+-- The parseSetPattern parses the input digitmap string (| de-limited) and identifies individual patterns.
+-- when each pattern identified, the remaining part of the digitmap string is parsed further
+local function parseSetPattern(dmstring, dialPlanName)
+    if not dmstring or dmstring == "" then
+        return
+    end
+    local pcount = 0  -- index to track identified patterns
+    local endIndex = 1       -- index to track end of brackets
+    local startIndex = 0
+    local dmIndex = 1       -- to track completion of dmstring parsing
+    local index = 1       -- index to parse each subpattern
+    local subpattern = ""
+    local remainingStr = ""
+    local parsestring = dmstring
+    local ch = ""
+    while parsestring and dmIndex < #dmstring do
+        while index and index < #parsestring do
+            subpattern = ""
+            remainingStr = ""
+            dmIndex = dmIndex + 1
+
+            -- check for any brackets & if found update the current index to end of the closing bracket
+            ch = sub(parsestring, index, index)
+            if patternTable[ch] then
+                startIndex, endIndex = parsestring:find(patternTable[ch])
+                if not endIndex then
+                    return nil, "Invalid digitmap string"
+                end
+                index = index + endIndex
+            end
+
+            -- parse till the delimiter "|" to find the pattern
+            if sub(parsestring, index, index) == "|" then
+               subpattern = sub(parsestring, 1, index - 1)
+               remainingStr = sub(parsestring, index + 1, #parsestring)
+               pcount = pcount + 1
+               addPatternToUci(subpattern, dialPlanName, pcount)
+               parsestring = remainingStr
+               index = 1
+               break
+            end
+            index = index + 1
+            if index >= #parsestring then
+                pcount = pcount + 1
+                addPatternToUci(parsestring, dialPlanName, pcount)
+                dmIndex = #dmstring
+                break
+            end
+        end
+    end
+    return
+end
+
+local function getDigitMap()
+    local resPrioHigh = ""
+    local resPrioLow = ""
+    local planName = ""
+
+    -- get the dial plan name for which sip_net is configured
+    mmpbxBinding.sectionname = "dial_plan"
+    uci_helper.foreach_on_uci(mmpbxBinding,function(s)
+        local network = s.network
+        if network and type(network) == "table" then
+            for _,v in pairs(network) do
+                if v == "sip_net" then
+                    planName = s[".name"]
+                end
+            end
+        end
+    end)
+
+    mmpbxBinding.sectionname = "dial_plan_entry"
+    uci_helper.foreach_on_uci(mmpbxBinding,function(s)
+        if s.dial_plan and s.dial_plan == planName and s.enabled and s.enabled == "1" and s.allow and s.allow == "1" then
+            local pattern = s.pattern and gsub(s.pattern, "%^", "") or ""
+            local length = findPatternLength(pattern)
+            local digitHolder = ""
+            local min_length = s.min_length and tonumber(s.min_length) or 0
+            local max_length = s.max_length and tonumber(s.max_length) or 0
+            if length < min_length then
+                for i = length + 1 , min_length do
+                    digitHolder = digitHolder .. "x"
+                end
+                pattern = pattern .. digitHolder
+            end
+            if min_length < max_length then
+                pattern = pattern .. ".T"
+            end
+            if s.priority and s.priority == "high" then
+                resPrioHigh  =  resPrioHigh ~= "" and string.format(resPrioHigh .. "|" .. pattern) or pattern
+            else
+                resPrioLow = resPrioLow ~= "" and string.format(resPrioLow .. "|" .. pattern) or pattern
+            end
+        end
+    end)
+    return resPrioHigh ~= "" and resPrioHigh .. "|" .. resPrioLow or resPrioLow
+end
+
+local function setDigitMap(paramname, paramvalue)
+    local resPrioHigh = ""
+    local resPrioLow = ""
+    local planName = ""
+    local del_binding = { config = "mmpbx" }
+
+    -- get the dial plan name for which sip_net is configured
+    mmpbxBinding.sectionname = "dial_plan"
+    uci_helper.foreach_on_uci(mmpbxBinding,function(s)
+        local network = s.network
+        if type(network) == "table" then
+            for _, v in ipairs(network) do
+                if v == "sip_net" then
+                    planName = s[".name"]
+                end
+            end
+        end
+    end)
+
+    -- remove all the existing dial plan entries for the above dial plan (with sip_net network)
+    mmpbxBinding.sectionname = "dial_plan_entry"
+    uci_helper.foreach_on_uci(mmpbxBinding,function(s)
+        if s.dial_plan == planName then
+            del_binding.sectionname = s[".name"]
+            del_binding.option = nil
+            uci_helper.delete_on_uci(del_binding, commitapply)
+            configChanged = true
+        end
+    end)
+    -- parse the digitMap string, get unique patterns and create new list of dial plan entries
+    return parseSetPattern(paramvalue, planName)
+end
+
+local function set(mapping, paramname, paramvalue, key)
+    if paramname == "DigitMap" then
+        local digitMapState = getFromUci("dial_plan_generic", "digit_map", "0")
+        if digitMapState == "1" then
+            return setDigitMap(paramname, paramvalue)
+        end
+        return nil, "DigitMap is not supported"
+    elseif paramname == "DigitMapEnable" then
+        setOnUci("dial_plan_generic", "digit_map", paramvalue)
+        return true
+    end
     conn:call("mmpbx.profile.stats", "reset", {})
     conn:call("mmpbx.device.stats", "reset", {})
     return nil
@@ -59,7 +333,34 @@ mmpbx.get = {
         end
         return res
     end,
+    DigitMap = function(mapping, paramName, key)
+        local digitMapState = getFromUci("dial_plan_generic", "digit_map", "0")
+        if digitMapState == "1" then
+            return getDigitMap()
+        else
+            return ""
+        end
+    end,
+    DigitMapEnable = function(mapping, paramName, key)
+        return getFromUci("dial_plan_generic", "digit_map", "0")
+    end,
 }
 
+local function revert()
+    if configChanged then
+        uci_helper.revert(mmpbxBinding)
+    end
+    configChanged = false
+end
+
+local function commit()
+    if configChanged then
+        uci_helper.commit(mmpbxBinding)
+    end
+    configChanged = false
+end
+
 mmpbx.set = set
+mmpbx.revert = revert
+mmpbx.commit = commit
 register(mmpbx)

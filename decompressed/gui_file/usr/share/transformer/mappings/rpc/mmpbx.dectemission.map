@@ -8,32 +8,31 @@ local commitapply = commitapply
 local isConfigChanged
 
 local mmpbx_dect_emission = {
-    objectType = {
-        name = 'rpc.mmpbx.dectemission.',
-        access = 'readOnly',
-        minEntries = 1,
-        maxEntries = 1,
-        parameters = {
-            state = {
-                access = "readWrite",
-                type = "boolean"
-            }
-        }
+  objectType = {
+    name = 'rpc.mmpbx.dectemission.',
+    access = 'readOnly',
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+    state = {
+      access = "readWrite",
+      type = "boolean"
+      }
     }
+  }
 }
 mmpbx_dect_emission.get = function(mapping, param)
-    dectemission.option = param
-    return get_from_uci(dectemission)
+  dectemission.option = param
+  return get_from_uci(dectemission)
 end
 
 mmpbx_dect_emission.set = function(mapping, param, paramvalue)
-    dectemission.option = param
-    if (param == "state") then
-	    set_on_uci(dectemission, paramvalue, commitapply)
-            commitapply:newadd("rpc.mmpbx.dectemission")
-	    isConfigChanged = true
-    end
-    return true
+  dectemission.option = param
+  if (param == "state") then
+    set_on_uci(dectemission, paramvalue, commitapply)
+    isConfigChanged = true
+  end
+  return true
 end
 
 mmpbx_dect_emission.commit = function()

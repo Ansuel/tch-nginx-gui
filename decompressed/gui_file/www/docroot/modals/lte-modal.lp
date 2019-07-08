@@ -1,7 +1,7 @@
 --pretranslated: do not change this file
  
 local string, table, pairs = string, table, pairs
-local ngx, tostring, tonumber, ipairs, setmetatable, tinsert, gmatch = ngx, tostring, tonumber, ipairs, setmetatable, table.insert, string.gmatch
+local ngx, tostring, tonumber, ipairs, setmetatable, tinsert = ngx, tostring, tonumber, ipairs, setmetatable, table.insert
 
 -- Enable localization
 -- NG-90744 TI-GUI : WWAN interface automatically enables itself when we disable
@@ -14,7 +14,50 @@ local post_helper = require("web.post_helper")
 local untaint_mt = require("web.taint").untaint_mt
 local content_helper = require("web.content_helper")
 local message_helper = require("web.uimessage_helper")
-local proxy = require("datamodel")
+
+local getargs = ngx.req.get_uri_args()
+local current_imei = getargs.imei
+
+if ngx.req.get_method() == "POST"  then
+	local args = ngx.req.get_post_args()
+	local action = string.untaint(args["action"])
+	if string.match(action, "^delete_uci_device_") then
+		local paramindex = string.match(action, "^delete_uci_device_(.*)$")
+		proxy.del("uci.mobiled.device." .. paramindex .. ".")
+		proxy.apply()
+		current_imei = nil
+	end
+end
+
+local mapParamsSwich = {
+	lte_enabled = "uci.mobiled.device_defaults.enabled";
+}
+
+local mapValidSwitch = {
+	lte_enabled = post_helper.validateBoolean;
+}
+
+local lte_switch, helpmsg = post_helper.handleQuery(mapParamsSwich , mapValidSwitch)
+
+local function imei_in_list(imei, devices)
+	for _, device in pairs(devices) do
+		if device.info.imei == imei then
+			return true
+		end
+	end
+	return false
+end
+
+local function get_by_imei(imei, devices)
+	if imei then
+		for _, device in pairs(devices) do
+			if device.info.imei == imei then
+				return device
+			end
+		end
+	end
+	return devices[1]
+end
 
 local function validate_in_enum_or_empty(enum)
 	local choices = setmetatable({}, untaint_mt)
@@ -37,36 +80,11 @@ local function validate_bands(value)
 	return nil
 end
 
-local function validate_earfcn(value)
-	local errmsg = T"The EARFCN needs to be a number between 0 and 65535.<br/>Use commas to separate multiple EARFCN values."
-	for part in gmatch(value, '([^,]+)') do
-		part = part:gsub("^%s*(.-)%s*$", "%1")
-		local num = tonumber(part, 10)
-		if not num or num < 0 or num > 65535 then
-			return nil, errmsg
-		end
-	end
-	return true
-end
-
-local function validate_data_limit(value)
-	if value == "" then
-		return true
-	end
-	return post_helper.getValidateNumberInRange(1, 1024)(value)
-end
-
-local function validate_reset_day(value)
-	if value == "" then
-		return true
-	end
-	return post_helper.getValidateNumberInRange(1, 31)(value)
-end
-
 local function get_profile_select(device)
 	local names = {}
+	local authentications = {}
 
-	if device then
+	if device and device.active then
 		local info = {
 			reuse_profiles = device.uci_path .. "reuse_profiles"
 		}
@@ -75,22 +93,25 @@ local function get_profile_select(device)
 			local profiles = content_helper.getMatchedContent(device.rpc_path .. "profile.")
 			for _, profile in ipairs(profiles) do
 				tinsert(names, { "device:" .. string.untaint(profile.id), string.untaint(profile.name) })
+				authentications["device:" .. string.untaint(profile.id)] = string.untaint(profile.authentication)
 			end
-			return names
+			return names, authentications
 		end
 	end
 
 	local profiles = content_helper.getMatchedContent("uci.mobiled.profile.")
 	for _, profile in ipairs(profiles) do
 		tinsert(names, { string.untaint(profile.id), string.untaint(profile.name) })
+		authentications[string.untaint(profile.id)] = string.untaint(profile.authentication)
 	end
 
-	return names
+	return names, authentications
 end
 
 local function get_device_data(dev_idx)
 	local rpc_path = string.format("rpc.mobiled.device.@%d.", dev_idx)
 	local device = {
+		active = true,
 		rpc_path = rpc_path,
 		uci_path = utils.get_uci_device_path()
 	}
@@ -98,6 +119,16 @@ local function get_device_data(dev_idx)
 	device.capabilities = utils.getContent(rpc_path .. "capabilities.")
 	if not device.capabilities then return nil end
 	device.capabilities.max_data_sessions = tonumber(device.capabilities.max_data_sessions) or 0
+
+	-- Convert the supported_auth_types field from a space-separated string of supported
+	-- auth types to a table with a key that maps to true for each supported auth type.
+	if device.capabilities.supported_auth_types then
+		local supported_auth_types = {}
+		for supported_auth_type in device.capabilities.supported_auth_types:gmatch("%S+") do
+			supported_auth_types[supported_auth_type] = true
+		end
+		device.capabilities.supported_auth_types = supported_auth_types
+	end
 
 	device.radio_preferences = {}
 	local num_radio_preferences = tonumber(utils.getContent(rpc_path)["RadioPreferenceNumberOfEntries"])
@@ -115,21 +146,7 @@ local function get_device_data(dev_idx)
 	device.status = utils.getContent(rpc_path .. "display_status")
 	if not device.status then return nil end
 
-	local mobileWan = content_helper.getMatchedContent("uci.network.interface.@.", { session_id = "0" }, 1)
-	if #mobileWan >= 1 then
-		local interface = string.match(mobileWan[1].path, '.@(.-).$')
-		local path = string.format("uci.datausage.interface.@%s.", interface)
-		local ifname = proxy.get(path .. "ifname")
-		if not ifname or ifname[1].value ~= "@" .. interface then
-			if not ifname then
-				proxy.add("uci.datausage.interface.", interface)
-				proxy.set(path .. "usage_cycle_reset_day", "1")
-			end
-			proxy.set(path .. "ifname", "@" .. interface)
-			proxy.apply()
-		end
-		device.datausage_ifname = "@" .. interface
-	end
+	if not device.info.model or device.info.model == "" then device.info.model = T"Unknown" end
 
 	return device
 end
@@ -202,75 +219,6 @@ local function get_antenna_selection_section(page, html)
 	end
 end
 
-local function get_datausage_section(page, html)
-	if page.datausage.ifname then
-		if page.content["datausage_monitor_enabled"] == "" then
-			page.content["datausage_monitor_enabled"] = '1'
-		end
-
-		tinsert(html, "<fieldset><legend>" .. T"Data Usage" .. "</legend>")
-		tinsert(html, ui_helper.createSwitch(T"Data Usage Monitoring", "datausage_monitor_enabled", page.content["datausage_monitor_enabled"]))
-		tinsert(html, '<div data-bind="visible: dataUsageEnabled() == true">')
-		tinsert(html, '<table id="datausage"><tr><th></th><th>' .. T"Uplink" .. '</th><td rowspan="3" style="background-repeat: no-repeat;" class="datausage_image"></td><th>' .. T"Downlink" .. '</th></tr>')
-		tinsert(html, '<tr><td class="control-label datausage_header" style="width:60px;">' .. T"Current" .. '</td><td data-bind="text: txBitRate" class="datausage"></td><td data-bind="text: rxBitRate" class="datausage"></td></tr>')
-		tinsert(html, '<tr><td class="control-label datausage_header" style="width:60px;">' .. T"Total" .. '</td><td data-bind="text: txVolumeTotal" class="datausage"></td><td data-bind="text: rxVolumeTotal" class="datausage"></td></tr></table>')
-		tinsert(html, '<div class="control-group"><label class="control-label">' .. T"Total Volume" .. ': </label><div class="controls"><span class= "span2 simple-desc" data-bind="text: volumeTotal"></span></div></div>')
-		tinsert(html, '<div style="clear:both;" class="control-group number-picker"> \
-			<label class="control-label">' .. T"Monthly Reset Day" .. ':</label>\
-			<div class="controls picked-number-wrapper"> \
-				<input type="text" class="picked-number" id="datausage_cycle_reset_day" name="datausage_cycle_reset_day"> \
-			</div> \
-			<div class="controls pick-number-now"> \
-				<div class="number hr-timer"> \
-					<div class="movable-area"> \
-						<ul></ul> \
-					</div> \
-				</div> \
-			</div> \
-		</div>')
-		tinsert(html, ui_helper.createSwitch(T"Enable Limit", "datausage_limit_enabled", page.content["datausage_limit_enabled"]))
-		tinsert(html, '<div data-bind="visible: dataUsageLimitEnabled() == true">')
-		local limit_settings = {
-			group = {
-				class = "float-left"
-			},
-			controls = {
-				style = "width:95px;"
-			},
-			input = {
-				style = "width:80px;text-align: right;"
-			}
-		}
-		tinsert(html, ui_helper.createInputText(T"Data Usage Limit" .. ":", "datausage_limit", page.content["datausage_limit"], limit_settings, page.helpmsg["datausage_limit"]))
-		limit_settings = {
-			label = {
-				class = "hidden"
-			},
-			select = {
-				style = "width:55px;"
-			}
-		}
-		tinsert(html, ui_helper.createInputSelect(T"", "datausage_limit_unit", page.datausage.limit_units, page.content["datausage_limit_unit"], limit_settings))
-		local datausage_limit_reached = {
-			alert = {
-				class = "alert-error hide",
-				id = "datausage-limit-reached-msg"
-			}
-		}
-		tinsert(html, ui_helper.createAlertBlock(T"Data usage limit reached", datausage_limit_reached))
-		tinsert(html, '</div>')
-				local button_class = {
-			button = {
-				class = "custom-handler"
-			}
-		}
-		button_class.button.id = "btn-reset-datausage"
-		tinsert(html, ui_helper.createButton(T"Reset Data Usage", T"Reset", "icon-refresh", button_class))
-		tinsert(html, '<div class="alert alert-info">' .. T"* Data usage is only an approximation. For actual usage, please refer to your network operator" .. '</div>')
-		tinsert(html, '</div></fieldset>')
-	end
-end
-
 local function get_network_interface_section(page, html)
 	local interfaces_columns = {
 		{
@@ -305,11 +253,11 @@ local function get_network_interface_section(page, html)
 		canAdd = false,
 		canDelete = false
 	}
-	
+
 	if proxy.get("uci.wansensing.global.enable")[1].value == "1" then
 		interfaces_options.canEdit = false
 	end
-	
+
 	local function interfaces_filter(data)
 		if page.device then
 			if data.proto ~= "mobiled" then return false end
@@ -328,7 +276,24 @@ local function get_network_interface_section(page, html)
 	end
 
 	if utils.Len(interfaces_data) > 0 then
+		local authentication_warning = {
+			alert = {
+				id = "profile_auth_warning",
+				class = "alert-warning",
+				style = "display: none;"
+			}
+		}
+		if page.device.capabilities.supported_auth_types then
+			for _, interface_data in pairs(interfaces_data) do
+				local authentication = page.profile_authentications[string.untaint(interface_data[2])]
+				if not authentication or not page.device.capabilities.supported_auth_types[authentication] then
+					authentication_warning.alert.style = nil
+					break
+				end
+			end
+		end
 		tinsert(html, "<fieldset><legend>" .. T"Interfaces" .. "</legend>")
+		tinsert(html, ui_helper.createAlertBlock(T"The device does not support the authentication of the selected profile.", authentication_warning))
 		tinsert(html, ui_helper.createTable(interfaces_columns, interfaces_data, interfaces_options, nil, interfaces_helpmsg))
 		tinsert(html, "</fieldset>")
 	end
@@ -355,16 +320,16 @@ local function get_device_info_section(page, html)
 		tinsert(section, ui_helper.createLabel(T"Model" .. ":", page.device.info.model, advanced))
 	end
 	if page.device.info.software_version ~= "" then
-		tinsert(section, ui_helper.createLabel(T"Firmware version" .. ":", page.device.info.software_version, advanced))
+		tinsert(section, ui_helper.createLabel(T"Firmware Version" .. ":", page.device.info.software_version, advanced))
 	end
 	if page.device.info.hardware_version ~= "" then
-		tinsert(section, ui_helper.createLabel(T"Hardware version" .. ":", page.device.info.hardware_version, advanced))
+		tinsert(section, ui_helper.createLabel(T"Hardware Version" .. ":", page.device.info.hardware_version, advanced))
 	end
 	if page.device.info.temperature ~= "" then
 		tinsert(section, ui_helper.createLabel(T"Temperature" .. ":", page.device.info.temperature.." ".."°C", advanced))
 	end
 	if page.device.info.power_mode ~= "" then
-		tinsert(section, ui_helper.createLabel(T"Power mode" .. ":", utils.power_mode_map[page.device.info.power_mode], advanced))
+		tinsert(section, ui_helper.createLabel(T"Power Mode" .. ":", utils.power_mode_map[page.device.info.power_mode], advanced))
 	end
 
 	if utils.Len(section) > 0 then
@@ -396,11 +361,11 @@ local function get_session_info_section(page, html)
 		if sessionInfo.duration ~= "" then
 			tinsert(section, ui_helper.createLabel(T"Session Duration" .. ":", sessionInfo.duration..' '..T"seconds"))
 		end
-		if sessionInfo.tx_bytes then
-			tinsert(section, ui_helper.createLabel(T"Tx Bytes" .. ":", sessionInfo.tx_bytes ~= "" and sessionInfo.tx_bytes or "0"))
+		if sessionInfo.tx_bytes ~= "" then
+			tinsert(section, ui_helper.createLabel(T"Tx Bytes" .. ":", sessionInfo.tx_bytes))
 		end
-		if sessionInfo.rx_bytes then
-			tinsert(section, ui_helper.createLabel(T"Rx Bytes" .. ":", sessionInfo.rx_bytes ~= "" and sessionInfo.rx_bytes or "0"))
+		if sessionInfo.rx_bytes ~= "" then
+			tinsert(section, ui_helper.createLabel(T"Rx Bytes" .. ":", sessionInfo.rx_bytes))
 		end
 		if sessionInfo.tx_packets ~= "" then
 			tinsert(section, ui_helper.createLabel(T"Tx Packets" .. ":", sessionInfo.tx_packets))
@@ -417,7 +382,13 @@ local function get_session_info_section(page, html)
 
 		if utils.Len(section) > 0 then
 			if sessionInfo.profile ~= "" then
-				tinsert(html, '<fieldset class="profileinfo"><legend>' .. T'Interface' .. ' ' .. sessionInfo.interface .. '</legend>')
+				if sessionInfo.interface ~= "" then
+					tinsert(html, '<fieldset class="profileinfo"><legend>' .. T'Interface' .. ' ' .. sessionInfo.interface .. '</legend>')
+				elseif sessionInfo.apn ~= "" then
+					tinsert(html, '<fieldset class="profileinfo"><legend>' .. T'PDN' .. ' ' .. sessionInfo.apn .. '</legend>')
+				else
+					tinsert(html, '<fieldset class="profileinfo"><legend>' .. T'PDN' .. '</legend>')
+				end
 				tinsert(html, section)
 				tinsert(html, "</fieldset>")
 			end
@@ -425,51 +396,73 @@ local function get_session_info_section(page, html)
 	end
 end
 
+local function add_uci_devices(devices)
+	local path = 'uci.mobiled.device.'
+	local num_uci_devices = 0
+	local uci_device_data = content_helper.convertResultToObject(path, proxy.get(path))
+	for _, device in pairs(uci_device_data) do
+		if not imei_in_list(device.imei, devices) then
+			local uci_device = {
+				active = false,
+				paramindex = device.paramindex,
+				uci_path = path .. device.paramindex .. '.',
+				capabilities = {},
+				radio_preferences = {},
+				info = {
+					model = string.untaint(device.model),
+					imei = string.untaint(device.imei)
+				},
+				settings = {
+					mcc = string.untaint(device.mcc),
+					mnc = string.untaint(device.mnc),
+					enabled = string.untaint(device.enabled),
+					roaming = string.untaint(device.roaming),
+					radio_pref = string.untaint(device.radio_pref),
+					reuse_profiles = string.untaint(device.reuse_profiles),
+					network_selection = string.untaint(device.network_selection)
+				}
+			}
+			if uci_device.info.mcc == "" then uci_device.info.mcc = nil end
+			if uci_device.info.mnc == "" then uci_device.info.mnc = nil end
+			if not uci_device.info.model or uci_device.info.model == "" then uci_device.info.model = T"Unknown" end
+			if not uci_device.settings.roaming or uci_device.settings.roaming == "" then uci_device.settings.roaming = "international" end
+			if not uci_device.settings.reuse_profiles or uci_device.settings.reuse_profiles == "" then uci_device.settings.reuse_profiles = "0" end
+			if not uci_device.settings.network_selection or uci_device.settings.network_selection == "" then uci_device.settings.network_selection = "auto" end
+			table.insert(devices, uci_device)
+			num_uci_devices = num_uci_devices + 1
+		end
+	end
+	return num_uci_devices
+end
+
 local function get_page(platform, device)
 	local p = {
 		mapParams = {},
 		mapValid = {
+			reuse_profiles = post_helper.validateBoolean,
 			interface_enabled = post_helper.validateBoolean
 		},
 		device = device,
 		platform = platform,
 		network_select = {
-			{ "auto", T"Auto" },
-			{ "manual", T"Manual" }
-		},
-		datausage = {
-			limit_units = {
-				{ "MB", T'MB'},
-				{ "GB", T'GB'}
-			}
+			{ "auto", utils.network_selection_map["auto"] },
+			{ "manual", utils.network_selection_map["manual"] }
 		},
 		roaming_select = {
-			{ "none", T"None" },
-			{ "national", T"National" },
-			{ "international", T"International" }
+			{ "none", utils.roaming_map["none"] },
+			{ "national", utils.roaming_map["national"] },
+			{ "international", utils.roaming_map["international"] }
 		},
 		radio_select = {},
 		lte_band_select = {},
-		lte_band_selected = {},
-		profiles_select = get_profile_select(device)
+		lte_band_selected = {}
 	}
 
-	if type(device) == "table" then
-		if device.datausage_ifname then
-			p.datausage.ifname = device.datausage_ifname
-			p.mapParams["datausage_cycle_reset_day"] = "uci.datausage.interface." .. p.datausage.ifname .. ".usage_cycle_reset_day"
-			p.mapValid["datausage_cycle_reset_day"] = validate_reset_day
-			p.mapParams["datausage_monitor_enabled"] = "uci.datausage.interface." .. p.datausage.ifname .. ".enabled"
-			p.mapValid["datausage_monitor_enabled"] = post_helper.validateBoolean
-			p.mapParams["datausage_limit_enabled"] = "uci.datausage.interface." .. p.datausage.ifname .. ".usage_limit_enabled"
-			p.mapValid["datausage_limit_enabled"] = post_helper.validateBoolean
-			p.mapParams["datausage_limit_unit"] = "uci.datausage.interface." .. p.datausage.ifname .. ".usage_limit_unit"
-			p.mapValid["datausage_limit_unit"] = post_helper.getValidateInEnumSelect(p.datausage.limit_units)
-			p.mapParams["datausage_limit"] = "uci.datausage.interface." .. p.datausage.ifname .. ".usage_limit"
-			p.mapValid["datausage_limit"] = validate_data_limit
-		end
+	p.profiles_select, p.profile_authentications = get_profile_select(device)
 
+	if type(device) == "table" and device.active then
 		p.mapParams["interface_enabled"] = device.uci_path .. "enabled"
+		p.mapParams["reuse_profiles"] = device.uci_path .. "reuse_profiles"
 
 		p.mapParams["roaming"] = device.uci_path .. "roaming"
 		p.mapValid["roaming"] = validate_in_enum_or_empty(p.roaming_select)
@@ -487,11 +480,6 @@ local function get_page(platform, device)
 		if string.match(device.capabilities.band_selection_support, "lte") then
 			p.mapParams["lte_bands"] = device.uci_path .. "lte_bands"
 			p.mapValid["lte_bands"] = validate_bands
-		end
-
-		if string.match(device.capabilities.arfcn_selection_support, "lte") then
-			p.mapParams["earfcn"] = device.uci_path .. "earfcn"
-			p.mapValid["earfcn"] = validate_earfcn
 		end
 
 		if device.capabilities.manual_plmn_selection == "true" then
@@ -538,22 +526,13 @@ if mobiled.num_devices and mobiled.num_devices >= 1 then
 		mobiled.devices[dev_idx] = get_device_data(dev_idx)
 	end
 end
+mobiled.num_uci_devices = add_uci_devices(mobiled.devices)
+local page = get_page(get_platform_data(), get_by_imei(current_imei, mobiled.devices))
 
-local mapParamsSwich = {
-	lte_enabled = "uci.mobiled.device_defaults.enabled";
-}
-
-local mapValidSwitch = {
-	lte_enabled = post_helper.validateBoolean;
-}
-
-local lte_switch, helpmsg = post_helper.handleQuery(mapParamsSwich , mapValidSwitch)
-
-local page = get_page(get_platform_data(), mobiled.devices[1])
   ngx.print('\
 \
 <link href="/css/chosen.css" rel="stylesheet">\
-<link href="/css/numberpicker.css" rel="stylesheet">\
+<script language="javascript" type="text/javascript" src="js/chosen-min.js"></script>\
 \
 <style>\
 	.uneven {\
@@ -592,27 +571,6 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
 		float: left;\
 		margin-right: 5px;\
 	}\
-	.datausage_image {\
-		background: url("img/datausage-updown.png");\
-		height: 128px;\
-		width:128px;\
-	}\
-	.datausage, .datausage_header {\
-		font-size:28px;\
-		width:165px;\
-		margin-top:50px;\
-		color:#3a87ad;\
-		text-align:center;\
-	}\
-	.datausage_header {\
-		margin: 0;\
-		padding-top: 15px !important;\
-		width: 80px !important;\
-		font-size: 20px;\
-	}\
-	#datausage th {\
-		font-size: 20px;\
-	}\
 	.help-inline {\
 		min-width: 350px;\
 	}\
@@ -624,7 +582,7 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
   ngx.print('\
 \
 <div class="modal-body update" id="lte-body">\
-	<form class="form-horizontal" method="post" action="modals/lte-modal.lp">\
+	<form class="form-horizontal" method="post" action="');  ngx.print( ngx.var.request_uri ); ngx.print('">\
 		');  
 			local lp = require("web.lp")
 			lp.setpath("/www/snippets/")
@@ -647,11 +605,74 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
 					class = "span5"
 				}
 			}
+			tinsert(html, '<div class="span2">')
+			if mobiled.num_devices >= 1 then
+				tinsert(html, string.format('<ul class="nav nav-list" id="active_devices"><li class="nav-header">%s</li>', T"Active Devices"))
+				for _, device in pairs(mobiled.devices) do
+					if device.active then
+						local active = ""
+						if device.info.imei == page.device.info.imei then
+							active = "active"
+						end
+						local url = "modals/lte-modal.lp?imei=" .. device.info.imei
+						tinsert(html, string.format('<li class="%s"><a href="#" data-remote="%s">%s</a></li>', active, url, device.info.model or device.info.imei))
+					end
+				end
+				tinsert(html, '</ul>')
+			end
+			if mobiled.num_uci_devices >= 1 then
+				tinsert(html, string.format('<ul class="nav nav-list" id="inactive_devices"><li class="nav-header">%s</li>', T"Inactive Devices"))
+				for _, device in pairs(mobiled.devices) do
+					if not device.active then
+						local active = ""
+						if device.info.imei == page.device.info.imei then
+							active = "active"
+						end
+						local url = "modals/lte-modal.lp?imei=" .. device.info.imei
+						tinsert(html, string.format('<li class="%s"><a href="#" data-remote="%s">%s</a></li>', active, url, device.info.model or device.info.imei))
+					end
+				end
+				tinsert(html, '</ul>')
+			end
+			tinsert(html, '</div>')
+			tinsert(html, '<div class="span8">')
+
+			if not page.device.active then
+				local warning = {
+					alert = {
+						class = "alert-info"
+					}
+				}
+				tinsert(html, ui_helper.createAlertBlock(T"Editing not possible for inactive devices", warning))
+				tinsert(html, ui_helper.createSwitch(T"Enabled" .. ":", "interface_enabled", page.device.settings.enabled, { switch = { class = "disabled" }}))
+				tinsert(html, ui_helper.createLabel(T"Radio Type" .. ":", utils.radio_preference_map[page.device.settings.radio_pref]))
+				tinsert(html, ui_helper.createSwitch(T"Use Device Profiles" .. ":", "reuse_profiles", page.device.settings.reuse_profiles, { switch = { class = "disabled" }}))
+				tinsert(html, ui_helper.createLabel(T"Allow Roaming" .. ":", utils.roaming_map[page.device.settings.roaming]))
+				tinsert(html, ui_helper.createLabel(T"Network Selection" .. ":", utils.network_selection_map[page.device.settings.network_selection]))
+				if page.device.settings.network_selection == "manual" and page.device.settings.mcc and page.device.settings.mnc then
+					tinsert(html, ui_helper.createLabel(T"MCC" .. ":", page.device.settings.mcc))
+					tinsert(html, ui_helper.createLabel(T"MNC" .. ":", page.device.settings.mnc))
+				end
+				local remove_uci_device_class = {
+					button = {
+						["data-name"] = "action",
+						["data-value"] = "delete_uci_device_" .. page.device.paramindex
+					}
+				}
+				tinsert(html, ui_helper.createButton(T"Remove Settings" .. ":", "", "icon-trash", remove_uci_device_class))
+				tinsert(html, "</div></form></div>")
+				tinsert(html, ui_helper.createFooter())
+				ngx.print(html)
+				message_helper.popMessages()
+				ngx.exit(ngx.HTTP_OK)
+			end
+
 			tinsert(html, "<fieldset><legend>" .. T"Device Status And Settings" .. "</legend>")
 			tinsert(html, ui_helper.createMessages(message_helper.popMessages()))
 
-			tinsert(html, ui_helper.createSwitch(T"Enabled", "interface_enabled", page.content["interface_enabled"]))
-			tinsert(html, ui_helper.createInputSelect(T"Allow Roaming", "roaming", page.roaming_select, page.content["roaming"]))
+			tinsert(html, ui_helper.createSwitch(T"Enabled" .. ":", "interface_enabled", page.content["interface_enabled"]))
+			tinsert(html, ui_helper.createSwitch(T"Use Device Profiles" .. ":", "reuse_profiles", page.content["reuse_profiles"]))
+			tinsert(html, ui_helper.createInputSelect(T"Allow Roaming" .. ":", "roaming", page.roaming_select, page.content["roaming"]))
 
 			if utils.mobiled_state_map[page.device.status.display_status] ~= "" then
 				tinsert(html, ui_helper.createLabel(T"Device Status" .. ":", utils.mobiled_state_map[page.device.status.display_status]))
@@ -659,10 +680,6 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
 
 			get_radio_selection_section(page, html)
 			get_lte_band_selection_section(page, html)
-
-			if string.match(page.device.capabilities.arfcn_selection_support, "lte") then
-				tinsert(html, ui_helper.createInputText(T"EARFCN" .. ":", "earfcn", page.content["earfcn"], advanced))
-			end
 
 			if page.device.capabilities.manual_plmn_selection == "true" then
 				tinsert(html, ui_helper.createInputSelect(T"Network Selection"..':', "network_selection", page.network_select, page.content["network_selection"], advanced))
@@ -703,7 +720,7 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
 					</div>\
 					<div id="scanresults">\
 						<div data-bind="foreach: scanResults">\
-						<div class="row-fluid scanresult" data-bind="css: { \'uneven\': ($index() % 2), \'selectable\': lteModal.manualPlmnSelection(), \'currentplmn\': lteModal.currentMnc() == $data.mnc && lteModal.currentMcc() == $data.mcc}, click: $parent.selectPlmn">\
+							<div class="row-fluid scanresult" data-bind="css: { \'uneven\': ($index() % 2), \'selectable\': lteModal.manualPlmnSelection(), \'currentplmn\': lteModal.currentMnc() == $data.mnc && lteModal.currentMcc() == $data.mcc}, click: $parent.selectPlmn">\
 								<div class="span2" data-bind="text: description"></div>\
 								<div class="span1" data-bind="text: mcc"></div>\
 								<div class="span1" data-bind="text: mnc"></div>\
@@ -726,20 +743,16 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
 			</fieldset>\
 			');  
 			html = {}
-			get_datausage_section(page, html)
 			get_network_interface_section(page, html)
 			get_session_info_section(page, html)
 			get_device_info_section(page, html)
+			tinsert(html, '</div>')
 			ngx.print(html)
 		  ngx.print('\
 	</form>\
 </div>\
 ');  ngx.print(ui_helper.createFooter())   ngx.print('\
 <script>\
-\
-	$.getScript("/js/chosen-min.js");\
-	$.getScript("/js/numberpicker-min.js");\
-\
 	var id = window.setTimeout(function() {}, 0);\
 	while (id--) {\
 		window.clearTimeout(id);\
@@ -778,67 +791,8 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
 		}, "json");\
 	}\
 \
-	function getDataUsage() {\
-		lteModal.getDataUsage();\
-	}\
-\
-	function get_bitrate(val) {\
-		val *= 8;\
-		if(val > 1000*1000) {\
-			val /= 1000*1000;\
-			val = Math.round( val * 10 ) / 10;\
-			return val + " Mbit/s";\
-		} else if(val > 1000) {\
-			val /= 1000;\
-			val = Math.round( val * 10 ) / 10;\
-			return val + " Kbit/s";\
-		}\
-		return val + " bit/s"\
-	}\
-\
-	function get_data_volume(val) {\
-		if(val > 1024*1024*1024) {\
-			val /= 1024*1024*1024;\
-			val = Math.round( val * 10 ) / 10;\
-			return val + " GB";\
-		} else if(val > 1024*1024) {\
-			val /= 1024*1024;\
-			val = Math.round( val * 10 ) / 10;\
-			return val + " MB";\
-		} else if(val > 1024) {\
-			val /= 1024;\
-			val = Math.round( val * 10 ) / 10;\
-			return val + " KB";\
-		}\
-		return val + " B"\
-	}\
-\
 	var LteModal = function () {\
 		var self = this;\
-		this.dataUsageLimitEnabled = ko.observable(false);\
-		this.dataUsageEnabled = ko.observable(false);\
-		this.txBytes = ko.observable(0);\
-		this.rxBytes = ko.observable(0);\
-		this.txBitRate = ko.computed(function() {\
-			return get_bitrate(this.txBytes());\
-		}, this);\
-		this.rxBitRate = ko.computed(function() {\
-			return get_bitrate(this.rxBytes());\
-		}, this);\
-		this.txBytesTotal = ko.observable(0);\
-		this.rxBytesTotal = ko.observable(0);\
-		this.txVolumeTotal = ko.computed(function() {\
-			return get_data_volume(this.txBytesTotal());\
-		}, this);\
-		this.rxVolumeTotal = ko.computed(function() {\
-			return get_data_volume(this.rxBytesTotal());\
-		}, this);\
-		this.bytesTotal = ko.computed(function() {\
-			return parseInt(this.txBytesTotal()) + parseInt(this.rxBytesTotal());\
-		}, this);\
-		this.volumeTotal = ko.computed(function() {\
-			return get_data_volume(this.bytesTotal());\
-		}, this);\
 		this.currentMnc = ko.observable(0);\
 		this.currentMcc = ko.observable(0);\
 		this.manualPlmnSelection = ko.observable(false);\
@@ -901,72 +855,18 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
 				self.scanResults(data);\
 			}, "json");\
 		}\
-		this.getDataUsage = function() {\
-			var params = [ { name: \'action\', value: "get" },\
-						{ name: \'interface\', value: "');  ngx.print( page.datausage.ifname or "" ); ngx.print('" },\
-						tch.elementCSRFtoken() ];\
-			$.post("/ajax/datausage.lua", params, function(datausage) {\
-				self.txBytes(datausage.tx_bytes_average || 0);\
-				self.rxBytes(datausage.rx_bytes_average || 0);\
-				self.txBytesTotal(datausage.tx_bytes_total || 0);\
-				self.rxBytesTotal(datausage.rx_bytes_total || 0);\
-				if(datausage.usage_limit_reached == "true") {\
-					$(\'#datausage-limit-reached-msg\').removeClass(\'hide\');\
-				} else {\
-					$(\'#datausage-limit-reached-msg\').addClass(\'hide\');\
-				}\
-			}, "json");\
-		}\
-		this.resetDataUsage = function() {\
-			var params = [{ name: "action", value: "reset"},\
-						{ name: \'interface\', value: "');  ngx.print( page.datausage.ifname or "" ); ngx.print('" },\
-						tch.elementCSRFtoken()];\
-			$.post("/ajax/datausage.lua", params, function(data) {}, \'json\');\
-		};\
-		$("#btn-reset-datausage").on("click", function() {\
-			self.resetDataUsage();\
-		});\
-		this.startDatausageMonitor = function() {\
-			if(self.dataUsageTimer == undefined) {\
-				getDataUsage();\
-				self.dataUsageTimer = setInterval(getDataUsage, (3*1000));\
-				$(".number-picker").numberPicker({\
-					numberRangeStart: 1,\
-					numberRangeEnd: 28,\
-					disableColor: "#989c9c",\
-					enableColor: "#6c246c",\
-					arrowTopSymbol: "&#9650;",\
-					arrowBottomSymbol: "&#9660;",\
-					scrollPos : 520,\
-					initNumber : "');  ngx.print( page.content["datausage_cycle_reset_day"] or "1" ); ngx.print('",\
-					buttonText : "');  ngx.print( T"SET" ); ngx.print('"\
-				});\
-			}\
-		};\
-		this.stopDatausageMonitor = function() {\
-			if(self.dataUsageTimer) {\
-				clearInterval(self.dataUsageTimer);\
-				self.dataUsageTimer = undefined;\
-			}\
-		};\
 	};\
 \
-	$("select[name=\'radio_pref\']").on("change",function() {\
+	$("select[name=\'radio_pref\']").change(function() {\
 		if(/\\blte\\b/.test($(this).val())) {\
 			$(\'#lte_bands_pref\').parent().parent().show();\
-			if(document.getElementById("input[name=\'earfcn\']") == true) {\
-				$("input[name=\'earfcn\']").parent().parent().show();\
-			}\
 			updateBandPref();\
 		} else {\
 			$(\'#lte_bands_pref\').parent().parent().hide();\
-			if(document.getElementById("input[name=\'earfcn\']") == true) {\
-				$("input[name=\'earfcn\']").parent().parent().hide();\
-			}\
 		}\
 	});\
 \
-	$("#lte_bands_pref").on("change",function() {\
+	$("#lte_bands_pref").change(function() {\
 		updateBandPref();\
 	});\
 \
@@ -974,9 +874,6 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
 \
 	if(!/\\blte\\b/.test($("select[name=\'radio_pref\']").val()) && !/\\blte\\b/.test($(\'#radio_pref\').attr("data-radio_pref"))) {\
 		$(\'#lte_bands_pref\').parent().parent().hide();\
-		if(document.getElementById("input[name=\'earfcn\']") == true) {\
-			$("input[name=\'earfcn\']").parent().parent().hide();\
-		}\
 	}\
 \
 	updateBandPref();\
@@ -996,7 +893,7 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
 		lteModal.getScanResults();\
 	}\
 \
-	$("select[name=\'network_selection\']").on("change",function() {\
+	$("select[name=\'network_selection\']").change(function() {\
 		if($(this).val() == \'manual\') {\
 			lteModal.manualPlmnSelection(true);\
 			var params = [ { name: \'action\', value: "getcurrentplmn" }, tch.elementCSRFtoken() ];\
@@ -1009,30 +906,22 @@ local page = get_page(get_platform_data(), mobiled.devices[1])
 		}\
 	});\
 \
-	if($("#datausage_limit_enabled").val() == \'1\') {\
-		lteModal.dataUsageLimitEnabled(true);\
-	}\
-\
-	if($("#datausage_monitor_enabled").val() == \'1\') {\
-		lteModal.dataUsageEnabled(true);\
-		lteModal.startDatausageMonitor();\
-	}\
-\
-	$("#datausage_limit_enabled").on("change",function() {\
-		if($(this).val() == \'1\') {\
-			lteModal.dataUsageLimitEnabled(true);\
+	$("select[name=\'profile\']").change(function() {\
+		var unsupported_profiles = [');  
+			if page.device and page.device.capabilities.supported_auth_types then
+				local separator = ""
+				for profile_id, authentication in pairs(page.profile_authentications) do
+					if not page.device.capabilities.supported_auth_types[authentication] then
+						ngx.print(string.format('%s"%s"', separator, profile_id))
+						separator = ", "
+					end
+				end
+			end
+		  ngx.print('];\
+		if(unsupported_profiles.indexOf($(this).val()) === -1) {\
+			$(\'#profile_auth_warning\').hide();\
 		} else {\
-			lteModal.dataUsageLimitEnabled(false);\
-		}\
-	});\
-\
-	$("#datausage_monitor_enabled").on("change",function() {\
-		if($(this).val() == \'1\') {\
-			lteModal.dataUsageEnabled(true);\
-			lteModal.startDatausageMonitor();\
-		} else {\
-			lteModal.dataUsageEnabled(false);\
-			lteModal.stopDatausageMonitor();\
+			$(\'#profile_auth_warning\').show();\
 		}\
 	});\
 \

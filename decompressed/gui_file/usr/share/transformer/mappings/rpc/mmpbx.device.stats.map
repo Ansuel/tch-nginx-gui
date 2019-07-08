@@ -1,5 +1,6 @@
 local tinsert, format = table.insert, string.format
-local logger = require("transformer.logger")
+local modgui = require("modgui")
+local logger = modgui.getRightLoggerModule()
 local log = logger.new("mmpbx.device.stats", 2)
 
 local conn = mapper("ubus").connect()

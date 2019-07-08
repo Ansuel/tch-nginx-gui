@@ -40,7 +40,7 @@ end
 
 generate_ddns_supported_services()
 
--- DMZ / DynDNS / UPnP switches Only one handleQuery in a page
+-- DMZ / DDNS / UPnP switches Only one handleQuery in a page
 local qry_params = {
     ddns_enabled = "uci.ddns.service.@myddns_ipv4.enabled",
     ddns_service_name = "uci.ddns.service.@myddns_ipv4.service_name",

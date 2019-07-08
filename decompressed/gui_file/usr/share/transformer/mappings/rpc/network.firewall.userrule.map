@@ -73,7 +73,8 @@ local network_firewall_user_ = {
 
 local require, register = require, register
 local tostring = tostring
-local logger = require("transformer.logger")
+local modgui = require("modgui")
+local logger = modgui.getRightLoggerModule()
 local log = logger.new("network.firewall.userrule", 2)
 
 local uci_helper = mapper("ucihelper")

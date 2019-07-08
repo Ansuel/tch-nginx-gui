@@ -31,7 +31,7 @@ end
 local samba_available = file_check("/etc/init.d/samba")
 if samba_available then
 	local sambaMapParams = {
-		samba_enabled	= "uci.samba.samba.enabled",
+		samba_filesharing	= "uci.samba.samba.filesharing",
 		samba_name			= "uci.samba.samba.name",
 	}
     for k,v in pairs(sambaMapParams) do
@@ -54,8 +54,9 @@ if samba_available or dlna_available then
 end
 
 local sambastate, dlnastate
+
 if samba_available then
-	if content["samba_enabled"] == "1" then
+	if content["samba_filesharing"] ~= "0" then
 		sambastate = T"SMB/CIFS Filesharing enabled"
 	else
 		sambastate = T"SMB/CIFS Filesharing disabled"
@@ -100,7 +101,7 @@ end
 				if samba_available then
 					attributes.light.id = "Samba_Filesharing_Enabled_Led"
 					attributes.span.id = "Samba_Filesharing_Enabled"
-					tinsert(html, ui_helper.createSimpleLight((content["samba_enabled"]~= '0' and "1" or "0"), sambastate, attributes,"fas fa-hdd"))
+					tinsert(html, ui_helper.createSimpleLight(content["samba_filesharing"], sambastate, attributes,"fas fa-hdd"))
 				end
 				if dlna_available then
 					attributes.light.id = "Dlna_Enabled_Led"

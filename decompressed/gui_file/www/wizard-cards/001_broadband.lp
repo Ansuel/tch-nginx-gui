@@ -1,4 +1,5 @@
-<%
+--pretranslated: do not change this file
+
 -- Enable localization
 gettext.textdomain('webui-wizard')
 
@@ -122,7 +123,14 @@ local function validateWanIfName(value, object, key)
         end
     end
     if (object["wan_type"] == "eth") then
-        object["wan_ifname"] = "eth4"
+        --Support ethernet mode for devices with no eth4 port
+        local ethname = proxy.get("sys.eth.port.@eth4.status")
+        if ethname and ethname[1].value then
+            ethname =  "eth4"
+        else
+            ethname =  "eth3"
+        end
+        object["wan_ifname"] = ethname
         if ("pppoe" == object["wan_proto"]) and (object["vlan_enabled"] == "1") then
             object["wan_ifname"] = "waneth4"
         end
@@ -308,10 +316,11 @@ local wan_proto_options_confirm = setmetatable({
     ["static"] = "Static IP Address",
 }, untaint_mt)
 
-%>
-<div class='wizard-card'>
-   <fieldset>
-     <%
+
+ngx.print('\
+<div class="wizard-card">\
+   <fieldset>\
+     ')
         local html = {}
         -- The reserved legend to be filled automatically when loading
         html[#html+1] =  "<legend></legend>"
@@ -387,13 +396,14 @@ local wan_proto_options_confirm = setmetatable({
         html[#html+1] = ui_helper.createInputText(T"Static Subnet Mask:", "wan_static_submsk", content["wan_static_submsk"], wan_static_class, helpmsg["wan_static_submsk"])
         html[#html+1] = ui_helper.createInputText(T"Static Gateway:", "wan_static_gatewayip", content["wan_static_gatewayip"], wan_static_class, helpmsg["wan_static_gatewayip"])
         ngx.print(html)
-    %>
-  </fieldset>
-</div>
-
-<div class='wizard-confirm'>
-  <fieldset>
-    <%
+    
+	ngx.print('\
+  </fieldset>\
+</div>\
+\
+<div class="wizard-confirm">\
+  <fieldset>\
+    ')
         local html = {}
         local notice_confirm_attr = {
           alert = {
@@ -435,29 +445,31 @@ local wan_proto_options_confirm = setmetatable({
             end
         end
         ngx.print(html)
-    %>
-  </fieldset>
-</div>
-<script type="text/javascript">
-$(document).ready(function () {
-  var wan_type = $("select[name='wan_type']").val();
-  if (wan_type != "adsl") {
-    $('option[value="pppoa"]').hide();
-  }
-})
-
-$('select[name="wan_type"]').on("change", function() {
-  var wan_type = $("select[name='wan_type']").val();
-  if (wan_type == "adsl") {
-    $('option[value="pppoa"]').show();
-  }
-  else {
-    $('option[value="pppoa"]').hide();
-    var wan_proto_el = $("select[name='wan_proto']")
-    var wan_proto = wan_proto_el.val();
-    if (wan_proto == "pppoa") {
-        wan_proto_el.val("pppoe");
-    }
-  }
-})
-</script>
+    
+	 ngx.print('\
+  </fieldset>\
+</div>\
+<script type="text/javascript">\
+$(document).ready(function () {\
+  var wan_type = $("select[name=\'wan_type\']").val();\
+  if (wan_type != "adsl") {\
+    $(\'option[value="pppoa"]\').hide();\
+  }\
+})\
+\
+$(\'select[name="wan_type"]\').on("change", function() {\
+  var wan_type = $("select[name=\'wan_type\']").val();\
+  if (wan_type == "adsl") {\
+    $(\'option[value="pppoa"]\').show();\
+  }\
+  else {\
+    $(\'option[value="pppoa"]\').hide();\
+    var wan_proto_el = $("select[name=\'wan_proto\']")\
+    var wan_proto = wan_proto_el.val();\
+    if (wan_proto == "pppoa") {\
+        wan_proto_el.val("pppoe");\
+    }\
+  }\
+})\
+</script>\
+')
