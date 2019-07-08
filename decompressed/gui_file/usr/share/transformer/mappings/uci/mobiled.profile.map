@@ -1,5 +1,4 @@
 local commitapply = commitapply
-
 -- uci.mobiled.profile
 local mobiled_profile_ = {
     objectType = {
@@ -52,7 +51,8 @@ local mobiled_profile_ = {
                 enumeration = {
                     "none",
                     "pap",
-                    "chap"
+                    "chap",
+                    "papchap"
                 }
             },
             dial_string = {
@@ -171,6 +171,7 @@ local function get(mapping, paramname, key)
         if type == "" then
             return "none"
         end
+        return tostring(type)
     else
         return getFromUCI(key, paramname)
     end

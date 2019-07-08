@@ -1,0 +1,12 @@
+local config_ltedoctor = "ltedoctor"
+
+mapper("uci_1to1").registerConfigMap(config_ltedoctor)
+
+local ltedoctor_config = {
+	config = config_ltedoctor,
+	section = "config",
+	type = "config",
+	options = { "enabled" }
+}
+
+mapper("uci_1to1").registerSimpleMap(ltedoctor_config)

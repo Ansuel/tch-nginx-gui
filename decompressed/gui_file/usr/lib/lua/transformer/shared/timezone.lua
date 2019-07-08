@@ -219,7 +219,7 @@ function M.getLocaltimezoneWithoutSDTDST(value)
   local timeZoneFlag = false
   local timezoneValue, dsttimezoneValue = value:match("^%a+([-+]?%d+:?%d*)%a+([-+]?%d+:?%d*)$")
   if not timezoneValue then
-    timezoneValue, dsttimezoneValue = value:match("^%a+([-+]?%d+:?%d*)%a+$")
+    timezoneValue, dsttimezoneValue = value:match("^%a+([-+]?%d+:?%d*)%s?%a+$")
   end
   if not timezoneValue then
     timezoneValue = value:match("^%a+([-+]?%d+:?%d*)$")

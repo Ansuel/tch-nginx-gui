@@ -1,1 +1,0 @@
-^env.*%.var%.autoupgrade_hour /usr/share/transformer/scripts/upgradegui SetTime

@@ -36,6 +36,10 @@ local mobiled_network_sessions = {
 				access = "readOnly",
 				type = "string"
 			},
+			ipv6_mtu = {
+				access = "readOnly",
+				type = "string"
+			},
 			ipv6_addr = {
 				access = "readOnly",
 				type = "string"
@@ -83,6 +87,10 @@ local mobiled_network_sessions = {
 			session_id = {
 				access = "readOnly",
 				type = "unsignedInt"
+			},
+			internal = {
+				access = "readOnly",
+				type = "boolean"
 			},
 			ifname = {
 				access = "readOnly",
@@ -175,14 +183,15 @@ local function getInterfaceData(result)
 	end
 end
 
-local function getSessionInfoData(key, parentkey)
+function mobiled_network_sessions.getall(mapping, key, parentkey)
 	local result = {}
 	setmetatable(result, { __index = function() return "" end })
 
-	local session_id = tonumber(string.match(key, 'session(%d)'))
+	local session_id = tonumber(string.match(key, 'session(%d+)'))
 	if session_id and session_id >= 1 then
-		local data =  helper.getUbusData(conn, "mobiled.network", "sessions", { session_id = (session_id-1), dev_idx = tonumber(string.match(parentkey, '%d')) })
+		local data = helper.getUbusData(conn, "mobiled.network", "sessions", { session_id = (session_id-1), dev_idx = tonumber(string.match(parentkey, '%d+')) })
 		result.session_id = data.session_id
+		result.internal = data.internal
 		result.profile = data.profile
 		result.duration = data.duration
 		result.proto = data.proto
@@ -212,29 +221,20 @@ local function getSessionInfoData(key, parentkey)
 	return result
 end
 
-local function getall(mapping, key, parentkey)
-	return getSessionInfoData(key, parentkey)
+function mobiled_network_sessions.get(mapping, paramName, key, parentkey)
+	return mobiled_network_sessions.getall(mapping, key, parentkey)[paramName]
 end
 
-local function get(mapping, paramName, key, parentkey)
-	return getall(mapping, key, parentkey)[paramName]
-end
-
-local function entriesInterfaces(mapping, key)
+function mobiled_network_sessions.entries(mapping, key)
 	local intfs = {}
-	local data = helper.getUbusData(conn, "mobiled.device", "capabilities", { dev_idx = tonumber(string.match(key, '%d')) })
-	if data and tonumber(data["max_data_sessions"]) then
-		local maxDataSessions = tonumber(data["max_data_sessions"])
-		for i=1,maxDataSessions do
+	local data = helper.getUbusData(conn, "mobiled.device", "capabilities", { dev_idx = tonumber(string.match(key, '%d+')) })
+	local max_data_sessions = tonumber(data.max_data_sessions)
+	if max_data_sessions then
+		for i=1,max_data_sessions do
 			table.insert(intfs, { tostring(i), key .. "_session" .. i})
 		end
-		return intfs
 	end
-	return {}
+	return intfs
 end
-
-mobiled_network_sessions.getall = getall
-mobiled_network_sessions.get = get
-mobiled_network_sessions.entries = entriesInterfaces
 
 register(mobiled_network_sessions)

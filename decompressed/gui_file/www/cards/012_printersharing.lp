@@ -22,9 +22,9 @@ local content = {
 }
 content_helper.getExactContent(content)
 
-local printersharing_state = T"Printer Sharing disabled"
+local printersharing_state = T"Printer sharing disabled"
 if content["printersharing_enabled"] == "1" then
-  printersharing_state = T"Printer Sharing enabled"
+  printersharing_state = T"Printer sharing enabled"
 end
 
 local pathIndexList = {}

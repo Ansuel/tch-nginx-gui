@@ -6,12 +6,12 @@ local mobiled_device_info_ = {
 		maxEntries = 1,
 		parameters = {
 			manufacturer = {
-			  access = "readOnly",
-			  type = "string"
+				access = "readOnly",
+				type = "string"
 			},
 			model = {
-			  access = "readOnly",
-			  type = "string"
+				access = "readOnly",
+				type = "string"
 			},
 			software_version = {
 				access = "readOnly",
@@ -46,8 +46,8 @@ local mobiled_device_info_ = {
 				type = "string"
 			},
 			temperature = {
-				 access = "readOnly",
-				 type = "int"
+				access = "readOnly",
+				type = "int"
 			},
 			pid = {
 				access = "readOnly",
@@ -64,6 +64,14 @@ local mobiled_device_info_ = {
 			login_required = {
 				access = "readOnly",
 				type = "boolean"
+			},
+			dev_desc = {
+				access = "readOnly",
+				type = "string"
+			},
+			dev_idx = {
+				access = "readOnly",
+				type = "int"
 			}
 		}
 	}
@@ -76,19 +84,15 @@ end
 
 local helper = require("mobiled.scripthelpers")
 
-local function getall(mapping, key)
-	local data = helper.getUbusData(conn, "mobiled.device", "get", { dev_idx = tonumber(string.match(key, '%d')) })
-	if data.imei ~= "" and data.imei_svn ~= "" then
-		data.imeisv = string.sub(data.imei, 1, 14) .. data.imei_svn
-	end
+function mobiled_device_info_.getall(_, key)
+	local dev_idx = tonumber(string.match(key, '%d+'))
+	local data = helper.getUbusData(conn, "mobiled.device", "get", { dev_idx = dev_idx })
+	data.dev_idx = tostring(dev_idx)
 	return data
 end
 
-local function get(mapping, paramName, key)
-	return getall(mapping, key)[paramName]
+function mobiled_device_info_.get(mapping, paramName, key)
+	return mobiled_device_info_.getall(mapping, key)[paramName]
 end
-
-mobiled_device_info_.getall = getall
-mobiled_device_info_.get = get
 
 register(mobiled_device_info_)

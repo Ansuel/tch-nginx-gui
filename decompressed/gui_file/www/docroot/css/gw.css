@@ -188,14 +188,6 @@ a:hover, a:focus {
 .container>.row {
 	margin: auto;
 }
-.row:before, .row:after {
-	display: table;
-	content: "";
-	line-height: 0
-}
-.row:after {
-	clear: both
-}
 [class*="span"] {
 	float: left;
 	min-height: 1px;
@@ -3673,7 +3665,7 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	display: flex;
 	margin-left: 0px;
 	flex-wrap: wrap;
-	justify-content: center;
+	justify-content: space-evenly;
 }
 #leftinfocard,#rightinfocard {
     flex: calc( 50% - 20px );
@@ -3730,7 +3722,7 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	-o-transition: margin .5s, opacity .5s, color .5s;
 	transition: margin .5s, opacity .5s, color .5s;
 	float: right;
-	margin-right: -10px;
+	margin-right: -40px;
 	margin-left: 10px;
 	color: #ddd;
 	color: #fff;
@@ -3843,6 +3835,17 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 }
 .smallcard .header-title:hover[data-remote] {
 	cursor: pointer
+}
+#diagnosticCard {
+	display: flex;
+    justify-content: space-evenly;
+    flex-wrap: wrap;
+	z-index: 20;
+	position: relative;
+}
+#diagnosticIcons {
+	font-size:25px;
+	margin: 10px;
 }
 .tooLongTitle p {
 	white-space: nowrap;
@@ -5491,9 +5494,6 @@ form .switch {
 }
 .hand {
 	cursor: pointer
-}
-.smallcard .header .settings {
-	margin-left: 0
 }
 #device_popUp {
 	z-index: 6000;

@@ -15,6 +15,10 @@ if session:hasAccess(modalPath) then
 local dyn_count = proxy.getPN("sys.class.iproutes.", true)
 dyn_count = dyn_count and #dyn_count or 0
 
+--IPv4 Static Routes
+local ipv4_count = proxy.getPN("uci.network.route.", true)
+ipv4_count = ipv4_count and #ipv4_count or 0
+
 --DNS
 
 function split(x,sep)
@@ -79,6 +83,15 @@ end
             </span>\
             <span class="simple-desc">\
             ');  
+            local modal_link=format('class="modal-link" data-toggle="modal" data-remote="%s" data-id="device-modal"',modalPath)
+            ngx.print(
+            '<i class="fas fa-forward" aria-hidden="true" href="#">&nbsp</i>' .. format( N('<strong id="iproutescard_noofipv4staticroutes" %1$s>%2$d IPv4 Static Route</strong>',
+                      '<strong id="iproutescard_noofipv4staticroutes" %1$s>%2$d IPv4 Static Routes</strong> ', ipv4_count),
+                      modal_link, ipv4_count))
+              ngx.print('\
+            </span>\
+            <span class="simple-desc">\
+            ');  
             ngx.print(
            '<i class="fas fa-server" aria-hidden="true" href="#">&nbsp</i>' .. format( N('<strong %1$s>%2$d DNS Server</strong>',
                       '<strong id="iproutescard_dnsservers" %1$s>%2$d DNS Servers</strong>', dns_count),
@@ -91,8 +104,8 @@ end
 					style = "font-weight: bold;"
 				}
 			}
-			ngx.print( ui_helper.createSimpleLight(dosprotect, dosprotect_status, subinfo_light,"fa fas fa-exchange-alt") )
-			ngx.print( ui_helper.createSimpleLight(flowcache, flowcache_status, subinfo_light,"fa fas fa-exchange-alt") )
+			ngx.print( ui_helper.createSimpleLight(dosprotect, dosprotect_status, subinfo_light,"fa fas fa-menorah") )
+			ngx.print( ui_helper.createSimpleLight(flowcache, flowcache_status, subinfo_light,"fa fas fa-map-signs") )
 			ngx.print('\
          </div>\
 		 </div>\

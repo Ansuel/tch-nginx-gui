@@ -16,4 +16,4 @@ end
   <p class="subinfos">\
     ');  ngx.print( T("Gateway in bridge mode") ); ngx.print('\
   </p>\
-'); 
+');

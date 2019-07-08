@@ -98,4 +98,4 @@ end
 ngx.print('\
   </div>\
 </div>\
-'); 
+');

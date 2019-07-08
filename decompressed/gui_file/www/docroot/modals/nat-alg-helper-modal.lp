@@ -22,22 +22,24 @@ local hlp_columns = {
     name = "helper",
     param = "helper",
     type = "text",
-    unique = true,
-    attr = { input = { class="span2", readonly="true"} },
+    readonly = true,
+    attr = { input = { class="span2" } }
   },
   {
     header = T"Dest Port",
     name = "dest_port",
     param = "dest_port",
     type = "text",
-    attr = { input = { class="span1", readonly="true" }},
+    readonly = true,
+    attr = { input = { class="span1" }}
   },
     {
     header = T"Protocol",
     name = "proto",
     param = "proto",
     type = "text",
-    attr = { input = { class="span1", readonly="true" }},
+    readonly = true,
+    attr = { input = { class="span1" }}
   },
 }
 

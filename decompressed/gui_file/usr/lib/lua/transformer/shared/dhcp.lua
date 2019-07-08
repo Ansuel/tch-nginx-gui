@@ -164,8 +164,8 @@ function M.parseDHCPData(dhcpIntfName, nwIntfName)
   dhcpBinding.sectionname = dhcpIntfName
   local dhcpConfig = getAllFromUci(dhcpBinding)
 
-  local netMask = nwCommon.ipv4ToNum(networkConfig["netmask"])
-  local baseIp = nwCommon.ipv4ToNum(networkConfig["ipaddr"])
+  local netMask = networkConfig.netmask and nwCommon.ipv4ToNum(networkConfig.netmask)
+  local baseIp = networkConfig.ipaddr and nwCommon.ipv4ToNum(networkConfig.ipaddr)
   local start = tonumber(dhcpConfig["start"] or "100")
   local numIps = tonumber(dhcpConfig["limit"] or "150")
 
@@ -190,6 +190,37 @@ function M.parseDHCPData(dhcpIntfName, nwIntfName)
     ipMax = ipMax,
     name = dhcpConfig[".name"] or ""
   }
+end
+
+local function getLeaseFiles()
+  local path = {}
+  dhcpBinding.sectionname = "dnsmasq"
+  uciHelper.foreach_on_uci(dhcpBinding, function(s)
+    path[#path + 1] = s.leasefile
+  end)
+  return path
+end
+
+function M.getDhcpInfo(mac)
+  local dhcpInfo = {}
+  for _, leasefile in ipairs(getLeaseFiles()) do
+    local f = io.open(leasefile,"r")
+    if f then
+      for line in f:lines() do
+        local leasetime, macaddr, ip, hostname = line:match("^(%d+)%s+(%x%x:%x%x:%x%x:%x%x:%x%x:%x%x)%s+(%S+)%s+(%S+)%s+")
+        if macaddr then
+          dhcpInfo[macaddr] = {
+            leasetime = leasetime,
+            macaddr = macaddr,
+            ip = ip,
+            hostname = hostname,
+          }
+        end
+      end
+      f:close()
+    end
+  end
+  return mac and dhcpInfo[mac] or dhcpInfo
 end
 
 return M

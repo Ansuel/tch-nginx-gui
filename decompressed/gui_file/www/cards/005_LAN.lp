@@ -13,10 +13,11 @@ local dhcpState
 
 local mapParams = {
     dhcpv4State = "uci.dhcp.dhcp.@lan.dhcpv4",
-	dhcpIgnore = "uci.dhcp.dhcp.@lan.ignore",										 
+    dhcpIgnore = "uci.dhcp.dhcp.@lan.ignore",
     localdevIP = "uci.network.interface.@lan.ipaddr",
     localdevmask = "uci.network.interface.@lan.netmask",
-    localIPv6 = "uci.network.interface.@lan.ipv6",
+    dhcpv6State = "uci.dhcp.dhcp.@lan.dhcpv6",
+    raState = "uci.dhcp.dhcp.@lan.ra",
     localIPv6Prefix = "rpc.network.interface.@lan.ip6prefix_assignment"
 }
 content_helper.getExactContent(mapParams)
@@ -28,9 +29,10 @@ else
   dhcpState_text = T"DHCP enabled"
   dhcpState = "1"
 end
+
 local LANv6 = "none"
 
-if mapParams["localIPv6"] == "1" then
+if mapParams["dhcpv6State"] == "server" and mapParams["raState"] == "server" then
     LANv6 = "noprefix"
     if mapParams["localIPv6Prefix"] ~= "" then
       LANv6 = "prefix"

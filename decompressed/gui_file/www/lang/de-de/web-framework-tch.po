@@ -331,20 +331,56 @@ msgstr "Die SSID sollte nicht mit ; # ! beginnen"
 
 msgid "%dd"
 msgid_plural "%dd"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%dd"
+msgstr[1] "%dd"
 
 msgid "%dm"
 msgid_plural "%dm"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%dm"
+msgstr[1] "%dm"
 
 msgid "%ds"
 msgid_plural "%ds"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%ds"
+msgstr[1] "%ds"
 
 msgid "%dh"
 msgid_plural "%dh"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%dh"
+msgstr[1] "%dh"
+
+msgid "Invalid netmask."
+msgstr "Ungültige Netzmaske"
+
+msgid "PIN code must be 4 or 8 digits with potentially a dash or space in the middle."
+msgstr "PIN muss 4 oder 8 Ziffern haben, eventuell mit Leerzeichen oder Bindestrich in der Mitte."
+
+msgid "Cannot use software address range."
+msgstr "Software Adressbereich kann nicht verwendet werden."
+
+msgid "The IP is internally used for other services."
+msgstr "Die IP wird für andere interne Dienste verwendet."
+
+msgid "Invalid time (must be hh:mm)"
+msgstr "Ungültige Zeit (muss hh:mm sein)"
+
+msgid "Invalid Number"
+msgstr "Ungültige Zahl"
+
+msgid "Cannot use a reserved IP address."
+msgstr "Eine reservierte IP Adresse kann nicht verwendet werden."
+
+msgid "Expire Time is invalid. It should be a whole number, between 60 and 600000."
+msgstr "Ablaufzeit ungültig, es muss eine ganze Zahl zwischen 60 und 600000 sein."
+
+msgid "Invalid MAC Address"
+msgstr "Ungültige MAC Adresse"
+
+msgid "Invalid hour, must be between 0 and 23"
+msgstr "Ungültige Stunde, sie muss zwischen 0 und 23 liegen"
+
+msgid "Not a Public address"
+msgstr "Keine öffentliche Adresse"
+
+msgid "Invalid minutes, must be between 0 and 59"
+msgstr "Ungültige Minute, sie muss zwischen 0 und 59 liegen"

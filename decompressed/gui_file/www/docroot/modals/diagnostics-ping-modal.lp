@@ -1,4 +1,5 @@
-<%
+--pretranslated: do not change this file
+ 
 -- Enable localization
 gettext.textdomain('webui-core')
 
@@ -11,19 +12,20 @@ local session = ngx.ctx.session
 local format = string.format
 local type = type
 local post_content = {}
+local getAndValidation = post_helper.getAndValidation
 
 local mapValid = {
-    NumberOfRepetitions = post_helper.getValidateNumberInRange(0, 10),
-    DataBlockSize = post_helper.getValidateNumberInRange(0, 1000),
-    ipAddress = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),
+    NumberOfRepetitions = getAndValidation(post_helper.getValidateNumberInRange(1, 10), post_helper.getValidateWholeNumber),
+    DataBlockSize = getAndValidation(post_helper.getValidateNumberInRange(1, 1000), post_helper.getValidateWholeNumber),
+    ipAddress = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName)
 }
 local mapValidTrace = {
-    MaxHopCount = post_helper.getValidateNumberInRange(1,64),
-    MaxSize = post_helper.getValidateNumberInRange(1,65535),
-    DataBlockSizeT = post_helper.validatePositiveNum,
-    Timeout = post_helper.validatePositiveNum,
-    Tries = post_helper.validatePositiveNum,
-    ipAddressTrace = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName),
+    MaxHopCount = getAndValidation(post_helper.getValidateNumberInRange(1,64), post_helper.getValidateWholeNumber),
+    MaxSize = getAndValidation(post_helper.getValidateNumberInRange(38,32768), post_helper.getValidateWholeNumber),
+    DataBlockSizeT = getAndValidation(post_helper.getValidateNumberInRange(1, 1000), post_helper.getValidateWholeNumber),
+    Timeout = post_helper.validateWholeNumber,
+    Tries = post_helper.validateWholeNumber,
+    ipAddressTrace = post_helper.getOrValidation(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName)
 }
 
 local function restartTest(data)
@@ -86,7 +88,7 @@ if ngx.var.request_method == "POST" then
     post_content = ngx.req.get_post_args()
     if post_content["action"] == "PING" then
     -- This Condition Check will protect from multiple Ping_Request error
-      if pingState[1].value ~= "Requested" then
+      if pingState and pingState[1].value ~= "Requested" then
         gsuccess, helpmsg = restartTest(post_content)
         session:store("diag_ping_action", "TRUE")
       end
@@ -97,7 +99,7 @@ if ngx.var.request_method == "POST" then
         end
     elseif post_content["action"] == "TRACE" then
     -- This Condition Check will protect from multiple Trace_Route error
-        if traceState[1].value ~= "Requested" then
+        if traceState and traceState[1].value ~= "Requested" then
           gsuccess, helpmsg = restartTestTrace(post_content)
           session:store("diag_trace_action", "TRUE")
         end
@@ -182,7 +184,7 @@ local rh_options = {
 }
 local rh_filter = function(data)
     if data["HopRTTimes"] ~= "*" then
-      data["HopRTTimes"],data["HopRTTimes2"],data["HopRTTimes3"] = string.match(data["HopRTTimes"],"([%d]+),([%d]+),([%d]+)")
+      data["HopRTTimes"],data["HopRTTimes2"],data["HopRTTimes3"] = data["HopRTTimes"]:match("([^,]+).([^,]+).([^,]+)")
     else
       data["HopRTTimes"],data["HopRTTimes2"],data["HopRTTimes3"] = "*", "*", "*"
     end
@@ -213,31 +215,31 @@ if(cping.ipping_state ~= "Requested" and ctracert.tracert_state ~= "Requested") 
     refresh = nil
 end
 
-ngx.print(ui_helper.createHeader(T"Diagnostics Ping&Trace", true, false, refresh)) %>
-
-<div class="modal-body no-save update">
-<%
+ngx.print(ui_helper.createHeader(T"Diagnostics Ping & Traceroute", false, false, refresh))   ngx.print('\
+\
+<div class="modal-body no-save update">\
+');  
     local lp = require("web.lp")
     lp.setpath("/www/snippets/")
     lp.include("tabs-diagnostics.lp")
-%>
-
-<form class="form-horizontal" method="post" action="modals/diagnostics-ping-modal.lp">
-<fieldset id="diagnostics-ping-tab">
-    <legend><%= T"Ping Statistics" %></legend>
-
-    <div class="control-group">
-        <label class="control-label"></label>
-        <div class="controls">
-        <% if(cping.ipping_state ~= "Requested") then %>
-            <div id="send-config_PING" class="btn" data-name="action" data-value="PING"><%= T"Send Ping Request" %></div>
-        <% else%>
-            <div id="stop-config_PING" class="btn"data-name="action" data-value="PINGSTOP"><%= T"Stop Ping Request" %></div>
-        <% end%>
-        </div>
-    </div>
-
-    <%
+  ngx.print('\
+\
+<form class="form-horizontal" method="post" action="modals/diagnostics-ping-modal.lp">\
+<fieldset id="diagnostics-ping-tab">\
+    <legend>');  ngx.print( T"Ping Statistics" ); ngx.print('</legend>\
+\
+    <div class="control-group">\
+        <label class="control-label"></label>\
+        <div class="controls">\
+        ');  if(cping.ipping_state ~= "Requested") then   ngx.print('\
+            <div id="send-config_PING" class="btn" data-name="action" data-value="PING">');  ngx.print( T"Send Ping Request" ); ngx.print('</div>\
+        ');  else  ngx.print('\
+            <div id="stop-config_PING" class="btn"data-name="action" data-value="PINGSTOP">');  ngx.print( T"Stop Ping Request" ); ngx.print('</div>\
+        ');  end  ngx.print('\
+        </div>\
+    </div>\
+\
+    ');  
     local ping_trace_columns = {
     {
         header = T"Bytes",
@@ -306,7 +308,10 @@ ngx.print(ui_helper.createHeader(T"Diagnostics Ping&Trace", true, false, refresh
       }
     }
     local attrPing = {input = { ["data-for"] = "PING"}}
+    local attrPingSelect = {select = { ["data-for"] = "PING"}}
     local attrTrace = {input = { ["data-for"] = "TRACE"}}
+    local attrTraceSelect = {select = { ["data-for"] = "TRACE"}}
+
     local explanationPing = ""
     local statusIconPing = ""
     local ippingSuccessCount = ""
@@ -381,49 +386,49 @@ local ping_trace_data, ping_trace_helpmsg = post_helper.handleTableQuery(ping_tr
         ui_helper.createLabel(T"Max Resp Time:", format("%s ms", cping.ipping_maxresptime)),
         ui_helper.createLabel(T"Avg Resp Time:", format("%s ms", cping.ipping_avgresptime)),
         ui_helper.createTable(ping_trace_columns, ping_trace_data, ping_trace_options, ping_trace_attributes, ping_trace_helpmsg)
-
     )
-    %>
-</fieldset>
-
-<fieldset id="diagnostics-tracert-tab">
-        <legend><%= T"Traceroute" %></legend>
-
-        <div class="control-group">
-        <label class="control-label"></label>
-        <div class="controls">
-        <% if(ctracert.tracert_state ~= "Requested" ) then %>
-            <div id="send-config_TRACE" class="btn" data-name="action" data-value="TRACE"><%= T"Traceroute" %></div>
-        <% else%>
-            <div id="stop-config_TRACE" class="btn" data-name="action" data-value="TRACESTOP"><%= T"Stop Traceroute" %></div>
-        <% end%>
-        </div>
-    </div>
-
-    <div>
-    <%
+      ngx.print('\
+</fieldset>\
+\
+<fieldset id="diagnostics-tracert-tab">\
+        <legend>');  ngx.print( T"Traceroute" ); ngx.print('</legend>\
+\
+        <div class="control-group">\
+        <label class="control-label"></label>\
+        <div class="controls">\
+        ');  if(ctracert.tracert_state ~= "Requested" ) then   ngx.print('\
+            <div id="send-config_TRACE" class="btn" data-name="action" data-value="TRACE">');  ngx.print( T"Traceroute" ); ngx.print('</div>\
+        ');  else  ngx.print('\
+            <div id="stop-config_TRACE" class="btn" data-name="action" data-value="TRACESTOP">');  ngx.print( T"Stop Traceroute" ); ngx.print('</div>\
+        ');  end  ngx.print('\
+        </div>\
+    </div>\
+\
+    <div style="max-width:880px;overflow-x:auto;">\
+    ');  
     ngx.print(
         ui_helper.createLabel(T"Status:", format("%s %s", statusIconTrace, explanationTrace), attributes),
         ui_helper.createInputText(T"Hostname:","ipAddressTrace", ctracert.tracert_ipAddress, attrTrace, helpmsg["ipAddressTrace"]),
-        ui_helper.createInputText(T"Timeout:","Timeout", ctracert.tracert_timeout, attrTrace, helpmsg["Timeout"]),
+        -- ui_helper.createInputText(T"Timeout:","Timeout", ctracert.tracert_timeout, attrTrace, helpmsg["Timeout"]),
         ui_helper.createInputText(T"Max Hop Count:","MaxHopCount", ctracert.tracert_hopcount, pattern_hopcount, helpmsg["MaxHopCount"]),
         ui_helper.createInputText(T"Size (bytes):","MaxSize", ctracert.tracert_size, attrTrace, helpmsg["MaxSize"]),
-        ui_helper.createInputText(T"Tries:","Tries", ctracert.tracert_tries, attrTrace, helpmsg["Tries"]),
+        -- ui_helper.createInputText(T"Tries:","Tries", ctracert.tracert_tries, attrTrace, helpmsg["Tries"]),
         ui_helper.createTable(rh_columns, rh_data, rh_options, rh_attributes, rh_helpmsg)
     )
-    %>
-    </div>
-</fieldset>
-</form>
-</div>
-<%if ngx.var.request_method == "POST" and (ngx.req.get_post_args().action =="TRACE" or ngx.req.get_post_args().action =="TRACESTOP") then%>
-  <script>
-    var tablePos = $("#routehops").position();
-    $(".modal-body").scrollTop(tablePos.top);
-  </script>
-<%end%>
-<div class="modal-footer">
-    <div id="modal-no-change">
-        <div class="btn btn-primary btn-large" data-dismiss="modal"><%= T"Close" %></div>
-    </div>
-</div>
+      ngx.print('\
+    </div>\
+</fieldset>\
+</form>\
+</div>\
+');  if ngx.var.request_method == "POST" and (ngx.req.get_post_args().action =="TRACE" or ngx.req.get_post_args().action =="TRACESTOP") then  ngx.print('\
+  <script>\
+    var tablePos = $("#routehops").position();\
+    $(".modal-body").scrollTop(tablePos.top);\
+  </script>\
+');  end  ngx.print('\
+<div class="modal-footer">\
+    <div id="modal-no-change">\
+        <div id="close_ping_config" class="btn btn-primary btn-large" data-dismiss="modal">');  ngx.print( T"Close" ); ngx.print('</div>\
+    </div>\
+</div>\
+'); 

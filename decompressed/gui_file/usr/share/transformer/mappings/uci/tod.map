@@ -65,8 +65,8 @@ mapper("uci_1to1").registerConfigMap(config_tod)
 local tod_host = {
   config = config_tod,
   type = "host",
-  options = { "enabled", "type", "id", "mode", "start_time", "stop_time", "rule_name" },
-  lists = { "weekdays" },
+  options = { "enabled", "type", "id", "mode", "start_time", "stop_time", "script", "rule_name", "mixedmode" },
+  lists = { "weekdays", "timers" },
 }
 mapper("uci_1to1").registerNamedMultiMap(tod_host)
 
@@ -94,7 +94,7 @@ local tod_action = {
   config = config_tod,
   type = "action",
   options = { "enabled", "object", "script"},
-  lists = { "timers" },
+  lists = { "timers", "activedaytime"},
 }
 mapper("uci_1to1").registerNamedMultiMap(tod_action)
 

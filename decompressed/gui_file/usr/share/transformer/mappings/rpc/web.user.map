@@ -20,7 +20,8 @@ local web_user_ = {
 }
 
 local uci_helper = mapper("ucihelper")
-local logger = require("transformer.logger")
+local modgui = require("modgui")
+local logger = modgui.getRightLoggerModule()
 local log = logger.new("web.user", 2)
 local register = register;
 

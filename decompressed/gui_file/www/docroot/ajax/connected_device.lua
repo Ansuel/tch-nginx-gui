@@ -18,7 +18,7 @@ local devices_columns = {
   {--[3]
     header = T"IPv4",
     name = "ipv4",
-    param = "IPAddress",
+    param = "IPv4",
     type = "text",
   },
   {--[6]

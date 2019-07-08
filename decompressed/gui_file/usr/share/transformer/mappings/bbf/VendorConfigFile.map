@@ -54,7 +54,7 @@ Multi_DeviceInfo_VendorConfigFile_i_.entries = function()
   -- Two Keys used : active and passive for activeBank and passiveBank
   -- Use the passive key only for the dual bank scenario
   entries[#entries + 1] = "active"
-  if lfs.attributes("/overlay/" .. passiveBank, "mode") == "directory" then
+  if passiveBank and lfs.attributes("/overlay/" .. passiveBank, "mode") == "directory" then
      entries[#entries + 1] = "passive"
   end
   return entries

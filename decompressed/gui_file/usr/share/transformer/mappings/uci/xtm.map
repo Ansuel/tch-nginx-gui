@@ -26,7 +26,7 @@ mapper("uci_1to1").registerNamedMultiMap(xtm_ptmdevice)
 local xtm_trafficdesc = {
     config = config_xtm,
     type = "trafficdesc",
-    options = { "servicecat", "pcr", "scr", "mbs", "mcr" }
+    options = { "servicecat", "peak_cell_rate", "sustained_cell_rate", "max_burst_size", "min_cell_rate" }
 }
 
 mapper("uci_1to1").registerNamedMultiMap(xtm_trafficdesc)

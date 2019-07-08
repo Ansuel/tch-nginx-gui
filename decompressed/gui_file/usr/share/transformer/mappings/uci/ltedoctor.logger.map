@@ -1,0 +1,122 @@
+local ltedoctor_logger = {
+    objectType = {
+        name = "uci.ltedoctor.logger.@.",
+        numEntriesParameter = "numLoggers",
+        access = "readWrite",
+        minEntries = 0,
+        maxEntries = math.huge,
+        parameters = {
+            name = {
+                access = "readWrite",
+                type = "string"
+            },
+            path = {
+                access = "readWrite",
+                type = "string"
+            },
+            interval = {
+                access = "readWrite",
+                type = "unsignedInt"
+            },
+            period = {
+                access = "readWrite",
+                type = "unsignedInt"
+            }
+        }
+    }
+}
+
+local uci_helper = mapper("ucihelper")
+
+local loggersBinding = {
+    config="ltedoctor",
+    sectionname="logger"
+}
+
+function ltedoctor_logger.entries()
+    local loggers = {}
+
+    local function cb()
+        local l = #loggers
+        loggers[l+1] = tostring(l)
+    end
+    uci_helper.foreach_on_uci(loggersBinding, cb)
+    return loggers
+end
+
+local function getBindingForIndex(_, key)
+    return {
+        config="ltedoctor",
+        sectionname="@logger[" .. key .. "]",
+        extended = true
+    }
+end
+
+local function addDefaults(mapping, key)
+    local default_cfg = {
+        path = '/tmp/lte-doctor.db'
+    }
+
+    local binding = getBindingForIndex(mapping, key)
+    for param, value in pairs(default_cfg) do
+        binding.option = param
+        uci_helper.set_on_uci(binding, value, commitapply)
+    end
+end
+
+function ltedoctor_logger.add(mapping)
+    local result = uci_helper.add_on_uci(loggersBinding, commitapply)
+    if not result then
+        return nil, "No object could be added for this multi instance object"
+    end
+    uci_helper.commit(loggersBinding)
+    local items = ltedoctor_logger.entries(mapping)
+    local logger = tostring(#items-1)
+    addDefaults(addDefaults, logger)
+    return logger
+end
+
+function ltedoctor_logger.delete(_, key)
+    local binding = getBindingForIndex(key)
+    uci_helper.delete_on_uci(binding, commitapply)
+    uci_helper.commit(binding)
+    return true
+end
+
+local function getallFromUCI(mapping, key)
+    local binding = getBindingForIndex(mapping, key)
+    local result = uci_helper.getall_from_uci(binding)
+    return result
+end
+
+local function getFromUCI(mapping, key, param)
+    local binding = getBindingForIndex(mapping, key)
+    binding.option = param
+    local result = uci_helper.get_from_uci(binding)
+    return result
+end
+
+local function setOnUCI(mapping, key, param, value, nocommit)
+    local binding = getBindingForIndex(mapping, key)
+    binding.option = param
+    uci_helper.set_on_uci(binding, value, commitapply)
+    if not nocommit then
+        uci_helper.commit(binding)
+    end
+end
+
+function ltedoctor_logger.getall(mapping, key)
+    local result = getallFromUCI(mapping, key)
+    result['index'] = key
+    return result
+end
+
+function ltedoctor_logger.get(mapping, paramname, key)
+    return getFromUCI(mapping, key, paramname)
+end
+
+function ltedoctor_logger.set(mapping, paramname, paramvalue, key)
+    return setOnUCI(mapping, key, paramname, paramvalue)
+end
+
+register(ltedoctor_logger)

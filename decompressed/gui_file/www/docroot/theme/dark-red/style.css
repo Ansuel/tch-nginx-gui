@@ -192,7 +192,7 @@ body {
 .form-inline select, .form-horizontal select, .form-search .help-inline, .form-inline .help-inline, .form-horizontal .help-inline, .form-search .uneditable-input, 
 .form-inline .uneditable-input, .form-horizontal .uneditable-input, .form-search .input-prepend, .form-inline .input-prepend, .form-horizontal .input-prepend, 
 .form-search .input-append, .form-inline .input-append, .form-horizontal .input-append {
-	background-color: var(--third-color-accent, #232323);
+	background-color: var(--third-color-accent, #232323) !important;
 	color: var(--text-general-color);
 }
 

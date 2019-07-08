@@ -1,7 +1,10 @@
 local setmetatable, pairs, ipairs, tonumber, require, type = setmetatable, pairs, ipairs, tonumber, require, type
 local ngx, tostring = ngx, tostring
+
 local dm = require("datamodel")
 local srp = require("srp")
+local check_host = require("web.check_host")
+
 local printf = require("web.web").printf
 local get_cookies = require("web.web").get_cookies
 local string = string
@@ -223,50 +226,18 @@ function SessionMgr:authorizeRequest(session, resource)
   return true
 end
 
-local function validHostDMPaths()
-  local intf = dm.get({"uci.dhcp.dhcp."}, false) or {}
-  local paths = {"uci.system.system.@system[0].hostname",
-                 "uci.dhcp.dnsmasq.@dnsmasq[0].hostname."}
-  for _, v in ipairs(intf) do
-    if v.path:match("^uci%.dhcp%.dhcp%.") then
-       if v.param == "interface" and v.value ~= "" then
-           paths[#paths + 1] = format('rpc.network.interface.@%s.ipaddr', v.value)
-           paths[#paths + 1] = format('rpc.network.interface.@%s.ip6addr', v.value)
-       end
-    end
-  end
-  return paths
+local function hostWithoutPort(host)
+  return host:match("^([^:]+):?%d*$") or host:match("^%[(.+)%]:?%d*$")
 end
 
---- Verify if the given hostname a valid hostname or IP address for this system
--- @param http_req_host The hostname/IP address that needs to be authenticated
--- @return True if the hostname is valid. Otherwise false
-local function hostIsValid(http_req_host)
-  local host = dm.get(validHostDMPaths(), false) or {}
-  for _, v in ipairs(host) do
-    if v.path == "uci.system.system.@system[0]." then
-       if http_req_host == v.value then
-          return true
-       end
-    elseif v.path:match("^uci%.dhcp%.dnsmasq%.@dnsmasq%[0%]%.hostname%.") then
-       if v.param == "value" and http_req_host == v.value then
-         return true
-       end
-    elseif v.path:match("^rpc%.network%.interface%.") then
-       if (v.param == "ipaddr" or v.param == "ip6addr") then
-         if v.value ~= "" and http_req_host == v.value then
-           return true
-         end
-       end
+local function preventDNSRebind(http_host)
+  if http_host then
+    http_host = hostWithoutPort(http_host)
+    if not check_host.refersToUs(http_host) then
+      ngx.log(ngx.ERR, "HTTP Host header does not refer to us")
+      ngx.exit(ngx.HTTP_UNAUTHORIZED)
     end
   end
-  return false
-end
-
-local function preventDNSRebind()
-  --if not hostIsValid(untaint(ngx.var.http_host)) then
-  --  ngx.exit(ngx.HTTP_UNAUTHORIZED)
-  --end
 end
 
 local function redirectIfNotAuthorized(mgr, session, sessionID)
@@ -302,6 +273,7 @@ local function getSessionAddress()
   return {
     remote = untaint(ngx_var.remote_addr),
     server = untaint(ngx_var.server_addr),
+    http_host = untaint(ngx_var.http_host),
   }
 end
 
@@ -354,8 +326,7 @@ local function cleanupIfNoSession(self , session)
   end
 end
 
-local function getSessionForRequest(mgr, noActivityUpdate)
-  local address = getSessionAddress()
+local function getSessionForRequest(mgr, address, noActivityUpdate)
   local session, sessionID = verifySession(mgr, address.remote)
   if not session then
     session, sessionID = newSession(mgr, address)
@@ -376,10 +347,11 @@ end
 -- @param noActivityUpdate (optional) if true, the user activity timer
 --     for the session won't be updated.
 function SessionMgr:checkrequest(noActivityUpdate)
-  local session, sessionID = getSessionForRequest(self, noActivityUpdate)
+  local address = getSessionAddress()
+  --preventDNSRebind(address.http_host)
+  local session, sessionID = getSessionForRequest(self, address, noActivityUpdate)
   cleanupIfNoSession(self,session)
   redirectIfServiceNotAvailable(session)
-  preventDNSRebind()
   redirectIfNotAuthorized(self, session, sessionID)
   storeSessionInNginx(session)
 end
@@ -426,9 +398,22 @@ local function clearWrongPasswordInfo(username)
   wrongPassInfo[username] = nil
 end
 
-local function getWaitTime(username)
+local algorithms = {
+  linear = function(count, lockTime, clockTime, backOffRepeat)
+    return math.floor(count/backOffRepeat) * 10 + lockTime - clockTime
+  end,
+  exponential = function(count, lockTime, clockTime)
+    return (2^(count) + lockTime) - clockTime
+  end,
+}
+
+local function backOffAlgorithm(backOffMethod)
+  return algorithms[backOffMethod] or algorithms.exponential
+end
+
+local function getWaitTime(username, mgr)
   local info = getWrongPasswordInfo(username)
-  return (2^(info.count) + info.lockTime) - clock_gettime(CLOCK_MONOTONIC)
+  return backOffAlgorithm(mgr.backOffMethod)(info.count, info.lockTime, clock_gettime(CLOCK_MONOTONIC), mgr.backOffRepeat)
 end
 
 -- Handle scenario where user refreshes browser, when wait popup
@@ -443,7 +428,7 @@ local function checkBruteForceWaitingTimeForUser(mgr, username)
       if mgr.relaxfirstattempt == "1" and info.count == 1 then
         return
       end
-      local waitTime = getWaitTime(username)
+      local waitTime = getWaitTime(username, mgr)
       if waitTime > 0 then
         printf('{ "error": { "msg":"%s","waitTime":"%d","wrongCount":"%s" }}', "failed", waitTime, info.count)
         return true
@@ -469,7 +454,7 @@ local function preventBruteForce(mgr, username, errMsg)
       if mgr.relaxfirstattempt == "1" and count == 1 then
         return
       end
-      local waitTime = getWaitTime(username)
+      local waitTime = getWaitTime(username, mgr)
       printf('{ "error": { "msg":"%s","waitTime":"%s","wrongCount":"%s" }}', errMsg or "failed", waitTime, count)
       return true
     end
@@ -499,7 +484,6 @@ function SessionMgr:handleAuth()
   if uri ~= self.authpath and uri ~= self.passpath then
     return
   end
-
   -- only POST is allowed
   if ngx.req.get_method() ~= "POST" then
     ngx.exit(ngx.HTTP_FORBIDDEN)  -- doesn't return
@@ -525,7 +509,7 @@ function SessionMgr:handleAuth()
       -- TODO: shouldn't reveal that the username is unknown; instead
       --       we should generate a fake salt and B and in the second
       --       step simply report that authentication failed
-      ngx.log(ngx.ERR, "Invalid login credentials")
+      ngx.log(ngx.ERR, string.format("Failed logon attempt for user %s", post_args.I))
       ngx.print('{ "error":"failed" }')
     else
       if not checkBruteForceWaitingTimeForUser(self, I) then
@@ -563,7 +547,7 @@ function SessionMgr:handleAuth()
       printf('{ "M":"%s" }', M2)
     else
       if not preventBruteForce(self, verifier:username(), errmsg) then
-        ngx.log(ngx.ERR, "Invalid login credentials")
+        ngx.log(ngx.ERR, "Failed logon attempt for user " .. verifier:username())
         printf('{ "error":"%s" }', errmsg or "failed")
       end
     end

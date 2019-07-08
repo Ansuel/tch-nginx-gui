@@ -1282,6 +1282,11 @@ local sys_class_xdsl_ = {
         activeNotify = "canDeny",
         type = "unsignedInt",
       },
+      UPBOKLER = {
+        access = "readOnly",
+        activeNotify = "canDeny",
+        type = "unsignedInt",
+      },
       US0MASK = {
         access = "readOnly",
         activeNotify = "canDeny",
@@ -1666,7 +1671,7 @@ local sys_class_xdsl_ = {
         activeNotify = "canDeny",
         type = "unsignedInt",
       },
-      ShowtimeSRACOmpletedUs = {
+      ShowtimeSRACompletedUs = {
         access = "readOnly",
         activeNotify = "canDeny",
         type = "unsignedInt",
@@ -2070,7 +2075,12 @@ local sys_class_xdsl_ = {
   }
 }
 
-local xdslctl = require('transformer.shared.xdslctl')
+local dsl_supported, xdslctl = pcall(require,"transformer.shared.xdslctl")
+local ceil = math.ceil
+if not dsl_supported then
+  return nil, "DSL not supported"
+end
+
 local mapper, commitapply, register = mapper, commitapply, register
 local table, string, tostring = table, string, tostring
 local find = string.find
@@ -2175,7 +2185,7 @@ local function getIntf()
     -- intf1 intf2 ... -> bridge
     -- intf.vlan -> remove vlan
     -- @interface -> alias (ignore it's already somewhere else)
-    local ifname = s['device'] or ''
+    local ifname = s['device'] or common.getIntfName(s['.name'])
     for i in string.gmatch(ifname, "%S+") do -- split space separated
       if bcmvopiDevices[i] then
           ifnames[bcmvopiDevices[i]] = s[".name"]
@@ -2222,8 +2232,8 @@ local uci_binding_bonding_support = { config = "xdsl", sectionname = "dsl0", opt
 local uci_binding_vpi = { config = "xtm", sectionname = "atm_Internet", option = "vpi" }
 local uci_binding_vci = { config = "xtm", sectionname = "atm_Internet", option = "vci" }
 
-local xtmctl = require("transformer.shared.xtmctl")
-local getBondingStatus = xtmctl.getBondingStatus
+local xtm_supported,xtmctl = pcall(require,"transformer.shared.xtmctl")
+local getBondingStatus = xtm_supported and xtmctl.getBondingStatus or ""
 
 local function getValue(param, val)
   return tostring(cache[param] and (val - cache[param]) or val)
@@ -3045,7 +3055,12 @@ sys_class_xdsl_.get = {
     return xdslctl.infoValue("SuccessFailureCause", "", "", key)
   end,
   UPBOKLE = function (mapping, params, key)
-    return xdslctl.infoValue("UPBOKLE", "", "", key)
+    local value = tonumber(xdslctl.infoValue("UPBOKLE", "", "", key)) or 0
+    return tostring(ceil(value/10))
+  end,
+  UPBOKLER = function (mapping, params, key)
+    local value = tonumber(xdslctl.infoValue("UPBOKLER", "", "", key)) or 0
+    return tostring(ceil(value/10))
   end,
   US0MASK = function (mapping, params, key)
     return xdslctl.infoValue("US0MASK", "", "", key)
@@ -3296,7 +3311,7 @@ sys_class_xdsl_.get = {
   ShowtimeSRACompletedDs = function (mapping, params, key)
     return xdslctl.stats("sincesync","sraCompleted", "ds", key)
   end,
-  ShowtimeSRACOmpletedUs = function (mapping, params, key)
+  ShowtimeSRACompletedUs = function (mapping, params, key)
     return xdslctl.stats("sincesync","sraCompleted", "us", key)
   end,
   ShowtimeFRAStartedDs = function (mapping, params, key)
@@ -3752,7 +3767,7 @@ sys_class_xdsl_.getall = function(mapping, key)
     values["ShowtimeSRAStartedDs"] = stats["sincesync"]["sraStarted"]["ds"]
     values["ShowtimeSRAStartedUs"] = stats["sincesync"]["sraStarted"]["ds"]
     values["ShowtimeSRACompletedDs"] = stats["sincesync"]["sraCompleted"]["ds"]
-    values["ShowtimeSRACOmpletedUs"] = stats["sincesync"]["sraCompleted"]["us"]
+    values["ShowtimeSRACompletedUs"] = stats["sincesync"]["sraCompleted"]["us"]
     values["ShowtimeFRAStartedDs"] = stats["sincesync"]["fraStarted"]["ds"]
     values["ShowtimeFRAStartedUs"] = stats["sincesync"]["fraStarted"]["us"]
     values["ShowtimeFRACompletedDs"] = stats["sincesync"]["fraCompleted"]["ds"]

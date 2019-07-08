@@ -10,6 +10,8 @@
 --NG-100744 Custo-GUI: ubus call timeout when changing WiFi state and security settings
 --NG-136046 GUI-Wireless- WPS AP PIN code must appear disabled
 
+--Kevdagoat[06-04-19]: Fixed WiFi Signal Strength control
+
 local istainted = string.istainted
 local untaint_mt = require("web.taint").untaint_mt
 local setmetatable = setmetatable
@@ -27,6 +29,7 @@ local content_helper = require("web.content_helper")
 local ajax_helper = require("web.ajax_helper")
 local pairs = pairs
 local match, format, gsub, next = string.match, string.format, string.gsub, next
+local tinsert = table.insert
 local bandsteer_helper = require("bandsteer_helper")
 local isBaseIface = bandsteer_helper.isBaseIface
 local disableBandSteer = bandsteer_helper.disableBandSteer
@@ -348,24 +351,19 @@ else
     wifi_standard = wifi_standard_24GHz
 end
 
-local bandsteer_rssi_threshold = {
-    {"-10", T"10%".." (-10dBm)"},
-    {"-20", T"20%".." (-20dBm)"},
-    {"-30", T"30%".." (-30dBm)"},
-    {"-40", T"40%".." (-40dBm)"},
-    {"-50", T"50%".." (-50dBm)"},
-    {"-60", T"60%".." (-60dBm)"},
-    {"-70", T"70%".." (-70dBm)"},
-    {"-80", T"80%".." (-80dBm)"},
-    {"-90", T"90%".." (-90dBm)"},
-}
+local bandsteer_rssi_threshold = {}
+
+for i=10,90,10 do
+	tinsert(bandsteer_rssi_threshold , {format("-%s",i),format("%s%% (-%sdBm)",i,i)})
+end
+
 -- Choose Wifi power
-local wifipower = {
-    {"-3", T"100%"},
-    {"-2", T"125%"},
-    {"-1", T"160%"},
-    {"0", T"200%"},
-}
+local wifipower = {}
+
+for i=-6,6 do
+	i = i < 0 and i or format("+%s",i)
+	tinsert(wifipower,{tostring(i),format("%s dBm",i)})
+end
 
 local cw_40 = {
     {"20MHz", T"20MHz"},
@@ -658,6 +656,8 @@ local function getParamsAndValidation()
         mapParams.requested_channel_width = pathradio .. "requested_channel_width"
         mapParams.wps_enabled = pathap .. "wps.admin_state"
         mapParams.frame_bursting = pathradio .. "frame_bursting"
+		mapParams.tx_power_adjust = pathradio .. "tx_power_adjust"
+		mapParams.tx_power_overrule_reg = pathradio .. "tx_power_overrule_reg"
   -- Bug fix for NG-12032 GUI wireless enable/disable not working properly
     for k, v in pairs(radios) do
       if v~=curradio then
@@ -722,7 +722,8 @@ local function getParamsAndValidation()
     sgi = gOV(vB),
     cdd = gVIES(cddList),
     stbc = gOV(vB),
-    outputpower = gVIES(wifipower), -- if the parameter is not included, it does not matter, this validation function will never be called
+    tx_power_adjust = gVIES(wifipower),
+	tx_power_overrule_reg = vB,
     channelwidth20 = getValidateChannelWidth(cw_40),
     channelwidth40 = getValidateChannelWidth(cw_40),
     channelwidth80 = getValidateChannelWidth(cw_80),
@@ -817,7 +818,7 @@ if ngx.req.get_method() == "POST" then
   content["wps_device_pin_code"] = ""
 
 -- triggered only on a POST with action set wps_device_pin_code (button next to field should trigger that)
-    if #wls > 1 then
+    if #wls > 0 then
       for _,v in ipairs(wls) do
         if v.iface == curiface then
           v.ssid = content["ssid"]
@@ -871,7 +872,8 @@ end
   end
 
 param = {
-    allowed_channels = pathradio .. "allowed_channels"
+	driver_version = pathradio .. "driver_version",
+    allowed_channels = pathradio .. "allowed_channels",
 }
 content_helper.getExactContent(param)
 allowed_channels = { {"auto", T"Auto"} }
@@ -933,7 +935,7 @@ ngx.print(ui_helper.createHeader(T"Wireless", true, false))   ngx.print('\
 <form class="form-horizontal" method="post" action="');  ngx.print( ngx.var.request_uri ); ngx.print('">\
 ');  
 -- Do not display the navlist on the list if only 1 SSID
-if #wls > 1 then
+if #wls > 0 then
   ngx.print('\
 <div class="span2">\
     <ul class="nav nav-list">\
@@ -1069,6 +1071,7 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
             html[#html + 1] = ui_helper.createSwitch(T"Enabled", "admin_state", content["admin_state"])
         end]]
 		html[#html + 1] = ui_helper.createLabel(T"Radio", labelstate)
+		html[#html + 1] = ui_helper.createLabel(T"Driver Version", param["driver_version"])
         html[#html + 1] = ui_helper.createLabel(T"Frequency band", content["supported_frequency_bands"])
         -- Label that shows the MAC address of the Wifi interface
         html[#html + 1] = ui_helper.createLabel(T"MAC address", content["macaddress"])
@@ -1138,6 +1141,8 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
 
             html[#html + 1] = ui_helper.createInputSelect(T"Channel Width", "channelwidth80", cw_80, content["requested_channel_width"], cw80attributes)
             html[#html + 1] = '</div>'
+			html[#html + 1] = ui_helper.createSwitch(T"Bypass Reg Domain Power Rule", "tx_power_overrule_reg", content["tx_power_overrule_reg"], advanced)
+			html[#html + 1] = ui_helper.createSliderSelect(T"Output Power", "tx_power_adjust", wifipower, content["tx_power_adjust"], advanced)
 
             if isExtRemman ~= "1" and isIntRemman ~= "1" then
                 html[#html + 1] = ui_helper.createSwitch(T"Short Guard Interval", "sgi", content["sgi"], advanced)
@@ -1338,15 +1343,15 @@ end
         if isBaseIface(curiface) then
             html[#html + 1] = ui_helper.createAlertBlock(T"Detecting a Wi-Fi client's capabilities and monitoring its interfaces, Band Steering actively guides the client to the more suitable Wi-Fi band.", bssecclass)
             html[#html + 1] = ui_helper.createSwitch(T"Band Steering Enabled", "band_steer_enabled", tostring(band_steer_enabled), bssecclass)
-            html[#html + 1] = ui_helper.createAlertBlock(T"Band Steering works only if 2.4 GHz and 5 GHz have the same configuration. By enabling the Band Steering, the 2.4 GHz network settings will be propagated on 5GHz settings", bssecclass)
-            html[#html + 1] = ui_helper.createSliderSelect(T"2.4GHz Band Steering Threshold", "rssi_threshold", bandsteer_rssi_threshold, content_rssi["rssi_threshold"], bssecclass)
-            html[#html + 1] = ui_helper.createAlertBlock(T"If a wireless device reports this gateway's 2.4GHz signal strength is above this threshold, the gateway will ask the device to test the 5GHz band . Please see 5GHz section for additional parameter.", bssecclass)
+            html[#html + 1] = ui_helper.createAlertBlock(T"Band Steering works only if 2.4 GHz and 5 GHz have the same configuration. By enabling the Band Steering, the 2.4 GHz network settings will be propagated on 5 GHz settings", bssecclass)
+            html[#html + 1] = ui_helper.createSliderSelect(T"2.4 GHz Band Steering Threshold", "rssi_threshold", bandsteer_rssi_threshold, content_rssi["rssi_threshold"], bssecclass)
+            html[#html + 1] = ui_helper.createAlertBlock(T"If a wireless device reports this gateway's 2.4 GHz signal strength is above this threshold, the gateway will ask the device to test the 5 GHz band . Please see 5 GHz section for additional parameter.", bssecclass)
         else
             html[#html + 1] = ui_helper.createAlertBlock(T"Detecting a Wi-Fi client's capabilities and monitoring its interfaces, Band Steering actively guides the client to the more suitable Wi-Fi band.", ssidclass)
             html[#html + 1] = ui_helper.createLabel(T"Band Steering Enabled", tostring(band_steer_enabled) == "1" and "On" or "Off", ssidclass)
-            html[#html + 1] = ui_helper.createAlertBlock(T"Band Steering works only if 2.4 GHz and 5 GHz have the same configuration. By enabling the Band Steering, the 2.4 GHz network settings will be propagated on 5GHz settings", bssecclass)
-            html[#html + 1] = ui_helper.createSliderSelect(T"5GHz Band Steering Threshold", "rssi_5g_threshold", bandsteer_rssi_threshold, content_rssi["rssi_5g_threshold"], ssidclass)
-            html[#html + 1] = ui_helper.createAlertBlock(T"Please see 2.4GHz section for initial parameter. If a wireless device tests the 5GHz band and reports the 5GHz signal strength is above this threshold, the gateway will direct the device to switch to the 5GHz band.", bssecclass)
+            html[#html + 1] = ui_helper.createAlertBlock(T"Band Steering works only if 2.4 GHz and 5 GHz have the same configuration. By enabling the Band Steering, the 2.4 GHz network settings will be propagated on 5 GHz settings", bssecclass)
+            html[#html + 1] = ui_helper.createSliderSelect(T"5 GHz Band Steering Threshold", "rssi_5g_threshold", bandsteer_rssi_threshold, content_rssi["rssi_5g_threshold"], ssidclass)
+            html[#html + 1] = ui_helper.createAlertBlock(T"Please see 2.4 GHz section for initial parameter. If a wireless device tests the 5 GHz band and reports the 5 GHz signal strength is above this threshold, the gateway will direct the device to switch to the 5 GHz band.", bssecclass)
         end
     end
 end
@@ -1500,7 +1505,7 @@ function get_random_color() {\
     var range = 320;\
     var bittarget40 = 10;\
     var bittarget80 = 16;\
-    var ctx\
+    var ctx;\
   function initializeAnalyzer() {\
     var c=document.getElementById("wrapper");\
     ctx=c.getContext("2d");\

@@ -1,7 +1,5 @@
 local M = {}
 
-local nwCommon = require("transformer.mapper.nwcommon")
-local hex2Decimal = nwCommon.hex2Decimal
 local match, format = string.match, string.format
 
 local dscpMap = {
@@ -20,12 +18,12 @@ function M.mapDSCP(dscp, name)
     end
     return "-1"
   end
-  return dscpMap[dscp] and dscpMap[dscp] or hex2Decimal(dscp)
+  return dscpMap[dscp] and dscpMap[dscp] or tostring(tonumber(dscp, 16))
 end
 
 -- Map the decimal value to corresponding dscp value
 -- @value the deimal value to be mapped
-function mapDecimal(value)
+local function mapDecimal(value)
   local dscp
   for dscpHex, dscpDecimal in pairs(dscpMap) do
     if value == dscpDecimal then

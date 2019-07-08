@@ -324,6 +324,15 @@ return {
         },
     },
     {
+        text="Yahoo Messenger",
+        values= {
+            name='Yahoo Messenger',
+            wanport='5050',
+            lanport='5050',
+            protocol='tcp',
+        },
+    },
+    {
         text="Xbox Live",
         values= {
             name='Xbox Live',
