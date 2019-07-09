@@ -65,24 +65,37 @@ check_aria_dir() {
 }
 
 apply_right_opkg_repo() {
-	if [ -f /etc/opkg.conf_17.3 ]; then
-		local marketing_version="$(uci get -q version.@version[0].marketing_version)"
-		if [ "$marketing_version" ]; then
-			if echo "$marketing_version" | grep -q "17.3" ; then
-				if [ -f /etc/okpg.conf ]; then
-					rm /etc/okpg.conf
-				fi
-				mv /etc/opkg.conf_17.3 /etc/opkg.conf
-				rm /etc/opkg.conf_16.3
-			else
-				if [ -f /etc/okpg.conf ]; then
-					rm /etc/okpg.conf
-				fi
-				mv /etc/opkg.conf_16.3 /etc/opkg.conf
-				rm /etc/opkg.conf_17.3
+	marketing_version="$(uci get -q version.@version[0].marketing_version)"
+	
+	case $marketing_version in 
+	"17.3"*)
+		if [ -f /etc/opkg.conf_17.3 ]; then
+			if [ -f /etc/okpg.conf ]; then
+				rm /etc/okpg.conf
 			fi
+			mv /etc/opkg.conf_17.3 /etc/opkg.conf
+			rm /etc/opkg.conf_16.3
 		fi
-	fi
+		;;
+	"16.3"*)
+		if [ -f /etc/opkg.conf_16.3 ]; then
+			if [ -f /etc/okpg.conf ]; then
+				rm /etc/okpg.conf
+			fi
+			mv /etc/opkg.conf_16.3 /etc/opkg.conf
+			rm /etc/opkg.conf_17.3
+		fi
+		;;
+	*)
+		if [ -f /etc/opkg.conf_17.3 ]; then
+			rm /etc/opkg.conf_17.3
+		fi
+		if [ -f /etc/opkg.conf_16.3 ]; then
+			rm /etc/opkg.conf_16.3
+		fi
+		logger_command "No opkg file supported"
+		;;
+	esac
 }
 
 telstra_support_check() {
