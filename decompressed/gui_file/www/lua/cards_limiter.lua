@@ -34,6 +34,10 @@ local voice_limit_list = {
   ["eco.lp"] = true,
 }
 
+local limit_path = {
+	["/www/info-cards/"] = true,
+}
+
 function M.get_limit_info()
 	local dyntab_helper = require("web.dyntab_helper")
 	local bmh = require("broadbandmode_helper")
@@ -45,12 +49,12 @@ function M.get_limit_info()
 	return {bridgemode=bridgemode_status,voicemode=voicemode_status}
 end
 
-function M.card_limited(info, cardname)
+function M.card_limited(info, cardname, includepath)
   if info.bridgemode or info.voicemode then
 	if info.bridgemode then
-		return not bridge_limit_list[cardname]
+		return not bridge_limit_list[cardname] and not limit_path[includepath]
 	else
-		return not voice_limit_list[cardname]
+		return not voice_limit_list[cardname] and not limit_path[includepath]
 	end
   end
   return false
