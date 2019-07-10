@@ -656,8 +656,6 @@ local function getParamsAndValidation()
         mapParams.requested_channel_width = pathradio .. "requested_channel_width"
         mapParams.wps_enabled = pathap .. "wps.admin_state"
         mapParams.frame_bursting = pathradio .. "frame_bursting"
-		mapParams.tx_power_adjust = pathradio .. "tx_power_adjust"
-		mapParams.tx_power_overrule_reg = pathradio .. "tx_power_overrule_reg"
   -- Bug fix for NG-12032 GUI wireless enable/disable not working properly
     for k, v in pairs(radios) do
       if v~=curradio then
@@ -690,6 +688,8 @@ local function getParamsAndValidation()
       mapParams.sgi = pathradio .. "sgi"
       mapParams.cdd = pathradio .. "cdd"
       mapParams.stbc = pathradio .. "stbc"
+	  mapParams.tx_power_adjust = pathradio .. "tx_power_adjust"
+	  mapParams.tx_power_overrule_reg = pathradio .. "tx_power_overrule_reg"
     end
   end
 
@@ -1141,10 +1141,9 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
 
             html[#html + 1] = ui_helper.createInputSelect(T"Channel Width", "channelwidth80", cw_80, content["requested_channel_width"], cw80attributes)
             html[#html + 1] = '</div>'
-			html[#html + 1] = ui_helper.createSwitch(T"Bypass Reg Domain Power Rule", "tx_power_overrule_reg", content["tx_power_overrule_reg"], advanced)
-			html[#html + 1] = ui_helper.createSliderSelect(T"Output Power", "tx_power_adjust", wifipower, content["tx_power_adjust"], advanced)
-
-            if isExtRemman ~= "1" and isIntRemman ~= "1" then
+			if isExtRemman ~= "1" and isIntRemman ~= "1" then
+				html[#html + 1] = ui_helper.createSwitch(T"Bypass Reg Domain Power Rule", "tx_power_overrule_reg", content["tx_power_overrule_reg"], advanced)
+				html[#html + 1] = ui_helper.createSliderSelect(T"Output Power", "tx_power_adjust", wifipower, content["tx_power_adjust"], advanced)
                 html[#html + 1] = ui_helper.createSwitch(T"Short Guard Interval", "sgi", content["sgi"], advanced)
                 html[#html + 1] = ui_helper.createInputSelect(T"Cyclic-Delay Diversity", "cdd", cddList, content["cdd"], advanced)
                 html[#html + 1] = ui_helper.createSwitch(T"Space Time Block Code", "stbc", content["stbc"], advanced)
