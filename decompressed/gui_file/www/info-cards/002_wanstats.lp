@@ -87,14 +87,16 @@ end
 	basic.span["data-bind"] = nil
 	html[#html + 1] = ui_helper.createLabel(T"Broadband Connection", tabdata.current.description , basic)
 	html[#html + 1] = ui_helper.createLabel(T"Connection Type", mode_data[mode_active].description , basic)
-	basic.span["data-bind"] = "text: wanip"
-	html[#html+1] = ui_helper.createLabel(T"IP address", content["ipaddr"], basic)
-	basic.span["data-bind"] = "text: wangateway"
-	html[#html+1] = ui_helper.createLabel(T"Gateway", content["nexthop"], basic)
-	basic.span["data-bind"] = "text: wandns"
-	html[#html+1] = ui_helper.createLabel(T"DNS servers", content["dns_wan"], basic)
-	basic.span["data-bind"] = "text: wanuptime"
-	html[#html + 1] = ui_helper.createLabel(T"Uptime", content["uptime"],  basic)
+	if mode_active ~= "bridge" then
+		basic.span["data-bind"] = "text: wanip"
+		html[#html+1] = ui_helper.createLabel(T"IP address", content["ipaddr"], basic)
+		basic.span["data-bind"] = "text: wangateway"
+		html[#html+1] = ui_helper.createLabel(T"Gateway", content["nexthop"], basic)
+		basic.span["data-bind"] = "text: wandns"
+		html[#html+1] = ui_helper.createLabel(T"DNS servers", content["dns_wan"], basic)
+		basic.span["data-bind"] = "text: wanuptime"
+		html[#html + 1] = ui_helper.createLabel(T"Uptime", content["uptime"],  basic)
+	end
 	
 	ngx.print(html)
 ngx.print('\

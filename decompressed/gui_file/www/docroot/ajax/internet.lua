@@ -77,12 +77,12 @@ if datatype and datatype== "xdsl" then
 		
 		data.dslam_version_raw = nil
 		
-		if data.status == "Showtime" then
-			data.status = T"Connected"
-		elseif data.status == "" then
-			data.status = T"Disconnected"
+		if data["status"]:match("Showtime") then
+			data["status"] = T"Connected"
+		elseif data["status"] == "" then
+			data["status"] = T"Disconnected"
 		else
-			data.status = T(data.status)
+			data["status"] = T(data.status)
 		end
 	else
 		for index in pairs(data) do
