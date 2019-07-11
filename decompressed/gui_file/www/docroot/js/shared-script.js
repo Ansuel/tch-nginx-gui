@@ -178,7 +178,13 @@ function createAjaxUpdateCard(CardIdRefresh, ajaxLink, IntervalVar, RefreshTime)
 	var arrayLength = ElementBindingList.length;
 
 	function AjaxRefresh() {
-		$.post(ajaxLink + "?auto_update=true", [tch.elementCSRFtoken()], function (data) {
+		var updateLink = "auto_update=true";
+		if ( /[a-z]+=[a-z]+/.test(ajaxLink) ) {
+			updateLink = "&" + updateLink;
+		} else {
+			updateLink = "?" + updateLink;
+		};
+		$.post(ajaxLink + updateLink, [tch.elementCSRFtoken()], function (data) {
 			for (var i = 0; i < arrayLength; i++) {
 				if (data[ElementBindingList[i]] != undefined) {
 					ElementBinding[ElementBindingList[i]](data[ElementBindingList[i]]);
