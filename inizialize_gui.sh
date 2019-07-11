@@ -15,6 +15,7 @@ declare -a modular_dir=(
 	"ledfw_support-specificTG799"
 	"ledfw_support-specificTG800"
 	"ledfw_support-specificDGA"
+	"ledfw_support-specificDGA4131"
 )
 
 if [ "$1" == "dev" ]; then
