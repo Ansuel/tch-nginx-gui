@@ -67,32 +67,34 @@ check_aria_dir() {
 apply_right_opkg_repo() {
 	marketing_version="$(uci get -q version.@version[0].marketing_version)"
 	
+	opkg_file="/etc/opkg.conf"
+	
 	case $marketing_version in 
 	"17.3"*)
-		if [ -f /etc/opkg.conf_17.3 ]; then
-			if [ -f /etc/okpg.conf ]; then
-				rm /etc/okpg.conf
-			fi
-			mv /etc/opkg.conf_17.3 /etc/opkg.conf
-			rm /etc/opkg.conf_16.3
+		if [ -n "$(  grep $opkg_file -e "roleo/public/agtef/1.1.0/brcm63xx-tch" )" ]; then
+			cat << EOF >> $opkg_file
+src/gz chaos_calmer_base https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/base
+src/gz chaos_calmer_packages https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/packages 
+src/gz chaos_calmer_luci https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/luci              
+src/gz chaos_calmer_routing https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/routing    
+src/gz chaos_calmer_telephony https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/telephony
+src/gz chaos_calmer_management https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/management
+EOF
 		fi
 		;;
 	"16.3"*)
-		if [ -f /etc/opkg.conf_16.3 ]; then
-			if [ -f /etc/okpg.conf ]; then
-				rm /etc/okpg.conf
-			fi
-			mv /etc/opkg.conf_16.3 /etc/opkg.conf
-			rm /etc/opkg.conf_17.3
+		if [ -n "$(  grep $opkg_file -e "roleo/public/agtef/brcm63xx-tch" )" ]; then
+			cat << EOF >> $opkg_file
+src/gz chaos_calmer_base https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/base
+src/gz chaos_calmer_packages https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/packages 
+src/gz chaos_calmer_luci https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/luci              
+src/gz chaos_calmer_routing https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/routing    
+src/gz chaos_calmer_telephony https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/telephony
+src/gz chaos_calmer_management https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/management
+EOF
 		fi
 		;;
 	*)
-		if [ -f /etc/opkg.conf_17.3 ]; then
-			rm /etc/opkg.conf_17.3
-		fi
-		if [ -f /etc/opkg.conf_16.3 ]; then
-			rm /etc/opkg.conf_16.3
-		fi
 		logger_command "No opkg file supported"
 		;;
 	esac
