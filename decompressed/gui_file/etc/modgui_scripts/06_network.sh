@@ -499,3 +499,10 @@ logger_command "Checking if ISP is detected..."
 check_isp_and_cwmp
 logger_command "Apply CVE 2019-11477 workaround"
 disable_tcp_Sack
+
+logger_command "Restarting dnsmasq if needed..."
+if [ $restart_dnsmasq -eq 1 ]; then
+	uci commit
+	killall dnsmasq
+	/etc/init.d/dnsmasq restart
+fi

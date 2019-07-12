@@ -58,12 +58,6 @@ if [ -f /root/.sfp_change ]; then
 	ifup wan
 fi
 
-logger_command "Restarting dnsmasq if needed..."
-if [ $restart_dnsmasq -eq 1 ]; then
-	killall dnsmasq
-	/etc/init.d/dnsmasq restart
-fi
-
 check_gui_tmp
 logger_command "Resetting cwmp and watchdog"
 /etc/init.d/watchdog-tch start
