@@ -238,35 +238,47 @@ clean_cups_block_rule() {
 }
 
 cwmp_specific_TIM() {
+
+	cwmp_url="$(uci get cwmpd.cwmpd_config.acs_url)"
+	detected_acs="Undetected"
 	logger_command "TIM ISP detected, finding CWMP server..."
 	new_platform=https://regman-mon.interbusiness.it:10800/acs/
 	new_platform_bck=https://regman-bck.interbusiness.it:10501/acs/
 	unified_platform=https://regman-tl.interbusiness.it:10700/acs/ 
 	mgmt_platform=https://regman-tl.interbusiness.it:10500/acs/
 	if [ "$(curl -s -k $new_platform --max-time 5 )" ]; then
-		uci set cwmpd.cwmpd_config.acs_url=$new_platform
+		detected_acs=$new_platform
 	elif [ "$(curl -s -k $new_platform_bck --max-time 5 )" ]; then
-		uci set cwmpd.cwmpd_config.acs_url=$new_platform_bck
+		detected_acs=$new_platform_bck
 	elif [ "$(curl -s -k $unified_platform --max-time 5 )" ]; then
-		uci set cwmpd.cwmpd_config.acs_url=$unified_platform
+		detected_acs=$unified_platform
 	elif [ "$(curl -s -k $mgmt_platform --max-time 5 )" ]; then
-		uci set cwmpd.cwmpd_config.acs_url=$mgmt_platform
+		detected_acs=$mgmt_platform
 	fi
 	logger_command "CWMP Server detected: $(uci get cwmpd.cwmpd_config.acs_url)"
-	if [ "$(uci get -q cwmpd.cwmpd_config.interface)" != "wan" ]; then
-		uci set cwmpd.cwmpd_config.interface='wan'
-	fi
-	uci commit cwmpd
-	if [ "$(uci get -q cwmpd.cwmpd_config.acs_url)" == "None" ]; then
-		if [ "$(pgrep "cwmpd")" ]; then
-			/etc/init.d/cwmpd stop
+	
+	[ -z "$cwmp_url" ] && cwmp_url="None"
+	
+	if [ "$cwmp_url" != "None" ] && [ "$cwmp_url" != "$detected_acs" ]; then
+		
+		#Make the device tink is first power on by removing cwmpd db
+		[ -f /etc/cwmpd.db ] && rm /etc/cwmpd.db
+		uci set cwmpd.cwmpd_config.acs_url="$detected_acs"
+		if [ "$(uci get -q cwmpd.cwmpd_config.interface)" != "wan" ]; then
+			uci set cwmpd.cwmpd_config.interface='wan'
 		fi
-	else
-		/etc/init.d/cwmpd enable
-		if [ ! "$(pgrep "cwmpd")" ]; then
-			/etc/init.d/cwmpd start
+		uci commit cwmpd
+		if [ "$(uci get -q cwmpd.cwmpd_config.acs_url)" == "None" ]; then
+			if [ "$(pgrep "cwmpd")" ]; then
+				/etc/init.d/cwmpd stop
+			fi
 		else
-			/etc/init.d/cwmpd restart
+			/etc/init.d/cwmpd enable
+			if [ ! "$(pgrep "cwmpd")" ]; then
+				/etc/init.d/cwmpd start
+			else
+				/etc/init.d/cwmpd restart
+			fi
 		fi
 	fi
 }
@@ -387,17 +399,21 @@ firewall_specific_sip_rules_FASTWEB() {
 
 cwmp_specific_FASTWEB() {
 	logger_command "FASTWEB ISP detected, finding CWMP server..."
-	if [ ! -z "$(uci get -q cwmpd.cwmpd_config.acs_url)" ]; then
-		#Fastweb requires device registred in CWMP to make voip work in MAN voip registar
-		#Fastweb will autoconfigure acs username and password with empty acs_url
-		uci set cwmpd.cwmpd_config.acs_url=""
-		firewall_specific_sip_rules_FASTWEB
-		uci commit cwmpd
-		/etc/init.d/cwmpd enable
-		if [ ! "$(pgrep "cwmpd")" ]; then
-			/etc/init.d/cwmpd start
-		else
-			/etc/init.d/cwmpd restart
+	if [ -n "$(uci get -q cwmpd.cwmpd_config.acs_url)" ]; then
+		if [ "$(uci get -q cwmpd.cwmpd_config.acs_url)" != "http://59.0.121.191:8080/ACS-server/ACS" ]; then
+			#Fastweb requires device registred in CWMP to make voip work in MAN voip registar
+			#Fastweb will autoconfigure acs username and password with empty acs_url
+			#Make the device tink is first power on by removing cwmpd db
+			[ -f /etc/cwmpd.db ] && rm /etc/cwmpd.db
+			uci set cwmpd.cwmpd_config.acs_url=""
+			firewall_specific_sip_rules_FASTWEB
+			uci commit cwmpd
+			/etc/init.d/cwmpd enable
+			if [ ! "$(pgrep "cwmpd")" ]; then
+				/etc/init.d/cwmpd start
+			else
+				/etc/init.d/cwmpd restart
+			fi
 		fi
 	fi
 }
