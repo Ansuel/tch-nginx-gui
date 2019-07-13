@@ -15,10 +15,8 @@ if info_service_led_timeout == nil then
     info_service_led_timeout = 2000
 end
 
-local provisioning_status, err = cursor:get(config, 'broadband', 'provisioning_status')
-if provisioning_status == nil then
-    provisioning_status = "initial"
-end
+local provisioning_status = "completed"
+
 cursor:unload(config)
 
 local wan_status = "initial"

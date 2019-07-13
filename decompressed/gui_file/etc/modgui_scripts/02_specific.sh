@@ -67,7 +67,7 @@ ledfw_extract() {
 		if [ "$stateMachine_tar_md5" ] && [ "$stateMachine_tar_md5" != "$stateMachine_md5" ]; then
 			logger_command "Extracting ledfw_support-specific$1.bz2 ..."
 			/usr/share/transformer/scripts/restart_leds.sh
-			bzcat "/tmp/ledfw_support-specific$1.tar.bz2" | tar -C / -xf - etc/ledfw/stateMachines.lua
+			bzcat "/tmp/ledfw_support-specific$1.tar.bz2" | tar -C / -xf -
 		fi
 	fi
 }
@@ -139,18 +139,6 @@ ledfw_rework_DGA() {
     ledfw_extract "DGA"
 }
 
-ledfw_rework_DGA4131() {
-
-	ubus_file="usr/lib/lua/ledframework/ubus.lua"
-	
-	#Restore original ubus file
-	if [ "$(md5sum /rom/$ubus_file)" != "$(md5sum /$ubus_file)" ]; then
-		cp /rom/$ubus_file /$ubus_file
-	fi
-
-	ledfw_extract "DGA4131"
-}
-
 clean_specific_file() {
 	rm /tmp/*specific*.tar.bz2
 }
@@ -175,7 +163,7 @@ logger_command "Applying specific model fixes..."
 [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG800*}" ] && apply_specific_TG800_package
 [ -z "${device_type##*DGA4130*}" ] && ledfw_rework_DGA
 [ -z "${device_type##*DGA4132*}" ] && ledfw_rework_DGA
-[ -z "${device_type##*DGA4131*}" ] && ledfw_rework_DGA4131
+[ -z "${device_type##*DGA4131*}" ] && ledfw_extract "DGA4131"
 [ -z "${device_type##*TG788*}" ] && ledfw_rework_TG788
 [ -z "${device_type##*TG789*}" ] && ledfw_extract "TG789"
 [ -z "${device_type##*TG799*}" ] && ledfw_rework_TG799
