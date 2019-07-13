@@ -192,10 +192,12 @@ local function onAdd(success, content, onModify)
   local wifitod_id = "wifitod_"..index
   
   if onModify then
-	proxy.del(tod_wifitod_path .. "@"..wifitod_id..".")
-	for _,v in pairs(proxy.getPN("uci.tod.ap.",true)) do
-		proxy.del(v.path)
+	local ap_path
+	for _,v in pairs(proxy.getPN(tod_wifitod_path .. "@"..wifitod_id..".ap.",true)) do
+		ap_path = proxy.get(v.path.."value")
+		proxy.del(tod_ap_path..ap_path[1].value)
 	end
+	proxy.del(tod_wifitod_path .. "@"..wifitod_id..".")
   end
   
   if not onModify then
