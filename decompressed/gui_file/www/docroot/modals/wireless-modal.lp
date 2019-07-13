@@ -772,7 +772,7 @@ local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
 
 if ngx.req.get_method() == "POST" and ngx.req.get_post_args().action == "bs_check" then
     local postargs = ngx.req.get_post_args()
-	if content["ssid"] ~= postargs.ssidName or content["security"] ~= postargs.security or content["wep_key"] ~= postargs.wep_key or content["wpa_psk"] ~= postargs.wpa_psk then
+	if content["ssid"] ~= postargs.ssidName or content["security"] ~= postargs.security or content["wpa_psk"] ~= postargs.wpa_psk then
 	session:store("bs_check_action", "TRUE")
     proxy.set("uci.wireless.wifi-ap.@ap0.bandsteer_id", "off")
 	proxy.set("uci.wireless.wifi-ap.@ap1.bandsteer_id", "off")
@@ -1883,9 +1883,6 @@ $("#save-config").click(function(){\
 	params.push({\
 	name : "ssidName",\
 	value : $("#ssid").val()\
-	},{\
-	name : "wep_key",\
-	value : $("#wep_key").val()\
 	},{\
 	name : "wpa_psk",\
 	value : $("#wpa_psk").val()\
