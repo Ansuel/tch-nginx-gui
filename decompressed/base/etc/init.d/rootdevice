@@ -27,8 +27,8 @@
 START=94
 EXTRA_COMMANDS="force debug"
 EXTRA_HELP="\
-		force   Force root process even when root flag is already set
-		debug   force command with debug log
+        force   Force root process even when root flag is already set
+        debug   force command with debug log
 "
 #Gui version is now autocompleted base on latest dev, this variable will be replaced by the automatic script
 version_gui=TO_AUTO_COMPLETE
@@ -38,26 +38,24 @@ latest_version_on_TIM_cwmp="2.0.0"
 logo_project() {
 cat << EOF > /dev/console
 
- █████╗ ███╗   ██╗███████╗██╗   ██╗███████╗██╗	 
-██╔══██╗████╗  ██║██╔════╝██║   ██║██╔════╝██║	 
-███████║██╔██╗ ██║███████╗██║   ██║█████╗  ██║	 
-██╔══██║██║╚██╗██║╚════██║██║   ██║██╔══╝  ██║	 
+ █████╗ ███╗   ██╗███████╗██╗   ██╗███████╗██╗     
+██╔══██╗████╗  ██║██╔════╝██║   ██║██╔════╝██║     
+███████║██╔██╗ ██║███████╗██║   ██║█████╗  ██║     
+██╔══██║██║╚██╗██║╚════██║██║   ██║██╔══╝  ██║     
 ██║  ██║██║ ╚████║███████║╚██████╔╝███████╗███████╗
 ╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝ ╚═════╝ ╚══════╝╚══════╝
-(Modified Gui RootScript)				  (Christo)
+(Modified Gui RootScript)                  (Christo)
 
 EOF
 
 logger << EOF
-
-									 _ 
-	 /\  (Modified Gui RootScript)  | |
-	/  \	_ __   ___  _   _   ___ | |
-   / /\ \  | '_ \ / __|| | | | / _ \| |
-  / ____ \ | | | |\__ \| |_| ||  __/| |
- /_/	\_\|_| |_||___/ \__,_| \___||_|
-									   
-							 (Christo) 
+                                    _ 
+    /\  (Modified Gui RootScript)  | |
+   /  \    _ __   ___  _   _   ___ | |
+  / /\ \  | '_ \ / __|| | | | / _ \| |
+ / ____ \ | | | |\__ \| |_| ||  __/| |
+/_/    \_\|_| |_||___/ \__,_| \___||_|
+                            (Christo) 
 EOF
 }
 
