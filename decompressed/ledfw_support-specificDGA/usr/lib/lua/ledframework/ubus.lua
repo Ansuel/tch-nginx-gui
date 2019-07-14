@@ -1,11 +1,8 @@
 local ubus, uloop = require('ubus'), require('uloop')
 local netlink = require("tch.netlink")
 local format = string.format
-local syslog = require("syslog")
 
 local M = {}
-
-syslog.openlog("ledfw", syslog.options.LOG_PID, syslog.facilities.LOG_DAEMON)
 
 function M.start(cb)
     uloop.init()
