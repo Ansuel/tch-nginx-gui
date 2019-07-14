@@ -32,7 +32,8 @@ local uniqueKey = post_helper.getRandomKey()
 
 local ap_status_map = setmetatable({
   ["0"] = T"Off",
-  ["1"] = T"On"
+  ["1"] = T"On",
+  ["-1"] = T"Error. Reset the Rule!"
 }, untaint_mt)
 
 local ap_list = { }
@@ -193,11 +194,20 @@ local function onAdd(success, content, onModify)
   
   if onModify then
 	local ap_path
-	for _,v in pairs(proxy.getPN(tod_wifitod_path .. "@"..wifitod_id..".ap.",true)) do
+	for _,v in pairs(proxy.getPN(tod_wifitod_path.."@"..wifitod_id..".ap.",true)) do
 		ap_path = proxy.get(v.path.."value")
 		proxy.del(tod_ap_path..ap_path[1].value)
 	end
+	
+	
+	local tod_action_activeTimers = format("%s@action%s.activedaytime.",tod_action_path,index)
+	for _,v in pairs(proxy.getPN(tod_action_activeTimers,true)) do
+		proxy.del(v.path)
+	end
+	
+	
 	proxy.del(tod_wifitod_path .. "@"..wifitod_id..".")
+	
   end
   
   if not onModify then
@@ -351,12 +361,13 @@ for i, v in ipairs(tod_data) do
 	local wifi_list, wifi_selected = getApSelected(index)
 	local days, start_time = timer_list[i].start_time:match("^(.-):(.+)$")
 	
+	local ap_state = "-1"
+	local ap_state_get
+	
 	if wifi_selected[1] then
-		local ap_state = proxy.get(format("%s@%s_%s.state",tod_ap_path , wifi_selected[1],index))
-		if ap_state then
-			ap_state = ap_state[1].value
-		else
-			ap_state = "Error"
+		ap_state_get = proxy.get(format("%s@%s_%s.state",tod_ap_path , wifi_selected[1],index))
+		if ap_state_get then
+			ap_state = ap_state_get[1].value
 		end
 	end
 	
