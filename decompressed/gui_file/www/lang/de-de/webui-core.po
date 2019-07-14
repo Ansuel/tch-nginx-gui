@@ -4698,3 +4698,6 @@ msgstr ""
 
 msgid "Error. Reset the Rule!"
 msgstr ""
+
+msgid "Ambient LED"
+msgstr ""

@@ -7,18 +7,32 @@ local ui_helper = require("web.ui_helper")
 local proxy = require("datamodel")
 local content_helper = require("web.content_helper")
 
+local prod_friendly_name = proxy.get("uci.env.var.prod_friendly_name")
+
 local content = {
-	eco_led = "uci.ledfw.status_led.enable",
 	cpuspeed = "uci.power.cpu.cpuspeed",
 	eee = "uci.power.ethernet.eee",
 }
+if prod_friendly_name[1].value:match("DGA4131") then
+	content.ledfw_ambient_pattern = "uci.ledfw.ambient.pattern"
+else
+	content.eco_led = "uci.ledfw.status_led.enable"
+end
 
 content_helper.getExactContent(content)
 
-if content.eco_led == "1" then
-	content.eco_led_text = T"Eco LED enabled"
+if prod_friendly_name[1].value:match("DGA4131") then
+	if content.ledfw_ambient_pattern == "active" then
+		content.eco_led_text = T"Ambient LED".." ".."enabled"
+	else
+		content.eco_led_text = T"Ambient LED".." ".."disabled"
+	end
 else
-	content.eco_led_text = T"Eco LED disabled"
+	if content.eco_led == "1" then
+		content.eco_led_text = T"Eco LED enabled"
+	else
+		content.eco_led_text = T"Eco LED disabled"
+	end
 end
 
 if content.cpuspeed == "256" then

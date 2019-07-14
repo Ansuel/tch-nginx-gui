@@ -3053,7 +3053,7 @@ msgid "duplicate value"
 msgstr "valore duplicato"
 
 msgid "enabled"
-msgstr "Abilitato"
+msgstr "abilitato"
 
 msgid "error"
 msgstr "errore"
@@ -4694,4 +4694,7 @@ msgid "Driver Version"
 msgstr "Versione driver"
 
 msgid "Error. Reset the Rule!"
-msgstr ""
+msgstr "Errore. Reimposta la regola!"
+
+msgid "Ambient LED"
+msgstr "LED Ambientale"

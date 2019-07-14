@@ -12,19 +12,13 @@ local content_helper = require("web.content_helper")
 local prod_friendly_name = proxy.get("uci.env.var.prod_friendly_name")
 local vB = post_helper.validateBoolean
 
-
 local mapValid = {
     eee = vB,
 	autogreeen = vB,
 	ethapd = vB,
 	wait = vB,
 	cpuspeed = post_helper.validateNonEmptyString,
-	eco_led = vB,
-	eco_led_timeout = post_helper.validatePositiveNum,
-    ledfw_internet = vB,
-    ledfw_voip = vB,
-    ledfw_iptv = vB,
-    ledfw_wifinsc = vB
+	eco_led_timeout = post_helper.validatePositiveNum
 }
 
 local mapParams = {
@@ -33,15 +27,33 @@ local mapParams = {
 	ethapd = "uci.power.ethernet.ethapd",
 	wait = "uci.power.cpu.wait",
 	cpuspeed = "uci.power.cpu.cpuspeed",
-	eco_led = "uci.ledfw.status_led.enable",
-	eco_led_timeout = "uci.ledfw.timeout.ms",
-    ledfw_internet = "uci.ledfw.internet.check",
-    ledfw_voip = "uci.ledfw.voip.check",
-    ledfw_iptv = "uci.ledfw.iptv.check",
-    ledfw_wifinsc = "uci.ledfw.wifi.nsc_on",
+	eco_led_timeout = "uci.ledfw.timeout.ms"
+
 }
 
+if prod_friendly_name[1].value:match("DGA4131") then
+	mapValid.ledfw_ambient_pattern = post_helper.validateNonEmptyString
+	mapParams.ledfw_ambient_pattern = "uci.ledfw.ambient.pattern"
+else
+	mapValid.eco_led = vB
+	mapValid.ledfw_internet = vB
+	mapValid.ledfw_voip = vB
+	mapValid.ledfw_iptv = vB
+	mapValid.ledfw_wifinsc = vB
+
+	mapParams.eco_led = "uci.ledfw.status_led.enable"
+	mapParams.ledfw_internet = "uci.ledfw.internet.check"
+	mapParams.ledfw_voip = "uci.ledfw.voip.check"
+	mapParams.ledfw_iptv = "uci.ledfw.iptv.check"
+	mapParams.edfw_wifinsc = "uci.ledfw.wifi.nsc_on"
+end
+
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
+
+local ambient_step = {
+	{'active', T'Enabled'},
+	{'to-inactive', T'Disabled'}
+}
 
 local cpu_step = {
 	{'256', 'auto'},
@@ -92,13 +104,18 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 			html[#html + 1] = ui_helper.createAlertBlock(T"Turn the WiFi LEDs on if at least one client is connected to the corresponding radio.", info_box)
 			html[#html + 1] = ui_helper.createSwitch(T"WiFi NSC", "ledfw_wifinsc", content["ledfw_wifinsc"])
 		end
-	    html[#html + 1] = ui_helper.createAlertBlock(T"Turn off all LEDs except “Info” if all services are up and running. Press the “Info” / “WiFi” button to show the current LEDs status.", info_box)
-	    html[#html + 1] = ui_helper.createSwitch(T"Eco Led", "eco_led", content["eco_led"])
-	    html[#html + 1] = ui_helper.createInputText(T"Timeout", "eco_led_timeout", content["eco_led_timeout"], basic , helpmsg["eco_led_timeout"] )
-        html[#html + 1] = ui_helper.createAlertBlock(T"Select the services to check on before turning the “Info” LED green and turning the services LEDs off (if ECO LED has been enabled).", info_box)
-        html[#html + 1] = ui_helper.createSwitch(T"VoIP", "ledfw_voip", content["ledfw_voip"])
-        html[#html + 1] = ui_helper.createSwitch(T"IPTV", "ledfw_iptv", content["ledfw_iptv"])
-        html[#html + 1] = ui_helper.createSwitch(T"Internet", "ledfw_internet", content["ledfw_internet"])
+		if prod_friendly_name[1].value:match("DGA4131") then
+			html[#html + 1] = ui_helper.createInputSelect(T"Ambient LED", "ledfw_ambient_pattern", ambient_step , content["ledfw_ambient_pattern"])
+			html[#html + 1] = ui_helper.createInputText(T"Timeout", "eco_led_timeout", content["eco_led_timeout"], basic , helpmsg["eco_led_timeout"] )
+		else
+			html[#html + 1] = ui_helper.createAlertBlock(T"Turn off all LEDs except “Info” if all services are up and running. Press the “Info” / “WiFi” button to show the current LEDs status.", info_box)
+			html[#html + 1] = ui_helper.createSwitch(T"Eco Led", "eco_led", content["eco_led"])
+			html[#html + 1] = ui_helper.createInputText(T"Timeout", "eco_led_timeout", content["eco_led_timeout"], basic , helpmsg["eco_led_timeout"] )
+			html[#html + 1] = ui_helper.createAlertBlock(T"Select the services to check on before turning the “Info” LED green and turning the services LEDs off (if ECO LED has been enabled).", info_box)
+			html[#html + 1] = ui_helper.createSwitch(T"VoIP", "ledfw_voip", content["ledfw_voip"])
+			html[#html + 1] = ui_helper.createSwitch(T"IPTV", "ledfw_iptv", content["ledfw_iptv"])
+			html[#html + 1] = ui_helper.createSwitch(T"Internet", "ledfw_internet", content["ledfw_internet"])
+		end
         ngx.print(html)
 
          ngx.print('\
