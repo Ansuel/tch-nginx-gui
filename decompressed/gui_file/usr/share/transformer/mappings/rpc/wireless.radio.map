@@ -46,7 +46,7 @@ local wireless_radio_ = {
 	        type = "string",
         },
 		country = {
-	        access = "readOnly",
+	        access = "readWrite",
 	        type = "string",
         },
 		allowed_channels = {
