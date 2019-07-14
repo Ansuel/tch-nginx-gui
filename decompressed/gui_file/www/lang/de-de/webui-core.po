@@ -4701,3 +4701,15 @@ msgstr ""
 
 msgid "Ambient LED"
 msgstr ""
+
+msgid "Single Rx Chain"
+msgstr ""
+
+msgid "Country"
+msgstr ""
+
+msgid "Fast Radio Toggle"
+msgstr ""
+
+msgid "Force Radio Down"
+msgstr ""

@@ -4698,3 +4698,15 @@ msgstr "Errore. Reimposta la regola!"
 
 msgid "Ambient LED"
 msgstr "LED Ambientale"
+
+msgid "Single Rx Chain"
+msgstr ""
+
+msgid "Country"
+msgstr ""
+
+msgid "Fast Radio Toggle"
+msgstr ""
+
+msgid "Force Radio Down"
+msgstr ""
