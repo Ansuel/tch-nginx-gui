@@ -4695,3 +4695,6 @@ msgstr ""
 
 msgid "Driver Version"
 msgstr ""
+
+msgid "Error. Reset the Rule!"
+msgstr ""

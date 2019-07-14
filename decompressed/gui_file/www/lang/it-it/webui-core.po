@@ -4692,3 +4692,6 @@ msgstr "Priorità"
 
 msgid "Driver Version"
 msgstr "Versione driver"
+
+msgid "Error. Reset the Rule!"
+msgstr ""
