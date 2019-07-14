@@ -351,10 +351,13 @@ for i, v in ipairs(tod_data) do
 	local wifi_list, wifi_selected = getApSelected(index)
 	local days, start_time = timer_list[i].start_time:match("^(.-):(.+)$")
 	
-	local ap_state = "0"
-	
-	if ap_list[i] then
-		ap_state = ap_list[i].state
+	if wifi_selected[1] then
+		local ap_state = proxy.get(format("%s@%s_%s.state",tod_ap_path , wifi_selected[1],index))
+		if ap_state then
+			ap_state = ap_state[1].value
+		else
+			ap_state = "Error"
+		end
 	end
 	
 	v[1] = v[1] -- status
