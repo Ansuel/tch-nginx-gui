@@ -169,6 +169,27 @@ logger_command "Applying specific model fixes..."
 [ -z "${device_type##*TG799*}" ] && ledfw_rework_TG799
 [ -z "${device_type##*TG800*}" ] && ledfw_rework_TG800
 [ -z "${device_type##*DGA413*}" ] && wifi_fix_24g
+
+
+	#Fix led issues
+	if [ -z "${device_type##*DGA4131*}" ] ; then
+        if [ ! "$(uci get -q ledfw.ambient.enable)" ] ; then
+            uci set ledfw.ambient=led
+            uci set ledfw.ambient.enable='1'
+            uci commit ledfw
+        fi
+	else
+        if [ ! "$(uci get -q ledfw.status_led.enable)" ] ; then
+            uci set ledfw.status_led=status_led
+            uci set ledfw.status_led.enable='0'
+            uci commit ledfw
+        fi
+        if [ ! "$(uci get -q ledfw.wifi.nsc_on)" ] ; then
+            uci set ledfw.wifi=service
+            uci set ledfw.wifi.nsc_on='1'
+            uci commit ledfw
+        fi
+	fi
 	
 if [ -f /tmp/custom-ripdrv-specificDGA.tar.bz2 ]; then
 	clean_specific_file

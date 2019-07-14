@@ -483,16 +483,6 @@ fcctlsettings_daemon() {
 }
 
 led_integration() {
-	#Fix led issues
-	if [ ! "$(uci get -q ledfw.status_led.enable)" ] ; then
-		uci set ledfw.status_led=status_led
-		uci set ledfw.status_led.enable='0'
-	fi
-	if [ ! "$(uci get -q ledfw.wifi.nsc_on)" ] ; then
-		uci set ledfw.wifi=service
-		uci set ledfw.wifi.nsc_on='1'
-	fi
-
 	#Restart statusledeventing if old version
 	if [ -f /tmp/status-led-eventing.lua_new ]; then
 		ledeventing_new_md5=$(< /tmp/status-led-eventing.md5sum awk '{ print $1 }')
