@@ -191,23 +191,25 @@ local function onAdd(success, content, onModify)
   end
   
   local wifitod_id = "wifitod_"..index
+  local tod_wifi_mode
+  
+  content.mode = content.mode == "on" and "1" or "0"
   
   if onModify then
 	local ap_path
 	for _,v in pairs(proxy.getPN(tod_wifitod_path.."@"..wifitod_id..".ap.",true)) do
 		ap_path = proxy.get(v.path.."value")
-		proxy.del(tod_ap_path..ap_path[1].value)
+		tod_wifi_mode = proxy.get(tod_ap_path.."@"..ap_path[1].value..".state")
+		proxy.del(tod_ap_path.."@"..ap_path[1].value)
 	end
 	
-	
-	local tod_action_activeTimers = format("%s@action%s.activedaytime.",tod_action_path,index)
-	for _,v in pairs(proxy.getPN(tod_action_activeTimers,true)) do
-		proxy.del(v.path)
+	if tod_wifi_mode and content.mode ~= tod_wifi_mode[1].value then
+		local tod_action_activeTimers = format("%s@action%s.activedaytime.",tod_action_path,index)
+		for _,v in pairs(proxy.getPN(tod_action_activeTimers,true)) do
+			proxy.del(v.path)
+		end
 	end
-	
-	
 	proxy.del(tod_wifitod_path .. "@"..wifitod_id..".")
-	
   end
   
   if not onModify then
@@ -241,7 +243,7 @@ local function onAdd(success, content, onModify)
   for _ , ap in pairs(content.ap) do
 	if not ( ap == "" ) then
 		setObject[format("%s@%s.ap.@%s.value", tod_wifitod_path, wifitod_id, count)] = ap.."_"..index
-		setObject[format("%s@%s_%s.state", tod_ap_path, ap, index)] = content.mode == "on" and "1" or "0"
+		setObject[format("%s@%s_%s.state", tod_ap_path, ap, index)] = content.mode
 		setObject[format("%s@%s_%s.ap", tod_ap_path, ap, index)] = ap
 		count = count+1
 	end
@@ -278,10 +280,6 @@ local function onDelete(success)
   
   for _ , obj in pairs(delObject) do
 	ret = proxy.del(obj) 
-	
-	if not ret then
-		return nil
-	end
   end
   
   return ret
