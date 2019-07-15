@@ -1174,7 +1174,7 @@ if isguest ~= "1" then
 	html = {}
 	
 	
-	html[#html + 1] = "<legend>"
+	html[#html + 1] = '<legend class="advanced hide">'
     html[#html + 1] = T"Eco Settings"
     html[#html + 1] = "</legend>"
 
