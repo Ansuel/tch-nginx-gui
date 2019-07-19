@@ -178,7 +178,7 @@ else
 	setmetatable(ipv6_light_map, untaint_mt)
 	
 	local status_light
-	local attributes = { light = { } ,span = { class = "span4" } }
+	local attributes = { light = { } ,span = { } }
 	
 	if content_uci.wan_mode == "pppoe" then
 		local ppp_state_map = {
