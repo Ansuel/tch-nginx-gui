@@ -8,7 +8,7 @@ local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
 local post_helper = require("web.post_helper")
 
-local attributes = { light = {}, span = { class = "span4" } }
+local attributes = { light = {}, span = {} }
 local table = table
 local format = string.format
 local content_uci = {

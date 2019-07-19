@@ -7,7 +7,7 @@ local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
 local format = string.format
 
-local attributes = { light = { } ,span = { class = "span4" } }
+local attributes = { light = { } ,span = {} }
 
 -- Non-configurable data
 local content_rpc = {

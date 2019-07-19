@@ -8,7 +8,7 @@ gettext.textdomain('webui-printersharing')
 local proxy = require("datamodel")
 local match = string.match
 local ui_helper = require("web.ui_helper")
-local attributes = { span = { class = "span4" } }
+local attributes = {  }
 local content_helper = require("web.content_helper")
 local session = ngx.ctx.session
 local modalPath = nil
