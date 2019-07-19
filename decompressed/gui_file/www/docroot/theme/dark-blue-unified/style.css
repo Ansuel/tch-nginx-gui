@@ -516,9 +516,13 @@
      z-index: unset;
 }
  @media only screen and (max-width: 50rem) {
-     #footer {
+    body > #footer {
          display: none;
          z-index: 1051;
+    }
+    .copyright {
+      margin-left: 0px;
+      margin-right: 0px;
     }
      #cardrow {
          display: none;
