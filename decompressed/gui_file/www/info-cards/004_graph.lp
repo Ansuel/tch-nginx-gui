@@ -42,7 +42,7 @@ if interface and ( wan == "1" ) then
 	<fieldset>');
 	
 	local html = {}
-	html[#html + 1] = '<div id="canvas_container" style="height:400px;margin-right:20px;"><canvas id="WANChart"></canvas>'
+	html[#html + 1] = '<div id="canvas_container" style="height:400px;margin-right:20px;"><canvas id="InfoWANChart"></canvas>'
 	html[#html + 1] = '<div style="float:right;">' .. T"Polling every 10 seconds" .. '</div>'
 	html[#html + 1] = '</div>'
 	html[#html + 1] = '<div id="rx_traffic_complete" class="hide" data-bind="text: rx_traffic_complete">' .. rx_traffic .. '</div>'
@@ -97,11 +97,11 @@ var TrafficChartOption = {\
 						return;}}},\
 		spanGaps:true,\
 		legend: {display: false},};\
-var wan_ctx = document.getElementById("WANChart").getContext("2d");\
+var wan_ctx = document.getElementById("InfoWANChart").getContext("2d");\
 var wanRxdatasets = [];\
 var wanTxdatasets = [];\
 var timelabel = [];\
-var WANChart = new Chart(wan_ctx, {\
+var InfoWANChart = new Chart(wan_ctx, {\
     type: "line",\
     data: {labels: timelabel,\
 	"datasets":[{"data":wanRxdatasets,\
@@ -150,7 +150,7 @@ $(document).ready(function () {\
 						wanRxdatasets.shift();\
 						timelabel.shift();\
 					}\
-					WANChart.update();\
+					InfoWANChart.update();\
 			}, "json");\
 		};\
 	};\

@@ -12,7 +12,7 @@ local dyntab_helper = require("web.dyntab_helper")
 local bmh = require("broadbandmode_helper")
 local tabdata = dyntab_helper.process(bmh)
 
-local attributes = { light = { } ,span = { class = "span4" } }
+local attributes = { light = {}, span = {} }
 
 local post_helper = require("web.post_helper")
 local content_helper = require("web.content_helper")

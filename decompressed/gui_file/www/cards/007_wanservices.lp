@@ -10,20 +10,17 @@ local ui_helper = require("web.ui_helper")
 local content_helper = require("web.content_helper")
 local dynDns_attributes = {
 	light = { id = "DDNS_Status_Led" },
-	span = { class = "span4",
-	id = "DDNS_Status"}
+	span = { id = "DDNS_Status"}
 }
 
 local dmz_attributes = {
 	light = { id = "DMZ_Status_Led" },
-	span = { class = "span4",
-	id = "DMZ_Status"}
+	span = { id = "DMZ_Status"}
 }
 
 local upnp_attributes = {
 	light = { id = "UPNP_Status_Led" },
-	span = { class = "span4",
-	id = "UPNP_Status"}
+	span = { id = "UPNP_Status"}
 }
 
 -- WAN services data
