@@ -4710,3 +4710,6 @@ msgstr ""
 
 msgid "Force Radio Down"
 msgstr ""
+
+msgid "Dark Blue Unified UI"
+msgstr ""
