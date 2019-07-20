@@ -470,7 +470,7 @@
      color: #ffffff;
      text-decoration: none;
 }
- .nav-tabs > li > a {
+ .nav-tabs > li > a, .nav-list>li>a {
      color: #263238;
 }
  a:hover, a:focus {
