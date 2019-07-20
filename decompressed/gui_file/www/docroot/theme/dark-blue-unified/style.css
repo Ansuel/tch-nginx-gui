@@ -179,6 +179,9 @@
      z-index: 1;
      left: 0;
 }
+#webui_language {
+    height: 34px;
+}
  .header-button {
      position: fixed;
      height: 65px;
@@ -326,7 +329,7 @@
      background-image: unset;
      border: unset;
 }
- .btn-primary, .smallcard .header, .smallcard .header .settings {
+ .btn-primary, .smallcard .header, .smallcard .header .settings, .btn-large {
      font-size: 13px;
      background-image: unset;
      border: unset;
@@ -374,10 +377,12 @@
  .btn:hover, .btn:focus, .btn:active, .btn.active, .btn.disabled, .btn[disabled] {
      color: #48848F;
      background-color: #e6e6e6;
+     border: 0px;
 }
  .btn:hover:hover, .btn:hover:focus, .btn:hover:active, .btn:hover.active, .btn:hover.disabled, .btn:hover[disabled] {
      color: #ffffff;
      background-color: #607d8b;
+     border: 0px;
 }
  .btn-group.open .btn.dropdown-toggle {
      background-color: #607d8b;
@@ -407,6 +412,7 @@
  .button:hover:hover, .button:hover:focus, .button:hover:active, .button:hover.active, .button:hover.disabled, .button:hover[disabled] {
      color: #ffffff;
      background-color: #607d8b;
+     border: 0px;
 }
  .button:hover {
      text-shadow: 0 -1px 0px rgba(0, 0, 0, 0.2);
@@ -470,7 +476,7 @@
      color: #ffffff;
      text-decoration: none;
 }
- .nav-tabs > li > a {
+ .nav-tabs > li > a, .nav-list>li>a {
      color: #263238;
 }
  a:hover, a:focus {
