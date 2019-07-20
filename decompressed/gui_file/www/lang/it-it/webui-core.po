@@ -4694,22 +4694,22 @@ msgid "Driver Version"
 msgstr "Versione driver"
 
 msgid "Error. Reset the Rule!"
-msgstr "Errore. Reimposta la regola!"
+msgstr "Errore. Re-imposta la regola!"
 
 msgid "Ambient LED"
-msgstr "LED Ambientale"
+msgstr "LED ambientale"
 
 msgid "Single Rx Chain"
-msgstr ""
+msgstr "Singola catena RX"
 
 msgid "Country"
-msgstr ""
+msgstr "Nazione"
 
 msgid "Fast Radio Toggle"
-msgstr ""
+msgstr "ON/OFF rapido radio"
 
 msgid "Force Radio Down"
-msgstr ""
+msgstr "Forza OFF radio"
 
 msgid "Dark Blue Unified UI"
-msgstr ""
+msgstr "UI unificata blu scuro"
