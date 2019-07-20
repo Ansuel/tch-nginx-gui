@@ -1,10 +1,10 @@
 function checkArrowDirection() {
-	if (($('#cardrow').scrollTop() + $("#cardrow").height() + 210) >= $('#cardrow')[0].scrollHeight) {
-		$("#scroll-down").hide();
-		$("#scroll-up").show();
+	if (($('#cardrow').scrollTop() + $("#cardrow").height() + 100) >= $('#cardrow')[0].scrollHeight) {
+		$("#scroll-down").toggle();
+		$("#scroll-up").toggle();
 	} else if ($('#cardrow').scrollTop() - 210 <= 0) {
-		$("#scroll-down").show();
-		$("#scroll-up").hide();
+		$("#scroll-down").toggle();
+		$("#scroll-up").toggle();
 	}
 }
 
