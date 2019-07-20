@@ -152,6 +152,29 @@ wifi_fix_24g() {
 
 }
 
+remove_downgrade_bit() {
+	if [ "$(uci get -q env.rip.board_mnemonic)" == "VBNT-S" ] && 
+		[ "$(uci get -q env.var.prod_number)" == "4132" ] && 
+		[ -f /proc/rip/0123 ]; then
+		logger_command "Downgrade limitation bit detected... Removing..."
+		rmmod keymanager
+		rmmod ripdrv
+		mv /lib/modules/3.4.11/ripdrv.ko /lib/modules/3.4.11/ripdrv.ko_back
+		mv /tmp/ripdrv.ko /lib/modules/3.4.11/ripdrv.ko
+		insmod ripdrv
+		echo 0123 > /proc/rip/delete
+		echo 0122 > /proc/rip/delete
+		rmmod ripdrv
+		logger_command "Restoring original driver"
+		rm /lib/modules/3.4.11/ripdrv.ko
+		mv /lib/modules/3.4.11/ripdrv.ko_back /lib/modules/3.4.11/ripdrv.ko
+		insmod ripdrv
+		insmod keymanager
+	elif [ -f /tmp/ripdrv.ko ]; then
+		rm /tmp/ripdrv.ko
+	fi
+}
+
 #THIS CHECK DEVICE TYPE AND INSTALL SPECIFIC FILE
 device_type="$(uci get -q env.var.prod_friendly_name)"
 kernel_ver="$(cat /proc/version | awk '{print $3}')"
@@ -170,6 +193,9 @@ logger_command "Applying specific model fixes..."
 [ -z "${device_type##*TG800*}" ] && ledfw_rework_TG800
 [ -z "${device_type##*DGA413*}" ] && wifi_fix_24g
 
+#Use custom driver to remove this... thx @Roleo
+[ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*DGA413*}" ] && logger_command "Checking downgrade limitation bit"
+[ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*DGA413*}" ] && remove_downgrade_bit 
 
 	#Fix led issues
 	if [ -z "${device_type##*DGA4131*}" ] ; then
