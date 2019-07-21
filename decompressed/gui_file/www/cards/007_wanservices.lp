@@ -111,7 +111,6 @@ end
     ');  ngx.print(
 			ui_helper.createSimpleLight(state, dmzstate, dmz_attributes,"fas fa-cogs"),
 			ui_helper.createSimpleLight(upnpstate, upnpstate_text, dmz_attributes,"fas fa-random"),
-            '<br/>',
             '<i class="fas fa-door-open" aria-hidden="true" href="#">&nbsp</i>' .. format( N("<strong %s>%d port forwarding</strong> rule is defined",
                       "<strong %s>%d port forwarding</strong> rules are defined", n_redir_rules),
                       modal_link_port, n_redir_rules),
