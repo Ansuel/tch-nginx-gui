@@ -128,17 +128,6 @@ ledfw_rework_TG800() {
     ledfw_extract "TG800"
 }
 
-ledfw_rework_DGA() {
-	if [ "$(< /usr/lib/lua/ledframework/ubus.lua grep '\--restore default function of this')" ]; then
-		cp /rom/usr/lib/lua/ledframework/ubus.lua /usr/lib/lua/ledframework/
-	fi
-	if [ ! "$(< /usr/lib/lua/ledframework/ubus.lua grep 'cb("fwupgrade_state_" .. msg.state)')" ]; then
-		sed -i 'N;/events\['\''fwupgrade'\''\] = function(msg)/a\\t\tcb("fwupgrade_state_" .. msg.state)' /usr/lib/lua/ledframework/ubus.lua
-	fi
-
-    ledfw_extract "DGA"
-}
-
 clean_specific_file() {
 	rm /tmp/*specific*.tar.bz2
 }
@@ -184,8 +173,8 @@ logger_command "Applying specific model fixes..."
 [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG789*}" ] && apply_specific_TG789_package
 [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG799*}" ] && apply_specific_TG799_package
 [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG800*}" ] && apply_specific_TG800_package
-[ -z "${device_type##*DGA4130*}" ] && ledfw_rework_DGA
-[ -z "${device_type##*DGA4132*}" ] && ledfw_rework_DGA
+[ -z "${device_type##*DGA4130*}" ] && ledfw_extract "DGA"
+[ -z "${device_type##*DGA4132*}" ] && ledfw_extract "DGA"
 [ -z "${device_type##*DGA4131*}" ] && ledfw_extract "DGA4131"
 [ -z "${device_type##*TG788*}" ] && ledfw_rework_TG788
 [ -z "${device_type##*TG789*}" ] && ledfw_extract "TG789"
@@ -199,9 +188,9 @@ logger_command "Applying specific model fixes..."
 
 	#Fix led issues
 	if [ -z "${device_type##*DGA4131*}" ] ; then
-        if [ ! "$(uci get -q ledfw.ambient.enable)" ] ; then
+        if [ ! "$(uci get -q ledfw.ambient.active)" ] ; then
             uci set ledfw.ambient=led
-            uci set ledfw.ambient.enable='1'
+            uci set ledfw.ambient.active='1'
             uci commit ledfw
         fi
 	else

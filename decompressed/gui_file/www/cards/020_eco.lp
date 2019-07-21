@@ -14,7 +14,7 @@ local content = {
 	eee = "uci.power.ethernet.eee",
 }
 if prod_friendly_name[1].value:match("DGA4131") then
-	content.ledfw_ambient = "uci.ledfw.ambient.enable"
+	content.ledfw_ambient = "uci.ledfw.ambient.active"
 else
 	content.eco_led = "uci.ledfw.status_led.enable"
 end

@@ -39,7 +39,7 @@ local mapParams = {
 
 if prod_friendly_name[1].value:match("DGA4131") then
 	mapValid.ledfw_ambient = vB
-	mapParams.ledfw_ambient = "uci.ledfw.ambient.enable"
+	mapParams.ledfw_ambient = "uci.ledfw.ambient.active"
 else
 	mapValid.eco_led = vB
 	mapValid.ledfw_wifinsc = vB

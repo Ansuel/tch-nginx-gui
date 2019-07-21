@@ -158,6 +158,18 @@ local function info_timeout()
     infobutton_pressed = false
 end
 
+local info_ambient_led_active, err = lcur:get(ledcfg, 'ambient', 'active')
+local function ambient_status_update()
+    if info_ambient_led_active == '0' then
+        local packet = {}
+        packet["state"] = "inactive"
+        conn:send("ambient.status", packet)
+    end
+end
+if info_ambient_led_active ~= nil then
+    uloop.timer(function() ambient_status_update() end, 2000)
+end
+
 events['infobutton'] = function(msg)
     local new_value = false
     if msg ~= nil and msg.state == "active" and infobutton_pressed == false then
