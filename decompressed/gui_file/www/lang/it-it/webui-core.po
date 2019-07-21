@@ -4700,7 +4700,7 @@ msgid "Ambient LED"
 msgstr "LED ambientale"
 
 msgid "Single Rx Chain"
-msgstr "Singola catena RX"
+msgstr "Singola antenna RX"
 
 msgid "Country"
 msgstr "Nazione"
