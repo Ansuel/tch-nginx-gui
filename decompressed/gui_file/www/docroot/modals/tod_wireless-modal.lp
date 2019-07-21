@@ -33,7 +33,7 @@ local uniqueKey = post_helper.getRandomKey()
 local ap_status_map = setmetatable({
   ["0"] = T"Off",
   ["1"] = T"On",
-  ["-1"] = T"Error. Reset the Rule!"
+  ["-1"] = T"Error. Re-set the rule!"
 }, untaint_mt)
 
 local ap_list = { }

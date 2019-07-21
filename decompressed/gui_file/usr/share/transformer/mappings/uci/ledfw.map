@@ -7,7 +7,7 @@ mapper("uci_1to1").registerConfigMap(config_ledfw)
 local ledfw_ambient = {
   config =  config_ledfw,
   section = "ambient",
-  options = { "enable" }
+  options = { "active" }
 }
 
 mapper("uci_1to1").registerSimpleMap(ledfw_ambient)

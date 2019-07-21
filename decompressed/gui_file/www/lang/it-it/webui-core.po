@@ -4693,7 +4693,7 @@ msgstr "Priorità"
 msgid "Driver Version"
 msgstr "Versione driver"
 
-msgid "Error. Reset the Rule!"
+msgid "Error. Re-set the rule!"
 msgstr "Errore. Re-imposta la regola!"
 
 msgid "Ambient LED"

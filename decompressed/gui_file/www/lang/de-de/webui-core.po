@@ -4696,7 +4696,7 @@ msgstr ""
 msgid "Driver Version"
 msgstr ""
 
-msgid "Error. Reset the Rule!"
+msgid "Error. Re-set the rule!"
 msgstr ""
 
 msgid "Ambient LED"
