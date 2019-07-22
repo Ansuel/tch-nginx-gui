@@ -1,5 +1,36 @@
 . /etc/init.d/rootdevice
 
+extract_with_check() {
+	
+	RESTART_SERVICE=0
+	MD5_CHECK_DIR=/tmp/md5check
+	
+	[ ! -d $MD5_CHECK_DIR ] && mkdir $MD5_CHECK_DIR
+	
+	bzcat $1 | tar -C $MD5_CHECK_DIR -xf -
+	
+	for file in $(find /tmp/md5check/ -type f); do
+		[ -n "$( echo $file | grep .md5sum )" ] && continue
+		
+		orig_file="$(echo $file | sed "s|$MD5_CHECK_DIR||")"
+
+		if [ -f $orig_file ]; then
+			md5_file=$(md5sum $file | awk '{ print $1 }' )
+			md5_orig_file=$(md5sum $orig_file | awk '{ print $1 }' )
+			if [ $md5_file == $md5_orig_file ]; then
+				continue
+			fi
+		fi
+		
+		cp $file $orig_file
+		RESTART_SERVICE=1
+	done
+	
+	[ -d $MD5_CHECK_DIR ] && rm -r $MD5_CHECK_DIR
+	
+	return $RESTART_SERVICE
+}
+
 apply_specific_DGA_package() {
 	logger_command "DGA device detected!"
 	logger_command "Extracting custom-ripdrv-specificDGA.tar.bz2 ..."
@@ -60,15 +91,8 @@ apply_specific_TG799_package() {
 
 ledfw_extract() {
 	if [ -f "/tmp/ledfw_support-specific$1.tar.bz2" ]; then
-		stateMachine_tar_md5=$(bzcat /tmp/ledfw_support-specific$1.tar.bz2 | tar xf - stateMachines.md5sum -O | awk '{ print $1 }')
-		stateMachine_md5=$(md5sum /etc/ledfw/stateMachines.lua | awk '{ print $1 }' )
-		logger_command "StateMachine tar md5sum: $stateMachine_tar_md5"
-		logger_command "StateMachine md5sum: $stateMachine_md5"
-		if [ "$stateMachine_tar_md5" ] && [ "$stateMachine_tar_md5" != "$stateMachine_md5" ]; then
-			logger_command "Extracting ledfw_support-specific$1.bz2 ..."
-			/usr/share/transformer/scripts/restart_leds.sh
-			bzcat "/tmp/ledfw_support-specific$1.tar.bz2" | tar -C / -xf -
-		fi
+		extract_with_check "/tmp/ledfw_support-specific$1.tar.bz2"
+		[ $? -eq 1 ] && /usr/share/transformer/scripts/restart_leds.sh
 	fi
 }
 
