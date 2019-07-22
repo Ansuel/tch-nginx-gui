@@ -2,28 +2,38 @@
 
 extract_with_check() {
 	
-	RESTART_SERVICE=0
+	export RESTART_SERVICE=0
 	MD5_CHECK_DIR=/tmp/md5check
 	
 	[ ! -d $MD5_CHECK_DIR ] && mkdir $MD5_CHECK_DIR
 	
-	bzcat $1 | tar -C $MD5_CHECK_DIR -xf -
+	for file in $(bzcat $1 | tar -C $MD5_CHECK_DIR -xvf -); do
 	
-	for file in $(find /tmp/md5check/ -type f); do
+		if [ ! -f $MD5_CHECK_DIR/$file ]; then
+			if [ ! -d /$file ]; then
+				mkdir /$file
+			fi
+			continue
+		fi
+		
 		[ -n "$( echo $file | grep .md5sum )" ] && continue
 		
-		orig_file="$(echo $file | sed "s|$MD5_CHECK_DIR||")"
-
+		orig_file=/$file
+		file=$MD5_CHECK_DIR/$file
+		
 		if [ -f $orig_file ]; then
 			md5_file=$(md5sum $file | awk '{ print $1 }' )
 			md5_orig_file=$(md5sum $orig_file | awk '{ print $1 }' )
 			if [ $md5_file == $md5_orig_file ]; then
+				rm $file
 				continue
 			fi
 		fi
 		
 		cp $file $orig_file
+		rm $file
 		RESTART_SERVICE=1
+		
 	done
 	
 	[ -d $MD5_CHECK_DIR ] && rm -r $MD5_CHECK_DIR
