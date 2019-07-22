@@ -129,6 +129,10 @@ local tod_options = {
 
 local function getWifiTodListFromIndex(index) 
 
+	if not index then
+		return nil
+	end
+	
 	local wifi_tod_path = "uci.tod.wifitod"
 	
 	if proxy.get(format("%s.@wifitod_%s.ap.", wifi_tod_path, index)) then
@@ -263,6 +267,11 @@ end
 local function onDelete(success)
   local index = success:match("action(.+)")
   
+  if not index then
+	tod_options.errmsg = "Error on delete. Remove rule from config file manually."
+	return nil
+  end
+  
   local delObject = {}
   local ret
   
@@ -375,8 +384,10 @@ for i, v in ipairs(tod_data) do
 	v[4] = timer_list[i].stop_time:match("^.-:(.+)$") -- stop_time
 	v[5] = ap_status_map[ap_state] -- apState
 	v[6] = {} -- days
-	for day in gmatch(days, "[^,]+") do
-		insert(v[6], untaint(day))
+	if days then
+		for day in gmatch(days, "[^,]+") do
+			insert(v[6], untaint(day))
+		end
 	end
 	-- Sub Columns
 	v[7] = {
