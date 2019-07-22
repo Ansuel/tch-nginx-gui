@@ -71,7 +71,7 @@ apply_right_opkg_repo() {
 	
 	case $marketing_version in 
 	"17.3"*)
-		if [ -n "$(  grep $opkg_file -e "roleo/public/agtef/1.1.0/brcm63xx-tch" )" ]; then
+		if [ -z "$(  grep $opkg_file -e "roleo/public/agtef/1.1.0/brcm63xx-tch" )" ]; then
 			cat << EOF >> $opkg_file
 src/gz chaos_calmer_base https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/base
 src/gz chaos_calmer_packages https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/packages 
@@ -83,7 +83,7 @@ EOF
 		fi
 		;;
 	"16.3"*)
-		if [ -n "$(  grep $opkg_file -e "roleo/public/agtef/brcm63xx-tch" )" ]; then
+		if [ -z "$(  grep $opkg_file -e "roleo/public/agtef/brcm63xx-tch" )" ]; then
 			cat << EOF >> $opkg_file
 src/gz chaos_calmer_base https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/base
 src/gz chaos_calmer_packages https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/packages 
