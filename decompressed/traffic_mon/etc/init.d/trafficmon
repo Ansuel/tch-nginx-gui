@@ -1,40 +1,14 @@
 #!/bin/sh /etc/rc.common
 
 START=99
-APP=trafficmon
-DATA_DIR=/tmp/$APP
-CRONTABS=/etc/crontabs
-CRONRULE=$CRONTABS/root
+STOP=19
+USE_PROCD=1
 
-start() {
-	if [ ! -d $CRONTABS ]; then
-		mkdir -p $CRONTABS
-	fi
-
-	if [ ! -f $CRONRULE ] && [ -f $CRONTABS/root_gui ]; then
-		mv $CRONTABS/root_gui $CRONRULE
-	elif [ ! -f $CRONRULE ]; then
-		touch $CRONRULE
-	fi
-	
-	if [ ! "$(cat $CRONRULE | grep /sbin/trafficmon.lua)" ]; then
-		
-		echo " " >> $CRONRULE
-        echo "*/10 * * * * /sbin/trafficmon.lua" >> $CRONRULE
-        echo "*/3 * * * * /sbin/trafficdata.lua" >> $CRONRULE
-        if [ ! "$(ps | grep -q cron)" ]; then
-            /etc/init.d/cron start
-		else
-			/etc/init.d/cron restart
-        fi
-    fi
-    mkdir -p $DATA_DIR
-    trafficmon.lua -i
-    trafficdata.lua
-
-
-}
-
-stop() {
-    rm -rf $DATA_DIR
+start_service()
+{
+	procd_open_instance
+	procd_set_param command /sbin/trafficmon.lua
+	procd_set_param respawn
+	procd_set_param pidfile /var/run/trafficmon.pid
+	procd_close_instance
 }
