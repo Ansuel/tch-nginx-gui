@@ -1,13 +1,11 @@
 #! /usr/bin/lua
 
-
+local uloop = require("uloop")
 local content_helper = require("web.content_helper")
 local format = string.format
 local proxy = require("datamodel")
-local traffic_data_file = "/var/state/traffic_data_file"
 
 local traffic_data_file = "/var/state/traffic_data_file"
-
 
 local function getFile(file_name)
   local fd = io.open(file_name,"r")
@@ -110,91 +108,106 @@ local function b2m(number)
   return format("%.3f", number / 1048576)
 end
 
-local content_lan = {
-  tx_bytes = "rpc.network.interface.@lan.tx_bytes",
-  rx_bytes = "rpc.network.interface.@lan.rx_bytes",
-  ifname = "uci.network.interface.@lan.ifname",
-}
-content_helper.getExactContent(content_lan)
-local lantx = b2m(s2n(content_lan.tx_bytes))
-local lanrx = b2m(s2n(content_lan.rx_bytes))
-
-local wan_intf ="wan"
-local ipaddr = proxy.get("rpc.network.interface.@wwan.ipaddr")
-if ipaddr and ipaddr[1].value:len() ~= 0 then
-  wan_intf = "wwan"
-end
-
-local content_wan = {
-  tx_bytes = "rpc.network.interface.@" .. wan_intf .. ".tx_bytes",
-  rx_bytes = "rpc.network.interface.@" .. wan_intf .. ".rx_bytes",
-  ifname = "uci.network.interface.@" .. wan_intf .. ".ifname",
-}
-content_helper.getExactContent(content_wan)
-local wantx = b2m(s2n(content_wan.tx_bytes))
-local wanrx = b2m(s2n(content_wan.rx_bytes))
-
-
-local fonpath = "uci.hotspotd.wifi-iface."
-local fonifaces = content_helper.convertResultToObject(fonpath .. "@.", proxy.get(fonpath))
-local ssidMap = {}
-for i,v in ipairs(fonifaces) do
-    local iface = string.format("%s", v.iface)
-    ssidMap[iface] = true
-end
-
 local quantenna_wifi = proxy.get("uci.env.var.qtn_eth_mac")
 quantenna_wifi = ((quantenna_wifi and quantenna_wifi[1].value~="") and true or false)
 
-local piface = "uci.wireless.wifi-iface."
-local awls = content_helper.convertResultToObject(piface .. "@.", proxy.get(piface))
-local wls = {}
-for i,v in ipairs(awls) do
-        wls[#wls+1] = {
-            radio = v.device,
-            ssid = v.ssid,
-            iface = v.paramindex
-        }
-        if v.paramindex == getiface then
-            curiface = v.paramindex
-			if quantenna_wifi and curiface == "wl1" then
-				curiface = "eth5"
+local function reCalculateContent()
+
+	local content_lan = {
+		tx_bytes = "rpc.network.interface.@lan.tx_bytes",
+		rx_bytes = "rpc.network.interface.@lan.rx_bytes",
+		ifname = "uci.network.interface.@lan.ifname",
+	}
+	
+	content_helper.getExactContent(content_lan)
+	
+	local lantx = b2m(s2n(content_lan.tx_bytes))
+	local lanrx = b2m(s2n(content_lan.rx_bytes))
+	
+	local wan_intf ="wan"
+	local ipaddr = proxy.get("rpc.network.interface.@wwan.ipaddr")
+	if ipaddr and ipaddr[1].value:len() ~= 0 then
+		wan_intf = "wwan"
+	end
+	
+	local content_wan = {
+		tx_bytes = "rpc.network.interface.@" .. wan_intf .. ".tx_bytes",
+		rx_bytes = "rpc.network.interface.@" .. wan_intf .. ".rx_bytes",
+		ifname = "uci.network.interface.@" .. wan_intf .. ".ifname",
+	}
+	content_helper.getExactContent(content_wan)
+	
+	local wantx = b2m(s2n(content_wan.tx_bytes))
+	local wanrx = b2m(s2n(content_wan.rx_bytes))
+	
+	local piface = "uci.wireless.wifi-iface."
+	local awls = content_helper.convertResultToObject(piface .. "@.", proxy.get(piface))
+	local wls = {}
+	for i,v in ipairs(awls) do
+			wls[#wls+1] = {
+				radio = v.device,
+				ssid = v.ssid,
+				iface = v.paramindex
+			}
+			if v.paramindex == getiface then
+				curiface = v.paramindex
+				if quantenna_wifi and curiface == "wl1" then
+					curiface = "eth5"
+				end
+				curssid = v.ssid
 			end
-            curssid = v.ssid
-        end
-end
-table.sort(wls, function(a,b)
-    if a.radio == b.radio then
-        return a.iface < b.iface
-    else
-        return a.radio < b.radio
-    end
-end)
-local wifitx, wifirx = 0, 0
-local content_wifi = {}
-for i,v in ipairs(wls) do
-    if proxy.get("sys.class.net.@" .. v.iface .. ".") then
-		if quantenna_wifi and v.iface == "wl1" then
-			v.iface = "eth5"
+	end
+	table.sort(wls, function(a,b)
+		if a.radio == b.radio then
+			return a.iface < b.iface
+		else
+			return a.radio < b.radio
 		end
-		content_wifi["tx_bytes"] = "sys.class.net.@" .. v.iface .. ".statistics.tx_bytes"
-		content_wifi["rx_bytes"] = "sys.class.net.@" .. v.iface .. ".statistics.rx_bytes"
-		content_helper.getExactContent(content_wifi)
-		wifitx = wifitx + s2n(content_wifi.tx_bytes)
-		wifirx = wifirx + s2n(content_wifi.rx_bytes)
-	end 
+	end)
+	local wifitx, wifirx = 0, 0
+	local content_wifi = {}
+	for i,v in ipairs(wls) do
+		if proxy.get("sys.class.net.@" .. v.iface .. ".") then
+			if quantenna_wifi and v.iface == "wl1" then
+				v.iface = "eth5"
+			end
+			content_wifi["tx_bytes"] = "sys.class.net.@" .. v.iface .. ".statistics.tx_bytes"
+			content_wifi["rx_bytes"] = "sys.class.net.@" .. v.iface .. ".statistics.rx_bytes"
+			content_helper.getExactContent(content_wifi)
+			wifitx = wifitx + s2n(content_wifi.tx_bytes)
+			wifirx = wifirx + s2n(content_wifi.rx_bytes)
+		end 
+	end
+	wifitx = b2m(wifitx)
+	wifirx = b2m(wifirx)
+	
+	local content_common = {
+	wan_tx = wantx,
+	wan_rx = wanrx,
+	lan_tx = lantx,
+	lan_rx = lanrx,
+	wifi_tx = wifitx,
+	wifi_rx = wifirx,
+	}
+	
+	return content_common
 end
-wifitx = b2m(wifitx)
-wifirx = b2m(wifirx)
 
-local content_common = {
-  wan_tx = wantx,
-  wan_rx = wanrx,
-  lan_tx = lantx,
-  lan_rx = lanrx,
-  wifi_tx = wifitx,
-  wifi_rx = wifirx,
-}
+uloop.init()
 
-writeFile(traffic_data_file,content_common)
+-- 3 minutes in millisc = 3 * 60 * 1000
+local deley_polling_time = 180.000‬
 
+local function start_timer()
+	uloop.timer(
+		function ()
+			writeFile(traffic_data_file,reCalculateContent())
+			start_timer()
+		end
+	,deley_polling_time)
+end
+
+writeFile(traffic_data_file,reCalculateContent())
+start_timer()
+
+uloop.run()

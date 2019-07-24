@@ -28,12 +28,27 @@ check_new_dlnad() {
 trafficmon_support() {
 	if [ -d /root/trafficmon ]; then
 		killall trafficmon
+		killall trafficdata
 		rm -rf /root/trafficmon
 	fi
-	if [ -f /etc/init.d/trafficmon ] && [ ! -k /etc/rc.d/S99trafficmon ] && [ ! -d /tmp/trafficmon ]; then
+	
+	if [ -n "$(cat /etc/crontabs/root | grep trafficmon)" ]; then
+		killall trafficmon
+		killall trafficdata
+		sed -i '/trafficmon/d' /etc/crontabs/root
+		sed -i '/trafficdata/d' /etc/crontabs/root
+	fi
+	
+	if [ -f /etc/init.d/trafficmon ] && [ ! -k /etc/rc.d/S99trafficmon ]; then
 		/etc/init.d/trafficmon enable
-		if [ ! "$(pgrep "trafficmon.lua")" ]; then
+		if [ ! -f /var/run/trafficmon.pid ]; then
 			/etc/init.d/trafficmon start
+		fi
+	fi
+	if [ -f /etc/init.d/trafficdata ] && [ ! -k /etc/rc.d/S99trafficdata ]; then
+		/etc/init.d/trafficdata enable
+		if [ ! -f /var/run/trafficdata.pid ]; then
+			/etc/init.d/trafficdata start
 		fi
 	fi
 
