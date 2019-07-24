@@ -38,6 +38,8 @@ extract_with_check() {
 	
 	[ -d $MD5_CHECK_DIR ] && rm -r $MD5_CHECK_DIR
 	
+	rm $1
+	
 	return $RESTART_SERVICE
 }
 
@@ -101,6 +103,7 @@ apply_specific_TG799_package() {
 
 ledfw_extract() {
 	if [ -f "/tmp/ledfw_support-specific$1.tar.bz2" ]; then
+		logger_command "Extracting ledfw_support-specific$1.tar.bz2 ..."
 		extract_with_check "/tmp/ledfw_support-specific$1.tar.bz2"
 		[ $? -eq 1 ] && /usr/share/transformer/scripts/restart_leds.sh
 	fi
@@ -166,14 +169,14 @@ clean_specific_file() {
 	rm /tmp/*specific*.tar.bz2
 }
 
-wifi_fix_24g() {
-	#Set wifi to perf mode
-	wl down
-	wl obss_prot set 0
-	wl -i wl0 gmode Performance
-	wl -i wl0 up
-
-}
+#wifi_fix_24g() {
+#	#Set wifi to perf mode
+#	wl down
+#	wl obss_prot set 0
+#	wl -i wl0 gmode Performance
+#	wl -i wl0 up
+#
+#}
 
 remove_downgrade_bit() {
 	if [ "$(uci get -q env.rip.board_mnemonic)" == "VBNT-S" ] && 
@@ -214,7 +217,7 @@ logger_command "Applying specific model fixes..."
 [ -z "${device_type##*TG789*}" ] && ledfw_extract "TG789"
 [ -z "${device_type##*TG799*}" ] && ledfw_rework_TG799
 [ -z "${device_type##*TG800*}" ] && ledfw_rework_TG800
-[ -z "${device_type##*DGA413*}" ] && wifi_fix_24g
+#[ -z "${device_type##*DGA413*}" ] && wifi_fix_24g
 
 #Use custom driver to remove this... thx @Roleo
 [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*DGA413*}" ] && logger_command "Checking downgrade limitation bit"

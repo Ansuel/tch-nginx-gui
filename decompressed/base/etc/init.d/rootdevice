@@ -172,6 +172,10 @@ root() {
 		encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
 		echo "  New password detected!" > /dev/console
 		echo "  Storing encrypted password..." > /dev/console
+		if [ ! -f /etc/config/modgui ]; then
+			touch /etc/config/modgui
+			uci set modgui.var=var
+		fi
 		uci set modgui.var.encrypted_pass="$encrypted_pass"
 	}
 	
@@ -222,7 +226,7 @@ root() {
 	uci set "$dropbear_path".Interface='lan'
 	uci set "$dropbear_path".RootLogin='1'
 	uci set "$dropbear_path".RootPasswordAuth='on' #dropbear root related
-	uci set dropbear.lan.PasswordAuth='on'
+	uci set "$dropbear_path".PasswordAuth='on'
 	uci set "$dropbear_path".enable='1'
 
 	uci commit dropbear
