@@ -89,8 +89,10 @@ end
 	
 	local html = {}
 	
-	basic.span["data-bind"] = "text: status"
-    html[#html + 1] = ui_helper.createLabel(T"Status", ui_helper.createSimpleLight(content.up, content.up == "1" and T"Connected" or T"Disconnected", nil, "fa fa-at"), basic)
+	if mode_active ~= "bridge" then
+		basic.span["data-bind"] = "text: status"
+		html[#html + 1] = ui_helper.createLabel(T"Status", ui_helper.createSimpleLight(content.up, content.up == "1" and T"Connected" or T"Disconnected", nil, "fa fa-at"), basic)
+	end
 	basic.span["data-bind"] = nil
 	html[#html + 1] = ui_helper.createLabel(T"Broadband Connection", tabdata.current.description , basic)
 	html[#html + 1] = ui_helper.createLabel(T"Connection Type", mode_data[mode_active].description , basic)
