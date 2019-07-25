@@ -4713,3 +4713,18 @@ msgstr "Forza OFF radio"
 
 msgid "Dark Blue Unified UI"
 msgstr "UI unificata blu scuro"
+
+msgid "Total Send"
+msgstr ""
+
+msgid "VendorID"
+msgstr ""
+
+msgid "A Reboot has been Scheduled"
+msgstr ""
+
+msgid "Total Mixed"
+msgstr ""
+
+msgid "Total Receive"
+msgstr ""
