@@ -196,7 +196,7 @@ end
 uloop.init()
 
 -- 3 minutes in millisc = 3 * 60 * 1000
-local deley_polling_time = 180.000‬
+local delay_polling_time = 180000‬
 
 local function start_timer()
 	uloop.timer(
@@ -204,7 +204,7 @@ local function start_timer()
 			writeFile(traffic_data_file,reCalculateContent())
 			start_timer()
 		end
-	,deley_polling_time)
+	,delay_polling_time)
 end
 
 writeFile(traffic_data_file,reCalculateContent())

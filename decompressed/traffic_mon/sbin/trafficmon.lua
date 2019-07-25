@@ -218,7 +218,7 @@ local function collect_data(inizialize)
 end
 
 -- 10 minutes in millisc = 10 * 60 * 1000
-local deley_polling_time = 600.000‬
+local delay_polling_time = 600000‬
 
 local function start_timer()
 	uloop.timer(
@@ -226,7 +226,7 @@ local function start_timer()
 			collect_data()
 			start_timer()
 		end
-	,deley_polling_time)
+	,delay_polling_time)
 end
 
 local exist = lfs.chdir(datadir) and true or false
