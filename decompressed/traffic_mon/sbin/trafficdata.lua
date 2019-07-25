@@ -121,8 +121,8 @@ local function reCalculateContent()
 	
 	content_helper.getExactContent(content_lan)
 	
-	local lantx = b2m(s2n(content_lan.tx_bytes))
-	local lanrx = b2m(s2n(content_lan.rx_bytes))
+	local lantx = s2n(content_lan.tx_bytes)
+	local lanrx = s2n(content_lan.rx_bytes)
 	
 	local wan_intf ="wan"
 	local ipaddr = proxy.get("rpc.network.interface.@wwan.ipaddr")
@@ -137,8 +137,8 @@ local function reCalculateContent()
 	}
 	content_helper.getExactContent(content_wan)
 	
-	local wantx = b2m(s2n(content_wan.tx_bytes))
-	local wanrx = b2m(s2n(content_wan.rx_bytes))
+	local wantx = s2n(content_wan.tx_bytes)
+	local wanrx = s2n(content_wan.rx_bytes)
 	
 	local piface = "uci.wireless.wifi-iface."
 	local awls = content_helper.convertResultToObject(piface .. "@.", proxy.get(piface))
@@ -178,8 +178,6 @@ local function reCalculateContent()
 			wifirx = wifirx + s2n(content_wifi.rx_bytes)
 		end 
 	end
-	wifitx = b2m(wifitx)
-	wifirx = b2m(wifirx)
 	
 	local content_common = {
 	wan_tx = wantx,
