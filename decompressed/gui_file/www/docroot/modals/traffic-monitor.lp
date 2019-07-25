@@ -130,10 +130,10 @@ local function getFile(file_name)
 end
 
 
-local wantx = b2m(s2n(content_wan.tx_bytes))
-local wanrx = b2m(s2n(content_wan.rx_bytes))
-local lantx = b2m(s2n(content_lan.tx_bytes))
-local lanrx = b2m(s2n(content_lan.rx_bytes))
+local wantx = s2n(content_wan.tx_bytes)
+local wanrx = s2n(content_wan.rx_bytes)
+local lantx = s2n(content_lan.tx_bytes)
+local lanrx = s2n(content_lan.rx_bytes)
 
 local wifitx, wifirx = 0, 0
 local content_wifi = {}
@@ -145,12 +145,10 @@ for i,v in ipairs(wls) do
 		content_wifi["tx_bytes"] = "sys.class.net.@" .. v.iface .. ".statistics.tx_bytes"
 		content_wifi["rx_bytes"] = "sys.class.net.@" .. v.iface .. ".statistics.rx_bytes"
 		content_helper.getExactContent(content_wifi)
-		wifitx = wifitx + ( s2n(content_wifi.tx_bytes) or 0 )
-		wifirx = wifirx + ( s2n(content_wifi.rx_bytes) or 0 )
+		wifitx = wifitx + s2n(content_wifi.tx_bytes)
+		wifirx = wifirx + s2n(content_wifi.rx_bytes)
 	end 
 end
-wifitx = b2m(wifitx)
-wifirx = b2m(wifirx)
 
 local content_result = getFile(traffic_data_file)
 if content_result then
@@ -172,19 +170,17 @@ if content_result then
   if s2n(content_result[12]) > s2n(wifitx)  then
      content_result[11] = content_result[11]+1
   end
-  wanrx = wanrx+content_result[1]*4096
-  wantx = wantx+content_result[3]*4096
-  lanrx = lanrx+content_result[5]*4096
-  lantx = lantx+content_result[7]*4096
-  wifirx = wifirx+content_result[9]*4096
-  wifitx = wifitx+content_result[11]*4096
+  wanrx  = wanrx+content_result[1]
+  wantx  = wantx+content_result[3]
+  lanrx  = lanrx+content_result[5]
+  lantx  = lantx+content_result[7]
+  wifirx = wifirx+content_result[9]
+  wifitx = wifitx+content_result[11]
 end
 
-local dst = os.date("*t", os.time()).isdst or false
-
-local wantotal = format("%.3f", wantx + wanrx)
-local lantotal = format("%.3f", lantx + lanrx)
-local wifitotal = format("%.3f", wifitx + wifirx)
+local wantotal = wantx + wanrx
+local lantotal = lantx + lanrx
+local wifitotal = wifitx + wifirx
 
 local function getTrafficData(dtype, name)
     local nline = 1
@@ -269,35 +265,47 @@ ngx.print(ui_helper.createHeader(T"Traffic Monitor", false, true) ); ngx.print('
       local html = {}
 	  local attributes = {
 			label = { class = "control-label" } ,
-			span = { class = "span1 text-right" } ,
+			span = { class = "span1 text-right traffic_data" } ,
 			}
 	  local info_box = {
           alert = {
 		  	class = "alert alert-info",
 		  }
         }
-	  html[#html+1] = '<div class="span3">'
-	  html[#html+1] = "<fieldset><legend>" .. T"Internet Traffic" .. "</legend>"
-	  html[#html+1] = ui_helper.createLabel(T"Total Mixed (in MB)", wantotal , attributes)
-	  html[#html+1] = ui_helper.createLabel(T"Total Send (in MB)", wantx, attributes)
-	  html[#html+1] = ui_helper.createLabel(T"Total Receive (in MB)", wanrx, attributes)
-	  html[#html+1] = "</fieldset>"
-	  html[#html+1] = "</div>"
-	  html[#html+1] = '<div class="span3">'
-	  html[#html+1] = "<fieldset><legend>" .. T"Ethernet Network Traffic" .. "</legend>"
-	  html[#html+1] = ui_helper.createLabel(T"Total Mixed (in MB)", lantotal , attributes)
-	  html[#html+1] = ui_helper.createLabel(T"Total Send (in MB)", lantx, attributes)
-	  html[#html+1] = ui_helper.createLabel(T"Total Receive (in MB)", lanrx, attributes)
-	  html[#html+1] = "</fieldset>"
-	  html[#html+1] = "</div>"
-	  html[#html+1] = '<div>'
-	  html[#html+1] = "<fieldset><legend>" .. T"Wi-Fi Network Traffic" .. "</legend>"
-	  html[#html+1] = ui_helper.createLabel(T"Total Mixed (in MB)",  wifitotal , attributes)
-	  html[#html+1] = ui_helper.createLabel(T"Total Send (in MB)", wifitx, attributes)
-	  html[#html+1] = ui_helper.createLabel(T"Total Receive (in MB)", wifirx, attributes)
-	  html[#html+1] = "</fieldset>"
-	  html[#html+1] = "</div>"
-	  html[#html+1] = '<div>'
+		
+	  local traffic_section = {
+		{
+			desc = T"Internet Traffic",
+			total = wantotal,
+			tx = wantx,
+			rx = wanrx
+		},
+		{
+			desc = T"Ethernet Network Traffic",
+			total = lantotal,
+			tx = lantx,
+			rx = lanrx
+		},
+		{
+			desc = T"Wi-Fi Network Traffic",
+			total = wifitotal,
+			tx = wifitx,
+			rx = wifirx
+		}
+	  }
+	  
+	  html[#html+1] = '<div class="row" style="margin-left:0px;flex-wrap: wrap;">'
+	  for i in pairs(traffic_section) do
+		html[#html+1] = '<div class="span3" style="flex:1;">'
+	    html[#html+1] =   "<fieldset><legend>" .. traffic_section[i].desc .. "</legend>"
+	    html[#html+1] =     ui_helper.createLabel(T"Total Mixed", traffic_section[i].total , attributes)
+	    html[#html+1] =     ui_helper.createLabel(T"Total Send", traffic_section[i].tx, attributes)
+	    html[#html+1] =     ui_helper.createLabel(T"Total Receive", traffic_section[i].rx, attributes)
+	    html[#html+1] =   "</fieldset>"
+	    html[#html+1] = "</div>"
+	  end
+	  html[#html+1] = '</div>'
+	  
 	  html[#html+1] = "<fieldset><legend>" .. T"Graph" .. "</legend>"
 	  html[#html+1] = ui_helper.createAlertBlock(T"The time displayed on the graph is the modem time.", info_box)
 	  html[#html+1] =	'<table>'
@@ -346,7 +354,6 @@ ngx.print(ui_helper.createHeader(T"Traffic Monitor", false, true) ); ngx.print('
       html[#html+1] =  "</ul>"
 	  html[#html+1] =  '<div style="height:400px"><canvas id="WiFiChart"></canvas></div>'
 	  html[#html+1] = "</fieldset>"
-	  html[#html+1] = "</div>"
 	  ngx.print(html)
 	  
 	  ngx.print('\
@@ -398,10 +405,13 @@ function formatBytes(bytes,decimals) {\
    if(bytes == 0) return "0 Bytes";\
 	var k = 1024,\
     dm = decimals || 2,\
-    sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"],\
+    sizes = ["Bytes", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"],\
     i = Math.floor(Math.log(bytes) / Math.log(k));\
    return (bytes / Math.pow(k, i)) > 0 ? parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + ( i > -1 ? sizes[i] : "bits") : null;\
-}\
+};\
+$(".traffic_data").each(function() {\
+	$(this).text(formatBytes($(this).text(),2));\
+});\
 var TrafficChartOption = {\
 		maintainAspectRatio: false,\
         legend: {display: false},\
