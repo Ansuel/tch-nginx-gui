@@ -362,6 +362,7 @@ local content = {
   activeversion = "sys.banktable.activeversion",
   passiveversion = "sys.banktable.passiveversion",
   rip_key_B = "rpc.system.modgui.utility.rip_key_B",
+  schedule_reboot_get = "uci.system.scheduledreboot.enabled"
 }
 
 content_helper.getExactContent(content)
@@ -741,24 +742,45 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
             class = "no-save",
         }
     }
+	
+	local system_time = {
+		span = {
+          class = "span5",
+		  id = "system_time"
+        },
+	}
+	
+	local schedule_reboot = {
+		button = {
+          id = "btn-schedule-reboot"
+        }
+	}
+	
+	local schedule_fail = {
+		alert = {
+          class = "alert-error hide",
+          id = "schedule-failed-msg"
+        }
+	}
 
-      local html = {}
-      html[#html + 1] = ui_helper.createLabel(T"Product Vendor", content["vendor"], basic)
-      html[#html + 1] = ui_helper.createLabel(T"Product Name", content["product_name"], basic)
-      html[#html + 1] = ui_helper.createLabel(T"Software Version", content["firmware_version"], basic)
-	  html[#html + 1] = ui_helper.createLabel(T"Hostname", system_data["system_hostname"], advancedshow )
-	  html[#html + 1] = ui_helper.createInputText(T"Hostname", "system_hostname", system_data["system_hostname"], advanced , system_helpmsg["system_hostname"] )
-      --html[#html + 1] = ui_helper.createLabel(T"Firmware Version", content["firmware_version"], basic)
-	  html[#html + 1] = ui_helper.createLabel(T"Datapump Version", content["dsl_firmware"], basic)
-      html[#html + 1] = ui_helper.createLabel(T"Firmware OID", content["firmware_oid"], basic)
-      html[#html + 1] = ui_helper.createLabel(T"Bootloader Version", content["bootloader_version"], long_basic)
-      html[#html + 1] = ui_helper.createLabel(T"Bootloader OID", content["bootloader_oid"], basic)
-      html[#html + 1] = ui_helper.createLabel(T"Hardware Version", content["hardware_version"], basic)
-      html[#html + 1] = ui_helper.createLabel(T"Serial Number", content["serial_number"], basic)
-      html[#html + 1] = ui_helper.createLabel(T"MAC Address", content["mac_address"], basic)
-      html[#html + 1] = ui_helper.createLabel(T"Uptime", post_helper.secondsToTime(content["uptime"]), basic)
-      html[#html + 1] = ui_helper.createLabel(T"System Time", content["system_time"], basic)
---      html[#html + 1] = ui_helper.createInputSelect(T"Timezone", "system_timezone", timezones, system_data["system_timezone"], basic)
+    local html = {}
+    html[#html + 1] = ui_helper.createLabel(T"Product Vendor", content["vendor"], basic)
+    html[#html + 1] = ui_helper.createLabel(T"Product Name", content["product_name"], basic)
+    html[#html + 1] = ui_helper.createLabel(T"Software Version", content["firmware_version"], basic)
+	html[#html + 1] = ui_helper.createLabel(T"Hostname", system_data["system_hostname"], advancedshow )
+	html[#html + 1] = ui_helper.createInputText(T"Hostname", "system_hostname", system_data["system_hostname"], advanced , system_helpmsg["system_hostname"] )
+    --html[#html + 1] = ui_helper.createLabel(T"Firmware Version", content["firmware_version"], basic)
+	html[#html + 1] = ui_helper.createLabel(T"Datapump Version", content["dsl_firmware"], basic)
+    html[#html + 1] = ui_helper.createLabel(T"Firmware OID", content["firmware_oid"], basic)
+    html[#html + 1] = ui_helper.createLabel(T"Bootloader Version", content["bootloader_version"], long_basic)
+    html[#html + 1] = ui_helper.createLabel(T"Bootloader OID", content["bootloader_oid"], basic)
+    html[#html + 1] = ui_helper.createLabel(T"Hardware Version", content["hardware_version"], basic)
+    html[#html + 1] = ui_helper.createLabel(T"Serial Number", content["serial_number"], basic)
+    html[#html + 1] = ui_helper.createLabel(T"MAC Address", content["mac_address"], basic)
+    html[#html + 1] = ui_helper.createLabel(T"Uptime", post_helper.secondsToTime(content["uptime"]), basic)
+    html[#html + 1] = ui_helper.createLabel(T"System Time", content["system_time"], system_time)
+--  html[#html + 1] = ui_helper.createInputSelect(T"Timezone", "system_timezone", timezones, system_data["system_timezone"], basic)
+
 	if tech then
       html[#html + 1] = ui_helper.createSwitch(T"Network Timezone", "system_network_timezone", system_data["system_network_timezone"], nw_enable_class)
       local currentTZ_remote = getTimeZoneName(timezones, true)
@@ -772,7 +794,9 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  end		
 	  html[#html + 1] = ui_helper.createLabel(T"Network Timezone", netTimez)
       html[#html + 1] = ui_helper.createLabel(T"Current Timezone", system_data["system_zonename"])
-      end
+    end
+	
+	if tech then
       -- NTP servers
       html[#html + 1] = format('<div class="control-group advanced hide"><label class="control-label">%s</label><div class="controls">', T"NTP servers")
       html[#html + 1] = ui_helper.createTable(ntp_columns, ntp_data, ntp_options, nil, ntp_helpmsg)
@@ -780,16 +804,14 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 
       html[#html + 1] = ui_helper.createAlertBlock(T"Restarting, please wait...", rebooting)
       html[#html + 1] = ui_helper.createButton(T"Restart Device", T"Restart", "icon-refresh", wait_for_reboot)
-      if role == "engineer" then
-        html[#html + 1] = '<div class="control-group">'
-        html[#html + 1] = format('<label class="control-label">%s</label>', T"Schedule Reboot")
-        html[#html + 1] = '<div class="controls">'
-        html[#html + 1] = '<input type="date"  name="date_schedule" id="date_schedule" ><input type="time" value="00:00"  name="time_schedule" id="time_schedule">&nbsp;'
-        html[#html + 1] =  ui_helper.createSimpleButton(T"Schedule Reboot", "icon-time", schedule_reboot)
-        html[#html + 1] = ui_helper.createAlertBlock(T"Schedule failed :  please select correct Time and date.", schedule_fail)
-        html[#html + 1] = '<label class="schedule_message_get hide">A Reboot has been Scheduled</label>'
-        html[#html + 1] = '</div></div>'
-      end
+      html[#html + 1] = '<div class="control-group">'
+      html[#html + 1] = format('<label class="control-label">%s</label>', T"Schedule Reboot")
+      html[#html + 1] = '<div class="controls">'
+      html[#html + 1] = '<input type="date"  name="date_schedule" id="date_schedule" ><input type="time" value="00:00"  name="time_schedule" id="time_schedule">&nbsp;'
+      html[#html + 1] =  ui_helper.createSimpleButton(T"Schedule Reboot", "icon-time", schedule_reboot)
+      html[#html + 1] = ui_helper.createAlertBlock(T"Schedule failed :  please select correct Time and date.", schedule_fail)
+      html[#html + 1] = '<label class="schedule_message_get alert alert-success hide">' .. T"A Reboot has been Scheduled" .. '</label>'
+      html[#html + 1] = '</div></div>'
       html[#html + 1] = ui_helper.createAlertBlock(T"Resetting to factory defaults, please wait...", resetting)
       html[#html + 1] = ui_helper.createButton(T"Factory Defaults", T"Reset", "icon-bolt", wait_for_reset)
       html[#html + 1] = ui_helper.createButton(T"Export Configuration", T"Export", "icon-download-alt", export_config)
@@ -808,32 +830,29 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       html[#html + 1] = ui_helper.createAlertBlock(T"Importing failed; Invalid file used: expected file with extension bin.  Please use correct file.", importing_wrong_ext_fail)
       html[#html + 1] = ui_helper.createAlertBlock(T"Importing failed; Invalid file used: file too large.  Please use correct.  Please use correct file..", importing_too_big_fail)
 
-	if tech then		 
-      if cui.upgradefw == "1" then
-        if cui.upgradefw == "1" then
-		  html[#html + 1] = ui_helper.createAlertBlock(T"Check this to remove config after firmware update.<br/>This won't remove root.<br/>It is advertised to check this if you are downgrading the firmware.", basic)
-		  html[#html + 1] = ui_helper.createInputCheckbox(T"Remove config file with upgrade","remove_conf_on_upgrade","0",reset_on_upgrade)
-		  html[#html + 1] = ui_helper.createAlertBlock(T"Check this to only root the modem after the firmware is installed.<br/>After this you had to reinstall the gui.<br/>Expect the web interface to be broken after the upgrade", basic)
-		  html[#html + 1] = ui_helper.createInputCheckbox(T"Root only modem after upgrade","rootonly_on_upgrade","0",reset_on_upgrade)
-          html[#html + 1] = '</form><form class="form-horizontal" id="form-upgradefw" method="post" enctype="multipart/form-data">'
-          html[#html + 1] = '<div class="control-group">'
-          html[#html + 1] = format('<label class="control-label">%s</label>', T"Update firmware")
-          html[#html + 1] = '<div class="controls">'
-          html[#html + 1] = '<input type="file" name="upgradefile" id="file-upgradefw" accept=".rbi, .fw">&nbsp;'
-          html[#html + 1] = ui_helper.createSimpleButton(T"Update", "icon-shield", upgradefw)
-          html[#html + 1] = '</div></div>'
-          html[#html + 1] = ui_helper.createAlertBlock(T"No file selected.", upgrading_nofile)
-          html[#html + 1] = ui_helper.createAlertBlock(T"Uploading firmware, please wait...", upgrading_transfer)
-          html[#html + 1] = ui_helper.createAlertBlock(T"Firmware update in progress, please wait...", upgrading_busy)
-          html[#html + 1] = ui_helper.createAlertBlock("", upgrading_fail)
-          html[#html + 1] = ui_helper.createAlertBlock(T"Firmware update failed.  Invalid file used: expected file with extension rbi.  Please use correct firmware.", upgrading_wrong_ext_fail)
-          html[#html + 1] = ui_helper.createAlertBlock(T"Firmware update failed.  Invalid file used: file too large.  Please use correct firmware.", upgrading_too_big_fail)
-		  html[#html + 1] = '</form>'
-		  html[#html + 1] = '<form class="form-horizontal">'
-        end
-	  end
+	  html[#html + 1] = ui_helper.createAlertBlock(T"Check this to remove config after firmware update.<br/>This won't remove root.<br/>It is advertised to check this if you are downgrading the firmware.", basic)
+	  html[#html + 1] = ui_helper.createInputCheckbox(T"Remove config file with upgrade","remove_conf_on_upgrade","0",reset_on_upgrade)
+	  html[#html + 1] = ui_helper.createAlertBlock(T"Check this to only root the modem after the firmware is installed.<br/>After this you had to reinstall the gui.<br/>Expect the web interface to be broken after the upgrade", basic)
+	  html[#html + 1] = ui_helper.createInputCheckbox(T"Root only modem after upgrade","rootonly_on_upgrade","0",reset_on_upgrade)
+	  html[#html + 1] = '</form><form class="form-horizontal" id="form-upgradefw" method="post" enctype="multipart/form-data">'
+	  html[#html + 1] = '<div class="control-group">'
+	  html[#html + 1] = format('<label class="control-label">%s</label>', T"Update firmware")
+	  html[#html + 1] = '<div class="controls">'
+	  html[#html + 1] = '<input type="file" name="upgradefile" id="file-upgradefw" accept=".rbi, .fw">&nbsp;'
+	  html[#html + 1] = ui_helper.createSimpleButton(T"Update", "icon-shield", upgradefw)
+	  html[#html + 1] = '</div></div>'
+	  html[#html + 1] = ui_helper.createAlertBlock(T"No file selected.", upgrading_nofile)
+	  html[#html + 1] = ui_helper.createAlertBlock(T"Uploading firmware, please wait...", upgrading_transfer)
+	  html[#html + 1] = ui_helper.createAlertBlock(T"Firmware update in progress, please wait...", upgrading_busy)
+	  html[#html + 1] = ui_helper.createAlertBlock("", upgrading_fail)
+	  html[#html + 1] = ui_helper.createAlertBlock(T"Firmware update failed.  Invalid file used: expected file with extension rbi.  Please use correct firmware.", upgrading_wrong_ext_fail)
+	  html[#html + 1] = ui_helper.createAlertBlock(T"Firmware update failed.  Invalid file used: file too large.  Please use correct firmware.", upgrading_too_big_fail)
+	  html[#html + 1] = '</form>'
+	  html[#html + 1] = '<form class="form-horizontal">'
+
       html[#html + 1] = ui_helper.createLabel(T"ACS URL", content["acs_url"], basic)
-    end  
+    end
+	
 	ngx.print(html)
 
     local html = {}
@@ -914,8 +933,11 @@ ngx.print('\
    var _time = $("#time_schedule").val();\
    schedule_time = $("#date_schedule").val()+"T"+$("#time_schedule").val()+":00Z" ;\
    var temp =  $("#system_time").text();\
+   console.log(temp);\
    var timeformat = temp.split(" ");\
    temp = timeformat[0]+"T"+timeformat[1]+"Z";\
+   console.log(temp);\
+   console.log(schedule_time);\
    if((( _date && _time) != "") &&( temp < schedule_time))\
      {\
       $("#schedule-failed-msg").addClass("hide");\
