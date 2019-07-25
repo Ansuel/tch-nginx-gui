@@ -469,6 +469,18 @@ disable_tcp_Sack() {
 	fi
 }
 
+check_xtm_atmwan() {
+	if [ -z "$(uci -q get xtm.atmwan)" ]; then
+		uci set xtm.atmwan=atmdevice
+		uci set xtm.atmwan.ulp='eth'
+		uci set xtm.atmwan.vpi='8'
+		uci set xtm.atmwan.vci='35'
+		uci set xtm.atmwan.path='fast'
+		uci set xtm.atmwan.enc='llc'
+		uci commit
+	fi
+}
+
 #THIS CHECK DEVICE TYPE AND INSTALL SPECIFIC FILE
 device_type="$(uci get -q env.var.prod_friendly_name)"
 kernel_ver="$(cat /proc/version | awk '{print $3}')"
@@ -499,6 +511,8 @@ logger_command "Checking if ISP is detected..."
 check_isp_and_cwmp
 logger_command "Apply CVE 2019-11477 workaround"
 disable_tcp_Sack
+logger_command "Check atmdevice interface in xtm"
+check_xtm_atmwan
 
 logger_command "Restarting dnsmasq if needed..."
 if [ $restart_dnsmasq -eq 1 ]; then
