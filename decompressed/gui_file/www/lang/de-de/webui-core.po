@@ -4731,3 +4731,6 @@ msgstr ""
 
 msgid "Total Receive"
 msgstr ""
+
+msgid "DNS Used"
+msgstr ""
