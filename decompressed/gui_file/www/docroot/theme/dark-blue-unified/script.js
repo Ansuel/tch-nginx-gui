@@ -92,6 +92,7 @@ $(document).ready(function() {
 			FocussedCard.hide();
 			CloneFocussedCard.toggleClass("hovered");
 			$("body").append(CloneFocussedCard);
+			$("body").css("overflow", "hidden");
 		}
 	});
 	$(document).on("click", "#cardrow > .span3 > .smallcard > .header > .header-title", function(e) {
@@ -119,8 +120,6 @@ $(document).ready(function() {
 			if ($('.header-logo').is(":visible")) {
 				checkMenuHideShow();
 			}
-		} else {
-			$("body").css("overflow", "hidden");
 		}
 	});
 	$(window).on('hidden.bs.modal', function() {
