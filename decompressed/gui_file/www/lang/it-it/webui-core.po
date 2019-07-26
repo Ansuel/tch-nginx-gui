@@ -1229,7 +1229,7 @@ msgid "Global Information"
 msgstr "Informazioni generali"
 
 msgid "Go to the gateway tab and click on the Update button, to autoupdate to the new GUI."
-msgstr "Per aggiornare automaticamente alla nuova GUI vai nella scheda 'Modem' e fai clic sul pulsante 'Aggiorna'."
+msgstr "Per aggiornare automaticamente alla nuova GUI vai nella scheda 'GUI' e fai clic sul pulsante 'Aggiorna'."
 
 msgid "OK"
 msgstr "OK"
@@ -3550,7 +3550,7 @@ msgid "Upstream CRC"
 msgstr "CRC upstream"
 
 msgid "Go to the gateway tab and click on the Update button, to autoupgrade to the new GUI."
-msgstr "Per aggiornare la GUI vai nella scheda 'Modem' e fai clic sul pulsante 'Aggiorna'."
+msgstr "Per aggiornare la GUI vai nella scheda 'GUI' e fai clic sul pulsante 'Aggiorna'."
 
 msgid "70%"
 msgstr "70%"
@@ -4709,25 +4709,25 @@ msgid "Fast Radio Toggle"
 msgstr "ON/OFF rapido radio"
 
 msgid "Force Radio Down"
-msgstr "Forza OFF radio"
+msgstr "Forza radio OFF"
 
 msgid "Dark Blue Unified UI"
 msgstr "UI unificata blu scuro"
 
 msgid "Total Send"
-msgstr ""
+msgstr "Totale inviati"
 
 msgid "VendorID"
-msgstr ""
+msgstr "ID produttore"
 
 msgid "A Reboot has been Scheduled"
-msgstr ""
+msgstr "È stato pianificato un riavvio"
 
 msgid "Total Mixed"
-msgstr ""
+msgstr "Totale misti"
 
 msgid "Total Receive"
-msgstr ""
+msgstr "Totali ricevuti"
 
 msgid "DNS Used"
-msgstr ""
+msgstr "DNS usati"
