@@ -74,7 +74,7 @@ local dyn_route_options = {
 
 local dyn_route_data, dyn_route_helpmsg = post_helper.handleTableQuery(dyn_route_columns, dyn_route_options)
 
-function split(x, sep)
+local function split(x, sep)
     local sep, fields = sep or ":", {}
     local pattern = string.format("([^%s]+)", sep)
     for field in x:gmatch(pattern) do
@@ -83,7 +83,6 @@ function split(x, sep)
     return fields
 end
 
-local dns_data = {}
 local network_rpc_path = "rpc.network.interface."
 local network_rpc_content = content_helper.getMatchedContent (network_rpc_path)
 
@@ -91,10 +90,6 @@ local wan_intfs = {}
 for _, v in ipairs (network_rpc_content) do
    local path = split(split(format("%s",v.path),"@")[2],".")
    if v.type == "wan" or v.type == "lan" then
-     if v.dnsservers then
-       local dns_column = split(v.dnsservers, ",")
-       dns_data[#dns_data+1] = {path[1],dns_column[1] or "",dns_column[2] or "",dns_column[3] or ""}
-     end
      if v.proto ~= "dhcpv6" and v.proto ~= "6rd" then
        wan_intfs[#wan_intfs+1] = { path[1], T(path[1]) }
      end
@@ -185,39 +180,68 @@ local static_route_data, static_route_helpmsg = post_helper.handleTableQuery(sta
 local dns_columns = {
   {
     header = T"Interface",
-    name = "Iface",
-    param = "Iface",
+    name = "Ifname",
+    param = "Ifname",
     type = "text",
     readonly = true,
     attr = { input = { class="span2 centered" } },
   },
   {
-    header = T"DNS Server 1",
+    header = T"DNS Used",
+	name = "dnsservers",
+	param = "dnsservers",
     type = "text",
     readonly = true,
     attr = { input = { class="span2 centered" } },
   },
   {
-    header = T"DNS Server 2",
+    header = T"Custom DNS",
+	name = "static_dns_servers",
+	param = "static_dns_servers",
     type = "text",
-    readonly = true,
-    attr = { input = { class="span2 centered" } },
-  },
-  {
-    header = T"DNS Server 3",
-    type = "text",
-    readonly = true,
     attr = { input = { class="span2 centered" } },
   },
 }
 
 local dns_options = {
-    canEdit = false,
+    canEdit = true,
     canAdd = false,
     canDelete = false,
     tableid = "dnsinfo",
     basepath = "rpc.network.interface.",
 }
+
+local function validateCustoDns(value, object, key)
+	
+	local ret, err
+	local servers = split(value,",")
+	for _, server in pairs(servers) do
+		ret, err = vSII(server)
+		if not ret then
+			return nil, err
+		end
+	end
+
+	return true
+end
+
+local dns_valid = {
+	static_dns_servers = validateCustoDns,
+}
+
+local dns_filer = function(data)
+
+	if data.type == "wan" or data.type == "lan" then
+
+		data.Ifname = data.paramindex:gsub("^@","")
+
+		return true
+	end
+
+	return false
+end
+
+local dns_data, dns_helpmsg = post_helper.handleTableQuery(dns_columns, dns_options, dns_filer,nil,dns_valid)
   ngx.print('\
 \
 ');  ngx.print(ui_helper.createHeader(T"IP Extras", false, true))   ngx.print('\
@@ -254,7 +278,7 @@ ngx.print('\
       <legend>');  ngx.print( T"DNS" ); ngx.print('</legend>\
       ');  
         ngx.print(
-          ui_helper.createTable(dns_columns, dns_data, dns_options, nil , nil)
+          ui_helper.createTable(dns_columns, dns_data, dns_options, nil , dns_helpmsg)
         )
         ngx.print('\
     </fieldset>\
