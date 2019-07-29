@@ -4,7 +4,7 @@ MD5_CHECK_DIR=/tmp/md5check
 	
 [ ! -d $MD5_CHECK_DIR ] && mkdir $MD5_CHECK_DIR
 
-for file in /tmp/upgrade-pack-specificTG789; do
+for file in /tmp/upgrade-pack-specificDGA; do
 	
 	if [ ! -f $MD5_CHECK_DIR/$file ]; then
 		if [ ! -d /$file ]; then

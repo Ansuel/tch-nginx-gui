@@ -797,7 +797,7 @@ ngx.print('\
 	return false;\
   });\
 \
-  $("#btn-install-specificapp").on("click", function()) {\
+  $("#btn-install-specificapp").on("click", function() {\
 	$.post(target,{action: "system_install_specificapp", CSRFtoken: $("meta[name=CSRFtoken]").attr("content")},"","json");\
 	tch.showProgress("Installing...");\
 	scriptRequestStatusAjax();\

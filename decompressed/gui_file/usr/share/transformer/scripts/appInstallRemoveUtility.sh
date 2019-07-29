@@ -8,20 +8,21 @@ device_type="$(uci get -q env.var.prod_friendly_name)"
 install_from_github(){
     mkdir /tmp/$2
 	
-	if [ $3 == "raw" ]; then
+	if [ $3 == "specific_app" ]; then
 		if [ ! -f /tmp/$2.tar.bz2 ]; then
 			curl -sLk https://raw.githubusercontent.com/$1/$2 --output /tmp/$2.tar.bz2
 		fi
-		bzcat /tmp/$2.tar.bz2 | tar -C /tmp/$2 -xzf -
+		bzcat /tmp/$2.tar.bz2 | tar -C /tmp/$2 -xf -
+		rm /tmp/$2.tar.bz2
 	else
 		if [ ! -f /tmp/$2.tar.gz ]; then
 			curl -sLk https://github.com/$1/tarball/$2 --output /tmp/$2.tar.gz
 		fi
 		tar -xzf /tmp/$2.tar.gz -C /tmp/$2
+		rm /tmp/$2.tar.gz
 	fi
 	
-    rm /tmp/$2.tar.gz
-    cd /tmp/$2/*
+    cd /tmp/$2
     chmod +x ./setup.sh
 	./setup.sh
 	rm -r /tmp/$2
@@ -306,7 +307,7 @@ app_xupnp() {
 install_specific_files() {
 
 	install() {
-		install_from_github Ansuel/gui-dev-build-auto/master/modular upgrade-pack-specific$3 raw
+		install_from_github Ansuel/gui-dev-build-auto/master/modular upgrade-pack-specific$1 specific_app
 	}
 	remove() {
 		echo "Specific files cannot be removed. Reset the router instead."
@@ -314,7 +315,7 @@ install_specific_files() {
 	}
 
 	if [ $1 == "install" ]; then
-		install
+		install $2
 	else
 		remove
 	fi
