@@ -418,6 +418,7 @@ local app_list = {
 	"xupnp",
 	"telstra",
 	"amule",
+	"specific_app",
 }
 
 for _, app in ipairs(app_list) do
