@@ -43,62 +43,6 @@ extract_with_check() {
 	return $RESTART_SERVICE
 }
 
-apply_specific_DGA_package() {
-	logger_command "DGA device detected!"
-	logger_command "Extracting custom-ripdrv-specificDGA.tar.bz2 ..."
-	if [ -f /tmp/custom-ripdrv-specificDGA.tar.bz2 ]; then
-		bzcat /tmp/custom-ripdrv-specificDGA.tar.bz2 | tar -C / -xf -
-	fi
-	logger_command "Extracting telnet_support-specificDGA/TG800.tar.bz2 ..."
-	if [ -f /tmp/telnet_support-specificDGA.tar.bz2 ]; then
-		bzcat /tmp/telnet_support-specificDGA.tar.bz2 | tar -C / -xf -
-		if [ -f /bin/busybox_telnet ] && [ ! -h /usr/sbin/telnetd ]; then
-			ln -s /bin/busybox_telnet /usr/sbin/telnetd
-		fi
-	fi
-	logger_command "Extracting upgrade-pack-specificDGA.tar.bz2 ..."
-	if [ -f /tmp/upgrade-pack-specificDGA.tar.bz2 ]; then
-		bzcat /tmp/upgrade-pack-specificDGA.tar.bz2 | tar -C / -xf -
-	fi
-	logger_command "Extracting upnpfix-specificDGA.tar.bz2 ..."
-	if [ -f /tmp/upnpfix-specificDGA.tar.bz2 ]; then
-		bzcat /tmp/upnpfix-specificDGA.tar.bz2 | tar -C / -xf -
-	fi
-	logger_command "Extracting dlnad_supprto-specificDGA.tar.bz2 ..."
-	if [ -f /tmp/dlnad_supprto-specificDGA.tar.bz2 ]; then
-		if [ ! -f /usr/bin/dlnad ]; then
-			bzcat /tmp/dlnad_supprto-specificDGA.tar.bz2 | tar -C / -xf -
-		fi
-	fi
-	logger_command "Extracting wgetfix-specificDGA.tar.bz2 ..."
-	if [ -f /tmp/wgetfix-specificDGA.tar.bz2 ]; then
-		if [ ! "$(opkg info wget | grep Version | grep 1.17.1)" ]; then
-			bzcat /tmp/wgetfix-specificDGA.tar.bz2 | tar -C /tmp -xf -
-			opkg install /tmp/wget_1.17.1-1_brcm63xx-tch.ipk
-			rm /tmp/wget_1.17.1-1_brcm63xx-tch.ipk
-		fi
-	fi
-}
-
-apply_specific_TG800_package() {
-	logger_command "Extracting telnet_support-specificDGA/TG800.tar.bz2 ..."
-	if [ -f /tmp/telnet_support-specificDGA.tar.bz2 ]; then
-		bzcat /tmp/telnet_support-specificDGA.tar.bz2 | tar -C / -xf -
-	fi
-}
-
-install_specific() {
-	/usr/share/transformer/scripts/appInstallRemoveUtility.sh install specific_app $1
-}
-
-ledfw_extract() {
-	if [ -f "/tmp/ledfw_support-specific$1.tar.bz2" ]; then
-		logger_command "Extracting ledfw_support-specific$1.tar.bz2 ..."
-		extract_with_check "/tmp/ledfw_support-specific$1.tar.bz2"
-		[ $? -eq 1 ] && /usr/share/transformer/scripts/restart_leds.sh
-	fi
-}
-
 ledfw_rework_TG788() {
 	if [ ! "$(uci get -q button.info)" ] || [ "$(uci get -q button.info)" == "BTN_3" ]; then
 		logger_command "Setting up status (wifi) button..."
