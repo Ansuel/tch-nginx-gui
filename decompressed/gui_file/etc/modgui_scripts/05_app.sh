@@ -84,7 +84,23 @@ apply_right_opkg_repo() {
 	
 	opkg_file="/etc/opkg.conf"
 	
-	case $marketing_version in 
+	case $marketing_version in
+	"18.3"*)
+		if [ -z "$(  grep $opkg_file -e "roleo/public/agtef/1.1.0/brcm63xx-tch" )" ]; then
+			cat << EOF >> $opkg_file
+arch all 100
+arch brcm63xx 200
+arch brcm63xx-tch 300
+arch arm_cortex-a9 400
+src/gz chaos_calmer_base https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/base
+src/gz chaos_calmer_packages https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/packages 
+src/gz chaos_calmer_luci https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/luci              
+src/gz chaos_calmer_routing https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/routing    
+src/gz chaos_calmer_telephony https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/telephony
+src/gz chaos_calmer_management https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/management
+EOF
+		fi
+		;;
 	"17.3"*)
 		if [ -z "$(  grep $opkg_file -e "roleo/public/agtef/1.1.0/brcm63xx-tch" )" ]; then
 			cat << EOF >> $opkg_file
