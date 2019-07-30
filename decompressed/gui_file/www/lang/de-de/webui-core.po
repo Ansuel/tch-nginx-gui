@@ -4734,3 +4734,21 @@ msgstr ""
 
 msgid "DNS Used"
 msgstr ""
+
+msgid "Upload Specific App"
+msgstr ""
+
+msgid "Specific App are already Installed"
+msgstr ""
+
+msgid "Specific App"
+msgstr ""
+
+msgid "If you don't have connection, specific app can be downloaded here ( https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/modular/upgrade-pack-specific"
+msgstr ""
+
+msgid "Install Specific App Online"
+msgstr ""
+
+msgid "Specific App are package that adds additional function to the modem, like telnet support or some fix to default package"
+msgstr ""
