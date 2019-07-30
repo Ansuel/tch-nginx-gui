@@ -86,7 +86,7 @@ apply_right_opkg_repo() {
 	
 	case $marketing_version in
 	"18.3"*)
-		if [ -z "$(  grep $opkg_file -e "roleo/public/agtef/1.1.0/brcm63xx-tch" )" ]; then
+		if [ -z "$(  grep $opkg_file -e "Ansuel/GUI_ipk/kernel-4.1" )" ]; then
 			cat << EOF >> $opkg_file
 arch all 100
 arch brcm63xx 200
