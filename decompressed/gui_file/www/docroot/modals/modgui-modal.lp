@@ -450,6 +450,7 @@ ngx.print('\
 		}
 	  }
 		
+		html[#html + 1] = '<div class="RemoveOnUpgrade">'
 		html[#html + 1] = '<form class="form-horizontal" id="form-import-specificapp" method="post" action="modals/modgui-modal.lp?action=installspecificapp" enctype="multipart/form-data">'
 		html[#html + 1] = '<legend>'.. T"Specific App" ..'</legend>'
 			html[#html + 1] = ui_helper.createAlertBlock(T"Specific App are package that adds additional function to the modem, like telnet support or some fix to default package", info_box)
@@ -477,7 +478,6 @@ ngx.print('\
 	
 	local html = {}
 	html[#html + 1] = '<form  class="form-horizontal">'
-	html[#html + 1] = '<div class="RemoveOnUpgrade">'
   html[#html + 1] = '<legend>' .. T"Advanced Reset" .. '</legend>'
 	local reset_gui = {
 		group = {
