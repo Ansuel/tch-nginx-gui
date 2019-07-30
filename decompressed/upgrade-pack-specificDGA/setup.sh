@@ -59,9 +59,8 @@ fi
 
 elif [ -z "${kernel_ver##4.1*}" ]; then
 
-	if [ ! -f /bin/busybox_telnet ]; then
-		opkg install /tmp/4.1_ipk/busybox_telnet_1.23.2-1_brcm63xx-tch.ipk
-	fi
+	#Install telnet, openssl-util and update openssl (for security reason)
+	opkg install /tmp/4.1_ipk/*
 	
 	if [ ! -f /etc/config/telnet ]; then
 		cp /tmp/telnet_orig /etc/config/telnet
