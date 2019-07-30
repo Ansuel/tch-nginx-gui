@@ -4752,3 +4752,6 @@ msgstr ""
 
 msgid "Specific App are package that adds additional function to the modem, like telnet support or some fix to default package"
 msgstr ""
+
+msgid "Specific App are not installed."
+msgstr ""
