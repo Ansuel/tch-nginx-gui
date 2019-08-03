@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: webui-core\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2019-01-21 14:38+0100\n"
+"PO-Revision-Date: 2019-08-03 16:24+0100\n"
 "Last-Translator: bovirus <bovirus@gmail.com>\n"
 "Language-Team: none\n"
 "Language: it\n"
@@ -1229,7 +1229,7 @@ msgid "Global Information"
 msgstr "Informazioni generali"
 
 msgid "Go to the gateway tab and click on the Update button, to autoupdate to the new GUI."
-msgstr "Per aggiornare automaticamente alla nuova GUI vai nella scheda 'Modem' e fai clic sul pulsante 'Aggiorna'."
+msgstr "Per aggiornare automaticamente alla nuova GUI vai nella scheda 'GUI' e fai clic sul pulsante 'Aggiorna'."
 
 msgid "OK"
 msgstr "OK"
@@ -3550,7 +3550,7 @@ msgid "Upstream CRC"
 msgstr "CRC upstream"
 
 msgid "Go to the gateway tab and click on the Update button, to autoupgrade to the new GUI."
-msgstr "Per aggiornare la GUI vai nella scheda 'Modem' e fai clic sul pulsante 'Aggiorna'."
+msgstr "Per aggiornare la GUI vai nella scheda 'GUI' e fai clic sul pulsante 'Aggiorna'."
 
 msgid "70%"
 msgstr "70%"
@@ -4709,46 +4709,46 @@ msgid "Fast Radio Toggle"
 msgstr "ON/OFF rapido radio"
 
 msgid "Force Radio Down"
-msgstr "Forza OFF radio"
+msgstr "Forza radio OFF"
 
 msgid "Dark Blue Unified UI"
 msgstr "UI unificata blu scuro"
 
 msgid "Total Send"
-msgstr ""
+msgstr "Totale inviati"
 
 msgid "VendorID"
-msgstr ""
+msgstr "ID produttore"
 
 msgid "A Reboot has been Scheduled"
-msgstr ""
+msgstr "È stato pianificato un riavvio"
 
 msgid "Total Mixed"
-msgstr ""
+msgstr "Totale misti"
 
 msgid "Total Receive"
-msgstr ""
+msgstr "Totale ricevuti"
 
 msgid "DNS Used"
-msgstr ""
+msgstr "DNS usati"
 
 msgid "Upload Specific App"
-msgstr ""
+msgstr "Upload app specifica"
 
 msgid "Specific App are already Installed"
-msgstr ""
+msgstr "App specifica già installata"
 
 msgid "Specific App"
-msgstr ""
+msgstr "App specifica"
 
 msgid "If you don't have connection, specific app can be downloaded here ( https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/modular/upgrade-pack-specific"
-msgstr ""
+msgstr "Se non hai una connessione l'app specifica può essere scaricata qui https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/modular/upgrade-pack-specific"
 
 msgid "Install Specific App Online"
-msgstr ""
+msgstr "Installa app specifica online"
 
 msgid "Specific App are package that adds additional function to the modem, like telnet support or some fix to default package"
-msgstr ""
+msgstr "Un'app specifica è un pacchetto che aggiunge funzionalità al modem come supporto telnet o correzioni al pacchetto predefinito"
 
 msgid "Specific App are not installed."
-msgstr ""
+msgstr "App specifica non installata."
