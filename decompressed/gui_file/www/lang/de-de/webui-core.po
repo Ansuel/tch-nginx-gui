@@ -4682,76 +4682,76 @@ msgid "Bypass Reg Domain Power Rule"
 msgstr "Umgehe Reg Domain Power Regel"
 
 msgid "Preview"
-msgstr ""
+msgstr "Vorschau"
 
 msgid "Priorirty"
-msgstr ""
+msgstr "Priorität"
 
 msgid "Normal"
-msgstr ""
+msgstr "Normal"
 
 msgid "Priority"
-msgstr ""
+msgstr "Priorität"
 
 msgid "Driver Version"
-msgstr ""
+msgstr "Treiberversion"
 
 msgid "Error. Re-set the rule!"
-msgstr ""
+msgstr "Fehler. Setzen Sie die Regel zurück!"
 
 msgid "Ambient LED"
-msgstr ""
+msgstr "Umgebungs LED"
 
 msgid "Single Rx Chain"
-msgstr ""
+msgstr "Einzelempfangskette"
 
 msgid "Country"
-msgstr ""
+msgstr "Land"
 
 msgid "Fast Radio Toggle"
-msgstr ""
+msgstr "Schneller Funkumschalter"
 
 msgid "Force Radio Down"
-msgstr ""
+msgstr "Erzwinge Funkabschaltung"
 
 msgid "Dark Blue Unified UI"
-msgstr ""
+msgstr "Dunkelblaue einheitliche Benutzeroberfläche"
 
 msgid "Total Send"
-msgstr ""
+msgstr "Summe gesendet"
 
 msgid "VendorID"
-msgstr ""
+msgstr "HerstellerID"
 
 msgid "A Reboot has been Scheduled"
-msgstr ""
+msgstr "Ein Neustart wurde geplant"
 
 msgid "Total Mixed"
-msgstr ""
+msgstr "Summe gemischt"
 
 msgid "Total Receive"
-msgstr ""
+msgstr "Summe empfangen "
 
 msgid "DNS Used"
-msgstr ""
+msgstr "Genutzer DNS"
 
 msgid "Upload Specific App"
-msgstr ""
+msgstr "Hochladen bestimmte App"
 
 msgid "Specific App are already Installed"
-msgstr ""
+msgstr "Bestimmte App ist schon installiert"
 
 msgid "Specific App"
-msgstr ""
+msgstr "Bestimmte App"
 
 msgid "If you don't have connection, specific app can be downloaded here ( https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/modular/upgrade-pack-specific"
-msgstr ""
+msgstr "Wenn Sie keine Verbindung haben, kann die bestimmte App hier heruntergeladen werden ( https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/modular/upgrade-pack-specific"
 
 msgid "Install Specific App Online"
-msgstr ""
+msgstr "Installieren bestimmte App Online"
 
 msgid "Specific App are package that adds additional function to the modem, like telnet support or some fix to default package"
-msgstr ""
+msgstr "Bestimmte App ist ein Paket, das Zusatzfunktionen installiert, wie TELNET-Unterstützung oder Modifikationen am Standardpaket"
 
 msgid "Specific App are not installed."
-msgstr ""
+msgstr "Bestimmte App ist nicht installiert."
