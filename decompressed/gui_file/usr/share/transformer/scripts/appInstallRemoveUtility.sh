@@ -23,9 +23,9 @@ install_from_github(){
 		rm /tmp/$2.tar.gz
 	fi
 	
-    cd /tmp/$2
-    chmod +x ./setup.sh "$4"
-	./setup.sh
+    cd /tmp/$2/*
+    chmod +x ./setup.sh
+	./setup.sh  "$4"
 	rm -r /tmp/$2
 }
 

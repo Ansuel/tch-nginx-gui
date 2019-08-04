@@ -403,7 +403,7 @@ local SYSTEM_MODGUI_APP_ = {
                 type = "boolean",
             },
 	  refresh_blacklist = {
-				access = "readOnly",
+				access = "readWrite",
 				type = "boolean"
 	  },
     }
