@@ -272,7 +272,8 @@ local mapParams = {
   gui_skin_firstpage = "uci.modgui.gui.firstpage",
   gui_randomcolor = "uci.modgui.gui.randomcolor",
   gui_alwaysadvanced = "uci.web.uiconfig.@uidefault.alwaysadvanced",
-  gui_animation = "uci.modgui.gui.gui_animation"
+  gui_forcehttps = "uci.web.sessionmgr.@default.force_https",
+  gui_animation = "uci.modgui.gui.gui_animation",
 }
 
 local mapValid = {
@@ -283,6 +284,7 @@ local mapValid = {
   gui_skin_firstpage = post_helper.getValidateInEnumSelect(gui_skin_firstpage_page),
   gui_randomcolor = vB,
   gui_alwaysadvanced = vB,
+  gui_forcehttps = vB,
   gui_animation = vB,
 }
 
@@ -312,6 +314,7 @@ ngx.print('\
 	html[#html + 1] = ui_helper.createInputSelect(T"GUI Skin", "gui_skin", gui_skin_option, modgui_settings["gui_skin"])
 	html[#html + 1] = ui_helper.createInputSelect(T"GUI First Page", "gui_skin_firstpage", gui_skin_firstpage_page, modgui_settings["gui_skin_firstpage"])
 	html[#html + 1] = ui_helper.createSwitch(T"Random Color", "gui_randomcolor", modgui_settings["gui_randomcolor"])
+	html[#html + 1] = ui_helper.createSwitch(T"Force HTTPS to access the gui", "gui_forcehttps", modgui_settings["gui_forcehttps"])
 	html[#html + 1] = ui_helper.createSwitch(T"Always show advanced options", "gui_alwaysadvanced", modgui_settings["gui_alwaysadvanced"])
 	html[#html + 1] = ui_helper.createSwitch(T"GUI animations", "gui_animation", modgui_settings["gui_animation"])
 	ngx.print(html)
@@ -625,6 +628,10 @@ ngx.print('\
 	} else {\
 		schedulReload = true;\
 	}\
+  });\
+\
+  $("#gui_forcehttps").on("change", function() {\
+	schedulReload = true;\
   });\
 \
   $("#save-config").on("click", function() {\
