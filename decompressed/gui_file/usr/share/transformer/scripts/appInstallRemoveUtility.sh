@@ -5,6 +5,7 @@ device_type="$(uci get -q env.var.prod_friendly_name)"
 #  1st arg : directory
 #  2nd arg : pkg name
 #  3rd arg : raw or normal. Raw is used to download specific file from specific dir
+#  4th arg : addtional command to append to setup.sh (usefull if setup.sh contains also uninstall command)
 install_from_github(){
     mkdir /tmp/$2
 	
@@ -23,7 +24,7 @@ install_from_github(){
 	fi
 	
     cd /tmp/$2
-    chmod +x ./setup.sh
+    chmod +x ./setup.sh "$4"
 	./setup.sh
 	rm -r /tmp/$2
 }
@@ -254,27 +255,10 @@ app_aria2() {
 
 app_blacklist() {
 	install() {
-		wget -P /tmp http://blacklist.satellitar.it/repository/install_blacklist.sh
-
-		cd /tmp
-		
-		chmod u+x ./install_blacklist.sh 
-		
-		if [ $2 == "empty" ]; then
-			./install_blacklist.sh update
-		else
-			./install_blacklist.sh
-		fi
-		
-		rm ./install_blacklist.sh
+		install_from_github Ansuel/blacklist master normal $2
 	}
 	remove() {
-		wget -P /tmp http://blacklist.satellitar.it/repository/blacklist.latest.tar.gz
-		tar -zxvf /tmp/blacklist.latest.tar.gz -C /tmp
-		cd /tmp/blacklist.latest
-		./uninstall.sh
-		rm /tmp/blacklist.latest.tar.gz
-		rm -r /tmp/blacklist.latest
+		install_from_github Ansuel/blacklist master normal remove
 	}
 
 	if [ $1 == "install" ]; then
