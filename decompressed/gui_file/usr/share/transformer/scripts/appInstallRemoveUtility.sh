@@ -205,11 +205,11 @@ app_aria2() {
 	install() {
 		install_DGA() {
 			opkg update
-			opkg install unzip aria2 libstdcpp
-			wget https://github.com/mayswind/AriaNg-DailyBuild/archive/master.zip -P /tmp
-			unzip /tmp/master.zip -d /www/docroot/
-			rm /tmp/master.zip
-			mv /www/docroot/AriaNg-DailyBuild-master /www/docroot/aria
+			opkg install aria2 libstdcpp
+			curl -sLk https://github.com/mayswind/AriaNg-DailyBuild/tarball/master --output /tmp/ariang.tar.gz
+			tar -xzf /tmp/ariang.tar.gz -C /www/docroot/
+			rm /tmp/ariang.tar.gz
+			mv /www/docroot/*AriaNg* /www/docroot/aria
 		
 			ARIA2_DIR="/etc/aria2"
 		
