@@ -144,22 +144,22 @@ remove_downgrade_bit() {
 
 install_specific() {
 	/usr/share/transformer/scripts/appInstallRemoveUtility.sh install specific_app $1
+	uci set modgui.app.specific_app="1"
 }
 
 #THIS CHECK DEVICE TYPE AND INSTALL SPECIFIC FILE
 device_type="$(uci get -q env.var.prod_friendly_name)"
 kernel_ver="$(cat /proc/version | awk '{print $3}')"
 
+uci set modgui.app.specific_app="0"
 if ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then
 	logger_command "Applying specific model fixes..."
-	[ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*DGA413*}" ] && install_specific DGA
+	[ -z "${device_type##*DGA413*}" ] && install_specific DGA
 	[ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG789*}" ] && install_specific TG789
 	[ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG799*}" ] && install_specific TG789
 	[ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG800*}" ] && install_specific TG800
-	uci set modgui.app.specific_app="1"
 else
 	logger_command "No connection detected, install specific upgrade pack manually!"
-	uci set modgui.app.specific_app="0"
 fi
 
 uci commit modgui
