@@ -402,12 +402,17 @@ local SYSTEM_MODGUI_APP_ = {
                 access = "readWrite",
                 type = "boolean",
             }
+	  refresh_blacklist = {
+				access = "readOnly",
+				type = "boolean"
+	  }
     }
   }
 }
 
 SYSTEM_MODGUI_APP_.get = {
-		install_emptyblacklist = "0"
+		install_emptyblacklist = "0",
+		refresh_blacklist = "0",
 }
 
 local app_list = {
