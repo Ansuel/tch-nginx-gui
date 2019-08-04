@@ -29,7 +29,7 @@ local function getLedMixStatus(red, green, blue)
   if green then
     gStatus = M.getLedStatus(green.trigger, green.brightness)
   end
-  if blue then 
+  if blue then
     bStatus = M.getLedStatus(blue.trigger, blue.brightness)
   end
   if rStatus == "Blinking" or gStatus == "Blinking" or bStatus == "Blinking" then
@@ -139,23 +139,32 @@ local function getLedMixBrightness(red, green, blue)
     rLevel = M.getLedLevel(red.brightness, red.max_brightness)
     leddivider = leddivider + 1
     ledtotal = ledtotal + rLevel
+    if ((green == nil or green.brightness==0) and (blue == nil or blue.brightness==0)) then
+      return rLevel.."%"
+    end
   end
   if green then
     gLevel = M.getLedLevel(green.brightness, green.max_brightness)
     leddivider = leddivider + 1
     ledtotal = ledtotal + gLevel
+    if ((red == nil or red.brightness==0) and (blue == nil or blue.brightness==0)) then
+      return gLevel.."%"
+    end
   end
   if blue then
     bLevel = M.getLedLevel(blue.brightness, blue.max_brightness)
     leddivider = leddivider + 1
     ledtotal = ledtotal + bLevel
+    if ((green == nil or green.brightness==0) and (red == nil or red.brightness==0)) then
+      return bLevel.."%"
+    end
   end
-  local rounded = (ledtotal/leddivider) - ((ledtotal/leddivider) % 1)
+  local rounded = ledtotal/leddivider
   return rounded.."%"
 end
 
 --- Get all the leds information from path /sys/class/leds/
--- @return #table led info 
+-- @return #table led info
 function M.getLedsInfo()
   local ledsInfo = {}
   if not isDir(ledPath) then
@@ -169,7 +178,7 @@ function M.getLedsInfo()
         ledsInfo[name] = {}
       end
       ledsInfo[name][color] = {}
-      local ledFile = ledPath .. file 
+      local ledFile = ledPath .. file
       if lfs.attributes(ledFile, "mode") == "directory" then
         local fd = open(ledFile .. "/trigger", "r")
         if not fd then
@@ -219,7 +228,7 @@ function M.getLedsInfo()
         greenInfo = v2
       elseif k2 == "blue" then
         blueInfo = v2
-      elseif k2 == "white" then
+      elseif k2 == "white" and v1["red"] == nil and v1["green"] == nil and v1["blue"] == nil then --needed for ambient led of DGA4131FWB
         redInfo = v2
         greenInfo = v2
         blueInfo = v2
