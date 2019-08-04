@@ -86,18 +86,21 @@ apply_right_opkg_repo() {
 	
 	case $marketing_version in
 	"18.3"*)
+		if [ -n "$(  grep $opkg_file -e "brcm63xx-tch" )" ]; then
+			rm /etc/opkg.conf
+			cp /rom/etc/opkg.conf /etc/
+		fi
 		if [ -z "$(  grep $opkg_file -e "Ansuel/GUI_ipk/kernel-4.1" )" ]; then
 			cat << EOF >> $opkg_file
 arch all 100
-arch brcm63xx 200
-arch brcm63xx-tch 300
-arch arm_cortex-a9 400
+arch arm_cortex-a9 200
+arch arm_cortex-a9_neon 300
 src/gz chaos_calmer_base https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/base
 src/gz chaos_calmer_packages https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/packages 
 src/gz chaos_calmer_luci https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/luci              
 src/gz chaos_calmer_routing https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/routing    
 src/gz chaos_calmer_telephony https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/telephony
-src/gz chaos_calmer_management https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/management
+src/gz chaos_calmer_core https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/target/packages
 EOF
 		fi
 		;;

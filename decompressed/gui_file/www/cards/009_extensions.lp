@@ -20,7 +20,7 @@ end
 local mapParams = {
 	telstra_webui = "uci.modgui.app.telstra_webui"
 }
-if prod_friendly_name and prod_friendly_name[1].value and marketing_version and marketing_version < 18 then
+--if prod_friendly_name and prod_friendly_name[1].value and marketing_version and marketing_version < 18 then
 	if prod_friendly_name[1].value:match("DGA413") or 
 		prod_friendly_name[1].value:match("TG7") then
 		mapParams.luci_webui = "uci.modgui.app.luci_webui"
@@ -36,7 +36,7 @@ if prod_friendly_name and prod_friendly_name[1].value and marketing_version and 
 			mapParams.xupnp_application = "uci.modgui.app.xupnp_app"
 		end
 	end
-end
+--end
 
 content_helper.getExactContent(mapParams)
 
