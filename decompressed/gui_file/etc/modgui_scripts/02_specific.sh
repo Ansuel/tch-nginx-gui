@@ -135,6 +135,10 @@ remove_downgrade_bit() {
 	fi
 }
 
+install_specific() {
+	/usr/share/transformer/scripts/appInstallRemoveUtility.sh install specific_app $1
+}
+
 #THIS CHECK DEVICE TYPE AND INSTALL SPECIFIC FILE
 device_type="$(uci get -q env.var.prod_friendly_name)"
 kernel_ver="$(cat /proc/version | awk '{print $3}')"

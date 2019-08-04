@@ -60,7 +60,7 @@ fi
 elif [ -z "${kernel_ver##4.1*}" ]; then
 
 	#Install telnet, openssl-util and update openssl (for security reason)
-	opkg install /tmp/4.1_ipk/*
+	opkg install /tmp/upgrade-pack-specificDGA/tmp/4.1_ipk/*
 	
 	if [ ! -f /etc/config/telnet ]; then
 		cp /tmp/telnet_orig /etc/config/telnet
@@ -70,5 +70,5 @@ elif [ -z "${kernel_ver##4.1*}" ]; then
 		ln -s /bin/busybox_telnet /usr/sbin/telnetd
 	fi
 	
-	rm -r /tmp/3.4_ipk /tmp/4.1_ipk
+	#rm -r /tmp/3.4_ipk /tmp/4.1_ipk
 fi
