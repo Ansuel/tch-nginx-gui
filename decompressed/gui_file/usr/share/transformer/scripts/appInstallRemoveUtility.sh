@@ -15,15 +15,16 @@ install_from_github(){
 		fi
 		bzcat /tmp/$2.tar.bz2 | tar -C /tmp/$2 -xf -
 		rm /tmp/$2.tar.bz2
+		cd /tmp/$2
 	else
 		if [ ! -f /tmp/$2.tar.gz ]; then
 			curl -sLk https://github.com/$1/tarball/$2 --output /tmp/$2.tar.gz
 		fi
 		tar -xzf /tmp/$2.tar.gz -C /tmp/$2
 		rm /tmp/$2.tar.gz
+		cd /tmp/$2/*
 	fi
 	
-    cd /tmp/$2/*
     chmod +x ./setup.sh
 	./setup.sh  "$4"
 	rm -r /tmp/$2
