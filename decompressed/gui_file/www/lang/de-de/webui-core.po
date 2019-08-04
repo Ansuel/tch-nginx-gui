@@ -4684,9 +4684,6 @@ msgstr "Umgehe Reg Domain Power Regel"
 msgid "Preview"
 msgstr "Vorschau"
 
-msgid "Priorirty"
-msgstr "Priorität"
-
 msgid "Normal"
 msgstr "Normal"
 
