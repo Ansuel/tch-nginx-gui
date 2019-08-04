@@ -401,11 +401,11 @@ local SYSTEM_MODGUI_APP_ = {
 	  install_emptyblacklist = {
                 access = "readWrite",
                 type = "boolean",
-            }
+            },
 	  refresh_blacklist = {
 				access = "readOnly",
 				type = "boolean"
-	  }
+	  },
     }
   }
 }
