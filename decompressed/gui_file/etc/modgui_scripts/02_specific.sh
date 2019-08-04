@@ -43,6 +43,13 @@ extract_with_check() {
 	return $RESTART_SERVICE
 }
 
+ledfw_extract() {
+	if [ -f "/tmp/ledfw_support-specific$1.tar.bz2" ]; then
+		extract_with_check "/tmp/ledfw_support-specific$1.tar.bz2"
+		[ $? -eq 1 ] && /usr/share/transformer/scripts/restart_leds.sh
+	fi
+}
+
 ledfw_rework_TG788() {
 	if [ ! "$(uci get -q button.info)" ] || [ "$(uci get -q button.info)" == "BTN_3" ]; then
 		logger_command "Setting up status (wifi) button..."
