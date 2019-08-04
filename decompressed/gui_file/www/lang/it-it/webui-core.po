@@ -4752,3 +4752,6 @@ msgstr "Un'app specifica è un pacchetto che aggiunge funzionalità al modem com
 
 msgid "Specific App are not installed."
 msgstr "App specifica non installata."
+
+msgid "Force HTTPS to access the gui"
+msgstr ""

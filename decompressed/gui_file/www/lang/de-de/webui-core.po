@@ -4752,3 +4752,6 @@ msgstr "Bestimmte App ist ein Paket, das Zusatzfunktionen installiert, wie TELNE
 
 msgid "Specific App are not installed."
 msgstr "Bestimmte App ist nicht installiert."
+
+msgid "Force HTTPS to access the gui"
+msgstr ""
