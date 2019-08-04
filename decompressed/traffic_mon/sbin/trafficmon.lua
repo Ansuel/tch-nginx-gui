@@ -218,7 +218,7 @@ local function collect_data(inizialize)
 end
 
 -- 10 minutes in millisc = 10 * 60 * 1000
-local delay_polling_time = 600000‬
+local delay_polling_time = 600000
 
 local function start_timer()
 	uloop.timer(

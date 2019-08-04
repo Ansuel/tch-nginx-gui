@@ -194,7 +194,7 @@ end
 uloop.init()
 
 -- 3 minutes in millisc = 3 * 60 * 1000
-local delay_polling_time = 180000‬
+local delay_polling_time = 180000
 
 local function start_timer()
 	uloop.timer(
