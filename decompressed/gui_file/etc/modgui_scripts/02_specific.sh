@@ -167,6 +167,8 @@ elif [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG799*}" ]; then
   install_specific TG789
 elif [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG800*}" ]; then
   install_specific TG800
+else
+  uci set modgui.app.specific_app="1" #no specific package for this device
 fi
 
 uci commit modgui
