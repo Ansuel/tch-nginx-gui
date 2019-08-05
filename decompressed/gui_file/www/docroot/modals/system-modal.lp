@@ -85,7 +85,7 @@ local function set_firewall(target)
    -- go through rules to find SSH-wan anonymous section name
    local rules = proxy.get("uci.firewall.rule.")
    for _,v in ipairs(rules) do
-      if v.param == "name" and untaint(v.value) == "SSH_wan" then
+      if v.param == "name" and (untaint(v.value) == "SSH_wan" or untaint(v.value) == "SSH-wan") then
          proxy.set(v.path.."target", target)
          return
       end
