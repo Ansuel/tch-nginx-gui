@@ -64,8 +64,7 @@ local cui = {
   autoupgrade_view = "uci.modgui.gui.autoupgradeview",
   firstpage = "uci.modgui.gui.firstpage",
   randomcolor = "uci.modgui.gui.randomcolor",
-  gui_animation = "uci.modgui.gui.gui_animation",
-  specific_app = "uci.modgui.app.specific_app",
+  gui_animation = "uci.modgui.gui.gui_animation"
 }
 
 content_helper.getExactContent(cui)
@@ -228,10 +227,6 @@ ngx.print('\
 	  upgrade_text = upgrade_text .. format(T" to version <strong>%s</strong> successfully",cui.gui_version)
       html[#html + 1] = ui_helper.createAlertBlock(upgrade_text,alert_upgrade_success)
     end
-	
-	if cui.specific_app == "0" then
-		html[#html + 1] = ui_helper.createAlertBlock(T"Specific App are not installed.",alert)
-	end
 	
 	if not session:isdefaultuser() and not session:retrieve("password_reminder_shown") and session:getusername() ~= assistant:username() then
 		local result = content_helper.getMatchedContent("uci.web.user.", {name = session.getusername()})

@@ -22,6 +22,8 @@ local marketing_version = proxy.get("uci.version.version.@version[0].marketing_v
 
 local prod_friendly_name = proxy.get("uci.env.var.prod_friendly_name")
 
+local specific_app = proxy.get("uci.modgui.app.specific_app")[1].value or "0"
+
 if marketing_version and marketing_version[1].value then
 	marketing_version = marketing_version[1].value:sub(1,4)
 else
@@ -108,7 +110,16 @@ local info_box = {
 		class = "alert alert-info",
 	}
 }
+local specific_box = {
+	alert = {
+		class = "alert-error"
+	}
+}
 local html = {}
+
+if specific_app == "0" then
+	html[#html + 1] = ui_helper.createAlertBlock(T"Specific App are not installed.",specific_box)
+end
 
 local btn_table = {}
 
