@@ -99,6 +99,7 @@ create_driver_setting() {
 dropbear_config_check() {
 	if [ ! "$(uci get -q dropbear.wan)" ]; then
 	  logger_command "Adding Dropbear wan config"
+	  uci set dropbear.wan=dropbear
 	  uci set dropbear.wan.Interface='wan'
     uci set dropbear.wan.RootLogin='1'
     uci set dropbear.wan.RootPasswordAuth='on' #dropbear root related
