@@ -3151,7 +3151,7 @@ msgstr "Telstra ist "
 msgid "Remove Telstra GUI"
 msgstr "Entferne Telstra GUI"
 
-msgid "Change the default page in system-extra to set this gui as default"
+msgid "Change the default page in system-extra to set this GUI as default"
 msgstr "Ändern Sie die Standardseite unter System-Extra, um dieses GUI als Standard zu setzen"
 
 msgid "Update blacklist app"
@@ -4753,5 +4753,5 @@ msgstr "Bestimmte App ist ein Paket, das Zusatzfunktionen installiert, wie TELNE
 msgid "Specific App are not installed."
 msgstr "Bestimmte App ist nicht installiert."
 
-msgid "Force HTTPS to access the gui"
+msgid "Force HTTPS to access the GUI"
 msgstr ""

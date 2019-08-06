@@ -288,7 +288,7 @@ if StateParams["telstra_webui"] ~= nil then
 	local telstra_gui = "/telstra-gui.lp"
 	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. telstra_gui .. '">' .. telstra_gui .."</a>"
 	html[#html+1] = "</br>"
-	html[#html+1] = T"Change the default page in system-extra to set this gui as default"
+	html[#html + 1] = T "Change the default page in system-extra to set this GUI as default"
 	html[#html+1] = "</br>"
 	if mapParams["telstra_webui"] and mapParams["telstra_webui"] == "1" then
 		html[#html+1] = ui_helper.createSimpleButton(T"Remove" .. " " .. T"Telstra GUI", "fa fa-times-circle", btn_table.telstra.remove)

@@ -3151,7 +3151,7 @@ msgstr "GUI Telstra "
 msgid "Remove Telstra GUI"
 msgstr "Rimuovi GUI Telstra"
 
-msgid "Change the default page in system-extra to set this gui as default"
+msgid "Change the default page in system-extra to set this GUI as default"
 msgstr "Per impostare questa GUI come predefinita modifica la pagina predefinita in 'Sistema' -> 'Extra'"
 
 msgid "Update blacklist app"
@@ -4753,5 +4753,5 @@ msgstr "Un'app specifica è un pacchetto che aggiunge funzionalità al modem com
 msgid "Specific App are not installed."
 msgstr "App specifica non installata."
 
-msgid "Force HTTPS to access the gui"
+msgid "Force HTTPS to access the GUI"
 msgstr "Forza HTTPS per accedere alla GUI"

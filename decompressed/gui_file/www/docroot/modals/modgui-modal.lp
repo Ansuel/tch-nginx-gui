@@ -314,7 +314,7 @@ ngx.print('\
 	html[#html + 1] = ui_helper.createInputSelect(T"GUI Skin", "gui_skin", gui_skin_option, modgui_settings["gui_skin"])
 	html[#html + 1] = ui_helper.createInputSelect(T"GUI First Page", "gui_skin_firstpage", gui_skin_firstpage_page, modgui_settings["gui_skin_firstpage"])
 	html[#html + 1] = ui_helper.createSwitch(T"Random Color", "gui_randomcolor", modgui_settings["gui_randomcolor"])
-	html[#html + 1] = ui_helper.createSwitch(T"Force HTTPS to access the gui", "gui_forcehttps", modgui_settings["gui_forcehttps"])
+html[#html + 1] = ui_helper.createSwitch(T "Force HTTPS to access the GUI", "gui_forcehttps", modgui_settings["gui_forcehttps"])
 	html[#html + 1] = ui_helper.createSwitch(T"Always show advanced options", "gui_alwaysadvanced", modgui_settings["gui_alwaysadvanced"])
 	html[#html + 1] = ui_helper.createSwitch(T"GUI animations", "gui_animation", modgui_settings["gui_animation"])
 	ngx.print(html)

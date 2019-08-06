@@ -2,16 +2,16 @@
 
 convert_gui_to_light_gz() {
 	mkdir /tmp/extractemp
-	bzcat /tmp/$1.tar.bz2 | tar -C /tmp/extractemp -xf -
+	bzcat "/tmp/$1.tar.bz2" | tar -C /tmp/extractemp -xf -
 	rm -r /tmp/extractemp/tmp
 	cd  /tmp/extractemp/
 	sync && echo 3 | tee /proc/sys/vm/drop_caches #free ram to avoid reboot
-	tar -zcf ../$1.tar.gz *
+	tar -zcf "../$1.tar.gz" "*"
 	cd ../../
-	md5sum /tmp/$1.tar.bz2 | awk '{ print $1}' > /root/gui_orig.md5sum
-	mv /tmp/$1.tar.gz /root/
+	md5sum "/tmp/$1.tar.bz2" | awk '{ print $1}' > /root/gui_orig.md5sum
+	mv "/tmp/$1.tar.gz" /root/
 	rm -r /tmp/extractemp
-	rm /tmp/$1.tar.bz2
+	rm "/tmp/$1.tar.bz2"
 }
 
 check_webui_config() {
@@ -104,6 +104,7 @@ dropbear_config_check() {
     uci set dropbear.wan.RootLogin='1'
     uci set dropbear.wan.RootPasswordAuth='on' #dropbear root related
     uci set dropbear.wan.PasswordAuth='on'
+    uci set dropbear.wan.Port='22'
     uci set dropbear.wan.enable='0'
 
     uci commit dropbear
@@ -453,11 +454,11 @@ cumulative_check_gui() {
 	fi
 	
 	
-	if [ $saved_gui_version != $version_gui ]; then
+	if [ "$saved_gui_version" != "$version_gui" ]; then
 		logger_command "Updating version saved to $version_gui"
-		uci set modgui.gui.gui_version=$version_gui
+		uci set modgui.gui.gui_version="$version_gui"
 	else
-		uci set modgui.gui.gui_version=$version_gui
+		uci set modgui.gui.gui_version="$version_gui"
 	fi
 
 	logger_command "Resetting version info..."
