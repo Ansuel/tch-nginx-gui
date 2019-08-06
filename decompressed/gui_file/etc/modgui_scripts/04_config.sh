@@ -96,15 +96,21 @@ create_driver_setting() {
 	fi
 }
 
-dropbear_file_check() {
-	#Check to see if the dropbear_new config file is present in /etc/config, if so then move it to /etc/config/dropbear
-	if [ -f /etc/config/dropbear_new ]; then
-		if [ "$(uci get -q dropbear.wan.enable)" ]; then
-			rm /etc/config/dropbear_new
-		else
-			rm /etc/config/dropbear
-			mv /etc/config/dropbear_new /etc/config/dropbear
-		fi
+dropbear_config_check() {
+	if [ ! "$(uci get -q dropbear.wan)" ]; then
+	  logger_command "Adding Dropbear wan config"
+	  uci set dropbear.wan.Interface='wan'
+    uci set dropbear.wan.RootLogin='1'
+    uci set dropbear.wan.RootPasswordAuth='on' #dropbear root related
+    uci set dropbear.wan.PasswordAuth='on'
+    uci set dropbear.wan.enable='0'
+
+    uci commit dropbear
+	fi
+	if [ "$(uci get dropbear.wan.RootLogin)" != "1" ]; then
+	  logger_command "Enabling Dropbear wan RootLogin"
+	  uci set dropbear.wan.RootLogin='1'
+    uci commit dropbear
 	fi
 }
 
@@ -541,7 +547,7 @@ check_uci_gui_skin #check css
 logger_command "Check driver setting"
 create_driver_setting #create diver setting if not present
 logger_command "Check Dropbear config file"
-dropbear_file_check  #check dropbear config
+dropbear_config_check  #check dropbear config
 logger_command "Check eco paramaters"
 eco_param #This disable eco param as they introduce some latency
 logger_command "Create GUI type in config"
