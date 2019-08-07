@@ -895,9 +895,6 @@ msgstr "Configurazione DNS"
 msgid "Domain's IP updated"
 msgstr "IP Dominio aggiornato"
 
-msgid "Don't report any bug, this is a custom gui! Some bugs could not be related to the current beta firmware."
-msgstr "Non segnalare nessun bug.<br/>Questa è una interfaccia grafica utente (GUI) personalizzata!<br/>Alcuni bug potrebbero non dipendere dal firmware beta attuale."
-
 msgid "DoS Protect"
 msgstr "Protezione DoS"
 
@@ -1227,9 +1224,6 @@ msgstr "Globale"
 
 msgid "Global Information"
 msgstr "Informazioni generali"
-
-msgid "Go to the gateway tab and click on the Update button, to autoupdate to the new GUI."
-msgstr "Per aggiornare automaticamente alla nuova GUI vai nella scheda 'GUI' e fai clic sul pulsante 'Aggiorna'."
 
 msgid "OK"
 msgstr "OK"
@@ -3549,7 +3543,7 @@ msgstr "L'indirizzo iniziale DHCP non deve essere l'IP del modem."
 msgid "Upstream CRC"
 msgstr "CRC upstream"
 
-msgid "Go to the gateway tab and click on the Update button, to autoupgrade to the new GUI."
+msgid "Go to the GUI tab and click on the Update button, to autoupgrade to the new GUI."
 msgstr "Per aggiornare la GUI vai nella scheda 'GUI' e fai clic sul pulsante 'Aggiorna'."
 
 msgid "70%"
@@ -4281,7 +4275,7 @@ msgstr "In corso/connessa"
 msgid "Unrooting and reverting to factory defaults, please wait..."
 msgstr "Rimozione root e ritorno ai valori predefiniti..."
 
-msgid "Resetting to default gui, please wait..."
+msgid "Resetting to default GUI, please wait..."
 msgstr "Ripristino GUI originale..."
 
 msgid "Connection issue: "
@@ -4585,7 +4579,7 @@ msgstr "TIM (Italia)"
 msgid "ISP Autodetect"
 msgstr "Rilevamento automatico ISP"
 
-msgid "Check this to only root the modem after the firmware is installed.<br/>After this you had to reinstall the gui.<br/>Expect the web interface to be broken after the upgrade"
+msgid "Check this to only root the modem after the firmware is installed.<br/>After this you had to reinstall the GUI.<br/>Expect the web interface to be broken after the upgrade"
 msgstr "Spunta questo se vuoi solo fare il root dopo l'installazione del firmware.<br/>Dopo aver fatto ciò devi reinstallare la GUI.<br/>L'interfaccia web verrà danneggiata dopo l'aggiornamento."
 
 msgid "Root only modem after upgrade"

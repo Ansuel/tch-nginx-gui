@@ -538,7 +538,7 @@ html[#html + 1] = ui_helper.createSwitch(T "Force HTTPS to access the GUI", "gui
 		}
 	}
 
-	html[#html + 1] = ui_helper.createAlertBlock(T"Resetting to default gui, please wait...", resetting)
+	html[#html + 1] = ui_helper.createAlertBlock(T"Resetting to default GUI, please wait...", resetting)
 	html[#html + 1] = ui_helper.createAlertBlock(T"Resetting config to default, please wait...", resetting_config)
 	html[#html + 1] = ui_helper.createAlertBlock(T"Unrooting and reverting to factory defaults, please wait...", unrooting)
 	html[#html + 1] = ui_helper.createAlertBlock(T"Reset the custom GUI settings. No custom firmware file will be removed. All custom GUI functions will still be available.", info_box)
