@@ -40,15 +40,22 @@ done
 [ -d $MD5_CHECK_DIR ] && rm -r $MD5_CHECK_DIR
 
 if [ ! -f /etc/config/telnet ]; then
-	cp /tmp/telnet_orig /etc/config/telnet
+	touch /etc/config/telnet
+	uci set telnet.general=telnet
+	uci set telnet.general.enable='0'
+	uci commit telnet
 fi
 
 if [ ! -f /etc/config/dland ]; then
-	cp /tmp/dland_orig /etc/config/dland
+	touch /etc/config/dland
+	uci set dlnad.config=dlnad
+	uci set dlnad.config.manufacturer_url='http://www.technicolor.com'
+	uci set dlnad.config.model_url='http://www.technicolor.com'
+	uci set dlnad.config.radioStations_enabled='0'
+	uci set dlnad.config.interface='lan'
+	uci set dlnad.config.friendly_name='DLNA Modem Share'
+	uci commit dlnad
 fi
-
-rm /tmp/dlnad_orig
-rm /tmp/telnet_orig
 
 if [ -f /bin/busybox_telnet ] && [ ! -h /usr/sbin/telnetd ]; then
 	ln -s /bin/busybox_telnet /usr/sbin/telnetd
