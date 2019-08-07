@@ -38,7 +38,7 @@ extract_with_check() {
 
   [ -d $MD5_CHECK_DIR ] && rm -r $MD5_CHECK_DIR
 
-  rm $1
+  rm "$1"
 
   return $RESTART_SERVICE
 }
@@ -143,7 +143,7 @@ install_specific() {
   if ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then
     logger_command "Applying specific model fixes..."
     uci set modgui.app.specific_app="0"
-    /usr/share/transformer/scripts/appInstallRemoveUtility.sh install specific_app $1
+    /usr/share/transformer/scripts/appInstallRemoveUtility.sh install specific_app "$1"
     uci set modgui.app.specific_app="1"
   else
     logger_command "No connection detected, install specific upgrade pack manually!"

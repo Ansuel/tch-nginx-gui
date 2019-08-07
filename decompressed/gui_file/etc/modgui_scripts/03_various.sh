@@ -108,7 +108,7 @@ checkver_cron() {
 	if [ -f /usr/share/transformer/scripts/checkver ]; then
 		if [ -f /etc/crontabs/root ]; then #remove from cron old checkver.sh script
 			sed -i '/checkver.sh/d' /etc/crontabs/root
-			if [ $(ls -l /etc/crontabs/root | awk '{print $3}') != "root" ]; then
+			if [ "$(ls -l /etc/crontabs/root | awk '{print $3}')" != "root" ]; then
 				rm /etc/crontabs/root #THIS CHECK A VALID ROOT CRON... we remove it as it's useless if the owner is not root.
 			fi
 		fi

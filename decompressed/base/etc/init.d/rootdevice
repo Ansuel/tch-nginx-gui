@@ -87,7 +87,7 @@ logger_command() {
 	if [ "$debug"  -eq 1 ]; then
 		logger -s -t "Root Script" "$1"
 	fi
-	if [ -z "$2" ] && [ -n "log_progress" ]; then
+	if [ -z "$2" ] && [ -n "$log_progress" ]; then
 		log_progress=$((log_progress+1))
 		set_transformer "rpc.system.modgui.upgradegui.log_prog" $log_progress
 		set_transformer "rpc.system.modgui.upgradegui.log" "$1"

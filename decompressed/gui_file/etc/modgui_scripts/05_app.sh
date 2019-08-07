@@ -32,7 +32,7 @@ trafficmon_support() {
 		rm -rf /root/trafficmon
 	fi
 	
-	if [ -n "$(cat /etc/crontabs/root | grep trafficmon)" ]; then
+	if [ -n "$(< /etc/crontabs/root grep trafficmon)" ]; then
 		killall trafficmon 2>/dev/null
 		killall trafficdata 2>/dev/null
 		sed -i '/trafficmon/d' /etc/crontabs/root
@@ -148,7 +148,6 @@ telstra_support_check() {
 
 #THIS CHECK DEVICE TYPE AND INSTALL SPECIFIC FILE
 device_type="$(uci get -q env.var.prod_friendly_name)"
-kernel_ver="$(cat /proc/version | awk '{print $3}')"
 
 logger_command "Trafficmon inizialization"
 trafficmon_support #support trafficmon
