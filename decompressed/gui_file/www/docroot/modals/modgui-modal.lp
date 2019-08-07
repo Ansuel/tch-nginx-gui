@@ -391,7 +391,8 @@ html[#html + 1] = ui_helper.createSwitch(T "Force HTTPS to access the GUI", "gui
 	  input = { 
 		class="span2", 
 		id = "update_autoupgrade_hour", 
-		style = "cursor:pointer;background-color:white;"
+		style = "cursor:pointer;background-color:white;",
+		value="03:00",
 	  }
     }
 	html[#html + 1] = '<span id="GUI-upgrade-option">'
