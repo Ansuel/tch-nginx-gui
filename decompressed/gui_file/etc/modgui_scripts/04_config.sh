@@ -51,26 +51,16 @@ check_variant_friendly_name() {
 }
 
 orig_config_gen() {
-	if [ ! -f /etc/config/wol ] && [ -f /etc/config/wol_orig ]; then
-		mv /etc/config/wol_orig /etc/config/wol
-	else
-		if [ -f /etc/config/wol_orig ]; then
-			rm /etc/config/wol_orig
-		fi
-	fi
-	if [ ! -f /etc/config/dlnad ] && [ -f /etc/config/dlnad_orig ]; then
-		mv /etc/config/dlnad_orig /etc/config/dlnad
-	else
-		if [ -f /etc/config/dlnad_orig ]; then
-			rm /etc/config/dlnad_orig
-		fi
-	fi
-	if [ ! -f /etc/config/telnet ] && [ -f /etc/config/telnet_orig ]; then
-		mv /etc/config/telnet_orig /etc/config/telnet
-	else
-		if [ -f /etc/config/telnet_orig ]; then
-			rm /etc/config/telnet_orig
-		fi
+	if [ ! -f /etc/config/wol ]; then
+		touch /etc/config/wol
+		uci set wol.config=wol
+		uci set wol.config.enabled='0'
+		uci set wol.config.src_intf='wan'
+		uci set wol.config.src_dport='9'
+		uci set wol.config.dest_port='9'
+		uci set wol.config.dest_intf='br-lan'
+		uci set wol.config.dest_ip='192.168.1.253'
+		uci commit wold
 	fi
 }
 
@@ -286,15 +276,13 @@ check_wan_mode() {
 }
 
 dosprotect_inizialize() {
-	if [ -f /lib/modules/3.4.11/xt_hashlimit.ko ]; then
+	if [ -f /lib/modules/*/xt_hashlimit.ko ]; then
 		if [ ! -f /etc/config/dosprotect ]; then
-			if [ -f /etc/config/dosprotect_orig ]; then
-				mv /etc/config/dosprotect_orig /etc/config/dosprotect
+			if [ -f /tmp/dosprotect_orig ]; then
+				mv /tmp/dosprotect_orig /etc/config/dosprotect
 			fi
 		fi
-		if [ -f /etc/config/dosprotect_orig ]; then
-			rm /etc/config/dosprotect_orig
-		fi
+		[ -f /tmp/dosprotect_orig ] && rm /tmp/dosprotect_orig
 		if [ "$(echo /etc/rc.d/S*dosprotect)" ]; then
 			/etc/init.d/dosprotect enable
 			/etc/init.d/dosprotect start
