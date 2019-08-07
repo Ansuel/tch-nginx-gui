@@ -12,3 +12,10 @@ start_service()
 	procd_set_param pidfile /var/run/trafficmon.pid
 	procd_close_instance
 }
+
+stop_service()
+{
+	if [ -d /tmp/trafficmon ]; then
+		rm -r /tmp/trafficmon
+	fi
+}
