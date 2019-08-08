@@ -151,6 +151,11 @@ install_specific() {
   fi
 }
 
+remove_wizard_5ghz() {
+  logger_command "Removing 5GHz config from wizard..."
+  rm /www/wizard-cards/*wireless_5G*
+}
+
 #THIS CHECK DEVICE TYPE AND INSTALL SPECIFIC FILE
 device_type="$(uci get -q env.var.prod_friendly_name)"
 kernel_ver="$(< /proc/version awk '{print $3}')"
@@ -181,6 +186,8 @@ uci commit modgui
 [ -z "${device_type##*TG799*}" ] && ledfw_rework_TG799
 [ -z "${device_type##*TG800*}" ] && ledfw_rework_TG800
 #[ -z "${device_type##*DGA413*}" ] && wifi_fix_24g
+
+[ -z "${device_type##*TG788*}" ] && remove_wizard_5ghz
 
 #Use custom driver to remove this... thx @Roleo
 [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*DGA413*}" ] && remove_downgrade_bit
