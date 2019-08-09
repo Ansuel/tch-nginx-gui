@@ -26,21 +26,13 @@ move_env_var() {
 	fi
 }
 
-check_gui_ver() {
-	if [ "$(uci -q get modgui.gui.gui_version)" != $version_gui ]; then
-		uci set modgui.gui.gui_version=$version_gui
-	fi
-}
-
-create_symlink() {
-	#Links the pached binaries to their correct paths
-	if [ -f /bin/busybox_telnet ]; then
-		ln -sf ../../bin/busybox_telnet /usr/sbin/telnetd
-		/etc/init.d/telnet enable
-	fi
-	if [ ! -f /etc/rc.d/S70wol ]; then 
-		/etc/init.d/wol enable
-	fi
+create_section_modgui() {
+	for section in gui var app; do
+		if [ -z "$(uci get -q modgui.$section)" ]; then
+			uci set modgui.$section=$section
+		fi
+	done
+	uci commit modgui
 }
 
 check_tmp_permission() {
@@ -71,8 +63,7 @@ logger_command "Disable watchdog"
 /etc/init.d/watchdog-tch stop
 
 move_env_var #This moves every garbage created before 8.11.49 in env to modgui config file
-check_gui_ver
-create_symlink
+create_section_modgui
 check_tmp_permission
 
 if [ -f /root/.install_gui ]; then

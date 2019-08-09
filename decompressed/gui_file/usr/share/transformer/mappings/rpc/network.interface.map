@@ -289,7 +289,7 @@ do
   end
   local function get_ipv6_address(device, scope)
     local addr = get_address(device, scope)
-    if addr then
+    if addr and addr.ip then
       return addr.ip.."/"..addr.mask
     end
     return ""
@@ -888,16 +888,16 @@ network_interface_.get = {
   end,
   static_dns_servers = function(_, _, key)
     --to get from uci for wan interface
-    local isWan
-    local intfs = findLanWanInterfaces(true)
-    for _, v in pairs(intfs) do
-        if key == v then
-            isWan = true
-            break
-        end
-    end
-
-    if isWan then
+    --local isWan
+    --local intfs = findLanWanInterfaces(true)
+    --for _, v in pairs(intfs) do
+    --    if key == v then
+    --        isWan = true
+    --        break
+    --    end
+    --end
+	--
+    --if isWan then
         network_binding.sectionname = key
         network_binding.option = "dns"
         local dns = uci_helper.get_from_uci(network_binding)
@@ -908,7 +908,7 @@ network_interface_.get = {
         else
             return dns
         end
-    end
+    --end
     return ""
   end,
   ifname = function(_, _, key)
@@ -1026,14 +1026,14 @@ network_interface_.set = {
     network_binding.sectionname = key
     network_binding.option = "dns"
     uci_helper.set_on_uci(network_binding, dnsServersTable, commitapply)
-    transaction[network_binding.config] = true
+    transaction[network_binding] = true
     return true
   end,
 }
 
 local function end_transaction(action)
-  for conf in pairs(transaction) do
-    action(conf)
+  for binding in pairs(transaction) do
+    action(binding)
   end
   transaction = {}
 end

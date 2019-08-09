@@ -10,7 +10,7 @@ local ui_helper = require("web.ui_helper")
 local wirelessSSID_helper = require("wirelessSSID_helper")
 local modalPath
 local session = ngx.ctx.session
-local attributes = { light = { } ,span = { class = "span4" } }
+local attributes = { light = {}, span = {} }
 
 if session:hasAccess("/modals/wireless-modal.lp") then
   modalPath = "/modals/wireless-modal.lp"

@@ -30,10 +30,13 @@
 ^rpc%.system%.modgui%.app%.remove_transmission /usr/share/transformer/scripts/appInstallRemoveUtility.sh remove transmission
 ^rpc%.system%.modgui%.app%.install_blacklist /usr/share/transformer/scripts/appInstallRemoveUtility.sh install blacklist
 ^rpc%.system%.modgui%.app%.install_emptyblacklist /usr/share/transformer/scripts/appInstallRemoveUtility.sh install blacklist empty
+^rpc%.system%.modgui%.app%.refresh_blacklist /usr/share/transformer/scripts/refresh-blacklist.lp
 ^rpc%.system%.modgui%.app%.remove_blacklist /usr/share/transformer/scripts/appInstallRemoveUtility.sh remove blacklist
 ^rpc%.system%.modgui%.app%.install_xupnp /usr/share/transformer/scripts/appInstallRemoveUtility.sh install xupnp
 ^rpc%.system%.modgui%.app%.remove_xupnp /usr/share/transformer/scripts/appInstallRemoveUtility.sh remove xupnp
 ^rpc%.system%.modgui%.app%.install_telstra /usr/share/transformer/scripts/appInstallRemoveUtility.sh install telstra
 ^rpc%.system%.modgui%.app%.remove_telstra /usr/share/transformer/scripts/appInstallRemoveUtility.sh remove telstra
+^rpc%.system%.modgui%.app%.install_specific_app /usr/share/transformer/scripts/appInstallRemoveUtility.sh install specific_app
+^rpc%.system%.modgui%.app%.remove_specific_app /usr/share/transformer/scripts/appInstallRemoveUtility.sh remove specific_app
 
 ^rpc%.system%.modgui%.debuglog%.start /usr/share/transformer/scripts/generate-debug-file.sh dev

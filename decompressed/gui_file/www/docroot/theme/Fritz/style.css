@@ -931,7 +931,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
         border-radius: 0;
         left: 0;
         width: 100% !important;
-        background-color: var(--menu-bg-color);
+        background-color: var(--bg-color3);
         box-shadow: 0 .27rem .375rem rgba(0, 0, 0, 0.25)
     }
 

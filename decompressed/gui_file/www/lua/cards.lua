@@ -78,10 +78,10 @@ local function get_limit_info()
   end
 end
 
-local function card_limited(info, cardname)
+local function card_limited(info, cardname, includepath)
   local fn = cards_limiter and cards_limiter.card_limited
   if fn then
-    return fn(info, cardname)
+    return fn(info, cardname, includepath)
   end
   return false
 end
@@ -166,7 +166,7 @@ function M.cards()
     for file in lfs.dir(includepath) do
       if find(file, "%.lp$") then
         local cardname = file:gsub("^%d+_", "")
-        if card_visible(session, config, cardname) and not card_limited(limit_info, cardname) then
+        if card_visible(session, config, cardname) and not card_limited(limit_info, cardname, includepath) then
           result[#result+1] = file
         end
       end

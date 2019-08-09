@@ -64,7 +64,7 @@ local cui = {
   autoupgrade_view = "uci.modgui.gui.autoupgradeview",
   firstpage = "uci.modgui.gui.firstpage",
   randomcolor = "uci.modgui.gui.randomcolor",
-  gui_animation = "uci.modgui.gui.gui_animation",
+  gui_animation = "uci.modgui.gui.gui_animation"
 }
 
 content_helper.getExactContent(cui)
@@ -119,7 +119,7 @@ ngx.print('\
       html[#html + 1] = '<div id="upgradebtn" class="btn someInfos '.. hideUpdateButton  ..'"'
       if not ( cui.gui_skin == "Fritz" ) then
         html[#html + 1] = ' rel="tooltip" data-placement="bottom" data-original-title="'
-        html[#html + 1] = T"Go to the gateway tab and click on the Update button, to autoupgrade to the new GUI."
+        html[#html + 1] = T"Go to the GUI tab and click on the Update button, to autoupgrade to the new GUI."
         html[#html + 1] = '" '
       end
       html[#html + 1] = 'data-toggle="modal" data-remote="modals/modgui-modal.lp?action=manualguiupgrade">'

@@ -68,7 +68,7 @@ if datatype and datatype== "xdsl" then
 		end
 		
 		if not ( data.dslam_version_raw:sub(0,2) == "0x" ) then
-			if content.dslam_version_raw == "" then
+			if data.dslam_version_raw == "" then
 				data.dslam_chipset = T"Can't recover dslam version."
 			else
 				data.dslam_chipset = format(T"Invalid version, can't convert. Raw value: %s", data.dslam_version_raw)
@@ -77,12 +77,12 @@ if datatype and datatype== "xdsl" then
 		
 		data.dslam_version_raw = nil
 		
-		if data.status == "Showtime" then
-			data.status = T"Connected"
-		elseif data.status == "" then
-			data.status = T"Disconnected"
+		if data["status"]:match("Showtime") then
+			data["status"] = T"Connected"
+		elseif data["status"] == "" then
+			data["status"] = T"Disconnected"
 		else
-			data.status = T(data.status)
+			data["status"] = T(data.status)
 		end
 	else
 		for index in pairs(data) do
@@ -97,22 +97,29 @@ else
 	local table = table
 	local format = string.format
 	local content_uci = {
-	wan_proto = "uci.network.interface.@wan.proto",
-	wan_auto = "uci.network.interface.@wan.auto",
-	wan_ipv6 = "uci.network.interface.@wan.ipv6",
-	wan_mode = "uci.network.config.wan_mode",
+		wan_proto = "uci.network.interface.@wan.proto",
+		wan_auto = "uci.network.interface.@wan.auto",
+		wan_ipv6 = "uci.network.interface.@wan.ipv6",
+		wan_ifname = "uci.network.interface.@wan.ifname",
+		wan_mode = "uci.network.config.wan_mode",
 	}
 	content_helper.getExactContent(content_uci)
 	
+	local wan_interface = "wan"
+	
+	if wan_mode == "bridge" then
+		wan_interface = content_uci.wan_ifname
+	end
+	
 	local content_rpc = {
-	wan_ppp_state = "rpc.network.interface.@wan.ppp.state",
-	wan_ppp_error = "rpc.network.interface.@wan.ppp.error",
-	ipaddr = "rpc.network.interface.@wan.ipaddr",
-	pppoe_uptime = "rpc.network.interface.@wan.uptime",
-	up = "rpc.network.interface.@wan.up",
-	ipaddr = "rpc.network.interface.@wan.ipaddr",
-	nexthop = "rpc.network.interface.@wan.nexthop",
-	dns_wan = "rpc.network.interface.@wan.dnsservers",
+		wan_ppp_state = "rpc.network.interface.@wan.ppp.state",
+		wan_ppp_error = "rpc.network.interface.@wan.ppp.error",
+		ipaddr = "rpc.network.interface.@wan.ipaddr",
+		pppoe_uptime = "rpc.network.interface.@wan.uptime",
+		up = "rpc.network.interface.@".. wan_interface ..".up",
+		ipaddr = "rpc.network.interface.@wan.ipaddr",
+		nexthop = "rpc.network.interface.@wan.nexthop",
+		dns_wan = "rpc.network.interface.@wan.dnsservers",
 	}
 	
 	local interface = proxy.getPN("rpc.network.interface.", true)
@@ -171,7 +178,7 @@ else
 	setmetatable(ipv6_light_map, untaint_mt)
 	
 	local status_light
-	local attributes = { light = { } ,span = { class = "span4" } }
+	local attributes = { light = { } ,span = { } }
 	
 	if content_uci.wan_mode == "pppoe" then
 		local ppp_state_map = {

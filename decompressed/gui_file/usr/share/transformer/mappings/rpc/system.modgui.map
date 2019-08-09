@@ -401,13 +401,18 @@ local SYSTEM_MODGUI_APP_ = {
 	  install_emptyblacklist = {
                 access = "readWrite",
                 type = "boolean",
-            }
+            },
+	  refresh_blacklist = {
+				access = "readWrite",
+				type = "boolean"
+	  },
     }
   }
 }
 
 SYSTEM_MODGUI_APP_.get = {
-		install_emptyblacklist = "0"
+		install_emptyblacklist = "0",
+		refresh_blacklist = "0",
 }
 
 local app_list = {
@@ -418,6 +423,7 @@ local app_list = {
 	"xupnp",
 	"telstra",
 	"amule",
+	"specific_app",
 }
 
 for _, app in ipairs(app_list) do

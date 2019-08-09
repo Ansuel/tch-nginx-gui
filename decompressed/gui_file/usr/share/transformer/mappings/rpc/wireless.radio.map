@@ -46,7 +46,7 @@ local wireless_radio_ = {
 	        type = "string",
         },
 		country = {
-	        access = "readOnly",
+	        access = "readWrite",
 	        type = "string",
         },
 		allowed_channels = {
@@ -206,6 +206,15 @@ local function getRequestedChannel(key, radioData)
 	return radioData.requested_channel
 end
 
+local function getCounty(key, radioData)
+	if (radioData.remotely_managed == 1 and radioData.integrated_ap == 1) then
+		wirelessBinding.sectionname = key
+		wirelessBinding.option = "country"
+		return uci_helper.get_from_uci(wirelessBinding)
+	end
+	return radioData.country
+end
+
 local function getChannel(key, radioData)
         wirelessBinding.sectionname = key
         wirelessBinding.option = "channel"
@@ -220,6 +229,8 @@ local function getParameterValue(key, paramName, value, radioData)
                 value = getRequestedChannel(key, radioData)
         elseif paramName == "channel" then
                 value = getChannel(key, radioData)
+		elseif paramName == "country" then
+				value = getCounty(key, radioData)
         end
         return nilToEmptyString(value)
 end
@@ -249,7 +260,13 @@ local set = function(mapping, param, value, key)
     end
     wirelessBinding.sectionname = key
     wirelessBinding.option = namemap[param] or param
+	
     uci_helper.set_on_uci(wirelessBinding, value, commitapply)
+	if param == "country" then
+		uci_helper.commit({config = "wireless"})
+		require("modgui").execute("/etc/init.d/hostapd restart")
+	end
+	
 end
 
 wireless_radio_.entries = entriesWirelessRadio

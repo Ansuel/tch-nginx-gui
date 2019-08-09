@@ -32,7 +32,8 @@ local uniqueKey = post_helper.getRandomKey()
 
 local ap_status_map = setmetatable({
   ["0"] = T"Off",
-  ["1"] = T"On"
+  ["1"] = T"On",
+  ["-1"] = T"Error. Re-set the rule!"
 }, untaint_mt)
 
 local ap_list = { }
@@ -128,6 +129,10 @@ local tod_options = {
 
 local function getWifiTodListFromIndex(index) 
 
+	if not index then
+		return nil
+	end
+	
 	local wifi_tod_path = "uci.tod.wifitod"
 	
 	if proxy.get(format("%s.@wifitod_%s.ap.", wifi_tod_path, index)) then
@@ -190,12 +195,25 @@ local function onAdd(success, content, onModify)
   end
   
   local wifitod_id = "wifitod_"..index
+  local tod_wifi_mode
+  
+  content.mode = content.mode == "on" and "1" or "0"
   
   if onModify then
-	proxy.del(tod_wifitod_path .. "@"..wifitod_id..".")
-	for _,v in pairs(proxy.getPN("uci.tod.ap.",true)) do
-		proxy.del(v.path)
+	local ap_path
+	for _,v in pairs(proxy.getPN(tod_wifitod_path.."@"..wifitod_id..".ap.",true)) do
+		ap_path = proxy.get(v.path.."value")
+		tod_wifi_mode = proxy.get(tod_ap_path.."@"..ap_path[1].value..".state")
+		proxy.del(tod_ap_path.."@"..ap_path[1].value)
 	end
+	
+	if tod_wifi_mode and content.mode ~= tod_wifi_mode[1].value then
+		local tod_action_activeTimers = format("%s@action%s.activedaytime.",tod_action_path,index)
+		for _,v in pairs(proxy.getPN(tod_action_activeTimers,true)) do
+			proxy.del(v.path)
+		end
+	end
+	proxy.del(tod_wifitod_path .. "@"..wifitod_id..".")
   end
   
   if not onModify then
@@ -229,7 +247,7 @@ local function onAdd(success, content, onModify)
   for _ , ap in pairs(content.ap) do
 	if not ( ap == "" ) then
 		setObject[format("%s@%s.ap.@%s.value", tod_wifitod_path, wifitod_id, count)] = ap.."_"..index
-		setObject[format("%s@%s_%s.state", tod_ap_path, ap, index)] = content.mode == "on" and "1" or "0"
+		setObject[format("%s@%s_%s.state", tod_ap_path, ap, index)] = content.mode
 		setObject[format("%s@%s_%s.ap", tod_ap_path, ap, index)] = ap
 		count = count+1
 	end
@@ -249,6 +267,11 @@ end
 local function onDelete(success)
   local index = success:match("action(.+)")
   
+  if not index then
+	tod_options.errmsg = "Error on delete. Remove rule from config file manually."
+	return nil
+  end
+  
   local delObject = {}
   local ret
   
@@ -266,10 +289,6 @@ local function onDelete(success)
   
   for _ , obj in pairs(delObject) do
 	ret = proxy.del(obj) 
-	
-	if not ret then
-		return nil
-	end
   end
   
   return ret
@@ -349,10 +368,14 @@ for i, v in ipairs(tod_data) do
 	local wifi_list, wifi_selected = getApSelected(index)
 	local days, start_time = timer_list[i].start_time:match("^(.-):(.+)$")
 	
-	local ap_state = "0"
+	local ap_state = "-1"
+	local ap_state_get
 	
-	if ap_list[i] then
-		ap_state = ap_list[i].state
+	if wifi_selected[1] then
+		ap_state_get = proxy.get(format("%s@%s_%s.state",tod_ap_path , wifi_selected[1],index))
+		if ap_state_get then
+			ap_state = ap_state_get[1].value
+		end
 	end
 	
 	v[1] = v[1] -- status
@@ -361,8 +384,10 @@ for i, v in ipairs(tod_data) do
 	v[4] = timer_list[i].stop_time:match("^.-:(.+)$") -- stop_time
 	v[5] = ap_status_map[ap_state] -- apState
 	v[6] = {} -- days
-	for day in gmatch(days, "[^,]+") do
-		insert(v[6], untaint(day))
+	if days then
+		for day in gmatch(days, "[^,]+") do
+			insert(v[6], untaint(day))
+		end
 	end
 	-- Sub Columns
 	v[7] = {

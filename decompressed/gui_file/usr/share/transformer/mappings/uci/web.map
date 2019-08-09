@@ -53,6 +53,7 @@ local sessionmgr_map = {
     "maxwrongattempt",
     "backOffMethod",
     "backOffRepeat",
+	"force_https",
   },
   lists = { "users" }
 }
