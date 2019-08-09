@@ -895,9 +895,6 @@ msgstr "Domain Name Server Konfiguration"
 msgid "Domain's IP updated"
 msgstr "IP Adresse der Donain aktualisiert"
 
-msgid "Don't report any bug, this is a custom gui! Some bugs could not be related to the current beta firmware."
-msgstr "Melden Sie keinen Fehler, dies ist eine angepasste Oberfläche! Einige Fehler könnten mit der aktuellen Beta-Firmware zu tun haben."
-
 msgid "DoS Protect"
 msgstr "DoS Schutzoption"
 
@@ -1227,9 +1224,6 @@ msgstr "Global"
 
 msgid "Global Information"
 msgstr "Allgemeine Information"
-
-msgid "Go to the gateway tab and click on the Update button, to autoupdate to the new GUI."
-msgstr "Gehen Sie auf den Gateway Reiter und drücken Sie den Upgrade-Knopf, um die neueste Version der Oberfläche zu installieren."
 
 msgid "OK"
 msgstr "Gut"
@@ -3151,7 +3145,7 @@ msgstr "Telstra ist "
 msgid "Remove Telstra GUI"
 msgstr "Entferne Telstra GUI"
 
-msgid "Change the default page in system-extra to set this gui as default"
+msgid "Change the default page in system-extra to set this GUI as default"
 msgstr "Ändern Sie die Standardseite unter System-Extra, um dieses GUI als Standard zu setzen"
 
 msgid "Update blacklist app"
@@ -3549,8 +3543,8 @@ msgstr "DHCP Startadresse sollte nicht die lokale Geräteadresse sein"
 msgid "Upstream CRC"
 msgstr "Upstream CRC"
 
-msgid "Go to the gateway tab and click on the Update button, to autoupgrade to the new GUI."
-msgstr "Gehen Sie auf den Gateway-Reiter und drücken Sie den Aktualisieren-Knopf, um auf die neue GUI zu aktualisieren."
+msgid "Go to the GUI tab and click on the Update button, to autoupgrade to the new GUI."
+msgstr "Gehen Sie auf den GUI-Reiter und drücken Sie den Aktualisieren-Knopf, um auf die neue GUI zu aktualisieren."
 
 msgid "70%"
 msgstr "70%"
@@ -4281,7 +4275,7 @@ msgstr "Im Fortschritt/Verbunden"
 msgid "Unrooting and reverting to factory defaults, please wait..."
 msgstr "Entferne Root und setze auf Werkseinstellungen zurück, bitte warten..."
 
-msgid "Resetting to default gui, please wait..."
+msgid "Resetting to default GUI, please wait..."
 msgstr "Zurücksetzen auf Standardoberfläche, bitte warten..."
 
 msgid "Connection issue: "
@@ -4585,7 +4579,7 @@ msgstr "TIM (Italien)"
 msgid "ISP Autodetect"
 msgstr "Automatische ISP-Erkennung"
 
-msgid "Check this to only root the modem after the firmware is installed.<br/>After this you had to reinstall the gui.<br/>Expect the web interface to be broken after the upgrade"
+msgid "Check this to only root the modem after the firmware is installed.<br/>After this you had to reinstall the GUI.<br/>Expect the web interface to be broken after the upgrade"
 msgstr "Aktivieren Sie dies, um das Modem nur zu rooten, nachdem die Firmware installiert wurde.<br/>Danach müssen Sie die Oberfläche manuell neu installieren.<br/>Sei müssen damit rechnen, dass die Oberfläche nach der Aktualisierung defekt ist"
 
 msgid "Root only modem after upgrade"
@@ -4682,16 +4676,76 @@ msgid "Bypass Reg Domain Power Rule"
 msgstr "Umgehe Reg Domain Power Regel"
 
 msgid "Preview"
-msgstr ""
-
-msgid "Priorirty"
-msgstr ""
+msgstr "Vorschau"
 
 msgid "Normal"
-msgstr ""
+msgstr "Normal"
 
 msgid "Priority"
-msgstr ""
+msgstr "Priorität"
 
 msgid "Driver Version"
+msgstr "Treiberversion"
+
+msgid "Error. Re-set the rule!"
+msgstr "Fehler. Setzen Sie die Regel zurück!"
+
+msgid "Ambient LED"
+msgstr "Umgebungs LED"
+
+msgid "Single Rx Chain"
+msgstr "Einzelempfangskette"
+
+msgid "Country"
+msgstr "Land"
+
+msgid "Fast Radio Toggle"
+msgstr "Schneller Funkumschalter"
+
+msgid "Force Radio Down"
+msgstr "Erzwinge Funkabschaltung"
+
+msgid "Dark Blue Unified UI"
+msgstr "Dunkelblaue einheitliche Benutzeroberfläche"
+
+msgid "Total Send"
+msgstr "Summe gesendet"
+
+msgid "VendorID"
+msgstr "HerstellerID"
+
+msgid "A Reboot has been Scheduled"
+msgstr "Ein Neustart wurde geplant"
+
+msgid "Total Mixed"
+msgstr "Summe gemischt"
+
+msgid "Total Receive"
+msgstr "Summe empfangen "
+
+msgid "DNS Used"
+msgstr "Genutzer DNS"
+
+msgid "Upload Specific App"
+msgstr "Hochladen bestimmte App"
+
+msgid "Specific App are already Installed"
+msgstr "Bestimmte App ist schon installiert"
+
+msgid "Specific App"
+msgstr "Bestimmte App"
+
+msgid "If you don't have connection, specific app can be downloaded here ( https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/modular/upgrade-pack-specific"
+msgstr "Wenn Sie keine Verbindung haben, kann die bestimmte App hier heruntergeladen werden ( https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/modular/upgrade-pack-specific"
+
+msgid "Install Specific App Online"
+msgstr "Installieren bestimmte App Online"
+
+msgid "Specific App are package that adds additional function to the modem, like telnet support or some fix to default package"
+msgstr "Bestimmte App ist ein Paket, das Zusatzfunktionen installiert, wie TELNET-Unterstützung oder Modifikationen am Standardpaket"
+
+msgid "Specific App are not installed."
+msgstr "Bestimmte App ist nicht installiert."
+
+msgid "Force HTTPS to access the GUI"
 msgstr ""

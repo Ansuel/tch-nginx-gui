@@ -27,13 +27,28 @@ check_new_dlnad() {
 
 trafficmon_support() {
 	if [ -d /root/trafficmon ]; then
-		killall trafficmon
+		killall trafficmon 2>/dev/null
+		killall trafficdata 2>/dev/null
 		rm -rf /root/trafficmon
 	fi
-	if [ -f /etc/init.d/trafficmon ] && [ ! -k /etc/rc.d/S99trafficmon ] && [ ! -d /tmp/trafficmon ]; then
+	
+	if [ -n "$(< /etc/crontabs/root grep trafficmon)" ]; then
+		killall trafficmon 2>/dev/null
+		killall trafficdata 2>/dev/null
+		sed -i '/trafficmon/d' /etc/crontabs/root
+		sed -i '/trafficdata/d' /etc/crontabs/root
+	fi
+	
+	if [ -f /etc/init.d/trafficmon ] && [ ! -k /etc/rc.d/S99trafficmon ]; then
 		/etc/init.d/trafficmon enable
-		if [ ! "$(pgrep "trafficmon.lua")" ]; then
+		if [ ! -f /var/run/trafficmon.pid ]; then
 			/etc/init.d/trafficmon start
+		fi
+	fi
+	if [ -f /etc/init.d/trafficdata ] && [ ! -k /etc/rc.d/S99trafficdata ]; then
+		/etc/init.d/trafficdata enable
+		if [ ! -f /var/run/trafficdata.pid ]; then
+			/etc/init.d/trafficdata start
 		fi
 	fi
 
@@ -65,24 +80,58 @@ check_aria_dir() {
 }
 
 apply_right_opkg_repo() {
-	if [ -f /etc/opkg.conf_17.3 ]; then
-		local marketing_version="$(uci get -q version.@version[0].marketing_version)"
-		if [ "$marketing_version" ]; then
-			if echo "$marketing_version" | grep -q "17.3" ; then
-				if [ -f /etc/okpg.conf ]; then
-					rm /etc/okpg.conf
-				fi
-				mv /etc/opkg.conf_17.3 /etc/opkg.conf
-				rm /etc/opkg.conf_16.3
-			else
-				if [ -f /etc/okpg.conf ]; then
-					rm /etc/okpg.conf
-				fi
-				mv /etc/opkg.conf_16.3 /etc/opkg.conf
-				rm /etc/opkg.conf_17.3
-			fi
+	marketing_version="$(uci get -q version.@version[0].marketing_version)"
+	
+	opkg_file="/etc/opkg.conf"
+	
+	case $marketing_version in
+	"18.3"*)
+		if [ -n "$(  grep $opkg_file -e "brcm63xx-tch" )" ]; then
+			rm /etc/opkg.conf
+			cp /rom/etc/opkg.conf /etc/
 		fi
-	fi
+		if [ -z "$(  grep $opkg_file -e "Ansuel/GUI_ipk/kernel-4.1" )" ]; then
+			cat << EOF >> $opkg_file
+arch all 100
+arch arm_cortex-a9 200
+arch arm_cortex-a9_neon 300
+src/gz chaos_calmer_base https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/base
+src/gz chaos_calmer_packages https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/packages 
+src/gz chaos_calmer_luci https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/luci              
+src/gz chaos_calmer_routing https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/routing    
+src/gz chaos_calmer_telephony https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/telephony
+src/gz chaos_calmer_core https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/target/packages
+EOF
+		fi
+		;;
+	"17.3"*)
+		if [ -z "$(  grep $opkg_file -e "roleo/public/agtef/1.1.0/brcm63xx-tch" )" ]; then
+			cat << EOF >> $opkg_file
+src/gz chaos_calmer_base https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/base
+src/gz chaos_calmer_packages https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/packages 
+src/gz chaos_calmer_luci https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/luci              
+src/gz chaos_calmer_routing https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/routing    
+src/gz chaos_calmer_telephony https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/telephony
+src/gz chaos_calmer_management https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/management
+EOF
+		fi
+		;;
+	"16.3"*)
+		if [ -z "$(  grep $opkg_file -e "roleo/public/agtef/brcm63xx-tch" )" ]; then
+			cat << EOF >> $opkg_file
+src/gz chaos_calmer_base https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/base
+src/gz chaos_calmer_packages https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/packages 
+src/gz chaos_calmer_luci https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/luci              
+src/gz chaos_calmer_routing https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/routing    
+src/gz chaos_calmer_telephony https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/telephony
+src/gz chaos_calmer_management https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/management
+EOF
+		fi
+		;;
+	*)
+		logger_command "No opkg file supported"
+		;;
+	esac
 }
 
 telstra_support_check() {
@@ -99,7 +148,6 @@ telstra_support_check() {
 
 #THIS CHECK DEVICE TYPE AND INSTALL SPECIFIC FILE
 device_type="$(uci get -q env.var.prod_friendly_name)"
-kernel_ver="$(cat /proc/version | awk '{print $3}')"
 
 logger_command "Trafficmon inizialization"
 trafficmon_support #support trafficmon

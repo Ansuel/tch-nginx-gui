@@ -2,19 +2,17 @@ declare -a modular_dir=(
 	"base"
 	"gui_file"
 	"traffic_mon"
-	"telnet_support-specificDGA"
-	"telnet_support-specificTG789"
-	"upnpfix-specificDGA"
 	"upgrade-pack-specificDGA"
+	"upgrade-pack-specificTG800"
+	"upgrade-pack-specificTG789"
 	"custom-ripdrv-specificDGA"
-	"dlnad_supprto-specificDGA"
-	"wgetfix-specificDGA"
 	"telstra_gui"
 	"ledfw_support-specificTG788"
 	"ledfw_support-specificTG789"
 	"ledfw_support-specificTG799"
 	"ledfw_support-specificTG800"
 	"ledfw_support-specificDGA"
+	"ledfw_support-specificDGA4131"
 )
 
 if [ "$1" == "dev" ]; then
@@ -85,7 +83,7 @@ for index in "${modular_dir[@]}"; do
 	if [ $index == "base" ] || [ $index == "gui_file" ] || [ $index == "traffic_mon" ]; then
 		echo "Copying file from "$index" to GUI dir"
 		cp -dr decompressed/$index/* total 
-	else
+	elif [ -z "$(echo $index | grep upgrade-pack-)" ]; then
 		cp $HOME/gui-dev-build-auto/modular/$index.tar.bz2 total/tmp
 		echo "Adding specific file from "$index" to tmp virtual dir"
 	fi

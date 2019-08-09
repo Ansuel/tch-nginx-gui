@@ -29,7 +29,7 @@ local function getLedMixStatus(red, green, blue)
   if green then
     gStatus = M.getLedStatus(green.trigger, green.brightness)
   end
-  if blue then 
+  if blue then
     bStatus = M.getLedStatus(blue.trigger, blue.brightness)
   end
   if rStatus == "Blinking" or gStatus == "Blinking" or bStatus == "Blinking" then
@@ -117,22 +117,13 @@ end
 --@return #string led brightness level /None/Low/Middle/High
 function M.getLedLevel(brightness, maxBrightness)
   if brightness == nil or type(brightness) ~= "number" then
-    return ""
+    return 100
   end
   if maxBrightness == nil or type(maxBrightness) ~= "number" then
-    return ""
+    return 100
   end
-  local level = ""
-  if brightness == 0 then
-    level = "None"
-  elseif brightness <= maxBrightness/3 + 1 then
-    level = "Low"
-  elseif (brightness > maxBrightness/3 + 1) and (brightness <= maxBrightness*2/3) then
-    level = "Middle"
-  elseif brightness <= maxBrightness then
-    level = "High"
-  end
-  return level
+
+  return (brightness/maxBrightness)*100
 end
 
 --- Get the led(seven-color) brightness level
@@ -141,31 +132,39 @@ end
 ---- @param #table blue led info
 ---- @return #string led brightness level /None/Low/Middle/High
 local function getLedMixBrightness(red, green, blue)
-  local mixLevel = ""
   local rLevel, gLevel, bLevel
+  local leddivider = 0
+  local ledtotal = 0
   if red then
     rLevel = M.getLedLevel(red.brightness, red.max_brightness)
+    leddivider = leddivider + 1
+    ledtotal = ledtotal + rLevel
+    if ((green == nil or green.brightness==0) and (blue == nil or blue.brightness==0)) then
+      return rLevel.."%"
+    end
   end
   if green then
     gLevel = M.getLedLevel(green.brightness, green.max_brightness)
+    leddivider = leddivider + 1
+    ledtotal = ledtotal + gLevel
+    if ((red == nil or red.brightness==0) and (blue == nil or blue.brightness==0)) then
+      return gLevel.."%"
+    end
   end
   if blue then
     bLevel = M.getLedLevel(blue.brightness, blue.max_brightness)
+    leddivider = leddivider + 1
+    ledtotal = ledtotal + bLevel
+    if ((green == nil or green.brightness==0) and (red == nil or red.brightness==0)) then
+      return bLevel.."%"
+    end
   end
-  if rLevel == "High" or gLevel == "High" or bLevel == "High" then
-    mixLevel = "High"
-  elseif rLevel == "Middle" or gLevel == "Middle" or bLevel == "Middle" then
-    mixLevel = "Middle"
-  elseif rLevel == "Low" or gLevel == "Low" or bLevel == "Low" then
-    mixLevel = "Low"
-  else
-    mixLevel = "None"
-  end
-  return mixLevel
+  local rounded = ledtotal/leddivider
+  return rounded.."%"
 end
 
 --- Get all the leds information from path /sys/class/leds/
--- @return #table led info 
+-- @return #table led info
 function M.getLedsInfo()
   local ledsInfo = {}
   if not isDir(ledPath) then
@@ -179,7 +178,7 @@ function M.getLedsInfo()
         ledsInfo[name] = {}
       end
       ledsInfo[name][color] = {}
-      local ledFile = ledPath .. file 
+      local ledFile = ledPath .. file
       if lfs.attributes(ledFile, "mode") == "directory" then
         local fd = open(ledFile .. "/trigger", "r")
         if not fd then
@@ -228,6 +227,10 @@ function M.getLedsInfo()
       elseif k2 == "green" then
         greenInfo = v2
       elseif k2 == "blue" then
+        blueInfo = v2
+      elseif k2 == "white" and v1["red"] == nil and v1["green"] == nil and v1["blue"] == nil then --needed for ambient led of DGA4131FWB
+        redInfo = v2
+        greenInfo = v2
         blueInfo = v2
       end
     end

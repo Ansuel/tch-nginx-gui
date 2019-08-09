@@ -17,6 +17,9 @@ ngx.print('\
         },
       }
 	html[#html + 1] = '<legend>' .. T"Mainline 18.3 Cobalt" .. '</legend>'
+	html[#html + 1] = ui_helper.createLabel("9.3", "Aggiunto supporto alle app<br>"..
+		"Nuova skin unificata"..
+		"Miglioramnti e bugfix vari", basic)
 	html[#html + 1] = ui_helper.createLabel("9.2", "Rebase su nuova base<br>"..
 		"Vari rework agli script per una esecuzione più efficente<br>"..
 		"Vari fix ai bug presenti nelle versioni precedenti<br>"..

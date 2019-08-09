@@ -124,6 +124,42 @@ local function upgradeguistatus()
   ngx.exit(ngx.HTTP_OK)
 end
 
+local function getSupportedModel()
+  local friendly_name = proxy.get("uci.env.var.prod_friendly_name")[1].value
+  
+  if friendly_name:match("DGA4130") or friendly_name:match("DGA4132") then
+	return "DGA"
+  elseif friendly_name:match("TG789") or friendly_name:match("TG799") then
+	return "TG789"
+  elseif friendly_name:match("TG800") then
+	return "TG800"
+  end
+  
+  return 
+end
+
+local function installspecificapp()
+
+  local device = getSupportedModel()
+  
+  local fwupgrade_location = "/tmp/"
+  
+  -- flush the web template cache
+  lp.flush()
+
+  local dl = untaint(fwupgrade_location) .. "upgrade-pack-specific" .. device .. ".tar.bz2"
+
+  local rcv_ok, rcv_errno, rcv_errmsg = receive_file(dl, 'name="upgradefile"')
+
+  proxy.set("rpc.system.modgui.scriptRequest.state","Requested")
+  proxy.set("rpc.system.modgui.app.specific_app", "1")
+  proxy.set("uci.modgui.app.specific_app","1")
+  proxy.apply()
+
+  ngx.print('{ "success":"true" }')
+  ngx.exit(ngx.HTTP_OK)
+end
+
 local function scriptRequestStatus()
 	local upgradegui_path = "rpc.system.modgui.scriptRequest."
 	local state = proxy.get(upgradegui_path.."state")[1].value
@@ -140,7 +176,7 @@ local function scriptRequestStatus()
 	ngx.exit(ngx.HTTP_OK)
 end
 
-local function resetreboot(path, value)
+local function sendcmd(path, value)
   proxy.set(path, value)
   ngx.header.content_type = "application/json"
   ngx.print('{ "success":"true" }')
@@ -155,19 +191,31 @@ if ngx.req.get_method() == "POST" then
   if action == "upgradeguifile" then
 	return upgradeguifile()
   end
+  if action == "installspecificapp" then
+	return installspecificapp()
+  end
   local action = ngx.req.get_post_args().action
   if action == "system_reset_gui" then
-	return resetreboot("rpc.system.modgui.utility.resetgui", "1")
+	return sendcmd("rpc.system.modgui.utility.resetgui", "1")
   end
   if action == "system_upgrade_gui" then
   proxy.set("rpc.system.modgui.upgradegui.state", "Requested")
-  return resetreboot("rpc.system.modgui.upgradegui.start", "1")
+  return sendcmd("rpc.system.modgui.upgradegui.start", "1")
+  end
+  if action == "system_install_specificapp" then
+	proxy.set("rpc.system.modgui.scriptRequest.state","Requested")
+	proxy.set("rpc.system.modgui.app.specific_app", "1")
+	proxy.set("uci.modgui.app.specific_app","1")
+	proxy.apply()
+	
+	ngx.exit(ngx.HTTP_OK)
+	return
   end
   if action == "system_remove_root" then
-  	return resetreboot("rpc.system.modgui.utility.removeroot", "1")
+  	return sendcmd("rpc.system.modgui.utility.removeroot", "1")
   end
   if action == "system_reset_config" then
-  	return resetreboot("rpc.system.modgui.utility.resetconfig", "1")
+  	return sendcmd("rpc.system.modgui.utility.resetconfig", "1")
   end
 elseif ngx.req.get_method() == "GET" then
   local action = ngx.req.get_uri_args().action
@@ -183,6 +231,8 @@ local content = {
   outdated_ver = "uci.modgui.gui.outdated_ver",
   new_ver = "uci.modgui.gui.new_ver",
   upgradegui_logstep = "rpc.system.modgui.upgradegui.log_step",
+  specific_app = "uci.modgui.app.specific_app",
+  telstra_gui = "uci.modgui.app.telstra_webui",
 }
 
 content_helper.getExactContent(content)
@@ -198,17 +248,16 @@ local gui_skin_firstpage_page = {
 	{ "cards", T"Cards" },
 }
 
-local telstra_gui = proxy.get("uci.modgui.app.telstra_webui")
-
-if telstra_gui and ( telstra_gui[1].value == "1" ) then
+if content.telstra_gui == "1" then
   table.insert(gui_skin_firstpage_page, { "telstra", T"Telstra" })
 end
 
 local gui_skin_option = {
-	  { "blue", T'Blue'},
-	  { "violet", T'Violet'},
-	  { "green", T'Green'},
+	{ "blue", T'Blue'},
+	{ "violet", T'Violet'},
+	{ "green", T'Green'},
 	{ "TIM" , T'Enhanced Tim'},
+	{ "dark-blue-unified", T"Dark Blue Unified UI"},
 	{ "Fritz", T'Fritz!Box'},
 	{ "dark-white_Fritz", T'Dark/White (Fritz!Box Based)'},
 	{ "dark-midnight_Fritz", T'Dark/Midnight (Fritz!Box Based)'},
@@ -223,7 +272,8 @@ local mapParams = {
   gui_skin_firstpage = "uci.modgui.gui.firstpage",
   gui_randomcolor = "uci.modgui.gui.randomcolor",
   gui_alwaysadvanced = "uci.web.uiconfig.@uidefault.alwaysadvanced",
-  gui_animation = "uci.modgui.gui.gui_animation"
+  gui_forcehttps = "uci.web.sessionmgr.@default.force_https",
+  gui_animation = "uci.modgui.gui.gui_animation",
 }
 
 local mapValid = {
@@ -234,6 +284,7 @@ local mapValid = {
   gui_skin_firstpage = post_helper.getValidateInEnumSelect(gui_skin_firstpage_page),
   gui_randomcolor = vB,
   gui_alwaysadvanced = vB,
+  gui_forcehttps = vB,
   gui_animation = vB,
 }
 
@@ -263,6 +314,7 @@ ngx.print('\
 	html[#html + 1] = ui_helper.createInputSelect(T"GUI Skin", "gui_skin", gui_skin_option, modgui_settings["gui_skin"])
 	html[#html + 1] = ui_helper.createInputSelect(T"GUI First Page", "gui_skin_firstpage", gui_skin_firstpage_page, modgui_settings["gui_skin_firstpage"])
 	html[#html + 1] = ui_helper.createSwitch(T"Random Color", "gui_randomcolor", modgui_settings["gui_randomcolor"])
+html[#html + 1] = ui_helper.createSwitch(T "Force HTTPS to access the GUI", "gui_forcehttps", modgui_settings["gui_forcehttps"])
 	html[#html + 1] = ui_helper.createSwitch(T"Always show advanced options", "gui_alwaysadvanced", modgui_settings["gui_alwaysadvanced"])
 	html[#html + 1] = ui_helper.createSwitch(T"GUI animations", "gui_animation", modgui_settings["gui_animation"])
 	ngx.print(html)
@@ -339,7 +391,8 @@ ngx.print('\
 	  input = { 
 		class="span2", 
 		id = "update_autoupgrade_hour", 
-		style = "cursor:pointer;background-color:white;"
+		style = "cursor:pointer;background-color:white;",
+		value="03:00",
 	  }
     }
 	html[#html + 1] = '<span id="GUI-upgrade-option">'
@@ -371,11 +424,64 @@ ngx.print('\
 	html[#html + 1] = ui_helper.createAlertBlock(T"Update failed. Please try again.", upload_gui_fail)
 	html[#html + 1] = ui_helper.createAlertBlock(T"Uploading file. Please wait...", upload_gui_alert)
 	html[#html + 1] = ui_helper.createAlertBlock(T"Updating file. Please wait...", updating)
-
+	html[#html + 1] = '</form>'
 	ngx.print(html)
+	
+	if content.specific_app ~= "" then
+	
+		local html = {}
+		
+		local upload_specific_app = {
+			button = {
+			class = "import-specificapp custom-handler",
+			id = "btn-import-specificapp"
+			}
+		}
+		
+		local upload_specificapp_fail = {
+			alert = {
+			class = "alert-error hide",
+			id = "upgrade-specificapp-fail"
+			}
+		}
+		local install_specificapp = {
+		group = {
+		  class = "wait-for-reset"
+		},
+		button = {
+		  id = "btn-install-specificapp",
+		  class = "custom-handler"
+		}
+	  }
+		
+		html[#html + 1] = '<div class="RemoveOnUpgrade">'
+		html[#html + 1] = '<form class="form-horizontal" id="form-import-specificapp" method="post" action="modals/modgui-modal.lp?action=installspecificapp" enctype="multipart/form-data">'
+		html[#html + 1] = '<legend>'.. T"Specific App" ..'</legend>'
+			html[#html + 1] = ui_helper.createAlertBlock(T"Specific App are package that adds additional function to the modem, like telnet support or some fix to default package", info_box)
+		if content.specific_app == "1" then
+			html[#html + 1] = ui_helper.createLabel(T"State", T"Specific App are already Installed", basic)
+		else
+			html[#html + 1] = ui_helper.createButton(T"Install", T"Install Specific App Online", "icon-refresh", install_specificapp)
+			
+			local device = getSupportedModel()
+			
+			html[#html + 1] = ui_helper.createAlertBlock(T"If you don't have connection, specific app can be downloaded here ( https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/modular/upgrade-pack-specific"..device..".tar.bz2 ) and installed manually here.", info_box)
+			html[#html + 1] = '<div class="control-group">'
+			html[#html + 1] = format('<label class="control-label">%s</label>', T"Upload Specific App")
+			html[#html + 1] = '<div class="controls">'
+			html[#html + 1] = '<input type="file" name="specificapp" id="file-specificapp" accept=".bz2">&nbsp;'
+			html[#html + 1] = ui_helper.createSimpleButton(T"Install", "icon-shield", upload_specific_app)
+			html[#html + 1] = ui_helper.createAlertBlock(T"Update failed. Please try again.", upload_specificapp_fail)
+			html[#html + 1] = '</div></div>'
+		end
+		html[#html + 1] = '</form>'
+		
+		ngx.print(html)
 
+	end
+	
 	local html = {}
-	html[#html + 1] = '<div class="RemoveOnUpgrade">'
+	html[#html + 1] = '<form  class="form-horizontal">'
   html[#html + 1] = '<legend>' .. T"Advanced Reset" .. '</legend>'
 	local reset_gui = {
 		group = {
@@ -433,7 +539,7 @@ ngx.print('\
 		}
 	}
 
-	html[#html + 1] = ui_helper.createAlertBlock(T"Resetting to default gui, please wait...", resetting)
+	html[#html + 1] = ui_helper.createAlertBlock(T"Resetting to default GUI, please wait...", resetting)
 	html[#html + 1] = ui_helper.createAlertBlock(T"Resetting config to default, please wait...", resetting_config)
 	html[#html + 1] = ui_helper.createAlertBlock(T"Unrooting and reverting to factory defaults, please wait...", unrooting)
 	html[#html + 1] = ui_helper.createAlertBlock(T"Reset the custom GUI settings. No custom firmware file will be removed. All custom GUI functions will still be available.", info_box)
@@ -523,6 +629,10 @@ ngx.print('\
 	} else {\
 		schedulReload = true;\
 	}\
+  });\
+\
+  $("#gui_forcehttps").on("change", function() {\
+	schedulReload = true;\
   });\
 \
   $("#save-config").on("click", function() {\
@@ -689,6 +799,52 @@ ngx.print('\
 		} else {\
 		  importing_msg.addClass("hide");\
 		  $("#upgrade-gui-fail").removeClass("hide");\
+		}\
+	  }\
+	});\
+	return false;\
+  });\
+\
+  $("#btn-install-specificapp").on("click", function() {\
+	$.post(target,{action: "system_install_specificapp", CSRFtoken: $("meta[name=CSRFtoken]").attr("content")},"","json");\
+	tch.showProgress("Installing...");\
+	scriptRequestStatusAjax();\
+  });\
+\
+  $(".import-specificapp").on("click", function() {\
+	var nofile_msg = $("#upgrade-specificapp-fail");\
+	var wrongext_msg = $("#upgrade-specificapp-fail");\
+	nofile_msg.addClass("hide");\
+	if ($("#file-specificapp").val() == "") {\
+	  nofile_msg.removeClass("hide");\
+	  nofile_msg[0].scrollIntoView();\
+	  return false;\
+	};\
+\
+	var validExtensions = [\'bz2\'];\
+	var fileName = $("#file-specificapp").val();\
+\
+	var fileNameExt = fileName.substr(fileName.lastIndexOf(".") + 1);\
+	if ($.inArray(fileNameExt, validExtensions) == -1){\
+		wrongext_msg.removeClass("hide");\
+	wrongext_msg[0].scrollIntoView();\
+	return false;\
+	};\
+	var fileSize = $("#file-specificapp")[0].files[0].size;\
+	var importing_msg = $("#upload-specificapp-alert");\
+	var _this = $(this).parents(".control-group");\
+	importing_msg.removeClass("hide");\
+	importing_msg[0].scrollIntoView();\
+\
+	$.fileUpload($("#form-import-specificapp"), {\
+	  params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
+	  completeCallback: function(form, response) {\
+		if (response.success) {\
+		  tch.showProgress("Installing...");\
+		  scriptRequestStatusAjax();\
+		} else {\
+		  importing_msg.addClass("hide");\
+		  $("#upgrade-specificapp-fail").removeClass("hide");\
 		}\
 	  }\
 	});\

@@ -2,25 +2,25 @@
 
 convert_gui_to_light_gz() {
 	mkdir /tmp/extractemp
-	bzcat /tmp/$1.tar.bz2 | tar -C /tmp/extractemp -xf -
+	bzcat "/tmp/$1.tar.bz2" | tar -C /tmp/extractemp -xf -
 	rm -r /tmp/extractemp/tmp
 	cd  /tmp/extractemp/
 	sync && echo 3 | tee /proc/sys/vm/drop_caches #free ram to avoid reboot
-	tar -zcf ../$1.tar.gz *
+	tar -zcf "../$1.tar.gz" "*"
 	cd ../../
-	md5sum /tmp/$1.tar.bz2 | awk '{ print $1}' > /root/gui_orig.md5sum
-	mv /tmp/$1.tar.gz /root/
+	md5sum "/tmp/$1.tar.bz2" | awk '{ print $1}' > /root/gui_orig.md5sum
+	mv "/tmp/$1.tar.gz" /root/
 	rm -r /tmp/extractemp
-	rm /tmp/$1.tar.bz2
+	rm "/tmp/$1.tar.bz2"
 }
 
 check_webui_config() {
-	if [ -f /etc/config/web_unlock ]; then
+	if [ -f /tmp/web_unlock ]; then
 		if [ ! "$(uci get -q web.changelog)" ] || [ ! "$(uci get -q web.mmpbxstatisticsmodal)" ] ; then
 			mv /etc/config/web /etc/config/web_back #backup of the stock web config
-			mv /etc/config/web_unlock /etc/config/web #apply unlocked universal config
+			mv /tmp/web_unlock /etc/config/web #apply unlocked universal config
 		else
-			rm /etc/config/web_unlock
+			rm /tmp/web_unlock
 		fi
 	fi
 	if [ "$(uci get -q wireless.global.wifi_analyzer_disable)" ]; then
@@ -51,26 +51,28 @@ check_variant_friendly_name() {
 }
 
 orig_config_gen() {
-	if [ ! -f /etc/config/wol ] && [ -f /etc/config/wol_orig ]; then
-		mv /etc/config/wol_orig /etc/config/wol
-	else
-		if [ -f /etc/config/wol_orig ]; then
-			rm /etc/config/wol_orig
-		fi
+	if [ ! -f /etc/config/wol ]; then
+		touch /etc/config/wol
+		uci set wol.config=wol
+		uci set wol.config.enabled='0'
+		uci set wol.config.src_intf='wan'
+		uci set wol.config.src_dport='9'
+		uci set wol.config.dest_port='9'
+		uci set wol.config.dest_intf='br-lan'
+		uci set wol.config.dest_ip='192.168.1.253'
+		uci commit wol
 	fi
-	if [ ! -f /etc/config/dlnad ] && [ -f /etc/config/dlnad_orig ]; then
-		mv /etc/config/dlnad_orig /etc/config/dlnad
-	else
-		if [ -f /etc/config/dlnad_orig ]; then
-			rm /etc/config/dlnad_orig
-		fi
-	fi
-	if [ ! -f /etc/config/telnet ] && [ -f /etc/config/telnet_orig ]; then
-		mv /etc/config/telnet_orig /etc/config/telnet
-	else
-		if [ -f /etc/config/telnet_orig ]; then
-			rm /etc/config/telnet_orig
-		fi
+	if [ ! -f /etc/config/fcctlsettings ]; then
+		touch /etc/config/fcctlsettings
+		uci set fcctlsettings.state=state
+		uci set fcctlsettings.state.enabled='1'
+		uci set fcctlsettings.option=option
+		uci set fcctlsettings.option.l2tp='1'
+		uci set fcctlsettings.option.gre='1'
+		uci set fcctlsettings.option.ipv6='1'
+		uci set fcctlsettings.option.mcast='1'
+		uci set fcctlsettings.option.mcast_learn='1'
+		uci commit fcctlsettings
 	fi
 }
 
@@ -96,15 +98,23 @@ create_driver_setting() {
 	fi
 }
 
-dropbear_file_check() {
-	#Check to see if the dropbear_new config file is present in /etc/config, if so then move it to /etc/config/dropbear
-	if [ -f /etc/config/dropbear_new ]; then
-		if [ "$(uci get -q dropbear.wan.enable)" ]; then
-			rm /etc/config/dropbear_new
-		else
-			rm /etc/config/dropbear
-			mv /etc/config/dropbear_new /etc/config/dropbear
-		fi
+dropbear_config_check() {
+	if [ ! "$(uci get -q dropbear.wan)" ]; then
+	  logger_command "Adding Dropbear wan config"
+	  uci set dropbear.wan=dropbear
+	  uci set dropbear.wan.Interface='wan'
+    uci set dropbear.wan.RootLogin='1'
+    uci set dropbear.wan.RootPasswordAuth='on' #dropbear root related
+    uci set dropbear.wan.PasswordAuth='on'
+    uci set dropbear.wan.Port='22'
+    uci set dropbear.wan.enable='0'
+
+    uci commit dropbear
+	fi
+	if [ "$(uci get dropbear.wan.RootLogin)" != "1" ]; then
+	  logger_command "Enabling Dropbear wan RootLogin"
+	  uci set dropbear.wan.RootLogin='1'
+    uci commit dropbear
 	fi
 }
 
@@ -278,16 +288,16 @@ check_wan_mode() {
 }
 
 dosprotect_inizialize() {
-	if [ -f /lib/modules/3.4.11/xt_hashlimit.ko ]; then
+  logger_command "Checking DoSprotect kernel modules..."
+	if [ -f /lib/modules/*/xt_hashlimit.ko ]; then
 		if [ ! -f /etc/config/dosprotect ]; then
-			if [ -f /etc/config/dosprotect_orig ]; then
-				mv /etc/config/dosprotect_orig /etc/config/dosprotect
+			if [ -f /tmp/dosprotect_orig ]; then
+				mv /tmp/dosprotect_orig /etc/config/dosprotect
 			fi
 		fi
-		if [ -f /etc/config/dosprotect_orig ]; then
-			rm /etc/config/dosprotect_orig
-		fi
-		if [ "$(echo /etc/rc.d/S*dosprotect)" ]; then
+		[ -f /tmp/dosprotect_orig ] && rm /tmp/dosprotect_orig
+		if [ -f /etc/rc.d/S*dosprotect ]; then
+	    logger_command "Enabling and starting DoSprotect service..."
 			/etc/init.d/dosprotect enable
 			/etc/init.d/dosprotect start
 		fi
@@ -353,6 +363,10 @@ cumulative_check_gui() {
 		update_branch="_dev"
 		logger_command "Update branch detected: DEV"
 	fi
+	
+	get_major_ver() {
+		echo "$1" | sed -E 's|\.[0-9]+\.[0-9]+||'
+	}
 
 	#Remove/convert to .gz .bz2 packages if low space device
 	overlay_space=$(df /overlay | sed -n 2p | awk {'{print $2}'})
@@ -430,6 +444,23 @@ cumulative_check_gui() {
 		logger_command "Can't generate GUI hash, file not found!"
 		gui_hash="0"
 	fi
+	
+	if [ "$saved_gui_version" != "$version_gui" ]; then
+		logger_command "Updating version saved to $version_gui"
+		uci set modgui.gui.gui_version="$version_gui"
+	else
+		uci set modgui.gui.gui_version="$version_gui"
+	fi
+	
+	saved_gui_version="$(uci -q get modgui.gui.gui_version)"
+	
+	#This is to fix a bug in older gui when stable gui is wrongly saved as dev and never replaced.
+	if [ $(get_major_ver "$saved_gui_version") -lt 9 ]; then
+		if [ -f /root/GUI.tar.bz2 ] && [ -f /root/GUI_dev.tar.bz2 ]; then
+			rm /root/GUI.tar.bz2
+			mv /root/GUI_dev.tar.bz2 /root/GUI.tar.bz2
+		fi
+	fi
 
 	logger_command "Resetting version info..."
 
@@ -483,16 +514,6 @@ fcctlsettings_daemon() {
 }
 
 led_integration() {
-	#Fix led issues
-	if [ ! "$(uci get -q ledfw.status_led.enable)" ] ; then
-		uci set ledfw.status_led=status_led
-		uci set ledfw.status_led.enable='0'
-	fi
-	if [ ! "$(uci get -q ledfw.wifi.nsc_on)" ] ; then
-		uci set ledfw.wifi=service
-		uci set ledfw.wifi.nsc_on='1'
-	fi
-
 	#Restart statusledeventing if old version
 	if [ -f /tmp/status-led-eventing.lua_new ]; then
 		ledeventing_new_md5=$(< /tmp/status-led-eventing.md5sum awk '{ print $1 }')
@@ -516,6 +537,21 @@ decrypt_config_pass() {
 	lua /usr/share/transformer/scripts/decryptPasswordInUciConfig.lua
 }
 
+clean_ping_and_traceroute() {
+	if [ -n "$(uci get -q traceroute.diagping.host)" ]; then
+		uci set traceroute.diagping.host=""
+	fi
+	if [ -n "$(uci get -q ipping.diagping.host)" ]; then
+		uci set ipping.diagping.host=""
+	fi
+}
+
+clean_watchdog() {
+	if [ -n "$(uci get -q watchdog.@watchdog[0].pidfile)" ]; then
+		uci set watchdog.@watchdog[0].pidfile=""
+	fi
+}
+
 logger_command "Check original config"
 orig_config_gen #this check if new config are already present
 logger_command "Unlocking web interface if needed"
@@ -529,7 +565,7 @@ check_uci_gui_skin #check css
 logger_command "Check driver setting"
 create_driver_setting #create diver setting if not present
 logger_command "Check Dropbear config file"
-dropbear_file_check  #check dropbear config
+dropbear_config_check  #check dropbear config
 logger_command "Check eco paramaters"
 eco_param #This disable eco param as they introduce some latency
 logger_command "Create GUI type in config"
@@ -552,7 +588,6 @@ logger_command "Adding fast cache options"
 fcctlsettings_daemon #Adds fast cache options
 logger_command "Checking if wan_mode option exists..."
 check_wan_mode # wan_mode check
-logger_command "Inizialize and start DoSprotect..."
 dosprotect_inizialize #dosprotected inizialize function
 logger_command "Checking if intercept is enabled and disabling if it is..."
 disable_intercept #Intercept check
@@ -566,3 +601,5 @@ logger_command "Doing various checks and generating hashes..."
 cumulative_check_gui #Handle strange installation
 logger_command "Decrypting any encrypted password present in config"
 decrypt_config_pass
+clean_ping_and_traceroute
+clean_watchdog

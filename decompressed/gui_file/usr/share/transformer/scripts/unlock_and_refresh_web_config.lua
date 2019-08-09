@@ -164,6 +164,8 @@ for _ , elem in pairs(card_check_rule) do
 	end
 end
 
+uci:set('web','usr_admin','role','engineer')
+
 local rule_roles
 
 local function genRolesList()
@@ -196,8 +198,6 @@ uci:foreach('web', 'rule', function(s)
 	end
 	uci:set('web',s['.name'],'roles',rule_roles)
   end)
-
-uci:set('web','usr_admin','role','engineer')
 
 --Commit only if new rules added
 if new_rule then
