@@ -289,7 +289,7 @@ do
   end
   local function get_ipv6_address(device, scope)
     local addr = get_address(device, scope)
-    if addr then
+    if addr and addr.ip then
       return addr.ip.."/"..addr.mask
     end
     return ""
