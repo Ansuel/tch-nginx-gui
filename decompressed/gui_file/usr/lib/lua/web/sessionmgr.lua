@@ -273,7 +273,7 @@ local function getSessionAddress()
   return {
     remote = untaint(ngx_var.remote_addr),
     server = untaint(ngx_var.server_addr),
-    http_host = untaint(ngx_var.http_host),
+    http_host = untaint(ngx_var.http_host)
   }
 end
 
@@ -342,6 +342,18 @@ local function storeSessionInNginx(session)
   ngx.ctx.session = session.proxy
 end
 
+-- check Protocol used and redirect to HTTPS if requested by option in web config
+local function checkProtocol(address,force_https)
+	if force_https then
+		local http_port = untaint(ngx.var.server_port)
+		local http_request_uri = untaint(ngx.var.request_uri)
+
+		if http_port == "80" then
+			ngx.redirect(format("https://%s%s",address.http_host,http_request_uri))
+		end
+	end
+end
+
 --- Check if the current request has a valid session and if it
 -- is an authorized request.
 -- @param noActivityUpdate (optional) if true, the user activity timer
@@ -349,6 +361,7 @@ end
 function SessionMgr:checkrequest(noActivityUpdate)
   local address = getSessionAddress()
   --preventDNSRebind(address.http_host)
+  checkProtocol(address,self.force_https)
   local session, sessionID = getSessionForRequest(self, address, noActivityUpdate)
   cleanupIfNoSession(self,session)
   redirectIfServiceNotAvailable(session)

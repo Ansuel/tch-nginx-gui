@@ -1,8 +1,8 @@
 #! /usr/bin/lua
 
 local lfs = require("lfs")
-
 local processinfo = require("transformer.shared.processinfo")
+local uloop = require("uloop")
 
 local datadir  = "/tmp/trafficmon/"
 
@@ -10,12 +10,6 @@ local datadir  = "/tmp/trafficmon/"
 --  line 1: the last moment total traffic data
 --  line 2~145: 144 times data, every 10mins during 24hours.
 local datanum  = 145
-
-local binit = false
-
-if arg[1] == "-i" then
-	binit = true
-end
 
 local function getMemTotal()
 	local ret = "0"
@@ -57,7 +51,9 @@ end
 --optional: statsData = write the second line in file.
 --optional: times = write the second line in file. 
 local function inizializeFile(fname,total,statsData,times)
+
 	local f = io.open(fname, "w")
+	
 	if f then
 		f:write(total .. "\n")
 		if statsData then
@@ -208,10 +204,37 @@ local function DataCollector(datadir, binit)
 	handleStatsFile("stats_mem",getMemFree(),times)
 end
 
--- lock file directory
-local lock = lfs.lock_dir(datadir)
-if lock then
-	pcall(DataCollector, datadir, binit)
-	-- unlock file directory
-	lock:free()
+uloop.init()
+
+local function collect_data(inizialize)
+	
+	-- lock file directory
+	local lock = lfs.lock_dir(datadir)
+	if lock then
+		pcall(DataCollector, datadir, inizialize)
+		-- unlock file directory
+		lock:free()
+	end
 end
+
+-- 10 minutes in millisc = 10 * 60 * 1000
+local delay_polling_time = 600000
+
+local function start_timer()
+	uloop.timer(
+		function ()
+			collect_data()
+			start_timer()
+		end
+	,delay_polling_time)
+end
+
+local exist = lfs.chdir(datadir) and true or false
+if not exist then
+	lfs.mkdir(datadir)
+end
+
+collect_data(true)
+start_timer()
+
+uloop.run()

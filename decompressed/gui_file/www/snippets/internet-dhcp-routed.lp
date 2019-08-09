@@ -46,6 +46,7 @@ local ajax_attr_light = {
 
 local vSII = post_helper.validateStringIsIP
 local gOV = post_helper.getOptionalValidation
+local vNES = post_helper.validateNonEmptyString
 
 local dns_options = {
     tableid = "dns_servers",
@@ -169,6 +170,7 @@ local mapParams = {
 	uci_wan_ipv6 = "uci.network.interface.@wan.ipv6", --custo TCOMITAGW-2157
     uci_wan_mac = "uci.network.interface.@wan.macaddr",
     uci_wan_peerdns = "uci.network.interface.@wan.peerdns",
+	uci_wan_vendorid = "uci.network.interface.@wan.vendorid",
 }
 
 -- Shortcuts to validation helpers to make lines shorter
@@ -204,6 +206,7 @@ local mapValid = {
 	uci_wan_ipv6 = IPv6andUsername,--custo TCOMITAGW-2157
     uci_wan_mac = gOV(post_helper.validateStringIsMAC),
     uci_wan_peerdns = vB,
+	uci_wan_vendorid = gOV(post_helper.validateNonEmptyString),
 }
 
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
@@ -357,6 +360,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     html[#html+1] = ui_helper.createSwitch(T"Enabled", "uci_wan_auto", content["uci_wan_auto"])
     html[#html + 1] = ui_helper.createSwitch(T"NAT", "uci_wan_masq", content.uci_wan_masq)
     html[#html + 1] = ui_helper.createInputText(T"MAC Spoof (Wan MAC)","uci_wan_mac", content["uci_wan_mac"], nil, helpmsg["uci_wan_mac"])
+	html[#html + 1] = ui_helper.createInputText(T"VendorID","uci_wan_vendorid", content["uci_wan_vendorid"], nil, helpmsg["uci_wan_vendorid"])
     ajax_attr.span.id = "leaseobtained"
     html[#html+1] = ui_helper.createLabel(T"Lease obtained", cs["leaseobtained"], ajax_attr)
     ajax_attr.span.id = "leaseexpires"

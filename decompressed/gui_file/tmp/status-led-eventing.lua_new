@@ -8,6 +8,8 @@ local lcur=uci.cursor()
 local ledcfg='ledfw'
 lcur:load(ledcfg)
 
+local info_ambient_led_active, err = lcur:get(ledcfg, 'ambient', 'active')
+
 local wifi_on = {}
 local eco_mode = false
 local infobutton_pressed = false
@@ -26,6 +28,11 @@ uloop.init()
 local conn = ubus.connect()
 if not conn then
     error("Failed to connect to ubusd")
+end
+
+local ubus_led_name = "statusled"
+if info_ambient_led_active ~= nil then
+    ubus_led_name = "ambient.status"
 end
 
 local events = {}
@@ -48,6 +55,10 @@ local function get_infoled_config(dtype)
 		end
 	elseif dtype == "enable" then
 		result,err=lcur:get(ledcfg,'status_led','enable')
+
+        if info_ambient_led_active ~= nil then
+            result = info_ambient_led_active
+        end
 
 		if result == nil then
 			result = false
@@ -120,14 +131,14 @@ local function ledaction()
     if is_service_ok() == false then
         local packet = {}
         packet["state"] = "inactive"
-        conn:send("statusled", packet)
+        conn:send(ubus_led_name, packet)
         packet["state"] = "service_notok"
         conn:send("power", packet)
     else
         local packet = {}
         if ( infobutton_pressed == false ) and ( get_infoled_config("enable") == true ) and ( get_infoled_config("timeout") > 0 ) then
             packet["state"] = "active"
-            conn:send("statusled", packet)
+            conn:send(ubus_led_name, packet)
         end
         if eco_mode == true then
             packet["state"] = "service_eco"
@@ -140,9 +151,10 @@ end
 
 local function info_timeout()
     local packet = {}
+
     if is_service_ok() == true then
         packet["state"] = "active"
-        conn:send("statusled", packet)
+        conn:send(ubus_led_name, packet)
         if eco_mode == true then
             packet["state"] = "service_eco"
         else
@@ -151,7 +163,7 @@ local function info_timeout()
         conn:send("power", packet)
     else
         packet["state"] = "inactive"
-        conn:send("statusled", packet)
+        conn:send(ubus_led_name, packet)
         packet["state"] = "service_notok"
         conn:send("power", packet)
     end
@@ -164,7 +176,7 @@ events['infobutton'] = function(msg)
         infobutton_pressed = true
         local packet = {}
         packet["state"] = "inactive"
-        conn:send("statusled", packet)
+        conn:send(ubus_led_name, packet)
         -- Setup a timer
         if ( get_infoled_config("enable") == true ) and ( get_infoled_config("timeout") > 0 ) then
             local timer = uloop.timer(info_timeout)
@@ -172,6 +184,16 @@ events['infobutton'] = function(msg)
         end
     end
 end
+
+local function ambient_status_update()
+    if info_ambient_led_active == '0' then
+        local packet = {}
+        packet["state"] = "inactive"
+        conn:send(ubus_led_name, packet)
+    end
+end
+
+local startup_timer = uloop.timer(function() ambient_status_update() end, 2000)
 
 events['wireless.wlan_led'] = function(msg)
     local new_eco_value = true

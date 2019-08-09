@@ -54,12 +54,12 @@ elseif content.dslam_chipset:match("IFTN") then
 	content.dslam_chipset = "Infineon" .. " ( " .. content.dslam_chipset .. " )"
 end
 
-if content.status == "Showtime" then
-	content.status = T"Connected"
-elseif content.status == "" then
-	content.status = T"Disconnected"
+if content["status"]:match("Showtime") then
+	content["status"] = T"Connected"
+elseif content["status"] == "" then
+	content["status"] = T"Disconnected"
 else
-	content.status = T(content.status)
+	content["status"] = T(content.status)
 end
 
   ngx.print('\

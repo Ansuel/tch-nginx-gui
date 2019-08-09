@@ -297,23 +297,18 @@ end
 local radioData ={}
 for i,v in ipairs(radios) do
   local path = "rpc.wireless.radio.@" .. v
-  local rdata = proxy.get(path..".supported_frequency_bands" ,
-        path .. ".remotely_managed",
-        path .. ".supported_standards",
-        path .. ".integrated_ap",
-        path .. ".phy_rate",
-        path .. ".country",
-        path .. ".channel")
-  if rdata ~= nil then
-    radioData[v] = {
-      supported_frequency_bands=rdata[1].value,
-      remotely_managed=rdata[2].value,
-      supported_standards=rdata[3].value,
-      integrated_ap=rdata[4].value,
-      phy_rate = rdata[5].value,
-      country = rdata[6].value,
-      channel = rdata[7].value,
-    }
+  local rdata = {
+	supported_frequency_bands = path..".supported_frequency_bands" ,
+    remotely_managed = path .. ".remotely_managed",
+    supported_standards = path .. ".supported_standards",
+    integrated_ap = path .. ".integrated_ap",
+    phy_rate = path .. ".phy_rate",
+    country = path .. ".country",
+    channel = path .. ".channel"
+  }
+  content_helper.getExactContent(rdata)
+  if rdata.channel ~= "" then
+    radioData[v] = rdata
   end
 end
 
@@ -322,6 +317,8 @@ if radioData[curradio].remotely_managed == "1" and radioData[curradio].integrate
 elseif radioData[curradio].remotely_managed == "1" and radioData[curradio].integrated_ap == "1" then
 	isIntRemman = "1"
 end
+
+
 
 -- We're defining the listbox enums here to be able to use them to validate the input
 -- Listbox that shows the supported WiFi standards
@@ -595,12 +592,18 @@ else
 end
 
 local param = {
-    allowed_channels = pathradio .. "allowed_channels"
+    allowed_channels = pathradio .. "allowed_channels",
+	supported_countries = pathradio .. "supported_countries"
 }
 content_helper.getExactContent(param)
 local allowed_channels = { {"auto", T"Auto"} }
 for i in string.gmatch(param["allowed_channels"], "%S+") do
     allowed_channels[#allowed_channels + 1] = {i, i}
+end
+
+local supported_countries = {}
+for i in string.gmatch(param["supported_countries"], "%S+") do
+    supported_countries[#supported_countries + 1] = {i, i}
 end
 
 local function validateRadioandAp(value, object, key)
@@ -656,8 +659,11 @@ local function getParamsAndValidation()
         mapParams.requested_channel_width = pathradio .. "requested_channel_width"
         mapParams.wps_enabled = pathap .. "wps.admin_state"
         mapParams.frame_bursting = pathradio .. "frame_bursting"
-		mapParams.tx_power_adjust = pathradio .. "tx_power_adjust"
-		mapParams.tx_power_overrule_reg = pathradio .. "tx_power_overrule_reg"
+		mapParams.country = pathradio .. "country"
+		mapParams.eco_state = pathradio .. "eco.state"
+		mapParams.eco_force_radio_down = pathradio .. "eco.force_radio_down"
+		mapParams.eco_single_rx_chain = pathradio .. "eco.single_rx_chain"
+		mapParams.eco_fast_radio_toggle = pathradio .. "eco.fast_radio_toggle"
   -- Bug fix for NG-12032 GUI wireless enable/disable not working properly
     for k, v in pairs(radios) do
       if v~=curradio then
@@ -690,6 +696,8 @@ local function getParamsAndValidation()
       mapParams.sgi = pathradio .. "sgi"
       mapParams.cdd = pathradio .. "cdd"
       mapParams.stbc = pathradio .. "stbc"
+	  mapParams.tx_power_adjust = pathradio .. "tx_power_adjust"
+	  mapParams.tx_power_overrule_reg = pathradio .. "tx_power_overrule_reg"
     end
   end
 
@@ -747,9 +755,14 @@ local function getParamsAndValidation()
     frame_bursting = vB,
     ap_broadcast_ssid = vB,
     requested_channel = gVIES(allowed_channels),
+	country = gVIES(supported_countries),
     admin_state = vB,
     rssi_threshold = gVIES(bandsteer_rssi_threshold),
     rssi_5g_threshold = gVIES(bandsteer_rssi_threshold),
+	eco_state = vB,
+	eco_force_radio_down = vB,
+	eco_single_rx_chain = vB,
+	eco_fast_radio_toggle = vB,
   }
 
 	if isguest ~= "1" then
@@ -772,7 +785,7 @@ local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
 
 if ngx.req.get_method() == "POST" and ngx.req.get_post_args().action == "bs_check" then
     local postargs = ngx.req.get_post_args()
-	if content["ssid"] ~= postargs.ssidName or content["security"] ~= postargs.security or content["wep_key"] ~= postargs.wep_key or content["wpa_psk"] ~= postargs.wpa_psk then
+	if content["ssid"] ~= postargs.ssidName or content["security"] ~= postargs.security or content["wpa_psk"] ~= postargs.wpa_psk then
 	session:store("bs_check_action", "TRUE")
     proxy.set("uci.wireless.wifi-ap.@ap0.bandsteer_id", "off")
 	proxy.set("uci.wireless.wifi-ap.@ap1.bandsteer_id", "off")
@@ -1109,7 +1122,7 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
         end
 
         -- Show which region is being used
-        html[#html + 1] = ui_helper.createLabel(T"Region", content["country"], advanced)
+        html[#html + 1] = ui_helper.createInputSelect(T"Country", "country", supported_countries, content["country"])
         html[#html + 1] = ui_helper.createLabel(T"Current channel", content["channel"], { span = {
             id = "channel",
             ["data-ajaxrefresh"] = "5",
@@ -1141,10 +1154,9 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
 
             html[#html + 1] = ui_helper.createInputSelect(T"Channel Width", "channelwidth80", cw_80, content["requested_channel_width"], cw80attributes)
             html[#html + 1] = '</div>'
-			html[#html + 1] = ui_helper.createSwitch(T"Bypass Reg Domain Power Rule", "tx_power_overrule_reg", content["tx_power_overrule_reg"], advanced)
-			html[#html + 1] = ui_helper.createSliderSelect(T"Output Power", "tx_power_adjust", wifipower, content["tx_power_adjust"], advanced)
-
-            if isExtRemman ~= "1" and isIntRemman ~= "1" then
+			if isExtRemman ~= "1" and isIntRemman ~= "1" then
+				html[#html + 1] = ui_helper.createSwitch(T"Bypass Reg Domain Power Rule", "tx_power_overrule_reg", content["tx_power_overrule_reg"], advanced)
+				html[#html + 1] = ui_helper.createSliderSelect(T"Output Power", "tx_power_adjust", wifipower, content["tx_power_adjust"], advanced)
                 html[#html + 1] = ui_helper.createSwitch(T"Short Guard Interval", "sgi", content["sgi"], advanced)
                 html[#html + 1] = ui_helper.createInputSelect(T"Cyclic-Delay Diversity", "cdd", cddList, content["cdd"], advanced)
                 html[#html + 1] = ui_helper.createSwitch(T"Space Time Block Code", "stbc", content["stbc"], advanced)
@@ -1156,7 +1168,26 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
   ngx.print('\
 </fieldset>\
 \
-');  
+');
+if isguest ~= "1" then
+
+	html = {}
+	
+	
+	html[#html + 1] = '<legend class="advanced hide">'
+    html[#html + 1] = T"Eco Settings"
+    html[#html + 1] = "</legend>"
+
+	html[#html + 1] = ui_helper.createSwitch(T"State", "eco_state", content["eco_state"], advanced)
+	html[#html + 1] = ui_helper.createSwitch(T"Force Radio Down", "eco_force_radio_down", content["eco_force_radio_down"], advanced)
+	-- Currently not working... Ubus refuse to set them (also in mapper they are readOnly (probably because they are unsupported)
+	--html[#html + 1] = ui_helper.createSwitch(T"Fast Radio Toggle", "eco_fast_radio_toggle", content["eco_fast_radio_toggle"], advanced)
+	--html[#html + 1] = ui_helper.createSwitch(T"Single Rx Chain", "eco_single_rx_chain", content["eco_single_rx_chain"], advanced)
+
+	ngx.print(html)
+	
+end
+
     html = {}
 
     if not stbLimit then
@@ -1166,7 +1197,7 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
     end
     html[#html + 1] = "<legend>"
     html[#html + 1] = T"Access Point"
-    html[#html + 1] = [[</legend>]]
+    html[#html + 1] = "</legend>"
 
     -- Show if the AP is enabled
     if isguest == "1" then
@@ -1884,9 +1915,6 @@ $("#save-config").click(function(){\
 	params.push({\
 	name : "ssidName",\
 	value : $("#ssid").val()\
-	},{\
-	name : "wep_key",\
-	value : $("#wep_key").val()\
 	},{\
 	name : "wpa_psk",\
 	value : $("#wpa_psk").val()\

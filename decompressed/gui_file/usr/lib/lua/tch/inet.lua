@@ -122,7 +122,7 @@ end
 -- @error Error message
 function M.normalizeIP(ip, family)
   local bin, af = ipBinary(ip, family)
-  if not bin then
+  if not bin or not inet_ntop then
     return nil, af
   end
   return inet_ntop(af, bin), AF_SPECToAddressFamily[af]
@@ -218,7 +218,7 @@ local ipv4ToNumber = M.ipv4ToNumber
 function M.numberToIpv4(n)
 	local ok, ip = pcall(inet_ntop, AF_INET, n)
 	if not inet_ntop then
-		return nil, "bho"
+		return nil, "posix inet_ntop not supported"
 	end
 	if ok then
 		if ip then
@@ -265,7 +265,7 @@ function M.validateIPv4Netmask(value)
       ones = ones + 1
     end
   end
-  if (ones < 8) or (ones > 30) then
+  if (ones < 0) or (ones > 30) then
     return nil, "Invalid subnet."
   end
   return true, 32 - ones

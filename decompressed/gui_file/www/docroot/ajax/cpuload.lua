@@ -4,7 +4,7 @@ local readfile = require("web.content_helper").readfile
 local post_helper = require("web.post_helper")
 local ngx = ngx
 
-local ram = tonumber(proxy.get("sys.mem.RAMFree")[1].value) or 0
+local ram = tonumber(proxy.get("sys.mem.RAMFree")[1].value or 0) or 0
 local cpu_usage = proxy.get("sys.proc.CPUUsage")[1].value or "0"
 
 local data = {

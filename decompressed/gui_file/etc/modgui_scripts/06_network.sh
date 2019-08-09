@@ -1,6 +1,7 @@
 . /etc/init.d/rootdevice
 
 check_isp_config() {
+  logger_command "Detecting ISP and cleanup..."
 	#Detect ISP based on cwmp settings (Italian only)
 	if [ -z "$(uci -q get modgui.var.isp_autodetect)" ]; then
 		uci set modgui.var.isp_autodetect="1"
@@ -39,6 +40,7 @@ check_isp_config() {
 }
 
 add_ipoe() {
+  logger_command "Adding ipoe in network config..."
 	uci set network.ipoe=interface
 	uci set network.ipoe.proto='dhcp'
 	uci set network.ipoe.metric='1'
@@ -50,6 +52,7 @@ add_ipoe() {
 }
 
 remove_default_dns() {
+  logger_command "Removing default loopback DNS Servers..."
 	uci -q del network.loopback.dns
 	uci -q del network.loopback.dns_metric
 }
@@ -111,7 +114,8 @@ add_TIM_ppp_specific() {
 	uci set modgui.var.ppp_realm_ipv6="$(uci -q get env.var.serial)-$(uci -q get env.var.oui)@alice6.it"
 }
 
-puryfy_wan_interface() { #creano problemi di dns per chissa'  quale diavolo di motivo... Ma l'utilitÃ  di sta roba eh telecom ? 
+puryfy_wan_interface() { #creano problemi di dns per chissa'  quale diavolo di motivo... Ma l'utilitÃ  di sta roba eh telecom ?
+  logger_command "Purify WAN network config..."
 	uci -q del network.wan.keepalive
 	uci -q del network.wan.graceful_restart
 	uci -q del network.wan_ipv6.keepalive
@@ -119,6 +123,7 @@ puryfy_wan_interface() { #creano problemi di dns per chissa'  quale diavolo di 
 }
 
 fix_dns_dhcp_bug() {
+  logger_command "Fix DNS bug"
 	#SET odhcpd MAINDHCP to 0 to use dnsmasq for ipv4 
 	if [ "$(uci get -q dhcp.odhcpd.maindhcp)" == "1" ]; then
 		uci set dhcp.odhcpd.maindhcp="0"
@@ -150,6 +155,7 @@ add_telecom_stock_dns() {
 }
 
 check_dnsmasq_name() {
+  logger_command "Checking and fixing dnsmasq daemon naming..."
 	#Checks what the dnsmasq daemon is referred to in the config file
 	if [ "$(uci get -q dhcp.dnsmasq)" ]; then
 		if [ "$(uci get -q dhcp.dnsmasq)" != "dnsmasq" ]; then
@@ -167,6 +173,7 @@ check_dnsmasq_name() {
 }
 
 update_dhcp_config() {
+  logger_command "Sync DHCP configuration for new GUI"
 	if [ "$(uci get -q dhcp.lan.dhcpv4)" ]; then
 		#REMOVE DHCPV4 this is for odhcpd daemon to tell him to run also for ipv4 dhcp...
 		#by removing the entities we solve the problem
@@ -178,8 +185,9 @@ update_dhcp_config() {
 }
 
 sfp_rework() {
+  logger_command "Reworking sfp interface in network config..."
 	if [ "$(uci get -q network.sfp)" ]; then
-		logger_command "Moving sfp to sfptag..."
+		logger_command "Renaming sfp to sfptag..."
 		uci rename network.sfp=sfptag
 		class_target=10
 		if [ "$(uci get network.lan.ipaddr)" == "192.168.$class_target.1" ]; then
@@ -191,8 +199,8 @@ sfp_rework() {
 }
 
 wan_sensing_clean() {
+  logger_command "Attempt to clean the wansensing script from hardcoded interfaces..."
 	#This will try to clean every hardcoded setting from isp config
-	logger_command "Cleaning WanSensing"
 	if [ -f /etc/wansensing/L2EntryExit.lua ]; then
 		sed -i '/[cC][wW][mM][pP][dD]/d' /etc/wansensing/L2EntryExit.lua
 		sed -i '/mtu= "1500"/{N;d}' /etc/wansensing/L2EntryExit.lua
@@ -226,9 +234,10 @@ wan_sensing_clean() {
 }
 
 clean_cups_block_rule() {
+  logger_command "Cleaning cups firewall rule..."
 	firewall_change=0
 	for ret in $(uci show firewall | grep CUPS-lan | sed 's|.name.*||'); do
-		uci del $ret
+		uci del "$ret"
 		firewall_change=1
 	done
 	if [ $firewall_change -eq 1 ]; then
@@ -238,35 +247,47 @@ clean_cups_block_rule() {
 }
 
 cwmp_specific_TIM() {
+
+	cwmp_url="$(uci get cwmpd.cwmpd_config.acs_url)"
+	detected_acs="Undetected"
 	logger_command "TIM ISP detected, finding CWMP server..."
 	new_platform=https://regman-mon.interbusiness.it:10800/acs/
 	new_platform_bck=https://regman-bck.interbusiness.it:10501/acs/
 	unified_platform=https://regman-tl.interbusiness.it:10700/acs/ 
 	mgmt_platform=https://regman-tl.interbusiness.it:10500/acs/
 	if [ "$(curl -s -k $new_platform --max-time 5 )" ]; then
-		uci set cwmpd.cwmpd_config.acs_url=$new_platform
+		detected_acs=$new_platform
 	elif [ "$(curl -s -k $new_platform_bck --max-time 5 )" ]; then
-		uci set cwmpd.cwmpd_config.acs_url=$new_platform_bck
+		detected_acs=$new_platform_bck
 	elif [ "$(curl -s -k $unified_platform --max-time 5 )" ]; then
-		uci set cwmpd.cwmpd_config.acs_url=$unified_platform
+		detected_acs=$unified_platform
 	elif [ "$(curl -s -k $mgmt_platform --max-time 5 )" ]; then
-		uci set cwmpd.cwmpd_config.acs_url=$mgmt_platform
+		detected_acs=$mgmt_platform
 	fi
 	logger_command "CWMP Server detected: $(uci get cwmpd.cwmpd_config.acs_url)"
-	if [ "$(uci get -q cwmpd.cwmpd_config.interface)" != "wan" ]; then
-		uci set cwmpd.cwmpd_config.interface='wan'
-	fi
-	uci commit cwmpd
-	if [ "$(uci get -q cwmpd.cwmpd_config.acs_url)" == "None" ]; then
-		if [ "$(pgrep "cwmpd")" ]; then
-			/etc/init.d/cwmpd stop
+	
+	[ -z "$cwmp_url" ] && cwmp_url="None"
+	
+	if [ "$cwmp_url" != "None" ] && [ "$cwmp_url" != "$detected_acs" ]; then
+		
+		#Make the device tink is first power on by removing cwmpd db
+		[ -f /etc/cwmpd.db ] && rm /etc/cwmpd.db
+		uci set cwmpd.cwmpd_config.acs_url="$detected_acs"
+		if [ "$(uci get -q cwmpd.cwmpd_config.interface)" != "wan" ]; then
+			uci set cwmpd.cwmpd_config.interface='wan'
 		fi
-	else
-		/etc/init.d/cwmpd enable
-		if [ ! "$(pgrep "cwmpd")" ]; then
-			/etc/init.d/cwmpd start
+		uci commit cwmpd
+		if [ "$(uci get -q cwmpd.cwmpd_config.acs_url)" == "None" ]; then
+			if [ "$(pgrep "cwmpd")" ]; then
+				/etc/init.d/cwmpd stop
+			fi
 		else
-			/etc/init.d/cwmpd restart
+			/etc/init.d/cwmpd enable
+			if [ ! "$(pgrep "cwmpd")" ]; then
+				/etc/init.d/cwmpd start
+			else
+				/etc/init.d/cwmpd restart
+			fi
 		fi
 	fi
 }
@@ -387,22 +408,27 @@ firewall_specific_sip_rules_FASTWEB() {
 
 cwmp_specific_FASTWEB() {
 	logger_command "FASTWEB ISP detected, finding CWMP server..."
-	if [ ! -z "$(uci get -q cwmpd.cwmpd_config.acs_url)" ]; then
-		#Fastweb requires device registred in CWMP to make voip work in MAN voip registar
-		#Fastweb will autoconfigure acs username and password with empty acs_url
-		uci set cwmpd.cwmpd_config.acs_url=""
-		firewall_specific_sip_rules_FASTWEB
-		uci commit cwmpd
-		/etc/init.d/cwmpd enable
-		if [ ! "$(pgrep "cwmpd")" ]; then
-			/etc/init.d/cwmpd start
-		else
-			/etc/init.d/cwmpd restart
+	if [ -n "$(uci get -q cwmpd.cwmpd_config.acs_url)" ]; then
+		if [ "$(uci get -q cwmpd.cwmpd_config.acs_url)" != "http://59.0.121.191:8080/ACS-server/ACS" ]; then
+			#Fastweb requires device registred in CWMP to make voip work in MAN voip registar
+			#Fastweb will autoconfigure acs username and password with empty acs_url
+			#Make the device tink is first power on by removing cwmpd db
+			[ -f /etc/cwmpd.db ] && rm /etc/cwmpd.db
+			uci set cwmpd.cwmpd_config.acs_url=""
+			firewall_specific_sip_rules_FASTWEB
+			uci commit cwmpd
+			/etc/init.d/cwmpd enable
+			if [ ! "$(pgrep "cwmpd")" ]; then
+				/etc/init.d/cwmpd start
+			else
+				/etc/init.d/cwmpd restart
+			fi
 		fi
 	fi
 }
 
 check_isp_and_cwmp() {
+  logger_command "Checking detected ISP and setting CWMP..."
 	if [ "$(uci -q get modgui.var.isp)" ]; then
 		if [ "$(uci -q get modgui.var.isp)" == "Other" ] && 
 			[ "$(uci -q get modgui.var.isp_autodetect)" == "1" ]; then #this disable cwmpd if it's not known ISP...
@@ -433,6 +459,7 @@ check_isp_and_cwmp() {
 }
 
 unlock_ssh_wan_tiscali() {
+  logger_command "Unlocking SSH for Tiscali firmware"
 	if [ "$(uci get -q firewall.wan_SSH_rule1)" ]; then
 		uci del firewall.wan_SSH_rule1
 	fi
@@ -442,6 +469,7 @@ unlock_ssh_wan_tiscali() {
 }
 
 disable_tcp_Sack() {
+  logger_command "Apply CVE 2019-11477 workaround"
 	if [ "$(cat /etc/sysctl.conf | grep 'net.ipv4.tcp_sack')" ]; then
 		sed -i 's/\(net.ipv4.tcp_sack=\)1/\10/g' /etc/sysctl.conf
 		sysctl -p 2>/dev/null 1>/dev/null
@@ -453,33 +481,41 @@ disable_tcp_Sack() {
 	fi
 }
 
-#THIS CHECK DEVICE TYPE AND INSTALL SPECIFIC FILE
+check_xtm_atmwan() {
+  logger_command "Checking atmdevice interface naming..."
+	if [ -z "$(uci -q get xtm.atmwan)" ]; then
+		uci set xtm.atmwan=atmdevice
+		uci set xtm.atmwan.ulp='eth'
+		uci set xtm.atmwan.vpi='8'
+		uci set xtm.atmwan.vci='35'
+		uci set xtm.atmwan.path='fast'
+		uci set xtm.atmwan.enc='llc'
+		uci commit
+	fi
+}
+
+#Check device type and execute specific actions
 device_type="$(uci get -q env.var.prod_friendly_name)"
-kernel_ver="$(cat /proc/version | awk '{print $3}')"
 
 check_isp_config
-logger_command "Check and cleanup"
-add_ipoe #this need to stay to make the wizard work correctly
-logger_command "Remove default DNS Servers"
+add_ipoe #Needed to fix wizard
 remove_default_dns #tim sets his dns on to of the loopback interface
 setup_network #Fix some missing network value
-logger_command "Purify WAN"
 puryfy_wan_interface #remove gracefull restart, could give problem
-logger_command "Fix DNS bug"
-fix_dns_dhcp_bug #disable odhcpd as ipv6 is currently broken 
-logger_command "Check if dnsmasq daemon name is as we need it for the GUI"
-check_dnsmasq_name #check dnsmasq name in uci
-logger_command "Sync DHCP configuration for new GUI"
+fix_dns_dhcp_bug #disable odhcpd as ipv6 is currently broken
+check_dnsmasq_name #check dnsmasq name in uci to avoid issue in guid hardcoded references
 update_dhcp_config #Dhcp sync
-[ "$device_type" == "DGA4132" ] && logger_command "Reworking sfp interface in network config..."
 [ "$device_type" == "DGA4132" ] && sfp_rework #sfp to sfptag, to solve local ip problem
-logger_command "Attempt to clean the wansensing script from hardcoded interfaces..."
 wan_sensing_clean #Wansensing clean utility
-logger_command "Cleaning cups firewall rule..."
 clean_cups_block_rule
-[ "$device_type" == "MediaAccess TG789vac v2" ] && logger_command "Unlocking SSH for Tiscali firmware"
 [ "$device_type" == "MediaAccess TG789vac v2" ] && unlock_ssh_wan_tiscali
-logger_command "Checking if ISP is detected..."
 check_isp_and_cwmp
-logger_command "Apply CVE 2019-11477 workaround"
 disable_tcp_Sack
+check_xtm_atmwan #needed for UNO firmware
+
+logger_command "Restarting dnsmasq if needed..."
+if [ $restart_dnsmasq -eq 1 ]; then
+	uci commit
+	killall dnsmasq
+	/etc/init.d/dnsmasq restart
+fi

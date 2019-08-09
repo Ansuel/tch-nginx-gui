@@ -22,6 +22,8 @@ local marketing_version = proxy.get("uci.version.version.@version[0].marketing_v
 
 local prod_friendly_name = proxy.get("uci.env.var.prod_friendly_name")
 
+local specific_app = proxy.get("uci.modgui.app.specific_app")[1].value or "0"
+
 if marketing_version and marketing_version[1].value then
 	marketing_version = marketing_version[1].value:sub(1,4)
 else
@@ -64,10 +66,10 @@ if ngx.req.get_method() == "POST" then
 end
 
 local mapParams = {
-	marketing_version = "uci.version.version.@version[0].marketing_version",
 	local_ip_modem = "uci.network.interface.@lan.ipaddr",
+	telstra_webui = "uci.modgui.app.telstra_webui",
 }
-if prod_friendly_name and prod_friendly_name[1].value then
+--if prod_friendly_name and prod_friendly_name[1].value and tonumber(marketing_version) < 18 then
 	if prod_friendly_name[1].value:match("DGA413") or
 			prod_friendly_name[1].value:match("TG7") then
 		mapParams.luci_webui = "uci.modgui.app.luci_webui"
@@ -83,8 +85,7 @@ if prod_friendly_name and prod_friendly_name[1].value then
 			mapParams.xupnp_application = "uci.modgui.app.xupnp_app"
 		end
 	end
-	mapParams.telstra_webui = "uci.modgui.app.telstra_webui"
-end
+--end
 content_helper.getExactContent(mapParams)
 
 local StateParams = {}
@@ -109,7 +110,16 @@ local info_box = {
 		class = "alert alert-info",
 	}
 }
+local specific_box = {
+	alert = {
+		class = "alert-error"
+	}
+}
 local html = {}
+
+if specific_app == "0" then
+	html[#html + 1] = ui_helper.createAlertBlock(T"Specific App are not installed.",specific_box)
+end
 
 local btn_table = {}
 
@@ -278,7 +288,7 @@ if StateParams["telstra_webui"] ~= nil then
 	local telstra_gui = "/telstra-gui.lp"
 	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. telstra_gui .. '">' .. telstra_gui .."</a>"
 	html[#html+1] = "</br>"
-	html[#html+1] = T"Change the default page in system-extra to set this gui as default"
+	html[#html + 1] = T "Change the default page in system-extra to set this GUI as default"
 	html[#html+1] = "</br>"
 	if mapParams["telstra_webui"] and mapParams["telstra_webui"] == "1" then
 		html[#html+1] = ui_helper.createSimpleButton(T"Remove" .. " " .. T"Telstra GUI", "fa fa-times-circle", btn_table.telstra.remove)

@@ -9,7 +9,7 @@ local proxy = require("datamodel")
 local format = string.format
 local match = string.match
 
-local attributes = { light = { } ,span = { class = "span4" } }
+local attributes = { light = { } ,span = {} }
 
 local function getNetIntfPath(protocol)
 	local uciPath = "uci.network.interface.@wan."

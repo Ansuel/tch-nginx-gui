@@ -2,14 +2,31 @@
 
 device_type="$(uci get -q env.var.prod_friendly_name)"
 
+#  1st arg : directory
+#  2nd arg : pkg name
+#  3rd arg : raw or normal. Raw is used to download specific file from specific dir
+#  4th arg : addtional command to append to setup.sh (usefull if setup.sh contains also uninstall command)
 install_from_github(){
-    curl -sLk https://github.com/$1/tarball/$2 --output /tmp/$2.tar.gz
     mkdir /tmp/$2
-    tar -xzf /tmp/$2.tar.gz -C /tmp/$2
-    rm /tmp/$2.tar.gz
-    cd /tmp/$2/*
+	
+	if [ $3 == "specific_app" ]; then
+		if [ ! -f /tmp/$2.tar.bz2 ]; then
+			curl -sLk https://raw.githubusercontent.com/$1/$2.tar.bz2 --output /tmp/$2.tar.bz2
+		fi
+		bzcat /tmp/$2.tar.bz2 | tar -C /tmp/$2 -xf -
+		rm /tmp/$2.tar.bz2
+		cd /tmp/$2
+	else
+		if [ ! -f /tmp/$2.tar.gz ]; then
+			curl -sLk https://github.com/$1/tarball/$2 --output /tmp/$2.tar.gz
+		fi
+		tar -xzf /tmp/$2.tar.gz -C /tmp/$2
+		rm /tmp/$2.tar.gz
+		cd /tmp/$2/*
+	fi
+	
     chmod +x ./setup.sh
-	./setup.sh
+	./setup.sh  "$4"
 	rm -r /tmp/$2
 }
 
@@ -188,11 +205,11 @@ app_aria2() {
 	install() {
 		install_DGA() {
 			opkg update
-			opkg install unzip aria2 libstdcpp
-			wget https://github.com/mayswind/AriaNg-DailyBuild/archive/master.zip -P /tmp
-			unzip /tmp/master.zip -d /www/docroot/
-			rm /tmp/master.zip
-			mv /www/docroot/AriaNg-DailyBuild-master /www/docroot/aria
+			opkg install aria2 libstdcpp
+			curl -sLk https://github.com/mayswind/AriaNg-DailyBuild/tarball/master --output /tmp/ariang.tar.gz
+			tar -xzf /tmp/ariang.tar.gz -C /www/docroot/
+			rm /tmp/ariang.tar.gz
+			mv /www/docroot/*AriaNg* /www/docroot/aria
 		
 			ARIA2_DIR="/etc/aria2"
 		
@@ -239,27 +256,10 @@ app_aria2() {
 
 app_blacklist() {
 	install() {
-		wget -P /tmp http://blacklist.satellitar.it/repository/install_blacklist.sh
-
-		cd /tmp
-		
-		chmod u+x ./install_blacklist.sh 
-		
-		if [ $2 == "empty" ]; then
-			./install_blacklist.sh update
-		else
-			./install_blacklist.sh
-		fi
-		
-		rm ./install_blacklist.sh
+		install_from_github Ansuel/blacklist master normal $2
 	}
 	remove() {
-		wget -P /tmp http://blacklist.satellitar.it/repository/blacklist.latest.tar.gz
-		tar -zxvf /tmp/blacklist.latest.tar.gz -C /tmp
-		cd /tmp/blacklist.latest
-		./uninstall.sh
-		rm /tmp/blacklist.latest.tar.gz
-		rm -r /tmp/blacklist.latest
+		install_from_github Ansuel/blacklist master normal remove
 	}
 
 	if [ $1 == "install" ]; then
@@ -289,6 +289,25 @@ app_xupnp() {
 	set_transformer "rpc.system.modgui.scriptRequest.state" "Complete"
 }
 
+install_specific_files() {
+
+	install() {
+		install_from_github Ansuel/gui-dev-build-auto/master/modular upgrade-pack-specific$1 specific_app
+	}
+	remove() {
+		echo "Specific files cannot be removed. Reset the router instead."
+		return 1
+	}
+
+	if [ $1 == "install" ]; then
+		install $2
+	else
+		remove
+	fi
+	
+	set_transformer "rpc.system.modgui.scriptRequest.state" "Complete"
+}
+
 call_app_type() {
 	case "$2" in 
 	transmission)
@@ -311,6 +330,9 @@ call_app_type() {
 		;;
 	blacklist)
 		app_blacklist $1 $3
+		;;
+	specific_app)
+		install_specific_files $1 $3
 		;;
 	*)
 		echo "Provide a valid APP_NAME" 1>&2

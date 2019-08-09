@@ -10,20 +10,17 @@ local ui_helper = require("web.ui_helper")
 local content_helper = require("web.content_helper")
 local dynDns_attributes = {
 	light = { id = "DDNS_Status_Led" },
-	span = { class = "span4",
-	id = "DDNS_Status"}
+	span = { id = "DDNS_Status"}
 }
 
 local dmz_attributes = {
 	light = { id = "DMZ_Status_Led" },
-	span = { class = "span4",
-	id = "DMZ_Status"}
+	span = { id = "DMZ_Status"}
 }
 
 local upnp_attributes = {
 	light = { id = "UPNP_Status_Led" },
-	span = { class = "span4",
-	id = "UPNP_Status"}
+	span = { id = "UPNP_Status"}
 }
 
 -- WAN services data
@@ -114,7 +111,6 @@ end
     ');  ngx.print(
 			ui_helper.createSimpleLight(state, dmzstate, dmz_attributes,"fas fa-cogs"),
 			ui_helper.createSimpleLight(upnpstate, upnpstate_text, dmz_attributes,"fas fa-random"),
-            '<br/>',
             '<i class="fas fa-door-open" aria-hidden="true" href="#">&nbsp</i>' .. format( N("<strong %s>%d port forwarding</strong> rule is defined",
                       "<strong %s>%d port forwarding</strong> rules are defined", n_redir_rules),
                       modal_link_port, n_redir_rules),

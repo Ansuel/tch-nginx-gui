@@ -27,37 +27,35 @@
 START=94
 EXTRA_COMMANDS="force debug"
 EXTRA_HELP="\
-		force   Force root process even when root flag is already set
-		debug   force command with debug log
+        force   Force root process even when root flag is already set
+        debug   force command with debug log
 "
 #Gui version is now autocompleted base on latest dev, this variable will be replaced by the automatic script
 version_gui=TO_AUTO_COMPLETE
 #Latest version on TIM cwmp for version spoof
-latest_version_on_TIM_cwmp="2.0.0"
+latest_version_on_TIM_cwmp="2.1.0"
 
 logo_project() {
 cat << EOF > /dev/console
 
- █████╗ ███╗   ██╗███████╗██╗   ██╗███████╗██╗	 
-██╔══██╗████╗  ██║██╔════╝██║   ██║██╔════╝██║	 
-███████║██╔██╗ ██║███████╗██║   ██║█████╗  ██║	 
-██╔══██║██║╚██╗██║╚════██║██║   ██║██╔══╝  ██║	 
+ █████╗ ███╗   ██╗███████╗██╗   ██╗███████╗██╗     
+██╔══██╗████╗  ██║██╔════╝██║   ██║██╔════╝██║     
+███████║██╔██╗ ██║███████╗██║   ██║█████╗  ██║     
+██╔══██║██║╚██╗██║╚════██║██║   ██║██╔══╝  ██║     
 ██║  ██║██║ ╚████║███████║╚██████╔╝███████╗███████╗
 ╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝ ╚═════╝ ╚══════╝╚══════╝
-(Modified Gui RootScript)				  (Christo)
+(Modified Gui RootScript)                  (Christo)
 
 EOF
 
 logger << EOF
-
-									 _ 
-	 /\  (Modified Gui RootScript)  | |
-	/  \	_ __   ___  _   _   ___ | |
-   / /\ \  | '_ \ / __|| | | | / _ \| |
-  / ____ \ | | | |\__ \| |_| ||  __/| |
- /_/	\_\|_| |_||___/ \__,_| \___||_|
-									   
-							 (Christo) 
+                                    _ 
+    /\  (Modified Gui RootScript)  | |
+   /  \    _ __   ___  _   _   ___ | |
+  / /\ \  | '_ \ / __|| | | | / _ \| |
+ / ____ \ | | | |\__ \| |_| ||  __/| |
+/_/    \_\|_| |_||___/ \__,_| \___||_|
+                            (Christo) 
 EOF
 }
 
@@ -89,7 +87,7 @@ logger_command() {
 	if [ "$debug"  -eq 1 ]; then
 		logger -s -t "Root Script" "$1"
 	fi
-	if [ -z "$2" ] && [ -n "log_progress" ]; then
+	if [ -z "$2" ] && [ -n "$log_progress" ]; then
 		log_progress=$((log_progress+1))
 		set_transformer "rpc.system.modgui.upgradegui.log_prog" $log_progress
 		set_transformer "rpc.system.modgui.upgradegui.log" "$1"
@@ -174,6 +172,10 @@ root() {
 		encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
 		echo "  New password detected!" > /dev/console
 		echo "  Storing encrypted password..." > /dev/console
+		if [ ! -f /etc/config/modgui ]; then
+			touch /etc/config/modgui
+			uci set modgui.var=var
+		fi
 		uci set modgui.var.encrypted_pass="$encrypted_pass"
 	}
 	
@@ -224,7 +226,7 @@ root() {
 	uci set "$dropbear_path".Interface='lan'
 	uci set "$dropbear_path".RootLogin='1'
 	uci set "$dropbear_path".RootPasswordAuth='on' #dropbear root related
-	uci set dropbear.lan.PasswordAuth='on'
+	uci set "$dropbear_path".PasswordAuth='on'
 	uci set "$dropbear_path".enable='1'
 
 	uci commit dropbear

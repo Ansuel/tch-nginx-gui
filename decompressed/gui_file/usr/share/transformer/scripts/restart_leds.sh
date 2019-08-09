@@ -77,6 +77,7 @@ done
 for iface in "wan" "wwan"
 do
 	wan_status="down"
+	ubus send network.interface "{\"action\":\"if$wan_status\",\"interface\":\"$iface\"}" #seems needed for DGA4131
 	if [ "$(transformer-cli get rpc.network.interface.@$iface.up | cut -d= -f 2 | grep 1)" ]; then
 		wan_status="up"
 	fi
