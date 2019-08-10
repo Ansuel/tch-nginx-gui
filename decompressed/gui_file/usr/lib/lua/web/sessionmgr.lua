@@ -344,7 +344,7 @@ end
 
 -- check Protocol used and redirect to HTTPS if requested by option in web config
 local function checkProtocol(address,force_https)
-	if force_https then
+	if force_https and force_https == "1" then
 		local http_port = untaint(ngx.var.server_port)
 		local http_request_uri = untaint(ngx.var.request_uri)
 
