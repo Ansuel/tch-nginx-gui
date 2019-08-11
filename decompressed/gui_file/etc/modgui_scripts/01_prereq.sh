@@ -26,10 +26,13 @@ move_env_var() {
 	fi
 }
 
-create_symlink() {
-	if [ ! -f /etc/rc.d/S70wol ]; then 
-		/etc/init.d/wol enable
-	fi
+create_section_modgui() {
+	for section in gui var app; do
+		if [ -z "$(uci get -q modgui.$section)" ]; then
+			uci set modgui.$section=$section
+		fi
+	done
+	uci commit modgui
 }
 
 check_tmp_permission() {
@@ -60,7 +63,7 @@ logger_command "Disable watchdog"
 /etc/init.d/watchdog-tch stop
 
 move_env_var #This moves every garbage created before 8.11.49 in env to modgui config file
-create_symlink
+create_section_modgui
 check_tmp_permission
 
 if [ -f /root/.install_gui ]; then

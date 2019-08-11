@@ -140,6 +140,12 @@ prevent_total_brick() {
 	sed -i 's/#//' /etc/inittab
 }
 
+create_symlink() {
+	if [ ! -f /etc/rc.d/S70wol ]; then 
+		/etc/init.d/wol enable
+	fi
+}
+
 device_type="$(uci get -q env.var.prod_friendly_name)"
 
 prevent_total_brick
@@ -151,3 +157,4 @@ create_simbolic_utility #This create symbolic link
 update_checkver_upgrade_script #This clean old script
 checkver_cron
 cron_christmas #You guess...
+create_symlink
