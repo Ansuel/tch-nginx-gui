@@ -155,7 +155,7 @@ local mapPPPstats = {
   discardS = "sys.class.net.@pppoe-wan.statistics.tx_dropped",
   broadcastR = "sys.class.net.@pppoe-wan.statistics.rx_broadcast",
   broadcastS = "sys.class.net.@pppoe-wan.statistics.tx_broadcast",
-  --multicastR = "sys.class.net.@pppoe-wan.statistics.multicast",
+  multicastR = "sys.class.net.@pppoe-wan.statistics.multicast",
   multicastS = "sys.class.net.@pppoe-wan.statistics.txpckt",
   packetsR = "sys.class.net.@pppoe-wan.statistics.rx_packets",
   packetsS = "sys.class.net.@pppoe-wan.statistics.tx_packets",
@@ -554,11 +554,11 @@ end
             format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.broadcastS, iconDown, mapPPPstats.broadcastR), ajax_attr
         )
 
---[[		ajax_attr.span.id = "multicast"
+		ajax_attr.span.id = "multicast"
         html[#html + 1] = ui_helper.createLabel(
             T"Multicast Packets",
             format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.multicastS, iconDown, mapPPPstats.multicastR), ajax_attr
-        )]]
+        )
 
 		ajax_attr.span.id = "unicast"
         html[#html + 1] = ui_helper.createLabel(
