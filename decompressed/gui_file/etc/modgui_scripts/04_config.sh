@@ -276,6 +276,7 @@ check_wan_mode() {
 }
 
 dosprotect_inizialize() {
+  logger_command "Checking DoSprotect kernel modules..."
 	if [ -f /lib/modules/*/xt_hashlimit.ko ]; then
 		if [ ! -f /etc/config/dosprotect ]; then
 			if [ -f /tmp/dosprotect_orig ]; then
@@ -283,7 +284,8 @@ dosprotect_inizialize() {
 			fi
 		fi
 		[ -f /tmp/dosprotect_orig ] && rm /tmp/dosprotect_orig
-		if [ "$(echo /etc/rc.d/S*dosprotect)" ]; then
+		if [ -f /etc/rc.d/S*dosprotect ]; then
+	    logger_command "Enabling and starting DoSprotect service..."
 			/etc/init.d/dosprotect enable
 			/etc/init.d/dosprotect start
 		fi
@@ -559,7 +561,6 @@ logger_command "Adding fast cache options"
 fcctlsettings_daemon #Adds fast cache options
 logger_command "Checking if wan_mode option exists..."
 check_wan_mode # wan_mode check
-logger_command "Inizialize and start DoSprotect..."
 dosprotect_inizialize #dosprotected inizialize function
 logger_command "Checking if intercept is enabled and disabling if it is..."
 disable_intercept #Intercept check
