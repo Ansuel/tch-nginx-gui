@@ -122,7 +122,7 @@ legend {
 
 .modal.fade {
     width: calc(100% - 250px);
-    height: calc(100% - 60px);
+    height: 100%;
     left: 250px;
     top: 65px;
     margin: 0;
@@ -181,7 +181,7 @@ body > .row {
 #infocardrow {
     position: absolute;
     left: 250px;
-    top: 65px;
+    top: 0px;
     width: calc(100% - 250px);
     z-index: unset;
 }
