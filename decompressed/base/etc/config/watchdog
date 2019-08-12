@@ -1,3 +1,0 @@
-config watchdog
-	option watchdog_device "/dev/watchdog"
-	option interval 5

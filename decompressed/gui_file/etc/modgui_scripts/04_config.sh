@@ -15,12 +15,12 @@ convert_gui_to_light_gz() {
 }
 
 check_webui_config() {
-	if [ -f /etc/config/web_unlock ]; then
+	if [ -f /tmp/web_unlock ]; then
 		if [ ! "$(uci get -q web.changelog)" ] || [ ! "$(uci get -q web.mmpbxstatisticsmodal)" ] ; then
 			mv /etc/config/web /etc/config/web_back #backup of the stock web config
-			mv /etc/config/web_unlock /etc/config/web #apply unlocked universal config
+			mv /tmp/web_unlock /etc/config/web #apply unlocked universal config
 		else
-			rm /etc/config/web_unlock
+			rm /tmp/web_unlock
 		fi
 	fi
 	if [ "$(uci get -q wireless.global.wifi_analyzer_disable)" ]; then
@@ -61,6 +61,18 @@ orig_config_gen() {
 		uci set wol.config.dest_intf='br-lan'
 		uci set wol.config.dest_ip='192.168.1.253'
 		uci commit wol
+	fi
+	if [ ! -f /etc/config/fcctlsettings ]; then
+		touch /etc/config/fcctlsettings
+		uci set fcctlsettings.state=state
+		uci set fcctlsettings.state.enabled='1'
+		uci set fcctlsettings.option=option
+		uci set fcctlsettings.option.l2tp='1'
+		uci set fcctlsettings.option.gre='1'
+		uci set fcctlsettings.option.ipv6='1'
+		uci set fcctlsettings.option.mcast='1'
+		uci set fcctlsettings.option.mcast_learn='1'
+		uci commit fcctlsettings
 	fi
 }
 
@@ -525,6 +537,21 @@ decrypt_config_pass() {
 	lua /usr/share/transformer/scripts/decryptPasswordInUciConfig.lua
 }
 
+clean_ping_and_traceroute() {
+	if [ -n "$(uci get -q traceroute.diagping.host)" ]; then
+		uci set traceroute.diagping.host=""
+	fi
+	if [ -n "$(uci get -q ipping.diagping.host)" ]; then
+		uci set ipping.diagping.host=""
+	fi
+}
+
+clean_watchdog() {
+	if [ -n "$(uci get -q watchdog.@watchdog[0].pidfile)" ]; then
+		uci set watchdog.@watchdog[0].pidfile=""
+	fi
+}
+
 logger_command "Check original config"
 orig_config_gen #this check if new config are already present
 logger_command "Unlocking web interface if needed"
@@ -574,3 +601,5 @@ logger_command "Doing various checks and generating hashes..."
 cumulative_check_gui #Handle strange installation
 logger_command "Decrypting any encrypted password present in config"
 decrypt_config_pass
+clean_ping_and_traceroute
+clean_watchdog
