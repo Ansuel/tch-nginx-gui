@@ -3110,11 +3110,13 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	margin-left: 30px
 }
 .modal-action {
+	position: absolute;
 	float: right;
+	width: inherit;
 	color: #666;
 	padding-top: 8px;
 	font-size: 16px;
-	margin-left: 20px;
+	display: inline-grid;
 	-webkit-transition: all .2s;
 	-moz-transition: all .2s;
 	-o-transition: all .2s;
