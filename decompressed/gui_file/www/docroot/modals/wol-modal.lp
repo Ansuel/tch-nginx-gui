@@ -36,7 +36,7 @@ if wol then
 
   ngx.print('\
 \
-');  ngx.print(ui_helper.createHeader(T"WoL (Wake on LAN) & WoW (Wake on WAN)", false, false))   ngx.print('\
+');  ngx.print(ui_helper.createHeader(T"Wake on LAN & WAN", false, false))   ngx.print('\
 \
 <div class="modal-body update">\
 ');

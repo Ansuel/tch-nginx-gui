@@ -364,6 +364,7 @@ body > #footer {
     background-color: #263238;
     text-shadow: unset;
     z-index: -1;
+    font-size: xx-small;
 }
 
 .modal-header {
@@ -372,8 +373,7 @@ body > #footer {
 }
 
 .modal-body {
-    min-height: calc(100% - 100px - 50px);
-    max-height: calc(100% - 100px - 50px);
+    min-height: calc(100% - 125px);
     padding: 0px 10px 0px 10px;
 }
 
@@ -561,6 +561,19 @@ a:hover, a:focus {
     z-index: unset;
 }
 
+.modal-header > div > div > .span4{
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    float: left;
+}
+.modal-header > div > div > .modal-action{
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    width: 30%;
+}
+
 @media only screen and (max-width: 50rem) {
     body > #footer {
         display: none;
@@ -638,5 +651,25 @@ a:hover, a:focus {
         bottom: 0;
         left: 0;
         top: unset;
+    }
+}
+@media screen and (max-width: 767px){
+    .modal.fade.in {
+        top: 65px !important;
+    }
+    .modal-body{
+        height: calc(100vh - 165px);
+    }
+    .modal-header{
+        max-height: 53px;
+    }
+    .modal-header > div > div > .span4{
+        max-width: 70%;
+        font-size: 1.9em;
+    }
+}
+@media screen and (max-height: 640px) {
+    .modal.fade.in {
+        top: 0px !important;
     }
 }

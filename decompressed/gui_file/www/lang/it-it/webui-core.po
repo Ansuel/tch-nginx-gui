@@ -2953,8 +2953,8 @@ msgstr "WPS"
 msgid "WPS is automatically disabled if you choose WEP, WPA-only security or disable broadcast of the SSID"
 msgstr "Se si sceglie solo la protezione WEP o WPA o si disabilita la trasmissione broadcast dell'SSID, il WPS viene automaticamente disattivato"
 
-msgid "WoL (Wake on LAN) & WoW (Wake on WAN)"
-msgstr "WoL (Wake on LAN) & WoW (Wake on WAN)"
+msgid "Wake on LAN & WAN"
+msgstr "Wake on LAN & WAN"
 
 msgid "We don't have any driver for this modem, please report them to the github page. "
 msgstr "Non è disponibile alcun driver alternativo per questo modem.<br/>Segnalalo nella pagina di github. "

@@ -2953,7 +2953,7 @@ msgstr "WPS Modus"
 msgid "WPS is automatically disabled if you choose WEP, WPA-only security or disable broadcast of the SSID"
 msgstr "WPS ist automatisch abgeschaltet, wenn Sie WEP oder Nur-WPA Sicherheitseinstellungen verwenden oder wenn Sie den Broadcast der SSID abschalten"
 
-msgid "WoL (Wake on LAN) & WoW (Wake on WAN)"
+msgid "Wake on LAN & WAN"
 msgstr "Wake-On-LAN über das Internet"
 
 msgid "We don't have any driver for this modem, please report them to the github page. "
