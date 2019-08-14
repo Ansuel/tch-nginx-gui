@@ -78,19 +78,22 @@ function checkMenuHideShow() {
 var FocussedCard, CloneFocussedCard;
 $(document).ready(function() {
 	$(document).on('touchstart click', '#cardrow > .span3 > .smallcard', function(e) {
-		FocussedCard = $(this);
-		CloneFocussedCard = FocussedCard.clone();
+        if (window.matchMedia("(max-width: 50rem)").matches) {
+            e.stopPropagation();
+        }
+        FocussedCard = $(this);
+        CloneFocussedCard = FocussedCard.clone();
 	});
 	$(document).on("click", "#cardrow > .span3 > .smallcard > .header > .header-title", function(e) {
 		e.stopImmediatePropagation();
-	})
+	});
 	$(".header-logo").after('<div class="header-slider-icon">☰</div>')
 	$(document).on("click", ".mobile-menu-overlay", function() {
 		checkMenuHideShow();
-	})
+	});
 	$(document).on('click', '.header-slider-icon', function() {
 		checkMenuHideShow();
-	})
+	});
 	$(document).on('mouseover', '#cardrow .span3 .smallcard', function() {
 		var div = $(this);
 		ScrollInterval = setInterval(checkSCroll(div), 500);
@@ -113,10 +116,10 @@ $(document).ready(function() {
 			CloneFocussedCard.addClass("hovered");
 			$("body").append(CloneFocussedCard);
 			$("body").css("overflow", "hidden");
+            $("#cardrow").css("z-index", "1039");
+            $(".header-logo").css("z-index", "1039");
+            $("#footer").css("z-index", "1038");
 		}
-		$("#cardrow").css("z-index", "1039");
-		$(".header-logo").css("z-index", "1039");
-		$("#footer").css("z-index", "1038");
 	});
 	$(window).on('hide.bs.modal', function() {
 		$("#infocardrow").show();

@@ -135,7 +135,7 @@ legend {
 
 .modal.fade.in {
     left: 250px;
-    top: 0px;
+    top: 0px !important;
 }
 
 body > .row {
@@ -661,6 +661,7 @@ a:hover, a:focus {
     }
     .modal-body{
         height: calc(100vh - 165px);
+        max-height: initial !important;
     }
     .modal-header{
         max-height: 53px;
@@ -668,10 +669,5 @@ a:hover, a:focus {
     .modal-header > div > div > .span4{
         max-width: 70%;
         font-size: 1.9em;
-    }
-}
-@media screen and (max-height: 640px) {
-    .modal.fade.in {
-        top: 0px !important;
     }
 }

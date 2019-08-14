@@ -323,8 +323,6 @@ if ngx.req.get_method() == "POST" then
 
       -- return exported data
       local fname = untaint(content.filename)
-      ngx.log(1, "ciao")
-      ngx.log(1, fname:match("([^/]+)$"))
 	if fname ~= "" then
 		ngx.header.content_disposition = "attachment; filename="..fname:match("([^/]+)$")
 		ngx.header.content_type = "application/octet-stream"
