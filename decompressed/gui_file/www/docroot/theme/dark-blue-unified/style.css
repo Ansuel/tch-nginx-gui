@@ -119,6 +119,9 @@ legend {
     padding: 0px;
     height: 65px;
 }
+#headertab > .row {
+    z-index: inherit !important;
+}
 
 .modal.fade {
     width: calc(100% - 250px);
@@ -148,7 +151,8 @@ body > .row {
     align-items: center;
     position: fixed;
     background-color: #2196f3;
-    z-index: 1;
+    z-index: 1052;
+    text-align: center;
     left: 0;
 }
 
@@ -197,7 +201,7 @@ body > .row {
 
 #cardrow {
     position: fixed;
-    z-index: 3;
+    z-index: 1052;
     left: 0;
     cursor: pointer;
     width: 250px;
@@ -353,13 +357,11 @@ body > #footer {
     width: 250px;
     background-color: #263238;
     padding-top: 100%;
-    z-index: -1;
+    z-index: 1051;
     box-shadow: 5px 0px 15px -5px #263238;
 }
 
 .copyright {
-    margin-right: 5px;
-    margin-left: 5px;
     display: block;
     background-color: #263238;
     text-shadow: unset;
@@ -629,7 +631,7 @@ a:hover, a:focus {
     }
 
     .modal-body {
-        height: calc(100% - 270px);
+        height: calc(100vh - 140px);
         min-height: unset;
         max-height: unset;
     }

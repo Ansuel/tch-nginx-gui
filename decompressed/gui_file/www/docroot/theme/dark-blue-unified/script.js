@@ -50,8 +50,6 @@ function checkMenuHideShow() {
 	if ($('.header-logo').is(":visible")) {
 		if (window.matchMedia("(max-width: 50rem)").matches) {
 			$(".modal-backdrop").remove();
-			$('#headertab > .row').css("z-index", "3");
-			$('.header-logo').css("z-index", "");
 		}
 		$('.header-logo').hide('fast');
 		$('#cardrow').hide('fast');
@@ -65,11 +63,8 @@ function checkMenuHideShow() {
 	} else {
 		if (window.matchMedia("(max-width: 50rem)").matches) {
 			$("body").append('<div class="modal-backdrop fade in mobile-menu-overlay"></div>');
-			$('#headertab > .row').css("z-index", "unset");
-			$('.header-logo').css("z-index", "1051");
 		}
 		$('.header-logo').show('fast');
-		$('.header-logo').css('display', 'flex');
 		$('#cardrow').show('fast');
 		$('#footer').show('fast');
 		$('.header-slider-icon').css('left', '');
@@ -80,20 +75,11 @@ function checkMenuHideShow() {
 		$('#infocardrow').css('left', '');
 	}
 }
-var intervalId;
 var FocussedCard, CloneFocussedCard;
 $(document).ready(function() {
-	$(document).on('click', '#cardrow > .span3 > .smallcard', function(e) {
-		if (window.matchMedia("(max-width: 50rem)").matches) {
-			e.stopPropagation();
-		} else {
-			FocussedCard = $(this);
-			CloneFocussedCard = FocussedCard.clone();
-			FocussedCard.hide();
-			CloneFocussedCard.toggleClass("hovered");
-			$("body").append(CloneFocussedCard);
-			$("body").css("overflow", "hidden");
-		}
+	$(document).on('touchstart click', '#cardrow > .span3 > .smallcard', function(e) {
+		FocussedCard = $(this);
+		CloneFocussedCard = FocussedCard.clone();
 	});
 	$(document).on("click", "#cardrow > .span3 > .smallcard > .header > .header-title", function(e) {
 		e.stopImmediatePropagation();
@@ -116,22 +102,33 @@ $(document).ready(function() {
 		})
 	}
 	$(window).on('shown.bs.modal', function() {
+		$("#infocardrow").hide();
+		if(!CloneFocussedCard) return;
 		if (window.matchMedia("(max-width: 50rem)").matches) {
 			if ($('.header-logo').is(":visible")) {
 				checkMenuHideShow();
 			}
+		} else {
+			FocussedCard.removeClass("hovered");
+			CloneFocussedCard.addClass("hovered");
+			$("body").append(CloneFocussedCard);
+			$("body").css("overflow", "hidden");
 		}
+		$("#cardrow").css("z-index", "1039");
+		$(".header-logo").css("z-index", "1039");
+		$("#footer").css("z-index", "1038");
 	});
-	$(window).on('hidden.bs.modal', function() {
-		if (CloneFocussedCard) {
+	$(window).on('hide.bs.modal', function() {
+		$("#infocardrow").show();
+		if(CloneFocussedCard) {
 			CloneFocussedCard.remove();
 			CloneFocussedCard = null;
-			FocussedCard.show();
-			FocussedCard = null;
-		};
+		}
 		$("body").css("overflow", "initial");
+		$("#cardrow").css("z-index", "1052");
+		$(".header-logo").css("z-index", "1052");
+		$("#footer").css("z-index", "1051");
 	});
-	scrollFunction = function() {};
 	$("#scroll-down").removeAttr("href").on("click", function() {
 		ScrollCardRow("down");
 	});
