@@ -4749,6 +4749,3 @@ msgstr "Bestimmte App ist nicht installiert."
 
 msgid "Force HTTPS to access the GUI"
 msgstr ""
-
-msgid "WAN IP is <strong id =\"wan_ip\">%s</strong>"
-msgstr ""

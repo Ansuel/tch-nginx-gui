@@ -8,6 +8,7 @@ local ui_helper = require("web.ui_helper")
 local proxy = require("datamodel")
 local format = string.format
 local match = string.match
+local post_helper = require("web.post_helper")
 
 local attributes = { light = { } ,span = {} }
 
@@ -50,6 +51,7 @@ local uci_dhcp_path, rpc_dhcp_path = getNetIntfPath("dhcp")
 local cs = {
     uci_wan_auto = uci_dhcp_path.."auto",
     ipaddr = rpc_dhcp_path.."ipaddr",
+    uptime = rpc_dhcp_path.."uptime",
 }
 
 local IPv6State = "none"
@@ -131,12 +133,24 @@ ngx.print( ui_helper.createSimpleLight(dhcp_light_map[dhcp_state], dhcp_state_ma
   <p class="subinfos">\
   ');
     if dhcp_state == "connected" then
+        local WAN_IP_text = ''
         if cs["ipaddr"] and cs["ipaddr"]:len() > 0 then
-		  ngx.print(format(T'WAN IP is <strong id ="wan_ip">%s</strong>', cs["ipaddr"]))
-		elseif cs["ip6addr"] and cs["ip6addr"]:len() > 0 then
-		  ngx.print(format(T'WAN IP is <strong id ="wan_ip">%s</strong>', cs["ip6addr"]))
-	    end
-	    if dhcp_state == "connected" and IPv6State ~= "disabled" then
+            WAN_IP_text = format(T 'WAN IP is <strong>%s</strong>' .. '<br/>', cs["ipaddr"])
+        end
+        ngx.print('<div data-bind="html: WAN_IP_text">'..WAN_IP_text..'</div>')
+
+        local WAN_IPv6_text = ''
+        if cs["ip6addr"] and cs["ip6addr"]:len() > 0 then
+            WAN_IPv6_text = format(T 'WAN IPv6 is <strong>%s</strong>' .. '<br/>', cs["ip6addr"])
+        end
+        ngx.print('<div data-bind="html: WAN_IPv6_text">'..WAN_IPv6_text..'</div>')
+
+        local uptime_text = ''
+        if cs["uptime"] and cs["uptime"]:len() > 0 then
+            uptime_text = format(T "Uptime: <strong>%s</strong>", (post_helper.secondsToTimeShort(cs["uptime"]) or ""))
+        end
+        ngx.print('<div data-bind="html: uptime_text">'..uptime_text..'</div>')
+	    if IPv6State ~= "disabled" then
           ngx.print(ui_helper.createSimpleLight(ipv6_light_map[IPv6State] or "4" --[[ red ]], ipv6_state_map[IPv6State] or T"Unknown", attributes, "fa-at" ))
 	    end
     end
