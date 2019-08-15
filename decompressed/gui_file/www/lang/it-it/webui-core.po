@@ -4749,3 +4749,6 @@ msgstr "App specifica non installata."
 
 msgid "Force HTTPS to access the GUI"
 msgstr "Forza HTTPS per accedere alla GUI"
+
+msgid "WAN IP is <strong id =\"wan_ip\">%s</strong>"
+msgstr ""
