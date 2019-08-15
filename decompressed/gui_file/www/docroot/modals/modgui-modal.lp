@@ -663,6 +663,17 @@ ngx.print('\
 		 return resetreboot($("#config-resetting-msg"), $("#btn-remove-config"), "system_reset_config" );\
 	});\
   });\
+    $("#btn-force-cwmp").on("click", function() {\
+	var heading = "');  ngx.print(T'Reset config'); ngx.print('";\
+	var processMsg = "');  ngx.print(T'Resetting...'); ngx.print('";\
+	confirmationDialogue(\'');  ngx.print(T"Are you sure you want to reset config of this modem? </br><strong> This is permanent, save any config before this action.</strong>"); ngx.print('\',heading);\
+	var PopUpHeaderText = "."+$(".popUp>.header>.header-title>p").text().split(" ")[0];\
+	$(document).on("click", PopUpHeaderText, function() {\
+		 tch.removeProgress();\
+		 tch.showProgress(processMsg);\
+		 return resetreboot($("#config-resetting-msg"), $("#btn-remove-config"), "system_reset_config" );\
+	});\
+  });\
 \
   $(document).on("click", "#cancel", function() {\
 	  tch.removeProgress();\

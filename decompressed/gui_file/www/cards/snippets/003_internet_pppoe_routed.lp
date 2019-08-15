@@ -134,27 +134,27 @@ ngx.print('\
   '); ngx.print(ui_helper.createSimpleLight(ppp_light_map[ppp_status], ppp_state_map[ppp_status], attributes, "fa-at")); ngx.print('\
   </span>\
   <p class="subinfos">')
-local WAN_IP_text = '<span data-bind="html: WAN_IP_text"></span>'
-local uptime_text = '<span data-bind="html: uptime_text"></span>'
 
+local WAN_IP_text = ''
 if content_rpc["ipaddr"] and content_rpc["ipaddr"]:len() > 0 then
-    WAN_IP_text = '<span data-bind="html: WAN_IP_text">' .. format(T 'WAN IP is <strong>%s</strong>' .. '<br/>', content_rpc["ipaddr"]) .. '</span>'
+    WAN_IP_text = format(T 'WAN IP is <strong>%s</strong>' .. '<br/>', content_rpc["ipaddr"])
 end
+ngx.print('<div data-bind="html: WAN_IP_text">'..WAN_IP_text..'</div>')
 
-ngx.print(WAN_IP_text)
-ngx.print(uptime_text)
-
+local WAN_IPv6_text = ''
 if content_rpc["ip6addr"] and content_rpc["ip6addr"]:len() > 0 then
-    ngx.print(format(T 'WAN IP is <strong>%s</strong>'..'</br>', content_rpc["ip6addr"]))
+    WAN_IPv6_text = format(T 'WAN IPv6 is <strong>%s</strong>' .. '<br/>', content_rpc["ip6addr"])
 end
+ngx.print('<div data-bind="html: WAN_IPv6_text">'..WAN_IPv6_text..'</div>')
+
+local uptime_text = ''
+if content_rpc["uptime"] and content_rpc["uptime"]:len() > 0 then
+    uptime_text = format(T "Uptime: <strong>%s</strong>", (post_helper.secondsToTimeShort(content_rpc["uptime"]) or ""))
+end
+ngx.print('<div data-bind="html: uptime_text">'..uptime_text..'</div>')
+
 if ppp_status == "connected" and IPv6State ~= "disabled" then
     ngx.print(ui_helper.createSimpleLight(ipv6_light_map[IPv6State] or "4" --[[ red ]], ipv6_state_map[IPv6State] or T "Unknown", attributes, "fa-at"))
-end
-
-if content_rpc["ipaddr"] and content_rpc["ipaddr"]:len() > 0 then
-    if content_rpc["uptime"] then
-        uptime_text = '<span data-bind="html: uptime_text">' .. format(T "Uptime : <strong>%s</strong>", (post_helper.secondsToTimeShort(content_rpc["uptime"]) or "")) .. '</span>'
-    end
 end
 
 ngx.print('\

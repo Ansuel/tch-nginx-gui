@@ -53,7 +53,7 @@ ngx.print('\
        if content_rpc["ipaddr"] and content_rpc["ipaddr"]:len() > 0 then
 		 WAN_IP_text = '<span data-bind="html: WAN_IP_text">'..format(T'WAN IP is <strong>%s</strong>'..'<br/>', content_rpc["ipaddr"])..'</span>'
 	     if content_rpc["uptime"] then
-		   uptime_text = '<span data-bind="html: uptime_text">'..format(T"Uptime : <strong>%s</strong>",(post_helper.secondsToTimeShort(content_rpc["uptime"]) or ""))..'</span>'
+		   uptime_text = '<span data-bind="html: uptime_text">'..format(T"Uptime: <strong>%s</strong>",(post_helper.secondsToTimeShort(content_rpc["uptime"]) or ""))..'</span>'
 		 end
 		end
      end

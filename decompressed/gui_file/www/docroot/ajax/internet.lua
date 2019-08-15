@@ -117,7 +117,6 @@ else
 		ipaddr = "rpc.network.interface.@wan.ipaddr",
 		pppoe_uptime = "rpc.network.interface.@wan.uptime",
 		up = "rpc.network.interface.@".. wan_interface ..".up",
-		ipaddr = "rpc.network.interface.@wan.ipaddr",
 		nexthop = "rpc.network.interface.@wan.nexthop",
 		dns_wan = "rpc.network.interface.@wan.dnsservers",
 	}
@@ -272,6 +271,7 @@ else
 	data = {
 	status_light = status_light or "",
 	WAN_IP_text = not ( content_rpc["ipaddr"] == "" ) and format(T'WAN IP is <strong>%s</strong>'..'<br/>', content_rpc["ipaddr"]) or "",
+	WAN_IPv6_text = not ( content_rpc["ip6addr"] == "" ) and format(T'WAN IPv6 is <strong>%s</strong>'..'<br/>', content_rpc["ip6addr"]) or "",
 	uptime_text = not ( content_rpc["pppoe_uptime"] == "" ) and format(T"Uptime" .. ": <strong>%s</strong>",post_helper.secondsToTimeShort(content_rpc["pppoe_uptime"])) or "",
 	pppoe_uptime = post_helper.secondsToTimeShort(content_rpc["pppoe_uptime"]) or "",
 	pppoe_uptime_extended = post_helper.secondsToTime(content_rpc["pppoe_uptime"]) or "",
@@ -279,6 +279,7 @@ else
 	ppp_light = ppp_light or "" ,
 	ppp_state = ppp_state or "",
 	WAN_IP = content_rpc["ipaddr"] or "",
+	WAN_IPv6 = content_rpc["ip6addr"] or "",
 	ipv6_light = ipv6_light or "",
 	ipv6_state = ipv6_state or "",
 	status = content_rpc["up"],
