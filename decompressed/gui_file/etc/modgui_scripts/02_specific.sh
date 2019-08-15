@@ -213,6 +213,6 @@ else
 fi
 
 if [ -f /tmp/custom-ripdrv-specificDGA.tar.bz2 ]; then
-  logger_command "Removing ripdrv and resuming root process..."
+  logger_command "Removing specific packages from tmp..."
   rm /tmp/*specific*.tar.bz2
 fi
