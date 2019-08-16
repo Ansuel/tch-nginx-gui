@@ -45,7 +45,7 @@ else
 	mapValid.ledfw_wifinsc = vB
 
 	mapParams.eco_led = "uci.ledfw.status_led.enable"
-	mapParams.edfw_wifinsc = "uci.ledfw.wifi.nsc_on"
+	mapParams.ledfw_wifinsc = "uci.ledfw.wifi.nsc_on"
 end
 
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
