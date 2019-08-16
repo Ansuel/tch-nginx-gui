@@ -4215,9 +4215,6 @@ msgstr "Inserisci il <strong>\"codice di accesso\"</strong> predefinito.<br/>Que
 msgid "802.11a/n/ac"
 msgstr "802.11 a/n/ac"
 
-msgid "Uptime: <strong>%s</strong>"
-msgstr "Tempo attività: <strong>%s</strong>"
-
 msgid "2"
 msgstr "2"
 
