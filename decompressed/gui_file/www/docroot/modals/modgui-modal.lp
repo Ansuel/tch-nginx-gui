@@ -217,6 +217,10 @@ if ngx.req.get_method() == "POST" then
   if action == "system_reset_config" then
   	return sendcmd("rpc.system.modgui.utility.resetconfig", "1")
   end
+  if proxy.get("uci.web.sessionmgr.@default.force_https")[1].value ~= ngx.req.get_post_args().gui_forcehttps then
+	local mngr = require("web.sessioncontrol").loadmgr("default")
+	mngr.force_https = ngx.req.get_post_args().gui_forcehttps
+  end
 elseif ngx.req.get_method() == "GET" then
   local action = ngx.req.get_uri_args().action
   if action == "upgradeguistatus" then
