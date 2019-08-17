@@ -324,7 +324,7 @@ function M.loadmgr(name)
 end
 
 function M.reloadUsers()
-  parse_config(get_datamodel_config("uci.web."))
+  parse_config(get_datamodel_config("uci.web.user."))
   for _, mgr in pairs(s_mgrs) do
     mgr:reloadUsers()
   end

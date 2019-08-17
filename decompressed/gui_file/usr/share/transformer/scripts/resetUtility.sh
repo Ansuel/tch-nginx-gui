@@ -48,9 +48,12 @@ restoreOriginalGui() {
 }
 
 resetConfig() {
-	rm -r /overlay/$(cat /proc/banktable/booted)/etc/uci-defaults/*
+	rm -r "/overlay/$(cat /proc/banktable/booted)/etc/uci-defaults"
 	rm -r /etc/config/*
 	cp -r /rom/etc/config/* /etc/config/
+	[ "$(pgrep "cwmpd")" ] && /etc/init.d/cwmpd stop
+	[ -f /etc/cwmpd.db ] && rm /etc/cwmpd.db
+	touch /root/.install_gui #this is needed to trigger GUI full install after reboot mainly to reapply all custom edits to stock config files needed by custom GUI
 	reboot
 }
 

@@ -46,7 +46,10 @@ extract_with_check() {
 ledfw_extract() {
   if [ -f "/tmp/ledfw_support-specific$1.tar.bz2" ]; then
     extract_with_check "/tmp/ledfw_support-specific$1.tar.bz2"
-    [ $? -eq 1 ] && /usr/share/transformer/scripts/restart_leds.sh
+    if [ $? -eq 1 ]; then
+      /usr/share/transformer/scripts/restart_leds.sh
+      ubus send fwupgrade '{"state":"upgrading"}' #avoid losing the flashing-state when service restarted
+    fi
   fi
 }
 

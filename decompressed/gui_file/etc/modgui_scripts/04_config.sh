@@ -110,8 +110,7 @@ dropbear_config_check() {
     uci set dropbear.wan.enable='0'
 
     uci commit dropbear
-	fi
-	if [ "$(uci get dropbear.wan.RootLogin)" != "1" ]; then
+	elif [ "$(uci get -q dropbear.wan.RootLogin)" != "1" ]; then
 	  logger_command "Enabling Dropbear wan RootLogin"
 	  uci set dropbear.wan.RootLogin='1'
     uci commit dropbear
@@ -178,8 +177,6 @@ create_gui_type() {
 		/usr/share/transformer/scripts/appInstallRemoveUtility.sh install blacklist
 	fi
 }
-
-
 
 add_new_web_rule() {
 	/usr/share/transformer/scripts/unlock_and_refresh_web_config.lua
@@ -289,14 +286,14 @@ check_wan_mode() {
 
 dosprotect_inizialize() {
   logger_command "Checking DoSprotect kernel modules..."
-	if [ -f /lib/modules/*/xt_hashlimit.ko ]; then
+	if [ -n "$(find /lib/modules/*/ -iname xt_hashlimit.ko)" ]; then
 		if [ ! -f /etc/config/dosprotect ]; then
 			if [ -f /tmp/dosprotect_orig ]; then
 				mv /tmp/dosprotect_orig /etc/config/dosprotect
 			fi
 		fi
 		[ -f /tmp/dosprotect_orig ] && rm /tmp/dosprotect_orig
-		if [ -f /etc/rc.d/S*dosprotect ]; then
+		if [ -n "$(find /etc/rc.d/ -iname S*dosprotect)" ]; then
 	    logger_command "Enabling and starting DoSprotect service..."
 			/etc/init.d/dosprotect enable
 			/etc/init.d/dosprotect start
@@ -525,6 +522,7 @@ led_integration() {
 			mv /tmp/status-led-eventing.lua_new /sbin/status-led-eventing.lua
 			rm /tmp/status-led-eventing.md5sum
 			/usr/share/transformer/scripts/restart_leds.sh
+			ubus send fwupgrade '{"state":"upgrading"}' # #continue blinking when service restarted
 		else
 			rm /tmp/status-led-eventing.lua_new /tmp/status-led-eventing.md5sum
 		fi

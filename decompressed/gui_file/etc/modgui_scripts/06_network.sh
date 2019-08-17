@@ -241,8 +241,9 @@ clean_cups_block_rule() {
 		firewall_change=1
 	done
 	if [ $firewall_change -eq 1 ]; then
+    logger_command "Restarting firewall..."
 		uci commit firewall
-		/etc/init.d/firewall restart
+		/etc/init.d/firewall restart 2>/dev/null
 	fi
 }
 
@@ -278,9 +279,7 @@ cwmp_specific_TIM() {
 		fi
 		uci commit cwmpd
 		if [ "$(uci get -q cwmpd.cwmpd_config.acs_url)" == "None" ]; then
-			if [ "$(pgrep "cwmpd")" ]; then
-				/etc/init.d/cwmpd stop
-			fi
+			[ "$(pgrep "cwmpd")" ] && /etc/init.d/cwmpd stop
 		else
 			/etc/init.d/cwmpd enable
 			if [ ! "$(pgrep "cwmpd")" ]; then
@@ -294,6 +293,7 @@ cwmp_specific_TIM() {
 
 firewall_specific_sip_rules_FASTWEB() {
 	if [ -n "$(uci get -q firewall.Allow_restricted_sip_1.name)" ]; then
+	  logger_command "Adding firewall rules for Fastweb VoIP..."
 		uci set firewall.Allow_restricted_sip_1.name='Allow-restricted-sip-from-wan-again-1'
 		uci set firewall.Allow_restricted_sip_1.src='wan'
 		uci set firewall.Allow_restricted_sip_1.src_ip='30.253.253.68/24'
@@ -402,7 +402,7 @@ firewall_specific_sip_rules_FASTWEB() {
 		uci set firewall.Allow_restricted_sip_18.target='ACCEPT'
 		uci set firewall.Allow_restricted_sip_18.family='ipv4'
 		uci commit firewall
-		/etc/init.d/firewall restart
+		/etc/init.d/firewall restart 2>/dev/null
 	fi
 }
 
