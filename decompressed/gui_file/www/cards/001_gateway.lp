@@ -16,7 +16,7 @@ local content = {
 }
 
 content_helper.getExactContent(content)
-content.model = model_helper[string.untaint(content.model)]
+content.model = model_helper[string.untaint(content.model)] or content.model
 
 local modalPath = nil
 local switchName = nil

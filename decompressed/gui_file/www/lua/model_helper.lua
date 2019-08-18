@@ -10,5 +10,6 @@ return {
  ["Technicolor TG788vn"] = "TG788vn",
  ["MediaAccess TG788vn v2"] = "TG788vn",
  ["Technicolor DJA0230TLS"] = "DJA0230",
+ ["Technicolor DJA0231"] = "DJA0231",
 }
 
