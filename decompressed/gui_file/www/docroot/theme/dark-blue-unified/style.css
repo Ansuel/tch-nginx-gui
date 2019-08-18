@@ -135,7 +135,7 @@ legend {
 
 .modal.fade.in {
     left: 250px;
-    top: 0px !important;
+    top: 65px;
 }
 
 body > .row {
@@ -170,6 +170,7 @@ body > .row {
     background-color: rgba(255, 255, 255, 0.6);
     box-shadow: 0 1px 3px 3px rgba(0, 0, 0, 0.22);
     backdrop-filter: blur(2px) saturate(125%);
+	z-index: 3;
 }
 
 #upgrade-alert {
@@ -375,7 +376,7 @@ body > #footer {
 }
 
 .modal-body {
-    min-height: calc(100% - 125px);
+    min-height: calc( 100% - 209px );
     padding: 0px 10px 0px 10px;
 }
 
@@ -548,7 +549,7 @@ a:hover, a:focus {
     cursor: pointer;
     position: fixed;
     left: 270px;
-    z-index: 2;
+    z-index: 4;
 }
 
 #swtichbuttom {
@@ -599,7 +600,6 @@ a:hover, a:focus {
 
     .header-button {
         width: 100%;
-        z-index: 3;
     }
 
     #wizard-btn, #webui_language {
@@ -631,7 +631,7 @@ a:hover, a:focus {
     }
 
     .modal-body {
-        height: calc(100vh - 140px);
+        height: calc(100% - 180px);
         min-height: unset;
         max-height: unset;
     }
@@ -656,11 +656,14 @@ a:hover, a:focus {
     }
 }
 @media screen and (max-width: 767px){
+	body {
+		padding: 0px;
+	}
     .modal.fade.in {
         top: 65px !important;
     }
     .modal-body{
-        height: calc(100vh - 165px);
+        height: calc(100vh - 180px);
         max-height: initial !important;
     }
     .modal-header{
@@ -670,4 +673,11 @@ a:hover, a:focus {
         max-width: 70%;
         font-size: 1.9em;
     }
+	.popUp {
+		position: fixed;
+		left: 0;
+		right: 0;
+		margin: auto;
+		width: 50%;
+	}
 }
