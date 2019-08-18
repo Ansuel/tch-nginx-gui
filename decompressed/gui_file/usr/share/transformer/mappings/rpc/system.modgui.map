@@ -224,6 +224,10 @@ local SYSTEM_MODGUI_UTILITY_ = {
 	    access = "readWrite",
 	    type = "boolean",
 	  },
+	  resetcwmp = {
+	    access = "readWrite",
+	    type = "boolean",
+	  },
 	  resetconfig = {
 	    access = "readWrite",
 	    type = "boolean",
@@ -255,6 +259,7 @@ local SYSTEM_MODGUI_UTILITY_ = {
 	refreshdriver = "0",
 	copy_bank = "0",
 	resetconfig = "0",
+	resetcwmp = "0",
 	rip_key_B = function()
 		local content = io.open("/proc/rip/0108")
 		local result = content:read("*all")

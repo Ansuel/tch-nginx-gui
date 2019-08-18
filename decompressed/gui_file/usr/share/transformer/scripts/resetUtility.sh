@@ -57,9 +57,18 @@ resetConfig() {
 	reboot
 }
 
+resetCwmp() {
+	[ "$(pgrep "cwmpd")" ] && /etc/init.d/cwmpd stop
+	[ -f /etc/cwmpd.db ] && rm /etc/cwmpd.db
+	/etc/init.d/cwmpd start
+}
+
 case "$1" in
 		--help)
 			showUsage
+			;;
+		--resetCWMP)
+			resetCwmp
 			;;
 		--resetGui)
 			restoreOriginalGui
