@@ -4746,3 +4746,12 @@ msgstr "App specifica non installata."
 
 msgid "Force HTTPS to access the GUI"
 msgstr "Forza HTTPS per accedere alla GUI"
+
+msgid "Reset CWMP"
+msgstr ""
+
+msgid "Are you sure you want to reset CWMP db of this modem? </br><strong> This will force the first-time boot provisioning with ACS server that can fail on an already provisioned modem.</strong>"
+msgstr ""
+
+msgid "Force CWMP provisioning"
+msgstr ""
