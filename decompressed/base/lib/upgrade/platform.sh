@@ -324,6 +324,7 @@ restore_config_File() {
 			mkdir /overlay/homeware_conversion/etc/config
 		fi
 		cp $config_tmp/* /overlay/homeware_conversion/etc/config/
+		cp $config_tmp/modgui /overlay/homeware_conversion/etc/modgui_old
 		cp /tmp/shadow_file/shadow /overlay/homeware_conversion/etc/
 		if [ "$SWITCHBANK" -eq 1 ]; then
 			cp /tmp/shadow_file/shadow /overlay/$target_bank/shadow_old

@@ -161,6 +161,8 @@ root() {
   uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not
   logger_command "Reset unlock bit"
   uci set env.var.unlockedstatus='0'
+  
+  [ -f /etc/modgui_old ] && mv /etc/modgui_old /etc/config/modgui
 
   encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
   default_encrypted_pass='$5liEJpfo7NYE'
