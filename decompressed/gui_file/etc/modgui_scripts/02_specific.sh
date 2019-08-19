@@ -155,8 +155,10 @@ install_specific() {
 }
 
 remove_wizard_5ghz() {
-  logger_command "Removing 5GHz config from wizard..."
-  rm /www/wizard-cards/*wireless_5G*
+  if [ -n "$(find /www/wizard-cards/ -iname '*wireless_5G*')" ]; then
+    logger_command "Removing 5GHz config from wizard..."
+    rm /www/wizard-cards/*wireless_5G*
+  fi
 }
 
 #THIS CHECK DEVICE TYPE AND INSTALL SPECIFIC FILE

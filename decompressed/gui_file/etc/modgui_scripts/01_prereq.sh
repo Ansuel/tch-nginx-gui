@@ -71,7 +71,7 @@ check_free_RAM() {
   fi
 }
 
-logger_command "Disable watchdog"
+logger_command "Disabling watchdog..."
 /etc/init.d/watchdog-tch stop
 
 move_env_var #This moves every garbage created before 8.11.49 in env to modgui config file
