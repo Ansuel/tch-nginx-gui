@@ -648,6 +648,12 @@ ngx.print('\
 		var restyled = theme+"/style.css";\
 		freshStyle(restyled);\
 	}\
+	if ( theme.indexOf("Fritz") != -1 || theme.indexOf("unified") != -1) {\
+		if($(\'#gui_skin_firstpage option[value="cards"]\').is(":selected")) $("#gui_skin_firstpage").val("stats");\
+		$(\'#gui_skin_firstpage option[value="cards"]\').attr("disabled","disabled");\
+	} else {\
+		$(\'#gui_skin_firstpage option[value="cards"]\').removeAttr("disabled");\
+	}\
 	schedulReload = true;\
   });\
 \
