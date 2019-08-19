@@ -52,11 +52,23 @@ reapply_gui_after_reset() {
 		logger_command "Resetting /www dir due to firmware upgrade..."
 		rm -r /www
 		bzcat /root/GUI.tar.bz2 | tar -C / -xf - www
-	elif [ -f /root/GUI.tar.gz ]; then
-		logger_command "Resetting /www dir due to firmware upgrade..."
-		rm -r /www
-		tar -C / -zxf /root/GUI.tar.gz www
+	else
+		logger_command "No GUI package found to restore!"
 	fi
+}
+
+check_free_RAM() {
+  logger_command "Checking Free RAM..."
+  MEMFREE=$(awk '/(MemFree|Buffers)/ {free+=$2} END {print free}' /proc/meminfo)
+  if [ $MEMFREE -lt 4096 ]; then
+    logger_command "Free RAM <4MB freeing up..."
+    # Having the kernel reclaim pagecache, dentries and inodes and check again
+    echo 3 >/proc/sys/vm/drop_caches
+    MEMFREE=$(awk '/(MemFree|Buffers)/ {free+=$2} END {print free}' /proc/meminfo)
+    if [ $MEMFREE -lt 4096 ]; then
+      logger_command "Update is continuing with Free RAM <4MB!"
+    fi
+  fi
 }
 
 logger_command "Disable watchdog"
@@ -65,8 +77,10 @@ logger_command "Disable watchdog"
 move_env_var #This moves every garbage created before 8.11.49 in env to modgui config file
 create_section_modgui
 check_tmp_permission
+check_free_RAM
 
 if [ -f /root/.install_gui ]; then
+  logger_command "Removing .install_gui flag"
 	rm /root/.install_gui
 fi
 
