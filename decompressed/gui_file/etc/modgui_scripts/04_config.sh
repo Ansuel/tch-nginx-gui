@@ -192,22 +192,33 @@ check_relay_dhcp() {
 suppress_excessive_logging() {
 	#Lowers the log level of daemons to suppress excessive logging to /root/messages.log
 	if [ "$(uci get -q igmpproxy.globals.trace)" == "1" ]; then
+    logger_command "Suppressing igmpproxy logs"
 		uci set igmpproxy.globals.trace='0'
 	fi
+
+	logger_command "Triggering mobiled restart"
 	/etc/init.d/mobiled restart #Restart this to actually disable it... (broken and shitt init.d)
-	uci set wansensing.global.tracelevel='3' #we don't need that we are still connected to vdsl -.-
+
+	if [ "$(uci get -q mmpbx.global.trace_level)" != "3" ]; then
+	  logger_command "Suppressing wansensing logs"
+		uci set wansensing.global.tracelevel='3' #we don't need that we are still connected to vdsl -.-
+	fi
 	if [ ! "$(uci get -q transformer.@main[0].log_level)" ]; then #shutup no description warn
+	  logger_command "Setting transformer log level to 2"
 		uci set transformer.@main[0].log_level='2'
 	fi
 	if [ ! "$(uci get -q system.@system[0].cronloglevel)" ] || [ "$(uci get -q system.@system[0].cronloglevel)" == '0' ]; then #resolve spamlog of trafficdata
+		logger_command "Setting cron log level to 5"
 		uci set system.@system[0].cronloglevel="5"
 		/etc/init.d/cron restart
 	fi
 	if [ ! "$(uci get -q ledfw.syslog)" ]; then #suppress loggin of ledfw... we don't need it...
+	  logger_command "Suppressing syslog (avoid ledfw spam)"
 		uci set ledfw.syslog=syslog
 		uci set ledfw.syslog.trace='0'
 	fi
 	if [ "$(uci get -q mmpbx.global.trace_level)" == "2" ]; then
+	  logger_command "Suppressing mmpbx logs"
 		uci set mmpbx.global.trace_level='0'
 	fi
 }
@@ -572,7 +583,6 @@ logger_command "Add new web options"
 add_new_web_rule #This check new option so that we don't replace the one present
 logger_command "New DHCPRelay Option"
 check_relay_dhcp #Sync option
-logger_command "Disable trace from igmpproxy"
 suppress_excessive_logging #Suppress logging
 logger_command "Create new option for led definitions"
 led_integration #New option led	
