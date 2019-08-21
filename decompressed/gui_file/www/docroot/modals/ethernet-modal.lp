@@ -860,42 +860,45 @@ local function validateGWIP(value, object, key)
         --NG-100782>
         for _,intf in pairs(all_intfs) do
             if intf.paramindex ~= curintf then
-                local ipaddr = proxy.get("uci.network.interface.@" .. intf.paramindex .. ".ipaddr")[1].value
-                local mask = proxy.get("uci.network.interface.@" .. intf.paramindex .. ".netmask")[1].value
-                local baseip = post_helper.validateStringIsIP(ipaddr) and ipv42num(ipaddr)
-                local netmask = post_helper.validateStringIsIP(mask) and ipv42num(mask)
-                local sfplocalip = proxy.get("uci.network.interface.@"..sfpintf..".ipaddr")
+                local ipaddr = proxy.get("uci.network.interface.@" .. intf.paramindex .. ".ipaddr")
+                if ipaddr then
+                    ipaddr = ipaddr[1].value
+                    local mask = proxy.get("uci.network.interface.@" .. intf.paramindex .. ".netmask")[1].value
+                    local baseip = post_helper.validateStringIsIP(ipaddr) and ipv42num(ipaddr)
+                    local netmask = post_helper.validateStringIsIP(mask) and ipv42num(mask)
+                    local sfplocalip = proxy.get("uci.network.interface.@"..sfpintf..".ipaddr")
 
-                if sfplocalip and sfplocalip[1].value then
-                    sfplocalip = sfplocalip[1].value
-                end
-
-                local network, ipmax
-                if baseip and netmask then
-                    network = bit.band(baseip, netmask)
-                    ipmax = bit.bor(network, bit.bnot(netmask))
-                end
-
-                if network and ipmax then
-                    if ip == sfplocalip then
-                        return nil, T"Gateway IP should not be in SFP interface IP Range, change that first"
+                    if sfplocalip and sfplocalip[1].value then
+                        sfplocalip = sfplocalip[1].value
                     end
-                    if ip >= network and ip <= ipmax then
-                        if intf.name ~= "" then
-                            return nil, T"Gateway IP should not be in " .. intf.name .. T" IP Range"
-                        else
-                            return nil, T"Gateway IP should not be in " .. intf.paramindex .. T" IP Range"
+
+                    local network, ipmax
+                    if baseip and netmask then
+                        network = bit.band(baseip, netmask)
+                        ipmax = bit.bor(network, bit.bnot(netmask))
+                    end
+
+                    if network and ipmax then
+                        if ip == sfplocalip then
+                            return nil, T"Gateway IP should not be in SFP interface IP Range, change that first"
                         end
-                    end
-                    --<NG-100782
-                    if ipnetwork <= network and network <= ipmaxvalue then
-                        if intf.name ~= "" then
-                            return nil, T"The IP address is part of the "..intf.name.." IP Range"
-                        else
-                            return nil, T"The IP address is part of the "..intf.paramindex.." IP Range"
+                        if ip >= network and ip <= ipmax then
+                            if intf.name ~= "" then
+                                return nil, T"Gateway IP should not be in " .. intf.name .. T" IP Range"
+                            else
+                                return nil, T"Gateway IP should not be in " .. intf.paramindex .. T" IP Range"
+                            end
                         end
+                        --<NG-100782
+                        if ipnetwork <= network and network <= ipmaxvalue then
+                            if intf.name ~= "" then
+                                return nil, T"The IP address is part of the "..intf.name.." IP Range"
+                            else
+                                return nil, T"The IP address is part of the "..intf.paramindex.." IP Range"
+                            end
+                        end
+                        --NG-100782>
                     end
-                    --NG-100782>
                 end
             end
         end

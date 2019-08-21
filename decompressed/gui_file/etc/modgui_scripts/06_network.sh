@@ -123,19 +123,22 @@ puryfy_wan_interface() { #creano problemi di dns per chissa'  quale diavolo di 
 }
 
 fix_dns_dhcp_bug() {
-  logger_command "Fix DNS bug"
+  logger_command "Fix DNS bug, make sure odhcp is enabled"
 	#SET odhcpd MAINDHCP to 0 to use dnsmasq for ipv4 
 	if [ "$(uci get -q dhcp.odhcpd.maindhcp)" == "1" ]; then
+    logger_command "Setting odhcpd not maindhcp"
 		uci set dhcp.odhcpd.maindhcp="0"
 		/etc/init.d/odhcpd restart
 		restart_dnsmasq=1
 	fi
 	#Check to see if odhcpd is running
-	if [ ! "$(pgrep "odhcpd")" ]; then
+	if [ ! "$(pgrep odhcpd)" ]; then
+    logger_command "Starting odhcpd"
 		/etc/init.d/odhcpd start
 	fi
 	#reenable it to make ipv6 works
-	if [ ! "$(echo /etc/rc.d/*odhcpd*)" ]; then
+	if [ -n "$(find /etc/rc.d/ -iname *odhcpd*)" ]; then
+    logger_command "Enabling odhcpd on boot"
 		/etc/init.d/odhcpd enable
 	fi
 }

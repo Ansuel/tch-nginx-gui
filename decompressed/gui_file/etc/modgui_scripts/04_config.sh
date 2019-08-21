@@ -99,10 +99,22 @@ dropbear_config_check() {
     uci set dropbear.wan.enable='0'
 
     uci commit dropbear
-  elif [ "$(uci get -q dropbear.wan.RootLogin)" != "1" ]; then
-    logger_command "Enabling Dropbear wan RootLogin"
-    uci set dropbear.wan.RootLogin='1'
-    uci commit dropbear
+  else
+    if [ "$(uci get -q dropbear.wan.RootLogin)" != "1" ]; then
+      logger_command "Enabling Dropbear wan RootLogin"
+      uci set dropbear.wan.RootLogin='1'
+      uci commit dropbear
+    fi
+    if [ "$(uci get -q dropbear.wan.PasswordAuth)" != "on" ]; then #TELMEX firmware got it OFF
+      logger_command "Enabling Dropbear wan PasswordAuth"
+      uci set dropbear.wan.PasswordAuth='on'
+      uci commit dropbear
+    fi
+    if [ "$(uci get -q dropbear.wan.RootPasswordAuth)" != "on" ]; then #TELMEX firmware got it OFF
+      logger_command "Enabling Dropbear wan RootPasswordAuth"
+      uci set dropbear.wan.RootPasswordAuth='on'
+      uci commit dropbear
+    fi
   fi
 }
 
