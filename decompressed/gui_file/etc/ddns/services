@@ -45,6 +45,7 @@
 "goip.de"		"http://www.goip.de/setip?username=[USERNAME]&password=[PASSWORD]&subdomain=[DOMAIN]&ip=[IP]"
 "google.com"		"http://[USERNAME]:[PASSWORD]@domains.google.com/nic/update?hostname=[DOMAIN]&myip=[IP]"	"good|nochg"
 "he.net"		"http://[DOMAIN]:[PASSWORD]@dyn.dns.he.net/nic/update?hostname=[DOMAIN]&myip=[IP]"	"good|nochg"
+"inwx.com"		"https://[USERNAME]:[PASSWORD]@dyndns.inwx.com/nic/update?system=dyndns&hostname=[DOMAIN]&myip=[IP]"		"good|nochg"
 "joker.com"		"http://svc.joker.com/nic/update?username=[USERNAME]&password=[PASSWORD]&myip=[IP]&hostname=[DOMAIN]"	"good|nochg"
 "loopia.se"		"http://[USERNAME]:[PASSWORD]@dns.loopia.se/XDynDNSServer/XDynDNS.php?system=custom&hostname=[DOMAIN]&myip=[IP]"	"good|nochg"
 "mydns.jp"		"http://www.mydns.jp/directip.html?MID=[USERNAME]&PWD=[PASSWORD]&IPV4ADDR=[IP]"
