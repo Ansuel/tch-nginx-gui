@@ -161,7 +161,7 @@ $(function () {
 });
 
 var connectionissue = 0;
-function createAjaxUpdateCard(CardIdRefresh, ajaxLink, IntervalVar, RefreshTime) {
+function createAjaxUpdateCard(CardIdRefresh, ajaxLink, IntervalVar, RefreshTime, CustomRefreshFunction) {
 	
 	var element = document.getElementById(CardIdRefresh);
 	if (!element) return ;
@@ -177,7 +177,7 @@ function createAjaxUpdateCard(CardIdRefresh, ajaxLink, IntervalVar, RefreshTime)
 
 	var arrayLength = ElementBindingList.length;
 
-	function AjaxRefresh() {
+	var AjaxRefresh = ( typeof CustomRefreshFunction === "function" ) && CustomRefreshFunction || function() {
 		var updateLink = "auto_update=true";
 		if ( /[a-z]+=[a-z]+/.test(ajaxLink) ) {
 			updateLink = "&" + updateLink;
@@ -209,12 +209,12 @@ function createAjaxUpdateCard(CardIdRefresh, ajaxLink, IntervalVar, RefreshTime)
 					tch.showProgress(connectionLost + " " + data.statusText);
 			});
 	};
-
-	AjaxRefresh();
+	
+	AjaxRefresh(ElementBinding);
 	
 	if (!ko.dataFor(element))
 		ko.applyBindings(ElementBinding, element);
-	IntervalVar = setInterval(AjaxRefresh, RefreshTime);
+	IntervalVar = setInterval(AjaxRefresh,RefreshTime,ElementBinding);
 	KoRequest.push(IntervalVar);
 }
 

@@ -69,25 +69,25 @@ end
 						</div>\
 					</div>'); ngx.print('\
 				<p class="subinfos">\
-					<div style="height: 25px; margin: 20px;" data-bind="visible: mobileStatus().length > 0">\
+					<div style="height: 25px; margin: 20px;" data-bind="visible: mobileStatus">\
 						<label class="card-label">');  ngx.print( T"Status"..":" ); ngx.print('</label>\
 						<div class="controls">\
 							<strong data-bind="text: mobileStatus"></strong>\
 						</div>\
 					</div>\
-					<div style="height: 25px;" data-bind="visible: radioType().length > 0">\
+					<div style="height: 25px;" data-bind="visible: radioType">\
 						<label class="card-label">');  ngx.print( T"Radio Type"..":" ); ngx.print('</label>\
 						<div class="card-control">\
 							<strong data-bind="text: radioType"></strong>\
 						</div>\
 					</div>\
-					<div style="height: 25px;" data-bind="visible: signalQuality().length > 0">\
+					<div style="height: 25px;" data-bind="visible: signalQuality">\
 						<label class="card-label">');  ngx.print( T"Quality"..":" ); ngx.print('</label>\
 						<div class="controls">\
 							<strong data-bind="text: signalQuality"></strong>\
 						</div>\
 					</div>\
-					<div style="height: 25px; margin: 20px;" data-bind="visible: deviceStatus().length > 0">\
+					<div style="height: 25px; margin: 20px;" data-bind="visible: deviceStatus">\
 						<div class="controls">\
 							<strong data-bind="text: deviceStatus"></strong>\
 						</div>\
@@ -101,66 +101,52 @@ end
 </div>\
 <script>\
 var LteCardInterval;\
-$(document).ready(function () {\
-\
-	var element = document.getElementById("mobiletab");\
-	if (!element) return ;\
+var LteCardRefresh = function(ElementBinding) {\
 \
 	var allowSimRedirect = ');  ngx.print( allowSimRedirect ); ngx.print(';\
-	var LteCardBinding = {\
-		signalQuality: ko.observable(""),\
-		radioType: ko.observable(""),\
-		mobileStatus: ko.observable(""),\
-		deviceStatus: ko.observable(""),\
-	};\
 	function updateBars(bars) {\
-				$(\'#signal-strength-indicator-small .absolute\').children(\'.bar-small\').each(function (index) {\
-					if(index < bars) {\
-						$(this).addClass(\'bar-small-active\');\
-					} else {\
-						$(this).removeClass(\'bar-small-active\');\
-					}\
-				});\
-			};\
-	function LteCardRefresh() {\
-		$.post("/ajax/mobiletab.lua?auto_update=true", [tch.elementCSRFtoken()], function(data) {\
-					if(data.bars != undefined) {\
-						updateBars(data.bars);\
-					}\
-					if(data.radio_interface != undefined) {\
-						LteCardBinding.radioType(data.radio_interface);\
-					}\
-					if(data.status != undefined) {\
-						LteCardBinding.mobileStatus(data.status);\
-					}\
-					if(data.signal_quality != undefined) {\
-						LteCardBinding.signalQuality(data.signal_quality);\
-					}\
-					if(data.no_device != undefined) {\
-						LteCardBinding.deviceStatus(data.no_device);\
-					}\
-					if(data.redirect_sim != undefined) {\
-						if(data.redirect_sim === true && allowSimRedirect) {\
-							$.each($(\'.settings[data-id="lte-modal"]\'), function () {\
-								$(this).attr(\'data-id\', \'lte-sim\');\
-								$(this).attr(\'data-remote\', \'/modals/lte-sim.lp\');\
-							});\
-						} else {\
-							$.each($(\'.settings[data-id="lte-sim"]\'), function () {\
-								$(this).attr(\'data-id\', \'lte-modal\');\
-								$(this).attr(\'data-remote\', \'/modals/lte-modal.lp\');\
-							});\
-						}\
-					}\
-				}, "json");\
+			$(\'#signal-strength-indicator-small .absolute\').children(\'.bar-small\').each(function (index) {\
+				if(index < bars) {\
+					$(this).addClass(\'bar-small-active\');\
+				} else {\
+					$(this).removeClass(\'bar-small-active\');\
+				}\
+			});\
+		};\
+\
+	$.post("/ajax/mobiletab.lua?auto_update=true", [tch.elementCSRFtoken()], function(data) {\
+			if(data.bars != undefined) {\
+				updateBars(data.bars);\
+			}\
+			if(data.radio_interface != undefined) {\
+				ElementBinding.radioType(data.radio_interface);\
+			}\
+			if(data.status != undefined) {\
+				ElementBinding.mobileStatus(data.status);\
+			}\
+			if(data.signal_quality != undefined) {\
+				ElementBinding.signalQuality(data.signal_quality);\
+			}\
+			if(data.no_device != undefined) {\
+				ElementBinding.deviceStatus(data.no_device);\
+			}\
+			if(data.redirect_sim != undefined) {\
+				if(data.redirect_sim === true && allowSimRedirect) {\
+					$.each($(\'.settings[data-id="lte-modal"]\'), function () {\
+						$(this).attr(\'data-id\', \'lte-sim\');\
+						$(this).attr(\'data-remote\', \'/modals/lte-sim.lp\');\
+					});\
+				} else {\
+					$.each($(\'.settings[data-id="lte-sim"]\'), function () {\
+						$(this).attr(\'data-id\', \'lte-modal\');\
+						$(this).attr(\'data-remote\', \'/modals/lte-modal.lp\');\
+					});\
+				}\
+			}\
+		}, "json");\
 	};\
-\
-	LteCardRefresh();\
-\
-	if (!ko.dataFor(element))\
-		ko.applyBindings(LteCardBinding, element);\
-	LteCardInterval = setInterval(LteCardRefresh, 50000);\
-	KoRequest.push(LteCardInterval);\
+$(document).ready(function () {\
+	new createAjaxUpdateCard("mobiletab",null,LteCardInterval,50000,LteCardRefresh);\
 })\
 </script>\
 '); 
