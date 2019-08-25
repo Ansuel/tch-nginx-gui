@@ -192,6 +192,7 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H045") or content.dsl0_xdsl_Firmwa
 		tinsert(driver_option, { "A2pvfbH043o", 'A2pvfbH043o (Asus DSL-AC88U v1.10.06_561)'})
         tinsert(driver_option, { "A2pvfbH043q", 'A2pvfbH043q (AGTEF_2.1.0/FRITZ!Box 7582 7.01/Asus DSL-AC88U v1.10.06_585)'})
         tinsert(driver_option, { "A2pvfbH045k", 'A2pvfbH045k (Inteno/FRITZ!Box 7582 7.08)'})
+	tinsert(driver_option, { "A2pvfbH045l", 'A2pvfbH045l (FRITZ!Box 7582 7.12)'})
 	end
 	
 	driver_Params.driver_ver = "uci.modgui.var.driver_version"
