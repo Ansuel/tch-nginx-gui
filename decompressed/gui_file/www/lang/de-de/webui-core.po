@@ -4758,3 +4758,6 @@ msgstr ""
 
 msgid "Command Log Reader"
 msgstr ""
+
+msgid "Executing"
+msgstr ""
