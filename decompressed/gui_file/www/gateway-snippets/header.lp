@@ -132,7 +132,7 @@ ngx.print('\
       html[#html + 1] = '<div class="btn" id="wizard-btn" data-toggle="modal" data-remote="modals/wizard-modal.lp">' .. T"Setup Wizard" .. '</div>'
       html[#html + 1] = '</div>'
       html[#html + 1] = '<div class="header-sub-button">'
-      html[#html + 1] =   '<div class="btn" id="swtichbuttom">'
+      html[#html + 1] =   '<div class="btn" id="switchViewButton">'
       html[#html + 1] =     '<span id="refresh-cards"></span>'
       html[#html + 1] =     '<span id="cards-text">' .. pageselector.text .. '</span>'
       html[#html + 1] =   '</div>'

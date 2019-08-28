@@ -800,7 +800,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 		margin-left: 16.5rem !important;
 		width: calc( 100% - 16.5rem );
 	}
-	#swtichbuttom {
+	#switchViewButton {
 		position: fixed;
 		top: 3.25rem;
 		width: calc(100% - 19rem);
@@ -1123,7 +1123,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
         display: none
     }
 	
-	#swtichbuttom {
+	#switchViewButton {
 		display: unset;
 	}
 	

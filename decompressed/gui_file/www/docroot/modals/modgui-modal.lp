@@ -791,8 +791,8 @@ ngx.print('\
 	$("#upgrade-gui-bar").removeClass("hide");\
 	$("#upgrade-log").removeClass("hide");\
 	$(".bar").css("width", "2%").attr("aria-valuenow", 2);\
-	KoRequest.forEach(function(element) {\
-		clearInterval(element);\
+	Object.keys(KoRequest).forEach(function(interval) {\
+		clearInterval(KoRequest[interval]);\
 	});\
   };\
 \
