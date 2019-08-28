@@ -171,9 +171,8 @@ ngx.print('\
   </div>\
 </div>\
 <script>\
-var InfoXdslCardInterval;\
 $(document).ready(function () {\
-	new createAjaxUpdateCard("xdsltab","/ajax/internet.lua?datatype=xdsl",InfoXdslCardInterval,5000);\
+	new modgui.createAjaxUpdateCard("xdsltab","/ajax/internet.lua?datatype=xdsl","InfoXdslCardInterval",5000);\
 })\
 </script>\
 '); 

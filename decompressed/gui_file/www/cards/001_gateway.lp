@@ -52,9 +52,8 @@ ngx.print('\
   </div>\
 </div>\
 <script>\
-var GatewayCardInterval;\
 $(document).ready(function () {\
-	new createAjaxUpdateCard("gateway-card","/ajax/cpuload.lua",GatewayCardInterval,5000);\
+	new modgui.createAjaxUpdateCard("gateway-card","/ajax/cpuload.lua","GatewayCardInterval",5000);\
 })\
 </script>\
 ');

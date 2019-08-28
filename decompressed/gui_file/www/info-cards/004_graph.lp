@@ -113,7 +113,6 @@ var InfoWANChart = new Chart(wan_ctx, {\
     }]},\
     options: TrafficChartOption \
 });\
-var InfoGraphCardInterval;\
 var InfoGraphCardRefresh = function(ElementBinding) {\
 		var tx_traffic_complete = document.getElementById("tx_traffic_complete");\
 		var rx_traffic_complete = document.getElementById("rx_traffic_complete");\
@@ -145,7 +144,7 @@ var InfoGraphCardRefresh = function(ElementBinding) {\
 		};\
 	};\
 $(document).ready(function () {\
-  new createAjaxUpdateCard("graphtab",null,InfoGraphCardInterval,10000,InfoGraphCardRefresh);\
+  new modgui.createAjaxUpdateCard("graphtab",null,"InfoGraphCardInterval",10000,InfoGraphCardRefresh);\
 })\
 </script>\
 '); 

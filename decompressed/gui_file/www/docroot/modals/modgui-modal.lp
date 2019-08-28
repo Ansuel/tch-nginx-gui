@@ -646,7 +646,7 @@ ngx.print('\
 	if ( theme.indexOf("Fritz") === -1 ) {\
 		event.preventDefault();\
 		var restyled = theme+"/style.css";\
-		freshStyle(restyled);\
+		modgui.freshStyle(restyled);\
 	}\
 	if ( theme.indexOf("Fritz") != -1 || theme.indexOf("unified") != -1) {\
 		if($(\'#gui_skin_firstpage option[value="cards"]\').is(":selected")) $("#gui_skin_firstpage").val("stats");\
@@ -798,7 +798,7 @@ ngx.print('\
 \
   $("#btn-upgrade-gui").on("click", function() {\
 	inizialize_ui_for_update();\
-	$.post(target,{action: "system_upgrade_gui", CSRFtoken: $("meta[name=CSRFtoken]").attr("content")},"","json");\
+	modgui.postAction("system_upgrade_gui");\
 	wait_for_upgradegui();\
   });\
 \
@@ -843,9 +843,7 @@ ngx.print('\
   });\
 \
   $("#btn-install-specificapp").on("click", function() {\
-	$.post(target,{action: "system_install_specificapp", CSRFtoken: $("meta[name=CSRFtoken]").attr("content")},"","json");\
-	tch.showProgress("Installing...");\
-	scriptRequestStatusAjax();\
+	modgui.postAction("system_install_specificapp",1);\
   });\
 \
   $(".import-specificapp").on("click", function() {\

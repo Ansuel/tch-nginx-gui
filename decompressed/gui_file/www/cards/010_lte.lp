@@ -100,7 +100,6 @@ end
 	</div>\
 </div>\
 <script>\
-var LteCardInterval;\
 var LteCardRefresh = function(ElementBinding) {\
 \
 	var allowSimRedirect = ');  ngx.print( allowSimRedirect ); ngx.print(';\
@@ -146,7 +145,7 @@ var LteCardRefresh = function(ElementBinding) {\
 		}, "json");\
 	};\
 $(document).ready(function () {\
-	new createAjaxUpdateCard("mobiletab",null,LteCardInterval,50000,LteCardRefresh);\
+	new modgui.createAjaxUpdateCard("mobiletab",null,"LteCardInterval",50000,LteCardRefresh);\
 })\
 </script>\
 '); 

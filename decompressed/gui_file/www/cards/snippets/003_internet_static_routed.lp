@@ -63,9 +63,8 @@ ngx.print('\
   </p>\
 </span>\
 <script>\
-var StaticCardInterval;\
 $(document).ready(function () {\
-	new createAjaxUpdateCard("static-internet-tab","/ajax/internet.lua",StaticCardInterval,3000);\
+	new modgui.createAjaxUpdateCard("static-internet-tab","/ajax/internet.lua","StaticCardInterval",3000);\
 })\
 </script>\
 ');

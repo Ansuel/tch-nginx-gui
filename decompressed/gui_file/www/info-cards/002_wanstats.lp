@@ -116,9 +116,8 @@ ngx.print('\
   </div>\
 </div>\
 <script>\
-var InfoWanStatsCardInterval;\
 $(document).ready(function () {\
-	new createAjaxUpdateCard("wanstatsinfotab","/ajax/internet.lua",InfoWanStatsCardInterval,5000);\
+	new modgui.createAjaxUpdateCard("wanstatsinfotab","/ajax/internet.lua","InfoWanStatsCardInterval",5000);\
 })\
 </script>\
 '); 

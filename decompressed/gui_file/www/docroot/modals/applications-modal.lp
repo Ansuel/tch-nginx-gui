@@ -306,34 +306,9 @@ ngx.print('\
 \
 <script>\
 (function() {\
-  var target = $(".modal form").attr("action");\
-\
-  function post(action,processMsg) {\
-    $.post(\
-      target,\
-      { action: action, CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
-      null,\
-      "json"\
-    );\
-	tch.showProgress(processMsg);\
-    return false;\
-  }');
-ngx.print('\
     $("div[id^=\'btn-\']").on("click", function() {\
       var btnact = $(this).attr("id").replace("btn-", "");\
-      if(btnact.startsWith("start")){\
-      	post(btnact,"');  ngx.print(T'Starting...'); ngx.print('");\
-      	setTimeout(function(){tch.removeProgress();}, 2000);\
-      } else if(btnact.startsWith("stop")){\
-      	post(btnact,"');  ngx.print(T'Stopping...'); ngx.print('");\
-      	setTimeout(function(){tch.removeProgress();}, 2000);\
-      } else if(btnact.startsWith("remove")){\
-      	post(btnact,"');  ngx.print(T'Removing...'); ngx.print('");\
-      	scriptRequestStatusAjax();\;\
-      } else if(btnact.startsWith("install")) {\
-      	post(btnact,"');  ngx.print(T'Installing...'); ngx.print('");\
-      	scriptRequestStatusAjax();\;\
-      }\
+      modgui.postAction(btnact,1);\
     });\
 }());\
 </script>\
