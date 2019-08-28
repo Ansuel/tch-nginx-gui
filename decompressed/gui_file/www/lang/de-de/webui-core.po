@@ -4755,3 +4755,6 @@ msgstr ""
 
 msgid "Force CWMP provisioning"
 msgstr ""
+
+msgid "Command Log Reader"
+msgstr ""
