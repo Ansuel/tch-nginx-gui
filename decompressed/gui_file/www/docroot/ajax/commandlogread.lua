@@ -4,13 +4,21 @@ local ngx = ngx
 
 local data = {}
 
-local upgradegui_path = "rpc.system.modgui.scriptRequest."
+local upgradegui_path = "rpc.system.modgui.executeCommand."
 data["state"] = proxy.get(upgradegui_path.."state")[1].value
 
-local file = io.open("/tmp/command_log","r")
-if file then
-	data["log"] = file:read('*a')
-	file:close()
+local action = {}
+
+if action[string.untaint(data.state)] then 
+	for key, val in pairs(action[string.untaint(data.state)]()) do
+		data[key] = val
+	end
+else
+	local file = io.open("/tmp/command_log","r")
+	if file then
+		data["log"] = file:read('*a')
+		file:close()
+	end
 end
 
 local buffer = {}
