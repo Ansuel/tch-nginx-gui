@@ -71,25 +71,11 @@ check_root() {
 EOF
 }
 
-############TRANSFORMER UTILITY##################
-set_transformer() {
-  cmd="require('datamodel').set('$1','$2')"
-  lua -e "$cmd"
-}
-
-get_transformer() {
-  cmd="require('datamodel').get('$1')"
-  lua -e "$cmd"
-}
 ####################LOG FUNCTION#################
 logger_command() {
   if [ "$debug" -eq 1 ]; then
-    logger -s -t "Root Script" "$1"
-  fi
-  if [ -z "$2" ] && [ -n "$log_progress" ]; then
-    log_progress=$((log_progress + 1))
-    set_transformer "rpc.system.modgui.upgradegui.log_prog" $log_progress
-    set_transformer "rpc.system.modgui.upgradegui.log" "$1"
+    logger -t "Root Script" "$1"
+	echo "Root Script" "$1"
   fi
 }
 #################################################
