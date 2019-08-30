@@ -26,47 +26,6 @@ local function str2hex(str)
     return hex
 end
 
-local function enumFileToCount()
-	local rootdevicefile = "/etc/init.d/rootdevice"
-	local additional_script = "/etc/modgui_scripts/"
-	local ret = { rootdevicefile }
-	
-	local p = io.popen('find "'..additional_script..'" -type f')
-	for file in p:lines() do                         
-        ret[ #ret + 1 ] = file
-	end
-	
-	return ret
-end
-
---idiot function to count how much log output we have in rootdevice
-local function countStepInRootdevice()
-	local start_count = false
-	local log_num = 0
-	
-	for _, file in ipairs(enumFileToCount()) do
-		for line in io.lines(file) do
-			if ( start_count == true ) or not ( file:match("rootdevice") ) then
-				if line:match("logger_command \"") and not line:match("\" ConsoleOnly") then
-					log_num = log_num+1
-				end
-			end
-			if line:match("check_bank%(%) {") and file:match("rootdevice") then
-				io.close()
-				break
-			end
-			if line == "root() {" and file:match("rootdevice") then
-				start_count = true
-			end
-		end
-		if not ( file:match("rootdevice") ) then
-			io.close()
-		end
-	end
-	
-	return tostring(log_num)
-end
-
 local SYSTEM_MODGUI_ = {
   objectType = {
     name = 'rpc.system.modgui.',
@@ -86,117 +45,24 @@ local SYSTEM_MODGUI_UPGRADEGUI_ = {
     minEntries = 1,
     maxEntries = 1,
     parameters = {
-      state = {
-        access = "readWrite",
-        type = "string",
-        enumeration = {
-          "Not started",
-		  "Downloading",
-		  "Clearing",
-		  "Extracting",
-		  "Requested",
-          "In Progress",
-		  "Finished",
-        },
-      },
       start = {
         access = "readWrite",
         type = "boolean",
-      },
-	  log = {
-        access = "readWrite",
-        type = "string",
-      },
-	  log_step = {
-		access = "readOnly",
-		type = "int",
-	  },
-	  log_prog = {
-		access = "readWrite",
-		type = "int",
-	  },
-	  extract_prog = {
-		access = "readWrite",
-		type = "int",
-	  }
+      }
     }
   }
 }
 
-local upgradegui = {}
-
-upgradegui.log_step = countStepInRootdevice()
-
 SYSTEM_MODGUI_UPGRADEGUI_.get = {
-  start = "0",
-  state = function(mapping, param)
-	
-	if ( upgradegui.resetOnNextRequest == 1 ) then
-	  upgradegui.resetOnNextRequest = 0
-	  upgradegui.state = nil
-	end
-	
-	local progress_status = io.open("/root/.check_process","r")
-	
-	if progress_status then
-		progress_status:close()
-		upgradegui.state = nil --reset state as we are in root progress...
-		return "In Progress"
-	elseif upgradegui.state then
-		if ( upgradegui.state == "Complete" ) then
-			upgradegui.resetOnNextRequest = 1
-		end
-		return upgradegui.state
-	end
-	
-	
-	return "Not started"
-  end,
-  log = function(mapping, param)
-	return upgradegui.log or ""
-  end,
-  log_step = function(mapping, param)
-	if upgradegui.logstep then
-		return upgradegui.logstep
-	else
-	  return countStepInRootdevice()
-	end
-  end,
-  log_prog = function(mapping, param)
-	return upgradegui.log_prog or "0"
-  end,
-  extract_prog = function(mapping, param)
-	return upgradegui.extract_prog or "Not Extracting"
-  end,
+  start = "0"
 }
 
 SYSTEM_MODGUI_UPGRADEGUI_.set = {
-  state = function(mapping, paramName, paramValue)  
-	if paramValue == "Finished" or 
-	   paramValue == "Clearing" or
-	   paramValue == "Extracting" or
-	   paramValue == "Requested" or 
-	   paramValue == "Downloading" then
-        upgradegui.state = paramValue
-    end
-	if paramValue == "Finished" then
-		upgradegui.log = ""
-	end
-  end,
   start = function(mapping, paramName, paramValue)  
 	if paramValue == "1" then
         commitapply:newset("rpc.system.modgui.upgradegui." .. paramName)
     end
-  end,
-  log = function(mapping, paramName, paramValue)
-	  upgradegui.log = paramValue
-  end,
-  log_prog = function(mapping, paramName, paramValue)
-	  upgradegui.log_prog = paramValue
-  end,
-  extract_prog = function(mapping, paramName, paramValue)
-	  upgradegui.extract_prog = paramValue
-  end,
+  end
 }
 
 register(SYSTEM_MODGUI_UPGRADEGUI_)
@@ -352,7 +218,7 @@ register(SYSTEM_MODGUI_DEBUGLOG_)
 
 local SYSTEM_MODGUI_SCRIPTREQUEST_ = {
   objectType = {
-    name = 'rpc.system.modgui.scriptRequest.',
+    name = 'rpc.system.modgui.executeCommand.',
     access = 'readOnly',
     minEntries = 1,
     maxEntries = 1,
@@ -362,7 +228,11 @@ local SYSTEM_MODGUI_SCRIPTREQUEST_ = {
         type = "string",
         enumeration = {
           "Not Requested",
+		  "Clearing",
+		  "Extracting",
+		  "Downloading",
           "Requested",
+		  "In Progress",
           "Complete",
         },
       }
@@ -370,26 +240,31 @@ local SYSTEM_MODGUI_SCRIPTREQUEST_ = {
   }
 }
 
-upgradegui.scriptRequest = {}
+local executeCommand = {}
 
 SYSTEM_MODGUI_SCRIPTREQUEST_.get = {
   state = function(mapping, param)
-	local result = upgradegui.scriptRequest.state
-	if ( upgradegui.scriptRequest.resetOnNextRequest == 1 ) then
-	  upgradegui.scriptRequest.state = nil
+	local result = executeCommand.state
+	if ( executeCommand.resetOnNextRequest == 1 ) then
+	  executeCommand = {}
 	end
 	return result or "Not Requested"
-  end
+  end,
 }
 
 SYSTEM_MODGUI_SCRIPTREQUEST_.set = {
   state = function(mapping, paramName, paramValue)  
 	if ( paramValue == "Requested" ) then
-	  upgradegui.scriptRequest.resetOnNextRequest = 0
-	  upgradegui.scriptRequest.state = paramValue
+	  executeCommand.resetOnNextRequest = 0
+	  executeCommand.state = paramValue
+	elseif paramValue == "Clearing" or
+	   paramValue == "Extracting" or
+	   paramValue == "Downloading" or
+	   paramValue == "In Progress" then
+	   executeCommand.state = paramValue
 	elseif ( paramValue == "Complete" ) then
-	  upgradegui.scriptRequest.resetOnNextRequest = 1
-	  upgradegui.scriptRequest.state = paramValue
+	  executeCommand.resetOnNextRequest = 1
+	  executeCommand.state = paramValue
 	end
   end,
 }
