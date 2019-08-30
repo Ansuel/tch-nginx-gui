@@ -71,8 +71,6 @@ app_transmission() {
 	else
 		remove
 	fi
-	
-	set_transformer "rpc.system.modgui.scriptRequest.state" "Complete"
 }
 
 app_telstra() {
@@ -102,8 +100,6 @@ app_telstra() {
 	else
 		remove
 	fi
-	
-	set_transformer "rpc.system.modgui.scriptRequest.state" "Complete"
 }
 
 app_luci() {
@@ -173,8 +169,6 @@ app_luci() {
 	else
 		remove
 	fi
-	
-	set_transformer "rpc.system.modgui.scriptRequest.state" "Complete"
 }
 
 app_amule() {
@@ -197,8 +191,6 @@ app_amule() {
 	else
 		remove
 	fi
-	
-	set_transformer "rpc.system.modgui.scriptRequest.state" "Complete"
 }
 
 app_aria2() {
@@ -250,8 +242,6 @@ app_aria2() {
 	else
 		remove
 	fi
-	
-	set_transformer "rpc.system.modgui.scriptRequest.state" "Complete"
 }
 
 app_blacklist() {
@@ -267,8 +257,6 @@ app_blacklist() {
 	else
 		remove
 	fi
-	
-	set_transformer "rpc.system.modgui.scriptRequest.state" "Complete"
 }
 
 app_xupnp() {
@@ -285,8 +273,6 @@ app_xupnp() {
 	else
 		remove
 	fi
-	
-	set_transformer "rpc.system.modgui.scriptRequest.state" "Complete"
 }
 
 install_specific_files() {
@@ -304,8 +290,6 @@ install_specific_files() {
 	else
 		remove
 	fi
-	
-	set_transformer "rpc.system.modgui.scriptRequest.state" "Complete"
 }
 
 call_app_type() {
