@@ -115,7 +115,12 @@ var modgui = modgui || {};
 
 		if (!ko.dataFor(element))
 			ko.applyBindings(ElementBinding, element);
-		KoRequest[IntervalVar] = setInterval(AjaxRefresh,RefreshTime,ElementBinding);
+		KoRequest[IntervalVar] = {
+			interval : setInterval(AjaxRefresh,RefreshTime,ElementBinding),
+			function : AjaxRefresh,
+			binding : ElementBinding,
+			refreshTime: RefreshTime,
+		};
 	}
 
 	function linkCheckUpdate() {
@@ -123,40 +128,42 @@ var modgui = modgui || {};
 			e.stopPropagation();
 			postAction("checkver");
 			$(".check_update_spinner").addClass("fa-spin");
-			KoRequest.CheckVer = setInterval(function () {
-				$.ajax({
-					url: "modals/modgui-modal.lp",
-					data: "action=scriptRequestStatus" + "&auto_update=true",
-					timeout: scriptRequestTimeout,
-					cache: false,
-					dataType: "json"
-				})
-					.done(function (data) {
-						if (data.state == "Complete") {
-							if (data.new_version_text) {
-								var outdated_ver = gui_var.gui_outdated;
-								var no_new = gui_var.gui_updated;
-								$(".gui_version_status_text").parent().fadeOut().fadeIn();
-								if (data.new_version_text == "Unknown") {
-									$(".gui_version_status").removeClass("yellow");
-									$(".gui_version_status").addClass("green");
-									$(".gui_version_status_text").text(no_new);
-									$("#upgrade-alert").addClass("hide");
-								} else {
-									$(".gui_version_status").removeClass("green");
-									$(".gui_version_status").addClass("yellow");
-									$("#upgradebtn").removeClass("hide");
-									$(".gui_version_status_text").text(outdated_ver);
-									$("#upgrade-alert").removeClass("hide");
-									$("#new-version-text").text(data.new_version_text);
+			KoRequest.CheckVer = {
+				interval : setInterval(function () {
+					$.ajax({
+						url: "modals/modgui-modal.lp",
+						data: "action=scriptRequestStatus" + "&auto_update=true",
+						timeout: scriptRequestTimeout,
+						cache: false,
+						dataType: "json"
+					})
+						.done(function (data) {
+							if (data.state == "Complete") {
+								if (data.new_version_text) {
+									var outdated_ver = gui_var.gui_outdated;
+									var no_new = gui_var.gui_updated;
+									$(".gui_version_status_text").parent().fadeOut().fadeIn();
+									if (data.new_version_text == "Unknown") {
+										$(".gui_version_status").removeClass("yellow");
+										$(".gui_version_status").addClass("green");
+										$(".gui_version_status_text").text(no_new);
+										$("#upgrade-alert").addClass("hide");
+									} else {
+										$(".gui_version_status").removeClass("green");
+										$(".gui_version_status").addClass("yellow");
+										$("#upgradebtn").removeClass("hide");
+										$(".gui_version_status_text").text(outdated_ver);
+										$("#upgrade-alert").removeClass("hide");
+										$("#new-version-text").text(data.new_version_text);
+									}
+									$(".check_update_spinner").removeClass("fa-spin");
+									clearInterval(KoRequest.CheckVer);
+									KoRequest.CheckVer = null;
 								}
-								$(".check_update_spinner").removeClass("fa-spin");
-								clearInterval(KoRequest.CheckVer);
-								KoRequest.CheckVer = null;
 							}
-						}
-					});
-			}, scriptRequestTimeout);
+						});
+					}, scriptRequestTimeout)
+			}
 		})
 	};
 
@@ -173,13 +180,27 @@ var modgui = modgui || {};
 			$("#scroll-down").removeClass("hide");
 		}
 	}
+	
+	function clearKoInterval() {
+		Object.keys(KoRequest).forEach(function(interval) {
+			clearInterval(KoRequest[interval].interval);
+		});
+	}
+	
+	function restartKoInterval() {
+		Object.keys(KoRequest).forEach(function(interval) {
+			KoRequest[interval].interval = setInterval(KoRequest[interval].function,KoRequest[interval].refreshTime,KoRequest[interval].binding);
+		});
+	}
 
 	module.postAction = postAction,
-		module.scriptRequestStatusAjax = scriptRequestStatusAjax,
-		module.createAjaxUpdateCard = createAjaxUpdateCard,
-		module.linkCheckUpdate = linkCheckUpdate,
-		module.freshStyle = freshStyle,
-		module.scrollFunction = scrollFunction
+	module.scriptRequestStatusAjax = scriptRequestStatusAjax,
+	module.createAjaxUpdateCard = createAjaxUpdateCard,
+	module.linkCheckUpdate = linkCheckUpdate,
+	module.freshStyle = freshStyle,
+	module.scrollFunction = scrollFunction,
+	module.clearKoInterval = clearKoInterval,
+	module.restartKoInterval = restartKoInterval
 }
 (modgui);
 
@@ -239,9 +260,7 @@ $(function () {
 		$("#refresh-cards").show();
 		$("#refresh-cards").css("margin-right", "5px");
 		$("#refresh-cards").addClass("fa fa-sync fa-spin");
-		Object.keys(KoRequest).forEach(function(interval) {
-			clearInterval(KoRequest[interval])
-		});
+		modgui.clearKoInterval();
 		KoRequest = {};
 
 		$.get(page + "?contentonly=true").done(function (data) {
