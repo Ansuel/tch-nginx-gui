@@ -2,7 +2,7 @@
 ^rpc%.system%.reboot /usr/share/transformer/scripts/reboot_with_reason.sh
 ^rpc%.system%.switchover cat /proc/banktable/notbooted > /proc/banktable/active; reboot
 ^sys%.bootp%.enable /usr/bin/bootp
-^rpc%.system%.modgui%.upgradegui%.start start-stop-daemon -S -b -x /usr/share/transformer/scripts/upgradegui GuiRequest
+^rpc%.system%.modgui%.upgradegui%.start start-stop-daemon -S -b -x /usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/upgradegui GuiRequest"
 ^rpc%.system%.modgui%.utility%.resetgui /usr/share/transformer/scripts/resetUtility.sh --resetGui
 ^rpc%.system%.modgui%.utility%.removeroot /usr/share/transformer/scripts/resetUtility.sh --removeRoot
 ^rpc%.system%.modgui%.utility%.resetconfig /usr/share/transformer/scripts/resetUtility.sh --removeConfig
