@@ -226,9 +226,7 @@ if ngx.req.get_method() == "POST" then
 	end
 elseif ngx.req.get_method() == "GET" then
 	local action = ngx.req.get_uri_args().action
-	if action == "upgradeguistatus" then
-		return upgradeguistatus()
-	elseif action == "scriptRequestStatus" then
+	if action == "scriptRequestStatus" then
 		return scriptRequestStatus()
 	end
 end
@@ -298,15 +296,6 @@ local mapValid = {
 local modgui_settings, helpmsg = post_helper.handleQuery(mapParams, mapValid)
 
 ngx.print(ui_helper.createHeader(T"GUI Settings & Utility", false, false))
-local html = {}
-html[#html + 1] = '<fieldset class="modal-body hide" id="upgrade-gui-bar" style="min-height: unset;">'
-html[#html + 1] = '<div class="alert alert-info">'
-html[#html + 1] = '<div><span id="update-text">'..T"Update in progress..."..'</span><span id="extracted_file" class="hide">0</span></div>'
-html[#html + 1] = '  <div id="upgrade-gui-bar" class="progress progress-striped active">'
-html[#html + 1] = '	<div class="bar bar-warning" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" >'
-html[#html + 1] = '</div></div></div>'
-html[#html + 1] = '</fieldset>'
-ngx.print(html)
 ngx.print('\
 <div class="modal-body update">\
 ');
@@ -316,12 +305,11 @@ ngx.print('\
 	<form class="form-horizontal" method="post" action="modals/modgui-modal.lp">')
 
 local html = {}
-html[#html + 1] = '<div class="RemoveOnUpgrade">'
 html[#html + 1] = '<legend>'.. T"GUI Skin" ..'</legend>'
 html[#html + 1] = ui_helper.createInputSelect(T"GUI Skin", "gui_skin", gui_skin_option, modgui_settings["gui_skin"])
 html[#html + 1] = ui_helper.createInputSelect(T"GUI First Page", "gui_skin_firstpage", gui_skin_firstpage_page, modgui_settings["gui_skin_firstpage"])
 html[#html + 1] = ui_helper.createSwitch(T"Random Color", "gui_randomcolor", modgui_settings["gui_randomcolor"])
-html[#html + 1] = ui_helper.createSwitch(T "Force HTTPS to access the GUI", "gui_forcehttps", modgui_settings["gui_forcehttps"])
+html[#html + 1] = ui_helper.createSwitch(T"Force HTTPS to access the GUI", "gui_forcehttps", modgui_settings["gui_forcehttps"])
 html[#html + 1] = ui_helper.createSwitch(T"Always show advanced options", "gui_alwaysadvanced", modgui_settings["gui_alwaysadvanced"])
 html[#html + 1] = ui_helper.createSwitch(T"GUI animations", "gui_animation", modgui_settings["gui_animation"])
 ngx.print(html)
@@ -419,7 +407,6 @@ else
 end
 
 html[#html + 1] = '</span>'
-html[#html + 1] = '</div>'
 html[#html + 1] = '</form><form class="form-horizontal" id="form-import-gui" method="post" action="modals/modgui-modal.lp?action=upgradeguifile" enctype="multipart/form-data">'
 html[#html + 1] = '<div id="offline-upgrade-gui-div" class="control-group">'
 html[#html + 1] = format('<label class="control-label">%s</label>', T"Offline GUI Update")
@@ -461,7 +448,6 @@ if content.specific_app ~= "" then
 		}
 	}
 
-	html[#html + 1] = '<div class="RemoveOnUpgrade">'
 	html[#html + 1] = '<form class="form-horizontal" id="form-import-specificapp" method="post" action="modals/modgui-modal.lp?action=installspecificapp" enctype="multipart/form-data">'
 	html[#html + 1] = '<legend>'.. T"Specific App" ..'</legend>'
 	html[#html + 1] = ui_helper.createAlertBlock(T"Specific App are package that adds additional function to the modem, like telnet support or some fix to default package", info_box)
@@ -705,101 +691,8 @@ ngx.print('\
 	  tch.removeProgress();\
   });\
 \
-  var max_val = '); ngx.print( content.upgradegui_logstep ); ngx.print(';\
-  var increment = 100/max_val;\
-  var oldlog = "";\
-  var upgrfw_refreshTimeOut = 2500;\
-  var upgrfw_waitDelay = 100;\
-  function wait_for_upgradegui() {\
-\
-	function waitForShutdown() {\
-	  $.ajax({ url: target, data: "action=upgradeguistatus"+"&auto_update=true", timeout: upgrfw_refreshTimeOut, cache: false, dataType: "json" })\
-	  .done(function(data, status, xhr) {\
-	if ((data.state+"..." != $("#update-text").text()) && (data.state != "Not started")) {\
-		$("#update-text").text(data.state+"...");\
-	}\
-	if (typeof data.log_msg !== "undefined" && oldlog != data.log_msg) {\
-	  $("#upgrade-log").append(data.log_msg+"<br>");\
-	  oldlog = data.log_msg;\
-	  $(".modal-body").animate({ scrollTop: $(document).height() }, 1000);\
-	  if (data.log_msg.match("ERROR:")) {\
-		$(".bar").css("width", "100%").css("background-color","#f44336");\
-		$(".modal-footer").show();\
-		$(".btn-close").show();\
-		$(".btn").on("click", function() {\
-			location.reload();\
-		});\
-		return false;\
-	  }\
-	}\
-	if (data.state == "Requested") {\
-	  $(".bar").css("width", "10%").css("background-color","#4caf50");\
-	  window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
-	} else if (data.state == "Downloading") {\
-	  $(".bar").css("width", "100%").css("background-color","#4caf50");\
-	  window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
-	} else if (data.state == "Clearing") {\
-	  $(".bar").css("width", "100%").css("background-color","#4caf50");\
-	  window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
-	} else if (data.state == "Extracting") {\
-	  var extract_bar_val = isNaN(data.extract_prog)?1:(data.extract_prog/12);\
-	  $("#extracted_file").removeClass("hide");\
-	  var old_text = $("#extracted_file").text();\
-	  if(old_text.replace(/\\+/g, "") == data.extract_prog){\
-		$("#extracted_file").text($("#extracted_file").text().replace(/[\\+]{10}/g, ""));\
-		$("#extracted_file").append("+");\
-	  } else {\
-		$("#extracted_file").text(data.extract_prog);\
-	  }\
-	  $(".bar").css("width", extract_bar_val+"%").css("background-color","").attr("aria-valuenow", extract_bar_val);\
-	  window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
-	} else if (data.state == "In Progress") {\
-	  $("#extracted_file").addClass("hide");\
-	  var bar_val = (increment*data.log_prog);\
-	  $(".bar").css("width", bar_val+"%").attr("aria-valuenow", bar_val);\
-	  window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
-	} else if (data.state == "Not started") {\
-	  window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
-	} else if (data.state == "Finished") {\
-		if(!$("#popUp").is(":visible")) {\
-			tch.showProgress(waitMsg);\
-		}\
-	  window.setTimeout(waitForShutdown, 500);\
-	}\
-	  })\
-	  .fail(function(data) {\
-		if(data.status==200 && data.responseText.includes("sign-me-in")){\
-			if(!$("#popUp").is(":visible"))\
-				tch.showProgress(waitMsg);\
-		  window.location.href = "/";\
-		} else {\
-		  window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
-		}\
-	})\
-	}\
-	window.setTimeout(waitForShutdown, upgrfw_waitDelay);\
-	return false;\
-  };\
-\
-  function inizialize_ui_for_update() {\
-	$("*").off("click");\
-	$("html").css("overflow","hidden");\
-	$(".modal-footer").hide();\
-	$(".btn-close").hide();\
-	$("#offline-upgrade-gui-div").addClass("hide");\
-	$(".RemoveOnUpgrade").each(function() {$(this).addClass("hide")});\
-	$("#upgrade-gui-bar").removeClass("hide");\
-	$("#upgrade-log").removeClass("hide");\
-	$(".bar").css("width", "2%").attr("aria-valuenow", 2);\
-	Object.keys(KoRequest).forEach(function(interval) {\
-		clearInterval(KoRequest[interval]);\
-	});\
-  };\
-\
   $("#btn-upgrade-gui").on("click", function() {\
-	inizialize_ui_for_update();\
-	modgui.postAction("system_upgrade_gui");\
-	wait_for_upgradegui();\
+	modgui.postAction("system_upgrade_gui",1);\
   });\
 \
   $(".import-gui").on("click", function() {\
@@ -831,8 +724,7 @@ ngx.print('\
 	  params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
 	  completeCallback: function(form, response) {\
 		if (response.success) {\
-		  inizialize_ui_for_update();\
-		  wait_for_upgradegui();\
+		  tch.openModal("/modals/command-log-read-modal.lp");\
 		} else {\
 		  importing_msg.addClass("hide");\
 		  $("#upgrade-gui-fail").removeClass("hide");\
