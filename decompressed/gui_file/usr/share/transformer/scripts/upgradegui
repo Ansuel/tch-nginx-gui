@@ -27,6 +27,7 @@
 LIGHT_RED='\033[1;31m'
 NC='\033[0m'
 
+print_logo() {
 echo -e "${LIGHT_RED}
 
  █████╗ ███╗   ██╗███████╗██╗   ██╗███████╗██╗     
@@ -38,6 +39,7 @@ echo -e "${LIGHT_RED}
 (Modified Gui UpgradeScript)               (Christo)
 ${NC}
 "
+}
 
 curl="/usr/bin/curl -k -s"
 bzcat=/usr/bin/bzcat
@@ -52,10 +54,8 @@ set_transformer() {
 #################################################
 
 logger_command() {
-  logger -s -t "Upgrade Script" "$1"
-  if [ -z "$2" ]; then
-    set_transformer "rpc.system.modgui.upgradegui.log" "$1"
-  fi
+  logger -t "Upgrade Script" "$1"
+  echo "Upgrade Script" "$1"
 }
 
 if [ "$1" ]; then
@@ -84,11 +84,8 @@ if [ "$1" ]; then
     uci commit modgui
   fi
 
-  if [ "$1" == "GuiRequest" ]; then
-    #upgradegui requested by gui button... Call reduced rootdevice
-    rootdevice_call="force"
-  fi
 else
+  print_logo
   # Enabling alert for the gui about the manual upgrade
   uci set modgui.gui.autoupgradeview=manual
 fi
@@ -246,7 +243,7 @@ else
   logger_command "Found file in /tmp dir... doing offline upgrade!"
 fi
 
-set_transformer "rpc.system.modgui.upgradegui.state" "Clearing"
+set_transformer "rpc.system.modgui.executeCommand.state" "Clearing"
 
 #NOT NEEDED ANYMORE
 #logger_command "Stopping nginx..."
@@ -277,7 +274,7 @@ for dir in /www/*; do
   fi
 done
 
-set_transformer "rpc.system.modgui.upgradegui.state" "Extracting"
+set_transformer "rpc.system.modgui.executeCommand.state" "Extracting"
 
 logger_command "Extracting file..."
 # Extract new GUI to /
@@ -286,7 +283,7 @@ bzcat "$WORKING_DIR/$FILE_NAME" |
   while read -r line; do
     nfile_extracted=$((nfile_extracted + 1))
     if [ $(($nfile_extracted % 100)) -eq 0 ]; then
-      set_transformer "rpc.system.modgui.upgradegui.extract_prog" $nfile_extracted
+      logger_command "Extracted $nfile_extracted files"
     fi
   done
 
@@ -325,6 +322,7 @@ fi
 
 logger_command "Running rootdevice script"
 # Run init.d script
+set_transformer "rpc.system.modgui.executeCommand.state" "In Progress"
 /etc/init.d/rootdevice "$rootdevice_call"
 
 if [ -f "$WORKING_DIR/$FILE_NAME" ]; then
