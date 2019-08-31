@@ -4464,7 +4464,7 @@ msgid "Binary"
 msgstr "Binario"
 
 msgid "Diagnostics Ping & Traceroute"
-msgstr "Diagonstica ping e traceroute"
+msgstr "Diagnostica ping e traceroute"
 
 msgid "Algorithm:"
 msgstr "Algoritmo:"
@@ -4745,16 +4745,16 @@ msgid "Force HTTPS to access the GUI"
 msgstr "Forza HTTPS per accedere alla GUI"
 
 msgid "Reset CWMP"
-msgstr ""
+msgstr "Ripristina CWMP"
 
 msgid "Are you sure you want to reset CWMP db of this modem? </br><strong> This will force the first-time boot provisioning with ACS server that can fail on an already provisioned modem.</strong>"
-msgstr ""
+msgstr "Sei sicuro di voler ripristinare il database CWMP di questo modem?</br><strong>Questo forzerà al primo boot una richiesta di provisioning al server ACS che potrebbe fallire se il modem è già predisposto.</br><strong> "
 
 msgid "Force CWMP provisioning"
-msgstr ""
+msgstr "Forza provisioning CWMP"
 
 msgid "Command Log Reader"
-msgstr ""
+msgstr "Lettore registro comandi"
 
 msgid "Executing"
-msgstr ""
+msgstr "Esecuzione"
