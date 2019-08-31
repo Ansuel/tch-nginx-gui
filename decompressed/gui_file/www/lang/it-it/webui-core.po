@@ -4748,13 +4748,10 @@ msgid "Reset CWMP"
 msgstr "Ripristina CWMP"
 
 msgid "Are you sure you want to reset CWMP db of this modem? </br><strong> This will force the first-time boot provisioning with ACS server that can fail on an already provisioned modem.</strong>"
-msgstr "Sei sicuro di voler ripristinare il database CWMP di questo modem?</br><strong>Questo forzerà al primo boot una richiesta di provisioning al server ACS che potrebbe fallire se il modem è già predisposto.</br><strong> "
+msgstr "Sei sicuro di voler ripristinare il database CWMP di questo modem?</br><strong>Questo forzerà una richiesta di provisioning come primo avvio al server ACS che potrebbe fallire se il modem è già predisposto.</br><strong> "
 
 msgid "Force CWMP provisioning"
 msgstr "Forza provisioning CWMP"
-
-msgid "Command Log Reader"
-msgstr "Lettore registro comandi"
 
 msgid "Executing"
 msgstr "Esecuzione"
