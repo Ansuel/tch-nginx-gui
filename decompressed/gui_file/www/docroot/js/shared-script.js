@@ -4,7 +4,11 @@ var connectionissue = 0;
 var modgui = modgui || {};
 !function (module) {
 
-	function postAction(action,logModal) {
+	function standardCloseAction() {
+		tch.showProgress(waitMsg);
+		window.location.reload(true);
+	}
+	function postAction(action,logModal, onClose=standardCloseAction) {
 		var target = $(".modal form").attr("action");
 		$.post(
 			target, {
@@ -14,7 +18,17 @@ var modgui = modgui || {};
 			null,
 			"json"
 		);
-		logModal && tch.openModal("/modals/command-log-read-modal.lp");
+		if(logModal){
+			clearKoInterval();
+			$(window).on('shown.bs.modal', function() {
+				$(".modal-backdrop").unbind();
+				$("#close-config,.modal-action-close").unbind( "click" );
+				$("#close-config,.modal-action-close").on("click", function() {
+					onClose();
+				});
+			});
+			tch.openModal("/modals/command-log-read-modal.lp");
+		}
 		return false;
 	}
 

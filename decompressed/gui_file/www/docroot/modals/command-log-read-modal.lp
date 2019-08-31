@@ -13,24 +13,24 @@ ngx.print('\
 <div class="modal-body update">\
   <form class="form-horizontal" id="commandlogmodal" method="post" action="/modals/command-log-read-modal.lp">\
 	')
-	
-	  local html = {}
-	
-	  html[#html + 1] = '<fieldset class="modal-body hide" id="upgrade-gui-bar" style="min-height: unset;">'
-	  html[#html + 1] = '<div class="alert alert-info">'
-	  html[#html + 1] = '<div><span id="update-text">'..T"Update in progress..."..'</span><span id="extracted_file" class="hide">0</span></div>'
-	  html[#html + 1] = '  <div id="upgrade-gui-bar" class="progress progress-striped active">'
-	  html[#html + 1] = '	<div class="bar bar-warning" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" >'
-	  html[#html + 1] = '</div></div></div>'
-	  html[#html + 1] = '</fieldset>'
-	  html[#html + 1] = '<fieldset>'
-	  html[#html + 1] = '<div style="white-space: pre-wrap" class="fake_console" data-bind="log_text: log">'
-	  html[#html + 1] = '</div>'
-	  html[#html + 1] = '</fieldset>'
-	  
-	  ngx.print(html)
-	  
-	ngx.print('\
+
+local html = {}
+
+html[#html + 1] = '<fieldset class="modal-body hide" id="upgrade-gui-bar" style="min-height: unset;">'
+html[#html + 1] = '<div class="alert alert-info">'
+html[#html + 1] = '<div><span id="update-text">'..T"Update in progress..."..'</span><span id="extracted_file" class="hide">0</span></div>'
+html[#html + 1] = '  <div id="upgrade-gui-bar" class="progress progress-striped active">'
+html[#html + 1] = '	<div class="bar bar-warning" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" >'
+html[#html + 1] = '</div></div></div>'
+html[#html + 1] = '</fieldset>'
+html[#html + 1] = '<fieldset>'
+html[#html + 1] = '<div style="white-space: pre-wrap" class="fake_console" data-bind="log_text: log">'
+html[#html + 1] = '</div>'
+html[#html + 1] = '</fieldset>'
+
+ngx.print(html)
+
+ngx.print('\
   </form>\
 </div>\
   <script>\
@@ -51,14 +51,12 @@ ngx.print('\
 				}\
 			})\
 			.fail(function(data) {\
-				connectionissue = 1;\
 				if(data.status==200 && data.responseText.includes("sign-me-in")){\
-					if(!$("#popUp").is(":visible"))\
-						tch.showProgress(loginMsg);\
-					window.location.href = "/";\
+					$(".modal-footer").show();\
+					$(".modal-footer,.modal-action-close").show();\
+					clearInterval(KoRequest.CommandLogReadInterval.interval);\
 				}\
-				if(!$("#popUp").is(":visible"))\
-					tch.showProgress(connectionLost + " " + data.statusText);\
+				$("#show_progress").append(\'<span style="color: red;">.</span>\');\
 			});\
 	}\
 \
