@@ -4403,7 +4403,7 @@ msgstr "UDP Payload Länge:"
 msgid "Send"
 msgstr "Sende"
 
-msgid "Speed Diagonostics Result History"
+msgid "Speed Diagnostics Result History"
 msgstr "Geschwindigkeitsdiagnose Ergebnishistorie"
 
 msgid "Max Steps"
@@ -4751,9 +4751,6 @@ msgid "Are you sure you want to reset CWMP db of this modem? </br><strong> This 
 msgstr ""
 
 msgid "Force CWMP provisioning"
-msgstr ""
-
-msgid "Command Log Reader"
 msgstr ""
 
 msgid "Executing"

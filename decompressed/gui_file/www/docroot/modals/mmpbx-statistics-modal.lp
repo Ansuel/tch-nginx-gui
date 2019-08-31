@@ -140,7 +140,7 @@ ngx.print('\
             </center>\
         </fiedset>\
         <fieldset>\
-            <legend>'); ngx.print( T"Ongoing Statistics" ) ngx.print('></legend>\
+            <legend>'); ngx.print( T"Ongoing Statistics" ) ngx.print('</legend>\
             '); ngx.print(ui_helper.createTable(ongoing_statistics_columns, ongoing_statistics_data, ongoing_statistics_options)); ngx.print('\
         </fieldset>\
    </form>\

@@ -4403,7 +4403,7 @@ msgstr "Lunghezza payload UDP:"
 msgid "Send"
 msgstr "Invia"
 
-msgid "Speed Diagonostics Result History"
+msgid "Speed Diagnostics Result History"
 msgstr "Cronologia risultati diagnostica velocità"
 
 msgid "Max Steps"

@@ -179,7 +179,7 @@ local attrSpeedSelect = {select = { ["data-for"] = "Speed"}}
       else
         html[#html+1] = "<div class='controls'><div id='send-config_Speed' class='btn' data-name='action' data-value='SpeedStop'>Stop Speed Diagnostics</div></div>"
       end
-      html[#html+1] = "<fieldset><legend>" .. T"Speed Diagonostics Result History" .. "</legend>"
+      html[#html+1] = "<fieldset><legend>" .. T"Speed Diagnostics Result History" .. "</legend>"
       html[#html+1] = ui_helper.createTable(table_columms, column_data, speed_options)
       html[#html+1] = "</fieldset>"
       ngx.print(html)
