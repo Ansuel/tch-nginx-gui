@@ -227,7 +227,7 @@ local SYSTEM_MODGUI_SCRIPTREQUEST_ = {
         access = "readWrite",
         type = "string",
         enumeration = {
-          "Not Requested",
+          "Idle",
 		  "Clearing",
 		  "Extracting",
 		  "Downloading",
@@ -248,7 +248,7 @@ SYSTEM_MODGUI_SCRIPTREQUEST_.get = {
 	if ( executeCommand.resetOnNextRequest == 1 ) then
 	  executeCommand = {}
 	end
-	return result or "Not Requested"
+	return result or "Idle"
   end,
 }
 

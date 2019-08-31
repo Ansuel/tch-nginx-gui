@@ -1753,9 +1753,6 @@ msgstr "Nessuno"
 msgid "Not Connected"
 msgstr "Non connesso"
 
-msgid "Not Requested"
-msgstr "Non richiesto"
-
 msgid "Not Set"
 msgstr "Non impostato"
 

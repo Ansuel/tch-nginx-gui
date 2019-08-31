@@ -1753,9 +1753,6 @@ msgstr "Keine ausgewählt"
 msgid "Not Connected"
 msgstr "Nicht verbunden"
 
-msgid "Not Requested"
-msgstr "Nicht verlangt"
-
 msgid "Not Set"
 msgstr "Nicht gesetzt"
 

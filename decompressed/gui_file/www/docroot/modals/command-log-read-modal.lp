@@ -46,16 +46,19 @@ ngx.print('\
 				$("#show_progress").append(".");\
 				if(data.state == "Complete"){\
 					clearInterval(KoRequest.CommandLogReadInterval.interval);\
+					$("#show_progress").text("");\
 					$(".modal-footer").show();\
 					$(".modal-footer,.modal-action-close").show();\
 				}\
 			})\
 			.fail(function(data) {\
 				if(data.status==200 && data.responseText.includes("sign-me-in")){\
+				    $("#show_progress").text("");\
 					$(".modal-footer").show();\
 					$(".modal-footer,.modal-action-close").show();\
 					clearInterval(KoRequest.CommandLogReadInterval.interval);\
 				}\
+				$("#show_progress").text($("#show_progress").text().replace(/[\\.]{10}/g, ""));\
 				$("#show_progress").append(\'<span style="color: red;">.</span>\');\
 			});\
 	}\
