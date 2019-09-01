@@ -138,7 +138,7 @@ fi
 
 if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload is now present
 
-  set_transformer "rpc.system.modgui.upgradegui.state" "Downloading"
+  set_transformer "rpc.system.modgui.executeCommand.state" "Downloading"
 
   logger_command "Downloading GUI file..."
   # Enter /tmp folder

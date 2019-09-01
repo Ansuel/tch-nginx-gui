@@ -100,30 +100,6 @@ local function upgradeguifile()
 
 end
 
-local function upgradeguistatus()
-	local upgradegui_path = "rpc.system.modgui.upgradegui."
-
-	local state = proxy.get(upgradegui_path.."state")[1].value
-
-	ngx.header.content_type = "application/json"
-	if state == "In Progress" then
-		local log = proxy.get(upgradegui_path.."log")[1].value
-		local log_prog = proxy.get(upgradegui_path.."log_prog")[1].value
-		ngx.print(format('{ "state":"%s","log_msg":"%s","log_prog":"%s" }',state,log,log_prog))
-	elseif state == "Extracting" then
-		local log = proxy.get(upgradegui_path.."log")[1].value
-		local extract_prog = proxy.get(upgradegui_path.."extract_prog")[1].value
-		ngx.print(format('{ "state":"%s","log_msg":"%s","extract_prog":"%s" }',state,log,extract_prog))
-	elseif state == "Downloading" then
-		local log = proxy.get(upgradegui_path.."log")[1].value
-		ngx.print(format('{ "state":"%s","log_msg":"%s" }',state,log))
-	else
-		ngx.print(format('{ "state":"%s" }',state))
-	end
-
-	ngx.exit(ngx.HTTP_OK)
-end
-
 local function getSupportedModel()
 	local friendly_name = proxy.get("uci.env.var.prod_friendly_name")[1].value
 
@@ -161,8 +137,7 @@ local function installspecificapp()
 end
 
 local function scriptRequestStatus()
-	local upgradegui_path = "rpc.system.modgui.scriptRequest."
-	local state = proxy.get(upgradegui_path.."state")[1].value
+	local state = proxy.get("rpc.system.modgui.executeCommand.state")[1].value
 	local new_ver = proxy.get("uci.modgui.gui.new_ver")
 
 	ngx.header.content_type = "application/json"
@@ -235,7 +210,6 @@ local content = {
 	gui_version = "uci.modgui.gui.gui_version",
 	outdated_ver = "uci.modgui.gui.outdated_ver",
 	new_ver = "uci.modgui.gui.new_ver",
-	upgradegui_logstep = "rpc.system.modgui.upgradegui.log_step",
 	specific_app = "uci.modgui.app.specific_app",
 	telstra_gui = "uci.modgui.app.telstra_webui",
 }

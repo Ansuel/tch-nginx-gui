@@ -4,8 +4,6 @@ kernel_ver="$(cat /proc/version | awk '{print $3}')"
 
 if [ -z "${kernel_ver##3.4*}" ]; then
 
-  opkg install /tmp/3.4_ipk/*
-
   MD5_CHECK_DIR=/tmp/md5check
 
   [ ! -d $MD5_CHECK_DIR ] && mkdir $MD5_CHECK_DIR
@@ -36,6 +34,8 @@ if [ -z "${kernel_ver##3.4*}" ]; then
     cp $file $orig_file
     rm $file
     RESTART_SERVICE=1
+
+    opkg install /tmp/3.4_ipk/*
 
   done
 
@@ -69,5 +69,3 @@ fi
 if [ -f /bin/busybox_telnet ] && [ ! -f /usr/sbin/telnetd ]; then
   ln -s /bin/busybox_telnet /usr/sbin/telnetd
 fi
-
-rm -r /tmp/3.4_ipk /tmp/4.1_ipk
