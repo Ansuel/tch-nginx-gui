@@ -69,7 +69,7 @@ end
             local modal_link=format('class="modal-link" data-toggle="modal" data-remote="%s" data-id="device-modal"',modalPath)
             ngx.print(
             '<i class="fas fa-forward" aria-hidden="true" href="#">&nbsp</i>' .. format( N('<strong id="iproutescard_noofipv4staticroutes" %1$s>%2$d IPv4 Static Route</strong>',
-                      '<strong id="iproutescard_noofipv4staticroutes" %1$s>%2$d IPv4 Static Routes</strong> ', ipv4_count),
+                      '<strong id="iproutescard_noofipv4staticroutes" %1$s>%2$d IPv4 Static Routes</strong>', ipv4_count),
                       modal_link, ipv4_count))
               ngx.print('\
             </span>\

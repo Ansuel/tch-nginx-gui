@@ -136,6 +136,11 @@ msgid_plural "<strong id = \"Wifi_Devices\" %1$s>%2$d WiFi devices</strong> conn
 msgstr[0] "<strong id = \"Wifi_Devices\" %1$s>%2$d WiFi Gerät</strong> verbunden"
 msgstr[1] "<strong id = \"Wifi_Devices\" %1$s>%2$d WiFi Geräte</strong> verbunden"
 
+msgid "<strong id=\"iproutescard_noofipv4staticroutes\" %1$s>%2$d IPv4 Static Route</strong>"
+msgid_plural "<strong id=\"iproutescard_noofipv4staticroutes\" %1$s>%2$d IPv4 Static Routes</strong>"
+msgstr[0] "<strong id = \"Wifi_Devices\" %1$s>%2$d Statischer IPv4-Routen</strong>"
+msgstr[1] "<strong id = \"Wifi_Devices\" %1$s>%2$d Statische IPv4-Routen</strong>"
+
 msgid "<strong>%d</strong> IPv4 rule(s) defined<br>"
 msgstr "<strong>%d</strong> IPv4 Regel(n) definiert<br>"
 
@@ -1290,9 +1295,6 @@ msgstr "IPv4 Port-Weiterleitungstabelle"
 
 msgid "IPv4 Routes"
 msgstr "IPv4 Routen"
-
-msgid "IPv4 Static Routes"
-msgstr "Statische IPv4-Routen"
 
 msgid "IPv6 Assigned"
 msgstr "IPv6 zugewiesen"

@@ -136,6 +136,11 @@ msgid_plural "<strong id = \"Wifi_Devices\" %1$s>%2$d WiFi devices</strong> conn
 msgstr[0] "<strong id = \"Wifi_Devices\" %1$s>%2$d dispositivo Wi-Fi connesso</strong>"
 msgstr[1] "<strong id = \"Wifi_Devices\" %1$s>%2$d dispositivi Wi-Fi connessi</strong>"
 
+msgid "<strong id=\"iproutescard_noofipv4staticroutes\" %1$s>%2$d IPv4 Static Route</strong>"
+msgid_plural "<strong id=\"iproutescard_noofipv4staticroutes\" %1$s>%2$d IPv4 Static Routes</strong>"
+msgstr[0] "<strong id = \"Wifi_Devices\" %1$s>%2$d Instradamento statico IPv4</strong>"
+msgstr[1] "<strong id = \"Wifi_Devices\" %1$s>%2$d Instradamenti statici IPv4</strong>"
+
 msgid "<strong>%d</strong> IPv4 rule(s) defined<br>"
 msgstr "<strong>%d regole IPv4</strong>"
 
@@ -1290,9 +1295,6 @@ msgstr "Tabella mappatura porte IPv4"
 
 msgid "IPv4 Routes"
 msgstr "Instradamenti IPv4"
-
-msgid "IPv4 Static Routes"
-msgstr "Instradamenti statici IPv4"
 
 msgid "IPv6 Assigned"
 msgstr "IPv6 assegnato"
