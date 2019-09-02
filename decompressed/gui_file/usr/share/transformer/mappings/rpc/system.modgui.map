@@ -231,6 +231,7 @@ local SYSTEM_MODGUI_SCRIPTREQUEST_ = {
 		  "Clearing",
 		  "Extracting",
 		  "Downloading",
+		  "Checking",
           "Requested",
 		  "In Progress",
           "Complete",
@@ -260,6 +261,7 @@ SYSTEM_MODGUI_SCRIPTREQUEST_.set = {
 	elseif paramValue == "Clearing" or
 	   paramValue == "Extracting" or
 	   paramValue == "Downloading" or
+	   paramValue == "Checking" or
 	   paramValue == "In Progress" then
 	   executeCommand.state = paramValue
 	elseif ( paramValue == "Complete" ) then
