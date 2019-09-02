@@ -7,7 +7,18 @@ local data = {}
 local upgradegui_path = "rpc.system.modgui.executeCommand."
 data["state"] = proxy.get(upgradegui_path.."state")[1].value
 
-local action = {}
+local action = { 
+	Checking = function()
+		local data = {}
+		local new_ver = proxy.get("uci.modgui.gui.new_ver")
+		
+		if new_ver and not ( new_ver[1].value == "" ) then
+			data["new_version_text"] = new_ver[1].value
+		end
+		
+		return data
+	end,
+}
 
 if action[string.untaint(data.state)] then 
 	for key, val in pairs(action[string.untaint(data.state)]()) do

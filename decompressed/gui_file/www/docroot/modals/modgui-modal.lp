@@ -134,22 +134,7 @@ local function installspecificapp()
 
 	ngx.print('{ "success":"true" }')
 	ngx.exit(ngx.HTTP_OK)
-end
-
-local function scriptRequestStatus()
-	local state = proxy.get("rpc.system.modgui.executeCommand.state")[1].value
-	local new_ver = proxy.get("uci.modgui.gui.new_ver")
-
-	ngx.header.content_type = "application/json"
-
-	if new_ver and not ( new_ver[1].value == "" ) then
-		ngx.print(format('{ "state":"%s","new_version_text":"%s" }',state,new_ver[1].value))
-	else
-		ngx.print(format('{ "state":"%s" }',state))
-	end
-
-	ngx.exit(ngx.HTTP_OK)
-end
+ends
 
 local function sendcmd(path, value)
 	proxy.set(path, value)
@@ -198,11 +183,6 @@ if ngx.req.get_method() == "POST" then
 	if proxy.get("uci.web.sessionmgr.@default.force_https")[1].value ~= ngx.req.get_post_args().gui_forcehttps then
 		local mngr = require("web.sessioncontrol").loadmgr("default")
 		mngr.force_https = ngx.req.get_post_args().gui_forcehttps
-	end
-elseif ngx.req.get_method() == "GET" then
-	local action = ngx.req.get_uri_args().action
-	if action == "scriptRequestStatus" then
-		return scriptRequestStatus()
 	end
 end
 
