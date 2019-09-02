@@ -134,7 +134,7 @@ local function installspecificapp()
 
 	ngx.print('{ "success":"true" }')
 	ngx.exit(ngx.HTTP_OK)
-ends
+end
 
 local function sendcmd(path, value)
 	proxy.set(path, value)
@@ -567,17 +567,55 @@ ngx.print('\
 	return false;\
   };\
 \
-  $("#btn-reset-gui").on("click", function() {\
-	var heading = "');  ngx.print(T'Restore GUI'); ngx.print('";\
-	var processMsg = "');  ngx.print(T'Restoring...'); ngx.print('";\
-	confirmationDialogue(\'');  ngx.print(T"Do you want to continue?"); ngx.print('\',heading);\
+  function genericButtonFunction(headingText, processMsgText, ConfirmationDialogueText, resetIDName, btnID, callFunctionName, customCallBack) {\
+	var heading = headingText;\
+	var processMsg = processMsgText;\
+	confirmationDialogue(ConfirmationDialogueText,heading);\
 	var PopUpHeaderText = "."+$(".popUp>.header>.header-title>p").text().split(" ")[0];\
 	$(document).on("click", PopUpHeaderText, function() {\
 		   tch.removeProgress();\
 		   tch.showProgress(processMsg);\
-		   return resetreboot($("#resetting-msg"), $("#btn-reset-gui"), "system_reset_gui" );\
+		   return resetreboot($(resetIDName), $(btnID), callFunctionName, customCallBack );\
 	});\
-  });;\
+  };\
+\
+  $("#btn-reset-gui").on("click", function() { return genericButtonFunction(\
+		"');  ngx.print(T'Restore GUI'); ngx.print('",\
+		"');  ngx.print(T'Restoring...'); ngx.print('",\
+		"');  ngx.print(T'Do you want to continue?'); ngx.print('",\
+		"#resetting-msg",\
+		"#btn-reset-gui",\
+		"system_reset_gui"\
+	)}\
+  );\
+  $("#btn-remove-root").on("click", function() { return genericButtonFunction(\
+		"');  ngx.print(T'Remove root'); ngx.print('",\
+		"');  ngx.print(T'Resetting...'); ngx.print('",\
+		"');  ngx.print(T"Are you sure you want to remove root from this modem? </br><strong> This could be permanent, so it\\'s not recommended.</strong>"); ngx.print('",\
+		"#unrooting-msg",\
+		"#btn-remove-root",\
+		"system_remove_root"\
+	)}\
+  );\
+  $("#btn-remove-config").on("click", function() { return genericButtonFunction(\
+		"');  ngx.print(T'Reset config'); ngx.print('",\
+		"');  ngx.print(T'Resetting...'); ngx.print('",\
+		"');  ngx.print(T"Are you sure you want to reset config of this modem? </br><strong> This is permanent, save any config before this action.</strong>"); ngx.print('",\
+		"#config-resetting-msg",\
+		"#btn-remove-config",\
+		"system_reset_config"\
+	)}\
+  );\
+  $("#btn-reset-cwmp").on("click", function() { return genericButtonFunction(\
+		"');  ngx.print(T'Reset CWMP'); ngx.print('",\
+		"');  ngx.print(T'Resetting...'); ngx.print('",\
+		"');  ngx.print(T"Are you sure you want to reset CWMP db of this modem? </br><strong> This will force the first-time boot provisioning with ACS server that can fail on an already provisioned modem.</strong>"); ngx.print('",\
+		"#btn-reset-cwmp",\
+		"#btn-reset-cwmp",\
+		"system_reset_cwmp",\
+		tch.removeProgress\
+	)}\
+  );\
 \
   var schedulReload = false;\
 \
@@ -605,40 +643,6 @@ ngx.print('\
 	if ( schedulReload ) {\
 		schedulReload = true;\setTimeout(function() {window.location.reload(!0);},1000);\
 	}\
-  });\
-\
-  $("#btn-remove-root").on("click", function() {\
-	var heading = "');  ngx.print(T'Remove root'); ngx.print('";\
-	var processMsg = "');  ngx.print(T'Resetting...'); ngx.print('";\
-	confirmationDialogue(\'');  ngx.print(T"Are you sure you want to remove root from this modem? </br><strong> This could be permanent, so it\\'s not recommended.</strong>"); ngx.print('\',heading);\
-	var PopUpHeaderText = "."+$(".popUp>.header>.header-title>p").text().split(" ")[0];\
-	$(document).on("click", PopUpHeaderText, function() {\
-		 tch.removeProgress();\
-		 tch.showProgress(processMsg);\
-		 return resetreboot($("#unrooting-msg"), $("#btn-remove-root"), "system_remove_root" );\
-	});\
-  });\
-  $("#btn-remove-config").on("click", function() {\
-	var heading = "');  ngx.print(T'Reset config'); ngx.print('";\
-	var processMsg = "');  ngx.print(T'Resetting...'); ngx.print('";\
-	confirmationDialogue(\'');  ngx.print(T"Are you sure you want to reset config of this modem? </br><strong> This is permanent, save any config before this action.</strong>"); ngx.print('\',heading);\
-	var PopUpHeaderText = "."+$(".popUp>.header>.header-title>p").text().split(" ")[0];\
-	$(document).on("click", PopUpHeaderText, function() {\
-		 tch.removeProgress();\
-		 tch.showProgress(processMsg);\
-		 return resetreboot($("#config-resetting-msg"), $("#btn-remove-config"), "system_reset_config" );\
-	});\
-  });\
-  $("#btn-reset-cwmp").on("click", function() {\
-	var heading = "');  ngx.print(T'Reset CWMP'); ngx.print('";\
-	var processMsg = "');  ngx.print(T'Resetting...'); ngx.print('";\
-	confirmationDialogue(\'');  ngx.print(T"Are you sure you want to reset CWMP db of this modem? </br><strong> This will force the first-time boot provisioning with ACS server that can fail on an already provisioned modem.</strong>"); ngx.print('\',heading);\
-	var PopUpHeaderText = "."+$(".popUp>.header>.header-title>p").text().split(" ")[0];\
-	$(document).on("click", PopUpHeaderText, function() {\
-		 tch.removeProgress();\
-		 tch.showProgress(processMsg);\
-		 return resetreboot($("#btn-reset-cwmp"), $("#btn-reset-cwmp"), "system_reset_cwmp", tch.removeProgress );\
-	});\
   });\
 \
   $(document).on("click", "#cancel", function() {\
