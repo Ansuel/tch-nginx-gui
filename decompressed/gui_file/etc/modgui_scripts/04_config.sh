@@ -367,10 +367,6 @@ cumulative_check_gui() {
     logger_command "Update branch detected: DEV"
   fi
 
-  get_major_ver() {
-    echo "$1" | sed -E 's|\.[0-9]+\.[0-9]+||'
-  }
-
   #Remove deprecated .gz GUI file if low space device
   overlay_space=$(df /overlay | sed -n 2p | awk {'{print $2}'})
   if [ "$overlay_space" -lt 33000 ]; then
@@ -438,7 +434,8 @@ cumulative_check_gui() {
   saved_gui_version="$(uci -q get modgui.gui.gui_version)"
 
   #This is to fix a bug in older gui when stable gui is wrongly saved as dev and never replaced.
-  if [ $(get_major_ver "$saved_gui_version") -lt 9 ]; then
+  major_ver="$(echo "$saved_gui_version" | cut -d. -f 0)"
+  if [ "$major_ver" -lt 9 ]; then
     if [ -f /root/GUI.tar.bz2 ] && [ -f /root/GUI_dev.tar.bz2 ]; then
       rm /root/GUI.tar.bz2
       mv /root/GUI_dev.tar.bz2 /root/GUI.tar.bz2

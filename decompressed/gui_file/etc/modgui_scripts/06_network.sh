@@ -107,6 +107,11 @@ setup_network() {
 		uci del network.wan
 		uci rename network.ppp=wan
 	fi
+
+	#Set missing wan path (Xtream 35B Fastweb)
+	if [ ! "$(uci -q get network.wan.password)" ]; then
+		uci set network.wan.password='password'
+	fi
 }
 
 add_TIM_ppp_specific() {
