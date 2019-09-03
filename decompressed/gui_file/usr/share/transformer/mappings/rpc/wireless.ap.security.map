@@ -16,11 +16,11 @@ local wireless_ap_security_ = {
         },
         wep_key = {
             access = "readWrite",
-            type = "password",
+            type = "string",
         },
         wpa_psk_passphrase = {
             access = "readWrite",
-            type = "password",
+            type = "string",
         },
         supported_modes = {
             access = "readOnly",
