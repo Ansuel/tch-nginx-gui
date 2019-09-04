@@ -28,7 +28,7 @@ LIGHT_RED='\033[1;31m'
 NC='\033[0m'
 
 print_logo() {
-echo -e "${LIGHT_RED}
+  echo -e "${LIGHT_RED}
 
  █████╗ ███╗   ██╗███████╗██╗   ██╗███████╗██╗     
 ██╔══██╗████╗  ██║██╔════╝██║   ██║██╔════╝██║     
@@ -217,16 +217,14 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
       logger_command "Downloaded stable GUI with hash: $stable_md5"
 
       stable_version="$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $stable_md5 | awk '{print $2}')"
-
-      dev_version="$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $downloaded_md5 | awk '{print $2}')"
-
       stable_version_norm="$(normalize $stable_version)"
 
-      logger_command "Stable version found: $stable_version_norm"
+      logger_command "Downloaded Stable version: $stable_version_norm"
 
+      dev_version="$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $downloaded_md5 | awk '{print $2}')"
       dev_version_norm="$(normalize $dev_version)"
 
-      logger_command "Dev version found: $dev_version_norm"
+      logger_command "Downloaded $update_branch version: $dev_version_norm"
 
       if [ $(enum $stable_version_norm) -gt $(enum $dev_version_norm) ]; then
         logger_command "Found newer version in stable branch, using it..."
@@ -234,17 +232,17 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
         FILE_NAME="$STABLE_FILE_NAME"
         FORCE_SAVE_GUI=1
       else
-	  
-		if [ -f $PERMANENT_STORE_DIR/$FILE_NAME ]; then
-			saved_stable_md5=$(md5sum $PERMANENT_STORE_DIR/$FILE_NAME | awk '{print $1}')
-			
-			if [ $saved_stable_md5 != $stable_md5 ]; then
-				logger_command "Detected old version in Stable Gui. Updating..."
-				rm "$PERMANENT_STORE_DIR/$FILE_NAME"
-				cp $WORKING_DIR/$STABLE_FILE_NAME $PERMANENT_STORE_DIR/
-			fi
-		fi
-		
+
+        if [ -f $PERMANENT_STORE_DIR/$FILE_NAME ]; then
+          saved_stable_md5=$(md5sum $PERMANENT_STORE_DIR/$FILE_NAME | awk '{print $1}')
+
+          if [ $saved_stable_md5 != $stable_md5 ]; then
+            logger_command "Permanent package md5 is not same of latest Stable GUI. Replacing..."
+            rm "$PERMANENT_STORE_DIR/$FILE_NAME"
+            cp $WORKING_DIR/$STABLE_FILE_NAME $PERMANENT_STORE_DIR/
+          fi
+        fi
+
         rm "$WORKING_DIR/$STABLE_FILE_NAME"
       fi
     fi
