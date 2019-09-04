@@ -256,16 +256,18 @@ clean_cups_block_rule() {
 }
 
 cwmp_specific_TIM() {
-
 	cwmp_url="$(uci get cwmpd.cwmpd_config.acs_url)"
 	detected_acs="Undetected"
 	logger_command "TIM ISP detected, finding CWMP server..."
+	new_fw220=https://fwa.cdp.tim.it/cwmpdWeb/CPEMgt
 	new_platform=https://regman-mon.interbusiness.it:10800/acs/
 	new_platform_bck=https://regman-bck.interbusiness.it:10501/acs/
 	unified_platform=https://regman-tl.interbusiness.it:10700/acs/ 
 	mgmt_platform=https://regman-tl.interbusiness.it:10500/acs/
 	if [ "$(curl -s -k $new_platform --max-time 5 )" ]; then
 		detected_acs=$new_platform
+	elif [ "$(curl -s -k $new_fw220 --max-time 5 )" ]; then
+		detected_acs=$new_fw220
 	elif [ "$(curl -s -k $new_platform_bck --max-time 5 )" ]; then
 		detected_acs=$new_platform_bck
 	elif [ "$(curl -s -k $unified_platform --max-time 5 )" ]; then
@@ -273,11 +275,11 @@ cwmp_specific_TIM() {
 	elif [ "$(curl -s -k $mgmt_platform --max-time 5 )" ]; then
 		detected_acs=$mgmt_platform
 	fi
-	logger_command "CWMP Server detected: $(uci get cwmpd.cwmpd_config.acs_url)"
+	logger_command "CWMP Server detected: $detected_acs"
 	
 	[ -z "$cwmp_url" ] && cwmp_url="None"
 	
-	if [ "$cwmp_url" != "None" ] && [ "$cwmp_url" != "$detected_acs" ]; then
+	if [ "$detected_acs" != "Undetected" ] && [ "$cwmp_url" != "$detected_acs" ]; then
 		
 		#Make the device tink is first power on by removing cwmpd db
 		[ -f /etc/cwmpd.db ] && rm /etc/cwmpd.db
