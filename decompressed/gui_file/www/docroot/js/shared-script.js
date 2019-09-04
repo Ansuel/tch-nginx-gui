@@ -98,34 +98,35 @@ var modgui = modgui || {};
 			e.stopPropagation();
 			postAction("checkver");
 			$(".check_update_spinner").addClass("fa-spin");
-			KoRequest.CheckVer = {
-				interval : setInterval(function () {
-					$.post("/ajax/commandlogread.lua" + "?auto_update=true", [tch.elementCSRFtoken()], function (data) {
-						if (data.state == "Complete") {
-							$(".check_update_spinner").removeClass("fa-spin");
-							clearInterval(KoRequest.CheckVer.interval);
-							KoRequest.CheckVer = null;
-						} else {
-							if (data.new_version_text) {
-								$(".gui_version_status_text").parent().fadeOut().fadeIn();
-								if (data.new_version_text == "Unknown") {
-									$(".gui_version_status").removeClass("yellow");
-									$(".gui_version_status").addClass("green");
-									$(".gui_version_status_text").text(gui_var.gui_updated);
-									$("#upgrade-alert").addClass("hide");
-								} else {
-									$(".gui_version_status").removeClass("green");
-									$(".gui_version_status").addClass("yellow");
-									$("#upgradebtn").removeClass("hide");
-									$(".gui_version_status_text").text(gui_var.gui_outdated);
-									$("#upgrade-alert").removeClass("hide");
-									$("#new-version-text").text(data.new_version_text);
+			if(!KoRequest.CheckVer)
+				KoRequest.CheckVer = {
+					interval : setInterval(function () {
+						$.post("/ajax/commandlogread.lua" + "?auto_update=true", [tch.elementCSRFtoken()], function (data) {
+							if (data.state == "Complete") {
+								$(".check_update_spinner").removeClass("fa-spin");
+								clearInterval(KoRequest.CheckVer.interval);
+								KoRequest.CheckVer = null;
+							} else {
+								if (data.new_version_text) {
+									$(".gui_version_status_text").parent().fadeOut().fadeIn();
+									if (data.new_version_text == "Unknown") {
+										$(".gui_version_status").removeClass("yellow");
+										$(".gui_version_status").addClass("green");
+										$(".gui_version_status_text").text(gui_var.gui_updated);
+										$("#upgrade-alert").addClass("hide");
+									} else {
+										$(".gui_version_status").removeClass("green");
+										$(".gui_version_status").addClass("yellow");
+										$("#upgradebtn").removeClass("hide");
+										$(".gui_version_status_text").text(gui_var.gui_outdated);
+										$("#upgrade-alert").removeClass("hide");
+										$("#new-version-text").text(data.new_version_text);
+									}
 								}
 							}
-						}	
-					}, "json")
-				}, "500")
-			}
+						}, "json")
+					}, "500")
+				}
 		})
 	};
 
