@@ -4754,3 +4754,9 @@ msgstr ""
 
 msgid "Executing"
 msgstr ""
+
+msgid "IPv4 address"
+msgstr ""
+
+msgid "IPv6 GUA"
+msgstr ""

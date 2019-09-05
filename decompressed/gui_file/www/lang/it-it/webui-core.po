@@ -4754,3 +4754,9 @@ msgstr "Forza provisioning CWMP"
 
 msgid "Executing"
 msgstr "Esecuzione"
+
+msgid "IPv4 address"
+msgstr ""
+
+msgid "IPv6 GUA"
+msgstr ""
