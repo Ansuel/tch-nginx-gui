@@ -105,9 +105,9 @@ local function getSupportedModel()
 
 	if friendly_name:match("DGA4130") or friendly_name:match("DGA4132") then
 		return "DGA"
-	elseif friendly_name:match("TG789") or friendly_name:match("TG799") then
+	elseif friendly_name:match("TG789") or friendly_name:match("TG799") and not friendly_name:match("Xtream") then
 		return "TG789"
-	elseif friendly_name:match("TG800") then
+	elseif friendly_name:match("TG800") or (friendly_name:match("TG789") and friendly_name:match("Xtream")) then
 		return "TG800"
 	end
 

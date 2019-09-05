@@ -18,17 +18,9 @@ local app_list = {
 	"amule",
 }
 
-local marketing_version = proxy.get("uci.version.version.@version[0].marketing_version")
-
 local prod_friendly_name = proxy.get("uci.env.var.prod_friendly_name")
 
 local specific_app = proxy.get("uci.modgui.app.specific_app")[1].value or "0"
-
-if marketing_version and marketing_version[1].value then
-	marketing_version = marketing_version[1].value:sub(1,4)
-else
-	marketing_version = nil
-end
 
 local function appapply(action)
 	proxy.set("rpc.system.modgui.scriptRequest.state","Requested")
@@ -69,7 +61,7 @@ local mapParams = {
 	local_ip_modem = "uci.network.interface.@lan.ipaddr",
 	telstra_webui = "uci.modgui.app.telstra_webui",
 }
---if prod_friendly_name and prod_friendly_name[1].value and tonumber(marketing_version) < 18 then
+if not (prod_friendly_name[1].value:match("TG789") and prod_friendly_name[1].value:match("Xtream")) then
 	if prod_friendly_name[1].value:match("DGA413") or
 			prod_friendly_name[1].value:match("TG7") then
 		mapParams.luci_webui = "uci.modgui.app.luci_webui"
@@ -81,11 +73,17 @@ local mapParams = {
 	mapParams.transmission_webui = "uci.modgui.app.transmission_webui"
 	if prod_friendly_name[1].value:match("DGA413") then
 		mapParams.blacklist_application = "uci.modgui.app.blacklist_app"
-		if tonumber(marketing_version) >= 17.3 then
+		local marketing_version = proxy.get("uci.version.version.@version[0].marketing_version")
+		if marketing_version and marketing_version[1].value then
+			marketing_version = marketing_version[1].value:sub(1,4)
+		else
+			marketing_version = nil
+		end
+		if marketing_version and marketing_version >= 17.3 then
 			mapParams.xupnp_application = "uci.modgui.app.xupnp_app"
 		end
 	end
---end
+end
 content_helper.getExactContent(mapParams)
 
 local StateParams = {}

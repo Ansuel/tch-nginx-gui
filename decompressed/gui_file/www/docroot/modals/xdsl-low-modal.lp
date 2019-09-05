@@ -167,7 +167,7 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H045") or content.dsl0_xdsl_Firmwa
     tinsert(driver_option, { "B2pvbH042s", 'B2pvbH042s (Archer_VR2800v V1 1.2.0_0.9.1)'})
 	tinsert(driver_option, { "A2pvbH042j2", 'A2pvbH042j2 (Asus DSL-AC88U)'})
     tinsert(driver_option, { "A2pvbH042n", 'A2pvbH042n (Netgear D7000)'})
-	tinsert(driver_option, { "A2pvbH042o", 'A2pvbH042o (TG799VAC Xtream Fastweb)'})
+	tinsert(driver_option, { "A2pvbH042o", 'A2pvbH042o (TG789vac Xtream 35B Fastweb)'})
 	tinsert(driver_option, { "A2pvbH042r", 'A2pvbH042r (AGTEF_1.0.3)'})
 	tinsert(driver_option, { "A2pvbH042u", 'A2pvbH042u (AGTEF_1.0.4)'})
 	
