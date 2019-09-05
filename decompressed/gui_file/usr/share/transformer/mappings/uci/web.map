@@ -73,8 +73,10 @@ local user_map = {
     "password_reminder",
     "language",
     "selectedMode",
+    "srp_salt",
+    "srp_verifier",
+    "legacy_salt"
   },
-  passwords = { "srp_salt", "srp_verifier", "legacy_salt" },
   lists = { "allowed_ip" }
 }
 uci.registerNamedMultiMap(user_map)

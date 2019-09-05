@@ -18,8 +18,6 @@ local mmpbxrvsipdev_device = {
     "clientname",
     "push_type",
     "push_token",
-  },
-  passwords = {
     "password",
     "defaultpassword",
   }

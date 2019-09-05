@@ -19,11 +19,8 @@ local cwmpd_config = {
               "ssl_hostnamecheck", "ssl_verifypeer", "backoff_minwait", "backoff_multiplier",
               "datamodel", "enforce_https", "connectionrequest_throttle_time", "connectionrequest_throttle_number",
               "last_periodic_inform", "connectionrequest_url", "parameter_key", "last_session_try", "session_retry_count",
-              "bootstrapped", "inform_trigger",
+              "bootstrapped", "inform_trigger", "acs_pass", "connectionrequest_password"
             },
-  passwords = {
-    "acs_pass", "connectionrequest_password"
-  },
   lists = {
     "notifications", "forcedactives", "forcedinforms"
   }

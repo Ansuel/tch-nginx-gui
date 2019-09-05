@@ -25,8 +25,7 @@ local sambauseraccess_userauth = {
   config =  config_samba,
   section = "userauth",
   type = "sambauseraccess",
-  options = { "wan_access", "authentication", "maxusers", "username1","username2","username3","username4" },
-  passwords = {"password1", "password2", "password3", "password4"}
+  options = { "wan_access", "authentication", "maxusers", "username1","username2","username3","username4","password1", "password2", "password3", "password4" }
 }
 mapper("uci_1to1").registerSimpleMap(sambauseraccess_userauth)
 
