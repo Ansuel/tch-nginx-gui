@@ -1,7 +1,9 @@
 --pretranslated: do not change this file
+ 
 
 -- Enable localization
 -- NG-88797 WAN statistics is not automatically getting updates as LAN statistics
+-- NG-92733 CLONE - Multicast statistics counter is not getting increased in /proc/net/dev_extstats for WAN Interfaces
 gettext.textdomain('webui-core')
 
 local proxy = require("datamodel")
@@ -15,10 +17,11 @@ local iconDown = " <i class=\"icon-download icon-large gray\"></i> "
 -- Process POST query
 local post_helper = require("web.post_helper")
 local session = ngx.ctx.session
+local role = session:getrole()
 
 local tech = false
-if session:getrole() == "engineer" then
-    tech = true
+if role == "engineer" or role == "ispuser" then
+  tech = true
 end
 
 local ppp_state_map = {
@@ -144,6 +147,7 @@ local mapParams = {
   uci_wan_username = "uci.network.interface.@wan.username",
   uci_wan_password = "uci.network.interface.@wan.password",
   uci_wan_masq = "uci.firewall.zone."..zonenum..".masq",
+  uci_wan_ipv6 = "uci.network.interface.@wan.ipv6",
   uci_wan_host_uniq = "uci.network.interface.@wan.host_uniq",
   uci_wan_mac = "uci.network.interface.@wan.macaddr",
   uci_wan_peerdns = "uci.network.interface.@wan.peerdns",
@@ -155,7 +159,7 @@ local mapPPPstats = {
   discardS = "sys.class.net.@pppoe-wan.statistics.tx_dropped",
   broadcastR = "sys.class.net.@pppoe-wan.statistics.rx_broadcast",
   broadcastS = "sys.class.net.@pppoe-wan.statistics.tx_broadcast",
-  multicastR = "sys.class.net.@pppoe-wan.statistics.multicast",
+  --multicastR = "sys.class.net.@pppoe-wan.statistics.multicast",
   multicastS = "sys.class.net.@pppoe-wan.statistics.txpckt",
   packetsR = "sys.class.net.@pppoe-wan.statistics.rx_packets",
   packetsS = "sys.class.net.@pppoe-wan.statistics.tx_packets",
@@ -290,7 +294,7 @@ local function IPv6andUsername(value, object, key)
 	end
 	return valid, msg
 end
------------------custo end TCOMITAGW-2157
+
 -- Validation allows empty values if wan access disabled but will stil check for validity if the parameter is set
 -- if wan is enabled then it checks for validaty anyway
 local mapValid = {
@@ -299,6 +303,7 @@ local mapValid = {
   uci_wan_password = gCV(isWanEnabled, gVP(vNES), gVP()),
   uci_wan_masq = validateNat,
   uci_wan_host_uniq = gCV(isWanEnabled, validateHostUniq),
+  uci_wan_ipv6 = IPv6andUsername,
   uci_wan_mac = gOV(post_helper.validateStringIsMAC),
   uci_wan_peerdns = vB,
 }
@@ -321,6 +326,7 @@ local content_rpc = {
   ipaddr = "rpc.network.interface.@wan.ipaddr",
   nexthop = "rpc.network.interface.@wan.nexthop",
   dns_wan = "rpc.network.interface.@wan.dnsservers",
+  ipv6_gua = "rpc.network.interface.@wan6.ipv6uniquelocaladdr",
   dns_loopback = "rpc.network.interface.@loopback.dnsservers", -- Added to include static dns servers configured on loopback interface (for TI custo)
 }
 
@@ -355,32 +361,26 @@ ajax_helper.handleAjaxQuery(content_rpc, function(c)
 	else
 		c.dns = dnsv4
 
-    end
-    local ipv6_enabled = proxy.get("uci.network.interface.@wan.ipv6")
-    if ipv6_enabled and ipv6_enabled[1].value == "1" then
-        c.dnsv6 = content_helper.getMergedList(c.dnsv6, dnsv6)
-    end
-    c.uptime = post_helper.secondsToTime(mapPPPstats.uptime)
-    c.discard = format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.discardS, iconDown, mapPPPstats.discardR)
-    c.broadcast = format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.broadcastS, iconDown, mapPPPstats.broadcastR)
-    c.multicast = format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.multicastS, iconDown, mapPPPstats.multicastR)
-    c.unicast = format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.unicastS, iconDown, mapPPPstats.unicastR)
-    c.packets = format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.packetsS, iconDown, mapPPPstats.packetsR)
-    c.error = format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.errorsS, iconDown, mapPPPstats.errorsR)
-    c.byte =  format("%s %s [B] %s %s [B]", iconUp, mapPPPstats.bytesS, iconDown, mapPPPstats.bytesR)
-    c.unknown = format("%s %s [Pkt]", iconDown, mapPPPstats.unknownR)
+	end
+	if proxy.get("uci.network.interface.@wan.ipv6")[1].value == "1" then
+	c.dnsv6 = content_helper.getMergedList(c.dnsv6, dnsv6)
+	end
+	c.discard = format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.discardS, iconDown, mapPPPstats.discardR)
+	c.broadcast = format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.broadcastS, iconDown, mapPPPstats.broadcastR)
+	--c.multicast = format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.multicastS, iconDown, mapPPPstats.multicastR)
+	c.unicast = format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.unicastS, iconDown, mapPPPstats.unicastR)
+	c.packets = format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.packetsS, iconDown, mapPPPstats.packetsR)
+	c.error = format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.errorsS, iconDown, mapPPPstats.errorsR)
+	c.byte =  format("%s %s [B] %s %s [B]", iconUp, mapPPPstats.bytesS, iconDown, mapPPPstats.bytesR)
+	c.unknown = format("%s %s [Pkt]", iconDown, mapPPPstats.unknownR)
 end)
 
 content_helper.getExactContent(content_rpc)
 
 local dnstab = split(content_rpc.dns_loopback, "[^%,]+")
-local dnsv4, dnsv6 = dns_filter(dnstab), dns_filter(dnstab)
+local dnsv4, dnsv6 = dns_filter(dnstab)
 content_rpc.dns = content_helper.getMergedList(content_rpc.dns_wan, dnsv4)
-
-local ipv6_enabled = proxy.get("uci.network.interface.@wan.ipv6")
-if ipv6_enabled and ipv6_enabled[1].value == "1" then
-    content_rpc.dnsv6 = content_helper.getMergedList(content_rpc.dnsv6, dnsv6)
-end
+content_rpc.dnsv6 = content_helper.getMergedList(content_rpc.dnsv6, dnsv6)
 
 local wan_atm_uci_path = format("uci.xtm.atmdevice.@%s.", content_rpc["wan_ppp_ll_intf"])
 local wan_ppp_over_atm = proxy.get(wan_atm_uci_path) ~= nil
@@ -450,12 +450,11 @@ end
   ngx.print('\
 \
 <fieldset>\
-');
+');  
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
   ngx.print('\
 <legend>');  ngx.print( T"PPP connection" ); ngx.print('</legend>\
-\
-');
+');  
     local html = {}
     -- Label that shows PPP status
 	ajax_attr_light.light.class = ppp_light_map[ppp_status]
@@ -465,22 +464,23 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	if not ( mapPPPstats["uptime"] == "" ) then
  	   html[#html + 1] = ui_helper.createLabel(T"Uptime", post_helper.secondsToTime(mapPPPstats["uptime"]),  ajax_attr)
 	end
-	-- Switch PPP on/off
-	html[#html + 1] = ui_helper.createSwitch(T"Enabled", "uci_wan_auto", content.uci_wan_auto)
-	html[#html + 1] = ui_helper.createSwitch(T"NAT", "uci_wan_masq", content.uci_wan_masq)
-	-- PPP username
-	local class_username = {
+    -- Switch PPP on/off
+    html[#html + 1] = ui_helper.createSwitch(T"Enabled", "uci_wan_auto", content.uci_wan_auto)
+    html[#html + 1] = ui_helper.createSwitch(T"NAT", "uci_wan_masq", content.uci_wan_masq)
+    html[#html + 1] = ui_helper.createSwitch(T"IPv6", "uci_wan_ipv6", content.uci_wan_ipv6)
+    -- PPP username
+    local class_username = {
       input = {
         maxlength= "128",
         class = "span6",
       }
-	}
-if tech then
+    }
+	if tech then
     html[#html + 1] = "<div class='control-group'><label class='control-label'>" .. T"Username" .. "</label><div class='controls'>"
     html[#html + 1] = ui_helper.createSimpleInputText("uci_wan_username", content["uci_wan_username"], class_username, helpmsg["uci_wan_username"])
 
     if content_uci["wan_domain"] ~= "" then
-        html[#html + 1] = " @ " .. content_uci["wan_domain"]
+      html[#html + 1] = " @ " .. content_uci["wan_domain"]
     end
     html[#html + 1] = "</div></div>"
 
@@ -490,12 +490,12 @@ if tech then
     html[#html + 1] = ui_helper.createInputText(T"Host Uniq Tag","uci_wan_host_uniq", content["uci_wan_host_uniq"], nil, helpmsg["uci_wan_host_uniq"])
     html[#html + 1] = ui_helper.createInputText(T"MAC Spoof (Wan MAC)","uci_wan_mac", content["uci_wan_mac"], nil, helpmsg["uci_wan_mac"])
 end
-ajax_attr.span.id = "ipaddr"
-html[#html+1] = ui_helper.createLabel(T"IP address", content_rpc["ipaddr"], ajax_attr)
-ajax_attr.span.id = "nexthop"
-html[#html+1] = ui_helper.createLabel(T"Gateway", content_rpc["nexthop"], ajax_attr)
-ajax_attr.span.id = "dns"
-html[#html+1] = ui_helper.createLabel(T"DNS servers", content_rpc["dns"], ajax_attr)
+	ajax_attr.span.id = "ipaddr"
+    html[#html+1] = ui_helper.createLabel(T"IPv4 address", content_rpc["ipaddr"], ajax_attr)
+	ajax_attr.span.id = "nexthop"
+    html[#html+1] = ui_helper.createLabel(T"Gateway", content_rpc["nexthop"], ajax_attr)
+	ajax_attr.span.id = "dns"
+    html[#html+1] = ui_helper.createLabel(T"DNS servers", content_rpc["dns"], ajax_attr)
 if content["uci_wan_peerdns"] == "" then
     content["uci_wan_peerdns"] = "1"
 end
@@ -503,23 +503,25 @@ html[#html+1] = ui_helper.createSwitch(T"Auto Discover DNS", "uci_wan_peerdns", 
 html[#html+1] = format('<label class="control-label">%s</label><div class="controls">', T"DNS servers")
 html[#html+1] = ui_helper.createTable(dns_columns, dns_data, dns_options, nil, dns_helpmsg)
 html[#html+1] = '</div>'
-if ipv6_enabled and ipv6_enabled[1].value == "1" then
-    if content_rpc["ip6addr"] and content_rpc["ip6addr"]:len() > 0 then
-        ajax_attr.span.id = "ip6addr"
+	if proxy.get("uci.network.interface.@wan.ipv6")[1].value == "1" then
+   --if content_rpc["ip6addr"] and content_rpc["ip6addr"]:len() > 0 then
+		ajax_attr.span.id = "ip6addr"
         html[#html+1] = ui_helper.createLabel(T"IPv6 Address", content_rpc["ip6addr"], ajax_attr)
-    end
-    if content_rpc["ip6prefix"] and content_rpc["ip6prefix"]:len() > 0 then
-        ajax_attr.span.id = "ip6prefix"
+    --end
+    --if content_rpc["ipv6_gua"] and content_rpc["ipv6_gua"]:len() > 0 then
+		ajax_attr.span.id = "ipv6_gua"
+        html[#html+1] = ui_helper.createLabel(T"IPv6 GUA", content_rpc["ipv6_gua"], ajax_attr)
+    --end
+    --if content_rpc["ip6prefix"] and content_rpc["ip6prefix"]:len() > 0 then
+		ajax_attr.span.id = "ip6prefix"
         html[#html+1] = ui_helper.createLabel(T"IPv6 Prefix", content_rpc["ip6prefix"], ajax_attr)
-    end
-    if content_rpc["dnsv6"] and content_rpc["dnsv6"]:len() > 0 then
-        ajax_attr.span.id = "dnsv6"
+    --end
+   --if content_rpc["dnsv6"] and content_rpc["dnsv6"]:len() > 0 then
+		ajax_attr.span.id = "dnsv6"
         html[#html+1] = ui_helper.createLabel(T"IPv6 DNS", content_rpc["dnsv6"],ajax_attr)
-    end
-end
-
-
-    -- ATM VP/VC
+   --end
+   end
+   -- ATM VP/VC
     if wan_ppp_over_atm then
       local advanced = {
         group = {
@@ -532,14 +534,15 @@ end
     end
 
     ngx.print(html)
+
+
   ngx.print('\
 \
 </fieldset>\
 \
 <fieldset>\
 <legend>');  ngx.print( T"PPP statistics" ); ngx.print('</legend>\
-');
-
+');  
         local html = {}
 		ajax_attr.span.id = "discard"
 		ajax_attr.span.class = "span4 simple-desc"
@@ -554,11 +557,11 @@ end
             format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.broadcastS, iconDown, mapPPPstats.broadcastR), ajax_attr
         )
 
-		ajax_attr.span.id = "multicast"
+--[[		ajax_attr.span.id = "multicast"
         html[#html + 1] = ui_helper.createLabel(
             T"Multicast Packets",
             format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.multicastS, iconDown, mapPPPstats.multicastR), ajax_attr
-        )
+        )]]
 
 		ajax_attr.span.id = "unicast"
         html[#html + 1] = ui_helper.createLabel(
@@ -593,4 +596,4 @@ end
   ngx.print('\
 \
 </fieldset>\
-');
+'); 
