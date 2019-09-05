@@ -75,12 +75,10 @@ if not (prod_friendly_name[1].value:match("TG789") and prod_friendly_name[1].val
 		mapParams.blacklist_application = "uci.modgui.app.blacklist_app"
 		local marketing_version = proxy.get("uci.version.version.@version[0].marketing_version")
 		if marketing_version and marketing_version[1].value then
-			marketing_version = marketing_version[1].value:sub(1,4)
-		else
-			marketing_version = nil
-		end
-		if marketing_version and marketing_version >= 17.3 then
-			mapParams.xupnp_application = "uci.modgui.app.xupnp_app"
+			marketing_version = tonumber(marketing_version[1].value:sub(1,4))
+			if marketing_version >= 17.3 then
+				mapParams.xupnp_application = "uci.modgui.app.xupnp_app"
+			end
 		end
 	end
 end
