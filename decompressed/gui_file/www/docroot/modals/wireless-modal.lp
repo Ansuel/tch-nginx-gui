@@ -960,7 +960,7 @@ if #wls > 0 then
             if radioData[untaint(v.radio)].remotely_managed == "1" and radioData[untaint(v.radio)].integrated_ap ~= "1" then
                 html[#html+1] = format('<li class="nav-header">%s %s</li>', T"External access points", radioData[untaint(v.radio)].supported_frequency_bands)
             else
-                html[#html+1] = format('<li class="nav-header">%s %s</li>', T"Access points", radioData[untaint(v.radio)].supported_frequency_bands)
+                html[#html+1] = format('<li class="nav-header">%s %s</li>', T"Access Points", radioData[untaint(v.radio)].supported_frequency_bands)
             end
             prevradio = v.radio
         end

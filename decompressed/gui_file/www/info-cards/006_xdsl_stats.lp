@@ -90,7 +90,7 @@ end
 	if content.dslam_version_raw:sub(0,2) == "0x" then
 		html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",format("%s ( %s )", content.dslam_version , content.dslam_version_raw) , basic )
 	elseif content.dslam_version_raw == "" then
-		html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",T"Can't recover dslam version." , basic )
+		html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",T"Can't recover DSLAM version." , basic )
 	else
 		html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",format(T"Invalid version, can't convert. Raw value: %s", content.dslam_version_raw) , basic )
 	end
