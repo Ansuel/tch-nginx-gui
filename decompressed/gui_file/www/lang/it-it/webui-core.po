@@ -1587,9 +1587,6 @@ msgstr "Visualizzatore eventi"
 msgid "Login Expired. Reloading."
 msgstr "Accesso scaduto. Ricaricamento."
 
-msgid "LuCI GUI !! BROKEN !!"
-msgstr "GUI LuCI!! CORROTTA!!"
-
 msgid "LuCI WebUi installed"
 msgstr "WebUI LuCI installata"
 
