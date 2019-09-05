@@ -222,7 +222,7 @@ msgstr "Elenco controllo accessi (ACL)"
 msgid "Access Point"
 msgstr "Punto di accesso"
 
-msgid "Access points"
+msgid "Access Points"
 msgstr "Punto di accesso"
 
 msgid "Action"
@@ -489,7 +489,7 @@ msgstr "Telegestione (CWMP)"
 msgid "CWMP Settings"
 msgstr "Telegestione (CWMP)"
 
-msgid "Can't recover dslam version."
+msgid "Can't recover DSLAM version."
 msgstr "Impossibile rilevare la versione del DSLAM."
 
 msgid "Cancel"
@@ -1155,7 +1155,7 @@ msgstr "Aggiornamento firmware fallito.<br/>Usa il firmware corretto."
 msgid "Firmware update in progress, please wait..."
 msgstr "Aggiornamento firmware..."
 
-msgid "First DNS Server IPV6 Ping"
+msgid "First DNS Server IPv6 Ping"
 msgstr "Ping primo server DNS IPV6"
 
 msgid "First DNS Server Ping"
@@ -1719,7 +1719,7 @@ msgstr "Nuova versione"
 msgid "Next Hop Ping"
 msgstr "Ping hop successivo"
 
-msgid "Next Hop Ping IPV6"
+msgid "Next Hop Ping IPv6"
 msgstr "Ping IPV6 hop successivo"
 
 msgid "No Address Assigned"
@@ -2256,7 +2256,7 @@ msgstr "Nome rete (SSID)"
 msgid "Sat."
 msgstr "Sab."
 
-msgid "Second DNS Server IPV6 Ping"
+msgid "Second DNS Server IPv6 Ping"
 msgstr "Ping secondo server DNS IPV6"
 
 msgid "Second DNS Server Ping"

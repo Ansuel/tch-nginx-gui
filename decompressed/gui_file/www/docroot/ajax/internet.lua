@@ -69,7 +69,7 @@ if datatype and datatype== "xdsl" then
 		
 		if not ( data.dslam_version_raw:sub(0,2) == "0x" ) then
 			if data.dslam_version_raw == "" then
-				data.dslam_chipset = T"Can't recover dslam version."
+				data.dslam_chipset = T"Can't recover DSLAM version."
 			else
 				data.dslam_chipset = format(T"Invalid version, can't convert. Raw value: %s", data.dslam_version_raw)
 			end
