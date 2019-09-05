@@ -1156,7 +1156,7 @@ msgid "Firmware update in progress, please wait..."
 msgstr "Aggiornamento firmware..."
 
 msgid "First DNS Server IPv6 Ping"
-msgstr "Ping primo server DNS IPV6"
+msgstr "Ping primo server DNS IPv6"
 
 msgid "First DNS Server Ping"
 msgstr "Ping primo server DNS"
@@ -1720,7 +1720,7 @@ msgid "Next Hop Ping"
 msgstr "Ping hop successivo"
 
 msgid "Next Hop Ping IPv6"
-msgstr "Ping IPV6 hop successivo"
+msgstr "Ping IPv6 hop successivo"
 
 msgid "No Address Assigned"
 msgstr "Nessun indirizzo assegnato"
@@ -2257,7 +2257,7 @@ msgid "Sat."
 msgstr "Sab."
 
 msgid "Second DNS Server IPv6 Ping"
-msgstr "Ping secondo server DNS IPV6"
+msgstr "Ping secondo server DNS IPv6"
 
 msgid "Second DNS Server Ping"
 msgstr "Ping secondo server DNS"
