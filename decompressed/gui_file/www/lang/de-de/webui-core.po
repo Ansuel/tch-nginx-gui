@@ -1587,9 +1587,6 @@ msgstr "Protokollanzeige"
 msgid "Login Expired. Reloading."
 msgstr "Anmeldung abgelaufen. Neu laden."
 
-msgid "LuCI GUI !! BROKEN !!"
-msgstr "LuCI GUI !! DEFEKT !!"
-
 msgid "LuCI WebUi installed"
 msgstr "LuCI WebUi installiert"
 
