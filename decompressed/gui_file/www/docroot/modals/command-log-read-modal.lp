@@ -10,7 +10,7 @@ local header = '<span id="header_title">'..T"Executing"..'</span><span id="show_
 ngx.print('\
 \
 ');  ngx.print(ui_helper.createHeader(header, false, false))   ngx.print('\
-<div class="modal-body update">\
+<div class="modal-body update fake_console">\
   <form class="form-horizontal" id="commandlogmodal" method="post" action="/modals/command-log-read-modal.lp">\
 	')
 
@@ -24,7 +24,7 @@ html[#html + 1] = '	<div class="bar bar-warning" role="progressbar" aria-valueno
 html[#html + 1] = '</div></div></div>'
 html[#html + 1] = '</fieldset>'
 html[#html + 1] = '<fieldset>'
-html[#html + 1] = '<div style="white-space: pre-wrap" class="fake_console" data-bind="log_text: log">'
+html[#html + 1] = '<div style="white-space: pre-wrap" data-bind="log_text: log">'
 html[#html + 1] = '</div>'
 html[#html + 1] = '</fieldset>'
 

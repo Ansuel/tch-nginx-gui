@@ -3001,6 +3001,11 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	max-height: 460px;
 	padding: 15px
 }
+.fake_console {
+	background-color: #0c0c0c;
+    color: #cccccc;
+    font-family: monospace;
+}
 .modal-form {
 	margin-bottom: 0
 }
