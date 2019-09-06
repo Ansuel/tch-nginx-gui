@@ -96,7 +96,7 @@ var modgui = modgui || {};
 	function linkCheckUpdate() {
 		$(".check_update").on("click", function (e) {
 			e.stopPropagation();
-			if(!KoRequest.CheckVer) return;
+			if(KoRequest.CheckVer) return;
 			postAction("checkver");
 			$(".check_update_spinner").addClass("fa-spin");
 				KoRequest.CheckVer = {
