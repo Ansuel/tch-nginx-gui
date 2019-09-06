@@ -4760,3 +4760,6 @@ msgstr ""
 
 msgid "IPv6 GUA"
 msgstr ""
+
+msgid "Reset xDSL Driver to original version"
+msgstr ""
