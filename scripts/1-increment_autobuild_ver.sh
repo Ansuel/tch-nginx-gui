@@ -55,7 +55,7 @@ else
 	echo "New version to apply: "$ver
 fi
 
-if [ ! -f  $HOME/gui_build/data ]; then
+if [ ! -d  $HOME/gui_build/data ]; then
 	mkdir $HOME/gui_build/data
 fi
 
