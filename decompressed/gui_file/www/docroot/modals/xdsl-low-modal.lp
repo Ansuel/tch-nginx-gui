@@ -27,8 +27,8 @@ end
 local modes_content = content_helper.getMatchedContent ("uci.xdsl.xdsl.@dsl0.multimode.")
 
 if ngx.var.request_method == "POST" then
-    local vars = ngx.req.get_post_args()
-    if vars["action"] == "SAVE" then
+	local action = ngx.req.get_post_args() and ngx.req.get_post_args().action or ""
+	if action == "SAVE" then
       local mode2prog = {}
       for _, v in pairs(all_modes) do
          mode2prog[v] = {prog = 0, found = 0 }
@@ -69,8 +69,18 @@ if ngx.var.request_method == "POST" then
                local clean = proxy.del(v.found)
          end
       end
-	  proxy.set("rpc.system.modgui.utility.refreshdriver", "1")
+	elseif action == "refreshdriver" then
+	  proxy.set("rpc.system.modgui.utility.refreshDslDriver", "1")
       proxy.apply()
+
+	  ngx.print('{ "success":"true" }')
+	  ngx.exit(ngx.HTTP_OK)
+	elseif action == "resetdriver" then
+	  proxy.set("rpc.system.modgui.utility.resetDslDriver", "1")
+      proxy.apply()
+
+	  ngx.print('{ "success":"true" }')
+	  ngx.exit(ngx.HTTP_OK)
     end
 end
 
@@ -267,6 +277,12 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  else
 		html[#html + 1] = ui_helper.createInputSelect(T"xDSL Driver Version", "driver_ver", driver_option, driver_content["driver_ver"])
 	  end
+	  local reset_driver = {
+		button = {
+			id = "btn-reset-driver",
+		}
+	  }
+	  html[#html + 1] = ui_helper.createButton(T"Reset", T"Reset xDSL Driver to original version", "icon-refresh", reset_driver)
 	  html[#html + 1] = ui_helper.createSwitch(T"SRA", "ds10_sra", driver_content["ds10_sra"])
 	  html[#html + 1] = ui_helper.createSwitch(T"Bitswap", "ds10_bitswap", driver_content["ds10_bitswap"])
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Change the SNR margin to increase stability or performance when in “ADSL Mode”. Changing this value in “VDSL Mode” won’t have any effect.", alertinfo)
@@ -303,5 +319,16 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	</form>\
   </fieldset>\
 </div>\
+<script>\
+	$("#save-config").on("click", function() {\
+		var installed = $("[id=\''); ngx.print(T"xDSL Driver Version"); ngx.print('\']").val();\
+		if ( $("#driver_ver") && $("#driver_ver").val() != installed.substring(0, installed.indexOf(".")) ) {\
+			modgui.postAction("refreshdriver",1);\
+		};\
+	});\
+	$("#btn-reset-driver").on("click", function () {\
+		modgui.postAction("resetdriver",1);\
+	});\
+</script>\
 ');   ngx.print(ui_helper.createFooter())  ngx.print('\
 ');

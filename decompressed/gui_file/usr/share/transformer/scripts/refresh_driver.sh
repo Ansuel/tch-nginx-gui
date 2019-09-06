@@ -22,6 +22,11 @@
 #
 #
 
+log() {
+	logger -t "Refresh Xdsl Driver:" $1
+	echo Refresh Xdsl Driver: $1
+}
+
 curl="/usr/bin/curl -k -s"
 
 connectivity="yes"
@@ -81,6 +86,14 @@ a8606f73a646bf8051be4650b3090fe3  A2pv6F039t
 338d7eef1dfffa6b4c7bc7baeca86975  B2pvfbH045l
 "
 
+CLEAN=0
+
+if [ "$1" ]; then
+	if [ "$1" == "clean" ]; then
+		CLEAN=1
+	fi
+fi
+
 installed_driver=$(transformer-cli get rpc.xdsl.dslversion | awk '{print $4}'  | cut -d. -f1)
 driver_set=$(uci get modgui.var.driver_version)
 
@@ -91,14 +104,33 @@ elif [ "$(cat /proc/cpuinfo | grep 'cpu model' | grep MIPS)" ]; then
 fi
 
 apply_driver() {
-	mv /tmp/$driver_set /etc/adsl/adsl_phy.bin
-	logger "Restarting xdslctl"
-	xdslctl stop
-	/etc/init.d/xdsl start
+	if [ $CLEAN -eq 0 ]; then
+		log "Testing driver... The modem can crash"
+		log "If the modem crash, reset the driver at the next boot"
+		rm /etc/adsl/adsl_phy.bin
+		ln -s /etc/adsl/adsl_phy.bin /tmp/$driver_set
+		log "Restarting xdslctl"
+		xdslctl stop
+		/etc/init.d/xdsl start
+		sleep 5
+		log "Getting random data from xdslctl to make sure it does work"
+		xdslctl --version >/dev/null 2>/dev/null
+		log "Applying driver to permantent dir"
+		rm /etc/adsl/adsl_phy.bin
+		mv /tmp/$driver_set /etc/adsl/adsl_phy.bin
+	else
+		log "Restoring original driver"
+		rm /etc/adsl/adsl_phy.bin
+		cp /rom//etc/adsl/adsl_phy.bin /etc/adsl/adsl_phy.bin
+		log "Restarting xdslctl"
+		xdslctl stop
+		/etc/init.d/xdsl start
+	fi
+	log "Processo done"
 }
 
 download_Driver() {
-	logger "Downloading driver "$driver_set
+	log "Downloading driver "$driver_set
 	remote_driver_dir=https://raw.githubusercontent.com/Ansuel/tch-nginx-gui/master/xdsl_driver/$arch/
 	$curl $remote_driver_dir/$driver_set --output /tmp/$driver_set
 }
@@ -116,13 +148,13 @@ test_apply() {
 					rm /tmp/$driver_set
 				fi
 			else
-				logger "Download corrupted, retrying..."
+				log "Download corrupted, retrying..."
 				try=$((try+1))
 				download_Driver
 				if [ $try < 2 ]; then
 					test_apply
 				else
-					logger "Too much try, aborting..."
+					log "Too much try, aborting..."
 				fi
 			fi
 		fi

@@ -9,7 +9,8 @@
 ^rpc%.system%.modgui%.utility%.resetcwmp /usr/share/transformer/scripts/resetUtility.sh --resetCWMP
 ^rpc%.system%.modgui%.utility%.checkver /usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/checkver"
 ^rpc%.system%.modgui%.utility%.transfer_bank1 /usr/share/transformer/scripts/transfer_bank1.sh
-^rpc%.system%.modgui%.utility%.refreshdriver start-stop-daemon -S -b -x /usr/share/transformer/scripts/refresh_driver.sh
+^rpc%.system%.modgui%.utility%.refreshDslDriver /usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/refresh_driver.sh"
+^rpc%.system%.modgui%.utility%.resetDslDriver /usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/refresh_driver.sh clean"
 ^rpc%.system%.modgui%.utility%.copy_bank /usr/share/transformer/scripts/copy_bank.sh
 
 ^rpc%.system%.modgui%.app%.start_amule /etc/init.d/amule start
