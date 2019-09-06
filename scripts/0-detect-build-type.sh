@@ -14,3 +14,5 @@ else
 	echo "Detected DEV build."
 	echo DEV > $HOME/gui_build/data/type
 fi
+
+echo git log -1 --abbrev-commit --oneline | cut -d' ' -f1 > $HOME/gui_build/data/short_git_hash
