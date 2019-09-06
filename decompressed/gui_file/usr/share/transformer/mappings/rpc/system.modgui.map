@@ -241,33 +241,31 @@ local SYSTEM_MODGUI_SCRIPTREQUEST_ = {
   }
 }
 
-local executeCommand = {}
+local executeCommandRes = "Idle"
+
+local content = io.open("/tmp/executeCommandRes")
+if content then
+    executeCommandRes = content:read("*all")
+    content:close()
+    os.remove("/tmp/executeCommandRes")
+end
 
 SYSTEM_MODGUI_SCRIPTREQUEST_.get = {
   state = function(mapping, param)
-	local result = executeCommand.state
-	if ( executeCommand.resetOnNextRequest == 1 ) then
-	  executeCommand = {}
-	end
-	return result or "Idle"
+	return executeCommandRes
   end,
 }
 
 SYSTEM_MODGUI_SCRIPTREQUEST_.set = {
-  state = function(mapping, paramName, paramValue)  
-	if ( paramValue == "Requested" ) then
-	  executeCommand.resetOnNextRequest = 0
-	  executeCommand.state = paramValue
-	elseif paramValue == "Clearing" or
-	   paramValue == "Extracting" or
-	   paramValue == "Downloading" or
-	   paramValue == "Checking" or
-	   paramValue == "In Progress" then
-	   executeCommand.state = paramValue
-	elseif ( paramValue == "Complete" ) then
-	  executeCommand.resetOnNextRequest = 1
-	  executeCommand.state = paramValue
-	end
+  state = function(mapping, paramName, paramValue)
+	  executeCommandRes = paramValue
+	  if paramValue ~="Idle" then
+	      local content = io.open("/tmp/executeCommandRes", "wb")
+          content:write(paramValue)
+          content:close()
+      else
+        os.remove("/tmp/executeCommandRes")
+      end
   end,
 }
 
