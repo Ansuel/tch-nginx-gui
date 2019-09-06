@@ -16,3 +16,4 @@ else
 fi
 
 echo git log -1 --abbrev-commit --oneline | cut -d' ' -f1 > $HOME/gui_build/data/short_git_hash
+echo git log --oneline -n 1 > $HOME/gui_build/data/last_log
