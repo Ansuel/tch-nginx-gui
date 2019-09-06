@@ -98,7 +98,9 @@ end
 		  </div>\
 		</div>\
 	</div>\
-</div>\
+</div>')
+if light.status == "1" then
+ngx.print('\
 <script>\
 var LteCardRefresh = function(ElementBinding) {\
 \
@@ -148,4 +150,5 @@ $(document).ready(function () {\
 	new modgui.createAjaxUpdateCard("mobiletab",null,"LteCardInterval",50000,LteCardRefresh);\
 })\
 </script>\
-'); 
+');
+end
