@@ -276,7 +276,7 @@ $(document).ready(function () {
 		update: function (element, valueAccessor) {
 			var value = ko.unwrap(valueAccessor());
 			$(element).text(value);
-			$(element).parent().parent().parent().animate({scrollTop: $(element).parent().parent().parent()[0].scrollHeight}, 600);
+			$(element).parent().parent().parent().scrollTop($(element).parent().parent().parent()[0].scrollHeight);
 		}
 	};
 	ko.bindingHandlers.html = {
