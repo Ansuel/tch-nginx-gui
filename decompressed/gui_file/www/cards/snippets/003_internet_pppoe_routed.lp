@@ -160,9 +160,4 @@ end
 ngx.print('\
   </p>\
 </span>\
-<script>\
-$(document).ready(function () {\
-	new modgui.createAjaxUpdateCard("pppoe-internet-tab","/ajax/internet.lua","PPPoECardInterval",3000);\
-})\
-</script>\
 ');

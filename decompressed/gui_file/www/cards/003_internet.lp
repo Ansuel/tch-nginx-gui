@@ -72,12 +72,12 @@ if session:hasAccess("/modals/internet-modal.lp") then
 end
   ngx.print('\
 \
-<div class="span3">\
+<div class="span3" id="internet-card">\
   <div class="smallcard" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
     ');  ngx.print( ui_helper.createCardHeader(T"Internet Access", modalPath, switchName, content.wan_auto) ); ngx.print('\
     <div class="content card_bg" data-bg-text="&#xf0ac;">\
       <div class="divtable">\
-');  
+');
     lp.setpath("/www/cards/snippets/")
     lp.include(mode_data[mode_active].card)
     -- have to bring it back to original value ... singleton
@@ -94,4 +94,9 @@ end
     </div>\
   </div>\
 </div>\
+<script>\
+$(document).ready(function () {\
+	new modgui.createAjaxUpdateCard("internet-card","/ajax/internet.lua","PPPoECardInterval",3000);\
+})\
+</script>\
 '); 
