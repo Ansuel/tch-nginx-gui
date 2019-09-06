@@ -423,18 +423,17 @@ cumulative_check_gui() {
     logger_command "Can't generate GUI hash, file not found!"
     gui_hash="0"
   fi
+  
+  saved_gui_version=$(echo "$(uci get -q modgui.gui.gui_version)" | cut -d'-' -f1)
+  version_gui=$(echo $version_gui | cut -d'-' -f1)
 
   if [ "$saved_gui_version" != "$version_gui" ]; then
     logger_command "Updating version saved to $version_gui"
     uci set modgui.gui.gui_version="$version_gui"
-  else
-    uci set modgui.gui.gui_version="$version_gui"
   fi
 
-  saved_gui_version="$(uci -q get modgui.gui.gui_version)"
-
   #This is to fix a bug in older gui when stable gui is wrongly saved as dev and never replaced.
-  major_ver="$(echo "$saved_gui_version" | cut -d. -f 0)"
+  major_ver="$(echo "$version_gui" | cut -d. -f 0)"
   if [ "$major_ver" -lt 9 ]; then
     if [ -f /root/GUI.tar.bz2 ] && [ -f /root/GUI_dev.tar.bz2 ]; then
       rm /root/GUI.tar.bz2

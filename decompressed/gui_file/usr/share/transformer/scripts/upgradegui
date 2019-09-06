@@ -167,7 +167,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
   fi
   $curl "$URL_BASE/$CHECKSUM_FILE" --output "$WORKING_DIR/$CHECKSUM_FILE"
 
-  downloaded_md5="$(md5sum "$WORKING_DIR/$FILE_NAME" | awk '{print $1}')"
+  downloaded_md5="$(md5sum "$WORKING_DIR/$FILE_NAME" | cut -d' ' -f1)"
 
   if ! grep -q "$downloaded_md5" "$WORKING_DIR/$CHECKSUM_FILE"; then
     rm "$WORKING_DIR/$FILE_NAME"
@@ -201,7 +201,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
         exit 1
       fi
 
-      stable_md5=$(md5sum $WORKING_DIR/$STABLE_FILE_NAME | awk '{print $1}')
+      stable_md5=$(md5sum $WORKING_DIR/$STABLE_FILE_NAME | cut -d' ' -f1)
 
       if ! grep -q "$stable_md5" "$WORKING_DIR/$CHECKSUM_FILE"; then
         rm "$WORKING_DIR/$FILE_NAME"
@@ -216,12 +216,12 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 
       logger_command "Downloaded stable GUI with hash: $stable_md5"
 
-      stable_version="$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $stable_md5 | awk '{print $2}')"
+      stable_version="$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $stable_md5 | cut -d' ' -f2)"
       stable_version_norm="$(normalize $stable_version)"
 
       logger_command "Downloaded Stable version: $stable_version_norm"
 
-      dev_version="$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $downloaded_md5 | awk '{print $2}')"
+      dev_version="$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $downloaded_md5 | cut -d' ' -f2)"
       dev_version_norm="$(normalize $dev_version)"
 
       logger_command "Downloaded $update_branch version: $dev_version_norm"
@@ -234,7 +234,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
       else
 
         if [ -f $PERMANENT_STORE_DIR/$FILE_NAME ]; then
-          saved_stable_md5=$(md5sum $PERMANENT_STORE_DIR/$FILE_NAME | awk '{print $1}')
+          saved_stable_md5=$(md5sum $PERMANENT_STORE_DIR/$FILE_NAME | cut -d' ' -f1)
 
           if [ $saved_stable_md5 != $stable_md5 ]; then
             logger_command "Permanent package md5 is not same of latest Stable GUI. Replacing..."
@@ -328,7 +328,7 @@ fi
 
 if [ "$update_branch" == "_dev" ] || [ "$update_branch" == "_preview" ]; then
   logger_command "Saving md5sum of dev gui to /root ..."
-  md5sum "$WORKING_DIR/$FILE_NAME" | awk '{ print $1}' >/root/gui_dev.md5sum
+  md5sum "$WORKING_DIR/$FILE_NAME" | cut -d' ' -f1 >/root/gui_dev.md5sum
 fi
 
 logger_command "Running rootdevice script"
