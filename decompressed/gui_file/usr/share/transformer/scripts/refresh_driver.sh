@@ -23,8 +23,8 @@
 #
 
 log() {
-	logger -t "Refresh xDSL Driver:" $1
-	echo Refresh xDSL Driver: $1
+	logger -t "Refresh xDSL Driver: $1"
+	echo "Refresh xDSL Driver: $1"
 }
 
 curl="/usr/bin/curl -k -s"
@@ -106,11 +106,11 @@ fi
 apply_driver() {
 	if [ $CLEAN -eq 0 ]; then
 		log "Testing driver $driver_set... If the modem crash, reset the driver on next boot"
-		xdslctl stop
 		rm /etc/adsl/adsl_phy.bin
-		ln -s /etc/adsl/adsl_phy.bin /tmp/$driver_set
+		ln -s /tmp/$driver_set /etc/adsl/adsl_phy.bin
 		log "Restarting xDSL..."
-		/etc/init.d/xdsl start
+		xdslctl stop
+		/etc/init.d/xdsl restart >/dev/null
 		sleep 5
 		log "Reading version with xdslctl..."
 		xdslctl --version
@@ -123,7 +123,7 @@ apply_driver() {
 		cp /rom/etc/adsl/adsl_phy.bin /etc/adsl/adsl_phy.bin
 		log "Restarting xDSL..."
 		xdslctl stop
-		/etc/init.d/xdsl start
+		/etc/init.d/xdsl restart >/dev/null
 	fi
 	log "Process done"
 }
@@ -157,7 +157,10 @@ test_apply() {
 				fi
 			fi
 		fi
+	else
+		log "No internet connection detected, Terminating."
 	fi
 }
 
+log "Trying to download and apply driver $driver_set..."
 test_apply

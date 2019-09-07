@@ -102,10 +102,7 @@ var modgui = modgui || {};
 				KoRequest.CheckVer = {
 					interval : setInterval(function () {
 						$.post("/ajax/commandlogread.lua" + "?auto_update=true", [tch.elementCSRFtoken()], function (data) {
-							if (data.state == "Complete") {
-								$(".check_update_spinner").removeClass("fa-spin");
-								clearInterval(KoRequest.CheckVer.interval);
-								KoRequest.CheckVer = null;
+							if (data.state == "Checking") {
 								if (data.new_version_text) {
 									$(".gui_version_status_text").parent().fadeOut().fadeIn();
 									if (data.new_version_text == "Unknown") {
@@ -122,6 +119,10 @@ var modgui = modgui || {};
 										$("#new-version-text").text(data.new_version_text);
 									}
 								}
+							} else if (data.state == "Complete") {
+								$(".check_update_spinner").removeClass("fa-spin");
+								clearInterval(KoRequest.CheckVer.interval);
+								KoRequest.CheckVer = null;
 							}
 						}, "json")
 					}, "500")

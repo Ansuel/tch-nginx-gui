@@ -323,7 +323,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	$("#save-config").on("click", function() {\
 		var installed = $("[id=\''); ngx.print(T"Datapump Version"); ngx.print('\']").text();\
 		if ( $("#driver_ver") && $("#driver_ver").val() != installed.substring(0, installed.indexOf(".")) ) {\
-			modgui.postAction("refreshdriver",1);\
+		    window.setTimeout(function () {modgui.postAction("refreshdriver",1);}, 1000);\
 		};\
 	});\
 	$("#btn-reset-driver").on("click", function () {\
