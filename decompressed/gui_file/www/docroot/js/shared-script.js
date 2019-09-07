@@ -145,13 +145,15 @@ var modgui = modgui || {};
 	
 	function clearKoInterval() {
 		Object.keys(KoRequest).forEach(function(interval) {
-			clearInterval(KoRequest[interval].interval);
+			if(KoRequest[interval])
+				clearInterval(KoRequest[interval].interval);
 		});
 	}
 	
 	function restartKoInterval() {
 		Object.keys(KoRequest).forEach(function(interval) {
-			KoRequest[interval].interval = setInterval(KoRequest[interval].function,KoRequest[interval].refreshTime,KoRequest[interval].binding);
+			if(KoRequest[interval])
+				KoRequest[interval].interval = setInterval(KoRequest[interval].function,KoRequest[interval].refreshTime,KoRequest[interval].binding);
 		});
 	}
 
