@@ -23,8 +23,8 @@
 #
 
 log() {
-	logger -t "Refresh Xdsl Driver:" $1
-	echo Refresh Xdsl Driver: $1
+	logger -t "Refresh xDSL Driver:" $1
+	echo Refresh xDSL Driver: $1
 }
 
 curl="/usr/bin/curl -k -s"

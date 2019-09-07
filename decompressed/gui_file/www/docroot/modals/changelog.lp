@@ -21,8 +21,15 @@ ngx.print('\
 		"Molti miglioramenti e fix grafici alle skin Unified e Fritz<br>"..
 		"Sistemato reset config<br>"..
 		"Aggiunta possibilità di resettare CWMP per forzare provisioning<br>"..
-		"Aggiunta supporto a DJA0231 (Telstra)<br>"..
-		"Sistemata impostazione WiFi NSC (Eco Modal)<br>", basic)
+		"Aggiunto supporto a DJA0231 (Telstra)<br>"..
+		"Sistemata impostazione WiFi NSC (Eco Modal)<br>"..
+		"Migliorato supporto per DGA4131FWB, DJA0231, TG788, TG789 Xtream 35B Fastweb<br>"..
+		"Importante fix che poteva causare bootloop se non venivano mai fatti aggiornamenti stabili<br>"..
+		"I driver xDSL prima di essere impostati vengono preventivamente controllati per evitare bootloop<br>"..
+		"Lo stato di alcuni processi (Aggiornamento GUI, cambio driver, installazione APP...) viene mostrato da GUI<br>"..
+		"Aggiunta flag per attivare IPv6 su WAN<br>"..
+		"Aggiunta pulsante per forzare provisioning CWMP<br>"..
+		"Importanti fix per evitare comportamenti inaspettati durante gli upgrade firmware<br>", basic)
 	html[#html + 1] = ui_helper.createLabel("9.3", "Ri-Aggiunto supporto alle app per i nuovi firmware<br>"..
 		"Nuova skin unificata<br>"..
 		"Inserita gestione led su DGA4131FWB<br>"..
@@ -109,7 +116,7 @@ ngx.print('\
 	html[#html + 1] = ui_helper.createLabel("6.12", "Introdotta autorimozione del bit antidowngrade AGTHP", basic)
 	html[#html + 1] = ui_helper.createLabel("6.11", "Fixato upgrade", basic)
 	html[#html + 1] = ui_helper.createLabel("6.10", "Aggiunta xupnp (solo per agtef 1.1.0 e superiori)", basic)
-	html[#html + 1] = ui_helper.createLabel("6.10", "Aggiunti grafici Xdsl", basic)
+	html[#html + 1] = ui_helper.createLabel("6.10", "Aggiunti grafici xDSL", basic)
 	html[#html + 1] = ui_helper.createLabel("6.9", "Aggiunto bottone WAN-MODE (WIP)", basic)
 	html[#html + 1] = ui_helper.createLabel("6.8", "Aggiunto gestore led (WIP)", basic)
 	html[#html + 1] = ui_helper.createLabel("6.7", "Reworkato voicemode e bridgemode, fixato problema telegestione non funzionante, aggiornate traduzioni", basic)

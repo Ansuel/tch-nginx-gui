@@ -536,64 +536,64 @@ html[#html+1] = '</div>'
     ngx.print(html)
 
 
-  ngx.print('\
-\
-</fieldset>\
-\
-<fieldset>\
-<legend>');  ngx.print( T"PPP statistics" ); ngx.print('</legend>\
-');  
-        local html = {}
-		ajax_attr.span.id = "discard"
-		ajax_attr.span.class = "span4 simple-desc"
-        html[#html + 1] = ui_helper.createLabel(
-            T"Discard Packets",
-            format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.discardS, iconDown, mapPPPstats.discardR), ajax_attr
-        )
+  ngx.print('</fieldset>');
 
-		ajax_attr.span.id = "broadcast"
-        html[#html + 1] = ui_helper.createLabel(
-            T"Broadcast Packets",
-            format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.broadcastS, iconDown, mapPPPstats.broadcastR), ajax_attr
-        )
+if(ppp_status == "connected") then
+    ngx.print('<fieldset>\
+    <legend>');  ngx.print( T"PPP statistics" ); ngx.print('</legend>\
+    ');
+            local html = {}
+            ajax_attr.span.id = "discard"
+            ajax_attr.span.class = "span4 simple-desc"
+            html[#html + 1] = ui_helper.createLabel(
+                T"Discard Packets",
+                format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.discardS, iconDown, mapPPPstats.discardR), ajax_attr
+            )
 
---[[		ajax_attr.span.id = "multicast"
-        html[#html + 1] = ui_helper.createLabel(
-            T"Multicast Packets",
-            format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.multicastS, iconDown, mapPPPstats.multicastR), ajax_attr
-        )]]
+            ajax_attr.span.id = "broadcast"
+            html[#html + 1] = ui_helper.createLabel(
+                T"Broadcast Packets",
+                format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.broadcastS, iconDown, mapPPPstats.broadcastR), ajax_attr
+            )
 
-		ajax_attr.span.id = "unicast"
-        html[#html + 1] = ui_helper.createLabel(
-            T"Unicast Packets",
-            format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.unicastS, iconDown, mapPPPstats.unicastR), ajax_attr
-        )
+    --[[		ajax_attr.span.id = "multicast"
+            html[#html + 1] = ui_helper.createLabel(
+                T"Multicast Packets",
+                format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.multicastS, iconDown, mapPPPstats.multicastR), ajax_attr
+            )]]
 
-		ajax_attr.span.id = "packets"
-        html[#html + 1] = ui_helper.createLabel(
-            T"Packets",
-            format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.packetsS, iconDown, mapPPPstats.packetsR), ajax_attr
-        )
+            ajax_attr.span.id = "unicast"
+            html[#html + 1] = ui_helper.createLabel(
+                T"Unicast Packets",
+                format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.unicastS, iconDown, mapPPPstats.unicastR), ajax_attr
+            )
 
-		ajax_attr.span.id = "error"
-        html[#html + 1] = ui_helper.createLabel(
-            T"Errors",
-            format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.errorsS, iconDown, mapPPPstats.errorsR), ajax_attr
-        )
-		ajax_attr.span.id = "byte"
-        html[#html + 1] = ui_helper.createLabel(
-            T"Bytes",
-            format("%s %s [B] %s %s [B]", iconUp, mapPPPstats.bytesS, iconDown, mapPPPstats.bytesR), ajax_attr
-        )
+            ajax_attr.span.id = "packets"
+            html[#html + 1] = ui_helper.createLabel(
+                T"Packets",
+                format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.packetsS, iconDown, mapPPPstats.packetsR), ajax_attr
+            )
 
-		ajax_attr.span.id = "unknown"
-        html[#html + 1] = ui_helper.createLabel(
-            T"Unknown Proto Packets",
-            format("%s %s [Pkt]", iconDown, mapPPPstats.unknownR), ajax_attr
-        )
+            ajax_attr.span.id = "error"
+            html[#html + 1] = ui_helper.createLabel(
+                T"Errors",
+                format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.errorsS, iconDown, mapPPPstats.errorsR), ajax_attr
+            )
+            ajax_attr.span.id = "byte"
+            html[#html + 1] = ui_helper.createLabel(
+                T"Bytes",
+                format("%s %s [B] %s %s [B]", iconUp, mapPPPstats.bytesS, iconDown, mapPPPstats.bytesR), ajax_attr
+            )
 
-        ngx.print(html)
-  ngx.print('\
-\
-</fieldset>\
-'); 
+            ajax_attr.span.id = "unknown"
+            html[#html + 1] = ui_helper.createLabel(
+                T"Unknown Proto Packets",
+                format("%s %s [Pkt]", iconDown, mapPPPstats.unknownR), ajax_attr
+            )
+
+            ngx.print(html)
+      ngx.print('\
+    \
+    </fieldset>\
+    ');
+end
