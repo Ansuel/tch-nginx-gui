@@ -28,17 +28,7 @@ log() {
 }
 
 curl="/usr/bin/curl -k -s"
-
-connectivity="yes"
-if ping -q -c 1 -W 1 8.8.8.8 >/dev/null; then
-  connectivity="yes"
-else
-  connectivity="no"
-fi
-
 try=0
-
-sleep 7
 
 checksums="
 453dc537d3cbd6f45657c9eb8ba2eb40  A2pvbH042j2
@@ -138,6 +128,13 @@ test_apply() {
 	if [ -f "/tmp/$driver_set" ]; then
 		rm "/tmp/$driver_set"
 	fi
+	connectivity="yes"
+	if ping -q -c 1 -W 1 8.8.8.8 >/dev/null; then
+    connectivity="yes"
+  else
+    connectivity="no"
+  fi
+
 	if [ $connectivity == "yes" ]; then
 		if [ "$installed_driver" != "$driver_set" ]; then
 			download_Driver
@@ -162,5 +159,9 @@ test_apply() {
 	fi
 }
 
-log "Trying to download and apply driver $driver_set..."
-test_apply
+if [ $CLEAN -eq 0 ]; then
+  log "Trying to download and apply driver $driver_set..."
+  test_apply
+else
+  apply_driver
+fi
