@@ -27,8 +27,8 @@ end
 local modes_content = content_helper.getMatchedContent ("uci.xdsl.xdsl.@dsl0.multimode.")
 
 if ngx.var.request_method == "POST" then
-	local action = ngx.req.get_post_args() and ngx.req.get_post_args().action or ""
-	if action == "SAVE" then
+	local vars = ngx.req.get_post_args()
+	if vars["action"] == "SAVE" then
       local mode2prog = {}
       for _, v in pairs(all_modes) do
          mode2prog[v] = {prog = 0, found = 0 }
@@ -69,13 +69,13 @@ if ngx.var.request_method == "POST" then
                local clean = proxy.del(v.found)
          end
       end
-	elseif action == "refreshdriver" then
+	elseif vars["action"] == "refreshdriver" then
 	  proxy.set("rpc.system.modgui.utility.refreshDslDriver", "1")
       proxy.apply()
 
 	  ngx.print('{ "success":"true" }')
 	  ngx.exit(ngx.HTTP_OK)
-	elseif action == "resetdriver" then
+	elseif vars["action"] == "resetdriver" then
 	  proxy.set("rpc.system.modgui.utility.resetDslDriver", "1")
       proxy.apply()
 
@@ -321,7 +321,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 </div>\
 <script>\
 	$("#save-config").on("click", function() {\
-		var installed = $("[id=\''); ngx.print(T"xDSL Driver Version"); ngx.print('\']").val();\
+		var installed = $("[id=\''); ngx.print(T"Datapump Version"); ngx.print('\']").text();\
 		if ( $("#driver_ver") && $("#driver_ver").val() != installed.substring(0, installed.indexOf(".")) ) {\
 			modgui.postAction("refreshdriver",1);\
 		};\
