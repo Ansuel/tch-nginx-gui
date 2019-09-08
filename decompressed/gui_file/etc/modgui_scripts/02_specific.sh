@@ -43,6 +43,62 @@ extract_with_check() {
   return $RESTART_SERVICE
 }
 
+apply_right_opkg_repo() {
+  logger_command "Checking opkg feeds config"
+	marketing_version="$(uci get -q version.@version[0].marketing_version)"
+
+	opkg_file="/etc/opkg.conf"
+
+	case $marketing_version in
+	"18.3"*)
+		if [ -n "$(  grep $opkg_file -e "brcm63xx-tch" )" ]; then
+			rm /etc/opkg.conf
+			cp /rom/etc/opkg.conf /etc/
+		fi
+		if [ -z "$(  grep $opkg_file -e "Ansuel/GUI_ipk/kernel-4.1" )" ]; then
+			cat << EOF >> $opkg_file
+arch all 100
+arch arm_cortex-a9 200
+arch arm_cortex-a9_neon 300
+src/gz chaos_calmer_base https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/base
+src/gz chaos_calmer_packages https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/packages
+src/gz chaos_calmer_luci https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/luci
+src/gz chaos_calmer_routing https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/routing
+src/gz chaos_calmer_telephony https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/telephony
+src/gz chaos_calmer_core https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/target/packages
+EOF
+		fi
+		;;
+	"17.3"*)
+		if [ -z "$(  grep $opkg_file -e "roleo/public/agtef/1.1.0/brcm63xx-tch" )" ]; then
+			cat << EOF >> $opkg_file
+src/gz chaos_calmer_base https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/base
+src/gz chaos_calmer_packages https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/packages
+src/gz chaos_calmer_luci https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/luci
+src/gz chaos_calmer_routing https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/routing
+src/gz chaos_calmer_telephony https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/telephony
+src/gz chaos_calmer_management https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/management
+EOF
+		fi
+		;;
+	"16.3"*)
+		if [ -z "$(  grep $opkg_file -e "roleo/public/agtef/brcm63xx-tch" )" ]; then
+			cat << EOF >> $opkg_file
+src/gz chaos_calmer_base https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/base
+src/gz chaos_calmer_packages https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/packages
+src/gz chaos_calmer_luci https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/luci
+src/gz chaos_calmer_routing https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/routing
+src/gz chaos_calmer_telephony https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/telephony
+src/gz chaos_calmer_management https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/management
+EOF
+		fi
+		;;
+	*)
+		logger_command "No opkg file supported"
+		;;
+	esac
+}
+
 ledfw_extract() {
   if [ -f "/tmp/ledfw_support-specific$1.tar.bz2" ]; then
     extract_with_check "/tmp/ledfw_support-specific$1.tar.bz2"
@@ -164,6 +220,9 @@ remove_wizard_5ghz() {
 #THIS CHECK DEVICE TYPE AND INSTALL SPECIFIC FILE
 device_type="$(uci get -q env.var.prod_friendly_name)"
 kernel_ver="$(< /proc/version awk '{print $3}')"
+
+
+[ -z "${device_type##*DGA413*}" ] && apply_right_opkg_repo #Check opkg conf based on version
 
 if [ ! "$(uci get -q modgui.app.specific_app)" ]; then
   uci set modgui.app.specific_app="0"
