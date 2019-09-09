@@ -280,8 +280,8 @@ local function wait_for_completion(base_path)
   until (total_time >= max_time)
 end
 
-local function resetreboot(path)
-  proxy.set(path, "1")
+local function resetreboot(path,value)
+  proxy.set(path, value)
   ngx.header.content_type = "application/json"
   ngx.print('{ "success":"true" }')
   ngx.timer.at(0, function()
@@ -294,16 +294,16 @@ end
 if ngx.req.get_method() == "POST" then
   local action = ngx.req.get_post_args().action
   if action == "system_bootp" then
-    return resetreboot("sys.bootp.enable")
+    return resetreboot("sys.bootp.enable","1")
   end
   if action == "system_switchover" then
-    return resetreboot("rpc.system.switchover")
+    return resetreboot("rpc.system.switchover","1")
   end
   if action == "system_trasnfer_bank_1" then
-    return resetreboot("rpc.system.modgui.utility.transfer_bank1")
+    return resetreboot("rpc.system.modgui.utility.sendcmd","transfer_bank1")
   end
   if action == "system_copy_bank" then
-    return resetreboot("rpc.system.modgui.utility.copy_bank")
+    return resetreboot("rpc.system.modgui.utility.sendcmd","copy_bank")
   end
   if action == "debug_report" then
 

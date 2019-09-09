@@ -127,8 +127,7 @@ local function installspecificapp()
 
 	local rcv_ok, rcv_errno, rcv_errmsg = receive_file(dl, 'name="upgradefile"')
 
-	proxy.set("rpc.system.modgui.scriptRequest.state","Requested")
-	proxy.set("rpc.system.modgui.app.specific_app", "1")
+	proxy.set("rpc.system.modgui.app.sendcmd","install_specificapp")
 	proxy.set("uci.modgui.app.specific_app","1")
 	proxy.apply()
 
@@ -136,8 +135,8 @@ local function installspecificapp()
 	ngx.exit(ngx.HTTP_OK)
 end
 
-local function sendcmd(path, value)
-	proxy.set(path, value)
+local function sendcmd(cmd)
+	proxy.set("rpc.system.modgui.utility.sendcmd", cmd)
 	ngx.header.content_type = "application/json"
 	ngx.print('{ "success":"true" }')
 	ngx.timer.at(0, function()
@@ -156,15 +155,13 @@ if ngx.req.get_method() == "POST" then
 	end
 	local action = ngx.req.get_post_args().action
 	if action == "system_reset_gui" then
-		return sendcmd("rpc.system.modgui.utility.resetgui", "1")
+		return sendcmd("resetgui")
 	end
 	if action == "system_upgrade_gui" then
-		proxy.set("rpc.system.modgui.upgradegui.state", "Requested")
-		return sendcmd("rpc.system.modgui.upgradegui.start", "1")
+		return sendcmd("upgradegui")
 	end
 	if action == "system_install_specificapp" then
-		proxy.set("rpc.system.modgui.scriptRequest.state","Requested")
-		proxy.set("rpc.system.modgui.app.specific_app", "1")
+		proxy.set("rpc.system.modgui.app.sendcmd","install_specificapp")
 		proxy.set("uci.modgui.app.specific_app","1")
 		proxy.apply()
 
@@ -172,13 +169,13 @@ if ngx.req.get_method() == "POST" then
 		return
 	end
 	if action == "system_remove_root" then
-		return sendcmd("rpc.system.modgui.utility.removeroot", "1")
+		return sendcmd("removeroot")
 	end
 	if action == "system_reset_config" then
-		return sendcmd("rpc.system.modgui.utility.resetconfig", "1")
+		return sendcmd("resetconfig")
 	end
 	if action == "system_reset_cwmp" then
-		return sendcmd("rpc.system.modgui.utility.resetcwmp", "1")
+		return sendcmd("resetcwmp")
 	end
 	if proxy.get("uci.web.sessionmgr.@default.force_https")[1].value ~= ngx.req.get_post_args().gui_forcehttps then
 		local mngr = require("web.sessioncontrol").loadmgr("default")
