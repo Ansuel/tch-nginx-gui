@@ -48,9 +48,6 @@ restoreOriginalGui() {
 	emergencydir=/tmp/rootfile/emergency
 	mkdir /tmp/rootfile
 	mkdir $emergencydir
-	if [ -f /overlay/$running_bank/root/GUI.tar.bz2 ]; then
-		cp /overlay/$running_bank/root/GUI.tar.bz2 $root_tmp_dirt/
-	fi
 	mkdir $emergencydir/etc
 	mkdir $emergencydir/etc/init.d 
 	mkdir $emergencydir/etc/rc.d 
