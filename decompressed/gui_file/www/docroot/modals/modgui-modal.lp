@@ -497,7 +497,7 @@ local resetting_config = {
 
 html[#html + 1] = ui_helper.createButton(T"Force CWMP provisioning", T"Reset CWMP", "icon-refresh", reset_cwmp)
 
-html[#html + 1] = ui_helper.createAlertBlock(T"Reset the custom GUI settings. No custom firmware file will be removed. All custom GUI functions will still be available.", info_box)
+html[#html + 1] = ui_helper.createAlertBlock(T"Reset the modem to original GUI. Some config will be preserved. Modem will still be rooted. To access from ssh use the old password or root", info_box)
 html[#html + 1] = ui_helper.createAlertBlock(T"Resetting to default GUI, please wait...", resetting)
 html[#html + 1] = ui_helper.createButton(T"Restore GUI", T"Restore", "icon-refresh", reset_gui)
 
@@ -505,8 +505,8 @@ html[#html + 1] = ui_helper.createAlertBlock(T"Reset the router to factory setti
 html[#html + 1] = ui_helper.createAlertBlock(T"Unrooting and reverting to factory defaults, please wait...", unrooting)
 html[#html + 1] = ui_helper.createButton(T"Reset to Factory", T"Remove Root", "icon-refresh", remove_root)
 
-html[#html + 1] = ui_helper.createAlertBlock(T"Resetting config to default, please wait...", resetting_config)
 html[#html + 1] = ui_helper.createAlertBlock(T"Reset the router to factory settings and mantain modded GUI.", info_box)
+html[#html + 1] = ui_helper.createAlertBlock(T"Resetting config to default, please wait...", resetting_config)
 html[#html + 1] = ui_helper.createButton(T"Reset config to Factory", T"Remove Config", "icon-refresh", remove_config)
 
 ngx.print(html)
