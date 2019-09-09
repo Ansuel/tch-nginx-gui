@@ -3,7 +3,7 @@
 check_new_dlnad() {
   logger_command "Enable DLNAd"
 	#This function will check to see which dlna server daemon is installed
-	if [ -f /etc/init.d/dland ] && [ ! -k /etc/rc.d/S98dlnad ] && [ -f /etc/init.d/minidlna ]; then
+	if [ -f /etc/init.d/dland ] && [ ! -f /etc/rc.d/S98dlnad ] && [ -f /etc/init.d/minidlna ]; then
 		if [ "$(pgrep "minidlna")" ] ; then
 			/etc/init.d/minidlna stop
 		fi
@@ -41,13 +41,13 @@ trafficmon_support() {
 		sed -i '/trafficdata/d' /etc/crontabs/root
 	fi
 	
-	if [ -f /etc/init.d/trafficmon ] && [ ! -k /etc/rc.d/S99trafficmon ]; then
+	if [ -f /etc/init.d/trafficmon ] && [ ! -f /etc/rc.d/S99trafficmon ]; then
 		/etc/init.d/trafficmon enable
 		if [ ! -f /var/run/trafficmon.pid ]; then
 			/etc/init.d/trafficmon start
 		fi
 	fi
-	if [ -f /etc/init.d/trafficdata ] && [ ! -k /etc/rc.d/S99trafficdata ]; then
+	if [ -f /etc/init.d/trafficdata ] && [ ! -f /etc/rc.d/S99trafficdata ]; then
 		/etc/init.d/trafficdata enable
 		if [ ! -f /var/run/trafficdata.pid ]; then
 			/etc/init.d/trafficdata start

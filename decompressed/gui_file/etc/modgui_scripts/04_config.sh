@@ -485,7 +485,7 @@ fcctlsettings_daemon() {
       rm /etc/config/fcctlsettings_new
     fi
   fi
-  if [ ! -k /etc/rc.d/S99fcctlsettings ] && [ -f /etc/init.d/fcctlsettings ]; then
+  if [ ! -f /etc/rc.d/S99fcctlsettings ] && [ -f /etc/init.d/fcctlsettings ]; then
     chmod 755 /etc/init.d/fcctlsettings
     /etc/init.d/fcctlsettings enable
     /etc/init.d/fcctlsettings start >/dev/null
