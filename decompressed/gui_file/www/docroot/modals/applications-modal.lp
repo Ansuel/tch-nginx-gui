@@ -23,9 +23,8 @@ local prod_friendly_name = proxy.get("uci.env.var.prod_friendly_name")
 local specific_app = proxy.get("uci.modgui.app.specific_app")[1].value or "0"
 
 local function appapply(action)
-	proxy.set("rpc.system.modgui.scriptRequest.state","Requested")
-	proxy.set("rpc.system.modgui.app." .. action, "1")
-	if ( action == "install_emptyblacklist" ) then
+	proxy.set("rpc.system.modgui.app.sendcmd",action)
+	if ( action == "install_blacklist_empty" ) then
 		action = "install_blacklist"
 	end
 	local uci_set = action:gsub("(.*)_","")
@@ -52,7 +51,8 @@ end
 
 if ngx.req.get_method() == "POST" then
 	local action = string.untaint(ngx.req.get_post_args().action)
-	if action:match("install") or action:match("remove") or action:match("start") or action:match("stop") then
+	if action:match("install") or action:match("remove") or 
+		action:match("start") or action:match("stop") then
 		return appapply(action)
 	end
 end
@@ -226,7 +226,7 @@ end
 if StateParams["blacklist_application"] ~= nil then
 	btn_table.blacklist.installempty = {
 		button = {
-			id = "btn-installempty_blacklist"
+			id = "btn-install_blacklist_empty"
 		}
 	}
 	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
