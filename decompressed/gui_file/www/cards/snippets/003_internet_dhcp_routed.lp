@@ -12,55 +12,45 @@ local post_helper = require("web.post_helper")
 
 local attributes = { light = { } ,span = {} }
 
-local function getNetIntfPath(protocol)
-	local uciPath = "uci.network.interface.@wan."
-	local rpcPath = "rpc.network.interface.@wan."
-
-	local content_wan = {
-		wan_protype = "uci.network.interface.@wan.proto",
-	}
-	content_helper.getExactContent(content_wan)
-	if content_wan.wan_protype ~= protocol then
-		uciPath = "uci.network.interface.@wan2."
-		rpcPath = "rpc.network.interface.@wan2."
-	end
-
-	return uciPath, rpcPath
-end
-
-local content_uci = {
+local content = {
   wan_ipv6 = "uci.network.interface.@wan.ipv6",
 }
 
-for _,rpcPath in ipairs(proxy.getPN("rpc.network.interface.", true)) do
-   local intf = match(rpcPath.path, "rpc%.network%.interface%.@([^%.]+)%.")
-     if intf == "6rd" then
-       content_uci.ip6addr = "rpc.network.interface.@6rd.ip6addr"
-       content_uci.ip6prefix = "rpc.network.interface.@6rd.ip6prefix"
-     elseif intf == "wan6" then
-       content_uci.ip6addr = "rpc.network.interface.@wan6.ip6addr"
-       content_uci.ip6prefix = "rpc.network.interface.@wan6.ip6prefix"
-     end
+for i,v in ipairs(proxy.getPN("rpc.network.interface.", true)) do
+  local intf = match(v.path, "rpc%.network%.interface%.@([^%.]+)%.")
+  if intf then
+    if intf == "6rd" then
+      content.ip6addr = "rpc.network.interface.@6rd.ip6addr"
+      content.ip6prefix = "rpc.network.interface.@6rd.ip6prefix"
+      content.dnsv6 = "rpc.network.interface.@6rd.dnsservers"
+    elseif intf == "wan6" then
+      content.ip6addr = "rpc.network.interface.@wan6.ip6addr"
+      content.ip6prefix = "rpc.network.interface.@wan6.ip6prefix"
+      content.dnsv6 = "rpc.network.interface.@wan6.dnsservers"
+      break
+    elseif intf == "wan" then
+      content.ip6addr = "rpc.network.interface.@wan.ip6addr"
+      content.ip6prefix = "rpc.network.interface.@wan.ip6prefix"
+    end
+  end
 end
 
-content_helper.getExactContent(content_uci)
-
-local uci_dhcp_path, rpc_dhcp_path = getNetIntfPath("dhcp")
+content_helper.getExactContent(content)
 
 -- Non-configurable data
 local cs = {
-    uci_wan_auto = uci_dhcp_path.."auto",
-    ipaddr = rpc_dhcp_path.."ipaddr",
-    uptime = rpc_dhcp_path.."uptime",
+    uci_wan_auto = "uci.network.interface.@wan."auto",
+    ipaddr = "rpc.network.interface.@wan.ipaddr",
+    uptime = "rpc.network.interface.@wan.uptime",
 }
 
 local IPv6State = "none"
 
-if content_uci.wan_ipv6 ~= "1" then
+if content.wan_ipv6 ~= "1" then
 	IPv6State = "disabled"
-elseif content_uci.ip6prefix ~= "" then
+elseif content.ip6prefix ~= "" then
 	IPv6State = "prefix"
-elseif content_uci.ip6prefix == "" then
+elseif content.ip6prefix == "" then
 	IPv6State = "noprefix"
 end
 
