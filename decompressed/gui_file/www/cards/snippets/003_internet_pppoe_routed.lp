@@ -25,17 +25,23 @@ local content_rpc = {
     ipaddr = "rpc.network.interface.@wan.ipaddr",
 }
 
-for i, v in ipairs(proxy.getPN("rpc.network.interface.", true)) do
-    local intf = string.match(v.path, "rpc%.network%.interface%.@([^%.]+)%.")
-    if intf then
-        if intf == "6rd" then
-            content_rpc.ip6addr = "rpc.network.interface.@6rd.ip6addr"
-            content_rpc.ip6prefix = "rpc.network.interface.@6rd.ip6prefix"
-        elseif intf == "wan6" then
-            content_rpc.ip6addr = "rpc.network.interface.@wan6.ip6addr"
-            content_rpc.ip6prefix = "rpc.network.interface.@wan6.ip6prefix"
-        end
+for i,v in ipairs(proxy.getPN("rpc.network.interface.", true)) do
+  local intf = string.match(v.path, "rpc%.network%.interface%.@([^%.]+)%.")
+  if intf then
+    if intf == "6rd" then
+      content_rpc.ip6addr = "rpc.network.interface.@6rd.ip6addr"
+      content_rpc.ip6prefix = "rpc.network.interface.@6rd.ip6prefix"
+      content_rpc.dnsv6 = "rpc.network.interface.@6rd.dnsservers"
+    elseif intf == "wan6" then
+      content_rpc.ip6addr = "rpc.network.interface.@wan6.ip6addr"
+      content_rpc.ip6prefix = "rpc.network.interface.@wan6.ip6prefix"
+      content_rpc.dnsv6 = "rpc.network.interface.@wan6.dnsservers"
+      break
+    elseif intf == "wan" then
+      content_rpc.ip6addr = "rpc.network.interface.@wan.ip6addr"
+      content_rpc.ip6prefix = "rpc.network.interface.@wan.ip6prefix"
     end
+  end
 end
 
 content_helper.getExactContent(content_rpc)
@@ -45,9 +51,9 @@ local IPv6State = "none"
 if content_uci.wan_ipv6 ~= "1" then
     IPv6State = "disabled"
 elseif content_rpc.ip6prefix ~= "" then
-    IPv6State = "prefix"
+	IPv6State = "prefix"
 elseif content_rpc.ip6prefix == "" then
-    IPv6State = "noprefix"
+	IPv6State = "noprefix"
 end
 
 local untaint_mt = require("web.taint").untaint_mt
