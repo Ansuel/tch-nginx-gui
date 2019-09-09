@@ -4763,3 +4763,6 @@ msgstr "GUA IPv6"
 
 msgid "Reset xDSL Driver to original version"
 msgstr "Ripristina driver xDSL alla versione originale"
+
+msgid "Reset the modem to original GUI. Some config will be preserved. Modem will still be rooted. To access from ssh use the old password or root"
+msgstr ""
