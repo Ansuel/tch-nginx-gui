@@ -1,5 +1,4 @@
 --pretranslated: do not change this file
- 
 
 -- Enable localization
 -- NG-88797 WAN statistics is not automatically getting updates as LAN statistics
@@ -325,7 +324,7 @@ local content_rpc = {
   wan_ppp_ll_intf = "rpc.network.interface.@wan.ppp.ll_intf",
   ipaddr = "rpc.network.interface.@wan.ipaddr",
   nexthop = "rpc.network.interface.@wan.nexthop",
-  dns_wan = "rpc.network.interface.@wan.dnsservers",
+  dns = "rpc.network.interface.@wan.dnsservers",
   ipv6_gua = "rpc.network.interface.@wan6.ipv6uniquelocaladdr",
   dns_loopback = "rpc.network.interface.@loopback.dnsservers", -- Added to include static dns servers configured on loopback interface (for TI custo)
 }
@@ -352,20 +351,18 @@ end
 ajax_helper.handleAjaxQuery(content_rpc, function(c)
     -- this will add the HTML for the light
     local ds = get_dhcp_state(content["uci_wan_auto"], proxy.get("rpc.network.interface.@wan.ppp.state")[1].value, proxy.get("rpc.network.interface.@wan.ppp.error")[1].value, c["ipaddr"])
-	local dnstab = split(proxy.get("rpc.network.interface.@loopback.dnsservers")[1].value, "[^%,]+")
+	local dnstab = split(proxy.get("rpc.network.interface.@wan.dnsservers")[1].value, "[^%,]+")
 	local dnsv4, dnsv6 = dns_filter(dnstab)
     ajax_attr_light.light.class = ppp_light_map[ds]
     c.wan_status = ui_helper.createSimpleLight(nil, ppp_state_map[ds], ajax_attr_light)
 	if proxy.get("rpc.network.interface.@wan.ppp.state")[1].value == "connected" then
-		c.dns = content_helper.getMergedList(proxy.get("rpc.network.interface.@wan.dnsservers")[1].value, dnsv4)
-	else
 		c.dns = dnsv4
-
-	end
-	if proxy.get("uci.network.interface.@wan.ipv6")[1].value == "1" then
-	c.dnsv6 = content_helper.getMergedList(c.dnsv6, dnsv6)
-	end
-	c.discard = format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.discardS, iconDown, mapPPPstats.discardR)
+    end
+    local ipv6_enabled = proxy.get("uci.network.interface.@wan.ipv6")
+    if ipv6_enabled and ipv6_enabled[1].value == "1" then
+        c.dnsv6 = dnsv6
+    end
+    c.discard = format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.discardS, iconDown, mapPPPstats.discardR)
 	c.broadcast = format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.broadcastS, iconDown, mapPPPstats.broadcastR)
 	--c.multicast = format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.multicastS, iconDown, mapPPPstats.multicastR)
 	c.unicast = format("%s %s [Pkt] %s %s [Pkt]", iconUp, mapPPPstats.unicastS, iconDown, mapPPPstats.unicastR)
@@ -377,10 +374,15 @@ end)
 
 content_helper.getExactContent(content_rpc)
 
-local dnstab = split(content_rpc.dns_loopback, "[^%,]+")
+local dnstab = split(content_rpc.dns, "[^%,]+")
 local dnsv4, dnsv6 = dns_filter(dnstab)
-content_rpc.dns = content_helper.getMergedList(content_rpc.dns_wan, dnsv4)
-content_rpc.dnsv6 = content_helper.getMergedList(content_rpc.dnsv6, dnsv6)
+
+local ipv6_enabled = proxy.get("uci.network.interface.@wan.ipv6")
+if ipv6_enabled and ipv6_enabled[1].value == "1" then
+	if not content_rpc.dnsv6 then
+		content_rpc.dnsv6 = dnsv6
+	end
+end
 
 local wan_atm_uci_path = format("uci.xtm.atmdevice.@%s.", content_rpc["wan_ppp_ll_intf"])
 local wan_ppp_over_atm = proxy.get(wan_atm_uci_path) ~= nil
@@ -450,11 +452,12 @@ end
   ngx.print('\
 \
 <fieldset>\
-');  
+');
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
   ngx.print('\
 <legend>');  ngx.print( T"PPP connection" ); ngx.print('</legend>\
-');  
+\
+');
     local html = {}
     -- Label that shows PPP status
 	ajax_attr_light.light.class = ppp_light_map[ppp_status]
@@ -474,13 +477,13 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
         maxlength= "128",
         class = "span6",
       }
-    }
-	if tech then
+	}
+if tech then
     html[#html + 1] = "<div class='control-group'><label class='control-label'>" .. T"Username" .. "</label><div class='controls'>"
     html[#html + 1] = ui_helper.createSimpleInputText("uci_wan_username", content["uci_wan_username"], class_username, helpmsg["uci_wan_username"])
 
     if content_uci["wan_domain"] ~= "" then
-      html[#html + 1] = " @ " .. content_uci["wan_domain"]
+        html[#html + 1] = " @ " .. content_uci["wan_domain"]
     end
     html[#html + 1] = "</div></div>"
 
@@ -490,12 +493,12 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     html[#html + 1] = ui_helper.createInputText(T"Host Uniq Tag","uci_wan_host_uniq", content["uci_wan_host_uniq"], nil, helpmsg["uci_wan_host_uniq"])
     html[#html + 1] = ui_helper.createInputText(T"MAC Spoof (Wan MAC)","uci_wan_mac", content["uci_wan_mac"], nil, helpmsg["uci_wan_mac"])
 end
-	ajax_attr.span.id = "ipaddr"
-    html[#html+1] = ui_helper.createLabel(T"IPv4 address", content_rpc["ipaddr"], ajax_attr)
-	ajax_attr.span.id = "nexthop"
-    html[#html+1] = ui_helper.createLabel(T"Gateway", content_rpc["nexthop"], ajax_attr)
-	ajax_attr.span.id = "dns"
-    html[#html+1] = ui_helper.createLabel(T"DNS servers", content_rpc["dns"], ajax_attr)
+ajax_attr.span.id = "ipaddr"
+html[#html+1] = ui_helper.createLabel(T"IP address", content_rpc["ipaddr"], ajax_attr)
+ajax_attr.span.id = "nexthop"
+html[#html+1] = ui_helper.createLabel(T"Gateway", content_rpc["nexthop"], ajax_attr)
+ajax_attr.span.id = "dns"
+html[#html+1] = ui_helper.createLabel(T"DNS servers", content_rpc["dns"], ajax_attr)
 if content["uci_wan_peerdns"] == "" then
     content["uci_wan_peerdns"] = "1"
 end

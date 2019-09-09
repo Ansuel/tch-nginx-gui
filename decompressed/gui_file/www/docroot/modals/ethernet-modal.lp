@@ -860,45 +860,42 @@ local function validateGWIP(value, object, key)
         --NG-100782>
         for _,intf in pairs(all_intfs) do
             if intf.paramindex ~= curintf then
-                local ipaddr = proxy.get("uci.network.interface.@" .. intf.paramindex .. ".ipaddr")
-                if ipaddr then
-                    ipaddr = ipaddr[1].value
-                    local mask = proxy.get("uci.network.interface.@" .. intf.paramindex .. ".netmask")[1].value
-                    local baseip = post_helper.validateStringIsIP(ipaddr) and ipv42num(ipaddr)
-                    local netmask = post_helper.validateStringIsIP(mask) and ipv42num(mask)
-                    local sfplocalip = proxy.get("uci.network.interface.@"..sfpintf..".ipaddr")
+                local ipaddr = proxy.get("uci.network.interface.@" .. intf.paramindex .. ".ipaddr")[1].value
+                local mask = proxy.get("uci.network.interface.@" .. intf.paramindex .. ".netmask")[1].value
+                local baseip = post_helper.validateStringIsIP(ipaddr) and ipv42num(ipaddr)
+                local netmask = post_helper.validateStringIsIP(mask) and ipv42num(mask)
+                local sfplocalip = proxy.get("uci.network.interface.@"..sfpintf..".ipaddr")
 
-                    if sfplocalip and sfplocalip[1].value then
-                        sfplocalip = sfplocalip[1].value
-                    end
+                if sfplocalip and sfplocalip[1].value then
+                    sfplocalip = sfplocalip[1].value
+                end
 
-                    local network, ipmax
-                    if baseip and netmask then
-                        network = bit.band(baseip, netmask)
-                        ipmax = bit.bor(network, bit.bnot(netmask))
-                    end
+                local network, ipmax
+                if baseip and netmask then
+                    network = bit.band(baseip, netmask)
+                    ipmax = bit.bor(network, bit.bnot(netmask))
+                end
 
-                    if network and ipmax then
-                        if ip == sfplocalip then
-                            return nil, T"Gateway IP should not be in SFP interface IP Range, change that first"
-                        end
-                        if ip >= network and ip <= ipmax then
-                            if intf.name ~= "" then
-                                return nil, T"Gateway IP should not be in " .. intf.name .. T" IP Range"
-                            else
-                                return nil, T"Gateway IP should not be in " .. intf.paramindex .. T" IP Range"
-                            end
-                        end
-                        --<NG-100782
-                        if ipnetwork <= network and network <= ipmaxvalue then
-                            if intf.name ~= "" then
-                                return nil, T"The IP address is part of the "..intf.name.." IP Range"
-                            else
-                                return nil, T"The IP address is part of the "..intf.paramindex.." IP Range"
-                            end
-                        end
-                        --NG-100782>
+                if network and ipmax then
+                    if ip == sfplocalip then
+                        return nil, T"Gateway IP should not be in SFP interface IP Range, change that first"
                     end
+                    if ip >= network and ip <= ipmax then
+                        if intf.name ~= "" then
+                            return nil, T"Gateway IP should not be in " .. intf.name .. T" IP Range"
+                        else
+                            return nil, T"Gateway IP should not be in " .. intf.paramindex .. T" IP Range"
+                        end
+                    end
+                    --<NG-100782
+                    if ipnetwork <= network and network <= ipmaxvalue then
+                        if intf.name ~= "" then
+                            return nil, T"The IP address is part of the "..intf.name.." IP Range"
+                        else
+                            return nil, T"The IP address is part of the "..intf.paramindex.." IP Range"
+                        end
+                    end
+                    --NG-100782>
                 end
             end
         end
@@ -930,45 +927,42 @@ local function validateSFPIP(value, object, key)
         --NG-100782>
         for _,intf in pairs(all_intfs) do
             if intf.paramindex ~= sfpintf then
-                local ipaddr = proxy.get("uci.network.interface.@" .. intf.paramindex .. ".ipaddr")
-                if ipaddr then
-                    ipaddr = ipaddr[1].value
-                    local mask = proxy.get("uci.network.interface.@" .. intf.paramindex .. ".netmask")[1].value
-                    local baseip = post_helper.validateStringIsIP(ipaddr) and ipv42num(ipaddr)
-                    local netmask = post_helper.validateStringIsIP(mask) and ipv42num(mask)
-                    local lanip = proxy.get("uci.network.interface.@lan.ipaddr")
+                local ipaddr = proxy.get("uci.network.interface.@" .. intf.paramindex .. ".ipaddr")[1].value
+                local mask = proxy.get("uci.network.interface.@" .. intf.paramindex .. ".netmask")[1].value
+                local baseip = post_helper.validateStringIsIP(ipaddr) and ipv42num(ipaddr)
+                local netmask = post_helper.validateStringIsIP(mask) and ipv42num(mask)
+                local lanip = proxy.get("uci.network.interface.@lan.ipaddr")
 
-                    if lanip and lanip[1].value then
-                        lanip = lanip[1].value
-                    end
+                if lanip and lanip[1].value then
+                    lanip = lanip[1].value
+                end
 
-                    local network, ipmax
-                    if baseip and netmask then
-                        network = bit.band(baseip, netmask)
-                        ipmax = bit.bor(network, bit.bnot(netmask))
-                    end
+                local network, ipmax
+                if baseip and netmask then
+                    network = bit.band(baseip, netmask)
+                    ipmax = bit.bor(network, bit.bnot(netmask))
+                end
 
-                    if network and ipmax then
-                        if ip == lanip then
-                            return nil, T"SFP IP should not be in Gateway interface IP Range, change that first"
-                        end
-                        if ip >= network and ip <= ipmax then
-                            if intf.name ~= "" then
-                                return nil, T"SFP IP should not be in " .. intf.name .. T" IP Range"
-                            else
-                                return nil, T"SFP IP should not be in " .. intf.paramindex .. T" IP Range"
-                            end
-                        end
-                        --<NG-100782
-                        if ipnetwork <= network and network <= ipmaxvalue then
-                            if intf.name ~= "" then
-                                return nil, T"The IP address is part of the "..intf.name.." IP Range"
-                            else
-                                return nil, T"The IP address is part of the "..intf.paramindex.." IP Range"
-                            end
-                        end
-                        --NG-100782>
+                if network and ipmax then
+                    if ip == lanip then
+                        return nil, T"SFP IP should not be in Gateway interface IP Range, change that first"
                     end
+                    if ip >= network and ip <= ipmax then
+                        if intf.name ~= "" then
+                            return nil, T"SFP IP should not be in " .. intf.name .. T" IP Range"
+                        else
+                            return nil, T"SFP IP should not be in " .. intf.paramindex .. T" IP Range"
+                        end
+                    end
+                    --<NG-100782
+                    if ipnetwork <= network and network <= ipmaxvalue then
+                        if intf.name ~= "" then
+                            return nil, T"The IP address is part of the "..intf.name.." IP Range"
+                        else
+                            return nil, T"The IP address is part of the "..intf.paramindex.." IP Range"
+                        end
+                    end
+                    --NG-100782>
                 end
             end
         end
@@ -1259,7 +1253,7 @@ if curintf == "lan" then
         html[#html + 1] = ui_helper.createAlertBlock(T"Switch the WAN port to a normal LAN port", info_box)
         html[#html + 1] = ui_helper.createSwitch(T"WAN-Port LAN Mode", "ethsfp", content_sfp["ethsfp"])
     end
-    local IPv6addr = proxy.get("rpc.network.interface.@"..curintf..".ip6addr")[1].value
+    local IPv6addr = proxy.get("rpc.network.interface.@"..curintf..".ip6prefix_assignment")[1].value
     if IPv6addr == "" then
         html[#html + 1] = ui_helper.createLabel(T"LAN IPv6", T"IPv6 not assigned", advanced)
     else
@@ -1423,4 +1417,4 @@ $("#btn-dhcp-reset").on("click", function(){\
 </script>\
 \
 ');  ngx.print(ui_helper.createFooter())   ngx.print('\
-');
+'); 

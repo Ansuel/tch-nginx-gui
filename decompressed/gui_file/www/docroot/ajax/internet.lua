@@ -121,23 +121,23 @@ else
 		dns_wan = "rpc.network.interface.@wan.dnsservers",
 	}
 	
-	local interface = proxy.getPN("rpc.network.interface.", true)
-	
-	if interface then
-		for i,v in ipairs(interface) do
-			local intf = string.match(v.path, "rpc%.network%.interface%.@([^%.]+)%.")
-			if intf then
-				if intf == "6rd" then
+	for i,v in ipairs(proxy.getPN("rpc.network.interface.", true)) do
+		local intf = string.match(v.path, "rpc%.network%.interface%.@([^%.]+)%.")
+		if intf then
+			if intf == "6rd" then
 				content_rpc.ip6addr = "rpc.network.interface.@6rd.ip6addr"
 				content_rpc.ip6prefix = "rpc.network.interface.@6rd.ip6prefix"
-				elseif intf == "wan6" then
+			elseif intf == "wan6" then
 				content_rpc.ip6addr = "rpc.network.interface.@wan6.ip6addr"
 				content_rpc.ip6prefix = "rpc.network.interface.@wan6.ip6prefix"
-				end
+				break
+			elseif intf == "wan" then
+				content_rpc.ip6addr = "rpc.network.interface.@wan.ip6addr"
+				content_rpc.ip6prefix = "rpc.network.interface.@wan.ip6prefix"
 			end
 		end
 	end
-	
+
 	content_helper.getExactContent(content_rpc)
 	
 	if content_rpc.dns_wan:match(",") then

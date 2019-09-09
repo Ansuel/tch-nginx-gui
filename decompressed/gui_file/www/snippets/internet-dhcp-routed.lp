@@ -260,7 +260,7 @@ end
 local cs = {
     ipaddr = "rpc.network.interface.@wan.ipaddr",
     nexthop = "rpc.network.interface.@wan.nexthop",
-    dns_wan = "rpc.network.interface.@wan.dnsservers",
+    dns = "rpc.network.interface.@wan.dnsservers",
     dns_loopback = "rpc.network.interface.@loopback.dnsservers", -- Added to include static dns servers configured on loopback interface (for TI custo)
 }
 
@@ -269,16 +269,16 @@ for i,v in ipairs(proxy.getPN("rpc.network.interface.", true)) do
     if intf then
         if intf == "6rd" then
             cs.ip6addr = "rpc.network.interface.@6rd.ip6addr"
-	    cs.ip6prefix = "rpc.network.interface.@6rd.ip6prefix"
-	    cs.dnsv6 = "rpc.network.interface.@6rd.dnsservers"
+			cs.ip6prefix = "rpc.network.interface.@6rd.ip6prefix"
+			cs.dnsv6 = "rpc.network.interface.@6rd.dnsservers"
         elseif intf == "wan6" then
             cs.ip6addr = "rpc.network.interface.@wan6.ip6addr"
-	    cs.ip6prefix = "rpc.network.interface.@wan6.ip6prefix"
-	    cs.dnsv6 = "rpc.network.interface.@wan6.dnsservers"
+			cs.ip6prefix = "rpc.network.interface.@wan6.ip6prefix"
+			cs.dnsv6 = "rpc.network.interface.@wan6.dnsservers"
             break
         elseif intf == "wan" then
-              cs.ip6addr = "rpc.network.interface.@wan.ip6addr"
-              cs.ip6prefix = "rpc.network.interface.@wan.ip6prefix"
+            cs.ip6addr = "rpc.network.interface.@wan.ip6addr"
+            cs.ip6prefix = "rpc.network.interface.@wan.ip6prefix"
         end
     end
 end
@@ -298,18 +298,16 @@ end
 ajax_helper.handleAjaxQuery(cs, function(c)
     -- this will add the HTML for the light
     local ds = get_dhcp_state(content["uci_wan_auto"], c["ipaddr"])
-	local dnstab = split(proxy.get("rpc.network.interface.@loopback.dnsservers")[1].value, "[^%,]+")
+	local dnstab = split(proxy.get("rpc.network.interface.@wan.dnsservers")[1].value, "[^%,]+")
 	local dnsv4, dnsv6 = dns_filter(dnstab)
     ajax_attr_light.light.class = dhcp_light_map[ds]
     c.wan_status = ui_helper.createSimpleLight(nil, dhcp_state_map[ds], ajax_attr_light)
 	if proxy.get("uci.network.interface.@wan.auto")[1].value == "1" then
-		c.dns = content_helper.getMergedList(proxy.get("rpc.network.interface.@wan.dnsservers")[1].value, dnsv4)
-	else
 		c.dns = dnsv4
 	end
     local ipv6_enabled = proxy.get("uci.network.interface.@wan.ipv6")
     if ipv6_enabled and ipv6_enabled[1].value == "1" then
-		c.dnsv6 = content_helper.getMergedList(c.dnsv6, dnsv6)
+		c.dnsv6 = dnsv6
 	end
 	if ds == "connected" then
         content_helper.getExactContent(dhcp_lease)
@@ -319,11 +317,11 @@ end)
 -- will stop in handleAjaxQuery if it is an actual AJAX query
 content_helper.getExactContent(cs)
 
-local dnstab = split(cs.dns_loopback, "[^%,]+")
+local dnstab = split(cs.dns, "[^%,]+")
 local dnsv4, dnsv6 = dns_filter(dnstab)
-cs.dns = content_helper.getMergedList(cs.dns_wan, dnsv4)
-if dnsv6 and cs.dnsv6 then
-	cs.dnsv6 = content_helper.getMergedList(cs.dnsv6, dnsv6)
+cs.dns = dnsv4
+if dnsv6 and not cs.dnsv6 then
+	cs.dnsv6 = dnsv6
 end
 
 -- account for inconsistencies in DNS display format by removing extra spaces
