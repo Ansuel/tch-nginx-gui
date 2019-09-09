@@ -38,34 +38,21 @@ local SYSTEM_MODGUI_ = {
 
 register(SYSTEM_MODGUI_)
 
-local SYSTEM_MODGUI_UPGRADEGUI_ = {
-  objectType = {
-    name = 'rpc.system.modgui.upgradegui.',
-    access = 'readOnly',
-    minEntries = 1,
-    maxEntries = 1,
-    parameters = {
-      start = {
-        access = "readWrite",
-        type = "boolean",
-      }
-    }
-  }
+local commands_helper = {
+	checkver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/checkver"',
+	resetgui = '/usr/share/transformer/scripts/resetUtility.sh --resetGui',
+	removeroot = '/usr/share/transformer/scripts/resetUtility.sh --removeRoot',
+	resetconfig = '/usr/share/transformer/scripts/resetUtility.sh --removeConfig',
+	resetcwmp = '/usr/share/transformer/scripts/resetUtility.sh --resetCWMP',
+	checkver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/checkver"',
+	transfer_bank1 = '/usr/share/transformer/scripts/transfer_bank1.sh',
+	refreshDslDriver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/refresh_driver.sh"',
+	resetDslDriver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/refresh_driver.sh clean"',
+	copy_bank = '/usr/share/transformer/scripts/copy_bank.sh',
+	upgradegui = 'start-stop-daemon -S -b -x /usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/upgradegui GuiRequest"',
 }
 
-SYSTEM_MODGUI_UPGRADEGUI_.get = {
-  start = "0"
-}
-
-SYSTEM_MODGUI_UPGRADEGUI_.set = {
-  start = function(mapping, paramName, paramValue)  
-	if paramValue == "1" then
-        commitapply:newset("rpc.system.modgui.upgradegui." .. paramName)
-    end
-  end
-}
-
-register(SYSTEM_MODGUI_UPGRADEGUI_)
+local async_exec = require("lasync").execute
 
 local SYSTEM_MODGUI_UTILITY_ = {
   objectType = {
@@ -74,63 +61,17 @@ local SYSTEM_MODGUI_UTILITY_ = {
     minEntries = 1,
     maxEntries = 1,
     parameters = {
-      resetgui = {
-	    access = "readWrite",
-	    type = "boolean",
-	  },
-	  upgradegui = {
-	    access = "readWrite",
-	    type = "boolean",
-	  },
-	  checkver = {
-	    access = "readWrite",
-	    type = "boolean",
-	  },
-	  removeroot = {
-	    access = "readWrite",
-	    type = "boolean",
-	  },
-	  resetcwmp = {
-	    access = "readWrite",
-	    type = "boolean",
-	  },
-	  resetconfig = {
-	    access = "readWrite",
-	    type = "boolean",
-	  },
-	  refreshDslDriver = {
-	    access = "readWrite",
-	    type = "boolean",
-	  },
-	  resetDslDriver = {
-	    access = "readWrite",
-	    type = "boolean",
-	  },
-	  transfer_bank1 = {
-	    access = "readWrite",
-	    type = "boolean",
-	  },
-	  copy_bank = {
-	    access = "readWrite",
-	    type = "boolean",
-	  },
 	  rip_key_B = {
          access = "readOnly",
          type = "string",
       },
+	  sendcmd = {
+		 access = "readWrite",
+		 type = "string",
+	  }
     }
   },
   get = {
-	resetgui = "0",
-	upgradegui = "0",
-	checkver = "0",
-	removeroot = "0",
-	transfer_bank1 = "0",
-	refreshDslDriver = "0",
-	resetDslDriver = "0",
-	copy_bank = "0",
-	resetconfig = "0",
-	resetcwmp = "0",
 	rip_key_B = function()
 		local content = io.open("/proc/rip/0108")
 		local result = content:read("*all")
@@ -138,12 +79,17 @@ local SYSTEM_MODGUI_UTILITY_ = {
 		
 		return str2hex(result:sub(1,64))
 	end,
+	sendcmd = "",
   },
-  set = function(mapping, paramName, paramValue)
-		  if paramValue == "1" then
-		  	commitapply:newset("rpc.system.modgui.utility." .. paramName)
-		  end
+  set = {
+	sendcmd = function(mapping, paramName, paramValue)
+		local command = commands_helper[paramValue]
+		if not command then
+			return nil, "Invalid command"
 		end
+		async_exec({[command]=true})
+	end,
+  }
 }
 
 register(SYSTEM_MODGUI_UTILITY_)
@@ -283,23 +229,18 @@ local SYSTEM_MODGUI_APP_ = {
     minEntries = 1,
     maxEntries = 1,
     parameters = {
-	  install_emptyblacklist = {
-                access = "readWrite",
-                type = "boolean",
-            },
-	  refresh_blacklist = {
-				access = "readWrite",
-				type = "boolean"
-	  },
+	  sendcmd = {
+	    access = "readWrite",
+		type = "string"
+	  }
     }
   }
 }
 
 SYSTEM_MODGUI_APP_.get = {
-		install_emptyblacklist = "0",
-		refresh_blacklist = "0",
+	sendcmd = "",
 }
-
+--
 local app_list = {
 	"luci",
 	"aria2",
@@ -311,21 +252,52 @@ local app_list = {
 	"specific_app",
 }
 
-for _, app in ipairs(app_list) do
-	for _, action in ipairs({"install","remove","start","stop"}) do
-		SYSTEM_MODGUI_APP_.objectType.parameters[action.."_"..app] = 
-		{
-			access = "readWrite",
-			type = "boolean",
-		}
-		SYSTEM_MODGUI_APP_.get[action.."_"..app] = "0"
+local exec_type = {
+	"install",
+	"remove",
+	"start",
+	"stop",
+	"refresh",
+}
+
+local function contains(str,tbl)
+
+	for _, s in pairs(tbl) do
+		if str == s then
+			return true
+		end
 	end
+
+	return false
 end
 
-SYSTEM_MODGUI_APP_.set = function(mapping, paramName, paramValue) 
-	if paramValue == "1" then
-        commitapply:newset("rpc.system.modgui.app." .. paramName)
-    end
-end
+--Command should be sent with 3 part
+--
+-- First part must be type  ( install,remove,start,stop,refresh )
+-- Second part must be name
+-- Third is extra args to pass to the script
+--
+-- Example install_blacklist_empty
+--         remove_luci
+SYSTEM_MODGUI_APP_.set = {
+	sendcmd = function(mapping, paramName, paramValue)
+		local commdParse = {}
+
+		for s in paramValue:gmatch("[^%_]+") do
+			commdParse[#commdParse+1] = s
+		end
+		
+		if not contains(commdParse[1],exec_type) then
+			return nil, "Invalid exec type"
+		elseif not contains(commdParse[2],app_list) then
+			return nil, "Invalid app name"
+		end
+		
+		local wrapper = '/usr/share/transformer/scripts/wrapper.sh'
+		local appScript = '/usr/share/transformer/scripts/appInstallRemoveUtility.sh'
+		local command = string.format('%s "%s %s %s %s"',wrapper,appScript,commdParse[1],commdParse[2],commdParse[3] or "")
+		async_exec({[command]=true})
+	end,
+}
 
 register(SYSTEM_MODGUI_APP_)

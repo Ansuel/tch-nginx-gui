@@ -70,13 +70,13 @@ if ngx.var.request_method == "POST" then
          end
       end
 	elseif vars["action"] == "refreshdriver" then
-	  proxy.set("rpc.system.modgui.utility.refreshDslDriver", "1")
+	  proxy.set("rpc.system.modgui.utility.sendcmd","refreshDslDriver")
       proxy.apply()
 
 	  ngx.print('{ "success":"true" }')
 	  ngx.exit(ngx.HTTP_OK)
 	elseif vars["action"] == "resetdriver" then
-	  proxy.set("rpc.system.modgui.utility.resetDslDriver", "1")
+	  proxy.set("rpc.system.modgui.utility.sendcmd","resetDslDriver")
       proxy.apply()
 
 	  ngx.print('{ "success":"true" }')
