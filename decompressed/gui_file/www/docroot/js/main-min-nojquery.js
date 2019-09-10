@@ -2455,22 +2455,15 @@ function confirmationDialogue(t, e) {
 	$(document).on("change", "table .checkbox", function () {
 		0 === $(this).closest("table").find(".btn-table-cancel").length && l("TABLE-MODIFY", this)
 	}),
-	$(document).on("click", "#signout", function (t) {
-		t.preventDefault(),
-		t = $("<form>", {
-				action: "/",
-				method: "post"
-			}).append($("<input>", {
-					name: "do_signout",
-					value: "1",
-					type: "hidden"
-				})).append($("<input>", {
-					name: "CSRFtoken",
-					value: $("meta[name=CSRFtoken]").attr("content"),
-					type: "hidden"
-				})),
-		$("body").append(t),
-		t.submit()
+	$(document).on("click", "#signout", function () {
+		$.post(
+			"/", {
+				action: "do_signout",
+				CSRFtoken: $("meta[name=CSRFtoken]").attr("content")
+			},
+			null,
+			"json"
+		);
 	}),
 	$(document).on("shown", ".modal", function (t) {
 		$(t.target).hasClass("modal") && i()

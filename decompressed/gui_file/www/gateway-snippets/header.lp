@@ -27,16 +27,20 @@ if ngx.req.get_method() == "POST" then
   return apply("checkver")
   end
   if post_args.action == "autoupgrade_view" then
-  proxy.set("uci.modgui.gui.autoupgradeview", "none")
-  proxy.apply()
-  end
+	proxy.set("uci.modgui.gui.autoupgradeview", "none")
+	proxy.apply()
+	end
   if post_args.do_signout then
     session:logout()
+	ngx.header.content_type = "application/json"
+	ngx.print('{ "success":"true" }')
+	ngx.exit(ngx.HTTP_OK)
     -- Now we redirect to / until we find a better solution
     -- Otherwise, the current page might be rendered while the default user is not allowed to see it
     -- since the access was checked for the user "before" logging out
     -- TODO: find a more elegant solution, in session module?
-	ngx.print("<script>location.reload()</script>")
+
+	-- More elegant solution = follow standard way of do call and refresh page to the login page.
   end
   if post_args.passwordchange == "dontremind" then
     local result = content_helper.getMatchedContent("uci.web.user.", {name = session:getusername()})
@@ -191,7 +195,7 @@ ngx.print('\
         html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
         end
       end
-            html[#html + 1] = [[ <li><a tabindex="-1" href="/" id="signout"> ]]
+            html[#html + 1] = '<li><a tabindex="-1" href="'..session:getLoginPath()..'" id="signout">'
             html[#html + 1] = T"Sign out"
             html[#html + 1] = [[</a></li></ul></div>]]
 
