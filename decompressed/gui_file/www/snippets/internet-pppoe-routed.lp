@@ -329,23 +329,11 @@ local content_rpc = {
   dns_loopback = "rpc.network.interface.@loopback.dnsservers", -- Added to include static dns servers configured on loopback interface (for TI custo)
 }
 
-for i,v in ipairs(proxy.getPN("rpc.network.interface.", true)) do
-  local intf = match(v.path, "rpc%.network%.interface%.@([^%.]+)%.")
-  if intf then
-    if intf == "6rd" then
-      content_rpc.ip6addr = "rpc.network.interface.@6rd.ip6addr"
-      content_rpc.ip6prefix = "rpc.network.interface.@6rd.ip6prefix"
-      content_rpc.dnsv6 = "rpc.network.interface.@6rd.dnsservers"
-    elseif intf == "wan6" then
-      content_rpc.ip6addr = "rpc.network.interface.@wan6.ip6addr"
-      content_rpc.ip6prefix = "rpc.network.interface.@wan6.ip6prefix"
-      content_rpc.dnsv6 = "rpc.network.interface.@wan6.dnsservers"
-      break
-    elseif intf == "wan" then
-      content_rpc.ip6addr = "rpc.network.interface.@wan.ip6addr"
-      content_rpc.ip6prefix = "rpc.network.interface.@wan.ip6prefix"
-    end
-  end
+local internethelper = require("internethelper")
+local v6Key, v6Value
+
+for v6Key, v6Value in pairs(internethelper.getIpv6Content()) do
+	content_rpc[v6Key] = v6Value
 end
 
 ajax_helper.handleAjaxQuery(content_rpc, function(c)
@@ -506,23 +494,21 @@ html[#html+1] = ui_helper.createSwitch(T"Auto Discover DNS", "uci_wan_peerdns", 
 html[#html+1] = format('<label class="control-label">%s</label><div class="controls">', T"DNS servers")
 html[#html+1] = ui_helper.createTable(dns_columns, dns_data, dns_options, nil, dns_helpmsg)
 html[#html+1] = '</div>'
-	if proxy.get("uci.network.interface.@wan.ipv6")[1].value == "1" then
-   --if content_rpc["ip6addr"] and content_rpc["ip6addr"]:len() > 0 then
+   if content_rpc["ip6addr"] and content_rpc["ip6addr"]:len() > 0 then
 		ajax_attr.span.id = "ip6addr"
         html[#html+1] = ui_helper.createLabel(T"IPv6 Address", content_rpc["ip6addr"], ajax_attr)
-    --end
-    --if content_rpc["ipv6_gua"] and content_rpc["ipv6_gua"]:len() > 0 then
+   end
+   if content_rpc["ipv6_gua"] and content_rpc["ipv6_gua"]:len() > 0 then
 		ajax_attr.span.id = "ipv6_gua"
         html[#html+1] = ui_helper.createLabel(T"IPv6 GUA", content_rpc["ipv6_gua"], ajax_attr)
-    --end
-    --if content_rpc["ip6prefix"] and content_rpc["ip6prefix"]:len() > 0 then
+   end
+   if content_rpc["ip6prefix"] and content_rpc["ip6prefix"]:len() > 0 then
 		ajax_attr.span.id = "ip6prefix"
         html[#html+1] = ui_helper.createLabel(T"IPv6 Prefix", content_rpc["ip6prefix"], ajax_attr)
-    --end
-   --if content_rpc["dnsv6"] and content_rpc["dnsv6"]:len() > 0 then
+   end
+   if content_rpc["dnsv6"] and content_rpc["dnsv6"]:len() > 0 then
 		ajax_attr.span.id = "dnsv6"
         html[#html+1] = ui_helper.createLabel(T"IPv6 DNS", content_rpc["dnsv6"],ajax_attr)
-   --end
    end
    -- ATM VP/VC
     if wan_ppp_over_atm then

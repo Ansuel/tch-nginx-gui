@@ -264,23 +264,11 @@ local cs = {
     dns_loopback = "rpc.network.interface.@loopback.dnsservers", -- Added to include static dns servers configured on loopback interface (for TI custo)
 }
 
-for i,v in ipairs(proxy.getPN("rpc.network.interface.", true)) do
-    local intf = match(v.path, "rpc%.network%.interface%.@([^%.]+)%.")
-    if intf then
-        if intf == "6rd" then
-            cs.ip6addr = "rpc.network.interface.@6rd.ip6addr"
-			cs.ip6prefix = "rpc.network.interface.@6rd.ip6prefix"
-			cs.dnsv6 = "rpc.network.interface.@6rd.dnsservers"
-        elseif intf == "wan6" then
-            cs.ip6addr = "rpc.network.interface.@wan6.ip6addr"
-			cs.ip6prefix = "rpc.network.interface.@wan6.ip6prefix"
-			cs.dnsv6 = "rpc.network.interface.@wan6.dnsservers"
-            break
-        elseif intf == "wan" then
-            cs.ip6addr = "rpc.network.interface.@wan.ip6addr"
-            cs.ip6prefix = "rpc.network.interface.@wan.ip6prefix"
-        end
-    end
+local internethelper = require("internethelper")
+local v6Key, v6Value
+
+for v6Key, v6Value in pairs(internethelper.getIpv6Content()) do
+	cs[v6Key] = v6Value
 end
 
 local dhcp_lease = {
@@ -370,7 +358,6 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     ajax_attr.span.id = "dns"
     html[#html+1] = ui_helper.createLabel(T"DNS servers", cs["dns"],ajax_attr)
 	local ipv6_enabled = proxy.get("uci.network.interface.@wan.ipv6")
-	if ipv6_enabled and ipv6_enabled[1].value == "1" then
 		if cs["ip6addr"] and cs["ip6addr"]:len() > 0 then
 			ajax_attr.span.id = "ip6addr"
 			html[#html+1] = ui_helper.createLabel(T"IPv6 address", cs["ip6addr"], ajax_attr)
@@ -384,7 +371,6 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 			ajax_attr.span.id = "dnsv6"
 			html[#html+1] = ui_helper.createLabel(T"IPv6 DNS", cs["dnsv6"], ajax_attr)
 		end
-	end
     if content["uci_wan_peerdns"] == "" then
         content["uci_wan_peerdns"] = "1"
     end

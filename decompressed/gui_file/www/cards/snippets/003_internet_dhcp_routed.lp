@@ -16,25 +16,6 @@ local content = {
   wan_ipv6 = "uci.network.interface.@wan.ipv6",
 }
 
-for i,v in ipairs(proxy.getPN("rpc.network.interface.", true)) do
-  local intf = match(v.path, "rpc%.network%.interface%.@([^%.]+)%.")
-  if intf then
-    if intf == "6rd" then
-      content.ip6addr = "rpc.network.interface.@6rd.ip6addr"
-      content.ip6prefix = "rpc.network.interface.@6rd.ip6prefix"
-      content.dnsv6 = "rpc.network.interface.@6rd.dnsservers"
-    elseif intf == "wan6" then
-      content.ip6addr = "rpc.network.interface.@wan6.ip6addr"
-      content.ip6prefix = "rpc.network.interface.@wan6.ip6prefix"
-      content.dnsv6 = "rpc.network.interface.@wan6.dnsservers"
-      break
-    elseif intf == "wan" then
-      content.ip6addr = "rpc.network.interface.@wan.ip6addr"
-      content.ip6prefix = "rpc.network.interface.@wan.ip6prefix"
-    end
-  end
-end
-
 content_helper.getExactContent(content)
 
 -- Non-configurable data
@@ -43,6 +24,13 @@ local cs = {
     ipaddr = "rpc.network.interface.@wan.ipaddr",
     uptime = "rpc.network.interface.@wan.uptime",
 }
+
+local internethelper = require("internethelper")
+local v6Key, v6Value
+
+for v6Key, v6Value in pairs(internethelper.getIpv6Content()) do
+	cs[v6Key] = v6Value
+end
 
 local IPv6State = "none"
 
@@ -68,17 +56,6 @@ local ipv6_light_map = {
      prefix = "1",--"green",
 }
 setmetatable(ipv6_light_map, untaint_mt)
-
-for i,v in ipairs(proxy.getPN("rpc.network.interface.", true)) do
-  local intf = match(v.path, "rpc%.network%.interface%.@([^%.]+)%.")
-    if intf == "6rd" then
-      cs.ip6addr = "rpc.network.interface.@6rd.ip6addr"
-    elseif intf == "wan6" then
-      cs.ip6addr = "rpc.network.interface.@wan6.ip6addr"
-    elseif intf == "wan" then
-      cs.ip6addr = "rpc.network.interface.@wan.ip6addr"
-    end
-end
 
 content_helper.getExactContent(cs)
 
