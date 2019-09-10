@@ -25,6 +25,14 @@ local network_interface_ppp_ = {
         access = "readOnly",
         type = "string",
       },
+	  access_concentrator_name = {
+		access = "readOnly",
+        type = "string",
+	  },
+	  access_concentrator_mac = {
+		access = "readOnly",
+        type = "string",
+	  }
     },
   }
 }
@@ -35,14 +43,25 @@ local log = logger.new("network.interface.ppp", 2)
 local uci_helper = mapper("ucihelper")
 local nw_common = mapper("nwcommon")
 
+local function getPPPInfoData(key,data)
+	local intf_status = nw_common.get_ubus_interface_status(key)
+	if intf_status and intf_status.data and intf_status.data.pppinfo
+		and intf_status.data.pppinfo.pppstate ~= nil then
+		return intf_status.data.pppinfo[data]
+	end
+	return ""
+end
 
 local function get_state(mapping, paramName, key)
-  local intf_status = nw_common.get_ubus_interface_status(key)
-  if intf_status and intf_status.data and intf_status.data.pppinfo
-    and intf_status.data.pppinfo.pppstate ~= nil then
-    return intf_status.data.pppinfo.pppstate
-  end
-  return ""
+	return getPPPInfoData(key,"pppstate")
+end
+
+local function get_concentrator_name(mapping, paramName, key)
+	return getPPPInfoData(key,"access-concentrator-name")
+end
+
+local function get_concentrator_mac(mapping, paramName, key)
+	return getPPPInfoData(key,"access-concentrator-mac")
 end
 
 local function get_error(mapping, paramName, key)
@@ -115,6 +134,8 @@ network_interface_ppp_.get = {
   ll_intf = get_ll_intf,
   ll_dev = get_ll_intf,
   uptime = get_uptime,
+  access_concentrator_name = get_concentrator_name,
+  access_concentrator_mac = get_concentrator_mac,
 }
 register(network_interface_ppp_)
 
