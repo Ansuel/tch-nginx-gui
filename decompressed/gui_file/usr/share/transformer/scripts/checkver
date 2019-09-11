@@ -109,12 +109,12 @@ if [ $connectivity == "yes" ]; then
         logger -s -t "CheckVer Script" "Setting outdate version bit!"
         uci set modgui.gui.outdated_ver=1
         uci set modgui.gui.new_ver="$new_version"
+	      sleep 1 #needed to avoid setting Complete status too fast
     else
         logger -s -t "CheckVer Script" "No new version detected."
         uci set modgui.gui.outdated_ver=0
         uci set modgui.gui.new_ver="Unknown"
     fi
-	
 	uci commit env
 else
     logger -s -t "CheckVer Script" "No connection detected!"

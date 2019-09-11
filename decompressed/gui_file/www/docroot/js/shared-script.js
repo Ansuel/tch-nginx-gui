@@ -101,30 +101,37 @@ var modgui = modgui || {};
 			$(".check_update_spinner").addClass("fa-spin");
 				KoRequest.CheckVer = {
 					interval : setInterval(function () {
-						$.post("/ajax/commandlogread.lua" + "?auto_update=true", [tch.elementCSRFtoken()], function (data) {
-							if (data.state == "Checking") {
-								if (data.new_version_text) {
-									$(".gui_version_status_text").parent().fadeOut().fadeIn();
-									if (data.new_version_text == "Unknown") {
-										$(".gui_version_status").removeClass("yellow");
-										$(".gui_version_status").addClass("green");
-										$(".gui_version_status_text").text(gui_var.gui_updated);
-										$("#upgrade-alert").addClass("hide");
-									} else {
-										$(".gui_version_status").removeClass("green");
-										$(".gui_version_status").addClass("yellow");
-										$("#upgradebtn").removeClass("hide");
-										$(".gui_version_status_text").text(gui_var.gui_outdated);
-										$("#upgrade-alert").removeClass("hide");
-										$("#new-version-text").text(data.new_version_text);
+						$.ajax({
+							url:"/ajax/commandlogread.lua?auto_update=true",
+							data: [tch.elementCSRFtoken()],
+							type: "POST",
+							dataType: "json",
+							timeout: 500,
+							success: function (data) {
+								if (data.state == "Checking") {
+									if (data.new_version_text) {
+										if (data.new_version_text == "Unknown") {
+											$(".gui_version_status").removeClass("yellow");
+											$(".gui_version_status").addClass("green");
+											$(".gui_version_status_text").text(gui_var.gui_updated);
+											$("#upgrade-alert").addClass("hide");
+										} else {
+											$(".gui_version_status").removeClass("green");
+											$(".gui_version_status").addClass("yellow");
+											$("#upgradebtn").removeClass("hide");
+											$(".gui_version_status_text").text(gui_var.gui_outdated);
+											$("#upgrade-alert").removeClass("hide");
+											$("#new-version-text").text(data.new_version_text);
+										}
 									}
+								} else if (data.state == "Complete") {
+									$(".gui_version_status_text").parent().fadeOut().fadeIn();
+									$(".check_update_spinner").removeClass("fa-spin");
+									clearInterval(KoRequest.CheckVer.interval);
+									KoRequest.CheckVer = null;
 								}
-							} else if (data.state == "Complete") {
-								$(".check_update_spinner").removeClass("fa-spin");
-								clearInterval(KoRequest.CheckVer.interval);
-								KoRequest.CheckVer = null;
 							}
-						}, "json")
+						})
 					}, "500")
 				}
 		})
