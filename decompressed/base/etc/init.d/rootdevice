@@ -328,6 +328,7 @@ debug() {
 }
 
 boot() {
+  ubus send fwupgrade '{"state":"upgrading"}'
   logo_project
   check_full_rootfs
   check_root
@@ -359,4 +360,5 @@ boot() {
   fi
 
   check_bank
+  ubus send fwupgrade '{ "state": "done" }'
 }
