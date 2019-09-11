@@ -4764,7 +4764,7 @@ msgstr ""
 msgid "Reset xDSL Driver to original version"
 msgstr ""
 
-msgid "Reset the modem to original GUI. Some config will be preserved. Modem will still be rooted. To access from ssh use the old password or root"
+msgid "Reset the modem to the firmware stock GUI. Some config and root SSH access will be preserved. This roll back without a full reset can cause unexpected behaviours or instability"
 msgstr ""
 
 msgid "Concentrator Name"

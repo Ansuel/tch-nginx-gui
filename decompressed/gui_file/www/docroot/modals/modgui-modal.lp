@@ -494,7 +494,7 @@ local resetting_config = {
 
 html[#html + 1] = ui_helper.createButton(T"Force CWMP provisioning", T"Reset CWMP", "icon-refresh", reset_cwmp)
 
-html[#html + 1] = ui_helper.createAlertBlock(T"Reset the modem to original GUI. Some config will be preserved. Modem will still be rooted. To access from ssh use the old password or root", info_box)
+html[#html + 1] = ui_helper.createAlertBlock(T"Reset the modem to the firmware stock GUI. Some config and root SSH access will be preserved. This roll back without a full reset can cause unexpected behaviours or instability", info_box)
 html[#html + 1] = ui_helper.createAlertBlock(T"Resetting to default GUI, please wait...", resetting)
 html[#html + 1] = ui_helper.createButton(T"Restore GUI", T"Restore", "icon-refresh", reset_gui)
 
