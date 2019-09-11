@@ -324,7 +324,9 @@ local content_rpc = {
   wan_ppp_ll_intf = "rpc.network.interface.@wan.ppp.ll_intf",
   ipaddr = "rpc.network.interface.@wan.ipaddr",
   nexthop = "rpc.network.interface.@wan.nexthop",
-  dns = "rpc.network.interface.@wan.dnsservers",
+  dns_wan = "rpc.network.interface.@wan.dnsservers",
+  concentrator_name = "rpc.network.interface.@wan.ppp.access_concentrator_name",
+  concentrator_mac = "rpc.network.interface.@wan.ppp.access_concentrator_mac",
   ipv6_gua = "rpc.network.interface.@wan6.ipv6uniquelocaladdr",
   dns_loopback = "rpc.network.interface.@loopback.dnsservers", -- Added to include static dns servers configured on loopback interface (for TI custo)
 }
@@ -481,12 +483,16 @@ if tech then
     html[#html + 1] = ui_helper.createInputText(T"Host Uniq Tag","uci_wan_host_uniq", content["uci_wan_host_uniq"], nil, helpmsg["uci_wan_host_uniq"])
     html[#html + 1] = ui_helper.createInputText(T"MAC Spoof (Wan MAC)","uci_wan_mac", content["uci_wan_mac"], nil, helpmsg["uci_wan_mac"])
 end
-ajax_attr.span.id = "ipaddr"
-html[#html+1] = ui_helper.createLabel(T"IP address", content_rpc["ipaddr"], ajax_attr)
-ajax_attr.span.id = "nexthop"
-html[#html+1] = ui_helper.createLabel(T"Gateway", content_rpc["nexthop"], ajax_attr)
-ajax_attr.span.id = "dns"
-html[#html+1] = ui_helper.createLabel(T"DNS servers", content_rpc["dns"], ajax_attr)
+	ajax_attr.span.id = "ipaddr"
+    html[#html+1] = ui_helper.createLabel(T"IPv4 address", content_rpc["ipaddr"], ajax_attr)
+	ajax_attr.span.id = "nexthop"
+    html[#html+1] = ui_helper.createLabel(T"Gateway", content_rpc["nexthop"], ajax_attr)
+    ajax_attr.span.id = "concentrator_name"
+    html[#html+1] = ui_helper.createLabel(T"Concentrator Name", content_rpc["concentrator_name"], ajax_attr)
+    ajax_attr.span.id = "concentrator_mac"
+    html[#html+1] = ui_helper.createLabel(T"Concentrator MAC", content_rpc["concentrator_mac"], ajax_attr)
+	ajax_attr.span.id = "dns"
+    html[#html+1] = ui_helper.createLabel(T"DNS servers", content_rpc["dns"], ajax_attr)
 if content["uci_wan_peerdns"] == "" then
     content["uci_wan_peerdns"] = "1"
 end
