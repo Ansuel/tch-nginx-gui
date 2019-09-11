@@ -560,6 +560,7 @@ ngx.print('\
 	msg_dst.replaceWith(msg);\
 	msg.removeClass("hide");\
 	msg[0].scrollIntoView();\
+	if(callbackfunc == wait_for_webserver_down) modgui.clearKoInterval();\
 	$.post(target,{action: action, CSRFtoken: $("meta[name=CSRFtoken]").attr("content")}, callbackfunc,"json");\
 	return false;\
   };\

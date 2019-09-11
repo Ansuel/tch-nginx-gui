@@ -908,6 +908,7 @@ ngx.print('\
     msg_dst.replaceWith(msg);\
     msg.removeClass("hide");\
     msg[0].scrollIntoView();\
+	modgui.clearKoInterval();\
     $.post(\
       target,\
       { action: action, CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
