@@ -26,7 +26,6 @@ local cs = {
 }
 
 local internethelper = require("internethelper")
-local v6Key, v6Value
 
 for v6Key, v6Value in pairs(internethelper.getIpv6Content()) do
 	cs[v6Key] = v6Value

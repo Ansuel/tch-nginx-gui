@@ -62,21 +62,10 @@ local content = {
   uptime = "rpc.network.interface.@wan.uptime",
 }
 
-local interface = proxy.getPN("rpc.network.interface.", true)
+local internethelper = require("internethelper")
 
-if interface then
-	for i,v in ipairs(interface) do
-		local intf = string.match(v.path, "rpc%.network%.interface%.@([^%.]+)%.")
-		if intf then
-			if intf == "6rd" then
-				content.ip6addr = "rpc.network.interface.@6rd.ip6addr"
-				content.ip6prefix = "rpc.network.interface.@6rd.ip6prefix"
-			elseif intf == "wan6" then
-				content.ip6addr = "rpc.network.interface.@wan6.ip6addr"
-				content.ip6prefix = "rpc.network.interface.@wan6.ip6prefix"
-			end
-		end
-	end
+for v6Key, v6Value in pairs(internethelper.getIpv6Content()) do
+	content[v6Key] = v6Value
 end
 
 content_helper.getExactContent(content)

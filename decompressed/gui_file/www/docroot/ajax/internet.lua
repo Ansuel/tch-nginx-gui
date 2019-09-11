@@ -123,7 +123,6 @@ else
 	}
 	
 	local internethelper = require("internethelper")
-	local v6Key, v6Value
 	
 	for v6Key, v6Value in pairs(internethelper.getIpv6Content()) do
 		content_rpc[v6Key] = v6Value
