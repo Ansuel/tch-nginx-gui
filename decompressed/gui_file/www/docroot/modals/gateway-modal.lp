@@ -905,9 +905,9 @@ ngx.print('\
   }\
 \
   function resetreboot(msg, msg_dst, action) {\
-    msg_dst.replaceWith(msg);\
     msg.removeClass("hide");\
     msg[0].scrollIntoView();\
+    msg_dst.replaceWith(msg);\
 	modgui.clearKoInterval();\
     $.post(\
       target,\
