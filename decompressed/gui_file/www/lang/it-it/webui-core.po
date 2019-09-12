@@ -4765,10 +4765,10 @@ msgid "Reset xDSL Driver to original version"
 msgstr "Ripristina driver xDSL alla versione originale"
 
 msgid "Reset the modem to the firmware stock GUI. Some config and root SSH access will be preserved. This roll back without a full reset can cause unexpected behaviours or instability"
-msgstr "Reimposta la GUI originale del modem. L'accesso root e alcune configurazioni verrranno mantenute. Questo ripristino senza ripristino completo può causare comportamenti inaspettati e instabilità"
+msgstr "Reimposta la GUI originale del modem.<br/>L'accesso root e alcune configurazioni verrranno mantenute.<br/>Questo ripristino senza un ripristino completo può causare comportamenti inaspettati e instabilità"
 
 msgid "Concentrator Name"
-msgstr "Nome Concentratore"
+msgstr "Nome concentratore"
 
 msgid "Concentrator MAC"
-msgstr "MAC Concentratore"
+msgstr "MAC concentratore"
