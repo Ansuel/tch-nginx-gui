@@ -50,6 +50,8 @@ local commands_helper = {
 	resetDslDriver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/refresh_driver.sh clean"',
 	copy_bank = '/usr/share/transformer/scripts/copy_bank.sh',
 	upgradegui = 'start-stop-daemon -S -b -x /usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/upgradegui GuiRequest"',
+	genSysupgradeBackup = function(filename) return '/usr/share/transformer/scripts/wrapper.sh "sysupgrade -b /tmp/'..filename..'"' end,
+	restoreSysupgradeBackup = '/usr/share/transformer/scripts/wrapper.sh "sysupgrade -r /tmp/sysupgrade_backup.tar.gz',
 }
 
 local async_exec = require("lasync").execute
@@ -83,9 +85,14 @@ local SYSTEM_MODGUI_UTILITY_ = {
   },
   set = {
 	sendcmd = function(mapping, paramName, paramValue)
-		local command = commands_helper[paramValue]
+		local param = paramValue:gsub("_.*","")
+		local args = paramValue:gsub("[A-z]+_","")
+		local command = commands_helper[param]
 		if not command then
 			return nil, "Invalid command"
+		end
+		if type(command) == "function" then
+			command = command(args)
 		end
 		async_exec({[command]=true})
 	end,

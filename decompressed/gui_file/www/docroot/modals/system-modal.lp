@@ -330,6 +330,8 @@ if ngx.req.get_method() == "POST" then
 		local f = io.open(fname, "r")
 		ngx.print(f:read("*all"))
 		f:close()
+		
+		os.remove(fname)
 
         -- and we're done
 		ngx.exit(ngx.HTTP_OK)
