@@ -15,6 +15,25 @@ local gOV = post_helper.getOrValidation
 local gAV = post_helper.getAndValidation
 local gOV = post_helper.getOptionalValidation
 
+local function wait_for_completion(base_path)
+  local state_path = base_path .. "state"
+  local sleep_time = 0.250
+  local max_time = 7
+  local total_time = 0
+  local content
+  repeat
+    ngx.sleep(sleep_time)
+    total_time = total_time + sleep_time
+
+    content = { state = state_path }
+    content_helper.getExactContent(content)
+
+    if content.state == "Complete" then
+      break
+    end
+  until (total_time >= max_time)
+end
+
 local function receive_file(filename, match)
 	function do_receive(outfile, match)
 		local upload = require("web.fileupload")
@@ -71,6 +90,16 @@ local function receive_file(filename, match)
 	return result, err_code, err_msg
 end
 
+local function sendcmd(cmd)
+	proxy.set("rpc.system.modgui.utility.sendcmd", cmd)
+	ngx.header.content_type = "application/json"
+	ngx.print('{ "success":"true" }')
+	ngx.timer.at(0, function()
+		proxy.apply()
+	end)
+	ngx.exit(ngx.HTTP_OK)
+end
+
 local function upgradeguifile()
 
 	local update_branch = proxy.get("uci.modgui.gui.update_branch")
@@ -91,13 +120,7 @@ local function upgradeguifile()
 
 	local rcv_ok, rcv_errno, rcv_errmsg = receive_file(dl, 'name="upgradefile"')
 
-	proxy.set("rpc.system.modgui.upgradegui.start", "1")
-	proxy.set("rpc.system.modgui.upgradegui.state", "Requested")
-	proxy.apply()
-
-	ngx.print('{ "success":"true" }')
-	ngx.exit(ngx.HTTP_OK)
-
+	sendcmd("upgradegui")
 end
 
 local function getSupportedModel()
@@ -125,18 +148,21 @@ local function installspecificapp()
 
 	local dl = untaint(fwupgrade_location) .. "upgrade-pack-specific" .. device .. ".tar.bz2"
 
-	local rcv_ok, rcv_errno, rcv_errmsg = receive_file(dl, 'name="upgradefile"')
+	local rcv_ok, rcv_errno, rcv_errmsg = receive_file(dl, 'name="specificapp_file"')
 
-	proxy.set("rpc.system.modgui.app.sendcmd","install_specificapp")
 	proxy.set("uci.modgui.app.specific_app","1")
-	proxy.apply()
-
-	ngx.print('{ "success":"true" }')
-	ngx.exit(ngx.HTTP_OK)
+	sendcmd("install_specificapp")
 end
 
-local function sendcmd(cmd)
-	proxy.set("rpc.system.modgui.utility.sendcmd", cmd)
+local function restoreFromSysupgradeBackup()
+	-- flush the web template cache
+	lp.flush()
+
+	local dl = "/tmp/sysupgrade_backup.tar.gz"
+
+	local rcv_ok, rcv_errno, rcv_errmsg = receive_file(dl, 'name="sysupgrade_backup"')
+
+	--sendcmd("restoreSysupgradeBackup")
 	ngx.header.content_type = "application/json"
 	ngx.print('{ "success":"true" }')
 	ngx.timer.at(0, function()
@@ -145,7 +171,36 @@ local function sendcmd(cmd)
 	ngx.exit(ngx.HTTP_OK)
 end
 
+local function genSysupgradeBackup()
+
+	local hostname = proxy.get("uci.system.system.@system[0].hostname")
+	hostname = hostname and hostname[1].value or "Unknown"
+	local filename = format("%s-%s.tar.gz",hostname,os.date("%d-%m-%y_%H:%m"))
+
+	proxy.set("rpc.system.modgui.utility.sendcmd", "genSysupgradeBackup_"..filename)
+	wait_for_completion("rpc.system.modgui.executeCommand.")
+    
+    -- return exported data
+	if filename ~= "" then
+		ngx.header.content_disposition = "attachment; filename="..filename
+		ngx.header.content_type = "application/octet-stream"
+		ngx.header.set_cookie = "fileDownload=true; Path=/"  -- the JS download code requires this cookie
+		local f = io.open("/tmp/"..filename, "r")
+		if f then 
+			ngx.print(f:read("*all"))
+			f:close()
+			os.remove("/tmp/"..filename)
+		
+			-- and we're done
+			ngx.exit(ngx.HTTP_OK)
+		end
+	end
+	
+	ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+end
+
 if ngx.req.get_method() == "POST" then
+	-- now process file POSTs
 	local action = ngx.req.get_uri_args().action
 	if action == "upgradeguifile" then
 		return upgradeguifile()
@@ -153,6 +208,10 @@ if ngx.req.get_method() == "POST" then
 	if action == "installspecificapp" then
 		return installspecificapp()
 	end
+	if action == "system_restoreBackup" then
+		return restoreFromSysupgradeBackup()
+	end
+	-- now process non-file POSTs
 	local action = ngx.req.get_post_args().action
 	if action == "system_reset_gui" then
 		return sendcmd("resetgui")
@@ -161,12 +220,8 @@ if ngx.req.get_method() == "POST" then
 		return sendcmd("upgradegui")
 	end
 	if action == "system_install_specificapp" then
-		proxy.set("rpc.system.modgui.app.sendcmd","install_specificapp")
 		proxy.set("uci.modgui.app.specific_app","1")
-		proxy.apply()
-
-		ngx.exit(ngx.HTTP_OK)
-		return
+		return sendcmd("install_specificapp")
 	end
 	if action == "system_remove_root" then
 		return sendcmd("removeroot")
@@ -176,6 +231,9 @@ if ngx.req.get_method() == "POST" then
 	end
 	if action == "system_reset_cwmp" then
 		return sendcmd("resetcwmp")
+	end
+	if action == "system_genBackup" then
+		return genSysupgradeBackup()
 	end
 	if proxy.get("uci.web.sessionmgr.@default.force_https")[1].value ~= ngx.req.get_post_args().gui_forcehttps then
 		local mngr = require("web.sessioncontrol").loadmgr("default")
@@ -389,6 +447,12 @@ if content.specific_app ~= "" then
 			id = "upgrade-specificapp-fail"
 		}
 	}
+	local upload_specificapp_alert = {
+		alert = {
+			class = "alert-info hide",
+			id = "upload-specificapp-alert"
+		}
+	}
 	local install_specificapp = {
 		group = {
 			class = "wait-for-reset"
@@ -413,8 +477,9 @@ if content.specific_app ~= "" then
 		html[#html + 1] = '<div class="control-group">'
 		html[#html + 1] = format('<label class="control-label">%s</label>', T"Upload Specific App")
 		html[#html + 1] = '<div class="controls">'
-		html[#html + 1] = '<input type="file" name="specificapp" id="file-specificapp" accept=".bz2">&nbsp;'
+		html[#html + 1] = '<input type="file" name="specificapp_file" id="file-specificapp" accept=".bz2">&nbsp;'
 		html[#html + 1] = ui_helper.createSimpleButton(T"Install", "icon-shield", upload_specific_app)
+		html[#html + 1] = ui_helper.createAlertBlock(T"Uploading file. Please wait...", upload_specificapp_alert)
 		html[#html + 1] = ui_helper.createAlertBlock(T"Update failed. Please try again.", upload_specificapp_fail)
 		html[#html + 1] = '</div></div>'
 	end
@@ -505,11 +570,54 @@ html[#html + 1] = ui_helper.createButton(T"Reset to Factory", T"Remove Root", "i
 html[#html + 1] = ui_helper.createAlertBlock(T"Reset the router to factory settings and mantain modded GUI.", info_box)
 html[#html + 1] = ui_helper.createAlertBlock(T"Resetting config to default, please wait...", resetting_config)
 html[#html + 1] = ui_helper.createButton(T"Reset config to Factory", T"Remove Config", "icon-refresh", remove_config)
+html[#html + 1] = '</form>'
+ngx.print(html)
+
+local html = {}
+
+local import_backup = {
+	button = {
+		class = "import-backup custom-handler",
+		id = "btn-import-backup"
+	}
+}
+local upload_backup_alert = {
+		alert = {
+			class = "alert-info hide",
+			id = "upload-backup-alert"
+		}
+	}
+local restore_fail = {
+	alert = {
+		class = "alert-error hide",
+		id = "restore-fail"
+	}
+}
+local gen_backup = {
+	button = {
+		class = "custom-handler",
+		id = "btn-gen-backup"
+	}
+}
+
+html[#html + 1] = '<form class="form-horizontal" id="form-import-backup" method="post" action="modals/modgui-modal.lp?action=system_restoreBackup" enctype="multipart/form-data">'
+html[#html + 1] = '<legend>'.. T"Advanced Restore & Backup" ..'</legend>'
+
+html[#html + 1] = ui_helper.createAlertBlock(T"This will use OpenWRT backup and restore function insteand of the Technicolor function.", info_box)
+html[#html + 1] = ui_helper.createButton(T"Backup Zip", T"Generate", "icon-exchange", gen_backup)
+html[#html + 1] = '<div class="control-group">'
+html[#html + 1] = format('<label class="control-label">%s</label>', T"Upload Backup")
+html[#html + 1] = '<div class="controls">'
+html[#html + 1] = '<input type="file" name="sysupgrade_backup" id="file-restore" accept=".gz">&nbsp;'
+html[#html + 1] = ui_helper.createSimpleButton(T"Restore", "icon-shield", import_backup)
+html[#html + 1] = ui_helper.createAlertBlock(T"Uploading file. Please wait...", upload_backup_alert)
+html[#html + 1] = ui_helper.createAlertBlock(T"Upload failed. Please try again.", restore_fail)
+html[#html + 1] = '</div></div>'
+html[#html + 1] = '</form>'
 
 ngx.print(html)
 
 ngx.print('\
-	</form>\
   </fieldset>\
 </div>\
 ');
@@ -633,6 +741,21 @@ ngx.print('\
 	schedulReload = true;\
   });\
 \
+  $("#btn-gen-backup").on("click", function() {\
+    $.fileDownload(target, {\
+      httpMethod: "POST",\
+      data: new Array({ name : "action", value : "system_genBackup" },\
+                      { name : "CSRFtoken", value : $("meta[name=CSRFtoken]").attr("content") }),\
+      prepareCallback: function() {\
+		tch.showProgress("');  ngx.print(T"Generating backup in background..."); ngx.print('");\
+      },\
+      successCallback: function() {\
+		tch.removeProgress();\
+      }\
+    });\
+    return false;\
+  });\
+\
   $("#gui_forcehttps,#gui_alwaysadvanced").on("change", function() {\
 	schedulReload = true;\
   });\
@@ -723,11 +846,49 @@ ngx.print('\
 	  params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
 	  completeCallback: function(form, response) {\
 		if (response.success) {\
-		  tch.showProgress("Installing...");\
-		  scriptRequestStatusAjax();\
+		  tch.openModal("/modals/command-log-read-modal.lp");\
 		} else {\
 		  importing_msg.addClass("hide");\
 		  $("#upgrade-specificapp-fail").removeClass("hide");\
+		}\
+	  }\
+	});\
+	return false;\
+  });\
+\
+$(".import-backup").on("click", function() {\
+	var nofile_msg = $("#restore-fail");\
+	var wrongext_msg = $("#restore-fail");\
+	nofile_msg.addClass("hide");\
+	if ($("#file-restore").val() == "") {\
+	  nofile_msg.removeClass("hide");\
+	  nofile_msg[0].scrollIntoView();\
+	  return false;\
+	};\
+\
+	var validExtensions = [\'gz\'];\
+	var fileName = $("#file-restore").val();\
+\
+	var fileNameExt = fileName.substr(fileName.lastIndexOf(".") + 1);\
+	if ($.inArray(fileNameExt, validExtensions) == -1){\
+		wrongext_msg.removeClass("hide");\
+	wrongext_msg[0].scrollIntoView();\
+	return false;\
+	};\
+	var fileSize = $("#file-restore")[0].files[0].size;\
+	var importing_msg = $("#upload-backup-alert");\
+	var _this = $(this).parents(".control-group");\
+	importing_msg.removeClass("hide");\
+	importing_msg[0].scrollIntoView();\
+\
+	$.fileUpload($("#form-import-backup"), {\
+	  params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
+	  completeCallback: function(form, response) {\
+		if (response.success) {\
+		  tch.showProgress("Rebooting...");\
+		} else {\
+		  importing_msg.addClass("hide");\
+		  $("#restore-fail").removeClass("hide");\
 		}\
 	  }\
 	});\
