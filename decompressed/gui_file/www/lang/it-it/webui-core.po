@@ -342,10 +342,10 @@ msgstr "Elenco applicazioni"
 msgid "Apply"
 msgstr "Applica"
 
-msgid "Are you sure to switch the modem to <strong>Bridged Mode</strong>? <br />"
-msgstr "Sei sicuro di voler impostare il modem in <strong>Modalità bridged</strong>? <br />"
+msgid "Are you sure to switch the modem to <strong>Bridged Mode</strong>?<br/>"
+msgstr "Sei sicuro di voler impostare il modem in <strong>Modalità bridged</strong>?<br/>"
 
-msgid "Are you sure to switch the modem to <strong>Voice Mode</strong>? <br />"
+msgid "Are you sure to switch the modem to <strong>Voice Mode</strong>?<br/>"
 msgstr "Sei sicuro di voler impostare il modem in <strong>Modalità voce</strong>?<br/>"
 
 msgid "Are you sure you want to remove root from this modem? </br><strong> This could be permanent, so it's not recommended.</strong>"
