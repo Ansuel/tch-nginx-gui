@@ -270,7 +270,7 @@ local SIP_valid = {
 --  so we have to make sure the fields are not empty otherwise it will be a bug
     LastName = vNES,
 }
-assword
+
 local SIP_options = {
   tableid = "local_user",
   basepath    = "uci.pbx.",
