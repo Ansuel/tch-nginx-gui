@@ -34,8 +34,7 @@ mapper("uci_1to1").registerSimpleMap(hotspotd_redirect)
 local hotspotd_portal = {
   config = config_hotspotd,
   section = "portal",
-  options = { "maxconn","port", },
-  passwords = { "secret" }
+  options = { "maxconn","port","secret" }
 }
 mapper("uci_1to1").registerSimpleMap(hotspotd_portal)
 
@@ -80,8 +79,7 @@ mapper("uci_1to1").registerSimpleMap(hotspotd_radauth)
 local hotspotd_radacct = {
   config = config_hotspotd,
   section = "radacct",
-  options = { "port", },
-  passwords = { "secret" },
+  options = { "port", "secret" },
   lists = { "server","templateserver", },
 }
 mapper("uci_1to1").registerSimpleMap(hotspotd_radacct)

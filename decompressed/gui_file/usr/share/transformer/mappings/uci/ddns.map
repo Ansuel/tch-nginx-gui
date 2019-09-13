@@ -12,10 +12,7 @@ local ddns_service = {
       "username", "force_interval", "force_unit",
       "check_interval", "check_unit", "retry_interval", "retry_unit",
       "ip_source", "ip_network", "ip_interface", "ip_script", "ip_url",
-      "update_url", "use_https", "cacert",
-   },
-   passwords = {
-      "password"
+      "update_url", "use_https", "cacert", "password"
    }
 }
 mapper("uci_1to1").registerNamedMultiMap(ddns_service)

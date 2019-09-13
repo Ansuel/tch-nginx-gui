@@ -19,8 +19,8 @@ if datatype and datatype== "xdsl" then
 	
 	data = {
 		status = "sys.class.xdsl.@line0.LinkStatus",
-		max_upstream = "Device.DSL.Line.1.UpstreamMaxBitRate",
-		max_downstream = "Device.DSL.Line.1.DownstreamMaxBitRate",
+		dsl_linerate_up_max = "sys.class.xdsl.@line0.UpstreamMaxRate",
+		dsl_linerate_down_max = "sys.class.xdsl.@line0.DownstreamMaxRate",
 		dsl_linerate_up = "sys.class.xdsl.@line0.UpstreamCurrRate",
 		dsl_linerate_down = "sys.class.xdsl.@line0.DownstreamCurrRate",
 		dsl_margin_up = "sys.class.xdsl.@line0.UpstreamNoiseMargin",
@@ -35,22 +35,26 @@ if datatype and datatype== "xdsl" then
 		dslam_chipset = "rpc.xdslctl.DslamChipset",
 		dslam_version = "rpc.xdslctl.DslamVersion",
 		dsl_profile = "rpc.xdslctl.DslProfile",
-		dsl_port = "rpc.xdslctl.DslamPort"
+		dsl_port = "rpc.xdslctl.DslamPort",
+		dslam_version_raw = "rpc.xdslctl.DslamVersionRaw",
+		dsl_serial = "rpc.xdslctl.DslamSerial",
 	}
-	
-	content = {
-		dslam_version_raw = "rpc.xdslctl.DslamVersionRaw"
-	}
-	
-	content_helper.getExactContent(content)
 	
 	content_helper.getExactContent(data)
 	
 	if not ( data.dsl_linerate_down == "0" ) then
-		data.dsl_linerate_up = floor(tonumber(data.dsl_linerate_up) / 10) / 100 .. " Mbps"
-		data.dsl_linerate_down = floor(tonumber(data.dsl_linerate_down) / 10) / 100 .. " Mbps"
-		data.max_upstream = floor(tonumber(data.max_upstream) / 10) / 100 .. " Mbps"
-		data.max_downstream = floor(tonumber(data.max_downstream) / 10) / 100 .. " Mbps"
+		data.dsl_linerate_up = data.dsl_linerate_up and 
+			(floor(tonumber(data.dsl_linerate_up) / 10) / 100 .. " Mbps") or
+			"Can't recover data"
+		data.dsl_linerate_down = data.dsl_linerate_down and 
+			(floor(tonumber(data.dsl_linerate_down) / 10) / 100 .. " Mbps") or
+			"Can't recover data"
+		data.dsl_linerate_up_max = data.dsl_linerate_up_max and 
+			(floor(tonumber(data.dsl_linerate_up_max) / 10) / 100 .. " Mbps") or
+			"Can't recover data"
+		data.dsl_linerate_down_max = data.dsl_linerate_down_max and 
+			(floor(tonumber(data.dsl_linerate_down_max) / 10) / 100 .. " Mbps") or 
+			"Can't recover data"
 		
 		if not ( data.dsl_type:match("ADSL") ) then
 			data.dsl_margin_down = data.dsl_margin_SNRM_down
@@ -63,20 +67,22 @@ if datatype and datatype== "xdsl" then
 			data.dslam_chipset = "Infineon" .. " ( " .. data.dslam_chipset .. " )"
 		end
 		
-		if not ( content.dslam_version_raw:sub(0,2) == "0x" ) then
-			if content.dslam_version_raw == "" then
-				data.dslam_chipset = T"Can't recover dslam version."
+		if not ( data.dslam_version_raw:sub(0,2) == "0x" ) then
+			if data.dslam_version_raw == "" then
+				data.dslam_chipset = T"Can't recover DSLAM version."
 			else
-				data.dslam_chipset = format(T"Invalid version, can't convert. Raw value: %s", content.dslam_version_raw)
+				data.dslam_chipset = format(T"Invalid version, can't convert. Raw value: %s", data.dslam_version_raw)
 			end
 		end
 		
-		if data.status == "Showtime" then
-			data.status = T"Connected"
-		elseif data.status == "" then
-			data.status = T"Disconnected"
+		data.dslam_version_raw = nil
+		
+		if data["status"]:match("Showtime") then
+			data["status"] = T"Connected"
+		elseif data["status"] == "" then
+			data["status"] = T"Disconnected"
 		else
-			data.status = T(data.status)
+			data["status"] = T(data.status)
 		end
 	else
 		for index in pairs(data) do
@@ -91,41 +97,37 @@ else
 	local table = table
 	local format = string.format
 	local content_uci = {
-	wan_proto = "uci.network.interface.@wan.proto",
-	wan_auto = "uci.network.interface.@wan.auto",
-	wan_ipv6 = "uci.network.interface.@wan.ipv6",
-	wan_mode = "uci.network.config.wan_mode",
+		wan_proto = "uci.network.interface.@wan.proto",
+		wan_auto = "uci.network.interface.@wan.auto",
+		wan_ipv6 = "uci.network.interface.@wan.ipv6",
+		wan_ifname = "uci.network.interface.@wan.ifname",
+		wan_mode = "uci.network.config.wan_mode",
 	}
 	content_helper.getExactContent(content_uci)
 	
-	local content_rpc = {
-	wan_ppp_state = "rpc.network.interface.@wan.ppp.state",
-	wan_ppp_error = "rpc.network.interface.@wan.ppp.error",
-	ipaddr = "rpc.network.interface.@wan.ipaddr",
-	pppoe_uptime = "rpc.network.interface.@wan.uptime",
-	up = "rpc.network.interface.@wan.up",
-	ipaddr = "rpc.network.interface.@wan.ipaddr",
-	nexthop = "rpc.network.interface.@wan.nexthop",
-	dns_wan = "rpc.network.interface.@wan.dnsservers",
-	}
+	local wan_interface = "wan"
 	
-	local interface = proxy.getPN("rpc.network.interface.", true)
-	
-	if interface then
-		for i,v in ipairs(interface) do
-			local intf = string.match(v.path, "rpc%.network%.interface%.@([^%.]+)%.")
-			if intf then
-				if intf == "6rd" then
-				content_rpc.ip6addr = "rpc.network.interface.@6rd.ip6addr"
-				content_rpc.ip6prefix = "rpc.network.interface.@6rd.ip6prefix"
-				elseif intf == "wan6" then
-				content_rpc.ip6addr = "rpc.network.interface.@wan6.ip6addr"
-				content_rpc.ip6prefix = "rpc.network.interface.@wan6.ip6prefix"
-				end
-			end
-		end
+	if wan_mode == "bridge" then
+		wan_interface = content_uci.wan_ifname
 	end
 	
+	local content_rpc = {
+		wan_ppp_state = "rpc.network.interface.@wan.ppp.state",
+		wan_ppp_error = "rpc.network.interface.@wan.ppp.error",
+		ipaddr = "rpc.network.interface.@wan.ipaddr",
+		wan_uptime = "rpc.network.interface.@wan.uptime",
+		up = "rpc.network.interface.@".. wan_interface ..".up",
+		nexthop = "rpc.network.interface.@wan.nexthop",
+		dns_wan = "rpc.network.interface.@wan.dnsservers",
+		concentrator_name = "rpc.network.interface.@wan.ppp.access_concentrator_name",
+	}
+	
+	local internethelper = require("internethelper")
+	
+	for v6Key, v6Value in pairs(internethelper.getIpv6Content()) do
+		content_rpc[v6Key] = v6Value
+	end
+
 	content_helper.getExactContent(content_rpc)
 	
 	if content_rpc.dns_wan:match(",") then
@@ -165,7 +167,7 @@ else
 	setmetatable(ipv6_light_map, untaint_mt)
 	
 	local status_light
-	local attributes = { light = { } ,span = { class = "span4" } }
+	local attributes = { light = { } ,span = { } }
 	
 	if content_uci.wan_mode == "pppoe" then
 		local ppp_state_map = {
@@ -259,13 +261,16 @@ else
 	data = {
 	status_light = status_light or "",
 	WAN_IP_text = not ( content_rpc["ipaddr"] == "" ) and format(T'WAN IP is <strong>%s</strong>'..'<br/>', content_rpc["ipaddr"]) or "",
-	uptime_text = not ( content_rpc["pppoe_uptime"] == "" ) and format(T"Uptime" .. ": <strong>%s</strong>",post_helper.secondsToTimeShort(content_rpc["pppoe_uptime"])) or "",
-	pppoe_uptime = post_helper.secondsToTimeShort(content_rpc["pppoe_uptime"]) or "",
-	pppoe_uptime_extended = post_helper.secondsToTime(content_rpc["pppoe_uptime"]) or "",
+	WAN_IPv6_text = not ( content_rpc["ip6addr"] == "" ) and format(T'WAN IPv6 is <strong>%s</strong>'..'<br/>', content_rpc["ip6addr"]) or "",
+	uptime_text = not ( content_rpc["wan_uptime"] == "" ) and format(T"Uptime" .. ": <strong>%s</strong>",post_helper.secondsToTimeShort(content_rpc["wan_uptime"])) or "",
+	wan_uptime = post_helper.secondsToTimeShort(content_rpc["wan_uptime"]) or "",
+	wan_uptime_extended = post_helper.secondsToTime(content_rpc["wan_uptime"]) or "",
 	ppp_status = ppp_status or "",
 	ppp_light = ppp_light or "" ,
 	ppp_state = ppp_state or "",
 	WAN_IP = content_rpc["ipaddr"] or "",
+	WAN_IPv6 = content_rpc["ip6addr"] or "",
+	concentrator_name = content_rpc["concentrator_name"] or "",
 	ipv6_light = ipv6_light or "",
 	ipv6_state = ipv6_state or "",
 	status = content_rpc["up"],

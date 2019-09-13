@@ -20,7 +20,7 @@ local modgui_app  = {
     config = config_modgui,
     section = "app",
     type = "app",
-    options = { "xupnp_app","blacklist_app","telstra_webui","transmission_webui","aria2_webui","amule_webui","luci_webui" },
+    options = { "xupnp_app","blacklist_app","telstra_webui","transmission_webui","aria2_webui","amule_webui","luci_webui","specific_app" },
 }
 
 mapper("uci_1to1").registerSimpleMap(modgui_app)
@@ -30,7 +30,8 @@ local modgui_var  = {
     config = config_modgui,
     section = "var",
     type = "var",
-    options = { "isp","ppp_mgmt","ppp_realm_ipv6","ppp_realm_ipv4","encrypted_pass","driver_version","bank_check","version_spoof_mode", },
+    options = { "isp","ppp_mgmt","ppp_realm_ipv6","ppp_realm_ipv4","encrypted_pass","driver_version","bank_check","version_spoof_mode",
+	"isp_autodetect"},
 }
 
 mapper("uci_1to1").registerSimpleMap(modgui_var)

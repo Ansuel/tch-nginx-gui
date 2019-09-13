@@ -8,9 +8,9 @@ local ui_helper = require("web.ui_helper")
 local content_helper = require("web.content_helper")
 local message_helper = require("web.uimessage_helper")
 local post_helper = require("web.post_helper")
-format = string.format
-local sfp = proxy.get("uci.env.rip.sfp") and proxy.get("uci.env.rip.sfp")[1].value or 0
+format, match = string.format, string.match
 
+local sfp = require("transformer.shared.sfp").readSFPFlag()
 
 --Support ethernet mode for devices with no eth4 port
 local ethname = proxy.get("sys.eth.port.@eth4.status")
@@ -19,7 +19,6 @@ if ethname and ethname[1].value then
 else
     ethname =  "eth3"
 end
-
 
 local function get_wansensing() 
 	if proxy.get("uci.wansensing.global.enable") then
@@ -47,7 +46,7 @@ end
 -- find requested interface in the uci network file, device section
 local function findwan(interface)
 	for i,v in ipairs(proxy.getPN("uci.network.device.", true)) do
-		local result = string.match(v.path, "uci%.network%.device%.@.*".. interface .. ".*%.")
+		local result = match(v.path, "uci%.network%.device%.@.*".. interface .. ".*%.")
 		if result then
 			return (result:gsub("uci%.network%.device%.",""):gsub("%.",""))
 		end
@@ -173,7 +172,7 @@ tablecontent[#tablecontent + 1] = {
             if not ( get_wan_mode() == "bridge" ) then
                 local ifname = proxy.get("uci.network.interface.@wan.ifname")[1].value
 
-                local iface = string.match(ifname, "atm")
+                local iface = match(ifname, "atm")
 
                 if iface then
                     return true
@@ -197,7 +196,7 @@ tablecontent[#tablecontent + 1] = {
         else
             proxy.set("uci.network.interface.@wan.ifname", "atmwan")
         end
-        if sfp == "1" then
+        if sfp == 1 then
             proxy.set("uci.ethernet.globals.eth4lanwanmode", "1")
         end
         if ethname == "eth3" then
@@ -230,7 +229,7 @@ tablecontent[#tablecontent + 1] = {
             if not ( get_wan_mode() == "bridge" ) then
                 local ifname = proxy.get("uci.network.interface.@wan.ifname")[1].value
         
-                local iface = string.match(ifname, "ptm0")
+                local iface = match(ifname, "ptm0")
         
                 if iface then
                     return true
@@ -254,7 +253,7 @@ tablecontent[#tablecontent + 1] = {
         else
             proxy.set("uci.network.interface.@wan.ifname", "ptm0")
         end
-        if sfp == "1" then
+        if sfp == 1 then
             proxy.set("uci.ethernet.globals.eth4lanwanmode", "1")
         end
         if ethname == "eth3" then
@@ -317,8 +316,8 @@ tablecontent[#tablecontent + 1] = {
             if not ( get_wan_mode() == "bridge" ) then
                 local ifname = proxy.get("uci.network.interface.@wan.ifname")[1].value
 
-                local iface = string.match(ifname, ethname)
-                if sfp == "1" then
+                local iface = match(ifname, ethname)
+                if sfp == 1 then
                     local lwmode = proxy.get("uci.ethernet.globals.eth4lanwanmode")[1].value
                     if iface and lwmode == "0" then
                         return true
@@ -347,7 +346,7 @@ tablecontent[#tablecontent + 1] = {
         else
             proxy.set("uci.network.interface.@wan.ifname", ethname)
         end
-        if sfp == "1" then
+        if sfp == 1 then
             proxy.set("uci.ethernet.globals.eth4lanwanmode", "0")
         end
         if ethname == "eth3" then
@@ -361,7 +360,7 @@ tablecontent[#tablecontent + 1] = {
     end,
 }
 
-if sfp == "1" then
+if sfp == 1 then
     tablecontent[#tablecontent + 1] = {
         name = "gpon",
         default = false,
@@ -381,9 +380,9 @@ if sfp == "1" then
                 if not ( get_wan_mode() == "bridge" ) then
                     local ifname = proxy.get("uci.network.interface.@wan.ifname")[1].value
 
-                    local iface = string.match(ifname, ethname)
+                    local iface = match(ifname, ethname)
 
-                    if sfp == "1" then
+                    if sfp == 1 then
                         local lwmode = proxy.get("uci.ethernet.globals.eth4lanwanmode")[1].value
                         if iface and lwmode == "1" then
                             return true

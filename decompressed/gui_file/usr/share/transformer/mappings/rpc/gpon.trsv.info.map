@@ -1,0 +1,284 @@
+local optical = require("transformer.shared.optical")
+local flag = optical.getBoardtype()
+if flag ~= "gpon" and flag ~= "gpon_sfp" then
+  return
+end
+
+local register, tostring = register, tostring;
+local log = require("transformer.logger")
+
+local conn = mapper("ubus").connect()
+
+local function nilToEmptyString(st)
+    if st == nil then
+        return ""
+    else
+        return tostring(st)
+    end
+end
+
+local function get(idx, paramName)
+    local result = conn:call("gpon.trsv", "get_info", { info = idx })
+    if result == nil then
+        log:error(string.format("Cannot retrieve info %s", idx))
+        return ""
+    end
+    local data = result[idx]
+    local key, val = "", ""
+    for key, val in pairs (data) do
+        --to deal with whose key include space, such as "DS_Bitrate     (Mbps)"
+        key = key:match ("[%S]+")
+        if (key == paramName) then
+           return nilToEmptyString(val)
+        end
+    end
+end
+
+local function getAll (idx)
+    local result = conn:call("gpon.trsv", "get_info", { info = idx })
+    if result == nil then
+        log:error(string.format ("Cannot retrieve  status info %s", idx))
+        return ""
+    end
+    local data = result[idx]
+    local res_data = {}
+    local key, val = "", ""
+    for key, val in pairs (data) do
+    key = key:match ("[%S]+")
+        if (key == paramName) then
+            res_data[key] = nilToEmptyString(val)
+        end
+    end
+    return res_data
+end
+
+local gpon_trsv_info = {
+    objectType = {
+        name = "rpc.gpon.trsv.info.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+        }
+    }
+}
+
+register(gpon_trsv_info)
+
+
+--"DS_Bitrate     (Mbps)": 0,
+--"US_Bitrate     (Mbps)": 1200,
+--"DS_Rx_WaveLength (nm)": 0,
+--"US_Tx_WaveLength (nm)": 1310,
+--"Temperature    (C)": "63.000000",
+--"VCC            (V)": "3.2320001",
+--"DS_Rx_RSSI   (dBm)": "-6.5052819",
+--"US_Tx_BIAS    (mA)": "14.400000",
+--"US_TX_Power  (dBm)": "-6.1762271",
+--"US_TX_Status": "OK",
+--"US_TX_Output": "Fail",
+--"DS_RX_Input": "OK",
+--"DS_Data_Ready": "OK"
+local gpon_trsv_info_status = {
+  objectType = {
+    name = "rpc.gpon.trsv.info.status.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      DS_Bitrate = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      US_Bitrate = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      DS_Rx_WaveLength = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      US_Tx_WaveLength = {
+        access = "readOnly",
+        type = "unsignedInt",
+      },
+      Temperature = {
+        access = "readOnly",
+        type = "string",
+      },
+      VCC = {
+        access = "readOnly",
+        type = "string",
+      },
+      DS_Rx_RSSI = {
+        access = "readOnly",
+        type = "string",
+      },
+      US_Tx_BIAS = {
+        access = "readOnly",
+        type = "string",
+      },
+      US_TX_Power = {
+        access = "readOnly",
+        type = "string",
+      },
+      US_TX_Status = {
+        access = "readOnly",
+        type = "string",
+      },
+      US_TX_Output = {
+        access = "readOnly",
+        type = "string",
+      },
+      DS_RX_Input = {
+        access = "readOnly",
+        type = "string",
+      },
+      DS_Data_Ready = {
+        access = "readOnly",
+        type = "string",
+      },
+
+    }
+  }
+}
+
+local function getStatus(mapping, paramName, key)
+      local data = get("status", paramName)
+      return data or ""
+end
+
+local function getAllStatus (mapping)
+    local data = getAll ("status")
+    return data or ""
+end
+
+
+
+gpon_trsv_info_status.get = getStatus
+gpon_trsv_info_status.getall = getAllStatus
+--gpon_trsv_info_status.set = setUstx
+register(gpon_trsv_info_status)
+
+--"US_TX_Control": "Enabled",
+local gpon_trsv_info_control = {
+  objectType = {
+    name = "rpc.gpon.trsv.info.control.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      US_TX_Control = {
+        access = "readWrite",
+        type = "boolean",
+      },
+    }
+  }
+}
+local function getControl(mapping, paramName, key)
+      local data = get("control", paramName)
+      return data or ""
+end
+local function getAllControl (mapping)
+    local data = getAll ("control")
+    return data or ""
+end
+local function setUstx (mapping, paramname, paramvalue, parentkey)
+    local val = nil
+    if (paramvalue == true or paramvalue == '1') then
+	val = true
+    elseif (paramvalue == false or paramvalue == '0') then
+    end
+    if (val ~= nil) then
+        conn:call("gpon.trsv", "set_ustx", { enable = val })
+    end
+end
+gpon_trsv_info_control.get = getControl
+gpon_trsv_info_control.getall = getAllControl
+gpon_trsv_info_control.set = setUstx
+register(gpon_trsv_info_control)
+
+--"rx_rssi": "Alarm_HI",
+--"laser_bias": "Normal",
+--"tx_power": "Alarm_LO",
+--"dev_temp": "Normal",
+--"dev_vcc": "Normal"
+local gpon_trsv_info_alarms = {
+  objectType = {
+    name = "rpc.gpon.trsv.info.alarms.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      rx_rssi = {
+        access = "readOnly",
+        type = "string",
+      },
+      laser_bias = {
+        access = "readOnly",
+        type = "string",
+      },
+      tx_power = {
+        access = "readOnly",
+        type = "string",
+      },
+      dev_temp = {
+        access = "readOnly",
+        type = "string",
+      },
+      dev_vcc = {
+        access = "readOnly",
+        type = "string",
+      },
+    }
+  }
+}
+
+local function getAlarms(mapping, paramName, key)
+    local data = get("alarms", paramName)
+    return data or ""
+end
+
+local function getAllAlarms (mapping)
+    local data = getAll ("alarms")
+    return data or ""
+end
+
+gpon_trsv_info_alarms.get = getAlarms
+gpon_trsv_info_alarms.getall = getAllAlarms
+register(gpon_trsv_info_alarms)
+
+--"Type": "BOSA",
+--"Name": "MSTC",
+local gpon_trsv_info_vendor = {
+  objectType = {
+    name = "rpc.gpon.trsv.info.vendor.",
+    access = "readOnly",
+    minEntries = 1,
+    maxEntries = 1,
+    parameters = {
+      Type = {
+        access = "readOnly",
+        type = "string",
+      },
+      Name = {
+        access = "readOnly",
+        type = "string",
+      },
+    }
+  }
+}
+
+local function getVendor(mapping, paramName, key)
+    local data = get ("vendor", paramName)
+    return data or ""
+end
+
+local function getAllVendor(mapping)
+    local data = getAll ("vendor")
+    return data or ""
+end
+
+gpon_trsv_info_vendor.get = getVendor
+gpon_trsv_info_vendor.getall = getAllVendor
+register(gpon_trsv_info_vendor)

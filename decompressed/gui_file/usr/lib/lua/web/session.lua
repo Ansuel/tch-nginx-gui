@@ -43,7 +43,7 @@ end
 --- Return the username associated with the session.
 -- @return #string The username associated with this session.
 function Session:getusername()
-  return sessionUser(self).name
+  return string.taint(sessionUser(self).name)
 end
 
 --- Returns whether the current user is the default user.
@@ -236,9 +236,14 @@ function Session:reloadAllUsers()
   self.mgr.sessioncontrol.reloadUsers()
 end
 
---get currently logged-in user sessions 
+--get currently logged-in user sessions
 function Session:getUserCount()
   return self.mgr:getUserCount()
+end
+
+--get login path for current mgr
+function Session:getLoginPath()
+  return self.mgr.loginpath
 end
 
 --- Change SRP parameters and crypted password of the current user of this session.
@@ -303,6 +308,9 @@ local function createProxy(session)
   local getUserCount = function()
     return session:getUserCount()
   end
+  local getLoginPath = function()
+    return session:getLoginPath()
+  end
   local proxy = {
     getusername = getusername,
     isdefaultuser = isdefaultuser,
@@ -318,7 +326,8 @@ local function createProxy(session)
     delUserFromManager = delUserFromManager,
     reloadAllUsers = reloadAllUsers,
     changePassword = changePassword,
-    getUserCount = getUserCount
+    getUserCount = getUserCount,
+	getLoginPath = getLoginPath
   }
   return setmetatable({}, {
     __index = proxy,

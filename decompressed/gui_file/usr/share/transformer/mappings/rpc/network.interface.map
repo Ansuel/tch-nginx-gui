@@ -1,5 +1,3 @@
---NG-????? ResetButton and friendlyName on LAN-Interface Page
-
 local network_interface_ = {
   objectType = {
     name = "rpc.network.interface.@.",
@@ -25,6 +23,10 @@ local network_interface_ = {
        type = "string",
       },
       ip6prefix_assignment = {
+       access = "readOnly",
+       type = "string",
+      },
+      subnet_addr = {
        access = "readOnly",
        type = "string",
       },
@@ -173,6 +175,10 @@ local network_interface_ = {
           "Failed",
         }
       },
+      ipv6defaultgateway = {
+        access = "readOnly",
+        type = "string",
+      },
 	  name = {
        access = "readOnly",
        type = "string",
@@ -185,14 +191,15 @@ local ipairs, pairs, io = ipairs, pairs, io
 local commitapply, mapper = commitapply, mapper
 local tostring, type = tostring, type
 local open = io.open
+local popen = require("modgui").popen
 local uci_helper = mapper("ucihelper")
 local get_from_uci = uci_helper.get_from_uci
 local common = mapper("nwcommon")
-local get_ubus_interface_status = common.get_ubus_interface_status
 local get_intf_stat=common.get_intf_stat
 local findLanWanInterfaces = common.findLanWanInterfaces
 local ping_helper = require("transformer.shared.ippinghelper")
 local mobileconnection = require("transformer.shared.mobileconnection")
+local list = require("transformer.shared.common.list")
 local section = "network_rpc"
 local NUM_REP = "2"
 local state_table = {}
@@ -201,10 +208,108 @@ local is_mobile_iface = {}
 local network_binding = { config = "network" }
 local transaction = {}
 local string, table = string, table
-
 local defaultGateway = ""
+
+local interface_status
+do
+  local ubus = mapper("ubus").connect()
+  local ifstatus
+  local function clear_intf_status_cache()
+    ifstatus = nil
+  end
+  local function load_interface_status()
+    local status = {}
+    local s = ubus:call("network.interface", "dump", {}) or {}
+    for _, intf in ipairs(s.interface or {}) do
+      status[intf.interface] = intf
+    end
+    return status
+  end
+  local function get_ubus_interface_status(interface)
+    ifstatus = ifstatus or load_interface_status()
+    return ifstatus[interface]
+  end
+  local mt = {
+    refresh = clear_intf_status_cache,
+    get = get_ubus_interface_status,
+  }
+  mt.__index = mt
+  interface_status = setmetatable({}, mt)
+end
+
+local ipv6
+do
+  local inet = require "tch.inet"
+  local function normalizeIP(rawIP)
+    local ip = rawIP:gsub("(....)", "%1:"):sub(1, -2)
+    return inet.normalizeIP(ip, "IPv6")
+  end
+  local scopeName = {
+    ["00"] = "global_permanent",
+    ["10"] = "node",
+    ["20"] = "link",
+    ["50"] = "site",
+    ["80"] = "org",
+    ["e0"] = "global"
+  }
+  local function add_address(addresses, ip, prefix, scope, device)
+    local d = addresses[device]
+    if not d then
+      d = {}
+      addresses[device] = d
+    end
+    d[scope] = {
+      ip=ip,
+      prefix=prefix,
+      mask=tostring(prefix)
+    }
+  end
+  local function load_ipv6_addresses()
+    local addresses = {}
+    for line in io.lines("/proc/net/if_inet6") do
+      local ip, prefix, scope, device = line:match("(%S+)%s+%S+%s+(%S+)%s+(%S+)%s+%S+%s+(%S+)")
+      add_address(addresses,
+        normalizeIP(ip),
+        tonumber(prefix, 16) or 64,
+        scopeName[scope:lower()] or "unknown",
+        device
+      )
+    end
+    return addresses
+  end
+
+  local ip6addresses
+  local function clear_ipv6_cache()
+    ip6addresses = nil
+  end
+  local function get_address(device, scope)
+    ip6addresses = ip6addresses or load_ipv6_addresses()
+    local all_addr = ip6addresses[device] or {}
+    return all_addr[scope]
+  end
+  local function get_ipv6_address(device, scope)
+    local addr = get_address(device, scope)
+    if addr and addr.ip then
+      return addr.ip.."/"..addr.mask
+    end
+    return ""
+  end
+  local function get_ipv6_address_nomask(device, scope)
+    local addr = get_address(device, scope)
+    return addr and addr.ip or ""
+  end
+
+  local mt = {
+    refresh = clear_ipv6_cache,
+    address = get_ipv6_address,
+    address_nomask = get_ipv6_address_nomask,
+  }
+  mt.__index = mt
+  ipv6 = setmetatable({}, mt)
+end
+
 local function getDefaultGateway()
-  local routes = io.popen("ip route show")
+  local routes = popen("ip route show")
   if routes then
     for line in routes:lines() do
       defaultGateway = line:match("^default%s+%S+%s+(%S+).*") or ""
@@ -215,11 +320,39 @@ local function getDefaultGateway()
     routes:close()
   end
 end
+-- The entry in "ip -6 route show" starting with the below words are not allowed
+local notAllowed = {
+  ["local"]       = true,
+  ["broadcast"]   = true,
+  ["unreachable"] = true,
+}
+local ipv6gw = ""
+local function getIpv6DefaultGateway()
+  local routes = popen("ip -6 route show")
+  if routes then
+    for line in routes:lines() do
+      local start, routeInfo = line:match("^(%S+)%s+(.*)")
+      if not notAllowed[start] and not start:match("^fe80") and not start:match("^ff00") then
+        for paramName, value in routeInfo:gmatch("(%S+)%s+(%S+)") do
+          if paramName == "via" then
+            ipv6gw = value or ""
+          end
+          if ipv6gw ~= "" then
+            break
+          end
+        end
+      end
+    end
+    routes:close()
+  end
+end
 local dns_state_table = {}
 local DNS_CHECK_FILE = "/tmp/dnscheck"
 local DNS_SERVER_FILE = "/tmp/dnsserver"
 
-local function entriesInterfaces(mapping)
+network_interface_.entries = function()
+    interface_status.refresh()
+    ipv6.refresh()
     local intfs = {}
     local binding = {
       config="network",
@@ -230,6 +363,8 @@ local function entriesInterfaces(mapping)
     -- iterate over the interfaces
       if s.iface6rd and (s.iface6rd ~= "0") then
         intf_6rd[s.iface6rd] = true
+	  elseif interface_status.get("6rd") then
+		intf_6rd["6rd"] = true
       end
 
       if s.proto == "6rd" then
@@ -280,7 +415,7 @@ end
 
 --Check if the DNS resolve request is available start the test or
 -- skipped set states if resolve_state has been set
-local function checkIfResolveAndStart(host, interface)
+local function checkIfResolveAndStart(host)
   local resolve_state = get_dnsCheckState()
   local skipped= false
 
@@ -360,7 +495,12 @@ local function checkIfAvailableAndStart(host, interface)
       ping_helper.uci_ipping_set(section, "DiagnosticsState", "None", commitapply)
     end
   end
-  if pinger_state == "None" then
+  if pinger_state == "None" or pinger_state == "Requested" then
+    if host:match("(%d+)%.(%d+)%.(%d+)%.(%d+)") then
+       ping_helper.uci_ipping_set(section, "ProtocolVersion", "IPv4", commitapply)
+    else
+       ping_helper.uci_ipping_set(section, "ProtocolVersion", "IPv6", commitapply)
+    end
     ping_helper.uci_ipping_set(section, "Host", host, commitapply)
     ping_helper.uci_ipping_set(section, "NumberOfRepetitions", NUM_REP, commitapply)
     ping_helper.uci_ipping_set(section, "Interface", interface, commitapply)
@@ -475,35 +615,17 @@ local function get_interface(key, v6)
     return key
 end
 
--- This function is used to fetch the global IPv6 address of the interface 'intf'
--- return dynamic global IPv6 address if success
--- else return empty
-local function getIPv6Addr(intf)
-  local result
-  if intf then
-    -- Extract the Global IPv6 address for `intf` interface
-    local cmd = "ip -6 addr show dynamic " .. intf .. " | grep inet6 | grep -v deprecated | awk '{print $2}' | cut -f 1 -d '/'"
-    local fd = io.popen(cmd)
-    if fd then
-      -- Return the Global IPv6 address
-      result = fd:read("*l")
-      fd:close()
-    end
-  end
-  return result or ""
-end
-
 local nextHopLcl = ""
 
 local function getNexthopInfo(key)
   nextHopLcl = ""
   local interface = get_interface(key)
-  local v = get_ubus_interface_status(interface)
+  local v = interface_status.get(interface)
   v = v and v['route']
   local route  = v and v[1]
   local nexthop = (route and route['nexthop']) or ""
   if (v) then
-    for i, routeHop in ipairs(v) do
+    for _, routeHop in ipairs(v) do
       if routeHop['mask'] == 0 then
         nexthop = routeHop['nexthop']
         break
@@ -524,7 +646,7 @@ local function getDnsServers(key)
   local v = {}
   local interface = get_interface(key)
   local staticDns = uci_helper.get_from_uci({ config = "network", sectionname = interface, option = "dns"})
-  local intfValue = get_ubus_interface_status(interface)
+  local intfValue = interface_status.get(interface)
   local active = intfValue and intfValue['dns-server']
   local inactive = intfValue and intfValue['inactive'] and intfValue['inactive']['dns-server']
   if type(active) == "table" and #active ~= 0 then
@@ -534,14 +656,15 @@ local function getDnsServers(key)
   end
   servers = staticDns ~= "" and table.concat(staticDns, ",") or ""
   for i, server in ipairs(v) do
-    if string.find(servers,server) == nil then
-      if (i > 1) then
-        servers = servers .. ","
-        dnsServer2 = server
-      else
-        dnsServer1 = server
-      end
-      servers = servers .. server
+    if (i > 1) then
+      dnsServer2 = server
+    else
+      dnsServer1 = server
+    end
+    if servers == "" then
+      servers = server
+    elseif string.find(servers,server) == nil then
+      servers = servers .. "," .. server
     end
   end
 end
@@ -556,6 +679,7 @@ local uci_binding = {
   Timeout = { config = config, sectionname = section, option = "timeout" },
   DataBlockSize = { config = config, sectionname = section, option = "size" },
   DSCP = { config = config, sectionname = section, option = "dscp" },
+  ProtocolVersion = { config = config, sectionname = section, option = "iptype" },
 }
 
 local startup = ping_helper.startup
@@ -567,111 +691,73 @@ local intfs_type = {
 
 startup(section, uci_binding)
 
-local function getLinkLocalAddress(deviceName)
-  local linkAddress = ""
-  local fd = io.open("/proc/net/if_inet6", "r")
-  if fd then
-    for line in fd:lines() do
-      local ip, scope, interface = line:match("(%S+)%s+%S+%s+%S+%s+(%S+)%s+%S+%s+(%S+)")
-      if interface == deviceName and scope == "20" then
-        linkAddress = (ip:gsub("(....)", "%1:")):sub(1, -2)
-        linkAddress = (linkAddress:gsub("0000?", "")):gsub("::+", "::")
-        linkAddress = linkAddress:gsub('(%w+)', function(value) return value:gsub("^0*", "") end)
-      end
-    end
-  fd:close()
-  end
-  return linkAddress
-end
-
-local scopeMap = {
-  ipv6uniqueglobaladdr = "global",
-  ipv6uniquelocaladdr  = "global",
-  ipv6linklocaladdr    = "link"
-}
-
-local flagMap = {
-  ipv6uniqueglobaladdr = "dynamic",
-  ipv6uniquelocaladdr  = "permanent",
-  ipv6linklocaladdr    = ""
-}
-
---- Retrieves the address from "ip -6 addr"
--- @function getAddress
--- @param param the parameter name
--- @param interface the interface name
--- @return addr the ipv6 address
-local function getAddress(param, interface)
-  local addr = ""
-  local command = "ip -6 addr show scope " .. scopeMap[param] .." ".. interface .. " " .. flagMap[param] .. " | grep inet6 | awk '{print $2}'"
-  local fd = io.popen(command)
-  if fd then
-    addr = fd:read("*l") or ""
-    fd:close()
-  end
-  return addr
-end
-
 network_interface_.get = {
-  ipaddr = function(mapping, param, key)
+  ipaddr = function(_, _, key)
       if is_mobile_iface[key] and is_mobile_iface[key].proto == "router" then
         return is_mobile_iface[key].ipv4_addr or ""
       end
       local interface = get_interface(key)
-      local v = get_ubus_interface_status(interface)
+      local v = interface_status.get(interface)
       v = v and v['ipv4-address']
       v = v and v[1]
       return (v and v['address']) or ""
   end,
-  NTPServers = function(mapping, param, key)
+  NTPServers = function(_, _, key)
       local interface = get_interface(key)
-      local v = get_ubus_interface_status(interface)
+      local v = interface_status.get(interface)
       v = v and v['data']
       return (v and v['ntpserver']) or ""
   end,
-  ipmask = function(mapping, param, key)
+  ipmask = function(_, _, key)
     local interface = get_interface(key)
-    local v = get_ubus_interface_status(interface)
+    local v = interface_status.get(interface)
     v = v and v['ipv4-address']
     v = v and v[1]
     return (v and tostring(v['mask'])) or ""
   end,
-  ip6addr = function(mapping, param, key)
+  ip6addr = function(_, _, key)
     if is_mobile_iface[key] and is_mobile_iface[key].proto == "router" then
       return is_mobile_iface[key].ipv6_addr or ""
     end
     -- ubus should return table-of-tables for IP entries
     -- need to first extract ipv6 address table
     local interface = get_interface(key, true)
-    if interface and interface == "lan" then
-      local v = get_ubus_interface_status(interface)
-      local l3device = v and v['l3_device']
-      return getIPv6Addr(l3device)
-    else
-      local intfStatus = get_ubus_interface_status(interface)
-      local ipv6Addr = intfStatus and intfStatus['ipv6-address'] or {}
-      local addrs = {}
-      for _, ipv6 in ipairs(ipv6Addr) do
-          addrs[#addrs+1] = ipv6.address or ""
-      end
-      return (table.concat(addrs, " "))
+    local intfStatus = interface_status.get(interface) or {}
+    local addrs = {}
+    for _, ip in ipairs(intfStatus['ipv6-address'] or {}) do
+        addrs[#addrs+1] = ip.address or ""
     end
+    for _, prefix in ipairs(intfStatus['ipv6-prefix-assignment'] or {}) do
+      local addr = prefix['local-address']
+      if addr then
+        addrs[#addrs+1] = addr.address
+      end
+    end
+    return (table.concat(addrs, " "))
   end,
-  ip6prefix = function(mapping, param, key)
+  ip6prefix = function(_, _, key)
     local interface = get_interface(key, true)
-    local v = get_ubus_interface_status(interface)
+    local v = interface_status.get(interface)
     v = v and v['ipv6-prefix']
     v = v and v[1]
     return (v and v['address'].."/"..v['mask']) or ""
   end,
-  ip6prefix_assignment = function(mapping, param, key)
+  ip6prefix_assignment = function(_, _, key)
     local interface = get_interface(key, true)
-    local v = get_ubus_interface_status(interface)
+    local v = interface_status.get(interface)
+    v = v and v['ipv6-prefix-assignment']
+    v = v and v[1]
+    return (v and v['address'].."1".."/"..v['mask']) or ""
+  end,
+  subnet_addr = function(_, _, key)
+    local interface = get_interface(key, true)
+    local v = interface_status.get(interface)
     v = v and v['ipv6-prefix-assignment']
     v = v and v[1]
     return (v and v['address'].."/"..v['mask']) or ""
   end,
-  dnsservers = function(mapping, param, key)
+
+  dnsservers = function(_, _, key)
     local v4interface = get_interface(key)
     getDnsServers(v4interface)
     local servers4 = servers
@@ -692,12 +778,12 @@ network_interface_.get = {
     end
     return servers4 .. "," .. servers6
   end,
-  nexthop = function(mapping, param, key)
+  nexthop = function(_, _, key)
     local interface = get_interface(key)
     nextHopLcl =  getNexthopInfo(interface)
     return nextHopLcl
   end,
-  dnsserver1_ping = function(mapping, param, key)
+  dnsserver1_ping = function(_, _, key)
     local interface = get_interface(key)
     getDnsServers(interface)
     if dnsServer1 ~= "" then
@@ -705,7 +791,7 @@ network_interface_.get = {
     end
     return "None"
   end,
-  dnsserver2_ping = function(mapping, param, key)
+  dnsserver2_ping = function(_, _, key)
     local interface = get_interface(key)
     getDnsServers(interface)
     if dnsServer2 ~= "" then
@@ -713,7 +799,7 @@ network_interface_.get = {
     end
     return "None"
   end,
-  dnsserver1_query = function(mapping, param, key)
+  dnsserver1_query = function(_, _, key)
     local interface = get_interface(key)
     getDnsServers(interface)
     if dnsServer1 ~= "" then
@@ -721,7 +807,7 @@ network_interface_.get = {
     end
     return "None"
   end,
-  dnsserver2_query = function(mapping, param, key)
+  dnsserver2_query = function(_, _, key)
     local interface = get_interface(key)
     getDnsServers(interface)
     if dnsServer2 ~= "" then
@@ -729,7 +815,7 @@ network_interface_.get = {
     end
     return "None"
   end,
-  nexthop_ping = function(mapping, param, key)
+  nexthop_ping = function(_, _, key)
     local interface = get_interface(key)
     nextHopLcl =  getNexthopInfo(interface)
     if nextHopLcl ~= "" then
@@ -738,8 +824,8 @@ network_interface_.get = {
     return "None"
   end,
   status_ping_test = busy,
-  up = function(mapping, param, key)
-    local v = get_ubus_interface_status(key)
+  up = function(_, _, key)
+    local v = interface_status.get(key)
     v = v and v['up']
     if v then
       return "1"
@@ -747,9 +833,9 @@ network_interface_.get = {
       return "0"
     end
   end,
-  available = function(mapping, param, key)
+  available = function(_, _, key)
     local interface = get_interface(key)
-    local v = get_ubus_interface_status(interface)
+    local v = interface_status.get(interface)
     v = v and v['available']
     if v then
       return "1"
@@ -757,45 +843,63 @@ network_interface_.get = {
       return "0"
     end
   end,
-  uptime = function(mapping, param, key)
-    local interface = get_interface(key)
-    local v = get_ubus_interface_status(interface)
+  uptime = function(_, _, key)
+    local v4interface = get_interface(key)
+    local v = interface_status.get(v4interface)
     if v and v.uptime then
       return tostring(v.uptime)
+    else
+      local v6interface = get_interface(key, true)
+      local ret = interface_status.get(v6interface)
+      if ret and ret.uptime then
+        return tostring(ret.uptime)
+      end
     end
     return ""
   end,
-  tx_bytes = function(mapping, param, key)
-    local interface = get_interface(key)
-    return get_intf_stat(interface, "tx_bytes")
+  tx_bytes = function(_, _, key)
+    local v4interface = get_interface(key)
+    local v = get_intf_stat(v4interface, "tx_bytes")
+    if v ~= "0" then
+      return tostring(v)
+    else
+      local v6interface = get_interface(key, true)
+      return get_intf_stat(v6interface, "tx_bytes")
+    end
   end,
-  rx_bytes = function(mapping, param, key)
-    local interface = get_interface(key)
-    return get_intf_stat(interface, "rx_bytes")
+  rx_bytes = function(_, _,key)
+    local v4interface = get_interface(key)
+    local v = get_intf_stat(v4interface, "rx_bytes")
+    if v ~= "0" then
+      return tostring(v)
+    else
+      local v6interface = get_interface(key, true)
+      return get_intf_stat(v6interface, "rx_bytes")
+    end
   end,
-  type = function(mapping, param, key)
-    for k,v in pairs(intfs_type) do
-        local intfs = findLanWanInterfaces(v)
-        for _, vv in pairs(intfs) do
-            if key == vv then
-              return k
-            end
+  type = function(_, _, key)
+    for k, v in pairs(intfs_type) do
+      local intfs = findLanWanInterfaces(v)
+      for _, intf_name in pairs(intfs) do
+        if key == intf_name then
+          return k
         end
+      end
     end
     return ""
   end,
-  static_dns_servers = function(mapping, param, key)
+  static_dns_servers = function(_, _, key)
     --to get from uci for wan interface
-    local isWan
-    local intfs = findLanWanInterfaces(true)
-    for _, v in pairs(intfs) do
-        if key == v then
-            isWan = true
-            break
-        end
-    end
-
-    if isWan then
+    --local isWan
+    --local intfs = findLanWanInterfaces(true)
+    --for _, v in pairs(intfs) do
+    --    if key == v then
+    --        isWan = true
+    --        break
+    --    end
+    --end
+	--
+    --if isWan then
         network_binding.sectionname = key
         network_binding.option = "dns"
         local dns = uci_helper.get_from_uci(network_binding)
@@ -806,34 +910,37 @@ network_interface_.get = {
         else
             return dns
         end
-    end
+    --end
     return ""
   end,
-  ifname = function(mapping, param, key)
+  ifname = function(_, _, key)
     return common.getIntfName(key)
   end,
-  proto = function(mapping, param, key)
+  proto = function(_, _, key)
     local interface = get_interface(key)
-    local v = get_ubus_interface_status(interface)
+    local v = interface_status.get(interface)
     return (v and v['proto']) or ""
   end,
-  ipv6linklocaladdr = function(mapping, param, key)
+  ipv6linklocaladdr = function(_, _, key)
     local interface = common.getIntfName(key)
-    return getLinkLocalAddress(interface)
+    return ipv6.address_nomask(interface, "link")
   end,
-  ipv6uniquelocaladdr = function(mapping, param, key)
+  ipv6uniquelocaladdr = function(_, _, key)
     local interface = common.getIntfName(key)
-    return getAddress(param, interface)
+    return ipv6.address(interface, "global_permanent")
   end,
-  ipv6uniqueglobaladdr = function(mapping, param, key)
+  ipv6uniqueglobaladdr = function(_, _, key)
     local interface = common.getIntfName(key)
-    return getAddress(param, interface)
+    if (ipv6.address(interface, "global") == "") then
+      return ipv6.address(interface, "global_permanent")
+    end
+    return ipv6.address(interface, "global")
   end,
-  ipv6dhcpaddresspool = function(mapping, param, key)
+  ipv6dhcpaddresspool = function(_, _, key)
     local raManagement = get_from_uci({ config = "dhcp", sectionname = key, option = "ra_management" })
     local prefix
     if raManagement == "2" then
-      local lanInfo = get_ubus_interface_status(key) or {}
+      local lanInfo = interface_status.get(key) or {}
       local prefixInfo = lanInfo["ipv6-prefix-assignment"] or {}
       for _, v in pairs(prefixInfo) do
         if v.address and v.address:match("^2001:*") then
@@ -851,12 +958,16 @@ network_interface_.get = {
     end
     return prefix or ""
   end,
-  default_gateway_ping = function(mapping, param, key)
+  default_gateway_ping = function(_, _, key)
     getDefaultGateway()
     if defaultGateway ~= "" and defaultGWPingIntf == key then
       return getState(defaultGateway)
     end
     return "None"
+  end,
+  ipv6defaultgateway = function()
+    getIpv6DefaultGateway()
+    return ipv6gw ~= "" and ipv6gw or ""
   end,
   name = function(mapping, param, key)
 	local name = get_from_uci({ config = "network", sectionname = key , option = "name"})
@@ -867,48 +978,36 @@ network_interface_.get = {
 	end
 }
 
---The value is like: 1.1.1.1,2.2.2.2
-local function dnsServersSplit(value)
-    local result = {}
-    for i in string.gmatch(value, "([^,]+)") do
-        result[#result+1] = i
-    end
-    if #result == 0 then
-        result = ""
-    end
-    return result
-end
-
 network_interface_.set = {
-  dnsserver1_ping = function(mapping, param, value, key)
+  dnsserver1_ping = function(_, _, _, key)
     getDnsServers(key)
     if dnsServer1 ~= "" then
       checkIfAvailableAndStart(dnsServer1 , key)
     end
     return true
   end,
-  dnsserver2_ping = function(mapping, param, value, key)
+  dnsserver2_ping = function(_, _, _, key)
     getDnsServers(key)
     if dnsServer2 ~= "" then
       checkIfAvailableAndStart(dnsServer2, key)
     end
     return true
   end,
-  dnsserver1_query = function(mapping, param, value, key)
+  dnsserver1_query = function(_, _, _, key)
     getDnsServers(key)
     if dnsServer1 ~= "" then
       checkIfResolveAndStart(dnsServer1 , key)
     end
     return true
   end,
-  dnsserver2_query = function(mapping, param, value, key)
+  dnsserver2_query = function(_, _, _, key)
     getDnsServers(key)
     if dnsServer2 ~= "" then
       checkIfResolveAndStart(dnsServer2, key)
     end
     return true
   end,
-  nexthop_ping = function(mapping, param, value, key)
+  nexthop_ping = function(_, _, _, key)
     nextHopLcl =  getNexthopInfo(key)
     if nextHopLcl ~= "" then
       checkIfAvailableAndStart(nextHopLcl , key)
@@ -916,7 +1015,7 @@ network_interface_.set = {
     return true
   end,
   status_ping_test = pushState,
-  default_gateway_ping = function(mapping, param, value, key)
+  default_gateway_ping = function(_, _, _, key)
     getDefaultGateway()
     if defaultGateway ~= "" then
       checkIfAvailableAndStart(defaultGateway, key)
@@ -924,31 +1023,33 @@ network_interface_.set = {
     end
     return true
   end,
-  static_dns_servers = function(mapping, param, value, key) --the value is null or 1.1.1.1,2.2.2.2
-    local dnsServersTable = dnsServersSplit(value)
+  static_dns_servers = function(_, _, value, key) --the value is null or 1.1.1.1,2.2.2.2
+    local dnsServersTable = list.csvSplit(value)
     network_binding.sectionname = key
     network_binding.option = "dns"
     uci_helper.set_on_uci(network_binding, dnsServersTable, commitapply)
-    transaction[network_binding.config] = true
+    transaction[network_binding] = true
     return true
   end,
 }
 
-network_interface_.entries = entriesInterfaces
+local function end_transaction(action)
+  for binding in pairs(transaction) do
+    action(binding)
+  end
+  transaction = {}
+end
+
 network_interface_.commit = function()
-    ping_helper.uci_ipping_commit()
-    for conf in pairs(transaction) do
-        uci_helper.commit(conf)
-    end
-    transaction = {}
+  ping_helper.uci_ipping_commit()
+  end_transaction(uci_helper.commit)
 end
 
 network_interface_.revert = function()
-    ping_helper.uci_ipping_revert()
-    for conf in pairs(transaction) do
-        uci_helper.revert(conf)
-    end
-    transaction = {}
+  ping_helper.uci_ipping_revert()
+  end_transaction(uci_helper.revert)
 end
+
 clear_ping_results(section)
+
 register(network_interface_)

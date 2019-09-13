@@ -52,19 +52,32 @@ done
 for i in 0 1
 do
 	radio_oper_state="$(transformer-cli get rpc.wireless.ssid.@wl$i.oper_state | cut -d= -f 2)"
+    if [ "$(echo $radio_oper_state | grep ERROR)" ]; then
+        continue
+    fi
 	radio_admin_state="$(transformer-cli get rpc.wireless.ssid.@wl$i.admin_state | cut -d= -f 2)"
+    radio_security="$(transformer-cli get uci.wireless.wifi-ap.@ap$i.security_mode | cut -d= -f 2)"
+    if [ "$(echo $radio_security | grep wpa)" ]; then
+        radio_security="wpa"
+    elif [ "$(echo $radio_security | grep wep)" ]; then
+        radio_security="wep"
+    else
+        radio_security="disabled"
+    fi
+
 	if [ $i == 0 ]; then
 	    connected_devices=$connected_wl0
 	else
 	    connected_devices=$connected_wl1
 	fi
-	ubus send wireless.wlan_led "{\"ifname\":\"wl$i\",\"radio_admin_state\":$radio_admin_state,\"radio_oper_state\":$radio_oper_state,\"bss_admin_state\":1,\"bss_oper_state\":1,\"acl_state\":0,\"sta_connected\":$connected_devices,\"security\":\"disabled\"}"
+	ubus send wireless.wlan_led "{\"ifname\":\"wl$i\",\"radio_admin_state\":$radio_admin_state,\"radio_oper_state\":$radio_oper_state,\"bss_admin_state\":1,\"bss_oper_state\":1,\"acl_state\":0,\"sta_connected\":$connected_devices,\"security\":\"$radio_security\"}"
 done
 
 #Restore Internet LED status
 for iface in "wan" "wwan"
 do
 	wan_status="down"
+	ubus send network.interface "{\"action\":\"if$wan_status\",\"interface\":\"$iface\"}" #seems needed for DGA4131
 	if [ "$(transformer-cli get rpc.network.interface.@$iface.up | cut -d= -f 2 | grep 1)" ]; then
 		wan_status="up"
 	fi

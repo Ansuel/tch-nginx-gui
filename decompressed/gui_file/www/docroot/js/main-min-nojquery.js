@@ -343,12 +343,18 @@ $(function () {
 		backdrop: function (e) {
 			var n = this.$element.hasClass("fade") ? "fade" : "";
 			if (this.isShown && this.options.backdrop) {
-				var i = t.support.transition && n;
-				this.$backdrop = t('<div class="modal-backdrop ' + n + '" />').appendTo(document.body),
-				this.$backdrop.on("click", "static" == this.options.backdrop ? t.proxy(this.$element[0].focus, this.$element[0]) : t.proxy(this.hide, this)),
-				i && this.$backdrop[0].offsetWidth,
-				this.$backdrop.addClass("in"),
-				e && (i ? this.$backdrop.one(t.support.transition.end, e) : e())
+				if ( t('.modal-backdrop').length == 0 ) {
+					var i = t.support.transition && n;
+					this.$backdrop =  t('<div class="modal-backdrop ' + n + '" />').appendTo(document.body),
+					this.$backdrop.on("click", "static" == this.options.backdrop ? t.proxy(this.$element[0].focus, this.$element[0]) : t.proxy(this.hide, this)),
+					i && this.$backdrop[0].offsetWidth,
+					this.$backdrop.addClass("in"),
+					e && (i ? this.$backdrop.one(t.support.transition.end, e) : e())
+				} else { 
+					this.$backdrop = t('.modal-backdrop'),
+					this.$backdrop.on("click", "static" == this.options.backdrop ? t.proxy(this.$element[0].focus, this.$element[0]) : t.proxy(this.hide, this)),
+					e && e()
+				}
 			} else !this.isShown && this.$backdrop ? (this.$backdrop.removeClass("in"), t.support.transition && this.$element.hasClass("fade") ? this.$backdrop.one(t.support.transition.end, e) : e()) : e && e()
 		}
 	};
@@ -1106,7 +1112,7 @@ $(function () {
 		},
 		lookup: function (e) {
 			return this.query = this.$element.val(),
-			!this.query || this.query.length < this.options.minLength ? this.shown ? this.hide() : this : (e = t.isFunction(this.source) ? this.source(this.query, t.proxy(this.process, this)) : this.source) ? this.process(e) : this
+			!this.query || this.query.length < this.options.minLength ? this.shown ? this.hide() : this : (e = (typeof this.source === "function") ? this.source(this.query, t.proxy(this.process, this)) : this.source) ? this.process(e) : this
 		},
 		process: function (e) {
 			var n = this;
@@ -1422,13 +1428,13 @@ $(function () {
 		t.xSteps[0] = e
 	}
 	function s(e, i) {
-		if ("object" != typeof i || t.isArray(i))
+		if ("object" != typeof i || Array.isArray(i))
 			throw Error("noUiSlider: 'range' is not an object.");
 		if (void 0 === i.min || void 0 === i.max)
 			throw Error("noUiSlider: Missing 'min' or 'max' in 'range'.");
 		t.each(i, function (i, o) {
 			var a;
-			if ("number" == typeof o && (o = [o]), !t.isArray(o))
+			if ("number" == typeof o && (o = [o]), !Array.isArray(o))
 				throw Error("noUiSlider: 'range' contains invalid value.");
 			if (!n(a = "min" === i ? 0 : "max" === i ? 100 : parseFloat(i)) || !n(o[0]))
 				throw Error("noUiSlider: 'range' value isn't numeric.");
@@ -1443,7 +1449,7 @@ $(function () {
 		})
 	}
 	function l(e, n) {
-		if ("number" == typeof n && (n = [n]), !t.isArray(n) || !n.length || 2 < n.length)
+		if ("number" == typeof n && (n = [n]), !Array.isArray(n) || !n.length || 2 < n.length)
 			throw Error("noUiSlider: 'start' option is incorrect.");
 		e.handles = n.length,
 		e.start = n
@@ -1516,7 +1522,7 @@ $(function () {
 		e.ser = [n.lower, n.upper],
 		e.formatting = n.format,
 		t.each(e.ser, function (e, o) {
-			if (!t.isArray(o))
+			if (!Array.isArray(o))
 				throw Error("noUiSlider: 'serialization." + (e ? "upper" : "lower") + "' must be an array.");
 			t.each(o, function () {
 				if (!(this instanceof t.Link))
@@ -1728,7 +1734,7 @@ $(function () {
 			c,
 			u,
 			h = Array.prototype.slice.call(arguments, 0),
-			f = t.isArray(h[0]) ? h[0] : [h[0]];
+			f = Array.isArray(h[0]) ? h[0] : [h[0]];
 			for ("object" == typeof h[1] ? (e = h[1].set, n = h[1].link, r = h[1].update, s = h[1].animate) : !0 === h[1] && (e = !0), o.dir && 1 < o.handles && f.reverse(), s && i(T, k[14], 300), h = 1 < b.length ? 3 : 1, 1 === f.length && (h = 1), c = 0; c < h; c++)
 				s = n || w[c % 2][0], s = s.getValue(f[c % 2]), !1 !== s && (s = a(o, s), o.dir && (s = 100 - s), !0 !== d(b[c % 2], s, !0) && t(w[c % 2]).each(function (t) {
 						if (!t)
@@ -2047,7 +2053,7 @@ function confirmationDialogue(t, e) {
 		g && (window.clearTimeout(g), g = void 0)
 	}
 	function n(t, n, o) {
-		$.isFunction(n) && (o = n, n = void 0),
+		(typeof n === "function") && (o = n, n = void 0),
 		(null == n || 1 > n.length || "REFRESH" != n[0].value) && ($(window).scrollTop(0), p(waitMsg));
 		var a = $(".modal-action-advanced:first").is(":visible");
 		e(),
@@ -2059,7 +2065,7 @@ function confirmationDialogue(t, e) {
 		$(".modal").load(t, n, function (t, e, n) {
 			$.xhrPool = [],
 			m(),
-			403 === n.status || 0 < $("#sign-me-in").length ? (p(loginMsg), window.location = "/login.lp") : (("error" === e || "timeout" === e) && httpErrorMessage(n), i(), a && r(), $.isFunction(o) && o(t, e, n))
+			403 === n.status || 0 < $("#sign-me-in").length ? (p(loginMsg), window.location = "/login.lp") : (("error" === e || "timeout" === e) && httpErrorMessage(n), i(), a && r(), (typeof o === "function") && o(t, e, n))
 		})
 	}
 	function i() {
@@ -2449,22 +2455,15 @@ function confirmationDialogue(t, e) {
 	$(document).on("change", "table .checkbox", function () {
 		0 === $(this).closest("table").find(".btn-table-cancel").length && l("TABLE-MODIFY", this)
 	}),
-	$(document).on("click", "#signout", function (t) {
-		t.preventDefault(),
-		t = $("<form>", {
-				action: "/",
-				method: "post"
-			}).append($("<input>", {
-					name: "do_signout",
-					value: "1",
-					type: "hidden"
-				})).append($("<input>", {
-					name: "CSRFtoken",
-					value: $("meta[name=CSRFtoken]").attr("content"),
-					type: "hidden"
-				})),
-		$("body").append(t),
-		t.submit()
+	$(document).on("click", "#signout", function () {
+		$.post(
+			"/", {
+				action: "do_signout",
+				CSRFtoken: $("meta[name=CSRFtoken]").attr("content")
+			},
+			null,
+			"json"
+		);
 	}),
 	$(document).on("shown", ".modal", function (t) {
 		$(t.target).hasClass("modal") && i()
@@ -2562,6 +2561,7 @@ function confirmationDialogue(t, e) {
 	$(document).on("click", ".modal .switch:not(.no-save):not(.disabled)", f),
 	$(document).on("click", '.modal input[type="checkbox"]:not(.no-save):not(.disabled)', f),
 	$(document).on("click", '.modal input[type="radio"]:not(.no-save):not(.disabled)', f),
+	t.openModal = u,
 	t.loadModal = n,
 	t.modalLoaded = i,
 	t.refreshModal = o,
@@ -3252,7 +3252,7 @@ var qrcode = function () {
 			}
 		}
 		function d(e) {
-			return t.isArray(ut.readonly) ? (e = t(".dwwl", j).index(e), ut.readonly[e]) : ut.readonly
+			return Array.isArray(ut.readonly) ? (e = t(".dwwl", j).index(e), ut.readonly[e]) : ut.readonly
 		}
 		function h(e) {
 			var n = '<div class="dw-bf">',
@@ -3491,7 +3491,7 @@ var qrcode = function () {
 			gt && ct.prop("disabled", !0)
 		},
 		st.setValue = function (e, n, i, o) {
-			st.temp = t.isArray(e) ? e.slice(0) : ut.parseValue.call(dt, e + "", st),
+			st.temp = Array.isArray(e) ? e.slice(0) : ut.parseValue.call(dt, e + "", st),
 			B(n, i, !1, o)
 		},
 		st.getValue = function () {
@@ -4544,7 +4544,7 @@ var qrcode = function () {
 		}).hide().closest(".ui-field-contain").trigger("create"),
 		n._setValue || (n._setValue = n.setValue),
 		n.setValue = function (e, a, r, s, m) {
-			var g = t.isArray(e) ? e[0] : e;
+			var g = Array.isArray(e) ? e[0] : e;
 			if (u = void 0 !== g ? g : t("option", d).attr("value"), c)
 				for (n._selectedValues = {}, g = 0; g < e.length; g++)
 					n._selectedValues[e[g]] = e[g];

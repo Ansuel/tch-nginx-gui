@@ -7,7 +7,7 @@ local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
 local format = string.format
 
-local attributes = { light = { } ,span = { class = "span4" } }
+local attributes = { light = { } ,span = {} }
 
 -- Non-configurable data
 local content_rpc = {
@@ -53,7 +53,7 @@ ngx.print('\
        if content_rpc["ipaddr"] and content_rpc["ipaddr"]:len() > 0 then
 		 WAN_IP_text = '<span data-bind="html: WAN_IP_text">'..format(T'WAN IP is <strong>%s</strong>'..'<br/>', content_rpc["ipaddr"])..'</span>'
 	     if content_rpc["uptime"] then
-		   uptime_text = '<span data-bind="html: uptime_text">'..format(T"Uptime : <strong>%s</strong>",(post_helper.secondsToTimeShort(content_rpc["uptime"]) or ""))..'</span>'
+		   uptime_text = '<span data-bind="html: uptime_text">'..format(T"Uptime: <strong>%s</strong>",(post_helper.secondsToTimeShort(content_rpc["uptime"]) or ""))..'</span>'
 		 end
 		end
      end
@@ -63,9 +63,8 @@ ngx.print('\
   </p>\
 </span>\
 <script>\
-var StaticCardInterval;\
 $(document).ready(function () {\
-	new createAjaxUpdateCard("static-internet-tab","/ajax/internet.lua",StaticCardInterval,3000);\
+	new modgui.createAjaxUpdateCard("static-internet-tab","/ajax/internet.lua","StaticCardInterval",3000);\
 })\
 </script>\
 ');

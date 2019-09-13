@@ -18,10 +18,23 @@ local mmpbx_codecfilter_ = {
 }
 
 local conn = mapper("ubus").connect()
+local codec_rates = {
+    PCMU = "64",
+    PCMA = "64",
+    G722 = "64",
+    ["G726-16"] = "16",
+    ["G726-24"] = "24",
+    ["G726-32"] = "32",
+    ["G726-40"] = "40",
+    G729 = "8",
+    G723 = "6.3",
+    AMR = "12.2",
+    ILBC = "15.2"
+}
 
 mmpbx_codecfilter_.entries = function()
   local entries = {}
-  local result = conn:call("mmbrcm.codecdata", "get", {}) or {}
+  local result = codec_rates
   for k in pairs(result) do
     entries[#entries + 1] = k
   end
@@ -29,9 +42,10 @@ mmpbx_codecfilter_.entries = function()
 end
 
 mmpbx_codecfilter_.get = function(mapping, param, key)
-  local data = conn:call("mmbrcm.codecdata", "get", {})
-  if data and data[key] then
-    return data[key][param] or ""
+  if param == "encodingName" then
+    return key
+  elseif param == "supportedBitRate" then
+    return codec_rates[key] or ""
   end
   return ""
 end

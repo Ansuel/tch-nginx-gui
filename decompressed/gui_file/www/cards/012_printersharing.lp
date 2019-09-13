@@ -8,7 +8,7 @@ gettext.textdomain('webui-printersharing')
 local proxy = require("datamodel")
 local match = string.match
 local ui_helper = require("web.ui_helper")
-local attributes = { span = { class = "span4" } }
+local attributes = {  }
 local content_helper = require("web.content_helper")
 local session = ngx.ctx.session
 local modalPath = nil
@@ -22,9 +22,9 @@ local content = {
 }
 content_helper.getExactContent(content)
 
-local printersharing_state = T"Printer Sharing disabled"
+local printersharing_state = T"Printer sharing disabled"
 if content["printersharing_enabled"] == "1" then
-  printersharing_state = T"Printer Sharing enabled"
+  printersharing_state = T"Printer sharing enabled"
 end
 
 local pathIndexList = {}

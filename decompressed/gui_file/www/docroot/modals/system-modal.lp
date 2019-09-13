@@ -1,5 +1,5 @@
 --pretranslated: do not change this file
- 
+
 -- Enable localization
 -- NG-92911 SSH Enable for LAN/WAN is not working for Engineer User
 gettext.textdomain('webui-core')
@@ -11,9 +11,10 @@ local message_helper = require("web.uimessage_helper")
 local content_helper = require("web.content_helper")
 local post_helper = require("web.post_helper")
 local format, match = string.format, string.match
-local untaint = string.untaint 
+local untaint = string.untaint
 
 local gOV = post_helper.getOptionalValidation
+local vSIPR = post_helper.validateStringIsPortRange
 
 local spoof_mode_enum = {
 	{ "disabled" , T"Comunicate real version to cwmp"},
@@ -36,18 +37,20 @@ local function validateVersionSpoofMode(value, object, key)
 		end
 		proxy.apply()
 	end
-	
+
 	return valid, msg
 end
 
-local fwversion_override_Params = { 
-	fwversion_override = "uci.versioncusto.override.fwversion_override", 
-	version_spoof_mode = "uci.modgui.var.version_spoof_mode",
+local fwversion_override_Params = {
+    fwversion_override = "uci.versioncusto.override.fwversion_override",
+    version_spoof_mode = "uci.modgui.var.version_spoof_mode",
+    ssh_wan_port = "uci.dropbear.dropbear.@wan.Port",
 }
 
-local fwversion_override_valid = { 
-	fwversion_override = gOV(post_helper.validateNonEmptyString),
-	version_spoof_mode = validateVersionSpoofMode,
+local fwversion_override_valid = {
+    fwversion_override = gOV(post_helper.validateNonEmptyString),
+    version_spoof_mode = validateVersionSpoofMode,
+    ssh_wan_port = post_helper.validateStringIsPort
 }
 
 local fwversion_override_content, fwversion_override_helpmsg = post_helper.handleQuery(fwversion_override_Params, fwversion_override_valid)
@@ -74,19 +77,20 @@ local serial_num = format("%s%s",env.factory,env.serial)
 local syslog_present, syslog_filter_sw = "0", "0"
 
 -- SSH Access
-local ssh_lan, ssh_wan = "0", "0"    -- assume disabled
+local ssh_lan, ssh_wan, ssh_wan_port = "0", "0", "0"    -- assume disabled
 local ssh_lan_index, ssh_wan_index = "-1", "-1"
 local enable = 0
-local ssh_wan_new, ssh_lan_new
+local ssh_wan_new, ssh_lan_new, ssh_wan_port_new
 
 -- local function to handle setting firewall rule
 -- parameter target will have a value of DROP or ACCEPT for SSH-wan entry
-local function set_firewall(target)
+local function set_firewall(target, port)
    -- go through rules to find SSH-wan anonymous section name
    local rules = proxy.get("uci.firewall.rule.")
    for _,v in ipairs(rules) do
-      if v.param == "name" and untaint(v.value) == "SSH_wan" then
-         proxy.set(v.path.."target", target)
+      if v.param == "name" and (untaint(v.value) == "SSH_wan" or untaint(v.value) == "SSH-wan") then
+          proxy.set(v.path .. "target", target)
+          proxy.set(v.path .. "dest_port", port)
          return
       end
    end
@@ -106,7 +110,7 @@ for _,v in pairs(data) do
     ssh_wan_index = v.paramindex
   end
 end
-	
+
 local Syslog = proxy.get("uci.system.system.@system[0].log_ip","uci.system.system.@system[0].log_filter_ip")
 if Syslog[1].value ~= "" or Syslog[2].value ~= "" then
   syslog_present = "1"
@@ -120,6 +124,7 @@ if ngx.var.request_method == "POST" then
   if vars["action"] == "SAVE" then
     -- SSH Access
     ssh_wan_new = untaint(vars["ssh_wan"])
+      ssh_wan_port_new = untaint(vars["ssh_wan_port"])
     ssh_lan_new = untaint(vars["ssh_lan"])
     local db_path = "uci.dropbear.dropbear.@dropbear["
 
@@ -132,13 +137,13 @@ if ngx.var.request_method == "POST" then
     end
 
     -- set wan
-    if ssh_wan_new ~= ssh_wan then
+      if (ssh_wan_new ~= ssh_wan or ssh_wan_port_new ~= ssh_wan_port) and fwversion_override_helpmsg["ssh_wan_port"] == nil then
        ssh_wan = ssh_wan_new
        proxy.set(dbpath..ssh_wan_index.. ".enable", ssh_wan)
        if ssh_wan == "1" then
-          set_firewall("ACCEPT")
+           set_firewall("ACCEPT", ssh_wan_port_new)
        else
-          set_firewall("DROP")
+           set_firewall("DROP", ssh_wan_port_new)
        end
        -- Log  that someone has changed SSH access
        ngx.log(ngx.ALERT, "Local Setting of SSH on wan to "..ssh_wan)
@@ -197,7 +202,6 @@ local syslog_Params = {
 local gVIPIL = post_helper.getValidationIfPropInList
 local vSII = post_helper.validateStringIsIP
 local vB = post_helper.validateBoolean
-local vSIPR = post_helper.validateStringIsPortRange
 local gOV = post_helper.getOptionalValidation
 local vNES = post_helper.validateNonEmptyString
 
@@ -213,11 +217,12 @@ local function valid_comma_string(value)
 end
 
 local syslog_valid = {
-  syslog_present = vB,
-  syslog_filter_sw = vB,
-  syslog_ip = gVIPIL(gVIPIL(gOV(vSII), "syslog_filter_sw", {"0"}), "syslog_present", {"1"}),
-  syslog_filter_ip = gVIPIL(gVIPIL(gOV(vSII), "syslog_filter_sw", {"1"}), "syslog_present", {"1"}),
-  syslog_port = gVIPIL(vSIPR, "syslog_present", {"1"}),
+    syslog_present = vB,
+    syslog_filter_sw = vB,
+    syslog_ip = gVIPIL(gVIPIL(gOV(vSII), "syslog_filter_sw", {"0"}), "syslog_present", {"1"}),
+    syslog_filter_ip = gVIPIL(gVIPIL(gOV(vSII), "syslog_filter_sw", {"1"}), "syslog_present", {"1"}),
+    syslog_port = gVIPIL(vSIPR, "syslog_present", {"1"}),
+    post_helper.validateStringIsPortRange
 }
 local syslog_Params, helpmsg = post_helper.handleQuery(syslog_Params, syslog_valid)
 
@@ -225,10 +230,10 @@ local telnet_available = file_check("/bin/busybox_telnet")
 local telnet_content
 
 if telnet_available then
-	local telnet_Params = { telnet_enable = "uci.telnet.general.enable" }	
-	
+    local telnet_Params = { telnet_enable = "uci.telnet.general.enable" }
+
 	local telnet_valid = { telnet_enable = vB }
-	
+
 	telnet_content, helpmsg = post_helper.handleQuery(telnet_Params, telnet_valid)
 end
 
@@ -275,8 +280,8 @@ local function wait_for_completion(base_path)
   until (total_time >= max_time)
 end
 
-local function resetreboot(path)
-  proxy.set(path, "1")
+local function resetreboot(path,value)
+  proxy.set(path, value)
   ngx.header.content_type = "application/json"
   ngx.print('{ "success":"true" }')
   ngx.timer.at(0, function()
@@ -289,37 +294,35 @@ end
 if ngx.req.get_method() == "POST" then
   local action = ngx.req.get_post_args().action
   if action == "system_bootp" then
-    return resetreboot("sys.bootp.enable")
+    return resetreboot("sys.bootp.enable","1")
   end
   if action == "system_switchover" then
-    return resetreboot("rpc.system.switchover")
+    return resetreboot("rpc.system.switchover","1")
   end
   if action == "system_trasnfer_bank_1" then
-    return resetreboot("rpc.system.modgui.utility.transfer_bank1")
+    return resetreboot("rpc.system.modgui.utility.sendcmd","transfer_bank1")
   end
   if action == "system_copy_bank" then
-    return resetreboot("rpc.system.modgui.utility.copy_bank")
+    return resetreboot("rpc.system.modgui.utility.sendcmd","copy_bank")
   end
   if action == "debug_report" then
-	
+
 	local debuglog_path = "rpc.system.modgui.debuglog."
-	
+
 	proxy.set(debuglog_path.."start","1")
 	proxy.apply()
-	
+
 	wait_for_completion(debuglog_path)
-  
-	local content = {
+
+      local content = {
 		filename = debuglog_path.."filename",
 	}
-	
-	-- Get transformer content
+
+      -- Get transformer content
 	content_helper.getExactContent(content)
-	
-	-- return exported data
+
+      -- return exported data
       local fname = untaint(content.filename)
-      ngx.log(1, "ciao")
-      ngx.log(1, fname:match("([^/]+)$"))
 	if fname ~= "" then
 		ngx.header.content_disposition = "attachment; filename="..fname:match("([^/]+)$")
 		ngx.header.content_type = "application/octet-stream"
@@ -327,8 +330,8 @@ if ngx.req.get_method() == "POST" then
 		local f = io.open(fname, "r")
 		ngx.print(f:read("*all"))
 		f:close()
-		
-		-- and we're done
+
+        -- and we're done
 		ngx.exit(ngx.HTTP_OK)
 	else
 		ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
@@ -341,7 +344,7 @@ local title = T"System Extras"
   ngx.print('\
 ');  ngx.print(ui_helper.createHeader(title, false, false))   ngx.print('\
 <div class="modal-body update">\
-'); 
+');
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
   ngx.print('\
 <form class="form-horizontal" method="post" action="modals/system-modal.lp">\
@@ -483,7 +486,7 @@ ngx.print('\
 </fieldset>\
 <fieldset>\
   <legend>');  ngx.print( T"Debug Report" ); ngx.print('</legend>\
-    ');  
+    ');
 	  local generate_debug_report = {
         button = {
           id = "btn-system-debug-report",
@@ -497,10 +500,11 @@ ngx.print('\
 </fieldset>\
 <fieldset>\
   <legend>');  ngx.print( T"SSH Access" ); ngx.print('</legend>\
-    ');  
+    ');
       local html = {}
       html[#html + 1] = ui_helper.createSwitch(T"LAN", "ssh_lan", ssh_lan)
       html[#html + 1] = ui_helper.createSwitch(T"WAN", "ssh_wan", ssh_wan)
+html[#html + 1] = ui_helper.createInputText(T "WAN SSH Port", "ssh_wan_port", fwversion_override_content["ssh_wan_port"], nil, fwversion_override_helpmsg["ssh_wan_port"])
       ngx.print(html)
       ngx.print('\
 </fieldset>\
@@ -509,7 +513,7 @@ if telnet_content then
 	ngx.print('\
 	<fieldset>\
 	<legend>');  ngx.print( T"Telnet Access" ); ngx.print('</legend>\
-		');  
+		');
 		local html = {}
 		html[#html + 1] = ui_helper.createSwitch(T"LAN", "telnet_enable", telnet_content["telnet_enable"], basic)
 		ngx.print(html)
@@ -519,7 +523,7 @@ end
 ngx.print('\
 <fieldset>\
   <legend>');  ngx.print( T"System Log" ); ngx.print('</legend>\
-    ');  
+    ');
       local html = {}
       local switch_class_enable = {
         input = {
@@ -613,6 +617,7 @@ ngx.print('\
     msg_dst.after(msg);\
     msg.removeClass("hide");\
     msg[0].scrollIntoView();\
+	modgui.clearKoInterval();\
     $.post(\
       target,\
       { action: action, CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
@@ -709,4 +714,4 @@ $("#btn-system-copy-bank").on("click", function() {\
 }());\
 </script>\
 ');  ngx.print(ui_helper.createFooter());   ngx.print('\
-'); 
+');

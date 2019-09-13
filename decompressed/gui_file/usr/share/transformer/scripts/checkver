@@ -25,7 +25,8 @@
 
 STABLE_VERSION="stable.version"
 DEV_VERSION="latest.version"
-CURRENT_VERSION="$(uci get modgui.gui.gui_version)"
+PREVIEW_VERSION="preview.version"
+CURRENT_VERSION=$(echo "$(uci get modgui.gui.gui_version)" | cut -d'-' -f1)
 BASE_DIR="https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master"
 
 ############TRANSFORMER UTILITY##################
@@ -34,6 +35,8 @@ set_transformer() {
 	lua -e "$cmd"
 }
 #################################################
+
+set_transformer "rpc.system.modgui.executeCommand.state" "Checking"
 
 connectivity="yes"
 if ping -q -c 1 -W 1 8.8.8.8 >/dev/null; then
@@ -69,7 +72,10 @@ if [ $connectivity == "yes" ]; then
 	if [ ! "$(uci get -q modgui.gui.update_branch)" ] || [ "$(uci get modgui.gui.update_branch)" == "stable" ]; then
 		update_branch="stable"
 		version_link=$BASE_DIR/$STABLE_VERSION
-	else
+	elif [ "$(uci get modgui.gui.update_branch)" == "preview" ]; then
+		update_branch="preview"
+		version_link=$BASE_DIR/$PREVIEW_VERSION
+	else 
 		update_branch="dev"
 		version_link=$BASE_DIR/$DEV_VERSION
 	fi
@@ -81,7 +87,7 @@ if [ $connectivity == "yes" ]; then
 
     logger -s -t "CheckVer Script" "Online version: $new_version"
 
-    if [ "$update_branch" == "dev" ]; then #just makes sure there is no newer stable
+    if [ "$update_branch" == "dev" ] || [ "$update_branch" == "preview" ]; then #just makes sure there is no newer stable
         stable_version_link=$BASE_DIR/$STABLE_VERSION
         stable_version="$(curl -k -s "$stable_version_link")"
 
@@ -103,14 +109,12 @@ if [ $connectivity == "yes" ]; then
         logger -s -t "CheckVer Script" "Setting outdate version bit!"
         uci set modgui.gui.outdated_ver=1
         uci set modgui.gui.new_ver="$new_version"
+	      sleep 1 #needed to avoid setting Complete status too fast
     else
         logger -s -t "CheckVer Script" "No new version detected."
         uci set modgui.gui.outdated_ver=0
         uci set modgui.gui.new_ver="Unknown"
     fi
-	
-	set_transformer "rpc.system.modgui.scriptRequest.state" "Complete"
-	
 	uci commit env
 else
     logger -s -t "CheckVer Script" "No connection detected!"

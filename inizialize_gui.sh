@@ -1,45 +1,18 @@
-echo "Fixing file..."
-
-nfile=0
-
-check_file_ending() {
-	for file in $1/*; do
-		if [ -d $file ]; then
-			check_file_ending $file
-		else
-			if [ -f $file ]; then
-				nfile=$[$nfile +1]
-				echo -ne 'File scanned: '$nfile'\r'
-				if [ $( dos2unix -ic $file ) ]; then
-					dos2unix $file
-					echo "Detected bad line-ending here: $file"
-				fi
-			fi
-		fi
-	done
-	
-}
-
-check_file_ending decompressed
-echo ""
-echo "File fixed!"
-
 declare -a modular_dir=(
 	"base"
 	"gui_file"
 	"traffic_mon"
-	"telnet_support-specificDGA"
-	"telnet_support-specificTG789"
-	"upnpfix-specificDGA"
 	"upgrade-pack-specificDGA"
+	"upgrade-pack-specificTG800"
+	"upgrade-pack-specificTG789"
 	"custom-ripdrv-specificDGA"
-	"dlnad_supprto-specificDGA"
-	"wgetfix-specificDGA"
 	"telstra_gui"
+	"ledfw_support-specificTG788"
 	"ledfw_support-specificTG789"
 	"ledfw_support-specificTG799"
 	"ledfw_support-specificTG800"
 	"ledfw_support-specificDGA"
+	"ledfw_support-specificDGA4131"
 )
 
 if [ "$1" == "dev" ]; then
@@ -48,7 +21,10 @@ if [ "$1" == "dev" ]; then
 fi
 
 if [ $CI == "true" ]; then
-	if [ -f ~/.dev ]; then
+	TYPE="$(cat $HOME/gui_build/data/type)"
+	if [ $TYPE == "PREVIEW" ]; then
+		type="_preview"
+	elif [ $TYPE == "DEV" ]; then
 		type="_dev"
 	fi
 fi
@@ -107,7 +83,7 @@ for index in "${modular_dir[@]}"; do
 	if [ $index == "base" ] || [ $index == "gui_file" ] || [ $index == "traffic_mon" ]; then
 		echo "Copying file from "$index" to GUI dir"
 		cp -dr decompressed/$index/* total 
-	else
+	elif [ -z "$(echo $index | grep upgrade-pack-)" ]; then
 		cp $HOME/gui-dev-build-auto/modular/$index.tar.bz2 total/tmp
 		echo "Adding specific file from "$index" to tmp virtual dir"
 	fi

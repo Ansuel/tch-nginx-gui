@@ -1,5 +1,3 @@
-local logger = require("transformer.logger")
-local log = logger.new("wireless.ap.station", 2)
 local register = register;
 
 local wireless_ap_station_ = {
@@ -237,24 +235,21 @@ local wireless_ap_station_ = {
             access = "readOnly",
             type = "string",
         },
+        signalStrength = {
+            access = "readOnly",
+            type = "int",
+        },
     },
   }
 }
 
-local conn = mapper("ubus").connect()
-
-local function getDataForAP(ap)
-    local result = conn:call("wireless.accesspoint.station", "get", { name = ap })
-    if result == nil then
-        log:error("Cannot retrieve stations info for ap " .. ap)
-        return {}
-    end
-    return result[ap]
-end
+local network = require("transformer.shared.common.network")
+local wifi = require("transformer.shared.wifi")
+local pairs, tostring = pairs, tostring
 
 local function entries(mapping, parentkey)
     local result = {}
-    local stations = getDataForAP(parentkey)
+    local stations = network.getAccessPointStationInfo(parentkey)
     for k in pairs(stations) do
         result[#result+1] = {k,k .. "|" .. parentkey}
     end
@@ -262,7 +257,7 @@ local function entries(mapping, parentkey)
 end
 
 local function getall(mapping, key, parentkey)
-    local apData = getDataForAP(parentkey)
+    local apData = network.getAccessPointStationInfo(parentkey)
     key = key:match("^([%x:]+)|")
     local staData = apData[key] or {}
     for k,v in pairs(staData) do
@@ -272,9 +267,13 @@ local function getall(mapping, key, parentkey)
 end
 
 local function get(mapping, paramName, key, parentkey)
-    local apData = getDataForAP(parentkey)
+    local apData = network.getAccessPointStationInfo(parentkey)
     key = key:match("^([%x:]+)|")
     local staData = apData[key] or {}
+    if paramName == "signalStrength" then
+        local rssi = staData["rssi"]
+        return wifi.getSignalStrength(rssi)
+    end
     return tostring(staData[paramName] or "")
 end
 

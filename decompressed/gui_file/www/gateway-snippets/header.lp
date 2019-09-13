@@ -12,8 +12,7 @@ local assistance = require("web.assistance")
 local assistant = assistance.getAssistant('remote')
 
 local function apply(action)
-  proxy.set("rpc.system.modgui.scriptRequest.state","Requested")
-  proxy.set("rpc.system.modgui.utility." .. action, "1")
+  proxy.set("rpc.system.modgui.utility.sendcmd", action)
   ngx.header.content_type = "application/json"
   ngx.print('{ "success":"true" }')
   ngx.timer.at(0, function()
@@ -28,16 +27,20 @@ if ngx.req.get_method() == "POST" then
   return apply("checkver")
   end
   if post_args.action == "autoupgrade_view" then
-  proxy.set("uci.modgui.gui.autoupgradeview", "none")
-  proxy.apply()
-  end
+	proxy.set("uci.modgui.gui.autoupgradeview", "none")
+	proxy.apply()
+	end
   if post_args.do_signout then
     session:logout()
+	ngx.header.content_type = "application/json"
+	ngx.print('{ "success":"true" }')
+	ngx.exit(ngx.HTTP_OK)
     -- Now we redirect to / until we find a better solution
     -- Otherwise, the current page might be rendered while the default user is not allowed to see it
     -- since the access was checked for the user "before" logging out
     -- TODO: find a more elegant solution, in session module?
-    ngx.redirect("/");
+
+	-- More elegant solution = follow standard way of do call and refresh page to the login page.
   end
   if post_args.passwordchange == "dontremind" then
     local result = content_helper.getMatchedContent("uci.web.user.", {name = session:getusername()})
@@ -64,7 +67,7 @@ local cui = {
   autoupgrade_view = "uci.modgui.gui.autoupgradeview",
   firstpage = "uci.modgui.gui.firstpage",
   randomcolor = "uci.modgui.gui.randomcolor",
-  gui_animation = "uci.modgui.gui.gui_animation",
+  gui_animation = "uci.modgui.gui.gui_animation"
 }
 
 content_helper.getExactContent(cui)
@@ -119,7 +122,7 @@ ngx.print('\
       html[#html + 1] = '<div id="upgradebtn" class="btn someInfos '.. hideUpdateButton  ..'"'
       if not ( cui.gui_skin == "Fritz" ) then
         html[#html + 1] = ' rel="tooltip" data-placement="bottom" data-original-title="'
-        html[#html + 1] = T"Go to the gateway tab and click on the Update button, to autoupgrade to the new GUI."
+        html[#html + 1] = T"Go to the GUI tab and click on the Update button, to autoupgrade to the new GUI."
         html[#html + 1] = '" '
       end
       html[#html + 1] = 'data-toggle="modal" data-remote="modals/modgui-modal.lp?action=manualguiupgrade">'
@@ -132,7 +135,7 @@ ngx.print('\
       html[#html + 1] = '<div class="btn" id="wizard-btn" data-toggle="modal" data-remote="modals/wizard-modal.lp">' .. T"Setup Wizard" .. '</div>'
       html[#html + 1] = '</div>'
       html[#html + 1] = '<div class="header-sub-button">'
-      html[#html + 1] =   '<div class="btn" id="swtichbuttom">'
+      html[#html + 1] =   '<div class="btn" id="switchViewButton">'
       html[#html + 1] =     '<span id="refresh-cards"></span>'
       html[#html + 1] =     '<span id="cards-text">' .. pageselector.text .. '</span>'
       html[#html + 1] =   '</div>'
@@ -192,7 +195,7 @@ ngx.print('\
         html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
         end
       end
-            html[#html + 1] = [[ <li><a tabindex="-1" href="/" id="signout"> ]]
+            html[#html + 1] = '<li><a tabindex="-1" href="'..session:getLoginPath()..'" id="signout">'
             html[#html + 1] = T"Sign out"
             html[#html + 1] = [[</a></li></ul></div>]]
 
@@ -220,49 +223,49 @@ ngx.print('\
           id = "upgrade-alert"
         },
       }
-      local upgrade_text = format(T"The modem has been updated to version <strong>%s</strong> successfully",cui.gui_version)
+      local upgrade_text = T"The modem has been updated "
       if autoupgrade_view == "auto" then
-        upgrade_text = format(T("The modem has been updated automatically at <strong>%s:00</strong>" ..
-              " to version <strong>%s</strong> successfully"),cui.autoupgrade_hour, cui.gui_version)
+        upgrade_text = upgrade_text .. format(T"automatically at <strong>%s:00</strong>",cui.autoupgrade_hour)
       end
-
+	  upgrade_text = upgrade_text .. format(T" to version <strong>%s</strong> successfully",cui.gui_version)
       html[#html + 1] = ui_helper.createAlertBlock(upgrade_text,alert_upgrade_success)
     end
-    if not session:isdefaultuser() and not session:retrieve("password_reminder_shown") and session:getusername() ~= assistant:username() then
-      local result = content_helper.getMatchedContent("uci.web.user.", {name = session.getusername()})
-        if result and result[1].password_reminder ~= "0" then
-          html[#html + 1] = '<div class="modal fade in" id="password_reminder">'
-          html[#html + 1] = ui_helper.createHeader(T"Change Password")
-          html[#html + 1] = '<div class="modal-body update">'
-          html[#html + 1] = '<form class="form-horizontal" method="post" action="gateway.lp">'
-          html[#html + 1] = ui_helper.createSimpleInputHidden("CSRFtoken", session:getCSRFtoken())
-          html[#html + 1] = '<fieldset>'
-          local attr = {radio = {style = "display: block"}}
-          html[#html + 1] = ui_helper.createInputRadio("", "passwordchange", {{"now", T"Now"},{"remindlater", T"Remind me later"},{"dontremind", T"Do not remind me again"}},nil,attr)
-          html[#html + 1] = '</fieldset>'
-          html[#html + 1] = '</form>'
-          html[#html + 1] = '</div>'
-          html[#html + 1] = ui_helper.createFooter()
-          html[#html + 1] = '</div>'
-          html[#html + 1] = '\
-          <script>\
-            $("#password_reminder").modal();\
-            $("#save-config").on("click", function(){\
-            var value = $("input[name=passwordchange]:checked").val();\
-            if(value == "now"){\
-              window.location = "/password.lp";\
-            }else if(value == "remindlater"){\
-              $("#password_reminder").modal(\'hide\');\
-            }else if(value == "dontremind"){\
-              $("#password_reminder form").submit();\
-            }\
-            return false;\
-            });\
-          </script>\
-          '
-        end
-      session:store("password_reminder_shown", true)
-    end
+	
+	if not session:isdefaultuser() and not session:retrieve("password_reminder_shown") and session:getusername() ~= assistant:username() then
+		local result = content_helper.getMatchedContent("uci.web.user.", {name = session.getusername()})
+		if result and result[1] and result[1].password_reminder ~= "0" then
+			html[#html + 1] = '<div class="modal fade in" id="password_reminder">'
+			html[#html + 1] = ui_helper.createHeader(T"Change Password")
+			html[#html + 1] = '<div class="modal-body update">'
+			html[#html + 1] = '<form class="form-horizontal" method="post" action="gateway.lp">'
+			html[#html + 1] = ui_helper.createSimpleInputHidden("CSRFtoken", session:getCSRFtoken())
+			html[#html + 1] = '<fieldset>'
+			local attr = {radio = {style = "display: block"}}
+			html[#html + 1] = ui_helper.createInputRadio("", "passwordchange", {{"now", T"Now"},{"remindlater", T"Remind me later"},{"dontremind", T"Do not remind me again"}},nil,attr)
+			html[#html + 1] = '</fieldset>'
+			html[#html + 1] = '</form>'
+			html[#html + 1] = '</div>'
+			html[#html + 1] = ui_helper.createFooter()
+			html[#html + 1] = '</div>'
+			html[#html + 1] = '\
+			<script>\
+				$("#password_reminder").modal();\
+				$("#save-config").on("click", function(){\
+				var value = $("input[name=passwordchange]:checked").val();\
+				if(value == "now"){\
+				window.location = "/password.lp";\
+				}else if(value == "remindlater"){\
+				$("#password_reminder").modal(\'hide\');\
+				}else if(value == "dontremind"){\
+				$("#password_reminder form").submit();\
+				}\
+				return false;\
+				});\
+			</script>\
+			'
+		end
+		session:store("password_reminder_shown", true)
+	end
     html[#html + 1] = '<a href="#footer" id="scroll-down" class="scroll-down" address="true"></a>'
     html[#html + 1] = '<a href="#headertab" id="scroll-up"class="scroll-up hide" address="true"></a>'
 ngx.print(html)

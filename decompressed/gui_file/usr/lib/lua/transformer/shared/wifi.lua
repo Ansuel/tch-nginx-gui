@@ -1,5 +1,7 @@
 local M = {}
 local gmatch, ipairs, concat = string.gmatch, ipairs, table.concat
+local uciHelper = require("transformer.mapper.ucihelper")
+local wirelessBinding = { config = "wireless" }
 
 --- function to convert a string into a map based on the match pattern
 -- @param #string str the input string that needs to be converted into a map
@@ -48,7 +50,7 @@ end
 function M.setBasicRateset(value,rateset)
   local ratesetTable = string.gsub(rateset, "%d*%.*%d*%(b%)[,%s]?", "") -- removes all the values containing (b)
   ratesetTable = toList(ratesetTable, "([^,%s]+)")
-  local basicRatesetMap, errMsg = toMap(value, "([^,%s]+)", "%d+") -- match all comma or space separated values, validate if match contains numbers
+  local basicRatesetMap, errMsg = toMap(value, "([^,%s]+)", "^%d+%.?%d*$") -- match all comma or space separated values, validate if match contains numbers
   if not basicRatesetMap then
     return nil, errMsg
   end
@@ -75,7 +77,7 @@ end
 function M.setOperationalRateset(value,rateset)
   local errMsg
   local basicRatesetMap = toMap(rateset, "([^,%s]+)%(b%),?") -- match only values containing '(b)'
-  value, errMsg = toList(value, "([^,%s]+)", "%d+") -- match all comma or space separated values, validate if match contains numbers
+  value, errMsg = toList(value, "([^,%s]+)", "^%d+%.?%d*$") -- match all comma or space separated values, validate if match contains numbers
   if not value then
     return nil, errMsg
   end
@@ -89,6 +91,41 @@ function M.setOperationalRateset(value,rateset)
     value[#value+1] = rate .. "(b)"
   end
   return concat(value," ")
+end
+
+--- Checks if the given security mode is supported or not
+-- @function isSupportedMode
+-- @param ap the accesspoint name
+-- @param mode given mode to check whether it is in supported security modes
+function M.isSupportedMode(ap, mode)
+  wirelessBinding.sectionname = ap
+  wirelessBinding.option = "supported_security_modes"
+  local modeList = uciHelper.get_from_uci(wirelessBinding)
+  for imode in modeList:gmatch('([^%s]+)') do
+    if imode == mode then
+      return true
+    end
+  end
+  return false
+end
+
+-- function to calculate the signal strength of wireless device
+function M.getSignalStrength(rssi)
+  local strength = 1
+  if rssi then
+    if rssi <= -127 then
+      strength = "1"
+    elseif rssi < -85 and rssi > -127 then
+      strength = "2"
+    elseif rssi == -85 then
+      strength = "3"
+    elseif rssi < -75 and rssi > -85 then
+      strength = "4"
+    else
+      strength = "5"
+    end
+  end
+  return strength
 end
 
 return M

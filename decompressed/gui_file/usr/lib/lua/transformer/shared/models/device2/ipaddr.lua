@@ -52,18 +52,18 @@ end
 local function load_ubus_mobile_data()
   local data = ubus:call("mobiled.network", "sessions", {})
   if data then
-  	data.interface = {}
-  	data.sessions = data.sessions or {}
-  	for _, session in ipairs(data.sessions) do
-    	if session.session_state=='connected' then
-      	data.interface[session.interface] = session
-    	end
-  	end
+    data.interface = {}
+    data.sessions = data.sessions or {}
+    for _, session in ipairs(data.sessions) do
+      if session.session_state=='connected' and session.interface then
+        data.interface[session.interface] = session
+      end
+    end
   else
-  	data = {
-  		sessions = {},
-  		interface = {}
-  	}
+    data = {
+      sessions = {},
+      interface = {}
+    }
   end
   return data
 end

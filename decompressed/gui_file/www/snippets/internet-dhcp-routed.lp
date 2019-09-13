@@ -46,6 +46,7 @@ local ajax_attr_light = {
 
 local vSII = post_helper.validateStringIsIP
 local gOV = post_helper.getOptionalValidation
+local vNES = post_helper.validateNonEmptyString
 
 local dns_options = {
     tableid = "dns_servers",
@@ -169,6 +170,7 @@ local mapParams = {
 	uci_wan_ipv6 = "uci.network.interface.@wan.ipv6", --custo TCOMITAGW-2157
     uci_wan_mac = "uci.network.interface.@wan.macaddr",
     uci_wan_peerdns = "uci.network.interface.@wan.peerdns",
+	uci_wan_vendorid = "uci.network.interface.@wan.vendorid",
 }
 
 -- Shortcuts to validation helpers to make lines shorter
@@ -204,6 +206,7 @@ local mapValid = {
 	uci_wan_ipv6 = IPv6andUsername,--custo TCOMITAGW-2157
     uci_wan_mac = gOV(post_helper.validateStringIsMAC),
     uci_wan_peerdns = vB,
+	uci_wan_vendorid = gOV(post_helper.validateNonEmptyString),
 }
 
 local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
@@ -257,27 +260,14 @@ end
 local cs = {
     ipaddr = "rpc.network.interface.@wan.ipaddr",
     nexthop = "rpc.network.interface.@wan.nexthop",
-    dns_wan = "rpc.network.interface.@wan.dnsservers",
+    dns = "rpc.network.interface.@wan.dnsservers",
     dns_loopback = "rpc.network.interface.@loopback.dnsservers", -- Added to include static dns servers configured on loopback interface (for TI custo)
 }
 
-for i,v in ipairs(proxy.getPN("rpc.network.interface.", true)) do
-    local intf = match(v.path, "rpc%.network%.interface%.@([^%.]+)%.")
-    if intf then
-        if intf == "6rd" then
-            cs.ip6addr = "rpc.network.interface.@6rd.ip6addr"
-	    cs.ip6prefix = "rpc.network.interface.@6rd.ip6prefix"
-	    cs.dnsv6 = "rpc.network.interface.@6rd.dnsservers"
-        elseif intf == "wan6" then
-            cs.ip6addr = "rpc.network.interface.@wan6.ip6addr"
-	    cs.ip6prefix = "rpc.network.interface.@wan6.ip6prefix"
-	    cs.dnsv6 = "rpc.network.interface.@wan6.dnsservers"
-            break
-        elseif intf == "wan" then
-              cs.ip6addr = "rpc.network.interface.@wan.ip6addr"
-              cs.ip6prefix = "rpc.network.interface.@wan.ip6prefix"
-        end
-    end
+local internethelper = require("internethelper")
+
+for v6Key, v6Value in pairs(internethelper.getIpv6Content()) do
+	cs[v6Key] = v6Value
 end
 
 local dhcp_lease = {
@@ -295,18 +285,16 @@ end
 ajax_helper.handleAjaxQuery(cs, function(c)
     -- this will add the HTML for the light
     local ds = get_dhcp_state(content["uci_wan_auto"], c["ipaddr"])
-	local dnstab = split(proxy.get("rpc.network.interface.@loopback.dnsservers")[1].value, "[^%,]+")
+	local dnstab = split(proxy.get("rpc.network.interface.@wan.dnsservers")[1].value, "[^%,]+")
 	local dnsv4, dnsv6 = dns_filter(dnstab)
     ajax_attr_light.light.class = dhcp_light_map[ds]
     c.wan_status = ui_helper.createSimpleLight(nil, dhcp_state_map[ds], ajax_attr_light)
 	if proxy.get("uci.network.interface.@wan.auto")[1].value == "1" then
-		c.dns = content_helper.getMergedList(proxy.get("rpc.network.interface.@wan.dnsservers")[1].value, dnsv4)
-	else
 		c.dns = dnsv4
 	end
     local ipv6_enabled = proxy.get("uci.network.interface.@wan.ipv6")
     if ipv6_enabled and ipv6_enabled[1].value == "1" then
-		c.dnsv6 = content_helper.getMergedList(c.dnsv6, dnsv6)
+		c.dnsv6 = dnsv6
 	end
 	if ds == "connected" then
         content_helper.getExactContent(dhcp_lease)
@@ -316,11 +304,11 @@ end)
 -- will stop in handleAjaxQuery if it is an actual AJAX query
 content_helper.getExactContent(cs)
 
-local dnstab = split(cs.dns_loopback, "[^%,]+")
+local dnstab = split(cs.dns, "[^%,]+")
 local dnsv4, dnsv6 = dns_filter(dnstab)
-cs.dns = content_helper.getMergedList(cs.dns_wan, dnsv4)
-if dnsv6 and cs.dnsv6 then
-	cs.dnsv6 = content_helper.getMergedList(cs.dnsv6, dnsv6)
+cs.dns = dnsv4
+if dnsv6 and not cs.dnsv6 then
+	cs.dnsv6 = dnsv6
 end
 
 -- account for inconsistencies in DNS display format by removing extra spaces
@@ -357,6 +345,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     html[#html+1] = ui_helper.createSwitch(T"Enabled", "uci_wan_auto", content["uci_wan_auto"])
     html[#html + 1] = ui_helper.createSwitch(T"NAT", "uci_wan_masq", content.uci_wan_masq)
     html[#html + 1] = ui_helper.createInputText(T"MAC Spoof (Wan MAC)","uci_wan_mac", content["uci_wan_mac"], nil, helpmsg["uci_wan_mac"])
+	html[#html + 1] = ui_helper.createInputText(T"VendorID","uci_wan_vendorid", content["uci_wan_vendorid"], nil, helpmsg["uci_wan_vendorid"])
     ajax_attr.span.id = "leaseobtained"
     html[#html+1] = ui_helper.createLabel(T"Lease obtained", cs["leaseobtained"], ajax_attr)
     ajax_attr.span.id = "leaseexpires"
@@ -368,7 +357,6 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     ajax_attr.span.id = "dns"
     html[#html+1] = ui_helper.createLabel(T"DNS servers", cs["dns"],ajax_attr)
 	local ipv6_enabled = proxy.get("uci.network.interface.@wan.ipv6")
-	if ipv6_enabled and ipv6_enabled[1].value == "1" then
 		if cs["ip6addr"] and cs["ip6addr"]:len() > 0 then
 			ajax_attr.span.id = "ip6addr"
 			html[#html+1] = ui_helper.createLabel(T"IPv6 address", cs["ip6addr"], ajax_attr)
@@ -382,7 +370,6 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 			ajax_attr.span.id = "dnsv6"
 			html[#html+1] = ui_helper.createLabel(T"IPv6 DNS", cs["dnsv6"], ajax_attr)
 		end
-	end
     if content["uci_wan_peerdns"] == "" then
         content["uci_wan_peerdns"] = "1"
     end

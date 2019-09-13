@@ -9,7 +9,7 @@ local wansensing_global  = {
     config = config_wansensing,
     section = "global",
     type = "wansensing",
-    options = { "enable", "l2type", "l3type", "tracelevel", "autofailover" },
+    options = { "enable", "initmode", "l2type", "l3type", "tracelevel", "autofailover", "supervision_mode", "private_IP_mode" },
 }
 mapper("uci_1to1").registerSimpleMap(wansensing_global)
 
@@ -107,3 +107,12 @@ local wansensing_HTB_Q1  = {
     list = { "trafficid" },
 }
 mapper("uci_1to1").registerSimpleMap(wansensing_HTB_Q1)
+
+-- uci.wansensing.state.
+local wansensing_state  = {
+    config = config_wansensing,
+    section = "state",
+    type = "state",
+    options = { "backupStatus", "currState", "wanSyncStatus" }
+}
+mapper("uci_1to1").registerSimpleMap(wansensing_state)

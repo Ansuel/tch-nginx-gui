@@ -60,7 +60,7 @@ function M.disableBandSteer(object)
     else
         object.bsid = "off"
         object.bspeerid = "off"
-        local suffix = proxy.get("uci.env.var.commonssid_suffix")[1].value 
+        local suffix = proxy.get("uci.env.var.commonssid_suffix")[1].value
         if object.bspifacessid then
             object.bspifacessid = object.ssid .. suffix
         else

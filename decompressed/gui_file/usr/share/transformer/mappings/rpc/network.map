@@ -9,6 +9,14 @@ local network_ = {
       ipv6_enable = {
         access = "readWrite",
         type = "boolean",
+      },
+      release_renew = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      wan_up = {
+        access = "readWrite",
+        type = "boolean",
       }
     },
   }
@@ -44,14 +52,28 @@ local function getIPv6Value()
   return value
 end
 
-network_.get = getIPv6Value
+network_.get = {
+  ipv6_enable = getIPv6Value,
+  release_renew = "0",
+  wan_up = "0"
+}
 
 network_.set = {
+  release_renew = function(mapping, param, value, key)
+    commitapply:newset("rpc.network.release_renew")
+    return true
+  end,
   ipv6_enable = function(mapping, param, value)
     setOnUci("wan", "ipv6", value)
     setOnUci("lan", "ipv6", value)
     setOnUci("wan6", "auto", value)
     configChanged = true
+  end,
+  wan_up = function(mapping, param, value, key)
+    if value == "1" then
+      commitapply:newset("rpc.network.wan_up")
+    end
+    return true
   end
 }
 

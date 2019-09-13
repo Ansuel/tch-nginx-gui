@@ -52,6 +52,9 @@
 .visible-desktop {
     display: inherit !important;
 }
+h2.span4{
+    width: inherit !important;
+}
 
 @media screen and (min-width: 768px) {
     #upgrade-alert{
@@ -84,7 +87,7 @@
         position: absolute;
         top: 35%;
         left: 3%;
-        width: 93% !important;
+        width: 93%;
     }
 
     .hidden-desktop {
@@ -122,16 +125,6 @@
     .row {
         margin-left:-30px;
         *zoom:1;}
-
-    .row:before,.row:after {
-        display: table;
-        content: "";
-        line-height: 0;
-    }
-
-    .row:after {
-        clear: both;
-    }
 
     [class*="span"] {
         /* float:left; */
@@ -241,16 +234,6 @@
     .row-fluid {
         width: 100%;
         *zoom:1;}
-
-    .row-fluid:before,.row-fluid:after {
-        display: table;
-        content: "";
-        line-height: 0;
-    }
-
-    .row-fluid:after {
-        clear: both;
-    }
 
     .row-fluid [class*="span"] {
         display: block;
@@ -525,16 +508,6 @@
     .row {
         margin-left:-30px;
         *zoom:1;}
-
-    .row:before,.row:after {
-        display: table;
-        content: "";
-        line-height: 0;
-    }
-
-    .row:after {
-        clear: both;
-    }
 
     [class*="span"] {
         /* float:left; */
@@ -943,16 +916,6 @@
     .row {
         margin-left:-20px;
         *zoom:1;}
-
-    .row:before,.row:after {
-        display: table;
-        content: "";
-        line-height: 0;
-    }
-
-    .row:after {
-        clear: both;
-    }
 
     [class*="span"] {
         float: left;
@@ -1416,7 +1379,7 @@
 	}
 	
 	
-	#swtichbuttom {
+	#switchViewButton {
 		width: 70%;
 	}
 	
@@ -1666,22 +1629,6 @@
     .modal-footer {
         padding-top: 6px;
         padding-bottom: 6px;
-    }
-}
-
-@media screen and (min-width: 768px) and (min-height:1025px) {
-    .modal.fade.in {
-        top:35%;
-    }
-
-    .modal-body {
-        max-height: 800px;
-    }
-}
-
-@media screen and (max-width: 767px) and (min-height:1025px) {
-    .modal-body {
-        max-height:800px;
     }
 }
 

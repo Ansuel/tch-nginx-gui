@@ -2,7 +2,8 @@
     --bg-color1: #000;
     --bg-color2: #333;
     --bg-color3: #000;
-	--body-text-color: #000;
+	--body-bg-color: #fff;
+	--body-text-color: #fff;
 }
 
 .alert-info {
@@ -59,7 +60,7 @@ body {
 }
 
 input.span3, input.span3:focus, textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"], .uneditable-input, select, select.span3, input, input[type="text"]:focus {
-    color: #fff;
+    color: #000;
     border: 1px solid #fff;
     background-color: var(--body-bg-color)
 }
@@ -86,13 +87,12 @@ input.span3, input.span3:focus, textarea, input[type="text"], input[type="passwo
     box-shadow: 0 .1875rem .375rem rgba(0, 0, 0, 0.25);
     overflow: auto;
     overflow-y: scroll;
-	background-color: var(--menu-bg-color)
+	background-color: var(--bg-color1)
 }
 
 #infocardrow {
 	margin-left: 16.5rem;
 	top: 6rem;
-	background-color: #fff;
 	flex-wrap: nowrap;
     display: flex !important
 }
@@ -100,7 +100,6 @@ input.span3, input.span3:focus, textarea, input[type="text"], input[type="passwo
 @media only screen and (max-width: 89rem) {
     #infocardrow {
         display: block !important;
-		margin-left: unset;
 		z-index: 0;
     }
 }
@@ -243,14 +242,22 @@ body {
     padding-left: 1rem;
     border: 0;
     border-radius: 0;
-    top: 3.25rem;
+    top: 3rem;
     left: 16.5rem;
     height: 1.8rem;
     text-align: left;
     font-size: 14pt;
     vertical-align: middle;
-    background: var(--bg-color2);
-    width: calc(100% - 19rem) !important
+    background-color: var(--bg-color2);
+    width: calc(100% - 19rem);
+}
+
+.modal-header-title > h2 {
+	background-color: unset;
+}
+
+.modal-action-close {
+	display: none;
 }
 
 .row-fluid .span4 {
@@ -262,8 +269,8 @@ body {
     overflow-y: auto;
     overflow-x: auto;
     height: auto;
-    max-height: calc(100vh - 14rem);
-    padding: 15px
+    max-height: calc(100vh - 12.5rem);
+    padding: 15px;
 }
 
 .modal-footer {
@@ -271,7 +278,7 @@ body {
     border: 0;
     border-radius: 0;
     width: 100%;
-    background-color: var(--menu-bg-color);
+    background-color: var(--bg-color1);
     margin: 0;
     bottom: 0
 }
@@ -440,7 +447,7 @@ div.logo-technicolor a {
 
 .popUp {
     position: fixed;
-    width: calc(100% - 17rem);
+    width: calc(100% - 17rem) !important;
     max-width: calc(100% - 17rem);
     height: 22rem;
     overflow: visible;
@@ -708,7 +715,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
 }
 
 .smallcard {
-			  
+	color: var(--bg-color1);
     box-shadow: 0 .1875rem .375rem rgba(0, 0, 0, 0.25);
     opacity: 1 !important;
     transform: initial !important;
@@ -799,7 +806,11 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
         height: auto !important
     }
 	
-	#swtichbuttom {
+	#upgrade-alert {
+		margin-left: 16.5rem !important;
+		width: calc( 100% - 16.5rem );
+	}
+	#switchViewButton {
 		position: fixed;
 		top: 3.25rem;
 		width: calc(100% - 19rem);
@@ -821,7 +832,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
     }
 
     #cardrow {
-        top: 8rem;
+        top: 6.5rem;
         margin-left: 15.5rem;
         overflow-y: auto !important
     }
@@ -861,6 +872,10 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
     .row[style="z-index : 3;  position: relative;"] {
         box-shadow: none !important
     }
+	.modal-header-title > h2 {
+		padding: unset;
+		line-height: 2.5rem;
+	}
 }
 
 @media only screen and (max-width: 50rem) {
@@ -904,6 +919,10 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
         position: absolute;
         z-index: 0
     }
+	
+	#infocardrow {
+		margin-left: unset;
+	}
 
     .header-logo {
         display: none;
@@ -949,7 +968,8 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
     }
 
     body {
-        -webkit-overflow-scrolling: touch
+        -webkit-overflow-scrolling: touch;
+		padding: unset !important;					
     }
 
     #headerbox {
@@ -990,6 +1010,9 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
         height: calc(100% - 2rem);
         padding-top: 0
     }
+	.modal.fade.in {
+		top: 2.45rem !important;
+	}
 
     .modal-header, .row-fluid .span4, .row-fluid .span11 {
         height: unset;
@@ -997,10 +1020,14 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
         border: 0;
         border-radius: 0;
         left: 0;
-        width: 100% !important;
         background-color: var(--bg-color1);
-        box-shadow: 0 .27rem .375rem rgba(0, 0, 0, 0.25)
+        box-shadow: 0 .27rem .375rem rgba(0, 0, 0, 0.25);
+		width: 100%;
+		padding: 0px;
     }
+	.modal-header-items {
+		margin-right: 10px;
+	}
 
     .modal-body {
         height: 100%
@@ -1106,7 +1133,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
         display: none
     }
 	
-	#swtichbuttom {
+	#switchViewButton {
 		display: unset;
 	}
 	
@@ -1145,4 +1172,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
     #popUp.smallcard > .header > .header-title {
         background-color: var(--bg-color1)
     }
+	.modal-header-title > h2 {
+		background-color: unset;
+	}		  
 }

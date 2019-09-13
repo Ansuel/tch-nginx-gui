@@ -1,10 +1,13 @@
 --pretranslated: do not change this file
  
+local string = string
 local istainted = string.istainted
 
 -- Enable localization
 gettext.textdomain('webui-contentsharing')
 
+local convertReceivedData = convertReceivedData
+local ipairs, ngx, pairs, post_data, tonumber = ipairs, ngx, pairs, post_data, tonumber
 local tinsert = table.insert
 local proxy = require("datamodel")
 local ui_helper = require("web.ui_helper")
@@ -53,7 +56,7 @@ local helpmsg = {}
 local samba_available = file_check("/etc/init.d/samba")
 if samba_available then
     local sambaMapParams = {
-        samba_enabled     = "uci.samba.samba.enabled",
+        samba_filesharing     = "uci.samba.samba.filesharing",
         samba_name        = "uci.samba.samba.name",
         samba_workgroup   = "uci.samba.samba.workgroup",
         samba_description = "uci.samba.samba.description",
@@ -64,6 +67,7 @@ if samba_available then
     content_info = {
         connecteddevices  = "sys.usb.DeviceNumberOfEntries",
         localdevIP        = "uci.network.interface.@lan.ipaddr",
+        usb3_available = "rpc.system.usb3_available",
     }
     content_helper.getExactContent(content_info)
 end
@@ -99,7 +103,9 @@ if check_dlna("available") then
 	end
 end
 
-mapParams["usb3_enabled"] = "uci.system.config.enable_usb3_support"
+if content_info.usb3_available == "1" then
+  mapParams.usb3_enabled = "uci.system.config.enable_usb3_support"
+end
 
 local function valid_samba_dlna_string(value)
   local rc, msg = vNES(value)
@@ -127,14 +133,22 @@ local function valid_fail(_, _, param)
   return true
 end
 
+local function valid_usb3_enabled(value, object)
+  local usb3_enabled_config = proxy.get("uci.system.config.enable_usb3_support")[1].value
+  if usb3_enabled_config == value or (usb3_enabled_config == "" and value == "1") then
+    object.usb3_enabled = nil
+  end
+  return post_helper.validateBoolean(value)
+end
+
 local mapValid = {
-	samba_enabled = post_helper.validateBoolean,
-	samba_name = valid_empty_string,
-	samba_workgroup = valid_empty_string,
-	samba_description = valid_empty_string,
-	dlna_enabled = post_helper.validateBoolean,
-	dlna_friendly_name = valid_empty_string,
-	usb3_enabled = post_helper.validateBoolean,
+  samba_filesharing = post_helper.validateBoolean,
+  samba_name = valid_empty_string,
+  samba_workgroup = valid_empty_string,
+  samba_description = valid_empty_string,
+  dlna_enabled = post_helper.validateBoolean,
+  dlna_friendly_name = valid_empty_string,
+  usb3_enabled = valid_usb3_enabled
 }
 
 if ngx.req.get_method() == "POST" and ngx.req.get_post_args().action == "SAVE" then
@@ -142,7 +156,7 @@ if ngx.req.get_method() == "POST" and ngx.req.get_post_args().action == "SAVE" t
      if dlna_available and tonumber(post_data["dlna_enabled"]) == 1 then
         mapValid.dlna_friendly_name = valid_samba_dlna_string
      end
-     if samba_available and tonumber(post_data["samba_enabled"]) == 1 then
+     if samba_available and tonumber(post_data["samba_filesharing"]) == 1 then
         mapValid.samba_name = valid_samba_dlna_string
         mapValid.samba_workgroup = valid_samba_dlna_string
         mapValid.samba_description = valid_samba_dlna_string
@@ -443,6 +457,12 @@ convertReceivedData(content_info)
 					id = "rebooting-msg"
 				}
 			}
+			local sambamsg = {
+				alert = {
+					class = "alert-warning show",
+					id = "samba-msg"
+				}
+                        }
 			local flagattr = {
 				input = {
 					class = "hide",
@@ -451,7 +471,10 @@ convertReceivedData(content_info)
 			}
 
 			if samba_available then
-				tinsert(html, ui_helper.createSwitch(T"SMB/CIFS Filesharing", "samba_enabled", (content["samba_enabled"] ~= "0" and "1" or "0"), attributes))
+                                if content["samba_filesharing"] == "1" then
+			          tinsert(html, ui_helper.createAlertBlock(T"If Samba is not accessible in Windows 10, Configure the settings as per the URL - https://support.microsoft.com/en-us/help/4046019/guest-access-smb2-disabled-by-default-in-windows-10-server-2016", sambamsg))
+                                end
+				tinsert(html, ui_helper.createSwitch(T"SMB/CIFS Filesharing", "samba_filesharing", (content["samba_filesharing"] ~= "0" and "1" or "0"), attributes))
 				tinsert(html, ui_helper.createLabel(T"SMB/CIFS name: ", content["samba_name"], advancedhide))
 				tinsert(html, ui_helper.createInputText(T"SMB/CIFS name: ", "samba_name", content["samba_name"], advanced, helpmsg["samba_name"]))
 				tinsert(html, ui_helper.createInputText(T"SMB/CIFS workgroup: ", "samba_workgroup", content["samba_workgroup"], advanced, helpmsg["samba_workgroup"]))
@@ -463,13 +486,13 @@ convertReceivedData(content_info)
 				tinsert(html, ui_helper.createInputText(T"DLNA name: ", "dlna_friendly_name", content["dlna_friendly_name"], advanced, helpmsg["dlna_friendly_name"]))
 				tinsert(html, ui_helper.createLabel(T"Profiler status: ", T(getProfileStatus())))
 			end
-
-			tinsert(html, ui_helper.createSwitch(T"USB3.1 enabled", "usb3_enabled", (content["usb3_enabled"] ~= "" and content["usb3_enabled"] or "1"), toggle))
-			tinsert(html, ui_helper.createAlertBlock(T"It is recommended to use USB2.0 standard. The use of USB3.1 standard can badly affect the Wi-Fi performance of the 2.4 Ghz band.", warning))
-			tinsert(html, ui_helper.createAlertBlock(T"Toggling USB3.1 support will reboot the Gateway", reboot_warning))
-			tinsert(html, ui_helper.createAlertBlock(T"Restarting, please wait...", rebooting))
-			tinsert(html, ui_helper.createSimpleInputText("cs_flag", "0", flagattr))
-
+                        if content_info.usb3_available == "1" then
+			        tinsert(html, ui_helper.createSwitch(T"USB 3.1 Enabled", "usb3_enabled", (content.usb3_enabled ~= "" and content.usb3_enabled or "1"), toggle))
+			        tinsert(html, ui_helper.createAlertBlock(T"It is recommended to use the USB in the 2.0 standard. The use of USB in 3.1 standard can remarkably affect the Wi-Fi performance at 2.4 GHz band.", warning))
+			        tinsert(html, ui_helper.createAlertBlock(T"Toggling USB3.1 support will reboot the Gateway", reboot_warning))
+			        tinsert(html, ui_helper.createAlertBlock(T"Restarting, please wait...", rebooting))
+			        tinsert(html, ui_helper.createSimpleInputText("cs_flag", "0", flagattr))
+                        end
 			tinsert(html, "</fieldset>")
 
 			if samba_available then
@@ -482,18 +505,7 @@ convertReceivedData(content_info)
 		  ngx.print('\
 	</form>\
 </div>\
-');  ngx.print(string.format([[
-<div class="modal-footer">
-  <div id="modal-no-change">
-    <div id="close-config" class="btn btn-primary btn-large" data-dismiss="modal">%s</div>
-  </div>
-  <div id="modal-changes" class="hide">
-    <div id="cancel-config" class="btn btn-large" data-dismiss="modal">%s</div>
-    <div id="save-cs-config" class="btn btn-primary btn-large">%s</div>
-  </div>
-</div>
-]], T"Close", T"Cancel", T"Save")); ngx.print('\
-\
+');  ngx.print(ui_helper.createFooter())   ngx.print('\
 <script>\
 var refreshTimeOut = 5000;\
 var refreshDelay = 3000;\
@@ -530,29 +542,7 @@ $("#toggle-usb3").on("change", function() {\
   }\
 });\
 \
-function wait_for_webserver_running() {\
-  $.ajax({ url: "/", timeout: refreshTimeOut })\
-  .done(function(data) {\
-    document.open("text/html");\
-    document.write(data);\
-    document.close();\
-  })\
-  .fail(function() {\
-    window.setTimeout(wait_for_webserver_running, refreshDelay);\
-  });\
-}\
-\
-function wait_for_webserver_down() {\
-  $.ajax({ url: target, timeout: refreshTimeOut })\
-  .done(function() {\
-    window.setTimeout(wait_for_webserver_down, refreshDelay);\
-  })\
-  .fail(function() {\
-    window.setTimeout(wait_for_webserver_running, refreshDelay);\
-  });\
-}\
-\
-$(document).on("click", "#save-cs-config", function() {\
+$(document).on("click", "#save-config", function() {\
   var form = $(".modal form");\
   var params = form.serializeArray();\
   if (($("#cs-flag").val() === "1") && (usb3_support !== $("#toggle-usb3").val())) {\
@@ -565,8 +555,9 @@ $(document).on("click", "#save-cs-config", function() {\
   else {\
     $("#success-msg").removeClass("hide");\
   }\
-  $(\'#modal-changes\').hide();\
-  $(\'#modal-no-change\').show();\
+  $(\'#cancel-config\').hide();\
+  $(\'#save-config\').hide();\
+  $(\'#close-config\').show();\
   params.push({\
     name : "action",\
     value : "SAVE"\

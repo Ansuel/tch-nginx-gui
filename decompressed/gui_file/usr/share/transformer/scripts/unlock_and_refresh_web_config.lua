@@ -51,6 +51,8 @@ local check_rule = {
 	{ name = 'wolsmodal', target = '/modals/wol-modal.lp' },
 	{ name = 'custodnssmodal', target = '/modals/custodns-modal.lp' },
 	{ name = 'dyndnssmodal', target = '/modals/dyndns-modal.lp' },
+	{ name = 'speedservicemodal', target = '/modals/speedservice-modal.lp' },
+	{ name = 'toddndmodal', target = '/modals/tod_dnd-modal.lp' },
 	{ name = 'nfcmodal', target = '/modals/nfc-modal.lp' },
 	{ name = 'stats', target = '/stats.lp' },
 	{ name = 'cards', target = '/cards.lp' },
@@ -62,7 +64,10 @@ local check_rule = {
 	{ name = 'ajaxinfoconndevicecard', target = '/ajax/connected_device.lua' },
 	{ name = 'ajaxinfoportscard', target = '/ajax/port_status.lua' },
 	{ name = 'ajaxinfommpbxstatuscard', target = '/ajax/mmpbx_status.lua' },
+	{ name = 'ajaxcommandlogread', target = '/ajax/commandlogread.lua' },
+	{ name = 'commandlogreadmodal', target = '/modals/command-log-read-modal.lp' },
 	{ name = 'ajaxgetcard', target = '/ajax/get_card.lua' },
+	{ name = 'diagnosticsledsmodal', target = '/modals/diagnostics-leds-modal.lp' },
 }
 
 --We add telstra rules anyway as nginx will respond 404 if not found
@@ -161,7 +166,18 @@ for _ , elem in pairs(card_check_rule) do
 	end
 end
 
+uci:set('web','usr_admin','role','engineer')
+
 local rule_roles
+
+local function genRolesList()
+	local roles_list = {}
+	uci:foreach('web', 'user', function(s)
+		roles_list[#roles_list+1] = s.role
+	end)
+
+	return roles_list
+end
 
 --Check if rule contains engineer role and adds it
 uci:foreach('web', 'rule', function(s)
@@ -179,10 +195,11 @@ uci:foreach('web', 'rule', function(s)
 	if not contains("admin",rule_roles) then
 		rule_roles[#rule_roles+1]="admin"
 	end
+	if s['.name'] == "ajaxgetcard" then
+		rule_roles = genRolesList()
+	end
 	uci:set('web',s['.name'],'roles',rule_roles)
   end)
-
-uci:set('web','usr_admin','role','engineer')
 
 --Commit only if new rules added
 if new_rule then

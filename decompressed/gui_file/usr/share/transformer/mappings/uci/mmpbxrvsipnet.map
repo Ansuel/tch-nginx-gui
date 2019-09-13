@@ -87,8 +87,7 @@ mapper("uci_1to1").registerNamedMultiMap(mmpbxrvsipnet_network)
 local mmpbxrvsipnet_profile = {
   config = config_mmpbxrvsipnet,
   type = "profile",
-  options = { "enabled", "network", "uri", "user_name", "display_name"},
-  passwords = { "password" }
+  options = { "enabled", "network", "uri", "user_name", "display_name", "password"}
 }
 mapper("uci_1to1").registerNamedMultiMap(mmpbxrvsipnet_profile)
 

@@ -32,7 +32,8 @@ local uniqueKey = post_helper.getRandomKey()
 
 local ap_status_map = setmetatable({
   ["0"] = T"Off",
-  ["1"] = T"On"
+  ["1"] = T"On",
+  ["-1"] = T"Error. Re-set the rule!"
 }, untaint_mt)
 
 local ap_list = { }
@@ -126,8 +127,27 @@ local tod_options = {
   addNamedObject  = true,
 }
 
+local function getWifiTodListFromIndex(index) 
+
+	if not index then
+		return nil
+	end
+	
+	local wifi_tod_path = "uci.tod.wifitod"
+	
+	if proxy.get(format("%s.@wifitod_%s.ap.", wifi_tod_path, index)) then
+		return proxy.getPN(format("%s.@wifitod_%s.ap.", wifi_tod_path, index), true)
+	end
+	
+	return nil
+end
+
 local function checkApInConfig(apInConfig,apToCheck)
 	local ap_list = {}
+  
+	if not apInConfig then
+		return false
+	end
   
 	for i,v in ipairs(apInConfig) do
 		local ap_index = proxy.get(v.path.."value")[1].value
@@ -175,12 +195,25 @@ local function onAdd(success, content, onModify)
   end
   
   local wifitod_id = "wifitod_"..index
+  local tod_wifi_mode
+  
+  content.mode = content.mode == "on" and "1" or "0"
   
   if onModify then
-	proxy.del(tod_wifitod_path .. "@"..wifitod_id..".")
-	for _,v in pairs(proxy.getPN("uci.tod.ap.",true)) do
-		proxy.del(v.path)
+	local ap_path
+	for _,v in pairs(proxy.getPN(tod_wifitod_path.."@"..wifitod_id..".ap.",true)) do
+		ap_path = proxy.get(v.path.."value")
+		tod_wifi_mode = proxy.get(tod_ap_path.."@"..ap_path[1].value..".state")
+		proxy.del(tod_ap_path.."@"..ap_path[1].value)
 	end
+	
+	if tod_wifi_mode and content.mode ~= tod_wifi_mode[1].value then
+		local tod_action_activeTimers = format("%s@action%s.activedaytime.",tod_action_path,index)
+		for _,v in pairs(proxy.getPN(tod_action_activeTimers,true)) do
+			proxy.del(v.path)
+		end
+	end
+	proxy.del(tod_wifitod_path .. "@"..wifitod_id..".")
   end
   
   if not onModify then
@@ -214,7 +247,7 @@ local function onAdd(success, content, onModify)
   for _ , ap in pairs(content.ap) do
 	if not ( ap == "" ) then
 		setObject[format("%s@%s.ap.@%s.value", tod_wifitod_path, wifitod_id, count)] = ap.."_"..index
-		setObject[format("%s@%s_%s.state", tod_ap_path, ap, index)] = content.mode == "on" and "1" or "0"
+		setObject[format("%s@%s_%s.state", tod_ap_path, ap, index)] = content.mode
 		setObject[format("%s@%s_%s.ap", tod_ap_path, ap, index)] = ap
 		count = count+1
 	end
@@ -223,24 +256,31 @@ local function onAdd(success, content, onModify)
   local ret = proxy.set(setObject)
   proxy.apply()
   
-  content = nil
-  
   return ret
 end
 
 local function onModify(index, content)
   local ret = onAdd(index, content, true)
-  return true
+  return ret
 end
 
 local function onDelete(success)
   local index = success:match("action(.+)")
   
+  if not index then
+	tod_options.errmsg = "Error on delete. Remove rule from config file manually."
+	return nil
+  end
+  
   local delObject = {}
   local ret
   
-  for i,v in ipairs(proxy.getPN(format("uci.tod.wifitod.@wifitod_%s.ap.", index), true)) do
-	delObject[#delObject+1] = format("uci.tod.ap.@%s.",proxy.get(v.path.."value")[1].value)
+  local wifiTodList = getWifiTodListFromIndex(index)
+  
+  if wifiTodList then
+	for i,v in ipairs(wifiTodList) do
+		delObject[#delObject+1] = format("uci.tod.ap.@%s.",proxy.get(v.path.."value")[1].value)
+	end
   end
 
   delObject[#delObject+1] = format("uci.tod.action.@action%s.", index)
@@ -249,10 +289,6 @@ local function onDelete(success)
   
   for _ , obj in pairs(delObject) do
 	ret = proxy.del(obj) 
-	
-	if not ret then
-		return nil
-	end
   end
   
   return ret
@@ -277,7 +313,10 @@ if ngx.var.request_method == "POST" then
       tod_options.editing = -1
     end
   elseif postargs.action == "TABLE-MODIFY" then
-    onModify(current_index, postargs)
+    local success = onModify(current_index, postargs)
+	if not success then
+	  tod_options.editing = -1
+	end
   elseif postargs.action == "TABLE-DELETE" then
     onDelete(current_index)
   end
@@ -288,10 +327,17 @@ local timer_list = content_helper.convertResultToObject(tod_timer_path, proxy.ge
 local wifitod_list = content_helper.convertResultToObject(tod_wifitod_path, proxy.get(tod_wifitod_path))
 local ap_list = content_helper.convertResultToObject(tod_ap_path, proxy.get(tod_ap_path))
 local timer_data = {}
+
 local function getApSelected(index)
 	local wifi_list, wifi_selected = {}, {}
 	
-	for _,v in ipairs(proxy.getPN(format("uci.tod.wifitod.@wifitod_%s.ap.", index), true)) do
+	local wifiTodList = getWifiTodListFromIndex(index)
+	
+	if not wifiTodList then
+		return "", {}
+	end
+	
+	for _,v in ipairs(wifiTodList) do
 		local ap_index = proxy.get(v.path.."value")[1].value
 		local ap = ap_index:match("(.*)_")
 		local ssid_get = proxy.get("rpc.wireless.ap.@"..ap..".ssid")
@@ -322,25 +368,37 @@ for i, v in ipairs(tod_data) do
 	local wifi_list, wifi_selected = getApSelected(index)
 	local days, start_time = timer_list[i].start_time:match("^(.-):(.+)$")
 	
+	local ap_state = "-1"
+	local ap_state_get
+	
+	if wifi_selected[1] then
+		ap_state_get = proxy.get(format("%s@%s_%s.state",tod_ap_path , wifi_selected[1],index))
+		if ap_state_get then
+			ap_state = ap_state_get[1].value
+		end
+	end
+	
 	v[1] = v[1] -- status
 	v[2] = wifi_list -- ap
 	v[3] = start_time -- start_time
 	v[4] = timer_list[i].stop_time:match("^.-:(.+)$") -- stop_time
-	v[5] = ap_status_map[ap_list[i].state] -- apState
+	v[5] = ap_status_map[ap_state] -- apState
 	v[6] = {} -- days
-	for day in gmatch(days, "[^,]+") do
-		insert(v[6], untaint(day))
+	if days then
+		for day in gmatch(days, "[^,]+") do
+			insert(v[6], untaint(day))
+		end
 	end
 	-- Sub Columns
 	v[7] = {
 		[1] = v[1], -- status
 		[2] = {}, -- ap
-		[3] = ap_list[i].state == "1" and "on" or "off", -- apState
+		[3] = ap_state == "1" and "on" or "off", -- apState
 		[4] = v[3], -- start_time
 		[5] = v[4], -- stop_time
 		[6] = v[6] -- days
 	}
-	
+
 	for _, value in pairs(wifi_selected) do
 		insert(v[7][2],untaint(value))
 	end
@@ -373,11 +431,11 @@ ngx.print('\
     ');  if ngx.var.request_method == "POST" and (ngx.req.get_post_args().action == "TABLE-NEW" or ngx.req.get_post_args().action == "TABLE-EDIT") then  ngx.print('\
       <script type="text/javascript">\
         var warning = \'<div class="control-group"><div style="padding-top: 12px;" class="controls"><span class="alert">\'\
-                      +\'');  ngx.print( T"The Gateway will block/allow all the time if none of the days are selected" ); ngx.print('</span></div></div>\';\
+                      +"');  ngx.print( T"The Gateway will block/allow all the time if none of the days are selected" ); ngx.print('"+\'</span></div></div>\';\
 		var warning_ap = \'<div class="control-group"><div style="padding-top: 12px; padding-bottom: 12px;" class="controls"><span class="alert">\'\
-                      +\'');  ngx.print( T"The AP can be selected only once, to modify it you need to remove the rule." ); ngx.print('</span></div></div>\';\
-        $(\'#stoptime\').parent().parent().after(warning);\
-		$(\'#ap\').parent().parent().after(warning_ap);\
+                      +"');  ngx.print( T"The AP can be selected only once, to modify it you need to remove the rule." ); ngx.print('"+\'</span></div></div>\';\
+        $("#stoptime").parent().parent().after(warning);\
+		$("#ap").parent().parent().after(warning_ap);\
       </script>\
     ');  end  ngx.print('\
   </form>\
@@ -395,6 +453,8 @@ ngx.print('\
         };\
         $("#starttime").mobiscroll().time(opt);\
         $("#stoptime").mobiscroll().time(opt);\
+		$("#starttime").removeAttr("readonly");\
+		$("#stoptime").removeAttr("readonly");\
     });\
     $(".btn-table-add, .btn-table-modify").click(function() {\
         // ui_helper adds dummy hidden checkbox if no checkboxes are checked. we don\'t need that.\

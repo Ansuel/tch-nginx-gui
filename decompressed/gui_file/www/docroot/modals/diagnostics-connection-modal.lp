@@ -1,7 +1,6 @@
 --pretranslated: do not change this file
  
 -- Localization
---[NG-98527] GPON-Diagnostics/Connection needs to be lifted to TI specific functionalities
 gettext.textdomain('webui-core')
 
 local ngx = ngx
@@ -10,6 +9,8 @@ local ui_helper = require("web.ui_helper")
 local post_helper = require("web.post_helper")
 local content_helper = require("web.content_helper")
 local lfs = require("lfs")
+local checkgpon = require("checkgponboard_helper")
+local gponboard = checkgpon.isGPONBoard()
 local pairs, table = pairs, table
 local format = string.format
 local numOfPings = "2"
@@ -42,13 +43,18 @@ content_helper.getExactContent(xdsl_params)
 if find(xdsl_params["dsl_type"], "ADSL") == 1 or find(xdsl_params["dsl_type"], "ADLS") == 1 then
   is_adsl = true
 end
+local content_rpc_gpon = {}
 
 if is_gpon then
-content_rpc_gpon ={
-  gpon_status = "rpc.optical.Interface.1.Status",
-}
-content_helper.getExactContent(content_rpc_gpon)
+	content_rpc_gpon["gpon_status"] = "rpc.optical.Interface.1.Status"
 end
+
+if gponboard == "gpon" or gponboard == "gpon_sfp" then
+	content_rpc_gpon["gpon_status"] = "rpc.gpon.ploam.state"
+end
+
+content_helper.getExactContent(content_rpc_gpon)
+
 
 local content_uci = {
   wan_proto = "uci.network.interface.@wan.proto",
@@ -400,13 +406,13 @@ else
         end
     end
 end
-if is_gpon then
-    if content_rpc_gpon["gpon_status"] == "Up" then
+if gponboard or is_gpon then
+	if content_rpc_gpon["gpon_status"] == "OPERATION (O5)" or content_rpc_gpon["gpon_status"] == "Up" then
         statusIconGpon = "<i class=\"icon-ok icon-large green\"></i> "
     else
-        statusIconGpon = "<i class=\"icon-ban-circle icon-large red\"></i> "
+	    statusIconGpon = "<i class=\"icon-ban-circle icon-large red\"></i> "
     end
-html[#html+1] = ui_helper.createLabel(T"GPON Status",format("%s %s",statusIconGpon,T(content_rpc_gpon["gpon_status"])), attributes)
+	html[#html+1] = ui_helper.createLabel(T"GPON Status",format("%s %s",statusIconGpon,content_rpc_gpon["gpon_status"]), attributes)
 end
 -- Show PPP status if relevant
 if find(content_uci["wan_proto"], "ppp") == 1 then
@@ -485,20 +491,20 @@ if (content_rpc_wan6["wan6_ip6addr"] and content_rpc_wan6["wan6_ip6addr"] ~= "")
     local explanationNextHopPing_ipv6
     statusIconNextHopPing_ipv6, explanationNextHopPing_ipv6 = getStatus("rpc.network.interface." .. intf6 .. ".nexthop_ping")
 
-    html[#html+1] = ui_helper.createLabel(T"Next Hop Ping IPV6", format("%s %s", statusIconNextHopPing_ipv6, explanationNextHopPing_ipv6), attributes)
+    html[#html+1] = ui_helper.createLabel(T"Next Hop Ping IPv6", format("%s %s", statusIconNextHopPing_ipv6, explanationNextHopPing_ipv6), attributes)
 
     if num_servers_ipv6 >= 1 then
         local statusIconDnsServer1Ping_ipv6
         local explanationDnsServer1Ping_ipv6
         statusIconDnsServer1Ping_ipv6, explanationDnsServer1Ping_ipv6 = getStatus("rpc.network.interface." .. intf6 .. "." .. dnsserver1_mode)
-        html[#html+1] = ui_helper.createLabel(T"First DNS Server IPV6 Ping", format("%s %s", statusIconDnsServer1Ping_ipv6, explanationDnsServer1Ping_ipv6), attributes)
+        html[#html+1] = ui_helper.createLabel(T"First DNS Server IPv6 Ping", format("%s %s", statusIconDnsServer1Ping_ipv6, explanationDnsServer1Ping_ipv6), attributes)
     end
 
     if num_servers_ipv6 >= 2 then
         local statusIconDnsServer2Ping_ipv6
         local explanationDnsServer2Ping_ipv6
         statusIconDnsServer2Ping_ipv6, explanationDnsServer2Ping_ipv6 = getStatus("rpc.network.interface." .. intf6 .. "." .. dnsserver2_mode)
-        html[#html+1] = ui_helper.createLabel(T"Second DNS Server IPV6 Ping", format("%s %s", statusIconDnsServer2Ping_ipv6, explanationDnsServer2Ping_ipv6), attributes)
+        html[#html+1] = ui_helper.createLabel(T"Second DNS Server IPv6 Ping", format("%s %s", statusIconDnsServer2Ping_ipv6, explanationDnsServer2Ping_ipv6), attributes)
     end
 end
 ngx.print (html)

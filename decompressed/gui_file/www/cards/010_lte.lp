@@ -55,102 +55,100 @@ end
 	<div class="smallcard" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
 		');  ngx.print( ui_helper.createCardHeader(params.card_title, modalPath, switchName, lte_state) ); ngx.print('\
 		<div class="content card_bg" data-bg-text="&#xf012;">\
-		<div class="divtable">\
-			');  ngx.print( ui_helper.createSimpleLight(light.status, light.desc)); ngx.print('\
-				<div id="signal-strength-indicator-small-card">\
-					<div>\
-						<div class="bar-small bar-small1"></div>\
-						<div class="bar-small bar-small2"></div>\
-						<div class="bar-small bar-small3"></div>\
-						<div class="bar-small bar-small4"></div>\
-						<div class="bar-small bar-small5"></div>\
+		  <div class="divtable">\
+		  	');  ngx.print( ui_helper.createSimpleLight(light.status, light.desc , nil,"fa fa-signal"));
+			if light.status == "1" then
+				ngx.print('\
+					<div id="signal-strength-indicator-small-card">\
+						<div>\
+							<div class="bar-small bar-small1"></div>\
+							<div class="bar-small bar-small2"></div>\
+							<div class="bar-small bar-small3"></div>\
+							<div class="bar-small bar-small4"></div>\
+							<div class="bar-small bar-small5"></div>\
+						</div>\
+					</div>'); ngx.print('\
+				<p class="subinfos">\
+					<div style="height: 25px; margin: 20px;" data-bind="visible: mobileStatus">\
+						<label class="card-label">');  ngx.print( T"Status"..":" ); ngx.print('</label>\
+						<div class="controls">\
+							<strong data-bind="text: mobileStatus"></strong>\
+						</div>\
 					</div>\
-				</div>'); ngx.print('\
-			<p class="subinfos">\
-				<div style="height: 25px; margin: 20px;" data-bind="visible: mobileStatus().length > 0">\
-					<label class="card-label">');  ngx.print( T"Status"..":" ); ngx.print('</label>\
-					<div class="controls">\
-						<strong data-bind="text: mobileStatus"></strong>\
+					<div style="height: 25px;" data-bind="visible: radioType">\
+						<label class="card-label">');  ngx.print( T"Radio Type"..":" ); ngx.print('</label>\
+						<div class="card-control">\
+							<strong data-bind="text: radioType"></strong>\
+						</div>\
 					</div>\
-				</div>\
-				<div style="height: 25px;" data-bind="visible: radioType().length > 0">\
-					<label class="card-label">');  ngx.print( T"Radio Type"..":" ); ngx.print('</label>\
-					<div class="card-control">\
-						<strong data-bind="text: radioType"></strong>\
+					<div style="height: 25px;" data-bind="visible: signalQuality">\
+						<label class="card-label">');  ngx.print( T"Quality"..":" ); ngx.print('</label>\
+						<div class="controls">\
+							<strong data-bind="text: signalQuality"></strong>\
+						</div>\
 					</div>\
-				</div>\
-				<div style="height: 25px;" data-bind="visible: signalQuality().length > 0">\
-					<label class="card-label">');  ngx.print( T"Quality"..":" ); ngx.print('</label>\
-					<div class="controls">\
-						<strong data-bind="text: signalQuality"></strong>\
+					<div style="height: 25px; margin: 20px;" data-bind="visible: deviceStatus">\
+						<div class="controls">\
+							<strong data-bind="text: deviceStatus"></strong>\
+						</div>\
 					</div>\
-				</div>\
-				<div style="height: 25px; margin: 20px;" data-bind="visible: deviceStatus().length > 0">\
-					<div class="controls">\
-						<strong data-bind="text: deviceStatus"></strong>\
-					</div>\
-				</div>\
-			</p>\
-		</div>\
+				</p>')
+		  	end
+		  	ngx.print('\
+		  </div>\
 		</div>\
 	</div>\
-</div>\
+</div>')
+if light.status == "1" then
+ngx.print('\
 <script>\
-var LetCardInterval;\
-$(document).ready(function () {\
-	var allowSimRedirect = ');  ngx.print( allowSimRedirect ); ngx.print(';\
-	var LetCardBinding = {\
-		signalQuality: ko.observable(""),\
-		radioType: ko.observable(""),\
-		mobileStatus: ko.observable(""),\
-		deviceStatus: ko.observable(""),\
-	};\
-	function updateBars(bars) {\
-				$(\'#signal-strength-indicator-small .absolute\').children(\'.bar-small\').each(function (index) {\
-					if(index < bars) {\
-						$(this).addClass(\'bar-small-active\');\
-					} else {\
-						$(this).removeClass(\'bar-small-active\');\
-					}\
-				});\
-			};\
-	function LetCardRefresh() {\
-		$.post("/ajax/mobiletab.lua?auto_update=true", [tch.elementCSRFtoken()], function(data) {\
-					if(data.bars != undefined) {\
-						updateBars(data.bars);\
-					}\
-					if(data.radio_interface != undefined) {\
-						LetCardBinding.radioType(data.radio_interface);\
-					}\
-					if(data.status != undefined) {\
-						LetCardBinding.mobileStatus(data.status);\
-					}\
-					if(data.signal_quality != undefined) {\
-						LetCardBinding.signalQuality(data.signal_quality);\
-					}\
-					if(data.no_device != undefined) {\
-						LetCardBinding.deviceStatus(data.no_device);\
-					}\
-					if(data.redirect_sim != undefined) {\
-						if(data.redirect_sim === true && allowSimRedirect) {\
-							$.each($(\'.settings[data-id="lte-modal"]\'), function () {\
-								$(this).attr(\'data-id\', \'lte-sim\');\
-								$(this).attr(\'data-remote\', \'/modals/lte-sim.lp\');\
-							});\
-						} else {\
-							$.each($(\'.settings[data-id="lte-sim"]\'), function () {\
-								$(this).attr(\'data-id\', \'lte-modal\');\
-								$(this).attr(\'data-remote\', \'/modals/lte-modal.lp\');\
-							});\
-						}\
-					}\
-				}, "json");\
-	};\
+var LteCardRefresh = function(ElementBinding) {\
 \
-	LetCardRefresh();\
-	ko.applyBindings(LetCardBinding, document.getElementById("mobiletab"));\
-	LetCardInterval = setInterval(LetCardRefresh, 50000);\
-	KoRequest.push(LetCardInterval);\
+	var allowSimRedirect = ');  ngx.print( allowSimRedirect ); ngx.print(';\
+	function updateBars(bars) {\
+			$(\'#signal-strength-indicator-small .absolute\').children(\'.bar-small\').each(function (index) {\
+				if(index < bars) {\
+					$(this).addClass(\'bar-small-active\');\
+				} else {\
+					$(this).removeClass(\'bar-small-active\');\
+				}\
+			});\
+		};\
+\
+	$.post("/ajax/mobiletab.lua?auto_update=true", [tch.elementCSRFtoken()], function(data) {\
+			if(data.bars != undefined) {\
+				updateBars(data.bars);\
+			}\
+			if(data.radio_interface != undefined) {\
+				ElementBinding.radioType(data.radio_interface);\
+			}\
+			if(data.status != undefined) {\
+				ElementBinding.mobileStatus(data.status);\
+			}\
+			if(data.signal_quality != undefined) {\
+				ElementBinding.signalQuality(data.signal_quality);\
+			}\
+			if(data.no_device != undefined) {\
+				ElementBinding.deviceStatus(data.no_device);\
+			}\
+			if(data.redirect_sim != undefined) {\
+				if(data.redirect_sim === true && allowSimRedirect) {\
+					$.each($(\'.settings[data-id="lte-modal"]\'), function () {\
+						$(this).attr(\'data-id\', \'lte-sim\');\
+						$(this).attr(\'data-remote\', \'/modals/lte-sim.lp\');\
+					});\
+				} else {\
+					$.each($(\'.settings[data-id="lte-sim"]\'), function () {\
+						$(this).attr(\'data-id\', \'lte-modal\');\
+						$(this).attr(\'data-remote\', \'/modals/lte-modal.lp\');\
+					});\
+				}\
+			}\
+		}, "json");\
+	};\
+$(document).ready(function () {\
+	new modgui.createAjaxUpdateCard("mobiletab",null,"LteCardInterval",50000,LteCardRefresh);\
 })\
 </script>\
-'); 
+');
+end

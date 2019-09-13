@@ -490,7 +490,7 @@ local pfw_v6_columns = {
     param = "dest_mac",
     type = "text",
     readonly = true,
-    attr = {  },
+    attr = { input = { class="span2", maxlength="17" }, autocomplete=hosts_mac_ac  },
   },
 }
 

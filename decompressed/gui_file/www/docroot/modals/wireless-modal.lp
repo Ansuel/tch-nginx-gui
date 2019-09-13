@@ -10,6 +10,8 @@
 --NG-100744 Custo-GUI: ubus call timeout when changing WiFi state and security settings
 --NG-136046 GUI-Wireless- WPS AP PIN code must appear disabled
 
+--Kevdagoat[06-04-19]: Fixed WiFi Signal Strength control
+
 local istainted = string.istainted
 local untaint_mt = require("web.taint").untaint_mt
 local setmetatable = setmetatable
@@ -27,6 +29,7 @@ local content_helper = require("web.content_helper")
 local ajax_helper = require("web.ajax_helper")
 local pairs = pairs
 local match, format, gsub, next = string.match, string.format, string.gsub, next
+local tinsert = table.insert
 local bandsteer_helper = require("bandsteer_helper")
 local isBaseIface = bandsteer_helper.isBaseIface
 local disableBandSteer = bandsteer_helper.disableBandSteer
@@ -294,23 +297,18 @@ end
 local radioData ={}
 for i,v in ipairs(radios) do
   local path = "rpc.wireless.radio.@" .. v
-  local rdata = proxy.get(path..".supported_frequency_bands" ,
-        path .. ".remotely_managed",
-        path .. ".supported_standards",
-        path .. ".integrated_ap",
-        path .. ".phy_rate",
-        path .. ".country",
-        path .. ".channel")
-  if rdata ~= nil then
-    radioData[v] = {
-      supported_frequency_bands=rdata[1].value,
-      remotely_managed=rdata[2].value,
-      supported_standards=rdata[3].value,
-      integrated_ap=rdata[4].value,
-      phy_rate = rdata[5].value,
-      country = rdata[6].value,
-      channel = rdata[7].value,
-    }
+  local rdata = {
+	supported_frequency_bands = path..".supported_frequency_bands" ,
+    remotely_managed = path .. ".remotely_managed",
+    supported_standards = path .. ".supported_standards",
+    integrated_ap = path .. ".integrated_ap",
+    phy_rate = path .. ".phy_rate",
+    country = path .. ".country",
+    channel = path .. ".channel"
+  }
+  content_helper.getExactContent(rdata)
+  if rdata.channel ~= "" then
+    radioData[v] = rdata
   end
 end
 
@@ -319,6 +317,8 @@ if radioData[curradio].remotely_managed == "1" and radioData[curradio].integrate
 elseif radioData[curradio].remotely_managed == "1" and radioData[curradio].integrated_ap == "1" then
 	isIntRemman = "1"
 end
+
+
 
 -- We're defining the listbox enums here to be able to use them to validate the input
 -- Listbox that shows the supported WiFi standards
@@ -348,24 +348,19 @@ else
     wifi_standard = wifi_standard_24GHz
 end
 
-local bandsteer_rssi_threshold = {
-    {"-10", T"10%".." (-10dBm)"},
-    {"-20", T"20%".." (-20dBm)"},
-    {"-30", T"30%".." (-30dBm)"},
-    {"-40", T"40%".." (-40dBm)"},
-    {"-50", T"50%".." (-50dBm)"},
-    {"-60", T"60%".." (-60dBm)"},
-    {"-70", T"70%".." (-70dBm)"},
-    {"-80", T"80%".." (-80dBm)"},
-    {"-90", T"90%".." (-90dBm)"},
-}
+local bandsteer_rssi_threshold = {}
+
+for i=10,90,10 do
+	tinsert(bandsteer_rssi_threshold , {format("-%s",i),format("%s%% (-%sdBm)",i,i)})
+end
+
 -- Choose Wifi power
-local wifipower = {
-    {"-3", T"100%"},
-    {"-2", T"125%"},
-    {"-1", T"160%"},
-    {"0", T"200%"},
-}
+local wifipower = {}
+
+for i=-6,6 do
+	i = i < 0 and i or format("+%s",i)
+	tinsert(wifipower,{tostring(i),format("%s dBm",i)})
+end
 
 local cw_40 = {
     {"20MHz", T"20MHz"},
@@ -597,12 +592,18 @@ else
 end
 
 local param = {
-    allowed_channels = pathradio .. "allowed_channels"
+    allowed_channels = pathradio .. "allowed_channels",
+	supported_countries = pathradio .. "supported_countries"
 }
 content_helper.getExactContent(param)
 local allowed_channels = { {"auto", T"Auto"} }
 for i in string.gmatch(param["allowed_channels"], "%S+") do
     allowed_channels[#allowed_channels + 1] = {i, i}
+end
+
+local supported_countries = {}
+for i in string.gmatch(param["supported_countries"], "%S+") do
+    supported_countries[#supported_countries + 1] = {i, i}
 end
 
 local function validateRadioandAp(value, object, key)
@@ -658,6 +659,11 @@ local function getParamsAndValidation()
         mapParams.requested_channel_width = pathradio .. "requested_channel_width"
         mapParams.wps_enabled = pathap .. "wps.admin_state"
         mapParams.frame_bursting = pathradio .. "frame_bursting"
+		mapParams.country = pathradio .. "country"
+		mapParams.eco_state = pathradio .. "eco.state"
+		mapParams.eco_force_radio_down = pathradio .. "eco.force_radio_down"
+		mapParams.eco_single_rx_chain = pathradio .. "eco.single_rx_chain"
+		mapParams.eco_fast_radio_toggle = pathradio .. "eco.fast_radio_toggle"
   -- Bug fix for NG-12032 GUI wireless enable/disable not working properly
     for k, v in pairs(radios) do
       if v~=curradio then
@@ -690,6 +696,8 @@ local function getParamsAndValidation()
       mapParams.sgi = pathradio .. "sgi"
       mapParams.cdd = pathradio .. "cdd"
       mapParams.stbc = pathradio .. "stbc"
+	  mapParams.tx_power_adjust = pathradio .. "tx_power_adjust"
+	  mapParams.tx_power_overrule_reg = pathradio .. "tx_power_overrule_reg"
     end
   end
 
@@ -722,7 +730,8 @@ local function getParamsAndValidation()
     sgi = gOV(vB),
     cdd = gVIES(cddList),
     stbc = gOV(vB),
-    outputpower = gVIES(wifipower), -- if the parameter is not included, it does not matter, this validation function will never be called
+    tx_power_adjust = gVIES(wifipower),
+	tx_power_overrule_reg = vB,
     channelwidth20 = getValidateChannelWidth(cw_40),
     channelwidth40 = getValidateChannelWidth(cw_40),
     channelwidth80 = getValidateChannelWidth(cw_80),
@@ -746,9 +755,14 @@ local function getParamsAndValidation()
     frame_bursting = vB,
     ap_broadcast_ssid = vB,
     requested_channel = gVIES(allowed_channels),
+	country = gVIES(supported_countries),
     admin_state = vB,
     rssi_threshold = gVIES(bandsteer_rssi_threshold),
     rssi_5g_threshold = gVIES(bandsteer_rssi_threshold),
+	eco_state = vB,
+	eco_force_radio_down = vB,
+	eco_single_rx_chain = vB,
+	eco_fast_radio_toggle = vB,
   }
 
 	if isguest ~= "1" then
@@ -771,7 +785,7 @@ local content, helpmsg = post_helper.handleQuery(mapParams, mapValid)
 
 if ngx.req.get_method() == "POST" and ngx.req.get_post_args().action == "bs_check" then
     local postargs = ngx.req.get_post_args()
-	if content["ssid"] ~= postargs.ssidName or content["security"] ~= postargs.security or content["wep_key"] ~= postargs.wep_key or content["wpa_psk"] ~= postargs.wpa_psk then
+	if content["ssid"] ~= postargs.ssidName or content["security"] ~= postargs.security or content["wpa_psk"] ~= postargs.wpa_psk then
 	session:store("bs_check_action", "TRUE")
     proxy.set("uci.wireless.wifi-ap.@ap0.bandsteer_id", "off")
 	proxy.set("uci.wireless.wifi-ap.@ap1.bandsteer_id", "off")
@@ -817,7 +831,7 @@ if ngx.req.get_method() == "POST" then
   content["wps_device_pin_code"] = ""
 
 -- triggered only on a POST with action set wps_device_pin_code (button next to field should trigger that)
-    if #wls > 1 then
+    if #wls > 0 then
       for _,v in ipairs(wls) do
         if v.iface == curiface then
           v.ssid = content["ssid"]
@@ -871,7 +885,8 @@ end
   end
 
 param = {
-    allowed_channels = pathradio .. "allowed_channels"
+	driver_version = pathradio .. "driver_version",
+    allowed_channels = pathradio .. "allowed_channels",
 }
 content_helper.getExactContent(param)
 allowed_channels = { {"auto", T"Auto"} }
@@ -933,7 +948,7 @@ ngx.print(ui_helper.createHeader(T"Wireless", true, false))   ngx.print('\
 <form class="form-horizontal" method="post" action="');  ngx.print( ngx.var.request_uri ); ngx.print('">\
 ');  
 -- Do not display the navlist on the list if only 1 SSID
-if #wls > 1 then
+if #wls > 0 then
   ngx.print('\
 <div class="span2">\
     <ul class="nav nav-list">\
@@ -945,7 +960,7 @@ if #wls > 1 then
             if radioData[untaint(v.radio)].remotely_managed == "1" and radioData[untaint(v.radio)].integrated_ap ~= "1" then
                 html[#html+1] = format('<li class="nav-header">%s %s</li>', T"External access points", radioData[untaint(v.radio)].supported_frequency_bands)
             else
-                html[#html+1] = format('<li class="nav-header">%s %s</li>', T"Access points", radioData[untaint(v.radio)].supported_frequency_bands)
+                html[#html+1] = format('<li class="nav-header">%s %s</li>', T"Access Points", radioData[untaint(v.radio)].supported_frequency_bands)
             end
             prevradio = v.radio
         end
@@ -987,7 +1002,7 @@ if #wls > 1 then
           html[#html + 1] = format([[
              <div id="linkrescan-changes_%s" class="hide">
              <div id="linkrescan-cancel_%s" class="btn">%s</div>
-             <div id="linkrescan-confirm_%s" onclick='$(".modal-backdrop").remove();' class="btn btn-primary" data-toggle="modal", data-remote="%s">%s</div>
+             <div id="linkrescan-confirm_%s" class="btn btn-primary" data-toggle="modal" data-remote="%s">%s</div>
              </div></div>
              ]],
              link_id,link_id,T"Cancel",link_id,url,T"Accept")
@@ -996,7 +1011,7 @@ if #wls > 1 then
       end
     end
     if session:hasAccess("/modals/wireless-client-modal.lp") then
-      html[#html+1] = format("<li><a href=\"#\" <a href=\"#\" data-remote=\"modals/wireless-client-modal.lp\" >%s</a></li>", T"Client Monitoring" )
+      html[#html+1] = format('<li><a href="#" data-remote="modals/wireless-client-modal.lp" >%s</a></li>', T"Client Monitoring" )
     end
     ngx.print(html)
       ngx.print('\
@@ -1069,6 +1084,7 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
             html[#html + 1] = ui_helper.createSwitch(T"Enabled", "admin_state", content["admin_state"])
         end]]
 		html[#html + 1] = ui_helper.createLabel(T"Radio", labelstate)
+		html[#html + 1] = ui_helper.createLabel(T"Driver Version", param["driver_version"])
         html[#html + 1] = ui_helper.createLabel(T"Frequency band", content["supported_frequency_bands"])
         -- Label that shows the MAC address of the Wifi interface
         html[#html + 1] = ui_helper.createLabel(T"MAC address", content["macaddress"])
@@ -1106,7 +1122,7 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
         end
 
         -- Show which region is being used
-        html[#html + 1] = ui_helper.createLabel(T"Region", content["country"], advanced)
+        html[#html + 1] = ui_helper.createInputSelect(T"Country", "country", supported_countries, content["country"])
         html[#html + 1] = ui_helper.createLabel(T"Current channel", content["channel"], { span = {
             id = "channel",
             ["data-ajaxrefresh"] = "5",
@@ -1138,8 +1154,9 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
 
             html[#html + 1] = ui_helper.createInputSelect(T"Channel Width", "channelwidth80", cw_80, content["requested_channel_width"], cw80attributes)
             html[#html + 1] = '</div>'
-
-            if isExtRemman ~= "1" and isIntRemman ~= "1" then
+			if isExtRemman ~= "1" and isIntRemman ~= "1" then
+				html[#html + 1] = ui_helper.createSwitch(T"Bypass Reg Domain Power Rule", "tx_power_overrule_reg", content["tx_power_overrule_reg"], advanced)
+				html[#html + 1] = ui_helper.createSliderSelect(T"Output Power", "tx_power_adjust", wifipower, content["tx_power_adjust"], advanced)
                 html[#html + 1] = ui_helper.createSwitch(T"Short Guard Interval", "sgi", content["sgi"], advanced)
                 html[#html + 1] = ui_helper.createInputSelect(T"Cyclic-Delay Diversity", "cdd", cddList, content["cdd"], advanced)
                 html[#html + 1] = ui_helper.createSwitch(T"Space Time Block Code", "stbc", content["stbc"], advanced)
@@ -1151,7 +1168,26 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
   ngx.print('\
 </fieldset>\
 \
-');  
+');
+if isguest ~= "1" then
+
+	html = {}
+	
+	
+	html[#html + 1] = '<legend class="advanced hide">'
+    html[#html + 1] = T"Eco Settings"
+    html[#html + 1] = "</legend>"
+
+	html[#html + 1] = ui_helper.createSwitch(T"State", "eco_state", content["eco_state"], advanced)
+	html[#html + 1] = ui_helper.createSwitch(T"Force Radio Down", "eco_force_radio_down", content["eco_force_radio_down"], advanced)
+	-- Currently not working... Ubus refuse to set them (also in mapper they are readOnly (probably because they are unsupported)
+	--html[#html + 1] = ui_helper.createSwitch(T"Fast Radio Toggle", "eco_fast_radio_toggle", content["eco_fast_radio_toggle"], advanced)
+	--html[#html + 1] = ui_helper.createSwitch(T"Single Rx Chain", "eco_single_rx_chain", content["eco_single_rx_chain"], advanced)
+
+	ngx.print(html)
+	
+end
+
     html = {}
 
     if not stbLimit then
@@ -1161,7 +1197,7 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
     end
     html[#html + 1] = "<legend>"
     html[#html + 1] = T"Access Point"
-    html[#html + 1] = [[</legend>]]
+    html[#html + 1] = "</legend>"
 
     -- Show if the AP is enabled
     if isguest == "1" then
@@ -1338,15 +1374,15 @@ end
         if isBaseIface(curiface) then
             html[#html + 1] = ui_helper.createAlertBlock(T"Detecting a Wi-Fi client's capabilities and monitoring its interfaces, Band Steering actively guides the client to the more suitable Wi-Fi band.", bssecclass)
             html[#html + 1] = ui_helper.createSwitch(T"Band Steering Enabled", "band_steer_enabled", tostring(band_steer_enabled), bssecclass)
-            html[#html + 1] = ui_helper.createAlertBlock(T"Band Steering works only if 2.4 GHz and 5 GHz have the same configuration. By enabling the Band Steering, the 2.4 GHz network settings will be propagated on 5GHz settings", bssecclass)
-            html[#html + 1] = ui_helper.createSliderSelect(T"2.4GHz Band Steering Threshold", "rssi_threshold", bandsteer_rssi_threshold, content_rssi["rssi_threshold"], bssecclass)
-            html[#html + 1] = ui_helper.createAlertBlock(T"If a wireless device reports this gateway's 2.4GHz signal strength is above this threshold, the gateway will ask the device to test the 5GHz band . Please see 5GHz section for additional parameter.", bssecclass)
+            html[#html + 1] = ui_helper.createAlertBlock(T"Band Steering works only if 2.4 GHz and 5 GHz have the same configuration. By enabling the Band Steering, the 2.4 GHz network settings will be propagated on 5 GHz settings", bssecclass)
+            html[#html + 1] = ui_helper.createSliderSelect(T"2.4 GHz Band Steering Threshold", "rssi_threshold", bandsteer_rssi_threshold, content_rssi["rssi_threshold"], bssecclass)
+            html[#html + 1] = ui_helper.createAlertBlock(T"If a wireless device reports this gateway's 2.4 GHz signal strength is above this threshold, the gateway will ask the device to test the 5 GHz band . Please see 5 GHz section for additional parameter.", bssecclass)
         else
             html[#html + 1] = ui_helper.createAlertBlock(T"Detecting a Wi-Fi client's capabilities and monitoring its interfaces, Band Steering actively guides the client to the more suitable Wi-Fi band.", ssidclass)
             html[#html + 1] = ui_helper.createLabel(T"Band Steering Enabled", tostring(band_steer_enabled) == "1" and "On" or "Off", ssidclass)
-            html[#html + 1] = ui_helper.createAlertBlock(T"Band Steering works only if 2.4 GHz and 5 GHz have the same configuration. By enabling the Band Steering, the 2.4 GHz network settings will be propagated on 5GHz settings", bssecclass)
-            html[#html + 1] = ui_helper.createSliderSelect(T"5GHz Band Steering Threshold", "rssi_5g_threshold", bandsteer_rssi_threshold, content_rssi["rssi_5g_threshold"], ssidclass)
-            html[#html + 1] = ui_helper.createAlertBlock(T"Please see 2.4GHz section for initial parameter. If a wireless device tests the 5GHz band and reports the 5GHz signal strength is above this threshold, the gateway will direct the device to switch to the 5GHz band.", bssecclass)
+            html[#html + 1] = ui_helper.createAlertBlock(T"Band Steering works only if 2.4 GHz and 5 GHz have the same configuration. By enabling the Band Steering, the 2.4 GHz network settings will be propagated on 5 GHz settings", bssecclass)
+            html[#html + 1] = ui_helper.createSliderSelect(T"5 GHz Band Steering Threshold", "rssi_5g_threshold", bandsteer_rssi_threshold, content_rssi["rssi_5g_threshold"], ssidclass)
+            html[#html + 1] = ui_helper.createAlertBlock(T"Please see 2.4 GHz section for initial parameter. If a wireless device tests the 5 GHz band and reports the 5 GHz signal strength is above this threshold, the gateway will direct the device to switch to the 5 GHz band.", bssecclass)
         end
     end
 end
@@ -1409,7 +1445,7 @@ end
 <legend>');  ngx.print( T"QR Code" ); ngx.print('</legend>\
 ');  ngx.print( format([[
                     <center>
-                        <div onclick="$('.modal-backdrop').remove();" class="btn custom-handler" data-remote="modals/wireless-qrcode-modal.lp?iface=%s&ap=%s" data-toggle="modal">
+                        <div class="btn custom-handler" data-remote="modals/wireless-qrcode-modal.lp?iface=%s&ap=%s" data-toggle="modal">
                             %s
                         </div>
                     </center>&nbsp
@@ -1500,7 +1536,7 @@ function get_random_color() {\
     var range = 320;\
     var bittarget40 = 10;\
     var bittarget80 = 16;\
-    var ctx\
+    var ctx;\
   function initializeAnalyzer() {\
     var c=document.getElementById("wrapper");\
     ctx=c.getContext("2d");\
@@ -1879,9 +1915,6 @@ $("#save-config").click(function(){\
 	params.push({\
 	name : "ssidName",\
 	value : $("#ssid").val()\
-	},{\
-	name : "wep_key",\
-	value : $("#wep_key").val()\
 	},{\
 	name : "wpa_psk",\
 	value : $("#wpa_psk").val()\

@@ -295,65 +295,45 @@ root_device() {
 	echo "GUI File found! Good Job!"
 	local root_tmp_dirt=/tmp/rootfile
 	local gui_file=$root_tmp_dirt/GUI.tar.bz2
-	local gz_gui_file=$root_tmp_dirt/GUI.tar.gz
 	
-	if [ "$SWITCHBANK" -eq 1 ]; then
-		mkdir /overlay/$target_bank
-		if [ -f $gui_file ]; then
-			bzcat $gui_file | tar -C /overlay/$target_bank -xf -
-		else
-			tar -C /overlay/$target_bank -zxf $gz_gui_file
-		fi
-		echo "Restoring GUI file in flash"
-		mkdir -p /overlay/$target_bank/root
-		cp $gui_file /overlay/$target_bank/root/
-		echo 1 > /overlay/$target_bank/root/.reapply_due_to_upgrade
-	else
-		mkdir /overlay/$running_bank
-		if [ -f $gui_file ]; then
-			bzcat $gui_file | tar -C /overlay/$running_bank -xf -
-		else
-			tar -C /overlay/$running_bank -zxf $gz_gui_file
-		fi
-		echo "Restoring GUI file in flash"
-		mkdir -p /overlay/$running_bank/root
-		cp $gui_file /overlay/$running_bank/root/
-		echo 1 > /overlay/$running_bank/root/.reapply_due_to_upgrade
+	local bank=$running_bank
+	[ "$SWITCHBANK" -eq 1 ] && bank=$target_bank
+
+	echo "Re-Extracting GUI files in /overlay/$bank"
+	mkdir -p /overlay/$bank/root
+	if [ -f $gui_file ]; then
+		bzcat $gui_file | tar -C /overlay/$bank -xf -
+	  cp $gui_file /overlay/$bank/root/
 	fi
-	echo "Device Rooted"
+	echo "Setting reapply_due_to_upgrade flag"
+	echo 1 > /overlay/$bank/root/.reapply_due_to_upgrade
 }
 
 restore_config_File() {
 	local config_tmp=/tmp/config_tmp
 	if [ -d $config_tmp ]; then
-		echo "Found Config file in ram!"
-		if [ ! -d /overlay/homeware_conversion ]; then
-			mkdir /overlay/homeware_conversion
-			mkdir /overlay/homeware_conversion/etc
-			mkdir /overlay/homeware_conversion/etc/config
-		fi
+		echo "Found config dir in RAM!"
+		mkdir -p /overlay/homeware_conversion/etc/config
 		cp $config_tmp/* /overlay/homeware_conversion/etc/config/
+		cp $config_tmp/modgui /overlay/homeware_conversion/etc/modgui_old
 		cp /tmp/shadow_file/shadow /overlay/homeware_conversion/etc/
 		if [ "$SWITCHBANK" -eq 1 ]; then
 			cp /tmp/shadow_file/shadow /overlay/$target_bank/shadow_old
 		else
 			cp /tmp/shadow_file/shadow /overlay/$running_bank/shadow_old
 		fi
-		echo "Config file restored to homeware conversion dir! File will be updated on next boot."
+		echo "Config files restored to homeware conversion dir! File will be updated on next boot."
 	fi
 }
 
 preserve_root() {
 	local root_tmp_dirt=/tmp/rootfile
 	local emergencydir=/tmp/rootfile/emergency
-	echo "Copying root file to ram..."
+	echo "Copying GUI package and emergency dir to RAM..."
 	mkdir /tmp/rootfile
 	mkdir $emergencydir
 	if [ -f /overlay/$running_bank/root/GUI.tar.bz2 ]; then
 		cp /overlay/$running_bank/root/GUI.tar.bz2 $root_tmp_dirt/
-	fi
-	if [ -f /overlay/$running_bank/root/GUI.tar.gz ]; then
-		cp /overlay/$running_bank/root/GUI.tar.gz $root_tmp_dirt/
 	fi
 	mkdir $emergencydir/etc
 	mkdir $emergencydir/etc/init.d 
@@ -370,23 +350,23 @@ preserve_root() {
 	cp /overlay/$running_bank/usr/bin/sysupgrade-safe $emergencydir/usr/bin/
 	cp -d /overlay/$running_bank/etc/rc.d/S94rootdevice $emergencydir/etc/rc.d/
 	if [ -f $emergencydir/etc/init.d/rootdevice ]; then
-		echo "Root file preserved!"
+		echo "GUI files preserved!"
 	else
-		echo "Root file not copied to ram!"
+		echo "GUI files not copied to RAM!"
 	fi
 }
 
 preserve_config_file() {
 	local config_tmp=/tmp/config_tmp
-	echo "Copying config file to ram..."
+	echo "Copying config files to config_tmp dir in RAM..."
 	mkdir /tmp/config_tmp
 	mkdir /tmp/shadow_file
 	cp /overlay/$running_bank/etc/config/* $config_tmp/
 	cp /overlay/$running_bank/etc/shadow /tmp/shadow_file
 	if [ -f $config_tmp/network ]; then
-		echo "Config file preserved!"
+		echo "Config files preserved!"
 	else
-		echo "Config file not copied to ram!"
+		echo "Config file not copied to RAM!"
 	fi
 }
 
@@ -408,9 +388,15 @@ platform_do_upgrade() {
 	
 	local RESTORE_CONFIG=1
 	
-	if [ -n $SAVE_CONFIG ]; then
+	if [ -n "$SAVE_CONFIG" ]; then
 		if [ $SAVE_CONFIG -eq 0 ]; then
 			RESTORE_CONFIG=0
+		fi
+	fi
+	local INSTALL_GUI=1
+	if [ -n "$ROOT_ONLY" ]; then
+		if [ $ROOT_ONLY -eq 1 ]; then
+			INSTALL_GUI=0
 		fi
 	fi
 	
@@ -428,7 +414,7 @@ platform_do_upgrade() {
 		fi
 		
 		if [ ! -d /overlay/bank_1 ] && [ ! -d /overlay/bank_2 ]; then
-			if [ -f $root_tmp_dirt/GUI.tar.bz2 ] || [ -f $root_tmp_dirt/GUI.tar.gz ]; then
+			if [ -f $root_tmp_dirt/GUI.tar.bz2 ]; then
 				root_device
 			else
 				emergency_restore_root
@@ -438,20 +424,22 @@ platform_do_upgrade() {
 				restore_config_File
 			fi
 			
+			local bank=$running_bank
+			
 			if [ "$SWITCHBANK" -eq 1 ]; then
+				bank=$target_bank
 				echo $target_bank > /proc/banktable/active
 			fi
+			
 			if platform_is_dualbank; then
-				if [ "$SWITCHBANK" -eq 1 ] && [ -f /overlay/$target_bank/etc/init.d/rootdevice ]; then
+				if [ -f /overlay/$bank/etc/init.d/rootdevice ]; then
+					if [ $INSTALL_GUI -eq 1 ]; then
+						echo 1 > /overlay/$bank/root/.install_gui
+					fi
 					if [ ! -z $device ]; then
 						umount $device
 					fi
-					platform_do_upgrade_bank $1 $target_bank || exit 1
-				elif [ -f /overlay/$running_bank/etc/init.d/rootdevice ]; then
-					if [ ! -z $device ]; then
-						umount $device
-					fi
-					platform_do_upgrade_bank $1 $running_bank || exit 1
+					platform_do_upgrade_bank $1 $bank || exit 1
 				else
 					echo "Rooting file not present in new config! Aborting... "
 					emergency_restore_root

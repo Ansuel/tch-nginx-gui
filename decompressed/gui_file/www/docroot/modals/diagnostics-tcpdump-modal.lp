@@ -35,6 +35,7 @@ local tcpdumpValid = {
   interface = vNES,
   type = vNES,
   count = validateCount,
+  saveonusb = vB,
 }
 
 local tcpdump_intfs = {
@@ -94,9 +95,19 @@ end
 
 
 local function restartTest(data)
-  local success,msg = false, {}
+  local success, msg = false, {}
   if type(data) == "table"  then
     success, msg = content_helper.validateObject(data, tcpdumpValid)
+    local usbstatus =  proxy.get("rpc.system.tcpdump.usbstatus")
+    usbstatus = usbstatus[1] and usbstatus[1].value
+    if usbstatus == "Connected" then
+      if not data.saveonusb then
+        data.saveonusb = "0"
+      end
+      proxy.set({["rpc.system.tcpdump.saveonusb"] = data["saveonusb"]})
+    else
+      proxy.set({["rpc.system.tcpdump.saveonusb"] = "0"})
+    end
     if success then
         success = proxy.set({
                     ["rpc.system.tcpdump.interface"] = data["interface"],
@@ -153,6 +164,7 @@ local tcpdump_data = {
   interface = path_tcpdump.. "interface",
   file = path_tcpdump .. "file",
   intflist = path_tcpdump .. "intflist",
+  saveonusb = path_tcpdump .. "saveonusb"
 }
 
 
@@ -165,6 +177,7 @@ end
 tcpdump_data.count = post_content["count"] or tcpdump_data.count
 tcpdump_data.interface = post_content["interface"] or tcpdump_data.interface
 tcpdump_data.type = post_content["type"] or tcpdump_data.type
+tcpdump_data.saveonusb = post_content["saveonusb"] or tcpdump_data.saveonusb
 
 local refresh = 2
 --This code will stop the refresh when all results are available
@@ -238,7 +251,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
           statusText = T"Failed"
         else
           statusIcon = "<i class=\"icon-ban-circle icon-large red\"></i>"
-          statusText = T"Not Requested"
+          statusText = T"Idle"
         end
     end
   end
@@ -246,12 +259,13 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
   html = {}
   if(tcpdump_data.state == "Complete") then
     local size = lfs.attributes (untaint(tcpdump_data.file), "size")
-    if size ~= 0 then
+    if size ~= 0 and tcpdump_data.saveonusb == "0" then
       html[#html + 1] = ui_helper.createButton(T"", T"Download", "icon-download-alt", tcpdump_download)
       html[#html + 1] = ui_helper.createAlertBlock(T"Downloading TCPDump file, please wait...", downloading_alert)
       html[#html + 1] = ui_helper.createAlertBlock(T"Download failed; please try again.", downloading_fail)
     end
   end
+  html[#html + 1] = ui_helper.createInputCheckbox(T"Save on USB", "saveonusb", untaint(tcpdump_data.saveonusb), attrCheckbox)
   html[#html + 1] = ui_helper.createLabel(T"Status:", format("%s %s", statusIcon, statusText), attributes)
   html[#html + 1] = ui_helper.createLabel(T"Max Packet Number Recommended:", tcpdump_data.refcount, attributes)
   html[#html + 1] = ui_helper.createInputText(T"Packet Number:","count", tcpdump_data.count, attrText, helpmsg["count"])
@@ -280,6 +294,10 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 <script>\
 (function() {\
   var target = $(".modal form").attr("action");\
+\
+  $("#saveonusb").on("click", function() {\
+    $(this).val($(this).is(":checked")? "1": "0")\
+  });\
 \
   $(".tcpdump-download").on("click", function() {\
     $.fileDownload(target, {\

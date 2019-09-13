@@ -13,9 +13,9 @@ local uinetwork = require("web.uinetwork_helper")
 local hosts_ac = uinetwork.getAutocompleteHostsList()
 
 local content = {
-  dest_mac = "rpc.network.firewall.dmz.redirect.dest_mac",
-  gw = "uci.network.interface.@lan.ipaddr",
-  netmask = "uci.network.interface.@lan.netmask"
+	dest_mac = "rpc.network.firewall.dmz.redirect.dest_mac",
+	gw = "uci.network.interface.@lan.ipaddr",
+	netmask = "uci.network.interface.@lan.netmask"
 }
 
 content_helper.getExactContent(content)
@@ -35,15 +35,10 @@ local mapParams = {
 
 local mapValid = {
 	enable = post_helper.validateBoolean,
-    destinationip = gAV(gVIPIL(vSIDIP,"DMZ_enable",{"1"}),gOV(vQTN)),
+    destinationip = gAV(gVIPIL(vSIDIP,"enable",{"1"}),gOV(vQTN)),
 }
  
 local data, helpmsg = post_helper.handleQuery(mapParams, mapValid)
-
--- Switch for toggling DMZ state
-local ipattr = {
-    autocomplete = hosts_ac
-}
 
   ngx.print('\
 \
@@ -57,15 +52,32 @@ local ipattr = {
   ngx.print('\
   <form class="form-horizontal" method="post" action="/modals/dmz-modal.lp">\
     ');  
-        ngx.print(ui_helper.createMessages(message_helper.popMessages()))
+      ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       ngx.print('\
-    <fieldset>\
-      ');  
-        ngx.print(ui_helper.createSwitch(T"Enabled", "enable", data["enable"], nil, helpmsg["enable"]),
-                  ui_helper.createInputText(T"Destination IP", "destinationip", data["destinationip"], ipattr, helpmsg["destinationip"]),
-                  ui_helper.createLabel(T"Destination MAC", content["dest_mac"]))
+	  <fieldset>\
+      ');
+
+		local html = {}
+		
+		local dmz_switch = {
+			input = {
+				class = "monitor-changes",
+			}
+		}
+		local dmz_switch_mon_1 = {
+			group = {
+				class ="monitor-enable monitor-1",
+			},
+			autocomplete = hosts_ac,
+		}
+		
+        html[#html+1] = ui_helper.createSwitch(T"Enabled", "enable", data["enable"], dmz_switch, helpmsg["enable"])
+        html[#html+1] = ui_helper.createInputText(T"Destination IP", "destinationip", data["destinationip"], dmz_switch_mon_1, helpmsg["destinationip"])
+        html[#html+1] = ui_helper.createLabel(T"Destination MAC", content["dest_mac"], dmz_switch_mon_1)
+				  
+		ngx.print(html)
         ngx.print('\
-    </fieldset>\
+	  </fieldset>\
 	</form>\
 </div>\
 ');  ngx.print( ui_helper.createFooter() ); ngx.print('\

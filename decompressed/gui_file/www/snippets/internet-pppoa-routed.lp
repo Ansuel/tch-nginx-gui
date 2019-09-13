@@ -261,51 +261,40 @@ local content_rpc = {
     wan_ppp_ll_intf = "rpc.network.interface.@wan.ppp.ll_intf",
     ipaddr = "rpc.network.interface.@wan.ipaddr",
     nexthop = "rpc.network.interface.@wan.nexthop",
-    dns_wan = "rpc.network.interface.@wan.dnsservers",
+    dns = "rpc.network.interface.@wan.dnsservers",
     dns_loopback = "rpc.network.interface.@loopback.dnsservers", -- Added to include static dns servers configured on loopback interface (for TI custo)
 }
 
-for i,v in ipairs(proxy.getPN("rpc.network.interface.", true)) do
-    local intf = match(v.path, "rpc%.network%.interface%.@([^%.]+)%.")
-    if intf then
-        if intf == "6rd" then
-            content_rpc.ip6addr = "rpc.network.interface.@6rd.ip6addr"
-            content_rpc.ip6prefix = "rpc.network.interface.@6rd.ip6prefix"
-            content_rpc.dnsv6 = "rpc.network.interface.@6rd.dnsservers"
-        elseif intf == "wan6" then
-            content_rpc.ip6addr = "rpc.network.interface.@wan6.ip6addr"
-            content_rpc.ip6prefix = "rpc.network.interface.@wan6.ip6prefix"
-            content_rpc.dnsv6 = "rpc.network.interface.@wan6.dnsservers"
-            break
-        end
-    end
+local internethelper = require("internethelper")
+
+for v6Key, v6Value in pairs(internethelper.getIpv6Content()) do
+	content_rpc[v6Key] = v6Value
 end
 
 ajax_helper.handleAjaxQuery(content_rpc, function(c)
     -- this will add the HTML for the light
     local ds = get_dhcp_state(content["uci_wan_auto"], proxy.get("rpc.network.interface.@wan.ppp.state")[1].value, proxy.get("rpc.network.interface.@wan.ppp.error")[1].value, c["ipaddr"])
-    local dnstab = split(proxy.get("rpc.network.interface.@loopback.dnsservers")[1].value, "[^%,]+")
-    local dnsv4, dnsv6 = dns_filter(dnstab)
+    local dnstab = split(proxy.get("rpc.network.interface.@wan.dnsservers")[1].value, "[^%,]+")
+	local dnsv4, dnsv6 = dns_filter(dnstab)
     ajax_attr_light.light.class = ppp_light_map[ds]
     c.wan_status = ui_helper.createSimpleLight(nil, ppp_state_map[ds], ajax_attr_light)
     if proxy.get("rpc.network.interface.@wan.ppp.state")[1].value == "connected" then
-        c.dns = content_helper.getMergedList(proxy.get("rpc.network.interface.@wan.dnsservers")[1].value, dnsv4)
-    else
         c.dns = dnsv4
-
     end
     local ipv6_enabled = proxy.get("uci.network.interface.@wan.ipv6")
     if ipv6_enabled and ipv6_enabled[1].value == "1" then
-        c.dnsv6 = content_helper.getMergedList(c.dnsv6, dnsv6)
+        c.dnsv6 = dnsv6
     end
 end)
 
 content_helper.getExactContent(content_rpc)
 
-local dnstab = split(content_rpc.dns_loopback, "[^%,]+")
+local dnstab = split(content_rpc.dns, "[^%,]+")
 local dnsv4, dnsv6 = dns_filter(dnstab)
-content_rpc.dns = content_helper.getMergedList(content_rpc.dns_wan, dnsv4)
-content_rpc.dnsv6 = content_helper.getMergedList(content_rpc.dnsv6, dnsv6)
+content_rpc.dns = dnsv4
+if dnsv6 and not content_rpc.dnsv6 then
+	content_rpc.dnsv6 = dnsv6
+end
 
 -- need to untaint the string otherwise getExactContent will get lost
 local wan_atm_uci_path = format("uci.xtm.atmdevice.@%s.", content_rpc["wan_ppp_ll_intf"])
@@ -412,22 +401,19 @@ html[#html+1] = ui_helper.createSwitch(T"Auto Discover DNS", "uci_wan_peerdns", 
 html[#html+1] = format('<label class="control-label">%s</label><div class="controls">', T"DNS servers")
 html[#html+1] = ui_helper.createTable(dns_columns, dns_data, dns_options, nil, dns_helpmsg)
 html[#html+1] = '</div>'
-local ipv6_enabled = proxy.get("uci.network.interface.@wan.ipv6")
-if ipv6_enabled and ipv6_enabled[1].value == "1" then
-    --if content_rpc["ip6addr"] and content_rpc["ip6addr"]:len() > 0 then
-    ajax_attr.span.id = "ip6addr"
-    html[#html+1] = ui_helper.createLabel(T"IPv6 Address", content_rpc["ip6addr"],ajax_attr)
-    --end
-    --if content_rpc["ip6prefix"] and content_rpc["ip6prefix"]:len() > 0 then
-    ajax_attr.span.id = "ip6prefix"
-    html[#html+1] = ui_helper.createLabel(T"IPv6 Prefix", content_rpc["ip6prefix"],ajax_attr)
-    -- end
-    --if content_rpc["dnsv6"] and content_rpc["dnsv6"]:len() > 0 then
-    ajax_attr.span.id = "dnsv6"
-    html[#html+1] = ui_helper.createLabel(T"IPv6 DNS", content_rpc["dnsv6"],ajax_attr)
-    --end
-end
 
+if content_rpc["ip6addr"] and content_rpc["ip6addr"]:len() > 0 then
+	ajax_attr.span.id = "ip6addr"
+	html[#html+1] = ui_helper.createLabel(T"IPv6 Address", content_rpc["ip6addr"],ajax_attr)
+end
+if content_rpc["ip6prefix"] and content_rpc["ip6prefix"]:len() > 0 then
+	ajax_attr.span.id = "ip6prefix"
+	html[#html+1] = ui_helper.createLabel(T"IPv6 Prefix", content_rpc["ip6prefix"],ajax_attr)
+end
+if content_rpc["dnsv6"] and content_rpc["dnsv6"]:len() > 0 then
+	ajax_attr.span.id = "dnsv6"
+	html[#html+1] = ui_helper.createLabel(T"IPv6 DNS", content_rpc["dnsv6"],ajax_attr)
+end
 
 -- ATM VP/VC
 local advanced = {

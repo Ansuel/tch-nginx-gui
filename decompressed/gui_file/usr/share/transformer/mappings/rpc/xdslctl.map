@@ -57,7 +57,7 @@ for _ , type in pairs{ "Hlog" , "Bits", "SNR", "QLN" } do
 	end
 end
 
-for _, type in pairs{"Chipset","Version","VersionRaw","Port"} do
+for _, type in pairs{"Chipset","Version","VersionRaw","Port","Serial"} do
 	xdslctl_.objectType.parameters["Dslam"..type] = string_table
 end
 for _, type in pairs{"Mode","Profile"} do
@@ -66,9 +66,30 @@ end
 
 local cache = {}
 
+local function sleep(sec)
+	if require("modgui").isModuleAvailable("socket") then
+		require("socket").sleep(sec)
+	else
+		os.execute("sleep " .. tonumber(sec))
+	end
+end
+
+local function call_popen(cmd,mode)
+	
+	local output = popen(cmd,mode)
+	
+	while ( not output:read(0) == "" ) do
+		output:close()
+		sleep(5)
+		output = popen(cmd,mode)
+	end
+	
+	return output
+end
+
 local function xdslmode(dtype)
 	local showdatacmd = ("xdslctl info --show")
-	local showdata = popen(showdatacmd, 'r')
+	local showdata = call_popen(showdatacmd, 'r')
 	local showline
 	local result
 	for showline in showdata:lines() do
@@ -94,7 +115,7 @@ end
 
 local function pbParams_find(bandtype)
 	local cmd = ("xdslctl info --pbParams")
-	local pbfile = popen(cmd, 'r')
+	local pbfile = call_popen(cmd, 'r')
 	local pbstring = ""
 	for pbline in pbfile:lines() do
 		if pbline:match("Medley Phase %(Final%) Band Plan") then
@@ -142,7 +163,13 @@ local function parase_pbParams(bandtype,dtype)
 	end
 end
 
+-- Reset cache if dsl is not up. This should fix some problems when connection goes up
+-- after this mapper gets loaded
+if cache["dslmode"] and ( cache["dslmode"] == "Not Found" ) then
+	cache = {}
+end
 
+-- Alwayse cache dslmode since it's called many times in the script
 if not cache["dslmode"] then
 	cache["dslmode"] = xdslmode("mode")
 end
@@ -254,7 +281,7 @@ local function xdslctlget(dtype,request,band,bandtype,split)
 	
 	local cmd = "xdslctl info --" .. request
 	
-	local infofile = popen(cmd,"r")
+	local infofile = call_popen(cmd,"r")
 	
 	for line in infofile:lines() do
 		if lineread>=(bandstart+8) and lineread<=(bandend+8) then
@@ -315,7 +342,7 @@ local function xdslctlDslamInfo(itype)
 	local result = ""
 	local chipset 
 
-	local vendor_info = popen(cmd)
+	local vendor_info = call_popen(cmd)
 	
 	for line in vendor_info:lines() do
 		if line:match("ChipSet Vendor Id") then
@@ -341,8 +368,14 @@ local function xdslctlDslamInfo(itype)
 			end
 			break
 		end
-		if line:match("ChipSet SerialNumber") and ( itype == "port" ) and line:match("port:") then
-			result = (line:gsub(".*port:",""):gsub("oemid.*",""):gsub("%s*",""))
+		if line:match("ChipSet SerialNumber") then
+			if ( itype == "port" ) and line:match("port:") then
+				result = (line:gsub(".*port:",""):gsub("oemid.*",""):gsub("%s*",""))
+				break
+			elseif ( itype == "serial" ) and not line:match("port:") then
+				result = line:gsub(".*:%s+","")
+				break
+			end
 		end
 	end
 	vendor_info:close()
@@ -351,6 +384,28 @@ local function xdslctlDslamInfo(itype)
 end
 
 local function get(mapping, paramName, key)
+
+	-- Check cache at every get
+	-- Reset cache if dsl is not up. This should fix some problems when connection goes up
+	-- after this mapper gets loaded
+	if cache["dslmode"] and ( cache["dslmode"] == "Not Found" ) then
+		cache = {}
+	end
+	
+	-- Alwayse cache dslmode since it's called many times in the script
+	if not cache["dslmode"] then
+		cache["dslmode"] = xdslmode("mode")
+	end
+	
+	if cache["dslmode"] and not cache["dslmode"]:match("G%.DMT") and 
+	not cache["dslmode"]:match("ADSL") and
+	not cache["dslmode"]:match("Not Found") then
+		cache["pbLineUs"] = pbParams_find("Us")
+		cache["pbLineDs"] = pbParams_find("Ds")
+		parase_pbParams("Us")
+		parase_pbParams("Ds")
+	end
+
 	if not paramName:match("DslMode") and 
 	  cache["dslmode"] and ( cache["dslmode"] == "Not Found" ) then
 		return "" --return empty on every value
@@ -424,6 +479,8 @@ local function get(mapping, paramName, key)
 		return xdslctlDslamInfo("version_raw")
 	elseif paramName == "DslamPort" then
 		return xdslctlDslamInfo("port")
+	elseif paramName == "DslamSerial" then
+		return xdslctlDslamInfo("serial")
 	elseif paramName == "DslMode" then
 		return xdslmode("mode")
 	elseif paramName == "DslProfile" then

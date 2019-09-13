@@ -109,8 +109,8 @@ $(document).ready(
       });
   
 	//
-	$("#swtichbuttom").on("switchcard", function() {
-		setTimeout(themescript, 3000);
+	$("#switchViewButton").on("switchcard", function() {
+		themescript();
 	});
 });
 

@@ -45,12 +45,17 @@ local mmpbx_profile = {
     }
 }
 
+local uci_helper = mapper("ucihelper")
+
 local function entriesProfile ()
     local profiles, entries = {}, {}
-    profiles = conn:call("mmpbx.profile", "get", {} )
-    if profiles then
-        for name, _ in pairs (profiles) do
-            entries[#entries+1] = name
+    local state = uci_helper.get_from_uci({config="mmpbx", sectionname="state"})
+    if state ~= "STOPPING" then
+        profiles = conn:call("mmpbx.profile", "get", {} )
+        if profiles then
+            for name, _ in pairs (profiles) do
+                entries[#entries+1] = name
+            end
         end
     end
     return entries
@@ -130,7 +135,7 @@ local mmpbx_sipprofile = {
           },
           password = {
               access = "readWrite",
-              type = "password",
+              type = "string",
           },
           uri = {
               access = "readWrite",
@@ -173,7 +178,7 @@ local mmpbx_updateprofile = {
           },
           password = {
               access = "readWrite",
-              type = "password",
+              type = "string",
           },
           uri = {
               access = "readWrite",

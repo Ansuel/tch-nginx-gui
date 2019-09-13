@@ -1,9 +1,0 @@
-config state 'state'
-        option enabled '1'
-
-config option 'option'
-		option l2tp '1'
-		option gre '1'
-		option ipv6 '1'
-		option mcast '1'
-		option mcast_learn '1'

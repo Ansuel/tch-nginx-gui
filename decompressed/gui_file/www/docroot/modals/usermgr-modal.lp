@@ -34,7 +34,7 @@ local userNames = ""
 local legacySalts = ""
 
 for _, user in ipairs(users) do
-  if user.legacy_salt ~= "" then
+  if user.legacy_salt and user.legacy_salt ~= "" then
     userNames = userNames .. user.name ..","
     legacySalts = legacySalts .. user.legacy_salt .. ","
   end
@@ -353,7 +353,7 @@ if ngx.req.get_method() == "POST" then
         local proxyapply = false
         if user and #user > 0 then
           user = user[1]
-          if (user.legacy_salt ~= "") then
+          if (user.legacy_salt and user.legacy_salt ~= "") then
               proxy.set(user.path .. "legacy_salt", "")
               proxyapply = true
           end
@@ -590,15 +590,15 @@ end
             upass.addClass("error");\
             upass.closest(".control-group").addClass("error");\
             upass.first().after(\'<span class="help-inline">');  ngx.print(T"Old password is incorrect"); ngx.print('</span>\');\
-        }\
+        };\
         var oldpassword = $(\'input[name="oldpassword"]\').val();\
         if(oldpassword != undefined) {\
             //Start for legacy migration: GUI username/password [NG-48489]\
             var legacySalts = "');  ngx.print( legacySalts ); ngx.print('";\
             var userNames = "');  ngx.print( userNames ); ngx.print('";\
             var index = -1;\
-            var userNameArray = userNames.split(",")\
-            var legacySaltArray = legacySalts.split(",")\
+            var userNameArray = userNames.split(",");\
+            var legacySaltArray = legacySalts.split(",");\
 \
             for (var i = 0; i < userNameArray.length - 1; i ++)\
             {\
@@ -622,8 +622,8 @@ end
         }\
     });\
 \
-    $(\'#usrmodal_password\').parent().after(\'<div class = "controls"><div id="Strength"></div></div>\')\
-    $(\'#repeat_pass\').parent().css("padding-top" , "5px")\
+    $(\'#usrmodal_password\').parent().after(\'<div class = "controls"><div id="Strength"></div></div>\');\
+    $(\'#repeat_pass\').parent().css("padding-top" , "5px");\
 \
     function passwordCheck(password)\
     {\
@@ -646,7 +646,7 @@ end
 \
         $(\'#Strength\').removeClass().addClass("strength" + level);\
         return level;\
-    }\
+    };\
 \
 </script>\
 '); 

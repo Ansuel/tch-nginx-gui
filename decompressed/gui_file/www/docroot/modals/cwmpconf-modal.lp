@@ -136,7 +136,7 @@ end
                 },
                 input = {
                   maxlength= "255",
-                  class = "span2",
+                  class = "span5",
                 },
                 span = {                                                       
                   class = "span4"  

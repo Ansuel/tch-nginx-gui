@@ -11,7 +11,7 @@ start_service() {
     local src_intf
     local src_dport
 	local dest_port
-
+	
     . /lib/functions/network.sh
     config_load wol
     config_get_bool enabled config enabled 0
@@ -21,14 +21,14 @@ start_service() {
 	config_get dest_port config dest_port 9
     config_get dest_intf config dest_intf "lan"
     config_get src_intf config src_intf "wan"
-
+	
     if [ -n "$dest_ip" -a -n "$dest_intf" ]; then
         # Add route entry
         ip route add ${dest_ip}/32 dev $dest_intf
         # Add a static ARP spoofing entry
         local count="0"
         while [ $count -lt 20 ]; do
-            if [ -z $(ip neigh show to $dest_ip dev $dest_intf | grep 'FAILED') ] ; then
+            if [ -z "$(ip neigh show to $dest_ip dev $dest_intf | grep 'FAILED')" ] ; then
               break
             fi
             sleep 1
@@ -48,8 +48,8 @@ start_service() {
 		uci set firewall.WakeOnWan.dest_port=$dest_port
 		uci commit firewall
     fi
-
-    /etc/init.d/firewall restart
+	
+    /etc/init.d/firewall restart 2>/dev/null
 }
 
 stop_service() {
@@ -58,14 +58,14 @@ stop_service() {
     local dest_intf
     local src_intf
     local src_dport
-
+	
     . /lib/functions/network.sh
     config_load wol
     config_get dest_ip config dest_ip
     config_get src_dport config src_dport
     config_get dest_intf config dest_intf "lan"
     config_get src_intf config src_intf "wan"
-
+	
     if [ -n "$dest_ip" -a -n "$dest_intf" ]; then
         # Delete route entry
         ip route del ${dest_ip}/32 dev $dest_intf
@@ -77,8 +77,8 @@ stop_service() {
 	fi
 	uci commit firewall
     fi
-
-    /etc/init.d/firewall reload
+	
+    /etc/init.d/firewall reload 2>/dev/null
 }
 
 validate_section_wol()

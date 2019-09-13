@@ -54,7 +54,8 @@ local ATMStats = {
   }
 }
 
-local register, popen = register, io.popen
+local register = register
+local popen = require("modgui").popen
 
 -- mapping all params in a lookup table with the parsed arguments
 local accessAtmStatsmap = {
@@ -107,5 +108,5 @@ ATMStats.set= function(mapping, param, value)
   if param == "reset" and value == "1" then
     popen("xtmctl operate intf --stats reset")
   end
-end 
+end
 register(ATMStats)

@@ -190,14 +190,6 @@ a:hover, a:focus {
 .container>.row {
 	margin: auto;
 }
-.row:before, .row:after {
-	display: table;
-	content: "";
-	line-height: 0
-}
-.row:after {
-	clear: both
-}
 [class*="span"] {
 	float: left;
 	min-height: 1px;
@@ -2985,7 +2977,16 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 }
 .modal-header {
 	padding: 9px 15px;
-	border-bottom: 1px solid #eee
+	border-bottom: 1px solid #eee;
+	display: flex;
+}
+.modal-header-title {
+	flex: 1;
+}
+.modal-header-items {
+	justify-items: center;
+    align-items: center;
+    display: flex;
 }
 .modal-header .close {
 	margin-top: 2px
@@ -2999,6 +3000,11 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	overflow-y: auto;
 	max-height: 460px;
 	padding: 15px
+}
+.fake_console {
+	background-color: #0c0c0c;
+    color: #cccccc;
+    font-family: monospace;
 }
 .modal-form {
 	margin-bottom: 0
@@ -3118,11 +3124,10 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	margin-left: 30px
 }
 .modal-action {
-	float: right;
 	color: #666;
 	padding-top: 8px;
 	font-size: 16px;
-	margin-left: 20px;
+	margin-left: 10px;
 	-webkit-transition: all .2s;
 	-moz-transition: all .2s;
 	-o-transition: all .2s;
@@ -3156,10 +3161,6 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	-ms-transform: rotate(360deg);
 	-o-transform: rotate(360deg);
 	transform: rotate(360deg)
-}
-.modal-action:before {
-	content: "|";
-	margin-right: 20px
 }
 .modal-action:last-child:before {
 	content: " ";
@@ -3676,7 +3677,7 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	display: flex;
 	margin-left: 0px;
 	flex-wrap: wrap;
-	justify-content: center;
+	justify-content: space-evenly;
 }
 #leftinfocard,#rightinfocard {
     flex: calc( 50% - 20px );
@@ -3733,7 +3734,7 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	-o-transition: margin .5s, opacity .5s, color .5s;
 	transition: margin .5s, opacity .5s, color .5s;
 	float: right;
-	margin-right: -10px;
+	margin-right: -40px;
 	margin-left: 10px;
 	color: #ddd;
 	color: #fff;
@@ -3846,6 +3847,17 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 }
 .smallcard .header-title:hover[data-remote] {
 	cursor: pointer
+}
+#diagnosticCard {
+	display: flex;
+    justify-content: space-evenly;
+    flex-wrap: wrap;
+	z-index: 20;
+	position: relative;
+}
+#diagnosticIcons {
+	font-size:25px;
+	margin: 10px;
 }
 .tooLongTitle p {
 	white-space: nowrap;
@@ -5494,9 +5506,6 @@ form .switch {
 }
 .hand {
 	cursor: pointer
-}
-.smallcard .header .settings {
-	margin-left: 0
 }
 #device_popUp {
 	z-index: 6000;

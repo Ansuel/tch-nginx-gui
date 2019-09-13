@@ -6,7 +6,7 @@ local obj = {
 		maxEntries = math.huge,
 		numEntriesParameter = "PowerControlNumberOfEntries",
 		parameters = {
-			current_power_state = {
+			power_state = {
 				access = "readOnly",
 				type = "string"
 			}
@@ -24,11 +24,11 @@ local helper = require("mobiled.scripthelpers")
 local function getall(mapping, key)
 	local result = {}
 	setmetatable(result, { __index = function() return "" end })
-	local id = string.match(key, "^power_control(.*)$")
+	local id = tonumber(string.match(key, "^power_control(.*)$"))
 	local info = helper.getUbusData(conn, "mobiled.platform", "get", {})
 	if type(info.power_controls) == "table" then
-		for _, control in pairs(info.power_controls) do
-			if control.id == id then
+		for i, control in pairs(info.power_controls) do
+			if i == id then
 				return control
 			end
 		end
@@ -44,8 +44,8 @@ local function powerControlEntries(mapping)
 	local info = helper.getUbusData(conn, "mobiled.platform", "get", {})
 	local powerControls = {}
 	if type(info.power_controls) == "table" then
-		for i, control in pairs(info.power_controls) do
-			table.insert(powerControls, { tostring(i), "power_control" .. control.id })
+		for i in pairs(info.power_controls) do
+			table.insert(powerControls, { tostring(i), "power_control" .. i })
 		end
 	end
 	return powerControls

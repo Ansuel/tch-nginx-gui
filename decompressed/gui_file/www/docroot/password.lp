@@ -9,14 +9,15 @@ local untaint = string.untaint
 local proxy = require("datamodel")
 
 if ngx.req.get_method() == "POST" and ngx.req.get_post_args().action == "PasswordChanged" then
-   local result = content_helper.getMatchedContent("uci.web.user.", {name = ngx.ctx.session:getusername()})
-    if result and #result > 0 then
-      if proxy.set(result[1].path .. "password_reminder", "0") then
-        proxy.apply()
-      end
+  local result = content_helper.getMatchedContent("uci.web.user.", {name = ngx.ctx.session:getusername()})
+  if result and #result > 0 then
+    if proxy.set(result[1].path .. "password_reminder", "0") then
+      proxy.apply()
     end
-	ngx.ctx.session:logout()
-    ngx.exit(ngx.HTTP_OK)
+  end
+  ngx.ctx.session:logout()
+  ngx.redirect("/")
+  ngx.exit(ngx.HTTP_OK)
 end
 
 local cui = {
@@ -26,32 +27,29 @@ local cui = {
   gui_version = "uci.modgui.gui.gui_version",
   gui_skin = "uci.modgui.gui.gui_skin",
 }
+
 content_helper.getExactContent(cui)
 local year = cui.timestamp
-local current_year = (string.sub(year,1,4))								   
+local current_year = (string.sub(year,1,4))
 --Start for legacy migration: GUI username/password [NG-48489]
 local users = content_helper.getMatchedContent("uci.web.user.")
 local userNames = ""
 local legacySalts = ""
 
 for _, v in ipairs(users) do
-  if v.legacy_salt ~= "" then
+  if v.legacy_salt and v.legacy_salt ~= "" then
     userNames = userNames .. v.name ..","
     legacySalts = legacySalts .. v.legacy_salt .. ","
   end
 end
 
 if ngx.req.get_method() == "POST" and ngx.req.get_post_args().resetLegacySalt then
-										   
   --As the legacy user password has changed, to remove the legacy label,i.e., option legacy_salt.
-														  
-											
   local user = content_helper.getMatchedContent("uci.web.user.", {name = ngx.ctx.session:getusername()})
   if user and #user > 0 then
     user = user[1]
     proxy.set(user.path .. "legacy_salt", "")
     proxy.apply()
-	   
   end
 end
 --End for legacy migration: GUI username/password [NG-48489]
@@ -84,9 +82,9 @@ end
 	<link href="/css/responsive.css?version='); ngx.print(cui.gui_version); ngx.print('" rel="stylesheet">\
 	<link rel="shortcut icon"    type="image/x-icon"   href="/img/favicon.ico"    />');
 	ngx.print('<link rel="stylesheet" href="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/style.css?version='); ngx.print(cui.gui_version); ngx.print('">\
-	<script src="/js/jquery.min.js?version='); ngx.print(cui.gui_version); ngx.print('" ></script>\
-	<script src="/js/jquery-migrate.js?version='); ngx.print(cui.gui_version); ngx.print('" ></script>\
-    <script src="/js/main-min-nojquery.js?version='); ngx.print(cui.gui_version); ngx.print('" ></script>\
+	<script src="/js/jquery.min.js?version='); ngx.print(cui.gui_version); ngx.print('" ></script>');
+	--ngx.print('<script src="/js/jquery-migrate.js?version='); ngx.print(cui.gui_version); ngx.print('" ></script>')
+    ngx.print('<script src="/js/main-min-nojquery.js?version='); ngx.print(cui.gui_version); ngx.print('" ></script>\
     <!--[if lt IE 9]> <script src="/js/media-min.js?version='); ngx.print(cui.gui_version); ngx.print('"></script> <![endif]-->\
     <script src="/js/srp-min.js" ></script>');
 	local script_file_presence = io.open(string.format("/www/docroot/theme/%s/script.js",cui.gui_skin),"r")
@@ -99,7 +97,7 @@ end
 			.span4 {width: 300px;}\
 		}\
 		@media screen and (max-width: 979px) and (min-width: 768px){\
-		input.span3, textarea.span3, .uneditable-input.span3 \
+		input.span3, textarea.span3, .uneditable-input.span3\
 			{width: 206px;}\
 		}\
 		@media screen and (max-width: 979px) and (min-width: 768px){\
@@ -164,20 +162,15 @@ end
                <strong>');  ngx.print( T"Old password is incorrect"); ngx.print('</strong>\
             </div>\
 \
-            ');  
-			ngx.print(createPwdLabel(T"Your Username")); ngx.print('\
+			');  ngx.print(createPwdLabel(T"Your Username"));   ngx.print('\
 				<div class="control-group">\
 					<label for="srp_username"><div style="margin-right:14px" class="label-icon">\
 						<i class="icon-user icon-large"></i>\
-			');
-			ngx.print('\</div>\
-						</label>');
-			ngx.print(ngx.ctx.session:getusername());
-			
-			ngx.print('\
-			</div>');
-			
-			ngx.print( createPwdLabel(T"Your old password") ); ngx.print('\
+				</div>\
+				</label>\
+			');  ngx.print(ngx.ctx.session:getusername());   ngx.print('\
+	    </div>\
+            ');  ngx.print( createPwdLabel(T"Your old password") ); ngx.print('\
             <div class="control-group">\
                 <label for="srp_password"><div class="label-icon">\
                     <i class="icon-lock icon-large"></i>\
@@ -245,7 +238,7 @@ function passwordCheck(password)\
 \
 	 $(\'#Password_Strength\').removeClass().addClass("pstrength" + level).addClass("span3");\
          return level;\
-}\
+};\
 \
 $(document).ready(\
   function() {\
@@ -280,8 +273,8 @@ $(document).ready(\
 		var legacySalts = "');  ngx.print( legacySalts ); ngx.print('";\
 		var userNames = "');  ngx.print( userNames ); ngx.print('";\
 \
-		var userNameArray = userNames.split(",")\
-		var legacySaltArray = legacySalts.split(",")\
+		var userNameArray = userNames.split(",");\
+		var legacySaltArray = legacySalts.split(",");\
 		for (var i = 0; i < userNameArray.length - 1; i ++)\
 		{\
 			if ( username == userNameArray[i] )\
@@ -307,16 +300,16 @@ $(document).ready(\
 			oneTimeCall();\
 \
 		srp.success = function() {\
-			srp.generateSaltAndVerifier("/password", username, $("#srp_password_new_1")[0].value)\
+			srp.generateSaltAndVerifier("/password", username, $("#srp_password_new_1")[0].value);\
 			//Start for legacy migration: GUI username/password [NG-48489]\
 			if(index >= 0)\
 			{\
 			$.post("/password.lp", { CSRFtoken:$("meta[name=CSRFtoken]").attr("content"), username:username, resetLegacySalt:"1"});\
 			}\
 			//End for legacy migration: GUI username/password [NG-48489]\
-		}\
+		};\
 		srp.passwordchanged = function() {\
-			var params = []\
+			var params = [];\
 			params.push({\
 				name : "action",\
 				value : "PasswordChanged"\
@@ -324,17 +317,15 @@ $(document).ready(\
 			$.post("password.lp", params, function(){\
 			window.location = "/";\
 			});\
-		}\
+		};\
 		srp.error_message = function() {\
-\
 			$("#erroruserpass_4").show();\
-			$("#yes").hide()\
+			$("#yes").hide();\
 			$(".control-group").addClass("error");\
 			$("#change-my-pass").show();\
 			$("#updating").hide();\
 			$("#cancel").show();\
-\
-		}\
+		};\
 		srp.identify("/password", username, password);\
 	}\
     // Set the focus on the first input field\
@@ -355,7 +346,7 @@ $(document).ready(\
 		$("#yes").hide();\
 		$("#cancel").hide();\
 		$("#insecure_question").hide();\
-		change_pass()\
+		change_pass();\
 		$("#updating").show();\
 	});\
 	\
@@ -374,18 +365,18 @@ $(document).ready(\
       if ($("#srp_password_new_1")[0].value != $("#srp_password_new_2")[0].value) {\
         display_error();\
         return false;\
-      }\
+      };\
 \
       var password1 = $("#srp_password_new_1")[0].value;\
       var password2 = $("#srp_password_new_2")[0].value;\
       if(password1.length < 12 || passwordCheck(password1) < 5)\
          {\
-            if(password1.length == 0)\
+            if (password1.length == 0)\
             {\
               $("#erroruserpass_3").show();\
               $(".control-group").addClass("error");\
               return false;\
-            }\
+            };\
             $("#erroruserpass_2").show();\
             $("#change-my-pass").hide();\
 			$("#cancel").hide();\

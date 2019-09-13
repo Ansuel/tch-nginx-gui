@@ -25,22 +25,23 @@ end
 mode_data = setmetatable(mode_data, untaint_mt)
 
 local mode_active = "default"
-local content_mode = {
+local content = {
     mode_active = "uci.network.config.wan_mode",
     wan_proto = "uci.network.interface.@wan.proto",
     wwan_up = "rpc.network.interface.@wwan.up",
+	wan_auto = "uci.network.interface.@wan.auto",
 }
-content_helper.getExactContent(content_mode)
-if content_mode.mode_active ~= "" then
+content_helper.getExactContent(content)
+if content.mode_active ~= "" then
     -- Get current mode by 'wan_mode'
-    mode_active = content_mode.mode_active
-elseif content_mode.wan_proto ~="" then
+    mode_active = content.mode_active
+elseif content.wan_proto ~="" then
     --'wan_mode' not there, then get @wan.proto
-    mode_active = content_mode.wan_proto
+    mode_active = content.wan_proto
 end
 
 local mobile_ip
-if content_mode.wwan_up == "1" then
+if content.wwan_up == "1" then
     local content_mobile = {
 	ipaddr = "rpc.network.interface.@wwan.ipaddr",
 	ip6addr = "rpc.network.interface.@wwan.ip6addr",
@@ -71,12 +72,12 @@ if session:hasAccess("/modals/internet-modal.lp") then
 end
   ngx.print('\
 \
-<div class="span3">\
+<div class="span3" id="internet-card">\
   <div class="smallcard" data-aos="zoom-in" data-aos-anchor-placement="center-bottom" data-aos-easing="ease-in-back">\
-    ');  ngx.print( ui_helper.createCardHeader(T"Internet Access", modalPath) ); ngx.print('\
+    ');  ngx.print( ui_helper.createCardHeader(T"Internet Access", modalPath, switchName, content.wan_auto) ); ngx.print('\
     <div class="content card_bg" data-bg-text="&#xf0ac;">\
       <div class="divtable">\
-');  
+');
     lp.setpath("/www/cards/snippets/")
     lp.include(mode_data[mode_active].card)
     -- have to bring it back to original value ... singleton
@@ -93,4 +94,9 @@ end
     </div>\
   </div>\
 </div>\
+<script>\
+$(document).ready(function () {\
+	new modgui.createAjaxUpdateCard("internet-card","/ajax/internet.lua","InternetCardInterval",3000);\
+})\
+</script>\
 '); 
