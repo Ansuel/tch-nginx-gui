@@ -105,7 +105,7 @@ for k,v in ipairs(devices) do
     local tooltip
     local iswireless
     if not (v[1] == "0" and hide_non_connected_flag == "1")  then
-        tooltip = string.format("LAN IP: %s<br />Device Name: %s<br />Link Speed: %s Mbps", v[3], v[2], v[7])
+        tooltip = string.format("LAN IP: %s<br/>Device Name: %s<br/>Link Speed: %s Mbps", v[3], v[2], v[7])
 
         if v[1] == "1" then
             ticked = "_ticked"
@@ -118,7 +118,7 @@ for k,v in ipairs(devices) do
             iswireless = "0"
         end
 
-        local html = string.format('<div class="device"><a href="/telstra-modals/device.lp?mac=%s&wireless=%s&ticked=%s"><img src="/img/telstra/dev_laptop%s.gif"/></a><div class="deviceinfo right">%s</div><div><br /></div></div>', v[4], iswireless, ticked, ticked, tooltip)
+        local html = string.format('<div class="device"><a href="/telstra-modals/device.lp?mac=%s&wireless=%s&ticked=%s"><img src="/img/telstra/dev_laptop%s.gif"/></a><div class="deviceinfo right">%s</div><div><br/></div></div>', v[4], iswireless, ticked, ticked, tooltip)
 
         if v[5] == "wireless" then
             if uri == "telstra-modals/wifi.lp" then
@@ -205,8 +205,8 @@ for k,v in ipairs(usbdevices) do
     if uri == "/wifiguest.lp" then break end --don't show usb devices in wifiguest page
 -- don't show embedded Huawei mobile on basic GUI
     if device_info.model ~= env["model"] or v[6] ~= device_info.vid or v[7] ~= device_info.pid then
-        tooltip = string.format("Product Name: %s<br />Manufacturer: %s<br />Port: %s", v[1], v[2], port)
-        usb[#usb+1] = string.format('<div class="device"><img src="/img/telstra/dev_usb.png"/><div class="deviceinfo right">%s</div><div><br /></div></div>', tooltip)
+        tooltip = string.format("Product Name: %s<br/>Manufacturer: %s<br/>Port: %s", v[1], v[2], port)
+        usb[#usb+1] = string.format('<div class="device"><img src="/img/telstra/dev_usb.png"/><div class="deviceinfo right">%s</div><div><br/></div></div>', tooltip)
     end
 end
 
@@ -236,8 +236,8 @@ for _,v in ipairs(dectdevices) do
     if uri == "/wifiguest.lp" then break end --don't show dect devices in wifiguest page
 
     if v[3] == "Located" then
-        tooltip = string.format("Handset ID: %s<br />Friendly Name: %s>", v[1], v[2])
-        dect[#dect+1] = string.format('<div class="device"><img src="/img/telstra/dev_dectphone.png"/><div class="deviceinfo right">%s</div><div><br /></div></div>', tooltip)
+        tooltip = string.format("Handset ID: %s<br/>Friendly Name: %s>", v[1], v[2])
+        dect[#dect+1] = string.format('<div class="device"><img src="/img/telstra/dev_dectphone.png"/><div class="deviceinfo right">%s</div><div><br/></div></div>', tooltip)
     end
 end
 
@@ -275,8 +275,8 @@ elseif wan_intf == "wwan" then
    wan_type = "Mobile"
 end
 
-local wanhtml = string.format('WAN IP: <font color="green"><strong>%s</strong></font><br />Conn. type: %s', content.wanip, wan_type)
-local gwhtml = string.format('Router IP: %s<br />Hostname: %s<br />FW Version: %s', content.lanip, content.hostname, content.fwversion)
+local wanhtml = string.format('WAN IP: <font color="green"><strong>%s</strong></font><br/>Conn. type: %s', content.wanip, wan_type)
+local gwhtml = string.format('Router IP: %s<br/>Hostname: %s<br/>FW Version: %s', content.lanip, content.hostname, content.fwversion)
 
 local wifihtml = {}
 local radio, wl, ap
@@ -343,16 +343,16 @@ if ((uri == "/wifi.lp") or (uri == "/wifiguest.lp")) then
     content_helper.getExactContent(content_wifi)
     --The wifispeed value should NOT be nil
     content_wifi.wifispeed = s2n(content_wifi.wifispeed) / 1000
-    wifibase = string.format("Wi-Fi Name: %s<br />", content_wifi.wifissid)
+    wifibase = string.format("Wi-Fi Name: %s<br/>", content_wifi.wifissid)
     wifisec = ""
     wifistate = ""
     if content_wifi.wifistate == "1" and content_wifi.radiostate == "1"  then
-        wifistate = string.format("Wi-Fi Status: On<br />Wi-Fi Link Speed: %s Mbps", content_wifi.wifispeed)
+        wifistate = string.format("Wi-Fi Status: On<br/>Wi-Fi Link Speed: %s Mbps", content_wifi.wifispeed)
         if string.find(content_wifi.wifisecmode, "wep") then
-            wifisec = string.format("Wi-Fi Key: %s<br />", content_wifi.wifiwep)
+            wifisec = string.format("Wi-Fi Key: %s<br/>", content_wifi.wifiwep)
         end
         if string.find(content_wifi.wifisecmode, "psk") then
-            wifisec = string.format("Wi-Fi Key: %s<br />", content_wifi.wifipsk)
+            wifisec = string.format("Wi-Fi Key: %s<br/>", content_wifi.wifipsk)
         end
     else
         wifistate = "Wi-Fi Status: Off"
@@ -395,33 +395,33 @@ else --in other pages, display both 2.4G and 5G info
     content_wifi.wifispeed = s2n(content_wifi.wifispeed) / 1000
     content_wifi.wifispeed_5g = s2n(content_wifi.wifispeed_5g) / 1000
 
-    wifibase = string.format("2.4G Wi-Fi Name: %s<br />", content_wifi.wifissid)
+    wifibase = string.format("2.4G Wi-Fi Name: %s<br/>", content_wifi.wifissid)
     wifisec = ""
     wifistate = ""
     if content_wifi.wifistate == "1" and content_wifi.radiostate == "1" then
-        wifistate = string.format("2.4G Wi-Fi Status: On<br />2.4G Wi-Fi Link Speed: %s Mbps", content_wifi.wifispeed)
+        wifistate = string.format("2.4G Wi-Fi Status: On<br/>2.4G Wi-Fi Link Speed: %s Mbps", content_wifi.wifispeed)
         if string.find(content_wifi.wifisecmode, "wep") then
-            wifisec = string.format("2.4G Wi-Fi Key: %s<br />", content_wifi.wifiwep)
+            wifisec = string.format("2.4G Wi-Fi Key: %s<br/>", content_wifi.wifiwep)
         end
         if string.find(content_wifi.wifisecmode, "psk") then
-            wifisec = string.format("2.4G Wi-Fi Key: %s<br />", content_wifi.wifipsk)
+            wifisec = string.format("2.4G Wi-Fi Key: %s<br/>", content_wifi.wifipsk)
         end
     else
         wifistate = "2.4G Wi-Fi Status: Off"
     end
 
-    wifibase_5g = content_wifi.wifissid_5g and string.format("5G Wi-Fi Name: %s<br />", content_wifi.wifissid_5g) or ""
+    wifibase_5g = content_wifi.wifissid_5g and string.format("5G Wi-Fi Name: %s<br/>", content_wifi.wifissid_5g) or ""
     wifisec_5g = ""
     wifistate_5g = ""
     if dev_5g ~= nil then
-       line_through = '<div style="text-decoration:line-through">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br /></div>'
+       line_through = '<div style="text-decoration:line-through">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/></div>'
        if content_wifi.wifistate_5g == "1" and content_wifi.radiostate_5g == "1" then
-          wifistate_5g = string.format("5G Wi-Fi Status: On<br />5G Wi-Fi Link Speed: %s Mbps", content_wifi.wifispeed_5g)
+          wifistate_5g = string.format("5G Wi-Fi Status: On<br/>5G Wi-Fi Link Speed: %s Mbps", content_wifi.wifispeed_5g)
           if string.find(content_wifi.wifisecmode_5g, "wep") then
-              wifisec_5g = string.format("5G Wi-Fi Key: %s<br />", content_wifi.wifiwep_5g)
+              wifisec_5g = string.format("5G Wi-Fi Key: %s<br/>", content_wifi.wifiwep_5g)
           end
           if string.find(content_wifi.wifisecmode_5g, "psk") then
-              wifisec_5g = string.format("5G Wi-Fi Key: %s<br />", content_wifi.wifipsk_5g)
+              wifisec_5g = string.format("5G Wi-Fi Key: %s<br/>", content_wifi.wifipsk_5g)
           end
        else
           wifistate_5g = "5G Wi-Fi Status: Off"
@@ -435,7 +435,7 @@ end
 \
 <div class="container">\
     <div class="row">\
-        <br />\
+        <br/>\
         <div class="networkmap span11" id="networkmap">\
             <table class="table">\
                 <tbody>\
