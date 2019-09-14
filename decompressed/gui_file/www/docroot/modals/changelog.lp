@@ -17,14 +17,36 @@ ngx.print('\
         },
       }
 	html[#html + 1] = '<legend>' .. T"Mainline 18.3 Cobalt" .. '</legend>'
-	html[#html + 1] = ui_helper.createLabel("9.3", "Aggiunto supporto alle app<br>"..
-		"Nuova skin unificata"..
-		"Miglioramnti e bugfix vari", basic)
-	html[#html + 1] = ui_helper.createLabel("9.2", "Rebase su nuova base<br>"..
+	html[#html + 1] = ui_helper.createLabel("9.4", "Aggiunta opzione per forzare interfaccia in HTTPS<br>"..
+		"Aggiunta opzione per eseguire backup OpenWRT"..
+		"Aggiunta opzione per visualizzare access-concentrator per sessioni PPP"..
+		"Fixati alcuni errori sulla visualizzazione dell'IPv6"..
+		"Molti miglioramenti e fix grafici alle skin Unified e Fritz<br>"..
+		"Sistemato reset config<br>"..
+		"Aggiunta possibilità di resettare CWMP per forzare provisioning<br>"..
+		"Aggiunto supporto a DJA0231 (Telstra)<br>"..
+		"Sistemata impostazione WiFi NSC (Eco Modal)<br>"..
+		"Migliorato supporto per DGA4131FWB, DJA0231, TG788, TG789 Xtream 35B Fastweb<br>"..
+		"Importante fix che poteva causare bootloop se non venivano mai fatti aggiornamenti stabili<br>"..
+		"I driver xDSL prima di essere impostati vengono preventivamente controllati per evitare bootloop<br>"..
+		"Lo stato di alcuni processi (Aggiornamento GUI, cambio driver, installazione APP...) viene mostrato da GUI<br>"..
+		"Aggiunta flag per attivare IPv6 su WAN<br>"..
+		"Aggiunta pulsante per forzare provisioning CWMP<br>"..
+		"Importanti fix per evitare comportamenti inaspettati durante gli upgrade firmware<br>", basic)
+	html[#html + 1] = ui_helper.createLabel("9.3", "Ri-Aggiunto supporto alle app per i nuovi firmware<br>"..
+		"Nuova skin unificata<br>"..
+		"Inserita gestione led su DGA4131FWB<br>"..
+		"Aggiunta possibilità di impostare potenza e country region radio WiFi<br>"..
+		"Aggiunta funzione di riavvio programmato<br>"..
+		"Possibilità di impostare server DNS per tutte le interfaccie (IP Extras)<br>"..
+		"Sistemato wizard e vari errori su TG788<br>"..
+		"Possibilità di impostare vendorid per il tipo di connessione wan DHCP (necessità Fastweb)<br>"..
+		"Molti altri miglioramenti e bugfix minori<br>", basic)
+	html[#html + 1] = ui_helper.createLabel("9.2", "Rebase su nuovi firmware 2.1.0 (Kernel linux aggiornato a 4.1.38)<br>"..
 		"Vari rework agli script per una esecuzione più efficente<br>"..
 		"Vari fix ai bug presenti nelle versioni precedenti<br>"..
-		"E' ora possibile dare priorità ad un dispositivo specifico rispetto a tutta la rete (Tab Gestione Dispositiv)<br>"..
-		"Aggiunte nuove funzioni di aggiornamento e possibilità di selezionare l'isp manualmente"..
+		"E' ora possibile dare priorità ad un dispositivo specifico rispetto a tutta la rete (Tab Gestione Dispositivi)<br>"..
+		"Aggiunte nuove funzioni di aggiornamento e possibilità di selezionare l'ISP manualmente<br>"..
 		"Altri miglioramenti che sinceramente non ricordo", basic)
 	html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_2.0.1_001 )" .. '</legend>'
     html[#html + 1] = ui_helper.createLabel("9.1","Aggiunto grafico utilizzo CPU e Memoria<br>" ..
@@ -97,7 +119,7 @@ ngx.print('\
 	html[#html + 1] = ui_helper.createLabel("6.12", "Introdotta autorimozione del bit antidowngrade AGTHP", basic)
 	html[#html + 1] = ui_helper.createLabel("6.11", "Fixato upgrade", basic)
 	html[#html + 1] = ui_helper.createLabel("6.10", "Aggiunta xupnp (solo per agtef 1.1.0 e superiori)", basic)
-	html[#html + 1] = ui_helper.createLabel("6.10", "Aggiunti grafici Xdsl", basic)
+	html[#html + 1] = ui_helper.createLabel("6.10", "Aggiunti grafici xDSL", basic)
 	html[#html + 1] = ui_helper.createLabel("6.9", "Aggiunto bottone WAN-MODE (WIP)", basic)
 	html[#html + 1] = ui_helper.createLabel("6.8", "Aggiunto gestore led (WIP)", basic)
 	html[#html + 1] = ui_helper.createLabel("6.7", "Reworkato voicemode e bridgemode, fixato problema telegestione non funzionante, aggiornate traduzioni", basic)

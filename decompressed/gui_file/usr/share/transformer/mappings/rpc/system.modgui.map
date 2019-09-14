@@ -26,47 +26,6 @@ local function str2hex(str)
     return hex
 end
 
-local function enumFileToCount()
-	local rootdevicefile = "/etc/init.d/rootdevice"
-	local additional_script = "/etc/modgui_scripts/"
-	local ret = { rootdevicefile }
-	
-	local p = io.popen('find "'..additional_script..'" -type f')
-	for file in p:lines() do                         
-        ret[ #ret + 1 ] = file
-	end
-	
-	return ret
-end
-
---idiot function to count how much log output we have in rootdevice
-local function countStepInRootdevice()
-	local start_count = false
-	local log_num = 0
-	
-	for _, file in ipairs(enumFileToCount()) do
-		for line in io.lines(file) do
-			if ( start_count == true ) or not ( file:match("rootdevice") ) then
-				if line:match("logger_command \"") and not line:match("\" ConsoleOnly") then
-					log_num = log_num+1
-				end
-			end
-			if line:match("check_bank%(%) {") and file:match("rootdevice") then
-				io.close()
-				break
-			end
-			if line == "root() {" and file:match("rootdevice") then
-				start_count = true
-			end
-		end
-		if not ( file:match("rootdevice") ) then
-			io.close()
-		end
-	end
-	
-	return tostring(log_num)
-end
-
 local SYSTEM_MODGUI_ = {
   objectType = {
     name = 'rpc.system.modgui.',
@@ -79,127 +38,23 @@ local SYSTEM_MODGUI_ = {
 
 register(SYSTEM_MODGUI_)
 
-local SYSTEM_MODGUI_UPGRADEGUI_ = {
-  objectType = {
-    name = 'rpc.system.modgui.upgradegui.',
-    access = 'readOnly',
-    minEntries = 1,
-    maxEntries = 1,
-    parameters = {
-      state = {
-        access = "readWrite",
-        type = "string",
-        enumeration = {
-          "Not started",
-		  "Downloading",
-		  "Clearing",
-		  "Extracting",
-		  "Requested",
-          "In Progress",
-		  "Finished",
-        },
-      },
-      start = {
-        access = "readWrite",
-        type = "boolean",
-      },
-	  log = {
-        access = "readWrite",
-        type = "string",
-      },
-	  log_step = {
-		access = "readOnly",
-		type = "int",
-	  },
-	  log_prog = {
-		access = "readWrite",
-		type = "int",
-	  },
-	  extract_prog = {
-		access = "readWrite",
-		type = "int",
-	  }
-    }
-  }
+local commands_helper = {
+	checkver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/checkver"',
+	resetgui = '/usr/share/transformer/scripts/resetUtility.sh --resetGui',
+	removeroot = '/usr/share/transformer/scripts/resetUtility.sh --removeRoot',
+	resetconfig = '/usr/share/transformer/scripts/resetUtility.sh --removeConfig',
+	resetcwmp = '/usr/share/transformer/scripts/resetUtility.sh --resetCWMP',
+	checkver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/checkver"',
+	transfer_bank1 = '/usr/share/transformer/scripts/transfer_bank1.sh',
+	refreshDslDriver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/refresh_driver.sh"',
+	resetDslDriver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/refresh_driver.sh clean"',
+	copy_bank = '/usr/share/transformer/scripts/copy_bank.sh',
+	upgradegui = 'start-stop-daemon -S -b -x /usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/upgradegui GuiRequest"',
+	genSysupgradeBackup = function(filename) return '/usr/share/transformer/scripts/wrapper.sh "sysupgrade -b /tmp/'..filename..'"' end,
+	restoreSysupgradeBackup = '/usr/share/transformer/scripts/wrapper.sh "sysupgrade -r /tmp/sysupgrade_backup.tar.gz',
 }
 
-local upgradegui = {}
-
-upgradegui.log_step = countStepInRootdevice()
-
-SYSTEM_MODGUI_UPGRADEGUI_.get = {
-  start = "0",
-  state = function(mapping, param)
-	
-	if ( upgradegui.resetOnNextRequest == 1 ) then
-	  upgradegui.resetOnNextRequest = 0
-	  upgradegui.state = nil
-	end
-	
-	local progress_status = io.open("/root/.check_process","r")
-	
-	if progress_status then
-		progress_status:close()
-		upgradegui.state = nil --reset state as we are in root progress...
-		return "In Progress"
-	elseif upgradegui.state then
-		if ( upgradegui.state == "Complete" ) then
-			upgradegui.resetOnNextRequest = 1
-		end
-		return upgradegui.state
-	end
-	
-	
-	return "Not started"
-  end,
-  log = function(mapping, param)
-	return upgradegui.log or ""
-  end,
-  log_step = function(mapping, param)
-	if upgradegui.logstep then
-		return upgradegui.logstep
-	else
-	  return countStepInRootdevice()
-	end
-  end,
-  log_prog = function(mapping, param)
-	return upgradegui.log_prog or "0"
-  end,
-  extract_prog = function(mapping, param)
-	return upgradegui.extract_prog or "Not Extracting"
-  end,
-}
-
-SYSTEM_MODGUI_UPGRADEGUI_.set = {
-  state = function(mapping, paramName, paramValue)  
-	if paramValue == "Finished" or 
-	   paramValue == "Clearing" or
-	   paramValue == "Extracting" or
-	   paramValue == "Requested" or 
-	   paramValue == "Downloading" then
-        upgradegui.state = paramValue
-    end
-	if paramValue == "Finished" then
-		upgradegui.log = ""
-	end
-  end,
-  start = function(mapping, paramName, paramValue)  
-	if paramValue == "1" then
-        commitapply:newset("rpc.system.modgui.upgradegui." .. paramName)
-    end
-  end,
-  log = function(mapping, paramName, paramValue)
-	  upgradegui.log = paramValue
-  end,
-  log_prog = function(mapping, paramName, paramValue)
-	  upgradegui.log_prog = paramValue
-  end,
-  extract_prog = function(mapping, paramName, paramValue)
-	  upgradegui.extract_prog = paramValue
-  end,
-}
-
-register(SYSTEM_MODGUI_UPGRADEGUI_)
+local async_exec = require("lasync").execute
 
 local SYSTEM_MODGUI_UTILITY_ = {
   objectType = {
@@ -208,53 +63,17 @@ local SYSTEM_MODGUI_UTILITY_ = {
     minEntries = 1,
     maxEntries = 1,
     parameters = {
-      resetgui = {
-	    access = "readWrite",
-	    type = "boolean",
-	  },
-	  upgradegui = {
-	    access = "readWrite",
-	    type = "boolean",
-	  },
-	  checkver = {
-	    access = "readWrite",
-	    type = "boolean",
-	  },
-	  removeroot = {
-	    access = "readWrite",
-	    type = "boolean",
-	  },
-	  resetconfig = {
-	    access = "readWrite",
-	    type = "boolean",
-	  },
-	  refreshdriver = {
-	    access = "readWrite",
-	    type = "boolean",
-	  },
-	  transfer_bank1 = {
-	    access = "readWrite",
-	    type = "boolean",
-	  },
-	  copy_bank = {
-	    access = "readWrite",
-	    type = "boolean",
-	  },
 	  rip_key_B = {
          access = "readOnly",
          type = "string",
       },
+	  sendcmd = {
+		 access = "readWrite",
+		 type = "string",
+	  }
     }
   },
   get = {
-	resetgui = "0",
-	upgradegui = "0",
-	checkver = "0",
-	removeroot = "0",
-	transfer_bank1 = "0",
-	refreshdriver = "0",
-	copy_bank = "0",
-	resetconfig = "0",
 	rip_key_B = function()
 		local content = io.open("/proc/rip/0108")
 		local result = content:read("*all")
@@ -262,12 +81,22 @@ local SYSTEM_MODGUI_UTILITY_ = {
 		
 		return str2hex(result:sub(1,64))
 	end,
+	sendcmd = "",
   },
-  set = function(mapping, paramName, paramValue)
-		  if paramValue == "1" then
-		  	commitapply:newset("rpc.system.modgui.utility." .. paramName)
-		  end
+  set = {
+	sendcmd = function(mapping, paramName, paramValue)
+		local param = paramValue:gsub("_.*","")
+		local args = paramValue:gsub("[A-z]+_","")
+		local command = commands_helper[param]
+		if not command then
+			return nil, "Invalid command"
 		end
+		if type(command) == "function" then
+			command = command(args)
+		end
+		async_exec({[command]=true})
+	end,
+  }
 }
 
 register(SYSTEM_MODGUI_UTILITY_)
@@ -347,7 +176,7 @@ register(SYSTEM_MODGUI_DEBUGLOG_)
 
 local SYSTEM_MODGUI_SCRIPTREQUEST_ = {
   objectType = {
-    name = 'rpc.system.modgui.scriptRequest.',
+    name = 'rpc.system.modgui.executeCommand.',
     access = 'readOnly',
     minEntries = 1,
     maxEntries = 1,
@@ -356,8 +185,13 @@ local SYSTEM_MODGUI_SCRIPTREQUEST_ = {
         access = "readWrite",
         type = "string",
         enumeration = {
-          "Not Requested",
+          "Idle",
+		  "Clearing",
+		  "Extracting",
+		  "Downloading",
+		  "Checking",
           "Requested",
+		  "In Progress",
           "Complete",
         },
       }
@@ -365,27 +199,31 @@ local SYSTEM_MODGUI_SCRIPTREQUEST_ = {
   }
 }
 
-upgradegui.scriptRequest = {}
+local executeCommandRes = "Idle"
+
+local content = io.open("/tmp/executeCommandRes")
+if content then
+    executeCommandRes = content:read("*all")
+    content:close()
+    os.remove("/tmp/executeCommandRes")
+end
 
 SYSTEM_MODGUI_SCRIPTREQUEST_.get = {
   state = function(mapping, param)
-	local result = upgradegui.scriptRequest.state
-	if ( upgradegui.scriptRequest.resetOnNextRequest == 1 ) then
-	  upgradegui.scriptRequest.state = nil
-	end
-	return result or "Not Requested"
-  end
+	return executeCommandRes
+  end,
 }
 
 SYSTEM_MODGUI_SCRIPTREQUEST_.set = {
-  state = function(mapping, paramName, paramValue)  
-	if ( paramValue == "Requested" ) then
-	  upgradegui.scriptRequest.resetOnNextRequest = 0
-	  upgradegui.scriptRequest.state = paramValue
-	elseif ( paramValue == "Complete" ) then
-	  upgradegui.scriptRequest.resetOnNextRequest = 1
-	  upgradegui.scriptRequest.state = paramValue
-	end
+  state = function(mapping, paramName, paramValue)
+	  executeCommandRes = paramValue
+	  if paramValue ~="Idle" then
+	      local content = io.open("/tmp/executeCommandRes", "wb")
+          content:write(paramValue)
+          content:close()
+      else
+        os.remove("/tmp/executeCommandRes")
+      end
   end,
 }
 
@@ -398,23 +236,18 @@ local SYSTEM_MODGUI_APP_ = {
     minEntries = 1,
     maxEntries = 1,
     parameters = {
-	  install_emptyblacklist = {
-                access = "readWrite",
-                type = "boolean",
-            },
-	  refresh_blacklist = {
-				access = "readWrite",
-				type = "boolean"
-	  },
+	  sendcmd = {
+	    access = "readWrite",
+		type = "string"
+	  }
     }
   }
 }
 
 SYSTEM_MODGUI_APP_.get = {
-		install_emptyblacklist = "0",
-		refresh_blacklist = "0",
+	sendcmd = "",
 }
-
+--
 local app_list = {
 	"luci",
 	"aria2",
@@ -426,21 +259,52 @@ local app_list = {
 	"specific_app",
 }
 
-for _, app in ipairs(app_list) do
-	for _, action in ipairs({"install","remove","start","stop"}) do
-		SYSTEM_MODGUI_APP_.objectType.parameters[action.."_"..app] = 
-		{
-			access = "readWrite",
-			type = "boolean",
-		}
-		SYSTEM_MODGUI_APP_.get[action.."_"..app] = "0"
+local exec_type = {
+	"install",
+	"remove",
+	"start",
+	"stop",
+	"refresh",
+}
+
+local function contains(str,tbl)
+
+	for _, s in pairs(tbl) do
+		if str == s then
+			return true
+		end
 	end
+
+	return false
 end
 
-SYSTEM_MODGUI_APP_.set = function(mapping, paramName, paramValue) 
-	if paramValue == "1" then
-        commitapply:newset("rpc.system.modgui.app." .. paramName)
-    end
-end
+--Command should be sent with 3 part
+--
+-- First part must be type  ( install,remove,start,stop,refresh )
+-- Second part must be name
+-- Third is extra args to pass to the script
+--
+-- Example install_blacklist_empty
+--         remove_luci
+SYSTEM_MODGUI_APP_.set = {
+	sendcmd = function(mapping, paramName, paramValue)
+		local commdParse = {}
+
+		for s in paramValue:gmatch("[^%_]+") do
+			commdParse[#commdParse+1] = s
+		end
+		
+		if not contains(commdParse[1],exec_type) then
+			return nil, "Invalid exec type"
+		elseif not contains(commdParse[2],app_list) then
+			return nil, "Invalid app name"
+		end
+		
+		local wrapper = '/usr/share/transformer/scripts/wrapper.sh'
+		local appScript = '/usr/share/transformer/scripts/appInstallRemoveUtility.sh'
+		local command = string.format('%s "%s %s %s %s"',wrapper,appScript,commdParse[1],commdParse[2],commdParse[3] or "")
+		async_exec({[command]=true})
+	end,
+}
 
 register(SYSTEM_MODGUI_APP_)

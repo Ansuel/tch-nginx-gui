@@ -27,8 +27,8 @@ end
 local modes_content = content_helper.getMatchedContent ("uci.xdsl.xdsl.@dsl0.multimode.")
 
 if ngx.var.request_method == "POST" then
-    local vars = ngx.req.get_post_args()
-    if vars["action"] == "SAVE" then
+	local vars = ngx.req.get_post_args()
+	if vars["action"] == "SAVE" then
       local mode2prog = {}
       for _, v in pairs(all_modes) do
          mode2prog[v] = {prog = 0, found = 0 }
@@ -69,8 +69,18 @@ if ngx.var.request_method == "POST" then
                local clean = proxy.del(v.found)
          end
       end
-	  proxy.set("rpc.system.modgui.utility.refreshdriver", "1")
+	elseif vars["action"] == "refreshdriver" then
+	  proxy.set("rpc.system.modgui.utility.sendcmd","refreshDslDriver")
       proxy.apply()
+
+	  ngx.print('{ "success":"true" }')
+	  ngx.exit(ngx.HTTP_OK)
+	elseif vars["action"] == "resetdriver" then
+	  proxy.set("rpc.system.modgui.utility.sendcmd","resetDslDriver")
+      proxy.apply()
+
+	  ngx.print('{ "success":"true" }')
+	  ngx.exit(ngx.HTTP_OK)
     end
 end
 
@@ -167,7 +177,7 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H045") or content.dsl0_xdsl_Firmwa
     tinsert(driver_option, { "B2pvbH042s", 'B2pvbH042s (Archer_VR2800v V1 1.2.0_0.9.1)'})
 	tinsert(driver_option, { "A2pvbH042j2", 'A2pvbH042j2 (Asus DSL-AC88U)'})
     tinsert(driver_option, { "A2pvbH042n", 'A2pvbH042n (Netgear D7000)'})
-	tinsert(driver_option, { "A2pvbH042o", 'A2pvbH042o (TG799VAC Xtream Fastweb)'})
+	tinsert(driver_option, { "A2pvbH042o", 'A2pvbH042o (TG789vac Xtream 35B Fastweb)'})
 	tinsert(driver_option, { "A2pvbH042r", 'A2pvbH042r (AGTEF_1.0.3)'})
 	tinsert(driver_option, { "A2pvbH042u", 'A2pvbH042u (AGTEF_1.0.4)'})
 	
@@ -179,6 +189,7 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H045") or content.dsl0_xdsl_Firmwa
         tinsert(driver_option, { "B2pvfbH043k", 'B2pvfbH043k (Asus DSL-AC88U-B v1.10.05)'})
         tinsert(driver_option, { "B2pvfbH043q", 'B2pvfbH043q (FRITZ!Box 7582 7.01/Asus DSL-AC88U-B v1.10.06_591)'})
         tinsert(driver_option, { "B2pvfbH045k", 'B2pvfbH045k (FRITZ!Box 7582 7.08)'})
+        tinsert(driver_option, { "B2pvfbH045l", 'B2pvfbH045l (FRITZ!Box 7582 7.12)'})
         tinsert(driver_option, { "A2pvfbH043b", 'A2pvfbH043b (New FastGate Fastweb)'})
         tinsert(driver_option, { "A2pvfbH043d1", 'A2pvfbH043d1 (FRITZ!Box 7581 6.54)'})
         --table.insert(driver_option,{ "A2pvfbH043e", 'A2pvfbH043e (Zyxel 8823)'}) --Annex b???
@@ -190,8 +201,9 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H045") or content.dsl0_xdsl_Firmwa
         tinsert(driver_option, { "A2pvfbH043j2", 'A2pvfbH043j2 (FRITZ!Box 7582 7.01 Backup)'})
 		tinsert(driver_option, { "A2pvfbH043k", 'A2pvfbH043k (AGTEF_1.1.0)'})
 		tinsert(driver_option, { "A2pvfbH043o", 'A2pvfbH043o (Asus DSL-AC88U v1.10.06_561)'})
-        tinsert(driver_option, { "A2pvfbH043q", 'A2pvfbH043q (FRITZ!Box 7582 7.01/Asus DSL-AC88U v1.10.06_585)'})
+        tinsert(driver_option, { "A2pvfbH043q", 'A2pvfbH043q (AGTEF_2.1.0/FRITZ!Box 7582 7.01/Asus DSL-AC88U v1.10.06_585)'})
         tinsert(driver_option, { "A2pvfbH045k", 'A2pvfbH045k (Inteno/FRITZ!Box 7582 7.08)'})
+	tinsert(driver_option, { "A2pvfbH045l", 'A2pvfbH045l (FRITZ!Box 7582 7.12)'})
 	end
 	
 	driver_Params.driver_ver = "uci.modgui.var.driver_version"
@@ -265,6 +277,12 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  else
 		html[#html + 1] = ui_helper.createInputSelect(T"xDSL Driver Version", "driver_ver", driver_option, driver_content["driver_ver"])
 	  end
+	  local reset_driver = {
+		button = {
+			id = "btn-reset-driver",
+		}
+	  }
+	  html[#html + 1] = ui_helper.createButton(T"Reset", T"Reset xDSL Driver to original version", "icon-refresh", reset_driver)
 	  html[#html + 1] = ui_helper.createSwitch(T"SRA", "ds10_sra", driver_content["ds10_sra"])
 	  html[#html + 1] = ui_helper.createSwitch(T"Bitswap", "ds10_bitswap", driver_content["ds10_bitswap"])
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Change the SNR margin to increase stability or performance when in “ADSL Mode”. Changing this value in “VDSL Mode” won’t have any effect.", alertinfo)
@@ -301,5 +319,16 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	</form>\
   </fieldset>\
 </div>\
+<script>\
+	$("#save-config").on("click", function() {\
+		var installed = $("[id=\''); ngx.print(T"Datapump Version"); ngx.print('\']").text();\
+		if ( $("#driver_ver") && $("#driver_ver").val() != installed.substring(0, installed.indexOf(".")) ) {\
+		    window.setTimeout(function () {modgui.postAction("refreshdriver",1);}, 1000);\
+		};\
+	});\
+	$("#btn-reset-driver").on("click", function () {\
+		modgui.postAction("resetdriver",1);\
+	});\
+</script>\
 ');   ngx.print(ui_helper.createFooter())  ngx.print('\
 ');

@@ -343,12 +343,18 @@ $(function () {
 		backdrop: function (e) {
 			var n = this.$element.hasClass("fade") ? "fade" : "";
 			if (this.isShown && this.options.backdrop) {
-				var i = t.support.transition && n;
-				this.$backdrop = t('<div class="modal-backdrop ' + n + '" />').appendTo(document.body),
-				this.$backdrop.on("click", "static" == this.options.backdrop ? t.proxy(this.$element[0].focus, this.$element[0]) : t.proxy(this.hide, this)),
-				i && this.$backdrop[0].offsetWidth,
-				this.$backdrop.addClass("in"),
-				e && (i ? this.$backdrop.one(t.support.transition.end, e) : e())
+				if ( t('.modal-backdrop').length == 0 ) {
+					var i = t.support.transition && n;
+					this.$backdrop =  t('<div class="modal-backdrop ' + n + '" />').appendTo(document.body),
+					this.$backdrop.on("click", "static" == this.options.backdrop ? t.proxy(this.$element[0].focus, this.$element[0]) : t.proxy(this.hide, this)),
+					i && this.$backdrop[0].offsetWidth,
+					this.$backdrop.addClass("in"),
+					e && (i ? this.$backdrop.one(t.support.transition.end, e) : e())
+				} else { 
+					this.$backdrop = t('.modal-backdrop'),
+					this.$backdrop.on("click", "static" == this.options.backdrop ? t.proxy(this.$element[0].focus, this.$element[0]) : t.proxy(this.hide, this)),
+					e && e()
+				}
 			} else !this.isShown && this.$backdrop ? (this.$backdrop.removeClass("in"), t.support.transition && this.$element.hasClass("fade") ? this.$backdrop.one(t.support.transition.end, e) : e()) : e && e()
 		}
 	};
@@ -2449,22 +2455,15 @@ function confirmationDialogue(t, e) {
 	$(document).on("change", "table .checkbox", function () {
 		0 === $(this).closest("table").find(".btn-table-cancel").length && l("TABLE-MODIFY", this)
 	}),
-	$(document).on("click", "#signout", function (t) {
-		t.preventDefault(),
-		t = $("<form>", {
-				action: "/",
-				method: "post"
-			}).append($("<input>", {
-					name: "do_signout",
-					value: "1",
-					type: "hidden"
-				})).append($("<input>", {
-					name: "CSRFtoken",
-					value: $("meta[name=CSRFtoken]").attr("content"),
-					type: "hidden"
-				})),
-		$("body").append(t),
-		t.submit()
+	$(document).on("click", "#signout", function () {
+		$.post(
+			"/", {
+				action: "do_signout",
+				CSRFtoken: $("meta[name=CSRFtoken]").attr("content")
+			},
+			null,
+			"json"
+		);
 	}),
 	$(document).on("shown", ".modal", function (t) {
 		$(t.target).hasClass("modal") && i()
@@ -2562,6 +2561,7 @@ function confirmationDialogue(t, e) {
 	$(document).on("click", ".modal .switch:not(.no-save):not(.disabled)", f),
 	$(document).on("click", '.modal input[type="checkbox"]:not(.no-save):not(.disabled)', f),
 	$(document).on("click", '.modal input[type="radio"]:not(.no-save):not(.disabled)', f),
+	t.openModal = u,
 	t.loadModal = n,
 	t.modalLoaded = i,
 	t.refreshModal = o,

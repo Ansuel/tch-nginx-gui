@@ -65,14 +65,30 @@ app_transmission() {
 		rm -r /etc/config/transmission*
 		rm -r /var/transmission
 	}
+	start() {
+		/etc/init.d/transmission start
+	}
+	stop() {
+		/etc/init.d/transmission stop
+	}
 
-	if [ $1 == "install" ]; then
-		install
-	else
-		remove
-	fi
-	
-	set_transformer "rpc.system.modgui.scriptRequest.state" "Complete"
+	case $1 in
+		install)
+			install $2
+			;;
+		remove)
+			remove
+			;;
+		start)
+			start
+			;;
+		stop)
+			stop
+			;;
+		*)
+			echo "Unsupported action"
+			return 1
+	esac
 }
 
 app_telstra() {
@@ -97,13 +113,17 @@ app_telstra() {
 		fi
 	}
 	
-	if [ $1 == "install" ]; then
-		install
-	else
-		remove
-	fi
-	
-	set_transformer "rpc.system.modgui.scriptRequest.state" "Complete"
+	case $1 in
+		install)
+			install $2
+			;;
+		remove)
+			remove
+			;;
+		*)
+			echo "Unsupported action"
+			return 1
+	esac
 }
 
 app_luci() {
@@ -168,13 +188,17 @@ app_luci() {
 		[ "$(echo $device_type | grep TG7)" ] && luci_remove_tg799
 	}
 
-	if [ $1 == "install" ]; then
-		install
-	else
-		remove
-	fi
-	
-	set_transformer "rpc.system.modgui.scriptRequest.state" "Complete"
+	case $1 in
+		install)
+			install $2
+			;;
+		remove)
+			remove
+			;;
+		*)
+			echo "Unsupported action"
+			return 1
+	esac
 }
 
 app_amule() {
@@ -191,14 +215,27 @@ app_amule() {
 		#TODO
 		echo TODO
 	}
+	start() {
+		/etc/init.d/amule start
+	}
+	stop() {
+		/etc/init.d/amule stop
+	}
 
-	if [ $1 == "install" ]; then
-		install
-	else
-		remove
-	fi
-	
-	set_transformer "rpc.system.modgui.scriptRequest.state" "Complete"
+	case $1 in
+		install)
+			install $2
+			;;
+		start)
+			start
+			;;
+		stop)
+			stop
+			;;
+		*)
+			echo "Unsupported action"
+			return 1
+	esac
 }
 
 app_aria2() {
@@ -244,14 +281,30 @@ app_aria2() {
 		rm -r /etc/aria2
 		sed -i '/aria2c/d' /etc/rc.local
 	}
+	start() {
+		/etc/init.d/aria2 start
+	}
+	stop() {
+		/etc/init.d/aria2 stop
+	}
 
-	if [ $1 == "install" ]; then
-		install
-	else
-		remove
-	fi
-	
-	set_transformer "rpc.system.modgui.scriptRequest.state" "Complete"
+	case $1 in
+		install)
+			install $2
+			;;
+		remove)
+			remove
+			;;
+		start)
+			start
+			;;
+		stop)
+			stop
+			;;
+		*)
+			echo "Unsupported action"
+			return 1
+	esac
 }
 
 app_blacklist() {
@@ -261,14 +314,24 @@ app_blacklist() {
 	remove() {
 		install_from_github Ansuel/blacklist master normal remove
 	}
+	refresh() {
+		/usr/share/transformer/scripts/refresh-blacklist.lp
+	}
 
-	if [ $1 == "install" ]; then
-		install
-	else
-		remove
-	fi
-	
-	set_transformer "rpc.system.modgui.scriptRequest.state" "Complete"
+	case $1 in
+		install)
+			install $2
+			;;
+		remove)
+			remove
+			;;
+		refresh)
+			refresh
+			;;
+		*)
+			echo "Unsupported action"
+			return 1
+	esac
 }
 
 app_xupnp() {
@@ -280,13 +343,17 @@ app_xupnp() {
 		opkg remove xupnpd
 	}
 
-	if [ $1 == "install" ]; then
-		install
-	else
-		remove
-	fi
-	
-	set_transformer "rpc.system.modgui.scriptRequest.state" "Complete"
+	case $1 in
+		install)
+			install
+			;;
+		remove)
+			remove
+			;;
+		*)
+			echo "Unsupported action"
+			return 1
+	esac
 }
 
 install_specific_files() {
@@ -299,13 +366,17 @@ install_specific_files() {
 		return 1
 	}
 
-	if [ $1 == "install" ]; then
-		install $2
-	else
-		remove
-	fi
-	
-	set_transformer "rpc.system.modgui.scriptRequest.state" "Complete"
+	case $1 in
+		install)
+			install $2
+			;;
+		remove)
+			remove
+			;;
+		*)
+			echo "Unsupported action"
+			return 1
+	esac
 }
 
 call_app_type() {
@@ -331,7 +402,7 @@ call_app_type() {
 	blacklist)
 		app_blacklist $1 $3
 		;;
-	specific_app)
+	specificapp)
 		install_specific_files $1 $3
 		;;
 	*)
@@ -342,7 +413,7 @@ call_app_type() {
 
 
 case "$1" in
-	install|remove)
+	install|remove|stop|start|refresh)
 		call_app_type "$1" "$2" "$3"
 		;;
 	*)

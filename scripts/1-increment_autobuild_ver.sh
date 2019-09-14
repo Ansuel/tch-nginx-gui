@@ -1,4 +1,4 @@
-last_log="$(git log --oneline -n 1)"
+last_log="$(cat $HOME/gui_build/data/last_log)"
 
 if [ "$(echo "$last_log" | grep -o "\[[0-9]\+\.[0-9]\+\.[0-9]\+\]" | tr -d [ | tr -d ])" ]; then
 	ver="$(echo "$last_log" | grep -o "\[[0-9]\+\.[0-9]\+\.[0-9]\+\]" | tr -d [ | tr -d ])"
@@ -55,7 +55,7 @@ else
 	echo "New version to apply: "$ver
 fi
 
-if [ ! -f  $HOME/gui_build/data ]; then
+if [ ! -d  $HOME/gui_build/data ]; then
 	mkdir $HOME/gui_build/data
 fi
 

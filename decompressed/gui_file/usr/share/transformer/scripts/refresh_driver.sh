@@ -22,18 +22,13 @@
 #
 #
 
+log() {
+	logger -t "Refresh xDSL Driver: $1"
+	echo "Refresh xDSL Driver: $1"
+}
+
 curl="/usr/bin/curl -k -s"
-
-connectivity="yes"
-if ping -q -c 1 -W 1 8.8.8.8 >/dev/null; then
-  connectivity="yes"
-else
-  connectivity="no"
-fi
-
 try=0
-
-sleep 7
 
 checksums="
 453dc537d3cbd6f45657c9eb8ba2eb40  A2pvbH042j2
@@ -77,54 +72,96 @@ b75a96fef8010f0f728d77368aa776ce  A2pv6F039x1
 0a5c3cbbe500de3fe6949e08d3e07331  A2pvfbH043i2
 a8606f73a646bf8051be4650b3090fe3  A2pv6F039t
 2e5541e674e2acfab72d2f2becdfc995  B2pvfbH045k
+01f2f50f3f9e49f9d68705ea96e92429  A2pvfbH045l
+338d7eef1dfffa6b4c7bc7baeca86975  B2pvfbH045l
 "
+
+CLEAN=0
+
+if [ "$1" ]; then
+	if [ "$1" == "clean" ]; then
+		CLEAN=1
+	fi
+fi
 
 installed_driver=$(transformer-cli get rpc.xdsl.dslversion | awk '{print $4}'  | cut -d. -f1)
 driver_set=$(uci get modgui.var.driver_version)
 
-if [ "$(cat /proc/cpuinfo | grep Processor | grep ARM)" ]; then
+if [ "$(< /proc/cpuinfo grep Processor | grep ARM)" ]; then
 	arch=arm
-elif [ "$(cat /proc/cpuinfo | grep 'cpu model' | grep MIPS)" ]; then
+elif [ "$(< /proc/cpuinfo grep 'cpu model' | grep MIPS)" ]; then
 	arch=mips
 fi
 
 apply_driver() {
-	mv /tmp/$driver_set /etc/adsl/adsl_phy.bin
-	logger "Restarting xdslctl"
-	xdslctl stop
-	/etc/init.d/xdsl start
+	if [ $CLEAN -eq 0 ]; then
+		log "Testing driver $driver_set... If the modem crash, reset the driver on next boot"
+		rm /etc/adsl/adsl_phy.bin
+		ln -s /tmp/$driver_set /etc/adsl/adsl_phy.bin
+		log "Restarting xDSL..."
+		xdslctl stop
+		/etc/init.d/xdsl restart >/dev/null
+		sleep 5
+		log "Reading version with xdslctl..."
+		xdslctl --version
+		log "Moving driver to permantent dir"
+		rm /etc/adsl/adsl_phy.bin
+		mv /tmp/$driver_set /etc/adsl/adsl_phy.bin
+	else
+		log "Restoring original driver"
+		rm /etc/adsl/adsl_phy.bin
+		cp /rom/etc/adsl/adsl_phy.bin /etc/adsl/adsl_phy.bin
+		log "Restarting xDSL..."
+		xdslctl stop
+		/etc/init.d/xdsl restart >/dev/null
+	fi
+	log "Process done"
 }
 
 download_Driver() {
-	logger "Downloading driver "$driver_set
+	log "Downloading driver $driver_set"
 	remote_driver_dir=https://raw.githubusercontent.com/Ansuel/tch-nginx-gui/master/xdsl_driver/$arch/
-	$curl $remote_driver_dir/$driver_set --output /tmp/$driver_set
+	$curl "$remote_driver_dir/$driver_set" --output "/tmp/$driver_set"
 }
 
 test_apply() {
-	if [ -f /tmp/$driver_set ]; then
-		rm /tmp/$driver_set
+	if [ -f "/tmp/$driver_set" ]; then
+		rm "/tmp/$driver_set"
 	fi
+	connectivity="yes"
+	if ping -q -c 1 -W 1 8.8.8.8 >/dev/null; then
+    connectivity="yes"
+  else
+    connectivity="no"
+  fi
+
 	if [ $connectivity == "yes" ]; then
-		if [ $installed_driver != $driver_set ]; then
+		if [ "$installed_driver" != "$driver_set" ]; then
 			download_Driver
 			if [ "$(echo $checksums | grep $( md5sum /tmp/$driver_set | awk '{print $1}' ) )" ]; then
 				apply_driver
-				if [ -f /tmp/$driver_set ]; then
-					rm /tmp/$driver_set
+				if [ -f "/tmp/$driver_set" ]; then
+					rm "/tmp/$driver_set"
 				fi
 			else
-				logger "Download corrupted, retrying..."
+				log "Download corrupted, retrying..."
 				try=$((try+1))
 				download_Driver
-				if [ $try < 2 ]; then
+				if [ $try -lt 2 ]; then
 					test_apply
 				else
-					logger "Too much try, aborting..."
+					log "Too much try, aborting..."
 				fi
 			fi
 		fi
+	else
+		log "No internet connection detected, Terminating."
 	fi
 }
 
-test_apply
+if [ $CLEAN -eq 0 ]; then
+  log "Trying to download and apply driver $driver_set..."
+  test_apply
+else
+  apply_driver
+fi

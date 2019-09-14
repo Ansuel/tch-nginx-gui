@@ -363,6 +363,8 @@ network_interface_.entries = function()
     -- iterate over the interfaces
       if s.iface6rd and (s.iface6rd ~= "0") then
         intf_6rd[s.iface6rd] = true
+	  elseif interface_status.get("6rd") then
+		intf_6rd["6rd"] = true
       end
 
       if s.proto == "6rd" then

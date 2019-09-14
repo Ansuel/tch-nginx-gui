@@ -18,22 +18,13 @@ local app_list = {
 	"amule",
 }
 
-local marketing_version = proxy.get("uci.version.version.@version[0].marketing_version")
-
 local prod_friendly_name = proxy.get("uci.env.var.prod_friendly_name")
 
 local specific_app = proxy.get("uci.modgui.app.specific_app")[1].value or "0"
 
-if marketing_version and marketing_version[1].value then
-	marketing_version = marketing_version[1].value:sub(1,4)
-else
-	marketing_version = nil
-end
-
 local function appapply(action)
-	proxy.set("rpc.system.modgui.scriptRequest.state","Requested")
-	proxy.set("rpc.system.modgui.app." .. action, "1")
-	if ( action == "install_emptyblacklist" ) then
+	proxy.set("rpc.system.modgui.app.sendcmd",action)
+	if ( action == "install_blacklist_empty" ) then
 		action = "install_blacklist"
 	end
 	local uci_set = action:gsub("(.*)_","")
@@ -60,7 +51,8 @@ end
 
 if ngx.req.get_method() == "POST" then
 	local action = string.untaint(ngx.req.get_post_args().action)
-	if action:match("install") or action:match("remove") or action:match("start") or action:match("stop") then
+	if action:match("install") or action:match("remove") or 
+		action:match("start") or action:match("stop") then
 		return appapply(action)
 	end
 end
@@ -69,7 +61,7 @@ local mapParams = {
 	local_ip_modem = "uci.network.interface.@lan.ipaddr",
 	telstra_webui = "uci.modgui.app.telstra_webui",
 }
---if prod_friendly_name and prod_friendly_name[1].value and tonumber(marketing_version) < 18 then
+if not (prod_friendly_name[1].value:match("TG789") and prod_friendly_name[1].value:match("Xtream")) then
 	if prod_friendly_name[1].value:match("DGA413") or
 			prod_friendly_name[1].value:match("TG7") then
 		mapParams.luci_webui = "uci.modgui.app.luci_webui"
@@ -81,11 +73,15 @@ local mapParams = {
 	mapParams.transmission_webui = "uci.modgui.app.transmission_webui"
 	if prod_friendly_name[1].value:match("DGA413") then
 		mapParams.blacklist_application = "uci.modgui.app.blacklist_app"
-		if tonumber(marketing_version) >= 17.3 then
-			mapParams.xupnp_application = "uci.modgui.app.xupnp_app"
+		local marketing_version = proxy.get("uci.version.version.@version[0].marketing_version")
+		if marketing_version and marketing_version[1].value then
+			marketing_version = tonumber(marketing_version[1].value:sub(1,4))
+			if marketing_version >= 17.3 then
+				mapParams.xupnp_application = "uci.modgui.app.xupnp_app"
+			end
 		end
 	end
---end
+end
 content_helper.getExactContent(mapParams)
 
 local StateParams = {}
@@ -230,7 +226,7 @@ end
 if StateParams["blacklist_application"] ~= nil then
 	btn_table.blacklist.installempty = {
 		button = {
-			id = "btn-installempty_blacklist"
+			id = "btn-install_blacklist_empty"
 		}
 	}
 	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
@@ -306,34 +302,9 @@ ngx.print('\
 \
 <script>\
 (function() {\
-  var target = $(".modal form").attr("action");\
-\
-  function post(action,processMsg) {\
-    $.post(\
-      target,\
-      { action: action, CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
-      null,\
-      "json"\
-    );\
-	tch.showProgress(processMsg);\
-    return false;\
-  }');
-ngx.print('\
     $("div[id^=\'btn-\']").on("click", function() {\
       var btnact = $(this).attr("id").replace("btn-", "");\
-      if(btnact.startsWith("start")){\
-      	post(btnact,"');  ngx.print(T'Starting...'); ngx.print('");\
-      	setTimeout(function(){tch.removeProgress();}, 2000);\
-      } else if(btnact.startsWith("stop")){\
-      	post(btnact,"');  ngx.print(T'Stopping...'); ngx.print('");\
-      	setTimeout(function(){tch.removeProgress();}, 2000);\
-      } else if(btnact.startsWith("remove")){\
-      	post(btnact,"');  ngx.print(T'Removing...'); ngx.print('");\
-      	scriptRequestStatusAjax();\;\
-      } else if(btnact.startsWith("install")) {\
-      	post(btnact,"');  ngx.print(T'Installing...'); ngx.print('");\
-      	scriptRequestStatusAjax();\;\
-      }\
+      modgui.postAction(btnact,1);\
     });\
 }());\
 </script>\

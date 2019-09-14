@@ -241,6 +241,11 @@ function Session:getUserCount()
   return self.mgr:getUserCount()
 end
 
+--get login path for current mgr
+function Session:getLoginPath()
+  return self.mgr.loginpath
+end
+
 --- Change SRP parameters and crypted password of the current user of this session.
 -- @param salt A newly generated SRP salt for the updated password
 -- @param verifier A newly calculated SRP verifier for the generated salt and updated password
@@ -303,6 +308,9 @@ local function createProxy(session)
   local getUserCount = function()
     return session:getUserCount()
   end
+  local getLoginPath = function()
+    return session:getLoginPath()
+  end
   local proxy = {
     getusername = getusername,
     isdefaultuser = isdefaultuser,
@@ -318,7 +326,8 @@ local function createProxy(session)
     delUserFromManager = delUserFromManager,
     reloadAllUsers = reloadAllUsers,
     changePassword = changePassword,
-    getUserCount = getUserCount
+    getUserCount = getUserCount,
+	getLoginPath = getLoginPath
   }
   return setmetatable({}, {
     __index = proxy,

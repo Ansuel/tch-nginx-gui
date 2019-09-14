@@ -384,6 +384,28 @@ local function xdslctlDslamInfo(itype)
 end
 
 local function get(mapping, paramName, key)
+
+	-- Check cache at every get
+	-- Reset cache if dsl is not up. This should fix some problems when connection goes up
+	-- after this mapper gets loaded
+	if cache["dslmode"] and ( cache["dslmode"] == "Not Found" ) then
+		cache = {}
+	end
+	
+	-- Alwayse cache dslmode since it's called many times in the script
+	if not cache["dslmode"] then
+		cache["dslmode"] = xdslmode("mode")
+	end
+	
+	if cache["dslmode"] and not cache["dslmode"]:match("G%.DMT") and 
+	not cache["dslmode"]:match("ADSL") and
+	not cache["dslmode"]:match("Not Found") then
+		cache["pbLineUs"] = pbParams_find("Us")
+		cache["pbLineDs"] = pbParams_find("Ds")
+		parase_pbParams("Us")
+		parase_pbParams("Ds")
+	end
+
 	if not paramName:match("DslMode") and 
 	  cache["dslmode"] and ( cache["dslmode"] == "Not Found" ) then
 		return "" --return empty on every value

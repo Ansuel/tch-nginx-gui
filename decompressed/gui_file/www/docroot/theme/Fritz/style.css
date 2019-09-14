@@ -126,7 +126,9 @@ body {
 }
 
 .container > #footer {
-    position: unset
+    position: unset;
+	width: unset;
+	left: unset;
 }
 
 .gateway_bg, .popUpBG {
@@ -169,14 +171,22 @@ body {
     padding-left: 1rem;
     border: 0;
     border-radius: 0;
-    top: 3.25rem;
+    top: 3rem;
     left: 16.5rem;
     height: 1.8rem;
     text-align: left;
     font-size: 14pt;
     vertical-align: middle;
     background-color: var(--bg-color2);
-    width: calc(100% - 19rem) !important
+    width: calc(100% - 19rem);
+}
+
+.modal-header-title > h2 {
+	background-color: unset;
+}
+
+.modal-action-close {
+	display: none;
 }
 
 .row-fluid .span4 {
@@ -188,7 +198,7 @@ body {
     overflow-y: auto;
     overflow-x: auto;
     height: auto;
-    max-height: calc(100vh - 15rem);
+    max-height: calc(100vh - 12.5rem);
     padding: 15px;
     background-color: var(--menu-bg-color)
 }
@@ -732,7 +742,12 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
         height: auto !important
     }
 	
-	#swtichbuttom {
+	#upgrade-alert {
+		margin-left: 16.5rem !important;
+		width: calc( 100% - 16.5rem );
+	}
+	
+	#switchViewButton {
 		position: fixed;
 		top: 3.25rem;
 		width: calc(100% - 19rem);
@@ -794,6 +809,11 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
     .row[style="z-index : 3;  position: relative;"] {
         box-shadow: none !important
     }
+	
+	.modal-header-title > h2 {
+		padding: unset;
+		line-height: 2.5rem;
+	}
 }
 
 @media only screen and (max-width: 50rem) {
@@ -837,6 +857,10 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
         position: absolute;
         z-index: 0
     }
+	
+	#infocardrow {
+		margin-left: unset;
+	}
 
     .header-logo {
         display: none;
@@ -882,7 +906,8 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
     }
 
     body {
-        -webkit-overflow-scrolling: touch
+        -webkit-overflow-scrolling: touch;
+		padding: unset !important;
     }
 
     #headerbox {
@@ -923,6 +948,10 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
         height: calc(100% - 2rem);
         padding-top: 0
     }
+	
+	.modal.fade.in {
+		top: 2.45rem !important;
+	}
 
     .modal-header, .row-fluid .span4, .row-fluid .span11 {
         height: unset;
@@ -930,10 +959,15 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
         border: 0;
         border-radius: 0;
         left: 0;
-        width: 100% !important;
         background-color: var(--bg-color3);
-        box-shadow: 0 .27rem .375rem rgba(0, 0, 0, 0.25)
+        box-shadow: 0 .27rem .375rem rgba(0, 0, 0, 0.25);
+		width: 100%;
+		padding: 0px;
     }
+	
+	.modal-header-items {
+		margin-right: 10px;
+	}
 
     .modal-body {
         height: 100%
@@ -970,7 +1004,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
         max-width: initial;
         height: 100%;
         left: 0;
-        top: 0
+        top: 0;
     }
 
     .popUp .header {
@@ -1040,7 +1074,7 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
         display: none
     }
 	
-	#swtichbuttom {
+	#switchViewButton {
 		display: unset;
 	}
 	
@@ -1079,4 +1113,8 @@ textarea:focus, input[type="text"]:focus, input[type="password"]:focus, input[ty
     #popUp.smallcard > .header > .header-title {
         background-color: var(--bg-color1)
     }
+	
+	.modal-header-title > h2 {
+		background-color: unset;
+	}
 }

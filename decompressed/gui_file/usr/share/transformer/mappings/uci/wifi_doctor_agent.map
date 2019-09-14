@@ -17,8 +17,7 @@ local wifi_doctor_agent_as_config = {
   config = config_wifi_doctor_agent,
   section = "as_config",
   type = "as_config",
-  options = {"url", "client_id", "client_secret"},
-  passwords = { "passwd" }
+  options = {"url", "client_id", "client_secret", "passwd"}
 }
 
 mapper("uci_1to1").registerSimpleMap(wifi_doctor_agent_as_config)

@@ -108,7 +108,7 @@ $(document).ready(
         closeNav();
       });
   
-	$("#swtichbuttom").on("switchcard", function() {
+	$("#switchViewButton").on("switchcard", function() {
 		themescript();
 	});
 });

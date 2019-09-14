@@ -57,7 +57,6 @@ ngx.print('\
   </div>\
 </div>\
 <script>\
-var interval = 10000;\
 function checkGraphWidth() {\
 	if ( $(document).width() > 855 ) {\
 	$("#canvas_container").width($(document).width()/2-60);\
@@ -114,17 +113,7 @@ var InfoWANChart = new Chart(wan_ctx, {\
     }]},\
     options: TrafficChartOption \
 });\
-var InfoGraphCardInterval;\
-$(document).ready(function () {\
-\
-	var element = document.getElementById("graphtab");\
-	if (!element) return ;\
-\
-	var InfoGraphCardBinding = { \
-		rx_traffic_complete: ko.observable(),\
-		tx_traffic_complete: ko.observable(),\
-	};\
-	function InfoGraphCardRefresh() {\
+var InfoGraphCardRefresh = function(ElementBinding) {\
 		var tx_traffic_complete = document.getElementById("tx_traffic_complete");\
 		var rx_traffic_complete = document.getElementById("rx_traffic_complete");\
 		if (tx_traffic_complete) {\
@@ -136,8 +125,8 @@ $(document).ready(function () {\
 				[tch.elementCSRFtoken()], function(data) {\
 					var rx_traffic = data.rx_traffic-data.old_rx_traffic;\
 					var tx_traffic = data.tx_traffic-data.old_tx_traffic;\
-					InfoGraphCardBinding.rx_traffic_complete(data.rx_traffic);\
-					InfoGraphCardBinding.tx_traffic_complete(data.tx_traffic);\
+					ElementBinding.rx_traffic_complete(data.rx_traffic);\
+					ElementBinding.tx_traffic_complete(data.tx_traffic);\
 					var date = new Date();\
 					var old_time = Date.parse("01 Jan 1970 "+Array.from(timelabel).pop()+" GMT");\
 					timelabel.push(date.getHours()+":"+date.getMinutes()+":"+date.getSeconds());\
@@ -154,13 +143,8 @@ $(document).ready(function () {\
 			}, "json");\
 		};\
 	};\
-\
-	InfoGraphCardRefresh();\
-\
-	if (!ko.dataFor(element))\
-		ko.applyBindings(InfoGraphCardBinding, element);\
-	InfoGraphCardInterval = setInterval(InfoGraphCardRefresh, interval);\
-	KoRequest.push(InfoGraphCardInterval);\
+$(document).ready(function () {\
+  new modgui.createAjaxUpdateCard("graphtab",null,"InfoGraphCardInterval",10000,InfoGraphCardRefresh);\
 })\
 </script>\
 '); 

@@ -107,6 +107,11 @@ setup_network() {
 		uci del network.wan
 		uci rename network.ppp=wan
 	fi
+
+	#Set missing wan path (Xtream 35B Fastweb)
+	if [ ! "$(uci -q get network.wan.password)" ]; then
+		uci set network.wan.password='password'
+	fi
 }
 
 add_TIM_ppp_specific() {
@@ -123,19 +128,22 @@ puryfy_wan_interface() { #creano problemi di dns per chissa'  quale diavolo di 
 }
 
 fix_dns_dhcp_bug() {
-  logger_command "Fix DNS bug"
+  logger_command "Fix DNS bug, make sure odhcp is enabled"
 	#SET odhcpd MAINDHCP to 0 to use dnsmasq for ipv4 
 	if [ "$(uci get -q dhcp.odhcpd.maindhcp)" == "1" ]; then
+    logger_command "Setting odhcpd not maindhcp"
 		uci set dhcp.odhcpd.maindhcp="0"
 		/etc/init.d/odhcpd restart
 		restart_dnsmasq=1
 	fi
 	#Check to see if odhcpd is running
-	if [ ! "$(pgrep "odhcpd")" ]; then
+	if [ ! "$(pgrep odhcpd)" ]; then
+    logger_command "Starting odhcpd"
 		/etc/init.d/odhcpd start
 	fi
 	#reenable it to make ipv6 works
-	if [ ! "$(echo /etc/rc.d/*odhcpd*)" ]; then
+	if [ -n "$(find /etc/rc.d/ -iname *odhcpd*)" ]; then
+    logger_command "Enabling odhcpd on boot"
 		/etc/init.d/odhcpd enable
 	fi
 }
@@ -241,22 +249,25 @@ clean_cups_block_rule() {
 		firewall_change=1
 	done
 	if [ $firewall_change -eq 1 ]; then
+    logger_command "Restarting firewall..."
 		uci commit firewall
-		/etc/init.d/firewall restart
+		/etc/init.d/firewall restart 2>/dev/null
 	fi
 }
 
 cwmp_specific_TIM() {
-
 	cwmp_url="$(uci get cwmpd.cwmpd_config.acs_url)"
 	detected_acs="Undetected"
 	logger_command "TIM ISP detected, finding CWMP server..."
+	new_fw220=https://fwa.cdp.tim.it/cwmpdWeb/CPEMgt
 	new_platform=https://regman-mon.interbusiness.it:10800/acs/
 	new_platform_bck=https://regman-bck.interbusiness.it:10501/acs/
 	unified_platform=https://regman-tl.interbusiness.it:10700/acs/ 
 	mgmt_platform=https://regman-tl.interbusiness.it:10500/acs/
 	if [ "$(curl -s -k $new_platform --max-time 5 )" ]; then
 		detected_acs=$new_platform
+	elif [ "$(curl -s -k $new_fw220 --max-time 5 )" ]; then
+		detected_acs=$new_fw220
 	elif [ "$(curl -s -k $new_platform_bck --max-time 5 )" ]; then
 		detected_acs=$new_platform_bck
 	elif [ "$(curl -s -k $unified_platform --max-time 5 )" ]; then
@@ -264,11 +275,11 @@ cwmp_specific_TIM() {
 	elif [ "$(curl -s -k $mgmt_platform --max-time 5 )" ]; then
 		detected_acs=$mgmt_platform
 	fi
-	logger_command "CWMP Server detected: $(uci get cwmpd.cwmpd_config.acs_url)"
+	logger_command "CWMP Server detected: $detected_acs"
 	
 	[ -z "$cwmp_url" ] && cwmp_url="None"
 	
-	if [ "$cwmp_url" != "None" ] && [ "$cwmp_url" != "$detected_acs" ]; then
+	if [ "$detected_acs" != "Undetected" ] && [ "$cwmp_url" != "$detected_acs" ]; then
 		
 		#Make the device tink is first power on by removing cwmpd db
 		[ -f /etc/cwmpd.db ] && rm /etc/cwmpd.db
@@ -278,9 +289,7 @@ cwmp_specific_TIM() {
 		fi
 		uci commit cwmpd
 		if [ "$(uci get -q cwmpd.cwmpd_config.acs_url)" == "None" ]; then
-			if [ "$(pgrep "cwmpd")" ]; then
-				/etc/init.d/cwmpd stop
-			fi
+			[ "$(pgrep "cwmpd")" ] && /etc/init.d/cwmpd stop
 		else
 			/etc/init.d/cwmpd enable
 			if [ ! "$(pgrep "cwmpd")" ]; then
@@ -294,6 +303,7 @@ cwmp_specific_TIM() {
 
 firewall_specific_sip_rules_FASTWEB() {
 	if [ -n "$(uci get -q firewall.Allow_restricted_sip_1.name)" ]; then
+	  logger_command "Adding firewall rules for Fastweb VoIP..."
 		uci set firewall.Allow_restricted_sip_1.name='Allow-restricted-sip-from-wan-again-1'
 		uci set firewall.Allow_restricted_sip_1.src='wan'
 		uci set firewall.Allow_restricted_sip_1.src_ip='30.253.253.68/24'
@@ -402,7 +412,7 @@ firewall_specific_sip_rules_FASTWEB() {
 		uci set firewall.Allow_restricted_sip_18.target='ACCEPT'
 		uci set firewall.Allow_restricted_sip_18.family='ipv4'
 		uci commit firewall
-		/etc/init.d/firewall restart
+		/etc/init.d/firewall restart 2>/dev/null
 	fi
 }
 

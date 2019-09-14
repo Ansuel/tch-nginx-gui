@@ -28,7 +28,7 @@ local wireless_ap_wps_ = {
         },
         ap_pin = {
             access = "readWrite",
-            type = "password",
+            type = "string",
         },
         session_state = {
             access = "readOnly",
@@ -44,7 +44,7 @@ local wireless_ap_wps_ = {
         },
         enrollee_pin = {
             access = "readWrite",
-            type = "password",
+            type = "string",
         },
         enrollee_mac_address = {
             access = "readOnly",

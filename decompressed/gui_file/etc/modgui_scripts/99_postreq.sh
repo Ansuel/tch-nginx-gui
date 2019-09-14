@@ -66,12 +66,10 @@ logger_command "Resetting cwmp and watchdog"
 rm /root/.check_process #we remove the placeholder as the process is complete
 logger_command "Process done."
 
-set_transformer "rpc.system.modgui.upgradegui.state" "Finished"
-
 logger_command "Restarting transformer" ConsoleOnly
 /etc/init.d/transformer restart
 #Call a random value to check start of transformer
-get_transformer "uci.env.var.oui" > /dev/null
+lua -e "require('datamodel').get('uci.env.var.oui')" > /dev/null
 
 #This file is present only in newer build that don't suffer this strange bug
 #if [ ! -f /usr/lib/lua/tch/logger.lua ]; then

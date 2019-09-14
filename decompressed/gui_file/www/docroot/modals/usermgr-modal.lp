@@ -34,7 +34,7 @@ local userNames = ""
 local legacySalts = ""
 
 for _, user in ipairs(users) do
-  if user.legacy_salt ~= "" then
+  if user.legacy_salt and user.legacy_salt ~= "" then
     userNames = userNames .. user.name ..","
     legacySalts = legacySalts .. user.legacy_salt .. ","
   end
@@ -353,7 +353,7 @@ if ngx.req.get_method() == "POST" then
         local proxyapply = false
         if user and #user > 0 then
           user = user[1]
-          if (user.legacy_salt ~= "") then
+          if (user.legacy_salt and user.legacy_salt ~= "") then
               proxy.set(user.path .. "legacy_salt", "")
               proxyapply = true
           end

@@ -280,8 +280,8 @@ local function wait_for_completion(base_path)
   until (total_time >= max_time)
 end
 
-local function resetreboot(path)
-  proxy.set(path, "1")
+local function resetreboot(path,value)
+  proxy.set(path, value)
   ngx.header.content_type = "application/json"
   ngx.print('{ "success":"true" }')
   ngx.timer.at(0, function()
@@ -294,16 +294,16 @@ end
 if ngx.req.get_method() == "POST" then
   local action = ngx.req.get_post_args().action
   if action == "system_bootp" then
-    return resetreboot("sys.bootp.enable")
+    return resetreboot("sys.bootp.enable","1")
   end
   if action == "system_switchover" then
-    return resetreboot("rpc.system.switchover")
+    return resetreboot("rpc.system.switchover","1")
   end
   if action == "system_trasnfer_bank_1" then
-    return resetreboot("rpc.system.modgui.utility.transfer_bank1")
+    return resetreboot("rpc.system.modgui.utility.sendcmd","transfer_bank1")
   end
   if action == "system_copy_bank" then
-    return resetreboot("rpc.system.modgui.utility.copy_bank")
+    return resetreboot("rpc.system.modgui.utility.sendcmd","copy_bank")
   end
   if action == "debug_report" then
 
@@ -323,8 +323,6 @@ if ngx.req.get_method() == "POST" then
 
       -- return exported data
       local fname = untaint(content.filename)
-      ngx.log(1, "ciao")
-      ngx.log(1, fname:match("([^/]+)$"))
 	if fname ~= "" then
 		ngx.header.content_disposition = "attachment; filename="..fname:match("([^/]+)$")
 		ngx.header.content_type = "application/octet-stream"
@@ -332,6 +330,8 @@ if ngx.req.get_method() == "POST" then
 		local f = io.open(fname, "r")
 		ngx.print(f:read("*all"))
 		f:close()
+		
+		os.remove(fname)
 
         -- and we're done
 		ngx.exit(ngx.HTTP_OK)
@@ -619,6 +619,7 @@ ngx.print('\
     msg_dst.after(msg);\
     msg.removeClass("hide");\
     msg[0].scrollIntoView();\
+	modgui.clearKoInterval();\
     $.post(\
       target,\
       { action: action, CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\

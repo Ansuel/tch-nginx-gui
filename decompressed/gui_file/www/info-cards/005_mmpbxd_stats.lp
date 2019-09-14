@@ -58,9 +58,8 @@ ngx.print('\
   </div>\
 </div>\
 <script>\
-var InfoMmpbxCardInterval;\
 $(document).ready(function () {\
-	new createAjaxUpdateCard("infommpbxdtab","/ajax/mmpbx_status.lua",InfoMmpbxCardInterval,4000);\
+	new modgui.createAjaxUpdateCard("infommpbxdtab","/ajax/mmpbx_status.lua","InfoMmpbxCardInterval",4000);\
 })\
 </script>\
 '); 

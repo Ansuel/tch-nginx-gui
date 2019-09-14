@@ -109,7 +109,7 @@ $(document).ready(
       });
   
 	//
-	$("#swtichbuttom").on("switchcard", function() {
+	$("#switchViewButton").on("switchcard", function() {
 		themescript();
 	});
 });

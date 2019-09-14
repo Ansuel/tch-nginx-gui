@@ -1836,10 +1836,12 @@ function M.createHeader(name, hasAdvanced, hasRefresh, autorefresh, helpLink, ha
     local html = {
     [[
  <div class="modal-header" ]] .. htmlautorefresh .. [[>
-  <div class="row-fluid">
-    <div class="span11"><h2 class="span4"> ]] .. name .. [[</h2>
-    ]]
+    <div class="modal-header-title">
+		<h2> ]] .. name .. [[</h2>
+    </div>]]
     }
+	
+	html[#html + 1] = [[<div class="modal-header-items">]]
 
     -- Display the help button in the modal header if required
     if type(helpLink) == "table" then
@@ -1875,10 +1877,9 @@ function M.createHeader(name, hasAdvanced, hasRefresh, autorefresh, helpLink, ha
     end
 
     html[#html + 1] = [[
-        </div>
-    <div class="span1"><a href="#" class="button btn-primary btn-close" data-dismiss="modal"><i class="icon-remove"></i></a></div>
-  </div>
-</div>
+		</div>
+		<div class="modal-action-close"><a href="#" class="button btn-primary btn-close" data-dismiss="modal"><i class="icon-remove"></i></a></div>
+ </div>
     ]]
 
     return html

@@ -43,7 +43,7 @@ local mobiled_profile_ = {
             },
             password = {
                 access = "readWrite",
-                type = "password"
+                type = "string"
             },
             authentication = {
                 access = "readWrite",
