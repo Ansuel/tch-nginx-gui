@@ -49,7 +49,7 @@ local commands_helper = {
 	refreshDslDriver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/refresh_driver.sh"',
 	resetDslDriver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/refresh_driver.sh clean"',
 	copy_bank = '/usr/share/transformer/scripts/copy_bank.sh',
-	upgradegui = 'start-stop-daemon -S -b -x /usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/upgradegui GuiRequest"',
+	upgradegui = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/upgradegui GuiRequest"',
 	genSysupgradeBackup = function(filename) return '/usr/share/transformer/scripts/wrapper.sh "sysupgrade -b /tmp/'..filename..'"' end,
 	restoreSysupgradeBackup = '/usr/share/transformer/scripts/wrapper.sh "sysupgrade -r /tmp/sysupgrade_backup.tar.gz',
 }

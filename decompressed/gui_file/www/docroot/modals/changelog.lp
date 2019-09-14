@@ -18,9 +18,9 @@ ngx.print('\
       }
 	html[#html + 1] = '<legend>' .. T"Mainline 18.3 Cobalt" .. '</legend>'
 	html[#html + 1] = ui_helper.createLabel("9.4", "Aggiunta opzione per forzare interfaccia in HTTPS<br>"..
-		"Aggiunta opzione per eseguire backup OpenWRT"..
-		"Aggiunta opzione per visualizzare access-concentrator per sessioni PPP"..
-		"Fixati alcuni errori sulla visualizzazione dell'IPv6"..
+		"Aggiunta opzione per eseguire backup OpenWRT<br>"..
+		"Aggiunta opzione per visualizzare access-concentrator per sessioni PPP<br>"..
+		"Fixati alcuni errori sulla visualizzazione dell'IPv6<br>"..
 		"Molti miglioramenti e fix grafici alle skin Unified e Fritz<br>"..
 		"Sistemato reset config<br>"..
 		"Aggiunta possibilità di resettare CWMP per forzare provisioning<br>"..
