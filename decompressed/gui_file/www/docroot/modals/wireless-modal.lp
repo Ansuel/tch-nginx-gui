@@ -960,7 +960,7 @@ if #wls > 0 then
             if radioData[untaint(v.radio)].remotely_managed == "1" and radioData[untaint(v.radio)].integrated_ap ~= "1" then
                 html[#html+1] = format('<li class="nav-header">%s %s</li>', T"External access points", radioData[untaint(v.radio)].supported_frequency_bands)
             else
-                html[#html+1] = format('<li class="nav-header">%s %s</li>', T"Access points", radioData[untaint(v.radio)].supported_frequency_bands)
+                html[#html+1] = format('<li class="nav-header">%s %s</li>', T"Access Points", radioData[untaint(v.radio)].supported_frequency_bands)
             end
             prevradio = v.radio
         end
@@ -1002,7 +1002,7 @@ if #wls > 0 then
           html[#html + 1] = format([[
              <div id="linkrescan-changes_%s" class="hide">
              <div id="linkrescan-cancel_%s" class="btn">%s</div>
-             <div id="linkrescan-confirm_%s" onclick='$(".modal-backdrop").remove();' class="btn btn-primary" data-toggle="modal", data-remote="%s">%s</div>
+             <div id="linkrescan-confirm_%s" class="btn btn-primary" data-toggle="modal" data-remote="%s">%s</div>
              </div></div>
              ]],
              link_id,link_id,T"Cancel",link_id,url,T"Accept")
@@ -1011,7 +1011,7 @@ if #wls > 0 then
       end
     end
     if session:hasAccess("/modals/wireless-client-modal.lp") then
-      html[#html+1] = format("<li><a href=\"#\" <a href=\"#\" data-remote=\"modals/wireless-client-modal.lp\" >%s</a></li>", T"Client Monitoring" )
+      html[#html+1] = format('<li><a href="#" data-remote="modals/wireless-client-modal.lp" >%s</a></li>', T"Client Monitoring" )
     end
     ngx.print(html)
       ngx.print('\
@@ -1445,7 +1445,7 @@ end
 <legend>');  ngx.print( T"QR Code" ); ngx.print('</legend>\
 ');  ngx.print( format([[
                     <center>
-                        <div onclick="$('.modal-backdrop').remove();" class="btn custom-handler" data-remote="modals/wireless-qrcode-modal.lp?iface=%s&ap=%s" data-toggle="modal">
+                        <div class="btn custom-handler" data-remote="modals/wireless-qrcode-modal.lp?iface=%s&ap=%s" data-toggle="modal">
                             %s
                         </div>
                     </center>&nbsp

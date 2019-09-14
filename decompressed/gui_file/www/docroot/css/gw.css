@@ -2977,7 +2977,16 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 }
 .modal-header {
 	padding: 9px 15px;
-	border-bottom: 1px solid #eee
+	border-bottom: 1px solid #eee;
+	display: flex;
+}
+.modal-header-title {
+	flex: 1;
+}
+.modal-header-items {
+	justify-items: center;
+    align-items: center;
+    display: flex;
 }
 .modal-header .close {
 	margin-top: 2px
@@ -2991,6 +3000,11 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	overflow-y: auto;
 	max-height: 460px;
 	padding: 15px
+}
+.fake_console {
+	background-color: #0c0c0c;
+    color: #cccccc;
+    font-family: monospace;
 }
 .modal-form {
 	margin-bottom: 0
@@ -3110,11 +3124,10 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	margin-left: 30px
 }
 .modal-action {
-	float: right;
 	color: #666;
 	padding-top: 8px;
 	font-size: 16px;
-	margin-left: 20px;
+	margin-left: 10px;
 	-webkit-transition: all .2s;
 	-moz-transition: all .2s;
 	-o-transition: all .2s;
@@ -3148,10 +3161,6 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	-ms-transform: rotate(360deg);
 	-o-transform: rotate(360deg);
 	transform: rotate(360deg)
-}
-.modal-action:before {
-	content: "|";
-	margin-right: 20px
 }
 .modal-action:last-child:before {
 	content: " ";

@@ -1253,7 +1253,7 @@ if curintf == "lan" then
         html[#html + 1] = ui_helper.createAlertBlock(T"Switch the WAN port to a normal LAN port", info_box)
         html[#html + 1] = ui_helper.createSwitch(T"WAN-Port LAN Mode", "ethsfp", content_sfp["ethsfp"])
     end
-    local IPv6addr = proxy.get("rpc.network.interface.@"..curintf..".ip6addr")[1].value
+    local IPv6addr = proxy.get("rpc.network.interface.@"..curintf..".ip6prefix_assignment")[1].value
     if IPv6addr == "" then
         html[#html + 1] = ui_helper.createLabel(T"LAN IPv6", T"IPv6 not assigned", advanced)
     else

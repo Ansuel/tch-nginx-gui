@@ -52,6 +52,9 @@
 .visible-desktop {
     display: inherit !important;
 }
+h2.span4{
+    width: inherit !important;
+}
 
 @media screen and (min-width: 768px) {
     #upgrade-alert{
@@ -84,7 +87,7 @@
         position: absolute;
         top: 35%;
         left: 3%;
-        width: 93% !important;
+        width: 93%;
     }
 
     .hidden-desktop {
@@ -1376,7 +1379,7 @@
 	}
 	
 	
-	#swtichbuttom {
+	#switchViewButton {
 		width: 70%;
 	}
 	

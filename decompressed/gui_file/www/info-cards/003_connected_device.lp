@@ -32,9 +32,8 @@ ngx.print('\
     </div>\
 </div>\
 <script>\
-var InfoDeviceCardInterval;\
 $(document).ready(function () {\
-	new createAjaxUpdateCard("infodevicetab","/ajax/connected_device.lua",InfoDeviceCardInterval,6000);\
+	new modgui.createAjaxUpdateCard("infodevicetab","/ajax/connected_device.lua","InfoDeviceCardInterval",6000);\
 })\
 </script>\
 '); 

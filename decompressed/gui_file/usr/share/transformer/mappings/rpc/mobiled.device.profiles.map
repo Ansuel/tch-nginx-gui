@@ -41,7 +41,7 @@ local mobiled_device_profiles = {
 			},
 			password = {
 				access = "readOnly",
-				type = "password"
+				type = "string"
 			},
 			authentication = {
 				access = "readOnly",

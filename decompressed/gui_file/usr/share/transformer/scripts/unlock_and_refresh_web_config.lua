@@ -64,6 +64,8 @@ local check_rule = {
 	{ name = 'ajaxinfoconndevicecard', target = '/ajax/connected_device.lua' },
 	{ name = 'ajaxinfoportscard', target = '/ajax/port_status.lua' },
 	{ name = 'ajaxinfommpbxstatuscard', target = '/ajax/mmpbx_status.lua' },
+	{ name = 'ajaxcommandlogread', target = '/ajax/commandlogread.lua' },
+	{ name = 'commandlogreadmodal', target = '/modals/command-log-read-modal.lp' },
 	{ name = 'ajaxgetcard', target = '/ajax/get_card.lua' },
 	{ name = 'diagnosticsledsmodal', target = '/modals/diagnostics-leds-modal.lp' },
 }

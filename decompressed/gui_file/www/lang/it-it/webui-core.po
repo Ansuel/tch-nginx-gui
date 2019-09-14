@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: webui-core\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2019-08-03 16:24+0100\n"
+"PO-Revision-Date: 2019-09-07 00:37+0100\n"
 "Last-Translator: bovirus <bovirus@gmail.com>\n"
 "Language-Team: none\n"
 "Language: it\n"
@@ -136,6 +136,11 @@ msgid_plural "<strong id = \"Wifi_Devices\" %1$s>%2$d WiFi devices</strong> conn
 msgstr[0] "<strong id = \"Wifi_Devices\" %1$s>%2$d dispositivo Wi-Fi connesso</strong>"
 msgstr[1] "<strong id = \"Wifi_Devices\" %1$s>%2$d dispositivi Wi-Fi connessi</strong>"
 
+msgid "<strong id=\"iproutescard_noofipv4staticroutes\" %1$s>%2$d IPv4 Static Route</strong>"
+msgid_plural "<strong id=\"iproutescard_noofipv4staticroutes\" %1$s>%2$d IPv4 Static Routes</strong>"
+msgstr[0] "<strong id = \"Wifi_Devices\" %1$s>%2$d Instradamento statico IPv4</strong>"
+msgstr[1] "<strong id = \"Wifi_Devices\" %1$s>%2$d instradamenti statici IPv4</strong>"
+
 msgid "<strong>%d</strong> IPv4 rule(s) defined<br>"
 msgstr "<strong>%d regole IPv4</strong>"
 
@@ -217,7 +222,7 @@ msgstr "Elenco controllo accessi (ACL)"
 msgid "Access Point"
 msgstr "Punto di accesso"
 
-msgid "Access points"
+msgid "Access Points"
 msgstr "Punto di accesso"
 
 msgid "Action"
@@ -484,7 +489,7 @@ msgstr "Telegestione (CWMP)"
 msgid "CWMP Settings"
 msgstr "Telegestione (CWMP)"
 
-msgid "Can't recover dslam version."
+msgid "Can't recover DSLAM version."
 msgstr "Impossibile rilevare la versione del DSLAM."
 
 msgid "Cancel"
@@ -1150,8 +1155,8 @@ msgstr "Aggiornamento firmware fallito.<br/>Usa il firmware corretto."
 msgid "Firmware update in progress, please wait..."
 msgstr "Aggiornamento firmware..."
 
-msgid "First DNS Server IPV6 Ping"
-msgstr "Ping primo server DNS IPV6"
+msgid "First DNS Server IPv6 Ping"
+msgstr "Ping primo server DNS IPv6"
 
 msgid "First DNS Server Ping"
 msgstr "Ping primo server DNS"
@@ -1163,7 +1168,7 @@ msgid "Flow Cache disabled"
 msgstr "Cache flusso disabilitata"
 
 msgid "Flow Cache enabled"
-msgstr "Cache Flusso abilitata"
+msgstr "Cache flusso abilitata"
 
 msgid "Force Update"
 msgstr "Forza aggiornamento"
@@ -1290,9 +1295,6 @@ msgstr "Tabella mappatura porte IPv4"
 
 msgid "IPv4 Routes"
 msgstr "Instradamenti IPv4"
-
-msgid "IPv4 Static Routes"
-msgstr "Instradamenti statici IPv4"
 
 msgid "IPv6 Assigned"
 msgstr "IPv6 assegnato"
@@ -1585,9 +1587,6 @@ msgstr "Visualizzatore eventi"
 msgid "Login Expired. Reloading."
 msgstr "Accesso scaduto. Ricaricamento."
 
-msgid "LuCI GUI !! BROKEN !!"
-msgstr "GUI LuCI!! CORROTTA!!"
-
 msgid "LuCI WebUi installed"
 msgstr "WebUI LuCI installata"
 
@@ -1717,8 +1716,8 @@ msgstr "Nuova versione"
 msgid "Next Hop Ping"
 msgstr "Ping hop successivo"
 
-msgid "Next Hop Ping IPV6"
-msgstr "Ping IPV6 hop successivo"
+msgid "Next Hop Ping IPv6"
+msgstr "Ping IPv6 hop successivo"
 
 msgid "No Address Assigned"
 msgstr "Nessun indirizzo assegnato"
@@ -1752,9 +1751,6 @@ msgstr "Nessuno"
 
 msgid "Not Connected"
 msgstr "Non connesso"
-
-msgid "Not Requested"
-msgstr "Non richiesto"
 
 msgid "Not Set"
 msgstr "Non impostato"
@@ -2257,8 +2253,8 @@ msgstr "Nome rete (SSID)"
 msgid "Sat."
 msgstr "Sab."
 
-msgid "Second DNS Server IPV6 Ping"
-msgstr "Ping secondo server DNS IPV6"
+msgid "Second DNS Server IPv6 Ping"
+msgstr "Ping secondo server DNS IPv6"
 
 msgid "Second DNS Server Ping"
 msgstr "Ping secondo server DNS"
@@ -2899,11 +2895,11 @@ msgstr "Abilita WAN"
 msgid "WAN Graph"
 msgstr "Grafico WAN"
 
-msgid "WAN IP is <strong id =\"wan_ip\">%s</strong>"
-msgstr "Indirizzo IP WAN <strong id =\"wan_ip\">%s</strong>"
-
 msgid "WAN IP is <strong>%s</strong>"
 msgstr "Indirizzo IP WAN <strong>%s</strong>"
+
+msgid "WAN IPv6 is <strong>%s</strong>"
+msgstr "Indirizzo IPv6 WAN <strong>%s</strong>"
 
 msgid "WAN Services"
 msgstr "Servizi WAN"
@@ -2953,8 +2949,8 @@ msgstr "WPS"
 msgid "WPS is automatically disabled if you choose WEP, WPA-only security or disable broadcast of the SSID"
 msgstr "Se si sceglie solo la protezione WEP o WPA o si disabilita la trasmissione broadcast dell'SSID, il WPS viene automaticamente disattivato"
 
-msgid "WoL (Wake on LAN) & WoW (Wake on WAN)"
-msgstr "WoL (Wake on LAN) & WoW (Wake on WAN)"
+msgid "Wake on LAN & WAN"
+msgstr "Wake on LAN & WAN"
 
 msgid "We don't have any driver for this modem, please report them to the github page. "
 msgstr "Non è disponibile alcun driver alternativo per questo modem.<br/>Segnalalo nella pagina di github. "
@@ -4215,9 +4211,6 @@ msgstr "Inserisci il <strong>\"codice di accesso\"</strong> predefinito.<br/>Que
 msgid "802.11a/n/ac"
 msgstr "802.11 a/n/ac"
 
-msgid "Uptime : <strong>%s</strong>"
-msgstr "Tempo attività: <strong>%s</strong>"
-
 msgid "2"
 msgstr "2"
 
@@ -4409,7 +4402,7 @@ msgstr "Lunghezza payload UDP:"
 msgid "Send"
 msgstr "Invia"
 
-msgid "Speed Diagonostics Result History"
+msgid "Speed Diagnostics Result History"
 msgstr "Cronologia risultati diagnostica velocità"
 
 msgid "Max Steps"
@@ -4470,7 +4463,7 @@ msgid "Binary"
 msgstr "Binario"
 
 msgid "Diagnostics Ping & Traceroute"
-msgstr "Diagonstica ping e traceroute"
+msgstr "Diagnostica ping e traceroute"
 
 msgid "Algorithm:"
 msgstr "Algoritmo:"
@@ -4749,3 +4742,52 @@ msgstr "App specifica non installata."
 
 msgid "Force HTTPS to access the GUI"
 msgstr "Forza HTTPS per accedere alla GUI"
+
+msgid "Reset CWMP"
+msgstr "Ripristina CWMP"
+
+msgid "Are you sure you want to reset CWMP db of this modem? </br><strong> This will force the first-time boot provisioning with ACS server that can fail on an already provisioned modem.</strong>"
+msgstr "Sei sicuro di voler ripristinare il database CWMP di questo modem?</br><strong>Questo forzerà una richiesta di provisioning come primo avvio al server ACS che potrebbe fallire se il modem è già predisposto.</br><strong> "
+
+msgid "Force CWMP provisioning"
+msgstr "Forza provisioning CWMP"
+
+msgid "Executing"
+msgstr "Esecuzione"
+
+msgid "IPv4 address"
+msgstr "Indirizzo IPv4"
+
+msgid "IPv6 GUA"
+msgstr "GUA IPv6"
+
+msgid "Reset xDSL Driver to original version"
+msgstr "Ripristina driver xDSL alla versione originale"
+
+msgid "Reset the modem to the firmware stock GUI. Some config and root SSH access will be preserved. This roll back without a full reset can cause unexpected behaviours or instability"
+msgstr "Reimposta la GUI originale del modem. L'accesso root e alcune configurazioni verrranno mantenute. Questo ripristino parziale può causare comportamenti inaspettati e instabilità"
+
+msgid "Concentrator Name"
+msgstr "Nome concentratore"
+
+msgid "Concentrator MAC"
+msgstr "MAC concentratore"
+
+msgid "Backup Zip"
+msgstr "ZIP backup"
+
+msgid "This will use OpenWRT backup and restore function insteand of the Technicolor function."
+msgstr "Verranno usate le funzioni di backup e ripristino di OpenWRT invece di quelle Technicolor."
+
+msgid "Upload failed. Please try again."
+msgstr "Upload fallito. Riprova."
+
+msgid "Upload Backup"
+msgstr "Upload backup"
+
+msgid "Advanced Restore & Backup"
+msgstr "Ripristino e backup avanzati"
+
+msgid "Generating backup in background..."
+msgstr "Generazione backup in background..."
+

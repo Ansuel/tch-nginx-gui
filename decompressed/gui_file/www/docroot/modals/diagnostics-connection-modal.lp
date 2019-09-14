@@ -491,20 +491,20 @@ if (content_rpc_wan6["wan6_ip6addr"] and content_rpc_wan6["wan6_ip6addr"] ~= "")
     local explanationNextHopPing_ipv6
     statusIconNextHopPing_ipv6, explanationNextHopPing_ipv6 = getStatus("rpc.network.interface." .. intf6 .. ".nexthop_ping")
 
-    html[#html+1] = ui_helper.createLabel(T"Next Hop Ping IPV6", format("%s %s", statusIconNextHopPing_ipv6, explanationNextHopPing_ipv6), attributes)
+    html[#html+1] = ui_helper.createLabel(T"Next Hop Ping IPv6", format("%s %s", statusIconNextHopPing_ipv6, explanationNextHopPing_ipv6), attributes)
 
     if num_servers_ipv6 >= 1 then
         local statusIconDnsServer1Ping_ipv6
         local explanationDnsServer1Ping_ipv6
         statusIconDnsServer1Ping_ipv6, explanationDnsServer1Ping_ipv6 = getStatus("rpc.network.interface." .. intf6 .. "." .. dnsserver1_mode)
-        html[#html+1] = ui_helper.createLabel(T"First DNS Server IPV6 Ping", format("%s %s", statusIconDnsServer1Ping_ipv6, explanationDnsServer1Ping_ipv6), attributes)
+        html[#html+1] = ui_helper.createLabel(T"First DNS Server IPv6 Ping", format("%s %s", statusIconDnsServer1Ping_ipv6, explanationDnsServer1Ping_ipv6), attributes)
     end
 
     if num_servers_ipv6 >= 2 then
         local statusIconDnsServer2Ping_ipv6
         local explanationDnsServer2Ping_ipv6
         statusIconDnsServer2Ping_ipv6, explanationDnsServer2Ping_ipv6 = getStatus("rpc.network.interface." .. intf6 .. "." .. dnsserver2_mode)
-        html[#html+1] = ui_helper.createLabel(T"Second DNS Server IPV6 Ping", format("%s %s", statusIconDnsServer2Ping_ipv6, explanationDnsServer2Ping_ipv6), attributes)
+        html[#html+1] = ui_helper.createLabel(T"Second DNS Server IPv6 Ping", format("%s %s", statusIconDnsServer2Ping_ipv6, explanationDnsServer2Ping_ipv6), attributes)
     end
 end
 ngx.print (html)

@@ -277,7 +277,7 @@ msgid "Phone Number"
 msgstr "Telefonnummer"
 
 msgid "Phone Lines"
-msgstr "Teelefonnnummern"
+msgstr "Telefonnummern"
 
 msgid "Please set URI."
 msgstr "Bitte setzen Sie die URI."

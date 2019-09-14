@@ -16,7 +16,7 @@ local content = {
 }
 
 content_helper.getExactContent(content)
-content.model = model_helper[string.untaint(content.model)]
+content.model = model_helper[string.untaint(content.model)] or content.model
 
 local modalPath = nil
 local switchName = nil
@@ -44,7 +44,7 @@ ngx.print('\
 	    <picture>\
 		    <source srcset="/img/gateway_'); ngx.print(content.model); ngx.print('.webp" type="image/webp">\
 		    <source srcset="/img/gateway_'); ngx.print(content.model); ngx.print('.png" type="image/png">\
-        <img class="someInfos" href="#" rel="tooltip" data-placement="top" data-original-title="');  ngx.print( T"Your Gateway" ); ngx.print('" src="/img/gateway_'); ngx.print(content.model); ngx.print('.png" alt="gateway">\
+        <img class="someInfos" href="#" rel="tooltip" data-placement="top" data-original-title="');  ngx.print( T"Your Gateway" ); ngx.print('" src="/img/gateway_'); ngx.print(content.model); ngx.print('.png" alt="'); ngx.print(content.model); ngx.print('">\
 		</picture>\
 		</div>\
       </div>\
@@ -52,9 +52,8 @@ ngx.print('\
   </div>\
 </div>\
 <script>\
-var GatewayCardInterval;\
 $(document).ready(function () {\
-	new createAjaxUpdateCard("gateway-card","/ajax/cpuload.lua",GatewayCardInterval,5000);\
+	new modgui.createAjaxUpdateCard("gateway-card","/ajax/cpuload.lua","GatewayCardInterval",5000);\
 })\
 </script>\
 ');

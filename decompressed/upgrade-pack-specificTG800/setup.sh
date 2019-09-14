@@ -36,11 +36,12 @@ done
 [ -d $MD5_CHECK_DIR ] && rm -r $MD5_CHECK_DIR
 
 if [ ! -f /etc/config/telnet ]; then
-	cp /tmp/telnet_orig /etc/config/telnet
+  touch /etc/config/telnet
+  uci set telnet.general=telnet
+  uci set telnet.general.enable='0'
+  uci commit telnet
 fi
 
-rm /tmp/telnet_orig
-
-if [ -f /bin/busybox_telnet ] && [ ! -h /usr/sbin/telnetd ]; then
-	ln -s /bin/busybox_telnet /usr/sbin/telnetd
+if [ -f /bin/busybox_telnet ] && [ ! -f /usr/sbin/telnetd ]; then
+  ln -s /bin/busybox_telnet /usr/sbin/telnetd
 fi

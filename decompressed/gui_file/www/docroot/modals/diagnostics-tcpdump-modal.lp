@@ -251,7 +251,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
           statusText = T"Failed"
         else
           statusIcon = "<i class=\"icon-ban-circle icon-large red\"></i>"
-          statusText = T"Not Requested"
+          statusText = T"Idle"
         end
     end
   end

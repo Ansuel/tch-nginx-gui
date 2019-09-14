@@ -25,7 +25,8 @@ if ngx.req.get_method() == "POST" and assistant:username() ~= username then
   if args.salt and args.verifier then
     rc = session:changePassword(args.salt, args.verifier)
     --if the user is default_user with role:admin and the legacy_salt is not null, reset it to null
-    if dm.get("uci.web.user.@usr_admin.legacy_salt")[1].value and ("admin" == session:getrole()) and (username == dm.get("uci.web.user.@usr_admin.name")[1].value) then
+    local legacy_salt = dm.get("uci.web.user.@usr_admin.legacy_salt")
+    if legacy_salt and legacy_salt[1].value and ("admin" == session:getrole()) and (username == dm.get("uci.web.user.@usr_admin.name")[1].value) then
       dm.set("uci.web.user.@usr_admin.legacy_salt", "")
       dm.apply()
     end

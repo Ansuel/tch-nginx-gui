@@ -8,17 +8,17 @@
 #    Copyright (C) 2018  Christian Marangi <ansuelsmth@gmail.com>
 #
 #    This file is part of Custom Gui for Technicolor Modem.
-#    
+#
 #    Custom Gui for Technicolor Modem is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
 #    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
-#    
+#
 #    Custom Gui for Technicolor Modem is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
-#    
+#
 #    You should have received a copy of the GNU General Public License
 #    along with Custom Gui for Technicolor Modem.  If not, see <http://www.gnu.org/licenses/>.
 #
@@ -27,7 +27,8 @@
 LIGHT_RED='\033[1;31m'
 NC='\033[0m'
 
-echo -e "${LIGHT_RED}
+print_logo() {
+  echo -e "${LIGHT_RED}
 
  █████╗ ███╗   ██╗███████╗██╗   ██╗███████╗██╗     
 ██╔══██╗████╗  ██║██╔════╝██║   ██║██╔════╝██║     
@@ -38,6 +39,7 @@ echo -e "${LIGHT_RED}
 (Modified Gui UpgradeScript)               (Christo)
 ${NC}
 "
+}
 
 curl="/usr/bin/curl -k -s"
 bzcat=/usr/bin/bzcat
@@ -46,81 +48,76 @@ rootdevice_call="debug"
 
 ############TRANSFORMER UTILITY##################
 set_transformer() {
-	cmd="require('datamodel').set('$1','$2')"
-	lua -e "$cmd"
+  cmd="require('datamodel').set('$1','$2')"
+  lua -e "$cmd"
 }
 #################################################
 
 logger_command() {
-	logger -s -t "Upgrade Script" "$1"
-	if [ -z "$2" ]; then
-		set_transformer "rpc.system.modgui.upgradegui.log" "$1"
-	fi
+  logger -t "Upgrade Script" "$1"
+  echo "Upgrade Script" "$1"
 }
 
 if [ "$1" ]; then
-	if [ "$1" == "SetTime" ]; then
-		time="$(uci get modgui.gui.autoupgrade_hour)"
-		hour="$(echo $time | sed "s|:.*||")"
-		minute="$(echo $time | sed "s|.*:||")"
-		autoupgrade="$(uci get modgui.gui.autoupgrade)"
-		if [ "$(cat /etc/crontabs/root | grep upgradegui )" ]; then
-            sed -i '/upgradegui/d' /etc/crontabs/root
-        fi
-		if [ "$autoupgrade" == "1" ]; then
-			echo "$minute $hour * * * /usr/share/transformer/scripts/upgradegui AutoUpgrade >/dev/null 2>&1" >> /etc/crontabs/root
-		fi
-		exit 0
-	fi	
-	
-	if [ "$1" == "AutoUpgrade" ]; then
-		/usr/share/transformer/scripts/checkver
-		if [ "$(uci get modgui.gui.outdated_ver)" == "0" ]; then
-			logger_command "Already at latest version. Aborting upgrade."
-			exit 0
-		fi
-		# Enabling alert for the gui about the autoupgrade
-		uci set modgui.gui.autoupgradeview=auto
-		uci commit modgui
-	fi
-	
-	if [ "$1" == "GuiRequest" ]; then
-		#upgradegui requested by gui button... Call reduced rootdevice
-		rootdevice_call="force"
-	fi
+  if [ "$1" == "SetTime" ]; then
+    time="$(uci get modgui.gui.autoupgrade_hour)"
+    hour="$(echo $time | sed "s|:.*||")"
+    minute="$(echo $time | sed "s|.*:||")"
+    autoupgrade="$(uci get modgui.gui.autoupgrade)"
+    if [ "$(cat /etc/crontabs/root | grep upgradegui)" ]; then
+      sed -i '/upgradegui/d' /etc/crontabs/root
+    fi
+    if [ "$autoupgrade" == "1" ]; then
+      echo "$minute $hour * * * /usr/share/transformer/scripts/upgradegui AutoUpgrade >/dev/null 2>&1" >>/etc/crontabs/root
+    fi
+    exit 0
+  fi
+
+  if [ "$1" == "AutoUpgrade" ]; then
+    /usr/share/transformer/scripts/checkver
+    if [ "$(uci get modgui.gui.outdated_ver)" == "0" ]; then
+      logger_command "Already at latest version. Aborting upgrade."
+      exit 0
+    fi
+    # Enabling alert for the gui about the autoupgrade
+    uci set modgui.gui.autoupgradeview=auto
+    uci commit modgui
+  fi
+
 else
-	# Enabling alert for the gui about the manual upgrade
-	uci set modgui.gui.autoupgradeview=manual
+  print_logo
+  # Enabling alert for the gui about the manual upgrade
+  uci set modgui.gui.autoupgradeview=manual
 fi
 
 URL_BASE="https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/"
 
 # Check update_branch
-if [ ! "$(uci get -q modgui.gui.update_branch)" ] ||  [ "$(uci get modgui.gui.update_branch)" == "stable" ]; then
-	update_branch=""
+if [ ! "$(uci get -q modgui.gui.update_branch)" ] || [ "$(uci get modgui.gui.update_branch)" == "stable" ]; then
+  update_branch=""
 elif [ "$(uci get modgui.gui.update_branch)" == "preview" ]; then
-	update_branch="_preview"
+  update_branch="_preview"
 else
-	update_branch="_dev"
+  update_branch="_dev"
 fi
 
 normalize() {
-	normalized_version=$1
-	if [ "$( echo $1 | grep -E '\.[0-9]\.' )" ]; then
-		normalized_version="$( echo $1 | sed 's|\.\([0-9]\.\)|.0\1|g' )"
-	fi
-	if [ "$( echo $normalized_version | tail -c 3 | grep "\." )" ]; then
-		normalized_version="$( echo "$normalized_version" | sed 's|\(\.[0-9][0-9]\.\)\([0-9]\)|\10\2|g' )"
-	fi
-	
-	echo "$normalized_version"
+  normalized_version=$1
+  if [ "$(echo $1 | grep -E '\.[0-9]\.')" ]; then
+    normalized_version="$(echo $1 | sed 's|\.\([0-9]\.\)|.0\1|g')"
+  fi
+  if [ "$(echo $normalized_version | tail -c 3 | grep "\.")" ]; then
+    normalized_version="$(echo "$normalized_version" | sed 's|\(\.[0-9][0-9]\.\)\([0-9]\)|\10\2|g')"
+  fi
+
+  echo "$normalized_version"
 }
 
 enum() {
-	echo "$(echo "$1" | sed -e 's/\.//g')"
+  echo "$(echo "$1" | sed -e 's/\.//g')"
 }
 
-#Check if stable have a new version 
+#Check if stable have a new version
 
 ubus send fwupgrade '{"state":"upgrading"}'
 
@@ -128,125 +125,136 @@ WORKING_DIR="/tmp"
 PERMANENT_STORE_DIR="/root"
 TARGET_DIR="/"
 FILE_NAME='GUI'$update_branch'.tar.bz2'
+STABLE_FILE_NAME='GUI.tar.bz2'
 CHECKSUM_FILE="version"
-UPGRADE_FROM_STABLE=0
+FORCE_SAVE_GUI=0
 
 overlay_available_space=$(df /overlay | sed -n 2p | awk {'{print $3}'})
 if [ "$overlay_available_space" -lt 3000 ]; then
-	logger_command "ERROR: not enough space to complete operation" >&2
-	#Should probably implement some sort of erase here <kevdagoat>
-	ubus send fwupgrade '{"state":"done"}'
-	exit 1
+  logger_command "ERROR: not enough space to complete operation" >&2
+  #Should probably implement some sort of erase here <kevdagoat>
+  ubus send fwupgrade '{"state":"done"}'
+  exit 1
 fi
 
 if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload is now present
-	
-	set_transformer "rpc.system.modgui.upgradegui.state" "Downloading"
-	
-	logger_command "Downloading GUI file..."
-	# Enter /tmp folder
-	if ! cd "$WORKING_DIR"; then
-	logger_command "ERROR: Can't access $WORKING_DIR" >&2
-	ubus send fwupgrade '{"state":"done"}'
-	exit 1
-	fi
-	
-	# Clean older GUI archive if present
-	for file in "$WORKING_DIR"/*; do
-	rm -f "$FILE_NAME"*
-	done
-	
-	# Download new GUI to /tmp
-	if ! $curl $URL_BASE/$FILE_NAME --output $WORKING_DIR/$FILE_NAME; then
-	logger_command "ERROR: Can't find new GUI file" >&2
-	ubus send fwupgrade '{"state":"done"}'
-	exit 1
-	fi
-	
-	# Check GUI hash
-	if [ -f /tmp/$CHECKSUM_FILE ]; then
-		rm "$WORKING_DIR/$CHECKSUM_FILE"
-	fi
-	$curl "$URL_BASE/$CHECKSUM_FILE" --output "$WORKING_DIR/$CHECKSUM_FILE"
-	
-	downloaded_md5="$(md5sum "$WORKING_DIR/$FILE_NAME" | awk '{print $1}')"
-	
-	if ! grep -q "$downloaded_md5" "$WORKING_DIR/$CHECKSUM_FILE" ; then
-		rm "$WORKING_DIR/$FILE_NAME"
-		rm "$WORKING_DIR/$CHECKSUM_FILE"
-		logger_command "ERROR: File corrupted!!!" >&2
-		logger_command "ERROR: Removing upgrade file and aborting." >&2
-		#Call a handler here to say fw upgrade failed? eg. ubus send fwupgrade '{"state":"failed"}'
-		ubus send fwupgrade '{"state":"done"}'
-		exit 1
-	fi
-	
-	logger_command "Downloaded GUI with hash: $downloaded_md5"
-	
-	if [ "$update_branch" ]; then
-		if [ "$update_branch" == "_dev" ] || [ "$update_branch" == "_preview" ]; then
-		
-			logger_command "Dev branch detected... Checking for newer version in stable..."
-			
-			STABLE_FILE_NAME='GUI.tar.bz2'
-				
-			if [ -f "$WORKING_DIR/$STABLE_FILE_NAME" ]; then
-				rm "$WORKING_DIR/$STABLE_FILE_NAME"
-			fi
-			
-			# Download stable GUI to /tmp
-			
-			if ! $curl $URL_BASE/$STABLE_FILE_NAME --output $WORKING_DIR/$STABLE_FILE_NAME; then
-				logger_command "ERROR: Can't find stable GUI file" >&2
-				rm "$WORKING_DIR/$FILE_NAME"
-				rm "$WORKING_DIR/$CHECKSUM_FILE"
-				#Call a handler here to say fw upgrade failed? eg. ubus send fwupgrade '{"state":"failed"}'
-				ubus send fwupgrade '{"state":"done"}'
-				exit 1
-			fi
-			
-			stable_md5=$( md5sum $WORKING_DIR/$STABLE_FILE_NAME | awk '{print $1}')
-			
-			if ! grep -q "$stable_md5" "$WORKING_DIR/$CHECKSUM_FILE" ; then
-				rm "$WORKING_DIR/$FILE_NAME"
-				rm "$WORKING_DIR/$STABLE_FILE_NAME"
-				rm "$WORKING_DIR/$CHECKSUM_FILE"
-				logger_command "ERROR: Stable file corrupted!!!" >&2
-				logger_command "ERROR: Removing upgrade file and aborting." >&2
-				#Call a handler here to say fw upgrade failed? eg. ubus send fwupgrade '{"state":"failed"}'
-				ubus send fwupgrade '{"state":"done"}'
-				exit 1
-			fi
-			
-			logger_command "Downloaded stable GUI with hash: $stable_md5"
-			
-			stable_version="$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $stable_md5 | awk '{print $2}' )"
-			
-			dev_version="$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $downloaded_md5 | awk '{print $2}' )"
-			
-			stable_version_norm="$(normalize $stable_version)"
-			
-			logger_command "Stable version found: $stable_version_norm"
-			
-			dev_version_norm="$(normalize $dev_version)"
-			
-			logger_command "Dev version found: $dev_version_norm"
-			
-			if [ $( enum $stable_version_norm ) -gt $( enum $dev_version_norm ) ]; then
-				logger_command "Found newer version in stable branch, using it..."
-				rm "$WORKING_DIR/$FILE_NAME"
-				FILE_NAME="$STABLE_FILE_NAME"
-				UPGRADE_FROM_STABLE=1
-			else
-				rm "$WORKING_DIR/$STABLE_FILE_NAME"
-			fi
-		fi
-	fi
+
+  set_transformer "rpc.system.modgui.executeCommand.state" "Downloading"
+
+  logger_command "Downloading GUI file..."
+  # Enter /tmp folder
+  if ! cd "$WORKING_DIR"; then
+    logger_command "ERROR: Can't access $WORKING_DIR" >&2
+    ubus send fwupgrade '{"state":"done"}'
+    exit 1
+  fi
+
+  # Clean older GUI archive if present
+  for file in "$WORKING_DIR"/*; do
+    rm -f "$FILE_NAME"*
+  done
+
+  # Download new GUI to /tmp
+  if ! $curl $URL_BASE/$FILE_NAME --output $WORKING_DIR/$FILE_NAME; then
+    logger_command "ERROR: Can't find new GUI file" >&2
+    ubus send fwupgrade '{"state":"done"}'
+    exit 1
+  fi
+
+  # Check GUI hash
+  if [ -f /tmp/$CHECKSUM_FILE ]; then
+    rm "$WORKING_DIR/$CHECKSUM_FILE"
+  fi
+  $curl "$URL_BASE/$CHECKSUM_FILE" --output "$WORKING_DIR/$CHECKSUM_FILE"
+
+  downloaded_md5="$(md5sum "$WORKING_DIR/$FILE_NAME" | cut -d' ' -f1)"
+
+  if ! grep -q "$downloaded_md5" "$WORKING_DIR/$CHECKSUM_FILE"; then
+    rm "$WORKING_DIR/$FILE_NAME"
+    rm "$WORKING_DIR/$CHECKSUM_FILE"
+    logger_command "ERROR: File corrupted!!!" >&2
+    logger_command "ERROR: Removing upgrade file and aborting." >&2
+    #Call a handler here to say fw upgrade failed? eg. ubus send fwupgrade '{"state":"failed"}'
+    ubus send fwupgrade '{"state":"done"}'
+    exit 1
+  fi
+
+  logger_command "Downloaded GUI with hash: $downloaded_md5"
+
+  if [ "$update_branch" ]; then
+    if [ "$update_branch" == "_dev" ] || [ "$update_branch" == "_preview" ]; then
+
+      logger_command "Dev branch detected... Checking for newer version in stable..."
+
+      if [ -f "$WORKING_DIR/$STABLE_FILE_NAME" ]; then
+        rm "$WORKING_DIR/$STABLE_FILE_NAME"
+      fi
+
+      # Download stable GUI to /tmp
+
+      if ! $curl $URL_BASE/$STABLE_FILE_NAME --output $WORKING_DIR/$STABLE_FILE_NAME; then
+        logger_command "ERROR: Can't find stable GUI file" >&2
+        rm "$WORKING_DIR/$FILE_NAME"
+        rm "$WORKING_DIR/$CHECKSUM_FILE"
+        #Call a handler here to say fw upgrade failed? eg. ubus send fwupgrade '{"state":"failed"}'
+        ubus send fwupgrade '{"state":"done"}'
+        exit 1
+      fi
+
+      stable_md5=$(md5sum $WORKING_DIR/$STABLE_FILE_NAME | cut -d' ' -f1)
+
+      if ! grep -q "$stable_md5" "$WORKING_DIR/$CHECKSUM_FILE"; then
+        rm "$WORKING_DIR/$FILE_NAME"
+        rm "$WORKING_DIR/$STABLE_FILE_NAME"
+        rm "$WORKING_DIR/$CHECKSUM_FILE"
+        logger_command "ERROR: Stable file corrupted!!!" >&2
+        logger_command "ERROR: Removing upgrade file and aborting." >&2
+        #Call a handler here to say fw upgrade failed? eg. ubus send fwupgrade '{"state":"failed"}'
+        ubus send fwupgrade '{"state":"done"}'
+        exit 1
+      fi
+
+      logger_command "Downloaded stable GUI with hash: $stable_md5"
+
+      stable_version="$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $stable_md5 | cut -d' ' -f2)"
+      stable_version_norm="$(normalize $stable_version)"
+
+      logger_command "Downloaded Stable version: $stable_version_norm"
+
+      dev_version="$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $downloaded_md5 | cut -d' ' -f2)"
+      dev_version_norm="$(normalize $dev_version)"
+
+      logger_command "Downloaded $update_branch version: $dev_version_norm"
+
+      if [ $(enum $stable_version_norm) -gt $(enum $dev_version_norm) ]; then
+        logger_command "Found newer version in stable branch, using it..."
+        rm "$WORKING_DIR/$FILE_NAME"
+        FILE_NAME="$STABLE_FILE_NAME"
+        FORCE_SAVE_GUI=1
+      else
+
+        if [ -f $PERMANENT_STORE_DIR/$FILE_NAME ]; then
+          saved_stable_md5=$(md5sum $PERMANENT_STORE_DIR/$FILE_NAME | cut -d' ' -f1)
+
+          if [ $saved_stable_md5 != $stable_md5 ]; then
+            logger_command "Permanent package md5 is not same of latest Stable GUI. Replacing..."
+            rm "$PERMANENT_STORE_DIR/$FILE_NAME"
+            cp $WORKING_DIR/$STABLE_FILE_NAME $PERMANENT_STORE_DIR/
+          fi
+        fi
+
+        rm "$WORKING_DIR/$STABLE_FILE_NAME"
+      fi
+    fi
+  fi
 else
-	logger_command "Found file in /tmp dir... doing offline upgrade!"
+  logger_command "Found file in /tmp dir... doing offline upgrade!"
+  #Save gui always as STABLE in offline upgrade as we can't check or download it.
+  FILE_NAME="$STABLE_FILE_NAME"
+  FORCE_SAVE_GUI=1
 fi
 
-set_transformer "rpc.system.modgui.upgradegui.state" "Clearing"
+set_transformer "rpc.system.modgui.executeCommand.state" "Clearing"
 
 #NOT NEEDED ANYMORE
 #logger_command "Stopping nginx..."
@@ -255,97 +263,85 @@ set_transformer "rpc.system.modgui.upgradegui.state" "Clearing"
 logger_command "Cleaning www dir"
 #clean old www dir
 
-for dir in /www/* ; do
-    if [ "$dir" = "/www/docroot" ]; then
-		for subdir in /www/docroot/* ; do
-			if [ "$subdir" = "/www/docroot/aria" ] || 
-			   [ "$subdir" = "/www/docroot/transmission" ]; then
-				continue
-			elif [ "$subdir" = "/www/docroot/modals" ]; then
-				for file in /www/docroot/modals/* ; do
-					#We need this file to handle rootdevice log in gui
-					if [ "$file" != "/www/docroot/modals/modgui-modal.lp" ]; then
-						rm "$file"
-					fi
-				done
-			else
-				rm -rf "$subdir"
-			fi
-		done
-    else
-		rm -rf "$dir"
-	fi
+for dir in /www/*; do
+  if [ "$dir" = "/www/docroot" ]; then
+    for subdir in /www/docroot/*; do
+      if [ "$subdir" = "/www/docroot/aria" ] ||
+        [ "$subdir" = "/www/docroot/transmission" ]; then
+        continue
+      elif [ "$subdir" = "/www/docroot/ajax" ]; then
+        for file in /www/docroot/ajax/*; do
+          #We need this file to handle rootdevice log in gui
+          if [ "$file" != "/www/docroot/ajax/commandlogread.lua" ]; then
+            rm "$file"
+          fi
+        done
+      else
+        rm -rf "$subdir"
+      fi
+    done
+  else
+    rm -rf "$dir"
+  fi
 done
 
-set_transformer "rpc.system.modgui.upgradegui.state" "Extracting"
+set_transformer "rpc.system.modgui.executeCommand.state" "Extracting"
 
 logger_command "Extracting file..."
 # Extract new GUI to /
-bzcat "$WORKING_DIR/$FILE_NAME" | 
-tar -C "$TARGET_DIR" -xvf - | 
-while read -r line; do 
-	nfile_extracted=$((nfile_extracted+1))
-	if [ $(($nfile_extracted%100)) -eq 0 ]; then
-	set_transformer "rpc.system.modgui.upgradegui.extract_prog" $nfile_extracted
-	fi
-done
+bzcat "$WORKING_DIR/$FILE_NAME" |
+  tar -C "$TARGET_DIR" -xvf - |
+  while read -r line; do
+    nfile_extracted=$((nfile_extracted + 1))
+    if [ $(($nfile_extracted % 100)) -eq 0 ]; then
+      logger_command "Extracted $nfile_extracted files"
+    fi
+  done
 
 # Restore blacklist contacts
 blacklist_restore="http://blacklist.satellitar.it/repository/install_blacklist.sh"
-if [ "$( uci get -q modgui.app.blacklist_app)" ] && [ "$(uci get modgui.app.blacklist_app)" == "1" ]; then
-	if $curl $blacklist_restore --output $WORKING_DIR/install_blacklist.sh; then
-		$WORKING_DIR/install_blacklist.sh update
-		rm $WORKING_DIR/install_blacklist.sh
-	fi
+if [ "$(uci get -q modgui.app.blacklist_app)" ] && [ "$(uci get modgui.app.blacklist_app)" == "1" ]; then
+  if $curl $blacklist_restore --output $WORKING_DIR/install_blacklist.sh; then
+    $WORKING_DIR/install_blacklist.sh update
+    rm $WORKING_DIR/install_blacklist.sh
+  fi
 fi
 
+#Remove deprecated GUI packages if found in /root
 if [ -f /root/GUI_dev.tar.bz2 ]; then
-    logger_command "Deleting /root/GUI_dev.tar.bz2..."
-    rm /root/GUI_dev.tar.bz2
+  logger_command "Deleting /root/GUI_dev.tar.bz2..."
+  rm /root/GUI_dev.tar.bz2
+fi
+if [ -f /root/GUI.tar.gz ]; then
+  logger_command "Deleting GUI.tar.gz..."
+  rm /root/GUI.tar.gz
 fi
 
-overlay_space="$(df /overlay | sed -n 2p | awk {'{print $2}'})"
-if [ "$overlay_space" -lt 33000 ]; then
-	logger_command "Detected low mem device..."
-	if [ -f /root/GUI.tar.bz2 ]; then
-	    logger_command "Deleting /root/GUI.tar.bz2..."
-		rm /root/GUI.tar.bz2
-	fi
-	if [ -z "$update_branch" ] || [ $UPGRADE_FROM_STABLE == 1 ]; then
-        logger_command "Creating tar.gz of downloaded GUI with no additional module..."
-        mkdir /tmp/extractemp
-        bzcat $WORKING_DIR/$FILE_NAME | tar -C /tmp/extractemp -xf -
-        rm -r /tmp/extractemp/tmp
-        cd  /tmp/extractemp/
-        tar -zcf ../GUI.tar.gz *
-        cd ../../
-        md5sum $WORKING_DIR/$FILE_NAME | awk '{ print $1}' > /root/gui_orig.md5sum
-        mv /tmp/GUI.tar.gz /root/
-        rm -r /tmp/extractemp
-	fi
-else
-	if [ -z "$update_branch" ] || [ $UPGRADE_FROM_STABLE == 1 ]; then
-		logger_command "Copying file to permanent dir..."
-		#Copy GUI file to permanent dir
-		if [ -f "$PERMANENT_STORE_DIR/$FILE_NAME" ]; then
-			rm "$PERMANENT_STORE_DIR/$FILE_NAME"
-		fi
-		cp "$WORKING_DIR/$FILE_NAME" "$PERMANENT_STORE_DIR/"
-	fi
+if [ -z "$update_branch" ] || [ $FORCE_SAVE_GUI == 1 ]; then
+  logger_command "Copying file to permanent dir..."
+  #Copy GUI file to permanent dir
+  if [ -f "$PERMANENT_STORE_DIR/$FILE_NAME" ]; then
+    rm "$PERMANENT_STORE_DIR/$FILE_NAME"
+  fi
+  cp "$WORKING_DIR/$FILE_NAME" "$PERMANENT_STORE_DIR/"
 fi
 
 if [ "$update_branch" == "_dev" ] || [ "$update_branch" == "_preview" ]; then
-    logger_command "Saving md5sum of dev gui to /root ..."
-    md5sum "$WORKING_DIR/$FILE_NAME" | awk '{ print $1}' > /root/gui_dev.md5sum
-fi
-
-rm "$WORKING_DIR/$FILE_NAME"
-if [ -f "$WORKING_DIR/$CHECKSUM_FILE" ]; then
-	rm "$WORKING_DIR/$CHECKSUM_FILE"
+  logger_command "Saving md5sum of dev gui to /root ..."
+  md5sum "$WORKING_DIR/$FILE_NAME" | cut -d' ' -f1 >/root/gui_dev.md5sum
 fi
 
 logger_command "Running rootdevice script"
 # Run init.d script
+set_transformer "rpc.system.modgui.executeCommand.state" "In Progress"
 /etc/init.d/rootdevice "$rootdevice_call"
+
+if [ -f "$WORKING_DIR/$FILE_NAME" ]; then
+  rm "$WORKING_DIR/$FILE_NAME"
+fi
+if [ -f "$WORKING_DIR/$CHECKSUM_FILE" ]; then
+  rm "$WORKING_DIR/$CHECKSUM_FILE"
+fi
+
 ubus send fwupgrade '{"state":"done"}'
 logger_command "Upgrade Done" ConsoleOnly

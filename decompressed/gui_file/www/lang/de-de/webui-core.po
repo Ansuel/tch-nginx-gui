@@ -93,8 +93,8 @@ msgstr[1] "<strong %1$s>%2$d Abgeschaltete Helper</strong>"
 
 msgid "<strong %1$s>%2$d Enabled Helper</strong>"
 msgid_plural "<strong %1$s>%2$d Enabled Helpers</strong>"
-msgstr[0] "<strong %1$s>%2$d Eingeschalteter Helper</strong>"
-msgstr[1] "<strong %1$s>%2$d Eingeschaltete Helper</strong>"
+msgstr[0] "<strong %1$s>%2$d Aktivierter Helper</strong>"
+msgstr[1] "<strong %1$s>%2$d Aktivierte Helper</strong>"
 
 msgid "<strong %1$s>%2$d Route</strong>"
 msgid_plural "<strong %1$s>%2$d Routes</strong>"
@@ -136,6 +136,11 @@ msgid_plural "<strong id = \"Wifi_Devices\" %1$s>%2$d WiFi devices</strong> conn
 msgstr[0] "<strong id = \"Wifi_Devices\" %1$s>%2$d WiFi Gerät</strong> verbunden"
 msgstr[1] "<strong id = \"Wifi_Devices\" %1$s>%2$d WiFi Geräte</strong> verbunden"
 
+msgid "<strong id=\"iproutescard_noofipv4staticroutes\" %1$s>%2$d IPv4 Static Route</strong>"
+msgid_plural "<strong id=\"iproutescard_noofipv4staticroutes\" %1$s>%2$d IPv4 Static Routes</strong>"
+msgstr[0] "<strong id = \"Wifi_Devices\" %1$s>%2$d Statische IPv4-Route</strong>"
+msgstr[1] "<strong id = \"Wifi_Devices\" %1$s>%2$d Statische IPv4-Routen</strong>"
+
 msgid "<strong>%d</strong> IPv4 rule(s) defined<br>"
 msgstr "<strong>%d</strong> IPv4 Regel(n) definiert<br>"
 
@@ -143,7 +148,7 @@ msgid "<strong>%d</strong> IPv6 rule(s) defined"
 msgstr "<strong>%d</strong> IPv6 Regel(n) definiert"
 
 msgid "<strong>Disabled for now... need to wait @Roleo</strong>"
-msgstr "<strong>Bislang deaktiviert, müssen auf @Roleo warten</strong>"
+msgstr "<strong>Derzeit deaktiviert, müssen auf @Roleo warten</strong>"
 
 msgid "<strong>High</strong>"
 msgstr "<strong>Hoch</strong>"
@@ -161,7 +166,7 @@ msgid "<strong>You must reboot modem to apply host rules!</strong>"
 msgstr "<strong>Sie müssen das Modem neustarten, um die Host-Regeln anzuwenden!</strong>"
 
 msgid "A hostname must be between 1 and 63 characters"
-msgstr "Ein Hostname darf zwischen 1 und 63 Zeichen lang sein"
+msgstr "Ein Hostname muss zwischen 1 und 63 Zeichen lang sein"
 
 msgid "A hostname must contain only alphanumeric characters with/without dash"
 msgstr "Ein Hostname darf nur aus alphanumerischen Zeichen und Strichen bestehen"
@@ -170,7 +175,7 @@ msgid "A hostname must not contain only digits"
 msgstr "Ein Hostname darf nicht nur aus Ziffern bestehen"
 
 msgid "Name must be between 1 and 63 characters"
-msgstr "Ein Name darf zwischen 1 und 63 Zeichen lang sein"
+msgstr "Ein Name muss zwischen 1 und 63 Zeichen lang sein"
 
 msgid "Name must contain only alphanumeric characters and/or dashes"
 msgstr "Ein Name darf nur aus alphanumerischen Zeichen und Strichen bestehen"
@@ -217,7 +222,7 @@ msgstr "Zugriffskontroll-Liste"
 msgid "Access Point"
 msgstr "Access Point"
 
-msgid "Access points"
+msgid "Access Points"
 msgstr "Access Points"
 
 msgid "Action"
@@ -428,10 +433,10 @@ msgid "Blue"
 msgstr "Blau"
 
 msgid "Bootloader OID"
-msgstr "Urlader OID"
+msgstr "Bootloader OID"
 
 msgid "Bootloader Version"
-msgstr "Urlader Version"
+msgstr "Bootloader Version"
 
 msgid "Bridge Grouping"
 msgstr "Brückengruppierung"
@@ -484,8 +489,8 @@ msgstr "CWMP"
 msgid "CWMP Settings"
 msgstr "CWMP Einstellungen"
 
-msgid "Can't recover dslam version."
-msgstr "Kann die DSlam Version nicht erkennen."
+msgid "Can't recover DSLAM version."
+msgstr "Kann die DSLAM Version nicht ermitteln."
 
 msgid "Cancel"
 msgstr "Abbrechen"
@@ -530,7 +535,7 @@ msgid "Checking..."
 msgstr "Prüfen..."
 
 msgid "Choose Device"
-msgstr "Wähle Gerät"
+msgstr "Gerät wählen"
 
 msgid "Clean"
 msgstr "Leeren"
@@ -1150,7 +1155,7 @@ msgstr "Firmware-Aktualisierung fehlgeschlagen. Bitte verwenden Sie die richtige
 msgid "Firmware update in progress, please wait..."
 msgstr "Firmware-Aktualisierung wird durchgeführt, bitte warten..."
 
-msgid "First DNS Server IPV6 Ping"
+msgid "First DNS Server IPv6 Ping"
 msgstr "Erster DNS Server IPv6 PIng"
 
 msgid "First DNS Server Ping"
@@ -1290,9 +1295,6 @@ msgstr "IPv4 Port-Weiterleitungstabelle"
 
 msgid "IPv4 Routes"
 msgstr "IPv4 Routen"
-
-msgid "IPv4 Static Routes"
-msgstr "Statische IPv4-Routen"
 
 msgid "IPv6 Assigned"
 msgstr "IPv6 zugewiesen"
@@ -1585,9 +1587,6 @@ msgstr "Protokollanzeige"
 msgid "Login Expired. Reloading."
 msgstr "Anmeldung abgelaufen. Neu laden."
 
-msgid "LuCI GUI !! BROKEN !!"
-msgstr "LuCI GUI !! Defekt !!"
-
 msgid "LuCI WebUi installed"
 msgstr "LuCI WebUi installiert"
 
@@ -1717,7 +1716,7 @@ msgstr "Neue Version"
 msgid "Next Hop Ping"
 msgstr "Next Hop Ping"
 
-msgid "Next Hop Ping IPV6"
+msgid "Next Hop Ping IPv6"
 msgstr "Next Hop Ping IPv6"
 
 msgid "No Address Assigned"
@@ -1752,9 +1751,6 @@ msgstr "Keine ausgewählt"
 
 msgid "Not Connected"
 msgstr "Nicht verbunden"
-
-msgid "Not Requested"
-msgstr "Nicht verlangt"
 
 msgid "Not Set"
 msgstr "Nicht gesetzt"
@@ -2257,7 +2253,7 @@ msgstr "Netzwerk Name (SSID)"
 msgid "Sat."
 msgstr "Sam."
 
-msgid "Second DNS Server IPV6 Ping"
+msgid "Second DNS Server IPv6 Ping"
 msgstr "Zweiter DNS Server IPv6 Ping"
 
 msgid "Second DNS Server Ping"
@@ -2318,7 +2314,7 @@ msgid "Settings"
 msgstr "Einstellungen"
 
 msgid "Setup Wizard"
-msgstr "Einrichtungshilfe"
+msgstr "Einrichtungsassistent"
 
 msgid "Short Guard Interval"
 msgstr "Short Guard Intervall"
@@ -2342,7 +2338,7 @@ msgid "Size (bytes):"
 msgstr "Größe (Bytes):"
 
 msgid "Software Version"
-msgstr "Software-Version"
+msgstr "Softwareversion"
 
 msgid "Some parameters failed validation"
 msgstr "Einige Parameter konnten nicht validiert werden"
@@ -2354,7 +2350,7 @@ msgid "Source Address"
 msgstr "Quelladresse"
 
 msgid "Source IP"
-msgstr "Quellen.IP"
+msgstr "Quellen IP"
 
 msgid "Space Time Block Code"
 msgstr "Space Time Block Code"
@@ -2396,7 +2392,7 @@ msgid "State"
 msgstr "Status"
 
 msgid "State: "
-msgstr "Status "
+msgstr "Status: "
 
 msgid "Static Connection"
 msgstr "Statische Verbindung"
@@ -2444,7 +2440,7 @@ msgid "Subnet Mask"
 msgstr "Subnetzmaske"
 
 msgid "Success"
-msgstr "Erfolg"
+msgstr "Erfolgreich"
 
 msgid "Success Count:"
 msgstr "Erfolgszähler:"
@@ -2899,11 +2895,11 @@ msgstr "WAN aktiviert"
 msgid "WAN Graph"
 msgstr "WAN Grafik"
 
-msgid "WAN IP is <strong id =\"wan_ip\">%s</strong>"
-msgstr "WAN IP ist <strong id='wan_ip'>%s</strong>"
-
 msgid "WAN IP is <strong>%s</strong>"
 msgstr "WAN IP ist <strong>%s</strong>"
+
+msgid "WAN IPv6 is <strong>%s</strong>"
+msgstr "WAN IPv6 ist <strong>%s</strong>"
 
 msgid "WAN Services"
 msgstr "WAN Dienste"
@@ -2953,7 +2949,7 @@ msgstr "WPS Modus"
 msgid "WPS is automatically disabled if you choose WEP, WPA-only security or disable broadcast of the SSID"
 msgstr "WPS ist automatisch abgeschaltet, wenn Sie WEP oder Nur-WPA Sicherheitseinstellungen verwenden oder wenn Sie den Broadcast der SSID abschalten"
 
-msgid "WoL (Wake on LAN) & WoW (Wake on WAN)"
+msgid "Wake on LAN & WAN"
 msgstr "Wake-On-LAN über das Internet"
 
 msgid "We don't have any driver for this modem, please report them to the github page. "
@@ -4215,9 +4211,6 @@ msgstr "Geben Sie den <strong>\"access code\"</strong> ein. Dieser befindet sich
 msgid "802.11a/n/ac"
 msgstr "802.11a/n/ac"
 
-msgid "Uptime : <strong>%s</strong>"
-msgstr "Einschaltzeit : <strong>%s</strong>"
-
 msgid "2"
 msgstr "2"
 
@@ -4392,7 +4385,7 @@ msgid "IPv6 Devices List"
 msgstr "IPv6 Geräteliste"
 
 msgid "IPv6 Default Gateway"
-msgstr "IPV6 Standard Gateway"
+msgstr "IPv6 Standard Gateway"
 
 msgid "IPv6 Global Addr"
 msgstr "IPv6 globale Adresse"
@@ -4407,9 +4400,9 @@ msgid "UDP Payload Length:"
 msgstr "UDP Payload Länge:"
 
 msgid "Send"
-msgstr "Sende"
+msgstr "Senden"
 
-msgid "Speed Diagonostics Result History"
+msgid "Speed Diagnostics Result History"
 msgstr "Geschwindigkeitsdiagnose Ergebnishistorie"
 
 msgid "Max Steps"
@@ -4500,7 +4493,7 @@ msgid "Expire Time is invalid. It should be a whole number, between 60 and 60000
 msgstr "Ablaufzeit ungültig, es muss eine ganze Zahl zwischen 60 und 600000 sein."
 
 msgid "PIN code must be composed of 4 or 8 digits with potentially a dash or space in the middle."
-msgstr "Der PIN Kode muss aus 4 oder 8 Ziffern bestehen, eventuell mit einem Leerzeichen oder Bindestrich in der Mitte."
+msgstr "Der PIN-Code muss aus 4 oder 8 Ziffern bestehen, eventuell mit einem Leerzeichen oder Bindestrich in der Mitte."
 
 msgid "The minimum leasetime must be 120 seconds or 2 minutes."
 msgstr "Die Lease-Dauer kann minimal 120 Sekunden bzw. 2 Minuten betragen."
@@ -4748,4 +4741,52 @@ msgid "Specific App are not installed."
 msgstr "Bestimmte App ist nicht installiert."
 
 msgid "Force HTTPS to access the GUI"
+msgstr ""
+
+msgid "Reset CWMP"
+msgstr ""
+
+msgid "Are you sure you want to reset CWMP db of this modem? </br><strong> This will force the first-time boot provisioning with ACS server that can fail on an already provisioned modem.</strong>"
+msgstr ""
+
+msgid "Force CWMP provisioning"
+msgstr ""
+
+msgid "Executing"
+msgstr ""
+
+msgid "IPv4 address"
+msgstr ""
+
+msgid "IPv6 GUA"
+msgstr ""
+
+msgid "Reset xDSL Driver to original version"
+msgstr ""
+
+msgid "Reset the modem to the firmware stock GUI. Some config and root SSH access will be preserved. This roll back without a full reset can cause unexpected behaviours or instability"
+msgstr ""
+
+msgid "Concentrator Name"
+msgstr ""
+
+msgid "Concentrator MAC"
+msgstr ""
+
+msgid "Upload failed. Please try again."
+msgstr ""
+
+msgid "Upload Backup"
+msgstr ""
+
+msgid "This will use OpenWRT backup and restore function insteand of the Technicolor function."
+msgstr ""
+
+msgid "Backup Zip"
+msgstr ""
+
+msgid "Advanced Restore & Backup"
+msgstr ""
+
+msgid "Generating backup in background..."
 msgstr ""

@@ -56,10 +56,17 @@ local content = {
   wan_ppp_ll_intf = "rpc.network.interface.@wan.ppp.ll_intf",
   up = "rpc.network.interface.@".. wan_interface ..".up",
   ipaddr = "rpc.network.interface.@wan.ipaddr",
+  concentrator_name = "rpc.network.interface.@wan.ppp.access_concentrator_name",
   nexthop = "rpc.network.interface.@wan.nexthop",
   dns_wan = "rpc.network.interface.@wan.dnsservers",
   uptime = "rpc.network.interface.@wan.uptime",
 }
+
+local internethelper = require("internethelper")
+
+for v6Key, v6Value in pairs(internethelper.getIpv6Content()) do
+	content[v6Key] = v6Value
+end
 
 content_helper.getExactContent(content)
 
@@ -97,13 +104,19 @@ end
 	html[#html + 1] = ui_helper.createLabel(T"Broadband Connection", tabdata.current.description , basic)
 	html[#html + 1] = ui_helper.createLabel(T"Connection Type", mode_data[mode_active].description , basic)
 	if mode_active ~= "bridge" then
-		basic.span["data-bind"] = "text: wanip"
-		html[#html+1] = ui_helper.createLabel(T"IP address", content["ipaddr"], basic)
+		basic.span["data-bind"] = "text: WAN_IP"
+		html[#html+1] = ui_helper.createLabel(T"IPv4 address", content["ipaddr"], basic)
+		basic.span["data-bind"] = "text: WAN_IPv6"
+		html[#html+1] = ui_helper.createLabel(T"IPv6 address", content["ip6addr"], basic)
+		if mode_active:match("ppp") and content["concentrator_name"] ~= "" then
+			basic.span["data-bind"] = "text: concentrator_name"
+			html[#html+1] = ui_helper.createLabel(T"Concentrator Name", content["concentrator_name"], basic)
+		end
 		basic.span["data-bind"] = "text: wangateway"
 		html[#html+1] = ui_helper.createLabel(T"Gateway", content["nexthop"], basic)
 		basic.span["data-bind"] = "text: wandns"
 		html[#html+1] = ui_helper.createLabel(T"DNS servers", content["dns_wan"], basic)
-		basic.span["data-bind"] = "text: wanuptime"
+		basic.span["data-bind"] = "text: wan_uptime_extended"
 		html[#html + 1] = ui_helper.createLabel(T"Uptime", content["uptime"],  basic)
 	end
 	
@@ -116,9 +129,8 @@ ngx.print('\
   </div>\
 </div>\
 <script>\
-var InfoWanStatsCardInterval;\
 $(document).ready(function () {\
-	new createAjaxUpdateCard("wanstatsinfotab","/ajax/internet.lua",InfoWanStatsCardInterval,5000);\
+	new modgui.createAjaxUpdateCard("wanstatsinfotab","/ajax/internet.lua","InfoWanStatsCardInterval",5000);\
 })\
 </script>\
 '); 

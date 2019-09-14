@@ -44,8 +44,8 @@ local wireless_wifiap = {
   options = { "iface", "state", "public", "ap_isolation", "station_history", "security_mode",
               "wps_state", "wsc_state", "wps_ap_setup_locked",
               "acl_mode", "acl_registration_time", "trace_modules", "trace_level", "wps_w7pbc", "bandsteer_id",
-              "pmksa_cache", "max_assoc", "eap_reauth_period", "reauth_period_pmksa_lifetime_linked", "nas_wan_intf", "group_id", },
-  passwords = { "wep_key", "wpa_psk_key", "wps_ap_pin" },
+              "pmksa_cache", "max_assoc", "eap_reauth_period", "reauth_period_pmksa_lifetime_linked", "nas_wan_intf", "group_id",
+              "wep_key", "wpa_psk_key", "wps_ap_pin" },
   lists = { "acl_accept_list", "acl_deny_list", }
 }
 
@@ -55,8 +55,7 @@ mapper("uci_1to1").registerNamedMultiMap(wireless_wifiap)
 local wireless_wifiradiusserver = {
   config = config_wireless,
   type = "wifi-radius-server",
-  options = { "state", "ip", "port", "fqdn", "dhcp_acct", "priority" },
-  passwords = { "secret" }
+  options = { "state", "ip", "port", "fqdn", "dhcp_acct", "priority", "secret" }
 }
 
 mapper("uci_1to1").registerNamedMultiMap(wireless_wifiradiusserver)
