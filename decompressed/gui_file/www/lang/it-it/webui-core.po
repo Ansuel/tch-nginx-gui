@@ -4772,3 +4772,22 @@ msgstr "Nome concentratore"
 
 msgid "Concentrator MAC"
 msgstr "MAC concentratore"
+
+msgid "Backup Zip"
+msgstr "ZIP backup"
+
+msgid "This will use OpenWRT backup and restore function insteand of the Technicolor function."
+msgstr "Verranno usate le funzioni di backup e ripristino di OpenWRT invece di quelle Technicolor."
+
+msgid "Upload failed. Please try again."
+msgstr "Upload fallito. Riprova."
+
+msgid "Upload Backup"
+msgstr "Upload backup"
+
+msgid "Advanced Restore & Backup"
+msgstr "Ripristino e backup avanzati"
+
+msgid "Generating backup in background..."
+msgstr "Generazione backup in background..."
+
