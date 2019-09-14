@@ -486,8 +486,10 @@ end
     html[#html+1] = ui_helper.createLabel(T"IPv4 address", content_rpc["ipaddr"], ajax_attr)
 	ajax_attr.span.id = "nexthop"
     html[#html+1] = ui_helper.createLabel(T"Gateway", content_rpc["nexthop"], ajax_attr)
-    ajax_attr.span.id = "concentrator_name"
-    html[#html+1] = ui_helper.createLabel(T"Concentrator Name", content_rpc["concentrator_name"], ajax_attr)
+	if content_rpc["concentrator_name"] ~= "" then
+		ajax_attr.span.id = "concentrator_name"
+		html[#html+1] = ui_helper.createLabel(T"Concentrator Name", content_rpc["concentrator_name"], ajax_attr)
+	end
     ajax_attr.span.id = "concentrator_mac"
     html[#html+1] = ui_helper.createLabel(T"Concentrator MAC", content_rpc["concentrator_mac"], ajax_attr)
 	ajax_attr.span.id = "dns"

@@ -49,19 +49,19 @@ local function getPPPInfoData(key,data)
 		and intf_status.data.pppinfo.pppstate ~= nil then
 		return intf_status.data.pppinfo[data]
 	end
-	return ""
+	return nil
 end
 
 local function get_state(mapping, paramName, key)
-	return getPPPInfoData(key,"pppstate")
+	return getPPPInfoData(key,"pppstate") or ""
 end
 
 local function get_concentrator_name(mapping, paramName, key)
-	return getPPPInfoData(key,"access-concentrator-name")
+	return getPPPInfoData(key,"access-concentrator-name") or ""
 end
 
 local function get_concentrator_mac(mapping, paramName, key)
-	return getPPPInfoData(key,"access-concentrator-mac")
+	return getPPPInfoData(key,"access-concentrator-mac") or getPPPInfoData(key,"accesconcentrator") or ""
 end
 
 local function get_error(mapping, paramName, key)

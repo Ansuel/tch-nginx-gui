@@ -108,7 +108,7 @@ end
 		html[#html+1] = ui_helper.createLabel(T"IPv4 address", content["ipaddr"], basic)
 		basic.span["data-bind"] = "text: WAN_IPv6"
 		html[#html+1] = ui_helper.createLabel(T"IPv6 address", content["ip6addr"], basic)
-		if mode_active:match("ppp") then
+		if mode_active:match("ppp") and content["concentrator_name"] ~= "" then
 			basic.span["data-bind"] = "text: concentrator_name"
 			html[#html+1] = ui_helper.createLabel(T"Concentrator Name", content["concentrator_name"], basic)
 		end
