@@ -121,9 +121,6 @@ msgstr "Gewicht"
 msgid "Weighted Round Robin"
 msgstr "Gewichtetes Round Robin"
 
-msgid "Yes"
-msgstr "Ja"
-
 msgid "Qos Wireless Status"
 msgstr "QoS Drahtlos Status"
 

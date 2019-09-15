@@ -66,6 +66,26 @@ msgstr "<p>Fernwartung ist aktuell deaktiviert.</p><p> Durch Drücken des 'Anwen
 msgid "<p>Remote assistance is currently enabled. </p><p>Click 'Apply' button with the 'Enabled' checkbox disabled to disable remote assistance on your gateway </p>"
 msgstr "<p>Fernwartung ist aktuell aktiviert.</p><p> Durch Drücken des 'Anwenden'-Knopfs mit ausgeschalteter Checkbox wird Ihr Gateway von der Breitbandseite nicht mehr zugreifbar sein.</p>"
 
+msgid "<strong %1$s>%2$d DNS Server</strong>"
+msgid_plural "<strong %1$s>%2$d DNS Servers</strong>"
+msgstr[0] "<strong %1$s>%2$d DNS Server</strong>"
+msgstr[1] "<strong %1$s>%2$d DNS Server</strong>"
+
+msgid "<strong %1$s>%2$d Disabled Helper</strong>"
+msgid_plural "<strong %1$s>%2$d Disabled Helpers</strong>"
+msgstr[0] "<strong %1$s>%2$d Abgeschalteter Helper</strong>"
+msgstr[1] "<strong %1$s>%2$d Abgeschaltete Helper</strong>"
+
+msgid "<strong %1$s>%2$d Enabled Helper</strong>"
+msgid_plural "<strong %1$s>%2$d Enabled Helpers</strong>"
+msgstr[0] "<strong %1$s>%2$d Aktivierter Helper</strong>"
+msgstr[1] "<strong %1$s>%2$d Aktivierte Helper</strong>"
+
+msgid "<strong %1$s>%2$d Route</strong>"
+msgid_plural "<strong %1$s>%2$d Routes</strong>"
+msgstr[0] "<strong %1$s>%2$d Route</strong>"
+msgstr[1] "<strong %1$s>%2$d Routen</strong>"
+
 msgid "<strong %s>%d Access Control</strong> rule defined"
 msgid_plural "<strong %s>%d Access Control</strong> rule defined"
 msgstr[0] "<strong %s>%d Zugriffsregel</strong> definiert"
@@ -80,6 +100,21 @@ msgid "<strong %s>%d port forwarding</strong> rule is defined"
 msgid_plural "<strong %s>%d port forwarding</strong> rules are defined"
 msgstr[0] "<strong %s>%d Port-Weiterleitungsregel</strong> definiert"
 msgstr[1] "<strong %s>%d Port-Weiterleitungsregeln</strong> definiert"
+
+msgid "<strong id = \"Ethernet_Devices\" %1$s>%2$d Ethernet device</strong> connected"
+msgid_plural "<strong id = \"Ethernet_Devices\" %1$s>%2$d Ethernet devices</strong> connected"
+msgstr[0] "<strong id = \"Ethernet_Devices\" %1$s>%2$d Ethernet Gerät</strong> verbunden"
+msgstr[1] "<strong id = \"Ethernet_Devices\" %1$s>%2$d Ethernet Geräte</strong> verbunden"
+
+msgid "<strong id = \"Wifi_Devices\" %1$s>%2$d Wi-Fi device</strong> connected"
+msgid_plural "<strong id = \"Wifi_Devices\" %1$s>%2$d Wi-Fi devices</strong> connected"
+msgstr[0] "<strong id = \"Wifi_Devices\" %1$s>%2$d Wi-Fi Gerät</strong> verbunden"
+msgstr[1] "<strong id = \"Wifi_Devices\" %1$s>%2$d Wi-Fi Geräte</strong> verbunden"
+
+msgid "<strong id=\"iproutescard_noofipv4staticroutes\" %1$s>%2$d IPv4 Static Route</strong>"
+msgid_plural "<strong id=\"iproutescard_noofipv4staticroutes\" %1$s>%2$d IPv4 Static Routes</strong>"
+msgstr[0] "<strong id = \"Wifi_Devices\" %1$s>%2$d Statische IPv4-Route</strong>"
+msgstr[1] "<strong id = \"Wifi_Devices\" %1$s>%2$d Statische IPv4-Routen</strong>"
 
 msgid "<strong>%d</strong> IPv4 rule(s) defined<br>"
 msgstr "<strong>%d</strong> IPv4 Regel(n) definiert<br>"
@@ -2382,6 +2417,9 @@ msgstr "Aktualisierung verfügbar! Version: <strong id=\"new-version-text\">%s</
 msgid "Update firmware"
 msgstr "Aktualisiere Firmware"
 
+msgid "Update in progress..."
+msgstr "Aktualisierung im Gang…"
+
 msgid "Uploading file. Please wait..."
 msgstr "Datei wird hochgeladen. Bitte warten…"
 
@@ -2731,6 +2769,9 @@ msgstr[1] "<strong %s>%d Wireless Steuerungs</strong> Regeln definiert"
 
 msgid "WanSensing sets the connection mode automatically.<br/>Disable this to set the connection mode manually.<br/>After saving the changes the connection options will be shown."
 msgstr "WanSensing setzt den Verbindungsmodus automatisch.<br/>Deaktivieren Sie dies, wenn Sie den Verbindungsmodus manuell wählen wollen.<br/>Nachdem die Einstellung gespeichert wurde, werden die möglichen Modi angezeigt."
+
+msgid "Search For connections..."
+msgstr "Suche nach Verbindungen..."
 
 msgid "Up"
 msgstr "Aktiv"
@@ -4122,6 +4163,9 @@ msgstr ""
 msgid "Force CWMP provisioning"
 msgstr ""
 
+msgid "Executing"
+msgstr ""
+
 msgid "IPv4 address"
 msgstr ""
 
@@ -4156,19 +4200,4 @@ msgid "Advanced Restore & Backup"
 msgstr ""
 
 msgid "Generating backup in background..."
-msgstr ""
-
-msgid "Re-scan"
-msgstr ""
-
-msgid "VCMUX"
-msgstr ""
-
-msgid "Lan pool range is overlap with the STB pool range"
-msgstr ""
-
-msgid "LLC"
-msgstr ""
-
-msgid "MoCA"
 msgstr ""

@@ -15,6 +15,9 @@ msgstr ""
 "X-Generator: Poedit 2.2.1\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
+msgid "SMB/CIFS is disabled"
+msgstr "SMB/CIFS ist deaktiviert"
+
 msgid "Enabled"
 msgstr "Aktiviert"
 

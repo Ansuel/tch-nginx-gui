@@ -66,6 +66,26 @@ msgstr "<p>L'assistenza remota è attualmente disabilitata.</p><p>Facendo clic s
 msgid "<p>Remote assistance is currently enabled. </p><p>Click 'Apply' button with the 'Enabled' checkbox disabled to disable remote assistance on your gateway </p>"
 msgstr "<p>L'assistenza remota è attualmente abilitata. </p><p><br/>Fai clic sul pulsante 'Applica' con la casella 'Abilitata' disattivata per disabilitare l'assistenza remota nel gateway </p>"
 
+msgid "<strong %1$s>%2$d DNS Server</strong>"
+msgid_plural "<strong %1$s>%2$d DNS Servers</strong>"
+msgstr[0] "<strong %1$s>%2$d server DNS</strong>"
+msgstr[1] "<strong %1$s>%2$d servers DNS</strong>"
+
+msgid "<strong %1$s>%2$d Disabled Helper</strong>"
+msgid_plural "<strong %1$s>%2$d Disabled Helpers</strong>"
+msgstr[0] "<strong %1$s>%2$d helper disabilitato</strong>"
+msgstr[1] "<strong %1$s>%2$d helper disabilitati</strong>"
+
+msgid "<strong %1$s>%2$d Enabled Helper</strong>"
+msgid_plural "<strong %1$s>%2$d Enabled Helpers</strong>"
+msgstr[0] "<strong %1$s>%2$d helper abilitato</strong>"
+msgstr[1] "<strong %1$s>%2$d helper abilitati</strong>"
+
+msgid "<strong %1$s>%2$d Route</strong>"
+msgid_plural "<strong %1$s>%2$d Routes</strong>"
+msgstr[0] "<strong %1$s>%2$d instradamento</strong>"
+msgstr[1] "<strong %1$s>%2$d instradamenti</strong>"
+
 msgid "<strong %s>%d Access Control</strong> rule defined"
 msgid_plural "<strong %s>%d Access Control</strong> rule defined"
 msgstr[0] "<strong %s>%d  regola controllo accessi</strong>"
@@ -80,6 +100,21 @@ msgid "<strong %s>%d port forwarding</strong> rule is defined"
 msgid_plural "<strong %s>%d port forwarding</strong> rules are defined"
 msgstr[0] "<strong %s>%d regola mappatura porte</strong>"
 msgstr[1] "<strong %s>%d regole mappatura porte</strong>"
+
+msgid "<strong id = \"Ethernet_Devices\" %1$s>%2$d Ethernet device</strong> connected"
+msgid_plural "<strong id = \"Ethernet_Devices\" %1$s>%2$d Ethernet devices</strong> connected"
+msgstr[0] "<strong id = \"Ethernet_Devices\" %1$s>%2$d dispositivo ethernet connesso</strong>"
+msgstr[1] "<strong id = \"Ethernet_Devices\" %1$s>%2$d dispositivi ethernet connessi</strong>"
+
+msgid "<strong id = \"Wifi_Devices\" %1$s>%2$d Wi-Fi device</strong> connected"
+msgid_plural "<strong id = \"Wifi_Devices\" %1$s>%2$d Wi-Fi devices</strong> connected"
+msgstr[0] "<strong id = \"Wifi_Devices\" %1$s>%2$d dispositivo Wi-Fi connesso</strong>"
+msgstr[1] "<strong id = \"Wifi_Devices\" %1$s>%2$d dispositivi Wi-Fi connessi</strong>"
+
+msgid "<strong id=\"iproutescard_noofipv4staticroutes\" %1$s>%2$d IPv4 Static Route</strong>"
+msgid_plural "<strong id=\"iproutescard_noofipv4staticroutes\" %1$s>%2$d IPv4 Static Routes</strong>"
+msgstr[0] "<strong id = \"Wifi_Devices\" %1$s>%2$d Instradamento statico IPv4</strong>"
+msgstr[1] "<strong id = \"Wifi_Devices\" %1$s>%2$d instradamenti statici IPv4</strong>"
 
 msgid "<strong>%d</strong> IPv4 rule(s) defined<br>"
 msgstr "<strong>%d regole IPv4</strong>"
@@ -2382,6 +2417,9 @@ msgstr "Aggiornamento disponibile!<br/>Versione: <strong id=\"new-version-text\"
 msgid "Update firmware"
 msgstr "Aggiornamento firmware"
 
+msgid "Update in progress..."
+msgstr "Aggiornamento..."
+
 msgid "Uploading file. Please wait..."
 msgstr "Caricamento file..."
 
@@ -2731,6 +2769,9 @@ msgstr[1] "<strong %s>%d regole pianificazione wireless</strong>"
 
 msgid "WanSensing sets the connection mode automatically.<br/>Disable this to set the connection mode manually.<br/>After saving the changes the connection options will be shown."
 msgstr "La rilevazione WAN imposta la connessione in modo automatico.<br/>Disabilita questa opzione per impostare la connessione in modo manuale.<br/>Dopo il salvataggio verranno visualizzate le opzioni di connessione."
+
+msgid "Search For connections..."
+msgstr "Cerca connessioni..."
 
 msgid "Up"
 msgstr "Attiva"
@@ -4122,6 +4163,9 @@ msgstr "Sei sicuro di voler ripristinare il database CWMP di questo modem?</br><
 msgid "Force CWMP provisioning"
 msgstr "Forza provisioning CWMP"
 
+msgid "Executing"
+msgstr "Esecuzione"
+
 msgid "IPv4 address"
 msgstr "Indirizzo IPv4"
 
@@ -4158,18 +4202,3 @@ msgstr "Ripristino e backup avanzati"
 msgid "Generating backup in background..."
 msgstr "Generazione backup in background..."
 
-
-msgid "Re-scan"
-msgstr ""
-
-msgid "VCMUX"
-msgstr ""
-
-msgid "Lan pool range is overlap with the STB pool range"
-msgstr ""
-
-msgid "LLC"
-msgstr ""
-
-msgid "MoCA"
-msgstr ""

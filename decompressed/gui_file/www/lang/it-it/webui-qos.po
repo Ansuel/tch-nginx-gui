@@ -121,9 +121,6 @@ msgstr "Peso"
 msgid "Weighted Round Robin"
 msgstr "Round robin pesato"
 
-msgid "Yes"
-msgstr "Sì"
-
 msgid "Qos Wireless Status"
 msgstr "Stato QoS wireless"
 
