@@ -16,9 +16,9 @@ plural_po_regex = re.compile(r"(?<=msgid\s)\".*?(?<!\\)\"(?=\s+msgid_plural)")
 po_find_regex = re.compile(r'(?<=gettext\.textdomain\(\')[a-z]+-[a-z]*-*[a-z]+(?=\'\))')
 
 #Detect T"" in source files
-normal_trans_regex = re.compile(r"(?<=\(T|\{T|\sT|\[T)\".*?(?<!\\)\"(?=,|\s|\s\.\.|\.\.|\)|\}|\")")
+normal_trans_regex = re.compile(r"(?<=\(T|\{T|\sT|\[T|,T)\".*?(?<!\\)\"(?=,|\s|\s\.\.|\.\.|\)|\}|\")")
 #Detect T'' in source files
-accent_trans_regex = re.compile(r"(?<=\(T|\{T|\sT|\[T)\'.*?(?<!\\)\'(?=,|\s|\s\.\.|\.\.|\)|\}|\")")
+accent_trans_regex = re.compile(r"(?<=\(T|\{T|\sT|\[T|,T)\'.*?(?<!\\)\'(?=,|\s|\s\.\.|\.\.|\)|\}|\")")
 #Detect T"" plurar strings
 plural_trans_regex = re.compile(r"(?<=\(N\(|\[N\(|\{N\(|\sN\()\".*?\\*?\",\W*\".*?(?<!\\)\"(?=,|\s|\s\.\.|\.\.|\))")
 first_plur_regex = re.compile(r'(?<=\").*?(?<!\\)(?=\",|\"\s+,)')
