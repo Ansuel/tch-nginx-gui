@@ -38,17 +38,8 @@ msgstr[1] "%d Sekunden"
 msgid "0 or 1 expected."
 msgstr "0 oder 1 erwartet."
 
-msgid "A WEP key of length 10 or 26 can only contain the hexadecimal digits."
-msgstr "Ein WEP-Schlüssel der Länge 10 oder 26 kann nur Hexadezimalzeichen enthalten."
-
 msgid "Add"
 msgstr "Hinzufügen"
-
-msgid "An error occured while applying your changes."
-msgstr "Beim Anwenden Ihrer Änderungen trat ein Fehler auf."
-
-msgid "An error occured while saving your changes."
-msgstr "Beim Speichern Ihrer Änderungen trat ein Fehler auf."
 
 msgid "Apply"
 msgstr "Anwenden"
@@ -83,14 +74,8 @@ msgstr "Die limitierte Broadcast-Adresse kann nicht verwendet werden."
 msgid "Cannot use the network address."
 msgstr "Die Netzwerk-Adresse kann nicht verwendet werden."
 
-msgid "Changes not allowed."
-msgstr "Keine Änderungen erlaubt."
-
 msgid "Changes saved successfully"
 msgstr "Änderungen wurden erfolgreich gespeichert"
-
-msgid "Changes were made to this table which require you to start again."
-msgstr "Es wurden Änderungen an dieser Tabelle vorgenommen, die es erfordern, dass Sie von vorne beginnen."
 
 msgid "Close"
 msgstr "Schließen"
@@ -121,9 +106,6 @@ msgstr "Fehler beim Speichern der Änderungen"
 
 msgid "Exit"
 msgstr "Verlassen"
-
-msgid "Expire Time is invalid. It should be a whole number, between 60 and 86400."
-msgstr "Ablaufzeit ungültig. Sie sollte eine Ganzzahl zwischen 60 und 86400 sein."
 
 msgid "Finish"
 msgstr "Beenden"
@@ -188,9 +170,6 @@ msgstr "Ungültige Eingabe"
 msgid "Invalid input."
 msgstr "Ungültige Eingabe."
 
-msgid "Invalid length, a WEP key must be 5, 10, 13 or 26 characters long."
-msgstr "Ungültige Länge, ein WEP-Schlüssel muss 5, 10, 13 oder 26 Zeichen lang sein."
-
 msgid "Invalid port range."
 msgstr "Ungültiger Port-Bereich."
 
@@ -200,9 +179,6 @@ msgstr "Ungültiges Subnetz."
 msgid "Invalid value."
 msgstr "Ungültiger Wert."
 
-msgid "Invalid value; enter a number greater than 0, followed by 's' for seconds or 'm' for minutes or 'h' for hours or 'd' for days or 'w' for weeks. No spaces."
-msgstr "Ungültiger Wert, geben Sie eine Zahl größer als 0, gefolgt von 's' für Sekunden, 'm' für Minuten, 'h' für Stunden, 'd' für Tage oder 'w' für Wochen ein. Keine Leerzeichen."
-
 msgid "Label within domain name has invalid syntax."
 msgstr "Ein Bestandteil des Domain-Namens hat eine ungültige Syntax."
 
@@ -211,9 +187,6 @@ msgstr "Weiter"
 
 msgid "Not a Public Address"
 msgstr "Keine öffentliche Adresse"
-
-msgid "PIN code must composed of 4 or 8 digits with potentially a dash or space in the middle."
-msgstr "Der PIN-Code muss aus 4 oder 8 Stellen mit einem eventuellen Strich oder Leerzeichen in der Mitte bestehen."
 
 msgid "Please enter valid IPv"
 msgstr "Bitte nutzen Sie eine gültige IPv"
@@ -265,9 +238,6 @@ msgstr "Die minimale Lease-Dauer beträgt 120 Sekunden oder 2 Minuten."
 
 msgid "The wireless key contains invalid characters, only space, letters, numbers and the following characters !\"#$%&()*+,-./:;<=>?@[\\]^_{|}~ are allowed."
 msgstr "Der Wireless-Schlüssel enthält ungültige Zeichen, nur Leerzeichen, Buchstaben, Ziffern und die folgenden Zeichen: !\"#$%&()*+,-./:;<=>?@[\\]^_{|}~ sind erlaubt."
-
-msgid "You tried to access an invalid line."
-msgstr "Sie versuchten, auf eine ungültige Zeile zuzugreifen."
 
 msgid "duplicate value"
 msgstr "Doppelter Wert"

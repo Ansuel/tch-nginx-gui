@@ -15,16 +15,6 @@ msgstr ""
 "X-Generator: Poedit 2.2.1\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
-msgid "<strong>%s classify rule(s)</strong> active"
-msgid_plural "<strong>%s classify rule(s)</strong> active"
-msgstr[0] "<strong>%s Klassifikationsregel(n)</strong> aktiv"
-msgstr[1] "<strong>%s Klassifikationsregel(n)</strong> aktiv"
-
-msgid "<strong>%s queue(s)</strong> active"
-msgid_plural "<strong>%s queue(s)</strong> active"
-msgstr[0] "<strong>%s Warteschlange(n)</strong> aktiv"
-msgstr[1] "<strong>%s Warteschlange(n)</strong> aktiv"
-
 msgid "Add New Label"
 msgstr "Hinzufügen Neuen Titel"
 
@@ -73,15 +63,6 @@ msgstr "Priorität"
 msgid "Protocol"
 msgstr "Protokoll"
 
-msgid "QoS Classification Table"
-msgstr "QoS Klassifikationstabelle"
-
-msgid "QoS Label Table"
-msgstr "QoS Titel Tabelle"
-
-msgid "QoS Queue Scheduling on Interface LAN"
-msgstr "QoS Warteschlangenplanung für LAN Schnittstelle"
-
 msgid "QoS Queue Scheduling on Interface WAN"
 msgstr "QoS Warteschlangenplanung für WAN Schnittstelle"
 
@@ -120,9 +101,6 @@ msgstr "Gewicht"
 
 msgid "Weighted Round Robin"
 msgstr "Gewichtetes Round Robin"
-
-msgid "Yes"
-msgstr "Ja"
 
 msgid "Qos Wireless Status"
 msgstr "QoS Drahtlos Status"

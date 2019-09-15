@@ -60,20 +60,8 @@ msgstr "Registro chiamate"
 msgid "Call Statistics"
 msgstr "Statistiche chiamate"
 
-msgid "Line Status"
-msgstr "Stato linea"
-
-msgid "Call State"
-msgstr "Stato chiamata"
-
-msgid "Call Status"
-msgstr "Stati chiamate"
-
 msgid "Call Type"
 msgstr "Tipo chiamate"
-
-msgid "Cancel"
-msgstr "Annulla"
 
 msgid "Changes saved successfully"
 msgstr "Salvataggio modifiche completato"
@@ -96,9 +84,6 @@ msgstr "Configura servizi VOIP"
 msgid "Contacts"
 msgstr "Contatti"
 
-msgid "Create new"
-msgstr "Crea nuovo"
-
 msgid "DECT Emission"
 msgstr "Emissione DECT"
 
@@ -107,9 +92,6 @@ msgstr "Disattiva"
 
 msgid "Deactivate & Erase"
 msgstr "Disattiva e elimina"
-
-msgid "Delete"
-msgstr "Elimina"
 
 msgid "Destination No."
 msgstr "Numero destinazione."
@@ -125,9 +107,6 @@ msgstr "Nome dispositivo"
 
 msgid "Disabled"
 msgstr "Disabilitato"
-
-msgid "DisplayName"
-msgstr "Visualizza nome"
 
 msgid "Domain Name"
 msgstr "Nome dominio"
@@ -189,17 +168,8 @@ msgstr "Chiamate non risposte"
 msgid "Incoming Successful"
 msgstr "Chiamate ricevute"
 
-msgid "Internal Profile"
-msgstr "Profilo interno"
-
-msgid "Internal Telephone Numbers"
-msgstr "Numeri di telefono interni"
-
 msgid "Interrogate"
 msgstr "Interroga"
-
-msgid "Invalid value, space not allowed"
-msgstr "Valore non valido, spazio non consentito"
 
 msgid "Last Name"
 msgstr "Cognome"
@@ -215,9 +185,6 @@ msgstr "Numero cellulare"
 
 msgid "Name"
 msgstr "Nome"
-
-msgid "Number"
-msgstr "Numero"
 
 msgid "Off"
 msgstr "Off"
@@ -267,9 +234,6 @@ msgstr "Accoppiamento..."
 msgid "Pairing window value is invalid"
 msgstr "Valore non valido intervallo accoppiamento"
 
-msgid "Password"
-msgstr "Password"
-
 msgid "Phone Book"
 msgstr "Rubrica telefonica"
 
@@ -278,15 +242,6 @@ msgstr "Numero di telefono"
 
 msgid "Phone Lines"
 msgstr "Linee telefoniche"
-
-msgid "Please set URI."
-msgstr "Imposta URI."
-
-msgid "Please set password."
-msgstr "Imposta una password."
-
-msgid "Please set value."
-msgstr "Imposta un valore."
 
 msgid "Port"
 msgstr "Porta"
@@ -330,9 +285,6 @@ msgstr "Registra"
 msgid "Register & Activate"
 msgstr "Registra e attiva"
 
-msgid "Registered"
-msgstr "Registrato"
-
 msgid "Remote Number"
 msgstr "Numero remoto"
 
@@ -344,9 +296,6 @@ msgstr "Ritardo andata e ritorno"
 
 msgid "SIP Network"
 msgstr "Rete SIP"
-
-msgid "SIP Profile"
-msgstr "Profilo SIP"
 
 msgid "Service"
 msgstr "Servizio"
@@ -375,9 +324,6 @@ msgstr "Avvia"
 msgid "State"
 msgstr "Stato"
 
-msgid "Telephone Numbers"
-msgstr "Numeri di telefono"
-
 msgid "Telephony"
 msgstr "Telefonia"
 
@@ -386,9 +332,6 @@ msgstr "Telefonia disabilitata"
 
 msgid "Telephony enabled"
 msgstr "Telefonia abilitata"
-
-msgid "This URI has already existed, please input one not existed."
-msgstr "Questa URI esisteva già.<br/>Inserisci una URI non esistente."
 
 msgid "Time"
 msgstr "Orario"
@@ -411,12 +354,6 @@ msgstr "Uri"
 msgid "User Name"
 msgstr "Nome utente"
 
-msgid "UserName"
-msgstr "Nome utente"
-
-msgid "Voip Password"
-msgstr "Password VoIP"
-
 msgid "Voip Password Profile 1"
 msgstr "Password profilo 1 VoIP"
 
@@ -429,14 +366,8 @@ msgstr "Password profilo 3 VoIP"
 msgid "sipindex"
 msgstr "indice sip"
 
-msgid "Status"
-msgstr "Stato"
-
 msgid "Local Port"
 msgstr "Porta locale"
-
-msgid "Can be used"
-msgstr "Possono essere usati"
 
 msgid "Codec"
 msgstr "Codec"

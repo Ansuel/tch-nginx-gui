@@ -66,9 +66,6 @@ msgstr "Password"
 msgid "Mode"
 msgstr "Modo"
 
-msgid "Always On"
-msgstr "Sempre ON"
-
 msgid "Content Sharing"
 msgstr "Condivisione contenuti"
 
@@ -180,42 +177,6 @@ msgstr "Usa password casuale"
 msgid "Add New Rule"
 msgstr "Aggiungi nuova regola"
 
-msgid "Internet Traffic"
-msgstr "Traffico internet"
-
-msgid "Total Mixed (in MB)"
-msgstr "Totale misto (in MB)"
-
-msgid "Ethernet Network Traffic"
-msgstr "Traffico rete ethernet"
-
-msgid "Total Send (in MB)"
-msgstr "Totale inviati (in MB)"
-
-msgid "Total Receive (in MB)"
-msgstr "Totale ricevuti (in MB)"
-
-msgid "Wi-Fi Network Traffic"
-msgstr "Traffico rete Wi-Fi"
-
-msgid "Graph"
-msgstr "Grafico"
-
-msgid "The time displayed on the graph are based on the time set on this modem!"
-msgstr "L'orario visualizzato nel grafico e basato su quello impostato nel modem!"
-
-msgid "Sent chart line"
-msgstr "Grafico dati inviati"
-
-msgid "Received chart line"
-msgstr "Grafico dati ricevuti"
-
-msgid "WAN Graph"
-msgstr "Grafico WAN"
-
-msgid "LAN Graph"
-msgstr "Grafico LAN"
-
 msgid "Changes saved successfully"
 msgstr "Salvataggio modifiche completato"
 
@@ -314,9 +275,6 @@ msgstr "Il Band steering non e supportato nel modo sicurezza WEP."
 
 msgid "Please configure wifi-bandsteer "
 msgstr "Configura il Band Steering "
-
-msgid " first!"
-msgstr "!"
 
 msgid "Device PIN code entered"
 msgstr "Codice PIN dispositivo inserito"
@@ -426,9 +384,6 @@ msgstr "Near Field Communication (NFC) permette posizionando uno smartphone/tabl
 msgid "Standard"
 msgstr "Standard"
 
-msgid "Telstra Gateway"
-msgstr "Modem Telstra"
-
 msgid "HOME"
 msgstr "GENERALE"
 
@@ -449,51 +404,6 @@ msgstr "SERVIZI"
 
 msgid "USER SETTINGS"
 msgstr "IMPOSTAZIONI UTENTE"
-
-msgid "disabled"
-msgstr "disabilitato"
-
-msgid "disconnecting"
-msgstr "disconnessione"
-
-msgid "connected"
-msgstr "connesso"
-
-msgid "connecting"
-msgstr "connessione"
-
-msgid "disconnected"
-msgstr "disconnesso"
-
-msgid "error"
-msgstr "errore"
-
-msgid "authentication failed"
-msgstr "autentificazione fallita"
-
-msgid "negotiation failed"
-msgstr "negoziazione fallita"
-
-msgid "PPP connection"
-msgstr "Connessione PPP"
-
-msgid "IP address"
-msgstr "Indirizzo IP"
-
-msgid "IPv6 address"
-msgstr "Indirizzo IPv6"
-
-msgid "Gateway"
-msgstr "Gateway"
-
-msgid "DNS servers"
-msgstr "Server DNS"
-
-msgid "ATM VP / VC"
-msgstr "VP / VC ATM"
-
-msgid "Encapsulation"
-msgstr "Incapsulamento"
 
 msgid "ADVANCED CARDS"
 msgstr "SCHEDE AVANZATE"
