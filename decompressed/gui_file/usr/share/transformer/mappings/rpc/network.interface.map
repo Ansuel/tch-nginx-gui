@@ -363,8 +363,6 @@ network_interface_.entries = function()
     -- iterate over the interfaces
       if s.iface6rd and (s.iface6rd ~= "0") then
         intf_6rd[s.iface6rd] = true
-	  elseif interface_status.get("6rd") then
-		intf_6rd["6rd"] = true
       end
 
       if s.proto == "6rd" then
@@ -380,6 +378,23 @@ network_interface_.entries = function()
     for k,_ in pairs(intf_6rd) do
       intfs[#intfs+1]=k
     end
+	
+	local function contains(tbl,key)
+		for _, v in pairs(tbl) do
+			if v == key then
+				return true
+			end
+		end
+		
+		return nil
+	end
+	
+	if not contains(intfs,"6rd") and interface_status.get("6rd") then
+		intfs[#intfs+1] = "6rd"
+	elseif not contains(intfs,"wan_6") and interface_status.get("wan_6") then
+		intfs[#intfs+1] = "wan_6"
+	end
+	
     return intfs
 end
 
