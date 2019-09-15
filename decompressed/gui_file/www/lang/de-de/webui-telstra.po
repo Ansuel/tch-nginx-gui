@@ -66,9 +66,6 @@ msgstr "Kennwort"
 msgid "Mode"
 msgstr "Modus"
 
-msgid "Always On"
-msgstr "Immer an"
-
 msgid "Content Sharing"
 msgstr "Inhalt teilen"
 
@@ -180,42 +177,6 @@ msgstr "Verwende Zufallskennwort"
 msgid "Add New Rule"
 msgstr "Hinzufügen neue Regel"
 
-msgid "Internet Traffic"
-msgstr "Internet Verkehr"
-
-msgid "Total Mixed (in MB)"
-msgstr "Summe Gemischt (in MB)"
-
-msgid "Ethernet Network Traffic"
-msgstr "Ethernet Netzwerkverkehr"
-
-msgid "Total Send (in MB)"
-msgstr "Summe Gesendet (in MB)"
-
-msgid "Total Receive (in MB)"
-msgstr "Summe Empfangen (in MB)"
-
-msgid "Wi-Fi Network Traffic"
-msgstr "WiFi Netzwerkverkehr"
-
-msgid "Graph"
-msgstr "Grafik"
-
-msgid "The time displayed on the graph are based on the time set on this modem!"
-msgstr "Die Zeit, die in der Grafik angezeigt wird, basiert auf der im Modem eingestellten Zeit!"
-
-msgid "Sent chart line"
-msgstr "Gesendete Grafikzeile"
-
-msgid "Received chart line"
-msgstr "Empfangene Grafikzeile"
-
-msgid "WAN Graph"
-msgstr "WAN Grafik"
-
-msgid "LAN Graph"
-msgstr "LAN Grafik"
-
 msgid "Changes saved successfully"
 msgstr "Änderungen wurden erfolgreich gespeichert"
 
@@ -314,9 +275,6 @@ msgstr "Die Bandsteuerung kann nicht im WEP Sicherheitsmodus verwendet werden."
 
 msgid "Please configure wifi-bandsteer "
 msgstr "Bitte konfigurieren Sie die WiFi-Bandsteuerung "
-
-msgid " first!"
-msgstr " zuerst!"
 
 msgid "Device PIN code entered"
 msgstr "Geräte PIN-Code eingegeben"
@@ -426,9 +384,6 @@ msgstr "Near Field Communication (NFC) erlaubt es, mit einem Android Smartphone 
 msgid "Standard"
 msgstr "Standard"
 
-msgid "Telstra Gateway"
-msgstr "Telstra Gateway"
-
 msgid "HOME"
 msgstr "ZUHAUSE"
 
@@ -449,51 +404,6 @@ msgstr "DIENSTE"
 
 msgid "USER SETTINGS"
 msgstr "BENUTZEREINSTELLUNGEN"
-
-msgid "disabled"
-msgstr "abgeschaltet"
-
-msgid "disconnecting"
-msgstr "trennen"
-
-msgid "connected"
-msgstr "verbunden"
-
-msgid "connecting"
-msgstr "verbinden"
-
-msgid "disconnected"
-msgstr "getrennt"
-
-msgid "error"
-msgstr "Fehler"
-
-msgid "authentication failed"
-msgstr "Authentifizierung fehlgeschlagen"
-
-msgid "negotiation failed"
-msgstr "Aushandlung fehlgeschlagen"
-
-msgid "PPP connection"
-msgstr "PPP Verbindung"
-
-msgid "IP address"
-msgstr "IP Adresse"
-
-msgid "IPv6 address"
-msgstr "IPv6 Adresse"
-
-msgid "Gateway"
-msgstr "Gateway"
-
-msgid "DNS servers"
-msgstr "DNS Server"
-
-msgid "ATM VP / VC"
-msgstr "ATM VP/VC"
-
-msgid "Encapsulation"
-msgstr "Verkapselung"
 
 msgid "ADVANCED CARDS"
 msgstr "ERWEITERTE KARTEN"

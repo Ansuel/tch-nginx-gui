@@ -21,9 +21,6 @@ msgstr "0 dispositivi connessi"
 msgid "Access Technology"
 msgstr "Tecnologia di accesso"
 
-msgid "Access Technology:"
-msgstr "Tecnologia di accesso:"
-
 msgid "Add new profile"
 msgstr "Aggiungi nuovo profilo"
 
@@ -57,17 +54,11 @@ msgstr "Modifica"
 msgid "Change PIN"
 msgstr "Modifica PIN"
 
-msgid "Choose A Band"
-msgstr "Scegli una banda"
-
 msgid "Configuration"
 msgstr "Configurazione"
 
 msgid "Configuring device"
 msgstr "Configurazione dispositivo"
-
-msgid "Configuring platform"
-msgstr "Configurazione piattaforma"
 
 msgid "Confirm"
 msgstr "Conferma"
@@ -92,9 +83,6 @@ msgstr "Informazioni dispositivo"
 
 msgid "Device Status"
 msgstr "Stato dispositivo"
-
-msgid "Device Status:"
-msgstr "Stato dispositivo:"
 
 msgid "Disable"
 msgstr "Disabilita"
@@ -154,23 +142,14 @@ msgstr[1] "Verifica del codice PUK fallita ( %d tentativi rimasti ).<br/> Assicu
 msgid "Fair"
 msgstr "Sufficiente"
 
-msgid "Firmware version"
-msgstr "Versione firmware"
-
 msgid "Forbidden"
 msgstr "Bloccato"
 
 msgid "From"
 msgstr "Da"
 
-msgid "General Status And Settings"
-msgstr "Informazioni principali e impostazioni"
-
 msgid "Good"
 msgstr "Buono"
-
-msgid "Hardware version"
-msgstr "Versione hardware"
 
 msgid "IPv4 Address"
 msgstr "Indirizzo IPv4"
@@ -184,26 +163,11 @@ msgstr "DNS secondario IPv4"
 msgid "IPv6 Address"
 msgstr "Indirizzo IPv6"
 
-msgid "IPv6 Connected"
-msgstr "IPv6 connesso"
-
-msgid "IPv6 Connecting"
-msgstr "IPv6 in connessione"
-
-msgid "IPv6 Disabled"
-msgstr "IPv6 disabilitato"
-
 msgid "Idle"
 msgstr "Inattivo"
 
 msgid "In use"
 msgstr "In uso"
-
-msgid "Initializing SIM"
-msgstr "Inizializzazione SIM"
-
-msgid "Initializing device"
-msgstr "Inizializzazione dispositivo"
 
 msgid "Interface"
 msgstr "Interfaccia"
@@ -216,15 +180,6 @@ msgstr "Interno"
 
 msgid "Invalid value"
 msgstr "Valore non valido"
-
-msgid "Last five minutes"
-msgstr "Ultimi cinque minuti"
-
-msgid "Last hour"
-msgstr "Ultima ora"
-
-msgid "Last twenty minutes"
-msgstr "Ultimi venti minuti"
 
 msgid "Limited regional service"
 msgstr "Servizio regionale limitato"
@@ -253,9 +208,6 @@ msgstr "Mobile"
 msgid "Model"
 msgstr "Modello"
 
-msgid "Most recent values"
-msgstr "Valori più recenti"
-
 msgid "Name"
 msgstr "Nome"
 
@@ -264,9 +216,6 @@ msgstr "Scansione rete"
 
 msgid "Network Selection"
 msgstr "Selezione rete"
-
-msgid "Network Status:"
-msgstr "Stato rete:"
 
 msgid "New PIN"
 msgstr "Nuovo PIN"
@@ -298,38 +247,11 @@ msgstr "Non verificato"
 msgid "Online"
 msgstr "Online"
 
-msgid "Operator:"
-msgstr "Operatore:"
-
 msgid "PDP Type"
 msgstr "Tipo PDP"
 
 msgid "PIN Protection"
 msgstr "Protezione PIN"
-
-msgid "PPP authentication failed"
-msgstr "Autenticazione PPP fallita"
-
-msgid "PPP connected"
-msgstr "PPP connesso"
-
-msgid "PPP connecting"
-msgstr "Connessione PPP"
-
-msgid "PPP disabled"
-msgstr "PPP disabilitato"
-
-msgid "PPP disconnected"
-msgstr "PPP disconnesso"
-
-msgid "PPP disconnecting"
-msgstr "Disconnessione PPP"
-
-msgid "PPP error"
-msgstr "PPP in stato di errore"
-
-msgid "PPP negotiation failed"
-msgstr "Negoziazione PPP fallita"
 
 msgid "Permanently blocked"
 msgstr "Bloccato in modo permanente"
@@ -352,9 +274,6 @@ msgstr "Attenzione: stai disabilitando il codice PIN"
 msgid "Poor"
 msgstr "Scarso"
 
-msgid "Power mode"
-msgstr "Consumo energia"
-
 msgid "Preferred"
 msgstr "Preferito"
 
@@ -363,9 +282,6 @@ msgstr "Risultati precedenti scansione rete"
 
 msgid "Profiles"
 msgstr "Profili"
-
-msgid "Qualification test"
-msgstr "Test qualificazione"
 
 msgid "Quality"
 msgstr "Qualità"
@@ -430,26 +346,14 @@ msgstr "Scansione reti"
 msgid "Searching for network"
 msgstr "Ricerca rete"
 
-msgid "Searching network"
-msgstr "Ricerca rete"
-
 msgid "Selected Antenna"
 msgstr "Antenna selezionata"
-
-msgid "Selecting antenna"
-msgstr "Selezione antenna"
-
-msgid "Service Status:"
-msgstr "Stato servizio:"
 
 msgid "Session Duration"
 msgstr "Durata sessione"
 
 msgid "Sleeping"
 msgstr "Sleep"
-
-msgid "Starting data session(s)"
-msgstr "Avvio sessione/i dati"
 
 msgid "Status"
 msgstr "Stato"
@@ -468,9 +372,6 @@ msgstr "Sospeso"
 
 msgid "Temperature"
 msgstr "Temperatura"
-
-msgid "The EARFCN needs to be a number between 0 and 65535.<br/>Use commas to separate multiple EARFCN values."
-msgstr "EARFCN deve essere un numero compreso tra 0 e 65535.<br/>Se si usano molteplici EARFCN usa la virgola come separatore."
 
 msgid "The PIN code must be composed of 4 to 8 digits."
 msgstr "Il codice PIN deve avere da 4 e 8 cifre."
@@ -523,17 +424,8 @@ msgstr "secondi"
 msgid "LTE Doctor"
 msgstr "Diagnostica LTE"
 
-msgid "Unlock Retries Left:"
-msgstr "Tentativi rimanenti sblocco:"
-
-msgid "Unblock Retries Left:"
-msgstr "Tentativi rimanenti blocco:"
-
 msgid "IPv6"
 msgstr "IPv6"
-
-msgid "MNC:"
-msgstr "MNC:"
 
 msgid "Rx Packet Errors"
 msgstr "Errori pacchetti Rx"
@@ -544,29 +436,11 @@ msgstr "Nazionale"
 msgid "Rx Packets"
 msgstr "Pacchetti RX"
 
-msgid "GB"
-msgstr "GB"
-
-msgid "Downlink Bandwidth:"
-msgstr "Banda downlink:"
-
-msgid "Total"
-msgstr "Totale"
-
 msgid "Tx Packet Errors"
 msgstr "Errori pachetti Tx"
 
-msgid "Path loss:"
-msgstr "Percorso perso:"
-
 msgid "GSM Only"
 msgstr "Solo GSM"
-
-msgid "RSCP:"
-msgstr "RSCP:"
-
-msgid "Active Band:"
-msgstr "Banda attiva:"
 
 msgid "LTE"
 msgstr "LTE"
@@ -574,47 +448,17 @@ msgstr "LTE"
 msgid "MSISDN"
 msgstr "MSISDN"
 
-msgid "Physical Cell ID:"
-msgstr "ID fisico cella:"
-
-msgid "RSSI:"
-msgstr "RSSI:"
-
-msgid "Data Usage Limit"
-msgstr "Limite uso dati"
-
 msgid "LTE Only"
 msgstr "Solo LTE"
-
-msgid "Uplink Bandwidth:"
-msgstr "Banda upload:"
 
 msgid "SMS"
 msgstr "SMS"
 
-msgid "Reset"
-msgstr "Ripristina"
-
 msgid "UMTS Preferred"
 msgstr "Preferisci UMTS"
 
-msgid "Uplink EARFCN:"
-msgstr "EARFCN uplink:"
-
-msgid "Uplink Frequency:"
-msgstr "Frequenza uplink"
-
-msgid "CINR:"
-msgstr "CINR:"
-
-msgid "Monthly Reset Day"
-msgstr "Giorno ripristino mensile"
-
 msgid "Tx Packets"
 msgstr "Pacchetti Tx"
-
-msgid "* Data usage is only an approximation. For actual usage, please refer to your network operator"
-msgstr "* L'uso dati è solo un'approssimazione.<br/>Per l'uso attuale chiedi al tuo operatore di rete."
 
 msgid "PIN"
 msgstr "PIN"
@@ -628,47 +472,11 @@ msgstr "Automatico"
 msgid "GSM"
 msgstr "GSM"
 
-msgid "Reset Data Usage"
-msgstr "Azzera uso dati"
-
-msgid "Uplink ARFCN:"
-msgstr "ARFCN uplink:"
-
-msgid "Radio Bearer:"
-msgstr "Bearer radio:"
-
-msgid "EARFCN"
-msgstr "EARFCN"
-
-msgid "Downlink UARFCN:"
-msgstr "UARFCN downlink:"
-
-msgid "RSRP:"
-msgstr "RSRP:"
-
-msgid "Total Volume"
-msgstr "Volume totale"
-
-msgid "Data Usage"
-msgstr "Uso dati"
-
-msgid "MB"
-msgstr "MB"
-
 msgid "International"
 msgstr "Internazionale"
 
 msgid "Device Status And Settings"
 msgstr "Stato dispositivo ed impostazioni"
-
-msgid "ECIO:"
-msgstr "ECIO:"
-
-msgid "Downlink ARFCN:"
-msgstr "ARFCN downlink:"
-
-msgid "Downlink"
-msgstr "Downlink"
 
 msgid "GSM Preferred"
 msgstr "Preferisci GSM"
@@ -679,17 +487,8 @@ msgstr "IPv4/v6"
 msgid "IMSI"
 msgstr "IMSI"
 
-msgid "Tracking Area Code:"
-msgstr "Codice area tracking:"
-
 msgid "IMEI"
 msgstr "IMEI"
-
-msgid "Data Usage Monitoring"
-msgstr "Monitoraggio uso dati"
-
-msgid "MCC:"
-msgstr "MCC:"
 
 msgid "PAP"
 msgstr "PAP"
@@ -700,71 +499,32 @@ msgstr "MNC"
 msgid "UMTS Only"
 msgstr "Solo UMTS"
 
-msgid "Downlink Frequency:"
-msgstr "Frequenza downlink:"
-
 msgid "LTE Preferred"
 msgstr "Preferisci LTE"
 
 msgid "UMTS"
 msgstr "UMTS"
 
-msgid "Uplink"
-msgstr "Uplink"
-
-msgid "RSRQ:"
-msgstr "RSRQ:"
-
 msgid "Rx Bytes"
 msgstr "Byte Rx"
-
-msgid "Current"
-msgstr "Attuale"
 
 msgid "CHAP"
 msgstr "CHAP"
 
-msgid "TX Power:"
-msgstr "Potenza TX:"
-
-msgid "RRC State:"
-msgstr "Stato RCC:"
-
 msgid "ICCID"
 msgstr "ICCID"
-
-msgid "SNR:"
-msgstr "SNR:"
-
-msgid "Data usage limit reached"
-msgstr "Raggiunto limite uso dati"
-
-msgid "Enable Limit"
-msgstr "Abilita limite"
 
 msgid "CDMA"
 msgstr "CDMA"
 
-msgid "SET"
-msgstr "IMPOSTA"
-
 msgid "MCC"
 msgstr "MCC"
-
-msgid "Uplink UARFCN:"
-msgstr "UARFCN uplink:"
 
 msgid "PUK"
 msgstr "PUK"
 
 msgid "Password"
 msgstr "Password"
-
-msgid "Cell ID:"
-msgstr "ID cella:"
-
-msgid "SINR:"
-msgstr "SINR:"
 
 msgid "Unknown PIN action"
 msgstr "Azione PIN sconosciuta"
@@ -783,9 +543,6 @@ msgstr "Scheda SIM"
 
 msgid "No"
 msgstr "No"
-
-msgid "Downlink EARFCN:"
-msgstr "EARFCN downlink:"
 
 msgid "PAP/CHAP"
 msgstr "PAP/CHAP"

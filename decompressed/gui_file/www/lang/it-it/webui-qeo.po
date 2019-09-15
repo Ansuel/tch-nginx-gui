@@ -15,5 +15,3 @@ msgstr ""
 "X-Generator: Poedit 2.2\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
-msgid "Qeo"
-msgstr "Qeo"

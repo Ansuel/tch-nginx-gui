@@ -60,20 +60,8 @@ msgstr "Anrufprotokoll"
 msgid "Call Statistics"
 msgstr "Anrufstatistik"
 
-msgid "Line Status"
-msgstr "Leitungsstatus"
-
-msgid "Call State"
-msgstr "Anrufstatus"
-
-msgid "Call Status"
-msgstr "Anrufstatus"
-
 msgid "Call Type"
 msgstr "Anruftyp"
-
-msgid "Cancel"
-msgstr "Abbrechen"
 
 msgid "Changes saved successfully"
 msgstr "Änderungen wurden erfolgreich gespeichert"
@@ -96,9 +84,6 @@ msgstr "Konfigurieren VoIP Dienste"
 msgid "Contacts"
 msgstr "Kontakte"
 
-msgid "Create new"
-msgstr "Hinzufügen"
-
 msgid "DECT Emission"
 msgstr "DECT Emission"
 
@@ -107,9 +92,6 @@ msgstr "Deaktivieren"
 
 msgid "Deactivate & Erase"
 msgstr "Deaktivieren & Löschen"
-
-msgid "Delete"
-msgstr "Löschen"
 
 msgid "Destination No."
 msgstr "Zielnummer"
@@ -125,9 +107,6 @@ msgstr "Gerätename"
 
 msgid "Disabled"
 msgstr "Abgeschaltet"
-
-msgid "DisplayName"
-msgstr "Anzeigename"
 
 msgid "Domain Name"
 msgstr "Domain Name"
@@ -189,17 +168,8 @@ msgstr "Eingehend verpasst"
 msgid "Incoming Successful"
 msgstr "Eingehend erfolgreich"
 
-msgid "Internal Profile"
-msgstr "Internes Profil"
-
-msgid "Internal Telephone Numbers"
-msgstr "Interne Telefonnummern"
-
 msgid "Interrogate"
 msgstr "Befragen"
-
-msgid "Invalid value, space not allowed"
-msgstr "Ungültiger Wert, Leerzeichen nicht erlaubt"
 
 msgid "Last Name"
 msgstr "Nachname"
@@ -215,9 +185,6 @@ msgstr "Mobilrufnummer"
 
 msgid "Name"
 msgstr "Name"
-
-msgid "Number"
-msgstr "Nummer"
 
 msgid "Off"
 msgstr "Aus"
@@ -267,9 +234,6 @@ msgstr "Pairing im Gang, bitte warten..."
 msgid "Pairing window value is invalid"
 msgstr "Pairing-Zeitfenster Wert ungültig"
 
-msgid "Password"
-msgstr "Passwort"
-
 msgid "Phone Book"
 msgstr "Telefonbuch"
 
@@ -278,15 +242,6 @@ msgstr "Telefonnummer"
 
 msgid "Phone Lines"
 msgstr "Telefonnummern"
-
-msgid "Please set URI."
-msgstr "Bitte setzen Sie die URI."
-
-msgid "Please set password."
-msgstr "Bitte setzen Sie das Passwort."
-
-msgid "Please set value."
-msgstr "Bitte setzen Sie den Wert."
 
 msgid "Port"
 msgstr "Port"
@@ -330,9 +285,6 @@ msgstr "Registriere"
 msgid "Register & Activate"
 msgstr "Registriere & Aktiviere"
 
-msgid "Registered"
-msgstr "Registriert"
-
 msgid "Remote Number"
 msgstr "Remote-Nummer"
 
@@ -344,9 +296,6 @@ msgstr "RoundTrupDelay"
 
 msgid "SIP Network"
 msgstr "SIP Netzwerk"
-
-msgid "SIP Profile"
-msgstr "SIP Profil"
 
 msgid "Service"
 msgstr "Dienst"
@@ -375,9 +324,6 @@ msgstr "Start"
 msgid "State"
 msgstr "Staat"
 
-msgid "Telephone Numbers"
-msgstr "Telefonnummern"
-
 msgid "Telephony"
 msgstr "Telefonie"
 
@@ -386,9 +332,6 @@ msgstr "Telefonie deaktiviert"
 
 msgid "Telephony enabled"
 msgstr "Telefonie aktiviert"
-
-msgid "This URI has already existed, please input one not existed."
-msgstr "Diese URI existiert schon, bitte geben Sie eine neue ein."
 
 msgid "Time"
 msgstr "Zeit"
@@ -411,12 +354,6 @@ msgstr "URI"
 msgid "User Name"
 msgstr "Benutzername"
 
-msgid "UserName"
-msgstr "Benutzername"
-
-msgid "Voip Password"
-msgstr "VoIP Passwort"
-
 msgid "Voip Password Profile 1"
 msgstr "Voip Password Profil 1"
 
@@ -429,14 +366,8 @@ msgstr "Voip Password Profil 3"
 msgid "sipindex"
 msgstr "sipindex"
 
-msgid "Status"
-msgstr "Status"
-
 msgid "Local Port"
 msgstr "Lokaler Port"
-
-msgid "Can be used"
-msgstr "Kann genutzt werden"
 
 msgid "Codec"
 msgstr "Codec"

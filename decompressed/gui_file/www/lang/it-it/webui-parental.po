@@ -20,15 +20,6 @@ msgid_plural "<strong %s>%d site blocking</strong> rules are defined"
 msgstr[0] "<strong %s>%d</strong> regola di blocco siti"
 msgstr[1] "<strong %s>%d</strong> regole di blocco siti"
 
-msgid "Add New Keywords"
-msgstr "Aggiungi nuove parole chiave"
-
-msgid "Add New Site"
-msgstr "Aggiungi nuovo sito"
-
-msgid "Cannot add the same site for a MAC multiple time"
-msgstr "Impossibile aggiungere più volte lo stesso sito per lo stesso MAC"
-
 msgid "Continue to the main page."
 msgstr "Continua nella pagina principale."
 
@@ -38,44 +29,17 @@ msgstr "La destinazione è bloccata dal controllo genitori."
 msgid "Device"
 msgstr "Dispositivo"
 
-msgid "Enabled"
-msgstr "Abilitato"
-
-msgid "Exclude Mode"
-msgstr "Escludi modalità"
-
-msgid "Invalid device, entry must be either a valid IP or \"All\""
-msgstr "Dispositivo non valido.<br/>L´accesso deve essere o un IP valido o 'Tutti'"
-
-msgid "Keyword Filter"
-msgstr "Filtro parola chiave"
-
-msgid "Keywords"
-msgstr "Parole chiave"
-
-msgid "MAC Address"
-msgstr "Indirizzo MAC"
-
-msgid "Note:Parental control url filter not supported for https sites and will block all the webpages related to the given domain name."
-msgstr "Nota: il filtro URL controllo genitori non è supportato per i siti https e bloccherà tutte le pagine web relative al nome del dominio fornito."
-
 msgid "Parental Controls"
 msgstr "Controlli genitori"
 
 msgid "Site"
 msgstr "Sito"
 
-msgid "Site Blocking"
-msgstr "Blocco siti"
-
 msgid "Site blocking disabled"
 msgstr "Blocco siti disabilitato"
 
 msgid "Site blocking enabled"
 msgstr "Blocco siti abilitato"
-
-msgid "custom"
-msgstr "personale"
 
 msgid "<p>%s GUI Version "
 msgstr "<p>Versione GUI %s "
