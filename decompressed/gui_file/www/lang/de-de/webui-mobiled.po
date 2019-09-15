@@ -54,9 +54,6 @@ msgstr "Ändern"
 msgid "Change PIN"
 msgstr "PIN ändern"
 
-msgid "Choose A Band"
-msgstr "Wählen Sie ein Band"
-
 msgid "Configuration"
 msgstr "Konfiguration"
 
