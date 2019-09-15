@@ -128,3 +128,6 @@ msgstr "Falls Samba unter Windows 10 nicht erreichbar ist, nutzen Sie die Einste
 
 msgid "It is recommended to use the USB in the 2.0 standard. The use of USB in 3.1 standard can remarkably affect the Wi-Fi performance at 2.4 GHz band."
 msgstr "Es wird empfohlen, USB 2.0 zu verwenden. Nutzung von USB 3.1 kann die WiFi Leistung im 2.4 GHz Band stark beeinträchtigen."
+
+msgid "Idle"
+msgstr ""

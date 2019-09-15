@@ -4158,3 +4158,18 @@ msgstr "Ripristino e backup avanzati"
 msgid "Generating backup in background..."
 msgstr "Generazione backup in background..."
 
+
+msgid "Re-scan"
+msgstr ""
+
+msgid "VCMUX"
+msgstr ""
+
+msgid "Lan pool range is overlap with the STB pool range"
+msgstr ""
+
+msgid "LLC"
+msgstr ""
+
+msgid "MoCA"
+msgstr ""

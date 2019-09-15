@@ -354,3 +354,9 @@ msgstr "Non è un indirizzo pubblico"
 
 msgid "Invalid minutes, must be between 0 and 59"
 msgstr "Valore minuti non valido.\nDeve essere compreso tra 0 e 59."
+
+msgid "Destination is not in the Gateway network"
+msgstr ""
+
+msgid "Cannot use IPv4 loopback address range"
+msgstr ""
