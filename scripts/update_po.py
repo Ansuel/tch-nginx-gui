@@ -16,13 +16,17 @@ plural_po_regex = re.compile(r"(?<=msgid\s)\".*?(?<!\\)\"(?=\s+msgid_plural)")
 po_find_regex = re.compile(r'(?<=gettext\.textdomain\(\')[a-z]+-[a-z]*-*[a-z]+(?=\'\))')
 
 #Detect T"" in source files
-normal_trans_regex = re.compile(r"(?<=\(T|\{T|\sT|\[T|,T)\".*?(?<!\\)\"(?=,|\s|\s\.\.|\.\.|\)|\}|\")")
+normal_trans_regex = re.compile(r"(?<=\.T|\(T|\{T|\sT|\[T|,T)\".*?(?<!\\)\"(?=,|\s|\s\.\.|\.\.|\)|\}|\")")
 #Detect T'' in source files
-accent_trans_regex = re.compile(r"(?<=\(T|\{T|\sT|\[T|,T)\'.*?(?<!\\)\'(?=,|\s|\s\.\.|\.\.|\)|\}|\")")
-#Detect T"" plurar strings
-plural_trans_regex = re.compile(r"(?<=\(N\(|\[N\(|\{N\(|\sN\()\".*?\\*?\",\W*\".*?(?<!\\)\"(?=,|\s|\s\.\.|\.\.|\))")
-first_plur_regex = re.compile(r'(?<=\").*?(?<!\\)(?=\",|\"\s+,)')
-second_plur_regex = re.compile(r'(?<=\s\"|,\").*?(?<!\\)(?=\")')
+accent_trans_regex = re.compile(r"(?<=\.T|\(T|\{T|\sT|\[T|,T)\'.*?(?<!\\)\'(?=,|\s|\s\.\.|\.\.|\)|\}|\")")
+#Detect N"","" plurar strings
+normal_plural_trans_regex = re.compile(r"(?<=\(N\(|\[N\(|\{N\(|\sN\()\".*?\\*?\",\W*\".*?(?<!\\)\"(?=,|\s|\s\.\.|\.\.|\))")
+normal_first_plur_regex = re.compile(r'(?<=\").*?(?<!\\)(?=\",|\"\s+,)')
+normal_second_plur_regex = re.compile(r'(?<=\s\"|,\").*?(?<!\\)(?=\")')
+#Detect N'','' plurar strings
+accent_plural_trans_regex = re.compile(r"(?<=\(N\(|\[N\(|\{N\(|\sN\()'.*?\\*?',\W*'.*?(?<!\\)'(?=,|\s|\s\.\.|\.\.|\))")
+accent_first_plur_regex = re.compile(r"(?<=').*?(?<!\\)(?=',|'\s+,)")
+accent_second_plur_regex = re.compile(r"(?<=\s'|,').*?(?<!\\)(?=')")
 
 msgid_po_regex = re.compile(r"(?<=msgid\s\").*(?=\")")
 
@@ -63,10 +67,14 @@ def check_files(scanOnly):
                   continue
                 translate_table[po_file[0]] += tuple([ s[1:-1] for s in normal_trans_regex.findall(string_file)])
                 translate_table[po_file[0]] += tuple([ s[1:-1].replace('"','\\\"') for s in accent_trans_regex.findall(string_file)])
-                plural_string = plural_trans_regex.findall(string_file)
+                plural_string = normal_plural_trans_regex.findall(string_file)
                 for string in plural_string:
-                  plur_table[po_file[0]] += tuple(first_plur_regex.findall(string))
-                  plurs_table[po_file[0]][first_plur_regex.findall(string)[0]] = second_plur_regex.findall(string)[0]
+                  plur_table[po_file[0]] += tuple(normal_first_plur_regex.findall(string))
+                  plurs_table[po_file[0]][normal_first_plur_regex.findall(string)[0]] = normal_second_plur_regex.findall(string)[0]
+                plural_string = accent_plural_trans_regex.findall(string_file)
+                for string in plural_string:
+                  plur_table[po_file[0]] += tuple(s.replace('"','\\\"') for s in accent_first_plur_regex.findall(string))
+                  plurs_table[po_file[0]][accent_first_plur_regex.findall(string)[0]] = accent_second_plur_regex.findall(string)[0].replace('"','\\\"')
               search_file.close()
 
 def gen_po():          
