@@ -20,6 +20,15 @@ msgid_plural "<strong %s>%d site blocking</strong> rules are defined"
 msgstr[0] "<strong %s>%d Blockierungsregel</strong> ist definiert"
 msgstr[1] "<strong %s>%d Blockierungsregeln</strong> sind definiert"
 
+msgid "Add New Keywords"
+msgstr "Hinzufügen neuer Schlüsselworte"
+
+msgid "Add New Site"
+msgstr "Hinzufügen neue Webseite"
+
+msgid "Cannot add the same site for a MAC multiple time"
+msgstr "Kann die selbe Seite nicht mehrmals für die gleiche MAC hinzufügen"
+
 msgid "Continue to the main page."
 msgstr "Weiter auf die Hauptseite."
 
@@ -29,17 +38,41 @@ msgstr "Ziel ist aufgrund von elterlicher Kontrolle gesperrt."
 msgid "Device"
 msgstr "Gerät"
 
+msgid "Enabled"
+msgstr "Eingeschaltet"
+
+msgid "Exclude Mode"
+msgstr "Ausschluss-Modus"
+
+msgid "Keyword Filter"
+msgstr "Schlüsselwort-Filter"
+
+msgid "Keywords"
+msgstr "Schlüsselworte"
+
+msgid "MAC Address"
+msgstr "MAC-Adresse"
+
+msgid "Note:Parental control url filter not supported for https sites and will block all the webpages related to the given domain name."
+msgstr "Hinweis: Der URL-Filter für elterliche Kontrolle wird für HTTPS Webseiten nicht unterstützt und sperrt alle Seiten für den angegebenen Domain-Namen."
+
 msgid "Parental Controls"
 msgstr "Elterliche Kontrolle"
 
 msgid "Site"
 msgstr "Webseite"
 
+msgid "Site Blocking"
+msgstr "Webseiten-Sperrung"
+
 msgid "Site blocking disabled"
 msgstr "Webseiten-Sperrung abgeschaltet"
 
 msgid "Site blocking enabled"
 msgstr "Webseiten-Sperrung eingeschaltet"
+
+msgid "custom"
+msgstr "Individuell"
 
 msgid "<p>%s GUI Version "
 msgstr "<p>%s GUI Version "
@@ -49,3 +82,6 @@ msgstr "<p>Geschrieben und erweitert von <font style=\"color:#0088cc;\">Ansuel</
 
 msgid "Parental Blocked"
 msgstr "Elterlich gesperrt"
+
+msgid "MAC address"
+msgstr ""

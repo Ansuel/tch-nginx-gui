@@ -4201,3 +4201,23 @@ msgstr ""
 
 msgid "Generating backup in background..."
 msgstr ""
+
+msgid "VCMUX"
+msgstr ""
+
+msgid "Lan pool range is overlap with the STB pool range"
+msgstr ""
+
+msgid "LLC"
+msgstr ""
+
+msgid "MoCA"
+msgstr ""
+
+msgid "Re-scan"
+msgstr ""
+
+msgid "<strong id = \"Ethernet_Devices\" %1$s>%2$d Hotspot device</strong> connected"
+msgid_plural "<strong id = \"Ethernet_Devices\" %1$s>%2$d Hotspot devices</strong> connected"
+msgstr[0] ""
+msgstr[1] ""
