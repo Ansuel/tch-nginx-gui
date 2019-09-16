@@ -1,2 +1,3 @@
 ^modgui%..+%.autoupgrade /usr/share/transformer/scripts/upgradegui SetTime
 ^modgui%..+%.autoupgrade_hour /usr/share/transformer/scripts/upgradegui SetTime
+^modgui%.var%.isp /usr/share/transformer/scripts/ispConfighelper.sh force
