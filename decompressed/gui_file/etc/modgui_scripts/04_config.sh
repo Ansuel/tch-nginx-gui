@@ -65,12 +65,6 @@ orig_config_gen() {
   fi
 }
 
-check_uci_gui_skin() {
-  if [ ! "$(uci get -q modgui.gui.gui_skin)" ]; then
-    uci set modgui.gui.gui_skin="green"
-  fi
-}
-
 remove_https_check_cwmpd() {
   uci set cwmpd.cwmpd_config.enforce_https='0'
   uci set cwmpd.cwmpd_config.ssl_verifypeer='0'
@@ -468,6 +462,15 @@ cumulative_check_gui() {
   if [ ! "$(uci get -q modgui.gui.gui_animation)" ]; then
     uci set modgui.gui.gui_animation="1"
   fi
+  if [ -z "$(uci get -q modgui.var.isp_autodetect)" ]; then
+  	uci set modgui.var.isp_autodetect="1"
+  fi
+  if [ -z "$(uci get -q modgui.var.isp_autodetect)" ]; then
+  	uci set modgui.var.isp="Other"
+  fi
+  if [ -z "$(uci get -q modgui.gui.gui_skin)" ]; then
+    uci set modgui.gui.gui_skin="green"
+  fi
 }
 
 fcctlsettings_daemon() {
@@ -540,8 +543,6 @@ logger_command "Check if variant_friendly_name set"
 check_variant_friendly_name
 logger_command "Remove https check"
 remove_https_check_cwmpd #cleanup
-logger_command "Check for CSS themes"
-check_uci_gui_skin #check css
 logger_command "Check driver setting"
 create_driver_setting #create diver setting if not present
 logger_command "Check Dropbear config file"
