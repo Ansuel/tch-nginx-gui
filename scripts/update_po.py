@@ -61,7 +61,7 @@ def check_files(scanOnly):
               search_file = open(os.path.join(root, file), 'r',encoding='UTF8')
               string_file = search_file.read()
               po_file = po_find_regex.findall(string_file)
-              if len(po_file) == 1:
+              if len(po_file) != 0:
                 if scanOnly == "ScanOnly":
                   po_files[po_file[0]] = {}
                   continue
@@ -74,7 +74,7 @@ def check_files(scanOnly):
                 plural_string = accent_plural_trans_regex.findall(string_file)
                 for string in plural_string:
                   plur_table[po_file[0]] += tuple(s.replace('"','\\\"') for s in accent_first_plur_regex.findall(string))
-                  plurs_table[po_file[0]][accent_first_plur_regex.findall(string)[0]] = accent_second_plur_regex.findall(string)[0].replace('"','\\\"')
+                  plurs_table[po_file[0]][accent_first_plur_regex.findall(string)[0].replace('"','\\\"')] = accent_second_plur_regex.findall(string)[0].replace('"','\\\"')
               search_file.close()
 
 def gen_po():          
