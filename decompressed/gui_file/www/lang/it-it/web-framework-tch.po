@@ -356,7 +356,7 @@ msgid "Invalid minutes, must be between 0 and 59"
 msgstr "Valore minuti non valido.\nDeve essere compreso tra 0 e 59."
 
 msgid "Destination is not in the Gateway network"
-msgstr ""
+msgstr "La destinazione non è nella rete del modem"
 
 msgid "Cannot use IPv4 loopback address range"
-msgstr ""
+msgstr "Impossibile usare intervallo indirizzi loopback IPv4"
