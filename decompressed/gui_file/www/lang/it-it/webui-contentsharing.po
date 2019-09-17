@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: webui-contentsharing\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-10-27 13:44+0200\n"
-"PO-Revision-Date: 2019-03-02 15:13+0100\n"
+"PO-Revision-Date: 2019-09-17 13:52+0100\n"
 "Last-Translator: bovirus <bovirus@gmail.com>\n"
 "Language-Team: none\n"
 "Language: it\n"
@@ -129,6 +129,5 @@ msgstr "Se Samba non è accessibile in Windows 10, configura le impostazioni com
 msgid "It is recommended to use the USB in the 2.0 standard. The use of USB in 3.1 standard can remarkably affect the Wi-Fi performance at 2.4 GHz band."
 msgstr "Ti suggeriamo di usare lo standard USB 2.0\nL'uso dello standard USB 3.1 potrebbe ridurre le prestazioni del WiFi nella banda 2.4 GHz."
 
-
 msgid "Idle"
-msgstr ""
+msgstr "In attesa"
