@@ -84,4 +84,4 @@ msgid "Parental Blocked"
 msgstr "Bloccato da controllo genitori"
 
 msgid "MAC address"
-msgstr ""
+msgstr "Indirizzi MAC"
