@@ -4221,3 +4221,24 @@ msgid "<strong id = \"Ethernet_Devices\" %1$s>%2$d Hotspot device</strong> conne
 msgid_plural "<strong id = \"Ethernet_Devices\" %1$s>%2$d Hotspot devices</strong> connected"
 msgstr[0] ""
 msgstr[1] ""
+
+msgid "Registration Timeout"
+msgstr ""
+
+msgid "Registered"
+msgstr "Registriert"
+
+msgid "Not Available"
+msgstr ""
+
+msgid "Registering"
+msgstr ""
+
+msgid "Running"
+msgstr ""
+
+msgid "Stopping"
+msgstr ""
+
+msgid "Starting"
+msgstr ""
