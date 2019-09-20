@@ -36,7 +36,7 @@ ngx.print('\
 	<div class="divtable">\
 	  <p>\
       <i class="fa fa-info" id="Gateway_=LED_Id"></i>\
-      <strong id = "Version_Id">');  ngx.print(string.format(T"Version %s (%s)", content.name, content.version)); ngx.print('</strong></br>');
+      <strong id = "Version_Id">');  ngx.print(string.format(T"Version %s (%s)", content.name, content.version)); ngx.print('</strong><br/>');
 	  ngx.print('<span class="subinfos">' ..  T"CPU Load"..":" ); ngx.print('\
 					<strong data-bind="text: cpuload">\
 					</strong></span>\

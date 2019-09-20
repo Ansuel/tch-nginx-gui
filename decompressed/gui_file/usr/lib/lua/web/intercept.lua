@@ -15,10 +15,10 @@ function M.process()
   ngx.say([[<html><head></head>
   <body><center>
   <p><b>INTERCEPT TEST</b></p>
-  You have been intercepted for the following destination :<br>
+  You have been intercepted for the following destination :<br/>
   <i>]], req_uri, [[</i>
   <div>
-  <p><b>WAN connection is unavailable.</b><br>
+  <p><b>WAN connection is unavailable.</b><br/>
   Please check internet access settings, close your browser and try again.</p>
   <div>
   <p><a href="http://]], server_addr, [[">Click here to access NG-gateway webinterface</a></p>

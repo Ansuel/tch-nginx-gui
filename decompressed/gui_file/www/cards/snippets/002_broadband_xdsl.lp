@@ -79,10 +79,10 @@ ngx.print( ui_helper.createCardHeader(T"Broadband", modalPath) ); ngx.print('\
 local iconUp = '<i class="icon-upload icon-small gray"></i> '
 local iconDown = '<i class="icon-download icon-small gray"></i> '
 if tabdata.current.name == "bridge" then
-  ngx.print(format("<strong>%s</strong></br>",T"Bridge Mode Active"))
+  ngx.print(format("<strong>%s</strong><br/>",T"Bridge Mode Active"))
 end
 if tabdata.current.name == "voice" then
-  ngx.print(format("<strong>%s</strong></br>",T"Voice Mode Active"))
+  ngx.print(format("<strong>%s</strong><br/>",T"Voice Mode Active"))
 end
 ngx.print( ui_helper.createSimpleLight(intf_light_map[xdslstate] or "3" --[[ orange ]] ,
   ("xDSL ") .. (intf_text_map[xdslstate] or (T"Connecting" .. "...")), attributes,"fa-signal"))

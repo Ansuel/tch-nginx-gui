@@ -48,7 +48,7 @@ content_helper.getExactContent(cui)
     <div class="copyright span12">\
         <p>&copy; Technicolor 2019</p>\
         ');  ngx.print( string.format(T'<p>%s GUI Version ', cui.friendly_product_name) );  ngx.print(string.format('%s', cui.gui_version) );  ngx.print( '</p>\
-        ');  ngx.print( T'<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> and <a href="https://github.com/Ansuel/tch-nginx-gui/graphs/contributors">these GitHub users.</a><br>Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>');  ngx.print('\
+        ');  ngx.print( T'<p>Coded & Expanded by <font style="color:#0088cc;">Ansuel</font> and <a href="https://github.com/Ansuel/tch-nginx-gui/graphs/contributors">these GitHub users.</a><br/>Unlock Utility by <font style="color:#0088cc;">ADeltaX</font>');  ngx.print('\
     </div>\
   </div>\
 </body>\

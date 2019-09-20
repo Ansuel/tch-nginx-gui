@@ -22,7 +22,7 @@ modem_stats_link = 'class="modal-link" data-toggle="modal" data-remote="/modals/
             <span class="simple-desc">\
 				<i " class="fas fa-user-alt" aria-hidden="true" href="#">&nbsp</i>\
 				<strong>\
-				');  ngx.print(T"User Management and Log Viewer"); ngx.print('<br>\
+				');  ngx.print(T"User Management and Log Viewer"); ngx.print('<br/>\
 				</strong>\
             </span>\
 			<p class="subinfos">\

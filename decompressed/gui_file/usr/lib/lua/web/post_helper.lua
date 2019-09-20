@@ -164,9 +164,9 @@ function M.handleQuery(mapParams, mapValidation)
             else
 				local err_msg = {}
 				err_msg[#err_msg+1] = T"Some parameters failed validation"
-				err_msg[#err_msg+1] = "</br>"
+				err_msg[#err_msg+1] = "<br/>"
 				for i , j in pairs(helpmsg) do
-					err_msg[#err_msg+1] = "<strong>" .. i .. "</strong>" .. ": " .. j .. "</br>"
+					err_msg[#err_msg+1] = "<strong>" .. i .. "</strong>" .. ": " .. j .. "<br/>"
 				end
 				message_helper.pushMessage(table.concat(err_msg) , "error")
             end

@@ -882,7 +882,7 @@ if isguest ~= "1" then
             },
         }  ngx.print('\
         <legend>');  ngx.print( T"Near Field Communication (NFC)" ); ngx.print('</legend>\
-        ');  ngx.print(ui_helper.createAlertBlock(T"Near Field Communication (NFC) allows you to tap an Android smartphone or tablet against the front of your Gateway to automatically configure Wi-Fi credentials on your device, so that you can connect over Wi-Fi. This feature is not supported on Apple iOS devices.<br><br><a href=/gateway.lp?openmodal=nfc-modal.lp ><u>Click here</u></a> to configure NFC.", nfc_alert))
+        ');  ngx.print(ui_helper.createAlertBlock(T"Near Field Communication (NFC) allows you to tap an Android smartphone or tablet against the front of your Gateway to automatically configure Wi-Fi credentials on your device, so that you can connect over Wi-Fi. This feature is not supported on Apple iOS devices.<br/><br/><a href=/gateway.lp?openmodal=nfc-modal.lp ><u>Click here</u></a> to configure NFC.", nfc_alert))
     end
 end
   ngx.print('\

@@ -85,7 +85,7 @@ end
 if extension_supported == 0 then
 	html[#html + 1] = '<span class="simple-desc">'
 	html[#html + 1] =	"<strong>"
-	html[#html + 1] =		"No Extensions are supported on this device<br>"
+	html[#html + 1] =		"No Extensions are supported on this device<br/>"
 	html[#html + 1] =	"</strong>"
 	html[#html + 1] = "</span>"
 end
