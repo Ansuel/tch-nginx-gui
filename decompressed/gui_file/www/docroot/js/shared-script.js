@@ -8,7 +8,12 @@ var modgui = modgui || {};
 		tch.showProgress(waitMsg);
 		window.location.reload(true);
 	}
-	function postAction(action,logModal, onClose=standardCloseAction) {
+	function postAction(action,logModal, customCloseAction) {
+		var onClose = ( typeof customCloseAction === "function" ) && customCloseAction || function() {
+			tch.showProgress(waitMsg);
+			window.location.reload(true);
+		}
+
 		var target = $(".modal form").attr("action");
 		$.post(
 			target, {
