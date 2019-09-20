@@ -843,3 +843,114 @@ msgstr "Inaktive Geräte"
 
 msgid "New Radio Interface"
 msgstr "Neue Radioschnittstelle"
+
+msgid "Access Technology:"
+msgstr ""
+
+msgid "Network Status:"
+msgstr ""
+
+msgid "Uplink Frequency:"
+msgstr ""
+
+msgid "SNR:"
+msgstr ""
+
+msgid "RSRP:"
+msgstr ""
+
+msgid "Uplink Bandwidth:"
+msgstr ""
+
+msgid "Radio Bearer:"
+msgstr ""
+
+msgid "RSRQ:"
+msgstr ""
+
+msgid "Path loss:"
+msgstr ""
+
+msgid "Downlink EARFCN:"
+msgstr ""
+
+msgid "RRC State:"
+msgstr ""
+
+msgid "Last five minutes"
+msgstr ""
+
+msgid "Physical Cell ID:"
+msgstr ""
+
+msgid "SINR:"
+msgstr ""
+
+msgid "Downlink Bandwidth:"
+msgstr ""
+
+msgid "Most recent values"
+msgstr ""
+
+msgid "Uplink EARFCN:"
+msgstr ""
+
+msgid "Operator:"
+msgstr ""
+
+msgid "Uplink UARFCN:"
+msgstr ""
+
+msgid "Downlink Frequency:"
+msgstr ""
+
+msgid "Last twenty minutes"
+msgstr ""
+
+msgid "ECIO:"
+msgstr ""
+
+msgid "Cell ID:"
+msgstr ""
+
+msgid "RSSI:"
+msgstr ""
+
+msgid "Service Status:"
+msgstr ""
+
+msgid "Downlink ARFCN:"
+msgstr ""
+
+msgid "RSCP:"
+msgstr ""
+
+msgid "Tracking Area Code:"
+msgstr ""
+
+msgid "Last hour"
+msgstr ""
+
+msgid "Downlink UARFCN:"
+msgstr ""
+
+msgid "Active Band:"
+msgstr ""
+
+msgid "MNC:"
+msgstr ""
+
+msgid "MCC:"
+msgstr ""
+
+msgid "CINR:"
+msgstr ""
+
+msgid "Choose A Band"
+msgstr ""
+
+msgid "TX Power:"
+msgstr ""
+
+msgid "Uplink ARFCN:"
+msgstr ""
