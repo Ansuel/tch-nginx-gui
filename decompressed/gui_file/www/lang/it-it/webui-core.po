@@ -2897,7 +2897,7 @@ msgid "Spoof Settings"
 msgstr "Impostazioni Spoof"
 
 msgid "Update failed. Please try again."
-msgstr "Aggiornamento fallito. Ripocva."
+msgstr "Aggiornamento fallito. Riprova."
 
 msgid "Aria2 GUI"
 msgstr "GUI Aria2"
