@@ -1473,7 +1473,7 @@ else
 ');  end   ngx.print('\
 <fieldset>\
 <legend>');  ngx.print( T"Wifi Analyzer" ); ngx.print('</legend>\
-<div style = "display:block;" class = "alert-info hide">');  ngx.print(T"Press Rescan button to view the updated WiFi Network list"); ngx.print('</div></br>\
+<div style = "display:block;" class = "alert-info hide">');  ngx.print(T"Press Rescan button to view the updated WiFi Network list"); ngx.print('</div><br/>\
 <div id ="analyzerloader" style="height:100px"><img src = "/img/loading.gif"></img></div>\
 <div id = "analyzerGraph" class="hide">\
 ');  ngx.print( T"The below chart shows the results of the latest scan of your local area from your gateway." ); ngx.print('\

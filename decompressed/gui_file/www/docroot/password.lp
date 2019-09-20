@@ -175,7 +175,7 @@ end
                 <label for="srp_password"><div class="label-icon">\
                     <i class="icon-lock icon-large"></i>\
                 </div></label>\
-                <input class="span3" type="password" autocomplete="current-password" id="srp_password" autofocus><br><br>\
+                <input class="span3" type="password" autocomplete="current-password" id="srp_password" autofocus><br/><br/>\
             </div>\
             <!-- HIDE WARNING - NOT USED IN DEFAULT CUSTO\
             <div id="defaultpassword" class="alert alert-info hide">\
@@ -185,14 +185,14 @@ end
             ');  ngx.print( createPwdLabel(T"Your new password") ); ngx.print('\
             <div class="control-group">\
                 <label for="srp_password_new_1"><div class="label-icon"><i class="icon-lock icon-large"></i></div></label>\
-                <input class="span3" type="password" id="srp_password_new_1" onkeyup="passwordCheck(this.value)"><br>\
+                <input class="span3" type="password" id="srp_password_new_1" onkeyup="passwordCheck(this.value)"><br/>\
                 <label for="Strength"></label>\
-                <div id="Password_Strength" class="span3"></div><br>\
+                <div id="Password_Strength" class="span3"></div><br/>\
             </div>\
             ');  ngx.print( createPwdLabel(T"Repeat new password") ); ngx.print('\
             <div class="control-group">\
                 <label for="srp_password_new_2"><div class="label-icon"><i class="icon-lock icon-large"></i></div></label>\
-                <input class="span3" type="password" id="srp_password_new_2"><br><br>\
+                <input class="span3" type="password" id="srp_password_new_2"><br/><br/>\
             </div>\
             <div class="pull-right">\
                 <a href="/" id="cancel" class="btn btn-primary btn-large">');  ngx.print( T"Cancel" ); ngx.print('</a>\

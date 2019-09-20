@@ -697,7 +697,7 @@ ngx.print('\
   $("#btn-remove-root").on("click", function() { return genericButtonFunction(\
 		"');  ngx.print(T'Remove root'); ngx.print('",\
 		"');  ngx.print(T'Resetting...'); ngx.print('",\
-		"');  ngx.print(T"Are you sure you want to remove root from this modem? </br><strong> This could be permanent, so it\\'s not recommended.</strong>"); ngx.print('",\
+		"');  ngx.print(T"Are you sure you want to remove root from this modem? <br/><strong> This could be permanent, so it\\'s not recommended.</strong>"); ngx.print('",\
 		"#unrooting-msg",\
 		"#btn-remove-root",\
 		"system_remove_root"\
@@ -706,7 +706,7 @@ ngx.print('\
   $("#btn-remove-config").on("click", function() { return genericButtonFunction(\
 		"');  ngx.print(T'Reset config'); ngx.print('",\
 		"');  ngx.print(T'Resetting...'); ngx.print('",\
-		"');  ngx.print(T"Are you sure you want to reset config of this modem? </br><strong> This is permanent, save any config before this action.</strong>"); ngx.print('",\
+		"');  ngx.print(T"Are you sure you want to reset config of this modem? <br/><strong> This is permanent, save any config before this action.</strong>"); ngx.print('",\
 		"#config-resetting-msg",\
 		"#btn-remove-config",\
 		"system_reset_config"\
@@ -715,7 +715,7 @@ ngx.print('\
   $("#btn-reset-cwmp").on("click", function() { return genericButtonFunction(\
 		"');  ngx.print(T'Reset CWMP'); ngx.print('",\
 		"');  ngx.print(T'Resetting...'); ngx.print('",\
-		"');  ngx.print(T"Are you sure you want to reset CWMP db of this modem? </br><strong> This will force the first-time boot provisioning with ACS server that can fail on an already provisioned modem.</strong>"); ngx.print('",\
+		"');  ngx.print(T"Are you sure you want to reset CWMP db of this modem? <br/><strong> This will force the first-time boot provisioning with ACS server that can fail on an already provisioned modem.</strong>"); ngx.print('",\
 		"#btn-reset-cwmp",\
 		"#btn-reset-cwmp",\
 		"system_reset_cwmp",\

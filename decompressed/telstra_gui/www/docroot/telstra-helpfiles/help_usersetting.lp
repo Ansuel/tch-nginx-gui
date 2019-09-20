@@ -14,7 +14,7 @@ lp.include("help_menubar.lp")
             </div>\
             <div class="span7 container">\
                 <div class="container span7">\
-                    <br>\
+                    <br/>\
                     <p style="margin: 0 0 0">In this section you will be able to change/view settings that are related to user that is accessing the T-Gateway Web Management Interface</p>                \
                     \
                     <div class="container span7">\

@@ -14,12 +14,12 @@ lp.include("help_menubar.lp")
             </div>\
             <div class="span7 container">\
                 <div class="container span7">\
-                    <br>\
+                    <br/>\
                     <p>Welcome to your Telstra T-Gateway Web Interface. The following pages will provide you an overview of what the various options in the T-Gateway Web Interface can do for you and your service.  The Web Interface is split up into the following section:</p>\
                     <p>&nbsp;&nbsp;<b><u>- Main Navigation Menu</u></b></p>\
                     <p>&nbsp;&nbsp;<b><u>- Dynamic Status Notification Bar</u></b></p>\
                     <p>&nbsp;&nbsp;<b><u>- Main Configuration screen</u></b></p>\
-                    <br>\
+                    <br/>\
                     <H3>Help content by Category for \'Basic View\'</H3>\
                     \
                     <div class="container span7">\
