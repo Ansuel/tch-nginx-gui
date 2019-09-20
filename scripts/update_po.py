@@ -13,7 +13,7 @@ normal_po_regex = re.compile(r"(?<=msgid\s)\".*?(?<!\\)\"(?=\s+msgstr)")
 plural_po_regex = re.compile(r"(?<=msgid\s)\".*?(?<!\\)\"(?=\s+msgid_plural)")
 
 #Detect language in lp and lua files
-po_find_regex = re.compile(r'(?<=gettext\.textdomain\(\')[a-z]+-[a-z]*-*[a-z]+(?=\'\))')
+po_find_regex = re.compile(r'(?<=gettext\.textdomain\(\'|gettext\.textdomain\(\")[a-z]+-[a-z]*-*[a-z]+(?=\'\)|\"\))')
 
 #Detect T"" in source files
 normal_trans_regex = re.compile(r"(?<=\.T|\(T|\{T|\sT|\[T|,T)\".*?(?<!\\)\"(?=,|\s|\s\.\.|\.\.|\)|\}|\")")
@@ -81,7 +81,7 @@ def gen_po():
     for lang in po_string_table:
       for file in po_string_table[lang]:
         if file in translate_table and file in po_string_table[lang]:
-        
+          
           #Normal strings msgid
           diff_table = set(translate_table[file]) - set(po_string_table[lang][file])
           po_file = open(lang_path+"/"+lang+"/"+file+".po", 'a',encoding='UTF8')
