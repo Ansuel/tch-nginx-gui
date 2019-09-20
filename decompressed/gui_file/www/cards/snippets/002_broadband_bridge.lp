@@ -82,10 +82,10 @@ end
 <div class="divtable">\
   ');
 	if tabdata.current.name == "bridge" then
-		ngx.print(format("<strong>%s</strong></br>",T"Bridge Mode Active"))
+		ngx.print(format("<strong>%s</strong><br/>",T"Bridge Mode Active"))
 	end
 	if tabdata.current.name == "voice" then
-		ngx.print(format("<strong>%s</strong></br>",T"Voice Mode Active"))
+		ngx.print(format("<strong>%s</strong><br/>",T"Voice Mode Active"))
 	end
       ngx.print(ui_helper.createSimpleLight(intf_light_map[intf_state], intf_state_map[intf_state], nil, "fas fa-at"),
       '<p class="subinfos">',

@@ -127,11 +127,11 @@ ngx.print('\
                       <label for="srp_username"><div class="label-icon">\
                           <i class="icon-user icon-large"></i>\
                       </div></label>\
-                      <input class="span3" type="text" placeholder="');  ngx.print( T"Your username" ); ngx.print('" id="srp_username" value="');  ngx.print( cui.defaultuser ); ngx.print('" autofocus><br><br>\
+                      <input class="span3" type="text" placeholder="');  ngx.print( T"Your username" ); ngx.print('" id="srp_username" value="');  ngx.print( cui.defaultuser ); ngx.print('" autofocus><br/><br/>\
                   </div>\
                   <div class="control-group">\
                       <label for="srp_password"><div class="label-icon"><i class="icon-lock icon-large"></i></div></label>\
-                      <input class="span3" type="password" autocomplete="current-password" placeholder="');  ngx.print( T"Your password" ); ngx.print('" id="srp_password"><br><br>\
+                      <input class="span3" type="password" autocomplete="current-password" placeholder="');  ngx.print( T"Your password" ); ngx.print('" id="srp_password"><br/><br/>\
                   </div>\
                   <!-- HIDE WARNING - NOT NOT USED IN DEFAULT CUSTO\
                   <div id="defaultpassword" class="alert alert-info hide">\
@@ -164,7 +164,7 @@ ngx.print('\
               <div class="control-group">\
                 <label for="srp_password1" class="alert-info">');  ngx.print(T'Enter the default <strong>"access code"</strong>. This code is located on the label underneath your gateway.')  ngx.print('</label>\
                 <label for="srp_password1"><div class="label-icon"><i class="icon-lock icon-large"></i></div></label>\
-                <input class="span3" type="password" placeholder="');  ngx.print(T"Your password")  ngx.print('" id="srp_password1"><br><br>\
+                <input class="span3" type="password" placeholder="');  ngx.print(T"Your password")  ngx.print('" id="srp_password1"><br/><br/>\
               </div>\
               <div class="pull-right">\
                 <a href="/" class="btn btn-primary btn-large">');  ngx.print( T"Cancel" )  ngx.print('</a>&nbsp;\

@@ -674,7 +674,7 @@ local function addAppendServiceInTable(serviceData, serviceName)
             deviceOrProfileName =  w["name"]
         end
         if displayData then
-            displayData = displayData.."<br>"..deviceOrProfileName
+            displayData = displayData.."<br/>"..deviceOrProfileName
         else
 	    displayData = deviceOrProfileName
         end

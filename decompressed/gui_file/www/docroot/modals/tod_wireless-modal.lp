@@ -351,7 +351,7 @@ local function getApSelected(index)
 			freq = string.match(freq,"radio_5G") and "5GHz" or "2.4GHz"
 			
 			wifi_list[#wifi_list+1] = untaint(name).." ("..untaint(freq)..")"
-			wifi_list[#wifi_list+1] = "<br>"
+			wifi_list[#wifi_list+1] = "<br/>"
 		end
 	end
 	

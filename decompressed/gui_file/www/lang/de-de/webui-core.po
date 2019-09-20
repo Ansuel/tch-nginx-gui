@@ -116,8 +116,8 @@ msgid_plural "<strong id=\"iproutescard_noofipv4staticroutes\" %1$s>%2$d IPv4 St
 msgstr[0] "<strong id = \"Wifi_Devices\" %1$s>%2$d Statische IPv4-Route</strong>"
 msgstr[1] "<strong id = \"Wifi_Devices\" %1$s>%2$d Statische IPv4-Routen</strong>"
 
-msgid "<strong>%d</strong> IPv4 rule(s) defined<br>"
-msgstr "<strong>%d</strong> IPv4 Regel(n) definiert<br>"
+msgid "<strong>%d</strong> IPv4 rule(s) defined<br/>"
+msgstr "<strong>%d</strong> IPv4 Regel(n) definiert<br/>"
 
 msgid "<strong>%d</strong> IPv6 rule(s) defined"
 msgstr "<strong>%d</strong> IPv6 Regel(n) definiert"
@@ -1004,8 +1004,8 @@ msgstr "Firewall Standardverhalten"
 msgid "Firewall level"
 msgstr "Firewall Stufe"
 
-msgid "Firewall level: <strong id=\"Firewall_Level_ID\">%s</strong><br>"
-msgstr "Firewall Stufe: <strong id=\"Firewall_Level_ID\">%s</strong><br>"
+msgid "Firewall level: <strong id=\"Firewall_Level_ID\">%s</strong><br/>"
+msgstr "Firewall Stufe: <strong id=\"Firewall_Level_ID\">%s</strong><br/>"
 
 msgid "Firmware Version"
 msgstr "Firmware Version"
@@ -2929,8 +2929,8 @@ msgstr "Punkt"
 msgid "<p>%s GUI Version "
 msgstr "<p>%s GUI Version "
 
-msgid "<p>Coded & Expanded by <font style=\"color:#0088cc;\">Ansuel</font> and <a href=\"https://github.com/Ansuel/tch-nginx-gui/graphs/contributors\">these GitHub users.</a><br>Unlock Utility by <font style=\"color:#0088cc;\">ADeltaX</font>"
-msgstr "<p>Geschrieben und erweitert von <font style=\"color:#0088cc;\">Ansuel</font> und <a href=\"https://github.com/Ansuel/tch-nginx-gui/graphs/contributors\">diesen GitHub Nutzern.</a><br>Entsperrwerkzeug von <font style=\"color:#0088cc;\">ADeltaX</font>"
+msgid "<p>Coded & Expanded by <font style=\"color:#0088cc;\">Ansuel</font> and <a href=\"https://github.com/Ansuel/tch-nginx-gui/graphs/contributors\">these GitHub users.</a><br/>Unlock Utility by <font style=\"color:#0088cc;\">ADeltaX</font>"
+msgstr "<p>Geschrieben und erweitert von <font style=\"color:#0088cc;\">Ansuel</font> und <a href=\"https://github.com/Ansuel/tch-nginx-gui/graphs/contributors\">diesen GitHub Nutzern.</a><br/>Entsperrwerkzeug von <font style=\"color:#0088cc;\">ADeltaX</font>"
 
 msgid " && Translated by <font style=\"color:#0088cc;\">%s</font>"
 msgstr " && Übersetzt von <font style=\"color:#0088cc;\">%s</font>"
@@ -3538,8 +3538,8 @@ msgstr "wl1"
 msgid "AF33"
 msgstr "AF33"
 
-msgid "Are you sure you want to remove root from this modem? </br><strong> This could be permanent, so it\\'s not recommended.</strong>"
-msgstr "Sind Sie sicher, dass Sie Root von diesem Modem entfernen wollen? </br><strong>Dies könnte permanent sein, deshlab wird es nicht empfohlen.</strong>"
+msgid "Are you sure you want to remove root from this modem? <br/><strong> This could be permanent, so it\\'s not recommended.</strong>"
+msgstr "Sind Sie sicher, dass Sie Root von diesem Modem entfernen wollen? <br/><strong>Dies könnte permanent sein, deshlab wird es nicht empfohlen.</strong>"
 
 msgid "802.11b/g"
 msgstr "802.11b/g"
@@ -3763,8 +3763,8 @@ msgstr "Zurücksetzen der Konfiguration auf Werkseinstellungen"
 msgid "Remove Config"
 msgstr "Entferne Konfiguration"
 
-msgid "Are you sure you want to reset config of this modem? </br><strong> This is permanent, save any config before this action.</strong>"
-msgstr "Sind Sie sicher, dass Sie die Konfiguration des Modems zurücksetzen wollen? </br><strong> Dies ist dauerhaft, sichern Sie ggf. Ihre Einstellungen vor dieser Aktion.</strong>"
+msgid "Are you sure you want to reset config of this modem? <br/><strong> This is permanent, save any config before this action.</strong>"
+msgstr "Sind Sie sicher, dass Sie die Konfiguration des Modems zurücksetzen wollen? <br/><strong> Dies ist dauerhaft, sichern Sie ggf. Ihre Einstellungen vor dieser Aktion.</strong>"
 
 msgid "Mem Used Graph"
 msgstr "Speichernutzung Grafik"
@@ -4157,7 +4157,7 @@ msgstr ""
 msgid "Reset CWMP"
 msgstr ""
 
-msgid "Are you sure you want to reset CWMP db of this modem? </br><strong> This will force the first-time boot provisioning with ACS server that can fail on an already provisioned modem.</strong>"
+msgid "Are you sure you want to reset CWMP db of this modem? <br/><strong> This will force the first-time boot provisioning with ACS server that can fail on an already provisioned modem.</strong>"
 msgstr ""
 
 msgid "Force CWMP provisioning"
