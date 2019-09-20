@@ -1,7 +1,6 @@
 --pretranslated: do not change this file
  
 -- Enable localization
-
 gettext.textdomain('webui-core')
 
 local content_helper = require("web.content_helper")
@@ -16,7 +15,19 @@ local content = {
 
 content_helper.getExactContent(content)
 
-if not ( content.max_upstream == "0" ) then
+local status_map = {
+	STARTING = T"Starting",
+	RUNNING = T"Running",
+	STOPPING = T"Stopping",
+	NA = T"Not Available",
+}
+
+local untaint_mt = require("web.taint").untaint_mt
+setmetatable(status_map, untaint_mt)
+
+local mmpbx_light = content["status"]=="NA" and "0" or "1"
+local mmpbx_status = status_map[content.status] or content.status
+
   ngx.print('\
 \
 <div class="infocard" id="infommpbxdtab">\
@@ -36,7 +47,7 @@ if not ( content.max_upstream == "0" ) then
 	local html = {}
 
     html[#html + 1] = '<span data-bind="html: mmpbx_status">'
-	html[#html + 1] = ui_helper.createLabel(T"Service", ui_helper.createSimpleLight(content["status"]=="NA" and "0" or "1", T(content["status"])), basic)
+	html[#html + 1] = ui_helper.createLabel(T"Service", ui_helper.createSimpleLight(mmpbx_light, mmpbx_status), basic)
     html[#html + 1] = '</span>'
 
 	if ( variant == "Technicolor TG799vac" ) or ( variant == "Technicolor TG800vac" )  then
@@ -63,4 +74,3 @@ $(document).ready(function () {\
 })\
 </script>\
 '); 
-end
