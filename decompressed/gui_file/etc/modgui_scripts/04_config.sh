@@ -309,7 +309,7 @@ dosprotect_inizialize() {
 
 mobiled_lib_add() { #needed for TG788, can break if already integrated in the firmware
   if [ -f /rom/usr/lib/lua/mobiled/scripthelpers.lua ]; then #restore from rom to avoid taking the replaced from older GUI installs
-    if [ ! $(cmp /rom/usr/lib/lua/mobiled/scripthelpers.lua /usr/lib/lua/mobiled/scripthelpers.lua) ]; then
+    if [ $(md5sum /rom/usr/lib/lua/mobiled/scripthelpers.lua | cut -d' ' -f1) != $(md5sum /usr/lib/lua/mobiled/scripthelpers.lua | cut -d' ' -f1) ]; then
       logger_command "Restoring mobiled scripthelpers lib..."
       cp /rom/usr/lib/lua/mobiled/scripthelpers.lua /usr/lib/lua/mobiled/scripthelpers.lua
     fi
