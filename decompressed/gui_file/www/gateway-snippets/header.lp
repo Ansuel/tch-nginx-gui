@@ -267,7 +267,7 @@ ngx.print('\
 		session:store("password_reminder_shown", true)
 	end
     html[#html + 1] = '<a href="#footer" id="scroll-down" class="scroll-down" address="true"></a>'
-    html[#html + 1] = '<a href="#headertab" id="scroll-up"class="scroll-up hide" address="true"></a>'
+    html[#html + 1] = '<a href="#headertab" id="scroll-up" class="scroll-up hide" address="true"></a>'
 ngx.print(html)
 ngx.print('\
 </div>\
@@ -283,7 +283,7 @@ ngx.print('\
 	pageselector_othertext : "'); ngx.print(pageselector.othertext); ngx.print ('",\
 	autoupgradeview : "'); ngx.print(autoupgrade_view or "none"); ngx.print ('",\
 	gui_outdated : "'); ngx.print(T"GUI is outdated"); ngx.print('",\
-	gui_updated : "'); ngx.print(T"GUI is updated"); ngx.print('",\
+	gui_updated : "'); ngx.print(T"GUI is updated"); ngx.print('"\
   };\
 \
 </script>\

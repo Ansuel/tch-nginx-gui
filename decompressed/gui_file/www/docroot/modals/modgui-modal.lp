@@ -664,10 +664,11 @@ ngx.print('\
 	});\
   };\
 \
-  function resetreboot(msg, msg_dst, action, callbackfunc=wait_for_webserver_down) {\
+  function resetreboot(msg, msg_dst, action, customCallbackfunc) {\
 	msg.removeClass("hide");\
 	msg[0].scrollIntoView();\
 	msg_dst.replaceWith(msg);\
+	var callbackfunc = ( typeof customCallbackfunc === "function" ) && customCallbackfunc || wait_for_webserver_down;\
 	if(callbackfunc == wait_for_webserver_down) modgui.clearKoInterval();\
 	$.post(target,{action: action, CSRFtoken: $("meta[name=CSRFtoken]").attr("content")}, callbackfunc,"json");\
 	return false;\

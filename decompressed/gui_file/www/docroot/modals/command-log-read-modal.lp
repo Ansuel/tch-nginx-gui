@@ -58,7 +58,7 @@ ngx.print('\
                                 }\
                         })\
                         .fail(function(data) {\
-                                if(data.status==200 && data.responseText.includes("sign-me-in")){\
+                                if(data.status==200 && data.responseText.indexOf("sign-me-in") !== -1){\
                                         $("#header_title").text("Login Required");\
                                         $("#show_progress").text("");\
                                         $(".modal-footer").show();\
