@@ -298,13 +298,26 @@ dosprotect_inizialize() {
         mv /tmp/dosprotect_orig /etc/config/dosprotect
       fi
     fi
-    [ -f /tmp/dosprotect_orig ] && rm /tmp/dosprotect_orig
     if [ -n "$(find /etc/rc.d/ -iname S*dosprotect)" ]; then
       logger_command "Enabling and starting DoSprotect service..."
       /etc/init.d/dosprotect enable
       /etc/init.d/dosprotect start
     fi
   fi
+  [ -f /tmp/dosprotect_orig ] && rm /tmp/dosprotect_orig
+}
+
+mobiled_lib_add() { #needed for TG788, can break if already integrated in the firmware
+  if [ -f /rom/usr/lib/lua/mobiled/scripthelpers.lua ]; then #restore from rom to avoid taking the replaced from older GUI installs
+    if [ ! $(cmp /rom/usr/lib/lua/mobiled/scripthelpers.lua /usr/lib/lua/mobiled/scripthelpers.lua) ]; then
+      logger_command "Restoring mobiled scripthelpers lib..."
+      cp /rom/usr/lib/lua/mobiled/scripthelpers.lua /usr/lib/lua/mobiled/scripthelpers.lua
+    fi
+  else
+    logger_command "Adding missing mobiled scripthelpers lib..."
+    mv /tmp/scripthelpers.lua /usr/lib/lua/mobiled/scripthelpers.lua
+  fi
+  [ -f /tmp/scripthelpers.lua ] && rm /tmp/scripthelpers.lua
 }
 
 disable_intercept() {
@@ -570,6 +583,7 @@ logger_command "Checking if wan_mode option exists..."
 check_wan_mode        # wan_mode check
 dosprotect_inizialize #dosprotected inizialize function
 logger_command "Checking if intercept is enabled and disabling if it is..."
+mobiled_lib_add
 disable_intercept #Intercept check
 logger_command "Disabling coredump reboot..."
 disable_upload_coredump_and_reboot
