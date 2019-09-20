@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: webui-core\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2019-09-17 13:53+0100\n"
+"PO-Revision-Date: 2019-09-20 21:23+0100\n"
 "Last-Translator: bovirus <bovirus@gmail.com>\n"
 "Language-Team: none\n"
 "Language: it\n"
@@ -2897,7 +2897,7 @@ msgid "Spoof Settings"
 msgstr "Impostazioni Spoof"
 
 msgid "Update failed. Please try again."
-msgstr "Aggiornamento fallito. Ripocva."
+msgstr "Aggiornamento fallito. Riprova."
 
 msgid "Aria2 GUI"
 msgstr "GUI Aria2"
@@ -4223,22 +4223,22 @@ msgstr[0] "<strong id = \"Ethernet_Devices\" %1$s>%2$d dispositivo hotspot</stro
 msgstr[1] "<strong id = \"Ethernet_Devices\" %1$s>%2$d dispositivi hotspot</strong> connessi"
 
 msgid "Registration Timeout"
-msgstr ""
+msgstr "Timeout registrazione"
 
 msgid "Registered"
 msgstr "Registrato"
 
 msgid "Not Available"
-msgstr ""
+msgstr "Non disponibile"
 
 msgid "Registering"
-msgstr ""
+msgstr "Registrazione"
 
 msgid "Running"
-msgstr ""
+msgstr "In esecuzione"
 
 msgid "Stopping"
-msgstr ""
+msgstr "Chiusura"
 
 msgid "Starting"
-msgstr ""
+msgstr "Avvio"
