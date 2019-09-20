@@ -8,7 +8,12 @@ var modgui = modgui || {};
 		tch.showProgress(waitMsg);
 		window.location.reload(true);
 	}
-	function postAction(action,logModal, onClose=standardCloseAction) {
+	function postAction(action,logModal, customCloseAction) {
+		var onClose = ( typeof customCloseAction === "function" ) && customCloseAction || function() {
+			tch.showProgress(waitMsg);
+			window.location.reload(true);
+		}
+
 		var target = $(".modal form").attr("action");
 		$.post(
 			target, {
@@ -71,7 +76,7 @@ var modgui = modgui || {};
 				})
 				.fail(function(data) {
 					connectionissue = 1;
-					if(data.status==200 && data.responseText.includes("sign-me-in")){
+					if(data.status==200 && data.responseText.indexOf("sign-me-in") !== -1 ){
 						if(!$("#popUp").is(":visible"))
 							tch.showProgress(loginMsg);
 						window.location.href = "/";

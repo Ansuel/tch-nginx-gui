@@ -128,9 +128,9 @@ var InfoGraphCardRefresh = function(ElementBinding) {\
 					ElementBinding.rx_traffic_complete(data.rx_traffic);\
 					ElementBinding.tx_traffic_complete(data.tx_traffic);\
 					var date = new Date();\
-					var old_time = Date.parse("01 Jan 1970 "+Array.from(timelabel).pop()+" GMT");\
+					var old_time = Date.parse("01 Jan 1970 "+timelabel.slice(-1).pop()+" GMT");\
 					timelabel.push(date.getHours()+":"+date.getMinutes()+":"+date.getSeconds());\
-					var time = Date.parse("01 Jan 1970 "+Array.from(timelabel).pop()+" GMT");\
+					var time = Date.parse("01 Jan 1970 "+timelabel.slice(-1).pop()+" GMT");\
 					var time_diff = (time-old_time > 0) ? ((time-old_time)/1000) : 1;\
 					wanRxdatasets.push(((rx_traffic*8)/time_diff).toFixed(0));\
 					wanTxdatasets.push(((tx_traffic*8)/time_diff).toFixed(0));\
