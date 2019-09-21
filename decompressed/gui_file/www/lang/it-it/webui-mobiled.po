@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: webui-mobiled\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-06-21 15:33+0200\n"
-"PO-Revision-Date: 2019-01-08 11:58+0100\n"
+"PO-Revision-Date: 2019-09-23 11:36+0100\n"
 "Last-Translator: bovirus <bovirus@gmail.com>\n"
 "Language-Team: none\n"
 "Language: it\n"
@@ -845,112 +845,112 @@ msgid "New Radio Interface"
 msgstr "Nuova interfaccia radio"
 
 msgid "Access Technology:"
-msgstr ""
+msgstr "Tecnologia qccesso:"
 
 msgid "Network Status:"
-msgstr ""
+msgstr "Stato rete:"
 
 msgid "Uplink Frequency:"
-msgstr ""
+msgstr "Frequeza uplink:"
 
 msgid "SNR:"
-msgstr ""
+msgstr "SNR:"
 
 msgid "RSRP:"
-msgstr ""
+msgstr "RSRP:"
 
 msgid "Uplink Bandwidth:"
-msgstr ""
+msgstr "banda uplink:"
 
 msgid "Radio Bearer:"
-msgstr ""
+msgstr "Bearer radio:"
 
 msgid "RSRQ:"
-msgstr ""
+msgstr "RSRQ:"
 
 msgid "Path loss:"
-msgstr ""
+msgstr "Percorso perso"
 
 msgid "Downlink EARFCN:"
-msgstr ""
+msgstr "EARFCN downlink:"
 
 msgid "RRC State:"
-msgstr ""
+msgstr "Stato RRC:"
 
 msgid "Last five minutes"
-msgstr ""
+msgstr "Ultimi 5 minuti"
 
 msgid "Physical Cell ID:"
-msgstr ""
+msgstr "ID cella fisica:"
 
 msgid "SINR:"
-msgstr ""
+msgstr "SINR:"
 
 msgid "Downlink Bandwidth:"
-msgstr ""
+msgstr "Banda downlink:"
 
 msgid "Most recent values"
-msgstr ""
+msgstr "Valori più recenti"
 
 msgid "Uplink EARFCN:"
-msgstr ""
+msgstr "EARFCN uplink:"
 
 msgid "Operator:"
-msgstr ""
+msgstr "Operatore:"
 
 msgid "Uplink UARFCN:"
-msgstr ""
+msgstr "UARFCN uplink:"
 
 msgid "Downlink Frequency:"
-msgstr ""
+msgstr "Frequnza downlink:"
 
 msgid "Last twenty minutes"
-msgstr ""
+msgstr "Ultimi venti minuti"
 
 msgid "ECIO:"
-msgstr ""
+msgstr "ECIO:"
 
 msgid "Cell ID:"
-msgstr ""
+msgstr "ID cella:"
 
 msgid "RSSI:"
-msgstr ""
+msgstr "RSSI:"
 
 msgid "Service Status:"
-msgstr ""
+msgstr "Stato servizio:"
 
 msgid "Downlink ARFCN:"
-msgstr ""
+msgstr "ARFCN downlink:"
 
 msgid "RSCP:"
-msgstr ""
+msgstr "RSCP:"
 
 msgid "Tracking Area Code:"
-msgstr ""
+msgstr "Codice area tracking:"
 
 msgid "Last hour"
-msgstr ""
+msgstr "Ultima ora"
 
 msgid "Downlink UARFCN:"
-msgstr ""
+msgstr "UARFCN downlink:"
 
 msgid "Active Band:"
-msgstr ""
+msgstr "Banda attiva:"
 
 msgid "MNC:"
-msgstr ""
+msgstr "MNC:"
 
 msgid "MCC:"
-msgstr ""
+msgstr "MCC:"
 
 msgid "CINR:"
-msgstr ""
+msgstr "CINR:"
 
 msgid "Choose A Band"
-msgstr ""
+msgstr "Secgli una banda"
 
 msgid "TX Power:"
-msgstr ""
+msgstr "Potenza TX:"
 
 msgid "Uplink ARFCN:"
-msgstr ""
+msgstr "ARFCN uplink:"
