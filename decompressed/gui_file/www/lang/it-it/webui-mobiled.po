@@ -845,7 +845,7 @@ msgid "New Radio Interface"
 msgstr "Nuova interfaccia radio"
 
 msgid "Access Technology:"
-msgstr "Tecnologia qccesso:"
+msgstr "Tecnologia accesso:"
 
 msgid "Network Status:"
 msgstr "Stato rete:"
@@ -860,7 +860,7 @@ msgid "RSRP:"
 msgstr "RSRP:"
 
 msgid "Uplink Bandwidth:"
-msgstr "banda uplink:"
+msgstr "Banda uplink:"
 
 msgid "Radio Bearer:"
 msgstr "Bearer radio:"
@@ -947,7 +947,7 @@ msgid "CINR:"
 msgstr "CINR:"
 
 msgid "Choose A Band"
-msgstr "Secgli una banda"
+msgstr "Scegli una banda"
 
 msgid "TX Power:"
 msgstr "Potenza TX:"
