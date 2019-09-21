@@ -60,7 +60,7 @@ end
 			if light.status == "1" then
 				ngx.print('\
 					<div id="signal-strength-indicator-small-card">\
-						<div>\
+						<div id="signal-strength-indicator-small">\
 							<div class="bar-small bar-small1"></div>\
 							<div class="bar-small bar-small2"></div>\
 							<div class="bar-small bar-small3"></div>\
@@ -70,26 +70,18 @@ end
 					</div>'); ngx.print('\
 					<div style="height: 25px;" data-bind="visible: mobileStatus">\
 						<label class="card-label">');  ngx.print( T"Status"..":" ); ngx.print('</label>\
-						<div class="controls">\
-							<strong data-bind="text: mobileStatus"></strong>\
-						</div>\
+						<strong data-bind="text: mobileStatus"></strong>\
 					</div>\
 					<div style="height: 25px;" data-bind="visible: radioType">\
 						<label class="card-label">');  ngx.print( T"Radio Type"..":" ); ngx.print('</label>\
-						<div class="card-control">\
-							<strong data-bind="text: radioType"></strong>\
-						</div>\
+						<strong data-bind="text: radioType"></strong>\
 					</div>\
 					<div style="height: 25px;" data-bind="visible: signalQuality">\
 						<label class="card-label">');  ngx.print( T"Quality"..":" ); ngx.print('</label>\
-						<div class="controls">\
-							<strong data-bind="text: signalQuality"></strong>\
-						</div>\
+						<strong data-bind="text: signalQuality"></strong>\
 					</div>\
 					<div style="height: 25px;" data-bind="visible: deviceStatus">\
-						<div class="controls">\
-							<strong data-bind="text: deviceStatus"></strong>\
-						</div>\
+						<strong data-bind="text: deviceStatus"></strong>\
 					</div>\
 				')
 		  	end
@@ -105,7 +97,7 @@ var LteCardRefresh = function(ElementBinding) {\
 \
 	var allowSimRedirect = ');  ngx.print( allowSimRedirect ); ngx.print(';\
 	function updateBars(bars) {\
-			$(\'#signal-strength-indicator-small .absolute\').children(\'.bar-small\').each(function (index) {\
+			$("#signal-strength-indicator-small").children(".bar-small").each(function (index) {\
 				if(index < bars) {\
 					$(this).addClass(\'bar-small-active\');\
 				} else {\

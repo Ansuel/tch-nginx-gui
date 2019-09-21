@@ -1,1 +1,138 @@
-#lte-doctor-body{overflow-x:hidden}.inline{display:inline}.hidden{display:none}#plot-tooltip{position:fixed;display:none;border:1px solid #fdd;padding:2px;background-color:#fee;opacity:.8}#plot-container div.navbutton{font-size:smaller;color:#999;background-color:#eee;padding:2px;-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}#plot-container .navbutton{position:absolute;cursor:pointer;-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}#pie-container{padding-top:10px;clear:both}#pie-plot{float:left;width:300px;height:300px}.legendLabel{padding-right:10px}#signal-strength-indicator{float:right;width:80px}.bar{width:10px;background:#aaa;border:1px solid #444;display:inline-block;-moz-border-radius:3px;border-radius:3px}.bar1{height:10px}.bar2{height:15px}.bar3{height:20px}.bar4{height:25px}.bar5{height:30px}.bar-active{background:#611a64}.bar-small{width:3px;background:#aaa;border:1px solid #444;display:inline-block;margin:0 2px 0 0}.bar-small1{height:4px}.bar-small2{height:8px}.bar-small3{height:12px}.bar-small4{height:16px}.bar-small5{height:20px}.bar-small-active{background:#3fa13f}#signal-strength-indicator-small{font-size:0}.absolute{position:absolute}#signal-strength-indicator-small .absolute{margin-top:-36px;margin-left:70px;height:22px;width:40px}#signal-strength-indicator-small-card{float:right;margin-right:15px;height:22px}#plot-interval{margin-left:30px}#lte-doctor-body .control-group{margin:0}#lte-doctor-body .control-label,#lte-body .control-label{cursor:default;font-weight:700}@media screen and (max-width:979px) and (min-width:768px){#signal-strength-indicator-small .absolute{margin-top:-32px}}
+#lte-doctor-body{
+    overflow-x:hidden
+}
+.inline{
+    display:inline
+}
+.hidden{
+    display:none
+}
+#plot-tooltip{
+    position:fixed;
+    display:none;
+    border:1px solid #fdd;
+    padding:2px;
+    background-color:#fee;
+    opacity:.8
+}
+#plot-container div.navbutton{
+    font-size:smaller;
+    color:#999;
+    background-color:#eee;
+    padding:2px;
+    -webkit-touch-callout:none;
+    -webkit-user-select:none;
+    -khtml-user-select:none;
+    -moz-user-select:none;
+    -ms-user-select:none;
+    user-select:none
+}
+#plot-container .navbutton{
+    position:absolute;
+    cursor:pointer;
+    -webkit-touch-callout:none;
+    -webkit-user-select:none;
+    -khtml-user-select:none;
+    -moz-user-select:none;
+    -ms-user-select:none;
+    user-select:none
+}
+#pie-container{
+    padding-top:10px;
+    clear:both
+}
+#pie-plot{
+    float:left;
+    width:300px;
+    height:300px
+}
+.legendLabel{
+    padding-right:10px
+}
+#signal-strength-indicator{
+    float:right;
+    width:80px
+}
+.bar{
+    width:10px;
+    background:#aaa;
+    border:1px solid #444;
+    display:inline-block;
+    -moz-border-radius:3px;
+    border-radius:3px
+}
+.bar1{
+    height:10px
+}
+.bar2{
+    height:15px
+}
+.bar3{
+    height:20px
+}
+.bar4{
+    height:25px
+}
+.bar5{
+    height:30px
+}
+.bar-active{
+    background:#611a64
+}
+.bar-small{
+    width:3px;
+    background:#aaa;
+    border:1px solid #444;
+    display:inline-block;
+    margin:0 2px 0 0
+}
+.bar-small1{
+    height:4px
+}
+.bar-small2{
+    height:8px
+}
+.bar-small3{
+    height:12px
+}
+.bar-small4{
+    height:16px
+}
+.bar-small5{
+    height:20px
+}
+.bar-small-active{
+    background:#3fa13f
+}
+#signal-strength-indicator-small{
+    font-size:0
+}
+.absolute{
+    position:absolute
+}
+#signal-strength-indicator-small .absolute{
+    margin-top:-36px;
+    margin-left:70px;
+    height:22px;
+    width:40px
+}
+#signal-strength-indicator-small-card{
+    float:right;
+    margin-right:15px;
+    height:22px
+}
+#plot-interval{
+    margin-left:30px
+}
+#lte-doctor-body .control-group{
+    margin:0
+}
+#lte-doctor-body .control-label,#lte-body .control-label{
+    cursor:default;
+    font-weight:700
+}
+@media screen and (max-width:979px) and (min-width:768px){
+    #signal-strength-indicator-small .absolute{
+        margin-top:-32px
+    }
+}
