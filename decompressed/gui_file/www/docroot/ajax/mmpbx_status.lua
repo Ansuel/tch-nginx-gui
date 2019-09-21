@@ -90,18 +90,18 @@ local mmpbxd_filter = function(data)
         data.uri = data.uri:sub(4)
     end
 
-    local classlight
+    local registerLight = "off"
+	local registerState
     if data.sipRegisterState then
-        data.sipRegisterState = registrationStatusMap[data.sipRegisterState] or data.sipRegisterState
-        classlight="off"
+        registerState = registrationStatusMap[data.sipRegisterState] or data.sipRegisterState
         if data.sipRegisterState=="Registered" then
-            classlight="green"
+            registerLight="green"
         end
         if data.failReason ~= "" then
-            classlight="red"
-            data.sipRegisterState = failReasonMap[data.failReason] or data.failReason
+            registerLight="red"
+            registerState = failReasonMap[data.failReason] or data.failReason
         end
-        data.sipRegisterState = ui_helper.createSimpleLight(nil, T(data.sipRegisterState), { light = { class = classlight } })
+        data.sipRegisterState = ui_helper.createSimpleLight(nil, registerState, { light = { class = registerLight } })
     end
 
     if data.callState then
