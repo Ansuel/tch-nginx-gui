@@ -5,7 +5,10 @@ local json = require("dkjson")
 local proxy = require("datamodel")
 local utils = require("web.lte-utils")
 
-local string, setmetatable = string, setmetatable
+local ngx_post_data = ngx.req.get_post_args()
+local dev_idx = tonumber(ngx_post_data.dev_idx) or 1
+
+local base_path = string.format("rpc.mobiled.device.@%d.sim.pin.", dev_idx)
 
 local function validate_pin(value)
 	local errmsg = T"The PIN code must be composed of 4 to 8 digits."
@@ -30,7 +33,7 @@ local function validate_puk(value)
 end
 
 local function pin_error(action)
-	local data = utils.getContent("rpc.mobiled.device.@1.sim.pin.")
+	local data = utils.getContent(base_path)
 	local unlock_retries = tonumber(data.unlock_retries_left) or 0
 	local unblock_retries = tonumber(data.unblock_retries_left) or 0
 	local err
@@ -75,7 +78,7 @@ local function execute_action(post_data)
 		if ret ~= true then
 			return false, invalid_pin_error .. " " .. msg
 		end
-		ret = proxy.set("rpc.mobiled.device.@1.sim.pin.change", post_data["old_pin"] .. ',' .. post_data["new_pin"])
+		ret = proxy.set(base_path .. "change", post_data["old_pin"] .. ',' .. post_data["new_pin"])
 		if not ret then
 			return pin_error(post_data["action"])
 		end
@@ -85,7 +88,7 @@ local function execute_action(post_data)
 		if not ret then
 			return false, invalid_pin_error .. " " .. msg
 		end
-		ret = proxy.set("rpc.mobiled.device.@1.sim.pin.disable", post_data["pin"])
+		ret = proxy.set(base_path .. "disable", post_data["pin"])
 		if not ret then
 			return pin_error(post_data["action"])
 		end
@@ -95,7 +98,7 @@ local function execute_action(post_data)
 		if not ret then
 			return false, invalid_pin_error .. " " .. msg
 		end
-		ret = proxy.set("rpc.mobiled.device.@1.sim.pin.enable", post_data["pin"])
+		ret = proxy.set(base_path .. "enable", post_data["pin"])
 		if not ret then
 			return pin_error(post_data["action"])
 		end
@@ -105,7 +108,7 @@ local function execute_action(post_data)
 		if not ret then
 			return false, invalid_pin_error .. " " .. msg
 		end
-		ret = proxy.set("rpc.mobiled.device.@1.sim.pin.unlock", post_data["pin"])
+		ret = proxy.set(base_path .. "unlock", post_data["pin"])
 		if not ret then
 			return pin_error(post_data["action"])
 		end
@@ -119,7 +122,7 @@ local function execute_action(post_data)
 		if not ret then
 			return false, msg
 		end
-		ret = proxy.set("rpc.mobiled.device.@1.sim.pin.unblock", post_data["pin"] .. ',' .. post_data["puk"])
+		ret = proxy.set(base_path .. "unblock", post_data["pin"] .. ',' .. post_data["puk"])
 		if not ret then
 			return pin_error(post_data["action"])
 		end
@@ -132,10 +135,10 @@ local post_data = ngx.req.get_post_args()
 setmetatable(post_data, { __index = function() return "" end })
 local ret, msg = execute_action(post_data)
 
-local pinInfo = utils.getContent("rpc.mobiled.device.@1.sim.pin.")
+local pinInfo = utils.getContent(base_path)
 pinInfo['pin_state_hr'] = utils.pin_state_map[pinInfo['pin_state']]
 
-local simInfo = utils.getContent("rpc.mobiled.device.@1.sim.imsi")
+local simInfo = utils.getContent(string.format("rpc.mobiled.device.@%d.sim.imsi", dev_idx))
 
 local data = {
 	status = ret,
