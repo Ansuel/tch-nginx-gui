@@ -83,7 +83,7 @@ end
     -- have to bring it back to original value ... singleton
     lp.setpath("/www/cards/")
     if mobile_ip then
-        ngx.print(ui_helper.createSimpleLight(content_mode["wwan_up"], "Mobile Internet connected"),
+        ngx.print(ui_helper.createSimpleLight(content["wwan_up"], "Mobile Internet connected"),
          '<p class="subinfos">',
            format(T'WAN IP is <strong>%s</strong>', mobile_ip),
          '</p>'
