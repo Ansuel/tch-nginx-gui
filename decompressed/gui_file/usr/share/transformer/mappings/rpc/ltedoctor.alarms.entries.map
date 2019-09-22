@@ -1,0 +1,198 @@
+local helper = require("mobiled.scripthelpers")
+local ltedoctor = require("transformer.shared.ltedoctor")
+
+local ltedoctor_alarms_entries = {
+	objectType = {
+		name = 'rpc.ltedoctor.alarms.@.entries.@.',
+		access = 'readOnly',
+		minEntries = 0,
+		maxEntries = math.huge,
+		parameters = {
+			type = {
+				access = "readOnly",
+				type = "string"
+			},
+			facility = {
+				access = "readOnly",
+				type = "string"
+			},
+			importance = {
+				access = "readOnly",
+				type = "string"
+			},
+			reject_cause = {
+				access = "readOnly",
+				type = "unsignedInt"
+			},
+			session = {
+				access = "readOnly",
+				type = "string"
+			},
+			ip_type = {
+				access = "readOnly",
+				type = "string"
+			},
+			cgi = {
+				access = "readOnly",
+				type = "string"
+			},
+			ecgi = {
+				access = "readOnly",
+				type = "string"
+			},
+			tracking_area_code = {
+				access = "readOnly",
+				type = "string"
+			},
+			location_area_code = {
+				access = "readOnly",
+				type = "string"
+			},
+			radio_interface = {
+				access = "readOnly",
+				type = "string"
+			},
+			when = {
+				access = "readOnly",
+				type = "string"
+			},
+			uptime = {
+				access = "readOnly",
+				type = "unsignedInt"
+			}
+		}
+	}
+}
+
+local cache = {}
+
+local alarms = {
+	device_disconnected = "critical",
+	network_deregistered = "critical",
+	session_disconnected = "critical",
+	sim_removed = "major",
+	session_deactivate = "major",
+	ifdown = "minor",
+	network_registered = "success",
+	session_connected = "success",
+	location_area_code_changed = "info",
+	tracking_area_code_changed = "info",
+	radio_interface_changed = "info",
+	session_activate = "info",
+	sim_initialized = "info",
+	ecgi_changed = "info",
+	cgi_changed = "info",
+	ifup = "info"
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+	return
+end
+
+local function get_session_info_by_id(parentKey, session_id)
+	if type(cache[parentKey]) == "table" and cache[parentKey].session_info and type(cache[parentKey].session_info.sessions) == "table" then
+		for _, session in pairs(cache[parentKey].session_info.sessions) do
+			if session.session_id == session_id then
+				return session
+			end
+		end
+	end
+end
+
+local function get_session_info_by_interface(parentKey, interface)
+	if type(cache[parentKey]) == "table" and cache[parentKey].session_info and type(cache[parentKey].session_info.sessions) == "table" then
+		for _, session in pairs(cache[parentKey].session_info.sessions) do
+			if session.interface and string.match(interface, session.interface) then
+				return session
+			end
+		end
+	end
+end
+
+function ltedoctor_alarms_entries.getall(_, key, parentKey)
+	local result = {}
+	setmetatable(result, { __index = function() return "" end })
+
+	key = tonumber(string.match(key, "(%d+)"))
+	if key and type(cache[parentKey]) == "table" and type(cache[parentKey].data) == "table" and type(cache[parentKey].data[key]) == "table" and cache[parentKey].current_uptime then
+		local entry = cache[parentKey].data[key]
+		result.cgi = entry.data.new_cgi
+		result.ecgi = entry.data.new_ecgi
+		result.uptime = tostring(entry.uptime)
+		result.type = entry.data.event or entry.data.action
+		result.radio_interface = entry.data.new_radio_interface
+		result.location_area_code = entry.data.new_location_area_code
+		result.tracking_area_code = entry.data.new_tracking_area_code
+		if entry.data.session_id then
+			local session = get_session_info_by_id(parentKey, entry.data.session_id)
+			if session then
+				result.session = session.name
+			end
+		end
+		if entry.data.interface then
+			local session = get_session_info_by_interface(parentKey, entry.data.interface)
+			if session then
+				result.session = session.name
+				if string.match(entry.data.interface, '_4') or string.match(entry.data.interface, '_ppp') then
+					result.ip_type = 'ipv4'
+				elseif string.match(entry.data.interface, '_6') then
+					result.ip_type = 'ipv6'
+				else
+					result.ip_type = 'none'
+				end
+			end
+		end
+		result.reject_cause = entry.data.reject_cause
+		local since_current_uptime = cache[parentKey].current_uptime - tonumber(entry.uptime)
+		local ts = os.time()
+		local when = ts - since_current_uptime
+		result.when = os.date('%Y-%m-%d %H:%M:%S', when)
+		result.facility = entry.data.facility
+		result.importance = alarms[entry.data.event or entry.data.action]
+	end
+
+	return result
+end
+
+function ltedoctor_alarms_entries.get(mapping, paramName, key, parentKey)
+	return ltedoctor_alarms_entries.getall(mapping, key, parentKey)[paramName]
+end
+
+function ltedoctor_alarms_entries.entries(_, parentKey)
+	local since_uptime
+	local uptime = ltedoctor.getUptime(conn)
+	if parentKey == "diff" then
+		since_uptime = ltedoctor.getAlarmsDiffSinceUptime()
+		ltedoctor.setAlarmsDiffSinceUptime()
+	else
+		local time_entry = ltedoctor.time_entries[parentKey]
+		if time_entry and time_entry.period_seconds and uptime > time_entry.period_seconds then
+			since_uptime = uptime - time_entry.period_seconds
+		end
+	end
+
+	local dev_idx = ltedoctor.getDeviceIndex()
+	ltedoctor.setDeviceIndex()
+
+	cache[parentKey] = {
+		current_uptime = uptime,
+		session_info = helper.getUbusData(conn, "mobiled.network", "sessions", { dev_idx = dev_idx }),
+		data = {}
+	}
+	local entries = {}
+	local data = helper.getUbusData(conn, "ltedoctor", "history", { dev_idx = dev_idx, logger = "mobiled_events", since_uptime = since_uptime })
+	if data and type(data.mobiled_events) == "table" then
+		for _, entry in pairs(data.mobiled_events) do
+			if entry.data and entry.uptime and (entry.data.event or entry.data.action) and (alarms[entry.data.event] or alarms[entry.data.action]) then
+				table.insert(cache[parentKey].data, entry)
+			end
+		end
+		for k in pairs(cache[parentKey].data) do
+			table.insert(entries, { tostring(k), string.format("%s_%d", parentKey, k) } )
+		end
+	end
+	return entries
+end
+
+register(ltedoctor_alarms_entries)

@@ -1,0 +1,83 @@
+local ltedoctor = require("transformer.shared.ltedoctor")
+
+local ltedoctor_signal_quality = {
+	objectType = {
+		name = 'rpc.ltedoctor.signal_quality.@.',
+		access = 'readOnly',
+		minEntries = 0,
+		maxEntries = math.huge,
+		parameters = {
+			name = {
+				access = "readOnly",
+				type = "string"
+			},
+			period_seconds = {
+				access = "readOnly",
+				type = "unsignedInt"
+			},
+			since_uptime = {
+				access = "readWrite",
+				type = "unsignedInt"
+			},
+			dev_idx = {
+				access = "readWrite",
+				type = "unsignedInt"
+			},
+			current_uptime = {
+				access = "readOnly",
+				type = "unsignedInt"
+			}
+		}
+	}
+}
+
+local uciHelper = mapper("ucihelper")
+local conn = mapper("ubus").connect()
+if not conn then
+	return
+end
+
+function ltedoctor_signal_quality.getall(_, key)
+	local data = {
+		name = key,
+		dev_idx = tostring(ltedoctor.getDeviceIndex() or "1"),
+		current_uptime = tostring(ltedoctor.getUptime(conn) or ""),
+		since_uptime = tostring(ltedoctor.getSignalQualityDiffSinceUptime() or ""),
+		period_seconds = tostring(ltedoctor.time_entries[key].period_seconds or "")
+	}
+	return data
+end
+
+function ltedoctor_signal_quality.get(mapping, paramName, key)
+	return ltedoctor_signal_quality.getall(mapping, key)[paramName]
+end
+
+function ltedoctor_signal_quality.set(_, paramName, paramValue, key)
+	if key == "diff" and paramName == "since_uptime" then
+		ltedoctor.setSignalQualityDiffSinceUptime(tonumber(paramValue))
+	elseif paramName == "dev_idx" then
+		ltedoctor.setDeviceIndex(tonumber(paramValue))
+	end
+end
+
+function ltedoctor_signal_quality.entries()
+	local keys = {}
+	local period
+	uciHelper.foreach_on_uci({ config="ltedoctor", sectionname="logger" }, function(s)
+		if s.name == "mobiled_signal_quality" then
+			period = tonumber(s.period)
+			return false
+		end
+	end)
+	if period then
+		local period_seconds = period*3600
+		for k, entry in pairs(ltedoctor.time_entries) do
+			if not entry.period_seconds or period_seconds >= entry.period_seconds then
+				table.insert(keys, k)
+			end
+		end
+	end
+	return keys
+end
+
+register(ltedoctor_signal_quality)

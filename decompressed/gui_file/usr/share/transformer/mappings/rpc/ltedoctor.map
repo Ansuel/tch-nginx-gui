@@ -1,0 +1,38 @@
+local ltedoctor = {
+    objectType = {
+        name = 'rpc.ltedoctor.',
+        access = 'readOnly',
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            enabled = {
+                access = "readWrite",
+                type = "boolean"
+            }
+        }
+    }
+}
+
+local uciHelper = mapper("ucihelper")
+local ltedoctorBinding = { config="ltedoctor", sectionname="config", option="enabled" }
+ltedoctor.get = function()
+    local enabled =  uciHelper.get_from_uci(ltedoctorBinding)
+    return enabled ~= "" and enabled or "1"
+end
+
+function ltedoctor.set(_, param, value)
+    if param == 'enabled' then
+        uciHelper.set_on_uci(ltedoctorBinding, value, commitapply)
+        commitapply:newset("rpc.ltedoctor.enabled") -- to restart the LTE doctor logger
+    end
+end
+
+function ltedoctor.commit()
+    uciHelper.commit({config = "ltedoctor"})
+end
+
+function ltedoctor.revert()
+    uciHelper.revert({config = "ltedoctor"})
+end
+
+register(ltedoctor)

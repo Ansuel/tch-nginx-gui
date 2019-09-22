@@ -1,0 +1,80 @@
+local ltedoctor = require("transformer.shared.ltedoctor")
+
+local ltedoctor_export_ = {
+	objectType = {
+		name = 'rpc.ltedoctor.export.',
+		access = 'readOnly',
+		minEntries = 1,
+		maxEntries = 1,
+		parameters = {
+			state = {
+				access = "readWrite",
+				type = "string",
+				enumeration = {
+					"None",
+					"Requested",
+					"Complete",
+					"Error"
+				},
+			},
+			filename = {
+				access = "readWrite",
+				type = "string",
+				max = "256",
+			},
+			location = {
+				access = "readOnly",
+				type = "string",
+			},
+			info = {
+				access = "readOnly",
+				type = "string",
+			}
+		}
+	}
+}
+
+local export_mapdata = ltedoctor.export_init()
+
+ltedoctor_export_.get = {
+	state = function(mapping, param)
+		return export_mapdata.state or "None"
+	end,
+	filename = function(mapping, param)
+		return export_mapdata.filename or ""
+	end,
+	location = export_mapdata.location or "/tmp/",
+	info = function(mapping, param)
+		return export_mapdata.info or ""
+	end
+}
+
+ltedoctor_export_.set = {
+	state = function(mapping, param, value)
+		if value ~= "Requested" then
+			return nil, "invalid value"
+		end
+		if export_mapdata.state ~= "Requested" then
+			ltedoctor.export_reset(export_mapdata)
+			export_mapdata.state = "Requested"
+			-- start export routine
+			ltedoctor.export_start(export_mapdata)
+		end
+	end,
+	filename = function(mapping, param, value)
+		if string.find(value, "/") then
+			return nil, "invalid value"
+		end
+		if export_mapdata.state == "Requested" then
+			return nil, "invalid state"
+		end
+		-- remove old file
+		if export_mapdata.state == "Complete" then
+			os.remove(export_mapdata.location .. export_mapdata.filename)
+		end
+		ltedoctor.export_reset(export_mapdata)
+		export_mapdata.filename = value
+	end
+}
+
+register(ltedoctor_export_)
