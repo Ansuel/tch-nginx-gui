@@ -311,13 +311,28 @@ mobiled_lib_add() { #needed for TG788, can break if already integrated in the fi
   if [ -f /rom/usr/lib/lua/mobiled/scripthelpers.lua ]; then #restore from rom to avoid taking the replaced from older GUI installs
     if [ $(md5sum /rom/usr/lib/lua/mobiled/scripthelpers.lua | cut -d' ' -f1) != $(md5sum /usr/lib/lua/mobiled/scripthelpers.lua | cut -d' ' -f1) ]; then
       logger_command "Restoring mobiled scripthelpers lib..."
-      cp /rom/usr/lib/lua/mobiled/scripthelpers.lua /usr/lib/lua/mobiled/scripthelpers.lua
+      mv /rom/usr/lib/lua/mobiled/scripthelpers.lua /usr/lib/lua/mobiled/scripthelpers.lua
     fi
+    [ -f /tmp/scripthelpers.lua ] && rm /tmp/scripthelpers.lua
   else
     logger_command "Adding missing mobiled scripthelpers lib..."
     mv /tmp/scripthelpers.lua /usr/lib/lua/mobiled/scripthelpers.lua
   fi
-  [ -f /tmp/scripthelpers.lua ] && rm /tmp/scripthelpers.lua
+
+  if uci get -q version.@version[0].marketing_version | grep -q 16 #need to replace on old fw otherwise will ignore enabled status
+  then
+    logger_command "Replacing /etc/init.d/mobiled ..."
+    mv /tmp/mobiled /etc/init.d/mobiled
+    /etc/init.d/mobiled restart
+  else
+    #make sure we haven't replaced it some old GUI install, restore from rom if needed
+    if [ $(md5sum /rom/etc/init.d/mobiled | cut -d' ' -f1) != $(md5sum /etc/init.d/mobiled | cut -d' ' -f1) ]; then
+      logger_command "Restoring and restarting /etc/init.d/mobiled ..."
+      mv /rom/etc/init.d/mobiled /etc/init.d/mobiled
+      /etc/init.d/mobiled restart
+    fi
+    [ -f /tmp/mobiled ] && rm /tmp/mobiled
+  fi
 }
 
 disable_intercept() {
