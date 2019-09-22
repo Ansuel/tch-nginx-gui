@@ -69,7 +69,7 @@ end
 -- @return Function with the resulting translation.
 -- @scope internal
 ----------------------------------------------------------------------------
-local function compile (template, chunkname)
+local function compile(template, chunkname)
   local translated_string = translate(template)
   local f, err = loadstring(translated_string, chunkname)
 

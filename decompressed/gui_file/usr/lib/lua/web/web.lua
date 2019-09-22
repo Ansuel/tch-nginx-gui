@@ -212,13 +212,17 @@ end
 --   or nil if not renderer could be found
 local function getContentRenderer(filename)
   local ext = filename:match("%.([^.]+)$")
-  local renderer
+  local renderer, err
   local mimetype = "text/html"
   if ext == "lp" then
     renderer = lp.load(filename, untaint(ngx.var.uri))
   elseif ext == "lua" then
     mimetype = "text/plain"
-    renderer = loadfile(filename)
+    renderer, err = loadfile(filename)
+	if not renderer then
+		ngx.log(ngx.CRIT, err)
+		return ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR,err)
+	end
   end
   return renderer, mimetype
 end

@@ -76,13 +76,21 @@ var modgui = modgui || {};
 				})
 				.fail(function(data) {
 					connectionissue = 1;
-					if(data.status==200 && data.responseText.indexOf("sign-me-in") !== -1 ){
-						if(!$("#popUp").is(":visible"))
-							tch.showProgress(loginMsg);
-						window.location.href = "/";
+					switch (data.status) {
+						case 200:
+							if(data.responseText.indexOf("sign-me-in") !== -1 ) {
+								if(!$("#popUp").is(":visible"))
+									tch.showProgress(loginMsg);
+								window.location.href = "/";
+							}
+							break;
+						case 500:
+							window.location.href = "/error.lp?status="+data.status+"&err="+data.getResponseHeader("error-msg");
+							break;
+						default:
+							if(!$("#popUp").is(":visible"))
+								tch.showProgress(connectionLost + " " + data.statusText);
 					}
-					if(!$("#popUp").is(":visible"))
-						tch.showProgress(connectionLost + " " + data.statusText);
 				});
 		};
 
