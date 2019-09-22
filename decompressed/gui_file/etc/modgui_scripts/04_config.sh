@@ -190,10 +190,6 @@ suppress_excessive_logging() {
     logger_command "Suppressing igmpproxy logs"
     uci set igmpproxy.globals.trace='0'
   fi
-
-  logger_command "Triggering mobiled restart"
-  /etc/init.d/mobiled restart #Restart this to actually disable it... (broken and shitt init.d)
-
   if [ "$(uci get -q mmpbx.global.trace_level)" != "3" ]; then
     logger_command "Suppressing wansensing logs"
     uci set wansensing.global.tracelevel='3' #we don't need that we are still connected to vdsl -.-
@@ -311,7 +307,7 @@ mobiled_lib_add() { #needed for TG788, can break if already integrated in the fi
   if [ -f /rom/usr/lib/lua/mobiled/scripthelpers.lua ]; then #restore from rom to avoid taking the replaced from older GUI installs
     if [ $(md5sum /rom/usr/lib/lua/mobiled/scripthelpers.lua | cut -d' ' -f1) != $(md5sum /usr/lib/lua/mobiled/scripthelpers.lua | cut -d' ' -f1) ]; then
       logger_command "Restoring mobiled scripthelpers lib..."
-      mv /rom/usr/lib/lua/mobiled/scripthelpers.lua /usr/lib/lua/mobiled/scripthelpers.lua
+      cp /rom/usr/lib/lua/mobiled/scripthelpers.lua /usr/lib/lua/mobiled/scripthelpers.lua
     fi
     [ -f /tmp/scripthelpers.lua ] && rm /tmp/scripthelpers.lua
   else
@@ -328,7 +324,7 @@ mobiled_lib_add() { #needed for TG788, can break if already integrated in the fi
     #make sure we haven't replaced it some old GUI install, restore from rom if needed
     if [ $(md5sum /rom/etc/init.d/mobiled | cut -d' ' -f1) != $(md5sum /etc/init.d/mobiled | cut -d' ' -f1) ]; then
       logger_command "Restoring and restarting /etc/init.d/mobiled ..."
-      mv /rom/etc/init.d/mobiled /etc/init.d/mobiled
+      cp /rom/etc/init.d/mobiled /etc/init.d/mobiled
       /etc/init.d/mobiled restart
     fi
     [ -f /tmp/mobiled ] && rm /tmp/mobiled
