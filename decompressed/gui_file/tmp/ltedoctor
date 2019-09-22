@@ -1,0 +1,21 @@
+config config 'config'
+	option enabled '1'
+
+config logger
+	option path '/tmp/lte-doctor.db'
+	option interval '5'
+	option period '1'
+	list ubus_calls 'mobiled.radio signal_quality'
+	list ubus_calls 'mobiled.network serving_system'
+	option name 'mobiled_signal_quality'
+	list prelog 'mobiled_serving_system_changes'
+	list prelog 'mobiled_signal_quality_changes'
+
+config logger
+	option path '/tmp/lte-doctor.db'
+	option period '24'
+	option max_entries '120'
+	list ubus_events 'mobiled'
+	list ubus_events 'mobiled.voice'
+	list ubus_events 'mobiled.network'
+	option name 'mobiled_events'
