@@ -15,7 +15,7 @@ function M.getIpv6Content()
 
 	local content = {
 		ip6addr = "",
-		ip6prefix = "",
+		ip6prefix = "rpc.network.interface.@wan.ip6prefix",
 	}
 
 	for i,v in ipairs(proxy.getPN("rpc.network.interface.", true)) do
