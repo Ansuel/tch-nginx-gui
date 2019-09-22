@@ -1,0 +1,62 @@
+local obj = {
+	objectType = {
+		name = 'rpc.mobiled.platform.capabilities.rf_control.@.',
+		access = 'readOnly',
+		minEntries = 1,
+		maxEntries = math.huge,
+		numEntriesParameter = "RFControlNumberOfEntries",
+		parameters = {
+			rf_state = {
+				access = "readOnly",
+				type = "boolean"
+			},
+			enable = {
+				access = "readOnly",
+				type = "boolean"
+			},
+			disable = {
+				access = "readOnly",
+				type = "boolean"
+			}
+		}
+	}
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+	return
+end
+
+local helper = require("mobiled.scripthelpers")
+
+function obj.getall(mapping, key)
+	local result = {}
+	setmetatable(result, { __index = function() return "" end })
+	local id = tonumber(string.match(key, "^rf_control(%d+)$"))
+	local info = helper.getUbusData(conn, "mobiled.platform", "capabilities", {})
+	if type(info.rf_controls) == "table" then
+		for i, control in pairs(info.rf_controls) do
+			if i == id then
+				return control
+			end
+		end
+	end
+	return result
+end
+
+function obj.get(mapping, paramName, key)
+	return obj.getall(mapping, key)[paramName]
+end
+
+function obj.entries(mapping)
+	local info = helper.getUbusData(conn, "mobiled.platform", "capabilities", {})
+	local rfControls = {}
+	if type(info.rf_controls) == "table" then
+		for i in pairs(info.rf_controls) do
+			table.insert(rfControls, { tostring(i), "rf_control" .. i })
+		end
+	end
+	return rfControls
+end
+
+register(obj)

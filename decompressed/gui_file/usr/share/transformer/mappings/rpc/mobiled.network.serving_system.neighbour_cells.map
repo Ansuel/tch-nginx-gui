@@ -1,0 +1,81 @@
+local obj = {
+	objectType = {
+		name = 'rpc.mobiled.device.@.network.serving_system.neighbour_cells.@.',
+		access = 'readOnly',
+		minEntries = 1,
+		maxEntries = math.huge,
+		numEntriesParameter = "NeighbourCellsNumberOfEntries",
+		parameters = {
+			rsrq = {
+				access = "readOnly",
+				type = "string"
+			},
+			rssi = {
+				access = "readOnly",
+				type = "string"
+			},
+			rsrp = {
+				 access = "readOnly",
+				 type = "string"
+			},
+			sinr = {
+				 access = "readOnly",
+				 type = "string"
+			},
+			phy_cell_id = {
+				 access = "readOnly",
+				 type = "string"
+			},
+			dl_earfcn = {
+				access = "readOnly",
+				type = "string"
+			},
+			band_type = {
+				access = "readOnly",
+				type = "string",
+				enumeration = {
+					"inter",
+					"intra"
+				}
+			}
+		}
+	}
+}
+
+local conn = mapper("ubus").connect()
+local helper = require("mobiled.scripthelpers")
+local mobiled_mapping_helper = require("transformer.shared.mobiled_helper")
+
+function obj.getall(_, key, parentKey)
+	local dev_idx = tonumber(string.match(parentKey, '%d+'))
+	local id = tonumber(string.match(key, "^neighbour_cell(%d+)$"))
+	local data = helper.getUbusData(conn, "mobiled.network", "serving_system", { dev_idx = dev_idx, max_age = mobiled_mapping_helper.getDataMaxAge(dev_idx) })
+	if type(data.neighbour_cells) == "table" then
+		local neighbour_cell = data.neighbour_cells[id]
+		if neighbour_cell then
+			setmetatable(neighbour_cell, { __index = function() return "" end })
+			return neighbour_cell
+		end
+	end
+	local result = {}
+	setmetatable(result, { __index = function() return "" end })
+	return result
+end
+
+function obj.get(mapping, paramName, key, parentKey)
+	return obj.getall(mapping, key, parentKey)[paramName]
+end
+
+function obj.entries(_, parentKey)
+	local dev_idx = tonumber(string.match(parentKey, '%d+'))
+	local data = helper.getUbusData(conn, "mobiled.network", "serving_system", { dev_idx = dev_idx })
+	local neighbour_cells = {}
+	if type(data.neighbour_cells) == "table" then
+		for i in pairs(data.neighbour_cells) do
+			table.insert(neighbour_cells, { tostring(i), "neighbour_cell" .. i })
+		end
+	end
+	return neighbour_cells
+end
+
+register(obj)
