@@ -4152,93 +4152,93 @@ msgid "Specific App are not installed."
 msgstr "Bestimmte App ist nicht installiert."
 
 msgid "Force HTTPS to access the GUI"
-msgstr ""
+msgstr "Erzwinge HTTPS, um die Oberfläche aufzurufen"
 
 msgid "Reset CWMP"
-msgstr ""
+msgstr "CWMP zurücksetzen"
 
 msgid "Are you sure you want to reset CWMP db of this modem? <br/><strong> This will force the first-time boot provisioning with ACS server that can fail on an already provisioned modem.</strong>"
-msgstr ""
+msgstr "Sind Sie sicher, dass Sie die CWMP Datenbank dieses Modems zurücksetzen wollen? <br/><strong> Das wird eine Erstversorgung durch den ACS Server zur Folge haben, die auf einem bereits konfigurierten MOdem fehlschlagen kann.</strong>"
 
 msgid "Force CWMP provisioning"
-msgstr ""
+msgstr "Erzwinge CWMP Versorgung"
 
 msgid "Executing"
-msgstr ""
+msgstr "Ausführen"
 
 msgid "IPv4 address"
-msgstr ""
+msgstr "IPv4 Adresse"
 
 msgid "IPv6 GUA"
-msgstr ""
+msgstr "IPv6 GUA"
 
 msgid "Reset xDSL Driver to original version"
-msgstr ""
+msgstr "Zurücksetzen des xDSL-Treibers auf die Originalversion"
 
 msgid "Reset the modem to the firmware stock GUI. Some config and root SSH access will be preserved. This roll back without a full reset can cause unexpected behaviours or instability"
-msgstr ""
+msgstr "Zurücksetzen des Modem auf die Originalversion der Oberfläche. Bestimmte Konfigurationen und der Root-Zugriff bleiben erhalten. Ohne ein volles Zurücksetzen kann unerwartetes Verhalten oder Instabilität auftreten"
 
 msgid "Concentrator Name"
-msgstr ""
+msgstr "Konzentrator-Name"
 
 msgid "Concentrator MAC"
-msgstr ""
+msgstr "Konzentrator MAC"
 
 msgid "Upload failed. Please try again."
-msgstr ""
+msgstr "Hochladen fehlgeschlagen. Bitte versuchen Sie es erneut."
 
 msgid "Upload Backup"
-msgstr ""
+msgstr "Sicherung hochladen"
 
 msgid "This will use OpenWRT backup and restore function insteand of the Technicolor function."
-msgstr ""
+msgstr "Dies wird die OpenWRT anstelle der Technicolor Sicherungsfunktionen nutzen."
 
 msgid "Backup Zip"
-msgstr ""
+msgstr "ZIP Sicherung"
 
 msgid "Advanced Restore & Backup"
-msgstr ""
+msgstr "Erweitertes Zurückspielen und Sicherung"
 
 msgid "Generating backup in background..."
-msgstr ""
+msgstr "Erzeugen einer Sicherung im Hintergrund..."
 
 msgid "VCMUX"
-msgstr ""
+msgstr "VCMUX"
 
 msgid "Lan pool range is overlap with the STB pool range"
-msgstr ""
+msgstr "Der LAN Bereich überlappt mit dem STB Bereich"
 
 msgid "LLC"
-msgstr ""
+msgstr "LLC"
 
 msgid "MoCA"
-msgstr ""
+msgstr "MoCA"
 
 msgid "Re-scan"
-msgstr ""
+msgstr "Neu scannen"
 
 msgid "<strong id = \"Ethernet_Devices\" %1$s>%2$d Hotspot device</strong> connected"
 msgid_plural "<strong id = \"Ethernet_Devices\" %1$s>%2$d Hotspot devices</strong> connected"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "<strong id = \"Ethernet_Devices\" %1$s>%2$d Hotspot Gerät</strong> verbunden"
+msgstr[1] "<strong id = \"Ethernet_Devices\" %1$s>%2$d Hotspot Geräte</strong> verbunden"
 
 msgid "Registration Timeout"
-msgstr ""
+msgstr "Registrierungszeitlimit"
 
 msgid "Registered"
 msgstr "Registriert"
 
 msgid "Not Available"
-msgstr ""
+msgstr "Nicht verfügbar"
 
 msgid "Registering"
-msgstr ""
+msgstr "Registrierung"
 
 msgid "Running"
-msgstr ""
+msgstr "Laufend"
 
 msgid "Stopping"
-msgstr ""
+msgstr "Stoppend"
 
 msgid "Starting"
-msgstr ""
+msgstr "Startend"

@@ -52,4 +52,4 @@ msgid "CUPS Web Interface at <a href=\"http://%s:631\">http://%s:631</a> or <a h
 msgstr "CUPS Webseite auf <a href=\"http://%s:631\">http://%s:631</a> oder <a href=\"http://%s:631\">http://%s:631</a>"
 
 msgid "To connect: \\\\%s\\ or \\\\%s\\ "
-msgstr ""
+msgstr "Zum Verbinden: \\\\%s\\ oder \\\\%s\\ "
