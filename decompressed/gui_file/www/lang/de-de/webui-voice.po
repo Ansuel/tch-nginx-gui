@@ -445,7 +445,7 @@ msgid "Sip Device"
 msgstr "SIP Gerät"
 
 msgid "ON"
-msgstr ""
+msgstr "AN"
 
 msgid "OFF"
-msgstr ""
+msgstr "AUS"
