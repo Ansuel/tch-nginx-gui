@@ -294,7 +294,7 @@ dosprotect_inizialize() {
         mv /tmp/dosprotect_orig /etc/config/dosprotect
       fi
     fi
-    if [ -n "$(find /etc/rc.d/ -iname S*dosprotect)" ]; then
+    if [ -n "$(find /etc/rc.d/ -iname 'S*dosprotect')" ]; then
       logger_command "Enabling and starting DoSprotect service..."
       /etc/init.d/dosprotect enable
       /etc/init.d/dosprotect start
@@ -303,9 +303,10 @@ dosprotect_inizialize() {
   [ -f /tmp/dosprotect_orig ] && rm /tmp/dosprotect_orig
 }
 
-mobiled_lib_add() { #needed for TG788, can break if already integrated in the firmware
+mobiled_lib_add() {
+  #needed for TG788, can break if already integrated in the firmware
   if [ -f /rom/usr/lib/lua/mobiled/scripthelpers.lua ]; then #restore from rom to avoid taking the replaced from older GUI installs
-    if [ $(md5sum /rom/usr/lib/lua/mobiled/scripthelpers.lua | cut -d' ' -f1) != $(md5sum /usr/lib/lua/mobiled/scripthelpers.lua | cut -d' ' -f1) ]; then
+    if [ "$(md5sum /rom/usr/lib/lua/mobiled/scripthelpers.lua | cut -d' ' -f1)" != "$(md5sum /usr/lib/lua/mobiled/scripthelpers.lua | cut -d' ' -f1)" ]; then
       logger_command "Restoring mobiled scripthelpers lib..."
       cp /rom/usr/lib/lua/mobiled/scripthelpers.lua /usr/lib/lua/mobiled/scripthelpers.lua
     fi
@@ -322,13 +323,23 @@ mobiled_lib_add() { #needed for TG788, can break if already integrated in the fi
     /etc/init.d/mobiled restart
   else
     #make sure we haven't replaced it some old GUI install, restore from rom if needed
-    if [ $(md5sum /rom/etc/init.d/mobiled | cut -d' ' -f1) != $(md5sum /etc/init.d/mobiled | cut -d' ' -f1) ]; then
+    if [ "$(md5sum /rom/etc/init.d/mobiled | cut -d' ' -f1)" != "$(md5sum /etc/init.d/mobiled | cut -d' ' -f1)" ]; then
       logger_command "Restoring and restarting /etc/init.d/mobiled ..."
       cp /rom/etc/init.d/mobiled /etc/init.d/mobiled
       /etc/init.d/mobiled restart
     fi
     [ -f /tmp/mobiled ] && rm /tmp/mobiled
   fi
+
+  #replacing default lte-doctor config if is configured as "no-logging" (found 1 time the logger word)
+  if [ ! -f /etc/config/ltedoctor ] || [ "$(cat /etc/config/ltedoctor | grep -i -c logger)" == "1" ]; then
+    if [ -f /tmp/ltedoctor ]; then
+      logger_command "Replacing ltedoctor config..."
+      mv /tmp/ltedoctor /etc/config/ltedoctor
+      /etc/init.d/mobiled restart
+    fi
+  fi
+  [ -f /tmp/ltedoctor ] && rm /tmp/ltedoctor
 }
 
 disable_intercept() {
@@ -442,7 +453,7 @@ cumulative_check_gui() {
     gui_hash="0"
   fi
   
-  saved_gui_version=$(echo "$(uci get -q modgui.gui.gui_version)" | cut -d'-' -f1)
+  saved_gui_version=$(uci get -q modgui.gui.gui_version | cut -d'-' -f1)
   clean_version_gui=$(echo $version_gui | cut -d'-' -f1)
 
   if [ "$saved_gui_version" != "$clean_version_gui" ]; then
