@@ -845,112 +845,112 @@ msgid "New Radio Interface"
 msgstr "Neue Radioschnittstelle"
 
 msgid "Access Technology:"
-msgstr ""
+msgstr "Zugriffstechnologie:"
 
 msgid "Network Status:"
-msgstr ""
+msgstr "Netzwerkzustand:"
 
 msgid "Uplink Frequency:"
-msgstr ""
+msgstr "Uplink Frequenz:"
 
 msgid "SNR:"
-msgstr ""
+msgstr "SNR:"
 
 msgid "RSRP:"
-msgstr ""
+msgstr "RSRP:"
 
 msgid "Uplink Bandwidth:"
-msgstr ""
+msgstr "Uplink Bandbreite:"
 
 msgid "Radio Bearer:"
-msgstr ""
+msgstr "Funkträger:"
 
 msgid "RSRQ:"
-msgstr ""
+msgstr "RSRQ:"
 
 msgid "Path loss:"
-msgstr ""
+msgstr "Pfadverluste:"
 
 msgid "Downlink EARFCN:"
-msgstr ""
+msgstr "Downlink EARFCN:"
 
 msgid "RRC State:"
-msgstr ""
+msgstr "RRC Zustand:"
 
 msgid "Last five minutes"
-msgstr ""
+msgstr "Letzte fünf Minuten"
 
 msgid "Physical Cell ID:"
-msgstr ""
+msgstr "Physische Zellen-ID:"
 
 msgid "SINR:"
-msgstr ""
+msgstr "SINR:"
 
 msgid "Downlink Bandwidth:"
-msgstr ""
+msgstr "Downlink Bandbreite:"
 
 msgid "Most recent values"
-msgstr ""
+msgstr "Aktuellste Werte"
 
 msgid "Uplink EARFCN:"
-msgstr ""
+msgstr "Uplink EARFCN:"
 
 msgid "Operator:"
-msgstr ""
+msgstr "Betreiber:"
 
 msgid "Uplink UARFCN:"
-msgstr ""
+msgstr "Uplink UARFCN:"
 
 msgid "Downlink Frequency:"
-msgstr ""
+msgstr "Downlink Frequenz:"
 
 msgid "Last twenty minutes"
-msgstr ""
+msgstr "Letzte zwanzig Minuten"
 
 msgid "ECIO:"
-msgstr ""
+msgstr "ECIO:"
 
 msgid "Cell ID:"
-msgstr ""
+msgstr "Zellen-ID:"
 
 msgid "RSSI:"
-msgstr ""
+msgstr "RSSI:"
 
 msgid "Service Status:"
-msgstr ""
+msgstr "Dienstzustand:"
 
 msgid "Downlink ARFCN:"
-msgstr ""
+msgstr "Downlink ARFCN:"
 
 msgid "RSCP:"
-msgstr ""
+msgstr "RSCP:"
 
 msgid "Tracking Area Code:"
-msgstr ""
+msgstr "Verfolgungsbereichskode:"
 
 msgid "Last hour"
-msgstr ""
+msgstr "Letzte Stunde"
 
 msgid "Downlink UARFCN:"
-msgstr ""
+msgstr "Downlink UARFCN:"
 
 msgid "Active Band:"
-msgstr ""
+msgstr "Aktives Band:"
 
 msgid "MNC:"
-msgstr ""
+msgstr "MNC:"
 
 msgid "MCC:"
-msgstr ""
+msgstr "MCC:"
 
 msgid "CINR:"
-msgstr ""
+msgstr "CINR:"
 
 msgid "Choose A Band"
-msgstr ""
+msgstr "Band wählen"
 
 msgid "TX Power:"
-msgstr ""
+msgstr "Sendeleistung:"
 
 msgid "Uplink ARFCN:"
-msgstr ""
+msgstr "Uplink ARFCN:"
