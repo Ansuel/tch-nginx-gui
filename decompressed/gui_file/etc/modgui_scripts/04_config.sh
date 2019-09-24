@@ -1,3 +1,5 @@
+#!/bin/sh
+
 . /etc/init.d/rootdevice
 
 check_webui_config() {
@@ -75,7 +77,7 @@ create_driver_setting() {
   if [ ! "$(uci get -q modgui.var.driver_version)" ]; then
     uci set modgui.var.driver_version="$(xdslctl --version 2>&1 >/dev/null | grep 'version -' | awk '{print $6}' | sed 's/\..*//')"
   else
-    if [ "$(uci get -q modgui.var.driver_version | grep -F .)" ]; then
+    if uci get -q modgui.var.driver_version | grep -qF . ; then
       uci set modgui.var.driver_version="$(xdslctl --version 2>&1 >/dev/null | grep 'version -' | awk '{print $6}' | sed 's/\..*//')"
     fi
   fi
@@ -166,7 +168,7 @@ create_gui_type() {
     else
       uci set modgui.app.blacklist_app="0"
     fi
-  elif [ "$(uci get -q modgui.app.blacklist_app)" == "1" ] &&
+  elif [ "$(uci get -q modgui.app.blacklist_app)" = "1" ] &&
     [ ! -f /www/docroot/modals/mmpbx-contacts-modal.lp.orig ] &&
     [ -f /usr/share/transformer/scripts/appInstallRemoveUtility.sh ]; then
     /usr/share/transformer/scripts/appInstallRemoveUtility.sh install blacklist
@@ -186,7 +188,7 @@ check_relay_dhcp() {
 
 suppress_excessive_logging() {
   #Lowers the log level of daemons to suppress excessive logging to /root/messages.log
-  if [ "$(uci get -q igmpproxy.globals.trace)" == "1" ]; then
+  if [ "$(uci get -q igmpproxy.globals.trace)" = "1" ]; then
     logger_command "Suppressing igmpproxy logs"
     uci set igmpproxy.globals.trace='0'
   fi
@@ -198,7 +200,7 @@ suppress_excessive_logging() {
     logger_command "Setting transformer log level to 2"
     uci set transformer.@main[0].log_level='2'
   fi
-  if [ ! "$(uci get -q system.@system[0].cronloglevel)" ] || [ "$(uci get -q system.@system[0].cronloglevel)" == '0' ]; then #resolve spamlog of trafficdata
+  if [ ! "$(uci get -q system.@system[0].cronloglevel)" ] || [ "$(uci get -q system.@system[0].cronloglevel)" = '0' ]; then #resolve spamlog of trafficdata
     logger_command "Setting cron log level to 5"
     uci set system.@system[0].cronloglevel="5"
     /etc/init.d/cron restart
@@ -208,7 +210,7 @@ suppress_excessive_logging() {
     uci set ledfw.syslog=syslog
     uci set ledfw.syslog.trace='0'
   fi
-  if [ "$(uci get -q mmpbx.global.trace_level)" == "2" ]; then
+  if [ "$(uci get -q mmpbx.global.trace_level)" = "2" ]; then
     logger_command "Suppressing mmpbx logs"
     uci set mmpbx.global.trace_level='0'
   fi
@@ -216,10 +218,10 @@ suppress_excessive_logging() {
 
 real_ver_entitied() {
   if [ -f /rom/etc/uci-defaults/tch_5000_versioncusto ] && [ -f /etc/config/versioncusto ]; then
-    local short_ver="$(grep </proc/banktable/activeversion -Eo '.*\..*\.[0-9]*-[0-9]*')"
-    local real_ver=$(grep </rom/etc/uci-defaults/tch_5000_versioncusto "$short_ver" | awk '{print $2}')
+    short_ver="$(grep </proc/banktable/activeversion -Eo '.*\..*\.[0-9]*-[0-9]*')"
+    real_ver=$(grep </rom/etc/uci-defaults/tch_5000_versioncusto "$short_ver" | awk '{print $2}')
     uci set versioncusto.override.fwversion_override_latest="$latest_version_on_TIM_cwmp"
-    if [ "$real_ver" == "" ]; then
+    if [ "$real_ver" = "" ]; then
       real_ver="Not Found"
     fi
     if [ ! "$(uci get -q versioncusto.override.fwversion_override_real)" ]; then
@@ -237,9 +239,9 @@ real_ver_entitied() {
       rm /overlay/.skip_version_spoof
     else
       if [ "$(uci get -q modgui.var.version_spoof_mode)" ]; then
-        if [ "$(uci get -q modgui.var.version_spoof_mode)" == "enabled" ]; then
+        if [ "$(uci get -q modgui.var.version_spoof_mode)" = "enabled" ]; then
           uci set versioncusto.override.fwversion_override="$latest_version_on_TIM_cwmp"
-        elif [ "$(uci get -q modgui.var.version_spoof_mode)" == "disabled" ]; then
+        elif [ "$(uci get -q modgui.var.version_spoof_mode)" = "disabled" ]; then
           uci set versioncusto.override.fwversion_override="$real_ver"
         fi
       else
@@ -332,7 +334,7 @@ mobiled_lib_add() {
   fi
 
   #replacing default lte-doctor config if is configured as "no-logging" (found 1 time the logger word)
-  if [ ! -f /etc/config/ltedoctor ] || [ "$(cat /etc/config/ltedoctor | grep -i -c logger)" == "1" ]; then
+  if [ ! -f /etc/config/ltedoctor ] || [ "$(grep -i -c logger < /etc/config/ltedoctor)" = "1" ]; then
     if [ -f /tmp/ltedoctor ]; then
       logger_command "Replacing ltedoctor config..."
       mv /tmp/ltedoctor /etc/config/ltedoctor
@@ -340,11 +342,18 @@ mobiled_lib_add() {
     fi
   fi
   [ -f /tmp/ltedoctor ] && rm /tmp/ltedoctor
+
+  major_system_version="$(uci get env.var.friendly_sw_version_activebank | cut -d'.' -f1-2 | sed 's#\.##')"
+  if [ "$major_system_version" -lt 173 ]; then
+    #Restore original lte-doctor related webui files
+    cp /rom/www/docroot/ajax/radioparameters.lua /www/docroot/ajax/radioparameters.lua
+    cp /rom/www/docroot/modals/lte-doctor.lp /www/docroot/modals/lte-doctor.lp
+  fi
 }
 
 disable_intercept() {
   if [ "$(uci get -q intercept.config.enabled)" ]; then
-    if [ "$(uci get -q intercept.config.enabled)" == "1" ]; then
+    if [ "$(uci get -q intercept.config.enabled)" = "1" ]; then
       uci set intercept.config.enabled='0'
       uci commit intercept
       /etc/init.d/intercept restart
@@ -388,7 +397,7 @@ cumulative_check_gui() {
     uci set modgui.gui.update_branch="stable"
     update_branch=""
     logger_command "Setting update branch to STABLE"
-  elif [ "$(uci get -q modgui.gui.update_branch)" == "stable" ]; then
+  elif [ "$(uci get -q modgui.gui.update_branch)" = "stable" ]; then
     update_branch=""
     logger_command "Update branch detected: STABLE"
   else
@@ -397,7 +406,7 @@ cumulative_check_gui() {
   fi
 
   #Remove deprecated .gz GUI file if low space device
-  overlay_space=$(df /overlay | sed -n 2p | awk {'{print $2}'})
+  overlay_space=$(df /overlay | sed -n 2p | awk \{'{print $2}'\})
   if [ "$overlay_space" -lt 33000 ]; then
     logger -s -t 'Root Script' "Detected low flash space device..."
     if [ -f /root/GUI.tar.gz ]; then
@@ -454,7 +463,7 @@ cumulative_check_gui() {
   fi
   
   saved_gui_version=$(uci get -q modgui.gui.gui_version | cut -d'-' -f1)
-  clean_version_gui=$(echo $version_gui | cut -d'-' -f1)
+  clean_version_gui=$(echo "$version_gui" | cut -d'-' -f1)
 
   if [ "$saved_gui_version" != "$clean_version_gui" ]; then
     logger_command "Updating version saved to $version_gui"
@@ -510,7 +519,7 @@ cumulative_check_gui() {
 
 fcctlsettings_daemon() {
   if [ -f /etc/config/fcctlsettings ]; then
-    if [ "$(grep </etc/config/fcctlsettings 'mcast-learn')" ]; then
+    if grep -q </etc/config/fcctlsettings 'mcast-learn' ; then
       rm /etc/config/fcctlsettings #NEVER EVER WRITE - IN CONFIG FILE...
     fi
   fi
