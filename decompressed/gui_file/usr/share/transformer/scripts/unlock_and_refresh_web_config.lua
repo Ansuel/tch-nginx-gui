@@ -68,6 +68,7 @@ local check_rule = {
 	{ name = 'commandlogreadmodal', target = '/modals/command-log-read-modal.lp' },
 	{ name = 'ajaxgetcard', target = '/ajax/get_card.lua' },
 	{ name = 'diagnosticsledsmodal', target = '/modals/diagnostics-leds-modal.lp' },
+	{ name = 'systeminitmodal', target = '/modals/system-init-modal.lp' },
 }
 
 --We add telstra rules anyway as nginx will respond 404 if not found

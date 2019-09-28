@@ -1,0 +1,146 @@
+local lfs = require("lfs")
+local modgui = require("modgui")
+local async_exec = require("lasync").execute
+
+local initTable = {}
+
+local function getFromInit(file,type)
+    local comm = modgui.popen("grep -s /etc/init.d/"..file.." -e "..type,'r')
+    local res = comm:read()
+    comm:close()
+    return res and res:match("[0-9]+") or ""
+end
+
+for file in lfs.dir("/etc/init.d/") do
+    if not file:match("^%..*") then
+        initTable[file] = {
+            start = getFromInit(file,"START"),
+            stop = getFromInit(file,"STOP"),
+        }
+    end
+end
+
+local function getState(file)
+    local name = "/etc/rc.d/S"..initTable[file].start..file
+    return lfs.attributes(name,"mode") == "file" and "1" or "0"
+end
+
+local function initHelperFunction(name,type)
+    if not initTable[name] then
+        return nil, "Invalid init process name"
+    end
+    local command = string.format("/etc/init.d/%s %s",name,type)
+    async_exec({[command]=true})
+end
+
+local SYSTEM_INIT_ = {
+    objectType = {
+        name = "rpc.system.init.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            toggle = {
+                access = "readWrite",
+                type = "string"
+            },
+            start = {
+                access = "readWrite",
+                type = "string"
+            },
+            stop = {
+                access = "readWrite",
+                type = "string"
+            },
+            restart = {
+                access = "readWrite",
+                type = "string"
+            },
+        }
+    }
+}
+
+SYSTEM_INIT_.get = {
+    toggle = "0",
+    start = "0",
+    stop = "0",
+    restart = "0"
+}
+
+SYSTEM_INIT_.set = {
+    toggle = function(mapping, param, value)
+        if getState(param) == "1" then
+            return initHelperFunction(value,"disable")
+        else
+            return initHelperFunction(value,"enable")
+        end
+    end,
+    start = function(mapping, param, value)
+        return initHelperFunction(value,"start")
+    end,
+    stop = function(mapping, param, value)
+        return initHelperFunction(value,"stop")
+    end,
+    restart = function(mapping, param, value)
+        return initHelperFunction(value,"restart")
+    end,
+}
+
+register(SYSTEM_INIT_)
+
+local SYSTEM_INIT_i_ = {
+    objectType = {
+        name = "rpc.system.init.files.{i}.",
+        access = "readOnly",
+        numEntriesParameter = "InitNumberOfEntries",
+        minEntries = 0,
+        maxEntries = math.huge,
+        parameters = {
+            name = {
+                access = "readOnly",
+                type = "string",
+            },
+            start_order = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            stop_order = {
+                access = "readOnly",
+                type = "unsignedInt",
+            },
+            active = {
+                access = "readOnly",
+                type = "boolean",
+            }
+        }
+    }
+}
+
+SYSTEM_INIT_i_.entries = function(mapping)
+
+    local res = {}
+
+    for file in pairs(initTable) do
+        res[#res+1] = file
+    end
+
+    return res
+
+end
+
+SYSTEM_INIT_i_.get = {
+    name = function(mapping, param, key)
+        return key
+    end,
+    start_order = function(mapping, param, key)
+      return initTable[key].start
+    end,
+    stop_order = function(mapping, param, key)
+      return initTable[key].stop
+    end,
+    active = function(mapping, param, key)
+        return getState(key)
+    end,
+}
+
+register(SYSTEM_INIT_i_)
