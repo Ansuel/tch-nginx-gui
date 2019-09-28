@@ -4242,3 +4242,21 @@ msgstr "Chiusura"
 
 msgid "Starting"
 msgstr "Avvio"
+
+msgid "Init Management"
+msgstr ""
+
+msgid "Disable"
+msgstr ""
+
+msgid "Stop Order"
+msgstr ""
+
+msgid "Toggle"
+msgstr ""
+
+msgid "Start Order"
+msgstr ""
+
+msgid "Don't randomly disable or restart Init Process. Some Init are crucial for the correct boot of the device."
+msgstr ""
