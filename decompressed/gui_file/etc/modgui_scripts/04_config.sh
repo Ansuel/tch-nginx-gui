@@ -343,7 +343,7 @@ mobiled_lib_add() {
   fi
   [ -f /tmp/ltedoctor ] && rm /tmp/ltedoctor
 
-  major_system_version="$(uci get env.var.friendly_sw_version_activebank | cut -d'.' -f1-2 | sed 's#\.##')"
+  major_system_version="$(uci get version.@version[0].marketing_version | sed 's#\.##')"
   if [ "$major_system_version" -lt 173 ]; then
     #Restore original lte-doctor related webui files
     cp /rom/www/docroot/ajax/radioparameters.lua /www/docroot/ajax/radioparameters.lua
