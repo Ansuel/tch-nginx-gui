@@ -300,10 +300,10 @@ if ngx.req.get_method() == "POST" then
     return resetreboot("rpc.system.switchover","1")
   end
   if action == "system_trasnfer_bank_1" then
-    return resetreboot("rpc.system.modgui.utility.sendcmd","transfer_bank1")
+    return resetreboot("rpc.system.modgui.utility.sendcmd","transferBank1")
   end
   if action == "system_copy_bank" then
-    return resetreboot("rpc.system.modgui.utility.sendcmd","copy_bank")
+    return resetreboot("rpc.system.modgui.utility.sendcmd","copyBank")
   end
   if action == "debug_report" then
 
