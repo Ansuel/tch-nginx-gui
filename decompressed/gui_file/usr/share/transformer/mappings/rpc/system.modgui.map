@@ -38,6 +38,10 @@ local SYSTEM_MODGUI_ = {
 
 register(SYSTEM_MODGUI_)
 
+-- COMMAND MUST NOT CONTAIN _ IN THE NAME
+-- EVERYTHING AFTER _ IS TREAT AS ARGS FOR FUNCTION 
+-- _terminate CAN BE USED TO CHECK IF ANY PROCESS IS ALREADY RUNNING AN TERMINATE IT
+
 local commands_helper = {
 	checkver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/checkver"',
 	resetgui = '/usr/share/transformer/scripts/resetUtility.sh --resetGui',
@@ -93,6 +97,9 @@ local SYSTEM_MODGUI_UTILITY_ = {
 		end
 		if type(command) == "function" then
 			command = command(args)
+		elseif args and args == "terminate" then
+			local clean_comm = "for pid in $(pgrep -f "..command.."); do logger terminating :  $pid && kill -KILL $pid;done"
+			async_exec{[clean_comm] = true}
 		end
 		async_exec({[command]=true})
 	end,
