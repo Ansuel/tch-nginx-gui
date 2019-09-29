@@ -120,7 +120,7 @@ local function upgradeguifile()
 
 	local rcv_ok, rcv_errno, rcv_errmsg = receive_file(dl, 'name="upgradefile"')
 
-	sendcmd("upgradegui")
+	sendcmd("upgradegui_terminate")
 end
 
 local function getSupportedModel()
@@ -217,7 +217,7 @@ if ngx.req.get_method() == "POST" then
 		return sendcmd("resetgui")
 	end
 	if action == "system_upgrade_gui" then
-		return sendcmd("upgradegui")
+		return sendcmd("upgradegui_terminate")
 	end
 	if action == "system_install_specificapp" then
 		proxy.set("uci.modgui.app.specific_app","1")
