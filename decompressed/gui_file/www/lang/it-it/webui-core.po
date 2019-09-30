@@ -4244,7 +4244,7 @@ msgid "Starting"
 msgstr "Avvio"
 
 msgid "Init Management"
-msgstr "Gestionne init"
+msgstr "Gestione init"
 
 msgid "Disable"
 msgstr "Disabilita"
