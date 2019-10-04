@@ -56,9 +56,21 @@ local function editCron(type,value,line,delete)
 
 end
 
+local SYSTEM_CRON_ = {
+    objectType = {
+        name = "rpc.system.cron.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {}
+    }
+}
+
+register(SYSTEM_CRON_)
+
 local SYSTEM_CRON_i_ = {
     objectType = {
-        name = "rpc.system.cron.{i}.",
+        name = "rpc.system.cron.entries.{i}.",
         access = "readWrite",
         numEntriesParameter = "CronNumberOfEntries",
         minEntries = 0,
