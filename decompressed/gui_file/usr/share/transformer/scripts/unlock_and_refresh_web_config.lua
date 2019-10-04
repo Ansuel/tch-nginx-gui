@@ -69,6 +69,7 @@ local check_rule = {
 	{ name = 'ajaxgetcard', target = '/ajax/get_card.lua' },
 	{ name = 'diagnosticsledsmodal', target = '/modals/diagnostics-leds-modal.lp' },
 	{ name = 'systeminitmodal', target = '/modals/system-init-modal.lp' },
+	{ name = 'systemcronmodal', target = '/modals/system-cron-modal.lp' },
 }
 
 --We add telstra rules anyway as nginx will respond 404 if not found

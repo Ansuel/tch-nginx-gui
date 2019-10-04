@@ -79,7 +79,7 @@ local cron_options = {
 	canAdd = true,
 	canDelete = true,
 	tableid = "crontable",
-	basepath = "rpc.system.cron.entires.",
+	basepath = "rpc.system.cron.entries.",
 }
 
 cron_options.onAdd = function(index, content)
