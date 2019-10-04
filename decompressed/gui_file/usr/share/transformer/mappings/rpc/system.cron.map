@@ -1,0 +1,207 @@
+local cronfile = "/etc/crontabs/root"
+
+local function checkCron()
+
+    local res = {}
+
+    local f = io.open(cronfile,"r")
+
+    for line in f:lines() do
+        if line ~= "" then
+            local minute, hour, day, month, week, command = line:match("([0-9-%*-%-]+) ([0-9-%*-%-]+) ([0-9-%*-%-]+) ([0-9-%*-%-]+) ([0-9-%*-%-]+) (.*)")
+            res[line] = {
+                minute = minute,
+                hour = hour,
+                day = day,
+                month = month,
+                week = week,
+                command = command,
+            }
+        end
+    end
+
+    f:close()
+
+    return res
+end
+
+local function writeLine(fd,tbl)
+    fd:write(tbl.minute.." ")
+    fd:write(tbl.hour.." ")
+    fd:write(tbl.day.." ")
+    fd:write(tbl.month.." ")
+    fd:write(tbl.week.." ")
+    fd:write(tbl.command.."\n")
+end
+
+
+local function editCron(type,value,line,delete)
+
+    local cronTbl = checkCron()
+
+    local f = io.open(cronfile,"w")
+
+    for l in pairs(cronTbl) do
+        if l == line then
+            if not delete then
+                cronTbl[line][type] = value
+                writeLine(f,cronTbl[line])
+            end
+        else
+            f:write(l.."\n")
+        end
+    end
+
+    f:close()
+
+end
+
+local SYSTEM_CRON_i_ = {
+    objectType = {
+        name = "rpc.system.cron.{i}.",
+        access = "readWrite",
+        numEntriesParameter = "CronNumberOfEntries",
+        minEntries = 0,
+        maxEntries = math.huge,
+        parameters = {
+            command = {
+                access = "readWrite",
+                type = "string",
+            },
+            minute = {
+                access = "readWrite",
+                type = "string",
+            },
+            hour = {
+                access = "readWrite",
+                type = "string",
+            },
+            day = {
+                access = "readWrite",
+                type = "string",
+            },
+            month = {
+                access = "readWrite",
+                type = "string",
+            },
+            week = {
+                access = "readWrite",
+                type = "string",
+            }
+        }
+    }
+}
+
+SYSTEM_CRON_i_.entries = function(mapping)
+
+    local res = {}
+
+    for key in pairs(checkCron()) do
+        res[#res+1]=key
+    end
+
+    return res
+
+end
+
+SYSTEM_CRON_i_.get = {
+    command = function(mapping, param, key)
+        local cronTbl = checkCron()
+        return cronTbl[key].command or ""
+    end,
+    minute = function(mapping, param, key)
+        local cronTbl = checkCron()
+        return cronTbl[key].minute or ""
+    end,
+    hour = function(mapping, param, key)
+        local cronTbl = checkCron()
+        return cronTbl[key].hour or ""
+    end,
+    day = function(mapping, param, key)
+        local cronTbl = checkCron()
+        return cronTbl[key].day or ""
+    end,
+    month = function(mapping, param, key)
+        local cronTbl = checkCron()
+        return cronTbl[key].month or ""
+    end,
+    week = function(mapping, param, key)
+        local cronTbl = checkCron()
+        return cronTbl[key].week or ""
+    end,
+}
+
+SYSTEM_CRON_i_.set = {
+    minute = function(mapping,param,value,key)
+        if not value:match("[0-9-%*-%-]+") then
+            return nil, "Invalid set must be range of number or *"
+        end
+        return editCron(param,value,key)
+    end,
+    hour = function(mapping,param,value,key)
+        if not value:match("[0-9-%*-%-]+") then
+            return nil, "Invalid set must be range of number or *"
+        end
+        return editCron(param,value,key)
+    end,
+    day = function(mapping,param,value,key)
+        if not value:match("[0-9-%*-%-]+") then
+            return nil, "Invalid set must be range of number or *"
+        end
+        return editCron(param,value,key)
+    end,
+    month = function(mapping,param,value,key)
+        if not value:match("[0-9-%*-%-]+") then
+            return nil, "Invalid set must be range of number or *"
+        end
+        return editCron(param,value,key)
+    end,
+    week = function(mapping,param,value,key)
+        if not value:match("[0-9-%*-%-]+") then
+            return nil, "Invalid set must be range of number or *"
+        end
+        return editCron(param,value,key)
+    end,
+    command = function(mapping,param,value,key)
+        return editCron(param,value,key)
+    end,
+}
+
+SYSTEM_CRON_i_.add = function(mapping)
+
+    local function getRandomKey()
+        local bytes
+        local key = ("%02X"):rep(16)
+        local fd = io.open("/dev/urandom", "r")
+        if fd then
+          bytes = fd:read(16)
+          fd:close()
+        end
+        return key:format(bytes:byte(1, 16))
+      end
+
+    local random = getRandomKey()
+
+    local tbl = {
+        minute = minute or "*",
+        hour = hour or "*",
+        day = day or "*",
+        month = month or "*",
+        week = week or "*",
+        command = command or "echo ID_RULE "..random,
+    }
+
+    local f = io.open(cronfile,"a")
+    writeLine(f,tbl)
+    f:close()
+
+    return random
+end
+
+SYSTEM_CRON_i_.delete = function(mapping, key)
+    editCron(nil,nil,key,"remove")
+
+    return true
+end
+
+register(SYSTEM_CRON_i_)

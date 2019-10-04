@@ -90,7 +90,7 @@ register(SYSTEM_INIT_)
 
 local SYSTEM_INIT_i_ = {
     objectType = {
-        name = "rpc.system.init.files.{i}.",
+        name = "rpc.system.init.files.@.",
         access = "readOnly",
         numEntriesParameter = "InitNumberOfEntries",
         minEntries = 0,
