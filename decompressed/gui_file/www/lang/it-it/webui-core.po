@@ -4260,3 +4260,37 @@ msgstr "Ordine avvio"
 
 msgid "Don't randomly disable or restart Init Process. Some Init are crucial for the correct boot of the device."
 msgstr "Non disabilitare/riavviare casualmente l'init dei processi. Alcuni init sono fondamentali per il corretto avvio del modem."
+
+msgid "Command"
+msgstr ""
+
+msgid "Day"
+msgstr ""
+
+msgid "Month"
+msgstr ""
+
+msgid "Hour"
+msgstr ""
+
+msgid "Command input can't be empty"
+msgstr ""
+
+msgid "Week"
+msgstr ""
+
+msgid "Cron Management"
+msgstr ""
+
+msgid "Minute"
+msgstr ""
+
+msgid "<strong>%s init script</strong> active"
+msgid_plural "<strong>%s init scripts</strong> active"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "<strong>%s cron rule</strong> active"
+msgid_plural "<strong>%s cron rules</strong> active"
+msgstr[0] ""
+msgstr[1] ""
