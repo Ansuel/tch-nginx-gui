@@ -4259,7 +4259,7 @@ msgid "Start Order"
 msgstr "Ordine avvio"
 
 msgid "Don't randomly disable or restart Init Process. Some Init are crucial for the correct boot of the device."
-msgstr "Non disabilitare/riavviare casualmente l'init dei processi<br />. Alcuni init sono fondamentali per il corretto avvio del modem."
+msgstr "Non disabilitare/riavviare casualmente l'init dei processi. Alcuni init sono fondamentali per il corretto avvio del modem."
 
 msgid "Command"
 msgstr "Comando"
