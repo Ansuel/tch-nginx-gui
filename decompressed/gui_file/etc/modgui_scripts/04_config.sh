@@ -338,7 +338,7 @@ mobiled_lib_add() {
     if [ -f /tmp/ltedoctor ]; then
       logger_command "Replacing ltedoctor config..."
       mv /tmp/ltedoctor /etc/config/ltedoctor
-      /etc/init.d/mobiled restart
+      /etc/init.d/lte-doctor-logger restart
     fi
   fi
   [ -f /tmp/ltedoctor ] && rm /tmp/ltedoctor
