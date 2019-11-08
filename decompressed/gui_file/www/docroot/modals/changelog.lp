@@ -17,6 +17,12 @@ ngx.print('\
         },
       }
 	html[#html + 1] = '<legend>' .. T"Mainline 18.3 Cobalt" .. '</legend>'
+	html[#html + 1] = ui_helper.createLabel("9.5", "Risolti alcuni problemi di compatibilità con internet explorer<br/>"..
+		"Fix var per ripristinare il funzionamentpo di modem 3G/LTE USB<br/>"..
+		"Fix funzioni di copia e trasferimento bank<br/>"..
+		"Aggiunta modal gestione cron<br/>"..
+		"Aggiunta modal gestione init<br/>"..
+		"Aggiunti ulteriori driver xDSL<br/>", basic)
 	html[#html + 1] = ui_helper.createLabel("9.4", "Aggiunta opzione per forzare interfaccia in HTTPS<br/>"..
 		"Aggiunta opzione per eseguire backup OpenWRT<br/>"..
 		"Aggiunta opzione per visualizzare access-concentrator per sessioni PPP<br/>"..
@@ -218,7 +224,7 @@ ngx.print('\
 	html[#html + 1] = ui_helper.createLabel("2.1", "Fix bug bypass password", basic)
 	html[#html + 1] = ui_helper.createLabel("2.0", "Merge WebUi firmware beta telecom", basic)
 	html[#html + 1] = '<legend>' .. T"Mainline 16.3 Aqua" .. '</legend>' 
-	html[#html + 1] = ui_helper.createLabel("1.12", "Aggiungi bottoni mobile e cwmp", basic)
+	html[#html + 1] = ui_helper.createLabel("1.12", "Aggiungi bottoni mobile e CWMP", basic)
 	html[#html + 1] = ui_helper.createLabel("1.11", "Aggiunge funzioni eco nella tab Gateway", basic)
 	html[#html + 1] = ui_helper.createLabel("1.10", "FIX IPV6 e aggiunto changelog", basic)
 	html[#html + 1] = ui_helper.createLabel("1.9", "Aggiunte funzioni Risparmio Energetico Configurabili (/etc/config/power)", basic)

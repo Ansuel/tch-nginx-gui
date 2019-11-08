@@ -81,7 +81,7 @@ ngx.print(ui_helper.createHeader(T"Modem Stats Graph", false, true) ); ngx.print
 	  html[#html+1] = "<fieldset><legend>" .. T"CPU Usage Graph" .. "</legend>"
 	  html[#html+1] = '<div style="height:400px"><canvas id="CPUGraph"></canvas></div>'
 	  html[#html+1] = "</fieldset>"
-	  html[#html+1] = "<fieldset><legend>" .. T"Mem Used Graph" .. "</legend>"
+	  html[#html+1] = "<fieldset><legend>" .. T"RAM Used Graph" .. "</legend>"
 	  html[#html+1] = '<div style="height:400px"><canvas id="RAMGraph"></canvas></div>'
 	  html[#html+1] = "</fieldset>"
 	  ngx.print(html)

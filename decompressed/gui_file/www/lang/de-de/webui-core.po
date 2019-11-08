@@ -2282,8 +2282,8 @@ msgstr "Dies wird die Blacklist Anwendung installieren"
 msgid "This will install transmission and transmission-webui"
 msgstr "Dies wird transmission und das transmission-webui installieren"
 
-msgid "This will install uhttpd and luci"
-msgstr "Dies wird uhttpd und luci installieren"
+msgid "This will install uHTTPd and LuCI"
+msgstr "Dies wird uHTTPd und LuCI installieren"
 
 msgid "This will put your gateway into LAN Update"
 msgstr "Dies wird Ihr Gateway in den LAN-Aktualisierungsmodus versetzen"
@@ -2324,14 +2324,14 @@ msgstr "Um Port-Weiterleitungsregeln abzuschalten, bearbeiten Sie die Regel rech
 msgid "Total"
 msgstr "Summe"
 
-msgid "Total Mixed (in MB)"
-msgstr "Summe Gemischt (in MB)"
+msgid "Total Mixed (MB)"
+msgstr "Summe Gemischt (MB)"
 
-msgid "Total Receive (in MB)"
-msgstr "Summe Empfangen (in MB)"
+msgid "Total Receive (MB)"
+msgstr "Summe Empfangen (MB)"
 
-msgid "Total Send (in MB)"
-msgstr "Summe Gesendet (in MB)"
+msgid "Total Send (MB)"
+msgstr "Summe Gesendet (MB)"
 
 msgid "Traceroute"
 msgstr "Routenverfolgung"
@@ -2833,11 +2833,11 @@ msgstr "Geräteindividuelles Kennzeichen"
 msgid "Bytes"
 msgstr "Bytes"
 
-msgid "PPPoE routed mode"
-msgstr "Gerouteter PPPoE Modus"
+msgid "PPPoE routed"
+msgstr "Gerouteter PPPoE"
 
-msgid "PPPoA routed mode"
-msgstr "Gerouteter PPPoA Modus"
+msgid "PPPoA routed"
+msgstr "Gerouteter PPPoA"
 
 msgid "Fixed IP mode"
 msgstr "Feste IP Modus"
@@ -2905,7 +2905,7 @@ msgstr "Aria2 GUI"
 msgid "LuCI GUI"
 msgstr "LuCI GUI"
 
-msgid "Disable override of Version Spoof at every GUI update. This is also usefull to permit cwmp to autoupdate the modem"
+msgid "Disable override of Version Spoof at every GUI update, also usefull to permit CWMP to autoupdate the modem"
 msgstr "Abschalten des Spoof der Version bei der GUI AKtualisierung. Das ist nützlich, um cwmp die automatische Aktualisierung des Modems zu erlauben."
 
 msgid "Spoof Version Mode"
@@ -2914,11 +2914,11 @@ msgstr "Spoof Versionsmodus"
 msgid "Connecting..."
 msgstr "Verbinde..."
 
-msgid "Comunicate real version to cwmp"
-msgstr "Übermittle wirkliche Version an cwmp"
+msgid "Comunicate real version to CWMP"
+msgstr "Übermittle wirkliche Version an CWMP"
 
-msgid "Comunicate latest stable version set from rootscript to cwmp"
-msgstr "Übermittle aktuellste stabile Version, die im root-Skript gesetzt wurde, an cwmp"
+msgid "Comunicate latest stable version set from rootscript to CWMP"
+msgstr "Übermittle aktuellste stabile Version, die im root-Skript gesetzt wurde, an CWMP"
 
 msgid "Set the version to comunicate to cwmp manually"
 msgstr "Setze die an cmwp übermittelte Version manuell"
@@ -3766,13 +3766,13 @@ msgstr "Entferne Konfiguration"
 msgid "Are you sure you want to reset config of this modem? <br/><strong> This is permanent, save any config before this action.</strong>"
 msgstr "Sind Sie sicher, dass Sie die Konfiguration des Modems zurücksetzen wollen? <br/><strong> Dies ist dauerhaft, sichern Sie ggf. Ihre Einstellungen vor dieser Aktion.</strong>"
 
-msgid "Mem Used Graph"
-msgstr "Speichernutzung Grafik"
+msgid "RAM Used Graph"
+msgstr "RAM Grafik"
 
 msgid "Updated"
 msgstr "Aktualisiert"
 
-msgid "Add new DDns Rule"
+msgid "Add new DDNS Rule"
 msgstr "Hinzufügen neue DDns Regel"
 
 msgid "Update Info"
@@ -4139,8 +4139,8 @@ msgstr "Bestimmte App ist schon installiert"
 msgid "Specific App"
 msgstr "Bestimmte App"
 
-msgid "If you don't have connection, specific app can be downloaded here ( https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/modular/upgrade-pack-specific"
-msgstr "Wenn Sie keine Verbindung haben, kann die bestimmte App hier heruntergeladen werden ( https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/modular/upgrade-pack-specific"
+msgid "If you don't have connection, specific app can be downloaded here ( https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/modular/upgrade-pack-specific%s.tar.bz2 ) and installed manually here."
+msgstr "Wenn Sie keine Verbindung haben, kann die bestimmte App hier heruntergeladen werden ( https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/modular/upgrade-pack-specific%s.tar.bz2 ) und hier manuell installiert."
 
 msgid "Install Specific App Online"
 msgstr "Installieren bestimmte App Online"
@@ -4193,7 +4193,7 @@ msgstr "Sicherung hochladen"
 msgid "This will use OpenWRT backup and restore function insteand of the Technicolor function."
 msgstr "Dies wird die OpenWRT anstelle der Technicolor Sicherungsfunktionen nutzen."
 
-msgid "Backup Zip"
+msgid "Backup ZIP"
 msgstr "ZIP Sicherung"
 
 msgid "Advanced Restore & Backup"

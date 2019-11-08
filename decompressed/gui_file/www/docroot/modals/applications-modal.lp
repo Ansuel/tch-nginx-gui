@@ -135,7 +135,7 @@ if StateParams["luci_webui"] ~= nil then
 	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. T"LuCI GUI" .. '</legend>'
-	html[#html+1] = ui_helper.createAlertBlock(T"This will install uhttpd and luci", info_box)
+	html[#html+1] = ui_helper.createAlertBlock(T"This will install uHTTPd and LuCI", info_box)
 	html[#html+1] = T"State: "
 	html[#html+1] = "<strong>" .. T"LuCI is " .. StateParams["luci_webui"] .. T" installed" .. "</strong><br/>"
 	local luci_link = format("http://%s:9080",mapParams.local_ip_modem)

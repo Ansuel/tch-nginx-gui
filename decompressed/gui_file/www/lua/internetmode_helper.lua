@@ -23,7 +23,7 @@ return {
     {
         name = "pppoe",
         default = false,
-        description = T"PPPoE routed mode",
+        description = T"PPPoE routed",
         view = "internet-pppoe-routed.lp",
         card = "003_internet_pppoe_routed.lp",
         check = {
@@ -38,7 +38,7 @@ return {
     {
         name = "pppoa",
         default = false,
-        description = T"PPPoA routed mode",
+        description = T"PPPoA routed",
         view = "internet-pppoa-routed.lp",
         card = "003_internet_pppoe_routed.lp",
         check = {

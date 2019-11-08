@@ -888,7 +888,7 @@ msgid "Energy Efficent Ethernet enabled"
 msgstr "Ottimizzazione energetica ethernet abilitata"
 
 msgid "Engineer"
-msgstr "Utente avanzato"
+msgstr "Ingegnere"
 
 msgid "Enhanced Tim"
 msgstr "TIM avanzato"
@@ -1428,7 +1428,7 @@ msgid "Multicast"
 msgstr "MultiCast"
 
 msgid "Management"
-msgstr "Gestione modem"
+msgstr "Gestione"
 
 msgid "Satisfactory"
 msgstr "Soddisfacente"
@@ -1725,10 +1725,10 @@ msgid "Phone"
 msgstr "Telefono"
 
 msgid "Phy Extra Mask"
-msgstr "Maschera extra Phy"
+msgstr "Phy Extra Mask"
 
 msgid "Phy Extra Value"
-msgstr "Valore extra Phy"
+msgstr "Phy Extra Value"
 
 msgid "Physical link status"
 msgstr "Stato collegamento fisico"
@@ -1992,10 +1992,10 @@ msgid "Second DNS Server Ping"
 msgstr "Ping secondo server DNS"
 
 msgid "Secure Mode Enabled"
-msgstr "Modalità sicurezza"
+msgstr "Modalità sicurezza abilitata"
 
 msgid "Security Mode"
-msgstr "Criptazione rete WiFi"
+msgstr "Tipo sicurezza"
 
 msgid "Select the <strong>\"Reset\"</strong> button to confirm resetting the password to the default value."
 msgstr "Fai clic sul pulsante <strong>Ripristina</strong> per confermare il ripristino della password al valore predefinito."
@@ -2022,7 +2022,7 @@ msgid "Service"
 msgstr "Servizio"
 
 msgid "Select the services to check on before turning the “Info” LED green and turning the services LEDs off (if ECO LED has been enabled)."
-msgstr "Seleziona i servizi da controllare prima di attivare il led  verde 'Info' e spegnere i led dei servzi (se il led 'Eco' è stato abilitato)."
+msgstr "Seleziona i servizi da controllare prima di attivare il led  verde “Info” e spegnere i led dei servizi (se ECO LED è stato abilitato)."
 
 msgid "Set PIN code"
 msgstr "Imposta codice PIN"
@@ -2034,7 +2034,7 @@ msgid "Setup Wizard"
 msgstr "Configurazione guidata"
 
 msgid "Short Guard Interval"
-msgstr "Intervallo breve protezione"
+msgstr "Short Guard Interval"
 
 msgid "Sign in"
 msgstr "Accedi"
@@ -2046,7 +2046,7 @@ msgid "Signal Quality"
 msgstr "Qualità segnale"
 
 msgid "Signal Strength (RSSI)"
-msgstr "RSSI"
+msgstr "Potenza segnale (RSSI)"
 
 msgid "Since Sync"
 msgstr "Da Sync"
@@ -2067,7 +2067,7 @@ msgid "Source IP"
 msgstr "IP sorgente"
 
 msgid "Space Time Block Code"
-msgstr "Codice blocco spaziatura temporale"
+msgstr "Space Time Block Code"
 
 msgid "Speed"
 msgstr "Velocità"
@@ -2282,8 +2282,8 @@ msgstr "Installa applicazione Blacklist"
 msgid "This will install transmission and transmission-webui"
 msgstr "Installa transmission e relativa webui"
 
-msgid "This will install uhttpd and luci"
-msgstr "Installa uhttpd e luci"
+msgid "This will install uHTTPd and LuCI"
+msgstr "Installa uHTTPd e LuCI"
 
 msgid "This will put your gateway into LAN Update"
 msgstr "Verrà avviato l'aggiornamento del modem"
@@ -2324,13 +2324,13 @@ msgstr "Per disabilitare le regole della mappatura porte, modifica la regola sul
 msgid "Total"
 msgstr "Totale"
 
-msgid "Total Mixed (in MB)"
+msgid "Total Mixed (MB)"
 msgstr "Totale misto (MB)"
 
-msgid "Total Receive (in MB)"
+msgid "Total Receive (MB)"
 msgstr "Totale ricevuti (MB)"
 
-msgid "Total Send (in MB)"
+msgid "Total Send (MB)"
 msgstr "Totale inviati (MB)"
 
 msgid "Traceroute"
@@ -2361,7 +2361,7 @@ msgid "Tx Errors"
 msgstr "Errori Tx"
 
 msgid "Tx Packets"
-msgstr "Pacchetti TX"
+msgstr "Pacchetti Tx"
 
 msgid "TxQueue"
 msgstr "Coda Tx"
@@ -2833,10 +2833,10 @@ msgstr "Tag Host univoco"
 msgid "Bytes"
 msgstr "Byte"
 
-msgid "PPPoE routed mode"
+msgid "PPPoE routed"
 msgstr "PPPoE routed"
 
-msgid "PPPoA routed mode"
+msgid "PPPoA routed"
 msgstr "PPPoA routed"
 
 msgid "Fixed IP mode"
@@ -2849,10 +2849,10 @@ msgid "Reset"
 msgstr "Ripristina"
 
 msgid "Rx Bytes"
-msgstr "Byte Rx"
+msgstr "Rx Bytes"
 
 msgid "Tx Bytes"
-msgstr "Byte Tx"
+msgstr "Tx Bytes"
 
 msgid "MAC Spoof (Wan MAC)"
 msgstr "Spoof MAC (MAC WAN)"
@@ -2905,8 +2905,8 @@ msgstr "GUI Aria2"
 msgid "LuCI GUI"
 msgstr "GUI LuCI"
 
-msgid "Disable override of Version Spoof at every GUI update. This is also usefull to permit cwmp to autoupdate the modem"
-msgstr "Disabilita sovrascrittura versione spoof ad ogni aggiornamento della GUI.<br/>Questo è utile per permettere a cwmp di aggiornare automaticamente il modem."
+msgid "Disable override of Version Spoof at every GUI update, also usefull to permit CWMP to autoupdate the modem"
+msgstr "Disabilita sovrascrittura versione spoof ad ogni aggiornamento della GUI, utile per permettere al CWMP di aggiornare automaticamente il modem."
 
 msgid "Spoof Version Mode"
 msgstr "Modo versione spoof"
@@ -2914,14 +2914,14 @@ msgstr "Modo versione spoof"
 msgid "Connecting..."
 msgstr "Connessione..."
 
-msgid "Comunicate real version to cwmp"
-msgstr "Comunica a cwmp la versione reale"
+msgid "Comunicate real version to CWMP"
+msgstr "Comunica al cwmp la versione reale"
 
-msgid "Comunicate latest stable version set from rootscript to cwmp"
+msgid "Comunicate latest stable version set from rootscript to CWMP"
 msgstr "Comunica a cwmp l'ultima versione stabile impostata dallo script root"
 
 msgid "Set the version to comunicate to cwmp manually"
-msgstr "Imposta manualmente la versione da comunicare a cwmp"
+msgstr "Imposta manualmente la versione da comunicare a CWMP"
 
 msgid "Dot"
 msgstr "Dot"
@@ -3326,7 +3326,7 @@ msgid "ICMPv6"
 msgstr "ICMPv6"
 
 msgid "WEP is known to be flawed as a wireless security mode, usage of a more secure mode based on WPA2 is recommended."
-msgstr "WEP è un metodo di sicurezza wireless poco sicuro.<br/>È consigliato l'uso del metodo di sicurezza basato su WPA2."
+msgstr "WEP è un metodo di sicurezza wireless poco sicuro, è consigliato l'uso del metodo di sicurezza basato su WPA2."
 
 msgid "WiFi NSC"
 msgstr "NSC WiFi"
@@ -3368,7 +3368,7 @@ msgid "You need to specify a MAC or an IP address"
 msgstr "Devi specificare un indirizzo IP o un MAC"
 
 msgid "SFP IP should not be in Gateway interface IP Range, change that first"
-msgstr "L'IP dell'SFP non deve essere nell'intervallo IP del modem. Modificalo."
+msgstr "L'IP dell'SFP non deve essere nell'intervallo IP del gateway, modificalo."
 
 msgid "Connected-SFP"
 msgstr "SFP connesso"
@@ -3395,7 +3395,7 @@ msgid "Symbol Rate"
 msgstr "Frequenza simboli"
 
 msgid "Auto (20/40MHz)"
-msgstr "Automatico (20/40 MHz)"
+msgstr "Automatico (20/40MHz)"
 
 msgid "URL:"
 msgstr "URL:"
@@ -3425,7 +3425,7 @@ msgid "wl0"
 msgstr "wl0"
 
 msgid "TCPDump Log:"
-msgstr "Registro TCPDump:"
+msgstr "Log TCPDump:"
 
 msgid "Standard"
 msgstr "Standard"
@@ -3473,7 +3473,7 @@ msgid "aMule is "
 msgstr "aMule "
 
 msgid "Ok"
-msgstr "OK"
+msgstr "Ok"
 
 msgid "Less Ping"
 msgstr "Meno ping"
@@ -3488,7 +3488,7 @@ msgid "connecting"
 msgstr "connessione"
 
 msgid "802.11a/n"
-msgstr "802.1 a/n"
+msgstr "802.11a/n"
 
 msgid "CS1"
 msgstr "CS1"
@@ -3542,7 +3542,7 @@ msgid "Are you sure you want to remove root from this modem? <br/><strong> This 
 msgstr "Sei sicuro di voler rimuovere il root da questo modem?<br/><strong>Ciò sarà permanente, quindi non è raccomandato</strong>."
 
 msgid "802.11b/g"
-msgstr "802.11 b/g"
+msgstr "802.11b/g"
 
 msgid "Upstream SES"
 msgstr "SES upstream"
@@ -3566,7 +3566,7 @@ msgid "CS5"
 msgstr "CS5"
 
 msgid "20/40MHz"
-msgstr "20/40 MHz"
+msgstr "20/40MHz"
 
 msgid "You are trying to login with wrong password for %s times"
 msgstr "Hai cercato di accedere per %s volte con una password errata"
@@ -3635,7 +3635,7 @@ msgid "Data Rate"
 msgstr "Frequenza dati"
 
 msgid "40MHz"
-msgstr "40 MHz"
+msgstr "40MHz"
 
 msgid "DesktopComputer"
 msgstr "Computer desktop"
@@ -3704,7 +3704,7 @@ msgid "Modem"
 msgstr "Modem"
 
 msgid "20MHz"
-msgstr "20 MHz"
+msgstr "20MHz"
 
 msgid "The Band Steering can not be supported under WEP security mode."
 msgstr "Il band steering non è supportato nel modo sicurezza WEP."
@@ -3761,18 +3761,18 @@ msgid "Reset config to Factory"
 msgstr "Ripristina configurazione di fabbrica"
 
 msgid "Remove Config"
-msgstr "Ripristina configurazione"
+msgstr "Rimuovi configurazione"
 
 msgid "Are you sure you want to reset config of this modem? <br/><strong> This is permanent, save any config before this action.</strong>"
 msgstr "Sei sicuro di voler ripristinare la configurazione del modem?<br/><strong>Questa azione è permanente.<br/>Salva qualsiasi configurazione prima di effettuare questa azione.</strong>"
 
-msgid "Mem Used Graph"
-msgstr "Grafico memoria usata"
+msgid "RAM Used Graph"
+msgstr "Grafico RAM usata"
 
 msgid "Updated"
 msgstr "Aggiornato"
 
-msgid "Add new DDns Rule"
+msgid "Add new DDNS Rule"
 msgstr "Aggiungi nuova regola DDNS"
 
 msgid "Update Info"
@@ -4107,7 +4107,7 @@ msgid "Fast Radio Toggle"
 msgstr "ON/OFF rapido radio"
 
 msgid "Force Radio Down"
-msgstr "Forza radio OFF"
+msgstr "Force Radio Down"
 
 msgid "Dark Blue Unified UI"
 msgstr "UI unificata blu scuro"
@@ -4139,8 +4139,8 @@ msgstr "App specifica già installata"
 msgid "Specific App"
 msgstr "App specifica"
 
-msgid "If you don't have connection, specific app can be downloaded here ( https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/modular/upgrade-pack-specific"
-msgstr "Se non hai una connessione l'app specifica può essere scaricata qui https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/modular/upgrade-pack-specific"
+msgid "If you don't have connection, specific app can be downloaded here ( https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/modular/upgrade-pack-specific%s.tar.bz2 ) and installed manually here."
+msgstr "Se non hai una connessione l'app specifica può essere scaricata qui ( https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/modular/upgrade-pack-specific%s.tar.bz2 ) e installata manualmente qui."
 
 msgid "Install Specific App Online"
 msgstr "Installa app specifica online"
@@ -4184,7 +4184,7 @@ msgstr "Nome concentratore"
 msgid "Concentrator MAC"
 msgstr "MAC concentratore"
 
-msgid "Backup Zip"
+msgid "Backup ZIP"
 msgstr "ZIP backup"
 
 msgid "This will use OpenWRT backup and restore function insteand of the Technicolor function."
