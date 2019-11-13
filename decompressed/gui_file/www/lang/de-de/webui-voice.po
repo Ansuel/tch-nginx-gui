@@ -449,3 +449,6 @@ msgstr "AN"
 
 msgid "OFF"
 msgstr "AUS"
+
+msgid "Interface"
+msgstr ""

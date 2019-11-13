@@ -449,3 +449,6 @@ msgstr "ON"
 
 msgid "OFF"
 msgstr "OFF"
+
+msgid "Interface"
+msgstr ""
