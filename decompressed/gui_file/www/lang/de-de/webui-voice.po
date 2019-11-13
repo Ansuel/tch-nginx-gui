@@ -451,4 +451,4 @@ msgid "OFF"
 msgstr "AUS"
 
 msgid "Interface"
-msgstr ""
+msgstr "Schnittstelle"
