@@ -22,7 +22,8 @@ ngx.print('\
 		"Fix funzioni di copia e trasferimento bank<br/>"..
 		"Aggiunta modal gestione cron<br/>"..
 		"Aggiunta modal gestione init<br/>"..
-		"Aggiunti ulteriori driver xDSL<br/>", basic)
+		"Aggiunti ulteriori driver xDSL<br/>"..
+		"Aggiunta possibilità di selezionare l'interfaccia per gli account VoIP<br/>", basic)
 	html[#html + 1] = ui_helper.createLabel("9.4", "Aggiunta opzione per forzare interfaccia in HTTPS<br/>"..
 		"Aggiunta opzione per eseguire backup OpenWRT<br/>"..
 		"Aggiunta opzione per visualizzare access-concentrator per sessioni PPP<br/>"..
