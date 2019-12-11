@@ -191,6 +191,7 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H045") or content.dsl0_xdsl_Firmwa
         tinsert(driver_option, { "B2pvfbH045k", 'B2pvfbH045k (FRITZ!Box 7582 7.08)'})
         tinsert(driver_option, { "B2pvfbH045l", 'B2pvfbH045l (FRITZ!Box 7582 7.12)'})
         tinsert(driver_option, { "B2pvfbH045o", 'B2pvfbH045o (FRITZ!Box 7582 7.12-72473M)'})
+        tinsert(driver_option, { "B2pvfbH045o1", 'B2pvfbH045o1 (Zyxel VMG4005-B50A_5.15(ABQA.0)C0)'})
         tinsert(driver_option, { "A2pvfbH043b", 'A2pvfbH043b (New FastGate Fastweb)'})
         tinsert(driver_option, { "A2pvfbH043d1", 'A2pvfbH043d1 (FRITZ!Box 7581 6.54)'})
         --table.insert(driver_option,{ "A2pvfbH043e", 'A2pvfbH043e (Zyxel 8823)'}) --Annex b???
@@ -206,6 +207,7 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H045") or content.dsl0_xdsl_Firmwa
         tinsert(driver_option, { "A2pvfbH045k", 'A2pvfbH045k (Inteno/FRITZ!Box 7582 7.08)'})
 	    tinsert(driver_option, { "A2pvfbH045l", 'A2pvfbH045l (FRITZ!Box 7582 7.12)'})
         tinsert(driver_option, { "A2pvfbH045o", 'A2pvfbH045o (FRITZ!Box 7582 7.12-72473M)'})
+        tinsert(driver_option, { "A2pvfbH045o1", 'A2pvfbH045o1 (Zyxel VMG4005-B50A_5.15(ABQA.0)C0)'})
 	end
 	
 	driver_Params.driver_ver = "uci.modgui.var.driver_version"
