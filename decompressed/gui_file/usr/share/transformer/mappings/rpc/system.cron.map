@@ -1,14 +1,28 @@
 local cronfile = "/etc/crontabs/root"
 
+local cron_cache = {
+    tbl,
+    time_check,
+    edit = false
+}
+
 local function checkCron()
 
     local res = {}
+
+    local time = os.time()
+
+    -- Use the cron_cache for subsequent request
+    if cron_cache.tbl and cron_cache.edit == false and
+      time - cron_cache.time_check < 30 then
+        return cron_cache.tbl
+    end
 
     local f = io.open(cronfile,"r")
 
     for line in f:lines() do
         if line ~= "" then
-            local minute, hour, day, month, week, command = line:match("([0-9-%*-%-]+) ([0-9-%*-%-]+) ([0-9-%*-%-]+) ([0-9-%*-%-]+) ([0-9-%*-%-]+) (.*)")
+            local minute, hour, day, month, week, command = line:match("([0-9-%*-%--%/]+) ([0-9-%*-%--%/]+) ([0-9-%*-%--%/]+) ([0-9-%*-%--%/]+) ([0-9-%*-%--%/]+) (.*)")
             res[line] = {
                 minute = minute,
                 hour = hour,
@@ -22,6 +36,10 @@ local function checkCron()
 
     f:close()
 
+    cron_cache.tbl = res
+    cron_cache.time_check = time
+    cron_cache.edit = false
+
     return res
 end
 
@@ -33,7 +51,6 @@ local function writeLine(fd,tbl)
     fd:write(tbl.week.." ")
     fd:write(tbl.command.."\n")
 end
-
 
 local function editCron(type,value,line,delete)
 
@@ -53,6 +70,8 @@ local function editCron(type,value,line,delete)
     end
 
     f:close()
+
+    cron_cache.edit = true
 
 end
 
@@ -206,6 +225,8 @@ SYSTEM_CRON_i_.add = function(mapping)
     local f = io.open(cronfile,"a")
     writeLine(f,tbl)
     f:close()
+
+    cron_cache.edit = true
 
     return random
 end

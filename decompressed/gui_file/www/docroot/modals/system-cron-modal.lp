@@ -101,8 +101,6 @@ cron_options.onAdd = function(index, content)
         command = content.command,
 	}
 
-	ngx.log(1,string.format("%s%s.%s",cron_options.basepath,index,"key"))
-
 	for key,value in pairs(tbl) do
 		proxy.set(string.format("%s%s.%s",cron_options.basepath,index,key),value)
 	end
