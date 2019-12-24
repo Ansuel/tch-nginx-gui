@@ -2,8 +2,9 @@ local cronfile = "/etc/crontabs/root"
 
 local cron_cache = {
     tbl,
-    time_check,
-    edit = false
+    time_check, -- time tbl was refreshed
+    refresh, -- line to refresh in the file
+    reload -- force reload
 }
 
 local function checkCron()
@@ -13,8 +14,8 @@ local function checkCron()
     local time = os.time()
 
     -- Use the cron_cache for subsequent request
-    if cron_cache.tbl and cron_cache.edit == false and
-      time - cron_cache.time_check < 30 then
+    if cron_cache.tbl and not cron_cache.reload and
+      ( time - cron_cache.time_check ) < 30 then
         return cron_cache.tbl
     end
 
@@ -36,9 +37,10 @@ local function checkCron()
 
     f:close()
 
+    cron_cache.reload = nil
+    cron_cache.refresh = nil
     cron_cache.tbl = res
     cron_cache.time_check = time
-    cron_cache.edit = false
 
     return res
 end
@@ -52,18 +54,49 @@ local function writeLine(fd,tbl)
     fd:write(tbl.command.."\n")
 end
 
-local function editCron(type,value,line,delete)
+local function removeCron(line)
 
+    checkCron()
+
+    cron_cache.tbl[line] = nil
+
+    local f = io.open(cronfile,"w+")
+
+    for line in pairs(cron_cache.tbl) do
+        f:write(line.."\n")
+    end
+
+    cron_cache.reload = true
+
+    f:close()
+
+end
+
+local function editCron(param, value, key)
     local cronTbl = checkCron()
 
-    local f = io.open(cronfile,"w")
+    cron_cache.tbl[key][param] = value
+    if not cron_cache.refresh then
+        cron_cache.refresh = key
+    end
+
+    return true
+end
+
+local function updateLineToFile()
+
+    local cronTbl = checkCron()
+    local line = cron_cache.refresh
+
+    if not cronTbl[line] then
+        return nil, "Line not present"
+    end
+
+    local f = io.open(cronfile,"w+")
 
     for l in pairs(cronTbl) do
         if l == line then
-            if not delete then
-                cronTbl[line][type] = value
-                writeLine(f,cronTbl[line])
-            end
+            writeLine(f,cronTbl[line])
         else
             f:write(l.."\n")
         end
@@ -71,7 +104,7 @@ local function editCron(type,value,line,delete)
 
     f:close()
 
-    cron_cache.edit = true
+    cron_cache.reload = true
 
 end
 
@@ -81,8 +114,23 @@ local SYSTEM_CRON_ = {
         access = "readOnly",
         minEntries = 1,
         maxEntries = 1,
-        parameters = {}
+        parameters = {
+            editCronRuleNumber = {
+                access = "readWrite",
+                type = "string"
+            }
+        }
     }
+}
+
+SYSTEM_CRON_.get = {
+    editCronRuleNumber = ""
+}
+
+SYSTEM_CRON_.set = {
+    editCronRuleNumber = function(mapping,param,value,key)
+        return updateLineToFile()
+    end
 }
 
 register(SYSTEM_CRON_)
@@ -214,25 +262,26 @@ SYSTEM_CRON_i_.add = function(mapping)
     local random = getRandomKey()
 
     local tbl = {
-        minute = minute or "*",
-        hour = hour or "*",
-        day = day or "*",
-        month = month or "*",
-        week = week or "*",
-        command = command or "echo ID_RULE "..random,
+        minute = "*",
+        hour = "*",
+        day = "*",
+        month = "*",
+        week = "*",
+        command = "echo ID_RULE "..random,
     }
 
     local f = io.open(cronfile,"a")
     writeLine(f,tbl)
     f:close()
 
-    cron_cache.edit = true
+    cron_cache.reload = true
 
     return random
 end
 
 SYSTEM_CRON_i_.delete = function(mapping, key)
-    editCron(nil,nil,key,"remove")
+    
+    removeCron(key)
 
     return true
 end

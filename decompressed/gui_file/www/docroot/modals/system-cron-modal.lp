@@ -104,6 +104,13 @@ cron_options.onAdd = function(index, content)
 	for key,value in pairs(tbl) do
 		proxy.set(string.format("%s%s.%s",cron_options.basepath,index,key),value)
 	end
+
+	proxy.set("rpc.system.cron.editCronRuleNumber",index)
+end
+
+cron_options.onModify = function(index, content)
+
+	proxy.set("rpc.system.cron.editCronRuleNumber",index)
 end
 
 local cron_data, cron_helpmsg = post_helper.handleTableQuery(cron_columns, cron_options, nil, nil, cron_valid)
