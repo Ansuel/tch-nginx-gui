@@ -33,7 +33,7 @@ EXTRA_HELP="\
 #Gui version is now autocompleted base on latest dev, this variable will be replaced by the automatic script
 version_gui=TO_AUTO_COMPLETE
 #Latest version on TIM cwmp for version spoof
-latest_version_on_TIM_cwmp="2.1.0"
+latest_version_on_TIM_cwmp="2.2.0"
 
 logo_project() {
   cat <<EOF >/dev/console
