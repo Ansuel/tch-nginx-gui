@@ -1,10 +1,8 @@
 --pretranslated: do not change this file
  
 -- Enable localization
---NG-102397 GUI internal error when changing LAN4 LAN/WAN mode
-gettext.textdomain('webui-core')
 
-local format = string.format
+gettext.textdomain('webui-core')
 
 local ui_helper = require("web.ui_helper")
 local content_helper = require("web.content_helper")

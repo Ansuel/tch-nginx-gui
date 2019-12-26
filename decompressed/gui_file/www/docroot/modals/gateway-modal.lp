@@ -934,11 +934,8 @@ ngx.print('\
    var _time = $("#time_schedule").val();\
    schedule_time = $("#date_schedule").val()+"T"+$("#time_schedule").val()+":00Z" ;\
    var temp =  $("#system_time").text();\
-   console.log(temp);\
    var timeformat = temp.split(" ");\
    temp = timeformat[0]+"T"+timeformat[1]+"Z";\
-   console.log(temp);\
-   console.log(schedule_time);\
    if((( _date && _time) != "") &&( temp < schedule_time))\
      {\
       $("#schedule-failed-msg").addClass("hide");\

@@ -270,7 +270,6 @@ local function isWanEnabled(value, object, key)
   return object["uci_wan_auto"] ~= "0"
 end
 
-------------------custo start TCOMITAGW-2157
 local function IPv6andUsername(value, object, key)
 	local valid, msg = vB(value)
 
@@ -340,11 +339,13 @@ end
 ajax_helper.handleAjaxQuery(content_rpc, function(c)
     -- this will add the HTML for the light
     local ds = get_dhcp_state(content["uci_wan_auto"], proxy.get("rpc.network.interface.@wan.ppp.state")[1].value, proxy.get("rpc.network.interface.@wan.ppp.error")[1].value, c["ipaddr"])
-	local dnstab = split(proxy.get("rpc.network.interface.@wan.dnsservers")[1].value, "[^%,]+")
+	local dnstab = split(proxy.get("rpc.network.interface.@loopback.dnsservers")[1].value, "[^%,]+")
 	local dnsv4, dnsv6 = dns_filter(dnstab)
     ajax_attr_light.light.class = ppp_light_map[ds]
     c.wan_status = ui_helper.createSimpleLight(nil, ppp_state_map[ds], ajax_attr_light)
 	if proxy.get("rpc.network.interface.@wan.ppp.state")[1].value == "connected" then
+		c.dns = content_helper.getMergedList(proxy.get("rpc.network.interface.@wan.dnsservers")[1].value, dnsv4)
+	else
 		c.dns = dnsv4
     end
     local ipv6_enabled = proxy.get("uci.network.interface.@wan.ipv6")

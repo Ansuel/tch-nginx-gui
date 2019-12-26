@@ -29,16 +29,6 @@ if ngx.req.get_method() == "POST"  then
 	end
 end
 
-local mapParamsSwich = {
-	lte_enabled = "uci.mobiled.device_defaults.enabled";
-}
-
-local mapValidSwitch = {
-	lte_enabled = post_helper.validateBoolean;
-}
-
-local lte_switch, helpmsg = post_helper.handleQuery(mapParamsSwich , mapValidSwitch)
-
 local function imei_in_list(imei, devices)
 	for _, device in pairs(devices) do
 		if device.info.imei == imei then

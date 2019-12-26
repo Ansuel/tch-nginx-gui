@@ -1,5 +1,5 @@
 --pretranslated: do not change this file
-
+ 
 -- Hide Switch for user admin to enable/disable DSL
 -- Enable localization
 -- NG-88797 WAN statistics is not automatically getting updates as LAN statistics
@@ -25,7 +25,8 @@ local ajax_attr = {
 
 local session = ngx.ctx.session
 local tech = false
-if session:getrole() == "engineer" then
+local role = session:getrole()
+if role == "engineer" or role == "ispuser" then
    tech = true
 end
 
@@ -43,8 +44,6 @@ local content = {
   dsl_attenuation_down = "sys.class.xdsl.@line0.DownstreamAttenuation",
   dsl_margin_up = "sys.class.xdsl.@line0.UpstreamNoiseMargin",
   dsl_margin_down = "sys.class.xdsl.@line0.DownstreamNoiseMargin",
-  dsl_margin_SNRM_up = "sys.class.xdsl.@line0.UpstreamSNRMpb",
-  dsl_margin_SNRM_down = "sys.class.xdsl.@line0.DownstreamSNRMpb",
   dsl_transfered_up = "sys.class.xdsl.@line0.BytesSent",
   dsl_transfered_down = "sys.class.xdsl.@line0.BytesReceived",
   dsl_downstream_delay = "sys.class.xdsl.@line0.DownstreamDelay",
@@ -71,17 +70,8 @@ local content_other_line = {
 }
 
 -- Get the content
-
-
-
-
 content_helper.getExactContent(content)
 content_helper.getExactContent(content_other_line)
-
-if not ( content.dsl_type:match("ADSL") ) then
-	content.dsl_margin_down = content.dsl_margin_SNRM_down
-	content.dsl_margin_up = content.dsl_margin_SNRM_up
-end
 
 ajax_helper.handleAjaxQuery({dsl_uptime = "sys.class.xdsl.@line0.ShowtimeStart"}, function(c)
     c.dsl_uptime = post_helper.secondsToTime(c["dsl_uptime"])
@@ -136,14 +126,15 @@ local dsl_switch_valid = {
 }
 local dsl_switch_data, dsl_switch_helpmsg = post_helper.handleQuery(dsl_switch_params, dsl_switch_valid)
 
-
-ngx.print('\
+  ngx.print('\
+\
 <fieldset>\
+  ');  
+    ngx.print(ui_helper.createMessages(message_helper.popMessages()))
+    ngx.print('\
+  <legend>');  ngx.print( T"Physical link status" ); ngx.print('</legend>\
 \
-  ');  ngx.print(ui_helper.createMessages(message_helper.popMessages())); ngx.print('\
-\
-  <legend>'); ngx.print( T"Physical link status" ); ngx.print('</legend>')
-
+  ');  
     local html = {}
 
     -- Icons
@@ -178,40 +169,38 @@ ngx.print('\
                                   -- ^this does not work !!!!
         )
     end
+    if tech then
+      html[#html + 1] = ui_helper.createSwitch(T"DSL Enabled", "dsl_enable", dsl_switch_data["dsl_enable"])
+    else
+      local intf_state = "disabled"
+      local intf_state_map = {
+      disabled = T"disabled",
+      connected = T"enabled",
+      disconnected = T"VLAN not connected",
+      }
 
-	if tech then
-		html[#html + 1] = ui_helper.createSwitch(T"DSL Enabled", "dsl_enable", dsl_switch_data["dsl_enable"])
-	else
-		local intf_state = "disabled"
-		local intf_state_map = {
-			disabled = T"disabled",
-			connected = T"enabled",
-			disconnected = T"VLAN not connected",
-		}
+      local intf_light_map = {
+      disabled = "off",
+      disconnected = "red",
+      connected = "green",
+      }
 
-		local intf_light_map = {
-		  disabled = "off",
-		  disconnected = "red",
-		  connected = "green",
-		}
-
-		if dsl_switch_data["dsl_enable"] == "1" then
-				intf_state = "connected"
-		else
-			intf_state = "disabled"
-		end
-		html[#html + 1] = ui_helper.createLight(T"DSL", nil, intf_state_map[intf_state], { light = { class = intf_light_map[intf_state] } })
-	end
-
+      if dsl_switch_data["dsl_enable"] == "1" then
+	intf_state = "connected"
+      else
+	intf_state = "disabled"
+      end
+	html[#html + 1] = ui_helper.createLight(T"DSL", nil, intf_state_map[intf_state], { light = { class = intf_light_map[intf_state] } })
+    end
     -- Statistics are only relevant if xdsl status is up
     if (content["dsl_status"] == "Up") or (content_other_line["dsl_status"] == "Up") then
       if( content["dsl_status"] == "Up") then
-		ajax_attr.span.id = "dsl_uptime"
+	ajax_attr.span.id = "dsl_uptime"
         html[#html + 1] = ui_helper.createLabel(T"DSL Uptime", post_helper.secondsToTime(content["dsl_uptime"]), ajax_attr)
         html[#html + 1] = ui_helper.createLabel(T"DSL Type", T(content["dsl_type"]), attributesAdvanced)
         html[#html + 1] = ui_helper.createLabel(T"DSL Mode", T(DSLMode), attributesAdvanced)
       else
-		ajax_attr.span.id = "dsl_uptime"
+	ajax_attr.span.id = "dsl_uptime"
         html[#html + 1] = ui_helper.createLabel(T"DSL Uptime", post_helper.secondsToTime(content_other_line["dsl_uptime"]), ajax_attr)
         html[#html + 1] = ui_helper.createLabel(T"DSL Type", T(content_other_line["dsl_type"]), attributesAdvanced)
         html[#html + 1] = ui_helper.createLabel(T"DSL Mode", T(DSLMode_other_line), attributesAdvanced)
@@ -228,7 +217,7 @@ ngx.print('\
     otherDslLineRateMaxUp = floor(content_other_line["dsl_linerate_up_max"] / 10) / 100
         otherDslLineRateMaxDown = floor(content_other_line["dsl_linerate_down_max"] / 10) / 100
   end
-		ajax_attr.span.id = "dsl_max_linerate"
+      ajax_attr.span.id = "dsl_max_linerate"
       if showBondingStats ~= true then
         html[#html + 1] =
           ui_helper.createLabel(
@@ -254,7 +243,7 @@ ngx.print('\
     otherDslLineRateUp = floor(content_other_line["dsl_linerate_up"] / 10) / 100
         otherDslLineRateDown = floor(content_other_line["dsl_linerate_down"] / 10) / 100
       end
-	  ajax_attr.span.id = "dsl_linerate"
+      ajax_attr.span.id = "dsl_linerate"
       if showBondingStats ~= true then
         html[#html + 1] =
           ui_helper.createLabel(
@@ -280,7 +269,7 @@ ngx.print('\
     otherDslTransferedUp = floor(content_other_line["dsl_transfered_up"] / 1048576 * 100) / 100
         otherDslTransferedDown = floor(content_other_line["dsl_transfered_down"] / 1048576 * 100) / 100
       end
-	  ajax_attr.span.id="dsl_transfered"
+      ajax_attr.span.id="dsl_transfered"
       if showBondingStats ~= true then
         html[#html + 1] =
           ui_helper.createLabel(
@@ -306,7 +295,7 @@ ngx.print('\
         otherDslPowerUp = content_other_line["dsl_power_up"]
         otherDslPowerDown = content_other_line["dsl_power_down"]
       end
-	  ajax_attr.span.id="dsl_power"
+      ajax_attr.span.id="dsl_power"
       if showBondingStats ~= true then
         html[#html + 1] =
           ui_helper.createLabel(
@@ -327,7 +316,7 @@ ngx.print('\
       dslAttenuationDown = content["dsl_attenuation_down"]
       otherDslAttenuationUp = content_other_line["dsl_attenuation_up"]
       otherDslAttenuationDown = content_other_line["dsl_attenuation_down"]
-		ajax_attr.span.id="dsl_attenuation"
+      ajax_attr.span.id="dsl_attenuation"
       if showBondingStats ~= true then
         html[#html + 1] =
           ui_helper.createLabel(
@@ -343,12 +332,16 @@ ngx.print('\
             ajax_attr
           )
       end
-      local dslMarginUp, dslMarginDown, otherDslMarginUp, otherDslMarginDown
-      dslMarginUp = content["dsl_margin_up"]
-      dslMarginDown = content["dsl_margin_down"]
-      otherDslMarginUp = content_other_line["dsl_margin_up"]
-      otherDslMarginDown = content_other_line["dsl_margin_down"]
-	  ajax_attr.span.id="dsl_margin"
+      local dslMarginUp, dslMarginDown, otherDslMarginUp, otherDslMarginDown = 0, 0, 0, 0
+      if tonumber(content["dsl_margin_up"]) ~= nil and tonumber(content["dsl_margin_down"]) ~= nil then
+        dslMarginUp = content["dsl_margin_up"]
+        dslMarginDown = content["dsl_margin_down"]
+      end
+      if tonumber(content_other_line["dsl_margin_up"]) ~= nil and tonumber(content_other_line["dsl_margin_down"]) ~= nil then
+        otherDslMarginUp = content_other_line["dsl_margin_up"]
+        otherDslMarginDown = content_other_line["dsl_margin_down"]
+      end
+      ajax_attr.span.id="dsl_margin"
       if showBondingStats ~= true then
         html[#html + 1] =
           ui_helper.createLabel(
@@ -366,7 +359,7 @@ ngx.print('\
       end
     end
     ngx.print(html)
-
-	ngx.print('\
+    ngx.print('\
+\
 </fieldset>\
-');
+'); 
