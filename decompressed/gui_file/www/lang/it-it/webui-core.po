@@ -1094,8 +1094,8 @@ msgstr "Genera codice QR"
 msgid "Generic"
 msgstr "Generico"
 
-msgid "Github GUI"
-msgstr "GUI Github"
+msgid "GitHub GUI"
+msgstr "GUI GitHub"
 
 msgid "Global Information"
 msgstr "Informazioni generali"

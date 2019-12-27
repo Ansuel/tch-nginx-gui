@@ -164,11 +164,11 @@ ngx.print('\
                 html[#html + 1] = T"Profile Settings"
                 html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
             end
-        html[#html + 1] = [[ <li><a tabindex="-1" href="https://www.ilpuntotecnicoeadsl.com/forum/index.php/topic,77325.0.html" target="_blank"> ]]
+        html[#html + 1] = [[ <li><a tabindex="-1" href="https://www.ilpuntotecnico.com/forum/index.php/topic,81461.0.html" target="_blank"> ]]
         html[#html + 1] = T"Support Forum"
         html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
         html[#html + 1] = [[ <li><a tabindex="-1" href="https://github.com/Ansuel/tch-nginx-gui" target="_blank"> ]]
-        html[#html + 1] = T"Github GUI"
+        html[#html + 1] = T"GitHub GUI"
         html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
       if not ( session:getusername() == "guest" ) then
         if cui.luci_webui == "1" then

@@ -51,7 +51,7 @@ Some Topics to help you get root access:
 <li>789vac v2 Tiscali: https://www.ilpuntotecnico.com/forum/index.php/topic,77988.html</li>
 <li>789vac v1/2/3, 799vac, 800vac and 797n v3 Any ISP: https://hack-technicolor.rtfd.io</li>
 </ul>
-General GUI Topic: https://www.ilpuntotecnico.com/forum/index.php/topic,78585.0.html
+General GUI Topic: https://www.ilpuntotecnico.com/forum/index.php/topic,81461.0.html
 
 <h3>Then execute these commands (Active WAN/Internet connection required):</h3>
 
