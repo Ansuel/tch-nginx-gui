@@ -46,7 +46,8 @@ local intf_light_map = {
 
 local intf_state = "disabled"
 if wan_bridge then
-	if proxy.get("sys.class.net.@"..wan_bridge..".operstate")[1].value == "up" then
+	local operstate = proxy.get("sys.class.net.@"..wan_bridge..".operstate")
+	if operstate and operstate[1].value == "up" then
 	    if proxy.get("sys.class.net.@"..wan_bridge..".carrier")[1].value ~= "0" then
 	        intf_state = "connected"
 	    else
