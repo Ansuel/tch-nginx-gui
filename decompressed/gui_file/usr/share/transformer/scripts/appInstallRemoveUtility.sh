@@ -56,7 +56,11 @@ app_transmission() {
 	
 	install() {
 		[ "$(echo $device_type | grep DGA)" ] && install_DGA
-		[ "$(echo $device_type | grep TG7)" ] && install_from_github FrancYescO/sharing_tg789 transmission
+		if [ -z "${device_type##*TG789*}" ] && [ -z "${device_type##*Xtream*}" ]; then
+		  install_from_github FrancYescO/sharing_tg789 transmission-xtream
+		elif [ "$(echo $device_type | grep TG7)" ]; then
+		  install_from_github FrancYescO/sharing_tg789 transmission
+		fi
 	}
 	
 	remove() {
@@ -272,7 +276,11 @@ app_aria2() {
 		}
 
 		[ "$(echo $device_type | grep DGA)" ] && install_DGA
-		[ "$(echo $device_type | grep TG7)" ] && install_from_github FrancYescO/sharing_tg789 aria2
+		if [ -z "${device_type##*TG789*}" ] && [ -z "${device_type##*Xtream*}" ]; then
+		  install_from_github FrancYescO/sharing_tg789 aria2-xtream
+		elif [ "$(echo $device_type | grep TG7)" ]; then
+		  install_from_github FrancYescO/sharing_tg789 aria2
+		fi
 	}
 	remove() {
 		killall aria2c
