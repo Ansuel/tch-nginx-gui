@@ -257,7 +257,7 @@ if [ -z "${device_type##*DGA413*}" ]; then
 elif [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG789*}" ] && [ -n "${device_type##*Xtream*}" ]; then
   install_specific TG789
 elif [ -z "${device_type##*TG789*}" ] && [ -z "${device_type##*Xtream*}" ]; then
-  install_specific TG800 #use this package as it contain only the right telnet binary for arm
+  install_specific TG789Xtream35B
 elif [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG799*}" ]; then
   install_specific TG789
 elif [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG800*}" ]; then

@@ -18,12 +18,13 @@ ngx.print('\
       }
 	html[#html + 1] = '<legend>' .. T"Mainline 18.3 Cobalt" .. '</legend>'
 	html[#html + 1] = ui_helper.createLabel("9.5", "Risolti alcuni problemi di compatibilità con internet explorer<br/>"..
-		"Fix var per ripristinare il funzionamentpo di modem 3G/LTE USB<br/>"..
+		"Fix vari per ripristinare il funzionamentpo di modem 3G/LTE USB<br/>"..
 		"Fix funzioni di copia e trasferimento bank<br/>"..
 		"Aggiunta modal gestione cron<br/>"..
 		"Aggiunta modal gestione init<br/>"..
 		"Aggiunti ulteriori driver xDSL<br/>"..
-		"Aggiunta possibilità di selezionare l'interfaccia per gli account VoIP<br/>", basic)
+		"Aggiunta possibilità di selezionare l'interfaccia per i servizi VoIP<br/>"..
+		"Aggiunte app per TG789 Xtream 35B<br/>", basic)
 	html[#html + 1] = ui_helper.createLabel("9.4", "Aggiunta opzione per forzare interfaccia in HTTPS<br/>"..
 		"Aggiunta opzione per eseguire backup OpenWRT<br/>"..
 		"Aggiunta opzione per visualizzare access-concentrator per sessioni PPP<br/>"..

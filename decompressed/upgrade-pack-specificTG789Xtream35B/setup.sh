@@ -4,7 +4,7 @@ MD5_CHECK_DIR=/tmp/md5check
 	
 [ ! -d $MD5_CHECK_DIR ] && mkdir $MD5_CHECK_DIR
 
-for file in /tmp/upgrade-pack-specificTG789; do
+for file in /tmp/upgrade-pack-specificTG789Xtream35B; do
 	
 	if [ ! -f $MD5_CHECK_DIR/$file ]; then
 		if [ ! -d /$file ]; then
@@ -31,9 +31,9 @@ for file in /tmp/upgrade-pack-specificTG789; do
 	rm $file
 	RESTART_SERVICE=1
 
-  #needed to fix "can't execute 'openssl'" on opkg update from https feed
-	opkg install /tmp/openssl-util_1.0.2g-1_brcm63xx-tch.ipk
-	rm /tmp/openssl-util_1.0.2g-1_brcm63xx-tch.ipk
+  #needed to fix opkg update from https feed
+	opkg install /tmp/wget_1.17.1-1_brcm63xx-tch.ipk
+	rm /tmp/wget_1.17.1-1_brcm63xx-tch.ipk
 done
 
 [ -d $MD5_CHECK_DIR ] && rm -r $MD5_CHECK_DIR

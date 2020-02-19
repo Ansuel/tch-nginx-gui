@@ -5,6 +5,7 @@ declare -a modular_dir=(
 	"upgrade-pack-specificDGA"
 	"upgrade-pack-specificTG800"
 	"upgrade-pack-specificTG789"
+	"upgrade-pack-specificTG789Xtream35B"
 	"custom-ripdrv-specificDGA"
 	"telstra_gui"
 	"ledfw_support-specificTG788"
