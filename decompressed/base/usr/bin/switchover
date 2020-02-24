@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# tch-ningx-gui policy: override stock switchover
+
+#intecepted and not allowed
+exit 1

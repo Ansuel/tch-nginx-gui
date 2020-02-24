@@ -237,12 +237,6 @@ if telnet_available then
 	telnet_content, helpmsg = post_helper.handleQuery(telnet_Params, telnet_valid)
 end
 
-local bank_check_Params = { bank_check = "uci.modgui.var.bank_check" }
-
-local bank_check_valid = { bank_check = vB }
-
-local bank_check_content, helpmsg = post_helper.handleQuery(bank_check_Params, bank_check_valid)
-
 local config_Params = {
   export_plaintext = "uci.system.config.export_plaintext",
   import_plaintext = "uci.system.config.import_plaintext",
@@ -437,8 +431,6 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Clone the content of the running bank to the inactive one. Warning: this will delete all data and configuration settings on the inactive bank!", warn_box)
 	  html[#html + 1] = ui_helper.createButton(T"Clone bank", T"Clone", "icon-exchange", copy_bank)
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Cloning bank, please wait...", copy_bank_alert)
-	  html[#html + 1] = ui_helper.createAlertBlock(T"Force the device to always use “Bank_1” as the main bank.", info_box)
-	  html[#html + 1] = ui_helper.createSwitch(T"Bank Check", "bank_check", bank_check_content["bank_check"])
       ngx.print(html)
       ngx.print('\
 </fieldset>');
