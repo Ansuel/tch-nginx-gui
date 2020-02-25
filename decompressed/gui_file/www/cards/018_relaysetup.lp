@@ -54,7 +54,10 @@ local ppp_state_map = {
 }
 
   pppoerelay_state = "disabled"
-if proxy.get("uci.network.interface.@wan.ifname")[1].value == relay_Params["uci_pppoerelay_interface"] then
+
+local wan_ifname = proxy.get("uci.network.interface.@wan.ifname")
+
+if wan_ifname and wan_ifname[1].value == relay_Params["uci_pppoerelay_interface"] then
   pppoerelay_state = "connected"
 end
 

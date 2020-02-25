@@ -35,8 +35,12 @@ content_helper.getExactContent(wan)
 -- Here we just try to remove the potential vlan id from the interface name.
 local iface = string.match(wan.iface, "([^%.]+)")
 local stats
-
-if iface and ethIntf and find(iface, ethIntf) then
+local deviceDetails = proxy.get(string.format("uci.network.device.@%s.ifname", iface))
+local deviceIfname = ""
+if deviceDetails then
+  deviceIfname = deviceDetails[1].value
+end
+if iface and ethIntf and (find(iface, ethIntf) or find(deviceIfname, ethIntf)) then
     ethIntf = ethIntf:untaint()
     stats = {
         operstate = "sys.class.net.@" .. ethIntf .. ".operstate",

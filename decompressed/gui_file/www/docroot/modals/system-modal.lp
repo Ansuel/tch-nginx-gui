@@ -17,8 +17,8 @@ local gOV = post_helper.getOptionalValidation
 local vSIPR = post_helper.validateStringIsPortRange
 
 local spoof_mode_enum = {
-	{ "disabled" , T"Comunicate real version to cwmp"},
-	{ "enabled" , T"Comunicate latest stable version set from rootscript to cwmp"},
+	{ "disabled" , T"Comunicate real version to CWMP"},
+	{ "enabled" , T"Comunicate latest stable version set from rootscript to CWMP"},
 	{ "manual" , T"Set the version to comunicate to cwmp manually"},
 }
 
@@ -299,11 +299,11 @@ if ngx.req.get_method() == "POST" then
   if action == "system_switchover" then
     return resetreboot("rpc.system.switchover","1")
   end
-  if action == "system_trasnfer_bank_1" then
-    return resetreboot("rpc.system.modgui.utility.sendcmd","transfer_bank1")
+  if action == "system_transfer_bank_1" then
+    return resetreboot("rpc.system.modgui.utility.sendcmd","transferBank1")
   end
   if action == "system_copy_bank" then
-    return resetreboot("rpc.system.modgui.utility.sendcmd","copy_bank")
+    return resetreboot("rpc.system.modgui.utility.sendcmd","copyBank")
   end
   if action == "debug_report" then
 
@@ -458,7 +458,7 @@ if not ( fwversion_override_content["fwversion_override"] == "" ) then
 				class = "span5",
 			}
 		}
-		html[#html + 1] = ui_helper.createAlertBlock(T"Disable override of Version Spoof at every GUI update. This is also usefull to permit cwmp to autoupdate the modem", info_box)
+		html[#html + 1] = ui_helper.createAlertBlock(T"Disable override of Version Spoof at every GUI update, also usefull to permit CWMP to autoupdate the modem", info_box)
 		html[#html + 1] = ui_helper.createInputSelect(T"Spoof Version Mode", "version_spoof_mode", spoof_mode_enum ,fwversion_override_content["version_spoof_mode"],long_input)
 		html[#html + 1] = ui_helper.createAlertBlock(T"Input the latest stock firmware version in this field to spoof it. This is necessary because if a newer version of the firmware is available on the ACS server, CWMPD will try to update the device and break remote monitoring from the “MyTIM” mobile app.", info_box)
 		html[#html + 1] = ui_helper.createInputText(T"Version Set", "fwversion_override", fwversion_override_content["fwversion_override"], nil , fwversion_override_helpmsg["fwversion_override"])
@@ -646,7 +646,7 @@ ngx.print('\
   $("#btn-system-transfer-bank1").on("click", function() {\
      if (confirm("');  ngx.print(T"This will transfer the active firmware and config to the bank 1"); ngx.print('")){\
        tch.showProgress(\'');  ngx.print(T"Rebooting..."); ngx.print('\');\
-       return resetreboot($("#transfer-bank1-msg"), $(this), "system_trasnfer_bank_1");\
+       return resetreboot($("#transfer-bank1-msg"), $(this), "system_transfer_bank_1");\
      }\
   });\
 \

@@ -66,9 +66,6 @@ msgstr "Kennwort"
 msgid "Mode"
 msgstr "Modus"
 
-msgid "Always On"
-msgstr "Immer an"
-
 msgid "Content Sharing"
 msgstr "Inhalt teilen"
 
@@ -180,42 +177,6 @@ msgstr "Verwende Zufallskennwort"
 msgid "Add New Rule"
 msgstr "Hinzufügen neue Regel"
 
-msgid "Internet Traffic"
-msgstr "Internet Verkehr"
-
-msgid "Total Mixed (in MB)"
-msgstr "Summe Gemischt (in MB)"
-
-msgid "Ethernet Network Traffic"
-msgstr "Ethernet Netzwerkverkehr"
-
-msgid "Total Send (in MB)"
-msgstr "Summe Gesendet (in MB)"
-
-msgid "Total Receive (in MB)"
-msgstr "Summe Empfangen (in MB)"
-
-msgid "Wi-Fi Network Traffic"
-msgstr "WiFi Netzwerkverkehr"
-
-msgid "Graph"
-msgstr "Grafik"
-
-msgid "The time displayed on the graph are based on the time set on this modem!"
-msgstr "Die Zeit, die in der Grafik angezeigt wird, basiert auf der im Modem eingestellten Zeit!"
-
-msgid "Sent chart line"
-msgstr "Gesendete Grafikzeile"
-
-msgid "Received chart line"
-msgstr "Empfangene Grafikzeile"
-
-msgid "WAN Graph"
-msgstr "WAN Grafik"
-
-msgid "LAN Graph"
-msgstr "LAN Grafik"
-
 msgid "Changes saved successfully"
 msgstr "Änderungen wurden erfolgreich gespeichert"
 
@@ -314,9 +275,6 @@ msgstr "Die Bandsteuerung kann nicht im WEP Sicherheitsmodus verwendet werden."
 
 msgid "Please configure wifi-bandsteer "
 msgstr "Bitte konfigurieren Sie die WiFi-Bandsteuerung "
-
-msgid " first!"
-msgstr " zuerst!"
 
 msgid "Device PIN code entered"
 msgstr "Geräte PIN-Code eingegeben"
@@ -420,14 +378,11 @@ msgstr "ACL Modus"
 msgid "Near Field Communication (NFC)"
 msgstr "Near Field Communication (NFC)"
 
-msgid "Near Field Communication (NFC) allows you to tap an Android smartphone or tablet against the front of your Gateway to automatically configure Wi-Fi credentials on your device, so that you can connect over Wi-Fi. This feature is not supported on Apple iOS devices.<br><br><a href=/gateway.lp?openmodal=nfc-modal.lp ><u>Click here</u></a> to configure NFC."
-msgstr "Near Field Communication (NFC) erlaubt es, mit einem Android Smartphone oder Tablet gegen die Front Ihres Gateways zu klopfen, um die WiFi Schlüssel auf Ihrem Endgerät automatisch zu konfigurieren. Damit können Sie sich per WiFi verbinden. Diese Möglichkeit wird für Apple iOS Geräte nicht unterstützt. <br><br><a href=/gateway.lp?openmodal=nfc-modal.lp ><u>Klicken Sie hier</u></a>, um NFC zu konfigurieren."
+msgid "Near Field Communication (NFC) allows you to tap an Android smartphone or tablet against the front of your Gateway to automatically configure Wi-Fi credentials on your device, so that you can connect over Wi-Fi. This feature is not supported on Apple iOS devices.<br/><br/><a href=/gateway.lp?openmodal=nfc-modal.lp ><u>Click here</u></a> to configure NFC."
+msgstr "Near Field Communication (NFC) erlaubt es, mit einem Android Smartphone oder Tablet gegen die Front Ihres Gateways zu klopfen, um die WiFi Schlüssel auf Ihrem Endgerät automatisch zu konfigurieren. Damit können Sie sich per WiFi verbinden. Diese Möglichkeit wird für Apple iOS Geräte nicht unterstützt. <br/><br/><a href=/gateway.lp?openmodal=nfc-modal.lp ><u>Klicken Sie hier</u></a>, um NFC zu konfigurieren."
 
 msgid "Standard"
 msgstr "Standard"
-
-msgid "Telstra Gateway"
-msgstr "Telstra Gateway"
 
 msgid "HOME"
 msgstr "ZUHAUSE"
@@ -449,51 +404,6 @@ msgstr "DIENSTE"
 
 msgid "USER SETTINGS"
 msgstr "BENUTZEREINSTELLUNGEN"
-
-msgid "disabled"
-msgstr "abgeschaltet"
-
-msgid "disconnecting"
-msgstr "trennen"
-
-msgid "connected"
-msgstr "verbunden"
-
-msgid "connecting"
-msgstr "verbinden"
-
-msgid "disconnected"
-msgstr "getrennt"
-
-msgid "error"
-msgstr "Fehler"
-
-msgid "authentication failed"
-msgstr "Authentifizierung fehlgeschlagen"
-
-msgid "negotiation failed"
-msgstr "Aushandlung fehlgeschlagen"
-
-msgid "PPP connection"
-msgstr "PPP Verbindung"
-
-msgid "IP address"
-msgstr "IP Adresse"
-
-msgid "IPv6 address"
-msgstr "IPv6 Adresse"
-
-msgid "Gateway"
-msgstr "Gateway"
-
-msgid "DNS servers"
-msgstr "DNS Server"
-
-msgid "ATM VP / VC"
-msgstr "ATM VP/VC"
-
-msgid "Encapsulation"
-msgstr "Verkapselung"
 
 msgid "ADVANCED CARDS"
 msgstr "ERWEITERTE KARTEN"
@@ -534,20 +444,20 @@ msgstr "Gast 2.4GHz"
 msgid "Guest 5GHz"
 msgstr "Gast 5GHz"
 
-msgid "Your Internet connection is currently down. You can try the following: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Telephone or Ethernet cable is firmly connected to the correct port on your Gateway, the Filter on the Telephone<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;socket or the Ethernet socket on the wall.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Check that your username is correct and re-enter your password <a href=/broadband.lp> here </a> .<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Restart my gateway."
-msgstr "Ihre Internetverbindung ist gerade inaktiv. Sie können folgendes versuchen: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Prüfen Sie, ob Ihr Telefon- oder Ethernet-Kabel mit dem richtigen Eingang Ihres Gateway verbunden ist.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Prüfen Sie, on Ihr Benutzername korrekt ist und geben Sie Ihr Kennwort <a ahref=\"/broadband.lp>hier</a neu ein.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Starten Sie Ihr Gateway neu."
+msgid "Your Internet connection is currently down. You can try the following: <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Telephone or Ethernet cable is firmly connected to the correct port on your Gateway, the Filter on the Telephone<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;socket or the Ethernet socket on the wall.<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Check that your username is correct and re-enter your password <a href=/broadband.lp> here </a> .<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Restart my gateway."
+msgstr "Ihre Internetverbindung ist gerade inaktiv. Sie können folgendes versuchen: <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Prüfen Sie, ob Ihr Telefon- oder Ethernet-Kabel mit dem richtigen Eingang Ihres Gateway verbunden ist.<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Prüfen Sie, on Ihr Benutzername korrekt ist und geben Sie Ihr Kennwort <a ahref=\"/broadband.lp>hier</a neu ein.<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Starten Sie Ihr Gateway neu."
 
-msgid "Your Internet connection is currently down. You can try the following: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Telephone cable is firmly connected to the correct port on your Gateway or the Filter on the telephone socket <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;on the wall.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Check that your username is correct and re-enter your password <a href=/broadband.lp> here </a> . <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Restart my gateway."
-msgstr "Ihre Internetverbindung ist gerade inaktiv. Sie können folgendes versuchen: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Prüfen Sie, ob Ihr Telefonkabel mit dem richtigen Eingang Ihres Gateway verbunden ist.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Prüfen Sie, on Ihr Benutzername korrekt ist und geben Sie Ihr Kennwort <a ahref=\"/broadband.lp>hier</a neu ein.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Starten Sie Ihr Gateway neu."
+msgid "Your Internet connection is currently down. You can try the following: <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Telephone cable is firmly connected to the correct port on your Gateway or the Filter on the telephone socket <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;on the wall.<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Check that your username is correct and re-enter your password <a href=/broadband.lp> here </a> . <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Restart my gateway."
+msgstr "Ihre Internetverbindung ist gerade inaktiv. Sie können folgendes versuchen: <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Prüfen Sie, ob Ihr Telefonkabel mit dem richtigen Eingang Ihres Gateway verbunden ist.<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Prüfen Sie, on Ihr Benutzername korrekt ist und geben Sie Ihr Kennwort <a ahref=\"/broadband.lp>hier</a neu ein.<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Starten Sie Ihr Gateway neu."
 
-msgid "Your Internet connection is currently down. You can try the following: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Ethernet cable is firmly connected to the correct port on your Gateway or the Ethernet socket on the wall.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Check that your username is correct and re-enter your password <a href=/broadband.lp> here </a> . <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Restart my gateway."
-msgstr "Ihre Internetverbindung ist gerade inaktiv. Sie können folgendes versuchen: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Prüfen Sie, ob Ihr Ethernet-Kabel mit dem richtigen Eingang Ihres Gateway verbunden ist.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Prüfen Sie, on Ihr Benutzername korrekt ist und geben Sie Ihr Kennwort <a ahref=\"/broadband.lp>hier</a neu ein.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Starten Sie Ihr Gateway neu."
+msgid "Your Internet connection is currently down. You can try the following: <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Ethernet cable is firmly connected to the correct port on your Gateway or the Ethernet socket on the wall.<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Check that your username is correct and re-enter your password <a href=/broadband.lp> here </a> . <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Restart my gateway."
+msgstr "Ihre Internetverbindung ist gerade inaktiv. Sie können folgendes versuchen: <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Prüfen Sie, ob Ihr Ethernet-Kabel mit dem richtigen Eingang Ihres Gateway verbunden ist.<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Prüfen Sie, on Ihr Benutzername korrekt ist und geben Sie Ihr Kennwort <a ahref=\"/broadband.lp>hier</a neu ein.<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Starten Sie Ihr Gateway neu."
 
-msgid "Your Internet connection is currently down. You can try the following: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Telephone cable is firmly connected to the correct port on your Gateway or the Filter on the telephone socket <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;on the wall. <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Restart my gateway."
-msgstr "Ihre Internetverbindung ist gerade inaktiv. Sie können folgendes versuchen: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Prüfen Sie, ob Ihr Telefonkabel mit dem richtigen Eingang Ihres Gateway verbunden ist.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Prüfen Sie, on Ihr Benutzername korrekt ist und geben Sie Ihr Kennwort <a ahref=\"/broadband.lp>hier</a neu ein.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Starten Sie Ihr Gateway neu."
+msgid "Your Internet connection is currently down. You can try the following: <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Telephone cable is firmly connected to the correct port on your Gateway or the Filter on the telephone socket <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;on the wall. <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Restart my gateway."
+msgstr "Ihre Internetverbindung ist gerade inaktiv. Sie können folgendes versuchen: <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Prüfen Sie, ob Ihr Telefonkabel mit dem richtigen Eingang Ihres Gateway verbunden ist.<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Prüfen Sie, on Ihr Benutzername korrekt ist und geben Sie Ihr Kennwort <a ahref=\"/broadband.lp>hier</a neu ein.<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Starten Sie Ihr Gateway neu."
 
-msgid "Your Internet connection is currently down. You can try the following: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Ethernet cable is firmly connected to the correct port on your Gateway or the Ethernet socket on the wall. <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Restart my gateway."
-msgstr "Ihre Internetverbindung ist gerade inaktiv. Sie können folgendes versuchen: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Prüfen Sie, ob Ihr Ethernet-Kabel mit dem richtigen Eingang Ihres Gateway verbunden ist.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Prüfen Sie, on Ihr Benutzername korrekt ist und geben Sie Ihr Kennwort <a ahref=\"/broadband.lp>hier</a neu ein.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Starten Sie Ihr Gateway neu."
+msgid "Your Internet connection is currently down. You can try the following: <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Ethernet cable is firmly connected to the correct port on your Gateway or the Ethernet socket on the wall. <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Restart my gateway."
+msgstr "Ihre Internetverbindung ist gerade inaktiv. Sie können folgendes versuchen: <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Prüfen Sie, ob Ihr Ethernet-Kabel mit dem richtigen Eingang Ihres Gateway verbunden ist.<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Prüfen Sie, on Ihr Benutzername korrekt ist und geben Sie Ihr Kennwort <a ahref=\"/broadband.lp>hier</a neu ein.<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Starten Sie Ihr Gateway neu."
 
 msgid "153"
 msgstr "153"

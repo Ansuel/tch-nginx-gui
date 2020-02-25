@@ -15,13 +15,13 @@ msgstr ""
 "X-Generator: Poedit 2.2.1\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
-msgid "<strong>%s classify rule(s)</strong> active"
-msgid_plural "<strong>%s classify rule(s)</strong> active"
+msgid "<strong>%s classify rule</strong> active"
+msgid_plural "<strong>%s classify rules</strong> active"
 msgstr[0] "<strong>%s</strong> regola classificazione attiva"
 msgstr[1] "<strong>%s</strong> regole classificazione attive"
 
-msgid "<strong>%s queue(s)</strong> active"
-msgid_plural "<strong>%s queue(s)</strong> active"
+msgid "<strong>%s queue</strong> active"
+msgid_plural "<strong>%s queues</strong> active"
 msgstr[0] "<strong>%s</strong> coda attiva"
 msgstr[1] "<strong>%s</strong> code attive"
 
@@ -120,9 +120,6 @@ msgstr "Peso"
 
 msgid "Weighted Round Robin"
 msgstr "Round robin pesato"
-
-msgid "Yes"
-msgstr "Sì"
 
 msgid "Qos Wireless Status"
 msgstr "Stato QoS wireless"

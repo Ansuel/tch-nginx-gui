@@ -15,32 +15,3 @@ msgstr ""
 "X-Poedit-SourceCharset: UTF-8\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-msgid "Address"
-msgstr "Adresse"
-
-msgid "Configuration"
-msgstr "Konfiguration"
-
-msgid "Destination"
-msgstr "Ziel"
-
-msgid "Filter"
-msgstr "Filter"
-
-msgid "Interface"
-msgstr "Schnittstelle"
-
-msgid "Interfaces"
-msgstr "Schnittstellen"
-
-msgid "RIP settings details:"
-msgstr "Details RIP Einstellungen:"
-
-msgid "Simple"
-msgstr "Einfach"
-
-msgid "Time is invalid. It should be between 5 and 3600."
-msgstr "Zeit ist ungültig. Sie sollte zwischen 5 und 3600 liegen."
-
-msgid "Yes"
-msgstr "Ja"

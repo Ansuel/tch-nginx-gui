@@ -1,0 +1,94 @@
+local helper = require("mobiled.scripthelpers")
+local ltedoctor = require("transformer.shared.ltedoctor")
+
+local ltedoctor_signal_quality_entries = {
+	objectType = {
+		name = 'rpc.ltedoctor.signal_quality.@.entries.@.',
+		access = 'readOnly',
+		minEntries = 0,
+		maxEntries = math.huge,
+		parameters = {
+			rssi = {
+				access = "readOnly",
+				type = "string"
+			},
+			rsrp = {
+				access = "readOnly",
+				type = "string"
+			},
+			rsrq = {
+				access = "readOnly",
+				type = "string"
+			},
+			rscp = {
+				access = "readOnly",
+				type = "string"
+			},
+			uptime = {
+				access = "readOnly",
+				type = "unsignedInt"
+			}
+		}
+	}
+}
+
+local cache = {}
+
+local conn = mapper("ubus").connect()
+if not conn then
+	return
+end
+
+function ltedoctor_signal_quality_entries.getall(_, key, parentKey)
+	local result = {}
+	setmetatable(result, { __index = function() return "" end })
+
+	key = tonumber(key:match('.-_(%d+)'))
+	if cache[parentKey].mobiled_signal_quality and cache[parentKey].mobiled_signal_quality[key].data.mobiled_radio_signal_quality then
+		result.rssi = cache[parentKey].mobiled_signal_quality[key].data.mobiled_radio_signal_quality.rssi
+		result.rsrp = cache[parentKey].mobiled_signal_quality[key].data.mobiled_radio_signal_quality.rsrp
+		result.rsrq = cache[parentKey].mobiled_signal_quality[key].data.mobiled_radio_signal_quality.rsrq
+		result.rscp = cache[parentKey].mobiled_signal_quality[key].data.mobiled_radio_signal_quality.rscp
+		result.uptime = cache[parentKey].mobiled_signal_quality[key].uptime
+	end
+
+	return result
+end
+
+function ltedoctor_signal_quality_entries.get(mapping, paramName, key, parentKey)
+	return ltedoctor_signal_quality_entries.getall(mapping, key, parentKey)[paramName]
+end
+
+function ltedoctor_signal_quality_entries.entries(_, parentKey)
+	local since_uptime
+	if parentKey == "diff" then
+		since_uptime = ltedoctor.getSignalQualityDiffSinceUptime()
+		ltedoctor.setSignalQualityDiffSinceUptime()
+	else
+		local uptime = ltedoctor.getUptime(conn)
+		local time_entry = ltedoctor.time_entries[parentKey]
+		if time_entry and time_entry.period_seconds and uptime > time_entry.period_seconds then
+			since_uptime = uptime - time_entry.period_seconds
+		end
+	end
+
+	local dev_idx = ltedoctor.getDeviceIndex()
+	ltedoctor.setDeviceIndex()
+
+	-- For 24 hours period, number of records in DB will be more which requires more RAM and CPU for processing
+	-- To reduce RAM and CPU usage, collect the records for 90 sec interval instead of default sample interval.
+	if parentKey == "last_twentyfour_hours" then
+		cache[parentKey] = helper.getUbusData(conn, "ltedoctor", "history", { dev_idx = dev_idx, logger = "mobiled_signal_quality", since_uptime = since_uptime, min_interval = "90" })
+	else
+		cache[parentKey] = helper.getUbusData(conn, "ltedoctor", "history", { dev_idx = dev_idx, logger = "mobiled_signal_quality", since_uptime = since_uptime })
+	end
+	local entries = {}
+	if type(cache[parentKey].mobiled_signal_quality) == "table" then
+		for k in pairs(cache[parentKey].mobiled_signal_quality) do
+			table.insert(entries, { tostring(k), string.format("%s_%d", parentKey, k) })
+		end
+	end
+	return entries
+end
+
+register(ltedoctor_signal_quality_entries)

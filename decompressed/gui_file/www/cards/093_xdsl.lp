@@ -58,10 +58,10 @@ if session:hasAccess(modalPath) and lfs.attributes("/etc/config/xdsl", "mode") =
                 html[#html+1] = ui_helper.createSimpleLight(content["dsl0_enabled"], status_msg, { light = {}},"fas fa-microchip")
 				html[#html+1] = '<p class="subinfos">'
                 html[#html+1] = format(T"Datapump Version"..": <strong>%s</strong>", content.xdsl_version )
-                html[#html+1] = '</br>'
+                html[#html+1] = '<br/>'
 				if not ( content.dslam_chipset == "" ) and ( content.dsl0_status == "Up" ) then
 					html[#html+1] = format(T"DSLAM Chipset: <strong>%s</strong>", content.dslam_chipset )
-					html[#html+1] = '</br>'
+					html[#html+1] = '<br/>'
 					html[#html+1] = format(T"DSLAM Version: <strong>%s</strong>", content.dslam_version )
 				end
 				html[#html+1] = '</p>'

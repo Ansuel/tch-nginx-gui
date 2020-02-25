@@ -17,72 +17,80 @@ ngx.print('\
         },
       }
 	html[#html + 1] = '<legend>' .. T"Mainline 18.3 Cobalt" .. '</legend>'
-	html[#html + 1] = ui_helper.createLabel("9.4", "Aggiunta opzione per forzare interfaccia in HTTPS<br>"..
-		"Aggiunta opzione per eseguire backup OpenWRT<br>"..
-		"Aggiunta opzione per visualizzare access-concentrator per sessioni PPP<br>"..
-		"Fixati alcuni errori sulla visualizzazione dell'IPv6<br>"..
-		"Molti miglioramenti e fix grafici alle skin Unified e Fritz<br>"..
-		"Sistemato reset config<br>"..
-		"Aggiunta possibilità di resettare CWMP per forzare provisioning<br>"..
-		"Aggiunto supporto a DJA0231 (Telstra)<br>"..
-		"Sistemata impostazione WiFi NSC (Eco Modal)<br>"..
-		"Migliorato supporto per DGA4131FWB, DJA0231, TG788, TG789 Xtream 35B Fastweb<br>"..
-		"Importante fix che poteva causare bootloop se non venivano mai fatti aggiornamenti stabili<br>"..
-		"I driver xDSL prima di essere impostati vengono preventivamente controllati per evitare bootloop<br>"..
-		"Lo stato di alcuni processi (Aggiornamento GUI, cambio driver, installazione APP...) viene mostrato da GUI<br>"..
-		"Aggiunta flag per attivare IPv6 su WAN<br>"..
-		"Aggiunta pulsante per forzare provisioning CWMP<br>"..
-		"Importanti fix per evitare comportamenti inaspettati durante gli upgrade firmware<br>", basic)
-	html[#html + 1] = ui_helper.createLabel("9.3", "Ri-Aggiunto supporto alle app per i nuovi firmware<br>"..
-		"Nuova skin unificata<br>"..
-		"Inserita gestione led su DGA4131FWB<br>"..
-		"Aggiunta possibilità di impostare potenza e country region radio WiFi<br>"..
-		"Aggiunta funzione di riavvio programmato<br>"..
-		"Possibilità di impostare server DNS per tutte le interfaccie (IP Extras)<br>"..
-		"Sistemato wizard e vari errori su TG788<br>"..
-		"Possibilità di impostare vendorid per il tipo di connessione wan DHCP (necessità Fastweb)<br>"..
-		"Molti altri miglioramenti e bugfix minori<br>", basic)
-	html[#html + 1] = ui_helper.createLabel("9.2", "Rebase su nuovi firmware 2.1.0 (Kernel linux aggiornato a 4.1.38)<br>"..
-		"Vari rework agli script per una esecuzione più efficente<br>"..
-		"Vari fix ai bug presenti nelle versioni precedenti<br>"..
-		"E' ora possibile dare priorità ad un dispositivo specifico rispetto a tutta la rete (Tab Gestione Dispositivi)<br>"..
-		"Aggiunte nuove funzioni di aggiornamento e possibilità di selezionare l'ISP manualmente<br>"..
+	html[#html + 1] = ui_helper.createLabel("9.5", "Risolti alcuni problemi di compatibilità con internet explorer<br/>"..
+		"Fix vari per ripristinare il funzionamentpo di modem 3G/LTE USB<br/>"..
+		"Fix funzioni di copia e trasferimento bank<br/>"..
+		"Aggiunta modal gestione cron<br/>"..
+		"Aggiunta modal gestione init<br/>"..
+		"Aggiunti ulteriori driver xDSL<br/>"..
+		"Aggiunta possibilità di selezionare l'interfaccia per i servizi VoIP<br/>"..
+		"Aggiunte app per TG789 Xtream 35B<br/>", basic)
+	html[#html + 1] = ui_helper.createLabel("9.4", "Aggiunta opzione per forzare interfaccia in HTTPS<br/>"..
+		"Aggiunta opzione per eseguire backup OpenWRT<br/>"..
+		"Aggiunta opzione per visualizzare access-concentrator per sessioni PPP<br/>"..
+		"Fixati alcuni errori sulla visualizzazione dell'IPv6<br/>"..
+		"Molti miglioramenti e fix grafici alle skin Unified e Fritz<br/>"..
+		"Sistemato reset config<br/>"..
+		"Aggiunta possibilità di resettare CWMP per forzare provisioning<br/>"..
+		"Aggiunto supporto a DJA0231 (Telstra)<br/>"..
+		"Sistemata impostazione WiFi NSC (Eco Modal)<br/>"..
+		"Migliorato supporto per DGA4131FWB, DJA0231, TG788, TG789 Xtream 35B Fastweb<br/>"..
+		"Importante fix che poteva causare bootloop se non venivano mai fatti aggiornamenti stabili<br/>"..
+		"I driver xDSL prima di essere impostati vengono preventivamente controllati per evitare bootloop<br/>"..
+		"Lo stato di alcuni processi (Aggiornamento GUI, cambio driver, installazione APP...) viene mostrato da GUI<br/>"..
+		"Aggiunta flag per attivare IPv6 su WAN<br/>"..
+		"Aggiunta pulsante per forzare provisioning CWMP<br/>"..
+		"Importanti fix per evitare comportamenti inaspettati durante gli upgrade firmware<br/>", basic)
+	html[#html + 1] = ui_helper.createLabel("9.3", "Ri-Aggiunto supporto alle app per i nuovi firmware<br/>"..
+		"Nuova skin unificata<br/>"..
+		"Inserita gestione led su DGA4131FWB<br/>"..
+		"Aggiunta possibilità di impostare potenza e country region radio WiFi<br/>"..
+		"Aggiunta funzione di riavvio programmato<br/>"..
+		"Possibilità di impostare server DNS per tutte le interfaccie (IP Extras)<br/>"..
+		"Sistemato wizard e vari errori su TG788<br/>"..
+		"Possibilità di impostare vendorid per il tipo di connessione wan DHCP (necessità Fastweb)<br/>"..
+		"Molti altri miglioramenti e bugfix minori<br/>", basic)
+	html[#html + 1] = ui_helper.createLabel("9.2", "Rebase su nuovi firmware 2.1.0 (Kernel linux aggiornato a 4.1.38)<br/>"..
+		"Vari rework agli script per una esecuzione più efficente<br/>"..
+		"Vari fix ai bug presenti nelle versioni precedenti<br/>"..
+		"E' ora possibile dare priorità ad un dispositivo specifico rispetto a tutta la rete (Tab Gestione Dispositivi)<br/>"..
+		"Aggiunte nuove funzioni di aggiornamento e possibilità di selezionare l'ISP manualmente<br/>"..
 		"Altri miglioramenti che sinceramente non ricordo", basic)
 	html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_2.0.1_001 )" .. '</legend>'
-    html[#html + 1] = ui_helper.createLabel("9.1","Aggiunto grafico utilizzo CPU e Memoria<br>" ..
-        "Aggiunta opzione per ripristinare configurazioni senza perdere GUI<br>" ..
-        "Stato telefonia in visualizzazione statistiche ora mostra errori di registrazione<br>" ..
-        "Stato telefonia mostra il numero collegato durante una chiamata<br>" ..
-        "Riorganizzata modal Servizi WAN<br>" , basic)
-	html[#html + 1] = ui_helper.createLabel("9.0","Riorganizzata disposizione card<br>" ..
-		"Aggiunte ulteriori impostazioni di maschera versione<br>" ..
-		"Aggiunti vari driver xDSL<br>" ..
-		"Introdotto salvataggio delle conf dopo upgrade del firmware<br>" ..
-		"Introdotto ripristino di emergenza automatico in caso di rilevazione flash piena<br>" ..
-		"Forzata abilitazione porta console<br>" ..
-		"Aggiunto supporto a modem DGA4131 e TG789VAC XTREAM 35B<br>" ..
-		"Migliorato check aggiornamenti<br>" ..
-		"Rebase su firmware 2.0.1_001<br>" ..
-		"Fixato aggiornamento remoto da telegestione<br>" ..
-		"Migliorato sistema di aggiornamento<br>" ..
-		"Aggiornate traduzioni/stringhe inglesi italiane e tedesche<br>" ..
-		"Vari fix e miglioramenti<br>" , basic)
+    html[#html + 1] = ui_helper.createLabel("9.1","Aggiunto grafico utilizzo CPU e Memoria<br/>" ..
+        "Aggiunta opzione per ripristinare configurazioni senza perdere GUI<br/>" ..
+        "Stato telefonia in visualizzazione statistiche ora mostra errori di registrazione<br/>" ..
+        "Stato telefonia mostra il numero collegato durante una chiamata<br/>" ..
+        "Riorganizzata modal Servizi WAN<br/>" , basic)
+	html[#html + 1] = ui_helper.createLabel("9.0","Riorganizzata disposizione card<br/>" ..
+		"Aggiunte ulteriori impostazioni di maschera versione<br/>" ..
+		"Aggiunti vari driver xDSL<br/>" ..
+		"Introdotto salvataggio delle conf dopo upgrade del firmware<br/>" ..
+		"Introdotto ripristino di emergenza automatico in caso di rilevazione flash piena<br/>" ..
+		"Forzata abilitazione porta console<br/>" ..
+		"Aggiunto supporto a modem DGA4131 e TG789VAC XTREAM 35B<br/>" ..
+		"Migliorato check aggiornamenti<br/>" ..
+		"Rebase su firmware 2.0.1_001<br/>" ..
+		"Fixato aggiornamento remoto da telegestione<br/>" ..
+		"Migliorato sistema di aggiornamento<br/>" ..
+		"Aggiornate traduzioni/stringhe inglesi italiane e tedesche<br/>" ..
+		"Vari fix e miglioramenti<br/>" , basic)
 	html[#html + 1] = '<legend>' .. T"Mainline 17.3 Cyan ( AGTEF_1.1.1_002 )" .. '</legend>'
-	html[#html + 1] = ui_helper.createLabel("8.11", "Migliorate traduzioni<br>" ..
-		"Miglioramenti modalità bridge e modalità connessione<br>" ..
-		"Fixato visualizzazione UPnP su TG789<br>" ..
-		"Aggiunta possibilità di usare cups come gestore stampante<br>" ..
-		"Aggiunto applicazione aMule su TG789<br>" , basic)
-	html[#html + 1] = ui_helper.createLabel("8.10", "Aggiunte e fix per la gestione di ECO LED<br>" ..
-		"Miglioramenti Trauduzioni<br>" ..
-		"Miglioramenti di compatibilita' con l'interfaccia Telstra<br>" ..
-		"Fix problemi vari con la configurazione account SIP<br>" ..
-		"Aggiunta visualizzazione profilo VDSL<br>" ..
-		"Migliorato script aggiornamento GUI<br>" ..
+	html[#html + 1] = ui_helper.createLabel("8.11", "Migliorate traduzioni<br/>" ..
+		"Miglioramenti modalità bridge e modalità connessione<br/>" ..
+		"Fixato visualizzazione UPnP su TG789<br/>" ..
+		"Aggiunta possibilità di usare cups come gestore stampante<br/>" ..
+		"Aggiunto applicazione aMule su TG789<br/>" , basic)
+	html[#html + 1] = ui_helper.createLabel("8.10", "Aggiunte e fix per la gestione di ECO LED<br/>" ..
+		"Miglioramenti Trauduzioni<br/>" ..
+		"Miglioramenti di compatibilita' con l'interfaccia Telstra<br/>" ..
+		"Fix problemi vari con la configurazione account SIP<br/>" ..
+		"Aggiunta visualizzazione profilo VDSL<br/>" ..
+		"Migliorato script aggiornamento GUI<br/>" ..
 		"...e tanti altri miglioramenti e bugfix" , basic)
-	html[#html + 1] = ui_helper.createLabel("8.8", "Reworkata pagina iniziale gateway con caricamento dinamico ed introduzione della pagina statistiche.<br>" ..
-			"Nuova skin dark red.<br> Introdotta possibilità di settare WifiTod per i wifi separatamente e per i wifi guest.<br> Varie migliorie ai temi per desktop" ..
-			" e mobile.<br> Aggiunta Telstra gui alle applicazioni.<br> Fixato support dei pacchetti per firmware 1.2.0. Vari fix e miglioramenti all'interfaccia." , basic)
+	html[#html + 1] = ui_helper.createLabel("8.8", "Reworkata pagina iniziale gateway con caricamento dinamico ed introduzione della pagina statistiche.<br/>" ..
+			"Nuova skin dark red.<br/> Introdotta possibilità di settare WifiTod per i wifi separatamente e per i wifi guest.<br/> Varie migliorie ai temi per desktop" ..
+			" e mobile.<br/> Aggiunta Telstra gui alle applicazioni.<br/> Fixato support dei pacchetti per firmware 1.2.0. Vari fix e miglioramenti all'interfaccia." , basic)
 	html[#html + 1] = ui_helper.createLabel("8.7", "Fix download driver xdsl, fix assistance, ora vengono mostrate le password dei 3 profili disponibili." ..
 			"WIP supporto grafici per ADSL. Aggiunta tab per settare DosProtect", basic)
 	html[#html + 1] = ui_helper.createLabel("8.6", "Rework icone, aggiornata libreria fontawesome, fix e migliorie varie," .. 
@@ -218,7 +226,7 @@ ngx.print('\
 	html[#html + 1] = ui_helper.createLabel("2.1", "Fix bug bypass password", basic)
 	html[#html + 1] = ui_helper.createLabel("2.0", "Merge WebUi firmware beta telecom", basic)
 	html[#html + 1] = '<legend>' .. T"Mainline 16.3 Aqua" .. '</legend>' 
-	html[#html + 1] = ui_helper.createLabel("1.12", "Aggiungi bottoni mobile e cwmp", basic)
+	html[#html + 1] = ui_helper.createLabel("1.12", "Aggiungi bottoni mobile e CWMP", basic)
 	html[#html + 1] = ui_helper.createLabel("1.11", "Aggiunge funzioni eco nella tab Gateway", basic)
 	html[#html + 1] = ui_helper.createLabel("1.10", "FIX IPV6 e aggiunto changelog", basic)
 	html[#html + 1] = ui_helper.createLabel("1.9", "Aggiunte funzioni Risparmio Energetico Configurabili (/etc/config/power)", basic)

@@ -29,7 +29,7 @@ local function gen_dummy_card(modalPath)
 	dch[#dch+1] =		  '<p id="Load_tab">Loading...</p>'
 	dch[#dch+1] =		'</div>'
 	dch[#dch+1] =	  '</div>'
-	dch[#dch+1] =	  '<div class="content card_bg" data-bg-text="&#xf021">'
+	dch[#dch+1] =	  '<div class="content card_bg" data-bg-text="&#xf021;">'
   	dch[#dch+1] =	  	'<div class="divtable">'
     dch[#dch+1] =	  		'<div class="spinner3"><div class="rect1"></div><div class="rect2"></div><div class="rect3"></div><div class="rect4"></div><div class="rect5"></div></div>'
   	dch[#dch+1] =	  	'</div>'

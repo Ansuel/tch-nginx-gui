@@ -8,7 +8,12 @@ var modgui = modgui || {};
 		tch.showProgress(waitMsg);
 		window.location.reload(true);
 	}
-	function postAction(action,logModal, onClose=standardCloseAction) {
+	function postAction(action,logModal, customCloseAction) {
+		var onClose = ( typeof customCloseAction === "function" ) && customCloseAction || function() {
+			tch.showProgress(waitMsg);
+			window.location.reload(true);
+		}
+
 		var target = $(".modal form").attr("action");
 		$.post(
 			target, {
@@ -71,13 +76,21 @@ var modgui = modgui || {};
 				})
 				.fail(function(data) {
 					connectionissue = 1;
-					if(data.status==200 && data.responseText.includes("sign-me-in")){
-						if(!$("#popUp").is(":visible"))
-							tch.showProgress(loginMsg);
-						window.location.href = "/";
+					switch (data.status) {
+						case 200:
+							if(data.responseText.indexOf("sign-me-in") !== -1 ) {
+								if(!$("#popUp").is(":visible"))
+									tch.showProgress(loginMsg);
+								window.location.href = "/";
+							}
+							break;
+						case 500:
+							window.location.href = "/error.lp?status="+data.status+"&err="+data.getResponseHeader("error-msg");
+							break;
+						default:
+							if(!$("#popUp").is(":visible"))
+								tch.showProgress(connectionLost + " " + data.statusText);
 					}
-					if(!$("#popUp").is(":visible"))
-						tch.showProgress(connectionLost + " " + data.statusText);
 				});
 		};
 

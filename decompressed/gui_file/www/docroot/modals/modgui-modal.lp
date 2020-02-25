@@ -120,7 +120,7 @@ local function upgradeguifile()
 
 	local rcv_ok, rcv_errno, rcv_errmsg = receive_file(dl, 'name="upgradefile"')
 
-	sendcmd("upgradegui")
+	sendcmd("upgradegui_terminate")
 end
 
 local function getSupportedModel()
@@ -217,7 +217,7 @@ if ngx.req.get_method() == "POST" then
 		return sendcmd("resetgui")
 	end
 	if action == "system_upgrade_gui" then
-		return sendcmd("upgradegui")
+		return sendcmd("upgradegui_terminate")
 	end
 	if action == "system_install_specificapp" then
 		proxy.set("uci.modgui.app.specific_app","1")
@@ -473,7 +473,7 @@ if content.specific_app ~= "" then
 
 		local device = getSupportedModel()
 
-		html[#html + 1] = ui_helper.createAlertBlock(T"If you don't have connection, specific app can be downloaded here ( https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/modular/upgrade-pack-specific"..device..".tar.bz2 ) and installed manually here.", info_box)
+		html[#html + 1] = ui_helper.createAlertBlock(format(T"If you don't have connection, specific app can be downloaded here ( https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/modular/upgrade-pack-specific%s.tar.bz2 ) and installed manually here.", device), info_box)
 		html[#html + 1] = '<div class="control-group">'
 		html[#html + 1] = format('<label class="control-label">%s</label>', T"Upload Specific App")
 		html[#html + 1] = '<div class="controls">'
@@ -604,7 +604,7 @@ html[#html + 1] = '<form class="form-horizontal" id="form-import-backup" method=
 html[#html + 1] = '<legend>'.. T"Advanced Restore & Backup" ..'</legend>'
 
 html[#html + 1] = ui_helper.createAlertBlock(T"This will use OpenWRT backup and restore function insteand of the Technicolor function.", info_box)
-html[#html + 1] = ui_helper.createButton(T"Backup Zip", T"Generate", "icon-exchange", gen_backup)
+html[#html + 1] = ui_helper.createButton(T"Backup ZIP", T"Generate", "icon-exchange", gen_backup)
 html[#html + 1] = '<div class="control-group">'
 html[#html + 1] = format('<label class="control-label">%s</label>', T"Upload Backup")
 html[#html + 1] = '<div class="controls">'
@@ -664,10 +664,11 @@ ngx.print('\
 	});\
   };\
 \
-  function resetreboot(msg, msg_dst, action, callbackfunc=wait_for_webserver_down) {\
+  function resetreboot(msg, msg_dst, action, customCallbackfunc) {\
 	msg.removeClass("hide");\
 	msg[0].scrollIntoView();\
 	msg_dst.replaceWith(msg);\
+	var callbackfunc = ( typeof customCallbackfunc === "function" ) && customCallbackfunc || wait_for_webserver_down;\
 	if(callbackfunc == wait_for_webserver_down) modgui.clearKoInterval();\
 	$.post(target,{action: action, CSRFtoken: $("meta[name=CSRFtoken]").attr("content")}, callbackfunc,"json");\
 	return false;\
@@ -697,7 +698,7 @@ ngx.print('\
   $("#btn-remove-root").on("click", function() { return genericButtonFunction(\
 		"');  ngx.print(T'Remove root'); ngx.print('",\
 		"');  ngx.print(T'Resetting...'); ngx.print('",\
-		"');  ngx.print(T"Are you sure you want to remove root from this modem? </br><strong> This could be permanent, so it\\'s not recommended.</strong>"); ngx.print('",\
+		"');  ngx.print(T"Are you sure you want to remove root from this modem? <br/><strong> This could be permanent, so it\\'s not recommended.</strong>"); ngx.print('",\
 		"#unrooting-msg",\
 		"#btn-remove-root",\
 		"system_remove_root"\
@@ -706,7 +707,7 @@ ngx.print('\
   $("#btn-remove-config").on("click", function() { return genericButtonFunction(\
 		"');  ngx.print(T'Reset config'); ngx.print('",\
 		"');  ngx.print(T'Resetting...'); ngx.print('",\
-		"');  ngx.print(T"Are you sure you want to reset config of this modem? </br><strong> This is permanent, save any config before this action.</strong>"); ngx.print('",\
+		"');  ngx.print(T"Are you sure you want to reset config of this modem? <br/><strong> This is permanent, save any config before this action.</strong>"); ngx.print('",\
 		"#config-resetting-msg",\
 		"#btn-remove-config",\
 		"system_reset_config"\
@@ -715,7 +716,7 @@ ngx.print('\
   $("#btn-reset-cwmp").on("click", function() { return genericButtonFunction(\
 		"');  ngx.print(T'Reset CWMP'); ngx.print('",\
 		"');  ngx.print(T'Resetting...'); ngx.print('",\
-		"');  ngx.print(T"Are you sure you want to reset CWMP db of this modem? </br><strong> This will force the first-time boot provisioning with ACS server that can fail on an already provisioned modem.</strong>"); ngx.print('",\
+		"');  ngx.print(T"Are you sure you want to reset CWMP db of this modem? <br/><strong> This will force the first-time boot provisioning with ACS server that can fail on an already provisioned modem.</strong>"); ngx.print('",\
 		"#btn-reset-cwmp",\
 		"#btn-reset-cwmp",\
 		"system_reset_cwmp",\

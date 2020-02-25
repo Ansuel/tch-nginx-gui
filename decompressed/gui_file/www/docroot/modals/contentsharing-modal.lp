@@ -256,7 +256,7 @@ local usb_disk_number = 0
 local usbpart_data = {}
 
 local function getProfileStatus()
-  local profileStatus = "Idle"
+  local profileStatus = T"Idle"
   local usbdev_data = proxy.get("sys.usb.")
   if not usbdev_data then
     return profileStatus
@@ -287,11 +287,11 @@ local function getProfileStatus()
     end
   end
   if profiling == "true" or idle == "true" and ready == "true" then
-    profileStatus = "Profiling"
+    profileStatus = T"Profiling"
   elseif idle == "true" and profiling == "false" then
-    profileStatus = "Idle"
+    profileStatus = T"Idle"
   elseif ready == "true" and profiling == "false" then
-    profileStatus = "Ready"
+    profileStatus = T"Ready"
   end
   return profileStatus
 end
@@ -484,7 +484,7 @@ convertReceivedData(content_info)
 				tinsert(html, ui_helper.createSwitch(T"DLNA enabled", "dlna_enabled", content["dlna_enabled"],attributes))
 				tinsert(html, ui_helper.createLabel(T"DLNA name: ", content["dlna_friendly_name"], advancedhide))
 				tinsert(html, ui_helper.createInputText(T"DLNA name: ", "dlna_friendly_name", content["dlna_friendly_name"], advanced, helpmsg["dlna_friendly_name"]))
-				tinsert(html, ui_helper.createLabel(T"Profiler status: ", T(getProfileStatus())))
+				tinsert(html, ui_helper.createLabel(T"Profiler status: ", getProfileStatus()))
 			end
                         if content_info.usb3_available == "1" then
 			        tinsert(html, ui_helper.createSwitch(T"USB 3.1 Enabled", "usb3_enabled", (content.usb3_enabled ~= "" and content.usb3_enabled or "1"), toggle))

@@ -44,11 +44,28 @@ extract_with_check() {
 }
 
 apply_right_opkg_repo() {
-  logger_command "Checking opkg feeds config"
+  logger_command "Checking opkg feeds..."
 	marketing_version="$(uci get -q version.@version[0].marketing_version)"
 
 	opkg_file="/etc/opkg.conf"
-
+	if [ "$1" ] && [ "$1" == "TG78" ]; then
+		if [ -z "$(  grep $opkg_file -e "FrancYescO/789vacv2_opkg/master" )" ]; then
+			cat << EOF >> $opkg_file
+src/gz base https://raw.githubusercontent.com/FrancYescO/789vacv2_opkg/master/base
+src/gz packages https://raw.githubusercontent.com/FrancYescO/789vacv2_opkg/master/packages
+src/gz luci https://raw.githubusercontent.com/FrancYescO/789vacv2_opkg/master/luci
+src/gz routing https://raw.githubusercontent.com/FrancYescO/789vacv2_opkg/master/routing
+src/gz telephony https://raw.githubusercontent.com/FrancYescO/789vacv2_opkg/master/telephony
+src/gz management https://raw.githubusercontent.com/FrancYescO/789vacv2_opkg/master/management
+EOF
+    fi
+  elif [ "$1" ] && [ "$1" == "Xtream" ]; then
+		if [ -z "$(  grep $opkg_file -e "FrancYescO/789vacv2_opkg/xtream35b" )" ]; then
+			cat << EOF >> $opkg_file
+src/gz base https://raw.githubusercontent.com/FrancYescO/789vacv2_opkg/xtream35b/packages
+EOF
+    fi
+  else
 	case $marketing_version in
 	"18.3"*)
 		if [ -n "$(  grep $opkg_file -e "brcm63xx-tch" )" ]; then
@@ -97,6 +114,7 @@ EOF
 		logger_command "No opkg file supported"
 		;;
 	esac
+	fi
 }
 
 ledfw_extract() {
@@ -223,6 +241,12 @@ kernel_ver="$(< /proc/version awk '{print $3}')"
 
 
 [ -z "${device_type##*DGA413*}" ] && apply_right_opkg_repo #Check opkg conf based on version
+if [ -z "${device_type##*TG788*}" ] && [ -z "${device_type##*TG789*}" ] && [ -n "${device_type##*Xtream*}" ]; then
+  apply_right_opkg_repo TG78
+fi
+if [ -z "${device_type##*TG789*}" ] && [ -z "${device_type##*Xtream*}" ]; then
+  apply_right_opkg_repo Xtream
+fi
 
 if [ ! "$(uci get -q modgui.app.specific_app)" ]; then
   uci set modgui.app.specific_app="0"
@@ -233,7 +257,7 @@ if [ -z "${device_type##*DGA413*}" ]; then
 elif [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG789*}" ] && [ -n "${device_type##*Xtream*}" ]; then
   install_specific TG789
 elif [ -z "${device_type##*TG789*}" ] && [ -z "${device_type##*Xtream*}" ]; then
-  install_specific TG800 #use this package as it contain only the right telnet binary for arm
+  install_specific TG789Xtream35B
 elif [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG799*}" ]; then
   install_specific TG789
 elif [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG800*}" ]; then

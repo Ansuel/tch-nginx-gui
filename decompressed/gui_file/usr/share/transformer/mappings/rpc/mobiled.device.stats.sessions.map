@@ -1,0 +1,81 @@
+local mobiled_device_network_stats_ = {
+	objectType = {
+		name = 'rpc.mobiled.device.@.stats.sessions.@.',
+		access = 'readOnly',
+		minEntries = 0,
+		maxEntries = math.huge,
+		parameters = {
+			session_id = {
+				access = "readOnly",
+				type = "unsignedInt"
+			},
+			name = {
+				access = "readOnly",
+				type = "string"
+			},
+			disconnected = {
+				access = "readOnly",
+				type = "unsignedInt"
+			},
+			deactivated = {
+				access = "readOnly",
+				type = "unsignedInt"
+			}
+		}
+	}
+}
+
+local conn = mapper("ubus").connect()
+if not conn then
+	return
+end
+
+local session_info_cache, stats_cache
+local helper = require("mobiled.scripthelpers")
+
+local function get_session_info_by_id(session_id)
+	if session_info_cache then
+		for _, session in pairs(session_info_cache.sessions) do
+			if session.session_id == session_id then
+				return session
+			end
+		end
+	end
+end
+
+function mobiled_device_network_stats_.getall(_, key)
+	local session_id = string.match(key, 'session(%d+)')
+	if stats_cache and stats_cache.sessions then
+		for _, session in pairs(stats_cache.sessions) do
+			if session.session_id == session_id then
+				local session_info = get_session_info_by_id(session.session_id)
+				if session_info then
+					session.name = session_info.name
+				end
+				return session
+			end
+		end
+	end
+	return {}
+end
+
+function mobiled_device_network_stats_.get(_, paramName, key)
+	return mobiled_device_network_stats_.getall(_, key)[paramName] or ""
+end
+
+function mobiled_device_network_stats_.entries(_, parentkey)
+	local dev_idx = tonumber(string.match(parentkey, '%d+'))
+
+	session_info_cache = helper.getUbusData(conn, "mobiled.network", "sessions", { dev_idx = dev_idx })
+
+	local entries = {}
+	stats_cache = helper.getUbusData(conn, "mobiled.device", "stats", { dev_idx = dev_idx })
+	if type(stats_cache.sessions) == "table" then
+		for _, session in pairs(stats_cache.sessions) do
+			table.insert(entries, { session.session_id, parentkey.. "_session" .. session.session_id })
+		end
+	end
+	return entries
+end
+
+register(mobiled_device_network_stats_)

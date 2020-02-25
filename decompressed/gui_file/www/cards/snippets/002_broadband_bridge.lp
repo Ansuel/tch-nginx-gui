@@ -15,15 +15,18 @@ local proxy = require("datamodel")
 local bmh = require("broadbandmode_helper")
 local tabdata = dyntab_helper.process(bmh)
 
-local wan_bridge = proxy.get("uci.network.interface.@wan.ifname")[1].value
+local wan_bridge = proxy.get("uci.network.interface.@wan.ifname")
 
-local wan_vlan_bridge = proxy.get("uci.network.device.@"..wan_bridge..".ifname")
-if wan_vlan_bridge and wan_vlan_bridge[1].value~= "" then
-	wan_bridge = wan_vlan_bridge[1].value
-end
+if wan_bridge then
+	wan_bridge = wan_bridge[1].value
+	local wan_vlan_bridge = proxy.get("uci.network.device.@"..wan_bridge..".ifname")
+	if wan_vlan_bridge and wan_vlan_bridge[1].value~= "" then
+		wan_bridge = wan_vlan_bridge[1].value
+	end
 
-if string.find(wan_bridge, "%.") then
-	wan_bridge = string.match(wan_bridge, "([^.]*).")
+	if string.find(wan_bridge, "%.") then
+		wan_bridge = string.match(wan_bridge, "([^.]*).")
+	end
 end
 
 -- Figure out interface state
@@ -42,14 +45,17 @@ local intf_light_map = {
 }
 
 local intf_state = "disabled"
-if proxy.get("sys.class.net.@"..wan_bridge..".operstate")[1].value == "up" then
-    if proxy.get("sys.class.net.@"..wan_bridge..".carrier")[1].value ~= "0" then
-        intf_state = "connected"
-    else
-        intf_state = "connecting"
-    end
-else
-	intf_state = "disconnected"
+if wan_bridge then
+	local operstate = proxy.get("sys.class.net.@"..wan_bridge..".operstate")
+	if operstate and operstate[1].value == "up" then
+	    if proxy.get("sys.class.net.@"..wan_bridge..".carrier")[1].value ~= "0" then
+	        intf_state = "connected"
+	    else
+	        intf_state = "connecting"
+	    end
+	else
+		intf_state = "disconnected"
+	end
 end
 
 -- xdsl data
@@ -82,16 +88,16 @@ end
 <div class="divtable">\
   ');
 	if tabdata.current.name == "bridge" then
-		ngx.print(format("<strong>%s</strong></br>",T"Bridge Mode Active"))
+		ngx.print(format("<strong>%s</strong><br/>",T"Bridge Mode Active"))
 	end
 	if tabdata.current.name == "voice" then
-		ngx.print(format("<strong>%s</strong></br>",T"Voice Mode Active"))
+		ngx.print(format("<strong>%s</strong><br/>",T"Voice Mode Active"))
 	end
       ngx.print(ui_helper.createSimpleLight(intf_light_map[intf_state], intf_state_map[intf_state], nil, "fas fa-at"),
       '<p class="subinfos">',
       "",
       '</p>')
-	if wan_bridge:match("tm") and xdsl_data["dsl_enable"] == "1" then
+	if wan_bridge and wan_bridge:match("tm") and xdsl_data["dsl_enable"] == "1" then
 		local iconUp = '<i class="icon-upload icon-small gray"></i> '
 		local iconDown = '<i class="icon-download icon-small gray"></i> '
 		

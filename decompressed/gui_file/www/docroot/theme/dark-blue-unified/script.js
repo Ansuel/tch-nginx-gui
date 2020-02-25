@@ -19,7 +19,9 @@ function ScrollCardRow(direction) {
 		}, 500, 'swing');
 	}
 	checkArrowDirection();
-	AOS.refresh();
+	if ( gui_var.gui_animation == "1" ) {
+		AOS.refresh();
+	}
 }
 var ScrollInterval;
 
@@ -97,11 +99,15 @@ $(document).ready(function() {
 	$(document).on('mouseover', '#cardrow .span3 .smallcard', function() {
 		var div = $(this);
 		ScrollInterval = setInterval(checkSCroll(div), 500);
-		AOS.refresh();
+		if ( gui_var.gui_animation == "1" ) {
+			AOS.refresh();
+		}
 	});
 	if (window.matchMedia("(max-width: 50rem)").matches) {
 		$("#cardrow").on("scroll", function() {
-			AOS.refresh();
+			if ( gui_var.gui_animation == "1" ) {
+				AOS.refresh();
+			}
 		})
 	}
 	$(window).on('shown.bs.modal', function() {

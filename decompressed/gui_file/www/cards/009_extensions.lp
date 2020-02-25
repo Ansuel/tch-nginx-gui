@@ -41,6 +41,9 @@ if not (prod_friendly_name[1].value:match("TG789") and prod_friendly_name[1].val
 			end
 		end
 	end
+else
+	mapParams.transmission_webui = "uci.modgui.app.transmission_webui"
+	mapParams.aria2_webui = "uci.modgui.app.aria2_webui"
 end
 
 content_helper.getExactContent(mapParams)
@@ -85,7 +88,7 @@ end
 if extension_supported == 0 then
 	html[#html + 1] = '<span class="simple-desc">'
 	html[#html + 1] =	"<strong>"
-	html[#html + 1] =		"No Extensions are supported on this device<br>"
+	html[#html + 1] =		"No Extensions are supported on this device<br/>"
 	html[#html + 1] =	"</strong>"
 	html[#html + 1] = "</span>"
 end

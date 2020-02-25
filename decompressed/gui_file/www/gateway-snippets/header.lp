@@ -164,11 +164,11 @@ ngx.print('\
                 html[#html + 1] = T"Profile Settings"
                 html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
             end
-        html[#html + 1] = [[ <li><a tabindex="-1" href="https://www.ilpuntotecnicoeadsl.com/forum/index.php/topic,77325.0.html" target="_blank"> ]]
+        html[#html + 1] = [[ <li><a tabindex="-1" href="https://www.ilpuntotecnico.com/forum/index.php/topic,81461.0.html" target="_blank"> ]]
         html[#html + 1] = T"Support Forum"
         html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
         html[#html + 1] = [[ <li><a tabindex="-1" href="https://github.com/Ansuel/tch-nginx-gui" target="_blank"> ]]
-        html[#html + 1] = T"Github GUI"
+        html[#html + 1] = T"GitHub GUI"
         html[#html + 1] = [[ </a></li><li class="divider"></li> ]]
       if not ( session:getusername() == "guest" ) then
         if cui.luci_webui == "1" then
@@ -267,7 +267,7 @@ ngx.print('\
 		session:store("password_reminder_shown", true)
 	end
     html[#html + 1] = '<a href="#footer" id="scroll-down" class="scroll-down" address="true"></a>'
-    html[#html + 1] = '<a href="#headertab" id="scroll-up"class="scroll-up hide" address="true"></a>'
+    html[#html + 1] = '<a href="#headertab" id="scroll-up" class="scroll-up hide" address="true"></a>'
 ngx.print(html)
 ngx.print('\
 </div>\
@@ -283,7 +283,7 @@ ngx.print('\
 	pageselector_othertext : "'); ngx.print(pageselector.othertext); ngx.print ('",\
 	autoupgradeview : "'); ngx.print(autoupgrade_view or "none"); ngx.print ('",\
 	gui_outdated : "'); ngx.print(T"GUI is outdated"); ngx.print('",\
-	gui_updated : "'); ngx.print(T"GUI is updated"); ngx.print('",\
+	gui_updated : "'); ngx.print(T"GUI is updated"); ngx.print('"\
   };\
 \
 </script>\

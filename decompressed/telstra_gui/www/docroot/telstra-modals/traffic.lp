@@ -227,19 +227,19 @@ local attributes = {
 	html[#html+1] =         '<form class="form-horizontal" >'
                               
 	html[#html+1] = 		  "<legend>" .. T"Internet Traffic" .. "</legend>"
-	html[#html+1] = 		  ui_helper.createLabel(T"Total Mixed (in MB)", wantotal , attributes)
-	html[#html+1] = 		  ui_helper.createLabel(T"Total Send (in MB)", wantx, attributes)
-	html[#html+1] = 		  ui_helper.createLabel(T"Total Receive (in MB)", wanrx, attributes)
+	html[#html+1] = 		  ui_helper.createLabel(T"Total Mixed (MB)", wantotal , attributes)
+	html[#html+1] = 		  ui_helper.createLabel(T"Total Send (MB)", wantx, attributes)
+	html[#html+1] = 		  ui_helper.createLabel(T"Total Receive (MB)", wanrx, attributes)
 					  
 	html[#html+1] = 		  "<legend>" .. T"Ethernet Network Traffic" .. "</legend>"
-	html[#html+1] = 		  ui_helper.createLabel(T"Total Mixed (in MB)", lantotal , attributes)
-	html[#html+1] = 		  ui_helper.createLabel(T"Total Send (in MB)", lantx, attributes)
-	html[#html+1] = 		  ui_helper.createLabel(T"Total Receive (in MB)", lanrx, attributes)
+	html[#html+1] = 		  ui_helper.createLabel(T"Total Mixed (MB)", lantotal , attributes)
+	html[#html+1] = 		  ui_helper.createLabel(T"Total Send (MB)", lantx, attributes)
+	html[#html+1] = 		  ui_helper.createLabel(T"Total Receive (MB)", lanrx, attributes)
 					  
 	html[#html+1] = 		  "<legend>" .. T"Wi-Fi Network Traffic" .. "</legend>"
-	html[#html+1] = 		  ui_helper.createLabel(T"Total Mixed (in MB)",  wifitotal , attributes)
-	html[#html+1] = 		  ui_helper.createLabel(T"Total Send (in MB)", wifitx, attributes)
-	html[#html+1] = 		  ui_helper.createLabel(T"Total Receive (in MB)", wifirx, attributes)
+	html[#html+1] = 		  ui_helper.createLabel(T"Total Mixed (MB)",  wifitotal , attributes)
+	html[#html+1] = 		  ui_helper.createLabel(T"Total Send (MB)", wifitx, attributes)
+	html[#html+1] = 		  ui_helper.createLabel(T"Total Receive (MB)", wifirx, attributes)
                             
 	html[#html+1] =         '</form>'
 	html[#html+1] =       '</fieldset>'

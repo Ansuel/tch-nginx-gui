@@ -21,26 +21,14 @@ msgstr " von "
 msgid "<h4>Router Installation is Complete</h4>"
 msgstr "<h4>Die Router-Einrichtung is abgeschlossen</h4>"
 
-msgid "A <b>WiFi 2.4GHz</b> Security Key is already set-up with your Router, however you can change that key here if desired. You can also change the security type below. To connect to the Router via WiFi you will need to enter the Security Key into your device."
-msgstr "Ein <b>WiFi 2.4GHz</b> Sicherheitsschlüssel ist bereit in Ihrem Router aufgesetzt. Sie können diesen hier auch verändern. Sie können auch den Verschlüsselungstyp wechseln. Um sich mit dem Router über WLAN zu verbinden, benötigen Sie den Sicherheitsschlüssel."
-
-msgid "A <b>WiFi 5GHz</b> Security Key is already set-up with your Router, however you can change that key here if desired. You can also change the security type below. To connect to the Router via WiFi you will need to enter the Security Key into your device."
-msgstr "Ein <b>WiFi 5GHz</b> Sicherheitsschlüssel ist bereit in Ihrem Router aufgesetzt. Sie können diesen hier auch verändern. Sie können auch den Verschlüsselungstyp wechseln. Um sich mit dem Router über WLAN zu verbinden, benötigen Sie den Sicherheitsschlüssel."
-
 msgid "Desired Password:"
 msgstr "Gewünschtes Kennwort:"
 
 msgid "Desired Username:"
 msgstr "Gewünschter Benutzername:"
 
-msgid "Disabled"
-msgstr "Deaktiviert"
-
 msgid "Dynamic IP Address"
 msgstr "Dynamische IP-Adresse"
-
-msgid "Enabled"
-msgstr "Aktiviert"
 
 msgid "I don't have VoIP"
 msgstr "Ich habe kein VoIP"
@@ -105,12 +93,6 @@ msgstr "Statische IP-Adresse"
 msgid "Static IP Address:"
 msgstr "Statische IP-Adresse:"
 
-msgid "Static Primary DNS: "
-msgstr "Primärer statischer DNS: "
-
-msgid "Static Secondary DNS: "
-msgstr "Sekundärer statischer DNS: "
-
 msgid "Static Subnet Mask:"
 msgstr "Statische Subnetzmaske:"
 
@@ -132,23 +114,14 @@ msgstr "VLAN ID:"
 msgid "VPI Number:"
 msgstr "VPI Nummer:"
 
-msgid "VoIP (Netphone) is an optional phone service that runs over the internet. If you have purchased this service, enter your VoIP settings here. You'll find your settings in your VoIP activation email."
-msgstr "VoIP ist ein optionaler Telefoniedienst, der über das Internetläuft. Wenn Sie diesen Dienst gebucht haben, geben Sie hier Ihre VoIP Angaben sein. Diese finden sich in der VoIP Aktivierungs-Mail."
-
 msgid "VoIP Domain Name:"
 msgstr "VoIP Domain Name:"
 
 msgid "VoIP Password:"
 msgstr "VoIP Kennwort:"
 
-msgid "VoIP Password: "
-msgstr "VoIP Kennwort: "
-
 msgid "VoIP Phone number:"
 msgstr "VoIP Telefonnummer:"
-
-msgid "VoIP Phone number: "
-msgstr "VoIP Telefonnummer: "
 
 msgid "VoIP Proxy Port:"
 msgstr "VoIP Proxy Port:"
@@ -162,14 +135,8 @@ msgstr "VoIP Realm:"
 msgid "VoIP Registar:"
 msgstr "VoIP Registar:"
 
-msgid "VoIP Setup"
-msgstr "VoIP-Einrichtung"
-
 msgid "VoIP Username:"
 msgstr "VoIP Benutzername::"
-
-msgid "VoIP is an optional phone service that runs over the internet. If you have purchased this service, enter your VoIP settings here. You'll find your settings in your VoIP activation email."
-msgstr "VoIP ist ein optionaler Telefondienst, der über das Internet läuft. Wenn Sie diesen Service gekauft haben, geben Sie hier Ihre VoIP-Einstellungen ein. Ihre Einstellungen finden Sie in Ihrer VoIP-Aktivierungs-Mail."
 
 msgid "WAN Interfaces"
 msgstr "WAN Schnittstellen"
@@ -186,38 +153,20 @@ msgstr "Wansensing eingeschaltet"
 msgid "Your modem already has a unique WiFi network set up by default. You can change the broadcast name here if desired, or turn off WiFi completely. You can also hide your WiFi network name from other devices by turning off SSID broadcast."
 msgstr "Ihr Modem hat bereits ab Werk eine eigene WLAN-Einrichtung. Sie können den sichtbaren Namen hier ändern oder das WLAN ganz abschalten. Sie können den WLAN-Namen auch verbergen, indem Sie den SSID-Broadcast abschalten."
 
-msgid "WiFi Setup (2.4GHz)"
-msgstr "WiFi Einstellungen (2.4 GHz)"
-
-msgid "WiFi Setup (5GHz)"
-msgstr "WiFi Einstellungen (5 GHz)"
-
 msgid "PPP over Ethernet"
 msgstr "PPPoE (PPP über Ethernet)"
 
 msgid "PPP over ATM"
 msgstr "PPPoA (PPP über ATM)"
 
-msgid "Wireless 2.4GHz (WiFi):"
-msgstr "Drahtlos 2.4 GHz (WiFi)"
-
-msgid "Wireless 5GHz (WiFi):"
-msgstr "Drahtlos 5Ghz (WiFi)"
-
 msgid "Username: "
 msgstr "Benutzername: "
-
-msgid "Wireless 2.4GHz (WiFi): "
-msgstr "Drahtlos 2.4 GHz (WiFi): "
 
 msgid "VLAN ID"
 msgstr "VLAN ID"
 
 msgid "Step 6 of 8"
 msgstr "Schritt 6 von 8"
-
-msgid "Wireless 5GHz (WiFi): "
-msgstr "Drahtlos 5GHz (WiFi): "
 
 msgid "None"
 msgstr "Kein"
@@ -274,4 +223,4 @@ msgid "Wireless 2.4 GHz (WiFi): "
 msgstr "Drahtlos 2.4 Ghz (WiFi): "
 
 msgid "Some parameters failed validation"
-msgstr ""
+msgstr "Einige Parameter konnten nicht validiert werden"

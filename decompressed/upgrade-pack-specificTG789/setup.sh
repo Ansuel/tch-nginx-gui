@@ -30,7 +30,10 @@ for file in /tmp/upgrade-pack-specificTG789; do
 	cp $file $orig_file
 	rm $file
 	RESTART_SERVICE=1
-	
+
+  #needed to fix "can't execute 'openssl'" on opkg update from https feed
+	opkg install /tmp/openssl-util_1.0.2g-1_brcm63xx-tch.ipk
+	rm /tmp/openssl-util_1.0.2g-1_brcm63xx-tch.ipk
 done
 
 [ -d $MD5_CHECK_DIR ] && rm -r $MD5_CHECK_DIR
@@ -44,4 +47,8 @@ fi
 
 if [ -f /bin/busybox_telnet ] && [ ! -f /usr/sbin/telnetd ]; then
   ln -s /bin/busybox_telnet /usr/sbin/telnetd
+fi
+
+if [ ! -f /etc/init.d/telnet ]; then
+  ln -s /etc/init.d/telnetd /etc/init.d/telnet
 fi

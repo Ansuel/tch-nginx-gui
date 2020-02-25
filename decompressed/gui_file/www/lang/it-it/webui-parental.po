@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: webui-parental\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-06-21 15:33+0200\n"
-"PO-Revision-Date: 2019-03-02 15:19+0100\n"
+"PO-Revision-Date: 2019-09-17 13:56+0100\n"
 "Last-Translator: bovirus <bovirus@gmail.com>\n"
 "Language-Team: none\n"
 "Language: it\n"
@@ -44,9 +44,6 @@ msgstr "Abilitato"
 msgid "Exclude Mode"
 msgstr "Escludi modalità"
 
-msgid "Invalid device, entry must be either a valid IP or \"All\""
-msgstr "Dispositivo non valido.<br/>L´accesso deve essere o un IP valido o 'Tutti'"
-
 msgid "Keyword Filter"
 msgstr "Filtro parola chiave"
 
@@ -80,8 +77,11 @@ msgstr "personale"
 msgid "<p>%s GUI Version "
 msgstr "<p>Versione GUI %s "
 
-msgid "<p>Coded & Expanded by <font style=\"color:#0088cc;\">Ansuel</font> and <a href=\"https://github.com/Ansuel/tch-nginx-gui/graphs/contributors\">these GitHub users.</a><br>Unlock Utility by <font style=\"color:#0088cc;\">ADeltaX</font>"
-msgstr "<p>Codice di <font style=\"color:#0088cc;\">Ansuel</font> e <a href=\"https://github.com/Ansuel/tch-nginx-gui/graphs/contributors\">di questi utenti GitHub.</a><br>Utility di sblocco di <font style=\"color:#0088cc;\">ADeltaX</font>"
+msgid "<p>Coded & Expanded by <font style=\"color:#0088cc;\">Ansuel</font> and <a href=\"https://github.com/Ansuel/tch-nginx-gui/graphs/contributors\">these GitHub users.</a><br/>Unlock Utility by <font style=\"color:#0088cc;\">ADeltaX</font>"
+msgstr "<p>Codice di <font style=\"color:#0088cc;\">Ansuel</font> e <a href=\"https://github.com/Ansuel/tch-nginx-gui/graphs/contributors\">di questi utenti GitHub.</a><br/>Utility di sblocco di <font style=\"color:#0088cc;\">ADeltaX</font>"
 
 msgid "Parental Blocked"
 msgstr "Bloccato da controllo genitori"
+
+msgid "MAC address"
+msgstr "Indirizzo MAC"

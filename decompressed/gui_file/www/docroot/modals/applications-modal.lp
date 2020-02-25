@@ -81,6 +81,9 @@ if not (prod_friendly_name[1].value:match("TG789") and prod_friendly_name[1].val
 			end
 		end
 	end
+else
+	mapParams.transmission_webui = "uci.modgui.app.transmission_webui"
+	mapParams.aria2_webui = "uci.modgui.app.aria2_webui"
 end
 content_helper.getExactContent(mapParams)
 
@@ -135,19 +138,19 @@ if StateParams["luci_webui"] ~= nil then
 	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. T"LuCI GUI" .. '</legend>'
-	html[#html+1] = ui_helper.createAlertBlock(T"This will install uhttpd and luci", info_box)
+	html[#html+1] = ui_helper.createAlertBlock(T"This will install uHTTPd and LuCI", info_box)
 	html[#html+1] = T"State: "
-	html[#html+1] = "<strong>" .. T"LuCI is " .. StateParams["luci_webui"] .. T" installed" .. "</strong></br>"
+	html[#html+1] = "<strong>" .. T"LuCI is " .. StateParams["luci_webui"] .. T" installed" .. "</strong><br/>"
 	local luci_link = format("http://%s:9080",mapParams.local_ip_modem)
 	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. luci_link .. '">' .. luci_link .. "</a>"
-	html[#html+1] = "</br>"
-	html[#html+1] = "</br>"
+	html[#html+1] = "<br/>"
+	html[#html+1] = "<br/>"
 	if mapParams["luci_webui"] and mapParams["luci_webui"] == "1" then
 		html[#html+1] = ui_helper.createSimpleButton(T"Remove".." LuCI", "fa fa-times-circle", btn_table.luci.remove)
 	else
 		html[#html+1] = ui_helper.createSimpleButton(T"Install".." LuCI", "fa fa-download", btn_table.luci.install)
 	end
-	html[#html+1] = "</br>"
+	html[#html+1] = "<br/>"
 	html[#html+1] = "</fieldset>"
 	html[#html+1] = "</div>"
 end
@@ -158,10 +161,10 @@ if StateParams["amule_webui"] ~= nil then
 	html[#html+1] = '<legend>' .. T"aMule" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install aMule webui", info_box)
 	html[#html+1] = T"State: "
-	html[#html+1] = "<strong>" .. T"aMule is " .. StateParams["amule_webui"] .. T" installed" .. "</strong></br>"
+	html[#html+1] = "<strong>" .. T"aMule is " .. StateParams["amule_webui"] .. T" installed" .. "</strong><br/>"
 	local amule_direct_link = format("http://%s:4711/",mapParams.local_ip_modem)
 	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. amule_direct_link .. '">' .. amule_direct_link .. "</a>"
-	html[#html+1] = "</br>"
+	html[#html+1] = "<br/>"
 	if mapParams["amule_webui"] and mapParams["amule_webui"] == "1" then
         if prod_friendly_name[1].value:match("TG799") or prod_friendly_name[1].value:match("TG789") then
             html[#html+1] = ui_helper.createSimpleButton(T"Start".." aMule", "fa fa-play", btn_table.amule.start)
@@ -181,11 +184,11 @@ if StateParams["aria2_webui"] ~= nil then
 	html[#html+1] = '<legend>' .. T"Aria2 GUI" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install aria2 and ariang webui", info_box)
 	html[#html+1] = T"State: "
-	html[#html+1] = "<strong>" .. T"Aria2 is " .. StateParams["aria2_webui"] .. T" installed" .. "</strong></br>"
+	html[#html+1] = "<strong>" .. T"Aria2 is " .. StateParams["aria2_webui"] .. T" installed" .. "</strong><br/>"
 	local aria_link =  '/aria'
 	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. aria_link .. '">' .. aria_link .."</a>"
-	html[#html+1] = "</br>"
-	html[#html+1] = "</br>"
+	html[#html+1] = "<br/>"
+	html[#html+1] = "<br/>"
 	if mapParams["aria2_webui"] and mapParams["aria2_webui"] == "1" then
         if prod_friendly_name[1].value:match("TG799") or prod_friendly_name[1].value:match("TG789") then
             html[#html+1] = ui_helper.createSimpleButton(T"Start".." Aria2", "fa fa-play", btn_table.aria2.start)
@@ -205,11 +208,11 @@ if StateParams["transmission_webui"] ~= nil then
 	html[#html+1] = '<legend>' .. T"Transmission GUI" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install transmission and transmission-webui", info_box)
 	html[#html+1] = T"State: "
-	html[#html+1] = "<strong>" .. T"Transmission is " .. StateParams["transmission_webui"] .. T" installed" .. "</strong></br>"
+	html[#html+1] = "<strong>" .. T"Transmission is " .. StateParams["transmission_webui"] .. T" installed" .. "</strong><br/>"
 	local transmission_direct_link = format("http://%s:9091/transmission",mapParams.local_ip_modem)
 	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. transmission_direct_link .. '">' .. transmission_direct_link .. "</a>"
-	html[#html+1] = "</br>"
-	html[#html+1] = "</br>"
+	html[#html+1] = "<br/>"
+	html[#html+1] = "<br/>"
 	if mapParams["transmission_webui"] and mapParams["transmission_webui"] == "1" then
         if prod_friendly_name[1].value:match("TG799") or prod_friendly_name[1].value:match("TG789") then
             html[#html+1] = ui_helper.createSimpleButton(T"Start".." Tansmission", "fa fa-play", btn_table.transmission.start)
@@ -234,11 +237,11 @@ if StateParams["blacklist_application"] ~= nil then
 	html[#html+1] = '<legend>' .. T"Blacklist App" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install the blacklist application", info_box)
 	html[#html+1] = T"State: "
-	html[#html+1] = "<strong>" .. T"The Blacklist app is " .. StateParams["blacklist_application"] .. T" installed" .. "</strong></br>"
+	html[#html+1] = "<strong>" .. T"The Blacklist app is " .. StateParams["blacklist_application"] .. T" installed" .. "</strong><br/>"
 	local blacklist_link = "http://blacklist.satellitar.it/"
 	html[#html+1] = T"Support site: " .. '<a  target="_blank" href="' .. blacklist_link .. '">' .. blacklist_link .."</a>"
-	html[#html+1] = "</br>"
-	html[#html+1] = "</br>"
+	html[#html+1] = "<br/>"
+	html[#html+1] = "<br/>"
 	local empty_blacklist_msg = ""
 	if mapParams["blacklist_application"] and mapParams["blacklist_application"] == "1" then
 		html[#html+1] = ui_helper.createSimpleButton(T"Remove".." Blacklist", "fa fa-times-circle", btn_table.blacklist.remove)
@@ -259,18 +262,18 @@ if StateParams["xupnp_application"] ~= nil then
 	html[#html+1] = '<legend>' .. T"XUPnP App" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install the XUPnP application", info_box)
 	html[#html+1] = T"State: "
-	html[#html+1] = "<strong>" .. T"The XUPnP app is " .. StateParams["xupnp_application"] .. T" installed" .. "</strong></br>"
+	html[#html+1] = "<strong>" .. T"The XUPnP app is " .. StateParams["xupnp_application"] .. T" installed" .. "</strong><br/>"
 	local xupnp_link = format("http://%s:4044/ui/",mapParams.local_ip_modem)
 	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. xupnp_link .. '">' .. xupnp_link .."</a>"
-	html[#html+1] = "</br>"
-	html[#html+1] = "</br>"
+	html[#html+1] = "<br/>"
+	html[#html+1] = "<br/>"
 	if mapParams["xupnp_application"] and mapParams["xupnp_application"] == "1" then
 		html[#html+1] = ui_helper.createSimpleButton(T"Remove".." XUPnP", "fa fa-times-circle", btn_table.xupnp.remove)
 	else
 		html[#html+1] = ui_helper.createSimpleButton(T"Install".." XUPnP", "fa fa-download", btn_table.xupnp.install)
 	end
 	html[#html+1] = "</fieldset>"
-	html[#html+1] = "</br>"
+	html[#html+1] = "<br/>"
 	html[#html+1] = "</div>"
 end
 
@@ -280,12 +283,12 @@ if StateParams["telstra_webui"] ~= nil then
 	html[#html+1] = '<legend>' .. T"Telstra GUI" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install Telstra webui", info_box)
 	html[#html+1] = T"State: "
-	html[#html+1] = "<strong>" .. T"Telstra GUI is " .. StateParams["telstra_webui"] .. T" installed" .. "</strong></br>"
+	html[#html+1] = "<strong>" .. T"Telstra GUI is " .. StateParams["telstra_webui"] .. T" installed" .. "</strong><br/>"
 	local telstra_gui = "/telstra-gui.lp"
 	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. telstra_gui .. '">' .. telstra_gui .."</a>"
-	html[#html+1] = "</br>"
+	html[#html+1] = "<br/>"
 	html[#html + 1] = T "Change the default page in system-extra to set this GUI as default"
-	html[#html+1] = "</br>"
+	html[#html+1] = "<br/>"
 	if mapParams["telstra_webui"] and mapParams["telstra_webui"] == "1" then
 		html[#html+1] = ui_helper.createSimpleButton(T"Remove" .. " " .. T"Telstra GUI", "fa fa-times-circle", btn_table.telstra.remove)
 	else

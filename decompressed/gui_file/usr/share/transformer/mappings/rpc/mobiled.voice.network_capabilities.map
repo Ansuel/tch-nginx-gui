@@ -1,0 +1,11 @@
+local mobiled_voice_network_capabilities_ = {
+    objectType = {
+        name = 'rpc.mobiled.device.@.voice.network_capabilities.',
+        access = 'readOnly',
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {}
+    }
+}
+
+register(mobiled_voice_network_capabilities_)

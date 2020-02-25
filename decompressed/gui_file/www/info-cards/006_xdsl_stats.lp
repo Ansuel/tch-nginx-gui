@@ -112,7 +112,7 @@ end
 	html[#html + 1] =   '<div class="controls">'
 	html[#html + 1] =     '<span id="Rate" class=" simple-desc span3">'
 	html[#html + 1] =		format('<i class="icon-download icon-small gray"></i> <span data-bind="text: dsl_linerate_down_max">%s</span>',content["dsl_linerate_down_max"])
-	html[#html + 1] =		'</br>'
+	html[#html + 1] =		'<br/>'
 	html[#html + 1] =		format('<i class="icon-upload icon-small gray"></i> <span data-bind="text: dsl_linerate_up_max">%s</span>', content["dsl_linerate_up_max"])
 	html[#html + 1] =	  '</span>'
 	html[#html + 1] =   '</div>'
@@ -123,7 +123,7 @@ end
 	html[#html + 1] =   '<div class="controls">'
 	html[#html + 1] =     '<span id="Rate" class=" simple-desc span3">'
 	html[#html + 1] =		format('<i class="icon-download icon-small gray"></i> <span data-bind="text: dsl_linerate_down">%s</span>',content["dsl_linerate_down"])
-	html[#html + 1] =		'</br>'
+	html[#html + 1] =		'<br/>'
 	html[#html + 1] =		format('<i class="icon-upload icon-small gray"></i> <span data-bind="text: dsl_linerate_up">%s</span>', content["dsl_linerate_up"])
 	html[#html + 1] =	  '</span>'
 	html[#html + 1] =   '</div>'
@@ -134,7 +134,7 @@ end
 	html[#html + 1] =   '<div class="controls">'
 	html[#html + 1] =     '<span id="Rate" class=" simple-desc span3">'
 	html[#html + 1] =		format('<i class="icon-download icon-small gray"></i> <span data-bind="text: dsl_margin_down">%s</span> dB',content["dsl_margin_down"])
-	html[#html + 1] =		'</br>'
+	html[#html + 1] =		'<br/>'
 	html[#html + 1] =		format('<i class="icon-upload icon-small gray"></i> <span data-bind="text: dsl_margin_up">%s</span> dB', content["dsl_margin_up"])
 	html[#html + 1] =	  '</span>'
 	html[#html + 1] =   '</div>'
@@ -145,7 +145,7 @@ end
 	html[#html + 1] =   '<div class="controls">'
 	html[#html + 1] =     '<span id="Rate" class=" simple-desc span3">'
 	html[#html + 1] =		format('<i class="icon-download icon-small gray"></i> <span data-bind="text: dsl_attenuation_down">%s</span> dB',content["dsl_attenuation_down"])
-	html[#html + 1] =		'</br>'
+	html[#html + 1] =		'<br/>'
 	html[#html + 1] =		format('<i class="icon-upload icon-small gray"></i> <span data-bind="text: dsl_attenuation_up">%s</span> dB', content["dsl_attenuation_up"])
 	html[#html + 1] =	  '</span>'
 	html[#html + 1] =   '</div>'
@@ -156,7 +156,7 @@ end
 	html[#html + 1] =   '<div class="controls">'
 	html[#html + 1] =     '<span id="Rate" class=" simple-desc span3">'
 	html[#html + 1] =		format('<i class="icon-download icon-small gray"></i> <span data-bind="text: dsl_power_down">%s</span> dBm',content["dsl_power_down"])
-	html[#html + 1] =		'</br>'
+	html[#html + 1] =		'<br/>'
 	html[#html + 1] =		format('<i class="icon-upload icon-small gray"></i> <span data-bind="text: dsl_power_up">%s</span> dBm', content["dsl_power_up"])
 	html[#html + 1] =	  '</span>'
 	html[#html + 1] =   '</div>'

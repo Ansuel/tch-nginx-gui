@@ -131,12 +131,13 @@ local mapParams = {
 ---
 --- FIELD VALUE INTEGRITY FUNCTIONS
 ---
+local gAV = post_helper.getAndValidation
 local nEIPV = post_helper.getAndValidation(post_helper.validateNonEmptyString,post_helper.advancedIPValidation)
 local gOV = post_helper.getOptionalValidation
 local mapValid = {
-    wanIpAddrParam    = nEIPV,
+    wanIpAddrParam    = gAV(nEIPV, post_helper.reservedIPValidation),
     wanNetmaskParam   = post_helper.validateIPv4Netmask,
-    wanGatewayParam   = nEIPV,
+    wanGatewayParam   = gAV(nEIPV, post_helper.reservedIPValidation),
     uci_wan_masq      = validateNat,
     uci_wan_mac = gOV(post_helper.validateStringIsMAC),
 }
@@ -269,7 +270,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
         html[#html+1] = ui_helper.createInputText(T"Subnet Mask", "wanNetmaskParam", content["wanNetmaskParam"], wanNetmaskClass, helpmsg["wanNetmaskParam"])
         html[#html+1] = ui_helper.createInputText(T"Gateway", "wanGatewayParam", content["wanGatewayParam"], wanGatewayClass, helpmsg["wanGatewayParam"])
         if dns_loopback ~= "" then
-			ajax_attr.span.id = "loopbackdns"
+	    ajax_attr.span.id = "loopbackdns"
             html[#html+1] = ui_helper.createLabel(T"DNS Servers", content_dns.loopbackdns,ajax_attr)
         end
 

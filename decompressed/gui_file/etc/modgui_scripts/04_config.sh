@@ -1,3 +1,5 @@
+#!/bin/sh
+
 . /etc/init.d/rootdevice
 
 check_webui_config() {
@@ -65,12 +67,6 @@ orig_config_gen() {
   fi
 }
 
-check_uci_gui_skin() {
-  if [ ! "$(uci get -q modgui.gui.gui_skin)" ]; then
-    uci set modgui.gui.gui_skin="green"
-  fi
-}
-
 remove_https_check_cwmpd() {
   uci set cwmpd.cwmpd_config.enforce_https='0'
   uci set cwmpd.cwmpd_config.ssl_verifypeer='0'
@@ -81,7 +77,7 @@ create_driver_setting() {
   if [ ! "$(uci get -q modgui.var.driver_version)" ]; then
     uci set modgui.var.driver_version="$(xdslctl --version 2>&1 >/dev/null | grep 'version -' | awk '{print $6}' | sed 's/\..*//')"
   else
-    if [ "$(uci get -q modgui.var.driver_version | grep -F .)" ]; then
+    if uci get -q modgui.var.driver_version | grep -qF . ; then
       uci set modgui.var.driver_version="$(xdslctl --version 2>&1 >/dev/null | grep 'version -' | awk '{print $6}' | sed 's/\..*//')"
     fi
   fi
@@ -172,7 +168,7 @@ create_gui_type() {
     else
       uci set modgui.app.blacklist_app="0"
     fi
-  elif [ "$(uci get -q modgui.app.blacklist_app)" == "1" ] &&
+  elif [ "$(uci get -q modgui.app.blacklist_app)" = "1" ] &&
     [ ! -f /www/docroot/modals/mmpbx-contacts-modal.lp.orig ] &&
     [ -f /usr/share/transformer/scripts/appInstallRemoveUtility.sh ]; then
     /usr/share/transformer/scripts/appInstallRemoveUtility.sh install blacklist
@@ -192,14 +188,10 @@ check_relay_dhcp() {
 
 suppress_excessive_logging() {
   #Lowers the log level of daemons to suppress excessive logging to /root/messages.log
-  if [ "$(uci get -q igmpproxy.globals.trace)" == "1" ]; then
+  if [ "$(uci get -q igmpproxy.globals.trace)" = "1" ]; then
     logger_command "Suppressing igmpproxy logs"
     uci set igmpproxy.globals.trace='0'
   fi
-
-  logger_command "Triggering mobiled restart"
-  /etc/init.d/mobiled restart #Restart this to actually disable it... (broken and shitt init.d)
-
   if [ "$(uci get -q mmpbx.global.trace_level)" != "3" ]; then
     logger_command "Suppressing wansensing logs"
     uci set wansensing.global.tracelevel='3' #we don't need that we are still connected to vdsl -.-
@@ -208,7 +200,7 @@ suppress_excessive_logging() {
     logger_command "Setting transformer log level to 2"
     uci set transformer.@main[0].log_level='2'
   fi
-  if [ ! "$(uci get -q system.@system[0].cronloglevel)" ] || [ "$(uci get -q system.@system[0].cronloglevel)" == '0' ]; then #resolve spamlog of trafficdata
+  if [ ! "$(uci get -q system.@system[0].cronloglevel)" ] || [ "$(uci get -q system.@system[0].cronloglevel)" = '0' ]; then #resolve spamlog of trafficdata
     logger_command "Setting cron log level to 5"
     uci set system.@system[0].cronloglevel="5"
     /etc/init.d/cron restart
@@ -218,7 +210,7 @@ suppress_excessive_logging() {
     uci set ledfw.syslog=syslog
     uci set ledfw.syslog.trace='0'
   fi
-  if [ "$(uci get -q mmpbx.global.trace_level)" == "2" ]; then
+  if [ "$(uci get -q mmpbx.global.trace_level)" = "2" ]; then
     logger_command "Suppressing mmpbx logs"
     uci set mmpbx.global.trace_level='0'
   fi
@@ -226,10 +218,10 @@ suppress_excessive_logging() {
 
 real_ver_entitied() {
   if [ -f /rom/etc/uci-defaults/tch_5000_versioncusto ] && [ -f /etc/config/versioncusto ]; then
-    local short_ver="$(grep </proc/banktable/activeversion -Eo '.*\..*\.[0-9]*-[0-9]*')"
-    local real_ver=$(grep </rom/etc/uci-defaults/tch_5000_versioncusto "$short_ver" | awk '{print $2}')
+    short_ver="$(grep </proc/banktable/activeversion -Eo '.*\..*\.[0-9]*-[0-9]*')"
+    real_ver=$(grep </rom/etc/uci-defaults/tch_5000_versioncusto "$short_ver" | awk '{print $2}')
     uci set versioncusto.override.fwversion_override_latest="$latest_version_on_TIM_cwmp"
-    if [ "$real_ver" == "" ]; then
+    if [ "$real_ver" = "" ]; then
       real_ver="Not Found"
     fi
     if [ ! "$(uci get -q versioncusto.override.fwversion_override_real)" ]; then
@@ -247,9 +239,9 @@ real_ver_entitied() {
       rm /overlay/.skip_version_spoof
     else
       if [ "$(uci get -q modgui.var.version_spoof_mode)" ]; then
-        if [ "$(uci get -q modgui.var.version_spoof_mode)" == "enabled" ]; then
+        if [ "$(uci get -q modgui.var.version_spoof_mode)" = "enabled" ]; then
           uci set versioncusto.override.fwversion_override="$latest_version_on_TIM_cwmp"
-        elif [ "$(uci get -q modgui.var.version_spoof_mode)" == "disabled" ]; then
+        elif [ "$(uci get -q modgui.var.version_spoof_mode)" = "disabled" ]; then
           uci set versioncusto.override.fwversion_override="$real_ver"
         fi
       else
@@ -304,18 +296,64 @@ dosprotect_inizialize() {
         mv /tmp/dosprotect_orig /etc/config/dosprotect
       fi
     fi
-    [ -f /tmp/dosprotect_orig ] && rm /tmp/dosprotect_orig
-    if [ -n "$(find /etc/rc.d/ -iname S*dosprotect)" ]; then
+    if [ -n "$(find /etc/rc.d/ -iname 'S*dosprotect')" ]; then
       logger_command "Enabling and starting DoSprotect service..."
       /etc/init.d/dosprotect enable
       /etc/init.d/dosprotect start
     fi
   fi
+  [ -f /tmp/dosprotect_orig ] && rm /tmp/dosprotect_orig
+}
+
+mobiled_lib_add() {
+  #needed for TG788, can break if already integrated in the firmware
+  if [ -f /rom/usr/lib/lua/mobiled/scripthelpers.lua ]; then #restore from rom to avoid taking the replaced from older GUI installs
+    if [ "$(md5sum /rom/usr/lib/lua/mobiled/scripthelpers.lua | cut -d' ' -f1)" != "$(md5sum /usr/lib/lua/mobiled/scripthelpers.lua | cut -d' ' -f1)" ]; then
+      logger_command "Restoring mobiled scripthelpers lib..."
+      cp /rom/usr/lib/lua/mobiled/scripthelpers.lua /usr/lib/lua/mobiled/scripthelpers.lua
+    fi
+    [ -f /tmp/scripthelpers.lua ] && rm /tmp/scripthelpers.lua
+  else
+    logger_command "Adding missing mobiled scripthelpers lib..."
+    mv /tmp/scripthelpers.lua /usr/lib/lua/mobiled/scripthelpers.lua
+  fi
+
+  if uci get -q version.@version[0].marketing_version | grep -q 16 #need to replace on old fw otherwise will ignore enabled status
+  then
+    logger_command "Replacing /etc/init.d/mobiled ..."
+    mv /tmp/mobiled /etc/init.d/mobiled
+    /etc/init.d/mobiled restart
+  else
+    #make sure we haven't replaced it some old GUI install, restore from rom if needed
+    if [ "$(md5sum /rom/etc/init.d/mobiled | cut -d' ' -f1)" != "$(md5sum /etc/init.d/mobiled | cut -d' ' -f1)" ]; then
+      logger_command "Restoring and restarting /etc/init.d/mobiled ..."
+      cp /rom/etc/init.d/mobiled /etc/init.d/mobiled
+      /etc/init.d/mobiled restart
+    fi
+    [ -f /tmp/mobiled ] && rm /tmp/mobiled
+  fi
+
+  #replacing default lte-doctor config if is configured as "no-logging" (found 1 time the logger word)
+  if [ ! -f /etc/config/ltedoctor ] || [ "$(grep -i -c logger < /etc/config/ltedoctor)" = "1" ]; then
+    if [ -f /tmp/ltedoctor ]; then
+      logger_command "Replacing ltedoctor config..."
+      mv /tmp/ltedoctor /etc/config/ltedoctor
+      /etc/init.d/lte-doctor-logger restart
+    fi
+  fi
+  [ -f /tmp/ltedoctor ] && rm /tmp/ltedoctor
+
+  major_system_version="$(uci get version.@version[0].marketing_version | sed 's#\.##')"
+  if [ "$major_system_version" -lt 173 ]; then
+    #Restore original lte-doctor related webui files
+    cp /rom/www/docroot/ajax/radioparameters.lua /www/docroot/ajax/radioparameters.lua
+    cp /rom/www/docroot/modals/lte-doctor.lp /www/docroot/modals/lte-doctor.lp
+  fi
 }
 
 disable_intercept() {
   if [ "$(uci get -q intercept.config.enabled)" ]; then
-    if [ "$(uci get -q intercept.config.enabled)" == "1" ]; then
+    if [ "$(uci get -q intercept.config.enabled)" = "1" ]; then
       uci set intercept.config.enabled='0'
       uci commit intercept
       /etc/init.d/intercept restart
@@ -359,7 +397,7 @@ cumulative_check_gui() {
     uci set modgui.gui.update_branch="stable"
     update_branch=""
     logger_command "Setting update branch to STABLE"
-  elif [ "$(uci get -q modgui.gui.update_branch)" == "stable" ]; then
+  elif [ "$(uci get -q modgui.gui.update_branch)" = "stable" ]; then
     update_branch=""
     logger_command "Update branch detected: STABLE"
   else
@@ -368,7 +406,7 @@ cumulative_check_gui() {
   fi
 
   #Remove deprecated .gz GUI file if low space device
-  overlay_space=$(df /overlay | sed -n 2p | awk {'{print $2}'})
+  overlay_space=$(df /overlay | sed -n 2p | awk \{'{print $2}'\})
   if [ "$overlay_space" -lt 33000 ]; then
     logger -s -t 'Root Script' "Detected low flash space device..."
     if [ -f /root/GUI.tar.gz ]; then
@@ -424,8 +462,8 @@ cumulative_check_gui() {
     gui_hash="0"
   fi
   
-  saved_gui_version=$(echo "$(uci get -q modgui.gui.gui_version)" | cut -d'-' -f1)
-  clean_version_gui=$(echo $version_gui | cut -d'-' -f1)
+  saved_gui_version=$(uci get -q modgui.gui.gui_version | cut -d'-' -f1)
+  clean_version_gui=$(echo "$version_gui" | cut -d'-' -f1)
 
   if [ "$saved_gui_version" != "$clean_version_gui" ]; then
     logger_command "Updating version saved to $version_gui"
@@ -468,11 +506,20 @@ cumulative_check_gui() {
   if [ ! "$(uci get -q modgui.gui.gui_animation)" ]; then
     uci set modgui.gui.gui_animation="1"
   fi
+  if [ -z "$(uci get -q modgui.var.isp_autodetect)" ]; then
+  	uci set modgui.var.isp_autodetect="1"
+  fi
+  if [ -z "$(uci get -q modgui.var.isp_autodetect)" ]; then
+  	uci set modgui.var.isp="Other"
+  fi
+  if [ -z "$(uci get -q modgui.gui.gui_skin)" ]; then
+    uci set modgui.gui.gui_skin="green"
+  fi
 }
 
 fcctlsettings_daemon() {
   if [ -f /etc/config/fcctlsettings ]; then
-    if [ "$(grep </etc/config/fcctlsettings 'mcast-learn')" ]; then
+    if grep -q </etc/config/fcctlsettings 'mcast-learn' ; then
       rm /etc/config/fcctlsettings #NEVER EVER WRITE - IN CONFIG FILE...
     fi
   fi
@@ -540,8 +587,6 @@ logger_command "Check if variant_friendly_name set"
 check_variant_friendly_name
 logger_command "Remove https check"
 remove_https_check_cwmpd #cleanup
-logger_command "Check for CSS themes"
-check_uci_gui_skin #check css
 logger_command "Check driver setting"
 create_driver_setting #create diver setting if not present
 logger_command "Check Dropbear config file"
@@ -569,6 +614,7 @@ logger_command "Checking if wan_mode option exists..."
 check_wan_mode        # wan_mode check
 dosprotect_inizialize #dosprotected inizialize function
 logger_command "Checking if intercept is enabled and disabling if it is..."
+mobiled_lib_add
 disable_intercept #Intercept check
 logger_command "Disabling coredump reboot..."
 disable_upload_coredump_and_reboot

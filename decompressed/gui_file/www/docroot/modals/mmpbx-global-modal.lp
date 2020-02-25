@@ -57,6 +57,28 @@ local emission_content = {
 content_helper.getExactContent(emission_content)
 emission_state = format("%s", emission_content.emission_state)
 
+local function split(x, sep)
+    local sep, fields = sep or ":", {}
+    local pattern = string.format("([^%s]+)", sep)
+    for field in x:gmatch(pattern) do
+        fields[#fields+1] = field
+    end
+    return fields
+end
+
+local network_rpc_path = "rpc.network.interface."
+local network_rpc_content = content_helper.getMatchedContent (network_rpc_path)
+
+local wan_intfs = {}
+for _, v in ipairs (network_rpc_content) do
+    local path = split(split(format("%s",v.path),"@")[2],".")
+    if v.type == "wan" or v.type == "lan" then
+        if v.proto ~= "dhcpv6" and v.proto ~= "6rd" then
+            wan_intfs[#wan_intfs+1] = { path[1], T(path[1]) }
+        end
+    end
+end
+
 -- SIP Networks
 local sipnet_columns = {
     {
@@ -126,7 +148,16 @@ local sipnet_columns = {
         type = "text",
         default = "3600",
         attr = { input = { class="span1" } },
-    }
+    },
+    {
+        header = T"Interface",
+        name = "Iface",
+        param = "interface",
+        default = "wan",
+        type = "select",
+        values = wan_intfs,
+        attr = { select = { class="span2 centered" } },
+    },
 }
 
 local gOV = post_helper.getOptionalValidation
@@ -140,10 +171,11 @@ local sipnet_valid = {
     primaryProxy = gOV(gOr(post_helper.validateStringIsIP,post_helper.validateStringIsDomainName)),
     primaryProxyPort = post_helper.getValidateNumberInRange(0,65535),
     regExpire = post_helper.validateRegExpire,
+    Interface = post_helper.getValidateInEnumSelect(wan_intfs),
 }
 
 local sipnet_default = {
-    interface = "wan",
+    --interface = "wan",
     cac = "-1",
     transparent_soc_transmission = "0",
     primary_proxy = "",
@@ -218,7 +250,7 @@ local sipnet_default = {
     --user_agent = "",-- MediaAccess TG789vac v2 Build 17.2.0278-0901
     primary_proxy_port = "0",
     primary_registrar = "",
-    primary_registrar_port = "5060"
+    --primary_registrar_port = "5060"
 }
 
 local function onAddVoice(current_section_index,content)

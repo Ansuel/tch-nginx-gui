@@ -64,7 +64,7 @@ lp.include("help_menubar.lp")
             </div>\
             <div class="span7 container">\
                 <div id="disply_div" class="container span7">\
-                    <br>\
+                    <br/>\
                     <p>In this section you will be able to create/change/delete/view services that belong to:</p>\
                     <ul>\
                         <li>Dynamic DNS</li>\

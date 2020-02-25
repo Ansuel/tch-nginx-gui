@@ -33,7 +33,7 @@ EXTRA_HELP="\
 #Gui version is now autocompleted base on latest dev, this variable will be replaced by the automatic script
 version_gui=TO_AUTO_COMPLETE
 #Latest version on TIM cwmp for version spoof
-latest_version_on_TIM_cwmp="2.1.0"
+latest_version_on_TIM_cwmp="2.2.0"
 
 logo_project() {
   cat <<EOF >/dev/console
@@ -256,7 +256,7 @@ check_bank() {
   bank_check=$(uci get -q modgui.var.bank_check)
   bootedbank=$(cat /proc/banktable/booted)
   activebank=$(cat /proc/banktable/active)
-  env_config_bank1="/overlay/bank_1/etc/config/env"
+  env_config_bank1="/overlay/bank_1/etc/config/modgui"
   if [ "$bootedbank" != "$activebank" ]; then
     echo "  Detected corrupted active bank... Restoring..." >/dev/console
     restore_bank

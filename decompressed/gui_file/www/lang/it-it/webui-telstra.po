@@ -66,9 +66,6 @@ msgstr "Password"
 msgid "Mode"
 msgstr "Modo"
 
-msgid "Always On"
-msgstr "Sempre ON"
-
 msgid "Content Sharing"
 msgstr "Condivisione contenuti"
 
@@ -180,42 +177,6 @@ msgstr "Usa password casuale"
 msgid "Add New Rule"
 msgstr "Aggiungi nuova regola"
 
-msgid "Internet Traffic"
-msgstr "Traffico internet"
-
-msgid "Total Mixed (in MB)"
-msgstr "Totale misto (in MB)"
-
-msgid "Ethernet Network Traffic"
-msgstr "Traffico rete ethernet"
-
-msgid "Total Send (in MB)"
-msgstr "Totale inviati (in MB)"
-
-msgid "Total Receive (in MB)"
-msgstr "Totale ricevuti (in MB)"
-
-msgid "Wi-Fi Network Traffic"
-msgstr "Traffico rete Wi-Fi"
-
-msgid "Graph"
-msgstr "Grafico"
-
-msgid "The time displayed on the graph are based on the time set on this modem!"
-msgstr "L'orario visualizzato nel grafico e basato su quello impostato nel modem!"
-
-msgid "Sent chart line"
-msgstr "Grafico dati inviati"
-
-msgid "Received chart line"
-msgstr "Grafico dati ricevuti"
-
-msgid "WAN Graph"
-msgstr "Grafico WAN"
-
-msgid "LAN Graph"
-msgstr "Grafico LAN"
-
 msgid "Changes saved successfully"
 msgstr "Salvataggio modifiche completato"
 
@@ -229,7 +190,7 @@ msgid "Current User"
 msgstr "Utente attuale"
 
 msgid "When Default User is on, there is no login required to access the Web Interface. This is not recommended."
-msgstr "Quando è attivo l'utente predfinito, non e richiesto l'accesso all'interfaccia web.<br>Questa modlita non e consigliata."
+msgstr "Quando è attivo l'utente predfinito, non e richiesto l'accesso all'interfaccia web.<br/>Questa modlita non e consigliata."
 
 msgid "Default User"
 msgstr "Utente predefinito"
@@ -315,9 +276,6 @@ msgstr "Il Band steering non e supportato nel modo sicurezza WEP."
 msgid "Please configure wifi-bandsteer "
 msgstr "Configura il Band Steering "
 
-msgid " first!"
-msgstr "!"
-
 msgid "Device PIN code entered"
 msgstr "Codice PIN dispositivo inserito"
 
@@ -364,7 +322,7 @@ msgid "Security Mode"
 msgstr "Modo protezione"
 
 msgid "Security for this Wi-Fi network is disabled, anybody can connect or listen to it"
-msgstr "Questa rete ha la protezione disabilitata.<br>Chiunque puo collegarsi a questa rete."
+msgstr "Questa rete ha la protezione disabilitata.<br/>Chiunque puo collegarsi a questa rete."
 
 msgid "WEP Key"
 msgstr "Chiave WEP"
@@ -420,14 +378,11 @@ msgstr "Modo ACL"
 msgid "Near Field Communication (NFC)"
 msgstr "NFC (Near Field Communication)"
 
-msgid "Near Field Communication (NFC) allows you to tap an Android smartphone or tablet against the front of your Gateway to automatically configure Wi-Fi credentials on your device, so that you can connect over Wi-Fi. This feature is not supported on Apple iOS devices.<br><br><a href=/gateway.lp?openmodal=nfc-modal.lp ><u>Click here</u></a> to configure NFC."
-msgstr "Near Field Communication (NFC) permette posizionando uno smartphone/tablet Android molto vicino al modem di configurare automaticamente le credenziali Wi-Fi nel dispositivo, in modo da poter connettersi via Wi-Fi.<br>Questa funzione non e supportata nei dispositivi iOS Apple.<br><br><a href=/gateway.lp?openmodal=nfc-modal.lp ><u>Fai clic qui</u></a> per configurare NFC."
+msgid "Near Field Communication (NFC) allows you to tap an Android smartphone or tablet against the front of your Gateway to automatically configure Wi-Fi credentials on your device, so that you can connect over Wi-Fi. This feature is not supported on Apple iOS devices.<br/><br/><a href=/gateway.lp?openmodal=nfc-modal.lp ><u>Click here</u></a> to configure NFC."
+msgstr "Near Field Communication (NFC) permette posizionando uno smartphone/tablet Android molto vicino al modem di configurare automaticamente le credenziali Wi-Fi nel dispositivo, in modo da poter connettersi via Wi-Fi.<br/>Questa funzione non e supportata nei dispositivi iOS Apple.<br/><br/><a href=/gateway.lp?openmodal=nfc-modal.lp ><u>Fai clic qui</u></a> per configurare NFC."
 
 msgid "Standard"
 msgstr "Standard"
-
-msgid "Telstra Gateway"
-msgstr "Modem Telstra"
 
 msgid "HOME"
 msgstr "GENERALE"
@@ -450,51 +405,6 @@ msgstr "SERVIZI"
 msgid "USER SETTINGS"
 msgstr "IMPOSTAZIONI UTENTE"
 
-msgid "disabled"
-msgstr "disabilitato"
-
-msgid "disconnecting"
-msgstr "disconnessione"
-
-msgid "connected"
-msgstr "connesso"
-
-msgid "connecting"
-msgstr "connessione"
-
-msgid "disconnected"
-msgstr "disconnesso"
-
-msgid "error"
-msgstr "errore"
-
-msgid "authentication failed"
-msgstr "autentificazione fallita"
-
-msgid "negotiation failed"
-msgstr "negoziazione fallita"
-
-msgid "PPP connection"
-msgstr "Connessione PPP"
-
-msgid "IP address"
-msgstr "Indirizzo IP"
-
-msgid "IPv6 address"
-msgstr "Indirizzo IPv6"
-
-msgid "Gateway"
-msgstr "Gateway"
-
-msgid "DNS servers"
-msgstr "Server DNS"
-
-msgid "ATM VP / VC"
-msgstr "VP / VC ATM"
-
-msgid "Encapsulation"
-msgstr "Incapsulamento"
-
 msgid "ADVANCED CARDS"
 msgstr "SCHEDE AVANZATE"
 
@@ -502,10 +412,10 @@ msgid "STATS"
 msgstr "STATISTICHE"
 
 msgid "Your Broadband service is working normally. You are connected online."
-msgstr "La connessione funziona corretamente.<br>Sei connesso e online."
+msgstr "La connessione funziona corretamente.<br/>Sei connesso e online."
 
 msgid "Your Broadband service is working in backup mode. You are connected and online."
-msgstr "La connessione funziona in modo backup.<br>Sei connesso e online."
+msgstr "La connessione funziona in modo backup.<br/>Sei connesso e online."
 
 msgid "Time of Day Access Control"
 msgstr "Orario del giorno controllo accessi"
@@ -534,20 +444,20 @@ msgstr "2.4 GHz (ospiti)"
 msgid "Guest 5GHz"
 msgstr "5.0 GHz (ospiti)"
 
-msgid "Your Internet connection is currently down. You can try the following: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Telephone or Ethernet cable is firmly connected to the correct port on your Gateway, the Filter on the Telephone<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;socket or the Ethernet socket on the wall.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Check that your username is correct and re-enter your password <a href=/broadband.lp> here </a> .<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Restart my gateway."
-msgstr "La connessione internet e attualmente non attiva. Prova i seguenti passaggi: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Verifica che il cavo ethernet e telefonico siano correttamente collegati alla porta corretta nel modem, il filtro al connettore telefono<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; nella presa a muro.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Verifica che il nome utente sia corretto e re-inserisci la password <a href=/broadband.lp> qui </a> .<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Riavvia il modem."
+msgid "Your Internet connection is currently down. You can try the following: <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Telephone or Ethernet cable is firmly connected to the correct port on your Gateway, the Filter on the Telephone<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;socket or the Ethernet socket on the wall.<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Check that your username is correct and re-enter your password <a href=/broadband.lp> here </a> .<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Restart my gateway."
+msgstr "La connessione internet e attualmente non attiva. Prova i seguenti passaggi: <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Verifica che il cavo ethernet e telefonico siano correttamente collegati alla porta corretta nel modem, il filtro al connettore telefono<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; nella presa a muro.<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Verifica che il nome utente sia corretto e re-inserisci la password <a href=/broadband.lp> qui </a> .<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Riavvia il modem."
 
-msgid "Your Internet connection is currently down. You can try the following: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Telephone cable is firmly connected to the correct port on your Gateway or the Filter on the telephone socket <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;on the wall.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Check that your username is correct and re-enter your password <a href=/broadband.lp> here </a> . <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Restart my gateway."
-msgstr "La connessione internet e attualmente non attiva. Prova i seguenti passaggi: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Verifica che il cavo telefonico sia collegato alla corretta porta del modem o il filtro alla presa telefono <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nel muro.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Verifica che il nome utente sia corretto e re-inserisci la password <a href=/broadband.lp> qui </a> . <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Riavvia il modem."
+msgid "Your Internet connection is currently down. You can try the following: <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Telephone cable is firmly connected to the correct port on your Gateway or the Filter on the telephone socket <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;on the wall.<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Check that your username is correct and re-enter your password <a href=/broadband.lp> here </a> . <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Restart my gateway."
+msgstr "La connessione internet e attualmente non attiva. Prova i seguenti passaggi: <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Verifica che il cavo telefonico sia collegato alla corretta porta del modem o il filtro alla presa telefono <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nel muro.<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Verifica che il nome utente sia corretto e re-inserisci la password <a href=/broadband.lp> qui </a> . <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Riavvia il modem."
 
-msgid "Your Internet connection is currently down. You can try the following: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Ethernet cable is firmly connected to the correct port on your Gateway or the Ethernet socket on the wall.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Check that your username is correct and re-enter your password <a href=/broadband.lp> here </a> . <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Restart my gateway."
-msgstr "La connessione internet e attualmente non attiva. Prova i seguenti passaggi: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Verifica la connessione del cavo ethernet alla corretta porta nel modem o alla presa ethernet a muro.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Verifica che il nome utente sia corretto e re-inserisci la password <a href=/broadband.lp> qui </a> . <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Riavvia il modem."
+msgid "Your Internet connection is currently down. You can try the following: <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Ethernet cable is firmly connected to the correct port on your Gateway or the Ethernet socket on the wall.<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Check that your username is correct and re-enter your password <a href=/broadband.lp> here </a> . <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Restart my gateway."
+msgstr "La connessione internet e attualmente non attiva. Prova i seguenti passaggi: <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Verifica la connessione del cavo ethernet alla corretta porta nel modem o alla presa ethernet a muro.<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Verifica che il nome utente sia corretto e re-inserisci la password <a href=/broadband.lp> qui </a> . <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3. Riavvia il modem."
 
-msgid "Your Internet connection is currently down. You can try the following: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Telephone cable is firmly connected to the correct port on your Gateway or the Filter on the telephone socket <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;on the wall. <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Restart my gateway."
-msgstr "La connessione internet e attualmente non attiva. Prova i seguenti passaggi: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Verifica che il cavo telefonico sia collegato alla corretta porta del modem o il filtro alla presa telefono <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a muro. <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Riavvia il modem."
+msgid "Your Internet connection is currently down. You can try the following: <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Telephone cable is firmly connected to the correct port on your Gateway or the Filter on the telephone socket <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;on the wall. <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Restart my gateway."
+msgstr "La connessione internet e attualmente non attiva. Prova i seguenti passaggi: <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Verifica che il cavo telefonico sia collegato alla corretta porta del modem o il filtro alla presa telefono <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;a muro. <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Riavvia il modem."
 
-msgid "Your Internet connection is currently down. You can try the following: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Ethernet cable is firmly connected to the correct port on your Gateway or the Ethernet socket on the wall. <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Restart my gateway."
-msgstr "La connessione internet e attualmente non attiva. Prova i seguenti passaggi: <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Verifica la connessione del cavo ethernet alla corretta porta nel modem o alla presa ethernet a muro. <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Riavvia il modem."
+msgid "Your Internet connection is currently down. You can try the following: <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Check that your Ethernet cable is firmly connected to the correct port on your Gateway or the Ethernet socket on the wall. <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Restart my gateway."
+msgstr "La connessione internet e attualmente non attiva. Prova i seguenti passaggi: <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1. Verifica la connessione del cavo ethernet alla corretta porta nel modem o alla presa ethernet a muro. <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2. Riavvia il modem."
 
 msgid "153"
 msgstr "153"

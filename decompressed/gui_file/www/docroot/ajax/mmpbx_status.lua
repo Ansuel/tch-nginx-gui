@@ -8,6 +8,7 @@ local ngx = ngx
 local content_helper = require("web.content_helper")
 local post_helper = require("web.post_helper")
 local ui_helper = require("web.ui_helper")
+local untaint_mt = require("web.taint").untaint_mt
 
 local mmpbxd_columns = {
     {--[2]
@@ -37,6 +38,39 @@ local content = {
 
 content_helper.getExactContent(content)
 
+local status_map = {
+	STARTING = T"Starting",
+	RUNNING = T"Running",
+	STOPPING = T"Stopping",
+	NA = T"Not Available",
+}
+setmetatable(status_map, untaint_mt)
+
+local mmpbx_light = content.status == "NA" and "0" or "1"
+local mmpbx_status = status_map[content.status] or content.status
+
+local callStateMap = {
+	MMPBX_CALLSTATE_IDLE = T"Idle",
+	MMPBX_CALLSTATE_DIALING = T"Dialing",
+	MMPBX_CALLSTATE_CALL_DELIVERED = T"Delivered/In Progress",
+	MMPBX_CALLSTATE_CONNECTED = T"In Progress/Connected",
+	MMPBX_CALLSTATE_ALERTING = T"Ringing"
+}
+setmetatable(callStateMap, untaint_mt)
+
+local registrationStatusMap = {
+	Registered = T"Registered",
+	Registering = T"Registering"
+}
+setmetatable(registrationStatusMap, untaint_mt)
+
+local failReasonMap = {
+	MMPBX_REG_CLIENT_REASON_RESPONSE_REQUEST_FAILURE_RECVD = T"Registration refused",
+	MMPBX_REG_CLIENT_REASON_NETWORK_ERROR = T"Network error",
+	MMPBX_REG_CLIENT_REASON_TRANSACTION_TIMEOUT = T"Registration Timeout"
+}
+setmetatable(failReasonMap, untaint_mt)
+
 local time_t = {}
 local function convert2Sec(value)
     value = string.untaint(value)
@@ -56,40 +90,23 @@ local mmpbxd_filter = function(data)
         data.uri = data.uri:sub(4)
     end
 
-    local classlight
+    local registerLight = "off"
+	local registerState
     if data.sipRegisterState then
-        data.sipRegisterState = data.sipRegisterState
-        classlight="off"
+        registerState = registrationStatusMap[data.sipRegisterState] or data.sipRegisterState
         if data.sipRegisterState=="Registered" then
-            classlight="green"
+            registerLight="green"
         end
         if data.failReason ~= "" then
-            classlight="red"
-            if data.failReason == "MMPBX_REG_CLIENT_REASON_RESPONSE_REQUEST_FAILURE_RECVD" then
-                data.sipRegisterState = T"Registration refused"
-            elseif data.failReason == "MMPBX_REG_CLIENT_REASON_NETWORK_ERROR" then
-                data.sipRegisterState = T"Network error"
-            else
-                data.sipRegisterState = data.failReason
-            end
+            registerLight="red"
+            registerState = failReasonMap[data.failReason] or data.failReason
         end
-        data.sipRegisterState = ui_helper.createSimpleLight(nil, T(data.sipRegisterState), { light = { class = classlight } })
+        data.sipRegisterState = ui_helper.createSimpleLight(nil, registerState, { light = { class = registerLight } })
     end
 
     if data.callState then
-        local statestr = data.callState
-        if ( data.callState == "MMPBX_CALLSTATE_IDLE" ) then
-            statestr =  T"Idle"
-        elseif ( data.callState == "MMPBX_CALLSTATE_DIALING" ) then
-            statestr =  T"Dialing"
-        elseif ( data.callState == "MMPBX_CALLSTATE_CALL_DELIVERED" ) then
-            statestr =  T"Delivered/In Progress"
-        elseif ( data.callState == "MMPBX_CALLSTATE_CONNECTED" ) then
-            statestr =  T"In Progress/Connected"
-        elseif ( data.callState == "MMPBX_CALLSTATE_ALERTING" ) then
-            statestr =  T"Ringing"
-        end
-
+        local statestr = callStateMap[data.callState] or data.callState
+		
         if ( data.callState ~= "MMPBX_CALLSTATE_IDLE" ) then
             local pf_path = proxy.get("rpc.mmpbx.calllog.info.")
             local pf_data = content_helper.convertResultToObject("rpc.mmpbx.calllog.info.",pf_path)
@@ -150,7 +167,7 @@ end
 concat_table(mmpbx_table)
 
 local data = {
-    mmpbx_status = ui_helper.createLabel(T"Service", ui_helper.createSimpleLight(content["status"]=="NA" and "0" or "1", T(content["status"])), basic),
+    mmpbx_status = ui_helper.createLabel(T"Service", ui_helper.createSimpleLight(mmpbx_light, mmpbx_status), basic),
     mmpbx_table = table.concat(mmpbx_string) or ""
 }
 

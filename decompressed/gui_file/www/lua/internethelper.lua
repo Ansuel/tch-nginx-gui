@@ -15,7 +15,7 @@ function M.getIpv6Content()
 
 	local content = {
 		ip6addr = "",
-		ip6prefix = "",
+		ip6prefix = "rpc.network.interface.@wan.ip6prefix",
 	}
 
 	for i,v in ipairs(proxy.getPN("rpc.network.interface.", true)) do
@@ -27,7 +27,14 @@ function M.getIpv6Content()
 					content.ip6prefix = "rpc.network.interface.@6rd.ip6prefix"
 					content.dnsv6 = "rpc.network.interface.@6rd.dnsservers"
 					break
-				end	
+				end
+			elseif intf == "wan_6" then
+				content.ip6addr = "rpc.network.interface.@wan_6.ip6addr"
+				if notEmpty(content.ip6addr) then
+					content.ip6prefix = "rpc.network.interface.@wan_6.ip6prefix"
+					content.dnsv6 = "rpc.network.interface.@wan_6.dnsservers"
+					break
+				end
 			elseif intf == "wan6" then
 				content.ip6addr = "rpc.network.interface.@wan6.ip6addr"
 				if notEmpty(content.ip6addr) then

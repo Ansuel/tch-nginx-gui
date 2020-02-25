@@ -1,0 +1,289 @@
+local cronfile = "/etc/crontabs/root"
+
+local cron_cache = {
+    tbl,
+    time_check, -- time tbl was refreshed
+    refresh, -- line to refresh in the file
+    reload -- force reload
+}
+
+local function checkCron()
+
+    local res = {}
+
+    local time = os.time()
+
+    -- Use the cron_cache for subsequent request
+    if cron_cache.tbl and not cron_cache.reload and
+      ( time - cron_cache.time_check ) < 30 then
+        return cron_cache.tbl
+    end
+
+    local f = io.open(cronfile,"r")
+
+    for line in f:lines() do
+        if line ~= "" then
+            local minute, hour, day, month, week, command = line:match("([0-9-%*-%--%/]+) ([0-9-%*-%--%/]+) ([0-9-%*-%--%/]+) ([0-9-%*-%--%/]+) ([0-9-%*-%--%/]+) (.*)")
+            res[line] = {
+                minute = minute,
+                hour = hour,
+                day = day,
+                month = month,
+                week = week,
+                command = command,
+            }
+        end
+    end
+
+    f:close()
+
+    cron_cache.reload = nil
+    cron_cache.refresh = nil
+    cron_cache.tbl = res
+    cron_cache.time_check = time
+
+    return res
+end
+
+local function writeLine(fd,tbl)
+    fd:write(tbl.minute.." ")
+    fd:write(tbl.hour.." ")
+    fd:write(tbl.day.." ")
+    fd:write(tbl.month.." ")
+    fd:write(tbl.week.." ")
+    fd:write(tbl.command.."\n")
+end
+
+local function removeCron(line)
+
+    checkCron()
+
+    cron_cache.tbl[line] = nil
+
+    local f = io.open(cronfile,"w+")
+
+    for line in pairs(cron_cache.tbl) do
+        f:write(line.."\n")
+    end
+
+    cron_cache.reload = true
+
+    f:close()
+
+end
+
+local function editCron(param, value, key)
+    local cronTbl = checkCron()
+
+    cron_cache.tbl[key][param] = value
+    if not cron_cache.refresh then
+        cron_cache.refresh = key
+    end
+
+    return true
+end
+
+local function updateLineToFile()
+
+    local cronTbl = checkCron()
+    local line = cron_cache.refresh
+
+    if not cronTbl[line] then
+        return nil, "Line not present"
+    end
+
+    local f = io.open(cronfile,"w+")
+
+    for l in pairs(cronTbl) do
+        if l == line then
+            writeLine(f,cronTbl[line])
+        else
+            f:write(l.."\n")
+        end
+    end
+
+    f:close()
+
+    cron_cache.reload = true
+
+end
+
+local SYSTEM_CRON_ = {
+    objectType = {
+        name = "rpc.system.cron.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            editCronRuleNumber = {
+                access = "readWrite",
+                type = "string"
+            }
+        }
+    }
+}
+
+SYSTEM_CRON_.get = {
+    editCronRuleNumber = ""
+}
+
+SYSTEM_CRON_.set = {
+    editCronRuleNumber = function(mapping,param,value,key)
+        return updateLineToFile()
+    end
+}
+
+register(SYSTEM_CRON_)
+
+local SYSTEM_CRON_i_ = {
+    objectType = {
+        name = "rpc.system.cron.entries.{i}.",
+        access = "readWrite",
+        numEntriesParameter = "CronNumberOfEntries",
+        minEntries = 0,
+        maxEntries = math.huge,
+        parameters = {
+            command = {
+                access = "readWrite",
+                type = "string",
+            },
+            minute = {
+                access = "readWrite",
+                type = "string",
+            },
+            hour = {
+                access = "readWrite",
+                type = "string",
+            },
+            day = {
+                access = "readWrite",
+                type = "string",
+            },
+            month = {
+                access = "readWrite",
+                type = "string",
+            },
+            week = {
+                access = "readWrite",
+                type = "string",
+            }
+        }
+    }
+}
+
+SYSTEM_CRON_i_.entries = function(mapping)
+
+    local res = {}
+
+    for key in pairs(checkCron()) do
+        res[#res+1]=key
+    end
+
+    return res
+
+end
+
+SYSTEM_CRON_i_.get = {
+    command = function(mapping, param, key)
+        local cronTbl = checkCron()
+        return cronTbl[key].command or ""
+    end,
+    minute = function(mapping, param, key)
+        local cronTbl = checkCron()
+        return cronTbl[key].minute or ""
+    end,
+    hour = function(mapping, param, key)
+        local cronTbl = checkCron()
+        return cronTbl[key].hour or ""
+    end,
+    day = function(mapping, param, key)
+        local cronTbl = checkCron()
+        return cronTbl[key].day or ""
+    end,
+    month = function(mapping, param, key)
+        local cronTbl = checkCron()
+        return cronTbl[key].month or ""
+    end,
+    week = function(mapping, param, key)
+        local cronTbl = checkCron()
+        return cronTbl[key].week or ""
+    end,
+}
+
+SYSTEM_CRON_i_.set = {
+    minute = function(mapping,param,value,key)
+        if not value:match("[0-9-%*-%-]+") then
+            return nil, "Invalid set must be range of number or *"
+        end
+        return editCron(param,value,key)
+    end,
+    hour = function(mapping,param,value,key)
+        if not value:match("[0-9-%*-%-]+") then
+            return nil, "Invalid set must be range of number or *"
+        end
+        return editCron(param,value,key)
+    end,
+    day = function(mapping,param,value,key)
+        if not value:match("[0-9-%*-%-]+") then
+            return nil, "Invalid set must be range of number or *"
+        end
+        return editCron(param,value,key)
+    end,
+    month = function(mapping,param,value,key)
+        if not value:match("[0-9-%*-%-]+") then
+            return nil, "Invalid set must be range of number or *"
+        end
+        return editCron(param,value,key)
+    end,
+    week = function(mapping,param,value,key)
+        if not value:match("[0-9-%*-%-]+") then
+            return nil, "Invalid set must be range of number or *"
+        end
+        return editCron(param,value,key)
+    end,
+    command = function(mapping,param,value,key)
+        return editCron(param,value,key)
+    end,
+}
+
+SYSTEM_CRON_i_.add = function(mapping)
+
+    local function getRandomKey()
+        local bytes
+        local key = ("%02X"):rep(16)
+        local fd = io.open("/dev/urandom", "r")
+        if fd then
+          bytes = fd:read(16)
+          fd:close()
+        end
+        return key:format(bytes:byte(1, 16))
+      end
+
+    local random = getRandomKey()
+
+    local tbl = {
+        minute = "*",
+        hour = "*",
+        day = "*",
+        month = "*",
+        week = "*",
+        command = "echo ID_RULE "..random,
+    }
+
+    local f = io.open(cronfile,"a")
+    writeLine(f,tbl)
+    f:close()
+
+    cron_cache.reload = true
+
+    return random
+end
+
+SYSTEM_CRON_i_.delete = function(mapping, key)
+    
+    removeCron(key)
+
+    return true
+end
+
+register(SYSTEM_CRON_i_)

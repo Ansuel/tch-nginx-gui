@@ -1,8 +1,7 @@
 --pretranslated: do not change this file
  
--- NG-84683; NG-89573 
-
 -- Enable localization
+-- NG-84683; NG-89573
 gettext.textdomain('webui-core')
 
 local proxy = require("datamodel")
@@ -167,7 +166,7 @@ end
 local mapParams = {
     uci_wan_auto = "uci.network.interface.@wan.auto",
     uci_wan_masq = "uci.firewall.zone."..zonenum..".masq",
-	uci_wan_ipv6 = "uci.network.interface.@wan.ipv6", --custo TCOMITAGW-2157
+	uci_wan_ipv6 = "uci.network.interface.@wan.ipv6",
     uci_wan_mac = "uci.network.interface.@wan.macaddr",
     uci_wan_peerdns = "uci.network.interface.@wan.peerdns",
 	uci_wan_vendorid = "uci.network.interface.@wan.vendorid",
@@ -176,7 +175,6 @@ local mapParams = {
 -- Shortcuts to validation helpers to make lines shorter
 local vB = post_helper.validateBoolean
 
-------------------custo start TCOMITAGW-2157
 local function IPv6andUsername(value, object, key)
 	local valid, msg = vB(value)
 	
@@ -198,12 +196,11 @@ local function IPv6andUsername(value, object, key)
 	end
 	return valid, msg
 end
------------------custo end TCOMITAGW-2157
 
 local mapValid = {
     uci_wan_auto = vB,
     uci_wan_masq = validateNat,
-	uci_wan_ipv6 = IPv6andUsername,--custo TCOMITAGW-2157
+	uci_wan_ipv6 = IPv6andUsername,
     uci_wan_mac = gOV(post_helper.validateStringIsMAC),
     uci_wan_peerdns = vB,
 	uci_wan_vendorid = gOV(post_helper.validateNonEmptyString),
@@ -261,6 +258,7 @@ local cs = {
     ipaddr = "rpc.network.interface.@wan.ipaddr",
     nexthop = "rpc.network.interface.@wan.nexthop",
     dns = "rpc.network.interface.@wan.dnsservers",
+    ipv6_gua = "rpc.network.interface.@wan6.ipv6uniquelocaladdr",
     dns_loopback = "rpc.network.interface.@loopback.dnsservers", -- Added to include static dns servers configured on loopback interface (for TI custo)
 }
 
@@ -282,14 +280,17 @@ function getLeaseTime(uptime, lease, expires)
     local leaseexpires = os.date("%F %T", os.time() + (tonumber(expires ~="" and expires or 0) - tonumber(uptime)))
     return leaseobtained, leaseexpires
 end
+
 ajax_helper.handleAjaxQuery(cs, function(c)
     -- this will add the HTML for the light
     local ds = get_dhcp_state(content["uci_wan_auto"], c["ipaddr"])
-	local dnstab = split(proxy.get("rpc.network.interface.@wan.dnsservers")[1].value, "[^%,]+")
-	local dnsv4, dnsv6 = dns_filter(dnstab)
+    local dnstab = split(proxy.get("rpc.network.interface.@loopback.dnsservers")[1].value, "[^%,]+")
+    local dnsv4, dnsv6 = dns_filter(dnstab)
     ajax_attr_light.light.class = dhcp_light_map[ds]
     c.wan_status = ui_helper.createSimpleLight(nil, dhcp_state_map[ds], ajax_attr_light)
 	if proxy.get("uci.network.interface.@wan.auto")[1].value == "1" then
+          c.dns = content_helper.getMergedList(proxy.get("rpc.network.interface.@wan.dnsservers")[1].value, dnsv4)
+        else
 		c.dns = dnsv4
 	end
     local ipv6_enabled = proxy.get("uci.network.interface.@wan.ipv6")
@@ -344,6 +345,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     html[#html + 1] = ui_helper.createLight(T"Status", nil, dhcp_state_map[dhcp_state], ajax_attr_light)
     html[#html+1] = ui_helper.createSwitch(T"Enabled", "uci_wan_auto", content["uci_wan_auto"])
     html[#html + 1] = ui_helper.createSwitch(T"NAT", "uci_wan_masq", content.uci_wan_masq)
+    html[#html + 1] = ui_helper.createSwitch(T"IPv6", "uci_wan_ipv6", content.uci_wan_ipv6)
     html[#html + 1] = ui_helper.createInputText(T"MAC Spoof (Wan MAC)","uci_wan_mac", content["uci_wan_mac"], nil, helpmsg["uci_wan_mac"])
 	html[#html + 1] = ui_helper.createInputText(T"VendorID","uci_wan_vendorid", content["uci_wan_vendorid"], nil, helpmsg["uci_wan_vendorid"])
     ajax_attr.span.id = "leaseobtained"
@@ -351,7 +353,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     ajax_attr.span.id = "leaseexpires"
     html[#html+1] = ui_helper.createLabel(T"Lease expires", cs["leaseexpires"], ajax_attr)
     ajax_attr.span.id = "ipaddr"
-    html[#html+1] = ui_helper.createLabel(T"IP address", cs["ipaddr"], ajax_attr)
+    html[#html+1] = ui_helper.createLabel(T"IPv4 address", cs["ipaddr"], ajax_attr)
     ajax_attr.span.id = "nexthop"
     html[#html+1] = ui_helper.createLabel(T"Gateway", cs["nexthop"], ajax_attr)
     ajax_attr.span.id = "dns"
@@ -360,6 +362,10 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 		if cs["ip6addr"] and cs["ip6addr"]:len() > 0 then
 			ajax_attr.span.id = "ip6addr"
 			html[#html+1] = ui_helper.createLabel(T"IPv6 address", cs["ip6addr"], ajax_attr)
+		end
+		if cs["ipv6_gua"] and cs["ipv6_gua"]:len() > 0 then
+			ajax_attr.span.id = "ipv6_gua"
+			html[#html+1] = ui_helper.createLabel(T"IPv6 GUA", cs["ipv6_gua"], ajax_attr)
 		end
 		if cs["ip6prefix"] and cs["ip6prefix"]:len() > 0 then
 			ajax_attr.span.id = "ip6prefix"

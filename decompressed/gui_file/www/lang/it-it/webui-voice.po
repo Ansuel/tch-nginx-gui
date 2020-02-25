@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: webui-voice\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-06-21 15:33+0200\n"
-"PO-Revision-Date: 2019-03-02 15:16+0100\n"
+"PO-Revision-Date: 2019-11-13 20:59+0100\n"
 "Last-Translator: bovirus <bovirus@gmail.com>\n"
 "Language-Team: none\n"
 "Language: it\n"
@@ -59,12 +59,6 @@ msgstr "Registro chiamate"
 
 msgid "Call Statistics"
 msgstr "Statistiche chiamate"
-
-msgid "Line Status"
-msgstr "Stato linea"
-
-msgid "Call State"
-msgstr "Stato chiamata"
 
 msgid "Call Status"
 msgstr "Stati chiamate"
@@ -414,9 +408,6 @@ msgstr "Nome utente"
 msgid "UserName"
 msgstr "Nome utente"
 
-msgid "Voip Password"
-msgstr "Password VoIP"
-
 msgid "Voip Password Profile 1"
 msgstr "Password profilo 1 VoIP"
 
@@ -435,9 +426,6 @@ msgstr "Stato"
 msgid "Local Port"
 msgstr "Porta locale"
 
-msgid "Can be used"
-msgstr "Possono essere usati"
-
 msgid "Codec"
 msgstr "Codec"
 
@@ -455,3 +443,12 @@ msgstr "Realm"
 
 msgid "Sip Device"
 msgstr "Dispositivo SIP"
+
+msgid "ON"
+msgstr "ON"
+
+msgid "OFF"
+msgstr "OFF"
+
+msgid "Interface"
+msgstr "Interfaccia"

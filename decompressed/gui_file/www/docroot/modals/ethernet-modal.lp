@@ -95,7 +95,12 @@ local getintf = getargs.intf
 local curintf = "lan"
 -- Get all the LAN interfaces
 local net_intfs_path = "rpc.network.interface."
-local all_intfs = content_helper.convertResultToObject(net_intfs_path .. "@.", proxy.get(net_intfs_path))
+local all_intfs = {}
+for _, v in pairs(content_helper.convertResultToObject(net_intfs_path .. "@.", proxy.get(net_intfs_path))) do
+	if proxy.get("uci.network.interface.@"..v.paramindex..".ipaddr") then
+		all_intfs[#all_intfs+1] = v
+	end
+end
 local wireless_radio = {}
 for i,v in ipairs(proxy.getPN("rpc.wireless.ssid.", true)) do
   local radios = match(v.path, "rpc%.wireless%.ssid%.@([^%.]+)%.")
@@ -664,7 +669,13 @@ function isQtnGuestWiFi(intf)
 end
 
 local function validateLeaseTime(value, postdata, key)
-   if value == '-1' or value == timhelper.ethtrans().eth_infinit then -- included '-1' as a feasible set value as specified in TR 181
+	-- Check every possibile value...
+	-- One tip NEVER EVER MAKE USER INSERT WORD FOR A INT VALUE... INT DON'T FUC*ING HAVE UPPER OR LOWER CHAR -.-
+   if value == '-1' or 
+	 value == "infinite" or 
+	 value == timhelper.ethtrans().eth_infinit or 
+	 value:sub(1,1):upper()..value:sub(2) == timhelper.ethtrans().eth_infinit or
+	 value:sub(1,1):lower()..value:sub(2) == timhelper.ethtrans().eth_infinit	 then -- included '-1' as a feasible set value as specified in TR 181
       postdata[key] = "infinite" -- included to ensure uci parameter is set as infinite
       return true
    else

@@ -32,11 +32,11 @@ ngx.print('\
                 local html = {}
 				html[#html + 1] = "<span class=\"simple-desc\">"
                 html[#html + 1] = '<i " class="fas fa-list-ul" aria-hidden="true" href="#">&nbsp</i>'
-                html[#html + 1] = format(N("<strong>%s queue(s)</strong> active"), dataQoS.numQueues)
+                html[#html + 1] = format(N("<strong>%s queue</strong> active","<strong>%s queues</strong> active"), dataQoS.numQueues,dataQoS.numQueues)
 				html[#html + 1] = "</span>"
 				html[#html + 1] = "<span class=\"simple-desc\">"
                 html[#html + 1] = '<i " class="fas fa-list-ul" aria-hidden="true" href="#">&nbsp</i>'
-                html[#html + 1] = format(N("<strong>%s classify rule(s)</strong> active"), dataQoS.numClassify)
+                html[#html + 1] = format(N("<strong>%s classify rule</strong> active","<strong>%s classify rules</strong> active"), dataQoS.numClassify,dataQoS.numQueues)
 				html[#html + 1] = "</span>"
                 ngx.print (html)
             ngx.print('\

@@ -70,10 +70,10 @@ function M.getExactContent(content)
 		local errmsg = {}
 		local errkey = {}
 		errmsg[#errmsg+1] = "Exact data not found in this paths: "
-		errmsg[#errmsg+1] = "</br>"
+		errmsg[#errmsg+1] = "<br/>"
 		for key, path in pairs(content) do
 			if not (proxy.get(path)) then
-				errmsg[#errmsg+1] = "Key <strong>" .. untaint(key) .. "</strong>" .. " : " .. untaint(path) .. "</br>"
+				errmsg[#errmsg+1] = "Key <strong>" .. untaint(key) .. "</strong>" .. " : " .. untaint(path) .. "<br/>"
 				errkey[#errkey+1] = key
 				content[key] = nil
 			end

@@ -1,7 +1,7 @@
 --pretranslated: do not change this file
-
--- NG-59939
+ 
 -- Enable localization
+-- NG-59939
 gettext.textdomain('webui-core')
 
 local lp = require("web.lp")
@@ -13,15 +13,16 @@ local ui_helper = require("web.ui_helper")
 lp.include("broadband-xdsl.lp")
 
 local session = ngx.ctx.session
+local role = session:getrole()
 local tech = false
-if session:getrole() == "engineer" then
+if role == "engineer" or role == "ispuser" then
 	tech = true
 end
 
-local allowed_encs = {                                                                                        
-    {"llc",T"LLC"},                                                                                           
-    {"vcmux",T"VCMUX"}                                                                                        
-}           
+local allowed_encs = {
+    {"llc",T"LLC"},
+    {"vcmux",T"VCMUX"}
+}
 
 local wan = {
     iface = "uci.network.interface.@wan.ifname",

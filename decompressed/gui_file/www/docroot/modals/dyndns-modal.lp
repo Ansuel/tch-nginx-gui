@@ -161,7 +161,7 @@ end
 local ddns_options = {
     tableid = "ddnsoptions",
     basepath = "uci.ddns.service.@.",
-    createMsg = T"Add new DDns Rule",
+    createMsg = T"Add new DDNS Rule",
     objectName  = "ddns_"..uniqueKey,
     addNamedObject = true,
 	canEdit = true,
