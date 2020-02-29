@@ -1,3 +1,5 @@
+#!/bin/sh
+
 LOG_LOCATION=/tmp/command_log
 
 ############TRANSFORMER UTILITY##################
