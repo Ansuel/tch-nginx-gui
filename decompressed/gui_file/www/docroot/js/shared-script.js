@@ -178,13 +178,26 @@ var modgui = modgui || {};
 		});
 	}
 
+	// Resolve mac to vendor
+	// Take mac and the JQuery div object to put the vendor
+	function getVendorFromMac(mac, div) {
+		$.ajax({
+			url: "/get_vendor/"+mac+"?auto_update=true",
+			dataType: 'json',
+			success: function (data) {
+				div.text(data.company || "error");
+			}
+		});
+	}
+
 	module.postAction = postAction,
 	module.createAjaxUpdateCard = createAjaxUpdateCard,
 	module.linkCheckUpdate = linkCheckUpdate,
 	module.freshStyle = freshStyle,
 	module.scrollFunction = scrollFunction,
 	module.clearKoInterval = clearKoInterval,
-	module.restartKoInterval = restartKoInterval
+	module.restartKoInterval = restartKoInterval,
+	module.getVendorFromMac = getVendorFromMac
 }
 (modgui);
 
@@ -198,6 +211,18 @@ $(function () {
 		$("html, body").animate({
 			scrollTop: $($(this).attr("href")).offset().top
 		}, 500, "linear");
+	});
+
+	$(document).on('mouseenter', 'td[data-toggle="tooltip_mac"]', function () {
+		var elem = this;
+		var mac = $(elem).children("#mac_data").text();
+		$(elem).append('<div class="tooltip bottom fade in"><div class="tooltip-arrow"></div><div class="tooltip-inner">'+
+		mac+'</br>'+
+		'<div data-type="vendor"></div>'
+		+'</div></div>');
+		modgui.getVendorFromMac(mac,$(elem).children('.tooltip').children('.tooltip-inner').children('div[data-type="vendor"]'));
+	}).on('mouseleave', 'td[data-toggle="tooltip_mac"]', function () {
+		$('.tooltip').remove();
 	});
 
 	if (gui_var.randomcolor == "1") {
