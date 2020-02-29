@@ -318,8 +318,8 @@ mobiled_lib_add() {
     mv /tmp/scripthelpers.lua /usr/lib/lua/mobiled/scripthelpers.lua
   fi
 
-  if uci get -q version.@version[0].marketing_version | grep -q 16 #need to replace on old fw otherwise will ignore enabled status
-  then
+	marketing_version="$(uci get -q version.@version[0].marketing_version)"
+  if [ -z "${marketing_version##16*}" ]; then #need to replace on old fw (16.x) otherwise will ignore enabled status
     logger_command "Replacing /etc/init.d/mobiled ..."
     mv /tmp/mobiled /etc/init.d/mobiled
     /etc/init.d/mobiled restart
@@ -343,8 +343,8 @@ mobiled_lib_add() {
   fi
   [ -f /tmp/ltedoctor ] && rm /tmp/ltedoctor
 
-  major_system_version="$(uci get version.@version[0].marketing_version | sed 's#\.##')"
-  if [ "$major_system_version" -lt 173 ]; then
+  major_system_version="$(uci get version.@version[0].marketing_version | sed 's#\.##' | grep -o -E '[0-9]+')"
+  if [ "$major_system_version" -lt 173 ]; then #if fw <17.3
     #Restore original lte-doctor related webui files
     cp /rom/www/docroot/ajax/radioparameters.lua /www/docroot/ajax/radioparameters.lua
     cp /rom/www/docroot/modals/lte-doctor.lp /www/docroot/modals/lte-doctor.lp
@@ -613,8 +613,9 @@ fcctlsettings_daemon #Adds fast cache options
 logger_command "Checking if wan_mode option exists..."
 check_wan_mode        # wan_mode check
 dosprotect_inizialize #dosprotected inizialize function
-logger_command "Checking if intercept is enabled and disabling if it is..."
+logger_command "Checking mobiled libs..."
 mobiled_lib_add
+logger_command "Checking if intercept is enabled and disabling if it is..."
 disable_intercept #Intercept check
 logger_command "Disabling coredump reboot..."
 disable_upload_coredump_and_reboot
