@@ -77,6 +77,7 @@ local devices_columns = {
     type = "text",
     readonly = true,
     attr = { input = { class="span1" } },
+    additional_class = 'data-type="mac"',
   },
   {--[6]
     header = T"InterfaceType",
@@ -162,6 +163,8 @@ local devices_filter = function(data)
     data["InterfaceType"] = "MoCA"
   end
 
+  -- data["MACAddress"] = data["MACAddress"].."<br><div data-type='vendor'></div>"
+
   return true
 end
 
@@ -210,5 +213,14 @@ end
     </fieldset>\
   </form>\
 </div>\
+<script>\
+$(document).ready(function () {\
+  $(\'td[data-type="mac"]\').each( function () {\
+    var mac = $(this).text();\
+    $(this).append("<br><div data-type=\'vendor\'></div>");\
+    modgui.getVendorFromMac(mac,$(this).children(\'div[data-type="vendor"]\'));\
+  });\
+});\
+</script>\
 ');  ngx.print( ui_helper.createFooter() ); ngx.print('\
 '); 

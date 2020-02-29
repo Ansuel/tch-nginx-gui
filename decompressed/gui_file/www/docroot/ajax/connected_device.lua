@@ -14,6 +14,7 @@ local devices_columns = {
     name = "FriendlyName",
     param = "FriendlyName",
     type = "text",
+    additional_class = 'data-toggle="tooltip_mac"',
   },
   {--[3]
     header = T"IPv4",
@@ -53,6 +54,8 @@ local devices_filter = function(data)
     data["InterfaceType"] = "MoCA"
   end
 
+  data["FriendlyName"] = data["FriendlyName"]..'<div id="mac_data" style="display:none">'..data["MACAddress"]..'</div>'
+  
   return true
 end
 
