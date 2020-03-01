@@ -14,7 +14,22 @@ check_webui_config() {
   if [ "$(uci get -q wireless.global.wifi_analyzer_disable)" ]; then
     if [ "$(uci get -q wireless.global.wifi_analyzer_disable)" != "0" ]; then
       uci set wireless.global.wifi_analyzer_disable='0'
+      uci commit wireless
     fi
+  fi
+
+  # Some devices/fw (ie TG789MYRvac v2 HP) have the bandsteer configuration not inizialized, check if is a dual radio device and inizialize vars if missing
+  if [ ! "$(uci get -q wireless.@wifi-bandsteer[0])" ] && [ "$(uci get -q wireless.@wifi-device[1])" ]; then
+    logger_command "Adding bandsteer wifi settings"
+    uci set wireless.bs0=wifi-bandsteer
+    uci set  wireless.bs0.sta_comeback_to='5'
+    uci set  wireless.bs0.no_powersave_steer='0'
+    uci set  wireless.bs0.rssi_threshold='-60'
+    uci set  wireless.bs0.debug_flags='0'
+    uci set  wireless.bs0.policy_mode='5'
+    uci set  wireless.bs0.monitor_window='5'
+    uci set  wireless.bs0.rssi_5g_threshold='-80'
+    uci commit wireless
   fi
 }
 
