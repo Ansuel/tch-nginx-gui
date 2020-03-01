@@ -4244,53 +4244,53 @@ msgid "Starting"
 msgstr "Startend"
 
 msgid "Init Management"
-msgstr ""
+msgstr "Init Verwaltung"
 
 msgid "Disable"
-msgstr ""
+msgstr "Abschalten"
 
 msgid "Stop Order"
-msgstr ""
+msgstr "Beende Auftrag"
 
 msgid "Toggle"
-msgstr ""
+msgstr "Umschalten"
 
 msgid "Start Order"
-msgstr ""
+msgstr "Starte Auftrag"
 
 msgid "Don't randomly disable or restart Init Process. Some Init are crucial for the correct boot of the device."
-msgstr ""
+msgstr "Schalten Sie nicht ohne Grund Init Prozesse ab oder starten sie neu. Einige davon werden für den korrekten Start des Geräts benötigt."
 
 msgid "Command"
-msgstr ""
+msgstr "Befehl"
 
 msgid "Day"
-msgstr ""
+msgstr "Tag"
 
 msgid "Month"
-msgstr ""
+msgstr "Monat"
 
 msgid "Hour"
-msgstr ""
+msgstr "Stunde"
 
 msgid "Command input can't be empty"
-msgstr ""
+msgstr "Befehlseingabe darf nicht leer sein"
 
 msgid "Week"
-msgstr ""
+msgstr "Woche"
 
 msgid "Cron Management"
-msgstr ""
+msgstr "Cron Verwaltung"
 
 msgid "Minute"
-msgstr ""
+msgstr "Minute"
 
 msgid "<strong>%s init script</strong> active"
 msgid_plural "<strong>%s init scripts</strong> active"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "<strong>%s init Skript</strong> aktiv"
+msgstr[1] "<strong>%s init Skriptecripts</strong> aktiv"
 
 msgid "<strong>%s cron rule</strong> active"
 msgid_plural "<strong>%s cron rules</strong> active"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "<strong>%s cron Regel</strong> aktiv"
+msgstr[1] "<strong>%s cron Regeln</strong> aktiv"
