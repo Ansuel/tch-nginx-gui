@@ -1,3 +1,5 @@
+#!/bin/sh
+
 . /etc/init.d/rootdevice
 
 MD5_CHECK_DIR=/tmp/md5check

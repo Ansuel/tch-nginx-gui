@@ -1,3 +1,5 @@
+#!/bin/sh
+
 . /etc/init.d/rootdevice
 
 kernel_ver="$(cat /proc/version | awk '{print $3}')"
