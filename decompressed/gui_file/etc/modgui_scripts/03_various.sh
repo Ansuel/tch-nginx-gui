@@ -1,3 +1,5 @@
+#!/bin/sh
+
 . /etc/init.d/rootdevice
 
 check_upgrade_shit() {

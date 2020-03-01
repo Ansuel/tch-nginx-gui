@@ -1,3 +1,5 @@
+#!/bin/sh
+
 . /etc/init.d/rootdevice
 
 extract_with_check() {

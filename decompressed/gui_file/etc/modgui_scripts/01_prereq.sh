@@ -1,3 +1,5 @@
+#!/bin/sh
+
 . /etc/init.d/rootdevice
 
 move_env_var() {
