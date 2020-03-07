@@ -192,6 +192,7 @@ stateMachines = {
             },
             writing_firmware_green_flashing_quickly = {  --status: writing firmware
                 fwupgrade_state_failed = "serviceko_red_flashing",
+                fwupgrade_state_done = "green_solid",
             },
             broadbandled_off = {  --status: 5 seconds after ip connected or service status indicating 
                 xdsl_0 = "red_solid",
@@ -226,7 +227,7 @@ stateMachines = {
             },
             writing_firmware_green_flashing_quickly = {
                 staticLed("broadband:red", false),
-                timerLed("broadband:green", 250, 250),
+                timerLed("broadband:green", 50, 50),
             },
             red_solid = {
                 staticLed("broadband:red", true),
