@@ -219,7 +219,7 @@ kernel_ver="$(< /proc/version awk '{print $3}')"
 
 
 [ -z "${device_type##*DGA413*}" ] && apply_right_opkg_repo #Check opkg conf based on version
-if [ -z "${device_type##*TG788*}" ] && [ -z "${device_type##*TG789*}" ] && [ -n "${device_type##*Xtream*}" ]; then
+if [ -z "${device_type##*TG78*}" ] && [ -n "${device_type##*Xtream*}" ]; then
   apply_right_opkg_repo TG78
 fi
 if [ -z "${device_type##*TG789*}" ] && [ -z "${device_type##*Xtream*}" ]; then
