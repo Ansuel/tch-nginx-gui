@@ -56,6 +56,8 @@ local commands_helper = {
 	upgradegui = 'start-stop-daemon -S -b -x /usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/upgradegui GuiRequest"',
 	genSysupgradeBackup = function(filename) return '/usr/share/transformer/scripts/wrapper.sh "sysupgrade -b /tmp/'..filename..'"' end,
 	restoreSysupgradeBackup = '/usr/share/transformer/scripts/wrapper.sh "sysupgrade -r /tmp/sysupgrade_backup.tar.gz',
+	getChangeLogWeb = 'curl -m 2 https://raw.githubusercontent.com/Ansuel/tch-nginx-gui/master/CHANGELOG.md > /tmp/remoteReqOutput',
+	getVendor = function(mac) return 'curl -m 2 http://api.maclookup.app/v1/macs/' .. mac:gsub('_.*','') .. ' > /tmp/remoteReqOutput' end
 }
 
 local async_exec = require("lasync").execute
@@ -82,7 +84,7 @@ local SYSTEM_MODGUI_UTILITY_ = {
 		local content = io.open("/proc/rip/0108")
 		local result = content:read("*all")
 		content:close()
-		
+
 		return str2hex(result:sub(1,64))
 	end,
 	sendcmd = "",
@@ -90,7 +92,7 @@ local SYSTEM_MODGUI_UTILITY_ = {
   set = {
 	sendcmd = function(mapping, paramName, paramValue)
 		local param = paramValue:gsub("_.*","")
-		local args = paramValue:gsub("[A-z]+_","")
+		local args = paramValue:gsub("^[A-z]+_","")
 		local command = commands_helper[param]
 		if not command then
 			return nil, "Invalid command"
@@ -100,8 +102,12 @@ local SYSTEM_MODGUI_UTILITY_ = {
 		elseif args and args == "terminate" then
 			local clean_comm = "for pid in $(pgrep -f "..command.."); do logger terminating :  $pid && kill -KILL $pid;done"
 			async_exec{[clean_comm] = true}
-		end
+	end
+	if args and args:match("sync") then
+		os.execute(command)
+	else
 		async_exec({[command]=true})
+		end
 	end,
   }
 }
