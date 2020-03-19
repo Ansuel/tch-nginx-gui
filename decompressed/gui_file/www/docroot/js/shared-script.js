@@ -181,11 +181,27 @@ var modgui = modgui || {};
 	// Resolve mac to vendor
 	// Take mac and the JQuery div object to put the vendor
 	function getVendorFromMac(mac, div) {
+		div.addClass("fa fa-sync fa-spin");
+		$.post(
+			'/', {
+				action: 'getVendor',
+				mac: mac,
+				auto_update: true,
+				CSRFtoken: $("meta[name=CSRFtoken]").attr("content")
+			},
+			null,
+			"json"
+		);
 		$.ajax({
-			url: "/get_vendor/"+mac+"?auto_update=true",
+			url: "/get_vendor?auto_update=true",
 			dataType: 'json',
+			error: function() {
+				div.removeClass("fa fa-sync fa-spin");
+				div.text('Error');
+			},
 			success: function (data) {
-				div.text(data.company || "error");
+				div.removeClass("fa fa-sync fa-spin");
+				div.text(data.company || 'Unknown');
 			}
 		});
 	}

@@ -1,6 +1,9 @@
 --pretranslated: do not change this file
 
 local ui_helper = require("web.ui_helper")
+local proxy = require("datamodel")
+
+proxy.set('rpc.system.modgui.utility.sendcmd', 'getChangeLogWeb_sync')
 
 ngx.print(ui_helper.createHeader("Changelog", false, false)) 
 
@@ -22,16 +25,15 @@ ngx.print('\
 ngx.print('\
 	</form>\
 	<script>\
-		tch.showProgress(openMsg);\
 		$.ajax({\
 		url:"/get_changelog?" + Math.random().toString(36).substr(2, 5)})\
 			.done(function(data) {\
-				$("#changelog_div").text(data);\
+				if (!data) $("#changelog_div").text("Can\'t load remote changelog!");\
+				else $("#changelog_div").text(data);\
 			})\
 			.fail(function(data) {\
 				$("#changelog_div").text("Can\'t load remote changelog!");\
 			});\
-		tch.removeProgress();\
 </script>\
   </fieldset>\
 </div>\

@@ -26,6 +26,10 @@ if ngx.req.get_method() == "POST" then
   if post_args.action == "checkver" then
   return apply("checkver")
   end
+  if post_args.action == "getVendor" then
+    ngx.log(1,"getVendor_".. string.untaint(post_args.mac) .."_sync")
+    return apply("getVendor_".. post_args.mac .."_sync")
+  end
   if post_args.action == "autoupgrade_view" then
 	proxy.set("uci.modgui.gui.autoupgradeview", "none")
 	proxy.apply()
@@ -230,7 +234,7 @@ ngx.print('\
 	  upgrade_text = upgrade_text .. format(T" to version <strong>%s</strong> successfully",cui.gui_version)
       html[#html + 1] = ui_helper.createAlertBlock(upgrade_text,alert_upgrade_success)
     end
-	
+
 	if not session:isdefaultuser() and not session:retrieve("password_reminder_shown") and session:getusername() ~= assistant:username() then
 		local result = content_helper.getMatchedContent("uci.web.user.", {name = session.getusername()})
 		if result and result[1] and result[1].password_reminder ~= "0" then
