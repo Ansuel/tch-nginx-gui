@@ -90,7 +90,7 @@ else
   uci set modgui.gui.autoupgradeview=manual
 fi
 
-URL_BASE="https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/"
+URL_BASE="https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master"
 
 # Check update_branch
 if [ ! "$(uci get -q modgui.gui.update_branch)" ] || [ "$(uci get modgui.gui.update_branch)" == "stable" ]; then
