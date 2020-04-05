@@ -208,7 +208,8 @@ end
 
 if ngx.req.get_method() == "POST" then
 	-- now process file POSTs
-	local action = ngx.req.get_uri_args().action
+	local post_args = ngx.req.get_uri_args()
+	local action = post_args.action
 	if action == "upgradeguifile" then
 		return upgradeguifile()
 	end
@@ -246,6 +247,12 @@ if ngx.req.get_method() == "POST" then
 	end
 	if action == "system_genBackup" then
 		return genSysupgradeBackup()
+	end
+	if action == "checkver" then
+		return sendcmd("checkver")
+	end
+	if action == "getVendor" then
+		return sendcmd("getVendor_".. post_args.mac .."_sync")
 	end
 	if proxy.get("uci.web.sessionmgr.@default.force_https")[1].value ~= ngx.req.get_post_args().gui_forcehttps then
 		local mngr = require("web.sessioncontrol").loadmgr("default")

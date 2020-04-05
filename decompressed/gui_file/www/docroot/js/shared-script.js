@@ -8,13 +8,13 @@ var modgui = modgui || {};
 		tch.showProgress(waitMsg);
 		window.location.reload(true);
 	}
-	function postAction(action,logModal, customCloseAction) {
+	function postAction(action, logModal, customCloseAction, customTarget) {
 		var onClose = ( typeof customCloseAction === "function" ) && customCloseAction || function() {
 			tch.showProgress(waitMsg);
 			window.location.reload(true);
 		}
 
-		var target = $(".modal form").attr("action");
+		var target = customTarget ? customTarget : $(".modal form").attr("action");
 		$.post(
 			target, {
 				action: action,
@@ -110,7 +110,7 @@ var modgui = modgui || {};
 		$(".check_update").on("click", function (e) {
 			e.stopPropagation();
 			if(KoRequest.CheckVer) return;
-			postAction("checkver");
+			postAction("checkver", null, null, '/modals/modgui-modal.lp?auto_update=true');
 			$(".check_update_spinner").addClass("fa-spin");
 				KoRequest.CheckVer = {
 					interval : setInterval(function () {
@@ -163,14 +163,14 @@ var modgui = modgui || {};
 			$("#scroll-down").removeClass("hide");
 		}
 	}
-	
+
 	function clearKoInterval() {
 		Object.keys(KoRequest).forEach(function(interval) {
 			if(KoRequest[interval])
 				clearInterval(KoRequest[interval].interval);
 		});
 	}
-	
+
 	function restartKoInterval() {
 		Object.keys(KoRequest).forEach(function(interval) {
 			if(KoRequest[interval])
@@ -183,10 +183,9 @@ var modgui = modgui || {};
 	function getVendorFromMac(mac, div) {
 		div.addClass("fa fa-sync fa-spin");
 		$.post(
-			'/', {
+			'/modals/modgui-modal.lp?auto_update=true', {
 				action: 'getVendor',
 				mac: mac,
-				auto_update: true,
 				CSRFtoken: $("meta[name=CSRFtoken]").attr("content")
 			},
 			null,
