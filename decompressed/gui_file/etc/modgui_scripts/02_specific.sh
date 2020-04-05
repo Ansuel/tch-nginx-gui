@@ -117,6 +117,9 @@ EOF
 		;;
 	esac
 	fi
+
+  # Remove non-existent hardcoded distfeed to avoid 404 on opkg update
+  [ -f /etc/opkg/distfeeds.conf ] && sed -i '/15.05.1\/brcm63xx-tch/d' /etc/opkg/distfeeds.conf
 }
 
 ledfw_extract() {
