@@ -30,10 +30,10 @@ NC='\033[0m'
 print_logo() {
   echo -e "${LIGHT_RED}
 
- █████╗ ███╗   ██╗███████╗██╗   ██╗███████╗██╗     
-██╔══██╗████╗  ██║██╔════╝██║   ██║██╔════╝██║     
-███████║██╔██╗ ██║███████╗██║   ██║█████╗  ██║     
-██╔══██║██║╚██╗██║╚════██║██║   ██║██╔══╝  ██║     
+ █████╗ ███╗   ██╗███████╗██╗   ██╗███████╗██╗
+██╔══██╗████╗  ██║██╔════╝██║   ██║██╔════╝██║
+███████║██╔██╗ ██║███████╗██║   ██║█████╗  ██║
+██╔══██║██║╚██╗██║╚════██║██║   ██║██╔══╝  ██║
 ██║  ██║██║ ╚████║███████║╚██████╔╝███████╗███████╗
 ╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝ ╚═════╝ ╚══════╝╚══════╝
 (Modified Gui UpgradeScript)               (Christo)
@@ -250,7 +250,6 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 else
   logger_command "Found file in /tmp dir... doing offline upgrade!"
   #Save gui always as STABLE in offline upgrade as we can't check or download it.
-  FILE_NAME="$STABLE_FILE_NAME"
   FORCE_SAVE_GUI=1
 fi
 
@@ -298,15 +297,6 @@ bzcat "$WORKING_DIR/$FILE_NAME" |
     fi
   done
 
-# Restore blacklist contacts
-blacklist_restore="http://blacklist.satellitar.it/repository/install_blacklist.sh"
-if [ "$(uci get -q modgui.app.blacklist_app)" ] && [ "$(uci get modgui.app.blacklist_app)" == "1" ]; then
-  if $curl $blacklist_restore --output $WORKING_DIR/install_blacklist.sh; then
-    $WORKING_DIR/install_blacklist.sh update
-    rm $WORKING_DIR/install_blacklist.sh
-  fi
-fi
-
 #Remove deprecated GUI packages if found in /root
 if [ -f /root/GUI_dev.tar.bz2 ]; then
   logger_command "Deleting /root/GUI_dev.tar.bz2..."
@@ -323,7 +313,7 @@ if [ -z "$update_branch" ] || [ $FORCE_SAVE_GUI == 1 ]; then
   if [ -f "$PERMANENT_STORE_DIR/$FILE_NAME" ]; then
     rm "$PERMANENT_STORE_DIR/$FILE_NAME"
   fi
-  cp "$WORKING_DIR/$FILE_NAME" "$PERMANENT_STORE_DIR/"
+  cp "$WORKING_DIR/$FILE_NAME" "$PERMANENT_STORE_DIR/$STABLE_FILE_NAME"
 fi
 
 if [ "$update_branch" == "_dev" ] || [ "$update_branch" == "_preview" ]; then

@@ -39,7 +39,7 @@ local SYSTEM_MODGUI_ = {
 register(SYSTEM_MODGUI_)
 
 -- COMMAND MUST NOT CONTAIN _ IN THE NAME
--- EVERYTHING AFTER _ IS TREAT AS ARGS FOR FUNCTION 
+-- EVERYTHING AFTER _ IS TREAT AS ARGS FOR FUNCTION
 -- _terminate CAN BE USED TO CHECK IF ANY PROCESS IS ALREADY RUNNING AN TERMINATE IT
 
 local commands_helper = {
@@ -102,7 +102,7 @@ local SYSTEM_MODGUI_UTILITY_ = {
 		elseif args and args == "terminate" then
 			local clean_comm = "for pid in $(pgrep -f "..command.."); do logger terminating :  $pid && kill -KILL $pid;done"
 			async_exec{[clean_comm] = true}
-	end
+	    end
 	if args and args:match("sync") then
 		os.execute(command)
 	else
@@ -178,7 +178,7 @@ SYSTEM_MODGUI_DEBUGLOG_.get = {
 }
 
 SYSTEM_MODGUI_DEBUGLOG_.set = {
-  start = function(mapping, paramName, paramValue)  
+  start = function(mapping, paramName, paramValue)
 	if paramValue == "1" then
         commitapply:newset("rpc.system.modgui.debuglog." .. paramName)
     end
@@ -269,7 +269,7 @@ local app_list = {
 	"xupnp",
 	"telstra",
 	"amule",
-	"specific_app",
+	"specificapp",
 }
 
 local exec_type = {
@@ -306,13 +306,13 @@ SYSTEM_MODGUI_APP_.set = {
 		for s in paramValue:gmatch("[^%_]+") do
 			commdParse[#commdParse+1] = s
 		end
-		
+
 		if not contains(commdParse[1],exec_type) then
 			return nil, "Invalid exec type"
 		elseif not contains(commdParse[2],app_list) then
 			return nil, "Invalid app name"
 		end
-		
+
 		local wrapper = '/usr/share/transformer/scripts/wrapper.sh'
 		local appScript = '/usr/share/transformer/scripts/appInstallRemoveUtility.sh'
 		local command = string.format('%s "%s %s %s %s"',wrapper,appScript,commdParse[1],commdParse[2],commdParse[3] or "")

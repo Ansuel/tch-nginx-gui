@@ -70,7 +70,7 @@ ngx.print('\
                         });}\
         }\
 \
-        new modgui.createAjaxUpdateCard("commandlogmodal",null,"CommandLogReadInterval",100,CommandLogReadRefresh);\
+        modgui.createAjaxUpdateCard("commandlogmodal",null,"CommandLogReadInterval",100,CommandLogReadRefresh);\
   </script>\
 ');  ngx.print( ui_helper.createFooter() ); ngx.print('\
 ');
