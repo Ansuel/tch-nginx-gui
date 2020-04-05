@@ -186,7 +186,8 @@ create_gui_type() {
   elif [ "$(uci get -q modgui.app.blacklist_app)" = "1" ] &&
     [ ! -f /www/docroot/modals/mmpbx-contacts-modal.lp.orig ] &&
     [ -f /usr/share/transformer/scripts/appInstallRemoveUtility.sh ]; then
-    /usr/share/transformer/scripts/appInstallRemoveUtility.sh install blacklist
+    logger_command "Reinstalling blacklist app after upgrade..."
+    /usr/share/transformer/scripts/appInstallRemoveUtility.sh install blacklist >/dev/null
   fi
 }
 
@@ -476,7 +477,7 @@ cumulative_check_gui() {
     logger_command "Can't generate GUI hash, file not found!"
     gui_hash="0"
   fi
-  
+
   saved_gui_version=$(uci get -q modgui.gui.gui_version | cut -d'-' -f1)
   clean_version_gui=$(echo "$version_gui" | cut -d'-' -f1)
 
@@ -608,7 +609,7 @@ logger_command "Check Dropbear config file"
 dropbear_config_check #check dropbear config
 logger_command "Check eco paramaters"
 eco_param #This disable eco param as they introduce some latency
-logger_command "Create GUI type in config"
+logger_command "Add app-extension var in modgui uci config"
 create_gui_type #Gui Type
 logger_command "Add new web options"
 add_new_web_rule #This check new option so that we don't replace the one present
