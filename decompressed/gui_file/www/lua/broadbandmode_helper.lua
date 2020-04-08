@@ -20,7 +20,7 @@ else
     ethname =  "eth3"
 end
 
-local function get_wansensing() 
+local function get_wansensing()
 	if proxy.get("uci.wansensing.global.enable") then
 		return proxy.get("uci.wansensing.global.enable")[1].value
 	end
@@ -29,7 +29,7 @@ end
 
 local function get_wan_mode()
 	if proxy.get("uci.network.config.wan_mode") then
-		return proxy.get("uci.network.config.wan_mode")[1].value 
+		return proxy.get("uci.network.config.wan_mode")[1].value
 	end
 	return ""
 end
@@ -51,24 +51,24 @@ local function findwan(interface)
 			return (result:gsub("uci%.network%.device%.",""):gsub("%.",""))
 		end
 	end
-	
+
 	return nil --return null if not found
 end
 
-local function restartNetwork() 
+local function restartNetwork()
 	local ubus = require("ubus")
 
 	local conn = ubus.connect()
 	if not conn then
 		return "Failed to connect to ubusd"
 	end
-	
+
 	conn:call("network", "restart", {})
-	
+
 	conn:close()
 end
 
-local function bridge(mode) 
+local function bridge(mode)
 	local ifnames = proxy.get("uci.network.interface.@lan.ifname")[1].value
 	local wan_ifname = proxy.get("uci.network.interface.@wan.ifname")[1].value
 	local state = proxy.get("uci.network.config.wan_mode")
@@ -92,7 +92,7 @@ local function bridge(mode)
 		return --skip setting everything as we are not restoring a bridge mode
 	else
 		local wan_proto = proxy.get("uci.network.interface.@wan.proto")
-		
+
 		proxy.set({
 			["uci.wansensing.global.enable"] = '1',
 			["uci.network.interface.@wan.enabled"] = '1',
@@ -109,7 +109,7 @@ local function bridge(mode)
 			["uci.network.config.wan_mode"] = wan_proto and wan_proto[1].value or "dhcp",
 		})
 	end
-	
+
 	restartNetwork()
 
     return
@@ -121,7 +121,7 @@ local function voice(mode) --voice mode is only for TIM for now...
 	local ppp_mgmt = proxy.get("uci.modgui.var.ppp_mgmt")
 	local ppp_original = proxy.get("uci.modgui.var.ppp_realm_ipv4")
 	if mode == "enable" then
-	
+
 		proxy.set({
 			["uci.network.interface.@wan.username"] = ppp_mgmt[1].value or "Unknown",
 			["uci.dhcp.dhcp.@lan.ignore"] = '1',
@@ -134,7 +134,7 @@ local function voice(mode) --voice mode is only for TIM for now...
 	elseif not isVoiceMode() then
         return --skip setting everything as we are not restoring a voice mode
 	else
-		
+
 		proxy.set({
 			["uci.network.interface.@wan.username"] = ppp_original[1].value or "Unknown",
 			["uci.wireless.wifi-device.@radio_2G.state"] = '1',
@@ -145,7 +145,7 @@ local function voice(mode) --voice mode is only for TIM for now...
 			["uci.network.interface.@wan.password"] = 'alicenewag',
 		})
 	end
-	
+
 	restartNetwork()
 
     return
@@ -167,7 +167,7 @@ tablecontent[#tablecontent + 1] = {
             if L2 == "ADSL" then
                 return true
             end
-			
+
         else
             if not ( get_wan_mode() == "bridge" ) then
                 local ifname = proxy.get("uci.network.interface.@wan.ifname")[1].value
@@ -228,9 +228,9 @@ tablecontent[#tablecontent + 1] = {
         else
             if not ( get_wan_mode() == "bridge" ) then
                 local ifname = proxy.get("uci.network.interface.@wan.ifname")[1].value
-        
+
                 local iface = match(ifname, "ptm0")
-        
+
                 if iface then
                     return true
                 end
@@ -373,7 +373,8 @@ if sfp == 1 then
 					return false
 				end
                 local L2 = proxy.get("uci.wansensing.global.l2type")[1].value
-                if L2 == "SFP" then
+                local gponState = proxy.get("rpc.optical.Interface.1.Status")[1].value or ""
+                if L2 == "SFP" or gponState == "Dormant" then
                     return true
                 end
             else

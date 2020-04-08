@@ -1,5 +1,5 @@
 --pretranslated: do not change this file
- 
+
 -- Enable localization
 
 gettext.textdomain('webui-core')
@@ -29,13 +29,13 @@ local gpon_light_map = {
 <fieldset>\
   <legend>');  ngx.print( T"Physical link status" ); ngx.print('</legend>\
 \
-  ');  
+  ');
     local html = {}
     -- Label that shows gpon status
     html[#html + 1] = ui_helper.createLight(T"Status",nil, T(mapParams["gpon_state"]), { light = { class = gpon_light_map[gpon_status] } })
-    html[#html + 1] = ui_helper.createLabel(T"OpticalSignalLevel",T(mapParams["optical_signal_level"].." dBm/1000"))
-    html[#html + 1] = ui_helper.createLabel(T"TransmitOpticalLevel",T(mapParams["transmit_optical_level"].." dBm/1000"))
+    html[#html + 1] = ui_helper.createLabel(T"OpticalSignalLevel",(mapParams["optical_signal_level"]/1000).." dBm")
+    html[#html + 1] = ui_helper.createLabel(T"TransmitOpticalLevel",(mapParams["transmit_optical_level"]/1000).." dBm")
     ngx.print(html)
     ngx.print('\
 </fieldset>\
-'); 
+');

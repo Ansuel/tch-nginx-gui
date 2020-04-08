@@ -1,5 +1,5 @@
 --pretranslated: do not change this file
- 
+
 -- Enable localization
 gettext.textdomain('webui-core')
 
@@ -15,6 +15,7 @@ local post_helper = require("web.post_helper")
 
 local mapParams = {
       gpon_state = "rpc.optical.Interface.1.Status",
+      optical_signal_level = "rpc.optical.Interface.1.OpticalSignalLevel",
 }
 local mapValid = {
     gpon_state = function(value, object, key)
@@ -48,11 +49,15 @@ end
   ngx.print('\
 \
 ');  ngx.print( ui_helper.createCardHeader(T"Broadband", modalPath) ); ngx.print('\
-<div class="content">\
-  ');  
+<div class="content card_bg" data-bg-text="&#xf0b2;">\
+<div class="divtable">\
+');
     local html = {}
+      html[#html + 1] = format("<strong>%s</strong><br/>",T"GPON Status")
       html[#html + 1] = ui_helper.createSimpleLight(nil, gpon_state_map[gpon_status], { light = { class = gpon_light_map[gpon_status] } })
+      html[#html + 1] = '<p id="Line_Rate_Down" class="subinfos">&emsp; <i class="fas fa-certificate"></i>'..format('%.2f dBm', mapParams["optical_signal_level"]/1000).."</p>"
     ngx.print(html)
-    ngx.print('\
+
+ngx.print('\
 </div>\
-'); 
+</div>');

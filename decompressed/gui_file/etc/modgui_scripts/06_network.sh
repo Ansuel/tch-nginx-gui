@@ -87,7 +87,7 @@ puryfy_wan_interface() { #creano problemi di dns per chissa'  quale diavolo di 
 
 fix_dns_dhcp_bug() {
   logger_command "Fix DNS bug, make sure odhcp is enabled"
-	#SET odhcpd MAINDHCP to 0 to use dnsmasq for ipv4 
+	#SET odhcpd MAINDHCP to 0 to use dnsmasq for ipv4
 	if [ "$(uci get -q dhcp.odhcpd.maindhcp)" == "1" ]; then
     logger_command "Setting odhcpd not maindhcp"
 		uci set dhcp.odhcpd.maindhcp="0"
@@ -133,20 +133,6 @@ update_dhcp_config() {
 	fi
 	if [ ! "$(uci get -q dhcp.lan.ignore)" ]; then
 		uci set dhcp.lan.ignore='0'
-	fi
-}
-
-sfp_rework() {
-  logger_command "Reworking sfp interface in network config..."
-	if [ "$(uci get -q network.sfp)" ]; then
-		logger_command "Renaming sfp to sfptag..."
-		uci rename network.sfp=sfptag
-		class_target=10
-		if [ "$(uci get network.lan.ipaddr)" == "192.168.$class_target.1" ]; then
-			class_target=$class_target+10
-		fi
-		uci set network.sfptag.ipaddr=192.168.$class_target.1
-		touch /root/.sfp_change
 	fi
 }
 
