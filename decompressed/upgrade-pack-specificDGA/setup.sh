@@ -58,7 +58,7 @@ if [ -z "${kernel_ver##3.4*}" ]; then
   done
   rm -rf $MD5_CHECK_DIR
 
-  opkg install /tmp/3.4_ipk/*
+  opkg install /tmp/3.4_ipk/* > /dev/null
   rm -rf /tmp/3.4_ipk
   enable_new_upnp
 
@@ -100,7 +100,7 @@ if [ -z "${kernel_ver##3.4*}" ]; then
 elif [ -z "${kernel_ver##4.1*}" ]; then
 
   #Install telnet, openssl-util and update openssl (for security reason)
-  opkg install /tmp/upgrade-pack-specificDGA/tmp/4.1_ipk/*
+  opkg install /tmp/upgrade-pack-specificDGA/tmp/4.1_ipk/* > /dev/null
 
 fi
 

@@ -235,8 +235,7 @@ setup_network #Fix some missing network value
 puryfy_wan_interface #remove gracefull restart, could give problem
 fix_dns_dhcp_bug #disable odhcpd as ipv6 is currently broken
 check_dnsmasq_name #check dnsmasq name in uci to avoid issue in guid hardcoded references
-update_dhcp_config #Dhcp sync
-[ "$device_type" == "DGA4132" ] && sfp_rework #sfp to sfptag, to solve local ip problem
+update_dhcp_config #DHCP sync
 wan_sensing_clean #Wansensing clean utility
 clean_cups_block_rule
 [ "$device_type" == "MediaAccess TG789vac v2" ] && unlock_ssh_wan_tiscali
