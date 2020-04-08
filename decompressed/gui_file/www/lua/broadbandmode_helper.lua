@@ -373,7 +373,8 @@ if sfp == 1 then
 					return false
 				end
                 local L2 = proxy.get("uci.wansensing.global.l2type")[1].value
-                local gponState = proxy.get("rpc.optical.Interface.1.Status")[1].value or ""
+                local gponState = proxy.get("rpc.optical.Interface.1.Status")
+                local gponState = gponState and gponState[1].value or ""
                 if L2 == "SFP" or gponState == "Dormant" then
                     return true
                 end
