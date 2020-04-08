@@ -4,6 +4,25 @@
 
 kernel_ver="$(cat /proc/version | awk '{print $3}')"
 
+enable_new_upnp() {
+  logger_command "Checking UPnP.."
+	if [ -f /etc/init.d/miniupnpd ]; then
+		if [ "$(uci get -q upnpd.config.enable_upnp)" ]; then
+			if [ "$(uci get -q upnpd.config.enable_upnp)" == "1" ]; then
+        logger_command "Disabling miniupnpd-tch and redirecting to miniupnpd"
+				/etc/init.d/miniupnpd-tch stop
+				/etc/init.d/miniupnpd-tch disable
+				rm /etc/init.d/miniupnpd-tch
+				ln -s /etc/init.d/miniupnpd /etc/init.d/miniupnpd-tch
+				/etc/init.d/miniupnpd enable
+				if [ ! "$(pgrep "miniupnpd")" ]; then
+					/etc/init.d/miniupnpd restart
+				fi
+			fi
+		fi
+	fi
+}
+
 if [ -z "${kernel_ver##3.4*}" ]; then
 
   MD5_CHECK_DIR=/tmp/md5check
@@ -36,12 +55,12 @@ if [ -z "${kernel_ver##3.4*}" ]; then
     cp $file $orig_file
     rm $file
     RESTART_SERVICE=1
-
-    opkg install /tmp/3.4_ipk/*
-
   done
+  rm -rf $MD5_CHECK_DIR
 
-  [ -d $MD5_CHECK_DIR ] && rm -r $MD5_CHECK_DIR
+  opkg install /tmp/3.4_ipk/*
+  rm -rf /tmp/3.4_ipk
+  enable_new_upnp
 
   if [ ! -f /etc/config/dland ]; then
     touch /etc/config/dland
