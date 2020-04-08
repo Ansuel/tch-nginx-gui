@@ -4294,3 +4294,12 @@ msgid "<strong>%s cron rule</strong> active"
 msgid_plural "<strong>%s cron rules</strong> active"
 msgstr[0] "<strong>%s cron Regel</strong> aktiv"
 msgstr[1] "<strong>%s cron Regeln</strong> aktiv"
+
+msgid "Packets Discard"
+msgstr ""
+
+msgid "Interface Alias"
+msgstr ""
+
+msgid "Vendor Name"
+msgstr ""
