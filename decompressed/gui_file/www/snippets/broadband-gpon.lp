@@ -17,8 +17,8 @@ local mapParams = {
     bytes_received = "rpc.optical.Interface.1.Stats.BytesReceived",
     packets_sent = "rpc.optical.Interface.1.Stats.PacketsSent",
     packets_received = "rpc.optical.Interface.1.Stats.PacketsReceived",
-    discarderd_sent = "rpc.optical.Interface.1.Stats.DiscardPacketsSent",
-    discarderd_received = "rpc.optical.Interface.1.Stats.DiscardPacketsReceived",
+    discard_sent = "rpc.optical.Interface.1.Stats.DiscardPacketsSent",
+    discard_received = "rpc.optical.Interface.1.Stats.DiscardPacketsReceived",
     errors_sent = "rpc.optical.Interface.1.Stats.ErrorsSent",
     errors_received = "rpc.optical.Interface.1.Stats.ErrorsReceived",
 
@@ -48,9 +48,9 @@ local gpon_light_map = {
     html[#html + 1] = ui_helper.createLabel(T"TransmitOpticalLevel",(mapParams["transmit_optical_level"]/1000).." dBm")
     html[#html + 1] = ui_helper.createLabel(T"Vendor Name",mapParams["vendor_name"])
     html[#html + 1] = ui_helper.createLabel(T"Interface Alias",mapParams["interface_alias"])
-    html[#html + 1] = ui_helper.createLabel(T"Bytes", '<i class="fa fa-download"></i> '..mapParams["bytes_sent"]..'<i class="fa fa-upload"></i> '..mapParams["bytes_received"])
+    html[#html + 1] = ui_helper.createLabel(T"Bytes", '<i class="fa fa-download"></i> '..mapParams["bytes_received"]..'<i class="fa fa-upload"></i> '..mapParams["bytes_sent"])
     html[#html + 1] = ui_helper.createLabel(T"Packets", '<i class="fa fa-download"></i> '..mapParams["packets_received"]..'<i class="fa fa-upload"></i> '..mapParams["packets_sent"])
-    html[#html + 1] = ui_helper.createLabel(T"Packets Discard", '<i class="fa fa-download"></i> '..mapParams["discarderd_received"]..'<i class="fa fa-upload"></i> '..mapParams["discarderd_sent"])
+    html[#html + 1] = ui_helper.createLabel(T"Packets Discard", '<i class="fa fa-download"></i> '..mapParams["discard_received"]..'<i class="fa fa-upload"></i> '..mapParams["discard_sent"])
     html[#html + 1] = ui_helper.createLabel(T"Errors", '<i class="fa fa-download"></i> '..mapParams["errors_received"]..'<i class="fa fa-upload"></i> '..mapParams["errors_sent"])
     ngx.print(html)
     ngx.print('\

@@ -4296,10 +4296,10 @@ msgstr[0] "<strong>%s regola cron</strong> attiva"
 msgstr[1] "<strong>%s regole cron</strong> attive"
 
 msgid "Packets Discard"
-msgstr ""
+msgstr "Pacchetti scartati"
 
 msgid "Interface Alias"
-msgstr ""
+msgstr "Nome interfaccia"
 
 msgid "Vendor Name"
-msgstr ""
+msgstr "Marchio"
