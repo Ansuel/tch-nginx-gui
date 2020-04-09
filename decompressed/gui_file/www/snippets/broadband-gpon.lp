@@ -6,6 +6,18 @@ gettext.textdomain('webui-core')
 
 local ui_helper = require("web.ui_helper")
 local content_helper = require("web.content_helper")
+local format = string.format
+local tonumber = tonumber
+
+local iconUp = "<i class=\"icon-upload icon-large gray\"></i> "
+local iconDown = "<i class=\"icon-download icon-large gray\"></i> "
+local ajax_helper = require("web.ajax_helper")
+local ajax_attr = {
+    span = {
+        ["data-ajaxrefresh"] = "5",
+        class = "span4"
+    }
+}
 
 local mapParams = {
     gpon_state = "rpc.optical.Interface.1.Status",
@@ -24,6 +36,19 @@ local mapParams = {
 
 }
 content_helper.getExactContent(mapParams)
+
+ajax_helper.handleAjaxQuery({}, function(c)
+    local function notnil(path)
+        if path == nil or path == "" then
+            return "0"
+        end
+        return path
+    end
+    c.optical_bytes = format("%s %s %s %s", iconUp, notnil(mapParams.bytes_sent), iconDown, notnil(mapParams.bytes_received))
+    c.optical_packets = format("%s %s %s %s", iconUp, notnil(mapParams.packets_sent), iconDown, notnil(mapParams.packets_received))
+    c.optical_discard = format("%s %s %s %s", iconUp, notnil(mapParams.discard_sent), iconDown, notnil(mapParams.discard_received))
+    c.optical_errors = format("%s %s %s %s", iconUp, notnil(mapParams.errors_sent), iconDown, notnil(mapParams.errors_received))
+end)
 
 local gpon_status = "connecting"
 if mapParams.gpon_state == "Up" then
@@ -48,10 +73,36 @@ local gpon_light_map = {
     html[#html + 1] = ui_helper.createLabel(T"TransmitOpticalLevel",(mapParams["transmit_optical_level"]/1000).." dBm")
     html[#html + 1] = ui_helper.createLabel(T"Vendor Name",mapParams["vendor_name"])
     html[#html + 1] = ui_helper.createLabel(T"Interface Alias",mapParams["interface_alias"])
-    html[#html + 1] = ui_helper.createLabel(T"Bytes", '<i class="fa fa-download"></i> '..mapParams["bytes_received"]..'<i class="fa fa-upload"></i> '..mapParams["bytes_sent"])
-    html[#html + 1] = ui_helper.createLabel(T"Packets", '<i class="fa fa-download"></i> '..mapParams["packets_received"]..'<i class="fa fa-upload"></i> '..mapParams["packets_sent"])
-    html[#html + 1] = ui_helper.createLabel(T"Packets Discard", '<i class="fa fa-download"></i> '..mapParams["discard_received"]..'<i class="fa fa-upload"></i> '..mapParams["discard_sent"])
-    html[#html + 1] = ui_helper.createLabel(T"Errors", '<i class="fa fa-download"></i> '..mapParams["errors_received"]..'<i class="fa fa-upload"></i> '..mapParams["errors_sent"])
+
+    ajax_attr.span.id="optical_bytes"
+    html[#html + 1] =
+    ui_helper.createLabel(
+            T"Bytes",
+            format("%s %s %s %s", iconUp, mapParams["bytes_sent"], iconDown, mapParams["bytes_received"]),
+            ajax_attr
+    )
+    ajax_attr.span.id="optical_packets"
+    html[#html + 1] =
+    ui_helper.createLabel(
+            T"Packets",
+            format("%s %s %s %s", iconUp, mapParams["packets_sent"], iconDown, mapParams["packets_received"]),
+            ajax_attr
+    )
+    ajax_attr.span.id="optical_discard"
+    html[#html + 1] =
+    ui_helper.createLabel(
+            T"Packets Discard",
+            format("%s %s %s %s", iconUp, mapParams["discard_sent"], iconDown, mapParams["discard_received"]),
+            ajax_attr
+    )
+    ajax_attr.span.id="optical_errors"
+    html[#html + 1] =
+    ui_helper.createLabel(
+            T"Errors",
+            format("%s %s %s %s", iconUp, mapParams["errors_sent"], iconDown, mapParams["errors_received"]),
+            ajax_attr
+    )
+
     ngx.print(html)
     ngx.print('\
 </fieldset>\
