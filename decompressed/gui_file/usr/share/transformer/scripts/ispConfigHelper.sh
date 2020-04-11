@@ -145,15 +145,6 @@ firewall_specific_sip_rules_FASTWEB() {
 	fi
 }
 
-clean_FASTWEB_firewall_rule() {
-	for i in $(seq 1 18); do
-		uci del firewall.Allow_restricted_sip_"$i"
-	done
-	uci del firewall.Allow_ACS_1
-	uci del firewall.Allow_ACS_2
-	uci commit firewall
-}
-
 cwmp_specific_FASTWEB() {
 	logger_command "FASTWEB ISP detected, finding CWMP server..."
 	if  uci get -q versioncusto.override.fwversion_override | grep -q FW ; then
@@ -231,7 +222,6 @@ check_clean() {
 		uci set versioncusto.override.fwversion_override="$(uci get -q versioncusto.override.fwversion_override_old)"
 		uci del versioncusto.override.fwversion_override_old
 		uci commit versioncusto
-		clean_FASTWEB_firewall_rule
 	fi
 	if [ -n "$(uci get -q modgui.var.ppp_mgmt)" ] && [ "$1" != "TIM" ]; then
 		purify_from_tim
