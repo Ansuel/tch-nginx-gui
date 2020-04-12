@@ -1,3 +1,5 @@
+#!/sh/bash
+
 declare -a modular_dir=(
 	"base"
 	"gui_file"
@@ -26,6 +28,8 @@ if [ $CI == "true" ]; then
 		type="_preview"
 	elif [ $TYPE == "DEV" ]; then
 		type="_dev"
+	elif [ $TYPE != "STABLE" ]; then
+		type="_"$TYPE
 	fi
 fi
 
