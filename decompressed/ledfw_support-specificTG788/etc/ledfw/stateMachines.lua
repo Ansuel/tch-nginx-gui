@@ -118,7 +118,7 @@ stateMachines = {
             power_started = {
                 staticLed("power:orange", false),
                 staticLed("power:red", false),
-                staticLed("eco:blue", false),
+                staticLed("eco:blue", true),
                 staticLed("upgrade:blue", false),
                 staticLed("power:green", true)
             },
