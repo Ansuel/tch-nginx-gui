@@ -1,8 +1,8 @@
+#!/bin/sh
+
 # Copyright (C) 2018 kevdagoat (kevdawhirl@gmail.com)
 # Written by kevdagoat for tch-nginx-gui.
 
-
-#!/bin/sh
 ######################################################################
 DATE=$(date +%Y-%m-%d-%H%M)
 prod=$(uci get env.var.prod_name)

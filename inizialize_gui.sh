@@ -1,3 +1,5 @@
+#!/sh/bash
+
 declare -a modular_dir=(
 	"base"
 	"gui_file"
@@ -6,7 +8,6 @@ declare -a modular_dir=(
 	"upgrade-pack-specificTG800"
 	"upgrade-pack-specificTG789"
 	"upgrade-pack-specificTG789Xtream35B"
-	"custom-ripdrv-specificDGA"
 	"telstra_gui"
 	"ledfw_support-specificTG788"
 	"ledfw_support-specificTG789"
@@ -27,6 +28,8 @@ if [ $CI == "true" ]; then
 		type="_preview"
 	elif [ $TYPE == "DEV" ]; then
 		type="_dev"
+	elif [ $TYPE != "STABLE" ]; then
+		type="_"$TYPE
 	fi
 fi
 

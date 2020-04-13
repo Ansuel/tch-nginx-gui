@@ -1,3 +1,5 @@
+#!/bin/sh
+
 . /etc/init.d/rootdevice
 
 extract_with_check() {
@@ -115,6 +117,9 @@ EOF
 		;;
 	esac
 	fi
+
+  # Remove non-existent hardcoded distfeed to avoid 404 on opkg update
+  [ -f /etc/opkg/distfeeds.conf ] && sed -i '/15.05.1\/brcm63xx-tch/d' /etc/opkg/distfeeds.conf
 }
 
 ledfw_extract() {
@@ -192,30 +197,6 @@ ledfw_rework_TG800() {
 #
 #}
 
-remove_downgrade_bit() {
-  logger_command "Checking downgrade limitation bit"
-  if [ "$(uci get -q env.rip.board_mnemonic)" == "VBNT-S" ] &&
-    [ "$(uci get -q env.var.prod_number)" == "4132" ] &&
-    [ -f /proc/rip/0123 ]; then
-    logger_command "Downgrade limitation bit detected... Removing..."
-    rmmod keymanager
-    rmmod ripdrv
-    mv /lib/modules/3.4.11/ripdrv.ko /lib/modules/3.4.11/ripdrv.ko_back
-    mv /tmp/ripdrv.ko /lib/modules/3.4.11/ripdrv.ko
-    insmod ripdrv
-    echo 0123 >/proc/rip/delete
-    echo 0122 >/proc/rip/delete
-    rmmod ripdrv
-    logger_command "Restoring original driver"
-    rm /lib/modules/3.4.11/ripdrv.ko
-    mv /lib/modules/3.4.11/ripdrv.ko_back /lib/modules/3.4.11/ripdrv.ko
-    insmod ripdrv
-    insmod keymanager
-  elif [ -f /tmp/ripdrv.ko ]; then
-    rm /tmp/ripdrv.ko
-  fi
-}
-
 install_specific() {
   if ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then
     logger_command "Applying specific model fixes..."
@@ -241,7 +222,7 @@ kernel_ver="$(< /proc/version awk '{print $3}')"
 
 
 [ -z "${device_type##*DGA413*}" ] && apply_right_opkg_repo #Check opkg conf based on version
-if [ -z "${device_type##*TG788*}" ] && [ -z "${device_type##*TG789*}" ] && [ -n "${device_type##*Xtream*}" ]; then
+if [ -z "${device_type##*TG78*}" ] && [ -n "${device_type##*Xtream*}" ]; then
   apply_right_opkg_repo TG78
 fi
 if [ -z "${device_type##*TG789*}" ] && [ -z "${device_type##*Xtream*}" ]; then
@@ -279,8 +260,12 @@ uci commit modgui
 
 [ -z "${device_type##*TG788*}" ] && remove_wizard_5ghz
 
-#Use custom driver to remove this... thx @Roleo
-[ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*DGA413*}" ] && remove_downgrade_bit
+if [ -f /proc/rip/0122 ]; then
+  logger_command "WARNING! RIP_ID_RESTRICTED_DOWNGR_TS detected!!"
+fi
+if [ -f /proc/rip/0123 ]; then
+  logger_command "WARNING! RIP_ID_RESTRICTED_DOWNGR_OPT detected!!"
+fi
 
 #Fix led issues
 if [ -z "${device_type##*DGA4131*}" ]; then
@@ -300,9 +285,4 @@ else
     uci set ledfw.wifi.nsc_on='1'
     uci commit ledfw
   fi
-fi
-
-if [ -f /tmp/custom-ripdrv-specificDGA.tar.bz2 ]; then
-  logger_command "Removing specific packages from tmp..."
-  rm /tmp/*specific*.tar.bz2
 fi

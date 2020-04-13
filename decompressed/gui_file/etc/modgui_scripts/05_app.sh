@@ -1,3 +1,5 @@
+#!/bin/sh
+
 . /etc/init.d/rootdevice
 
 check_new_dlnad() {
@@ -33,14 +35,14 @@ trafficmon_support() {
 		killall trafficdata 2>/dev/null
 		rm -rf /root/trafficmon
 	fi
-	
+
 	if [ -n "$(< /etc/crontabs/root grep trafficmon)" ]; then
 		killall trafficmon 2>/dev/null
 		killall trafficdata 2>/dev/null
 		sed -i '/trafficmon/d' /etc/crontabs/root
 		sed -i '/trafficdata/d' /etc/crontabs/root
 	fi
-	
+
 	if [ -f /etc/init.d/trafficmon ] && [ ! -f /etc/rc.d/S99trafficmon ]; then
 		/etc/init.d/trafficmon enable
 		if [ ! -f /var/run/trafficmon.pid ]; then
@@ -54,22 +56,6 @@ trafficmon_support() {
 		fi
 	fi
 
-}
-
-enable_new_upnp() {
-  logger_command "Enable new upnp"
-	if [ -f /etc/init.d/miniupnpd ]; then
-		if [ "$(uci get -q upnpd.config.enable_upnp)" ]; then
-			if [ "$(uci get -q upnpd.config.enable_upnp)" == "1" ]; then
-				/etc/init.d/miniupnpd-tch stop
-				/etc/init.d/miniupnpd-tch disable
-				/etc/init.d/miniupnpd enable
-				if [ ! "$(pgrep "miniupnpd")" ]; then
-					/etc/init.d/miniupnpd restart
-				fi
-			fi
-		fi
-	fi
 }
 
 check_aria_dir() {
@@ -88,7 +74,7 @@ telstra_support_check() {
 	fi
 	if [ -f /tmp/telstra_gui.tar.bz2 ]; then
 		if [ "$(uci get -q modgui.app.telstra_webui)" == "1" ]; then
-			bzcat /tmp/telstra_gui.tar.bz2 | tar -C / -xf - 
+			bzcat /tmp/telstra_gui.tar.bz2 | tar -C / -xf -
 		fi
 		rm /tmp/telstra_gui.tar.bz2
 	fi
@@ -99,7 +85,6 @@ device_type="$(uci get -q env.var.prod_friendly_name)"
 
 trafficmon_support #support trafficmon
 [ -z "${device_type##*DGA413*}" ] && check_new_dlnad #this enable a new dlna deamon introduced with 17.1, the old one is keep
-[ -z "${device_type##*DGA413*}" ] && enable_new_upnp #New upnp fix
 logger_command "Move Aria2 dir"
 check_aria_dir #Fix config function
 logger_command "Reinstalling Telstra GUI if needed..."

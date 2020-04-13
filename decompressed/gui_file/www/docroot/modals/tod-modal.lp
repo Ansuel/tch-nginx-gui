@@ -12,6 +12,7 @@ local tod = parental_helper.getTod()
 local tod_columns, tod_default, tod_valid, tod_sort_func, tod_mac_to_hostname =
       tod.columns, tod.default, tod.valid, tod.sort_func, tod.mac_to_hostname
 local uniqueKey = post_helper.getRandomKey()
+local session = ngx.ctx.session
 local tod_options = {
     tableid     = "tod",
     basepath    = "uci.tod.host.@.",
@@ -31,6 +32,14 @@ local tod_options = {
 -- @param #key validation key name
 -- @return #boolean or nil+error message
 local function todRuleVerification(value, object, key)
+  if object.action == "TABLE-MODIFY" or object.action == "TABLE-EDIT" then
+    local current_index = tonumber(object.index) or -1
+    local allowedIndexes = session:retrieve(tod_options.tableid .. ".allowedindexes") or {}
+    current_index = allowedIndexes[current_index] and allowedIndexes[current_index].paramindex or -1
+    if current_index ~= -1 then
+      object.index = current_index
+    end
+  end
    local retVal, errorMsg = parental_helper.validateTodRule(value, object, key, "AccessControl")
    if not retVal then
       message_helper.pushMessage(format("%s",errorMsg), "error")

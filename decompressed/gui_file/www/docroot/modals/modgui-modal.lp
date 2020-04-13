@@ -93,7 +93,7 @@ end
 local function sendcmd(cmd)
 	proxy.set("rpc.system.modgui.utility.sendcmd", cmd)
 	ngx.header.content_type = "application/json"
-	ngx.print('{ "success":"true" }')
+	ngx.print('{"success":"true"}')
 	ngx.timer.at(0, function()
 		proxy.apply()
 	end)
@@ -104,23 +104,25 @@ local function upgradeguifile()
 
 	local update_branch = proxy.get("uci.modgui.gui.update_branch")
 	local filename
-	if update_branch and ( update_branch[1].value == "dev" ) then
-		filename = "GUI_dev.tar.bz2"
+	if update_branch and update_branch[1].value ~= "stable" and update_branch[1].value ~= "" then
+		filename = "GUI_"..untaint(update_branch[1].value)..".tar.bz2"
 	else
 		filename = "GUI.tar.bz2"
 	end
 
 	local fwupgrade_location = "/tmp/"
 
-
 	-- flush the web template cache
 	lp.flush()
-
 	local dl = untaint(fwupgrade_location) .. filename
-
 	local rcv_ok, rcv_errno, rcv_errmsg = receive_file(dl, 'name="upgradefile"')
-
-	sendcmd("upgradegui_terminate")
+	if rcv_ok then
+		ngx.print('{"success":"true"}')
+		ngx.exit(ngx.HTTP_OK)
+	else
+		ngx.print('{"error":"'..rcv_errmsg..'"}')
+		ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+	end
 end
 
 local function getSupportedModel()
@@ -150,8 +152,13 @@ local function installspecificapp()
 
 	local rcv_ok, rcv_errno, rcv_errmsg = receive_file(dl, 'name="specificapp_file"')
 
-	proxy.set("uci.modgui.app.specific_app","1")
-	sendcmd("install_specificapp")
+	if rcv_ok then
+		ngx.print('{"success":"true"}')
+		ngx.exit(ngx.HTTP_OK)
+	else
+		ngx.print('{"error":"'..rcv_errmsg..'"}')
+		ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+	end
 end
 
 local function restoreFromSysupgradeBackup()
@@ -164,7 +171,7 @@ local function restoreFromSysupgradeBackup()
 
 	--sendcmd("restoreSysupgradeBackup")
 	ngx.header.content_type = "application/json"
-	ngx.print('{ "success":"true" }')
+	ngx.print('{"success":"true"}')
 	ngx.timer.at(0, function()
 		proxy.apply()
 	end)
@@ -179,29 +186,30 @@ local function genSysupgradeBackup()
 
 	proxy.set("rpc.system.modgui.utility.sendcmd", "genSysupgradeBackup_"..filename)
 	wait_for_completion("rpc.system.modgui.executeCommand.")
-    
+
     -- return exported data
 	if filename ~= "" then
 		ngx.header.content_disposition = "attachment; filename="..filename
 		ngx.header.content_type = "application/octet-stream"
 		ngx.header.set_cookie = "fileDownload=true; Path=/"  -- the JS download code requires this cookie
 		local f = io.open("/tmp/"..filename, "r")
-		if f then 
+		if f then
 			ngx.print(f:read("*all"))
 			f:close()
 			os.remove("/tmp/"..filename)
-		
+
 			-- and we're done
 			ngx.exit(ngx.HTTP_OK)
 		end
 	end
-	
+
 	ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
 end
 
 if ngx.req.get_method() == "POST" then
 	-- now process file POSTs
-	local action = ngx.req.get_uri_args().action
+	local post_args = ngx.req.get_uri_args()
+	local action = post_args.action
 	if action == "upgradeguifile" then
 		return upgradeguifile()
 	end
@@ -220,8 +228,13 @@ if ngx.req.get_method() == "POST" then
 		return sendcmd("upgradegui_terminate")
 	end
 	if action == "system_install_specificapp" then
-		proxy.set("uci.modgui.app.specific_app","1")
-		return sendcmd("install_specificapp")
+		proxy.set("rpc.system.modgui.app.sendcmd", "install_specificapp_"..getSupportedModel())
+		ngx.header.content_type = "application/json"
+		ngx.print('{"success":"true"}')
+		ngx.timer.at(0, function()
+			proxy.apply()
+		end)
+		ngx.exit(ngx.HTTP_OK)
 	end
 	if action == "system_remove_root" then
 		return sendcmd("removeroot")
@@ -234,6 +247,12 @@ if ngx.req.get_method() == "POST" then
 	end
 	if action == "system_genBackup" then
 		return genSysupgradeBackup()
+	end
+	if action == "checkver" then
+		return sendcmd("checkver")
+	end
+	if action == "getVendor" then
+		return sendcmd("getVendor_".. post_args.mac .."_sync")
 	end
 	if proxy.get("uci.web.sessionmgr.@default.force_https")[1].value ~= ngx.req.get_post_args().gui_forcehttps then
 		local mngr = require("web.sessioncontrol").loadmgr("default")
@@ -804,7 +823,7 @@ ngx.print('\
 	  params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
 	  completeCallback: function(form, response) {\
 		if (response.success) {\
-		  tch.openModal("/modals/command-log-read-modal.lp");\
+		  modgui.postAction("system_upgrade_gui",1);\
 		} else {\
 		  importing_msg.addClass("hide");\
 		  $("#upgrade-gui-fail").removeClass("hide");\
@@ -847,7 +866,7 @@ ngx.print('\
 	  params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
 	  completeCallback: function(form, response) {\
 		if (response.success) {\
-		  tch.openModal("/modals/command-log-read-modal.lp");\
+		  modgui.postAction("system_install_specificapp",1);\
 		} else {\
 		  importing_msg.addClass("hide");\
 		  $("#upgrade-specificapp-fail").removeClass("hide");\

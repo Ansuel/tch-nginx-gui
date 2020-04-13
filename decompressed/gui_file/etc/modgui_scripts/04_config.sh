@@ -14,7 +14,22 @@ check_webui_config() {
   if [ "$(uci get -q wireless.global.wifi_analyzer_disable)" ]; then
     if [ "$(uci get -q wireless.global.wifi_analyzer_disable)" != "0" ]; then
       uci set wireless.global.wifi_analyzer_disable='0'
+      uci commit wireless
     fi
+  fi
+
+  # Some devices/fw (ie TG789MYRvac v2 HP) have the bandsteer configuration not inizialized, check if is a dual radio device and inizialize vars if missing
+  if [ ! "$(uci get -q wireless.@wifi-bandsteer[0])" ] && [ "$(uci get -q wireless.@wifi-device[1])" ]; then
+    logger_command "Adding bandsteer wifi settings"
+    uci set wireless.bs0=wifi-bandsteer
+    uci set  wireless.bs0.sta_comeback_to='5'
+    uci set  wireless.bs0.no_powersave_steer='0'
+    uci set  wireless.bs0.rssi_threshold='-60'
+    uci set  wireless.bs0.debug_flags='0'
+    uci set  wireless.bs0.policy_mode='5'
+    uci set  wireless.bs0.monitor_window='5'
+    uci set  wireless.bs0.rssi_5g_threshold='-80'
+    uci commit wireless
   fi
 }
 
@@ -171,7 +186,8 @@ create_gui_type() {
   elif [ "$(uci get -q modgui.app.blacklist_app)" = "1" ] &&
     [ ! -f /www/docroot/modals/mmpbx-contacts-modal.lp.orig ] &&
     [ -f /usr/share/transformer/scripts/appInstallRemoveUtility.sh ]; then
-    /usr/share/transformer/scripts/appInstallRemoveUtility.sh install blacklist
+    logger_command "Reinstalling blacklist app after upgrade..."
+    /usr/share/transformer/scripts/appInstallRemoveUtility.sh install blacklist >/dev/null
   fi
 }
 
@@ -318,8 +334,8 @@ mobiled_lib_add() {
     mv /tmp/scripthelpers.lua /usr/lib/lua/mobiled/scripthelpers.lua
   fi
 
-  if uci get -q version.@version[0].marketing_version | grep -q 16 #need to replace on old fw otherwise will ignore enabled status
-  then
+	marketing_version="$(uci get -q version.@version[0].marketing_version)"
+  if [ -z "${marketing_version##16*}" ]; then #need to replace on old fw (16.x) otherwise will ignore enabled status
     logger_command "Replacing /etc/init.d/mobiled ..."
     mv /tmp/mobiled /etc/init.d/mobiled
     /etc/init.d/mobiled restart
@@ -343,8 +359,8 @@ mobiled_lib_add() {
   fi
   [ -f /tmp/ltedoctor ] && rm /tmp/ltedoctor
 
-  major_system_version="$(uci get version.@version[0].marketing_version | sed 's#\.##')"
-  if [ "$major_system_version" -lt 173 ]; then
+  major_system_version="$(uci get version.@version[0].marketing_version | sed 's#\.##' | grep -o -E '[0-9]+')"
+  if [ "$major_system_version" -lt 173 ]; then #if fw <17.3
     #Restore original lte-doctor related webui files
     cp /rom/www/docroot/ajax/radioparameters.lua /www/docroot/ajax/radioparameters.lua
     cp /rom/www/docroot/modals/lte-doctor.lp /www/docroot/modals/lte-doctor.lp
@@ -461,7 +477,7 @@ cumulative_check_gui() {
     logger_command "Can't generate GUI hash, file not found!"
     gui_hash="0"
   fi
-  
+
   saved_gui_version=$(uci get -q modgui.gui.gui_version | cut -d'-' -f1)
   clean_version_gui=$(echo "$version_gui" | cut -d'-' -f1)
 
@@ -593,7 +609,7 @@ logger_command "Check Dropbear config file"
 dropbear_config_check #check dropbear config
 logger_command "Check eco paramaters"
 eco_param #This disable eco param as they introduce some latency
-logger_command "Create GUI type in config"
+logger_command "Add app-extension var in modgui uci config"
 create_gui_type #Gui Type
 logger_command "Add new web options"
 add_new_web_rule #This check new option so that we don't replace the one present
@@ -613,8 +629,9 @@ fcctlsettings_daemon #Adds fast cache options
 logger_command "Checking if wan_mode option exists..."
 check_wan_mode        # wan_mode check
 dosprotect_inizialize #dosprotected inizialize function
-logger_command "Checking if intercept is enabled and disabling if it is..."
+logger_command "Checking mobiled libs..."
 mobiled_lib_add
+logger_command "Checking if intercept is enabled and disabling if it is..."
 disable_intercept #Intercept check
 logger_command "Disabling coredump reboot..."
 disable_upload_coredump_and_reboot

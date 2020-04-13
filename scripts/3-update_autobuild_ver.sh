@@ -1,9 +1,13 @@
+#!/sh/bash
+
 if [ $CI == "true" ]; then
 	TYPE="$(cat $HOME/gui_build/data/type)"
 	if [ $TYPE == "PREVIEW" ]; then
 		type="_preview"
 	elif [ $TYPE == "DEV" ]; then
 		type="_dev"
+	elif [ $TYPE != "STABLE" ]; then
+		type="_"$TYPE
 	fi
 fi
 md5sum=$(md5sum compressed/GUI$type.tar.bz2 | awk '{print $1}')
@@ -27,23 +31,28 @@ cp compressed/GUI$type.tar.bz2 $HOME/gui-dev-build-auto/ -r;
 cd $HOME/gui-dev-build-auto/;
 
 if [ $CI == "true" ]; then
-	if [ ~/gui_build/data/type ]; then
-		build_type_name=$(cat ~/gui_build/data/type)
-		if [ $build_type_name == "STABLE" ]; then
-			echo $version > stable.version
-		elif  [ $build_type_name == "PREVIEW" ]; then
-			echo $version > preview.version
-		fi
-	else
-		build_type_name="DEV"
+	build_type_name=$(cat ~/gui_build/data/type)
+	
+	if [ $build_type_name == "STABLE" ]; then
+		echo $version > stable.version
+	elif  [ $build_type_name == "PREVIEW" ]; then
+		echo $version > preview.version
+	elif [ $build_type_name != "DEV" ]; then
+		echo $version > $build_type_name.version
 	fi
+
+	if [ $build_type_name == "PREVIEW" ] || [ $build_type_name == "STABLE" ] || [ $build_type_name == "DEV" ]; then
+		git add -A;
+		echo $version > latest.version
+	else
+		git add $build_type_name.version GUI$type.tar.bz2
+	fi
+
 	commit_link=https://github.com/Ansuel/tch-nginx-gui/commit/$CIRCLE_SHA1
+
+	git commit -m "[$build_type_name] Version: $version Commit: $commit_link";
+	git push origin master;
+
 fi
-
-echo $version > latest.version
-
-git add -A;
-git commit -a -m "[$build_type_name] Version: $version Commit: $commit_link";
-git push origin master;
 
 echo "Done.";

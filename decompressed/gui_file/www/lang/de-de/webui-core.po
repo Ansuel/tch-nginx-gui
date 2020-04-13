@@ -2207,11 +2207,11 @@ msgstr "Telnet aktiviert"
 msgid "Temporary"
 msgstr "Temporär"
 
-msgid "The <strong>incoming policy</strong> defines what is done with packets destined to the gateway. They can be either REJECTED (the gateway will notify the sender they were rejected) or DROPPED (the gateway will silently discard those packets)."
-msgstr "Das <strong>Eingehende Standardverhalten</strong> definiert, was mit Paketen geschieht, die an das Gateway adressiert sind. Diese können entweder ABGELEHNT oder VERWORFEN werden."
+msgid "The <strong>incoming policy</strong> defines what is done with packets destined to the gateway.<br/>They can be either REJECTED (the gateway will notify the sender they were rejected) or DROPPED (the gateway will silently discard those packets)."
+msgstr "Das <strong>Eingehende Standardverhalten</strong> definiert, was mit Paketen geschieht, die an das Gateway adressiert sind.<br/>Diese können entweder ABGELEHNT oder VERWORFEN werden."
 
-msgid "The <strong>outgoing policy</strong> defines what is done with packets coming from the LAN devices toward the internet. Setting it to REJECT or DROP will forbid any internet traffic from the LAN unless explicitly allowed by a firewall rule."
-msgstr "Das <strong>Ausgehende Standardverhalten</strong> definiert, was mit Paketen geschieht, die vom LAN ins Internet gerichtet sind. Bei ABGELEHNEN oder VERWERFEN wird standardmäßig jeder Verkehr verboten, es sei denn, eine explizite Regel erlaubt dies."
+msgid "The <strong>outgoing policy</strong> defines what is done with packets coming from the LAN devices toward the internet.<br/>Setting it to REJECT or DROP will forbid any internet traffic from the LAN unless explicitly allowed by a firewall rule."
+msgstr "Das <strong>Ausgehende Standardverhalten</strong> definiert, was mit Paketen geschieht, die vom LAN ins Internet gerichtet sind.<br/>Bei ABGELEHNEN oder VERWERFEN wird standardmäßig jeder Verkehr verboten, es sei denn, eine explizite Regel erlaubt dies."
 
 msgid "The Backup file you try to load has not been taken from the actual SW-Release, please use correct Backup File"
 msgstr "Die Sicherungsdatei, die Sie zu laden versuchen, passt nicht zum aktuellen Software-Stand, bitte nutzen Sie die korrekte Sicherungsdatei"
@@ -2564,7 +2564,7 @@ msgstr "WPS Modus"
 msgid "Wake on LAN & WAN"
 msgstr "Wake-On-LAN über das Internet"
 
-msgid "We don't have any driver for this modem, please report them to the github page. "
+msgid "We don't have any driver for this modem, please report them to the GitHub page. "
 msgstr "Für dieses Modem haben wir keine driver, bitte melden Sie das auf der GitHub Seite "
 
 msgid "Webui on: "
@@ -4244,53 +4244,62 @@ msgid "Starting"
 msgstr "Startend"
 
 msgid "Init Management"
-msgstr ""
+msgstr "Init Verwaltung"
 
 msgid "Disable"
-msgstr ""
+msgstr "Abschalten"
 
 msgid "Stop Order"
-msgstr ""
+msgstr "Beende Auftrag"
 
 msgid "Toggle"
-msgstr ""
+msgstr "Umschalten"
 
 msgid "Start Order"
-msgstr ""
+msgstr "Starte Auftrag"
 
 msgid "Don't randomly disable or restart Init Process. Some Init are crucial for the correct boot of the device."
-msgstr ""
+msgstr "Schalten Sie nicht ohne Grund Init Prozesse ab oder starten sie neu. Einige davon werden für den korrekten Start des Geräts benötigt."
 
 msgid "Command"
-msgstr ""
+msgstr "Befehl"
 
 msgid "Day"
-msgstr ""
+msgstr "Tag"
 
 msgid "Month"
-msgstr ""
+msgstr "Monat"
 
 msgid "Hour"
-msgstr ""
+msgstr "Stunde"
 
 msgid "Command input can't be empty"
-msgstr ""
+msgstr "Befehlseingabe darf nicht leer sein"
 
 msgid "Week"
-msgstr ""
+msgstr "Woche"
 
 msgid "Cron Management"
-msgstr ""
+msgstr "Cron Verwaltung"
 
 msgid "Minute"
-msgstr ""
+msgstr "Minute"
 
 msgid "<strong>%s init script</strong> active"
 msgid_plural "<strong>%s init scripts</strong> active"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "<strong>%s init Skript</strong> aktiv"
+msgstr[1] "<strong>%s init Skriptecripts</strong> aktiv"
 
 msgid "<strong>%s cron rule</strong> active"
 msgid_plural "<strong>%s cron rules</strong> active"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "<strong>%s cron Regel</strong> aktiv"
+msgstr[1] "<strong>%s cron Regeln</strong> aktiv"
+
+msgid "Packets Discard"
+msgstr ""
+
+msgid "Interface Alias"
+msgstr ""
+
+msgid "Vendor Name"
+msgstr ""

@@ -27,8 +27,8 @@
 START=94
 EXTRA_COMMANDS="force debug"
 EXTRA_HELP="\
-        force   Force root process even when root flag is already set
-        debug   force command with debug log
+        force   Force install GUI even if looks already installed
+        debug   Force install GUI with also debug logs
 "
 #Gui version is now autocompleted base on latest dev, this variable will be replaced by the automatic script
 version_gui=TO_AUTO_COMPLETE
@@ -38,10 +38,10 @@ latest_version_on_TIM_cwmp="2.2.0"
 logo_project() {
   cat <<EOF >/dev/console
 
- █████╗ ███╗   ██╗███████╗██╗   ██╗███████╗██╗     
-██╔══██╗████╗  ██║██╔════╝██║   ██║██╔════╝██║     
-███████║██╔██╗ ██║███████╗██║   ██║█████╗  ██║     
-██╔══██║██║╚██╗██║╚════██║██║   ██║██╔══╝  ██║     
+ █████╗ ███╗   ██╗███████╗██╗   ██╗███████╗██╗
+██╔══██╗████╗  ██║██╔════╝██║   ██║██╔════╝██║
+███████║██╔██╗ ██║███████╗██║   ██║█████╗  ██║
+██╔══██║██║╚██╗██║╚════██║██║   ██║██╔══╝  ██║
 ██║  ██║██║ ╚████║███████║╚██████╔╝███████╗███████╗
 ╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝ ╚═════╝ ╚══════╝╚══════╝
 (Modified Gui RootScript)                  (Christo)
@@ -49,13 +49,13 @@ logo_project() {
 EOF
 
   logger <<EOF
-                                    _ 
+                                    _
     /\  (Modified Gui RootScript)  | |
    /  \    _ __   ___  _   _   ___ | |
   / /\ \  | '_ \ / __|| | | | / _ \| |
  / ____ \ | | | |\__ \| |_| ||  __/| |
 /_/    \_\|_| |_||___/ \__,_| \___||_|
-                            (Christo) 
+                            (Christo)
 EOF
 }
 
@@ -147,7 +147,7 @@ root() {
   uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not
   logger_command "Reset unlock bit"
   uci set env.var.unlockedstatus='0'
-  
+
   [ -f /etc/modgui_old ] && mv /etc/modgui_old /etc/config/modgui
 
   encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)

@@ -4,8 +4,8 @@ local ngx = ngx
 
 local data = {}
 
-local upgradegui_path = "rpc.system.modgui.executeCommand."
-data["state"] = proxy.get(upgradegui_path.."state")[1].value
+local commandstatus = proxy.get("rpc.system.modgui.executeCommand.state")
+data["state"] = commandstatus and commandstatus[1] and commandstatus[1].value or "Mapper Error"
 
 local action = { 
 	Checking = function()

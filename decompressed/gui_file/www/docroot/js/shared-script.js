@@ -8,13 +8,13 @@ var modgui = modgui || {};
 		tch.showProgress(waitMsg);
 		window.location.reload(true);
 	}
-	function postAction(action,logModal, customCloseAction) {
+	function postAction(action, logModal, customCloseAction, customTarget) {
 		var onClose = ( typeof customCloseAction === "function" ) && customCloseAction || function() {
 			tch.showProgress(waitMsg);
 			window.location.reload(true);
 		}
 
-		var target = $(".modal form").attr("action");
+		var target = customTarget ? customTarget : $(".modal form").attr("action");
 		$.post(
 			target, {
 				action: action,
@@ -110,7 +110,7 @@ var modgui = modgui || {};
 		$(".check_update").on("click", function (e) {
 			e.stopPropagation();
 			if(KoRequest.CheckVer) return;
-			postAction("checkver");
+			postAction("checkver", null, null, '/modals/modgui-modal.lp?auto_update=true');
 			$(".check_update_spinner").addClass("fa-spin");
 				KoRequest.CheckVer = {
 					interval : setInterval(function () {
@@ -163,18 +163,45 @@ var modgui = modgui || {};
 			$("#scroll-down").removeClass("hide");
 		}
 	}
-	
+
 	function clearKoInterval() {
 		Object.keys(KoRequest).forEach(function(interval) {
 			if(KoRequest[interval])
 				clearInterval(KoRequest[interval].interval);
 		});
 	}
-	
+
 	function restartKoInterval() {
 		Object.keys(KoRequest).forEach(function(interval) {
 			if(KoRequest[interval])
 				KoRequest[interval].interval = setInterval(KoRequest[interval].function,KoRequest[interval].refreshTime,KoRequest[interval].binding);
+		});
+	}
+
+	// Resolve mac to vendor
+	// Take mac and the JQuery div object to put the vendor
+	function getVendorFromMac(mac, div) {
+		div.addClass("fa fa-sync fa-spin");
+		$.post(
+			'/modals/modgui-modal.lp?auto_update=true', {
+				action: 'getVendor',
+				mac: mac,
+				CSRFtoken: $("meta[name=CSRFtoken]").attr("content")
+			},
+			null,
+			"json"
+		);
+		$.ajax({
+			url: "/get_vendor?auto_update=true",
+			dataType: 'json',
+			error: function() {
+				div.removeClass("fa fa-sync fa-spin");
+				div.text('Error');
+			},
+			success: function (data) {
+				div.removeClass("fa fa-sync fa-spin");
+				div.text(data.company || 'Unknown');
+			}
 		});
 	}
 
@@ -184,7 +211,8 @@ var modgui = modgui || {};
 	module.freshStyle = freshStyle,
 	module.scrollFunction = scrollFunction,
 	module.clearKoInterval = clearKoInterval,
-	module.restartKoInterval = restartKoInterval
+	module.restartKoInterval = restartKoInterval,
+	module.getVendorFromMac = getVendorFromMac
 }
 (modgui);
 
@@ -198,6 +226,18 @@ $(function () {
 		$("html, body").animate({
 			scrollTop: $($(this).attr("href")).offset().top
 		}, 500, "linear");
+	});
+
+	$(document).on('mouseenter', 'td[data-toggle="tooltip_mac"]', function () {
+		var elem = this;
+		var mac = $(elem).children("#mac_data").text();
+		$(elem).append('<div class="tooltip bottom fade in"><div class="tooltip-arrow"></div><div class="tooltip-inner">'+
+		mac+'</br>'+
+		'<div data-type="vendor"></div>'
+		+'</div></div>');
+		modgui.getVendorFromMac(mac,$(elem).children('.tooltip').children('.tooltip-inner').children('div[data-type="vendor"]'));
+	}).on('mouseleave', 'td[data-toggle="tooltip_mac"]', function () {
+		$('.tooltip').remove();
 	});
 
 	if (gui_var.randomcolor == "1") {
