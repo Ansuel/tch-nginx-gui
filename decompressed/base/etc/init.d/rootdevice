@@ -231,8 +231,8 @@ install_gui() {
   logger -s -t 'Root Script' "Installing in progress..."
 
   logger_command "Start rooting"
-  if [ ! -f /root/.check_process ]; then #this check if the placeholder exist
-    touch /root/.check_process #this is a placeholder to know if the process ends correctly
+  if [ ! -f /root/.install_gui ]; then #this check if the placeholder exist
+    touch /root/.install_gui #this is a placeholder to know if the install process ends correctly (removed by 99_postreq.sh)
   fi
 
   root #This check root availability
@@ -344,11 +344,8 @@ boot() {
     disable_upload_coredump_and_reboot
   fi
 
-  if [ -f /root/.check_process ]; then
-    echo "  GUI install process not terminated well! Reinstalling..." >/dev/console
-    install_gui
-  elif [ -f /root/.install_gui ]; then
-    echo "  detected reinstall GUI request! Installing..." >/dev/console
+  if [ -f /root/.install_gui ]; then
+    echo "  detected install GUI request! Installing..." >/dev/console
     install_gui
   else
     if [ $force -eq 1 ]; then

@@ -59,7 +59,7 @@ logger_command "Resetting cwmp and watchdog"
 /etc/init.d/watchdog-tch start
 
 #This should comunicate the gui that the upgrade has finished.
-rm /root/.check_process #we remove the placeholder as the process is complete
+rm /root/.install_gui #we remove the placeholder as the process is complete
 logger_command "Process done."
 
 logger_command "Restarting transformer" ConsoleOnly
