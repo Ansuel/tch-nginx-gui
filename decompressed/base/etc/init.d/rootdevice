@@ -69,7 +69,7 @@ logger_command() {
 #################################################
 
 disable_upload_coredump_and_reboot() {
-  #disable upload to tim server for coredump...
+  #disable upload of coredump...
   #This is a modified build so let's not full server with false coredump.
   if [ "$(uci get -q system.@coredump[0].action)" != "ignore" ]; then
     uci set system.@coredump[0].action="ignore"
@@ -186,8 +186,6 @@ install_gui() {
     touch /root/.install_gui #this is a placeholder to know if the install process ends correctly (removed by 99_postreq.sh)
   fi
 
-  root #This check root availability
-
   if [ -d /etc/modgui_scripts ]; then
     for file in /etc/modgui_scripts/*; do
       logger_command "Executing $file" ConsoleOnly
@@ -200,16 +198,15 @@ install_gui() {
     rm /root/.reapply_due_to_upgrade
   fi
 
-  echo "  Process done. Your modem is now rooted!" >/dev/console
+  logger_command "Process complete. tch-nginx-gui is now installed!"
+  echo "  Process complete. tch-nginx-gui is now installed!" >/dev/console
 }
 
-is_dual_bank()
-{
+is_dual_bank() {
   grep -c "\"bank_2\"" /proc/mtd >/dev/null
 }
 
-get_bank_mtd()
-{
+get_bank_mtd() {
   cat /proc/mtd  | grep \"$1\" | sed 's/:.*//'
 }
 
@@ -338,10 +335,14 @@ boot() {
   ubus send fwupgrade '{"state":"upgrading"}'
 
   logo_project
+
+  logger -s -t 'Root Script' "Checking installation prerequisites, if needed installation will continue after reboot..."
+
   check_full_overlay
   enable_serial_console
   check_and_apply_root
   disable_upload_coredump_and_reboot
+  is_dual_bank && check_and_apply_obp
 
   [ -z "$rooted" ] && rooted=0
   [ -z "$force" ] && force=0
@@ -361,8 +362,6 @@ boot() {
       echo "  No force flag detected! Doing nothing." >/dev/console
     fi
   fi
-
-  is_dual_bank && check_and_apply_obp
 
   ubus send fwupgrade '{ "state": "done" }'
 }
