@@ -223,7 +223,8 @@ check_and_apply_obp() {
   if [[ "$bootedbank" != "$activebank" && "$bootedbank" == "bank_2" ]]; then
     #TODO: add checks to be sure the bank_1 is unbootable (is this really needed?)
     #TODO: add checks to be sure the bank_1 overlay is SAFE and bootable (empty/prerooted?)
-    echo "  OBP sanity check succeeded continue boot complete..." >/dev/console
+    logger_command "OBP sanity check succeeded."
+    echo "  OBP sanity check succeeded." >/dev/console
   else
     #OBP not OK, check if was an user choice otherwise automatically apply (this should be the case called also on first install)
 
@@ -256,6 +257,8 @@ check_and_apply_obp() {
         # Erase firmware in bank_1
         mtd erase bank_1
       else
+        logger_command "Cloning to bank_2 checking md5..."
+        echo "  Cloning to bank_2 checking md5..." >/dev/console
         bank1_mtd="/dev/$(get_bank_mtd bank_1)"
         bank2_mtd="/dev/$(get_bank_mtd bank_2)"
         # clone bank_1 into bank_2
@@ -263,6 +266,8 @@ check_and_apply_obp() {
         md5_bank_1=$(md5sum "$bank1_mtd" | awk '{ print $1 }')
         md5_bank_2=$(md5sum "$bank2_mtd" | awk '{ print $1 }')
         if [ "$md5_bank_1" == "$md5_bank_2" ]; then
+          logger_command "Cloning complete, moving overlay..."
+          echo "  Cloning complete, moving overlay..." >/dev/console
           # Clean any existing overlay for bank_2 firmware
           rm -rf /overlay/bank_2
           # Make a temp copy of overlay for bank_1 firmware
@@ -271,15 +276,18 @@ check_and_apply_obp() {
           rm -rf /overlay/bank_1
           # Use the previously made temp copy as overlay for bank_2 firmware
           cp -rf /tmp/bank_overlay_backup /overlay/bank_2
-          # Activate bank_1
+          logger_command "Activating and erasing bank_1..."
+          echo "  Activating and erasing bank_1...." >/dev/console
           echo bank_1 > /proc/banktable/active
-          # Erase firmware in bank_1
           mtd erase bank_1
+          # Reboot to first valid firmware
+          reboot
+          exit 0
+        else
+          logger_command "Failed cloning bank_1 to bank_2 stopping!"
+          echo "  Failed cloning bank_1 to bank_2 stopping!" >/dev/console
+          exit 1
         fi
-        #this reboot will be called also if md5sum failed and OBP basically failed
-        # Reboot to first valid firmware
-        reboot
-        exit 0
       fi
     fi
   fi
