@@ -193,6 +193,9 @@ cwmp_specific_TIM() {
 	fi
 	logger_command "CWMP Server detected: $detected_acs"
 
+	logger_command "Resetting unlock bit..."
+  uci set env.var.unlockedstatus='0'
+
 	[ -z "$cwmp_url" ] && cwmp_url="None"
 
 	if [ "$detected_acs" != "Undetected" ] && [ "$cwmp_url" != "$detected_acs" ]; then

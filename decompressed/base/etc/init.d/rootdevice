@@ -59,18 +59,6 @@ EOF
 EOF
 }
 
-check_root() {
-
-  config_load "system"
-
-  config_get_bool rooted config rooted 0
-
-  cat <<EOF >/dev/console
- === IMPORTANT =======================================
-  Checking root...
-EOF
-}
-
 ####################LOG FUNCTION#################
 logger_command() {
   if [ "$debug" -eq 1 ]; then
@@ -79,26 +67,6 @@ logger_command() {
   fi
 }
 #################################################
-
-transfer_bank() {
-  #This function will clone and switch banks
-  if [ -d /overlay/bank_1 ]; then
-    rm -r /overlay/bank_1
-  fi
-  mkdir /overlay/bank_1
-  cp -a /overlay/bank_2/* /overlay/bank_1/
-  if [ -f /overlay/bank_1/etc/init.d/rootdevice ]; then
-    #mtd erase /dev/mtd3
-    mtd write /dev/mtd4 /dev/mtd3
-  fi
-  activeversion=$(cat /proc/banktable/activeversion)
-  passiveversion=$(cat /proc/banktable/passiveversion)
-
-  if [ "$activeversion" == "$passiveversion" ]; then
-    echo bank_1 >/proc/banktable/active
-    reboot
-  fi
-}
 
 disable_upload_coredump_and_reboot() {
   #disable upload to tim server for coredump...
@@ -119,11 +87,17 @@ disable_upload_coredump_and_reboot() {
   fi
 }
 
-root() {
-  logger_command "Setting root flag"
-  uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not
-  logger_command "Reset unlock bit"
-  uci set env.var.unlockedstatus='0'
+enable_serial_console() {
+  logger_command "Enabling hardware serial console..."
+	#Enable hardware serial console to intercept bootloops
+	#TODO: add a check to avoid writing everytime ... is this simple replace a risk?
+	sed -i 's/#//' /etc/inittab
+}
+
+check_and_apply_root() {
+  #TODO: check if root have access to shell with a known password (we should not replace if user setted but yes if was setted by ISP)
+  #TODO: check dropbear config, and fix if needed
+  #TODO: check firewall configm and fix if needed
 
   [ -f /etc/modgui_old ] && mv /etc/modgui_old /etc/config/modgui
 
@@ -277,26 +251,28 @@ check_and_apply_obp() {
         # Erase firmware in bank_1
         mtd erase bank_1
       else
-        # Make a temp copy of the firmware in bank_1
-        dd if=/dev/mtd3 of=/tmp/bank.fw
-        # Flash that copy into bank_2
-        mtd write /tmp/bank.fw bank_2
-        # Clean temp firmware copy
-        rm /tmp/bank.fw
-        # Clean any existing overlay for bank_2 firmware
-        rm -rf /overlay/bank_2
-        # Make a temp copy of overlay for bank_1 firmware
-        cp -rf /overlay/bank_1 /tmp/bank_overlay_backup
-        # Free up overlay space by removing existing overlay for bank_1 firmware
-        rm -rf /overlay/bank_1
-        # Use the previously made temp copy as overlay for bank_2 firmware
-        cp -rf /tmp/bank_overlay_backup /overlay/bank_2
-        # Activate bank_1
-        echo bank_1 > /proc/banktable/active
-        # Erase firmware in bank_1
-        mtd erase bank_1
+        # clone bank_1 into bank_2
+        mtd write bank_1 bank_2
+        md5_bank_1=$(md5sum "/dev/mtd3" | awk '{ print $1 }')
+        md5_bank_2=$(md5sum "/dev/mtd4" | awk '{ print $1 }')
+        if [ "$md5_bank_1" == "$md5_bank_2" ]; then
+          # Clean any existing overlay for bank_2 firmware
+          rm -rf /overlay/bank_2
+          # Make a temp copy of overlay for bank_1 firmware
+          cp -rf /overlay/bank_1 /tmp/bank_overlay_backup
+          # Free up overlay space by removing existing overlay for bank_1 firmware
+          rm -rf /overlay/bank_1
+          # Use the previously made temp copy as overlay for bank_2 firmware
+          cp -rf /tmp/bank_overlay_backup /overlay/bank_2
+          # Activate bank_1
+          echo bank_1 > /proc/banktable/active
+          # Erase firmware in bank_1
+          mtd erase bank_1
+        fi
+        #this reboot will be called also if md5sum failed and OBP basically failed
         # Reboot to first valid firmware
         reboot
+        exit 0
       fi
     fi
   fi
@@ -345,20 +321,16 @@ debug() {
 
 boot() {
   ubus send fwupgrade '{"state":"upgrading"}'
+
   logo_project
   check_full_overlay
-  check_root
+  enable_serial_console
+  check_and_apply_root
+  disable_upload_coredump_and_reboot
 
   [ -z "$rooted" ] && rooted=0
   [ -z "$force" ] && force=0
   [ -z "$debug" ] && export debug=0
-
-  if [ $rooted -ne 1 ]; then
-    echo "  Root not detected! Rooting..." >/dev/console
-    root
-    echo "  Disabling reboot on crash..." >/dev/console
-    disable_upload_coredump_and_reboot
-  fi
 
   if [ -f /root/.install_gui ]; then
     echo "  detected install GUI request! Installing..." >/dev/console
@@ -372,7 +344,7 @@ boot() {
     fi
   fi
 
-  #TODO: uncomment this when ready
-  #is_dual_bank && check_and_apply_obp
+  is_dual_bank && check_and_apply_obp
+
   ubus send fwupgrade '{ "state": "done" }'
 }
