@@ -63,7 +63,7 @@ EOF
 logger_command() {
   if [ "$debug" -eq 1 ]; then
     logger -t "Root Script" "$1"
-	echo "Root Script" "$1"
+	  echo "Root Script" "$1"
   fi
 }
 #################################################
@@ -208,6 +208,11 @@ is_dual_bank()
   grep -c "\"bank_2\"" /proc/mtd >/dev/null
 }
 
+get_bank_mtd()
+{
+  cat /proc/mtd  | grep \"$1\" | sed 's/:.*//'
+}
+
 check_and_apply_obp() {
   check_obp=$(uci get -q modgui.var.check_obp)
   bootedbank=$(cat /proc/banktable/booted)
@@ -251,10 +256,12 @@ check_and_apply_obp() {
         # Erase firmware in bank_1
         mtd erase bank_1
       else
+        bank1_mtd="/dev/$(get_bank_mtd bank_1)"
+        bank2_mtd="/dev/$(get_bank_mtd bank_2)"
         # clone bank_1 into bank_2
-        mtd write bank_1 bank_2
-        md5_bank_1=$(md5sum "/dev/mtd3" | awk '{ print $1 }')
-        md5_bank_2=$(md5sum "/dev/mtd4" | awk '{ print $1 }')
+        mtd write "$bank1_mtd" "$bank2_mtd"
+        md5_bank_1=$(md5sum "$bank1_mtd" | awk '{ print $1 }')
+        md5_bank_2=$(md5sum "$bank2_mtd" | awk '{ print $1 }')
         if [ "$md5_bank_1" == "$md5_bank_2" ]; then
           # Clean any existing overlay for bank_2 firmware
           rm -rf /overlay/bank_2
@@ -333,13 +340,16 @@ boot() {
   [ -z "$debug" ] && export debug=0
 
   if [ -f /root/.install_gui ]; then
+    logger_command "Detected install GUI request! Installing..."
     echo "  detected install GUI request! Installing..." >/dev/console
     install_gui
   else
     if [ $force -eq 1 ]; then
+      logger_command "Force flag detected! Reinstalling..."
       echo "  force flag detected! Reinstalling..." >/dev/console
       install_gui
     else
+      logger_command "No force flag detected! Doing nothing."
       echo "  No force flag detected! Doing nothing." >/dev/console
     fi
   fi
