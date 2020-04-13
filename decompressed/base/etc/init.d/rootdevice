@@ -100,29 +100,6 @@ transfer_bank() {
   fi
 }
 
-restore_bank() {
-  #This function will clone bank1 to bank2 or vice-versa
-  bootedbank=$(cat /proc/banktable/booted)
-  activebank=$(cat /proc/banktable/active)
-  if [ -f "/overlay/$activebank" ]; then
-    rm -r "/overlay/$activebank"
-  fi
-  mkdir "/overlay/$activebank"
-  cp -a "/overlay/$bootedbank/*" "/overlay/$activebank"
-  if [ -f "/overlay/$activebank/etc/init.d/rootdevice" ]; then
-    if [ "$bootedbank" == "bank_1" ]; then
-      mtd write /dev/mtd3 /dev/mtd4
-    else
-      mtd write /dev/mtd4 /dev/mtd3
-    fi
-  fi
-
-  if [ "$activeversion" == "$passiveversion" ]; then
-    echo "$bootedbank" >/proc/banktable/active
-    reboot
-  fi
-}
-
 disable_upload_coredump_and_reboot() {
   #disable upload to tim server for coredump...
   #This is a modified build so let's not full server with false coredump.
@@ -252,56 +229,95 @@ install_gui() {
   echo "  Process done. Your modem is now rooted!" >/dev/console
 }
 
-check_bank() {
-  bank_check=$(uci get -q modgui.var.bank_check)
+is_dual_bank()
+{
+  grep -c "\"bank_2\"" /proc/mtd >/dev/null
+}
+
+check_and_apply_obp() {
+  check_obp=$(uci get -q modgui.var.check_obp)
   bootedbank=$(cat /proc/banktable/booted)
   activebank=$(cat /proc/banktable/active)
-  env_config_bank1="/overlay/bank_1/etc/config/modgui"
-  if [ "$bootedbank" != "$activebank" ]; then
-    echo "  Detected corrupted active bank... Restoring..." >/dev/console
-    restore_bank
-  fi
+  notbooted=$(cat /proc/banktable/notbooted)
+  notbooted_modgui_configfile="/overlay/$notbooted/etc/config/modgui"
 
-  if [ "$bootedbank" == "bank_2" ]; then
-    if [ -f $env_config_bank1 ]; then
-      get_config_bank1=$(< $env_config_bank1 grep bank_check | awk '{print $3}' | sed "s/'//g")
-      if [ -n "$get_config_bank1" ] && [ ! "$(uci -q get modgui.var.bank_check)" ]; then
-        uci set modgui.var.bank_check="$get_config_bank1"
+  if [[ "$bootedbank" != "$activebank" && "$bootedbank" == "bank_2" ]]; then
+    #TODO: add checks to be sure the bank_1 is unbootable (is this really needed?)
+    #TODO: add checks to be sure the bank_1 overlay is SAFE and bootable (empty/prerooted?)
+    echo "  OBP sanity check succeeded continue boot complete..." >/dev/console
+  else
+    #OBP not OK, check if was an user choice otherwise automatically apply (this should be the case called also on first install)
+
+    if [ ! "$(uci -q get modgui.var.check_obp)" ]; then
+      #we must inizialize the check_obp var as is not found
+      if [ -f $notbooted_modgui_configfile ]; then
+        #if we are in a clean bank_2 overlay but in the notbooted bank overlay there was a modgui config file restore var from it
+        get_config_notbooted=$(< $notbooted_modgui_configfile grep check_obp | awk '{print $3}' | sed "s/'//g")
+        if [ -n "$get_config_notbooted" ] && [ ! "$(uci -q get modgui.var.check_obp)" ]; then
+          uci set modgui.var.check_obp="$get_config_notbooted"
+          uci commit modgui
+        fi
+      else
+        #inizialize check_obp default value and only if cannot read the var from elsewhere (inactive bank config)
+        uci set modgui.var.check_obp="1"
         uci commit modgui
       fi
-    else
-      uci set modgui.var.bank_check="1"
-      uci commit modgui
     fi
-    if [ "$(uci -q get modgui.var.bank_check)" == "0" ]; then
-      logger_command "Firmware in Bank_2 but check_bank set to 0... Not transferring"
-      echo "  Firmware in Bank_2 but check_bank set to 0... Not transferring" >/dev/console
+
+    if [ "$(uci -q get modgui.var.check_obp)" == "0" ]; then
+      logger_command "OBP sanity check FAILED but check_obp set to 0... Not acting"
+      echo "  OBP sanity check FAILED but check_obp set to 0... Not acting" >/dev/console
     else
-      logger_command "Firmware in Bank_2... Transferring"
-      echo "  Firmware in Bank_2... Transferring" >/dev/console
-      transfer_bank
+      logger_command "OBP sanity check FAILED start autoplanning..."
+      echo "  OBP sanity check FAILED start autoplanning..." >/dev/console
+
+      if [ "$bootedbank" == "bank_2" ]; then
+        # Activate bank_1
+        echo bank_1 > /proc/banktable/active
+        # Erase firmware in bank_1
+        mtd erase bank_1
+      else
+        # Make a temp copy of the firmware in bank_1
+        dd if=/dev/mtd3 of=/tmp/bank.fw
+        # Flash that copy into bank_2
+        mtd write /tmp/bank.fw bank_2
+        # Clean temp firmware copy
+        rm /tmp/bank.fw
+        # Clean any existing overlay for bank_2 firmware
+        rm -rf /overlay/bank_2
+        # Make a temp copy of overlay for bank_1 firmware
+        cp -rf /overlay/bank_1 /tmp/bank_overlay_backup
+        # Free up overlay space by removing existing overlay for bank_1 firmware
+        rm -rf /overlay/bank_1
+        # Use the previously made temp copy as overlay for bank_2 firmware
+        cp -rf /tmp/bank_overlay_backup /overlay/bank_2
+        # Activate bank_1
+        echo bank_1 > /proc/banktable/active
+        # Erase firmware in bank_1
+        mtd erase bank_1
+        # Reboot to first valid firmware
+        reboot
+      fi
     fi
-  else
-    echo "  Firmware in Bank_1... Not transferring..." >/dev/console
   fi
 }
 
-check_full_rootfs() {
-  rootfx_percet=$(df /overlay | sed -n 2p | awk {'{print $5}'} | sed 's|%||')
+check_full_overlay() {
+  overlay_percent=$(df /overlay | sed -n 2p | awk {'{print $5}'} | sed 's|%||')
   overlay_mtdblock=$(df /overlay | sed -n 2p | awk {'{print $1}'})
   bootedbank=$(cat /proc/banktable/booted)
   #Reset if rootfs more than 97% full
-  if [ "$rootfx_percet" -gt 96 ]; then
+  if [ "$overlay_percent" -gt 96 ]; then
     logger_command "DETECTED FULL ROOTFS... TRYING TO RESTORE..."
     echo "  DETECTED FULL ROOTFS... TRYING TO RESTORE..." >/dev/console
     for dir in /overlay/"$bootedbank"/*; do
       if [ ! "$dir" == "/overlay/$bootedbank/etc" ]; then
         logger_command "TRYING TO SAVE ROOT BY REMOVING EVERY DIR EXCEPT /etc"
         echo "  TRYING TO SAVE ROOT BY REMOVING EVERY DIR EXCEPT /etc" >/dev/console
-        rm -r -f "$dir"
+        rm -rf "$dir"
       fi
     done
-    #Verify if rm did actually remove the file...
+    #Verify if rm did actually remove the files/folders (using /root as check) if not ERASE...
     if [ -d "/overlay/$bootedbank/root" ]; then
       logger_command "CAN'T REMOVE FILES... INITIALISING FULL ROOTFS ERASE"
       echo "  CAN'T REMOVE FILES... INITIALISING FULL ROOTFS ERASE" >/dev/console
@@ -330,7 +346,7 @@ debug() {
 boot() {
   ubus send fwupgrade '{"state":"upgrading"}'
   logo_project
-  check_full_rootfs
+  check_full_overlay
   check_root
 
   [ -z "$rooted" ] && rooted=0
@@ -356,6 +372,7 @@ boot() {
     fi
   fi
 
-  check_bank
+  #TODO: uncomment this when ready
+  #is_dual_bank && check_and_apply_obp
   ubus send fwupgrade '{ "state": "done" }'
 }
