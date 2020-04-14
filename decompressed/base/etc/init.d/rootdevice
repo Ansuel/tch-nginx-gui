@@ -88,17 +88,15 @@ disable_upload_coredump_and_reboot() {
 }
 
 enable_serial_console() {
-  logger_command "Enabling hardware serial console..."
 	#Enable hardware serial console to intercept bootloops
-	#TODO: add a check to avoid writing everytime ... is this simple replace a risk?
-	sed -i 's/#//' /etc/inittab
+	if grep -q '#::askconsolelate' /etc/inittab; then
+    logger_command "Enabling hardware serial console..."
+	  sed -i 's/#//' /etc/inittab
+	fi
 }
 
 check_and_apply_root() {
-  #TODO: check if root have access to shell with a known password (we should not replace if user setted but yes if was setted by ISP)
-  #TODO: check dropbear config, and fix if needed
-  #TODO: check firewall configm and fix if needed
-
+  #modgui_old file is created before reboot for a firmware update, and store our root passwd
   [ -f /etc/modgui_old ] && mv /etc/modgui_old /etc/config/modgui
 
   encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
@@ -117,45 +115,58 @@ check_and_apply_root() {
     uci set modgui.var.encrypted_pass="$encrypted_pass"
   }
 
-  logger_command "Save root password if modified"
-  if [ "$(awk -F: '/root/ {print $7 }' /etc/passwd)" != "/bin/ash" ]; then #this enable root access from login
+  logger_command "Saving hashed root password in uci if modified..."
+
+  #Enable root access to the real shell (default is /bin/restricted_shell)
+  if [ "$(awk -F: '/root/ {print $7 }' /etc/passwd)" != "/bin/ash" ]; then
+    logger_command "Enabling ash shell to root..."
+    echo "  Enabling ash shell to root..." >/dev/console
     sed -i '1croot:x:0:0:root:/root:/bin/ash' /etc/passwd
   fi
+
   if [ -f /shadow_old ] && [ -f /root/.reapply_due_to_upgrade ]; then
     old_encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow_old)
     sed -i -e 's|"${encrypted_pass}"|"${old_encrypted_pass}"|' /etc/shadow
     rm /shadow_old
+    logger_command "Restoring old root password as this is a firmware upgrade!"
     echo "  Restoring old root password as this is a firmware upgrade!" >/dev/console
   elif [ -n "$saved_encrypted_pass" ]; then
     if [ "$encrypted_pass" != "$saved_encrypted_pass" ]; then
       if [ -f /root/.reapply_due_to_upgrade ]; then
+        logger_command "Setting root password from password saved in config"
         echo "  Setting root password from password saved in config" >/dev/console
         sed -i -e 's|"${encrypted_pass}"|"${saved_encrypted_pass}"|' /etc/shadow
       else
+        logger_command "Shadow contains different pass than saved one. Save it!"
         echo "  Shadow contains different pass than saved one. Save it!" >/dev/console
         store_pass_in_uci
       fi
     fi
-  elif [ "$encrypted_pass" != "$default_encrypted_pass" ] ||
-    [ -f /root/.reapply_due_to_upgrade ]; then #all of this is to check the root
+  elif [ "$encrypted_pass" != "$default_encrypted_pass" ] || [ -f /root/.reapply_due_to_upgrade ]; then
+    #Set the password to root so if needed the following sed know were to replace (default_encrypted_pass)
     echo -e "root\nroot" | passwd >/dev/null
-    #Redefine encrypted_pass as this can change after the shadow check
+    #Redefine encrypted_pass as this can change after the shadow check (if we restored an old shadow file)
     encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
     if [ "$encrypted_pass" != "$default_encrypted_pass" ]; then
       sed -i -e 's|"${encrypted_pass}"|"${default_encrypted_pass}"|' /etc/shadow
     fi
+    logger_command "Setting root password"
     echo "  Setting root password" >/dev/console
     store_pass_in_uci
   elif [ "$encrypted_pass" == "$default_encrypted_pass" ]; then
-    echo "  Root password detected" >/dev/console
+    logger_command "Default root password detected"
+    echo "  Default root password detected" >/dev/console
   elif [ "$encrypted_pass" == "$saved_encrypted_pass" ]; then
-    echo "  Changed root password detected!" >/dev/console
+    logger_command "Changed-and-ucisaved root password detected!"
+    echo "  Changed-and-ucisaved root password detected!" >/dev/console
   fi
 
   if [ -z "$saved_encrypted_pass" ]; then
     store_pass_in_uci
   fi
 
+  #TODO: add more checks to be sure our dropbear config is not overrided from another
+  # use arbitrary @dropbear[-1]? fully clean dropbear file?
   logger_command "Setting & Enabling Dropbear SSH Server"
   dropbear_path="dropbear.@dropbear[0]"
   if [ "$(uci get -q dropbear.lan)" ]; then
@@ -172,6 +183,8 @@ check_and_apply_root() {
 
   logger_command "Restarting Dropbear SSH Server"
   /etc/init.d/dropbear restart >/dev/null
+
+  #TODO: add firewall checks that may block SSH from lan
 }
 
 install_gui() {
@@ -188,7 +201,7 @@ install_gui() {
 
   if [ -d /etc/modgui_scripts ]; then
     for file in /etc/modgui_scripts/*; do
-      logger_command "Executing $file" ConsoleOnly
+      logger_command "Executing $file"
       . $file
     done
   fi
@@ -218,18 +231,29 @@ check_and_apply_obp() {
   notbooted_modgui_configfile="/overlay/$notbooted/etc/config/modgui"
 
   if [[ "$bootedbank" != "$activebank" && "$bootedbank" == "bank_2" ]]; then
-    #TODO: add checks to be sure the bank_1 is unbootable (is this really needed?)
-    #TODO: add checks to be sure the bank_1 overlay is SAFE and bootable (empty/prerooted?)
+
+    passiveversion=$(cat /proc/banktable/passiveversion)
+    if [ "$passiveversion" != "Unknown" ]; then
+      logger_command "OBP check: looks like passive bank have a valid version: $passiveversion"
+      echo "  OBP check: looks like passive bank have a valid version: $passiveversion" >/dev/console
+    fi
+
+    #WARNING this is not really SAFE if overlay get fullfilled and the TFTP recovery firmware flashed in bank_1 cannot boot with an empty overlay
+    # Possible solutions:
+    #Opt 1: place scripts in the bank_1 (recovery overlay) that will run on boot checking free space and do an mtd erase of the overlay on low space
+    #Opt 2: we have a free bank_1 firmware space, use it as overlay
+    [ -d "/overlay/bank_1" ] && rm -rf "/overlay/bank_1"
+
     logger_command "OBP sanity check succeeded."
     echo "  OBP sanity check succeeded." >/dev/console
   else
     #OBP not OK, check if was an user choice otherwise automatically apply (this should be the case called also on first install)
 
     if [ ! "$(uci -q get modgui.var.check_obp)" ]; then
-      #we must inizialize the check_obp var as is not found
-      if [ -f $notbooted_modgui_configfile ]; then
+      #we must initialize the check_obp var as is not found
+      if [ -f "$notbooted_modgui_configfile" ]; then
         #if we are in a clean bank_2 overlay but in the notbooted bank overlay there was a modgui config file restore var from it
-        get_config_notbooted=$(< $notbooted_modgui_configfile grep check_obp | awk '{print $3}' | sed "s/'//g")
+        get_config_notbooted=$(< "$notbooted_modgui_configfile" grep check_obp | awk '{print $3}' | sed "s/'//g")
         if [ -n "$get_config_notbooted" ] && [ ! "$(uci -q get modgui.var.check_obp)" ]; then
           uci set modgui.var.check_obp="$get_config_notbooted"
           uci commit modgui
@@ -254,8 +278,8 @@ check_and_apply_obp() {
         # Erase firmware in bank_1
         mtd erase bank_1
       else
-        logger_command "Cloning to bank_2 checking md5..."
-        echo "  Cloning to bank_2 checking md5..." >/dev/console
+        logger_command "Cloning to bank_2 and checking checksum..."
+        echo "  Cloning to bank_2 and checking checksum..." >/dev/console
         bank1_mtd="/dev/$(get_bank_mtd bank_1)"
         bank2_mtd="/dev/$(get_bank_mtd bank_2)"
         # clone bank_1 into bank_2
@@ -342,6 +366,7 @@ boot() {
   enable_serial_console
   check_and_apply_root
   disable_upload_coredump_and_reboot
+  #TODO: find a way to avoid apply OBP on GUI update and postpone to the next boot
   is_dual_bank && check_and_apply_obp
 
   [ -z "$rooted" ] && rooted=0
