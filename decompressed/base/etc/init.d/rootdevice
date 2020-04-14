@@ -113,6 +113,7 @@ check_and_apply_root() {
       uci set modgui.var=var
     fi
     uci set modgui.var.encrypted_pass="$encrypted_pass"
+    uci commit modgui
   }
 
   logger_command "Saving hashed root password in uci if modified..."
@@ -120,8 +121,7 @@ check_and_apply_root() {
   #Enable root access to the real shell (default is /bin/restricted_shell)
   if [ "$(awk -F: '/root/ {print $7 }' /etc/passwd)" != "/bin/ash" ]; then
     logger_command "Enabling ash shell to root..."
-    echo "  Enabling ash shell to root..." >/dev/console
-    sed -i '1croot:x:0:0:root:/root:/bin/ash' /etc/passwd
+    sed -i 's#/root:.*$#/root:/bin/ash#' /etc/passwd
   fi
 
   if [ -f /shadow_old ] && [ -f /root/.reapply_due_to_upgrade ]; then
@@ -165,24 +165,36 @@ check_and_apply_root() {
     store_pass_in_uci
   fi
 
-  #TODO: add more checks to be sure our dropbear config is not overrided from another
-  # use arbitrary @dropbear[-1]? fully clean dropbear file?
-  logger_command "Setting & Enabling Dropbear SSH Server"
-  dropbear_path="dropbear.@dropbear[0]"
-  if [ "$(uci get -q dropbear.lan)" ]; then
+  logger_command "Checking and force-enabling dropbear SSH Server for root on lan"
+  dropbear_path="dropbear.@dropbear[-1]"
+  if [ "$(uci get -q dropbear.afg)" ]; then
+    dropbear_path="dropbear.afg"
+  elif [ "$(uci get -q dropbear.lan)" ]; then
     dropbear_path="dropbear.lan"
   fi
-  uci set "$dropbear_path".Interface='lan'
-  uci set "$dropbear_path".RootLogin='1'
-  uci set "$dropbear_path".RootPasswordAuth='on' #dropbear root related
-  uci set "$dropbear_path".PasswordAuth='on'
-  uci set "$dropbear_path".enable='1'
-
-  uci commit dropbear
-  uci commit modgui
+  if [ ! "$(uci get -q dropbear.@dropbear[-1])" ]; then #in case of dropbear config empty we must add a section
+    uci add dropbear dropbear
+  fi
+  if [[
+  "$(uci get -q $dropbear_path.Interface)" != 'lan' ||
+  "$(uci get -q $dropbear_path.RootLogin)" != '1' ||
+  "$(uci get -q $dropbear_path.Port)" != '22' ||
+  "$(uci get -q $dropbear_path.RootPasswordAuth)" != 'on' ||
+  "$(uci get -q $dropbear_path.PasswordAuth)" != 'on' ||
+  "$(uci get -q $dropbear_path.enable)" != '1'
+  ]]; then
+    uci set "$dropbear_path".Interface='lan'
+    uci set "$dropbear_path".RootLogin='1'
+    uci set "$dropbear_path".Port='22'
+    uci set "$dropbear_path".RootPasswordAuth='on' #dropbear root related
+    uci set "$dropbear_path".PasswordAuth='on'
+    uci set "$dropbear_path".enable='1'
+    uci commit dropbear
+    /etc/init.d/dropbear enable
+    /etc/init.d/dropbear restart >/dev/null
+  fi
 
   logger_command "Restarting Dropbear SSH Server"
-  /etc/init.d/dropbear restart >/dev/null
 
   #TODO: add firewall checks that may block SSH from lan
 }
