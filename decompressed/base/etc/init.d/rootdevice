@@ -171,24 +171,19 @@ check_and_apply_root() {
     dropbear_path="dropbear.afg"
   elif [ "$(uci get -q dropbear.lan)" ]; then
     dropbear_path="dropbear.lan"
-  fi
-  if [ ! "$(uci get -q dropbear.@dropbear[-1])" ]; then #in case of dropbear config empty we must add a section
+  else
     uci add dropbear dropbear
+    uci rename "$dropbear_path"=afg
   fi
-  if [[
-  "$(uci get -q $dropbear_path.Interface)" != 'lan' ||
-  "$(uci get -q $dropbear_path.RootLogin)" != '1' ||
-  "$(uci get -q $dropbear_path.Port)" != '22' ||
-  "$(uci get -q $dropbear_path.RootPasswordAuth)" != 'on' ||
-  "$(uci get -q $dropbear_path.PasswordAuth)" != 'on' ||
-  "$(uci get -q $dropbear_path.enable)" != '1'
-  ]]; then
-    uci set "$dropbear_path".Interface='lan'
-    uci set "$dropbear_path".RootLogin='1'
-    uci set "$dropbear_path".Port='22'
-    uci set "$dropbear_path".RootPasswordAuth='on' #dropbear root related
-    uci set "$dropbear_path".PasswordAuth='on'
-    uci set "$dropbear_path".enable='1'
+
+  uci set "$dropbear_path".Interface='lan'
+  uci set "$dropbear_path".RootLogin='1'
+  uci set "$dropbear_path".Port='22'
+  uci set "$dropbear_path".RootPasswordAuth='on' #dropbear root related
+  uci set "$dropbear_path".PasswordAuth='on'
+  uci set "$dropbear_path".enable='1'
+
+  if [ "$(uci changes)" ]; then
     uci commit dropbear
     /etc/init.d/dropbear enable
     /etc/init.d/dropbear restart >/dev/null
