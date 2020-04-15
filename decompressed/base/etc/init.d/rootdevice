@@ -189,14 +189,18 @@ check_and_apply_root() {
   uci set "$dropbear_path".enable='1'
 
   if [ "$(uci changes)" ]; then
+    logger_command "Restarting Dropbear SSH Server..."
     uci commit dropbear
     /etc/init.d/dropbear enable
     /etc/init.d/dropbear restart >/dev/null
   fi
 
-  logger_command "Restarting Dropbear SSH Server"
-
-  #TODO: add firewall checks that may block SSH from lan
+  firewall_path=$(uci show firewall | grep -m 1 $(fw3 -q print | egrep 'iptables -t filter -A zone_lan_input -p tcp -m tcp --dport 22 -m comment --comment "!fw3: .+" -j DROP' | sed -n -e 's/^iptables.\+fw3: \(.\+\)".\+//p') 2>/dev/null | sed -n -e "s/\(.\+\).name='.\+'$//p" 2>/dev/null)
+  if [ "$firewall_path" ]; then
+    logger_command "Restarting firewall cleaned from SSH drop rule..."
+    uci -q set "$firewall_path".target='ACCEPT'
+    /etc/init.d/firewall reload 2>/dev/null
+  fi
 }
 
 install_gui() {
