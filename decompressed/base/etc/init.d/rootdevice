@@ -166,12 +166,17 @@ check_and_apply_root() {
   fi
 
   logger_command "Checking and force-enabling dropbear SSH Server for root on lan"
-  dropbear_path="dropbear.@dropbear[-1]"
-  if [ "$(uci get -q dropbear.afg)" ]; then
-    dropbear_path="dropbear.afg"
-  elif [ "$(uci get -q dropbear.lan)" ]; then
-    dropbear_path="dropbear.lan"
-  else
+  disable_conflicting_dropbear() {
+      [ "${enable}" != "0" ] \
+      && { [ "${Interface}" = "lan" ] || [ "${Interface}" = "" ]; } \
+      && { [ "${Port}" = "22" ] || [ "${Port}" = "" ]; } \
+      && uci set dropbear.${1}.enable=0
+  }
+  config_load "dropbear"
+  config_foreach disable_conflicting_dropbear dropbear
+
+  dropbear_path="dropbear.afg"
+  if [ ! "$(uci get -q $dropbear_path)" ]; then
     uci add dropbear dropbear
     uci rename "$dropbear_path"=afg
   fi
