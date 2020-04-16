@@ -285,6 +285,15 @@ check_and_apply_obp() {
       logger_command "OBP sanity check FAILED but check_obp set to 0... Not acting"
       echo "  OBP sanity check FAILED but check_obp set to 0... Not acting" >/dev/console
     else
+
+      if [ $(cat /proc/$PPID/comm) == "upgradegui" ]; then
+        logger_command "OBP sanity check FAILED but upgrading, postpone planning on next boot..."
+        echo "  OBP sanity check FAILED but upgrading, postpone planning on next boot..." >/dev/console
+        uci set modgui.var.rebootreason="apply OBP planning"
+        uci commit modgui
+        return
+      fi
+
       logger_command "OBP sanity check FAILED start autoplanning..."
       echo "  OBP sanity check FAILED start autoplanning..." >/dev/console
 
@@ -382,7 +391,6 @@ boot() {
   enable_serial_console
   check_and_apply_root
   disable_upload_coredump_and_reboot
-  #TODO: find a way to avoid apply OBP on GUI update and postpone to the next boot
   is_dual_bank && check_and_apply_obp
 
   [ -z "$rooted" ] && rooted=0
