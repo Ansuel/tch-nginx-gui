@@ -289,10 +289,12 @@ check_and_apply_obp() {
       if [ $(cat /proc/$PPID/comm) == "upgradegui" ]; then
         logger_command "OBP sanity check FAILED but upgrading, postpone planning on next boot..."
         echo "  OBP sanity check FAILED but upgrading, postpone planning on next boot..." >/dev/console
-        uci set modgui.var.rebootreason="apply OBP planning"
+        uci set modgui.var.reboot_reason_msg="apply OBP planning"
         uci commit modgui
         return
       fi
+      uci set modgui.var.reboot_reason_msg=""
+      uci commit modgui
 
       logger_command "OBP sanity check FAILED start autoplanning..."
       echo "  OBP sanity check FAILED start autoplanning..." >/dev/console

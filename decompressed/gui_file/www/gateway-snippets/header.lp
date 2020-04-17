@@ -54,7 +54,8 @@ local cui = {
   autoupgrade_view = "uci.modgui.gui.autoupgradeview",
   firstpage = "uci.modgui.gui.firstpage",
   randomcolor = "uci.modgui.gui.randomcolor",
-  gui_animation = "uci.modgui.gui.gui_animation"
+  gui_animation = "uci.modgui.gui.gui_animation",
+  reboot_reason_msg = "uci.modgui.var.reboot_reason_msg"
 }
 
 content_helper.getExactContent(cui)
@@ -191,16 +192,19 @@ ngx.print('\
         html[#html + 1] =  "</div>"
     html[#html + 1] = "</div>"
 
-    local alert_outdated_ver = {
+    local alert_style_upper = {
       alert = {
         class = "alert",
         id = "upgrade-alert"
       },
     }
-    if cui.outdated_ver == "0" then
-      alert_outdated_ver.alert.class = "alert hide"
+    if cui.outdated_ver ~= "0" then
+        html[#html + 1] = ui_helper.createAlertBlock(format(T'Update available! Version: <strong id="new-version-text">%s</strong>',cui.new_ver),alert_style_upper)
     end
-    html[#html + 1] = ui_helper.createAlertBlock(format(T'Update available! Version: <strong id="new-version-text">%s</strong>',cui.new_ver),alert_outdated_ver)
+
+    if cui.reboot_reason_msg ~= "" then
+        html[#html + 1] = ui_helper.createAlertBlock(format(T'A reboot is waiting! Reason: <strong>%s</strong>',cui.reboot_reason_msg),alert_style_upper)
+    end
 
     local autoupgrade_view = cui.autoupgrade_view
     if not ( autoupgrade_view == "none" ) and not ( autoupgrade_view == "" ) then
