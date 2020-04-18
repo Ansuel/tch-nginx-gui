@@ -455,13 +455,16 @@ call_app_type() {
 
 
 case "$1" in
-	install|remove|stop|start|refresh)
-    if "$1"==stop || "$1"==start || "$1"==refresh || ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then
+	install|remove)
+    if ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then
       call_app_type "$1" "$2" "$3"
     else
       logger_command "No internet connection detected, $1 $2 manually!"
     fi
 		;;
+  stop|start|refresh)
+    call_app_type "$1" "$2" "$3"
+    ;;
 	*)
 		echo "usage: install|remove APP_NAME" 1>&2
 		return 1
