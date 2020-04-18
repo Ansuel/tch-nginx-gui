@@ -1,4 +1,4 @@
-#!/sh/bash
+#!/bin/bash
 
 if [ $CI == "true" ]; then
 	TYPE="$(cat $HOME/gui_build/data/type)"
@@ -42,8 +42,8 @@ if [ $CI == "true" ]; then
 	fi
 
 	if [ $build_type_name == "PREVIEW" ] || [ $build_type_name == "STABLE" ] || [ $build_type_name == "DEV" ]; then
-		git add -A;
 		echo $version > latest.version
+		git add -A;
 	else
 		git add $build_type_name.version GUI$type.tar.bz2
 	fi

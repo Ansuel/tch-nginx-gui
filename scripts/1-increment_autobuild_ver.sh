@@ -1,4 +1,4 @@
-#!/sh/bash
+#!/bin/bash
 
 last_log="$(cat $HOME/gui_build/data/last_log)"
 
