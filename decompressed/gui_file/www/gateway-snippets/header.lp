@@ -198,13 +198,15 @@ ngx.print('\
         id = "upgrade-alert"
       },
     }
-    if cui.outdated_ver ~= "0" then
-        html[#html + 1] = ui_helper.createAlertBlock(format(T'Update available! Version: <strong id="new-version-text">%s</strong>',cui.new_ver),alert_style_upper)
-    end
 
     if cui.reboot_reason_msg ~= "" then
         html[#html + 1] = ui_helper.createAlertBlock(format(T'A reboot is waiting! Reason: <strong>%s</strong>',cui.reboot_reason_msg),alert_style_upper)
     end
+
+    if cui.outdated_ver == "0" then
+      alert_style_upper.alert.class = "alert hide"
+    end
+    html[#html + 1] = ui_helper.createAlertBlock(format(T'Update available! Version: <strong id="new-version-text">%s</strong>',cui.new_ver),alert_style_upper)
 
     local autoupgrade_view = cui.autoupgrade_view
     if not ( autoupgrade_view == "none" ) and not ( autoupgrade_view == "" ) then
