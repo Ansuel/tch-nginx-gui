@@ -168,7 +168,7 @@ check_and_apply_root() {
   logger_command "Checking and force-enabling dropbear SSH Server for root on lan"
   disable_conflicting_dropbear() {
       [ "${enable}" != "0" ] \
-      && { [ "${Interface}" = "lan" ] || [ "${Interface}" = "wan" ] || [ "${Interface}" = "" ]; } \
+      && { [ "${Interface}" = "lan" ] || [ "${Interface}" = "" ]; } \
       && { [ "${Port}" = "22" ] || [ "${Port}" = "" ]; } \
       && uci set dropbear.${1}.enable=0
   }
@@ -248,10 +248,10 @@ check_and_apply_obp() {
 
   if [[ "$bootedbank" != "$activebank" && "$bootedbank" == "bank_2" ]]; then
 
-    passiveversion=$(cat /proc/banktable/passiveversion)
-    if [ "$passiveversion" != "Unknown" ]; then
-      logger_command "OBP check: looks like passive bank have a valid version: $passiveversion"
-      echo "  OBP check: looks like passive bank have a valid version: $passiveversion" >/dev/console
+    activeversion=$(cat /proc/banktable/activeversion)
+    if [ "$activeversion" != "Unknown" ]; then
+      logger_command "OBP check: looks like passive bank have a valid version: $activeversion"
+      echo "  OBP check: looks like passive bank have a valid version: $activeversion" >/dev/console
     fi
 
     #WARNING this is not really SAFE if overlay get fullfilled and the TFTP recovery firmware flashed in bank_1 cannot boot with an empty overlay
@@ -318,12 +318,8 @@ check_and_apply_obp() {
           echo "  Cloning complete, moving overlay..." >/dev/console
           # Clean any existing overlay for bank_2 firmware
           rm -rf /overlay/bank_2
-          # Make a temp copy of overlay for bank_1 firmware
-          cp -rf /overlay/bank_1 /tmp/bank_overlay_backup
-          # Free up overlay space by removing existing overlay for bank_1 firmware
-          rm -rf /overlay/bank_1
-          # Use the previously made temp copy as overlay for bank_2 firmware
-          cp -rf /tmp/bank_overlay_backup /overlay/bank_2
+          # Moving running overlay to bank2
+          mv /overlay/bank_1 /overlay/bank_2
           logger_command "Activating and erasing bank_1..."
           echo "  Activating and erasing bank_1...." >/dev/console
           echo bank_1 > /proc/banktable/active
