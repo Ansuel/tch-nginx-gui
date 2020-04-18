@@ -1,4 +1,4 @@
-#!/sh/bash
+#!/bin/bash
 
 branch_name="$(git branch | grep \* | cut -d ' ' -f2)"
 
@@ -8,7 +8,7 @@ fi
 
 echo "Detected $branch_name build"
 
-case branch_name in
+case $branch_name in
 
   stable)
     echo STABLE > $HOME/gui_build/data/type

@@ -1,4 +1,4 @@
-#!/sh/bash
+#!/bin/bash
 
 declare -a modular_dir=(
 	"base"

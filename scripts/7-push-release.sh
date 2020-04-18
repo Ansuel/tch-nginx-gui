@@ -1,4 +1,4 @@
-#!/sh/bash
+#!/bin/bash
 
 DIR="$HOME/gui_build/compressed"
 VERSION="$(cat $HOME/gui_build/data/version)"
