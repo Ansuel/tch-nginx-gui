@@ -1,39 +1,18 @@
 #!/bin/sh
 
-. /etc/init.d/rootdevice
-
-MD5_CHECK_DIR=/tmp/md5check
-
-[ ! -d $MD5_CHECK_DIR ] && mkdir $MD5_CHECK_DIR
-
-for file in /tmp/upgrade-pack-specificTG789; do
-
-	if [ ! -f $MD5_CHECK_DIR/$file ]; then
-		if [ ! -d /$file ]; then
-			mkdir /$file
-		fi
-		continue
-	fi
-
-	[ -n "$( echo $file | grep .md5sum )" ] && continue
-
-	orig_file=/$file
-	file=$MD5_CHECK_DIR/$file
-
-	if [ -f $orig_file ]; then
-		md5_file=$(md5sum $file | awk '{ print $1 }' )
-		md5_orig_file=$(md5sum $orig_file | awk '{ print $1 }' )
-		if [ $md5_file == $md5_orig_file ]; then
-			rm $file
+move_files_and_clean(){
+  for file in $(find "$1"*/ -xdev | cut -d '/' -f4-); do
+    if [[ -d "$1$file" && ! -d "/$file" ]]; then
+			mkdir "/$file"
 			continue
 		fi
-	fi
+    echo mv "$1$file" "/$file"
+    [ ! -d "$1$file" ] && mv "$1$file" "/$file"
 
-	cp $file $orig_file
-	rm $file
-	RESTART_SERVICE=1
-done
-rm -rf $MD5_CHECK_DIR
+  done
+  rm -rf "$1"
+}
+move_files_and_clean /tmp/upgrade-pack-specificTG789/
 
 #needed to fix "can't execute 'openssl'" on opkg update from https feed
 opkg install /tmp/openssl-util_1.0.2g-1_brcm63xx-tch.ipk
