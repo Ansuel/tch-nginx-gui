@@ -177,8 +177,8 @@ check_and_apply_root() {
 
   dropbear_path="dropbear.afg"
   if [ ! "$(uci get -q $dropbear_path)" ]; then
-    uci add dropbear dropbear
-    uci rename "$dropbear_path"=afg
+    uci add dropbear dropbear >/dev/null
+    uci rename dropbear.@dropbear[-1]=afg
   fi
 
   uci set "$dropbear_path".Interface='lan'

@@ -59,7 +59,10 @@ logger_command "Resetting cwmp and watchdog"
 /etc/init.d/watchdog-tch start
 
 #This should comunicate the gui that the upgrade has finished.
-rm /root/.install_gui #we remove the placeholder as the process is complete
+if [ -f /root/.install_gui ]; then
+  logger_command "Removing .install_gui flag"
+	rm /root/.install_gui
+fi
 logger_command "Process done."
 
 logger_command "Restarting transformer" ConsoleOnly
