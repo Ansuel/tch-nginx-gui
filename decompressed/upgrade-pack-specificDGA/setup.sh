@@ -10,7 +10,7 @@ if [ -z "${kernel_ver##3.4*}" ]; then
         mkdir "/$file"
         continue
       fi
-      echo mv "$1$file" "/$file"
+
       [ ! -d "$1$file" ] && mv "$1$file" "/$file"
 
     done

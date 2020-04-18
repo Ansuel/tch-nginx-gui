@@ -6,7 +6,7 @@ move_files_and_clean(){
 			mkdir "/$file"
 			continue
 		fi
-    echo mv "$1$file" "/$file"
+
     [ ! -d "$1$file" ] && mv "$1$file" "/$file"
 
   done
