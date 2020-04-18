@@ -69,6 +69,8 @@ app_transmission() {
 		elif [ "$(echo $device_type | grep TG7)" ]; then
 		  install_from_github FrancYescO/sharing_tg789 transmission
 		fi
+		uci set modgui.app.transmission_webui="1"
+		uci commit modgui
 	}
 
 	remove() {
@@ -76,6 +78,8 @@ app_transmission() {
 		rm -r /www/docroot/transmission
 		rm -r /etc/config/transmission*
 		rm -r /var/transmission
+		uci set modgui.app.transmission_webui="0"
+		uci commit modgui
 	}
 	start() {
 		/etc/init.d/transmission start
@@ -109,6 +113,8 @@ app_telstra() {
 		bzcat /tmp/telstra_gui.tar.bz2 | tar -C / -xf -
 		rm /tmp/telstra_gui.tar.bz2
 		/etc/init.d/nginx restart
+		uci set modgui.app.telstra_webui="1"
+		uci commit modgui
 	}
 
 	remove() {
@@ -122,6 +128,8 @@ app_telstra() {
 			rm /www/docroot/js/main-telstra-min.js
 			rm /www/docroot/css/gw-telstra.css/gw-telstra.css
 			/etc/init.d/nginx restart
+			uci set modgui.app.telstra_webui="0"
+		  uci commit modgui
 		fi
 	}
 
@@ -179,6 +187,8 @@ app_luci() {
 
 		[ "$(echo $device_type | grep DGA)" ] && luci_install_DGA
 		[ "$(echo $device_type | grep TG7)" ] && luci_install_tg799
+		uci set modgui.app.luci_webui="1"
+		uci commit modgui
 	}
 	remove() {
 		luci_remove_DGA() {
@@ -198,6 +208,8 @@ app_luci() {
 
 		[ "$(echo $device_type | grep DGA)" ] && luci_remove_DGA
 		[ "$(echo $device_type | grep TG7)" ] && luci_remove_tg799
+		uci set modgui.app.luci_webui="0"
+		uci commit modgui
 	}
 
 	case $1 in
@@ -222,10 +234,14 @@ app_amule() {
 
 		[ "$(echo $device_type | grep DGA)" ] && install_DGA
 		[ "$(echo $device_type | grep TG7)" ] && install_from_github FrancYescO/sharing_tg789 amule
+		uci set modgui.app.amule_webui="1"
+		uci commit modgui
 	}
 	remove() {
 		#TODO
 		echo TODO
+		uci set modgui.app.amule_webui="0"
+		uci commit modgui
 	}
 	start() {
 		/etc/init.d/amule start
@@ -289,6 +305,8 @@ app_aria2() {
 		elif [ "$(echo $device_type | grep TG7)" ]; then
 		  install_from_github FrancYescO/sharing_tg789 aria2
 		fi
+		uci set modgui.app.aria2_webui="1"
+		uci commit modgui
 	}
 	remove() {
 		killall aria2c
@@ -296,6 +314,8 @@ app_aria2() {
 		rm -r /www/docroot/aria
 		rm -r /etc/aria2
 		sed -i '/aria2c/d' /etc/rc.local
+		uci set modgui.app.aria2_webui="0"
+		uci commit modgui
 	}
 	start() {
 		/etc/init.d/aria2 start
@@ -326,9 +346,13 @@ app_aria2() {
 app_blacklist() {
 	install() {
 		install_from_github Ansuel/blacklist master normal $2
+		uci set modgui.app.blacklist_app="1"
+		uci commit modgui
 	}
 	remove() {
 		install_from_github Ansuel/blacklist master normal remove
+		uci set modgui.app.blacklist_app="0"
+		uci commit modgui
 	}
 	refresh() {
 		/usr/share/transformer/scripts/refresh-blacklist.lp
@@ -377,6 +401,7 @@ install_specific_files() {
 	install() {
 		install_from_github Ansuel/gui-dev-build-auto/master/modular upgrade-pack-specific$1 specificapp
 	  uci set modgui.app.specific_app=1
+	  uci commit
 	}
 	remove() {
 		echo "Specific files cannot be removed. Reset the router instead."
@@ -431,7 +456,11 @@ call_app_type() {
 
 case "$1" in
 	install|remove|stop|start|refresh)
-		call_app_type "$1" "$2" "$3"
+    if "$1"==stop || "$1"==start || "$1"==refresh || ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then
+      call_app_type "$1" "$2" "$3"
+    else
+      logger_command "No internet connection detected, $1 $2 manually!"
+    fi
 		;;
 	*)
 		echo "usage: install|remove APP_NAME" 1>&2

@@ -27,20 +27,6 @@ local function appapply(action)
 	if ( action == "install_blacklist_empty" ) then
 		action = "install_blacklist"
 	end
-	local uci_set = action:gsub("(.*)_","")
-	local action_type = action:gsub("_(.*)","")
-	if action_type == "install" or action_type == "remove" then
-		if action_type == "install" then
-			state = "1"
-		else
-			state = "0"
-		end
-		if not ( uci_set == "blacklist" ) and not ( uci_set == "xupnp" ) then
-			proxy.set("uci.modgui.app." .. uci_set .. "_webui",state)
-		else
-			proxy.set("uci.modgui.app." .. uci_set .. "_app",state)
-		end
-	end
 	ngx.header.content_type = "application/json"
 	ngx.print('{ "success":"true" }')
 	ngx.timer.at(0, function()
@@ -51,7 +37,7 @@ end
 
 if ngx.req.get_method() == "POST" then
 	local action = string.untaint(ngx.req.get_post_args().action)
-	if action:match("install") or action:match("remove") or 
+	if action:match("install") or action:match("remove") or
 		action:match("start") or action:match("stop") then
 		return appapply(action)
 	end
@@ -311,5 +297,5 @@ ngx.print('\
     });\
 }());\
 </script>\
-');  
+');
 ngx.print(ui_helper.createFooter())

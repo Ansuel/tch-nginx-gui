@@ -1,65 +1,44 @@
 #!/bin/sh
 
-. /etc/init.d/rootdevice
-
 kernel_ver="$(cat /proc/version | awk '{print $3}')"
-
-enable_new_upnp() {
-  logger_command "Checking UPnP.."
-	if [ -f /etc/init.d/miniupnpd ]; then
-		if [ "$(uci get -q upnpd.config.enable_upnp)" ]; then
-			if [ "$(uci get -q upnpd.config.enable_upnp)" == "1" ]; then
-        logger_command "Disabling miniupnpd-tch and redirecting to miniupnpd"
-				/etc/init.d/miniupnpd-tch stop
-				/etc/init.d/miniupnpd-tch disable
-				rm /etc/init.d/miniupnpd-tch
-				ln -s /etc/init.d/miniupnpd /etc/init.d/miniupnpd-tch
-				/etc/init.d/miniupnpd enable
-				if [ ! "$(pgrep "miniupnpd")" ]; then
-					/etc/init.d/miniupnpd restart
-				fi
-			fi
-		fi
-	fi
-}
 
 if [ -z "${kernel_ver##3.4*}" ]; then
 
-  MD5_CHECK_DIR=/tmp/md5check
-
-  [ ! -d $MD5_CHECK_DIR ] && mkdir $MD5_CHECK_DIR
-
-  for file in /tmp/upgrade-pack-specificDGA; do
-
-    if [ ! -f $MD5_CHECK_DIR/$file ]; then
-      if [ ! -d /$file ]; then
-        mkdir /$file
-      fi
-      continue
-    fi
-
-    [ -n "$(echo $file | grep .md5sum)" ] && continue
-
-    orig_file=/$file
-    file=$MD5_CHECK_DIR/$file
-
-    if [ -f $orig_file ]; then
-      md5_file=$(md5sum $file | awk '{ print $1 }')
-      md5_orig_file=$(md5sum $orig_file | awk '{ print $1 }')
-      if [ $md5_file == $md5_orig_file ]; then
-        rm $file
+  move_files_and_clean(){
+    for file in $(find "$1"*/ -xdev | cut -d '/' -f4-); do
+      if [[ -d "$1$file" && ! -d "/$file" ]]; then
+        mkdir "/$file"
         continue
       fi
-    fi
+      echo mv "$1$file" "/$file"
+      [ ! -d "$1$file" ] && mv "$1$file" "/$file"
 
-    cp $file $orig_file
-    rm $file
-    RESTART_SERVICE=1
-  done
-  rm -rf $MD5_CHECK_DIR
+    done
+    rm -rf "$1"
+  }
+  move_files_and_clean /tmp/upgrade-pack-specificDGA/
 
-  opkg install /tmp/3.4_ipk/* > /dev/null
+  opkg install /tmp/3.4_ipk/*
   rm -rf /tmp/3.4_ipk
+
+  enable_new_upnp() {
+    logger_command "Checking UPnP.."
+    if [ -f /etc/init.d/miniupnpd ]; then
+      if [ "$(uci get -q upnpd.config.enable_upnp)" ]; then
+        if [ "$(uci get -q upnpd.config.enable_upnp)" == "1" ]; then
+          logger_command "Disabling miniupnpd-tch and redirecting to miniupnpd"
+          /etc/init.d/miniupnpd-tch stop
+          /etc/init.d/miniupnpd-tch disable
+          rm /etc/init.d/miniupnpd-tch
+          ln -s /etc/init.d/miniupnpd /etc/init.d/miniupnpd-tch
+          /etc/init.d/miniupnpd enable
+          if [ ! "$(pgrep "miniupnpd")" ]; then
+            /etc/init.d/miniupnpd restart
+          fi
+        fi
+      fi
+    fi
+  }
   enable_new_upnp
 
   if [ ! -f /etc/config/dland ]; then
@@ -100,7 +79,7 @@ if [ -z "${kernel_ver##3.4*}" ]; then
 elif [ -z "${kernel_ver##4.1*}" ]; then
 
   #Install telnet, openssl-util and update openssl (for security reason)
-  opkg install /tmp/upgrade-pack-specificDGA/tmp/4.1_ipk/* > /dev/null
+  opkg install /tmp/upgrade-pack-specificDGA/tmp/4.1_ipk/*
 
 fi
 
