@@ -168,7 +168,7 @@ check_and_apply_root() {
   logger_command "Checking and force-enabling dropbear SSH Server for root on lan"
   disable_conflicting_dropbear() {
       [ "${enable}" != "0" ] \
-      && { [ "${Interface}" = "lan" ] || [ "${Interface}" = "" ]; } \
+      && { [ "${Interface}" = "lan" ] || [ "${Interface}" = "wan" ] || [ "${Interface}" = "" ]; } \
       && { [ "${Port}" = "22" ] || [ "${Port}" = "" ]; } \
       && uci set dropbear.${1}.enable=0
   }
