@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ $CI == "true" ]; then
+if [ "$CI" == "true" ]; then
 	TYPE="$(cat $HOME/gui_build/data/type)"
 	if [ $TYPE == "PREVIEW" ]; then
 		type="_preview"
@@ -30,9 +30,9 @@ cp compressed/GUI$type.tar.bz2 $HOME/gui-dev-build-auto/ -r;
 
 cd $HOME/gui-dev-build-auto/;
 
-if [ $CI == "true" ]; then
+if [ "$CI" == "true" ]; then
 	build_type_name=$(cat ~/gui_build/data/type)
-	
+
 	if [ $build_type_name == "STABLE" ]; then
 		echo $version > stable.version
 	elif  [ $build_type_name == "PREVIEW" ]; then
