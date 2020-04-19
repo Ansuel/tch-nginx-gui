@@ -1,0 +1,22 @@
+#!/bin/sh
+
+. /rom/usr/sbin/random_seed
+
+mount_root() {
+        if [ -x /usr/sbin/mount_root-mod ]; then
+                /usr/sbin/mount_root-mod
+        else
+                echo "****************************************************"
+                echo "* NO mount_root-mod program found                  *"
+                echo "* can not mount the modroot filesystem             *"
+                echo "****************************************************"
+        fi
+}
+
+bootedbank=$(cat /proc/banktable/booted)
+activebank=$(cat /proc/banktable/active)
+notbooted=$(cat /proc/banktable/notbooted)
+#only if OBP is applied try to mount
+if [[ "$bootedbank" != "$activebank" && "$bootedbank" == "bank_2" ]]; then
+    [ ! -d /modoverlay ] || mount_root
+fi
