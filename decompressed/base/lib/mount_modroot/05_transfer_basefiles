@@ -23,7 +23,7 @@ preserve_base_file() { # <source> <dest>
 }
 
 #use the www folder as check to know that we should populate the modoverlay (mtd3)
-[ ! -d $overlay_bank/www ] && mv -f $overlay_bank/* $upperdir/
+[ -d $overlay_bank/www ] && mv -f $overlay_bank/* $upperdir/
 
 preserve_base_file $upperdir $overlay_bank
 
