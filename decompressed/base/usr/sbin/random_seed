@@ -3,8 +3,8 @@
 . /rom/usr/sbin/random_seed
 
 mount_root() {
-        if [ -x /usr/sbin/mount_root-mod ]; then
-                /usr/sbin/mount_root-mod
+        if [ -x /sbin/mount_root-mod ]; then
+                /sbin/mount_root-mod
         else
                 echo "****************************************************"
                 echo "* NO mount_root-mod program found                  *"
