@@ -378,9 +378,13 @@ app_xupnp() {
 	install() {
 		opkg update
 		opkg install xupnpd
+		uci set modgui.app.xupnp_app="1"
+		uci commit modgui
 	}
 	remove() {
 		opkg remove xupnpd
+		uci set modgui.app.xupnp_app="0"
+		uci commit modgui
 	}
 
 	case $1 in
