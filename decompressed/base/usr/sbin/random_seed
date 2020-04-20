@@ -15,8 +15,9 @@ mount_root() {
 
 bootedbank=$(cat /proc/banktable/booted)
 activebank=$(cat /proc/banktable/active)
-notbooted=$(cat /proc/banktable/notbooted)
+
 #only if OBP is applied try to mount
+#mount will fail if coming from a failboot from bank1 (=mtd3 have a valid firmware)
 if [[ "$bootedbank" != "$activebank" && "$bootedbank" == "bank_2" ]]; then
-    [ ! -d /modoverlay ] || mount_root
+    [ ! -d /tmp/modoverlay ] || mount_root
 fi
