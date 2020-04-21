@@ -18,7 +18,7 @@ if [ -d $overlay_bank/www ]; then
     [ ! -d "$overlay_bank/$file" ] && mv -f "$overlay_bank/$file" "$upperdir/$file"
 
   done
- 
+
   #at this point we should remove all empty folders in bank_2 overlay, except the modoverlay mountpoint
   for f in "$overlay_bank/"*; do
     [ "$f" != "$overlay_bank$upperdir" ] && rm -rf "$f"
