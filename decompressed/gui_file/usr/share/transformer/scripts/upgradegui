@@ -129,7 +129,7 @@ STABLE_FILE_NAME='GUI.tar.bz2'
 CHECKSUM_FILE="version"
 FORCE_SAVE_GUI=0
 
-overlay_available_space=$(df /overlay | sed -n 2p | awk {'{print $3}'})
+overlay_available_space=$(df /overlay | sed -n 2p | awk {'{print $4}'})
 if [ "$overlay_available_space" -lt 3000 ]; then
   logger_command "ERROR: not enough space to complete operation" >&2
   #Should probably implement some sort of erase here <kevdagoat>
