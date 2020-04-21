@@ -1,0 +1,22 @@
+#!/bin/sh
+
+upperdir=$1
+overlay_bank=/overlay/bank_2
+
+#use the www folder as check to know that we should populate the modoverlay (mtd3) and cleanup real overlay (mtd2)
+if [ -d $overlay_bank/www ]; then
+  move_files_and_clean(){
+    for file in $(find "$1"*/ -xdev | cut -d '/' -f4-); do
+      if [[ -d "$1$file" && ! -d "$upperdir/$file" ]]; then
+        mkdir "$upperdir/$file"
+        continue
+      fi
+
+      [ ! -d "$1$file" ] && mv -f "$1$file" "$upperdir/$file"
+
+    done
+    rm -rf "$1"* #this will empty /overlay/bank_2
+  }
+
+  move_files_and_clean $overlay_bank/
+fi
