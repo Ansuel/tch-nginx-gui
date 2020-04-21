@@ -42,5 +42,4 @@ preserve_files(){
   done
 }
 
-move_overlay
-preserve_files
+{ move_overlay; preserve_files; }
