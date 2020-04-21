@@ -3,27 +3,13 @@
 upperdir=$1
 overlay_bank=/overlay/bank_2
 
-preserve_base_file() { # <source> <dest>
-    local source=$1
-    local dest=$2
+preserve_list="/etc/init.d/rootdevice /etc/rc.d/S94rootdevice /usr/sbin/random_seed /sbin/mount_root-mod /lib/mount_modroot/04_move_overlay /lib/mount_modroot/05_transfer_basefiles"
 
-    mkdir -p $dest/etc/init.d/ $dest/etc/rc.d/ $dest/usr/bin/ $dest/lib/upgrade/ $dest/sbin/ $dest/lib
-
-    cp -a $source/lib/upgrade/platform.sh $dest/lib/upgrade/
-    cp -a $source/sbin/sysupgrade $dest/sbin/
-    cp -a $source/usr/bin/rtfd $dest/usr/bin/
-    cp -a $source/usr/bin/sysupgrade-safe $dest/usr/bin/
-
-    cp -a $source/etc/init.d/rootdevice $dest/etc/init.d/
-    cp -a $source/etc/rc.d/S94rootdevice $dest/etc/rc.d/
-
-    cp -a $source/usr/sbin/random_seed $dest/usr/sbin/
-    cp -a $source/usr/sbin/mount_root-mod $dest/usr/sbin/
-    cp -a $source/lib/mount_modroot $dest/lib/
+update_file_if_needed() { # <file> <source> <dest>
+    cmp -s $2$1 $3$1 || cp -a $2$1 $3$1
 }
 
-#use the www folder as check to know that we should populate the modoverlay (mtd3)
-[ -d $overlay_bank/www ] && mv -f $overlay_bank/* $upperdir/
-
-preserve_base_file $upperdir $overlay_bank
-
+for f in $preserve_list; do
+    mkdir -p $overlay_bank$(dirname $f)
+    update_file_if_needed $f $upperdir $overlay_bank
+done
