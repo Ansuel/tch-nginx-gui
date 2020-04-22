@@ -11,8 +11,8 @@ copy_base_files(){ # <source> <dest>
   				/lib/upgrade/platform.sh /sbin/sysupgrade /usr/bin/sysupgrade-safe /usr/bin/rtfd"
 
   for f in $preserve_list; do
-	mkdir -p $2$(dirname "$f")
-	cp -a "$2$f" "$3$f"
+    mkdir -p $2$(dirname "$f")
+    cp -a "$2$f" "$3$f"
   done
 }
 
@@ -26,7 +26,7 @@ preserve_root() {
 		cp /root/GUI.tar.bz2 $root_tmp_dir/
 	fi
 
-	preserve_files / $emergencydir
+	copy_base_files / $emergencydir
 
 	if [ -f $emergencydir/etc/init.d/rootdevice ]; then
 		echo "GUI files preserved!"
@@ -88,12 +88,6 @@ restore_base_root() {
 	echo "Device Rooted"
 }
 
-update_file_in_overlay() {
-	local overlay_bank=/overlay/$booted_bank
-
-	copy_base_files $overlay_dir $overlay_bank
-}
-
 platform_do_upgrade() {
 
 	sleep 10
@@ -151,9 +145,9 @@ platform_do_upgrade() {
 						echo 1 > $overlay_dir/root/.install_gui
 					fi
 
-					if [ -d /modoverlay ]; then
+					if mount | grep -q /modoverlay; then
 						# As last step update base in original bank_2 overlay
-						update_file_in_overlay
+	          copy_base_files $overlay_dir /overlay/$booted_bank
 					fi
 
 					platform_do_upgrade_bank $1 $booted_bank || exit 1
