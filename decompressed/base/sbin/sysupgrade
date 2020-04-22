@@ -42,7 +42,7 @@ while [ -n "$1" ]; do
 		-n) export SAVE_CONFIG=0;;
 		-c) export SAVE_OVERLAY=1;;
 		-o) export REBOOT=0;;
-		-s) export SWITCHBANK=1;;
+		# -s) export SWITCHBANK=1;; Switchbank not supported, this would brake recovery check
 		-b|--create-backup) export CONF_BACKUP="$2" NEED_IMAGE=1; shift;;
 		-r|--restore-backup) export CONF_RESTORE="$2" NEED_IMAGE=1; shift;;
 		-l|--list-backup) export CONF_BACKUP_LIST=1; break;;
@@ -80,7 +80,6 @@ upgrade-option:
 	-i           interactive mode
 	-c           attempt to preserve all changed files in /etc/
 	-o           do not reboot
-	-s           switch bank for dual bank upgrade
 	-n           do not save configuration over reflash
 	-T | --test
 	             Verify image and config .tar.gz but do not actually flash.

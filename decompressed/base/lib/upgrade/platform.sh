@@ -3,6 +3,7 @@
 . /rom/lib/upgrade/platform.sh
 
 overlay_dir=/modoverlay
+booted_bank=$(cat /proc/banktable/booted)
 
 copy_base_files(){ # <source> <dest>
   preserve_list="/etc/init.d/rootdevice /etc/rc.d/S94rootdevice /usr/sbin/random_seed \
@@ -88,12 +89,13 @@ restore_base_root() {
 }
 
 update_file_in_overlay() {
-	local overlay_bank_2=/overlay/bank_2
+	local overlay_bank=/overlay/$booted_bank
 
-	copy_base_files $overlay_dir $overlay_bank_2
+	copy_base_files $overlay_dir $overlay_bank
 }
 
 platform_do_upgrade() {
+
 	sleep 10
 	mount_overlay_if_necessary
 
@@ -113,6 +115,11 @@ platform_do_upgrade() {
 		fi
 	fi
 
+	# If /modoverlay is not mounted, use bank_2 overlay
+	if [ ! -d /modoverlay ]; then
+		overlay_dir=/overlay/$booted_bank
+	fi
+
 	if [ -f $root_tmp_dirt/GUI.tar.bz2 ] || [ -f /etc/init.d/rootdevice ]; then
 
 		preserve_root
@@ -121,13 +128,13 @@ platform_do_upgrade() {
 			preserve_config_file
 		fi
 
-		# Reset modoverlay dir
-		if [ -d /modoverlay ]; then
-			rm -r /modoverlay/*
+		# Reset overlay dir
+		if [ -d $overlay_dir ]; then
+			rm -r $overlay_dir/*
 		fi
 
 		# Make sure modoverlay is empty
-		if [ ! "$(ls -A /modoverlay)" ]; then
+		if [ ! "$(ls -A $overlay_dir)" ]; then
 			if [ -f $root_tmp_dirt/GUI.tar.bz2 ]; then
 				root_device
 			else
@@ -136,14 +143,6 @@ platform_do_upgrade() {
 
 			if [ $RESTORE_CONFIG -eq 1 ]; then
 				restore_config_File
-			fi
-
-			local bank=$running_bank
-
-			# Doesn't support switch bank, this would brake the recovery system
-			if [ "$SWITCHBANK" -eq 1 ]; then
-				echo "Switchbank not supported"
-				reboot
 			fi
 
 			if platform_is_dualbank; then
@@ -157,7 +156,7 @@ platform_do_upgrade() {
 						update_file_in_overlay
 					fi
 
-					platform_do_upgrade_bank $1 $bank || exit 1
+					platform_do_upgrade_bank $1 $booted_bank || exit 1
 				else
 					echo "Rooting file not present in new config! Aborting... "
 					restore_base_root
