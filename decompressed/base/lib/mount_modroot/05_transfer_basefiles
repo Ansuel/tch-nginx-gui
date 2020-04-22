@@ -5,7 +5,7 @@ overlay_bank=/overlay/bank_2
 
 move_overlay() {
   #use the www folder as check to know that we should populate the modoverlay (mtd3) and cleanup real overlay (mtd2)
-  if [ -d $overlay_bank/www ]; then
+  if [ -d $overlay_bank/etc/config ]; then
 
     #iterate all bank_2 folders and file to merge content with the one on modoverlay
     for file in $(find "$overlay_bank/"*/ -xdev | cut -d '/' -f4-); do
