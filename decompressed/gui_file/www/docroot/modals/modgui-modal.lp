@@ -92,7 +92,6 @@ end
 
 local function sendcmd(cmd)
 	proxy.set("rpc.system.modgui.utility.sendcmd", cmd)
-	ngx.header.content_type = "application/json"
 	ngx.print('{"success":"true"}')
 	ngx.timer.at(0, function()
 		proxy.apply()
@@ -162,20 +161,20 @@ local function installspecificapp()
 end
 
 local function restoreFromSysupgradeBackup()
-	-- flush the web template cache
-	lp.flush()
 
 	local dl = "/tmp/sysupgrade_backup.tar.gz"
 
+	-- flush the web template cache
+	lp.flush()
+
 	local rcv_ok, rcv_errno, rcv_errmsg = receive_file(dl, 'name="sysupgrade_backup"')
 
-	--sendcmd("restoreSysupgradeBackup")
-	ngx.header.content_type = "application/json"
-	ngx.print('{"success":"true"}')
-	ngx.timer.at(0, function()
-		proxy.apply()
-	end)
-	ngx.exit(ngx.HTTP_OK)
+	if rcv_ok then
+		sendcmd("restoreSysupgradeBackup")
+	else
+		ngx.print('{"error":"'..rcv_errmsg..'"}')
+		ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+	end
 end
 
 local function genSysupgradeBackup()
