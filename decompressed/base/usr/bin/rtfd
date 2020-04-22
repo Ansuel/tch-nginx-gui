@@ -1,5 +1,5 @@
 #!/bin/sh
 
-[ -d /tmp/modoverlay ] && { mtd -r erase $(cat /proc/banktable/notbooted); exit; }
+mount | grep -q /modoverlay && { mtd -r erase $(cat /proc/banktable/notbooted); exit; }
 
 . /rom/usr/bin/rtfd

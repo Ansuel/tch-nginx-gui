@@ -116,7 +116,7 @@ platform_do_upgrade() {
 	fi
 
 	# If /modoverlay is not mounted, use bank_2 overlay
-	if [ ! -d /modoverlay ]; then
+	if ! mount | grep -q /modoverlay; then
 		overlay_dir=/overlay/$booted_bank
 	fi
 
