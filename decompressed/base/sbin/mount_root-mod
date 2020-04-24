@@ -213,6 +213,22 @@ mount_root_mod() {
 		return
 	fi
 
+	local check_head_bank1=/tmp/bank_1_dump_header
+	local check_head_bank2=/tmp/bank_2_dump_header
+
+	local bank_2_mtd="$(find_mtd_part bank_2)"
+	dd if=$bank_2_mtd of=$check_head_bank2 skip=16 bs=1 count=4
+
+	local bank_1_mtd="$(find_mtd_part bank_1)"
+	dd if=$bank_1_mtd of=$check_head_bank1 skip=16 bs=1 count=4
+
+	if cmp -s $check_head_bank1 $check_head_bank2; then
+		echo "error: Found LINUX header in bank_1"
+		exit 0
+	fi
+
+	rm $check_head_bank1 $check_head_bank2
+
 	find_mount_jffs2 ${mount_point}
 	if [ $? -ne 0 ]; then
 		find_mount_ubifs ${mount_point}
