@@ -341,7 +341,7 @@ mobiled_lib_add() {
     /etc/init.d/mobiled restart
   else
     #make sure we haven't replaced it some old GUI install, restore from rom if needed
-    if [ "$(md5sum /rom/etc/init.d/mobiled | cut -d' ' -f1)" != "$(md5sum /etc/init.d/mobiled | cut -d' ' -f1)" ]; then
+    if [[ -f /rom/etc/init.d/mobiled && -n "$(cmp /rom/etc/init.d/mobiled /etc/init.d/mobiled)" ]]; then
       logger_command "Restoring and restarting /etc/init.d/mobiled ..."
       cp /rom/etc/init.d/mobiled /etc/init.d/mobiled
       /etc/init.d/mobiled restart
@@ -362,8 +362,8 @@ mobiled_lib_add() {
   major_system_version="$(uci get version.@version[0].marketing_version | sed 's#\.##' | grep -o -E '[0-9]+')"
   if [ "$major_system_version" -lt 173 ]; then #if fw <17.3
     #Restore original lte-doctor related webui files
-    cp /rom/www/docroot/ajax/radioparameters.lua /www/docroot/ajax/radioparameters.lua
-    cp /rom/www/docroot/modals/lte-doctor.lp /www/docroot/modals/lte-doctor.lp
+    [ -f /rom/www/docroot/ajax/radioparameters.lua ] && cp /rom/www/docroot/ajax/radioparameters.lua /www/docroot/ajax/radioparameters.lua
+    [ -f /rom/www/docroot/modals/lte-doctor.lp ] && cp /rom/www/docroot/modals/lte-doctor.lp /www/docroot/modals/lte-doctor.lp
   fi
 }
 
