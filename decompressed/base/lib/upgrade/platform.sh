@@ -45,9 +45,8 @@ preserve_root() {
 
 preserve_config_file() {
 	echo "Copying config files to homeware_conversion_tmp dir in RAM..."
-	mkdir $homeware_conversion_tmp /tmp/shadow_file
+	mkdir -p $homeware_conversion_tmp
 	cp -a $overlay_dir/etc $homeware_conversion_tmp/
-	cp -a $overlay_dir/etc/shadow /tmp/shadow_file/
 	if [ -d $homeware_conversion_tmp/etc ]; then
 		echo "Config files preserved!"
 	else
@@ -78,9 +77,8 @@ restore_config_File() {
 
 		cp -a $homeware_conversion_tmp/* $homeware_conversion_dir/
 
-		mkdir -p $homeware_conversion_dir/etc
-		cp -a $homeware_conversion_tmp/etc/config/modgui $homeware_conversion_dir/etc/modgui_old
-		cp -a /tmp/shadow_file/shadow $overlay_dir/shadow_old
+		mkdir -p $overlay_dir/etc
+		cp -a $homeware_conversion_tmp/etc/config/modgui $overlay_dir/etc/modgui_old
 
 		echo "Config files restored to homeware conversion dir! File will be updated on next boot."
 	fi
