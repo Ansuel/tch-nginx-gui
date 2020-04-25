@@ -236,11 +236,26 @@ get_bank_mtd() {
 }
 
 check_and_apply_obp() {
-  check_obp=$(uci get -q modgui.var.check_obp)
   bootedbank=$(cat /proc/banktable/booted)
   activebank=$(cat /proc/banktable/active)
   notbooted=$(cat /proc/banktable/notbooted)
   notbooted_modgui_configfile="/overlay/$notbooted/etc/config/modgui"
+
+  if [ ! "$(uci -q get modgui.var.check_obp)" ]; then
+    #we must initialize the check_obp var as is not found
+    if [ -f "$notbooted_modgui_configfile" ]; then
+      #if we are in a clean bank_2 overlay but in the notbooted bank overlay there was a modgui config file restore var from it
+      get_config_notbooted=$(< "$notbooted_modgui_configfile" grep check_obp | awk '{print $3}' | sed "s/'//g")
+      if [ -n "$get_config_notbooted" ] && [ ! "$(uci -q get modgui.var.check_obp)" ]; then
+        uci set modgui.var.check_obp="$get_config_notbooted"
+        uci commit modgui
+      fi
+    else
+      #inizialize check_obp default value and only if cannot read the var from elsewhere (inactive bank config)
+      uci set modgui.var.check_obp="1"
+      uci commit modgui
+    fi
+  fi
 
   if [[ "$bootedbank" != "$activebank" && "$bootedbank" == "bank_2" ]]; then
 
@@ -260,23 +275,6 @@ check_and_apply_obp() {
     echo "  OBP sanity check succeeded." >/dev/console
   else
     #OBP not OK, check if was an user choice otherwise automatically apply (this should be the case called also on first install)
-
-    if [ ! "$(uci -q get modgui.var.check_obp)" ]; then
-      #we must initialize the check_obp var as is not found
-      if [ -f "$notbooted_modgui_configfile" ]; then
-        #if we are in a clean bank_2 overlay but in the notbooted bank overlay there was a modgui config file restore var from it
-        get_config_notbooted=$(< "$notbooted_modgui_configfile" grep check_obp | awk '{print $3}' | sed "s/'//g")
-        if [ -n "$get_config_notbooted" ] && [ ! "$(uci -q get modgui.var.check_obp)" ]; then
-          uci set modgui.var.check_obp="$get_config_notbooted"
-          uci commit modgui
-        fi
-      else
-        #inizialize check_obp default value and only if cannot read the var from elsewhere (inactive bank config)
-        uci set modgui.var.check_obp="1"
-        uci commit modgui
-      fi
-    fi
-
     if [ "$(uci -q get modgui.var.check_obp)" == "0" ]; then
       logger_command "OBP sanity check FAILED but check_obp set to 0... Not acting"
       echo "  OBP sanity check FAILED but check_obp set to 0... Not acting" >/dev/console
