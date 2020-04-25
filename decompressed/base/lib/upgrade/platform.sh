@@ -16,7 +16,7 @@ platform_streaming_bank(){
 }
 
 copy_base_files(){ # <source> <dest>
-  preserve_list="/etc/init.d/rootdevice /etc/rc.d/S94rootdevice /usr/sbin/random_seed \
+  preserve_list="/etc/init.d/rootdevice /etc/rc.d/S94rootdevice /usr/sbin/random_seed /usr/sbin/random_seed-mod \
   				/sbin/mount_root-mod /lib/mount_modroot/05_transfer_basefiles \
   				/lib/upgrade/platform.sh /sbin/sysupgrade /usr/bin/sysupgrade-safe /usr/bin/rtfd"
 

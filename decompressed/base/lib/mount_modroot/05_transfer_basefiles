@@ -30,7 +30,7 @@ move_overlay() {
 
 preserve_files(){
   #these files should be moved back to bank_2 overlay to allow our mount hook to take place (and preserve root after boot)
-  preserve_list="/etc/init.d/rootdevice /etc/rc.d/S94rootdevice /usr/sbin/random_seed /sbin/mount_root-mod /lib/mount_modroot/05_transfer_basefiles"
+  preserve_list="/etc/init.d/rootdevice /etc/rc.d/S94rootdevice /usr/sbin/random_seed /usr/sbin/random_seed-mod /sbin/mount_root-mod /lib/mount_modroot/05_transfer_basefiles"
 
   update_file_if_needed() { # <file> <source> <dest>
     cmp -s "$2$1" "$3$1" || cp -a "$2$1" "$3$1"
