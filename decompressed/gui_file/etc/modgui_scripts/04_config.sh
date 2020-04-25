@@ -101,31 +101,23 @@ create_driver_setting() {
 dropbear_config_check() {
   if [ ! "$(uci get -q dropbear.wan)" ]; then
     logger_command "Adding Dropbear wan config"
+    uci add dropbear dropbear >/dev/null
+    uci rename dropbear.@dropbear[-1]=wan
     uci set dropbear.wan=dropbear
     uci set dropbear.wan.Interface='wan'
-    uci set dropbear.wan.RootLogin='1'
-    uci set dropbear.wan.RootPasswordAuth='on' #dropbear root related
-    uci set dropbear.wan.PasswordAuth='on'
     uci set dropbear.wan.Port='22'
     uci set dropbear.wan.enable='0'
+  fi
 
+  uci set dropbear.wan.RootLogin='1'
+  uci set dropbear.wan.RootPasswordAuth='on' #dropbear root related
+  uci set dropbear.wan.PasswordAuth='on'
+
+  if [ "$(uci changes)" ]; then
+    logger_command "Restarting Dropbear SSH Server..."
     uci commit dropbear
-  else
-    if [ "$(uci get -q dropbear.wan.RootLogin)" != "1" ]; then
-      logger_command "Enabling Dropbear wan RootLogin"
-      uci set dropbear.wan.RootLogin='1'
-      uci commit dropbear
-    fi
-    if [ "$(uci get -q dropbear.wan.PasswordAuth)" != "on" ]; then #TELMEX firmware got it OFF
-      logger_command "Enabling Dropbear wan PasswordAuth"
-      uci set dropbear.wan.PasswordAuth='on'
-      uci commit dropbear
-    fi
-    if [ "$(uci get -q dropbear.wan.RootPasswordAuth)" != "on" ]; then #TELMEX firmware got it OFF
-      logger_command "Enabling Dropbear wan RootPasswordAuth"
-      uci set dropbear.wan.RootPasswordAuth='on'
-      uci commit dropbear
-    fi
+    /etc/init.d/dropbear enable
+    /etc/init.d/dropbear restart >/dev/null
   fi
 }
 
@@ -341,7 +333,7 @@ mobiled_lib_add() {
     /etc/init.d/mobiled restart
   else
     #make sure we haven't replaced it some old GUI install, restore from rom if needed
-    if [ "$(md5sum /rom/etc/init.d/mobiled | cut -d' ' -f1)" != "$(md5sum /etc/init.d/mobiled | cut -d' ' -f1)" ]; then
+    if [[ -f /rom/etc/init.d/mobiled && -n "$(cmp /rom/etc/init.d/mobiled /etc/init.d/mobiled)" ]]; then
       logger_command "Restoring and restarting /etc/init.d/mobiled ..."
       cp /rom/etc/init.d/mobiled /etc/init.d/mobiled
       /etc/init.d/mobiled restart
@@ -362,8 +354,8 @@ mobiled_lib_add() {
   major_system_version="$(uci get version.@version[0].marketing_version | sed 's#\.##' | grep -o -E '[0-9]+')"
   if [ "$major_system_version" -lt 173 ]; then #if fw <17.3
     #Restore original lte-doctor related webui files
-    cp /rom/www/docroot/ajax/radioparameters.lua /www/docroot/ajax/radioparameters.lua
-    cp /rom/www/docroot/modals/lte-doctor.lp /www/docroot/modals/lte-doctor.lp
+    [ -f /rom/www/docroot/ajax/radioparameters.lua ] && cp /rom/www/docroot/ajax/radioparameters.lua /www/docroot/ajax/radioparameters.lua
+    [ -f /rom/www/docroot/modals/lte-doctor.lp ] && cp /rom/www/docroot/modals/lte-doctor.lp /www/docroot/modals/lte-doctor.lp
   fi
 }
 
