@@ -99,13 +99,13 @@ check_and_apply_root() {
   #modgui_old file is created before reboot for a firmware update, and store our root passwd
   [ -f /etc/modgui_old ] && mv /etc/modgui_old /etc/config/modgui
 
-  encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
+  encrypted_pass=$(sed -ne '/^root:/s/^root:\([^:]*\):.*$/\1/p' /etc/shadow)
   default_encrypted_pass='$5liEJpfo7NYE'
   saved_encrypted_pass=$(uci -q get modgui.var.encrypted_pass)
 
   store_pass_in_uci() {
     #Redefine encrypted_pass as this can change after the shadow check
-    encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
+    encrypted_pass=$(sed -ne '/^root:/s/^root:\([^:]*\):.*$/\1/p' /etc/shadow)
     echo "  New password detected!" >/dev/console
     echo "  Storing encrypted password..." >/dev/console
     if [ ! -f /etc/config/modgui ]; then
@@ -124,18 +124,12 @@ check_and_apply_root() {
     sed -i 's#/root:.*$#/root:/bin/ash#' /etc/passwd
   fi
 
-  if [ -f /shadow_old ] && [ -f /root/.reapply_due_to_upgrade ]; then
-    old_encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow_old)
-    sed -i -e 's|"${encrypted_pass}"|"${old_encrypted_pass}"|' /etc/shadow
-    rm /shadow_old
-    logger_command "Restoring old root password as this is a firmware upgrade!"
-    echo "  Restoring old root password as this is a firmware upgrade!" >/dev/console
-  elif [ -n "$saved_encrypted_pass" ]; then
+  if [ -n "$saved_encrypted_pass" ]; then
     if [ "$encrypted_pass" != "$saved_encrypted_pass" ]; then
       if [ -f /root/.reapply_due_to_upgrade ]; then
         logger_command "Setting root password from password saved in config"
         echo "  Setting root password from password saved in config" >/dev/console
-        sed -i -e 's|"${encrypted_pass}"|"${saved_encrypted_pass}"|' /etc/shadow
+        sed -i -e "s:^root\:[^\:]*\::root\:$saved_encrypted_pass\::" /etc/shadow
       else
         logger_command "Shadow contains different pass than saved one. Save it!"
         echo "  Shadow contains different pass than saved one. Save it!" >/dev/console
@@ -146,9 +140,9 @@ check_and_apply_root() {
     #Set the password to root so if needed the following sed know were to replace (default_encrypted_pass)
     echo -e "root\nroot" | passwd >/dev/null
     #Redefine encrypted_pass as this can change after the shadow check (if we restored an old shadow file)
-    encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
+    encrypted_pass=$(sed -ne '/^root:/s/^root:\([^:]*\):.*$/\1/p' /etc/shadow)
     if [ "$encrypted_pass" != "$default_encrypted_pass" ]; then
-      sed -i -e 's|"${encrypted_pass}"|"${default_encrypted_pass}"|' /etc/shadow
+      sed -i -e "s:^root\:[^\:]*\::root\:$default_encrypted_pass\::" /etc/shadow
     fi
     logger_command "Setting root password"
     echo "  Setting root password" >/dev/console
@@ -400,6 +394,17 @@ boot() {
   if [ -f /root/.install_gui ]; then
     logger_command "Detected install GUI request! Installing..."
     echo "  detected install GUI request! Installing..." >/dev/console
+    if [ -f /root/.reapply_due_to_upgrade ]; then
+      logger_command "Upgrade just done Extracting GUI.tar.bz2..."
+      echo "  Upgrade just done Extracting GUI.tar.bz2..." >/dev/console
+      if [ -f /root/GUI.tar.bz2 ]; then
+        bzcat /root/GUI.tar.bz2 | tar -C / -xvf -
+      else
+        logger_command "Extraction FAILED GUI.tar.bz2 NOT FOUND!"
+        echo "  Extraction FAILED GUI.tar.bz2 NOT FOUND!" >/dev/console
+      fi
+    fi
+
     install_gui
   else
     if [ $force -eq 1 ]; then

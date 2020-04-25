@@ -6,7 +6,7 @@ overlay_dir=/modoverlay
 booted_bank=$(cat /proc/banktable/booted)
 
 base_file_dir=/tmp/rootfile/emergency
-root_tmp_dir=/tmp/rootfile 
+root_tmp_dir=/tmp/rootfile
 
 homeware_conversion_tmp=/tmp/homeware_conversion_tmp
 homeware_conversion_dir=/overlay/homeware_conversion
@@ -44,6 +44,10 @@ preserve_root() {
 }
 
 preserve_config_file() {
+  echo "Saving root password to modgui file..."
+  uci set modgui.var.encrypted_pass="$(awk -F: '/root/ {print $2 }' /etc/shadow)"
+  uci commit modgui
+
 	echo "Copying config files to homeware_conversion_tmp dir in RAM..."
 	mkdir -p $homeware_conversion_tmp
 	cp -a $overlay_dir/etc $homeware_conversion_tmp/
@@ -54,23 +58,24 @@ preserve_config_file() {
 	fi
 }
 
-root_device() {
+postpone_gui_install() {
 	echo "GUI File found! Good Job!"
 	local gui_file=/tmp/rootfile/GUI.tar.bz2
 
-	echo "Re-Extracting GUI files in /modoverlay"
-	mkdir -p $overlay_dir/root
-	if [ -f $gui_file ]; then
-	  bzcat $gui_file | tar -C $overlay_dir -xf -
-	  cp $gui_file $overlay_dir/root/
-	fi
+  if [ -f $root_tmp_dir/GUI.tar.bz2 ]; then
+    echo "Restoring GUI.tar.bz2 to allow extraction on next boot"
+    mkdir -p $overlay_dir/root
+    if [ -f $gui_file ]; then
+      cp $gui_file $overlay_dir/root/
+    fi
+  fi
 
-	echo "Setting reapply_due_to_upgrade flag"
-	echo 1 > $overlay_dir/root/.reapply_due_to_upgrade
+  echo "Setting reapply_due_to_upgrade flag"
+  touch $overlay_dir/root/.reapply_due_to_upgrade #needed for shadow password migration and extraction
+  touch $overlay_dir/root/.install_gui #will be useless if the extraction is not successfull (package missing)
 }
 
 restore_config_File() {
-
 	if [ -d $homeware_conversion_tmp ]; then
 		echo "Found config dir in RAM!"
 		mkdir -p $homeware_conversion_dir
@@ -92,21 +97,6 @@ restore_base_root() {
 }
 
 platform_do_upgrade() {
-	sleep 10 
-
-	local RESTORE_CONFIG=1
-
-	if [ -n "$SAVE_CONFIG" ]; then
-		if [ $SAVE_CONFIG -eq 0 ]; then
-			RESTORE_CONFIG=0
-		fi
-	fi
-	local INSTALL_GUI=1
-	if [ -n "$ROOT_ONLY" ]; then
-		if [ $ROOT_ONLY -eq 1 ]; then
-			INSTALL_GUI=0
-		fi
-	fi
 
 	# If /modoverlay is not mounted, use bank_2 overlay
 	if ! mount | grep -q /modoverlay; then
@@ -117,7 +107,7 @@ platform_do_upgrade() {
 
 		preserve_root
 
-		if [ $RESTORE_CONFIG -eq 1 ]; then
+		if [ "$SAVE_CONFIG" != "0" ]; then
 			preserve_config_file
 		fi
 
@@ -128,22 +118,18 @@ platform_do_upgrade() {
 
 		# Make sure modoverlay is empty
 		if [ ! "$(ls -A $overlay_dir)" ]; then
-			if [ -f $root_tmp_dir/GUI.tar.bz2 ]; then
-				root_device
+			if [ "$ROOT_ONLY" != "1" ]; then
+				postpone_gui_install
 			else
 				restore_base_root
 			fi
 
-			if [ $RESTORE_CONFIG -eq 1 ]; then
+			if [ "$SAVE_CONFIG" != "0" ]; then
 				restore_config_File
 			fi
 
 			if platform_is_dualbank; then
 				if [ -f $overlay_dir/etc/init.d/rootdevice ]; then
-					if [ $INSTALL_GUI -eq 1 ]; then
-						mkdir $overlay_dir/root
-						echo 1 > $overlay_dir/root/.install_gui
-					fi
 
 					if mount | grep -q /modoverlay; then
 						# As last step update base in original bank_2 overlay
