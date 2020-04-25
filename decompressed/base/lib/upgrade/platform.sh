@@ -37,9 +37,9 @@ preserve_root() {
 	copy_base_files "" $base_file_dir
 
 	if [ -f $base_file_dir/etc/init.d/rootdevice ]; then
-		echo "GUI files preserved!"
+		echo "root files preserved!"
 	else
-		echo "GUI files not copied to RAM!"
+		echo "root files NOT copied to RAM!"
 	fi
 }
 
@@ -91,7 +91,7 @@ restore_config_File() {
 
 restore_base_root() {
 	echo "Rooting file not found! Using emergency method."
-	mkdir $overlay_dir
+	mkdir -p $overlay_dir
 	cp -a $base_file_dir/* $overlay_dir/
 	echo "Device Rooted"
 }
