@@ -119,8 +119,10 @@ platform_do_upgrade() {
 		# Make sure modoverlay is empty
 		if [ ! "$(ls -A $overlay_dir)" ]; then
 			if [ "$ROOT_ONLY" != "1" ]; then
+				check_dir=$overlay_dir/root/GUI.tar.bz2
 				postpone_gui_install
 			else
+				check_dir=$overlay_dir/etc/init.d/rootdevice
 				restore_base_root
 			fi
 
@@ -129,12 +131,12 @@ platform_do_upgrade() {
 			fi
 
 			if platform_is_dualbank; then
-				if [ -f $overlay_dir/etc/init.d/rootdevice ]; then
+				if [ -f $check_dir ]; then
 
 					if mount | grep -q /modoverlay; then
 						# As last step update base in original bank_2 overlay
 						echo "Update base file in original /overlay"
-						copy_base_files $overlay_dir /overlay/$booted_bank
+						copy_base_files $base_file_dir /overlay/$booted_bank
 					fi
 
 					platform_do_upgrade_bank $1 $booted_bank || exit 1

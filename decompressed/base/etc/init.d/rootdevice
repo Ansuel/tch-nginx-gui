@@ -373,6 +373,7 @@ debug() {
 }
 
 boot() {
+  [ -z "$debug" ] && export debug=0
   ubus send fwupgrade '{"state":"upgrading"}'
 
   logo_project
@@ -385,9 +386,7 @@ boot() {
   disable_upload_coredump_and_reboot
   is_dual_bank && check_and_apply_obp
 
-  [ -z "$rooted" ] && rooted=0
   [ -z "$force" ] && force=0
-  [ -z "$debug" ] && export debug=0
 
   if [ -f /root/.install_gui ]; then
     logger_command "Detected install GUI request! Installing..."
