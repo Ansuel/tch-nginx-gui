@@ -51,14 +51,19 @@ apply_right_opkg_repo() {
 
 	opkg_file="/etc/opkg.conf"
 	if [ "$1" ] && [ "$1" == "TG78" ]; then
-		if [ -z "$(  grep $opkg_file -e "FrancYescO/789vacv2_opkg/master" )" ]; then
+		if [ -z "$(  grep $opkg_file -e "chaos_calmer/15.05.1/brcm63xx" )" ]; then
+		  sed -i '/FrancYescO\/789vacv2/d' /etc/opkg.conf #remove old setted feeds
 			cat << EOF >> $opkg_file
-src/gz base https://raw.githubusercontent.com/FrancYescO/789vacv2_opkg/master/base
-src/gz packages https://raw.githubusercontent.com/FrancYescO/789vacv2_opkg/master/packages
-src/gz luci https://raw.githubusercontent.com/FrancYescO/789vacv2_opkg/master/luci
-src/gz routing https://raw.githubusercontent.com/FrancYescO/789vacv2_opkg/master/routing
-src/gz telephony https://raw.githubusercontent.com/FrancYescO/789vacv2_opkg/master/telephony
-src/gz management https://raw.githubusercontent.com/FrancYescO/789vacv2_opkg/master/management
+src/gz chaos_calmer_base http://archive.openwrt.org/chaos_calmer/15.05.1/brcm63xx/generic/packages/base
+src/gz chaos_calmer_packages http://archive.openwrt.org/chaos_calmer/15.05.1/brcm63xx/generic/packages/packages
+src/gz chaos_calmer_luci http://archive.openwrt.org/chaos_calmer/15.05.1/brcm63xx/generic/packages/luci
+src/gz chaos_calmer_routing http://archive.openwrt.org/chaos_calmer/15.05/brcm63xx/generic/packages/routing
+src/gz chaos_calmer_telephony http://archive.openwrt.org/chaos_calmer/15.05/brcm63xx/generic/packages/telephony
+src/gz chaos_calmer_management http://archive.openwrt.org/chaos_calmer/15.05.1/brcm63xx/generic/packages/management
+
+arch all 100
+arch brcm63xx 200
+arch brcm63xx-tch 300
 EOF
     fi
   elif [ "$1" ] && [ "$1" == "Xtream" ]; then
@@ -228,9 +233,9 @@ fi
 
 if [ -z "${device_type##*DGA413*}" ]; then
   install_specific DGA
-elif [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG789*}" ] && [ -n "${device_type##*Xtream*}" ]; then
+elif [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG78*}" ] && [ -n "${device_type##*Xtream*}" ]; then
   install_specific TG789
-elif [ -z "${device_type##*TG789*}" ] && [ -z "${device_type##*Xtream*}" ]; then
+elif [ -z "${device_type##*TG78*}" ] && [ -z "${device_type##*Xtream*}" ]; then
   install_specific TG789Xtream35B
 elif [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG799*}" ]; then
   install_specific TG789
