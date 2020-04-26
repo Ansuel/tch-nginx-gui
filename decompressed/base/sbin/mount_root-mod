@@ -206,7 +206,7 @@ mount_root_mod() {
 
 	check_banktable
 	if [ -f /proc/banktable/booted ]; then
-		upperdir=/modoverlay
+		upperdir=/modoverlay/bank_mod
 		oldroot=/saferoot
 	else
 		# modroot on notbooted bank not possible

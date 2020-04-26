@@ -2,7 +2,7 @@
 
 . /rom/lib/upgrade/platform.sh
 
-overlay_dir=/modoverlay
+overlay_dir=/modoverlay/bank_mod
 booted_bank=$(cat /proc/banktable/booted)
 
 base_file_dir=/tmp/rootfile/emergency
