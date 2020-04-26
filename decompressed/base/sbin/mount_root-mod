@@ -241,8 +241,10 @@ mount_root_mod() {
 	run_mount_checks ${mount_point}
 
 	echo "switching to modoverlay"
+	mkdir -p /modoverlay
+	mount -o move /tmp/modoverlay /modoverlay 2>&-
+
 	mkdir -p $upperdir
-	mount -o move /tmp/modoverlay $upperdir 2>&-
 
 	for f in /lib/mount_modroot/*; do
 		[ -x $f ] && $f $upperdir
