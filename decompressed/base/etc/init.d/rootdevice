@@ -100,7 +100,6 @@ check_and_apply_root() {
   [ -f /etc/modgui_old ] && mv /etc/modgui_old /etc/config/modgui
 
   encrypted_pass=$(sed -ne '/^root:/s/^root:\([^:]*\):.*$/\1/p' /etc/shadow)
-  default_encrypted_pass='$5liEJpfo7NYE'
   saved_encrypted_pass=$(uci -q get modgui.var.encrypted_pass)
 
   store_pass_in_uci() {
@@ -135,24 +134,16 @@ check_and_apply_root() {
         echo "  Shadow contains different pass than saved one. Save it!" >/dev/console
         store_pass_in_uci
       fi
+    else
+      logger_command "Changed-and-ucisaved root password detected!"
+      echo "  Changed-and-ucisaved root password detected!" >/dev/console
     fi
-  elif [ "$encrypted_pass" != "$default_encrypted_pass" ] || [ -f /root/.reapply_due_to_upgrade ]; then
-    #Set the password to root so if needed the following sed know were to replace (default_encrypted_pass)
+  else
+    logger_command "Resetting password to root..."
+    echo "  Resetting password to root..." >/dev/console
+    #Set the password to root as we have an unknown password
     echo -e "root\nroot" | passwd >/dev/null
-    #Redefine encrypted_pass as this can change after the shadow check (if we restored an old shadow file)
-    encrypted_pass=$(sed -ne '/^root:/s/^root:\([^:]*\):.*$/\1/p' /etc/shadow)
-    if [ "$encrypted_pass" != "$default_encrypted_pass" ]; then
-      sed -i -e "s:^root\:[^\:]*\::root\:$default_encrypted_pass\::" /etc/shadow
-    fi
-    logger_command "Setting root password"
-    echo "  Setting root password" >/dev/console
     store_pass_in_uci
-  elif [ "$encrypted_pass" == "$default_encrypted_pass" ]; then
-    logger_command "Default root password detected"
-    echo "  Default root password detected" >/dev/console
-  elif [ "$encrypted_pass" == "$saved_encrypted_pass" ]; then
-    logger_command "Changed-and-ucisaved root password detected!"
-    echo "  Changed-and-ucisaved root password detected!" >/dev/console
   fi
 
   if [ -z "$saved_encrypted_pass" ]; then
