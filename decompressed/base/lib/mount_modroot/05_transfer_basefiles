@@ -4,21 +4,11 @@ upperdir=$1
 overlay_bank=/overlay/bank_2
 
 move_overlay() {
-  #use the www folder as check to know that we should populate the modoverlay (mtd3) and cleanup real overlay (mtd2)
+  #use the config folder as check to know that we should populate the modoverlay (mtd3) and cleanup real overlay (mtd2)
   if [ -d $overlay_bank/etc/config ]; then
 
-    #iterate all bank_2 folders and file to merge content with the one on modoverlay
-    for file in $(find "$overlay_bank/"*/ -xdev | cut -d '/' -f4-); do
-      #create folder if not exist on destination
-      if [[ -d "$overlay_bank/$file" && ! -d "$upperdir/$file" ]]; then
-        mkdir "$upperdir/$file"
-        continue
-      fi
-
-      #if not a dir move the file (and symlink)
-      [ ! -d "$overlay_bank/$file" ] && mv -f "$overlay_bank/$file" "$upperdir/$file"
-
-    done
+    #copy all file from overlay_bank to modoverlay keeping all attributes and links
+    cp -a $overlay_bank/* $upperdir/
 
     #at this point we should remove all empty folders in bank_2 overlay, except the modoverlay mountpoint
     for f in "$overlay_bank/"*; do
