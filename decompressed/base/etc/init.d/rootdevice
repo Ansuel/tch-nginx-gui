@@ -128,7 +128,15 @@ check_and_apply_root() {
       if [ -f /root/.reapply_due_to_upgrade ]; then
         logger_command "Setting root password from password saved in config"
         echo "  Setting root password from password saved in config" >/dev/console
-        sed -i -e "s:^root\:[^\:]*\::root\:$saved_encrypted_pass\::" /etc/shadow
+        major_system_version="$(uci get version.@version[0].marketing_version | sed 's#\.##' | grep -o -E '[0-9]+')"
+        #firmware 16.x store a stripped 13char hash (not salted) that cannot be migrated to >=17.x (and viceversa)
+        if { [ ${#saved_encrypted_pass} -le 13 ] && [ "$major_system_version" -lt 170 ]; } || { [ ${#saved_encrypted_pass} -gt 13 ] && [ "$major_system_version" -ge 170 ]; }; then
+          sed -i -e "s:^root\:[^\:]*\::root\:$saved_encrypted_pass\::" /etc/shadow
+        else
+          logger_command "Incompatible password saved in config, resetting password to root!"
+          echo "  Incompatible password saved in config, resetting password to root!" >/dev/console
+          echo -e "root\nroot" | passwd >/dev/null
+        fi
       else
         logger_command "Shadow contains different pass than saved one. Save it!"
         echo "  Shadow contains different pass than saved one. Save it!" >/dev/console
