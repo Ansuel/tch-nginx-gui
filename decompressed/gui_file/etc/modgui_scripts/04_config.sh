@@ -226,7 +226,12 @@ suppress_excessive_logging() {
 
 real_ver_entitied() {
   if [ -f /rom/etc/uci-defaults/tch_5000_versioncusto ] && [ -f /etc/config/versioncusto ]; then
-    short_ver="$(grep </proc/banktable/passiveversion -Eo '.*\..*\.[0-9]*-[0-9]*')"
+    bank_version="activeversion"
+    if [ "$(cat /proc/banktable/booted)" != "$(cat /proc/banktable/active)" ]; then
+      bank_version="passiveversion"
+    fi
+
+    short_ver="$(grep </proc/banktable/$bank_version -Eo '.*\..*\.[0-9]*-[0-9]*')"
     real_ver=$(grep </rom/etc/uci-defaults/tch_5000_versioncusto "$short_ver" | awk '{print $2}')
     uci set versioncusto.override.fwversion_override_latest="$latest_version_on_TIM_cwmp"
     if [ "$real_ver" = "" ]; then
