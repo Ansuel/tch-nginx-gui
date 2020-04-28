@@ -307,10 +307,18 @@ check_and_apply_obp() {
         md5_bank_1=$(md5sum "$bank1_mtd" | awk '{ print $1 }')
         md5_bank_2=$(md5sum "$bank2_mtd" | awk '{ print $1 }')
         if [ "$md5_bank_1" == "$md5_bank_2" ]; then
-          logger_command "Cloning complete, moving overlay..."
-          echo "  Cloning complete, moving overlay..." >/dev/console
+          logger_command "Cloning complete, moving to bank_2 overlay..."
+          echo "  Cloning complete, moving to bank_2 overlay..." >/dev/console
           # Clean any existing overlay for bank_2 firmware
           rm -rf /overlay/bank_2
+          if [ ! -f /etc/config/modgui ]; then
+            logger_command "Seems first install from bank_1 saving GUI to root and setting install flags..."
+            echo "  Seems first install from bank_1 saving GUI to root  and setting install flags..." >/dev/console
+            [ -f /tmp/GUI.tar.bz2 ] && mv /tmp/GUI.tar.bz2 /root/GUI.tar.bz2
+            [ -f /tmp/GUI_dev.tar.bz2 ] && mv /tmp/GUI.tar.bz2 /root/GUI.tar.bz2
+            touch /root/.reapply_due_to_upgrade
+            touch /root/.install_gui
+          fi
           # Moving running overlay to bank2
           mv /overlay/bank_1 /overlay/bank_2
           logger_command "Activating and erasing bank_1..."
@@ -318,6 +326,8 @@ check_and_apply_obp() {
           echo bank_1 > /proc/banktable/active
           mtd erase bank_1
           # Reboot to first valid firmware
+          logger_command "Installation will continue after reboot..."
+          echo "  Installation will continue after reboot...." >/dev/console
           reboot
           exit 0
         else
