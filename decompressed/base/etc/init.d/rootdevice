@@ -234,6 +234,10 @@ get_bank_mtd() {
   cat /proc/mtd  | grep \"$1\" | sed 's/:.*//'
 }
 
+safe_mv(){
+  [ "$(df -P "$(dirname "$2")" | awk 'NR==2 {print $4}')" -gt "$(($(wc -c < "$1") / 1024))" ] && mv "$1" "$2" || echo "ERROR: No space left for mv $1 $2"
+}
+
 check_and_apply_obp() {
   bootedbank=$(cat /proc/banktable/booted)
   activebank=$(cat /proc/banktable/active)
@@ -314,8 +318,8 @@ check_and_apply_obp() {
           if [ ! "$(uci -q get modgui.var.gui_version)" ]; then
             logger_command "Seems first install from bank_1 saving GUI to root and setting install flags..."
             echo "  Seems first install from bank_1 saving GUI to root  and setting install flags..." >/dev/console
-            [ -f /tmp/GUI.tar.bz2 ] && mv /tmp/GUI.tar.bz2 /root/GUI.tar.bz2
-            [ -f /tmp/GUI_dev.tar.bz2 ] && mv /tmp/GUI.tar.bz2 /root/GUI.tar.bz2
+            [ -f /tmp/GUI.tar.bz2 ] && safe_mv /tmp/GUI.tar.bz2 /root/GUI.tar.bz2
+            [ -f /tmp/GUI_dev.tar.bz2 ] && safe_mv /tmp/GUI_dev.tar.bz2 /root/GUI.tar.bz2
             touch /root/.reapply_due_to_upgrade
             touch /root/.install_gui
           fi
