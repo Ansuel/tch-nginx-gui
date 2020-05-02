@@ -401,30 +401,24 @@ boot() {
 
   [ -z "$force" ] && force=0
 
-  if [ -f /root/.install_gui ]; then
-    logger_command "Detected install GUI request! Installing..."
-    echo "  detected install GUI request! Installing..." >/dev/console
-    if [ -f /root/.reapply_due_to_upgrade ]; then
-      logger_command "Upgrade just done Extracting GUI.tar.bz2..."
-      echo "  Upgrade just done Extracting GUI.tar.bz2..." >/dev/console
-      if [ -f /root/GUI.tar.bz2 ]; then
-        bzcat /root/GUI.tar.bz2 | tar -C / -xvf -
-      else
-        logger_command "Extraction FAILED GUI.tar.bz2 NOT FOUND!"
-        echo "  Extraction FAILED GUI.tar.bz2 NOT FOUND!" >/dev/console
-      fi
+  if [ -f /root/.reapply_due_to_upgrade ]; then
+    logger_command "Upgrade just done Extracting GUI.tar.bz2..."
+    echo "  Upgrade just done Extracting GUI.tar.bz2..." >/dev/console
+    if [ -f /root/GUI.tar.bz2 ]; then
+      bzcat /root/GUI.tar.bz2 | tar -C / -xvf -
+    else
+      logger_command "Extraction FAILED GUI.tar.bz2 NOT FOUND!"
+      echo "  Extraction FAILED GUI.tar.bz2 NOT FOUND!" >/dev/console
     fi
+  fi
 
+  if [ $force -eq 1 ] || [ -f /root/.install_gui ]; then
+    logger_command "Force/install flag detected! Reinstalling..."
+    echo "  force/install flag detected! Reinstalling..." >/dev/console
     install_gui
   else
-    if [ $force -eq 1 ]; then
-      logger_command "Force flag detected! Reinstalling..."
-      echo "  force flag detected! Reinstalling..." >/dev/console
-      install_gui
-    else
-      logger_command "No force flag detected! Doing nothing."
-      echo "  No force flag detected! Doing nothing." >/dev/console
-    fi
+    logger_command "No force/install flag detected! Doing nothing."
+    echo "  No force/install flag detected! Doing nothing." >/dev/console
   fi
 
   ubus send fwupgrade '{ "state": "done" }'
