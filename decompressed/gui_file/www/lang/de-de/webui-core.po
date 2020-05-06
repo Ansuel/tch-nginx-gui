@@ -4303,3 +4303,18 @@ msgstr ""
 
 msgid "Vendor Name"
 msgstr ""
+
+msgid "DHCP"
+msgstr ""
+
+msgid "Static IP"
+msgstr ""
+
+msgid "PPPoE"
+msgstr ""
+
+msgid "Select if you want to establish a connection on the bridged interface"
+msgstr ""
+
+msgid "No Connection"
+msgstr ""
