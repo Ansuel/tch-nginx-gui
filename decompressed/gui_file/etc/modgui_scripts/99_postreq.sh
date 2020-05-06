@@ -46,9 +46,9 @@ start_stop_nginx() {
 	done
 }
 
-if [ "$(cat /proc/banktable/booted)" == "bank_1" ] && [ ! "$(uci get -q modgui.var.bank_check)" ]; then
-	#this set bank_check bit if not present ONLY IN BANK_1, bank_2 value is set based on bank_1 value
-	uci set modgui.var.bank_check="1"
+if [ "$(cat /proc/banktable/booted)" == "bank_1" ] && [ ! "$(uci get -q modgui.var.check_obp)" ]; then
+	#this set check_obp bit if not present ONLY IN BANK_1, bank_2 value is set based on bank_1 value
+	uci set modgui.var.check_obp="1"
 fi
 
 logger_command "Applying modifications"
@@ -59,7 +59,10 @@ logger_command "Resetting cwmp and watchdog"
 /etc/init.d/watchdog-tch start
 
 #This should comunicate the gui that the upgrade has finished.
-rm /root/.check_process #we remove the placeholder as the process is complete
+if [ -f /root/.install_gui ]; then
+  logger_command "Removing .install_gui flag"
+	rm /root/.install_gui
+fi
 logger_command "Process done."
 
 logger_command "Restarting transformer" ConsoleOnly

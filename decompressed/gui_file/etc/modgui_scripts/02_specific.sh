@@ -250,6 +250,7 @@ uci commit modgui
 [ -z "${device_type##*DGA4130*}" ] && ledfw_extract "DGA"
 [ -z "${device_type##*DGA4132*}" ] && ledfw_extract "DGA"
 [ -z "${device_type##*DGA4131*}" ] && ledfw_extract "DGA4131"
+[ -z "${device_type##*TG788*}" ] && ledfw_extract "TG788"
 [ -z "${device_type##*TG788*}" ] && ledfw_rework_TG788
 [ -z "${device_type##*TG789*}" ] && ledfw_extract "TG789"
 [ -z "${device_type##*TG799*}" ] && ledfw_rework_TG799

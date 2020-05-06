@@ -5,8 +5,8 @@ local open = io.open
 
 local SYSTEM_FWUPGRADE_ = {
   objectType = {
-    name = 'rpc.system.fwupgrade.',
-    access = 'readOnly',
+    name = "rpc.system.fwupgrade.",
+    access = "readOnly",
     minEntries = 1,
     maxEntries = 1,
     parameters = {
@@ -18,72 +18,71 @@ local SYSTEM_FWUPGRADE_ = {
           "Requested",
           "Waitforswitch",
           "Complete",
-          "Error",
-        },
+          "Error"
+        }
       },
       filename = {
         access = "readWrite",
         type = "string",
-        max = "256",
+        max = "256"
       },
       manualswitchover = {
         access = "readWrite",
-        type = "boolean",
+        type = "boolean"
       },
       location = {
         access = "readOnly",
-        type = "string",
+        type = "string"
       },
       activebank = {
         access = "readOnly",
-        type = "string",
+        type = "string"
       },
       passivebank = {
         access = "readOnly",
-        type = "string",
+        type = "string"
       },
       activeversion = {
         access = "readOnly",
-        type = "string",
+        type = "string"
       },
       passiveversion = {
         access = "readOnly",
-        type = "string",
+        type = "string"
       },
       info = {
         access = "readOnly",
-        type = "string",
+        type = "string"
       },
       errorcode = {
         access = "readOnly",
-        type = "string",
+        type = "string"
       },
       banktype = {
         access = "readOnly",
         type = "string",
         enumeration = {
           "SingleBank",
-          "DualBank",
-        },
+          "DualBank"
+        }
       },
-	  upgrade_type = {
-		access = "readWrite",
+      upgrade_type = {
+        access = "readWrite",
         type = "string",
         enumeration = {
           "Normal",
           "Reset"
-        },
-	  },
-	  gui_install_type = {
-		access = "readWrite",
+        }
+      },
+      gui_install_type = {
+        access = "readWrite",
         type = "string",
         enumeration = {
           "Normal",
-          "Reset"
-        },
-	  }
+          "Rootonly"
+        }
+      }
     }
-
   }
 }
 
@@ -113,7 +112,7 @@ local function fwupgrade_reset()
   fwupgrade_mapdata.gui_install_type = "Normal"
   fwupgrade_mapdata.errorcode = "0"
   if fwupgrade_mapdata.banktype == "DualBank" then
-    fwupgrade_mapdata.manualswitchover= "0"
+    fwupgrade_mapdata.manualswitchover = "0"
   end
 end
 
@@ -137,7 +136,7 @@ end
 local function fwupgrade_check_for_completion()
   if fwupgrade_mapdata.state == "Requested" then
     -- Check whether the process is still running
-    if os.execute("start-stop-daemon -t -K  -p " .. fwupgrade_pidfile ) ~= 0  then
+    if os.execute("start-stop-daemon -t -K  -p " .. fwupgrade_pidfile) ~= 0 then
       -- sysupgrade is no longer running, but Transformer is still running.  This is only possible if sysupgrade failed
       local errcode, errmsg = get_upgrade_error(255)
       fwupgrade_set_error(errcode, errmsg)
@@ -146,7 +145,7 @@ local function fwupgrade_check_for_completion()
 
   if fwupgrade_mapdata.state == "Waitforswitch" then
     local errcode, errmsg = get_upgrade_error(0)
-    if(errcode ~= 0) then
+    if (errcode ~= 0) then
       fwupgrade_set_error(errcode, errmsg)
     end
   end
@@ -162,14 +161,14 @@ local function fwupgrade_start()
     return
   end
 
-  local filename = fwupgrade_location..fwupgrade_mapdata.filename
+  local filename = fwupgrade_location .. fwupgrade_mapdata.filename
   local ResetCommand = ""
   local RootOnlyCommand = ""
-  if ( fwupgrade_mapdata.upgrade_type == "Reset" ) then
-	ResetCommand = "--reset "
+  if (fwupgrade_mapdata.upgrade_type == "Reset") then
+    ResetCommand = "--reset "
   end
-  if ( fwupgrade_mapdata.gui_install_type == "RootOnly" ) then
-	RootOnlyCommand = "--rootonly "
+  if (fwupgrade_mapdata.gui_install_type == "Rootonly") then
+    RootOnlyCommand = "--rootonly "
   end
   -- Start sysupgrade in the background; normally this will restart the box after several seconds
   -- force GC to run to try to prevent lua from taking more memory during
@@ -178,12 +177,17 @@ local function fwupgrade_start()
   -- even bigger.
   collectgarbage()
   collectgarbage()
-  local cmd="/usr/lib/cwmpd/transfers/rollback.sh record GUI; start-stop-daemon -m -p"
+  local cmd = "/usr/lib/cwmpd/transfers/rollback.sh record GUI; start-stop-daemon -m -p"
   if (fwupgrade_mapdata.banktype == "DualBank") and (fwupgrade_mapdata.manualswitchover == "1") then
-    os.execute(cmd .. fwupgrade_pidfile .. " -b -x sysupgrade-safe -S  -- -o --gui ".. ResetCommand .. RootOnlyCommand .. filename)
+    os.execute(
+      cmd ..
+        fwupgrade_pidfile .. " -b -x sysupgrade-safe -S  -- -o --gui " .. ResetCommand .. RootOnlyCommand .. filename
+    )
     fwupgrade_mapdata.state = "Waitforswitch"
   else
-    os.execute(cmd .. fwupgrade_pidfile .. " -b -x sysupgrade-safe -S  --  --gui ".. ResetCommand  .. RootOnlyCommand .. filename)
+    os.execute(
+      cmd .. fwupgrade_pidfile .. " -b -x sysupgrade-safe -S  --  --gui " .. ResetCommand .. RootOnlyCommand .. filename
+    )
   end
 end
 
@@ -200,7 +204,6 @@ SYSTEM_FWUPGRADE_.getall = function(mapping, key)
     banktype = fwupgrade_mapdata.banktype or ""
   }
 end
-
 
 -- Get implementation
 SYSTEM_FWUPGRADE_.get = {
@@ -243,38 +246,36 @@ SYSTEM_FWUPGRADE_.get = {
   end,
   gui_install_type = function(mapping, param)
     return fwupgrade_mapdata.gui_install_type or "Normal"
-  end,
+  end
 }
 
 -- Set implementation
 SYSTEM_FWUPGRADE_.set = {
   manualswitchover = function(mapping, param, value)
-  fwupgrade_mapdata.manualswitchover = value
+    fwupgrade_mapdata.manualswitchover = value
   end,
-
   state = function(mapping, param, value)
     if value ~= "Requested" then
       return nil, "invalid value"
     end
--- If the sysupgrade is already in progress, silently ignore new requests
-  if fwupgrade_mapdata.state ~= "Requested" then
-       local switch
-       if (fwupgrade_mapdata.banktype == "DualBank") then
-         switch = fwupgrade_mapdata.manualswitchover
-       end
-       local upgrade_type = fwupgrade_mapdata.upgrade_type or "Normal"
-	   local gui_install_type = fwupgrade_mapdata.gui_install_type or "Normal"
-       fwupgrade_reset()
-       if (fwupgrade_mapdata.banktype == "DualBank") then
-         fwupgrade_mapdata.manualswitchover = switch
-       end
-	   fwupgrade_mapdata.upgrade_type = upgrade_type
-	   fwupgrade_mapdata.gui_install_type = gui_install_type
-       fwupgrade_mapdata.state = "Requested"
-       fwupgrade_start()
+    -- If the sysupgrade is already in progress, silently ignore new requests
+    if fwupgrade_mapdata.state ~= "Requested" then
+      local switch
+      if (fwupgrade_mapdata.banktype == "DualBank") then
+        switch = fwupgrade_mapdata.manualswitchover
+      end
+      local upgrade_type = fwupgrade_mapdata.upgrade_type or "Normal"
+      local gui_install_type = fwupgrade_mapdata.gui_install_type or "Normal"
+      fwupgrade_reset()
+      if (fwupgrade_mapdata.banktype == "DualBank") then
+        fwupgrade_mapdata.manualswitchover = switch
+      end
+      fwupgrade_mapdata.upgrade_type = upgrade_type
+      fwupgrade_mapdata.gui_install_type = gui_install_type
+      fwupgrade_mapdata.state = "Requested"
+      fwupgrade_start()
     end
   end,
-
   filename = function(mapping, param, value)
     -- filename is relative and without subdirectories
     if string.find(value, "/") then
@@ -290,18 +291,18 @@ SYSTEM_FWUPGRADE_.set = {
   end,
   upgrade_type = function(mapping, param, value)
     if value ~= "Reset" then
-	  return nil, "invalid value"
-	else
-	  fwupgrade_mapdata.upgrade_type = value
-	end
+      return nil, "invalid value"
+    else
+      fwupgrade_mapdata.upgrade_type = value
+    end
   end,
   gui_install_type = function(mapping, param, value)
-    if value ~= "RootOnly" then
-	  return nil, "invalid value"
-	else
-	  fwupgrade_mapdata.gui_install_type = value
-	end
-  end,
+    if value ~= "Rootonly" then
+      return nil, "invalid value"
+    else
+      fwupgrade_mapdata.gui_install_type = value
+    end
+  end
 }
 
 -- Hide the five parameters for single bank boards

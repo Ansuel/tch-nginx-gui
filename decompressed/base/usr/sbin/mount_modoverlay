@@ -1,0 +1,23 @@
+#!/bin/sh
+
+[ -f "/rom/$(command -v $0)" ] && . /rom/$(command -v $0)
+
+mount_root() {
+        if [ -x /sbin/mount_root-mod ]; then
+                /sbin/mount_root-mod
+        else
+                echo "****************************************************"
+                echo "* NO mount_root-mod program found                  *"
+                echo "* can not mount the modroot filesystem             *"
+                echo "****************************************************"
+        fi
+}
+
+bootedbank=$(cat /proc/banktable/booted)
+activebank=$(cat /proc/banktable/active)
+
+#only if OBP is applied try to mount
+#mount will fail if coming from a failboot from bank1 (=mtd3 have a valid firmware)
+if [[ "$bootedbank" != "$activebank" && "$bootedbank" == "bank_2" ]]; then
+    [ -d /tmp/modoverlay ] || mount_root
+fi
