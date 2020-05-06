@@ -4305,16 +4305,16 @@ msgid "Vendor Name"
 msgstr "Produttore"
 
 msgid "DHCP"
-msgstr ""
+msgstr "DHCP"
 
 msgid "Static IP"
-msgstr ""
+msgstr "IP statico"
 
 msgid "PPPoE"
-msgstr ""
+msgstr "PPPoE"
 
 msgid "Select if you want to establish a connection on the bridged interface"
-msgstr ""
+msgstr "Seleziona se vuoi stabilire una connessione nell'interfaccia bridge"
 
 msgid "No Connection"
-msgstr ""
+msgstr "Nessun connessione"
