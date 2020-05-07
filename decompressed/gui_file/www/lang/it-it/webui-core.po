@@ -4305,25 +4305,25 @@ msgid "Vendor Name"
 msgstr "Produttore"
 
 msgid "DHCP"
-msgstr ""
+msgstr "DHCP"
 
 msgid "Static IP"
-msgstr ""
+msgstr "IP statico"
 
 msgid "PPPoE"
-msgstr ""
+msgstr "PPPoE"
 
 msgid "Select if you want to establish a connection on the bridged interface"
-msgstr ""
+msgstr "Seleziona se vuoi stabilire una connessione sull'interfaccia bridge"
 
 msgid "No Connection"
-msgstr ""
+msgstr "Nessuna connessione"
 
 msgid "A reboot is waiting! Reason: <strong>%s</strong>"
-msgstr ""
+msgstr "Un riavvio è in attesa! Motivazione: <strong>%s</strong>"
 
 msgid "Force the device to always use bank_2 partition as booted partition and bank_1 as active but corrupted<br/>This will also ensure that overlay (configs/mods partition) of bank_1 is empty or just have the rooting script preloaded.<br/>This bank plan allow to use TFTP flashing, as a reliable recovery procedure in case we mess-up with the bank_2 overlay"
-msgstr ""
+msgstr "Forza il dispositivo ad usare sempre il bank_2 come partizione avviata e bank_1 come attiva ma corrotta<br/>Questo permette anche di avere l'overlay (partizione delle configurazione/personalizzazioni) di bank_1 vuoto o con solo gli script di root precaricati.<br/>Questa programmazione dei banchi permette di usare TFTP come metodo affidabile di recupero nel caso in cui l'overlay di bank_2 risulti corrotto"
 
 msgid "OBP Check"
-msgstr ""
+msgstr "Controllo OBP"
