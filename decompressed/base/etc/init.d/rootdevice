@@ -315,11 +315,12 @@ check_and_apply_obp() {
           echo "  Cloning complete, moving to bank_2 overlay..." >/dev/console
           # Clean any existing overlay for bank_2 firmware
           rm -rf /overlay/bank_2
-          if [ ! "$(uci -q get modgui.var.gui_version)" ]; then
+          #make sure we have an updated package in root
+          [ -f /tmp/GUI.tar.bz2 ] && safe_mv /tmp/GUI.tar.bz2 /root/GUI.tar.bz2
+          [ -f /tmp/GUI_dev.tar.bz2 ] && safe_mv /tmp/GUI_dev.tar.bz2 /root/GUI.tar.bz2
+          if [ ! "$(uci -q get modgui.gui.gui_version)" ]; then
             logger_command "Seems first install from bank_1 saving GUI to root and setting install flags..."
             echo "  Seems first install from bank_1 saving GUI to root  and setting install flags..." >/dev/console
-            [ -f /tmp/GUI.tar.bz2 ] && safe_mv /tmp/GUI.tar.bz2 /root/GUI.tar.bz2
-            [ -f /tmp/GUI_dev.tar.bz2 ] && safe_mv /tmp/GUI_dev.tar.bz2 /root/GUI.tar.bz2
             touch /root/.reapply_due_to_upgrade
             touch /root/.install_gui
           fi
