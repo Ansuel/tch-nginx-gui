@@ -81,11 +81,12 @@ create_section_modgui
 check_tmp_permission
 check_free_RAM
 
-if [ -f /root/.install_gui ]; then
-  logger_command "Removing .install_gui flag"
-	rm /root/.install_gui
-fi
-
 if [ -f /root/.reapply_due_to_upgrade ]; then
 	reapply_gui_after_reset
+fi
+
+if [ -f /tmp/GUI.tar.bz2 ] || [ -f /tmp/GUI_dev.tar.bz2 ]; then
+  logger_command "Saving GUI package to /root..."
+  [ -f /tmp/GUI.tar.bz2 ] && safe_mv /tmp/GUI.tar.bz2 /root/GUI.tar.bz2
+  [ -f /tmp/GUI_dev.tar.bz2 ] && safe_mv /tmp/GUI_dev.tar.bz2 /root/GUI.tar.bz2
 fi
