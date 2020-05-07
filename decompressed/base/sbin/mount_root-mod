@@ -240,9 +240,10 @@ mount_root_mod() {
 
 	run_mount_checks ${mount_point}
 
-	echo "switching to modoverlay"
+	echo "mount_root-mod: switching to modoverlay..."
 	mkdir -p /modoverlay
 	mount -o move /tmp/modoverlay /modoverlay 2>&-
+  echo "mount_root-mod: modoverlay mounted..."
 
 	mkdir -p $upperdir
 
@@ -250,8 +251,10 @@ mount_root_mod() {
 		[ -x $f ] && $f $upperdir
 	done
 
+  echo "mount_root-mod: modoverlay pivoting..."
 	mkdir -p $oldroot
 	fopivot $upperdir $oldroot
+  echo "mount_root-mod: modoverlay pivoting complete"
 
 	# make sure /tmp has the correct permissions !
 	chmod 01777 /tmp
