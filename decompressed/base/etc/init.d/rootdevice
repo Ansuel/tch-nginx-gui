@@ -329,7 +329,8 @@ check_and_apply_obp() {
           logger_command "Activating and erasing bank_1..."
           echo "  Activating and erasing bank_1...." >/dev/console
           echo bank_1 > /proc/banktable/active
-          mtd erase bank_1
+          sync
+          mtd -r erase bank_1
           # Reboot to first valid firmware
           logger_command "Installation will continue after reboot..."
           echo "  Installation will continue after reboot...." >/dev/console
@@ -407,6 +408,7 @@ boot() {
     echo "  Upgrade just done Extracting GUI.tar.bz2..." >/dev/console
     if [ -f /root/GUI.tar.bz2 ]; then
       bzcat /root/GUI.tar.bz2 | tar -C / -xvf -
+      sync
     else
       logger_command "Extraction FAILED GUI.tar.bz2 NOT FOUND!"
       echo "  Extraction FAILED GUI.tar.bz2 NOT FOUND!" >/dev/console

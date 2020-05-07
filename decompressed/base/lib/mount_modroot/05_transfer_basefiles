@@ -12,12 +12,15 @@ move_overlay() {
     #copy all file from overlay_bank to modoverlay keeping all attributes and links
     cp -a $overlay_bank/* $upperdir/
 
+    sync
+
     #at this point we should remove all empty folders in bank_2 overlay, except the modoverlay mountpoint
     for f in "$overlay_bank/"*; do
       echo "mount_root-mod: check-for-rm $f"
       [ "$f" != "$overlay_bank$upperdir" ] && rm -rf "$f"
     done
 
+    sync
   fi
 }
 
@@ -34,6 +37,8 @@ preserve_files(){
     echo "mount_root-mod: update_file_if_needed $f"
     update_file_if_needed "$f" "$upperdir" $overlay_bank
   done
+
+  sync
 }
 
 { move_overlay; preserve_files; }

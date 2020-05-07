@@ -321,6 +321,8 @@ if [ "$update_branch" == "_dev" ] || [ "$update_branch" == "_preview" ]; then
   md5sum "$WORKING_DIR/$FILE_NAME" | cut -d' ' -f1 >/root/gui_dev.md5sum
 fi
 
+sync
+
 logger_command "Running rootdevice script"
 # Run init.d script
 set_transformer "rpc.system.modgui.executeCommand.state" "In Progress"
