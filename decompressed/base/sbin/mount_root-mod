@@ -238,12 +238,14 @@ mount_root_mod() {
 		fi
 	fi
 
+	echo "mount_root-mod: modoverlay run_mount_checks"
+
 	run_mount_checks ${mount_point}
 
-	echo "mount_root-mod: switching to modoverlay..."
+	echo "mount_root-mod: modoverlay mount checks passed"
 	mkdir -p /modoverlay
 	mount -o move /tmp/modoverlay /modoverlay 2>&-
-  echo "mount_root-mod: modoverlay mounted..."
+  echo "mount_root-mod: modoverlay moved to (/overlay/bank_X)/modoverlay"
 
 	mkdir -p $upperdir
 
