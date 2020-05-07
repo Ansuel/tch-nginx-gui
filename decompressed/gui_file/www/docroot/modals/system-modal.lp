@@ -237,11 +237,11 @@ if telnet_available then
 	telnet_content, helpmsg = post_helper.handleQuery(telnet_Params, telnet_valid)
 end
 
-local bank_check_Params = { bank_check = "uci.modgui.var.bank_check" }
+local check_obp_Params = { check_obp = "uci.modgui.var.check_obp" }
 
-local bank_check_valid = { bank_check = vB }
+local check_obp_valid = { check_obp = vB }
 
-local bank_check_content, helpmsg = post_helper.handleQuery(bank_check_Params, bank_check_valid)
+local check_obp_content, helpmsg = post_helper.handleQuery(check_obp_Params, check_obp_valid)
 
 local config_Params = {
   export_plaintext = "uci.system.config.export_plaintext",
@@ -330,7 +330,7 @@ if ngx.req.get_method() == "POST" then
 		local f = io.open(fname, "r")
 		ngx.print(f:read("*all"))
 		f:close()
-		
+
 		os.remove(fname)
 
         -- and we're done
@@ -437,8 +437,8 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Clone the content of the running bank to the inactive one. Warning: this will delete all data and configuration settings on the inactive bank!", warn_box)
 	  html[#html + 1] = ui_helper.createButton(T"Clone bank", T"Clone", "icon-exchange", copy_bank)
 	  html[#html + 1] = ui_helper.createAlertBlock(T"Cloning bank, please wait...", copy_bank_alert)
-	  html[#html + 1] = ui_helper.createAlertBlock(T"Force the device to always use “Bank_1” as the main bank.", info_box)
-	  html[#html + 1] = ui_helper.createSwitch(T"Bank Check", "bank_check", bank_check_content["bank_check"])
+	  html[#html + 1] = ui_helper.createAlertBlock(T"Force the device to always use bank_2 partition as booted partition and bank_1 as active but corrupted<br/>This will also ensure that overlay (configs/mods partition) of bank_1 is empty or just have the rooting script preloaded.<br/>This bank plan allow to use TFTP flashing, as a reliable recovery procedure in case we mess-up with the bank_2 overlay", info_box)
+	  html[#html + 1] = ui_helper.createSwitch(T"OBP Check", "check_obp", check_obp_content["check_obp"])
       ngx.print(html)
       ngx.print('\
 </fieldset>');

@@ -1,0 +1,260 @@
+#!/bin/sh
+
+ubi_num=
+
+find_mtd_part() {
+	local PART=$(awk -F: "/$1/{print \$1}" /proc/mtd)
+
+	if [ ! -z "$PART" ]; then
+		PART="${PART##mtd}"
+		if [ ! -z "$PART" ]; then
+			echo /dev/mtdblock$PART
+		fi
+	fi
+}
+
+#Since Linux 3.18-rc6, overlayfs has been renamed overlay
+legacy_overlayfs() {
+	local ovl
+	ovl=$(cat /proc/filesystems | grep "\overlay\b" | awk '{print $2}')
+	[ "$ovl" != "overlay" ]
+}
+
+find_mount_jffs2() {
+	local options
+	local mtdpartname
+	local mtdpart
+	local dir="$1"
+
+	options=$(grep "^mount=" /etc/jffs2_options 2>/dev/null | sed "s/^mount=//" )
+	if [ ! -z $options ]; then
+		options="-o $options"
+	fi
+
+	mkdir -p "$dir"
+
+	for mtdpartname in $(cat /proc/banktable/notbooted); do
+		mtdpart="$(find_mtd_part $mtdpartname)"
+		if [ -n "$mtdpart" ]; then
+			mount -t jffs2 $options "$mtdpart" "$dir"
+			if [ $? -ne 0 ]; then
+				echo "failed to mount $mtdpartname on $mtdpart as jffs2"
+			else
+				mtd -qq unlock $mtdpartname
+				if [ $? -ne 0 ]; then
+					echo "failed to unlock $mtdpartname, partition not writeable"
+					umount "$dir"
+				else
+					if ! legacy_overlayfs; then
+						mkdir -p "$dir/work"
+					fi
+					return 0
+				fi
+			fi
+		fi
+	done
+
+	echo "failed to find suitable partition to mount"
+	return 1
+}
+
+find_available_ubi_num() {
+	local lastubidevice=
+	for x in $(ubinfo | grep "Present UBI devices" | cut -d':' -f2 | tr "," "\n")
+	do
+		lastubidevice=$x
+	done
+
+	if [ -z "$lastubidevice" ]
+	then
+		lastubidevice=ubi0
+	fi
+
+	last_num=$(echo $lastubidevice | sed 's/ubi//')
+	avail_dev_num=`expr $last_num + 1`
+	echo $avail_dev_num
+}
+
+find_overlay_partition() {
+        local result=$1
+        overlay_partition="$(cat /proc/banktable/notbooted)"
+        for partition in $overlay_partition ; do
+                if ( cat /proc/mtd | grep -i $partition ) ; then
+			eval $result="'$partition'"
+			break
+                fi
+        done
+}
+
+get_ubi_num_from_vol() {
+	volname=$1
+	dev_count=$(ubinfo | grep "Count" |  tr -dc '0-9')
+	for i in `seq 0 $(expr $dev_count - 1)`
+	do
+		ubi_count=$(ubinfo -d $i| grep "Volumes count" |  tr -dc '0-9')
+		for j in `seq 0 $(expr $ubi_count - 1)`
+		do
+			ubivol=$(ubinfo -d $i -n $j |grep $volname)
+			if [ ! -z "$ubivol" ] ; then
+				ubi_num=$i
+				break;
+			fi
+		done
+	done
+
+
+}
+
+find_mount_ubifs() {
+	local dir=$1
+
+	find_overlay_partition partition
+
+	get_ubi_num_from_vol $partition
+
+
+	if [ ! -z  "$ubi_num" ] ; then
+		echo "ubi_num=$ubi_num"
+
+	elif ( cat /proc/mtd | grep -i "$partition" ) ; then
+		mtd_block_number=$(cat /proc/mtd | grep -i "$partition" | sed 's/^mtd//' | awk -F ':' '{print $1}')
+
+		echo "Detected block device: $dir for $partition" > /dev/kmsg
+		ubi_num="$(find_available_ubi_num)"
+		ubiattach -m "$mtd_block_number" -d $ubi_num /dev/ubi_ctrl
+
+	else
+		echo "No $partition partition found"
+		return 1
+	fi
+
+	mkdir -p "$dir"
+
+	mount -o sync -t ubifs ubi$ubi_num:overlay $dir
+	if [ $? -ne 0 ]; then
+		echo "failed to mount ubi$ubi_num:overlay on ubifs"
+		return 1
+	fi
+
+	mkdir -p $dir/work
+	return 0
+}
+
+pivot() { # <new_root> <old_root>
+	local new=$1
+	local old=$2
+	mount -o move /proc $new/proc && \
+	pivot_root $new $new$old && {
+		mount -o move $old/dev /dev
+		mount -o move $old/tmp /tmp
+		mount -o move $old/sys /sys 2>&-
+		mount -o move $old/overlay /overlay 2>&-
+		mount -o move $old/rom /rom 2>&-
+		mount -o move $old/modoverlay /modoverlay 2>&-
+	}
+}
+
+fopivot() { # <rw_root> <ro_root>
+	local rw_root=$1
+	local ro_root=$2
+	mkdir -p /mnt/modroot
+	if ! legacy_overlayfs
+	then
+		echo "mounting overlay fs"
+		mount -t overlay -o lowerdir=/,upperdir=$rw_root,workdir=/modoverlay/work overlay /mnt/modroot && rw_root=/mnt/modroot
+	else
+		echo "mounting overlayfs fs"
+		mount -t overlayfs -olowerdir=/,upperdir=$rw_root "overlayfs:$rw_root" /mnt/modroot && rw_root=/mnt/modroot
+	fi
+	pivot $rw_root $ro_root
+}
+
+check_banktable() {
+	if [ -f /lib/modules/$(uname -r)/bankmgr.ko ]; then
+		insmod bankmgr 2>/dev/null
+	fi
+}
+
+run_mount_checks() {
+	local mount_point="$1"
+	local checkdir=/lib/mount_modroot_checks
+	if [ ! -d "$checkdir" ]; then
+		return
+	fi
+	local loop_detect="${mount_point}/mount_check_reboot"
+	if [ -f "$loop_detect" ]; then
+		#reboot because of mount check failures
+		#do not check again, to prevent reboot loops
+		rm $loop_detect
+		return
+	fi
+	local reboot_needed="no"
+	for check in $(ls -lA $checkdir); do
+		if [ -x $checkdir/$check ]; then
+			$checkdir/$check "$mount_point" || reboot_needed="yes"
+		fi
+	done
+	if [ "$reboot_needed" = "yes" ]; then
+		touch $loop_detect
+		/sbin/reboot -f
+	fi
+}
+
+mount_root_mod() {
+	local upperdir
+	local mount_point="/tmp/modoverlay"
+
+	check_banktable
+	if [ -f /proc/banktable/booted ]; then
+		upperdir=/modoverlay/bank_mod
+		oldroot=/saferoot
+	else
+		# modroot on notbooted bank not possible
+		return
+	fi
+
+	local check_head_bank1=/tmp/bank_1_dump_header
+	local check_head_bank2=/tmp/bank_2_dump_header
+
+	local bank_2_mtd="$(find_mtd_part bank_2)"
+	dd if=$bank_2_mtd of=$check_head_bank2 skip=16 bs=1 count=4
+
+	local bank_1_mtd="$(find_mtd_part bank_1)"
+	dd if=$bank_1_mtd of=$check_head_bank1 skip=16 bs=1 count=4
+
+	if cmp -s $check_head_bank1 $check_head_bank2; then
+		echo "error: Found LINUX header in bank_1"
+		exit 0
+	fi
+
+	rm $check_head_bank1 $check_head_bank2
+
+	find_mount_jffs2 ${mount_point}
+	if [ $? -ne 0 ]; then
+		find_mount_ubifs ${mount_point}
+		if [ $? -ne 0 ]; then
+			# something went wrong
+			return
+		fi
+	fi
+
+	run_mount_checks ${mount_point}
+
+	echo "switching to modoverlay"
+	mkdir -p /modoverlay
+	mount -o move /tmp/modoverlay /modoverlay 2>&-
+
+	mkdir -p $upperdir
+
+	for f in /lib/mount_modroot/*; do
+		[ -x $f ] && $f $upperdir
+	done
+
+	mkdir -p $oldroot
+	fopivot $upperdir $oldroot
+
+	# make sure /tmp has the correct permissions !
+	chmod 01777 /tmp
+}
+
+mount_root_mod

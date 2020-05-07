@@ -4318,3 +4318,12 @@ msgstr ""
 
 msgid "No Connection"
 msgstr ""
+
+msgid "A reboot is waiting! Reason: <strong>%s</strong>"
+msgstr ""
+
+msgid "Force the device to always use bank_2 partition as booted partition and bank_1 as active but corrupted<br/>This will also ensure that overlay (configs/mods partition) of bank_1 is empty or just have the rooting script preloaded.<br/>This bank plan allow to use TFTP flashing, as a reliable recovery procedure in case we mess-up with the bank_2 overlay"
+msgstr ""
+
+msgid "OBP Check"
+msgstr ""
