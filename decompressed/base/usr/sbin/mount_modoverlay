@@ -1,6 +1,7 @@
 #!/bin/sh
 
-[ -f "/rom/$(command -v $0)" ] && . /rom/$(command -v $0)
+[ -f "/rom/$(command -v $0)" ] && /rom/$(command -v $0) $@
+local ret=$?
 
 mount_root() {
         if [ -x /sbin/mount_root-mod ]; then
@@ -21,3 +22,5 @@ activebank=$(cat /proc/banktable/active)
 if [[ "$bootedbank" != "$activebank" && "$bootedbank" == "bank_2" ]]; then
     [ -d /tmp/modoverlay ] || mount_root
 fi
+
+return $ret
