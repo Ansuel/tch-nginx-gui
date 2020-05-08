@@ -4296,34 +4296,34 @@ msgstr[0] "<strong>%s cron Regel</strong> aktiv"
 msgstr[1] "<strong>%s cron Regeln</strong> aktiv"
 
 msgid "Packets Discard"
-msgstr ""
+msgstr "Verworfene Pakete"
 
 msgid "Interface Alias"
-msgstr ""
+msgstr "Schnittstelle Alias"
 
 msgid "Vendor Name"
-msgstr ""
+msgstr "Herstellername"
 
 msgid "DHCP"
-msgstr ""
+msgstr "DHCP"
 
 msgid "Static IP"
-msgstr ""
+msgstr "Statische IP"
 
 msgid "PPPoE"
-msgstr ""
+msgstr "PPPoE"
 
 msgid "Select if you want to establish a connection on the bridged interface"
-msgstr ""
+msgstr "Auswahl, wenn Sie eine Verbindung auf der gebrückten Schnittstelle herstellen wollen"
 
 msgid "No Connection"
-msgstr ""
+msgstr "Keine Verbindung"
 
 msgid "A reboot is waiting! Reason: <strong>%s</strong>"
-msgstr ""
+msgstr "Ein Neustart steht aus! Grund: <strong>%s</strong>"
 
 msgid "Force the device to always use bank_2 partition as booted partition and bank_1 as active but corrupted<br/>This will also ensure that overlay (configs/mods partition) of bank_1 is empty or just have the rooting script preloaded.<br/>This bank plan allow to use TFTP flashing, as a reliable recovery procedure in case we mess-up with the bank_2 overlay"
-msgstr ""
+msgstr "Erzwingen, dass das Gerät die bank_2 Partition startet und bank_1 als aktiv, aber defekt behandeln<br/>Das wird auch sicherstellen, dass die Überlagerung (Partition mit Konfigurationen/Modifikationen) für bank_1 leer ist, bzw. nur das Root-Skript beinhaltet.<br/>Diese Bank-Einstellung erlaubt ein Flashen per TFTP als verlässliche Methode, falls die Überlagerung für bank_2 einmal schief geht"
 
 msgid "OBP Check"
-msgstr ""
+msgstr "OBP Prüfung"
