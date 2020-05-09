@@ -3,6 +3,7 @@
 upperdir=$1
 overlay_bank=/overlay/bank_2
 ram_dir=/tmp/migrate_overlay
+need_reboot="0"
 
 tranfer_file() { # $source $dest
 
@@ -53,6 +54,8 @@ move_overlay() {
     sync
 
     echo "mount_root-mod: migration done!" > /dev/kmsg
+
+    need_reboot="1"
   fi
 }
 
@@ -73,4 +76,8 @@ preserve_files(){
   sync
 }
 
-{ move_overlay; preserve_files; reboot; }
+reboot_if_needed(){
+  [ "$need_reboot" = "1" ] && reboot
+}
+
+{ move_overlay; preserve_files; reboot_if_needed; }
