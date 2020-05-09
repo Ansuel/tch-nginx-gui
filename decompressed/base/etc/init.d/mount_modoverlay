@@ -1,0 +1,7 @@
+#!/bin/ash /etc/rc.common
+
+START=00
+
+boot() {
+  /usr/sbin/mount_modoverlay
+}
