@@ -10,7 +10,13 @@ move_overlay() {
 
     echo "mount_root-mod: copying $overlay_bank/* to $upperdir/ ..." > /dev/kmsg 
     #copy all file from overlay_bank to modoverlay keeping all attributes and links
-    find $overlay_bank -mindepth 1 -maxdepth 1 ! -path "*/modoverlay" -exec cp -a "{}" "$upperdir/" \;
+    for d in find $overlay_bank/ -type d ! -path "*/modoverlay" -a ! -path "*/saferoot"; do
+      mkdir -p "$upperdir"/"$d"
+    done
+
+    for f in find $overlay_bank/ ! -type d ! -path "*/modoverlay" -a ! -path "*/saferoot"; do
+      cp -dp "$f" "$upperdir"/
+    done
 
     sync
 
