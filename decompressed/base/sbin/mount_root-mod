@@ -259,6 +259,9 @@ mount_root_mod() {
 	fopivot $upperdir $oldroot
 	echo "mount_root-mod: modoverlay pivoting complete" > /dev/kmsg 
 
+	# Activate migrate script
+	/etc/init.d/do_migrate_overlay enable
+
 	# make sure /tmp has the correct permissions !
 	chmod 01777 /tmp
 }

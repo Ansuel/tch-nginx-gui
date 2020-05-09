@@ -1,0 +1,88 @@
+#!/bin/ash /etc/rc.common
+
+START=00
+
+boot() {
+  local upperdir=/modoverlay/bank_mod
+  local overlay_bank=/overlay/bank_2
+  local ram_dir=/tmp/migrate_overlay
+  local need_reboot="0"
+
+  tranfer_file() { # $source $dest
+
+    local source=$1
+    local dest=$2
+
+    echo "mount_root-mod: copying $source/* to $dest/ ..." > /dev/kmsg
+
+    for d in $(find $source/ -xdev -type d ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
+        # echo "mount_root-mod: creating $dest/$d" > /dev/kmsg
+        mkdir -p "$dest/$d"
+      done
+
+      for f in $(find $source/ -xdev -type f ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
+        # echo "mount_root-mod: copying $source/$f to $dest/$f" > /dev/kmsg
+        cp -dp "$source/$f" "$dest/$f"
+      done
+
+      for l in $(find $source/ -xdev -type l ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
+        # echo "mount_root-mod: copying $source/$l to $dest/$l" > /dev/kmsg
+        cp -dp "$source/$l" "$dest/$l"
+      done
+  }
+
+  move_overlay() {
+    echo "mount_root-mod: checking if overlay must be transfered..." > /dev/kmsg
+    #use the config folder as check to know that we should populate the modoverlay (mtd3) and cleanup real overlay (mtd2)
+    if [ -d $overlay_bank/etc/config ]; then
+
+      mkdir $ram_dir
+
+      #copy all file from overlay_bank to ram keeping all attributes and links
+      tranfer_file $overlay_bank $ram_dir
+
+      sync
+
+      #copy all file from ram to modoverlay keeping all attributes and links
+      tranfer_file $ram_dir $upperdir
+
+      sync
+
+      #at this point we should remove all empty folders in bank_2 overlay, except the modoverlay mountpoint
+      for f in "$overlay_bank/"*; do
+        echo "mount_root-mod: check-for-rm $f" > /dev/kmsg
+        [ "$f" != "$overlay_bank/modoverlay" ] && [ "$f" != "$overlay_bank/saferoot" ] && rm -rf "$f"
+      done
+
+      sync
+
+      echo "mount_root-mod: migration done!" > /dev/kmsg
+
+      need_reboot="1"
+    fi
+  }
+
+  preserve_files(){
+    #these files should be moved back to bank_2 overlay to allow our mount hook to take place (and preserve root after boot)
+    preserve_list="/etc/init.d/rootdevice /etc/rc.d/S94rootdevice /usr/sbin/random_seed \
+    /etc/init.d/do_migrate_overlay /usr/sbin/mount_modoverlay /sbin/mount_root-mod"
+
+    update_file_if_needed() { # <file> <source> <dest>
+      cmp -s "$2$1" "$3$1" || cp -a "$2$1" "$3$1"
+    }
+
+    for f in $preserve_list; do
+      mkdir -p $overlay_bank$(dirname "$f")
+      echo "mount_root-mod: update_file_if_needed $f" > /dev/kmsg
+      update_file_if_needed "$f" "$upperdir" $overlay_bank
+    done
+
+    sync
+  }
+
+  reboot_if_needed(){
+    [ "$need_reboot" = "1" ] && reboot
+  }
+
+  { move_overlay; preserve_files; reboot_if_needed; }
+}
