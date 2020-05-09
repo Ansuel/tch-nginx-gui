@@ -13,17 +13,17 @@ tranfer_file() { # $source $dest
   echo "mount_root-mod: copying $source/* to $dest/ ..." > /dev/kmsg
 
   for d in $(find $source/ -xdev -type d ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
-      echo "mount_root-mod: creating $dest/$d"
+      # echo "mount_root-mod: creating $dest/$d" > /dev/kmsg
       mkdir -p "$dest/$d"
     done
 
     for f in $(find $source/ -xdev -type f ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
-      echo "mount_root-mod: copying $source/$f to $dest/$f"
+      # echo "mount_root-mod: copying $source/$f to $dest/$f" > /dev/kmsg
       cp -dp "$source/$f" "$dest/$f"
     done
 
     for l in $(find $source/ -xdev -type l ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
-      echo "mount_root-mod: copying $source/$l to $dest/$l"
+      # echo "mount_root-mod: copying $source/$l to $dest/$l" > /dev/kmsg
       cp -dp "$source/$l" "$dest/$l"
     done
 }
