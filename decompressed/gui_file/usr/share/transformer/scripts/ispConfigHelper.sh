@@ -4,7 +4,7 @@ restart_dnsmasq=0
 
 logger_command() {
     logger -t "IspConfigHelper" "$1"
-	echo "IspConfigHelper" "$1"
+    echo "IspConfigHelper" "$1"
 }
 
 purify_from_tim() {

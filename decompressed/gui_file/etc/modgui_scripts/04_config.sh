@@ -519,13 +519,13 @@ cumulative_check_gui() {
   if [ ! "$(uci get -q modgui.gui.gui_animation)" ]; then
     uci set modgui.gui.gui_animation="1"
   fi
-  if [ -z "$(uci get -q modgui.var.isp_autodetect)" ]; then
+  if [ ! "$(uci get -q modgui.var.isp_autodetect)" ]; then
   	uci set modgui.var.isp_autodetect="1"
   fi
-  if [ -z "$(uci get -q modgui.var.isp_autodetect)" ]; then
+  if [ ! "$(uci get -q modgui.var.isp)" ]; then
   	uci set modgui.var.isp="Other"
   fi
-  if [ -z "$(uci get -q modgui.gui.gui_skin)" ]; then
+  if [ ! "$(uci get -q modgui.gui.gui_skin)" ]; then
     uci set modgui.gui.gui_skin="green"
   fi
 }

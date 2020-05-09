@@ -127,15 +127,15 @@ end
 local function getSupportedModel()
 	local friendly_name = proxy.get("uci.env.var.prod_friendly_name")[1].value
 
-	if friendly_name:match("DGA4130") or friendly_name:match("DGA4132") then
+	if friendly_name:match("DGA4130") or friendly_name:match("DGA4132") or friendly_name:match("DGA4131") then
 		return "DGA"
-	elseif friendly_name:match("TG789") or friendly_name:match("TG799") and not friendly_name:match("Xtream") then
+	elseif friendly_name:match("TG789") or friendly_name:match("TG799") or friendly_name:match("TG788") and not friendly_name:match("Xtream") then
 		return "TG789"
 	elseif friendly_name:match("TG800") or (friendly_name:match("TG789") and friendly_name:match("Xtream")) then
 		return "TG800"
 	end
 
-	return
+	return friendly_name
 end
 
 local function installspecificapp()
