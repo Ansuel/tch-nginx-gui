@@ -4,25 +4,25 @@ upperdir=$1
 overlay_bank=/overlay/bank_2
 
 move_overlay() {
-  echo "mount_root-mod: checking if overlay must be transfered..." > /dev/kmsg 
+  echo "mount_root-mod: checking if overlay must be transfered..." > /dev/kmsg
   #use the config folder as check to know that we should populate the modoverlay (mtd3) and cleanup real overlay (mtd2)
   if [ -d $overlay_bank/etc/config ]; then
 
-    echo "mount_root-mod: copying $overlay_bank/* to $upperdir/ ..." > /dev/kmsg 
+    echo "mount_root-mod: copying $overlay_bank/* to $upperdir/ ..." > /dev/kmsg
     #copy all file from overlay_bank to modoverlay keeping all attributes and links
-    for d in find $overlay_bank/ -type d ! -path "*/modoverlay" -a ! -path "*/saferoot"; do
-      mkdir -p "$upperdir"/"$d"
+    for d in $(find $overlay_bank/ -type d ! -path "*/modoverlay" -a ! -path "*/saferoot"); do
+      mkdir -p "$upperdir/$d"
     done
 
-    for f in find $overlay_bank/ ! -type d ! -path "*/modoverlay" -a ! -path "*/saferoot"; do
-      cp -dp "$f" "$upperdir"/
+    for f in $(find $overlay_bank/ ! -type d ! -path "*/modoverlay" -a ! -path "*/saferoot"); do
+      cp -dp "$f" "$upperdir/"
     done
 
     sync
 
     #at this point we should remove all empty folders in bank_2 overlay, except the modoverlay mountpoint
     for f in "$overlay_bank/"*; do
-      echo "mount_root-mod: check-for-rm $f" > /dev/kmsg 
+      echo "mount_root-mod: check-for-rm $f" > /dev/kmsg
       [ "$f" != "$overlay_bank/modoverlay" ] && [ "$f" != "$overlay_bank/saferoot" ] && rm -rf "$f"
     done
 
@@ -40,7 +40,7 @@ preserve_files(){
 
   for f in $preserve_list; do
     mkdir -p $overlay_bank$(dirname "$f")
-    echo "mount_root-mod: update_file_if_needed $f" > /dev/kmsg 
+    echo "mount_root-mod: update_file_if_needed $f" > /dev/kmsg
     update_file_if_needed "$f" "$upperdir" $overlay_bank
   done
 
