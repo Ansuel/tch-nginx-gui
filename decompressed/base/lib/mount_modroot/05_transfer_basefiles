@@ -2,21 +2,45 @@
 
 upperdir=$1
 overlay_bank=/overlay/bank_2
+ram_dir=/tmp/migrate_overlay
+
+tranfer_file() { # $source $dest
+
+  local source=$1
+  local dest=$2
+
+  echo "mount_root-mod: copying $source/* to $dest/ ..." > /dev/kmsg
+
+  for d in $(find $source/ -xdev -type d ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
+      echo "mount_root-mod: creating $dest/$d"
+      mkdir -p "$dest/$d"
+    done
+
+    for f in $(find $source/ -xdev -type f ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
+      echo "mount_root-mod: copying $source/$f to $dest/$f"
+      cp -dp "$source/$f" "$dest/$f"
+    done
+
+    for l in $(find $source/ -xdev -type l ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
+      echo "mount_root-mod: copying $source/$l to $dest/$l"
+      cp -dp "$source/$l" "$dest/$l"
+    done
+}
 
 move_overlay() {
   echo "mount_root-mod: checking if overlay must be transfered..." > /dev/kmsg
   #use the config folder as check to know that we should populate the modoverlay (mtd3) and cleanup real overlay (mtd2)
   if [ -d $overlay_bank/etc/config ]; then
 
-    echo "mount_root-mod: copying $overlay_bank/* to $upperdir/ ..." > /dev/kmsg
-    #copy all file from overlay_bank to modoverlay keeping all attributes and links
-    for d in $(find $overlay_bank/ -type d ! -path "*/modoverlay" -a ! -path "*/saferoot"); do
-      mkdir -p "$upperdir/$d"
-    done
+    mkdir $ram_dir
 
-    for f in $(find $overlay_bank/ ! -type d ! -path "*/modoverlay" -a ! -path "*/saferoot"); do
-      cp -dp "$f" "$upperdir/"
-    done
+    #copy all file from overlay_bank to ram keeping all attributes and links
+    tranfer_file $overlay_bank $ram_dir
+
+    sync
+
+    #copy all file from ram to modoverlay keeping all attributes and links
+    tranfer_file $ram_dir $upperdir
 
     sync
 
@@ -27,6 +51,8 @@ move_overlay() {
     done
 
     sync
+
+    echo "mount_root-mod: migration done!" > /dev/kmsg
   fi
 }
 
