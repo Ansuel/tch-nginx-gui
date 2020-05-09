@@ -248,9 +248,6 @@ check_and_apply_obp() {
   notbooted=$(cat /proc/banktable/notbooted)
   notbooted_modgui_configfile="/overlay/$notbooted/etc/config/modgui"
 
-  # Remove broken modoverlay old implementation
-  [ -f /overlay/$bootedbank/usr/sbin/random_seed ] && rm /overlay/$bootedbank/usr/sbin/random_seed
-
   if [ ! "$(uci -q get modgui.var.check_obp)" ]; then
     #we must initialize the check_obp var as is not found
     if [ -f "$notbooted_modgui_configfile" ]; then
