@@ -3,8 +3,10 @@
 restart_dnsmasq=0
 
 logger_command() {
+  if [ "$debug" -eq 1 ]; then
     logger -t "IspConfigHelper" "$1"
     echo "IspConfigHelper" "$1"
+  fi
 }
 
 purify_from_tim() {
@@ -157,7 +159,7 @@ cwmp_specific_FASTWEB() {
 		if [ "$(uci get -q cwmpd.cwmpd_config.acs_url)" != "http://59.0.121.191:8080/ACS-server/ACS" ]; then
 			#Fastweb requires device registred in CWMP to make voip work in MAN voip registar
 			#Fastweb will autoconfigure acs username and password with empty acs_url
-			#Make the device tink is first power on by removing cwmpd db
+			#Make the device think is first power on by removing cwmpd db
 			[ -f /etc/cwmpd.db ] && rm /etc/cwmpd.db
 			uci set cwmpd.cwmpd_config.acs_url=""
 			uci commit cwmpd
@@ -222,9 +224,11 @@ cwmp_specific_TIM() {
 
 check_clean() {
 	if [ -n "$(uci get -q firewall.Allow_restricted_sip_1.name)" ] && [ "$1" != "Fastweb" ]; then
-		uci set versioncusto.override.fwversion_override="$(uci get -q versioncusto.override.fwversion_override_old)"
-		uci del versioncusto.override.fwversion_override_old
-		uci commit versioncusto
+	  if [ $(uci get -q versioncusto.override.fwversion_override_old) ]; then
+      uci set versioncusto.override.fwversion_override="$(uci get -q versioncusto.override.fwversion_override_old)"
+      uci del versioncusto.override.fwversion_override_old
+      uci commit versioncusto
+		fi
 	fi
 	if [ -n "$(uci get -q modgui.var.ppp_mgmt)" ] && [ "$1" != "TIM" ]; then
 		purify_from_tim
