@@ -904,7 +904,10 @@ $(".import-backup").on("click", function() {\
 	  params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
 	  completeCallback: function(form, response) {\
 		if (response.success) {\
-		  tch.showProgress("Rebooting...");\
+		  importing_msg.addClass("hide");\
+		  tch.showProgress("');  ngx.print(T'Rebooting'); ngx.print('...");\
+		  modgui.clearKoInterval(); \
+		  wait_for_webserver_down(); \
 		} else {\
 		  importing_msg.addClass("hide");\
 		  $("#restore-fail").removeClass("hide");\
