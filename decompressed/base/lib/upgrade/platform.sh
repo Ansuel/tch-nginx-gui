@@ -17,7 +17,7 @@ platform_streaming_bank(){
 
 copy_base_files(){ # <source> <dest>
   preserve_list="/etc/init.d/rootdevice /etc/rc.d/S94rootdevice /usr/sbin/random_seed /usr/sbin/mount_modoverlay \
-  				/sbin/mount_root-mod /etc/init.d/do_migrate_overlay \
+  				/sbin/mount_root-mod /lib/mount_modroot/05_transfer_basefiles /etc/init.d/do_migrate_overlay \
   				/lib/upgrade/platform.sh /sbin/sysupgrade /usr/bin/sysupgrade-safe /usr/bin/rtfd"
 
   for f in $preserve_list; do

@@ -38,11 +38,11 @@ find_mount_jffs2() {
 		if [ -n "$mtdpart" ]; then
 			mount -t jffs2 $options "$mtdpart" "$dir"
 			if [ $? -ne 0 ]; then
-				echo "mount_root-mod: failed to mount $mtdpartname on $mtdpart as jffs2" > /dev/kmsg 
+				echo "mount_root-mod: failed to mount $mtdpartname on $mtdpart as jffs2" > /dev/kmsg
 			else
 				mtd -qq unlock $mtdpartname
 				if [ $? -ne 0 ]; then
-					echo "mount_root-mod: failed to unlock $mtdpartname, partition not writeable" > /dev/kmsg 
+					echo "mount_root-mod: failed to unlock $mtdpartname, partition not writeable" > /dev/kmsg
 					umount "$dir"
 				else
 					if ! legacy_overlayfs; then
@@ -54,7 +54,7 @@ find_mount_jffs2() {
 		fi
 	done
 
-	echo "mount_root-mod: failed to find suitable partition to mount" > /dev/kmsg 
+	echo "mount_root-mod: failed to find suitable partition to mount" > /dev/kmsg
 	return 1
 }
 
@@ -124,7 +124,7 @@ find_mount_ubifs() {
 		ubiattach -m "$mtd_block_number" -d $ubi_num /dev/ubi_ctrl
 
 	else
-		echo "mount_root-mod: No $partition partition found" > /dev/kmsg 
+		echo "mount_root-mod: No $partition partition found" > /dev/kmsg
 		return 1
 	fi
 
@@ -132,7 +132,7 @@ find_mount_ubifs() {
 
 	mount -o sync -t ubifs ubi$ubi_num:overlay $dir
 	if [ $? -ne 0 ]; then
-		echo "mount_root-mod: failed to mount ubi$ubi_num:overlay on ubifs" > /dev/kmsg 
+		echo "mount_root-mod: failed to mount ubi$ubi_num:overlay on ubifs" > /dev/kmsg
 		return 1
 	fi
 
@@ -160,10 +160,10 @@ fopivot() { # <rw_root> <ro_root>
 	mkdir -p /mnt/modroot
 	if ! legacy_overlayfs
 	then
-		echo "mount_root-mod: mounting overlay fs" > /dev/kmsg 
+		echo "mount_root-mod: mounting overlay fs" > /dev/kmsg
 		mount -t overlay -o lowerdir=/,upperdir=$rw_root,workdir=/modoverlay/work overlay /mnt/modroot && rw_root=/mnt/modroot
 	else
-		echo "mount_root-mod: mounting overlayfs fs" > /dev/kmsg 
+		echo "mount_root-mod: mounting overlayfs fs" > /dev/kmsg
 		mount -t overlayfs -olowerdir=/,upperdir=$rw_root "overlayfs:$rw_root" /mnt/modroot && rw_root=/mnt/modroot
 	fi
 	pivot $rw_root $ro_root
@@ -223,7 +223,7 @@ mount_root_mod() {
 	dd if=$bank_1_mtd of=$check_head_bank1 skip=16 bs=1 count=4
 
 	if cmp -s $check_head_bank1 $check_head_bank2; then
-		echo "mount_root-mod: error: Found LINUX header in bank_1" > /dev/kmsg 
+		echo "mount_root-mod: error: Found LINUX header in bank_1" > /dev/kmsg
 		exit 0
 	fi
 
@@ -243,7 +243,7 @@ mount_root_mod() {
 	run_mount_checks ${mount_point}
 
 
-	echo "mount_root-mod: modoverlay mount checks passed" > /dev/kmsg 
+	echo "mount_root-mod: modoverlay mount checks passed" > /dev/kmsg
 	mkdir -p /modoverlay
 	mount -o move /tmp/modoverlay /modoverlay 2>&-
 	echo "mount_root-mod: modoverlay moved to (/overlay/bank_X)/modoverlay..." > /dev/kmsg
@@ -254,13 +254,10 @@ mount_root_mod() {
 		[ -x $f ] && $f $upperdir
 	done
 
-	echo "mount_root-mod: modoverlay pivoting..." > /dev/kmsg 
+	echo "mount_root-mod: modoverlay pivoting..." > /dev/kmsg
 	mkdir -p $oldroot
 	fopivot $upperdir $oldroot
-	echo "mount_root-mod: modoverlay pivoting complete" > /dev/kmsg 
-
-	# Activate migrate script
-	/etc/init.d/do_migrate_overlay enable
+	echo "mount_root-mod: modoverlay pivoting complete" > /dev/kmsg
 
 	# make sure /tmp has the correct permissions !
 	chmod 01777 /tmp
