@@ -40,6 +40,11 @@ local lastUpdateTime = {
   [1] = 0
 }
 
+local lastReducedUpdateTime = {
+  [0] = 0,
+  [1] = 0
+}
+
 local xdslctlinfo0 = {
   command = "xdslctl info --show",
   lookup = {
@@ -61,9 +66,11 @@ local xdslctlinfo = {line0 = xdslctlinfo0, line1 = xdslctlinfo1}
 
 -- Setup a default value to be line0
 local function setDefault(t, d)
-  local mt = {__index = function()
+  local mt = {
+    __index = function()
       return d
-    end}
+    end
+  }
   setmetatable(t, mt)
 end
 setDefault(xdslctlinfo, xdslctlinfo0)
@@ -541,15 +548,18 @@ end
 -- @return sets global adslMib variable.
 local function getMinimalDSLStatistics(lineid)
   local line = getLineNum(lineid)
-  tmp = luabcm.getMinimalDSLStatistics(line)
-  lastUpdateTime[line] = os.time()
-  if tostring(tmp) == "-1" then
-    createTableWithEmptyValues()
+  local diff = os.time() - lastReducedUpdateTime[line]
+  if diff > 5 or diff < 0 then
+    tmp = luabcm.getMinimalDSLStatistics(line)
+    lastReducedUpdateTime[line] = os.time()
+    -- update cache
+    for i, v in pairs(tmp) do
+      adslMibCache[line][i] = v
+    end
   else
-    adslMib = tmp
+    -- no update, use cache
+    adslMib = adslMibCache[line]
   end
-  -- update cache
-  adslMibCache[line] = adslMib
 end
 
 -- map the parameter name with the corresponding upstream, downstream parameters and their call back conversion functions
