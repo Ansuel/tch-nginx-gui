@@ -40,11 +40,6 @@ local lastUpdateTime = {
   [1] = 0
 }
 
-local lastReducedUpdateTime = {
-  [0] = 0,
-  [1] = 0
-}
-
 local xdslctlinfo0 = {
   command = "xdslctl info --show",
   lookup = {
@@ -548,18 +543,8 @@ end
 -- @return sets global adslMib variable.
 local function getMinimalDSLStatistics(lineid)
   local line = getLineNum(lineid)
-  local diff = os.time() - lastReducedUpdateTime[line]
-  if diff > 5 or diff < 0 then
-    tmp = luabcm.getMinimalDSLStatistics(line)
-    lastReducedUpdateTime[line] = os.time()
-    -- update cache
-    for i, v in pairs(tmp) do
-      adslMibCache[line][i] = v
-    end
-  else
-    -- no update, use cache
-    adslMib = adslMibCache[line]
-  end
+  tmp = luabcm.getMinimalDSLStatistics(line)
+  adslMib = tmp
 end
 
 -- map the parameter name with the corresponding upstream, downstream parameters and their call back conversion functions
