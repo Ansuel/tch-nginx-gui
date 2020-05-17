@@ -165,6 +165,7 @@ local ddns_service = {
     access = 'readOnly',
     minEntries = 1,
     maxEntries = math.huge,
+    numEntriesParameter = "DDnsNumberOfEntries",
     parameters = {
       status = {
         access = "readOnly",
