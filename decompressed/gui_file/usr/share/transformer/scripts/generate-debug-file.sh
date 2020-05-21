@@ -22,7 +22,7 @@ trans=$(uci get modgui.app.transmission_webui)
 xupnp=$(uci get modgui.app.xupnp_app)
 blk=$(uci get modgui.app.blacklist_app)
 telstra=$(uci get modgui.app.telstra_webui)
- 
+
 
 log() {
 logger -s -t "DebugHelper" "$1"
@@ -124,14 +124,9 @@ echo " " >> ./configlist.txt
 
 ###########################################################################################################################################################
 echo "__________________________________GUI INSTALL LOG_________________________________________" >> ./gui-install.log
-
-if [ ! -z $1 ] && [ $1 == "dev" ]; then
- log "Dev Mode. Not running rootdevice"
- else
- log "Running rootdevice script in debug mode. This will take ~35sec..."
- /etc/init.d/rootdevice debug > ./gui-install.log 2>&1
- echo " " >> ./gui-install.log
-fi
+log "Running rootdevice script in debug mode. This will take ~35sec..."
+/etc/init.d/rootdevice debug > ./gui-install.log 2>&1
+echo " " >> ./gui-install.log
 
 ###########################################################################################################################################################
 log "Tarring File..."

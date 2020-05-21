@@ -1,5 +1,5 @@
 --pretranslated: do not change this file
- 
+
 local string, table, pairs = string, table, pairs
 local ngx, tostring, tonumber, ipairs, setmetatable, tinsert = ngx, tostring, tonumber, ipairs, setmetatable, table.insert
 
@@ -576,14 +576,14 @@ local page = get_page(get_platform_data(), get_by_imei(current_imei, mobiled.dev
 	}\
 </style>\
 \
-');  
+');
 	local params = utils.get_params()
 	ngx.print(ui_helper.createHeader(params.modal_title, true, true, nil))
   ngx.print('\
 \
 <div class="modal-body update" id="lte-body">\
 	<form class="form-horizontal" method="post" action="');  ngx.print( ngx.var.request_uri ); ngx.print('">\
-		');  
+		');
 			local lp = require("web.lp")
 			lp.setpath("/www/snippets/")
 			lp.include("tabs-mobiled.lp")
@@ -659,7 +659,7 @@ local page = get_page(get_platform_data(), get_by_imei(current_imei, mobiled.dev
 						["data-value"] = "delete_uci_device_" .. page.device.paramindex
 					}
 				}
-				tinsert(html, ui_helper.createButton(T"Remove Settings" .. ":", "", "icon-trash", remove_uci_device_class))
+				tinsert(html, ui_helper.createButton(T"Remove Settings" .. ":", "", "icon-remove-sign", remove_uci_device_class))
 				tinsert(html, "</div></form></div>")
 				tinsert(html, ui_helper.createFooter())
 				ngx.print(html)
@@ -741,7 +741,7 @@ local page = get_page(get_platform_data(), get_by_imei(current_imei, mobiled.dev
 					</div>\
 				</div>\
 			</fieldset>\
-			');  
+			');
 			html = {}
 			get_network_interface_section(page, html)
 			get_session_info_section(page, html)
@@ -907,7 +907,7 @@ local page = get_page(get_platform_data(), get_by_imei(current_imei, mobiled.dev
 	});\
 \
 	$("select[name=\'profile\']").change(function() {\
-		var unsupported_profiles = [');  
+		var unsupported_profiles = [');
 			if page.device and page.device.capabilities.supported_auth_types then
 				local separator = ""
 				for profile_id, authentication in pairs(page.profile_authentications) do
@@ -927,4 +927,4 @@ local page = get_page(get_platform_data(), get_by_imei(current_imei, mobiled.dev
 \
 	lteModal.resumeNetworkScan();\
 </script>\
-'); 
+');
