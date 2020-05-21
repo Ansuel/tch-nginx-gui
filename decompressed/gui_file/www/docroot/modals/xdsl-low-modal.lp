@@ -209,6 +209,7 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H045") or content.dsl0_xdsl_Firmwa
         tinsert(driver_option, { "A2pvfbH045o", 'A2pvfbH045o (FRITZ!Box 7582 7.12-72473M)'})
         tinsert(driver_option, { "A2pvfbH045o1", 'A2pvfbH045o1 (Zyxel VMG4005-B50A_5.15(ABQA.0)C0)'})
         tinsert(driver_option, { "A2pvfbH045p", 'A2pvfbH045p (DGA4131FWB 18.3.n)'})
+        tinsert(driver_option, { "A2pvfbH045q", 'A2pvfbH045q (iopsys 5.1.0RC4)'})
 	end
 
 	driver_Params.driver_ver = "uci.modgui.var.driver_version"
