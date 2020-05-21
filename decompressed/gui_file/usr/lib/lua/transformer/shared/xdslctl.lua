@@ -544,7 +544,11 @@ end
 local function getMinimalDSLStatistics(lineid)
   local line = getLineNum(lineid)
   tmp = luabcm.getMinimalDSLStatistics(line)
-  adslMib = tmp
+  if tostring(tmp) == "-1" then
+    createTableWithEmptyValues()
+  else
+    adslMib = tmp
+  end
 end
 
 -- map the parameter name with the corresponding upstream, downstream parameters and their call back conversion functions
