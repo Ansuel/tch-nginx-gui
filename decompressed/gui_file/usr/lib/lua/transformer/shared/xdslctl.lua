@@ -543,7 +543,7 @@ end
 -- @return sets global adslMib variable.
 local function getMinimalDSLStatistics(lineid)
   local line = getLineNum(lineid)
-  tmp = luabcm.getMinimalDSLStatistics(line)
+  tmp = luabcm.getMinimalDSLStatistics and luabcm.getMinimalDSLStatistics(line) or luabcm.getAdslMib(line)
   if tostring(tmp) == "-1" then
     createTableWithEmptyValues()
   else
