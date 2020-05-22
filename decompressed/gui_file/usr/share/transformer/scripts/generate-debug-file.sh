@@ -60,12 +60,11 @@ echo "GUI Hash: $guihash" >> ./deviceinfo.txt
 echo "GUI Branch: $guibranch" >> ./deviceinfo.txt
 echo "GUI First Page: $guifirst" >> ./deviceinfo.txt
 
- if [ $guirancol == 1 ]
-  then
-    echo "GUI Random Colour enabled" >> ./deviceinfo.txt
-  else
-    echo "GUI Random Colour disabled" >> ./deviceinfo.txt
-  fi
+echo "--------------Free Space--------------" >> ./deviceinfo.txt
+df -h >> ./deviceinfo.txt
+
+echo "--------------banktable---------------" >> ./deviceinfo.txt
+find /proc/banktable -type f -print -exec cat {} ';' >> ./deviceinfo.txt
 
 echo "-----List of Installed Extensions-----" >> ./deviceinfo.txt
 
@@ -100,7 +99,6 @@ then
 fi
 echo "--------------------------------------" >> ./deviceinfo.txt
 
-
 ###########################################################################################################################################################
 
 log "Scanning for log errors..."
@@ -121,12 +119,6 @@ log "Scanning /etc/config directory..."
 echo "__________________________________CONFIG FILE LIST_________________________________________" >> ./configlist.txt
 ls /etc/config/ >> ./configlist.txt
 echo " " >> ./configlist.txt
-
-###########################################################################################################################################################
-echo "__________________________________GUI INSTALL LOG_________________________________________" >> ./gui-install.log
-log "Running rootdevice script in debug mode. This will take ~35sec..."
-/etc/init.d/rootdevice debug > ./gui-install.log 2>&1
-echo " " >> ./gui-install.log
 
 ###########################################################################################################################################################
 log "Tarring File..."
