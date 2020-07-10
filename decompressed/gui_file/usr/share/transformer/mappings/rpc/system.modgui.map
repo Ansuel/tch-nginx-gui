@@ -55,9 +55,7 @@ local commands_helper = {
 	copyBank = '/usr/share/transformer/scripts/copy_bank.sh',
 	upgradegui = 'start-stop-daemon -S -b -x /usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/upgradegui GuiRequest"',
 	genSysupgradeBackup = function(filename) return '/usr/share/transformer/scripts/wrapper.sh "sysupgrade -b /tmp/'..filename..'"' end,
-	restoreSysupgradeBackup = 'sysupgrade -r /tmp/sysupgrade_backup.tar.gz;reboot',
-	getChangeLogWeb = 'curl -m 2 https://raw.githubusercontent.com/Ansuel/tch-nginx-gui/master/CHANGELOG.md > /tmp/remoteReqOutput',
-	getVendor = function(mac) return 'curl -m 2 http://api.maclookup.app/v1/macs/' .. mac:gsub('_.*','') .. ' > /tmp/remoteReqOutput' end
+	restoreSysupgradeBackup = 'sysupgrade -r /tmp/sysupgrade_backup.tar.gz;reboot'
 }
 
 local async_exec = require("lasync").execute

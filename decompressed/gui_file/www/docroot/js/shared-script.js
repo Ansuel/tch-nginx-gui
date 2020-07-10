@@ -182,17 +182,14 @@ var modgui = modgui || {};
 	// Take mac and the JQuery div object to put the vendor
 	function getVendorFromMac(mac, div) {
 		div.addClass("fa fa-sync fa-spin");
-		$.post(
-			'/modals/modgui-modal.lp?auto_update=true', {
+		$.ajax({
+			url: "/modals/modgui-modal.lp?auto_update=true",
+			method: 'POST',
+			data: {
 				action: 'getVendor',
 				mac: mac,
 				CSRFtoken: $("meta[name=CSRFtoken]").attr("content")
 			},
-			null,
-			"json"
-		);
-		$.ajax({
-			url: "/get_vendor?auto_update=true",
 			dataType: 'json',
 			error: function() {
 				div.removeClass("fa fa-sync fa-spin");

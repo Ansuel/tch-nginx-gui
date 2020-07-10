@@ -205,10 +205,18 @@ local function genSysupgradeBackup()
 	ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
 end
 
+local function call_popen(cmd)
+
+	local handle = io.popen(cmd)
+	local result = handle:read("*a")
+	handle:close()
+
+	return result
+end
+
 if ngx.req.get_method() == "POST" then
 	-- now process file POSTs
-	local post_args = ngx.req.get_uri_args()
-	local action = post_args.action
+	local action = ngx.req.get_uri_args().action
 	if action == "upgradeguifile" then
 		return upgradeguifile()
 	end
@@ -219,7 +227,8 @@ if ngx.req.get_method() == "POST" then
 		return restoreFromSysupgradeBackup()
 	end
 	-- now process non-file POSTs
-	local action = ngx.req.get_post_args().action
+	local post_args = ngx.req.get_post_args()
+	local action = post_args.action
 	if action == "system_reset_gui" then
 		return sendcmd("resetgui")
 	end
@@ -251,11 +260,13 @@ if ngx.req.get_method() == "POST" then
 		return sendcmd("checkver")
 	end
 	if action == "getVendor" then
-		return sendcmd("getVendor_".. post_args.mac .."_sync")
+		ngx.print(call_popen(untaint("curl -m 2 http://api.maclookup.app/v1/macs/" .. post_args.mac:gsub('_.*','')), "r"))
+		ngx.exit(ngx.HTTP_OK)
+		return
 	end
-	if proxy.get("uci.web.sessionmgr.@default.force_https")[1].value ~= ngx.req.get_post_args().gui_forcehttps then
+	if proxy.get("uci.web.sessionmgr.@default.force_https")[1].value ~= post_args.gui_forcehttps then
 		local mngr = require("web.sessioncontrol").loadmgr("default")
-		mngr.force_https = ngx.req.get_post_args().gui_forcehttps
+		mngr.force_https = post_args.gui_forcehttps
 	end
 end
 
