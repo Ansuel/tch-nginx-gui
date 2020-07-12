@@ -171,7 +171,8 @@ fopivot() { # <rw_root> <ro_root>
 
 check_banktable() {
 	if [ -f /lib/modules/$(uname -r)/bankmgr.ko ]; then
-		insmod bankmgr 2>/dev/null
+	  #calling from /rom to fix hook loop on <16.2
+		/rom/sbin/insmod bankmgr 2>/dev/null
 	fi
 }
 
