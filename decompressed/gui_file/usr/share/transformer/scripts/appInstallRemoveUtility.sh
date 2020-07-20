@@ -11,6 +11,10 @@ install_from_github(){
 
 	if [ $3 == "specificapp" ]; then
 		if [ ! -f /tmp/$2.tar.bz2 ]; then
+      if ! ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then
+        echo "No internet connection detected, $1 $2 manually!"
+        exit 0
+      fi
 			curl -sLk https://raw.githubusercontent.com/$1/$2.tar.bz2 --output /tmp/$2.tar.bz2
 		fi
 		if [ ! -f /tmp/$2.tar.bz2 ]; then
@@ -22,6 +26,10 @@ install_from_github(){
 		cd /tmp/$2
 	else
 		if [ ! -f /tmp/$2.tar.gz ]; then
+      if ! ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then
+        echo "No internet connection detected, $1 $2 manually!"
+        exit 0
+      fi
 			curl -sLk https://github.com/$1/tarball/$2 --output /tmp/$2.tar.gz
 		fi
 		if [ ! -f /tmp/$2.tar.gz ]; then
@@ -459,14 +467,7 @@ call_app_type() {
 
 
 case "$1" in
-	install|remove)
-    if ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then
-      call_app_type "$1" "$2" "$3"
-    else
-      echo "No internet connection detected, $1 $2 manually!"
-    fi
-		;;
-  stop|start|refresh)
+  install|remove|stop|start|refresh)
     call_app_type "$1" "$2" "$3"
     ;;
 	*)
