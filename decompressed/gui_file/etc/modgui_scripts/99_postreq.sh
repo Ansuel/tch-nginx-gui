@@ -56,7 +56,7 @@ uci commit
 
 check_gui_tmp
 logger_command "Resetting cwmp and watchdog"
-/etc/init.d/watchdog-tch start
+/etc/init.d/watchdog-tch start > /dev/null
 
 #This should comunicate the gui that the upgrade has finished.
 if [ -f /root/.install_gui ]; then

@@ -29,6 +29,6 @@ if [ -f /bin/busybox_telnet ] && [ ! -f /usr/sbin/telnetd ]; then
   ln -s /bin/busybox_telnet /usr/sbin/telnetd
 fi
 
-if [ ! -f /etc/init.d/telnet ]; then
-  ln -s /etc/init.d/telnetd /etc/init.d/telnet
+if [ -f /etc/init.d/telnet ] && [ ! -f /etc/init.d/telnetd ]; then
+  ln -s /etc/init.d/telnet /etc/init.d/telnetd
 fi

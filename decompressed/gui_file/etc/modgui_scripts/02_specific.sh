@@ -257,6 +257,8 @@ uci commit modgui
 [ -z "${device_type##*TG800*}" ] && ledfw_rework_TG800
 #[ -z "${device_type##*DGA413*}" ] && wifi_fix_24g
 
+ls /tmp/ledfw* 1> /dev/null 2>&1 && rm /tmp/ledfw* #clean ledfw bz2 from /tmp
+
 [ -z "${device_type##*TG788*}" ] && remove_wizard_5ghz
 
 if [ -f /proc/rip/0122 ]; then

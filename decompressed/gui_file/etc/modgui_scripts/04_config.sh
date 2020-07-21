@@ -128,7 +128,7 @@ eco_param() {
     uci set power.cpu.cpuspeed='256'
     uci set power.cpu.wait='1'
     logger_command "Restarting power management"
-    /etc/init.d/power restart
+    /etc/init.d/power restart &>/dev/null
   fi
 }
 

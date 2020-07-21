@@ -76,10 +76,14 @@ if [ -z "${kernel_ver##3.4*}" ]; then
     rm /tmp/ripdrv.ko
   fi
 
-elif [ -z "${kernel_ver##4.1*}" ]; then
+elif [ -z "${kernel_ver##4.1.38*}" ]; then
 
   #Install telnet, openssl-util and update openssl (for security reason)
-  opkg install /tmp/upgrade-pack-specificDGA/tmp/4.1_ipk/*
+  opkg install /tmp/upgrade-pack-specificDGA/tmp/4.1.38_ipk/*
+
+else #unsupported kernels (ie 19.x using 4.1.52)
+
+  echo "No packages to install for kernel: $kernel_ver"
 
 fi
 
@@ -94,6 +98,6 @@ if [ -f /bin/busybox_telnet ] && [ ! -f /usr/sbin/telnetd ]; then
   ln -s /bin/busybox_telnet /usr/sbin/telnetd
 fi
 
-if [ ! -f /etc/init.d/telnet ]; then
-  ln -s /etc/init.d/telnetd /etc/init.d/telnet
+if [ -f /etc/init.d/telnet ] && [ ! -f /etc/init.d/telnetd ]; then
+  ln -s /etc/init.d/telnet /etc/init.d/telnetd
 fi

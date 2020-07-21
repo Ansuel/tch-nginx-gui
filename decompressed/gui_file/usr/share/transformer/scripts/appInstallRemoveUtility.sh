@@ -11,11 +11,11 @@ install_from_github(){
 
 	if [ $3 == "specificapp" ]; then
 		if [ ! -f /tmp/$2.tar.bz2 ]; then
-      if ! ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then
-        echo "No internet connection detected, $1 $2 manually!"
-        exit 0
-      fi
-			curl -sLk https://raw.githubusercontent.com/$1/$2.tar.bz2 --output /tmp/$2.tar.bz2
+          if ! ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then
+            echo "No internet connection detected, download manually!"
+            exit 0
+          fi
+		  curl -sLk https://raw.githubusercontent.com/$1/$2.tar.bz2 --output /tmp/$2.tar.bz2
 		fi
 		if [ ! -f /tmp/$2.tar.bz2 ]; then
 			echo "Error installing App: Cannot find/download  $2.tar.bz2"
@@ -26,11 +26,11 @@ install_from_github(){
 		cd /tmp/$2
 	else
 		if [ ! -f /tmp/$2.tar.gz ]; then
-      if ! ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then
-        echo "No internet connection detected, $1 $2 manually!"
-        exit 0
-      fi
-			curl -sLk https://github.com/$1/tarball/$2 --output /tmp/$2.tar.gz
+          if ! ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then
+            echo "No internet connection detected, download manually!"
+            exit 0
+          fi
+		  curl -sLk https://github.com/$1/tarball/$2 --output /tmp/$2.tar.gz
 		fi
 		if [ ! -f /tmp/$2.tar.gz ]; then
 			echo "Error installing App: Cannot find/download  $2.tar.gz"
@@ -127,17 +127,17 @@ app_telstra() {
 
 	remove() {
 		if [ -d /www/telstra-snippets ]; then
-			rm -r /www/telstra-snippets
-			rm /www/gateway-snippets/telstra-gui.lp
-			rm /www/docroot/telstra-gui.lp
-			rm -r /www/docroot/telstra-modals
-			rm -r /www/docroot/telstra-helpfiles
-			rm -r /www/docroot/img/telstra
-			rm /www/docroot/js/main-telstra-min.js
-			rm /www/docroot/css/gw-telstra.css/gw-telstra.css
-			/etc/init.d/nginx restart
-			uci set modgui.app.telstra_webui="0"
-		  uci commit modgui
+          rm -r /www/telstra-snippets
+          rm /www/gateway-snippets/telstra-gui.lp
+          rm /www/docroot/telstra-gui.lp
+          rm -r /www/docroot/telstra-modals
+          rm -r /www/docroot/telstra-helpfiles
+          rm -r /www/docroot/img/telstra
+          rm /www/docroot/js/main-telstra-min.js
+          rm /www/docroot/css/gw-telstra.css/gw-telstra.css
+          /etc/init.d/nginx restart
+          uci set modgui.app.telstra_webui="0"
+          uci commit modgui
 		fi
 	}
 
