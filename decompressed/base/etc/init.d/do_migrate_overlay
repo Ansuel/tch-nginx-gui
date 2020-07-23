@@ -81,7 +81,7 @@ boot() {
   }
 
   reboot_if_needed(){
-    [ "$need_reboot" = "1" ] && reboot
+    [ "$need_reboot" = "1" ] && reboot && sleep 30
   }
 
   { move_overlay; preserve_files; reboot_if_needed; }
