@@ -46,9 +46,6 @@ boot() {
 
       sync
 
-      # generate backup of etc present in original overlay
-      tar -cf -C $ram_dir/etc /root/migrate_conf_backup.tar *
-
       #copy all file from ram to modoverlay keeping all attributes and links
       tranfer_file $ram_dir $upperdir
 
