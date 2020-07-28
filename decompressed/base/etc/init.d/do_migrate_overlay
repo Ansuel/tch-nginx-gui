@@ -6,6 +6,7 @@ boot() {
   local upperdir=/modoverlay/bank_mod
   local overlay_bank=/overlay/bank_2
   local ram_dir=/tmp/migrate_overlay
+  local upperdir_backup=/tmp/upperdir_backup
   local need_reboot="0"
 
   tranfer_file() { # $source $dest
@@ -16,32 +17,37 @@ boot() {
     echo "mount_root-mod: copying $source/* to $dest/ ..." > /dev/kmsg
 
     for d in $(find $source/ -xdev -type d ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
-        # echo "mount_root-mod: creating $dest/$d" > /dev/kmsg
-        mkdir -p "$dest/$d"
-      done
+      # echo "mount_root-mod: creating $dest/$d" > /dev/kmsg
+      mkdir -p "$dest/$d"
+    done
 
-      for f in $(find $source/ -xdev -type f ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
-        # echo "mount_root-mod: copying $source/$f to $dest/$f" > /dev/kmsg
-        cp -dp "$source/$f" "$dest/$f"
-      done
+    for f in $(find $source/ -xdev -type f ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
+      # echo "mount_root-mod: copying $source/$f to $dest/$f" > /dev/kmsg
+      cp -dp "$source/$f" "$dest/$f"
+    done
 
-      for l in $(find $source/ -xdev -type l ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
-        # echo "mount_root-mod: copying $source/$l to $dest/$l" > /dev/kmsg
-        cp -dp "$source/$l" "$dest/$l"
-      done
+    for l in $(find $source/ -xdev -type l ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
+      # echo "mount_root-mod: copying $source/$l to $dest/$l" > /dev/kmsg
+      cp -dp "$source/$l" "$dest/$l"
+    done
   }
 
   move_overlay() {
     echo "mount_root-mod: checking if overlay must be transfered..." > /dev/kmsg
     #use the config folder as check to know that we should populate the modoverlay (mtd3) and cleanup real overlay (mtd2)
-    if [ -d $overlay_bank/etc/config ]; then
+    # Other process can write some config file before modoverlay is mounted, checking the config dir is not enough
+    # Try to check if modgui exist and assume the migration is needed if present
+    if [ -d $overlay_bank/etc/config/modgui ]; then
 
-      mkdir $ram_dir
+      mkdir $ram_dir $upperdir_backup
 
       #copy all file from overlay_bank to ram keeping all attributes and links
       tranfer_file $overlay_bank $ram_dir
 
       sync
+
+      # generate backup of etc present in original overlay
+      tar -cf -C $ram_dir/etc /root/migrate_conf_backup.tar *
 
       #copy all file from ram to modoverlay keeping all attributes and links
       tranfer_file $ram_dir $upperdir
