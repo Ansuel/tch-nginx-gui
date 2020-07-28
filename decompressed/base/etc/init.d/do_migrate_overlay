@@ -37,7 +37,7 @@ boot() {
     #use the config folder as check to know that we should populate the modoverlay (mtd3) and cleanup real overlay (mtd2)
     # Other process can write some config file before modoverlay is mounted, checking the config dir is not enough
     # Try to check if modgui exist and assume the migration is needed if present
-    if [ -d $overlay_bank/etc/config/modgui ]; then
+    if [ -f $overlay_bank/etc/config/modgui ]; then
 
       mkdir $ram_dir $upperdir_backup
 
