@@ -39,6 +39,8 @@ boot() {
     # Try to check if modgui exist and assume the migration is needed if present
     if [ -f $overlay_bank/etc/config/modgui ]; then
 
+      /etc/init.d/watchdog-tch stop
+
       mkdir $ram_dir $upperdir_backup
 
       #copy all file from overlay_bank to ram keeping all attributes and links
