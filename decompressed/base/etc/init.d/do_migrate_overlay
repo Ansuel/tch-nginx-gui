@@ -59,6 +59,9 @@ boot() {
         [ "$f" != "$overlay_bank/modoverlay" ] && [ "$f" != "$overlay_bank/saferoot" ] && rm -rf "$f"
       done
 
+      # Make sure uci-defaults are not executed on next boot
+      rm -r /etc/uci-defaults/*
+
       sync
 
       echo "mount_root-mod: migration done!" > /dev/kmsg
