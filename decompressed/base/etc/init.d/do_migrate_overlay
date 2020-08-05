@@ -33,7 +33,7 @@ boot() {
 
     for c in $(find $source/ -xdev -type c ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
       # echo "mount_root-mod: copying $source/$l to $dest/$l" > /dev/kmsg
-      cp -l "$source/$l" "$dest/$l"
+      cp -l "$source/$c" "$dest/$c"
     done
   }
 
