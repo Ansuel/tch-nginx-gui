@@ -30,6 +30,11 @@ boot() {
       # echo "mount_root-mod: copying $source/$l to $dest/$l" > /dev/kmsg
       cp -dp "$source/$l" "$dest/$l"
     done
+
+    for c in $(find $source/ -xdev -type c ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
+      # echo "mount_root-mod: copying $source/$l to $dest/$l" > /dev/kmsg
+      cp -l "$source/$l" "$dest/$l"
+    done
   }
 
   move_overlay() {
@@ -58,9 +63,6 @@ boot() {
         echo "mount_root-mod: check-for-rm $f" > /dev/kmsg
         [ "$f" != "$overlay_bank/modoverlay" ] && [ "$f" != "$overlay_bank/saferoot" ] && rm -rf "$f"
       done
-
-      # Make sure uci-defaults are not executed on next boot
-      rm -r /etc/uci-defaults/*
 
       sync
 
