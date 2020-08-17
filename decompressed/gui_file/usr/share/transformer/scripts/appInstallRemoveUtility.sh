@@ -194,7 +194,9 @@ app_luci() {
 		}
 
 		[ "$(echo $device_type | grep DGA)" ] && luci_install_DGA
+		[ "$(echo $device_type | grep TG8)" ] && luci_install_DGA
 		[ "$(echo $device_type | grep TG7)" ] && luci_install_tg799
+		[ "$(echo $device_type | grep TG5)" ] && luci_install_tg799
 		uci set modgui.app.luci_webui="1"
 		uci commit modgui
 	}
@@ -215,7 +217,9 @@ app_luci() {
 		}
 
 		[ "$(echo $device_type | grep DGA)" ] && luci_remove_DGA
+		[ "$(echo $device_type | grep TG8)" ] && luci_remove_DGA
 		[ "$(echo $device_type | grep TG7)" ] && luci_remove_tg799
+		[ "$(echo $device_type | grep TG5)" ] && luci_remove_tg799
 		uci set modgui.app.luci_webui="0"
 		uci commit modgui
 	}

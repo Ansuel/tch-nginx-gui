@@ -2,6 +2,7 @@ return {
  ["DGA4130"] = "AGTEF",
  ["DGA4132"] = "AGTHP",
  ["MediaAccess DGA4131FWB"] = "DGA4131FWB",
+ ["MediaAccess TG589vac"] = "TG799vac",
  ["Technicolor TG799vac"] = "TG799vac",
  ["Technicolor TG800vac"] = "TG800vac",
  ["Technicolor TG789vac V2"] = "TG789vac",

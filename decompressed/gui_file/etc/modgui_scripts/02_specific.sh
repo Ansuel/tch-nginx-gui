@@ -220,10 +220,12 @@ kernel_ver="$(< /proc/version awk '{print $3}')"
 
 
 [ -z "${device_type##*DGA413*}" ] && apply_right_opkg_repo #Check opkg conf based on version
+[ -z "${device_type##*TG80*}" ] && apply_right_opkg_repo #Check opkg conf based on version
 if [ -z "${device_type##*TG78*}" ] && [ -n "${device_type##*Xtream*}" ]; then
   apply_right_opkg_repo TG78
-fi
-if [ -z "${device_type##*TG789*}" ] && [ -z "${device_type##*Xtream*}" ]; then
+elif [ -z "${device_type##*TG58*}" ]; then
+  apply_right_opkg_repo TG78
+elif [ -z "${device_type##*TG789*}" ] && [ -z "${device_type##*Xtream*}" ]; then
   apply_right_opkg_repo Xtream
 fi
 
@@ -233,6 +235,8 @@ fi
 
 if [ -z "${device_type##*DGA413*}" ]; then
   install_specific DGA
+elif [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG58*}" ]; then
+  install_specific TG789
 elif [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG78*}" ] && [ -n "${device_type##*Xtream*}" ]; then
   install_specific TG789
 elif [ -z "${device_type##*TG78*}" ] && [ -z "${device_type##*Xtream*}" ]; then
@@ -253,6 +257,7 @@ uci commit modgui
 [ -z "${device_type##*TG788*}" ] && ledfw_extract "TG788"
 [ -z "${device_type##*TG788*}" ] && ledfw_rework_TG788
 [ -z "${device_type##*TG789*}" ] && ledfw_extract "TG789"
+[ -z "${device_type##*TG589*}" ] && ledfw_rework_TG799
 [ -z "${device_type##*TG799*}" ] && ledfw_rework_TG799
 [ -z "${device_type##*TG800*}" ] && ledfw_rework_TG800
 #[ -z "${device_type##*DGA413*}" ] && wifi_fix_24g
