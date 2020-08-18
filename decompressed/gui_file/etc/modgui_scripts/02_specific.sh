@@ -74,7 +74,7 @@ EOF
     fi
   else
 	case $marketing_version in
-	"18.3"*)
+	"18."*)
 		if [ -n "$(  grep $opkg_file -e "brcm63xx-tch" )" ]; then
 			rm /etc/opkg.conf
 			cp /rom/etc/opkg.conf /etc/
@@ -93,7 +93,7 @@ src/gz chaos_calmer_core https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel
 EOF
 		fi
 		;;
-	"17.3"*)
+	"17."*)
 		if [ -z "$(  grep $opkg_file -e "roleo/public/agtef/1.1.0/brcm63xx-tch" )" ]; then
 			cat << EOF >> $opkg_file
 src/gz chaos_calmer_base https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/base
@@ -105,7 +105,7 @@ src/gz chaos_calmer_management https://repository.ilpuntotecnico.com/files/roleo
 EOF
 		fi
 		;;
-	"16.3"*)
+	"16."*)
 		if [ -z "$(  grep $opkg_file -e "roleo/public/agtef/brcm63xx-tch" )" ]; then
 			cat << EOF >> $opkg_file
 src/gz chaos_calmer_base https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/base
