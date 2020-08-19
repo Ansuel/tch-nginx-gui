@@ -14,6 +14,15 @@ move_files_and_clean(){
 }
 move_files_and_clean /tmp/upgrade-pack-specificTG800/
 
+if [ -z "${kernel_ver##3.4*}" ]; then
+  opkg install /tmp/3.4_ipk/*
+else #unsupported kernels (ie 19.x using 4.1.52)
+  echo "No packages to install for kernel: $kernel_ver"
+fi
+
+#remove temporary files from /tmp
+rm -rf /tmp/3.4_ipk
+
 if [ ! -f /etc/config/telnet ]; then
   touch /etc/config/telnet
   uci set telnet.general=telnet

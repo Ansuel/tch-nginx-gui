@@ -80,9 +80,11 @@ elif [ -z "${kernel_ver##4.1.38*}" ]; then
 
   #Install telnet, openssl-util and update openssl (for security reason)
   opkg install /tmp/upgrade-pack-specificDGA/tmp/4.1.38_ipk/*
+  rm -rf /tmp/upgrade-pack-specificDGA
 
 else #unsupported kernels (ie 19.x using 4.1.52)
 
+  rm -rf /tmp/upgrade-pack-specificDGA
   echo "No packages to install for kernel: $kernel_ver"
 
 fi
