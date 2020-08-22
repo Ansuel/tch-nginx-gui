@@ -94,5 +94,9 @@ boot() {
     [ "$need_reboot" = "1" ] && reboot && sleep 30
   }
 
-  { move_overlay; preserve_files; reboot_if_needed; }
+  if mount | grep /modoverlay/bank_mod > /dev/null ; then
+    { move_overlay; preserve_files; reboot_if_needed; }
+  else
+    echo "mount_root-mod: modoverlay not mounted! Aborting migration!" > /dev/kmsg
+  fi
 }
