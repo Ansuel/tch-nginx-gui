@@ -125,7 +125,13 @@ boot() {
   }
 
   reboot_if_needed(){
-    [ "$need_reboot" = "1" ] && reboot && sleep 30
+    if [ "$need_reboot" = "1" ]; then
+      # Simulate the bank_1 failed 3 times
+      echo 1 > /proc/prozone/bootfail
+      echo 2 > /proc/prozone/bootcounter
+      echo 0 > /proc/prozone/bootbank
+      reboot && sleep 30
+    fi
   }
 
   if mount | grep /modoverlay/bank_mod > /dev/null ; then

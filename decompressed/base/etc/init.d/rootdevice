@@ -334,6 +334,10 @@ check_and_apply_obp() {
           # Reboot to first valid firmware
           logger_command "Installation will continue after reboot..."
           echo "  Installation will continue after reboot...." >/dev/console
+          # Simulate the bank_1 failed 3 times
+          echo 1 > /proc/prozone/bootfail
+          echo 2 > /proc/prozone/bootcounter
+          echo 0 > /proc/prozone/bootbank
           reboot
           exit 0
         else
