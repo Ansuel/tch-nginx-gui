@@ -66,8 +66,8 @@ setup_network() {
 	fi
 
 	#Rename ppp interface to wan to fix problem with TG800 strange Telstra configuration
-	if [ ! "$(uci -q get network.wan.proto)" ] && [ "$(uci -q get network.ppp)" ]; then
-		uci del network.wan
+	if [ ! "$(uci -q get network.wan.ifname)" ] && [ "$(uci -q get network.ppp)" ]; then
+		[ "$(uci -q get network.wan)" ] && uci del network.wan #something is creating wan block with some missing path (wansensing?)
 		uci rename network.ppp=wan
 	fi
 
@@ -75,6 +75,11 @@ setup_network() {
 	if [ ! "$(uci -q get network.wan.password)" ]; then
 		uci set network.wan.password='password'
 	fi
+
+	if [ ! "$(uci get -q network.config.wan_mode)" ]; then
+      uci set network.config="config"
+      uci set network.config.wan_mode="$(uci get -q network.wan.proto)"
+    fi
 }
 
 puryfy_wan_interface() { #creano problemi di dns per chissa'  quale diavolo di motivo... Ma l'utilitÃ  di sta roba eh telecom ?

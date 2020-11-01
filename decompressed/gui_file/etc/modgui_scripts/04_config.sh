@@ -294,13 +294,6 @@ add_xdsl_option() {
   uci set xdsl.dsl0.demod_cap_value="0x00047a"
 }
 
-check_wan_mode() {
-  if [ ! "$(uci get -q network.config.wan_mode)" ]; then
-    uci set network.config="config"
-    uci set network.config.wan_mode="$(uci get -q network.wan.proto)"
-  fi
-}
-
 dosprotect_inizialize() {
   logger_command "Checking DoSprotect kernel modules..."
   if [ -n "$(find /lib/modules/*/ -iname xt_hashlimit.ko)" ]; then
@@ -623,8 +616,6 @@ logger_command "Apply new xDSL options"
 add_xdsl_option #New xdsl option
 logger_command "Adding fast cache options"
 fcctlsettings_daemon #Adds fast cache options
-logger_command "Checking if wan_mode option exists..."
-check_wan_mode        # wan_mode check
 dosprotect_inizialize #dosprotected inizialize function
 logger_command "Checking mobiled libs..."
 mobiled_lib_add

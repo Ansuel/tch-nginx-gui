@@ -10,6 +10,7 @@ return {
  ["Technicolor TG789vac Xtream_IAD"] = "TG789vac",
  ["Technicolor TG789vac Xtream_MOS"] = "TG789vac",
  ["MediaAccess TG789MYRvac v2 HP"] = "TG789vac",
+ ["TG789vac v3"] = "AGTEF", --just because have similar aspect for image
  ["Technicolor TG788vn"] = "TG788vn",
  ["MediaAccess TG788vn v2"] = "TG788vn",
  ["Technicolor DJA0230TLS"] = "DJA0230",
