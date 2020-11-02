@@ -25,7 +25,7 @@ remove_default_dns() {
 
 setup_network() {
   #Set a pppoerelay empty interface if list is not present (UNO)
-  if [ ! "$(uci -q get network.lan.pppoerelay)" ]; then
+  if ! uci -q show network.lan | grep -q "lan.pppoerelay"; then
     uci -q add_list network.lan.pppoerelay=''
   fi
   sed -i -e 's/option pppoerelay/list pppoerelay/g' /etc/config/network
@@ -76,8 +76,13 @@ setup_network() {
   fi
 
   #Set missing wan path (Xtream 35B Fastweb)
-  if [ ! "$(uci -q get network.wan.password)" ]; then
+  if ! uci -q show network.wan | grep -q "wan.password"; then
     uci set network.wan.password='password'
+  fi
+
+  #Set missing wan path (Telstra)
+  if [ ! "$(uci -q get network.wan.auto)" ]; then
+    uci set network.wan.auto='1'
   fi
 
   if [ ! "$(uci get -q network.config.wan_mode)" ]; then
