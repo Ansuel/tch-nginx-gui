@@ -1,5 +1,5 @@
 --pretranslated: do not change this file
- 
+
 -- Localization
 gettext.textdomain('webui-core')
 -- Process POST query
@@ -669,13 +669,13 @@ end
 \
 <div class="modal-body update">\
 <form class="form-horizontal" method="post" action="modals/firewall-modal.lp">\
-');  
+');
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
   ngx.print('\
 <fieldset>\
 <legend>');  ngx.print( T"Firewall level" ); ngx.print('</legend>\
 \
-');  
+');
     local fwallmsg_visible_status = {
         lax = "monitor-hidden-fw_level",
         normal = "monitor-hidden-fw_level",
@@ -748,7 +748,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 <fieldset>\
 <legend>');  ngx.print( T"Firewall default behavior" ); ngx.print('</legend>\
 \
-');  
+');
     local outgoing_attr = {
         group = {
             class = "monitor-fw_level monitor-user " .. fwallmsg_visible_status["user"]
@@ -798,23 +798,23 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     ngx.print(ui_helper.createSwitch(T"Answer All IPv4 Internet pings", "fwv4_ping", content["fwv4_ping"], switch_class_enable))
     ngx.print(ui_helper.createAlertBlock(T"Answer only these selected Internet IPv4 pings", pingrespv4_alert_attr))
     ngx.print(ui_helper.createTable(fwrulev4_ping_columns, fwrulev4_ping_data, fwrulev4_ping_options, pingrespv4_table_attr, fwrulev4_ping_helpmsg))
-	
+
 	if content["fw_ipv6"] then
 		ngx.print(ui_helper.createSwitch(T"IPv6 Firewall", "fw_ipv6", content["fw_ipv6"]))
 	end
-	
+
     ngx.print(ui_helper.createSwitch(T"Answer All IPv6 Internet pings", "fwv6_ping", content["fwv6_ping"], switch_class_enable))
     ngx.print(ui_helper.createAlertBlock(T"Answer only these selected Internet IPv6 pings", pingrespv6_alert_attr))
     ngx.print(ui_helper.createTable(fwrulev6_ping_columns, fwrulev6_ping_data, fwrulev6_ping_options, pingrespv6_table_attr, fwrulev6_ping_helpmsg))
   ngx.print('\
         <legend></legend>\
-');  
+');
 
     ngx.print(
         ui_helper.createInputSelect(T"Outgoing default policy", "fw_outgoing_policy", outgoingpolicy, content["fw_outgoing_policy"], outgoing_attr),
-        ui_helper.createAlertBlock(T"The <strong>outgoing policy</strong> defines what is done with packets coming from the LAN devices toward the internet. Setting it to REJECT or DROP will forbid any internet traffic from the LAN unless explicitly allowed by a firewall rule.", info_attr),
+        ui_helper.createAlertBlock(T"The <strong>outgoing policy</strong> defines what is done with packets coming from the LAN devices toward the internet.<br/>Setting it to REJECT or DROP will forbid any internet traffic from the LAN unless explicitly allowed by a firewall rule.", info_attr),
         ui_helper.createInputSelect(T"Incoming default policy", "fw_incoming_policy", incomingpolicy, content["fw_incoming_policy"], outgoing_attr),
-        ui_helper.createAlertBlock(T"The <strong>incoming policy</strong> defines what is done with packets destined to the gateway. They can be either REJECTED (the gateway will notify the sender they were rejected) or DROPPED (the gateway will silently discard those packets).", info_attr)
+        ui_helper.createAlertBlock(T"The <strong>incoming policy</strong> defines what is done with packets destined to the gateway.<br/>They can be either REJECTED (the gateway will notify the sender they were rejected) or DROPPED (the gateway will silently discard those packets).", info_attr)
     )
   ngx.print('\
 \
@@ -823,12 +823,12 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 \
 <fieldset class="monitor-fw_level monitor-user ');  ngx.print(fwallmsg_visible_status["user"]); ngx.print('">\
 <legend>');  ngx.print( T"IPv4 Firewall Rules" ); ngx.print('</legend>\
-');  
+');
     ngx.print(ui_helper.createTable(fwrule_columns, fwrule_data, fwrule_options, nil, fwrule_helpmsg))
   ngx.print('\
 \
 <legend>');  ngx.print( T"IPv6 Firewall Rules" ); ngx.print('</legend>\
-');  
+');
     ngx.print(ui_helper.createTable(fwrule_v6_columns, fwrule_v6_data, fwrule_v6_options, nil, fwrule_v6_helpmsg))
   ngx.print('\
 \
@@ -872,4 +872,4 @@ $("#protocol, #protocol_v6").on("change", function(){\
    }\
 });\
 </script>\
-'); 
+');

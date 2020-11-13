@@ -11,29 +11,12 @@ local session = ngx.ctx.session
 local assistance = require("web.assistance")
 local assistant = assistance.getAssistant('remote')
 
-local function apply(action)
-  proxy.set("rpc.system.modgui.utility.sendcmd", action)
-  ngx.header.content_type = "application/json"
-  ngx.print('{ "success":"true" }')
-  ngx.timer.at(0, function()
-      proxy.apply()
-  end)
-  ngx.exit(ngx.HTTP_OK)
-end
-
 if ngx.req.get_method() == "POST" then
   local post_args = ngx.req.get_post_args()
-  if post_args.action == "checkver" then
-  return apply("checkver")
-  end
-  if post_args.action == "getVendor" then
-    ngx.log(1,"getVendor_".. string.untaint(post_args.mac) .."_sync")
-    return apply("getVendor_".. post_args.mac .."_sync")
-  end
   if post_args.action == "autoupgrade_view" then
 	proxy.set("uci.modgui.gui.autoupgradeview", "none")
 	proxy.apply()
-	end
+  end
   if post_args.do_signout then
     session:logout()
 	ngx.header.content_type = "application/json"
@@ -71,7 +54,8 @@ local cui = {
   autoupgrade_view = "uci.modgui.gui.autoupgradeview",
   firstpage = "uci.modgui.gui.firstpage",
   randomcolor = "uci.modgui.gui.randomcolor",
-  gui_animation = "uci.modgui.gui.gui_animation"
+  gui_animation = "uci.modgui.gui.gui_animation",
+  reboot_reason_msg = "uci.modgui.var.reboot_reason_msg"
 }
 
 content_helper.getExactContent(cui)
@@ -208,16 +192,21 @@ ngx.print('\
         html[#html + 1] =  "</div>"
     html[#html + 1] = "</div>"
 
-    local alert_outdated_ver = {
+    local alert_style_upper = {
       alert = {
         class = "alert",
         id = "upgrade-alert"
       },
     }
-    if cui.outdated_ver == "0" then
-      alert_outdated_ver.alert.class = "alert hide"
+
+    if cui.reboot_reason_msg ~= "" then
+        html[#html + 1] = ui_helper.createAlertBlock(format(T'A reboot is waiting! Reason: <strong>%s</strong>',cui.reboot_reason_msg),alert_style_upper)
     end
-    html[#html + 1] = ui_helper.createAlertBlock(format(T'Update available! Version: <strong id="new-version-text">%s</strong>',cui.new_ver),alert_outdated_ver)
+
+    if cui.outdated_ver == "0" then
+      alert_style_upper.alert.class = "alert hide"
+    end
+    html[#html + 1] = ui_helper.createAlertBlock(format(T'Update available! Version: <strong id="new-version-text">%s</strong>',cui.new_ver),alert_style_upper)
 
     local autoupgrade_view = cui.autoupgrade_view
     if not ( autoupgrade_view == "none" ) and not ( autoupgrade_view == "" ) then

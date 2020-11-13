@@ -6,62 +6,62 @@
 --    Copyright (C) 2018  Christian Marangi <ansuelsmth@gmail.com>
 --
 --    This file is part of Custom Gui for Technicolor Modem.
---    
+--
 --    Custom Gui for Technicolor Modem is free software: you can redistribute it and/or modify
 --    it under the terms of the GNU General Public License as published by
 --    the Free Software Foundation, either version 3 of the License, or
 --    (at your option) any later version.
---    
+--
 --    Custom Gui for Technicolor Modem is distributed in the hope that it will be useful,
 --    but WITHOUT ANY WARRANTY; without even the implied warranty of
 --    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 --    GNU General Public License for more details.
---    
+--
 --    You should have received a copy of the GNU General Public License
 --    along with Custom Gui for Technicolor Modem.  If not, see <http://www.gnu.org/licenses/>.
 --
 --
 
-local format, concat, popen = string.format , table.concat , io.popen
-local tonumber, tostring = tonumber , tostring
-local register = register;
+local format, concat, popen = string.format, table.concat, io.popen
+local tonumber, tostring = tonumber, tostring
+local register = register
 
 local xdslctl_ = {
-    objectType = {
-        name = 'rpc.xdslctl.',
-        access = 'readOnly',
-        minEntries = 1,
-        maxEntries = 1,
-        parameters = {}
-    }
+	objectType = {
+		name = "rpc.xdslctl.",
+		access = "readOnly",
+		minEntries = 1,
+		maxEntries = 1,
+		parameters = {}
+	}
 }
 
-local string_table = {access = "readOnly",type = "string"}
-local int_table = {access = "readOnly",type = "int"}
+local string_table = {access = "readOnly", type = "string"}
+local int_table = {access = "readOnly", type = "int"}
 
-for _ , type in pairs{ "Hlog" , "Bits", "SNR", "QLN" } do
-	xdslctl_.objectType.parameters[type.."ScanBand"] = string_table
-	for _, band in pairs{ "Ds" , "Us"} do
-		for _ , number in pairs{"1","2","3","4"} do
-			if ( band == "Ds" ) and ( number == "3" ) then
-				xdslctl_.objectType.parameters[type..band..number.."Split1"] = string_table
-				xdslctl_.objectType.parameters[type..band..number.."Split2"] = string_table
+for _, type in pairs {"Hlog", "Bits", "SNR", "QLN"} do
+	xdslctl_.objectType.parameters[type .. "ScanBand"] = string_table
+	for _, band in pairs {"Ds", "Us"} do
+		for _, number in pairs {"1", "2", "3", "4"} do
+			if (band == "Ds") and (number == "3") then
+				xdslctl_.objectType.parameters[type .. band .. number .. "Split1"] = string_table
+				xdslctl_.objectType.parameters[type .. band .. number .. "Split2"] = string_table
 			else
-				xdslctl_.objectType.parameters[type..band..number] = string_table
+				xdslctl_.objectType.parameters[type .. band .. number] = string_table
 			end
-			for _ , type in pairs{"Initial","Final","ScannedBand"} do
-				xdslctl_.objectType.parameters[band..number..type] = int_table
+			for _, type in pairs {"Initial", "Final", "ScannedBand"} do
+				xdslctl_.objectType.parameters[band .. number .. type] = int_table
 			end
 		end
-		xdslctl_.objectType.parameters[band.."BandNumber"] = int_table
+		xdslctl_.objectType.parameters[band .. "BandNumber"] = int_table
 	end
 end
 
-for _, type in pairs{"Chipset","Version","VersionRaw","Port","Serial"} do
-	xdslctl_.objectType.parameters["Dslam"..type] = string_table
+for _, type in pairs {"Chipset", "Version", "VersionRaw", "Port", "Serial"} do
+	xdslctl_.objectType.parameters["Dslam" .. type] = string_table
 end
-for _, type in pairs{"Mode","Profile"} do
-	xdslctl_.objectType.parameters["Dsl"..type] = string_table
+for _, type in pairs {"Mode", "Profile", "Firmware"} do
+	xdslctl_.objectType.parameters["Dsl" .. type] = string_table
 end
 
 local cache = {}
@@ -74,33 +74,32 @@ local function sleep(sec)
 	end
 end
 
-local function call_popen(cmd,mode)
-	
-	local output = popen(cmd,mode)
-	
-	while ( not output:read(0) == "" ) do
+local function call_popen(cmd, mode)
+	local output = popen(cmd, mode)
+
+	while (not output:read(0) == "") do
 		output:close()
 		sleep(5)
-		output = popen(cmd,mode)
+		output = popen(cmd, mode)
 	end
-	
+
 	return output
 end
 
 local function xdslmode(dtype)
 	local showdatacmd = ("xdslctl info --show")
-	local showdata = call_popen(showdatacmd, 'r')
+	local showdata = call_popen(showdatacmd, "r")
 	local showline
 	local result
 	for showline in showdata:lines() do
 		if dtype:match("mode") then
 			if showline:match("Mode") then
-				result = (showline:gsub("Mode:%s+",""))
+				result = (showline:gsub("Mode:%s+", ""))
 				break
 			end
 		elseif dtype:match("profile") then
 			if showline:match("Profile") then
-				result = (showline:gsub("VDSL2 Profile:%s+Profile ",""))
+				result = (showline:gsub("VDSL2 Profile:%s+Profile ", ""))
 				if result:match("BrcmPriv1") then --Fix 35b line with wrong name
 					result = "35b"
 				end
@@ -109,17 +108,17 @@ local function xdslmode(dtype)
 		end
 	end
 	showdata:close()
-	
+
 	return result or "Not Found"
 end
 
 local function pbParams_find(bandtype)
 	local cmd = ("xdslctl info --pbParams")
-	local pbfile = call_popen(cmd, 'r')
+	local pbfile = call_popen(cmd, "r")
 	local pbstring = ""
 	for pbline in pbfile:lines() do
 		if pbline:match("Medley Phase %(Final%) Band Plan") then
-			if ( bandtype == "Ds" ) then
+			if (bandtype == "Ds") then
 				pbfile:read("*l")
 			end
 			pbstring = pbfile:read("*l")
@@ -128,44 +127,44 @@ local function pbParams_find(bandtype)
 			break
 		end
 	end
-	
+
 	pbfile:close()
-	
-	if ( bandtype == "Us" ) then
-		local First_US_band = tonumber((pbstring:match("%([0-9]+,"):gsub("%(",""):gsub(",","")))
+
+	if (bandtype == "Us") then
+		local First_US_band = tonumber((pbstring:match("%([0-9]+,"):gsub("%(", ""):gsub(",", "")))
 		local Us_band_num = select(2, pbstring:gsub("%(", ""))
-		if ( Us_band_num == 3 ) and ( First_US_band > 100 ) then
-			pbstring = pbstring:gsub(":",": (0,32)") --handle strange case when onu disable US0
-		end 
+		if (Us_band_num == 3) and (First_US_band > 100) then
+			pbstring = pbstring:gsub(":", ": (0,32)") --handle strange case when onu disable US0
+		end
 	end
-	
+
 	return pbstring
 end
 
-local function parase_pbParams(bandtype,dtype)
+local function parase_pbParams(bandtype, dtype)
 	local pbstring = cache["pbLine" .. bandtype] or pbParams_find(bandtype) or ""
-	pbstring = pbstring:gsub('[\n\r]+', '')
+	pbstring = pbstring:gsub("[\n\r]+", "")
 	local bandlist = {}
 	local bandnumber = 0
 	for band in pbstring:gmatch("%((.-)%)") do
 		if dtype == "BandNumber" then
-			bandnumber = bandnumber +1
+			bandnumber = bandnumber + 1
 		else
-			bandlist[#bandlist+1] = band
+			bandlist[#bandlist + 1] = band
 		end
 	end
-	
+
 	if dtype == "BandNumber" then
 		return tostring(bandnumber)
 	else
-		cache["pbBand"..bandtype] = bandlist
+		cache["pbBand" .. bandtype] = bandlist
 		return
 	end
 end
 
 -- Reset cache if dsl is not up. This should fix some problems when connection goes up
 -- after this mapper gets loaded
-if cache["dslmode"] and ( cache["dslmode"] == "Not Found" ) then
+if cache["dslmode"] and (cache["dslmode"] == "Not Found") then
 	cache = {}
 end
 
@@ -174,27 +173,26 @@ if not cache["dslmode"] then
 	cache["dslmode"] = xdslmode("mode")
 end
 
-if cache["dslmode"] and not cache["dslmode"]:match("G%.DMT") and 
-  not cache["dslmode"]:match("ADSL") and
-  not cache["dslmode"]:match("Not Found") then
+if
+	cache["dslmode"] and not cache["dslmode"]:match("G%.DMT") and not cache["dslmode"]:match("ADSL") and
+		not cache["dslmode"]:match("Not Found")
+ then
 	cache["pbLineUs"] = pbParams_find("Us")
 	cache["pbLineDs"] = pbParams_find("Ds")
 	parase_pbParams("Us")
 	parase_pbParams("Ds")
 end
 
-local function xdslband(band_request,dtype,bandtype)
-	
+local function xdslband(band_request, dtype, bandtype)
 	local dslmode = cache["dslmode"] or xdslmode("mode")
 
 	local result = "0"
 	local band
-	
+
 	local cachebandstring = bandtype .. band_request .. dtype
-	
-	if not dslmode:match("ADSL") and not dslmode:match("G%.DMT") and 
-	  not cache["dslmode"]:match("Not Found") then
-		local pbBand = cache["pbBand"..bandtype][band_request]
+
+	if not dslmode:match("ADSL") and not dslmode:match("G%.DMT") and not cache["dslmode"]:match("Not Found") then
+		local pbBand = cache["pbBand" .. bandtype][band_request]
 		if dtype == "Initial" and pbBand then
 			result = pbBand:match("(.-)%,")
 		elseif dtype == "Final" and pbBand then
@@ -217,48 +215,49 @@ local function xdslband(band_request,dtype,bandtype)
 			end
 		end
 	end
-	
 
-	if result == "0" and dtype == "Final" then result = "-1" end
+	if result == "0" and dtype == "Final" then
+		result = "-1"
+	end
 	cache[cachebandstring] = result
 	return result
 end
 
-local function xdslctlget(dtype,request,band,bandtype,split)
-    local data = {}
+local function xdslctlget(dtype, request, band, bandtype, split)
+	local data = {}
 	local lineread = 0
 	local line
 	local scannedband = 0
-	
+
 	local bandstart, bandend
-	
+
 	if bandtype == "Us" and band == 1 then
 		bandstart = 0
 	elseif bandtype == "Ds" and band == 1 then
-		bandstart = tonumber(cache["Us" .. 1 .. "Final"] or xdslband(1,"Final","Us"))+1
+		bandstart = tonumber(cache["Us" .. 1 .. "Final"] or xdslband(1, "Final", "Us")) + 1
 	elseif bandtype == "Us" and band == 2 then
-		bandstart = tonumber(cache["Ds" .. 1 .. "Final"] or xdslband(1,"Final","Ds"))+1
-		if xdslband(2,"Final","Us") == 0 then --We don't have Us2, execpt we are in no VDSL
+		bandstart = tonumber(cache["Ds" .. 1 .. "Final"] or xdslband(1, "Final", "Ds")) + 1
+		if xdslband(2, "Final", "Us") == 0 then --We don't have Us2, execpt we are in no VDSL
 			bandend = 512 --Max bit for ADSL2+
 		end
 	elseif bandtype == "Ds" and band == 2 then
-		bandstart = tonumber(cache["Us" .. 2 .. "Final"] or xdslband(2,"Final","Us"))+1
+		bandstart = tonumber(cache["Us" .. 2 .. "Final"] or xdslband(2, "Final", "Us")) + 1
 	elseif bandtype == "Us" and band == 3 then
-		bandstart = tonumber(cache["Ds" .. 2 .. "Final"] or xdslband(2,"Final","Ds"))+1
+		bandstart = tonumber(cache["Ds" .. 2 .. "Final"] or xdslband(2, "Final", "Ds")) + 1
 	elseif bandtype == "Us" and band == 4 then
-		bandstart = tonumber(cache["Us" .. 3 .. "Final"] or xdslband(3,"Final","Us"))+1
+		bandstart = tonumber(cache["Us" .. 3 .. "Final"] or xdslband(3, "Final", "Us")) + 1
 	elseif bandtype == "Ds" and band == 3 then
-		if tonumber(cache["Us" .. 4 .. "Final"] or xdslband(4,"Final","Us")) == -1 then --The Us4 band is not present!
-			bandstart = tonumber(cache["Us" .. 3 .. "Final"] or xdslband(3,"Final","Us"))+1 --Take the Us3 to start
+		if tonumber(cache["Us" .. 4 .. "Final"] or xdslband(4, "Final", "Us")) == -1 then --The Us4 band is not present!
+			bandstart = tonumber(cache["Us" .. 3 .. "Final"] or xdslband(3, "Final", "Us")) + 1 --Take the Us3 to start
 		else
-			bandstart = tonumber(cache["Us" .. 4 .. "Final"] or xdslband(4,"Final","Us"))+1
+			bandstart = tonumber(cache["Us" .. 4 .. "Final"] or xdslband(4, "Final", "Us")) + 1
 		end
-		bandend = tonumber(cache[bandtype .. band .. "Final"] or xdslband(band,"Final",bandtype))
+		bandend = tonumber(cache[bandtype .. band .. "Final"] or xdslband(band, "Final", bandtype))
 		if bandend > 4096 then --We are on 35b mode
 			if split == 1 then
-				bandend = bandstart+(math.floor((8192-bandstart)/2))
+				bandend = bandstart + (math.floor((8192 - bandstart) / 2))
 			elseif split == 2 then
-				bandstart = bandstart+(math.floor((8192-bandstart)/2))+1
+				bandstart = bandstart + (math.floor((8192 - bandstart) / 2)) + 1
 				bandend = 8192 --Max bit for 35b
 			end
 		else
@@ -268,70 +267,70 @@ local function xdslctlget(dtype,request,band,bandtype,split)
 			end
 		end
 	elseif bandtype == "Ds" and band == 4 then
-		bandstart = tonumber(cache["Ds" .. 3 .. "Final"] or xdslband(3,"Final","Ds"))+1
+		bandstart = tonumber(cache["Ds" .. 3 .. "Final"] or xdslband(3, "Final", "Ds")) + 1
 	end
-	
+
 	if not bandstart then
-		bandstart = tonumber(cache[bandtype .. band .. "Initial"] or xdslband(band,"Initial",bandtype)) or 0
+		bandstart = tonumber(cache[bandtype .. band .. "Initial"] or xdslband(band, "Initial", bandtype)) or 0
 	end
-	
+
 	if not bandend then
-		bandend = tonumber(cache[bandtype .. band .. "Final"] or xdslband(band,"Final",bandtype)) or -1
+		bandend = tonumber(cache[bandtype .. band .. "Final"] or xdslband(band, "Final", bandtype)) or -1
 	end
-	
+
 	local cmd = "xdslctl info --" .. request
-	
-	local infofile = call_popen(cmd,"r")
-	
+
+	local infofile = call_popen(cmd, "r")
+
 	for line in infofile:lines() do
-		if lineread>=(bandstart+8) and lineread<=(bandend+8) then
-			if not ( dtype == "scanband" ) then
-				if lineread>(bandend+8) then
+		if lineread >= (bandstart + 8) and lineread <= (bandend + 8) then
+			if not (dtype == "scanband") then
+				if lineread > (bandend + 8) then
 					break
 				end
 				if dtype == "data" then
 					if request == "Hlog" then
-						line = line:gsub("(.*)-",""):sub(1, -4) or 0 
-						if ( tonumber(line*-1) > -96 ) then 
-							data[#data+1] = format("-%s,",line)
+						line = line:gsub("(.*)-", ""):sub(1, -4) or 0
+						if (tonumber(line * -1) > -96) then
+							data[#data + 1] = format("-%s,", line)
 						else
-							data[#data+1] = "NaN,"
+							data[#data + 1] = "NaN,"
 						end
 					elseif request == "QLN" then
-						line = line:gsub("(.*)-",""):sub(1, -4) or 0
-						if ( tonumber(line*-1) > -160 ) then 
-							data[#data+1] = format("-%s,",line)
+						line = line:gsub("(.*)-", ""):sub(1, -4) or 0
+						if (tonumber(line * -1) > -160) then
+							data[#data + 1] = format("-%s,", line)
 						else
-							data[#data+1] = "NaN,"
+							data[#data + 1] = "NaN,"
 						end
 					elseif request == "SNR" then
-						line = line:sub(-8):gsub("%s*",""):sub(1, -3) or 0
-						if ( tonumber(line) > 0 ) then 
-							data[#data+1] = format("%s,",line)
+						line = line:sub(-8):gsub("%s*", ""):sub(1, -3) or 0
+						if (tonumber(line) > 0) then
+							data[#data + 1] = format("%s,", line)
 						else
-							data[#data+1] = "NaN,"
+							data[#data + 1] = "NaN,"
 						end
 					elseif request == "Bits" then
-						line = line:sub(-2):gsub("%s*","") or 0
-						if ( tonumber(line) > 0 ) then 
-							data[#data+1] = format("%s,",line)
+						line = line:sub(-2):gsub("%s*", "") or 0
+						if (tonumber(line) > 0) then
+							data[#data + 1] = format("%s,", line)
 						else
-							data[#data+1] = "NaN,"
+							data[#data + 1] = "NaN,"
 						end
 					end
 				elseif dtype == "scannedband" then
-					scannedband=scannedband+1
+					scannedband = scannedband + 1
 				end
 			end
 		end
-		lineread=lineread+1
+		lineread = lineread + 1
 	end
 	infofile:close()
-	
+
 	if dtype == "data" then
 		return concat(data) or ""
 	elseif dtype == "scanband" then
-		return tostring(lineread-8)
+		return tostring(lineread - 8)
 	elseif dtype == "scannedband" then
 		return tostring(scannedband)
 	end
@@ -340,137 +339,158 @@ end
 local function xdslctlDslamInfo(itype)
 	local cmd = "xdslctl info --vendor"
 	local result = ""
-	local chipset 
+	local chipset
 
 	local vendor_info = call_popen(cmd)
-	
+
 	for line in vendor_info:lines() do
 		if line:match("ChipSet Vendor Id") then
-			chipset = line:gsub(".*:%s+",""):gsub(":.*","")
+			chipset = line:gsub(".*:%s+", ""):gsub(":.*", "")
 			if itype == "chipset" then
 				result = chipset
 				break
 			end
 		end
-		if line:match("ChipSet VersionNumber") and ( itype == "version" or itype == "version_raw" ) then
-			result = line:gsub(".*:%s+","")
-			if ( itype == "version_raw" ) then
+		if line:match("ChipSet VersionNumber") and (itype == "version" or itype == "version_raw") then
+			result = line:gsub(".*:%s+", "")
+			if (itype == "version_raw") then
 				break
 			end
-			if result:sub(0,2) == "0x" then
+			if result:sub(0, 2) == "0x" then
 				if chipset:match("BDCM") then
-					result = result:gsub("(.*)x","")
-					result = tonumber(result:sub(0,2),16) .. "." .. tonumber(result:sub(3,4),16)
+					result = result:gsub("(.*)x", "")
+					result = tonumber(result:sub(0, 2), 16) .. "." .. tonumber(result:sub(3, 4), 16)
 				elseif chipset:match("IFTN") then
-					result = result:gsub("(.*)x","")
-					result = tonumber(result:sub(0,1),16) .. "." .. tonumber(result:sub(2,3),16) .. "." .. tonumber(result:sub(4,4),16)
+					result = result:gsub("(.*)x", "")
+					result =
+						tonumber(result:sub(0, 1), 16) .. "." .. tonumber(result:sub(2, 3), 16) .. "." .. tonumber(result:sub(4, 4), 16)
 				end
 			end
 			break
 		end
 		if line:match("ChipSet SerialNumber") then
-			if ( itype == "port" ) and line:match("port:") then
-				result = (line:gsub(".*port:",""):gsub("oemid.*",""):gsub("%s*",""))
+			if (itype == "port") and line:match("port:") then
+				result = (line:gsub(".*port:", ""):gsub("oemid.*", ""):gsub("%s*", ""))
 				break
-			elseif ( itype == "serial" ) and not line:match("port:") then
-				result = line:gsub(".*:%s+","")
+			elseif (itype == "serial") and not line:match("port:") then
+				result = line:gsub(".*:%s+", "")
 				break
 			end
 		end
 	end
 	vendor_info:close()
-	
+
+	return result
+end
+
+local function xdslctlVersion()
+	local cmd = "xdslctl --version 2>&1"
+	local result = ""
+
+	local version_info = call_popen(cmd)
+
+	for line in version_info:lines() do
+		if line:match("ADSL PHY") then
+			result = line:match("%a+ %a+: %a+ %a+ %- ([%w%p]+)")
+		end
+	end
+	version_info:close()
+
 	return result
 end
 
 local function get(mapping, paramName, key)
 
+	if paramName == "DslFirmware" then
+		return xdslctlVersion()
+	end
+
 	-- Check cache at every get
 	-- Reset cache if dsl is not up. This should fix some problems when connection goes up
 	-- after this mapper gets loaded
-	if cache["dslmode"] and ( cache["dslmode"] == "Not Found" ) then
+	if cache["dslmode"] and (cache["dslmode"] == "Not Found") then
 		cache = {}
 	end
-	
+
 	-- Alwayse cache dslmode since it's called many times in the script
 	if not cache["dslmode"] then
 		cache["dslmode"] = xdslmode("mode")
 	end
-	
-	if cache["dslmode"] and not cache["dslmode"]:match("G%.DMT") and 
-	not cache["dslmode"]:match("ADSL") and
-	not cache["dslmode"]:match("Not Found") then
+
+	if
+		cache["dslmode"] and not cache["dslmode"]:match("G%.DMT") and not cache["dslmode"]:match("ADSL") and
+			not cache["dslmode"]:match("Not Found")
+	 then
 		cache["pbLineUs"] = pbParams_find("Us")
 		cache["pbLineDs"] = pbParams_find("Ds")
 		parase_pbParams("Us")
 		parase_pbParams("Ds")
 	end
 
-	if not paramName:match("DslMode") and 
-	  cache["dslmode"] and ( cache["dslmode"] == "Not Found" ) then
+	if not paramName:match("DslMode") and cache["dslmode"] and (cache["dslmode"] == "Not Found") then
 		return "" --return empty on every value
 	end
 	if paramName == "HlogScanBand" then
-		return xdslctlget("scanband","Hlog",0,"Ds")
+		return xdslctlget("scanband", "Hlog", 0, "Ds")
 	elseif paramName:match("Hlog") then
-		local band = tonumber(paramName:sub(7,7))
-		local bandtype = paramName:sub(5,6)
+		local band = tonumber(paramName:sub(7, 7))
+		local bandtype = paramName:sub(5, 6)
 		if paramName:match("Split1") then
-			return xdslctlget("data","Hlog",band,bandtype,1)
+			return xdslctlget("data", "Hlog", band, bandtype, 1)
 		elseif paramName:match("Split2") then
-			return xdslctlget("data","Hlog",band,bandtype,2)
+			return xdslctlget("data", "Hlog", band, bandtype, 2)
 		end
-		return xdslctlget("data","Hlog",band,bandtype)
+		return xdslctlget("data", "Hlog", band, bandtype)
 	elseif paramName == "BitsScanBand" then
-		return xdslctlget("scanband","Bits",0,"Ds")
+		return xdslctlget("scanband", "Bits", 0, "Ds")
 	elseif paramName:match("Bits") then
-		local band = tonumber(paramName:sub(7,7))
-		local bandtype = paramName:sub(5,6)
+		local band = tonumber(paramName:sub(7, 7))
+		local bandtype = paramName:sub(5, 6)
 		if paramName:match("Split1") then
-			return xdslctlget("data","Bits",band,bandtype,1)
+			return xdslctlget("data", "Bits", band, bandtype, 1)
 		elseif paramName:match("Split2") then
-			return xdslctlget("data","Bits",band,bandtype,2)
+			return xdslctlget("data", "Bits", band, bandtype, 2)
 		end
-		return xdslctlget("data","Bits",band,bandtype)
+		return xdslctlget("data", "Bits", band, bandtype)
 	elseif paramName == "QLNScanBand" then
-		return xdslctlget("scanband","QLN",0,"Ds")
+		return xdslctlget("scanband", "QLN", 0, "Ds")
 	elseif paramName:match("QLN") then
-		local band = tonumber(paramName:sub(6,6))
-		local bandtype = paramName:sub(4,5) 
+		local band = tonumber(paramName:sub(6, 6))
+		local bandtype = paramName:sub(4, 5)
 		if paramName:match("Split1") then
-			return xdslctlget("data","QLN",band,bandtype,1)
+			return xdslctlget("data", "QLN", band, bandtype, 1)
 		elseif paramName:match("Split2") then
-			return xdslctlget("data","QLN",band,bandtype,2)
+			return xdslctlget("data", "QLN", band, bandtype, 2)
 		end
-		return xdslctlget("data","QLN",band,bandtype)
+		return xdslctlget("data", "QLN", band, bandtype)
 	elseif paramName == "SNRScanBand" then
-		return xdslctlget("scanband","SNR",0,"Ds")
+		return xdslctlget("scanband", "SNR", 0, "Ds")
 	elseif paramName:match("SNR") then
-		local band = tonumber(paramName:sub(6,6))
-		local bandtype = paramName:sub(4,5) 
+		local band = tonumber(paramName:sub(6, 6))
+		local bandtype = paramName:sub(4, 5)
 		if paramName:match("Split1") then
-			return xdslctlget("data","SNR",band,bandtype,1)
+			return xdslctlget("data", "SNR", band, bandtype, 1)
 		elseif paramName:match("Split2") then
-			return xdslctlget("data","SNR",band,bandtype,2)
+			return xdslctlget("data", "SNR", band, bandtype, 2)
 		end
-		return xdslctlget("data","SNR",band,bandtype)
+		return xdslctlget("data", "SNR", band, bandtype)
 	elseif paramName:match("Final") then
-		local band = tonumber(paramName:sub(3,3))
-		local bandtype = paramName:sub(1,2)
-		return xdslband(band,"Final",bandtype)
+		local band = tonumber(paramName:sub(3, 3))
+		local bandtype = paramName:sub(1, 2)
+		return xdslband(band, "Final", bandtype)
 	elseif paramName:match("Initial") then
-		local band = tonumber(paramName:sub(3,3))
-		local bandtype = paramName:sub(1,2)
-		return xdslband(band,"Initial",bandtype)
+		local band = tonumber(paramName:sub(3, 3))
+		local bandtype = paramName:sub(1, 2)
+		return xdslband(band, "Initial", bandtype)
 	elseif paramName:match("BandNumber") then
-		local bandtype = paramName:sub(1,2)
-		return not cache["dslmode"]:match("ADSL") and not cache["dslmode"]:match("G%.DMT") 
-			and parase_pbParams(bandtype,"BandNumber")
-			or "1"
+		local bandtype = paramName:sub(1, 2)
+		return not cache["dslmode"]:match("ADSL") and not cache["dslmode"]:match("G%.DMT") and
+			parase_pbParams(bandtype, "BandNumber") or
+			"1"
 	elseif paramName:match("ScannedBand") then
-		local band = tonumber(paramName:sub(3,3))
-		local bandtype = paramName:sub(1,2)
-		return xdslctlget("scannedband","SNR",band,bandtype)
+		local band = tonumber(paramName:sub(3, 3))
+		local bandtype = paramName:sub(1, 2)
+		return xdslctlget("scannedband", "SNR", band, bandtype)
 	elseif paramName == "DslamChipset" then
 		return xdslctlDslamInfo("chipset")
 	elseif paramName == "DslamVersion" then

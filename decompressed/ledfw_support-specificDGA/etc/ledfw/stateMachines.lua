@@ -16,6 +16,19 @@ local function get_itf_depending_led()
    return itf_depending_led
 end
 
+--defined for old 16.x firmware
+local function is_WiFi_LED_on_if_NSC()
+    local cursor = uci.cursor()
+    local enabled = cursor:get('ledfw', 'wifi', 'nsc_on')
+
+    cursor:close()
+    if not enabled then
+        -- Ensure that always a value is returned
+        return false
+    end
+    return enabled == '1'
+end
+
 local wifi_led_nsc = is_WiFi_LED_on_if_NSC()
 
 patterns = {
@@ -133,8 +146,8 @@ stateMachines = {
             power_started = {
                 staticLed("power:orange", false),
                 staticLed("power:red", false),
-                staticLed("power:blue", false),
-                staticLed("power:green", true)
+                staticLed("power:blue", true),
+                staticLed("power:green", false)
             },
             service_ok_eco = {
                 staticLed("power:orange", false),

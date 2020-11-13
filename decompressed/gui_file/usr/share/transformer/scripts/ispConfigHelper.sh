@@ -3,8 +3,10 @@
 restart_dnsmasq=0
 
 logger_command() {
+  if [ "$debug" -eq 1 ]; then
     logger -t "IspConfigHelper" "$1"
-	echo "IspConfigHelper" "$1"
+    echo "IspConfigHelper" "$1"
+  fi
 }
 
 purify_from_tim() {
@@ -145,15 +147,6 @@ firewall_specific_sip_rules_FASTWEB() {
 	fi
 }
 
-clean_FASTWEB_firewall_rule() {
-	for i in $(seq 1 18); do 
-		uci del firewall.Allow_restricted_sip_"$i"
-	done
-	uci del firewall.Allow_ACS_1
-	uci del firewall.Allow_ACS_2
-	uci commit firewall
-}
-
 cwmp_specific_FASTWEB() {
 	logger_command "FASTWEB ISP detected, finding CWMP server..."
 	if  uci get -q versioncusto.override.fwversion_override | grep -q FW ; then
@@ -166,7 +159,7 @@ cwmp_specific_FASTWEB() {
 		if [ "$(uci get -q cwmpd.cwmpd_config.acs_url)" != "http://59.0.121.191:8080/ACS-server/ACS" ]; then
 			#Fastweb requires device registred in CWMP to make voip work in MAN voip registar
 			#Fastweb will autoconfigure acs username and password with empty acs_url
-			#Make the device tink is first power on by removing cwmpd db
+			#Make the device think is first power on by removing cwmpd db
 			[ -f /etc/cwmpd.db ] && rm /etc/cwmpd.db
 			uci set cwmpd.cwmpd_config.acs_url=""
 			uci commit cwmpd
@@ -187,7 +180,7 @@ cwmp_specific_TIM() {
 	new_fw220=https://fwa.cdp.tim.it/cwmpdWeb/CPEMgt
 	new_platform=https://regman-mon.interbusiness.it:10800/acs/
 	new_platform_bck=https://regman-bck.interbusiness.it:10501/acs/
-	unified_platform=https://regman-tl.interbusiness.it:10700/acs/ 
+	unified_platform=https://regman-tl.interbusiness.it:10700/acs/
 	mgmt_platform=https://regman-tl.interbusiness.it:10500/acs/
 	if [ "$(curl -s -k $new_platform --max-time 5 )" ]; then
 		detected_acs=$new_platform
@@ -201,11 +194,14 @@ cwmp_specific_TIM() {
 		detected_acs=$mgmt_platform
 	fi
 	logger_command "CWMP Server detected: $detected_acs"
-	
+
+	logger_command "Resetting unlock bit..."
+  uci set env.var.unlockedstatus='0'
+
 	[ -z "$cwmp_url" ] && cwmp_url="None"
-	
+
 	if [ "$detected_acs" != "Undetected" ] && [ "$cwmp_url" != "$detected_acs" ]; then
-		
+
 		#Make the device think is first power on by removing cwmpd db
 		[ -f /etc/cwmpd.db ] && rm /etc/cwmpd.db
 		uci set cwmpd.cwmpd_config.acs_url="$detected_acs"
@@ -228,20 +224,21 @@ cwmp_specific_TIM() {
 
 check_clean() {
 	if [ -n "$(uci get -q firewall.Allow_restricted_sip_1.name)" ] && [ "$1" != "Fastweb" ]; then
-		uci set versioncusto.override.fwversion_override="$(uci get -q versioncusto.override.fwversion_override_old)"
-		uci del versioncusto.override.fwversion_override_old
-		uci commit versioncusto
-		clean_FASTWEB_firewall_rule
+	  if [ $(uci get -q versioncusto.override.fwversion_override_old) ]; then
+      uci set versioncusto.override.fwversion_override="$(uci get -q versioncusto.override.fwversion_override_old)"
+      uci del versioncusto.override.fwversion_override_old
+      uci commit versioncusto
+		fi
 	fi
-	if [ -n "$(uci get -q modgui.var.ppp_mgmt)" ] && [ "$1" != "Tim" ]; then
+	if [ -n "$(uci get -q modgui.var.ppp_mgmt)" ] && [ "$1" != "TIM" ]; then
 		purify_from_tim
 	fi
-	
+
 }
 
 setup_ISP() {
 	logger_command "Checking detected ISP and setting CWMP..."
-	case $1 in 
+	case $1 in
 		Tiscali)
 			check_clean Tiscali
 			uci set cwmpd.cwmpd_config.acs_url="http://webdirect.tr69.tiscali.it:8080/ftacs-basic/ACS"
@@ -254,8 +251,8 @@ setup_ISP() {
 			firewall_specific_sip_rules_FASTWEB
 			cwmp_specific_FASTWEB
 			;;
-		Tim)
-			check_clean Tim
+		TIM)
+			check_clean TIM
 			cwmp_specific_TIM
 			uci set modgui.var.ppp_mgmt="$(uci -q get env.var.serial)-$(uci -q get env.var.oui)@00000.aliceres.mgmt"
 			uci set modgui.var.ppp_realm_ipv6="$(uci -q get env.var.serial)-$(uci -q get env.var.oui)@alice6.it"
@@ -290,21 +287,21 @@ setup_ISP() {
 autodetect_isp() {
   logger_command "Detecting ISP and cleanup..."
   #Detect ISP based on cwmp settings (Italian only)
-  
+
   if [ "$(uci -q get modgui.var.isp_autodetect)" = "1" ]; then
   	ppp_user=$(uci -q get network.wan.username)
   	cwmp_url=$(uci -q get cwmpd.cwmpd_config.acs_url)
   	if  [ ! "$ppp_user" ]; then
   		uci set modgui.var.isp="Other"
   	else
-  		if echo "$ppp_user" | grep -q "alice" || 
-  		echo "$ppp_user" | grep -q "agcombo" || 
-  		echo "$ppp_user" | grep -q "unica" || 
+  		if echo "$ppp_user" | grep -q "alice" ||
+  		echo "$ppp_user" | grep -q "agcombo" ||
+  		echo "$ppp_user" | grep -q "unica" ||
   		echo "$ppp_user" | grep -q "aliceres" ||
-  		echo "$ppp_user" | grep -q "@00000." ; 
+  		echo "$ppp_user" | grep -q "@00000." ;
   		then
   			uci set modgui.var.isp="TIM"
-  		elif echo "$ppp_user" | grep -q "tiscali.it" || #acs tiscali is preconfigured 
+  		elif echo "$ppp_user" | grep -q "tiscali.it" || #acs tiscali is preconfigured
   			echo "$cwmp_url" | grep -q "tiscali.it" ; then #on tiscali firmware only
   			uci set modgui.var.isp="Tiscali"
   		elif echo "$cwmp_url" | grep -q "59.0.121.191" ; then #on fastweb firmware only
@@ -325,7 +322,7 @@ isp_helper() {
 		setup_ISP "$(uci get -q modgui.var.isp)"
 	elif [ "$1" = "setup" ]; then
 		if [ -z "$2" ]; then
-			echo "Specify ISP_NAME (Supported Tiscali, Tim, Fastweb, Other)"
+			echo "Specify ISP_NAME (Supported Tiscali, TIM, Fastweb, Other)"
 			return 1
 		fi
 		setup_ISP "$2"

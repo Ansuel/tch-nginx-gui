@@ -14,7 +14,7 @@ local lfs = require"lfs"
 local content = {
       dsl0_enabled = "uci.xdsl.xdsl.@dsl0.enabled",
 	  dsl0_status = "sys.class.xdsl.@line0.Status",
-	  xdsl_version = "rpc.xdsl.dslversion",
+	  xdsl_version = "rpc.xdslctl.DslFirmware",
 	  dslam_chipset = "rpc.xdslctl.DslamChipset",
 	  dslam_version = "rpc.xdslctl.DslamVersion"
   }

@@ -66,8 +66,8 @@ ngx.print('\
   </div>\
   <script>\
   $(document).ready(function(){\
-	new modgui.linkCheckUpdate();\
+	modgui.linkCheckUpdate();\
   });\
   </script>\
 </div>\
-'); 
+');

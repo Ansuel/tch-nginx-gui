@@ -1,0 +1,142 @@
+#!/bin/ash /etc/rc.common
+
+START=00
+
+boot() {
+  local upperdir=/modoverlay/bank_mod
+  local overlay_bank=/overlay/bank_2
+  local ram_dir=/tmp/migrate_overlay
+  local upperdir_backup=/tmp/upperdir_backup
+  local files_to_del=/files_to_del
+  local need_reboot="0"
+
+  tranfer_file() { # $source $dest
+
+    local source=$1
+    local dest=$2
+
+    echo "mount_root-mod: copying $source/* to $dest/ ..." > /dev/kmsg
+
+    for d in $(find $source/ -xdev -type d ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
+      echo "mount_root-mod: creating $dest/$d" > /dev/kmsg
+      mkdir -p "$dest/$d" 2>/dev/kmsg
+    done
+
+    for f in $(find $source/ -xdev -type f ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
+      echo "mount_root-mod: copying $source/$f to $dest/$f" > /dev/kmsg
+      cp -dp "$source/$f" "$dest/$f" 2>/dev/kmsg
+    done
+
+    for l in $(find $source/ -xdev -type l ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
+      echo "mount_root-mod: copying $source/$l to $dest/$l" > /dev/kmsg
+      cp -dp "$source/$l" "$dest/$l" 2>/dev/kmsg
+    done
+  }
+
+  gen_file_to_del_list() { # $source $path_to_save_list
+
+    local source=$1
+    local path_to_save_list=$2
+
+    touch $path_to_save_list
+
+    # Now scan for file to be deleted... depending on the system these can be char type file
+    # In new system the cp fails to copy this file. To fix this put the file in a txt file and then remove them by reading it
+    for c in $(find $source/ -xdev -type c ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
+      echo "mount_root-mod: setting /"$c" to be flagged as deleted" > /dev/kmsg
+      echo /"$c" >> $path_to_save_list
+    done
+  }
+
+  check_files_to_delete() {
+    # Since we are doing a double overlay, we can't remove file that are already flagged as deleted...
+    # To transfer deleted file across overlay (using the easy way instead of unmounting) we need to
+    # 1. Create a list of the file to delete
+    # 2. Clean the deleted file from the old overlay
+    # 3. Reboot to make the accessible from the new overlay
+    # 4. Remove the file again in the new mounted overlay
+    echo "mount_root-mod: checking if there are files to be removed..." > /dev/kmsg
+    if [ -f $files_to_del ]; then
+      echo "mount_root-mod: there are files scheduled to be removed..." > /dev/kmsg
+
+      # Actually remove the file flagged as removed in the old overlay
+      while read -r file; do
+        echo "mount_root-mod: setting "$file" as deleted in the new overlay" > /dev/kmsg
+        rm "$file" 2>/dev/kmsg
+      done < "$files_to_del"
+
+      sync
+    fi
+
+    rm $files_to_del
+  }
+
+  move_overlay() {
+    echo "mount_root-mod: checking if overlay must be transfered..." > /dev/kmsg
+    #use the config folder as check to know that we should populate the modoverlay (mtd3) and cleanup real overlay (mtd2)
+    # Other process can write some config file before modoverlay is mounted, checking the config dir is not enough
+    # Try to check if modgui exist and assume the migration is needed if present
+    if [ -f $overlay_bank/etc/config/modgui ]; then
+
+      /etc/init.d/watchdog-tch stop
+
+      mkdir $ram_dir $upperdir_backup
+
+      #copy all file from overlay_bank to ram keeping all attributes and links
+      tranfer_file $overlay_bank $ram_dir
+
+      gen_file_to_del_list $overlay_bank $files_to_del
+
+      sync
+
+      #copy all file from ram to modoverlay keeping all attributes and links
+      tranfer_file $ram_dir $upperdir
+
+      #at this point we should remove all empty folders in bank_2 overlay, except the modoverlay mountpoint
+      for f in "$overlay_bank/"*; do
+        echo "mount_root-mod: check-for-rm $f" > /dev/kmsg
+        [ "$f" != "$overlay_bank/modoverlay" ] && [ "$f" != "$overlay_bank/saferoot" ] && rm -rf "$f"
+      done
+
+      sync
+
+      echo "mount_root-mod: migration done!" > /dev/kmsg
+
+      need_reboot="1"
+    fi
+  }
+
+  preserve_files(){
+    #these files should be moved back to bank_2 overlay to allow our mount hook to take place (and preserve root after boot)
+    preserve_list="/etc/init.d/rootdevice /etc/rc.d/S94rootdevice /usr/sbin/random_seed /sbin/insmod \
+    /lib/mount_modroot/05_transfer_basefiles /etc/init.d/do_migrate_overlay /usr/sbin/mount_modoverlay /sbin/mount_root-mod"
+
+    update_file_if_needed() { # <file> <source> <dest>
+      cmp -s "$2$1" "$3$1" || cp -a "$2$1" "$3$1"
+    }
+
+    for f in $preserve_list; do
+      mkdir -p $overlay_bank$(dirname "$f")
+      echo "mount_root-mod: update_file_if_needed $f" > /dev/kmsg
+      update_file_if_needed "$f" "$upperdir" $overlay_bank
+    done
+
+    sync
+  }
+
+  reboot_if_needed(){
+    if [ "$need_reboot" = "1" ]; then
+      # Simulate the bank_1 failed 3 times
+      echo 1 > /proc/prozone/bootfail
+      echo 2 > /proc/prozone/bootcounter
+      echo 0 > /proc/prozone/bootbank
+      reboot && sleep 30
+    fi
+  }
+
+  if mount | grep /modoverlay/bank_mod > /dev/null ; then
+    { check_files_to_delete; move_overlay; preserve_files; reboot_if_needed; }
+  else
+    echo "mount_root-mod: modoverlay not mounted! Aborting migration!" > /dev/kmsg
+  fi
+}
