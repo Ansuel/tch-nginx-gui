@@ -1,5 +1,5 @@
 --pretranslated: do not change this file
- 
+
 -- Enable localization
 gettext.textdomain('webui-core')
 
@@ -180,7 +180,7 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H045") or content.dsl0_xdsl_Firmwa
 	tinsert(driver_option, { "A2pvbH042o", 'A2pvbH042o (TG789vac Xtream 35B Fastweb)'})
 	tinsert(driver_option, { "A2pvbH042r", 'A2pvbH042r (AGTEF_1.0.3)'})
 	tinsert(driver_option, { "A2pvbH042u", 'A2pvbH042u (AGTEF_1.0.4)'})
-	
+
 	if tonumber(content.marketing_version:sub(1,4)) >= 17.2 then
         tinsert(driver_option, { "B2pvfbH043d1", 'B2pvfbH043d1 (FRITZ!Box 7581 6.54)'})
 		tinsert(driver_option, { "B2pvfbH043e", 'B2pvfbH043e (Asus DSL-AC87VG_v1.00.13)'})
@@ -209,8 +209,10 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H045") or content.dsl0_xdsl_Firmwa
         tinsert(driver_option, { "A2pvfbH045o", 'A2pvfbH045o (FRITZ!Box 7582 7.12-72473M)'})
         tinsert(driver_option, { "A2pvfbH045o1", 'A2pvfbH045o1 (Zyxel VMG4005-B50A_5.15(ABQA.0)C0)'})
         tinsert(driver_option, { "A2pvfbH045p", 'A2pvfbH045p (DGA4131FWB 18.3.n)'})
+        tinsert(driver_option, { "A2pvfbH045q", 'A2pvfbH045q (iopsys 5.1.0RC4)'})
+        tinsert(driver_option, { "A2pvfbH045r", 'A2pvfbH045r (AGTHP_2.2.2_001)'})
 	end
-	
+
 	driver_Params.driver_ver = "uci.modgui.var.driver_version"
 	driver_valid.driver_ver = post_helper.getValidateInEnumSelect(driver_option)
 elseif content.dsl0_xdsl_FirmwareVersion:match(".*F039") then
@@ -220,7 +222,7 @@ elseif content.dsl0_xdsl_FirmwareVersion:match(".*F039") then
     tinsert(driver_option, { "A2pv6F039e", 'A2pv6F039e (Huawei HG635)'})
     tinsert(driver_option, { "A2pv6F039f1", 'A2pv6F039f1 (Indeno D301)'})
     tinsert(driver_option, { "A2pv6F039m1", 'A2pv6F039m1 (Sky NR701-NR801)'})
-    tinsert(driver_option, { "A2pv6F039o1", 'A2pv6F039o1 (Telsra TG799vac)'})
+    tinsert(driver_option, { "A2pv6F039o1", 'A2pv6F039o1 (Telstra TG799vac)'})
     tinsert(driver_option, { "A2pv6F039t", 'A2pv6F039t (Netgear D6400)'})
     tinsert(driver_option, { "A2pv6F039u", 'A2pv6F039u (Netgear D6220 v1.0.0.48/Sercomm VD625)'})
     tinsert(driver_option, { "A2pv6F039v", 'A2pv6F039v (SmartRG sr516ac/Tp-link Archer VR600V1)'})
@@ -241,7 +243,7 @@ local driver_content, helpmsg = post_helper.handleQuery(driver_Params, driver_va
 \
 ');  ngx.print(ui_helper.createHeader(T"xDSL Details", false, false))   ngx.print('\
 <div class="modal-body update">\
-');  
+');
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 
 
@@ -249,7 +251,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 <fieldset>\
   <legend>');  ngx.print( T"Core Settings" ); ngx.print('</legend>\
     <form class="form-horizontal" method="post" action="modals/xdsl-low-modal.lp">\
-    ');  
+    ');
       local span5 = { span = { class = "span5" } }
 	  local alertinfo = { alert = { class = "alert-info" } }
       local html = {}
@@ -278,7 +280,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  end
 	  html[#html + 1] = ui_helper.createLabel(T"Datapump Version",content.dsl0_xdsl_FirmwareVersion, span5 )
 	  if not driver_Params.driver_ver then
-		html[#html + 1] = ui_helper.createLabel(T"xDSL Driver Version",T"We don't have any driver for this modem, please report them to the github page. ", span5 )
+		html[#html + 1] = ui_helper.createLabel(T"xDSL Driver Version",T"We don't have any driver for this modem, please report them to the GitHub page. ", span5 )
 	  else
 		html[#html + 1] = ui_helper.createInputSelect(T"xDSL Driver Version", "driver_ver", driver_option, driver_content["driver_ver"])
 	  end

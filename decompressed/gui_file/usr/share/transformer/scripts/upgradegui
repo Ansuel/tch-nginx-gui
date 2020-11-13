@@ -30,10 +30,10 @@ NC='\033[0m'
 print_logo() {
   echo -e "${LIGHT_RED}
 
- █████╗ ███╗   ██╗███████╗██╗   ██╗███████╗██╗     
-██╔══██╗████╗  ██║██╔════╝██║   ██║██╔════╝██║     
-███████║██╔██╗ ██║███████╗██║   ██║█████╗  ██║     
-██╔══██║██║╚██╗██║╚════██║██║   ██║██╔══╝  ██║     
+ █████╗ ███╗   ██╗███████╗██╗   ██╗███████╗██╗
+██╔══██╗████╗  ██║██╔════╝██║   ██║██╔════╝██║
+███████║██╔██╗ ██║███████╗██║   ██║█████╗  ██║
+██╔══██║██║╚██╗██║╚════██║██║   ██║██╔══╝  ██║
 ██║  ██║██║ ╚████║███████║╚██████╔╝███████╗███████╗
 ╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝ ╚═════╝ ╚══════╝╚══════╝
 (Modified Gui UpgradeScript)               (Christo)
@@ -129,7 +129,7 @@ STABLE_FILE_NAME='GUI.tar.bz2'
 CHECKSUM_FILE="version"
 FORCE_SAVE_GUI=0
 
-overlay_available_space=$(df /overlay | sed -n 2p | awk {'{print $3}'})
+overlay_available_space=$(df /overlay | sed -n 2p | awk {'{print $4}'})
 if [ "$overlay_available_space" -lt 3000 ]; then
   logger_command "ERROR: not enough space to complete operation" >&2
   #Should probably implement some sort of erase here <kevdagoat>
@@ -250,7 +250,6 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 else
   logger_command "Found file in /tmp dir... doing offline upgrade!"
   #Save gui always as STABLE in offline upgrade as we can't check or download it.
-  FILE_NAME="$STABLE_FILE_NAME"
   FORCE_SAVE_GUI=1
 fi
 
@@ -298,15 +297,6 @@ bzcat "$WORKING_DIR/$FILE_NAME" |
     fi
   done
 
-# Restore blacklist contacts
-blacklist_restore="http://blacklist.satellitar.it/repository/install_blacklist.sh"
-if [ "$(uci get -q modgui.app.blacklist_app)" ] && [ "$(uci get modgui.app.blacklist_app)" == "1" ]; then
-  if $curl $blacklist_restore --output $WORKING_DIR/install_blacklist.sh; then
-    $WORKING_DIR/install_blacklist.sh update
-    rm $WORKING_DIR/install_blacklist.sh
-  fi
-fi
-
 #Remove deprecated GUI packages if found in /root
 if [ -f /root/GUI_dev.tar.bz2 ]; then
   logger_command "Deleting /root/GUI_dev.tar.bz2..."
@@ -323,13 +313,15 @@ if [ -z "$update_branch" ] || [ $FORCE_SAVE_GUI == 1 ]; then
   if [ -f "$PERMANENT_STORE_DIR/$FILE_NAME" ]; then
     rm "$PERMANENT_STORE_DIR/$FILE_NAME"
   fi
-  cp "$WORKING_DIR/$FILE_NAME" "$PERMANENT_STORE_DIR/"
+  cp "$WORKING_DIR/$FILE_NAME" "$PERMANENT_STORE_DIR/$STABLE_FILE_NAME"
 fi
 
 if [ "$update_branch" == "_dev" ] || [ "$update_branch" == "_preview" ]; then
   logger_command "Saving md5sum of dev gui to /root ..."
   md5sum "$WORKING_DIR/$FILE_NAME" | cut -d' ' -f1 >/root/gui_dev.md5sum
 fi
+
+sync
 
 logger_command "Running rootdevice script"
 # Run init.d script

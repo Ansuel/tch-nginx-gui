@@ -1,3 +1,5 @@
+#!/bin/bash
+
 version="$(cat $HOME/gui_build/data/version)"
 short_commit_hash="$(cat $HOME/gui_build/data/short_commit_hash)"
 rootdevice_file="$HOME/gui_build/decompressed/base/etc/init.d/rootdevice"

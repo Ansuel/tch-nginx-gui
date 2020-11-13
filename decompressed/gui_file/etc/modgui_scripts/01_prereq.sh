@@ -8,7 +8,7 @@ move_env_var() {
 
 		gui_entities="autoupgrade randomcolor autoupgrade_hour firstpage gui_skin new_ver outdated_ver gui_version autoupgradeview gui_hash update_branch"
 		app_entities="xupnp_app blacklist_app telstra_webui transmission_webui aria2_webui amule_webui luci_webui"
-		var_entities="isp ppp_mgmt ppp_realm_ipv6 ppp_realm_ipv4 encrypted_pass driver_version bank_check"
+		var_entities="isp ppp_mgmt ppp_realm_ipv6 ppp_realm_ipv4 encrypted_pass driver_version check_obp reboot_reason_msg"
 
 		touch /etc/config/modgui
 
@@ -74,18 +74,19 @@ check_free_RAM() {
 }
 
 logger_command "Disabling watchdog..."
-/etc/init.d/watchdog-tch stop
+/etc/init.d/watchdog-tch stop > /dev/null
 
 move_env_var #This moves every garbage created before 8.11.49 in env to modgui config file
 create_section_modgui
 check_tmp_permission
 check_free_RAM
 
-if [ -f /root/.install_gui ]; then
-  logger_command "Removing .install_gui flag"
-	rm /root/.install_gui
-fi
-
 if [ -f /root/.reapply_due_to_upgrade ]; then
 	reapply_gui_after_reset
+fi
+
+if [ -f /tmp/GUI.tar.bz2 ] || [ -f /tmp/GUI_dev.tar.bz2 ]; then
+  logger_command "Saving GUI package to /root..."
+  [ -f /tmp/GUI.tar.bz2 ] && safe_mv /tmp/GUI.tar.bz2 /root/GUI.tar.bz2
+  [ -f /tmp/GUI_dev.tar.bz2 ] && safe_mv /tmp/GUI_dev.tar.bz2 /root/GUI.tar.bz2
 fi

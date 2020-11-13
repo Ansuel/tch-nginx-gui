@@ -3,6 +3,8 @@
 SKIP_SIGNATURE=0
 REBOOT_OPTION=""
 GUI_OPTION=
+RESET_CONFIG=""
+ROOT_ONLY=
 
 # parse options
 while [ -n "$1" ]; do
@@ -10,8 +12,8 @@ while [ -n "$1" ]; do
                 -S|--skip-signature) SKIP_SIGNATURE=1;;
                 -o) REBOOT_OPTION="-o";;
                 --gui) GUI_OPTION=--gui;;
-				--reset) RESET_CONFIG="-n";;
-				--rootonly) ROOT_ONLY=--rootonly;;
+                --reset) RESET_CONFIG="-n";;
+                --rootonly) ROOT_ONLY=--rootonly;;
                 -*)
                         echo "Invalid option: $1"
                         exit 1
@@ -41,14 +43,14 @@ if [ $SKIP_SIGNATURE -eq 1 ]; then
 	SIGNATURE_OPTION=--nosig
 fi
 
-sysupgrade --safe ${REBOOT_OPTION} ${GUI_OPTION} ${SIGNATURE_OPTION} ${RESET_CONFIG} "${UPGRADE_URL}"
+sysupgrade --safe ${REBOOT_OPTION} ${GUI_OPTION} ${SIGNATURE_OPTION} ${RESET_CONFIG} ${ROOT_ONLY} "${UPGRADE_URL}"
 
-if [ $? -ne 0 ]                          
-then                           
-        if [ -f /tmp/getimageerr ];              
-        then                   
+if [ $? -ne 0 ]
+then
+        if [ -f /tmp/getimageerr ];
+        then
                 rm -rf /tmp/getimageerr
-                exit 1    
-        fi     
-        exit 2 
-fi             
+                exit 1
+        fi
+        exit 2
+fi

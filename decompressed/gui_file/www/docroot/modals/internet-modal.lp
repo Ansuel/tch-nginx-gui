@@ -30,6 +30,8 @@ else
 	wan_ppp_ll_intf = ""
 end
 
+local wan_mode = proxy.get("uci.network.config.wan_mode")[1].value
+
 local isp_cwmp_known = {
 	{"TIM", T"TIM (Italy)"},
 	{"Tiscali", T"Tiscali (Italy)"},
@@ -60,7 +62,7 @@ end
 
 if not tabdata.current.ajax then
 	-- only display if not doing an ajax request
-	
+
 	-- Currently, the only advanced field is the conncection mode.
 	-- So if it's not included, there's no need for an advanced button.
 	ngx.print(ui_helper.createHeader(T"Internet Access", true, true)); ngx.print('\
@@ -69,9 +71,9 @@ if not tabdata.current.ajax then
 	<form class="form-horizontal" method="post" action="modals/internet-modal.lp">\
 	\
 	'); ngx.print(ui_helper.createMessages(message_helper.popMessages()))
-	
+
 	local html = {}
-	
+
 	local mode_attributes = {
 		radio = {
 			class = "inline"
@@ -102,6 +104,9 @@ if not tabdata.current.ajax then
         class ="monitor-isp_autodetect monitor-1",
       },
     }
+    if wan_mode == "bridge" then
+        mode_current = "bridge"
+    end
 	html[#html+1] = '<fieldset id="conn_mode" class="advanced hide">'
 	html[#html+1] = '<legend>' .. T"Connection mode" .. '</legend>'
 	html[#html+1] = ui_helper.createInputRadio(T"Mode", "newmode", mode_options, mode_current, mode_attributes)
@@ -112,12 +117,17 @@ if not tabdata.current.ajax then
 	html[#html+1] = ui_helper.createSwitch(T"ISP Autodetect", "isp_autodetect", content["isp_autodetect"], switch_mon_isp)
 	html[#html+1] = ui_helper.createInputRadio(T"ISP used", "isp_detected", isp_cwmp_known, content["isp_detected"], isp_autodetect_mon_0)
 	html[#html+1] = ui_helper.createLabel(T"ISP Detected", content["isp_detected"],isp_autodetect_mon_1)
-	
+
 	ngx.print(html)
 
 end
 
 lp.setpath("/www/snippets/")
+
+if wan_mode == "bridge" and tabdata.current.name ~= "bridge" then
+    lp.include("internet-bridged.lp")
+end
+
 lp.include(tabdata.current.view)
 
 if not tabdata.current.ajax then

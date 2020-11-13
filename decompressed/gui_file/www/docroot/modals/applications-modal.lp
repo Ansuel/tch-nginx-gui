@@ -27,20 +27,6 @@ local function appapply(action)
 	if ( action == "install_blacklist_empty" ) then
 		action = "install_blacklist"
 	end
-	local uci_set = action:gsub("(.*)_","")
-	local action_type = action:gsub("_(.*)","")
-	if action_type == "install" or action_type == "remove" then
-		if action_type == "install" then
-			state = "1"
-		else
-			state = "0"
-		end
-		if not ( uci_set == "blacklist" ) and not ( uci_set == "xupnp" ) then
-			proxy.set("uci.modgui.app." .. uci_set .. "_webui",state)
-		else
-			proxy.set("uci.modgui.app." .. uci_set .. "_app",state)
-		end
-	end
 	ngx.header.content_type = "application/json"
 	ngx.print('{ "success":"true" }')
 	ngx.timer.at(0, function()
@@ -51,7 +37,7 @@ end
 
 if ngx.req.get_method() == "POST" then
 	local action = string.untaint(ngx.req.get_post_args().action)
-	if action:match("install") or action:match("remove") or 
+	if action:match("install") or action:match("remove") or
 		action:match("start") or action:match("stop") then
 		return appapply(action)
 	end
@@ -63,7 +49,8 @@ local mapParams = {
 }
 if not (prod_friendly_name[1].value:match("TG789") and prod_friendly_name[1].value:match("Xtream")) then
 	if prod_friendly_name[1].value:match("DGA413") or
-			prod_friendly_name[1].value:match("TG7") then
+			prod_friendly_name[1].value:match("TG7") or
+            prod_friendly_name[1].value:match("TG80") then
 		mapParams.luci_webui = "uci.modgui.app.luci_webui"
 	end
 	if prod_friendly_name[1].value:match("TG7") then
@@ -71,7 +58,7 @@ if not (prod_friendly_name[1].value:match("TG789") and prod_friendly_name[1].val
 	end
 	mapParams.aria2_webui = "uci.modgui.app.aria2_webui"
 	mapParams.transmission_webui = "uci.modgui.app.transmission_webui"
-	if prod_friendly_name[1].value:match("DGA413") then
+	if prod_friendly_name[1].value:match("DGA413") or prod_friendly_name[1].value:match("TG80") then
 		mapParams.blacklist_application = "uci.modgui.app.blacklist_app"
 		local marketing_version = proxy.get("uci.version.version.@version[0].marketing_version")
 		if marketing_version and marketing_version[1].value then
@@ -166,7 +153,7 @@ if StateParams["amule_webui"] ~= nil then
 	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. amule_direct_link .. '">' .. amule_direct_link .. "</a>"
 	html[#html+1] = "<br/>"
 	if mapParams["amule_webui"] and mapParams["amule_webui"] == "1" then
-        if prod_friendly_name[1].value:match("TG799") or prod_friendly_name[1].value:match("TG789") then
+        if prod_friendly_name[1].value:match("TG589") or prod_friendly_name[1].value:match("TG799") or prod_friendly_name[1].value:match("TG789") then
             html[#html+1] = ui_helper.createSimpleButton(T"Start".." aMule", "fa fa-play", btn_table.amule.start)
             html[#html+1] = ui_helper.createSimpleButton(T"Stop".." aMule", "fa fa-stop", btn_table.amule.stop)
         end
@@ -190,7 +177,7 @@ if StateParams["aria2_webui"] ~= nil then
 	html[#html+1] = "<br/>"
 	html[#html+1] = "<br/>"
 	if mapParams["aria2_webui"] and mapParams["aria2_webui"] == "1" then
-        if prod_friendly_name[1].value:match("TG799") or prod_friendly_name[1].value:match("TG789") then
+        if prod_friendly_name[1].value:match("TG589") or prod_friendly_name[1].value:match("TG799") or prod_friendly_name[1].value:match("TG789") then
             html[#html+1] = ui_helper.createSimpleButton(T"Start".." Aria2", "fa fa-play", btn_table.aria2.start)
             html[#html+1] = ui_helper.createSimpleButton(T"Stop".." Aria2", "fa fa-stop", btn_table.aria2.stop)
         end
@@ -214,7 +201,7 @@ if StateParams["transmission_webui"] ~= nil then
 	html[#html+1] = "<br/>"
 	html[#html+1] = "<br/>"
 	if mapParams["transmission_webui"] and mapParams["transmission_webui"] == "1" then
-        if prod_friendly_name[1].value:match("TG799") or prod_friendly_name[1].value:match("TG789") then
+        if prod_friendly_name[1].value:match("TG589") or prod_friendly_name[1].value:match("TG799") or prod_friendly_name[1].value:match("TG789") then
             html[#html+1] = ui_helper.createSimpleButton(T"Start".." Tansmission", "fa fa-play", btn_table.transmission.start)
             html[#html+1] = ui_helper.createSimpleButton(T"Stop".." Transmission", "fa fa-stop", btn_table.transmission.stop)
         end
@@ -311,5 +298,5 @@ ngx.print('\
     });\
 }());\
 </script>\
-');  
+');
 ngx.print(ui_helper.createFooter())
