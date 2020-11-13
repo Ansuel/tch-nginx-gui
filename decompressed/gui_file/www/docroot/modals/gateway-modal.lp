@@ -1,5 +1,5 @@
 --pretranslated: do not change this file
- 
+
 -- Enable localization
 -- NG-56123; NG-62887; NG-48150; NG-69530; NG-85826
 --NG-103901 GUI gateway-modal has to modified in fact of generic changes
@@ -203,7 +203,7 @@ end
 local function upgradefw(reset,rootonly)
   local fwupgrade_rpc_path = "rpc.system.fwupgrade."
   local filename = "fwupgrade.bin"
-  
+
   local content = {
     fwupgrade_state = fwupgrade_rpc_path .. "state",
     fwupgrade_location = fwupgrade_rpc_path .. "location"
@@ -229,7 +229,7 @@ local function upgradefw(reset,rootonly)
 	proxy.set({[fwupgrade_rpc_path .. "upgrade_type"] = "Reset"})
   end
   if rootonly then
-	proxy.set({[fwupgrade_rpc_path .. "gui_install_type"] = "Rootonly"})
+	proxy.set({[fwupgrade_rpc_path .. "gui_install_type"] = "RootOnly"})
   end
   proxy.set({[fwupgrade_rpc_path .. "state"] = "Requested"})
 
@@ -742,20 +742,20 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
             class = "no-save",
         }
     }
-	
+
 	local system_time = {
 		span = {
           class = "span5",
 		  id = "system_time"
         },
 	}
-	
+
 	local schedule_reboot = {
 		button = {
           id = "btn-schedule-reboot"
         }
 	}
-	
+
 	local schedule_fail = {
 		alert = {
           class = "alert-error hide",
@@ -791,11 +791,11 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 	  local netTimez = "On"
 	  if system_data["system_network_timezone"] == "0" then
 		netTimez = "Off"
-	  end		
+	  end
 	  html[#html + 1] = ui_helper.createLabel(T"Network Timezone", netTimez)
       html[#html + 1] = ui_helper.createLabel(T"Current Timezone", system_data["system_zonename"])
     end
-	
+
 	if tech then
       -- NTP servers
       html[#html + 1] = format('<div class="control-group advanced hide"><label class="control-label">%s</label><div class="controls">', T"NTP servers")
@@ -852,7 +852,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 
       html[#html + 1] = ui_helper.createLabel(T"ACS URL", content["acs_url"], basic)
     end
-	
+
 	ngx.print(html)
 
     local html = {}
@@ -866,7 +866,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 		html[#html + 1] = ui_helper.createLabel(T"Passive Version", content["passiveversion"] , long_basic)
 	end
     ngx.print(html)
-	
+
     local html = {}
 	html[#html + 1] = '<legend>'.. T"Key Info" ..'</legend>'
     html[#html + 1] = ui_helper.createLabel(T"Config decrypt key", content["rip_key_B"] , basic)

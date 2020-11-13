@@ -1,1 +1,1 @@
-^upnpd /etc/init.d/miniupnpd restart
+^upnpd /etc/init.d/miniupnpd-tch restart

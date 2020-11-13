@@ -1,7 +1,7 @@
 TYPE="$(cat $HOME/gui_build/data/type)"
-if [ $TYPE == "DEV" ]; then
+# if [ $TYPE == "DEV" ]; then
 	exit 0
-fi
+# fi
 
 minify_css() {
 	curl -X POST -s --data-urlencode input@"$1" https://cssminifier.com/raw > $1.min

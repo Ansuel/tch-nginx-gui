@@ -1,41 +1,27 @@
 #!/bin/sh
 
-. /etc/init.d/rootdevice
-
-MD5_CHECK_DIR=/tmp/md5check
-	
-[ ! -d $MD5_CHECK_DIR ] && mkdir $MD5_CHECK_DIR
-
-for file in /tmp/upgrade-pack-specificTG800; do
-	
-	if [ ! -f $MD5_CHECK_DIR/$file ]; then
-		if [ ! -d /$file ]; then
-			mkdir /$file
-		fi
-		continue
-	fi
-	
-	[ -n "$( echo $file | grep .md5sum )" ] && continue
-	
-	orig_file=/$file
-	file=$MD5_CHECK_DIR/$file
-	
-	if [ -f $orig_file ]; then
-		md5_file=$(md5sum $file | awk '{ print $1 }' )
-		md5_orig_file=$(md5sum $orig_file | awk '{ print $1 }' )
-		if [ $md5_file == $md5_orig_file ]; then
-			rm $file
+move_files_and_clean(){
+  for file in $(find "$1"*/ -xdev | cut -d '/' -f4-); do
+    if [[ -d "$1$file" && ! -d "/$file" ]]; then
+			mkdir "/$file"
 			continue
 		fi
-	fi
-	
-	cp $file $orig_file
-	rm $file
-	RESTART_SERVICE=1
-	
-done
 
-[ -d $MD5_CHECK_DIR ] && rm -r $MD5_CHECK_DIR
+    [ ! -d "$1$file" ] && mv "$1$file" "/$file"
+
+  done
+  rm -rf "$1"
+}
+move_files_and_clean /tmp/upgrade-pack-specificTG800/
+
+if [ -z "${kernel_ver##3.4*}" ]; then
+  opkg install /tmp/3.4_ipk/*
+else #unsupported kernels (ie 19.x using 4.1.52)
+  echo "No packages to install for kernel: $kernel_ver"
+fi
+
+#remove temporary files from /tmp
+rm -rf /tmp/3.4_ipk
 
 if [ ! -f /etc/config/telnet ]; then
   touch /etc/config/telnet
@@ -48,6 +34,6 @@ if [ -f /bin/busybox_telnet ] && [ ! -f /usr/sbin/telnetd ]; then
   ln -s /bin/busybox_telnet /usr/sbin/telnetd
 fi
 
-if [ ! -f /etc/init.d/telnet ]; then
-  ln -s /etc/init.d/telnetd /etc/init.d/telnet
+if [ -f /etc/init.d/telnet ] && [ ! -f /etc/init.d/telnetd ]; then
+  ln -s /etc/init.d/telnet /etc/init.d/telnetd
 fi

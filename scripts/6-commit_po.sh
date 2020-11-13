@@ -12,6 +12,6 @@ BuildBot: translation: update po file automatically
 [ci skip]
 EOF
 
-git push origin master;
+git push;
 
 echo "Done.";

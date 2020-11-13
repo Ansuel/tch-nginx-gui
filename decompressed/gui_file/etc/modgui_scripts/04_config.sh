@@ -101,31 +101,23 @@ create_driver_setting() {
 dropbear_config_check() {
   if [ ! "$(uci get -q dropbear.wan)" ]; then
     logger_command "Adding Dropbear wan config"
+    uci add dropbear dropbear >/dev/null
+    uci rename dropbear.@dropbear[-1]=wan
     uci set dropbear.wan=dropbear
     uci set dropbear.wan.Interface='wan'
-    uci set dropbear.wan.RootLogin='1'
-    uci set dropbear.wan.RootPasswordAuth='on' #dropbear root related
-    uci set dropbear.wan.PasswordAuth='on'
     uci set dropbear.wan.Port='22'
     uci set dropbear.wan.enable='0'
+  fi
 
+  uci set dropbear.wan.RootLogin='1'
+  uci set dropbear.wan.RootPasswordAuth='on' #dropbear root related
+  uci set dropbear.wan.PasswordAuth='on'
+
+  if [ "$(uci changes)" ]; then
+    logger_command "Restarting Dropbear SSH Server..."
     uci commit dropbear
-  else
-    if [ "$(uci get -q dropbear.wan.RootLogin)" != "1" ]; then
-      logger_command "Enabling Dropbear wan RootLogin"
-      uci set dropbear.wan.RootLogin='1'
-      uci commit dropbear
-    fi
-    if [ "$(uci get -q dropbear.wan.PasswordAuth)" != "on" ]; then #TELMEX firmware got it OFF
-      logger_command "Enabling Dropbear wan PasswordAuth"
-      uci set dropbear.wan.PasswordAuth='on'
-      uci commit dropbear
-    fi
-    if [ "$(uci get -q dropbear.wan.RootPasswordAuth)" != "on" ]; then #TELMEX firmware got it OFF
-      logger_command "Enabling Dropbear wan RootPasswordAuth"
-      uci set dropbear.wan.RootPasswordAuth='on'
-      uci commit dropbear
-    fi
+    /etc/init.d/dropbear enable
+    /etc/init.d/dropbear restart >/dev/null
   fi
 }
 
@@ -136,7 +128,7 @@ eco_param() {
     uci set power.cpu.cpuspeed='256'
     uci set power.cpu.wait='1'
     logger_command "Restarting power management"
-    /etc/init.d/power restart
+    /etc/init.d/power restart &>/dev/null
   fi
 }
 
@@ -186,7 +178,8 @@ create_gui_type() {
   elif [ "$(uci get -q modgui.app.blacklist_app)" = "1" ] &&
     [ ! -f /www/docroot/modals/mmpbx-contacts-modal.lp.orig ] &&
     [ -f /usr/share/transformer/scripts/appInstallRemoveUtility.sh ]; then
-    /usr/share/transformer/scripts/appInstallRemoveUtility.sh install blacklist
+    logger_command "Reinstalling blacklist app after upgrade..."
+    /usr/share/transformer/scripts/appInstallRemoveUtility.sh install blacklist >/dev/null
   fi
 }
 
@@ -233,7 +226,12 @@ suppress_excessive_logging() {
 
 real_ver_entitied() {
   if [ -f /rom/etc/uci-defaults/tch_5000_versioncusto ] && [ -f /etc/config/versioncusto ]; then
-    short_ver="$(grep </proc/banktable/activeversion -Eo '.*\..*\.[0-9]*-[0-9]*')"
+    bank_version="activeversion"
+    if [ "$(cat /proc/banktable/booted)" != "$(cat /proc/banktable/active)" ]; then
+      bank_version="passiveversion"
+    fi
+
+    short_ver="$(grep </proc/banktable/$bank_version -Eo '.*\..*\.[0-9]*-[0-9]*')"
     real_ver=$(grep </rom/etc/uci-defaults/tch_5000_versioncusto "$short_ver" | awk '{print $2}')
     uci set versioncusto.override.fwversion_override_latest="$latest_version_on_TIM_cwmp"
     if [ "$real_ver" = "" ]; then
@@ -296,13 +294,6 @@ add_xdsl_option() {
   uci set xdsl.dsl0.demod_cap_value="0x00047a"
 }
 
-check_wan_mode() {
-  if [ ! "$(uci get -q network.config.wan_mode)" ]; then
-    uci set network.config="config"
-    uci set network.config.wan_mode="$(uci get -q network.wan.proto)"
-  fi
-}
-
 dosprotect_inizialize() {
   logger_command "Checking DoSprotect kernel modules..."
   if [ -n "$(find /lib/modules/*/ -iname xt_hashlimit.ko)" ]; then
@@ -340,7 +331,7 @@ mobiled_lib_add() {
     /etc/init.d/mobiled restart
   else
     #make sure we haven't replaced it some old GUI install, restore from rom if needed
-    if [ "$(md5sum /rom/etc/init.d/mobiled | cut -d' ' -f1)" != "$(md5sum /etc/init.d/mobiled | cut -d' ' -f1)" ]; then
+    if [[ -f /rom/etc/init.d/mobiled && -n "$(cmp /rom/etc/init.d/mobiled /etc/init.d/mobiled)" ]]; then
       logger_command "Restoring and restarting /etc/init.d/mobiled ..."
       cp /rom/etc/init.d/mobiled /etc/init.d/mobiled
       /etc/init.d/mobiled restart
@@ -361,8 +352,8 @@ mobiled_lib_add() {
   major_system_version="$(uci get version.@version[0].marketing_version | sed 's#\.##' | grep -o -E '[0-9]+')"
   if [ "$major_system_version" -lt 173 ]; then #if fw <17.3
     #Restore original lte-doctor related webui files
-    cp /rom/www/docroot/ajax/radioparameters.lua /www/docroot/ajax/radioparameters.lua
-    cp /rom/www/docroot/modals/lte-doctor.lp /www/docroot/modals/lte-doctor.lp
+    [ -f /rom/www/docroot/ajax/radioparameters.lua ] && cp /rom/www/docroot/ajax/radioparameters.lua /www/docroot/ajax/radioparameters.lua
+    [ -f /rom/www/docroot/modals/lte-doctor.lp ] && cp /rom/www/docroot/modals/lte-doctor.lp /www/docroot/modals/lte-doctor.lp
   fi
 }
 
@@ -476,7 +467,7 @@ cumulative_check_gui() {
     logger_command "Can't generate GUI hash, file not found!"
     gui_hash="0"
   fi
-  
+
   saved_gui_version=$(uci get -q modgui.gui.gui_version | cut -d'-' -f1)
   clean_version_gui=$(echo "$version_gui" | cut -d'-' -f1)
 
@@ -521,13 +512,13 @@ cumulative_check_gui() {
   if [ ! "$(uci get -q modgui.gui.gui_animation)" ]; then
     uci set modgui.gui.gui_animation="1"
   fi
-  if [ -z "$(uci get -q modgui.var.isp_autodetect)" ]; then
+  if [ ! "$(uci get -q modgui.var.isp_autodetect)" ]; then
   	uci set modgui.var.isp_autodetect="1"
   fi
-  if [ -z "$(uci get -q modgui.var.isp_autodetect)" ]; then
+  if [ ! "$(uci get -q modgui.var.isp)" ]; then
   	uci set modgui.var.isp="Other"
   fi
-  if [ -z "$(uci get -q modgui.gui.gui_skin)" ]; then
+  if [ ! "$(uci get -q modgui.gui.gui_skin)" ]; then
     uci set modgui.gui.gui_skin="green"
   fi
 }
@@ -608,7 +599,7 @@ logger_command "Check Dropbear config file"
 dropbear_config_check #check dropbear config
 logger_command "Check eco paramaters"
 eco_param #This disable eco param as they introduce some latency
-logger_command "Create GUI type in config"
+logger_command "Add app-extension var in modgui uci config"
 create_gui_type #Gui Type
 logger_command "Add new web options"
 add_new_web_rule #This check new option so that we don't replace the one present
@@ -625,8 +616,6 @@ logger_command "Apply new xDSL options"
 add_xdsl_option #New xdsl option
 logger_command "Adding fast cache options"
 fcctlsettings_daemon #Adds fast cache options
-logger_command "Checking if wan_mode option exists..."
-check_wan_mode        # wan_mode check
 dosprotect_inizialize #dosprotected inizialize function
 logger_command "Checking mobiled libs..."
 mobiled_lib_add

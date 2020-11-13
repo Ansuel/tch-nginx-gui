@@ -13,25 +13,25 @@ if [ "$( ps | grep -c 'christmas_tree.sh')" -gt "3" ]; then
     exit
 fi
 
+trap "kill 0" SIGINT
+
 randd(){
-	local random=
-	while [ "${#random}" -lt 1 ]
-	do
-		random="$random$(head -n1 /dev/urandom | tr -dc 0-9)"
-		random=$(echo "$random" | sed -e 's/^\(.\{1\}\).*/\1/')
-	done
-	echo $random
+	grep -m1 -ao '[1-7]' /dev/urandom | head -n1
 }
 
-while [ 1 ]; do
-	for filename in /sys/class/leds/*; do
-		random=$(randd)
-		if [ $random -lt 5 ]; then
-	        echo 255 > "$filename/brightness"
-		fi
-	    random=$(randd)
-		if [ $random -lt 5 ]; then
-	        echo 0 > "$filename/brightness"
-		fi
+powerOnOffRandom(){
+	while [ 1 ]; do
+		rand=$(randd)
+		echo 255 > "$1"/brightness
+		echo powering up "$1" for $rand seconds
+		sleep $(( $rand - 1 ))
+		echo 0 > "$1"/brightness
+		sleep $(( $rand - 1 ))
 	done
+}
+
+for filename in /sys/class/leds/*; do
+	( powerOnOffRandom "$filename" ) &
 done
+
+wait

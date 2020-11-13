@@ -51,14 +51,19 @@ apply_right_opkg_repo() {
 
 	opkg_file="/etc/opkg.conf"
 	if [ "$1" ] && [ "$1" == "TG78" ]; then
-		if [ -z "$(  grep $opkg_file -e "FrancYescO/789vacv2_opkg/master" )" ]; then
+		if [ -z "$(  grep $opkg_file -e "chaos_calmer/15.05.1/brcm63xx" )" ]; then
+		  sed -i '/FrancYescO\/789vacv2/d' /etc/opkg.conf #remove old setted feeds
 			cat << EOF >> $opkg_file
-src/gz base https://raw.githubusercontent.com/FrancYescO/789vacv2_opkg/master/base
-src/gz packages https://raw.githubusercontent.com/FrancYescO/789vacv2_opkg/master/packages
-src/gz luci https://raw.githubusercontent.com/FrancYescO/789vacv2_opkg/master/luci
-src/gz routing https://raw.githubusercontent.com/FrancYescO/789vacv2_opkg/master/routing
-src/gz telephony https://raw.githubusercontent.com/FrancYescO/789vacv2_opkg/master/telephony
-src/gz management https://raw.githubusercontent.com/FrancYescO/789vacv2_opkg/master/management
+src/gz chaos_calmer_base http://archive.openwrt.org/chaos_calmer/15.05.1/brcm63xx/generic/packages/base
+src/gz chaos_calmer_packages http://archive.openwrt.org/chaos_calmer/15.05.1/brcm63xx/generic/packages/packages
+src/gz chaos_calmer_luci http://archive.openwrt.org/chaos_calmer/15.05.1/brcm63xx/generic/packages/luci
+src/gz chaos_calmer_routing http://archive.openwrt.org/chaos_calmer/15.05/brcm63xx/generic/packages/routing
+src/gz chaos_calmer_telephony http://archive.openwrt.org/chaos_calmer/15.05/brcm63xx/generic/packages/telephony
+src/gz chaos_calmer_management http://archive.openwrt.org/chaos_calmer/15.05.1/brcm63xx/generic/packages/management
+
+arch all 100
+arch brcm63xx 200
+arch brcm63xx-tch 300
 EOF
     fi
   elif [ "$1" ] && [ "$1" == "Xtream" ]; then
@@ -69,7 +74,7 @@ EOF
     fi
   else
 	case $marketing_version in
-	"18.3"*)
+	"18."*)
 		if [ -n "$(  grep $opkg_file -e "brcm63xx-tch" )" ]; then
 			rm /etc/opkg.conf
 			cp /rom/etc/opkg.conf /etc/
@@ -88,7 +93,7 @@ src/gz chaos_calmer_core https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel
 EOF
 		fi
 		;;
-	"17.3"*)
+	"17."*)
 		if [ -z "$(  grep $opkg_file -e "roleo/public/agtef/1.1.0/brcm63xx-tch" )" ]; then
 			cat << EOF >> $opkg_file
 src/gz chaos_calmer_base https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/base
@@ -100,7 +105,7 @@ src/gz chaos_calmer_management https://repository.ilpuntotecnico.com/files/roleo
 EOF
 		fi
 		;;
-	"16.3"*)
+	"16."*)
 		if [ -z "$(  grep $opkg_file -e "roleo/public/agtef/brcm63xx-tch" )" ]; then
 			cat << EOF >> $opkg_file
 src/gz chaos_calmer_base https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/base
@@ -117,6 +122,9 @@ EOF
 		;;
 	esac
 	fi
+
+  # Remove non-existent hardcoded distfeed to avoid 404 on opkg update
+  [ -f /etc/opkg/distfeeds.conf ] && sed -i '/15.05.1\/brcm63xx-tch/d' /etc/opkg/distfeeds.conf
 }
 
 ledfw_extract() {
@@ -195,15 +203,8 @@ ledfw_rework_TG800() {
 #}
 
 install_specific() {
-  if ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then
-    logger_command "Applying specific model fixes..."
-    uci set modgui.app.specific_app="0"
-    /usr/share/transformer/scripts/appInstallRemoveUtility.sh install specificapp "$1"
-    uci set modgui.app.specific_app="1"
-  else
-    logger_command "No connection detected, install specific upgrade pack manually!"
-    uci set modgui.app.specific_app="0"
-  fi
+  logger_command "Applying specific model fixes..."
+  /usr/share/transformer/scripts/appInstallRemoveUtility.sh install specificapp "$1"
 }
 
 remove_wizard_5ghz() {
@@ -219,10 +220,12 @@ kernel_ver="$(< /proc/version awk '{print $3}')"
 
 
 [ -z "${device_type##*DGA413*}" ] && apply_right_opkg_repo #Check opkg conf based on version
+[ -z "${device_type##*TG80*}" ] && apply_right_opkg_repo #Check opkg conf based on version
 if [ -z "${device_type##*TG78*}" ] && [ -n "${device_type##*Xtream*}" ]; then
   apply_right_opkg_repo TG78
-fi
-if [ -z "${device_type##*TG789*}" ] && [ -z "${device_type##*Xtream*}" ]; then
+elif [ -z "${device_type##*TG58*}" ]; then
+  apply_right_opkg_repo TG78
+elif [ -z "${device_type##*TG789*}" ] && [ -z "${device_type##*Xtream*}" ]; then
   apply_right_opkg_repo Xtream
 fi
 
@@ -232,9 +235,11 @@ fi
 
 if [ -z "${device_type##*DGA413*}" ]; then
   install_specific DGA
-elif [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG789*}" ] && [ -n "${device_type##*Xtream*}" ]; then
+elif [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG58*}" ]; then
   install_specific TG789
-elif [ -z "${device_type##*TG789*}" ] && [ -z "${device_type##*Xtream*}" ]; then
+elif [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG78*}" ] && [ -n "${device_type##*Xtream*}" ]; then
+  install_specific TG789
+elif [ -z "${device_type##*TG78*}" ] && [ -z "${device_type##*Xtream*}" ]; then
   install_specific TG789Xtream35B
 elif [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG799*}" ]; then
   install_specific TG789
@@ -249,11 +254,15 @@ uci commit modgui
 [ -z "${device_type##*DGA4130*}" ] && ledfw_extract "DGA"
 [ -z "${device_type##*DGA4132*}" ] && ledfw_extract "DGA"
 [ -z "${device_type##*DGA4131*}" ] && ledfw_extract "DGA4131"
+[ -z "${device_type##*TG788*}" ] && ledfw_extract "TG788"
 [ -z "${device_type##*TG788*}" ] && ledfw_rework_TG788
 [ -z "${device_type##*TG789*}" ] && ledfw_extract "TG789"
+[ -z "${device_type##*TG589*}" ] && ledfw_rework_TG799
 [ -z "${device_type##*TG799*}" ] && ledfw_rework_TG799
 [ -z "${device_type##*TG800*}" ] && ledfw_rework_TG800
 #[ -z "${device_type##*DGA413*}" ] && wifi_fix_24g
+
+ls /tmp/ledfw* 1> /dev/null 2>&1 && rm /tmp/ledfw* #clean ledfw bz2 from /tmp
 
 [ -z "${device_type##*TG788*}" ] && remove_wizard_5ghz
 

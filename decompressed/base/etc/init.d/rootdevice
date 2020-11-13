@@ -33,7 +33,7 @@ EXTRA_HELP="\
 #Gui version is now autocompleted base on latest dev, this variable will be replaced by the automatic script
 version_gui=TO_AUTO_COMPLETE
 #Latest version on TIM cwmp for version spoof
-latest_version_on_TIM_cwmp="2.2.0"
+latest_version_on_TIM_cwmp="2.2.1"
 
 logo_project() {
   cat <<EOF >/dev/console
@@ -59,72 +59,17 @@ EOF
 EOF
 }
 
-check_root() {
-
-  config_load "system"
-
-  config_get_bool rooted config rooted 0
-
-  cat <<EOF >/dev/console
- === IMPORTANT =======================================
-  Checking root...
-EOF
-}
-
 ####################LOG FUNCTION#################
 logger_command() {
   if [ "$debug" -eq 1 ]; then
     logger -t "Root Script" "$1"
-	echo "Root Script" "$1"
+	  echo "Root Script" "$1"
   fi
 }
 #################################################
 
-transfer_bank() {
-  #This function will clone and switch banks
-  if [ -d /overlay/bank_1 ]; then
-    rm -r /overlay/bank_1
-  fi
-  mkdir /overlay/bank_1
-  cp -a /overlay/bank_2/* /overlay/bank_1/
-  if [ -f /overlay/bank_1/etc/init.d/rootdevice ]; then
-    #mtd erase /dev/mtd3
-    mtd write /dev/mtd4 /dev/mtd3
-  fi
-  activeversion=$(cat /proc/banktable/activeversion)
-  passiveversion=$(cat /proc/banktable/passiveversion)
-
-  if [ "$activeversion" == "$passiveversion" ]; then
-    echo bank_1 >/proc/banktable/active
-    reboot
-  fi
-}
-
-restore_bank() {
-  #This function will clone bank1 to bank2 or vice-versa
-  bootedbank=$(cat /proc/banktable/booted)
-  activebank=$(cat /proc/banktable/active)
-  if [ -f "/overlay/$activebank" ]; then
-    rm -r "/overlay/$activebank"
-  fi
-  mkdir "/overlay/$activebank"
-  cp -a "/overlay/$bootedbank/*" "/overlay/$activebank"
-  if [ -f "/overlay/$activebank/etc/init.d/rootdevice" ]; then
-    if [ "$bootedbank" == "bank_1" ]; then
-      mtd write /dev/mtd3 /dev/mtd4
-    else
-      mtd write /dev/mtd4 /dev/mtd3
-    fi
-  fi
-
-  if [ "$activeversion" == "$passiveversion" ]; then
-    echo "$bootedbank" >/proc/banktable/active
-    reboot
-  fi
-}
-
 disable_upload_coredump_and_reboot() {
-  #disable upload to tim server for coredump...
+  #disable upload of coredump...
   #This is a modified build so let's not full server with false coredump.
   if [ "$(uci get -q system.@coredump[0].action)" != "ignore" ]; then
     uci set system.@coredump[0].action="ignore"
@@ -142,21 +87,24 @@ disable_upload_coredump_and_reboot() {
   fi
 }
 
-root() {
-  logger_command "Setting root flag"
-  uci set system.config.rooted='1' #this crate a flag in the config to know if it's rooted or not
-  logger_command "Reset unlock bit"
-  uci set env.var.unlockedstatus='0'
+enable_serial_console() {
+	#Enable hardware serial console to intercept bootloops
+	if grep -q '#::askconsolelate' /etc/inittab; then
+    logger_command "Enabling hardware serial console..."
+	  sed -i 's/#//' /etc/inittab
+	fi
+}
 
+check_and_apply_root() {
+  #modgui_old file is created before reboot for a firmware update, and store our root passwd
   [ -f /etc/modgui_old ] && mv /etc/modgui_old /etc/config/modgui
 
-  encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
-  default_encrypted_pass='$5liEJpfo7NYE'
+  encrypted_pass=$(sed -ne '/^root:/s/^root:\([^:]*\):.*$/\1/p' /etc/shadow)
   saved_encrypted_pass=$(uci -q get modgui.var.encrypted_pass)
 
   store_pass_in_uci() {
     #Redefine encrypted_pass as this can change after the shadow check
-    encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
+    encrypted_pass=$(sed -ne '/^root:/s/^root:\([^:]*\):.*$/\1/p' /etc/shadow)
     echo "  New password detected!" >/dev/console
     echo "  Storing encrypted password..." >/dev/console
     if [ ! -f /etc/config/modgui ]; then
@@ -164,63 +112,90 @@ root() {
       uci set modgui.var=var
     fi
     uci set modgui.var.encrypted_pass="$encrypted_pass"
+    uci commit modgui
   }
 
-  logger_command "Save root password if modified"
-  if [ "$(awk -F: '/root/ {print $7 }' /etc/passwd)" != "/bin/ash" ]; then #this enable root access from login
-    sed -i '1croot:x:0:0:root:/root:/bin/ash' /etc/passwd
+  logger_command "Saving hashed root password in uci if modified..."
+
+  #Enable root access to the real shell (default is /bin/restricted_shell)
+  if [ "$(awk -F: '/root/ {print $7 }' /etc/passwd)" != "/bin/ash" ]; then
+    logger_command "Enabling ash shell to root..."
+    sed -i 's#/root:.*$#/root:/bin/ash#' /etc/passwd
   fi
-  if [ -f /shadow_old ] && [ -f /root/.reapply_due_to_upgrade ]; then
-    old_encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow_old)
-    sed -i -e 's|"${encrypted_pass}"|"${old_encrypted_pass}"|' /etc/shadow
-    rm /shadow_old
-    echo "  Restoring old root password as this is a firmware upgrade!" >/dev/console
-  elif [ -n "$saved_encrypted_pass" ]; then
+
+  if [ -n "$saved_encrypted_pass" ]; then
     if [ "$encrypted_pass" != "$saved_encrypted_pass" ]; then
       if [ -f /root/.reapply_due_to_upgrade ]; then
+        logger_command "Setting root password from password saved in config"
         echo "  Setting root password from password saved in config" >/dev/console
-        sed -i -e 's|"${encrypted_pass}"|"${saved_encrypted_pass}"|' /etc/shadow
+        major_system_version="$(uci get version.@version[0].marketing_version | sed 's#\.##' | grep -o -E '[0-9]+')"
+        #firmware 16.x store a stripped 13char hash (not salted) that cannot be migrated to >=17.x (and viceversa)
+        if { [ ${#saved_encrypted_pass} -le 13 ] && [ "$major_system_version" -lt 170 ]; } || { [ ${#saved_encrypted_pass} -gt 13 ] && [ "$major_system_version" -ge 170 ]; }; then
+          sed -i -e "s:^root\:[^\:]*\::root\:$saved_encrypted_pass\::" /etc/shadow
+        else
+          logger_command "Incompatible password saved in config, resetting password to root!"
+          echo "  Incompatible password saved in config, resetting password to root!" >/dev/console
+          echo -e "root\nroot" | passwd >/dev/null
+        fi
       else
+        logger_command "Shadow contains different pass than saved one. Save it!"
         echo "  Shadow contains different pass than saved one. Save it!" >/dev/console
         store_pass_in_uci
       fi
+    else
+      logger_command "Changed-and-ucisaved root password detected!"
+      echo "  Changed-and-ucisaved root password detected!" >/dev/console
     fi
-  elif [ "$encrypted_pass" != "$default_encrypted_pass" ] ||
-    [ -f /root/.reapply_due_to_upgrade ]; then #all of this is to check the root
+  else
+    logger_command "Resetting password to root..."
+    echo "  Resetting password to root..." >/dev/console
+    #Set the password to root as we have an unknown password
     echo -e "root\nroot" | passwd >/dev/null
-    #Redefine encrypted_pass as this can change after the shadow check
-    encrypted_pass=$(awk -F: '/root/ {print $2 }' /etc/shadow)
-    if [ "$encrypted_pass" != "$default_encrypted_pass" ]; then
-      sed -i -e 's|"${encrypted_pass}"|"${default_encrypted_pass}"|' /etc/shadow
-    fi
-    echo "  Setting root password" >/dev/console
     store_pass_in_uci
-  elif [ "$encrypted_pass" == "$default_encrypted_pass" ]; then
-    echo "  Root password detected" >/dev/console
-  elif [ "$encrypted_pass" == "$saved_encrypted_pass" ]; then
-    echo "  Changed root password detected!" >/dev/console
   fi
 
   if [ -z "$saved_encrypted_pass" ]; then
     store_pass_in_uci
   fi
 
-  logger_command "Setting & Enabling Dropbear SSH Server"
-  dropbear_path="dropbear.@dropbear[0]"
-  if [ "$(uci get -q dropbear.lan)" ]; then
-    dropbear_path="dropbear.lan"
+  logger_command "Checking and force-enabling dropbear SSH Server for root on lan"
+  disable_conflicting_dropbear() {
+      dropbearintf=$(uci get -q dropbear."$1".Interface)
+      dropbearport=$(uci get -q dropbear."$1".Port)
+      [ "$(uci get -q dropbear."$1".enable)" != "0" ] \
+      && { [ "$dropbearintf" = "lan" ] || [ "$dropbearintf" = "" ]; } \
+      && { [ "$dropbearport" = "22" ] || [ "$dropbearport" = "" ]; } \
+      && uci set dropbear."$1".enable=0
+  }
+  config_load "dropbear"
+  config_foreach disable_conflicting_dropbear dropbear
+
+  dropbear_path="dropbear.afg"
+  if [ ! "$(uci get -q $dropbear_path)" ]; then
+    uci add dropbear dropbear >/dev/null
+    uci rename dropbear.@dropbear[-1]=afg
   fi
+
   uci set "$dropbear_path".Interface='lan'
   uci set "$dropbear_path".RootLogin='1'
+  uci set "$dropbear_path".Port='22'
   uci set "$dropbear_path".RootPasswordAuth='on' #dropbear root related
   uci set "$dropbear_path".PasswordAuth='on'
   uci set "$dropbear_path".enable='1'
 
-  uci commit dropbear
-  uci commit modgui
+  if [ "$(uci changes)" ]; then
+    logger_command "Restarting Dropbear SSH Server..."
+    uci commit dropbear
+    /etc/init.d/dropbear enable
+    /etc/init.d/dropbear restart >/dev/null
+  fi
 
-  logger_command "Restarting Dropbear SSH Server"
-  /etc/init.d/dropbear restart >/dev/null
+  firewall_path=$(uci show firewall | grep -m 1 $(fw3 -q print | egrep 'iptables -t filter -A zone_lan_input -p tcp -m tcp --dport 22 -m comment --comment "!fw3: .+" -j DROP' | sed -n -e 's/^iptables.\+fw3: \(.\+\)".\+//p') 2>/dev/null | sed -n -e "s/\(.\+\).name='.\+'$//p" 2>/dev/null)
+  if [ "$firewall_path" ]; then
+    logger_command "Restarting firewall cleaned from SSH drop rule..."
+    uci -q set "$firewall_path".target='ACCEPT'
+    /etc/init.d/firewall reload 2>/dev/null
+  fi
 }
 
 install_gui() {
@@ -231,15 +206,13 @@ install_gui() {
   logger -s -t 'Root Script' "Installing in progress..."
 
   logger_command "Start rooting"
-  if [ ! -f /root/.check_process ]; then #this check if the placeholder exist
-    touch /root/.check_process #this is a placeholder to know if the process ends correctly
+  if [ ! -f /root/.install_gui ]; then #this check if the placeholder exist
+    touch /root/.install_gui #this is a placeholder to know if the install process ends correctly (removed by 99_postreq.sh)
   fi
-
-  root #This check root availability
 
   if [ -d /etc/modgui_scripts ]; then
     for file in /etc/modgui_scripts/*; do
-      logger_command "Executing $file" ConsoleOnly
+      logger_command "Executing $file"
       . $file
     done
   fi
@@ -249,59 +222,150 @@ install_gui() {
     rm /root/.reapply_due_to_upgrade
   fi
 
-  echo "  Process done. Your modem is now rooted!" >/dev/console
+  logger_command "Process complete. tch-nginx-gui is now installed!"
+  echo "  Process complete. tch-nginx-gui is now installed!" >/dev/console
 }
 
-check_bank() {
-  bank_check=$(uci get -q modgui.var.bank_check)
+is_dual_bank() {
+  grep -c "\"bank_2\"" /proc/mtd >/dev/null
+}
+
+get_bank_mtd() {
+  cat /proc/mtd  | grep \"$1\" | sed 's/:.*//'
+}
+
+
+safe_mv(){ # <src file path> <dest file path>
+  # if destination file exist will be forcely removed before the free space check
+  [ -f "$2" ] && rm "$2"
+  # mv will be skipped if not enought space!
+  [ "$(df -P "$(dirname "$2")" | awk 'NR==2 {print $4}')" -gt "$(($(wc -c < "$1") / 1024))" ] && mv "$1" "$2" || echo "ERROR: No space left for mv $1 $2"
+}
+
+check_and_apply_obp() {
   bootedbank=$(cat /proc/banktable/booted)
   activebank=$(cat /proc/banktable/active)
-  env_config_bank1="/overlay/bank_1/etc/config/modgui"
-  if [ "$bootedbank" != "$activebank" ]; then
-    echo "  Detected corrupted active bank... Restoring..." >/dev/console
-    restore_bank
-  fi
+  notbooted=$(cat /proc/banktable/notbooted)
+  notbooted_modgui_configfile="/overlay/$notbooted/etc/config/modgui"
 
-  if [ "$bootedbank" == "bank_2" ]; then
-    if [ -f $env_config_bank1 ]; then
-      get_config_bank1=$(< $env_config_bank1 grep bank_check | awk '{print $3}' | sed "s/'//g")
-      if [ -n "$get_config_bank1" ] && [ ! "$(uci -q get modgui.var.bank_check)" ]; then
-        uci set modgui.var.bank_check="$get_config_bank1"
+  if [ ! "$(uci -q get modgui.var.check_obp)" ]; then
+    #we must initialize the check_obp var as is not found
+    if [ -f "$notbooted_modgui_configfile" ]; then
+      #if we are in a clean bank_2 overlay but in the notbooted bank overlay there was a modgui config file restore var from it
+      get_config_notbooted=$(< "$notbooted_modgui_configfile" grep check_obp | awk '{print $3}' | sed "s/'//g")
+      if [ -n "$get_config_notbooted" ] && [ ! "$(uci -q get modgui.var.check_obp)" ]; then
+        uci set modgui.var.check_obp="$get_config_notbooted"
         uci commit modgui
       fi
     else
-      uci set modgui.var.bank_check="1"
+      #inizialize check_obp default value and only if cannot read the var from elsewhere (inactive bank config)
+      uci set modgui.var.check_obp="1"
       uci commit modgui
     fi
-    if [ "$(uci -q get modgui.var.bank_check)" == "0" ]; then
-      logger_command "Firmware in Bank_2 but check_bank set to 0... Not transferring"
-      echo "  Firmware in Bank_2 but check_bank set to 0... Not transferring" >/dev/console
-    else
-      logger_command "Firmware in Bank_2... Transferring"
-      echo "  Firmware in Bank_2... Transferring" >/dev/console
-      transfer_bank
+  fi
+
+  if [[ "$bootedbank" != "$activebank" && "$bootedbank" == "bank_2" ]]; then
+
+    activeversion=$(cat /proc/banktable/activeversion)
+    if [ "$activeversion" != "Unknown" ]; then
+      logger_command "OBP check: looks like passive bank have a valid version: $activeversion"
+      echo "  OBP check: looks like passive bank have a valid version: $activeversion" >/dev/console
     fi
+
+    [ -d "/overlay/bank_1" ] && rm -rf "/overlay/bank_1"
+
+    logger_command "OBP sanity check succeeded."
+    echo "  OBP sanity check succeeded." >/dev/console
   else
-    echo "  Firmware in Bank_1... Not transferring..." >/dev/console
+    #OBP not OK, check if was an user choice otherwise automatically apply (this should be the case called also on first install)
+    if [ "$(uci -q get modgui.var.check_obp)" == "0" ]; then
+      logger_command "OBP sanity check FAILED but check_obp set to 0... Not acting"
+      echo "  OBP sanity check FAILED but check_obp set to 0... Not acting" >/dev/console
+    else
+
+      if [ $(cat /proc/$PPID/comm) == "upgradegui" ]; then
+        logger_command "OBP sanity check FAILED but upgrading, postpone planning on next boot..."
+        echo "  OBP sanity check FAILED but upgrading, postpone planning on next boot..." >/dev/console
+        uci set modgui.var.reboot_reason_msg="apply OBP planning"
+        uci commit modgui
+        return
+      fi
+      uci set modgui.var.reboot_reason_msg=""
+      uci commit modgui
+
+      logger_command "OBP sanity check FAILED start autoplanning..."
+      echo "  OBP sanity check FAILED start autoplanning..." >/dev/console
+
+      if [ "$bootedbank" == "bank_2" ]; then
+        # Activate bank_1
+        echo bank_1 > /proc/banktable/active
+        # Erase firmware in bank_1
+        mtd erase bank_1
+      else
+        logger_command "Cloning to bank_2 and checking checksum..."
+        echo "  Cloning to bank_2 and checking checksum..." >/dev/console
+        bank1_mtd="/dev/$(get_bank_mtd bank_1)"
+        bank2_mtd="/dev/$(get_bank_mtd bank_2)"
+        # clone bank_1 into bank_2
+        mtd write "$bank1_mtd" "$bank2_mtd"
+        md5_bank_1=$(md5sum "$bank1_mtd" | awk '{ print $1 }')
+        md5_bank_2=$(md5sum "$bank2_mtd" | awk '{ print $1 }')
+        if [ "$md5_bank_1" == "$md5_bank_2" ]; then
+          logger_command "Cloning complete, moving to bank_2 overlay..."
+          echo "  Cloning complete, moving to bank_2 overlay..." >/dev/console
+          # Clean any existing overlay for bank_2 firmware
+          rm -rf /overlay/bank_2
+          #make sure we have an updated package in root
+          [ -f /tmp/GUI.tar.bz2 ] && safe_mv /tmp/GUI.tar.bz2 /root/GUI.tar.bz2
+          [ -f /tmp/GUI_dev.tar.bz2 ] && safe_mv /tmp/GUI_dev.tar.bz2 /root/GUI.tar.bz2
+          if [ ! "$(uci -q get modgui.gui.gui_version)" ]; then
+            logger_command "Seems first install from bank_1 saving GUI to root and setting install flags..."
+            echo "  Seems first install from bank_1 saving GUI to root  and setting install flags..." >/dev/console
+            touch /root/.reapply_due_to_upgrade
+            touch /root/.install_gui
+          fi
+          # Moving running overlay to bank2
+          mv /overlay/bank_1 /overlay/bank_2
+          logger_command "Activating and erasing bank_1..."
+          echo "  Activating and erasing bank_1...." >/dev/console
+          echo bank_1 > /proc/banktable/active
+          sync
+          mtd -r erase bank_1
+          # Reboot to first valid firmware
+          logger_command "Installation will continue after reboot..."
+          echo "  Installation will continue after reboot...." >/dev/console
+          # Simulate the bank_1 failed 3 times
+          echo 1 > /proc/prozone/bootfail
+          echo 2 > /proc/prozone/bootcounter
+          echo 0 > /proc/prozone/bootbank
+          reboot
+          exit 0
+        else
+          logger_command "Failed cloning bank_1 to bank_2 stopping!"
+          echo "  Failed cloning bank_1 to bank_2 stopping!" >/dev/console
+          exit 1
+        fi
+      fi
+    fi
   fi
 }
 
-check_full_rootfs() {
-  rootfx_percet=$(df /overlay | sed -n 2p | awk {'{print $5}'} | sed 's|%||')
+check_full_overlay() {
+  overlay_percent=$(df /overlay | sed -n 2p | awk {'{print $5}'} | sed 's|%||')
   overlay_mtdblock=$(df /overlay | sed -n 2p | awk {'{print $1}'})
   bootedbank=$(cat /proc/banktable/booted)
   #Reset if rootfs more than 97% full
-  if [ "$rootfx_percet" -gt 96 ]; then
+  if [ "$overlay_percent" -gt 96 ]; then
     logger_command "DETECTED FULL ROOTFS... TRYING TO RESTORE..."
     echo "  DETECTED FULL ROOTFS... TRYING TO RESTORE..." >/dev/console
     for dir in /overlay/"$bootedbank"/*; do
       if [ ! "$dir" == "/overlay/$bootedbank/etc" ]; then
         logger_command "TRYING TO SAVE ROOT BY REMOVING EVERY DIR EXCEPT /etc"
         echo "  TRYING TO SAVE ROOT BY REMOVING EVERY DIR EXCEPT /etc" >/dev/console
-        rm -r -f "$dir"
+        rm -rf "$dir"
       fi
     done
-    #Verify if rm did actually remove the file...
+    #Verify if rm did actually remove the files/folders (using /root as check) if not ERASE...
     if [ -d "/overlay/$bootedbank/root" ]; then
       logger_command "CAN'T REMOVE FILES... INITIALISING FULL ROOTFS ERASE"
       echo "  CAN'T REMOVE FILES... INITIALISING FULL ROOTFS ERASE" >/dev/console
@@ -328,37 +392,41 @@ debug() {
 }
 
 boot() {
-  ubus send fwupgrade '{"state":"upgrading"}'
-  logo_project
-  check_full_rootfs
-  check_root
-
-  [ -z "$rooted" ] && rooted=0
-  [ -z "$force" ] && force=0
   [ -z "$debug" ] && export debug=0
+  ubus send fwupgrade '{"state":"upgrading"}'
 
-  if [ $rooted -ne 1 ]; then
-    echo "  Root not detected! Rooting..." >/dev/console
-    root
-    echo "  Disabling reboot on crash..." >/dev/console
-    disable_upload_coredump_and_reboot
-  fi
+  logo_project
 
-  if [ -f /root/.check_process ]; then
-    echo "  GUI install process not terminated well! Reinstalling..." >/dev/console
-    install_gui
-  elif [ -f /root/.install_gui ]; then
-    echo "  detected reinstall GUI request! Installing..." >/dev/console
-    install_gui
-  else
-    if [ $force -eq 1 ]; then
-      echo "  force flag detected! Reinstalling..." >/dev/console
-      install_gui
+  logger -s -t 'Root Script' "Checking installation prerequisites, if needed installation will continue after reboot..."
+
+  check_full_overlay
+  enable_serial_console
+  check_and_apply_root
+  disable_upload_coredump_and_reboot
+  is_dual_bank && check_and_apply_obp
+
+  [ -z "$force" ] && force=0
+
+  if [ -f /root/.reapply_due_to_upgrade ]; then
+    logger_command "Upgrade just done Extracting GUI.tar.bz2..."
+    echo "  Upgrade just done Extracting GUI.tar.bz2..." >/dev/console
+    if [ -f /root/GUI.tar.bz2 ]; then
+      bzcat /root/GUI.tar.bz2 | tar -C / -xvf -
+      sync
     else
-      echo "  No force flag detected! Doing nothing." >/dev/console
+      logger_command "Extraction FAILED GUI.tar.bz2 NOT FOUND!"
+      echo "  Extraction FAILED GUI.tar.bz2 NOT FOUND!" >/dev/console
     fi
   fi
 
-  check_bank
+  if [ $force -eq 1 ] || [ -f /root/.install_gui ]; then
+    logger_command "Force/install flag detected! Reinstalling..."
+    echo "  force/install flag detected! Reinstalling..." >/dev/console
+    install_gui
+  else
+    logger_command "No force/install flag detected! Doing nothing."
+    echo "  No force/install flag detected! Doing nothing." >/dev/console
+  fi
+
   ubus send fwupgrade '{ "state": "done" }'
 }

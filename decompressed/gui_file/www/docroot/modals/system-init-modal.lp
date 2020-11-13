@@ -1,5 +1,5 @@
 --pretranslated: do not change this file
- 
+
 -- Localization
 gettext.textdomain('webui-core')
 
@@ -98,7 +98,7 @@ local init_options = {
 }
 
 local init_filter = function(data)
-	
+
 	if data.start_order == "" then
 		return false
 	end
@@ -129,12 +129,12 @@ local init_data, sipnet_helpmsg = post_helper.handleTableQuery(init_columns, ini
   ngx.print('\
 ');  ngx.print(ui_helper.createHeader(T"Management", false, false) ); ngx.print('\
 <div class="modal-body update">\
-');  
+');
   local lp = require("web.lp")
   lp.setpath("/www/snippets/")
   lp.include("tabs-management.lp")
   ngx.print('\
-');  
+');
 -- dummy form so that refresh button knows which page to reload, keep it
   ngx.print('\
   <form class="form-horizontal" method="post" action="modals/system-init-modal.lp">\
@@ -142,7 +142,7 @@ local init_data, sipnet_helpmsg = post_helper.handleTableQuery(init_columns, ini
   <fieldset id="system-init-tab">\
 	<fieldset>\
 	<legend>');  ngx.print( T"Init Management" ); ngx.print('</legend>')
-	
+
 	local alert_warn = {
 		alert = {
 			class = "alert alert-warn"
@@ -151,27 +151,27 @@ local init_data, sipnet_helpmsg = post_helper.handleTableQuery(init_columns, ini
 
 	ngx.print(ui_helper.createAlertBlock(T"Don't randomly disable or restart Init Process. Some Init are crucial for the correct boot of the device.",alert_warn))
 	ngx.print(ui_helper.createTable(init_columns, init_data, init_options))
-	
+
 	ngx.print('\
 	</fieldset>\
   </fiedlset>\
   </div>\
   <script>\
 	$(".btn-disable").on("click", function(){\
-		modgui.postAction("disable_"+(this).data("name"));\
+		modgui.postAction("disable_"+$(this).data("name"));\
 	});\
 	$(".btn-enable").on("click", function(){\
-		modgui.postAction("enable_"+(this).data("name"));\
+		modgui.postAction("enable_"+$(this).data("name"));\
 	});\
 	$(".btn-start").on("click", function(){\
-		modgui.postAction("start_"+(this).data("name"));\
+		modgui.postAction("start_"+$(this).data("name"));\
 	});\
 	$(".btn-stop").on("click", function(){\
-		modgui.postAction("stop_"+(this).data("name"));\
+		modgui.postAction("stop_"+$(this).data("name"));\
 	});\
 	$(".btn-restart").on("click", function(){\
 		modgui.postAction("restart_"+$(this).data("name"));\
 	});\
   </script>\
 ');  ngx.print(ui_helper.createFooter() ); ngx.print('\
-'); 
+');

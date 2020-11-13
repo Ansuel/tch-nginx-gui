@@ -61,10 +61,10 @@ msgid "50% of max Frequency in ASYNC mode"
 msgstr "50% clock max CPU in modalità ASYNC"
 
 msgid "<p>Remote assistance is currently disabled.</p><p> By clicking on the 'Apply' button with the 'Enabled' checkbox enabled your gateway will be accessible from your broadband connection. After %s minutes of inactivity, or on reboot, remote assistance will be automatically disabled for 'Temporary' mode. </p><p> Please provide the following parameters to your ISP:</p>"
-msgstr "<p>L'assistenza remota è attualmente disabilitata.</p><p>Facendo clic sul pulsante 'Applica' con la casella 'Abilitata' spuntata il gateway sarà accessibile dalla tua connessione a banda larga.<br/>Dopo %s minuti di inattività, oppure al riavvio, l'assistenza remota verrà automaticamente disabilitata in modalità 'Temporanea'. </p><p>Fornisci i seguenti parametri all'ISP.</p>"
+msgstr "<p>L'assistenza remota è attualmente disabilitata.</p><p> Facendo clic sul pulsante 'Applica' con la casella 'Abilitata' spuntata il gateway sarà accessibile dalla tua connessione a banda larga. Dopo %s minuti di inattività, oppure al riavvio, l'assistenza remota verrà automaticamente disabilitata in modalità 'Temporanea'. </p><p>Fornisci i seguenti parametri all'ISP.</p>"
 
 msgid "<p>Remote assistance is currently enabled. </p><p>Click 'Apply' button with the 'Enabled' checkbox disabled to disable remote assistance on your gateway </p>"
-msgstr "<p>L'assistenza remota è attualmente abilitata. </p><p><br/>Fai clic sul pulsante 'Applica' con la casella 'Abilitata' disattivata per disabilitare l'assistenza remota nel gateway </p>"
+msgstr "<p>L'assistenza remota è attualmente abilitata. </p><p>Fai clic sul pulsante 'Applica' con la casella 'Abilitata' disattivata per disabilitare l'assistenza remota nel gateway </p>"
 
 msgid "<strong %1$s>%2$d DNS Server</strong>"
 msgid_plural "<strong %1$s>%2$d DNS Servers</strong>"
@@ -942,7 +942,7 @@ msgid "Ethernet not connected"
 msgstr "Ethernet disconesso"
 
 msgid "Every filter is a regular expression string; Start with '!' to invert selection"
-msgstr "Ogni filtro è una stringa espressione regolare.<br/>Inizia la stringa con '!' per invertire la selezione"
+msgstr "Ogni filtro è una stringa espressione regolare; Inizia la stringa con '!' per invertire la selezione"
 
 msgid "Everything"
 msgstr "Qualunque cosa"
@@ -1017,19 +1017,19 @@ msgid "Firmware update failed."
 msgstr "Aggiornamento firmware fallito."
 
 msgid "Firmware update failed.  Insufficient free memory available. Please reboot and try again."
-msgstr "Aggiornamento firmware fallito.<br/> Memoria libera disponibile insufficiente.<br/>Riavvia e riprova."
+msgstr "Aggiornamento firmware fallito. Memoria libera disponibile insufficiente. Riavvia e riprova."
 
 msgid "Firmware update failed.  Invalid file used: expected file with extension rbi.  Please use correct firmware."
-msgstr "Aggiornamento firmware fallito.<br/>File non valido. Era atteso file con estensione .RBI.<br/>Usa il firmware corretto."
+msgstr "Aggiornamento firmware fallito. File non valido. Era atteso file con estensione .RBI. Usa il firmware corretto."
 
 msgid "Firmware update failed.  Invalid file used: file too large.  Please use correct firmware."
 msgstr "Aggiornamento firmware fallito. File non valido: file troppo grande. Usa il firmware corretto."
 
 msgid "Firmware update failed; build signed with wrong key"
-msgstr "Aggiornamento firmware fallito.<br/>Versione firmata con chiave errata"
+msgstr "Aggiornamento firmware fallito. Versione firmata con chiave errata"
 
 msgid "Firmware update failed; please use the correct firmware."
-msgstr "Aggiornamento firmware fallito.<br/>Usa il firmware corretto."
+msgstr "Aggiornamento firmware fallito; usa il firmware corretto."
 
 msgid "Firmware update in progress, please wait..."
 msgstr "Aggiornamento firmware..."
@@ -1080,13 +1080,13 @@ msgid "GUI Version"
 msgstr "Versione GUI"
 
 msgid "Gateway IP is <strong id=\"Gateway_Ip\">%s</strong> and Mask is <strong id=\"Netmask_Ip\">%s</strong>"
-msgstr "IP modem <strong id=\"Gateway_Ip\">%s</strong><br/> e maschera rete <strong id=\"Netmask_Ip\">%s</strong><br/>"
+msgstr "IP modem <strong id=\"Gateway_Ip\">%s</strong> e maschera rete <strong id=\"Netmask_Ip\">%s</strong>"
 
 msgid "Gateway IP should not be in "
 msgstr "L'IP del modem non deve essere in "
 
 msgid "Gateway IP should not be in SFP interface IP Range, change that first"
-msgstr "L'IP del modem non dovrebbe essere nell'intervallo di indirizzi IP dell'interfaccia SFP.<br/>Cambialo prima"
+msgstr "L'IP del modem non deve essere nell'intervallo di indirizzi IP dell'interfaccia SFP, cambialo prima"
 
 msgid "Generate QR code"
 msgstr "Genera codice QR"
@@ -1191,7 +1191,7 @@ msgid "Idle"
 msgstr "Non attivo"
 
 msgid "Input the latest stock firmware version in this field to spoof it. This is necessary because if a newer version of the firmware is available on the ACS server, CWMPD will try to update the device and break remote monitoring from the “MyTIM” mobile app."
-msgstr "Inserisci in questo campo la versione più recente del firmware stock.<br/>Questo è necessario poichè se è disponibile una versione più recente del firmware stock nel server ACS, CWMPD proverà ad aggiornare il firmware e questo interromperà il monitoraggio con l'app  mobile 'My TIM'<br/>Modifica qui la versione per evitare l'aggiornamento del firmware."
+msgstr "Inserisci in questo campo la versione più recente del firmware stock. Questo è necessario poichè se è disponibile una versione più recente del firmware stock nel server ACS, CWMPD proverà ad aggiornare il firmware e questo interromperà il monitoraggio con l'app  mobile “My TIM”."
 
 msgid "If you haven't changed it, the default password can be found on the sticker under your gateway (it's called <strong>\"access code\"</strong>)"
 msgstr "Se non l´hai cambiata, puoi trovare la password predefinita sotto il gateway (è quella chiamata <strong>'codice accesso'</strong>)"
@@ -1221,19 +1221,19 @@ msgid "Importing failed; Invalid file used: expected file with extension bin.  P
 msgstr "Importazione fallita. L´estensione del file deve essere .BIN."
 
 msgid "Importing failed; Invalid file used: file too large.  Please use correct.  Please use correct file.."
-msgstr "Importazione fallita.<br/>File non valido perché troppo grande.<br/>Usa il file corretto."
+msgstr "Importazione fallita. File non valido perché troppo grande. Usa il file corretto."
 
 msgid "Importing failed; please try again."
 msgstr "Importazione fallita. Riprova."
 
 msgid "In <strong>high mode</strong>, firewall allows outgoing connections to HTTP, HTTPS, SMTP, POP3, IMAP, SSH services and silently drops unknown incoming connections. This may impact on web services like Internet Speed Test."
-msgstr "Impostando il <strong>livello alto</strong>, il firewall consentirà le connessioni in uscita ai servizi HTTP, HTTPS, SMTP, POP3, IMAP, SSH e scarterà silenziosamente le connessioni sconosciute in ingresso.<br/>Questo può avere impatto su servizi web quali il test di velocità internet."
+msgstr "Impostando il <strong>livello alto</strong>, il firewall consentirà le connessioni in uscita ai servizi HTTP, HTTPS, SMTP, POP3, IMAP, SSH e scarterà silenziosamente le connessioni sconosciute in ingresso. Questo può avere impatto su servizi web quali il test di velocità internet."
 
 msgid "In <strong>low mode</strong>, firewall allows all outbound connections and rejects unknown incoming connections but acknowledges presence of the gateway."
-msgstr "Impostando il <strong>livello basso</strong>, il firewall consentirà ogni connessione in uscita.<br/>Rifiuterà connessioni sconosciute in ingresso, ma il router sarà raggiungibile dall’esterno."
+msgstr "Impostando il <strong>livello basso</strong>, il firewall consentirà ogni connessione in uscita. Rifiuterà connessioni sconosciute in ingresso, ma il router sarà raggiungibile dall’esterno."
 
 msgid "In <strong>medium mode</strong>, firewall allows all outbound connections and silently drops unknown incoming connections."
-msgstr "Impostando il <strong>livello medio</strong>, il firewall consentirà ogni connessione in uscita.<br/>Scarterà silenziosamente le connessioni sconosciute in entrata."
+msgstr "Impostando il <strong>livello medio</strong>, il firewall consentirà ogni connessione in uscita. Scarterà silenziosamente le connessioni sconosciute in entrata."
 
 msgid "In <strong>user mode</strong>, individual firewall rules may be configured as well as the default behavior."
 msgstr "Impostando il <strong>livello utente</strong>, è possibile configurare ogni singola regola del firewall o ricaricare l´impostazione predefinita."
@@ -1275,7 +1275,7 @@ msgid "Limited. Expect dropouts."
 msgstr "Limitato. Attese perdite."
 
 msgid "Internal Server Error occured, please contact administrator"
-msgstr "Si è verificato un errore interno del server.<br/>Contatta l´amministratore"
+msgstr "Si è verificato un errore interno del server. Contatta l´amministratore"
 
 msgid "Internet Access"
 msgstr "Accesso internet"
@@ -1302,19 +1302,19 @@ msgid "Invalid configuration"
 msgstr "Configurazione errata"
 
 msgid "Invalid hour, must be between 0 and 23"
-msgstr "Ora non valida.<br/>Deve essere un numero compreso tra 0 e 23"
+msgstr "Ora non valida, deve essere un numero compreso tra 0 e 23"
 
 msgid "Invalid minutes, must be between 0 and 59"
-msgstr "Minuti non validi.<br/>Deve essere un numero compreso tra 0 e 59"
+msgstr "Minuti non validi, deve essere un numero compreso tra 0 e 59"
 
 msgid "Invalid time (must be hh:mm)"
-msgstr "Orario non valido.<br/>Deve essere nel formato oo:mm"
+msgstr "Orario non valido, deve essere nel formato oo:mm"
 
 msgid "Invalid username, domain locked"
-msgstr "Nome utente non valido.<br/>Dominio bloccato"
+msgstr "Nome utente non valido, dominio bloccato"
 
 msgid "Invalid version, can't convert. Raw value: %s"
-msgstr "Versione non valida.<br/>Impossibile convertire.<br/>Valore grezzo: %s"
+msgstr "Versione non valida, mpossibile convertire. Valore grezzo: %s"
 
 msgid "IPv4/IPv6"
 msgstr "IPv4/IPv6"
@@ -1470,7 +1470,7 @@ msgid "Modes"
 msgstr "Modalità"
 
 msgid "Change the SNR margin to increase stability or performance when in “ADSL Mode”. Changing this value in “VDSL Mode” won’t have any effect."
-msgstr "La modifica del valore SNR avrà effetto solo con connessioni ADSL.<br/>Con una connessione VDSL non ci sarà alcun effetto sulla modifica di questo valore!"
+msgstr "La modifica del valore SNR avrà effetto solo con connessioni ADSL. Con una connessione VDSL non ci sarà alcun effetto sulla modifica di questo valore!"
 
 msgid "Modulation"
 msgstr "Modulazione"
@@ -1620,7 +1620,7 @@ msgid "Only PassThru"
 msgstr "Solo PassThru"
 
 msgid "Only alphanumeric characters, commas (,), full spots(.), underscores(_) and hiphens(-) are allowed, no spaces"
-msgstr "Sono permessi solo caratteri alfanumerici, virgola (,), punto(.), trattino basso(_), trattino alto(-).<br/>Non è consentito l´uso dello spazio"
+msgstr "Sono permessi solo caratteri alfanumerici, virgola (,), punto(.), trattino basso(_), trattino alto(-), non è consentito l´uso dello spazio"
 
 msgid "Out Policy"
 msgstr "Regola uscita"
@@ -2207,14 +2207,14 @@ msgstr "Telnet abilitato"
 msgid "Temporary"
 msgstr "Temporanea"
 
-msgid "The <strong>incoming policy</strong> defines what is done with packets destined to the gateway. They can be either REJECTED (the gateway will notify the sender they were rejected) or DROPPED (the gateway will silently discard those packets)."
+msgid "The <strong>incoming policy</strong> defines what is done with packets destined to the gateway.<br/>They can be either REJECTED (the gateway will notify the sender they were rejected) or DROPPED (the gateway will silently discard those packets)."
 msgstr "La <strong>regola in entrata</strong> definisce come vengono trattati i pacchetti destinati al modem.<br/>Questi possono o essere respinti (il gateway notificherà al mittente che sono stati respinti) o scartati (il gateway rifiuterà senza avvisare questi pacchetti)."
 
-msgid "The <strong>outgoing policy</strong> defines what is done with packets coming from the LAN devices toward the internet. Setting it to REJECT or DROP will forbid any internet traffic from the LAN unless explicitly allowed by a firewall rule."
+msgid "The <strong>outgoing policy</strong> defines what is done with packets coming from the LAN devices toward the internet.<br/>Setting it to REJECT or DROP will forbid any internet traffic from the LAN unless explicitly allowed by a firewall rule."
 msgstr "La <strong>regola in uscita</strong> definisce come vengono trattati i pacchetti dal modem verso internet.<br/>Impostando RIFIUTA o SCARTA inibisci qualsiasi traffico dalla LAN verso internet e mano che sia esplicitamente permesso da una regola del firewall."
 
 msgid "The Backup file you try to load has not been taken from the actual SW-Release, please use correct Backup File"
-msgstr "Il file di backup che stai cercando di caricare non è stato creato dalla versione software attuale.<br/>Usa un file di backup valido"
+msgstr "Il file di backup che stai cercando di caricare non è stato creato dalla versione software attuale, usa un file di backup valido"
 
 msgid "The Blacklist app is "
 msgstr "app Blacklist "
@@ -2259,7 +2259,7 @@ msgid "Enable what type of configuration you want to import and export."
 msgstr "Queste opzioni controllano il tipo di configurazione che può essere esportata e importata."
 
 msgid "Reset the router to factory settings and remove the custom firmware files."
-msgstr "Ripristina il router e rimuove i file del root.<br/>Dopo il riavvio il modem ritornerà come era quando è stato acquistato."
+msgstr "Ripristina il router e rimuove i file del firmware personalizzato"
 
 msgid "Force the device to always use “Bank_1” as the main bank."
 msgstr "Forza il dispositivo ad usare sempre il 'Banco 1' come 'Banco principale'."
@@ -2268,7 +2268,7 @@ msgid "Update the GUI to the latest version available"
 msgstr "Aggiorna la GUI alla versione più recente disponibile"
 
 msgid "Clone the content of the running bank to the inactive one. Warning: this will delete all data and configuration settings on the inactive bank!"
-msgstr "Clona il contenuto del banco attivo in quello non attivo.<br/>Attenzione: questo comporterà l'eliminazione dei dati e delle configurazioni nel banco non attivo!"
+msgstr "Clona il contenuto del banco attivo in quello non attivo. Attenzione: questo comporterà l'eliminazione dei dati e delle configurazioni nel banco non attivo!"
 
 msgid "This will install aria2 and ariang webui"
 msgstr "Installa Aria2 e webUI ariang"
@@ -2355,7 +2355,7 @@ msgid "Turning on Eco features can cause major latency."
 msgstr "L'attivazione delle funzionalità di risparmio energetico ethernet può causare una latenza aggiuntiva."
 
 msgid "Turn off all LEDs except “Info” if all services are up and running. Press the “Info” / “WiFi” button to show the current LEDs status."
-msgstr "Se tutti i servizi sono attivi e funzionanti spegne tutti led eccetto 'Info'.<br/>Premi il pulsante 'Info' / 'Wifi' per visualizzare lo stato attuale dei led."
+msgstr "Se tutti i servizi sono attivi e funzionanti spegne tutti led eccetto 'Info'. Premi il pulsante “Info” / “Wifi” per visualizzare lo stato attuale dei led."
 
 msgid "Tx Errors"
 msgstr "Errori Tx"
@@ -2412,7 +2412,7 @@ msgid "Update GUI"
 msgstr "Aggiornamento GUI"
 
 msgid "Update available! Version: <strong id=\"new-version-text\">%s</strong>"
-msgstr "Aggiornamento disponibile!<br/>Versione: <strong id=\"new-version-text\">%s</strong>"
+msgstr "Aggiornamento disponibile! Versione: <strong id=\"new-version-text\">%s</strong>"
 
 msgid "Update firmware"
 msgstr "Aggiornamento firmware"
@@ -2564,8 +2564,8 @@ msgstr "WPS"
 msgid "Wake on LAN & WAN"
 msgstr "Wake on LAN & WAN"
 
-msgid "We don't have any driver for this modem, please report them to the github page. "
-msgstr "Non è disponibile alcun driver alternativo per questo modem.<br/>Segnalalo nella pagina di github. "
+msgid "We don't have any driver for this modem, please report them to the GitHub page. "
+msgstr "Non è disponibile alcun driver alternativo per questo modem, per favore segnalalo nella pagina di GitHub. "
 
 msgid "Webui on: "
 msgstr "WebUI attiva: "
@@ -2709,7 +2709,7 @@ msgid "Your Gateway"
 msgstr "Questo modem"
 
 msgid "The AP can be selected only once, to modify it you need to remove the rule."
-msgstr "L'AP può essere selezionato una volta sola.<br/>Per modificarlo devi rimuovere la regola."
+msgstr "L'AP può essere selezionato una volta sola, per modificarlo devi rimuovere la regola."
 
 msgid "This will install Telstra webui"
 msgstr "Installa la GUI Telstra"
@@ -3656,7 +3656,7 @@ msgid "Bridges"
 msgstr "Bridge"
 
 msgid "This is a guest network. The guest network has no local network access."
-msgstr "Questa è una rete ospiti.<br/>La rete ospiti non ha l'accesso alla rete locale."
+msgstr "Questa è una rete ospiti. La rete ospiti non ha l'accesso alla rete locale."
 
 msgid "This will install aMule webui"
 msgstr "Questo installerà la WebUI aMule"
@@ -3668,7 +3668,7 @@ msgid "CS3"
 msgstr "CS3"
 
 msgid "Enter the default <strong>\"access code\"</strong>. This code is located on the label underneath your gateway."
-msgstr "Inserisci il <strong>\"codice di accesso\"</strong> predefinito.<br/>Questo codice è stampato sull'etichetta sul fondo del modem."
+msgstr "Inserisci il <strong>\"codice di accesso\"</strong> predefinito. Questo codice è stampato sull'etichetta sul fondo del modem."
 
 msgid "802.11a/n/ac"
 msgstr "802.11 a/n/ac"
@@ -3764,7 +3764,7 @@ msgid "Remove Config"
 msgstr "Rimuovi configurazione"
 
 msgid "Are you sure you want to reset config of this modem? <br/><strong> This is permanent, save any config before this action.</strong>"
-msgstr "Sei sicuro di voler ripristinare la configurazione del modem?<br/><strong>Questa azione è permanente.<br/>Salva qualsiasi configurazione prima di effettuare questa azione.</strong>"
+msgstr "Sei sicuro di voler ripristinare la configurazione del modem? <br/><strong> Questa azione è permanente, salva qualsiasi configurazione prima di effettuare questa azione.</strong>"
 
 msgid "RAM Used Graph"
 msgstr "Grafico RAM usata"
@@ -4032,16 +4032,16 @@ msgid "Save on USB"
 msgstr "Salva su USB"
 
 msgid "Please see 2.4 GHz section for initial parameter. If a wireless device tests the 5 GHz band and reports the 5 GHz signal strength is above this threshold, the gateway will direct the device to switch to the 5 GHz band."
-msgstr "Vedi la sezione 2.4 GHz per i parametri iniziali.<br/>Se un dispositivo wireless nel test della banda a 5 GHz riporta un segnale di potenza superiore a questa soglia, il modem reindirizzerà il dispositivo sulla banda a 5 GHz."
+msgstr "Vedi la sezione 2.4 GHz per i parametri iniziali. Se un dispositivo wireless nel test della banda a 5 GHz riporta un segnale di potenza superiore a questa soglia, il modem reindirizzerà il dispositivo sulla banda a 5 GHz."
 
 msgid "If a wireless device reports this gateway's 2.4 GHz signal strength is above this threshold, the gateway will ask the device to test the 5 GHz band . Please see 5 GHz section for additional parameter."
-msgstr "Se un dispositivo wireless segnala una potenza del segnale a 2.4 GHZ del modem sopra questa soglia, il modem chiederà al dispositivo di verificare la banda a 5 GHz.<br/>Vedi la sezione rete 5 GHz per i parametri aggiuntivi."
+msgstr "Se un dispositivo wireless segnala una potenza del segnale a 2.4 GHZ del modem sopra questa soglia, il modem chiederà al dispositivo di verificare la banda a 5 GHz. Vedi la sezione rete 5 GHz per i parametri aggiuntivi."
 
 msgid "ISP used"
 msgstr "ISP usato"
 
 msgid "Band Steering works only if 2.4 GHz and 5 GHz have the same configuration. By enabling the Band Steering, the 2.4 GHz network settings will be propagated on 5 GHz settings"
-msgstr "Il band steering funziona solo se la rete 2.4 GHz e 5 GHz hanno la stessa configurazione.<br/>Abilitando il band steering, le impostazioni della rete 2.4 GHz saranno copiate nella rete 5 GHz."
+msgstr "Il band steering funziona solo se la rete 2.4 GHz e 5 GHz hanno la stessa configurazione. Abilitando il band steering, le impostazioni della rete 2.4 GHz saranno copiate nella rete 5 GHz."
 
 msgid "ISP Detected"
 msgstr "ISP rilevato"
@@ -4158,7 +4158,7 @@ msgid "Reset CWMP"
 msgstr "Ripristina CWMP"
 
 msgid "Are you sure you want to reset CWMP db of this modem? <br/><strong> This will force the first-time boot provisioning with ACS server that can fail on an already provisioned modem.</strong>"
-msgstr "Sei sicuro di voler ripristinare il database CWMP di questo modem?<br/><strong>Questo forzerà una richiesta di provisioning come primo avvio al server ACS che potrebbe fallire se il modem è già predisposto.<br/><strong> "
+msgstr "Sei sicuro di voler ripristinare il database CWMP di questo modem? <br/><strong>Questo forzerà una richiesta di provisioning come primo avvio al server ACS che potrebbe fallire se il modem è già predisposto.<strong>"
 
 msgid "Force CWMP provisioning"
 msgstr "Forza provisioning CWMP"
@@ -4294,3 +4294,36 @@ msgid "<strong>%s cron rule</strong> active"
 msgid_plural "<strong>%s cron rules</strong> active"
 msgstr[0] "<strong>%s regola cron</strong> attiva"
 msgstr[1] "<strong>%s regole cron</strong> attive"
+
+msgid "Packets Discard"
+msgstr "Pacchetti scartati"
+
+msgid "Interface Alias"
+msgstr "Nome interfaccia"
+
+msgid "Vendor Name"
+msgstr "Produttore"
+
+msgid "DHCP"
+msgstr "DHCP"
+
+msgid "Static IP"
+msgstr "IP statico"
+
+msgid "PPPoE"
+msgstr "PPPoE"
+
+msgid "Select if you want to establish a connection on the bridged interface"
+msgstr "Seleziona se vuoi stabilire una connessione sull'interfaccia bridge"
+
+msgid "No Connection"
+msgstr "Nessuna connessione"
+
+msgid "A reboot is waiting! Reason: <strong>%s</strong>"
+msgstr "Un riavvio è in attesa! Motivazione: <strong>%s</strong>"
+
+msgid "Force the device to always use bank_2 partition as booted partition and bank_1 as active but corrupted<br/>This will also ensure that overlay (configs/mods partition) of bank_1 is empty or just have the rooting script preloaded.<br/>This bank plan allow to use TFTP flashing, as a reliable recovery procedure in case we mess-up with the bank_2 overlay"
+msgstr "Forza il dispositivo ad usare sempre il bank_2 come partizione avviata e bank_1 come attiva ma corrotta<br/>Questo permette anche di avere l'overlay (partizione delle configurazione/personalizzazioni) di bank_1 vuoto o con solo gli script di root precaricati.<br/>Questa programmazione dei banchi permette di usare TFTP come metodo affidabile di recupero nel caso in cui l'overlay di bank_2 risulti corrotto"
+
+msgid "OBP Check"
+msgstr "Controllo OBP"
