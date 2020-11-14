@@ -1,6 +1,6 @@
 #!/bin/bash
 
-last_log="$(cat $HOME/gui_build/data/last_log)"
+last_log="$(cat last_log)"
 
 if [ "$(echo "$last_log" | grep -o "\[[0-9]\+\.[0-9]\+\.[0-9]\+\]" | tr -d [ | tr -d ])" ]; then
 	ver="$(echo "$last_log" | grep -o "\[[0-9]\+\.[0-9]\+\.[0-9]\+\]" | tr -d [ | tr -d ])"
