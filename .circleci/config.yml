@@ -12,47 +12,61 @@ jobs:
       - run:
           name: Check built type from last git log
           command: bash ./scripts/0-detect-build-type.sh
+      - run:
+          name: Copy file to be modified (css,js,po)
+          command: bash ./scripts/0-copy-file-to-parse.sh
       - persist_to_workspace:
           root: ~/gui_build
-          paths: 
+          paths:
             - decompressed
             - data
             - scripts
             - inizialize_gui.sh
   minify_css_js:
-    working_directory: ~/gui_build
+    working_directory: ~/gui_build/data
     docker:
-      - image: mysocialobservations/docker-tdewolff-minify
+      - image: thekevjames/minify
     steps:
       - attach_workspace:
           at: ~/gui_build
       - run:
           name: Minify css and javascript
-          command: bash ./scripts/1-compress_css_javascript.sh
+          command: ~/gui_build/scripts/1-compress_css_javascript.sh
       - persist_to_workspace:
-          root: ~/gui_build
+          root: ~/gui_build/data
           paths:
-            - decompressed
-  update_file:
-    working_directory: ~/gui_build
+            - css_files
+            - js_files
+  update_po:
+    working_directory: ~/gui_build/data/po_files
+    docker:
+      - image: ansuel/gui-autobuild-image:4
+    steps:
+    - attach_workspace:
+        at: ~/gui_build
+    - run:
+        name: Update po
+        command: python3 ~/gui_build/scripts/update_po.py
+    - persist_to_workspace:
+        root: ~/gui_build/data
+        paths:
+          - po_files
+  minify_lua:
+    working_directory: ~/gui_build/data
     docker:
       - image: ansuel/gui-autobuild-image:4
     steps:
       - attach_workspace:
           at: ~/gui_build
       - run:
-          name: Minify css and javascript
-          command: bash ./scripts/1-compress_css_javascript.sh
-      - run:
-          name: Update po
-          command: python3 ./scripts/update_po.py
-      - run:
           name: Minify lua files
-          command: bash ./scripts/1-compress_lua_scripts.sh
+          command: bash ~/gui_build/scripts/1-compress_lua_scripts.sh
       - persist_to_workspace:
-          root: ~/gui_build
+          root: ~/gui_build/data
           paths: 
-            - decompressed
+            - lua_files
+            - lp_files
+            - map_files
   increment_version:
     working_directory: ~/gui_build
     docker:
@@ -66,8 +80,7 @@ jobs:
       - persist_to_workspace:
           root: ~/gui_build
           paths: 
-            - decompressed
-            - data
+            - data/version
   init_and_update:
     working_directory: ~/gui_build
     docker:
@@ -75,6 +88,9 @@ jobs:
     steps:
       - attach_workspace:
           at: ~/gui_build
+      - run:
+          name: Apply modified files
+          command: ./scripts/2-apply-new-file.sh
       - run:
           name: Set new version in rootdevice
           command: bash ./scripts/2-set_new_version.sh
@@ -102,6 +118,9 @@ jobs:
       - attach_workspace:
           at: ~/gui_build
       - run:
+          name: Apply modified files
+          command: ./scripts/2-apply-new-file.sh
+      - run:
           name: Committing updated po to master
           command: bash ./scripts/6-commit_po.sh
   publish_github_release:
@@ -120,22 +139,27 @@ workflows:
   build_and_deploy:
     jobs: 
       - prepare
-      - minify_css_js:
+      - minify_lua:
           requires:
             - prepare
-      - update_file:
+      - minify_css_js:
           requires:
             - prepare
       - increment_version:
           requires:
-            - update_file
-      - commit_po_changes:
-          requires:
-            - update_file
-      - init_and_update:
+            - prepare
+      - update_po:
           requires:
             - prepare
+      - commit_po_changes:
+          requires:
+            - update_po
+      - init_and_update:
+          requires:
+            - minify_lua
+            - minify_css_js
             - increment_version
+            - update_po
       - publish_github_release:
           requires:
             - init_and_update

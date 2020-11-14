@@ -1,7 +1,7 @@
-TYPE="$(cat $HOME/gui_build/data/type)"
-if [ $TYPE == "DEV" ]; then
-	exit 0
-fi
+TYPE="$(cat type)"
+# if [ $TYPE == "DEV" ]; then
+# 	exit 0
+# fi
 
 saved=0
 pretranslated_string="--pretranslated: do not change this file"
@@ -25,15 +25,15 @@ minify_lua() {
 	echo "File $1 minified for $compressed byte"
 }
 
-for file in `find . -name "*.lua" -type f`; do
+for file in `find lua_files -name "*.lua" -type f`; do
 	minify_lua "$file" &
 done
 
-for file in `find . -name "*.lp" -type f`; do
+for file in `find lp_files -name "*.lp" -type f`; do
 	minify_lua "$file" &
 done
 
-for file in `find . -name "*.map" -type f`; do
+for file in `find map_files -name "*.map" -type f`; do
 	minify_lua "$file" &
 done
 
