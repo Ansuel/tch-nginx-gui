@@ -19,6 +19,20 @@ jobs:
             - data
             - scripts
             - inizialize_gui.sh
+  minify_css_js:
+    working_directory: ~/gui_build
+    docker:
+      - image: mysocialobservations/docker-tdewolff-minify
+    steps:
+      - attach_workspace:
+          at: ~/gui_build
+      - run:
+          name: Minify css and javascript
+          command: bash ./scripts/1-compress_css_javascript.sh
+      - persist_to_workspace:
+          root: ~/gui_build
+          paths:
+            - decompressed
   update_file:
     working_directory: ~/gui_build
     docker:
@@ -106,6 +120,9 @@ workflows:
   build_and_deploy:
     jobs: 
       - prepare
+      - minify_css_js:
+          requires:
+            - prepare
       - update_file:
           requires:
             - prepare
