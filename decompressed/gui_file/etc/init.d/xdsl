@@ -198,8 +198,14 @@ xdsl_read_config() {
 }
 
 start() {
+	if [ -f /etc/adsl/.restore_on_next_boot ]; then
+		echo "Detected a broken adsl bin!"
+		rm /etc/adsl/adsl_phy.bin
+		cp /rom/etc/adsl/adsl_phy.bin /etc/adsl/adsl_phy.bin
+	fi
 	xdsl_read_config
 	if [ "${CONNSTATUS:-1}" -gt 0 ]; then
+		touch /etc/adsl/.restore_on_next_boot
 		if [ -n "$ADVANCED_OPTIONS" ]; then
 			eval "$APP start --up $CONFIGURE_OPTIONS $ADVANCED_OPTIONS"
 		else
@@ -224,7 +230,7 @@ start() {
 			sleep 1
 		done
 		setrtprio dsl0 5
-
+		rm /etc/adsl/.restore_on_next_boot
 	fi
 }
 
