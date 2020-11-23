@@ -10,6 +10,9 @@ boot() {
   local files_to_del=/files_to_del
   local need_reboot="0"
 
+  # Disable watchdog before any operation since it looks to cause crash for some old router
+  /etc/init.d/watchdog-tch stop
+
   tranfer_file() { # $source $dest
 
     local source=$1
@@ -18,17 +21,17 @@ boot() {
     echo "mount_root-mod: copying $source/* to $dest/ ..." > /dev/kmsg
 
     for d in $(find $source/ -xdev -type d ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
-      echo "mount_root-mod: creating $dest/$d" > /dev/kmsg
+      # echo "mount_root-mod: creating $dest/$d" > /dev/kmsg
       mkdir -p "$dest/$d" 2>/dev/kmsg
     done
 
     for f in $(find $source/ -xdev -type f ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
-      echo "mount_root-mod: copying $source/$f to $dest/$f" > /dev/kmsg
+      # echo "mount_root-mod: copying $source/$f to $dest/$f" > /dev/kmsg
       cp -dp "$source/$f" "$dest/$f" 2>/dev/kmsg
     done
 
     for l in $(find $source/ -xdev -type l ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
-      echo "mount_root-mod: copying $source/$l to $dest/$l" > /dev/kmsg
+      # echo "mount_root-mod: copying $source/$l to $dest/$l" > /dev/kmsg
       cp -dp "$source/$l" "$dest/$l" 2>/dev/kmsg
     done
   }
@@ -43,7 +46,7 @@ boot() {
     # Now scan for file to be deleted... depending on the system these can be char type file
     # In new system the cp fails to copy this file. To fix this put the file in a txt file and then remove them by reading it
     for c in $(find $source/ -xdev -type c ! -path "*/modoverlay" -a ! -path "*/saferoot" | cut -d '/' -f4-); do
-      echo "mount_root-mod: setting /"$c" to be flagged as deleted" > /dev/kmsg
+      # echo "mount_root-mod: setting /"$c" to be flagged as deleted" > /dev/kmsg
       echo /"$c" >> $path_to_save_list
     done
   }
@@ -61,7 +64,7 @@ boot() {
 
       # Actually remove the file flagged as removed in the old overlay
       while read -r file; do
-        echo "mount_root-mod: setting "$file" as deleted in the new overlay" > /dev/kmsg
+        # echo "mount_root-mod: setting "$file" as deleted in the new overlay" > /dev/kmsg
         rm "$file" 2>/dev/kmsg
       done < "$files_to_del"
 
@@ -77,9 +80,6 @@ boot() {
     # Other process can write some config file before modoverlay is mounted, checking the config dir is not enough
     # Try to check if modgui exist and assume the migration is needed if present
     if [ -f $overlay_bank/etc/config/modgui ]; then
-
-      /etc/init.d/watchdog-tch stop
-
       mkdir $ram_dir $upperdir_backup
 
       #copy all file from overlay_bank to ram keeping all attributes and links
@@ -94,7 +94,7 @@ boot() {
 
       #at this point we should remove all empty folders in bank_2 overlay, except the modoverlay mountpoint
       for f in "$overlay_bank/"*; do
-        echo "mount_root-mod: check-for-rm $f" > /dev/kmsg
+        # echo "mount_root-mod: check-for-rm $f" > /dev/kmsg
         [ "$f" != "$overlay_bank/modoverlay" ] && [ "$f" != "$overlay_bank/saferoot" ] && rm -rf "$f"
       done
 
@@ -117,7 +117,7 @@ boot() {
 
     for f in $preserve_list; do
       mkdir -p $overlay_bank$(dirname "$f")
-      echo "mount_root-mod: update_file_if_needed $f" > /dev/kmsg
+      # echo "mount_root-mod: update_file_if_needed $f" > /dev/kmsg
       update_file_if_needed "$f" "$upperdir" $overlay_bank
     done
 
@@ -139,4 +139,7 @@ boot() {
   else
     echo "mount_root-mod: modoverlay not mounted! Aborting migration!" > /dev/kmsg
   fi
+
+  # Restart watchdog
+  /etc/init.d/watchdog-tch start
 }
