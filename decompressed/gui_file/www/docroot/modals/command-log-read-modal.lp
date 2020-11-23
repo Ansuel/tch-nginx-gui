@@ -68,7 +68,7 @@ ngx.print('\
                                 $("#show_progress").text($("#show_progress").text().replace(/[\\.]{10}/g, ""));\
                                 $("#show_progress").append(\'<span style="color: red;">.</span>\');\
                         });}\
-        }\
+        };\
 \
         modgui.createAjaxUpdateCard("commandlogmodal",null,"CommandLogReadInterval",100,CommandLogReadRefresh);\
   </script>\
