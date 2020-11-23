@@ -1,5 +1,7 @@
+#! /bin/sh
+
 TYPE="$(cat type)"
-if [ $TYPE == "DEV" ]; then
+if [ "$TYPE" != "STABLE" ] && [ "$TYPE" != "PREVIEW" ]; then
 	exit 0
 fi
 
