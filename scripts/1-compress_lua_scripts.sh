@@ -23,8 +23,10 @@ minify_lua() {
 	if [ $append_pretraslate = 1 ]; then
 		sed -i '1s/^/'"$pretranslated_string"'\n/' "$1".min
 	fi
-	perl -i -pe 's|(\ *\t*)\/\/(.*)\\\n?|"$1"\/\*$2 *\/\\\n|g' "$1".min
-	sed -i ':a;N;$!ba;s/\\\n\s*\t*//g' "$1".min
+	# Remove any comments in the form // commen
+	perl -i -pe 's/[\s\t]*\/\/.*\n//g' "$1".min
+	# Remove any new line escaped and reduce html code to one line
+	perl -i -pe 's/\\\n[\s\t]*//g' "$1".min
 	chmod "$(stat -c "%a" "$1")" "$1".min
 	compressed=$(($(stat --printf="%s" "$1")-$(stat --printf="%s" "$1".min)))
 	echo "File $1 minified for $compressed byte"
