@@ -82,11 +82,6 @@ orig_config_gen() {
   fi
 }
 
-remove_https_check_cwmpd() {
-  uci set cwmpd.cwmpd_config.enforce_https='0'
-  uci set cwmpd.cwmpd_config.ssl_verifypeer='0'
-}
-
 create_driver_setting() {
   #Get xdsl driver(s) version and save to GUI config file
   if [ ! "$(uci get -q modgui.var.driver_version)" ]; then
@@ -591,8 +586,6 @@ logger_command "Unlocking web interface if needed"
 check_webui_config
 logger_command "Check if variant_friendly_name set"
 check_variant_friendly_name
-logger_command "Remove https check"
-remove_https_check_cwmpd #cleanup
 logger_command "Check driver setting"
 create_driver_setting #create diver setting if not present
 logger_command "Check Dropbear config file"

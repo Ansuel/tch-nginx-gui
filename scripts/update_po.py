@@ -1,117 +1,161 @@
-import os, re, mmap
+#! /usr/bin/python
+
+import os
+import re
+import mmap
 
 from datetime import date
-import sys
+import sys, getopt
 
-po_table={}
-po_string_table={}
-plur_po_string_table={}
-lang_path="decompressed/gui_file/www/lang"
+po_table = {}
+po_string_table = {}
+plur_po_string_table = {}
 
 #Find msgid in po files
 normal_po_regex = re.compile(r"(?<=msgid\s)\".*?(?<!\\)\"(?=\s+msgstr)")
 plural_po_regex = re.compile(r"(?<=msgid\s)\".*?(?<!\\)\"(?=\s+msgid_plural)")
 
 #Detect language in lp and lua files
-po_find_regex = re.compile(r'(?<=gettext\.textdomain\(\'|gettext\.textdomain\(\")[a-z]+-[a-z]*-*[a-z]+(?=\'\)|\"\))')
+po_find_regex = re.compile(
+    r'(?<=gettext\.textdomain\(\'|gettext\.textdomain\(\")[a-z]+-[a-z]*-*[a-z]+(?=\'\)|\"\))')
 
 #Detect T"" in source files
-normal_trans_regex = re.compile(r"(?<=\.T|\(T|\{T|\sT|\[T|,T)\".*?(?<!\\)\"(?=,|\s|\s\.\.|\.\.|\)|\}|\")")
+normal_trans_regex = re.compile(
+    r"(?<=\.T|\(T|\{T|\sT|\[T|,T)\".*?(?<!\\)\"(?=,|\s|\s\.\.|\.\.|\)|\}|\")")
 #Detect T'' in source files
-accent_trans_regex = re.compile(r"(?<=\.T|\(T|\{T|\sT|\[T|,T)\'.*?(?<!\\)\'(?=,|\s|\s\.\.|\.\.|\)|\}|\")")
+accent_trans_regex = re.compile(
+    r"(?<=\.T|\(T|\{T|\sT|\[T|,T)\'.*?(?<!\\)\'(?=,|\s|\s\.\.|\.\.|\)|\}|\")")
 #Detect N"","" plurar strings
-normal_plural_trans_regex = re.compile(r"(?<=\(N\(|\[N\(|\{N\(|\sN\()\".*?\\*?\",\W*\".*?(?<!\\)\"(?=,|\s|\s\.\.|\.\.|\))")
+normal_plural_trans_regex = re.compile(
+    r"(?<=\(N\(|\[N\(|\{N\(|\sN\()\".*?\\*?\",\W*\".*?(?<!\\)\"(?=,|\s|\s\.\.|\.\.|\))")
 normal_first_plur_regex = re.compile(r'(?<=\").*?(?<!\\)(?=\",|\"\s+,)')
 normal_second_plur_regex = re.compile(r'(?<=\s\"|,\").*?(?<!\\)(?=\")')
 #Detect N'','' plurar strings
-accent_plural_trans_regex = re.compile(r"(?<=\(N\(|\[N\(|\{N\(|\sN\()'.*?\\*?',\W*'.*?(?<!\\)'(?=,|\s|\s\.\.|\.\.|\))")
+accent_plural_trans_regex = re.compile(
+    r"(?<=\(N\(|\[N\(|\{N\(|\sN\()'.*?\\*?',\W*'.*?(?<!\\)'(?=,|\s|\s\.\.|\.\.|\))")
 accent_first_plur_regex = re.compile(r"(?<=').*?(?<!\\)(?=',|'\s+,)")
 accent_second_plur_regex = re.compile(r"(?<=\s'|,').*?(?<!\\)(?=')")
 
 msgid_po_regex = re.compile(r"(?<=msgid\s\").*(?=\")")
 
-translate_table={}
-plur_table={}
-plurs_table={}
+translate_table = {}
+plur_table = {}
+plurs_table = {}
 
-po_files={}
+po_files = {}
 
-def gen_tbl_from_po():
+
+def gen_tbl_from_po(lang_path):
     for root, dirs, files in os.walk(lang_path):
       for dir in dirs:
-        po_table[dir]=[]
+        po_table[dir] = []
         po_string_table[dir] = {}
         plur_po_string_table[dir] = {}
         for root, dirs, files in os.walk(lang_path+"/"+dir):
           for file in files:
-            translate_table[file.replace(".po","")] = ()
-            plur_table[file.replace(".po","")] = ()
-            plurs_table[file.replace(".po","")] = {}
+            translate_table[file.replace(".po", "")] = ()
+            plur_table[file.replace(".po", "")] = ()
+            plurs_table[file.replace(".po", "")] = {}
             po_table[dir].append(os.path.join(root, file))
-            po_file = open(os.path.join(root, file), 'r',encoding='UTF8')
+            po_file = open(os.path.join(root, file), 'r', encoding='UTF8')
             string_file = po_file.read()
-            po_string_table[dir][file.replace(".po","")] = tuple([ s[1:-1] for s in normal_po_regex.findall(string_file)])
-            plur_po_string_table[dir][file.replace(".po","")] = tuple([ s[1:-1] for s in plural_po_regex.findall(string_file)])
+            po_string_table[dir][file.replace(".po", "")] = tuple(
+                [s[1:-1] for s in normal_po_regex.findall(string_file)])
+            plur_po_string_table[dir][file.replace(".po", "")] = tuple(
+                [s[1:-1] for s in plural_po_regex.findall(string_file)])
             po_file.close()
+
 
 def check_files(scanOnly):
     for root, dirs, files in os.walk("decompressed"):
         for file in files:
             if file.endswith(".lp") or file.endswith(".lua"):
-              search_file = open(os.path.join(root, file), 'r',encoding='UTF8')
+              search_file = open(os.path.join(root, file),
+                                 'r', encoding='UTF8')
               string_file = search_file.read()
               po_file = po_find_regex.findall(string_file)
               if len(po_file) != 0:
                 if scanOnly == "ScanOnly":
                   po_files[po_file[0]] = {}
                   continue
-                translate_table[po_file[0]] += tuple([ s[1:-1] for s in normal_trans_regex.findall(string_file)])
-                translate_table[po_file[0]] += tuple([ s[1:-1].replace('"','\\\"') for s in accent_trans_regex.findall(string_file)])
+                translate_table[po_file[0]] += tuple(
+                    [s[1:-1] for s in normal_trans_regex.findall(string_file)])
+                translate_table[po_file[0]] += tuple(
+                    [s[1:-1].replace('"', '\\\"') for s in accent_trans_regex.findall(string_file)])
                 plural_string = normal_plural_trans_regex.findall(string_file)
                 for string in plural_string:
-                  plur_table[po_file[0]] += tuple(normal_first_plur_regex.findall(string))
-                  plurs_table[po_file[0]][normal_first_plur_regex.findall(string)[0]] = normal_second_plur_regex.findall(string)[0]
+                  plur_table[po_file[0]
+                             ] += tuple(normal_first_plur_regex.findall(string))
+                  plurs_table[po_file[0]][normal_first_plur_regex.findall(
+                      string)[0]] = normal_second_plur_regex.findall(string)[0]
                 plural_string = accent_plural_trans_regex.findall(string_file)
                 for string in plural_string:
-                  plur_table[po_file[0]] += tuple(s.replace('"','\\\"') for s in accent_first_plur_regex.findall(string))
-                  plurs_table[po_file[0]][accent_first_plur_regex.findall(string)[0].replace('"','\\\"')] = accent_second_plur_regex.findall(string)[0].replace('"','\\\"')
+                  plur_table[po_file[0]] += tuple(s.replace('"', '\\\"')
+                                                  for s in accent_first_plur_regex.findall(string))
+                  plurs_table[po_file[0]][accent_first_plur_regex.findall(string)[0].replace(
+                      '"', '\\\"')] = accent_second_plur_regex.findall(string)[0].replace('"', '\\\"')
               search_file.close()
 
-def gen_po():          
+
+def gen_po(lang_path):
     for lang in po_string_table:
       for file in po_string_table[lang]:
         if file in translate_table and file in po_string_table[lang]:
-          
+
           #Normal strings msgid
-          diff_table = set(translate_table[file]) - set(po_string_table[lang][file])
-          po_file = open(lang_path+"/"+lang+"/"+file+".po", 'a',encoding='UTF8')
+          diff_table = set(translate_table[file]) - \
+              set(po_string_table[lang][file])
+          po_file = open(lang_path+"/"+lang+"/"+file +
+                         ".po", 'a', encoding='UTF8')
           for string in diff_table:
             print("Found missing "+string+" in "+file+" for "+lang)
             po_file.write("\nmsgid "+"\""+string+"\""+"\nmsgstr \"\"\n")
           po_file.close()
-          
+
           #Plural strings
-          diff_table = set(plur_table[file]) - set(plur_po_string_table[lang][file])
-          po_file = open(lang_path+"/"+lang+"/"+file+".po", 'a',encoding='UTF8')
+          diff_table = set(plur_table[file]) - \
+              set(plur_po_string_table[lang][file])
+          po_file = open(lang_path+"/"+lang+"/"+file +
+                         ".po", 'a', encoding='UTF8')
           for string in diff_table:
             print("Found missing "+string+" in "+file+" for "+lang)
-            po_file.write("\nmsgid \""+string+"\"\nmsgid_plural \""+plurs_table[file][string]+"\"\nmsgstr[0] \"\"\nmsgstr[1] \"\"\n")
+            po_file.write("\nmsgid \""+string+"\"\nmsgid_plural \"" +
+                          plurs_table[file][string]+"\"\nmsgstr[0] \"\"\nmsgstr[1] \"\"\n")
           po_file.close()
 
-if len(sys.argv) >= 2:
-  
-  if sys.argv[1] == "clean":
-    gen_tbl_from_po()
+def main(argv):
+  lang_path = "decompressed/gui_file/www/lang"
+  operation = ''
+  template = ''
+  try:
+    opts, args = getopt.getopt(argv, "hdot", ["dir=", "operation=", "template="])
+  except getopt.GetoptError:
+    print('update_po.py -d <lang directory> -o <operation>')
+    sys.exit(2)
+  for opt, arg in opts:
+    if opt == '-h':
+        print('update_po.py -d <lang directory> -o <clean | template | update> -t')
+        sys.exit()
+    elif opt in ("-d", "--dir"):
+        lang_path = arg
+    elif opt in ("-o", "--operation"):
+        operation = arg
+    elif opt in ("-t", "--template"):
+        template = arg
+
+
+  if operation == "clean":
+    gen_tbl_from_po(lang_path)
     check_files("Complete")
 
     for lang in po_string_table:
       for file in po_string_table[lang]:
         skip_line = 2
         skip_section = 0
-        po = open(lang_path+"/"+lang+"/"+file+".po", 'r',encoding='UTF8')
+        po = open(lang_path+"/"+lang+"/"+file+".po", 'r', encoding='UTF8')
         po_line = po.readlines()
         po.close
-        po = open(lang_path+"/"+lang+"/"+file+".po", 'w',encoding='UTF8')
+        po = open(lang_path+"/"+lang+"/"+file+".po", 'w', encoding='UTF8')
         for line in po_line:
           #Skip first 2 lines
           if skip_line != 0:
@@ -125,7 +169,8 @@ if len(sys.argv) >= 2:
                 skip_section = 0
           elif cleared_line:
             if not cleared_line.group(0) in translate_table[file] and not cleared_line.group(0) in plur_table[file]:
-                print("Removing '"+cleared_line.group(0)+"' from "+file+" in "+lang)
+                print("Removing '"+cleared_line.group(0) +
+                      "' from "+file+" in "+lang)
                 skip_section = 1
             else:
                 #Write if present
@@ -134,27 +179,29 @@ if len(sys.argv) >= 2:
             #Write everything else
             po.write(line)
         po.close()
-  if sys.argv[1] == "template":
-    if len(sys.argv) < 3:
+  if operation == "template":
+    if template == '':
         print("Provide name for lang template")
     else:
-        if os.path.exists(lang_path+"/"+sys.argv[2]):
+        if os.path.exists(lang_path+"/"+template):
             print("directoy allready exist")
             quit()
-        os.mkdir(lang_path+"/"+sys.argv[2])
+        os.mkdir(lang_path+"/"+template)
         check_files("ScanOnly")
-        
+
         for file in po_files:
-            po = open(lang_path+"/"+sys.argv[2]+"/"+file+".po", 'w',encoding='UTF8')
+            po = open(lang_path+"/"+template +
+                      "/"+file+".po", 'w', encoding='UTF8')
             po.write('msgid ""\n')
             po.write('msgstr ""\n')
             po.write('"Project-Id-Version: '+file+'\\n"\n')
             po.write('"Report-Msgid-Bugs-To: \\n"\n')
-            po.write('"POT-Creation-Date: '+date.today().strftime("%Y-%m-%d %X")+'\\n"\n')
+            po.write('"POT-Creation-Date: ' +
+                    date.today().strftime("%Y-%m-%d %X")+'\\n"\n')
             po.write('"PO-Revision-Date: \\n"\n')
             po.write('"Last-Translator: \\n"\n')
             po.write('"Language-Team: none\\n"\n')
-            po.write('"Language: '+sys.argv[2]+'\\n"\n')
+            po.write('"Language: '+template+'\\n"\n')
             po.write('"MIME-Version: 1.0\\n"\n')
             po.write('"Content-Type: text/plain; charset=UTF-8\\n"\n')
             po.write('"Content-Transfer-Encoding: 8bit\\n"\n')
@@ -163,11 +210,15 @@ if len(sys.argv) >= 2:
             po.write('"X-Generator: \\n"\n')
             po.write('"X-Poedit-SourceCharset: UTF-8\\n"\n')
             po.close()
-        
-        gen_tbl_from_po()
+
+        gen_tbl_from_po(lang_path)
         check_files("Complete")
-        gen_po()
-else:
-    gen_tbl_from_po()
-    check_files("Complete")
-    gen_po()
+        gen_po(lang_path)
+  else:
+      gen_tbl_from_po(lang_path)
+      check_files("Complete")
+      gen_po(lang_path)
+
+
+if __name__ == "__main__":
+   main(sys.argv[1:])

@@ -2,6 +2,20 @@
 ---------------------------------------------------------------------------
 # Mainline 18.3 Cobalt
 
+9.6
+---------------------------------------------------------------------------
+ - La mod ora applicherà in modo automatico l'OPTIMAL BANK PLAN e utilizzerà la partizione del bank_1 come spazio per le config/mod (MODOVERLAY), in modo da avere BOOTP come una modalità sicura di recovery di device brickati.
+ - Cambio al comportamento del reset da tasto fisico: al primo reset vengono rimosse tutte le mod e mantenuto solo il root al secondo reset (se non si reinstalla la MOD) il device viene riportato totalmente allo stato di fabbrica
+ - Risolti vari problemi di rilevazione GPON su TIMHUB
+ - Fix LED non funzionanti su firmware vecchi (firmware TIM 1.0.3) 
+ - Aggiunta possibilità di configurare una connessione WAN anche in bridge mode
+ - Fix per permettere la connessione di alcuni modelli di chiavette 3G Huawei
+ - Aggiunti ulteriori driver xDSL
+ - Fix errore 500 quando si ripristinava un backup avanzato
+ - Rimosse alcune funzioni deprecate e potenzialmente problematiche
+ - Aggiunto supporto iniziale per TG789vac v3
+ - Abilitata installazione app su TG800
+ 
 9.5
 ---------------------------------------------------------------------------
  - Risolti alcuni problemi di compatibilità con internet explorer
