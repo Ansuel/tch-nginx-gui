@@ -3407,7 +3407,7 @@ msgid "This will switch the active bank with the passive one"
 msgstr "Questo commuterà il banco attivo con il banco passivo"
 
 msgid "Upstream FEC"
-msgstr "FEC upload"
+msgstr "FEC upstream"
 
 msgid "Re-scanning"
 msgstr "Ri-scansione"
@@ -3686,7 +3686,7 @@ msgid "No"
 msgstr "No"
 
 msgid "Downstream FEC"
-msgstr "EC download"
+msgstr "FEC downstream"
 
 msgid "ESP"
 msgstr "ESP"
