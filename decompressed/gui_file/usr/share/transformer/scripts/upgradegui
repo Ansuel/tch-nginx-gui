@@ -327,6 +327,7 @@ logger_command "Running rootdevice script"
 # Run init.d script
 set_transformer "rpc.system.modgui.executeCommand.state" "In Progress"
 /etc/init.d/rootdevice "$rootdevice_call"
+/etc/init.d/do_migrate_overlay preserve_files
 
 if [ -f "$WORKING_DIR/$FILE_NAME" ]; then
   rm "$WORKING_DIR/$FILE_NAME"
