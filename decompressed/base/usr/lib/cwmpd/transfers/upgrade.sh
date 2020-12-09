@@ -141,7 +141,7 @@ set_started()
     if [ ! -z $url ]; then
       uci set $CONFIG.$id.url="$url"
     fi
-    [ -n $remember_bank ] && remember_bank $id
+    [ -n "$remember_bank" ] && remember_bank $id
     uci commit
     return
   fi
@@ -288,7 +288,7 @@ if [ "$TRANSFER_ACTION" = "start" ]; then
     else 
       #retrieve error
       E=$(get_error "$TRANSFER_ID")
-    if
+    fi
   fi
   if [ "$E" != "0" ]; then
     local msg=$(echo $E | cut -d, -f2)
