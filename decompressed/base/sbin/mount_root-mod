@@ -254,6 +254,11 @@ mount_root_mod() {
 	mount -o move /tmp/modoverlay /modoverlay 2>&-
 	kecho "mount_root-mod: modoverlay moved to (/overlay/bank_X)/modoverlay..."
 
+	if [ -f /overlay/.disable_modoverlay ]; then
+		kecho "mount_root-mod: requested to disable modoverlay. Skipping pivot"
+		exit 0
+	fi
+
 	mkdir -p $upperdir
 
 	for f in /lib/mount_modroot/*; do
