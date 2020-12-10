@@ -270,6 +270,11 @@ check_and_apply_obp() {
     if [ "$activeversion" != "Unknown" ]; then
       logger_command "OBP check: looks like passive bank have a valid version: $activeversion"
       echo "  OBP check: looks like passive bank have a valid version: $activeversion" >/dev/console
+    else
+      # To make reboot quicker, reset otp to 3 failed boot from bank1
+      echo 1 > /proc/prozone/bootfail
+      echo 2 > /proc/prozone/bootcounter
+      echo 0 > /proc/prozone/bootbank
     fi
 
     [ -d "/overlay/bank_1" ] && rm -rf "/overlay/bank_1"
