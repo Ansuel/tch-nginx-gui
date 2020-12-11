@@ -482,8 +482,7 @@ function getInfo(mac,ap,getpath)\
           }\
           $d.css({\'height\': y+\'px\', \'left\': $(\'#chartcontainerwifi\').width() + \'px\', \'background-color\': color }).appendTo(\'#div-1\');;\
           $(".barswifi").each(function(){\
-                $(this).animate({//left: \'5px\'\
-                //$(this).css({\
+                $(this).animate({\
                   \'left\': $(this).position().left -5,\
                   \'opacity\': $(this).css(\'opacity\')-0.02,\
                   \'filter\': \'alpha(opacity=\'+toString(($(this).css(\'opacity\')-0.02)*100)+\')\'\
@@ -492,8 +491,6 @@ function getInfo(mac,ap,getpath)\
            });\
            countwifi++;\
    }\
-\
-//\
 \
 var client_selected_option = $("[name=\'client_selected\'] option");\
 \
