@@ -26,7 +26,7 @@
 STABLE_VERSION="stable.version"
 DEV_VERSION="latest.version"
 PREVIEW_VERSION="preview.version"
-CURRENT_VERSION=$(echo "$(grep /etc/init.d/rootdevice -e 'version_gui' | sed 's/version_gui=//')" | cut -d'-' -f1)
+CURRENT_VERSION=$(grep /etc/init.d/rootdevice -e 'version_gui' | sed 's/version_gui=//' | cut -d'-' -f1)
 BASE_DIR="https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master"
 
 ############TRANSFORMER UTILITY##################

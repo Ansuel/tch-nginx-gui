@@ -82,17 +82,6 @@ orig_config_gen() {
   fi
 }
 
-create_driver_setting() {
-  #Get xdsl driver(s) version and save to GUI config file
-  if [ ! "$(uci get -q modgui.var.driver_version)" ]; then
-    uci set modgui.var.driver_version="$(xdslctl --version 2>&1 >/dev/null | grep 'version -' | awk '{print $6}' | sed 's/\..*//')"
-  else
-    if uci get -q modgui.var.driver_version | grep -qF . ; then
-      uci set modgui.var.driver_version="$(xdslctl --version 2>&1 >/dev/null | grep 'version -' | awk '{print $6}' | sed 's/\..*//')"
-    fi
-  fi
-}
-
 dropbear_config_check() {
   if [ ! "$(uci get -q dropbear.wan)" ]; then
     logger_command "Adding Dropbear wan config"
@@ -579,8 +568,6 @@ logger_command "Unlocking web interface if needed"
 check_webui_config
 logger_command "Check if variant_friendly_name set"
 check_variant_friendly_name
-logger_command "Check driver setting"
-create_driver_setting #create diver setting if not present
 logger_command "Check Dropbear config file"
 dropbear_config_check #check dropbear config
 logger_command "Check eco paramaters"

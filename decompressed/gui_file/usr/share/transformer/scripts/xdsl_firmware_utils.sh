@@ -29,6 +29,7 @@ log() {
 
 curl="/usr/bin/curl -k -s"
 try=0
+CLEAN=0
 
 checksums="
 453dc537d3cbd6f45657c9eb8ba2eb40  A2pvbH042j2
@@ -83,75 +84,62 @@ a4ecffcbde7dd55e7eaa08d694a96fde  A2pvfbH045p
 74c89e5ada33e6bbc439185d541f1529  A2pvfbH045r
 "
 
-CLEAN=0
-
-if [ "$1" ]; then
-	if [ "$1" == "clean" ]; then
-		CLEAN=1
-	fi
+if [ -z "$1" ]; then
+	log "Provide a driver version as args to use this script or 'clean' to restore original firmware. Terminating"
+	exit 0
+else
+	[ "$1" = "clean" ] && CLEAN=1
 fi
 
-installed_driver=$(transformer-cli get rpc.xdsl.dslversion | awk '{print $4}'  | cut -d. -f1)
-driver_set=$(uci get modgui.var.driver_version)
+installed_driver=$(xdslctl --version 2>&1 >/dev/null | grep 'version -' | awk '{print $6}' | sed 's/\..*//')
+request_driver="$1"
 
-if [ "$(< /proc/cpuinfo grep Processor | grep ARM)" ]; then
+if [ "$(grep </proc/cpuinfo Processor | grep ARM)" ]; then
 	arch=arm
-elif [ "$(< /proc/cpuinfo grep 'cpu model' | grep MIPS)" ]; then
+elif [ "$(grep </proc/cpuinfo 'cpu model' | grep MIPS)" ]; then
 	arch=mips
 fi
 
-apply_driver() {
-	if [ $CLEAN -eq 0 ]; then
-		log "Testing driver $driver_set... If the modem crash, reset the driver on next boot"
-		rm /etc/adsl/adsl_phy.bin
-		ln -s /tmp/$driver_set /etc/adsl/adsl_phy.bin
-		log "Restarting xDSL..."
-		xdslctl stop
-		/etc/init.d/xdsl restart >/dev/null
-		sleep 5
-		log "Reading version with xdslctl..."
-		xdslctl --version
-		log "Moving driver to permantent dir"
-		rm /etc/adsl/adsl_phy.bin
-		mv /tmp/$driver_set /etc/adsl/adsl_phy.bin
-	else
-		log "Restoring original driver"
-		rm /etc/adsl/adsl_phy.bin
-		cp /rom/etc/adsl/adsl_phy.bin /etc/adsl/adsl_phy.bin
-		log "Restarting xDSL..."
-		xdslctl stop
-		/etc/init.d/xdsl restart >/dev/null
-	fi
-	log "Process done"
-}
-
 download_Driver() {
-	log "Downloading driver $driver_set"
-	curl -s "https://raw.githubusercontent.com/Ansuel/tch-nginx-gui/master/xdsl_driver/$arch/$driver_set" --output "/tmp/$driver_set"
+	log "Downloading driver $request_driver"
+	curl -s "https://raw.githubusercontent.com/Ansuel/tch-nginx-gui/master/xdsl_driver/$arch/$request_driver" --output "/tmp/$request_driver"
 }
 
 test_apply() {
-	if [ -f "/tmp/$driver_set" ]; then
-		rm "/tmp/$driver_set"
+	if [ -f "/tmp/$request_driver" ]; then
+		rm "/tmp/$request_driver"
 	fi
 	connectivity="yes"
 	if ping -q -c 1 -W 1 8.8.8.8 >/dev/null; then
-    connectivity="yes"
-  else
-    connectivity="no"
-  fi
+		connectivity="yes"
+	else
+		connectivity="no"
+	fi
 
 	if [ $connectivity == "yes" ]; then
-		if [ "$installed_driver" != "$driver_set" ]; then
+		if [ "$installed_driver" != "$request_driver" ]; then
 			download_Driver
-			if [ "$(echo $checksums | grep $( md5sum /tmp/$driver_set | awk '{print $1}' ) )" ]; then
-				apply_driver
-				if [ -f "/tmp/$driver_set" ]; then
-					rm "/tmp/$driver_set"
+			if [ "$(echo $checksums | grep $(md5sum /tmp/$request_driver | awk '{print $1}'))" ]; then
+
+				log "Testing driver $request_driver... If the modem crash, reset the driver on next boot"
+				rm /etc/adsl/adsl_phy.bin
+				ln -s /tmp/$request_driver /etc/adsl/adsl_phy.bin
+				log "Restarting xDSL..."
+				xdslctl stop
+				/etc/init.d/xdsl restart >/dev/null
+				sleep 5
+				log "Reading version with xdslctl..."
+				xdslctl --version
+				log "Moving driver to permantent dir"
+				rm /etc/adsl/adsl_phy.bin
+				mv /tmp/$request_driver /etc/adsl/adsl_phy.bin
+
+				if [ -f "/tmp/$request_driver" ]; then
+					rm "/tmp/$request_driver"
 				fi
 			else
 				log "Download corrupted, retrying..."
-				try=$((try+1))
+				try=$((try + 1))
 				download_Driver
 				if [ $try -lt 2 ]; then
 					test_apply
@@ -166,8 +154,15 @@ test_apply() {
 }
 
 if [ $CLEAN -eq 0 ]; then
-  log "Trying to download and apply driver $driver_set..."
-  test_apply
+	log "Trying to download and apply driver $request_driver..."
+	test_apply
+	log "Process done"
 else
-  apply_driver
+	log "Restoring original driver"
+	rm /etc/adsl/adsl_phy.bin
+	cp /rom/etc/adsl/adsl_phy.bin /etc/adsl/adsl_phy.bin
+	log "Restarting xDSL..."
+	xdslctl stop
+	/etc/init.d/xdsl restart >/dev/null
+	log "Process done"
 fi

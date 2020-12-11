@@ -132,15 +132,13 @@ register(SYSTEM_MODGUI_)
 -- _terminate CAN BE USED TO CHECK IF ANY PROCESS IS ALREADY RUNNING AN TERMINATE IT
 
 local commands_helper = {
-  checkver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/checkver"',
   resetgui = "/usr/share/transformer/scripts/resetUtility.sh --resetGui",
   removeroot = "/usr/share/transformer/scripts/resetUtility.sh --removeRoot",
   resetconfig = "/usr/share/transformer/scripts/resetUtility.sh --removeConfig",
   resetcwmp = "/usr/share/transformer/scripts/resetUtility.sh --resetCWMP",
   checkver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/checkver"',
   transferBank1 = "/usr/share/transformer/scripts/transfer_bank1.sh",
-  refreshDslDriver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/refresh_driver.sh"',
-  resetDslDriver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/refresh_driver.sh clean"',
+  resetDslDriver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/xdsl_firmware_utils.sh clean"',
   copyBank = "/usr/share/transformer/scripts/copy_bank.sh",
   upgradegui = 'start-stop-daemon -S -b -x /usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/upgradegui GuiRequest"',
   genSysupgradeBackup = function(filename)
@@ -159,7 +157,7 @@ local SYSTEM_MODGUI_UTILITY_ = {
     maxEntries = 1,
     parameters = {
       rip_key_B = {access = "readOnly", type = "string"},
-      sendcmd = {access = "readWrite", type = "string"}
+      sendcmd = {access = "readWrite", type = "string"},
     }
   },
   get = {
