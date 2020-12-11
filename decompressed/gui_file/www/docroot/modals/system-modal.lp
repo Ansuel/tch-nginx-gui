@@ -58,7 +58,7 @@ local fwversion_override_content, fwversion_override_helpmsg = post_helper.handl
 local env = {
   factory = "uci.env.rip.factory_id",
   serial = "uci.env.rip.serial",
-  fwversion_latest = "uci.versioncusto.override.fwversion_override_latest",
+  fwversion_latest = "rpc.system.modgui.cwmp_TIM_last_version",
   fwversion_real = "uci.versioncusto.override.fwversion_override_real",
 }
 content_helper.getExactContent(env)

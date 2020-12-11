@@ -228,7 +228,6 @@ real_ver_entitied() {
 
     short_ver="$(grep </proc/banktable/$bank_version -Eo '.*\..*\.[0-9]*-[0-9]*')"
     real_ver=$(grep </rom/etc/uci-defaults/tch_5000_versioncusto "$short_ver" | awk '{print $2}')
-    uci set versioncusto.override.fwversion_override_latest="$latest_version_on_TIM_cwmp"
     if [ "$real_ver" = "" ]; then
       real_ver="Not Found"
     fi
