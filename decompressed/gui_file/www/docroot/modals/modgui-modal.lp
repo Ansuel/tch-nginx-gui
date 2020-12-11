@@ -271,7 +271,7 @@ if ngx.req.get_method() == "POST" then
 end
 
 local content = {
-	gui_version = "uci.modgui.gui.gui_version",
+	gui_version = "rpc.system.modgui.gui_version",
 	outdated_ver = "uci.modgui.gui.outdated_ver",
 	new_ver = "uci.modgui.gui.new_ver",
 	specific_app = "uci.modgui.app.specific_app",

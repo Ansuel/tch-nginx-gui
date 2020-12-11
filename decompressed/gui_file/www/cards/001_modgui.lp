@@ -11,7 +11,7 @@ local format = string.format
 
 -- Non-configurable data
 local content = {
-  gui_version = "uci.modgui.gui.gui_version",
+  gui_version = "rpc.system.modgui.gui_version",
   outdated_ver = "uci.modgui.gui.outdated_ver",
 }
 

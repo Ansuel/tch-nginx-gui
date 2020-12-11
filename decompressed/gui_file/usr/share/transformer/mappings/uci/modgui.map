@@ -9,7 +9,7 @@ local modgui_gui  = {
     section = "gui",
     type = "gui",
     options = { "autoupgrade","randomcolor","autoupgrade_hour","firstpage","gui_skin",
-					"new_ver","outdated_ver","gui_version","autoupgradeview","gui_hash",
+					"new_ver","outdated_ver","autoupgradeview","gui_hash",
 					"update_branch","gui_animation" },
 }
 

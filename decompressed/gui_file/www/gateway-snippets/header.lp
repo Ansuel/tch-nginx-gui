@@ -42,7 +42,7 @@ end
 local cui = {
   nsplink = "uci.web.uiconfig.@uidefault.nsplink",
   gui_skin = "uci.modgui.gui.gui_skin",
-  gui_version = "uci.modgui.gui.gui_version",
+  gui_version = "rpc.system.modgui.gui_version",
   outdated_ver = "uci.modgui.gui.outdated_ver",
   amule_webui = "uci.modgui.app.amule_webui",
   aria2_webui = "uci.modgui.app.aria2_webui",

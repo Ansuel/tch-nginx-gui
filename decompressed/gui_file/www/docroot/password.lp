@@ -24,7 +24,7 @@ local cui = {
   defaultuser = "uci.web.uiconfig.@uidefault.defaultuser",
   nsplink = "uci.web.uiconfig.@uidefault.nsplink",
   timestamp = "uci.version.version.@version[0].timestamp",
-  gui_version = "uci.modgui.gui.gui_version",
+  gui_version = "rpc.system.modgui.gui_version",
   gui_skin = "uci.modgui.gui.gui_skin",
 }
 
