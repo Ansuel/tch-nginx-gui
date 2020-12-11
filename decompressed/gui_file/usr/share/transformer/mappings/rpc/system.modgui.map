@@ -4,35 +4,124 @@ local commitapply = commitapply
 
 --- Returns HEX representation of num
 local function num2hex(num)
-    local hexstr = '0123456789abcdef'
-    local s = ''
-    while num > 0 do
-        local mod = math.fmod(num, 16)
-        s = string.sub(hexstr, mod+1, mod+1) .. s
-        num = math.floor(num / 16)
-    end
-    if s == '' then s = '0' end
-    return s
+  local hexstr = "0123456789abcdef"
+  local s = ""
+  while num > 0 do
+    local mod = math.fmod(num, 16)
+    s = string.sub(hexstr, mod + 1, mod + 1) .. s
+    num = math.floor(num / 16)
+  end
+  if s == "" then
+    s = "0"
+  end
+  return s
 end
 
 local function str2hex(str)
-    local hex = ''
-    while #str > 0 do
-        local hb = num2hex(string.byte(str, 1, 1))
-        if #hb < 2 then hb = '0' .. hb end
-        hex = hex .. hb
-        str = string.sub(str, 2)
+  local hex = ""
+  while #str > 0 do
+    local hb = num2hex(string.byte(str, 1, 1))
+    if #hb < 2 then
+      hb = "0" .. hb
     end
-    return hex
+    hex = hex .. hb
+    str = string.sub(str, 2)
+  end
+  return hex
 end
+
+local gui_info_cache = {}
 
 local SYSTEM_MODGUI_ = {
   objectType = {
-    name = 'rpc.system.modgui.',
-    access = 'readOnly',
+    name = "rpc.system.modgui.",
+    access = "readOnly",
     minEntries = 1,
     maxEntries = 1,
-    parameters = {}
+    parameters = {
+      gui_version = {
+        access = "readOnly",
+        type = "string"
+      },
+      cwmp_TIM_last_version = {
+        access = "readOnly",
+        type = "string"
+      },
+      modoverlay_disabled = {
+        access = "readWrite",
+        type = "boolean"
+      }
+    }
+  },
+  get = {
+    gui_version = function()
+      local gui_version = gui_info_cache.gui_version
+
+      if gui_version then
+        return gui_version
+      end
+
+      gui_version = 'Unknown'
+
+      local f = io.open('/etc/init.d/rootdevice', 'r')
+
+      for l in f:lines() do
+        if l:find('version_gui=') then
+          gui_version = l:gsub('version_gui=','')
+          break
+        end
+      end
+
+      f:close()
+
+      gui_info_cache.gui_version = gui_version
+
+      return gui_version
+    end,
+    cwmp_TIM_last_version = function()
+      local cwmp_TIM_last_version = gui_info_cache.cwmp_TIM_last_version
+
+      if cwmp_TIM_last_version then 
+        return cwmp_TIM_last_version
+      end
+
+      cwmp_TIM_last_version = 'Unknown'
+
+      local f = io.open('/etc/init.d/rootdevice', 'r')
+
+      for l in f:lines() do
+        if l:find('latest_version_on_TIM_cwmp=') then
+          cwmp_TIM_last_version = l:gsub('latest_version_on_TIM_cwmp=','')
+          break
+        end
+      end
+
+      f:close()
+
+      gui_info_cache.cwmp_TIM_last_version = cwmp_TIM_last_version
+
+      return cwmp_TIM_last_version
+    end,
+    modoverlay_disabled = function()
+      local exist = io.open("/overlay/.disable_modoverlay")
+      if exist then
+        exist:close()
+      end
+      local disabled = exist and "1" or "0"
+
+      return disabled
+    end
+  },
+  set = {
+    modoverlay_disabled = function(mapping, paramName, paramValue)
+      
+      if (paramValue == "0") then
+        os.remove("/overlay/.disable_modoverlay")
+      else
+        io.open("/overlay/.disable_modoverlay", 'w'):close()
+      end
+      return
+    end
   }
 }
 
@@ -43,70 +132,67 @@ register(SYSTEM_MODGUI_)
 -- _terminate CAN BE USED TO CHECK IF ANY PROCESS IS ALREADY RUNNING AN TERMINATE IT
 
 local commands_helper = {
-	checkver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/checkver"',
-	resetgui = '/usr/share/transformer/scripts/resetUtility.sh --resetGui',
-	removeroot = '/usr/share/transformer/scripts/resetUtility.sh --removeRoot',
-	resetconfig = '/usr/share/transformer/scripts/resetUtility.sh --removeConfig',
-	resetcwmp = '/usr/share/transformer/scripts/resetUtility.sh --resetCWMP',
-	checkver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/checkver"',
-	transferBank1 = '/usr/share/transformer/scripts/transfer_bank1.sh',
-	refreshDslDriver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/refresh_driver.sh"',
-	resetDslDriver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/refresh_driver.sh clean"',
-	copyBank = '/usr/share/transformer/scripts/copy_bank.sh',
-	upgradegui = 'start-stop-daemon -S -b -x /usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/upgradegui GuiRequest"',
-	genSysupgradeBackup = function(filename) return '/usr/share/transformer/scripts/wrapper.sh "sysupgrade -b /tmp/'..filename..'"' end,
-	restoreSysupgradeBackup = 'sysupgrade -r /tmp/sysupgrade_backup.tar.gz;reboot'
+  checkver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/checkver"',
+  resetgui = "/usr/share/transformer/scripts/resetUtility.sh --resetGui",
+  removeroot = "/usr/share/transformer/scripts/resetUtility.sh --removeRoot",
+  resetconfig = "/usr/share/transformer/scripts/resetUtility.sh --removeConfig",
+  resetcwmp = "/usr/share/transformer/scripts/resetUtility.sh --resetCWMP",
+  checkver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/checkver"',
+  transferBank1 = "/usr/share/transformer/scripts/transfer_bank1.sh",
+  refreshDslDriver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/refresh_driver.sh"',
+  resetDslDriver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/refresh_driver.sh clean"',
+  copyBank = "/usr/share/transformer/scripts/copy_bank.sh",
+  upgradegui = 'start-stop-daemon -S -b -x /usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/upgradegui GuiRequest"',
+  genSysupgradeBackup = function(filename)
+    return '/usr/share/transformer/scripts/wrapper.sh "sysupgrade -b /tmp/' .. filename .. '"'
+  end,
+  restoreSysupgradeBackup = "sysupgrade -r /tmp/sysupgrade_backup.tar.gz;reboot"
 }
 
 local async_exec = require("lasync").execute
 
 local SYSTEM_MODGUI_UTILITY_ = {
   objectType = {
-    name = 'rpc.system.modgui.utility.',
-    access = 'readOnly',
+    name = "rpc.system.modgui.utility.",
+    access = "readOnly",
     minEntries = 1,
     maxEntries = 1,
     parameters = {
-	  rip_key_B = {
-         access = "readOnly",
-         type = "string",
-      },
-	  sendcmd = {
-		 access = "readWrite",
-		 type = "string",
-	  }
+      rip_key_B = {access = "readOnly", type = "string"},
+      sendcmd = {access = "readWrite", type = "string"}
     }
   },
   get = {
-	rip_key_B = function()
-		local content = io.open("/proc/rip/0108")
-		local result = content:read("*all")
-		content:close()
+    rip_key_B = function()
+      local content = io.open("/proc/rip/0108")
+      local result = content:read("*all")
+      content:close()
 
-		return str2hex(result:sub(1,64))
-	end,
-	sendcmd = "",
+      return str2hex(result:sub(1, 64))
+    end,
+    sendcmd = ""
   },
   set = {
-	sendcmd = function(mapping, paramName, paramValue)
-		local param = paramValue:gsub("_.*","")
-		local args = paramValue:gsub("^[A-z]+_","")
-		local command = commands_helper[param]
-		if not command then
-			return nil, "Invalid command"
-		end
-		if type(command) == "function" then
-			command = command(args)
-		elseif args and args == "terminate" then
-			local clean_comm = "for pid in $(pgrep -f "..command.."); do logger terminating :  $pid && kill -KILL $pid;done"
-			async_exec{[clean_comm] = true}
-	    end
-	if args and args:match("sync") then
-		os.execute(command)
-	else
-		async_exec({[command]=true})
-		end
-	end,
+    sendcmd = function(mapping, paramName, paramValue)
+      local param = paramValue:gsub("_.*", "")
+      local args = paramValue:gsub("^[A-z]+_", "")
+      local command = commands_helper[param]
+      if not command then
+        return nil, "Invalid command"
+      end
+      if type(command) == "function" then
+        command = command(args)
+      elseif args and args == "terminate" then
+        local clean_comm =
+          "for pid in $(pgrep -f " .. command .. "); do logger terminating :  $pid && kill -KILL $pid;done"
+        async_exec {[clean_comm] = true}
+      end
+      if args and args:match("sync") then
+        os.execute(command)
+      else
+        async_exec({[command] = true})
+      end
+    end
   }
 }
 
@@ -114,29 +200,18 @@ register(SYSTEM_MODGUI_UTILITY_)
 
 local SYSTEM_MODGUI_DEBUGLOG_ = {
   objectType = {
-    name = 'rpc.system.modgui.debuglog.',
-    access = 'readOnly',
+    name = "rpc.system.modgui.debuglog.",
+    access = "readOnly",
     minEntries = 1,
     maxEntries = 1,
     parameters = {
       state = {
         access = "readOnly",
         type = "string",
-        enumeration = {
-          "None",
-          "Requested",
-          "Complete",
-        },
+        enumeration = {"None", "Requested", "Complete"}
       },
-      filename = {
-        access = "readOnly",
-        type = "string",
-        max = "256",
-      },
-	  start = {
-		access = "readWrite",
-		type = "boolean",
-	  }
+      filename = {access = "readOnly", type = "string", max = "256"},
+      start = {access = "readWrite", type = "boolean"}
     }
   }
 }
@@ -145,50 +220,50 @@ SYSTEM_MODGUI_DEBUGLOG_.get = {
   filename = function(mapping, param)
     local handle = io.popen('find /tmp -type f -name "DebugHelper*"')
     local filename = handle:read("*a")
-    filename = string.gsub(filename, '^%s+', '')
-    filename = string.gsub(filename, '%s+$', '')
-    filename = string.gsub(filename, '[\n\r]+', ' ')
+    filename = string.gsub(filename, "^%s+", "")
+    filename = string.gsub(filename, "%s+$", "")
+    filename = string.gsub(filename, "[\n\r]+", " ")
     handle:close()
-	return filename
+    return filename
   end,
   state = function(mapping, param)
     local handle = io.popen('find /tmp -type f -name "DebugHelper*"')
     local filename = handle:read("*a")
-    filename = string.gsub(filename, '^%s+', '')
-    filename = string.gsub(filename, '%s+$', '')
-    filename = string.gsub(filename, '[\n\r]+', ' ')
+    filename = string.gsub(filename, "^%s+", "")
+    filename = string.gsub(filename, "%s+$", "")
+    filename = string.gsub(filename, "[\n\r]+", " ")
     handle:close()
-	if filename ~= "" then
-		return "Complete"
-	end
+    if filename ~= "" then
+      return "Complete"
+    end
     handle = io.popen('find /tmp -type d -name "DebugHelper*"')
     local filedir = handle:read("*a")
-    filename = string.gsub(filename, '^%s+', '')
-    filename = string.gsub(filename, '%s+$', '')
-    filedir = string.gsub(filedir, '[\n\r]+', ' ')
+    filename = string.gsub(filename, "^%s+", "")
+    filename = string.gsub(filename, "%s+$", "")
+    filedir = string.gsub(filedir, "[\n\r]+", " ")
     handle:close()
-	if filedir ~= "" then
-		return "Requested"
-	end
-	return "None"
+    if filedir ~= "" then
+      return "Requested"
+    end
+    return "None"
   end,
-  start = "0",
+  start = "0"
 }
 
 SYSTEM_MODGUI_DEBUGLOG_.set = {
   start = function(mapping, paramName, paramValue)
-	if paramValue == "1" then
-        commitapply:newset("rpc.system.modgui.debuglog." .. paramName)
+    if paramValue == "1" then
+      commitapply:newset("rpc.system.modgui.debuglog." .. paramName)
     end
-  end,
+  end
 }
 
 register(SYSTEM_MODGUI_DEBUGLOG_)
 
 local SYSTEM_MODGUI_SCRIPTREQUEST_ = {
   objectType = {
-    name = 'rpc.system.modgui.executeCommand.',
-    access = 'readOnly',
+    name = "rpc.system.modgui.executeCommand.",
+    access = "readOnly",
     minEntries = 1,
     maxEntries = 1,
     parameters = {
@@ -197,14 +272,14 @@ local SYSTEM_MODGUI_SCRIPTREQUEST_ = {
         type = "string",
         enumeration = {
           "Idle",
-		  "Clearing",
-		  "Extracting",
-		  "Downloading",
-		  "Checking",
+          "Clearing",
+          "Extracting",
+          "Downloading",
+          "Checking",
           "Requested",
-		  "In Progress",
-          "Complete",
-        },
+          "In Progress",
+          "Complete"
+        }
       }
     }
   }
@@ -214,82 +289,68 @@ local executeCommandRes = "Idle"
 
 local content = io.open("/tmp/executeCommandRes")
 if content then
-    executeCommandRes = content:read("*all")
-    content:close()
-    os.remove("/tmp/executeCommandRes")
+  executeCommandRes = content:read("*all")
+  content:close()
+  os.remove("/tmp/executeCommandRes")
 end
 
 SYSTEM_MODGUI_SCRIPTREQUEST_.get = {
   state = function(mapping, param)
-	return executeCommandRes
-  end,
+    return executeCommandRes
+  end
 }
 
 SYSTEM_MODGUI_SCRIPTREQUEST_.set = {
   state = function(mapping, paramName, paramValue)
-	  executeCommandRes = paramValue
-	  if paramValue ~="Idle" then
-	      local content = io.open("/tmp/executeCommandRes", "wb")
-          content:write(paramValue)
-          content:close()
-      else
-        os.remove("/tmp/executeCommandRes")
-      end
-  end,
+    executeCommandRes = paramValue
+    if paramValue ~= "Idle" then
+      local content = io.open("/tmp/executeCommandRes", "wb")
+      content:write(paramValue)
+      content:close()
+    else
+      os.remove("/tmp/executeCommandRes")
+    end
+  end
 }
 
 register(SYSTEM_MODGUI_SCRIPTREQUEST_)
 
 local SYSTEM_MODGUI_APP_ = {
   objectType = {
-    name = 'rpc.system.modgui.app.',
-    access = 'readOnly',
+    name = "rpc.system.modgui.app.",
+    access = "readOnly",
     minEntries = 1,
     maxEntries = 1,
-    parameters = {
-	  sendcmd = {
-	    access = "readWrite",
-		type = "string"
-	  }
-    }
+    parameters = {sendcmd = {access = "readWrite", type = "string"}}
   }
 }
 
-SYSTEM_MODGUI_APP_.get = {
-	sendcmd = "",
-}
+SYSTEM_MODGUI_APP_.get = {sendcmd = ""}
 --
 local app_list = {
-	"luci",
-	"aria2",
-	"transmission",
-	"blacklist",
-	"xupnp",
-	"telstra",
-	"amule",
-	"specificapp",
+  "luci",
+  "aria2",
+  "transmission",
+  "blacklist",
+  "xupnp",
+  "telstra",
+  "amule",
+  "specificapp"
 }
 
-local exec_type = {
-	"install",
-	"remove",
-	"start",
-	"stop",
-	"refresh",
-}
+local exec_type = {"install", "remove", "start", "stop", "refresh"}
 
-local function contains(str,tbl)
+local function contains(str, tbl)
+  for _, s in pairs(tbl) do
+    if str == s then
+      return true
+    end
+  end
 
-	for _, s in pairs(tbl) do
-		if str == s then
-			return true
-		end
-	end
-
-	return false
+  return false
 end
 
---Command should be sent with 3 part
+-- Command should be sent with 3 part
 --
 -- First part must be type  ( install,remove,start,stop,refresh )
 -- Second part must be name
@@ -298,24 +359,25 @@ end
 -- Example install_blacklist_empty
 --         remove_luci
 SYSTEM_MODGUI_APP_.set = {
-	sendcmd = function(mapping, paramName, paramValue)
-		local commdParse = {}
+  sendcmd = function(mapping, paramName, paramValue)
+    local commdParse = {}
 
-		for s in paramValue:gmatch("[^%_]+") do
-			commdParse[#commdParse+1] = s
-		end
+    for s in paramValue:gmatch("[^%_]+") do
+      commdParse[#commdParse + 1] = s
+    end
 
-		if not contains(commdParse[1],exec_type) then
-			return nil, "Invalid exec type"
-		elseif not contains(commdParse[2],app_list) then
-			return nil, "Invalid app name"
-		end
+    if not contains(commdParse[1], exec_type) then
+      return nil, "Invalid exec type"
+    elseif not contains(commdParse[2], app_list) then
+      return nil, "Invalid app name"
+    end
 
-		local wrapper = '/usr/share/transformer/scripts/wrapper.sh'
-		local appScript = '/usr/share/transformer/scripts/appInstallRemoveUtility.sh'
-		local command = string.format('%s "%s %s %s %s"',wrapper,appScript,commdParse[1],commdParse[2],commdParse[3] or "")
-		async_exec({[command]=true})
-	end,
+    local wrapper = "/usr/share/transformer/scripts/wrapper.sh"
+    local appScript = "/usr/share/transformer/scripts/appInstallRemoveUtility.sh"
+    local command =
+      string.format('%s "%s %s %s %s"', wrapper, appScript, commdParse[1], commdParse[2], commdParse[3] or "")
+    async_exec({[command] = true})
+  end
 }
 
 register(SYSTEM_MODGUI_APP_)
