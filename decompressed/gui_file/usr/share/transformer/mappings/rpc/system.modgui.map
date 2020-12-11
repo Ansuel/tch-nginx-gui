@@ -132,9 +132,7 @@ local commands_helper = {
   resetconfig = "/usr/share/transformer/scripts/resetUtility.sh --removeConfig",
   resetcwmp = "/usr/share/transformer/scripts/resetUtility.sh --resetCWMP",
   checkver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/checkver"',
-  transferBank1 = "/usr/share/transformer/scripts/transfer_bank1.sh",
   resetDslDriver = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/xdsl_firmware_utils.sh clean"',
-  copyBank = "/usr/share/transformer/scripts/copy_bank.sh",
   upgradegui = 'start-stop-daemon -S -b -x /usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/upgradegui GuiRequest"',
   genSysupgradeBackup = function(filename)
     return '/usr/share/transformer/scripts/wrapper.sh "sysupgrade -b /tmp/' .. filename .. '"'

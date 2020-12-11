@@ -268,6 +268,40 @@ if ngx.req.get_method() == "POST" then
 		local mngr = require("web.sessioncontrol").loadmgr("default")
 		mngr.force_https = post_args.gui_forcehttps
 	end
+	if action == "debug_report" then
+
+		local debuglog_path = "rpc.system.modgui.debuglog."
+
+		proxy.set(debuglog_path.."start","1")
+		proxy.apply()
+
+		wait_for_completion(debuglog_path)
+
+		local content = {
+			filename = debuglog_path.."filename",
+		}
+
+		-- Get transformer content
+		content_helper.getExactContent(content)
+
+		-- return exported data
+		local fname = untaint(content.filename)
+		if fname ~= "" then
+			ngx.header.content_disposition = "attachment; filename="..fname:match("([^/]+)$")
+			ngx.header.content_type = "application/octet-stream"
+			ngx.header.set_cookie = "fileDownload=true; Path=/"  -- the JS download code requires this cookie
+			local f = io.open(fname, "r")
+			ngx.print(f:read("*all"))
+			f:close()
+
+			os.remove(fname)
+
+			-- and we're done
+			ngx.exit(ngx.HTTP_OK)
+		else
+			ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+		end
+	end
 end
 
 local content = {
@@ -276,8 +310,8 @@ local content = {
 	new_ver = "uci.modgui.gui.new_ver",
 	specific_app = "uci.modgui.app.specific_app",
 	telstra_gui = "uci.modgui.app.telstra_webui",
+	fwversion_real = "uci.versioncusto.override.fwversion_override_real",
 }
-
 content_helper.getExactContent(content)
 
 local update_branch_option = {
@@ -307,6 +341,26 @@ local gui_skin_option = {
 	{ "dark-red", T'Red Dark'},
 }
 
+local spoof_mode_enum = {
+	{ "disabled" , T"Comunicate real version to CWMP"},
+	{ "manual" , T"Set the version to comunicate to cwmp manually"},
+}
+local function validateVersionSpoofMode(value, object, key)
+
+	local valid, msg = post_helper.getValidateInEnumSelect(spoof_mode_enum)
+
+	if valid then
+		local version_path="uci.versioncusto.override.fwversion_override"
+		local version_real=proxy.get(version_path.."_real")[1].value
+		if value == "disabled" then
+			proxy.set(version_path, version_real)
+		end
+		proxy.apply()
+	end
+
+	return valid, msg
+end
+
 local mapParams = {
 	update_branch = "uci.modgui.gui.update_branch",
 	update_autoupgrade = "uci.modgui.gui.autoupgrade",
@@ -318,7 +372,10 @@ local mapParams = {
 	gui_forcehttps = "uci.web.sessionmgr.@default.force_https",
 	gui_animation = "uci.modgui.gui.gui_animation",
 	disable_cwmp_update = "uci.modgui.var.disable_cwmp_update",
-	modem_serial = "uci.env.var.serial"
+	modem_serial = "uci.env.var.serial",
+	fwversion_override = "uci.versioncusto.override.fwversion_override",
+	version_spoof_mode = "uci.modgui.var.version_spoof_mode",
+	check_obp = "uci.modgui.var.check_obp"
 }
 
 local mapValid = {
@@ -332,7 +389,10 @@ local mapValid = {
 	gui_forcehttps = vB,
 	gui_animation = vB,
 	disable_cwmp_update = vB,
-	modem_serial = post_helper.validateNonEmptyString
+	modem_serial = post_helper.validateNonEmptyString,
+	fwversion_override = gOV(post_helper.validateNonEmptyString),
+	version_spoof_mode = validateVersionSpoofMode,
+	check_obp = vB
 }
 
 local modgui_settings, helpmsg = post_helper.handleQuery(mapParams, mapValid)
@@ -357,7 +417,7 @@ html[#html + 1] = ui_helper.createSwitch(T"GUI animations", "gui_animation", mod
 ngx.print(html)
 
 local html = {}
-html[#html + 1] = '<legend>'.. T"CWMP Settings" ..'</legend>'
+html[#html + 1] = '<legend>'.. T"CWMP Spoof Settings" ..'</legend>'
 local info_box = {
 	alert = {
 		class = "alert alert-info",
@@ -369,6 +429,12 @@ html[#html + 1] = ui_helper.createAlertBlock(T"Disable CWMP Update. Any firmware
 html[#html + 1] = ui_helper.createSwitch(T"Disable CWMP Update", "disable_cwmp_update", modgui_settings["disable_cwmp_update"])
 html[#html + 1] = ui_helper.createAlertBlock(T"Change the Modem Serial. Consider that the modem serial is the Factory ID + Serial.", info_box)
 html[#html + 1] = ui_helper.createInputText(T"Modem Serial", "modem_serial", modgui_settings["modem_serial"])
+if not ( modgui_settings["fwversion_override"] == "" ) then
+	html[#html + 1] = ui_helper.createAlertBlock(T"Disable override of Version Spoof at every GUI update, also usefull to permit CWMP to autoupdate the modem", info_box)
+	html[#html + 1] = ui_helper.createInputSelect(T"Spoof Version Mode", "version_spoof_mode", spoof_mode_enum, modgui_settings["version_spoof_mode"])
+	html[#html + 1] = ui_helper.createAlertBlock(T"Input the latest stock firmware version in this field to spoof it. This is necessary because if a newer version of the firmware is available on the ACS server, CWMPD will try to update the device and break remote monitoring from the “MyTIM” mobile app.", info_box)
+	html[#html + 1] = ui_helper.createInputText(T"Version Set", "fwversion_override", modgui_settings["fwversion_override"], nil, helpmsg["fwversion_override"])
+end
 ngx.print(html)
 
 local html = {}
@@ -661,6 +727,24 @@ html[#html + 1] = '</form>'
 ngx.print(html)
 
 ngx.print('\
+</fieldset>\
+<fieldset>\
+<form  class="form-horizontal">\
+	  <legend>');  ngx.print( T"Debug Report & Advanced settings" ); ngx.print('</legend>\
+		');
+		  local generate_debug_report = {
+			button = {
+			  id = "btn-system-debug-report",
+			  class = "custom-handler"
+			}
+		  }
+		  local html = {}
+			html[#html + 1] = ui_helper.createButton(T"Debug Zip", T"Generate", "icon-exchange", generate_debug_report)
+			html[#html + 1] = ui_helper.createAlertBlock(T"Force the device to always use bank_2 partition as booted partition and bank_1 as active but corrupted<br/>This will also ensure that overlay (configs/mods partition) of bank_1 is empty or just have the rooting script preloaded.<br/>This bank plan allow to use TFTP flashing, as a reliable recovery procedure in case we mess-up with the bank_2 overlay", info_box)
+			html[#html + 1] = ui_helper.createSwitch(T"OBP Check", "check_obp", modgui_settings["check_obp"])
+			ngx.print(html)
+		  ngx.print('\
+		  </form>\
   </fieldset>\
 </div>\
 ');
@@ -941,7 +1025,38 @@ $(".import-backup").on("click", function() {\
 	});\
 	return false;\
   });\
+  $("#btn-system-debug-report").on("click", function() {\
+    $.fileDownload(target, {\
+      httpMethod: "POST",\
+      data: new Array({ name : "action", value : "debug_report" },\
+                      { name : "CSRFtoken", value : $("meta[name=CSRFtoken]").attr("content") }),\
+      prepareCallback: function() {\
+		tch.showProgress(\'');  ngx.print(T"Generating report in background..."); ngx.print('\');\
+      },\
+      successCallback: function() {\
+		location.reload();\
+      }\
+    });\
+    return false;\
+  });\
+  var fwversion_real = "'); ngx.print(content.fwversion_real); ngx.print('";\
+  $("#version_spoof_mode").on("change", function() {\
+	if ( $(this).val() == "manual" ) {\
+	  $("#fwversion_override").prop("disabled", false);\
+	} else {\
+    if ( $(this).val() == "disabled" ) {\
+		$("#fwversion_override").val(fwversion_real);\
+	  }\
+	  $("#fwversion_override").prop("disabled", true);\
+	}\
+  });\
+  if ( $("#version_spoof_mode").val() == "manual" ) {\
+    $("#fwversion_override").prop("disabled", false);\
+  } else {\
+    $("#fwversion_override").prop("disabled", true);\
+  }\
 ');
+
 if ngx.req.get_uri_args().action and ngx.req.get_uri_args().action == "manualguiupgrade" then
 	ngx.print('\
 	$("#GUI_Upgrade_Legend")[0].scrollIntoView();\

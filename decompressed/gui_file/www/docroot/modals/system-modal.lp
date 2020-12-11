@@ -13,42 +13,13 @@ local post_helper = require("web.post_helper")
 local format, match = string.format, string.match
 local untaint = string.untaint
 
-local gOV = post_helper.getOptionalValidation
 local vSIPR = post_helper.validateStringIsPortRange
 
-local spoof_mode_enum = {
-	{ "disabled" , T"Comunicate real version to CWMP"},
-	{ "manual" , T"Set the version to comunicate to cwmp manually"},
-}
-
-local function validateVersionSpoofMode(value, object, key)
-
-	local valid, msg = post_helper.getValidateInEnumSelect(spoof_mode_enum)
-
-	if valid then
-		local version_path="uci.versioncusto.override.fwversion_override"
-		local version_real=proxy.get(version_path.."_real")[1].value
-		local version_latest=proxy.get(version_path.."_latest")[1].value
-		if value == "disabled" then
-			proxy.set(version_path, version_real)
-		elseif value == "enabled" then
-			proxy.set(version_path,version_latest)
-		end
-		proxy.apply()
-	end
-
-	return valid, msg
-end
-
 local fwversion_override_Params = {
-    fwversion_override = "uci.versioncusto.override.fwversion_override",
-    version_spoof_mode = "uci.modgui.var.version_spoof_mode",
     ssh_wan_port = "uci.dropbear.dropbear.@wan.Port",
 }
 
 local fwversion_override_valid = {
-    fwversion_override = gOV(post_helper.validateNonEmptyString),
-    version_spoof_mode = validateVersionSpoofMode,
     ssh_wan_port = post_helper.validateStringIsPort
 }
 
@@ -57,7 +28,6 @@ local fwversion_override_content, fwversion_override_helpmsg = post_helper.handl
 local env = {
   factory = "uci.env.rip.factory_id",
   serial = "uci.env.rip.serial",
-  fwversion_real = "uci.versioncusto.override.fwversion_override_real",
 }
 content_helper.getExactContent(env)
 
@@ -235,12 +205,6 @@ if telnet_available then
 	telnet_content, helpmsg = post_helper.handleQuery(telnet_Params, telnet_valid)
 end
 
-local check_obp_Params = { check_obp = "uci.modgui.var.check_obp" }
-
-local check_obp_valid = { check_obp = vB }
-
-local check_obp_content, helpmsg = post_helper.handleQuery(check_obp_Params, check_obp_valid)
-
 local config_Params = {
   export_plaintext = "uci.system.config.export_plaintext",
   import_plaintext = "uci.system.config.import_plaintext",
@@ -297,46 +261,6 @@ if ngx.req.get_method() == "POST" then
   if action == "system_switchover" then
     return resetreboot("rpc.system.switchover","1")
   end
-  if action == "system_transfer_bank_1" then
-    return resetreboot("rpc.system.modgui.utility.sendcmd","transferBank1")
-  end
-  if action == "system_copy_bank" then
-    return resetreboot("rpc.system.modgui.utility.sendcmd","copyBank")
-  end
-  if action == "debug_report" then
-
-	local debuglog_path = "rpc.system.modgui.debuglog."
-
-	proxy.set(debuglog_path.."start","1")
-	proxy.apply()
-
-	wait_for_completion(debuglog_path)
-
-      local content = {
-		filename = debuglog_path.."filename",
-	}
-
-      -- Get transformer content
-	content_helper.getExactContent(content)
-
-      -- return exported data
-      local fname = untaint(content.filename)
-	if fname ~= "" then
-		ngx.header.content_disposition = "attachment; filename="..fname:match("([^/]+)$")
-		ngx.header.content_type = "application/octet-stream"
-		ngx.header.set_cookie = "fileDownload=true; Path=/"  -- the JS download code requires this cookie
-		local f = io.open(fname, "r")
-		ngx.print(f:read("*all"))
-		f:close()
-
-		os.remove(fname)
-
-        -- and we're done
-		ngx.exit(ngx.HTTP_OK)
-	else
-		ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
-	end
-  end
 end
 
 local title = T"System Extras"
@@ -366,51 +290,6 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
           class = "custom-handler"
         }
       }
-	  local switchover_alert = {
-        alert = {
-          class = "alert-info hide",
-          id = "switchover-msg"
-        }
-      }
-      local switchover = {
-        group = {
-          class = "wait-for-reboot"
-        },
-        button = {
-          id = "btn-system-switchover",
-          class = "custom-handler"
-        }
-      }
-	  local transfer_bank1_alert = {
-        alert = {
-          class = "alert-info hide",
-          id = "transfer-bank1-msg"
-        }
-      }
-	  local copy_bank_alert = {
-        alert = {
-          class = "alert-info hide",
-          id = "copy-bank-msg"
-        }
-      }
-      local transfer_bank1 = {
-        group = {
-          class = "wait-for-reboot"
-        },
-        button = {
-          id = "btn-system-transfer-bank1",
-          class = "custom-handler"
-        }
-      }
-	  local copy_bank = {
-        group = {
-          class = "wait-for-reboot"
-        },
-        button = {
-          id = "btn-system-copy-bank",
-          class = "custom-handler"
-        }
-      }
 	  local info_box = {
         alert = {
 			class = "alert alert-info",
@@ -424,46 +303,9 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       local html = {}
       html[#html + 1] = ui_helper.createButton(T"LAN Update", T"BOOTP", "icon-exchange", bootp)
       html[#html + 1] = ui_helper.createAlertBlock(T"Entering BOOTP, please wait...", bootp_alert)
-	  html[#html + 1] = ui_helper.createButton(T"SwitchBank", T"Switchover", "icon-exchange", switchover)
-      html[#html + 1] = ui_helper.createAlertBlock(T"Switching bank, please wait...", switchover_alert)
-	  if env["activebank"] == "bank_2"
-		then
-		html[#html + 1] = ui_helper.createAlertBlock(T"This will transfer your configuration and firmware to bank_1 and it will erase bank_2", warn_box)
-		html[#html + 1] = ui_helper.createButton(T"Transfer to", T"Bank 1", "icon-exchange", transfer_bank1)
-		html[#html + 1] = ui_helper.createAlertBlock(T"Transfering bank, please wait...", transfer_bank1_alert)
-	  end
-	  html[#html + 1] = ui_helper.createAlertBlock(T"Clone the content of the running bank to the inactive one. Warning: this will delete all data and configuration settings on the inactive bank!", warn_box)
-	  html[#html + 1] = ui_helper.createButton(T"Clone bank", T"Clone", "icon-exchange", copy_bank)
-	  html[#html + 1] = ui_helper.createAlertBlock(T"Cloning bank, please wait...", copy_bank_alert)
-	  html[#html + 1] = ui_helper.createAlertBlock(T"Force the device to always use bank_2 partition as booted partition and bank_1 as active but corrupted<br/>This will also ensure that overlay (configs/mods partition) of bank_1 is empty or just have the rooting script preloaded.<br/>This bank plan allow to use TFTP flashing, as a reliable recovery procedure in case we mess-up with the bank_2 overlay", info_box)
-	  html[#html + 1] = ui_helper.createSwitch(T"OBP Check", "check_obp", check_obp_content["check_obp"])
       ngx.print(html)
       ngx.print('\
 </fieldset>');
-if not ( fwversion_override_content["fwversion_override"] == "" ) then
-	ngx.print('\
-	<fieldset>\
-	<legend>');  ngx.print( T"Spoof Settings" ); ngx.print('</legend>\
-		');
-		local html = {}
-		local info_box = {
-			alert = {
-				class = "alert alert-info",
-			}
-		}
-		local long_input = {
-			select = {
-				class = "span5",
-			}
-		}
-		html[#html + 1] = ui_helper.createAlertBlock(T"Disable override of Version Spoof at every GUI update, also usefull to permit CWMP to autoupdate the modem", info_box)
-		html[#html + 1] = ui_helper.createInputSelect(T"Spoof Version Mode", "version_spoof_mode", spoof_mode_enum ,fwversion_override_content["version_spoof_mode"],long_input)
-		html[#html + 1] = ui_helper.createAlertBlock(T"Input the latest stock firmware version in this field to spoof it. This is necessary because if a newer version of the firmware is available on the ACS server, CWMPD will try to update the device and break remote monitoring from the “MyTIM” mobile app.", info_box)
-		html[#html + 1] = ui_helper.createInputText(T"Version Set", "fwversion_override", fwversion_override_content["fwversion_override"], nil , fwversion_override_helpmsg["fwversion_override"])
-		ngx.print(html)
-		ngx.print('\
-	</fieldset>');
-end
 ngx.print('\
 <fieldset>\
   <legend>');  ngx.print( T"Config creation option" ); ngx.print('</legend>\
@@ -481,20 +323,6 @@ ngx.print('\
 	  html[#html + 1] = ui_helper.createSwitch(T"Import UnSigned", "import_unsigned", config_content["import_unsigned"])
 	  html[#html + 1] = ui_helper.createAlertBlock(T"An imported configuration file will only be applied if its firmware version matches the currently installed one.’", info_box)
 	  html[#html + 1] = ui_helper.createSwitch(T"Import Restricted", "import_restricted", config_content["import_restricted"])
-      ngx.print(html)
-      ngx.print('\
-</fieldset>\
-<fieldset>\
-  <legend>');  ngx.print( T"Debug Report" ); ngx.print('</legend>\
-    ');
-	  local generate_debug_report = {
-        button = {
-          id = "btn-system-debug-report",
-          class = "custom-handler"
-        }
-      }
-      local html = {}
-		html[#html + 1] = ui_helper.createButton(T"Debug Zip", T"Generate", "icon-exchange", generate_debug_report)
       ngx.print(html)
       ngx.print('\
 </fieldset>\
@@ -633,58 +461,6 @@ ngx.print('\
        return resetreboot($("#bootp-msg"), $(this), "system_bootp");\
      }\
   });\
-\
-  $("#btn-system-switchover").on("click", function() {\
-     if (confirm("');  ngx.print(T"This will switch the active bank with the passive one"); ngx.print('")){\
-       tch.showProgress(\'');  ngx.print(T"Rebooting..."); ngx.print('\');\
-       return resetreboot($("#switchover-msg"), $(this), "system_switchover");\
-     }\
-  });\
-\
-  $("#btn-system-transfer-bank1").on("click", function() {\
-     if (confirm("');  ngx.print(T"This will transfer the active firmware and config to the bank 1"); ngx.print('")){\
-       tch.showProgress(\'');  ngx.print(T"Rebooting..."); ngx.print('\');\
-       return resetreboot($("#transfer-bank1-msg"), $(this), "system_transfer_bank_1");\
-     }\
-  });\
-\
-$("#btn-system-copy-bank").on("click", function() {\
-     if (confirm("');  ngx.print(T"This will clone the running bank firmware. The process will continue in the background but this could take a while. Continue?"); ngx.print('")){\
-       tch.showProgress(\'');  ngx.print(T"Cloning started in background..."); ngx.print('\');\
-       resetreboot($("#copy-bank-msg"), $(this), "system_copy_bank");\
-	   setTimeout(function(){location.reload();}, 4000);\
-     }\
-  });\
-  $("#btn-system-debug-report").on("click", function() {\
-    $.fileDownload(target, {\
-      httpMethod: "POST",\
-      data: new Array({ name : "action", value : "debug_report" },\
-                      { name : "CSRFtoken", value : $("meta[name=CSRFtoken]").attr("content") }),\
-      prepareCallback: function() {\
-		tch.showProgress(\'');  ngx.print(T"Generating report in background..."); ngx.print('\');\
-      },\
-      successCallback: function() {\
-		location.reload();\
-      }\
-    });\
-    return false;\
-  });\
-  var fwversion_real = "'); ngx.print(env.fwversion_real); ngx.print('";\
-  $("#version_spoof_mode").on("change", function() {\
-	if ( $(this).val() == "manual" ) {\
-	  $("#fwversion_override").prop("disabled", false);\
-	} else {\
-    if ( $(this).val() == "disabled" ) {\
-		$("#fwversion_override").val(fwversion_real);\
-	  }\
-	  $("#fwversion_override").prop("disabled", true);\
-	}\
-  });\
-  if ( $("#version_spoof_mode").val() == "manual" ) {\
-    $("#fwversion_override").prop("disabled", false);\
-  } else {\
-    $("#fwversion_override").prop("disabled", true);\
-  }\
   $("[name=syslog_present]").on("change", function(){\
     $("[name=syslog_ip]").val("");\
     $("[name=syslog_filter_ip]").val("");\
