@@ -352,8 +352,12 @@ html[#html + 1] = ui_helper.createSwitch(T"Random Color", "gui_randomcolor", mod
 html[#html + 1] = ui_helper.createSwitch(T"Force HTTPS to access the GUI", "gui_forcehttps", modgui_settings["gui_forcehttps"])
 html[#html + 1] = ui_helper.createSwitch(T"Always show advanced options", "gui_alwaysadvanced", modgui_settings["gui_alwaysadvanced"])
 html[#html + 1] = ui_helper.createSwitch(T"GUI animations", "gui_animation", modgui_settings["gui_animation"])
-html[#html + 1] = ui_helper.createAlertBlock(T"Disable CWMP Update. Any firmware update from CWMP will be rejected and not flashed."..
-			"Consider that CWMP that request a firmware update will keep requesting it until the update is actually installed."..
+ngx.print(html)
+
+local html = {}
+html[#html + 1] = '<legend>'.. T"CWMP Settings" ..'</legend>'
+html[#html + 1] = ui_helper.createAlertBlock(T"Disable CWMP Update. Any firmware update from CWMP will be rejected and not flashed. "..
+			"Consider that CWMP that request a firmware update will keep requesting it until the update is actually installed. "..
 			"Autoconfiguration won't work. Manually set the version in the System Extra tab to spoof a version or upgrade the firmware.", info_box)
 html[#html + 1] = ui_helper.createSwitch(T"Disable CWMP Update", "disable_cwmp_update", modgui_settings["disable_cwmp_update"])
 ngx.print(html)
