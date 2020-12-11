@@ -30,7 +30,20 @@ local function str2hex(str)
   return hex
 end
 
-local gui_info_cache = {}
+-- On mapper load, parse the cpu type
+local function getCPUtype()
+  local res = io.popen("uname -m", "r")
+  local type = res:read("*l")
+  res:close()
+
+  return type
+end
+
+-- Cache the data to get them quicker.
+-- (They normally change on upgradegui when transformer is restarted)
+local gui_info_cache = {
+  CPUtype = getCPUtype()
+}
 
 local SYSTEM_MODGUI_ = {
   objectType = {
@@ -50,6 +63,10 @@ local SYSTEM_MODGUI_ = {
       modoverlay_disabled = {
         access = "readWrite",
         type = "boolean"
+      },
+      CPUtype = {
+        access = "readOnly",
+        type = "string"
       }
     }
   },
@@ -61,13 +78,13 @@ local SYSTEM_MODGUI_ = {
         return gui_version
       end
 
-      gui_version = 'Unknown'
+      gui_version = "Unknown"
 
-      local f = io.open('/etc/init.d/rootdevice', 'r')
+      local f = io.open("/etc/init.d/rootdevice", "r")
 
       for l in f:lines() do
-        if l:find('version_gui=') then
-          gui_version = l:gsub('version_gui=','')
+        if l:find("version_gui=") then
+          gui_version = l:gsub("version_gui=", "")
           break
         end
       end
@@ -81,17 +98,17 @@ local SYSTEM_MODGUI_ = {
     cwmp_TIM_last_version = function()
       local cwmp_TIM_last_version = gui_info_cache.cwmp_TIM_last_version
 
-      if cwmp_TIM_last_version then 
+      if cwmp_TIM_last_version then
         return cwmp_TIM_last_version
       end
 
-      cwmp_TIM_last_version = 'Unknown'
+      cwmp_TIM_last_version = "Unknown"
 
-      local f = io.open('/etc/init.d/rootdevice', 'r')
+      local f = io.open("/etc/init.d/rootdevice", "r")
 
       for l in f:lines() do
-        if l:find('latest_version_on_TIM_cwmp=') then
-          cwmp_TIM_last_version = l:gsub('latest_version_on_TIM_cwmp=','')
+        if l:find("latest_version_on_TIM_cwmp=") then
+          cwmp_TIM_last_version = l:gsub("latest_version_on_TIM_cwmp=", "")
           break
         end
       end
@@ -110,15 +127,15 @@ local SYSTEM_MODGUI_ = {
       local disabled = exist and "1" or "0"
 
       return disabled
-    end
+    end,
+    CPUtype = gui_info_cache.CPUtype
   },
   set = {
     modoverlay_disabled = function(mapping, paramName, paramValue)
-      
       if (paramValue == "0") then
         os.remove("/overlay/.disable_modoverlay")
       else
-        io.open("/overlay/.disable_modoverlay", 'w'):close()
+        io.open("/overlay/.disable_modoverlay", "w"):close()
       end
       return
     end
@@ -157,7 +174,7 @@ local SYSTEM_MODGUI_UTILITY_ = {
     maxEntries = 1,
     parameters = {
       rip_key_B = {access = "readOnly", type = "string"},
-      sendcmd = {access = "readWrite", type = "string"},
+      sendcmd = {access = "readWrite", type = "string"}
     }
   },
   get = {
