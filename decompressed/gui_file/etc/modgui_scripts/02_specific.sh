@@ -46,40 +46,19 @@ extract_with_check() {
 }
 
 apply_right_opkg_repo() {
-  logger_command "Checking opkg feeds..."
+    logger_command "Checking opkg feeds..."
 	marketing_version="$(uci get -q version.@version[0].marketing_version)"
 
 	opkg_file="/etc/opkg.conf"
-	if [ "$1" ] && [ "$1" == "TG78" ]; then
-		if [ -z "$(  grep $opkg_file -e "chaos_calmer/15.05.1/brcm63xx" )" ]; then
-		  sed -i '/FrancYescO\/789vacv2/d' /etc/opkg.conf #remove old setted feeds
-			cat << EOF >> $opkg_file
-src/gz chaos_calmer_base http://archive.openwrt.org/chaos_calmer/15.05.1/brcm63xx/generic/packages/base
-src/gz chaos_calmer_packages http://archive.openwrt.org/chaos_calmer/15.05.1/brcm63xx/generic/packages/packages
-src/gz chaos_calmer_luci http://archive.openwrt.org/chaos_calmer/15.05.1/brcm63xx/generic/packages/luci
-src/gz chaos_calmer_routing http://archive.openwrt.org/chaos_calmer/15.05/brcm63xx/generic/packages/routing
-src/gz chaos_calmer_telephony http://archive.openwrt.org/chaos_calmer/15.05/brcm63xx/generic/packages/telephony
-src/gz chaos_calmer_management http://archive.openwrt.org/chaos_calmer/15.05.1/brcm63xx/generic/packages/management
 
-arch all 100
-arch brcm63xx 200
-arch brcm63xx-tch 300
-EOF
-    fi
-  elif [ "$1" ] && [ "$1" == "Xtream" ]; then
-		if [ -z "$(  grep $opkg_file -e "FrancYescO/789vacv2_opkg/xtream35b" )" ]; then
-			cat << EOF >> $opkg_file
-src/gz base https://raw.githubusercontent.com/FrancYescO/789vacv2_opkg/xtream35b/packages
-EOF
-    fi
-  else
+	if grep -q "ARM" /proc/cpuinfo; then
 	case $marketing_version in
 	"18."*)
-		if [ -n "$(  grep $opkg_file -e "brcm63xx-tch" )" ]; then
+		if grep -1 "brcm63xx-tch" $opkg_file; then
 			rm /etc/opkg.conf
 			cp /rom/etc/opkg.conf /etc/
 		fi
-		if [ -z "$(  grep $opkg_file -e "Ansuel/GUI_ipk/kernel-4.1" )" ]; then
+		if ! grep -q "Ansuel/GUI_ipk/kernel-4.1" $opkg_file; then
 			cat << EOF >> $opkg_file
 arch all 100
 arch arm_cortex-a9 200
@@ -94,7 +73,7 @@ EOF
 		fi
 		;;
 	"17."*)
-		if [ -z "$(  grep $opkg_file -e "roleo/public/agtef/1.1.0/brcm63xx-tch" )" ]; then
+		if ! grep -q "roleo/public/agtef/1.1.0/brcm63xx-tch" $opkg_file; then
 			cat << EOF >> $opkg_file
 src/gz chaos_calmer_base https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/base
 src/gz chaos_calmer_packages https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/packages
@@ -105,8 +84,8 @@ src/gz chaos_calmer_management https://repository.ilpuntotecnico.com/files/roleo
 EOF
 		fi
 		;;
-	"16."*)
-		if [ -z "$(  grep $opkg_file -e "roleo/public/agtef/brcm63xx-tch" )" ]; then
+	"16.3"*)
+		if ! grep -q "roleo/public/agtef/brcm63xx-tch" $opkg_file; then
 			cat << EOF >> $opkg_file
 src/gz chaos_calmer_base https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/base
 src/gz chaos_calmer_packages https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/packages
@@ -117,10 +96,42 @@ src/gz chaos_calmer_management https://repository.ilpuntotecnico.com/files/roleo
 EOF
 		fi
 		;;
+    "16.2"* | "16.1"*)
+		if ! grep -q "FrancYescO/789vacv2_opkg/xtream35b" $opkg_file; then
+			cat << EOF >> $opkg_file
+src/gz base https://raw.githubusercontent.com/FrancYescO/789vacv2_opkg/xtream35b/packages
+EOF
+        fi
+		;;
 	*)
-		logger_command "No opkg file supported"
+		logger_command "No known ARM feeds for this version $marketing_version"
 		;;
 	esac
+	elif grep -q "MIPS" /proc/cpuinfo; then
+	case $marketing_version in
+	"16."* | "17."*)
+	  if [ -z "$(  grep $opkg_file -e "chaos_calmer/15.05.1/brcm63xx" )" ]; then
+		  sed -i '/FrancYescO\/789vacv2/d' /etc/opkg.conf #remove old setted feeds
+			cat << EOF >> $opkg_file
+src/gz chaos_calmer_base http://archive.openwrt.org/chaos_calmer/15.05.1/brcm63xx/generic/packages/base
+src/gz chaos_calmer_packages http://archive.openwrt.org/chaos_calmer/15.05.1/brcm63xx/generic/packages/packages
+src/gz chaos_calmer_luci http://archive.openwrt.org/chaos_calmer/15.05.1/brcm63xx/generic/packages/luci
+src/gz chaos_calmer_routing http://archive.openwrt.org/chaos_calmer/15.05/brcm63xx/generic/packages/routing
+src/gz chaos_calmer_telephony http://archive.openwrt.org/chaos_calmer/15.05/brcm63xx/generic/packages/telephony
+src/gz chaos_calmer_management http://archive.openwrt.org/chaos_calmer/15.05.1/brcm63xx/generic/packages/management
+
+arch all 100
+arch brcm63xx 200
+arch brcm63xx-tch 300
+EOF
+      fi
+      ;;
+    *)
+		logger_command "No known MIPS feeds for this version $marketing_version"
+		;;
+	esac
+	else
+		logger_command "CPU not detected, feeds not found for this version $marketing_version"
 	fi
 
   # Remove non-existent hardcoded distfeed to avoid 404 on opkg update
@@ -218,16 +229,7 @@ remove_wizard_5ghz() {
 device_type="$(uci get -q env.var.prod_friendly_name)"
 kernel_ver="$(< /proc/version awk '{print $3}')"
 
-
-[ -z "${device_type##*DGA413*}" ] && apply_right_opkg_repo #Check opkg conf based on version
-[ -z "${device_type##*TG80*}" ] && apply_right_opkg_repo #Check opkg conf based on version
-if [ -z "${device_type##*TG78*}" ] && [ -n "${device_type##*Xtream*}" ]; then
-  apply_right_opkg_repo TG78
-elif [ -z "${device_type##*TG58*}" ]; then
-  apply_right_opkg_repo TG78
-elif [ -z "${device_type##*TG789*}" ] && [ -z "${device_type##*Xtream*}" ]; then
-  apply_right_opkg_repo Xtream
-fi
+apply_right_opkg_repo
 
 if [ ! "$(uci get -q modgui.app.specific_app)" ]; then
   uci set modgui.app.specific_app="0"
