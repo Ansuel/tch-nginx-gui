@@ -31,18 +31,19 @@ local function str2hex(str)
 end
 
 -- On mapper load, parse the cpu type
-local function getCPUtype()
-  local res = io.popen("uname -m", "r")
-  local type = res:read("*l")
+local function getUnameData(args)
+  local res = io.popen("uname -"..args, "r")
+  local data = res:read("*l")
   res:close()
 
-  return type
+  return data
 end
 
 -- Cache the data to get them quicker.
 -- (They normally change on upgradegui when transformer is restarted)
 local gui_info_cache = {
-  CPUtype = getCPUtype()
+  CPUtype = getUnameData('m'),
+  KernelVersion = getUnameData('r')
 }
 
 local SYSTEM_MODGUI_ = {
@@ -65,6 +66,10 @@ local SYSTEM_MODGUI_ = {
         type = "boolean"
       },
       CPUtype = {
+        access = "readOnly",
+        type = "string"
+      },
+      KernelVersion = {
         access = "readOnly",
         type = "string"
       }
@@ -128,7 +133,8 @@ local SYSTEM_MODGUI_ = {
 
       return disabled
     end,
-    CPUtype = gui_info_cache.CPUtype
+    CPUtype = gui_info_cache.CPUtype,
+    KernelVersion = gui_info_cache.KernelVersion
   },
   set = {
     modoverlay_disabled = function(mapping, paramName, paramValue)
