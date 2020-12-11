@@ -57,10 +57,6 @@ local SYSTEM_MODGUI_ = {
         access = "readOnly",
         type = "string"
       },
-      cwmp_TIM_last_version = {
-        access = "readOnly",
-        type = "string"
-      },
       modoverlay_disabled = {
         access = "readWrite",
         type = "boolean"
@@ -99,30 +95,6 @@ local SYSTEM_MODGUI_ = {
       gui_info_cache.gui_version = gui_version
 
       return gui_version
-    end,
-    cwmp_TIM_last_version = function()
-      local cwmp_TIM_last_version = gui_info_cache.cwmp_TIM_last_version
-
-      if cwmp_TIM_last_version then
-        return cwmp_TIM_last_version
-      end
-
-      cwmp_TIM_last_version = "Unknown"
-
-      local f = io.open("/etc/init.d/rootdevice", "r")
-
-      for l in f:lines() do
-        if l:find("latest_version_on_TIM_cwmp=") then
-          cwmp_TIM_last_version = l:gsub("latest_version_on_TIM_cwmp=", "")
-          break
-        end
-      end
-
-      f:close()
-
-      gui_info_cache.cwmp_TIM_last_version = cwmp_TIM_last_version
-
-      return cwmp_TIM_last_version
     end,
     modoverlay_disabled = function()
       local exist = io.open("/overlay/.disable_modoverlay")
