@@ -31,7 +31,7 @@ local modgui_var  = {
     section = "var",
     type = "var",
     options = { "isp","ppp_mgmt","ppp_realm_ipv6","ppp_realm_ipv4","encrypted_pass","check_obp","reboot_reason_msg","version_spoof_mode",
-	"isp_autodetect"},
+	"isp_autodetect","disable_cwmp_update"},
 }
 
 mapper("uci_1to1").registerSimpleMap(modgui_var)

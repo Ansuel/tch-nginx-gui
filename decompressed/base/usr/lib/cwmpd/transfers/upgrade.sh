@@ -243,12 +243,24 @@ if [ "$TRANSFER_ACTION" = "start" ]; then
     uci show $CONFIG
 
     ubus send cwmpd.transfer '{ "session": "begins", "type": "upgrade" }'
-    do_upgrade "$URL"
-    #if do_upgrade returns, the upgrade failed, remember that
-    if [ $? -eq 1 ]; then
-      E="1,download upgrade image failed"
+
+    if [ "$(uci get -q mogui.var.disable_cwmp_update)" = "1" ]; then
+      # TIM IS LOVE, TIM IS LIFE. No disclusure for you :D
+      if echo $TRANSFER_URL | grep -q 'Firmware/TR069/AGThomson'; then
+        uci set modgui.var.reboot_reason_msg="TIM ACS asked for firmware update"
+      else
+        echo "$TRANSFER_URL" "$TRANSFER_USERNAME" "$TRANSFER_PASSWORD" > /tmp/cwmpd_update_request
+        uci set modgui.var.reboot_reason_msg="ACS asked for firmware update from: $URL"
+      fi
+      exit 0
     else
-      E="1,upgrade failed (not a valid signed rbi?)"
+      do_upgrade "$URL"
+      #if do_upgrade returns, the upgrade failed, remember that
+      if [ $? -eq 1 ]; then
+        E="1,download upgrade image failed"
+      else
+        E="1,upgrade failed (not a valid signed rbi?)"
+      fi
     fi
 
     set_error "$TRANSFER_ID" "$E"
