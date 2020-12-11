@@ -54,7 +54,7 @@ apply_right_opkg_repo() {
 	if grep -q "ARM" /proc/cpuinfo; then
 	case $marketing_version in
 	"18."*)
-		if grep -1 "brcm63xx-tch" $opkg_file; then
+		if grep -q "brcm63xx-tch" $opkg_file; then
 			rm /etc/opkg.conf
 			cp /rom/etc/opkg.conf /etc/
 		fi
