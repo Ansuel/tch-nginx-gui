@@ -208,6 +208,7 @@ if
     tinsert(driver_option, {"B2pvfbH045o", "B2pvfbH045o (FRITZ!Box 7582 7.12-72473M)"})
     tinsert(driver_option, {"B2pvfbH045o1", "B2pvfbH045o1 (Zyxel VMG4005-B50A_5.15(ABQA.0)C0)"})
     tinsert(driver_option, {"A2pvfbH043b", "A2pvfbH043b (New FastGate Fastweb)"})
+    tinsert(driver_option, {"B2pvfbH046w", "B2pvfbH046w (FRITZ!Box 7582 7.13-84683)"})
     tinsert(driver_option, {"A2pvfbH043d1", "A2pvfbH043d1 (FRITZ!Box 7581 6.54)"})
     --table.insert(driver_option,{ "A2pvfbH043e", 'A2pvfbH043e (Zyxel 8823)'}) --Annex b???
     --table.insert(driver_option,{ "A2pvfbH043f", 'A2pvfbH043f (DSL AC88U) ' .. T'Less Ping'}) --Missing
@@ -226,6 +227,7 @@ if
     tinsert(driver_option, {"A2pvfbH045p", "A2pvfbH045p (DGA4131FWB 18.3.n)"})
     tinsert(driver_option, {"A2pvfbH045q", "A2pvfbH045q (iopsys 5.1.0RC4)"})
     tinsert(driver_option, {"A2pvfbH045r", "A2pvfbH045r (AGTHP_2.2.2_001)"})
+    tinsert(driver_option, {"A2pvfbH046w", "A2pvfbH045r (FRITZ!Box 7582 7.13-84683)"})
   end
 
   driver_Params.driver_ver = "rpc.xdslctl.DslFirmwareVersion"
