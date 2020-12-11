@@ -317,7 +317,8 @@ local mapParams = {
 	gui_alwaysadvanced = "uci.web.uiconfig.@uidefault.alwaysadvanced",
 	gui_forcehttps = "uci.web.sessionmgr.@default.force_https",
 	gui_animation = "uci.modgui.gui.gui_animation",
-	disable_cwmp_update = "uci.modgui.var.disable_cwmp_update"
+	disable_cwmp_update = "uci.modgui.var.disable_cwmp_update",
+	modem_serial = "uci.env.var.serial"
 }
 
 local mapValid = {
@@ -330,7 +331,8 @@ local mapValid = {
 	gui_alwaysadvanced = vB,
 	gui_forcehttps = vB,
 	gui_animation = vB,
-	disable_cwmp_update = vB
+	disable_cwmp_update = vB,
+	modem_serial = post_helper.validateNonEmptyString
 }
 
 local modgui_settings, helpmsg = post_helper.handleQuery(mapParams, mapValid)
@@ -356,10 +358,17 @@ ngx.print(html)
 
 local html = {}
 html[#html + 1] = '<legend>'.. T"CWMP Settings" ..'</legend>'
+local info_box = {
+	alert = {
+		class = "alert alert-info",
+	}
+}
 html[#html + 1] = ui_helper.createAlertBlock(T"Disable CWMP Update. Any firmware update from CWMP will be rejected and not flashed. "..
 			"Consider that CWMP that request a firmware update will keep requesting it until the update is actually installed. "..
-			"Autoconfiguration won't work. Manually set the version in the System Extra tab to spoof a version or upgrade the firmware.", info_box)
+			"Autoconfiguration won't work. Manually set the version in the System Extra tab to spoof a version or upgrade the firmware.")
 html[#html + 1] = ui_helper.createSwitch(T"Disable CWMP Update", "disable_cwmp_update", modgui_settings["disable_cwmp_update"])
+html[#html + 1] = ui_helper.createAlertBlock(T"Change the Modem Serial. Consider that the modem serial is the Factory ID + Serial.", info_box)
+html[#html + 1] = ui_helper.createSwitch(T"Modem Serial", "modem_serial", modgui_settings["modem_serial"])
 ngx.print(html)
 
 local html = {}
@@ -385,11 +394,6 @@ local offline_upgrade_gui = {
 	button = {
 		id = "btn-offline-upgrade-gui",
 		class = "custom-handler"
-	}
-}
-local info_box = {
-	alert = {
-		class = "alert alert-info",
 	}
 }
 local upgrade = {
