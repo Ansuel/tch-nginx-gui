@@ -18,7 +18,6 @@ local vSIPR = post_helper.validateStringIsPortRange
 
 local spoof_mode_enum = {
 	{ "disabled" , T"Comunicate real version to CWMP"},
-	{ "enabled" , T"Comunicate latest stable version set from rootscript to CWMP"},
 	{ "manual" , T"Set the version to comunicate to cwmp manually"},
 }
 
@@ -58,7 +57,6 @@ local fwversion_override_content, fwversion_override_helpmsg = post_helper.handl
 local env = {
   factory = "uci.env.rip.factory_id",
   serial = "uci.env.rip.serial",
-  fwversion_latest = "rpc.system.modgui.cwmp_TIM_last_version",
   fwversion_real = "uci.versioncusto.override.fwversion_override_real",
 }
 content_helper.getExactContent(env)
@@ -671,15 +669,12 @@ $("#btn-system-copy-bank").on("click", function() {\
     });\
     return false;\
   });\
-  var fwversion_latest = "'); ngx.print(env.fwversion_latest); ngx.print('";\
   var fwversion_real = "'); ngx.print(env.fwversion_real); ngx.print('";\
   $("#version_spoof_mode").on("change", function() {\
 	if ( $(this).val() == "manual" ) {\
 	  $("#fwversion_override").prop("disabled", false);\
 	} else {\
-	  if ( $(this).val() == "enabled" ) {\
-		$("#fwversion_override").val(fwversion_latest);\
-	  } else if ( $(this).val() == "disabled" ) {\
+    if ( $(this).val() == "disabled" ) {\
 		$("#fwversion_override").val(fwversion_real);\
 	  }\
 	  $("#fwversion_override").prop("disabled", true);\

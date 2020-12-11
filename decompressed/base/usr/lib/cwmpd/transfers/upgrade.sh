@@ -247,10 +247,10 @@ if [ "$TRANSFER_ACTION" = "start" ]; then
     if [ "$(uci get -q mogui.var.disable_cwmp_update)" = "1" ]; then
       # TIM IS LOVE, TIM IS LIFE. No disclusure for you :D
       if echo $TRANSFER_URL | grep -q 'Firmware/TR069/AGThomson'; then
-        uci set modgui.var.reboot_reason_msg="TIM ACS asked for firmware update"
+        uci set modgui.var.reboot_reason_msg="TIM ACS asked for firmware update. Go to Modgui Settings to allow this."
       else
         echo "$TRANSFER_URL" "$TRANSFER_USERNAME" "$TRANSFER_PASSWORD" > /tmp/cwmpd_update_request
-        uci set modgui.var.reboot_reason_msg="ACS asked for firmware update from: $URL"
+        uci set modgui.var.reboot_reason_msg="ACS asked for firmware update from: $URL Go to Modgui Settings to allow this."
       fi
       exit 0
     else
