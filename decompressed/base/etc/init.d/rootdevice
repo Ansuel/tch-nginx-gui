@@ -264,7 +264,7 @@ check_and_apply_obp() {
     fi
   fi
 
-  if [[ "$bootedbank" != "$activebank" && "$bootedbank" == "bank_2" ]]; then
+  if [ "$bootedbank" != "$activebank" ] && [ "$bootedbank" = "bank_2" ]; then
 
     activeversion=$(cat /proc/banktable/activeversion)
     if [ "$activeversion" != "Unknown" ]; then
@@ -304,8 +304,12 @@ check_and_apply_obp() {
       if [ "$bootedbank" == "bank_2" ]; then
         # Activate bank_1
         echo bank_1 > /proc/banktable/active
-        # Erase firmware in bank_1
-        mtd erase bank_1
+
+        # Check if bank_1 contains a firmware, skip erase as it can contain a modoverlay
+        if [ "$(cat /proc/banktable/passiveversion)" != "Unknown" ]; then
+          # Erase firmware in bank_1
+          mtd erase bank_1
+        fi
       else
         logger_command "Cloning to bank_2 and checking checksum..."
         echo "  Cloning to bank_2 and checking checksum..." >/dev/console
