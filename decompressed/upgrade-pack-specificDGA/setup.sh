@@ -4,7 +4,7 @@
 
 kernel_ver="$(cat /proc/version | awk '{print $3}')"
 
-logger_command "Installing specificTG789 package..."
+logger_command "Installing specificDGA package..."
 
 if [ -z "${kernel_ver##3.4*}" ]; then
 
