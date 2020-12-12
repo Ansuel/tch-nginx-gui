@@ -51,7 +51,7 @@ apply_right_opkg_repo() {
 
 	opkg_file="/etc/opkg.conf"
 
-	if grep -q "ARM" /proc/cpuinfo; then
+	if uname -m | grep -q "arm"; then
 	case $marketing_version in
 	"18."*)
 		if grep -q "brcm63xx-tch" $opkg_file; then
@@ -107,7 +107,7 @@ EOF
 		logger_command "No known ARM feeds for this version $marketing_version"
 		;;
 	esac
-	elif grep -q "MIPS" /proc/cpuinfo; then
+	elif uname -m | grep -q "mips"; then
 	case $marketing_version in
 	"16."* | "17."*)
 	  if [ -z "$(  grep $opkg_file -e "chaos_calmer/15.05.1/brcm63xx" )" ]; then

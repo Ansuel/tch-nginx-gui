@@ -1,6 +1,7 @@
 #!/bin/sh
 
-device_type="$(uci get -q env.var.prod_friendly_name)"
+marketing_version="$(uci get -q version.@version[0].marketing_version)"
+cpu_type="$(uname -m)"
 
 #  1st arg : directory
 #  2nd arg : pkg name
@@ -55,7 +56,7 @@ set_transformer() {
 
 app_transmission() {
 
-  install_DGA() {
+  install_arm() {
     opkg update
     opkg install transmission-web transmission-daemon-openssl
 
@@ -71,12 +72,19 @@ app_transmission() {
   }
 
   install() {
-    [ "$(echo $device_type | grep DGA)" ] && install_DGA
-    if [ -z "${device_type##*TG789*}" ] && [ -z "${device_type##*Xtream*}" ]; then
-      install_from_github FrancYescO/sharing_tg789 transmission-xtream
-    elif [ "$(echo $device_type | grep TG7)" ]; then
-      install_from_github FrancYescO/sharing_tg789 transmission
-    fi
+    case $marketing_version in
+    "16.1"* | "16.2"*)
+      [ "$cpu_type" == "armv7l" ] && install_from_github FrancYescO/sharing_tg789 transmission-xtream
+      [ "$cpu_type" == "mips" ] && install_from_github FrancYescO/sharing_tg789 transmission
+      ;;
+    "16."* | "17."* | "18."*)
+      [ "$cpu_type" == "armv7l" ] && install_arm
+      [ "$cpu_type" == "mips" ] && install_from_github FrancYescO/sharing_tg789 transmission
+      ;;
+    *)
+      echo "Unknown app install script for $marketing_version $cpu_type"
+      ;;
+    esac
     uci set modgui.app.transmission_webui="1"
     uci commit modgui
   }
@@ -158,7 +166,7 @@ app_telstra() {
 
 app_luci() {
   install() {
-    luci_install_DGA() {
+    luci_install_arm() {
       opkg update
       mv /usr/lib/lua/uci.so /usr/lib/lua/uci.so_bak
       if [ -f /etc/config/uhttpd ]; then
@@ -189,21 +197,30 @@ app_luci() {
       /etc/init.d/uhttpd restart
     }
 
-    luci_install_tg799() {
+    luci_install_mips() {
       curl -k -L https://raw.githubusercontent.com/nutterpc/tg-luci/master/install.sh --output /tmp/install.sh
       chmod +x /tmp/install.sh
       /tmp/install.sh
     }
 
-    [ "$(echo $device_type | grep DGA)" ] && luci_install_DGA
-    [ "$(echo $device_type | grep TG8)" ] && luci_install_DGA
-    [ "$(echo $device_type | grep TG7)" ] && luci_install_tg799
-    [ "$(echo $device_type | grep TG5)" ] && luci_install_tg799
+    case $marketing_version in
+    "16.1"* | "16.2"*)
+      [ "$cpu_type" == "armv7l" ] && echo "Unknown app install script for $marketing_version $cpu_type"
+      [ "$cpu_type" == "mips" ] && luci_install_mips
+      ;;
+    "16."* | "17."* | "18."*)
+      [ "$cpu_type" == "armv7l" ] && luci_install_arm
+      [ "$cpu_type" == "mips" ] && luci_install_mips
+      ;;
+    *)
+      echo "Unknown app install script for $marketing_version $cpu_type"
+      ;;
+    esac
     uci set modgui.app.luci_webui="1"
     uci commit modgui
   }
   remove() {
-    luci_remove_DGA() {
+    luci_remove_arm() {
       opkg remove --force-removal-of-dependent-packages uhttpd rpcd libuci-lua luci luci-*
 
       cp /rom/usr/lib/lua/uci.so /usr/lib/lua/ #restore lib as it gets removed by libuci-lua
@@ -212,16 +229,14 @@ app_luci() {
       rm /etc/config/uhttpd
     }
 
-    luci_remove_tg799() {
+    luci_remove_mips() {
       curl -k -L https://raw.githubusercontent.com/nutterpc/tg-luci/master/uninstall.sh --output /tmp/uninstall.sh
       chmod +x /tmp/uninstall.sh
       /tmp/uninstall.sh
     }
 
-    [ "$(echo $device_type | grep DGA)" ] && luci_remove_DGA
-    [ "$(echo $device_type | grep TG8)" ] && luci_remove_DGA
-    [ "$(echo $device_type | grep TG7)" ] && luci_remove_tg799
-    [ "$(echo $device_type | grep TG5)" ] && luci_remove_tg799
+    [ "$cpu_type" == "armv7l" ] && luci_remove_arm
+    [ "$cpu_type" == "mips" ] && luci_remove_mips
     uci set modgui.app.luci_webui="0"
     uci commit modgui
   }
@@ -242,13 +257,8 @@ app_luci() {
 
 app_amule() {
   install() {
-    install_DGA() {
-      #TODO
-      echo TODO
-    }
-
-    [ "$(echo $device_type | grep DGA)" ] && install_DGA
-    [ "$(echo $device_type | grep TG7)" ] && install_from_github FrancYescO/sharing_tg789 amule
+    [ "$cpu_type" == "armv7l" ] && echo "Unknown app install script for $marketing_version $cpu_type"
+    [ "$cpu_type" == "mips" ] && install_from_github FrancYescO/sharing_tg789 amule
     uci set modgui.app.amule_webui="1"
     uci commit modgui
   }
@@ -284,7 +294,7 @@ app_amule() {
 
 app_aria2() {
   install() {
-    install_DGA() {
+    install_arm() {
       opkg update
       opkg install aria2 libstdcpp
       curl -sLk https://github.com/mayswind/AriaNg-DailyBuild/tarball/master --output /tmp/ariang.tar.gz
@@ -315,12 +325,19 @@ app_aria2() {
       aria2c --enable-rpc --rpc-listen-all=true --rpc-allow-origin-all --daemon=true --conf-path=$ARIA2_DIR/aria2.conf
     }
 
-    [ "$(echo $device_type | grep DGA)" ] && install_DGA
-    if [ -z "${device_type##*TG789*}" ] && [ -z "${device_type##*Xtream*}" ]; then
-      install_from_github FrancYescO/sharing_tg789 aria2-xtream
-    elif [ "$(echo $device_type | grep TG7)" ]; then
-      install_from_github FrancYescO/sharing_tg789 aria2
-    fi
+    case $marketing_version in
+    "16.1"* | "16.2"*)
+      [ "$cpu_type" == "armv7l" ] && install_from_github FrancYescO/sharing_tg789 aria2-xtream
+      [ "$cpu_type" == "mips" ] && install_from_github FrancYescO/sharing_tg789 aria2
+      ;;
+    "16."* | "17."* | "18."*)
+      [ "$cpu_type" == "armv7l" ] && install_arm
+      [ "$cpu_type" == "mips" ] && install_from_github FrancYescO/sharing_tg789 aria2
+      ;;
+    *)
+      echo "Unknown app install script for $marketing_version $cpu_type"
+      ;;
+    esac
     uci set modgui.app.aria2_webui="1"
     uci commit modgui
   }
