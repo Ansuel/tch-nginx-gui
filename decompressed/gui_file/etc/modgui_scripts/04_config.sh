@@ -22,13 +22,13 @@ check_webui_config() {
   if [ ! "$(uci get -q wireless.@wifi-bandsteer[0])" ] && [ "$(uci get -q wireless.@wifi-device[1])" ]; then
     logger_command "Adding bandsteer wifi settings"
     uci set wireless.bs0=wifi-bandsteer
-    uci set  wireless.bs0.sta_comeback_to='5'
-    uci set  wireless.bs0.no_powersave_steer='0'
-    uci set  wireless.bs0.rssi_threshold='-60'
-    uci set  wireless.bs0.debug_flags='0'
-    uci set  wireless.bs0.policy_mode='5'
-    uci set  wireless.bs0.monitor_window='5'
-    uci set  wireless.bs0.rssi_5g_threshold='-80'
+    uci set wireless.bs0.sta_comeback_to='5'
+    uci set wireless.bs0.no_powersave_steer='0'
+    uci set wireless.bs0.rssi_threshold='-60'
+    uci set wireless.bs0.debug_flags='0'
+    uci set wireless.bs0.policy_mode='5'
+    uci set wireless.bs0.monitor_window='5'
+    uci set wireless.bs0.rssi_5g_threshold='-80'
     uci commit wireless
   fi
 }
@@ -309,7 +309,7 @@ mobiled_lib_add() {
     mv /tmp/scripthelpers.lua /usr/lib/lua/mobiled/scripthelpers.lua
   fi
 
-	marketing_version="$(uci get -q version.@version[0].marketing_version)"
+  marketing_version="$(uci get -q version.@version[0].marketing_version)"
   if [ -z "${marketing_version##16*}" ]; then #need to replace on old fw (16.x) otherwise will ignore enabled status
     logger_command "Replacing /etc/init.d/mobiled ..."
     mv /tmp/mobiled /etc/init.d/mobiled
@@ -325,7 +325,7 @@ mobiled_lib_add() {
   fi
 
   #replacing default lte-doctor config if is configured as "no-logging" (found 1 time the logger word)
-  if [ ! -f /etc/config/ltedoctor ] || [ "$(grep -i -c logger < /etc/config/ltedoctor)" = "1" ]; then
+  if [ ! -f /etc/config/ltedoctor ] || [ "$(grep -i -c logger </etc/config/ltedoctor)" = "1" ]; then
     if [ -f /tmp/ltedoctor ]; then
       logger_command "Replacing ltedoctor config..."
       mv /tmp/ltedoctor /etc/config/ltedoctor
@@ -492,10 +492,10 @@ cumulative_check_gui() {
     uci set modgui.gui.gui_animation="1"
   fi
   if [ ! "$(uci get -q modgui.var.isp_autodetect)" ]; then
-  	uci set modgui.var.isp_autodetect="1"
+    uci set modgui.var.isp_autodetect="1"
   fi
   if [ ! "$(uci get -q modgui.var.isp)" ]; then
-  	uci set modgui.var.isp="Other"
+    uci set modgui.var.isp="Other"
   fi
   if [ ! "$(uci get -q modgui.gui.gui_skin)" ]; then
     uci set modgui.gui.gui_skin="green"
@@ -504,7 +504,7 @@ cumulative_check_gui() {
 
 fcctlsettings_daemon() {
   if [ -f /etc/config/fcctlsettings ]; then
-    if grep -q </etc/config/fcctlsettings 'mcast-learn' ; then
+    if grep -q 'mcast-learn' </etc/config/fcctlsettings; then
       rm /etc/config/fcctlsettings #NEVER EVER WRITE - IN CONFIG FILE...
     fi
   fi
@@ -592,7 +592,7 @@ new_wol_implementation #New Wol
 logger_command "Apply new xDSL options"
 add_xdsl_option #New xdsl option
 logger_command "Adding fast cache options"
-fcctlsettings_daemon #Adds fast cache options
+fcctlsettings_daemon  #Adds fast cache options
 dosprotect_inizialize #dosprotected inizialize function
 logger_command "Checking mobiled libs..."
 mobiled_lib_add
