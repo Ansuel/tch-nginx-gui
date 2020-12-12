@@ -208,7 +208,15 @@ app_luci() {
       [ "$cpu_type" == "armv7l" ] && echo "Unknown app install script for $marketing_version $cpu_type"
       [ "$cpu_type" == "mips" ] && luci_install_mips
       ;;
-    "16."* | "17."* | "18."*)
+    "16."* | "17."*)
+      [ "$cpu_type" == "armv7l" ] && {
+        luci_install_arm
+        opkg install --force-reinstall --force-overwrite libuci-lua
+        sed -i 's/require "uci_luci"/require "uci"/g' /usr/lib/lua/luci/model/uci.lua
+        }
+      [ "$cpu_type" == "mips" ] && luci_install_mips
+      ;;
+    "18."*)
       [ "$cpu_type" == "armv7l" ] && luci_install_arm
       [ "$cpu_type" == "mips" ] && luci_install_mips
       ;;
