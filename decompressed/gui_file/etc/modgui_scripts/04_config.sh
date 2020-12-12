@@ -245,7 +245,7 @@ real_ver_entitied() {
 }
 
 disable_cwmp_update() {
-  if ! uci get -q modgui.var.disable_cwmp_update; then
+  if [ ! "$(uci get -q modgui.var.disable_cwmp_update)" ]; then
     uci set modgui.var.disable_cwmp_update=1
     uci commit modgui
   fi
