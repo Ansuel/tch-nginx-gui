@@ -213,7 +213,7 @@ app_luci() {
         luci_install_arm
         opkg install --force-reinstall --force-overwrite libuci-lua
         sed -i 's/require "uci_luci"/require "uci"/g' /usr/lib/lua/luci/model/uci.lua
-        }
+      }
       [ "$cpu_type" == "mips" ] && luci_install_mips
       ;;
     "18."*)

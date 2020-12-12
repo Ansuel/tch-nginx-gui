@@ -94,9 +94,9 @@ local specific_box = {
 local html = {}
 
 if specific_app == "0" then
-	html[#html + 1] = ui_helper.createAlertBlock(T"Specific App are not installed.",specific_box)
+	html[#html + 1] = ui_helper.createAlertBlock(T"Specific App are not installed. This can cause errors for app setup. Go to Mod GUI modal to install",specific_box)
 end
-
+html[#html + 1] = ui_helper.createAlertBlock(T"Make sure the gateway have an active internet connection to allow app download and installation",info_box)
 local btn_table = {}
 
 for _, app in ipairs(app_list) do
