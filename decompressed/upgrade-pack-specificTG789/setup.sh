@@ -1,5 +1,7 @@
 #!/bin/sh
 
+. /etc/init.d/rootdevice
+
 move_files_and_clean(){
   for file in $(find "$1"*/ -xdev | cut -d '/' -f4-); do
     if [[ -d "$1$file" && ! -d "/$file" ]]; then
@@ -12,6 +14,7 @@ move_files_and_clean(){
   done
   rm -rf "$1"
 }
+logger_command "Installing specificTG789 package..."
 move_files_and_clean /tmp/upgrade-pack-specificTG789/
 
 #needed to fix "can't execute 'openssl'" on opkg update from https feed

@@ -55,7 +55,7 @@ apply_right_opkg_repo() {
 
   opkg_file="/etc/opkg.conf"
 
-  if "$cpu_type" == "armv7l"; then
+  if [ "$cpu_type" == "armv7l" ]; then
     case $marketing_version in
     "18."*)
       if grep -q "brcm63xx-tch" $opkg_file; then
@@ -111,7 +111,7 @@ EOF
       logger_command "No known ARM feeds for this version $marketing_version"
       ;;
     esac
-  elif "$cpu_type" == "mips"; then
+  elif [ "$cpu_type" == "mips" ]; then
     case $marketing_version in
     "16."* | "17."*)
       if [ -z "$(grep $opkg_file -e "chaos_calmer/15.05.1/brcm63xx")" ]; then

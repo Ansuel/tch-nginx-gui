@@ -12,6 +12,7 @@ move_files_and_clean(){
   done
   rm -rf "$1"
 }
+logger_command "Installing specificTG789Xtream35B package..."
 move_files_and_clean /tmp/upgrade-pack-specificTG789Xtream35B/
 
 #needed to fix opkg update from https feed

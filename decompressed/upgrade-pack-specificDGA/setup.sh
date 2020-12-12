@@ -1,6 +1,10 @@
 #!/bin/sh
 
+. /etc/init.d/rootdevice
+
 kernel_ver="$(cat /proc/version | awk '{print $3}')"
+
+logger_command "Installing specificTG789 package..."
 
 if [ -z "${kernel_ver##3.4*}" ]; then
 

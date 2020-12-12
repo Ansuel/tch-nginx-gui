@@ -246,7 +246,7 @@ real_ver_entitied() {
 
 disable_cwmp_update() {
   if ! uci get -q modgui.var.disable_cwmp_update; then
-    uci set modgui.var.disable_cwmp_update="1"
+    uci set modgui.var.disable_cwmp_update=1
     uci commit modgui
   fi
 }
@@ -585,7 +585,7 @@ logger_command "Create new option for led definitions"
 led_integration #New option led
 logger_command "Creating and checking real version"
 real_ver_entitied #Support for spoofing firm
-logger_command "Disablig cwmp update by default"
+logger_command "Disable CWMP update by default"
 disable_cwmp_update
 logger_command "Implementing WoL"
 new_wol_implementation #New Wol
