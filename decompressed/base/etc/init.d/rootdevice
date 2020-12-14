@@ -58,6 +58,10 @@ EOF
 }
 
 ####################LOG FUNCTION#################
+kecho() {
+  echo $@ >/dev/console
+}
+
 logger_command() {
   if [ "$debug" -eq 1 ]; then
     logger -t "Root Script" "$1"
@@ -103,8 +107,8 @@ check_and_apply_root() {
   store_pass_in_uci() {
     #Redefine encrypted_pass as this can change after the shadow check
     encrypted_pass=$(sed -ne '/^root:/s/^root:\([^:]*\):.*$/\1/p' /etc/shadow)
-    echo "  New password detected!" >/dev/console
-    echo "  Storing encrypted password..." >/dev/console
+    kecho "New password detected!"
+    kecho "Storing encrypted password..."
     if [ ! -f /etc/config/modgui ]; then
       touch /etc/config/modgui
       uci set modgui.var=var
@@ -125,28 +129,28 @@ check_and_apply_root() {
     if [ "$encrypted_pass" != "$saved_encrypted_pass" ]; then
       if [ -f /root/.reapply_due_to_upgrade ]; then
         logger_command "Setting root password from password saved in config"
-        echo "  Setting root password from password saved in config" >/dev/console
+        kecho "Setting root password from password saved in config"
         major_system_version="$(uci get version.@version[0].marketing_version | sed 's#\.##' | grep -o -E '[0-9]+')"
         #firmware 16.x store a stripped 13char hash (not salted) that cannot be migrated to >=17.x (and viceversa)
         if { [ ${#saved_encrypted_pass} -le 13 ] && [ "$major_system_version" -lt 170 ]; } || { [ ${#saved_encrypted_pass} -gt 13 ] && [ "$major_system_version" -ge 170 ]; }; then
           sed -i -e "s:^root\:[^\:]*\::root\:$saved_encrypted_pass\::" /etc/shadow
         else
           logger_command "Incompatible password saved in config, resetting password to root!"
-          echo "  Incompatible password saved in config, resetting password to root!" >/dev/console
+          kecho "Incompatible password saved in config, resetting password to root!"
           echo -e "root\nroot" | passwd >/dev/null
         fi
       else
         logger_command "Shadow contains different pass than saved one. Save it!"
-        echo "  Shadow contains different pass than saved one. Save it!" >/dev/console
+        kecho "Shadow contains different pass than saved one. Save it!"
         store_pass_in_uci
       fi
     else
       logger_command "Changed-and-ucisaved root password detected!"
-      echo "  Changed-and-ucisaved root password detected!" >/dev/console
+      kecho "Changed-and-ucisaved root password detected!"
     fi
   else
     logger_command "Resetting password to root..."
-    echo "  Resetting password to root..." >/dev/console
+    kecho "Resetting password to root..."
     #Set the password to root as we have an unknown password
     echo -e "root\nroot" | passwd >/dev/null
     store_pass_in_uci
@@ -221,7 +225,7 @@ install_gui() {
   fi
 
   logger_command "Process complete. tch-nginx-gui is now installed!"
-  echo "  Process complete. tch-nginx-gui is now installed!" >/dev/console
+  kecho "Process complete. tch-nginx-gui is now installed!"
 }
 
 is_dual_bank() {
@@ -246,22 +250,22 @@ erase_bank1_reboot() { # <bootedbank>
   [ -f /tmp/GUI_dev.tar.bz2 ] && safe_mv /tmp/GUI_dev.tar.bz2 /root/GUI.tar.bz2
   if [ ! "$(uci -q get modgui.gui.gui_hash)" ]; then
     logger_command "Seems first install from $1 saving GUI to root and setting install flags..."
-    echo "  Seems first install from $1 saving GUI to root  and setting install flags..." >/dev/console
+    kecho "Seems first install from $1 saving GUI to root  and setting install flags..."
     touch /root/.reapply_due_to_upgrade
     touch /root/.install_gui
   fi
   # Moving running overlay to bank2 if we are on bank1
   [ "$1" == "bank_1" ] && {
     logger_command "Moving /overlay/bank_1 to /overlay/bank_2..."
-    echo "  Moving /overlay/bank_1 to /overlay/bank_2..." >/dev/console
+    kecho "Moving /overlay/bank_1 to /overlay/bank_2..."
     mv /overlay/bank_1 /overlay/bank_2
   }
   logger_command "Activating and erasing bank_1..."
-  echo "  Activating and erasing bank_1..." >/dev/console
+  kecho "Activating and erasing bank_1..."
   echo bank_1 > /proc/banktable/active
   # Reboot to first valid firmware
   logger_command "Installation will continue after reboot..."
-  echo "  Installation will continue after reboot..." >/dev/console
+  kecho "Installation will continue after reboot..."
   [ -d /proc/prozone ] && {
     # Simulate the bank_1 failed 3 times
     echo 1 > /proc/prozone/bootfail
@@ -302,7 +306,7 @@ check_and_apply_obp() {
     activeversion=$(cat /proc/banktable/activeversion)
     if [ "$activeversion" != "Unknown" ]; then
       logger_command "OBP check: looks like passive bank have a valid version: $activeversion"
-      echo "  OBP check: looks like passive bank have a valid version: $activeversion" >/dev/console
+      kecho "OBP check: looks like passive bank have a valid version: $activeversion"
     else
       [ -d /proc/prozone ] && {
         # Simulate the bank_1 failed 3 times
@@ -315,17 +319,17 @@ check_and_apply_obp() {
     [ -d "/overlay/bank_1" ] && rm -rf "/overlay/bank_1"
 
     logger_command "OBP sanity check succeeded."
-    echo "  OBP sanity check succeeded." >/dev/console
+    kecho "OBP sanity check succeeded."
   else
     #OBP not OK, check if was an user choice otherwise automatically apply (this should be the case called also on first install)
     if [ "$(uci -q get modgui.var.check_obp)" == "0" ]; then
       logger_command "OBP sanity check FAILED but check_obp set to 0... Not acting"
-      echo "  OBP sanity check FAILED but check_obp set to 0... Not acting" >/dev/console
+      kecho "OBP sanity check FAILED but check_obp set to 0... Not acting"
     else
 
       if [ $(cat /proc/$PPID/comm) == "upgradegui" ]; then
         logger_command "OBP sanity check FAILED but upgrading, postpone planning on next boot..."
-        echo "  OBP sanity check FAILED but upgrading, postpone planning on next boot..." >/dev/console
+        kecho "OBP sanity check FAILED but upgrading, postpone planning on next boot..."
         uci set modgui.var.reboot_reason_msg="apply OBP planning"
         uci commit modgui
         return
@@ -334,16 +338,16 @@ check_and_apply_obp() {
       uci commit modgui
 
       logger_command "OBP sanity check FAILED start autoplanning..."
-      echo "  OBP sanity check FAILED start autoplanning..." >/dev/console
+      kecho "OBP sanity check FAILED start autoplanning..."
 
       if [ "$bootedbank" == "bank_2" ]; then
         # Force erase of bank_1 to have a clean modoverlay
         logger_command "Erasing bank_1 firmware to prepare modoverlay..."
-        echo "  Erasing bank_1 firmware to prepare modoverlay...." >/dev/console
+        kecho "Erasing bank_1 firmware to prepare modoverlay...."
         erase_bank1_reboot "$bootedbank"
       else
         logger_command "Cloning to bank_2 and checking checksum..."
-        echo "  Cloning to bank_2 and checking checksum..." >/dev/console
+        kecho "Cloning to bank_2 and checking checksum..."
         bank1_mtd="/dev/$(get_bank_mtd bank_1)"
         bank2_mtd="/dev/$(get_bank_mtd bank_2)"
         # clone bank_1 into bank_2
@@ -352,13 +356,13 @@ check_and_apply_obp() {
         md5_bank_2=$(md5sum "$bank2_mtd" | awk '{ print $1 }')
         if [ "$md5_bank_1" == "$md5_bank_2" ]; then
           logger_command "Cloning complete, moving to bank_2 overlay..."
-          echo "  Cloning complete, moving to bank_2 overlay..." >/dev/console
+          kecho "Cloning complete, moving to bank_2 overlay..."
           # Clean any existing overlay for bank_2 firmware
           rm -rf /overlay/bank_2
           erase_bank1_reboot "$bootedbank"
         else
           logger_command "Failed cloning bank_1 to bank_2 stopping!"
-          echo "  Failed cloning bank_1 to bank_2 stopping!" >/dev/console
+          kecho "Failed cloning bank_1 to bank_2 stopping!"
           exit 1
         fi
       fi
@@ -373,20 +377,20 @@ check_full_overlay() {
   #Reset if rootfs more than 97% full
   if [ "$overlay_percent" -gt 96 ]; then
     logger_command "DETECTED FULL ROOTFS... TRYING TO RESTORE..."
-    echo "  DETECTED FULL ROOTFS... TRYING TO RESTORE..." >/dev/console
+    kecho "  DETECTED FULL ROOTFS... TRYING TO RESTORE..."
     for dir in /overlay/"$bootedbank"/*; do
       if [ ! "$dir" == "/overlay/$bootedbank/etc" ]; then
         logger_command "TRYING TO SAVE ROOT BY REMOVING EVERY DIR EXCEPT /etc"
-        echo "  TRYING TO SAVE ROOT BY REMOVING EVERY DIR EXCEPT /etc" >/dev/console
+        kecho "TRYING TO SAVE ROOT BY REMOVING EVERY DIR EXCEPT /etc"
         rm -rf "$dir"
       fi
     done
     #Verify if rm did actually remove the files/folders (using /root as check) if not ERASE...
     if [ -d "/overlay/$bootedbank/root" ]; then
       logger_command "CAN'T REMOVE FILES... INITIALISING FULL ROOTFS ERASE"
-      echo "  CAN'T REMOVE FILES... INITIALISING FULL ROOTFS ERASE" >/dev/console
+      kecho "  CAN'T REMOVE FILES... INITIALISING FULL ROOTFS ERASE"
       logger_command "THIS WILL RESTORE THE MODEM TO FACTORY SETTINGS"
-      echo "  THIS WILL RESTORE THE MODEM TO FACTORY SETTINGS" >/dev/console
+      kecho "  THIS WILL RESTORE THE MODEM TO FACTORY SETTINGS"
       mtd erase -r "$overlay_mtdblock"
     fi
   fi
@@ -425,23 +429,23 @@ boot() {
 
   if [ -f /root/.reapply_due_to_upgrade ]; then
     logger_command "Upgrade just done Extracting GUI.tar.bz2..."
-    echo "  Upgrade just done Extracting GUI.tar.bz2..." >/dev/console
+    kecho "Upgrade just done Extracting GUI.tar.bz2..."
     if [ -f /root/GUI.tar.bz2 ]; then
       bzcat /root/GUI.tar.bz2 | tar -C / -xvf -
       sync
     else
       logger_command "Extraction FAILED GUI.tar.bz2 NOT FOUND!"
-      echo "  Extraction FAILED GUI.tar.bz2 NOT FOUND!" >/dev/console
+      kecho "Extraction FAILED GUI.tar.bz2 NOT FOUND!"
     fi
   fi
 
   if [ $force -eq 1 ] || [ -f /root/.install_gui ]; then
     logger_command "Force/install flag detected! Reinstalling..."
-    echo "  force/install flag detected! Reinstalling..." >/dev/console
+    kecho "force/install flag detected! Reinstalling..."
     install_gui
   else
     logger_command "No force/install flag detected! Doing nothing."
-    echo "  No force/install flag detected! Doing nothing." >/dev/console
+    kecho "No force/install flag detected! Doing nothing."
   fi
 
   ubus send fwupgrade '{ "state": "done" }'
