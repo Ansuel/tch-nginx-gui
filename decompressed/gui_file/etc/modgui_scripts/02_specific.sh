@@ -58,10 +58,6 @@ apply_right_opkg_repo() {
   if [ "$cpu_type" == "armv7l" ]; then
     case $marketing_version in
     "18."*)
-      if grep -q "brcm63xx-tch" $opkg_file; then
-        rm /etc/opkg.conf
-        cp /rom/etc/opkg.conf /etc/
-      fi
       if ! grep -q "Ansuel/GUI_ipk/kernel-4.1" $opkg_file; then
         cat <<EOF >>$opkg_file
 arch all 100
@@ -75,8 +71,19 @@ src/gz chaos_calmer_telephony https://raw.githubusercontent.com/Ansuel/GUI_ipk/k
 src/gz chaos_calmer_core https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/target/packages
 EOF
       fi
+      if ! grep -q "homeware/18/brcm63xx-tch" $opkg_file; then
+        cat <<EOF >>$opkg_file
+src/gz chaos_calmer_base_macoers https://www.macoers.com/repository/homeware/18/brcm63xx-tch/VANTW/base
+src/gz chaos_calmer_packages_macoers https://www.macoers.com/repository/homeware/18/brcm63xx-tch/VANTW/packages
+src/gz chaos_calmer_luci_macoers https://www.macoers.com/repository/homeware/18/brcm63xx-tch/VANTW/luci
+src/gz chaos_calmer_routing_macoers https://www.macoers.com/repository/homeware/18/brcm63xx-tch/VANTW/routing
+src/gz chaos_calmer_telephony_macoers https://www.macoers.com/repository/homeware/18/brcm63xx-tch/VANTW/telephony
+src/gz chaos_calmer_core_macoers https://www.macoers.com/repository/homeware/18/brcm63xx-tch/VANTW/target/packages
+EOF
+      fi
       ;;
-    "17."*)
+    "17.3"*)
+      sed -i '/roleo\/public\/agtef\/brcm63xx-tch/d' /etc/opkg.conf #remove old setted feeds
       if ! grep -q "roleo/public/agtef/1.1.0/brcm63xx-tch" $opkg_file; then
         cat <<EOF >>$opkg_file
 src/gz chaos_calmer_base https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/base
@@ -88,7 +95,8 @@ src/gz chaos_calmer_management https://repository.ilpuntotecnico.com/files/roleo
 EOF
       fi
       ;;
-    "16.3"*)
+    "16.3"* | "17.1"* | "17.2"*)
+      sed -i '/roleo\/public\/agtef\/1.1.0\/brcm63xx-tch/d' /etc/opkg.conf #remove old setted feeds
       if ! grep -q "roleo/public/agtef/brcm63xx-tch" $opkg_file; then
         cat <<EOF >>$opkg_file
 src/gz chaos_calmer_base https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/base
