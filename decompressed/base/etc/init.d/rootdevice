@@ -364,8 +364,7 @@ check_and_apply_obp() {
       fi
     fi
   fi
-
-}}
+}
 
 check_full_overlay() {
   overlay_percent=$(df /overlay | sed -n 2p | awk {'{print $5}'} | sed 's|%||')
