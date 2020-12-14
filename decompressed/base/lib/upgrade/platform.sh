@@ -158,10 +158,12 @@ platform_do_upgrade() {
                                 # As last step update base in original bank_2 overlay
                                 echo_log "Update base file in original /overlay"
                                 copy_base_files $base_file_dir /overlay/$booted_bank
-                                # Simulate the bank_1 failed 3 times
-                                echo 1 > /proc/prozone/bootfail
-                                echo 2 > /proc/prozone/bootcounter
-                                echo 0 > /proc/prozone/bootbank
+                                      [ -d /proc/prozone ] && {
+                                        # Simulate the bank_1 failed 3 times
+                                        echo 1 > /proc/prozone/bootfail
+                                        echo 2 > /proc/prozone/bootcounter
+                                        echo 0 > /proc/prozone/bootbank
+                                      }
                         fi
 
                         platform_do_upgrade_bank $1 $booted_bank || exit 1

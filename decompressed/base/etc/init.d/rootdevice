@@ -240,7 +240,42 @@ safe_mv(){ # <src file path> <dest file path>
   [ "$(df -P "$(dirname "$2")" | awk 'NR==2 {print $4}')" -gt "$(($(wc -c < "$1") / 1024))" ] && mv "$1" "$2" || echo "ERROR: No space left for mv $1 $2"
 }
 
+erase_bank1_reboot() { # <bootedbank>
+  #make sure we have an updated package in root
+  [ -f /tmp/GUI.tar.bz2 ] && safe_mv /tmp/GUI.tar.bz2 /root/GUI.tar.bz2
+  [ -f /tmp/GUI_dev.tar.bz2 ] && safe_mv /tmp/GUI_dev.tar.bz2 /root/GUI.tar.bz2
+  if [ ! "$(uci -q get modgui.gui.gui_hash)" ]; then
+    logger_command "Seems first install from $1 saving GUI to root and setting install flags..."
+    echo "  Seems first install from $1 saving GUI to root  and setting install flags..." >/dev/console
+    touch /root/.reapply_due_to_upgrade
+    touch /root/.install_gui
+  fi
+  # Moving running overlay to bank2 if we are on bank1
+  [ "$1" == "bank_1" ] && {
+    logger_command "Moving /overlay/bank_1 to /overlay/bank_2..."
+    echo "  Moving /overlay/bank_1 to /overlay/bank_2..." >/dev/console
+    mv /overlay/bank_1 /overlay/bank_2
+  }
+  logger_command "Activating and erasing bank_1..."
+  echo "  Activating and erasing bank_1..." >/dev/console
+  echo bank_1 > /proc/banktable/active
+  # Reboot to first valid firmware
+  logger_command "Installation will continue after reboot..."
+  echo "  Installation will continue after reboot..." >/dev/console
+  [ -d /proc/prozone ] && {
+    # Simulate the bank_1 failed 3 times
+    echo 1 > /proc/prozone/bootfail
+    echo 2 > /proc/prozone/bootcounter
+    echo 0 > /proc/prozone/bootbank
+  }
+  sync
+  mtd -r erase bank_1
+  reboot
+  exit 0
+}
+
 check_and_apply_obp() {
+
   bootedbank=$(cat /proc/banktable/booted)
   activebank=$(cat /proc/banktable/active)
   notbooted=$(cat /proc/banktable/notbooted)
@@ -269,10 +304,12 @@ check_and_apply_obp() {
       logger_command "OBP check: looks like passive bank have a valid version: $activeversion"
       echo "  OBP check: looks like passive bank have a valid version: $activeversion" >/dev/console
     else
-      # To make reboot quicker, reset otp to 3 failed boot from bank1
-      echo 1 > /proc/prozone/bootfail
-      echo 2 > /proc/prozone/bootcounter
-      echo 0 > /proc/prozone/bootbank
+      [ -d /proc/prozone ] && {
+        # Simulate the bank_1 failed 3 times
+        echo 1 > /proc/prozone/bootfail
+        echo 2 > /proc/prozone/bootcounter
+        echo 0 > /proc/prozone/bootbank
+      }
     fi
 
     [ -d "/overlay/bank_1" ] && rm -rf "/overlay/bank_1"
@@ -300,14 +337,10 @@ check_and_apply_obp() {
       echo "  OBP sanity check FAILED start autoplanning..." >/dev/console
 
       if [ "$bootedbank" == "bank_2" ]; then
-        # Check if bank_1 contains a firmware, skip erase as it can contain a modoverlay
-        if [ "$(cat /proc/banktable/passiveversion)" != "Unknown" ]; then
-          # Erase firmware in bank_1
-          mtd erase bank_1
-        fi
-
-        # Activate bank_1
-        echo bank_1 > /proc/banktable/active
+        # Force erase of bank_1 to have a clean modoverlay
+        logger_command "Erasing bank_1 firmware to prepare modoverlay..."
+        echo "  Erasing bank_1 firmware to prepare modoverlay...." >/dev/console
+        erase_bank1_reboot "$bootedbank"
       else
         logger_command "Cloning to bank_2 and checking checksum..."
         echo "  Cloning to bank_2 and checking checksum..." >/dev/console
@@ -322,31 +355,7 @@ check_and_apply_obp() {
           echo "  Cloning complete, moving to bank_2 overlay..." >/dev/console
           # Clean any existing overlay for bank_2 firmware
           rm -rf /overlay/bank_2
-          #make sure we have an updated package in root
-          [ -f /tmp/GUI.tar.bz2 ] && safe_mv /tmp/GUI.tar.bz2 /root/GUI.tar.bz2
-          [ -f /tmp/GUI_dev.tar.bz2 ] && safe_mv /tmp/GUI_dev.tar.bz2 /root/GUI.tar.bz2
-          if [ ! "$(uci -q get modgui.gui.gui_hash)" ]; then
-            logger_command "Seems first install from bank_1 saving GUI to root and setting install flags..."
-            echo "  Seems first install from bank_1 saving GUI to root  and setting install flags..." >/dev/console
-            touch /root/.reapply_due_to_upgrade
-            touch /root/.install_gui
-          fi
-          # Moving running overlay to bank2
-          mv /overlay/bank_1 /overlay/bank_2
-          logger_command "Activating and erasing bank_1..."
-          echo "  Activating and erasing bank_1...." >/dev/console
-          echo bank_1 > /proc/banktable/active
-          sync
-          mtd -r erase bank_1
-          # Reboot to first valid firmware
-          logger_command "Installation will continue after reboot..."
-          echo "  Installation will continue after reboot...." >/dev/console
-          # Simulate the bank_1 failed 3 times
-          echo 1 > /proc/prozone/bootfail
-          echo 2 > /proc/prozone/bootcounter
-          echo 0 > /proc/prozone/bootbank
-          reboot
-          exit 0
+          erase_bank1_reboot "$bootedbank"
         else
           logger_command "Failed cloning bank_1 to bank_2 stopping!"
           echo "  Failed cloning bank_1 to bank_2 stopping!" >/dev/console
@@ -355,7 +364,8 @@ check_and_apply_obp() {
       fi
     fi
   fi
-}
+
+}}
 
 check_full_overlay() {
   overlay_percent=$(df /overlay | sed -n 2p | awk {'{print $5}'} | sed 's|%||')
