@@ -90,7 +90,7 @@ save_modgui_log() {
 sched_remove_modgui_log() {
   mkdir /overlay/modgui_log.remove_due_to_upgrade
   mv /overlay/modgui_log/* /overlay/modgui_log.remove_due_to_upgrade/
-  rm /overlay/modgui_log
+  rm -rf /overlay/modgui_log
 }
 #################################################
 
