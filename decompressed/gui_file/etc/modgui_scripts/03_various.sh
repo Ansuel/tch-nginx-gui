@@ -3,7 +3,7 @@
 . /etc/init.d/rootdevice
 
 check_upgrade_shit() {
-  logger_command "Fixing sysupgrade if needed..."
+  logecho "Fixing sysupgrade if needed..."
 	if [ -f /lib/upgrade/resetgui.sh ]; then
 		rm /lib/upgrade/resetgui.sh
 		rm /lib/upgrade/transfer_bank1.sh
@@ -14,7 +14,7 @@ check_upgrade_shit() {
 }
 
 restore_original_mapper() {
-  logger_command "Restoring and enabling few transformer mappers..."
+  logecho "Restoring and enabling few transformer mappers..."
 	local orig_dir=/rom/usr/share/transformer/mappings
 	local target=/usr/share/transformer/mappings
 
@@ -31,7 +31,7 @@ restore_original_mapper() {
 		cp $orig_dir/igd/* $target/igd
 		cp /tmp/tmp_bff_file/* $target/bbf
 		rm -r /tmp/tmp_bff_file
-		logger_command "Restored device-specific transformer mapping files"
+		logecho "Restored device-specific transformer mapping files"
 	fi
 	if [ ! -f $target/bbf/VoiceService.VoiceProfile.Line.map ]; then
 		cp $orig_dir/bbf/VoiceService.VoiceProfile.Line.map $orig_dir/bbf/
@@ -46,7 +46,7 @@ restore_original_mapper() {
 }
 
 transformer_lib_check() {
-  logger_command "Transformer lib check"
+  logecho "Transformer lib check"
 	local orig_dir=/rom/usr
 	local target=/usr
 
@@ -70,10 +70,10 @@ transformer_lib_check() {
 		elif [ -f /tmp/GUI_dev.tar.bz2 ]; then
 			gui_pos=/tmp/GUI_dev.tar.bz2
 		fi
-		logger_command "Found gui here: "$gui_pos
+		logecho "Found gui here: "$gui_pos
 		if [ $gui_pos != "" ] && [ -s $gui_pos ]; then
 			bzcat $gui_pos | tar -C / -xf - usr #reapply the upgrade as in the gui we store some of this file that we restored
-			logger_command "Restoring transformer lib" #What is going on here? Doesn't even restart transformer???
+			logecho "Restoring transformer lib" #What is going on here? Doesn't even restart transformer???
 		fi
 		#/etc/init.d/transformer restart
 	fi
@@ -82,7 +82,7 @@ transformer_lib_check() {
 check_wansensing() {
 	#Make sure that wansensing is under the correct dir
 	if [ -d /usr/lib/lua/wansensing ] && [ ! -d /usr/lib/lua/wansensingfw ] ; then
-    logger_command "Old build detected, moving wansensing file"
+    logecho "Old build detected, moving wansensing file"
 		rm /usr/lib/lua/wansensing/scripthelpers.lua
 		mv /usr/lib/lua/wansensingfw/scripthelpers.lua /usr/lib/lua/wansensing/scripthelpers.lua
 		rm -r /usr/lib/lua/wansensing
@@ -90,7 +90,7 @@ check_wansensing() {
 }
 
 create_simbolic_utility() {
-  logger_command "Creating custom GUI utils symlinks..."
+  logecho "Creating custom GUI utils symlinks..."
 	if [ ! -h /usr/sbin/upgradegui ]; then
 		upgrade_utility=/usr/share/transformer/scripts/upgradegui
 		check_ver=/usr/share/transformer/scripts/checkver
@@ -103,7 +103,7 @@ create_simbolic_utility() {
 
 update_checkver_upgrade_script() {
 	if [ -f /usr/share/transformer/scripts/upgradegui.sh ]; then
-	  logger_command "Removing old update script"
+	  logecho "Removing old update script"
 		rm /usr/sbin/upgradegui
 		rm /usr/sbin/checkver
 		create_simbolic_utility
@@ -113,7 +113,7 @@ update_checkver_upgrade_script() {
 }
 
 checkver_cron() {
-  logger_command "Add checkversion to cron..."
+  logecho "Add checkversion to cron..."
 	if [ -f /usr/share/transformer/scripts/checkver ]; then
 		if [ -f /etc/crontabs/root ]; then #remove from cron old checkver.sh script
 			sed -i '/checkver.sh/d' /etc/crontabs/root

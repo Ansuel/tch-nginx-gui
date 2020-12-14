@@ -14,7 +14,7 @@ move_files_and_clean(){
   done
   rm -rf "$1"
 }
-logger_command "Installing specificTG789 package..."
+logecho "Installing specificTG789 package..."
 move_files_and_clean /tmp/upgrade-pack-specificTG789/
 
 #needed to fix "can't execute 'openssl'" on opkg update from https feed

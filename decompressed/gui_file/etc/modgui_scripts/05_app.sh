@@ -3,7 +3,7 @@
 . /etc/init.d/rootdevice
 
 check_new_dlnad() {
-  logger_command "Enable DLNAd"
+  logecho "Enable DLNAd"
 	#This function will check to see which dlna server daemon is installed
 	if [ -f /etc/init.d/dland ] && [ ! -f /etc/rc.d/S98dlnad ] && [ -f /etc/init.d/minidlna ]; then
 		if [ "$(pgrep "minidlna")" ] ; then
@@ -29,7 +29,7 @@ check_new_dlnad() {
 }
 
 trafficmon_support() {
-  logger_command "Trafficmon inizialization"
+  logecho "Trafficmon inizialization"
 	if [ -d /root/trafficmon ]; then
 		killall trafficmon 2>/dev/null
 		killall trafficdata 2>/dev/null
@@ -85,7 +85,7 @@ device_type="$(uci get -q env.var.prod_friendly_name)"
 
 trafficmon_support #support trafficmon
 [ -z "${device_type##*DGA413*}" ] && check_new_dlnad #this enable a new dlna deamon introduced with 17.1, the old one is keep
-logger_command "Move Aria2 dir"
+logecho "Move Aria2 dir"
 check_aria_dir #Fix config function
-logger_command "Reinstalling Telstra GUI if needed..."
+logecho "Reinstalling Telstra GUI if needed..."
 telstra_support_check #telstra support check

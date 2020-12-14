@@ -51,29 +51,29 @@ check_tmp_permission() {
 
 reapply_gui_after_reset() {
 	if [ -f /root/GUI.tar.bz2 ] && [ -s /root/GUI.tar.bz2 ]; then
-		logger_command "Resetting /www dir due to firmware upgrade..."
+		logecho "Resetting /www dir due to firmware upgrade..."
 		rm -r /www
 		bzcat /root/GUI.tar.bz2 | tar -C / -xf - www
 	else
-		logger_command "No GUI package found to restore!"
+		logecho "No GUI package found to restore!"
 	fi
 }
 
 check_free_RAM() {
-  logger_command "Checking Free RAM..."
+  logecho "Checking Free RAM..."
   MEMFREE=$(awk '/(MemFree|Buffers)/ {free+=$2} END {print free}' /proc/meminfo)
   if [ $MEMFREE -lt 4096 ]; then
-    logger_command "Free RAM <4MB freeing up..."
+    logecho "Free RAM <4MB freeing up..."
     # Having the kernel reclaim pagecache, dentries and inodes and check again
     echo 3 >/proc/sys/vm/drop_caches
     MEMFREE=$(awk '/(MemFree|Buffers)/ {free+=$2} END {print free}' /proc/meminfo)
     if [ $MEMFREE -lt 4096 ]; then
-      logger_command "Update is continuing with Free RAM <4MB!"
+      logecho "Update is continuing with Free RAM <4MB!"
     fi
   fi
 }
 
-logger_command "Disabling watchdog..."
+logecho "Disabling watchdog..."
 /etc/init.d/watchdog-tch stop > /dev/null
 
 move_env_var #This moves every garbage created before 8.11.49 in env to modgui config file
@@ -86,7 +86,7 @@ if [ -f /root/.reapply_due_to_upgrade ]; then
 fi
 
 if [ -f /tmp/GUI.tar.bz2 ] || [ -f /tmp/GUI_dev.tar.bz2 ]; then
-  logger_command "Saving GUI package to /root..."
+  logecho "Saving GUI package to /root..."
   [ -f /tmp/GUI.tar.bz2 ] && safe_mv /tmp/GUI.tar.bz2 /root/GUI.tar.bz2
   [ -f /tmp/GUI_dev.tar.bz2 ] && safe_mv /tmp/GUI_dev.tar.bz2 /root/GUI.tar.bz2
 fi

@@ -4,7 +4,7 @@
 
 kernel_ver="$(cat /proc/version | awk '{print $3}')"
 
-logger_command "Installing specificDGA package..."
+logecho "Installing specificDGA package..."
 
 if [ -z "${kernel_ver##3.4*}" ]; then
 
@@ -26,11 +26,11 @@ if [ -z "${kernel_ver##3.4*}" ]; then
   rm -rf /tmp/3.4_ipk
 
   enable_new_upnp() {
-    logger_command "Checking UPnP.."
+    logecho "Checking UPnP.."
     if [ -f /etc/init.d/miniupnpd ]; then
       if [ "$(uci get -q upnpd.config.enable_upnp)" ]; then
         if [ "$(uci get -q upnpd.config.enable_upnp)" == "1" ]; then
-          logger_command "Disabling miniupnpd-tch and redirecting to miniupnpd"
+          logecho "Disabling miniupnpd-tch and redirecting to miniupnpd"
           /etc/init.d/miniupnpd-tch stop
           /etc/init.d/miniupnpd-tch disable
           rm /etc/init.d/miniupnpd-tch
@@ -57,11 +57,11 @@ if [ -z "${kernel_ver##3.4*}" ]; then
   fi
 
   #Use custom driver to remove downgrade limitation... thx @Roleo
-  logger_command "Checking downgrade limitation bit..."
+  logecho "Checking downgrade limitation bit..."
   if [ "$(uci get -q env.rip.board_mnemonic)" == "VBNT-S" ] &&
     [ "$(uci get -q env.var.prod_number)" == "4132" ] &&
     [ -f /proc/rip/0123 ]; then
-    logger_command "Downgrade limitation bit detected... Removing..."
+    logecho "Downgrade limitation bit detected... Removing..."
     rmmod keymanager
     rmmod ripdrv
     mv /lib/modules/3.4.11/ripdrv.ko /lib/modules/3.4.11/ripdrv.ko_back
@@ -70,7 +70,7 @@ if [ -z "${kernel_ver##3.4*}" ]; then
     echo 0123 >/proc/rip/delete # RIP_ID_RESTRICTED_DOWNGR_TS (0x122)
     echo 0122 >/proc/rip/delete # RIP_ID_RESTRICTED_DOWNGR_OPT (0x123)
     rmmod ripdrv
-    logger_command "Restoring original driver"
+    logecho "Restoring original driver"
     rm /lib/modules/3.4.11/ripdrv.ko
     mv /lib/modules/3.4.11/ripdrv.ko_back /lib/modules/3.4.11/ripdrv.ko
     insmod ripdrv

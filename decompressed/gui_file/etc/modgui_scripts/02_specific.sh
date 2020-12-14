@@ -51,7 +51,7 @@ marketing_version="$(uci get -q version.@version[0].marketing_version)"
 cpu_type="$(uname -m)"
 
 apply_right_opkg_repo() {
-  logger_command "Checking opkg feeds..."
+  logecho "Checking opkg feeds..."
 
   opkg_file="/etc/opkg.conf"
 
@@ -116,7 +116,7 @@ EOF
       fi
       ;;
     *)
-      logger_command "No known ARM feeds for this version $marketing_version"
+      logecho "No known ARM feeds for this version $marketing_version"
       ;;
     esac
   elif [ "$cpu_type" == "mips" ]; then
@@ -139,11 +139,11 @@ EOF
       fi
       ;;
     *)
-      logger_command "No known MIPS feeds for this version $marketing_version"
+      logecho "No known MIPS feeds for this version $marketing_version"
       ;;
     esac
   else
-    logger_command "CPU '$cpu_type' UNKNOWN, feeds not found for this version $marketing_version"
+    logecho "CPU '$cpu_type' UNKNOWN, feeds not found for this version $marketing_version"
   fi
 
   # Remove non-existent hardcoded distfeed to avoid 404 on opkg update
@@ -162,7 +162,7 @@ ledfw_extract() {
 
 ledfw_rework_TG788() {
   if [ ! "$(uci get -q button.info)" ] || [ "$(uci get -q button.info)" == "BTN_3" ]; then
-    logger_command "Setting up status (wifi) button..."
+    logecho "Setting up status (wifi) button..."
     uci del button.easy_reset
     uci set button.info=button
     uci set button.info.button='BTN_1'
@@ -182,7 +182,7 @@ ledfw_rework_TG788() {
 
 ledfw_rework_TG799() {
   if [ ! "$(uci get -q button.info)" ]; then
-    logger_command "Setting up status (power) button..."
+    logecho "Setting up status (power) button..."
     uci del button.easy_reset
     uci set button.info=button
     uci set button.info.button='BTN_3'
@@ -199,7 +199,7 @@ ledfw_rework_TG799() {
 
 ledfw_rework_TG800() {
   if [ ! "$(uci get -q button.info)" ]; then
-    logger_command "Setting up status (wifi) button..."
+    logecho "Setting up status (wifi) button..."
     uci del button.easy_reset
     uci set button.info=button
     uci set button.info.button='BTN_1'
@@ -226,13 +226,13 @@ ledfw_rework_TG800() {
 #}
 
 install_specific() {
-  logger_command "Applying specific model fixes..."
+  logecho "Applying specific model fixes..."
   /usr/share/transformer/scripts/appInstallRemoveUtility.sh install specificapp "$1"
 }
 
 remove_wizard_5ghz() {
   if [ -n "$(find /www/wizard-cards/ -iname '*wireless_5G*')" ]; then
-    logger_command "Removing 5GHz config from wizard..."
+    logecho "Removing 5GHz config from wizard..."
     rm /www/wizard-cards/*wireless_5G*
   fi
 }
@@ -260,11 +260,11 @@ case $marketing_version in
   ;;
 "18."*)
   [ "$cpu_type" == "armv7l" ] && install_specific DGA
-  [ "$cpu_type" == "mips" ] && echo "Unknown what specific_app to install on $marketing_version $cpu_type"
+  [ "$cpu_type" == "mips" ] && logecho "Unknown what specific_app to install on $marketing_version $cpu_type"
   ;;
 *)
   uci set modgui.app.specific_app="1" #no specific package for this device
-  echo "Unknown what specific_app to install on $marketing_version $cpu_type"
+  logecho "Unknown what specific_app to install on $marketing_version $cpu_type"
   ;;
 esac
 
@@ -286,10 +286,10 @@ ls /tmp/ledfw* 1>/dev/null 2>&1 && rm /tmp/ledfw* #clean ledfw bz2 from /tmp
 [ -z "${device_type##*TG788*}" ] && remove_wizard_5ghz
 
 if [ -f /proc/rip/0122 ]; then
-  logger_command "WARNING! RIP_ID_RESTRICTED_DOWNGR_TS detected!!"
+  logecho "WARNING! RIP_ID_RESTRICTED_DOWNGR_TS detected!!"
 fi
 if [ -f /proc/rip/0123 ]; then
-  logger_command "WARNING! RIP_ID_RESTRICTED_DOWNGR_OPT detected!!"
+  logecho "WARNING! RIP_ID_RESTRICTED_DOWNGR_OPT detected!!"
 fi
 
 #Fix led issues

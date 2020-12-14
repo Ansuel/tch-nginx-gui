@@ -19,7 +19,8 @@ echo_log() {
 }
 
 save_log_and_exit() {
-        cp $logging_file /overlay/firmware_upgrade_log
+        mkdir /overlay/modgui_log
+        cp $logging_file /overlay/modgui_log/firmware_upgrade_log_$(date +"%H-%M_%m-%d-%y")
         reboot
         exit 1
 }

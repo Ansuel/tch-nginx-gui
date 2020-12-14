@@ -53,7 +53,7 @@ set_transformer() {
 }
 #################################################
 
-logger_command() {
+logecho() {
   logger -t "Upgrade Script" "$1"
   echo "Upgrade Script" "$1"
 }
@@ -76,7 +76,7 @@ if [ "$1" ]; then
   if [ "$1" == "AutoUpgrade" ]; then
     /usr/share/transformer/scripts/checkver
     if [ "$(uci get modgui.gui.outdated_ver)" == "0" ]; then
-      logger_command "Already at latest version. Aborting upgrade."
+      logecho "Already at latest version. Aborting upgrade."
       exit 0
     fi
     # Enabling alert for the gui about the autoupgrade
@@ -131,7 +131,7 @@ FORCE_SAVE_GUI=0
 
 overlay_available_space=$(df /overlay | sed -n 2p | awk {'{print $4}'})
 if [ "$overlay_available_space" -lt 3000 ]; then
-  logger_command "ERROR: not enough space to complete operation" >&2
+  logecho "ERROR: not enough space to complete operation" >&2
   #Should probably implement some sort of erase here <kevdagoat>
   ubus send fwupgrade '{"state":"done"}'
   exit 1
@@ -141,10 +141,10 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 
   set_transformer "rpc.system.modgui.executeCommand.state" "Downloading"
 
-  logger_command "Downloading GUI file..."
+  logecho "Downloading GUI file..."
   # Enter /tmp folder
   if ! cd "$WORKING_DIR"; then
-    logger_command "ERROR: Can't access $WORKING_DIR" >&2
+    logecho "ERROR: Can't access $WORKING_DIR" >&2
     ubus send fwupgrade '{"state":"done"}'
     exit 1
   fi
@@ -156,7 +156,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 
   # Download new GUI to /tmp
   if ! $curl $URL_BASE/$FILE_NAME --output $WORKING_DIR/$FILE_NAME; then
-    logger_command "ERROR: Can't find new GUI file" >&2
+    logecho "ERROR: Can't find new GUI file" >&2
     ubus send fwupgrade '{"state":"done"}'
     exit 1
   fi
@@ -172,19 +172,19 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
   if ! grep -q "$downloaded_md5" "$WORKING_DIR/$CHECKSUM_FILE"; then
     rm "$WORKING_DIR/$FILE_NAME"
     rm "$WORKING_DIR/$CHECKSUM_FILE"
-    logger_command "ERROR: File corrupted!!!" >&2
-    logger_command "ERROR: Removing upgrade file and aborting." >&2
+    logecho "ERROR: File corrupted!!!" >&2
+    logecho "ERROR: Removing upgrade file and aborting." >&2
     #Call a handler here to say fw upgrade failed? eg. ubus send fwupgrade '{"state":"failed"}'
     ubus send fwupgrade '{"state":"done"}'
     exit 1
   fi
 
-  logger_command "Downloaded GUI with hash: $downloaded_md5"
+  logecho "Downloaded GUI with hash: $downloaded_md5"
 
   if [ "$update_branch" ]; then
     if [ "$update_branch" == "_dev" ] || [ "$update_branch" == "_preview" ]; then
 
-      logger_command "Dev branch detected... Checking for newer version in stable..."
+      logecho "Dev branch detected... Checking for newer version in stable..."
 
       if [ -f "$WORKING_DIR/$STABLE_FILE_NAME" ]; then
         rm "$WORKING_DIR/$STABLE_FILE_NAME"
@@ -193,7 +193,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
       # Download stable GUI to /tmp
 
       if ! $curl $URL_BASE/$STABLE_FILE_NAME --output $WORKING_DIR/$STABLE_FILE_NAME; then
-        logger_command "ERROR: Can't find stable GUI file" >&2
+        logecho "ERROR: Can't find stable GUI file" >&2
         rm "$WORKING_DIR/$FILE_NAME"
         rm "$WORKING_DIR/$CHECKSUM_FILE"
         #Call a handler here to say fw upgrade failed? eg. ubus send fwupgrade '{"state":"failed"}'
@@ -207,27 +207,27 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
         rm "$WORKING_DIR/$FILE_NAME"
         rm "$WORKING_DIR/$STABLE_FILE_NAME"
         rm "$WORKING_DIR/$CHECKSUM_FILE"
-        logger_command "ERROR: Stable file corrupted!!!" >&2
-        logger_command "ERROR: Removing upgrade file and aborting." >&2
+        logecho "ERROR: Stable file corrupted!!!" >&2
+        logecho "ERROR: Removing upgrade file and aborting." >&2
         #Call a handler here to say fw upgrade failed? eg. ubus send fwupgrade '{"state":"failed"}'
         ubus send fwupgrade '{"state":"done"}'
         exit 1
       fi
 
-      logger_command "Downloaded stable GUI with hash: $stable_md5"
+      logecho "Downloaded stable GUI with hash: $stable_md5"
 
       stable_version="$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $stable_md5 | cut -d' ' -f2)"
       stable_version_norm="$(normalize $stable_version)"
 
-      logger_command "Downloaded Stable version: $stable_version_norm"
+      logecho "Downloaded Stable version: $stable_version_norm"
 
       dev_version="$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $downloaded_md5 | cut -d' ' -f2)"
       dev_version_norm="$(normalize $dev_version)"
 
-      logger_command "Downloaded $update_branch version: $dev_version_norm"
+      logecho "Downloaded $update_branch version: $dev_version_norm"
 
       if [ $(enum $stable_version_norm) -gt $(enum $dev_version_norm) ]; then
-        logger_command "Found newer version in stable branch, using it..."
+        logecho "Found newer version in stable branch, using it..."
         rm "$WORKING_DIR/$FILE_NAME"
         FILE_NAME="$STABLE_FILE_NAME"
         FORCE_SAVE_GUI=1
@@ -237,7 +237,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
           saved_stable_md5=$(md5sum $PERMANENT_STORE_DIR/$FILE_NAME | cut -d' ' -f1)
 
           if [ $saved_stable_md5 != $stable_md5 ]; then
-            logger_command "Permanent package md5 is not same of latest Stable GUI. Replacing..."
+            logecho "Permanent package md5 is not same of latest Stable GUI. Replacing..."
             rm "$PERMANENT_STORE_DIR/$FILE_NAME"
             cp $WORKING_DIR/$STABLE_FILE_NAME $PERMANENT_STORE_DIR/
           fi
@@ -248,7 +248,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
     fi
   fi
 else
-  logger_command "Found file in /tmp dir... doing offline upgrade!"
+  logecho "Found file in /tmp dir... doing offline upgrade!"
   #Save gui always as STABLE in offline upgrade as we can't check or download it.
   FORCE_SAVE_GUI=1
 fi
@@ -256,10 +256,10 @@ fi
 set_transformer "rpc.system.modgui.executeCommand.state" "Clearing"
 
 #NOT NEEDED ANYMORE
-#logger_command "Stopping nginx..."
+#logecho "Stopping nginx..."
 #/etc/init.d/nginx stop
 
-logger_command "Cleaning www dir"
+logecho "Cleaning www dir"
 #clean old www dir
 
 for dir in /www/*; do
@@ -286,29 +286,29 @@ done
 
 set_transformer "rpc.system.modgui.executeCommand.state" "Extracting"
 
-logger_command "Extracting file..."
+logecho "Extracting file..."
 # Extract new GUI to /
 bzcat "$WORKING_DIR/$FILE_NAME" |
   tar -C "$TARGET_DIR" -xvf - |
   while read -r line; do
     nfile_extracted=$((nfile_extracted + 1))
     if [ $(($nfile_extracted % 100)) -eq 0 ]; then
-      logger_command "Extracted $nfile_extracted files"
+      logecho "Extracted $nfile_extracted files"
     fi
   done
 
 #Remove deprecated GUI packages if found in /root
 if [ -f /root/GUI_dev.tar.bz2 ]; then
-  logger_command "Deleting /root/GUI_dev.tar.bz2..."
+  logecho "Deleting /root/GUI_dev.tar.bz2..."
   rm /root/GUI_dev.tar.bz2
 fi
 if [ -f /root/GUI.tar.gz ]; then
-  logger_command "Deleting GUI.tar.gz..."
+  logecho "Deleting GUI.tar.gz..."
   rm /root/GUI.tar.gz
 fi
 
 if [ -z "$update_branch" ] || [ $FORCE_SAVE_GUI == 1 ]; then
-  logger_command "Copying file to permanent dir..."
+  logecho "Copying file to permanent dir..."
   #Copy GUI file to permanent dir
   if [ -f "$PERMANENT_STORE_DIR/$FILE_NAME" ]; then
     rm "$PERMANENT_STORE_DIR/$FILE_NAME"
@@ -317,13 +317,13 @@ if [ -z "$update_branch" ] || [ $FORCE_SAVE_GUI == 1 ]; then
 fi
 
 if [ "$update_branch" == "_dev" ] || [ "$update_branch" == "_preview" ]; then
-  logger_command "Saving md5sum of dev gui to /root ..."
+  logecho "Saving md5sum of dev gui to /root ..."
   md5sum "$WORKING_DIR/$FILE_NAME" | cut -d' ' -f1 >/root/gui_dev.md5sum
 fi
 
 sync
 
-logger_command "Running rootdevice script"
+logecho "Running rootdevice script"
 # Run init.d script
 set_transformer "rpc.system.modgui.executeCommand.state" "In Progress"
 /etc/init.d/rootdevice "$rootdevice_call"
@@ -337,4 +337,4 @@ if [ -f "$WORKING_DIR/$CHECKSUM_FILE" ]; then
 fi
 
 ubus send fwupgrade '{"state":"done"}'
-logger_command "Upgrade Done" ConsoleOnly
+logecho "Upgrade Done" ConsoleOnly

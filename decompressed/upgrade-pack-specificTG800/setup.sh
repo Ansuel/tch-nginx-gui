@@ -14,7 +14,7 @@ move_files_and_clean(){
   done
   rm -rf "$1"
 }
-logger_command "Installing specificTG800 package..."
+logecho "Installing specificTG800 package..."
 move_files_and_clean /tmp/upgrade-pack-specificTG800/
 
 if [ -z "${kernel_ver##3.4*}" ]; then
