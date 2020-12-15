@@ -99,5 +99,3 @@ log "Tarring File..."
 tar -czvf "/tmp/DebugHelper$DATE.tar.gz" "/tmp/DebugHelper-$DATE" > /dev/null 2>&1
 rm -R "/tmp/DebugHelper-$DATE"
 log "All Done! Zipped file can be found in /tmp/DebugHelper$DATE.tar.gz"
-
-}
