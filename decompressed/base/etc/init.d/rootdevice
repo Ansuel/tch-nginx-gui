@@ -84,7 +84,7 @@ create_modgui_log() {
 
 save_modgui_log() {
   mkdir /overlay/modgui_log
-  cp -rf $rootdevice_log_file /overlay/modgui_log/rootdevice_log_$(date +"%H-%M_%m-%d-%y")
+  cp -rf $rootdevice_log_file "/overlay/modgui_log/rootdevice_log_$(date +%H-%M_%m-%d-%y)"
 }
 
 sched_remove_modgui_log() {
@@ -238,7 +238,7 @@ install_gui() {
 
   logecho "Start rooting"
   if [ ! -f /root/.install_gui ]; then #this check if the placeholder exist
-    touch /root/.install_gui           #this is a placeholder to know if the install process ends correctly (removed by 99_postreq.sh)
+    touch /root/.install_gui #this is a placeholder to know if the install process ends correctly (removed by 99_postreq.sh)
   fi
 
   if [ -d /etc/modgui_scripts ]; then
@@ -355,7 +355,7 @@ check_and_apply_obp() {
       kecho "OBP sanity check FAILED but check_obp set to 0... Not acting"
     else
 
-      if [ $(cat /proc/$PPID/comm) == "upgradegui" ]; then
+      if [ "$(cat /proc/$PPID/comm)" == "upgradegui" ]; then
         logecho "OBP sanity check FAILED but upgrading, postpone planning on next boot..."
         kecho "OBP sanity check FAILED but upgrading, postpone planning on next boot..."
         uci set modgui.var.reboot_reason_msg="apply OBP planning"
@@ -399,8 +399,8 @@ check_and_apply_obp() {
 }
 
 check_full_overlay() {
-  overlay_percent=$(df /overlay | sed -n 2p | awk {'{print $5}'} | sed 's|%||')
-  overlay_mtdblock=$(df /overlay | sed -n 2p | awk {'{print $1}'})
+  overlay_percent=$(df /overlay | sed -n 2p | awk '{print $5}' | sed 's|%||')
+  overlay_mtdblock=$(df /overlay | sed -n 2p | awk '{print $1}')
   bootedbank=$(cat /proc/banktable/booted)
   #Reset if rootfs more than 97% full
   if [ "$overlay_percent" -gt 96 ]; then

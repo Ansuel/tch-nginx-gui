@@ -830,9 +830,9 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
       html[#html + 1] = ui_helper.createAlertBlock(T"Importing failed; Invalid file used: expected file with extension bin.  Please use correct file.", importing_wrong_ext_fail)
       html[#html + 1] = ui_helper.createAlertBlock(T"Importing failed; Invalid file used: file too large.  Please use correct.  Please use correct file..", importing_too_big_fail)
 
-	  html[#html + 1] = ui_helper.createAlertBlock(T"Check this to remove config after firmware update.<br/>This won't remove root.<br/>It is advertised to check this if you are downgrading the firmware.", basic)
+	  html[#html + 1] = ui_helper.createAlertBlock(T"Check this to remove config after firmware update.<br/>This won't remove root.<br/>It is advised to check this if you are downgrading the firmware.", basic)
 	  html[#html + 1] = ui_helper.createInputCheckbox(T"Remove config file with upgrade","remove_conf_on_upgrade","0",reset_on_upgrade)
-	  html[#html + 1] = ui_helper.createAlertBlock(T"Check this to only root the modem after the firmware is installed.<br/>After this you had to reinstall the GUI.<br/>Expect the web interface to be broken after the upgrade", basic)
+	  html[#html + 1] = ui_helper.createAlertBlock(T"Check this to only root the modem after the firmware is installed.<br/>After this you have to reinstall the GUI.<br/>Expect the web interface to be broken after the upgrade", basic)
 	  html[#html + 1] = ui_helper.createInputCheckbox(T"Root only modem after upgrade","rootonly_on_upgrade","0",reset_on_upgrade)
 	  html[#html + 1] = '</form><form class="form-horizontal" id="form-upgradefw" method="post" enctype="multipart/form-data">'
 	  html[#html + 1] = '<div class="control-group">'
