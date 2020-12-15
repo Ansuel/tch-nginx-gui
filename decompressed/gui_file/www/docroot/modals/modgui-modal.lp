@@ -333,6 +333,11 @@ local content = {
 	specific_app = "uci.modgui.app.specific_app",
 	telstra_gui = "uci.modgui.app.telstra_webui",
 	fwversion_real = "uci.versioncusto.override.fwversion_override_real",
+	activebank = "sys.banktable.activebank",
+	passivebank = "sys.banktable.passivebank",
+	activeversion = "sys.banktable.activeversion",
+	passiveversion = "sys.banktable.passiveversion",
+	rip_key_B = "rpc.system.modgui.utility.rip_key_B",
 }
 content_helper.getExactContent(content)
 
@@ -764,6 +769,24 @@ ngx.print('\
 			html[#html + 1] = ui_helper.createButton(T"Debug Zip", T"Generate", "icon-exchange", generate_debug_report)
 			html[#html + 1] = ui_helper.createAlertBlock(T"Force the device to always use bank_2 partition as booted partition and bank_1 as active but corrupted<br/>This will also ensure that overlay (configs/mods partition) of bank_1 is empty or just have the rooting script preloaded.<br/>This bank plan allow to use TFTP flashing, as a reliable recovery procedure in case we mess-up with the bank_2 overlay", info_box)
 			html[#html + 1] = ui_helper.createSwitch(T"OBP Check", "check_obp", modgui_settings["check_obp"])
+			ngx.print(html)
+
+			local html = {}
+			html[#html + 1] = '<legend>'.. T"Bank Info" ..'</legend>'
+			html[#html + 1] = ui_helper.createLabel(T"Active Bank", content["activebank"] , basic)
+			html[#html + 1] = ui_helper.createLabel(T"Active Version", content["activeversion"] , long_basic)
+			html[#html + 1] = ui_helper.createLabel(T"Passive Bank", content["passivebank"] , basic)
+			if content["passiveversion"] == "Unknown" then
+				html[#html + 1] = ui_helper.createLabel(T"Passive Version", T"Firmware not present in this bank" , long_basic)
+			else
+				html[#html + 1] = ui_helper.createLabel(T"Passive Version", content["passiveversion"] , long_basic)
+			end
+			ngx.print(html)
+
+			local html = {}
+			html[#html + 1] = '<legend>'.. T"Key Info" ..'</legend>'
+			html[#html + 1] = ui_helper.createLabel(T"Config decrypt key", content["rip_key_B"] , basic)
+
 			ngx.print(html)
 		  ngx.print('\
 		  </form>\

@@ -357,11 +357,6 @@ local content = {
   fwversion_prefix = "uci.versioncusto.override.fwversion_prefix",
   fwversion_suffix = "uci.versioncusto.override.fwversion_suffix",
   fwversion_override = "uci.versioncusto.override.fwversion_override_real",
-  activebank = "sys.banktable.activebank",
-  passivebank = "sys.banktable.passivebank",
-  activeversion = "sys.banktable.activeversion",
-  passiveversion = "sys.banktable.passiveversion",
-  rip_key_B = "rpc.system.modgui.utility.rip_key_B",
   schedule_reboot_get = "uci.system.scheduledreboot.enabled"
 }
 
@@ -854,24 +849,6 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     end
 
 	ngx.print(html)
-
-    local html = {}
-	html[#html + 1] = '<legend>'.. T"Bank Info" ..'</legend>'
-    html[#html + 1] = ui_helper.createLabel(T"Active Bank", content["activebank"] , basic)
-	html[#html + 1] = ui_helper.createLabel(T"Active Version", content["activeversion"] , long_basic)
-	html[#html + 1] = ui_helper.createLabel(T"Passive Bank", content["passivebank"] , basic)
-	if content["passiveversion"] == "Unknown" then
-		html[#html + 1] = ui_helper.createLabel(T"Passive Version", T"Firmware not present in this bank" , long_basic)
-	else
-		html[#html + 1] = ui_helper.createLabel(T"Passive Version", content["passiveversion"] , long_basic)
-	end
-    ngx.print(html)
-
-    local html = {}
-	html[#html + 1] = '<legend>'.. T"Key Info" ..'</legend>'
-    html[#html + 1] = ui_helper.createLabel(T"Config decrypt key", content["rip_key_B"] , basic)
-
-    ngx.print(html)
     ngx.print('\
   </form>\
  </fieldset>\

@@ -75,7 +75,7 @@ logecho() {
 
 logecho_always() {
   logger -t "Root Script" "$@"
-  echo "Root Script" "$@" >>rootdevice_log_file
+  echo "Root Script" "$@" >>$rootdevice_log_file
 }
 
 create_modgui_log() {
