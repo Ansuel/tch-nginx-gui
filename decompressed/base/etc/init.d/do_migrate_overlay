@@ -7,17 +7,17 @@ EXTRA_HELP="        preserve_files  Transfer files from modoverlay to bank"
 upperdir=/modoverlay/bank_mod
 overlay_bank=/overlay/bank_2
 
-migrate_log_file=/overlay/modgui_log/migrate_log_$(date +"%H-%M_%m-%d-%y")
+logging_file=/overlay/modgui_log/migrate_log_$(date +"%H-%M_%m-%d-%y")
 
 create_modgui_log() {
-  mkdir /overlay/modgui_log
-  touch $migrate_log_file
+  [ ! -d /overlay/modgui_log ] && mkdir /overlay/modgui_log
+  touch $logging_file
 }
 
 kecho() {
-	echo mount_root-mod: $@
-	echo mount_root-mod: $@ > /dev/kmsg
-  echo mount_root-mod: $@ >> $migrate_log_file
+  echo mount_root-mod: "$@"
+  echo mount_root-mod: "$@" > /dev/kmsg
+  echo mount_root-mod: "$@" >> $logging_file
 }
 
 preserve_files() {

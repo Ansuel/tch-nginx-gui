@@ -58,11 +58,11 @@ EOF
 }
 
 ####################LOG FUNCTION#################
-rootdevice_log_file=/tmp/rootdevice_log
+logging_file=/tmp/rootdevice_log
 
 kecho() {
   echo "  " "$@" >/dev/console
-  echo "  " "$@" >>$rootdevice_log_file
+  echo "  " "$@" >>$logging_file
 }
 
 logecho() {
@@ -70,25 +70,25 @@ logecho() {
     logger -t "Root Script" "$@"
     echo "Root Script" "$@"
   fi
-  echo "Root Script" "$@" >>$rootdevice_log_file
+  echo "Root Script" "$@" >>$logging_file
 }
 
 logecho_always() {
   logger -t "Root Script" "$@"
-  echo "Root Script" "$@" >>$rootdevice_log_file
+  echo "Root Script" "$@" >>$logging_file
 }
 
 create_modgui_log() {
-  touch $rootdevice_log_file
+  touch $logging_file
 }
 
 save_modgui_log() {
-  mkdir /overlay/modgui_log
-  cp -rf $rootdevice_log_file "/overlay/modgui_log/rootdevice_log_$(date +%H-%M_%m-%d-%y)"
+  [ ! -d /overlay/modgui_log ] && mkdir /overlay/modgui_log
+  cp -rf $logging_file "/overlay/modgui_log/rootdevice_log_$(date +%H-%M_%m-%d-%y)"
 }
 
 sched_remove_modgui_log() {
-  mkdir /overlay/modgui_log.remove_due_to_upgrade
+  [ ! -d /overlay/modgui_log.remove_due_to_upgrade ] && mkdir /overlay/modgui_log.remove_due_to_upgrade
   mv /overlay/modgui_log/* /overlay/modgui_log.remove_due_to_upgrade/
   rm -rf /overlay/modgui_log
 }

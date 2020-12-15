@@ -1,17 +1,17 @@
 #!/bin/sh
 
 ubi_num=
-mountroot_log_file=/overlay/modgui_log/mountroot_log_$(date +"%H-%M_%m-%d-%y")
+logging_file=/overlay/modgui_log/mountroot_log_$(date +"%H-%M_%m-%d-%y")
 
 create_modgui_log() {
-  mkdir /overlay/modgui_log
-  touch $rootdevice_log_file
+  [ ! -d /overlay/modgui_log ] && mkdir /overlay/modgui_log
+  touch $logging_file
 }
 
 kecho() {
-	echo mount_root-mod: $@
-	echo mount_root-mod: $@ > /dev/kmsg
-	echo mount_root-mod: $@ >> $rootdevice_log_file
+	echo mount_root-mod: "$@"
+	echo mount_root-mod: "$@" > /dev/kmsg
+	echo mount_root-mod: "$@" >> $logging_file
 }
 
 find_mtd_part() {
