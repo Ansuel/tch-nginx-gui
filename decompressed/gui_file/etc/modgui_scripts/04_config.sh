@@ -305,8 +305,10 @@ mobiled_lib_add() {
   fi
 
   if [ ! -d /usr/lib/lua/mobiled ]; then
-    logecho "Removing mobiled card as it is not detected on this device..."
+    logecho "Removing mobiled components as it is not detected on this device..."
     rm -rf /www/cards/010_lte.lp
+    rm -rf /usr/share/transformer/mappings/rpc/mobiled.*
+    rm -rf /usr/share/transformer/mappings/rpc/ltedoctor.*
   fi
 
   marketing_version="$(uci get -q version.@version[0].marketing_version)"

@@ -61,21 +61,21 @@ EOF
 rootdevice_log_file=/tmp/rootdevice_log
 
 kecho() {
-  echo "  "$@ >/dev/console
-  echo "  "$@ >>$rootdevice_log_file
+  echo "  " "$@" >/dev/console
+  echo "  " "$@" >>$rootdevice_log_file
 }
 
 logecho() {
   if [ "$debug" -eq 1 ]; then
-    logger -t "Root Script" $@
-    echo "Root Script" $@
+    logger -t "Root Script" "$@"
+    echo "Root Script" "$@"
   fi
-  echo "Root Script" $@ >>$rootdevice_log_file
+  echo "Root Script" "$@" >>$rootdevice_log_file
 }
 
 logecho_always() {
-  logger -t "Root Script" $@
-  echo "Root Script" $@ >>rootdevice_log_file
+  logger -t "Root Script" "$@"
+  echo "Root Script" "$@" >>rootdevice_log_file
 }
 
 create_modgui_log() {

@@ -39,7 +39,7 @@ start_stop_nginx() {
 				kill -KILL "$pid"
 			done
 		fi
-		logecho "Restarting nginx..." ConsoleOnly
+		logecho "Restarting nginx..."
 		/etc/init.d/nginx restart 2>/dev/null
 		sleep 5
 		nginx_count=$((nginx_count+1))
@@ -63,9 +63,9 @@ if [ -f /root/.install_gui ]; then
   logecho "Removing .install_gui flag"
 	rm /root/.install_gui
 fi
-logecho "Process done."
+logecho "Process complete, restarting services."
 
-logecho "Restarting transformer" ConsoleOnly
+logecho "Restarting transformer..."
 /etc/init.d/transformer restart
 #Call a random value to check start of transformer
 lua -e "require('datamodel').get('uci.env.var.oui')" > /dev/null
@@ -78,5 +78,5 @@ lua -e "require('datamodel').get('uci.env.var.oui')" > /dev/null
 #	/etc/init.d/transformer restart
 #fi
 
-logecho "Stopping nginx" ConsoleOnly
+logecho "Stopping nginx"
 start_stop_nginx

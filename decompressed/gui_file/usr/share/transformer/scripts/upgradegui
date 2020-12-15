@@ -337,4 +337,4 @@ if [ -f "$WORKING_DIR/$CHECKSUM_FILE" ]; then
 fi
 
 ubus send fwupgrade '{"state":"done"}'
-logecho "Upgrade Done" ConsoleOnly
+logecho "Upgrade Done"

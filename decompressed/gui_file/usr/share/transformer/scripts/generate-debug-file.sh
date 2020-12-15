@@ -91,6 +91,9 @@ log "Scanning /etc/config directory..."
   ls -lah /etc/config/
 }> ./configlist.txt
 
+[ -d /overlay/modgui_log.remove_due_to_upgrade ] && cp -r /overlay/modgui_log.remove_due_to_upgrade ./
+[ -d /overlay/modgui_log ] && cp -r /overlay/modgui_log ./
+
 ###########################################################################################################################################################
 log "Tarring File..."
 tar -czvf "/tmp/DebugHelper$DATE.tar.gz" "/tmp/DebugHelper-$DATE" > /dev/null 2>&1

@@ -8,43 +8,43 @@ cpu_type="$(uname -m)"
 #  3rd arg : raw or normal. Raw is used to download specific file from specific dir
 #  4th arg : addtional command to append to setup.sh (usefull if setup.sh contains also uninstall command)
 install_from_github() {
-  mkdir /tmp/$2
+  mkdir "/tmp/$2"
 
-  if [ $3 == "specificapp" ]; then
-    if [ ! -f /tmp/$2.tar.bz2 ]; then
+  if [ "$3" = "specificapp" ]; then
+    if [ ! -f "/tmp/$2.tar.bz2" ]; then
       if ! ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then
         echo "No internet connection detected, download manually!"
         exit 0
       fi
-      curl -sLk https://raw.githubusercontent.com/$1/$2.tar.bz2 --output /tmp/$2.tar.bz2
+      curl -sLk "https://raw.githubusercontent.com/$1/$2.tar.bz2" --output "/tmp/$2.tar.bz2"
     fi
-    if [ ! -f /tmp/$2.tar.bz2 ]; then
+    if [ ! -f "/tmp/$2.tar.bz2" ]; then
       echo "Error installing App: Cannot find/download  $2.tar.bz2"
       return 1
     fi
-    bzcat /tmp/$2.tar.bz2 | tar -C /tmp/$2 -xf -
-    rm /tmp/$2.tar.bz2
-    cd /tmp/$2
+    bzcat "/tmp/$2.tar.bz2" | tar -C "/tmp/$2" -xf -
+    rm "/tmp/$2.tar.bz2"
+    cd "/tmp/$2" || return 1
   else
-    if [ ! -f /tmp/$2.tar.gz ]; then
+    if [ ! -f "/tmp/$2.tar.gz" ]; then
       if ! ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then
         echo "No internet connection detected, download manually!"
         exit 0
       fi
-      curl -sLk https://github.com/$1/tarball/$2 --output /tmp/$2.tar.gz
+      curl -sLk "https://github.com/$1/tarball/$2" --output "/tmp/$2.tar.gz"
     fi
-    if [ ! -f /tmp/$2.tar.gz ]; then
+    if [ ! -f "/tmp/$2.tar.gz" ]; then
       echo "Error installing App: Cannot find/download  $2.tar.gz"
       return 1
     fi
-    tar -xzf /tmp/$2.tar.gz -C /tmp/$2
-    rm /tmp/$2.tar.gz
-    cd /tmp/$2/*
+    tar -xzf "/tmp/$2.tar.gz" -C "/tmp/$2"
+    rm "/tmp/$2.tar.gz"
+    cd "/tmp/$2/*"
   fi
 
   chmod +x ./setup.sh
   ./setup.sh "$4"
-  rm -rf /tmp/$2
+  rm -rf "/tmp/$2"
 }
 
 ############TRANSFORMER UTILITY##################
@@ -74,12 +74,12 @@ app_transmission() {
   install() {
     case $marketing_version in
     "16.1"* | "16.2"*)
-      [ "$cpu_type" == "armv7l" ] && install_from_github FrancYescO/sharing_tg789 transmission-xtream
-      [ "$cpu_type" == "mips" ] && install_from_github FrancYescO/sharing_tg789 transmission
+      [ "$cpu_type" = "armv7l" ] && install_from_github FrancYescO/sharing_tg789 transmission-xtream
+      [ "$cpu_type" = "mips" ] && install_from_github FrancYescO/sharing_tg789 transmission
       ;;
     "16."* | "17."* | "18."*)
-      [ "$cpu_type" == "armv7l" ] && install_arm
-      [ "$cpu_type" == "mips" ] && install_from_github FrancYescO/sharing_tg789 transmission
+      [ "$cpu_type" = "armv7l" ] && install_arm
+      [ "$cpu_type" = "mips" ] && install_from_github FrancYescO/sharing_tg789 transmission
       ;;
     *)
       echo "Unknown app install script for $marketing_version $cpu_type"
@@ -106,7 +106,7 @@ app_transmission() {
 
   case $1 in
   install)
-    install $2
+    install "$2"
     ;;
   remove)
     remove
@@ -152,7 +152,7 @@ app_telstra() {
 
   case $1 in
   install)
-    install $2
+    install "$2"
     ;;
   remove)
     remove
@@ -181,7 +181,7 @@ app_luci() {
       mv /usr/lib/lua/uci.so_bak /usr/lib/lua/uci.so
       sed -i 's/require "uci"/require "uci_luci"/g' /usr/lib/lua/luci/model/uci.lua #modify luci to load his original lib with different name
 
-      if [ ! $(uci get uhttpd.main.listen_http | grep 9080) ]; then
+      if [ ! "$(uci get uhttpd.main.listen_http | grep 9080)" ]; then
         uci del_list uhttpd.main.listen_http='0.0.0.0:80'
         uci add_list uhttpd.main.listen_http='0.0.0.0:9080'
         uci del_list uhttpd.main.listen_http='[::]:80'
@@ -205,20 +205,20 @@ app_luci() {
 
     case $marketing_version in
     "16.1"* | "16.2"*)
-      [ "$cpu_type" == "armv7l" ] && echo "Unknown app install script for $marketing_version $cpu_type"
-      [ "$cpu_type" == "mips" ] && luci_install_mips
+      [ "$cpu_type" = "armv7l" ] && echo "Unknown app install script for $marketing_version $cpu_type"
+      [ "$cpu_type" = "mips" ] && luci_install_mips
       ;;
     "16."* | "17."*)
-      [ "$cpu_type" == "armv7l" ] && {
+      [ "$cpu_type" = "armv7l" ] && {
         luci_install_arm
         opkg install --force-reinstall --force-overwrite libuci-lua
         sed -i 's/require "uci_luci"/require "uci"/g' /usr/lib/lua/luci/model/uci.lua
       }
-      [ "$cpu_type" == "mips" ] && luci_install_mips
+      [ "$cpu_type" = "mips" ] && luci_install_mips
       ;;
     "18."*)
-      [ "$cpu_type" == "armv7l" ] && luci_install_arm
-      [ "$cpu_type" == "mips" ] && luci_install_mips
+      [ "$cpu_type" = "armv7l" ] && luci_install_arm
+      [ "$cpu_type" = "mips" ] && luci_install_mips
       ;;
     *)
       echo "Unknown app install script for $marketing_version $cpu_type"
@@ -243,15 +243,15 @@ app_luci() {
       /tmp/uninstall.sh
     }
 
-    [ "$cpu_type" == "armv7l" ] && luci_remove_arm
-    [ "$cpu_type" == "mips" ] && luci_remove_mips
+    [ "$cpu_type" = "armv7l" ] && luci_remove_arm
+    [ "$cpu_type" = "mips" ] && luci_remove_mips
     uci set modgui.app.luci_webui="0"
     uci commit modgui
   }
 
   case $1 in
   install)
-    install $2
+    install "$2"
     ;;
   remove)
     remove
@@ -265,8 +265,8 @@ app_luci() {
 
 app_amule() {
   install() {
-    [ "$cpu_type" == "armv7l" ] && echo "Unknown app install script for $marketing_version $cpu_type"
-    [ "$cpu_type" == "mips" ] && install_from_github FrancYescO/sharing_tg789 amule
+    [ "$cpu_type" = "armv7l" ] && echo "Unknown app install script for $marketing_version $cpu_type"
+    [ "$cpu_type" = "mips" ] && install_from_github FrancYescO/sharing_tg789 amule
     uci set modgui.app.amule_webui="1"
     uci commit modgui
   }
@@ -285,7 +285,7 @@ app_amule() {
 
   case $1 in
   install)
-    install $2
+    install "$2"
     ;;
   start)
     start
@@ -294,7 +294,7 @@ app_amule() {
     stop
     ;;
   *)
-    echo "Unsupported action"
+    remove
     return 1
     ;;
   esac
@@ -315,15 +315,16 @@ app_aria2() {
       mkdir $ARIA2_DIR
       touch $ARIA2_DIR/aria2.conf
       touch $ARIA2_DIR/aria2.session
-
-      echo 'enable-rpc=true' >>$ARIA2_DIR/aria2.conf
-      echo 'rpc-allow-origin-all=true' >>$ARIA2_DIR/aria2.conf
-      echo 'rpc-listen-all=true' >>$ARIA2_DIR/aria2.conf
-      echo 'rpc-listen-port=6800' >>$ARIA2_DIR/aria2.conf
-      echo 'input-file=/etc/aria2/aria2.session' >>$ARIA2_DIR/aria2.conf
-      echo 'save-session=/etc/aria2/aria2.session' >>$ARIA2_DIR/aria2.conf
-      echo 'save-session-interval=300' >>$ARIA2_DIR/aria2.conf
-      echo 'dir=/mnt/usb/USB-A1' >>$ARIA2_DIR/aria2.conf
+      {
+        echo 'enable-rpc=true'
+        echo 'rpc-allow-origin-all=true'
+        echo 'rpc-listen-all=true'
+        echo 'rpc-listen-port=6800'
+        echo 'input-file=/etc/aria2/aria2.session'
+        echo 'save-session=/etc/aria2/aria2.session'
+        echo 'save-session-interval=300'
+        echo 'dir=/mnt/usb/USB-A1'
+      } >>$ARIA2_DIR/aria2.conf
 
       # add aria2 in /etc/rc.local to start the daemon after a reboot
       sed -i '/exit 0/i \
@@ -335,12 +336,12 @@ app_aria2() {
 
     case $marketing_version in
     "16.1"* | "16.2"*)
-      [ "$cpu_type" == "armv7l" ] && install_from_github FrancYescO/sharing_tg789 aria2-xtream
-      [ "$cpu_type" == "mips" ] && install_from_github FrancYescO/sharing_tg789 aria2
+      [ "$cpu_type" = "armv7l" ] && install_from_github FrancYescO/sharing_tg789 aria2-xtream
+      [ "$cpu_type" = "mips" ] && install_from_github FrancYescO/sharing_tg789 aria2
       ;;
     "16."* | "17."* | "18."*)
-      [ "$cpu_type" == "armv7l" ] && install_arm
-      [ "$cpu_type" == "mips" ] && install_from_github FrancYescO/sharing_tg789 aria2
+      [ "$cpu_type" = "armv7l" ] && install_arm
+      [ "$cpu_type" = "mips" ] && install_from_github FrancYescO/sharing_tg789 aria2
       ;;
     *)
       echo "Unknown app install script for $marketing_version $cpu_type"
@@ -367,7 +368,7 @@ app_aria2() {
 
   case $1 in
   install)
-    install $2
+    install "$2"
     ;;
   remove)
     remove
@@ -387,7 +388,7 @@ app_aria2() {
 
 app_blacklist() {
   install() {
-    install_from_github Ansuel/blacklist master normal $2
+    install_from_github Ansuel/blacklist master normal "$2"
     uci set modgui.app.blacklist_app="1"
     uci commit modgui
   }
@@ -402,7 +403,7 @@ app_blacklist() {
 
   case $1 in
   install)
-    install $2
+    install "$2"
     ;;
   remove)
     remove
@@ -447,7 +448,7 @@ app_xupnp() {
 install_specific_files() {
 
   install() {
-    install_from_github Ansuel/gui-dev-build-auto/master/modular upgrade-pack-specific$1 specificapp
+    install_from_github Ansuel/gui-dev-build-auto/master/modular "upgrade-pack-specific$1" specificapp
     uci set modgui.app.specific_app=1
     uci commit
   }
@@ -458,7 +459,7 @@ install_specific_files() {
 
   case $1 in
   install)
-    install $2
+    install "$2"
     ;;
   remove)
     remove
@@ -473,28 +474,28 @@ install_specific_files() {
 call_app_type() {
   case "$2" in
   transmission)
-    app_transmission $1
+    app_transmission "$1"
     ;;
   telstra)
-    app_telstra $1
+    app_telstra "$1"
     ;;
   luci)
-    app_luci $1
+    app_luci "$1"
     ;;
   amule)
-    app_amule $1
+    app_amule "$1"
     ;;
   aria2)
-    app_aria2 $1
+    app_aria2 "$1"
     ;;
   xupnp)
-    app_xupnp $1
+    app_xupnp "$1"
     ;;
   blacklist)
-    app_blacklist $1 $3
+    app_blacklist "$1" "$3"
     ;;
   specificapp)
-    install_specific_files $1 $3
+    install_specific_files "$1" "$3"
     ;;
   *)
     echo "Provide a valid APP_NAME" 1>&2
