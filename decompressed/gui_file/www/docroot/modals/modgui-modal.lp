@@ -497,7 +497,7 @@ html[#html + 1] = ui_helper.createSwitch(T"GUI Auto Update", "update_autoupgrade
 html[#html + 1] = ui_helper.createInputText(T"Update Hours", "update_autoupgrade_hour", modgui_settings["update_autoupgrade_hour"],autoupgrade_mon_1)
 if content["outdated_ver"] == "1" then
         html[#html + 1] = ui_helper.createLabel(T"State", T"Update Found", basic)
-        html[#html + 1] = ui_helper.createLabel(T"New Version", content["new_ver"], basic)
+        html[#html + 1] = ui_helper.createLabel(T"New Version", format("<a target=\"_blank\" href=https://github.com/Ansuel/tch-nginx-gui/releases/tag/%s>%s</a>", content["new_ver"], content["new_ver"]), basic)
         html[#html + 1] = ui_helper.createButton(T"Update GUI", T"Update", "icon-refresh", upgrade_gui)
 else
         html[#html + 1] = ui_helper.createLabel(T"State", T"No Update found", basic)
