@@ -35,391 +35,391 @@ local function wait_for_completion(base_path)
 end
 
 local function receive_file(filename, match)
-        function do_receive(outfile, match)
-                local upload = require("web.fileupload")
-                local form, err = upload.fromstream()
-                if not form then
-                        return false, 1, "failed to create upload ctx: " .. err
-                end
-                local totalsize = 0
-                local file
-                local discard = false
-                while true do
-                        local token, data, err = form:read()
-                        if not token then
-                                return false, 2, "read failed: " .. err
-                        end
-                        if token == "header" then
-                                if not discard and not file and find(data[2], match, 1, true) then
-                                        file = outfile
-                                end
-                                if not discard and not file then
-                                        return false, 3, "failed to start receiving file"
-                                end
-                        elseif token == "body" then
-                                if file then
-                                        totalsize = totalsize + #data
-                                        file:write(data)
-                                end
-                        elseif token == "part_end" then
-                                if file then
-                                        file = nil
-                                        discard = true
-                                end
-                        elseif token == "eof" then
-                                break
-                        end
-                end
-                return true
-        end
+	function do_receive(outfile, match)
+		local upload = require("web.fileupload")
+		local form, err = upload.fromstream()
+		if not form then
+			return false, 1, "failed to create upload ctx: " .. err
+		end
+		local totalsize = 0
+		local file
+		local discard = false
+		while true do
+			local token, data, err = form:read()
+			if not token then
+				return false, 2, "read failed: " .. err
+			end
+			if token == "header" then
+				if not discard and not file and find(data[2], match, 1, true) then
+					file = outfile
+				end
+				if not discard and not file then
+					return false, 3, "failed to start receiving file"
+				end
+			elseif token == "body" then
+				if file then
+					totalsize = totalsize + #data
+					file:write(data)
+				end
+			elseif token == "part_end" then
+				if file then
+					file = nil
+					discard = true
+				end
+			elseif token == "eof" then
+				break
+			end
+		end
+		return true
+	end
 
-        local file = io.open(filename, "w")
-        local result, err_code, err_msg
-        if file then
-                result, err_code, err_msg = do_receive(file, match)
-        else
-                file = io.open("/dev/null", "w")
-                do_receive(file, match)
-                result = false
-                err_code = 4
-                err_msg = "internal error"
-        end
+	local file = io.open(filename, "w")
+	local result, err_code, err_msg
+	if file then
+		result, err_code, err_msg = do_receive(file, match)
+	else
+		file = io.open("/dev/null", "w")
+		do_receive(file, match)
+		result = false
+		err_code = 4
+		err_msg = "internal error"
+	end
 
-        file:close()
+	file:close()
 
-        return result, err_code, err_msg
+	return result, err_code, err_msg
 end
 
 local function sendcmd(cmd)
-        proxy.set("rpc.system.modgui.utility.sendcmd", cmd)
-        ngx.print('{"success":"true"}')
-        ngx.timer.at(0, function()
-                proxy.apply()
-        end)
-        ngx.exit(ngx.HTTP_OK)
+	proxy.set("rpc.system.modgui.utility.sendcmd", cmd)
+	ngx.print('{"success":"true"}')
+	ngx.timer.at(0, function()
+		proxy.apply()
+	end)
+	ngx.exit(ngx.HTTP_OK)
 end
 
 local function upgradeguifile()
 
-        local update_branch = proxy.get("uci.modgui.gui.update_branch")
-        local filename
-        if update_branch and update_branch[1].value ~= "stable" and update_branch[1].value ~= "" then
-                filename = "GUI_"..untaint(update_branch[1].value)..".tar.bz2"
-        else
-                filename = "GUI.tar.bz2"
-        end
+	local update_branch = proxy.get("uci.modgui.gui.update_branch")
+	local filename
+	if update_branch and update_branch[1].value ~= "stable" and update_branch[1].value ~= "" then
+		filename = "GUI_"..untaint(update_branch[1].value)..".tar.bz2"
+	else
+		filename = "GUI.tar.bz2"
+	end
 
-        local fwupgrade_location = "/tmp/"
+	local fwupgrade_location = "/tmp/"
 
-        -- flush the web template cache
-        lp.flush()
-        local dl = untaint(fwupgrade_location) .. filename
-        local rcv_ok, rcv_errno, rcv_errmsg = receive_file(dl, 'name="upgradefile"')
-        if rcv_ok then
-                ngx.print('{"success":"true"}')
-                ngx.exit(ngx.HTTP_OK)
-        else
-                ngx.print('{"error":"'..rcv_errmsg..'"}')
-                ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
-        end
+	-- flush the web template cache
+	lp.flush()
+	local dl = untaint(fwupgrade_location) .. filename
+	local rcv_ok, rcv_errno, rcv_errmsg = receive_file(dl, 'name="upgradefile"')
+	if rcv_ok then
+		ngx.print('{"success":"true"}')
+		ngx.exit(ngx.HTTP_OK)
+	else
+		ngx.print('{"error":"'..rcv_errmsg..'"}')
+		ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+	end
 end
 
 local function getSupportedModel()
 
-        local friendly_name = proxy.get("uci.env.var.prod_friendly_name")[1].value
-        local marketing_version = proxy.get("uci.version.version.@version[0].marketing_version")
-        local cputype = proxy.get("rpc.system.modgui.CPUtype")[1].value
-        if marketing_version then
-                marketing_version = tonumber(marketing_version[1].value:sub(1,4))
-        end
+	local friendly_name = proxy.get("uci.env.var.prod_friendly_name")[1].value
+	local marketing_version = proxy.get("uci.version.version.@version[0].marketing_version")
+	local cputype = proxy.get("rpc.system.modgui.CPUtype")[1].value
+	if marketing_version then
+		marketing_version = tonumber(marketing_version[1].value:sub(1,4))
+	end
 
-        if marketing_version < 16.3 then
-                if cputype:match("armv7l") then
-                        return "TG789Xtream35B"
-                elseif cputype:match("mips") then
-                        return "TG789"
-                end
-        elseif marketing_version < 18 then
-                if cputype:match("armv7l") then
-                        if friendly_name:match("TG800") then
-                                return "TG800"
-                        else
-                                return "DGA"
-                        end
-                elseif cputype:match("mips") then
-                        return "TG789"
-                end
-        elseif marketing_version < 19 then
-                if cputype:match("armv7l") then
-                        return "DGA"
-                elseif cputype:match("mips") then
-                        return friendly_name --Unknown package
-                end
-        end
+	if marketing_version < 16.3 then
+		if cputype:match("armv7l") then
+			return "TG789Xtream35B"
+		elseif cputype:match("mips") then
+			return "TG789"
+		end
+	elseif marketing_version < 18 then
+		if cputype:match("armv7l") then
+			if friendly_name:match("TG800") then
+				return "TG800"
+			else
+				return "DGA"
+			end
+		elseif cputype:match("mips") then
+			return "TG789"
+		end
+	elseif marketing_version < 19 then
+		if cputype:match("armv7l") then
+			return "DGA"
+		elseif cputype:match("mips") then
+			return friendly_name --Unknown package
+		end
+	end
 
-        return friendly_name --Unknown package
+	return friendly_name --Unknown package
 end
 
 local function installspecificapp()
 
-        local device = getSupportedModel()
+	local device = getSupportedModel()
 
-        local fwupgrade_location = "/tmp/"
+	local fwupgrade_location = "/tmp/"
 
-        -- flush the web template cache
-        lp.flush()
+	-- flush the web template cache
+	lp.flush()
 
-        local dl = untaint(fwupgrade_location) .. "upgrade-pack-specific" .. device .. ".tar.bz2"
+	local dl = untaint(fwupgrade_location) .. "upgrade-pack-specific" .. device .. ".tar.bz2"
 
-        local rcv_ok, rcv_errno, rcv_errmsg = receive_file(dl, 'name="specificapp_file"')
+	local rcv_ok, rcv_errno, rcv_errmsg = receive_file(dl, 'name="specificapp_file"')
 
-        if rcv_ok then
-                ngx.print('{"success":"true"}')
-                ngx.exit(ngx.HTTP_OK)
-        else
-                ngx.print('{"error":"'..rcv_errmsg..'"}')
-                ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
-        end
+	if rcv_ok then
+		ngx.print('{"success":"true"}')
+		ngx.exit(ngx.HTTP_OK)
+	else
+		ngx.print('{"error":"'..rcv_errmsg..'"}')
+		ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+	end
 end
 
 local function restoreFromSysupgradeBackup()
 
-        local dl = "/tmp/sysupgrade_backup.tar.gz"
+	local dl = "/tmp/sysupgrade_backup.tar.gz"
 
-        -- flush the web template cache
-        lp.flush()
+	-- flush the web template cache
+	lp.flush()
 
-        local rcv_ok, rcv_errno, rcv_errmsg = receive_file(dl, 'name="sysupgrade_backup"')
+	local rcv_ok, rcv_errno, rcv_errmsg = receive_file(dl, 'name="sysupgrade_backup"')
 
-        if rcv_ok then
-                sendcmd("restoreSysupgradeBackup")
-        else
-                ngx.print('{"error":"'..rcv_errmsg..'"}')
-                ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
-        end
+	if rcv_ok then
+		sendcmd("restoreSysupgradeBackup")
+	else
+		ngx.print('{"error":"'..rcv_errmsg..'"}')
+		ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+	end
 end
 
 local function genSysupgradeBackup()
 
-        local hostname = proxy.get("uci.system.system.@system[0].hostname")
-        hostname = hostname and hostname[1].value or "Unknown"
-        local filename = format("%s-%s.tar.gz",hostname,os.date("%d-%m-%y_%H:%m"))
+	local hostname = proxy.get("uci.system.system.@system[0].hostname")
+	hostname = hostname and hostname[1].value or "Unknown"
+	local filename = format("%s-%s.tar.gz",hostname,os.date("%d-%m-%y_%H:%m"))
 
-        proxy.set("rpc.system.modgui.utility.sendcmd", "genSysupgradeBackup_"..filename)
-        wait_for_completion("rpc.system.modgui.executeCommand.")
+	proxy.set("rpc.system.modgui.utility.sendcmd", "genSysupgradeBackup_"..filename)
+	wait_for_completion("rpc.system.modgui.executeCommand.")
 
     -- return exported data
-        if filename ~= "" then
-                ngx.header.content_disposition = "attachment; filename="..filename
-                ngx.header.content_type = "application/octet-stream"
-                ngx.header.set_cookie = "fileDownload=true; Path=/"  -- the JS download code requires this cookie
-                local f = io.open("/tmp/"..filename, "r")
-                if f then
-                        ngx.print(f:read("*all"))
-                        f:close()
-                        os.remove("/tmp/"..filename)
+	if filename ~= "" then
+		ngx.header.content_disposition = "attachment; filename="..filename
+		ngx.header.content_type = "application/octet-stream"
+		ngx.header.set_cookie = "fileDownload=true; Path=/"  -- the JS download code requires this cookie
+		local f = io.open("/tmp/"..filename, "r")
+		if f then
+			ngx.print(f:read("*all"))
+			f:close()
+			os.remove("/tmp/"..filename)
 
-                        -- and we're done
-                        ngx.exit(ngx.HTTP_OK)
-                end
-        end
+			-- and we're done
+			ngx.exit(ngx.HTTP_OK)
+		end
+	end
 
-        ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+	ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
 end
 
 local function call_popen(cmd)
 
-        local handle = io.popen(cmd)
-        local result = handle:read("*a")
-        handle:close()
+	local handle = io.popen(cmd)
+	local result = handle:read("*a")
+	handle:close()
 
-        return result
+	return result
 end
 
 if ngx.req.get_method() == "POST" then
-        -- now process file POSTs
-        local action = ngx.req.get_uri_args().action
-        if action == "upgradeguifile" then
-                return upgradeguifile()
-        end
-        if action == "installspecificapp" then
-                return installspecificapp()
-        end
-        if action == "system_restoreBackup" then
-                return restoreFromSysupgradeBackup()
-        end
-        -- now process non-file POSTs
-        local post_args = ngx.req.get_post_args()
-        local action = post_args.action
-        if action == "system_reset_gui" then
-                return sendcmd("resetgui")
-        end
-        if action == "system_upgrade_gui" then
-                return sendcmd("upgradegui_terminate")
-        end
-        if action == "system_install_specificapp" then
-                proxy.set("rpc.system.modgui.app.sendcmd", "install_specificapp_"..getSupportedModel())
-                ngx.header.content_type = "application/json"
-                ngx.print('{"success":"true"}')
-                ngx.timer.at(0, function()
-                        proxy.apply()
-                end)
-                ngx.exit(ngx.HTTP_OK)
-        end
-        if action == "system_remove_root" then
-                return sendcmd("removeroot")
-        end
-        if action == "system_reset_config" then
-                return sendcmd("resetconfig")
-        end
-        if action == "system_reset_cwmp" then
-                return sendcmd("resetcwmp")
-        end
-        if action == "system_genBackup" then
-                return genSysupgradeBackup()
-        end
-        if action == "checkver" then
-                return sendcmd("checkver")
-        end
-        if action == "getVendor" then
-                ngx.print(call_popen(untaint("curl -m 2 http://api.maclookup.app/v1/macs/" .. post_args.mac:gsub('_.*','')), "r"))
-                ngx.exit(ngx.HTTP_OK)
-                return
-        end
-        if proxy.get("uci.web.sessionmgr.@default.force_https")[1].value ~= post_args.gui_forcehttps then
-                local mngr = require("web.sessioncontrol").loadmgr("default")
-                mngr.force_https = post_args.gui_forcehttps
-        end
-        if action == "debug_report" then
+	-- now process file POSTs
+	local action = ngx.req.get_uri_args().action
+	if action == "upgradeguifile" then
+		return upgradeguifile()
+	end
+	if action == "installspecificapp" then
+		return installspecificapp()
+	end
+	if action == "system_restoreBackup" then
+		return restoreFromSysupgradeBackup()
+	end
+	-- now process non-file POSTs
+	local post_args = ngx.req.get_post_args()
+	local action = post_args.action
+	if action == "system_reset_gui" then
+		return sendcmd("resetgui")
+	end
+	if action == "system_upgrade_gui" then
+		return sendcmd("upgradegui_terminate")
+	end
+	if action == "system_install_specificapp" then
+		proxy.set("rpc.system.modgui.app.sendcmd", "install_specificapp_"..getSupportedModel())
+		ngx.header.content_type = "application/json"
+		ngx.print('{"success":"true"}')
+		ngx.timer.at(0, function()
+			proxy.apply()
+		end)
+		ngx.exit(ngx.HTTP_OK)
+	end
+	if action == "system_remove_root" then
+		return sendcmd("removeroot")
+	end
+	if action == "system_reset_config" then
+		return sendcmd("resetconfig")
+	end
+	if action == "system_reset_cwmp" then
+		return sendcmd("resetcwmp")
+	end
+	if action == "system_genBackup" then
+		return genSysupgradeBackup()
+	end
+	if action == "checkver" then
+		return sendcmd("checkver")
+	end
+	if action == "getVendor" then
+		ngx.print(call_popen(untaint("curl -m 2 http://api.maclookup.app/v1/macs/" .. post_args.mac:gsub('_.*','')), "r"))
+		ngx.exit(ngx.HTTP_OK)
+		return
+	end
+	if proxy.get("uci.web.sessionmgr.@default.force_https")[1].value ~= post_args.gui_forcehttps then
+		local mngr = require("web.sessioncontrol").loadmgr("default")
+		mngr.force_https = post_args.gui_forcehttps
+	end
+	if action == "debug_report" then
 
-                local debuglog_path = "rpc.system.modgui.debuglog."
+		local debuglog_path = "rpc.system.modgui.debuglog."
 
-                proxy.set(debuglog_path.."start","1")
-                proxy.apply()
+		proxy.set(debuglog_path.."start","1")
+		proxy.apply()
 
-                wait_for_completion(debuglog_path)
+		wait_for_completion(debuglog_path)
 
-                local content = {
-                        filename = debuglog_path.."filename",
-                }
+		local content = {
+			filename = debuglog_path.."filename",
+		}
 
-                -- Get transformer content
-                content_helper.getExactContent(content)
+		-- Get transformer content
+		content_helper.getExactContent(content)
 
-                -- return exported data
-                local fname = untaint(content.filename)
-                if fname ~= "" then
-                        ngx.header.content_disposition = "attachment; filename="..fname:match("([^/]+)$")
-                        ngx.header.content_type = "application/octet-stream"
-                        ngx.header.set_cookie = "fileDownload=true; Path=/"  -- the JS download code requires this cookie
-                        local f = io.open(fname, "r")
-                        ngx.print(f:read("*all"))
-                        f:close()
+		-- return exported data
+		local fname = untaint(content.filename)
+		if fname ~= "" then
+			ngx.header.content_disposition = "attachment; filename="..fname:match("([^/]+)$")
+			ngx.header.content_type = "application/octet-stream"
+			ngx.header.set_cookie = "fileDownload=true; Path=/"  -- the JS download code requires this cookie
+			local f = io.open(fname, "r")
+			ngx.print(f:read("*all"))
+			f:close()
 
-                        os.remove(fname)
+			os.remove(fname)
 
-                        -- and we're done
-                        ngx.exit(ngx.HTTP_OK)
-                else
-                        ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
-                end
-        end
+			-- and we're done
+			ngx.exit(ngx.HTTP_OK)
+		else
+			ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
+		end
+	end
 end
 
 local content = {
-        gui_version = "rpc.system.modgui.gui_version",
-        outdated_ver = "uci.modgui.gui.outdated_ver",
-        new_ver = "uci.modgui.gui.new_ver",
-        specific_app = "uci.modgui.app.specific_app",
-        telstra_gui = "uci.modgui.app.telstra_webui",
-        fwversion_real = "uci.versioncusto.override.fwversion_override_real",
-        activebank = "sys.banktable.activebank",
-        passivebank = "sys.banktable.passivebank",
-        activeversion = "sys.banktable.activeversion",
-        passiveversion = "sys.banktable.passiveversion",
-        rip_key_B = "rpc.system.modgui.utility.rip_key_B",
+	gui_version = "rpc.system.modgui.gui_version",
+	outdated_ver = "uci.modgui.gui.outdated_ver",
+	new_ver = "uci.modgui.gui.new_ver",
+	specific_app = "uci.modgui.app.specific_app",
+	telstra_gui = "uci.modgui.app.telstra_webui",
+	fwversion_real = "uci.versioncusto.override.fwversion_override_real",
+	activebank = "sys.banktable.activebank",
+	passivebank = "sys.banktable.passivebank",
+	activeversion = "sys.banktable.activeversion",
+	passiveversion = "sys.banktable.passiveversion",
+	rip_key_B = "rpc.system.modgui.utility.rip_key_B",
 }
 content_helper.getExactContent(content)
 
 local update_branch_option = {
-        { "stable", T'Stable'},
-        { "preview", T'Preview'},
-        { "dev", T'Dev'},
+	{ "stable", T'Stable'},
+	{ "preview", T'Preview'},
+	{ "dev", T'Dev'},
 }
 
 local gui_skin_firstpage_page = {
-        { "stats", T"Stats" },
-        { "cards", T"Cards" },
+	{ "stats", T"Stats" },
+	{ "cards", T"Cards" },
 }
 
 if content.telstra_gui == "1" then
-        table.insert(gui_skin_firstpage_page, { "telstra", T"Telstra" })
+	table.insert(gui_skin_firstpage_page, { "telstra", T"Telstra" })
 end
 
 local gui_skin_option = {
-        { "blue", T'Blue'},
-        { "violet", T'Violet'},
-        { "green", T'Green'},
-        { "TIM" , T'Enhanced Tim'},
-        { "dark-blue-unified", T"Dark Blue Unified UI"},
-        { "Fritz", T'Fritz!Box'},
-        { "dark-white_Fritz", T'Dark/White (Fritz!Box Based)'},
-        { "dark-midnight_Fritz", T'Dark/Midnight (Fritz!Box Based)'},
-        { "dark-red", T'Red Dark'},
+	{ "blue", T'Blue'},
+	{ "violet", T'Violet'},
+	{ "green", T'Green'},
+	{ "TIM" , T'Enhanced Tim'},
+	{ "dark-blue-unified", T"Dark Blue Unified UI"},
+	{ "Fritz", T'Fritz!Box'},
+	{ "dark-white_Fritz", T'Dark/White (Fritz!Box Based)'},
+	{ "dark-midnight_Fritz", T'Dark/Midnight (Fritz!Box Based)'},
+	{ "dark-red", T'Red Dark'},
 }
 
 local spoof_mode_enum = {
-        { "disabled" , T"Comunicate real version to CWMP"},
-        { "manual" , T"Set the version to comunicate to cwmp manually"},
+	{ "disabled" , T"Comunicate real version to CWMP"},
+	{ "manual" , T"Set the version to comunicate to cwmp manually"},
 }
 local function validateVersionSpoofMode(value, object, key)
 
-        local valid, msg = post_helper.getValidateInEnumSelect(spoof_mode_enum)
+	local valid, msg = post_helper.getValidateInEnumSelect(spoof_mode_enum)
 
-        if valid then
-                local version_path="uci.versioncusto.override.fwversion_override"
-                local version_real=proxy.get(version_path.."_real")[1].value
-                if value == "disabled" then
-                        proxy.set(version_path, version_real)
-                end
-                proxy.apply()
-        end
+	if valid then
+		local version_path="uci.versioncusto.override.fwversion_override"
+		local version_real=proxy.get(version_path.."_real")[1].value
+		if value == "disabled" then
+			proxy.set(version_path, version_real)
+		end
+		proxy.apply()
+	end
 
-        return valid, msg
+	return valid, msg
 end
 
 local mapParams = {
-        update_branch = "uci.modgui.gui.update_branch",
-        update_autoupgrade = "uci.modgui.gui.autoupgrade",
-        update_autoupgrade_hour = "uci.modgui.gui.autoupgrade_hour",
-        gui_skin = "uci.modgui.gui.gui_skin",
-        gui_skin_firstpage = "uci.modgui.gui.firstpage",
-        gui_randomcolor = "uci.modgui.gui.randomcolor",
-        gui_alwaysadvanced = "uci.web.uiconfig.@uidefault.alwaysadvanced",
-        gui_forcehttps = "uci.web.sessionmgr.@default.force_https",
-        gui_animation = "uci.modgui.gui.gui_animation",
-        disable_cwmp_update = "uci.modgui.var.disable_cwmp_update",
-        modem_serial = "uci.env.var.serial",
-        fwversion_override = "uci.versioncusto.override.fwversion_override",
-        version_spoof_mode = "uci.modgui.var.version_spoof_mode",
-        check_obp = "uci.modgui.var.check_obp"
+	update_branch = "uci.modgui.gui.update_branch",
+	update_autoupgrade = "uci.modgui.gui.autoupgrade",
+	update_autoupgrade_hour = "uci.modgui.gui.autoupgrade_hour",
+	gui_skin = "uci.modgui.gui.gui_skin",
+	gui_skin_firstpage = "uci.modgui.gui.firstpage",
+	gui_randomcolor = "uci.modgui.gui.randomcolor",
+	gui_alwaysadvanced = "uci.web.uiconfig.@uidefault.alwaysadvanced",
+	gui_forcehttps = "uci.web.sessionmgr.@default.force_https",
+	gui_animation = "uci.modgui.gui.gui_animation",
+	disable_cwmp_update = "uci.modgui.var.disable_cwmp_update",
+	modem_serial = "uci.env.var.serial",
+	fwversion_override = "uci.versioncusto.override.fwversion_override",
+	version_spoof_mode = "uci.modgui.var.version_spoof_mode",
+	check_obp = "uci.modgui.var.check_obp"
 }
 
 local mapValid = {
-        update_branch = post_helper.getValidateInEnumSelect(update_branch_option),
-        update_autoupgrade = vB,
-        update_autoupgrade_hour = gOV(post_helper.validateNonEmptyString),
-        gui_skin = post_helper.getValidateInEnumSelect(gui_skin_option),
-        gui_skin_firstpage = post_helper.getValidateInEnumSelect(gui_skin_firstpage_page),
-        gui_randomcolor = vB,
-        gui_alwaysadvanced = vB,
-        gui_forcehttps = vB,
-        gui_animation = vB,
-        disable_cwmp_update = vB,
-        modem_serial = post_helper.validateNonEmptyString,
-        fwversion_override = gOV(post_helper.validateNonEmptyString),
-        version_spoof_mode = validateVersionSpoofMode,
-        check_obp = vB
+	update_branch = post_helper.getValidateInEnumSelect(update_branch_option),
+	update_autoupgrade = vB,
+	update_autoupgrade_hour = gOV(post_helper.validateNonEmptyString),
+	gui_skin = post_helper.getValidateInEnumSelect(gui_skin_option),
+	gui_skin_firstpage = post_helper.getValidateInEnumSelect(gui_skin_firstpage_page),
+	gui_randomcolor = vB,
+	gui_alwaysadvanced = vB,
+	gui_forcehttps = vB,
+	gui_animation = vB,
+	disable_cwmp_update = vB,
+	modem_serial = post_helper.validateNonEmptyString,
+	fwversion_override = gOV(post_helper.validateNonEmptyString),
+	version_spoof_mode = validateVersionSpoofMode,
+	check_obp = vB
 }
 
 local modgui_settings, helpmsg = post_helper.handleQuery(mapParams, mapValid)
@@ -429,83 +429,130 @@ ngx.print('\
 <div class="modal-body update">\
 ');
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
+ngx.print('\
+  <fieldset>\
+	<form class="form-horizontal" method="post" action="modals/modgui-modal.lp">')
 
 local html = {}
+html[#html + 1] = '<legend>'.. T"GUI Skin" ..'</legend>'
+html[#html + 1] = ui_helper.createInputSelect(T"GUI Skin", "gui_skin", gui_skin_option, modgui_settings["gui_skin"])
+html[#html + 1] = ui_helper.createInputSelect(T"GUI First Page", "gui_skin_firstpage", gui_skin_firstpage_page, modgui_settings["gui_skin_firstpage"])
+html[#html + 1] = ui_helper.createSwitch(T"Random Color", "gui_randomcolor", modgui_settings["gui_randomcolor"])
+html[#html + 1] = ui_helper.createSwitch(T"Force HTTPS to access the GUI", "gui_forcehttps", modgui_settings["gui_forcehttps"])
+html[#html + 1] = ui_helper.createSwitch(T"Always show advanced options", "gui_alwaysadvanced", modgui_settings["gui_alwaysadvanced"])
+html[#html + 1] = ui_helper.createSwitch(T"GUI animations", "gui_animation", modgui_settings["gui_animation"])
+ngx.print(html)
 
-html[#html + 1] = '<fieldset>'
+local html = {}
+html[#html + 1] = '<legend>'.. T"CWMP Spoof Settings" ..'</legend>'
+local info_box = {
+	alert = {
+		class = "alert alert-info",
+	}
+}
+html[#html + 1] = ui_helper.createAlertBlock(T"Disable CWMP Update. Any firmware update from CWMP will be rejected and not flashed. "..
+			"Consider that CWMP that request a firmware update will keep requesting it until the update is actually installed. "..
+			"Autoconfiguration won't work. Manually set the version in the System Extra tab to spoof a version or upgrade the firmware.")
+html[#html + 1] = ui_helper.createSwitch(T"Disable CWMP Update", "disable_cwmp_update", modgui_settings["disable_cwmp_update"])
+html[#html + 1] = ui_helper.createAlertBlock(T"Change the Modem Serial. Consider that the modem serial is the Factory ID + Serial.", info_box)
+html[#html + 1] = ui_helper.createInputText(T"Modem Serial", "modem_serial", modgui_settings["modem_serial"])
+if not ( modgui_settings["fwversion_override"] == "" ) then
+	html[#html + 1] = ui_helper.createAlertBlock(T"Disable override of Version Spoof at every GUI update, also usefull to permit CWMP to autoupdate the modem", info_box)
+	html[#html + 1] = ui_helper.createInputSelect(T"Spoof Version Mode", "version_spoof_mode", spoof_mode_enum, modgui_settings["version_spoof_mode"])
+	html[#html + 1] = ui_helper.createAlertBlock(T"Input the latest stock firmware version in this field to spoof it. This is necessary because if a newer version of the firmware is available on the ACS server, CWMPD will try to update the device and break remote monitoring from the “MyTIM” mobile app.", info_box)
+	html[#html + 1] = ui_helper.createInputText(T"Version Set", "fwversion_override", modgui_settings["fwversion_override"], nil, helpmsg["fwversion_override"])
+end
+ngx.print(html)
 
+local html = {}
+html[#html + 1] = '<legend id="GUI_Upgrade_Legend">' .. T"Update GUI" .. '</legend>'
 local basic = {
-        span = {
-                class = "span5"
-        }
+	span = {
+		class = "span5"
+	},
 }
 local upgrade_gui = {
-        group = {
-                class = "wait-for-reset"
-        },
-        button = {
-                id = "btn-upgrade-gui",
-                class = "custom-handler"
-        }
+	group = {
+		class = "wait-for-reset"
+	},
+	button = {
+		id = "btn-upgrade-gui",
+		class = "custom-handler"
+	}
+}
+local offline_upgrade_gui = {
+	group = {
+		class = "wait-for-reset"
+	},
+	button = {
+		id = "btn-offline-upgrade-gui",
+		class = "custom-handler"
+	}
+}
+local upgrade = {
+	alert = {
+		class = "alert hide",
+		id = "upgrade-msg"
+	}
 }
 local upload_gui_file = {
-        button = {
-                class = "import-gui custom-handler",
-                id = "btn-import-gui"
-        }
+	button = {
+		class = "import-gui custom-handler",
+		id = "btn-import-gui"
+	}
 }
 local upload_gui_fail = {
-        alert = {
-                class = "alert-error hide",
-                id = "upgrade-gui-fail"
-        }
+	alert = {
+		class = "alert-error hide",
+		id = "upgrade-gui-fail"
+	}
 }
 local upload_gui_alert = {
-        alert = {
-                class = "alert-info hide",
-                id = "upload-gui-alert"
-        }
+	alert = {
+		class = "alert-info hide",
+		id = "upload-gui-alert"
+	}
 }
 local updating = {
-        alert = {
-                class = "alert hide",
-                id = "updating-msg"
-        }
+	alert = {
+		class = "alert hide",
+		id = "updating-msg"
+	}
 }
 local autoupgrade = {
-        input = {
-                class = "monitor-changes",
-        }
+	input = {
+		class = "monitor-changes",
+	}
 }
 local autoupgrade_mon_1 = {
-        group = {
-                class ="monitor-update_autoupgrade monitor-1",
-        },
-        input = {
-                class="span2",
-                id = "update_autoupgrade_hour",
-                style = "cursor:pointer;background-color:white;",
-                value="03:00",
-        }
+	group = {
+		class ="monitor-update_autoupgrade monitor-1",
+	},
+	input = {
+		class="span2",
+		id = "update_autoupgrade_hour",
+		style = "cursor:pointer;background-color:white;",
+		value="03:00",
+	}
 }
-
-html[#html + 1] = '<form class="form-horizontal" id="form-import-gui" method="post" action="modals/modgui-modal.lp?action=upgradeguifile" enctype="multipart/form-data">'
-html[#html + 1] = '<legend id="GUI_Upgrade_Legend">' .. T"Update GUI" .. '</legend>'
 html[#html + 1] = '<span id="GUI-upgrade-option">'
 html[#html + 1] = ui_helper.createAlertBlock(T"Update the GUI to the latest version available", info_box)
 html[#html + 1] = ui_helper.createInputSelect(T"Update Branch", "update_branch", update_branch_option, modgui_settings["update_branch"])
+
 html[#html + 1] = ui_helper.createSwitch(T"GUI Auto Update", "update_autoupgrade", modgui_settings["update_autoupgrade"],autoupgrade)
 html[#html + 1] = ui_helper.createInputText(T"Update Hours", "update_autoupgrade_hour", modgui_settings["update_autoupgrade_hour"],autoupgrade_mon_1)
-if content["outdated_ver"] == "1" then
-        html[#html + 1] = ui_helper.createLabel(T"State", T"Update Found", basic)
-        html[#html + 1] = ui_helper.createLabel(T"New Version", content["new_ver"], basic)
-        html[#html + 1] = ui_helper.createButton(T"Update GUI", T"Update", "icon-refresh", upgrade_gui)
-else
-        html[#html + 1] = ui_helper.createLabel(T"State", T"No Update found", basic)
-        html[#html + 1] = ui_helper.createButton(T"Update GUI", T"Force Update", "icon-refresh", upgrade_gui)
-end
-html[#html + 1] = '</span>'
 
+if content["outdated_ver"] == "1" then
+	html[#html + 1] = ui_helper.createLabel(T"State", T"Update Found", basic)
+	html[#html + 1] = ui_helper.createLabel(T"New Version", content["new_ver"], basic)
+	html[#html + 1] = ui_helper.createButton(T"Update GUI", T"Update", "icon-refresh", upgrade_gui)
+else
+	html[#html + 1] = ui_helper.createLabel(T"State", T"No Update found", basic)
+	html[#html + 1] = ui_helper.createButton(T"Update GUI", T"Force Update", "icon-refresh", upgrade_gui)
+end
+
+html[#html + 1] = '</span>'
+html[#html + 1] = '</form><form class="form-horizontal" id="form-import-gui" method="post" action="modals/modgui-modal.lp?action=upgradeguifile" enctype="multipart/form-data">'
 html[#html + 1] = '<div id="offline-upgrade-gui-div" class="control-group">'
 html[#html + 1] = format('<label class="control-label">%s</label>', T"Offline GUI Update")
 html[#html + 1] = '<div class="controls">'
@@ -517,153 +564,133 @@ html[#html + 1] = ui_helper.createAlertBlock(T"Update failed. Please try again."
 html[#html + 1] = ui_helper.createAlertBlock(T"Uploading file. Please wait...", upload_gui_alert)
 html[#html + 1] = ui_helper.createAlertBlock(T"Updating file. Please wait...", updating)
 html[#html + 1] = '</form>'
-
-html[#html + 1] = '<form class="form-horizontal" method="post" action="modals/modgui-modal.lp">'
-html[#html + 1] = '<legend>'.. T"GUI Skin" ..'</legend>'
-html[#html + 1] = ui_helper.createInputSelect(T"GUI Skin", "gui_skin", gui_skin_option, modgui_settings["gui_skin"])
-html[#html + 1] = ui_helper.createInputSelect(T"GUI First Page", "gui_skin_firstpage", gui_skin_firstpage_page, modgui_settings["gui_skin_firstpage"])
-html[#html + 1] = ui_helper.createSwitch(T"Random Color", "gui_randomcolor", modgui_settings["gui_randomcolor"])
-html[#html + 1] = ui_helper.createSwitch(T"Force HTTPS to access the GUI", "gui_forcehttps", modgui_settings["gui_forcehttps"])
-html[#html + 1] = ui_helper.createSwitch(T"Always show advanced options", "gui_alwaysadvanced", modgui_settings["gui_alwaysadvanced"])
-html[#html + 1] = ui_helper.createSwitch(T"GUI animations", "gui_animation", modgui_settings["gui_animation"])
-html[#html + 1] = '</form>'
+ngx.print(html)
 
 if content.specific_app ~= "" then
 
-        local upload_specific_app = {
-                button = {
-                        class = "import-specificapp custom-handler",
-                        id = "btn-import-specificapp"
-                }
-        }
+	local html = {}
 
-        local upload_specificapp_fail = {
-                alert = {
-                        class = "alert-error hide",
-                        id = "upgrade-specificapp-fail"
-                }
-        }
-        local upload_specificapp_alert = {
-                alert = {
-                        class = "alert-info hide",
-                        id = "upload-specificapp-alert"
-                }
-        }
-        local install_specificapp = {
-                group = {
-                        class = "wait-for-reset"
-                },
-                button = {
-                        id = "btn-install-specificapp",
-                        class = "custom-handler"
-                }
-        }
+	local upload_specific_app = {
+		button = {
+			class = "import-specificapp custom-handler",
+			id = "btn-import-specificapp"
+		}
+	}
 
-        html[#html + 1] = '<form class="form-horizontal" id="form-import-specificapp" method="post" action="modals/modgui-modal.lp?action=installspecificapp" enctype="multipart/form-data">'
-        html[#html + 1] = '<legend>'.. T"Specific App" ..'</legend>'
-        html[#html + 1] = ui_helper.createAlertBlock(T"Specific App are package that adds additional function to the modem, like telnet support or some fix to default package", info_box)
-        if content.specific_app == "1" then
-                html[#html + 1] = ui_helper.createLabel(T"State", T"Specific App are already Installed", basic)
-        else
-                html[#html + 1] = ui_helper.createButton(T"Install", T"Install Specific App Online", "icon-refresh", install_specificapp)
+	local upload_specificapp_fail = {
+		alert = {
+			class = "alert-error hide",
+			id = "upgrade-specificapp-fail"
+		}
+	}
+	local upload_specificapp_alert = {
+		alert = {
+			class = "alert-info hide",
+			id = "upload-specificapp-alert"
+		}
+	}
+	local install_specificapp = {
+		group = {
+			class = "wait-for-reset"
+		},
+		button = {
+			id = "btn-install-specificapp",
+			class = "custom-handler"
+		}
+	}
 
-                local device = getSupportedModel()
+	html[#html + 1] = '<form class="form-horizontal" id="form-import-specificapp" method="post" action="modals/modgui-modal.lp?action=installspecificapp" enctype="multipart/form-data">'
+	html[#html + 1] = '<legend>'.. T"Specific App" ..'</legend>'
+	html[#html + 1] = ui_helper.createAlertBlock(T"Specific App are package that adds additional function to the modem, like telnet support or some fix to default package", info_box)
+	if content.specific_app == "1" then
+		html[#html + 1] = ui_helper.createLabel(T"State", T"Specific App are already Installed", basic)
+	else
+		html[#html + 1] = ui_helper.createButton(T"Install", T"Install Specific App Online", "icon-refresh", install_specificapp)
 
-                html[#html + 1] = ui_helper.createAlertBlock(format(T"If you don't have connection, specific app can be downloaded here ( https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/modular/upgrade-pack-specific%s.tar.bz2 ) and installed manually here.", device), info_box)
-                html[#html + 1] = '<div class="control-group">'
-                html[#html + 1] = format('<label class="control-label">%s</label>', T"Upload Specific App")
-                html[#html + 1] = '<div class="controls">'
-                html[#html + 1] = '<input type="file" name="specificapp_file" id="file-specificapp" accept=".bz2">&nbsp;'
-                html[#html + 1] = ui_helper.createSimpleButton(T"Install", "icon-shield", upload_specific_app)
-                html[#html + 1] = ui_helper.createAlertBlock(T"Uploading file. Please wait...", upload_specificapp_alert)
-                html[#html + 1] = ui_helper.createAlertBlock(T"Update failed. Please try again.", upload_specificapp_fail)
-                html[#html + 1] = '</div></div>'
-                html[#html + 1] = '</form>'
-        end
+		local device = getSupportedModel()
+
+		html[#html + 1] = ui_helper.createAlertBlock(format(T"If you don't have connection, specific app can be downloaded here ( https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/modular/upgrade-pack-specific%s.tar.bz2 ) and installed manually here.", device), info_box)
+		html[#html + 1] = '<div class="control-group">'
+		html[#html + 1] = format('<label class="control-label">%s</label>', T"Upload Specific App")
+		html[#html + 1] = '<div class="controls">'
+		html[#html + 1] = '<input type="file" name="specificapp_file" id="file-specificapp" accept=".bz2">&nbsp;'
+		html[#html + 1] = ui_helper.createSimpleButton(T"Install", "icon-shield", upload_specific_app)
+		html[#html + 1] = ui_helper.createAlertBlock(T"Uploading file. Please wait...", upload_specificapp_alert)
+		html[#html + 1] = ui_helper.createAlertBlock(T"Update failed. Please try again.", upload_specificapp_fail)
+		html[#html + 1] = '</div></div>'
+	end
+	html[#html + 1] = '</form>'
+
+	ngx.print(html)
 
 end
 
-html[#html + 1] = '<form class="form-horizontal">'
-html[#html + 1] = '<legend>'.. T"CWMP Spoof Settings" ..'</legend>'
-local info_box = {
-        alert = {
-                class = "alert alert-info",
-        }
-}
-html[#html + 1] = ui_helper.createAlertBlock(T"Disable CWMP Update. Any firmware update from CWMP will be rejected and not flashed. "..
-                        "Consider that CWMP that request a firmware update will keep requesting it until the update is actually installed. "..
-                        "Autoconfiguration won't work. Manually set the version in the System Extra tab to spoof a version or upgrade the firmware.")
-html[#html + 1] = ui_helper.createSwitch(T"Disable CWMP Update", "disable_cwmp_update", modgui_settings["disable_cwmp_update"])
-html[#html + 1] = ui_helper.createAlertBlock(T"Change the Modem Serial. Consider that the modem serial is the Factory ID + Serial.", info_box)
-html[#html + 1] = ui_helper.createInputText(T"Modem Serial", "modem_serial", modgui_settings["modem_serial"])
-if not ( modgui_settings["fwversion_override"] == "" ) then
-        html[#html + 1] = ui_helper.createAlertBlock(T"Disable override of Version Spoof at every GUI update, also usefull to permit CWMP to autoupdate the modem", info_box)
-        html[#html + 1] = ui_helper.createInputSelect(T"Spoof Version Mode", "version_spoof_mode", spoof_mode_enum, modgui_settings["version_spoof_mode"])
-        html[#html + 1] = ui_helper.createAlertBlock(T"Input the latest stock firmware version in this field to spoof it. This is necessary because if a newer version of the firmware is available on the ACS server, CWMPD will try to update the device and break remote monitoring from the “MyTIM” mobile app.", info_box)
-        html[#html + 1] = ui_helper.createInputText(T"Version Set", "fwversion_override", modgui_settings["fwversion_override"], nil, helpmsg["fwversion_override"])
-end
-html[#html + 1] = '</form>'
-
+local html = {}
 html[#html + 1] = '<form  class="form-horizontal">'
 html[#html + 1] = '<legend>' .. T"Advanced Reset" .. '</legend>'
 local reset_gui = {
-        group = {
-                class = "wait-for-reset"
-        },
-        button = {
-                id = "btn-reset-gui",
-                class = "custom-handler"
-        }
+	group = {
+		class = "wait-for-reset"
+	},
+	button = {
+		id = "btn-reset-gui",
+		class = "custom-handler"
+	}
 }
 local remove_root = {
-        group = {
-                class = "wait-for-reset"
-        },
-        button = {
-                id = "btn-remove-root",
-                class = "custom-handler"
-        }
+	group = {
+		class = "wait-for-reset"
+	},
+	button = {
+		id = "btn-remove-root",
+		class = "custom-handler"
+	}
 }
 local remove_config = {
-        group = {
-                class = "wait-for-reset"
-        },
-        button = {
-                id = "btn-remove-config",
-                class = "custom-handler"
-        }
+	group = {
+		class = "wait-for-reset"
+	},
+	button = {
+		id = "btn-remove-config",
+		class = "custom-handler"
+	}
 }
 local reset_cwmp = {
-        group = {
-                class = "wait-for-reset"
-        },
-        button = {
-                id = "btn-reset-cwmp",
-                class = "custom-handler"
-        }
+	group = {
+		class = "wait-for-reset"
+	},
+	button = {
+		id = "btn-reset-cwmp",
+		class = "custom-handler"
+	}
 }
 local info_box = {
-        alert = {
-                class = "alert alert-info",
-        }
+	alert = {
+		class = "alert alert-info",
+	}
+}
+local warn_box = {
+	alert = {
+		class = "alert alert-range",
+	}
 }
 local resetting = {
-        alert = {
-                class = "alert hide",
-                id = "resetting-msg"
-        }
+	alert = {
+		class = "alert hide",
+		id = "resetting-msg"
+	}
 }
 local unrooting = {
-        alert = {
-                class = "alert hide",
-                id = "unrooting-msg"
-        }
+	alert = {
+		class = "alert hide",
+		id = "unrooting-msg"
+	}
 }
 local resetting_config = {
-        alert = {
-                class = "alert hide",
-                id = "config-resetting-msg"
-        }
+	alert = {
+		class = "alert hide",
+		id = "config-resetting-msg"
+	}
 }
 
 html[#html + 1] = ui_helper.createButton(T"Force CWMP provisioning", T"Reset CWMP", "icon-refresh", reset_cwmp)
@@ -680,30 +707,33 @@ html[#html + 1] = ui_helper.createAlertBlock(T"Reset the router to factory setti
 html[#html + 1] = ui_helper.createAlertBlock(T"Resetting config to default, please wait...", resetting_config)
 html[#html + 1] = ui_helper.createButton(T"Reset config to Factory", T"Remove Config", "icon-refresh", remove_config)
 html[#html + 1] = '</form>'
+ngx.print(html)
+
+local html = {}
 
 local import_backup = {
-        button = {
-                class = "import-backup custom-handler",
-                id = "btn-import-backup"
-        }
+	button = {
+		class = "import-backup custom-handler",
+		id = "btn-import-backup"
+	}
 }
 local upload_backup_alert = {
-                alert = {
-                        class = "alert-info hide",
-                        id = "upload-backup-alert"
-                }
-        }
+		alert = {
+			class = "alert-info hide",
+			id = "upload-backup-alert"
+		}
+	}
 local restore_fail = {
-        alert = {
-                class = "alert-error hide",
-                id = "restore-fail"
-        }
+	alert = {
+		class = "alert-error hide",
+		id = "restore-fail"
+	}
 }
 local gen_backup = {
-        button = {
-                class = "custom-handler",
-                id = "btn-gen-backup"
-        }
+	button = {
+		class = "custom-handler",
+		id = "btn-gen-backup"
+	}
 }
 
 html[#html + 1] = '<form class="form-horizontal" id="form-import-backup" method="post" action="modals/modgui-modal.lp?action=system_restoreBackup" enctype="multipart/form-data">'
@@ -721,36 +751,48 @@ html[#html + 1] = ui_helper.createAlertBlock(T"Upload failed. Please try again."
 html[#html + 1] = '</div></div>'
 html[#html + 1] = '</form>'
 
-html[#html + 1] = '<form  class="form-horizontal">'
-html[#html + 1] = '<legend>' .. T"Debug Report & Advanced settings" .. '</legend>'
-local generate_debug_report = {
-        button = {
-                id = "btn-system-debug-report",
-                class = "custom-handler"
-        }
-}
-html[#html + 1] = ui_helper.createButton(T"Debug Zip", T"Generate", "icon-exchange", generate_debug_report)
-html[#html + 1] = ui_helper.createAlertBlock(T"Force the device to always use bank_2 partition as booted partition and bank_1 as active but corrupted<br/>This will also ensure that overlay (configs/mods partition) of bank_1 is empty or just have the rooting script preloaded.<br/>This bank plan allow to use TFTP flashing, as a reliable recovery procedure in case we mess-up with the bank_2 overlay", info_box)
-html[#html + 1] = ui_helper.createSwitch(T"OBP Check", "check_obp", modgui_settings["check_obp"])
-
-html[#html + 1] = '<legend>'.. T"Bank Info" ..'</legend>'
-html[#html + 1] = ui_helper.createLabel(T"Active Bank", content["activebank"] , basic)
-html[#html + 1] = ui_helper.createLabel(T"Active Version", content["activeversion"] , long_basic)
-html[#html + 1] = ui_helper.createLabel(T"Passive Bank", content["passivebank"] , basic)
-if content["passiveversion"] == "Unknown" then
-        html[#html + 1] = ui_helper.createLabel(T"Passive Version", T"Firmware not present in this bank" , long_basic)
-else
-        html[#html + 1] = ui_helper.createLabel(T"Passive Version", content["passiveversion"] , long_basic)
-end
-
-html[#html + 1] = '<legend>'.. T"Key Info" ..'</legend>'
-html[#html + 1] = ui_helper.createLabel(T"Config decrypt key", content["rip_key_B"] , basic)
-html[#html + 1] = '</form>'
-html[#html + 1] = '</fieldset>'
-html[#html + 1] = '</div>'
-
 ngx.print(html)
 
+ngx.print('\
+</fieldset>\
+<fieldset>\
+<form  class="form-horizontal">\
+	  <legend>');  ngx.print( T"Debug Report & Advanced settings" ); ngx.print('</legend>\
+		');
+		  local generate_debug_report = {
+			button = {
+			  id = "btn-system-debug-report",
+			  class = "custom-handler"
+			}
+		  }
+		  local html = {}
+			html[#html + 1] = ui_helper.createButton(T"Debug Zip", T"Generate", "icon-exchange", generate_debug_report)
+			html[#html + 1] = ui_helper.createAlertBlock(T"Force the device to always use bank_2 partition as booted partition and bank_1 as active but corrupted<br/>This will also ensure that overlay (configs/mods partition) of bank_1 is empty or just have the rooting script preloaded.<br/>This bank plan allow to use TFTP flashing, as a reliable recovery procedure in case we mess-up with the bank_2 overlay", info_box)
+			html[#html + 1] = ui_helper.createSwitch(T"OBP Check", "check_obp", modgui_settings["check_obp"])
+			ngx.print(html)
+
+			local html = {}
+			html[#html + 1] = '<legend>'.. T"Bank Info" ..'</legend>'
+			html[#html + 1] = ui_helper.createLabel(T"Active Bank", content["activebank"] , basic)
+			html[#html + 1] = ui_helper.createLabel(T"Active Version", content["activeversion"] , long_basic)
+			html[#html + 1] = ui_helper.createLabel(T"Passive Bank", content["passivebank"] , basic)
+			if content["passiveversion"] == "Unknown" then
+				html[#html + 1] = ui_helper.createLabel(T"Passive Version", T"Firmware not present in this bank" , long_basic)
+			else
+				html[#html + 1] = ui_helper.createLabel(T"Passive Version", content["passiveversion"] , long_basic)
+			end
+			ngx.print(html)
+
+			local html = {}
+			html[#html + 1] = '<legend>'.. T"Key Info" ..'</legend>'
+			html[#html + 1] = ui_helper.createLabel(T"Config decrypt key", content["rip_key_B"] , basic)
+
+			ngx.print(html)
+		  ngx.print('\
+		  </form>\
+  </fieldset>\
+</div>\
+');
 ngx.print('\
 <script>\
 (function() {\
@@ -769,107 +811,107 @@ ngx.print('\
 \
   $("#update_autoupgrade_hour").mobiscroll().time(timescroll_opt);\
   $("#update_autoupgrade_hour").on("change", function() {\
-                $("#modal-no-change").fadeOut(300);\
+		$("#modal-no-change").fadeOut(300);\
         $("#modal-changes").delay(350).fadeIn(300);\
-        }\
+	}\
   );\
 \
   function wait_for_webserver_running() {\
-        $.ajax({ url: "/", timeout: refreshTimeOut })\
-        .done(function(data) {\
-          window.location.href = "/";\
-        })\
-        .fail(function() {\
-          window.setTimeout(wait_for_webserver_running, refreshDelay);\
-        });\
+	$.ajax({ url: "/", timeout: refreshTimeOut })\
+	.done(function(data) {\
+	  window.location.href = "/";\
+	})\
+	.fail(function() {\
+	  window.setTimeout(wait_for_webserver_running, refreshDelay);\
+	});\
   };\
 \
   function wait_for_webserver_down() {\
-        $.ajax({ url: target, timeout: refreshTimeOut })\
-        .done(function() {\
-          window.setTimeout(wait_for_webserver_down, refreshDelay);\
-        })\
-        .fail(function() {\
-          window.setTimeout(wait_for_webserver_running, refreshDelay);\
-        });\
+	$.ajax({ url: target, timeout: refreshTimeOut })\
+	.done(function() {\
+	  window.setTimeout(wait_for_webserver_down, refreshDelay);\
+	})\
+	.fail(function() {\
+	  window.setTimeout(wait_for_webserver_running, refreshDelay);\
+	});\
   };\
 \
   function resetreboot(msg, msg_dst, action, customCallbackfunc) {\
-        msg.removeClass("hide");\
-        msg[0].scrollIntoView();\
-        msg_dst.replaceWith(msg);\
-        var callbackfunc = ( typeof customCallbackfunc === "function" ) && customCallbackfunc || wait_for_webserver_down;\
-        if(callbackfunc == wait_for_webserver_down) modgui.clearKoInterval();\
-        $.post(target,{action: action, CSRFtoken: $("meta[name=CSRFtoken]").attr("content")}, callbackfunc,"json");\
-        return false;\
+	msg.removeClass("hide");\
+	msg[0].scrollIntoView();\
+	msg_dst.replaceWith(msg);\
+	var callbackfunc = ( typeof customCallbackfunc === "function" ) && customCallbackfunc || wait_for_webserver_down;\
+	if(callbackfunc == wait_for_webserver_down) modgui.clearKoInterval();\
+	$.post(target,{action: action, CSRFtoken: $("meta[name=CSRFtoken]").attr("content")}, callbackfunc,"json");\
+	return false;\
   };\
 \
   function genericButtonFunction(headingText, processMsgText, ConfirmationDialogueText, resetIDName, btnID, callFunctionName, customCallBack) {\
-        var heading = headingText;\
-        var processMsg = processMsgText;\
-        confirmationDialogue(ConfirmationDialogueText,heading);\
-        var PopUpHeaderText = "."+$(".popUp>.header>.header-title>p").text().split(" ")[0];\
-        $(document).on("click", PopUpHeaderText, function() {\
-                   tch.removeProgress();\
-                   tch.showProgress(processMsg);\
-                   return resetreboot($(resetIDName), $(btnID), callFunctionName, customCallBack );\
-        });\
+	var heading = headingText;\
+	var processMsg = processMsgText;\
+	confirmationDialogue(ConfirmationDialogueText,heading);\
+	var PopUpHeaderText = "."+$(".popUp>.header>.header-title>p").text().split(" ")[0];\
+	$(document).on("click", PopUpHeaderText, function() {\
+		   tch.removeProgress();\
+		   tch.showProgress(processMsg);\
+		   return resetreboot($(resetIDName), $(btnID), callFunctionName, customCallBack );\
+	});\
   };\
 \
   $("#btn-reset-gui").on("click", function() { return genericButtonFunction(\
-                "');  ngx.print(T'Restore GUI'); ngx.print('",\
-                "');  ngx.print(T'Restoring...'); ngx.print('",\
-                "');  ngx.print(T'Do you want to continue?'); ngx.print('",\
-                "#resetting-msg",\
-                "#btn-reset-gui",\
-                "system_reset_gui"\
-        )}\
+		"');  ngx.print(T'Restore GUI'); ngx.print('",\
+		"');  ngx.print(T'Restoring...'); ngx.print('",\
+		"');  ngx.print(T'Do you want to continue?'); ngx.print('",\
+		"#resetting-msg",\
+		"#btn-reset-gui",\
+		"system_reset_gui"\
+	)}\
   );\
   $("#btn-remove-root").on("click", function() { return genericButtonFunction(\
-                "');  ngx.print(T'Remove root'); ngx.print('",\
-                "');  ngx.print(T'Resetting...'); ngx.print('",\
-                "');  ngx.print(T"Are you sure you want to remove root from this modem? <br/><strong> This could be permanent, so it\\'s not recommended.</strong>"); ngx.print('",\
-                "#unrooting-msg",\
-                "#btn-remove-root",\
-                "system_remove_root"\
-        )}\
+		"');  ngx.print(T'Remove root'); ngx.print('",\
+		"');  ngx.print(T'Resetting...'); ngx.print('",\
+		"');  ngx.print(T"Are you sure you want to remove root from this modem? <br/><strong> This could be permanent, so it\\'s not recommended.</strong>"); ngx.print('",\
+		"#unrooting-msg",\
+		"#btn-remove-root",\
+		"system_remove_root"\
+	)}\
   );\
   $("#btn-remove-config").on("click", function() { return genericButtonFunction(\
-                "');  ngx.print(T'Reset config'); ngx.print('",\
-                "');  ngx.print(T'Resetting...'); ngx.print('",\
-                "');  ngx.print(T"Are you sure you want to reset config of this modem? <br/><strong> This is permanent, save any config before this action.</strong>"); ngx.print('",\
-                "#config-resetting-msg",\
-                "#btn-remove-config",\
-                "system_reset_config"\
-        )}\
+		"');  ngx.print(T'Reset config'); ngx.print('",\
+		"');  ngx.print(T'Resetting...'); ngx.print('",\
+		"');  ngx.print(T"Are you sure you want to reset config of this modem? <br/><strong> This is permanent, save any config before this action.</strong>"); ngx.print('",\
+		"#config-resetting-msg",\
+		"#btn-remove-config",\
+		"system_reset_config"\
+	)}\
   );\
   $("#btn-reset-cwmp").on("click", function() { return genericButtonFunction(\
-                "');  ngx.print(T'Reset CWMP'); ngx.print('",\
-                "');  ngx.print(T'Resetting...'); ngx.print('",\
-                "');  ngx.print(T"Are you sure you want to reset CWMP db of this modem? <br/><strong> This will force the first-time boot provisioning with ACS server that can fail on an already provisioned modem.</strong>"); ngx.print('",\
-                "#btn-reset-cwmp",\
-                "#btn-reset-cwmp",\
-                "system_reset_cwmp",\
-                tch.removeProgress\
-        )}\
+		"');  ngx.print(T'Reset CWMP'); ngx.print('",\
+		"');  ngx.print(T'Resetting...'); ngx.print('",\
+		"');  ngx.print(T"Are you sure you want to reset CWMP db of this modem? <br/><strong> This will force the first-time boot provisioning with ACS server that can fail on an already provisioned modem.</strong>"); ngx.print('",\
+		"#btn-reset-cwmp",\
+		"#btn-reset-cwmp",\
+		"system_reset_cwmp",\
+		tch.removeProgress\
+	)}\
   );\
 \
   var schedulReload = false;\
 \
   $("#gui_skin").on("change", function() {\
-        var theme = $(this).val();\
-        if ( theme.indexOf("Fritz") === -1 ) {\
-                event.preventDefault();\
-                var restyled = theme+"/style.css";\
-                modgui.freshStyle(restyled);\
-        }\
-        if ( theme.indexOf("Fritz") != -1 || theme.indexOf("unified") != -1) {\
-                if($(\'#gui_skin_firstpage option[value="cards"]\').is(":selected")) $("#gui_skin_firstpage").val("stats");\
-                $(\'#gui_skin_firstpage option[value="cards"]\').attr("disabled","disabled");\
-        } else {\
-                $(\'#gui_skin_firstpage option[value="cards"]\').removeAttr("disabled");\
-        }\
-        schedulReload = true;\
+	var theme = $(this).val();\
+	if ( theme.indexOf("Fritz") === -1 ) {\
+		event.preventDefault();\
+		var restyled = theme+"/style.css";\
+		modgui.freshStyle(restyled);\
+	}\
+	if ( theme.indexOf("Fritz") != -1 || theme.indexOf("unified") != -1) {\
+		if($(\'#gui_skin_firstpage option[value="cards"]\').is(":selected")) $("#gui_skin_firstpage").val("stats");\
+		$(\'#gui_skin_firstpage option[value="cards"]\').attr("disabled","disabled");\
+	} else {\
+		$(\'#gui_skin_firstpage option[value="cards"]\').removeAttr("disabled");\
+	}\
+	schedulReload = true;\
   });\
 \
   $("#btn-gen-backup").on("click", function() {\
@@ -878,155 +920,155 @@ ngx.print('\
       data: new Array({ name : "action", value : "system_genBackup" },\
                       { name : "CSRFtoken", value : $("meta[name=CSRFtoken]").attr("content") }),\
       prepareCallback: function() {\
-                tch.showProgress("');  ngx.print(T"Generating backup in background..."); ngx.print('");\
+		tch.showProgress("');  ngx.print(T"Generating backup in background..."); ngx.print('");\
       },\
       successCallback: function() {\
-                tch.removeProgress();\
+		tch.removeProgress();\
       }\
     });\
     return false;\
   });\
 \
   $("#gui_forcehttps,#gui_alwaysadvanced").on("change", function() {\
-        schedulReload = true;\
+	schedulReload = true;\
   });\
 \
   $("#save-config").on("click", function() {\
-        if ( schedulReload ) {\
-                schedulReload = true;\setTimeout(function() {window.location.reload(!0);},1000);\
-        }\
+	if ( schedulReload ) {\
+		schedulReload = true;\setTimeout(function() {window.location.reload(!0);},1000);\
+	}\
   });\
 \
   $(document).on("click", "#cancel", function() {\
-          tch.removeProgress();\
+	  tch.removeProgress();\
   });\
 \
   $("#btn-upgrade-gui").on("click", function() {\
-        modgui.postAction("system_upgrade_gui",1);\
+	modgui.postAction("system_upgrade_gui",1);\
   });\
 \
   $(".import-gui").on("click", function() {\
-        var nofile_msg = $("#upgrade-gui-fail");\
-        var wrongext_msg = $("#upgrade-gui-fail");\
-        nofile_msg.addClass("hide");\
-        if ($("#file-upgradegui").val() == "") {\
-          nofile_msg.removeClass("hide");\
-          nofile_msg[0].scrollIntoView();\
-          return false;\
-        };\
+	var nofile_msg = $("#upgrade-gui-fail");\
+	var wrongext_msg = $("#upgrade-gui-fail");\
+	nofile_msg.addClass("hide");\
+	if ($("#file-upgradegui").val() == "") {\
+	  nofile_msg.removeClass("hide");\
+	  nofile_msg[0].scrollIntoView();\
+	  return false;\
+	};\
 \
-        var validExtensions = [\'bz2\'];\
-        var fileName = $("#file-upgradegui").val();\
+	var validExtensions = [\'bz2\'];\
+	var fileName = $("#file-upgradegui").val();\
 \
-        var fileNameExt = fileName.substr(fileName.lastIndexOf(".") + 1);\
-        if ($.inArray(fileNameExt, validExtensions) == -1){\
-                wrongext_msg.removeClass("hide");\
-        wrongext_msg[0].scrollIntoView();\
-        return false;\
-        };\
-        var fileSize = $("#file-upgradegui")[0].files[0].size;\
-        var importing_msg = $("#upload-gui-alert");\
-        var _this = $(this).parents(".control-group");\
-        importing_msg.removeClass("hide");\
-        importing_msg[0].scrollIntoView();\
+	var fileNameExt = fileName.substr(fileName.lastIndexOf(".") + 1);\
+	if ($.inArray(fileNameExt, validExtensions) == -1){\
+		wrongext_msg.removeClass("hide");\
+	wrongext_msg[0].scrollIntoView();\
+	return false;\
+	};\
+	var fileSize = $("#file-upgradegui")[0].files[0].size;\
+	var importing_msg = $("#upload-gui-alert");\
+	var _this = $(this).parents(".control-group");\
+	importing_msg.removeClass("hide");\
+	importing_msg[0].scrollIntoView();\
 \
-        $.fileUpload($("#form-import-gui"), {\
-          params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
-          completeCallback: function(form, response) {\
-                if (response.success) {\
-                  modgui.postAction("system_upgrade_gui",1);\
-                } else {\
-                  importing_msg.addClass("hide");\
-                  $("#upgrade-gui-fail").removeClass("hide");\
-                }\
-          }\
-        });\
-        return false;\
+	$.fileUpload($("#form-import-gui"), {\
+	  params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
+	  completeCallback: function(form, response) {\
+		if (response.success) {\
+		  modgui.postAction("system_upgrade_gui",1);\
+		} else {\
+		  importing_msg.addClass("hide");\
+		  $("#upgrade-gui-fail").removeClass("hide");\
+		}\
+	  }\
+	});\
+	return false;\
   });\
 \
   $("#btn-install-specificapp").on("click", function() {\
-        modgui.postAction("system_install_specificapp",1);\
+	modgui.postAction("system_install_specificapp",1);\
   });\
 \
   $(".import-specificapp").on("click", function() {\
-        var nofile_msg = $("#upgrade-specificapp-fail");\
-        var wrongext_msg = $("#upgrade-specificapp-fail");\
-        nofile_msg.addClass("hide");\
-        if ($("#file-specificapp").val() == "") {\
-          nofile_msg.removeClass("hide");\
-          nofile_msg[0].scrollIntoView();\
-          return false;\
-        };\
+	var nofile_msg = $("#upgrade-specificapp-fail");\
+	var wrongext_msg = $("#upgrade-specificapp-fail");\
+	nofile_msg.addClass("hide");\
+	if ($("#file-specificapp").val() == "") {\
+	  nofile_msg.removeClass("hide");\
+	  nofile_msg[0].scrollIntoView();\
+	  return false;\
+	};\
 \
-        var validExtensions = [\'bz2\'];\
-        var fileName = $("#file-specificapp").val();\
+	var validExtensions = [\'bz2\'];\
+	var fileName = $("#file-specificapp").val();\
 \
-        var fileNameExt = fileName.substr(fileName.lastIndexOf(".") + 1);\
-        if ($.inArray(fileNameExt, validExtensions) == -1){\
-                wrongext_msg.removeClass("hide");\
-        wrongext_msg[0].scrollIntoView();\
-        return false;\
-        };\
-        var fileSize = $("#file-specificapp")[0].files[0].size;\
-        var importing_msg = $("#upload-specificapp-alert");\
-        var _this = $(this).parents(".control-group");\
-        importing_msg.removeClass("hide");\
-        importing_msg[0].scrollIntoView();\
+	var fileNameExt = fileName.substr(fileName.lastIndexOf(".") + 1);\
+	if ($.inArray(fileNameExt, validExtensions) == -1){\
+		wrongext_msg.removeClass("hide");\
+	wrongext_msg[0].scrollIntoView();\
+	return false;\
+	};\
+	var fileSize = $("#file-specificapp")[0].files[0].size;\
+	var importing_msg = $("#upload-specificapp-alert");\
+	var _this = $(this).parents(".control-group");\
+	importing_msg.removeClass("hide");\
+	importing_msg[0].scrollIntoView();\
 \
-        $.fileUpload($("#form-import-specificapp"), {\
-          params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
-          completeCallback: function(form, response) {\
-                if (response.success) {\
-                  modgui.postAction("system_install_specificapp",1);\
-                } else {\
-                  importing_msg.addClass("hide");\
-                  $("#upgrade-specificapp-fail").removeClass("hide");\
-                }\
-          }\
-        });\
-        return false;\
+	$.fileUpload($("#form-import-specificapp"), {\
+	  params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
+	  completeCallback: function(form, response) {\
+		if (response.success) {\
+		  modgui.postAction("system_install_specificapp",1);\
+		} else {\
+		  importing_msg.addClass("hide");\
+		  $("#upgrade-specificapp-fail").removeClass("hide");\
+		}\
+	  }\
+	});\
+	return false;\
   });\
 \
 $(".import-backup").on("click", function() {\
-        var nofile_msg = $("#restore-fail");\
-        var wrongext_msg = $("#restore-fail");\
-        nofile_msg.addClass("hide");\
-        if ($("#file-restore").val() == "") {\
-          nofile_msg.removeClass("hide");\
-          nofile_msg[0].scrollIntoView();\
-          return false;\
-        };\
+	var nofile_msg = $("#restore-fail");\
+	var wrongext_msg = $("#restore-fail");\
+	nofile_msg.addClass("hide");\
+	if ($("#file-restore").val() == "") {\
+	  nofile_msg.removeClass("hide");\
+	  nofile_msg[0].scrollIntoView();\
+	  return false;\
+	};\
 \
-        var validExtensions = [\'gz\'];\
-        var fileName = $("#file-restore").val();\
+	var validExtensions = [\'gz\'];\
+	var fileName = $("#file-restore").val();\
 \
-        var fileNameExt = fileName.substr(fileName.lastIndexOf(".") + 1);\
-        if ($.inArray(fileNameExt, validExtensions) == -1){\
-                wrongext_msg.removeClass("hide");\
-        wrongext_msg[0].scrollIntoView();\
-        return false;\
-        };\
-        var fileSize = $("#file-restore")[0].files[0].size;\
-        var importing_msg = $("#upload-backup-alert");\
-        var _this = $(this).parents(".control-group");\
-        importing_msg.removeClass("hide");\
-        importing_msg[0].scrollIntoView();\
+	var fileNameExt = fileName.substr(fileName.lastIndexOf(".") + 1);\
+	if ($.inArray(fileNameExt, validExtensions) == -1){\
+		wrongext_msg.removeClass("hide");\
+	wrongext_msg[0].scrollIntoView();\
+	return false;\
+	};\
+	var fileSize = $("#file-restore")[0].files[0].size;\
+	var importing_msg = $("#upload-backup-alert");\
+	var _this = $(this).parents(".control-group");\
+	importing_msg.removeClass("hide");\
+	importing_msg[0].scrollIntoView();\
 \
-        $.fileUpload($("#form-import-backup"), {\
-          params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
-          completeCallback: function(form, response) {\
-                if (response.success) {\
-                  importing_msg.addClass("hide");\
-                  tch.showProgress("');  ngx.print(T'Rebooting'); ngx.print('...");\
-                  modgui.clearKoInterval(); \
-                  wait_for_webserver_down(); \
-                } else {\
-                  importing_msg.addClass("hide");\
-                  $("#restore-fail").removeClass("hide");\
-                }\
-          }\
-        });\
-        return false;\
+	$.fileUpload($("#form-import-backup"), {\
+	  params: { CSRFtoken: $("meta[name=CSRFtoken]").attr("content") },\
+	  completeCallback: function(form, response) {\
+		if (response.success) {\
+		  importing_msg.addClass("hide");\
+		  tch.showProgress("');  ngx.print(T'Rebooting'); ngx.print('...");\
+		  modgui.clearKoInterval(); \
+		  wait_for_webserver_down(); \
+		} else {\
+		  importing_msg.addClass("hide");\
+		  $("#restore-fail").removeClass("hide");\
+		}\
+	  }\
+	});\
+	return false;\
   });\
   $("#btn-system-debug-report").on("click", function() {\
     $.fileDownload(target, {\
@@ -1034,24 +1076,24 @@ $(".import-backup").on("click", function() {\
       data: new Array({ name : "action", value : "debug_report" },\
                       { name : "CSRFtoken", value : $("meta[name=CSRFtoken]").attr("content") }),\
       prepareCallback: function() {\
-                tch.showProgress(\'');  ngx.print(T"Generating report in background..."); ngx.print('\');\
+		tch.showProgress(\'');  ngx.print(T"Generating report in background..."); ngx.print('\');\
       },\
       successCallback: function() {\
-                location.reload();\
+		location.reload();\
       }\
     });\
     return false;\
   });\
   var fwversion_real = "'); ngx.print(content.fwversion_real); ngx.print('";\
   $("#version_spoof_mode").on("change", function() {\
-        if ( $(this).val() == "manual" ) {\
-          $("#fwversion_override").prop("disabled", false);\
-        } else {\
+	if ( $(this).val() == "manual" ) {\
+	  $("#fwversion_override").prop("disabled", false);\
+	} else {\
     if ( $(this).val() == "disabled" ) {\
-                $("#fwversion_override").val(fwversion_real);\
-          }\
-          $("#fwversion_override").prop("disabled", true);\
-        }\
+		$("#fwversion_override").val(fwversion_real);\
+	  }\
+	  $("#fwversion_override").prop("disabled", true);\
+	}\
   });\
   if ( $("#version_spoof_mode").val() == "manual" ) {\
     $("#fwversion_override").prop("disabled", false);\
@@ -1061,8 +1103,8 @@ $(".import-backup").on("click", function() {\
 ');
 
 if ngx.req.get_uri_args().action and ngx.req.get_uri_args().action == "manualguiupgrade" then
-        ngx.print('\
-        $("#GUI_Upgrade_Legend")[0].scrollIntoView();\
+	ngx.print('\
+	$("#GUI_Upgrade_Legend")[0].scrollIntoView();\
   ');
 end
 ngx.print('\
