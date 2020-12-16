@@ -183,9 +183,10 @@ local driver_valid = {
   ds10_snr = post_helper.getValidateNumberInRange(0, 65535)
 }
 
-if
-  content.dsl0_xdsl_FirmwareVersion:match(".*H045") or content.dsl0_xdsl_FirmwareVersion:match(".*H043") or
-    content.dsl0_xdsl_FirmwareVersion:match(".*H042")
+if content.dsl0_xdsl_FirmwareVersion:match(".*H046")
+        or content.dsl0_xdsl_FirmwareVersion:match(".*H045")
+        or content.dsl0_xdsl_FirmwareVersion:match(".*H043")
+        or content.dsl0_xdsl_FirmwareVersion:match(".*H042")
  then
   tinsert(driver_option, {"B2pvbH042l", "B2pvbH042l (Asus DSL-AC87VG v1.00.10)"})
   tinsert(driver_option, {"B2pvbH042j2", "B2pvbH042j2 (Inteno)"})
