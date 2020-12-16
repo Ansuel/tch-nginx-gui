@@ -39,7 +39,7 @@ install_from_github() {
     fi
     tar -xzf "/tmp/$2.tar.gz" -C "/tmp/$2"
     rm "/tmp/$2.tar.gz"
-    cd "/tmp/$2/*"
+    cd /tmp/"$2"/*
   fi
 
   chmod +x ./setup.sh
