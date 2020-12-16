@@ -42,7 +42,7 @@ end
 local cui = {
   nsplink = "uci.web.uiconfig.@uidefault.nsplink",
   gui_skin = "uci.modgui.gui.gui_skin",
-  gui_version = "uci.modgui.gui.gui_version",
+  gui_version = "rpc.system.modgui.gui_version",
   outdated_ver = "uci.modgui.gui.outdated_ver",
   amule_webui = "uci.modgui.app.amule_webui",
   aria2_webui = "uci.modgui.app.aria2_webui",
@@ -206,7 +206,7 @@ ngx.print('\
     if cui.outdated_ver == "0" then
       alert_style_upper.alert.class = "alert hide"
     end
-    html[#html + 1] = ui_helper.createAlertBlock(format(T'Update available! Version: <strong id="new-version-text">%s</strong>',cui.new_ver),alert_style_upper)
+    html[#html + 1] = ui_helper.createAlertBlock(format(T'Update available! Version: <strong id="new-version-text"><a target=\"_blank\" href=https://github.com/Ansuel/tch-nginx-gui/releases/tag/%s>%s</a></strong>',cui.new_ver,cui.new_ver),alert_style_upper)
 
     local autoupgrade_view = cui.autoupgrade_view
     if not ( autoupgrade_view == "none" ) and not ( autoupgrade_view == "" ) then

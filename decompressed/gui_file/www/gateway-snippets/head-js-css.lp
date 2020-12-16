@@ -8,7 +8,7 @@ local session = ngx.ctx.session
 local cui = {
     advanced = "uci.web.uiconfig.@uidefault.alwaysadvanced",
 	gui_skin = "uci.modgui.gui.gui_skin",
-	gui_version = "uci.modgui.gui.gui_version",
+	gui_version = "rpc.system.modgui.gui_version",
 	gui_animation = "uci.modgui.gui.gui_animation",
 }
 content_helper.getExactContent(cui)

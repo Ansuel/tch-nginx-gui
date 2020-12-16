@@ -20,15 +20,15 @@ check_webui_config() {
 
   # Some devices/fw (ie TG789MYRvac v2 HP) have the bandsteer configuration not inizialized, check if is a dual radio device and inizialize vars if missing
   if [ ! "$(uci get -q wireless.@wifi-bandsteer[0])" ] && [ "$(uci get -q wireless.@wifi-device[1])" ]; then
-    logger_command "Adding bandsteer wifi settings"
+    logecho "Adding bandsteer wifi settings"
     uci set wireless.bs0=wifi-bandsteer
-    uci set  wireless.bs0.sta_comeback_to='5'
-    uci set  wireless.bs0.no_powersave_steer='0'
-    uci set  wireless.bs0.rssi_threshold='-60'
-    uci set  wireless.bs0.debug_flags='0'
-    uci set  wireless.bs0.policy_mode='5'
-    uci set  wireless.bs0.monitor_window='5'
-    uci set  wireless.bs0.rssi_5g_threshold='-80'
+    uci set wireless.bs0.sta_comeback_to='5'
+    uci set wireless.bs0.no_powersave_steer='0'
+    uci set wireless.bs0.rssi_threshold='-60'
+    uci set wireless.bs0.debug_flags='0'
+    uci set wireless.bs0.policy_mode='5'
+    uci set wireless.bs0.monitor_window='5'
+    uci set wireless.bs0.rssi_5g_threshold='-80'
     uci commit wireless
   fi
 }
@@ -82,20 +82,9 @@ orig_config_gen() {
   fi
 }
 
-create_driver_setting() {
-  #Get xdsl driver(s) version and save to GUI config file
-  if [ ! "$(uci get -q modgui.var.driver_version)" ]; then
-    uci set modgui.var.driver_version="$(xdslctl --version 2>&1 >/dev/null | grep 'version -' | awk '{print $6}' | sed 's/\..*//')"
-  else
-    if uci get -q modgui.var.driver_version | grep -qF . ; then
-      uci set modgui.var.driver_version="$(xdslctl --version 2>&1 >/dev/null | grep 'version -' | awk '{print $6}' | sed 's/\..*//')"
-    fi
-  fi
-}
-
 dropbear_config_check() {
   if [ ! "$(uci get -q dropbear.wan)" ]; then
-    logger_command "Adding Dropbear wan config"
+    logecho "Adding Dropbear wan config"
     uci add dropbear dropbear >/dev/null
     uci rename dropbear.@dropbear[-1]=wan
     uci set dropbear.wan=dropbear
@@ -109,7 +98,7 @@ dropbear_config_check() {
   uci set dropbear.wan.PasswordAuth='on'
 
   if [ "$(uci changes)" ]; then
-    logger_command "Restarting Dropbear SSH Server..."
+    logecho "Restarting Dropbear SSH Server..."
     uci commit dropbear
     /etc/init.d/dropbear enable
     /etc/init.d/dropbear restart >/dev/null
@@ -122,7 +111,7 @@ eco_param() {
     uci set power.cpu=cpu
     uci set power.cpu.cpuspeed='256'
     uci set power.cpu.wait='1'
-    logger_command "Restarting power management"
+    logecho "Restarting power management"
     /etc/init.d/power restart &>/dev/null
   fi
 }
@@ -173,7 +162,7 @@ create_gui_type() {
   elif [ "$(uci get -q modgui.app.blacklist_app)" = "1" ] &&
     [ ! -f /www/docroot/modals/mmpbx-contacts-modal.lp.orig ] &&
     [ -f /usr/share/transformer/scripts/appInstallRemoveUtility.sh ]; then
-    logger_command "Reinstalling blacklist app after upgrade..."
+    logecho "Reinstalling blacklist app after upgrade..."
     /usr/share/transformer/scripts/appInstallRemoveUtility.sh install blacklist >/dev/null
   fi
 }
@@ -192,29 +181,29 @@ check_relay_dhcp() {
 suppress_excessive_logging() {
   #Lowers the log level of daemons to suppress excessive logging to /root/messages.log
   if [ "$(uci get -q igmpproxy.globals.trace)" = "1" ]; then
-    logger_command "Suppressing igmpproxy logs"
+    logecho "Suppressing igmpproxy logs"
     uci set igmpproxy.globals.trace='0'
   fi
   if [ "$(uci get -q mmpbx.global.trace_level)" != "3" ]; then
-    logger_command "Suppressing wansensing logs"
+    logecho "Suppressing wansensing logs"
     uci set wansensing.global.tracelevel='3' #we don't need that we are still connected to vdsl -.-
   fi
   if [ ! "$(uci get -q transformer.@main[0].log_level)" ]; then #shutup no description warn
-    logger_command "Setting transformer log level to 2"
+    logecho "Setting transformer log level to 2"
     uci set transformer.@main[0].log_level='2'
   fi
   if [ ! "$(uci get -q system.@system[0].cronloglevel)" ] || [ "$(uci get -q system.@system[0].cronloglevel)" = '0' ]; then #resolve spamlog of trafficdata
-    logger_command "Setting cron log level to 5"
+    logecho "Setting cron log level to 5"
     uci set system.@system[0].cronloglevel="5"
     /etc/init.d/cron restart
   fi
   if [ ! "$(uci get -q ledfw.syslog)" ]; then #suppress loggin of ledfw... we don't need it...
-    logger_command "Suppressing syslog (avoid ledfw spam)"
+    logecho "Suppressing syslog (avoid ledfw spam)"
     uci set ledfw.syslog=syslog
     uci set ledfw.syslog.trace='0'
   fi
   if [ "$(uci get -q mmpbx.global.trace_level)" = "2" ]; then
-    logger_command "Suppressing mmpbx logs"
+    logecho "Suppressing mmpbx logs"
     uci set mmpbx.global.trace_level='0'
   fi
 }
@@ -228,7 +217,6 @@ real_ver_entitied() {
 
     short_ver="$(grep </proc/banktable/$bank_version -Eo '.*\..*\.[0-9]*-[0-9]*')"
     real_ver=$(grep </rom/etc/uci-defaults/tch_5000_versioncusto "$short_ver" | awk '{print $2}')
-    uci set versioncusto.override.fwversion_override_latest="$latest_version_on_TIM_cwmp"
     if [ "$real_ver" = "" ]; then
       real_ver="Not Found"
     fi
@@ -247,16 +235,18 @@ real_ver_entitied() {
       rm /overlay/.skip_version_spoof
     else
       if [ "$(uci get -q modgui.var.version_spoof_mode)" ]; then
-        if [ "$(uci get -q modgui.var.version_spoof_mode)" = "enabled" ]; then
-          uci set versioncusto.override.fwversion_override="$latest_version_on_TIM_cwmp"
-        elif [ "$(uci get -q modgui.var.version_spoof_mode)" = "disabled" ]; then
+        if [ "$(uci get -q modgui.var.version_spoof_mode)" = "disabled" ]; then
           uci set versioncusto.override.fwversion_override="$real_ver"
         fi
-      else
-        uci set modgui.var.version_spoof_mode="enabled"
-        uci set versioncusto.override.fwversion_override="$latest_version_on_TIM_cwmp"
       fi
     fi
+    uci commit modgui
+  fi
+}
+
+disable_cwmp_update() {
+  if [ ! "$(uci get -q modgui.var.disable_cwmp_update)" ]; then
+    uci set modgui.var.disable_cwmp_update=1
     uci commit modgui
   fi
 }
@@ -290,7 +280,7 @@ add_xdsl_option() {
 }
 
 dosprotect_inizialize() {
-  logger_command "Checking DoSprotect kernel modules..."
+  logecho "Checking DoSprotect kernel modules..."
   if [ -n "$(find /lib/modules/*/ -iname xt_hashlimit.ko)" ]; then
     if [ ! -f /etc/config/dosprotect ]; then
       if [ -f /tmp/dosprotect_orig ]; then
@@ -298,7 +288,7 @@ dosprotect_inizialize() {
       fi
     fi
     if [ -n "$(find /etc/rc.d/ -iname 'S*dosprotect')" ]; then
-      logger_command "Enabling and starting DoSprotect service..."
+      logecho "Enabling and starting DoSprotect service..."
       /etc/init.d/dosprotect enable
       /etc/init.d/dosprotect start
     fi
@@ -307,27 +297,29 @@ dosprotect_inizialize() {
 }
 
 mobiled_lib_add() {
-  #needed for TG788, can break if already integrated in the firmware
   if [ -f /rom/usr/lib/lua/mobiled/scripthelpers.lua ]; then #restore from rom to avoid taking the replaced from older GUI installs
     if [ "$(md5sum /rom/usr/lib/lua/mobiled/scripthelpers.lua | cut -d' ' -f1)" != "$(md5sum /usr/lib/lua/mobiled/scripthelpers.lua | cut -d' ' -f1)" ]; then
-      logger_command "Restoring mobiled scripthelpers lib..."
+      logecho "Restoring mobiled scripthelpers lib..."
       cp /rom/usr/lib/lua/mobiled/scripthelpers.lua /usr/lib/lua/mobiled/scripthelpers.lua
     fi
-    [ -f /tmp/scripthelpers.lua ] && rm /tmp/scripthelpers.lua
-  else
-    logger_command "Adding missing mobiled scripthelpers lib..."
-    mv /tmp/scripthelpers.lua /usr/lib/lua/mobiled/scripthelpers.lua
   fi
 
-	marketing_version="$(uci get -q version.@version[0].marketing_version)"
+  if [ ! -d /usr/lib/lua/mobiled ]; then
+    logecho "Removing mobiled components as it is not detected on this device..."
+    rm -rf /www/cards/010_lte.lp
+    rm -rf /usr/share/transformer/mappings/rpc/mobiled.*
+    rm -rf /usr/share/transformer/mappings/rpc/ltedoctor.*
+  fi
+
+  marketing_version="$(uci get -q version.@version[0].marketing_version)"
   if [ -z "${marketing_version##16*}" ]; then #need to replace on old fw (16.x) otherwise will ignore enabled status
-    logger_command "Replacing /etc/init.d/mobiled ..."
+    logecho "Replacing /etc/init.d/mobiled ..."
     mv /tmp/mobiled /etc/init.d/mobiled
     /etc/init.d/mobiled restart
   else
     #make sure we haven't replaced it some old GUI install, restore from rom if needed
     if [[ -f /rom/etc/init.d/mobiled && -n "$(cmp /rom/etc/init.d/mobiled /etc/init.d/mobiled)" ]]; then
-      logger_command "Restoring and restarting /etc/init.d/mobiled ..."
+      logecho "Restoring and restarting /etc/init.d/mobiled ..."
       cp /rom/etc/init.d/mobiled /etc/init.d/mobiled
       /etc/init.d/mobiled restart
     fi
@@ -335,9 +327,9 @@ mobiled_lib_add() {
   fi
 
   #replacing default lte-doctor config if is configured as "no-logging" (found 1 time the logger word)
-  if [ ! -f /etc/config/ltedoctor ] || [ "$(grep -i -c logger < /etc/config/ltedoctor)" = "1" ]; then
+  if [ ! -f /etc/config/ltedoctor ] || [ "$(grep -i -c logger </etc/config/ltedoctor)" = "1" ]; then
     if [ -f /tmp/ltedoctor ]; then
-      logger_command "Replacing ltedoctor config..."
+      logecho "Replacing ltedoctor config..."
       mv /tmp/ltedoctor /etc/config/ltedoctor
       /etc/init.d/lte-doctor-logger restart
     fi
@@ -384,7 +376,7 @@ adds_dnd_config() {
 
 move_gui_to_root() {
   if [ -f /tmp/GUI.tar.bz2 ]; then
-    logger_command "Updating GUI in /root folder from /tmp"
+    logecho "Updating GUI in /root folder from /tmp"
     if [ -f /root/GUI.tar.bz2 ]; then
       rm /root/GUI.tar.bz2
     fi
@@ -397,13 +389,13 @@ cumulative_check_gui() {
   if [ ! "$(uci get -q modgui.gui.update_branch)" ]; then
     uci set modgui.gui.update_branch="stable"
     update_branch=""
-    logger_command "Setting update branch to STABLE"
+    logecho "Setting update branch to STABLE"
   elif [ "$(uci get -q modgui.gui.update_branch)" = "stable" ]; then
     update_branch=""
-    logger_command "Update branch detected: STABLE"
+    logecho "Update branch detected: STABLE"
   else
     update_branch="_dev"
-    logger_command "Update branch detected: DEV"
+    logecho "Update branch detected: DEV"
   fi
 
   #Remove deprecated .gz GUI file if low space device
@@ -418,26 +410,26 @@ cumulative_check_gui() {
 
   #This makes sure we have a recovery GUI package in /root
   if [ ! -f /root/GUI.tar.bz2 ]; then
-    logger_command "Stable GUI not found in /root"
+    logecho "Stable GUI not found in /root"
     if [ ! -f /tmp/GUI.tar.bz2 ]; then
-      logger_command "Stable GUI not found in /tmp, checking for GUI_dev..."
+      logecho "Stable GUI not found in /tmp, checking for GUI_dev..."
       if [ -f /tmp/GUI_dev.tar.bz2 ]; then
-        logger_command "Found GUI_dev in /tmp, copying in /root to generate a valid hash"
+        logecho "Found GUI_dev in /tmp, copying in /root to generate a valid hash"
         mv /tmp/GUI_dev.tar.bz2 /tmp/GUI.tar.bz2
         move_gui_to_root
       elif ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then
-        logger_command "Downloading stable..."
+        logecho "Downloading stable..."
         curl -k -s https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/GUI.tar.bz2 --output /tmp/GUI.tar.bz2
         move_gui_to_root
       else
-        logger_command "Can't download stable GUI!"
+        logecho "Can't download stable GUI!"
       fi
     else
-      logger_command "Moving stable GUI from /tmp to /root"
+      logecho "Moving stable GUI from /tmp to /root"
       move_gui_to_root
     fi
     if [ -s /root/GUI.tar.bz2 ]; then
-      logger_command "Assuming first time install, cleaning /www dir and re-extracting .bz2"
+      logecho "Assuming first time install, cleaning /www dir and re-extracting .bz2"
       rm -r /www/*
       bzcat /root/GUI.tar.bz2 | tar -C / -xf - www
     fi
@@ -452,24 +444,18 @@ cumulative_check_gui() {
       gui_hash=$(md5sum /root/GUI.tar.bz2 | awk '{ print $1}')
     fi
     if [ "$old_gui_hash" != "$gui_hash" ]; then
-      logger_command "Detected upgrade!"
-      logger_command "Old GUI hash: $old_gui_hash"
-      logger_command "New GUI hash: $gui_hash"
+      logecho "Detected upgrade!"
+      logecho "Old GUI hash: $old_gui_hash"
+      logecho "New GUI hash: $gui_hash"
     else
-      logger_command "GUI hash set: $old_gui_hash"
+      logecho "GUI hash set: $old_gui_hash"
     fi
   else
-    logger_command "Can't generate GUI hash, file not found!"
+    logecho "Can't generate GUI hash, file not found!"
     gui_hash="0"
   fi
 
-  saved_gui_version=$(uci get -q modgui.gui.gui_version | cut -d'-' -f1)
   clean_version_gui=$(echo "$version_gui" | cut -d'-' -f1)
-
-  if [ "$saved_gui_version" != "$clean_version_gui" ]; then
-    logger_command "Updating version saved to $version_gui"
-    uci set modgui.gui.gui_version="$version_gui"
-  fi
 
   #This is to fix a bug in older gui when stable gui is wrongly saved as dev and never replaced.
   major_ver="$(echo "$clean_version_gui" | cut -d. -f 0)"
@@ -480,7 +466,7 @@ cumulative_check_gui() {
     fi
   fi
 
-  logger_command "Resetting version info..."
+  logecho "Resetting version info..."
 
   if [ ! "$(uci get -q modgui.gui.gui_hash)" ]; then
     uci set modgui.gui.new_ver="Unknown"
@@ -508,10 +494,10 @@ cumulative_check_gui() {
     uci set modgui.gui.gui_animation="1"
   fi
   if [ ! "$(uci get -q modgui.var.isp_autodetect)" ]; then
-  	uci set modgui.var.isp_autodetect="1"
+    uci set modgui.var.isp_autodetect="1"
   fi
   if [ ! "$(uci get -q modgui.var.isp)" ]; then
-  	uci set modgui.var.isp="Other"
+    uci set modgui.var.isp="Other"
   fi
   if [ ! "$(uci get -q modgui.gui.gui_skin)" ]; then
     uci set modgui.gui.gui_skin="green"
@@ -520,7 +506,7 @@ cumulative_check_gui() {
 
 fcctlsettings_daemon() {
   if [ -f /etc/config/fcctlsettings ]; then
-    if grep -q </etc/config/fcctlsettings 'mcast-learn' ; then
+    if grep -q 'mcast-learn' </etc/config/fcctlsettings; then
       rm /etc/config/fcctlsettings #NEVER EVER WRITE - IN CONFIG FILE...
     fi
   fi
@@ -545,8 +531,8 @@ led_integration() {
   if [ -f /tmp/status-led-eventing.lua_new ]; then
     ledeventing_new_md5=$(awk </tmp/status-led-eventing.md5sum '{ print $1 }')
     ledeventing_md5=$(md5sum /sbin/status-led-eventing.lua | awk '{ print $1 }')
-    logger_command "LedEventing new md5sum: $ledeventing_new_md5"
-    logger_command "LedEventing md5sum: $ledeventing_md5"
+    logecho "LedEventing new md5sum: $ledeventing_new_md5"
+    logecho "LedEventing md5sum: $ledeventing_md5"
     if [ "$ledeventing_new_md5" ] && [ "$ledeventing_new_md5" != "$ledeventing_md5" ]; then
       rm /sbin/status-led-eventing.lua
       mv /tmp/status-led-eventing.lua_new /sbin/status-led-eventing.lua
@@ -580,49 +566,49 @@ clean_watchdog() {
   fi
 }
 
-logger_command "Check original config"
+logecho "Check original config"
 orig_config_gen #this check if new config are already present
-logger_command "Unlocking web interface if needed"
+logecho "Unlocking web interface if needed"
 check_webui_config
-logger_command "Check if variant_friendly_name set"
+logecho "Check if variant_friendly_name set"
 check_variant_friendly_name
-logger_command "Check driver setting"
-create_driver_setting #create diver setting if not present
-logger_command "Check Dropbear config file"
+logecho "Check Dropbear config file"
 dropbear_config_check #check dropbear config
-logger_command "Check eco paramaters"
+logecho "Check eco paramaters"
 eco_param #This disable eco param as they introduce some latency
-logger_command "Add app-extension var in modgui uci config"
+logecho "Add app-extension var in modgui uci config"
 create_gui_type #Gui Type
-logger_command "Add new web options"
+logecho "Add new web options"
 add_new_web_rule #This check new option so that we don't replace the one present
-logger_command "New DHCPRelay Option"
+logecho "New DHCPRelay Option"
 check_relay_dhcp           #Sync option
 suppress_excessive_logging #Suppress logging
-logger_command "Create new option for led definitions"
+logecho "Create new option for led definitions"
 led_integration #New option led
-logger_command "Creating and checking real version"
+logecho "Creating and checking real version"
 real_ver_entitied #Support for spoofing firm
-logger_command "Implementing WoL"
+logecho "Disable CWMP update by default"
+disable_cwmp_update
+logecho "Implementing WoL"
 new_wol_implementation #New Wol
-logger_command "Apply new xDSL options"
+logecho "Apply new xDSL options"
 add_xdsl_option #New xdsl option
-logger_command "Adding fast cache options"
-fcctlsettings_daemon #Adds fast cache options
+logecho "Adding fast cache options"
+fcctlsettings_daemon  #Adds fast cache options
 dosprotect_inizialize #dosprotected inizialize function
-logger_command "Checking mobiled libs..."
+logecho "Checking mobiled libs..."
 mobiled_lib_add
-logger_command "Checking if intercept is enabled and disabling if it is..."
+logecho "Checking if intercept is enabled and disabling if it is..."
 disable_intercept #Intercept check
-logger_command "Disabling coredump reboot..."
+logecho "Disabling coredump reboot..."
 disable_upload_coredump_and_reboot
-logger_command "Restoring nginx additional options if needed..."
+logecho "Restoring nginx additional options if needed..."
 restore_nginx
-logger_command "Adding missing voicednd rule if needed"
+logecho "Adding missing voicednd rule if needed"
 adds_dnd_config
-logger_command "Doing various checks and generating hashes..."
+logecho "Doing various checks and generating hashes..."
 cumulative_check_gui #Handle strange installation
-logger_command "Decrypting any encrypted password present in config"
+logecho "Decrypting any encrypted password present in config"
 decrypt_config_pass
 clean_ping_and_traceroute
 clean_watchdog

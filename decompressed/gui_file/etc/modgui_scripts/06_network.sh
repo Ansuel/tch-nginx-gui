@@ -4,7 +4,7 @@
 
 add_ipoe() {
   if [ ! "$(uci -q get network.ipoe)" ]; then
-    logger_command "Adding ipoe in network config..."
+    logecho "Adding ipoe in network config..."
     uci set network.ipoe=interface
     uci set network.ipoe.proto='dhcp'
     uci set network.ipoe.metric='1'
@@ -18,7 +18,7 @@ add_ipoe() {
 }
 
 remove_default_dns() {
-  logger_command "Removing default loopback DNS Servers..."
+  logecho "Removing default loopback DNS Servers..."
   uci -q del network.loopback.dns
   uci -q del network.loopback.dns_metric
 }
@@ -94,7 +94,7 @@ setup_network() {
 }
 
 puryfy_wan_interface() { #creano problemi di dns per chissa'  quale diavolo di motivo... Ma l'utilitÃ  di sta roba eh telecom ?
-  logger_command "Purify WAN network config..."
+  logecho "Purify WAN network config..."
   uci -q del network.wan.keepalive
   uci -q del network.wan.graceful_restart
   uci -q del network.wan_ipv6.keepalive
@@ -102,28 +102,28 @@ puryfy_wan_interface() { #creano problemi di dns per chissa'  quale diavolo di 
 }
 
 fix_dns_dhcp_bug() {
-  logger_command "Fix DNS bug, make sure odhcp is enabled"
+  logecho "Fix DNS bug, make sure odhcp is enabled"
   #SET odhcpd MAINDHCP to 0 to use dnsmasq for ipv4
   if [ "$(uci get -q dhcp.odhcpd.maindhcp)" == "1" ]; then
-    logger_command "Setting odhcpd not maindhcp"
+    logecho "Setting odhcpd not maindhcp"
     uci set dhcp.odhcpd.maindhcp="0"
     /etc/init.d/odhcpd restart
     restart_dnsmasq=1
   fi
   #Check to see if odhcpd is running
   if [ ! "$(pgrep odhcpd)" ]; then
-    logger_command "Starting odhcpd"
+    logecho "Starting odhcpd"
     /etc/init.d/odhcpd start
   fi
   #reenable it to make ipv6 works
   if [ -n "$(find /etc/rc.d/ -iname *odhcpd*)" ]; then
-    logger_command "Enabling odhcpd on boot"
+    logecho "Enabling odhcpd on boot"
     /etc/init.d/odhcpd enable
   fi
 }
 
 check_dnsmasq_name() {
-  logger_command "Checking and fixing dnsmasq daemon naming..."
+  logecho "Checking and fixing dnsmasq daemon naming..."
   #Checks what the dnsmasq daemon is referred to in the config file
   if [ "$(uci get -q dhcp.dnsmasq)" ]; then
     if [ "$(uci get -q dhcp.dnsmasq)" != "dnsmasq" ]; then
@@ -141,7 +141,7 @@ check_dnsmasq_name() {
 }
 
 update_dhcp_config() {
-  logger_command "Sync DHCP configuration for new GUI"
+  logecho "Sync DHCP configuration for new GUI"
   if [ "$(uci get -q dhcp.lan.dhcpv4)" ]; then
     #REMOVE DHCPV4 this is for odhcpd daemon to tell him to run also for ipv4 dhcp...
     #by removing the entities we solve the problem
@@ -154,7 +154,7 @@ update_dhcp_config() {
 }
 
 wan_sensing_clean() {
-  logger_command "Attempt to clean the wansensing script from hardcoded interfaces..."
+  logecho "Attempt to clean the wansensing script from hardcoded interfaces..."
   #This will try to clean every hardcoded setting from isp config
   if [ -f /etc/wansensing/L2EntryExit.lua ]; then
     sed -i '/[cC][wW][mM][pP][dD]/d' /etc/wansensing/L2EntryExit.lua
@@ -189,21 +189,21 @@ wan_sensing_clean() {
 }
 
 clean_cups_block_rule() {
-  logger_command "Cleaning cups firewall rule..."
+  logecho "Cleaning cups firewall rule..."
   firewall_change=0
   for ret in $(uci show firewall | grep CUPS-lan | sed 's|.name.*||'); do
     uci del "$ret"
     firewall_change=1
   done
   if [ $firewall_change -eq 1 ]; then
-    logger_command "Restarting firewall..."
+    logecho "Restarting firewall..."
     uci commit firewall
     /etc/init.d/firewall restart 2>/dev/null
   fi
 }
 
 unlock_ssh_wan_tiscali() {
-  logger_command "Unlocking SSH for Tiscali firmware"
+  logecho "Unlocking SSH for Tiscali firmware"
   if [ "$(uci get -q firewall.wan_SSH_rule1)" ]; then
     uci del firewall.wan_SSH_rule1
     uci commit firewall
@@ -215,7 +215,7 @@ unlock_ssh_wan_tiscali() {
 }
 
 disable_tcp_Sack() {
-  logger_command "Apply CVE 2019-11477 workaround"
+  logecho "Apply CVE 2019-11477 workaround"
   if [ "$(cat /etc/sysctl.conf | grep 'net.ipv4.tcp_sack')" ]; then
     sed -i 's/\(net.ipv4.tcp_sack=\)1/\10/g' /etc/sysctl.conf
     sysctl -p 2>/dev/null 1>/dev/null
@@ -228,7 +228,7 @@ disable_tcp_Sack() {
 }
 
 check_xtm_atmwan() {
-  logger_command "Checking atmdevice interface naming..."
+  logecho "Checking atmdevice interface naming..."
   if [ -z "$(uci -q get xtm.atmwan)" ]; then
     uci set xtm.atmwan=atmdevice
     uci set xtm.atmwan.ulp='eth'
@@ -261,7 +261,7 @@ clean_cups_block_rule
 disable_tcp_Sack
 check_xtm_atmwan #needed for UNO firmware
 
-logger_command "Restarting dnsmasq if needed..."
+logecho "Restarting dnsmasq if needed..."
 if [ $restart_dnsmasq -eq 1 ]; then
   uci commit
   killall dnsmasq

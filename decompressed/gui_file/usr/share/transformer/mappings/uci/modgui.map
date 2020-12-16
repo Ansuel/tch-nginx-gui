@@ -9,7 +9,7 @@ local modgui_gui  = {
     section = "gui",
     type = "gui",
     options = { "autoupgrade","randomcolor","autoupgrade_hour","firstpage","gui_skin",
-					"new_ver","outdated_ver","gui_version","autoupgradeview","gui_hash",
+					"new_ver","outdated_ver","autoupgradeview","gui_hash",
 					"update_branch","gui_animation" },
 }
 
@@ -30,8 +30,8 @@ local modgui_var  = {
     config = config_modgui,
     section = "var",
     type = "var",
-    options = { "isp","ppp_mgmt","ppp_realm_ipv6","ppp_realm_ipv4","encrypted_pass","driver_version","check_obp","reboot_reason_msg","version_spoof_mode",
-	"isp_autodetect"},
+    options = { "isp","ppp_mgmt","ppp_realm_ipv6","ppp_realm_ipv4","encrypted_pass","check_obp","reboot_reason_msg","version_spoof_mode",
+	"isp_autodetect","disable_cwmp_update"},
 }
 
 mapper("uci_1to1").registerSimpleMap(modgui_var)

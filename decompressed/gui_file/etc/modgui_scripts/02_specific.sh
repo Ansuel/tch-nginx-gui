@@ -45,15 +45,86 @@ extract_with_check() {
   return $RESTART_SERVICE
 }
 
-apply_right_opkg_repo() {
-  logger_command "Checking opkg feeds..."
-	marketing_version="$(uci get -q version.@version[0].marketing_version)"
+#Some globals var to check the right things to install
+device_type="$(uci get -q env.var.prod_friendly_name)"
+marketing_version="$(uci get -q version.@version[0].marketing_version)"
+cpu_type="$(uname -m)"
 
-	opkg_file="/etc/opkg.conf"
-	if [ "$1" ] && [ "$1" == "TG78" ]; then
-		if [ -z "$(  grep $opkg_file -e "chaos_calmer/15.05.1/brcm63xx" )" ]; then
-		  sed -i '/FrancYescO\/789vacv2/d' /etc/opkg.conf #remove old setted feeds
-			cat << EOF >> $opkg_file
+apply_right_opkg_repo() {
+  logecho "Checking opkg feeds..."
+
+  opkg_file="/etc/opkg.conf"
+
+  if [ "$cpu_type" == "armv7l" ]; then
+    case $marketing_version in
+    "18."*)
+      if ! grep -q "Ansuel/GUI_ipk/kernel-4.1" $opkg_file; then
+        cat <<EOF >>$opkg_file
+arch all 100
+arch arm_cortex-a9 200
+arch arm_cortex-a9_neon 300
+src/gz chaos_calmer_base https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/base
+src/gz chaos_calmer_packages https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/packages
+src/gz chaos_calmer_luci https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/luci
+src/gz chaos_calmer_routing https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/routing
+src/gz chaos_calmer_telephony https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/telephony
+src/gz chaos_calmer_core https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/target/packages
+EOF
+      fi
+      if ! grep -q "homeware/18/brcm63xx-tch" $opkg_file; then
+        cat <<EOF >>$opkg_file
+src/gz chaos_calmer_base_macoers https://www.macoers.com/repository/homeware/18/brcm63xx-tch/VANTW/base
+src/gz chaos_calmer_packages_macoers https://www.macoers.com/repository/homeware/18/brcm63xx-tch/VANTW/packages
+src/gz chaos_calmer_luci_macoers https://www.macoers.com/repository/homeware/18/brcm63xx-tch/VANTW/luci
+src/gz chaos_calmer_routing_macoers https://www.macoers.com/repository/homeware/18/brcm63xx-tch/VANTW/routing
+src/gz chaos_calmer_telephony_macoers https://www.macoers.com/repository/homeware/18/brcm63xx-tch/VANTW/telephony
+src/gz chaos_calmer_core_macoers https://www.macoers.com/repository/homeware/18/brcm63xx-tch/VANTW/target/packages
+EOF
+      fi
+      ;;
+    "17.3"*)
+      sed -i '/roleo\/public\/agtef\/brcm63xx-tch/d' /etc/opkg.conf #remove old setted feeds
+      if ! grep -q "roleo/public/agtef/1.1.0/brcm63xx-tch" $opkg_file; then
+        cat <<EOF >>$opkg_file
+src/gz chaos_calmer_base https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/base
+src/gz chaos_calmer_packages https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/packages
+src/gz chaos_calmer_luci https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/luci
+src/gz chaos_calmer_routing https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/routing
+src/gz chaos_calmer_telephony https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/telephony
+src/gz chaos_calmer_management https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/management
+EOF
+      fi
+      ;;
+    "16.3"* | "17.1"* | "17.2"*)
+      sed -i '/roleo\/public\/agtef\/1.1.0\/brcm63xx-tch/d' /etc/opkg.conf #remove old setted feeds
+      if ! grep -q "roleo/public/agtef/brcm63xx-tch" $opkg_file; then
+        cat <<EOF >>$opkg_file
+src/gz chaos_calmer_base https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/base
+src/gz chaos_calmer_packages https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/packages
+src/gz chaos_calmer_luci https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/luci
+src/gz chaos_calmer_routing https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/routing
+src/gz chaos_calmer_telephony https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/telephony
+src/gz chaos_calmer_management https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/management
+EOF
+      fi
+      ;;
+    "16.2"* | "16.1"*)
+      if ! grep -q "FrancYescO/789vacv2_opkg/xtream35b" $opkg_file; then
+        cat <<EOF >>$opkg_file
+src/gz base https://raw.githubusercontent.com/FrancYescO/789vacv2_opkg/xtream35b/packages
+EOF
+      fi
+      ;;
+    *)
+      logecho "No known ARM feeds for this version $marketing_version"
+      ;;
+    esac
+  elif [ "$cpu_type" == "mips" ]; then
+    case $marketing_version in
+    "16."* | "17."*)
+      if [ -z "$(grep $opkg_file -e "chaos_calmer/15.05.1/brcm63xx")" ]; then
+        sed -i '/FrancYescO\/789vacv2/d' /etc/opkg.conf #remove old setted feeds
+        cat <<EOF >>$opkg_file
 src/gz chaos_calmer_base http://archive.openwrt.org/chaos_calmer/15.05.1/brcm63xx/generic/packages/base
 src/gz chaos_calmer_packages http://archive.openwrt.org/chaos_calmer/15.05.1/brcm63xx/generic/packages/packages
 src/gz chaos_calmer_luci http://archive.openwrt.org/chaos_calmer/15.05.1/brcm63xx/generic/packages/luci
@@ -65,63 +136,15 @@ arch all 100
 arch brcm63xx 200
 arch brcm63xx-tch 300
 EOF
-    fi
-  elif [ "$1" ] && [ "$1" == "Xtream" ]; then
-		if [ -z "$(  grep $opkg_file -e "FrancYescO/789vacv2_opkg/xtream35b" )" ]; then
-			cat << EOF >> $opkg_file
-src/gz base https://raw.githubusercontent.com/FrancYescO/789vacv2_opkg/xtream35b/packages
-EOF
-    fi
+      fi
+      ;;
+    *)
+      logecho "No known MIPS feeds for this version $marketing_version"
+      ;;
+    esac
   else
-	case $marketing_version in
-	"18."*)
-		if [ -n "$(  grep $opkg_file -e "brcm63xx-tch" )" ]; then
-			rm /etc/opkg.conf
-			cp /rom/etc/opkg.conf /etc/
-		fi
-		if [ -z "$(  grep $opkg_file -e "Ansuel/GUI_ipk/kernel-4.1" )" ]; then
-			cat << EOF >> $opkg_file
-arch all 100
-arch arm_cortex-a9 200
-arch arm_cortex-a9_neon 300
-src/gz chaos_calmer_base https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/base
-src/gz chaos_calmer_packages https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/packages
-src/gz chaos_calmer_luci https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/luci
-src/gz chaos_calmer_routing https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/routing
-src/gz chaos_calmer_telephony https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/telephony
-src/gz chaos_calmer_core https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/target/packages
-EOF
-		fi
-		;;
-	"17."*)
-		if [ -z "$(  grep $opkg_file -e "roleo/public/agtef/1.1.0/brcm63xx-tch" )" ]; then
-			cat << EOF >> $opkg_file
-src/gz chaos_calmer_base https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/base
-src/gz chaos_calmer_packages https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/packages
-src/gz chaos_calmer_luci https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/luci
-src/gz chaos_calmer_routing https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/routing
-src/gz chaos_calmer_telephony https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/telephony
-src/gz chaos_calmer_management https://repository.ilpuntotecnico.com/files/roleo/public/agtef/1.1.0/brcm63xx-tch/packages/management
-EOF
-		fi
-		;;
-	"16."*)
-		if [ -z "$(  grep $opkg_file -e "roleo/public/agtef/brcm63xx-tch" )" ]; then
-			cat << EOF >> $opkg_file
-src/gz chaos_calmer_base https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/base
-src/gz chaos_calmer_packages https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/packages
-src/gz chaos_calmer_luci https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/luci
-src/gz chaos_calmer_routing https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/routing
-src/gz chaos_calmer_telephony https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/telephony
-src/gz chaos_calmer_management https://repository.ilpuntotecnico.com/files/roleo/public/agtef/brcm63xx-tch/packages/management
-EOF
-		fi
-		;;
-	*)
-		logger_command "No opkg file supported"
-		;;
-	esac
-	fi
+    logecho "CPU '$cpu_type' UNKNOWN, feeds not found for this version $marketing_version"
+  fi
 
   # Remove non-existent hardcoded distfeed to avoid 404 on opkg update
   [ -f /etc/opkg/distfeeds.conf ] && sed -i '/15.05.1\/brcm63xx-tch/d' /etc/opkg/distfeeds.conf
@@ -139,7 +162,7 @@ ledfw_extract() {
 
 ledfw_rework_TG788() {
   if [ ! "$(uci get -q button.info)" ] || [ "$(uci get -q button.info)" == "BTN_3" ]; then
-    logger_command "Setting up status (wifi) button..."
+    logecho "Setting up status (wifi) button..."
     uci del button.easy_reset
     uci set button.info=button
     uci set button.info.button='BTN_1'
@@ -159,7 +182,7 @@ ledfw_rework_TG788() {
 
 ledfw_rework_TG799() {
   if [ ! "$(uci get -q button.info)" ]; then
-    logger_command "Setting up status (power) button..."
+    logecho "Setting up status (power) button..."
     uci del button.easy_reset
     uci set button.info=button
     uci set button.info.button='BTN_3'
@@ -176,7 +199,7 @@ ledfw_rework_TG799() {
 
 ledfw_rework_TG800() {
   if [ ! "$(uci get -q button.info)" ]; then
-    logger_command "Setting up status (wifi) button..."
+    logecho "Setting up status (wifi) button..."
     uci del button.easy_reset
     uci set button.info=button
     uci set button.info.button='BTN_1'
@@ -203,51 +226,47 @@ ledfw_rework_TG800() {
 #}
 
 install_specific() {
-  logger_command "Applying specific model fixes..."
+  logecho "Applying specific model fixes..."
   /usr/share/transformer/scripts/appInstallRemoveUtility.sh install specificapp "$1"
 }
 
 remove_wizard_5ghz() {
   if [ -n "$(find /www/wizard-cards/ -iname '*wireless_5G*')" ]; then
-    logger_command "Removing 5GHz config from wizard..."
+    logecho "Removing 5GHz config from wizard..."
     rm /www/wizard-cards/*wireless_5G*
   fi
 }
 
-#THIS CHECK DEVICE TYPE AND INSTALL SPECIFIC FILE
-device_type="$(uci get -q env.var.prod_friendly_name)"
-kernel_ver="$(< /proc/version awk '{print $3}')"
-
-
-[ -z "${device_type##*DGA413*}" ] && apply_right_opkg_repo #Check opkg conf based on version
-[ -z "${device_type##*TG80*}" ] && apply_right_opkg_repo #Check opkg conf based on version
-if [ -z "${device_type##*TG78*}" ] && [ -n "${device_type##*Xtream*}" ]; then
-  apply_right_opkg_repo TG78
-elif [ -z "${device_type##*TG58*}" ]; then
-  apply_right_opkg_repo TG78
-elif [ -z "${device_type##*TG789*}" ] && [ -z "${device_type##*Xtream*}" ]; then
-  apply_right_opkg_repo Xtream
-fi
+apply_right_opkg_repo
 
 if [ ! "$(uci get -q modgui.app.specific_app)" ]; then
   uci set modgui.app.specific_app="0"
 fi
 
-if [ -z "${device_type##*DGA413*}" ]; then
-  install_specific DGA
-elif [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG58*}" ]; then
-  install_specific TG789
-elif [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG78*}" ] && [ -n "${device_type##*Xtream*}" ]; then
-  install_specific TG789
-elif [ -z "${device_type##*TG78*}" ] && [ -z "${device_type##*Xtream*}" ]; then
-  install_specific TG789Xtream35B
-elif [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG799*}" ]; then
-  install_specific TG789
-elif [ -z "${kernel_ver##3.4*}" ] && [ -z "${device_type##*TG800*}" ]; then
-  install_specific TG800
-else
+# TODO: make all specifc package generic (mips/arm)
+# TODO: avoid replacing nginx/miniupnpd/dlnad in DGA pack if unneeded (deprecate the TG800 package)
+# A case similar to this one is in the modgui-modal.lp for who installed offline
+# and should be linked to the package download, make sure to reflect changes in the modal
+case $marketing_version in
+"16.1"* | "16.2"*)
+  [ "$cpu_type" == "armv7l" ] && install_specific TG789Xtream35B
+  [ "$cpu_type" == "mips" ] && install_specific TG789
+  ;;
+"16."* | "17."*)
+  [ "$cpu_type" == "armv7l" ] && {
+    [ -z "${device_type##*TG800*}" ] && install_specific TG800 || install_specific DGA
+  }
+  [ "$cpu_type" == "mips" ] && install_specific TG789
+  ;;
+"18."*)
+  [ "$cpu_type" == "armv7l" ] && install_specific DGA
+  [ "$cpu_type" == "mips" ] && logecho "Unknown what specific_app to install on $marketing_version $cpu_type"
+  ;;
+*)
   uci set modgui.app.specific_app="1" #no specific package for this device
-fi
+  logecho "Unknown what specific_app to install on $marketing_version $cpu_type"
+  ;;
+esac
 
 uci commit modgui
 
@@ -262,15 +281,15 @@ uci commit modgui
 [ -z "${device_type##*TG800*}" ] && ledfw_rework_TG800
 #[ -z "${device_type##*DGA413*}" ] && wifi_fix_24g
 
-ls /tmp/ledfw* 1> /dev/null 2>&1 && rm /tmp/ledfw* #clean ledfw bz2 from /tmp
+ls /tmp/ledfw* 1>/dev/null 2>&1 && rm /tmp/ledfw* #clean ledfw bz2 from /tmp
 
 [ -z "${device_type##*TG788*}" ] && remove_wizard_5ghz
 
 if [ -f /proc/rip/0122 ]; then
-  logger_command "WARNING! RIP_ID_RESTRICTED_DOWNGR_TS detected!!"
+  logecho "WARNING! RIP_ID_RESTRICTED_DOWNGR_TS detected!!"
 fi
 if [ -f /proc/rip/0123 ]; then
-  logger_command "WARNING! RIP_ID_RESTRICTED_DOWNGR_OPT detected!!"
+  logecho "WARNING! RIP_ID_RESTRICTED_DOWNGR_OPT detected!!"
 fi
 
 #Fix led issues

@@ -10,7 +10,7 @@ local format = string.format
 
 local cui = {
 	timestamp = "uci.version.version.@version[0].timestamp",
-	gui_version = "uci.modgui.gui.gui_version",
+	gui_version = "rpc.system.modgui.gui_version",
 	friendly_product_name = "uci.env.var.prod_friendly_name",
 	provisioning_code = "uci.env.var.provisioning_code",
 }

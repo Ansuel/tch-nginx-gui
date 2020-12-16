@@ -1,10 +1,17 @@
 #!/bin/sh
 
 ubi_num=
+logging_file=/overlay/modgui_log/mountroot_log_$(date +"%H-%M_%m-%d-%y")
+
+create_modgui_log() {
+  [ ! -d /overlay/modgui_log ] && mkdir /overlay/modgui_log
+  touch $logging_file
+}
 
 kecho() {
-	echo "$1"
-	echo "$1" > /dev/kmsg
+	echo mount_root-mod: "$@"
+	echo mount_root-mod: "$@" > /dev/kmsg
+	echo mount_root-mod: "$@" >> $logging_file
 }
 
 find_mtd_part() {
@@ -43,11 +50,11 @@ find_mount_jffs2() {
 		if [ -n "$mtdpart" ]; then
 			mount -t jffs2 $options "$mtdpart" "$dir"
 			if [ $? -ne 0 ]; then
-				kecho "mount_root-mod: failed to mount $mtdpartname on $mtdpart as jffs2"
+				kecho "failed to mount $mtdpartname on $mtdpart as jffs2"
 			else
 				mtd -qq unlock $mtdpartname
 				if [ $? -ne 0 ]; then
-					kecho "mount_root-mod: failed to unlock $mtdpartname, partition not writeable"
+					kecho "failed to unlock $mtdpartname, partition not writeable"
 					umount "$dir"
 				else
 					if ! legacy_overlayfs; then
@@ -59,7 +66,7 @@ find_mount_jffs2() {
 		fi
 	done
 
-	kecho "mount_root-mod: failed to find suitable partition to mount"
+	kecho "failed to find suitable partition to mount"
 	return 1
 }
 
@@ -124,12 +131,12 @@ find_mount_ubifs() {
 	elif ( cat /proc/mtd | grep -i "$partition" ) ; then
 		mtd_block_number=$(cat /proc/mtd | grep -i "$partition" | sed 's/^mtd//' | awk -F ':' '{print $1}')
 
-		kecho "mount_root-mod: Detected block device: $dir for $partition"
+		kecho "Detected block device: $dir for $partition"
 		ubi_num="$(find_available_ubi_num)"
 		ubiattach -m "$mtd_block_number" -d $ubi_num /dev/ubi_ctrl
 
 	else
-		kecho "mount_root-mod: No $partition partition found"
+		kecho "No $partition partition found"
 		return 1
 	fi
 
@@ -137,7 +144,7 @@ find_mount_ubifs() {
 
 	mount -o sync -t ubifs ubi$ubi_num:overlay $dir
 	if [ $? -ne 0 ]; then
-		kecho "mount_root-mod: failed to mount ubi$ubi_num:overlay on ubifs"
+		kecho "failed to mount ubi$ubi_num:overlay on ubifs"
 		return 1
 	fi
 
@@ -165,10 +172,10 @@ fopivot() { # <rw_root> <ro_root>
 	mkdir -p /mnt/modroot
 	if ! legacy_overlayfs
 	then
-		kecho "mount_root-mod: mounting overlay fs"
+		kecho "mounting overlay fs"
 		mount -t overlay -o lowerdir=/,upperdir=$rw_root,workdir=/modoverlay/work overlay /mnt/modroot && rw_root=/mnt/modroot
 	else
-		kecho "mount_root-mod: mounting overlayfs fs"
+		kecho "mounting overlayfs fs"
 		mount -t overlayfs -olowerdir=/,upperdir=$rw_root "overlayfs:$rw_root" /mnt/modroot && rw_root=/mnt/modroot
 	fi
 	pivot $rw_root $ro_root
@@ -210,12 +217,14 @@ mount_root_mod() {
 	local upperdir
 	local mount_point="/tmp/modoverlay"
 
+	create_modgui_log
+
 	check_banktable
 	if [ -f /proc/banktable/booted ]; then
 		upperdir=/modoverlay/bank_mod
 		oldroot=/saferoot
 	else
-		# modroot on notbooted bank not possible
+		kecho "modroot on notbooted bank not possible"
 		return
 	fi
 
@@ -229,7 +238,7 @@ mount_root_mod() {
 	dd if=$bank_1_mtd of=$check_head_bank1 skip=16 bs=1 count=4
 
 	if cmp -s $check_head_bank1 $check_head_bank2; then
-		kecho "mount_root-mod: error: Found LINUX header in bank_1"
+		kecho "error: Found LINUX header in bank_1"
 		exit 0
 	fi
 
@@ -244,15 +253,19 @@ mount_root_mod() {
 		fi
 	fi
 
-	kecho "mount_root-mod: modoverlay run_mount_checks"
+	kecho "modoverlay run_mount_checks"
 
 	run_mount_checks ${mount_point}
 
-
-	kecho "mount_root-mod: modoverlay mount checks passed"
+	kecho "modoverlay mount checks passed"
 	mkdir -p /modoverlay
 	mount -o move /tmp/modoverlay /modoverlay 2>&-
-	kecho "mount_root-mod: modoverlay moved to (/overlay/bank_X)/modoverlay..."
+	kecho "modoverlay moved to (/overlay/bank_X)/modoverlay..."
+
+	if [ -f /overlay/.disable_modoverlay ]; then
+		kecho "requested to disable modoverlay. Skipping pivot"
+		exit 0
+	fi
 
 	mkdir -p $upperdir
 
@@ -260,10 +273,10 @@ mount_root_mod() {
 		[ -x $f ] && $f $upperdir
 	done
 
-	kecho "mount_root-mod: modoverlay pivoting..."
+	kecho "modoverlay pivoting..."
 	mkdir -p $oldroot
 	fopivot $upperdir $oldroot
-	kecho "mount_root-mod: modoverlay pivoting complete"
+	kecho "modoverlay pivoting complete"
 
 	# make sure /tmp has the correct permissions !
 	chmod 01777 /tmp

@@ -20,7 +20,7 @@ activebank=$(cat /proc/banktable/active)
 #only if OBP is applied try to mount
 #mount will fail if coming from a failboot from bank1 (=mtd3 have a valid firmware)
 #also check that we are in preinit to avoid "hot" mount
-if [[ "$bootedbank" != "$activebank" && "$bootedbank" == "bank_2" && ! -d /proc/1 ]]; then
+if { [ -f /tmp/.preinit ] || [ ! -d /var/run ]; } && [ "$bootedbank" != "$activebank" ] && [ "$bootedbank" = "bank_2" ]; then
     [ -d /tmp/modoverlay ] || mount_root
 fi
 

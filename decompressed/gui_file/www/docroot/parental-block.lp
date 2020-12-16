@@ -11,7 +11,7 @@ local cui = {
   defaultuser = "uci.web.uiconfig.@uidefault.defaultuser",
   nsplink = "uci.web.uiconfig.@uidefault.nsplink",
   friendly_product_name = "uci.env.var.prod_friendly_name",
-  gui_version = "uci.modgui.gui.gui_version",
+  gui_version = "rpc.system.modgui.gui_version",
 }
 content_helper.getExactContent(cui)
 

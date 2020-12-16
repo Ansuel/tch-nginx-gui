@@ -22,8 +22,9 @@ rm -f $WAITFILE
 # no need to remove the lock as it is in ram
 # and deleting introduces a race condition !!
 
+# reboot reason to UPGRADE as we always upgrade to the same bank
 if [ -f /lib/functions/reboot_reason.sh ]; then
 	. /lib/functions/reboot_reason.sh
-	set_reboot_reason SWOVER
+	set_reboot_reason UPGRADE
 fi
 reboot

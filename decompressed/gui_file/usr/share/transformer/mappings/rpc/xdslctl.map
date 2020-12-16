@@ -64,6 +64,8 @@ for _, type in pairs {"Mode", "Profile", "Firmware"} do
 	xdslctl_.objectType.parameters["Dsl" .. type] = string_table
 end
 
+xdslctl_.objectType.parameters["DslFirmwareVersion"] = {access = "readWrite", type = "string"}
+
 local cache = {}
 
 local function sleep(sec)
@@ -383,26 +385,31 @@ local function xdslctlDslamInfo(itype)
 	return result
 end
 
-local function xdslctlVersion()
+local function xdslctlVersion(type)
 	local cmd = "xdslctl --version 2>&1"
 	local result = ""
+	local firm_ver, kmod_ver
 
 	local version_info = call_popen(cmd)
 
 	for line in version_info:lines() do
 		if line:match("ADSL PHY") then
-			result = line:match("%a+ %a+: %a+ %a+ %- ([%w%p]+)")
+			firm_ver, kmod_ver = line:match("%a+ %a+: %a+ %a+ %- (%w+)%.(%w+)")
 		end
 	end
 	version_info:close()
 
-	return result
+	if type == "DslFirmwareVersion" then
+		return firm_ver
+	end
+
+	return firm_ver..'.'..kmod_ver
 end
 
 local function get(mapping, paramName, key)
 
-	if paramName == "DslFirmware" then
-		return xdslctlVersion()
+	if paramName == "DslFirmware" or paramName == "DslFirmwareVersion" then
+		return xdslctlVersion(paramName)
 	end
 
 	-- Check cache at every get
@@ -509,5 +516,14 @@ local function get(mapping, paramName, key)
 end
 
 xdslctl_.get = get
+
+local async_exec = require("lasync").execute
+
+xdslctl_.set = {
+	DslFirmwareVersion = function(mapping, paramName, paramValue)
+		local command = '/usr/share/transformer/scripts/wrapper.sh "/usr/share/transformer/scripts/xdsl_firmware_utils.sh '..paramValue..'"'
+		async_exec({[command] = true})
+	end
+}
 
 register(xdslctl_)

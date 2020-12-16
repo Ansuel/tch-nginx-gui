@@ -2,7 +2,19 @@
 ---------------------------------------------------------------------------
 # Mainline 18.3 Cobalt
 
-9.6
+9.6.58
+---------------------------------------------------------------------------
+- Fix vari che causavano la perdita delle configurazioni dopo un riavvio
+- Fix che impedivano il corretto aggiornamento firmware da GUI
+- Spostate alcune funzioni nella modal MODGUI
+- Rimossa opzione di spoof versione "da rootscript"
+- Aggiunta funzione, attiva di default, per ignorare gli update inviati dal CWMP
+- Forzato riavvio su prima installazione se modoverlay non è applicato
+- Rimossa card mobile su dispositivi che non la supportavano
+- Migliorata la rilevazione dell'installazione dei pacchetti di upgrade e delle estensioni
+- Aggiunti driver xDSL
+
+9.6.10
 ---------------------------------------------------------------------------
  - La mod ora applicherà in modo automatico l'OPTIMAL BANK PLAN e utilizzerà la partizione del bank_1 come spazio per le config/mod (MODOVERLAY), in modo da avere BOOTP come una modalità sicura di recovery di device brickati.
  - Cambio al comportamento del reset da tasto fisico: al primo reset vengono rimosse tutte le mod e mantenuto solo il root al secondo reset (se non si reinstalla la MOD) il device viene riportato totalmente allo stato di fabbrica

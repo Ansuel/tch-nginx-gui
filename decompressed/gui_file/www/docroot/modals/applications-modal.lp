@@ -18,9 +18,12 @@ local app_list = {
 	"amule",
 }
 
-local prod_friendly_name = proxy.get("uci.env.var.prod_friendly_name")
-
+local marketing_version = proxy.get("uci.version.version.@version[0].marketing_version")
+local cputype = proxy.get("rpc.system.modgui.CPUtype")[1].value
 local specific_app = proxy.get("uci.modgui.app.specific_app")[1].value or "0"
+if marketing_version then
+	marketing_version = tonumber(marketing_version[1].value:sub(1,4))
+end
 
 local function appapply(action)
 	proxy.set("rpc.system.modgui.app.sendcmd",action)
@@ -47,30 +50,17 @@ local mapParams = {
 	local_ip_modem = "uci.network.interface.@lan.ipaddr",
 	telstra_webui = "uci.modgui.app.telstra_webui",
 }
-if not (prod_friendly_name[1].value:match("TG789") and prod_friendly_name[1].value:match("Xtream")) then
-	if prod_friendly_name[1].value:match("DGA413") or
-			prod_friendly_name[1].value:match("TG7") or
-            prod_friendly_name[1].value:match("TG80") then
-		mapParams.luci_webui = "uci.modgui.app.luci_webui"
-	end
-	if prod_friendly_name[1].value:match("TG7") then
-		mapParams.amule_webui = "uci.modgui.app.amule_webui"
-	end
-	mapParams.aria2_webui = "uci.modgui.app.aria2_webui"
-	mapParams.transmission_webui = "uci.modgui.app.transmission_webui"
-	if prod_friendly_name[1].value:match("DGA413") or prod_friendly_name[1].value:match("TG80") then
-		mapParams.blacklist_application = "uci.modgui.app.blacklist_app"
-		local marketing_version = proxy.get("uci.version.version.@version[0].marketing_version")
-		if marketing_version and marketing_version[1].value then
-			marketing_version = tonumber(marketing_version[1].value:sub(1,4))
-			if marketing_version >= 17.3 then
-				mapParams.xupnp_application = "uci.modgui.app.xupnp_app"
-			end
-		end
-	end
-else
-	mapParams.transmission_webui = "uci.modgui.app.transmission_webui"
-	mapParams.aria2_webui = "uci.modgui.app.aria2_webui"
+if marketing_version >= 16.3 then
+	mapParams.luci_webui = "uci.modgui.app.luci_webui"
+	mapParams.blacklist_application = "uci.modgui.app.blacklist_app"
+end
+if cputype:match("mips") then
+	mapParams.amule_webui = "uci.modgui.app.amule_webui"
+end
+mapParams.aria2_webui = "uci.modgui.app.aria2_webui"
+mapParams.transmission_webui = "uci.modgui.app.transmission_webui"
+if marketing_version >= 17.3 then
+	mapParams.xupnp_application = "uci.modgui.app.xupnp_app"
 end
 content_helper.getExactContent(mapParams)
 
@@ -104,9 +94,9 @@ local specific_box = {
 local html = {}
 
 if specific_app == "0" then
-	html[#html + 1] = ui_helper.createAlertBlock(T"Specific App are not installed.",specific_box)
+	html[#html + 1] = ui_helper.createAlertBlock(T"Specific App are not installed. This can cause errors for app setup. Go to Mod GUI modal to install",specific_box)
 end
-
+html[#html + 1] = ui_helper.createAlertBlock(T"Make sure the gateway have an active internet connection to allow app download and installation",info_box)
 local btn_table = {}
 
 for _, app in ipairs(app_list) do
@@ -153,7 +143,7 @@ if StateParams["amule_webui"] ~= nil then
 	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. amule_direct_link .. '">' .. amule_direct_link .. "</a>"
 	html[#html+1] = "<br/>"
 	if mapParams["amule_webui"] and mapParams["amule_webui"] == "1" then
-        if prod_friendly_name[1].value:match("TG589") or prod_friendly_name[1].value:match("TG799") or prod_friendly_name[1].value:match("TG789") then
+        if cputype:match("mips") then
             html[#html+1] = ui_helper.createSimpleButton(T"Start".." aMule", "fa fa-play", btn_table.amule.start)
             html[#html+1] = ui_helper.createSimpleButton(T"Stop".." aMule", "fa fa-stop", btn_table.amule.stop)
         end
@@ -177,7 +167,7 @@ if StateParams["aria2_webui"] ~= nil then
 	html[#html+1] = "<br/>"
 	html[#html+1] = "<br/>"
 	if mapParams["aria2_webui"] and mapParams["aria2_webui"] == "1" then
-        if prod_friendly_name[1].value:match("TG589") or prod_friendly_name[1].value:match("TG799") or prod_friendly_name[1].value:match("TG789") then
+        if cputype:match("mips") then
             html[#html+1] = ui_helper.createSimpleButton(T"Start".." Aria2", "fa fa-play", btn_table.aria2.start)
             html[#html+1] = ui_helper.createSimpleButton(T"Stop".." Aria2", "fa fa-stop", btn_table.aria2.stop)
         end
@@ -201,7 +191,7 @@ if StateParams["transmission_webui"] ~= nil then
 	html[#html+1] = "<br/>"
 	html[#html+1] = "<br/>"
 	if mapParams["transmission_webui"] and mapParams["transmission_webui"] == "1" then
-        if prod_friendly_name[1].value:match("TG589") or prod_friendly_name[1].value:match("TG799") or prod_friendly_name[1].value:match("TG789") then
+        if cputype:match("mips") then
             html[#html+1] = ui_helper.createSimpleButton(T"Start".." Tansmission", "fa fa-play", btn_table.transmission.start)
             html[#html+1] = ui_helper.createSimpleButton(T"Stop".." Transmission", "fa fa-stop", btn_table.transmission.stop)
         end

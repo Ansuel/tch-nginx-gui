@@ -4,11 +4,11 @@
 
 check_gui_tmp() {
 	if [ -f /tmp/GUI_dev.tar.bz2 ]; then
-		logger_command "Found GUI_dev in tmp dir... Cleaning..."
+		logecho "Found GUI_dev in tmp dir... Cleaning..."
 		rm /tmp/GUI_dev.tar.bz2
 	fi
 	if [ -f /tmp/GUI.tar.bz2 ]; then
-		logger_command "Found GUI in tmp dir... Cleaning..."
+		logecho "Found GUI in tmp dir... Cleaning..."
 		rm /tmp/GUI.tar.bz2
 	fi
 	if [ -d /total ]; then
@@ -39,7 +39,7 @@ start_stop_nginx() {
 				kill -KILL "$pid"
 			done
 		fi
-		logger_command "Restarting nginx..." ConsoleOnly
+		logecho "Restarting nginx..."
 		/etc/init.d/nginx restart 2>/dev/null
 		sleep 5
 		nginx_count=$((nginx_count+1))
@@ -51,21 +51,21 @@ if [ "$(cat /proc/banktable/booted)" == "bank_1" ] && [ ! "$(uci get -q modgui.v
 	uci set modgui.var.check_obp="1"
 fi
 
-logger_command "Applying modifications"
+logecho "Applying modifications"
 uci commit
 
 check_gui_tmp
-logger_command "Resetting cwmp and watchdog"
+logecho "Resetting cwmp and watchdog"
 /etc/init.d/watchdog-tch start > /dev/null
 
 #This should comunicate the gui that the upgrade has finished.
 if [ -f /root/.install_gui ]; then
-  logger_command "Removing .install_gui flag"
+  logecho "Removing .install_gui flag"
 	rm /root/.install_gui
 fi
-logger_command "Process done."
+logecho "Process complete, restarting services."
 
-logger_command "Restarting transformer" ConsoleOnly
+logecho "Restarting transformer..."
 /etc/init.d/transformer restart
 #Call a random value to check start of transformer
 lua -e "require('datamodel').get('uci.env.var.oui')" > /dev/null
@@ -74,9 +74,9 @@ lua -e "require('datamodel').get('uci.env.var.oui')" > /dev/null
 #if [ ! -f /usr/lib/lua/tch/logger.lua ]; then
 #	#Wait this command better way to check if transformer is fully initialized
 #	transformer-cli get uci.env.var.oui > /dev/null
-#	logger_command "Restarting transformer a second time cause it's just shit..."
+#	logecho "Restarting transformer a second time cause it's just shit..."
 #	/etc/init.d/transformer restart
 #fi
 
-logger_command "Stopping nginx" ConsoleOnly
+logecho "Stopping nginx"
 start_stop_nginx

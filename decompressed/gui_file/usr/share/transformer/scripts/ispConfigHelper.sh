@@ -2,7 +2,7 @@
 
 restart_dnsmasq=0
 
-logger_command() {
+logecho() {
   if [ "$debug" -eq 1 ]; then
     logger -t "IspConfigHelper" "$1"
     echo "IspConfigHelper" "$1"
@@ -18,7 +18,7 @@ purify_from_tim() {
 
 firewall_specific_sip_rules_FASTWEB() {
   if [ -n "$(uci get -q firewall.Allow_restricted_sip_1.name)" ]; then
-    logger_command "Adding firewall rules for Fastweb VoIP..."
+    logecho "Adding firewall rules for Fastweb VoIP..."
     uci set firewall.Allow_restricted_sip_1.name='Allow-restricted-sip-from-wan-again-1'
     uci set firewall.Allow_restricted_sip_1.src='wan'
     uci set firewall.Allow_restricted_sip_1.src_ip='30.253.253.68/24'
@@ -148,7 +148,7 @@ firewall_specific_sip_rules_FASTWEB() {
 }
 
 cwmp_specific_FASTWEB() {
-  logger_command "FASTWEB ISP detected, finding CWMP server..."
+  logecho "FASTWEB ISP detected, finding CWMP server..."
   if uci get -q versioncusto.override.fwversion_override | grep -q FW; then
     #Make modem think this is a fastweb modem so the server permit voip registration with internal value
     uci set versioncusto.override.fwversion_override_old="$(uci get -q versioncusto.override.fwversion_override)"
@@ -176,7 +176,7 @@ cwmp_specific_FASTWEB() {
 cwmp_specific_TIM() {
   cwmp_url="$(uci get cwmpd.cwmpd_config.acs_url)"
   detected_acs="Undetected"
-  logger_command "TIM ISP detected, finding CWMP server..."
+  logecho "TIM ISP detected, finding CWMP server..."
   new_fw220=https://fwa.cdp.tim.it/cwmpdWeb/CPEMgt
   new_platform=https://regman-mon.interbusiness.it:10800/acs/
   new_platform_bck=https://regman-bck.interbusiness.it:10501/acs/
@@ -193,9 +193,9 @@ cwmp_specific_TIM() {
   elif [ "$(curl -s -k $mgmt_platform --max-time 5)" ]; then
     detected_acs=$mgmt_platform
   fi
-  logger_command "CWMP Server detected: $detected_acs"
+  logecho "CWMP Server detected: $detected_acs"
 
-  logger_command "Resetting unlock bit..."
+  logecho "Resetting unlock bit..."
   uci set env.var.unlockedstatus='0'
 
   [ -z "$cwmp_url" ] && cwmp_url="None"
@@ -237,7 +237,7 @@ check_clean() {
 }
 
 setup_ISP() {
-  logger_command "Checking detected ISP and setting CWMP..."
+  logecho "Checking detected ISP and setting CWMP..."
   case $1 in
   Tiscali)
     check_clean Tiscali
@@ -277,7 +277,7 @@ setup_ISP() {
     return 1
     ;;
   esac
-  logger_command "Restarting dnsmasq if needed..."
+  logecho "Restarting dnsmasq if needed..."
   if [ $restart_dnsmasq -eq 1 ]; then
     uci commit
     killall dnsmasq
@@ -287,7 +287,7 @@ setup_ISP() {
 
 autodetect_isp() { #Detect ISP based on cwmp or wan settings (Italian only)
   if [ "$(uci -q get modgui.var.isp_autodetect)" = "1" ]; then
-    logger_command "Detecting ISP and cleanup..."
+    logecho "Detecting ISP and cleanup..."
     ppp_user=$(uci -q get network.wan.username)
     cwmp_url=$(uci -q get cwmpd.cwmpd_config.acs_url)
     if echo "$ppp_user" | grep -q "alice" ||

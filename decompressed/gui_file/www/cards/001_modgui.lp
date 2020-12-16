@@ -11,7 +11,7 @@ local format = string.format
 
 -- Non-configurable data
 local content = {
-  gui_version = "uci.modgui.gui.gui_version",
+  gui_version = "rpc.system.modgui.gui_version",
   outdated_ver = "uci.modgui.gui.outdated_ver",
 }
 
@@ -48,7 +48,7 @@ ngx.print('\
       ');
 
 	local html = {}
-	html[#html + 1] = format(T"GUI Version %s", content.gui_version)
+	html[#html + 1] = format(T"GUI Version <a onclick=\"event.stopPropagation()\" target=\"_blank\" href=https://github.com/Ansuel/tch-nginx-gui/releases/tag/%s>%s</a>", content.gui_version:match("(.+)-"), content.gui_version)
 	html[#html + 1] = '<span class="simple-desc">'
 	html[#html + 1] = '  <div class="light_icon fas fa-cog gui_version_status '..content.outdated_ver..'"></div>'
 	html[#html + 1] = '<span class="gui_version_status_text">'..content.outdated_ver_text..'</span>'

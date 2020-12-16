@@ -2794,7 +2794,7 @@ msgstr "GUI Version %s"
 msgid "GUI Settings & Utility"
 msgstr "GUI Einstellungen & Hilfsfunktionen"
 
-msgid "Check this to remove config after firmware update.<br/>This won't remove root.<br/>It is advertised to check this if you are downgrading the firmware."
+msgid "Check this to remove config after firmware update.<br/>This won't remove root.<br/>It is advised to check this if you are downgrading the firmware."
 msgstr "Kreuzen Sie dies an, um die Konfiguration nach der Firmware-Aktualisierung zu entfernen.<br/>Dies wird root erhalten.<br/>Dies dient dazu, die Firmware auf eine niedrigere Version zu aktualisieren."
 
 msgid "Remove config file with upgrade"
@@ -4004,7 +4004,7 @@ msgstr "TIM (Italien)"
 msgid "ISP Autodetect"
 msgstr "Automatische ISP-Erkennung"
 
-msgid "Check this to only root the modem after the firmware is installed.<br/>After this you had to reinstall the GUI.<br/>Expect the web interface to be broken after the upgrade"
+msgid "Check this to only root the modem after the firmware is installed.<br/>After this you have to reinstall the GUI.<br/>Expect the web interface to be broken after the upgrade"
 msgstr "Aktivieren Sie dies, um das Modem nur zu rooten, nachdem die Firmware installiert wurde.<br/>Danach müssen Sie die Oberfläche manuell neu installieren.<br/>Sei müssen damit rechnen, dass die Oberfläche nach der Aktualisierung defekt ist"
 
 msgid "Root only modem after upgrade"

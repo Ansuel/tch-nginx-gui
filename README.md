@@ -43,7 +43,7 @@ with many fixes and new features like:
 
 <h2><strong>Basic installation instructions for the latest Stable release:</strong></h2>
 
-<h3><strong>First you need to get root acces to your Gateway</strong></h3>
+<h3><strong>First you need to get root access to your Gateway</strong></h3>
 Some Topics to help you get root access:
 <ul>
 <li>DGA4130 TIM: https://www.ilpuntotecnico.com/forum/index.php/topic,77325.html</li>
