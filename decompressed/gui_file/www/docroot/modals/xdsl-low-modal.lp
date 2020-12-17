@@ -228,7 +228,7 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H046")
     tinsert(driver_option, {"A2pvfbH045p", "A2pvfbH045p (DGA4131FWB 18.3.n)"})
     tinsert(driver_option, {"A2pvfbH045q", "A2pvfbH045q (iopsys 5.1.0RC4)"})
     tinsert(driver_option, {"A2pvfbH045r", "A2pvfbH045r (AGTHP_2.2.2_001)"})
-    tinsert(driver_option, {"A2pvfbH046w", "A2pvfbH045r (FRITZ!Box 7582 7.13-84683)"})
+    tinsert(driver_option, {"A2pvfbH046w", "A2pvfbH046w (FRITZ!Box 7582 7.13-84683)"})
   end
 
   driver_Params.driver_ver = "rpc.xdslctl.DslFirmwareVersion"
