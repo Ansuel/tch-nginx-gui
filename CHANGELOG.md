@@ -2,7 +2,7 @@
 ---------------------------------------------------------------------------
 # Mainline 18.3 Cobalt
 
-9.6.58
+9.6.65
 ---------------------------------------------------------------------------
 - Fix vari che causavano la perdita delle configurazioni dopo un riavvio
 - Fix che impedivano il corretto aggiornamento firmware da GUI
