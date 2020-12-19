@@ -261,26 +261,28 @@ local function loadAclList(aclmode, action)
   if aclmode == "unlock" or aclmode == "disabled" then
     whitelistclass["group"].style = "display:none;"
   end
-  if #acl_whitelist_data < 1 and action ~= "POST" then
-    whitelistclass["group"].style = "display:none;"
-    whitelistclass ["span"] = {id = "Address_list_Whitelistclass"}
-    html[#html+1] = ui_helper.createLabel("", T"MAC Address list is empty", whitelistclass, nil)
-    acl_columns[1].header=""
-  end
-  html[#html+1] = ui_helper.createTable(acl_columns, acl_whitelist_data, acl_whitelist_options, whitelistclass, acl_whitelist_helpmsg)
+
   local blacklistclass = {
     group = {
       class = "monitor-acl_mode monitor-unlock"
     }
   }
-  if #acl_blacklist_data < 1 and  action ~= "POST" then
-     blacklistclass["group"].style = "display:none;"
-     blacklistclass ["span"] = {id = "Address_list_Blacklistclass"}
-     html[#html+1] =  ui_helper.createLabel("", T"MAC Address list is empty", blacklistclass, nil)
-     acl_columns[1].header=""
-  else
-    acl_columns[1].header = format("<span style=\"font-weight:normal;\">%s</span>", T"MAC Address")
+
+  if (#acl_whitelist_data < 1 or #acl_blacklist_data < 1) and action ~= "POST" then
+    acl_columns[1].header = ""
+    if aclmode == "unlock" then
+      whitelistclass["group"].style = "display:none;"
+      whitelistclass ["span"] = {id = "Address_list_Whitelistclass"}
+      html[#html+1] = ui_helper.createLabel("", T"MAC Address list is empty", whitelistclass, nil)
+    elseif aclmode == "lock" then
+      blacklistclass["group"].style = "display:none;"
+      blacklistclass ["span"] = {id = "Address_list_Blacklistclass"}
+      html[#html+1] =  ui_helper.createLabel("", T"MAC Address list is empty", blacklistclass, nil)
+    end
   end
+
+  html[#html+1] = ui_helper.createTable(acl_columns, acl_whitelist_data, acl_whitelist_options, whitelistclass, acl_whitelist_helpmsg)
+
   if aclmode == "lock" or aclmode == "register" or aclmode == "disabled" then
     blacklistclass["group"].style = "display:none;"
   end
