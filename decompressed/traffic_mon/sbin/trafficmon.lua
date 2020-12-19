@@ -34,8 +34,8 @@ local function getMemFree()
 	local f = io.open("/proc/meminfo","r")
 	if f then
 		for line in f:lines() do
-			if line:match("MemFree") then
-				ret = line:gsub("MemFree:%s*",""):gsub("[A-z]+%s*","")
+			if line:match("MemAvailable") then
+				ret = line:gsub("MemAvailable:%s*",""):gsub("[A-z]+%s*","")
 				break
 			end
 		end
