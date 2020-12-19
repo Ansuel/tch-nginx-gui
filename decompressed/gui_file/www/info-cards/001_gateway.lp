@@ -19,14 +19,14 @@ local content = {
   firmware_version = "uci.env.var.friendly_sw_version_activebank",
   gui_version = "rpc.system.modgui.gui_version",
   cpuusage = "sys.proc.CPUUsage",
-  ram_free = "sys.mem.RAMFree",
+  ram_used = "sys.mem.RAMUsed",
   ram_total = "sys.mem.RAMTotal",
   outdated_ver = "uci.modgui.gui.outdated_ver",
 }
 
 content_helper.getExactContent(content)
 
-content["ram_free"] = math.floor(tonumber(content["ram_free"]) / 1024) 
+content["ram_used"] = math.floor(tonumber(content["ram_used"]) / 1024) 
 content["ram_total"] = math.floor(tonumber(content["ram_total"]) / 1024) 
 
 if content.outdated_ver == "1" then
@@ -97,10 +97,10 @@ nf_conntrack_count:close()
 	basic.span["data-bind"] = "text: cpuusage"
 	html[#html + 1] = ui_helper.createLabel(T"CPU Usage", content["cpuusage"] .. "%", basic)
 	html[#html + 1] = '<div class="control-group">'
-	html[#html + 1] =   '<label class="control-label">' .. T("Free Memory") .. '</label>'
+	html[#html + 1] =   '<label class="control-label">' .. T("RAM Usage") .. '</label>'
 	html[#html + 1] =   '<div class="controls">'
 	html[#html + 1] =     '<span id="Ram" class=" simple-desc span3">'
-	html[#html + 1] =		format('<span data-bind="text: ram_free">%s</span>',content["ram_free"])
+	html[#html + 1] =		format('<span data-bind="text: ram_used">%s</span>',content["ram_used"])
 	html[#html + 1] =		format(' / %s MB', content["ram_total"])
 	html[#html + 1] =	  '</span>'
 	html[#html + 1] =   '</div>'
