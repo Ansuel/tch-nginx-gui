@@ -304,6 +304,11 @@ mobiled_lib_add() {
     fi
   fi
 
+  if [ -f /rom/usr/lib/lua/libat/huawei.lua ]; then
+    cp /rom/usr/lib/lua/libat/huawei.lua /usr/lib/lua/libat/huawei.lua
+    grep -q "1003" /usr/lib/lua/libat/huawei.lua || sed -i '/^.*or device.pid == "1c05" then -- E173/i or device.pid == "1003" -- E156G E17X' /usr/lib/lua/libat/huawei.lua
+  fi
+
   if [ ! -d /usr/lib/lua/mobiled ]; then
     logecho "Removing mobiled components as it is not detected on this device..."
     rm -rf /www/cards/010_lte.lp
