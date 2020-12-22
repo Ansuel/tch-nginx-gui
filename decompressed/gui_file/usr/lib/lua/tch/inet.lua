@@ -265,7 +265,7 @@ function M.validateIPv4Netmask(value)
       ones = ones + 1
     end
   end
-  if (ones < 0) or (ones > 30) then
+  if (ones < 0) or (ones > 31) then
     return nil, "Invalid subnet."
   end
   return true, 32 - ones
