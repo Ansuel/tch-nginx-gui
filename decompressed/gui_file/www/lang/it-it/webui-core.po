@@ -1053,7 +1053,7 @@ msgid "Force Update"
 msgstr "Forza aggiornamento"
 
 msgid "Frame Bursting"
-msgstr "Burst frame"
+msgstr "Frame burst"
 
 msgid "Framing parameters"
 msgstr "Parametri framing"
@@ -1725,10 +1725,10 @@ msgid "Phone"
 msgstr "Telefono"
 
 msgid "Phy Extra Mask"
-msgstr "Phy Extra Mask"
+msgstr "Maschera extra Phy"
 
 msgid "Phy Extra Value"
-msgstr "Phy Extra Value"
+msgstr "Valore extra Phy"
 
 msgid "Physical link status"
 msgstr "Stato collegamento fisico"
@@ -2034,7 +2034,7 @@ msgid "Setup Wizard"
 msgstr "Configurazione guidata"
 
 msgid "Short Guard Interval"
-msgstr "Short Guard Interval"
+msgstr "Intervallo controllo breve"
 
 msgid "Sign in"
 msgstr "Accedi"
@@ -2067,7 +2067,7 @@ msgid "Source IP"
 msgstr "IP sorgente"
 
 msgid "Space Time Block Code"
-msgstr "Space Time Block Code"
+msgstr "Codice blocco spazio tempo"
 
 msgid "Speed"
 msgstr "Velocità"
@@ -4107,7 +4107,7 @@ msgid "Fast Radio Toggle"
 msgstr "ON/OFF rapido radio"
 
 msgid "Force Radio Down"
-msgstr "Force Radio Down"
+msgstr "Forza radio OFF"
 
 msgid "Dark Blue Unified UI"
 msgstr "UI unificata blu scuro"
@@ -4327,3 +4327,24 @@ msgstr "Forza il dispositivo ad usare sempre il bank_2 come partizione avviata e
 
 msgid "OBP Check"
 msgstr "Controllo OBP"
+
+msgid "CWMP Spoof Settings"
+msgstr "Impostazioni sproof CWMP"
+
+msgid "Disable CWMP Update. Any firmware update from CWMP will be rejected and not flashed. Consider that CWMP that request a firmware update will keep requesting it until the update is actually installed. Autoconfiguration won't work. Manually set the version in the System Extra tab to spoof a version or upgrade the firmware."
+msgstr "Disabilita l'aggiornamento CWMP. Qualsiasi aggiornamento del firmware da CWMP verrà rifiutato e il modem non verrà aggiornato. Considera che CWMP che richiede un aggiornamento del firmware continuerà a richiederlo fino a quando l'aggiornamento non verrà effettivamente installato. La configurazione automatica non funzionerà. Imposta manualmente la versione nella scheda Funzioni extra di sistema per indicare una versione o aggiornare il firmware."
+
+msgid "Disable CWMP Update"
+msgstr "Disabilita aggiornamento CWMP"
+
+msgid "Change the Modem Serial. Consider that the modem serial is the Factory ID + Serial."
+msgstr "Modifica il seriale del modem. Considera che il seriale del modem è l'ID di fabbrica + seriale."
+
+msgid "Modem Serial"
+msgstr "Seriale modem"
+
+msgstr "Debug Report & Advanced settings"
+msgstr "Rapporto debug e impostazioni avanzate"
+
+msgid "Change the default page in system-extra to set this GUI as default"
+msgstr "Modifica la pagina predefinita in Funzioni extra di sistema per impostare questa GUI come predefinita"
