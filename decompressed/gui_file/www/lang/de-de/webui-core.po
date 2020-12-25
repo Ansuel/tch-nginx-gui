@@ -4327,3 +4327,24 @@ msgstr "Erzwingen, dass das Gerät die bank_2 Partition startet und bank_1 als a
 
 msgid "OBP Check"
 msgstr "OBP Prüfung"
+
+msgid "CWMP Spoof Settings"
+msgstr ""
+
+msgid "Disable CWMP Update. Any firmware update from CWMP will be rejected and not flashed. Consider that CWMP that request a firmware update will keep requesting it until the update is actually installed. Autoconfiguration won't work. Manually set the version in the System Extra tab to spoof a version or upgrade the firmware."
+msgstr ""
+
+msgid "Disable CWMP Update"
+msgstr ""
+
+msgid "Change the Modem Serial. Consider that the modem serial is the Factory ID + Serial."
+msgstr ""
+
+msgid "Modem Serial"
+msgstr ""
+
+msgstr "Debug Report & Advanced settings"
+msgstr ""
+
+msgid "Change the default page in system-extra to set this GUI as default"
+msgstr ""
