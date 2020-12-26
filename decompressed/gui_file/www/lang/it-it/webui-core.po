@@ -2067,7 +2067,7 @@ msgid "Source IP"
 msgstr "IP sorgente"
 
 msgid "Space Time Block Code"
-msgstr "Codice blocco spazio tempo"
+msgstr "Space Time Block Code"
 
 msgid "Speed"
 msgstr "Velocità"
@@ -4107,7 +4107,7 @@ msgid "Fast Radio Toggle"
 msgstr "ON/OFF rapido radio"
 
 msgid "Force Radio Down"
-msgstr "Forza radio OFF"
+msgstr "Force Radio Down"
 
 msgid "Dark Blue Unified UI"
 msgstr "UI unificata blu scuro"
