@@ -882,10 +882,10 @@ msgid "Encapsulation"
 msgstr "Incapsulamento"
 
 msgid "Energy Efficent Ethernet disabled"
-msgstr "Ottimizzazione energetica ethernet disabilitata"
+msgstr "Energy Efficent Ethernet disabilitata"
 
 msgid "Energy Efficent Ethernet enabled"
-msgstr "Ottimizzazione energetica ethernet abilitata"
+msgstr "Energy Efficent Ethernet abilitata"
 
 msgid "Engineer"
 msgstr "Ingegnere"
@@ -1041,19 +1041,19 @@ msgid "First DNS Server Ping"
 msgstr "Ping primo server DNS"
 
 msgid "Flow Cache"
-msgstr "Cache flusso"
+msgstr "Flow Cache"
 
 msgid "Flow Cache disabled"
-msgstr "Cache flusso disabilitata"
+msgstr "Flow Cache disabilitata"
 
 msgid "Flow Cache enabled"
-msgstr "Cache flusso abilitata"
+msgstr "Flow Cache abilitata"
 
 msgid "Force Update"
 msgstr "Forza aggiornamento"
 
 msgid "Frame Bursting"
-msgstr "Burst frame"
+msgstr "Frame Bursting"
 
 msgid "Framing parameters"
 msgstr "Parametri framing"
@@ -3485,7 +3485,7 @@ msgid "SRA"
 msgstr "SRA"
 
 msgid "connecting"
-msgstr "connessione"
+msgstr "connettendo"
 
 msgid "802.11a/n"
 msgstr "802.11a/n"
@@ -3530,7 +3530,7 @@ msgid "Wireless"
 msgstr "Wireless"
 
 msgid "Auto (20/40/80MHz)"
-msgstr "Automatico (20/40/80MHz)"
+msgstr "Auto (20/40/80MHz)"
 
 msgid "wl1"
 msgstr "w11"
@@ -4327,3 +4327,24 @@ msgstr "Forza il dispositivo ad usare sempre il bank_2 come partizione avviata e
 
 msgid "OBP Check"
 msgstr "Controllo OBP"
+
+msgid "CWMP Spoof Settings"
+msgstr "Impostazioni spoof CWMP"
+
+msgid "Disable CWMP Update. Any firmware update from CWMP will be rejected and not flashed. Consider that CWMP that request a firmware update will keep requesting it until the update is actually installed. Autoconfiguration won't work. Manually set the version in the System Extra tab to spoof a version or upgrade the firmware."
+msgstr "Disabilita l'aggiornamento CWMP. Qualsiasi aggiornamento del firmware da CWMP verrà rifiutato e il modem non verrà aggiornato. Considera che CWMP che richiede un aggiornamento del firmware continuerà a richiederlo fino a quando l'aggiornamento non verrà effettivamente installato. La configurazione automatica non funzionerà. Imposta manualmente la versione nella scheda Funzioni extra di sistema per indicare una versione o aggiornare il firmware."
+
+msgid "Disable CWMP Update"
+msgstr "Disabilita aggiornamento CWMP"
+
+msgid "Change the Modem Serial. Consider that the modem serial is the Factory ID + Serial."
+msgstr "Modifica il seriale del modem. Considera che il seriale del modem è l'ID di fabbrica + seriale."
+
+msgid "Modem Serial"
+msgstr "Seriale modem"
+
+msgstr "Debug Report & Advanced settings"
+msgstr "Rapporto debug e impostazioni avanzate"
+
+msgid "Change the default page in system-extra to set this GUI as default"
+msgstr "Modifica la pagina predefinita in Funzioni extra di sistema per impostare questa GUI come predefinita"
