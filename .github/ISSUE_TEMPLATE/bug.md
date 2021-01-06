@@ -8,7 +8,7 @@ NB: Before submitting an issue, check if there is one already open that suits th
 Device Model/Firmware:
 GUI Version:
 
-Please go to Cards >> Mod GUI >> Debug Report and press the Generate button.
+Please go to Cards >> GUI Settings >> Debug Report and press the Generate button.
 Attach the debug file here:
 
 Description of problem, HOW TO REPRODUCE, Media/Photos:
