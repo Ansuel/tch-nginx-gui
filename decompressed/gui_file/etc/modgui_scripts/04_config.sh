@@ -184,7 +184,7 @@ suppress_excessive_logging() {
     logecho "Suppressing igmpproxy logs"
     uci set igmpproxy.globals.trace='0'
   fi
-  if [ "$(uci get -q mmpbx.global.trace_level)" != "3" ]; then
+  if [ "$(uci get -q wansensing.global.tracelevel)" != "3" ]; then
     logecho "Suppressing wansensing logs"
     uci set wansensing.global.tracelevel='3' #we don't need that we are still connected to vdsl -.-
   fi
