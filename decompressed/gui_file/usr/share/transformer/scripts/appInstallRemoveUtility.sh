@@ -61,9 +61,16 @@ app_transmission() {
     opkg install transmission-web transmission-daemon-openssl
 
     uci set transmission.@transmission[0].enabled=1
-    uci set transmission.@transmission[0].rpc_whitelist='127.0.0.1,192.168.*'
+    uci set transmission.@transmission[0].rpc_whitelist='127.0.0.1,192.168.*.*'
     uci commit
 
+    # Create script to trigger transmission restart when an usb is plugged in/out
+    touch /etc/hotplug.d/usb/60-transmission 
+    {
+        echo '#!/bin/sh'
+        echo '/etc/init.d/transmission restart'
+    } >>/etc/hotplug.d/usb/60-transmission
+    
     cp -r /usr/share/transmission /www/docroot/
     rm /www/docroot/transmission/web/index.html /www/docroot/transmission/web/LICENSE
 
@@ -94,6 +101,7 @@ app_transmission() {
     rm -r /www/docroot/transmission
     rm -r /etc/config/transmission*
     rm -r /var/transmission
+    rm /etc/hotplug.d/usb/60-transmission
     uci set modgui.app.transmission_webui="0"
     uci commit modgui
   }
