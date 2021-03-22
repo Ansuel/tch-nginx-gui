@@ -67,8 +67,13 @@ app_transmission() {
     # Create script to trigger transmission restart when an usb is plugged in/out
     {
         echo '#!/bin/sh'
-        echo 'if [ -d "/tmp/run/mountd/$DEVICENAME/sharing/config/transmission" ]; then'
-        echo '/etc/init.d/transmission restart'
+        echo 'last_usb=$(ls -t /dev/sd* | tail -n 1)'
+        echo 'last_usb=${last_usb#"/dev/"}'
+        echo 'usb_count=$(find /tmp/run/mountd/ -mindepth 1 -maxdepth 1 -type d | wc -l)'
+        echo 'if [ "$usb_count" == "0" ]; then'
+        echo '    /etc/init.d/transmission restart'
+        echo 'elif [ -d "/tmp/run/mountd/$last_usb/sharing/config/transmission" ]; then'
+        echo '    /etc/init.d/transmission restart'
         echo 'fi'
     } >/etc/hotplug.d/usb/60-transmission
     
