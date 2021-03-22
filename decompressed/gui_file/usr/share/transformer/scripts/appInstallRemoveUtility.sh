@@ -65,11 +65,10 @@ app_transmission() {
     uci commit
 
     # Create script to trigger transmission restart when an usb is plugged in/out
-    touch /etc/hotplug.d/usb/60-transmission 
     {
         echo '#!/bin/sh'
         echo '/etc/init.d/transmission restart'
-    } >>/etc/hotplug.d/usb/60-transmission
+    } >/etc/hotplug.d/usb/60-transmission
     
     cp -r /usr/share/transmission /www/docroot/
     rm /www/docroot/transmission/web/index.html /www/docroot/transmission/web/LICENSE
