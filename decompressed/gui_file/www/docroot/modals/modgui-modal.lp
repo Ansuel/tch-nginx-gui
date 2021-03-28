@@ -282,7 +282,7 @@ if ngx.req.get_method() == "POST" then
                 return sendcmd("checkver")
         end
         if action == "getVendor" then
-                ngx.print(call_popen(untaint("curl -m 2 http://api.maclookup.app/v1/macs/" .. post_args.mac:gsub('_.*','')), "r"))
+                ngx.print(call_popen(untaint("! grep -q " .. post_args.mac:gsub('_.*','') .. " /tmp/mac_cache && (curl -ksm 2 https://api.maclookup.app/v2/macs/" .. post_args.mac:gsub('_.*','') .. "/company/name >> /tmp/mac_cache; echo '|" .. post_args.mac:gsub('_.*','') .. "' >> /tmp/mac_cache); grep " .. post_args.mac:gsub('_.*','') .. " /tmp/mac_cache | cut -d'|' -f1"), "r"))
                 ngx.exit(ngx.HTTP_OK)
                 return
         end

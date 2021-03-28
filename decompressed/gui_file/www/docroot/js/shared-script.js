@@ -190,14 +190,13 @@ var modgui = modgui || {};
 				mac: mac,
 				CSRFtoken: $("meta[name=CSRFtoken]").attr("content")
 			},
-			dataType: 'json',
 			error: function() {
 				div.removeClass("fa fa-sync fa-spin");
 				div.text('Error');
 			},
 			success: function (data) {
 				div.removeClass("fa fa-sync fa-spin");
-				div.text(data.company || 'Unknown');
+				div.text(data || 'Unknown');
 			}
 		});
 	}
