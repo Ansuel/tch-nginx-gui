@@ -141,9 +141,9 @@ ngx.print('\
                   <div class="pull-right">\
                       <a id="sign-cancel" href="/" class="btn btn-primary btn-large">');  ngx.print( T"Cancel" ); ngx.print('</a>\
                       &nbsp;\
-                      <div class="btn btn-primary btn-large">\
+                      <div id="sign-me-in" class="btn btn-primary btn-large">\
 		    	  	  <span id="sign-me-in-icon"></span>\
-		    	  	  <span id="sign-me-in">');  ngx.print( T"Sign in" ); ngx.print('</span>\
+		    	  	  <span>');  ngx.print( T"Sign in" ); ngx.print('</span>\
 		    	  	</div>\
 		    	  </div>\
                   <!--<div id="forgot-login-password">\
