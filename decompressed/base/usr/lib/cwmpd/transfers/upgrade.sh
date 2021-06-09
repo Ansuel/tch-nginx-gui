@@ -244,7 +244,7 @@ if [ "$TRANSFER_ACTION" = "start" ]; then
 
     ubus send cwmpd.transfer '{ "session": "begins", "type": "upgrade" }'
 
-    if [ "$(uci get -q mogui.var.disable_cwmp_update)" = "1" ]; then
+    if [ "$(uci get -q modgui.var.disable_cwmp_update)" = "1" ]; then
       # TIM IS LOVE, TIM IS LIFE. No disclusure for you :D
       if echo $TRANSFER_URL | grep -q 'Firmware/TR069/AGThomson'; then
         uci set modgui.var.reboot_reason_msg="TIM ACS asked for firmware update. Go to Modgui Settings to allow this."
