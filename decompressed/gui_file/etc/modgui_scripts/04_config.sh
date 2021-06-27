@@ -305,7 +305,7 @@ mobiled_lib_add() {
   fi
 
   if [ -f /rom/usr/lib/lua/libat/huawei.lua ]; then
-    cp /rom/usr/lib/lua/libat/huawei.lua /usr/lib/lua/libat/huawei.lua
+    cmp -s /rom/usr/lib/lua/libat/huawei.lua /usr/lib/lua/libat/huawei.lua || cp /rom/usr/lib/lua/libat/huawei.lua /usr/lib/lua/libat/huawei.lua
     grep -q "1003" /usr/lib/lua/libat/huawei.lua || sed -i '/^.*or device.pid == "1c05" then -- E173/i or device.pid == "1003" -- E156G E17X' /usr/lib/lua/libat/huawei.lua
   fi
 

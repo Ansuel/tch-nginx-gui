@@ -245,9 +245,11 @@ setup_ISP() {
     uci set cwmpd.cwmpd_config.acs_user="technicolor"
     uci set cwmpd.cwmpd_config.acs_pass="techn_tr69@"
     uci commit cwmpd
+    [ "$(uci get -q mmpbxrvsipnet.sip_net.user_param_value)" ] && uci del mmpbxrvsipnet.sip_net.user_param_value
     ;;
   Fastweb)
     check_clean Fastweb
+    [ "$(uci get -q mmpbxrvsipnet.sip_net.user_param_value)" ] && uci del mmpbxrvsipnet.sip_net.user_param_value
     firewall_specific_sip_rules_FASTWEB
     cwmp_specific_FASTWEB
     ;;
@@ -260,6 +262,7 @@ setup_ISP() {
       uci set dhcp.dnsmasq.server='151.99.125.1'
       restart_dnsmasq=1
     fi
+    [ ! "$(uci get -q mmpbxrvsipnet.sip_net.user_param_value)" ] && uci set mmpbxrvsipnet.sip_net.user_param_value=phone
     ;;
   Other)
     check_clean Other

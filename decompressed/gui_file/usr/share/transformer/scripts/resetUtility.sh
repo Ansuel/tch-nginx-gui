@@ -95,6 +95,7 @@ resetConfig() {
 resetCwmp() {
 	[ "$(pgrep "cwmpd")" ] && /etc/init.d/cwmpd stop
 	[ -f /etc/cwmpd.db ] && rm /etc/cwmpd.db
+	[ "$(uci get -q env.var.provisioning_code)" ] && uci del env.var.provisioning_code
 	/etc/init.d/cwmpd start
 }
 
