@@ -39,9 +39,7 @@ setup_network() {
     uci -q set network.waneth4.name=waneth4
     uci -q set network.waneth4.vid=835
   fi
-  if [ ! "$(uci -q get network.waneth4.vid)" ]; then
-    uci -q set network.waneth4.vid=835
-  fi
+  [ ! "$(uci -q get network.waneth4.vid)" ] && uci -q set network.waneth4.vid=835
 
   #Set a wanptm0 interface if not found (fix wizard on UNO)
   if [ ! "$(uci -q get network.wanptm0)" ]; then
@@ -51,10 +49,12 @@ setup_network() {
     uci -q set network.wanptm0.type=8021q
     uci -q set network.wanptm0.name=wanptm0
     uci -q set network.wanptm0.vid=835
+
+    #workaround to avoid who already setup the MST device vlan_wan on VLAN 835
+    [ "$(uci -q get network.vlan_wan.vid)" == "835" ] && uci -q set network.wanptm0.vid=836
   fi
-  if [ ! "$(uci -q get network.wanptm0.vid)" ]; then
-    uci -q set network.wanptm0.vid=835
-  fi
+  [ ! "$(uci -q get network.wanptm0.vid)" ] && uci -q set network.wanptm0.vid=835
+  [ ! "$(uci -q get network.wanptm0.ifname)" ] && uci -q set network.wanptm0.ifname=ptm0
 
   #Set a SSH_wan firewall rule if not found (fix SSH Wan not working)
   if [ ! "$(uci -q get firewall.SSH_wan)" ]; then
@@ -81,9 +81,7 @@ setup_network() {
   fi
 
   #Set missing wan path (Telstra)
-  if [ ! "$(uci -q get network.wan.auto)" ]; then
-    uci set network.wan.auto='1'
-  fi
+  [ ! "$(uci -q get network.wan.auto)" ] && uci set network.wan.auto='1'
 
   if [ ! "$(uci get -q network.config.wan_mode)" ]; then
     uci set network.config="config"
