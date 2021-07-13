@@ -229,7 +229,9 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H046")
     tinsert(driver_option, {"A2pvfbH045p", "A2pvfbH045p (DGA4131FWB 18.3.n)"})
     tinsert(driver_option, {"A2pvfbH045q", "A2pvfbH045q (iopsys 5.1.0RC4)"})
     tinsert(driver_option, {"A2pvfbH045r", "A2pvfbH045r (AGTHP_2.2.2_001)"})
+    tinsert(driver_option, {"A2pvfbH045s", "A2pvfbH045s (AGTHF_1.0.2)"})
     tinsert(driver_option, {"A2pvfbH046w", "A2pvfbH046w (FRITZ!Box 7582 7.13-84683)"})
+    tinsert(driver_option, {"A2pvfbH046u", "A2pvfbH046u (vbnt-v_20.3.c.0329-MR19-RA)"})
     tinsert(driver_option, {"A2pvfbH046y", "A2pvfbH046y (FRITZ!Box 7582 7.14-88881)"})
   end
 

@@ -86,6 +86,8 @@ a4ecffcbde7dd55e7eaa08d694a96fde  A2pvfbH045p
 41f1d53abfaf30390ceaa354d0d84c49  B2pvfbH046w
 d1ae358e154f32cb33607ae7f5072f9c  A2pvfbH046y
 90cc6b3354c22965b4e6c4b716cae682  B2pvfbH046y
+58bf11929814bc104f977ccfd526755a  A2pvfbH046u
+35375a69ccd7a4deb1d4880c06d19117  A2pvfbH045s
 "
 
 if [ -z "$1" ]; then
