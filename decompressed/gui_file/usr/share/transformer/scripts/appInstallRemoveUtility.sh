@@ -59,6 +59,7 @@ app_transmission() {
   install_arm() {
     opkg update
     opkg install transmission-web transmission-daemon-openssl
+    [ ! -f /rom/usr/lib/libmbedcrypto.so.1 ] && opkg install libmbedtls #workaround for 19.x firmware
 
     uci set transmission.@transmission[0].enabled=1
     uci set transmission.@transmission[0].rpc_whitelist='127.0.0.1,192.168.*.*'
@@ -86,7 +87,7 @@ app_transmission() {
       [ "$cpu_type" = "armv7l" ] && install_from_github FrancYescO/sharing_tg789 transmission-xtream
       [ "$cpu_type" = "mips" ] && install_from_github FrancYescO/sharing_tg789 transmission
       ;;
-    "16."* | "17."* | "18."*)
+    "16."* | "17."* | "18."* | "19."*)
       [ "$cpu_type" = "armv7l" ] && install_arm
       [ "$cpu_type" = "mips" ] && install_from_github FrancYescO/sharing_tg789 transmission
       ;;
@@ -100,6 +101,7 @@ app_transmission() {
 
   remove() {
     opkg remove --force-removal-of-dependent-packages transmission-daemon-openssl transmission-web
+    [ ! -f /rom/usr/lib/libmbedcrypto.so.1 ] && opkg install libmbedtls #workaround for 19.x firmware
     rm -r /www/docroot/transmission
     rm -r /etc/config/transmission*
     rm -r /var/transmission
@@ -178,6 +180,7 @@ app_luci() {
   install() {
     luci_install_arm() {
       opkg update
+      [ ! -f /rom/usr/lib/libjson-c.so.2 ] && ln -s /usr/lib/libjson-c.so.4 /usr/lib/libjson-c.so.2 #workaround for 18.x feeds used on 19.x firmware
       mv /usr/lib/lua/uci.so /usr/lib/lua/uci.so_bak
       if [ -f /etc/config/uhttpd ]; then
         rm /etc/config/uhttpd
@@ -226,7 +229,7 @@ app_luci() {
       }
       [ "$cpu_type" = "mips" ] && luci_install_mips
       ;;
-    "18."*)
+    "18."* | "19."*)
       [ "$cpu_type" = "armv7l" ] && luci_install_arm
       [ "$cpu_type" = "mips" ] && luci_install_mips
       ;;
@@ -240,7 +243,7 @@ app_luci() {
   remove() {
     luci_remove_arm() {
       opkg remove --force-removal-of-dependent-packages uhttpd rpcd libuci-lua luci luci-*
-
+      [ ! -f /rom/usr/lib/libjson-c.so.2 ] && rm /usr/lib/libjson-c.so.2 #workaround for 18.x feeds used on 19.x firmware
       cp /rom/usr/lib/lua/uci.so /usr/lib/lua/ #restore lib as it gets removed by libuci-lua
 
       rm -r /www_luci
@@ -349,7 +352,7 @@ app_aria2() {
       [ "$cpu_type" = "armv7l" ] && install_from_github FrancYescO/sharing_tg789 aria2-xtream
       [ "$cpu_type" = "mips" ] && install_from_github FrancYescO/sharing_tg789 aria2
       ;;
-    "16."* | "17."* | "18."*)
+    "16."* | "17."* | "18."* | "19."*)
       [ "$cpu_type" = "armv7l" ] && install_arm
       [ "$cpu_type" = "mips" ] && install_from_github FrancYescO/sharing_tg789 aria2
       ;;

@@ -57,7 +57,7 @@ apply_right_opkg_repo() {
 
   if [ "$cpu_type" == "armv7l" ]; then
     case $marketing_version in
-    "18."*)
+    "18."* | "19."*)
       if ! grep -q "Ansuel/GUI_ipk/kernel-4.1" $opkg_file; then
         cat <<EOF >>$opkg_file
 arch all 100
@@ -147,7 +147,10 @@ EOF
   fi
 
   # Remove non-existent hardcoded distfeed to avoid 404 on opkg update
-  [ -f /etc/opkg/distfeeds.conf ] && sed -i '/15.05.1\/brcm63xx-tch/d' /etc/opkg/distfeeds.conf
+  [ -f /etc/opkg/distfeeds.conf ] && {
+    sed -i '/15.05.1\/brcm63xx-tch/d' /etc/opkg/distfeeds.conf
+    sed -i '/targets\/brcm6xxx-tch\/VBNTJ_502L07p1/d' /etc/opkg/distfeeds.conf
+  }
 }
 
 ledfw_extract() {
