@@ -2187,7 +2187,7 @@ msgid "System Log - Active Connections"
 msgstr "Registro di sistema - Connessioni attive"
 
 msgid "System Log - Routing Table"
-msgstr "Registro di sistema - Tabella routing"
+msgstr "Registro di sistema - Tabella instradamento"
 
 msgid "System Time"
 msgstr "Orario sistema"
@@ -4148,8 +4148,14 @@ msgstr "Installa app specifica online"
 msgid "Specific App are package that adds additional function to the modem, like telnet support or some fix to default package"
 msgstr "Un'app specifica è un pacchetto che aggiunge funzionalità al modem come supporto telnet o correzioni al pacchetto predefinito"
 
-msgid "Specific App are not installed."
-msgstr "App specifica non installata."
+msgid "Specific App are not installed. This can cause errors for app setup. Go to Mod GUI modal to install"
+msgstr "App specifica non installata. Puo causare problemi con l'installazione delle app. Vai alla modale Mod GUI per installare"
+
+msgid "Make sure the gateway have an active internet connection to allow app download and installation"
+msgstr "Assicurarsi che il modem abbia una connessione ad internet attiva che ne permetta il download e l'installazione"
+
+msgid "This is the internal IP of the SFP interface used for fiber connection. This and the local Gateway IP must be different."
+msgstr "Questo è l'IP interno dell'interfaccia dell'SFP usato per la connessione in fibra. Deve essere diverso rispetto l'IP del modem"
 
 msgid "Force HTTPS to access the GUI"
 msgstr "Forza HTTPS per accedere alla GUI"

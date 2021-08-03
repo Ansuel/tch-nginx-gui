@@ -4148,8 +4148,14 @@ msgstr "Installieren bestimmte App Online"
 msgid "Specific App are package that adds additional function to the modem, like telnet support or some fix to default package"
 msgstr "Bestimmte App ist ein Paket, das Zusatzfunktionen installiert, wie TELNET-Unterstützung oder Modifikationen am Standardpaket"
 
-msgid "Specific App are not installed."
-msgstr "Bestimmte App ist nicht installiert."
+msgid "Specific App are not installed. This can cause errors for app setup. Go to Mod GUI modal to install"
+msgstr ""
+
+msgid "Make sure the gateway have an active internet connection to allow app download and installation"
+msgstr ""
+
+msgid "This is the internal IP of the SFP interface used for fiber connection. This and the local Gateway IP must be different."
+msgstr ""
 
 msgid "Force HTTPS to access the GUI"
 msgstr "Erzwinge HTTPS, um die Oberfläche aufzurufen"
