@@ -1725,10 +1725,10 @@ msgid "Phone"
 msgstr "Telefono"
 
 msgid "Phy Extra Mask"
-msgstr "Phy Extra Mask"
+msgstr "Phy Extra Maschera"
 
 msgid "Phy Extra Value"
-msgstr "Phy Extra Value"
+msgstr "Phy Extra Valore"
 
 msgid "Physical link status"
 msgstr "Stato collegamento fisico"
