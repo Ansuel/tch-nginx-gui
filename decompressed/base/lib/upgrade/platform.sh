@@ -26,7 +26,7 @@ save_log_and_exit() {
 }
 
 platform_streaming_bank() {
-        return
+        echo ""
 }
 
 copy_base_files() { # <source> <dest>
