@@ -7,8 +7,6 @@ if [ -f /lib/functions/system.sh ]; then
 	. /lib/functions/system.sh
 fi
 
-. /lib/upgrade/legacy_functions.sh
-
 # initialize defaults
 RAMFS_COPY_BIN=""	# extra programs for temporary ramfs root
 RAMFS_COPY_DATA=""	# extra data files

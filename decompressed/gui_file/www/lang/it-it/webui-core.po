@@ -2849,10 +2849,10 @@ msgid "Reset"
 msgstr "Ripristina"
 
 msgid "Rx Bytes"
-msgstr "Rx Bytes"
+msgstr "Bytes Rx"
 
 msgid "Tx Bytes"
-msgstr "Tx Bytes"
+msgstr "Bytes Tx"
 
 msgid "MAC Spoof (Wan MAC)"
 msgstr "Spoof MAC (MAC WAN)"
