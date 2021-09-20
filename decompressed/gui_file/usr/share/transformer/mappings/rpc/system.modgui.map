@@ -322,6 +322,8 @@ local app_list = {
   "luci",
   "aria2",
   "transmission",
+  "voipblockmmpbx",
+  "voipblockasterisk",
   "blacklist",
   "xupnp",
   "telstra",
