@@ -399,6 +399,63 @@ app_aria2() {
   esac
 }
 
+app_voipblock_for_mmpbx() {
+  install() {
+    curl -s https://repository.macoers.com/voipblock/voipblock.sh | ash -s tch_install_for_mmpbx
+    uci set modgui.app.voipblock_for_mmpbx="1"
+    uci commit modgui
+  }
+  remove() {
+    curl -s https://repository.macoers.com/voipblock/voipblock.sh | ash -s tch_uninstall_for_mmpbx
+    uci set modgui.app.voipblock_for_mmpbx="0"
+    uci commit modgui
+  }
+
+  case $1 in
+  install)
+    install
+    ;;
+  remove)
+    remove
+    ;;
+  *)
+    echo "Unsupported action"
+    return 1
+    ;;
+  esac
+}
+
+app_voipblock_for_asterisk() {
+  install() {
+    [ "$(uci get -q modgui.app.blacklist_app)" = "1" ] && {
+      curl -s https://repository.macoers.com/voipblock/voipblock.sh | ash -s tch_switch_to_voipblock
+      uci set modgui.app.blacklist_app="0"
+    } || {
+      curl -s https://repository.macoers.com/voipblock/voipblock.sh | ash -s tch_install_for_asterisk
+    }
+    uci set modgui.app.voipblock_for_asterisk="1"
+    uci commit modgui
+  }
+  remove() {
+    curl -s https://repository.macoers.com/voipblock/voipblock.sh | ash -s tch_uninstall_for_asterisk
+    uci set modgui.app.voipblock_for_asterisk="0"
+    uci commit modgui
+  }
+
+  case $1 in
+  install)
+    install "$2"
+    ;;
+  remove)
+    remove
+    ;;
+  *)
+    echo "Unsupported action"
+    return 1
+    ;;
+  esac
+}
+
 app_blacklist() {
   install() {
     install_from_github Ansuel/blacklist master normal "$2"

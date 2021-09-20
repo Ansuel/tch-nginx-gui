@@ -12,6 +12,8 @@ local app_list = {
 	"luci",
 	"aria2",
 	"transmission",
+	"voipblock_for_mmpbx",
+	"voipblock_for_asterisk",
 	"blacklist",
 	"xupnp",
 	"telstra",
@@ -54,6 +56,8 @@ if marketing_version >= 16.3 then
 	mapParams.luci_webui = "uci.modgui.app.luci_webui"
 	mapParams.blacklist_application = "uci.modgui.app.blacklist_app"
 end
+mapParams.voipblock_for_mmpbx = "uci.modgui.app.voipblock_for_mmpbx"
+mapParams.voipblock_for_asterisk = "uci.modgui.app.voipblock_for_asterisk"
 if cputype:match("mips") then
 	mapParams.amule_webui = "uci.modgui.app.amule_webui"
 end
@@ -200,6 +204,44 @@ if StateParams["transmission_webui"] ~= nil then
 		html[#html+1] = ui_helper.createSimpleButton(T"Install".." Transmission", "fa fa-download", btn_table.transmission.install)
 	end
 	html[#html+1] = "</fieldset>"
+	html[#html+1] = "</div>"
+end
+
+if StateParams["voipblock_for_mmpbx"] ~= nil then
+	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
+	html[#html+1] = "<fieldset>"
+	html[#html+1] = '<legend>' .. T"Voipblock for mmpbx" .. '</legend>'
+	html[#html+1] = ui_helper.createAlertBlock(T"This will install Voipblock for mmpbx", info_box)
+	html[#html+1] = T"State: "
+	html[#html+1] = "<strong>" .. T"The Voipblock for mmpbx is " .. StateParams["voipblock_for_mmpbx"] .. T" installed" .. "</strong><br/>"
+	html[#html+1] = "<br/>"
+	html[#html+1] = "<br/>"
+	if mapParams["voipblock_for_mmpbx"] and mapParams["voipblock_for_mmpbx"] == "1" then
+		html[#html+1] = ui_helper.createSimpleButton(T"Remove".." Voipblock for mmpbx", "fa fa-times-circle", btn_table.voipblock_for_mmpbx.remove)
+	else
+		html[#html+1] = ui_helper.createSimpleButton(T"Install".." Voipblock for mmpbx", "fa fa-download", btn_table.voipblock_for_mmpbx.install)
+	end
+	html[#html+1] = "</fieldset>"
+	html[#html+1] = "<br/>"
+	html[#html+1] = "</div>"
+end
+
+if StateParams["voipblock_for_asterisk"] ~= nil then
+	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
+	html[#html+1] = "<fieldset>"
+	html[#html+1] = '<legend>' .. T"Voipblock for asterisk" .. '</legend>'
+	html[#html+1] = ui_helper.createAlertBlock(T"This will install Voipblock for asterisk", info_box)
+	html[#html+1] = T"State: "
+	html[#html+1] = "<strong>" .. T"The Voipblock for asterisk is " .. StateParams["voipblock_for_asterisk"] .. T" installed" .. "</strong><br/>"
+	html[#html+1] = "<br/>"
+	html[#html+1] = "<br/>"
+	if mapParams["voipblock_for_asterisk"] and mapParams["voipblock_for_asterisk"] == "1" then
+		html[#html+1] = ui_helper.createSimpleButton(T"Remove".." Voipblock for asterisk", "fa fa-times-circle", btn_table.voipblock_for_asterisk.remove)
+	else
+		html[#html+1] = ui_helper.createSimpleButton(T"Install".." Voipblock for asterisk", "fa fa-download", btn_table.voipblock_for_asterisk.install)
+	end
+	html[#html+1] = "</fieldset>"
+	html[#html+1] = "<br/>"
 	html[#html+1] = "</div>"
 end
 

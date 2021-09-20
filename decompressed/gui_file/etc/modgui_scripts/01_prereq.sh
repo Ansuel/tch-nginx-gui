@@ -7,7 +7,7 @@ move_env_var() {
 		subpart="gui app var"
 
 		gui_entities="autoupgrade randomcolor autoupgrade_hour firstpage gui_skin new_ver outdated_ver autoupgradeview gui_hash update_branch"
-		app_entities="xupnp_app blacklist_app telstra_webui transmission_webui aria2_webui amule_webui luci_webui"
+		app_entities="xupnp_app voipblock_for_mmpbx voipblock_for_asterisk blacklist_app telstra_webui transmission_webui aria2_webui amule_webui luci_webui"
 		var_entities="isp ppp_mgmt ppp_realm_ipv6 ppp_realm_ipv4 encrypted_pass check_obp reboot_reason_msg"
 
 		touch /etc/config/modgui

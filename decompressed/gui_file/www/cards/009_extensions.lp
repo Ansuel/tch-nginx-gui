@@ -25,6 +25,8 @@ if marketing_version >= 16.3 then
 	mapParams.luci_webui = "uci.modgui.app.luci_webui"
 	mapParams.blacklist_application = "uci.modgui.app.blacklist_app"
 end
+mapParams.voipblock_for_mmpbx = "uci.modgui.app.voipblock_for_mmpbx"
+mapParams.voipblock_for_asterisk = "uci.modgui.app.voipblock_for_asterisk"
 if cputype:match("mips") then
 	mapParams.amule_webui = "uci.modgui.app.amule_webui"
 end

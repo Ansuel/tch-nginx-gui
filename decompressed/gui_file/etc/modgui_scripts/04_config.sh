@@ -153,8 +153,22 @@ create_gui_type() {
       uci set modgui.app.xupnp_app="0"
     fi
   fi
+  if [ ! "$(uci get -q modgui.app.voipblock_for_mmpbx)" ]; then
+    if [ -f /etc/firewall.voipblock ]; then
+      uci set modgui.app.voipblock_for_mmpbx="1"
+    else
+      uci set modgui.app.voipblock_for_mmpbx="0"
+    fi
+  fi
+  if [ ! "$(uci get -q modgui.app.voipblock_for_asterisk)" ]; then
+    if [ -d /usr/share/asterisk/agi-bin/voipblock ]; then
+      uci set modgui.app.voipblock_for_asterisk="1"
+    else
+      uci set modgui.app.voipblock_for_asterisk="0"
+    fi
+  fi
   if [ ! "$(uci get -q modgui.app.blacklist_app)" ]; then
-    if [ -d /etc/asterisk ]; then
+    if [ -f /www/docroot/modals/mmpbx-contacts-modal.lp.orig ]; then
       uci set modgui.app.blacklist_app="1"
     else
       uci set modgui.app.blacklist_app="0"
