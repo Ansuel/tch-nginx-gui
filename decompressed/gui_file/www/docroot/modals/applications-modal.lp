@@ -12,8 +12,8 @@ local app_list = {
 	"luci",
 	"aria2",
 	"transmission",
-	"voipblock_for_mmpbx",
-	"voipblock_for_asterisk",
+	"voipblockmmpbx",
+	"voipblockasterisk",
 	"blacklist",
 	"xupnp",
 	"telstra",
@@ -217,9 +217,9 @@ if StateParams["voipblock_for_mmpbx"] ~= nil then
 	html[#html+1] = "<br/>"
 	html[#html+1] = "<br/>"
 	if mapParams["voipblock_for_mmpbx"] and mapParams["voipblock_for_mmpbx"] == "1" then
-		html[#html+1] = ui_helper.createSimpleButton(T"Remove".." Voipblock for mmpbx", "fa fa-times-circle", btn_table.voipblock_for_mmpbx.remove)
+		html[#html+1] = ui_helper.createSimpleButton(T"Remove".." Voipblock for mmpbx", "fa fa-times-circle", btn_table.voipblockmmpbx.remove)
 	else
-		html[#html+1] = ui_helper.createSimpleButton(T"Install".." Voipblock for mmpbx", "fa fa-download", btn_table.voipblock_for_mmpbx.install)
+		html[#html+1] = ui_helper.createSimpleButton(T"Install".." Voipblock for mmpbx", "fa fa-download", btn_table.voipblockmmpbx.install)
 	end
 	html[#html+1] = "</fieldset>"
 	html[#html+1] = "<br/>"
@@ -236,9 +236,9 @@ if StateParams["voipblock_for_asterisk"] ~= nil then
 	html[#html+1] = "<br/>"
 	html[#html+1] = "<br/>"
 	if mapParams["voipblock_for_asterisk"] and mapParams["voipblock_for_asterisk"] == "1" then
-		html[#html+1] = ui_helper.createSimpleButton(T"Remove".." Voipblock for asterisk", "fa fa-times-circle", btn_table.voipblock_for_asterisk.remove)
+		html[#html+1] = ui_helper.createSimpleButton(T"Remove".." Voipblock for asterisk", "fa fa-times-circle", btn_table.voipblockasterisk.remove)
 	else
-		html[#html+1] = ui_helper.createSimpleButton(T"Install".." Voipblock for asterisk", "fa fa-download", btn_table.voipblock_for_asterisk.install)
+		html[#html+1] = ui_helper.createSimpleButton(T"Install".." Voipblock for asterisk", "fa fa-download", btn_table.voipblockasterisk.install)
 	end
 	html[#html+1] = "</fieldset>"
 	html[#html+1] = "<br/>"
