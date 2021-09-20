@@ -1062,9 +1062,7 @@ $(".import-backup").on("click", function() {\
 ');
 
 if ngx.req.get_uri_args().action and ngx.req.get_uri_args().action == "manualguiupgrade" then
-        ngx.print('\
-        $("#GUI_Upgrade_Legend")[0].scrollIntoView();\
-  ');
+        ngx.print('$("#GUI_Upgrade_Legend")[0].scrollIntoView();');
 end
 ngx.print('\
 })();\

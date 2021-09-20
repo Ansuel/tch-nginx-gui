@@ -294,7 +294,7 @@ erase_bank1_reboot() { # <bootedbank>
   # Reboot to first valid firmware
   logecho "Installation will continue after reboot..."
   kecho "Installation will continue after reboot..."
-  [ -d /proc/prozone ] && {
+  [ -f /proc/prozone/bootcounter ] && {
     # Simulate the bank_1 failed 3 times
     echo 1 >/proc/prozone/bootfail
     echo 2 >/proc/prozone/bootcounter
@@ -336,7 +336,7 @@ check_and_apply_obp() {
       logecho "OBP check: looks like passive bank have a valid version: $activeversion"
       kecho "OBP check: looks like passive bank have a valid version: $activeversion"
     else
-      [ -d /proc/prozone ] && {
+      [ -f /proc/prozone/bootcounter ] && {
         # Simulate the bank_1 failed 3 times
         echo 1 >/proc/prozone/bootfail
         echo 2 >/proc/prozone/bootcounter

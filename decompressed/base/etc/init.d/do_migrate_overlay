@@ -147,7 +147,7 @@ boot() {
 
   reboot_if_needed(){
     if [ "$need_reboot" = "1" ]; then
-      [ -d /proc/prozone ] && {
+      [ -f /proc/prozone/bootcounter ] && {
         # Simulate the bank_1 failed 3 times
         echo 1 > /proc/prozone/bootfail
         echo 2 > /proc/prozone/bootcounter
