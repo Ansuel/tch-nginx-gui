@@ -401,13 +401,17 @@ app_aria2() {
 
 app_voipblock_for_mmpbx() {
   install() {
-    curl -s https://repository.macoers.com/voipblock/voipblock.sh | ash -s tch_install_for_mmpbx && {
+    {
+      curl -s https://repository.macoers.com/voipblock/voipblock.sh | ash -s tch_install_for_mmpbx
+    } && {
       uci set modgui.app.voipblock_for_mmpbx="1"
       uci commit modgui
     }
   }
   remove() {
-    curl -s https://repository.macoers.com/voipblock/voipblock.sh | ash -s tch_uninstall_for_mmpbx && {
+    {
+      curl -s https://repository.macoers.com/voipblock/voipblock.sh | ash -s tch_uninstall_for_mmpbx
+    } && {
       uci set modgui.app.voipblock_for_mmpbx="0"
       uci commit modgui
     }
@@ -429,14 +433,18 @@ app_voipblock_for_mmpbx() {
 
 app_voipblock_for_asterisk() {
   install() {
-    curl -s https://repository.macoers.com/voipblock/voipblock.sh | ash -s tch_install_for_asterisk && {
+    {
+      curl -s https://repository.macoers.com/voipblock/voipblock.sh | ash -s tch_install_for_asterisk
+    } && {
       uci set modgui.app.blacklist_app="0"
       uci set modgui.app.voipblock_for_asterisk="1"
       uci commit modgui
     }
   }
   remove() {
-    curl -s https://repository.macoers.com/voipblock/voipblock.sh | ash -s tch_uninstall_for_asterisk && {
+    {
+      curl -s https://repository.macoers.com/voipblock/voipblock.sh | ash -s tch_uninstall_for_asterisk
+     } && {
       uci set modgui.app.voipblock_for_asterisk="0"
       uci commit modgui
     }
@@ -562,10 +570,10 @@ call_app_type() {
     app_xupnp "$1"
     ;;
   voipblockmmpbx)
-    app_voipblock_for_mmpbx "$1" "$3"
+    app_voipblock_for_mmpbx "$1"
     ;;
   voipblockasterisk)
-    app_voipblock_for_asterisk "$1" "$3"
+    app_voipblock_for_asterisk "$1"
     ;;
   blacklist)
     app_blacklist "$1" "$3"
