@@ -561,6 +561,12 @@ call_app_type() {
   xupnp)
     app_xupnp "$1"
     ;;
+  voipblockmmpbx)
+    app_voipblock_for_mmpbx "$1" "$3"
+    ;;
+  voipblockasterisk)
+    app_voipblock_for_asterisk "$1" "$3"
+    ;;
   blacklist)
     app_blacklist "$1" "$3"
     ;;
