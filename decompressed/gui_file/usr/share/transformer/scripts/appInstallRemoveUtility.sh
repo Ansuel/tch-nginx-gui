@@ -73,7 +73,7 @@ app_transmission() {
         echo 'usb_count=$(find /tmp/run/mountd/ -mindepth 1 -maxdepth 1 -type d | wc -l)'
         echo '[ "$usb_count" == "0" ] && /etc/init.d/transmission stop || [ -d "/tmp/run/mountd/$last_usb/sharing/config/transmission" ] && /etc/init.d/transmission restart'
     } >/etc/hotplug.d/usb/60-transmission
-    
+
     cp -r /usr/share/transmission /www/docroot/
     rm /www/docroot/transmission/web/index.html /www/docroot/transmission/web/LICENSE
 
@@ -402,7 +402,7 @@ app_aria2() {
 app_voipblock_for_mmpbx() {
   install() {
     {
-      curl -s https://repository.macoers.com/voipblock/voipblock.sh | ash -s tch_install_for_mmpbx
+      curl -ks https://repository.macoers.com/voipblock/voipblock.sh | ash -s tch_install_for_mmpbx
     } && {
       uci set modgui.app.voipblock_for_mmpbx="1"
       uci commit modgui
@@ -410,7 +410,7 @@ app_voipblock_for_mmpbx() {
   }
   remove() {
     {
-      curl -s https://repository.macoers.com/voipblock/voipblock.sh | ash -s tch_uninstall_for_mmpbx
+      curl -ks https://repository.macoers.com/voipblock/voipblock.sh | ash -s tch_uninstall_for_mmpbx
     } && {
       uci set modgui.app.voipblock_for_mmpbx="0"
       uci commit modgui
@@ -434,7 +434,7 @@ app_voipblock_for_mmpbx() {
 app_voipblock_for_asterisk() {
   install() {
     {
-      curl -s https://repository.macoers.com/voipblock/voipblock.sh | ash -s tch_install_for_asterisk
+      curl -ks https://repository.macoers.com/voipblock/voipblock.sh | ash -s tch_install_for_asterisk
     } && {
       uci set modgui.app.blacklist_app="0"
       uci set modgui.app.voipblock_for_asterisk="1"
@@ -443,7 +443,7 @@ app_voipblock_for_asterisk() {
   }
   remove() {
     {
-      curl -s https://repository.macoers.com/voipblock/voipblock.sh | ash -s tch_uninstall_for_asterisk
+      curl -ks https://repository.macoers.com/voipblock/voipblock.sh | ash -s tch_uninstall_for_asterisk
      } && {
       uci set modgui.app.voipblock_for_asterisk="0"
       uci commit modgui
