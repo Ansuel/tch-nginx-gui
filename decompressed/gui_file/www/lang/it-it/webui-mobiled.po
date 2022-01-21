@@ -224,7 +224,7 @@ msgid "New PIN code and confirmed PIN code don't match."
 msgstr "Il nuovo codice PIN e quello confermato non coincidono."
 
 msgid "No network scan results"
-msgstr "Nessun riisultato scansione rete"
+msgstr "Nessun risultato scansione rete"
 
 msgid "No service"
 msgstr "Nessun servizio"
