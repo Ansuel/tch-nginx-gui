@@ -18,6 +18,8 @@ purify_from_tim() {
     logecho "Disabling and killing Acotel agent..."
     uci set system.acotel.enabled='0'
     kill -9 "$(ps | grep Acotel | grep -v grep | cut -d' ' -f1)"
+    [ -f /rom/chroot/Acotel_UA/TRACER.log ] && cp /rom/chroot/Acotel_UA/TRACER.log /chroot/Acotel_UA/TRACER.log
+    [ -f /rom/chroot/Acotel_UA/Acotel_run.log ] && cp /rom/chroot/Acotel_UA/Acotel_run.log /chroot/Acotel_run.log
   fi
 }
 
