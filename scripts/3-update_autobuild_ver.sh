@@ -41,7 +41,7 @@ if [ "$CI" == "true" ]; then
 		echo $version > $build_type_name.version
 	fi
 
-	if [ $build_type_name == "PREVIEW" ] || [ $build_type_name == "STABLE" ] || [ $build_type_name == "DEV" ]; then
+	if [ $build_type_name == "STABLE" ] || [ $build_type_name == "DEV" ]; then
 		echo $version > latest.version
 		git add -A;
 	else
