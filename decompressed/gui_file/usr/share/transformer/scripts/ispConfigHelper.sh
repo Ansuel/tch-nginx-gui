@@ -14,6 +14,11 @@ purify_from_tim() {
   uci -q del network.wan_ipv6
   uci -q del dhcp.dnsmasq.server
   restart_dnsmasq=1
+  if [ $(uci get -q system.acotel.enabled) ] && [ "$(uci get -q system.acotel.enabled)" != "0" ]; then
+    logecho "Disabling and killing Acotel agent..."
+    uci set system.acotel.enabled='0'
+    kill -9 "$(ps | grep Acotel | grep -v grep | cut -d' ' -f1)"
+  fi
 }
 
 firewall_specific_sip_rules_FASTWEB() {
