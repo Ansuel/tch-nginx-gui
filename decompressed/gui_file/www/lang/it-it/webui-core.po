@@ -3134,7 +3134,7 @@ msgid "Timeout:"
 msgstr "Timeout:"
 
 msgid "WPA+WPA2"
-msgstr "WPS+WPA2"
+msgstr "WPA+WPA2"
 
 msgid "R"
 msgstr "R"
