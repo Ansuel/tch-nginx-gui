@@ -108,7 +108,7 @@ fi
 
 download_Driver() {
 	log "Downloading driver $request_driver"
-	curl -s "https://raw.githubusercontent.com/Ansuel/tch-nginx-gui/master/xdsl_driver/$arch/$request_driver" --output "/tmp/$request_driver"
+	curl -sk "https://raw.githubusercontent.com/Ansuel/tch-nginx-gui/master/xdsl_driver/$arch/$request_driver" --output "/tmp/$request_driver"
 }
 
 test_apply() {
