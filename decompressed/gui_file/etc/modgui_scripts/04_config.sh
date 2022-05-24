@@ -258,6 +258,15 @@ real_ver_entitied() {
   fi
 }
 
+fix_fxs_date_display() {
+  if [ "$(uci get -q mmpbxbrcmfxsdev.fxs_dev_0.cid_display_date_enabled)" == "0" ]; then
+    logecho "Enabling time display over fxs ports"
+    uci set mmpbxbrcmfxsdev.fxs_dev_0.cid_display_date_enabled=1
+    uci set mmpbxbrcmfxsdev.fxs_dev_1.cid_display_date_enabled=1
+    uci commit mmpbxbrcmfxsdev
+  fi
+}
+
 disable_cwmp_update() {
   if [ ! "$(uci get -q modgui.var.disable_cwmp_update)" ]; then
     uci set modgui.var.disable_cwmp_update=1
@@ -606,6 +615,7 @@ logecho "Create new option for led definitions"
 led_integration #New option led
 logecho "Creating and checking real version"
 real_ver_entitied #Support for spoofing firm
+fix_fxs_date_display
 logecho "Disable CWMP update by default"
 disable_cwmp_update
 logecho "Implementing WoL"

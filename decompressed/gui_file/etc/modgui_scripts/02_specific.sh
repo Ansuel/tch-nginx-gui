@@ -57,7 +57,23 @@ apply_right_opkg_repo() {
 
   if [ "$cpu_type" == "armv7l" ]; then
     case $marketing_version in
-    "18."* | "19."*)
+    "19."*)
+      sed -i '/homeware\/18\/brcm63xx-tch/d' /etc/opkg.conf #remove old setted feeds
+      sed -i '/Ansuel\/GUI_ipk\/kernel-4.1/d' /etc/opkg.conf #remove old setted feeds
+      if ! grep -q "homeware/19/brcm6xxx-tch" $opkg_file; then
+        cat <<EOF >>$opkg_file
+arch all 100
+arch arm_cortex-a9 200
+arch arm_cortex-a9_neon 300
+src/gz chaos_calmer_base_macoers https://repository.macoers.com/homeware/19/brcm6xxx-tch/VANTW/base
+src/gz chaos_calmer_packages_macoers https://repository.macoers.com/homeware/19/brcm6xxx-tch/VANTW/packages
+src/gz chaos_calmer_luci_macoers https://repository.macoers.com/homeware/19/brcm6xxx-tch/VANTW/luci
+src/gz chaos_calmer_routing_macoers https://repository.macoers.com/homeware/19/brcm6xxx-tch/VANTW/routing
+src/gz chaos_calmer_telephony_macoers https://repository.macoers.com/homeware/19/brcm6xxx-tch/VANTW/telephony
+EOF
+      fi
+      ;;
+    "18."*)
       if ! grep -q "Ansuel/GUI_ipk/kernel-4.1" $opkg_file; then
         cat <<EOF >>$opkg_file
 arch all 100
@@ -122,7 +138,7 @@ EOF
   elif [ "$cpu_type" == "mips" ]; then
     case $marketing_version in
     "16."* | "17."*)
-      if [ -z "$(grep $opkg_file -e "chaos_calmer/15.05.1/brcm63xx")" ]; then
+      if [ ! grep -q "$(grep $opkg_file -e "chaos_calmer/15.05.1/brcm63xx")" ]; then
         sed -i '/FrancYescO\/789vacv2/d' /etc/opkg.conf #remove old setted feeds
         cat <<EOF >>$opkg_file
 src/gz chaos_calmer_base http://archive.openwrt.org/chaos_calmer/15.05.1/brcm63xx/generic/packages/base
