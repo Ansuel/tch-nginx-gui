@@ -537,13 +537,9 @@ end
 local mapParSFP = {}
 local mapValSFP = {}
 
-local sfpintf = "sfptag"
+local sfpintf = "sfp"
 
 if sfp_presence and  (sfp_presence[1].value == "1") then
-    --if sfptag interface not found change name to sfp (fastweb naming)
-    if not proxy.get("uci.network.interface.@"..sfpintf..".ipaddr")  then
-        sfpintf = "sfp"
-    end
     mapParSFP.ethsfp = "uci.ethernet.globals.eth4lanwanmode"
     mapValSFP.ethsfp = vB
 else
@@ -671,9 +667,9 @@ end
 local function validateLeaseTime(value, postdata, key)
 	-- Check every possibile value...
 	-- One tip NEVER EVER MAKE USER INSERT WORD FOR A INT VALUE... INT DON'T FUC*ING HAVE UPPER OR LOWER CHAR -.-
-   if value == '-1' or 
-	 value == "infinite" or 
-	 value == timhelper.ethtrans().eth_infinit or 
+   if value == '-1' or
+	 value == "infinite" or
+	 value == timhelper.ethtrans().eth_infinit or
 	 value:sub(1,1):upper()..value:sub(2) == timhelper.ethtrans().eth_infinit or
 	 value:sub(1,1):lower()..value:sub(2) == timhelper.ethtrans().eth_infinit	 then -- included '-1' as a feasible set value as specified in TR 181
       postdata[key] = "infinite" -- included to ensure uci parameter is set as infinite
@@ -1428,4 +1424,4 @@ $("#btn-dhcp-reset").on("click", function(){\
 </script>\
 \
 ');  ngx.print(ui_helper.createFooter())   ngx.print('\
-'); 
+');

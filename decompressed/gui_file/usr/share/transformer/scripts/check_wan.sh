@@ -23,18 +23,21 @@ check_wan() {
 }
 
 set_sfp() {
-	if [ $sfp_wanlan_mode == "1" ]; then
+
+    #this is to forcely use network.sfp otherwise /usr/sbin/sfp_get.sh will use network.sfptag that is managed by nothing
+    [ "$(uci get -q network.sfptag)" ] && uci delete network.sfptag
+
+	if [ "$sfp_wanlan_mode" = "0" ]; then
 		if [ ! "$(uci get -q network.lan.ifname | grep eth4)" ]; then
 			uci set network.lan.ifname='eth0 eth1 eth2 eth3 eth4 eth5'
-			uci set network.sfptag.ifname=''
 			uci commit
 			/etc/init.d/network restart
 			/etc/init.d/ethernet reload
 		fi
 	else
-		if [ ! "$(uci get -q network.sfptag.ifname | grep eth4)" ]; then
+		if [ ! "$(uci get -q network.sfp.ifname | grep eth4)" ]; then
 			uci set network.lan.ifname='eth0 eth1 eth2 eth3 eth5'
-			uci set network.sfptag.ifname='eth4'
+			uci set network.sfp.ifname='eth4'
 			uci commit
 			/etc/init.d/network restart
 			/etc/init.d/ethernet reload
@@ -42,9 +45,9 @@ set_sfp() {
 	fi
 }
 
-if [ $(uci get -q env.rip.sfp) ]; then
-	if [ $sfp_presence == "0" ]; then
-		if [ $(uci get -q ethernet.eth4.wan) ] ; then
+if [ "$(uci get -q env.rip.sfp)" ]; then
+	if [ "$sfp_presence" = "0" ]; then
+		if [ "$(uci get -q ethernet.eth4.wan)" ] ; then
 			check_wan
 		fi
 	else
