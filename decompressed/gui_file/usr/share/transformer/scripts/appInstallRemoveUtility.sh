@@ -181,17 +181,14 @@ app_luci() {
     luci_install_arm() {
       opkg update
       [ ! -f /rom/usr/lib/libjson-c.so.2 ] && ln -s /usr/lib/libjson-c.so.4 /usr/lib/libjson-c.so.2 #workaround for 18.x feeds used on 19.x firmware
-      mv /usr/lib/lua/uci.so /usr/lib/lua/uci.so_bak
-      if [ -f /etc/config/uhttpd ]; then
-        rm /etc/config/uhttpd
-      fi
+      rm -rf /etc/config/uhttpd
       opkg install --force-reinstall libuci-lua luci rpcd
+      [ ! -f /etc/init.d/uhttpd ] && opkg install uhttpd # only on 19.x is not getting installed as dependency?
       mkdir /www_luci
       mv /www/cgi-bin /www_luci/
       mv /www/luci-static /www_luci/
       mv /www/index.html /www_luci/
-      rm /usr/lib/lua/uci.so
-      mv /usr/lib/lua/uci.so_bak /usr/lib/lua/uci.so
+      cp /rom/usr/lib/lua/uci.so /usr/lib/lua/ #restore lib as it gets removed by libuci-lua
       sed -i 's/require "uci"/require "uci_luci"/g' /usr/lib/lua/luci/model/uci.lua #modify luci to load his original lib with different name
 
       if [ ! "$(uci get uhttpd.main.listen_http | grep 9080)" ]; then
@@ -246,8 +243,8 @@ app_luci() {
       [ ! -f /rom/usr/lib/libjson-c.so.2 ] && rm /usr/lib/libjson-c.so.2 #workaround for 18.x feeds used on 19.x firmware
       cp /rom/usr/lib/lua/uci.so /usr/lib/lua/ #restore lib as it gets removed by libuci-lua
 
-      rm -r /www_luci
-      rm /etc/config/uhttpd
+      rm -rf /www_luci
+      rm -rf /etc/config/uhttpd
     }
 
     luci_remove_mips() {
