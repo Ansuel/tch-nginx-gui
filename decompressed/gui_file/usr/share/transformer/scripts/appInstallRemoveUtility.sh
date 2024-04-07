@@ -182,6 +182,7 @@ app_luci() {
       opkg update
       [ ! -f /rom/usr/lib/libjson-c.so.2 ] && ln -s /usr/lib/libjson-c.so.4 /usr/lib/libjson-c.so.2 #workaround for 18.x feeds used on 19.x firmware
       rm -rf /etc/config/uhttpd
+      rm /usr/lib/lua/uci.so #remove to avoid lua-uci conflict during install
       opkg install --force-reinstall libuci-lua luci rpcd
       [ ! -f /etc/init.d/uhttpd ] && opkg install uhttpd # only on 19.x is not getting installed as dependency?
       mkdir /www_luci
