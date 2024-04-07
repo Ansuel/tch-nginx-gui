@@ -60,16 +60,28 @@ apply_right_opkg_repo() {
     "19."*)
       sed -i '/homeware\/18\/brcm63xx-tch/d' /etc/opkg.conf #remove old setted feeds
       sed -i '/Ansuel\/GUI_ipk\/kernel-4.1/d' /etc/opkg.conf #remove old setted feeds
-      if ! grep -q "homeware/19/brcm6xxx-tch" $opkg_file; then
+      sed -i '/repository\.macoers\.com\/homeware\/19\/brcm6xxx-tch/d' /etc/opkg.conf #remove broken 19 macoers feeds
+      if ! grep -q "Ansuel/GUI_ipk/kernel-4.1" $opkg_file; then
         cat <<EOF >>$opkg_file
 arch all 100
 arch arm_cortex-a9 200
 arch arm_cortex-a9_neon 300
-src/gz chaos_calmer_base_macoers https://repository.macoers.com/homeware/19/brcm6xxx-tch/VANTW/base
-src/gz chaos_calmer_packages_macoers https://repository.macoers.com/homeware/19/brcm6xxx-tch/VANTW/packages
-src/gz chaos_calmer_luci_macoers https://repository.macoers.com/homeware/19/brcm6xxx-tch/VANTW/luci
-src/gz chaos_calmer_routing_macoers https://repository.macoers.com/homeware/19/brcm6xxx-tch/VANTW/routing
-src/gz chaos_calmer_telephony_macoers https://repository.macoers.com/homeware/19/brcm6xxx-tch/VANTW/telephony
+src/gz chaos_calmer_base https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/base
+src/gz chaos_calmer_packages https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/packages
+src/gz chaos_calmer_luci https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/luci
+src/gz chaos_calmer_routing https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/routing
+src/gz chaos_calmer_telephony https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/telephony
+src/gz chaos_calmer_core https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel-4.1/target/packages
+EOF
+      fi
+      sed -i '/repository\/homeware\/18\/brcm63xx-tch/d' /etc/opkg.conf #remove old setted feeds
+      if ! grep -q "homeware/18/brcm63xx-tch" $opkg_file; then
+        cat <<EOF >>$opkg_file
+src/gz chaos_calmer_base_macoers https://repository.macoers.com/homeware/18/brcm63xx-tch/VANTW/base
+src/gz chaos_calmer_packages_macoers https://repository.macoers.com/homeware/18/brcm63xx-tch/VANTW/packages
+src/gz chaos_calmer_luci_macoers https://repository.macoers.com/homeware/18/brcm63xx-tch/VANTW/luci
+src/gz chaos_calmer_routing_macoers https://repository.macoers.com/homeware/18/brcm63xx-tch/VANTW/routing
+src/gz chaos_calmer_telephony_macoers https://repository.macoers.com/homeware/18/brcm63xx-tch/VANTW/telephony
 EOF
       fi
       ;;
