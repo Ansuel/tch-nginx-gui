@@ -241,11 +241,16 @@ app_luci() {
   remove() {
     luci_remove_arm() {
       opkg remove --force-removal-of-dependent-packages uhttpd rpcd libuci-lua luci luci-*
-      [ ! -f /rom/usr/lib/libjson-c.so.2 ] && rm /usr/lib/libjson-c.so.2 #workaround for 18.x feeds used on 19.x firmware
+      [ ! -f /rom/usr/lib/libjson-c.so.2 ] && rm -rf /usr/lib/libjson-c.so.2 #workaround for 18.x feeds used on 19.x firmware
       cp /rom/usr/lib/lua/uci.so /usr/lib/lua/ #restore lib as it gets removed by libuci-lua
 
       rm -rf /www_luci
       rm -rf /etc/config/uhttpd
+      rm -rf /etc/config/luci
+
+      #needed cause of a bug (?) macoers repos will keep trying to install wrong (newer) versions of luci and libubox
+      sed -i '/^Package: luci/,/^$/d' /usr/lib/opkg/status
+      sed -i '/^Package: uhttpd/,/^$/d' /usr/lib/opkg/status
     }
 
     luci_remove_mips() {
