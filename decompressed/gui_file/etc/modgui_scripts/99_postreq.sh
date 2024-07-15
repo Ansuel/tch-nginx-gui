@@ -46,7 +46,7 @@ start_stop_nginx() {
 	done
 }
 
-if [ "$(cat /proc/banktable/booted)" == "bank_1" ] && [ ! "$(uci get -q modgui.var.check_obp)" ]; then
+if [ "$(cat /proc/banktable/booted)" = "bank_1" ] && [ ! "$(uci get -q modgui.var.check_obp)" ]; then
 	#this set check_obp bit if not present ONLY IN BANK_1, bank_2 value is set based on bank_1 value
 	uci set modgui.var.check_obp="1"
 fi

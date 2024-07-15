@@ -259,7 +259,7 @@ real_ver_entitied() {
 }
 
 fix_fxs_date_display() {
-  if [ "$(uci get -q mmpbxbrcmfxsdev.fxs_dev_0.cid_display_date_enabled)" == "0" ]; then
+  if [ "$(uci get -q mmpbxbrcmfxsdev.fxs_dev_0.cid_display_date_enabled)" = "0" ]; then
     logecho "Enabling time display over fxs ports"
     uci set mmpbxbrcmfxsdev.fxs_dev_0.cid_display_date_enabled=1
     uci set mmpbxbrcmfxsdev.fxs_dev_1.cid_display_date_enabled=1

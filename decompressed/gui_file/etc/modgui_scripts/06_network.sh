@@ -51,7 +51,7 @@ setup_network() {
     uci -q set network.wanptm0.vid=835
 
     #workaround to avoid who already setup the MST device vlan_wan on VLAN 835
-    [ "$(uci -q get network.vlan_wan.vid)" == "835" ] && uci -q set network.wanptm0.vid=836
+    [ "$(uci -q get network.vlan_wan.vid)" = "835" ] && uci -q set network.wanptm0.vid=836
   fi
   [ ! "$(uci -q get network.wanptm0.vid)" ] && uci -q set network.wanptm0.vid=835
   [ ! "$(uci -q get network.wanptm0.ifname)" ] && uci -q set network.wanptm0.ifname=ptm0
@@ -255,7 +255,7 @@ check_dnsmasq_name   #check dnsmasq name in uci to avoid issue in guid hardcoded
 update_dhcp_config   #DHCP sync
 wan_sensing_clean    #Wansensing clean utility
 clean_cups_block_rule
-[ "$device_type" == "MediaAccess TG789vac v2" ] && unlock_ssh_wan_tiscali
+[ "$device_type" = "MediaAccess TG789vac v2" ] && unlock_ssh_wan_tiscali
 disable_tcp_Sack
 check_xtm_atmwan #needed for UNO firmware
 
