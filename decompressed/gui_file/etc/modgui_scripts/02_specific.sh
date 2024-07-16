@@ -150,7 +150,7 @@ EOF
   elif [ "$cpu_type" = "mips" ]; then
     case $marketing_version in
     "16."* | "17."*)
-      if grep -q "chaos_calmer/15.05.1/brcm63xx" $opkg_file; then
+      if ! grep -q "chaos_calmer/15.05.1/brcm63xx" $opkg_file; then
         sed -i '/FrancYescO\/789vacv2/d' /etc/opkg.conf #remove old setted feeds
         cat <<EOF >>$opkg_file
 src/gz chaos_calmer_base http://archive.openwrt.org/chaos_calmer/15.05.1/brcm63xx/generic/packages/base
