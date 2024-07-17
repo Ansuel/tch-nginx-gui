@@ -18,7 +18,7 @@ extract_with_check() {
       continue
     fi
 
-    [ -n "$(echo "$file" | grep .md5sum)" ] && continue
+    grep -q '.md5sum' "$file" && continue
 
     orig_file=/$file
     file=$MD5_CHECK_DIR/$file

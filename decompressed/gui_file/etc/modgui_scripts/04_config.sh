@@ -112,7 +112,7 @@ eco_param() {
     uci set power.cpu.cpuspeed='256'
     uci set power.cpu.wait='1'
     logecho "Restarting power management"
-    /etc/init.d/power restart &>/dev/null
+    /etc/init.d/power restart >/dev/null 2>&1
   fi
 }
 
@@ -498,11 +498,11 @@ cumulative_check_gui() {
 
   if [ ! "$(uci get -q modgui.gui.gui_hash)" ]; then
     uci set modgui.gui.new_ver="Unknown"
-    uci set modgui.gui.gui_hash=$gui_hash
+    uci set modgui.gui.gui_hash="$gui_hash"
     uci set modgui.gui.outdated_ver='0'
-  elif [ "$(uci get -q modgui.gui.gui_hash)" != $gui_hash ]; then
+  elif [ "$(uci get -q modgui.gui.gui_hash)" != "$gui_hash" ]; then
     uci set modgui.gui.new_ver="Unknown"
-    uci set modgui.gui.gui_hash=$gui_hash
+    uci set modgui.gui.gui_hash="$gui_hash"
     uci set modgui.gui.outdated_ver='0'
   fi
   if [ ! "$(uci get -q modgui.gui.autoupgrade)" ]; then

@@ -121,7 +121,7 @@ checkver_cron() {
 				rm /etc/crontabs/root #THIS CHECK A VALID ROOT CRON... we remove it as it's useless if the owner is not root.
 			fi
 		fi
-		if [ ! -f /etc/crontabs/root ] || [ ! grep -q "checkver" /etc/crontabs/root ]; then
+		if [ ! -f /etc/crontabs/root ] || ! grep -q "checkver" /etc/crontabs/root; then
 			rand_h=$(awk -v min=1 -v max=6 'BEGIN{srand(); print int(min+rand()*(max-min+1))}')
 			rand_m=$(awk -v min=1 -v max=59 'BEGIN{srand(); print int(min+rand()*(max-min+1))}')
 			echo "$rand_m $rand_h * * * /usr/share/transformer/scripts/checkver >/dev/null 2>&1" >> /etc/crontabs/root
@@ -131,7 +131,7 @@ checkver_cron() {
 }
 
 cron_christmas() {
-	if [ ! -f /etc/crontabs/root ] || [ ! grep -q "christmas_tree" /etc/crontabs/root ]; then
+	if [ ! -f /etc/crontabs/root ] || ! grep -q "christmas_tree" /etc/crontabs/root; then
 		echo "*/30 * 24-26 12 * /etc/christmas_tree.sh &" >> /etc/crontabs/root
 	fi
 }

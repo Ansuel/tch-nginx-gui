@@ -102,7 +102,7 @@ puryfy_wan_interface() { #creano problemi di dns per chissa'  quale diavolo di 
 fix_dns_dhcp_bug() {
   logecho "Fix DNS bug, make sure odhcp is enabled"
   #SET odhcpd MAINDHCP to 0 to use dnsmasq for ipv4
-  if [ "$(uci get -q dhcp.odhcpd.maindhcp)" == "1" ]; then
+  if [ "$(uci get -q dhcp.odhcpd.maindhcp)" = "1" ]; then
     logecho "Setting odhcpd not maindhcp"
     uci set dhcp.odhcpd.maindhcp="0"
     /etc/init.d/odhcpd restart
@@ -214,10 +214,10 @@ unlock_ssh_wan_tiscali() {
 
 disable_tcp_Sack() {
   logecho "Apply CVE 2019-11477 workaround"
-  if [ "$(cat /etc/sysctl.conf | grep 'net.ipv4.tcp_sack')" ]; then
+  if grep -q 'net.ipv4.tcp_sack' /etc/sysctl.conf; then
     sed -i 's/\(net.ipv4.tcp_sack=\)1/\10/g' /etc/sysctl.conf
     sysctl -p 2>/dev/null 1>/dev/null
-  elif [ -n "$(cat /etc/sysctl.conf | grep 'net.ipv4.tcp_sack=0')" ]; then
+  elif ! grep -q 'net.ipv4.tcp_sack=0' /etc/sysctl.conf; then
     echo -e "\n" >>/etc/sysctl.conf
     echo "# disable tcp_sack for CVE 2019-11477" >>/etc/sysctl.conf
     echo "net.ipv4.tcp_sack=0" >>/etc/sysctl.conf
@@ -260,7 +260,7 @@ disable_tcp_Sack
 check_xtm_atmwan #needed for UNO firmware
 
 logecho "Restarting dnsmasq if needed..."
-if [ $restart_dnsmasq -eq 1 ]; then
+if [ "$restart_dnsmasq" -eq 1 ]; then
   uci commit
   killall dnsmasq
   /etc/init.d/dnsmasq restart
