@@ -36,7 +36,7 @@ trafficmon_support() {
 		rm -rf /root/trafficmon
 	fi
 
-	if [ -n "$(< /etc/crontabs/root grep trafficmon)" ]; then
+	if grep -q trafficmon /etc/crontabs/root; then
 		killall trafficmon 2>/dev/null
 		killall trafficdata 2>/dev/null
 		sed -i '/trafficmon/d' /etc/crontabs/root

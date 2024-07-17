@@ -346,7 +346,7 @@ mobiled_lib_add() {
     /etc/init.d/mobiled restart
   else
     #make sure we haven't replaced it some old GUI install, restore from rom if needed
-    if [[ -f /rom/etc/init.d/mobiled && -n "$(cmp /rom/etc/init.d/mobiled /etc/init.d/mobiled)" ]]; then
+    if [ -f /rom/etc/init.d/mobiled ] && [ -n "$(cmp /rom/etc/init.d/mobiled /etc/init.d/mobiled)" ]; then
       logecho "Restoring and restarting /etc/init.d/mobiled ..."
       cp /rom/etc/init.d/mobiled /etc/init.d/mobiled
       /etc/init.d/mobiled restart

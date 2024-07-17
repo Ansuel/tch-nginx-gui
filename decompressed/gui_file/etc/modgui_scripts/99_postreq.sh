@@ -29,7 +29,7 @@ start_stop_nginx() {
 	done
 
 	nginx_count=0
-	while [ "$(curl 127.0.0.1 --max-time 20 -I -s | head -n 1 | cut -d$' ' -f2)" != "200" ] && [ $nginx_count -lt 5 ]; do
+	while [ "$(curl 127.0.0.1 --max-time 20 -I -s | head -n 1 | cut -d' ' -f2)" != "200" ] && [ $nginx_count -lt 5 ]; do
 		if [ $nginx_count -gt 3 ]; then
 			if [ -f /var/run/nginx.pid ]; then
 				kill -KILL "$(cat /var/run/nginx.pid)"
