@@ -3,6 +3,7 @@
 -- Localization
 gettext.textdomain('webui-core')
 
+marketing_version="$(uci get -q version.@version[0].marketing_version)"
 local ui_helper = require("web.ui_helper")
 local message_helper = require("web.uimessage_helper")
 local post_helper = require("web.post_helper")
@@ -19,16 +20,16 @@ local hlp_columns = {
   },
   {
     header = T"Name",
-    name = "helper",
-    param = "helper",
+    name = "name",
+    param = "name",
     type = "text",
     readonly = true,
     attr = { input = { class="span2" } }
   },
   {
     header = T"Dest Port",
-    name = "dest_port",
-    param = "dest_port",
+    name = "port",
+    param = "port",
     type = "text",
     readonly = true,
     attr = { input = { class="span1" }}
@@ -60,7 +61,7 @@ end
 
 local hlp_options = {
     tableid = "helper",
-    basepath = "uci.firewall.helper.@.",
+    basepath = "uci.firewall_helpers.helper.",
     canAdd = false,
     canDelete = false,
     canEdit = true,

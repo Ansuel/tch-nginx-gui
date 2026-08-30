@@ -13,7 +13,7 @@ local modalPath = "/modals/nat-alg-helper-modal.lp"
 
 if session:hasAccess(modalPath) then
   local modal_link = format("class=\"modal-link\" data-toggle=\"modal\" data-remote=\"%s\" data-id=\"nat-alg-helper-modal\"",modalPath)
-  local helper_uci_path = "uci.firewall.helper."
+  local helper_uci_path = "uci.firewall_helpers.helper."
   local helper_uci_content = proxy.get(helper_uci_path)
   helper_uci_content = content_helper.convertResultToObject(helper_uci_path,helper_uci_content)
   local enabled_count = 0
