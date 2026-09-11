@@ -79,7 +79,8 @@ end
 local function updateLanCache()
     --Update the hosts cache from hostmanager
     --Request "ext_info" as well while invoking conn:call on "hostmanager.device"
-    hostsCache = conn:call("hostmanager.device", "get", { ["ext-info"] = true })
+    local newCache = conn:call("hostmanager.device", "get", { ["ext-info"] = true })
+    if newCache ~= nil then hostsCache = newCache end
     if hostsCache == nil then
       error("retrieving hosts failed")
     end
