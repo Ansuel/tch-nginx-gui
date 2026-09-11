@@ -140,7 +140,7 @@ for i,v in ipairs(proxy.getPN("rpc.wireless.ap.", true)) do
   ap_paths[i] = v.path.."ssid"
 end
 
-local wl_list = proxy.get(unpack(ap_paths))
+local wl_list = proxy.get(unpack(ap_paths)) or {}
 local wls = {}
 local cur_ssid
 for i,v in ipairs(wl_list) do
@@ -309,9 +309,7 @@ for i,v in ipairs(radios) do
     channel = path .. ".channel"
   }
   content_helper.getExactContent(rdata)
-  if rdata.channel ~= "" then
-    radioData[v] = rdata
-  end
+  radioData[v] = rdata
 end
 
 if radioData[curradio].remotely_managed == "1" and radioData[curradio].integrated_ap ~= "1" then
