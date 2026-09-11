@@ -72,16 +72,16 @@ if success then
    local index = #wanintfs + 1
    if find(v, "intf") then
 --      wanintfs[index] = {v, format("%s-VLAN%s", wanintfs_name[v], getContent[v.."vlan"])}
-      wanintfs[index] = {v, format("%s", wanintfs_name[v])}
+      wanintfs[index] = {v, format("%s", wanintfs_name[v] or v)}
    else
       if find(getContent[v.."ifname"], "eth") then
-        wanintfs[index] = {v, format("%s-%s", wanintfs_name[v], upper(getContent[v.."ifname"]))}
+        wanintfs[index] = {v, format("%s-%s", wanintfs_name[v] or v, upper(getContent[v.."ifname"]))}
       else
         local wanintf_path = format("%s@%s.vid", "uci.network.device.", getContent[v.."ifname"])
         local result = proxy.get(wanintf_path)
         if type(result) == "table" then
 --          wanintfs[index] = {v,format("%s-VLAN%s", wanintfs_name[v], result[1]["value"])}
-          wanintfs[index] = {v,format("%s", wanintfs_name[v])}
+          wanintfs[index] = {v,format("%s", wanintfs_name[v] or v)}
         end
       end
    end
