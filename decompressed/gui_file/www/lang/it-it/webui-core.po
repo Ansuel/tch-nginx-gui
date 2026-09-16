@@ -4139,8 +4139,8 @@ msgstr "App specifica già installata"
 msgid "Specific App"
 msgstr "App specifica"
 
-msgid "If you don't have connection, specific app can be downloaded here ( https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/modular/upgrade-pack-specific%s.tar.bz2 ) and installed manually here."
-msgstr "Se non hai una connessione l'app specifica può essere scaricata qui ( https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/modular/upgrade-pack-specific%s.tar.bz2 ) e installata manualmente qui."
+msgid "If you don't have connection, specific app can be downloaded here ( https://github.com/Ansuel/tch-nginx-gui/releases (upgrade-pack-specific%s.tar.bz2) ) and installed manually here."
+msgstr "Se non hai una connessione l'app specifica può essere scaricata qui ( https://github.com/Ansuel/tch-nginx-gui/releases (upgrade-pack-specific%s.tar.bz2) ) e installata manualmente qui."
 
 msgid "Install Specific App Online"
 msgstr "Installa app specifica online"

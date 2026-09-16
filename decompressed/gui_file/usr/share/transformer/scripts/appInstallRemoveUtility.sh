@@ -16,7 +16,7 @@ install_from_github() {
         echo "No internet connection detected, download manually!"
         exit 0
       fi
-      curl -sLk "https://raw.githubusercontent.com/$1/$2.tar.bz2" --output "/tmp/$2.tar.bz2"
+      /usr/share/transformer/scripts/checkver DownloadInstalled "$2.tar.bz2" "/tmp/$2.tar.bz2" || return 1
     fi
     if [ ! -f "/tmp/$2.tar.bz2" ]; then
       echo "Error installing App: Cannot find/download  $2.tar.bz2"
@@ -138,7 +138,7 @@ app_transmission() {
 
 app_telstra() {
   install() {
-    curl -k https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/modular/telstra_gui.tar.bz2 --output /tmp/telstra_gui.tar.bz2
+    /usr/share/transformer/scripts/checkver DownloadInstalled telstra_gui.tar.bz2 /tmp/telstra_gui.tar.bz2 || return 1
     bzcat /tmp/telstra_gui.tar.bz2 | tar -C / -xf -
     rm /tmp/telstra_gui.tar.bz2
     /etc/init.d/nginx restart
@@ -529,7 +529,7 @@ app_xupnp() {
 install_specific_files() {
 
   install() {
-    install_from_github Ansuel/gui-dev-build-auto/master/modular "upgrade-pack-specific$1" specificapp
+    install_from_github "" "upgrade-pack-specific$1" specificapp || return 1
     uci set modgui.app.specific_app=1
     uci commit
   }

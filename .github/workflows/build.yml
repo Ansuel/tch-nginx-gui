@@ -1,0 +1,136 @@
+name: Build and release GUI
+
+on:
+  push:
+    branches: [master, preview, stable]
+  pull_request:
+    branches: [master, preview, stable]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the build, release and translation updates
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# PRs cannot cancel or block publication; publishing channels share one queue.
+concurrency:
+  group: gui-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || 'release' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  BUILD_IMAGE: ansuel/gui-autobuild-image:4@sha256:b2a001505945a1c703ca2840b64d521515f5785f38f596a1866fead88578b19c
+  MINIFY_IMAGE: thekevjames/minify:latest@sha256:936addc1a5c96f5c94b55e0889f5606a159a777d7c22afda20755e9be8f1f3a2
+
+jobs:
+  build:
+    if: github.event_name == 'pull_request' || (contains(fromJSON('["master", "preview", "stable"]'), github.ref_name) && github.ref_type == 'branch')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+        working-directory: gui_build
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: gui_build
+          persist-credentials: false
+
+      - name: Test release updates and archive verification
+        run: python3 -m unittest discover -s tests -v
+
+      - name: Prepare sources and translations
+        run: |
+          docker run --rm --user "$(id -u):$(id -g)" \
+            -v "$GITHUB_WORKSPACE:/workspace" -w /workspace/gui_build \
+            -e HOME=/workspace -e CI=true -e GITHUB_REF_NAME -e GITHUB_BASE_REF \
+            --entrypoint bash "$BUILD_IMAGE" -e -c '
+              bash -e scripts/1-check_file_ending.sh
+              bash scripts/0-detect-build-type.sh
+              bash -e scripts/0-copy-file-to-parse.sh
+              cd data/po_files
+              python3 ../../scripts/update_po.py
+            '
+
+      - name: Determine version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          export HOME="$GITHUB_WORKSPACE"
+          cd data
+          bash ../scripts/1-increment_autobuild_ver.sh
+
+      - name: Minify CSS and JavaScript
+        run: |
+          docker run --rm --user "$(id -u):$(id -g)" \
+            -v "$GITHUB_WORKSPACE:/workspace" -w /workspace/gui_build/data \
+            --entrypoint sh "$MINIFY_IMAGE" -e ../scripts/1-compress_css_javascript.sh
+
+      - name: Minify Lua
+        run: |
+          docker run --rm --user "$(id -u):$(id -g)" \
+            -v "$GITHUB_WORKSPACE:/workspace" -w /workspace/gui_build/data \
+            --entrypoint bash "$BUILD_IMAGE" -e ../scripts/1-compress_lua_scripts.sh
+
+      - name: Package and verify GUI
+        run: |
+          export HOME="$GITHUB_WORKSPACE"
+          bash -e scripts/2-apply-new-file.sh
+          bash -e scripts/2-set_new_version.sh
+          bash -e inizialize_gui.sh
+          python3 scripts/verify_archives.py
+          (cd compressed && sha256sum -- *.tar.bz2 > SHA256SUMS && md5sum -- *.tar.bz2 > MD5SUMS)
+
+      - name: Save verified build and translations
+        uses: actions/upload-artifact@v4
+        with:
+          name: gui-${{ github.run_id }}
+          overwrite: true
+          path: |
+            gui_build/compressed/*
+            gui_build/data/version
+            gui_build/data/type
+            gui_build/data/po_files/
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    if: github.repository == 'Ansuel/tch-nginx-gui' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: bash
+        working-directory: gui_build
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: gui_build
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: gui-${{ github.run_id }}
+          path: gui_build
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          export HOME="$GITHUB_WORKSPACE"
+          bash scripts/7-push-release.sh
+
+      - name: Commit updated translations
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          export HOME="$GITHUB_WORKSPACE"
+          cp -a data/po_files/decompressed/gui_file/www/lang/. decompressed/gui_file/www/lang/
+          gh auth setup-git
+          bash scripts/6-commit_po.sh

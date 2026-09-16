@@ -41,7 +41,7 @@ ${NC}
 "
 }
 
-curl="/usr/bin/curl -k -s"
+curl="/usr/bin/curl -k -s -f -L"
 bzcat=/usr/bin/bzcat
 tar=/bin/tar
 rootdevice_call="debug"
@@ -90,7 +90,7 @@ else
   uci set modgui.gui.autoupgradeview=manual
 fi
 
-URL_BASE="https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master"
+URL_BASE="https://github.com/Ansuel/tch-nginx-gui/releases/download"
 
 # Check update_branch
 if [ ! "$(uci get -q modgui.gui.update_branch)" ] || [ "$(uci get modgui.gui.update_branch)" == "stable" ]; then
@@ -126,7 +126,7 @@ PERMANENT_STORE_DIR="/root"
 TARGET_DIR="/"
 FILE_NAME='GUI'$update_branch'.tar.bz2'
 STABLE_FILE_NAME='GUI.tar.bz2'
-CHECKSUM_FILE="version"
+CHECKSUM_FILE="MD5SUMS"
 FORCE_SAVE_GUI=0
 
 overlay_available_space=$(df /overlay | sed -n 2p | awk {'{print $4}'})
@@ -154,8 +154,13 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
     rm -f "$FILE_NAME"*
   done
 
+  # Resolve the channel once so archive and checksums come from the same release.
+  channel=${update_branch#_}
+  [ -n "$channel" ] || channel=stable
+
   # Download new GUI to /tmp
-  if ! $curl $URL_BASE/$FILE_NAME --output $WORKING_DIR/$FILE_NAME; then
+  if ! dev_version=$(/usr/share/transformer/scripts/checkver ReleaseVersion "$channel") ||
+    ! $curl "$URL_BASE/$dev_version/$FILE_NAME" --output $WORKING_DIR/$FILE_NAME; then
     logecho "ERROR: Can't find new GUI file" >&2
     ubus send fwupgrade '{"state":"done"}'
     exit 1
@@ -165,7 +170,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
   if [ -f /tmp/$CHECKSUM_FILE ]; then
     rm "$WORKING_DIR/$CHECKSUM_FILE"
   fi
-  $curl "$URL_BASE/$CHECKSUM_FILE" --output "$WORKING_DIR/$CHECKSUM_FILE"
+  $curl "$URL_BASE/$dev_version/$CHECKSUM_FILE" --output "$WORKING_DIR/$CHECKSUM_FILE"
 
   downloaded_md5="$(md5sum "$WORKING_DIR/$FILE_NAME" | cut -d' ' -f1)"
 
@@ -192,7 +197,9 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 
       # Download stable GUI to /tmp
 
-      if ! $curl $URL_BASE/$STABLE_FILE_NAME --output $WORKING_DIR/$STABLE_FILE_NAME; then
+      if ! stable_version=$(/usr/share/transformer/scripts/checkver ReleaseVersion stable) ||
+        ! $curl "$URL_BASE/$stable_version/$STABLE_FILE_NAME" --output $WORKING_DIR/$STABLE_FILE_NAME ||
+        ! $curl "$URL_BASE/$stable_version/$CHECKSUM_FILE" --output "$WORKING_DIR/$CHECKSUM_FILE"; then
         logecho "ERROR: Can't find stable GUI file" >&2
         rm "$WORKING_DIR/$FILE_NAME"
         rm "$WORKING_DIR/$CHECKSUM_FILE"
@@ -216,12 +223,10 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 
       logecho "Downloaded stable GUI with hash: $stable_md5"
 
-      stable_version="$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $stable_md5 | cut -d' ' -f2)"
       stable_version_norm="$(normalize $stable_version)"
 
       logecho "Downloaded Stable version: $stable_version_norm"
 
-      dev_version="$(cat $WORKING_DIR/$CHECKSUM_FILE | grep $downloaded_md5 | cut -d' ' -f2)"
       dev_version_norm="$(normalize $dev_version)"
 
       logecho "Downloaded $update_branch version: $dev_version_norm"

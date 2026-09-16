@@ -33,13 +33,9 @@ if [ "$CI" == "true" ]; then
 	fi
 fi
 
-mkdir tar_tmp
+mkdir -p compressed
 
 for index in "${modular_dir[@]}"; do
-
-	if [ "$CI" == "true" ] && [ -f $HOME/gui-dev-build-auto/modular/$index.tar.bz2 ]; then
-		old_md5=$(md5sum <(bzcat $HOME/gui-dev-build-auto/modular/$index.tar.bz2) | awk '{print $1}')
-	fi
 
 	cd decompressed/$index
 
@@ -53,25 +49,15 @@ for index in "${modular_dir[@]}"; do
 		md5sum etc/ledfw/stateMachines.lua > stateMachines.md5sum
 	fi
 
-	BZIP2=-9 tar --mtime='2018-01-01' -cjf ../../tar_tmp/$index.tar.bz2 * --owner=0 --group=0
+	BZIP2=-9 tar --mtime='2018-01-01' -cjf ../../compressed/$index.tar.bz2 * --owner=0 --group=0
 	cd ../../
-	new_md5=$(md5sum <(bzcat tar_tmp/$index.tar.bz2) | awk '{print $1}')
-	if [ -z "$old_md5" ] || [ "$old_md5" != "$new_md5" ]; then
-		echo "Changes detected in modular package $index, updating..."
-		cp tar_tmp/$index.tar.bz2 $HOME/gui-dev-build-auto/modular/
-	fi
-done
 
-rm -r tar_tmp
+done
 
 echo "Creating GUI dir"
 
 if [ -d total ]; then
 	rm -r total
-fi
-
-if [ ! -d compressed ]; then
-	mkdir compressed
 fi
 
 mkdir total
@@ -88,7 +74,7 @@ for index in "${modular_dir[@]}"; do
 		echo "Copying file from "$index" to GUI dir"
 		cp -dr decompressed/$index/* total
 	elif [ -z "$(echo $index | grep upgrade-pack-)" ]; then
-		cp $HOME/gui-dev-build-auto/modular/$index.tar.bz2 total/tmp
+		cp compressed/$index.tar.bz2 total/tmp
 		echo "Adding specific file from "$index" to tmp virtual dir"
 	fi
 done

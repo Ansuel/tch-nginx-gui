@@ -569,7 +569,7 @@ if content.specific_app ~= "" then
 
                 local device = getSupportedModel()
 
-                html[#html + 1] = ui_helper.createAlertBlock(format(T"If you don't have connection, specific app can be downloaded here ( https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/modular/upgrade-pack-specific%s.tar.bz2 ) and installed manually here.", device), info_box)
+                html[#html + 1] = ui_helper.createAlertBlock(format(T"If you don't have connection, specific app can be downloaded here ( https://github.com/Ansuel/tch-nginx-gui/releases (upgrade-pack-specific%s.tar.bz2) ) and installed manually here.", device), info_box)
                 html[#html + 1] = '<div class="control-group">'
                 html[#html + 1] = format('<label class="control-label">%s</label>', T"Upload Specific App")
                 html[#html + 1] = '<div class="controls">'

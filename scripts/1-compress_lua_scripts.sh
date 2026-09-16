@@ -1,4 +1,6 @@
-#! /bin/sh
+#!/bin/bash
+set -eo pipefail
+pids=()
 
 TYPE="$(cat type)"
 if [ "$TYPE" != "STABLE" ] && [ "$TYPE" != "PREVIEW" ]; then
@@ -17,7 +19,7 @@ minify_lua() {
 	
 	if ! luasrcdiet --maximum --quiet "$1" -o "$1".min; then 
 		echo "Minify error for $1"
-		return
+		return 1
 	fi
 
 	if [ $append_pretraslate = 1 ]; then
@@ -42,6 +44,7 @@ parse_files() {
 	find "$1"_files ! -name "$(printf "*\n*")" -name "*.$1" -type f > "$1"_files_list
 	while IFS= read -r file; do
 		minify_lua "$file" &
+		pids+=("$!")
 	done < "$1"_files_list
 	rm "$1"_files_list
 }
@@ -50,4 +53,8 @@ parse_files lua
 parse_files lp
 parse_files map
 
-wait
+failed=0
+for pid in "${pids[@]}"; do
+	wait "$pid" || failed=1
+done
+exit "$failed"

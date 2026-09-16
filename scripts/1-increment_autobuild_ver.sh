@@ -1,64 +1,52 @@
 #!/bin/bash
+set -euo pipefail
 
 last_log="$(cat last_log)"
-
-if [ "$(echo "$last_log" | grep -o "\[[0-9]\+\.[0-9]\+\.[0-9]\+\]" | tr -d [ | tr -d ])" ]; then
-	ver="$(echo "$last_log" | grep -o "\[[0-9]\+\.[0-9]\+\.[0-9]\+\]" | tr -d [ | tr -d ])"
-	echo "Detected manual version: "$ver
+if [[ "$last_log" =~ \[([0-9]+\.[0-9]+\.[0-9]+)\] ]]; then
+    ver="${BASH_REMATCH[1]}"
+    echo "Detected manual version: $ver"
 else
-	latest_version_link="https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master/latest.version"
-	cur_ver=$(curl -s $latest_version_link)
-	
-	if [ -f $HOME/gui-dev-build-auto/latest.version ]; then
-		echo "Detected cached latest.version file... Checking it..."
-		cached_version=$(cat $HOME/gui-dev-build-auto/latest.version | awk ' { print $1 } ' )
-		echo "Cached version detected: $cached_version"
-		echo "Remote version detected: $version"
-		rm $HOME/gui-dev-build-auto/latest.version
-		seconds=0
-		if [ $cached_version == $version ]; then
-			echo "Same version detected..."
-		fi
-		while [ $cached_version == $version ]; do
-			if [[ seconds -gt 120 ]]; then 
-				echo "Race-condition dectedted... Continuing anyway..."
-				break
-			fi
-			seconds=$[$seconds +1]
-			echo -ne 'Waiting new version to publish for '$seconds' seconds \r'
-			version=$(curl -s $latest_version_link)
-			sleep 1
-		done
-	fi
-	
-	echo "Increment version as this is an autobuild"
-	
-	major=$(echo $cur_ver | grep -Eo "^[0-9]+")
-	dev_num=$(echo $cur_ver | sed -E s/[0-9]+\.[0-9]+\.//)
-	minor=$(echo $cur_ver | sed  s#$major\.## | sed s#\\.$dev_num## )
-	
-	if [ $((dev_num + 1)) -gt 99 ]; then
-		echo "dev_num greater than 99 increment minor"
-		dev_num=0
-		if [ $((minor + 1)) -gt 99 ]; then
-			echo "minor greater than 99 increment minor"
-			minor=0
-			major=$((major + 1))
-		else
-			minor=$((minor + 1))
-		fi
-	else
-		dev_num=$((dev_num + 1))
-	fi
-	
-	ver=$major.$minor.$dev_num
-	
-	echo "Detected version: "$cur_ver
-	echo "New version to apply: "$ver
+    : "${GITHUB_REPOSITORY:?GITHUB_REPOSITORY is required}"
+    # Reuse a draft/published release from this exact commit and channel on reruns.
+    channel="$(tr '[:upper:]' '[:lower:]' < ./type)"
+    marker="<!-- gui-build:${GITHUB_SHA:?}:$channel -->"
+    matched="$(gh api "repos/$GITHUB_REPOSITORY/releases" --paginate \
+        --jq ".[] | select(.target_commitish == \"$GITHUB_SHA\") | select((.body // \"\") | contains(\"$marker\")) | .tag_name")"
+    if [[ -n "$matched" ]]; then
+        [[ "$matched" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Ambiguous release version for this commit." >&2; exit 1; }
+        printf '%s\n' "$matched" > "$HOME/gui_build/data/version"
+        echo "Reusing release version $matched"
+        exit 0
+    fi
+    # Draft versions are reserved too, so a failed publication is not overwritten.
+    versions="$(gh api "repos/$GITHUB_REPOSITORY/releases" --paginate --jq '.[].tag_name')"
+    cur_ver="$(printf '%s\n' "$versions" | awk '/^[0-9]+\.[0-9]+\.[0-9]+$/' | sort -t. -k1,1n -k2,2n -k3,3n | tail -n 1)"
+    if [[ -z "$cur_ver" ]]; then
+        if [[ "${GITHUB_EVENT_NAME:-}" == pull_request ]]; then
+            printf '%s\n' '0.0.0' > "$HOME/gui_build/data/version"
+            echo "Using non-publishing PR version 0.0.0"
+            exit 0
+        fi
+        echo "No numeric release found. Set the initial version with [x.y.z] in the commit message." >&2
+        exit 1
+    fi
+    if [[ ! "$cur_ver" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)[[:space:]]*$ ]]; then
+        echo "Invalid release version: $cur_ver" >&2
+        exit 1
+    fi
+    major=$((10#${BASH_REMATCH[1]}))
+    minor=$((10#${BASH_REMATCH[2]}))
+    dev_num=$((10#${BASH_REMATCH[3]} + 1))
+    if (( dev_num > 99 )); then
+        dev_num=0
+        minor=$((minor + 1))
+        if (( minor > 99 )); then
+            minor=0
+            major=$((major + 1))
+        fi
+    fi
+    ver="$major.$minor.$dev_num"
+    echo "Incrementing $cur_ver to $ver"
 fi
-
-if [ ! -d  $HOME/gui_build/data ]; then
-	mkdir $HOME/gui_build/data
-fi
-
-echo $ver > $HOME/gui_build/data/version
+mkdir -p "$HOME/gui_build/data"
+printf '%s\n' "$ver" > "$HOME/gui_build/data/version"

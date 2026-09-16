@@ -1,31 +1,15 @@
 #!/bin/bash
+set -euo pipefail
 
-branch_name="$(git branch | grep \* | cut -d ' ' -f2)"
-
-if [ ! -f  $HOME/gui_build/data ]; then
-	mkdir $HOME/gui_build/data
-fi
-
+branch_name="${GITHUB_BASE_REF:-${GITHUB_REF_NAME:-$(git branch --show-current)}}"
+mkdir -p "$HOME/gui_build/data"
 echo "Detected $branch_name build"
-
-case $branch_name in
-
-  stable)
-    echo STABLE > $HOME/gui_build/data/type
-    ;;
-
-  preview)
-    echo PREVIEW > $HOME/gui_build/data/type
-    ;;
-
-  master)
-    echo DEV > $HOME/gui_build/data/type
-    ;;
-
-  *)
-    echo $branch_name > $HOME/gui_build/data/type
-    ;;
+case "$branch_name" in
+  stable) type=STABLE ;;
+  preview) type=PREVIEW ;;
+  master) type=DEV ;;
+  *) type="$branch_name" ;;
 esac
-
-echo $(git log -1 --abbrev-commit --oneline | cut -d' ' -f1) > $HOME/gui_build/data/short_commit_hash
-echo $(git log --oneline -n 1) > $HOME/gui_build/data/last_log
+printf '%s\n' "$type" > "$HOME/gui_build/data/type"
+git rev-parse --short HEAD > "$HOME/gui_build/data/short_commit_hash"
+git log --oneline -n 1 > "$HOME/gui_build/data/last_log"

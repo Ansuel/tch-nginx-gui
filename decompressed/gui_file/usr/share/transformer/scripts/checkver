@@ -23,11 +23,53 @@
 #
 #
 
-STABLE_VERSION="stable.version"
-DEV_VERSION="latest.version"
-PREVIEW_VERSION="preview.version"
 CURRENT_VERSION=$(grep /etc/init.d/rootdevice -e 'version_gui' | sed 's/version_gui=//' | cut -d'-' -f1)
-BASE_DIR="https://raw.githubusercontent.com/Ansuel/gui-dev-build-auto/master"
+BASE_DIR="https://github.com/Ansuel/tch-nginx-gui/releases/download"
+
+release_channel_version() {
+    case "$1" in stable|preview|dev) ;; *) return 1 ;; esac
+    version=$(curl -kfLsS "$BASE_DIR/channel-$1/latest.version") || return 1
+    case "$version" in ''|*[!0-9.]*) return 1 ;; esac
+    printf '%s\n' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || return 1
+    printf '%s\n' "$version"
+}
+
+# These modes only fetch release data; they do not run the UCI update check.
+case "$1" in
+    ReleaseVersion)
+        [ "$#" -eq 2 ] || exit 1
+        release_channel_version "$2"
+        exit $?
+        ;;
+    DownloadInstalled|DownloadStable)
+        if [ "$1" = DownloadInstalled ]; then
+            [ "$#" -eq 3 ] || exit 1
+            version="$CURRENT_VERSION"
+            asset="$2"
+            destination="$3"
+        else
+            [ "$#" -eq 2 ] || exit 1
+            version=$(release_channel_version stable) || exit 1
+            asset=GUI.tar.bz2
+            destination="$2"
+        fi
+        case "$version" in ''|*[!0-9.]*) exit 1 ;; esac
+        printf '%s\n' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || exit 1
+        case "$asset" in ''|*[!a-zA-Z0-9._-]*) exit 1 ;; esac
+        checksums=$(curl -kfLsS "$BASE_DIR/$version/MD5SUMS") || exit 1
+        expected=$(printf '%s\n' "$checksums" | awk -v name="$asset" '$2 == name {print $1}')
+        [ "${#expected}" -eq 32 ] || exit 1
+        case "$expected" in *[!a-fA-F0-9]*) exit 1 ;; esac
+        temporary="$destination.part.$$"
+        trap 'rm -f "$temporary"' 0
+        trap 'exit 1' 1 2 15
+        curl -kfLsS "$BASE_DIR/$version/$asset" --output "$temporary" || exit 1
+        actual=$(md5sum "$temporary" | cut -d' ' -f1)
+        [ "$actual" = "$expected" ] || exit 1
+        mv "$temporary" "$destination"
+        exit $?
+        ;;
+esac
 
 ############TRANSFORMER UTILITY##################
 set_transformer() {
@@ -71,25 +113,21 @@ enum() {
 if [ $connectivity == "yes" ]; then
 	if [ ! "$(uci get -q modgui.gui.update_branch)" ] || [ "$(uci get modgui.gui.update_branch)" == "stable" ]; then
 		update_branch="stable"
-		version_link=$BASE_DIR/$STABLE_VERSION
 	elif [ "$(uci get modgui.gui.update_branch)" == "preview" ]; then
 		update_branch="preview"
-		version_link=$BASE_DIR/$PREVIEW_VERSION
 	else 
 		update_branch="dev"
-		version_link=$BASE_DIR/$DEV_VERSION
 	fi
 	newer_stable=0
 
     logger -s -t "CheckVer Script" "Installed version: $CURRENT_VERSION checking update on $update_branch branch..."
-	new_version="$(curl -k -s "$version_link")"
+	new_version="$(release_channel_version "$update_branch")" || exit 1
 	new_version_norm="$(normalize "$new_version")"
 
     logger -s -t "CheckVer Script" "Online version: $new_version"
 
     if [ "$update_branch" == "dev" ] || [ "$update_branch" == "preview" ]; then #just makes sure there is no newer stable
-        stable_version_link=$BASE_DIR/$STABLE_VERSION
-        stable_version="$(curl -k -s "$stable_version_link")"
+        stable_version="$(release_channel_version stable)" || stable_version=0.0.0
 
         stable_version_norm="$(normalize "$stable_version")"
 
