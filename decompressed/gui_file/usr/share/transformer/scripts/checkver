@@ -28,7 +28,16 @@ BASE_DIR="https://github.com/Ansuel/tch-nginx-gui/releases/download"
 
 release_channel_version() {
     case "$1" in stable|preview|dev) ;; *) return 1 ;; esac
-    version=$(curl -kfLsS "$BASE_DIR/channel-$1/latest.version") || return 1
+    # Distinguish an unpublished channel from network errors or invalid metadata.
+    response=$(curl -kfLsS -w '\n%{http_code}' "$BASE_DIR/channel-$1/latest.version")
+    curl_status=$?
+    http_status=$(printf '%s\n' "$response" | tail -n 1)
+    if [ "$curl_status" -ne 0 ]; then
+        [ "$curl_status" -eq 22 ] && [ "$http_status" = 404 ] && return 3
+        return 1
+    fi
+    [ "$http_status" = 200 ] || return 1
+    version=$(printf '%s\n' "$response" | sed '$d')
     case "$version" in ''|*[!0-9.]*) return 1 ;; esac
     printf '%s\n' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || return 1
     printf '%s\n' "$version"

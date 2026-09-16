@@ -187,7 +187,11 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
   logecho "Downloaded GUI with hash: $downloaded_md5"
 
   if [ "$update_branch" ]; then
-    if [ "$update_branch" == "_dev" ] || [ "$update_branch" == "_preview" ]; then
+    stable_version=$(/usr/share/transformer/scripts/checkver ReleaseVersion stable)
+    stable_lookup_status=$?
+    if [ "$stable_lookup_status" -eq 3 ]; then
+      logecho "Stable channel not published. Continuing with verified $update_branch GUI."
+    elif [ "$update_branch" == "_dev" ] || [ "$update_branch" == "_preview" ]; then
 
       logecho "Dev branch detected... Checking for newer version in stable..."
 
@@ -197,7 +201,7 @@ if [ ! -f $WORKING_DIR/$FILE_NAME ]; then #Check if file exist as offline upload
 
       # Download stable GUI to /tmp
 
-      if ! stable_version=$(/usr/share/transformer/scripts/checkver ReleaseVersion stable) ||
+      if [ "$stable_lookup_status" -ne 0 ] ||
         ! $curl "$URL_BASE/$stable_version/$STABLE_FILE_NAME" --output $WORKING_DIR/$STABLE_FILE_NAME ||
         ! $curl "$URL_BASE/$stable_version/$CHECKSUM_FILE" --output "$WORKING_DIR/$CHECKSUM_FILE"; then
         logecho "ERROR: Can't find stable GUI file" >&2

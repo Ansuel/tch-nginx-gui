@@ -42,11 +42,20 @@ assert '-kfLsS' in args or all(flag in args for flag in ('-k', '-f', '-L'))
 url = next(a for a in args if a.startswith('https://'))
 with (root / 'requests').open('a') as f: f.write(url + '\\n')
 path = root / 'assets' / url.split('/download/')[1]
-if not path.is_file(): sys.exit(22)
+if 'channel-stable/latest.version' in url and os.environ.get('STABLE_ERROR'):
+    error = os.environ['STABLE_ERROR']
+    if '-w' in args: print('\\n'+('503' if error == 'http' else '000'), end='')
+    sys.exit(22 if error == 'http' else 28)
+if not path.is_file():
+    if '-w' in args: print('\\n404', end='')
+    sys.exit(22)
 if '-o' in args or '--output' in args:
     flag = '-o' if '-o' in args else '--output'
     pathlib.Path(args[args.index(flag)+1]).write_bytes(path.read_bytes())
 else: sys.stdout.buffer.write(path.read_bytes())
+if '-w' in args:
+    sys.stdout.flush()
+    print('\\n200', end='')
 ''')
         self.mock('gh', '''
 import json, os, pathlib, sys
@@ -166,12 +175,21 @@ else:
                  ('dev', '9.7.8', 'GUI_dev.tar.bz2', '0', False, False),
                  ('preview', '9.8.0', 'GUI.tar.bz2', '1', False, False),
                  ('dev', '9.7.8', None, None, True, False),
-                 ('dev', '9.7.8', 'GUI_dev.tar.bz2', '1', False, True)]
+                 ('dev', '9.7.8', 'GUI_dev.tar.bz2', '1', False, True),
+                 ('dev', 'missing', 'GUI_dev.tar.bz2', '0', False, False),
+                 ('preview', 'missing', 'GUI_preview.tar.bz2', '0', False, False),
+                 ('stable', 'missing', None, None, False, False),
+                 ('dev', 'invalid', None, None, False, False),
+                 ('dev', 'http', None, None, False, False),
+                 ('dev', 'timeout', None, None, False, False),
+                 ('dev', 'bad_checksum', None, None, False, False),
+                 ('dev', 'missing_archive', None, None, False, False)]
         for channel, stable, filename, force, corrupt, offline in cases:
             with self.subTest(channel=channel, stable=stable, corrupt=corrupt, offline=offline):
                 shutil.rmtree(download, ignore_errors=True)
                 download.mkdir()
                 self.env['TEST_CHANNEL'] = channel
+                self.env.pop('STABLE_ERROR', None)
                 for selected, version in [('stable', stable), ('dev', '9.7.9'), ('preview', '9.7.9')]:
                     asset = 'GUI.tar.bz2' if selected == 'stable' else 'GUI_'+selected+'.tar.bz2'
                     self.asset('channel-'+selected+'/latest.version', version)
@@ -184,11 +202,26 @@ else:
                     previous = path.read_text() if path.exists() else ''
                     rows = [row for row in previous.splitlines() if not row.endswith('  '+asset)]
                     self.asset(version+'/MD5SUMS', '\n'.join(rows+[digest+'  '+asset])+'\n')
+                pointer = self.home/'assets/channel-stable/latest.version'
+                if stable == 'missing':
+                    pointer.unlink()
+                elif stable == 'invalid':
+                    pointer.write_text('invalid')
+                elif stable in ('http', 'timeout'):
+                    self.env['STABLE_ERROR'] = stable
+                elif stable in ('bad_checksum', 'missing_archive'):
+                    pointer.write_text('9.8.0')
+                    self.asset('9.8.0/MD5SUMS', '0'*32+'  GUI.tar.bz2\n')
+                    archive = self.home/'assets/9.8.0/GUI.tar.bz2'
+                    if stable == 'bad_checksum':
+                        archive.write_text('bad stable')
+                    elif archive.exists():
+                        archive.unlink()
                 if offline:
                     (download/'GUI_dev.tar.bz2').write_text('offline upload')
                 result = subprocess.run(['bash', str(fixture_script), 'Manual'],
                                         env=self.env, capture_output=True, text=True)
-                if corrupt:
+                if corrupt or filename is None:
                     self.assertNotEqual(result.returncode, 0, result.stdout)
                     self.assertFalse((download/'GUI_dev.tar.bz2').exists())
                 else:
