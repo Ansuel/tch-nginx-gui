@@ -4196,6 +4196,9 @@ a {
 	-moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.8);
 	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.8)
 }
+.switch.disabled, .switch.disabled * {
+	cursor: default;
+}
 form .switch {
 	float: left;
 	margin-left: 0;

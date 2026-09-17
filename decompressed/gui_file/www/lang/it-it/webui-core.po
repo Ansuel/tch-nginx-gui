@@ -2318,8 +2318,8 @@ msgstr "Timeout"
 msgid "Timezone"
 msgstr "Fuso orario"
 
-msgid "To disable Port Forward Rules, you can turn it off using the switch or delete using cross."
-msgstr "Per disabilitare le regole della mappatura porte, modifica la regola sulla destra e poi usa l'interruttore sulla sinistra."
+msgid "To disable a port forwarding rule, click Edit, turn the switch off and save. The switch in the list only shows the current state."
+msgstr "Per disabilitare una regola di port forwarding, clicca su Modifica, spegni l'interruttore e salva. L'interruttore nell'elenco mostra soltanto lo stato attuale."
 
 msgid "Total"
 msgstr "Totale"

@@ -568,7 +568,7 @@ local info_box = {
       ngx.print('\
     <fieldset>\
       <legend>');  ngx.print( T"IPv4 Port Forwarding Table" ); ngx.print('</legend>',
-		ui_helper.createAlertBlock(T"To disable Port Forward Rules, you can turn it off using the switch or delete using cross.", info_box),
+		ui_helper.createAlertBlock(T"To disable a port forwarding rule, click Edit, turn the switch off and save. The switch in the list only shows the current state.", info_box),
         ui_helper.createTable(pfw_columns, pfw_data, pfw_options, nil, pfw_helpmsg),
         ui_helper.createAlertBlock(T"To Port Forward ranges use <b>':'</b>. For example 500:505.", range_warning))
         ngx.print('\
