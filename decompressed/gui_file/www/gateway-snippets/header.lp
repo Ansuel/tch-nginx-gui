@@ -200,12 +200,14 @@ ngx.print('\
     }
 
     if cui.reboot_reason_msg ~= "" then
+        alert_style_upper.alert.id = "reboot-reason-alert"
         html[#html + 1] = ui_helper.createAlertBlock(format(T'A reboot is waiting! Reason: <strong>%s</strong>',cui.reboot_reason_msg),alert_style_upper)
     end
 
     if cui.outdated_ver == "0" then
       alert_style_upper.alert.class = "alert hide"
     end
+    alert_style_upper.alert.id = "upgrade-alert"
     html[#html + 1] = ui_helper.createAlertBlock(format(T'Update available! Version: <strong id="new-version-text"><a target=\"_blank\" href=https://github.com/Ansuel/tch-nginx-gui/releases/tag/%s>%s</a></strong>',cui.new_ver,cui.new_ver),alert_style_upper)
 
     local autoupgrade_view = cui.autoupgrade_view

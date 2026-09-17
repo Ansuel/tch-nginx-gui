@@ -422,6 +422,33 @@ local mapValid = {
         check_obp = vB
 }
 
+-- Acknowledge only blocked ACS requests; other reboot reasons must survive.
+local function isBlockedACSNotice(message)
+        message = untaint(message)
+        return type(message) == "string" and
+                (message == "TIM ACS asked for firmware update. Go to Modgui Settings to allow this." or
+                 message:match("^ACS asked for firmware update from: .* Go to Modgui Settings to allow this%.$") ~= nil)
+end
+
+local reboot_notice = { message = "uci.modgui.var.reboot_reason_msg" }
+content_helper.getExactContent(reboot_notice)
+local acs_notice_dismissed = false
+if ngx.req.get_method() == "POST" and
+        ngx.req.get_post_args().action == "DISMISS_ACS_NOTICE" and
+        isBlockedACSNotice(reboot_notice.message) then
+        local ok = proxy.set("uci.modgui.var.reboot_reason_msg", "")
+        if ok then
+                ok = proxy.apply()
+        end
+        if ok then
+                reboot_notice.message = ""
+                acs_notice_dismissed = true
+                message_helper.pushMessage(T"Changes saved successfully", "success")
+        else
+                message_helper.pushMessage(T"Error while saving changes", "error")
+        end
+end
+
 local modgui_settings, helpmsg = post_helper.handleQuery(mapParams, mapValid)
 
 ngx.print(ui_helper.createHeader(T"GUI Settings & Utility", false, false))
@@ -429,6 +456,16 @@ ngx.print('\
 <div class="modal-body update">\
 ');
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
+if acs_notice_dismissed then
+        ngx.print('<script>$("#reboot-reason-alert").remove();</script>')
+end
+if isBlockedACSNotice(reboot_notice.message) then
+        ngx.print(ui_helper.createAlertBlock(T"An ACS firmware update was blocked. Dismissing this notice does not allow firmware updates; a new request will show it again."))
+        ngx.print(ui_helper.createButton("", T"Dismiss blocked update notice", "", {
+                button = { ["data-name"] = "action", ["data-value"] = "DISMISS_ACS_NOTICE" }
+        }))
+end
+
 
 local basic = {
         span = {

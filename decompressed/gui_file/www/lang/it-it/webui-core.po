@@ -4354,3 +4354,9 @@ msgstr "Rapporto debug e impostazioni avanzate"
 
 msgid "Change the default page in system-extra to set this GUI as default"
 msgstr "Modifica la pagina predefinita in Funzioni extra di sistema per impostare questa GUI come predefinita"
+
+msgid "An ACS firmware update was blocked. Dismissing this notice does not allow firmware updates; a new request will show it again."
+msgstr "Un aggiornamento firmware richiesto dall'ACS è stato bloccato. Rimuovere questo avviso non autorizza gli aggiornamenti firmware; una nuova richiesta lo farà ricomparire."
+
+msgid "Dismiss blocked update notice"
+msgstr "Rimuovi avviso di aggiornamento bloccato"
