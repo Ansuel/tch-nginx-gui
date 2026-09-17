@@ -4349,7 +4349,7 @@ msgstr "Modifica il seriale del modem. Considera che il seriale del modem è l'I
 msgid "Modem Serial"
 msgstr "Seriale modem"
 
-msgstr "Debug Report & Advanced settings"
+msgid "Debug Report & Advanced settings"
 msgstr "Rapporto debug e impostazioni avanzate"
 
 msgid "Change the default page in system-extra to set this GUI as default"
