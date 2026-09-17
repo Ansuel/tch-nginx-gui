@@ -50,10 +50,29 @@ device_type="$(uci get -q env.var.prod_friendly_name)"
 marketing_version="$(uci get -q version.@version[0].marketing_version)"
 cpu_type="$(uname -m)"
 
+# opkg also reads /etc/opkg/*.conf. Check each source name separately so
+# partially configured feeds are completed without duplicating custom feeds.
+append_missing_opkg_feeds() {
+  local feed_type feed_name feed_url config
+  set -- "$opkg_file"
+  for config in "$opkg_config_dir"/*.conf; do
+    [ ! -f "$config" ] || set -- "$@" "$config"
+  done
+  while read -r feed_type feed_name feed_url; do
+    if ! awk -v name="$feed_name" '
+      ($1 == "src" || $1 == "src/gz") && $2 == name { found = 1 }
+      END { exit !found }
+    ' "$@"; then
+      printf '%s %s %s\n' "$feed_type" "$feed_name" "$feed_url" >> "$opkg_file"
+    fi
+  done
+}
+
 apply_right_opkg_repo() {
   logecho "Checking opkg feeds..."
 
   opkg_file="/etc/opkg.conf"
+  opkg_config_dir="/etc/opkg"
 
   if [ "$cpu_type" = "armv7l" ]; then
     case $marketing_version in
@@ -75,15 +94,13 @@ src/gz chaos_calmer_core https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel
 EOF
       fi
       sed -i '/repository\/homeware\/18\/brcm63xx-tch/d' /etc/opkg.conf #remove old setted feeds
-      if ! grep -q "homeware/18/brcm63xx-tch" $opkg_file; then
-        cat <<EOF >>$opkg_file
+      append_missing_opkg_feeds <<EOF
 src/gz chaos_calmer_base_macoers https://repository.macoers.com/homeware/18/brcm63xx-tch/VANTW/base
 src/gz chaos_calmer_packages_macoers https://repository.macoers.com/homeware/18/brcm63xx-tch/VANTW/packages
 src/gz chaos_calmer_luci_macoers https://repository.macoers.com/homeware/18/brcm63xx-tch/VANTW/luci
 src/gz chaos_calmer_routing_macoers https://repository.macoers.com/homeware/18/brcm63xx-tch/VANTW/routing
 src/gz chaos_calmer_telephony_macoers https://repository.macoers.com/homeware/18/brcm63xx-tch/VANTW/telephony
 EOF
-      fi
       ;;
     "18."*)
       if ! grep -q "Ansuel/GUI_ipk/kernel-4.1" $opkg_file; then
@@ -100,15 +117,13 @@ src/gz chaos_calmer_core https://raw.githubusercontent.com/Ansuel/GUI_ipk/kernel
 EOF
       fi
       sed -i '/repository\/homeware\/18\/brcm63xx-tch/d' /etc/opkg.conf #remove old setted feeds
-      if ! grep -q "homeware/18/brcm63xx-tch" $opkg_file; then
-        cat <<EOF >>$opkg_file
+      append_missing_opkg_feeds <<EOF
 src/gz chaos_calmer_base_macoers https://repository.macoers.com/homeware/18/brcm63xx-tch/VANTW/base
 src/gz chaos_calmer_packages_macoers https://repository.macoers.com/homeware/18/brcm63xx-tch/VANTW/packages
 src/gz chaos_calmer_luci_macoers https://repository.macoers.com/homeware/18/brcm63xx-tch/VANTW/luci
 src/gz chaos_calmer_routing_macoers https://repository.macoers.com/homeware/18/brcm63xx-tch/VANTW/routing
 src/gz chaos_calmer_telephony_macoers https://repository.macoers.com/homeware/18/brcm63xx-tch/VANTW/telephony
 EOF
-      fi
       ;;
     "17.3"*)
       sed -i '/roleo\/public\/agtef\/brcm63xx-tch/d' /etc/opkg.conf #remove old setted feeds
