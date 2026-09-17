@@ -2228,7 +2228,11 @@ function confirmationDialogue(t, e) {
 			value: s + 1
 		}),
 		l.push(a()),
-		n(i, l, function () {
+		n(i, l, function (_, status) {
+			if (status === "success" && (t === "TABLE-ADD" || t === "TABLE-DELETE" || t === "TABLE-MODIFY") &&
+				$(".modal .error, .modal .alert-error").length === 0) {
+				count += 1;
+			}
 			c(r, s)
 		})
 	}
@@ -2475,17 +2479,21 @@ function confirmationDialogue(t, e) {
 		modalToCard = lastCardClicked ? lastCardClicked.find(".settings").data("remote") : null;
 		if (count > 0 && $(t.target).hasClass("modal")) {
 			if (modalToCard != null) {
-				$.get("/ajax/get_card.lua?modal=" + modalToCard, function (data) {
-					$(lastCardClicked).parent().replaceWith(data);
+				var cardToRefresh = lastCardClicked.parent();
+				$.get("/ajax/get_card.lua?modal=" + encodeURIComponent(modalToCard), function (data) {
+					cardToRefresh.replaceWith(data);
 				});
 			} else {
 				window.location.reload(!0);
 			}
+			count = 0;
 		}
 	});
 	var y = !1;
 	$(document).on("click touchend", '[data-toggle="modal"]', function (t) {
-		t.preventDefault(),
+		t.preventDefault();
+		lastCardClicked = $(this).closest(".smallcard");
+		if (!lastCardClicked.length) lastCardClicked = null;
 		u(t = $(this).attr("data-remote"), $(this).attr("data-id"))
 	}),
 	$(document).on("click touchend", ".smallcard", function (t) {
