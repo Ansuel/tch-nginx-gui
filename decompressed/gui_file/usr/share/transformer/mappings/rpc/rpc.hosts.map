@@ -39,7 +39,11 @@ end
 
 local function updateLanCache()
   --Update the hosts cache from hostmanager
-  hostsCache = conn:call("hostmanager.device", "get", {})
+  local newCache = conn:call("hostmanager.device", "get", {})
+  -- A transient timeout must not discard the last successful host snapshot.
+  if newCache then
+    hostsCache = newCache
+  end
   if not hostsCache then
     error("retrieving hosts failed")
   end

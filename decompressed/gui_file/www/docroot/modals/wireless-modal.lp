@@ -117,7 +117,12 @@ elseif getWifiAnalyzer and getargs.getAcsData then
 end
 
 local radios = {}
-for i,v in ipairs(proxy.getPN("rpc.wireless.radio.", true)) do
+local radioNames = proxy.getPN("rpc.wireless.radio.", true)
+if not radioNames or not next(radioNames) then
+    ngx.log(ngx.ERR, "Wireless radio data unavailable")
+    return ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE)
+end
+for i,v in ipairs(radioNames) do
     local radio = match(v.path, "rpc%.wireless%.radio%.@([^%.]+)%.")
     if radio then
         radios[#radios+1] = radio
@@ -136,11 +141,20 @@ ajax_helper.handleAjaxQuery({
     end)
 
 local ap_paths={true}
-for i,v in ipairs(proxy.getPN("rpc.wireless.ap.", true)) do
+local apNames = proxy.getPN("rpc.wireless.ap.", true)
+if not apNames or not next(apNames) then
+  ngx.log(ngx.ERR, "Wireless access point data unavailable")
+  return ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE)
+end
+for i,v in ipairs(apNames) do
   ap_paths[i] = v.path.."ssid"
 end
 
-local wl_list = proxy.get(unpack(ap_paths)) or {}
+local wl_list = proxy.get(unpack(ap_paths))
+if not wl_list then
+  ngx.log(ngx.ERR, "Wireless SSID data unavailable")
+  return ngx.exit(ngx.HTTP_SERVICE_UNAVAILABLE)
+end
 local wls = {}
 local cur_ssid
 for i,v in ipairs(wl_list) do
@@ -940,19 +954,19 @@ end
 ngx.print(ui_helper.createHeader(T"Wireless", true, false))   ngx.print('\
 \
 <div class="modal-body update">\
-');  
+');
     local lp = require("web.lp")
     lp.setpath("/www/snippets/")
     lp.include("tabs-wireless.lp")
   ngx.print('\
 <form class="form-horizontal" method="post" action="');  ngx.print( ngx.var.request_uri ); ngx.print('">\
-');  
+');
 -- Do not display the navlist on the list if only 1 SSID
 if #wls > 0 then
   ngx.print('\
 <div class="span2">\
     <ul class="nav nav-list">\
-    ');  
+    ');
    local html = {}
     local prevradio = ""
     for i,v in ipairs(wls) do
@@ -1018,12 +1032,12 @@ if #wls > 0 then
     </ul>\
 </div>\
 <div class="span6">\
-');  
+');
 end
 
 local current_acl_mode = content["acl_mode"]
 if getWifiAnalyzer == nil then  ngx.print('\
-');  
+');
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) end
   ngx.print('\
@@ -1049,7 +1063,7 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
             },
         }
         -- Display infomation indicating it is a guest SSID
-		
+
         --html[#html + 1] = ui_helper.createAlertBlock(T"This is a guest network. The guest network has no local network access.", guest_alert)
 		html[#html + 1] = ui_helper.createLabel(T"Radio", labelstate)
 
@@ -1172,8 +1186,8 @@ if bandsteerhelpmsg then ngx.print(ui_helper.createMessages(bandsteerhelpmsg)) e
 if isguest ~= "1" then
 
 	html = {}
-	
-	
+
+
 	html[#html + 1] = '<legend class="advanced hide">'
     html[#html + 1] = T"Eco Settings"
     html[#html + 1] = "</legend>"
@@ -1185,7 +1199,7 @@ if isguest ~= "1" then
 	--html[#html + 1] = ui_helper.createSwitch(T"Single Rx Chain", "eco_single_rx_chain", content["eco_single_rx_chain"], advanced)
 
 	ngx.print(html)
-	
+
 end
 
     html = {}
@@ -1394,7 +1408,7 @@ end
 \
 </fieldset>\
 \
-        ');  
+        ');
         if not stbLimit then
             html = {}
             html[#html + 1] = "<fieldset class=\"advanced hide\">"
@@ -1453,7 +1467,7 @@ end
 ); ngx.print('\
 ');  end  ngx.print('\
 </fieldset>\
-');  
+');
 else
   --wifi analyzer handler
   local uri = ngx.var.uri
@@ -1485,7 +1499,7 @@ else
 ');  ngx.print( T"Please update your browser to use this page." ); ngx.print('\
 </canvas>\
 \
-');  
+');
     html = {}
 
     local freq = "2"
@@ -1812,15 +1826,15 @@ function get_random_color() {\
     });\
 </script>\
 \
-');  
+');
 --End of wifi analyzer
 end  ngx.print('\
-');  
+');
 -- Do not display the navlist on the list if only 1 SSID
 if #wls > 1 then
   ngx.print('\
 </div>\
-');  
+');
 end
   ngx.print('\
 </form>\
@@ -1940,4 +1954,4 @@ $(\'input[id="band_steer_enabled"]\').on("click", function(){\
     }\
 });\
 </script>\
-'); 
+');
