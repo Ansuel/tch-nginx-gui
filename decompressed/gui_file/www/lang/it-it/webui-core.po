@@ -4372,3 +4372,6 @@ msgstr "Nessuna autenticazione"
 
 msgid "Undetected"
 msgstr "Non rilevato"
+
+msgid "Select at least one interface for the bridge."
+msgstr "Seleziona almeno un’interfaccia per il bridge."

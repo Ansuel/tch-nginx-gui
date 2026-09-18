@@ -110,7 +110,9 @@ local function bridgeSelections(ifname, device)
   local lan, wan, knownWAN, knownLAN = {}, {}, {}, {}
   for _, option in ipairs(wanintfs) do knownWAN[option[1]] = true end
   for _, option in ipairs(lanintfs) do knownLAN[option[1]] = true end
-  for _, name in ipairs(interfaceList(table.concat({untaint(ifname or ""), untaint(device or "")}, " "))) do
+  local members = interfaceList(ifname)
+  for _, name in ipairs(interfaceList(device)) do members[#members + 1] = name end
+  for _, name in ipairs(interfaceList(members)) do
     if knownWAN[name] then
       wan[#wan + 1] = name
     else
@@ -192,22 +194,20 @@ local bridge_columns ={
     },
   },
 }
-local function tabletostring(tbl)
-  local tblvalue = ""
-  if "table" == type(tbl) then
-    for k,v in pairs(tbl) do
-      if v ~= nil and v ~= "" then
-        tblvalue = format("%s %s", tblvalue, v)
-      end
-    end
-  end
-  return tblvalue
-end
+-- Snapshot the submitted groups before validators mutate the shared object.
+-- The empty hidden checkbox means an unselected group is the scalar "".
+local selection_post = ngx.var.request_method == "POST" and ngx.req.get_post_args() or {}
+local selected_lan = interfaceList(selection_post.lanintf)
+local selected_wan = interfaceList(selection_post.wanintf)
 
 local function validateLANIfname(value, object, key)
-    local lanvalue = tabletostring(object["lanintf"])
-    local wanvalue = tabletostring(object["wanintf"])
-    object["lanintf"] = format("%s %s", tabletostring(object["lanintf"]), tabletostring(object["wanintf"]))
+    if #selected_lan == 0 and #selected_wan == 0 then
+      return nil, T"Select at least one interface for the bridge."
+    end
+    local members = {}
+    for _, name in ipairs(selected_lan) do members[#members + 1] = name end
+    for _, name in ipairs(selected_wan) do members[#members + 1] = name end
+    object["lanintf"] = table.concat(interfaceList(members), " ")
     return true
 end
 
@@ -279,6 +279,13 @@ local bridge_filter = function(data)
   return false
 end
 
+-- Keep all persisted members selectable when a failed submission replaces
+-- the displayed row with the user's (possibly empty) input.
+if ngx.var.request_method == "POST" then
+  local current = content_helper.loadTableData(bridge_options.basepath, bridge_columns, bridge_filter)
+  for _, row in ipairs(current) do bridgeSelections(row[3], row[4]) end
+end
+
 local bridge_data, bridge_helpmsg = post_helper.handleTableQuery(bridge_columns, bridge_options, bridge_filter, nil, bridge_validate)
 local function getIntfName(intf)
   for _, option in ipairs(wanintfs) do
@@ -288,11 +295,10 @@ local function getIntfName(intf)
 end
 
 
-local submitted = ngx.var.request_method == "POST" and ngx.req.get_post_args() or {}
 for index, row in ipairs(bridge_data) do
   local lan, wan = bridgeSelections(row[3], row[4])
   if bridge_options.editing == index and next(bridge_helpmsg or {}) then
-    lan, wan = interfaceList(submitted.lanintf), interfaceList(submitted.wanintf)
+    lan, wan = selected_lan, selected_wan
   end
   row[5] = {row[1], lan, wan}
 end
