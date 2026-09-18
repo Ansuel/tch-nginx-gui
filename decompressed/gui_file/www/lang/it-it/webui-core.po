@@ -4366,3 +4366,9 @@ msgstr "Non è disponibile alcun file di cattura. Esegui una nuova cattura e rip
 
 msgid "Download failed. The capture may no longer be available; run a new capture and try again."
 msgstr "Download non riuscito. La cattura potrebbe non essere più disponibile; esegui una nuova cattura e riprova."
+
+msgid "No authentication"
+msgstr "Nessuna autenticazione"
+
+msgid "Undetected"
+msgstr "Non rilevato"

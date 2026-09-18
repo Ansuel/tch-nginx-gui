@@ -34,7 +34,7 @@ local mapParams = {
 }
 
 local conreqauth_select = {
-      { "0", T'None'},
+      { "0", T'No authentication'},
       { "1", T'Basic'},
       { "2", T'Digest'}
 }
