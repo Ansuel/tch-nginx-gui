@@ -88,6 +88,43 @@ if success then
   end
 end
 
+-- Bridge membership is stored as a space-separated string, unlike the
+-- indexed lists normally consumed by checkboxgroup columns.
+local function interfaceList(value)
+  local result, seen = {}, {}
+  local values = type(value) == "table" and value or {value}
+  for _, item in ipairs(values) do
+    item = untaint(item)
+    if type(item) == "string" then
+      for name in item:gmatch("%S+") do
+        if not seen[name] then
+          result[#result + 1], seen[name] = name, true
+        end
+      end
+    end
+  end
+  return result
+end
+
+local function bridgeSelections(ifname, device)
+  local lan, wan, knownWAN, knownLAN = {}, {}, {}, {}
+  for _, option in ipairs(wanintfs) do knownWAN[option[1]] = true end
+  for _, option in ipairs(lanintfs) do knownLAN[option[1]] = true end
+  for _, name in ipairs(interfaceList(table.concat({untaint(ifname or ""), untaint(device or "")}, " "))) do
+    if knownWAN[name] then
+      wan[#wan + 1] = name
+    else
+      lan[#lan + 1] = name
+      -- Preserve members such as eth5 that are absent from the legacy list.
+      if not knownLAN[name] then
+        lanintfs[#lanintfs + 1] = {name, name}
+        knownLAN[name] = true
+      end
+    end
+  end
+  return lan, wan
+end
+
 local bridge_columns ={
   {
     header = T"Name",
@@ -244,29 +281,28 @@ end
 
 local bridge_data, bridge_helpmsg = post_helper.handleTableQuery(bridge_columns, bridge_options, bridge_filter, nil, bridge_validate)
 local function getIntfName(intf)
-  local returnval = ""
-  if intf == "wan1" then
-    returnval = wanintfs[1][2]
-  elseif intf == "wan2" then
-    returnval = wanintfs[2][2]
-  elseif intf == "wan3" then
-    returnval = wanintfs[3][2]
-  elseif intf == "wan4" then
-    returnval = wanintfs[4][2]
-  elseif intf == "voip" then
-    returnval = wanintfs[#wanintfs - 1][2]
-  elseif intf == "wan" then
-    returnval = wanintfs[#wanintfs][2]
+  for _, option in ipairs(wanintfs) do
+    if option[1] == intf then return option[2] end
   end
-  return returnval
+  return intf
+end
+
+
+local submitted = ngx.var.request_method == "POST" and ngx.req.get_post_args() or {}
+for index, row in ipairs(bridge_data) do
+  local lan, wan = bridgeSelections(row[3], row[4])
+  if bridge_options.editing == index and next(bridge_helpmsg or {}) then
+    lan, wan = interfaceList(submitted.lanintf), interfaceList(submitted.wanintf)
+  end
+  row[5] = {row[1], lan, wan}
 end
 
 local lanintf_num, wanintf_num = 3, 4
 for _, v in pairs(bridge_data) do
   local lanintf, wanintf = "", ""
   if v[lanintf_num] ~= "" then
-    for w in gmatch(v[lanintf_num], "%S+") do
-       w = untaint(w)
+    for member in gmatch(v[lanintf_num], "%S+") do
+       local w = untaint(member)
        if find(w, "^eth") or find(w, "^wl") then
           lanintf = format("%s&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%s", lanintf, w)
        else
