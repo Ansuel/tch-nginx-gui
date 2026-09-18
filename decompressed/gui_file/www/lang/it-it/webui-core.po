@@ -4360,3 +4360,9 @@ msgstr "Un aggiornamento firmware richiesto dall'ACS è stato bloccato. Rimuover
 
 msgid "Dismiss blocked update notice"
 msgstr "Rimuovi avviso di aggiornamento bloccato"
+
+msgid "No capture file is available. Run a new capture and try again."
+msgstr "Non è disponibile alcun file di cattura. Esegui una nuova cattura e riprova."
+
+msgid "Download failed. The capture may no longer be available; run a new capture and try again."
+msgstr "Download non riuscito. La cattura potrebbe non essere più disponibile; esegui una nuova cattura e riprova."
