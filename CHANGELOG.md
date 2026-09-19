@@ -4,6 +4,7 @@
 - Integrate Adblock, rsyncd, Ookla Speedtest and AdGuard Home in the Extensions card
 - Add a pinned and checksum-verified OpenSpeedTest LAN/Wi-Fi server on port 5678
 - Detect ARM-only extensions and keep AdGuard Home isolated from dnsmasq during first-run setup
+- Add a pinned, checksum-verified WireGuard userspace runtime with kernel-TUN capability gating and no automatic network or firewall changes
 
 ---------------------------------------------------------------------------
 # Mainline 18.3 Cobalt

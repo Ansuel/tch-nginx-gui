@@ -921,6 +921,89 @@ CONF_END
   esac
 }
 
+app_wireguard() {
+  wireguard_commit="7ac8fe29a7ab64eb0c9c9774bb36cf2c7648399e"
+  wireguard_version="2023.09.29"
+  wireguard_owned="/etc/.modgui-wireguard-go-installed"
+  wireguard_tmp="/tmp/wireguard-go-install.$$.ipk"
+
+  wireguard_tun_supported() {
+    [ -c /dev/net/tun ] && return 0
+    [ -r /proc/config.gz ] && zcat /proc/config.gz 2>/dev/null | grep -q '^CONFIG_TUN=y$'
+  }
+
+  case "$1" in
+  install)
+    if ! wireguard_tun_supported; then
+      echo "WireGuard requires firmware built with CONFIG_TUN=y; this kernel does not support TUN"
+      return 1
+    fi
+    case "$cpu_type" in
+    armv7*)
+      wireguard_arch="arm_cortex-a9"
+      wireguard_sha256="0cd9777ae758b180a140a11e24eea1716c001fcd2ef82adb0b43225b4929610b"
+      ;;
+    aarch64 | arm64)
+      wireguard_arch="arm_cortex-a53"
+      wireguard_sha256="1025b7cf216301c1f8db5d93a3cf683d11eea6d9a3bf19b620e27a083aefc0ff"
+      ;;
+    *)
+      echo "WireGuard userspace runtime is only supported on ARM devices"
+      return 1
+      ;;
+    esac
+    if opkg list-installed | grep -q '^wireguard-go '; then
+      set_extension_state wireguard_app 1
+      return 0
+    fi
+    require_free_space 8192 /overlay || return 1
+    curl -kfL "https://raw.githubusercontent.com/seud0nym/openwrt-wireguard-go/$wireguard_commit/repository/$wireguard_arch/base/wireguard-go_${wireguard_version}_${wireguard_arch}.ipk" \
+      --output "$wireguard_tmp" || {
+        rm -f "$wireguard_tmp"
+        return 1
+      }
+    wireguard_actual_sha256="$(sha256sum "$wireguard_tmp" | awk '{print $1}')"
+    if [ "$wireguard_actual_sha256" != "$wireguard_sha256" ]; then
+      echo "WireGuard package checksum mismatch"
+      rm -f "$wireguard_tmp"
+      return 1
+    fi
+    touch "$wireguard_owned"
+    if ! opkg install "$wireguard_tmp"; then
+      rm -f "$wireguard_tmp" "$wireguard_owned"
+      return 1
+    fi
+    rm -f "$wireguard_tmp"
+    if [ ! -x /usr/bin/wireguard-go ] || [ ! -x /usr/bin/wg-go ] ||
+      [ ! -x /lib/netifd/proto/wireguard.sh ]; then
+      opkg remove wireguard-go 2>/dev/null
+      rm -f "$wireguard_owned"
+      return 1
+    fi
+    set_extension_state wireguard_app 1
+    ;;
+  remove)
+    if uci show network 2>/dev/null | grep -q "\.proto='wireguard'"; then
+      echo "Remove WireGuard network interfaces before uninstalling the runtime"
+      return 1
+    fi
+    if [ -f "$wireguard_owned" ] && opkg list-installed | grep -q '^wireguard-go '; then
+      opkg remove wireguard-go || return 1
+    fi
+    rm -f "$wireguard_owned" "$wireguard_tmp"
+    if opkg list-installed | grep -q '^wireguard-go '; then
+      set_extension_state wireguard_app 1
+    else
+      set_extension_state wireguard_app 0
+    fi
+    ;;
+  *)
+    echo "Unsupported action"
+    return 1
+    ;;
+  esac
+}
+
 install_specific_files() {
 
   install() {
@@ -990,6 +1073,9 @@ call_app_type() {
     ;;
   openspeedtest)
     app_openspeedtest "$1"
+    ;;
+  wireguard)
+    app_wireguard "$1"
     ;;
   specificapp)
     install_specific_files "$1" "$3"

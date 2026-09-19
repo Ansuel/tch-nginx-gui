@@ -4384,3 +4384,12 @@ msgstr "OpenSpeedTest"
 
 msgid "Runs a browser-based LAN and Wi-Fi speed test directly against this gateway without using internet traffic."
 msgstr "Führt im Browser einen LAN- und WLAN-Geschwindigkeitstest direkt gegen dieses Gateway aus, ohne Internetverkehr zu verwenden."
+
+msgid "WireGuard"
+msgstr "WireGuard"
+
+msgid "Installs the checksum-verified userspace WireGuard runtime. It does not create tunnels, routes, keys or firewall rules."
+msgstr "Installiert die per Prüfsumme verifizierte WireGuard-Userspace-Laufzeit. Es werden keine Tunnel, Routen, Schlüssel oder Firewall-Regeln erstellt."
+
+msgid "Unavailable: this firmware kernel was built without TUN support. WireGuard cannot run safely on this device."
+msgstr "Nicht verfügbar: Der Kernel dieser Firmware wurde ohne TUN-Unterstützung erstellt. WireGuard kann auf diesem Gerät nicht sicher ausgeführt werden."

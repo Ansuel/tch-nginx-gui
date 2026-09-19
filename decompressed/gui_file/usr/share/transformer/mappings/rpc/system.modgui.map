@@ -333,6 +333,7 @@ local app_list = {
   "speedtest",
   "adguardhome",
   "openspeedtest",
+  "wireguard",
   "specificapp"
 }
 

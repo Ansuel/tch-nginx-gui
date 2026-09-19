@@ -154,6 +154,14 @@ create_gui_type() {
       uci set modgui.app.openspeedtest_app="0"
     fi
   fi
+  if [ ! "$(uci get -q modgui.app.wireguard_app)" ]; then
+    if [ -x /usr/bin/wireguard-go ] && [ -x /usr/bin/wg-go ] &&
+      [ -x /lib/netifd/proto/wireguard.sh ]; then
+      uci set modgui.app.wireguard_app="1"
+    else
+      uci set modgui.app.wireguard_app="0"
+    fi
+  fi
   if [ ! "$(uci get -q modgui.app.aria2_webui)" ]; then
     if [ -d /www/docroot/aria ]; then
       uci set modgui.app.aria2_webui="1"

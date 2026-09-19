@@ -13,6 +13,16 @@ local cputype = proxy.get("rpc.system.modgui.CPUtype")[1].value
 
 local extension_supported = 0
 
+local function kernel_has_tun()
+	local command = io.popen("[ -c /dev/net/tun ] || zcat /proc/config.gz 2>/dev/null | grep -q '^CONFIG_TUN=y$'; echo $?", "r")
+	if not command then
+		return false
+	end
+	local result = command:read("*line")
+	command:close()
+	return result == "0"
+end
+
 if marketing_version then
 	marketing_version = tonumber(marketing_version[1].value:sub(1,4))
 end
@@ -38,6 +48,9 @@ mapParams.openspeedtest_application = "uci.modgui.app.openspeedtest_app"
 if cputype:match("^armv7") or cputype == "aarch64" or cputype == "arm64" then
 	mapParams.speedtest_application = "uci.modgui.app.speedtest_app"
 	mapParams.adguardhome_application = "uci.modgui.app.adguardhome_app"
+	if kernel_has_tun() then
+		mapParams.wireguard_application = "uci.modgui.app.wireguard_app"
+	end
 end
 if marketing_version >= 17.3 then
 	mapParams.xupnp_application = "uci.modgui.app.xupnp_app"

@@ -23,6 +23,7 @@ local app_list = {
 	"speedtest",
 	"adguardhome",
 	"openspeedtest",
+	"wireguard",
 }
 
 local marketing_version = proxy.get("uci.version.version.@version[0].marketing_version")
@@ -74,6 +75,7 @@ mapParams.openspeedtest_application = "uci.modgui.app.openspeedtest_app"
 if cputype:match("^armv7") or cputype == "aarch64" or cputype == "arm64" then
 	mapParams.speedtest_application = "uci.modgui.app.speedtest_app"
 	mapParams.adguardhome_application = "uci.modgui.app.adguardhome_app"
+	mapParams.wireguard_application = "uci.modgui.app.wireguard_app"
 end
 if marketing_version >= 17.3 then
 	mapParams.xupnp_application = "uci.modgui.app.xupnp_app"
@@ -156,6 +158,16 @@ local function append_extension_card(state_key, app, title, description, link, c
 	end
 	html[#html+1] = "</fieldset>"
 	html[#html+1] = "</div>"
+end
+
+local function kernel_has_tun()
+	local command = io.popen("[ -c /dev/net/tun ] || zcat /proc/config.gz 2>/dev/null | grep -q '^CONFIG_TUN=y$'; echo $?", "r")
+	if not command then
+		return false
+	end
+	local result = command:read("*line")
+	command:close()
+	return result == "0"
 end
 
 if StateParams["luci_webui"] ~= nil then
@@ -334,6 +346,26 @@ if StateParams["openspeedtest_application"] ~= nil then
 		openspeedtest_link,
 		true
 	)
+end
+
+if StateParams["wireguard_application"] ~= nil then
+	if kernel_has_tun() then
+		append_extension_card(
+			"wireguard_application",
+			"wireguard",
+			T"WireGuard",
+			T"Installs the checksum-verified userspace WireGuard runtime. It does not create tunnels, routes, keys or firewall rules.",
+			nil,
+			false
+		)
+	else
+		html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
+		html[#html+1] = "<fieldset>"
+		html[#html+1] = '<legend>' .. T"WireGuard" .. '</legend>'
+		html[#html+1] = ui_helper.createAlertBlock(T"Unavailable: this firmware kernel was built without TUN support. WireGuard cannot run safely on this device.", specific_box)
+		html[#html+1] = "</fieldset>"
+		html[#html+1] = "</div>"
+	end
 end
 
 if StateParams["voipblock_for_mmpbx"] ~= nil then

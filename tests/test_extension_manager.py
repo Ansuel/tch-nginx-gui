@@ -21,6 +21,7 @@ EXTENSIONS = {
     "speedtest": "speedtest_app",
     "adguardhome": "adguardhome_app",
     "openspeedtest": "openspeedtest_app",
+    "wireguard": "wireguard_app",
 }
 
 
@@ -92,6 +93,39 @@ class ExtensionManager(unittest.TestCase):
         self.assertIn("server_openspeedtest.conf", openspeedtest)
         self.assertNotIn("/etc/nginx/nginx.conf", openspeedtest)
 
+    def test_wireguard_is_capability_gated_pinned_and_non_configuring(self):
+        installer = INSTALLER.read_text()
+        start = installer.index("app_wireguard()")
+        end = installer.index("install_specific_files()", start)
+        wireguard = installer[start:end]
+        modal = MODAL.read_text()
+
+        self.assertIn("CONFIG_TUN=y", wireguard)
+        self.assertIn(
+            'wireguard_commit="7ac8fe29a7ab64eb0c9c9774bb36cf2c7648399e"',
+            wireguard,
+        )
+        self.assertIn(
+            'wireguard_sha256="0cd9777ae758b180a140a11e24eea1716c001fcd2ef82adb0b43225b4929610b"',
+            wireguard,
+        )
+        self.assertIn("sha256sum", wireguard)
+        self.assertIn("raw.githubusercontent.com/seud0nym/openwrt-wireguard-go/$wireguard_commit", wireguard)
+        self.assertNotIn("uci set network.", wireguard)
+        self.assertNotIn("uci set firewall.", wireguard)
+        self.assertNotIn("51820", wireguard)
+        self.assertIn("kernel_has_tun", modal)
+        self.assertIn("built without TUN support", modal)
+
+    def test_wireguard_removal_is_ownership_aware(self):
+        installer = INSTALLER.read_text()
+        start = installer.index("app_wireguard()")
+        end = installer.index("install_specific_files()", start)
+        wireguard = installer[start:end]
+        self.assertIn('wireguard_owned="/etc/.modgui-wireguard-go-installed"', wireguard)
+        self.assertIn('[ -f "$wireguard_owned" ]', wireguard)
+        self.assertIn("opkg remove wireguard-go", wireguard)
+
     def test_arm_only_extensions_are_hidden_on_mips(self):
         modal = MODAL.read_text()
         card = CARD.read_text()
@@ -105,6 +139,7 @@ class ExtensionManager(unittest.TestCase):
             block = block[:block.index("end")]
             self.assertIn("speedtest_app", block)
             self.assertIn("adguardhome_app", block)
+            self.assertIn("wireguard_app", block)
 
     def test_shell_sources_parse(self):
         for source in (INSTALLER, CONFIG):
