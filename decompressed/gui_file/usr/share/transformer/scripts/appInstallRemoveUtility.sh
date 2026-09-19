@@ -526,6 +526,269 @@ app_xupnp() {
   esac
 }
 
+set_extension_state() {
+  uci set "modgui.app.$1=$2"
+  uci commit modgui
+}
+
+require_free_space() {
+  required_kb="$1"
+  target_path="$2"
+  available_kb="$(df -Pk "$target_path" 2>/dev/null | awk 'END {print $4}')"
+  case "$available_kb" in
+  *[!0-9]* | "")
+    echo "Unable to determine free space on $target_path"
+    return 1
+    ;;
+  esac
+  if [ "$available_kb" -lt "$required_kb" ]; then
+    echo "Not enough free space on $target_path: ${available_kb} KB available, ${required_kb} KB required"
+    return 1
+  fi
+}
+
+app_adblock() {
+  adblock_owned="/etc/.modgui-adblock-installed"
+  case "$1" in
+  install)
+    if ! opkg list-installed | grep -q '^adblock '; then
+      touch "$adblock_owned"
+    fi
+    opkg update || return 1
+    opkg install adblock || return 1
+    [ -n "$(uci get -q adblock.global)" ] || uci set adblock.global=adblock
+    uci set adblock.global.adb_enabled=1
+    uci set adblock.global.adb_dns=dnsmasq
+    uci set adblock.global.adb_fetchutil=curl
+    uci commit adblock
+    /etc/init.d/adblock enable
+    /etc/init.d/adblock restart
+    set_extension_state adblock_app 1
+    ;;
+  remove)
+    [ -x /etc/init.d/adblock ] && /etc/init.d/adblock stop
+    [ -x /etc/init.d/adblock ] && /etc/init.d/adblock disable
+    if opkg list-installed | grep -q '^adblock '; then
+      opkg remove adblock || return 1
+    fi
+    if [ -f "$adblock_owned" ]; then
+      rm -f /etc/config/adblock "$adblock_owned"
+    fi
+    set_extension_state adblock_app 0
+    ;;
+  start)
+    /etc/init.d/adblock restart
+    ;;
+  stop)
+    /etc/init.d/adblock stop
+    ;;
+  *)
+    echo "Unsupported action"
+    return 1
+    ;;
+  esac
+}
+
+app_rsyncd() {
+  rsync_owned="/etc/.modgui-rsync-installed"
+  rsyncd_owned="/etc/.modgui-rsyncd-installed"
+  case "$1" in
+  install)
+    opkg list-installed | grep -q '^rsync ' || touch "$rsync_owned"
+    opkg list-installed | grep -q '^rsyncd ' || touch "$rsyncd_owned"
+    opkg update || return 1
+    opkg install rsync rsyncd || return 1
+    /etc/init.d/rsyncd enable
+    set_extension_state rsyncd_app 1
+    ;;
+  remove)
+    [ -x /etc/init.d/rsyncd ] && /etc/init.d/rsyncd stop
+    [ -x /etc/init.d/rsyncd ] && /etc/init.d/rsyncd disable
+    if opkg list-installed | grep -q '^rsyncd '; then
+      opkg remove rsyncd || return 1
+    fi
+    if [ -f "$rsync_owned" ] && opkg list-installed | grep -q '^rsync '; then
+      opkg remove rsync || return 1
+    fi
+    if [ -f "$rsyncd_owned" ]; then
+      rm -f /etc/rsyncd.conf "$rsyncd_owned"
+    fi
+    rm -f "$rsync_owned"
+    set_extension_state rsyncd_app 0
+    ;;
+  start)
+    /etc/init.d/rsyncd start
+    ;;
+  stop)
+    /etc/init.d/rsyncd stop
+    ;;
+  *)
+    echo "Unsupported action"
+    return 1
+    ;;
+  esac
+}
+
+app_speedtest() {
+  speedtest_dir="/opt/ookla"
+  speedtest_bin="$speedtest_dir/speedtest"
+  speedtest_tmp="/tmp/speedtest-install.$$"
+
+  speedtest_process_is_running() {
+    [ -s /tmp/speedtest.pid ] || return 1
+    speedtest_pid="$(cat /tmp/speedtest.pid)"
+    case "$speedtest_pid" in
+    *[!0-9]* | "") return 1 ;;
+    esac
+    [ -r "/proc/$speedtest_pid/cmdline" ] || return 1
+    tr '\000' ' ' < "/proc/$speedtest_pid/cmdline" | grep -Fq "$speedtest_bin"
+  }
+
+  case "$1" in
+  install)
+    case "$cpu_type" in
+    armv7*) speedtest_arch="armel" ;;
+    aarch64 | arm64) speedtest_arch="aarch64" ;;
+    *)
+      echo "Speedtest is only supported on ARM devices"
+      return 1
+      ;;
+    esac
+    mkdir -p "$speedtest_dir" || return 1
+    require_free_space 12288 "$speedtest_dir" || return 1
+    mkdir -p "$speedtest_tmp" || return 1
+    curl -kfL "https://install.speedtest.net/app/cli/ookla-speedtest-1.2.0-linux-$speedtest_arch.tgz" \
+      --output "$speedtest_tmp/speedtest.tgz" || {
+        rm -rf "$speedtest_tmp"
+        return 1
+      }
+    tar -xzf "$speedtest_tmp/speedtest.tgz" -C "$speedtest_tmp" || {
+      rm -rf "$speedtest_tmp"
+      return 1
+    }
+    [ -x "$speedtest_tmp/speedtest" ] || {
+      rm -rf "$speedtest_tmp"
+      return 1
+    }
+    cp "$speedtest_tmp/speedtest" "$speedtest_bin"
+    chmod 755 "$speedtest_bin"
+    rm -rf "$speedtest_tmp"
+    set_extension_state speedtest_app 1
+    ;;
+  remove)
+    app_speedtest stop
+    rm -rf "$speedtest_dir"
+    rm -f /tmp/speedtest-result.txt /tmp/speedtest.pid
+    set_extension_state speedtest_app 0
+    ;;
+  start)
+    [ -x "$speedtest_bin" ] || return 1
+    if speedtest_process_is_running; then
+      echo "Speedtest is already running"
+      return 1
+    fi
+    (
+      "$speedtest_bin" --accept-license --accept-gdpr --format=human-readable > /tmp/speedtest-result.txt 2>&1
+      rm -f /tmp/speedtest.pid
+    ) &
+    echo $! > /tmp/speedtest.pid
+    ;;
+  stop)
+    if speedtest_process_is_running; then
+      kill "$speedtest_pid" 2>/dev/null
+    fi
+    rm -f /tmp/speedtest.pid
+    ;;
+  *)
+    echo "Unsupported action"
+    return 1
+    ;;
+  esac
+}
+
+app_adguardhome() {
+  adguard_dir="/opt/AdGuardHome"
+  adguard_bin="$adguard_dir/AdGuardHome"
+  adguard_config="$adguard_dir/AdGuardHome.yaml"
+  adguard_work="$adguard_dir/work"
+  adguard_tmp="/tmp/adguardhome-install.$$"
+
+  if awk '$2 == "/overlay" && $3 == "jffs2" { found=1 } END { exit !found }' /proc/mounts; then
+    adguard_work="/tmp/AdGuardHomeWork"
+  fi
+
+  case "$1" in
+  install)
+    case "$cpu_type" in
+    armv7*) adguard_arch="armv5" ;;
+    aarch64 | arm64) adguard_arch="arm64" ;;
+    *)
+      echo "AdGuard Home is only supported on ARM devices"
+      return 1
+      ;;
+    esac
+    mkdir -p /opt || return 1
+    require_free_space 49152 /opt || return 1
+    if [ -e "$adguard_dir" ]; then
+      echo "$adguard_dir already exists; refusing to overwrite it"
+      return 1
+    fi
+    mkdir -p "$adguard_tmp" || return 1
+    curl -kfL "https://static.adguard.com/adguardhome/release/AdGuardHome_linux_$adguard_arch.tar.gz" \
+      --output "$adguard_tmp/adguardhome.tgz" || {
+        rm -rf "$adguard_tmp"
+        return 1
+      }
+    tar -xzf "$adguard_tmp/adguardhome.tgz" -C "$adguard_tmp" || {
+      rm -rf "$adguard_tmp"
+      return 1
+    }
+    [ -x "$adguard_tmp/AdGuardHome/AdGuardHome" ] || {
+      rm -rf "$adguard_tmp"
+      return 1
+    }
+    mv "$adguard_tmp/AdGuardHome" "$adguard_dir" || {
+      rm -rf "$adguard_tmp"
+      return 1
+    }
+    rm -rf "$adguard_tmp"
+    mkdir -p "$adguard_work" || {
+      rm -rf "$adguard_dir"
+      return 1
+    }
+    chmod 700 "$adguard_work"
+    if ! "$adguard_bin" -s install -c "$adguard_config" -w "$adguard_work"; then
+      rm -rf "$adguard_dir"
+      rm -rf "$adguard_work"
+      return 1
+    fi
+    if [ "$adguard_work" = "/tmp/AdGuardHomeWork" ] && [ -f /etc/init.d/AdGuardHome ]; then
+      sed -i '/start_service() {/a\    mkdir -p /tmp/AdGuardHomeWork && chmod 700 /tmp/AdGuardHomeWork' /etc/init.d/AdGuardHome
+    fi
+    set_extension_state adguardhome_app 1
+    ;;
+  remove)
+    if [ -x "$adguard_bin" ]; then
+      "$adguard_bin" -s stop 2>/dev/null
+      "$adguard_bin" -s uninstall 2>/dev/null
+    fi
+    rm -rf "$adguard_dir"
+    [ "$adguard_work" = "/tmp/AdGuardHomeWork" ] && rm -rf "$adguard_work"
+    set_extension_state adguardhome_app 0
+    ;;
+  start)
+    "$adguard_bin" -s start
+    ;;
+  stop)
+    "$adguard_bin" -s stop
+    ;;
+  *)
+    echo "Unsupported action"
+    return 1
+    ;;
+  esac
+}
+
 install_specific_files() {
 
   install() {
@@ -580,6 +843,18 @@ call_app_type() {
     ;;
   blacklist)
     app_blacklist "$1" "$3"
+    ;;
+  adblock)
+    app_adblock "$1"
+    ;;
+  rsyncd)
+    app_rsyncd "$1"
+    ;;
+  speedtest)
+    app_speedtest "$1"
+    ;;
+  adguardhome)
+    app_adguardhome "$1"
     ;;
   specificapp)
     install_specific_files "$1" "$3"

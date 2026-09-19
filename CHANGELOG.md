@@ -1,4 +1,9 @@
 
+# Unreleased
+
+- Integrate Adblock, rsyncd, Ookla Speedtest and AdGuard Home in the Extensions card
+- Detect ARM-only extensions and keep AdGuard Home isolated from dnsmasq during first-run setup
+
 ---------------------------------------------------------------------------
 # Mainline 18.3 Cobalt
 

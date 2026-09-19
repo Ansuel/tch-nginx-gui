@@ -32,6 +32,12 @@ if cputype:match("mips") then
 end
 mapParams.aria2_webui = "uci.modgui.app.aria2_webui"
 mapParams.transmission_webui = "uci.modgui.app.transmission_webui"
+mapParams.adblock_application = "uci.modgui.app.adblock_app"
+mapParams.rsyncd_application = "uci.modgui.app.rsyncd_app"
+if cputype:match("^armv7") or cputype == "aarch64" or cputype == "arm64" then
+	mapParams.speedtest_application = "uci.modgui.app.speedtest_app"
+	mapParams.adguardhome_application = "uci.modgui.app.adguardhome_app"
+end
 if marketing_version >= 17.3 then
 	mapParams.xupnp_application = "uci.modgui.app.xupnp_app"
 end

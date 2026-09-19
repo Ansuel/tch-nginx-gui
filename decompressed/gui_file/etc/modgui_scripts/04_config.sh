@@ -118,6 +118,34 @@ eco_param() {
 
 create_gui_type() {
   #Gathers various infomation about what programs are installed and saves it in the modgui config file
+  if [ ! "$(uci get -q modgui.app.adblock_app)" ]; then
+    if [ -x /etc/init.d/adblock ]; then
+      uci set modgui.app.adblock_app="1"
+    else
+      uci set modgui.app.adblock_app="0"
+    fi
+  fi
+  if [ ! "$(uci get -q modgui.app.rsyncd_app)" ]; then
+    if [ -x /etc/init.d/rsyncd ]; then
+      uci set modgui.app.rsyncd_app="1"
+    else
+      uci set modgui.app.rsyncd_app="0"
+    fi
+  fi
+  if [ ! "$(uci get -q modgui.app.speedtest_app)" ]; then
+    if [ -x /opt/ookla/speedtest ]; then
+      uci set modgui.app.speedtest_app="1"
+    else
+      uci set modgui.app.speedtest_app="0"
+    fi
+  fi
+  if [ ! "$(uci get -q modgui.app.adguardhome_app)" ]; then
+    if [ -x /opt/AdGuardHome/AdGuardHome ]; then
+      uci set modgui.app.adguardhome_app="1"
+    else
+      uci set modgui.app.adguardhome_app="0"
+    fi
+  fi
   if [ ! "$(uci get -q modgui.app.aria2_webui)" ]; then
     if [ -d /www/docroot/aria ]; then
       uci set modgui.app.aria2_webui="1"
@@ -179,6 +207,7 @@ create_gui_type() {
     logecho "Reinstalling blacklist app after upgrade..."
     /usr/share/transformer/scripts/appInstallRemoveUtility.sh install blacklist >/dev/null
   fi
+  uci commit modgui
 }
 
 add_new_web_rule() {

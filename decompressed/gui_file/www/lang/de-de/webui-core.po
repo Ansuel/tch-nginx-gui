@@ -4349,8 +4349,32 @@ msgstr ""
 msgid "Modem Serial"
 msgstr ""
 
-msgstr "Debug Report & Advanced settings"
+msgid "Debug Report & Advanced settings"
 msgstr ""
 
 msgid "Change the default page in system-extra to set this GUI as default"
 msgstr ""
+
+msgid "Adblock"
+msgstr "Werbeblocker"
+
+msgid "Blocks advertising domains at router level. Requires working opkg feeds."
+msgstr "Blockiert Werbedomänen auf Routerebene. Erfordert funktionierende opkg-Paketquellen."
+
+msgid "Rsync daemon"
+msgstr "Rsync-Dienst"
+
+msgid "Installs the rsync daemon. Configure authenticated shares before starting the service."
+msgstr "Installiert den Rsync-Dienst. Richten Sie authentifizierte Freigaben ein, bevor Sie den Dienst starten."
+
+msgid "Ookla Speedtest"
+msgstr "Ookla Speedtest"
+
+msgid "Runs an internet speed test on this ARM gateway. Start runs a new test; reopen this window to see its result."
+msgstr "Führt einen Internet-Geschwindigkeitstest auf diesem ARM-Gateway aus. Start führt einen neuen Test aus; öffnen Sie dieses Fenster erneut, um das Ergebnis zu sehen."
+
+msgid "AdGuard Home"
+msgstr "AdGuard Home"
+
+msgid "Installs AdGuard Home without changing dnsmasq or port 53. Complete the safe first-run setup in its web interface."
+msgstr "Installiert AdGuard Home, ohne dnsmasq oder Port 53 zu ändern. Schließen Sie die sichere Ersteinrichtung in der Weboberfläche ab."

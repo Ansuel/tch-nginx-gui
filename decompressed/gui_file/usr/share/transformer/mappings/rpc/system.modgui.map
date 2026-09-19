@@ -328,6 +328,10 @@ local app_list = {
   "xupnp",
   "telstra",
   "amule",
+  "adblock",
+  "rsyncd",
+  "speedtest",
+  "adguardhome",
   "specificapp"
 }
 

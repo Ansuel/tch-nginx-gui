@@ -4375,3 +4375,27 @@ msgstr "Non rilevato"
 
 msgid "Select at least one interface for the bridge."
 msgstr "Seleziona almeno un’interfaccia per il bridge."
+
+msgid "Adblock"
+msgstr "Blocco pubblicità"
+
+msgid "Blocks advertising domains at router level. Requires working opkg feeds."
+msgstr "Blocca i domini pubblicitari a livello del router. Richiede repository opkg funzionanti."
+
+msgid "Rsync daemon"
+msgstr "Servizio rsync"
+
+msgid "Installs the rsync daemon. Configure authenticated shares before starting the service."
+msgstr "Installa il servizio rsync. Configurare condivisioni autenticate prima di avviare il servizio."
+
+msgid "Ookla Speedtest"
+msgstr "Speedtest Ookla"
+
+msgid "Runs an internet speed test on this ARM gateway. Start runs a new test; reopen this window to see its result."
+msgstr "Esegue un test della velocità Internet su questo gateway ARM. Avvia esegue un nuovo test; riaprire questa finestra per visualizzare il risultato."
+
+msgid "AdGuard Home"
+msgstr "AdGuard Home"
+
+msgid "Installs AdGuard Home without changing dnsmasq or port 53. Complete the safe first-run setup in its web interface."
+msgstr "Installa AdGuard Home senza modificare dnsmasq o la porta 53. Completare la configurazione iniziale in sicurezza dalla sua interfaccia web."

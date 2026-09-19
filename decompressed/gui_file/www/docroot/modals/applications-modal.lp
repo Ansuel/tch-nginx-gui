@@ -18,6 +18,10 @@ local app_list = {
 	"xupnp",
 	"telstra",
 	"amule",
+	"adblock",
+	"rsyncd",
+	"speedtest",
+	"adguardhome",
 }
 
 local marketing_version = proxy.get("uci.version.version.@version[0].marketing_version")
@@ -63,6 +67,12 @@ if cputype:match("mips") then
 end
 mapParams.aria2_webui = "uci.modgui.app.aria2_webui"
 mapParams.transmission_webui = "uci.modgui.app.transmission_webui"
+mapParams.adblock_application = "uci.modgui.app.adblock_app"
+mapParams.rsyncd_application = "uci.modgui.app.rsyncd_app"
+if cputype:match("^armv7") or cputype == "aarch64" or cputype == "arm64" then
+	mapParams.speedtest_application = "uci.modgui.app.speedtest_app"
+	mapParams.adguardhome_application = "uci.modgui.app.adguardhome_app"
+end
 if marketing_version >= 17.3 then
 	mapParams.xupnp_application = "uci.modgui.app.xupnp_app"
 end
@@ -113,6 +123,37 @@ for _, app in ipairs(app_list) do
 			}
 		}
 	end
+end
+
+local function escape_html(value)
+	return (value or ""):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"):gsub('"', "&quot;"):gsub("'", "&#39;")
+end
+
+local function append_extension_card(state_key, app, title, description, link, can_run, result)
+	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
+	html[#html+1] = "<fieldset>"
+	html[#html+1] = '<legend>' .. title .. '</legend>'
+	html[#html+1] = ui_helper.createAlertBlock(description, info_box)
+	html[#html+1] = T"State: "
+	html[#html+1] = "<strong>" .. title .. " " .. StateParams[state_key] .. T" installed" .. "</strong><br/>"
+	if link then
+		html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. link .. '">' .. link .. "</a><br/>"
+	end
+	if result and result ~= "" then
+		html[#html+1] = '<pre style="white-space:pre-wrap;max-height:12rem;overflow:auto;">' .. escape_html(result) .. '</pre>'
+	end
+	html[#html+1] = "<br/>"
+	if mapParams[state_key] == "1" then
+		if can_run then
+			html[#html+1] = ui_helper.createSimpleButton(T"Start" .. " " .. title, "fa fa-play", btn_table[app].start)
+			html[#html+1] = ui_helper.createSimpleButton(T"Stop" .. " " .. title, "fa fa-stop", btn_table[app].stop)
+		end
+		html[#html+1] = ui_helper.createSimpleButton(T"Remove" .. " " .. title, "fa fa-times-circle", btn_table[app].remove)
+	else
+		html[#html+1] = ui_helper.createSimpleButton(T"Install" .. " " .. title, "fa fa-download", btn_table[app].install)
+	end
+	html[#html+1] = "</fieldset>"
+	html[#html+1] = "</div>"
 end
 
 if StateParams["luci_webui"] ~= nil then
@@ -205,6 +246,80 @@ if StateParams["transmission_webui"] ~= nil then
 	end
 	html[#html+1] = "</fieldset>"
 	html[#html+1] = "</div>"
+end
+
+if StateParams["adblock_application"] ~= nil then
+	append_extension_card(
+		"adblock_application",
+		"adblock",
+		T"Adblock",
+		T"Blocks advertising domains at router level. Requires working opkg feeds.",
+		nil,
+		true
+	)
+end
+
+if StateParams["rsyncd_application"] ~= nil then
+	append_extension_card(
+		"rsyncd_application",
+		"rsyncd",
+		T"Rsync daemon",
+		T"Installs the rsync daemon. Configure authenticated shares before starting the service.",
+		nil,
+		true
+	)
+end
+
+if StateParams["speedtest_application"] ~= nil then
+	local speedtest_result = ""
+	local speedtest_file = io.open("/tmp/speedtest-result.txt", "r")
+	if speedtest_file then
+		speedtest_result = speedtest_file:read("*all") or ""
+		speedtest_file:close()
+		if #speedtest_result > 4096 then
+			speedtest_result = speedtest_result:sub(-4096)
+		end
+	end
+	append_extension_card(
+		"speedtest_application",
+		"speedtest",
+		T"Ookla Speedtest",
+		T"Runs an internet speed test on this ARM gateway. Start runs a new test; reopen this window to see its result.",
+		nil,
+		true,
+		speedtest_result
+	)
+end
+
+if StateParams["adguardhome_application"] ~= nil then
+	local adguard_port = "3000"
+	local adguard_config = io.open("/opt/AdGuardHome/AdGuardHome.yaml", "r")
+	if adguard_config then
+		local in_http = false
+		for line in adguard_config:lines() do
+			if line:match("^http:%s*$") then
+				in_http = true
+			elseif line:match("^%S") then
+				in_http = false
+			elseif in_http then
+				local configured_port = line:match("address:%s*.*:(%d+)%s*$")
+				if configured_port then
+					adguard_port = configured_port
+					break
+				end
+			end
+		end
+		adguard_config:close()
+	end
+	local adguard_link = format("http://%s:%s", mapParams.local_ip_modem, adguard_port)
+	append_extension_card(
+		"adguardhome_application",
+		"adguardhome",
+		T"AdGuard Home",
+		T"Installs AdGuard Home without changing dnsmasq or port 53. Complete the safe first-run setup in its web interface.",
+		adguard_link,
+		true
+	)
 end
 
 if StateParams["voipblock_for_mmpbx"] ~= nil then
