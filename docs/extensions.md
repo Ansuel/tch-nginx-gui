@@ -12,6 +12,7 @@ background, so reopen the card after an operation to refresh its state.
 | OpenSpeedTest | All | Pinned OpenSpeedTest archive | Browser-based LAN/Wi-Fi test on port 5678; requires about 40 MB of free persistent storage. |
 | AdGuard Home | ARM, ARM64 | Official AdGuard stable archive | Installed under `/opt/AdGuardHome`; initial setup is available on port 3000. |
 | WireGuard | ARM, ARM64 with kernel TUN | Pinned `openwrt-wireguard-go` package | Installs only the userspace runtime; it creates no interface, key, route or firewall rule. |
+| L2TP/IPsec VPN | ARMv7 and MIPS | Pinned `modgui-vpn`, configured opkg feeds | Adds the legacy strongSwan/xl2tpd server card; installation leaves the server disabled. |
 
 AdGuard Home installation deliberately does not stop dnsmasq, claim DNS port 53,
 or change DHCP settings. Complete its first-run wizard and choose non-conflicting
@@ -49,6 +50,24 @@ WireGuard compatibility was also checked on that DGA4130. Firmware 19.4 reports
 verified to refuse installation without downloading a package or changing network,
 firewall, feed or extension state. A live tunnel cannot be validated on this firmware;
 firmware 20.3.c or 21.4 with `CONFIG_TUN=y` is required by the upstream runtime.
+
+The L2TP/IPsec integration pins `modgui-vpn` to merge commit
+`5c9015930961848259aa883cbe1a20c02a227de4` and verifies its `1.1-0` IPK before
+installation. It refuses to overwrite a pre-existing strongSwan setup and records
+only the dependencies it installed so removal does not delete packages already on
+the gateway. The generated GUI assets are backed up under `/opt` and restored after
+a GUI update, fixing the disappearing-card issue. The persistent xl2tpd template
+uses `max retries = 100` to mitigate the Android 8–11 90-second disconnect, and the
+dedicated IPsec init wrapper closes the inherited procd lock before strongSwan
+daemonizes, preventing later restart/stop commands from hanging. The package also
+preserves unrelated CHAP users and restores stock xl2tpd/strongSwan files and init
+enablement on removal. Hardware crypto/SPU is never enabled because it has been
+associated with reproducible router crashes on some DGA413x configurations.
+
+L2TP/IPsec with a shared key and MSCHAPv2 is retained for compatibility but is a
+legacy VPN design. Android 12 and later removed native L2TP support. Prefer IKEv2 or
+WireGuard for new deployments. Enabling this server opens UDP 500 and 4500, ESP,
+and encrypted UDP 1701 on WAN; installation by itself does not enable those rules.
 
 After validation, all test packages, services, configuration created by the tests,
 open ports and temporary files were removed. dnsmasq and the router web interface

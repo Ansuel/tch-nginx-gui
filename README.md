@@ -36,7 +36,7 @@ with many fixes and new features like:
 <li>Ability to install LuCI GUI or sharing service like transmission</li>
 <li>Spoofing of firmware version to bypass CWMP controls</li>
 <li>Select many skins for the GUI, like the Fritz!Box one</li>
-<li>Install extensions like: Telstra Basic GUI, LuCI, Transmission, Aria2, Adblock, rsyncd, Ookla Speedtest, OpenSpeedTest, AdGuard Home and WireGuard on TUN-capable firmware</li>
+<li>Install extensions like: Telstra Basic GUI, LuCI, Transmission, Aria2, Adblock, rsyncd, Ookla Speedtest, OpenSpeedTest, AdGuard Home, WireGuard on TUN-capable firmware and the legacy L2TP/IPsec VPN server</li>
 <li>And many others...</li>
 </ul>
 <p><strong>You can help the development of this GUI by reporting issues or suggesting improvements.</strong><br /><strong>All the infomation can be found here and on the ilpuntotecnico forum (https://www.ilpuntotecnico.com/forum) (To write on this forum you need to write in the presentation section after the first login).</strong></p>

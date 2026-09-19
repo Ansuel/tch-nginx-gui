@@ -1004,6 +1004,200 @@ app_wireguard() {
   esac
 }
 
+app_l2tpipsec() {
+  l2tpipsec_commit="5c9015930961848259aa883cbe1a20c02a227de4"
+  l2tpipsec_sha256="5604db2e143c339eb1db0cb980e30492c2e5f57c4e35f06b52d224fb4822de18"
+  l2tpipsec_tmp="/tmp/modgui-vpn-install.$$.ipk"
+  l2tpipsec_before="/tmp/modgui-vpn-packages-before.$$"
+  l2tpipsec_owned="/etc/.modgui-l2tp-ipsec-installed"
+  l2tpipsec_packages="/etc/.modgui-l2tp-ipsec-packages"
+  l2tpipsec_gui_backup="/opt/modgui-l2tp-ipsec-gui.tar.gz"
+
+  l2tpipsec_backup_gui() {
+    mkdir -p /opt || return 1
+    tar -czf "$l2tpipsec_gui_backup" -C / \
+      www/cards/014_l2tp-ipsec-server.lp \
+      www/docroot/modals/l2tp-ipsec-server-modal.lp \
+      www/lang/it-it/webui-l2tp-ipsec-server.po \
+      usr/share/transformer/commitapply/uci_ipsec.ca \
+      usr/share/transformer/commitapply/uci_l2tp_ipsec_server.ca \
+      usr/share/transformer/mappings/rpc/l2tp_ipsec_server.map \
+      usr/share/transformer/mappings/uci/ipsec.map \
+      usr/share/transformer/mappings/uci/l2tp_ipsec_server.map || return 1
+  }
+
+  l2tpipsec_repair_gui() {
+    [ -f "$l2tpipsec_gui_backup" ] || return 1
+    tar -xzf "$l2tpipsec_gui_backup" -C / || return 1
+    uci -q del_list web.ruleset_main.rules=l2tpipsecservermodal
+    uci add_list web.ruleset_main.rules=l2tpipsecservermodal
+    uci set web.l2tpipsecservermodal=rule
+    uci set web.l2tpipsecservermodal.target=/modals/l2tp-ipsec-server-modal.lp
+    uci -q del_list web.l2tpipsecservermodal.roles=admin
+    uci -q del_list web.l2tpipsecservermodal.roles=engineer
+    uci -q del_list web.l2tpipsecservermodal.roles=superuser
+    uci add_list web.l2tpipsecservermodal.roles=admin
+    uci add_list web.l2tpipsecservermodal.roles=engineer
+    uci add_list web.l2tpipsecservermodal.roles=superuser
+    uci set web.l2tpipsecserver_card=card
+    uci set web.l2tpipsecserver_card.card=014_l2tp-ipsec-server.lp
+    uci set web.l2tpipsecserver_card.modal=l2tpipsecservermodal
+    uci commit web
+    /etc/init.d/transformer restart
+    /etc/init.d/nginx restart
+  }
+
+  l2tpipsec_set_enabled() {
+    uci set "vpn.l2tpipsecserver.enable=$1"
+    uci set "ipsec.l2tp.enabled=$1"
+    uci commit vpn
+    uci commit ipsec
+  }
+
+  l2tpipsec_remove_owned_package() {
+    package="$1"
+    grep -Fxq "$package" "$l2tpipsec_packages" || return 0
+    if opkg status "$package" 2>/dev/null | grep -q '^Status:.*installed'; then
+      opkg remove "$package" 2>/dev/null
+    fi
+  }
+
+  l2tpipsec_remove_owned_packages() {
+    [ -f "$l2tpipsec_packages" ] || return 0
+
+    # strongswan-default depends on every plugin; remove it before the modules,
+    # then remove the two frontends before the shared strongSwan base package.
+    l2tpipsec_remove_owned_package strongswan-default
+    grep '^strongswan-mod-' "$l2tpipsec_packages" | while read -r package; do
+      l2tpipsec_remove_owned_package "$package"
+    done
+    l2tpipsec_remove_owned_package strongswan-charon
+    l2tpipsec_remove_owned_package strongswan-ipsec
+    l2tpipsec_remove_owned_package strongswan
+
+    awk '{ packages[NR]=$0 } END { for (i=NR; i>0; i--) print packages[i] }' "$l2tpipsec_packages" |
+      while read -r package; do
+        case "$package" in
+        modgui-vpn | strongswan | strongswan-*) continue ;;
+        esac
+        l2tpipsec_remove_owned_package "$package"
+      done
+  }
+
+  l2tpipsec_record_new_packages() {
+    : > "$l2tpipsec_packages" || return 1
+    opkg list-installed | awk '{print $1}' | while read -r package; do
+      grep -Fxq "$package" "$l2tpipsec_before" || echo "$package" >> "$l2tpipsec_packages"
+    done
+  }
+
+  l2tpipsec_rollback_install() {
+    l2tpipsec_record_new_packages
+    opkg list-installed | grep -q '^modgui-vpn ' && opkg remove modgui-vpn 2>/dev/null
+    l2tpipsec_remove_owned_packages
+    rm -f "$l2tpipsec_packages" "$l2tpipsec_tmp" "$l2tpipsec_before"
+  }
+
+  case "$1" in
+  install)
+    case "$cpu_type" in
+    armv7* | mips*) ;;
+    *)
+      echo "L2TP/IPsec runtime is only supported on ARMv7 and MIPS Technicolor gateways"
+      return 1
+      ;;
+    esac
+    if opkg list-installed | grep -q '^modgui-vpn '; then
+      set_extension_state l2tpipsec_app 1
+      return 0
+    fi
+    if opkg list-installed | grep -q '^strongswan'; then
+      echo "A pre-existing strongSwan installation was found; refusing to overwrite its configuration"
+      return 1
+    fi
+    require_free_space 16384 /overlay || return 1
+    opkg list-installed | awk '{print $1}' > "$l2tpipsec_before" || return 1
+    opkg update || {
+      rm -f "$l2tpipsec_before"
+      return 1
+    }
+    opkg install xl2tpd strongswan-default || {
+      l2tpipsec_rollback_install
+      return 1
+    }
+    curl -kfL "https://raw.githubusercontent.com/FrancYescO/sharing_tg789/$l2tpipsec_commit/modgui-vpn_1.1-0_all.ipk" \
+      --output "$l2tpipsec_tmp" || {
+        l2tpipsec_rollback_install
+        return 1
+      }
+    l2tpipsec_actual_sha256="$(sha256sum "$l2tpipsec_tmp" | awk '{print $1}')"
+    if [ "$l2tpipsec_actual_sha256" != "$l2tpipsec_sha256" ]; then
+      echo "L2TP/IPsec package checksum mismatch"
+      l2tpipsec_rollback_install
+      return 1
+    fi
+    if ! opkg install "$l2tpipsec_tmp"; then
+      l2tpipsec_rollback_install
+      return 1
+    fi
+    rm -f "$l2tpipsec_tmp"
+    if ! xl2tpd -v 2>&1 | grep -q '^xl2tpd version:' || ! ipsec version >/dev/null 2>&1; then
+      echo "Installed L2TP/IPsec binaries are incompatible with this gateway"
+      l2tpipsec_rollback_install
+      return 1
+    fi
+    l2tpipsec_record_new_packages || return 1
+    rm -f "$l2tpipsec_before"
+    touch "$l2tpipsec_owned"
+    l2tpipsec_backup_gui || return 1
+    l2tpipsec_set_enabled 0
+    /etc/init.d/l2tp-ipsec-server stop 2>/dev/null
+    /etc/init.d/modgui-ipsec stop 2>/dev/null
+    set_extension_state l2tpipsec_app 1
+    ;;
+  remove)
+    if [ -f "$l2tpipsec_owned" ]; then
+      l2tpipsec_set_enabled 0 2>/dev/null
+      [ -x /etc/init.d/l2tp-ipsec-server ] && /etc/init.d/l2tp-ipsec-server stop 2>/dev/null
+      [ -x /etc/init.d/modgui-ipsec ] && /etc/init.d/modgui-ipsec stop 2>/dev/null
+      opkg list-installed | grep -q '^modgui-vpn ' && opkg remove modgui-vpn
+      l2tpipsec_remove_owned_packages
+    fi
+    uci -q delete web.l2tpipsecserver_card
+    uci -q delete web.l2tpipsecservercard
+    uci -q delete web.l2tpipsecservermodal
+    uci -q del_list web.ruleset_main.rules=l2tpipsecservermodal
+    uci commit web
+    rm -f "$l2tpipsec_owned" "$l2tpipsec_packages" "$l2tpipsec_gui_backup" \
+      "$l2tpipsec_tmp" "$l2tpipsec_before"
+    if opkg list-installed | grep -q '^modgui-vpn '; then
+      set_extension_state l2tpipsec_app 1
+    else
+      set_extension_state l2tpipsec_app 0
+    fi
+    /etc/init.d/transformer restart
+    /etc/init.d/nginx restart
+    ;;
+  start)
+    l2tpipsec_set_enabled 1
+    /etc/init.d/modgui-ipsec restart || return 1
+    /etc/init.d/l2tp-ipsec-server restart
+    ;;
+  stop)
+    l2tpipsec_set_enabled 0
+    /etc/init.d/l2tp-ipsec-server stop
+    /etc/init.d/modgui-ipsec stop
+    ;;
+  refresh)
+    l2tpipsec_repair_gui
+    ;;
+  *)
+    echo "Unsupported action"
+    return 1
+    ;;
+  esac
+}
+
 install_specific_files() {
 
   install() {
@@ -1076,6 +1270,9 @@ call_app_type() {
     ;;
   wireguard)
     app_wireguard "$1"
+    ;;
+  l2tpipsec)
+    app_l2tpipsec "$1"
     ;;
   specificapp)
     install_specific_files "$1" "$3"

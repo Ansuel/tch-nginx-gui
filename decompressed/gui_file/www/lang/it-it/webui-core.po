@@ -4414,3 +4414,9 @@ msgstr "Installa il runtime WireGuard userspace verificato tramite checksum. Non
 
 msgid "Unavailable: this firmware kernel was built without TUN support. WireGuard cannot run safely on this device."
 msgstr "Non disponibile: il kernel di questo firmware è stato compilato senza supporto TUN. WireGuard non può funzionare in sicurezza su questo dispositivo."
+
+msgid "L2TP/IPsec VPN"
+msgstr "VPN L2TP/IPsec"
+
+msgid "Installs the legacy strongSwan and xl2tpd VPN server card. The server stays disabled after installation; prefer IKEv2 or WireGuard for new deployments."
+msgstr "Installa la scheda del server VPN legacy strongSwan e xl2tpd. Il server resta disabilitato dopo l’installazione; per nuove configurazioni preferire IKEv2 o WireGuard."

@@ -22,6 +22,7 @@ EXTENSIONS = {
     "adguardhome": "adguardhome_app",
     "openspeedtest": "openspeedtest_app",
     "wireguard": "wireguard_app",
+    "l2tpipsec": "l2tpipsec_app",
 }
 
 
@@ -125,6 +126,61 @@ class ExtensionManager(unittest.TestCase):
         self.assertIn('wireguard_owned="/etc/.modgui-wireguard-go-installed"', wireguard)
         self.assertIn('[ -f "$wireguard_owned" ]', wireguard)
         self.assertIn("opkg remove wireguard-go", wireguard)
+
+    def test_l2tpipsec_is_pinned_fixed_and_starts_disabled(self):
+        installer = INSTALLER.read_text()
+        start = installer.index("app_l2tpipsec()")
+        end = installer.index("install_specific_files()", start)
+        vpn = installer[start:end]
+
+        self.assertIn(
+            'l2tpipsec_commit="5c9015930961848259aa883cbe1a20c02a227de4"',
+            vpn,
+        )
+        self.assertIn(
+            'l2tpipsec_sha256="5604db2e143c339eb1db0cb980e30492c2e5f57c4e35f06b52d224fb4822de18"',
+            vpn,
+        )
+        self.assertIn("sha256sum", vpn)
+        self.assertIn("modgui-vpn_1.1-0_all.ipk", vpn)
+        self.assertIn("grep -q '^xl2tpd version:'", vpn)
+        self.assertIn("/etc/init.d/modgui-ipsec restart", vpn)
+        self.assertNotIn("l2tpipsec_fix_runtime", vpn)
+        self.assertIn("modgui-l2tp-ipsec-gui.tar.gz", vpn)
+        self.assertIn("l2tpipsec_set_enabled 0", vpn)
+        self.assertNotIn("--force-overwrite", vpn)
+        self.assertNotIn("spuctl", vpn)
+        self.assertNotIn("/etc/init.d/ipsec restart", vpn)
+        self.assertGreaterEqual(vpn.count("l2tpipsec_rollback_install"), 5)
+
+    def test_l2tpipsec_removal_tracks_owned_packages(self):
+        installer = INSTALLER.read_text()
+        start = installer.index("app_l2tpipsec()")
+        end = installer.index("install_specific_files()", start)
+        vpn = installer[start:end]
+        self.assertIn(".modgui-l2tp-ipsec-packages", vpn)
+        self.assertIn("grep -Fxq", vpn)
+        self.assertIn("opkg remove \"$package\"", vpn)
+        self.assertLess(
+            vpn.index("l2tpipsec_remove_owned_package strongswan-default"),
+            vpn.index("grep '^strongswan-mod-'"),
+        )
+        self.assertLess(
+            vpn.index("l2tpipsec_remove_owned_package strongswan-ipsec"),
+            vpn.index("l2tpipsec_remove_owned_package strongswan\n"),
+        )
+        self.assertIn("delete web.l2tpipsecserver_card", vpn)
+
+    def test_l2tpipsec_is_only_shown_on_supported_cpus(self):
+        modal = MODAL.read_text()
+        card = CARD.read_text()
+        architecture_gate = (
+            'if cputype:match("^armv7") or cputype:match("^mips") then\n'
+            '\tmapParams.l2tpipsec_application = "uci.modgui.app.l2tpipsec_app"\n'
+            "end"
+        )
+        self.assertIn(architecture_gate, modal)
+        self.assertIn(architecture_gate, card)
 
     def test_arm_only_extensions_are_hidden_on_mips(self):
         modal = MODAL.read_text()

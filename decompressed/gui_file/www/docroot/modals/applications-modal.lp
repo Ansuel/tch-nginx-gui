@@ -24,6 +24,7 @@ local app_list = {
 	"adguardhome",
 	"openspeedtest",
 	"wireguard",
+	"l2tpipsec",
 }
 
 local marketing_version = proxy.get("uci.version.version.@version[0].marketing_version")
@@ -72,6 +73,9 @@ mapParams.transmission_webui = "uci.modgui.app.transmission_webui"
 mapParams.adblock_application = "uci.modgui.app.adblock_app"
 mapParams.rsyncd_application = "uci.modgui.app.rsyncd_app"
 mapParams.openspeedtest_application = "uci.modgui.app.openspeedtest_app"
+if cputype:match("^armv7") or cputype:match("^mips") then
+	mapParams.l2tpipsec_application = "uci.modgui.app.l2tpipsec_app"
+end
 if cputype:match("^armv7") or cputype == "aarch64" or cputype == "arm64" then
 	mapParams.speedtest_application = "uci.modgui.app.speedtest_app"
 	mapParams.adguardhome_application = "uci.modgui.app.adguardhome_app"
@@ -366,6 +370,17 @@ if StateParams["wireguard_application"] ~= nil then
 		html[#html+1] = "</fieldset>"
 		html[#html+1] = "</div>"
 	end
+end
+
+if StateParams["l2tpipsec_application"] ~= nil then
+	append_extension_card(
+		"l2tpipsec_application",
+		"l2tpipsec",
+		T"L2TP/IPsec VPN",
+		T"Installs the legacy strongSwan and xl2tpd VPN server card. The server stays disabled after installation; prefer IKEv2 or WireGuard for new deployments.",
+		nil,
+		true
+	)
 end
 
 if StateParams["voipblock_for_mmpbx"] ~= nil then

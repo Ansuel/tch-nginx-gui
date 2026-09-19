@@ -162,6 +162,20 @@ create_gui_type() {
       uci set modgui.app.wireguard_app="0"
     fi
   fi
+  if [ ! "$(uci get -q modgui.app.l2tpipsec_app)" ]; then
+    if opkg list-installed | grep -q '^modgui-vpn '; then
+      uci set modgui.app.l2tpipsec_app="1"
+    else
+      uci set modgui.app.l2tpipsec_app="0"
+    fi
+  fi
+  if [ "$(uci get -q modgui.app.l2tpipsec_app)" = "1" ] &&
+    [ -f /opt/modgui-l2tp-ipsec-gui.tar.gz ] &&
+    { [ ! -f /www/cards/014_l2tp-ipsec-server.lp ] ||
+      [ ! -f /usr/share/transformer/mappings/rpc/l2tp_ipsec_server.map ]; }; then
+    logecho "Restoring L2TP/IPsec GUI files after upgrade..."
+    /usr/share/transformer/scripts/appInstallRemoveUtility.sh refresh l2tpipsec >/dev/null 2>&1
+  fi
   if [ ! "$(uci get -q modgui.app.aria2_webui)" ]; then
     if [ -d /www/docroot/aria ]; then
       uci set modgui.app.aria2_webui="1"

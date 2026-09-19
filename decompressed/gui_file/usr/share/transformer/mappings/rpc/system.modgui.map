@@ -334,6 +334,7 @@ local app_list = {
   "adguardhome",
   "openspeedtest",
   "wireguard",
+  "l2tpipsec",
   "specificapp"
 }
 
