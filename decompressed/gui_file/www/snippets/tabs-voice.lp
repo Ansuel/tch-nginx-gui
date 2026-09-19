@@ -3,7 +3,6 @@
 -- Enable localization
 gettext.textdomain('webui-voice')
 
-local getProxy = require("datamodel").get
 local tinsert = table.insert
 local content_helper = require("web.content_helper")
 
@@ -20,10 +19,9 @@ local items = {
 
 if content.mmpbx_state == "1" then
 
-	if content.emission_state == "1" and 
-		variant == "Technicolor TG799vac" or variant == "Technicolor TG800vac" then
-		
-		tinsert(items, tinsert(items, {"mmpbx-dect-modal.lp", T"DECT"}))
+	if content.emission_state == "1" and
+		(content.variant == "Technicolor TG799vac" or content.variant == "Technicolor TG800vac") then
+		tinsert(items, {"mmpbx-dect-modal.lp", T"DECT"})
 	end
 	
 	tinsert(items, {"mmpbx-contacts-modal.lp", T"Phone Book"})
@@ -35,6 +33,19 @@ if content.mmpbx_state == "1" then
 	tinsert(items, {"mmpbx-sipdevice-modal.lp", T"SIP Device"})
 	tinsert(items, {"mmpbx-codec-modal.lp", T"Codec"})
 
+end
+
+local function file_exists(path)
+	local file = io.open(path, "r")
+	if file then
+		file:close()
+		return true
+	end
+	return false
+end
+
+if file_exists("/etc/init.d/asterisk") and file_exists("/etc/init.d/pbx-asterisk") then
+	tinsert(items, {"asterisk-profile-modal.lp", T"Asterisk"})
 end
 
 require("sharedModalTabHelper").createModalTab(items)

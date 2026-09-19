@@ -1,0 +1,19 @@
+local uci = mapper("uci_1to1")
+
+uci.registerConfigMap("pbx-voip")
+
+uci.registerNamedMultiMap({
+  config = "pbx-voip",
+  type = "voip_provider",
+  options = {
+    "name",
+    "defaultuser",
+    "secret",
+    "host",
+    "register",
+    "make_outgoing_calls",
+    "fromdomain",
+    "port",
+    "outboundproxy",
+  },
+})

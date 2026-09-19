@@ -40,6 +40,7 @@ uci:foreach('web', 'ruleset', function(s)
 local check_rule = {
 	{ name = 'error', target = '/error.lua' },
 	{ name = 'applicationsmodal', target = '/modals/applications-modal.lp' },
+	{ name = 'asteriskprofilemodal', target = '/modals/asterisk-profile-modal.lp' },
 	{ name = 'diagnosticsxdslgraphicsmodal', target = '/modals/diagnostics-xdsl-graphics-modal.lp' },
 	{ name = 'mwanmodal', target = '/modals/mwan-modal.lp' },
 	{ name = 'fastcacheoptionmodal', target = '/modals/fast-cache-option-modal.lp' },

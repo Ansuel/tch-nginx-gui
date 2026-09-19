@@ -1,0 +1,3 @@
+^pbx%-advanced%. /usr/share/transformer/scripts/applyAsteriskConfig.sh
+^pbx%-users%. /usr/share/transformer/scripts/applyAsteriskConfig.sh
+^pbx%-voip%. /usr/share/transformer/scripts/applyAsteriskConfig.sh
