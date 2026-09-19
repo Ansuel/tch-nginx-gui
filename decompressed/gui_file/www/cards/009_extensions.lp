@@ -34,6 +34,7 @@ mapParams.aria2_webui = "uci.modgui.app.aria2_webui"
 mapParams.transmission_webui = "uci.modgui.app.transmission_webui"
 mapParams.adblock_application = "uci.modgui.app.adblock_app"
 mapParams.rsyncd_application = "uci.modgui.app.rsyncd_app"
+mapParams.openspeedtest_application = "uci.modgui.app.openspeedtest_app"
 if cputype:match("^armv7") or cputype == "aarch64" or cputype == "arm64" then
 	mapParams.speedtest_application = "uci.modgui.app.speedtest_app"
 	mapParams.adguardhome_application = "uci.modgui.app.adguardhome_app"

@@ -789,6 +789,138 @@ app_adguardhome() {
   esac
 }
 
+app_openspeedtest() {
+  openspeedtest_commit="f4263546f50694a154fdd27a03000390949068df"
+  openspeedtest_sha256="f8d239bc4183c214c0747ec1a1c418fd33773683f82e7ee8327cf734ea6a4987"
+  openspeedtest_dir="/usr/share/nginx/OpenSpeedTest"
+  openspeedtest_conf="/etc/nginx/server_openspeedtest.conf"
+  openspeedtest_disabled="/etc/nginx/server_openspeedtest.disabled"
+  openspeedtest_tmp="/tmp/openspeedtest-install.$$"
+
+  case "$1" in
+  install)
+    if [ -e "$openspeedtest_dir" ]; then
+      echo "$openspeedtest_dir already exists; refusing to overwrite it"
+      return 1
+    fi
+    mkdir -p /usr/share/nginx || return 1
+    require_free_space 40960 /usr/share/nginx || return 1
+    require_free_space 40960 /tmp || return 1
+    mkdir -p "$openspeedtest_tmp" || return 1
+    curl -kfL "https://github.com/openspeedtest/Speed-Test/archive/$openspeedtest_commit.tar.gz" \
+      --output "$openspeedtest_tmp/openspeedtest.tgz" || {
+        rm -rf "$openspeedtest_tmp"
+        return 1
+      }
+    openspeedtest_actual_sha256="$(sha256sum "$openspeedtest_tmp/openspeedtest.tgz" | awk '{print $1}')"
+    if [ "$openspeedtest_actual_sha256" != "$openspeedtest_sha256" ]; then
+      echo "OpenSpeedTest archive checksum mismatch"
+      rm -rf "$openspeedtest_tmp"
+      return 1
+    fi
+    tar -xzf "$openspeedtest_tmp/openspeedtest.tgz" -C "$openspeedtest_tmp" || {
+      rm -rf "$openspeedtest_tmp"
+      return 1
+    }
+    openspeedtest_extracted="$openspeedtest_tmp/Speed-Test-$openspeedtest_commit"
+    [ -f "$openspeedtest_extracted/index.html" ] || {
+      rm -rf "$openspeedtest_tmp"
+      return 1
+    }
+    mv "$openspeedtest_extracted" "$openspeedtest_dir" || {
+      rm -rf "$openspeedtest_tmp"
+      return 1
+    }
+    rm -rf "$openspeedtest_tmp"
+    cat > "$openspeedtest_conf" <<CONF_END
+server {
+  listen 5678;
+  listen [::]:5678;
+  server_name _;
+  root $openspeedtest_dir;
+  index index.html;
+  client_max_body_size 10000M;
+  access_log off;
+  log_not_found off;
+  server_tokens off;
+  tcp_nodelay on;
+  sendfile on;
+
+  error_page 405 =200 \$uri;
+
+  location / {
+    add_header Access-Control-Allow-Origin "*" always;
+    add_header Access-Control-Allow-Headers "Accept,Authorization,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Mx-ReqToken,X-Requested-With" always;
+    add_header Access-Control-Allow-Methods "GET, POST, OPTIONS" always;
+    add_header Cache-Control "no-store, no-cache, max-age=0, no-transform";
+    if_modified_since off;
+    expires off;
+    etag off;
+  }
+
+  location /assets/ {
+    access_log off;
+    expires 365d;
+    add_header Cache-Control public;
+    add_header Vary Accept-Encoding;
+  }
+}
+CONF_END
+    if ! nginx -t; then
+      rm -f "$openspeedtest_conf"
+      rm -rf "$openspeedtest_dir"
+      return 1
+    fi
+    if ! /etc/init.d/nginx restart; then
+      rm -f "$openspeedtest_conf"
+      rm -rf "$openspeedtest_dir"
+      /etc/init.d/nginx restart
+      return 1
+    fi
+    set_extension_state openspeedtest_app 1
+    ;;
+  remove)
+    rm -f "$openspeedtest_conf" "$openspeedtest_disabled"
+    rm -rf "$openspeedtest_dir"
+    nginx -t || return 1
+    /etc/init.d/nginx restart || return 1
+    set_extension_state openspeedtest_app 0
+    ;;
+  start)
+    if [ -f "$openspeedtest_disabled" ]; then
+      mv "$openspeedtest_disabled" "$openspeedtest_conf"
+    fi
+    if ! nginx -t; then
+      [ -f "$openspeedtest_conf" ] && mv "$openspeedtest_conf" "$openspeedtest_disabled"
+      return 1
+    fi
+    if ! /etc/init.d/nginx restart; then
+      [ -f "$openspeedtest_conf" ] && mv "$openspeedtest_conf" "$openspeedtest_disabled"
+      /etc/init.d/nginx restart
+      return 1
+    fi
+    ;;
+  stop)
+    if [ -f "$openspeedtest_conf" ]; then
+      mv "$openspeedtest_conf" "$openspeedtest_disabled"
+    fi
+    if ! nginx -t; then
+      [ -f "$openspeedtest_disabled" ] && mv "$openspeedtest_disabled" "$openspeedtest_conf"
+      return 1
+    fi
+    if ! /etc/init.d/nginx restart; then
+      [ -f "$openspeedtest_disabled" ] && mv "$openspeedtest_disabled" "$openspeedtest_conf"
+      /etc/init.d/nginx restart
+      return 1
+    fi
+    ;;
+  *)
+    echo "Unsupported action"
+    return 1
+    ;;
+  esac
+}
+
 install_specific_files() {
 
   install() {
@@ -855,6 +987,9 @@ call_app_type() {
     ;;
   adguardhome)
     app_adguardhome "$1"
+    ;;
+  openspeedtest)
+    app_openspeedtest "$1"
     ;;
   specificapp)
     install_specific_files "$1" "$3"

@@ -146,6 +146,14 @@ create_gui_type() {
       uci set modgui.app.adguardhome_app="0"
     fi
   fi
+  if [ ! "$(uci get -q modgui.app.openspeedtest_app)" ]; then
+    if [ -f /usr/share/nginx/OpenSpeedTest/index.html ] &&
+      { [ -f /etc/nginx/server_openspeedtest.conf ] || [ -f /etc/nginx/server_openspeedtest.disabled ]; }; then
+      uci set modgui.app.openspeedtest_app="1"
+    else
+      uci set modgui.app.openspeedtest_app="0"
+    fi
+  fi
   if [ ! "$(uci get -q modgui.app.aria2_webui)" ]; then
     if [ -d /www/docroot/aria ]; then
       uci set modgui.app.aria2_webui="1"

@@ -9,6 +9,7 @@ background, so reopen the card after an operation to refresh its state.
 | Adblock | ARM and MIPS | Configured `opkg` feeds | Enabled after installation and managed by its init service. |
 | rsyncd | ARM and MIPS | Configured `opkg` feeds | No unauthenticated shares are created. Configure `/etc/rsyncd.conf` before starting it. |
 | Ookla Speedtest | ARM, ARM64 | Official Ookla archive | A run is started from the card; reopen it to display the latest result. |
+| OpenSpeedTest | All | Pinned OpenSpeedTest archive | Browser-based LAN/Wi-Fi test on port 5678; requires about 40 MB of free persistent storage. |
 | AdGuard Home | ARM, ARM64 | Official AdGuard stable archive | Installed under `/opt/AdGuardHome`; initial setup is available on port 3000. |
 
 AdGuard Home installation deliberately does not stop dnsmasq, claim DNS port 53,
@@ -31,6 +32,8 @@ firmware 19.4 (ARMv7, Linux 4.1.52, JFFS2 overlay):
 - rsync/rsyncd 3.1.3-1 from the configured opkg feed;
 - Ookla Speedtest 1.2.0.84 using the official ARM archive;
 - AdGuard Home 0.107.79 using the official ARM soft-float archive and tmpfs runtime data.
+- OpenSpeedTest revision f4263546 using its checksum-verified archive; a real browser
+  test reached 349.7 Mbps download, 430.1 Mbps upload, 4 ms ping and 0 ms jitter.
 
 After validation, all test packages, services, configuration created by the tests,
 open ports and temporary files were removed. dnsmasq and the router web interface

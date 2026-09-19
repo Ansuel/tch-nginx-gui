@@ -332,6 +332,7 @@ local app_list = {
   "rsyncd",
   "speedtest",
   "adguardhome",
+  "openspeedtest",
   "specificapp"
 }
 

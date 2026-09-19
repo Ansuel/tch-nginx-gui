@@ -4399,3 +4399,9 @@ msgstr "AdGuard Home"
 
 msgid "Installs AdGuard Home without changing dnsmasq or port 53. Complete the safe first-run setup in its web interface."
 msgstr "Installa AdGuard Home senza modificare dnsmasq o la porta 53. Completare la configurazione iniziale in sicurezza dalla sua interfaccia web."
+
+msgid "OpenSpeedTest"
+msgstr "OpenSpeedTest"
+
+msgid "Runs a browser-based LAN and Wi-Fi speed test directly against this gateway without using internet traffic."
+msgstr "Esegue dal browser un test di velocità LAN e Wi-Fi direttamente verso questo gateway, senza utilizzare traffico Internet."

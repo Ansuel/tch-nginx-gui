@@ -20,6 +20,7 @@ EXTENSIONS = {
     "rsyncd": "rsyncd_app",
     "speedtest": "speedtest_app",
     "adguardhome": "adguardhome_app",
+    "openspeedtest": "openspeedtest_app",
 }
 
 
@@ -73,6 +74,23 @@ class ExtensionManager(unittest.TestCase):
     def test_armv7_adguard_uses_soft_float_binary(self):
         installer = INSTALLER.read_text()
         self.assertIn('armv7*) adguard_arch="armv5"', installer)
+
+    def test_openspeedtest_is_pinned_verified_and_keeps_nginx_global_config(self):
+        installer = INSTALLER.read_text()
+        start = installer.index("app_openspeedtest()")
+        end = installer.index("install_specific_files()", start)
+        openspeedtest = installer[start:end]
+        self.assertIn(
+            'openspeedtest_commit="f4263546f50694a154fdd27a03000390949068df"',
+            openspeedtest,
+        )
+        self.assertIn(
+            'openspeedtest_sha256="f8d239bc4183c214c0747ec1a1c418fd33773683f82e7ee8327cf734ea6a4987"',
+            openspeedtest,
+        )
+        self.assertIn("sha256sum", openspeedtest)
+        self.assertIn("server_openspeedtest.conf", openspeedtest)
+        self.assertNotIn("/etc/nginx/nginx.conf", openspeedtest)
 
     def test_arm_only_extensions_are_hidden_on_mips(self):
         modal = MODAL.read_text()

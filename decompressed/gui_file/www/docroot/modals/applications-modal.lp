@@ -22,6 +22,7 @@ local app_list = {
 	"rsyncd",
 	"speedtest",
 	"adguardhome",
+	"openspeedtest",
 }
 
 local marketing_version = proxy.get("uci.version.version.@version[0].marketing_version")
@@ -69,6 +70,7 @@ mapParams.aria2_webui = "uci.modgui.app.aria2_webui"
 mapParams.transmission_webui = "uci.modgui.app.transmission_webui"
 mapParams.adblock_application = "uci.modgui.app.adblock_app"
 mapParams.rsyncd_application = "uci.modgui.app.rsyncd_app"
+mapParams.openspeedtest_application = "uci.modgui.app.openspeedtest_app"
 if cputype:match("^armv7") or cputype == "aarch64" or cputype == "arm64" then
 	mapParams.speedtest_application = "uci.modgui.app.speedtest_app"
 	mapParams.adguardhome_application = "uci.modgui.app.adguardhome_app"
@@ -318,6 +320,18 @@ if StateParams["adguardhome_application"] ~= nil then
 		T"AdGuard Home",
 		T"Installs AdGuard Home without changing dnsmasq or port 53. Complete the safe first-run setup in its web interface.",
 		adguard_link,
+		true
+	)
+end
+
+if StateParams["openspeedtest_application"] ~= nil then
+	local openspeedtest_link = format("http://%s:5678", mapParams.local_ip_modem)
+	append_extension_card(
+		"openspeedtest_application",
+		"openspeedtest",
+		T"OpenSpeedTest",
+		T"Runs a browser-based LAN and Wi-Fi speed test directly against this gateway without using internet traffic.",
+		openspeedtest_link,
 		true
 	)
 end
