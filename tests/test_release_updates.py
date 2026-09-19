@@ -251,6 +251,7 @@ else:
         self.assertEqual(destination.read_bytes(), b'module')
 
     def test_versioning_ignores_channel_tags_and_handles_rollover(self):
+        self.env.pop('GITHUB_EVENT_NAME', None)
         (self.data/'last_log').write_text('abc build')
         self.env['TAGS'] = '9.99.99\nchannel-dev\n9.8.0\nchannel-stable'
         self.script('1-increment_autobuild_ver.sh')
