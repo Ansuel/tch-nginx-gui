@@ -47,6 +47,9 @@ class AsteriskManagerTests(unittest.TestCase):
 
     def test_status_commands_are_fixed_and_html_escaped(self):
         source = MODAL.read_text()
+        self.assertIn("pidof asterisk", source)
+        self.assertNotIn("/etc/init.d/asterisk status", source)
+        self.assertIn('require("web.web").html_escape', source)
         for command in (
             "asterisk -V",
             "core show uptime",
@@ -75,6 +78,13 @@ class AsteriskManagerTests(unittest.TestCase):
             "outboundproxy",
         ):
             self.assertIn(f'"{option}"', source)
+
+    def test_table_rows_use_named_uci_sections(self):
+        source = MODAL.read_text()
+        self.assertEqual(source.count("addNamedObject = true"), 2)
+        self.assertIn('objectName = table_add_name("asterisk_local_users")', source)
+        self.assertIn('objectName = table_add_name("asterisk_voip_providers")', source)
+        self.assertIn("provider_defaults = provider_name and { name = provider_name }", source)
 
     def test_commit_apply_regenerates_config_then_restarts_asterisk(self):
         commit_apply = COMMIT_APPLY.read_text()

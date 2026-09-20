@@ -7,6 +7,7 @@ local message_helper = require("web.uimessage_helper")
 local post_helper = require("web.post_helper")
 local proxy = require("datamodel")
 local ui_helper = require("web.ui_helper")
+local html_escape = require("web.web").html_escape
 
 local function file_exists(path)
   local file = io.open(path, "r")
@@ -18,12 +19,7 @@ local function file_exists(path)
 end
 
 local function escape_html(value)
-  return (value or "")
-    :gsub("&", "&amp;")
-    :gsub("<", "&lt;")
-    :gsub(">", "&gt;")
-    :gsub('"', "&quot;")
-    :gsub("'", "&#39;")
+  return html_escape(value or "")
 end
 
 local function command_output(command)
@@ -98,6 +94,23 @@ local map_valid = {
 
 local content, helpmsg = post_helper.handleQuery(map_params, map_valid)
 
+local post_args = {}
+if ngx.var.request_method == "POST" then
+  post_args = ngx.req.get_post_args()
+end
+
+local function table_add_name(tableid)
+  if post_args.action ~= "TABLE-ADD" or post_args.tableid ~= tableid then
+    return nil
+  end
+  if tableid == "asterisk_local_users" then
+    return string.untaint(post_args.defaultuser or "")
+  end
+  local defaultuser = string.untaint(post_args.defaultuser or "")
+  local host = string.untaint(post_args.host or "")
+  return (defaultuser .. "_" .. host):gsub("[^%w_]", "_"):sub(1, 63)
+end
+
 local user_columns = {
   {
     header = T"Full Name",
@@ -111,6 +124,7 @@ local user_columns = {
     name = "defaultuser",
     param = "defaultuser",
     type = "text",
+    unique = true,
     attr = { input = { class = "span2", maxlength = "32" } },
   },
   {
@@ -145,6 +159,8 @@ local user_options = {
   basepath = "uci.pbx-users.local_user.@.",
   createMsg = T"Add SIP User",
   canApply = true,
+  addNamedObject = true,
+  objectName = table_add_name("asterisk_local_users"),
 }
 
 local user_valid = {
@@ -172,6 +188,7 @@ local provider_columns = {
     name = "defaultuser",
     param = "defaultuser",
     type = "text",
+    unique = true,
     attr = { input = { class = "span2", maxlength = "64" } },
   },
   {
@@ -243,7 +260,8 @@ local provider_options = {
   basepath = provider_basepath,
   createMsg = T"Add SIP Provider",
   canApply = true,
-  onAdd = update_provider_name,
+  addNamedObject = true,
+  objectName = table_add_name("asterisk_voip_providers"),
   onModify = update_provider_name,
 }
 
@@ -261,11 +279,14 @@ local provider_valid = {
   outboundproxy = optional_host,
 }
 
+local provider_name = table_add_name("asterisk_voip_providers")
+local provider_defaults = provider_name and { name = provider_name } or nil
+
 local provider_data, provider_helpmsg = post_helper.handleTableQuery(
   provider_columns,
   provider_options,
   nil,
-  nil,
+  provider_defaults,
   provider_valid
 )
 
@@ -279,14 +300,18 @@ for _, row in ipairs(provider_data) do
 end
 
 local status_box = { alert = { class = "alert alert-info" } }
-local service_status = command_output("/etc/init.d/asterisk status")
+local service_status = command_output(
+  "if pidof asterisk >/dev/null || pidof asterisk.bin >/dev/null; then echo Running; else echo Stopped; fi"
+)
 local version = command_output("asterisk -V")
 local uptime = command_output("asterisk -rx 'core show uptime'")
 local registrations = command_output("asterisk -rx 'sip show registry'")
 local peers = command_output("asterisk -rx 'sip show peers'")
 local channels = command_output("asterisk -rx 'core show channels'")
 
-ngx.print('<form class="form-horizontal" method="post" action="' .. escape_html(uri) .. '">')
+ngx.print('\
+  <form class="form-horizontal" method="post" action="'); ngx.print(escape_html(uri)); ngx.print('">\
+')
 ngx.print(ui_helper.createMessages(message_helper.popMessages()))
 ngx.print('<fieldset><legend>' .. T"Asterisk Status" .. '</legend>')
 ngx.print(ui_helper.createAlertBlock(
