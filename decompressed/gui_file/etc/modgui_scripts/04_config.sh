@@ -451,6 +451,13 @@ restore_nginx() {
   fi
 }
 
+apply_nginx_compatibility() {
+  compat_script="/usr/share/transformer/scripts/compat_nginx.sh"
+  if [ -x "$compat_script" ]; then
+    "$compat_script" || logecho "Warning: nginx compatibility changes were rolled back"
+  fi
+}
+
 adds_dnd_config() {
   if [ -z "$(uci get -q tod.voicednd)" ]; then
     uci set tod.voicednd=tod
@@ -695,6 +702,8 @@ logecho "Disabling coredump reboot..."
 disable_upload_coredump_and_reboot
 logecho "Restoring nginx additional options if needed..."
 restore_nginx
+logecho "Checking nginx compatibility..."
+apply_nginx_compatibility
 logecho "Adding missing voicednd rule if needed"
 adds_dnd_config
 logecho "Doing various checks and generating hashes..."

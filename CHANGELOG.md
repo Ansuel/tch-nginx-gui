@@ -6,6 +6,7 @@
 - Detect ARM-only extensions and keep AdGuard Home isolated from dnsmasq during first-run setup
 - Add a pinned, checksum-verified WireGuard userspace runtime with kernel-TUN capability gating and no automatic network or firewall changes
 - Integrate the legacy L2TP/IPsec VPN card with safe dependency ownership, persistent GUI repair, Android retry mitigation and a non-blocking IPsec restart path
+- Add TG-1/VANT-5 nginx compatibility for legacy Lua and non-SSL builds, with validation and automatic rollback
 
 ---------------------------------------------------------------------------
 # Mainline 18.3 Cobalt
