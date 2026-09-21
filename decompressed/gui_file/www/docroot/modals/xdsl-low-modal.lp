@@ -191,6 +191,8 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H046")
   tinsert(driver_option, {"B2pvbH042l", "B2pvbH042l (Asus DSL-AC87VG v1.00.10)"})
   tinsert(driver_option, {"B2pvbH042j2", "B2pvbH042j2 (Inteno)"})
   tinsert(driver_option, {"B2pvbH042s", "B2pvbH042s (Archer_VR2800v V1 1.2.0_0.9.1)"})
+  tinsert(driver_option, {"A2pvbH042e", "A2pvbH042e (TG799TSvac)"})
+  tinsert(driver_option, {"A2pvbH042j1", "A2pvbH042j1 (TG789vac Xtream 16.1 FW_108 MOS)"})
   tinsert(driver_option, {"A2pvbH042j2", "A2pvbH042j2 (Asus DSL-AC88U)"})
   tinsert(driver_option, {"A2pvbH042n", "A2pvbH042n (Netgear D7000)"})
   tinsert(driver_option, {"A2pvbH042o", "A2pvbH042o (TG789vac Xtream 35B Fastweb)"})
@@ -213,7 +215,7 @@ if content.dsl0_xdsl_FirmwareVersion:match(".*H046")
     tinsert(driver_option, {"B2pvfbH046y", "B2pvfbH046y (FRITZ!Box 7582 7.14-88881)"})
     tinsert(driver_option, {"A2pvfbH043d1", "A2pvfbH043d1 (FRITZ!Box 7581 6.54)"})
     --table.insert(driver_option,{ "A2pvfbH043e", 'A2pvfbH043e (Zyxel 8823)'}) --Annex b???
-    --table.insert(driver_option,{ "A2pvfbH043f", 'A2pvfbH043f (DSL AC88U) ' .. T'Less Ping'}) --Missing
+    tinsert(driver_option, {"A2pvfbH043f", "A2pvfbH043f (TG799vac Xtream/Tiscali DGA4130)"})
     tinsert(driver_option, {"A2pvfbH043g", "A2pvfbH043g (TG800 VBANT-S)"})
     tinsert(driver_option, {"A2pvfbH043h", "A2pvfbH043h (Inteno DG400PRIME)"})
     tinsert(driver_option, {"A2pvfbH043i", "A2pvfbH043i (Inteno)"})
@@ -253,6 +255,27 @@ elseif content.dsl0_xdsl_FirmwareVersion:match(".*F039") then
   tinsert(driver_option, {"A2pv6F039x1", "A2pv6F039x1 (Zyxel VMG3926)"})
   tinsert(driver_option, {"A2pv6F039x5", "A2pv6F039x5 (SmartRG SR505N/SR515AC 2.6.1.9)"})
   tinsert(driver_option, {"A2pv6F039x6", "A2pv6F039x6 (Zyxel VMG3926-B10B)"})
+
+  driver_Params.driver_ver = "rpc.xdslctl.DslFirmwareVersion"
+  driver_valid.driver_ver = post_helper.getValidateInEnumSelect(driver_option)
+elseif content.dsl0_xdsl_FirmwareVersion:match(".*F037") then
+  tinsert(driver_option, {"A2pv6F037b", "A2pv6F037b (TG799vn)"})
+
+  driver_Params.driver_ver = "rpc.xdslctl.DslFirmwareVersion"
+  driver_valid.driver_ver = post_helper.getValidateInEnumSelect(driver_option)
+elseif content.dsl0_xdsl_FirmwareVersion:match(".*L046") then
+  tinsert(driver_option, {"A2pv6L046o", "A2pv6L046o (DGA4134 19.4)"})
+
+  driver_Params.driver_ver = "rpc.xdslctl.DslFirmwareVersion"
+  driver_valid.driver_ver = post_helper.getValidateInEnumSelect(driver_option)
+elseif content.dsl0_xdsl_FirmwareVersion:match(".*G039") then
+  tinsert(driver_option, {"A2pG039n1", "A2pG039n1 (TG582nv2 FW_120)"})
+
+  driver_Params.driver_ver = "rpc.xdslctl.DslFirmwareVersion"
+  driver_valid.driver_ver = post_helper.getValidateInEnumSelect(driver_option)
+elseif content.dsl0_xdsl_FirmwareVersion:match(".*I042") then
+  tinsert(driver_option, {"A2pvI042e", "A2pvI042e (TG588v2 MST 15.53)"})
+  tinsert(driver_option, {"A2pvI042j1", "A2pvI042j1 (TG588v2 MST 16.2)"})
 
   driver_Params.driver_ver = "rpc.xdslctl.DslFirmwareVersion"
   driver_valid.driver_ver = post_helper.getValidateInEnumSelect(driver_option)
