@@ -44,10 +44,15 @@ end
 local function getDataForAP(ap)
     local result = conn:call("wireless.accesspoint.security", "get", { name = ap })
     if result == nil then
+        -- newer firmwares expose the security parameters through the main
+        -- accesspoint object instead of the wireless.accesspoint.security one
+        result = conn:call("wireless.accesspoint", "get", { name = ap })
+    end
+    if result == nil then
         log:error("Cannot retrieve security info for ap " .. ap)
         return {}
     end
-    return result[ap]
+    return result[ap] or {}
 end
 
 local function getall(mapping, key)

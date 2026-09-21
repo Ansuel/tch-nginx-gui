@@ -25,7 +25,7 @@ local emptyTable = {}
 local open = io.open
 local integratedQtnMAC = string.lower(uciHelper.get_from_uci({config = "env", sectionname = "var", option = "qtn_eth_mac"}))
 local lxcMAC = string.lower(uciHelper.get_from_uci({config = "env", sectionname = "var", option = "local_eth_mac_lxc"}))
-local match, find, sub = string.match, string.find, string.sub
+local match, find, sub, len = string.match, string.find, string.sub, string.len
 
 local intfType, macAddr, keyValue, remotelyManaged
 
@@ -176,10 +176,21 @@ end
 function M.getHostInfo(hostData, getInfo)
   local hosts = {}
   local data = hostData or conn:call("hostmanager.device", "get", emptyTable) or emptyTable
+  local vpndata = conn:call("vpn.device", "get" , emptyTable) or emptyTable
   local lanInterfaces = M.getLanInterfaces()
   for dev, info in pairs(data) do
     if lanInterfaces[info.interface] and info["mac-address"] ~= integratedQtnMAC and info["mac-address"] ~= lxcMAC and checkHostTechnology(info) then
       hosts[#hosts+1] = getInfo and getInfo(info) or dev
+    end
+    for _, vpninfo in pairs(vpndata) do
+      if info["mac-address"] == vpninfo["mac-address"] then
+         info["l3interface"] = vpninfo["interface"]
+         info["l2interface"] = vpninfo["interface"]
+         for _, infodata in pairs(info["ipv4"]) do
+           infodata["address"] = vpninfo["lan-ip"]
+         end
+         hosts[#hosts+1] = getInfo and getInfo(info) or dev
+      end
     end
   end
   return hosts
@@ -438,9 +449,11 @@ function M.getExternalWifiIntfType()
     local wirelessRadio = conn:call("wireless.radio", "get" , {})
     if wirelessRadio then
       for key, value in pairs(wirelessRadio) do
-        if value.remotely_managed == 1 and value.integrated_ap == 1 then
-          keyValue = key
-          remotelyManaged = true
+        if value and type(value) == "table" then
+          if value.remotely_managed == 1 and value.integrated_ap == 1 then
+            keyValue = key
+            remotelyManaged = true
+          end
         end
       end
     end
@@ -527,19 +540,99 @@ function M.domainValidation(value)
   return true
 end
 
-function M.getNewSection(config, section)
-  local sectionName
-  local sectionList = {}
+local function sectionExist(config, sectionName)
   binding.config = config
-  binding.sectionname = section
-  uciHelper.foreach_on_uci(binding, function(s)
-    sectionList[s[".name"]] = true
-  end)
+  binding.sectionname = sectionName
+  local section = uciHelper.getall_from_uci(binding)
+  if next(section) then
+    return true
+  end
+end
+
+function M.getNewSection(config, section, length)
+  local sectionName
   repeat
     sectionName = uciHelper.generate_key()
-    sectionName = section .. "_" .. string.sub(sectionName, -4)
-  until not sectionList[sectionName]
+    if length then
+      sectionName = sub(sectionName, 1, length)
+    else
+      sectionName = sub(sectionName, -4)
+    end
+    sectionName = section and section .. "_" .. sectionName or sectionName
+  until not sectionExist(config, sectionName)
   return sectionName
+end
+
+local function isValidULAPrefix(value)
+  local num1, num2, num3 = match(value, "fd(%w+):(%w+):(%w+)::/48")
+  if num1 and num2 and num3 and len(num1) == 2 and len(num2) == 4 and len(num3) == 4 then
+    return "1"
+  end
+  return "0"
+end
+
+local function getULAPrefixValue()
+  networkBinding.sectionname = "globals"
+  networkBinding.option = "ula_prefix"
+  return uciHelper.get_from_uci(networkBinding)
+end
+
+function M.getULAPrefixBackup()
+  networkBinding.sectionname = "globals"
+  networkBinding.option = "ula_prefix_backup"
+  return uciHelper.get_from_uci(networkBinding)
+end
+
+function M.getULAPrefix()
+  local prefix_backup = M.getULAPrefixBackup()
+  return (prefix_backup ~= "") and prefix_backup or getULAPrefixValue()
+end
+
+function M.getULAEnable()
+  local ula_prefix = getULAPrefixValue()
+  return (ula_prefix ~= "" and ula_prefix ~= "none") and "1" or "0"
+end
+
+function M.setULAPrefix(value, commitapply)
+  if (M.getULAPrefixBackup() ~= "") then
+    if isValidULAPrefix(value) == "0" then
+      return nil, "Invalid IPv6 ULA Prefix Address"
+    end
+    networkBinding.sectionname = "globals"
+    networkBinding.option = "ula_prefix_backup"
+    uciHelper.set_on_uci(networkBinding, value, commitapply)
+    local ula_prefix = getULAPrefixValue()
+    if ula_prefix ~= "" and ula_prefix ~= "none" then
+      networkBinding.sectionname = "globals"
+      networkBinding.option = "ula_prefix"
+      uciHelper.set_on_uci(networkBinding, value, commitapply)
+    end
+  else
+    networkBinding.sectionname = "globals"
+    networkBinding.option = "ula_prefix"
+    uciHelper.set_on_uci(networkBinding, value, commitapply)
+  end
+  uciHelper.commit(networkBinding)
+  return true
+end
+
+function M.setULAEnable(value, commitapply)
+  if value == "1" then
+    local ulaprefix_backup = M.getULAPrefixBackup()
+    networkBinding.sectionname = "globals"
+    networkBinding.option = "ula_prefix"
+    uciHelper.set_on_uci(networkBinding, ulaprefix_backup, commitapply)
+  elseif value == "0" then
+    local ulaprefix = getULAPrefixValue()
+    networkBinding.sectionname = "globals"
+    networkBinding.option = "ula_prefix_backup"
+    uciHelper.set_on_uci(networkBinding, ulaprefix, commitapply)
+    networkBinding.sectionname = "globals"
+    networkBinding.option = "ula_prefix"
+    uciHelper.set_on_uci(networkBinding, "none", commitapply)
+  end
+  uciHelper.commit(networkBinding)
+  return true
 end
 
 return M

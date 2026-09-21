@@ -30,6 +30,7 @@ local get_from_uci = ucihelper.get_from_uci
 local set_on_uci = ucihelper.set_on_uci
 local delete_on_uci = ucihelper.delete_on_uci
 local ethBinding = { config = "ethernet", sectionname = "", option = "", default = "" }
+local systemBinding = { config = "system" , sectionname = "config", option = "pvc_loopback" }
 
 local M = {}
 
@@ -1119,9 +1120,22 @@ local function handleAliasInterface(model, s, cfg)
 	end
 end
 
+function M.getSTS()
+	local sts_flag = get_from_uci(systemBinding) or nil
+
+	if sts_flag == "" or sts_flag == nil then
+		sts_flag = false
+	else
+		sts_flag = true
+	end
+
+	return sts_flag
+end
+
 function create_interface(model, s, cfg)
 	local name = s['.name']
 	local intf = raw_model_get(model, "IPInterface", name)
+	local sts_flag = M.getSTS()
 	if intf then
 		-- already created
 		return intf
@@ -1144,12 +1158,16 @@ function create_interface(model, s, cfg)
 	intf.refers_to = referend
 	intf.has_ip_layer = interface_has_ip_layer(s)
 	if not intf.has_ip_layer then
-		intf.hide_in_datamodel = s.dev2_dynamic~="1"
+		if sts_flag == false then
+		  intf.hide_in_datamodel = s.dev2_dynamic~="1"
+		end
 	end
 	local linkto = dmordering.linked("network.interface", name)
 	if linkto then
-		intf.hide_in_datamodel = true
-		intf.linkto = linkto
+		if sts_flag == false then
+		  intf.hide_in_datamodel = true
+		end
+		  intf.linkto = linkto
 	end
 	model.setLower(intf, lower)
 	return intf

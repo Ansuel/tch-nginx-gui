@@ -36,30 +36,51 @@ local content = {
 
 content_helper.getExactContent(content)
 
+-- xDSL is not available on this device (fibre/gpon): skip the card instead of crashing the stats page
+local xdslAvailable = false
+for _, value in pairs(content) do
+	if value ~= nil and value ~= "" then
+		xdslAvailable = true
+		break
+	end
+end
+if not xdslAvailable then
+	return
+end
+
+local function formatRate(rate)
+	local value = tonumber(rate)
+	if not value then
+		return "Can't recover data"
+	end
+	return floor(value / 10) / 100 .. " Mbps"
+end
+
 if not ( content.dsl_linerate_down == "0" ) then
 content.max_upstream = nil
-content.dsl_linerate_up = content.dsl_linerate_up and floor(tonumber(content.dsl_linerate_up) / 10) / 100 .. " Mbps"  or "Can't recover data"
-content.dsl_linerate_down = content.dsl_linerate_down and floor(tonumber(content.dsl_linerate_down) / 10) / 100 .. " Mbps"  or "Can't recover data"
-content.dsl_linerate_up_max = content.dsl_linerate_up_max and (floor(tonumber(content.dsl_linerate_up_max) / 10) / 100 .. " Mbps") or "Can't recover data"
-content.dsl_linerate_down_max = content.dsl_linerate_down_max and floor(tonumber(content.dsl_linerate_down_max) / 10) / 100 .. " Mbps"  or "Can't recover data"
+content.dsl_linerate_up = formatRate(content.dsl_linerate_up)
+content.dsl_linerate_down = formatRate(content.dsl_linerate_down)
+content.dsl_linerate_up_max = formatRate(content.dsl_linerate_up_max)
+content.dsl_linerate_down_max = formatRate(content.dsl_linerate_down_max)
 
-if not ( content.dsl_type:match("ADSL") ) then
+if not ( (content.dsl_type or ""):match("ADSL") ) then
 	content.dsl_margin_down = content.dsl_margin_SNRM_down
 	content.dsl_margin_up = content.dsl_margin_SNRM_up
 end
 
+content.dslam_chipset = content.dslam_chipset or ""
 if content.dslam_chipset:match("BDCM") then
 	content.dslam_chipset = "Broadcom" .. " ( " .. content.dslam_chipset .. " )"
 elseif content.dslam_chipset:match("IFTN") then
 	content.dslam_chipset = "Infineon" .. " ( " .. content.dslam_chipset .. " )"
 end
 
-if content["status"]:match("Showtime") then
+if (content["status"] or ""):match("Showtime") then
 	content["status"] = T"Connected"
-elseif content["status"] == "" then
+elseif (content["status"] or "") == "" then
 	content["status"] = T"Disconnected"
 else
-	content["status"] = T(content.status)
+	content["status"] = T(content.status or "")
 end
 
   ngx.print('\
@@ -87,7 +108,7 @@ end
 	basic.span["data-bind"] = "text: dslam_chipset"
 	html[#html + 1] = ui_helper.createLabel(T"DSLAM Chipset",content.dslam_chipset, basic )
 	basic.span["data-bind"] = "text: dslam_version"
-	if content.dslam_version_raw:sub(0,2) == "0x" then
+	if (content.dslam_version_raw or ""):sub(0,2) == "0x" then
 		html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",format("%s ( %s )", content.dslam_version , content.dslam_version_raw) , basic )
 	elseif content.dslam_version_raw == "" then
 		html[#html + 1] = ui_helper.createLabel(T"DSLAM Firmware",T"Can't recover DSLAM version." , basic )

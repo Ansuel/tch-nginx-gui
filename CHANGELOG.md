@@ -7,6 +7,11 @@
 - Add a pinned, checksum-verified WireGuard userspace runtime with kernel-TUN capability gating and no automatic network or firewall changes
 - Integrate the legacy L2TP/IPsec VPN card with safe dependency ownership, persistent GUI repair, Android retry mitigation and a non-blocking IPsec restart path
 - Add TG-1/VANT-5 nginx compatibility for legacy Lua and non-SSL builds, with validation and automatic rollback
+- Fix FGA221DFWB (NeXXt One) dashboard crash by skipping the xDSL info card and guarding all its values on devices without xDSL hardware https://github.com/Ansuel/tch-nginx-gui/issues/1220
+- Port getULAPrefixBackup/getULAEnable/getSTS and the vpn.device host merge from the 22.2 firmware lib to keep the stock device2 IP maps loading on newer firmwares https://github.com/Ansuel/tch-nginx-gui/issues/1220
+- Fix wireless security info on firmwares exposing it through the wireless.accesspoint ubus object instead of wireless.accesspoint.security https://github.com/Ansuel/tch-nginx-gui/issues/1220
+- Guard xdslctl transformer getters on devices without the xdslctl binary to stop the periodic transformer errors https://github.com/Ansuel/tch-nginx-gui/issues/1220
+- Fallback to a known gateway picture when the device model has no dedicated image (eg. NeXXt One)
 
 ---------------------------------------------------------------------------
 # Mainline 18.3 Cobalt

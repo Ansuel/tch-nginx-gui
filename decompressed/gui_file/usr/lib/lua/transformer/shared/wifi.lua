@@ -2,6 +2,8 @@ local M = {}
 local gmatch, ipairs, concat = string.gmatch, ipairs, table.concat
 local uciHelper = require("transformer.mapper.ucihelper")
 local wirelessBinding = { config = "wireless" }
+local ubus = require("ubus")
+local conn = ubus.connect()
 
 --- function to convert a string into a map based on the match pattern
 -- @param #string str the input string that needs to be converted into a map
@@ -101,6 +103,23 @@ function M.isSupportedMode(ap, mode)
   wirelessBinding.sectionname = ap
   wirelessBinding.option = "supported_security_modes"
   local modeList = uciHelper.get_from_uci(wirelessBinding)
+  if (not modeList or modeList == "") and conn then
+    -- some firmwares don't store supported_security_modes in uci:
+    -- fall back to the wireless ubus objects like stock wifi.lua does
+    local ok, data = pcall(conn.call, conn, "wireless.accesspoint.security", "get", { name = ap })
+    if not ok or data == nil then
+      ok, data = pcall(conn.call, conn, "wireless.accesspoint", "get", { name = ap })
+    end
+    if ok and data then
+      modeList = data[ap] and data[ap].supported_modes or ""
+    else
+      modeList = ""
+    end
+  end
+  if modeList == "" then
+    -- unsupported modes can't be detected, don't block the setting
+    return true
+  end
   for imode in modeList:gmatch('([^%s]+)') do
     if imode == mode then
       return true
