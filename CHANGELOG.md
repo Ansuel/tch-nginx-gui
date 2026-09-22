@@ -1,6 +1,7 @@
 
 # Unreleased
 
+- Add a standalone Asterisk PBX card for SIP accounts and status, with guarded Voipblock integration
 - Integrate Adblock, rsyncd, Ookla Speedtest and AdGuard Home in the Extensions card
 - Add a pinned and checksum-verified OpenSpeedTest LAN/Wi-Fi server on port 5678
 - Detect ARM-only extensions and keep AdGuard Home isolated from dnsmasq during first-run setup

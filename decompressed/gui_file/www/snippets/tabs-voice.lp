@@ -3,7 +3,6 @@
 -- Enable localization
 gettext.textdomain('webui-voice')
 
-local getProxy = require("datamodel").get
 local tinsert = table.insert
 local content_helper = require("web.content_helper")
 
@@ -20,10 +19,9 @@ local items = {
 
 if content.mmpbx_state == "1" then
 
-	if content.emission_state == "1" and 
-		variant == "Technicolor TG799vac" or variant == "Technicolor TG800vac" then
-		
-		tinsert(items, tinsert(items, {"mmpbx-dect-modal.lp", T"DECT"}))
+	if content.emission_state == "1" and
+		(content.variant == "Technicolor TG799vac" or content.variant == "Technicolor TG800vac") then
+		tinsert(items, {"mmpbx-dect-modal.lp", T"DECT"})
 	end
 	
 	tinsert(items, {"mmpbx-contacts-modal.lp", T"Phone Book"})

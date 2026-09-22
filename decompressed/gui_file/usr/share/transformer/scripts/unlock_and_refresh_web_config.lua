@@ -40,6 +40,7 @@ uci:foreach('web', 'ruleset', function(s)
 local check_rule = {
 	{ name = 'error', target = '/error.lua' },
 	{ name = 'applicationsmodal', target = '/modals/applications-modal.lp' },
+	{ name = 'asteriskprofilemodal', target = '/modals/asterisk-profile-modal.lp' },
 	{ name = 'diagnosticsxdslgraphicsmodal', target = '/modals/diagnostics-xdsl-graphics-modal.lp' },
 	{ name = 'mwanmodal', target = '/modals/mwan-modal.lp' },
 	{ name = 'fastcacheoptionmodal', target = '/modals/fast-cache-option-modal.lp' },
@@ -138,6 +139,7 @@ local card_check_rule = {
 	{ name = 'wanservices_card', card = '007_wanservices.lp', modal = 'wanservices' },
 	{ name = 'firewall_card', card = '008_firewall.lp', modal = 'firewallmodal' },
 	{ name = 'qos_card', card = '008_qos.lp', modal = 'qosqueuemodal' },
+	{ name = 'asterisk_card', card = '008_asterisk.lp', modal = 'asteriskprofilemodal' },
 	{ name = 'telephony_card', card = '008_telephony.lp', modal = 'mmpbxglobalmodal' },
 	{ name = 'diagnostics_card', card = '009_diagnostics.lp', modal = 'diagnosticspingmodal' },
 	{ name = 'extensions_card', card = '009_extensions.lp', modal = 'applicationsmodal' },
