@@ -100,7 +100,7 @@ end
 
 local function post_string(key)
   local value = post_args[key]
-  if type(value) == "string" then
+  if type(value) == "string" or string.istainted(value) then
     return string.untaint(value)
   end
   return nil
@@ -129,7 +129,7 @@ local function table_add_name(tableid)
 end
 
 local function validate_uci_name(value)
-  if type(value) ~= "string" then
+  if type(value) ~= "string" and not string.istainted(value) then
     return nil, T"Received a non string value."
   end
   local valid, message = post_helper.validateNonEmptyString(value)
@@ -293,7 +293,7 @@ local provider_valid = {
   defaultuser = validate_uci_name,
   secret = post_helper.getValidationPassword(post_helper.validateNonEmptyString),
   host = function(value)
-    if type(value) ~= "string" then
+    if type(value) ~= "string" and not string.istainted(value) then
       return nil, T"Received a non string value."
     end
     return host_validation(value)
