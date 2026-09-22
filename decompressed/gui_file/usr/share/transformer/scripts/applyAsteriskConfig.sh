@@ -10,12 +10,14 @@
 voipblock_agi=/usr/share/asterisk/agi-bin/voipblock
 extensions_conf=/etc/asterisk/extensions_incoming.conf
 
-if [ -e "$voipblock_agi" ] && [ -f "$extensions_conf" ] && \
+if [ "$(uci -q get modgui.app.voipblock_for_asterisk)" = "1" ] && \
+   [ -e "$voipblock_agi" ] && [ -f "$extensions_conf" ] && \
    ! grep -q 'ASTERISK_MANAGER_VOIPBLOCK' "$extensions_conf"; then
   extensions_tmp="/tmp/extensions.conf.voipblock.$$"
 
-  awk '
+  if awk '
     /^exten => s,n\(doneblacklist\),NoOp\(\)$/ {
+      anchor++
       print
       print "; ASTERISK_MANAGER_VOIPBLOCK"
       print "same => n,Set(__number=${CALLERID(num)})"
@@ -27,9 +29,12 @@ if [ -e "$voipblock_agi" ] && [ -f "$extensions_conf" ] && \
     }
     /Dial\(/ && /,r\)/ {
       sub(/,r\)/, ",rb(Voipblock^callee_handler^1))")
+      dial_hooks++
     }
+    /Dial\(/ { dials++ }
     { print }
     END {
+      if (anchor != 1 || (dials > 0 && dial_hooks == 0)) exit 2
       print ""
       print "; ASTERISK_MANAGER_VOIPBLOCK"
       print "[Voipblock]"
@@ -46,13 +51,14 @@ if [ -e "$voipblock_agi" ] && [ -f "$extensions_conf" ] && \
       print "same => n,Hangup()"
       print "same => n,MacroExit()"
     }
-  ' "$extensions_conf" > "$extensions_tmp" || {
+  ' "$extensions_conf" > "$extensions_tmp"; then
+    chmod 644 "$extensions_tmp"
+    mv "$extensions_tmp" "$extensions_conf"
+  else
     rm -f "$extensions_tmp"
-    exit 1
-  }
-
-  chmod 644 "$extensions_tmp"
-  mv "$extensions_tmp" "$extensions_conf"
+    logger -t asterisk-manager 'Voipblock hooks not applied: generated dialplan format changed'
+    echo 'Warning: Voipblock hooks not applied: generated dialplan format changed' >&2
+  fi
 fi
 
 if [ -x /etc/init.d/asterisk ]; then

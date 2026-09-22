@@ -22,14 +22,18 @@ local function escape_html(value)
   return html_escape(value or "")
 end
 
+local timeout_available = os.execute("command -v timeout >/dev/null 2>&1") == 0
+
 local function command_output(command)
-  local process = io.popen(command .. " 2>&1", "r")
+  if not timeout_available then
+    return T"Asterisk status is unavailable: the timeout utility is missing."
+  end
+  local process = io.popen("timeout 3 " .. command .. " 2>&1", "r")
   if not process then
     return T"Unable to run the Asterisk command."
   end
-  local output = process:read("*a") or ""
+  local output = process:read(8192) or ""
   process:close()
-  output = output:sub(1, 8192)
   if output == "" then
     return T"No output."
   end
@@ -44,12 +48,8 @@ if ngx.var.args and string.len(ngx.var.args) > 0 then
   uri = uri .. "?" .. ngx.var.args
 end
 
-ngx.print(ui_helper.createHeader(T"Telephony", false, true))
+ngx.print(ui_helper.createHeader(T"Asterisk", false, true))
 ngx.print('<div class="modal-body update">')
-
-local lp = require("web.lp")
-lp.setpath("/www/snippets/")
-lp.include("tabs-voice.lp")
 
 if not asterisk_available or not configurator_available then
   local unavailable_box = { alert = { class = "alert alert-error" } }
@@ -76,12 +76,11 @@ local map_params = {
   rtpend = "uci.pbx-advanced.advanced.rtpend",
 }
 
-local optional_host = post_helper.getOptionalValidation(
-  post_helper.getOrValidation(
-    post_helper.validateStringIsDomainName,
-    post_helper.validateStringIsIP
-  )
+local host_validation = post_helper.getOrValidation(
+  post_helper.validateStringIsDomainName,
+  post_helper.validateStringIsIP
 )
+local optional_host = post_helper.getOptionalValidation(host_validation)
 
 local map_valid = {
   useragent = post_helper.getValidateStringLengthInRange(1, 64),
@@ -99,16 +98,45 @@ if ngx.var.request_method == "POST" then
   post_args = ngx.req.get_post_args()
 end
 
+local function post_string(key)
+  local value = post_args[key]
+  if type(value) == "string" then
+    return string.untaint(value)
+  end
+  return nil
+end
+
+local function provider_name(defaultuser, host)
+  return (defaultuser .. "_" .. host):gsub("[^%w_]", "_"):sub(1, 63)
+end
+
 local function table_add_name(tableid)
   if post_args.action ~= "TABLE-ADD" or post_args.tableid ~= tableid then
     return nil
   end
-  if tableid == "asterisk_local_users" then
-    return string.untaint(post_args.defaultuser or "")
+  local defaultuser = post_string("defaultuser")
+  if not defaultuser or defaultuser == "" then
+    return nil
   end
-  local defaultuser = string.untaint(post_args.defaultuser or "")
-  local host = string.untaint(post_args.host or "")
-  return (defaultuser .. "_" .. host):gsub("[^%w_]", "_"):sub(1, 63)
+  if tableid == "asterisk_local_users" then
+    return defaultuser
+  end
+  local host = post_string("host")
+  if host and host ~= "" then
+    return provider_name(defaultuser, host)
+  end
+  return nil
+end
+
+local function validate_uci_name(value)
+  if type(value) ~= "string" then
+    return nil, T"Received a non string value."
+  end
+  local valid, message = post_helper.validateNonEmptyString(value)
+  if not valid then
+    return valid, message
+  end
+  return post_helper.validateUciName(value)
 end
 
 local user_columns = {
@@ -165,10 +193,7 @@ local user_options = {
 
 local user_valid = {
   fullname = post_helper.getOptionalValidation(post_helper.getValidateStringLengthInRange(1, 64)),
-  defaultuser = post_helper.getAndValidation(
-    post_helper.validateNonEmptyString,
-    post_helper.validateUciName
-  ),
+  defaultuser = validate_uci_name,
   secret = post_helper.getValidationPassword(post_helper.validateNonEmptyString),
   ring = post_helper.getValidateInEnumSelect(yes_no),
   can_call = post_helper.getValidateInEnumSelect(yes_no),
@@ -188,8 +213,7 @@ local provider_columns = {
     name = "defaultuser",
     param = "defaultuser",
     type = "text",
-    unique = true,
-    attr = { input = { class = "span2", maxlength = "64" } },
+    attr = { input = { class = "span2", maxlength = "63" } },
   },
   {
     header = T"Password",
@@ -251,8 +275,8 @@ local provider_basepath = "uci.pbx-voip.voip_provider.@."
 local function update_provider_name(index, provider)
   local defaultuser = string.untaint(provider.defaultuser or "")
   local host = string.untaint(provider.host or "")
-  local name = (defaultuser .. "_" .. host):gsub("[^%w]", "_")
-  proxy.set(provider_basepath .. index .. ".name", name)
+  -- luci-app-pbx reads the 'name' option; the UCI section is a stable key.
+  proxy.set(provider_basepath .. index .. ".name", provider_name(defaultuser, host))
 end
 
 local provider_options = {
@@ -266,12 +290,14 @@ local provider_options = {
 }
 
 local provider_valid = {
-  defaultuser = post_helper.validateNonEmptyString,
+  defaultuser = validate_uci_name,
   secret = post_helper.getValidationPassword(post_helper.validateNonEmptyString),
-  host = post_helper.getOrValidation(
-    post_helper.validateStringIsDomainName,
-    post_helper.validateStringIsIP
-  ),
+  host = function(value)
+    if type(value) ~= "string" then
+      return nil, T"Received a non string value."
+    end
+    return host_validation(value)
+  end,
   register = post_helper.getValidateInEnumSelect(yes_no),
   make_outgoing_calls = post_helper.getValidateInEnumSelect(yes_no),
   fromdomain = optional_host,

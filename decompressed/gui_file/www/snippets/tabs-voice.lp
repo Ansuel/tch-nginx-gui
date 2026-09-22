@@ -35,17 +35,4 @@ if content.mmpbx_state == "1" then
 
 end
 
-local function file_exists(path)
-	local file = io.open(path, "r")
-	if file then
-		file:close()
-		return true
-	end
-	return false
-end
-
-if file_exists("/etc/init.d/asterisk") and file_exists("/etc/init.d/pbx-asterisk") then
-	tinsert(items, {"asterisk-profile-modal.lp", T"Asterisk"})
-end
-
 require("sharedModalTabHelper").createModalTab(items)
