@@ -1,0 +1,74 @@
+local register = register
+local uci = mapper("ucihelper")
+
+local function isolated(network)
+    local found = false
+    uci.foreach_on_uci({ config = "firewall", sectionname = "zone" }, function(zone)
+        local networks = zone.network
+        if type(networks) == "string" then networks = { networks } end
+        for _, value in ipairs(networks or {}) do
+            for item in tostring(value):gmatch("%S+") do
+                if item == network and zone.input ~= "ACCEPT" and zone.forward ~= "ACCEPT" then
+                    found = true
+                end
+            end
+        end
+    end)
+    return found
+end
+
+local function candidates()
+    local result = {}
+    uci.foreach_on_uci({ config = "wireless", sectionname = "wifi-iface" }, function(section)
+        local name = section[".name"]
+        local network = section.network
+        if name and name:match("^[%w_]+$") and section.mode == "ap" and
+           network and network:match("^[%w_]+$") and network ~= "lan" and
+           uci.get_from_uci({ config = "network", sectionname = network, option = "proto" }) == "static" and
+           uci.get_from_uci({ config = "network", sectionname = network, option = "ipaddr" }) and
+           isolated(network) then
+            result[#result + 1] = name
+        end
+    end)
+    table.sort(result)
+    return result
+end
+
+local function allowed(key)
+    for _, value in ipairs(candidates()) do
+        if value == key then return true end
+    end
+    return false
+end
+
+local mapping = {
+    objectType = {
+        name = "rpc.openvpn.client.ssid.@.",
+        access = "readOnly",
+        minEntries = 0,
+        maxEntries = 32,
+        parameters = {
+            name = { access = "readOnly", type = "string" },
+            ssid = { access = "readOnly", type = "string" },
+            network = { access = "readOnly", type = "string" },
+            selected = { access = "readWrite", type = "boolean" },
+        },
+    },
+}
+mapping.entries = candidates
+mapping.get = function(_, param, key)
+    if not allowed(key) then return "" end
+    if param == "name" then return key end
+    if param == "ssid" or param == "network" then
+        return uci.get_from_uci({ config = "wireless", sectionname = key, option = param }) or ""
+    end
+    return uci.get_from_uci({ config = "openvpn", sectionname = "client", option = "ssid_" .. key, default = "0" }) or "0"
+end
+mapping.set = function(_, param, value, key)
+    if param ~= "selected" or not allowed(key) or (value ~= "0" and value ~= "1") then return false end
+    uci.set_on_uci({ config = "openvpn", sectionname = "client", option = "ssid_" .. key }, value, commitapply)
+    return true
+end
+mapping.commit = function() uci.commit({ config = "openvpn" }) end
+mapping.revert = function() uci.revert({ config = "openvpn" }) end
+register(mapping)

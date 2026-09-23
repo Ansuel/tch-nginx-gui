@@ -6,7 +6,9 @@ local openvpn = {
         "enabled", "client", "port", "proto", "dev", "ca", "cert", "key",
         "dh", "server", "ifconfig_pool_persist", "duplicate_cn", "allow_lan", "keepalive",
         "cipher", "auth", "persist_key", "persist_tun", "user", "status",
-        "verb", "script_security", "auth_user_pass_verify", "username_as_common_name"
+        "verb", "script_security", "auth_user_pass_verify", "username_as_common_name",
+        "config", "remote_host", "remote_port", "remote_proto", "username",
+        "client_cipher", "client_auth"
     },
     lists = { "remote", "push" }
 }

@@ -392,14 +392,14 @@ if StateParams["openvpn_application"] ~= nil then
 		append_extension_card(
 			"openvpn_application",
 			"openvpn",
-			T"OpenVPN Server",
-			T"Installs the OpenVPN server runtime and its management card. The server and WAN rule stay disabled until explicitly enabled.",
+			T"OpenVPN",
+			T"Installs OpenVPN server and client management. Both modes and the server WAN rule remain disabled until explicitly enabled.",
 			nil,
 			true
 		)
 	else
 		html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
-		html[#html+1] = "<fieldset><legend>" .. T"OpenVPN Server" .. "</legend>"
+		html[#html+1] = "<fieldset><legend>" .. T"OpenVPN" .. "</legend>"
 		html[#html+1] = ui_helper.createAlertBlock(T"Unavailable: this firmware kernel was built without TUN support.", specific_box)
 		html[#html+1] = "</fieldset></div>"
 	end

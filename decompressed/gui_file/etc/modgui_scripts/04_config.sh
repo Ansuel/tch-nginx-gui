@@ -179,7 +179,9 @@ create_gui_type() {
   if [ "$(uci get -q modgui.app.openvpn_app)" = "1" ] &&
     [ -f /opt/modgui-openvpn-gui.tar.gz ] &&
     { [ ! -f /www/cards/015_openvpn-server.lp ] ||
-      [ ! -f /usr/share/transformer/mappings/rpc/openvpn.map ]; }; then
+      [ ! -f /usr/share/transformer/mappings/rpc/openvpn.map ] ||
+      [ ! -f /usr/share/transformer/mappings/rpc/openvpn.client.map ] ||
+      [ ! -f /usr/share/transformer/mappings/rpc/openvpn.client.ssid.map ]; }; then
     logecho "Restoring OpenVPN GUI files after upgrade..."
     /usr/share/transformer/scripts/appInstallRemoveUtility.sh refresh openvpn >/dev/null 2>&1
   fi

@@ -13,7 +13,7 @@ background, so reopen the card after an operation to refresh its state.
 | AdGuard Home | ARM, ARM64 | Official AdGuard stable archive | Installed under `/opt/AdGuardHome`; initial setup is available on port 3000. |
 | WireGuard | ARM, ARM64 with kernel TUN | Pinned `openwrt-wireguard-go` package | Installs only the userspace runtime; it creates no interface, key, route or firewall rule. |
 | L2TP/IPsec VPN | ARMv7 and MIPS | Pinned `modgui-vpn`, configured opkg feeds | Adds the legacy strongSwan/xl2tpd server card; installation leaves the server disabled. |
-| OpenVPN Server | ARMv7 and MIPS with TUN | `openvpn-openssl`, `openvpn-easy-rsa` | Adds server configuration, user management and client profile export; installation leaves the server and WAN rule disabled. |
+| OpenVPN | ARMv7 and MIPS with TUN | `openvpn-openssl`, `openvpn-easy-rsa` | Adds server and client tabs, user management, profile export and optional SSID-to-client routing; both modes install disabled. |
 
 AdGuard Home installation deliberately does not stop dnsmasq, claim DNS port 53,
 or change DHCP settings. Complete its first-run wizard and choose non-conflicting
@@ -83,6 +83,24 @@ easy-rsa. The WAN firewall rule follows the server state and uses the configured
 protocol and port. Client profiles never contain user credentials. Access from
 VPN clients to the LAN is an explicit switch and is disabled by default; the
 extension does not route clients' Internet traffic through the gateway.
+The Client tab can connect the gateway to a remote OpenVPN server using a CA,
+optional client certificate/key and optional username/password. The client uses
+`tun1` and `route-nopull`, so it never replaces the gateway's main default route.
+Isolated Wi-Fi SSIDs with their own static subnet are discovered dynamically;
+the main LAN SSID is excluded. Selected SSIDs are routed and masqueraded through
+the client tunnel, with an unreachable fallback route and forwarding reject rule
+while the tunnel is down. Additional isolated SSIDs appear when configured in
+the gateway's Wi-Fi and network settings. The extension does not create new
+radio interfaces or change the state of existing SSIDs.
+The client tab accepts PEM CA, optional client certificate and private key, and
+optional username/password. It does not import arbitrary `.ovpn` directives;
+copy the relevant connection parameters from the provider's profile. Local
+router DNS services are not moved into the tunnel, so use a VPN-appropriate
+external DNS resolver on the selected SSID when DNS privacy is required.
+The current implementation supports one remote client profile. Supporting
+multiple simultaneous clients requires distinct tunnel interfaces, credential
+files and route tables, plus an explicit SSID-to-profile assignment; simply
+duplicating the form would risk routing one SSID through the wrong tunnel.
 The extension keeps a backup of its GUI and Transformer files at
 `/opt/modgui-openvpn-gui.tar.gz` and restores them after a GUI upgrade when
 the installed card or mapping is missing.
@@ -94,3 +112,7 @@ authenticated with a temporary user and completed the TLS handshake, receiving
 `10.8.0.6`. Wrong credentials were rejected. The test user and client were
 removed, and the server and WAN OpenVPN rule were disabled after the test. The
 LAN forwarding switch was not enabled during this validation.
+In a second local-only smoke test, the new client connected to the gateway's
+own OpenVPN server on `127.0.0.1`, authenticated and received `10.8.0.6` on
+`tun1`. No SSID was selected or forwarded. Temporary credentials were removed,
+and both OpenVPN modes and the server WAN rule were returned to disabled.

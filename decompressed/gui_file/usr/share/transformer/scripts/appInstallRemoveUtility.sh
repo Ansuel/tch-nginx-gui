@@ -1296,6 +1296,19 @@ app_openvpn() {
     uci commit web
   }
 
+  openvpn_register_client() {
+    if [ "$(uci -q get openvpn.client)" != "openvpn" ]; then
+      uci set openvpn.client=openvpn
+      uci set openvpn.client.enabled=0
+    fi
+    [ -n "$(uci -q get openvpn.client.remote_port)" ] || uci set openvpn.client.remote_port=1194
+    [ -n "$(uci -q get openvpn.client.remote_proto)" ] || uci set openvpn.client.remote_proto=udp
+    [ -n "$(uci -q get openvpn.client.client_cipher)" ] || uci set openvpn.client.client_cipher=AES-256-CBC
+    [ -n "$(uci -q get openvpn.client.client_auth)" ] || uci set openvpn.client.client_auth=SHA256
+    uci set openvpn.client.config=/etc/openvpn/modgui-client.conf
+    uci commit openvpn
+  }
+
   openvpn_backup_gui() {
     mkdir -p /opt || return 1
     tar -czf "$openvpn_gui_backup" -C / \
@@ -1305,8 +1318,12 @@ app_openvpn() {
       usr/share/transformer/mappings/uci/openvpn.map \
       usr/share/transformer/mappings/rpc/openvpn.map \
       usr/share/transformer/mappings/rpc/openvpn.server.map \
+      usr/share/transformer/mappings/rpc/openvpn.client.map \
+      usr/share/transformer/mappings/rpc/openvpn.client.ssid.map \
       usr/share/transformer/scripts/openvpnApply.sh \
+      usr/share/transformer/scripts/openvpnClientRoute.sh \
       usr/share/transformer/scripts/openvpnGenerateKeys.sh \
+      etc/hotplug.d/iface/95-modgui-openvpn-client \
       www/cards/015_openvpn-server.lp \
       www/docroot/modals/openvpn-server-modal.lp \
       www/lang/it-it/webui-openvpn-server.po
@@ -1356,9 +1373,12 @@ app_openvpn() {
     if opkg list-installed | grep -Eq '^openvpn-(openssl|mbedtls|polarssl|nossl) '; then
       if [ -f "$openvpn_owned" ]; then
         openvpn_prepare_openssl || return 1
+        openvpn_register_client || return 1
         openvpn_backup_gui || return 1
         openvpn_register_gui
         set_extension_state openvpn_app 1
+        /etc/init.d/transformer restart
+        /etc/init.d/nginx restart
         return 0
       fi
       echo "A pre-existing OpenVPN installation was found; refusing to overwrite its configuration"
@@ -1404,6 +1424,7 @@ app_openvpn() {
     chmod 600 /etc/openvpn/psw-file
     uci set openvpn.server.enabled=0
     uci commit openvpn
+    openvpn_register_client || return 1
     openvpn_register_gui
     openvpn_backup_gui || return 1
     /usr/share/transformer/scripts/openvpnApply.sh
@@ -1414,12 +1435,16 @@ app_openvpn() {
   remove)
     if [ -f "$openvpn_owned" ]; then
       uci set openvpn.server.enabled=0
+      uci set openvpn.client.enabled=0
       uci commit openvpn
       /usr/share/transformer/scripts/openvpnApply.sh >/dev/null 2>&1
       openvpn_remove_owned_packages
       openvpn_remove_tun
       rm -rf "$openvpn_openssl_lib"
       rm -f /etc/openvpn/checkpwd.sh
+      rm -f /etc/openvpn/modgui-client.conf /etc/openvpn/modgui-client.auth \
+        /etc/openvpn/modgui-client.password /etc/openvpn/modgui-client-ca.crt \
+        /etc/openvpn/modgui-client.crt /etc/openvpn/modgui-client.key
     fi
     uci -q delete firewall.modgui_openvpn
     uci -q delete firewall.modgui_openvpn_zone

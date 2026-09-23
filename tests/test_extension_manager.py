@@ -204,6 +204,10 @@ class ExtensionManager(unittest.TestCase):
         self.assertIn('tar -xzf "$openvpn_gui_backup" -C /', vpn)
         self.assertIn('openvpn_repair_gui', vpn)
         self.assertIn('if [ -d "$openvpn_openssl_lib/usr/lib" ]', vpn)
+        self.assertIn('openvpn_register_client', vpn)
+        self.assertIn('openvpnClientRoute.sh', vpn)
+        self.assertIn('openvpn.client.map', vpn)
+        self.assertIn('openvpn.client.ssid.map', vpn)
         self.assertIn("firewall.modgui_openvpn", vpn)
         self.assertNotIn("--force-overwrite", vpn)
         self.assertIn('mapParams.openvpn_application = "uci.modgui.app.openvpn_app"', modal)
@@ -219,15 +223,34 @@ class ExtensionManager(unittest.TestCase):
             GUI / "usr/share/transformer/mappings/uci/openvpn.map",
             GUI / "usr/share/transformer/mappings/rpc/openvpn.map",
             GUI / "usr/share/transformer/mappings/rpc/openvpn.server.map",
+            GUI / "usr/share/transformer/mappings/rpc/openvpn.client.map",
+            GUI / "usr/share/transformer/mappings/rpc/openvpn.client.ssid.map",
             GUI / "usr/share/transformer/commitapply/uci_openvpn.ca",
             GUI / "usr/share/transformer/scripts/openvpnApply.sh",
             GUI / "usr/share/transformer/scripts/openvpnGenerateKeys.sh",
+            GUI / "usr/share/transformer/scripts/openvpnClientRoute.sh",
+            GUI / "etc/hotplug.d/iface/95-modgui-openvpn-client",
             GUI / "www/cards/015_openvpn-server.lp",
             GUI / "www/docroot/modals/openvpn-server-modal.lp",
         )
         for path in expected:
             with self.subTest(path=path):
                 self.assertTrue(path.is_file())
+
+    def test_openvpn_client_keeps_main_route_and_discovers_ssids(self):
+        apply_script = (GUI / "usr/share/transformer/scripts/openvpnApply.sh").read_text()
+        route_script = (GUI / "usr/share/transformer/scripts/openvpnClientRoute.sh").read_text()
+        ssid_map = (GUI / "usr/share/transformer/mappings/rpc/openvpn.client.ssid.map").read_text()
+        modal = (GUI / "www/docroot/modals/openvpn-server-modal.lp").read_text()
+        self.assertIn("route-nopull", apply_script)
+        self.assertIn("dev tun1", apply_script)
+        self.assertIn("unreachable default", route_script)
+        self.assertIn('network ~= "lan"', ssid_map)
+        self.assertIn('rpc.openvpn.client.ssid.', modal)
+        self.assertIn('local raw = string.untaint(value or "")', modal)
+        self.assertIn('local path = item.path and string.untaint(item.path)', modal)
+        self.assertNotIn("route_guest_24", route_script)
+        self.assertNotIn("route_guest_5", route_script)
 
     def test_arm_only_extensions_are_hidden_on_mips(self):
         modal = MODAL.read_text()

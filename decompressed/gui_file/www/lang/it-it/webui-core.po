@@ -4424,6 +4424,12 @@ msgstr "Installa la scheda del server VPN legacy strongSwan e xl2tpd. Il server 
 msgid "OpenVPN Server"
 msgstr "Server OpenVPN"
 
+msgid "OpenVPN"
+msgstr "OpenVPN"
+
+msgid "Installs OpenVPN server and client management. Both modes and the server WAN rule remain disabled until explicitly enabled."
+msgstr "Installa la gestione server e client OpenVPN. Entrambe le modalità e la regola WAN del server restano disabilitate fino all'attivazione esplicita."
+
 msgid "Installs the OpenVPN server runtime and its management card. The server and WAN rule stay disabled until explicitly enabled."
 msgstr "Installa OpenVPN e la relativa scheda di gestione. Il server e la regola WAN restano disabilitati finché non vengono attivati esplicitamente."
 
