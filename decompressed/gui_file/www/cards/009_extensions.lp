@@ -48,6 +48,11 @@ mapParams.openspeedtest_application = "uci.modgui.app.openspeedtest_app"
 if cputype:match("^armv7") or cputype:match("^mips") then
 	mapParams.l2tpipsec_application = "uci.modgui.app.l2tpipsec_app"
 end
+if cputype:match("^armv7") or cputype:match("^mips") then
+	if kernel_has_tun() then
+		mapParams.openvpn_application = "uci.modgui.app.openvpn_app"
+	end
+end
 if cputype:match("^armv7") or cputype == "aarch64" or cputype == "arm64" then
 	mapParams.speedtest_application = "uci.modgui.app.speedtest_app"
 	mapParams.adguardhome_application = "uci.modgui.app.adguardhome_app"

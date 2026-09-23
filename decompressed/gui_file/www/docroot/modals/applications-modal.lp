@@ -25,6 +25,7 @@ local app_list = {
 	"openspeedtest",
 	"wireguard",
 	"l2tpipsec",
+	"openvpn",
 }
 
 local marketing_version = proxy.get("uci.version.version.@version[0].marketing_version")
@@ -75,6 +76,9 @@ mapParams.rsyncd_application = "uci.modgui.app.rsyncd_app"
 mapParams.openspeedtest_application = "uci.modgui.app.openspeedtest_app"
 if cputype:match("^armv7") or cputype:match("^mips") then
 	mapParams.l2tpipsec_application = "uci.modgui.app.l2tpipsec_app"
+end
+if cputype:match("^armv7") or cputype:match("^mips") then
+	mapParams.openvpn_application = "uci.modgui.app.openvpn_app"
 end
 if cputype:match("^armv7") or cputype == "aarch64" or cputype == "arm64" then
 	mapParams.speedtest_application = "uci.modgui.app.speedtest_app"
@@ -381,6 +385,24 @@ if StateParams["l2tpipsec_application"] ~= nil then
 		nil,
 		true
 	)
+end
+
+if StateParams["openvpn_application"] ~= nil then
+	if kernel_has_tun() then
+		append_extension_card(
+			"openvpn_application",
+			"openvpn",
+			T"OpenVPN Server",
+			T"Installs the OpenVPN server runtime and its management card. The server and WAN rule stay disabled until explicitly enabled.",
+			nil,
+			true
+		)
+	else
+		html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
+		html[#html+1] = "<fieldset><legend>" .. T"OpenVPN Server" .. "</legend>"
+		html[#html+1] = ui_helper.createAlertBlock(T"Unavailable: this firmware kernel was built without TUN support.", specific_box)
+		html[#html+1] = "</fieldset></div>"
+	end
 end
 
 if StateParams["voipblock_for_mmpbx"] ~= nil then

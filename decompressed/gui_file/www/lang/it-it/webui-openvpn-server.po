@@ -1,0 +1,76 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: webui-openvpn-server\n"
+"PO-Revision-Date: 2026-09-23 00:00+0200\n"
+"Last-Translator: ModGUI\n"
+"Language-Team: Italiano\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "OpenVPN Server"
+msgstr "Server OpenVPN"
+
+msgid "OpenVPN server enabled"
+msgstr "Server OpenVPN abilitato"
+
+msgid "OpenVPN server disabled"
+msgstr "Server OpenVPN disabilitato"
+
+msgid "OpenVPN server state"
+msgstr "Stato del server OpenVPN"
+
+msgid "WAN port"
+msgstr "Porta WAN"
+
+msgid "Protocol (udp or tcp)"
+msgstr "Protocollo (udp o tcp)"
+
+msgid "VPN network and netmask"
+msgstr "Rete VPN e maschera di rete"
+
+msgid "Allow VPN clients to access LAN"
+msgstr "Consenti ai client VPN di accedere alla LAN"
+
+msgid "Download client profile"
+msgstr "Scarica profilo client"
+
+msgid "Users"
+msgstr "Utenti"
+
+msgid "Add new user"
+msgstr "Aggiungi nuovo utente"
+
+msgid "General"
+msgstr "Generale"
+
+msgid "Username"
+msgstr "Nome utente"
+
+msgid "Password"
+msgstr "Password"
+
+msgid "Client keys are not available. Start the server once to generate them."
+msgstr "Le chiavi client non sono disponibili. Avviare il server una volta per generarle."
+
+msgid "Use only letters, numbers, dot, underscore, @ or dash"
+msgstr "Usare solo lettere, numeri, punto, trattino basso, @ o trattino"
+
+msgid "Password must contain at least 8 characters and no spaces"
+msgstr "La password deve contenere almeno 8 caratteri e nessuno spazio"
+
+msgid "Port must be between 1 and 65535"
+msgstr "La porta deve essere compresa tra 1 e 65535"
+
+msgid "Protocol must be udp or tcp"
+msgstr "Il protocollo deve essere udp o tcp"
+
+msgid "Use network and netmask, for example 10.8.0.0 255.255.255.0"
+msgstr "Indicare rete e maschera, per esempio 10.8.0.0 255.255.255.0"
+
+msgid "<strong>%d client</strong> is connected"
+msgid_plural "<strong>%d clients</strong> are connected"
+msgstr[0] "<strong>%d client</strong> connesso"
+msgstr[1] "<strong>%d client</strong> connessi"

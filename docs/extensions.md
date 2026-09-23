@@ -13,6 +13,7 @@ background, so reopen the card after an operation to refresh its state.
 | AdGuard Home | ARM, ARM64 | Official AdGuard stable archive | Installed under `/opt/AdGuardHome`; initial setup is available on port 3000. |
 | WireGuard | ARM, ARM64 with kernel TUN | Pinned `openwrt-wireguard-go` package | Installs only the userspace runtime; it creates no interface, key, route or firewall rule. |
 | L2TP/IPsec VPN | ARMv7 and MIPS | Pinned `modgui-vpn`, configured opkg feeds | Adds the legacy strongSwan/xl2tpd server card; installation leaves the server disabled. |
+| OpenVPN Server | ARMv7 and MIPS with TUN | `openvpn-openssl`, `openvpn-easy-rsa` | Adds server configuration, user management and client profile export; installation leaves the server and WAN rule disabled. |
 
 AdGuard Home installation deliberately does not stop dnsmasq, claim DNS port 53,
 or change DHCP settings. Complete its first-run wizard and choose non-conflicting
@@ -72,3 +73,24 @@ and encrypted UDP 1701 on WAN; installation by itself does not enable those rule
 After validation, all test packages, services, configuration created by the tests,
 open ports and temporary files were removed. dnsmasq and the router web interface
 remained available.
+
+The OpenVPN extension refuses to replace a pre-existing OpenVPN setup and records
+only packages it installed. On the exact Damson 19.4.0866-3401052 kernel build,
+it can load the SHA-256 verified TUN module from a pinned revision of `GUI_ipk`.
+Other kernels without TUN require a compatible `kmod-tun` from their configured
+feeds. First start creates the CA and shared server/client certificates with
+easy-rsa. The WAN firewall rule follows the server state and uses the configured
+protocol and port. Client profiles never contain user credentials. Access from
+VPN clients to the LAN is an explicit switch and is disabled by default; the
+extension does not route clients' Internet traffic through the gateway.
+The extension keeps a backup of its GUI and Transformer files at
+`/opt/modgui-openvpn-gui.tar.gz` and restores them after a GUI upgrade when
+the installed card or mapping is missing.
+
+On the DGA4130 (Damson 19.4, kernel 4.1.52), the pinned
+TUN module loaded successfully. OpenVPN 2.4.5 started with generated CA,
+server/client certificates and 2048-bit DH parameters. A local test client
+authenticated with a temporary user and completed the TLS handshake, receiving
+`10.8.0.6`. Wrong credentials were rejected. The test user and client were
+removed, and the server and WAN OpenVPN rule were disabled after the test. The
+LAN forwarding switch was not enabled during this validation.

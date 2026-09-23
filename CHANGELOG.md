@@ -1,6 +1,7 @@
 
 # Unreleased
 
+- Add an installable OpenVPN server extension with GUI configuration, user management, client-profile export, TUN/runtime safety checks and a state-coupled WAN firewall rule
 - Add a standalone Asterisk PBX card for SIP accounts and status, with guarded Voipblock integration
 - Integrate Adblock, rsyncd, Ookla Speedtest and AdGuard Home in the Extensions card
 - Add a pinned and checksum-verified OpenSpeedTest LAN/Wi-Fi server on port 5678

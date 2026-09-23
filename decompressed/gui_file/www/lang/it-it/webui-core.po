@@ -4420,3 +4420,12 @@ msgstr "VPN L2TP/IPsec"
 
 msgid "Installs the legacy strongSwan and xl2tpd VPN server card. The server stays disabled after installation; prefer IKEv2 or WireGuard for new deployments."
 msgstr "Installa la scheda del server VPN legacy strongSwan e xl2tpd. Il server resta disabilitato dopo l’installazione; per nuove configurazioni preferire IKEv2 o WireGuard."
+
+msgid "OpenVPN Server"
+msgstr "Server OpenVPN"
+
+msgid "Installs the OpenVPN server runtime and its management card. The server and WAN rule stay disabled until explicitly enabled."
+msgstr "Installa OpenVPN e la relativa scheda di gestione. Il server e la regola WAN restano disabilitati finché non vengono attivati esplicitamente."
+
+msgid "Unavailable: this firmware kernel was built without TUN support."
+msgstr "Non disponibile: il kernel di questo firmware non supporta TUN."

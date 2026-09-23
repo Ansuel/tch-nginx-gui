@@ -1198,6 +1198,265 @@ app_l2tpipsec() {
   esac
 }
 
+app_openvpn() {
+  openvpn_before="/tmp/modgui-openvpn-packages-before.$$"
+  openvpn_owned="/etc/.modgui-openvpn-installed"
+  openvpn_packages="/etc/.modgui-openvpn-packages"
+  openvpn_tun_owned="/etc/.modgui-openvpn-tun-installed"
+  openvpn_tun_file="/lib/modules/4.1.52/tun.ko"
+  openvpn_tun_sha256="374b8399951a4fa75a0b9c68b6eced9d064cc442d3150d2210d75623c275354e"
+  openvpn_tun_commit="1587d4a113de414f4409ea80b11a8d03c115f17c"
+  openvpn_openssl_lib="/opt/modgui-openvpn-openssl"
+  openvpn_openssl_sha256="12585b06530fecd2c73f9045edb131860e87ee4946c75be18a9d96f9b6ca8c37"
+  openvpn_gui_backup="/opt/modgui-openvpn-gui.tar.gz"
+
+  openvpn_has_tun() {
+    [ -c /dev/net/tun ] || zcat /proc/config.gz 2>/dev/null | grep -q '^CONFIG_TUN=y$'
+  }
+
+  openvpn_install_tun() {
+    openvpn_has_tun && return 0
+    if [ "$cpu_type" = "armv7l" ] && [ "$(uname -r)" = "4.1.52" ] &&
+      [ "$(uci -q get version.@version[0].version | cut -d- -f1-2)" = "19.4.0866-3401052" ] &&
+      [ "$(uci -q get version.@version[0].kernel)" = "ac8d9a0575131475c4002132bf4995cb96c6f99d" ]; then
+      [ ! -e "$openvpn_tun_file" ] || {
+        echo "An unowned TUN module already exists; refusing to overwrite it"
+        return 1
+      }
+      curl -kfL "https://raw.githubusercontent.com/FrancYescO/GUI_ipk/$openvpn_tun_commit/artifacts/tun-vbntj-damson-4.1.52.ko" \
+        --output /tmp/modgui-openvpn-tun.ko || return 1
+      [ "$(sha256sum /tmp/modgui-openvpn-tun.ko | awk '{print $1}')" = "$openvpn_tun_sha256" ] || {
+        echo "TUN module checksum mismatch"
+        rm -f /tmp/modgui-openvpn-tun.ko
+        return 1
+      }
+      insmod /tmp/modgui-openvpn-tun.ko || return 1
+      openvpn_has_tun || return 1
+      cp /tmp/modgui-openvpn-tun.ko "$openvpn_tun_file" || return 1
+      printf 'tun\n' > /etc/modules.d/30-modgui-openvpn-tun
+      touch "$openvpn_tun_owned"
+      rm -f /tmp/modgui-openvpn-tun.ko
+      return 0
+    fi
+    opkg install kmod-tun || return 1
+    modprobe tun 2>/dev/null || true
+    openvpn_has_tun
+  }
+
+  openvpn_remove_tun() {
+    [ -f "$openvpn_tun_owned" ] || return 0
+    if lsmod | grep -q '^tun '; then
+      rmmod tun 2>/dev/null || {
+        echo "TUN is still in use; leaving the module installed"
+        return 0
+      }
+    fi
+    rm -f /etc/modules.d/30-modgui-openvpn-tun
+    if [ -f "$openvpn_tun_file" ] &&
+      [ "$(sha256sum "$openvpn_tun_file" | awk '{print $1}')" = "$openvpn_tun_sha256" ]; then
+      rm -f "$openvpn_tun_file"
+    fi
+    rm -f "$openvpn_tun_owned"
+  }
+
+  openvpn_prepare_openssl() {
+    openssl version >/dev/null 2>&1 && return 0
+    if [ -d "$openvpn_openssl_lib/usr/lib" ] &&
+      LD_LIBRARY_PATH="$openvpn_openssl_lib/usr/lib" openssl version >/dev/null 2>&1; then
+      return 0
+    fi
+    [ -f "$openvpn_tun_owned" ] || return 1
+    curl -kfL "https://raw.githubusercontent.com/FrancYescO/GUI_ipk/$openvpn_tun_commit/base/libopenssl_1.0.2t-1_arm_cortex-a9_neon.ipk" \
+      --output /tmp/modgui-openvpn-libopenssl.ipk || return 1
+    [ "$(sha256sum /tmp/modgui-openvpn-libopenssl.ipk | awk '{print $1}')" = "$openvpn_openssl_sha256" ] || {
+      echo "OpenSSL library checksum mismatch"
+      return 1
+    }
+    mkdir -p "$openvpn_openssl_lib" || return 1
+    tar -xOzf /tmp/modgui-openvpn-libopenssl.ipk ./data.tar.gz |
+      tar -xzf - -C "$openvpn_openssl_lib" || return 1
+    rm -f /tmp/modgui-openvpn-libopenssl.ipk
+    LD_LIBRARY_PATH="$openvpn_openssl_lib/usr/lib" openssl version >/dev/null 2>&1
+  }
+
+  openvpn_register_gui() {
+    uci -q del_list web.ruleset_main.rules=openvpnservermodal
+    uci add_list web.ruleset_main.rules=openvpnservermodal
+    uci set web.openvpnservermodal=rule
+    uci set web.openvpnservermodal.target=/modals/openvpn-server-modal.lp
+    uci -q del_list web.openvpnservermodal.roles=admin
+    uci -q del_list web.openvpnservermodal.roles=engineer
+    uci -q del_list web.openvpnservermodal.roles=superuser
+    uci add_list web.openvpnservermodal.roles=admin
+    uci add_list web.openvpnservermodal.roles=engineer
+    uci add_list web.openvpnservermodal.roles=superuser
+    uci set web.openvpnserver_card=card
+    uci set web.openvpnserver_card.card=015_openvpn-server.lp
+    uci set web.openvpnserver_card.modal=openvpnservermodal
+    uci commit web
+  }
+
+  openvpn_backup_gui() {
+    mkdir -p /opt || return 1
+    tar -czf "$openvpn_gui_backup" -C / \
+      usr/share/modgui-openvpn/openvpn.default \
+      usr/share/modgui-openvpn/checkpwd.sh \
+      usr/share/transformer/commitapply/uci_openvpn.ca \
+      usr/share/transformer/mappings/uci/openvpn.map \
+      usr/share/transformer/mappings/rpc/openvpn.map \
+      usr/share/transformer/mappings/rpc/openvpn.server.map \
+      usr/share/transformer/scripts/openvpnApply.sh \
+      usr/share/transformer/scripts/openvpnGenerateKeys.sh \
+      www/cards/015_openvpn-server.lp \
+      www/docroot/modals/openvpn-server-modal.lp \
+      www/lang/it-it/webui-openvpn-server.po
+  }
+
+  openvpn_repair_gui() {
+    [ -f "$openvpn_gui_backup" ] || return 1
+    tar -xzf "$openvpn_gui_backup" -C / || return 1
+    openvpn_register_gui
+    /etc/init.d/transformer restart
+    /etc/init.d/nginx restart
+  }
+
+  openvpn_record_new_packages() {
+    : > "$openvpn_packages" || return 1
+    opkg list-installed | awk '{print $1}' | while read -r package; do
+      grep -Fxq "$package" "$openvpn_before" || echo "$package" >> "$openvpn_packages"
+    done
+  }
+
+  openvpn_remove_owned_packages() {
+    [ -f "$openvpn_packages" ] || return 0
+    awk '{ packages[NR]=$0 } END { for (i=NR; i>0; i--) print packages[i] }' "$openvpn_packages" |
+      while read -r package; do
+        grep -Fxq "$package" "$openvpn_packages" || continue
+        opkg status "$package" 2>/dev/null | grep -q '^Status:.*installed' && opkg remove "$package" 2>/dev/null
+      done
+  }
+
+  openvpn_rollback_install() {
+    openvpn_record_new_packages
+    openvpn_remove_owned_packages
+    openvpn_remove_tun
+    rm -rf "$openvpn_openssl_lib"
+    rm -f "$openvpn_before" "$openvpn_packages"
+  }
+
+  case "$1" in
+  install)
+    case "$cpu_type" in
+    armv7* | mips*) ;;
+    *)
+      echo "OpenVPN is only supported on ARMv7 and MIPS Technicolor gateways"
+      return 1
+      ;;
+    esac
+    if opkg list-installed | grep -Eq '^openvpn-(openssl|mbedtls|polarssl|nossl) '; then
+      if [ -f "$openvpn_owned" ]; then
+        openvpn_prepare_openssl || return 1
+        openvpn_backup_gui || return 1
+        openvpn_register_gui
+        set_extension_state openvpn_app 1
+        return 0
+      fi
+      echo "A pre-existing OpenVPN installation was found; refusing to overwrite its configuration"
+      return 1
+    fi
+    require_free_space 16384 /overlay || return 1
+    opkg list-installed | awk '{print $1}' > "$openvpn_before" || return 1
+    opkg update || {
+      rm -f "$openvpn_before"
+      return 1
+    }
+    openvpn_install_tun || {
+      openvpn_rollback_install
+      return 1
+    }
+    if [ -f "$openvpn_tun_owned" ]; then
+      opkg install openvpn-easy-rsa liblzo libopenssl &&
+        opkg install --nodeps --force-depends openvpn-openssl
+    else
+      opkg install openvpn-openssl openvpn-easy-rsa
+    fi || {
+      openvpn_rollback_install
+      return 1
+    }
+    openvpn --version 2>/dev/null | grep -q '^OpenVPN ' || {
+      echo "Installed OpenVPN binary is incompatible with this gateway"
+      openvpn_rollback_install
+      return 1
+    }
+    openvpn_prepare_openssl || {
+      echo "No compatible OpenSSL utility is available for key generation"
+      openvpn_rollback_install
+      return 1
+    }
+    openvpn_record_new_packages || return 1
+    rm -f "$openvpn_before"
+    touch "$openvpn_owned"
+    mkdir -p /etc/openvpn
+    cp /usr/share/modgui-openvpn/openvpn.default /etc/config/openvpn || return 1
+    cp /usr/share/modgui-openvpn/checkpwd.sh /etc/openvpn/checkpwd.sh || return 1
+    chmod 700 /etc/openvpn/checkpwd.sh
+    touch /etc/openvpn/psw-file
+    chmod 600 /etc/openvpn/psw-file
+    uci set openvpn.server.enabled=0
+    uci commit openvpn
+    openvpn_register_gui
+    openvpn_backup_gui || return 1
+    /usr/share/transformer/scripts/openvpnApply.sh
+    set_extension_state openvpn_app 1
+    /etc/init.d/transformer restart
+    /etc/init.d/nginx restart
+    ;;
+  remove)
+    if [ -f "$openvpn_owned" ]; then
+      uci set openvpn.server.enabled=0
+      uci commit openvpn
+      /usr/share/transformer/scripts/openvpnApply.sh >/dev/null 2>&1
+      openvpn_remove_owned_packages
+      openvpn_remove_tun
+      rm -rf "$openvpn_openssl_lib"
+      rm -f /etc/openvpn/checkpwd.sh
+    fi
+    uci -q delete firewall.modgui_openvpn
+    uci -q delete firewall.modgui_openvpn_zone
+    uci -q delete firewall.modgui_openvpn_to_lan
+    uci commit firewall
+    /etc/init.d/firewall reload >/dev/null 2>&1
+    uci -q delete web.openvpnserver_card
+    uci -q delete web.openvpnservermodal
+    uci -q del_list web.ruleset_main.rules=openvpnservermodal
+    uci commit web
+    rm -f "$openvpn_owned" "$openvpn_packages" "$openvpn_before" "$openvpn_gui_backup"
+    set_extension_state openvpn_app 0
+    /etc/init.d/transformer restart
+    /etc/init.d/nginx restart
+    ;;
+  start)
+    [ -f "$openvpn_owned" ] || return 1
+    /usr/share/transformer/scripts/openvpnGenerateKeys.sh || return 1
+    uci set openvpn.server.enabled=1
+    uci commit openvpn
+    /usr/share/transformer/scripts/openvpnApply.sh
+    ;;
+  stop)
+    uci set openvpn.server.enabled=0
+    uci commit openvpn
+    /usr/share/transformer/scripts/openvpnApply.sh
+    ;;
+  refresh)
+    openvpn_repair_gui
+    ;;
+  *)
+    echo "Unsupported action"
+    return 1
+    ;;
+  esac
+}
+
 install_specific_files() {
 
   install() {
@@ -1273,6 +1532,9 @@ call_app_type() {
     ;;
   l2tpipsec)
     app_l2tpipsec "$1"
+    ;;
+  openvpn)
+    app_openvpn "$1"
     ;;
   specificapp)
     install_specific_files "$1" "$3"

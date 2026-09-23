@@ -23,6 +23,7 @@ EXTENSIONS = {
     "openspeedtest": "openspeedtest_app",
     "wireguard": "wireguard_app",
     "l2tpipsec": "l2tpipsec_app",
+    "openvpn": "openvpn_app",
 }
 
 
@@ -181,6 +182,52 @@ class ExtensionManager(unittest.TestCase):
         )
         self.assertIn(architecture_gate, modal)
         self.assertIn(architecture_gate, card)
+
+    def test_openvpn_is_safe_gated_and_starts_disabled(self):
+        installer = INSTALLER.read_text()
+        start = installer.index("app_openvpn()")
+        end = installer.index("install_specific_files()", start)
+        vpn = installer[start:end]
+        modal = MODAL.read_text()
+        card = CARD.read_text()
+
+        self.assertIn("openvpn-openssl openvpn-easy-rsa", vpn)
+        self.assertIn("openvpn_has_tun", vpn)
+        self.assertIn("CONFIG_TUN=y", vpn)
+        self.assertIn("A pre-existing OpenVPN installation was found", vpn)
+        self.assertIn(".modgui-openvpn-packages", vpn)
+        self.assertIn("openvpn.server.enabled=0", vpn)
+        self.assertIn("openvpnGenerateKeys.sh", vpn)
+        self.assertIn("openvpnApply.sh", vpn)
+        self.assertIn('openvpn_gui_backup="/opt/modgui-openvpn-gui.tar.gz"', vpn)
+        self.assertIn('openvpn_backup_gui || return 1', vpn)
+        self.assertIn('tar -xzf "$openvpn_gui_backup" -C /', vpn)
+        self.assertIn('openvpn_repair_gui', vpn)
+        self.assertIn('if [ -d "$openvpn_openssl_lib/usr/lib" ]', vpn)
+        self.assertIn("firewall.modgui_openvpn", vpn)
+        self.assertNotIn("--force-overwrite", vpn)
+        self.assertIn('mapParams.openvpn_application = "uci.modgui.app.openvpn_app"', modal)
+        self.assertIn('mapParams.openvpn_application = "uci.modgui.app.openvpn_app"', card)
+        config = CONFIG.read_text()
+        self.assertIn('/opt/modgui-openvpn-gui.tar.gz', config)
+        self.assertIn('appInstallRemoveUtility.sh refresh openvpn', config)
+
+    def test_openvpn_assets_are_present(self):
+        expected = (
+            GUI / "usr/share/modgui-openvpn/openvpn.default",
+            GUI / "usr/share/modgui-openvpn/checkpwd.sh",
+            GUI / "usr/share/transformer/mappings/uci/openvpn.map",
+            GUI / "usr/share/transformer/mappings/rpc/openvpn.map",
+            GUI / "usr/share/transformer/mappings/rpc/openvpn.server.map",
+            GUI / "usr/share/transformer/commitapply/uci_openvpn.ca",
+            GUI / "usr/share/transformer/scripts/openvpnApply.sh",
+            GUI / "usr/share/transformer/scripts/openvpnGenerateKeys.sh",
+            GUI / "www/cards/015_openvpn-server.lp",
+            GUI / "www/docroot/modals/openvpn-server-modal.lp",
+        )
+        for path in expected:
+            with self.subTest(path=path):
+                self.assertTrue(path.is_file())
 
     def test_arm_only_extensions_are_hidden_on_mips(self):
         modal = MODAL.read_text()

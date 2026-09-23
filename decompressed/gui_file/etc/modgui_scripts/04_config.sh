@@ -169,6 +169,20 @@ create_gui_type() {
       uci set modgui.app.l2tpipsec_app="0"
     fi
   fi
+  if [ ! "$(uci get -q modgui.app.openvpn_app)" ]; then
+    if [ -f /etc/.modgui-openvpn-installed ] && opkg list-installed | grep -q '^openvpn-openssl '; then
+      uci set modgui.app.openvpn_app="1"
+    else
+      uci set modgui.app.openvpn_app="0"
+    fi
+  fi
+  if [ "$(uci get -q modgui.app.openvpn_app)" = "1" ] &&
+    [ -f /opt/modgui-openvpn-gui.tar.gz ] &&
+    { [ ! -f /www/cards/015_openvpn-server.lp ] ||
+      [ ! -f /usr/share/transformer/mappings/rpc/openvpn.map ]; }; then
+    logecho "Restoring OpenVPN GUI files after upgrade..."
+    /usr/share/transformer/scripts/appInstallRemoveUtility.sh refresh openvpn >/dev/null 2>&1
+  fi
   if [ "$(uci get -q modgui.app.l2tpipsec_app)" = "1" ] &&
     [ -f /opt/modgui-l2tp-ipsec-gui.tar.gz ] &&
     { [ ! -f /www/cards/014_l2tp-ipsec-server.lp ] ||

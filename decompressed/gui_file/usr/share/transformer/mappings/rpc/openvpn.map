@@ -1,0 +1,32 @@
+local register = register
+local open = io.open
+
+register({ objectType = { name = "rpc.openvpn.", access = "readOnly", minEntries = 1, maxEntries = 1, parameters = {} } })
+register({ objectType = { name = "rpc.openvpn.server.", access = "readOnly", minEntries = 1, maxEntries = 1, parameters = {} } })
+
+local function readfile(path)
+    local fd = open(path, "r")
+    if not fd then return "" end
+    local value = fd:read("*all") or ""
+    fd:close()
+    return value
+end
+
+register({
+    objectType = {
+        name = "rpc.openvpn.server.client.",
+        access = "readOnly",
+        minEntries = 1,
+        maxEntries = 1,
+        parameters = {
+            ca = { access = "readOnly", type = "string" },
+            cert = { access = "readOnly", type = "string" },
+            key = { access = "readOnly", type = "string" },
+        },
+    },
+    get = {
+        ca = function() return readfile("/etc/openvpn/ca.crt") end,
+        cert = function() return readfile("/etc/openvpn/client.crt") end,
+        key = function() return readfile("/etc/openvpn/client.key") end,
+    },
+})
