@@ -1,6 +1,7 @@
 
 # Unreleased
 
+- Add a pinned, checksum-verified Tailscale extension for ARM gateways with an asynchronous cold-start/login flow, native status card, login link, subnet-router, exit-node, route-acceptance and Tailscale SSH controls
 - Add an installable OpenVPN extension with server/client tabs, dynamically discovered isolated Wi-Fi SSIDs for optional client routing, profile export, TUN/runtime safety checks and a state-coupled WAN firewall rule
 - Add a standalone Asterisk PBX card for SIP accounts and status, with guarded Voipblock integration
 - Integrate Adblock, rsyncd, Ookla Speedtest and AdGuard Home in the Extensions card

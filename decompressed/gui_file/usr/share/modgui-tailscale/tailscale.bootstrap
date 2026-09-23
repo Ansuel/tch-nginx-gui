@@ -1,0 +1,69 @@
+#!/bin/sh
+
+runtime_status=/tmp/modgui-tailscale-runtime-status
+archive=/tmp/modgui-tailscale-boot.tgz
+extract_dir=/tmp/modgui-tailscale-boot-extract
+
+set_status() {
+	printf 'state=%s\nmessage=%s\n' "$1" "$2" > "$runtime_status"
+}
+
+fail() {
+	set_status error "$1"
+	rm -f "$archive"
+	rm -rf "$extract_dir"
+	echo "Tailscale bootstrap: $1" >&2
+	exit 1
+}
+
+port="$(uci -q get tailscale.service.port)"
+state_dir="$(uci -q get tailscale.service.state_dir)"
+runtime_dir="$(uci -q get tailscale.service.runtime_dir)"
+archive_path="$(uci -q get tailscale.service.archive_path)"
+download_url="$(uci -q get tailscale.service.download_url)"
+archive_sha256="$(uci -q get tailscale.service.archive_sha256)"
+[ -n "$port" ] || port=41641
+[ -n "$state_dir" ] || state_dir=/opt/modgui-tailscale-state
+[ -n "$runtime_dir" ] || runtime_dir=/opt/tailscale
+
+if [ ! -x "$runtime_dir/tailscale" ] || [ ! -x "$runtime_dir/tailscaled" ]; then
+	boot_archive="$archive_path"
+	if [ -n "$download_url" ]; then
+		set_status downloading "Downloading verified Tailscale runtime"
+		rm -f "$archive"
+		curl -kfL "$download_url" --output "$archive" || fail "Runtime download failed"
+		boot_archive="$archive"
+	fi
+	[ -s "$boot_archive" ] || fail "Runtime archive is unavailable"
+	[ -n "$archive_sha256" ] || fail "Runtime checksum is missing"
+	set_status verifying "Verifying Tailscale runtime"
+	[ "$(sha256sum "$boot_archive" | awk '{print $1}')" = "$archive_sha256" ] || fail "Runtime checksum mismatch"
+	set_status extracting "Preparing Tailscale runtime"
+	rm -rf "$extract_dir" "$runtime_dir"
+	mkdir -p "$extract_dir" || fail "Cannot create extraction directory"
+	tar -xzf "$boot_archive" -C "$extract_dir" || fail "Runtime extraction failed"
+	found=0
+	for source_dir in "$extract_dir"/tailscale_*; do
+		[ -x "$source_dir/tailscale" ] && [ -x "$source_dir/tailscaled" ] || continue
+		case "$runtime_dir" in
+		/tmp/*) mv "$source_dir" "$runtime_dir" || fail "Cannot install runtime in RAM" ;;
+		*)
+			mkdir -p "$runtime_dir" || fail "Cannot create runtime directory"
+			cp "$source_dir/tailscale" "$runtime_dir/tailscale" || fail "Cannot install tailscale"
+			cp "$source_dir/tailscaled" "$runtime_dir/tailscaled" || fail "Cannot install tailscaled"
+			;;
+		esac
+		found=1
+		break
+	done
+	rm -rf "$extract_dir"
+	[ -z "$download_url" ] || rm -f "$archive"
+	[ "$found" = 1 ] || fail "Expected binaries were not found in the archive"
+fi
+
+mkdir -p /dev/net "$state_dir" /var/run/tailscale
+[ -c /dev/net/tun ] || mknod /dev/net/tun c 10 200
+[ -c /dev/net/tun ] || fail "TUN is unavailable"
+chmod 755 "$runtime_dir/tailscale" "$runtime_dir/tailscaled"
+set_status starting "Starting Tailscale daemon"
+exec "$runtime_dir/tailscaled" --port "$port" --state "$state_dir/tailscaled.state"

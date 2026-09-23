@@ -1482,6 +1482,318 @@ app_openvpn() {
   esac
 }
 
+app_tailscale() {
+  tailscale_version="1.102.4"
+  tailscale_owned="/etc/.modgui-tailscale-installed"
+  tailscale_packages="/etc/.modgui-tailscale-packages"
+  tailscale_before="/tmp/modgui-tailscale-packages-before.$$"
+  tailscale_archive="/tmp/modgui-tailscale-install.$$.tgz"
+  tailscale_extract="/tmp/modgui-tailscale-extract.$$"
+  tailscale_runtime_dir="$(uci -q get tailscale.service.runtime_dir)"
+  tailscale_storage_dir="$(uci -q get tailscale.service.storage_dir)"
+  tailscale_archive_path="$(uci -q get tailscale.service.archive_path)"
+  tailscale_download_url="$(uci -q get tailscale.service.download_url)"
+  tailscale_state_dir="$(uci -q get tailscale.service.state_dir)"
+  [ -n "$tailscale_runtime_dir" ] || tailscale_runtime_dir="/opt/tailscale"
+  [ -n "$tailscale_storage_dir" ] || tailscale_storage_dir="$tailscale_runtime_dir"
+  [ -n "$tailscale_state_dir" ] || tailscale_state_dir="/opt/modgui-tailscale-state"
+  tailscale_gui_backup="/opt/modgui-tailscale-gui.tar.gz"
+
+  tailscale_has_tun() {
+    [ -c /dev/net/tun ] || zcat /proc/config.gz 2>/dev/null | grep -q '^CONFIG_TUN=y$'
+  }
+
+  tailscale_has_space() {
+    tailscale_available_kb="$(df -Pk "$2" 2>/dev/null | awk 'END {print $4}')"
+    case "$tailscale_available_kb" in '' | *[!0-9]*) return 1 ;; esac
+    [ "$tailscale_available_kb" -ge "$1" ]
+  }
+
+  tailscale_register_gui() {
+    uci -q del_list web.ruleset_main.rules=tailscalemodal
+    uci add_list web.ruleset_main.rules=tailscalemodal
+    uci set web.tailscalemodal=rule
+    uci set web.tailscalemodal.target=/modals/tailscale-modal.lp
+    uci -q del_list web.tailscalemodal.roles=admin
+    uci -q del_list web.tailscalemodal.roles=engineer
+    uci -q del_list web.tailscalemodal.roles=superuser
+    uci add_list web.tailscalemodal.roles=admin
+    uci add_list web.tailscalemodal.roles=engineer
+    uci add_list web.tailscalemodal.roles=superuser
+    uci set web.tailscale_card=card
+    uci set web.tailscale_card.card=016_tailscale.lp
+    uci set web.tailscale_card.modal=tailscalemodal
+    uci commit web
+  }
+
+  tailscale_backup_gui() {
+    mkdir -p /opt || return 1
+    tar -czf "$tailscale_gui_backup" -C / \
+      usr/share/modgui-tailscale/tailscale.default \
+      usr/share/modgui-tailscale/tailscale.init \
+      usr/share/modgui-tailscale/tailscale.bootstrap \
+      usr/share/modgui-tailscale/tailscale.connect \
+      usr/share/transformer/commitapply/uci_tailscale.ca \
+      usr/share/transformer/mappings/uci/tailscale.map \
+      usr/share/transformer/scripts/tailscaleApply.sh \
+      usr/share/transformer/scripts/tailscaleStatus.sh \
+      www/cards/016_tailscale.lp \
+      www/docroot/modals/tailscale-modal.lp \
+      www/lang/it-it/webui-tailscale.po || return 1
+  }
+
+  tailscale_repair_gui() {
+    [ -f "$tailscale_gui_backup" ] || return 1
+    tar -xzf "$tailscale_gui_backup" -C / || return 1
+    chmod 755 /usr/share/transformer/scripts/tailscaleApply.sh \
+      /usr/share/transformer/scripts/tailscaleStatus.sh \
+      /usr/share/modgui-tailscale/tailscale.bootstrap \
+      /usr/share/modgui-tailscale/tailscale.connect
+    tailscale_register_gui
+    /etc/init.d/transformer restart
+    /etc/init.d/nginx restart
+  }
+
+  tailscale_record_new_packages() {
+    : > "$tailscale_packages" || return 1
+    opkg list-installed | awk '{print $1}' | while read -r package; do
+      grep -Fxq "$package" "$tailscale_before" || echo "$package" >> "$tailscale_packages"
+    done
+  }
+
+  tailscale_remove_owned_packages() {
+    [ -f "$tailscale_packages" ] || return 0
+    awk '{ packages[NR]=$0 } END { for (i=NR; i>0; i--) print packages[i] }' "$tailscale_packages" |
+      while read -r package; do
+        opkg status "$package" 2>/dev/null | grep -q '^Status:.*installed' && opkg remove "$package" 2>/dev/null
+      done
+  }
+
+  tailscale_remove_runtime() {
+    [ -x /etc/init.d/tailscale ] && /etc/init.d/tailscale disable >/dev/null 2>&1
+    [ -x /etc/init.d/tailscale ] && /etc/init.d/tailscale stop >/dev/null 2>&1
+    [ -L /usr/sbin/tailscale ] && rm -f /usr/sbin/tailscale
+    [ -L /usr/sbin/tailscaled ] && rm -f /usr/sbin/tailscaled
+    rm -rf "$tailscale_runtime_dir"
+    [ "$tailscale_storage_dir" = "$tailscale_runtime_dir" ] || rm -rf "$tailscale_storage_dir"
+    rm -rf "$tailscale_state_dir"
+    rm -f /etc/init.d/tailscale /etc/config/tailscale /tmp/modgui-tailscale-auth
+  }
+
+  tailscale_rollback_install() {
+    tailscale_record_new_packages
+    tailscale_remove_runtime
+    tailscale_remove_owned_packages
+    rm -rf "$tailscale_extract"
+    rm -f "$tailscale_archive" "$tailscale_before" "$tailscale_packages"
+  }
+
+  case "$1" in
+  install)
+    case "$cpu_type" in
+    armv7*)
+      tailscale_arch="arm"
+      tailscale_sha256="b981a59cb85fb923ee6e1860ee6934772c83a840a6627f0dbfd7711ed690b869"
+      ;;
+    aarch64 | arm64)
+      tailscale_arch="arm64"
+      tailscale_sha256="9dd1e6a592a014bbaea0103167ffe299adeda4ba14e078ce9c2895364f6c4c3f"
+      ;;
+    *)
+      echo "Tailscale is only supported on ARM Technicolor gateways"
+      return 1
+      ;;
+    esac
+    if [ -f "$tailscale_owned" ]; then
+      tailscale_register_gui
+      tailscale_backup_gui || return 1
+      set_extension_state tailscale_app 1
+      /etc/init.d/transformer restart
+      /etc/init.d/nginx restart
+      return 0
+    fi
+    if [ -x /usr/sbin/tailscale ] || [ -x /usr/sbin/tailscaled ]; then
+      echo "A pre-existing Tailscale installation was found; refusing to overwrite it"
+      return 1
+    fi
+    if [ ! -f "$tailscale_owned" ] &&
+      { [ -e /etc/config/tailscale ] || [ -e /etc/init.d/tailscale ] ||
+        [ -e /opt/tailscale ] || [ -e /overlay/modgui-tailscale ]; }; then
+      echo "Pre-existing Tailscale configuration or state was found; refusing to overwrite it"
+      return 1
+    fi
+    tailscale_has_tun || {
+      echo "Tailscale requires firmware built with CONFIG_TUN=y"
+      return 1
+    }
+    if tailscale_has_space 98304 /opt; then
+      tailscale_runtime_dir="/opt/tailscale"
+      tailscale_storage_dir="$tailscale_runtime_dir"
+      tailscale_archive_path=""
+      tailscale_download_url=""
+    elif tailscale_has_space 131072 /tmp; then
+      tailscale_runtime_dir="/tmp/modgui-tailscale-runtime"
+      tailscale_storage_dir="$tailscale_runtime_dir"
+      tailscale_archive_path=""
+      tailscale_download_url="https://pkgs.tailscale.com/stable/tailscale_${tailscale_version}_${tailscale_arch}.tgz"
+    else
+      echo "Tailscale needs 96 MB in /opt or 128 MB of temporary RAM for low-storage mode"
+      return 1
+    fi
+    opkg list-installed | awk '{print $1}' > "$tailscale_before" || return 1
+    curl -kfL "https://pkgs.tailscale.com/stable/tailscale_${tailscale_version}_${tailscale_arch}.tgz" \
+      --output "$tailscale_archive" || {
+        tailscale_rollback_install
+        return 1
+      }
+    tailscale_actual_sha256="$(sha256sum "$tailscale_archive" | awk '{print $1}')"
+    if [ "$tailscale_actual_sha256" != "$tailscale_sha256" ]; then
+      echo "Tailscale archive checksum mismatch"
+      tailscale_rollback_install
+      return 1
+    fi
+    mkdir -p "$tailscale_extract" "$tailscale_runtime_dir" "$tailscale_storage_dir" "$tailscale_state_dir" || {
+      tailscale_rollback_install
+      return 1
+    }
+    tar -xzf "$tailscale_archive" -C "$tailscale_extract" || {
+      tailscale_rollback_install
+      return 1
+    }
+    tailscale_source="$tailscale_extract/tailscale_${tailscale_version}_${tailscale_arch}"
+    [ -x "$tailscale_source/tailscale" ] && [ -x "$tailscale_source/tailscaled" ] || {
+      echo "Tailscale archive does not contain the expected binaries"
+      tailscale_rollback_install
+      return 1
+    }
+    case "$tailscale_runtime_dir" in
+    /tmp/*)
+      rm -rf "$tailscale_runtime_dir"
+      mv "$tailscale_source" "$tailscale_runtime_dir" || {
+        tailscale_rollback_install
+        return 1
+      }
+      ;;
+    *)
+      cp "$tailscale_source/tailscale" "$tailscale_runtime_dir/tailscale" || {
+        tailscale_rollback_install
+        return 1
+      }
+      cp "$tailscale_source/tailscaled" "$tailscale_runtime_dir/tailscaled" || {
+        tailscale_rollback_install
+        return 1
+      }
+      ;;
+    esac
+    chmod 755 "$tailscale_runtime_dir/tailscale" "$tailscale_runtime_dir/tailscaled"
+    if [ -n "$tailscale_archive_path" ]; then
+      cp "$tailscale_archive" "$tailscale_archive_path" || {
+        tailscale_rollback_install
+        return 1
+      }
+      sync
+      [ "$(sha256sum "$tailscale_archive_path" | awk '{print $1}')" = "$tailscale_sha256" ] || {
+        echo "Stored Tailscale archive checksum mismatch"
+        tailscale_rollback_install
+        return 1
+      }
+    fi
+    ln -s "$tailscale_runtime_dir/tailscale" /usr/sbin/tailscale || {
+      tailscale_rollback_install
+      return 1
+    }
+    ln -s "$tailscale_runtime_dir/tailscaled" /usr/sbin/tailscaled || {
+      tailscale_rollback_install
+      return 1
+    }
+    /usr/sbin/tailscale version 2>/dev/null | grep -q "^$tailscale_version" || {
+      echo "Installed Tailscale binary is incompatible with this gateway"
+      tailscale_rollback_install
+      return 1
+    }
+    cp /usr/share/modgui-tailscale/tailscale.init /etc/init.d/tailscale || {
+      tailscale_rollback_install
+      return 1
+    }
+    chmod 755 /etc/init.d/tailscale
+    if [ ! -f /etc/config/tailscale ]; then
+      cp /usr/share/modgui-tailscale/tailscale.default /etc/config/tailscale || {
+        tailscale_rollback_install
+        return 1
+      }
+      tailscale_hostname="$(uci -q get system.@system[0].hostname | tr 'A-Z_' 'a-z-')"
+      case "$tailscale_hostname" in '' | [!a-z0-9]* | *[!a-z0-9.-]*) tailscale_hostname="technicolor" ;; esac
+      tailscale_subnet="$(ip -4 route show dev br-lan 2>/dev/null | awk '$1 ~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\/[0-9]+$/ { print $1; exit }')"
+      uci set "tailscale.service.hostname=$tailscale_hostname"
+      [ -z "$tailscale_subnet" ] || uci set "tailscale.service.advertise_routes=$tailscale_subnet"
+      uci set "tailscale.service.runtime_dir=$tailscale_runtime_dir"
+      uci set "tailscale.service.storage_dir=$tailscale_storage_dir"
+      uci set "tailscale.service.archive_path=$tailscale_archive_path"
+      uci set "tailscale.service.download_url=$tailscale_download_url"
+      uci set "tailscale.service.archive_sha256=$tailscale_sha256"
+      uci set "tailscale.service.state_dir=$tailscale_state_dir"
+      uci set tailscale.service.enabled=0
+      uci set tailscale.service.connect=0
+      uci commit tailscale
+    fi
+    tailscale_record_new_packages || {
+      tailscale_rollback_install
+      return 1
+    }
+    rm -rf "$tailscale_extract"
+    rm -f "$tailscale_archive" "$tailscale_before"
+    touch "$tailscale_owned"
+    tailscale_register_gui
+    tailscale_backup_gui || return 1
+    /usr/share/transformer/scripts/tailscaleApply.sh || return 1
+    set_extension_state tailscale_app 1
+    /etc/init.d/transformer restart
+    /etc/init.d/nginx restart
+    ;;
+  remove)
+    if [ -f "$tailscale_owned" ]; then
+      uci set tailscale.service.enabled=0
+      uci set tailscale.service.connect=0
+      uci commit tailscale
+      /usr/share/transformer/scripts/tailscaleApply.sh >/dev/null 2>&1
+      tailscale_remove_runtime
+      tailscale_remove_owned_packages
+    fi
+    uci -q delete web.tailscale_card
+    uci -q delete web.tailscalemodal
+    uci -q del_list web.ruleset_main.rules=tailscalemodal
+    uci commit web
+    rm -rf "$tailscale_extract"
+    rm -f "$tailscale_owned" "$tailscale_packages" "$tailscale_before" \
+      "$tailscale_archive" "$tailscale_gui_backup" /tmp/modgui-tailscale-auth
+    if [ -x /usr/sbin/tailscale ] || [ -x /usr/sbin/tailscaled ]; then
+      set_extension_state tailscale_app 1
+    else
+      set_extension_state tailscale_app 0
+    fi
+    /etc/init.d/transformer restart
+    /etc/init.d/nginx restart
+    ;;
+  start)
+    uci set tailscale.service.enabled=1
+    uci commit tailscale
+    /usr/share/transformer/scripts/tailscaleApply.sh
+    ;;
+  stop)
+    uci set tailscale.service.enabled=0
+    uci commit tailscale
+    /usr/share/transformer/scripts/tailscaleApply.sh
+    ;;
+  refresh)
+    tailscale_repair_gui
+    ;;
+  *)
+    echo "Unsupported action"
+    return 1
+    ;;
+  esac
+}
+
 install_specific_files() {
 
   install() {
@@ -1560,6 +1872,9 @@ call_app_type() {
     ;;
   openvpn)
     app_openvpn "$1"
+    ;;
+  tailscale)
+    app_tailscale "$1"
     ;;
   specificapp)
     install_specific_files "$1" "$3"

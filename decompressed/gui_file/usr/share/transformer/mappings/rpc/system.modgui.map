@@ -336,6 +336,7 @@ local app_list = {
   "wireguard",
   "l2tpipsec",
   "openvpn",
+  "tailscale",
   "specificapp"
 }
 

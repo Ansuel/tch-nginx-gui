@@ -58,6 +58,7 @@ if cputype:match("^armv7") or cputype == "aarch64" or cputype == "arm64" then
 	mapParams.adguardhome_application = "uci.modgui.app.adguardhome_app"
 	if kernel_has_tun() then
 		mapParams.wireguard_application = "uci.modgui.app.wireguard_app"
+		mapParams.tailscale_application = "uci.modgui.app.tailscale_app"
 	end
 end
 if marketing_version >= 17.3 then

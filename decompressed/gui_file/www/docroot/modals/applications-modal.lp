@@ -26,6 +26,7 @@ local app_list = {
 	"wireguard",
 	"l2tpipsec",
 	"openvpn",
+	"tailscale",
 }
 
 local marketing_version = proxy.get("uci.version.version.@version[0].marketing_version")
@@ -84,6 +85,7 @@ if cputype:match("^armv7") or cputype == "aarch64" or cputype == "arm64" then
 	mapParams.speedtest_application = "uci.modgui.app.speedtest_app"
 	mapParams.adguardhome_application = "uci.modgui.app.adguardhome_app"
 	mapParams.wireguard_application = "uci.modgui.app.wireguard_app"
+	mapParams.tailscale_application = "uci.modgui.app.tailscale_app"
 end
 if marketing_version >= 17.3 then
 	mapParams.xupnp_application = "uci.modgui.app.xupnp_app"
@@ -400,6 +402,24 @@ if StateParams["openvpn_application"] ~= nil then
 	else
 		html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
 		html[#html+1] = "<fieldset><legend>" .. T"OpenVPN" .. "</legend>"
+		html[#html+1] = ui_helper.createAlertBlock(T"Unavailable: this firmware kernel was built without TUN support.", specific_box)
+		html[#html+1] = "</fieldset></div>"
+	end
+end
+
+if StateParams["tailscale_application"] ~= nil then
+	if kernel_has_tun() then
+		append_extension_card(
+			"tailscale_application",
+			"tailscale",
+			T"Tailscale",
+			T"Installs a pinned official Tailscale runtime and a management card. The daemon, routes, exit-node mode and firewall access remain disabled until configured.",
+			nil,
+			false
+		)
+	else
+		html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
+		html[#html+1] = "<fieldset><legend>" .. T"Tailscale" .. "</legend>"
 		html[#html+1] = ui_helper.createAlertBlock(T"Unavailable: this firmware kernel was built without TUN support.", specific_box)
 		html[#html+1] = "</fieldset></div>"
 	end

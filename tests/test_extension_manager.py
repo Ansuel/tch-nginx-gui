@@ -24,6 +24,7 @@ EXTENSIONS = {
     "wireguard": "wireguard_app",
     "l2tpipsec": "l2tpipsec_app",
     "openvpn": "openvpn_app",
+    "tailscale": "tailscale_app",
 }
 
 
@@ -252,6 +253,78 @@ class ExtensionManager(unittest.TestCase):
         self.assertNotIn("route_guest_24", route_script)
         self.assertNotIn("route_guest_5", route_script)
 
+    def test_tailscale_is_pinned_gated_and_starts_disabled(self):
+        installer = INSTALLER.read_text()
+        start = installer.index("app_tailscale()")
+        end = installer.index("install_specific_files()", start)
+        tailscale = installer[start:end]
+        modal = MODAL.read_text()
+        card = CARD.read_text()
+        config = CONFIG.read_text()
+
+        self.assertIn('tailscale_version="1.102.4"', tailscale)
+        self.assertIn(
+            'tailscale_sha256="b981a59cb85fb923ee6e1860ee6934772c83a840a6627f0dbfd7711ed690b869"',
+            tailscale,
+        )
+        self.assertIn(
+            'tailscale_sha256="9dd1e6a592a014bbaea0103167ffe299adeda4ba14e078ce9c2895364f6c4c3f"',
+            tailscale,
+        )
+        self.assertIn("https://pkgs.tailscale.com/stable/", tailscale)
+        self.assertIn("sha256sum", tailscale)
+        self.assertIn("tailscale_has_tun", tailscale)
+        self.assertIn("CONFIG_TUN=y", tailscale)
+        self.assertIn("A pre-existing Tailscale installation was found", tailscale)
+        self.assertIn("tailscale.service.enabled=0", tailscale)
+        self.assertIn("tailscale.service.connect=0", tailscale)
+        self.assertIn(".modgui-tailscale-packages", tailscale)
+        self.assertIn("modgui-tailscale-gui.tar.gz", tailscale)
+        self.assertIn("tailscale_has_space 131072 /tmp", tailscale)
+        self.assertIn("/tmp/modgui-tailscale-runtime", tailscale)
+        self.assertIn("tailscale.service.download_url", tailscale)
+        self.assertNotIn("opkg install ca-bundle", tailscale)
+        self.assertIn('curl -kfL "https://pkgs.tailscale.com/stable/', tailscale)
+        self.assertNotIn("curl | sh", tailscale)
+        self.assertIn('mapParams.tailscale_application = "uci.modgui.app.tailscale_app"', modal)
+        self.assertIn('mapParams.tailscale_application = "uci.modgui.app.tailscale_app"', card)
+        self.assertIn("appInstallRemoveUtility.sh refresh tailscale", config)
+
+    def test_tailscale_assets_and_safe_routing_are_present(self):
+        expected = (
+            GUI / "usr/share/modgui-tailscale/tailscale.default",
+            GUI / "usr/share/modgui-tailscale/tailscale.init",
+            GUI / "usr/share/modgui-tailscale/tailscale.bootstrap",
+            GUI / "usr/share/modgui-tailscale/tailscale.connect",
+            GUI / "usr/share/transformer/mappings/uci/tailscale.map",
+            GUI / "usr/share/transformer/commitapply/uci_tailscale.ca",
+            GUI / "usr/share/transformer/scripts/tailscaleApply.sh",
+            GUI / "usr/share/transformer/scripts/tailscaleStatus.sh",
+            GUI / "www/cards/016_tailscale.lp",
+            GUI / "www/docroot/modals/tailscale-modal.lp",
+            GUI / "www/lang/it-it/webui-tailscale.po",
+        )
+        for path in expected:
+            with self.subTest(path=path):
+                self.assertTrue(path.is_file())
+
+        apply_script = (GUI / "usr/share/transformer/scripts/tailscaleApply.sh").read_text()
+        connect_script = (GUI / "usr/share/modgui-tailscale/tailscale.connect").read_text()
+        modal = (GUI / "www/docroot/modals/tailscale-modal.lp").read_text()
+        self.assertIn("--netfilter-mode=off", connect_script)
+        self.assertIn("firewall.modgui_tailscale_to_lan", apply_script)
+        self.assertIn("firewall.modgui_tailscale_to_wan", apply_script)
+        self.assertIn("firewall.modgui_tailscale_zone.device='tailscale0'", apply_script)
+        self.assertNotIn("firewall.modgui_wan_to_tailscale", apply_script)
+        init_script = (GUI / "usr/share/modgui-tailscale/tailscale.init").read_text()
+        self.assertIn("chown root:nogroup", connect_script)
+        self.assertIn("chmod 640", connect_script)
+        self.assertIn("tailscale.bootstrap", init_script)
+        self.assertIn("tailscale.connect", init_script)
+        self.assertNotIn("sleep 1", apply_script)
+        self.assertIn("https://login%.tailscale%.com/", modal)
+        self.assertNotIn("authkey", modal.lower())
+
     def test_arm_only_extensions_are_hidden_on_mips(self):
         modal = MODAL.read_text()
         card = CARD.read_text()
@@ -266,15 +339,34 @@ class ExtensionManager(unittest.TestCase):
             self.assertIn("speedtest_app", block)
             self.assertIn("adguardhome_app", block)
             self.assertIn("wireguard_app", block)
+            self.assertIn("tailscale_app", block)
 
     def test_shell_sources_parse(self):
-        for source in (INSTALLER, CONFIG):
+        sources = (
+            INSTALLER,
+            CONFIG,
+            GUI / "usr/share/transformer/scripts/tailscaleApply.sh",
+            GUI / "usr/share/transformer/scripts/tailscaleStatus.sh",
+            GUI / "usr/share/modgui-tailscale/tailscale.init",
+            GUI / "usr/share/modgui-tailscale/tailscale.bootstrap",
+            GUI / "usr/share/modgui-tailscale/tailscale.connect",
+        )
+        for source in sources:
             with self.subTest(source=source.name):
                 subprocess.run(["sh", "-n", source], check=True)
 
     @unittest.skipUnless(shutil.which("luac"), "luac is not installed")
     def test_lua_sources_parse(self):
-        for source in (RPC_MAP, UCI_MAP, MODAL, CARD):
+        sources = (
+            RPC_MAP,
+            UCI_MAP,
+            MODAL,
+            CARD,
+            GUI / "usr/share/transformer/mappings/uci/tailscale.map",
+            GUI / "www/cards/016_tailscale.lp",
+            GUI / "www/docroot/modals/tailscale-modal.lp",
+        )
+        for source in sources:
             with self.subTest(source=source.name):
                 subprocess.run(["luac", "-p", source], check=True)
 

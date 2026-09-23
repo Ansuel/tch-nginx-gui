@@ -14,6 +14,7 @@ background, so reopen the card after an operation to refresh its state.
 | WireGuard | ARM, ARM64 with kernel TUN | Pinned `openwrt-wireguard-go` package | Installs only the userspace runtime; it creates no interface, key, route or firewall rule. |
 | L2TP/IPsec VPN | ARMv7 and MIPS | Pinned `modgui-vpn`, configured opkg feeds | Adds the legacy strongSwan/xl2tpd server card; installation leaves the server disabled. |
 | OpenVPN | ARMv7 and MIPS with TUN | `openvpn-openssl`, `openvpn-easy-rsa` | Adds server and client tabs, user management, profile export and optional SSID-to-client routing; both modes install disabled. |
+| Tailscale | ARMv7, ARM64 with kernel TUN | Official pinned Tailscale static archive | Adds a native status card and controls for tailnet login, subnet routes, exit-node advertising, accepted routes and Tailscale SSH; installs disabled. |
 
 AdGuard Home installation deliberately does not stop dnsmasq, claim DNS port 53,
 or change DHCP settings. Complete its first-run wizard and choose non-conflicting
@@ -33,6 +34,36 @@ uses roughly 20 MB of RAM for each active interface. Tunnel configuration remain
 an explicit administrator action; the extension never opens UDP 51820 or changes
 the network and firewall configuration. Removal is refused while WireGuard UCI
 interfaces still exist, and a package that predated the extension is never removed.
+
+The Tailscale integration takes its Technicolor service layout and GUI concepts from
+[`UncleSam1966/Tailscale-Setup`](https://github.com/UncleSam1966/Tailscale-Setup),
+but uses a deterministic extension installer: Tailscale 1.102.4 is downloaded from
+the official package server for ARM or ARM64 and checked against an architecture-
+specific SHA-256 digest. Installation requires roughly 96 MB in `/opt`, or 128 MB of
+temporary RAM in low-storage mode. DGA4130-class gateways do not write the large Go
+binaries or archive to JFFS2: the official archive is downloaded, checksum-verified
+and extracted into `/tmp` when the service first starts after a reboot. WAN access is
+therefore required for that first start. The small node identity remains under `/opt`.
+A pre-existing Tailscale installation is never
+overwritten. The daemon, tailnet connection, UDP WAN rule, subnet forwarding,
+exit-node forwarding and Tailscale SSH all remain disabled after installation.
+No CA package is installed or upgraded: old firmware trust stores cannot reliably
+validate the current package endpoint and may conflict with `https-certificates`.
+The download therefore uses ModGUI's compatibility TLS mode, while the pinned digest
+remains mandatory and rejects any archive whose bytes differ from the reviewed build.
+
+Enabling the service and **Connect to tailnet** from the Tailscale modal produces an
+official `login.tailscale.com` authorization link. No Tailscale account credential or
+auth key is stored by the GUI. Runtime preparation and authorization run under the
+service manager rather than the 30-second Transformer apply window, so a cold-start
+download cannot time out the WebUI save. The dashboard card reports preparation,
+authorization-required, connected and error states while this work continues in the
+background. Subnet routes and exit-node mode require separate
+approval in the Tailscale admin console. Tailscale runs with its own netfilter changes
+disabled; named UCI firewall sections expose only the selected features and are
+removed when the service or extension is disabled. Removing the extension also
+deletes its local node identity, so the old machine entry may still need to be removed
+from the Tailscale admin console.
 
 ## Hardware validation
 

@@ -176,6 +176,26 @@ create_gui_type() {
       uci set modgui.app.openvpn_app="0"
     fi
   fi
+  if [ ! "$(uci get -q modgui.app.tailscale_app)" ]; then
+    tailscale_archive_path="$(uci get -q tailscale.service.archive_path)"
+    tailscale_download_url="$(uci get -q tailscale.service.download_url)"
+    if [ -f /etc/.modgui-tailscale-installed ] &&
+      { { [ -x /usr/sbin/tailscale ] && [ -x /usr/sbin/tailscaled ]; } ||
+        { [ -n "$tailscale_archive_path" ] && [ -s "$tailscale_archive_path" ]; } ||
+        [ -n "$tailscale_download_url" ]; }; then
+      uci set modgui.app.tailscale_app="1"
+    else
+      uci set modgui.app.tailscale_app="0"
+    fi
+  fi
+  if [ "$(uci get -q modgui.app.tailscale_app)" = "1" ] &&
+    [ -f /opt/modgui-tailscale-gui.tar.gz ] &&
+    { [ ! -f /www/cards/016_tailscale.lp ] ||
+      [ ! -f /www/docroot/modals/tailscale-modal.lp ] ||
+      [ ! -f /usr/share/transformer/mappings/uci/tailscale.map ]; }; then
+    logecho "Restoring Tailscale GUI files after upgrade..."
+    /usr/share/transformer/scripts/appInstallRemoveUtility.sh refresh tailscale >/dev/null 2>&1
+  fi
   if [ "$(uci get -q modgui.app.openvpn_app)" = "1" ] &&
     [ -f /opt/modgui-openvpn-gui.tar.gz ] &&
     { [ ! -f /www/cards/015_openvpn-server.lp ] ||
