@@ -8,6 +8,8 @@ version="$(uci -q get tailscale.service.download_url | sed -n 's|.*tailscale_\([
 auth_url=""
 phase="stopped"
 message="Service disabled"
+enabled="$(uci -q get tailscale.service.enabled)"
+service_running="false"
 
 ip_address="$(ip -4 addr show dev tailscale0 2>/dev/null | awk '/inet / { sub("/.*", "", $2); print $2; exit }')"
 
@@ -23,26 +25,32 @@ read_worker_status() {
   [ -z "$worker_message" ] || message="$worker_message"
 }
 
-if [ "$(uci -q get tailscale.service.enabled)" = "1" ]; then
-  phase="starting"
-  message="Preparing Tailscale"
-  read_worker_status /tmp/modgui-tailscale-runtime-status
-  read_worker_status /tmp/modgui-tailscale-connect-status
+if [ "$enabled" = "1" ] && /etc/init.d/tailscale running >/dev/null 2>&1; then
+	service_running="true"
+	phase="starting"
+	message="Preparing Tailscale"
+	read_worker_status /tmp/modgui-tailscale-runtime-status
+	read_worker_status /tmp/modgui-tailscale-connect-status
 fi
-if [ -n "$auth_url" ]; then
-  phase="authorization_required"
-  message="Authorization required"
+if [ "$service_running" = "true" ] && [ -n "$auth_url" ]; then
+	phase="authorization_required"
+	message="Authorization required"
 fi
 if [ -n "$ip_address" ] && [ -S /var/run/tailscale/tailscaled.sock ]; then
   online="true"
   phase="connected"
   message="Connected"
 fi
-if [ "$(uci -q get tailscale.service.enabled)" = "1" ] && \
-    [ ! -S /var/run/tailscale/tailscaled.sock ]; then
-  online="false"
-  phase="starting"
-  message="Preparing Tailscale"
+if [ "$service_running" = "true" ] && [ ! -S /var/run/tailscale/tailscaled.sock ] && \
+    { [ "$phase" = "connected" ] || [ -z "$phase" ]; }; then
+	online="false"
+	phase="starting"
+	message="Preparing Tailscale"
+fi
+if [ "$service_running" != "true" ]; then
+	online="false"
+	phase="stopped"
+	message="Service stopped"
 fi
 backend="$phase"
 

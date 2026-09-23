@@ -105,9 +105,9 @@ end
 ngx.print('\
 \
 ');  ngx.print(ui_helper.createHeader(T"Application List", false, false))   ngx.print('\
-<div class="modal-body update">\
-<fieldset style="display:flex;">\
-    <form class="form-horizontal" method="post" action="modals/applications-modal.lp">\
+<div class="modal-body update applications-modal-body">\
+<fieldset class="applications-list-shell">\
+    <form class="form-horizontal applications-list-form" method="post" action="modals/applications-modal.lp">\
     ');
 local info_box = {
 	alert = {
@@ -119,12 +119,13 @@ local specific_box = {
 		class = "alert-error"
 	}
 }
+local notices = {}
 local html = {}
 
 if specific_app == "0" then
-	html[#html + 1] = ui_helper.createAlertBlock(T"Specific App are not installed. This can cause errors for app setup. Go to Mod GUI modal to install",specific_box)
+	notices[#notices + 1] = ui_helper.createAlertBlock(T"Specific App are not installed. This can cause errors for app setup. Go to Mod GUI modal to install",specific_box)
 end
-html[#html + 1] = ui_helper.createAlertBlock(T"Make sure the gateway have an active internet connection to allow app download and installation",info_box)
+notices[#notices + 1] = ui_helper.createAlertBlock(T"Make sure the gateway have an active internet connection to allow app download and installation",info_box)
 local btn_table = {}
 
 for _, app in ipairs(app_list) do
@@ -143,13 +144,22 @@ local function escape_html(value)
 	return (value or ""):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"):gsub('"', "&quot;"):gsub("'", "&#39;")
 end
 
+local function append_app_status(state_key, title)
+	html[#html+1] = '<div class="application-card-status">'
+	html[#html+1] = ui_helper.createSimpleLight(
+		mapParams[state_key] == "1" and "1" or "0",
+		title,
+		{ span = { class = "simple-desc application-status" } }
+	)
+	html[#html+1] = "</div>"
+end
+
 local function append_extension_card(state_key, app, title, description, link, can_run, result)
-	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
+	html[#html+1] = '<div class="application-card">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. title .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(description, info_box)
-	html[#html+1] = T"State: "
-	html[#html+1] = "<strong>" .. title .. " " .. StateParams[state_key] .. T" installed" .. "</strong><br/>"
+	append_app_status(state_key, title)
 	if link then
 		html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. link .. '">' .. link .. "</a><br/>"
 	end
@@ -181,12 +191,11 @@ local function kernel_has_tun()
 end
 
 if StateParams["luci_webui"] ~= nil then
-	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
+	html[#html+1] = '<div class="application-card">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. T"LuCI GUI" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install uHTTPd and LuCI", info_box)
-	html[#html+1] = T"State: "
-	html[#html+1] = "<strong>" .. T"LuCI is " .. StateParams["luci_webui"] .. T" installed" .. "</strong><br/>"
+	append_app_status("luci_webui", T"LuCI GUI")
 	local luci_link = format("http://%s:9080",mapParams.local_ip_modem)
 	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. luci_link .. '">' .. luci_link .. "</a>"
 	html[#html+1] = "<br/>"
@@ -202,12 +211,11 @@ if StateParams["luci_webui"] ~= nil then
 end
 
 if StateParams["amule_webui"] ~= nil then
-	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
+	html[#html+1] = '<div class="application-card">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. T"aMule" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install aMule webui", info_box)
-	html[#html+1] = T"State: "
-	html[#html+1] = "<strong>" .. T"aMule is " .. StateParams["amule_webui"] .. T" installed" .. "</strong><br/>"
+	append_app_status("amule_webui", T"aMule")
 	local amule_direct_link = format("http://%s:4711/",mapParams.local_ip_modem)
 	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. amule_direct_link .. '">' .. amule_direct_link .. "</a>"
 	html[#html+1] = "<br/>"
@@ -225,12 +233,11 @@ if StateParams["amule_webui"] ~= nil then
 end
 
 if StateParams["aria2_webui"] ~= nil then
-	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
+	html[#html+1] = '<div class="application-card">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. T"Aria2 GUI" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install aria2 and ariang webui", info_box)
-	html[#html+1] = T"State: "
-	html[#html+1] = "<strong>" .. T"Aria2 is " .. StateParams["aria2_webui"] .. T" installed" .. "</strong><br/>"
+	append_app_status("aria2_webui", T"Aria2 GUI")
 	local aria_link =  '/aria'
 	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. aria_link .. '">' .. aria_link .."</a>"
 	html[#html+1] = "<br/>"
@@ -249,12 +256,11 @@ if StateParams["aria2_webui"] ~= nil then
 end
 
 if StateParams["transmission_webui"] ~= nil then
-	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
+	html[#html+1] = '<div class="application-card">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. T"Transmission GUI" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install transmission and transmission-webui", info_box)
-	html[#html+1] = T"State: "
-	html[#html+1] = "<strong>" .. T"Transmission is " .. StateParams["transmission_webui"] .. T" installed" .. "</strong><br/>"
+	append_app_status("transmission_webui", T"Transmission GUI")
 	local transmission_direct_link = format("http://%s:9091/transmission",mapParams.local_ip_modem)
 	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. transmission_direct_link .. '">' .. transmission_direct_link .. "</a>"
 	html[#html+1] = "<br/>"
@@ -369,7 +375,7 @@ if StateParams["wireguard_application"] ~= nil then
 			false
 		)
 	else
-		html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
+		html[#html+1] = '<div class="application-card">'
 		html[#html+1] = "<fieldset>"
 		html[#html+1] = '<legend>' .. T"WireGuard" .. '</legend>'
 		html[#html+1] = ui_helper.createAlertBlock(T"Unavailable: this firmware kernel was built without TUN support. WireGuard cannot run safely on this device.", specific_box)
@@ -400,7 +406,7 @@ if StateParams["openvpn_application"] ~= nil then
 			true
 		)
 	else
-		html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
+		html[#html+1] = '<div class="application-card">'
 		html[#html+1] = "<fieldset><legend>" .. T"OpenVPN" .. "</legend>"
 		html[#html+1] = ui_helper.createAlertBlock(T"Unavailable: this firmware kernel was built without TUN support.", specific_box)
 		html[#html+1] = "</fieldset></div>"
@@ -418,7 +424,7 @@ if StateParams["tailscale_application"] ~= nil then
 			false
 		)
 	else
-		html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
+		html[#html+1] = '<div class="application-card">'
 		html[#html+1] = "<fieldset><legend>" .. T"Tailscale" .. "</legend>"
 		html[#html+1] = ui_helper.createAlertBlock(T"Unavailable: this firmware kernel was built without TUN support.", specific_box)
 		html[#html+1] = "</fieldset></div>"
@@ -426,12 +432,11 @@ if StateParams["tailscale_application"] ~= nil then
 end
 
 if StateParams["voipblock_for_mmpbx"] ~= nil then
-	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
+	html[#html+1] = '<div class="application-card">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. T"Voipblock for mmpbx" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install Voipblock for mmpbx", info_box)
-	html[#html+1] = T"State: "
-	html[#html+1] = "<strong>" .. T"The Voipblock for mmpbx is " .. StateParams["voipblock_for_mmpbx"] .. T" installed" .. "</strong><br/>"
+	append_app_status("voipblock_for_mmpbx", T"Voipblock for mmpbx")
 	html[#html+1] = "<br/>"
 	html[#html+1] = "<br/>"
 	if mapParams["voipblock_for_mmpbx"] and mapParams["voipblock_for_mmpbx"] == "1" then
@@ -445,12 +450,11 @@ if StateParams["voipblock_for_mmpbx"] ~= nil then
 end
 
 if StateParams["voipblock_for_asterisk"] ~= nil then
-	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
+	html[#html+1] = '<div class="application-card">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. T"Voipblock for asterisk" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install Voipblock for asterisk", info_box)
-	html[#html+1] = T"State: "
-	html[#html+1] = "<strong>" .. T"The Voipblock for asterisk is " .. StateParams["voipblock_for_asterisk"] .. T" installed" .. "</strong><br/>"
+	append_app_status("voipblock_for_asterisk", T"Voipblock for asterisk")
 	html[#html+1] = "<br/>"
 	html[#html+1] = "<br/>"
 	if mapParams["voipblock_for_asterisk"] and mapParams["voipblock_for_asterisk"] == "1" then
@@ -469,12 +473,11 @@ if StateParams["blacklist_application"] ~= nil then
 			id = "btn-install_blacklist_empty"
 		}
 	}
-	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
+	html[#html+1] = '<div class="application-card">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. T"Blacklist App" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install the blacklist application", info_box)
-	html[#html+1] = T"State: "
-	html[#html+1] = "<strong>" .. T"The Blacklist app is " .. StateParams["blacklist_application"] .. T" installed" .. "</strong><br/>"
+	append_app_status("blacklist_application", T"Blacklist App")
 	local blacklist_link = "http://blacklist.satellitar.it/"
 	html[#html+1] = T"Support site: " .. '<a  target="_blank" href="' .. blacklist_link .. '">' .. blacklist_link .."</a>"
 	html[#html+1] = "<br/>"
@@ -494,12 +497,11 @@ if StateParams["blacklist_application"] ~= nil then
 end
 
 if StateParams["xupnp_application"] ~= nil then
-	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
+	html[#html+1] = '<div class="application-card">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. T"XUPnP App" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install the XUPnP application", info_box)
-	html[#html+1] = T"State: "
-	html[#html+1] = "<strong>" .. T"The XUPnP app is " .. StateParams["xupnp_application"] .. T" installed" .. "</strong><br/>"
+	append_app_status("xupnp_application", T"XUPnP App")
 	local xupnp_link = format("http://%s:4044/ui/",mapParams.local_ip_modem)
 	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. xupnp_link .. '">' .. xupnp_link .."</a>"
 	html[#html+1] = "<br/>"
@@ -515,12 +517,11 @@ if StateParams["xupnp_application"] ~= nil then
 end
 
 if StateParams["telstra_webui"] ~= nil then
-	html[#html+1] = '<div class="span3" style="margin-right:.5rem;margin-left:.5rem;">'
+	html[#html+1] = '<div class="application-card">'
 	html[#html+1] = "<fieldset>"
 	html[#html+1] = '<legend>' .. T"Telstra GUI" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install Telstra webui", info_box)
-	html[#html+1] = T"State: "
-	html[#html+1] = "<strong>" .. T"Telstra GUI is " .. StateParams["telstra_webui"] .. T" installed" .. "</strong><br/>"
+	append_app_status("telstra_webui", T"Telstra GUI")
 	local telstra_gui = "/telstra-gui.lp"
 	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. telstra_gui .. '">' .. telstra_gui .."</a>"
 	html[#html+1] = "<br/>"
@@ -534,7 +535,10 @@ if StateParams["telstra_webui"] ~= nil then
 	html[#html+1] = "</fieldset>"
 	html[#html+1] = "</div>"
 end
+ngx.print(notices)
+ngx.print('<div class="applications-grid">')
 ngx.print(html)
+ngx.print('</div>')
 ngx.print('\
     </form>\
   </fieldset>\

@@ -3090,6 +3090,68 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	max-height: 350px;
 	overflow-y: auto
 }
+.applications-modal-body {
+	padding-top: 10px
+}
+.modal .applications-list-form {
+	margin-top: 0
+}
+.applications-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 12px;
+	align-items: stretch
+}
+.application-card {
+	min-width: 0
+}
+.application-card fieldset {
+	height: 100%;
+	box-sizing: border-box;
+	padding: 0 12px 12px;
+	border: 1px solid rgba(93, 33, 93, .2);
+	border-radius: 8px;
+	background: rgba(255, 255, 255, .04)
+}
+.application-card legend {
+	box-sizing: border-box;
+	margin-bottom: 8px;
+	padding-top: 4px;
+	font-size: 17px;
+	line-height: 30px
+}
+.application-card .alert {
+	box-sizing: border-box;
+	margin-bottom: 10px
+}
+.application-card-status {
+	margin: 2px 0 10px;
+	font-weight: 600
+}
+.application-status {
+	display: flex;
+	align-items: center;
+	min-width: 0;
+	padding-top: 0
+}
+.application-status .light {
+	flex: 0 0 auto;
+	margin-top: 0
+}
+.application-card .btn {
+	box-sizing: border-box;
+	margin: 3px 3px 0 0
+}
+@media (max-width: 900px) {
+	.applications-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr))
+	}
+}
+@media (max-width: 620px) {
+	.applications-grid {
+		grid-template-columns: minmax(0, 1fr)
+	}
+}
 .update p {
 	font-size: 14px;
 	margin-top: 10px
@@ -3831,6 +3893,52 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	height: 110px;
 	padding: 10px;
 	position: relative
+}
+.smallcard.extensions-card .content {
+	height: 110px;
+	padding-top: 4px
+}
+.smallcard.extensions-card .divtable.extensions-status-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 1px 8px;
+	width: 100%
+}
+.extensions-status-grid .extension-status {
+	display: flex;
+	align-items: center;
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	font-size: 10px;
+	line-height: 11px;
+	white-space: nowrap;
+	overflow-wrap: anywhere
+}
+.extensions-status-grid .light {
+	flex: 0 0 auto;
+	margin-top: 0;
+	margin-right: 5px
+}
+.smallcard .content p.subinfos.tailscale-card-status {
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: center;
+	white-space: nowrap
+}
+.smallcard .content .tailscale-status-light {
+	display: inline-flex;
+	flex: 0 1 auto;
+	align-items: center;
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	white-space: nowrap
+}
+.tailscale-status-light .light {
+	flex: 0 0 auto;
+	margin-top: 0;
+	margin-right: 7px
 }
 .smallcard .content img.someInfos {
 	height: 75px;

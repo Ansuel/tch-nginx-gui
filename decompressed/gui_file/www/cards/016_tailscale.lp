@@ -51,11 +51,16 @@ if ngx.ctx.session:hasAccess("/modals/tailscale-modal.lp") then modal_path = "/m
 ngx.print('<div class="span3"><div class="smallcard">')
 ngx.print(ui_helper.createCardHeader(T"Tailscale", modal_path))
 ngx.print('<div class="content card_bg" data-bg-text="&#xf0c2;">')
-ngx.print(ui_helper.createSimpleLight(online, state_text))
 ngx.print('<p class="subinfos">', T"Service", ': <strong>', content.enabled == "1" and T"Enabled" or T"Disabled", '</strong></p>')
-if content.enabled == "1" then
-  ngx.print('<p class="subinfos">', T"Status", ': <strong>', state_text, '</strong></p>')
-end
+ngx.print(
+  '<p class="subinfos tailscale-card-status">',
+  ui_helper.createSimpleLight(
+    online,
+    state_text,
+    { span = { class = "simple-desc tailscale-status-light" } }
+  ),
+  '</p>'
+)
 if status.ip and status.ip ~= "" then
   ngx.print('<p class="subinfos">', T"Tailscale IP", ': <strong>', escape(status.ip), '</strong></p>')
 end
