@@ -3920,13 +3920,15 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	margin-top: 0;
 	margin-right: 5px
 }
-.smallcard .content p.subinfos.tailscale-card-status {
+.smallcard .content p.subinfos.tailscale-card-status,
+.smallcard .content p.subinfos.wireguard-card-status {
 	display: flex;
 	flex-flow: row nowrap;
 	align-items: center;
 	white-space: nowrap
 }
-.smallcard .content .tailscale-status-light {
+.smallcard .content .tailscale-status-light,
+.smallcard .content .wireguard-status-light {
 	display: inline-flex;
 	flex: 0 1 auto;
 	align-items: center;
@@ -3935,7 +3937,8 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	padding: 0;
 	white-space: nowrap
 }
-.tailscale-status-light .light {
+.tailscale-status-light .light,
+.wireguard-status-light .light {
 	flex: 0 0 auto;
 	margin-top: 0;
 	margin-right: 7px

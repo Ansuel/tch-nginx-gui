@@ -925,19 +925,153 @@ app_wireguard() {
   wireguard_commit="7ac8fe29a7ab64eb0c9c9774bb36cf2c7648399e"
   wireguard_version="2023.09.29"
   wireguard_owned="/etc/.modgui-wireguard-go-installed"
+  wireguard_tun_owned="/etc/.modgui-wireguard-tun-installed"
+  wireguard_tun_file="/lib/modules/4.1.52/tun.ko"
+  wireguard_tun_sha256="374b8399951a4fa75a0b9c68b6eced9d064cc442d3150d2210d75623c275354e"
+  wireguard_tun_commit="1587d4a113de414f4409ea80b11a8d03c115f17c"
   wireguard_tmp="/tmp/wireguard-go-install.$$.ipk"
+
+  wireguard_gui_backup="/opt/modgui-wireguard-gui.tar.gz"
 
   wireguard_tun_supported() {
     [ -c /dev/net/tun ] && return 0
     [ -r /proc/config.gz ] && zcat /proc/config.gz 2>/dev/null | grep -q '^CONFIG_TUN=y$'
   }
 
+  wireguard_install_tun() {
+    wireguard_tun_supported && return 0
+    if [ "$cpu_type" = "armv7l" ] && [ "$(uname -r)" = "4.1.52" ] &&
+      [ "$(uci -q get version.@version[0].version | cut -d- -f1-2)" = "19.4.0866-3401052" ] &&
+      [ "$(uci -q get version.@version[0].kernel)" = "ac8d9a0575131475c4002132bf4995cb96c6f99d" ]; then
+      if [ -f "$wireguard_tun_file" ]; then
+        [ "$(sha256sum "$wireguard_tun_file" | awk '{print $1}')" = "$wireguard_tun_sha256" ] || {
+          echo "An incompatible TUN module already exists; refusing to overwrite it"
+          return 1
+        }
+        modprobe tun 2>/dev/null || insmod "$wireguard_tun_file" 2>/dev/null || return 1
+        wireguard_tun_supported
+        return
+      fi
+      curl -kfL "https://raw.githubusercontent.com/FrancYescO/GUI_ipk/$wireguard_tun_commit/artifacts/tun-vbntj-damson-4.1.52.ko" \
+        --output /tmp/modgui-wireguard-tun.ko || return 1
+      [ "$(sha256sum /tmp/modgui-wireguard-tun.ko | awk '{print $1}')" = "$wireguard_tun_sha256" ] || {
+        echo "TUN module checksum mismatch"
+        rm -f /tmp/modgui-wireguard-tun.ko
+        return 1
+      }
+      insmod /tmp/modgui-wireguard-tun.ko || return 1
+      wireguard_tun_supported || return 1
+      cp /tmp/modgui-wireguard-tun.ko "$wireguard_tun_file" || return 1
+      printf 'tun\n' > /etc/modules.d/30-modgui-wireguard-tun
+      touch "$wireguard_tun_owned"
+      rm -f /tmp/modgui-wireguard-tun.ko
+      return 0
+    fi
+    echo "WireGuard requires kernel TUN support; no reviewed module is available for this firmware"
+    return 1
+  }
+
+  wireguard_remove_tun() {
+    [ -f "$wireguard_tun_owned" ] || return 0
+    if opkg list-installed 2>/dev/null | grep -q '^openvpn-'; then
+      touch /etc/.modgui-openvpn-tun-installed
+      printf 'tun\n' > /etc/modules.d/30-modgui-openvpn-tun
+      rm -f /etc/modules.d/30-modgui-wireguard-tun
+      rm -f "$wireguard_tun_owned"
+      return 0
+    fi
+    if lsmod | grep -q '^tun '; then
+      rmmod tun 2>/dev/null || {
+        echo "TUN is still in use; leaving the module installed"
+        return 0
+      }
+    fi
+    rm -f /etc/modules.d/30-modgui-wireguard-tun
+    if [ -f "$wireguard_tun_file" ] &&
+      [ "$(sha256sum "$wireguard_tun_file" | awk '{print $1}')" = "$wireguard_tun_sha256" ]; then
+      rm -f "$wireguard_tun_file"
+    fi
+    rm -f "$wireguard_tun_owned"
+  }
+
+  wireguard_register_gui() {
+    uci -q del_list web.ruleset_main.rules=wireguardmodal
+    uci add_list web.ruleset_main.rules=wireguardmodal
+    uci set web.wireguardmodal=rule
+    uci set web.wireguardmodal.target=/modals/wireguard-modal.lp
+    uci -q del_list web.wireguardmodal.roles=admin
+    uci -q del_list web.wireguardmodal.roles=engineer
+    uci -q del_list web.wireguardmodal.roles=superuser
+    uci add_list web.wireguardmodal.roles=admin
+    uci add_list web.wireguardmodal.roles=engineer
+    uci add_list web.wireguardmodal.roles=superuser
+    uci set web.wireguard_card=card
+    uci set web.wireguard_card.card=016_wireguard.lp
+    uci set web.wireguard_card.modal=wireguardmodal
+    uci commit web
+  }
+
+  wireguard_backup_gui() {
+    mkdir -p /opt || return 1
+    tar -czf "$wireguard_gui_backup" -C / \
+      usr/share/modgui-wireguard/wireguard.default \
+      usr/share/transformer/commitapply/uci_wireguard.ca \
+      usr/share/transformer/mappings/uci/wireguard.map \
+      usr/share/transformer/mappings/uci/wireguard.peer.map \
+      usr/share/transformer/scripts/wireguardApply.sh \
+      usr/share/transformer/scripts/wireguardStatus.sh \
+      usr/share/transformer/scripts/wireguardKeygen.sh \
+      www/cards/016_wireguard.lp \
+      www/docroot/modals/wireguard-modal.lp \
+      www/lang/it-it/webui-wireguard.po
+  }
+
+  wireguard_repair_gui() {
+    [ -f "$wireguard_gui_backup" ] || return 1
+    tar -xzf "$wireguard_gui_backup" -C / || return 1
+    chmod 755 /usr/share/transformer/scripts/wireguardApply.sh \
+      /usr/share/transformer/scripts/wireguardStatus.sh \
+      /usr/share/transformer/scripts/wireguardKeygen.sh
+    wireguard_register_gui
+    /etc/init.d/transformer restart
+    /etc/init.d/nginx restart
+  }
+
+  wireguard_prepare_config() {
+    if [ ! -f /etc/config/wireguard ]; then
+      cp /usr/share/modgui-wireguard/wireguard.default /etc/config/wireguard || return 1
+    fi
+    if [ "$(uci -q get wireguard.wg)" != "interface" ]; then
+      uci set wireguard.wg=interface
+      uci set wireguard.wg.enabled='0'
+      uci set wireguard.wg.listen_port='51820'
+      uci set wireguard.wg.private_key=''
+      uci set wireguard.wg.public_key=''
+      uci set wireguard.wg.address='10.66.66.1/24'
+      uci set wireguard.wg.allow_lan='0'
+      uci set wireguard.wg.allow_wan='0'
+      uci commit wireguard
+    fi
+    chmod 600 /etc/config/wireguard
+  }
+
+  wireguard_cleanup_network() {
+    for section in $(uci -q show network 2>/dev/null | awk -F'[.=]' '$2 ~ /^modgui_wg0/ {print $2}'); do
+      uci -q delete "network.$section"
+    done
+    uci -q delete firewall.modgui_wireguard_udp
+    uci -q delete firewall.modgui_wireguard_zone
+    uci -q delete firewall.modgui_wireguard_to_lan
+    uci -q delete firewall.modgui_lan_to_wireguard
+    uci -q delete firewall.modgui_wireguard_to_wan
+    uci -q commit network
+    uci -q commit firewall
+    /etc/init.d/network reload >/dev/null 2>&1
+    /etc/init.d/firewall reload >/dev/null 2>&1
+  }
+
   case "$1" in
   install)
-    if ! wireguard_tun_supported; then
-      echo "WireGuard requires firmware built with CONFIG_TUN=y; this kernel does not support TUN"
-      return 1
-    fi
     case "$cpu_type" in
     armv7*)
       wireguard_arch="arm_cortex-a9"
@@ -952,8 +1086,14 @@ app_wireguard() {
       return 1
       ;;
     esac
+    wireguard_install_tun || return 1
     if opkg list-installed | grep -q '^wireguard-go '; then
+      wireguard_prepare_config || return 1
+      wireguard_register_gui
+      wireguard_backup_gui || return 1
       set_extension_state wireguard_app 1
+      /etc/init.d/transformer restart
+      /etc/init.d/nginx restart
       return 0
     fi
     require_free_space 8192 /overlay || return 1
@@ -978,24 +1118,65 @@ app_wireguard() {
       [ ! -x /lib/netifd/proto/wireguard.sh ]; then
       opkg remove wireguard-go 2>/dev/null
       rm -f "$wireguard_owned"
+      wireguard_remove_tun
       return 1
     fi
+    wireguard_prepare_config || return 1
+    wireguard_register_gui
+    wireguard_backup_gui || return 1
     set_extension_state wireguard_app 1
+    /etc/init.d/transformer restart
+    /etc/init.d/nginx restart
     ;;
   remove)
-    if uci show network 2>/dev/null | grep -q "\.proto='wireguard'"; then
-      echo "Remove WireGuard network interfaces before uninstalling the runtime"
+    if [ ! -f "$wireguard_owned" ] && opkg list-installed | grep -q '^wireguard-go '; then
+      echo "A pre-existing WireGuard runtime is installed; refusing to remove it"
       return 1
+    fi
+    if uci -q show network 2>/dev/null | grep "\.proto='wireguard'" | grep -v modgui_wg0 >/dev/null 2>&1; then
+      echo "Remove manually configured WireGuard network interfaces before uninstalling the runtime"
+      return 1
+    fi
+    if [ -f "$wireguard_owned" ]; then
+      uci -q set wireguard.wg.enabled=0
+      for section in $(uci -q show wireguard 2>/dev/null | awk -F'[.=]' '$3 == "peer" {print $2}'); do
+        uci -q delete "wireguard.$section"
+      done
+      uci -q commit wireguard
+      wireguard_cleanup_network
+      rm -f /etc/config/wireguard /tmp/modgui-wireguard-client.conf
     fi
     if [ -f "$wireguard_owned" ] && opkg list-installed | grep -q '^wireguard-go '; then
       opkg remove wireguard-go || return 1
     fi
-    rm -f "$wireguard_owned" "$wireguard_tmp"
+    wireguard_remove_tun
+    uci -q delete web.wireguard_card
+    uci -q delete web.wireguardmodal
+    uci -q del_list web.ruleset_main.rules=wireguardmodal
+    uci commit web
+    rm -f "$wireguard_owned" "$wireguard_tmp" "$wireguard_gui_backup" /tmp/modgui-wireguard-client.conf
     if opkg list-installed | grep -q '^wireguard-go '; then
       set_extension_state wireguard_app 1
     else
       set_extension_state wireguard_app 0
     fi
+    /etc/init.d/transformer restart
+    /etc/init.d/nginx restart
+    ;;
+  start)
+    [ -x /usr/bin/wireguard-go ] || return 1
+    wireguard_prepare_config || return 1
+    uci set wireguard.wg.enabled=1
+    uci commit wireguard
+    /usr/share/transformer/scripts/wireguardApply.sh
+    ;;
+  stop)
+    uci -q set wireguard.wg.enabled=0
+    uci -q commit wireguard
+    /usr/share/transformer/scripts/wireguardApply.sh
+    ;;
+  refresh)
+    wireguard_repair_gui
     ;;
   *)
     echo "Unsupported action"
@@ -1245,6 +1426,13 @@ app_openvpn() {
 
   openvpn_remove_tun() {
     [ -f "$openvpn_tun_owned" ] || return 0
+    if opkg list-installed 2>/dev/null | grep -q '^wireguard-go '; then
+      touch /etc/.modgui-wireguard-tun-installed
+      printf 'tun\n' > /etc/modules.d/30-modgui-wireguard-tun
+      rm -f /etc/modules.d/30-modgui-openvpn-tun
+      rm -f "$openvpn_tun_owned"
+      return 0
+    fi
     if lsmod | grep -q '^tun '; then
       rmmod tun 2>/dev/null || {
         echo "TUN is still in use; leaving the module installed"

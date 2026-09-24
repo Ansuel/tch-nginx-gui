@@ -190,6 +190,15 @@ local function kernel_has_tun()
 	return result == "0"
 end
 
+local function wireguard_supported()
+	if kernel_has_tun() then return true end
+	local command = io.popen("[ \"$(uname -r)\" = 4.1.52 ] && [ \"$(uci -q get version.@version[0].version | cut -d- -f1-2)\" = 19.4.0866-3401052 ] && [ \"$(uci -q get version.@version[0].kernel)\" = ac8d9a0575131475c4002132bf4995cb96c6f99d ]; echo $?", "r")
+	if not command then return false end
+	local result = command:read("*line")
+	command:close()
+	return result == "0"
+end
+
 if StateParams["luci_webui"] ~= nil then
 	html[#html+1] = '<div class="application-card">'
 	html[#html+1] = "<fieldset>"
@@ -365,12 +374,12 @@ if StateParams["openspeedtest_application"] ~= nil then
 end
 
 if StateParams["wireguard_application"] ~= nil then
-	if kernel_has_tun() then
+	if wireguard_supported() then
 		append_extension_card(
 			"wireguard_application",
 			"wireguard",
 			T"WireGuard",
-			T"Installs the checksum-verified userspace WireGuard runtime. It does not create tunnels, routes, keys or firewall rules.",
+			T"Installs the checksum-verified userspace WireGuard runtime and a native card to configure the tunnel interface, peers and firewall rules. Everything stays disabled until configured.",
 			nil,
 			false
 		)

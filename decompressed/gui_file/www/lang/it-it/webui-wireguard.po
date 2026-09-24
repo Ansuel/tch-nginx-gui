@@ -1,0 +1,160 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: webui-wireguard\n"
+"PO-Revision-Date: 2026-09-24 00:00+0200\n"
+"Last-Translator: ModGUI\n"
+"Language-Team: Italiano\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "WireGuard"
+msgstr "WireGuard"
+
+msgid "Tunnel disabled"
+msgstr "Tunnel disabilitato"
+
+msgid "Interface down"
+msgstr "Interfaccia giù"
+
+msgid "Waiting for peers"
+msgstr "In attesa di peer"
+
+msgid "Peers connected"
+msgstr "Peer connessi"
+
+msgid "Tunnel address"
+msgstr "Indirizzo del tunnel"
+
+msgid "<strong>%d of %d peer</strong> active"
+msgid_plural "<strong>%d of %d peers</strong> active"
+msgstr[0] "<strong>%d di %d peer</strong> attivo"
+msgstr[1] "<strong>%d di %d peer</strong> attivi"
+
+msgid "Generate a client key pair first."
+msgstr "Genera prima una coppia di chiavi client."
+
+msgid "Gateway key pair is ready. Share the public key with new peers."
+msgstr "Coppia di chiavi del gateway pronta. Condividi la chiave pubblica con i nuovi peer."
+
+msgid "Key generation failed: check that the WireGuard runtime is installed."
+msgstr "Generazione delle chiavi fallita: verifica che il runtime WireGuard sia installato."
+
+msgid "Client profile generated. Add this public key to a new peer: "
+msgstr "Profilo client generato. Aggiungi questa chiave pubblica a un nuovo peer: "
+
+msgid "Client profile generation failed: generate the gateway key pair first."
+msgstr "Generazione del profilo client fallita: genera prima la coppia di chiavi del gateway."
+
+msgid "Port must be between 1 and 65535"
+msgstr "La porta deve essere compresa tra 1 e 65535"
+
+msgid "Invalid private key: expected 44 base64 characters ending with ="
+msgstr "Chiave privata non valida: sono richiesti 44 caratteri base64 terminanti con ="
+
+msgid "Use a tunnel address in CIDR notation, for example 10.66.66.1/24"
+msgstr "Usa un indirizzo del tunnel in notazione CIDR, ad esempio 10.66.66.1/24"
+
+msgid "Use only letters, numbers, space, dot, underscore or dash"
+msgstr "Usa solo lettere, numeri, spazio, punto, underscore o trattino"
+
+msgid "Invalid public key: expected 44 base64 characters ending with ="
+msgstr "Chiave pubblica non valida: sono richiesti 44 caratteri base64 terminanti con ="
+
+msgid "Enter a valid host name or IPv4 address"
+msgstr "Inserisci un nome host o un indirizzo IPv4 valido"
+
+msgid "Keepalive must be between 0 and 320 seconds"
+msgstr "Il keepalive deve essere compreso tra 0 e 320 secondi"
+
+msgid "Use comma separated IPv4 networks, for example 10.66.66.2/32"
+msgstr "Usa reti IPv4 separate da virgola, ad esempio 10.66.66.2/32"
+
+msgid "Name"
+msgstr "Nome"
+
+msgid "Public key"
+msgstr "Chiave pubblica"
+
+msgid "Preshared key (optional)"
+msgstr "Chiave preshared (opzionale)"
+
+msgid "Endpoint host (optional)"
+msgstr "Host endpoint (opzionale)"
+
+msgid "Endpoint port"
+msgstr "Porta endpoint"
+
+msgid "Allowed IPs"
+msgstr "IP consentiti"
+
+msgid "Keepalive"
+msgstr "Keepalive"
+
+msgid "Add new peer"
+msgstr "Aggiungi nuovo peer"
+
+msgid "Interface"
+msgstr "Interfaccia"
+
+msgid "The gateway acts as a WireGuard endpoint. Peers connect to this gateway UDP port, or the gateway connects to peers that define an endpoint. Everything stays disabled until the interface is enabled."
+msgstr "Il gateway agisce come endpoint WireGuard. I peer si connettono alla porta UDP di questo gateway, oppure il gateway si connette ai peer che definiscono un endpoint. Tutto resta disabilitato finché l'interfaccia non viene abilitata."
+
+msgid "WireGuard interface"
+msgstr "Interfaccia WireGuard"
+
+msgid "UDP listen port"
+msgstr "Porta UDP in ascolto"
+
+msgid "Tunnel address (CIDR)"
+msgstr "Indirizzo del tunnel (CIDR)"
+
+msgid "Private key"
+msgstr "Chiave privata"
+
+msgid "Keep the private key secret or generate it with the button below."
+msgstr "Mantieni segreta la chiave privata oppure generatala con il pulsante sottostante."
+
+msgid "Allow peers to reach the LAN"
+msgstr "Consenti ai peer di raggiungere la LAN"
+
+msgid "Allow peers to reach the Internet"
+msgstr "Consenti ai peer di raggiungere Internet"
+
+msgid "Generate or paste a private key before enabling the interface."
+msgstr "Genera o incolla una chiave privata prima di abilitare l'interfaccia."
+
+msgid "Generate gateway key pair"
+msgstr "Genera coppia di chiavi del gateway"
+
+msgid "Generate client profile"
+msgstr "Genera profilo client"
+
+msgid "Gateway public key"
+msgstr "Chiave pubblica del gateway"
+
+msgid "Not generated yet"
+msgstr "Non ancora generata"
+
+msgid "Status"
+msgstr "Stato"
+
+msgid "Active peers"
+msgstr "Peer attivi"
+
+msgid "Peers"
+msgstr "Peer"
+
+msgid "Add one peer per device or remote gateway. Leave the endpoint empty for devices connecting in; fill it to connect out to a remote server. Allowed IPs are comma separated; use 0.0.0.0/0 on a remote server peer to route all traffic through it."
+msgstr "Aggiungi un peer per ciascun dispositivo o gateway remoto. Lascia vuoto l'endpoint per i dispositivi in entrata; compilalo per connettersi a un server remoto. Gli IP consentiti sono separati da virgola; usa 0.0.0.0/0 su un peer server remoto per instradare tutto il traffico attraverso di esso."
+
+msgid "Sample client profile"
+msgstr "Profilo client di esempio"
+
+msgid "Generated with the last client key pair. Copy it to the WireGuard client app and add its public key to a peer above."
+msgstr "Generato con l'ultima coppia di chiavi client. Copialo nell'app client WireGuard e aggiungi la sua chiave pubblica a un peer qui sopra."
+
+msgid "Download client profile"
+msgstr "Scarica profilo client"

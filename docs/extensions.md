@@ -11,7 +11,7 @@ background, so reopen the card after an operation to refresh its state.
 | Ookla Speedtest | ARM, ARM64 | Official Ookla archive | A run is started from the card; reopen it to display the latest result. |
 | OpenSpeedTest | All | Pinned OpenSpeedTest archive | Browser-based LAN/Wi-Fi test on port 5678; requires about 40 MB of free persistent storage. |
 | AdGuard Home | ARM, ARM64 | Official AdGuard stable archive | Installed under `/opt/AdGuardHome`; initial setup is available on port 3000. |
-| WireGuard | ARM, ARM64 with kernel TUN | Pinned `openwrt-wireguard-go` package | Installs only the userspace runtime; it creates no interface, key, route or firewall rule. |
+| WireGuard | ARM, ARM64 with kernel TUN | Pinned `openwrt-wireguard-go` package | Installs the userspace runtime and a card to manage the tunnel interface, peers and an opt-in firewall zone; everything stays disabled until configured. |
 | L2TP/IPsec VPN | ARMv7 and MIPS | Pinned `modgui-vpn`, configured opkg feeds | Adds the legacy strongSwan/xl2tpd server card; installation leaves the server disabled. |
 | OpenVPN | ARMv7 and MIPS with TUN | `openvpn-openssl`, `openvpn-easy-rsa` | Adds server and client tabs, user management, profile export and optional SSID-to-client routing; both modes install disabled. |
 | Tailscale | ARMv7, ARM64 with kernel TUN | Official pinned Tailscale static archive | Adds a native status card and controls for tailnet login, subnet routes, exit-node advertising, accepted routes and Tailscale SSH; installs disabled. |
@@ -30,10 +30,17 @@ or package installation fails, fix the feeds before retrying from the card.
 WireGuard is offered only when the running kernel has TUN support. Its package URL
 is pinned to repository commit `7ac8fe29a7ab64eb0c9c9774bb36cf2c7648399e`
 and the downloaded IPK is checked with SHA-256 before installation. The runtime
-uses roughly 20 MB of RAM for each active interface. Tunnel configuration remains
-an explicit administrator action; the extension never opens UDP 51820 or changes
-the network and firewall configuration. Removal is refused while WireGuard UCI
-interfaces still exist, and a package that predated the extension is never removed.
+uses roughly 20 MB of RAM for each active interface. Installation now adds a native
+WireGuard card (and a transformer-backed management modal) to configure the tunnel
+address, listen port, a server keypair and per-peer entries. Enabling the interface
+creates a netifd `modgui_wg0` interface, the matching peers and an opt-in firewall
+zone that only opens UDP `listen_port` and the selected peer-to-LAN/Internet forwarding.
+Traffic from the VPN zone to the router itself is rejected by default, and enabling
+LAN access does not create the reverse LAN-to-VPN forwarding. The
+interface, peers and firewall rules stay disabled until explicitly enabled. Removal
+disables and deletes the managed interface and refuses to remove a package that
+predated the extension or a manually configured WireGuard interface.
+
 
 The Tailscale integration takes its Technicolor service layout and GUI concepts from
 [`UncleSam1966/Tailscale-Setup`](https://github.com/UncleSam1966/Tailscale-Setup),
@@ -77,11 +84,15 @@ firmware 19.4 (ARMv7, Linux 4.1.52, JFFS2 overlay):
 - OpenSpeedTest revision f4263546 using its checksum-verified archive; a real browser
   test reached 349.7 Mbps download, 430.1 Mbps upload, 4 ms ping and 0 ms jitter.
 
-WireGuard compatibility was also checked on that DGA4130. Firmware 19.4 reports
-`# CONFIG_TUN is not set` and has no `/dev/net/tun`, so the guarded installer was
-verified to refuse installation without downloading a package or changing network,
-firewall, feed or extension state. A live tunnel cannot be validated on this firmware;
-firmware 20.3.c or 21.4 with `CONFIG_TUN=y` is required by the upstream runtime.
+Firmware 19.4 on the DGA4130 reports `# CONFIG_TUN is not set` and has no stock
+`/dev/net/tun`. On the exact validated 19.4.0866-3401052 kernel build, the WireGuard
+installer can use the same pinned, checksum-verified TUN module already validated by
+the OpenVPN extension. Other firmware without built-in TUN remains unsupported unless
+a reviewed matching module is available; the installer never loads a module merely
+because the kernel version string looks similar.
+When OpenVPN and WireGuard share that module, uninstalling either extension transfers
+module ownership and its boot-load entry to the extension that remains installed. The
+last owner removes it only if it is no longer in use and its checksum still matches.
 
 The L2TP/IPsec integration pins `modgui-vpn` to merge commit
 `5c9015930961848259aa883cbe1a20c02a227de4` and verifies its `1.1-0` IPK before

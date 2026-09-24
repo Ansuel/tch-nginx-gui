@@ -1,0 +1,8 @@
+config interface 'wg'
+	option enabled '0'
+	option listen_port '51820'
+	option private_key ''
+	option public_key ''
+	option address '10.66.66.1/24'
+	option allow_lan '0'
+	option allow_wan '0'

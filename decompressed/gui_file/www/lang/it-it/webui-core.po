@@ -4409,6 +4409,9 @@ msgstr "Esegue dal browser un test di velocità LAN e Wi-Fi direttamente verso q
 msgid "WireGuard"
 msgstr "WireGuard"
 
+msgid "Installs the checksum-verified userspace WireGuard runtime and a native card to configure the tunnel interface, peers and firewall rules. Everything stays disabled until configured."
+msgstr "Installa il runtime WireGuard userspace verificato tramite checksum e una scheda nativa per configurare l'interfaccia del tunnel, i peer e le regole firewall. Tutto resta disabilitato fino alla configurazione."
+
 msgid "Installs the checksum-verified userspace WireGuard runtime. It does not create tunnels, routes, keys or firewall rules."
 msgstr "Installa il runtime WireGuard userspace verificato tramite checksum. Non crea tunnel, rotte, chiavi o regole firewall."
 

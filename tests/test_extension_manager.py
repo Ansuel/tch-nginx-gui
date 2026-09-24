@@ -96,14 +96,19 @@ class ExtensionManager(unittest.TestCase):
         self.assertIn("server_openspeedtest.conf", openspeedtest)
         self.assertNotIn("/etc/nginx/nginx.conf", openspeedtest)
 
-    def test_wireguard_is_capability_gated_pinned_and_non_configuring(self):
+    def test_wireguard_is_capability_gated_pinned_and_installs_disabled(self):
         installer = INSTALLER.read_text()
+        defaults = (GUI / "usr/share/modgui-wireguard/wireguard.default").read_text()
         start = installer.index("app_wireguard()")
-        end = installer.index("install_specific_files()", start)
+        end = installer.index("app_l2tpipsec()", start)
         wireguard = installer[start:end]
         modal = MODAL.read_text()
 
         self.assertIn("CONFIG_TUN=y", wireguard)
+        self.assertIn("19.4.0866-3401052", wireguard)
+        self.assertIn("tun-vbntj-damson-4.1.52.ko", wireguard)
+        self.assertIn("wireguard_install_tun", wireguard)
+        self.assertIn("wireguard_remove_tun", wireguard)
         self.assertIn(
             'wireguard_commit="7ac8fe29a7ab64eb0c9c9774bb36cf2c7648399e"',
             wireguard,
@@ -116,18 +121,116 @@ class ExtensionManager(unittest.TestCase):
         self.assertIn("raw.githubusercontent.com/seud0nym/openwrt-wireguard-go/$wireguard_commit", wireguard)
         self.assertNotIn("uci set network.", wireguard)
         self.assertNotIn("uci set firewall.", wireguard)
-        self.assertNotIn("51820", wireguard)
+        self.assertIn("wireguard.wg.enabled='0'", wireguard)
+        self.assertIn("wireguard.wg.allow_lan='0'", wireguard)
+        self.assertIn("wireguard.wg.allow_wan='0'", wireguard)
+        self.assertIn("option allow_lan '0'", defaults)
+        self.assertIn("option allow_wan '0'", defaults)
+        self.assertNotIn("firewall.modgui_wireguard_udp=rule", wireguard)
         self.assertIn("kernel_has_tun", modal)
         self.assertIn("built without TUN support", modal)
 
     def test_wireguard_removal_is_ownership_aware(self):
         installer = INSTALLER.read_text()
         start = installer.index("app_wireguard()")
-        end = installer.index("install_specific_files()", start)
+        end = installer.index("app_l2tpipsec()", start)
         wireguard = installer[start:end]
         self.assertIn('wireguard_owned="/etc/.modgui-wireguard-go-installed"', wireguard)
         self.assertIn('[ -f "$wireguard_owned" ]', wireguard)
         self.assertIn("opkg remove wireguard-go", wireguard)
+        self.assertIn("Remove manually configured WireGuard network interfaces", wireguard)
+        self.assertIn("wireguard_cleanup_network", wireguard)
+        self.assertIn("web.wireguard_card", wireguard)
+        self.assertIn("modgui-wireguard-gui.tar.gz", wireguard)
+
+    def test_wireguard_card_and_apply_configuration_on_enable(self):
+        installer = INSTALLER.read_text()
+        start = installer.index("app_wireguard()")
+        end = installer.index("app_l2tpipsec()", start)
+        wireguard = installer[start:end]
+        card = (GUI / "www/cards/016_wireguard.lp").read_text()
+        modal = (GUI / "www/docroot/modals/wireguard-modal.lp").read_text()
+        apply_script = (GUI / "usr/share/transformer/scripts/wireguardApply.sh").read_text()
+        config = CONFIG.read_text()
+
+        for path in (
+            GUI / "usr/share/modgui-wireguard/wireguard.default",
+            GUI / "usr/share/transformer/mappings/uci/wireguard.map",
+            GUI / "usr/share/transformer/mappings/uci/wireguard.peer.map",
+            GUI / "usr/share/transformer/commitapply/uci_wireguard.ca",
+            GUI / "usr/share/transformer/scripts/wireguardApply.sh",
+            GUI / "usr/share/transformer/scripts/wireguardStatus.sh",
+            GUI / "usr/share/transformer/scripts/wireguardKeygen.sh",
+            GUI / "www/cards/016_wireguard.lp",
+            GUI / "www/docroot/modals/wireguard-modal.lp",
+            GUI / "www/lang/it-it/webui-wireguard.po",
+        ):
+            with self.subTest(path=path):
+                self.assertTrue(path.is_file())
+
+        self.assertIn("wireguard_prepare_config", wireguard)
+        self.assertIn("wireguard_backup_gui", wireguard)
+        self.assertIn("wireguard_repair_gui", wireguard)
+        self.assertIn("wireguardApply.sh", wireguard)
+        self.assertIn("/opt/modgui-wireguard-gui.tar.gz", config)
+        self.assertIn("appInstallRemoveUtility.sh refresh wireguard", config)
+
+        self.assertIn("network.modgui_wg0.proto='wireguard'", apply_script)
+        self.assertIn("wireguard_modgui_wg0", apply_script)
+        self.assertIn("firewall.modgui_wireguard_zone", apply_script)
+        self.assertIn("firewall.modgui_wireguard_to_lan", apply_script)
+        self.assertIn("firewall.modgui_wireguard_to_wan", apply_script)
+        self.assertIn("wireguard.wg.listen_port", apply_script)
+        self.assertIn('grep -q \'"proto": "none"\'', apply_script)
+        self.assertIn("/etc/init.d/network restart", apply_script)
+        self.assertNotIn("firewall.modgui_wan_to_wireguard", apply_script)
+        self.assertIn("firewall.modgui_wireguard_zone.input='REJECT'", apply_script)
+        self.assertNotIn("firewall.modgui_lan_to_wireguard=forwarding", apply_script)
+        self.assertIn("valid_cidr", apply_script)
+        self.assertIn('[ "$endpoint_port" -le 65535 ]', apply_script)
+        self.assertIn('[ "$keepalive" -le 320 ]', apply_script)
+        self.assertIn('valid_key "$preshared_key"', apply_script)
+        self.assertIn("umask 077", (GUI / "usr/share/transformer/scripts/wireguardKeygen.sh").read_text())
+        self.assertIn("printf '%s\\n'", (GUI / "usr/share/transformer/scripts/wireguardKeygen.sh").read_text())
+        self.assertIn('if [ "$2" = "export" ]',
+                      (GUI / "usr/share/transformer/scripts/wireguardKeygen.sh").read_text())
+        self.assertIn('server_public="${3:-$(uci -q get wireguard.wg.public_key)}"',
+                      (GUI / "usr/share/transformer/scripts/wireguardKeygen.sh").read_text())
+        self.assertIn("chmod 600 /tmp/modgui-wireguard-client.conf",
+                      (GUI / "usr/share/transformer/scripts/wireguardKeygen.sh").read_text())
+        self.assertIn("A pre-existing WireGuard runtime is installed; refusing to remove it", wireguard)
+        self.assertIn(".modgui-openvpn-tun-installed", wireguard)
+        self.assertIn("30-modgui-openvpn-tun", wireguard)
+
+        self.assertIn("uci.wireguard.wg.enabled", card)
+        self.assertIn("wireguardStatus.sh", card)
+        self.assertIn("wireguardStatus.sh", modal)
+        self.assertIn("wireguardKeygen.sh", modal)
+        self.assertNotIn("?keygen=", modal)
+        self.assertIn('data-value="WG_KEYGEN_INTERFACE"', modal)
+        self.assertIn("plain(ngx.var.http_host)", modal)
+        self.assertIn(
+            'plain(host:gsub(":%d+$", ""):gsub("[^A-Za-z0-9.%-]", ""))',
+            modal,
+        )
+        self.assertIn('run_keygen("interface export")', modal)
+        self.assertIn('["uci.wireguard.wg.private_key"] = private', modal)
+        self.assertIn('server_public = getvalue("uci.wireguard.wg.public_key")', modal)
+        self.assertIn('local submitted_private = plain(post_args.private_key)', modal)
+        self.assertIn('if submitted_private == "********" then submitted_private = "" end', modal)
+        self.assertIn('if submitted_private ~= "" then', modal)
+        self.assertIn('validators.private_key = valid_private_key', modal)
+        self.assertIn('post_helper.handleQuery(map_params, validators)', modal)
+        self.assertIn('content.private_key = getvalue("uci.wireguard.wg.private_key")', modal)
+        self.assertIn('type = "password"', modal)
+        self.assertIn('if value == "********" then return true end', modal)
+        self.assertIn("uci.wireguard.peer.@.", modal)
+        self.assertIn('name = "uci.wireguard.peer.@."',
+                       (GUI / "usr/share/transformer/mappings/uci/wireguard.peer.map").read_text())
+        peer_map = (GUI / "usr/share/transformer/mappings/uci/wireguard.peer.map").read_text()
+        self.assertIn('param == "preshared_key" and value ~= ""', peer_map)
+        self.assertIn('tostring(value or "") == "********"', peer_map)
+
 
     def test_l2tpipsec_is_pinned_fixed_and_starts_disabled(self):
         installer = INSTALLER.read_text()
@@ -335,7 +438,7 @@ class ExtensionManager(unittest.TestCase):
         for source in (modal, card):
             self.assertIn(condition, source)
             block = source[source.index(condition):]
-            block = block[:block.index("end")]
+            block = block.split('if marketing_version >= 17.3 then', 1)[0]
             self.assertIn("speedtest_app", block)
             self.assertIn("adguardhome_app", block)
             self.assertIn("wireguard_app", block)
@@ -347,6 +450,9 @@ class ExtensionManager(unittest.TestCase):
             CONFIG,
             GUI / "usr/share/transformer/scripts/tailscaleApply.sh",
             GUI / "usr/share/transformer/scripts/tailscaleStatus.sh",
+            GUI / "usr/share/transformer/scripts/wireguardApply.sh",
+            GUI / "usr/share/transformer/scripts/wireguardStatus.sh",
+            GUI / "usr/share/transformer/scripts/wireguardKeygen.sh",
             GUI / "usr/share/modgui-tailscale/tailscale.init",
             GUI / "usr/share/modgui-tailscale/tailscale.bootstrap",
             GUI / "usr/share/modgui-tailscale/tailscale.connect",
@@ -363,8 +469,12 @@ class ExtensionManager(unittest.TestCase):
             MODAL,
             CARD,
             GUI / "usr/share/transformer/mappings/uci/tailscale.map",
+            GUI / "usr/share/transformer/mappings/uci/wireguard.map",
+            GUI / "usr/share/transformer/mappings/uci/wireguard.peer.map",
             GUI / "www/cards/016_tailscale.lp",
             GUI / "www/docroot/modals/tailscale-modal.lp",
+            GUI / "www/cards/016_wireguard.lp",
+            GUI / "www/docroot/modals/wireguard-modal.lp",
         )
         for source in sources:
             with self.subTest(source=source.name):

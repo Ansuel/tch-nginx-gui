@@ -188,6 +188,15 @@ create_gui_type() {
       uci set modgui.app.tailscale_app="0"
     fi
   fi
+  if [ "$(uci get -q modgui.app.wireguard_app)" = "1" ] &&
+    [ -f /opt/modgui-wireguard-gui.tar.gz ] &&
+    { [ ! -f /www/cards/016_wireguard.lp ] ||
+      [ ! -f /www/docroot/modals/wireguard-modal.lp ] ||
+      [ ! -f /usr/share/transformer/mappings/uci/wireguard.map ] ||
+      [ ! -f /usr/share/transformer/mappings/uci/wireguard.peer.map ]; }; then
+    logecho "Restoring WireGuard GUI files after upgrade..."
+    /usr/share/transformer/scripts/appInstallRemoveUtility.sh refresh wireguard >/dev/null 2>&1
+  fi
   if [ "$(uci get -q modgui.app.tailscale_app)" = "1" ] &&
     [ -f /opt/modgui-tailscale-gui.tar.gz ] &&
     { [ ! -f /www/cards/016_tailscale.lp ] ||
