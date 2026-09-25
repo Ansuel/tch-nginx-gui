@@ -18,7 +18,7 @@ ngx.print(ui_helper.createCardHeader(T"DumaOS", nil))
 ngx.print('<div class="content card_bg" data-bg-text="&#xf201;"><div class="divtable">')
 ngx.print(
   ui_helper.createSimpleLight(running and "1" or "0", switchtext),
-  '<p class="subinfos"><a href="/desktop/index.html" target="_blank" rel="noopener">',
+  '<p class="subinfos"><a href="/desktop" target="_blank" rel="noopener" onclick="event.stopPropagation()" ontouchend="event.stopPropagation()">',
   T"Open interface",
   '</a></p>'
 )

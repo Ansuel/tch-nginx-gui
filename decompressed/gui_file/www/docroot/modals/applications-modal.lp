@@ -445,7 +445,7 @@ if StateParams["tailscale_application"] ~= nil then
 end
 
 if StateParams["dumaos_application"] ~= nil then
-	local dumaos_link = "/desktop/index.html"
+	local dumaos_link = "/desktop"
 	append_extension_card(
 		"dumaos_application",
 		"dumaos",
