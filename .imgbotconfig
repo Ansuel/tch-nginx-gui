@@ -1,0 +1,7 @@
+{
+  "aggressiveCompression": false,
+  "ignoredFiles": [
+    "**/fonts/*.svg"
+  ],
+  "minKBReduced": 5
+}
