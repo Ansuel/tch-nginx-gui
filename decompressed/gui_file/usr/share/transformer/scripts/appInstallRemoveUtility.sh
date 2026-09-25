@@ -1982,6 +1982,165 @@ app_tailscale() {
   esac
 }
 
+app_dumaos() {
+  dumaos_commit="884a5351b3a7659f7bf8397ee079eec5ea33cfe0"
+  dumaos_version="2.0-32"
+  dumaos_tag="dumaos-repack-v$dumaos_version"
+  dumaos_package="dumaos-repack_${dumaos_version}_all.ipk"
+  dumaos_sha256="a811a5d0ae8ba2e95ae05f573ce5debe6ca30259654910cfc1fd79681f9ae6c4"
+  dumaos_tmp="/tmp/dumaos-repack-install.$$.ipk"
+  dumaos_module="/lib/modules/4.1.52/extra/act-connmark-damson-4.1.52.ko"
+  dumaos_module_sha256="9bbd94d4e1ed2d02e1c990797b6540d3af3a4a13680099cb7014c4e211bc83ff"
+
+  dumaos_installed() {
+    opkg status dumaos-repack 2>/dev/null | grep -q '^Status:.*installed'
+  }
+
+  dumaos_installed_version() {
+    opkg status dumaos-repack 2>/dev/null | awk -F': ' '$1 == "Version" { print $2; exit }'
+  }
+
+  dumaos_repair_gui() {
+    [ -f /usr/share/modgui-dumaos/015_dumaos.lp ] || return 1
+    cp /usr/share/modgui-dumaos/015_dumaos.lp /www/cards/015_dumaos.lp || return 1
+    chmod 644 /www/cards/015_dumaos.lp
+    uci set web.dumaos_card=card
+    uci set web.dumaos_card.card=015_dumaos.lp
+    uci set web.dumaos_card.modal=duma_desktop_index
+    uci commit web
+  }
+
+  dumaos_install_qos_module() {
+    [ "$(uname -r)" = "4.1.52" ] || return 0
+    if [ ! -f "$dumaos_module" ]; then
+      mkdir -p /lib/modules/4.1.52/extra || return 1
+      curl -kfL "https://raw.githubusercontent.com/FrancYescO/GUI_ipk/kmods-4.1.52/artifacts/act-connmark-damson-4.1.52.ko" \
+        --output "$dumaos_module.tmp" || {
+          rm -f "$dumaos_module.tmp"
+          return 1
+        }
+      dumaos_module_actual_sha256="$(sha256sum "$dumaos_module.tmp" | awk '{print $1}')"
+      if [ "$dumaos_module_actual_sha256" != "$dumaos_module_sha256" ]; then
+        echo "DumaOS QoS module checksum mismatch"
+        rm -f "$dumaos_module.tmp"
+        return 1
+      fi
+      mv "$dumaos_module.tmp" "$dumaos_module" || return 1
+      depmod -a 4.1.52 2>/dev/null || true
+    fi
+    echo act_connmark > /etc/modules.d/99-dumaos-qos || return 1
+    modprobe act_connmark 2>/dev/null || insmod "$dumaos_module" 2>/dev/null || {
+      echo "Unable to load the DumaOS act_connmark QoS module"
+      return 1
+    }
+  }
+
+  dumaos_remove_firewall() {
+    for section in $(uci -q show firewall 2>/dev/null | awk -F'[.=]' '$3 == "rule" {print $2}'); do
+      dumaos_rule_name="$(uci -q get "firewall.$section.name")"
+      case "$dumaos_rule_name" in
+      "DumaOS UI" | dumaos_ui) uci -q delete "firewall.$section" ;;
+      esac
+    done
+    uci -q delete firewall.dumaos_ui
+    uci -q commit firewall
+    /etc/init.d/firewall reload 2>/dev/null || true
+  }
+
+  dumaos_start() {
+    uci -q set dumaos.tr69.dumaos_enabled=1
+    uci -q commit dumaos
+    /etc/init.d/ndhttpd enable
+    /etc/init.d/ndhttpd start || return 1
+    /etc/init.d/dumaos enable
+    /etc/init.d/dumaos start
+  }
+
+  dumaos_stop() {
+    uci -q set dumaos.tr69.dumaos_enabled=0
+    uci -q commit dumaos
+    /etc/init.d/dumaos stop 2>/dev/null
+    /etc/init.d/ndhttpd stop 2>/dev/null || true
+  }
+
+  case "$1" in
+  install)
+    case "$cpu_type" in
+    armv7*) ;;
+    *)
+      echo "DumaOS is only supported on ARMv7 Technicolor gateways"
+      return 1
+      ;;
+    esac
+    if [ "$(dumaos_installed_version)" != "$dumaos_version" ]; then
+      require_free_space 40960 /overlay || return 1
+      require_free_space 10240 /tmp || return 1
+      opkg update || return 1
+      curl -kfL "https://github.com/FrancYescO/sharing_tg789/releases/download/$dumaos_tag/$dumaos_package" \
+        --output "$dumaos_tmp" || {
+          rm -f "$dumaos_tmp"
+          return 1
+        }
+      dumaos_actual_sha256="$(sha256sum "$dumaos_tmp" | awk '{print $1}')"
+      if [ "$dumaos_actual_sha256" != "$dumaos_sha256" ]; then
+        echo "DumaOS package checksum mismatch"
+        rm -f "$dumaos_tmp"
+        return 1
+      fi
+      opkg install "$dumaos_tmp" || {
+        rm -f "$dumaos_tmp"
+        return 1
+      }
+      rm -f "$dumaos_tmp"
+    fi
+    [ -x /etc/init.d/dumaos ] && [ -x /etc/init.d/ndhttpd ] &&
+      [ -f /www/cards/015_dumaos.lp ] &&
+      [ -f /usr/share/transformer/mappings/rpc/dumaos.map ] || {
+        echo "DumaOS package does not contain the expected services and GUI files"
+        return 1
+    }
+    dumaos_repair_gui || return 1
+    set_extension_state dumaos_app 1
+    dumaos_install_qos_module || echo "WARN: DumaOS installed, but the optional QoS module could not be prepared"
+    dumaos_remove_firewall
+    dumaos_start || return 1
+    /etc/init.d/transformer restart
+    /etc/init.d/nginx restart
+    ;;
+  remove)
+    dumaos_installed || {
+      set_extension_state dumaos_app 0
+      return 0
+    }
+    dumaos_stop
+    opkg remove dumaos-repack || return 1
+    dumaos_remove_firewall
+    rm -f "$dumaos_tmp" "$dumaos_module.tmp"
+    uci -q delete web.dumaos_card
+    uci commit web
+    set_extension_state dumaos_app 0
+    ;;
+  start)
+    dumaos_installed || return 1
+    dumaos_start
+    ;;
+  stop)
+    dumaos_installed || return 1
+    dumaos_stop
+    ;;
+  refresh)
+    dumaos_installed || return 1
+    dumaos_repair_gui || return 1
+    /etc/init.d/transformer restart
+    /etc/init.d/nginx restart
+    ;;
+  *)
+    echo "Unsupported action"
+    return 1
+    ;;
+  esac
+}
+
 install_specific_files() {
 
   install() {
@@ -2063,6 +2222,9 @@ call_app_type() {
     ;;
   tailscale)
     app_tailscale "$1"
+    ;;
+  dumaos)
+    app_dumaos "$1"
     ;;
   specificapp)
     install_specific_files "$1" "$3"

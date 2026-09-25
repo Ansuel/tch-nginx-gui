@@ -27,6 +27,7 @@ local app_list = {
 	"l2tpipsec",
 	"openvpn",
 	"tailscale",
+	"dumaos",
 }
 
 local marketing_version = proxy.get("uci.version.version.@version[0].marketing_version")
@@ -86,6 +87,9 @@ if cputype:match("^armv7") or cputype == "aarch64" or cputype == "arm64" then
 	mapParams.adguardhome_application = "uci.modgui.app.adguardhome_app"
 	mapParams.wireguard_application = "uci.modgui.app.wireguard_app"
 	mapParams.tailscale_application = "uci.modgui.app.tailscale_app"
+end
+if cputype:match("^armv7") then
+	mapParams.dumaos_application = "uci.modgui.app.dumaos_app"
 end
 if marketing_version >= 17.3 then
 	mapParams.xupnp_application = "uci.modgui.app.xupnp_app"
@@ -438,6 +442,18 @@ if StateParams["tailscale_application"] ~= nil then
 		html[#html+1] = ui_helper.createAlertBlock(T"Unavailable: this firmware kernel was built without TUN support.", specific_box)
 		html[#html+1] = "</fieldset></div>"
 	end
+end
+
+if StateParams["dumaos_application"] ~= nil then
+	local dumaos_link = "/desktop/index.html"
+	append_extension_card(
+		"dumaos_application",
+		"dumaos",
+		T"DumaOS",
+		T"Installs the pinned DumaOS UI and QoS stack for ARMv7 Technicolor gateways. Installation replaces core ubus components; reboot the gateway after installation and after removal.",
+		dumaos_link,
+		true
+	)
 end
 
 if StateParams["voipblock_for_mmpbx"] ~= nil then

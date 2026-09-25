@@ -72,6 +72,9 @@ if cputype:match("^armv7") or cputype == "aarch64" or cputype == "arm64" then
 		mapParams.tailscale_application = "uci.modgui.app.tailscale_app"
 	end
 end
+if cputype:match("^armv7") then
+	mapParams.dumaos_application = "uci.modgui.app.dumaos_app"
+end
 if marketing_version >= 17.3 then
 	mapParams.xupnp_application = "uci.modgui.app.xupnp_app"
 end
@@ -108,6 +111,7 @@ local extension_items = {
 	{ key = "l2tpipsec_application", title = T"L2TP/IPsec" },
 	{ key = "openvpn_application", title = T"OpenVPN" },
 	{ key = "tailscale_application", title = T"Tailscale" },
+	{ key = "dumaos_application", title = T"DumaOS" },
 }
 
 local modalPath = nil

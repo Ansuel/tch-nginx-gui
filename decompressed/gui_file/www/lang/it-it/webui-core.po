@@ -4438,3 +4438,9 @@ msgstr "Installa OpenVPN e la relativa scheda di gestione. Il server e la regola
 
 msgid "Unavailable: this firmware kernel was built without TUN support."
 msgstr "Non disponibile: il kernel di questo firmware non supporta TUN."
+
+msgid "DumaOS"
+msgstr "DumaOS"
+
+msgid "Installs the pinned DumaOS UI and QoS stack for ARMv7 Technicolor gateways. Installation replaces core ubus components; reboot the gateway after installation and after removal."
+msgstr "Installa l'interfaccia e lo stack QoS DumaOS verificati per i gateway Technicolor ARMv7. L'installazione sostituisce componenti ubus di base; riavviare il gateway dopo l'installazione e dopo la rimozione."

@@ -188,6 +188,20 @@ create_gui_type() {
       uci set modgui.app.tailscale_app="0"
     fi
   fi
+  if [ ! "$(uci get -q modgui.app.dumaos_app)" ]; then
+    if opkg status dumaos-repack 2>/dev/null | grep -q '^Status:.*installed'; then
+      uci set modgui.app.dumaos_app="1"
+    else
+      uci set modgui.app.dumaos_app="0"
+    fi
+  fi
+  if [ "$(uci get -q modgui.app.dumaos_app)" = "1" ] &&
+    [ -f /usr/share/modgui-dumaos/015_dumaos.lp ] &&
+    { [ ! -f /www/cards/015_dumaos.lp ] ||
+      ! cmp -s /usr/share/modgui-dumaos/015_dumaos.lp /www/cards/015_dumaos.lp; }; then
+    logecho "Restoring the DumaOS card after upgrade..."
+    /usr/share/transformer/scripts/appInstallRemoveUtility.sh refresh dumaos >/dev/null 2>&1
+  fi
   if [ "$(uci get -q modgui.app.wireguard_app)" = "1" ] &&
     [ -f /opt/modgui-wireguard-gui.tar.gz ] &&
     { [ ! -f /www/cards/016_wireguard.lp ] ||

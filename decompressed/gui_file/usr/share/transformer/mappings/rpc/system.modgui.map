@@ -337,6 +337,7 @@ local app_list = {
   "l2tpipsec",
   "openvpn",
   "tailscale",
+  "dumaos",
   "specificapp"
 }
 

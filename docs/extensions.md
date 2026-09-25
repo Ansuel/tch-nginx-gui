@@ -15,6 +15,7 @@ background, so reopen the card after an operation to refresh its state.
 | L2TP/IPsec VPN | ARMv7 and MIPS | Pinned `modgui-vpn`, configured opkg feeds | Adds the legacy strongSwan/xl2tpd server card; installation leaves the server disabled. |
 | OpenVPN | ARMv7 and MIPS with TUN | `openvpn-openssl`, `openvpn-easy-rsa` | Adds server and client tabs, user management, profile export and optional SSID-to-client routing; both modes install disabled. |
 | Tailscale | ARMv7, ARM64 with kernel TUN | Official pinned Tailscale static archive | Adds a native status card and controls for tailnet login, subnet routes, exit-node advertising, accepted routes and Tailscale SSH; installs disabled. |
+| DumaOS | ARMv7 | Pinned `dumaos-repack` 2.0-32 IPK | Installs the DumaOS 3.3.90 UI/QoS stack and its authenticated status/link card; requires a reboot after installation and removal. |
 
 AdGuard Home installation deliberately does not stop dnsmasq, claim DNS port 53,
 or change DHCP settings. Complete its first-run wizard and choose non-conflicting
@@ -71,6 +72,16 @@ disabled; named UCI firewall sections expose only the selected features and are
 removed when the service or extension is disabled. Removing the extension also
 deletes its local node identity, so the old machine entry may still need to be removed
 from the Tailscale admin console.
+
+The DumaOS integration pins the latest reviewed `dumaos-repack` release, `2.0-32`
+at commit `884a5351b3a7659f7bf8397ee079eec5ea33cfe0`, and verifies both the IPK and the
+optional Linux 4.1.52 `act_connmark` QoS module before installation. It is shown
+only on ARMv7 gateways and requires about 40 MB of persistent free space. The
+package replaces core `ubus` components with compatible MR22 versions, so reboot
+the gateway after installation and again after removal. Its included card shows
+the service state and opens the authenticated DumaOS interface through the main
+gateway web server; the Extensions
+modal can also start and stop the two DumaOS services.
 
 ## Hardware validation
 

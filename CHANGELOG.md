@@ -2,6 +2,7 @@
 # Unreleased
 
 - Add a WireGuard management card and modal for the pinned userspace runtime: tunnel interface, peer table, gateway/client keypair generation, status and opt-in firewall rules applied through a dedicated netifd interface
+- Add a checksum-verified DumaOS 2.0-32 extension for ARMv7 gateways with automatic upgrades, service controls and an authenticated UI card
 - Add a pinned, checksum-verified Tailscale extension for ARM gateways with an asynchronous cold-start/login flow, native status card, login link, subnet-router, exit-node, route-acceptance and Tailscale SSH controls
 - Add an installable OpenVPN extension with server/client tabs, dynamically discovered isolated Wi-Fi SSIDs for optional client routing, profile export, TUN/runtime safety checks and a state-coupled WAN firewall rule
 - Add a standalone Asterisk PBX card for SIP accounts and status, with guarded Voipblock integration
