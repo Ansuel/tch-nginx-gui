@@ -40,7 +40,8 @@ local xdsl_params = {
 
 content_helper.getExactContent(xdsl_params)
 
-if find(xdsl_params["dsl_type"], "ADSL") == 1 or find(xdsl_params["dsl_type"], "ADLS") == 1 then
+local dsl_type = xdsl_params["dsl_type"] or ""
+if find(dsl_type, "ADSL") == 1 or find(dsl_type, "ADLS") == 1 then
   is_adsl = true
 end
 local content_rpc_gpon = {}
@@ -49,7 +50,7 @@ if is_gpon then
 	content_rpc_gpon["gpon_status"] = "rpc.optical.Interface.1.Status"
 end
 
-if gponboard == "gpon" or gponboard == "gpon_sfp" then
+if gponboard then
 	content_rpc_gpon["gpon_status"] = "rpc.gpon.ploam.state"
 end
 
@@ -515,4 +516,4 @@ ngx.print (html)
 </div>\
 \
 ');  ngx.print(ui_helper.createFooter())   ngx.print('\
-'); 
+');

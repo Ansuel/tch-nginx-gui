@@ -72,7 +72,7 @@ local getradio = getargs.radio
 local getiface = getargs.iface
 local getWifiAnalyzer = getargs.isWifiAnalyzer
 
-local curradio = "radio_2G"
+local curradio
 local curiface = "wl0"
 local curap = "ap0"
 local isguest = "0"
@@ -132,6 +132,7 @@ for i,v in ipairs(radioNames) do
     end
 end
 table.sort(radios)
+curradio = curradio or radios[1]
 
 ajax_helper.handleAjaxQuery({
     phy_rate = "rpc.wireless.radio.@" .. curradio .. ".phy_rate",
@@ -372,8 +373,8 @@ end
 local wifipower = {}
 
 for i=-6,6 do
-	i = i < 0 and i or format("+%s",i)
-	tinsert(wifipower,{tostring(i),format("%s dBm",i)})
+	local power = i < 0 and i or format("+%s",i)
+	tinsert(wifipower,{tostring(power),format("%s dBm",power)})
 end
 
 local cw_40 = {

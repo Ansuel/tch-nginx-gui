@@ -42,34 +42,44 @@ if datatype and datatype== "xdsl" then
 
 	content_helper.getExactContent(data)
 
-	if not ( data.dsl_linerate_down == "0" ) then
-		data.dsl_linerate_up = data.dsl_linerate_up and
-			(floor(tonumber(data.dsl_linerate_up) / 10) / 100 .. " Mbps") or
-			"Can't recover data"
-		data.dsl_linerate_down = data.dsl_linerate_down and
-			(floor(tonumber(data.dsl_linerate_down) / 10) / 100 .. " Mbps") or
-			"Can't recover data"
-		data.dsl_linerate_up_max = data.dsl_linerate_up_max and
-			(floor(tonumber(data.dsl_linerate_up_max) / 10) / 100 .. " Mbps") or
-			"Can't recover data"
-		data.dsl_linerate_down_max = data.dsl_linerate_down_max and
-			(floor(tonumber(data.dsl_linerate_down_max) / 10) / 100 .. " Mbps") or
-			"Can't recover data"
-
-		if not ( data.dsl_type:match("ADSL") ) then
-			data.dsl_margin_down = data.dsl_margin_SNRM_down
-			data.dsl_margin_up = data.dsl_margin_SNRM_up
+	local function formatRate(value)
+		local rate = tonumber(value)
+		if not rate then
+			return T"Can't recover data"
 		end
+		return floor(rate / 10) / 100 .. " Mbps"
+	end
 
-		if data.dslam_chipset:match("BDCM") then
-			data.dslam_chipset = "Broadcom" .. " ( " .. data.dslam_chipset .. " )"
-		elseif data.dslam_chipset:match("IFTN") then
-			data.dslam_chipset = "Infineon" .. " ( " .. data.dslam_chipset .. " )"
-		end
+	local has_xdsl = data.status and data.status ~= ""
+		or tonumber(data.dsl_linerate_up)
+		or tonumber(data.dsl_linerate_down)
+		or tonumber(data.dsl_linerate_up_max)
+		or tonumber(data.dsl_linerate_down_max)
 
-		if not ( data.dslam_version_raw:sub(0,2) == "0x" ) then
-			if data.dslam_version_raw == "" then
-				data.dslam_chipset = T"Can't recover DSLAM version."
+	if not has_xdsl then
+		-- This endpoint is also installed on Ethernet/GPON-only devices.
+		data = {}
+	elseif data.dsl_linerate_down ~= "0" then
+			data.dsl_linerate_up = formatRate(data.dsl_linerate_up)
+			data.dsl_linerate_down = formatRate(data.dsl_linerate_down)
+			data.dsl_linerate_up_max = formatRate(data.dsl_linerate_up_max)
+			data.dsl_linerate_down_max = formatRate(data.dsl_linerate_down_max)
+
+			if not string.match(data.dsl_type or "", "ADSL") then
+				data.dsl_margin_down = data.dsl_margin_SNRM_down
+				data.dsl_margin_up = data.dsl_margin_SNRM_up
+			end
+
+			if string.match(data.dslam_chipset or "", "BDCM") then
+				data.dslam_chipset = "Broadcom" .. " ( " .. data.dslam_chipset .. " )"
+			elseif string.match(data.dslam_chipset or "", "IFTN") then
+				data.dslam_chipset = "Infineon" .. " ( " .. data.dslam_chipset .. " )"
+			end
+
+			data.dslam_version_raw = data.dslam_version_raw or ""
+			if not ( string.sub(data.dslam_version_raw, 1, 2) == "0x" ) then
+				if data.dslam_version_raw == "" then
+					data.dslam_chipset = T"Can't recover DSLAM version."
 			else
 				data.dslam_chipset = format(T"Invalid version, can't convert. Raw value: %s", data.dslam_version_raw)
 			end
@@ -77,10 +87,10 @@ if datatype and datatype== "xdsl" then
 
 		data.dslam_version_raw = nil
 
-		if data["status"]:match("Showtime") then
-			data["status"] = T"Connected"
-		elseif data["status"] == "" then
-			data["status"] = T"Disconnected"
+			if string.match(data.status or "", "Showtime") then
+				data["status"] = T"Connected"
+			elseif not data.status or data.status == "" then
+				data["status"] = T"Disconnected"
 		else
 			data["status"] = T(data.status)
 		end

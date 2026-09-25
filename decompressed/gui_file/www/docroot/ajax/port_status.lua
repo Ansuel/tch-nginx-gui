@@ -8,11 +8,15 @@ local proxy = require("datamodel")
 local ui_helper = require("web.ui_helper")
 local content_helper = require("web.content_helper")
 
-local quantenna_wifi = proxy.get("uci.env.var.qtn_eth_mac")
-quantenna_wifi = ((quantenna_wifi and quantenna_wifi[1].value~="") and true or false)
+local function getValue(path)
+	local result = proxy.get(path)
+	return result and result[1] and result[1].value or ""
+end
+
+local quantenna_wifi = getValue("uci.env.var.qtn_eth_mac") ~= ""
 --Support ethernet mode for devices with no eth4 port
 local ethname = proxy.get("sys.eth.port.@eth4.status")
-if ethname and ethname[1].value then
+if ethname and ethname[1] and ethname[1].value then
 	ethname =  "eth4"
 else
 	ethname =  "eth3"
@@ -79,54 +83,50 @@ local port_filter = function(data)
 
 	if quantenna_wifi and data.paramindex:match("eth5") then
 		return false
-	elseif data.paramindex:match(ethname) and ( proxy.get("uci.ethernet.port.@"..ethname..".wan")[1].value == "1" ) then
+	elseif data.paramindex == ethname and getValue("uci.ethernet.port.@"..ethname..".wan") == "1" then
 		data.paramindex = "WAN"
 	else
-		port = data.paramindex:gsub("eth","")
-		data.paramindex = "LAN - " .. tonumber(port)+1
+		local port = data.paramindex:match("^eth(%d+)$")
+		if port then
+			data.paramindex = "LAN - " .. tonumber(port) + 1
+		end
 	end
 
   return true
 end
 
-local  port_data = content_helper.loadTableData(port_options.basepath, port_columns,  port_filter , nil)
+local  port_data = content_helper.loadTableData(port_options.basepath, port_columns,  port_filter , nil) or {}
 
-local wifi_content = {
-	wifi24_status = "rpc.wireless.radio.@radio_2G.admin_state",
-	wifi24_speed = "rpc.wireless.radio.@radio_2G.phy_rate",
-	wifi24_mode = "rpc.wireless.radio.@radio_2G.standard",
-	wifi5_status = "rpc.wireless.radio.@radio_5G.admin_state",
-	wifi5_speed = "rpc.wireless.radio.@radio_5G.phy_rate",
-	wifi5_mode = "rpc.wireless.radio.@radio_5G.standard",
+local mode_labels = {
+	bgn = "b/g/n",
+	gn = "g/n",
+	anac = "a/n/ac",
+	an = "a/n",
 }
 
-content_helper.getExactContent(wifi_content)
-
-if wifi_content.wifi24_mode == "bgn" then
-	wifi_content.wifi24_mode = "b/g/n"
-elseif wifi_content.wifi24_mode == "gn" then
-	wifi_content.wifi24_mode = "g/n"
+local radio_names = proxy.getPN("rpc.wireless.radio.", true) or {}
+for _, radio_entry in ipairs(radio_names) do
+	local radio = radio_entry.path:match("rpc%.wireless%.radio%.@([^%.]+)%.")
+	if radio then
+		local base_path = "rpc.wireless.radio.@" .. radio .. "."
+		local wifi_content = {
+			status = base_path .. "admin_state",
+			speed = base_path .. "phy_rate",
+			mode = base_path .. "standard",
+			band = base_path .. "supported_frequency_bands",
+		}
+		content_helper.getExactContent(wifi_content)
+		local enabled = wifi_content.status == "1"
+		local speed = tonumber(wifi_content.speed)
+		local band = wifi_content.band and wifi_content.band ~= "" and wifi_content.band or radio
+		port_data[#port_data+1] = {
+			"Wi-Fi " .. band,
+			ui_helper.createSimpleLight(wifi_content.status or "0", "", {}, "fa fa-wifi"),
+			enabled and speed and (speed / 1000 .. " Mbps") or "",
+			enabled and (mode_labels[wifi_content.mode] or wifi_content.mode or "") or "",
+		}
+	end
 end
-
-if wifi_content.wifi5_mode == "anac" then
-	wifi_content.wifi5_mode = "a/n/ac"
-elseif wifi_content.wifi5_mode == "an" then
-	wifi_content.wifi5_mode = "a/n"
-end
-
-port_data[#port_data+1] = {
-	"Wi-Fi 2.4 Ghz", --type
-	ui_helper.createSimpleLight(wifi_content.wifi24_status, "", {}, "fa fa-wifi"), --status
-	( wifi_content.wifi24_status == "1" ) and ( wifi_content.wifi24_speed / 1000 .. " Mbps" ) or "", --speed
-	( wifi_content.wifi24_status == "1" ) and wifi_content.wifi24_mode or "", --mode
-}
-
-port_data[#port_data+1] = {
-	"Wi-Fi 5 Ghz", --type
-	ui_helper.createSimpleLight(wifi_content.wifi5_status, "", {}, "fa fa-wifi"), --status
-	( wifi_content.wifi5_status == "1" ) and ( wifi_content.wifi5_speed / 1000 .. " Mbps" ) or "", --speed
-	( wifi_content.wifi5_status == "1" ) and wifi_content.wifi5_mode or "", --mode
-}
 
 table.sort(port_data, function (a, b)
     return a[1] < b[1]

@@ -40,7 +40,7 @@ local ifname2wantype = setmetatable({
 
 local atmpath
 
-for i,v in ipairs(proxy.getPN("uci.xtm.atmdevice.", true)) do
+for i,v in ipairs(proxy.getPN("uci.xtm.atmdevice.", true) or {}) do
 	if v.path:match("@atm") then
 		atmpath = v.path
 	end
@@ -48,6 +48,13 @@ end
 
 local wan_atm_uci_path = atmpath
 local wan_atm_uci_ipoe_path = atmpath
+
+-- ATM is optional on newer Ethernet/GPON-only platforms.  Do not expose an
+-- ADSL mode which cannot be configured when the firmware has no ATM device.
+if not atmpath then
+    table.remove(wan_interface_options, 1)
+    table.remove(wan_proto_options, 2)
+end
 
 local wan_interface_path = "uci.network.interface.@wan."
 
@@ -57,15 +64,9 @@ local mapParams = {
     wan_proto = wan_interface_path .. "proto",
     wan_ppp_user_name = wan_interface_path .. "username",
     wan_ppp_password = wan_interface_path .. "password",
-    wan_ppp_vpi_number = wan_atm_uci_path .. "vpi",
-    wan_ppp_vci_number = wan_atm_uci_path .. "vci",
-    wan_ppp_enc = wan_atm_uci_path .. "enc",
-    wan_ppp_ulp = wan_atm_uci_path .. "ulp",
     wan_ppp_vpi_number_if = wan_interface_path .. "vpi",
     wan_ppp_vci_number_if = wan_interface_path .. "vci",
     wan_ppp_keepalive = wan_interface_path .. "keepalive",
-    wan_ipoe_vpi_number = wan_atm_uci_ipoe_path .. "vpi",
-    wan_ipoe_vci_number = wan_atm_uci_ipoe_path .. "vci",
     wan_static_ipaddr = wan_interface_path .. "ipaddr",
     wan_static_submsk = wan_interface_path .. "netmask",
     wan_static_gatewayip = wan_interface_path .. "gateway",
@@ -77,6 +78,15 @@ local mapParams = {
     id_vlan_vdsl = "uci.network.device.@wanptm0.vid",
     id_vlan_eth = "uci.network.device.@waneth4.vid",
 }
+
+if atmpath then
+    mapParams.wan_ppp_vpi_number = wan_atm_uci_path .. "vpi"
+    mapParams.wan_ppp_vci_number = wan_atm_uci_path .. "vci"
+    mapParams.wan_ppp_enc = wan_atm_uci_path .. "enc"
+    mapParams.wan_ppp_ulp = wan_atm_uci_path .. "ulp"
+    mapParams.wan_ipoe_vpi_number = wan_atm_uci_ipoe_path .. "vpi"
+    mapParams.wan_ipoe_vci_number = wan_atm_uci_ipoe_path .. "vci"
+end
 
 local mapParams_wans = {
     wansensing_enable = "uci.wansensing.global.enable",
@@ -258,9 +268,18 @@ local function validateWansensing(value, object, key)
 end
 
 local function getWanType(content, content_wans)
-    local wansensing_l2type = lower(content_wans["wansensing_l2type"])
-    if (wansensing_l2type == "") then wansensing_l2type = "adsl" end
-    return content["wan_type"] or ifname2wantype[content["wan_ifname"]] or wansensing_l2type
+    local wansensing_l2type = lower(content_wans["wansensing_l2type"] or "")
+    local wansensing2wantype = {
+        atm = "adsl",
+        ptm = "vdsl",
+        gbe = "eth",
+        ethernet = "eth",
+    }
+    if wansensing_l2type == "" then
+        wansensing_l2type = atmpath and "adsl" or "eth"
+    end
+    return content["wan_type"] or ifname2wantype[content["wan_ifname"] or ""]
+        or wansensing2wantype[wansensing_l2type] or wansensing_l2type
 end
 
 local mapValid = {
@@ -288,7 +307,7 @@ local content_wans, helpmsg_wans = wizard_helper.handleQuery(mapParams_wans, map
 local content, helpmsg = wizard_helper.handleQuery(mapParams, mapValid)
 local vlan_is_on = content["vlan_enabled"]
 if (vlan_is_on == nil) then
-    if string.match(content["wan_ifname"],"[%w]+") then
+    if string.match(content["wan_ifname"] or "","[%w]+") then
         vlan_is_on = "1"
     else
         vlan_is_on = "0"
@@ -382,10 +401,12 @@ ngx.print('\
         }
         html[#html+1] = ui_helper.createInputText(T"Username:", "wan_ppp_user_name", content["wan_ppp_user_name"], wan_ppp_class, helpmsg["wan_ppp_user_name"])
         html[#html+1] = ui_helper.createInputText(T"Password:", "wan_ppp_password", content["wan_ppp_password"], wan_ppp_class, helpmsg["wan_ppp_password"])
-        html[#html+1] = ui_helper.createInputText(T"VPI Number:", "wan_ppp_vpi_number", content["wan_ppp_vpi_number"], wan_pppoa_class, helpmsg["wan_ppp_vpi_number"])
-        html[#html+1] = ui_helper.createInputText(T"VPI Number:", "wan_ipoe_vpi_number", content["wan_ipoe_vpi_number"], wan_ipoe_class, helpmsg["wan_ipoe_vpi_number"])
-        html[#html+1] = ui_helper.createInputText(T"VCI Number:", "wan_ppp_vci_number", content["wan_ppp_vci_number"], wan_pppoa_class, helpmsg["wan_ppp_vci_number"])
-        html[#html+1] = ui_helper.createInputText(T"VCI Number:", "wan_ipoe_vci_number", content["wan_ipoe_vci_number"], wan_ipoe_class, helpmsg["wan_ipoe_vci_number"])
+        if atmpath then
+            html[#html+1] = ui_helper.createInputText(T"VPI Number:", "wan_ppp_vpi_number", content["wan_ppp_vpi_number"], wan_pppoa_class, helpmsg["wan_ppp_vpi_number"])
+            html[#html+1] = ui_helper.createInputText(T"VPI Number:", "wan_ipoe_vpi_number", content["wan_ipoe_vpi_number"], wan_ipoe_class, helpmsg["wan_ipoe_vpi_number"])
+            html[#html+1] = ui_helper.createInputText(T"VCI Number:", "wan_ppp_vci_number", content["wan_ppp_vci_number"], wan_pppoa_class, helpmsg["wan_ppp_vci_number"])
+            html[#html+1] = ui_helper.createInputText(T"VCI Number:", "wan_ipoe_vci_number", content["wan_ipoe_vci_number"], wan_ipoe_class, helpmsg["wan_ipoe_vci_number"])
+        end
 
         local wan_static_class = {
             group = {

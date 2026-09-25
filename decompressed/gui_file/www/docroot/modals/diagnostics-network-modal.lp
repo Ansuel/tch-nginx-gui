@@ -9,6 +9,16 @@ local content_helper = require("web.content_helper")
 local ipairs = ipairs
 local match, format, lower = string.match, string.format, string.lower
 
+local function getValue(path)
+  local result = proxy.get(path)
+  return result and result[1] and result[1].value or ""
+end
+
+local function hasPath(path)
+  local result = proxy.get(path)
+  return result and result[1] ~= nil
+end
+
 local ports = {"eth0", "eth1", "eth2", "eth3"}
 local first_column_txt = {T"Port 1", T"Port 2", T"Port 3", T"Port 4"}
 
@@ -24,17 +34,22 @@ local clear_network_stats = {
 }
 
 local isEth4Included = false
-if proxy.get("uci.env.rip.sfp")[1].value ~= "1" then
-  if proxy.getPN("sys.class.net.@eth4.", true) then
+local sfp_enabled = getValue("uci.env.rip.sfp") == "1"
+local has_gpon = hasPath("rpc.optical.Interface.1.Status") or hasPath("rpc.gpon.ploam.state")
+if not sfp_enabled then
+  local eth4 = proxy.getPN("sys.class.net.@eth4.", true)
+  if eth4 and next(eth4) then
     ports[#ports+1] = "eth4"
     first_column_txt[#first_column_txt+1] = "Port 5"
     isEth4Included = true
   end
 else
-  if proxy.get("uci.ethernet.globals.eth4lanwanmode")[1].value == "0" then
+  if getValue("uci.ethernet.globals.eth4lanwanmode") == "0" then
     ports[4] = "eth4"
     isEth4Included = true
   end
+end
+if sfp_enabled or has_gpon then
   ports[#ports+1] = "gpon"
   first_column_txt[#first_column_txt+1] = "GPON"
 end
@@ -53,7 +68,7 @@ end
 content_helper.getExactContent(eth)
 
 local ports_speed = {}
-local speed = proxy.get("sys.eth.port.")
+local speed = proxy.get("sys.eth.port.") or {}
 for _,f in ipairs(speed) do
   if f["param"] == "speed"  and f["value"] ~= "" then
     ports_speed [match(f["path"], "sys.eth.port.@(eth%d)")] = f["value"]
@@ -86,14 +101,14 @@ local portAttr = {
       ');  for k, v in ipairs(ports) do  ngx.print('\
         <div class="span2 simple-desc">\
         ');  
-          if isEth4Included and match(v, "eth") and proxy.get("uci.ethernet.port.@"..v..".wan")[1].value == "1" then
+          if isEth4Included and match(v, "eth") and getValue("uci.ethernet.port.@"..v..".wan") == "1" then
 	    portAttr.socket.class = "red socket-form"
 	  elseif match(v, "gpon") then
 	    portAttr.socket.class = "red socket-form"
 	  else
 	    portAttr.socket.class = "yellow socket-form"
           end
-          ngx.print(ui_helper.createSwitchPort(tostring(k), lower(eth["op" .. v]), eth["sp" .. v], portAttr))
+          ngx.print(ui_helper.createSwitchPort(tostring(k), lower(eth["op" .. v] or ""), eth["sp" .. v], portAttr))
           -- todo replace speed with actual speed
           if eth["op" .. v] == "up" then
 	    ngx.print('\
@@ -117,15 +132,13 @@ local portAttr = {
 	<fieldset>\
     <legend class="networkStat">');  ngx.print( T"Network Statistics" ); ngx.print('</legend>\
     ');  
-      local wireless = proxy.get("rpc.wireless.ssid.")
-      local wirelessindex = content_helper.convertResultToObject("rpc.wireless.ssid.@.",wireless)
+      local wireless = proxy.get("rpc.wireless.ssid.") or {}
+      local wirelessindex = content_helper.convertResultToObject("rpc.wireless.ssid.@.",wireless) or {}
       for _,v in ipairs(wirelessindex) do
         ports[#ports+1] = v.paramindex
-	if string.match(v.paramindex, "wl0") then
-	  first_column_txt[#first_column_txt+1] = v.ssid.."(2.4GHz)"
-	else
-	  first_column_txt[#first_column_txt+1] = v.ssid.."(5GHz)"
-	end
+		local band = v.radio and getValue("rpc.wireless.radio.@" .. v.radio .. ".supported_frequency_bands") or ""
+		local band_label = band ~= "" and ("(" .. band .. ")") or ""
+		first_column_txt[#first_column_txt+1] = (v.ssid or v.paramindex) .. band_label
       end
 
 local post_content
@@ -235,4 +248,4 @@ end
   </fieldset>\
 </div>\
 ');  ngx.print(ui_helper.createFooter() ); ngx.print('\
-'); 
+');
