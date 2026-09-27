@@ -162,6 +162,13 @@ local function fwupgrade_start()
   end
 
   local filename = fwupgrade_location .. fwupgrade_mapdata.filename
+  -- Check if the file actually exists
+  local file_check = open(filename, "r")
+  if not file_check then
+    fwupgrade_set_error(255, "invalid file")
+    return
+  end
+  file_check:close()
   local ResetCommand = ""
   local RootOnlyCommand = ""
   if (fwupgrade_mapdata.upgrade_type == "Reset") then
@@ -286,6 +293,13 @@ SYSTEM_FWUPGRADE_.set = {
     if fwupgrade_mapdata.state == "Requested" then
       return nil, "invalid state"
     end
+
+    -- This value is later appended to a shell command.  Only accept a plain
+    -- basename instead of trying to maintain an incomplete metachar blacklist.
+    if value ~= "" and not string.match(value, "^[%w._%-]+$") then
+      return nil, "Invalid character in filename"
+    end
+
     fwupgrade_reset()
     fwupgrade_mapdata.filename = value
   end,

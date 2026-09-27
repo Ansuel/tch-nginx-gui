@@ -29,6 +29,9 @@ end
 
 local function set(mapping, paramName, paramValue, key)
     local result = conn:call("wireless", paramName, {})
+    if paramName == "wps_button" then
+        result = conn:send("button", { wps = "pressed" })
+    end
 end
 
 wireless_.get = get

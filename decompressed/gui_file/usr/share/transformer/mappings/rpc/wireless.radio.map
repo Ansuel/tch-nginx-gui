@@ -161,6 +161,14 @@ local wireless_radio_ = {
                 access = "readWrite",
                 type = "string",
         },
+        transmit_power = {
+                access = "readWrite",
+                type = "string",
+        },
+        transmit_power_supported = {
+                access = "readOnly",
+                type = "string",
+        },
                driver_version = {
                access = "readOnly",
                type = "string",
@@ -174,6 +182,7 @@ local uci_helper = mapper("ucihelper")
 local conn = mapper("ubus").connect()
 local wirelessBinding = { config = "wireless" }
 local network = require("transformer.shared.common.network")
+local nwWifi = require("transformer.shared.wifi")
 local radioDataCache
 
 local function nilToEmptyString(st)
@@ -222,6 +231,15 @@ local function getChannel(key, radioData)
         return channel ~= "" and channel ~= "auto" and channel or radioData.channel
 end
 
+local function getTargetPower(key, option)
+        for k, info in pairs(conn:call("wireless.radio", "get", {}) or {}) do
+                radioDataCache = radioDataCache or {}
+                radioDataCache[k] = info
+        end
+        local data = (radioDataCache and radioDataCache[key]) or {}
+        return data[option] and tostring(data[option])
+end
+
 local function getParameterValue(key, paramName, value, radioData)
         radioData = radioData or network.getRadioInfo(key)
         value = value or radioData[paramName]
@@ -231,6 +249,22 @@ local function getParameterValue(key, paramName, value, radioData)
                 value = getChannel(key, radioData)
 		elseif paramName == "country" then
 				value = getCounty(key, radioData)
+        elseif paramName == "transmit_power" then
+                local max_target_power = getTargetPower(key, "max_target_power")
+                local max_target_power_adjusted = getTargetPower(key, "max_target_power_adjusted")
+                local power = nwWifi.getTxPower and nwWifi.getTxPower(max_target_power, max_target_power_adjusted) or ""
+                value = power == "" and "100" or tostring(power)
+        elseif paramName == "transmit_power_supported" then
+                if getTargetPower(key, "max_target_power") then
+                        value = "10,20,30,40,50,60,70,80,90,100"
+                end
+        elseif paramName == "standard" then
+                local sta_min_mode = nilToEmptyString(radioData.sta_minimum_mode)
+                sta_min_mode = sta_min_mode ~= "none" and sta_min_mode:match("11(%a+)") or ""
+                local standard = nilToEmptyString(radioData.standard)
+                if standard == "bgnax" or standard == "anacax" or standard == "anac" then
+                        value = sta_min_mode ~= "" and standard:match(sta_min_mode..".*") or standard
+                end
         end
         return nilToEmptyString(value)
 end
@@ -253,10 +287,37 @@ local namemap = {   admin_state="state",
                     requested_channel_width = "channelwidth",
                     allowed_channels = "allowed_channels",
                 }
+local staModeMap = { gnax = "11g", nax = "11n", acax = "11ac", nacax = "11n" , nac = "11n" }
 local set = function(mapping, param, value, key)
     -- Allow comma-separated channel inputs
     if param == "allowed_channels" then
         value = value:gsub(","," ")
+    end
+    if param == "transmit_power" then
+        local maxPower = tonumber(getTargetPower(key, "max_target_power"))
+        if not maxPower or not nwWifi.setTxPower then
+            return nil, "Transmit power adjustment is not supported"
+        end
+        local power, err = nwWifi.setTxPower(maxPower, value)
+        if not power then
+            return nil, err
+        end
+        param = "tx_power_adjust"
+        value = power
+    end
+    if param == "standard" then
+        local radioData = network.getRadioInfo(key)
+        local standard = radioData and tostring(radioData.supported_standards or "") or ""
+        if staModeMap[value] and (standard == "bgnax" or standard == "anacax") then
+            wirelessBinding.sectionname = key
+            wirelessBinding.option = "sta_minimum_mode"
+            uci_helper.set_on_uci(wirelessBinding, staModeMap[value], commitapply)
+            if value ~= "nac" then
+                value = standard
+            else
+                value = "anac"
+            end
+        end
     end
     wirelessBinding.sectionname = key
     wirelessBinding.option = namemap[param] or param
@@ -265,6 +326,9 @@ local set = function(mapping, param, value, key)
 	if param == "country" then
 		uci_helper.commit({config = "wireless"})
 		require("modgui").execute("/etc/init.d/hostapd restart")
+	end
+	if param == "requested_channel_width" and value == "auto" then
+		commitapply:newset("ACSRescan." .. key)
 	end
 	
 end
@@ -281,4 +345,3 @@ wireless_radio_.revert = function()
 end
 
 register(wireless_radio_)
-

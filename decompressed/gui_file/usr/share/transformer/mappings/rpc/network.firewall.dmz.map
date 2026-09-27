@@ -49,6 +49,9 @@ mapping_dmz_rpc.get = {
 
 mapping_dmz_rpc.set = {
     enable = function(mapping, paramname, paramvalue)
+      if paramvalue == "0" then
+        commitapply:newset("dmz_disable")
+      end
       fw_helper.set_dmz_enable(paramvalue, commitapply)
     end,
 }
@@ -123,6 +126,9 @@ local function setValues(mapping, param, value, redirectKey)
             mapping.uciMap.set(mapping.uciMap, "family", family, redirectKey)
 
             macAddr = fw_helper.ip2mac(ubus_connect, family, value, ipConfiguration) or ""
+            if macAddr == "" then
+              macAddr = fw_helper.ip2mac(ubus_connect, family, value, "static") or ""
+            end
             mapping.uciMap.set(mapping.uciMap, "dest_mac", macAddr, redirectKey)
 
             if macAddr ~= "" then

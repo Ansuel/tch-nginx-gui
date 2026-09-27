@@ -43,11 +43,16 @@ local sys_dect_device_i_ = {
 -- Open connection to UBUS
 local conn = mapper("ubus").connect()
 
+-- On newer firmware (19.4+) the DECT ubus object was renamed from mmpbxbrcmdect.devices to mmpbx.dect.devices
+local function getDectDevices()
+  return conn:call("mmpbx.dect.devices", "list", { }) or conn:call("mmpbxbrcmdect.devices", "list", { })
+end
+
 local function entriesSysDectDevices()
     local entries = {}
-    local devices = conn:call("mmpbxbrcmdect.devices", "list", { })
+    local devices = getDectDevices()
     if devices ~= nil then 
-	for k,v in pairs(devices) do
+	for k,v in pairs(devices or {}) do
 	    entries[#entries+1] = k
 	end
     end
@@ -56,10 +61,10 @@ end
 
 sys_dect_device_i_.getall = function(mapping, key)
 --print(key)
-    local devices = conn:call("mmpbxbrcmdect.devices", "list", { })
+    local devices = getDectDevices()
 --    tprint(devices)
 
-    for k, v in pairs (devices) do
+    for k, v in pairs (devices or {}) do
         if k == key then 
             return {
                 IPUI = v["ipui"],
@@ -72,24 +77,24 @@ end
 
 sys_dect_device_i_.get = {
   IPUI = function(mapping, param, key)
-    local devices = conn:call("mmpbxbrcmdect.devices", "list", { })
-    for k, v in pairs (devices) do
+    local devices = getDectDevices()
+    for k, v in pairs (devices or {}) do
         if k == key then 
             return v["ipui"]
         end
     end
   end,
   FriendlyName = function(mapping, param, key)
-    local devices = conn:call("mmpbxbrcmdect.devices", "list", { })
-    for k, v in pairs (devices) do
+    local devices = getDectDevices()
+    for k, v in pairs (devices or {}) do
         if k == key then 
             return v["userFriendlyName"]
         end
     end
   end,
   LocationStatus = function(mapping, param, key)
-    local devices = conn:call("mmpbxbrcmdect.devices", "list", { })
-    for k, v in pairs (devices) do
+    local devices = getDectDevices()
+    for k, v in pairs (devices or {}) do
         if k == key then 
             return v["locationStatus"]
         end

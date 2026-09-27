@@ -1,1 +1,6 @@
+^firewall%..*%.black_list_rule_.* [ -x /usr/bin/remove_conntrack.sh ] && /usr/bin/remove_conntrack.sh 2>/dev/null || true
 ^firewall /etc/init.d/firewall restart
+^flushicmpv4 /etc/init.d/firewall restart ; conntrack -D -p icmp 2>/dev/null || true
+^flushicmpv6 /etc/init.d/firewall restart ; conntrack -D -p icmpv6 2>/dev/null || true
+^dmz_disable [ -x /usr/share/transformer/scripts/delete_dmz.sh ] && /usr/share/transformer/scripts/delete_dmz.sh || true
+^deleteForwardedPorts [ -x /usr/share/transformer/scripts/delete_pfw.sh ] && /usr/share/transformer/scripts/delete_pfw.sh || true

@@ -423,6 +423,8 @@ local set = {
         end
 
         uci_helper.commit({config = "firewall"})
+        commitapply:newset("flushicmpv4")
+        commitapply:newset("flushicmpv6")
     end,
     userincomingdefault = function(mapping, paramname, paramvalue)
         uci_helper.set_on_uci({config= "firewall", sectionname="fwconfig", option="defaultincoming_user"}, paramvalue, commitapply)
@@ -433,6 +435,8 @@ local set = {
         end
 
         uci_helper.commit({config = "firewall"})
+        commitapply:newset("flushicmpv4")
+        commitapply:newset("flushicmpv6")
 
     end,
     guestruleaddress = function(mapping, paramname, paramvalue)

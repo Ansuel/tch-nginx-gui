@@ -166,7 +166,7 @@ local function get(mapping, paramName, key, nocache)
     return real_stat
   end
   local substract = stat_cache[key] and tonumber(stat_cache[key][paramName]) or 0
-  return tostring(tonumber(real_stat) - substract)
+  return (tonumber(real_stat)  >= substract) and tostring(tonumber(real_stat) - substract) or tostring(tonumber(real_stat))
 end
 
 local function set(mapping, paramName, paramValue, key)

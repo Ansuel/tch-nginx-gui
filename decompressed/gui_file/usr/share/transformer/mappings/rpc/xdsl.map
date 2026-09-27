@@ -22,6 +22,10 @@ local xdsl_ = {
             access = "readWrite",
             type = "string"
           },
+	  selectedmode = {
+            access = "readWrite",
+            type = "string"
+          },
 	  dslversion = {
             access = "readOnly",
             type = "string"
@@ -60,6 +64,8 @@ local function getall(mapping, key)
 end
 
 local xdsl_binding = { config = 'xdsl', sectionname = 'dsl0', option = 'multimode' }
+local xdslmode_binding = { config = 'xdsl', sectionname = 'dsl0', option = 'selectedmode' }
+
 local function get(mapping, paramName, key)
     if paramName == 'multimode' then
         local modes = uci_helper.get_from_uci(xdsl_binding)
@@ -68,6 +74,9 @@ local function get(mapping, paramName, key)
         else
             return modes or ""
         end
+    elseif paramName == 'selectedmode' then
+        local mode = uci_helper.get_from_uci(xdslmode_binding)
+        return mode or ""
     elseif paramName == "dslversion" then
         local dsl_supported, dsl = pcall(require,"transformer.shared.xdslctl")
         local version = ""
@@ -88,6 +97,8 @@ local function set(mapping, paramName, value, key)
             multimode[#multimode+1] = v
         end
         return uci_helper.set_on_uci(xdsl_binding, multimode, commitapply)
+    elseif paramName == 'selectedmode' then
+       return uci_helper.set_on_uci(xdslmode_binding, value, commitapply)
     end
     return nil, "Not supported"
 end

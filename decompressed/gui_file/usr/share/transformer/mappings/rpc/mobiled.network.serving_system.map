@@ -72,6 +72,10 @@ local mobiled_network_serving_system_ = {
             max_age = {
                 access = "readWrite",
                 type = "unsignedInt"
+            },
+            service_provider = {
+                access = "readOnly",
+                type = "string"
             }
         }
     }
@@ -95,6 +99,9 @@ local function getall(mapping, key)
         result['mcc'] = data.plmn_info.mcc
         result['mnc'] = data.plmn_info.mnc
         result.plmn_info = nil
+    end
+    if data.service_provider and data.service_provider ~= "" and data.service_provider.name and data.service_provider.name ~= "" then
+        result['service_provider'] = data.service_provider.name
     end
     if data.cell_id and data.cell_id ~= "" then
         result['cell_id_hex'] = string.format("%X", tonumber(data.cell_id))

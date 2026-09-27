@@ -53,7 +53,7 @@ devicelog = function()
               return ""
             end
             logFile = file:read ("*a")
-            log = log .. logFile
+            log = logFile .. log
             file:close()
           end
           logString = log
@@ -63,7 +63,10 @@ devicelog = function()
       end
     else
       log = popen("/sbin/logread")
-      logString = log:read("*a")
+      if log then
+        logString = log:read("*a")
+        log:close()
+      end
     end
 
     if log == nil then

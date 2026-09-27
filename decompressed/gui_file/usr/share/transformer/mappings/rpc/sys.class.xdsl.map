@@ -2243,6 +2243,18 @@ local function isNot35bProfile(key)
   return  (xdslctl.infoValue("vdsl2profile","","",key) or "") ~= "35b"
 end
 
+local function getdslData(dslInfo, val, default, key, size)
+  if not isNot35bProfile(key) and (dslInfo == "HLINps" or dslInfo == "HLOGps" or dslInfo == "SNRps" or dslInfo == "QLNps") then
+     return "0"
+  end
+  if not size or size == -1 then size = 32767 end
+  local status, result = pcall(xdslctl.infoValue, dslInfo, val, "", key)
+  if type(result) == "string" and (dslInfo == "HLINps" or dslInfo == "HLOGps" or dslInfo == "SNRps" or dslInfo == "QLNps") and (result:len() > size) then
+     result = result:sub(1,size):match("(.*)%,")
+  end
+  return status and result or ""
+end
+
 sys_class_xdsl_.get = {
   Enable = function(mapping, param, key)
     local enable = uci_helper.get_from_uci(uci_binding_enable)
@@ -2921,10 +2933,10 @@ sys_class_xdsl_.get = {
     return xdslctl.infoValue("HLOGMT", "us", "", key)
   end,
   DownstreamHLOGps = function (mapping, params, key)
-    return isNot35bProfile(key) and xdslctl.infoValue("HLOGps", "ds", "", key) or "0"
+    return getdslData("HLOGps", "ds", "", key)
   end,
   UpstreamHLOGps = function (mapping, params, key)
-    return isNot35bProfile(key) and xdslctl.infoValue("HLOGps", "us", "", key) or "0"
+    return getdslData("HLOGps", "us", "", key)
   end,
   DownstreamINMCC = function (mapping, params, key)
     return xdslctl.infoValue("INMCCds", "", "", key)
@@ -3010,10 +3022,10 @@ sys_class_xdsl_.get = {
     return xdslctl.infoValue("QLNMT", "us", "", key)
   end,
   DownstreamQLNps = function (mapping, params, key)
-    return isNot35bProfile(key) and xdslctl.infoValue("QLNps", "ds", "", key) or "0"
+    return getdslData("QLNps", "ds", "", key)
   end,
   UpstreamQLNps = function (mapping, params, key)
-    return isNot35bProfile(key) and xdslctl.infoValue("QLNps", "us", "", key) or "0"
+    return getdslData("QLNps", "us", "", key)
   end,
   DownstreamSATN = function (mapping, params, key)
     return xdslctl.infoValue("SATN", "ds", "", key)
@@ -3040,10 +3052,10 @@ sys_class_xdsl_.get = {
     return xdslctl.infoValue("SNRMpb", "us", "", key)
   end,
   DownstreamSNRps = function (mapping, params, key)
-    return isNot35bProfile(key) and xdslctl.infoValue("SNRps", "ds", "", key) or "0"
+    return getdslData("SNRps", "ds", "", key)
   end,
   UpstreamSNRps = function (mapping, params, key)
-    return isNot35bProfile(key) and xdslctl.infoValue("SNRps", "us", "", key) or "0"
+    return getdslData("SNRps", "us", "", key)
   end,
   StandardUsed = function (mapping, params, key)
     return xdslctl.infoValue("StandardUsed", "", "", key)
@@ -3142,10 +3154,10 @@ sys_class_xdsl_.get = {
     return xdslctl.infoValue("BITSps", "us", "", key)
   end,
   DownstreamHLINps = function (mapping, params, key)
-    return isNot35bProfile(key) and xdslctl.infoValue("HLINps", "ds", "", key) or "0"
+    return getdslData("HLINps", "ds", "", key)
   end,
   UpstreamHLINps = function (mapping, params, key)
-    return isNot35bProfile(key) and xdslctl.infoValue("HLINps", "us", "", key) or "0"
+    return getdslData("HLINps", "us", "", key)
   end,
   RetrainReason = function (mapping, params, key)
     return xdslctl.infoValue("lrtr", "", "", key)

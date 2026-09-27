@@ -127,12 +127,27 @@ local function getEthWanStatus()
   if not wanPort then
     return "NOT CONNECTED"
   else
-    local operstate = nwCommon.getIntfInfo(wanPort, "operstate", "down")
     local statusVal
-    if operstate == "up" then
-      statusVal = "CONNECTED"
-    elseif operstate == "down" then
-      statusVal = "NOT CONNECTED"
+    local data = conn:call("network.link", "status", {}) or {}
+    if type(data.link) == "table" then
+      for _,v in ipairs(data.link) do
+        if v.interface == wanPort then
+          if v.action == "up" then
+            statusVal = "CONNECTED"
+          elseif v.action == "down" then
+            statusVal = "NOT CONNECTED"
+          end
+          break
+        end
+      end
+    end
+    if not statusVal then
+      local operstate = nwCommon.getIntfInfo(wanPort, "operstate", "down")
+      if operstate == "up" then
+        statusVal = "CONNECTED"
+      elseif operstate == "down" then
+        statusVal = "NOT CONNECTED"
+      end
     end
     return statusVal
   end

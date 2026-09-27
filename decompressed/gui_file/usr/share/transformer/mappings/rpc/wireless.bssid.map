@@ -75,6 +75,10 @@ local wireless_Multi_bsslist_ = {
           access = "readOnly",
           type = "string",
       },
+      channelExtra = {
+          access = "readOnly",
+          type = "string",
+      },
       rssi = {
           access = "readOnly",
           type = "string",
@@ -99,6 +103,7 @@ local function getDataForBsslist(ap)
         return {}
     end
     for k,v in pairs(result[ap]) do
+	v.channelExtra = v.chan_descr:match("%d+([lu])[\/]*") or ""
         v.channelCentre = v.channel
         v.channel = v.chan_descr:match("(%d+)[\/]*") or v.channel
         bsslist[k.."_"..ap] = v

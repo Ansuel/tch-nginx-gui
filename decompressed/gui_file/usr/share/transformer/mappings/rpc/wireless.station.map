@@ -1,0 +1,60 @@
+-- Taken from newer (19.4+) firmware: exposes the wireless.endpoint ubus object
+-- (available on firmware supporting it, empty on older ones)
+local wireless_endpoint_ = {
+  objectType = {
+    name = "rpc.wireless.station.@.",
+    access = "readOnly",
+    minEntries = 0,
+    maxEntries = math.huge,
+    parameters = {
+      state = {
+          access = "readOnly",
+          type = "string",
+      },
+      status = {
+          access = "readOnly",
+          type = "string",
+      },
+      rssi = {
+          access = "readOnly",
+          type = "string",
+      }
+    }
+  }
+}
+
+local mapper = mapper
+local conn = mapper("ubus").connect()
+local endpointCache
+
+local function entriesWirelessEndPoint(mapping)
+    endpointCache = conn:call("wireless.endpoint", "get", { }) or {}
+    local entries = {}
+    for key in pairs(endpointCache) do
+        entries[#entries+1] = key
+    end
+    return entries
+end
+
+local function getEndPoints(key, option)
+    endpointCache = endpointCache or conn:call("wireless.endpoint", "get", {}) or {}
+    local data = endpointCache[key] or {}
+    return data[option] and tostring(data[option]) or ""
+end
+
+local get = {
+     state = function(mapping, param, key)
+         return getEndPoints(key, "admin_state")
+     end,
+     status = function(mapping, param, key)
+         return getEndPoints(key, "connected_state")
+     end,
+     rssi = function(mapping, param, key)
+         return getEndPoints(key, "rssi")
+     end
+}
+
+wireless_endpoint_.entries = entriesWirelessEndPoint
+wireless_endpoint_.get = get
+
+register(wireless_endpoint_)

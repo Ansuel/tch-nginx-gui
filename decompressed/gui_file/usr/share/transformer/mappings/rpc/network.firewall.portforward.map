@@ -47,6 +47,27 @@ local function ipPresentation(ip)
     return isIPUnknown(ip) and "unknown" or ip
 end
 
+local function deletePfwConnection(mapping, key)
+    local portNum = mapping.uciMap.get(mapping.uciMap, "src_dport", key) or ""
+    local proto = mapping.uciMap.get(mapping.uciMap, "proto", key)
+    proto = (type(proto) == "table" and proto[1]) or proto or ""
+    local lanIp = mapping.uciMap.get(mapping.uciMap, "dest_ip", key) or ""
+    if lanIp == "" or lanIp == "0.0.0.0" then
+      return
+    end
+    portNum = string.gsub (portNum, "-", ":")
+    if portNum == "" or proto == "" then
+      return
+    end
+    local pfwInfo = portNum .." " ..proto .." " ..lanIp
+    local file_handler = io.open("/tmp/.pfw","w")
+    if file_handler then
+      file_handler:write(pfwInfo)
+      file_handler:close()
+      commitapply:newset("deleteForwardedPorts")
+    end
+end
+
 local function samePortRange(destPort, key, mapping)
   local lanStart, lanEnd = destPort:match("(%d+):(%d+)")
   if lanStart then
@@ -147,6 +168,10 @@ mapping_portforward_rpc.set = function(mapping, param, value, key)
                     mapping.uciMap.set(mapping.uciMap, "dest_ip", "0.0.0.0", key)
                 end
             end
+        elseif param == "enabled" then
+            if value == "0" then
+                deletePfwConnection(mapping, key)
+            end
         end
     end
     return mapping.uciMap.set(mapping.uciMap, param, value, key)
@@ -157,6 +182,8 @@ mapping_portforward_rpc.delete = function(mapping, key)
     -- update /var/state/firewall
     -- Notify redirecthelper that we deleted something.
     ubus_connect:call("redirecthelper", "delete", { section=key })
+    deletePfwConnection(mapping, key)
+    ubus_connect:send("rpc.portforward", { action = "delete" })
 
     return mapping.uciMap.delete(mapping.uciMap, key)
 end
@@ -186,4 +213,3 @@ if mapping_portforward_rpc.uciMap.submappings then
         register(submap)
     end
 end
-

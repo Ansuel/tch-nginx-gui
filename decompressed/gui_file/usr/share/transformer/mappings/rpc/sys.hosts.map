@@ -52,6 +52,9 @@ local function isInterfaceInList(interfaces, interface)
     return false
 end
 
+-- MAC address of the internal LXC container interface, when present
+local lxcMAC = string.lower(get_from_uci({ config = "env", sectionname = "var", option = "local_eth_mac_lxc" }))
+
 --These will cache the lan/wan interfaces, based on the firewall config
 local lanInterfacesCache
 local wanInterfacesCache
@@ -110,7 +113,7 @@ local function getEthernetNumberOfEntries(mapping)
     local numberOfHosts = 0
     local intfType, macAddr = network.getExternalWifiIntfType(hostsCache)
     for _, v in pairs(hostsCache) do
-      if v["technology"] == "ethernet" and isLanInterface(v["interface"])  and  (v["l2interface"] ~= intfType and v["mac-address"] ~= macAddr and v["l2interface"] ~= match(v["l2interface"], "wl%d+_%d+")) then
+      if v["technology"] == "ethernet" and isLanInterface(v["interface"])  and  (v["l2interface"] ~= intfType and v["mac-address"] ~= macAddr and v["mac-address"] ~= lxcMAC and v["l2interface"] ~= match(v["l2interface"], "wl%d+_%d+")) then
         numberOfHosts = numberOfHosts + 1
       end
     end

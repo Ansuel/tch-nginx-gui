@@ -203,7 +203,15 @@ local f_port_enabled = profile_default.f_port_enabled
 
 local dev_config = {
     sipdev="mmpbxrvsipdev",
-    dect = "mmpbxbrcmdectdev",
+    -- newer firmware (19.4+) renamed the DECT uci config from mmpbxbrcmdectdev to mmpbxdectdev
+    dect = (function()
+        local f = io.open("/etc/config/mmpbxdectdev", "r")
+        if f then
+            f:close()
+            return "mmpbxdectdev"
+        end
+        return "mmpbxbrcmdectdev"
+    end)(),
     fxs  ="mmpbxbrcmfxsdev",
 }
 local fxs_binding = { config=dev_config["fxs"], option="relay_state" }

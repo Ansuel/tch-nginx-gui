@@ -84,6 +84,18 @@ local set = function(mapping, param, value, key)
       return nil, "The wireless key contains invalid characters, only space, letters, numbers and the following characters !\"#%&()*+,-./:;=?@[\\]^_{|}~'$` are allowed and the characters <> are not allowed to prevent XSS script execution."
     end
   end
+  if param == "mode" then
+    if value == "wpa3-psk" then
+      local wpsVal = uci_helper.get_from_uci({config = "wireless", sectionname = key, option = "wps_state"}) or "0"
+      uci_helper.set_on_uci({ config = "system", sectionname = key , option = "last_state"}, wpsVal, commitapply)
+    else
+      local secMode = uci_helper.get_from_uci({config = "wireless", sectionname = key, option = "security_mode"})
+      if secMode ~= value then
+        local wpsVal = uci_helper.get_from_uci({ config = "system", sectionname = key, option = "last_state"}) or "0"
+        uci_helper.set_on_uci({ config = "wireless", sectionname = key , option = "wps_state"}, wpsVal, commitapply)
+      end
+    end
+  end
     uci_helper.set_on_uci({ config = "wireless", sectionname = key , option = namemap[param] or param}, value, commitapply)
 end
 

@@ -2,6 +2,7 @@ local M = {}
 local gmatch, ipairs, concat = string.gmatch, ipairs, table.concat
 local uciHelper = require("transformer.mapper.ucihelper")
 local wirelessBinding = { config = "wireless" }
+local userFriendlyNameBinding = { config = "user_friendly_name" }
 local ubus = require("ubus")
 local conn = ubus.connect()
 
@@ -145,6 +146,79 @@ function M.getSignalStrength(rssi)
     end
   end
   return strength
+end
+
+function M.getTxPower(max_target_power, max_target_power_adjusted)
+  local tx_power = ""
+  local tmp_power = 0
+  local max_power = tonumber(max_target_power)
+  local adjusted_power = tonumber(max_target_power_adjusted)
+  if max_power and adjusted_power and max_power > 0 then
+    tmp_power = (adjusted_power / max_power) * 100
+    local power = tmp_power and math.ceil(tmp_power) or 0
+    local roundOff = tmp_power and math.floor(tmp_power / 10) or 0
+    tx_power = power and power % 10 or 0
+    if tx_power > 5 then
+      tx_power = (roundOff + 1) * 10
+    else
+      tx_power =  roundOff * 10
+    end
+    -- Regulatory overrides can make the adjusted target exceed the nominal
+    -- maximum.  The exposed values are percentages and only support 0..100.
+    tx_power = math.max(0, math.min(100, tx_power))
+  end
+  return tx_power
+end
+
+function M.setTxPower(maxPower, value)
+  maxPower = tonumber(maxPower)
+  value = tonumber(value)
+  if not maxPower or maxPower <= 0 or not value or value < 10 or value > 100 or value % 10 ~= 0 then
+    return nil, "Transmit power must be a multiple of 10 between 10 and 100"
+  end
+  local tmp_power = ((value -100) * maxPower) / 100
+  return math.ceil(tmp_power)
+end
+
+function M.getUserFriendlyName(key)
+  local friendlyName
+  userFriendlyNameBinding.sectionname = nil
+  userFriendlyNameBinding.option = nil
+  uciHelper.foreach_on_uci(userFriendlyNameBinding, function(s)
+    if s["mac"] == key then
+      friendlyName = s.name
+      return false
+    end
+  end)
+  return friendlyName or ""
+end
+
+function M.setUserFriendlyName(key, value, commitapply)
+  local macPresent = false
+  userFriendlyNameBinding.sectionname = nil
+  userFriendlyNameBinding.option = nil
+  uciHelper.foreach_on_uci(userFriendlyNameBinding, function(s)
+    if s["mac"] == key then
+      userFriendlyNameBinding.sectionname = s[".name"]
+      userFriendlyNameBinding.option = "name"
+      uciHelper.set_on_uci(userFriendlyNameBinding, value, commitapply)
+      macPresent = true
+      return false
+    end
+  end)
+  if not macPresent then
+    userFriendlyNameBinding.sectionname = "name"
+    userFriendlyNameBinding.option = nil
+    local newSectionName = uciHelper.add_on_uci(userFriendlyNameBinding)
+    if newSectionName then
+      userFriendlyNameBinding.sectionname = newSectionName
+      userFriendlyNameBinding.option = "mac"
+      uciHelper.set_on_uci(userFriendlyNameBinding, key, commitapply)
+      userFriendlyNameBinding.option = "name"
+      uciHelper.set_on_uci(userFriendlyNameBinding, value, commitapply)
+    end
+  end
+  userFriendlyNameBinding.option = nil
 end
 
 return M

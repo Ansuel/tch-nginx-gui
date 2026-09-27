@@ -239,6 +239,10 @@ local wireless_ap_station_ = {
             access = "readOnly",
             type = "int",
         },
+        FriendlyName = {
+            access = "readWrite",
+            type = "string",
+        },
     },
   }
 }
@@ -246,6 +250,7 @@ local wireless_ap_station_ = {
 local network = require("transformer.shared.common.network")
 local wifi = require("transformer.shared.wifi")
 local pairs, tostring = pairs, tostring
+local isConfigChanged = false
 
 local function entries(mapping, parentkey)
     local result = {}
@@ -263,6 +268,7 @@ local function getall(mapping, key, parentkey)
     for k,v in pairs(staData) do
       staData[k] = tostring(v)
     end
+    staData["FriendlyName"] = wifi.getUserFriendlyName(key)
     return staData
 end
 
@@ -273,6 +279,8 @@ local function get(mapping, paramName, key, parentkey)
     if paramName == "signalStrength" then
         local rssi = staData["rssi"]
         return wifi.getSignalStrength(rssi)
+    elseif paramName == "FriendlyName" then
+        return wifi.getUserFriendlyName(key)
     end
     return tostring(staData[paramName] or "")
 end
@@ -280,4 +288,29 @@ end
 wireless_ap_station_.entries = entries
 wireless_ap_station_.getall = getall
 wireless_ap_station_.get = get
+
+wireless_ap_station_.set = {
+  FriendlyName = function(mapping, param, value, key, parentkey)
+    key = key:match("^([%x:]+)|")
+    wifi.setUserFriendlyName(key, value, commitapply)
+    isConfigChanged = true
+  end,
+}
+
+wireless_ap_station_.commit = function()
+  if isConfigChanged then
+    local uci_helper = mapper("ucihelper")
+    uci_helper.commit({ config = "user_friendly_name" })
+  end
+  isConfigChanged = false
+end
+
+wireless_ap_station_.revert = function()
+  if isConfigChanged  then
+    local uci_helper = mapper("ucihelper")
+    uci_helper.revert({ config = "user_friendly_name" })
+  end
+  isConfigChanged = false
+end
+
 register(wireless_ap_station_)

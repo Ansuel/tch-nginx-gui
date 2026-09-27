@@ -17,6 +17,14 @@ local network_ = {
       wan_up = {
         access = "readWrite",
         type = "boolean",
+      },
+      ula_enable = {
+        access = "readWrite",
+        type = "boolean",
+      },
+      ula_prefix = {
+        access = "readWrite",
+        type = "string",
       }
     },
   }
@@ -24,6 +32,7 @@ local network_ = {
 
 local networkBinding = { config = "network", state = false }
 local uciHelper = mapper("ucihelper")
+local network = require("transformer.shared.common.network")
 local configChanged
 
 local function getFromUci(intf, option, default)
@@ -54,6 +63,8 @@ end
 
 network_.get = {
   ipv6_enable = getIPv6Value,
+  ula_enable = network.getULAEnable,
+  ula_prefix = network.getULAPrefix,
   release_renew = "0",
   wan_up = "0"
 }
@@ -74,6 +85,15 @@ network_.set = {
       commitapply:newset("rpc.network.wan_up")
     end
     return true
+  end,
+  ula_enable = function(mapping, param, value, key)
+    network.setULAEnable(value, commitapply)
+  end,
+  ula_prefix = function(mapping, param, value, key)
+    local result, err = network.setULAPrefix(value, commitapply)
+    if not result then
+      return result, err
+    end
   end
 }
 

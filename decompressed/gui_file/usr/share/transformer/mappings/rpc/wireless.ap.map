@@ -105,6 +105,12 @@ local set = function(mapping, param, value, key)
 		local SSIDwl = uci_helper.get_from_uci({ config = "wireless", sectionname = key, option = "iface"})
 		uci_helper.set_on_uci({ config = "wireless", sectionname = SSIDwl , option = "state"}, value, commitapply)
 		uci_helper.set_on_uci({ config = "wireless", sectionname = key , option = "state"}, value, commitapply)
+		if key == "ap0" or key == "ap1" then
+			local radioState = uci_helper.get_from_uci({ config = "wireless", sectionname = SSIDwl , option = "device"})
+			if radioState and radioState ~= "" then
+				uci_helper.set_on_uci({ config = "wireless", sectionname = radioState, option = "state"}, value, commitapply)
+			end
+		end
 	else
     uci_helper.set_on_uci({ config = "wireless", sectionname = key , option = namemap[param] or param}, value, commitapply)
 	end

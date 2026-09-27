@@ -35,6 +35,10 @@ local sys_mem_ = {
         access = "readOnly",
         type = "string",
       },
+      memAvailable = {
+        access = "readOnly",
+        type = "string",
+      },
     }
   }
 }
@@ -197,6 +201,11 @@ sys_mem_.get = {
   end,
 
   flashFree = flashFreeMemory(),
+
+  memAvailable = function()
+    local memAvail = memInfo()
+    return #memAvail > 0 and memAvail[3] or ""
+  end,
 }
 
 register(sys_mem_)

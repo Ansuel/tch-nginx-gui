@@ -31,6 +31,10 @@ local SYSTEM_TCPDUMP_ = {
         access = "readOnly",
         type = "string",
       },
+      refcountusb = {
+        access = "readOnly",
+        type = "string",
+      },
       count = {
         access = "readWrite",
         type = "string",
@@ -78,7 +82,7 @@ local TCPDUMP_COMPL = "/tmp/.tcpdumpGUI.compl"
 local TCPDUMP_SH = "/tmp/.tcpdumpGUI.sh"
 local FC_ENABLED = "fcctl enable; fcctl config --mcast 3;"
 local FC_DISABLED = "fcctl disable;fcctl config --mcast 0;"
-local tcpdump_info = { state = "None", interface = "br-lan", acc = "1", refcount=MAX_COUNT, count = 0, type = "pcap" , file = "", intflist = "", intftable = {}, pid = 0, saveonusb = "0" }
+local tcpdump_info = { state = "None", interface = "br-lan", acc = "1", refcount=MAX_COUNT, count = 0, type = "pcap" , file = "", intflist = "", intftable = {}, pid = 0, saveonusb = "0", refcountusb = "0" }
 
 local function isWritePermissionEnabled(dirPath)
   local file1 = dirPath .. "/" .. "test.txt"
@@ -282,6 +286,23 @@ local function getUSBStatus()
   return "Disconnected"
 end
 
+-- 1/2 of free space on usb
+local function getrefcountusb()
+  tcpdump_info.refcountusb = "0"
+  if getUSBStatus() == "Connected" then
+    local mount = getDirName()
+    local result, statvfs_info = pcall(posix.statvfs, mount)
+    if not result or type(statvfs_info) ~= "table" then
+      return tcpdump_info.refcountusb
+    end
+    local free_size = statvfs_info.f_bsize * statvfs_info.f_bfree/1024
+    if type(free_size) == "number" then
+      tcpdump_info.refcountusb = tostring(math.modf(0.5*free_size))
+    end
+  end
+  return tcpdump_info.refcountusb
+end
+
 -- Function to get 'saveonusb' is enabled/disabled
 local function getSaveOnUSB()
   return tcpdump_info.saveonusb
@@ -330,6 +351,10 @@ end
 local function getFileName()
     local saveOnUsb = getSaveOnUSB()
     local usbStatus = getUSBStatus()
+    if usbStatus == "Disconnected" then
+      tcpdump_info.saveonusb = "0"
+      saveOnUsb = "0"
+    end
     if saveOnUsb == "1" and usbStatus == "Connected" then
       local usbFileName = getUSBFileName()
       return usbFileName or ""
@@ -408,6 +433,7 @@ SYSTEM_TCPDUMP_.get = {
     return tcpdump_info.interface
   end,
   refcount = getrefcount,
+  refcountusb = getrefcountusb,
   count = function(mapping, param, value)
     return tcpdump_info.count
   end,

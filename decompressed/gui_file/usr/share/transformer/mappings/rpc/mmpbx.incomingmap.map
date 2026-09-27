@@ -60,6 +60,16 @@ local add_on_uci = uci_helper.add_on_uci
 local table_remove = table.remove
 local find = string.find
 
+-- newer firmware (19.4+) renamed the DECT uci config from mmpbxbrcmdectdev to mmpbxdectdev
+local function dectUciConfig()
+  local f = io.open("/etc/config/mmpbxdectdev", "r")
+  if f then
+    f:close()
+    return "mmpbxdectdev"
+  end
+  return "mmpbxbrcmdectdev"
+end
+
 mmpbx_incoming_map.entries =  function()
     local entries = {}
     sipnet_binding.sectionname = "profile"
@@ -184,7 +194,7 @@ local function add_incomingmap(profile, device)
 
 	--Symmetric mappings for DECT
 	if find(device,"dect_dev_") then
-	    local dect_binding = { config="mmpbxbrcmdectdev" ,
+	    local dect_binding = { config=dectUciConfig() ,
                                    sectionname = "global",
                                     option = "symmetric_mappings"
                                  }
@@ -269,9 +279,9 @@ local function delete_incomingmap(profile, device)
 	    end
 	    transactions[binding.config] = true
 
-	    --Symmetric mappings for DECT
+	--Symmetric mappings for DECT
 	    if find(device,"dect_dev_") then
-		local dect_binding = { config="mmpbxbrcmdectdev" }
+		local dect_binding = { config=dectUciConfig() }
 		dect_binding.sectionname = "global"
 		dect_binding.option = "symmetric_mappings"
 
