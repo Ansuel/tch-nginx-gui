@@ -1983,10 +1983,10 @@ app_tailscale() {
 }
 
 app_dumaos() {
-  dumaos_version="2.0-44"
+  dumaos_version="2.0-45"
   dumaos_tag="dumaos-repack-v$dumaos_version"
   dumaos_package="dumaos-repack_${dumaos_version}_arm_cortex-a9.ipk"
-  dumaos_sha256="c416831bb1cd326ea1066d9fee2afac2402310cbc13cd31586a077767a0e1bc9"
+  dumaos_sha256="85e50716120ef26dd2586399c99aa3d433d94cc3712fb32b4cc147b9cfbc9c73"
   dumaos_tmp="/tmp/dumaos-repack-install.$$.ipk"
   dumaos_module="/lib/modules/4.1.52/extra/act-connmark-damson-4.1.52.ko"
   dumaos_module_sha256="9bbd94d4e1ed2d02e1c990797b6540d3af3a4a13680099cb7014c4e211bc83ff"
@@ -2003,10 +2003,49 @@ app_dumaos() {
     [ -f /usr/share/modgui-dumaos/015_dumaos.lp ] || return 1
     cp /usr/share/modgui-dumaos/015_dumaos.lp /www/cards/015_dumaos.lp || return 1
     chmod 644 /www/cards/015_dumaos.lp
+    mkdir -p /www/data || return 1
+    if [ -s /dumaossystem/version ]; then
+      cp /dumaossystem/version /www/data/shorthash || return 1
+      chmod 644 /www/data/shorthash
+    fi
+    if [ -f /www/docroot/modals/dumaos-modal.lp ]; then
+      uci -q del_list web.ruleset_main.rules=dumaosmodal
+      uci add_list web.ruleset_main.rules=dumaosmodal
+      uci set web.dumaosmodal=rule
+      uci set web.dumaosmodal.target=/modals/dumaos-modal.lp
+      uci -q delete web.dumaosmodal.roles
+      uci add_list web.dumaosmodal.roles=admin
+      uci add_list web.dumaosmodal.roles=engineer
+      uci add_list web.dumaosmodal.roles=superuser
+    fi
     uci set web.dumaos_card=card
     uci set web.dumaos_card.card=015_dumaos.lp
-    uci set web.dumaos_card.modal=duma_desktop_index
+    if [ -f /www/docroot/modals/dumaos-modal.lp ]; then
+      uci set web.dumaos_card.modal=dumaosmodal
+    else
+      uci set web.dumaos_card.modal=duma_desktop_index
+    fi
     uci commit web
+  }
+
+  dumaos_running() {
+    ps w 2>/dev/null | grep 'cli.lua -p .*com.netdumasoftware.procmanager' | grep -v grep >/dev/null
+  }
+
+  dumaos_recover_if_enabled() {
+    [ "$(uci -q get dumaos.tr69.dumaos_enabled)" = "1" ] || return 0
+    dumaos_running && return 0
+    if [ -x /usr/lib/dumaos/platform/control.sh ]; then
+      /usr/lib/dumaos/platform/control.sh start
+    else
+      rm -f /var/run/dumaos-status
+      /etc/init.d/ctwatch-shim enable 2>/dev/null
+      /etc/init.d/ctwatch-shim start 2>/dev/null
+      /etc/init.d/ndhttpd enable 2>/dev/null
+      /etc/init.d/ndhttpd start 2>/dev/null
+      /etc/init.d/dumaos enable 2>/dev/null
+      /etc/init.d/dumaos start
+    fi
   }
 
   dumaos_install_qos_module() {
@@ -2049,6 +2088,15 @@ app_dumaos() {
   dumaos_start() {
     uci -q set dumaos.tr69.dumaos_enabled=1
     uci -q commit dumaos
+    if [ -x /usr/lib/dumaos/platform/control.sh ]; then
+      /usr/lib/dumaos/platform/control.sh start
+      return $?
+    fi
+    if ! dumaos_running; then
+      rm -f /var/run/dumaos-status
+    fi
+    /etc/init.d/ctwatch-shim enable 2>/dev/null
+    /etc/init.d/ctwatch-shim start 2>/dev/null
     /etc/init.d/ndhttpd enable
     /etc/init.d/ndhttpd start || return 1
     /etc/init.d/dumaos enable
@@ -2058,7 +2106,13 @@ app_dumaos() {
   dumaos_stop() {
     uci -q set dumaos.tr69.dumaos_enabled=0
     uci -q commit dumaos
+    if [ -x /usr/lib/dumaos/platform/control.sh ]; then
+      /usr/lib/dumaos/platform/control.sh stop
+      return $?
+    fi
     /etc/init.d/dumaos stop 2>/dev/null
+    /etc/init.d/ctwatch-shim stop 2>/dev/null || true
+    /etc/init.d/ctwatch-shim disable 2>/dev/null || true
     /etc/init.d/ndhttpd stop 2>/dev/null || true
   }
 
@@ -2116,6 +2170,8 @@ app_dumaos() {
     dumaos_remove_firewall
     rm -f "$dumaos_tmp" "$dumaos_module.tmp"
     uci -q delete web.dumaos_card
+    uci -q delete web.dumaosmodal
+    uci -q del_list web.ruleset_main.rules=dumaosmodal
     uci commit web
     set_extension_state dumaos_app 0
     ;;
@@ -2130,6 +2186,7 @@ app_dumaos() {
   refresh)
     dumaos_installed || return 1
     dumaos_repair_gui || return 1
+    dumaos_recover_if_enabled || return 1
     /etc/init.d/transformer restart
     /etc/init.d/nginx restart
     ;;

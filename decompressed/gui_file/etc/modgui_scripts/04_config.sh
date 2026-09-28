@@ -198,6 +198,9 @@ create_gui_type() {
   if [ "$(uci get -q modgui.app.dumaos_app)" = "1" ] &&
     [ -f /usr/share/modgui-dumaos/015_dumaos.lp ] &&
     { [ ! -f /www/cards/015_dumaos.lp ] ||
+      [ ! -s /www/data/shorthash ] ||
+      [ ! -f /www/docroot/modals/dumaos-modal.lp ] ||
+      [ "$(uci -q get web.dumaos_card.modal)" != "dumaosmodal" ] ||
       ! cmp -s /usr/share/modgui-dumaos/015_dumaos.lp /www/cards/015_dumaos.lp; }; then
     logecho "Restoring the DumaOS card after upgrade..."
     /usr/share/transformer/scripts/appInstallRemoveUtility.sh refresh dumaos >/dev/null 2>&1
