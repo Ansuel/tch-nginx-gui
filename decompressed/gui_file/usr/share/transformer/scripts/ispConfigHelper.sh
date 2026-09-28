@@ -14,12 +14,36 @@ purify_from_tim() {
   uci -q del network.wan_ipv6
   uci -q del dhcp.dnsmasq.server
   restart_dnsmasq=1
-  if [ $(uci get -q system.acotel.enabled) ] && [ "$(uci get -q system.acotel.enabled)" != "0" ]; then
+}
+
+purge_telemetry() { #disable TIM telemetry services
+  if [ "$(uci -q get system.acotel.enabled)" ] && [ "$(uci -q get system.acotel.enabled)" != "0" ]; then
     logecho "Disabling and killing Acotel agent..."
     uci set system.acotel.enabled='0'
-    kill -9 "$(ps | grep Acotel | grep -v grep | cut -d' ' -f1)"
+    uci commit system
+    kill -9 "$(cat /tmp/acotel/agent.pid 2>/dev/null)" 2>/dev/null
+    pkill -9 -f "Acotel_UA/main.py" 2>/dev/null
+    pkill -9 -f "run_main.sh" 2>/dev/null
+    rm -f /tmp/acotel/agent.pid
     [ -f /rom/chroot/Acotel_UA/TRACER.log ] && cp /rom/chroot/Acotel_UA/TRACER.log /chroot/Acotel_UA/TRACER.log
     [ -f /rom/chroot/Acotel_UA/Acotel_run.log ] && cp /rom/chroot/Acotel_UA/Acotel_run.log /chroot/Acotel_run.log
+  fi
+
+  if [ -f /etc/init.d/bulkdata ] && [ "$(uci -q get bulkdata.global.enabled)" != "0" ]; then
+    logecho "Disabling bulkdata telemetry..."
+    uci set bulkdata.global.enabled='0'
+    uci commit bulkdata
+    /etc/init.d/bulkdata stop
+    /etc/init.d/bulkdata disable
+  fi
+
+  #nanocdn/mabr is the TIMVision TV cache, keep it when IPTV is configured
+  if [ -f /etc/init.d/nanocdn ] && [ -e /etc/rc.d/S99nanocdn ]; then
+    if ! uci -q show network 2>/dev/null | grep -q "iptv"; then
+      logecho "Disabling nanocdn (no IPTV configured)..."
+      /etc/init.d/nanocdn stop
+      /etc/init.d/nanocdn disable
+    fi
   fi
 }
 
@@ -319,6 +343,7 @@ autodetect_isp() { #Detect ISP based on cwmp or wan settings (Italian only)
 }
 
 isp_helper() {
+  purge_telemetry
   if [ "$1" = "refresh" ]; then
     autodetect_isp
     setup_ISP "$(uci get -q modgui.var.isp)"
