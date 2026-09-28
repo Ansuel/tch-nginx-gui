@@ -2495,9 +2495,10 @@ function confirmationDialogue(t, e) {
 		lastCardClicked = $(this).closest(".smallcard");
 		if (!lastCardClicked.length) lastCardClicked = null;
 		u(t = $(this).attr("data-remote"), $(this).attr("data-id"))
-	}),
-	$(document).on("click touchend", ".smallcard", function (t) {
-		if (767 < window.innerWidth) {
+		}),
+		$(document).on("click touchend", ".smallcard", function (t) {
+			if ($(t.target).closest(".card-direct-link").length) return;
+			if (767 < window.innerWidth) {
 			t.preventDefault();
 			lastCardClicked = $(this);
 			var e = $(t.currentTarget).find('[data-toggle="modal"]');

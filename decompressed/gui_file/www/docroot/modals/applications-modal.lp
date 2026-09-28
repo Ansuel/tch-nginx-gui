@@ -445,12 +445,12 @@ if StateParams["tailscale_application"] ~= nil then
 end
 
 if StateParams["dumaos_application"] ~= nil then
-	local dumaos_link = "/desktop"
+	local dumaos_link = "/desktop/"
 	append_extension_card(
 		"dumaos_application",
 		"dumaos",
 		T"DumaOS",
-		T"Installs the pinned DumaOS UI and QoS stack for ARMv7 Technicolor gateways. Installation replaces core ubus components; reboot the gateway after installation and after removal.",
+		T"Installs the pinned DumaOS UI and QoS stack for supported ARMv7 Technicolor gateways. The required ubus ABI is activated transactionally with a verified stock backup and automatic rollback.",
 		dumaos_link,
 		true
 	)

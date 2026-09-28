@@ -188,12 +188,12 @@ create_gui_type() {
       uci set modgui.app.tailscale_app="0"
     fi
   fi
-  if [ ! "$(uci get -q modgui.app.dumaos_app)" ]; then
-    if opkg status dumaos-repack 2>/dev/null | grep -q '^Status:.*installed'; then
-      uci set modgui.app.dumaos_app="1"
-    else
-      uci set modgui.app.dumaos_app="0"
-    fi
+  # Reconcile the UI state on every upgrade: DumaOS can also be installed or
+  # removed directly with opkg, outside the Extensions modal.
+  if opkg status dumaos-repack 2>/dev/null | grep -q '^Status:.*installed'; then
+    uci set modgui.app.dumaos_app="1"
+  else
+    uci set modgui.app.dumaos_app="0"
   fi
   if [ "$(uci get -q modgui.app.dumaos_app)" = "1" ] &&
     [ -f /usr/share/modgui-dumaos/015_dumaos.lp ] &&

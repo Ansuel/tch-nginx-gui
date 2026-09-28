@@ -1983,11 +1983,10 @@ app_tailscale() {
 }
 
 app_dumaos() {
-  dumaos_commit="884a5351b3a7659f7bf8397ee079eec5ea33cfe0"
-  dumaos_version="2.0-32"
+  dumaos_version="2.0-44"
   dumaos_tag="dumaos-repack-v$dumaos_version"
-  dumaos_package="dumaos-repack_${dumaos_version}_all.ipk"
-  dumaos_sha256="a811a5d0ae8ba2e95ae05f573ce5debe6ca30259654910cfc1fd79681f9ae6c4"
+  dumaos_package="dumaos-repack_${dumaos_version}_arm_cortex-a9.ipk"
+  dumaos_sha256="c416831bb1cd326ea1066d9fee2afac2402310cbc13cd31586a077767a0e1bc9"
   dumaos_tmp="/tmp/dumaos-repack-install.$$.ipk"
   dumaos_module="/lib/modules/4.1.52/extra/act-connmark-damson-4.1.52.ko"
   dumaos_module_sha256="9bbd94d4e1ed2d02e1c990797b6540d3af3a4a13680099cb7014c4e211bc83ff"

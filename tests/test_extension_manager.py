@@ -439,15 +439,11 @@ class ExtensionManager(unittest.TestCase):
         config = CONFIG.read_text()
         dumaos_card = (GUI / "usr/share/modgui-dumaos/015_dumaos.lp").read_text()
 
-        self.assertIn(
-            'dumaos_commit="884a5351b3a7659f7bf8397ee079eec5ea33cfe0"',
-            dumaos,
-        )
-        self.assertIn('dumaos_version="2.0-32"', dumaos)
+        self.assertIn('dumaos_version="2.0-44"', dumaos)
         self.assertIn('dumaos_tag="dumaos-repack-v$dumaos_version"', dumaos)
-        self.assertIn('dumaos-repack_${dumaos_version}_all.ipk', dumaos)
+        self.assertIn('dumaos-repack_${dumaos_version}_arm_cortex-a9.ipk', dumaos)
         self.assertIn(
-            'dumaos_sha256="a811a5d0ae8ba2e95ae05f573ce5debe6ca30259654910cfc1fd79681f9ae6c4"',
+            'dumaos_sha256="c416831bb1cd326ea1066d9fee2afac2402310cbc13cd31586a077767a0e1bc9"',
             dumaos,
         )
         self.assertIn("releases/download/$dumaos_tag/$dumaos_package", dumaos)
@@ -464,17 +460,18 @@ class ExtensionManager(unittest.TestCase):
         self.assertIn("uci set web.dumaos_card.card=015_dumaos.lp", dumaos)
         self.assertIn("uci set web.dumaos_card.modal=duma_desktop_index", dumaos)
         self.assertIn("uci -q delete web.dumaos_card", dumaos)
-        self.assertIn('href="/desktop"', dumaos_card)
-        self.assertIn('onclick="event.stopPropagation()"', dumaos_card)
-        self.assertIn('ontouchend="event.stopPropagation()"', dumaos_card)
+        self.assertIn('class="card-direct-link"', dumaos_card)
+        self.assertIn('href="/desktop/"', dumaos_card)
+        self.assertIn('closest(".card-direct-link")', (GUI / "www/docroot/js/main-min-nojquery.js").read_text())
         self.assertNotIn(":81", dumaos_card)
         self.assertIn('status = "rpc.dumaos.status"', dumaos_card)
         self.assertIn("/usr/share/transformer/mappings/rpc/dumaos.map", dumaos)
         self.assertIn('mapParams.dumaos_application = "uci.modgui.app.dumaos_app"', modal)
         self.assertIn('mapParams.dumaos_application = "uci.modgui.app.dumaos_app"', card)
-        self.assertIn('local dumaos_link = "/desktop"', modal)
-        self.assertIn("reboot the gateway after installation and after removal", modal)
+        self.assertIn('local dumaos_link = "/desktop/"', modal)
+        self.assertIn("activated transactionally", modal)
         self.assertIn("opkg status dumaos-repack", config)
+        self.assertNotIn('if [ ! "$(uci get -q modgui.app.dumaos_app)" ]; then', config)
         self.assertIn("dumaos_remove_firewall", dumaos)
         self.assertIn('"DumaOS UI" | dumaos_ui', dumaos)
         self.assertNotIn("firewall.dumaos_ui=rule", dumaos)
