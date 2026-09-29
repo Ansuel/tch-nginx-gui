@@ -440,11 +440,11 @@ class ExtensionManager(unittest.TestCase):
         dumaos_card = (GUI / "usr/share/modgui-dumaos/015_dumaos.lp").read_text()
         dumaos_modal = (GUI / "www/docroot/modals/dumaos-modal.lp").read_text()
 
-        self.assertIn('dumaos_version="2.0-45"', dumaos)
+        self.assertIn('dumaos_version="2.0-46"', dumaos)
         self.assertIn('dumaos_tag="dumaos-repack-v$dumaos_version"', dumaos)
         self.assertIn('dumaos-repack_${dumaos_version}_arm_cortex-a9.ipk', dumaos)
         self.assertIn(
-            'dumaos_sha256="85e50716120ef26dd2586399c99aa3d433d94cc3712fb32b4cc147b9cfbc9c73"',
+            'dumaos_sha256="4fe83ddc7a34e1ada525302863f7683f54d1b37f21233c7db0750f253e50e4ef"',
             dumaos,
         )
         self.assertIn("releases/download/$dumaos_tag/$dumaos_package", dumaos)
