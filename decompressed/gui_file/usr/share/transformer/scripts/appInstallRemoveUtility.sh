@@ -3,6 +3,112 @@
 marketing_version="$(uci get -q version.@version[0].marketing_version)"
 cpu_type="$(uname -m)"
 
+# Shared TUN lifecycle for WireGuard, OpenVPN and Tailscale.  The reviewed
+# DGA4130 module is kernel/build exact; other platforms may use their matching
+# kmod-tun package.  Per-extension users prevent one VPN from removing a
+# module still needed by another.
+modgui_tun_file="/lib/modules/4.1.52/tun.ko"
+modgui_tun_sha256="374b8399951a4fa75a0b9c68b6eced9d064cc442d3150d2210d75623c275354e"
+modgui_tun_commit="1587d4a113de414f4409ea80b11a8d03c115f17c"
+modgui_tun_owned="/etc/.modgui-tun-installed"
+modgui_tun_package_owned="/etc/.modgui-tun-package-installed"
+modgui_tun_boot="/etc/modules.d/30-modgui-tun"
+
+modgui_has_tun() {
+  [ -c /dev/net/tun ] && return 0
+  [ -r /proc/config.gz ] && zcat /proc/config.gz 2>/dev/null | grep -q '^CONFIG_TUN=y$'
+}
+
+modgui_reviewed_tun_build() {
+  [ "$cpu_type" = "armv7l" ] && [ "$(uname -r)" = "4.1.52" ] &&
+    [ "$(uci -q get version.@version[0].kernel)" = "ac8d9a0575131475c4002132bf4995cb96c6f99d" ]
+}
+
+modgui_tun_migrate_owners() {
+  [ -f /etc/.modgui-wireguard-tun-installed ] ||
+    [ -f /etc/.modgui-openvpn-tun-installed ] || return 0
+  [ -f "$modgui_tun_file" ] || return 0
+  [ "$(sha256sum "$modgui_tun_file" | awk '{print $1}')" = "$modgui_tun_sha256" ] || return 0
+  touch "$modgui_tun_owned"
+  [ ! -f /etc/.modgui-wireguard-tun-installed ] || touch /etc/.modgui-tun-user-wireguard
+  [ ! -f /etc/.modgui-openvpn-tun-installed ] || touch /etc/.modgui-tun-user-openvpn
+  printf 'tun\n' > "$modgui_tun_boot"
+  rm -f /etc/.modgui-wireguard-tun-installed /etc/.modgui-openvpn-tun-installed \
+    /etc/modules.d/30-modgui-wireguard-tun /etc/modules.d/30-modgui-openvpn-tun
+}
+
+modgui_install_tun() {
+  consumer="$1"
+  modgui_tun_migrate_owners
+  if modgui_has_tun; then
+    [ ! -f "$modgui_tun_owned" ] || touch "/etc/.modgui-tun-user-$consumer"
+    return 0
+  fi
+
+  if modgui_reviewed_tun_build; then
+    if [ -f "$modgui_tun_file" ]; then
+      [ "$(sha256sum "$modgui_tun_file" | awk '{print $1}')" = "$modgui_tun_sha256" ] || {
+        echo "An incompatible TUN module already exists; refusing to overwrite it"
+        return 1
+      }
+    else
+      tun_tmp="/tmp/modgui-tun.$$.ko"
+      curl -kfL "https://raw.githubusercontent.com/FrancYescO/GUI_ipk/$modgui_tun_commit/artifacts/tun-vbntj-damson-4.1.52.ko" \
+        --output "$tun_tmp" || { rm -f "$tun_tmp"; return 1; }
+      [ "$(sha256sum "$tun_tmp" | awk '{print $1}')" = "$modgui_tun_sha256" ] || {
+        echo "TUN module checksum mismatch"
+        rm -f "$tun_tmp"
+        return 1
+      }
+      cp "$tun_tmp" "$modgui_tun_file" || { rm -f "$tun_tmp"; return 1; }
+      rm -f "$tun_tmp"
+    fi
+    modprobe tun 2>/dev/null || insmod "$modgui_tun_file" 2>/dev/null || return 1
+    modgui_has_tun || return 1
+    printf 'tun\n' > "$modgui_tun_boot"
+    touch "$modgui_tun_owned" "/etc/.modgui-tun-user-$consumer"
+    return 0
+  fi
+
+  if ! opkg list-installed 2>/dev/null | grep -q '^kmod-tun '; then
+    opkg install kmod-tun || return 1
+    touch "$modgui_tun_package_owned"
+  fi
+  modprobe tun 2>/dev/null || true
+  modgui_has_tun || {
+    echo "No compatible TUN module is available for this firmware"
+    return 1
+  }
+  [ ! -f "$modgui_tun_package_owned" ] || {
+    touch "$modgui_tun_owned" "/etc/.modgui-tun-user-$consumer"
+  }
+}
+
+modgui_release_tun() {
+  consumer="$1"
+  modgui_tun_migrate_owners
+  rm -f "/etc/.modgui-tun-user-$consumer"
+  [ -f "$modgui_tun_owned" ] || return 0
+  for tun_user in /etc/.modgui-tun-user-*; do
+    [ -e "$tun_user" ] && return 0
+  done
+  if lsmod | grep -q '^tun '; then
+    rmmod tun 2>/dev/null || {
+      echo "TUN is still in use; leaving the shared module installed"
+      return 0
+    }
+  fi
+  rm -f "$modgui_tun_boot"
+  if [ -f "$modgui_tun_package_owned" ]; then
+    opkg remove kmod-tun >/dev/null 2>&1 || return 0
+    rm -f "$modgui_tun_package_owned"
+  elif [ -f "$modgui_tun_file" ] &&
+    [ "$(sha256sum "$modgui_tun_file" | awk '{print $1}')" = "$modgui_tun_sha256" ]; then
+    rm -f "$modgui_tun_file"
+  fi
+  rm -f "$modgui_tun_owned"
+}
+
 #  1st arg : directory
 #  2nd arg : pkg name
 #  3rd arg : raw or normal. Raw is used to download specific file from specific dir
@@ -925,73 +1031,20 @@ app_wireguard() {
   wireguard_commit="7ac8fe29a7ab64eb0c9c9774bb36cf2c7648399e"
   wireguard_version="2023.09.29"
   wireguard_owned="/etc/.modgui-wireguard-go-installed"
-  wireguard_tun_owned="/etc/.modgui-wireguard-tun-installed"
-  wireguard_tun_file="/lib/modules/4.1.52/tun.ko"
-  wireguard_tun_sha256="374b8399951a4fa75a0b9c68b6eced9d064cc442d3150d2210d75623c275354e"
-  wireguard_tun_commit="1587d4a113de414f4409ea80b11a8d03c115f17c"
   wireguard_tmp="/tmp/wireguard-go-install.$$.ipk"
 
   wireguard_gui_backup="/opt/modgui-wireguard-gui.tar.gz"
 
   wireguard_tun_supported() {
-    [ -c /dev/net/tun ] && return 0
-    [ -r /proc/config.gz ] && zcat /proc/config.gz 2>/dev/null | grep -q '^CONFIG_TUN=y$'
+    modgui_has_tun
   }
 
   wireguard_install_tun() {
-    wireguard_tun_supported && return 0
-    if [ "$cpu_type" = "armv7l" ] && [ "$(uname -r)" = "4.1.52" ] &&
-      [ "$(uci -q get version.@version[0].version | cut -d- -f1-2)" = "19.4.0866-3401052" ] &&
-      [ "$(uci -q get version.@version[0].kernel)" = "ac8d9a0575131475c4002132bf4995cb96c6f99d" ]; then
-      if [ -f "$wireguard_tun_file" ]; then
-        [ "$(sha256sum "$wireguard_tun_file" | awk '{print $1}')" = "$wireguard_tun_sha256" ] || {
-          echo "An incompatible TUN module already exists; refusing to overwrite it"
-          return 1
-        }
-        modprobe tun 2>/dev/null || insmod "$wireguard_tun_file" 2>/dev/null || return 1
-        wireguard_tun_supported
-        return
-      fi
-      curl -kfL "https://raw.githubusercontent.com/FrancYescO/GUI_ipk/$wireguard_tun_commit/artifacts/tun-vbntj-damson-4.1.52.ko" \
-        --output /tmp/modgui-wireguard-tun.ko || return 1
-      [ "$(sha256sum /tmp/modgui-wireguard-tun.ko | awk '{print $1}')" = "$wireguard_tun_sha256" ] || {
-        echo "TUN module checksum mismatch"
-        rm -f /tmp/modgui-wireguard-tun.ko
-        return 1
-      }
-      insmod /tmp/modgui-wireguard-tun.ko || return 1
-      wireguard_tun_supported || return 1
-      cp /tmp/modgui-wireguard-tun.ko "$wireguard_tun_file" || return 1
-      printf 'tun\n' > /etc/modules.d/30-modgui-wireguard-tun
-      touch "$wireguard_tun_owned"
-      rm -f /tmp/modgui-wireguard-tun.ko
-      return 0
-    fi
-    echo "WireGuard requires kernel TUN support; no reviewed module is available for this firmware"
-    return 1
+    modgui_install_tun wireguard
   }
 
   wireguard_remove_tun() {
-    [ -f "$wireguard_tun_owned" ] || return 0
-    if opkg list-installed 2>/dev/null | grep -q '^openvpn-'; then
-      touch /etc/.modgui-openvpn-tun-installed
-      printf 'tun\n' > /etc/modules.d/30-modgui-openvpn-tun
-      rm -f /etc/modules.d/30-modgui-wireguard-tun
-      rm -f "$wireguard_tun_owned"
-      return 0
-    fi
-    if lsmod | grep -q '^tun '; then
-      rmmod tun 2>/dev/null || {
-        echo "TUN is still in use; leaving the module installed"
-        return 0
-      }
-    fi
-    rm -f /etc/modules.d/30-modgui-wireguard-tun
-    if [ -f "$wireguard_tun_file" ] &&
-      [ "$(sha256sum "$wireguard_tun_file" | awk '{print $1}')" = "$wireguard_tun_sha256" ]; then
-      rm -f "$wireguard_tun_file"
-    fi
-    rm -f "$wireguard_tun_owned"
+    modgui_release_tun wireguard
   }
 
   wireguard_register_gui() {
@@ -1005,6 +1058,16 @@ app_wireguard() {
     uci add_list web.wireguardmodal.roles=admin
     uci add_list web.wireguardmodal.roles=engineer
     uci add_list web.wireguardmodal.roles=superuser
+    uci -q del_list web.ruleset_main.rules=wireguardprofile
+    uci add_list web.ruleset_main.rules=wireguardprofile
+    uci set web.wireguardprofile=rule
+    uci set web.wireguardprofile.target=/ajax/wireguard_profile.lua
+    uci -q del_list web.wireguardprofile.roles=admin
+    uci -q del_list web.wireguardprofile.roles=engineer
+    uci -q del_list web.wireguardprofile.roles=superuser
+    uci add_list web.wireguardprofile.roles=admin
+    uci add_list web.wireguardprofile.roles=engineer
+    uci add_list web.wireguardprofile.roles=superuser
     uci set web.wireguard_card=card
     uci set web.wireguard_card.card=016_wireguard.lp
     uci set web.wireguard_card.modal=wireguardmodal
@@ -1022,6 +1085,7 @@ app_wireguard() {
       usr/share/transformer/scripts/wireguardStatus.sh \
       usr/share/transformer/scripts/wireguardKeygen.sh \
       www/cards/016_wireguard.lp \
+      www/docroot/ajax/wireguard_profile.lua \
       www/docroot/modals/wireguard-modal.lp \
       www/lang/it-it/webui-wireguard.po
   }
@@ -1144,7 +1208,8 @@ app_wireguard() {
       done
       uci -q commit wireguard
       wireguard_cleanup_network
-      rm -f /etc/config/wireguard /tmp/modgui-wireguard-client.conf
+      rm -f /etc/config/wireguard /tmp/modgui-wireguard-client.conf \
+        /tmp/modgui-wireguard-client.name
     fi
     if [ -f "$wireguard_owned" ] && opkg list-installed | grep -q '^wireguard-go '; then
       opkg remove wireguard-go || return 1
@@ -1152,9 +1217,12 @@ app_wireguard() {
     wireguard_remove_tun
     uci -q delete web.wireguard_card
     uci -q delete web.wireguardmodal
+    uci -q delete web.wireguardprofile
     uci -q del_list web.ruleset_main.rules=wireguardmodal
+    uci -q del_list web.ruleset_main.rules=wireguardprofile
     uci commit web
-    rm -f "$wireguard_owned" "$wireguard_tmp" "$wireguard_gui_backup" /tmp/modgui-wireguard-client.conf
+    rm -f "$wireguard_owned" "$wireguard_tmp" "$wireguard_gui_backup" \
+      /tmp/modgui-wireguard-client.conf /tmp/modgui-wireguard-client.name
     if opkg list-installed | grep -q '^wireguard-go '; then
       set_extension_state wireguard_app 1
     else
@@ -1383,68 +1451,20 @@ app_openvpn() {
   openvpn_before="/tmp/modgui-openvpn-packages-before.$$"
   openvpn_owned="/etc/.modgui-openvpn-installed"
   openvpn_packages="/etc/.modgui-openvpn-packages"
-  openvpn_tun_owned="/etc/.modgui-openvpn-tun-installed"
-  openvpn_tun_file="/lib/modules/4.1.52/tun.ko"
-  openvpn_tun_sha256="374b8399951a4fa75a0b9c68b6eced9d064cc442d3150d2210d75623c275354e"
-  openvpn_tun_commit="1587d4a113de414f4409ea80b11a8d03c115f17c"
   openvpn_openssl_lib="/opt/modgui-openvpn-openssl"
   openvpn_openssl_sha256="12585b06530fecd2c73f9045edb131860e87ee4946c75be18a9d96f9b6ca8c37"
   openvpn_gui_backup="/opt/modgui-openvpn-gui.tar.gz"
 
   openvpn_has_tun() {
-    [ -c /dev/net/tun ] || zcat /proc/config.gz 2>/dev/null | grep -q '^CONFIG_TUN=y$'
+    modgui_has_tun
   }
 
   openvpn_install_tun() {
-    openvpn_has_tun && return 0
-    if [ "$cpu_type" = "armv7l" ] && [ "$(uname -r)" = "4.1.52" ] &&
-      [ "$(uci -q get version.@version[0].version | cut -d- -f1-2)" = "19.4.0866-3401052" ] &&
-      [ "$(uci -q get version.@version[0].kernel)" = "ac8d9a0575131475c4002132bf4995cb96c6f99d" ]; then
-      [ ! -e "$openvpn_tun_file" ] || {
-        echo "An unowned TUN module already exists; refusing to overwrite it"
-        return 1
-      }
-      curl -kfL "https://raw.githubusercontent.com/FrancYescO/GUI_ipk/$openvpn_tun_commit/artifacts/tun-vbntj-damson-4.1.52.ko" \
-        --output /tmp/modgui-openvpn-tun.ko || return 1
-      [ "$(sha256sum /tmp/modgui-openvpn-tun.ko | awk '{print $1}')" = "$openvpn_tun_sha256" ] || {
-        echo "TUN module checksum mismatch"
-        rm -f /tmp/modgui-openvpn-tun.ko
-        return 1
-      }
-      insmod /tmp/modgui-openvpn-tun.ko || return 1
-      openvpn_has_tun || return 1
-      cp /tmp/modgui-openvpn-tun.ko "$openvpn_tun_file" || return 1
-      printf 'tun\n' > /etc/modules.d/30-modgui-openvpn-tun
-      touch "$openvpn_tun_owned"
-      rm -f /tmp/modgui-openvpn-tun.ko
-      return 0
-    fi
-    opkg install kmod-tun || return 1
-    modprobe tun 2>/dev/null || true
-    openvpn_has_tun
+    modgui_install_tun openvpn
   }
 
   openvpn_remove_tun() {
-    [ -f "$openvpn_tun_owned" ] || return 0
-    if opkg list-installed 2>/dev/null | grep -q '^wireguard-go '; then
-      touch /etc/.modgui-wireguard-tun-installed
-      printf 'tun\n' > /etc/modules.d/30-modgui-wireguard-tun
-      rm -f /etc/modules.d/30-modgui-openvpn-tun
-      rm -f "$openvpn_tun_owned"
-      return 0
-    fi
-    if lsmod | grep -q '^tun '; then
-      rmmod tun 2>/dev/null || {
-        echo "TUN is still in use; leaving the module installed"
-        return 0
-      }
-    fi
-    rm -f /etc/modules.d/30-modgui-openvpn-tun
-    if [ -f "$openvpn_tun_file" ] &&
-      [ "$(sha256sum "$openvpn_tun_file" | awk '{print $1}')" = "$openvpn_tun_sha256" ]; then
-      rm -f "$openvpn_tun_file"
-    fi
-    rm -f "$openvpn_tun_owned"
+    modgui_release_tun openvpn
   }
 
   openvpn_prepare_openssl() {
@@ -1453,8 +1473,8 @@ app_openvpn() {
       LD_LIBRARY_PATH="$openvpn_openssl_lib/usr/lib" openssl version >/dev/null 2>&1; then
       return 0
     fi
-    [ -f "$openvpn_tun_owned" ] || return 1
-    curl -kfL "https://raw.githubusercontent.com/FrancYescO/GUI_ipk/$openvpn_tun_commit/base/libopenssl_1.0.2t-1_arm_cortex-a9_neon.ipk" \
+    modgui_reviewed_tun_build || return 1
+    curl -kfL "https://raw.githubusercontent.com/FrancYescO/GUI_ipk/$modgui_tun_commit/base/libopenssl_1.0.2t-1_arm_cortex-a9_neon.ipk" \
       --output /tmp/modgui-openvpn-libopenssl.ipk || return 1
     [ "$(sha256sum /tmp/modgui-openvpn-libopenssl.ipk | awk '{print $1}')" = "$openvpn_openssl_sha256" ] || {
       echo "OpenSSL library checksum mismatch"
@@ -1560,6 +1580,7 @@ app_openvpn() {
     esac
     if opkg list-installed | grep -Eq '^openvpn-(openssl|mbedtls|polarssl|nossl) '; then
       if [ -f "$openvpn_owned" ]; then
+        openvpn_install_tun || return 1
         openvpn_prepare_openssl || return 1
         openvpn_register_client || return 1
         openvpn_backup_gui || return 1
@@ -1582,8 +1603,8 @@ app_openvpn() {
       openvpn_rollback_install
       return 1
     }
-    if [ -f "$openvpn_tun_owned" ]; then
-      opkg install openvpn-easy-rsa liblzo libopenssl &&
+    if modgui_reviewed_tun_build; then
+      opkg install openvpn-easy-rsa openssl-util liblzo &&
         opkg install --nodeps --force-depends openvpn-openssl
     else
       opkg install openvpn-openssl openvpn-easy-rsa
@@ -1688,7 +1709,7 @@ app_tailscale() {
   tailscale_gui_backup="/opt/modgui-tailscale-gui.tar.gz"
 
   tailscale_has_tun() {
-    [ -c /dev/net/tun ] || zcat /proc/config.gz 2>/dev/null | grep -q '^CONFIG_TUN=y$'
+    modgui_has_tun
   }
 
   tailscale_has_space() {
@@ -1774,6 +1795,7 @@ app_tailscale() {
     tailscale_remove_owned_packages
     rm -rf "$tailscale_extract"
     rm -f "$tailscale_archive" "$tailscale_before" "$tailscale_packages"
+    modgui_release_tun tailscale
   }
 
   case "$1" in
@@ -1793,6 +1815,7 @@ app_tailscale() {
       ;;
     esac
     if [ -f "$tailscale_owned" ]; then
+      modgui_install_tun tailscale || return 1
       tailscale_register_gui
       tailscale_backup_gui || return 1
       set_extension_state tailscale_app 1
@@ -1810,10 +1833,7 @@ app_tailscale() {
       echo "Pre-existing Tailscale configuration or state was found; refusing to overwrite it"
       return 1
     fi
-    tailscale_has_tun || {
-      echo "Tailscale requires firmware built with CONFIG_TUN=y"
-      return 1
-    }
+    modgui_install_tun tailscale || return 1
     if tailscale_has_space 98304 /opt; then
       tailscale_runtime_dir="/opt/tailscale"
       tailscale_storage_dir="$tailscale_runtime_dir"
@@ -1826,9 +1846,13 @@ app_tailscale() {
       tailscale_download_url="https://pkgs.tailscale.com/stable/tailscale_${tailscale_version}_${tailscale_arch}.tgz"
     else
       echo "Tailscale needs 96 MB in /opt or 128 MB of temporary RAM for low-storage mode"
+      modgui_release_tun tailscale
       return 1
     fi
-    opkg list-installed | awk '{print $1}' > "$tailscale_before" || return 1
+    opkg list-installed | awk '{print $1}' > "$tailscale_before" || {
+      modgui_release_tun tailscale
+      return 1
+    }
     curl -kfL "https://pkgs.tailscale.com/stable/tailscale_${tailscale_version}_${tailscale_arch}.tgz" \
       --output "$tailscale_archive" || {
         tailscale_rollback_install
@@ -1947,6 +1971,7 @@ app_tailscale() {
       tailscale_remove_runtime
       tailscale_remove_owned_packages
     fi
+    modgui_release_tun tailscale
     uci -q delete web.tailscale_card
     uci -q delete web.tailscalemodal
     uci -q del_list web.ruleset_main.rules=tailscalemodal

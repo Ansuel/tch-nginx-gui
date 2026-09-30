@@ -8,6 +8,8 @@ local proxy = require("datamodel")
 
 local keygen_script = "/usr/share/transformer/scripts/wireguardKeygen.sh"
 local client_profile = "/tmp/modgui-wireguard-client.conf"
+local client_name_file = "/tmp/modgui-wireguard-client.name"
+ngx.header.cache_control = "no-store"
 
 local function plain(value)
   local raw = string.untaint(value or "")
@@ -20,13 +22,20 @@ local function escape(value)
   return raw:gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"):gsub('"', "&quot;")
 end
 
+local function javascript_string(value)
+  local raw = plain(value)
+  raw = raw:gsub("\\", "\\\\"):gsub("\r", "\\r"):gsub("\n", "\\n")
+  raw = raw:gsub('"', '\\"'):gsub("</", "<\\/")
+  return plain(raw)
+end
+
 local function getvalue(path)
   local values = proxy.get(path)
   return values and values[1] and values[1].value or ""
 end
 
 local function run_keygen(argument)
-  local command_line = plain(keygen_script .. " " .. argument .. " 2>/dev/null")
+  local command_line = plain(keygen_script .. " " .. argument .. " 2>&1")
   local command = io.popen(command_line, "r")
   if not command then return nil end
   local output = command:read("*a") or ""
@@ -34,21 +43,36 @@ local function run_keygen(argument)
   return output
 end
 
-local args = ngx.req.get_uri_args()
-if args.download == "1" then
-  local profile_file = io.open(client_profile, "r")
-  if not profile_file then
-    ngx.status = ngx.HTTP_NOT_FOUND
-    ngx.say(T"Generate a client key pair first.")
-    return ngx.exit(ngx.HTTP_NOT_FOUND)
+local function next_client_identity(tunnel_address, requested_name)
+  local server_address = tunnel_address:match("^([0-9.]+)/%d+$") or "10.66.66.1"
+  local network_base = server_address:match("^(.+)%.[0-9]+$") or "10.66.66"
+  local used_addresses, used_names = {}, {}
+  for _, item in ipairs(proxy.getPN("uci.wireguard.peer.", true) or {}) do
+    local path = item.path and plain(item.path)
+    if path then
+      local allowed = plain(getvalue(path .. "allowed_ips"))
+      for value in allowed:gmatch("[^,%s]+") do used_addresses[value] = true end
+      local name = plain(getvalue(path .. "name"))
+      if name ~= "" then used_names[name] = true end
+    end
   end
-  local profile = profile_file:read("*a") or ""
-  profile_file:close()
-  ngx.header.content_type = "text/plain"
-  ngx.header.content_disposition = 'attachment; filename="modgui-wireguard-client.conf"'
-  ngx.header.cache_control = "no-store"
-  ngx.print(profile)
-  return ngx.exit(ngx.HTTP_OK)
+  local octet = 2
+  while octet <= 254 and
+    (network_base .. "." .. octet == server_address or used_addresses[network_base .. "." .. octet .. "/32"]) do
+    octet = octet + 1
+  end
+  if octet > 254 then return nil end
+  local fallback = "client-" .. octet
+  local name = plain(requested_name or ""):gsub("[^A-Za-z0-9_.-]", "-"):sub(1, 64)
+  if name == "" then name = fallback end
+  if used_names[name] then
+    local base, suffix = name:sub(1, 55), 2
+    repeat
+      name = base .. "-" .. suffix
+      suffix = suffix + 1
+    until not used_names[name]
+  end
+  return name, network_base .. "." .. octet .. "/32"
 end
 
 local post_args = ngx.req.get_method() == "POST" and ngx.req.get_post_args() or {}
@@ -154,11 +178,40 @@ elseif keygen_action == "WG_KEYGEN_PEER" then
   server_public = plain(server_public)
   port = plain(port)
   address = plain(address)
-  local output = run_keygen("client " .. host .. " " .. server_public .. " " .. port .. " " .. address)
+  local requested_name = plain(post_args.client_name)
+  local generated_name, selected_address = next_client_identity(address, requested_name)
+  local output
+  if generated_name and selected_address then
+    output = run_keygen("client-profile " .. host .. " " .. server_public .. " " .. port .. " " .. address .. " " .. generated_name .. " " .. selected_address)
+  end
   local public = output and output:match("public=([A-Za-z0-9+/=]+)")
-  if public then
-    keygen_note = T"Client profile generated. Add this public key to a new peer: " .. public
+  local preshared = output and output:match("preshared=([A-Za-z0-9+/=]+)")
+  local peer = output and output:match("peer=([%w_. %-]+)")
+  local peer_address = output and output:match("address=([0-9./]+)")
+  if public and preshared and peer and peer_address then
+    local section = proxy.add("uci.wireguard.peer.")
+    local base = section and "uci.wireguard.peer.@" .. plain(section) .. "." or nil
+    local saved = base and proxy.set({
+      [base .. "enabled"] = "1",
+      [base .. "name"] = peer,
+      [base .. "public_key"] = public,
+      [base .. "preshared_key"] = preshared,
+      [base .. "endpoint_host"] = "",
+      [base .. "endpoint_port"] = "",
+      [base .. "allowed_ips"] = peer_address,
+      [base .. "persistent_keepalive"] = "",
+    })
+    if saved and proxy.apply() then
+      keygen_note = T"Client profile and peer generated automatically: " .. peer .. " (" .. peer_address .. ")"
+    else
+      if base then proxy.del(base) end
+      os.remove(client_profile)
+      os.remove(client_name_file)
+      keygen_note = T"Client profile generation failed: the peer could not be saved."
+    end
   else
+    local reason = plain(output or "no output"):gsub("[%c]+", " "):sub(1, 256)
+    ngx.log(ngx.ERR, "WireGuard client key generation failed: ", reason)
     keygen_note = T"Client profile generation failed: generate the gateway key pair first."
   end
 end
@@ -292,6 +345,7 @@ ngx.print(ui_helper.createSwitch(T"Allow peers to reach the Internet", "allow_wa
 if enabled_on and content.private_key == "" then
   ngx.print('<div class="alert alert-error">', T"Generate or paste a private key before enabling the interface.", '</div>')
 end
+ngx.print(ui_helper.createInputText(T"New client name", "client_name", "", nil, nil))
 ngx.print('<p>')
 ngx.print('<div class="btn" data-name="action" data-value="WG_KEYGEN_INTERFACE"><i class="icon-refresh"></i> ', T"Generate gateway key pair", '</div> ')
 ngx.print('<div class="btn" data-name="action" data-value="WG_KEYGEN_PEER"><i class="icon-plus"></i> ', T"Generate client profile", '</div>')
@@ -323,10 +377,16 @@ local profile_file = io.open(client_profile, "r")
 if profile_file then
   local profile = profile_file:read("*a") or ""
   profile_file:close()
-  ngx.print('<fieldset><legend>', T"Sample client profile", '</legend>')
-  ngx.print('<p>', T"Generated with the last client key pair. Copy it to the WireGuard client app and add its public key to a peer above.", '</p>')
+  local generated_name = ""
+  local name_file = io.open(client_name_file, "r")
+  if name_file then generated_name = plain(name_file:read("*l") or ""); name_file:close() end
+  ngx.print('<fieldset><legend>', T"Generated client profile", generated_name ~= "" and ": " .. escape(generated_name) or "", '</legend>')
+  ngx.print('<p>', T"This profile and QR code contain the private key and complete configuration for this client. Import either one into the WireGuard app and keep it secret.", '</p>')
   ngx.print('<textarea class="span6" rows="10" readonly>', escape(profile), '</textarea>')
-  ngx.print('<p><a class="btn" href="/modals/wireguard-modal.lp?download=1"><i class="icon-download-alt"></i> ', T"Download client profile", '</a></p>')
+  ngx.print('<div id="wireguard-client-qr" style="margin: 15px 0;"></div>')
+  ngx.print('<p class="help-block">', T"Scan this QR code with the WireGuard app or download the same configuration as a file.", '</p>')
+  ngx.print('<p><a class="btn" href="/ajax/wireguard_profile.lua"><i class="icon-download-alt"></i> ', T"Download client profile", '</a></p>')
+  ngx.print('<script>$(function(){try{var profile="', javascript_string(profile), '";var typeNumber=10;var errorCorrectLevel="L";var qr=qrcode(typeNumber,errorCorrectLevel);qr.addData(profile);qr.make();qr.createImgTag(typeNumber);var html=qr.createTableTag(3,6);$("#wireguard-client-qr").html(html);}catch(e){$("#wireguard-client-qr").text("QR unavailable");}});</script>')
   ngx.print('</fieldset>')
 end
 

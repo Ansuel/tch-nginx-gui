@@ -23,9 +23,9 @@ local function kernel_has_tun()
 	return result == "0"
 end
 
-local function wireguard_supported()
+local function tun_install_supported()
 	if kernel_has_tun() then return true end
-	local command = io.popen("[ \"$(uname -r)\" = 4.1.52 ] && [ \"$(uci -q get version.@version[0].version | cut -d- -f1-2)\" = 19.4.0866-3401052 ] && [ \"$(uci -q get version.@version[0].kernel)\" = ac8d9a0575131475c4002132bf4995cb96c6f99d ]; echo $?", "r")
+	local command = io.popen("[ \"$(uname -r)\" = 4.1.52 ] && [ \"$(uci -q get version.@version[0].kernel)\" = ac8d9a0575131475c4002132bf4995cb96c6f99d ]; echo $?", "r")
 	if not command then return false end
 	local result = command:read("*line")
 	command:close()
@@ -58,17 +58,17 @@ if cputype:match("^armv7") or cputype:match("^mips") then
 	mapParams.l2tpipsec_application = "uci.modgui.app.l2tpipsec_app"
 end
 if cputype:match("^armv7") or cputype:match("^mips") then
-	if kernel_has_tun() then
+	if tun_install_supported() then
 		mapParams.openvpn_application = "uci.modgui.app.openvpn_app"
 	end
 end
 if cputype:match("^armv7") or cputype == "aarch64" or cputype == "arm64" then
 	mapParams.speedtest_application = "uci.modgui.app.speedtest_app"
 	mapParams.adguardhome_application = "uci.modgui.app.adguardhome_app"
-	if wireguard_supported() then
+	if tun_install_supported() then
 		mapParams.wireguard_application = "uci.modgui.app.wireguard_app"
 	end
-	if kernel_has_tun() then
+	if tun_install_supported() then
 		mapParams.tailscale_application = "uci.modgui.app.tailscale_app"
 	end
 end

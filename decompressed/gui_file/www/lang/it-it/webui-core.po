@@ -4439,6 +4439,9 @@ msgstr "Installa OpenVPN e la relativa scheda di gestione. Il server e la regola
 msgid "Unavailable: this firmware kernel was built without TUN support."
 msgstr "Non disponibile: il kernel di questo firmware non supporta TUN."
 
+msgid "Unavailable: no reviewed TUN module is available for this firmware."
+msgstr "Non disponibile: per questo firmware non è disponibile un modulo TUN verificato."
+
 msgid "DumaOS"
 msgstr "DumaOS"
 

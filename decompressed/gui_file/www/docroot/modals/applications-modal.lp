@@ -194,9 +194,9 @@ local function kernel_has_tun()
 	return result == "0"
 end
 
-local function wireguard_supported()
+local function tun_install_supported()
 	if kernel_has_tun() then return true end
-	local command = io.popen("[ \"$(uname -r)\" = 4.1.52 ] && [ \"$(uci -q get version.@version[0].version | cut -d- -f1-2)\" = 19.4.0866-3401052 ] && [ \"$(uci -q get version.@version[0].kernel)\" = ac8d9a0575131475c4002132bf4995cb96c6f99d ]; echo $?", "r")
+	local command = io.popen("[ \"$(uname -r)\" = 4.1.52 ] && [ \"$(uci -q get version.@version[0].kernel)\" = ac8d9a0575131475c4002132bf4995cb96c6f99d ]; echo $?", "r")
 	if not command then return false end
 	local result = command:read("*line")
 	command:close()
@@ -378,7 +378,7 @@ if StateParams["openspeedtest_application"] ~= nil then
 end
 
 if StateParams["wireguard_application"] ~= nil then
-	if wireguard_supported() then
+	if tun_install_supported() then
 		append_extension_card(
 			"wireguard_application",
 			"wireguard",
@@ -391,7 +391,7 @@ if StateParams["wireguard_application"] ~= nil then
 		html[#html+1] = '<div class="application-card">'
 		html[#html+1] = "<fieldset>"
 		html[#html+1] = '<legend>' .. T"WireGuard" .. '</legend>'
-		html[#html+1] = ui_helper.createAlertBlock(T"Unavailable: this firmware kernel was built without TUN support. WireGuard cannot run safely on this device.", specific_box)
+		html[#html+1] = ui_helper.createAlertBlock(T"Unavailable: no reviewed TUN module is available for this firmware.", specific_box)
 		html[#html+1] = "</fieldset>"
 		html[#html+1] = "</div>"
 	end
@@ -409,7 +409,7 @@ if StateParams["l2tpipsec_application"] ~= nil then
 end
 
 if StateParams["openvpn_application"] ~= nil then
-	if kernel_has_tun() then
+	if tun_install_supported() then
 		append_extension_card(
 			"openvpn_application",
 			"openvpn",
@@ -421,13 +421,13 @@ if StateParams["openvpn_application"] ~= nil then
 	else
 		html[#html+1] = '<div class="application-card">'
 		html[#html+1] = "<fieldset><legend>" .. T"OpenVPN" .. "</legend>"
-		html[#html+1] = ui_helper.createAlertBlock(T"Unavailable: this firmware kernel was built without TUN support.", specific_box)
+		html[#html+1] = ui_helper.createAlertBlock(T"Unavailable: no reviewed TUN module is available for this firmware.", specific_box)
 		html[#html+1] = "</fieldset></div>"
 	end
 end
 
 if StateParams["tailscale_application"] ~= nil then
-	if kernel_has_tun() then
+	if tun_install_supported() then
 		append_extension_card(
 			"tailscale_application",
 			"tailscale",
@@ -439,7 +439,7 @@ if StateParams["tailscale_application"] ~= nil then
 	else
 		html[#html+1] = '<div class="application-card">'
 		html[#html+1] = "<fieldset><legend>" .. T"Tailscale" .. "</legend>"
-		html[#html+1] = ui_helper.createAlertBlock(T"Unavailable: this firmware kernel was built without TUN support.", specific_box)
+		html[#html+1] = ui_helper.createAlertBlock(T"Unavailable: no reviewed TUN module is available for this firmware.", specific_box)
 		html[#html+1] = "</fieldset></div>"
 	end
 end

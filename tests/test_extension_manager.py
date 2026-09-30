@@ -103,11 +103,14 @@ class ExtensionManager(unittest.TestCase):
         start = installer.index("app_wireguard()")
         end = installer.index("app_l2tpipsec()", start)
         wireguard = installer[start:end]
+        shared_tun = installer[:start]
         modal = MODAL.read_text()
 
-        self.assertIn("CONFIG_TUN=y", wireguard)
-        self.assertIn("19.4.0866-3401052", wireguard)
-        self.assertIn("tun-vbntj-damson-4.1.52.ko", wireguard)
+        self.assertIn("CONFIG_TUN=y", shared_tun)
+        self.assertNotIn("19.4.0866-3401052", shared_tun)
+        self.assertIn("ac8d9a0575131475c4002132bf4995cb96c6f99d", shared_tun)
+        self.assertIn("tun-vbntj-damson-4.1.52.ko", shared_tun)
+        self.assertIn("modgui_install_tun wireguard", wireguard)
         self.assertIn("wireguard_install_tun", wireguard)
         self.assertIn("wireguard_remove_tun", wireguard)
         self.assertIn(
@@ -129,7 +132,7 @@ class ExtensionManager(unittest.TestCase):
         self.assertIn("option allow_wan '0'", defaults)
         self.assertNotIn("firewall.modgui_wireguard_udp=rule", wireguard)
         self.assertIn("kernel_has_tun", modal)
-        self.assertIn("built without TUN support", modal)
+        self.assertIn("no reviewed TUN module", modal)
 
     def test_wireguard_removal_is_ownership_aware(self):
         installer = INSTALLER.read_text()
@@ -197,16 +200,31 @@ class ExtensionManager(unittest.TestCase):
                       (GUI / "usr/share/transformer/scripts/wireguardKeygen.sh").read_text())
         self.assertIn('server_public="${3:-$(uci -q get wireguard.wg.public_key)}"',
                       (GUI / "usr/share/transformer/scripts/wireguardKeygen.sh").read_text())
-        self.assertIn("chmod 600 /tmp/modgui-wireguard-client.conf",
+        self.assertIn("chmod 640 /tmp/modgui-wireguard-client.conf",
+                      (GUI / "usr/share/transformer/scripts/wireguardKeygen.sh").read_text())
+        self.assertIn("chown root:nogroup /tmp/modgui-wireguard-client.conf",
+                      (GUI / "usr/share/transformer/scripts/wireguardKeygen.sh").read_text())
+        self.assertIn('client | client-profile)',
                       (GUI / "usr/share/transformer/scripts/wireguardKeygen.sh").read_text())
         self.assertIn("A pre-existing WireGuard runtime is installed; refusing to remove it", wireguard)
-        self.assertIn(".modgui-openvpn-tun-installed", wireguard)
-        self.assertIn("30-modgui-openvpn-tun", wireguard)
+        self.assertIn("modgui_release_tun wireguard", wireguard)
+        self.assertIn(".modgui-tun-user-", installer)
+        self.assertIn("30-modgui-tun", installer)
 
         self.assertIn("uci.wireguard.wg.enabled", card)
         self.assertIn("wireguardStatus.sh", card)
         self.assertIn("wireguardStatus.sh", modal)
         self.assertIn("wireguardKeygen.sh", modal)
+        self.assertIn('proxy.add("uci.wireguard.peer.")', modal)
+        self.assertIn("client-profile", modal)
+        self.assertIn('proxy.getPN("uci.wireguard.peer.", true)', modal)
+        self.assertIn('qrcode(typeNumber,errorCorrectLevel)', modal)
+        self.assertIn('var typeNumber=10', modal)
+        self.assertIn('var errorCorrectLevel="L"', modal)
+        self.assertIn("wireguard-client-qr", modal)
+        self.assertIn("Download client profile", modal)
+        self.assertIn("/ajax/wireguard_profile.lua", modal)
+        self.assertIn("web.wireguardprofile", installer)
         self.assertNotIn("?keygen=", modal)
         self.assertIn('data-value="WG_KEYGEN_INTERFACE"', modal)
         self.assertIn("plain(ngx.var.http_host)", modal)
@@ -231,6 +249,10 @@ class ExtensionManager(unittest.TestCase):
         peer_map = (GUI / "usr/share/transformer/mappings/uci/wireguard.peer.map").read_text()
         self.assertIn('param == "preshared_key" and value ~= ""', peer_map)
         self.assertIn('tostring(value or "") == "********"', peer_map)
+        keygen = (GUI / "usr/share/transformer/scripts/wireguardKeygen.sh").read_text()
+        self.assertIn('uci add wireguard peer', keygen)
+        self.assertIn('allowed_ips=$client_address/32', keygen)
+        self.assertIn('/tmp/modgui-wireguard-client.name', keygen)
 
 
     def test_l2tpipsec_is_pinned_fixed_and_starts_disabled(self):
@@ -238,6 +260,7 @@ class ExtensionManager(unittest.TestCase):
         start = installer.index("app_l2tpipsec()")
         end = installer.index("install_specific_files()", start)
         vpn = installer[start:end]
+        shared_tun = installer[:start]
 
         self.assertIn(
             'l2tpipsec_commit="5c9015930961848259aa883cbe1a20c02a227de4"',
@@ -293,12 +316,16 @@ class ExtensionManager(unittest.TestCase):
         start = installer.index("app_openvpn()")
         end = installer.index("install_specific_files()", start)
         vpn = installer[start:end]
+        shared_tun = installer[:start]
         modal = MODAL.read_text()
         card = CARD.read_text()
 
         self.assertIn("openvpn-openssl openvpn-easy-rsa", vpn)
+        self.assertNotIn("openvpn-easy-rsa liblzo libopenssl", vpn)
+        self.assertIn("openvpn-easy-rsa openssl-util liblzo", vpn)
         self.assertIn("openvpn_has_tun", vpn)
-        self.assertIn("CONFIG_TUN=y", vpn)
+        self.assertIn("CONFIG_TUN=y", shared_tun)
+        self.assertIn("modgui_install_tun openvpn", vpn)
         self.assertIn("A pre-existing OpenVPN installation was found", vpn)
         self.assertIn(".modgui-openvpn-packages", vpn)
         self.assertIn("openvpn.server.enabled=0", vpn)
@@ -362,6 +389,7 @@ class ExtensionManager(unittest.TestCase):
         start = installer.index("app_tailscale()")
         end = installer.index("install_specific_files()", start)
         tailscale = installer[start:end]
+        shared_tun = installer[:start]
         modal = MODAL.read_text()
         card = CARD.read_text()
         config = CONFIG.read_text()
@@ -378,7 +406,9 @@ class ExtensionManager(unittest.TestCase):
         self.assertIn("https://pkgs.tailscale.com/stable/", tailscale)
         self.assertIn("sha256sum", tailscale)
         self.assertIn("tailscale_has_tun", tailscale)
-        self.assertIn("CONFIG_TUN=y", tailscale)
+        self.assertIn("CONFIG_TUN=y", shared_tun)
+        self.assertIn("modgui_install_tun tailscale", tailscale)
+        self.assertIn("modgui_release_tun tailscale", tailscale)
         self.assertIn("A pre-existing Tailscale installation was found", tailscale)
         self.assertIn("tailscale.service.enabled=0", tailscale)
         self.assertIn("tailscale.service.connect=0", tailscale)

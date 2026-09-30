@@ -4417,3 +4417,6 @@ msgstr "Installiert OpenVPN und die Verwaltungskarte. Server und WAN-Regel bleib
 
 msgid "Unavailable: this firmware kernel was built without TUN support."
 msgstr "Nicht verfügbar: Dieser Firmware-Kernel unterstützt TUN nicht."
+
+msgid "Unavailable: no reviewed TUN module is available for this firmware."
+msgstr "Nicht verfügbar: Für diese Firmware ist kein geprüftes TUN-Modul verfügbar."

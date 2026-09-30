@@ -42,8 +42,8 @@ msgstr "Coppia di chiavi del gateway pronta. Condividi la chiave pubblica con i 
 msgid "Key generation failed: check that the WireGuard runtime is installed."
 msgstr "Generazione delle chiavi fallita: verifica che il runtime WireGuard sia installato."
 
-msgid "Client profile generated. Add this public key to a new peer: "
-msgstr "Profilo client generato. Aggiungi questa chiave pubblica a un nuovo peer: "
+msgid "Client profile and peer generated automatically: "
+msgstr "Profilo client e peer generati automaticamente: "
 
 msgid "Client profile generation failed: generate the gateway key pair first."
 msgstr "Generazione del profilo client fallita: genera prima la coppia di chiavi del gateway."
@@ -132,6 +132,9 @@ msgstr "Genera coppia di chiavi del gateway"
 msgid "Generate client profile"
 msgstr "Genera profilo client"
 
+msgid "New client name"
+msgstr "Nome nuovo client"
+
 msgid "Gateway public key"
 msgstr "Chiave pubblica del gateway"
 
@@ -150,11 +153,17 @@ msgstr "Peer"
 msgid "Add one peer per device or remote gateway. Leave the endpoint empty for devices connecting in; fill it to connect out to a remote server. Allowed IPs are comma separated; use 0.0.0.0/0 on a remote server peer to route all traffic through it."
 msgstr "Aggiungi un peer per ciascun dispositivo o gateway remoto. Lascia vuoto l'endpoint per i dispositivi in entrata; compilalo per connettersi a un server remoto. Gli IP consentiti sono separati da virgola; usa 0.0.0.0/0 su un peer server remoto per instradare tutto il traffico attraverso di esso."
 
-msgid "Sample client profile"
-msgstr "Profilo client di esempio"
+msgid "Generated client profile"
+msgstr "Profilo client generato"
 
 msgid "Generated with the last client key pair. Copy it to the WireGuard client app and add its public key to a peer above."
 msgstr "Generato con l'ultima coppia di chiavi client. Copialo nell'app client WireGuard e aggiungi la sua chiave pubblica a un peer qui sopra."
 
+msgid "This profile and QR code contain the private key and complete configuration for this client. Import either one into the WireGuard app and keep it secret."
+msgstr "Questo profilo e il codice QR contengono la chiave privata e la configurazione completa per questo client. Importa uno dei due nell'app WireGuard e conservalo in modo sicuro."
+
 msgid "Download client profile"
 msgstr "Scarica profilo client"
+
+msgid "Scan this QR code with the WireGuard app or download the same configuration as a file."
+msgstr "Scansiona questo codice QR con l'app WireGuard oppure scarica la stessa configurazione come file."
