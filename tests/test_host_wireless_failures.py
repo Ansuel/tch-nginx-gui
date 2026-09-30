@@ -123,6 +123,16 @@ check({{value = '0'}}, '-100')
 check({{value = '-47'}}, '-47')
 ''')
 
+    def test_wireless_modal_accepts_firmware_wps_button_handlers(self):
+        text = source('www/docroot/modals/wireless-modal.lp')
+        start = text.index('local wps_button_mode = {')
+        end = text.index('\n  }', start)
+        choices = text[start:end]
+        self.assertIn('"pairing_button.sh wps_button_pressed.sh"', choices)
+        self.assertIn('"wps_button_pressed.sh"', choices)
+        self.assertIn('"acl_button_pressed.sh"', choices)
+        self.assertNotIn('{ "acl_button_pressed" ,', choices)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -638,18 +638,14 @@ local function validateRadioandAp(value, object, key)
 end
 
 local wps_button_mode = {
+	{ "pairing_button.sh wps_button_pressed.sh" , T"Pairing + WPS Mode" },
 	{ "wps_button_pressed.sh" , T"WPS Mode" },
-	{ "acl_button_pressed" , T"ACL Mode" },
+	{ "acl_button_pressed.sh" , T"ACL Mode" },
 	{ "" , T"Disabled" },
   }
 
 -- Constructing the rpc parameters and validations for post handleQuery
 local function getParamsAndValidation()
-  local wps_button_handler = setmetatable({
-        ["1"] = "wps_button_pressed.sh",
-        ["0"] = "acl_button_pressed.sh",
-    }, untaint_mt)
-
   -- rpc parameters list
   local mapParams = {
     ssid = pathiface .. "ssid",
