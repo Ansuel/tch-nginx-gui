@@ -10,7 +10,8 @@ local message_helper = require("web.uimessage_helper")
 local post_helper = require("web.post_helper")
 format, match = string.format, string.match
 
-local sfp = require("transformer.shared.sfp").readSFPFlag()
+local sfp = proxy.get("uci.env.rip.sfp")
+sfp = (sfp and sfp[1] and sfp[1].value == "1") and 1 or 0
 
 --Support ethernet mode for devices with no eth4 port
 local ethname = proxy.get("sys.eth.port.@eth4.status")
