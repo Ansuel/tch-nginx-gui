@@ -54,7 +54,12 @@ ngx.print('\
         local cards = require("cards")
         for _,v in pairs(cards.cards()) do
 			if not string.untaint(cui.gui_skin):match("Fritz") then
-				ngx.print(gen_dummy_card(cards.get_modal_from_card(v)))
+				local modal = cards.get_modal_from_card(v)
+				if modal then
+					ngx.print(gen_dummy_card(modal))
+				else
+					lp.include(v)
+				end
 			else
 				lp.include(v)
 			end

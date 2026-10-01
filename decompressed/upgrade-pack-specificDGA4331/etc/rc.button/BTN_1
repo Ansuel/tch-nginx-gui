@@ -1,0 +1,3 @@
+#!/bin/sh
+. /lib/functions.sh
+/sbin/hotplug-call button

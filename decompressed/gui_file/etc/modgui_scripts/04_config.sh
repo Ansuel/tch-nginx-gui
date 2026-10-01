@@ -774,3 +774,36 @@ logecho "Decrypting any encrypted password present in config"
 decrypt_config_pass
 clean_ping_and_traceroute
 clean_watchdog
+
+# Add web access rules for DGA4331-specific modals and ajax endpoints
+if [ -z "$(uci -q get web.easyMeshConfiguration)" ]; then
+    uci set web.easyMeshConfiguration=rule
+    uci set web.easyMeshConfiguration.target="/modals/easy-mesh-configuration.lp"
+    uci add_list web.easyMeshConfiguration.roles="admin"
+    uci add_list web.easyMeshConfiguration.roles="engineer"
+    uci add_list web.easyMeshConfiguration.roles="ispuser"
+
+    uci set web.wifiExtender=rule
+    uci set web.wifiExtender.target="/modals/wifi-extender-status.lp"
+    uci add_list web.wifiExtender.roles="guest"
+    uci add_list web.wifiExtender.roles="admin"
+    uci add_list web.wifiExtender.roles="engineer"
+    uci add_list web.wifiExtender.roles="ispuser"
+
+    uci set web.certificateslists=rule
+    uci set web.certificateslists.target="/modals/certificates-list-modal.lp"
+    uci add_list web.certificateslists.roles="admin"
+    uci add_list web.certificateslists.roles="engineer"
+
+    uci set web.datausagemodal=rule
+    uci set web.datausagemodal.target="/modals/datausage.lp"
+    uci add_list web.datausagemodal.roles="admin"
+    uci add_list web.datausagemodal.roles="engineer"
+
+    uci set web.datausageajax=rule
+    uci set web.datausageajax.target="/ajax/datausage.lua"
+    uci add_list web.datausageajax.roles="admin"
+    uci add_list web.datausageajax.roles="engineer"
+
+    uci commit web
+fi
