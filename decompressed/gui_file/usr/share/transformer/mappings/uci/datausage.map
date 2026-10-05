@@ -4,7 +4,7 @@ local datausage_global = {
   config = "datausage",
   section = "global",
   type = "global",
-  options = { "tracelevel", "persist" }
+  options = { "tracelevel", "enabled", "persist" }
 }
 
 mapper("uci_1to1").registerSimpleMap(datausage_global)

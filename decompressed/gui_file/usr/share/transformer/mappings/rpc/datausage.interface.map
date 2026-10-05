@@ -4,7 +4,7 @@ local datausage_interface_ = {
 	objectType = {
 		name = 'rpc.datausage.interface.@.',
 		access = 'readOnly',
-		numEntriesParameter = "InterfaceNumberOfEntries",
+		numEntriesParameter = "interfaceNumberOfEntries",
 		minEntries = 0,
 		maxEntries = math.huge,
 		parameters = {
@@ -39,6 +39,30 @@ local datausage_interface_ = {
 			usage_limit_reached = {
 				access = "readOnly",
 				type = "boolean"
+			},
+			usage_threshold_reached = {
+				access = "readOnly",
+				type = "boolean"
+			},
+			usage_limit_level = {
+				access = "readOnly",
+				type = "string"
+			},
+			usage_threshold_level = {
+				access = "readOnly",
+				type = "string"
+			},
+			interface_alias = {
+				access = "readOnly",
+				type = "string"
+			},
+			interface = {
+				access = "readOnly",
+				type = "string"
+			},
+			enabled = {
+				access = "readOnly",
+				type = "boolean"
 			}
 		}
 	}
@@ -52,7 +76,9 @@ end
 local helper = require("mobiled.scripthelpers")
 
 local function getall(mapping, key)
-	return helper.getUbusData(conn, "datausage", "get", { interface = key })
+	local data = helper.getUbusData(conn, "datausage", "get", { interface = key }) or {}
+	data.enabled = (not data.interface or data.interface == "") and "0" or "1"
+	return data
 end
 
 local function get(mapping, paramName, key)
@@ -61,14 +87,18 @@ end
 
 local function set(mapping, paramName, paramValue, key)
 	if paramName == "reset" then
-		return helper.getUbusData(conn, "datausage", "reset", { interface = key })
+		conn:call("datausage", "reset", { interface = key })
+		return true
 	end
 end
 
 local function datausageInterfaceEntries(mapping)
 	local interfaces = {}
 	local function cb(t)
-		table.insert(interfaces, { t['.name'], t.ifname })
+		local ifname = t.interface or t.ifname
+		if ifname and ifname ~= "" then
+			table.insert(interfaces, { t['.name'], ifname })
+		end
 	end
 	uci_helper.foreach_on_uci({
 		config = "datausage",
