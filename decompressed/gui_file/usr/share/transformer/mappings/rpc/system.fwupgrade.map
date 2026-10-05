@@ -1,7 +1,6 @@
 local modgui = require("modgui")
 local logger = modgui.getRightLoggerModule()
 local log = logger.new("rpc.system.fwupgrade.")
-local open = io.open
 
 local SYSTEM_FWUPGRADE_ = {
   objectType = {
@@ -162,13 +161,10 @@ local function fwupgrade_start()
   end
 
   local filename = fwupgrade_location .. fwupgrade_mapdata.filename
-  -- Check if the file actually exists
-  local file_check = open(filename, "r")
-  if not file_check then
-    fwupgrade_set_error(255, "invalid file")
-    return
-  end
-  file_check:close()
+  -- The web UI streams firmware through a FIFO. Opening it here to check for
+  -- existence blocks Transformer until a writer connects, while the writer
+  -- cannot start until this RPC call returns. The filename setter already
+  -- constrains the path to /tmp and rejects subdirectories/metacharacters.
   local ResetCommand = ""
   local RootOnlyCommand = ""
   if (fwupgrade_mapdata.upgrade_type == "Reset") then

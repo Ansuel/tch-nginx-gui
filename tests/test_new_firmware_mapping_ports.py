@@ -62,6 +62,14 @@ setter(nil, nil, '')
 assert(fwupgrade_mapdata.filename == '')
 """)
 
+    def test_upgrade_start_does_not_open_stream_fifo(self):
+        text = source("usr/share/transformer/mappings/rpc/system.fwupgrade.map")
+        start = text.index("local function fwupgrade_start()")
+        end = text.index("\nend", start) + len("\nend")
+        upgrade_start = text[start:end]
+        self.assertNotIn("io.open", upgrade_start)
+        self.assertNotIn("open(filename", upgrade_start)
+
     def test_incomplete_port_forward_is_ignored(self):
         text = source("usr/share/transformer/mappings/rpc/network.firewall.portforward.map")
         delete_connection = lua_function(text, "local function deletePfwConnection")
