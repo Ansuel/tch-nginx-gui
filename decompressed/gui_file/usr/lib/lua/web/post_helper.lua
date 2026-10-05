@@ -2407,4 +2407,16 @@ function M.validateLXC(value)
   return nil, T"Invalid input."
 end
 
+function M.getVariant(variants, section, page)
+  if variants and variants[section] then
+    return variants[section][page]
+  end
+end
+
+function M.getVariantValue(variant, option)
+  if variant and variant[option] then
+    return variant[option].value
+  end
+end
+
 return M

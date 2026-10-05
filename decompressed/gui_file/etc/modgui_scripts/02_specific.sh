@@ -310,8 +310,8 @@ case $marketing_version in
   [ "$cpu_type" = "mips" ] && logecho "Unknown what specific_app to install on $marketing_version $cpu_type"
   ;;
 *)
-  uci set modgui.app.specific_app="1" #no specific package for this device
-  logecho "Unknown what specific_app to install on $marketing_version $cpu_type"
+  uci set modgui.app.specific_app="1" #no specific package for this firmware
+  logecho "No specific_app package for $marketing_version $cpu_type"
   ;;
 esac
 
@@ -320,6 +320,7 @@ uci commit modgui
 [ -z "${device_type##*DGA4130*}" ] && ledfw_extract "DGA"
 [ -z "${device_type##*DGA4132*}" ] && ledfw_extract "DGA"
 [ -z "${device_type##*DGA4131*}" ] && ledfw_extract "DGA4131"
+[ -z "${device_type##*DGA4331*}" ] && ledfw_extract "DGA4331"
 [ -z "${device_type##*TG788*}" ] && ledfw_extract "TG788"
 [ -z "${device_type##*TG788*}" ] && ledfw_rework_TG788
 [ -z "${device_type##*TG789*}" ] && ledfw_extract "TG789"
