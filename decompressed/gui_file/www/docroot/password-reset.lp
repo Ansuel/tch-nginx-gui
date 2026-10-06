@@ -38,7 +38,7 @@ local current_year = (string.sub(year,1,4))
     <link href="/css/gw.css" rel="stylesheet">\
     <link href="/css/responsive.css" rel="stylesheet">\
     <!--[if IE 7]><link rel="stylesheet" href="/css/font-awesome-ie7.css"><![endif]-->\
-    <script src="/js/main-min.js" ></script>\
+    <script src="/js/jquery.min.js" ></script>\
     <!--[if lt IE 9]> <script src="/js/media-min.js"></script> <![endif]-->\
     <script src="/js/srp-min.js" ></script>\
     <title>');  ngx.print( T"Login" ); ngx.print('</title>\

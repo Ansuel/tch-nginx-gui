@@ -27,7 +27,6 @@ content_helper.getExactContent(cui)
 	<link rel="shortcut icon"    type="image/x-icon"   href="/img/favicon.ico"    />\
 	<link rel="stylesheet" href="/css/font-awesome.css">\
     <!--[if IE 7]><link rel="stylesheet" href="/css/font-awesome-ie7.css"><![endif]-->\
-    <script src="/js/main-min.js" ></script>\
     <!--[if lt IE 9]> <script src="/js/media-min.js"></script> <![endif]-->\
     <script src="/js/srp-min.js" ></script>\
     <title>');  ngx.print( T"Parental Blocked" ); ngx.print('</title>\

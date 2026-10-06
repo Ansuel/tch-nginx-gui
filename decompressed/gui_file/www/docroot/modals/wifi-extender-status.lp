@@ -28,7 +28,9 @@ local variantHelper = nil
 if has_variant and variant_helper then
   variantHelper = post_helper.getVariant(variant_helper, "ExtenderPage", "extendertopology")
 end
-local navigationLink = post_helper.getVariantValue(variantHelper, "navigationLink")
+local wifiDevicesFile = io.open("/www/docroot/modals/wifi-devices-info.lp", "r")
+local navigationLink = post_helper.getVariantValue(variantHelper, "navigationLink") and wifiDevicesFile ~= nil
+if wifiDevicesFile then wifiDevicesFile:close() end
 local extenderName = post_helper.getVariantValue(variantHelper, "extenderName")
 
 local sys_hostname = proxy.get("uci.system.system.@system[0].hostname")

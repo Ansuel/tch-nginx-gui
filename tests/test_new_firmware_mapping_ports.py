@@ -108,6 +108,13 @@ assert(getrefcountusb() == '100')
         text = source("usr/share/transformer/commitapply/uci_firewall.ca")
         self.assertIn("[ -x /usr/bin/remove_conntrack.sh ] &&", text)
 
+    def test_mobile_upgrade_failure_events_support_old_and_new_firmware(self):
+        text = source("usr/share/transformer/scripts/mobiled_upgrade.sh")
+        for code in (1001, 1002, 1003, 1004, 1005):
+            self.assertIn(
+                f'\\"error_code\\":{code},\\"device_error\\":{code}', text
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -237,7 +237,7 @@ end
 ');  ngx.print(ui_helper.createHeader(T"Wireless Client Monitor", false, false))   ngx.print('\
 \
 <div class="modal-body update">\
-  <form class="form-horizontal" method="post" action="modals/wireles-client-modal.lp">\
+  <form class="form-horizontal" method="post" action="modals/wireless-client-modal.lp">\
     ');  
     local html = {}
     html[#html + 1] = ui_helper.createMessages(message_helper.popMessages())
