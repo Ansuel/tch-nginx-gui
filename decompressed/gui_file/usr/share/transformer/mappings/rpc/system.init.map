@@ -31,6 +31,7 @@ local function initHelperFunction(name,type)
     end
     local command = string.format("/etc/init.d/%s %s",name,type)
     async_exec({[command]=true})
+    return true
 end
 
 local SYSTEM_INIT_ = {
@@ -41,6 +42,14 @@ local SYSTEM_INIT_ = {
         maxEntries = 1,
         parameters = {
             toggle = {
+                access = "readWrite",
+                type = "string"
+            },
+            enable = {
+                access = "readWrite",
+                type = "string"
+            },
+            disable = {
                 access = "readWrite",
                 type = "string"
             },
@@ -62,6 +71,8 @@ local SYSTEM_INIT_ = {
 
 SYSTEM_INIT_.get = {
     toggle = "0",
+    enable = "0",
+    disable = "0",
     start = "0",
     stop = "0",
     restart = "0"
@@ -69,11 +80,20 @@ SYSTEM_INIT_.get = {
 
 SYSTEM_INIT_.set = {
     toggle = function(mapping, param, value)
-        if getState(param) == "1" then
+        if not initTable[value] then
+            return nil, "Invalid init process name"
+        end
+        if getState(value) == "1" then
             return initHelperFunction(value,"disable")
         else
             return initHelperFunction(value,"enable")
         end
+    end,
+    enable = function(mapping, param, value)
+        return initHelperFunction(value,"enable")
+    end,
+    disable = function(mapping, param, value)
+        return initHelperFunction(value,"disable")
     end,
     start = function(mapping, param, value)
         return initHelperFunction(value,"start")
@@ -111,6 +131,10 @@ local SYSTEM_INIT_i_ = {
             active = {
                 access = "readOnly",
                 type = "boolean",
+            },
+            running = {
+                access = "readOnly",
+                type = "boolean",
             }
         }
     }
@@ -140,6 +164,10 @@ SYSTEM_INIT_i_.get = {
     end,
     active = function(mapping, param, key)
         return getState(key)
+    end,
+    running = function(mapping, param, key)
+        local command = string.format("/etc/init.d/%s running >/dev/null 2>&1", key)
+        return os.execute(command) == 0 and "1" or "0"
     end,
 }
 

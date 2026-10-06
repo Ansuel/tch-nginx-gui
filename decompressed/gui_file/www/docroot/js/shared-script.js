@@ -1,6 +1,8 @@
 var KoRequest = {};
 var connectionissue = 0;
 
+function get_bitrate(b){b*=8;return 1E9<b?(b=(b/1E9).toFixed(1),b+" Gbit/s"):1E6<b?(b/=1E6,b=b.toFixed(1),b+" Mbit/s"):1E3<b?(b/=1E3,b=b.toFixed(1),b+" Kbit/s"):b+" bit/s"}
+
 var modgui = modgui || {};
 !function (module) {
 
