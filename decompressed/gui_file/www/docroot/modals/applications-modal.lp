@@ -196,7 +196,7 @@ end
 
 local function tun_install_supported()
 	if kernel_has_tun() then return true end
-	local command = io.popen("[ \"$(uname -r)\" = 4.1.52 ] && [ \"$(uci -q get version.@version[0].kernel)\" = ac8d9a0575131475c4002132bf4995cb96c6f99d ]; echo $?", "r")
+	local command = io.popen("[ \"$(uname -m)\" = armv7l ] && [ \"$(uname -r)\" = 4.1.52 ]; echo $?", "r")
 	if not command then return false end
 	local result = command:read("*line")
 	command:close()

@@ -4,7 +4,7 @@ marketing_version="$(uci get -q version.@version[0].marketing_version)"
 cpu_type="$(uname -m)"
 
 # Shared TUN lifecycle for WireGuard, OpenVPN and Tailscale.  The reviewed
-# DGA4130 module is kernel/build exact; other platforms may use their matching
+# DGA4130 module is for ARMv7 kernel 4.1.52; other platforms may use their matching
 # kmod-tun package.  Per-extension users prevent one VPN from removing a
 # module still needed by another.
 modgui_tun_file="/lib/modules/4.1.52/tun.ko"
@@ -20,8 +20,7 @@ modgui_has_tun() {
 }
 
 modgui_reviewed_tun_build() {
-  [ "$cpu_type" = "armv7l" ] && [ "$(uname -r)" = "4.1.52" ] &&
-    [ "$(uci -q get version.@version[0].kernel)" = "ac8d9a0575131475c4002132bf4995cb96c6f99d" ]
+  [ "$cpu_type" = "armv7l" ] && [ "$(uname -r)" = "4.1.52" ]
 }
 
 modgui_tun_migrate_owners() {
