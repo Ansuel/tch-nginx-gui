@@ -4447,3 +4447,9 @@ msgstr "DumaOS"
 
 msgid "Installs the pinned DumaOS UI and QoS stack for ARMv7 Technicolor gateways. Installation replaces core ubus components; reboot the gateway after installation and after removal."
 msgstr "Installa l'interfaccia e lo stack QoS DumaOS verificati per i gateway Technicolor ARMv7. L'installazione sostituisce componenti ubus di base; riavviare il gateway dopo l'installazione e dopo la rimozione."
+
+msgid "NAT Helpers (ALG) allow protocols that embed network addresses to traverse NAT. In bridge mode, NAT is bypassed and managed by the upstream router."
+msgstr "Gli helper NAT (ALG) consentono ai protocolli con indirizzi nel payload di attraversare il NAT. In modalità bridge, il NAT è disattivato e gestito dal router a monte."
+
+msgid "No NAT Helpers found"
+msgstr "Nessun helper NAT trovato"

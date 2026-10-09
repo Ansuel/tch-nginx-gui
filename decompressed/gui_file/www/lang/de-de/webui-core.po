@@ -4420,3 +4420,9 @@ msgstr "Nicht verfügbar: Dieser Firmware-Kernel unterstützt TUN nicht."
 
 msgid "Unavailable: no reviewed TUN module is available for this firmware."
 msgstr "Nicht verfügbar: Für diese Firmware ist kein geprüftes TUN-Modul verfügbar."
+
+msgid "NAT Helpers (ALG) allow protocols that embed network addresses to traverse NAT. In bridge mode, NAT is bypassed and managed by the upstream router."
+msgstr "NAT-Helper (ALG) ermöglichen Protokollen mit eingebetteten Netzwerkadressen das Durchqueren von NAT. Im Bridge-Modus wird NAT umgangen und vom vorgelagerten Router verwaltet."
+
+msgid "No NAT Helpers found"
+msgstr "Keine NAT-Helper gefunden"
