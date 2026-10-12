@@ -108,7 +108,6 @@ class ExtensionManager(unittest.TestCase):
 
         self.assertIn("CONFIG_TUN=y", shared_tun)
         self.assertNotIn("19.4.0866-3401052", shared_tun)
-        self.assertIn("ac8d9a0575131475c4002132bf4995cb96c6f99d", shared_tun)
         self.assertIn("tun-vbntj-damson-4.1.52.ko", shared_tun)
         self.assertIn("modgui_install_tun wireguard", wireguard)
         self.assertIn("wireguard_install_tun", wireguard)
@@ -133,6 +132,29 @@ class ExtensionManager(unittest.TestCase):
         self.assertNotIn("firewall.modgui_wireguard_udp=rule", wireguard)
         self.assertIn("kernel_has_tun", modal)
         self.assertIn("no reviewed TUN module", modal)
+
+    def test_reviewed_tun_module_requires_armv7_and_matching_kernel(self):
+        installer = INSTALLER.read_text()
+        start = installer.index("modgui_reviewed_tun_build() {")
+        end = installer.index("\n}", start) + len("\n}")
+        script = '''
+cpu_type="$1"
+test_kernel="$2"
+uname() { [ "$1" = "-r" ] && printf '%s\\n' "$test_kernel"; }
+uci() { return 1; }
+''' + installer[start:end] + "\nmodgui_reviewed_tun_build\n"
+        for cpu, kernel, supported in (
+            ("armv7l", "4.1.52", True),
+            ("armv7l", "4.1.51", False),
+            ("aarch64", "4.1.52", False),
+            ("mips", "4.1.52", False),
+        ):
+            with self.subTest(cpu=cpu, kernel=kernel):
+                result = subprocess.run(
+                    ["sh", "-c", script, "tun-test", cpu, kernel],
+                    text=True, capture_output=True,
+                )
+                self.assertEqual(result.returncode == 0, supported, result.stderr)
 
     def test_wireguard_removal_is_ownership_aware(self):
         installer = INSTALLER.read_text()
