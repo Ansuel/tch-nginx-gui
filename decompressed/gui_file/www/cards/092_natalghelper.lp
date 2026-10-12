@@ -1,5 +1,5 @@
 --pretranslated: do not change this file
- 
+
 -- Enable localization
 gettext.textdomain('webui-core')
 
@@ -13,9 +13,14 @@ local modalPath = "/modals/nat-alg-helper-modal.lp"
 
 if session:hasAccess(modalPath) then
   local modal_link = format("class=\"modal-link\" data-toggle=\"modal\" data-remote=\"%s\" data-id=\"nat-alg-helper-modal\"",modalPath)
+  -- Recent firmware exposes the per-zone helpers through firewall_helpers.
+  -- Keep the old path for firmware with config helper sections.
   local helper_uci_path = "uci.firewall.helper."
+  if #(proxy.getPN("uci.firewall_helpers.helper.", true) or {}) > 0 then
+      helper_uci_path = "uci.firewall_helpers.helper."
+  end
   local helper_uci_content = proxy.get(helper_uci_path)
-  helper_uci_content = content_helper.convertResultToObject(helper_uci_path,helper_uci_content)
+  helper_uci_content = content_helper.convertResultToObject(helper_uci_path, helper_uci_content) or {}
   local enabled_count = 0
   local disabled_count = 0
   for _, v in ipairs (helper_uci_content) do
@@ -36,18 +41,19 @@ if session:hasAccess(modalPath) then
               ');  if enabled_count ~= 0 then  ngx.print('\
                 <span class="simple-desc">\
                <i " class="fas fa-info-circle" aria-hidden="true" href="#">&nbsp</i>\
-                ');  
+                ');
                 ngx.print(format( N('<strong %1$s>%2$d Enabled Helper</strong>',
                                     '<strong %1$s>%2$d Enabled Helpers</strong>', enabled_count),
                                     modal_link, enabled_count))
                   ngx.print('\
                 </span>\
-                ');  
+                ');
               end
+              if enabled_count == 0 and disabled_count == 0 then ngx.print('<span class="simple-desc">', T"No NAT Helpers found", '</span>') end
               if disabled_count ~= 0 then  ngx.print('\
                 <span class="simple-desc">\
                <i " class="fas fa-info-circle" aria-hidden="true" href="#">&nbsp</i>\
-                ');  
+                ');
                 ngx.print(format( N('<strong %1$s>%2$d Disabled Helper</strong>',
                                     '<strong %1$s>%2$d Disabled Helpers</strong>', disabled_count),
                                     modal_link, disabled_count))
@@ -58,7 +64,7 @@ if session:hasAccess(modalPath) then
            </div>\
       </div>\
   </div>\
-');  
+');
 end
   ngx.print('\
-'); 
+');

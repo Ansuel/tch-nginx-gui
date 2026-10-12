@@ -6,7 +6,9 @@ gettext.textdomain('webui-core')
 local ui_helper = require("web.ui_helper")
 local message_helper = require("web.uimessage_helper")
 local post_helper = require("web.post_helper")
+local proxy = require("datamodel")
 local string, ngx = string, ngx
+local is_modern = #(proxy.getPN("uci.firewall_helpers.helper.", true) or {}) > 0
 -- Firewall forwarding rules
 local hlp_columns = {
   {
@@ -19,16 +21,16 @@ local hlp_columns = {
   },
   {
     header = T"Name",
-    name = "helper",
-    param = "helper",
+    name = is_modern and "name" or "helper",
+    param = is_modern and "name" or "helper",
     type = "text",
     readonly = true,
     attr = { input = { class="span2" } }
   },
   {
     header = T"Dest Port",
-    name = "dest_port",
-    param = "dest_port",
+    name = is_modern and "port" or "dest_port",
+    param = is_modern and "port" or "dest_port",
     type = "text",
     readonly = true,
     attr = { input = { class="span1" }}
@@ -60,7 +62,7 @@ end
 
 local hlp_options = {
     tableid = "helper",
-    basepath = "uci.firewall.helper.@.",
+    basepath = is_modern and "uci.firewall_helpers.helper." or "uci.firewall.helper.@.",
     canAdd = false,
     canDelete = false,
     canEdit = true,
