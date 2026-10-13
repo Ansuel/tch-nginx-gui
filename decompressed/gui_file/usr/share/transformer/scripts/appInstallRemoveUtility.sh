@@ -284,18 +284,29 @@ app_telstra() {
 app_luci() {
   install() {
     luci_install_arm() {
-      opkg update
-      [ ! -f /rom/usr/lib/libjson-c.so.2 ] && ln -s /usr/lib/libjson-c.so.4 /usr/lib/libjson-c.so.2 #workaround for 18.x feeds used on 19.x firmware
-      rm -rf /etc/config/uhttpd
-      rm /usr/lib/lua/uci.so #remove to avoid lua-uci conflict during install
-      opkg install --force-reinstall libuci-lua luci rpcd
-      [ ! -f /etc/init.d/uhttpd ] && opkg install uhttpd # only on 19.x is not getting installed as dependency?
-      mkdir /www_luci
-      mv /www/cgi-bin /www_luci/
-      mv /www/luci-static /www_luci/
-      mv /www/index.html /www_luci/
-      cp /rom/usr/lib/lua/uci.so /usr/lib/lua/ #restore lib as it gets removed by libuci-lua
-      sed -i 's/require "uci"/require "uci_luci"/g' /usr/lib/lua/luci/model/uci.lua #modify luci to load his original lib with different name
+      opkg update || return 1
+      if [ ! -f /rom/usr/lib/libjson-c.so.2 ] && [ ! -e /usr/lib/libjson-c.so.2 ]; then
+        ln -s /usr/lib/libjson-c.so.4 /usr/lib/libjson-c.so.2 || return 1
+      fi
+      rm -f /usr/lib/lua/uci.so #remove to avoid lua-uci conflict during install
+      opkg install --force-reinstall libuci-lua luci rpcd uhttpd
+      luci_opkg_status=$?
+      # Restore the firmware binding even when opkg fails.
+      cp /rom/usr/lib/lua/uci.so /usr/lib/lua/ || return 1
+      [ "$luci_opkg_status" -eq 0 ] || return "$luci_opkg_status"
+      [ -f /usr/lib/lua/luci/model/uci.lua ] && [ -x /etc/init.d/uhttpd ] || return 1
+      mkdir -p /www_luci || return 1
+      for luci_asset in cgi-bin luci-static index.html; do
+        if [ -d "/www/$luci_asset" ]; then
+          mkdir -p "/www_luci/$luci_asset" || return 1
+          cp -R "/www/$luci_asset/." "/www_luci/$luci_asset/" || return 1
+          rm -rf "/www/$luci_asset"
+        elif [ -f "/www/$luci_asset" ]; then
+          mv "/www/$luci_asset" /www_luci/ || return 1
+        fi
+      done
+      [ -f /www_luci/cgi-bin/luci ] || return 1
+      sed -i 's/require "uci"/require "uci_luci"/g' /usr/lib/lua/luci/model/uci.lua || return 1
 
       if [ ! "$(uci get uhttpd.main.listen_http | grep 9080)" ]; then
         uci del_list uhttpd.main.listen_http='0.0.0.0:80'
@@ -306,38 +317,49 @@ app_luci() {
         uci add_list uhttpd.main.listen_https='0.0.0.0:9443'
         uci del_list uhttpd.main.listen_https='[::]:443'
         uci add_list uhttpd.main.listen_https='[::]:9443'
-        uci set uhttpd.main.home='/www_luci'
       fi
+      uci set uhttpd.main.home='/www_luci' || return 1
 
-      uci commit uhttpd
-      /etc/init.d/uhttpd restart
+      uci commit uhttpd || return 1
+      # Legacy rc.common returns 1 after creating the boot link when STOP is
+      # unset. Check the enabled state before treating that as a failure.
+      /etc/init.d/uhttpd enable || /etc/init.d/uhttpd enabled || return 1
+      /etc/init.d/uhttpd restart || return 1
     }
 
     luci_install_mips() {
-      curl -k -L https://raw.githubusercontent.com/nutterpc/tg-luci/master/install.sh --output /tmp/install.sh
-      chmod +x /tmp/install.sh
+      curl -fk -L https://raw.githubusercontent.com/nutterpc/tg-luci/master/install.sh --output /tmp/install.sh || return 1
+      chmod +x /tmp/install.sh || return 1
       /tmp/install.sh
     }
 
     case $marketing_version in
     "16.1"* | "16.2"*)
-      [ "$cpu_type" = "armv7l" ] && echo "Unknown app install script for $marketing_version $cpu_type"
-      [ "$cpu_type" = "mips" ] && luci_install_mips
+      [ "$cpu_type" = "mips" ] && luci_install_mips || return 1
       ;;
     "16."* | "17."*)
-      [ "$cpu_type" = "armv7l" ] && {
-        luci_install_arm
-        opkg install --force-reinstall --force-overwrite libuci-lua
-        sed -i 's/require "uci_luci"/require "uci"/g' /usr/lib/lua/luci/model/uci.lua
-      }
-      [ "$cpu_type" = "mips" ] && luci_install_mips
+      if [ "$cpu_type" = "armv7l" ]; then
+        luci_install_arm || return 1
+        opkg install --force-reinstall --force-overwrite libuci-lua || return 1
+        sed -i 's/require "uci_luci"/require "uci"/g' /usr/lib/lua/luci/model/uci.lua || return 1
+      elif [ "$cpu_type" = "mips" ]; then
+        luci_install_mips || return 1
+      else
+        return 1
+      fi
       ;;
     "18."* | "19."*)
-      [ "$cpu_type" = "armv7l" ] && luci_install_arm
-      [ "$cpu_type" = "mips" ] && luci_install_mips
+      if [ "$cpu_type" = "armv7l" ]; then
+        luci_install_arm || return 1
+      elif [ "$cpu_type" = "mips" ]; then
+        luci_install_mips || return 1
+      else
+        return 1
+      fi
       ;;
     *)
       echo "Unknown app install script for $marketing_version $cpu_type"
+      return 1
       ;;
     esac
     uci set modgui.app.luci_webui="1"

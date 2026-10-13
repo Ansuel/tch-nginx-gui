@@ -9,18 +9,24 @@ set_transformer() {
 }
 #################################################
 
-if [ -f $LOG_LOCATION ]; then
-	echo "Wrapper: command_log file already exist, appending to the last execution (or concurrent) logging..."
-fi
+finish() {
+	status=$?
+	trap - EXIT HUP INT TERM
+	if [ "$status" -ne 0 ]; then
+		printf '\nCommand failed (exit status %s).\n' "$status" >> "$LOG_LOCATION"
+	fi
+	set_transformer "rpc.system.modgui.executeCommand.state" "Complete"
+	exit "$status"
+}
+
+trap finish EXIT
+trap 'exit 143' TERM
+trap 'exit 130' INT
+trap 'exit 129' HUP
 
 set_transformer "rpc.system.modgui.executeCommand.state" "Requested"
 
-$1 2>$LOG_LOCATION >$LOG_LOCATION
-sync
-
-set_transformer "rpc.system.modgui.executeCommand.state" "Complete"
-
-sleep 1
-
-set_transformer "rpc.system.modgui.executeCommand.state" "Idle"
-rm $LOG_LOCATION
+# Use one file descriptor so stderr cannot overwrite stdout. Keep the final
+# state and log until the next command: polling may miss a one-second window.
+$1 >"$LOG_LOCATION" 2>&1
+exit $?
