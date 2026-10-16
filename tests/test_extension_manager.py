@@ -3,6 +3,7 @@
 from pathlib import Path
 import shutil
 import subprocess
+import tempfile
 import unittest
 
 
@@ -30,6 +31,201 @@ EXTENSIONS = {
 
 
 class ExtensionManager(unittest.TestCase):
+    def test_transmission_package_failure_stops_before_state_write(self):
+        installer = INSTALLER.read_text()
+        start = installer.index("app_transmission() {")
+        function = installer[start:installer.index("\napp_telstra()", start)]
+        for failing_command in ("update", "install"):
+            with self.subTest(failing_command=failing_command):
+                script = function + '''
+marketing_version=19.4
+cpu_type=armv7l
+opkg() { [ "$1" != "$FAIL_COMMAND" ]; }
+uci() { echo "UNEXPECTED_STATE_WRITE:$*"; }
+FAIL_COMMAND=''' + failing_command + "\napp_transmission install"
+                result = subprocess.run(["sh", "-c", script], text=True, capture_output=True)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertEqual(result.stdout, "")
+
+    def test_l2tp_preserves_preinstalled_xl2tpd_version(self):
+        installer = INSTALLER.read_text()
+        start = installer.index("    # Preserve the firmware's existing xl2tpd")
+        end = installer.index('    curl -kfL "https://raw.githubusercontent.com/FrancYescO/sharing_tg789/', start)
+        setup = installer[start:end]
+        for installed in (False, True):
+            with self.subTest(installed=installed):
+                script = '''
+opkg() {
+    if [ "$1" = status ]; then
+        [ "$PREINSTALLED" = 1 ] && echo 'Status: install user installed'
+    else
+        echo "$*"
+    fi
+}
+l2tpipsec_rollback_install() { echo UNEXPECTED_ROLLBACK; }
+PREINSTALLED=''' + str(int(installed)) + "\n" + setup
+                result = subprocess.run(["sh", "-c", script], text=True,
+                                        capture_output=True, check=True)
+                expected = ["install strongswan-default"]
+                if not installed:
+                    expected.insert(0, "install xl2tpd")
+                self.assertEqual(result.stdout.splitlines(), expected)
+
+    def test_aria2_package_failure_stops_before_download_and_state_write(self):
+        installer = INSTALLER.read_text()
+        start = installer.index("app_aria2() {")
+        function = installer[start:installer.index("\napp_voipblock_for_mmpbx()", start)]
+        for failing_command in ("update", "install"):
+            with self.subTest(failing_command=failing_command):
+                script = function + '''
+marketing_version=19.4
+cpu_type=armv7l
+opkg() { [ "$1" != "$FAIL_COMMAND" ]; }
+curl() { echo UNEXPECTED_DOWNLOAD; return 1; }
+uci() { echo "UNEXPECTED_STATE_WRITE:$*"; }
+FAIL_COMMAND=''' + failing_command + "\napp_aria2 install"
+                result = subprocess.run(["sh", "-c", script], text=True, capture_output=True)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertEqual(result.stdout, "")
+
+    def test_adblock_removal_only_cleans_its_dns_reference(self):
+        installer = INSTALLER.read_text()
+        start = installer.index("adblock_cleanup_dns() {")
+        function = installer[start:installer.index("\napp_adblock()", start)]
+        function = function.replace("/etc/init.d/dnsmasq reload", "echo DNS_RELOAD")
+        script = function + '''
+uci() {
+    case "$*" in
+        '-q show dhcp') printf '%s\\n' 'dhcp.lan=dnsmasq' 'dhcp.guest=dnsmasq' 'dhcp.pool=dhcp' ;;
+        '-q get dhcp.lan.serversfile') echo /tmp/adb_list.overall ;;
+        '-q get dhcp.guest.serversfile') echo /etc/custom-dns-servers ;;
+        *) echo "$*" ;;
+    esac
+}
+adblock_cleanup_dns
+'''
+        result = subprocess.run(["sh", "-c", script], text=True, capture_output=True, check=True)
+        self.assertEqual(result.stdout.splitlines(),
+                         ["-q delete dhcp.lan.serversfile", "commit dhcp", "DNS_RELOAD"])
+
+    def test_xupnp_package_errors_do_not_change_install_state(self):
+        installer = INSTALLER.read_text()
+        start = installer.index("app_xupnp() {")
+        function = installer[start:installer.index("\nset_extension_state()", start)]
+        for action, failing_command in (("install", "update"), ("install", "install"), ("remove", "remove")):
+            with self.subTest(action=action, failing_command=failing_command):
+                script = function + '''
+opkg() { [ "$1" != "$FAIL_COMMAND" ]; }
+uci() { echo "Unexpected state write: $*"; }
+FAIL_COMMAND=''' + failing_command + "\napp_xupnp " + action
+                result = subprocess.run(["sh", "-c", script], text=True, capture_output=True)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertEqual(result.stdout, "")
+
+    def test_wireguard_detection_reconciles_stale_install_state(self):
+        config = CONFIG.read_text()
+        start = config.index("  # Reconcile stale flags")
+        end = config.index('  if [ ! "$(uci get -q modgui.app.l2tpipsec_app)" ]; then', start)
+        detection = config[start:end]
+        with tempfile.TemporaryDirectory() as directory:
+            paths = [Path(directory) / name for name in ("wireguard-go", "wg-go", "wireguard.sh")]
+            for original, replacement in zip(
+                ("/usr/bin/wireguard-go", "/usr/bin/wg-go", "/lib/netifd/proto/wireguard.sh"), paths,
+            ):
+                detection = detection.replace(original, str(replacement))
+            for binary_count in range(4):
+                with self.subTest(binary_count=binary_count):
+                    if binary_count:
+                        paths[binary_count - 1].touch(mode=0o755)
+                    script = '''
+uci() {
+    case "$1" in
+        get) echo 1 ;;
+        set) echo "$2" ;;
+    esac
+}
+''' + detection
+                    result = subprocess.run(["sh", "-c", script], text=True,
+                                            capture_output=True, check=True)
+                    self.assertEqual(result.stdout.strip(),
+                                     f"modgui.app.wireguard_app={int(binary_count == 3)}")
+
+    @unittest.skipUnless(shutil.which("lua"), "lua is not installed")
+    def test_installed_web_interfaces_are_links_in_extensions_card(self):
+        harness = r'''
+local installed = arg[2]
+T = function(text) return text end
+gettext = { textdomain = function() end }
+ngx = {
+    var = { host = "192.168.133.69" },
+    ctx = { session = { hasAccess = function() return true end } },
+    print = function(value)
+        if type(value) == "table" then value = table.concat(value) end
+        io.write(value)
+    end,
+}
+package.preload["datamodel"] = function()
+    return { get = function(path)
+        return {{value = path:find("CPUtype") and arg[3] or "19.4"}}
+    end }
+end
+package.preload["web.content_helper"] = function()
+    return { getExactContent = function(params)
+        for key in pairs(params) do
+            params[key] = key == "address" and "192.168.1.1" or installed
+        end
+    end }
+end
+package.preload["web.ui_helper"] = function()
+    return {
+        createCardHeader = function() return "" end,
+        createSimpleLight = function(state, title)
+            return '<span data-state="' .. state .. '">' .. title .. '</span>'
+        end,
+    }
+end
+io.popen = function() return {read = function() return "0" end, close = function() end} end
+io.open = function(path)
+    assert(path == "/opt/AdGuardHome/AdGuardHome.yaml")
+    local lines = {"http:", "  address: 0.0.0.0:8081", "dns:", "  port: 53"}
+    local index = 0
+    return { lines = function() return function()
+        index = index + 1
+        return lines[index]
+    end end, close = function() end }
+end
+dofile(arg[1])
+'''
+        for installed, architecture in (("0", "armv7"), ("1", "armv7"), ("1", "mips")):
+            with self.subTest(installed=installed, architecture=architecture):
+                result = subprocess.run(
+                    ["lua", "-", str(CARD), installed, architecture], input=harness,
+                    text=True, capture_output=True, check=True,
+                )
+                if installed == "0":
+                    self.assertNotIn('<a ', result.stdout)
+                    self.assertIn('>DumaOS</span>', result.stdout)
+                    continue
+                for url, title in (
+                    ("http://192.168.133.69:9080/", "LuCI"),
+                    ("/aria", "Aria2"),
+                    ("http://192.168.133.69:9091/transmission", "Transmission"),
+                    ("http://192.168.133.69:4044/ui/", "XUPnP"),
+                    ("/telstra-gui.lp", "Telstra GUI"),
+                    ("http://192.168.133.69:8081/", "AdGuard Home"),
+                    ("http://192.168.133.69:5678/", "OpenSpeedTest"),
+                ):
+                    if architecture == "mips" and title == "AdGuard Home":
+                        continue
+                    self.assertIn(f'href="{url}">{title}</a>', result.stdout)
+                architecture_url, architecture_title = (
+                    ("/desktop/", "DumaOS") if architecture == "armv7"
+                    else ("http://192.168.133.69:4711/", "aMule")
+                )
+                self.assertIn(f'href="{architecture_url}">{architecture_title}</a>', result.stdout)
+                self.assertEqual(result.stdout.count('class="card-direct-link"'), 8 if architecture == "armv7" else 7)
+                self.assertNotIn('>WireGuard</a>', result.stdout)
+
     def test_extensions_are_whitelisted_dispatched_and_mapped(self):
         installer = INSTALLER.read_text()
         rpc_map = RPC_MAP.read_text()
@@ -489,7 +685,6 @@ uci() { return 1; }
         modal = MODAL.read_text()
         card = CARD.read_text()
         config = CONFIG.read_text()
-        dumaos_card = (GUI / "usr/share/modgui-dumaos/015_dumaos.lp").read_text()
         dumaos_modal = (GUI / "www/docroot/modals/dumaos-modal.lp").read_text()
 
         self.assertIn('dumaos_version="2.0-46"', dumaos)
@@ -508,21 +703,19 @@ uci() { return 1; }
         self.assertIn("dumaos_install_qos_module", dumaos)
         self.assertIn("act-connmark-damson-4.1.52.ko", dumaos)
         self.assertIn("/www/cards/015_dumaos.lp", dumaos)
-        self.assertIn("/usr/share/modgui-dumaos/015_dumaos.lp", dumaos)
-        self.assertIn("uci set web.dumaos_card=card", dumaos)
-        self.assertIn("uci set web.dumaos_card.card=015_dumaos.lp", dumaos)
-        self.assertIn("uci set web.dumaos_card.modal=dumaosmodal", dumaos)
+        self.assertNotIn("uci set web.dumaos_card", dumaos)
+        self.assertNotIn('[ -f /www/cards/015_dumaos.lp ]', dumaos)
+        self.assertIn("rm -f /www/cards/015_dumaos.lp", dumaos)
+        self.assertIn("rm -f /www/cards/015_dumaos.lp", config)
+        self.assertIn("uci -q delete web.dumaos_card", config)
         self.assertIn("uci set web.dumaosmodal=rule", dumaos)
         self.assertIn("web.ruleset_main.rules=dumaosmodal", dumaos)
         self.assertIn("uci -q delete web.dumaos_card", dumaos)
         self.assertIn("uci -q delete web.dumaosmodal", dumaos)
-        self.assertIn('class="card-direct-link"', dumaos_card)
-        self.assertIn('href="/desktop/"', dumaos_card)
+        self.assertIn('class="card-direct-link"', card)
+        self.assertIn('url = "/desktop/"', card)
         self.assertIn('closest(".card-direct-link")', (GUI / "www/docroot/js/main-min-nojquery.js").read_text())
-        self.assertNotIn(":81", dumaos_card)
-        self.assertIn('status = "rpc.dumaos.status"', dumaos_card)
-        self.assertIn('enabled = "rpc.dumaos.enabled"', dumaos_card)
-        self.assertIn('createCardHeader(T"DumaOS", modal_path, "enabled"', dumaos_card)
+        self.assertNotIn(":81", card)
         self.assertIn('enabled = "rpc.dumaos.enabled"', dumaos_modal)
         self.assertIn('status = "rpc.dumaos.status"', dumaos_modal)
         self.assertIn('createSwitch(T"DumaOS service", "enabled"', dumaos_modal)

@@ -162,9 +162,11 @@ set_transformer() {
 app_transmission() {
 
   install_arm() {
-    opkg update
-    opkg install transmission-web transmission-daemon-openssl
-    [ ! -f /rom/usr/lib/libmbedcrypto.so.1 ] && opkg install libmbedtls #workaround for 19.x firmware
+    opkg update || return 1
+    opkg install transmission-web transmission-daemon-openssl || return 1
+    if [ ! -f /rom/usr/lib/libmbedcrypto.so.1 ]; then
+      opkg install libmbedtls || return 1 #workaround for 19.x firmware
+    fi
 
     uci set transmission.@transmission[0].enabled=1
     uci set transmission.@transmission[0].rpc_whitelist='127.0.0.1,192.168.*.*'
@@ -189,15 +191,22 @@ app_transmission() {
   install() {
     case $marketing_version in
     "16.1"* | "16.2"*)
-      [ "$cpu_type" = "armv7l" ] && install_from_github FrancYescO/sharing_tg789 transmission-xtream
-      [ "$cpu_type" = "mips" ] && install_from_github FrancYescO/sharing_tg789 transmission
+      case "$cpu_type" in
+        armv7l) install_from_github FrancYescO/sharing_tg789 transmission-xtream || return 1 ;;
+        mips) install_from_github FrancYescO/sharing_tg789 transmission || return 1 ;;
+        *) return 1 ;;
+      esac
       ;;
     "16."* | "17."* | "18."* | "19."*)
-      [ "$cpu_type" = "armv7l" ] && install_arm
-      [ "$cpu_type" = "mips" ] && install_from_github FrancYescO/sharing_tg789 transmission
+      case "$cpu_type" in
+        armv7l) install_arm || return 1 ;;
+        mips) install_from_github FrancYescO/sharing_tg789 transmission || return 1 ;;
+        *) return 1 ;;
+      esac
       ;;
     *)
       echo "Unknown app install script for $marketing_version $cpu_type"
+      return 1
       ;;
     esac
     uci set modgui.app.transmission_webui="1"
@@ -205,12 +214,11 @@ app_transmission() {
   }
 
   remove() {
-    opkg remove --force-removal-of-dependent-packages transmission-daemon-openssl transmission-web
-    [ ! -f /rom/usr/lib/libmbedcrypto.so.1 ] && opkg install libmbedtls #workaround for 19.x firmware
-    rm -r /www/docroot/transmission
-    rm -r /etc/config/transmission*
-    rm -r /var/transmission
-    rm /etc/hotplug.d/usb/60-transmission
+    opkg remove transmission-daemon-openssl transmission-web || return 1
+    rm -rf /www/docroot/transmission
+    rm -f /etc/config/transmission*
+    rm -rf /var/transmission
+    rm -f /etc/hotplug.d/usb/60-transmission
     uci set modgui.app.transmission_webui="0"
     uci commit modgui
   }
@@ -260,7 +268,7 @@ app_telstra() {
       rm -r /www/docroot/telstra-helpfiles
       rm -r /www/docroot/img/telstra
       rm /www/docroot/js/main-telstra-min.js
-      rm /www/docroot/css/gw-telstra.css/gw-telstra.css
+      rm -f /www/docroot/css/gw-telstra.css
       /etc/init.d/nginx restart
       uci set modgui.app.telstra_webui="0"
       uci commit modgui
@@ -446,12 +454,14 @@ app_amule() {
 app_aria2() {
   install() {
     install_arm() {
-      opkg update
-      opkg install aria2 libstdcpp
-      curl -sLk https://github.com/mayswind/AriaNg-DailyBuild/tarball/master --output /tmp/ariang.tar.gz
-      tar -xzf /tmp/ariang.tar.gz -C /www/docroot/
+      opkg update || return 1
+      # libstdcpp6 in the stock firmware already provides libstdcpp.
+      # Let opkg resolve providers instead of forcing a conflicting package.
+      opkg install aria2 || return 1
+      curl -fLsSk https://github.com/mayswind/AriaNg-DailyBuild/tarball/master --output /tmp/ariang.tar.gz || return 1
+      tar -xzf /tmp/ariang.tar.gz -C /www/docroot/ || return 1
       rm /tmp/ariang.tar.gz
-      mv /www/docroot/*AriaNg* /www/docroot/aria
+      mv /www/docroot/*AriaNg* /www/docroot/aria || return 1
 
       ARIA2_DIR="/etc/aria2"
 
@@ -474,20 +484,27 @@ app_aria2() {
 			aria2c --enable-rpc --rpc-listen-all=true --rpc-allow-origin-all --daemon=true --conf-path=/etc/aria2/aria2.conf' /etc/rc.local
 
       # start the daemon
-      aria2c --enable-rpc --rpc-listen-all=true --rpc-allow-origin-all --daemon=true --conf-path=$ARIA2_DIR/aria2.conf
+      aria2c --enable-rpc --rpc-listen-all=true --rpc-allow-origin-all --daemon=true --conf-path=$ARIA2_DIR/aria2.conf || return 1
     }
 
     case $marketing_version in
     "16.1"* | "16.2"*)
-      [ "$cpu_type" = "armv7l" ] && install_from_github FrancYescO/sharing_tg789 aria2-xtream
-      [ "$cpu_type" = "mips" ] && install_from_github FrancYescO/sharing_tg789 aria2
+      case "$cpu_type" in
+        armv7l) install_from_github FrancYescO/sharing_tg789 aria2-xtream || return 1 ;;
+        mips) install_from_github FrancYescO/sharing_tg789 aria2 || return 1 ;;
+        *) return 1 ;;
+      esac
       ;;
     "16."* | "17."* | "18."* | "19."*)
-      [ "$cpu_type" = "armv7l" ] && install_arm
-      [ "$cpu_type" = "mips" ] && install_from_github FrancYescO/sharing_tg789 aria2
+      case "$cpu_type" in
+        armv7l) install_arm || return 1 ;;
+        mips) install_from_github FrancYescO/sharing_tg789 aria2 || return 1 ;;
+        *) return 1 ;;
+      esac
       ;;
     *)
       echo "Unknown app install script for $marketing_version $cpu_type"
+      return 1
       ;;
     esac
     uci set modgui.app.aria2_webui="1"
@@ -495,9 +512,9 @@ app_aria2() {
   }
   remove() {
     killall aria2c
-    opkg remove aria2
-    rm -r /www/docroot/aria
-    rm -r /etc/aria2
+    opkg remove aria2 || return 1
+    rm -rf /www/docroot/aria
+    rm -rf /etc/aria2
     sed -i '/aria2c/d' /etc/rc.local
     uci set modgui.app.aria2_webui="0"
     uci commit modgui
@@ -628,13 +645,13 @@ app_blacklist() {
 
 app_xupnp() {
   install() {
-    opkg update
-    opkg install xupnpd
+    opkg update || return 1
+    opkg install xupnpd || return 1
     uci set modgui.app.xupnp_app="1"
     uci commit modgui
   }
   remove() {
-    opkg remove xupnpd
+    opkg remove xupnpd || return 1
     uci set modgui.app.xupnp_app="0"
     uci commit modgui
   }
@@ -674,6 +691,23 @@ require_free_space() {
   fi
 }
 
+adblock_cleanup_dns() {
+  # The legacy package leaves its servers file attached to Technicolor dnsmasq
+  # instances even after uninstall. Preserve unrelated/custom servers files.
+  local changed=0 section
+  for section in $(uci -q show dhcp | sed -n 's/^dhcp\.\([^.=]*\)=dnsmasq$/\1/p'); do
+    if [ "$(uci -q get "dhcp.$section.serversfile")" = "/tmp/adb_list.overall" ]; then
+      uci -q delete "dhcp.$section.serversfile"
+      changed=1
+    fi
+  done
+  if [ "$changed" = 1 ]; then
+    uci commit dhcp
+    /etc/init.d/dnsmasq reload || return 1
+  fi
+  return 0
+}
+
 app_adblock() {
   adblock_owned="/etc/.modgui-adblock-installed"
   case "$1" in
@@ -698,6 +732,7 @@ app_adblock() {
     if opkg list-installed | grep -q '^adblock '; then
       opkg remove adblock || return 1
     fi
+    adblock_cleanup_dns || return 1
     if [ -f "$adblock_owned" ]; then
       rm -f /etc/config/adblock "$adblock_owned"
     fi
@@ -1391,7 +1426,14 @@ app_l2tpipsec() {
       rm -f "$l2tpipsec_before"
       return 1
     }
-    opkg install xl2tpd strongswan-default || {
+    # Preserve the firmware's existing xl2tpd version and configuration.
+    if ! opkg status xl2tpd 2>/dev/null | grep -q '^Status:.*installed'; then
+      opkg install xl2tpd || {
+        l2tpipsec_rollback_install
+        return 1
+      }
+    fi
+    opkg install strongswan-default || {
       l2tpipsec_rollback_install
       return 1
     }
@@ -2046,9 +2088,9 @@ app_dumaos() {
   }
 
   dumaos_repair_gui() {
-    [ -f /usr/share/modgui-dumaos/015_dumaos.lp ] || return 1
-    cp /usr/share/modgui-dumaos/015_dumaos.lp /www/cards/015_dumaos.lp || return 1
-    chmod 644 /www/cards/015_dumaos.lp
+    # DumaOS is opened from Extensions; retire the card shipped by the IPK.
+    rm -f /www/cards/015_dumaos.lp
+    uci -q delete web.dumaos_card
     mkdir -p /www/data || return 1
     if [ -s /dumaossystem/version ]; then
       cp /dumaossystem/version /www/data/shorthash || return 1
@@ -2063,13 +2105,6 @@ app_dumaos() {
       uci add_list web.dumaosmodal.roles=admin
       uci add_list web.dumaosmodal.roles=engineer
       uci add_list web.dumaosmodal.roles=superuser
-    fi
-    uci set web.dumaos_card=card
-    uci set web.dumaos_card.card=015_dumaos.lp
-    if [ -f /www/docroot/modals/dumaos-modal.lp ]; then
-      uci set web.dumaos_card.modal=dumaosmodal
-    else
-      uci set web.dumaos_card.modal=duma_desktop_index
     fi
     uci commit web
   }
@@ -2193,7 +2228,6 @@ app_dumaos() {
       rm -f "$dumaos_tmp"
     fi
     [ -x /etc/init.d/dumaos ] && [ -x /etc/init.d/ndhttpd ] &&
-      [ -f /www/cards/015_dumaos.lp ] &&
       [ -f /usr/share/transformer/mappings/rpc/dumaos.map ] || {
         echo "DumaOS package does not contain the expected services and GUI files"
         return 1

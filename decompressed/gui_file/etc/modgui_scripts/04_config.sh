@@ -154,13 +154,12 @@ create_gui_type() {
       uci set modgui.app.openspeedtest_app="0"
     fi
   fi
-  if [ ! "$(uci get -q modgui.app.wireguard_app)" ]; then
-    if [ -x /usr/bin/wireguard-go ] && [ -x /usr/bin/wg-go ] &&
-      [ -x /lib/netifd/proto/wireguard.sh ]; then
-      uci set modgui.app.wireguard_app="1"
-    else
-      uci set modgui.app.wireguard_app="0"
-    fi
+  # Reconcile stale flags after a runtime is removed outside the GUI.
+  if [ -x /usr/bin/wireguard-go ] && [ -x /usr/bin/wg-go ] &&
+    [ -x /lib/netifd/proto/wireguard.sh ]; then
+    uci set modgui.app.wireguard_app="1"
+  else
+    uci set modgui.app.wireguard_app="0"
   fi
   if [ ! "$(uci get -q modgui.app.l2tpipsec_app)" ]; then
     if opkg list-installed | grep -q '^modgui-vpn '; then
@@ -195,14 +194,13 @@ create_gui_type() {
   else
     uci set modgui.app.dumaos_app="0"
   fi
+  # Migrate existing installations to the link in the Extensions card.
+  rm -f /www/cards/015_dumaos.lp
+  uci -q delete web.dumaos_card
   if [ "$(uci get -q modgui.app.dumaos_app)" = "1" ] &&
-    [ -f /usr/share/modgui-dumaos/015_dumaos.lp ] &&
-    { [ ! -f /www/cards/015_dumaos.lp ] ||
-      [ ! -s /www/data/shorthash ] ||
-      [ ! -f /www/docroot/modals/dumaos-modal.lp ] ||
-      [ "$(uci -q get web.dumaos_card.modal)" != "dumaosmodal" ] ||
-      ! cmp -s /usr/share/modgui-dumaos/015_dumaos.lp /www/cards/015_dumaos.lp; }; then
-    logecho "Restoring the DumaOS card after upgrade..."
+    { [ ! -s /www/data/shorthash ] ||
+      [ ! -f /www/docroot/modals/dumaos-modal.lp ]; }; then
+    logecho "Restoring DumaOS GUI integration after upgrade..."
     /usr/share/transformer/scripts/appInstallRemoveUtility.sh refresh dumaos >/dev/null 2>&1
   fi
   if [ "$(uci get -q modgui.app.wireguard_app)" = "1" ] &&

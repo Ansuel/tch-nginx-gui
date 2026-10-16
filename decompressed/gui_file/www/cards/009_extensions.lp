@@ -81,6 +81,38 @@ end
 
 content_helper.getExactContent(mapParams)
 
+local network = { address = "uci.network.interface.@lan.ipaddr" }
+content_helper.getExactContent(network)
+local function webui_url(port, path)
+	local address = ngx.var.host or network.address
+	if address:find(":", 1, true) and address:sub(1, 1) ~= "[" then
+		address = "[" .. address .. "]"
+	end
+	return format("http://%s:%s%s", address, port, path or "/")
+end
+
+local adguard_port = "3000"
+if mapParams.adguardhome_application == "1" then
+	local config = io.open("/opt/AdGuardHome/AdGuardHome.yaml", "r")
+	if config then
+		local in_http = false
+		for line in config:lines() do
+			if line:match("^http:%s*$") then
+				in_http = true
+			elseif line:match("^%S") then
+				in_http = false
+			elseif in_http then
+				local port = line:match("address:%s*.*:(%d+)%s*$")
+				if port then
+					adguard_port = port
+					break
+				end
+			end
+		end
+		config:close()
+	end
+end
+
 local StateParams = {}
 
 for Params in pairs(mapParams) do
@@ -93,25 +125,25 @@ for Params in pairs(mapParams) do
 end
 
 local extension_items = {
-	{ key = "luci_webui", title = T"LuCI" },
-	{ key = "aria2_webui", title = T"Aria2" },
-	{ key = "transmission_webui", title = T"Transmission" },
+	{ key = "luci_webui", title = T"LuCI", url = webui_url("9080") },
+	{ key = "aria2_webui", title = T"Aria2", url = "/aria" },
+	{ key = "transmission_webui", title = T"Transmission", url = webui_url("9091", "/transmission") },
 	{ key = "voipblock_for_mmpbx", title = T"Voipblock MMPBX" },
 	{ key = "voipblock_for_asterisk", title = T"Voipblock Asterisk" },
 	{ key = "blacklist_application", title = T"Blacklist" },
-	{ key = "xupnp_application", title = T"XUPnP" },
-	{ key = "telstra_webui", title = T"Telstra GUI" },
-	{ key = "amule_webui", title = T"aMule" },
+	{ key = "xupnp_application", title = T"XUPnP", url = webui_url("4044", "/ui/") },
+	{ key = "telstra_webui", title = T"Telstra GUI", url = "/telstra-gui.lp" },
+	{ key = "amule_webui", title = T"aMule", url = webui_url("4711") },
 	{ key = "adblock_application", title = T"Adblock" },
 	{ key = "rsyncd_application", title = T"Rsync" },
 	{ key = "speedtest_application", title = T"Speedtest" },
-	{ key = "adguardhome_application", title = T"AdGuard Home" },
-	{ key = "openspeedtest_application", title = T"OpenSpeedTest" },
+	{ key = "adguardhome_application", title = T"AdGuard Home", url = webui_url(adguard_port) },
+	{ key = "openspeedtest_application", title = T"OpenSpeedTest", url = webui_url("5678") },
 	{ key = "wireguard_application", title = T"WireGuard" },
 	{ key = "l2tpipsec_application", title = T"L2TP/IPsec" },
 	{ key = "openvpn_application", title = T"OpenVPN" },
 	{ key = "tailscale_application", title = T"Tailscale" },
-	{ key = "dumaos_application", title = T"DumaOS" },
+	{ key = "dumaos_application", title = T"DumaOS", url = "/desktop/" },
 }
 
 local modalPath = nil
@@ -134,9 +166,13 @@ local html = {}
 
 for _, item in ipairs(extension_items) do
 	if StateParams[item.key] ~= nil then
+		local title = item.title
+		if StateParams[item.key] == "1" and item.url then
+			title = format('<a class="card-direct-link" target="_blank" rel="noopener" href="%s">%s</a>', item.url, title)
+		end
 		html[#html + 1] = ui_helper.createSimpleLight(
 			StateParams[item.key],
-			item.title,
+			title,
 			{ span = { class = "simple-desc extension-status" } },
 			nil
 		)
