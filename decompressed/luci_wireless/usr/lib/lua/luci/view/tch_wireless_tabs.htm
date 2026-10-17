@@ -1,0 +1,22 @@
+<% local group = self.config .. '.' .. self.tabgroup
+   local selected = luci.http.formvalue('tab.' .. group)
+   if not self.tabs[selected] then selected = self.tab_names[1] end %>
+<div class="cbi-section">
+<legend><%=pcdata(self.title)%></legend>
+<% if self.description then %><div class="cbi-section-descr"><%=pcdata(self.description)%></div><% end %>
+<ul class="cbi-tabmenu">
+<% for _, tab in ipairs(self.tab_names) do if #self.tabs[tab].childs > 0 then %>
+  <li id="tab.<%=group%>.<%=tab%>" class="cbi-tab<%=tab == selected and '' or '-disabled'%>"><a href="#" onclick="this.blur(); return cbi_t_switch('<%=group%>', '<%=tab%>')"><%=pcdata(self.tabs[tab].title)%></a></li>
+<% end end %>
+</ul>
+<input type="hidden" id="tab.<%=group%>" name="tab.<%=group%>" value="<%=selected%>" />
+<div class="cbi-section-node">
+<% for _, tab in ipairs(self.tab_names) do %>
+  <div class="cbi-tabcontainer" id="container.<%=group%>.<%=tab%>"<% if tab ~= selected then %> style="display:none"<% end %>>
+    <% self:render_tab(tab, 1, scope or {}) %>
+  </div>
+  <script type="text/javascript">cbi_t_add('<%=group%>', '<%=tab%>')</script>
+<% end %>
+<% if self.error and self.error[1] then %><div class="cbi-section-error"><ul><% for _, e in ipairs(self.error[1]) do %><li><%=pcdata(e)%></li><% end %></ul></div><% end %>
+</div>
+</div>

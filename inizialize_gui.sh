@@ -4,6 +4,7 @@ declare -a modular_dir=(
 	"base"
 	"gui_file"
 	"traffic_mon"
+	"luci_wireless"
 	"upgrade-pack-specificDGA"
 	"upgrade-pack-specificTG800"
 	"upgrade-pack-specificTG789"
@@ -74,7 +75,7 @@ for index in "${modular_dir[@]}"; do
 	if [ $index == "base" ] || [ $index == "gui_file" ] || [ $index == "traffic_mon" ]; then
 		echo "Copying file from "$index" to GUI dir"
 		cp -dr decompressed/$index/* total
-	elif [ -z "$(echo $index | grep upgrade-pack-)" ]; then
+	elif [ "$index" != "luci_wireless" ] && [ -z "$(echo $index | grep upgrade-pack-)" ]; then
 		cp compressed/$index.tar.bz2 total/tmp
 		echo "Adding specific file from "$index" to tmp virtual dir"
 	fi

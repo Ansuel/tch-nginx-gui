@@ -88,7 +88,7 @@ def verify_build(root):
         merged.update(tree_entries(sources / module))
     merged['tmp'] = ('dir', 0o777, None)
     for filename in expected_archives:
-        if filename not in ('base.tar.bz2', 'gui_file.tar.bz2', 'traffic_mon.tar.bz2') and not filename.startswith('upgrade-pack-'):
+        if filename not in ('base.tar.bz2', 'gui_file.tar.bz2', 'traffic_mon.tar.bz2', 'luci_wireless.tar.bz2') and not filename.startswith('upgrade-pack-'):
             merged['tmp/' + filename] = file_entry(output / filename)
     gui = 'GUI' + suffix + '.tar.bz2'
     verify_archive(output / gui, merged)

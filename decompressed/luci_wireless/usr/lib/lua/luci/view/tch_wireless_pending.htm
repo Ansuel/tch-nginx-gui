@@ -1,0 +1,21 @@
+<h2><%:Applying wireless settings%></h2>
+<div class="alert-message notice" id="tch-wireless-progress"><%:Creating the secured 5 GHz network. The radio may disconnect briefly; this page will reconnect automatically.%></div>
+<div class="cbi-page-actions"><a class="cbi-button cbi-button-neutral" href="<%=pcdata(self.overview_url)%>"><%:Back to Overview%></a></div>
+<script type="text/javascript" src="<%=resource%>/xhr.js"></script>
+<script type="text/javascript">
+(function() {
+  var complete = false;
+  XHR.poll(3, '<%=self.pending_url%>', {status: '1'}, function(xhr, data) {
+    if (complete || !data) return;
+    if (data.state === 'done' && /^qtn_wifi[23]$/.test(data.id)) {
+      complete = true;
+      window.location.href = '<%=self.overview_url%>/' + data.id + '?saved=1';
+    } else if (data.state === 'failed') {
+      complete = true;
+      var message = document.getElementById('tch-wireless-progress');
+      message.className = 'alert-message warning';
+      message.textContent = data.message || '<%:Could not create 5 GHz network%>';
+    }
+  });
+})();
+</script>

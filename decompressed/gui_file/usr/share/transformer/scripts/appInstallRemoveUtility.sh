@@ -149,7 +149,9 @@ install_from_github() {
 
   chmod +x ./setup.sh
   ./setup.sh "$4"
+  setup_status=$?
   rm -rf "/tmp/$2"
+  return "$setup_status"
 }
 
 ############TRANSFORMER UTILITY##################
@@ -370,10 +372,16 @@ app_luci() {
       return 1
       ;;
     esac
+    if [ "$cpu_type" = "armv7l" ]; then
+      install_from_github "" luci_wireless specificapp install || return 1
+    fi
     uci set modgui.app.luci_webui="1"
     uci commit modgui
   }
   remove() {
+    if [ -f /usr/share/modgui-luci-wireless/setup.sh ]; then
+      sh /usr/share/modgui-luci-wireless/setup.sh remove || return 1
+    fi
     luci_remove_arm() {
       opkg remove --force-removal-of-dependent-packages uhttpd rpcd libuci-lua luci luci-*
       [ ! -f /rom/usr/lib/libjson-c.so.2 ] && rm -rf /usr/lib/libjson-c.so.2 #workaround for 18.x feeds used on 19.x firmware
