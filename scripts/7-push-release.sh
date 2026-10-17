@@ -44,7 +44,7 @@ if printf '%s\n' "$tags" | grep -Fxq "$VERSION"; then
     fi
 else
     gh release create "$VERSION" "${assets[@]}" --repo "$GITHUB_REPOSITORY" \
-        --target "$GITHUB_SHA" --title "$VERSION" --notes "<!-- gui-build:$GITHUB_SHA:$channel -->" --draft --prerelease="$prerelease"
+        --target "$GITHUB_SHA" --title "$VERSION" --generate-notes --draft --prerelease="$prerelease"
 fi
 gh release edit "$VERSION" --repo "$GITHUB_REPOSITORY" --draft=false --latest="$latest"
 

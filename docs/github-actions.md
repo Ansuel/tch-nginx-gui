@@ -28,6 +28,8 @@ Include `[x.y.z]` in the commit message to choose a version, for example:
 
 Otherwise the workflow increments the greatest numeric release tag across all channels.
 A retry reuses an existing draft or release for the same commit and channel.
+Release notes use GitHub's automatic generation. Retries identify the commit and
+channel from the release target and GUI archive name, independently of the notes.
 Published archives are not overwritten, and a channel cannot move backwards.
 Each version belongs to one commit and channel; use a new version for another channel.
 

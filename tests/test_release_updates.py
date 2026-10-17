@@ -58,12 +58,17 @@ if '-w' in args:
     print('\\n200', end='')
 ''')
         self.mock('gh', '''
-import json, os, pathlib, sys
+import json, os, pathlib, subprocess, sys
 root = pathlib.Path(os.environ['FIXTURE'])
 a = sys.argv[1:]
 with (root/'gh-calls').open('a') as f: f.write(json.dumps(a)+'\\n')
 if os.environ.get('GH_FAIL'): sys.exit(1)
-if a[0] == 'api': print(os.environ.get('MATCHED', '') if 'target_commitish' in a[-1] else os.environ.get('TAGS', ''))
+if a[0] == 'api':
+    if 'RELEASES' in os.environ:
+        result = subprocess.run(['jq', '-r', a[a.index('--jq')+1]],
+                                input=os.environ['RELEASES'], text=True)
+        sys.exit(result.returncode)
+    print(os.environ.get('MATCHED', '') if 'target_commitish' in a[-1] else os.environ.get('TAGS', ''))
 elif a[:2] == ['release', 'view']:
     print('abcdef' if 'targetCommitish' in a else os.environ.get('DRAFT', 'false'))
 elif a[:2] == ['release', 'download']:
@@ -271,6 +276,34 @@ else:
         self.assertEqual((self.data/'version').read_text().strip(), '9.7.9')
         self.assertEqual(len(self.calls()), 1)
 
+    @unittest.skipUnless(shutil.which('jq'), 'GitHub CLI release filters require jq for this offline check')
+    def test_rerun_identifies_channel_without_release_notes(self):
+        (self.data/'last_log').write_text('abc build')
+        releases = []
+        for channel, version, asset in [('DEV', '9.7.9', 'GUI_dev.tar.bz2'),
+                                        ('PREVIEW', '9.8.0', 'GUI_preview.tar.bz2'),
+                                        ('STABLE', '9.8.1', 'GUI.tar.bz2')]:
+            releases.append({'tag_name': version, 'target_commitish': 'abcdef',
+                             'assets': [{'name': asset}], 'body': 'GitHub generated notes'})
+        releases.extend([
+            {'tag_name': 'channel-dev', 'target_commitish': 'abcdef', 'assets': []},
+            {'tag_name': '9.8.2', 'target_commitish': 'another-commit',
+             'assets': [{'name': 'GUI_dev.tar.bz2'}]},
+            {'tag_name': '9.8.3', 'target_commitish': 'abcdef', 'assets': []},
+        ])
+        self.env['RELEASES'] = json.dumps(releases)
+        for channel, version in [('DEV', '9.7.9'), ('PREVIEW', '9.8.0'), ('STABLE', '9.8.1')]:
+            with self.subTest(channel=channel):
+                (self.data/'type').write_text(channel)
+                self.script('1-increment_autobuild_ver.sh')
+                self.assertEqual((self.data/'version').read_text().strip(), version)
+        # Existing releases with the old comment remain reusable too.
+        releases[0]['body'] = '<!-- gui-build:abcdef:dev -->'
+        self.env['RELEASES'] = json.dumps(releases)
+        (self.data/'type').write_text('DEV')
+        self.script('1-increment_autobuild_ver.sh')
+        self.assertEqual((self.data/'version').read_text().strip(), '9.7.9')
+
     def test_pr_without_releases_can_build(self):
         (self.data/'last_log').write_text('abc build')
         self.env['GITHUB_EVENT_NAME'] = 'pull_request'
@@ -291,6 +324,8 @@ else:
             ['release','create','9.7.9'], ['release','edit','9.7.9'],
             ['release','create','channel-dev']])
         self.assertIn('--draft', mutations[0])
+        self.assertIn('--generate-notes', mutations[0])
+        self.assertNotIn('--notes', mutations[0])
         self.assertIn('--draft=false', mutations[1])
         self.assertIn('--latest=false', mutations[2])
 
