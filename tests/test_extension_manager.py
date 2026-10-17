@@ -157,7 +157,8 @@ local installed = arg[2]
 T = function(text) return text end
 gettext = { textdomain = function() end }
 ngx = {
-    var = { host = "192.168.133.69" },
+    var = { host = arg[4] },
+    req = { get_method = function() return "GET" end },
     ctx = { session = { hasAccess = function() return true end } },
     print = function(value)
         if type(value) == "table" then value = table.concat(value) end
@@ -171,22 +172,23 @@ package.preload["datamodel"] = function()
 end
 package.preload["web.content_helper"] = function()
     return { getExactContent = function(params)
-        for key in pairs(params) do
-            params[key] = key == "address" and "192.168.1.1" or installed
+        for key, path in pairs(params) do
+            assert(not path:find("uci.network", 1, true), "Must not read interface addresses")
+            params[key] = installed
         end
     end }
 end
 package.preload["web.ui_helper"] = function()
-    return {
+    return setmetatable({
         createCardHeader = function() return "" end,
         createSimpleLight = function(state, title)
             return '<span data-state="' .. state .. '">' .. title .. '</span>'
         end,
-    }
+    }, { __index = function() return function() return "" end end })
 end
 io.popen = function() return {read = function() return "0" end, close = function() end} end
 io.open = function(path)
-    assert(path == "/opt/AdGuardHome/AdGuardHome.yaml")
+    if path ~= "/opt/AdGuardHome/AdGuardHome.yaml" then return nil end
     local lines = {"http:", "  address: 0.0.0.0:8081", "dns:", "  port: 53"}
     local index = 0
     return { lines = function() return function()
@@ -196,10 +198,17 @@ io.open = function(path)
 end
 dofile(arg[1])
 '''
-        for installed, architecture in (("0", "armv7"), ("1", "armv7"), ("1", "mips")):
-            with self.subTest(installed=installed, architecture=architecture):
+        cases = (("0", "armv7", "192.168.133.69"),
+                 ("1", "armv7", "192.168.133.69"),
+                 ("1", "mips", "192.168.133.69"),
+                 ("1", "armv7", "modem.example.test"),
+                 ("1", "armv7", "2001:db8::69"),
+                 ("1", "armv7", "[2001:db8::69]"))
+        for installed, architecture, host in cases:
+            address = f"[{host}]" if ":" in host and not host.startswith("[") else host
+            with self.subTest(installed=installed, architecture=architecture, host=host):
                 result = subprocess.run(
-                    ["lua", "-", str(CARD), installed, architecture], input=harness,
+                    ["lua", "-", str(CARD), installed, architecture, host], input=harness,
                     text=True, capture_output=True, check=True,
                 )
                 if installed == "0":
@@ -207,24 +216,34 @@ dofile(arg[1])
                     self.assertIn('>DumaOS</span>', result.stdout)
                     continue
                 for url, title in (
-                    ("http://192.168.133.69:9080/", "LuCI"),
+                    (f"http://{address}:9080/", "LuCI"),
                     ("/aria", "Aria2"),
-                    ("http://192.168.133.69:9091/transmission", "Transmission"),
-                    ("http://192.168.133.69:4044/ui/", "XUPnP"),
+                    (f"http://{address}:9091/transmission", "Transmission"),
+                    (f"http://{address}:4044/ui/", "XUPnP"),
                     ("/telstra-gui.lp", "Telstra GUI"),
-                    ("http://192.168.133.69:8081/", "AdGuard Home"),
-                    ("http://192.168.133.69:5678/", "OpenSpeedTest"),
+                    (f"http://{address}:8081/", "AdGuard Home"),
+                    (f"http://{address}:5678/", "OpenSpeedTest"),
                 ):
                     if architecture == "mips" and title == "AdGuard Home":
                         continue
                     self.assertIn(f'href="{url}">{title}</a>', result.stdout)
                 architecture_url, architecture_title = (
                     ("/desktop/", "DumaOS") if architecture == "armv7"
-                    else ("http://192.168.133.69:4711/", "aMule")
+                    else (f"http://{address}:4711/", "aMule")
                 )
                 self.assertIn(f'href="{architecture_url}">{architecture_title}</a>', result.stdout)
                 self.assertEqual(result.stdout.count('class="card-direct-link"'), 8 if architecture == "armv7" else 7)
                 self.assertNotIn('>WireGuard</a>', result.stdout)
+                modal = subprocess.run(
+                    ["lua", "-", str(MODAL), installed, architecture, host], input=harness,
+                    text=True, capture_output=True, check=True,
+                )
+                for port in ("9080", "9091", "4044", "5678"):
+                    self.assertIn(f'http://{address}:{port}', modal.stdout)
+                if architecture == "armv7":
+                    self.assertIn(f'http://{address}:8081', modal.stdout)
+                else:
+                    self.assertIn(f'http://{address}:4711', modal.stdout)
 
     def test_extensions_are_whitelisted_dispatched_and_mapped(self):
         installer = INSTALLER.read_text()

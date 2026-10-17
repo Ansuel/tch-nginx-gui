@@ -81,10 +81,8 @@ end
 
 content_helper.getExactContent(mapParams)
 
-local network = { address = "uci.network.interface.@lan.ipaddr" }
-content_helper.getExactContent(network)
 local function webui_url(port, path)
-	local address = ngx.var.host or network.address
+	local address = ngx.var.host
 	if address:find(":", 1, true) and address:sub(1, 1) ~= "[" then
 		address = "[" .. address .. "]"
 	end

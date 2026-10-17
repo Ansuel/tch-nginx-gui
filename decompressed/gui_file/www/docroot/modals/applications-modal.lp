@@ -58,8 +58,13 @@ if ngx.req.get_method() == "POST" then
 	end
 end
 
+-- Use the hostname of the page request, including access through other interfaces.
+local webui_host = ngx.var.host
+if webui_host:find(":", 1, true) and webui_host:sub(1, 1) ~= "[" then
+	webui_host = "[" .. webui_host .. "]"
+end
+
 local mapParams = {
-	local_ip_modem = "uci.network.interface.@lan.ipaddr",
 	telstra_webui = "uci.modgui.app.telstra_webui",
 }
 if marketing_version >= 16.3 then
@@ -209,7 +214,7 @@ if StateParams["luci_webui"] ~= nil then
 	html[#html+1] = '<legend>' .. T"LuCI GUI" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install uHTTPd and LuCI", info_box)
 	append_app_status("luci_webui", T"LuCI GUI")
-	local luci_link = format("http://%s:9080",mapParams.local_ip_modem)
+	local luci_link = format("http://%s:9080", webui_host)
 	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. luci_link .. '">' .. luci_link .. "</a>"
 	html[#html+1] = "<br/>"
 	html[#html+1] = "<br/>"
@@ -229,7 +234,7 @@ if StateParams["amule_webui"] ~= nil then
 	html[#html+1] = '<legend>' .. T"aMule" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install aMule webui", info_box)
 	append_app_status("amule_webui", T"aMule")
-	local amule_direct_link = format("http://%s:4711/",mapParams.local_ip_modem)
+	local amule_direct_link = format("http://%s:4711/", webui_host)
 	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. amule_direct_link .. '">' .. amule_direct_link .. "</a>"
 	html[#html+1] = "<br/>"
 	if mapParams["amule_webui"] and mapParams["amule_webui"] == "1" then
@@ -274,7 +279,7 @@ if StateParams["transmission_webui"] ~= nil then
 	html[#html+1] = '<legend>' .. T"Transmission GUI" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install transmission and transmission-webui", info_box)
 	append_app_status("transmission_webui", T"Transmission GUI")
-	local transmission_direct_link = format("http://%s:9091/transmission",mapParams.local_ip_modem)
+	local transmission_direct_link = format("http://%s:9091/transmission", webui_host)
 	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. transmission_direct_link .. '">' .. transmission_direct_link .. "</a>"
 	html[#html+1] = "<br/>"
 	html[#html+1] = "<br/>"
@@ -354,7 +359,7 @@ if StateParams["adguardhome_application"] ~= nil then
 		end
 		adguard_config:close()
 	end
-	local adguard_link = format("http://%s:%s", mapParams.local_ip_modem, adguard_port)
+	local adguard_link = format("http://%s:%s", webui_host, adguard_port)
 	append_extension_card(
 		"adguardhome_application",
 		"adguardhome",
@@ -366,7 +371,7 @@ if StateParams["adguardhome_application"] ~= nil then
 end
 
 if StateParams["openspeedtest_application"] ~= nil then
-	local openspeedtest_link = format("http://%s:5678", mapParams.local_ip_modem)
+	local openspeedtest_link = format("http://%s:5678", webui_host)
 	append_extension_card(
 		"openspeedtest_application",
 		"openspeedtest",
@@ -527,7 +532,7 @@ if StateParams["xupnp_application"] ~= nil then
 	html[#html+1] = '<legend>' .. T"XUPnP App" .. '</legend>'
 	html[#html+1] = ui_helper.createAlertBlock(T"This will install the XUPnP application", info_box)
 	append_app_status("xupnp_application", T"XUPnP App")
-	local xupnp_link = format("http://%s:4044/ui/",mapParams.local_ip_modem)
+	local xupnp_link = format("http://%s:4044/ui/", webui_host)
 	html[#html+1] = T"Webui on: " .. '<a target="_blank" href="' .. xupnp_link .. '">' .. xupnp_link .."</a>"
 	html[#html+1] = "<br/>"
 	html[#html+1] = "<br/>"
