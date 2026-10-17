@@ -91,6 +91,40 @@ setup_network() {
   uci commit network
 }
 
+fix_missing_ula_prefix() (
+  generator="/rom/etc/uci-defaults/12_network-generate-ula"
+
+  #Only repair an uninitialised ULA, never replace an existing subnet
+  #or undo an explicit disable ("none" / a saved ula_prefix_backup).
+  [ "$(uci -q get network.globals)" = "globals" ] || return 0
+  prefix="$(uci -q get network.globals.ula_prefix)"
+  case "$prefix" in
+    ""|auto) ;;
+    *) return 0 ;;
+  esac
+  [ -z "$(uci -q get network.globals.ula_prefix_backup)" ] || return 0
+  [ -r "$generator" ] || return 0
+
+  logecho "Regenerating missing IPv6 ULA prefix..."
+  uci set network.globals.ula_prefix=auto || return 0
+  if sh "$generator"; then
+    generated_prefix="$(uci -q get network.globals.ula_prefix)"
+    case "$generated_prefix" in
+      ""|auto|none) ;;
+      *) uci commit network; return 0 ;;
+    esac
+  fi
+
+  #Do not leave the temporary 'auto' value behind if the firmware helper fails.
+  logecho "Unable to generate IPv6 ULA prefix; restoring previous setting"
+  if [ -n "$prefix" ]; then
+    uci set "network.globals.ula_prefix=$prefix"
+  else
+    uci -q delete network.globals.ula_prefix
+  fi
+  uci commit network
+)
+
 puryfy_wan_interface() { #creano problemi di dns per chissa'  quale diavolo di motivo... Ma l'utilitÃ  di sta roba eh telecom ?
   logecho "Purify WAN network config..."
   uci -q del network.wan.keepalive
@@ -249,6 +283,7 @@ check_isp_config
 add_ipoe             #Needed to fix wizard
 remove_default_dns   #tim sets his dns on to of the loopback interface
 setup_network        #Fix some missing network value
+fix_missing_ula_prefix #Regenerate an uninitialised IPv6 ULA using the firmware helper
 puryfy_wan_interface #remove gracefull restart, could give problem
 fix_dns_dhcp_bug     #disable odhcpd as ipv6 is currently broken
 check_dnsmasq_name   #check dnsmasq name in uci to avoid issue in guid hardcoded references
