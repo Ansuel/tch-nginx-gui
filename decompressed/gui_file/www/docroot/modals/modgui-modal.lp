@@ -898,7 +898,6 @@ ngx.print('\
   $("#gui_skin").on("change", function() {\
         var theme = $(this).val();\
         if ( theme.indexOf("Fritz") === -1 ) {\
-                event.preventDefault();\
                 var restyled = theme+"/style.css";\
                 modgui.freshStyle(restyled);\
         }\
