@@ -159,11 +159,11 @@
 		width: 100%;
 	}
 	.header-sub-button {
-		width: 100%;
+		width: auto;
 	}
 	    
 	.header-button {
-		width: 9rem;
+		width: auto;
 	}
 	.btn-group>.btn+.dropdown-toggle {
 		padding-right: 0.4rem;

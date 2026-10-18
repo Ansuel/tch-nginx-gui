@@ -47,7 +47,6 @@ ngx.print('\
 	local script_file_presence = content_helper.fileExists(string.format("/www/docroot/theme/%s/script.js",cui.gui_skin))
 	if script_file_presence then
 		ngx.print('<script src="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/script.js?version='); ngx.print(cui.gui_version); ngx.print('"></script>');
-		script_file_presence:close()
 	end
 ngx.print('\
   </head>\

@@ -88,6 +88,20 @@ files['/proc/sys/net/nf_conntrack_max'] = ''
 assert(readLimit() == '8192')
 ''')
 
+    def test_theme_script_availability_is_a_boolean_not_an_open_file(self):
+        self.run_lua(r'''
+ngx = {ctx = {session = {getCSRFtoken = function() return 'test' end}}, print = function() end}
+gettext = {language = function() return 'en-us' end}
+T = function(value) return value end
+package.preload['web.content_helper'] = function() return {
+  getExactContent = function(content)
+    content.advanced, content.gui_skin, content.gui_version, content.gui_animation = '0', 'Fritz', 'test', '0'
+  end,
+  fileExists = function() return true end,
+} end
+dofile(HEADER_PATH)
+'''.replace('HEADER_PATH', repr(str(ROOT / 'www/gateway-snippets/head-js-css.lp'))))
+
 
 if __name__ == '__main__':
     unittest.main()
