@@ -4492,3 +4492,30 @@ msgstr "Bevorzugte Funkschnittstelle"
 
 msgid "WiFi Devices"
 msgstr "WLAN-Geräte"
+
+msgid "Card Settings"
+msgstr "Karteneinstellungen"
+
+msgid "Choose which cards to display. GUI Settings always remains available."
+msgstr "Wählen Sie die anzuzeigenden Karten aus. Die GUI-Einstellungen bleiben immer erreichbar."
+
+msgid "All bands"
+msgstr "Alle Frequenzbänder"
+
+msgid "Current configuration"
+msgstr "Aktuelle Konfiguration"
+
+msgid "6GHz"
+msgstr "6 GHz"
+
+msgid "Content Sharing"
+msgstr "Freigabe von Inhalten"
+
+msgid "Printer Sharing"
+msgstr "Druckerfreigabe"
+
+msgid "Telephony"
+msgstr "Telefonie"
+
+msgid "Parental Controls"
+msgstr "Kindersicherung"

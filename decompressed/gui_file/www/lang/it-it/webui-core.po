@@ -4525,3 +4525,30 @@ msgstr "Banda radio preferita"
 
 msgid "WiFi Devices"
 msgstr "Dispositivi Wi-Fi"
+
+msgid "Card Settings"
+msgstr "Personalizza schede"
+
+msgid "Choose which cards to display. GUI Settings always remains available."
+msgstr "Scegli quali schede visualizzare. Le impostazioni GUI rimangono sempre accessibili."
+
+msgid "All bands"
+msgstr "Tutte le bande"
+
+msgid "Current configuration"
+msgstr "Configurazione attuale"
+
+msgid "6GHz"
+msgstr "6 GHz"
+
+msgid "Content Sharing"
+msgstr "Condivisione contenuti"
+
+msgid "Printer Sharing"
+msgstr "Condivisione stampante"
+
+msgid "Telephony"
+msgstr "Telefonia"
+
+msgid "Parental Controls"
+msgstr "Controllo genitori"
