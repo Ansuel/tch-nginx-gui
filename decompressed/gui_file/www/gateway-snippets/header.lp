@@ -283,4 +283,5 @@ ngx.print('\
 \
 </script>\
 <script src="/js/shared-script.js?version='); ngx.print(cui.gui_version); ngx.print('" ></script>\
+<script src="/js/dashboard-polling.js?version='); ngx.print(cui.gui_version); ngx.print('" ></script>\
 ');

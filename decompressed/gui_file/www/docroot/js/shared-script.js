@@ -66,7 +66,8 @@ var modgui = modgui || {};
             if (pending) return;
             pending = true;
             var separator = ajaxLink.indexOf("?") === -1 ? "?" : "&";
-            request = $.ajax({
+            var send = typeof window.modguiDashboardRequest === "function" ? window.modguiDashboardRequest : $.ajax;
+            request = send({
                 url: ajaxLink + separator + "auto_update=true",
                 type: "POST",
                 data: [tch.elementCSRFtoken()],
