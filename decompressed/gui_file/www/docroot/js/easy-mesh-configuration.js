@@ -2,9 +2,7 @@
 (function () {
   var labels = $("[id='controllermac'], [id='agentmac']");
   var tabs = $("[id='" + extenderInfo + "'], [id='" + agentList + "'], [id='" + devicesList + "']");
-  var credentials = $("[id='state@cred0'], [id='state@cred1'], [id='state@cred2'], " +
-    "[id='fronthaul@cred0'], [id='fronthaul@cred1'], [id='fronthaul@cred2'], " +
-    "[id='backhaul@cred0'], [id='backhaul@cred1'], [id='backhaul@cred2']");
+  var credentials = $("[id^='state@cred'], [id^='fronthaul@cred'], [id^='backhaul@cred']");
 
   if (multiapAgent === "1" && multiapContr === "1") {
     credentials.closest(".controls").css({ "pointer-events": "none", opacity: "0.5" });

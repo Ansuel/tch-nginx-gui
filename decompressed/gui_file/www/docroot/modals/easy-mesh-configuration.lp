@@ -108,16 +108,11 @@
     end
   end
 
-  local preferredInterface = {
-    {"radio_2G,radio_5Gu,radio_5Gl", T"Both"}
-  }
-  if post_helper.getVariantValue(variantHelper, "frequencySelection") then
-    preferredInterface = {
-      {"radio_2G", T"2.4GHz"},
-      {"radio_5Gu,radio_5Gl", T"5GHz"},
-      {"radio_2G,radio_5Gu,radio_5Gl", T"Both"}
-    }
+  local preferredInterface = em_helper.get_frequency_options()
+  if not post_helper.getVariantValue(variantHelper, "frequencySelection") and #preferredInterface > 1 then
+    preferredInterface = {preferredInterface[#preferredInterface]}
   end
+  for _, option in ipairs(preferredInterface) do option[2] = T(option[2]) end
 
   local function getValidateExtraSpaces(value)
     if match(value, "^%s+") or match(value, "%s+$") then
@@ -127,6 +122,18 @@
   end
 
   local getCredentials = content_helper.convertResultToObject("uci.multiap.controller_credentials.", proxy.get("uci.multiap.controller_credentials."))
+  -- Keep stored combinations selectable if a radio is temporarily absent.
+  -- Rendering/saving an unrelated setting must not silently replace them.
+  local known_frequencies = {}
+  for _, option in ipairs(preferredInterface) do known_frequencies[option[1]] = true end
+  for _, credential in ipairs(getCredentials) do
+    local current = credential.frequency_bands
+    if current then current = string.untaint(current) end
+    if current and current:match("^[%w_,%-]+$") and not known_frequencies[current] then
+      preferredInterface[#preferredInterface + 1] = {current, T"Current configuration"}
+      known_frequencies[current] = true
+    end
+  end
 
   local credParamIndex, ap
 
