@@ -5,31 +5,27 @@ gettext.textdomain('webui-core')
 
 local proxy = require("datamodel")
 local ui_helper = require("web.ui_helper")
+local netrate = require("netrate")
 
 local  format = string.format
 
 local interface = proxy.get("rpc.network.interface.@wan.ifname")
-local wan = proxy.get("rpc.network.interface.@wan.up") and proxy.get("rpc.network.interface.@wan.up")[1].value or nil
+local wan_result = proxy.get("rpc.network.interface.@wan.up")
+local wan = wan_result and wan_result[1] and wan_result[1].value
 
-local graph_interface = interface and interface[1].value or "br-lan"
+local graph_interface = interface and interface[1] and interface[1].value or "br-lan"
 
 if graph_interface:match("wan") then
 	local real_interface = proxy.get(format("uci.network.device.@%s.ifname",graph_interface))
-	if real_interface then
+	if real_interface and real_interface[1] then
 		graph_interface = real_interface[1].value or "br-lan"
 	end
 end
 
-if interface and ( wan == "1" ) then
-	local int_rx = format("/sys/class/net/%s/statistics/rx_bytes",graph_interface)
-	local int_tx = format("/sys/class/net/%s/statistics/tx_bytes",graph_interface)
-	
-	local file = io.open(int_rx,"r")
-	local rx_traffic = file:read()
-	file:close()
-	file = io.open(int_tx,"r")
-	local tx_traffic = file:read()
-	file:close()
+local sample = wan == "1" and netrate.sample(graph_interface)
+if sample then
+    local rx_traffic = format("%.0f", sample.rx)
+    local tx_traffic = format("%.0f", sample.tx)
 
   ngx.print('\
 \
@@ -47,6 +43,7 @@ if interface and ( wan == "1" ) then
 	html[#html + 1] = '</div>'
 	html[#html + 1] = '<div id="rx_traffic_complete" class="hide" data-bind="text: rx_traffic_complete">' .. rx_traffic .. '</div>'
 	html[#html + 1] = '<div id="tx_traffic_complete" class="hide" data-bind="text: tx_traffic_complete">' .. tx_traffic .. '</div>'
+	html[#html + 1] = '<div id="traffic_sample_time" class="hide" data-bind="text: traffic_sample_time">' .. sample.time .. '</div>'
 
 	ngx.print(html)
 ngx.print('\
@@ -113,34 +110,41 @@ var InfoWANChart = new Chart(wan_ctx, {\
     }]},\
     options: TrafficChartOption \
 });\
+var graphRequestPending = false;\
 var InfoGraphCardRefresh = function(ElementBinding) {\
+        if (document.hidden || graphRequestPending) return;\
 		var tx_traffic_complete = document.getElementById("tx_traffic_complete");\
 		var rx_traffic_complete = document.getElementById("rx_traffic_complete");\
-		if (tx_traffic_complete) {\
+		var traffic_sample_time = document.getElementById("traffic_sample_time");\
+		if (tx_traffic_complete && rx_traffic_complete && traffic_sample_time) {\
 			var tx_traffic_old = tx_traffic_complete.textContent;\
 			var rx_traffic_old = rx_traffic_complete.textContent;\
 			var interface = "'); ngx.print(graph_interface); ngx.print('";\
-			$.post("/ajax/traffic_graph.lua?interface=" + interface + \
-				"&oldrx=" + rx_traffic_old + "&oldtx=" + tx_traffic_old +"&auto_update=true" ,\
-				[tch.elementCSRFtoken()], function(data) {\
-					var rx_traffic = data.rx_traffic-data.old_rx_traffic;\
-					var tx_traffic = data.tx_traffic-data.old_tx_traffic;\
+			graphRequestPending = true;\
+			$.ajax({url: "/ajax/traffic_graph.lua?interface=" + encodeURIComponent(interface) + \
+				"&oldrx=" + rx_traffic_old + "&oldtx=" + tx_traffic_old + "&oldtime=" + traffic_sample_time.textContent + "&auto_update=true" ,\
+				type: "POST", data: [tch.elementCSRFtoken()], dataType: "json", timeout: 8000,\
+                success: function(data) {\
+					if (document.getElementById("traffic_sample_time") !== traffic_sample_time) return;\
+					if (!data || data.valid !== true) return;\
 					ElementBinding.rx_traffic_complete(data.rx_traffic);\
 					ElementBinding.tx_traffic_complete(data.tx_traffic);\
+					ElementBinding.traffic_sample_time(data.sample_time);\
+					if (typeof data.rx_bytes_per_second !== "number" || typeof data.tx_bytes_per_second !== "number" ||\
+						!isFinite(data.rx_bytes_per_second) || !isFinite(data.tx_bytes_per_second)) return;\
 					var date = new Date();\
-					var old_time = Date.parse("01 Jan 1970 "+timelabel.slice(-1).pop()+" GMT");\
 					timelabel.push(date.getHours()+":"+date.getMinutes()+":"+date.getSeconds());\
-					var time = Date.parse("01 Jan 1970 "+timelabel.slice(-1).pop()+" GMT");\
-					var time_diff = (time-old_time > 0) ? ((time-old_time)/1000) : 1;\
-					wanRxdatasets.push(((rx_traffic*8)/time_diff).toFixed(0));\
-					wanTxdatasets.push(((tx_traffic*8)/time_diff).toFixed(0));\
+					wanRxdatasets.push((data.rx_bytes_per_second*8).toFixed(0));\
+					wanTxdatasets.push((data.tx_bytes_per_second*8).toFixed(0));\
 					if (wanTxdatasets.length > 60) {\
 						wanTxdatasets.shift();\
 						wanRxdatasets.shift();\
 						timelabel.shift();\
 					}\
 					InfoWANChart.update();\
-			}, "json");\
+			}}).always(function() {\
+                    if (document.getElementById("traffic_sample_time") === traffic_sample_time) graphRequestPending = false;\
+                });\
 		};\
 	};\
 $(document).ready(function () {\
