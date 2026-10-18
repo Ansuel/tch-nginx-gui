@@ -1,63 +1,51 @@
 local ngx = ngx
-local find, require = string.find, require
-local sort = table.sort
 local lfs = require("lfs")
-
-local uci = require("uci"):cursor()
-
-local includepath
-
+local uci = require("uci")
+local sort = table.sort
 local M = {}
 
-local function get_rules_from_config()
-	
-	local rules = {}
-
-	uci:foreach('web', 'rule', function(s)
-		rules[s['.name']] = s
-	end)
-	
-	uci:unload('web')
-	
-	return rules
+local function plain(value)
+  if string.untaint then value = string.untaint(value) end
+  if type(value) == "string" then return value end
 end
 
-local rules = get_rules_from_config()
+local function clean_card(value)
+  value = plain(value)
+  return value and value:gsub("^%d+_", "")
+end
 
-local function get_cards_from_config()
-  local config = {}
-  
-  uci:foreach('web', 'card', function(card)
-    -- only include cards that refer to a valid modal
-    -- and are not anonymous
-    local rule = rules[card.modal]
-    if rule and not card['.anonymous'] then
-      -- set modal to the actual path of the modal
-      card.modal = rule.target
-      -- set correct value for hide (missing means true)
-      card.hide = (card.hide~='0')
-      -- remove any initial digits
-      card.card = card.card:gsub("^%d+_", "")
+local function get_config()
+  local config = ngx.ctx.modgui_cards_config
+  if config then return config end
 
-      config[card.card] = card
+  config = {cards = {}, card_to_modal = {}, modal_to_card = {}}
+  local cursor = uci.cursor()
+  local rules = {}
+  cursor:foreach("web", "rule", function(rule)
+    rules[rule[".name"]] = plain(rule.target)
+  end)
+  cursor:foreach("web", "card", function(card)
+    local target = rules[card.modal]
+    local original = plain(card.card)
+    if target and original and not card[".anonymous"] then
+      local name = clean_card(original)
+      -- hide controls visibility when modal access is denied. It is not a
+      -- user preference to hide a card from an otherwise authorized session.
+      config.cards[name] = {modal = target, hide = card.hide ~= "0"}
+      config.card_to_modal[original] = target
+      config.card_to_modal[name] = target
+      config.modal_to_card[target] = original
     end
   end)
-  uci:unload('web')
+  cursor:unload("web")
+  ngx.ctx.modgui_cards_config = config
   return config
 end
 
-local config = get_cards_from_config()
-
-local function card_visible(session, config, cardname)
-  local card = config[cardname]
-  if card then
-    local access
-    if card.modal then
-      access = session:hasAccess(card.modal)
-    end
-    if not access and card.hide then
-      return false
-    end
+local function card_visible(config, cardname)
+  local card = config.cards[cardname]
+  if card and card.hide and not ngx.ctx.session:hasAccess(card.modal) then
+    return false
   end
   return true
 end
@@ -66,108 +54,56 @@ local cards_limiter
 do
   local found
   found, cards_limiter = pcall(require, "cards_limiter")
-  if not found then
-    cards_limiter = nil
-  end
+  if not found then cards_limiter = nil end
 end
 
 local function get_limit_info()
   local fn = cards_limiter and cards_limiter.get_limit_info
-  if fn then
-    return fn()
-  end
+  if fn then return fn() end
 end
 
-local function card_limited(info, cardname, includepath)
+local function card_limited(info, cardname, path)
   local fn = cards_limiter and cards_limiter.card_limited
-  if fn then
-    return fn(info, cardname, includepath)
-  end
+  if fn then return fn(info, cardname, path) end
   return false
 end
 
 function M.setpath(path)
-  includepath = path
+  ngx.ctx.modgui_cards_path = plain(path)
 end
 
-local dataReq = {
-	
-}
-
-local function compareValueFromConfig(dataReq,val2)
-	
-	local result = nil
-	
-	uci:foreach('web', 'card', function(card)
-
-		local rule = rules[card.modal]
-
-		if rule and not card['.anonymous'] then
-			if val1 == val2 then
-				result = rule.target
-			end
-		end
-	end)
-
-	uci:unload('web')
-	
-	return result
+-- Invalidates this request only. Subsequent requests always read fresh UCI
+-- configuration without sharing a cursor, paths or authorization decisions.
+function M.reload_config()
+  ngx.ctx.modgui_cards_config = nil
 end
 
---Returns card from modal provided or nil
-function M.get_card_from_modal(ModalSearch)
-	local session = ngx.ctx.session
-	local result
-	
-	uci:foreach('web', 'card', function(card)
-
-		local rule = rules[card.modal]
-
-		if rule and not card['.anonymous'] then
-			if rule.target == ModalSearch then
-				result = card.card
-			end
-		end
-	end)
-
-	uci:unload('web')
-	
-	if result and card_visible(session, config, (result:gsub("^%d+_", ""))) then
-	  return result
-	end
-	
-	return
+function M.get_card_from_modal(modal)
+  modal = plain(modal)
+  if not modal then return end
+  local config = get_config()
+  local card = config.modal_to_card[modal]
+  if card and card_visible(config, clean_card(card)) then return card end
 end
 
---Returns card from modal provided or nil
-function M.get_modal_from_card(CardSearch)
-	local result
-	
-	uci:foreach('web', 'card', function(card)
-
-		local rule = rules[card.modal]
-
-		if rule and not card['.anonymous'] then
-			if card.card == CardSearch then
-				result = rule.target
-			end
-		end
-	end)
-
-	uci:unload('web')
-	return result
+function M.get_modal_from_card(card)
+  card = plain(card)
+  if not card then return end
+  local config = get_config()
+  return config.card_to_modal[card] or config.card_to_modal[clean_card(card)]
 end
 
 function M.cards()
-  local session = ngx.ctx.session
+  local config = get_config()
+  local path = ngx.ctx.modgui_cards_path
   local limit_info = get_limit_info()
   local result = {}
-  if includepath and lfs.attributes(includepath, 'mode') == 'directory' then
-    for file in lfs.dir(includepath) do
-      if find(file, "%.lp$") then
-        local cardname = file:gsub("^%d+_", "")
-        if card_visible(session, config, cardname) and not card_limited(limit_info, cardname, includepath) then
-          result[#result+1] = file
+  if path and lfs.attributes(path, "mode") == "directory" then
+    for file in lfs.dir(path) do
+      if file:find("%.lp$") then
+        local cardname = clean_card(file)
+        if card_visible(config, cardname) and not card_limited(limit_info, cardname, path) then
+          result[#result + 1] = file
         end
       end
     end
