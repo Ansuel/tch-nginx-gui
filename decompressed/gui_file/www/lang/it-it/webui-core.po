@@ -1053,7 +1053,7 @@ msgid "Force Update"
 msgstr "Forza aggiornamento"
 
 msgid "Frame Bursting"
-msgstr "Frame Bursting"
+msgstr "Trasmissione a raffiche (Frame Bursting)"
 
 msgid "Framing parameters"
 msgstr "Parametri framing"
@@ -2034,7 +2034,7 @@ msgid "Setup Wizard"
 msgstr "Configurazione guidata"
 
 msgid "Short Guard Interval"
-msgstr "Short Guard Interval"
+msgstr "Intervallo di guardia breve (SGI)"
 
 msgid "Sign in"
 msgstr "Accedi"
@@ -2067,7 +2067,7 @@ msgid "Source IP"
 msgstr "IP sorgente"
 
 msgid "Space Time Block Code"
-msgstr "Space Time Block Code"
+msgstr "Codifica a blocchi spazio-temporale (STBC)"
 
 msgid "Speed"
 msgstr "Velocità"
@@ -4447,3 +4447,81 @@ msgstr "DumaOS"
 
 msgid "Installs the pinned DumaOS UI and QoS stack for ARMv7 Technicolor gateways. Installation replaces core ubus components; reboot the gateway after installation and after removal."
 msgstr "Installa l'interfaccia e lo stack QoS DumaOS verificati per i gateway Technicolor ARMv7. L'installazione sostituisce componenti ubus di base; riavviare il gateway dopo l'installazione e dopo la rimozione."
+
+msgid "2.4GHz"
+msgstr "2.4 GHz"
+
+msgid "5GHz"
+msgstr "5 GHz"
+
+msgid "Agent List"
+msgstr "Lista ripetitori"
+
+msgid "Backhaul"
+msgstr "Backhaul (Collegamento Ripetitori)"
+
+msgid "Backhaul Password"
+msgstr "Password Backhaul"
+
+msgid "Backhaul SSID"
+msgstr "SSID Backhaul"
+
+msgid "Both"
+msgstr "Entrambe (2.4 GHz e 5 GHz)"
+
+msgid "Disable EasyMesh"
+msgstr "Disattiva EasyMesh"
+
+msgid "EasyMesh Agent"
+msgstr "Agent EasyMesh"
+
+msgid "EasyMesh Agent MAC Address"
+msgstr "Indirizzo MAC Agent EasyMesh"
+
+msgid "EasyMesh Configuration"
+msgstr "Configurazione EasyMesh"
+
+msgid "EasyMesh Services"
+msgstr "Servizi EasyMesh"
+
+msgid "EasyMesh controller MAC Address"
+msgstr "Indirizzo MAC Controller EasyMesh"
+
+msgid "EasyMesh is disabled.<br> You can safely enable Bandsteering, if needed"
+msgstr "EasyMesh è disattivato.<br>È ora possibile riattivare il Bandsteering, se necessario."
+
+msgid "EasyMesh is enabled.<br> This action will disable Bandsteering"
+msgstr "EasyMesh è attivo.<br>Questa azione disattiverà il Bandsteering."
+
+msgid "EasyMesh standard enables a seamless, synchronized Wi-Fi mesh network between this gateway and compatible extenders."
+msgstr "Lo standard EasyMesh consente di creare una rete Wi-Fi mesh sincronizzata tra il modem e i repeater compatibili, con roaming intelligente."
+
+msgid "Enable EasyMesh"
+msgstr "Attiva EasyMesh"
+
+msgid "Enable EasyMesh controller and agent to manage synchronized Wi-Fi extenders."
+msgstr "Abilita le funzioni di Controller e Agent sul modem per coordinare i ripetitori mesh collegati."
+
+msgid "Extender Info"
+msgstr "Stato ripetitori"
+
+msgid "Fronthaul"
+msgstr "Fronthaul (Rete Wi-Fi)"
+
+msgid "Fronthaul Configuration"
+msgstr "Configurazione Rete Mesh (Fronthaul)"
+
+msgid "General"
+msgstr "Generale"
+
+msgid "Network parameters propagated by EasyMesh to all connected extenders."
+msgstr "Parametri di rete wireless propagati automaticamente a tutti i ripetitori collegati."
+
+msgid "No NAT Helpers found"
+msgstr "Nessun helper NAT trovato"
+
+msgid "Preferred Interface"
+msgstr "Banda radio preferita"
+
+msgid "WiFi Devices"
+msgstr "Dispositivi Wi-Fi"

@@ -4420,3 +4420,75 @@ msgstr "Nicht verfügbar: Dieser Firmware-Kernel unterstützt TUN nicht."
 
 msgid "Unavailable: no reviewed TUN module is available for this firmware."
 msgstr "Nicht verfügbar: Für diese Firmware ist kein geprüftes TUN-Modul verfügbar."
+
+msgid "2.4GHz"
+msgstr "2,4 GHz"
+
+msgid "5GHz"
+msgstr "5 GHz"
+
+msgid "Agent List"
+msgstr "Repeater-Liste"
+
+msgid "Backhaul Password"
+msgstr "Backhaul-Passwort"
+
+msgid "Backhaul SSID"
+msgstr "Backhaul-SSID"
+
+msgid "Both"
+msgstr "Beide (2,4 GHz und 5 GHz)"
+
+msgid "Disable EasyMesh"
+msgstr "EasyMesh deaktivieren"
+
+msgid "EasyMesh Agent"
+msgstr "EasyMesh-Agent"
+
+msgid "EasyMesh Agent MAC Address"
+msgstr "EasyMesh-Agent-MAC-Adresse"
+
+msgid "EasyMesh Configuration"
+msgstr "EasyMesh-Konfiguration"
+
+msgid "EasyMesh Services"
+msgstr "EasyMesh-Dienste"
+
+msgid "EasyMesh controller MAC Address"
+msgstr "EasyMesh-Controller-MAC-Adresse"
+
+msgid "EasyMesh is disabled.<br> You can safely enable Bandsteering, if needed"
+msgstr "EasyMesh ist deaktiviert.<br>Sie können Bandsteering bei Bedarf wieder aktivieren."
+
+msgid "EasyMesh is enabled.<br> This action will disable Bandsteering"
+msgstr "EasyMesh ist aktiviert.<br>Diese Aktion deaktiviert Bandsteering."
+
+msgid "EasyMesh standard enables a seamless, synchronized Wi-Fi mesh network between this gateway and compatible extenders."
+msgstr "Der EasyMesh-Standard ermöglicht ein nahtloses WLAN-Mesh-Netzwerk zwischen Gateway und kompatiblen Repeatern."
+
+msgid "Enable EasyMesh"
+msgstr "EasyMesh aktivieren"
+
+msgid "Enable EasyMesh controller and agent to manage synchronized Wi-Fi extenders."
+msgstr "Aktiviert EasyMesh Controller und Agent auf dem Gateway zur Steuerung der Repeater."
+
+msgid "Extender Info"
+msgstr "Repeater-Status"
+
+msgid "Fronthaul Configuration"
+msgstr "Mesh-Netzwerkkonfiguration (Fronthaul)"
+
+msgid "General"
+msgstr "Allgemein"
+
+msgid "Network parameters propagated by EasyMesh to all connected extenders."
+msgstr "WLAN-Netzwerkparameter, die an alle verbundenen Repeater verteilt werden."
+
+msgid "No NAT Helpers found"
+msgstr "Keine NAT-Helper gefunden"
+
+msgid "Preferred Interface"
+msgstr "Bevorzugte Funkschnittstelle"
+
+msgid "WiFi Devices"
+msgstr "WLAN-Geräte"
