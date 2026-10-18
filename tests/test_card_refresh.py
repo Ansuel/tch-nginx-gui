@@ -7,6 +7,12 @@ import unittest
 
 @unittest.skipUnless(shutil.which('node'), 'Node.js required')
 class CardRefresh(unittest.TestCase):
+    def test_dashboard_polling_lifecycle(self):
+        root = Path(__file__).resolve().parents[1]
+        result = subprocess.run(['node', 'tests/test_dashboard_polling.js'], cwd=root,
+                                text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_table_mutations_and_async_refresh(self):
         root = Path(__file__).resolve().parents[1]
         result = subprocess.run(['node', 'tests/test_card_refresh.js'], cwd=root,
