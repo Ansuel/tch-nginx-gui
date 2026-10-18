@@ -32,6 +32,7 @@ end} end
 package.preload.lfs = function() return {
   attributes = function(path, mode)
     assert(mode == 'mode'); if files[path] then return 'directory' end
+    if path:match('^/www/cards/%d+_[%w_]+%.lp$') then return 'file' end
   end,
   dir = function(path)
     local i = 0
@@ -143,6 +144,40 @@ cards.setpath(string.taint('/cards'))
 assert(cards.get_modal_from_card(string.taint('002_beta.lp')) == '/beta.lp')
 assert(cards.get_card_from_modal(string.taint('/beta.lp')) == '002_beta.lp')
 assert(table.concat(cards.cards(), ',') == '002_beta.lp')
+''')
+
+    def test_visibility_is_separate_from_access_and_does_not_hide_stats(self):
+        self.run_cards(r'''
+entries[1].visible = '0'
+ngx.ctx = context({['/alpha.lp'] = true})
+cards.setpath('/cards')
+assert(table.concat(cards.cards(), ',') == '002_beta.lp')
+assert(not cards.get_card_from_modal('/alpha.lp'))
+files['/www/info-cards'] = {'001_alpha.lp'}
+cards.setpath('/www/info-cards')
+assert(table.concat(cards.cards(), ',') == '001_alpha.lp')
+entries[1].visible = '1'
+ngx.ctx = context({})
+cards.setpath('/cards')
+assert(table.concat(cards.cards(), ',') == '002_beta.lp')
+''')
+
+    def test_settings_include_hidden_authorized_cards_and_keep_settings_reachable(self):
+        self.run_cards(r'''
+entries[1]['.name'] = 'alpha_card'
+entries[1].visible = '0'
+entries[2]['.name'] = 'beta_card'
+entries[3]['.name'] = 'gamma_card'
+files['/www/cards'] = files['/cards']
+entries[#entries+1] = {['.name'] = 'modgui_card', modal = 'beta', card = '001_modgui.lp', hide = '0', visible = '0'}
+files['/cards'][#files['/cards']+1] = '001_modgui.lp'
+ngx.ctx = context({['/alpha.lp'] = true})
+cards.setpath('/cards')
+local settings = cards.get_visibility_settings()
+assert(#settings == 1 and settings[1].section == 'alpha_card')
+assert(table.concat(cards.cards(), ',') == '001_modgui.lp,002_beta.lp')
+limited['alpha.lp'] = true
+assert(#cards.get_visibility_settings() == 0)
 ''')
 
 

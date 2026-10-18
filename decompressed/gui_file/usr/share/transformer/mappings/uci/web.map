@@ -130,6 +130,7 @@ local card_map = {
       "modal",
       "card",
       "hide",
+      "visible",
     }
 }
 uci.registerNamedMultiMap(card_map)

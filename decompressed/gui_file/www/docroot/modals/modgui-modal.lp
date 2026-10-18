@@ -423,6 +423,18 @@ local mapValid = {
         check_obp = vB
 }
 
+local cards = require("cards")
+local card_settings = cards.get_visibility_settings()
+for _, card in ipairs(card_settings) do
+        local key = "card_visible_" .. card.section
+        mapParams[key] = "uci.web.card.@" .. card.section .. ".visible"
+        mapValid[key] = function(value)
+                -- Unset options preserve visibility on existing installations.
+                if value == "" or value == "0" or value == "1" then return true end
+                return nil, T"Invalid value"
+        end
+end
+
 -- Acknowledge only blocked ACS requests; other reboot reasons must survive.
 local function isBlockedACSNotice(message)
         message = untaint(message)
@@ -451,6 +463,11 @@ if ngx.req.get_method() == "POST" and
 end
 
 local modgui_settings, helpmsg = post_helper.handleQuery(mapParams, mapValid)
+local visibility_changed = false
+for _, card in ipairs(card_settings) do
+        local visible = modgui_settings["card_visible_" .. card.section] ~= "0"
+        if visible ~= card.visible then visibility_changed = true end
+end
 
 ngx.print(ui_helper.createHeader(T"GUI Settings & Utility", false, false))
 ngx.print('\
@@ -564,6 +581,31 @@ html[#html + 1] = ui_helper.createSwitch(T"Random Color", "gui_randomcolor", mod
 html[#html + 1] = ui_helper.createSwitch(T"Force HTTPS to access the GUI", "gui_forcehttps", modgui_settings["gui_forcehttps"])
 html[#html + 1] = ui_helper.createSwitch(T"Always show advanced options", "gui_alwaysadvanced", modgui_settings["gui_alwaysadvanced"])
 html[#html + 1] = ui_helper.createSwitch(T"GUI animations", "gui_animation", modgui_settings["gui_animation"])
+html[#html + 1] = '</form>'
+
+local card_titles = {
+        gateway = T"Modem", broadband = T"Broadband", internet = T"Internet Access",
+        wireless = T"Wireless", LAN = T"Local Network", Devices = T"Devices",
+        wanservices = T"WAN Services", firewall = T"Firewall", qos = T"QoS",
+        asterisk = T"Asterisk PBX", telephony = T"Telephony", diagnostics = T"Diagnostics",
+        extensions = T"Extensions", assistance = T"Assistance", lte = T"Mobile",
+        usermgr = T"Management", contentsharing = T"Content Sharing", printersharing = T"Printer Sharing",
+        parental = T"Parental Controls", iproutes = T"IP Extras", tod = T"Time of Day",
+        relaysetup = T"Relay Setup", eco = T"Eco Settings", cwmpconf = T"CWMP",
+        system = T"System Extras", natalghelper = T"NAT Helpers", xdsl = T"xDSL Configuration",
+        wifiExtender = T"EasyMesh", datausage = T"Data Usage", certificates = T"Paired devices",
+        wireguard = T"WireGuard", openvpnserver = T"OpenVPN", tailscale = T"Tailscale",
+        l2tpipsec = T"L2TP/IPsec VPN", speedservice = T"Speed Test", nfc = T"NFC",
+}
+html[#html + 1] = '<form class="form-horizontal" method="post" action="modals/modgui-modal.lp">'
+html[#html + 1] = '<legend>' .. T"Card Settings" .. '</legend>'
+html[#html + 1] = ui_helper.createAlertBlock(T"Choose which cards to display. GUI Settings always remains available.", info_box)
+for _, card in ipairs(card_settings) do
+        local key = "card_visible_" .. card.section
+        local name = card.name:gsub("%.lp$", "")
+        local title = card_titles[name] or (name:gsub("_", " "):gsub("^%l", string.upper))
+        html[#html + 1] = ui_helper.createSwitch(title, key, modgui_settings[key] == "0" and "0" or "1", nil, helpmsg[key])
+end
 html[#html + 1] = '</form>'
 
 local marketing_major = tonumber((content.marketing_version or ""):match("^%d+"))
@@ -1107,3 +1149,7 @@ ngx.print('\
 </script>\
 ');  ngx.print(ui_helper.createFooter())   ngx.print('\
 ');
+if visibility_changed then
+        cards.reload_config()
+        ngx.print('<script>$(document).off("hidden.bs.modal.cardpreferences").one("hidden.bs.modal.cardpreferences", "#modgui-modal", function () { window.location.reload(); });</script>')
+end
