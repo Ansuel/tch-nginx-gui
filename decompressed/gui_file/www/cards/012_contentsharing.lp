@@ -18,17 +18,9 @@ if session:hasAccess("/modals/contentsharing-modal.lp") then
 end
 local content = {}
 
--- Check availability of file, return true if found, else false
-local function file_check(file_name)
-  local file_found=io.open(file_name, "r")
-  if file_found==nil then
-    return false
-  else
-    return true
-  end
-end
 
-local samba_available = file_check("/etc/init.d/samba")
+
+local samba_available = content_helper.fileExists("/etc/init.d/samba")
 if samba_available then
 	local sambaMapParams = {
 		samba_filesharing	= "uci.samba.samba.filesharing",
@@ -39,7 +31,7 @@ if samba_available then
     end
 end
 
-local dlna_available = file_check("/etc/init.d/dlnad")
+local dlna_available = content_helper.fileExists("/etc/init.d/dlnad")
 if dlna_available then
 	local dlnaMapParams = {
 		dlna_enabled	= "uci.dlnad.config.enabled",

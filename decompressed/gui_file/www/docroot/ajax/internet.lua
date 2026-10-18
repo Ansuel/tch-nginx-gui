@@ -7,6 +7,7 @@ local proxy = require("datamodel")
 local json = require("dkjson")
 local post_helper = require("web.post_helper")
 local ngx = ngx
+local datatype
 
 if ngx.req.get_method() == "POST" then
 	datatype = ngx.req.get_uri_args().datatype
@@ -102,7 +103,7 @@ if datatype and datatype== "xdsl" then
 		end
 	end
 else
-	local ppp_status, ppp_light_map, ppp_state_map
+	local ppp_status, ppp_light, ppp_state, ipv6_light, ipv6_state
 
 	local table = table
 	local format = string.format
@@ -117,7 +118,7 @@ else
 
 	local wan_interface = "wan"
 
-	if wan_mode == "bridge" then
+	if content_uci.wan_mode == "bridge" and content_uci.wan_ifname and content_uci.wan_ifname ~= "" then
 		wan_interface = content_uci.wan_ifname
 	end
 
@@ -138,7 +139,9 @@ else
 		content_rpc[v6Key] = v6Value
 	end
 
-	content_helper.getExactContent(content_rpc)
+	internethelper.getOptionalContent(content_rpc)
+	content_rpc.ip6addr = content_rpc.ip6addr or ""
+	content_rpc.ip6prefix = content_rpc.ip6prefix or ""
 
 	if content_rpc.dns_wan:match(",") then
 		content_rpc.dns_wan = content_rpc.dns_wan:gsub(","," , ")
@@ -179,7 +182,7 @@ else
 	local status_light
 	local attributes = { light = { } ,span = { } }
 
-	if content_uci.wan_mode == "pppoe" then
+	if content_uci.wan_mode == "pppoe" or content_uci.wan_mode == "pppoa" then
 		local ppp_state_map = {
 			disabled = T"PPP disabled",
 			disconnecting = T"PPP disconnecting",
@@ -207,7 +210,6 @@ else
 
 		setmetatable(ppp_light_map, untaint_mt)
 
-		local ppp_status
 		if content_uci.wan_auto ~= "0" then
 		-- WAN enabled
 		content_uci.wan_auto = "1"
@@ -230,7 +232,7 @@ else
 		ppp_status = "disabled"
 		end
 
-		local ppp_light, ppp_state, WAN_IP, ipv6_light, ipv6_state
+		local WAN_IP
 		if ppp_status then
 			ppp_light = ppp_light_map[ppp_status]
 			ppp_state = ppp_state_map[ppp_status]
@@ -267,7 +269,7 @@ else
 		status_light = ui_helper.createSimpleLight(static_light_map[static_state], static_state_map[static_state] , attributes , "fa-at")
 	end
 
-	local wan_uptime = content_rpc["wan_uptime"]
+	local wan_uptime = tonumber(content_rpc["wan_uptime"]) or 0
 	local wan_uptime_time = post_helper.secondsToTimeShort(wan_uptime)
 
 	data = {

@@ -18,6 +18,8 @@ local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
 local post_helper = require("web.post_helper")
 local proxy = require("datamodel")
+local internethelper = require("internethelper")
+local getValue = internethelper.getValue
 local message_helper = require("web.uimessage_helper")
 local ajax_helper = require("web.ajax_helper")
 
@@ -81,7 +83,7 @@ local firewall_value = {["uci.firewall.forwarding.@"..forwdnum..".src"] = "wan",
                         ["uci.firewall.forwarding.@"..forwdnum..".name"] = "for_w2l"}
 local function validateNat(value, object, key)
   local valid, msg = post_helper.validateBoolean(value, object, key)
-  if valid and zonenum ~= "" and value ~= proxy.get("uci.firewall.zone."..zonenum..".masq")[1].value then
+  if valid and zonenum ~= "" and value ~= getValue("uci.firewall.zone."..zonenum..".masq") then
     proxy.set("uci.firewall.zone."..zonenum..".conntrack", "1")
     local key = "forwarding"..post_helper.getRandomKey()
     if value == "1" then
@@ -121,6 +123,7 @@ local wanGatewayPath_uci  = "uci.network.interface.@wan.gateway"
 --- CONFIGURABLE DATA FROM MAP FILE (network.map)
 ---
 local mapParams = {
+    uci_wan_mtu = "uci.network.interface.@wan.mtu",
     wanIpAddrParam    = wanIpAddrPath_uci,
     wanNetmaskParam   = wanNetmaskPath_uci,
     wanGatewayParam   = wanGatewayPath_uci,
@@ -135,6 +138,7 @@ local gAV = post_helper.getAndValidation
 local nEIPV = post_helper.getAndValidation(post_helper.validateNonEmptyString,post_helper.advancedIPValidation)
 local gOV = post_helper.getOptionalValidation
 local mapValid = {
+    uci_wan_mtu = internethelper.getMtuValidator("static"),
     wanIpAddrParam    = gAV(nEIPV, post_helper.reservedIPValidation),
     wanNetmaskParam   = post_helper.validateIPv4Netmask,
     wanGatewayParam   = gAV(nEIPV, post_helper.reservedIPValidation),
@@ -159,10 +163,10 @@ ajax_helper.handleAjaxQuery(content_dns, function(c)
     -- this will add the HTML for the light
 	local dnstab = split(c.loopbackdns, "[^%,]+")
 	local dnsv4, dnsv6 = dns_filter(dnstab)
-	c.loopbackdns = content_helper.getMergedList(proxy.get("rpc.network.interface.@wan.dnsservers")[1].value, dnsv4)
+	c.loopbackdns = content_helper.getMergedList(getValue("rpc.network.interface.@wan.dnsservers"), dnsv4)
 end)
 
-content_helper.getExactContent(content_dns)
+internethelper.getOptionalContent(content_dns)
 
 
 local dnstab = split(content_dns.loopbackdns, "[^%,]+")
@@ -266,6 +270,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
         -- ARGUMENT 2 MUST MUST MATCH PARAMETER NAME FROM mapParams OR ERRORS WILL OCCUR DURING INTERFACE UPDATES
         html[#html + 1] = ui_helper.createSwitch(T"NAT", "uci_wan_masq", content.uci_wan_masq)
         html[#html + 1] = ui_helper.createInputText(T"MAC Spoof (Wan MAC)","uci_wan_mac", content["uci_wan_mac"], nil, helpmsg["uci_wan_mac"])
+    html[#html + 1] = ui_helper.createInputText(T"MTU", "uci_wan_mtu", content["uci_wan_mtu"], nil, helpmsg["uci_wan_mtu"])
         html[#html+1] = ui_helper.createInputText(T"IP Address", "wanIpAddrParam", content["wanIpAddrParam"], wanIPClass, helpmsg["wanIpAddrParam"])
         html[#html+1] = ui_helper.createInputText(T"Subnet Mask", "wanNetmaskParam", content["wanNetmaskParam"], wanNetmaskClass, helpmsg["wanNetmaskParam"])
         html[#html+1] = ui_helper.createInputText(T"Gateway", "wanGatewayParam", content["wanGatewayParam"], wanGatewayClass, helpmsg["wanGatewayParam"])

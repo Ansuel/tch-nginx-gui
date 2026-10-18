@@ -86,7 +86,7 @@ SYSTEM_LOG_CONNTRACK_.set = {
         return nil, "set state failed"
       end
     elseif value == "None" then
-        os.execute("rm /tmp/nf_conntrack")
+        os.remove("/tmp/nf_conntrack")
     else
       return nil, "invalid value"
     end
@@ -150,11 +150,7 @@ SYSTEM_LOG_DOWNLOAD_.set = {
         return nil, "Related configuration can not be supported currently."
       end
     elseif value == "None" then
-      local f = io.open("/tmp/log.msg", "r")
-      if f then
-        f:close()
-        os.execute("rm /tmp/log.msg")
-      end
+      os.remove("/tmp/log.msg")
     else
       return nil, "invalid value"
     end

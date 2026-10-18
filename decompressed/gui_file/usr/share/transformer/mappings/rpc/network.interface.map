@@ -669,19 +669,27 @@ local function getDnsServers(key)
   elseif type(inactive) == "table" and #inactive ~= 0 then
     v = inactive
   end
-  servers = staticDns ~= "" and table.concat(staticDns, ",") or ""
+  local list, seen = {}, {}
+  local function append(server)
+    if type(server) == "string" and server ~= "" and not seen[server] then
+      seen[server] = true
+      list[#list + 1] = server
+    end
+  end
+  if type(staticDns) == "table" then
+    for _, server in ipairs(staticDns) do append(server) end
+  elseif type(staticDns) == "string" then
+    for server in staticDns:gmatch("[^%s,]+") do append(server) end
+  end
   for i, server in ipairs(v) do
     if (i > 1) then
       dnsServer2 = server
     else
       dnsServer1 = server
     end
-    if servers == "" then
-      servers = server
-    elseif string.find(servers,server) == nil then
-      servers = servers .. "," .. server
-    end
+    append(server)
   end
+  servers = table.concat(list, ",")
 end
 
 local config = "ipping"
@@ -755,21 +763,21 @@ network_interface_.get = {
     local v = interface_status.get(interface)
     v = v and v['ipv6-prefix']
     v = v and v[1]
-    return (v and v['address'].."/"..v['mask']) or ""
+    return (v and v['address'] and v['mask'] and v['address'].."/"..v['mask']) or ""
   end,
   ip6prefix_assignment = function(_, _, key)
     local interface = get_interface(key, true)
     local v = interface_status.get(interface)
     v = v and v['ipv6-prefix-assignment']
     v = v and v[1]
-    return (v and v['address'].."1".."/"..v['mask']) or ""
+    return (v and v['address'] and v['mask'] and v['address'].."1".."/"..v['mask']) or ""
   end,
   subnet_addr = function(_, _, key)
     local interface = get_interface(key, true)
     local v = interface_status.get(interface)
     v = v and v['ipv6-prefix-assignment']
     v = v and v[1]
-    return (v and v['address'].."/"..v['mask']) or ""
+    return (v and v['address'] and v['mask'] and v['address'].."/"..v['mask']) or ""
   end,
 
   dnsservers = function(_, _, key)

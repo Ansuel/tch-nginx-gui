@@ -12,6 +12,14 @@ local untaint = string.untaint
 --  @usage require('web.content_helper')
 local M = {}
 
+-- Availability checks must not leak descriptors on repeated card renders.
+function M.fileExists(filename)
+    local file = open(untaint(filename), "r")
+    if not file then return false end
+    file:close()
+    return true
+end
+
 --- Retrieve the values from a table and return them in an array.
 -- @param content A table.
 -- @return The values of the table are returned in an array. This essentially

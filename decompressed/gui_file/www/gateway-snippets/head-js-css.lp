@@ -44,7 +44,7 @@ ngx.print('\
 	<script src="/js/Chart.min.js?version='); ngx.print(cui.gui_version); ngx.print('"></script>\
 	<script async src="/js/srp-min.js?version='); ngx.print(cui.gui_version); ngx.print('" ></script>');
 	--ngx.print('<script src="/js/jquery-migrate.js?version='); ngx.print(cui.gui_version); ngx.print('" ></script>')  -- Usefull to debug deprecated function from jquery update
-	local script_file_presence = io.open(string.format("/www/docroot/theme/%s/script.js",cui.gui_skin),"r")
+	local script_file_presence = content_helper.fileExists(string.format("/www/docroot/theme/%s/script.js",cui.gui_skin))
 	if script_file_presence then
 		ngx.print('<script src="/theme/');  ngx.print( cui.gui_skin ); ngx.print('/script.js?version='); ngx.print(cui.gui_version); ngx.print('"></script>');
 		script_file_presence:close()

@@ -42,6 +42,11 @@ assert '-kfLsS' in args or all(flag in args for flag in ('-k', '-f', '-L'))
 url = next(a for a in args if a.startswith('https://'))
 with (root / 'requests').open('a') as f: f.write(url + '\\n')
 path = root / 'assets' / url.split('/download/')[1]
+if url.endswith('/SHA256SUMS') and os.environ.get('SHA_ERROR'):
+    error = os.environ['SHA_ERROR']
+    if '-w' in args: print('\\n'+('503' if error == 'http' else '000'), end='')
+    sys.exit(22 if error == 'http' else 28)
+assert '--connect-timeout' in args and '--max-time' in args
 if 'channel-stable/latest.version' in url and os.environ.get('STABLE_ERROR'):
     error = os.environ['STABLE_ERROR']
     if '-w' in args: print('\\n'+('503' if error == 'http' else '000'), end='')
@@ -158,6 +163,69 @@ else:
         requests = (self.home/'requests').read_text()
         self.assertIn('/download/9.7.9/GUI.tar.bz2', requests)
         self.assertNotIn('/download/channel-stable/GUI.tar.bz2', requests)
+
+    def test_sha256_is_preferred_and_failures_never_fall_back_to_md5(self):
+        self.asset('channel-stable/latest.version', '9.7.9')
+        self.asset('9.7.9/GUI.tar.bz2', 'good archive')
+        digest = hashlib.sha256(b'good archive').hexdigest()
+        self.asset('9.7.9/SHA256SUMS', digest.upper()+'  *./GUI.tar.bz2\n')
+        self.asset('9.7.9/MD5SUMS', hashlib.md5(b'good archive').hexdigest()+'  GUI.tar.bz2\n')
+        destination = self.home/'download'
+        self.checkver('DownloadStable', destination)
+        self.assertEqual(destination.read_text(), 'good archive')
+        self.assertNotIn('/MD5SUMS', (self.home/'requests').read_text())
+        for manifest in ('0'*64+'  GUI.tar.bz2\n',
+                         digest+'  different.tar.bz2\n',
+                         digest+'  GUI.tar.bz2\n'+digest+'  GUI.tar.bz2\n',
+                         '<html>error</html>'):
+            with self.subTest(manifest=manifest):
+                self.asset('9.7.9/SHA256SUMS', manifest)
+                self.checkver('DownloadStable', destination, success=False)
+                self.assertEqual(destination.read_text(), 'good archive')
+                self.assertEqual(list(self.home.glob('download.part.*')), [])
+        self.asset('9.7.9/SHA256SUMS', digest+'  GUI.tar.bz2\n')
+        self.asset('9.7.9/GUI.tar.bz2', 'corrupt')
+        self.checkver('DownloadStable', destination, success=False)
+        for error in ('http', 'timeout'):
+            self.env['SHA_ERROR'] = error
+            self.checkver('DownloadStable', destination, success=False)
+        self.assertNotIn('/MD5SUMS', (self.home/'requests').read_text())
+        self.assertEqual(destination.read_text(), 'good archive')
+
+    def test_routers_without_sha256sum_can_use_existing_md5_releases(self):
+        legacy_bin = self.home/'legacy-bin'
+        legacy_bin.mkdir()
+        for command in ('bash', 'grep', 'sed', 'cut', 'tail', 'awk', 'tr', 'md5sum', 'rm', 'mv'):
+            (legacy_bin/command).symlink_to(shutil.which(command))
+        self.env['PATH'] = str(self.bin)+':'+str(legacy_bin)
+        self.asset('9.7.9/GUI.tar.bz2', 'legacy')
+        self.asset('9.7.9/MD5SUMS', hashlib.md5(b'legacy').hexdigest()+'  ./GUI.tar.bz2\n')
+        destination = self.home/'download'
+        self.checkver('DownloadVersion', '9.7.9', 'GUI.tar.bz2', destination)
+        self.assertEqual(destination.read_text(), 'legacy')
+        self.assertNotIn('/SHA256SUMS', (self.home/'requests').read_text())
+
+    def test_checkver_version_rollover_and_stable_fallback_do_not_offer_downgrades(self):
+        for command in ('lua', 'logger', 'sleep'):
+            self.mock(command, 'pass')
+        self.mock('ping', 'raise SystemExit("ICMP must not be used")')
+        self.mock('uci', """
+import pathlib, os, sys
+if 'get' in sys.argv: print('dev')
+else:
+    with (pathlib.Path(os.environ['FIXTURE'])/'uci-calls').open('a') as f:
+        f.write(' '.join(sys.argv[1:])+'\\n')
+""")
+        self.asset('channel-dev/latest.version', '9.99.99')
+        self.asset('channel-stable/latest.version', '10.0.0')
+        for installed, outdated in [('9.99.99', '1'), ('10.0.0', '0'), ('10.0.1', '0')]:
+            self.rootdevice.write_text('version_gui='+installed+'-abc\n')
+            self.checkver()
+            calls = (self.home/'uci-calls').read_text()
+            self.assertIn('set modgui.gui.outdated_ver='+outdated, calls)
+            self.assertIn('commit modgui', calls)
+            self.assertNotIn('commit env', calls)
+            (self.home/'uci-calls').unlink()
 
     def test_upgrade_download_flow_preserves_original_selection(self):
         # Stop before installation; all filesystem writes stay inside the fixture.

@@ -77,6 +77,26 @@ print('Empty bridge and validator ordering cases passed')
 
 @unittest.skipUnless(shutil.which('lua'), 'Lua interpreter required')
 class BridgeGrouping(unittest.TestCase):
+    def test_missing_wan_ifname_keeps_the_interface_selectable(self):
+        source = SOURCE.read_text()
+        block = source[source.index('local getContent = {}'):source.index('-- Bridge membership')]
+        script = '''
+local format, find, upper = string.format, string.find, string.upper
+local map_options, tmp_tbl = {}, {'wan', 'voip', 'mgmt'}
+local wanintfs, wanintfs_name = {}, {wan = 'WAN', voip = 'VoIP', mgmt = 'Management'}
+local content_helper = {getExactContent = function(content)
+  content.voipifname = ''
+  content.mgmtifname = 'eth4'
+  return true
+end}
+''' + block + '''
+assert(#wanintfs == 3)
+assert(wanintfs[1][1] == 'wan' and wanintfs[1][2] == 'WAN')
+assert(wanintfs[2][2] == 'VoIP' and wanintfs[3][2] == 'Management-ETH4')
+'''
+        result = subprocess.run(['lua', '-'], input=script, text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_reject_empty_membership(self):
         result = subprocess.run(['lua', '-'], input=validation_script(), text=True, capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)

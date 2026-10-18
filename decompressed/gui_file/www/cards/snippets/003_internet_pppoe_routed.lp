@@ -31,15 +31,16 @@ for v6Key, v6Value in pairs(internethelper.getIpv6Content()) do
 	content_rpc[v6Key] = v6Value
 end
 
-content_helper.getExactContent(content_rpc)
+
+internethelper.getOptionalContent(content_rpc)
 
 local IPv6State = "none"
 
 if content_uci.wan_ipv6 ~= "1" then
     IPv6State = "disabled"
-elseif content_rpc.ip6prefix ~= "" then
+elseif (content_rpc.ip6prefix or "") ~= "" then
 	IPv6State = "prefix"
-elseif content_rpc.ip6prefix == "" then
+elseif (content_rpc.ip6prefix or "") == "" then
 	IPv6State = "noprefix"
 end
 

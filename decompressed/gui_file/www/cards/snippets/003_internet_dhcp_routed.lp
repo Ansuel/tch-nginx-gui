@@ -31,13 +31,15 @@ for v6Key, v6Value in pairs(internethelper.getIpv6Content()) do
 	cs[v6Key] = v6Value
 end
 
+internethelper.getOptionalContent(cs)
+
 local IPv6State = "none"
 
 if content.wan_ipv6 ~= "1" then
 	IPv6State = "disabled"
-elseif content.ip6prefix ~= "" then
+elseif (cs.ip6prefix or "") ~= "" then
 	IPv6State = "prefix"
-elseif content.ip6prefix == "" then
+elseif (cs.ip6prefix or "") == "" then
 	IPv6State = "noprefix"
 end
 
@@ -56,7 +58,6 @@ local ipv6_light_map = {
 }
 setmetatable(ipv6_light_map, untaint_mt)
 
-content_helper.getExactContent(cs)
 
 -- Figure out interface state
 local dhcp_state = "connecting"
