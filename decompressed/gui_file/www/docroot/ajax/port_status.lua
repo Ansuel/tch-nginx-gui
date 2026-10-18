@@ -8,20 +8,6 @@ local proxy = require("datamodel")
 local ui_helper = require("web.ui_helper")
 local content_helper = require("web.content_helper")
 
-local function getValue(path)
-	local result = proxy.get(path)
-	return result and result[1] and result[1].value or ""
-end
-
-local quantenna_wifi = getValue("uci.env.var.qtn_eth_mac") ~= ""
---Support ethernet mode for devices with no eth4 port
-local ethname = proxy.get("sys.eth.port.@eth4.status")
-if ethname and ethname[1] and ethname[1].value then
-	ethname =  "eth4"
-else
-	ethname =  "eth3"
-end
-
 local port_columns = {
   {--[1]
     header = T"Type",
@@ -61,6 +47,39 @@ local  port_options = {
     basepath = "sys.eth.port.@.",
 }
 
+-- Reuse the Ethernet snapshot to identify the WAN-capable port, rather than
+-- reading eth4 again. Keep only request-local values; configuration can change
+-- between polls and must never be served from a shared cache.
+local ethernet_ports = content_helper.convertResultToObject(port_options.basepath,
+	proxy.get("sys.eth.port."))
+local ethname = "eth3"
+for _, port in ipairs(ethernet_ports) do
+	if port.paramindex == "eth4" and port.status then ethname = "eth4"; break end
+end
+
+local snapshot = {
+	quantenna = "uci.env.var.qtn_eth_mac",
+	wan = "uci.ethernet.port.@" .. ethname .. ".wan",
+}
+local radios = {}
+for _, entry in ipairs(proxy.getPN("rpc.wireless.radio.", true) or {}) do
+	local radio = entry.path:match("^rpc%.wireless%.radio%.@([^%.]+)%.$")
+	if radio then
+		local keys = {}
+		for name, parameter in pairs({status = "admin_state", speed = "phy_rate",
+			mode = "standard", band = "supported_frequency_bands"}) do
+			local key = "radio_" .. (#radios + 1) .. "_" .. name
+			keys[name] = key
+			snapshot[key] = "rpc.wireless.radio.@" .. radio .. "." .. parameter
+		end
+		radios[#radios + 1] = {name = radio, keys = keys}
+	end
+end
+-- Batch supported paths, but recover the available fields individually when
+-- an older firmware rejects a missing optional path in the batch.
+require("internethelper").getOptionalContent(snapshot)
+local quantenna_wifi = snapshot.quantenna ~= ""
+
 local port_filter = function(data)
 
 	data.status_light = "1"
@@ -83,7 +102,7 @@ local port_filter = function(data)
 
 	if quantenna_wifi and data.paramindex:match("eth5") then
 		return false
-	elseif data.paramindex == ethname and getValue("uci.ethernet.port.@"..ethname..".wan") == "1" then
+	elseif data.paramindex == ethname and snapshot.wan == "1" then
 		data.paramindex = "WAN"
 	else
 		local port = data.paramindex:match("^eth(%d+)$")
@@ -95,7 +114,12 @@ local port_filter = function(data)
   return true
 end
 
-local  port_data = content_helper.loadTableData(port_options.basepath, port_columns,  port_filter , nil) or {}
+local port_data = {}
+for _, port in ipairs(ethernet_ports) do
+	if port_filter(port) then
+		port_data[#port_data + 1] = {port.paramindex, port.status or "", port.speed or "", port.mode or ""}
+	end
+end
 
 local mode_labels = {
 	bgn = "b/g/n",
@@ -104,28 +128,18 @@ local mode_labels = {
 	an = "a/n",
 }
 
-local radio_names = proxy.getPN("rpc.wireless.radio.", true) or {}
-for _, radio_entry in ipairs(radio_names) do
-	local radio = radio_entry.path:match("rpc%.wireless%.radio%.@([^%.]+)%.")
-	if radio then
-		local base_path = "rpc.wireless.radio.@" .. radio .. "."
-		local wifi_content = {
-			status = base_path .. "admin_state",
-			speed = base_path .. "phy_rate",
-			mode = base_path .. "standard",
-			band = base_path .. "supported_frequency_bands",
-		}
-		content_helper.getExactContent(wifi_content)
-		local enabled = wifi_content.status == "1"
-		local speed = tonumber(wifi_content.speed)
-		local band = wifi_content.band and wifi_content.band ~= "" and wifi_content.band or radio
-		port_data[#port_data+1] = {
-			"Wi-Fi " .. band,
-			ui_helper.createSimpleLight(wifi_content.status or "0", "", {}, "fa fa-wifi"),
-			enabled and speed and (speed / 1000 .. " Mbps") or "",
-			enabled and (mode_labels[wifi_content.mode] or wifi_content.mode or "") or "",
-		}
-	end
+for _, radio in ipairs(radios) do
+	local wifi_content = {}
+	for name, key in pairs(radio.keys) do wifi_content[name] = snapshot[key] end
+	local enabled = wifi_content.status == "1"
+	local speed = tonumber(wifi_content.speed)
+	local band = wifi_content.band ~= "" and wifi_content.band or radio.name
+	port_data[#port_data+1] = {
+		"Wi-Fi " .. band,
+		ui_helper.createSimpleLight(wifi_content.status or "0", "", {}, "fa fa-wifi"),
+		enabled and speed and (speed / 1000 .. " Mbps") or "",
+		enabled and (mode_labels[wifi_content.mode] or wifi_content.mode or "") or "",
+	}
 end
 
 table.sort(port_data, function (a, b)
