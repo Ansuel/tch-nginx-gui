@@ -112,47 +112,52 @@ modgui_release_tun() {
 #  2nd arg : pkg name
 #  3rd arg : raw or normal. Raw is used to download specific file from specific dir
 #  4th arg : addtional command to append to setup.sh (usefull if setup.sh contains also uninstall command)
-install_from_github() {
-  mkdir "/tmp/$2"
+install_from_github() (
+  # Run in a subshell so removing the staging directory cannot leave the
+  # caller in a deleted working directory. Clean every failure path.
+  stage="/tmp/$2"
+  [ ! -e "$stage" ] || { echo "App staging directory already exists: $stage"; return 1; }
+  mkdir "$stage" || return 1
+  trap 'rm -rf "$stage"' EXIT
+  trap 'exit 1' HUP INT TERM
 
   if [ "$3" = "specificapp" ]; then
     if [ ! -f "/tmp/$2.tar.bz2" ]; then
-      if ! ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then
-        echo "No internet connection detected, download manually!"
-        exit 0
-      fi
       /usr/share/transformer/scripts/checkver DownloadInstalled "$2.tar.bz2" "/tmp/$2.tar.bz2" || return 1
     fi
     if [ ! -f "/tmp/$2.tar.bz2" ]; then
       echo "Error installing App: Cannot find/download  $2.tar.bz2"
       return 1
     fi
-    bzcat "/tmp/$2.tar.bz2" | tar -C "/tmp/$2" -xf -
+    extract_bzip_archive "/tmp/$2.tar.bz2" "/tmp/$2" || return 1
     rm "/tmp/$2.tar.bz2"
     cd "/tmp/$2" || return 1
   else
     if [ ! -f "/tmp/$2.tar.gz" ]; then
-      if ! ping -q -c 1 -W 1 8.8.8.8 >/dev/null 2>&1; then
-        echo "No internet connection detected, download manually!"
-        exit 0
-      fi
-      curl -sLk "https://github.com/$1/tarball/$2" --output "/tmp/$2.tar.gz"
+      curl -fsSLk --connect-timeout 15 --max-time 120 "https://github.com/$1/tarball/$2" --output "/tmp/$2.tar.gz" || {
+        rm -rf "/tmp/$2" "/tmp/$2.tar.gz"
+        return 1
+      }
     fi
     if [ ! -f "/tmp/$2.tar.gz" ]; then
       echo "Error installing App: Cannot find/download  $2.tar.gz"
       return 1
     fi
-    tar -xzf "/tmp/$2.tar.gz" -C "/tmp/$2"
+    tar -xzf "/tmp/$2.tar.gz" -C "/tmp/$2" || {
+      rm -rf "/tmp/$2" "/tmp/$2.tar.gz"
+      return 1
+    }
     rm "/tmp/$2.tar.gz"
-    cd /tmp/"$2"/*
+    cd /tmp/"$2"/* || return 1
   fi
 
-  chmod +x ./setup.sh
+  [ -s ./setup.sh ] || return 1
+  chmod +x ./setup.sh || return 1
   ./setup.sh "$4"
   setup_status=$?
   rm -rf "/tmp/$2"
   return "$setup_status"
-}
+)
 
 ############TRANSFORMER UTILITY##################
 set_transformer() {
@@ -162,6 +167,10 @@ set_transformer() {
 #################################################
 
 app_transmission() {
+  if [ "$cpu_type" = mips ]; then
+    legacy_mips_app "$1" transmission
+    return $?
+  fi
 
   install_arm() {
     opkg update || return 1
@@ -195,14 +204,12 @@ app_transmission() {
     "16.1"* | "16.2"*)
       case "$cpu_type" in
         armv7l) install_from_github FrancYescO/sharing_tg789 transmission-xtream || return 1 ;;
-        mips) install_from_github FrancYescO/sharing_tg789 transmission || return 1 ;;
         *) return 1 ;;
       esac
       ;;
     "16."* | "17."* | "18."* | "19."*)
       case "$cpu_type" in
         armv7l) install_arm || return 1 ;;
-        mips) install_from_github FrancYescO/sharing_tg789 transmission || return 1 ;;
         *) return 1 ;;
       esac
       ;;
@@ -253,8 +260,9 @@ app_transmission() {
 
 app_telstra() {
   install() {
+    require_free_space 4096 /www || return 1
     /usr/share/transformer/scripts/checkver DownloadInstalled telstra_gui.tar.bz2 /tmp/telstra_gui.tar.bz2 || return 1
-    bzcat /tmp/telstra_gui.tar.bz2 | tar -C / -xf -
+    extract_bzip_archive /tmp/telstra_gui.tar.bz2 / || return 1
     rm /tmp/telstra_gui.tar.bz2
     /etc/init.d/nginx restart
     uci set modgui.app.telstra_webui="1"
@@ -337,15 +345,9 @@ app_luci() {
       /etc/init.d/uhttpd restart || return 1
     }
 
-    luci_install_mips() {
-      curl -fk -L https://raw.githubusercontent.com/nutterpc/tg-luci/master/install.sh --output /tmp/install.sh || return 1
-      chmod +x /tmp/install.sh || return 1
-      /tmp/install.sh
-    }
-
     case $marketing_version in
     "16.1"* | "16.2"*)
-      [ "$cpu_type" = "mips" ] && luci_install_mips || return 1
+      [ "$cpu_type" = "mips" ] && luci_mips_install || return 1
       ;;
     "16."* | "17."*)
       if [ "$cpu_type" = "armv7l" ]; then
@@ -353,7 +355,7 @@ app_luci() {
         opkg install --force-reinstall --force-overwrite libuci-lua || return 1
         sed -i 's/require "uci_luci"/require "uci"/g' /usr/lib/lua/luci/model/uci.lua || return 1
       elif [ "$cpu_type" = "mips" ]; then
-        luci_install_mips || return 1
+        luci_mips_install || return 1
       else
         return 1
       fi
@@ -362,7 +364,7 @@ app_luci() {
       if [ "$cpu_type" = "armv7l" ]; then
         luci_install_arm || return 1
       elif [ "$cpu_type" = "mips" ]; then
-        luci_install_mips || return 1
+        luci_mips_install || return 1
       else
         return 1
       fi
@@ -396,14 +398,8 @@ app_luci() {
       sed -i '/^Package: uhttpd/,/^$/d' /usr/lib/opkg/status
     }
 
-    luci_remove_mips() {
-      curl -k -L https://raw.githubusercontent.com/nutterpc/tg-luci/master/uninstall.sh --output /tmp/uninstall.sh
-      chmod +x /tmp/uninstall.sh
-      /tmp/uninstall.sh
-    }
-
     [ "$cpu_type" = "armv7l" ] && luci_remove_arm
-    [ "$cpu_type" = "mips" ] && luci_remove_mips
+    if [ "$cpu_type" = "mips" ]; then luci_mips_remove || return 1; fi
     uci set modgui.app.luci_webui="0"
     uci commit modgui
   }
@@ -424,14 +420,22 @@ app_luci() {
 
 app_amule() {
   install() {
-    [ "$cpu_type" = "armv7l" ] && echo "Unknown app install script for $marketing_version $cpu_type"
-    [ "$cpu_type" = "mips" ] && install_from_github FrancYescO/sharing_tg789 amule
+    [ "$cpu_type" = "mips" ] || return 1
+    require_usb_storage || return 1
+    require_free_space 16384 /usr || return 1
+    install_from_github FrancYescO/sharing_tg789 amule || return 1
+    [ -x /usr/bin/amuled ] || return 1
     uci set modgui.app.amule_webui="1"
     uci commit modgui
   }
   remove() {
-    #TODO
-    echo TODO
+    if [ -f /usr/share/transformer/scripts/remove_amule.sh ]; then
+      sh /usr/share/transformer/scripts/remove_amule.sh || return 1
+      rm -f /usr/share/transformer/scripts/remove_amule.sh
+    elif opkg list-installed | grep -q '^amule '; then
+      echo "Missing aMule removal manifest; refusing an incomplete removal"
+      return 1
+    fi
     uci set modgui.app.amule_webui="0"
     uci commit modgui
   }
@@ -452,14 +456,21 @@ app_amule() {
   stop)
     stop
     ;;
-  *)
+  remove)
     remove
+    ;;
+  *)
+    echo "Unsupported action"
     return 1
     ;;
   esac
 }
 
 app_aria2() {
+  if [ "$cpu_type" = mips ]; then
+    legacy_mips_app "$1" aria2
+    return $?
+  fi
   install() {
     install_arm() {
       opkg update || return 1
@@ -499,14 +510,12 @@ app_aria2() {
     "16.1"* | "16.2"*)
       case "$cpu_type" in
         armv7l) install_from_github FrancYescO/sharing_tg789 aria2-xtream || return 1 ;;
-        mips) install_from_github FrancYescO/sharing_tg789 aria2 || return 1 ;;
         *) return 1 ;;
       esac
       ;;
     "16."* | "17."* | "18."* | "19."*)
       case "$cpu_type" in
         armv7l) install_arm || return 1 ;;
-        mips) install_from_github FrancYescO/sharing_tg789 aria2 || return 1 ;;
         *) return 1 ;;
       esac
       ;;
@@ -554,10 +563,21 @@ app_aria2() {
   esac
 }
 
+# Never execute an HTTP error page or treat an empty failed download as success.
+run_voipblock() (
+  script="/tmp/modgui-voipblock.$$.sh"
+  trap 'rm -f "$script"' EXIT HUP INT TERM
+  curl -fkLsS --connect-timeout 15 --max-time 60 \
+    https://repository.macoers.com/voipblock/voipblock.sh --output "$script" || return 1
+  [ -s "$script" ] && head -n 1 "$script" | grep -q '^#!.*sh' || return 1
+  sh -n "$script" || return 1
+  ash "$script" "$1"
+)
+
 app_voipblock_for_mmpbx() {
   install() {
     {
-      curl -ks https://repository.macoers.com/voipblock/voipblock.sh | ash -s tch_install_for_mmpbx
+      run_voipblock tch_install_for_mmpbx
     } && {
       uci set modgui.app.voipblock_for_mmpbx="1"
       uci commit modgui
@@ -565,7 +585,7 @@ app_voipblock_for_mmpbx() {
   }
   remove() {
     {
-      curl -ks https://repository.macoers.com/voipblock/voipblock.sh | ash -s tch_uninstall_for_mmpbx
+      run_voipblock tch_uninstall_for_mmpbx
     } && {
       uci set modgui.app.voipblock_for_mmpbx="0"
       uci commit modgui
@@ -589,7 +609,7 @@ app_voipblock_for_mmpbx() {
 app_voipblock_for_asterisk() {
   install() {
     {
-      curl -ks https://repository.macoers.com/voipblock/voipblock.sh | ash -s tch_install_for_asterisk
+      run_voipblock tch_install_for_asterisk
     } && {
       uci set modgui.app.blacklist_app="0"
       uci set modgui.app.voipblock_for_asterisk="1"
@@ -598,7 +618,7 @@ app_voipblock_for_asterisk() {
   }
   remove() {
     {
-      curl -ks https://repository.macoers.com/voipblock/voipblock.sh | ash -s tch_uninstall_for_asterisk
+      run_voipblock tch_uninstall_for_asterisk
      } && {
       uci set modgui.app.voipblock_for_asterisk="0"
       uci commit modgui
@@ -621,12 +641,19 @@ app_voipblock_for_asterisk() {
 
 app_blacklist() {
   install() {
-    install_from_github Ansuel/blacklist master normal "$2"
+    require_free_space 12288 /usr || return 1
+    install_from_github Ansuel/blacklist master normal "$2" || return 1
     uci set modgui.app.blacklist_app="1"
     uci commit modgui
   }
   remove() {
-    install_from_github Ansuel/blacklist master normal remove
+    # A failed/preflight-only install must not run the legacy uninstaller,
+    # which removes Asterisk configuration and edits sudoers unconditionally.
+    if [ "$(uci -q get modgui.app.blacklist_app)" != 1 ] &&
+      [ ! -f /usr/share/transformer/mappings/rpc/mmpbx.blacklist.map ]; then
+      return 0
+    fi
+    install_from_github Ansuel/blacklist master normal remove || return 1
     uci set modgui.app.blacklist_app="0"
     uci commit modgui
   }
@@ -683,6 +710,420 @@ set_extension_state() {
   uci commit modgui
 }
 
+# Native MIPS lifecycle: keep Technicolor's UCI binding and core libraries.
+luci_mips_state=/etc/.modgui-luci-mips
+luci_mips_feed=/etc/opkg/modgui-luci.conf
+
+luci_mips_record_packages() {
+  opkg list-installed | awk '{print $1}' > "$luci_mips_state/after"
+  : > "$luci_mips_state/packages"
+  while read -r package; do
+    grep -Fxq "$package" "$luci_mips_state/before" || echo "$package" >> "$luci_mips_state/packages"
+  done < "$luci_mips_state/after"
+}
+
+luci_mips_remove() {
+  if [ ! -d "$luci_mips_state" ]; then
+    if opkg list-installed | grep -q '^luci '; then
+      echo "Unmanaged LuCI installation: refusing to remove existing packages"
+      return 1
+    fi
+    return 0
+  fi
+  [ ! -x /etc/init.d/uhttpd ] || {
+    /etc/init.d/uhttpd stop
+    /etc/init.d/uhttpd disable
+  }
+  [ ! -x /etc/init.d/rpcd ] || {
+    /etc/init.d/rpcd stop
+    /etc/init.d/rpcd disable
+  }
+  # Only packages introduced by this installation may be removed. Repeat
+  # dependency-order passes; never force removal of firmware dependencies.
+  for pass in 1 2 3 4 5 6; do
+    opkg list-installed | awk '{print $1}' > "$luci_mips_state/remaining"
+    pending=0
+    while read -r package; do
+      if grep -Fxq "$package" "$luci_mips_state/remaining"; then
+        pending=1
+        opkg remove "$package" >/dev/null 2>&1 || true
+      fi
+    done < "$luci_mips_state/packages"
+    [ "$pending" = 1 ] || break
+  done
+  cp -p "$luci_mips_state/uci.so" /usr/lib/lua/uci.so || return 1
+  [ ! -f "$luci_mips_state/lua-uci.list" ] ||
+    cp -p "$luci_mips_state/lua-uci.list" /usr/lib/opkg/info/lua-uci.list || return 1
+  while read -r package; do
+    if opkg status "$package" | grep -q '^Status:.* installed'; then
+      echo "LuCI package still required: $package"
+      return 1
+    fi
+  done < "$luci_mips_state/packages"
+  rm -rf /www_luci
+  rm -f /etc/config/luci /etc/config/uhttpd /etc/config/rpcd "$luci_mips_feed"
+  rm -rf "$luci_mips_state"
+}
+
+luci_mips_install() (
+  require_free_space 4096 /usr || return 1
+  if [ -d "$luci_mips_state" ] || opkg list-installed | grep -Eq '^(luci|uhttpd|rpcd|libuci-lua) '; then
+    echo "A LuCI installation already exists; refusing to overwrite it"
+    return 1
+  fi
+  for config in /etc/config/luci /etc/config/uhttpd /etc/config/rpcd "$luci_mips_feed"; do
+    [ ! -e "$config" ] || { echo "Existing LuCI configuration: $config"; return 1; }
+  done
+  tmp="/tmp/modgui-luci-mips.$$"
+  mkdir -p "$tmp" "$luci_mips_state" /etc/opkg || return 1
+  chmod 700 "$tmp" "$luci_mips_state"
+  cp -p /usr/lib/lua/uci.so "$luci_mips_state/uci.so" || return 1
+  [ ! -f /usr/lib/opkg/info/lua-uci.list ] ||
+    cp -p /usr/lib/opkg/info/lua-uci.list "$luci_mips_state/lua-uci.list" || return 1
+  opkg list-installed | awk '{print $1}' > "$luci_mips_state/before"
+  success=0
+  cleanup() {
+    cp -p "$luci_mips_state/uci.so" /usr/lib/lua/uci.so
+    if [ "$success" != 1 ]; then
+      luci_mips_record_packages
+      luci_mips_remove
+    fi
+    rm -rf "$tmp"
+  }
+  trap cleanup EXIT
+  trap 'exit 1' HUP INT TERM
+  curl -fkLsS --connect-timeout 15 --max-time 120 \
+    https://api.github.com/repos/nutterpc/tg-luci/tarball/9bd097140ee3d2e655724d9456e111fb6bac8925 \
+    --output "$tmp/source.tgz" || return 1
+  [ "$(sha256sum "$tmp/source.tgz" | awk '{print $1}')" = 3f7c0195b60782b7922e4e249e8b73bcb132c97397f9aeb5851d025f245fd0be ] || {
+    echo "MIPS LuCI archive checksum mismatch"; return 1;
+  }
+  tar -xzf "$tmp/source.tgz" -C "$tmp" || return 1
+  # Generic brcm63xx's LuCI feed is empty; the official SMP LuCI feed
+  # contains the architecture-independent Lua code. Keep all other feeds.
+  echo 'src/gz modgui_luci_mips http://archive.openwrt.org/chaos_calmer/15.05.1/brcm63xx/smp/packages/luci' > "$luci_mips_feed"
+  opkg update || return 1
+  set -- "$tmp"/nutterpc-*/libiwinfo*.ipk "$tmp"/nutterpc-*/rpcd*.ipk "$tmp"/nutterpc-*/uhttpd*.ipk
+  opkg install "$@" || return 1
+  # The custom package adds uci_luci.so; restore the vendor uci.so even on
+  # failure. Do not upgrade libuci, libubox or any other core package.
+  opkg install --force-overwrite "$tmp"/nutterpc-*/libuci-lua_*.ipk
+  status=$?
+  cp -p "$luci_mips_state/uci.so" /usr/lib/lua/uci.so || return 1
+  [ "$status" = 0 ] || return 1
+  opkg install luci luci-lib-json luci-lib-jsonc luci-lib-nixio luci-mod-rpc || return 1
+  lua -e 'assert(require("uci_luci").cursor())' || return 1
+  sed -i 's/require "uci"/require "uci_luci"/g' /usr/lib/lua/luci/model/uci.lua || return 1
+  mkdir -p /www_luci || return 1
+  for asset in cgi-bin luci-static index.html; do
+    [ ! -e "/www/$asset" ] || mv "/www/$asset" /www_luci/ || return 1
+  done
+  [ -f /www_luci/cgi-bin/luci ] || return 1
+  uci -q delete uhttpd.main.listen_http
+  uci add_list uhttpd.main.listen_http=0.0.0.0:9080
+  uci add_list uhttpd.main.listen_http='[::]:9080'
+  uci -q delete uhttpd.main.listen_https
+  uci set uhttpd.main.home=/www_luci
+  uci commit uhttpd || return 1
+  /etc/init.d/uhttpd enable || /etc/init.d/uhttpd enabled || return 1
+  /etc/init.d/uhttpd restart || return 1
+  luci_mips_record_packages
+  success=1
+)
+
+require_usb_storage() {
+  modgui_usb_root=$(awk '$1 ~ /^\/dev\/sd[a-z][0-9]*$/ &&
+    $2 ~ /^\/tmp\/run\/mountd\/sd[a-z][0-9]*$/ && $4 ~ /(^|,)rw(,|$)/ {
+      print $2; exit
+    }' /proc/mounts)
+  if [ -z "$modgui_usb_root" ]; then
+    echo "This legacy MIPS app requires a mounted writable USB disk"
+    return 1
+  fi
+  probe=$(mktemp "$modgui_usb_root/.modgui-write.XXXXXX") || return 1
+  rm -f "$probe"
+}
+
+# The old upstream setup scripts assume sda1, upgrade libstdcpp globally and
+# remove dependencies they did not install. Keep those operations local here.
+legacy_mips_record_packages() {
+  opkg list-installed | awk '{print $1}' > "$legacy_state/after"
+  : > "$legacy_state/packages"
+  while read -r package; do
+    grep -Fxq "$package" "$legacy_state/before" || echo "$package" >> "$legacy_state/packages"
+  done < "$legacy_state/after"
+}
+
+legacy_mips_record_account() {
+  for database in passwd group shadow; do
+    [ -f "$legacy_state/$database-absent" ] || continue
+    grep "^$legacy_app:" "/etc/$database" > "$legacy_state/$database-created" 2>/dev/null || true
+  done
+}
+
+legacy_mips_remove() {
+  [ -d "$legacy_state" ] || {
+    if opkg status "$main_package" | grep -q '^Status:.* installed'; then
+      echo "Unmanaged $legacy_app installation; refusing to remove existing packages"
+      return 1
+    fi
+    return 0
+  }
+  ca_restore="$legacy_state/ca-original"
+  if [ -f "$legacy_state/installed" ] && [ -f "$ca_restore" ] &&
+    [ -f /etc/ssl/certs/ca-certificates.crt ]; then
+    # The GUI/user may have refreshed CA roots while this app was installed.
+    cp -p /etc/ssl/certs/ca-certificates.crt "$legacy_state/ca-current" || return 1
+    ca_restore="$legacy_state/ca-current"
+  fi
+  [ ! -x "/etc/init.d/$legacy_app" ] || {
+    "/etc/init.d/$legacy_app" stop 2>/dev/null
+    "/etc/init.d/$legacy_app" disable 2>/dev/null
+  }
+  for pass in 1 2 3 4 5 6; do
+    opkg list-installed | awk '{print $1}' > "$legacy_state/remaining"
+    pending=0
+    while read -r package; do
+      if grep -Fxq "$package" "$legacy_state/remaining"; then
+        pending=1
+        opkg remove "$package" >/dev/null 2>&1 || true
+      fi
+    done < "$legacy_state/packages"
+    [ "$pending" = 1 ] || break
+  done
+  # ca-bundle must not replace a customized firmware trust store, including
+  # when opkg removes the bundle again during rollback or normal removal.
+  [ ! -f "$ca_restore" ] ||
+    cp -p "$ca_restore" /etc/ssl/certs/ca-certificates.crt || return 1
+  while read -r package; do
+    if opkg status "$package" | grep -q '^Status:.* installed'; then
+      echo "Package still required by another application: $package"
+      return 1
+    fi
+  done < "$legacy_state/packages"
+  # BusyBox on older Homeware has no deluser/delgroup. Only remove exact
+  # account entries created by this install; preserve later user edits.
+  account_edited=0
+  for database in passwd group shadow; do
+    if [ -s "$legacy_state/$database-created" ] &&
+      grep -q "^$legacy_app:" "/etc/$database" &&
+      ! grep -Fxq "$(cat "$legacy_state/$database-created")" "/etc/$database"; then
+      account_edited=1
+    fi
+  done
+  if [ "$account_edited" = 0 ]; then
+    for database in passwd group shadow; do
+      [ ! -s "$legacy_state/$database-created" ] ||
+        sed -i "/^$legacy_app:/d" "/etc/$database" || return 1
+    done
+  else
+    echo "Modified $legacy_app account was preserved"
+  fi
+  if [ "$legacy_app" = aria2 ]; then
+    rm -f /www/docroot/aria /usr/libexec/modgui-aria2c /etc/init.d/aria2
+  else
+    rm -f /usr/share/transmission
+  fi
+  rm -f "/etc/config/$legacy_app"
+  private=$(cat "$legacy_state/private")
+  case "$private" in
+    /tmp/run/mountd/sd*/.modgui-apps/aria2|/tmp/run/mountd/sd*/.modgui-apps/transmission)
+      # Never follow a replacement directory while the original USB is absent.
+      if awk -v usb="$(cat "$legacy_state/usb")" '$2 == usb {found=1} END {exit !found}' /proc/mounts; then
+        rm -rf "$private"
+        rmdir "$(dirname "$private")" 2>/dev/null || true
+      fi
+      ;;
+  esac
+  rm -rf "$legacy_state"
+  set_extension_state "${legacy_app}_webui" 0
+}
+
+legacy_mips_install() (
+  require_usb_storage || return 1
+  require_free_space 6144 /usr || return 1
+  require_free_space 16384 "$modgui_usb_root" || return 1
+  if [ -e "$legacy_state" ] || opkg status "$main_package" | grep -q '^Status:.* installed'; then
+    echo "A $legacy_app installation already exists; refusing to overwrite it"
+    return 1
+  fi
+  private="$modgui_usb_root/.modgui-apps/$legacy_app"
+  config="$modgui_usb_root/sharing/config/$legacy_app"
+  download="$modgui_usb_root/sharing/download/$legacy_app"
+  if [ -e "$private" ] || [ -e "/etc/config/$legacy_app" ]; then
+    echo "Existing $legacy_app runtime/configuration; refusing to overwrite it"
+    return 1
+  fi
+  if [ "$legacy_app" = aria2 ]; then
+    [ ! -e /www/docroot/aria ] && [ ! -e /usr/libexec/modgui-aria2c ] || return 1
+    commit=499a17ed634e1b7ee764f58d5c20bb5bc0155c7d
+    digest=3d7558fb9d80ce25269cfe746c78dd6d58820f066c7292240959018ceb8a37f2
+  else
+    [ ! -e /usr/share/transmission ] || return 1
+    commit=49a5d4e392e66c7ff98a00c534ee21de110d71d5
+    digest=6b88ca12ba21f3aaee3b0a4c7f5b6faf5a3473741f38ca58235e8c69d66b7f6f
+  fi
+  mkdir -p "$legacy_state" || return 1
+  chmod 700 "$legacy_state"
+  printf '%s\n' "$modgui_usb_root" > "$legacy_state/usb"
+  printf '%s\n' "$private" > "$legacy_state/private"
+  for database in passwd group shadow; do
+    grep -q "^$legacy_app:" "/etc/$database" 2>/dev/null || touch "$legacy_state/$database-absent"
+  done
+  opkg list-installed | awk '{print $1}' > "$legacy_state/before"
+  : > "$legacy_state/packages"
+  stage="$private/.install"
+  success=0
+  cleanup() {
+    if [ "$success" != 1 ]; then
+      legacy_mips_record_packages
+      legacy_mips_record_account
+      legacy_mips_remove
+    fi
+    rm -rf "$stage"
+  }
+  trap cleanup EXIT
+  trap 'exit 1' HUP INT TERM
+  mkdir -p "$stage" || return 1
+  curl -fkLsS --connect-timeout 15 --max-time 120 \
+    "https://api.github.com/repos/FrancYescO/sharing_tg789/tarball/$commit" \
+    --output "$stage/source.tgz" || return 1
+  [ "$(sha256sum "$stage/source.tgz" | awk '{print $1}')" = "$digest" ] || {
+    echo "MIPS $legacy_app archive checksum mismatch"; return 1;
+  }
+  tar -xzf "$stage/source.tgz" -C "$stage" || return 1
+  set -- "$stage"/FrancYescO-sharing_tg789-*
+  [ "$#" = 1 ] && [ -d "$1" ] || return 1
+  source=$1
+  if [ "$legacy_app" = aria2 ]; then
+    # Put the newer C++ runtime on USB without installing its essential IPK.
+    data_member=$(tar -tzf "$source"/libstdcpp_*.ipk | grep -E '^(\./)?data.tar.gz$')
+    tar -xOzf "$source"/libstdcpp_*.ipk "$data_member" > "$stage/cpp.tgz" || return 1
+    cpp_member=$(tar -tzf "$stage/cpp.tgz" | grep -E '(^|/)libstdc\+\+\.so\.6\.[0-9.]+$')
+    mkdir "$private/lib" || return 1
+    # FAT has no symlinks: materialize the soname as a regular library file.
+    tar -xOzf "$stage/cpp.tgz" "$cpp_member" > "$private/lib/libstdc++.so.6" || return 1
+    opkg install "$source"/aria2_*.ipk
+    status=$?
+  else
+    [ ! -f /etc/ssl/certs/ca-certificates.crt ] ||
+      cp -p /etc/ssl/certs/ca-certificates.crt "$legacy_state/ca-original" || return 1
+    set --
+    for package in ca-bundle libevent2 libminiupnpc libnatpmp transmission-daemon-openssl transmission-remote-openssl; do
+      if ! opkg status "$package" | grep -q '^Status:.* installed'; then
+        set -- "$@" "$source"/"$package"_*.ipk
+      fi
+    done
+    opkg install "$@"
+    status=$?
+    [ ! -f "$legacy_state/ca-original" ] ||
+      cp -p "$legacy_state/ca-original" /etc/ssl/certs/ca-certificates.crt || return 1
+  fi
+  legacy_mips_record_packages
+  legacy_mips_record_account
+  [ "$status" = 0 ] || return 1
+  mkdir -p "$config" "$download" || return 1
+  if [ "$legacy_app" = aria2 ]; then
+    mkdir -p /usr/libexec || return 1
+    mv /usr/bin/aria2c /usr/libexec/modgui-aria2c || return 1
+    cat > /usr/bin/aria2c <<EOF
+#!/bin/sh
+[ -r '$private/lib/libstdc++.so.6' ] || { echo 'Aria2 USB runtime is unavailable'; exit 1; }
+export LD_LIBRARY_PATH='$private/lib'
+exec /usr/libexec/modgui-aria2c "\$@"
+EOF
+    chmod 755 /usr/bin/aria2c
+    /usr/bin/aria2c --version >/dev/null || return 1
+    cp -R "$source/config/webui" "$private/webui" || return 1
+    if [ ! -f "$config/aria2.conf" ]; then
+      sed "s#/tmp/run/mountd/sda1#$modgui_usb_root#g" "$source/config/aria2.conf" > "$config/aria2.conf" || return 1
+      printf '\ndht-file-path=%s/dht.dat\ndht-file-path6=%s/dht6.dat\n' "$config" "$config" >> "$config/aria2.conf" || return 1
+      touch "$config/session.dat"
+    fi
+    ln -s "$private/webui" /www/docroot/aria || return 1
+    cat > /etc/init.d/aria2 <<EOF
+#!/bin/sh /etc/rc.common
+START=95
+STOP=10
+USE_PROCD=1
+start_service() {
+  [ -r '$config/aria2.conf' ] && [ -r '$private/lib/libstdc++.so.6' ] || return 1
+  procd_open_instance
+  procd_set_param command /usr/bin/aria2c --daemon=false --conf-path='$config/aria2.conf'
+  procd_set_param stdout 1
+  procd_set_param stderr 1
+  procd_close_instance
+}
+EOF
+    chmod 755 /etc/init.d/aria2
+  else
+    /usr/bin/transmission-daemon --version >/dev/null || return 1
+    cp -R "$source/config/web" "$private/web" || return 1
+    ln -s "$private" /usr/share/transmission || return 1
+    sed "s#/tmp/run/mountd/sda1#$modgui_usb_root#g" "$source/transmission.conf" > /etc/config/transmission || return 1
+    mkdir -p "$config/config" || return 1
+    uci set transmission.@transmission[0].enabled=0
+    uci set transmission.@transmission[0].port_forwarding_enabled=false
+    # Include only connected LAN prefixes; bridge-mode WAN is the same LAN.
+    whitelist=127.0.0.1
+    for address in "$(uci -q get network.lan.ipaddr)" "$(
+      if [ "$(uci -q get network.config.wan_mode)" = bridge ]; then
+        ubus call network.interface.wan status | jsonfilter -e '@["ipv4-address"][0].address'
+      fi
+    )"; do
+      case "$address" in
+        *[!0-9.]*|'') ;;
+        *.*.*.*) whitelist="$whitelist,${address%.*}.*" ;;
+      esac
+    done
+    uci set "transmission.@transmission[0].rpc_whitelist=$whitelist"
+    uci commit transmission || return 1
+  fi
+  "/etc/init.d/$legacy_app" disable 2>/dev/null || true
+  set_extension_state "${legacy_app}_webui" 1 || return 1
+  touch "$legacy_state/installed" || return 1
+  success=1
+)
+
+legacy_mips_app() {
+  legacy_app=$2
+  legacy_state="/etc/.modgui-mips-$legacy_app"
+  main_package=$legacy_app
+  [ "$legacy_app" != transmission ] || main_package=transmission-daemon-openssl
+  case "$1" in
+    install) legacy_mips_install ;;
+    remove) legacy_mips_remove ;;
+    start|stop)
+      [ -x "/etc/init.d/$legacy_app" ] || return 1
+      # Older unmanaged installations retain their original start/stop behavior.
+      if [ -d "$legacy_state" ] && [ "$1" = start ]; then
+        usb=$(cat "$legacy_state/usb")
+        awk -v usb="$usb" '$2 == usb && $4 ~ /(^|,)rw(,|$)/ {found=1} END {exit !found}' /proc/mounts || {
+          echo "$legacy_app USB storage is unavailable"; return 1;
+        }
+        if [ "$legacy_app" = transmission ]; then
+          uci set transmission.@transmission[0].enabled=1 && uci commit transmission || return 1
+        fi
+      fi
+      "/etc/init.d/$legacy_app" "$1" || return 1
+      if [ -d "$legacy_state" ] && [ "$legacy_app" = transmission ] && [ "$1" = stop ]; then
+        uci set transmission.@transmission[0].enabled=0 && uci commit transmission || return 1
+      fi
+      ;;
+    *) echo "Unsupported action"; return 1 ;;
+  esac
+}
+
+extract_bzip_archive() (
+  # Legacy BusyBox tar has no -j. Avoid a pipeline whose exit status hides
+  # decompression failures and could report an empty install as successful.
+  archive_tmp=$(mktemp /tmp/modgui-app-archive.XXXXXX) || return 1
+  trap 'rm -f "$archive_tmp"' EXIT
+  trap 'exit 1' HUP INT TERM
+  bzcat "$1" > "$archive_tmp" || return 1
+  tar -xf "$archive_tmp" -C "$2"
+)
+
 require_free_space() {
   required_kb="$1"
   target_path="$2"
@@ -720,11 +1161,35 @@ app_adblock() {
   adblock_owned="/etc/.modgui-adblock-installed"
   case "$1" in
   install)
+    require_free_space 2048 /usr || return 1
     if ! opkg list-installed | grep -q '^adblock '; then
       touch "$adblock_owned"
     fi
     opkg update || return 1
-    opkg install adblock || return 1
+    if [ "$cpu_type" = mips ] && ! opkg list adblock | grep -q '^adblock '; then
+      # Chaos Calmer predates Adblock. Use the reviewed shell-only package;
+      # its dependencies already exist in Technicolor Homeware 17.x.
+      adblock_tmp="/tmp/modgui-adblock.$$.ipk"
+      curl -fkLsS --connect-timeout 15 --max-time 60 \
+        https://raw.githubusercontent.com/Ansuel/GUI_ipk/1587d4a113de414f4409ea80b11a8d03c115f17c/packages/adblock_3.5.5-3_all.ipk \
+        --output "$adblock_tmp" || { rm -f "$adblock_tmp"; return 1; }
+      if [ "$(sha256sum "$adblock_tmp" | awk '{print $1}')" != 5e76418e082917f3524706aa6ca1d05ae04042ec4d07080b1c3b9c320cb044b9 ]; then
+        echo "Adblock package checksum mismatch"
+        rm -f "$adblock_tmp"
+        return 1
+      fi
+      opkg install "$adblock_tmp"
+      adblock_status=$?
+      rm -f "$adblock_tmp"
+      [ "$adblock_status" = 0 ] || return 1
+    else
+      opkg install adblock || return 1
+    fi
+    # Old Homeware jshn provides json_load but not json_load_file. Keep the
+    # package's status command usable without replacing the firmware library.
+    if ! sh -c '. /usr/share/libubox/jshn.sh; command -v json_load_file >/dev/null'; then
+      sed -i 's/json_load_file "${rtfile}"/json_load "$(cat "${rtfile}")"/' /etc/init.d/adblock || return 1
+    fi
     [ -n "$(uci get -q adblock.global)" ] || uci set adblock.global=adblock
     uci set adblock.global.adb_enabled=1
     uci set adblock.global.adb_dns=dnsmasq
@@ -1224,7 +1689,7 @@ app_wireguard() {
       /etc/init.d/nginx restart
       return 0
     fi
-    require_free_space 8192 /overlay || return 1
+    require_free_space 8192 /usr || return 1
     curl -kfL "https://raw.githubusercontent.com/seud0nym/openwrt-wireguard-go/$wireguard_commit/repository/$wireguard_arch/base/wireguard-go_${wireguard_version}_${wireguard_arch}.ipk" \
       --output "$wireguard_tmp" || {
         rm -f "$wireguard_tmp"
@@ -1428,7 +1893,7 @@ app_l2tpipsec() {
       echo "A pre-existing strongSwan installation was found; refusing to overwrite its configuration"
       return 1
     fi
-    require_free_space 16384 /overlay || return 1
+    require_free_space 16384 /usr || return 1
     opkg list-installed | awk '{print $1}' > "$l2tpipsec_before" || return 1
     opkg update || {
       rm -f "$l2tpipsec_before"
@@ -1664,7 +2129,7 @@ app_openvpn() {
       echo "A pre-existing OpenVPN installation was found; refusing to overwrite its configuration"
       return 1
     fi
-    require_free_space 16384 /overlay || return 1
+    require_free_space 16384 /usr || return 1
     opkg list-installed | awk '{print $1}' > "$openvpn_before" || return 1
     opkg update || {
       rm -f "$openvpn_before"
@@ -2215,7 +2680,7 @@ app_dumaos() {
       ;;
     esac
     if [ "$(dumaos_installed_version)" != "$dumaos_version" ]; then
-      require_free_space 40960 /overlay || return 1
+      require_free_space 40960 /usr || return 1
       require_free_space 10240 /tmp || return 1
       opkg update || return 1
       curl -kfL "https://github.com/FrancYescO/sharing_tg789/releases/download/$dumaos_tag/$dumaos_package" \
