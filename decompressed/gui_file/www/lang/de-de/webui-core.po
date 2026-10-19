@@ -4519,3 +4519,12 @@ msgstr "Telefonie"
 
 msgid "Parental Controls"
 msgstr "Kindersicherung"
+
+msgid "HTTPS is unavailable: no local listener on port 443."
+msgstr "HTTPS ist nicht verfügbar: kein Dienst lauscht auf Port 443."
+
+msgid "HTTPS availability could not be verified."
+msgstr "Die Verfügbarkeit von HTTPS konnte nicht geprüft werden."
+
+msgid "HTTPS is blocked by a LAN firewall rule on port 443."
+msgstr "HTTPS wird durch eine LAN-Firewallregel für Port 443 blockiert."

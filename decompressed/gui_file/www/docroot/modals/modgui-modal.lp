@@ -9,6 +9,76 @@ local ui_helper = require("web.ui_helper")
 local message_helper = require("web.uimessage_helper")
 local content_helper = require("web.content_helper")
 local post_helper = require("web.post_helper")
+local https_support = {}
+do
+    -- Check local prerequisites without opening ports or changing firewall policy.
+    local uci = require("uci")
+    local M = https_support
+    local function plain(value)
+        return type(value) == "string" and string.untaint and string.untaint(value) or value
+    end
+    local function contains(value, wanted)
+        if type(value) == "table" then
+            for _, item in ipairs(value) do if contains(item, wanted) then return true end end
+        elseif type(value) == "string" then
+            for item in plain(value):gmatch("%S+") do
+                if item == wanted or item == "all" or item == "*" then return true end
+                local first, last = item:match("^(%d+)[%-:](%d+)$")
+                if first and tonumber(wanted) and tonumber(first) <= tonumber(wanted)
+                    and tonumber(last) >= tonumber(wanted) then return true end
+            end
+        end
+        return false
+    end
+    local function listening(path)
+        local file = io.open(path, "r")
+        if not file then return false end
+        local found = false
+        for line in file:lines() do
+            local address, port, state = line:match("^%s*%d+:%s+(%x+):(%x+)%s+%x+:%x+%s+(%x+)")
+            if port == "01BB" and state == "0A" and address ~= "0100007F"
+                and address ~= "00000000000000000000000001000000" then found = true end
+        end
+        file:close()
+        return found
+    end
+    function M.available()
+        if not listening("/proc/net/tcp") and not listening("/proc/net/tcp6") then
+            return false, "HTTPS is unavailable: no local listener on port 443."
+        end
+        local cursor = uci.cursor()
+        local blocked = false
+        local ok, result = pcall(function()
+            return cursor:foreach("firewall", "rule", function(rule)
+                -- Only unconditional LAN input blocks: forwarded traffic and
+                -- restrictions for individual hosts must not disable the setting.
+                if plain(rule.src) == "lan" and not rule.dest and rule.enabled ~= "0"
+                    and (rule.target == "DROP" or rule.target == "REJECT")
+                    and (not rule.proto or contains(rule.proto, "tcp"))
+                    and (not rule.dest_port or contains(rule.dest_port, "443"))
+                    and not rule.src_ip and not rule.dest_ip and not rule.src_mac
+                    and not rule.src_port and not rule.extra and not rule.ipset
+                    and not rule.start_time and not rule.stop_time
+                    and not rule.start_date and not rule.stop_date
+                    and not rule.weekdays and not rule.monthdays then blocked = true end
+            end)
+        end)
+        cursor:unload("firewall")
+        if not ok or result ~= true then
+            return false, "HTTPS availability could not be verified."
+        end
+        if blocked then return false, "HTTPS is blocked by a LAN firewall rule on port 443." end
+        return true
+    end
+    function M.validate(value)
+        if value ~= "0" and value ~= "1" then return nil, "Invalid value" end
+        if value == "0" then return true end
+        local available, reason = M.available()
+        if not available then return nil, reason end
+        return true
+    end
+end
+local https_available, https_reason = https_support.available()
 local format,find,sub, match, untaint = string.format, string.find, string.sub, string.match, string.untaint
 local vB = post_helper.validateBoolean
 local gOV = post_helper.getOrValidation
@@ -286,10 +356,6 @@ if ngx.req.get_method() == "POST" then
                 ngx.exit(ngx.HTTP_OK)
                 return
         end
-        if proxy.get("uci.web.sessionmgr.@default.force_https")[1].value ~= post_args.gui_forcehttps then
-                local mngr = require("web.sessioncontrol").loadmgr("default")
-                mngr.force_https = post_args.gui_forcehttps
-        end
         if action == "debug_report" then
 
                 local debuglog_path = "rpc.system.modgui.debuglog."
@@ -414,7 +480,10 @@ local mapValid = {
         gui_skin_firstpage = post_helper.getValidateInEnumSelect(gui_skin_firstpage_page),
         gui_randomcolor = vB,
         gui_alwaysadvanced = vB,
-        gui_forcehttps = vB,
+        gui_forcehttps = function(value)
+                local ok, reason = https_support.validate(value)
+                return ok, reason and T(reason)
+        end,
         gui_animation = vB,
         disable_cwmp_update = vB,
         modem_serial = post_helper.validateNonEmptyString,
@@ -463,6 +532,14 @@ if ngx.req.get_method() == "POST" and
 end
 
 local modgui_settings, helpmsg = post_helper.handleQuery(mapParams, mapValid)
+-- Update the live manager only from persisted, validated configuration.
+-- A rejected form or another action must not enable a redirect in memory.
+if ngx.req.get_method() == "POST" and ngx.req.get_post_args().action == "SAVE" then
+        local saved = { force_https = "uci.web.sessionmgr.@default.force_https" }
+        if content_helper.getExactContent(saved) then
+                require("web.sessioncontrol").loadmgr("default").force_https = saved.force_https
+        end
+end
 local visibility_changed = false
 for _, card in ipairs(card_settings) do
         local visible = modgui_settings["card_visible_" .. card.section] ~= "0"
@@ -578,7 +655,12 @@ html[#html + 1] = '<legend>'.. T"GUI Skin" ..'</legend>'
 html[#html + 1] = ui_helper.createInputSelect(T"GUI Skin", "gui_skin", gui_skin_option, modgui_settings["gui_skin"])
 html[#html + 1] = ui_helper.createInputSelect(T"GUI First Page", "gui_skin_firstpage", gui_skin_firstpage_page, modgui_settings["gui_skin_firstpage"])
 html[#html + 1] = ui_helper.createSwitch(T"Random Color", "gui_randomcolor", modgui_settings["gui_randomcolor"])
-html[#html + 1] = ui_helper.createSwitch(T"Force HTTPS to access the GUI", "gui_forcehttps", modgui_settings["gui_forcehttps"])
+local https_attributes
+if not https_available and modgui_settings.gui_forcehttps ~= "1" then
+        https_attributes = {switch = {class = "switch disabled"}}
+end
+html[#html + 1] = ui_helper.createSwitch(T"Force HTTPS to access the GUI", "gui_forcehttps",
+        modgui_settings.gui_forcehttps, https_attributes, not https_available and T(https_reason) or helpmsg.gui_forcehttps)
 html[#html + 1] = ui_helper.createSwitch(T"Always show advanced options", "gui_alwaysadvanced", modgui_settings["gui_alwaysadvanced"])
 html[#html + 1] = ui_helper.createSwitch(T"GUI animations", "gui_animation", modgui_settings["gui_animation"])
 html[#html + 1] = '</form>'

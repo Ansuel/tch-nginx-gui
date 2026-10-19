@@ -4573,3 +4573,12 @@ msgstr "Richiede una USB scrivibile e spazio libero nella memoria interna."
 
 msgid "Unavailable"
 msgstr "Non disponibile"
+
+msgid "HTTPS is unavailable: no local listener on port 443."
+msgstr "HTTPS non disponibile: nessun servizio in ascolto sulla porta 443."
+
+msgid "HTTPS availability could not be verified."
+msgstr "Impossibile verificare la disponibilità di HTTPS."
+
+msgid "HTTPS is blocked by a LAN firewall rule on port 443."
+msgstr "HTTPS è bloccato da una regola firewall LAN sulla porta 443."
