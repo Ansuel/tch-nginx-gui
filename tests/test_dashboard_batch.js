@@ -75,3 +75,13 @@ const options = (path, success, token = 'test') => ({url: '/ajax/' + path + '?au
   s.send(options('internet.lua?extra=1')); assert.strictEqual(s.requests.length, 4);
 }
 console.log('dashboard batching lifecycle OK');
+{
+  const s = setup(); let updated = false;
+  s.send(options('internet.lua?datatype=xdsl'));
+  s.send(options('cpuload.lua', () => updated = true)); s.flush();
+  assert.strictEqual(s.requests.length, 2);
+  assert(s.requests[0].options.url.includes('datatype=xdsl'));
+  assert.strictEqual(s.requests[1].options.data[1].value, 'gateway');
+  s.requests[1].resolve({modules: {gateway: {status: 200, data: {}}}});
+  assert(updated); // An unresolved DSL request must not delay other cards.
+}

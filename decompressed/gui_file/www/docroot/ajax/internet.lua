@@ -33,12 +33,6 @@ if datatype and datatype== "xdsl" then
 		dsl_type = "sys.class.xdsl.@line0.ModulationType",
 		dsl_margin_SNRM_up = "sys.class.xdsl.@line0.UpstreamSNRMpb",
 		dsl_margin_SNRM_down = "sys.class.xdsl.@line0.DownstreamSNRMpb",
-		dslam_chipset = "rpc.xdslctl.DslamChipset",
-		dslam_version = "rpc.xdslctl.DslamVersion",
-		dsl_profile = "rpc.xdslctl.DslProfile",
-		dsl_port = "rpc.xdslctl.DslamPort",
-		dslam_version_raw = "rpc.xdslctl.DslamVersionRaw",
-		dsl_serial = "rpc.xdslctl.DslamSerial",
 	}
 
 	content_helper.getExactContent(data)
@@ -61,6 +55,18 @@ if datatype and datatype== "xdsl" then
 		-- This endpoint is also installed on Ethernet/GPON-only devices.
 		data = {}
 	elseif data.dsl_linerate_down ~= "0" then
+		-- DSLAM identity is only displayed when the line has a nonzero rate.
+		-- Avoid asking the driver for fields discarded on an idle line.
+		local dslam = {
+			dslam_chipset = "rpc.xdslctl.DslamChipset",
+			dslam_version = "rpc.xdslctl.DslamVersion",
+			dsl_profile = "rpc.xdslctl.DslProfile",
+			dsl_port = "rpc.xdslctl.DslamPort",
+			dslam_version_raw = "rpc.xdslctl.DslamVersionRaw",
+			dsl_serial = "rpc.xdslctl.DslamSerial",
+		}
+		content_helper.getExactContent(dslam)
+		for key, value in pairs(dslam) do data[key] = value end
 			data.dsl_linerate_up = formatRate(data.dsl_linerate_up)
 			data.dsl_linerate_down = formatRate(data.dsl_linerate_down)
 			data.dsl_linerate_up_max = formatRate(data.dsl_linerate_up_max)
@@ -96,6 +102,8 @@ if datatype and datatype== "xdsl" then
 			data["status"] = T(data.status)
 		end
 	else
+		for _, key in ipairs({"dslam_chipset", "dslam_version", "dsl_profile",
+			"dsl_port", "dslam_version_raw", "dsl_serial"}) do data[key] = "N/A" end
 		for index in pairs(data) do
 			if not ( index == "status" ) then
 				data[index] = "N/A"
@@ -140,6 +148,12 @@ else
 	end
 
 	internethelper.getOptionalContent(content_rpc)
+	-- Bridge ifname may be a kernel device (e.g. br-lan), whereas RPC
+	-- network.interface exposes logical interfaces. Preserve a real down
+	-- value, but use the WAN status if the device has no RPC entry.
+	if content_rpc.up == "" and wan_interface ~= "wan" then
+		content_rpc.up = internethelper.getValue("rpc.network.interface.@wan.up")
+	end
 	content_rpc.ip6addr = content_rpc.ip6addr or ""
 	content_rpc.ip6prefix = content_rpc.ip6prefix or ""
 

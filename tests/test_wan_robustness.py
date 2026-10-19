@@ -209,8 +209,43 @@ for _, mode in ipairs({'pppoe', 'pppoa', 'static', 'dhcp', 'bridge'}) do
     assert(output.ipv6_state == 'IPv6 Connecting')
   end
 end
+values['uci.network.config.wan_mode'] = 'bridge'
+values['uci.network.interface.@wan.ifname'] = 'br-lan'
+values['rpc.network.interface.@wan.up'] = '1'
+dofile(%s)
+assert(output.status == 'Connected')
+values['rpc.network.interface.@br-lan.up'] = '0'
+dofile(%s)
+assert(output.status == 'Disconnected')
 assert(#writes == 0)
-''' % repr(str(ROOT / 'www/docroot/ajax/internet.lua')))
+''' % ((repr(str(ROOT / 'www/docroot/ajax/internet.lua')), ) * 3))
+
+    def test_idle_dsl_skips_blocking_dslam_queries(self):
+        self.run_lua('''
+local output, dslam_reads = nil, 0
+gettext = {textdomain = function() end}
+ngx = {HTTP_OK = 200, req = {get_method = function() return 'POST' end,
+  get_uri_args = function() return {datatype = 'xdsl'} end}, say = function() end, exit = function() end}
+package.preload['web.ui_helper'] = function() return {} end
+package.preload['web.post_helper'] = function() return {} end
+package.preload.dkjson = function() return {encode = function(data) output = data; return true end} end
+local status, rate = 'Idle', '0'
+package.preload['web.content_helper'] = function() return {getExactContent = function(data)
+  for key, path in pairs(data) do
+    if path:match('^rpc.xdslctl') then
+      dslam_reads = dslam_reads + 1
+      assert(rate ~= '0', 'Idle DSL must not query DSLAM RPCs')
+      data[key] = key == 'dslam_version_raw' and '0x1234' or 'BDCM'
+    else data[key] = key == 'status' and status or key == 'dsl_type' and 'ADSL' or rate end
+  end
+end} end
+dofile(%s)
+assert(output.status == 'Idle' and output.dsl_profile == 'N/A' and dslam_reads == 0)
+status, rate = 'Showtime', '12000'
+dofile(%s)
+assert(output.status == 'Connected' and tonumber(output.dsl_linerate_down:match('^(%%S+)')) == 12)
+assert(dslam_reads == 6 and output.dslam_chipset == 'Broadcom ( BDCM )')
+''' % ((repr(str(ROOT / 'www/docroot/ajax/internet.lua')), ) * 2))
 
     def test_card_file_checks_close_descriptors(self):
         source = (ROOT / 'usr/lib/lua/web/content_helper.lua').read_text()
