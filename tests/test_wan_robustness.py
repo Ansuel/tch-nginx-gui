@@ -267,6 +267,59 @@ for i = 1, 500 do
 end
 ''')
 
+    def test_telstra_ppp_settings_only_read_for_pppoe_connections(self):
+        source = (ROOT.parent / 'telstra_gui/www/docroot/telstra-modals/broadband.lp').read_text()
+        block = source[source.index('local content_wan = {'):source.index('local content_rpc = {')]
+        self.run_lua('''
+local internethelper = helper
+local calls = 0
+package.preload['web.post_helper'] = function() return {
+  handleQuery = function(params)
+    calls = calls + 1
+    local expected = calls == 1 and 'wan' or 'ppp'
+    assert(params.uci_wan_username == 'uci.network.interface.@' .. expected .. '.username')
+    return {}, {}
+  end,
+} end
+local function render()
+''' + block + '''
+return wan_mode, content, helpmsg
+end
+values['uci.network.interface.@wan.proto'] = 'dhcp'
+local mode, content, helpmsg = render()
+assert(mode == 'IPoE' and calls == 0 and next(content) == nil and next(helpmsg) == nil)
+values['rpc.network.interface.@wwan.ipaddr'] = '192.0.2.2'
+mode = render()
+assert(mode == 'Mobile' and calls == 0)
+values['rpc.network.interface.@wwan.ipaddr'] = nil
+values['uci.network.interface.@wan.proto'] = 'pppoe'
+mode = render()
+assert(mode == 'PPPoE' and calls == 1)
+values['uci.network.interface.@wan.proto'] = nil
+mode = render()
+assert(mode == 'PPPoE' and calls == 2)
+''')
+
+    def test_telstra_missing_mobile_interface_keeps_ethernet_wan(self):
+        source = (ROOT.parent / 'telstra_gui/www/telstra-snippets/networkmap.lp').read_text()
+        block = source[source.index('local wan_intf = "wan"'):source.index('local wifihtml = {}')]
+        self.run_lua('''
+local internethelper = helper
+local sub, find = string.sub, string.find
+values['rpc.network.interface.@wan.ipaddr'] = '192.0.2.1'
+values['uci.version.version.@version[0].version'] = '17.2'
+local function render()
+''' + block + '''
+return wan_type, wanhtml
+end
+local mode, html = render()
+assert(mode == 'Ethernet' and html:find('192.0.2.1', 1, true))
+assert(not html:find('Exact path not found', 1, true))
+values['rpc.network.interface.@wwan.ipaddr'] = '192.0.2.2'
+mode, html = render()
+assert(mode == 'Mobile' and html:find('192.0.2.2', 1, true))
+''')
+
 
 if __name__ == '__main__':
     unittest.main()

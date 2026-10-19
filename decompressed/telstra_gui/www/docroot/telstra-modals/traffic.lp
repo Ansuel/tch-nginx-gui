@@ -15,6 +15,7 @@ local ui_helper = require("web.ui_helper")
 local message_helper = require("web.uimessage_helper")
 local post_helper = require("web.post_helper")
 local content_helper = require("web.content_helper")
+local internethelper = require("internethelper")
 local string, ngx, os = string, ngx, os
 local tonumber = tonumber
 local format, match = string.format, string.match
@@ -54,7 +55,7 @@ table.sort(wls, function(a,b)
 end)
 
 local wan_intf ="wan"
-local ipaddr = proxy.get("rpc.network.interface.@wwan.ipaddr")[1].value
+local ipaddr = internethelper.getValue("rpc.network.interface.@wwan.ipaddr")
 if ipaddr:len() ~= 0 then
   wan_intf = "wwan"
 end
@@ -64,7 +65,7 @@ local content_wan = {
   rx_bytes = "rpc.network.interface.@" .. wan_intf .. ".rx_bytes",
   ifname = "uci.network.interface.@" .. wan_intf .. ".ifname",
 }
-content_helper.getExactContent(content_wan)
+internethelper.getOptionalContent(content_wan)
 
 local content_lan = {
   tx_bytes = "rpc.network.interface.@lan.tx_bytes",

@@ -5,11 +5,12 @@
 ');  
     gettext.textdomain('webui-telstra')
     local content_helper = require("web.content_helper")
+local internethelper = require("internethelper")
 
 	local content_wansensing = {
 		autofailover = "uci.wansensing.global.autofailover"
 	}
-	content_helper.getExactContent(content_wansensing)
+	internethelper.getOptionalContent(content_wansensing)
 
 	local mobiledongle_note = "<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NOTE: If your gateway has mobile reception, you can connect your backup service by clicking <a href=/gateway.lp?openmodal=lte-modal.lp > here </a>"
 	if content_wansensing.autofailover == "1" then
@@ -37,13 +38,13 @@
         wanip = "rpc.network.interface.@wan.ipaddr",
         wwanip = "rpc.network.interface.@wwan.ipaddr",
     }
-    content_helper.getExactContent(content)
+    internethelper.getOptionalContent(content)
 
     -- in case wan6 is not configured in uci, protection is needed
     local content_wan6 = {
         ipaddr = "rpc.network.interface.@wan6.ipaddr",
     }
-    content_helper.getExactContent(content_wan6)
+    internethelper.getOptionalContent(content_wan6)
 
     local msg_key = "OK"
     if content.wanip:len() == 0 and content_wan6.ipaddr:len() == 0 then
@@ -54,7 +55,7 @@
 				l2 = "uci.wansensing.global.l2type",
 				l3 = "uci.wansensing.global.l3type",
 			}
-			content_helper.getExactContent(content_type)
+			internethelper.getOptionalContent(content_type)
 
 			local L3, L2 = "NO", "PRE"
 			if content_type.l2 == "ADSL" or content_type.l2 == "VDSL" then
