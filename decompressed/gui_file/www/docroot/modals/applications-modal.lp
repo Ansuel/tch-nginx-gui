@@ -153,7 +153,58 @@ local function escape_html(value)
 	return (value or ""):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;"):gsub('"', "&quot;"):gsub("'", "&#39;")
 end
 
+-- Read the filesystem used by the installers, not the inactive firmware bank.
+local has_posix, posix = pcall(require, "tch.posix")
+local function free_space(path)
+	if has_posix then
+		local ok, stat = pcall(posix.statvfs, path)
+		if ok and type(stat) == "table" then
+			local blocks = tonumber(stat.f_bavail)
+			local size = tonumber(stat.f_frsize) or tonumber(stat.f_bsize)
+			if blocks and size and blocks >= 0 and size > 0 then
+				local mib = blocks * size / 1048576
+				return mib >= 1024 and format("%.2f GiB", mib / 1024) or format("%.2f MiB", mib)
+			end
+		end
+	end
+	return T"Unavailable"
+end
+
+local storage = {
+	'<div class="applications-storage" role="status"><strong>' .. T"Available space" .. '</strong>',
+	'<span>' .. T"Internal storage" .. ': ' .. free_space("/usr") .. '</span>',
+}
+local mounts = io.open("/proc/mounts", "r")
+local usb_found = false
+if mounts then
+	for line in mounts:lines() do
+		local device, mount, options = line:match("^(%S+)%s+(%S+)%s+%S+%s+(%S+)")
+		if device and device:match("^/dev/sd[a-z]%d*$") and mount:match("^/tmp/run/mountd/sd[a-z]%d*$") then
+			usb_found = true
+			local readonly = not ("," .. options .. ","):find(",rw,", 1, true)
+			storage[#storage+1] = '<span>USB ' .. escape_html(device:match("[^/]+$")) .. ': ' .. free_space(mount) ..
+				(readonly and (' (' .. T"Read-only" .. ')') or '') .. '</span>'
+		end
+	end
+	mounts:close()
+end
+if not usb_found then
+	storage[#storage+1] = '<span>' .. T"USB: no mounted drive" .. '</span>'
+end
+storage[#storage+1] = '</div>'
+notices[#notices+1] = table.concat(storage)
+
+local usb_required = {
+	amule_webui = cputype:match("^mips"),
+	aria2_webui = true,
+	transmission_webui = true,
+}
+
 local function append_app_status(state_key, title)
+	if usb_required[state_key] then
+		html[#html+1] = '<p class="application-usb-required"><span class="application-usb-badge">' .. T"USB required" .. '</span> ' ..
+			T"A writable USB drive and free internal storage are required." .. '</p>'
+	end
 	html[#html+1] = '<div class="application-card-status">'
 	html[#html+1] = ui_helper.createSimpleLight(
 		mapParams[state_key] == "1" and "1" or "0",

@@ -4552,3 +4552,24 @@ msgstr "Telefonia"
 
 msgid "Parental Controls"
 msgstr "Controllo genitori"
+
+msgid "Available space"
+msgstr "Spazio disponibile"
+
+msgid "Internal storage"
+msgstr "Memoria interna"
+
+msgid "USB: no mounted drive"
+msgstr "USB: nessuna unità montata"
+
+msgid "Read-only"
+msgstr "Sola lettura"
+
+msgid "USB required"
+msgstr "USB richiesta"
+
+msgid "A writable USB drive and free internal storage are required."
+msgstr "Richiede una USB scrivibile e spazio libero nella memoria interna."
+
+msgid "Unavailable"
+msgstr "Non disponibile"

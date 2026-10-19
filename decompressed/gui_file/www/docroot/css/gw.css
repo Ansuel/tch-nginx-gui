@@ -3096,6 +3096,29 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 .modal .applications-list-form {
 	margin-top: 0
 }
+.applications-storage {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+    margin-bottom: 16px;
+    padding: 10px 12px;
+    border: 1px solid rgba(93, 33, 93, .2);
+    border-radius: 8px
+}
+.applications-storage strong {
+    flex-basis: 100%
+}
+.application-usb-required {
+    line-height: 1.6
+}
+.application-usb-badge {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: #fff2cc;
+    color: #704600;
+    font-weight: 600
+}
 .applications-grid {
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));
