@@ -130,6 +130,19 @@ end
 
 lp.include(tabdata.current.view)
 
+-- A DHCP/PPP/static connection on br-lan still needs its normal settings.
+-- Bridge mode takes precedence in mode detection, so include them explicitly.
+if wan_mode == "bridge" and tabdata.current.name == "bridge" then
+    local protocol = proxy.get("uci.network.interface.@wan.proto")
+    protocol = protocol and protocol[1] and protocol[1].value
+    local views = setmetatable({
+        dhcp = "internet-dhcp-routed.lp",
+        pppoe = "internet-pppoe-routed.lp",
+        static = "internet-static-routed.lp",
+    }, require("web.taint").untaint_mt)
+    if views[protocol] then lp.include(views[protocol]) end
+end
+
 if not tabdata.current.ajax then
     -- only display if not doing an ajax request
 ngx.print('\

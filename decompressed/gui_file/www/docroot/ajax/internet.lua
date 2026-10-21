@@ -125,8 +125,14 @@ else
 	content_helper.getExactContent(content_uci)
 
 	local wan_interface = "wan"
+	local internethelper = require("internethelper")
+	local connection_mode = internethelper.getConnectionMode(content_uci.wan_mode, content_uci.wan_proto)
+	if connection_mode == "bridge" then
+		connection_mode = content_uci.wan_proto
+		if not connection_mode or connection_mode == "" then connection_mode = "bridge" end
+	end
 
-	if content_uci.wan_mode == "bridge" and content_uci.wan_ifname and content_uci.wan_ifname ~= "" then
+	if content_uci.wan_mode == "bridge" and connection_mode == "bridge" and content_uci.wan_ifname and content_uci.wan_ifname ~= "" then
 		wan_interface = content_uci.wan_ifname
 	end
 
@@ -140,8 +146,6 @@ else
 		dns_wan = "rpc.network.interface.@wan.dnsservers",
 		concentrator_name = "rpc.network.interface.@wan.ppp.access_concentrator_name",
 	}
-
-	local internethelper = require("internethelper")
 
 	for v6Key, v6Value in pairs(internethelper.getIpv6Content()) do
 		content_rpc[v6Key] = v6Value
@@ -196,7 +200,7 @@ else
 	local status_light
 	local attributes = { light = { } ,span = { } }
 
-	if content_uci.wan_mode == "pppoe" or content_uci.wan_mode == "pppoa" then
+	if connection_mode == "pppoe" or connection_mode == "pppoa" then
 		local ppp_state_map = {
 			disabled = T"PPP disabled",
 			disconnecting = T"PPP disconnecting",
@@ -262,7 +266,7 @@ else
 		end
 
 		status_light = ui_helper.createSimpleLight(ppp_light_map[ppp_status], ppp_state_map[ppp_status] , attributes , "fa-at")
-	elseif content_uci.wan_mode == "static" then
+	elseif connection_mode == "static" then
 
 		-- Figure out interface state
 		local static_state = "disabled"
@@ -281,6 +285,14 @@ else
 		end
 
 		status_light = ui_helper.createSimpleLight(static_light_map[static_state], static_state_map[static_state] , attributes , "fa-at")
+	elseif connection_mode == "dhcp" then
+		local state, light = T"DHCP connecting", "2"
+		if content_uci.wan_auto == "0" then
+			state, light = T"DHCP disabled", "0"
+		elseif content_rpc.ipaddr ~= "" or content_rpc.ip6addr ~= "" then
+			state, light = T"DHCP on", "1"
+		end
+		status_light = ui_helper.createSimpleLight(light, state, attributes, "fa-at")
 	end
 
 	local wan_uptime = tonumber(content_rpc["wan_uptime"]) or 0

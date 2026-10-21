@@ -1,0 +1,4265 @@
+[
+  {
+    "branch": "15.28.6169_FW_120_TG582nv2",
+    "commit": "a8a5381d27555fc6dd16b3e4ac1a44e4ef685f7c",
+    "service": "missing",
+    "sensing_enable": null,
+    "state_count": 0,
+    "xtm": [
+      {
+        "kind": "ptmdevice",
+        "section": "ptm0",
+        "options": {
+          "priority": "low"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm_8_36",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "36",
+          "enc": "llc"
+        }
+      }
+    ],
+    "ethernet": [
+      {
+        "kind": "port",
+        "section": "eth0",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth1",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth2",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth3",
+        "options": {
+          "enable": "1"
+        }
+      }
+    ],
+    "network": [
+      {
+        "kind": "interface",
+        "section": "wan",
+        "options": {
+          "proto": "dhcp",
+          "ifname": "atm_8_36"
+        }
+      }
+    ],
+    "sources": {
+      "etc/config/xtm": "540c3cb5426903c4ab5c54d6027ad85176120d982d749f08ff448042e94ea63b",
+      "etc/config/ethernet": "878207d56d8c8b6332d708376579b16d21f3c3e0b3d947a9a54fe8ff43baa34f",
+      "etc/uci-defaults/tch_0030-network-wan": "4a51828c8cac2fb24c9bbff893bfec000e482d0c622ba0cb4769566cc09883c7"
+    },
+    "missing": [
+      "etc/config/network",
+      "etc/config/wansensing",
+      "etc/init.d/wansensing",
+      "etc/wansensing/L2EntryExit.lua",
+      "etc/wansensing/L3EntryExit.lua"
+    ]
+  },
+  {
+    "branch": "16.1.6637-2081001_FW_108_MOS_TG789vacXtream",
+    "commit": "8c64dc6e5b66d76f0220988ae0451f805376cc5c",
+    "service": "start-stop-daemon",
+    "sensing_enable": "1",
+    "state_count": 2,
+    "xtm": [
+      {
+        "kind": "ptmdevice",
+        "section": "ptm0",
+        "options": {
+          "priority": "low"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm0",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "36",
+          "enc": "llc"
+        }
+      }
+    ],
+    "ethernet": [
+      {
+        "kind": "port",
+        "section": "eth0",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth1",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth2",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth3",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth4",
+        "options": {
+          "enable": "1",
+          "wan": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth5",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "mapping",
+        "section": "",
+        "options": {}
+      }
+    ],
+    "network": [
+      {
+        "kind": "interface",
+        "section": "wan",
+        "options": {
+          "proto": "dhcp",
+          "ifname": "ptm0"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wwan",
+        "options": {
+          "auto": "0"
+        }
+      }
+    ],
+    "sources": {
+      "etc/config/wansensing": "f5a17a54ed917436f51674d7dbf76b4d6b49ca9b9497de7e4e1f68c69cecd867",
+      "etc/init.d/wansensing": "463472936f7b55ee77cff8f585bb92c50c8651e550e701e16dd4d84930f3b3d0",
+      "etc/config/xtm": "8164e1ffd8e307381e9ac61a923a5c0a4d1b023ca4875642278af08bfa3fdb3a",
+      "etc/config/ethernet": "69cffc4edc89f77f0c26593e8088dece090591dffc86e1cc897abacbe30d4123",
+      "etc/uci-defaults/tch_0030-network-wan": "2bbe72b994bd0823fd8aafa677b5d6d70fcbb281e7dbc586d4104da824a76953",
+      "etc/wansensing/L2EntryExit.lua": "6ff5d197de53964464e749988cdff699e7b29d6e1c05b2d9e5a8fd792b51c12d",
+      "etc/wansensing/L3EntryExit.lua": "e547fba1030b0aa8d242e28bd7041ca42615eebf1e40c09cdae99b8396277500",
+      "etc/wansensing/L3Main.lua": "687c236905f5c24b2011d67f857a10a56736680116bee91815069699f99b1075",
+      "etc/wansensing/L2Main.lua": "1be6f4d2bc0e2f43d57a086dd6161950cc8d15f0120ee869cdbd9419a752f03e"
+    },
+    "missing": [
+      "etc/config/network"
+    ]
+  },
+  {
+    "branch": "16.2.8706_FW_214_IAD_TG789vacXtream",
+    "commit": "6c8e7d4b3da9c7837575c49cd9497504bb4d080a",
+    "service": "legacy",
+    "sensing_enable": "1",
+    "state_count": 3,
+    "xtm": [
+      {
+        "kind": "ptmdevice",
+        "section": "ptm0",
+        "options": {
+          "priority": "low"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm0",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "35",
+          "enc": "llc"
+        }
+      }
+    ],
+    "ethernet": [
+      {
+        "kind": "port",
+        "section": "eth0",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth1",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth2",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth3",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth4",
+        "options": {
+          "enable": "1",
+          "wan": "1"
+        }
+      },
+      {
+        "kind": "ethwirespeed",
+        "section": "wspeedeth0",
+        "options": {
+          "name": "eth0",
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "ethwirespeed",
+        "section": "wspeedeth1",
+        "options": {
+          "name": "eth1",
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "ethwirespeed",
+        "section": "wspeedeth2",
+        "options": {
+          "name": "eth2",
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "ethwirespeed",
+        "section": "wspeedeth3",
+        "options": {
+          "name": "eth3",
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "ethwirespeed",
+        "section": "wspeedeth4",
+        "options": {
+          "name": "eth4",
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth5",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "mapping",
+        "section": "",
+        "options": {}
+      }
+    ],
+    "network": [
+      {
+        "kind": "interface",
+        "section": "wan",
+        "options": {
+          "proto": "dhcp",
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "vlan_ptm0",
+        "options": {
+          "type": "8021q",
+          "ifname": "ptm0",
+          "name": "vlan_ptm0",
+          "vid": "100"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wantag",
+        "options": {
+          "proto": "dhcp",
+          "auto": "0",
+          "ifname": "vlan_ptm0"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wwan",
+        "options": {
+          "auto": "1"
+        }
+      }
+    ],
+    "sources": {
+      "etc/config/wansensing": "da8b5741d05ef9780fda115be5c38e47968a3615916c095002ad75201f0ebc2c",
+      "etc/init.d/wansensing": "ca1d6d0c71ec6036311fc02d69de67f359aa06c4285c329fc6004cf4b6ccd2d4",
+      "etc/config/xtm": "001e5ba8c96e19769173bafce97b2853ea386a77a7c27784ee98f087e0fe4195",
+      "etc/config/ethernet": "1f28b274c8824bf4cfd7fd287b94fa9eeab11bc70529eb2b6b3b25a6aacc0dc6",
+      "etc/uci-defaults/tch_0030-network-wan": "fe0bcaa77d0c6f35c3c317749eb7f2e82ac8171c1483817640701551cd67563f",
+      "etc/wansensing/L2EntryExit.lua": "5a443f602f3d85c871fb04bdbc474f30696ccc3fbd2a3709361f92932b8c6777",
+      "etc/wansensing/L3EntryExit.lua": "e547fba1030b0aa8d242e28bd7041ca42615eebf1e40c09cdae99b8396277500",
+      "etc/wansensing/L2Main.lua": "aff4281622994b1b1792b425beccbabeb1bb5384204ed93494e4558891b83b5b",
+      "etc/wansensing/L3VDSLEntryExit.lua": "a446a8ddd8d31904bafe795ba9ffb7fe044140061716a42044541804aea9ea55",
+      "etc/wansensing/L3VDSLMain.lua": "9e7ca93dd6330c78b9085b667ce67d88b3962d84fbe90110d8cd1b8782215770",
+      "etc/wansensing/L3Main.lua": "e8444da0f4b5e2f9635e671dca2113daf0ee69c477b0c50fd082938007d2f2e2"
+    },
+    "missing": [
+      "etc/config/network"
+    ]
+  },
+  {
+    "branch": "17.2.0214_FW_219_DGA4131",
+    "commit": "1d6d9b2ac896da9e9d7ae859edd5f7a4b40109b3",
+    "service": "procd",
+    "sensing_enable": "1",
+    "state_count": 2,
+    "xtm": [
+      {
+        "kind": "ptmdevice",
+        "section": "ptm0",
+        "options": {
+          "priority": "low"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm0",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "35",
+          "enc": "llc"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm1",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "36",
+          "enc": "llc"
+        }
+      }
+    ],
+    "ethernet": [
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {
+          "eth4lanwanmode": "0"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth0",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth1",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth2",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth3",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth4",
+        "options": {
+          "enable": "1",
+          "wan": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth5",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "mapping",
+        "section": "",
+        "options": {}
+      },
+      {
+        "kind": "trafficdesc",
+        "section": "shapingconf",
+        "options": {
+          "enable": "1"
+        }
+      }
+    ],
+    "network": [
+      {
+        "kind": "interface",
+        "section": "loopback",
+        "options": {
+          "ifname": "lo",
+          "proto": "static"
+        }
+      },
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {}
+      },
+      {
+        "kind": "interface",
+        "section": "wan",
+        "options": {
+          "proto": "dhcp",
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "mgmt",
+        "options": {}
+      },
+      {
+        "kind": "device",
+        "section": "vlan_ptm0",
+        "options": {
+          "type": "8021q",
+          "ifname": "ptm0",
+          "name": "vlan_ptm0",
+          "vid": "100"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wantag",
+        "options": {
+          "proto": "dhcp",
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wwan",
+        "options": {
+          "auto": "1"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "vlan_wan",
+        "options": {
+          "ifname": "vlan_ptm0"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "if0atm",
+        "options": {
+          "enable": "1",
+          "name": "atm0"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "if1atm",
+        "options": {
+          "enable": "1",
+          "name": "atm1"
+        }
+      }
+    ],
+    "sources": {
+      "etc/config/network": "20554ad154ffe1d4e1daa8b7656fc5a08d46dfc7c69a696f183ef430b85329b5",
+      "etc/config/wansensing": "095ef4edcd6b45440e575a3bd7a78e215afb48bc889b1c0b725f06071fca14bd",
+      "etc/init.d/wansensing": "cd406f483077d828f035c8ca78642d33f7704d09aa3cca483fd78a2584e0ecb4",
+      "etc/config/xtm": "8ca28ac8cd78b5a67efc32dd4cc7cc05fe0b8946082da7c97365320fe74065e9",
+      "etc/config/ethernet": "1dacebaee53ceb57fc80c22d4eff8d5abacd5040365c4fb6dc7bf01e16d04f76",
+      "etc/uci-defaults/tch_0030-network-wan": "aa85c0a01d61e35c62395237971fafb367270545183c9d9701ae77edcbd21335",
+      "etc/wansensing/L2EntryExit.lua": "ac9ca5b596889b32cc1452c05ac1a75691e111a37363624cd18f5120a449c20c",
+      "etc/wansensing/L3EntryExit.lua": "0197d30c1ce19fb2ab3ae4794f4c9ded0b2dc1057215a82843ada2fc42575a7c",
+      "etc/wansensing/L3Main.lua": "2126fa5534cae8be2795c289f4c4ef29b7b88792ba4a0f698a45a83658e6a152",
+      "etc/wansensing/L2Main.lua": "9ef76154ab3ef36afdb6f26064765fe2ead1a1f5ae48b4f587b7ac12bc9ac2b9"
+    },
+    "missing": []
+  },
+  {
+    "branch": "18.3.n.0482_FW_264_DGA4131",
+    "commit": "bfe06c83fefb7129cebf6e596f487aca038712a8",
+    "service": "procd",
+    "sensing_enable": "1",
+    "state_count": 2,
+    "xtm": [
+      {
+        "kind": "ptmdevice",
+        "section": "ptm0",
+        "options": {
+          "priority": "low"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm0",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "35",
+          "enc": "llc"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm1",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "36",
+          "enc": "llc"
+        }
+      }
+    ],
+    "ethernet": [
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {
+          "eth4lanwanmode": "0"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth0",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth1",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth2",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth3",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth4",
+        "options": {
+          "enable": "1",
+          "wan": "1"
+        }
+      },
+      {
+        "kind": "trafficdesc",
+        "section": "shapingconf",
+        "options": {
+          "enable": "1"
+        }
+      }
+    ],
+    "network": [
+      {
+        "kind": "interface",
+        "section": "loopback",
+        "options": {
+          "ifname": "lo",
+          "proto": "static"
+        }
+      },
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {}
+      },
+      {
+        "kind": "interface",
+        "section": "wan",
+        "options": {
+          "proto": "dhcp",
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "mgmt",
+        "options": {}
+      },
+      {
+        "kind": "device",
+        "section": "vlan_ptm0",
+        "options": {
+          "type": "8021q",
+          "ifname": "ptm0",
+          "name": "vlan_ptm0",
+          "vid": "100"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wantag",
+        "options": {
+          "proto": "dhcp",
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wwan",
+        "options": {
+          "auto": "1"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "vlan_wan",
+        "options": {
+          "ifname": "vlan_ptm0"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "if0atm",
+        "options": {
+          "enable": "1",
+          "name": "atm0"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "if1atm",
+        "options": {
+          "enable": "1",
+          "name": "atm1"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "vlan_eth4",
+        "options": {
+          "type": "8021q",
+          "ifname": "eth4",
+          "name": "vlan_eth4",
+          "vid": "835"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "vlan_wan_eth4",
+        "options": {
+          "ifname": "vlan_eth4"
+        }
+      }
+    ],
+    "sources": {
+      "etc/config/network": "20554ad154ffe1d4e1daa8b7656fc5a08d46dfc7c69a696f183ef430b85329b5",
+      "etc/config/wansensing": "10928f75e03bde9dc964150db937e29c4f014a903b78813f6c1b65df5c1a8fac",
+      "etc/init.d/wansensing": "cd406f483077d828f035c8ca78642d33f7704d09aa3cca483fd78a2584e0ecb4",
+      "etc/config/xtm": "8ca28ac8cd78b5a67efc32dd4cc7cc05fe0b8946082da7c97365320fe74065e9",
+      "etc/config/ethernet": "ffee4337e471bee693c38541c0e843f4062cc6adebc7e66ac278b0ee13eeeecf",
+      "etc/uci-defaults/tch_0030-network-wan": "6813e4b740fd8a3ce782f735f987016bb041a9147dca42fd160db71118436724",
+      "etc/wansensing/L2EntryExit.lua": "ac9ca5b596889b32cc1452c05ac1a75691e111a37363624cd18f5120a449c20c",
+      "etc/wansensing/L3EntryExit.lua": "cbba2ccc4e00f75990fa4ac925975d7deb807c41a660e58792990aadb62c143d",
+      "etc/wansensing/L3Main.lua": "c435be4cb9a3f31c32119b775476aca23a88c11abbf7bcd00cb2ff232ea83f3c",
+      "etc/wansensing/L2Main.lua": "75fa57ce0f1503249c2aa674bbeba47684860eed60785acabfe843e2e5af18fd"
+    },
+    "missing": []
+  },
+  {
+    "branch": "18.3.n.0482_FW_232_FGA2130",
+    "commit": "dc07797ab84397f4f6f687b01e825c68ef8e8524",
+    "service": "procd",
+    "sensing_enable": "1",
+    "state_count": 2,
+    "xtm": [],
+    "ethernet": [
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {}
+      },
+      {
+        "kind": "port",
+        "section": "eth0",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth1",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth2",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth3",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "veip0",
+        "options": {
+          "enable": "1",
+          "wan": "1"
+        }
+      },
+      {
+        "kind": "trafficdesc",
+        "section": "shapingconf",
+        "options": {
+          "enable": "0"
+        }
+      }
+    ],
+    "network": [
+      {
+        "kind": "interface",
+        "section": "loopback",
+        "options": {
+          "ifname": "lo",
+          "proto": "static"
+        }
+      },
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {}
+      },
+      {
+        "kind": "interface",
+        "section": "wan",
+        "options": {
+          "proto": "dhcp",
+          "ifname": "veip0_1",
+          "auto": "1"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wwan",
+        "options": {
+          "auto": "1"
+        }
+      }
+    ],
+    "sources": {
+      "etc/config/network": "20554ad154ffe1d4e1daa8b7656fc5a08d46dfc7c69a696f183ef430b85329b5",
+      "etc/config/wansensing": "10928f75e03bde9dc964150db937e29c4f014a903b78813f6c1b65df5c1a8fac",
+      "etc/init.d/wansensing": "cd406f483077d828f035c8ca78642d33f7704d09aa3cca483fd78a2584e0ecb4",
+      "etc/config/ethernet": "21bf7f0808a3f93ab8e95ba05fe17e717523a46478167221acd2e9ca97c8fc79",
+      "etc/uci-defaults/tch_0030-network-wan": "ce8c0531455ebc52080f70ca0f1a40ab88752e7dece481d26baad0193777d3f8",
+      "etc/wansensing/L2EntryExit.lua": "a27ba2ab60f0b96b5af34e1d06ba822363bca614ecb881a35d2981bbd04e4dbb",
+      "etc/wansensing/L3EntryExit.lua": "508f7fb67b277d573f2126f44662d97b44a2a20fd4a23fbf8d4852a01a0304f5",
+      "etc/wansensing/L3Main.lua": "2f8a73b70de0eef0fe9ad1a3c92f826f1e1f5795386eb476c8748cd7ea968865",
+      "etc/wansensing/L2Main.lua": "03a8df6acd5f8404c30338edb85961450aca63bffcf5c0960e4fdec3031ccf0f"
+    },
+    "missing": [
+      "etc/config/xtm"
+    ]
+  },
+  {
+    "branch": "19.4.0629_FW_06_DGA4134",
+    "commit": "fa1ce3d01840e88a670741091bf80a23ad13f5f5",
+    "service": "procd",
+    "sensing_enable": "0",
+    "state_count": 0,
+    "xtm": [
+      {
+        "kind": "ptmdevice",
+        "section": "ptm0",
+        "options": {
+          "priority": "low"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm_8_35",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "35",
+          "enc": "llc"
+        }
+      },
+      {
+        "kind": "trafficdesc",
+        "section": "td_ubr",
+        "options": {}
+      },
+      {
+        "kind": "drop_threshold",
+        "section": "drop_threshold",
+        "options": {}
+      }
+    ],
+    "ethernet": [
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {
+          "eth4lanwanmode": "0"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth0",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth1",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth2",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth3",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth4",
+        "options": {
+          "enable": "1",
+          "wan": "1"
+        }
+      },
+      {
+        "kind": "trafficdesc",
+        "section": "tdeth4",
+        "options": {
+          "enable": "0"
+        }
+      }
+    ],
+    "network": [
+      {
+        "kind": "interface",
+        "section": "wan",
+        "options": {
+          "proto": "dhcp",
+          "ifname": "vlan_ptm0",
+          "auto": "1"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "vlan_ptm0",
+        "options": {
+          "type": "8021q",
+          "ifname": "ptm0",
+          "name": "vlan_ptm0",
+          "vid": "100"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wwan",
+        "options": {
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan6",
+        "options": {
+          "ifname": "@wan",
+          "proto": "dhcpv6",
+          "auto": "0"
+        }
+      }
+    ],
+    "sources": {
+      "etc/config/wansensing": "7baf41b0fbe76233f769c5c456a0afbe29dcd2fd484273fe116533c7e7edb62f",
+      "etc/init.d/wansensing": "cd406f483077d828f035c8ca78642d33f7704d09aa3cca483fd78a2584e0ecb4",
+      "etc/config/xtm": "f05505387433be4089416e519b318a59b620d14ca483faa9983ea258db1ee6d3",
+      "etc/config/ethernet": "70dd3c4bc327e90d3f15cafb654f346728a334d64f116040cab000fd574e9ac5",
+      "etc/uci-defaults/tch_0030-network-wan": "7a4d95c1797efbf20762d7ea0f630531ff5dc9e5c73674f1c03957b983661171"
+    },
+    "missing": [
+      "etc/config/network",
+      "etc/wansensing/L2EntryExit.lua",
+      "etc/wansensing/L3EntryExit.lua"
+    ]
+  },
+  {
+    "branch": "AGTEF_1.0.2_002_closed",
+    "commit": "ce5bc28a38ef64e38e6cfbe19fdf8fc2a40f1348",
+    "service": "procd",
+    "sensing_enable": "1",
+    "state_count": 3,
+    "xtm": [
+      {
+        "kind": "ptmdevice",
+        "section": "ptm0",
+        "options": {
+          "priority": "low"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atmwan",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "35",
+          "enc": "llc"
+        }
+      }
+    ],
+    "ethernet": [
+      {
+        "kind": "port",
+        "section": "eth0",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth1",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth2",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth3",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth4",
+        "options": {
+          "enable": "1",
+          "wan": "1"
+        }
+      },
+      {
+        "kind": "ethwirespeed",
+        "section": "wspeedeth0",
+        "options": {
+          "name": "eth0",
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "ethwirespeed",
+        "section": "wspeedeth1",
+        "options": {
+          "name": "eth1",
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "ethwirespeed",
+        "section": "wspeedeth2",
+        "options": {
+          "name": "eth2",
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "ethwirespeed",
+        "section": "wspeedeth3",
+        "options": {
+          "name": "eth3",
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "ethwirespeed",
+        "section": "wspeedeth4",
+        "options": {
+          "name": "eth4",
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth5",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "mapping",
+        "section": "",
+        "options": {}
+      }
+    ],
+    "network": [
+      {
+        "kind": "interface",
+        "section": "loopback",
+        "options": {
+          "ifname": "lo",
+          "proto": "static"
+        }
+      },
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {}
+      },
+      {
+        "kind": "device",
+        "section": "waneth4",
+        "options": {
+          "type": "8021q",
+          "name": "waneth4",
+          "ifname": "eth4",
+          "vid": "835"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "wanptm0",
+        "options": {
+          "type": "8021q",
+          "name": "wanptm0",
+          "ifname": "ptm0",
+          "vid": "835"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan",
+        "options": {
+          "auto": "1",
+          "proto": "pppoe",
+          "ifname": "<set by script>"
+        }
+      },
+      {
+        "kind": "config",
+        "section": "config",
+        "options": {}
+      },
+      {
+        "kind": "interface",
+        "section": "wwan",
+        "options": {
+          "auto": "1"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan6",
+        "options": {
+          "ifname": "@wan",
+          "proto": "dhcpv6",
+          "auto": "0"
+        }
+      }
+    ],
+    "sources": {
+      "etc/config/network": "e6569ea3e4107cd12228d09a274661ab142afb1acca300974c9009eb86372783",
+      "etc/config/wansensing": "eeab07f803b38ce3771690712af17742a22170c3295490b5ecc7a7eccba7ac33",
+      "etc/init.d/wansensing": "cd406f483077d828f035c8ca78642d33f7704d09aa3cca483fd78a2584e0ecb4",
+      "etc/config/xtm": "5e4438fbfa28c35b17d8bcb16430f65a76e51d11e2e7115d2117fd4d5586aa1f",
+      "etc/config/ethernet": "6b99c1fab2f0f958a4407d99cef8631c2b3625daafbc4be9ddedf1b4fccd1072",
+      "etc/uci-defaults/tch_0030-network-wan": "6840045ae9b23517918e337068e70f84e598f90a4cf157d021c06d5ec27b4ad2",
+      "etc/wansensing/L2EntryExit.lua": "af3eae4cc9f77aa2ad086e8f740518bb39ca0cb94cc6c200399ed9251b0d780e",
+      "etc/wansensing/L3EntryExit.lua": "ee66bb81deeb7470de861c73511779f25ae3875ac8092759274c1980d3121224",
+      "etc/wansensing/L3UpMain.lua": "c77f18a9030c543d2d32faac94e9789ca107f1c1cd88acc5e7a18aaf354d753c",
+      "etc/wansensing/L3UpEntryExit.lua": "b8fb6ee60351eb339fe72abf2de9abc407844bd8ae5cea8cf637c60f13f68807",
+      "etc/wansensing/L2Main.lua": "540f5b4673d1e9c04f3c8278e9f1589fb76d32e3d1260b28694822246ba0261e",
+      "etc/wansensing/L3Main.lua": "8f33e1421793035804ff8d860b87f6078e60708a3cdc7d54b000eff22b33fcea"
+    },
+    "missing": []
+  },
+  {
+    "branch": "AGTEF_2.4.5_CLOSED",
+    "commit": "9004a4fe9306f33314eb0c876fb9602b02a0e339",
+    "service": "procd",
+    "sensing_enable": "1",
+    "state_count": 3,
+    "xtm": [
+      {
+        "kind": "ptmdevice",
+        "section": "ptm0",
+        "options": {
+          "priority": "low"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atmwan",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "35",
+          "enc": "llc"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atmiptv",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "36",
+          "enc": "llc"
+        }
+      },
+      {
+        "kind": "trafficdesc",
+        "section": "td_ubr",
+        "options": {}
+      }
+    ],
+    "ethernet": [
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {
+          "eth4lanwanmode": "0"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth0",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth1",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth2",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth3",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth4",
+        "options": {
+          "enable": "1",
+          "wan": "1"
+        }
+      },
+      {
+        "kind": "trafficdesc",
+        "section": "tdeth4",
+        "options": {
+          "enable": "0"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth5",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "mapping",
+        "section": "",
+        "options": {}
+      }
+    ],
+    "network": [
+      {
+        "kind": "device",
+        "section": "waneth4",
+        "options": {
+          "type": "8021q",
+          "name": "waneth4",
+          "ifname": "eth4",
+          "vid": "835"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "wanptm0",
+        "options": {
+          "type": "8021q",
+          "name": "wanptm0",
+          "ifname": "ptm0",
+          "vid": "835"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan",
+        "options": {
+          "auto": "1",
+          "proto": "pppoe",
+          "ifname": "<set by script>"
+        }
+      },
+      {
+        "kind": "config",
+        "section": "config",
+        "options": {}
+      },
+      {
+        "kind": "interface",
+        "section": "wwan",
+        "options": {
+          "auto": "1"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan6",
+        "options": {
+          "ifname": "@wan",
+          "proto": "dhcpv6",
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "iptveth4",
+        "options": {
+          "type": "8021q",
+          "name": "iptveth4",
+          "ifname": "eth4",
+          "vid": "836"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "iptvptm0",
+        "options": {
+          "type": "8021q",
+          "name": "iptvptm0",
+          "ifname": "ptm0",
+          "vid": "836"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "iptv",
+        "options": {
+          "proto": "static",
+          "ifname": "<set by script>",
+          "auto": "1"
+        }
+      }
+    ],
+    "sources": {
+      "etc/config/wansensing": "a84367b8cf58fecbb390ac459714cad66af9378257a99b02fc719ee8baaacd7d",
+      "etc/init.d/wansensing": "cd406f483077d828f035c8ca78642d33f7704d09aa3cca483fd78a2584e0ecb4",
+      "etc/config/xtm": "11bc33d84528055e6f3e09e282c796a2889f96dffa17e4177a587dcea7e640ec",
+      "etc/config/ethernet": "7cfe4e10089e3cfd616e53f043f3a279f1f41697a79eff6c42cc746d48fa2137",
+      "etc/uci-defaults/tch_0030-network-wan": "d105c9cfd843afb19be0bde9fadb4d9f07a9a62ab5b6069aadf7ba1005e94fbb",
+      "etc/wansensing/L2EntryExit.lua": "6668608e1379cedfaa86371b5af73df558e991bbe7804c9f70250a54cea262cd",
+      "etc/wansensing/L3EntryExit.lua": "ee66bb81deeb7470de861c73511779f25ae3875ac8092759274c1980d3121224",
+      "etc/wansensing/L3UpMain.lua": "dfaa911fa2f7fe06dac52ad1a055694d5535cfd90c82c833d857ec8fb2a91a83",
+      "etc/wansensing/L3UpEntryExit.lua": "b09136a82ce267da1c56b3aefe591974b479b3284d194aed267aa2ee5472234c",
+      "etc/wansensing/L2Main.lua": "b36cca6d71d259d16f4a5fb8a5a2bb96c09e3d2d812230fd90bf60b65f35bdf8",
+      "etc/wansensing/L3Main.lua": "0a4a3d4b982b02d7a3a7820a64811480b56511cbe3ab8ceea4ae40123685eba2"
+    },
+    "missing": [
+      "etc/config/network"
+    ]
+  },
+  {
+    "branch": "AGTHP_1.0.1_001_CLOSED",
+    "commit": "443416857a618e0e5b8f24d848b7cfb45dbc0367",
+    "service": "procd",
+    "sensing_enable": "1",
+    "state_count": 3,
+    "xtm": [
+      {
+        "kind": "ptmdevice",
+        "section": "ptm0",
+        "options": {
+          "priority": "low"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atmwan",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "35",
+          "enc": "llc"
+        }
+      }
+    ],
+    "ethernet": [
+      {
+        "kind": "port",
+        "section": "eth0",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth1",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth2",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth3",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth4",
+        "options": {
+          "enable": "1",
+          "wan": "1"
+        }
+      },
+      {
+        "kind": "ethwirespeed",
+        "section": "wspeedeth0",
+        "options": {
+          "name": "eth0",
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "ethwirespeed",
+        "section": "wspeedeth1",
+        "options": {
+          "name": "eth1",
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "ethwirespeed",
+        "section": "wspeedeth2",
+        "options": {
+          "name": "eth2",
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "ethwirespeed",
+        "section": "wspeedeth3",
+        "options": {
+          "name": "eth3",
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "ethwirespeed",
+        "section": "wspeedeth4",
+        "options": {
+          "name": "eth4",
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth5",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "mapping",
+        "section": "",
+        "options": {}
+      }
+    ],
+    "network": [
+      {
+        "kind": "interface",
+        "section": "loopback",
+        "options": {
+          "ifname": "lo",
+          "proto": "static"
+        }
+      },
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {}
+      },
+      {
+        "kind": "device",
+        "section": "waneth4",
+        "options": {
+          "type": "8021q",
+          "name": "waneth4",
+          "ifname": "eth4",
+          "vid": "835"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "wanptm0",
+        "options": {
+          "type": "8021q",
+          "name": "wanptm0",
+          "ifname": "ptm0",
+          "vid": "835"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan",
+        "options": {
+          "auto": "1",
+          "proto": "pppoe",
+          "ifname": "<set by script>"
+        }
+      },
+      {
+        "kind": "config",
+        "section": "config",
+        "options": {}
+      },
+      {
+        "kind": "interface",
+        "section": "wwan",
+        "options": {
+          "auto": "1"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan6",
+        "options": {
+          "ifname": "@wan",
+          "proto": "dhcpv6",
+          "auto": "0"
+        }
+      }
+    ],
+    "sources": {
+      "etc/config/network": "e6569ea3e4107cd12228d09a274661ab142afb1acca300974c9009eb86372783",
+      "etc/config/wansensing": "eeab07f803b38ce3771690712af17742a22170c3295490b5ecc7a7eccba7ac33",
+      "etc/init.d/wansensing": "cd406f483077d828f035c8ca78642d33f7704d09aa3cca483fd78a2584e0ecb4",
+      "etc/config/xtm": "5e4438fbfa28c35b17d8bcb16430f65a76e51d11e2e7115d2117fd4d5586aa1f",
+      "etc/config/ethernet": "b007d86557624e4cbf51c102907313b9d31b00ef3a5fa9f47b187671c5cf9804",
+      "etc/uci-defaults/tch_0030-network-wan": "6840045ae9b23517918e337068e70f84e598f90a4cf157d021c06d5ec27b4ad2",
+      "etc/wansensing/L2EntryExit.lua": "af3eae4cc9f77aa2ad086e8f740518bb39ca0cb94cc6c200399ed9251b0d780e",
+      "etc/wansensing/L3EntryExit.lua": "ee66bb81deeb7470de861c73511779f25ae3875ac8092759274c1980d3121224",
+      "etc/wansensing/L3UpMain.lua": "c77f18a9030c543d2d32faac94e9789ca107f1c1cd88acc5e7a18aaf354d753c",
+      "etc/wansensing/L3UpEntryExit.lua": "b8fb6ee60351eb339fe72abf2de9abc407844bd8ae5cea8cf637c60f13f68807",
+      "etc/wansensing/L2Main.lua": "540f5b4673d1e9c04f3c8278e9f1589fb76d32e3d1260b28694822246ba0261e",
+      "etc/wansensing/L3Main.lua": "8f33e1421793035804ff8d860b87f6078e60708a3cdc7d54b000eff22b33fcea"
+    },
+    "missing": []
+  },
+  {
+    "branch": "AGTHP_2.4.5_CLOSED",
+    "commit": "971afe20b70ff5d2a510212f71ba60222723aa9a",
+    "service": "procd",
+    "sensing_enable": "1",
+    "state_count": 3,
+    "xtm": [
+      {
+        "kind": "ptmdevice",
+        "section": "ptm0",
+        "options": {
+          "priority": "low"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atmwan",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "35",
+          "enc": "llc"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atmiptv",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "36",
+          "enc": "llc"
+        }
+      },
+      {
+        "kind": "trafficdesc",
+        "section": "td_ubr",
+        "options": {}
+      }
+    ],
+    "ethernet": [
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {
+          "eth4lanwanmode": "0"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth0",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth1",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth2",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth3",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth4",
+        "options": {
+          "enable": "1",
+          "wan": "1"
+        }
+      },
+      {
+        "kind": "trafficdesc",
+        "section": "tdeth4",
+        "options": {
+          "enable": "0"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth5",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "mapping",
+        "section": "",
+        "options": {}
+      }
+    ],
+    "network": [
+      {
+        "kind": "device",
+        "section": "waneth4",
+        "options": {
+          "type": "8021q",
+          "name": "waneth4",
+          "ifname": "eth4",
+          "vid": "835"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "wanptm0",
+        "options": {
+          "type": "8021q",
+          "name": "wanptm0",
+          "ifname": "ptm0",
+          "vid": "835"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan",
+        "options": {
+          "auto": "1",
+          "proto": "pppoe",
+          "ifname": "<set by script>"
+        }
+      },
+      {
+        "kind": "config",
+        "section": "config",
+        "options": {}
+      },
+      {
+        "kind": "interface",
+        "section": "wwan",
+        "options": {
+          "auto": "1"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan6",
+        "options": {
+          "ifname": "@wan",
+          "proto": "dhcpv6",
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "iptveth4",
+        "options": {
+          "type": "8021q",
+          "name": "iptveth4",
+          "ifname": "eth4",
+          "vid": "836"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "iptvptm0",
+        "options": {
+          "type": "8021q",
+          "name": "iptvptm0",
+          "ifname": "ptm0",
+          "vid": "836"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "iptv",
+        "options": {
+          "proto": "static",
+          "ifname": "<set by script>",
+          "auto": "1"
+        }
+      }
+    ],
+    "sources": {
+      "etc/config/wansensing": "a84367b8cf58fecbb390ac459714cad66af9378257a99b02fc719ee8baaacd7d",
+      "etc/init.d/wansensing": "cd406f483077d828f035c8ca78642d33f7704d09aa3cca483fd78a2584e0ecb4",
+      "etc/config/xtm": "11bc33d84528055e6f3e09e282c796a2889f96dffa17e4177a587dcea7e640ec",
+      "etc/config/ethernet": "7cfe4e10089e3cfd616e53f043f3a279f1f41697a79eff6c42cc746d48fa2137",
+      "etc/uci-defaults/tch_0030-network-wan": "d105c9cfd843afb19be0bde9fadb4d9f07a9a62ab5b6069aadf7ba1005e94fbb",
+      "etc/wansensing/L2EntryExit.lua": "6668608e1379cedfaa86371b5af73df558e991bbe7804c9f70250a54cea262cd",
+      "etc/wansensing/L3EntryExit.lua": "ee66bb81deeb7470de861c73511779f25ae3875ac8092759274c1980d3121224",
+      "etc/wansensing/L3UpMain.lua": "dfaa911fa2f7fe06dac52ad1a055694d5535cfd90c82c833d857ec8fb2a91a83",
+      "etc/wansensing/L3UpEntryExit.lua": "b09136a82ce267da1c56b3aefe591974b479b3284d194aed267aa2ee5472234c",
+      "etc/wansensing/L2Main.lua": "b36cca6d71d259d16f4a5fb8a5a2bb96c09e3d2d812230fd90bf60b65f35bdf8",
+      "etc/wansensing/L3Main.lua": "0a4a3d4b982b02d7a3a7820a64811480b56511cbe3ab8ceea4ae40123685eba2"
+    },
+    "missing": [
+      "etc/config/network"
+    ]
+  },
+  {
+    "branch": "AGTHF_1.3.6_CLOSED",
+    "commit": "5fe2b15769fcb4fe8d79a6433ec537dcc9e3bc81",
+    "service": "procd",
+    "sensing_enable": "1",
+    "state_count": 3,
+    "xtm": [
+      {
+        "kind": "ptmdevice",
+        "section": "ptm0",
+        "options": {
+          "priority": "low"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atmwan",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "35",
+          "enc": "llc"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atmiptv",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "36",
+          "enc": "llc"
+        }
+      },
+      {
+        "kind": "trafficdesc",
+        "section": "td_ubr",
+        "options": {}
+      }
+    ],
+    "ethernet": [
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {
+          "eth4lanwanmode": "0"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth0",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth1",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth2",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth3",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth4",
+        "options": {
+          "enable": "1",
+          "wan": "1"
+        }
+      },
+      {
+        "kind": "trafficdesc",
+        "section": "tdeth4",
+        "options": {
+          "enable": "0"
+        }
+      }
+    ],
+    "network": [
+      {
+        "kind": "device",
+        "section": "waneth4",
+        "options": {
+          "type": "8021q",
+          "name": "waneth4",
+          "ifname": "eth4",
+          "vid": "835"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "wanptm0",
+        "options": {
+          "type": "8021q",
+          "name": "wanptm0",
+          "ifname": "ptm0",
+          "vid": "835"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan",
+        "options": {
+          "auto": "1",
+          "proto": "pppoe",
+          "ifname": "<set by script>"
+        }
+      },
+      {
+        "kind": "config",
+        "section": "config",
+        "options": {}
+      },
+      {
+        "kind": "interface",
+        "section": "wwan",
+        "options": {
+          "auto": "1"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan6",
+        "options": {
+          "ifname": "@wan",
+          "proto": "dhcpv6",
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "iptveth4",
+        "options": {
+          "type": "8021q",
+          "name": "iptveth4",
+          "ifname": "eth4",
+          "vid": "836"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "iptvptm0",
+        "options": {
+          "type": "8021q",
+          "name": "iptvptm0",
+          "ifname": "ptm0",
+          "vid": "836"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "iptv",
+        "options": {
+          "proto": "static",
+          "ifname": "<set by script>",
+          "auto": "1"
+        }
+      }
+    ],
+    "sources": {
+      "etc/config/wansensing": "a84367b8cf58fecbb390ac459714cad66af9378257a99b02fc719ee8baaacd7d",
+      "etc/init.d/wansensing": "cd406f483077d828f035c8ca78642d33f7704d09aa3cca483fd78a2584e0ecb4",
+      "etc/config/xtm": "11bc33d84528055e6f3e09e282c796a2889f96dffa17e4177a587dcea7e640ec",
+      "etc/config/ethernet": "70dd3c4bc327e90d3f15cafb654f346728a334d64f116040cab000fd574e9ac5",
+      "etc/uci-defaults/tch_0030-network-wan": "d105c9cfd843afb19be0bde9fadb4d9f07a9a62ab5b6069aadf7ba1005e94fbb",
+      "etc/wansensing/L2EntryExit.lua": "6668608e1379cedfaa86371b5af73df558e991bbe7804c9f70250a54cea262cd",
+      "etc/wansensing/L3EntryExit.lua": "ee66bb81deeb7470de861c73511779f25ae3875ac8092759274c1980d3121224",
+      "etc/wansensing/L3UpMain.lua": "dfaa911fa2f7fe06dac52ad1a055694d5535cfd90c82c833d857ec8fb2a91a83",
+      "etc/wansensing/L3UpEntryExit.lua": "b09136a82ce267da1c56b3aefe591974b479b3284d194aed267aa2ee5472234c",
+      "etc/wansensing/L2Main.lua": "b36cca6d71d259d16f4a5fb8a5a2bb96c09e3d2d812230fd90bf60b65f35bdf8",
+      "etc/wansensing/L3Main.lua": "0a4a3d4b982b02d7a3a7820a64811480b56511cbe3ab8ceea4ae40123685eba2"
+    },
+    "missing": [
+      "etc/config/network"
+    ]
+  },
+  {
+    "branch": "AGTSA_1.0.0_001_CLOSED",
+    "commit": "d5569410589491801fa216295faca6217bf58718",
+    "service": "procd",
+    "sensing_enable": "1",
+    "state_count": 3,
+    "xtm": [
+      {
+        "kind": "ptmdevice",
+        "section": "ptm0",
+        "options": {
+          "priority": "low"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atmwan",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "35",
+          "enc": "llc"
+        }
+      },
+      {
+        "kind": "trafficdesc",
+        "section": "td_ubr",
+        "options": {}
+      }
+    ],
+    "ethernet": [
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {
+          "eth4lanwanmode": "0"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth0",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth1",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth2",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth3",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth4",
+        "options": {
+          "enable": "1",
+          "wan": "1"
+        }
+      },
+      {
+        "kind": "trafficdesc",
+        "section": "tdeth4",
+        "options": {
+          "enable": "0"
+        }
+      }
+    ],
+    "network": [
+      {
+        "kind": "interface",
+        "section": "loopback",
+        "options": {
+          "ifname": "lo",
+          "proto": "static"
+        }
+      },
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {}
+      },
+      {
+        "kind": "device",
+        "section": "waneth4",
+        "options": {
+          "type": "8021q",
+          "name": "waneth4",
+          "ifname": "eth4",
+          "vid": "835"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "wanptm0",
+        "options": {
+          "type": "8021q",
+          "name": "wanptm0",
+          "ifname": "ptm0",
+          "vid": "835"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan",
+        "options": {
+          "auto": "1",
+          "proto": "pppoe",
+          "ifname": "<set by script>"
+        }
+      },
+      {
+        "kind": "config",
+        "section": "config",
+        "options": {}
+      },
+      {
+        "kind": "interface",
+        "section": "wwan",
+        "options": {
+          "auto": "1"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan6",
+        "options": {
+          "ifname": "@wan",
+          "proto": "dhcpv6",
+          "auto": "0"
+        }
+      }
+    ],
+    "sources": {
+      "etc/config/network": "20554ad154ffe1d4e1daa8b7656fc5a08d46dfc7c69a696f183ef430b85329b5",
+      "etc/config/wansensing": "a84367b8cf58fecbb390ac459714cad66af9378257a99b02fc719ee8baaacd7d",
+      "etc/init.d/wansensing": "cd406f483077d828f035c8ca78642d33f7704d09aa3cca483fd78a2584e0ecb4",
+      "etc/config/xtm": "8ec7269f5057645584f596f04e976b6b1b5f160c2df2c0dd90fb4ed90380e95a",
+      "etc/config/ethernet": "70dd3c4bc327e90d3f15cafb654f346728a334d64f116040cab000fd574e9ac5",
+      "etc/uci-defaults/tch_0030-network-wan": "c1b2afce20b4878a9f6ef9d29313bb7701ff85768e9aa503d7bc3d00355685fd",
+      "etc/wansensing/L2EntryExit.lua": "a907400e772d81bd2c1dc48c020b27bae9517092600eb29ed518075cd847ba43",
+      "etc/wansensing/L3EntryExit.lua": "ee66bb81deeb7470de861c73511779f25ae3875ac8092759274c1980d3121224",
+      "etc/wansensing/L3UpMain.lua": "8fcffe24d29659c0c8f8ec4f157e84accb6ed051e5c1a3eaaaa30ca91809f890",
+      "etc/wansensing/L3UpEntryExit.lua": "893e210653e8897030f04322cc9742f3c7dac4c684602b37488a204a8cade3d0",
+      "etc/wansensing/L2Main.lua": "92211cab1d747e6d579766b232ad732c8d444a5e7190dbfc5229e95f59cb5257",
+      "etc/wansensing/L3Main.lua": "89cd8b7b85e19d762bbd4c2675cb14da76b93af9b9952299b0ce0cb5124d8b11"
+    },
+    "missing": []
+  },
+  {
+    "branch": "MST_DGA4130_17.3.0165.1681007",
+    "commit": "b95bfd7e0c6bd7853fda80e5d9914d6941914ff3",
+    "service": "procd",
+    "sensing_enable": "1",
+    "state_count": 3,
+    "xtm": [
+      {
+        "kind": "ptmdevice",
+        "section": "ptm0",
+        "options": {
+          "priority": "low"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm0",
+        "options": {
+          "ulp": "ppp",
+          "vpi": "0",
+          "vci": "38",
+          "enc": "vcmux"
+        }
+      }
+    ],
+    "ethernet": [
+      {
+        "kind": "port",
+        "section": "eth0",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth1",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth2",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth3",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth4",
+        "options": {
+          "enable": "1",
+          "wan": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth5",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "mapping",
+        "section": "",
+        "options": {}
+      }
+    ],
+    "network": [
+      {
+        "kind": "interface",
+        "section": "loopback",
+        "options": {
+          "ifname": "lo",
+          "proto": "static"
+        }
+      },
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {}
+      },
+      {
+        "kind": "interface",
+        "section": "wan",
+        "options": {
+          "proto": "pppoe",
+          "ifname": "vlan_wan",
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "vdsl_check",
+        "options": {
+          "proto": "pppoe",
+          "ifname": "ptm0",
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "bt_iptv",
+        "options": {
+          "ifname": "vlan_wan",
+          "auto": "1",
+          "proto": "static"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "eth4",
+        "options": {
+          "name": "eth4"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "ptm0",
+        "options": {
+          "name": "ptm0"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "vlan_wan",
+        "options": {
+          "type": "8021q",
+          "ifname": "ptm0",
+          "name": "vlan_wan",
+          "vid": "101"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wwan",
+        "options": {
+          "auto": "1"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan6",
+        "options": {
+          "ifname": "@wan",
+          "proto": "dhcpv6"
+        }
+      }
+    ],
+    "sources": {
+      "etc/config/network": "20554ad154ffe1d4e1daa8b7656fc5a08d46dfc7c69a696f183ef430b85329b5",
+      "etc/config/wansensing": "d9d46314ddaf4747bb1f3e5fd783216e8404e3dcd74f6d1d7d4701861a6bd571",
+      "etc/init.d/wansensing": "cd406f483077d828f035c8ca78642d33f7704d09aa3cca483fd78a2584e0ecb4",
+      "etc/config/xtm": "49c5474093f89ceb5290bf85a6351585e7d9c175c7a777bdecb97f236923d3af",
+      "etc/config/ethernet": "6a73ae4856558851ffdf8515d5e5b2d6aababcba941cfc26dcf0e8312e497a2d",
+      "etc/uci-defaults/tch_0030-network-wan": "7ae81a4572dc4a537d9cb72473062f471fbcea6cc12cad9a6ec71781c2d41aaa",
+      "etc/wansensing/L2EntryExit.lua": "700c45fef958ff18d832840efa5d4a13b4f7c8ddc32ee46757a22f1a72284633",
+      "etc/wansensing/L3EntryExit.lua": "ecb112701f6ac30a0c0889a3d709c0b40ccaeda40aa8d1314e070c3fca508c5b",
+      "etc/wansensing/L2Main.lua": "8dcae6a4eab0ffce19215ec265e15c9c4ff46b2b6e5a2676cb2c00dd2d5af220",
+      "etc/wansensing/VDSLEntryExit.lua": "c73b63ad0e798d0a28d5ff65c7dbc54192f89e9fe2322680028c47326c80aca7",
+      "etc/wansensing/worker_Mobile.lua": "fe4fd1baf5a60fba8356e1c175fcc0f44f9c7e796fbcf2b7f57b863952e66882",
+      "etc/wansensing/VDSLMain.lua": "6928216bfa7b65a4275ec3589d26620a42cee5e9382a8b3743544982cf107f17",
+      "etc/wansensing/L3Main.lua": "ea42005cb28c672dfcef5ae15394261bd41caa1cc1bbe735487c0ee1e42b282f"
+    },
+    "missing": []
+  },
+  {
+    "branch": "MST_TG588v_v2_16.2.7064.2201001",
+    "commit": "4753d15094ca04c89720be204b8be8a0e31833aa",
+    "service": "legacy",
+    "sensing_enable": "1",
+    "state_count": 2,
+    "xtm": [
+      {
+        "kind": "ptmdevice",
+        "section": "ptm0",
+        "options": {
+          "priority": "low"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm0",
+        "options": {
+          "ulp": "ppp",
+          "vpi": "0",
+          "vci": "38",
+          "enc": "vcmux"
+        }
+      }
+    ],
+    "ethernet": [
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {}
+      },
+      {
+        "kind": "port",
+        "section": "eth0",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth1",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth2",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth3",
+        "options": {
+          "enable": "1"
+        }
+      }
+    ],
+    "network": [
+      {
+        "kind": "interface",
+        "section": "wan",
+        "options": {
+          "proto": "pppoe",
+          "ifname": "vlan_wan",
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "bt_iptv",
+        "options": {
+          "ifname": "vlan_wan",
+          "auto": "1",
+          "proto": "static"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "ptm0",
+        "options": {
+          "name": "ptm0"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "vlan_wan",
+        "options": {
+          "type": "8021q",
+          "ifname": "ptm0",
+          "name": "vlan_wan",
+          "vid": "101"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wwan",
+        "options": {
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan6",
+        "options": {
+          "ifname": "@wan",
+          "proto": "dhcpv6"
+        }
+      }
+    ],
+    "sources": {
+      "etc/config/wansensing": "dfd818f59506c9dee5e0b2cd6d1553e0f93d13f651a911f5ce6f796894faa32c",
+      "etc/init.d/wansensing": "ca1d6d0c71ec6036311fc02d69de67f359aa06c4285c329fc6004cf4b6ccd2d4",
+      "etc/config/xtm": "dbc5f3a3bb3948aaa20455d6165117ff2efda07d9c6c98cc836cbb58fe8b5cef",
+      "etc/config/ethernet": "c192648a7e57c2a6116546a9614402e2325f09e83bad37e350473f774120c0de",
+      "etc/uci-defaults/tch_0030-network-wan": "8ab03e13d1a632ed44ea9f4946b3e9e76ffcaf1b6e8da380ad344f9273a8e0f7",
+      "etc/wansensing/L2EntryExit.lua": "5bdddbca12fd445fa2610bcf069a82b22c8527fdfb9b63a2fb3714731d350948",
+      "etc/wansensing/L3EntryExit.lua": "e547fba1030b0aa8d242e28bd7041ca42615eebf1e40c09cdae99b8396277500",
+      "etc/wansensing/L3Main.lua": "5eb46ee2ed93817e616844108b2e17f7bc4c3c265b2db35e6a58c4e587bda16c",
+      "etc/wansensing/L2Main.lua": "dfa2c9fd1da32a7562d129788427cb50a5655c5390124096ce6615fa5aa8d4e5"
+    },
+    "missing": [
+      "etc/config/network"
+    ]
+  },
+  {
+    "branch": "MST.TG789vac.v2-17.2.278-0901008",
+    "commit": "8744da36b50c228d7dc5f184f986e032fe8c4712",
+    "service": "procd",
+    "sensing_enable": "1",
+    "state_count": 3,
+    "xtm": [
+      {
+        "kind": "ptmdevice",
+        "section": "ptm0",
+        "options": {
+          "priority": "low"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm0",
+        "options": {
+          "ulp": "ppp",
+          "vpi": "0",
+          "vci": "38",
+          "enc": "vcmux"
+        }
+      }
+    ],
+    "ethernet": [
+      {
+        "kind": "port",
+        "section": "eth0",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth1",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth2",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth3",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth4",
+        "options": {
+          "enable": "1",
+          "wan": "1"
+        }
+      }
+    ],
+    "network": [
+      {
+        "kind": "interface",
+        "section": "loopback",
+        "options": {
+          "ifname": "lo",
+          "proto": "static"
+        }
+      },
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {}
+      },
+      {
+        "kind": "interface",
+        "section": "wan",
+        "options": {
+          "proto": "pppoe",
+          "ifname": "vlan_wan",
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "vdsl_check",
+        "options": {
+          "proto": "pppoe",
+          "ifname": "ptm0",
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "bt_iptv",
+        "options": {
+          "ifname": "vlan_wan",
+          "auto": "1",
+          "proto": "static"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "eth4",
+        "options": {
+          "name": "eth4"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "ptm0",
+        "options": {
+          "name": "ptm0"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "vlan_wan",
+        "options": {
+          "type": "8021q",
+          "ifname": "ptm0",
+          "name": "vlan_wan",
+          "vid": "101"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wwan",
+        "options": {
+          "auto": "1"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan6",
+        "options": {
+          "ifname": "@wan",
+          "proto": "dhcpv6"
+        }
+      }
+    ],
+    "sources": {
+      "etc/config/network": "20554ad154ffe1d4e1daa8b7656fc5a08d46dfc7c69a696f183ef430b85329b5",
+      "etc/config/wansensing": "d9d46314ddaf4747bb1f3e5fd783216e8404e3dcd74f6d1d7d4701861a6bd571",
+      "etc/init.d/wansensing": "cd406f483077d828f035c8ca78642d33f7704d09aa3cca483fd78a2584e0ecb4",
+      "etc/config/xtm": "49c5474093f89ceb5290bf85a6351585e7d9c175c7a777bdecb97f236923d3af",
+      "etc/config/ethernet": "ff58cafaaac05254c169b25ef5f12118778b8af4524e15c2be5fd508c11028f4",
+      "etc/uci-defaults/tch_0030-network-wan": "7ae81a4572dc4a537d9cb72473062f471fbcea6cc12cad9a6ec71781c2d41aaa",
+      "etc/wansensing/L2EntryExit.lua": "700c45fef958ff18d832840efa5d4a13b4f7c8ddc32ee46757a22f1a72284633",
+      "etc/wansensing/L3EntryExit.lua": "ecb112701f6ac30a0c0889a3d709c0b40ccaeda40aa8d1314e070c3fca508c5b",
+      "etc/wansensing/L2Main.lua": "8dcae6a4eab0ffce19215ec265e15c9c4ff46b2b6e5a2676cb2c00dd2d5af220",
+      "etc/wansensing/VDSLEntryExit.lua": "c73b63ad0e798d0a28d5ff65c7dbc54192f89e9fe2322680028c47326c80aca7",
+      "etc/wansensing/worker_Mobile.lua": "fe4fd1baf5a60fba8356e1c175fcc0f44f9c7e796fbcf2b7f57b863952e66882",
+      "etc/wansensing/VDSLMain.lua": "6928216bfa7b65a4275ec3589d26620a42cee5e9382a8b3743544982cf107f17",
+      "etc/wansensing/L3Main.lua": "ea42005cb28c672dfcef5ae15394261bd41caa1cc1bbe735487c0ee1e42b282f"
+    },
+    "missing": []
+  },
+  {
+    "branch": "TG389ac_gant-1_17.1.7992-0001012-20180515151413_PROD",
+    "commit": "2130f6efa2494ecd6e09b74abc0eaed65696c6e1",
+    "service": "procd",
+    "sensing_enable": "0",
+    "state_count": 0,
+    "xtm": [],
+    "ethernet": [
+      {
+        "kind": "port",
+        "section": "eth0",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth1",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth2",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth3",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth4",
+        "options": {
+          "enable": "1",
+          "wan": "1"
+        }
+      }
+    ],
+    "network": [
+      {
+        "kind": "interface",
+        "section": "loopback",
+        "options": {
+          "ifname": "lo",
+          "proto": "static"
+        }
+      },
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {}
+      },
+      {
+        "kind": "interface",
+        "section": "wan",
+        "options": {
+          "proto": "dhcp",
+          "ifname": "eth4"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wwan",
+        "options": {
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "voip",
+        "options": {
+          "proto": "dhcp",
+          "ifname": "eth4_voip",
+          "auto": "1"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "iptv",
+        "options": {
+          "proto": "dhcp",
+          "ifname": "eth4_iptv",
+          "auto": "1"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "vlan_voip",
+        "options": {
+          "type": "8021q",
+          "ifname": "eth4",
+          "name": "eth4_voip",
+          "vid": "5"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "vlan_iptv",
+        "options": {
+          "type": "8021q",
+          "ifname": "eth4",
+          "name": "eth4_iptv",
+          "vid": "6"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan6",
+        "options": {
+          "ifname": "@wan",
+          "proto": "dhcpv6"
+        }
+      }
+    ],
+    "sources": {
+      "etc/config/network": "20554ad154ffe1d4e1daa8b7656fc5a08d46dfc7c69a696f183ef430b85329b5",
+      "etc/config/wansensing": "7baf41b0fbe76233f769c5c456a0afbe29dcd2fd484273fe116533c7e7edb62f",
+      "etc/init.d/wansensing": "cd406f483077d828f035c8ca78642d33f7704d09aa3cca483fd78a2584e0ecb4",
+      "etc/config/ethernet": "ff58cafaaac05254c169b25ef5f12118778b8af4524e15c2be5fd508c11028f4",
+      "etc/uci-defaults/tch_0030-network-wan": "0ec15b4fc98da2140944c6bce503236dcabc120ebba4bc6f45d5ba289bfeddd2"
+    },
+    "missing": [
+      "etc/config/xtm",
+      "etc/wansensing/L2EntryExit.lua",
+      "etc/wansensing/L3EntryExit.lua"
+    ]
+  },
+  {
+    "branch": "TN_SWE_TG799vacXtream_17.1.7937-1281014-20180313133921-Official",
+    "commit": "a786600d90ce31c57a29564ec4d12196462b950d",
+    "service": "procd",
+    "sensing_enable": "1",
+    "state_count": 4,
+    "xtm": [
+      {
+        "kind": "ptmdevice",
+        "section": "ptm0",
+        "options": {
+          "priority": "low"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm_wan",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "35",
+          "enc": "llc",
+          "priority": "0"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm_voip",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "36",
+          "enc": "llc",
+          "priority": "7"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm_iptv",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "34",
+          "enc": "llc",
+          "priority": "5"
+        }
+      }
+    ],
+    "ethernet": [
+      {
+        "kind": "port",
+        "section": "eth0",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth1",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth2",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth3",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth4",
+        "options": {
+          "enable": "1",
+          "wan": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth5",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "ethwirespeed",
+        "section": "wspeedeth0",
+        "options": {
+          "name": "eth0",
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "ethwirespeed",
+        "section": "wspeedeth1",
+        "options": {
+          "name": "eth1",
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "ethwirespeed",
+        "section": "wspeedeth2",
+        "options": {
+          "name": "eth2",
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "ethwirespeed",
+        "section": "wspeedeth3",
+        "options": {
+          "name": "eth3",
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "ethwirespeed",
+        "section": "wspeedeth4",
+        "options": {
+          "name": "eth4",
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "mapping",
+        "section": "",
+        "options": {}
+      }
+    ],
+    "network": [
+      {
+        "kind": "interface",
+        "section": "loopback",
+        "options": {
+          "ifname": "lo",
+          "proto": "static"
+        }
+      },
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {}
+      },
+      {
+        "kind": "interface",
+        "section": "wan",
+        "options": {
+          "auto": "1",
+          "proto": "dhcp"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wwan",
+        "options": {
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "iptv",
+        "options": {
+          "auto": "1",
+          "proto": "dhcp"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "voip",
+        "options": {
+          "auto": "1",
+          "proto": "dhcp"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "vlan698",
+        "options": {
+          "type": "8021q",
+          "ifname": "ptm0",
+          "name": "vlan698",
+          "vid": "698"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "vlan695",
+        "options": {
+          "type": "8021q",
+          "ifname": "ptm0",
+          "name": "vlan695",
+          "vid": "695"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "vlan697",
+        "options": {
+          "type": "8021q",
+          "ifname": "ptm0",
+          "name": "vlan697",
+          "vid": "697"
+        }
+      }
+    ],
+    "sources": {
+      "etc/config/network": "20554ad154ffe1d4e1daa8b7656fc5a08d46dfc7c69a696f183ef430b85329b5",
+      "etc/config/wansensing": "1c88bf7b66b006967548f4bd62c1cb67c8fc67caba5daeff56b887319dbc810c",
+      "etc/init.d/wansensing": "cd406f483077d828f035c8ca78642d33f7704d09aa3cca483fd78a2584e0ecb4",
+      "etc/config/xtm": "e9adbad869eca8d03d891d332c61a62fdbb9a9c3cb7b3df5dd3dc20973486863",
+      "etc/config/ethernet": "506b68270089ae147cb5882da815a2617e52ebcae3aff6b90f76c85b5de34fdf",
+      "etc/uci-defaults/tch_0030-network-wan": "9f24db52cecbba19bc9c48818fb0e34f280d16031c282b046618b2866688c7e8",
+      "etc/wansensing/L2EntryExit.lua": "b4603a2c69433b43c86e5c3b4329bcebc98713cae01efe85b593efcc4b890d98",
+      "etc/wansensing/L2Main.lua": "e378de59819dc87df0a18f31a560e731dd5f8b06a034cf6cc416c328f3814400",
+      "etc/wansensing/L3SingleWanEntryExit.lua": "5947ee53dc2d666fa24589cab9483b23804c80f1e8e62adca7987c45172542bb",
+      "etc/wansensing/L3MultiWanMain.lua": "3118cc9ed15a34a14d5638c33b62228c0b0a4f1f22ffef6208fcf58eb1205c3b",
+      "etc/wansensing/L3VoipSenseEntryExit.lua": "cdeb0bac29cbe6d29551008afe0ddeac98fbdfed0414e75709f19f51c4bb3643",
+      "etc/wansensing/L3MultiWanEntryExit.lua": "d6cba9963e76caa189313b143150760be86d150e54a8524c1bae5fff2c3294f0",
+      "etc/wansensing/L3VoipSenseMain.lua": "77b728f9aa861598eff84e8aea7f5cfc2273832386b7029b131da4817956886c",
+      "etc/wansensing/L3SingleWanMain.lua": "7a0a90310f9024ff44ed9a56970c3d55ed3c923a8e06e0dbf0242d1d4a621104"
+    },
+    "missing": [
+      "etc/wansensing/L3EntryExit.lua"
+    ]
+  },
+  {
+    "branch": "Tiscali_DGA4130_17.1.7970-0001001-20180301141418",
+    "commit": "91c21e98322d6f7f14f88ee945d130a007f4298c",
+    "service": "procd",
+    "sensing_enable": "1",
+    "state_count": 6,
+    "xtm": [
+      {
+        "kind": "ptmdevice",
+        "section": "ptm0",
+        "options": {
+          "priority": "low"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm_8_35",
+        "options": {
+          "ulp": "ppp",
+          "vpi": "8",
+          "vci": "35",
+          "enc": "vcmux",
+          "priority": "0"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm_8_36",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "36",
+          "enc": "llc",
+          "priority": "0"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm_9_35",
+        "options": {
+          "ulp": "eth",
+          "vpi": "9",
+          "vci": "35",
+          "enc": "llc",
+          "priority": "7"
+        }
+      }
+    ],
+    "ethernet": [
+      {
+        "kind": "port",
+        "section": "eth0",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth1",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth2",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth3",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth4",
+        "options": {
+          "enable": "1",
+          "wan": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth5",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "mapping",
+        "section": "",
+        "options": {}
+      }
+    ],
+    "network": [
+      {
+        "kind": "interface",
+        "section": "loopback",
+        "options": {
+          "ifname": "lo",
+          "proto": "static"
+        }
+      },
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {}
+      },
+      {
+        "kind": "interface",
+        "section": "wan",
+        "options": {
+          "proto": "pppoe",
+          "ifname": "atm_8_36",
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wanpppoa",
+        "options": {
+          "proto": "pppoa",
+          "ifname": "atm_8_35",
+          "auto": "1"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wanpppoe",
+        "options": {
+          "proto": "pppoe",
+          "ifname": "atm_8_36",
+          "auto": "1"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "waneth4",
+        "options": {
+          "enabled": "1",
+          "type": "8021q",
+          "name": "waneth4",
+          "ifname": "eth4",
+          "vid": "835"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "wanptm0",
+        "options": {
+          "type": "8021q",
+          "name": "wanptm0",
+          "ifname": "ptm0",
+          "vid": "835"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "voipeth4",
+        "options": {
+          "enabled": "1",
+          "type": "8021q",
+          "name": "voipeth4",
+          "ifname": "eth4",
+          "vid": "935"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "voipptm0",
+        "options": {
+          "type": "8021q",
+          "name": "voipptm0",
+          "ifname": "ptm0",
+          "vid": "935"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "broadif1",
+        "options": {
+          "auto": "1",
+          "proto": "static",
+          "ifname": "atm_9_35"
+        }
+      },
+      {
+        "kind": "route",
+        "section": "broadif1_default",
+        "options": {}
+      },
+      {
+        "kind": "interface",
+        "section": "wwan",
+        "options": {
+          "auto": "1"
+        }
+      }
+    ],
+    "sources": {
+      "etc/config/network": "20554ad154ffe1d4e1daa8b7656fc5a08d46dfc7c69a696f183ef430b85329b5",
+      "etc/config/wansensing": "9835f020bd8cb7fbcbe7b1883463b6f74f24365e066c07e86d5395a58a1cad56",
+      "etc/init.d/wansensing": "cd406f483077d828f035c8ca78642d33f7704d09aa3cca483fd78a2584e0ecb4",
+      "etc/config/xtm": "c794d81d5889401be9950f97c75c9c0612a13e365c1bd81a946a8984c594a672",
+      "etc/config/ethernet": "69cffc4edc89f77f0c26593e8088dece090591dffc86e1cc897abacbe30d4123",
+      "etc/uci-defaults/tch_0030-network-wan": "066af262910d31e888dbe6bfff1bdb789f442cee96fefd90ac7578ae352faa01",
+      "etc/wansensing/L2EntryExit.lua": "13b1cabe27e32181659db7a5f38b67e883e2a0f4db569ec737a6e6de9044eea1",
+      "etc/wansensing/L3SenseMain.lua": "b2edb85f283807320cd0edf944627caea5036da7d70b6b8ccb475fefcb8a3d25",
+      "etc/wansensing/L3PPPoEEntryExit.lua": "7d7c974854a235b7dcfe55df7e4ed44602d4163abbe60e5b3c4a9b3624e63b9a",
+      "etc/wansensing/L2Main.lua": "00fb87e5bded1aacaf8ea1330024d57a2918cdd1252a800f16861ee1ce992f45",
+      "etc/wansensing/L3PPPoAMain.lua": "ca0bf15a1b3bd03794ef9686718b3726db273e997a801a6c5fb2f6c9b22ff067",
+      "etc/wansensing/L3ETHEntryExit.lua": "cf7127dc6f58bda911be38036542bb79cc0c1f22d1acf8c6d3431c434d8ec39b",
+      "etc/wansensing/L3VDSLEntryExit.lua": "6dcac837b6c9a5f44c04f4df910b1d0b53f160f3954457f4a5865eacf1f5e7fb",
+      "etc/wansensing/L3SenseEntryExit.lua": "ebfccf61e7227a4c42589824ae32b56c42bc7464d48f81698e292a5b6f8613d6",
+      "etc/wansensing/L3ETHMain.lua": "bc8427046f14457eca7fa02b622f66a48f5332cffe9cfa92b051f235636c5b61",
+      "etc/wansensing/L3PPPoAEntryExit.lua": "c0175af76354793d91ec2796b18e7bae2bfdae8239104bad782f77c8ba5a8edd",
+      "etc/wansensing/L3PPPoEMain.lua": "0c74f85b4a21948f1e65ff467163f4774ca33ff90fe0bc0fc513633190b48747",
+      "etc/wansensing/L3VDSLMain.lua": "835160ab662098a19aaba4cf4e3bbf366b7c99e72dc9cc802777f623d375e5dd"
+    },
+    "missing": [
+      "etc/wansensing/L3EntryExit.lua"
+    ]
+  },
+  {
+    "branch": "DGA2231_vcnt-c_18.3.g.0301-official",
+    "commit": "49f0b38be1f16b0dbcf261a2bb4327db4df051f5",
+    "service": "procd",
+    "sensing_enable": "1",
+    "state_count": 2,
+    "xtm": [
+      {
+        "kind": "global",
+        "section": "global",
+        "options": {}
+      },
+      {
+        "kind": "ptmdevice",
+        "section": "ptm0",
+        "options": {
+          "priority": "low"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm_8_81",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "81",
+          "enc": "llc"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm_8_35",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "35",
+          "enc": "llc"
+        }
+      }
+    ],
+    "ethernet": [
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {
+          "eth4lanwanmode": "0"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth0",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth1",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth2",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth3",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth4",
+        "options": {
+          "enable": "1",
+          "wan": "1"
+        }
+      },
+      {
+        "kind": "trafficdesc",
+        "section": "tdeth4",
+        "options": {
+          "enable": "0"
+        }
+      }
+    ],
+    "network": [
+      {
+        "kind": "interface",
+        "section": "loopback",
+        "options": {
+          "ifname": "lo",
+          "proto": "static"
+        }
+      },
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {}
+      },
+      {
+        "kind": "interface",
+        "section": "wan",
+        "options": {
+          "proto": "pppoe",
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wwan",
+        "options": {
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan6",
+        "options": {
+          "ifname": "@wan",
+          "proto": "dhcpv6"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "ppp_8_35",
+        "options": {
+          "ifname": "atm_8_35",
+          "proto": "pppoe",
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "ppp_8_81",
+        "options": {
+          "ifname": "atm_8_81",
+          "proto": "pppoe",
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "ptm0_v881",
+        "options": {
+          "ifname": "ptm0",
+          "vid": "881",
+          "type": "8021q",
+          "name": "ptm0_v881"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "eth4_v881",
+        "options": {
+          "ifname": "eth4",
+          "vid": "881",
+          "type": "8021q",
+          "name": "eth4_v881"
+        }
+      }
+    ],
+    "sources": {
+      "etc/config/network": "df810e14297c1f747e2de47dbcca9f79d2c285f7733b40cf493027dfc374fdd5",
+      "etc/config/wansensing": "aef1f2f5d61f088763e8e5887a638fb5dfbf57ffff4cd7a40c5491aded17d333",
+      "etc/init.d/wansensing": "cd406f483077d828f035c8ca78642d33f7704d09aa3cca483fd78a2584e0ecb4",
+      "etc/config/xtm": "3f15479e329f3793d006830380385473cd2da368365346a374df5abb17a6ac09",
+      "etc/config/ethernet": "70dd3c4bc327e90d3f15cafb654f346728a334d64f116040cab000fd574e9ac5",
+      "etc/uci-defaults/tch_0030-network-wan": "6632a2b6ba13530dd609e385de5d1e8bea6af751554b95afff1499925724b90b",
+      "etc/wansensing/L2EntryExit.lua": "eb0be7eff2b2e36ae2b888a4050cc3adc31fe1fd68bce4067351fa26e77394e5",
+      "etc/wansensing/L3EntryExit.lua": "fe32cfa574f6fbebf02d38acb5724ea5fa5e45f6081a85b997372f58162e2e8b",
+      "etc/wansensing/L3Main.lua": "908ec5d989126482e7be38e3f9c72521a83ed296470da8d59e58141ecb452b2f",
+      "etc/wansensing/L2Main.lua": "545412db83b236abb66676e1aff95f837465854fa0ac842ac6b992daf828a574"
+    },
+    "missing": []
+  },
+  {
+    "branch": "vcnt-2_19.4.l.0393-MR1-RB",
+    "commit": "fe1a7441f392377da850227d303830f2a7b5fbbb",
+    "service": "procd",
+    "sensing_enable": "1",
+    "state_count": 5,
+    "xtm": [
+      {
+        "kind": "ptmdevice",
+        "section": "ptm0",
+        "options": {
+          "priority": "low"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm_8_35",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "35",
+          "enc": "llc"
+        }
+      },
+      {
+        "kind": "trafficdesc",
+        "section": "td_ubr",
+        "options": {}
+      },
+      {
+        "kind": "drop_threshold",
+        "section": "drop_threshold",
+        "options": {}
+      }
+    ],
+    "ethernet": [
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {
+          "eth4lanwanmode": "0"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth0",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth1",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth2",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth3",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth4",
+        "options": {
+          "enable": "1",
+          "wan": "1"
+        }
+      },
+      {
+        "kind": "trafficdesc",
+        "section": "shapingconf",
+        "options": {
+          "enable": "1"
+        }
+      }
+    ],
+    "network": [
+      {
+        "kind": "interface",
+        "section": "ppp",
+        "options": {
+          "proto": "pppoe"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "ipoe",
+        "options": {
+          "proto": "dhcp"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan6",
+        "options": {
+          "auto": "0",
+          "proto": "dhcpv6"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wwan",
+        "options": {
+          "enabled": "0"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan",
+        "options": {
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "eth4",
+        "options": {
+          "name": "eth4"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "atm_8_35",
+        "options": {
+          "name": "atm_8_35"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "ptm0",
+        "options": {
+          "name": "ptm0"
+        }
+      }
+    ],
+    "sources": {
+      "etc/config/wansensing": "a93a8681e5a71c4df8d3116d904f2ba7460f95258018e9577297feaa7170956c",
+      "etc/init.d/wansensing": "cd406f483077d828f035c8ca78642d33f7704d09aa3cca483fd78a2584e0ecb4",
+      "etc/config/xtm": "f05505387433be4089416e519b318a59b620d14ca483faa9983ea258db1ee6d3",
+      "etc/config/ethernet": "70ffe417f661481a0ca504936d969b0c886242c82940aa87c75f922c570dc669",
+      "etc/uci-defaults/tch_0030-network-wan": "1d841f601ce2f0cd0ae5d16ec69f97463e6b707ca606e9918ef7a9a41c42f9c5",
+      "etc/wansensing/L2EntryExit.lua": "a528cb7f16b0dd76630ff1c7b1805269dbd0dae42a13738daf83951f312af390",
+      "etc/wansensing/L3EntryExit.lua": "375baef1f188e7c9c25a1e584014ebaa9650ef2884ea26f6adf1eb93d079c3b5",
+      "etc/wansensing/L3DHCPSenseEntryExit.lua": "2d4367748897767376b1f90ffd54aed8c6cfbd446173cc37b7c7e9442f87f769",
+      "etc/wansensing/L3PPPEntryExit.lua": "3d393868ff987877fcf3568b2207f4ed8c221aece0f576cecf872cc2f7773b97",
+      "etc/wansensing/L3DHCPMain.lua": "b7cc1a5caed1ead574ba08ca0eb96ea7a710a541b7782c28b32243857fdccf6b",
+      "etc/wansensing/L2Main.lua": "835ddec230ae3c849b8a6c9fa487239a8a1684e296f932f99f3d26d7d68610a3",
+      "etc/wansensing/L3DHCPEntryExit.lua": "e9e4ec8dd2c3de3b10e365f2f74478c60b491b98d425ab14ab27daca6070b322",
+      "etc/wansensing/L3PPPMain.lua": "f1ad8abb09895cbe8b724a1ab31594e310a567c9bb4ddfd0999b644740d1872c",
+      "etc/wansensing/L3DHCPSenseMain.lua": "4e32d4161bb7e1fd799992cc55dabe5b2794eec64703d2a4435e11a914714d1d",
+      "etc/wansensing/L3Main.lua": "0a64ca4a7c0af31506b5ff1c08375d54944580f8f0d3f70b7da0fad5764e6d35"
+    },
+    "missing": [
+      "etc/config/network"
+    ]
+  },
+  {
+    "branch": "vcnt-a_20.3.c.0501-MR22.1-RA",
+    "commit": "a33642ea3c032e03d417b3e3bd027e79b8f0a162",
+    "service": "procd",
+    "sensing_enable": "1",
+    "state_count": 7,
+    "xtm": [
+      {
+        "kind": "ptmdevice",
+        "section": "ptm0",
+        "options": {
+          "priority": "low"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm_8_35",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "35",
+          "enc": "llc"
+        }
+      },
+      {
+        "kind": "trafficdesc",
+        "section": "td_ubr",
+        "options": {}
+      },
+      {
+        "kind": "drop_threshold",
+        "section": "drop_threshold",
+        "options": {}
+      }
+    ],
+    "ethernet": [
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {
+          "eth4lanwanmode": "0"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth0",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth1",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth2",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth3",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth4",
+        "options": {
+          "enable": "1",
+          "wan": "1"
+        }
+      },
+      {
+        "kind": "trafficdesc",
+        "section": "shapingconf",
+        "options": {
+          "enable": "1"
+        }
+      }
+    ],
+    "network": [
+      {
+        "kind": "interface",
+        "section": "ppp",
+        "options": {
+          "proto": "pppoe"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "ipoe",
+        "options": {
+          "proto": "dhcp"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan6",
+        "options": {
+          "auto": "0",
+          "proto": "dhcpv6"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wwan",
+        "options": {
+          "enabled": "0"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan",
+        "options": {
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "eth4",
+        "options": {
+          "name": "eth4"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "atm_8_35",
+        "options": {
+          "name": "atm_8_35"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "ptm0",
+        "options": {
+          "name": "ptm0"
+        }
+      }
+    ],
+    "sources": {
+      "etc/config/wansensing": "6766c97ade4c8e200fd4f35b9574e5e10a3bb75e09c1a93a72168d0d3ac04cb9",
+      "etc/init.d/wansensing": "7aeda98b82fa44dc80a562d552dfad49d9b3a01936f926f4ae82badbe35bd3cc",
+      "etc/config/xtm": "5dbf3b24de0c829936b8f653395456e1e6163d9e4ded49f2008a855a900921e8",
+      "etc/config/ethernet": "7b932b2efdb4ace980b99ad04a940625bd59b4784e67970a319d832aede61b37",
+      "etc/uci-defaults/tch_0030-network-wan": "1d841f601ce2f0cd0ae5d16ec69f97463e6b707ca606e9918ef7a9a41c42f9c5",
+      "etc/wansensing/L2EntryExit.lua": "a528cb7f16b0dd76630ff1c7b1805269dbd0dae42a13738daf83951f312af390",
+      "etc/wansensing/L3EntryExit.lua": "375baef1f188e7c9c25a1e584014ebaa9650ef2884ea26f6adf1eb93d079c3b5",
+      "etc/wansensing/L3DHCPSenseEntryExit.lua": "aa2c623e85c9e71234c10c8576e5952acbf4e94426089abab24366a8712fe510",
+      "etc/wansensing/InitMain.lua": "1983a22548682557e97b9c8e2918afef9a2bd272daf2177dd3acc29976a3dd4d",
+      "etc/wansensing/L3PPPEntryExit.lua": "3d393868ff987877fcf3568b2207f4ed8c221aece0f576cecf872cc2f7773b97",
+      "etc/wansensing/MobileMain.lua": "4dba0050d4987ee27a90abe61395218dbf0debb3ae083d1e1564dfd6dd412fc8",
+      "etc/wansensing/L3DHCPMain.lua": "3b45cc71a94ec66b3a833001a3f9941662a79519899955da8dbe152513b9a25e",
+      "etc/wansensing/worker_dnsqueries.lua": "d86268546bdff1afc5ce3fa237a36b1b3720415553472e8cf4e367b0d409ef39",
+      "etc/wansensing/L2Main.lua": "54bd00c4aac73a3418311c7418a8c202068792cb90d34e9fa70ff6b1133c1636",
+      "etc/wansensing/L3Main.lua": "fe653d3d03fbdd2f571275393cefa4da34ea31c1124f9959fec67d8014e74695",
+      "etc/wansensing/L3DHCPEntryExit.lua": "e9e4ec8dd2c3de3b10e365f2f74478c60b491b98d425ab14ab27daca6070b322",
+      "etc/wansensing/InitEntryExit.lua": "c4254128f9ce04e29033684a44523a5d027cb9e3f09fdfea13d5aecf985dda4b",
+      "etc/wansensing/MobileEntryExit.lua": "892a74fa513e1f05ec633c4992286b2f1bf266e0e7ed69a30dce699a21a74d7e",
+      "etc/wansensing/L3PPPMain.lua": "93cbaffddd666e111a94b76867b1d1f252fd27ae468751b094051177a9729eab",
+      "etc/wansensing/L3DHCPSenseMain.lua": "d7f9dab3194818d67d7ed029951323c586403ae98529ceb12e436d4cb5e74f4f",
+      "etc/wansensing/worker_throughput.lua": "053286845b2c7311ebd0e979b1cc35d498c56cbcfe0a3aed565a7e1a179b854b"
+    },
+    "missing": [
+      "etc/config/network"
+    ]
+  },
+  {
+    "branch": "vbnt-v_20.3.c.0432-MR21.1-RA",
+    "commit": "7540ed52979f03214c240ff22f2d6ac0682ef39a",
+    "service": "procd",
+    "sensing_enable": "1",
+    "state_count": 7,
+    "xtm": [
+      {
+        "kind": "ptmdevice",
+        "section": "ptm0",
+        "options": {
+          "priority": "low"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm_8_35",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "35",
+          "enc": "llc"
+        }
+      },
+      {
+        "kind": "trafficdesc",
+        "section": "td_ubr",
+        "options": {}
+      },
+      {
+        "kind": "drop_threshold",
+        "section": "drop_threshold",
+        "options": {}
+      }
+    ],
+    "ethernet": [
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {
+          "eth4lanwanmode": "0"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth0",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth1",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth2",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth3",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth4",
+        "options": {
+          "enable": "1",
+          "wan": "1"
+        }
+      },
+      {
+        "kind": "trafficdesc",
+        "section": "shapingconf",
+        "options": {
+          "enable": "1"
+        }
+      }
+    ],
+    "network": [
+      {
+        "kind": "interface",
+        "section": "ppp",
+        "options": {
+          "proto": "pppoe"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "ipoe",
+        "options": {
+          "proto": "dhcp"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan6",
+        "options": {
+          "auto": "0",
+          "proto": "dhcpv6"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wwan",
+        "options": {
+          "enabled": "0"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan",
+        "options": {
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "eth4",
+        "options": {
+          "name": "eth4"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "atm_8_35",
+        "options": {
+          "name": "atm_8_35"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "ptm0",
+        "options": {
+          "name": "ptm0"
+        }
+      }
+    ],
+    "sources": {
+      "etc/config/wansensing": "6766c97ade4c8e200fd4f35b9574e5e10a3bb75e09c1a93a72168d0d3ac04cb9",
+      "etc/init.d/wansensing": "7aeda98b82fa44dc80a562d552dfad49d9b3a01936f926f4ae82badbe35bd3cc",
+      "etc/config/xtm": "5dbf3b24de0c829936b8f653395456e1e6163d9e4ded49f2008a855a900921e8",
+      "etc/config/ethernet": "7b932b2efdb4ace980b99ad04a940625bd59b4784e67970a319d832aede61b37",
+      "etc/uci-defaults/tch_0030-network-wan": "1d841f601ce2f0cd0ae5d16ec69f97463e6b707ca606e9918ef7a9a41c42f9c5",
+      "etc/wansensing/L2EntryExit.lua": "a528cb7f16b0dd76630ff1c7b1805269dbd0dae42a13738daf83951f312af390",
+      "etc/wansensing/L3EntryExit.lua": "375baef1f188e7c9c25a1e584014ebaa9650ef2884ea26f6adf1eb93d079c3b5",
+      "etc/wansensing/L3DHCPSenseEntryExit.lua": "aa2c623e85c9e71234c10c8576e5952acbf4e94426089abab24366a8712fe510",
+      "etc/wansensing/InitMain.lua": "1983a22548682557e97b9c8e2918afef9a2bd272daf2177dd3acc29976a3dd4d",
+      "etc/wansensing/L3PPPEntryExit.lua": "3d393868ff987877fcf3568b2207f4ed8c221aece0f576cecf872cc2f7773b97",
+      "etc/wansensing/MobileMain.lua": "4dba0050d4987ee27a90abe61395218dbf0debb3ae083d1e1564dfd6dd412fc8",
+      "etc/wansensing/L3DHCPMain.lua": "3b45cc71a94ec66b3a833001a3f9941662a79519899955da8dbe152513b9a25e",
+      "etc/wansensing/worker_dnsqueries.lua": "d86268546bdff1afc5ce3fa237a36b1b3720415553472e8cf4e367b0d409ef39",
+      "etc/wansensing/L2Main.lua": "54bd00c4aac73a3418311c7418a8c202068792cb90d34e9fa70ff6b1133c1636",
+      "etc/wansensing/L3Main.lua": "fe653d3d03fbdd2f571275393cefa4da34ea31c1124f9959fec67d8014e74695",
+      "etc/wansensing/L3DHCPEntryExit.lua": "e9e4ec8dd2c3de3b10e365f2f74478c60b491b98d425ab14ab27daca6070b322",
+      "etc/wansensing/InitEntryExit.lua": "c4254128f9ce04e29033684a44523a5d027cb9e3f09fdfea13d5aecf985dda4b",
+      "etc/wansensing/MobileEntryExit.lua": "892a74fa513e1f05ec633c4992286b2f1bf266e0e7ed69a30dce699a21a74d7e",
+      "etc/wansensing/L3PPPMain.lua": "93cbaffddd666e111a94b76867b1d1f252fd27ae468751b094051177a9729eab",
+      "etc/wansensing/L3DHCPSenseMain.lua": "d7f9dab3194818d67d7ed029951323c586403ae98529ceb12e436d4cb5e74f4f",
+      "etc/wansensing/worker_throughput.lua": "053286845b2c7311ebd0e979b1cc35d498c56cbcfe0a3aed565a7e1a179b854b"
+    },
+    "missing": [
+      "etc/config/network"
+    ]
+  },
+  {
+    "branch": "vant-f_CRF363-15.18.6052-420-RA",
+    "commit": "f2716d013443451b392c7a8c5729c6147336bc1d",
+    "service": "start-stop-daemon",
+    "sensing_enable": "1",
+    "state_count": 4,
+    "xtm": [
+      {
+        "kind": "ptmdevice",
+        "section": "ptm0",
+        "options": {
+          "priority": "low"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm_8_35",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "35",
+          "enc": "llc"
+        }
+      }
+    ],
+    "ethernet": [
+      {
+        "kind": "port",
+        "section": "eth0",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth1",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth2",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth3",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth4",
+        "options": {
+          "enable": "1",
+          "wan": "1"
+        }
+      },
+      {
+        "kind": "trafficdesc",
+        "section": "shapingconf",
+        "options": {}
+      }
+    ],
+    "network": [
+      {
+        "kind": "interface",
+        "section": "wan",
+        "options": {
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "ppp",
+        "options": {
+          "proto": "pppoe"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "ipoe",
+        "options": {
+          "proto": "dhcp"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan6",
+        "options": {
+          "ifname": "@wan",
+          "proto": "dhcpv6"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wwan",
+        "options": {
+          "auto": "0"
+        }
+      }
+    ],
+    "sources": {
+      "etc/config/wansensing": "e11518f60452b5e1f481bf2a94d056bca27e3a4a476942bd5668228e4f598263",
+      "etc/init.d/wansensing": "463472936f7b55ee77cff8f585bb92c50c8651e550e701e16dd4d84930f3b3d0",
+      "etc/config/xtm": "40bc7b6e5ed75523af47b3fdf7beffa6b2d3c5e9047ae90c40003c238e653524",
+      "etc/config/ethernet": "67ea928d099e1facca69f7ac4ec981660eb910704b51c0b116451f536469737e",
+      "etc/uci-defaults/tch_0030-network-wan": "cd6cb4c2718962bd3f05d246ede778097827cb8a2e0b9cdcb795ccd6b2a4ea51",
+      "etc/wansensing/L2EntryExit.lua": "e9b680cc1ade38c3b3b972a81376059850f3f0f5d94986609b530c1ea0a2799b",
+      "etc/wansensing/L3EntryExit.lua": "b0517742187246755e97f16a2d1bd5e645d7a806990d537a398962d410d66c0c",
+      "etc/wansensing/L3PPPEntryExit.lua": "0beb94193af64149b6048f19a79a4d243b60b129309a7b65d370159cb2525c2a",
+      "etc/wansensing/L3DHCPMain.lua": "9e7397381034a4e0b19bf4d7aa6db7aad5bbbe6a5f95195b28d47207aed292d9",
+      "etc/wansensing/L2Main.lua": "6b0ff4227b9df8888e42c29082e6ff80ee3bb7fcf1a35e9a3d9bac444e804612",
+      "etc/wansensing/L3DHCPEntryExit.lua": "3f017ed90664eb6fbaa3af2acb1c0f88c05dc02503426de536edf27b3901f506",
+      "etc/wansensing/L3PPPMain.lua": "fc20dff3921e3489ecce45c606ffe8616b07d90704cc3fc7b0a51d9093a99fec",
+      "etc/wansensing/L3Main.lua": "e39831303a8e693eefb10d8e1f6115b97274c6eef52dc4a7a5d44e852adb7a90"
+    },
+    "missing": [
+      "etc/config/network"
+    ]
+  },
+  {
+    "branch": "172339h1441002closed",
+    "commit": "cb7578a3e16220523f39f9b221fc731239046671",
+    "service": "procd",
+    "sensing_enable": "1",
+    "state_count": 2,
+    "xtm": [
+      {
+        "kind": "atmdevice",
+        "section": "atm_wan",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "35",
+          "enc": "llc"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm_mgmt",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "34",
+          "enc": "llc"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm_iptv",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "45",
+          "enc": "llc"
+        }
+      },
+      {
+        "kind": "atmdevice",
+        "section": "atm_voip",
+        "options": {
+          "ulp": "eth",
+          "vpi": "8",
+          "vci": "55",
+          "enc": "llc"
+        }
+      },
+      {
+        "kind": "trafficdesc",
+        "section": "UBR",
+        "options": {}
+      },
+      {
+        "kind": "trafficdesc",
+        "section": "VBR_nrt_mgmt",
+        "options": {}
+      },
+      {
+        "kind": "trafficdesc",
+        "section": "VBR_nrt_iptv",
+        "options": {}
+      },
+      {
+        "kind": "trafficdesc",
+        "section": "VBR_rt",
+        "options": {}
+      }
+    ],
+    "ethernet": [
+      {
+        "kind": "port",
+        "section": "eth0",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth1",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth2",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth3",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth4",
+        "options": {
+          "enable": "1",
+          "wan": "1"
+        }
+      },
+      {
+        "kind": "port",
+        "section": "eth5",
+        "options": {
+          "enable": "1"
+        }
+      },
+      {
+        "kind": "mapping",
+        "section": "",
+        "options": {}
+      }
+    ],
+    "network": [
+      {
+        "kind": "interface",
+        "section": "loopback",
+        "options": {
+          "ifname": "lo",
+          "proto": "static"
+        }
+      },
+      {
+        "kind": "globals",
+        "section": "globals",
+        "options": {}
+      },
+      {
+        "kind": "interface",
+        "section": "wan",
+        "options": {
+          "auto": "0",
+          "proto": "dhcp"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wan6",
+        "options": {
+          "ifname": "@wan",
+          "proto": "dhcpv6",
+          "auto": "0"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "wwan",
+        "options": {
+          "auto": "1"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "iptv",
+        "options": {
+          "auto": "0",
+          "proto": "dhcp"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "voip",
+        "options": {
+          "auto": "0",
+          "proto": "dhcp"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "mgmt",
+        "options": {
+          "auto": "0",
+          "proto": "dhcp"
+        }
+      },
+      {
+        "kind": "interface",
+        "section": "gre",
+        "options": {
+          "proto": "gretap"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "phy_eth4",
+        "options": {
+          "name": "eth4"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "phy_ptm0",
+        "options": {
+          "name": "ptm0"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "vlan_data",
+        "options": {
+          "ifname": "eth4",
+          "name": "phy_eth4"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "phy_atm",
+        "options": {
+          "name": "atm_wan"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "vlan_iptv",
+        "options": {
+          "type": "8021q",
+          "ifname": "eth4",
+          "name": "vlan_iptv",
+          "vid": "845"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "vlan_voip",
+        "options": {
+          "type": "8021q",
+          "ifname": "eth4",
+          "name": "vlan_voip",
+          "vid": "855"
+        }
+      },
+      {
+        "kind": "device",
+        "section": "vlan_mgmt",
+        "options": {
+          "type": "8021q",
+          "ifname": "eth4",
+          "name": "vlan_mgmt",
+          "vid": "294"
+        }
+      }
+    ],
+    "sources": {
+      "etc/config/network": "20554ad154ffe1d4e1daa8b7656fc5a08d46dfc7c69a696f183ef430b85329b5",
+      "etc/config/wansensing": "41296f45d09d64a570f66c0e7360ca6f14aeca412fa770414b86a51fcd8debe9",
+      "etc/init.d/wansensing": "cd406f483077d828f035c8ca78642d33f7704d09aa3cca483fd78a2584e0ecb4",
+      "etc/config/xtm": "dabf84d89676918a85af15b80fb408e6724843d149ac345386a2a49dbcbda21c",
+      "etc/config/ethernet": "6a73ae4856558851ffdf8515d5e5b2d6aababcba941cfc26dcf0e8312e497a2d",
+      "etc/uci-defaults/tch_0030-network-wan": "6f6d155f81b062c1626b3bbb0618042a2bfc77865794eaa5e97386f4eb5856e9",
+      "etc/wansensing/L2EntryExit.lua": "903cc6f512b1cfa5b264283745a524805ce4c0a42b6b641591e0b2e024830f52",
+      "etc/wansensing/L3EntryExit.lua": "ec70c5683da9e303632b3826e26ace8a8ae31151f837391f5a63cdd86460cb8a",
+      "etc/wansensing/L2Main.lua": "aaa0883ccc6b92ea28fed3132bcb944c2e465aa8995e5bb93566dcdafddb5dfa",
+      "etc/wansensing/worker_opt125handler.lua": "b917399c3704a19f4934bfb1ab3015194a89c3bccd83797c4929752022d54ded",
+      "etc/wansensing/L3Main.lua": "a090bc837189596b247872bc36e8628ec643a86fdbcd978289a33fa8278252c8"
+    },
+    "missing": []
+  }
+]

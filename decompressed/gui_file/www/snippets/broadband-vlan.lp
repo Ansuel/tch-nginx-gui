@@ -19,14 +19,6 @@ if session:getrole() == "engineer" then
    tech = true
 end
 
---Support ethernet mode for devices with no eth4 port
-local ethname = proxy.get("sys.eth.port.@eth4.status")
-if ethname and ethname[1].value then
-	ethname =  "eth4"
-else
-	ethname =  "eth3"
-end
-
 function getValidateNumberInRange(min, max, value)
     local helptext = T"Input must be a number"
     if min and max then
@@ -54,168 +46,64 @@ function getValidateNumberInRange(min, max, value)
 
 end
 
-local pathifname = "uci.network.interface.@wan.ifname"
-local iface = proxy.get(pathifname)
-local connection = ""
-local path = ""
-local vid = ""
-local dname = ""
-local difname = ""
+local bridge = require("bridgehelper")
+local manual = bridge.get("uci.wansensing.global.enable") ~= "1"
+local channel = bridge.vlanContext()
+local helpmes
 
-if iface and iface[1].value then
-	iface = iface[1].value
-else
-	iface = ""
-end
-
-if string.match(iface, "eth") then
-	connection = ethname
-	path = "uci.network.device.@waneth4."
-	if string.match(iface, "%.") then
-		difname = string.match(iface, ethname .. "%.[%d]+")
-		vid = string.match(difname, "[^"..ethname.."%.]+")
-	else
-		if proxy.get(path) then
-			vid = proxy.get(path.."vid")[1].value
-			dname = proxy.get(path.."name")[1].value
-			difname = proxy.get(path.."ifname")[1].value
-		end
-	end
-elseif string.match(iface, "atm") then
-	connection = "atmwan"
-	path = "uci.network.device.@wanatmwan."
-	if string.match(iface, "%.") then
-		difname = string.match(iface, "atmwan%.[%d]+")
-		vid = string.match(difname, "[^atmwan%.]+")
-	else
-		if proxy.get(path) then
-			vid = proxy.get(path.."vid")[1].value
-			dname = proxy.get(path.."name")[1].value
-			difname = proxy.get(path.."ifname")[1].value
-		end
-	end
-else
-	connection = "ptm0"
-	path = "uci.network.device.@wanptm0."
-	if string.match(iface, "%.") then
-		difname = string.match(iface, "ptm0%.[%d]+")
-		vid = string.match(difname, "[^ptm0%.]+")
-	else
-		if proxy.get(path) then
-			vid = proxy.get(path.."vid")[1].value
-			dname = proxy.get(path.."name")[1].value
-			difname = proxy.get(path.."ifname")[1].value
-		end
-	end
-end	
-
-if ngx.var.request_method == "POST" then
+if tech and manual and ngx.var.request_method == "POST" then
     local content = ngx.req.get_post_args()
-	if content["action"]=="SAVE" then
-		range, helpmes = getValidateNumberInRange(2, 2048, content["intf_vlanid"])
-		if content["auswahlliste"] == "devnot" then
-			if range and (content["intf_vlanid"]~=vid or content["intf_vlan"]~="0") then
-				if proxy.get(path) then
-					dname = proxy.get(path.."name")[1].value
-					proxy.set(path.."vid", content["intf_vlanid"])
-					proxy.set(pathifname, dname)
-					ngx.print(dname)
-					proxy.set(path.."ifname", connection)
-				else
-					proxy.add("uci.network.device.", string.format("%s%s","wan",connection ))
-					proxy.set(path.."type","8021q")
-					proxy.set(path.."name","wan"..connection)
-					proxy.set(path.."macaddr", proxy.get("uci.env.rip.eth_mac")[1].value)
-					dname = proxy.get(path.."name")[1].value
-					proxy.set(path.."vid", content["intf_vlanid"])
-					proxy.set(pathifname, dname)
-					proxy.set(path.."ifname", connection)
-				end
-				proxy.apply()
-			end
-		elseif content["auswahlliste"] == "dotnot" then
-			if range and (content["intf_vlanid"]~=vid or content["intf_vlan"]~="0") then
-				if proxy.get(path) and proxy.get(path.."ifname")[1].value ~="" then
-					proxy.set(path.."ifname", "")
-				end				
-				proxy.set(pathifname, string.format("%s.%s",connection, content["intf_vlanid"]))
-				proxy.apply()
-			end
-		end
-		if content["intf_vlan"]=="0" then
-			if proxy.get(path) then
-				proxy.set(path.."ifname", "")
-			end
-			proxy.set(pathifname, connection)
-			proxy.apply()
-		end
-		if string.match(iface, "eth") then
-			connection = ethname
-			path = "uci.network.device.@waneth4."
-			if string.match(iface, "%.") then
-				difname = string.match(iface, ethname.."%.[%d]+")
-				vid = string.match(difname, "[^"..ethname.."%.]+")
-			else
-				if proxy.get(path) then
-					vid = proxy.get(path.."vid")[1].value
-					dname = proxy.get(path.."name")[1].value
-					difname = proxy.get(path.."ifname")[1].value
-				end
-			end
-		elseif string.match(iface, "ptm") then
-			connection = "ptm0"
-			path = "uci.network.device.@wanptm0."
-			if string.match(iface, "%.") then
-				difname = string.match(iface, "ptm0%.[%d]+")
-				vid = string.match(difname, "[^ptm0%.]+")
-			else
-				if proxy.get(path) then
-					vid = proxy.get(path.."vid")[1].value
-					dname = proxy.get(path.."name")[1].value
-					difname = proxy.get(path.."ifname")[1].value
-				end
-			end
-		else
-			connection = "atmwan"
-			path = "uci.network.device.@wanatmwan."
-			if string.match(iface, "%.") then
-				difname = string.match(iface, "atmwan%.[%d]+")
-				vid = string.match(difname, "[^atmwan%.]+")
-			else
-				if proxy.get(path) then
-					vid = proxy.get(path.."vid")[1].value
-					dname = proxy.get(path.."name")[1].value
-					difname = proxy.get(path.."ifname")[1].value
-				end
-			end
-		end
-	end
+    if content.action == "SAVE" and content.intf_vlan ~= nil then
+        local enabled = content.intf_vlan ~= "0"
+        local valid = true
+        if enabled then
+            valid, helpmes = getValidateNumberInRange(2, 2048, content.intf_vlanid)
+            valid = valid and type(content.intf_vlanid) == "string" and content.intf_vlanid:match("^%d+$")
+            valid = valid and (content.auswahlliste == "devnot" or content.auswahlliste == "dotnot")
+        end
+        if channel.connection == "" then valid = false end
+        if valid then
+            local ok, err = true, nil
+            local ifname = channel.connection
+            if enabled and content.auswahlliste == "devnot" then
+                local name = bridge.get(channel.path .. "name")
+                if not name then
+                    name = channel.path:match("@([^%.]+)%.$")
+                    ok, err = proxy.add("uci.network.device.", name)
+                end
+                if ok then
+                    ok, err = proxy.set({
+                        [channel.path .. "type"] = channel.vlanType,
+                        [channel.path .. "name"] = name,
+                        [channel.path .. "vid"] = content.intf_vlanid,
+                        [channel.path .. "ifname"] = channel.connection,
+                    })
+                end
+                ifname = name
+            else
+                -- Release the previous named VLAN before using dot notation or
+                -- the untagged parent. Do not alter an unrelated fallback device.
+                if channel.notation == "devnot" and channel.difname ~= "" then
+                    ok, err = proxy.set(channel.path .. "ifname", "")
+                end
+                if enabled then ifname = channel.connection .. "." .. content.intf_vlanid end
+            end
+            if ok then ok, err = bridge.setUplink(ifname) end
+            if ok then ok, err = proxy.apply() end
+            if not ok then
+                message_helper.pushMessage(err or T"Error while applying changes", "error")
+            end
+            channel = bridge.vlanContext()
+        else
+            message_helper.pushMessage(helpmes or T"Invalid input", "error")
+        end
+    end
 end
 
-local check
-
-if string.match(iface, "%.") then
-	check = "dotnot"
-else
-	check = "devnot"
-end
-
-local b
-
-if check == "dotnot" then
-	if string.match(difname, "%.") then
-		b = string.match(difname, "[%w]+")
-		difname = string.match(difname, "[%w]+")
-	else
-		b="empty"
-	end
-else
-	if string.match(difname,"[%w]+") then
-		b = string.match(difname,"[%w]+")
-	else 
-		b="empty"
-	end
-end
+local vid = channel.vid
+local difname = channel.difname or ""
+local check = channel.notation
+local b = difname ~= "" and channel.connection or "empty"
 
 local intf_state = "disabled"
 
@@ -262,7 +150,7 @@ ngx.print('\
             class =string.format("monitor-intf_vlan monitor-%s",b),
         },
     }
-	if tech then
+	if tech and manual then
     html[#html + 1] = ui_helper.createSwitch(T"Using VLAN", "intf_vlan", difname, vlanswitchclass)
 	html[#html + 1] = ui_helper.createInputRadio(T"Notation", "auswahlliste" , liste, check, vlanidclass)
     html[#html + 1] = ui_helper.createInputText(T"VLAN ID", "intf_vlanid", vid, vlanidclass, helpmes)

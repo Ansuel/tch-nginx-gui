@@ -17,7 +17,7 @@ local function processOperations(operations)
             success = proxy.set(path, val)
             ok = ok and success
         end
-        return ok
+        return not not ok
     elseif type(operations) == "function" then
         return operations()
     end
@@ -94,8 +94,18 @@ M.process = function(conf)
             if gVIES(mode_options)(newmode) then
                 mode_current = newmode:untaint()
 
-                processOperations(mode_data[mode_current].operations)
-                proxy.apply()
+                local ok, err = processOperations(mode_data[mode_current].operations)
+                -- Legacy operation functions return nil on success. An explicit
+                -- false lets guarded transitions abort without applying changes.
+                if ok == false then
+                    require("web.uimessage_helper").pushMessage(err or T"Unable to switch connection mode", "error")
+                    mode_current = ""
+                else
+                    local applied, msg = proxy.apply()
+                    if not applied then
+                        require("web.uimessage_helper").pushMessage(msg or T"Error while applying changes", "error")
+                    end
+                end
             end
         elseif action == "AJAX-GET" then
             ajax_query = true

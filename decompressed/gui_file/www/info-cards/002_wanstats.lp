@@ -36,19 +36,11 @@ local content_uci = {
     wwan_up = "rpc.network.interface.@wwan.up",
 }
 content_helper.getExactContent(content_uci)
-if content_uci.mode_active ~= "" then
-    -- Get current mode by 'wan_mode'
-    mode_active = content_uci.mode_active
-elseif content_uci.wan_proto ~="" then
-    --'wan_mode' not there, then get @wan.proto
-    mode_active = content_uci.wan_proto
-end
+mode_active = require("internethelper").getConnectionMode(content_uci.mode_active, content_uci.wan_proto)
 
 local wan_interface = "wan"
-	
-if wan_mode == "bridge" then
-	wan_interface = content_uci.wan_ifname
-end
+local local_connection = content_uci.wan_proto == "dhcp" or content_uci.wan_proto == "pppoe" or content_uci.wan_proto == "static"
+local show_connection = mode_active ~= "bridge" or local_connection
 
 local content = {
   wan_ppp_state = "rpc.network.interface.@wan.ppp.state",
@@ -68,7 +60,8 @@ for v6Key, v6Value in pairs(internethelper.getIpv6Content()) do
 	content[v6Key] = v6Value
 end
 
-content_helper.getExactContent(content)
+internethelper.getOptionalContent(content)
+content.ip6addr = content.ip6addr or ""
 
 if not ( content["uptime"] == "" ) then
 	content["uptime"] = post_helper.secondsToTime(content["uptime"])
@@ -96,19 +89,19 @@ end
 	
 	local html = {}
 	
-	if mode_active ~= "bridge" then
+	if show_connection then
 		basic.span["data-bind"] = "text: status"
 		html[#html + 1] = ui_helper.createLabel(T"Status", ui_helper.createSimpleLight(content.up, content.up == "1" and T"Connected" or T"Disconnected", nil, "fa fa-at"), basic)
 	end
 	basic.span["data-bind"] = nil
 	html[#html + 1] = ui_helper.createLabel(T"Broadband Connection", tabdata.current.description , basic)
 	html[#html + 1] = ui_helper.createLabel(T"Connection Type", mode_data[mode_active].description , basic)
-	if mode_active ~= "bridge" then
+	if show_connection then
 		basic.span["data-bind"] = "text: WAN_IP"
 		html[#html+1] = ui_helper.createLabel(T"IPv4 address", content["ipaddr"], basic)
 		basic.span["data-bind"] = "text: WAN_IPv6"
 		html[#html+1] = ui_helper.createLabel(T"IPv6 address", content["ip6addr"], basic)
-		if mode_active:match("ppp") and content["concentrator_name"] ~= "" then
+		if content_uci.wan_proto:match("ppp") and content["concentrator_name"] ~= "" then
 			basic.span["data-bind"] = "text: concentrator_name"
 			html[#html+1] = ui_helper.createLabel(T"Concentrator Name", content["concentrator_name"], basic)
 		end

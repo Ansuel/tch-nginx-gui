@@ -12,6 +12,52 @@ MAPPING = ROOT / 'usr/share/transformer/mappings/rpc/network.interface.map'
 
 @unittest.skipUnless(LUA, 'Lua interpreter required')
 class WanRobustness(unittest.TestCase):
+    def test_internet_card_uses_actual_protocol_but_keeps_bridge_topology(self):
+        self.run_lua('''
+local included
+gettext = {textdomain = function() end}
+ngx = {print = function() end, ctx = {session = {hasAccess = function() return true end}}}
+package.preload['web.content_helper'] = function() return {getExactContent = helper.getOptionalContent} end
+package.preload['web.ui_helper'] = function() return {createCardHeader = function() return '' end} end
+package.preload['web.taint'] = function() return {untaint_mt = {}} end
+package.preload['web.lp'] = function() return {
+  setpath = function() end, include = function(view) included = view end,
+} end
+package.preload.internetmode_helper = function() return {
+  {name = 'bridge', card = 'bridge'}, {name = 'dhcp', card = 'dhcp'},
+  {name = 'pppoe', card = 'pppoe'}, {name = 'static', card = 'static'},
+} end
+for _, case in ipairs({
+  {'pppoe', 'dhcp', 'dhcp'}, {'dhcp', 'pppoe', 'pppoe'},
+  {'pppoe', 'static', 'static'}, {'', 'dhcp', 'dhcp'},
+  {'bridge', 'dhcp', 'bridge'}, {'bridge', 'pppoe', 'bridge'},
+}) do
+  values['uci.network.config.wan_mode'] = case[1]
+  values['uci.network.interface.@wan.proto'] = case[2]
+  dofile(CARD)
+  assert(included == case[3])
+end
+assert(#writes == 0)
+'''.replace('CARD', repr(str(ROOT / 'www/cards/003_internet.lp'))))
+
+    def test_bridge_popup_protocol_lookup_accepts_tainted_datamodel_values(self):
+        source = (ROOT / 'www/docroot/modals/internet-modal.lp').read_text()
+        start = source.index('    local protocol = proxy.get(')
+        end = source.index('\nend', start)
+        self.run_lua('''
+local selected
+local token = {}
+package.preload['web.taint'] = function()
+    return {untaint_mt = {__index = function(map, key)
+        if key == token then return rawget(map, 'dhcp') end
+    end}}
+end
+values['uci.network.interface.@wan.proto'] = token
+local lp = {include = function(view) selected = view end}
+''' + source[start:end] + '''
+assert(selected == 'internet-dhcp-routed.lp')
+''')
+
     def run_lua(self, script):
         prelude = '''
 unpack = unpack or table.unpack
@@ -319,6 +365,121 @@ values['rpc.network.interface.@wwan.ipaddr'] = '192.0.2.2'
 mode, html = render()
 assert(mode == 'Mobile' and html:find('192.0.2.2', 1, true))
 ''')
+
+
+    def test_bridge_card_renders_local_wan_addresses_and_keeps_pending_bindings(self):
+        self.run_lua('''
+local printed = {}
+gettext = {textdomain = function() end}
+ngx = {ctx = {}, print = function(...)
+  for _, part in ipairs({...}) do printed[#printed + 1] = tostring(part) end
+end}
+package.preload['web.ui_helper'] = function() return {
+  createSimpleLight = function(light, state) return light .. ':' .. state end,
+} end
+package.preload['web.post_helper'] = function() return {
+  secondsToTimeShort = function(value) return tostring(value) end,
+} end
+values['uci.network.config.wan_mode'] = 'bridge'
+values['uci.network.interface.@wan.auto'] = '1'
+values['rpc.network.interface.@wan.ipaddr'] = '192.0.2.7'
+values['rpc.network.interface.@wan.ip6addr'] = '2001:db8::7'
+values['rpc.network.interface.@wan.up'] = '1'
+values['rpc.network.interface.@wan.uptime'] = '123'
+for _, protocol in ipairs({'dhcp', 'pppoe', 'static'}) do
+  values['uci.network.interface.@wan.proto'] = protocol
+  printed = {}
+  dofile(CARD)
+  local html = table.concat(printed)
+  assert(html:find('Gateway in bridge mode', 1, true))
+  assert(html:find('192.0.2.7', 1, true) and html:find('2001:db8::7', 1, true))
+end
+values['rpc.network.interface.@wan.ipaddr'] = ''
+values['rpc.network.interface.@wan.ip6addr'] = ''
+printed = {}
+dofile(CARD)
+assert(table.concat(printed):find('data-bind="html: WAN_IP_text"', 1, true))
+values['uci.network.interface.@wan.proto'] = 'bridge'
+printed = {}
+dofile(CARD)
+assert(not table.concat(printed):find('data-bind="html: WAN_IP_text"', 1, true))
+assert(#writes == 0)
+'''.replace('CARD', repr(str(ROOT / 'www/cards/snippets/003_internet_bridged.lp'))))
+
+    def test_bridge_local_session_polling_uses_its_protocol_and_logical_wan(self):
+        self.run_lua('''
+local output
+gettext = {textdomain = function() end}
+ngx = {ctx = {}, HTTP_OK = 200,
+  req = {get_method = function() return 'POST' end, get_uri_args = function() return {} end},
+  say = function() end, exit = function() end}
+package.preload['web.content_helper'] = function() return {getExactContent = helper.getOptionalContent} end
+package.preload['web.ui_helper'] = function() return {createSimpleLight = function(light, text) return light .. ':' .. text end} end
+package.preload['web.post_helper'] = function() return {
+  secondsToTime = function() return '' end, secondsToTimeShort = function() return '' end,
+} end
+package.preload['web.taint'] = function() return {untaint_mt = {}} end
+package.preload.dkjson = function() return {encode = function(data) output = data; return true end} end
+values['uci.network.config.wan_mode'] = 'bridge'
+values['uci.network.interface.@wan.ifname'] = 'br-lan'
+values['uci.network.interface.@wan.auto'] = '1'
+values['rpc.network.interface.@wan.up'] = '1'
+values['rpc.network.interface.@br-lan.up'] = '0'
+values['rpc.network.interface.@wan.ipaddr'] = '192.0.2.7'
+values['rpc.network.interface.@wan.ppp.state'] = 'connected'
+for _, protocol in ipairs({'dhcp', 'pppoe', 'static'}) do
+  values['uci.network.interface.@wan.proto'] = protocol
+  dofile(ENDPOINT)
+  assert(output.status == 'Connected' and output.WAN_IP == '192.0.2.7')
+  assert(output.WAN_IP_text:find('192.0.2.7', 1, true))
+  assert(output.status_light ~= '')
+  if protocol == 'pppoe' then assert(output.ppp_status == 'connected') end
+end
+values['uci.network.config.wan_mode'] = 'pppoe'
+values['uci.network.interface.@wan.proto'] = 'dhcp'
+values['rpc.network.interface.@wan.ppp.state'] = ''
+dofile(ENDPOINT)
+assert(output.status == 'Connected' and not output.status_light:find('PPP', 1, true))
+assert(#writes == 0)
+'''.replace('ENDPOINT', repr(str(ROOT / 'www/docroot/ajax/internet.lua'))))
+
+    def test_wan_stats_shows_local_bridge_session_but_not_pure_bridge(self):
+        self.run_lua('''
+local labels = {}
+gettext = {textdomain = function() end}
+ngx = {print = function() end}
+package.preload['web.content_helper'] = function() return {getExactContent = helper.getOptionalContent} end
+package.preload['web.ui_helper'] = function() return {
+  createCardHeader = function() return '' end,
+  createSimpleLight = function() return '' end,
+  createLabel = function(label, value) labels[label] = value; return '' end,
+} end
+package.preload['web.post_helper'] = function() return {secondsToTime = function() return '' end} end
+package.preload['web.taint'] = function() return {untaint_mt = {}} end
+package.preload['web.dyntab_helper'] = function() return {process = function()
+  return {current = {description = 'Ethernet'}}
+end} end
+package.preload.broadbandmode_helper = function() return {} end
+package.preload.internetmode_helper = function() return {
+  {name = 'bridge', description = 'Bridge'}, {name = 'dhcp', description = 'DHCP'},
+  {name = 'pppoe', description = 'PPPoE'},
+} end
+values['uci.network.config.wan_mode'] = 'bridge'
+values['rpc.network.interface.@wan.ipaddr'] = '192.0.2.7'
+for _, protocol in ipairs({'dhcp', 'pppoe', 'static', 'bridge'}) do
+  values['uci.network.interface.@wan.proto'] = protocol
+  labels = {}
+  dofile(INFOCARD)
+  if protocol == 'bridge' then assert(labels['IPv4 address'] == nil)
+  else assert(labels['IPv4 address'] == '192.0.2.7') end
+end
+values['uci.network.config.wan_mode'] = 'pppoe'
+values['uci.network.interface.@wan.proto'] = 'dhcp'
+labels = {}
+dofile(INFOCARD)
+assert(labels['Connection Type'] == 'DHCP')
+assert(#writes == 0)
+'''.replace('INFOCARD', repr(str(ROOT / 'www/info-cards/002_wanstats.lp'))))
 
 
 if __name__ == '__main__':

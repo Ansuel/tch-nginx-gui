@@ -8,30 +8,22 @@ local content_helper = require("web.content_helper")
 local ui_helper = require("web.ui_helper")
 local message_helper = require("web.uimessage_helper")
 local post_helper = require("web.post_helper")
+local bridge = require("bridgehelper")
 
--- Process POST query
-local post_helper = require("web.post_helper")
-
-mode_options = {{"bridge", T"No Connection"},{"dhcp", T"DHCP"},{"static", T"Static IP"},{"pppoe", T"PPPoE"}}
-
-local mapParams = {
-    wan_proto = "uci.network.interface.@wan.proto",
-    wan_ifname = "uci.network.interface.@wan.ifname"
-}
-
-local mapValid = {
-	wan_proto = post_helper.getValidateInEnumSelect(mode_options)
-}
-
-local content = post_helper.handleQuery(mapParams,mapValid)
+local mode_options = {{"bridge", T"No Connection"},{"dhcp", T"DHCP"},{"static", T"Static IP"},{"pppoe", T"PPPoE"}}
+local content = {wan_proto = bridge.get("uci.network.interface.@wan.proto")}
 
 if ngx.var.request_method == "POST" then
-    content = ngx.req.get_post_args()
-    if content["action"]=="SAVE" then
-        if content["wan_proto"] ~= "bridge" then
-            proxy.set("uci.network.interface.@wan.ifname" , "br-lan")
-            proxy.apply()
+    local posted = ngx.req.get_post_args()
+    if posted.action == "SAVE" and posted.wan_proto ~= nil then
+        if post_helper.getValidateInEnumSelect(mode_options)(posted.wan_proto) then
+            local ok, err = bridge.setLocalProtocol(posted.wan_proto)
+            if ok then ok, err = proxy.apply() end
+            if not ok then message_helper.pushMessage(err or T"Error while applying changes", "error") end
+        else
+            message_helper.pushMessage(T"Invalid input", "error")
         end
+        content.wan_proto = bridge.get("uci.network.interface.@wan.proto")
     end
 end
 
@@ -52,6 +44,7 @@ ngx.print(ui_helper.createMessages(message_helper.popMessages()))
     }
 
     html[#html + 1] = ui_helper.createAlertBlock(T"Select if you want to establish a connection on the bridged interface", bridge_info)
+    html[#html + 1] = ui_helper.createAlertBlock(T"The selected WAN interface is kept fixed while bridge mode is active. WanSensing is restored to its previous state when you switch to a routed mode.", bridge_info)
     local mode_attributes = {
         radio = {
             class = "inline"

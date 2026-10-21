@@ -32,13 +32,7 @@ local content = {
 	wan_auto = "uci.network.interface.@wan.auto",
 }
 content_helper.getExactContent(content)
-if content.mode_active ~= "" then
-    -- Get current mode by 'wan_mode'
-    mode_active = content.mode_active
-elseif content.wan_proto ~="" then
-    --'wan_mode' not there, then get @wan.proto
-    mode_active = content.wan_proto
-end
+mode_active = require("internethelper").getConnectionMode(content.mode_active, content.wan_proto)
 
 local mobile_ip
 if content.wwan_up == "1" then

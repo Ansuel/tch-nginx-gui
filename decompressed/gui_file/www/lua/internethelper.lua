@@ -2,6 +2,19 @@ local proxy = require("datamodel")
 
 local M = {}
 
+-- Bridge is a topology choice; routed protocols follow the actual WAN
+-- configuration, which vendor scripts can change without updating wan_mode.
+function M.getConnectionMode(configured, protocol)
+    if configured == "bridge" then return "bridge" end
+    for _, mode in ipairs({"dhcp", "pppoe", "pppoa", "static"}) do
+        if protocol == mode then return mode end
+    end
+    for _, mode in ipairs({"dhcp", "pppoe", "pppoa", "static"}) do
+        if configured == mode then return mode end
+    end
+    return "dhcp"
+end
+
 function M.getValue(path)
 	local result = proxy.get(path)
 	return result and result[1] and result[1].value or ""

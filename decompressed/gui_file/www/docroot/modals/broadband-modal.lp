@@ -13,6 +13,7 @@ local dyntab_helper = require("web.dyntab_helper")
 local content_helper = require("web.content_helper")
 local post_helper = require("web.post_helper")
 local proxy = require("datamodel")
+local bridge = require("bridgehelper")
 
 local bmh = require("broadbandmode_helper")
 local tabdata = dyntab_helper.process(bmh)
@@ -22,15 +23,31 @@ local mode_options = tabdata.options
 
 local vB = post_helper.validateBoolean
 
-mapParam = {
+local mapParam = {
 	wsens = "uci.wansensing.global.enable"
 }
 
-mapValid = {
-	wsens = vB,
-}
-
-content, helpmsg = post_helper.handleQuery(mapParam, mapValid)
+local content = {wsens = bridge.get(mapParam.wsens) or "0"}
+if ngx.var.request_method == "POST" then
+	local posted = ngx.req.get_post_args()
+	if posted.action == "SAVE" and posted.wsens ~= nil then
+		if not vB(posted.wsens) then
+			message_helper.pushMessage(T"Invalid input", "error")
+		elseif posted.wsens ~= content.wsens then
+			local ok, err = bridge.setSensing(posted.wsens)
+			if ok then ok, err = proxy.apply() end
+			if not ok then
+				message_helper.pushMessage(err or T"Error while applying changes", "error")
+			else
+				message_helper.pushMessage(T"Changes saved successfully", "success")
+			end
+			content.wsens = bridge.get(mapParam.wsens) or "0"
+			-- Enabling sensing can leave bridge mode and restore another uplink.
+			tabdata = dyntab_helper.process(bmh)
+			mode_current = tabdata.current.name
+		end
+	end
+end
 
 if not tabdata.current.ajax then
 	-- only display if not doing an ajax request
@@ -70,6 +87,9 @@ if not tabdata.current.ajax then
 	}
 	
 	html[#html + 1] = ui_helper.createAlertBlock(T"WanSensing sets the connection mode automatically.<br/>Disable this to set the connection mode manually.<br/>After saving the changes the connection options will be shown.", info_box)
+	if bridge.isBridged() then
+		html[#html + 1] = ui_helper.createAlertBlock(T"Bridge mode uses the selected WAN interface with WanSensing disabled. Enabling WanSensing exits bridge mode and restores the routed connection.", info_box)
+	end
 	html[#html+1] = ui_helper.createSwitch(T"WanSensing State", "wsens", content["wsens"],nil)
 	
 	if ( content["wsens"] == "0" ) then

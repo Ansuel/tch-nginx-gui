@@ -1,2 +1,2 @@
-^wansensing killall -9 wansensing.lua; /etc/init.d/wansensing restart
-^rpc%.wansensing%.restart kilall -9 wansensing.lua; /etc/init.d/wansensing restart
+^wansensing /etc/init.d/wansensing restart
+^rpc%.wansensing%.restart /etc/init.d/wansensing restart
