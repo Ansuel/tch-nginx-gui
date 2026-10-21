@@ -90,8 +90,10 @@ end
 if cputype:match("^armv7") or cputype == "aarch64" or cputype == "arm64" then
 	mapParams.speedtest_application = "uci.modgui.app.speedtest_app"
 	mapParams.adguardhome_application = "uci.modgui.app.adguardhome_app"
-	mapParams.wireguard_application = "uci.modgui.app.wireguard_app"
 	mapParams.tailscale_application = "uci.modgui.app.tailscale_app"
+end
+if cputype:match("^armv7") or cputype == "aarch64" or cputype == "arm64" or cputype == "mips" then
+	mapParams.wireguard_application = "uci.modgui.app.wireguard_app"
 end
 if cputype:match("^armv7") then
 	mapParams.dumaos_application = "uci.modgui.app.dumaos_app"
@@ -255,8 +257,7 @@ local function tun_install_supported()
 	local command = io.popen([[(case "$(uname -m):$(uname -r)" in
 armv7l:4.1.52) exit 0 ;;
 mips:3.4.11-rt19)
-  case "$(uci -q get 'version.@version[0].marketing_version')" in 17.2|17.2.*|17.2\ *) ;; *) exit 1 ;; esac
-  case "$(uci -q get env.var.prod_friendly_name)" in *TG788vn*v2*|*TG789vac*v2*) exit 0 ;; esac ;;
+  case "$(uci -q get 'version.@version[0].marketing_version')" in 17.2|17.2.*|17.2\ *) exit 0 ;; esac ;;
 esac
 exit 1); echo $?]], "r")
 	if not command then return false end

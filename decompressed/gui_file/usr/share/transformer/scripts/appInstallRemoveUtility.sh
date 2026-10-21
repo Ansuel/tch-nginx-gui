@@ -5,7 +5,7 @@ cpu_type="$(uname -m)"
 
 # Shared TUN lifecycle for WireGuard, OpenVPN and Tailscale.  The reviewed
 # DGA4130 module is for ARMv7 kernel 4.1.52; the legacy MIPS module is limited
-# to TG788vn v2/TG789vac v2 Homeware 17.2 with kernel 3.4.11-rt19. Other
+# to MIPS Homeware 17.2 with kernel 3.4.11-rt19. Other
 # platforms may use their matching kmod-tun package. Per-extension users prevent
 # one VPN from removing a module still needed by another.
 modgui_tun_file="/lib/modules/4.1.52/tun.ko"
@@ -34,10 +34,7 @@ modgui_reviewed_tun_build() {
   case "$cpu_type:$(uname -r)" in
     armv7l:4.1.52) return 0 ;;
     mips:3.4.11-rt19)
-      case "$marketing_version" in 17.2|17.2.*|17.2\ *) ;; *) return 1 ;; esac
-      case "$(uci -q get env.var.prod_friendly_name)" in
-        *TG788vn*v2*|*TG789vac*v2*) return 0 ;;
-      esac ;;
+      case "$marketing_version" in 17.2|17.2.*|17.2\ *) return 0 ;; esac ;;
   esac
   return 1
 }
@@ -1640,6 +1637,38 @@ app_wireguard() {
     modgui_release_tun wireguard
   }
 
+  wireguard_prepare_mips_package() {
+    # Upstream publishes MIPS as a tar archive, rather than an opkg package.
+    # Repackage only its runtime files so opkg owns and removes them normally.
+    wireguard_stage="/tmp/modgui-wireguard-mips.$$"
+    (umask 077; mkdir "$wireguard_stage") || return 1
+    if ! curl -kfL "https://github.com/seud0nym/openwrt-wireguard-go/releases/download/$wireguard_version/openwrt-wireguard-go_mips.tgz" \
+      --output "$wireguard_stage/runtime.tgz"; then
+      rm -rf "$wireguard_stage"; return 1
+    fi
+    if [ "$(sha256sum "$wireguard_stage/runtime.tgz" | awk '{print $1}')" != "$wireguard_sha256" ]; then
+      echo "WireGuard archive checksum mismatch"
+      rm -rf "$wireguard_stage"; return 1
+    fi
+    mkdir "$wireguard_stage/data" "$wireguard_stage/control" || { rm -rf "$wireguard_stage"; return 1; }
+    tar -xzf "$wireguard_stage/runtime.tgz" -C "$wireguard_stage/data" || { rm -rf "$wireguard_stage"; return 1; }
+    # Do not install the upstream global forwarding sysctl: firewall access is
+    # managed per tunnel by the GUI and remains disabled until configured.
+    if ! tar -czf "$wireguard_stage/data.tar.gz" -C "$wireguard_stage/data" \
+      usr/bin/wireguard-go usr/bin/wg-go usr/bin/wg \
+      lib/netifd/proto/wireguard.sh etc/hotplug.d/net/10-wireguard; then
+      rm -rf "$wireguard_stage"; return 1
+    fi
+    printf 'Package: wireguard-go\nVersion: %s\nArchitecture: brcm63xx\nMaintainer: ModGUI\nDescription: Verified upstream MIPS userspace WireGuard runtime\n' \
+      "$wireguard_version" > "$wireguard_stage/control/control"
+    printf '2.0\n' > "$wireguard_stage/debian-binary"
+    tar -czf "$wireguard_stage/control.tar.gz" -C "$wireguard_stage/control" control &&
+      tar -czf "$wireguard_tmp" -C "$wireguard_stage" debian-binary control.tar.gz data.tar.gz
+    wireguard_pack_result=$?
+    rm -rf "$wireguard_stage"
+    return "$wireguard_pack_result"
+  }
+
   wireguard_register_gui() {
     uci -q del_list web.ruleset_main.rules=wireguardmodal
     uci add_list web.ruleset_main.rules=wireguardmodal
@@ -1713,18 +1742,21 @@ app_wireguard() {
   }
 
   wireguard_cleanup_network() {
-    for section in $(uci -q show network 2>/dev/null | awk -F'[.=]' '$2 ~ /^modgui_wg0/ {print $2}'); do
-      uci -q delete "network.$section"
-    done
-    uci -q delete firewall.modgui_wireguard_udp
-    uci -q delete firewall.modgui_wireguard_zone
-    uci -q delete firewall.modgui_wireguard_to_lan
-    uci -q delete firewall.modgui_lan_to_wireguard
-    uci -q delete firewall.modgui_wireguard_to_wan
-    uci -q commit network
-    uci -q commit firewall
-    /etc/init.d/network reload >/dev/null 2>&1
-    /etc/init.d/firewall reload >/dev/null 2>&1
+    wireguard_sections="$(uci -q show network 2>/dev/null | awk -F'[.=]' '$2 ~ /^modgui_wg0/ {print $2}' | sort -u)"
+    if [ -n "$wireguard_sections" ]; then
+      for section in $wireguard_sections; do uci -q delete "network.$section"; done
+      uci -q commit network
+      /etc/init.d/network reload >/dev/null 2>&1
+    fi
+    if uci -q show firewall 2>/dev/null | grep -Eq '^firewall\.modgui_(wireguard_(udp|zone|to_lan|to_wan)|lan_to_wireguard)='; then
+      uci -q delete firewall.modgui_wireguard_udp
+      uci -q delete firewall.modgui_wireguard_zone
+      uci -q delete firewall.modgui_wireguard_to_lan
+      uci -q delete firewall.modgui_lan_to_wireguard
+      uci -q delete firewall.modgui_wireguard_to_wan
+      uci -q commit firewall
+      /etc/init.d/firewall reload >/dev/null 2>&1
+    fi
   }
 
   case "$1" in
@@ -1738,8 +1770,13 @@ app_wireguard() {
       wireguard_arch="arm_cortex-a53"
       wireguard_sha256="1025b7cf216301c1f8db5d93a3cf683d11eea6d9a3bf19b620e27a083aefc0ff"
       ;;
+    mips)
+      modgui_reviewed_tun_build || { echo "This MIPS platform has not been validated for WireGuard"; return 1; }
+      wireguard_arch="brcm63xx"
+      wireguard_sha256="84a322e2a9cb3ce077e10eba608756265ccc004282568d2d9ccc2573f3b13972"
+      ;;
     *)
-      echo "WireGuard userspace runtime is only supported on ARM devices"
+      echo "No reviewed WireGuard userspace runtime is available for this architecture"
       return 1
       ;;
     esac
@@ -1753,21 +1790,31 @@ app_wireguard() {
       /etc/init.d/nginx restart
       return 0
     fi
-    require_free_space 8192 /usr || return 1
-    curl -kfL "https://raw.githubusercontent.com/seud0nym/openwrt-wireguard-go/$wireguard_commit/repository/$wireguard_arch/base/wireguard-go_${wireguard_version}_${wireguard_arch}.ipk" \
-      --output "$wireguard_tmp" || {
-        rm -f "$wireguard_tmp"
-        return 1
-      }
-    wireguard_actual_sha256="$(sha256sum "$wireguard_tmp" | awk '{print $1}')"
-    if [ "$wireguard_actual_sha256" != "$wireguard_sha256" ]; then
-      echo "WireGuard package checksum mismatch"
-      rm -f "$wireguard_tmp"
-      return 1
-    fi
+    case "$wireguard_arch" in
+      brcm63xx)
+        require_free_space 4096 /usr && wireguard_prepare_mips_package || {
+          rm -f "$wireguard_tmp"; wireguard_remove_tun; return 1;
+        } ;;
+      *)
+        require_free_space 8192 /usr || { wireguard_remove_tun; return 1; }
+        curl -kfL "https://raw.githubusercontent.com/seud0nym/openwrt-wireguard-go/$wireguard_commit/repository/$wireguard_arch/base/wireguard-go_${wireguard_version}_${wireguard_arch}.ipk" \
+          --output "$wireguard_tmp" || {
+            rm -f "$wireguard_tmp"
+            wireguard_remove_tun
+            return 1
+          }
+        wireguard_actual_sha256="$(sha256sum "$wireguard_tmp" | awk '{print $1}')"
+        if [ "$wireguard_actual_sha256" != "$wireguard_sha256" ]; then
+          echo "WireGuard package checksum mismatch"
+          rm -f "$wireguard_tmp"
+          wireguard_remove_tun
+          return 1
+        fi ;;
+    esac
     touch "$wireguard_owned"
     if ! opkg install "$wireguard_tmp"; then
       rm -f "$wireguard_tmp" "$wireguard_owned"
+      wireguard_remove_tun
       return 1
     fi
     rm -f "$wireguard_tmp"

@@ -3,6 +3,7 @@ from pathlib import Path
 import bz2
 import hashlib
 import io
+import os
 import re
 import shutil
 import subprocess
@@ -15,6 +16,51 @@ INSTALLER = ROOT / 'usr/share/transformer/scripts/appInstallRemoveUtility.sh'
 
 
 class LegacyTun(unittest.TestCase):
+    def test_tailscale_cleanup_waits_for_exit_and_removes_only_its_rules(self):
+        source = (ROOT / 'usr/share/modgui-tailscale/tailscale.init').read_text()
+        functions = source[source.index('service_stopped() {'):]
+        rules = """0: from all lookup local
+5210: from all fwmark 0x80000/0xff0000 lookup main
+5210: from all fwmark 0x80000/0xff0000 lookup main
+5230: from all fwmark 0x80000/0xff0000 lookup default
+5250: from all fwmark 0x80000/0xff0000 unreachable
+5270: from all lookup 52
+5210: from all fwmark 0x10000000/0xf0000000 lookup voip
+5270: from all lookup main
+5270: from 10.0.0.0/8 lookup 52
+6000: from all lookup 52
+"""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / 'rules').write_text(rules)
+            script = """
+pidof() { [ "$running" = 1 ]; }
+sleep() { echo waiting >> "$log"; running=0; }
+ip() {
+ if [ "$2 $3" = 'rule show' ]; then cat "$rules";
+ else echo "$*" >> "$log"; fi
+}
+""" + functions + '\nrunning=1\nservice_stopped\n'
+            env = dict(os.environ, log=str(root / 'log'), rules=str(root / 'rules'))
+            result = subprocess.run(['sh', '-c', script], env=env, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            lines = (root / 'log').read_text().splitlines()
+            self.assertEqual(lines[0], 'waiting')
+            for family in ('-4', '-6'):
+                expected = [
+                    f'{family} rule del pref 5210 fwmark 0x80000/0xff0000 table main',
+                    f'{family} rule del pref 5210 fwmark 0x80000/0xff0000 table main',
+                    f'{family} rule del pref 5230 fwmark 0x80000/0xff0000 table default',
+                    f'{family} rule del pref 5250 fwmark 0x80000/0xff0000 unreachable',
+                    f'{family} rule del pref 5270 table 52',
+                ]
+                self.assertEqual([line for line in lines if line.startswith(family)], expected)
+            (root / 'log').unlink()
+            blocked = functions + '\npidof() { return 0; }\nsleep() { :; }\nip() { echo unexpected >> "$log"; }\nservice_stopped\n'
+            result = subprocess.run(['sh', '-c', blocked], env=env, capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertFalse((root / 'log').exists(), 'Never clean rules while the daemon is alive')
+
     def test_openvpn_init_supports_inline_and_external_option_lists(self):
         source = INSTALLER.read_text()
         function = source[source.index('  openvpn_prepare_init() {'):source.index('\n  openvpn_prepare_dh()')]
@@ -45,7 +91,78 @@ class LegacyTun(unittest.TestCase):
                 if layout == 'external-existing':
                     self.assertEqual(options.read_bytes(), before[1])
 
+    def test_disabled_wireguard_removal_does_not_reload_unrelated_networks(self):
+        source = INSTALLER.read_text()
+        start = source.index('  wireguard_cleanup_network() {')
+        original = source[start:source.index('\n  case "$1" in', start)]
+        for configured in (False, True):
+            with self.subTest(configured=configured), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                function = original
+                for service in ('network', 'firewall'):
+                    path = root / service
+                    path.write_text('#!/bin/sh\necho ' + service + ' >> "' + str(root / 'reloads') + '"\n')
+                    path.chmod(0o755)
+                    function = function.replace('/etc/init.d/' + service, str(path))
+                script = '''
+uci() {
+ if [ "$*" = '-q show network' ]; then
+  [ "$configured" = 1 ] && echo 'network.modgui_wg0=interface'
+ elif [ "$*" = '-q show firewall' ]; then
+  [ "$configured" = 1 ] && echo 'firewall.modgui_wireguard_zone=zone'
+ fi
+ return 0
+}
+configured="$1"
+''' + function + '\nwireguard_cleanup_network\n'
+                result = subprocess.run(['sh', '-c', script, 'check', str(int(configured))],
+                                        capture_output=True, text=True)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                if configured:
+                    self.assertEqual((root / 'reloads').read_text().splitlines(), ['network', 'firewall'])
+                else:
+                    self.assertFalse((root / 'reloads').exists())
 
+    def test_mips_wireguard_archive_is_verified_and_owned_by_opkg(self):
+        source = INSTALLER.read_text()
+        function = source[source.index('  wireguard_prepare_mips_package() {'):source.index('\n  wireguard_register_gui()')]
+        runtime_files = ['usr/bin/wireguard-go', 'usr/bin/wg-go', 'usr/bin/wg',
+                         'lib/netifd/proto/wireguard.sh', 'etc/hotplug.d/net/10-wireguard']
+        for corrupt in (False, True):
+            with self.subTest(corrupt=corrupt), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                archive_path = root / 'runtime.tgz'
+                with tarfile.open(archive_path, 'w:gz') as archive:
+                    for name in runtime_files + ['etc/sysctl.d/99-wireguard.conf']:
+                        entry = tarfile.TarInfo(name)
+                        entry.size = 7
+                        archive.addfile(entry, io.BytesIO(b'runtime'))
+                checksum = hashlib.sha256(archive_path.read_bytes()).hexdigest()
+                script = '''
+wireguard_version=2023.09.29
+wireguard_tmp="$1/package.ipk"
+wireguard_sha256="$2"
+testroot="$1"
+curl() { cp "$testroot/runtime.tgz" "$4"; }
+'''
+                script += function.replace('/tmp/modgui-wireguard-mips.', str(root) + '/stage.')
+                script += '\nwireguard_prepare_mips_package\n'
+                result = subprocess.run(['sh', '-c', script, 'check', str(root),
+                                         'invalid' if corrupt else checksum], capture_output=True, text=True,
+                                        env=dict(os.environ, COPYFILE_DISABLE='1'))
+                self.assertEqual(result.returncode == 0, not corrupt, result.stderr)
+                self.assertFalse(list(root.glob('stage.*')))
+                if corrupt:
+                    self.assertFalse((root / 'package.ipk').exists())
+                    continue
+                with tarfile.open(root / 'package.ipk') as package:
+                    self.assertEqual(package.extractfile('debian-binary').read(), b'2.0\n')
+                    with tarfile.open(fileobj=package.extractfile('control.tar.gz')) as control:
+                        metadata = control.extractfile('control').read().decode()
+                        self.assertIn('Package: wireguard-go\n', metadata)
+                        self.assertIn('Architecture: brcm63xx\n', metadata)
+                    with tarfile.open(fileobj=package.extractfile('data.tar.gz')) as data:
+                        self.assertEqual(set(data.getnames()), set(runtime_files))
 
     @unittest.skipUnless(shutil.which('lua'), 'Lua interpreter required')
     def test_connected_count_rpc_reads_private_status_without_exposing_it(self):
@@ -292,15 +409,23 @@ modgui_has_tun() { attempts=$((attempts + 1)); [ "$attempts" -ge "$1" ]; }
     def test_gui_and_installer_agree_on_supported_platforms(self):
         source = INSTALLER.read_text()
         predicate = source[source.index('modgui_reviewed_tun_build() {'):source.index('\nmodgui_tun_profile()')]
-        modal = (ROOT / 'www/docroot/modals/applications-modal.lp').read_text()
-        gui = modal[modal.index('local function tun_install_supported()'):]
-        command = re.search(r'io.popen\(\[\[(.*?)\]\], "r"\)', gui, re.S)[1]
+        self.assertNotIn('prod_friendly_name', predicate)
+        commands = []
+        for path in ('www/docroot/modals/applications-modal.lp', 'www/cards/009_extensions.lp'):
+            gui = (ROOT / path).read_text()
+            gui = gui[gui.index('local function tun_install_supported()'):]
+            command = re.search(r'io.popen\(\[\[(.*?)\]\], "r"\)', gui, re.S)[1]
+            self.assertNotIn('prod_friendly_name', command)
+            commands.append(command)
         for cpu, kernel, version, model, expected in [
             ('mips', '3.4.11-rt19', '17.2', 'MediaAccess TG788vn v2', True),
             ('mips', '3.4.11-rt19', '17.2', 'TG789vac v2', True),
             ('mips', '3.4.11-rt19', '16.3', 'TG789vac v2', False),
             ('mips', '3.4.11-rt19', '17.20', 'TG789vac v2', False),
-            ('mips', '3.4.11-rt19', '17.2', 'unknown', False),
+            ('mips', '3.4.11-rt19', '17.2', 'unknown', True),
+            ('mips', '3.4.11-rt19', '17.2', '', True),
+            ('mips', '3.4.11-rt19', '17.2.1', 'another model', True),
+            ('mips', '3.4.11-rt19', '18.3', '', False),
             ('mips', '3.4.11', '17.2', 'TG788vn v2', False),
             ('mipsel', '3.4.11-rt19', '17.2', 'TG788vn v2', False),
             ('armv7l', '4.1.52', '19.4', 'DGA4130', True),
@@ -314,9 +439,10 @@ uci() { case "$*" in *marketing_version*) echo "$marketing_version";; *) echo "$
 '''
                 args = ['check', cpu, kernel, version, model]
                 cli = subprocess.run(['sh', '-c', setup + predicate + '\nmodgui_reviewed_tun_build', *args])
-                ui = subprocess.run(['sh', '-c', setup + command, *args], capture_output=True, text=True)
                 self.assertEqual(cli.returncode == 0, expected)
-                self.assertEqual(ui.stdout.strip() == '0', expected)
+                for command in commands:
+                    ui = subprocess.run(['sh', '-c', setup + command, *args], capture_output=True, text=True)
+                    self.assertEqual(ui.stdout.strip() == '0', expected)
 
     def test_arm_tun_download_retains_legacy_tls_and_verifies_module(self):
         prefix = INSTALLER.read_text().split('\n#  1st arg : directory')[0]

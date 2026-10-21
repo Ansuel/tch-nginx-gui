@@ -25,7 +25,12 @@ end
 
 local function tun_install_supported()
 	if kernel_has_tun() then return true end
-	local command = io.popen("[ \"$(uname -r)\" = 4.1.52 ] && [ \"$(uci -q get version.@version[0].kernel)\" = ac8d9a0575131475c4002132bf4995cb96c6f99d ]; echo $?", "r")
+	local command = io.popen([[(case "$(uname -m):$(uname -r)" in
+armv7l:4.1.52) exit 0 ;;
+mips:3.4.11-rt19)
+  case "$(uci -q get 'version.@version[0].marketing_version')" in 17.2|17.2.*|17.2\ *) exit 0 ;; esac ;;
+esac
+exit 1); echo $?]], "r")
 	if not command then return false end
 	local result = command:read("*line")
 	command:close()
@@ -66,10 +71,12 @@ if cputype:match("^armv7") or cputype == "aarch64" or cputype == "arm64" then
 	mapParams.speedtest_application = "uci.modgui.app.speedtest_app"
 	mapParams.adguardhome_application = "uci.modgui.app.adguardhome_app"
 	if tun_install_supported() then
-		mapParams.wireguard_application = "uci.modgui.app.wireguard_app"
-	end
-	if tun_install_supported() then
 		mapParams.tailscale_application = "uci.modgui.app.tailscale_app"
+	end
+end
+if cputype:match("^armv7") or cputype == "aarch64" or cputype == "arm64" or cputype == "mips" then
+	if tun_install_supported() then
+		mapParams.wireguard_application = "uci.modgui.app.wireguard_app"
 	end
 end
 if cputype:match("^armv7") then
