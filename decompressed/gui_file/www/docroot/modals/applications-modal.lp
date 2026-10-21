@@ -252,11 +252,18 @@ end
 
 local function tun_install_supported()
 	if kernel_has_tun() then return true end
-	local command = io.popen("[ \"$(uname -m)\" = armv7l ] && [ \"$(uname -r)\" = 4.1.52 ]; echo $?", "r")
+	local command = io.popen([[(case "$(uname -m):$(uname -r)" in
+armv7l:4.1.52) exit 0 ;;
+mips:3.4.11-rt19)
+  case "$(uci -q get 'version.@version[0].marketing_version')" in 17.2|17.2.*|17.2\ *) ;; *) exit 1 ;; esac
+  case "$(uci -q get env.var.prod_friendly_name)" in *TG788vn*v2*|*TG789vac*v2*) exit 0 ;; esac ;;
+esac
+exit 1); echo $?]], "r")
 	if not command then return false end
-	local result = command:read("*line")
+	-- Lua 5.1 on these devices does not reliably return an exit status from close.
+	local result = command:read("*all")
 	command:close()
-	return result == "0"
+	return result == "0\n"
 end
 
 if StateParams["luci_webui"] ~= nil then

@@ -15,7 +15,8 @@ case "$port" in
 esac
 [ "$port" -ge 1 ] && [ "$port" -le 65535 ] || exit 1
 case "$proto" in
-    udp | tcp) ;;
+    udp) server_proto=udp ;;
+    tcp | tcp-server) proto=tcp; server_proto=tcp-server ;;
     *) echo "Invalid OpenVPN protocol" >&2; exit 1 ;;
 esac
 
@@ -53,7 +54,7 @@ if [ "$client_enabled" = "1" ]; then
     umask 077
     {
         printf 'client\ndev tun1\nproto %s\nremote %s %s\n' "$client_proto" "$client_host" "$client_port"
-        printf 'nobind\npersist-key\npersist-tun\nresolv-retry infinite\nremote-cert-tls server\n'
+        printf 'nobind\npersist-key\npersist-tun\nresolv-retry infinite\nremote-cert-tls server\ntls-version-min 1.2\n'
         printf 'cipher %s\nauth %s\n' "$client_cipher" "$client_auth"
         printf 'route-nopull\nscript-security 2\n'
         printf 'ca /etc/openvpn/modgui-client-ca.crt\n'
@@ -74,6 +75,9 @@ if [ "$enabled" = "1" ] || [ "$client_enabled" = "1" ]; then
     [ -c /dev/net/tun ] || { echo "TUN is unavailable" >&2; exit 1; }
     if [ "$enabled" = "1" ]; then
     /usr/share/transformer/scripts/openvpnGenerateKeys.sh || exit 1
+    # OpenVPN server mode requires tcp-server; tcp selects client mode.
+    uci set openvpn.server.proto="$server_proto"
+    uci commit openvpn
     fi
     /etc/init.d/openvpn restart 1000>&- || start_error=1
     if [ "$start_error" = "0" ] && [ "$enabled" = "1" ]; then

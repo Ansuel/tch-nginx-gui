@@ -2,7 +2,21 @@ local register = register
 local open = io.open
 
 register({ objectType = { name = "rpc.openvpn.", access = "readOnly", minEntries = 1, maxEntries = 1, parameters = {} } })
-register({ objectType = { name = "rpc.openvpn.server.", access = "readOnly", minEntries = 1, maxEntries = 1, parameters = {} } })
+register({
+    objectType = { name = "rpc.openvpn.server.", access = "readOnly", minEntries = 1, maxEntries = 1,
+        parameters = { connected_clients = {access = "readOnly", type = "unsignedInt"} } },
+    get = { connected_clients = function()
+        local count = 0
+        local status = open("/tmp/openvpn-status.log", "r")
+        if status then
+            for line in status:lines() do
+                if line:match("^CLIENT_LIST[,\t]") or line:match("^[^,]+,[^,]+,%d+,%d+,") then count = count + 1 end
+            end
+            status:close()
+        end
+        return tostring(count)
+    end },
+})
 
 local function readfile(path)
     local fd = open(path, "r")

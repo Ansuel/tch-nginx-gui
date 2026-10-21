@@ -348,25 +348,33 @@ dofile(arg[1])
         self.assertIn("kernel_has_tun", modal)
         self.assertIn("no reviewed TUN module", modal)
 
-    def test_reviewed_tun_module_requires_armv7_and_matching_kernel(self):
+    def test_reviewed_tun_module_requires_matching_platform_and_kernel(self):
         installer = INSTALLER.read_text()
         start = installer.index("modgui_reviewed_tun_build() {")
         end = installer.index("\n}", start) + len("\n}")
         script = '''
 cpu_type="$1"
 test_kernel="$2"
+marketing_version="$3"
+test_model="$4"
 uname() { [ "$1" = "-r" ] && printf '%s\\n' "$test_kernel"; }
-uci() { return 1; }
+uci() { printf '%s\\n' "$test_model"; }
 ''' + installer[start:end] + "\nmodgui_reviewed_tun_build\n"
-        for cpu, kernel, supported in (
-            ("armv7l", "4.1.52", True),
-            ("armv7l", "4.1.51", False),
-            ("aarch64", "4.1.52", False),
-            ("mips", "4.1.52", False),
+        for cpu, kernel, version, model, supported in (
+            ("armv7l", "4.1.52", "19.4", "DGA4130", True),
+            ("armv7l", "4.1.51", "19.4", "DGA4130", False),
+            ("aarch64", "4.1.52", "19.4", "DGA4130", False),
+            ("mips", "4.1.52", "17.2", "TG788vn v2", False),
+            ("mips", "3.4.11-rt19", "17.2 Mint", "MediaAccess TG788vn v2", True),
+            ("mips", "3.4.11-rt19", "17.2", "TG789vac v2", True),
+            ("mips", "3.4.11-rt19", "16.3", "TG789vac v2", False),
+            ("mips", "3.4.11", "17.2", "TG788vn v2", False),
+            ("mips", "3.4.11-rt19", "17.2", "TG789vac", False),
+            ("mipsel", "3.4.11-rt19", "17.2", "TG788vn v2", False),
         ):
             with self.subTest(cpu=cpu, kernel=kernel):
                 result = subprocess.run(
-                    ["sh", "-c", script, "tun-test", cpu, kernel],
+                    ["sh", "-c", script, "tun-test", cpu, kernel, version, model],
                     text=True, capture_output=True,
                 )
                 self.assertEqual(result.returncode == 0, supported, result.stderr)

@@ -27,10 +27,11 @@ if args.download == "1" then
   end
   local host = (ngx.var.http_host or "vpn.example.com"):gsub(":%d+$", "")
   local proto = getvalue("uci.openvpn.openvpn.@server.proto")
+  if proto == "tcp-server" or proto == "tcp" then proto = "tcp-client" end
   local port = getvalue("uci.openvpn.openvpn.@server.port")
   ngx.header.content_type = "application/x-openvpn-profile"
   ngx.header.content_disposition = 'attachment; filename="modgui-openvpn-client.ovpn"'
-  ngx.print("client\ndev tun\nproto ", proto, "\nremote ", host, " ", port, "\nresolv-retry infinite\nnobind\npersist-key\npersist-tun\nremote-cert-tls server\nauth-user-pass\ncipher AES-256-CBC\nauth SHA256\nverb 3\n<ca>\n", ca, "\n</ca>\n<cert>\n", cert, "\n</cert>\n<key>\n", key, "\n</key>\n")
+  ngx.print("client\ndev tun\nproto ", proto, "\nremote ", host, " ", port, "\nresolv-retry infinite\nnobind\npersist-key\npersist-tun\nremote-cert-tls server\ntls-version-min 1.2\nauth-user-pass\ncipher AES-256-CBC\nauth SHA256\nverb 3\n<ca>\n", ca, "\n</ca>\n<cert>\n", cert, "\n</cert>\n<key>\n", key, "\n</key>\n")
   return ngx.exit(ngx.HTTP_OK)
 end
 
@@ -84,6 +85,7 @@ if tab == "server" then
     return true
   end
   local content, helpmsg = post_helper.handleQuery(map_params, { enabled = post_helper.validateBoolean, port = valid_port, proto = valid_proto, server = valid_server, allow_lan = post_helper.validateBoolean })
+  if content.proto == "tcp-server" then content.proto = "tcp" end
   ngx.print('<form class="form-horizontal" method="post" action="modals/openvpn-server-modal.lp?tab=server">')
   ngx.print(ui_helper.createMessages(message_helper.popMessages()))
   ngx.print('<fieldset><legend>', T"General", '</legend>')
@@ -95,6 +97,21 @@ if tab == "server" then
   ngx.print('<p><a class="btn" href="/modals/openvpn-server-modal.lp?download=1"><i class="icon-download-alt"></i> ', T"Download client profile", '</a></p></fieldset>')
   ngx.print('<fieldset><legend>', T"Users", '</legend>', ui_helper.createTable(user_columns, user_data, user_options, nil, user_help), '</fieldset></form>')
 else
+  local cipher_options, supported_ciphers, available_ciphers = {}, {}, {}
+  local cipher_command = io.popen("/usr/sbin/openvpn --show-ciphers 2>/dev/null", "r")
+  if cipher_command then
+    for line in cipher_command:lines() do
+      local name = line:match("^%s*([%w%-]+)%s")
+      if name then available_ciphers[name] = true end
+    end
+    cipher_command:close()
+  end
+  for _, name in ipairs({"AES-256-CBC", "AES-128-CBC", "AES-256-GCM", "AES-128-GCM", "BF-CBC"}) do
+    if available_ciphers[name] then
+      cipher_options[#cipher_options + 1] = {name, name}
+      supported_ciphers[name] = true
+    end
+  end
   local map_params = {
     client_enabled = "uci.openvpn.openvpn.@client.enabled",
     remote_host = "uci.openvpn.openvpn.@client.remote_host",
@@ -126,8 +143,7 @@ else
     return true
   end
   local function valid_cipher(value)
-    if value ~= "AES-128-CBC" and value ~= "AES-256-CBC" and value ~= "BF-CBC" and
-       value ~= "AES-128-GCM" and value ~= "AES-256-GCM" then return nil, T"Unsupported cipher" end
+    if not supported_ciphers[value] then return nil, T"Unsupported cipher" end
     return true
   end
   local function valid_auth(value)
@@ -178,7 +194,7 @@ else
   ngx.print(ui_helper.createInputText(T"VPN server", "remote_host", content.remote_host, nil, helpmsg.remote_host))
   ngx.print(ui_helper.createInputText(T"VPN port", "remote_port", content.remote_port, nil, helpmsg.remote_port))
   ngx.print(ui_helper.createInputSelect(T"Protocol", "remote_proto", { { "udp", "UDP" }, { "tcp", "TCP" } }, content.remote_proto, nil, helpmsg.remote_proto))
-  ngx.print(ui_helper.createInputSelect(T"Cipher", "client_cipher", { { "AES-256-CBC", "AES-256-CBC" }, { "AES-128-CBC", "AES-128-CBC" }, { "AES-256-GCM", "AES-256-GCM" }, { "AES-128-GCM", "AES-128-GCM" }, { "BF-CBC", "BF-CBC" } }, content.client_cipher, nil, helpmsg.client_cipher))
+  ngx.print(ui_helper.createInputSelect(T"Cipher", "client_cipher", cipher_options, content.client_cipher, nil, helpmsg.client_cipher))
   ngx.print(ui_helper.createInputSelect(T"Authentication digest", "client_auth", { { "SHA256", "SHA256" }, { "SHA1", "SHA1" }, { "SHA512", "SHA512" } }, content.client_auth, nil, helpmsg.client_auth))
   ngx.print(ui_helper.createInputText(T"Username (optional)", "client_username", content.client_username, nil, helpmsg.client_username))
   ngx.print('<div class="control-group"><label class="control-label">', T"Password (optional)", '</label><div class="controls">')

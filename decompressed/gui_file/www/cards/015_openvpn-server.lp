@@ -7,20 +7,15 @@ local format = string.format
 local content = {
   enabled = "uci.openvpn.openvpn.@server.enabled",
   client_enabled = "uci.openvpn.openvpn.@client.enabled",
+  connected_clients = "rpc.openvpn.server.connected_clients",
 }
 content_helper.getExactContent(content)
 local enabled = content.enabled == "1" and "1" or "0"
 local status_text = enabled == "1" and T"OpenVPN server enabled" or T"OpenVPN server disabled"
 local client_enabled = content.client_enabled == "1" and "1" or "0"
 local client_text = client_enabled == "1" and T"OpenVPN client enabled" or T"OpenVPN client disabled"
-local connected = 0
-local status = enabled == "1" and io.open("/tmp/openvpn-status.log", "r")
-if status then
-  for line in status:lines() do
-    if line:match("^CLIENT_LIST,") or (line:match("^[^,]+,[^,]+,%d+,%d+,") and not line:match("^Common Name,")) then connected = connected + 1 end
-  end
-  status:close()
-end
+local connected = enabled == "1" and tonumber(content.connected_clients) or 0
+connected = connected or 0
 local modal_path
 if ngx.ctx.session:hasAccess("/modals/openvpn-server-modal.lp") then modal_path = "/modals/openvpn-server-modal.lp" end
 ngx.print('<div class="span3"><div class="smallcard">')
