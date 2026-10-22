@@ -15,7 +15,7 @@ local network_config = {
     section = "config",
     type = "config",
     options = { "wan_mode", "bridge_ifname", "bridge_proto", "bridge_wansensing",
-                "bridge_added_ifnames", "bridge_wantag_auto", "bridge_wan_type", "bridge_client_autos", "bridge_lan_dhcp", "bridge_lan_relays" }
+                "bridge_added_ifnames", "bridge_wantag_auto", "bridge_wan_type", "bridge_client_autos", "bridge_lan_dhcp", "bridge_lan_relays", "bridge_qos_devices" }
 }
 
 

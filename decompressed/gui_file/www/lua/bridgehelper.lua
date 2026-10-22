@@ -102,8 +102,8 @@ function M.resolveUplink(value)
     if resolved and not resolved:find("%s") then return resolved end
 end
 
-function M.vlanContext()
-    local ifname = M.resolveUplink(M.getUplink()) or ""
+function M.vlanContext(uplink)
+    local ifname = M.resolveUplink(uplink or M.getUplink()) or ""
     local device
     for _, entry in ipairs(proxy.getPN("uci.network.device.", true) or {}) do
         local kind = get(entry.path .. "type")
@@ -398,6 +398,84 @@ local function suspendRelay(ifname)
     return true
 end
 
+local qosDevices = "uci.qos.device."
+local function protectRunnerQueues(members)
+    local group = get("uci.qos.interface.@lan.classgroup")
+    if not group or not group:match("^[%w_%-]+$") then return true end
+    local ports = proxy.getPN("uci.ethernet.port.", true) or {}
+    local overlaps = false
+    for _, port in ipairs(ports) do
+        local name = port.path:match("@([%w_%-]+)%.$")
+        if name and get(port.path .. "wan") == "1" then
+            for _, member in ipairs(words(members)) do
+                if M.vlanContext(member).connection == name then overlaps = true end
+            end
+        end
+    end
+    if not overlaps or os.execute("[ -x /usr/bin/setuprunner ]") ~= 0 then return true end
+    -- Runner's LAN interface fallback also configures WAN-designated bridge
+    -- members, replacing their WAN queues with the LAN classgroup. Complete
+    -- per-device LAN profiles make its native setup respect the port roles.
+    local existing = {}
+    local inventory = proxy.getPN(qosDevices, true)
+    if not inventory then return false, T"Unable to inspect Ethernet QoS profiles" end
+    for _, entry in ipairs(inventory) do existing[entry.path] = true end
+    local created, values = {}, {}
+    local saved = get(config .. "bridge_qos_devices") or ""
+    local previousSaved = saved
+    local function abort(message)
+        for _, name in ipairs(created) do proxy.del(qosDevices .. "@" .. name .. ".") end
+        proxy.set(config .. "bridge_qos_devices", previousSaved)
+        return false, message
+    end
+    for _, port in ipairs(ports) do
+        local name = port.path:match("@([%w_%-]+)%.$")
+        if name then
+            local path = qosDevices .. "@" .. name .. "."
+            if not existing[path] then
+                local profile = group
+                if get(port.path .. "wan") == "1" then
+                    profile = get("uci.qos.interface.@wan.classgroup")
+                end
+                if not profile or not profile:match("^[%w_%-]+$") then
+                    return abort(T"Unable to inherit the Ethernet QoS classgroup")
+                end
+                local ok, err = proxy.add(qosDevices, name)
+                if not ok then return abort(err) end
+                created[#created + 1] = name
+                values[path .. "classgroup"] = profile
+                saved = saved .. " " .. name .. "=" .. profile
+            end
+        end
+    end
+    if #created == 0 then return true end
+    values[config .. "bridge_qos_devices"] = saved
+    local ok, err = proxy.set(values)
+    if not ok then return abort(err) end
+    ok, err = proxy.apply()
+    if not ok then return false, err end
+    local status = os.execute("/etc/init.d/ethernet reload >/dev/null 2>&1")
+    if status ~= 0 and status ~= true then return false, T"Unable to configure Ethernet bridge queues" end
+    return true
+end
+
+local function restoreRunnerQueues(saved)
+    for name, group in saved:gmatch("([%w_%-]+)=([%w_%-]+)") do
+        local path = qosDevices .. "@" .. name .. "."
+        -- Retain profiles the user changed while bridge mode was active.
+        local unchanged = get(path .. "classgroup") == group
+        for _, option in ipairs({"enable", "switchclassification", "pcp", "force_pcp"}) do
+            local value = get(path .. option)
+            if value and value ~= "" then unchanged = false end
+        end
+        if unchanged then
+            local ok, err = proxy.del(path)
+            if not ok then return false, err end
+        end
+    end
+    return proxy.set(config .. "bridge_qos_devices", "")
+end
+
 function M.setUplink(ifname, previousUplink)
     if not M.isBridged() then return proxy.set(wan .. "ifname", ifname) end
     local valid, message = bridgeable(ifname)
@@ -409,6 +487,8 @@ function M.setUplink(ifname, previousUplink)
     if not members then return false, T"Select a physical WAN interface before enabling bridge mode" end
     local relayOk, relayError = suspendRelay(ifname)
     if not relayOk then return false, relayError end
+    local qosOk, qosError = protectRunnerQueues(members)
+    if not qosOk then return false, qosError end
     local values = {
         [lan] = members,
         [config .. "bridge_ifname"] = ifname,
@@ -428,7 +508,9 @@ function M.enter()
         if not ok then return false, err end
         ok, err = suspendLanServices()
         if not ok then return false, err end
-        return suspendRelay(M.getUplink())
+        ok, err = suspendRelay(M.getUplink())
+        if not ok then return false, err end
+        return protectRunnerQueues(get(lan))
     end
     local ifname = M.getUplink()
     local valid, message = bridgeable(ifname)
@@ -445,6 +527,8 @@ function M.enter()
     ok, err = suspendLanServices()
     if not ok then return false, err end
     ok, err = suspendRelay(ifname)
+    if not ok then return false, err end
+    ok, err = protectRunnerQueues(members)
     if not ok then return false, err end
     local values = {
         [config .. "bridge_ifname"] = ifname,
@@ -476,6 +560,13 @@ function M.leave(mode, enable)
         local added = get(config .. "bridge_added_ifnames")
         -- Legacy bridges do not have a saved list of ports added by the GUI.
         if added == nil or get(config .. "bridge_ifname") == "" then added = member end
+        -- Some defaults already list the designated WAN in LAN before the
+        -- GUI adopts it. Routed mode must still detach that selected uplink
+        -- before restoring LAN DHCP/RA services.
+        local physical = M.vlanContext(ifname).connection
+        if get("uci.ethernet.port.@" .. physical .. ".wan") == "1" then
+            added = (added or "") .. " " .. member
+        end
         values[lan] = without(get(lan), added)
         values[wan .. "ifname"] = ifname
         local saved = get(config .. "bridge_wansensing")
@@ -499,13 +590,19 @@ function M.leave(mode, enable)
     if enable ~= nil and get(sensing) ~= nil then values[sensing] = enable end
     local ok, err = proxy.set(values)
     local savedLan = get(config .. "bridge_lan_dhcp") or ""
-    if not ok or savedLan == "" then return ok, err end
+    local savedQos = get(config .. "bridge_qos_devices") or ""
+    if not ok or (savedLan == "" and savedQos == "") then return ok, err end
     -- Detach the WAN port before allowing LAN DHCP/RA responses again.
     ok, err = proxy.apply()
     if not ok then return false, err end
     local status = os.execute("/etc/init.d/network reload >/dev/null 2>&1")
     if status ~= 0 and status ~= true then return false, T"Unable to restore the routed network before enabling LAN services" end
-    return restoreLanServices(savedLan)
+    if savedLan ~= "" then
+        ok, err = restoreLanServices(savedLan)
+        if not ok then return false, err end
+    end
+    if savedQos ~= "" then return restoreRunnerQueues(savedQos) end
+    return true
 end
 
 function M.setSensing(enable)

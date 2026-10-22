@@ -1,8 +1,9 @@
 # Bridge mode and WAN sensing
 
 The Internet modal now coordinates bridge mode with the WAN selected in
-Broadband. The change was installed and validated on an ARM DGA4130
-and a MIPS TG788vn v2; the results and remaining limits are recorded below.
+Broadband. The change was installed and validated on ARM DGA4130 and
+DGA4131FWB devices and a MIPS TG788vn v2; the results and remaining limits
+are recorded below.
 
 ## Usage
 
@@ -44,6 +45,17 @@ native relay service; their original indices and values are restored on exit.
 Entries on other L2 devices or VLANs remain enabled. The separate
 `pppoerelayd.config.enable` can be zero while these L2 rules remain active.
 
+On Broadcom Runner firmware, a WAN-designated port added to LAN can also
+receive the LAN traffic-manager queue profile. The helper creates missing
+per-device QoS profiles for the physical Ethernet ports, inheriting the
+classgroup for each port's LAN or WAN role. This keeps the native setup in
+per-device mode, where it respects
+the Ethernet WAN/LAN roles and preserves the WAN queues. Existing device
+profiles are retained. Added profiles are recorded in `bridge_qos_devices`
+and removed on routed exit unless the user modified them. This protection
+requires the native `setuprunner` utility and the QoS datamodel; it does not
+rewrite vendor scripts or change the LAN classgroup globally.
+
 The bridge Internet card and WAN statistics use the logical WAN session's
 IPv4/IPv6 addresses and uptime. The Internet popup also includes DHCP, PPPoE
 or static settings when a local session is selected. Protocol-to-view lookup
@@ -69,6 +81,10 @@ pointing WAN at `br-lan` is adopted only when exactly one WAN-designated
 Ethernet port is already a member of the LAN bridge. Ambiguous cases are
 rejected; the GUI never adds `br-lan` to itself. An adopted bridge preserves
 its existing local connection.
+
+On routed exit, an explicitly WAN-designated Ethernet uplink is detached
+even if it was already listed in LAN before bridge activation. This prevents
+LAN DHCP/RA services from being restored onto that upstream port.
 
 ## Expanded firmware sample (2026-10-21)
 
@@ -166,10 +182,12 @@ execute vendor scripts or emulate the switch/DSL driver. The native-stop
 verification shell is separately exercised with mocked already-stopped,
 asynchronously-stopping and still-running daemons.
 
-The full local suite passed **230 tests** with
-`python3 -m unittest discover -s tests -q`. In addition, **111 isolated Lua
-fixtures passed on each physical modem** using its own Lua VM. Installed
-runtime files were checked against the payload's SHA-256 manifest.
+The full local suite passed **235 tests** with
+`python3 -m unittest discover -s tests -q`. The earlier DGA4130/TG788vn v2
+validation ran 111 isolated Lua fixtures on each device. The expanded
+**116-fixture suite passed on the DGA4131FWB**, including a separate run of
+the QoS lifecycle regression with its actual `web.taint` module. Installed
+runtime files were checked against staging and SHA-256 manifests.
 
 ## Live validation (2026-10-21)
 
@@ -239,6 +257,38 @@ changing the selected port without reloading the Lua module. The eight GUI
 files changed for this check were backed up, nginx alone was restarted, and
 all six network configuration packages remained byte-identical.
 
+### DGA4131FWB cascade validation (2026-10-22)
+
+An ARM DGA4131FWB running Homeware 18.3.n was tested downstream of the
+TG788vn v2 bridge. Its installed helper matched the current GUI sources,
+the Ethernet carrier was active and the local DHCP client on `br-lan` was
+pending. The PPPoE relay filters were absent on both devices.
+
+The DGA4131's native `setuprunner lan` interface fallback traversed
+`network.lan.ifname`, which now included the WAN-designated `eth4`. It
+overwrote that port's eight-queue `TO_WAN` profile with the four-queue
+`TO_LAN` profile. Outgoing capture showed DHCP Discover packets, but the
+driver's TX-drop counter increased and no offer reached the client. A native
+Ethernet reload repeated the same incorrect queue assignment. A temporary
+software-switching probe did not recover DHCP and was reverted. Reapplying
+the native WAN queue profile restored DHCP and gateway connectivity.
+
+The persistent correction added four per-device LAN QoS profiles with the
+existing `TO_LAN` classgroup. Subsequent Ethernet and QoS reloads retained
+eight WAN queues and a working DHCP session. A real routed-to-bridge
+roundtrip verified that the designated WAN port was detached before LAN
+services were restored, the added QoS profiles were removed on routed exit,
+and DHCP recovered after bridge reactivation and further service reloads.
+
+The original static management address was retained. Seven UCI packages and
+the two changed runtime files were backed up privately under
+`/root/bridge-validation-20261022/`. Device-local watchdogs protected the
+tests and were canceled only after validating the lease, queues, management
+access and expected configuration differences. The final configuration
+retains the four QoS profiles and bridge metadata needed for this correction;
+the original QoS entries and other network settings are preserved. Reboot
+persistence was not tested on this device.
+
 ### Recovery and final state
 
 Actual network transitions ran sequentially on one modem at a time. Every
@@ -252,7 +302,8 @@ Original runtime files, the originally absent-file inventory and six packages
 (`network`, `wansensing`, `ethernet`, `xtm`, `firewall`, `dhcp`) were backed up
 privately. Final checks compared all six packages byte-for-byte, compared
 installed runtime files with staging, and checked WAN address, HTTP and
-backend access before canceling watchdogs. Both devices retained the updated
+backend access before canceling watchdogs. The DGA4130 and TG788vn v2 retained
+the updated
 GUI with their original network configuration and no active test watchdog.
 
 ### Remaining hardware limits

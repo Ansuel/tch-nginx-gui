@@ -11,6 +11,118 @@ LUA = shutil.which('lua')
 
 @unittest.skipUnless(LUA, 'Lua interpreter required')
 class BridgeModes(unittest.TestCase):
+    def test_routed_exit_detaches_preexisting_designated_wan_before_lan_services(self):
+        self.run_lua('''
+values[sensing] = '0'
+values[lan] = 'eth0 eth1 eth2 eth3 eth4'
+names[#names + 1] = {path = 'uci.ethernet.port.@eth4.'}
+values['uci.ethernet.port.@eth4.wan'] = '1'
+values['uci.dhcp.dhcp.@lan.ignore'] = '0'
+values['uci.dhcp.dhcp.@lan.ra'] = 'server'
+assert(bridge.enter())
+assert(values[cfg .. 'bridge_added_ifnames'] == '')
+local execute = os.execute
+os.execute = function(command)
+  if command:find('/etc/init.d/dnsmasq restart', 1, true) then
+    assert(values[lan] == 'eth0 eth1 eth2 eth3')
+  end
+  return execute(command)
+end
+assert(bridge.leave('dhcp'))
+assert(values[lan] == 'eth0 eth1 eth2 eth3')
+assert(values['uci.dhcp.dhcp.@lan.ignore'] == '0')
+''')
+
+    def test_runner_bridge_pins_lan_profiles_and_restores_only_created_devices(self):
+        self.run_lua('''
+values[sensing] = '0'
+local taint = string.taint or function(value) return value end
+values['uci.qos.interface.@lan.classgroup'] = taint('TO_LAN')
+for index = 0, 4 do
+  local name = 'eth' .. index
+  names[#names + 1] = {path = 'uci.ethernet.port.@' .. name .. '.'}
+  values['uci.ethernet.port.@' .. name .. '.wan'] = index == 4 and '1' or '0'
+end
+names[#names + 1] = {path = 'uci.qos.device.@eth4.'}
+values['uci.qos.device.@eth4.classgroup'] = 'TO_WAN'
+assert(bridge.enter())
+for index = 0, 3 do assert(values['uci.qos.device.@eth' .. index .. '.classgroup'] == 'TO_LAN') end
+assert(values['uci.qos.device.@eth4.classgroup'] == 'TO_WAN')
+assert(values[cfg .. 'bridge_qos_devices']:find('eth0=TO_LAN', 1, true))
+local saved = values[cfg .. 'bridge_qos_devices']
+assert(bridge.enter() and values[cfg .. 'bridge_qos_devices'] == saved)
+-- Keep a profile explicitly edited while bridge mode was active.
+values['uci.qos.device.@eth2.classgroup'] = 'CUSTOM'
+values['uci.qos.device.@eth1.enable'] = '0'
+assert(bridge.leave('dhcp'))
+assert(values['uci.qos.device.@eth0.classgroup'] == nil)
+assert(values['uci.qos.device.@eth1.classgroup'] == 'TO_LAN')
+assert(values['uci.qos.device.@eth1.enable'] == '0')
+assert(values['uci.qos.device.@eth2.classgroup'] == 'CUSTOM')
+assert(values['uci.qos.device.@eth3.classgroup'] == nil)
+assert(values['uci.qos.device.@eth4.classgroup'] == 'TO_WAN')
+assert(values[cfg .. 'bridge_qos_devices'] == '')
+''')
+
+    def test_runner_protection_skips_non_runner_and_distinct_wan_ports(self):
+        self.run_lua('''
+values[sensing] = '0'
+values['uci.qos.interface.@lan.classgroup'] = 'TO_LAN'
+names[#names + 1] = {path = 'uci.ethernet.port.@eth4.'}
+values['uci.ethernet.port.@eth4.wan'] = '1'
+os.execute = function(command)
+  if command == '[ -x /usr/bin/setuprunner ]' then return 1 end
+  return 0
+end
+assert(bridge.enter())
+assert(values[cfg .. 'bridge_qos_devices'] == nil)
+assert(bridge.leave('dhcp'))
+values[wan .. 'ifname'] = 'ptm0'
+os.execute = function() return 0 end
+assert(bridge.enter())
+assert(values[cfg .. 'bridge_qos_devices'] == nil)
+''')
+
+    def test_runner_profiles_cover_wan_without_an_existing_device_profile(self):
+        self.run_lua('''
+values[sensing] = '0'
+values['uci.qos.interface.@lan.classgroup'] = 'TO_LAN'
+values['uci.qos.interface.@wan.classgroup'] = 'TO_WAN'
+for index = 0, 4 do
+  local path = 'uci.ethernet.port.@eth' .. index .. '.'
+  names[#names + 1] = {path = path}
+  values[path .. 'wan'] = index == 4 and '1' or '0'
+end
+assert(bridge.enter())
+assert(values['uci.qos.device.@eth4.classgroup'] == 'TO_WAN')
+assert(values[cfg .. 'bridge_qos_devices']:find('eth4=TO_WAN', 1, true))
+assert(bridge.leave('dhcp'))
+assert(values['uci.qos.device.@eth4.classgroup'] == nil)
+values['uci.qos.interface.@wan.classgroup'] = nil
+assert(not bridge.enter())
+assert(values[cfg .. 'wan_mode'] == 'dhcp')
+assert(values['uci.qos.device.@eth0.classgroup'] == nil)
+''')
+
+    def test_runner_profile_creation_failure_removes_partial_additions(self):
+        self.run_lua('''
+values[sensing] = '0'
+values['uci.qos.interface.@lan.classgroup'] = 'TO_LAN'
+for index = 0, 4 do
+  local path = 'uci.ethernet.port.@eth' .. index .. '.'
+  names[#names + 1] = {path = path}
+  values[path .. 'wan'] = index == 4 and '1' or '0'
+end
+local add = proxy.add
+proxy.add = function(prefix, name)
+  if prefix == 'uci.qos.device.' and name == 'eth1' then return false, 'cannot add' end
+  return add(prefix, name)
+end
+assert(not bridge.enter())
+assert(values[cfg .. 'wan_mode'] == 'dhcp')
+for _, entry in ipairs(names) do assert(entry.path ~= 'uci.qos.device.@eth0.') end
+''')
+
     def test_broadband_follows_physical_bridge_uplink_and_its_link_state(self):
         self.run_lua('''
 local taint = string.taint or function(value) return value end
@@ -110,6 +222,7 @@ values[lan] = 'eth0 eth1 eth2 eth3'
 values[sensing] = '1'
 local proxy = {}
 function proxy.get(path)
+    if string.untaint then path = string.untaint(path) end
     if values[path] == nil then return nil end
     return {{value = values[path]}}
 end
@@ -123,9 +236,13 @@ end
 function proxy.set(path, value)
     if failSet then return false, 'write failed' end
     if type(path) == 'table' then
-        for key, item in pairs(path) do values[key] = item end
+        for parameter, item in pairs(path) do
+            local key = string.untaint and string.untaint(parameter) or parameter
+            values[key] = item
+        end
         events[#events + 1] = 'network-set'
     else
+        if string.untaint then path = string.untaint(path) end
         values[path] = value
         events[#events + 1] = path .. '=' .. value
     end
@@ -136,8 +253,17 @@ function proxy.apply()
     if failApply then return false, 'apply failed' end
     return true
 end
-function proxy.add(_, name)
-    names[#names + 1] = {path = 'uci.network.device.@' .. name .. '.'}
+function proxy.add(prefix, name)
+    names[#names + 1] = {path = prefix .. '@' .. name .. '.'}
+    return true
+end
+function proxy.del(path)
+    if string.untaint then path = string.untaint(path) end
+    for key in pairs(values) do if key:sub(1, #path) == path then values[key] = nil end end
+    for index = #names, 1, -1 do
+        if names[index].path:sub(1, #path) == path then table.remove(names, index) end
+    end
+    events[#events + 1] = 'delete:' .. path
     return true
 end
 os.execute = function(command)
