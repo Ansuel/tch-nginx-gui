@@ -954,3 +954,24 @@ msgstr "Potenza TX:"
 
 msgid "Uplink ARFCN:"
 msgstr "ARFCN uplink:"
+
+msgid "USB tethering"
+msgstr "Tethering USB"
+
+msgid "Smartphone USB"
+msgstr "Smartphone USB"
+
+msgid "Active"
+msgstr "Attivo"
+
+msgid "Inactive"
+msgstr "Inattivo"
+
+msgid "Not configured"
+msgstr "Non configurato"
+
+msgid "Status unavailable"
+msgstr "Stato non disponibile"
+
+msgid "0 mobile modems connected"
+msgstr "0 modem cellulari collegati"

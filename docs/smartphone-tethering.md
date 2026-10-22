@@ -78,3 +78,11 @@ LTE band zero means unknown; when needed the band is derived from EARFCN.
 LTE identity includes ECI, eNB ID, sector, ECGI and TAC when Android exposes them.
 RSSNR accepts negative values and uses the Android SDK version to select dB units.
 Unavailable fields remain N/A. Radio tests use synthetic snapshots only.
+
+The Mobile card shows a separate USB tethering summary when Smartphone USB is
+installed and the current role can open its page. The summary reads the router's
+logical `smartphone` network interface through the existing network datamodel;
+it does not poll ADB. It remains visible when the native Mobile service is disabled.
+The native modem count and SIM controls retain their existing meaning. An
+unconfigured or unavailable tethering interface is reported explicitly, and the
+summary links to the optional app for phone controls.

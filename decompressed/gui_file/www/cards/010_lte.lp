@@ -13,6 +13,8 @@ local format = string.format
 local params = utils.get_params()
 
 local session = ngx.ctx.session
+local smartphone = require("web.smartphone-tether").get_status(session)
+local html_escape = require("web.web").html_escape
 local lte_state, error = datamodel.get("uci.mobiled.device_defaults.enabled")
 
 if lte_state then
@@ -85,12 +87,19 @@ end
 					</div>\
 				')
 		  	end
+            if smartphone.visible then
+                ngx.print('<div data-bind="visible: smartphoneVisible"><label class="card-label">',
+                    T"USB tethering", ':</label> <strong data-bind="text: smartphoneStatus">',
+                    html_escape(smartphone.status), '</strong><br><button type="button" class="btn btn-link modal-link card-direct-link" data-toggle="modal" ',
+                    'data-remote="/modals/smartphone-modal.lp" data-id="smartphone-modal">',
+                    T"Smartphone USB", '</button></div>')
+            end
 		  	ngx.print('\
 		  </div>\
 		</div>\
 	</div>\
 </div>')
-if light.status == "1" then
+if light.status == "1" or smartphone.visible then
 ngx.print('\
 <script>\
 var LteCardRefresh = function(ElementBinding) {\
@@ -110,18 +119,22 @@ var LteCardRefresh = function(ElementBinding) {\
 			if(data.bars != undefined) {\
 				updateBars(data.bars);\
 			}\
-			if(data.radio_interface != undefined) {\
+			if(data.radio_interface != undefined && ElementBinding.radioType) {\
 				ElementBinding.radioType(data.radio_interface);\
 			}\
-			if(data.status != undefined) {\
+			if(data.status != undefined && ElementBinding.mobileStatus) {\
 				ElementBinding.mobileStatus(data.status);\
 			}\
-			if(data.signal_quality != undefined) {\
+			if(data.signal_quality != undefined && ElementBinding.signalQuality) {\
 				ElementBinding.signalQuality(data.signal_quality);\
 			}\
-			if(data.no_device != undefined) {\
+			if(data.no_device != undefined && ElementBinding.deviceStatus) {\
 				ElementBinding.deviceStatus(data.no_device);\
 			}\
+            if(ElementBinding.smartphoneVisible) {\
+                ElementBinding.smartphoneVisible(data.smartphone_visible === true);\
+                ElementBinding.smartphoneStatus(data.smartphone_status || "");\
+            }\
 			if(data.redirect_sim != undefined) {\
 				if(data.redirect_sim === true && allowSimRedirect) {\
 					$.each($(\'.settings[data-id="lte-modal"]\'), function () {\
