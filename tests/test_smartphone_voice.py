@@ -6,6 +6,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 GUI = ROOT / 'decompressed/gui_file'
+PHONE = ROOT / 'decompressed/smartphone'
 LUA = shutil.which('lua')
 
 
@@ -17,13 +18,16 @@ class SmartphoneVoiceTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_distributed_modals_compile_and_have_access_rules(self):
-        self.assertTrue((GUI / 'usr/bin/phone_stats.sh').stat().st_mode & 0o111)
+        self.assertTrue((PHONE / 'usr/bin/phone_stats.sh').stat().st_mode & 0o111)
+        self.assertIn('"smartphone"', (ROOT / 'inizialize_gui.sh').read_text())
         rules = (GUI / 'tmp/web_unlock').read_text()
-        for page, tabs in (('smartphone-modal.lp', 'tabs-mobiled.lp'),
-                           ('mmpbx-advanced-modal.lp', 'tabs-voice.lp')):
-            self.assertIn(f"option target '/modals/{page}'", rules)
-            self.assertIn(page, (GUI / 'www/snippets' / tabs).read_text())
-            self.run_lua('assert(loadfile(arg[1] .. "/www/docroot/modals/" .. arg[2]))', page)
+        self.assertNotIn('/modals/smartphone-modal.lp', rules)
+        self.assertNotIn('smartphone-modal.lp', (GUI / 'www/snippets/tabs-mobiled.lp').read_text())
+        self.assertIn('/modals/mmpbx-advanced-modal.lp', rules)
+        self.assertIn("list rules 'mmpbxadvancedmodal'", rules)
+        self.assertIn('mmpbx-advanced-modal.lp', (GUI / 'www/snippets/tabs-voice.lp').read_text())
+        for module, page in (('gui_file', 'mmpbx-advanced-modal.lp'), ('smartphone', 'smartphone-modal.lp')):
+            self.run_lua('assert(loadfile(arg[1] .. "/../" .. arg[2] .. "/www/docroot/modals/" .. arg[3]))', module, page)
 
     def test_voice_field_paths_exist_in_installed_mapping_schemas(self):
         self.run_lua(r'''
@@ -62,7 +66,7 @@ io.popen = function(command)
     commands[#commands + 1] = command
     return {read = function() return response end, close = function() end}
 end
-dofile(arg[1] .. "/usr/share/transformer/mappings/rpc/smartphone.map")
+dofile(arg[1] .. "/../smartphone/usr/share/transformer/mappings/rpc/smartphone.map")
 assert(mapping.set.action(nil, nil, "start_vpn"))
 assert(commands[1]:find("phone_stats.sh start_vpn", 1, true))
 local before = #commands

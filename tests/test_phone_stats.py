@@ -8,7 +8,7 @@ import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / 'decompressed/gui_file/usr/bin/phone_stats.sh'
+SCRIPT = ROOT / 'decompressed/smartphone/usr/bin/phone_stats.sh'
 
 
 class PhoneStatsTest(unittest.TestCase):
@@ -36,18 +36,25 @@ elif args == ['shell', 'ip', '-4', 'route'] or args == ['shell', 'ip', 'route']:
     print('192.168.42.0/24 dev rndis0 proto kernel scope link src 192.168.42.1')
 elif args == ['shell', 'ip', 'link']:
     print('10: tun0: <POINTOPOINT,UP>')
+elif args == ['shell', 'ip', '-4', 'addr', 'show', 'dev', 'rndis0']:
+    print('10: rndis0: <BROADCAST,UP' + ('> state DOWN' if os.environ.get('TETHER_DOWN') else ',LOWER_UP> state UP'))
+    print('    inet 192.168.42.1/24 scope global rndis0')
 elif args == ['shell', 'cat', '/proc/meminfo']:
     print('MemTotal: 4096000 kB\\nMemAvailable: 2048000 kB')
 elif args == ['shell', 'cat', '/proc/loadavg']:
     print('0.1 0.2 0.3 1/100 100')
 elif len(args) == 2 and args[1].startswith("su -c '"):
-    command = args[1][7:-1]
+    command = args[1][7:].split("'; printf", 1)[0]
     if os.environ.get('DENY_ROOT'):
-        sys.exit(1)
+        print('TCH_STATUS|1')
+        sys.exit(0)  # Old ADB can report transport success for remote failures.
     if command == 'id -u':
         print('0')
+        print('TCH_STATUS|0')
     elif 'cleanup()' in command:
-        sys.exit(subprocess.run(['sh', '-c', command]).returncode)
+        status = subprocess.run(['sh', '-c', command]).returncode
+        print('TCH_STATUS|' + str(status))
+        sys.exit(0)
 ''')
         # Simulate enough kernel state to execute the original remote transaction.
         self.write('iptables', f'#!{sys.executable}\n' + '''import json, os, pathlib, sys
@@ -109,11 +116,17 @@ elif args[:2] == ['route', 'flush']:
     def test_lte_with_unavailable_nr_metrics_is_not_5g(self):
         result = self.run_phone()
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn('NET|4G (LTE+)', result.stdout)
+        self.assertIn('NET|4G (LTE)', result.stdout)
         self.assertIn('BATT|75%', result.stdout)
+        self.assertIn('TETHER|Attivo (rndis0 - IP: 192.168.42.1)', result.stdout)
 
     def test_connected_nr_is_5g(self):
         self.assertIn('NET|5G (NSA)', self.run_phone(NR_STATE='CONNECTED').stdout)
+
+    def test_tether_address_without_carrier_is_not_reported_active(self):
+        result = self.run_phone(TETHER_DOWN='1')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('TETHER|Configurato, collegamento inattivo', result.stdout)
 
     def test_missing_adb_and_usb_authorization_are_errors(self):
         (self.directory / 'adb').unlink()

@@ -46,6 +46,7 @@ config user 'usr_assist'
 	option role 'admin'
 
 config ruleset 'ruleset_main'
+	list rules 'mmpbxadvancedmodal'
 	list rules 'gateway'
 	list rules 'login'
 	list rules 'password'
@@ -497,11 +498,6 @@ config rule 'ajaxinternet'
 	list roles 'engineer'
 	list roles 'guest'
 
-
-config rule 'smartphonemodal'
- option target '/modals/smartphone-modal.lp'
- list roles 'admin'
- list roles 'engineer'
 
 config rule 'mmpbxadvancedmodal'
  option target '/modals/mmpbx-advanced-modal.lp'

@@ -5,6 +5,7 @@ declare -a modular_dir=(
 	"gui_file"
 	"traffic_mon"
 	"luci_wireless"
+	"smartphone"
 	"upgrade-pack-specificDGA"
 	"upgrade-pack-specificTG800"
 	"upgrade-pack-specificTG789"

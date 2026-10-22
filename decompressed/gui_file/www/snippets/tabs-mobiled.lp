@@ -6,7 +6,6 @@ local device_capabilities = utils.getContent("rpc.mobiled.device.@1.capabilities
 gettext.textdomain('webui-mobiled')
 
 local items = {
-	{"smartphone-modal.lp", T"Smartphone"},
 	{"lte-modal.lp", T"Configuration"},
 	{"lte-sim.lp", T"SIM"},
 	{"lte-doctor.lp", T"LTE Doctor"},

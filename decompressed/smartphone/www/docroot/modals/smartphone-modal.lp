@@ -1,21 +1,9 @@
 --pretranslated: do not change this file
-local string, table, pairs = string, table, pairs
-local ngx, tostring, tonumber, ipairs, setmetatable, tinsert = ngx, tostring, tonumber, ipairs, setmetatable, table.insert
-
--- Enable localization
 gettext.textdomain('webui-mobiled')
-
+local ngx = ngx
 local proxy = require("datamodel")
-local utils = require("web.lte-utils")
 local ui_helper = require("web.ui_helper")
-local post_helper = require("web.post_helper")
-local untaint_mt = require("web.taint").untaint_mt
-local content_helper = require("web.content_helper")
-local message_helper = require("web.uimessage_helper")
-local advanced = { group = { class = "advanced hide" }, span = { class = "span5" } }
 local session = ngx.ctx.session
-local role = session:getrole()
-
 local lp = require("web.lp")
 local json = require("dkjson")
 local function read_phone(parameter)
@@ -70,8 +58,6 @@ end
     ngx.print('\n<script type="text/javascript" src="/js/flot-min.js"></script>\n')
     ngx.print(ui_helper.createHeader("Dettagli Smartphone", false, true))
     ngx.print('\n<div class="modal-body update no-save" id="lte-body">\n')
-    lp.setpath("/www/snippets/")
-    lp.include("tabs-mobiled.lp")
 
     ngx.print('<form class="form-horizontal">')
     ngx.print('<input type="hidden" id="global-csrf-token" name="CSRFtoken" value="' .. session:getCSRFtoken() .. '">')

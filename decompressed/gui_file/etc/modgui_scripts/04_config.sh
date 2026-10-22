@@ -11,6 +11,15 @@ check_webui_config() {
       rm /tmp/web_unlock
     fi
   fi
+  # Existing GUI installs retain their web config instead of importing web_unlock.
+  uci set web.mmpbxadvancedmodal=rule
+  uci set web.mmpbxadvancedmodal.target=/modals/mmpbx-advanced-modal.lp
+  uci -q delete web.mmpbxadvancedmodal.roles
+  uci add_list web.mmpbxadvancedmodal.roles=admin
+  uci add_list web.mmpbxadvancedmodal.roles=engineer
+  uci -q del_list web.ruleset_main.rules=mmpbxadvancedmodal
+  uci add_list web.ruleset_main.rules=mmpbxadvancedmodal
+  uci commit web
   if [ "$(uci get -q wireless.global.wifi_analyzer_disable)" ]; then
     if [ "$(uci get -q wireless.global.wifi_analyzer_disable)" != "0" ]; then
       uci set wireless.global.wifi_analyzer_disable='0'
@@ -154,6 +163,22 @@ create_gui_type() {
       uci set modgui.app.openspeedtest_app="0"
     fi
   fi
+  if [ -f /etc/.modgui-smartphone-installed ]; then
+    uci set modgui.app.smartphone_app="1"
+    smartphone_archive_hash="$(sha256sum /tmp/smartphone.tar.bz2 2>/dev/null | awk '{print $1}')"
+    smartphone_installed_hash="$(cat /etc/.modgui-smartphone-archive-sha256 2>/dev/null)"
+    if [ ! -x /usr/bin/phone_stats.sh ] ||
+       [ ! -f /usr/share/transformer/mappings/rpc/smartphone.map ] ||
+       [ ! -f /www/docroot/modals/smartphone-modal.lp ] ||
+       [ ! -f /www/cards/017_smartphone.lp ] ||
+       { [ -n "$smartphone_archive_hash" ] && [ "$smartphone_archive_hash" != "$smartphone_installed_hash" ]; }; then
+      logecho "Restoring Smartphone app after GUI upgrade..."
+      /usr/share/transformer/scripts/smartphoneApp.sh refresh >/dev/null 2>&1 || logecho "Smartphone app refresh failed"
+    fi
+  else
+    uci set modgui.app.smartphone_app="0"
+  fi
+
   # Reconcile stale flags after a runtime is removed outside the GUI.
   if [ -x /usr/bin/wireguard-go ] && [ -x /usr/bin/wg-go ] &&
     [ -x /lib/netifd/proto/wireguard.sh ]; then

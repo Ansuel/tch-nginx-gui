@@ -6,10 +6,19 @@ ADB_BIN=$(command -v adb) || error "ADB is not installed on this router."
 command -v timeout >/dev/null 2>&1 || error "The timeout utility is required."
 adb() { timeout 2 "$ADB_BIN" "$@"; }
 adb get-state >/dev/null 2>&1 || error "Connect one Android device and authorize USB debugging."
-android_root() { adb shell "su -c '$1'"; }
+android_shell() {
+    # ADB 1.0.32 does not propagate Android shell exit codes. Read our marker
+    # instead, including when su is absent or authorization is rejected.
+    shell_output=$(timeout "${2:-2}" "$ADB_BIN" shell "$1; printf '\nTCH_STATUS|%s\n' \"\$?\"") || return 1
+    shell_output=$(printf '%s\n' "$shell_output" | tr -d '\r')
+    shell_status=$(printf '%s\n' "$shell_output" | tail -n 1)
+    [ "$shell_status" = 'TCH_STATUS|0' ] || return 1
+    printf '%s\n' "$shell_output" | sed '$d'
+}
+android_root() { android_shell "su -c '$1'" "${2:-2}"; }
 
 case "$CMD" in
-    screen) adb shell input keyevent 26 >/dev/null 2>&1 || error "Screen command failed."; exit 0 ;;
+    screen) android_shell "input keyevent 26" >/dev/null 2>&1 || error "Screen command failed."; exit 0 ;;
     reboot) adb reboot >/dev/null 2>&1 || error "Reboot command failed."; exit 0 ;;
     reconnect_data|data_on|data_off)
         case "$CMD" in
@@ -75,7 +84,7 @@ trap - EXIT
 "
         fi
         # Give the bounded compound transaction enough time to finish or roll back.
-        timeout 12 "$ADB_BIN" shell "su -c '$remote'" >/dev/null 2>&1 || error "VPN operation failed; check Android root, firewall and routing support."
+        android_root "$remote" 12 >/dev/null 2>&1 || error "VPN operation failed; check Android root, firewall and routing support."
         echo "SUCCESS|VPN operation completed."
         exit 0 ;;
     get_peers)
@@ -118,7 +127,9 @@ elif [ "$NET_OVERRIDE" = "NR_NSA" ] || [ "$NET_OVERRIDE" = "NR_ADVANCED" ] || [ 
     NET="5G (NSA)"
 else
     case "$TECH" in
-        13|14|19) NET="4G (LTE+)" ;;
+        14) NET="4G (LTE)" ;;
+        19) NET="4G (LTE+)" ;;
+        13) NET="3G (eHRPD)" ;;
         0|"") NET="N/A" ;;
         *) NET="4G/3G" ;;
     esac
@@ -162,16 +173,20 @@ else MEM="N/A"; fi
 
 # Interface States
 USB_STATE=$(adb shell getprop sys.usb.state | tr -d '\r')
-TETHER_IFACE=$(adb shell ip route 2>/dev/null | grep -iE "rndis|usb|ncm" | awk '{print $3}' | head -n 1 | tr -dc 'a-zA-Z0-9')
+TETHER_IFACE=$(adb shell ip -4 route 2>/dev/null | awk '/dev (rndis|usb|ncm)/ {for(i=1;i<=NF;i++) if($i=="dev") {print $(i+1); exit}}' | tr -d '\r')
+case "$TETHER_IFACE" in *[!a-zA-Z0-9_.-]*) TETHER_IFACE="" ;; esac
 
 if [ -n "$TETHER_IFACE" ]; then
-    TETHER_IP=$(adb shell ip route 2>/dev/null | grep "$TETHER_IFACE" | grep "src" | awk '{print $9}' | head -n 1 | tr -d '\r')
-    if [ -n "$TETHER_IP" ]; then TETHER_STATUS="Attivo ($TETHER_IFACE - IP: $TETHER_IP)"
+    TETHER_ADDR=$(adb shell ip -4 addr show dev "$TETHER_IFACE" 2>/dev/null)
+    TETHER_IP=$(printf '%s\n' "$TETHER_ADDR" | awk '/inet / {print $2; exit}' | cut -d/ -f1 | tr -d '\r')
+    if ! printf '%s\n' "$TETHER_ADDR" | head -n 1 | grep -qE 'LOWER_UP|state UP'; then
+        TETHER_STATUS="Configurato, collegamento inattivo ($TETHER_IFACE)"
+    elif [ -n "$TETHER_IP" ]; then TETHER_STATUS="Attivo ($TETHER_IFACE - IP: $TETHER_IP)"
     else TETHER_STATUS="Connesso ($TETHER_IFACE)"; fi
 else TETHER_STATUS="Inattivo"; fi
 
 V_CHECK=$(adb shell ip link 2>/dev/null | grep -iE "tun|tailscale")
-RULE_CHECK=$(adb shell su -c "ip rule" 2>/dev/null | grep "29999:")
+RULE_CHECK=$(android_root "ip rule" 2>/dev/null | grep "29999:")
 if [ -n "$V_CHECK" ] && echo "$RULE_CHECK" | grep -q "29999:"; then VPN_SHARE="Attiva"; else VPN_SHARE="Inattiva"; fi
 
 # Gateway Route Analysis

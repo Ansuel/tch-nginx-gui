@@ -27,6 +27,7 @@ local app_list = {
 	"l2tpipsec",
 	"openvpn",
 	"tailscale",
+	"smartphone",
 	"dumaos",
 }
 
@@ -65,6 +66,7 @@ if webui_host:find(":", 1, true) and webui_host:sub(1, 1) ~= "[" then
 end
 
 local mapParams = {
+    smartphone_application = "uci.modgui.app.smartphone_app",
 	telstra_webui = "uci.modgui.app.telstra_webui",
 }
 if marketing_version >= 16.3 then
@@ -480,6 +482,14 @@ if StateParams["openvpn_application"] ~= nil then
 		html[#html+1] = ui_helper.createAlertBlock(T"Unavailable: no reviewed TUN module is available for this firmware.", specific_box)
 		html[#html+1] = "</fieldset></div>"
 	end
+end
+
+if StateParams["smartphone_application"] ~= nil then
+    append_extension_card(
+        "smartphone_application", "smartphone", T"Smartphone USB",
+        T"Installs Android telemetry and USB tethering controls as an optional app, with ADB from the configured opkg feeds. Android USB debugging authorization is required; VPN sharing also requires Android root.",
+        nil, false
+    )
 end
 
 if StateParams["tailscale_application"] ~= nil then

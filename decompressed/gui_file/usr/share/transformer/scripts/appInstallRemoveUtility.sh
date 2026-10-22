@@ -2776,6 +2776,10 @@ install_specific_files() {
   esac
 }
 
+app_smartphone() {
+    /usr/share/transformer/scripts/smartphoneApp.sh "$1"
+}
+
 call_app_type() {
   case "$2" in
   transmission)
@@ -2828,6 +2832,9 @@ call_app_type() {
     ;;
   openvpn)
     app_openvpn "$1"
+    ;;
+  smartphone)
+    app_smartphone "$1"
     ;;
   tailscale)
     app_tailscale "$1"

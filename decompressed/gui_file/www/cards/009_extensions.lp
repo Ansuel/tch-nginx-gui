@@ -37,6 +37,7 @@ if marketing_version then
 end
 
 local mapParams = {
+    smartphone_application = "uci.modgui.app.smartphone_app",
 	telstra_webui = "uci.modgui.app.telstra_webui"
 }
 
@@ -123,6 +124,7 @@ for Params in pairs(mapParams) do
 end
 
 local extension_items = {
+    { key = "smartphone_application", title = T"Smartphone USB" },
 	{ key = "luci_webui", title = T"LuCI", url = webui_url("9080") },
 	{ key = "aria2_webui", title = T"Aria2", url = "/aria" },
 	{ key = "transmission_webui", title = T"Transmission", url = webui_url("9091", "/transmission") },
