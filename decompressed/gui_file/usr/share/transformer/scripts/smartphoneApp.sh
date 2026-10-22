@@ -6,7 +6,7 @@ owned=/etc/.modgui-smartphone-installed
 adb_owned=/etc/.modgui-smartphone-adb-owned
 archive_hash=/etc/.modgui-smartphone-archive-sha256
 stage=/tmp/modgui-smartphone.$$
-files="usr/bin/phone_stats.sh usr/share/transformer/mappings/rpc/smartphone.map www/docroot/modals/smartphone-modal.lp www/docroot/modals/smartphone-screen.lp www/cards/017_smartphone.lp"
+files="usr/bin/phone_stats.sh usr/share/modgui-smartphone/radio.awk usr/share/transformer/mappings/rpc/smartphone.map www/docroot/modals/smartphone-modal.lp www/docroot/modals/smartphone-screen.lp www/cards/017_smartphone.lp"
 
 set_state() {
     uci set "modgui.app.smartphone_app=$1" && uci commit modgui

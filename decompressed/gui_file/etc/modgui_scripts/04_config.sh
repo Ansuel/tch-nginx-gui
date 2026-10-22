@@ -168,6 +168,7 @@ create_gui_type() {
     smartphone_archive_hash="$(sha256sum /tmp/smartphone.tar.bz2 2>/dev/null | awk '{print $1}')"
     smartphone_installed_hash="$(cat /etc/.modgui-smartphone-archive-sha256 2>/dev/null)"
     if [ ! -x /usr/bin/phone_stats.sh ] ||
+       [ ! -f /usr/share/modgui-smartphone/radio.awk ] ||
        [ ! -f /usr/share/transformer/mappings/rpc/smartphone.map ] ||
        [ ! -f /www/docroot/modals/smartphone-modal.lp ] ||
        [ ! -f /www/cards/017_smartphone.lp ] ||

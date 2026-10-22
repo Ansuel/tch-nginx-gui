@@ -73,7 +73,8 @@ Android routing and firewall commands, including
 authorization failure, rollback, repeated activation, teardown and preservation
 of unrelated state. They do not require or modify a real phone.
 
-On 22 October 2026 the read-only telemetry path was also verified on a Moto G32
-running Android 13, using ADB 1.0.32 installed from the test router's opkg feed.
-USB authorization, battery, temperature, LTE operator/signal and memory readings
-worked. VPN sharing and WAN failover were not enabled during that test.
+Radio parsing uses only the current data SIM snapshot and ignores historical logs.
+LTE band zero means unknown; when needed the band is derived from EARFCN.
+LTE identity includes ECI, eNB ID, sector, ECGI and TAC when Android exposes them.
+RSSNR accepts negative values and uses the Android SDK version to select dB units.
+Unavailable fields remain N/A. Radio tests use synthetic snapshots only.

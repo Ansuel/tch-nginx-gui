@@ -99,10 +99,17 @@ end
     ngx.print('<fieldset><legend>Dettagli Rete e Cella</legend>')
     ngx.print(ui_helper.createLabel("Operatore:", d.OPER or "N/A", lbl))
     ngx.print(ui_helper.createLabel("Tecnologia:", '<span id="live_net">'..(d.NET or "N/A")..'</span>', lbl))
-    ngx.print(ui_helper.createLabel("Banda:", '<span id="live_band">'..(d.BAND or "N/A")..'</span>', lbl))
+    ngx.print(ui_helper.createLabel("Banda:", '<span id="live_band">'..((d.BAND or "N/A")..(d.BAND_SOURCE == "EARFCN" and " (da EARFCN)" or ""))..'</span>', lbl))
     ngx.print(ui_helper.createLabel("Qualità (RSRQ):", '<span id="live_rsrq">'..(d.RSRQ or "N/A")..'</span>', lbl))
-    ngx.print(ui_helper.createLabel("Rumore (SNR):", '<span id="live_snr">'..(d.SNR or "N/A")..'</span>', lbl))
+    ngx.print(ui_helper.createLabel("Rapporto segnale/rumore (RSSNR):", '<span id="live_snr">'..(d.SNR or "N/A")..'</span>', lbl))
     ngx.print(ui_helper.createLabel("PCI:", '<span id="live_pci">'..(d.PCI or "N/A")..'</span>', lbl))
+    ngx.print(ui_helper.createLabel("eNB ID (LTE):", '<span id="live_enb">'..(d.ENB or "N/A")..'</span>', lbl))
+    ngx.print(ui_helper.createLabel("Settore (LTE):", '<span id="live_sector">'..(d.SECTOR or "N/A")..'</span>', lbl))
+    ngx.print(ui_helper.createLabel("ECI (LTE):", '<span id="live_eci">'..(d.ECI or "N/A")..'</span>', lbl))
+    ngx.print(ui_helper.createLabel("ECGI (MCC-MNC-ECI):", '<span id="live_ecgi">'..(d.ECGI or "N/A")..'</span>', lbl))
+    ngx.print(ui_helper.createLabel("TAC (LTE):", '<span id="live_tac">'..(d.TAC or "N/A")..'</span>', lbl))
+    ngx.print(ui_helper.createLabel("EARFCN (LTE):", '<span id="live_earfcn">'..(d.EARFCN or "N/A")..'</span>', lbl))
+    ngx.print(ui_helper.createLabel("Slot SIM:", '<span id="live_sim_slot">'..(d.SIM_SLOT or "N/A")..'</span>', lbl))
     ngx.print('</fieldset>')
 
     ngx.print('<fieldset><legend>Grafico Segnale (RSRP)</legend>')
@@ -255,10 +262,17 @@ end
         $("#live_temp").text(j.TEMP || "N/A");
         $("#live_sig").text(j.SIG || "N/A");
         $("#live_net").text(j.NET || "N/A");
-        $("#live_band").text(j.BAND || "N/A");
+        $("#live_band").text((j.BAND || "N/A") + (j.BAND_SOURCE === "EARFCN" ? " (da EARFCN)" : ""));
         $("#live_rsrq").text(j.RSRQ || "N/A");
         $("#live_snr").text(j.SNR || "N/A");
         $("#live_pci").text(j.PCI || "N/A");
+        $("#live_enb").text(j.ENB || "N/A");
+        $("#live_sector").text(j.SECTOR || "N/A");
+        $("#live_eci").text(j.ECI || "N/A");
+        $("#live_ecgi").text(j.ECGI || "N/A");
+        $("#live_tac").text(j.TAC || "N/A");
+        $("#live_earfcn").text(j.EARFCN || "N/A");
+        $("#live_sim_slot").text(j.SIM_SLOT || "N/A");
         $("#live_usb").text(j.USB_STATE || "N/A");
         $("#live_tether").text(j.TETHER || "N/A");
         $("#live_load").text(j.LOAD || "N/A");

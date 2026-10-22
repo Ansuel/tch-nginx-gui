@@ -32,6 +32,8 @@ elif args == ['shell', 'dumpsys', 'telephony.registry']:
     print('mSignalStrength=CellSignalStrengthLte: rsrp=-95 rsrq=-10 rssnr=120 CellSignalStrengthNr: ssRsrp=2147483647')
     print('getRilDataRadioTechnology=14 nrState=' + os.environ.get('NR_STATE', 'NONE'))
     print('mDataConnectionState=2\\nmOperatorAlphaLong=Example,')
+elif args == ['shell', 'getprop', 'ro.build.version.sdk']:
+    print('29')
 elif args == ['shell', 'ip', '-4', 'route'] or args == ['shell', 'ip', 'route']:
     print('192.168.42.0/24 dev rndis0 proto kernel scope link src 192.168.42.1')
 elif args == ['shell', 'ip', 'link']:
@@ -110,7 +112,7 @@ elif args[:2] == ['route', 'flush']:
     if route.exists(): route.unlink()
 ''')
         self.write('chown', '#!/bin/sh\nexit 0\n')
-        self.write('od', '#!/bin/sh\nexit 127\n')  # Not available on the test modem.
+        self.write('od', '#!/bin/sh\nexit 127\n')  # Simulate a minimal BusyBox environment.
 
     def write(self, name, content):
         path = self.directory / name
@@ -118,11 +120,12 @@ elif args[:2] == ['route', 'flush']:
         path.chmod(0o755)
 
     def run_phone(self, action='get_stats', **env):
-        script = SCRIPT
-        if action == 'capture_screen':
-            script = self.directory / 'phone_stats.sh'
-            script.write_text(SCRIPT.read_text().replace('/var/run/modgui-smartphone-screen', str(self.directory / 'screen')))
-            script.chmod(0o755)
+        script = self.directory / 'phone_stats.sh'
+        source = SCRIPT.read_text().replace(
+            '/usr/share/modgui-smartphone/radio.awk',
+            str(ROOT / 'decompressed/smartphone/usr/share/modgui-smartphone/radio.awk'))
+        script.write_text(source.replace('/var/run/modgui-smartphone-screen', str(self.directory / 'screen')))
+        script.chmod(0o755)
         return subprocess.run([str(script), action], env={**self.env, **env},
                               capture_output=True, text=True, timeout=15)
 

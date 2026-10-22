@@ -137,10 +137,16 @@ case "$STATUS" in 2) BATT_STAT="In Carica" ;; 3) BATT_STAT="In Uso" ;; 4) BATT_S
 case "$HEALTH" in 2) BATT_HEALTH="Buona" ;; 3) BATT_HEALTH="Surriscaldata" ;; 4) BATT_HEALTH="Morta" ;; 5) BATT_HEALTH="Sovratensione" ;; 7) BATT_HEALTH="Fredda" ;; *) BATT_HEALTH="Sconosciuta" ;; esac
 
 # Parse Telephony Data
-TEL=$(adb shell dumpsys telephony.registry)
-SIGNAL=$(echo "$TEL" | grep "mSignalStrength=" | grep -o "rsrp=-[0-9]\+" | tail -n 1 | cut -d'=' -f2)
-[ -z "$SIGNAL" ] && SIGNAL=$(echo "$TEL" | grep "mSignalStrength=" | grep -o "dbm=-[0-9]\+" | tail -n 1 | cut -d'=' -f2)
-[ -z "$SIGNAL" ] && SIGNAL=$(echo "$TEL" | grep -o "rsrp=-[0-9]\+" | tail -n 1 | cut -d'=' -f2)
+RADIO_AWK=/usr/share/modgui-smartphone/radio.awk
+TEL=$(adb shell dumpsys telephony.registry | tr -d '\r')
+SDK=$(adb shell getprop ro.build.version.sdk | tr -d '\r')
+case "$SDK" in ''|*[!0-9]*) SDK=0 ;; esac
+RADIO=$(printf '%s\n' "$TEL" | awk -v mode=metrics -v sdk="$SDK" -f "$RADIO_AWK")
+TEL=$(printf '%s\n' "$TEL" | awk -v mode=select -f "$RADIO_AWK")
+radio_value() {
+    printf '%s\n' "$RADIO" | awk -F '|' -v key="$1" '$1 == key {print $2; exit}'
+}
+SIGNAL=$(radio_value SIGNAL_RAW)
 
 TECH=$(echo "$TEL" | grep -o "getRilDataRadioTechnology=[0-9]*" | tail -n 1 | cut -d'=' -f2)
 IS_5G=$(echo "$TEL" | grep -iE "nrState=CONNECTED")
@@ -174,13 +180,6 @@ if [ -z "$OPER" ] || [ "$OPER" = "" ]; then
 fi
 
 LED_LOG="Managed by router"
-
-# Extended Radio Metrics
-RSRQ=$(echo "$TEL" | grep -o "rsrq=-[0-9]\+" | tail -n 1 | cut -d'=' -f2)
-SNR=$(echo "$TEL" | grep -o "rssnr=[0-9]\+" | tail -n 1 | cut -d'=' -f2)
-[ "$SNR" = "2147483647" ] || [ -z "$SNR" ] && SNR="N/A"
-PCI=$(echo "$TEL" | grep -o "mPhysicalCellId=[0-9]\+" | tail -n 1 | cut -d'=' -f2)
-BAND=$(echo "$TEL" | grep -o "mBand=[0-9]\+" | tail -n 1 | cut -d'=' -f2)
 
 # Hardware & System Info
 MANUF=$(adb shell getprop ro.product.manufacturer)
@@ -246,13 +245,9 @@ echo "VOLT|${VOLT} mV"
 echo "TEMP|$TEMP_C C"
 echo "OPER|$OPER"
 echo "NET|$NET"
-echo "SIG|$SIGNAL dBm"
-echo "SIGNAL_RAW|$SIGNAL"
+if [ -n "$SIGNAL" ] && [ "$SIGNAL" != "N/A" ]; then echo "SIG|$SIGNAL dBm"; else echo "SIG|N/A"; fi
 echo "DATA_ST|$DATA_ST"
-echo "RSRQ|$RSRQ"
-echo "SNR|$SNR"
-echo "PCI|$PCI"
-echo "BAND|${BAND:-N/A}"
+printf '%s\n' "$RADIO"
 echo "LOAD|$LOADAVG"
 echo "MEM|$MEM"
 echo "USB_STATE|$USB_STATE"
