@@ -497,3 +497,13 @@ config rule 'ajaxinternet'
 	list roles 'engineer'
 	list roles 'guest'
 
+
+config rule 'smartphonemodal'
+ option target '/modals/smartphone-modal.lp'
+ list roles 'admin'
+ list roles 'engineer'
+
+config rule 'mmpbxadvancedmodal'
+ option target '/modals/mmpbx-advanced-modal.lp'
+ list roles 'admin'
+ list roles 'engineer'

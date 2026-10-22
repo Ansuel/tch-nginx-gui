@@ -1,0 +1,49 @@
+local function run(action)
+    -- Only constants from the allowlist reach the shell, never web input.
+    local allowed = {
+        get_stats = true, get_peers = true, screen = true, reboot = true,
+        reconnect_data = true, data_on = true, data_off = true,
+        start_vpn = true, stop_vpn = true,
+    }
+    if not allowed[action] then return nil, "Unsupported smartphone action" end
+    local pipe = io.popen("timeout 18 /usr/bin/phone_stats.sh " .. action ..
+        " 2>/dev/null; printf '\\nEXIT_STATUS|%s\\n' \"$?\"")
+    if not pipe then return nil, "Unable to start smartphone helper" end
+    local output = pipe:read("*a")
+    pipe:close()
+    local body, status = output:match("^(.*)\nEXIT_STATUS|(%d+)%s*$")
+    if status ~= "0" then
+        return nil, (body and body:match("ERROR|([^\r\n]+)")) or "Smartphone request failed or timed out"
+    end
+    return body
+end
+
+register {
+    objectType = {
+        name = "rpc.smartphone.", access = "readOnly", minEntries = 1, maxEntries = 1,
+        parameters = {
+            stats = { access = "readOnly", type = "string" },
+            peers = { access = "readOnly", type = "string" },
+            action = { access = "readWrite", type = "string" },
+        },
+    },
+    get = {
+        stats = function()
+            local result, err = run("get_stats")
+            return result or ("ERROR|" .. err)
+        end,
+        peers = function()
+            local result, err = run("get_peers")
+            return result or ("ERROR|" .. err)
+        end,
+        action = function() return "" end,
+    },
+    set = {
+        action = function(_, _, value)
+            if value == "get_stats" or value == "get_peers" then return nil, "Use the read-only parameter" end
+            local result, err = run(value)
+            if not result then return nil, err end
+            return true
+        end,
+    },
+}

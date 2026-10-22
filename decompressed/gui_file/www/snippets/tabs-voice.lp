@@ -14,6 +14,7 @@ local content = {
 content_helper.getExactContent(content)
 
 local items = {
+	{"mmpbx-advanced-modal.lp", T"Advanced"},
     {"mmpbx-global-modal.lp", T"Global"}
 }
 
