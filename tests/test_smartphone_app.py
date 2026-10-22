@@ -2,6 +2,7 @@
 import os
 from pathlib import Path
 import shlex
+import shutil
 import subprocess
 import tarfile
 import tempfile
@@ -22,7 +23,12 @@ class SmartphoneAppTest(unittest.TestCase):
             (self.root / folder).mkdir(parents=True, exist_ok=True)
         self.bindir = self.root / 'bin'
         self.env = dict(os.environ, PATH=f'{self.bindir}:/usr/bin:/bin',
-                        APP_FIXTURE=str(self.root))
+                        APP_FIXTURE=str(self.root), APP_REAL_TAR=shutil.which('tar'))
+        self.write_mock('tar', '''
+# Match the reduced tar feature set shipped by Technicolor BusyBox.
+case "$1" in *j*) echo 'unsupported tar bzip2 option' >&2; exit 1 ;; esac
+exec "$APP_REAL_TAR" "$@"
+''')
         self.write_mock('uci', 'printf "%s\\n" "$*" >> "$APP_FIXTURE/uci.log"\n')
         self.write_mock('restart', 'echo restart >> "$APP_FIXTURE/restarts"\n[ "${FAIL_RESTART:-0}" = 0 ]\n')
         self.write_mock('opkg', '''

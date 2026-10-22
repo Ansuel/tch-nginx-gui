@@ -96,7 +96,10 @@ case "$1" in
         trap rollback EXIT
         trap 'exit 1' HUP INT TERM
         if [ -f "$archive" ]; then
-            tar -xjf "$archive" -C "$stage" || exit 1
+            # Technicolor's BusyBox tar can lack -j even when bzcat is installed.
+            bzcat "$archive" > "$stage/payload.tar" || exit 1
+            tar -xf "$stage/payload.tar" -C "$stage" || exit 1
+            rm -f "$stage/payload.tar"
         else
             tar -xzf "$backup" -C "$stage" || exit 1
         fi
