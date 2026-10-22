@@ -5,6 +5,8 @@
 [Build and release GUI](https://github.com/Ansuel/tch-nginx-gui/actions/workflows/build.yml)
 builds the GUI, verifies the archives and publishes updates through GitHub Releases.
 It uses the automatic GitHub Actions token; no additional secrets are required.
+The legacy CircleCI integration runs only the no-op job in `.circleci/config.yml`.
+All build, test and release validation remains in GitHub Actions.
 Repository rules must allow the publishing job to create releases and commit translation updates.
 
 | Branch | Channel | Publication |

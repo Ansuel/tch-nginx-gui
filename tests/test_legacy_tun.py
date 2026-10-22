@@ -454,8 +454,8 @@ uci() { case "$*" in *marketing_version*) echo "$marketing_version";; *) echo "$
                 data = b'reviewed ARM module fixture'
                 (root / 'download.ko').write_bytes(data + (b'corrupt' if corrupt else b''))
                 private = prefix.replace('374b8399951a4fa75a0b9c68b6eced9d064cc442d3150d2210d75623c275354e', hashlib.sha256(data).hexdigest())
-                for path in ('/etc/', '/lib/modules/', '/tmp/'):
-                    private = private.replace(path, str(root) + path)
+                # Rewrite once so a Linux /tmp fixture root is not rewritten again.
+                private = re.sub(r'/etc/|/lib/modules/|/tmp/', lambda match: str(root) + match[0], private)
                 script = '''
 testroot="$1"
 uname() { if [ "$1" = -m ]; then echo armv7l; else echo 4.1.52; fi; }
@@ -499,8 +499,8 @@ modgui_release_tun openvpn
                     module.write_text('user-owned module')
                 prefix_private = prefix.replace('241f06c8ba05e6779438520a345ab8fc6f7d1f34249abac77793ee26e67e5615', hashlib.sha256(data).hexdigest())
                 prefix_private = prefix_private.replace('ff673e7841df6de1dc0d3595352c17eb375480be2f93406b2aa596c8f7afa698', hashlib.sha256(downloaded).hexdigest())
-                for path in ['/etc/', '/lib/modules/', '/usr/share/modgui-vpn/', '/tmp/']:
-                    prefix_private = prefix_private.replace(path, str(root) + path)
+                prefix_private = re.sub(r'/etc/|/lib/modules/|/usr/share/modgui-vpn/|/tmp/',
+                                        lambda match: str(root) + match[0], prefix_private)
                 setup = '''
 testroot="$1"; scenario="$2"
 uname() { if [ "$1" = -m ]; then echo mips; else echo 3.4.11-rt19; fi; }

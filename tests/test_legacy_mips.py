@@ -1,5 +1,6 @@
 """USB-backed MIPS lifecycle and rollback regressions."""
 from pathlib import Path
+import re
 import subprocess
 import tempfile
 import unittest
@@ -42,9 +43,8 @@ echo "$modgui_usb_root"
                     self.assertNotEqual(result.returncode, 0)
 
     def isolated_helper(self, directory):
-        source = HELPER
-        for prefix in ['/etc/', '/usr/', '/tmp/']:
-            source = source.replace(prefix, directory + prefix)
+        # Rewrite once so a Linux /tmp fixture root is not rewritten again.
+        source = re.sub(r'/etc/|/usr/|/tmp/', lambda match: directory + match[0], HELPER)
         return source.replace('/proc/mounts', directory + '/mounts')
 
     def test_bad_archive_rolls_back_without_installing_packages_or_overwriting_data(self):
