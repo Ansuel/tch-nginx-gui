@@ -46,7 +46,7 @@ esac
 ''')
         self.archive()
         source = INSTALLER.read_text()
-        for prefix in ('/tmp/', '/opt/', '/etc/', '/usr/'):
+        for prefix in ('/tmp/', '/opt/', '/etc/', '/usr/', '/var/run/'):
             source = source.replace(prefix, str(self.root) + prefix)
         source = source.replace('"/$file"', f'"{self.root}/$file"')
         source = source.replace('-C /', '-C ' + shlex.quote(str(self.root)))
@@ -85,6 +85,10 @@ esac
         self.assertEqual(commands.splitlines(), ['update', 'install adb'])
         self.assertIn('web.smartphonemodal.target=/modals/smartphone-modal.lp',
                       (self.root / 'uci.log').read_text())
+        self.assertIn('web.smartphonescreen.target=/modals/smartphone-screen.lp',
+                      (self.root / 'uci.log').read_text())
+        self.assertIn('add_list web.smartphonescreen.roles=admin', (self.root / 'uci.log').read_text())
+        self.assertNotIn('web.smartphonescreen.roles=guest', (self.root / 'uci.log').read_text())
         # Use a harmless runtime mock: remove never reaches a phone in this test.
         (self.root / 'usr/bin/phone_stats.sh').write_text('#!/bin/sh\necho VPN_SHARE\\|Inattiva\n')
         self.assert_ok(self.run_app('remove'))

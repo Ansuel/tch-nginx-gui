@@ -43,6 +43,16 @@ elif args == ['shell', 'cat', '/proc/meminfo']:
     print('MemTotal: 4096000 kB\\nMemAvailable: 2048000 kB')
 elif args == ['shell', 'cat', '/proc/loadavg']:
     print('0.1 0.2 0.3 1/100 100')
+elif len(args) == 2 and args[1].startswith('command -v screencap'):
+    print('TCH_STATUS|' + ('1' if os.environ.get('NO_SCREEN') else '0'))
+elif len(args) == 2 and args[1].startswith('umask 077; screencap -p '):
+    status = '1' if os.environ.get('FAIL_CAPTURE') else '0'
+    (root / 'remote.png').write_bytes(b'not a PNG' if os.environ.get('BAD_SCREEN') else bytes.fromhex('89504e470d0a1a0a') + b'fixture')
+    print('TCH_STATUS|' + status)
+elif args[:1] == ['pull']:
+    pathlib.Path(args[2]).write_bytes((root / 'remote.png').read_bytes())
+elif len(args) == 2 and args[1].startswith('input keyevent '):
+    print('TCH_STATUS|0')
 elif len(args) == 2 and args[1].startswith("su -c '"):
     command = args[1][7:].split("'; printf", 1)[0]
     if os.environ.get('DENY_ROOT'):
@@ -99,6 +109,8 @@ elif args[:2] == ['route', 'add']:
 elif args[:2] == ['route', 'flush']:
     if route.exists(): route.unlink()
 ''')
+        self.write('chown', '#!/bin/sh\nexit 0\n')
+        self.write('od', '#!/bin/sh\nexit 127\n')  # Not available on the test modem.
 
     def write(self, name, content):
         path = self.directory / name
@@ -106,7 +118,12 @@ elif args[:2] == ['route', 'flush']:
         path.chmod(0o755)
 
     def run_phone(self, action='get_stats', **env):
-        return subprocess.run([str(SCRIPT), action], env={**self.env, **env},
+        script = SCRIPT
+        if action == 'capture_screen':
+            script = self.directory / 'phone_stats.sh'
+            script.write_text(SCRIPT.read_text().replace('/var/run/modgui-smartphone-screen', str(self.directory / 'screen')))
+            script.chmod(0o755)
+        return subprocess.run([str(script), action], env={**self.env, **env},
                               capture_output=True, text=True, timeout=15)
 
     def firewall(self):
@@ -122,6 +139,38 @@ elif args[:2] == ['route', 'flush']:
 
     def test_connected_nr_is_5g(self):
         self.assertIn('NET|5G (NSA)', self.run_phone(NR_STATE='CONNECTED').stdout)
+
+    def test_non_root_capabilities_hide_privileged_features(self):
+        result = self.run_phone(DENY_ROOT='1')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('ROOT_ACCESS|0', result.stdout)
+        self.assertIn('TAILSCALE_CLI|0', result.stdout)
+        self.assertIn('SCREEN_CAPTURE|1', result.stdout)
+
+    def test_display_controls_use_explicit_wake_and_sleep_keys(self):
+        for action, key in [('screen_wake', '224'), ('screen_sleep', '223')]:
+            self.assertEqual(self.run_phone(action, DENY_ROOT='1').returncode, 0)
+            self.assertIn('input keyevent ' + key, (self.directory / 'adb.log').read_text())
+
+    def test_screen_capture_works_without_root_and_uses_private_permissions(self):
+        result = self.run_phone('capture_screen', DENY_ROOT='1')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        frame = self.directory / 'screen/frame.png'
+        self.assertEqual(frame.read_bytes()[:8], bytes.fromhex('89504e470d0a1a0a'))
+        self.assertEqual(frame.stat().st_mode & 0o777, 0o640)
+        self.assertFalse(list((self.directory / 'screen').glob('.capture.*')))
+        self.assertIn('rm', (self.directory / 'adb.log').read_text())
+
+    def test_invalid_or_failed_capture_does_not_replace_the_previous_frame(self):
+        directory = self.directory / 'screen'
+        directory.mkdir()
+        frame = directory / 'frame.png'
+        frame.write_bytes(b'previous frame')
+        for flag in ('BAD_SCREEN', 'FAIL_CAPTURE'):
+            result = self.run_phone('capture_screen', **{flag: '1'})
+            self.assertNotEqual(result.returncode, 0)
+            self.assertEqual(frame.read_bytes(), b'previous frame')
+            self.assertFalse(list(directory.glob('.capture.*')))
 
     def test_tether_address_without_carrier_is_not_reported_active(self):
         result = self.run_phone(TETHER_DOWN='1')

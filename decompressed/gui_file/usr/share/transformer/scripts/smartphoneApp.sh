@@ -6,7 +6,7 @@ owned=/etc/.modgui-smartphone-installed
 adb_owned=/etc/.modgui-smartphone-adb-owned
 archive_hash=/etc/.modgui-smartphone-archive-sha256
 stage=/tmp/modgui-smartphone.$$
-files="usr/bin/phone_stats.sh usr/share/transformer/mappings/rpc/smartphone.map www/docroot/modals/smartphone-modal.lp www/cards/017_smartphone.lp"
+files="usr/bin/phone_stats.sh usr/share/transformer/mappings/rpc/smartphone.map www/docroot/modals/smartphone-modal.lp www/docroot/modals/smartphone-screen.lp www/cards/017_smartphone.lp"
 
 set_state() {
     uci set "modgui.app.smartphone_app=$1" && uci commit modgui
@@ -17,6 +17,13 @@ register_gui() {
     uci set web.smartphonemodal=rule || return 1
     uci set web.smartphonemodal.target=/modals/smartphone-modal.lp || return 1
     uci -q delete web.smartphonemodal.roles
+    uci set web.smartphonescreen=rule || return 1
+    uci set web.smartphonescreen.target=/modals/smartphone-screen.lp || return 1
+    uci -q delete web.smartphonescreen.roles
+    uci -q del_list web.ruleset_main.rules=smartphonescreen
+    uci add_list web.smartphonescreen.roles=admin &&
+    uci add_list web.smartphonescreen.roles=engineer &&
+    uci add_list web.ruleset_main.rules=smartphonescreen &&
     uci add_list web.smartphonemodal.roles=admin &&
     uci add_list web.smartphonemodal.roles=engineer &&
     uci add_list web.ruleset_main.rules=smartphonemodal &&
@@ -29,12 +36,15 @@ register_gui() {
 unregister_gui() {
     uci -q delete web.smartphone_card
     uci -q delete web.smartphonemodal
+    uci -q delete web.smartphonescreen
+    uci -q del_list web.ruleset_main.rules=smartphonescreen
     uci -q del_list web.ruleset_main.rules=smartphonemodal
     uci commit web
 }
 
 remove_files() {
     for file in $files; do rm -f "/$file"; done
+    rm -rf /var/run/modgui-smartphone-screen
 }
 
 ensure_adb() {

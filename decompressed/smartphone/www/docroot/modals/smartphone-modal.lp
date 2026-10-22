@@ -35,7 +35,7 @@ if ngx.req.get_method() == "POST" then
         local text, err = read_phone("peers")
         response = { status = err and "error" or "ok", message = text or err }
     else
-        local allowed = { screen = true, reboot = true, reconnect_data = true,
+        local allowed = { screen_wake = true, screen_sleep = true, capture_screen = true, reboot = true, reconnect_data = true,
             data_on = true, data_off = true, start_vpn = true, stop_vpn = true }
         if type(action) ~= "string" or not allowed[action] then
             ngx.status = ngx.HTTP_BAD_REQUEST
@@ -43,7 +43,16 @@ if ngx.req.get_method() == "POST" then
         else
             local ok, errors = proxy.set("rpc.smartphone.action", action)
             response.status = ok and "ok" or "error"
-            response.message = ok and "Comando completato." or "Comando fallito: verificare ADB, autorizzazione USB e permessi root Android."
+            local messages = {
+                screen_wake = "Comando di accensione del display inviato. Il telefono resta bloccato se era bloccato.",
+                screen_sleep = "Comando di spegnimento del display inviato.",
+                capture_screen = "Immagine acquisita.",
+                reboot = "Riavvio del telefono richiesto.",
+            }
+            response.message = ok and (messages[action] or "Comando completato.") or "Comando non riuscito: verificare telefono e collegamento USB."
+            if not ok and type(errors) == "table" and errors[1] and errors[1].errmsg then
+                response.message = string.untaint(errors[1].errmsg)
+            end
             if not ok then ngx.status = ngx.HTTP_BAD_REQUEST end
         end
     end
@@ -82,7 +91,7 @@ end
     ngx.print('<fieldset><legend>Sistema e Tethering</legend>')
     ngx.print(ui_helper.createLabel("Stato USB:", '<span id="live_usb">'..(d.USB_STATE or "N/A")..'</span>', lbl))
     ngx.print(ui_helper.createLabel("Tethering:", '<span id="live_tether">'..(d.TETHER or "N/A")..'</span>', lbl))
-    ngx.print(ui_helper.createLabel("VPN Condivisa:", '<strong><span id="live_vpn_share" style="color:#2cdb46;">'..(d.VPN_SHARE or "N/A")..'</span></strong>', lbl))
+    if d.ROOT_ACCESS == "1" then ngx.print(ui_helper.createLabel("VPN Condivisa:", '<strong><span id="live_vpn_share" style="color:#2cdb46;">'..(d.VPN_SHARE or "N/A")..'</span></strong>', lbl)) end
     ngx.print(ui_helper.createLabel("Carico CPU:", '<span id="live_load">'..(d.LOAD or "N/A")..'</span>', lbl))
     ngx.print(ui_helper.createLabel("Memoria RAM:", '<span id="live_mem">'..(d.MEM or "N/A")..'</span>', lbl))
     ngx.print('</fieldset>')
@@ -106,12 +115,25 @@ end
     ngx.print('</fieldset>')
 
     ngx.print('<div style="text-align:center; margin:15px 0;">')
-    ngx.print('<button type="button" class="btn" onclick="sendAdb(\'screen\')"><i class="icon-eye-open"></i> Schermo</button> &nbsp; ')
-    ngx.print('<button type="button" class="btn btn-warning" onclick="sendAdb(\'reconnect_data\')"><i class="icon-refresh"></i> Riavvia Dati</button> &nbsp; ')
-    ngx.print('<button type="button" class="btn btn-success" id="btn_vpn" onclick="toggleVpn()"><i class="icon-lock"></i> Condividi VPN</button> &nbsp;')
-    ngx.print('<button type="button" class="btn btn-info" onclick="getPeers()"><i class="icon-list"></i> Rete VPN</button> &nbsp;')
-    ngx.print('<button type="button" class="btn btn-danger" onclick="sendAdb(\'reboot\')"><i class="icon-off"></i> Riavvia Tel</button>')
-    ngx.print('</div></form></div>')
+    ngx.print('<button type="button" class="btn" onclick="sendAdb(\'screen_wake\')">Accendi display</button> ')
+    ngx.print('<button type="button" class="btn" onclick="sendAdb(\'screen_sleep\')">Spegni display</button> ')
+    if d.SCREEN_CAPTURE == "1" then
+        ngx.print('<button type="button" class="btn btn-info" id="btn_screen_capture" onclick="capturePhoneScreen()">Mostra schermo</button> ')
+    end
+    if d.ROOT_ACCESS == "1" then
+        ngx.print('<button type="button" class="btn btn-warning phone-root-control" onclick="sendAdb(\'reconnect_data\')">Riavvia dati</button> ')
+        ngx.print('<button type="button" class="btn btn-success phone-root-control" id="btn_vpn" onclick="toggleVpn()">Condividi VPN</button> ')
+        if d.TAILSCALE_CLI == "1" then
+            ngx.print('<button type="button" class="btn btn-info phone-root-control phone-tailscale-control" onclick="getPeers()">Rete VPN</button> ')
+        end
+    end
+    ngx.print('<button type="button" class="btn btn-danger" onclick="sendAdb(\'reboot\')">Riavvia telefono</button>')
+    ngx.print('</div>')
+    ngx.print('<fieldset id="phone-screen-panel" style="display:none"><legend>Schermo del telefono</legend>')
+    ngx.print('<p>Immagine statica: premi Aggiorna immagine per acquisire lo schermo attuale. Per vederlo acceso usa Accendi display; lo sblocco resta sul telefono.</p>')
+    ngx.print('<button type="button" class="btn" onclick="capturePhoneScreen()">Aggiorna immagine</button> <span id="phone-screen-status"></span>')
+    ngx.print('<div><img id="phone-screen-image" alt="Cattura dello schermo del telefono" style="display:none;max-width:100%;max-height:650px;margin:10px auto"></div></fieldset>')
+    ngx.print('</form></div>')
 
     ngx.print(ui_helper.createFooter())
 
@@ -161,12 +183,31 @@ end
     });
   }
 
+  function capturePhoneScreen(){
+    $("#phone-screen-panel").show();
+    $("#phone-screen-status").text("Acquisizione in corso...");
+    $("#btn_screen_capture").prop("disabled", true);
+    postSmartphone("capture_screen", function(res){
+      $("#btn_screen_capture").prop("disabled", false);
+      if (!res || res.status !== "ok") {
+        $("#phone-screen-status").text((res && res.message) || "Impossibile acquisire lo schermo.");
+        return;
+      }
+      $("#phone-screen-image").one("load", function(){
+        $(this).show();
+        $("#phone-screen-status").text("Ultima cattura: " + new Date().toLocaleTimeString());
+      }).one("error", function(){
+        $("#phone-screen-status").text("Impossibile caricare l'immagine.");
+      }).attr("src", "/modals/smartphone-screen.lp?t=" + Date.now());
+    });
+  }
+
   function sendAdb(c){
     if(c=="reboot" && !confirm("Vuoi riavviare completamente lo smartphone?")) return;
     if(c=="reconnect_data" && !confirm("Disconnettere e riconnettere la linea dati del telefono?")) return;
     postSmartphone(c, function(res){
         if(res && res.message) alert(res.message);
-        else alert("Comando eseguito ma nessuna risposta dal telefono.");
+        else alert("Il telefono non ha confermato il comando.");
     });
   }
 
@@ -199,6 +240,9 @@ end
         var error = j.ERROR || (j.status === "error" && j.message);
         $("#phone-error").text(error || "").toggle(!!error);
         $("#live_data").text(j.DATA_ST === "1" ? "Attivi" : "Inattivi");
+        $(".phone-root-control").toggle(j.ROOT_ACCESS === "1");
+        $(".phone-tailscale-control").toggle(j.ROOT_ACCESS === "1" && j.TAILSCALE_CLI === "1");
+        $("#btn_screen_capture").toggle(j.SCREEN_CAPTURE === "1");
         var val=Number(j.SIGNAL_RAW);
         if(!isNaN(val)){ if(pts.length>=30) pts.shift(); pts.push(val); }
         var res=[]; for(var i=0;i<pts.length;i++) res.push([i,pts[i]]);

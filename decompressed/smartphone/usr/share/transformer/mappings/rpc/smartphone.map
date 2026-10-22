@@ -1,12 +1,14 @@
 local function run(action)
     -- Only constants from the allowlist reach the shell, never web input.
     local allowed = {
-        get_stats = true, get_peers = true, screen = true, reboot = true,
+        get_stats = true, get_peers = true, screen_wake = true, screen_sleep = true,
+        capture_screen = true, reboot = true,
         reconnect_data = true, data_on = true, data_off = true,
         start_vpn = true, stop_vpn = true,
     }
     if not allowed[action] then return nil, "Unsupported smartphone action" end
-    local pipe = io.popen("timeout 18 /usr/bin/phone_stats.sh " .. action ..
+    local deadline = action == "capture_screen" and "22" or "18"
+    local pipe = io.popen("timeout " .. deadline .. " /usr/bin/phone_stats.sh " .. action ..
         " 2>/dev/null; printf '\\nEXIT_STATUS|%s\\n' \"$?\"")
     if not pipe then return nil, "Unable to start smartphone helper" end
     local output = pipe:read("*a")

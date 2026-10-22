@@ -16,9 +16,35 @@ android_shell() {
     printf '%s\n' "$shell_output" | sed '$d'
 }
 android_root() { android_shell "su -c '$1'" "${2:-2}"; }
+has_root() { [ "$(android_root "id -u" 2>/dev/null | tr -d '\r')" = 0 ]; }
+
+capture_screen() {
+    screen_dir=/var/run/modgui-smartphone-screen
+    remote_image=/data/local/tmp/tch-screen-$$.png
+    # Only nginx's group can read the frame, through the authenticated image page.
+    (umask 027; mkdir -p "$screen_dir") || error "Unable to prepare screen capture."
+    chown root:nogroup "$screen_dir" && chmod 750 "$screen_dir" || error "Unable to protect screen capture."
+    screen_tmp=$(mktemp "$screen_dir/.capture.XXXXXX") || error "Unable to prepare screen capture."
+    cleanup_screen() {
+        adb shell rm -f "$remote_image" >/dev/null 2>&1
+        rm -f "$screen_tmp"
+    }
+    trap cleanup_screen EXIT
+    trap 'exit 1' HUP INT TERM
+    android_shell "umask 077; screencap -p $remote_image" 5 >/dev/null 2>&1 || error "Unable to capture the display. Wake the phone and try again."
+    timeout 8 "$ADB_BIN" pull "$remote_image" "$screen_tmp" >/dev/null 2>&1 || error "Unable to transfer the screen capture."
+    signature=$(head -c 8 "$screen_tmp" | base64 | tr -d '\r\n')
+    size=$(wc -c < "$screen_tmp")
+    [ "$signature" = iVBORw0KGgo= ] && [ "$size" -le 8388608 ] || error "Invalid or oversized screen capture."
+    chown root:nogroup "$screen_tmp" && chmod 640 "$screen_tmp" || error "Unable to protect screen capture."
+    mv -f "$screen_tmp" "$screen_dir/frame.png" || error "Unable to publish screen capture."
+    echo "SUCCESS|Screen captured."
+}
 
 case "$CMD" in
-    screen) android_shell "input keyevent 26" >/dev/null 2>&1 || error "Screen command failed."; exit 0 ;;
+    screen_wake) android_shell "input keyevent 224" >/dev/null 2>&1 || error "Unable to wake the display."; exit 0 ;;
+    screen_sleep) android_shell "input keyevent 223" >/dev/null 2>&1 || error "Unable to turn off the display."; exit 0 ;;
+    capture_screen) capture_screen; exit 0 ;;
     reboot) adb reboot >/dev/null 2>&1 || error "Reboot command failed."; exit 0 ;;
     reconnect_data|data_on|data_off)
         case "$CMD" in
@@ -29,7 +55,7 @@ case "$CMD" in
         android_root "$action" >/dev/null 2>&1 || error "Mobile data control requires Android root authorization."
         exit 0 ;;
     start_vpn|stop_vpn)
-        [ "$(android_root "id -u" 2>/dev/null | tr -d '\r')" = 0 ] || error "VPN sharing requires Android root authorization."
+        has_root || error "VPN sharing requires Android root authorization."
         T=""; V=""
         if [ "$CMD" = start_vpn ]; then
             T=$(adb shell ip -4 route | awk '/dev (rndis|usb|ncm)/ {for(i=1;i<=NF;i++) if($i=="dev") {print $(i+1); exit}}' | tr -d '\r')
@@ -186,7 +212,16 @@ if [ -n "$TETHER_IFACE" ]; then
 else TETHER_STATUS="Inattivo"; fi
 
 V_CHECK=$(adb shell ip link 2>/dev/null | grep -iE "tun|tailscale")
-RULE_CHECK=$(android_root "ip rule" 2>/dev/null | grep "29999:")
+ROOT_ACCESS=0
+TAILSCALE_CLI=0
+RULE_CHECK=""
+if has_root; then
+    ROOT_ACCESS=1
+    RULE_CHECK=$(android_root "ip rule" 2>/dev/null | grep "29999:")
+    android_root "test -x /data/data/com.tailscale.ipn/files/tailscale" >/dev/null 2>&1 && TAILSCALE_CLI=1
+fi
+SCREEN_CAPTURE=0
+command -v base64 >/dev/null 2>&1 && android_shell "command -v screencap >/dev/null" >/dev/null 2>&1 && SCREEN_CAPTURE=1
 if [ -n "$V_CHECK" ] && echo "$RULE_CHECK" | grep -q "29999:"; then VPN_SHARE="Attiva"; else VPN_SHARE="Inattiva"; fi
 
 # Gateway Route Analysis
@@ -225,3 +260,6 @@ echo "TETHER|$TETHER_STATUS"
 echo "VPN_SHARE|$VPN_SHARE"
 echo "LED_LOG|$LED_LOG"
 echo "ACTIVE_WAN|$ACTIVE_WAN"
+echo "ROOT_ACCESS|$ROOT_ACCESS"
+echo "TAILSCALE_CLI|$TAILSCALE_CLI"
+echo "SCREEN_CAPTURE|$SCREEN_CAPTURE"

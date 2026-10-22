@@ -26,7 +26,9 @@ by the nginx worker; do not make USB device nodes world-writable.
 
 Battery and radio telemetry do not require Android root. Mobile data commands,
 VPN sharing and the optional Tailscale CLI status require root authorization on
-the phone. Sharing also requires a kernel tunnel (`tun*` or `tailscale*`), Android
+the phone. Their controls are omitted when the phone does not grant root;
+Tailscale peer controls also require the Tailscale CLI to exist on the phone.
+Sharing also requires a kernel tunnel (`tun*` or `tailscale*`), Android
 iptables support and an active USB tether interface. A userspace-only VPN without
 such an interface cannot be shared by this feature. The VPN controls configure
 IPv4 forwarding only; they do not provide an IPv6 kill switch or DNS leak protection.
@@ -38,6 +40,19 @@ rolls it back. Unrelated Android firewall chains and VPN-provider rules are reta
 Router broadband LEDs remain managed by the router's normal LED service. Android
 command outcomes are checked with an explicit remote status marker, including
 with older ADB 1.0.32 builds that do not propagate remote shell exit codes.
+
+The display controls are explicit: **Accendi display** sends Android keycode 224
+(WAKEUP) and **Spegni display** sends keycode 223 (SLEEP). They do not unlock the
+phone. The former ambiguous power-toggle button (keycode 26) is no longer used.
+
+**Mostra schermo** captures a PNG through ADB without root and shows it in the
+router interface. **Aggiorna immagine** requests another snapshot; this is not a
+video stream or remote touch control. Capture uses `screencap` and `adb pull`, so
+it also works with ADB 1.0.32. Android may blank protected app content. The frame
+is served only through the app's authenticated image endpoint, with no browser
+caching, and the temporary copy on the phone is removed after transfer. The
+router keeps the most recent frame in a directory readable only by root and
+nginx's group; removing the app deletes it.
 
 The Voice section includes an Advanced tab. Settings use the normal validated
 Transformer save/apply flow. Ports and services unavailable in the current
