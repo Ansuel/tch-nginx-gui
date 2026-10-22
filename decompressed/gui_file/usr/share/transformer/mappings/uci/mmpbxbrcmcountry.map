@@ -10,6 +10,9 @@ local mmbrcmglobalprovisionmap = {
   section   = "global_provision",
   type = "mmbrcmglobalprovisionmap",
   options = {
+    "voice_jitter_buff_fixed",
+    "ring_voltage",
+    "powerring_frequency",
     "min_connect_time",
     "min_disconnect_time",
     "min_hookflash_time",

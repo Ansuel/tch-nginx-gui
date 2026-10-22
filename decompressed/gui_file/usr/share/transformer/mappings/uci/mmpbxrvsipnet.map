@@ -17,6 +17,13 @@ local mmpbxrvsipnet_network = {
   config = config_mmpbxrvsipnet,
   type = "network",
   options = {
+    "nat_keepalive_method",
+    "nat_keepalive_interval",
+    "stun_enabled",
+    "stun_server",
+    "stun_port",
+    "sip_over_ipv6",
+    "user_agent",
     "user_friendly_name",
     "cac",
     "transparent_soc_transmission",

@@ -73,6 +73,13 @@ local mmpbx_scc = {
 }
 mapper("uci_1to1").registerNamedMultiMap(mmpbx_scc)
 
+-- uci.mmpbx.areacode_translation
+mapper("uci_1to1").registerNamedMultiMap({
+  config = config_mmpbx,
+  type = "areacode_translation",
+  options = { "areacode", "show" },
+})
+
 --uci.mmpbx.scc_entry
 local mmpbx_scc_entry = {
   config = config_mmpbx,
