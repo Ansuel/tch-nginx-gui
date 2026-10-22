@@ -49,7 +49,7 @@ end
 
 local smartphone = require("web.smartphone-tether").get_status(ngx.ctx.session)
 if smartphone.visible and (not devices or devices == 0) then
-    no_device = T"0 mobile modems connected"
+    no_device = T"Mobile modems: 0"
 end
 local data = {
     smartphone_visible = smartphone.visible,

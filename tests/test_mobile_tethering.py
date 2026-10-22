@@ -80,7 +80,7 @@ package.preload.dkjson = function() return {encode=function(data)
     result=data; return true
 end} end
 utils.sendResponse=function()
-    assert(result.no_device == (mode == 'active' and '0 mobile modems connected' or '0 device connected'))
+    assert(result.no_device == (mode == 'active' and 'Mobile modems: 0' or '0 device connected'))
     assert(result.redirect_sim == 'false')
     assert(result.smartphone_visible == (mode == 'active'))
     assert(result.smartphone_status == (mode == 'active' and 'Active (usb7)' or ''))

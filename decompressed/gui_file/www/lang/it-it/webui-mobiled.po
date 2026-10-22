@@ -973,5 +973,5 @@ msgstr "Non configurato"
 msgid "Status unavailable"
 msgstr "Stato non disponibile"
 
-msgid "0 mobile modems connected"
-msgstr "0 modem cellulari collegati"
+msgid "Mobile modems: 0"
+msgstr "Modem cellulari: 0"
