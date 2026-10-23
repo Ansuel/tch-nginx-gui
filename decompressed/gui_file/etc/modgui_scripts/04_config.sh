@@ -174,7 +174,7 @@ create_gui_type() {
        [ ! -f /www/cards/017_smartphone.lp ] ||
        { [ -n "$smartphone_archive_hash" ] && [ "$smartphone_archive_hash" != "$smartphone_installed_hash" ]; }; then
       logecho "Restoring Smartphone app after GUI upgrade..."
-      /usr/share/transformer/scripts/smartphoneApp.sh refresh >/dev/null 2>&1 || logecho "Smartphone app refresh failed"
+      /usr/share/transformer/scripts/appInstallRemoveUtility.sh refresh smartphone >/dev/null 2>&1 || logecho "Smartphone app refresh failed"
     fi
   else
     uci set modgui.app.smartphone_app="0"

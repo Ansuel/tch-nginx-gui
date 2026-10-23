@@ -11,6 +11,11 @@ when the app is installed. App removal unregisters the card and page. A GUI upgr
 refreshes an installed app when its bundled archive changes, with a local backup
 for recovery.
 
+Installation, removal and refresh use `app_smartphone()` in the existing
+`appInstallRemoveUtility.sh`, just like the other extensions. The GUI upgrade
+hook calls `appInstallRemoveUtility.sh refresh smartphone`; no separate
+Smartphone installer script or installer bundle is required.
+
 Enable USB debugging on Android,
 connect the phone by USB and authorize the router's ADB key on the phone. USB
 tethering itself must also be enabled on Android and supported by the router's

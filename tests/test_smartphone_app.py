@@ -11,7 +11,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 GUI = ROOT / 'decompressed/gui_file'
 APP = ROOT / 'decompressed/smartphone'
-INSTALLER = GUI / 'usr/share/transformer/scripts/smartphoneApp.sh'
+INSTALLER = GUI / 'usr/share/transformer/scripts/appInstallRemoveUtility.sh'
 
 
 class SmartphoneAppTest(unittest.TestCase):
@@ -70,7 +70,7 @@ esac
                     archive.add(file, arcname=relative)
 
     def run_app(self, action, **env):
-        return subprocess.run(['sh', str(self.script), action], capture_output=True,
+        return subprocess.run(['sh', str(self.script), action, 'smartphone'], capture_output=True,
                               text=True, env={**self.env, **env}, timeout=10)
 
     def assert_ok(self, result):
@@ -144,6 +144,23 @@ esac
         self.assertFalse((self.root / 'usr/bin/phone_stats.sh').exists())
         self.assertFalse((self.bindir / 'adb').exists())
         self.assertIn('remove adb', (self.root / 'opkg.log').read_text())
+
+    def test_gui_upgrade_uses_the_shared_manager_to_restore_smartphone(self):
+        self.assertFalse((GUI / 'usr/share/transformer/scripts/smartphoneApp.sh').exists())
+        self.assert_ok(self.run_app('install'))
+        radio = self.root / 'usr/share/modgui-smartphone/radio.awk'
+        radio.unlink()
+        source = (GUI / 'etc/modgui_scripts/04_config.sh').read_text()
+        start = source.index('  if [ -f /etc/.modgui-smartphone-installed ]; then')
+        block = source[start:source.index('  # Reconcile stale flags', start)]
+        for prefix in ('/tmp/', '/opt/', '/etc/', '/usr/', '/www/'):
+            block = block.replace(prefix, str(self.root) + prefix)
+        manager = str(self.root / 'usr/share/transformer/scripts/appInstallRemoveUtility.sh')
+        block = block.replace(manager, 'sh ' + shlex.quote(str(self.script)))
+        result = subprocess.run(['sh', '-c', 'logecho() { :; }\n' + block],
+                                env=self.env, capture_output=True, text=True, timeout=10)
+        self.assert_ok(result)
+        self.assertTrue(radio.is_file())
 
     def test_core_voice_access_is_added_to_existing_gui_configuration(self):
         source = (GUI / 'etc/modgui_scripts/04_config.sh').read_text()
