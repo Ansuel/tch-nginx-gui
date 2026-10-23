@@ -1,2 +1,2 @@
-^cwmpd /etc/init.d/cwmpd reload
+^cwmpd /usr/share/transformer/scripts/ispConfigHelper.sh cwmp
 

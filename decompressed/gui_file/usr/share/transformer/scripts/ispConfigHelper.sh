@@ -37,13 +37,18 @@ purge_telemetry() { #disable TIM telemetry services
     /etc/init.d/bulkdata disable
   fi
 
-  #nanocdn/mabr is the TIMVision TV cache, keep it when IPTV is configured
-  if [ -f /etc/init.d/nanocdn ] && [ -e /etc/rc.d/S99nanocdn ]; then
-    if ! uci -q show network 2>/dev/null | grep -q "iptv"; then
-      logecho "Disabling nanocdn (no IPTV configured)..."
-      /etc/init.d/nanocdn stop
-      /etc/init.d/nanocdn disable
-    fi
+  # Disable the TIMVision nanoCDN cache by default; stock IPTV interfaces
+  # do not imply it is in use. The UCI flag also gates LAN-triggered starts
+  # and the statistics poller in rc.local, independently of the boot symlink.
+  if [ -n "$(uci -q get system.mabr)" ] && [ "$(uci -q get system.mabr.enabled)" != "0" ]; then
+    logecho "Disabling mABR..."
+    uci set system.mabr.enabled='0'
+    uci commit system
+  fi
+  if [ -f /etc/init.d/nanocdn ]; then
+    logecho "Stopping and disabling nanocdn..."
+    /etc/init.d/nanocdn stop
+    /etc/init.d/nanocdn disable
   fi
 }
 
@@ -358,12 +363,101 @@ isp_helper() {
   fi
 }
 
+apply_cwmp_service() {
+  # Apply the GUI state to the service as well as the protocol configuration.
+  case "$(uci -q get cwmpd.cwmpd_config.state)" in
+    0)
+      /etc/init.d/cwmpd disable || exit 1
+      /etc/init.d/cwmpd stop
+      ;;
+    1)
+      /etc/init.d/cwmpd enable || exit 1
+      # Older rc.common scripts may not implement the procd 'running' command.
+      if pidof cwmpd >/dev/null 2>&1 || /etc/init.d/cwmpd running >/dev/null 2>&1; then
+        /etc/init.d/cwmpd reload
+      else
+        /etc/init.d/cwmpd start
+      fi
+      ;;
+    *)
+      echo "Invalid CWMP state" >&2
+      exit 1
+      ;;
+  esac
+}
+
+apply_samba_service() {
+  action="${1:-reload}"
+  case "$action" in reload | restart) ;; *) exit 1 ;; esac
+
+  # Only NQE uses this lifecycle policy. Older firmware has native Samba
+  # scripts whose reload/restart behavior must be preserved.
+  nqe=0
+  if [ -x /etc/init.d/nqe ]; then
+    case "$(readlink /etc/init.d/samba 2>/dev/null)" in
+      /etc/init.d/nqe | ../init.d/nqe | nqe) nqe=1 ;;
+    esac
+  fi
+
+  if [ "$nqe" = 1 ]; then
+    filesharing="$(uci -q get samba.samba.filesharing)"
+    printersharing="$(uci -q get printersharing.config.enabled)"
+    printershare="$(uci -q get samba.printers.enabled)"
+    enabled="$(uci -q get samba.samba.enabled)"
+    needed=""
+    case "$filesharing:$printersharing:$printershare" in
+      1:* | 0:1:1 | 0:1:) needed=1 ;;
+      0:0:* | 0:*:0) needed=0 ;;
+    esac
+
+    # Fall back to the firmware implementation for unknown configuration
+    # layouts. Do not invent missing UCI options on older firmware.
+    case "$enabled:$needed" in
+      0:0 | 0:1 | 1:0 | 1:1)
+        if [ "$enabled" != "$needed" ]; then
+          uci set samba.samba.enabled="$needed" || exit 1
+          uci commit samba || exit 1
+        fi
+
+        # Boot starts 'nqe', whereas older GUI applies may have started the
+        # same binaries as 'samba'. Clear the alias instance and boot links.
+        /etc/init.d/samba disable || exit 1
+        /etc/init.d/samba stop || exit 1
+        if [ "$needed" = 0 ]; then
+          /etc/init.d/nqe disable || exit 1
+          /etc/init.d/nqe stop
+        else
+          /etc/init.d/nqe enable || exit 1
+          # NQE's reload signals the hardcoded 'samba' procd instance;
+          # restart the canonical service to apply all settings reliably.
+          /etc/init.d/nqe restart
+        fi
+        exit $?
+        ;;
+    esac
+  fi
+
+  if [ -x /etc/init.d/samba ]; then
+    /etc/init.d/samba "$action" || exit 1
+  fi
+  if [ "$action" = reload ] && [ -x /etc/init.d/samba-nmbd ]; then
+    /etc/init.d/samba-nmbd reload
+  fi
+  exit 0
+}
+
 case "$1" in
+cwmp)
+  apply_cwmp_service
+  ;;
+samba)
+  apply_samba_service "$2"
+  ;;
 refresh | setup | force)
   isp_helper "$1" "$2"
   ;;
 *)
-  echo "usage: refresh, force or setup ISP_NAME" 1>&2
+  echo "usage: refresh, force, setup ISP_NAME, cwmp or samba [reload|restart]" 1>&2
   return 1
   ;;
 esac

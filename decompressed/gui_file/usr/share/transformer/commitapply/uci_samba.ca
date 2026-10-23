@@ -1,3 +1,3 @@
-^samba /etc/init.d/samba reload; /etc/init.d/samba-nmbd reload
-^samba%.samba%.samba%.filesharing$ /etc/init.d/samba restart
-^samba%.sambashare%.printers%.enabled /etc/init.d/samba restart
+^samba /usr/share/transformer/scripts/ispConfigHelper.sh samba reload
+^samba%.samba%.samba%.filesharing$ /usr/share/transformer/scripts/ispConfigHelper.sh samba restart
+^samba%.sambashare%.printers%.enabled /usr/share/transformer/scripts/ispConfigHelper.sh samba restart
