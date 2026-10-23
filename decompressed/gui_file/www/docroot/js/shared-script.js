@@ -62,7 +62,17 @@ var modgui = modgui || {};
         function abort() {
             if (request) request.abort();
         }
-        var AjaxRefresh = typeof CustomRefreshFunction === "function" ? CustomRefreshFunction : function () {
+        var AjaxRefresh = typeof CustomRefreshFunction === "function" ? function (binding) {
+            if (pending) return;
+            var handle = CustomRefreshFunction(binding);
+            // Custom cards can return their jqXHR to share request ownership,
+            // overlap prevention and teardown with the default card requests.
+            if (handle && typeof handle.always === "function") {
+                pending = true;
+                request = handle;
+                handle.always(function () { pending = false; request = null; });
+            }
+        } : function () {
             if (pending) return;
             pending = true;
             var separator = ajaxLink.indexOf("?") === -1 ? "?" : "&";

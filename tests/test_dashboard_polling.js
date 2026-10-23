@@ -103,9 +103,31 @@ elements.auth = {};
 initialize('auth', 'AuthInterval');
 requests[6].reject({status: 200, responseText: '<div id="sign-me-in">login</div>'});
 assert.strictEqual(context.window.location.href, '/');
+
 tick('AuthInterval');
 requests[7].reject({status: 500, getResponseHeader: () => 'example'});
 assert(context.window.location.href.includes('/error.lp?status=500'));
 tick('AuthInterval'); requests[8].resolve(null);
 assert.strictEqual(elements.auth.bindings.value(), undefined);
+// Returned custom jqXHRs share pending/abort ownership with standard cards.
+const customRequest = binding => $.ajax({url: '/custom', type: 'POST', dataType: 'json', timeout: 8000,
+  data: [{name: 'CSRFtoken', value: 'test'}], success() {}
+}).done(data => binding.value(data.value)).fail(() => {});
+elements.customXHR = {};
+initialize('customXHR', 'CustomXHRInterval', customRequest);
+const requestCount = requests.length;
+tick('CustomXHRInterval'); tick('CustomXHRInterval');
+assert.strictEqual(requests.length, requestCount, 'custom requests must not overlap');
+requests[requestCount - 1].resolve({value: 'custom response'});
+assert.strictEqual(elements.customXHR.bindings.value(), 'custom response');
+tick('CustomXHRInterval');
+const replacedCustomRequest = requests[requests.length - 1];
+elements.customXHR = {};
+initialize('customXHR', 'CustomXHRInterval', customRequest);
+assert(replacedCustomRequest.aborted, 'replacement must abort custom requests');
+const removedCustomRequest = requests[requests.length - 1];
+delete elements.customXHR;
+tick('CustomXHRInterval');
+assert(removedCustomRequest.aborted, 'removal must abort custom requests');
+
 console.log('Dashboard polling: visibility, timeout/retry, duplicates, replacement, custom callbacks and auth/errors passed');

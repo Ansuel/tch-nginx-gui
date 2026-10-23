@@ -16,6 +16,19 @@ Installation, removal and refresh use `app_smartphone()` in the existing
 hook calls `appInstallRemoveUtility.sh refresh smartphone`; no separate
 Smartphone installer script or installer bundle is required.
 
+The dashboard card updates every 30 seconds and shows battery level/charging,
+operator, network technology and signal bars. Its status distinguishes an active
+USB tether with mobile data enabled from a connected phone with tethering or
+mobile data disabled. The signal percentage is indicative: LTE RSRP at -120 dBm
+or below maps to 0%, and -80 dBm or above maps to 100%; the measured dBm value is
+shown alongside it. Missing or invalid measurements remain unavailable.
+Polling pauses while the page is hidden and stops when the card is removed.
+The card uses the same `createSimpleLight` helper, `mobiled.css` signal bars,
+Knockout text bindings and `createAjaxUpdateCard` lifecycle as the other dashboard
+cards. Its inline refresh callback returns the request to the shared helper,
+which prevents overlapping requests and aborts them on card replacement/removal.
+There is no separate Smartphone JavaScript asset or independent polling timer.
+
 Enable USB debugging on Android,
 connect the phone by USB and authorize the router's ADB key on the phone. USB
 tethering itself must also be enabled on Android and supported by the router's
