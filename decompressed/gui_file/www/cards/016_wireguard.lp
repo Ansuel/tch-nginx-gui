@@ -45,7 +45,7 @@ local light = (enabled_on and running) and "1" or "0"
 local modal_path
 if ngx.ctx.session:hasAccess("/modals/wireguard-modal.lp") then modal_path = "/modals/wireguard-modal.lp" end
 
-ngx.print('<div class="span3"><div class="smallcard">')
+ngx.print('<div class="span3" id="wireguard-card"><div class="smallcard">')
 ngx.print(ui_helper.createCardHeader(T"WireGuard", modal_path))
 ngx.print('<div class="content card_bg" data-bg-text="&#xf084;">')
 ngx.print(
@@ -64,3 +64,26 @@ ngx.print('<p class="subinfos">')
 ngx.print(format(N("<strong>%d of %d peer</strong> active", "<strong>%d of %d peers</strong> active", peers), live, peers))
 ngx.print('</p>')
 ngx.print('</div></div></div>')
+
+if modal_path then
+ngx.print([===[
+<script>
+$(function () {
+    var element = document.getElementById("wireguard-card");
+    if (!element) return;
+    function refresh() {
+        return $.ajax({url: "/ajax/get_card.lua?modal=/modals/wireguard-modal.lp",
+            type: "GET", dataType: "html", timeout: 8000, cache: false
+        }).done(function (html) {
+            if (document.getElementById("wireguard-card") !== element) return;
+            // Keep the registered card element; discard scripts in the rendered response.
+            var content = $("<div>").append($.parseHTML(html, document, false))
+                .find("#wireguard-card > .smallcard > .content");
+            if (content.length === 1) $(element).find(".content").replaceWith(content);
+        });
+    }
+    new modgui.createAjaxUpdateCard("wireguard-card", null, "WireguardCardInterval", 30000, refresh);
+});
+</script>
+]===])
+end

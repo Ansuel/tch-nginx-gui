@@ -48,7 +48,7 @@ end
 local modal_path
 if ngx.ctx.session:hasAccess("/modals/tailscale-modal.lp") then modal_path = "/modals/tailscale-modal.lp" end
 
-ngx.print('<div class="span3"><div class="smallcard">')
+ngx.print('<div class="span3" id="tailscale-card"><div class="smallcard">')
 ngx.print(ui_helper.createCardHeader(T"Tailscale", modal_path))
 ngx.print('<div class="content card_bg" data-bg-text="&#xf0c2;">')
 ngx.print('<p class="subinfos">', T"Service", ': <strong>', content.enabled == "1" and T"Enabled" or T"Disabled", '</strong></p>')
@@ -71,3 +71,26 @@ if content.advertise_exit_node == "1" then
   ngx.print('<p class="subinfos">', T"Exit node advertised", '</p>')
 end
 ngx.print('</div></div></div>')
+
+if modal_path then
+ngx.print([===[
+<script>
+$(function () {
+    var element = document.getElementById("tailscale-card");
+    if (!element) return;
+    function refresh() {
+        return $.ajax({url: "/ajax/get_card.lua?modal=/modals/tailscale-modal.lp",
+            type: "GET", dataType: "html", timeout: 8000, cache: false
+        }).done(function (html) {
+            if (document.getElementById("tailscale-card") !== element) return;
+            // Keep the registered card element; discard scripts in the rendered response.
+            var content = $("<div>").append($.parseHTML(html, document, false))
+                .find("#tailscale-card > .smallcard > .content");
+            if (content.length === 1) $(element).find(".content").replaceWith(content);
+        });
+    }
+    new modgui.createAjaxUpdateCard("tailscale-card", null, "TailscaleCardInterval", 30000, refresh);
+});
+</script>
+]===])
+end
