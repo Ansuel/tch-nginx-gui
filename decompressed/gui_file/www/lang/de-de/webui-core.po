@@ -4370,8 +4370,8 @@ msgstr "Installiert den Rsync-Dienst. Richten Sie authentifizierte Freigaben ein
 msgid "Ookla Speedtest"
 msgstr "Ookla Speedtest"
 
-msgid "Runs an internet speed test on this ARM gateway. Start runs a new test; reopen this window to see its result."
-msgstr "Führt einen Internet-Geschwindigkeitstest auf diesem ARM-Gateway aus. Start führt einen neuen Test aus; öffnen Sie dieses Fenster erneut, um das Ergebnis zu sehen."
+msgid "Runs an internet speed test on this ARM gateway. Select Start to view live progress and results in the terminal window."
+msgstr "Führt einen Internet-Geschwindigkeitstest auf diesem ARM-Gateway aus. Start zeigt den Fortschritt und das Ergebnis im Terminalfenster an."
 
 msgid "AdGuard Home"
 msgstr "AdGuard Home"
@@ -4528,3 +4528,9 @@ msgstr "Die Verfügbarkeit von HTTPS konnte nicht geprüft werden."
 
 msgid "HTTPS is blocked by a LAN firewall rule on port 443."
 msgstr "HTTPS wird durch eine LAN-Firewallregel für Port 443 blockiert."
+
+msgid "Complete"
+msgstr "Abgeschlossen"
+
+msgid "Login Required"
+msgstr "Anmeldung erforderlich"

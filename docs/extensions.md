@@ -8,7 +8,7 @@ background, so reopen the card after an operation to refresh its state.
 | --- | --- | --- | --- |
 | Adblock | ARM and MIPS | Configured `opkg` feeds | Enabled after installation and managed by its init service. |
 | rsyncd | ARM and MIPS | Configured `opkg` feeds | No unauthenticated shares are created. Configure `/etc/rsyncd.conf` before starting it. |
-| Ookla Speedtest | ARM, ARM64 | Official Ookla archive | A run is started from the card; reopen it to display the latest result. |
+| Ookla Speedtest | ARM, ARM64 | Official Ookla archive | Start opens the terminal with live progress and the result; the latest result is also retained in the card. |
 | OpenSpeedTest | All | Pinned OpenSpeedTest archive | Browser-based LAN/Wi-Fi test on port 5678; requires about 40 MB of free persistent storage. |
 | AdGuard Home | ARM, ARM64 | Official AdGuard stable archive | Installed under `/opt/AdGuardHome`; initial setup is available on port 3000. |
 | WireGuard | ARM, ARM64 with built-in or reviewed installable TUN | Pinned `openwrt-wireguard-go` package | Installs the userspace runtime and a card to manage the tunnel interface, peers and an opt-in firewall zone; everything stays disabled until configured. |

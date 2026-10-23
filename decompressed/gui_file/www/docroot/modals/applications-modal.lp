@@ -385,6 +385,8 @@ if StateParams["speedtest_application"] ~= nil then
 	if speedtest_file then
 		speedtest_result = speedtest_file:read("*all") or ""
 		speedtest_file:close()
+		-- Keep only the latest version of lines rewritten by CLI progress.
+		speedtest_result = speedtest_result:gsub("\r\n", "\n"):gsub("[^\r\n]*\r", "")
 		if #speedtest_result > 4096 then
 			speedtest_result = speedtest_result:sub(-4096)
 		end
@@ -393,7 +395,7 @@ if StateParams["speedtest_application"] ~= nil then
 		"speedtest_application",
 		"speedtest",
 		T"Ookla Speedtest",
-		T"Runs an internet speed test on this ARM gateway. Start runs a new test; reopen this window to see its result.",
+		T"Runs an internet speed test on this ARM gateway. Select Start to view live progress and results in the terminal window.",
 		nil,
 		true,
 		speedtest_result

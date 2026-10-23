@@ -4391,8 +4391,8 @@ msgstr "Installa il servizio rsync. Configurare condivisioni autenticate prima d
 msgid "Ookla Speedtest"
 msgstr "Speedtest Ookla"
 
-msgid "Runs an internet speed test on this ARM gateway. Start runs a new test; reopen this window to see its result."
-msgstr "Esegue un test della velocità Internet su questo gateway ARM. Avvia esegue un nuovo test; riaprire questa finestra per visualizzare il risultato."
+msgid "Runs an internet speed test on this ARM gateway. Select Start to view live progress and results in the terminal window."
+msgstr "Esegue un test della velocità Internet su questo gateway ARM. Premi Avvia per seguire il test e visualizzare il risultato nella finestra del terminale."
 
 msgid "AdGuard Home"
 msgstr "AdGuard Home"
@@ -4582,3 +4582,30 @@ msgstr "Impossibile verificare la disponibilità di HTTPS."
 
 msgid "HTTPS is blocked by a LAN firewall rule on port 443."
 msgstr "HTTPS è bloccato da una regola firewall LAN sulla porta 443."
+
+msgid "Complete"
+msgstr "Completato"
+
+msgid "Login Required"
+msgstr "Accesso richiesto"
+
+msgid "Installs Android telemetry and USB tethering controls as an optional app, with ADB from the configured opkg feeds. Android USB debugging authorization is required; VPN sharing also requires Android root."
+msgstr "Installa come applicazione opzionale il monitoraggio Android e i controlli del tethering USB, con ADB dai repository opkg configurati. Richiede l’autorizzazione al debug USB su Android; la condivisione della VPN richiede anche i permessi di root sul telefono."
+
+msgid "Installs a pinned official Tailscale runtime and a management card. The daemon, routes, exit-node mode and firewall access remain disabled until configured."
+msgstr "Installa una versione ufficiale predefinita di Tailscale e una scheda di gestione. Il servizio, le rotte, la modalità exit node e l’accesso dal firewall restano disabilitati fino alla configurazione."
+
+msgid "Installs the pinned DumaOS UI and QoS stack for supported ARMv7 Technicolor gateways. The required ubus ABI is activated transactionally with a verified stock backup and automatic rollback."
+msgstr "Installa l’interfaccia DumaOS e il sistema QoS in una versione predefinita per i gateway Technicolor ARMv7 supportati. L’ABI ubus richiesta viene attivata con un backup verificato della versione originale e ripristino automatico in caso di errore."
+
+msgid "Voipblock for mmpbx"
+msgstr "Voipblock per MMPBX"
+
+msgid "This will install Voipblock for mmpbx"
+msgstr "Installa Voipblock per MMPBX."
+
+msgid "Voipblock for asterisk"
+msgstr "Voipblock per Asterisk"
+
+msgid "This will install Voipblock for asterisk"
+msgstr "Installa Voipblock per Asterisk."

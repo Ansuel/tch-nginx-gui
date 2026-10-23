@@ -10,6 +10,7 @@
 - Add an installable OpenVPN extension with server/client tabs, dynamically discovered isolated Wi-Fi SSIDs for optional client routing, profile export, TUN/runtime safety checks and a state-coupled WAN firewall rule
 - Add a standalone Asterisk PBX card for SIP accounts and status, with guarded Voipblock integration
 - Integrate Adblock, rsyncd, Ookla Speedtest and AdGuard Home in the Extensions card
+- Show Ookla Speedtest progress and results live in the terminal modal, keeping it active until the test completes and reporting failures
 - Add a pinned and checksum-verified OpenSpeedTest LAN/Wi-Fi server on port 5678
 - Detect ARM-only extensions and keep AdGuard Home isolated from dnsmasq during first-run setup
 - Add a pinned, checksum-verified WireGuard userspace runtime with kernel-TUN capability gating and no automatic network or firewall changes

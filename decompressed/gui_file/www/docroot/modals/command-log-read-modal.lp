@@ -4,6 +4,11 @@
 gettext.textdomain('webui-core')
 
 local ui_helper = require("web.ui_helper")
+local labels = require("dkjson").encode({
+        Requested = T"Executing",
+        Complete = T"Complete",
+        login = T"Login Required",
+})
 
 local header = '<span id="header_title">'..T"Executing"..'</span><span id="show_progress"></span>'
 
@@ -34,6 +39,7 @@ ngx.print('\
   </form>\
 </div>\
   <script>\
+        var commandLogLabels = ' .. labels .. ';\
         var requestInProgress = false;\
         var CommandLogReadRefresh = function CommandLogReadRefresh(ElementBinding) {\
                 $(".modal-footer,.modal-action-close").hide();\
@@ -47,7 +53,8 @@ ngx.print('\
                         .done(function(data) {\
                                 ElementBinding.log(data.log);\
                                 var header_text = $("#header_title").text();\
-                                if (header_text != data.state) $("#header_title").text(data.state);\
+                                var state_text = commandLogLabels[data.state] || data.state;\
+                                if (header_text != state_text) $("#header_title").text(state_text);\
                                 $("#show_progress").text($("#show_progress").text().replace(/[\\.]{10}/g, ""));\
                                 $("#show_progress").append(".");\
                                 if(data.state == "Complete"){\
@@ -59,7 +66,7 @@ ngx.print('\
                         })\
                         .fail(function(data) {\
                                 if(data.status==200 && data.responseText.indexOf("sign-me-in") !== -1){\
-                                        $("#header_title").text("Login Required");\
+                                        $("#header_title").text(commandLogLabels.login);\
                                         $("#show_progress").text("");\
                                         $(".modal-footer").show();\
                                         $(".modal-footer,.modal-action-close").show();\

@@ -27,7 +27,9 @@ if action[string.untaint(data.state)] then
 else
 	local file = io.open("/tmp/command_log","r")
 	if file then
-		data["log"] = file:read('*a')
+		-- CLI progress rewrites the current line with a carriage return.
+		-- Normalize it before sending it to the plain-text terminal viewer.
+		data["log"] = (file:read('*a') or ""):gsub("\r\n", "\n"):gsub("[^\r\n]*\r", "")
 		file:close()
 	end
 end

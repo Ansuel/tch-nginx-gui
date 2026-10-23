@@ -1383,11 +1383,29 @@ app_speedtest() {
       echo "Speedtest is already running"
       return 1
     fi
-    (
-      "$speedtest_bin" --accept-license --accept-gdpr --format=human-readable > /tmp/speedtest-result.txt 2>&1
-      rm -f /tmp/speedtest.pid
-    ) &
-    echo $! > /tmp/speedtest.pid
+    # Keep the wrapper alive until Ookla finishes, streaming the same output
+    # to its terminal log and the saved result. A FIFO preserves Ookla's exit
+    # status on BusyBox ash, where a tee pipeline would hide test failures.
+    speedtest_run="/tmp/speedtest-run.$$"
+    mkdir -m 700 "$speedtest_run" || return 1
+    mkfifo "$speedtest_run/output" || {
+      rmdir "$speedtest_run"
+      return 1
+    }
+    tee /tmp/speedtest-result.txt < "$speedtest_run/output" &
+    speedtest_tee_pid=$!
+    "$speedtest_bin" --accept-license --accept-gdpr --format=human-readable \
+      --progress=yes --progress-update-interval=1000 > "$speedtest_run/output" 2>&1 &
+    speedtest_pid=$!
+    echo "$speedtest_pid" > /tmp/speedtest.pid
+    wait "$speedtest_pid"
+    speedtest_status=$?
+    wait "$speedtest_tee_pid"
+    speedtest_tee_status=$?
+    rm -f /tmp/speedtest.pid "$speedtest_run/output"
+    rmdir "$speedtest_run"
+    [ "$speedtest_status" -eq 0 ] || return "$speedtest_status"
+    return "$speedtest_tee_status"
     ;;
   stop)
     if speedtest_process_is_running; then
