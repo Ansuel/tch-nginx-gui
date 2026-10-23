@@ -52,6 +52,42 @@ purge_telemetry() { #disable TIM telemetry services
   fi
 }
 
+purge_default_services() {
+  # Only disable the factory iPerf server. Preserve custom configurations
+  # and skip firmware without a readable factory baseline or this UCI flag.
+  if [ -x /etc/init.d/iperf ] && [ "$(uci -q get iperf.iperf.enabled)" = "1" ] &&
+    [ -f /rom/etc/config/iperf ] &&
+    cmp -s /etc/config/iperf /rom/etc/config/iperf &&
+    cmp -s /etc/init.d/iperf /rom/etc/init.d/iperf; then
+    logecho "Disabling factory iperf server..."
+    # Some old stop scripts only kill the server while enabled is still 1.
+    /etc/init.d/iperf stop || return 1
+    /etc/init.d/iperf disable || return 1
+    uci set iperf.iperf.enabled='0' || return 1
+    uci commit iperf || return 1
+  fi
+
+  # The stock xl2tpd init starts even with no LAC/LNS configured. Leave
+  # customized servers, netifd L2TP clients and the VPN extension untouched.
+  [ -x /etc/init.d/xl2tpd ] || return 0
+  [ -f /rom/etc/xl2tpd/xl2tpd.conf ] || return 0
+  cmp -s /etc/init.d/xl2tpd /rom/etc/init.d/xl2tpd || return 0
+  cmp -s /etc/xl2tpd/xl2tpd.conf /rom/etc/xl2tpd/xl2tpd.conf || return 0
+  [ ! -f /etc/.modgui-l2tp-ipsec-installed ] || return 0
+  [ ! -e /etc/init.d/l2tp-ipsec-server ] || return 0
+  [ ! -e /etc/init.d/modgui-ipsec ] || return 0
+  if grep -Eiq '^[[:space:]]*\[(lac|lns)([[:space:]]|\])' /etc/xl2tpd/xl2tpd.conf; then
+    return 0
+  fi
+  default_services_network="$(uci -q show network)" || return 0
+  if printf '%s\n' "$default_services_network" | grep -Eq "\\.proto='?(l2tp|l2tpv2|l2tpv3)'?$"; then
+    return 0
+  fi
+  logecho "Disabling unconfigured factory xl2tpd..."
+  /etc/init.d/xl2tpd stop || return 1
+  /etc/init.d/xl2tpd disable
+}
+
 firewall_specific_sip_rules_FASTWEB() {
   if [ -n "$(uci get -q firewall.Allow_restricted_sip_1.name)" ]; then
     logecho "Adding firewall rules for Fastweb VoIP..."
@@ -349,6 +385,7 @@ autodetect_isp() { #Detect ISP based on cwmp or wan settings (Italian only)
 
 isp_helper() {
   purge_telemetry
+  purge_default_services
   if [ "$1" = "refresh" ]; then
     autodetect_isp
     setup_ISP "$(uci get -q modgui.var.isp)"
