@@ -50,16 +50,16 @@ if ngx.ctx.session:hasAccess("/modals/tailscale-modal.lp") then modal_path = "/m
 
 ngx.print('<div class="span3" id="tailscale-card"><div class="smallcard">')
 ngx.print(ui_helper.createCardHeader(T"Tailscale", modal_path))
-ngx.print('<div class="content card_bg" data-bg-text="&#xf0c2;">')
+ngx.print('<div class="content card_bg" data-bg-text="&#xf0c2;"><div class="divtable">')
 ngx.print('<p class="subinfos">', T"Service", ': <strong>', content.enabled == "1" and T"Enabled" or T"Disabled", '</strong></p>')
 ngx.print(
-  '<p class="subinfos tailscale-card-status">',
+  '<div class="subinfos tailscale-card-status">',
   ui_helper.createSimpleLight(
     online,
     state_text,
     { span = { class = "simple-desc tailscale-status-light" } }
   ),
-  '</p>'
+  '</div>'
 )
 if status.ip and status.ip ~= "" then
   ngx.print('<p class="subinfos">', T"Tailscale IP", ': <strong>', escape(status.ip), '</strong></p>')
@@ -70,7 +70,7 @@ end
 if content.advertise_exit_node == "1" then
   ngx.print('<p class="subinfos">', T"Exit node advertised", '</p>')
 end
-ngx.print('</div></div></div>')
+ngx.print('</div></div></div></div>')
 
 if modal_path then
 ngx.print([===[

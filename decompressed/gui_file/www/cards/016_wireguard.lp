@@ -47,15 +47,15 @@ if ngx.ctx.session:hasAccess("/modals/wireguard-modal.lp") then modal_path = "/m
 
 ngx.print('<div class="span3" id="wireguard-card"><div class="smallcard">')
 ngx.print(ui_helper.createCardHeader(T"WireGuard", modal_path))
-ngx.print('<div class="content card_bg" data-bg-text="&#xf084;">')
+ngx.print('<div class="content card_bg" data-bg-text="&#xf084;"><div class="divtable">')
 ngx.print(
-  '<p class="subinfos wireguard-card-status">',
+  '<div class="subinfos wireguard-card-status">',
   ui_helper.createSimpleLight(
     light,
     state_text,
     { span = { class = "simple-desc wireguard-status-light" } }
   ),
-  '</p>'
+  '</div>'
 )
 if status.ip and status.ip ~= "" then
   ngx.print('<p class="subinfos">', T"Tunnel address", ': <strong>', escape(status.ip), '</strong></p>')
@@ -63,7 +63,7 @@ end
 ngx.print('<p class="subinfos">')
 ngx.print(format(N("<strong>%d of %d peer</strong> active", "<strong>%d of %d peers</strong> active", peers), live, peers))
 ngx.print('</p>')
-ngx.print('</div></div></div>')
+ngx.print('</div></div></div></div>')
 
 if modal_path then
 ngx.print([===[

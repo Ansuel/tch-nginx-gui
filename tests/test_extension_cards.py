@@ -1,11 +1,37 @@
 """Render live extension cards and check their shared polling clients."""
 from pathlib import Path
+from html.parser import HTMLParser
 import shutil
 import subprocess
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 CARDS = ROOT / 'decompressed/gui_file/www/cards'
+
+
+class CardLayers(HTMLParser):
+    """Every visible card value must belong to the existing foreground layer."""
+    def __init__(self):
+        super().__init__()
+        self.stack = []
+        self.foreground = False
+
+    def handle_starttag(self, tag, attrs):
+        classes = dict(attrs).get('class', '').split()
+        if tag == 'div' and any(item[0] == 'p' for item in self.stack):
+            raise AssertionError('Block indicator inside a paragraph changes browser layout')
+        if 'divtable' in classes:
+            assert self.stack[-1][1] == ['content', 'card_bg']
+            self.foreground = True
+        self.stack.append((tag, classes))
+
+    def handle_endtag(self, tag):
+        assert self.stack[-1][0] == tag, (tag, self.stack)
+        self.stack.pop()
+
+    def handle_data(self, text):
+        if text.strip() and any('content' in classes for _, classes in self.stack):
+            assert any('divtable' in classes for _, classes in self.stack), text
 
 
 class ExtensionCards(unittest.TestCase):
@@ -36,7 +62,7 @@ ngx = {ctx = {session = {hasAccess = function() return arg[4] == "yes" end}},
  print = function(...) for _, value in ipairs({...}) do output[#output + 1] = tostring(value) end end}
 package.preload["web.ui_helper"] = function() return {
  createCardHeader = function(title) return title end,
- createSimpleLight = function(_, text) return '<span><i class="light"></i>' .. text .. '</span>' end
+ createSimpleLight = function(_, text) return '<span><div class="light"></div>' .. text .. '</span>' end
 } end
 package.preload["web.content_helper"] = function() return {getExactContent = function(content)
  for key in pairs(content) do content[key] = "" end
@@ -55,5 +81,10 @@ assert(html:find(arg[5], 1, true))
 assert(not html:find('<unsafe>', 1, true))
 if arg[2] ~= "openvpn" and arg[3] == "1" then assert(html:find('&lt;unsafe&gt;&amp;', 1, true)) end
 assert((html:find('new modgui.createAjaxUpdateCard(', 1, true) ~= nil) == (arg[4] == "yes"))
+io.write((html:gsub('<script>.-</script>', '')))
 ''', text=True, capture_output=True, timeout=5)
                         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                        layers = CardLayers()
+                        layers.feed(result.stdout)
+                        self.assertTrue(layers.foreground)
+                        self.assertEqual(layers.stack, [])

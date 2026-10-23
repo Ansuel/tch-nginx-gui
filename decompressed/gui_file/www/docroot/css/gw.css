@@ -3943,8 +3943,8 @@ button.btn.btn-mini, input[type="submit"].btn.btn-mini {
 	margin-top: 0;
 	margin-right: 5px
 }
-.smallcard .content p.subinfos.tailscale-card-status,
-.smallcard .content p.subinfos.wireguard-card-status {
+.smallcard .content .subinfos.tailscale-card-status,
+.smallcard .content .subinfos.wireguard-card-status {
 	display: flex;
 	flex-flow: row nowrap;
 	align-items: center;
