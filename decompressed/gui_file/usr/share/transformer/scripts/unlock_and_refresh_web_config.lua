@@ -12,6 +12,7 @@ local function contains(elem, tbl)
 	local v
 	
 	if not tbl then
+		new_rule = true
 		return nil
 	end
 	
@@ -31,8 +32,12 @@ local ruleset={}
 --Pupulate ruleset table with ruleset from config
 uci:foreach('web', 'ruleset', function(s)
 	if s['.name'] == 'ruleset_main' then
-		for _ , s in pairs(s.rules) do
-			ruleset[#ruleset+1] = s
+		if type(s.rules) == 'table' then
+			for _, rule in ipairs(s.rules) do
+				ruleset[#ruleset+1] = rule
+			end
+		elseif type(s.rules) == 'string' then
+			ruleset[#ruleset+1] = s.rules
 		end
 	end
   end)
@@ -109,10 +114,16 @@ local telstra_check_rule = {
 
 --Check every element in table
 for _ , elem in pairs(check_rule) do
-	if not contains(elem.name, ruleset) then
+	local listed = contains(elem.name, ruleset)
+	-- A ruleset entry alone does not grant access: repair missing or stale
+	-- rule sections too, otherwise hasAccess hides the tab and returns 404.
+	if uci:get('web', elem.name) ~= 'rule' or
+		uci:get('web', elem.name, 'target') ~= elem.target then
 		uci:set('web', elem.name ,'rule')
 		uci:set('web', elem.name , 'target', elem.target)
-		uci:set('web', elem.name , 'roles', {'admin','engineer'})
+		new_rule = true
+	end
+	if not listed then
 		ruleset[#ruleset+1] = elem.name
 	end
 end
