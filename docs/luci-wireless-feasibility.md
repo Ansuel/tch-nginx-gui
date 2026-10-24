@@ -186,3 +186,22 @@ The temporary boot service, scripts, generated keys and backups were removed.
 No additional activation cycle was performed after automatic approval review
 rejected it as exceeding the single retry. Client association, throughput,
 deliberate channel/width changes and other MIPS models remain unverified.
+
+### Creation after external UCI cleanup
+
+Legacy Transformer's named UCI mapper checks its cached `mapping.instances`
+when adding an interface or AP. External section deletion does not itself
+refresh that cache; enumerating the mapping reloads it. The adapter now calls
+`getPN(..., true)` on both native mappings before adding either section, so
+reusing an externally removed name does not depend on a prior GUI read.
+Regression tests model stale names on consecutive creations and verify refresh
+ordering, failure cleanup, and that diagnostics never return raw exceptions or
+submitted keys. Creation failures now identify the failing operation.
+
+This change addresses a concrete possible cause of the reported generic
+creation error. The user's Enabled-form failure was not reproduced directly:
+after native enumeration, the authorized disabled-network probe succeeded and
+was removed; the wireless file remained identical to its backup. The updated
+backend was installed on the TG788vn v2 and parsed with its Lua 5.1 interpreter;
+37 focused local tests passed. Confirmation of the originally failing form
+submission is still required.

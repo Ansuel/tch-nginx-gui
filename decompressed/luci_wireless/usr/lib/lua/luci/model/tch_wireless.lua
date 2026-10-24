@@ -381,9 +381,17 @@ function M.create(snapshot, data, cursor, proxy, async)
   local iface_path = "uci.wireless.wifi-iface.@" .. sid .. "."
   local ap_path = "uci.wireless.wifi-ap.@" .. ap .. "."
   local added = {}
+  local stage = "refreshing wireless interfaces"
   local ok = pcall(function()
+    -- Legacy Transformer rejects reused names kept in mapping.instances even
+    -- after an external UCI deletion. Enumerating refreshes both named maps.
+    assert(type(proxy.getPN("uci.wireless.wifi-iface.", true)) == "table")
+    stage = "refreshing access points"
+    assert(type(proxy.getPN("uci.wireless.wifi-ap.", true)) == "table")
+    stage = "adding wireless interface"
     assert(proxy.add("uci.wireless.wifi-iface.", sid) == sid)
     added[#added + 1] = iface_path
+    stage = "adding access point"
     assert(proxy.add("uci.wireless.wifi-ap.", ap) == ap)
     added[#added + 1] = ap_path
     local values = {}
@@ -394,18 +402,25 @@ function M.create(snapshot, data, cursor, proxy, async)
       wps_state = "0", wsc_state = "configured", acl_mode = "disabled", bandsteer_id = "off"}
     for k, v in pairs(iface) do values[iface_path .. k] = v end
     for k, v in pairs(accesspoint) do values[ap_path .. k] = v end
+    stage = "saving wireless settings"
     assert(proxy.set(values))
+    stage = "applying wireless settings"
     assert(proxy.apply())
   end)
   if not ok then
+    if #added == 0 then
+      return nil, "Could not create network (" .. stage .. "); no new sections created"
+    end
     local cleaned = true
     for i = #added, 1, -1 do
       local success, result = pcall(proxy.del, added[i])
       cleaned = success and result and cleaned
     end
     local success, result = pcall(proxy.apply)
-    return nil, cleaned and success and result and "Could not create network; new sections removed" or
-      "Could not create network; check wireless configuration for incomplete sections"
+    -- Never include the raw exception: vendor errors can contain a submitted key.
+    local message = "Could not create network (" .. stage .. "); "
+    return nil, message .. (cleaned and success and result and "new sections removed" or
+      "check wireless configuration for incomplete sections")
   end
   return sid
 end
