@@ -17,7 +17,7 @@ move_env_var() {
 			for value in $(eval 'echo $'"$part"_entities); do
 				uci_val="$(uci get -q env.var.$value)"
 				if [ -n "$uci_val" ]; then
-					uci set modgui.$part.$value=$uci_val
+					uci set "modgui.$part.$value=$uci_val"
 					uci delete env.var.$value
 				fi
 			done

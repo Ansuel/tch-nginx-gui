@@ -32,22 +32,24 @@ fi
 #Restore Wifi LED(s) status
 connected_wl0=0
 connected_wl1=0
-num_dev=$(transformer-cli get rpc.hosts.HostNumberOfEntries | cut -d= -f 2)
-i=0
-while [ "$num_dev" ] && [ "$num_dev" -gt 0 ]; do
-    if [ "$(transformer-cli get rpc.hosts.host.$i. | grep 'ERROR')" ]; then
-        i=$((i+1))
-    else
-        num_dev=$((num_dev-1))
-        if [ "$(transformer-cli get rpc.hosts.host.$i.State | grep '= 1')" ]; then
-            if [ "$(transformer-cli get rpc.hosts.host.$i.L2Interface | grep '= wl0')" ]; then
-                connected_wl0=$((connected_wl0+1))
-            elif [ "$(transformer-cli get rpc.hosts.host.$i.L2Interface | grep '= wl1')" ]; then
-                connected_wl1=$((connected_wl1+1))
-            fi
-        fi
-    fi
-done
+# Query one snapshot: the mapping may be unavailable during installation and
+# instance numbers can have gaps. Never use an error response as a host count.
+hosts=$(transformer-cli get rpc.hosts.host.)
+while read -r path type separator value; do
+    case "$path:$value" in
+        rpc.hosts.host.*.State:1) ;;
+        *) continue ;;
+    esac
+
+    host=${path%.State}
+    interface=$(printf '%s\n' "$hosts" | grep -F "$host.L2Interface " | cut -d= -f2 | tr -d '[:space:]')
+    case "$interface" in
+        wl0) connected_wl0=$((connected_wl0+1)) ;;
+        wl1) connected_wl1=$((connected_wl1+1)) ;;
+    esac
+done <<EOF
+$hosts
+EOF
 
 for i in 0 1
 do

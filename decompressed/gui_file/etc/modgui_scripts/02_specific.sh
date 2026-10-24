@@ -18,7 +18,10 @@ extract_with_check() {
       continue
     fi
 
-    grep -q '.md5sum' "$file" && continue
+    # Check the archive entry name, not a file relative to the caller's cwd.
+    case "$file" in
+      *.md5sum) continue ;;
+    esac
 
     orig_file=/$file
     file=$MD5_CHECK_DIR/$file
