@@ -95,6 +95,7 @@ local function is_service_ok()
         if (voiceEnabled == "0") or (profileEnabled == "0") then
             ignorevoip = true
         end
+        x:close()
     end
 
 	local lcur=uci.cursor()
@@ -102,25 +103,23 @@ local function is_service_ok()
     lcur:load(ledcfg)
 	local ledfw=lcur:get_all(ledcfg)
 
-    for k, v in pairs(services) do
+    -- Some firmware enables the IPTV check even without an IPTV interface.
+    -- Check configured services, not whether they are currently up: an actual
+    -- IPTV outage must still make the status LED red. Keep the user's check
+    -- setting intact so it applies again if IPTV is configured later.
+    local iptv_itf = lcur:get(ledcfg, 'iptv', 'itf') or 'iptv'
+    local iptv_config = lcur:get_all('network', iptv_itf)
+    local ignoreiptv = not iptv_config or iptv_config['.type'] ~= 'interface'
+        or iptv_config.auto == '0' or iptv_config.enabled == '0'
 
-        if v== false then
-            if tostring(k) == "voip" and (ledfw == nil or ledfw[k]==nil or ledfw[k]['check']==nil or ledfw[k]['check']=='1') then
-                if ignorevoip == false then
-                      service_ok = false
-                break
-                end
-            else
-               if (ledfw == nil or ledfw[k]==nil or ledfw[k]['check']==nil or ledfw[k]['check']=='1') then
-                  service_ok = false  -- If at least one service is nok then the status led should be red
-                  break
-               end
-            end
-       else
-    	   if (ledfw[k]['check']=='1') then
-    	       service_ok = true
-    	   end
-    	end
+    for k, v in pairs(services) do
+        local config = ledfw and ledfw[k]
+        local checked = not config or config.check == nil or config.check == '1'
+        local ignored = (k == 'voip' and ignorevoip) or (k == 'iptv' and ignoreiptv)
+        if v == false and checked and not ignored then
+            service_ok = false
+            break
+        end
     end
 
 	lcur:close()
